@@ -1,0 +1,49 @@
+.guide-section {
+    margin-bottom: 18px;
+}
+
+.guide-section-header h3 {
+    margin: 0 0 10px;
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--fa-gold, #d4a744);
+    border-bottom: 1px solid var(--fa-border, rgba(212, 167, 68, 0.12));
+    padding-bottom: 8px;
+}
+
+.guide-section-body {
+    display: grid;
+    grid-template-columns: var(--explanation-pct) 1fr;
+    gap: 16px;
+    align-items: start;
+}
+
+.guide-section-explanation {
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: var(--fa-text-muted, #9a9586);
+}
+
+.guide-section-explanation ol,
+.guide-section-explanation ul {
+    margin: 0.5em 0;
+    padding-left: 1.25em;
+}
+
+.guide-section-explanation li {
+    margin-bottom: 0.35em;
+}
+
+.guide-section-data {
+    background: var(--fa-bg-inset, rgba(10, 12, 24, 0.6));
+    border: 1px solid var(--fa-border, rgba(212, 167, 68, 0.12));
+    border-radius: 8px;
+    padding: 12px;
+    min-width: 0;
+}
+
+@media (max-width: 768px) {
+    .guide-section-body {
+        grid-template-columns: 1fr;
+    }
+}

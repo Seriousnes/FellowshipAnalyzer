@@ -1,0 +1,85 @@
+@using System.Text.RegularExpressions
+@inject NavigationManager Navigation
+
+<div class="report-selector">
+    <div class="input-wrapper">
+        <input type="text"
+               class="report-input"
+               placeholder="https://www.fellowshiplogs.com/reports/<report code>"
+               autocorrect="off"
+               autocapitalize="off"
+               spellcheck="false"
+               value="@_reportInput"
+               @oninput="HandleInput"
+               @onkeydown="HandleKeyDown" />
+    </div>
+    <button type="button" class="analyze-btn" @onclick="Submit">
+        Analyze
+    </button>
+</div>
+
+@code {
+    private string _reportInput = "";
+
+    private void HandleInput(ChangeEventArgs e)
+    {
+        _reportInput = e.Value?.ToString() ?? "";
+
+        // Auto-navigate when a URL-like value is entered (bare codes never contain '/')
+        if (_reportInput.Contains('/'))
+        {
+            var url = BuildUrl(_reportInput);
+            if (url is not null)
+            {
+                Navigation.NavigateTo(url);
+            }
+        }
+    }
+
+    private void HandleKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            Submit();
+        }
+    }
+
+    private void Submit()
+    {
+        var url = BuildUrl(_reportInput);
+        if (url is not null)
+        {
+            Navigation.NavigateTo(url);
+        }
+    }
+
+    private static string? BuildUrl(string value)
+    {
+        var code = ExtractReportCode(value);
+        if (code is null) return null;
+
+        var fight = ExtractQueryParam(value, "fight");
+        var player = ExtractQueryParam(value, "source");
+
+        var segments = new[] { code, fight, player }
+            .Where(s => !string.IsNullOrEmpty(s));
+
+        return "/report/" + string.Join("/", segments);
+    }
+
+    private static string? ExtractReportCode(string input)
+    {
+        // Matches:
+        //   - bare 16-char alphanumeric code
+        //   - full URL with /reports/ prefix
+        var match = Regex.Match(input.Trim(),
+            @"^(?:.*reports\/)?([a-zA-Z0-9]{16})(?:[\/\?#].*)?$");
+        return match.Success ? match.Groups[1].Value : null;
+    }
+
+    private static string? ExtractQueryParam(string input, string paramName)
+    {
+        var match = Regex.Match(input.Trim(), $@"{paramName}=([^&#]*)");
+        return match.Success ? match.Groups[1].Value : null;
+    }
+}

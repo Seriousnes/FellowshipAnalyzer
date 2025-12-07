@@ -1,0 +1,172 @@
+.analysis-page {
+    padding: 2rem 0;
+}
+
+.hero-panel,
+.status-panel,
+.fights-section {
+    border: 1px solid var(--fa-border-card);
+    background: var(--fa-bg-card);
+    box-shadow: var(--fa-shadow-card);
+}
+
+.hero-panel {
+    border-radius: var(--fa-radius-lg);
+    padding: 1.75rem;
+    margin-bottom: 1.5rem;
+}
+
+.eyebrow {
+    margin: 0 0 0.4rem;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--fa-gold);
+}
+
+h1 {
+    margin: 0;
+    font-size: clamp(1.8rem, 4vw, 2.6rem);
+    line-height: 1.1;
+}
+
+.lede {
+    max-width: 40rem;
+    color: var(--fa-text-muted);
+}
+
+.fights-section {
+    border-radius: var(--fa-radius-lg);
+    padding: 1.5rem;
+}
+
+.fights-section h2 {
+    margin-top: 0;
+    font-size: 1.15rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--fa-gold);
+}
+
+.fight-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+}
+
+.fight-card {
+    border: 1px solid var(--fa-border);
+    border-radius: var(--fa-radius-sm);
+    background: var(--fa-bg-inset);
+    overflow: hidden;
+    transition: border-color 0.15s;
+}
+
+.fight-card[open] {
+    border-color: var(--fa-border-card);
+}
+
+.fight-card summary {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.75rem 1rem;
+    cursor: pointer;
+    list-style: none;
+    transition: background 0.12s;
+}
+
+.fight-card summary:hover {
+    background: rgba(212, 167, 68, 0.04);
+}
+
+.fight-card summary::-webkit-details-marker {
+    display: none;
+}
+
+.fight-name {
+    flex: 1;
+    font-weight: 600;
+}
+
+.fight-status {
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.fight-status.kill {
+    background: rgba(86, 214, 123, 0.14);
+    color: var(--fa-perf-perfect);
+}
+
+.fight-status.wipe {
+    background: rgba(212, 86, 74, 0.14);
+    color: var(--fa-perf-fail);
+}
+
+.fight-duration {
+    color: var(--fa-text-dim);
+    font-size: 0.85rem;
+    font-variant-numeric: tabular-nums;
+}
+
+.player-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 0.5rem;
+    padding: 0.75rem 1rem 1rem;
+    border-top: 1px solid var(--fa-border);
+}
+
+.player-card {
+    display: flex;
+    flex-direction: column;
+    padding: 0.6rem 0.8rem;
+    border: 1px solid var(--fa-border);
+    border-radius: 6px;
+    background: var(--fa-bg-raised);
+    color: var(--fa-text);
+    text-decoration: none;
+    transition: border-color 0.15s, background 0.15s, transform 0.1s;
+}
+
+.player-card:hover {
+    border-color: var(--fa-gold);
+    background: var(--fa-bg-surface);
+    transform: translateY(-1px);
+}
+
+.player-name {
+    font-weight: 600;
+}
+
+.player-class {
+    font-size: 0.8rem;
+    color: var(--fa-gold);
+}
+
+.player-server {
+    font-size: 0.75rem;
+    color: var(--fa-text-dim);
+}
+
+.status-panel {
+    border-radius: var(--fa-radius-lg);
+    padding: 1.25rem;
+}
+
+.status-panel.error {
+    color: #f5b8a8;
+    border-color: rgba(212, 86, 74, 0.35);
+}
+
+@media (max-width: 720px) {
+    .analysis-page {
+        padding: 1rem 0;
+    }
+}

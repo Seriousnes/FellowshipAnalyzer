@@ -1,0 +1,109 @@
+@page "/report/{ReportCode}"
+@using FellowshipAnalyzer.Core.FellowshipLogs
+@using System.Text.Json
+@inject HttpClient Http
+@inject JsonSerializerOptions JsonOptions
+@inject NavigationManager Navigation
+
+<PageTitle>Report — @ReportCode</PageTitle>
+
+<div class="analysis-page">
+    <section class="hero-panel">
+        <div>
+            <p class="eyebrow">Combat Report</p>
+            <h1>@(_report?.Title ?? ReportCode)</h1>
+            <p class="lede">Select a fight and player to analyze.</p>
+        </div>
+    </section>
+
+    @if (_isLoading)
+    {
+        <section class="status-panel">Loading report data...</section>
+    }
+    else if (!string.IsNullOrWhiteSpace(_error))
+    {
+        <section class="status-panel error">@_error</section>
+    }
+    else if (_report is not null)
+    {
+        <section class="fights-section">
+            <h2>Fights</h2>
+            <div class="fight-list">
+                @foreach (var fight in _report.Fights)
+                {
+                    <details class="fight-card @(fight.Kill == true ? "kill" : "wipe")" open="@(_report.Fights.Count == 1)">
+                        <summary>
+                            <span class="fight-name">@fight.Name</span>
+                            <span class="fight-status @(fight.Kill == true ? "kill" : "wipe")">
+                                @(fight.Kill == true ? "Kill" : "Wipe")
+                            </span>
+                            <span class="fight-duration">@FormatDuration(fight.EndTime - fight.StartTime)</span>
+                        </summary>
+
+                        <div class="player-grid">
+                            @foreach (var player in GetPlayersForFight(fight))
+                            {
+                                <a class="player-card" href="@($"/report/{ReportCode}/{fight.Id}/{player.Id}")">
+                                    <span class="player-name">@player.Name</span>
+                                    <span class="player-class">@(player.SubType ?? "Unknown")</span>
+                                    @if (player.Server is not null)
+                                    {
+                                        <span class="player-server">@player.Server</span>
+                                    }
+                                </a>
+                            }
+                        </div>
+                    </details>
+                }
+            </div>
+        </section>
+    }
+</div>
+
+@code {
+    [Parameter] public string ReportCode { get; set; } = "";
+
+    private FellowshipLogsReportInfo? _report;
+    private bool _isLoading = true;
+    private string? _error;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            _report = await Http.GetFromJsonAsync<FellowshipLogsReportInfo>(
+                $"/api/report/{Uri.EscapeDataString(ReportCode)}", JsonOptions);
+        }
+        catch (Exception exception)
+        {
+            _error = exception.Message;
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private IEnumerable<FellowshipLogsActor> GetPlayersForFight(FellowshipLogsFight fight)
+    {
+        if (_report is null) return [];
+
+        var players = _report.Actors.Where(a =>
+            string.Equals(a.Type, "Player", StringComparison.OrdinalIgnoreCase));
+
+        if (fight.FriendlyPlayers is { Count: > 0 } friendlies)
+        {
+            players = players.Where(a => friendlies.Contains(a.Id));
+        }
+
+        return players;
+    }
+
+    private static string FormatDuration(double milliseconds)
+    {
+        var ts = TimeSpan.FromMilliseconds(milliseconds);
+        return ts.TotalMinutes >= 1
+            ? $"{(int)ts.TotalMinutes}:{ts.Seconds:D2}"
+            : $"{ts.Seconds}s";
+    }
+}

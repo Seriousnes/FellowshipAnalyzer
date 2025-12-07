@@ -1,0 +1,90 @@
+@namespace FellowshipAnalyzer.Heroes.Rime.Guides
+@using FellowshipAnalyzer.Components
+@using FellowshipAnalyzer.Heroes.Rime.Analysis
+@inject RimeCombatLogParser Parser
+
+<GuideSection Title="Winter's Embrace Windows">
+    <Explanation>
+        <ol>
+            <li>Build Winter Orbs to at least 3 before casting <strong>Bursting Ice</strong>.</li>
+            <li>During the 3-second <strong>Winter's Embrace</strong> window, fit your spender (<strong>Glacial Blast</strong> for ST or <strong>Ice Comet</strong> for AoE) plus a finisher (<strong>Cold Snap</strong> or <strong>Freezing Torrent</strong>).</li>
+            <li>The ST combo is: <strong>Bursting Ice → Glacial Blast → Cold Snap</strong>.</li>
+            <li>AoE windows (those starting with Ice Comet) are excluded from the basic ST analysis.</li>
+        </ol>
+    </Explanation>
+    <ChildContent>
+        <CastOverview Title="Window Overview" Stats="@BuildOverviewStats()" />
+        <CastDetail Title="Winter's Embrace Windows"
+                    Description="Each window shows what was cast during the 3s Winter's Embrace buff."
+                    Casts="@BuildPerCastData()" />
+    </ChildContent>
+</GuideSection>
+
+@code {
+    private BasicStComboAnalyzer Analyzer => Parser.BasicStCombo!;
+
+    private IEnumerable<OverviewStat> BuildOverviewStats()
+    {
+        var total = Analyzer.EvaluatedWindows;
+        var successRate = total > 0 ? (int)Math.Round((double)Analyzer.SuccessfulWindows / total * 100) : 0;
+
+        return
+        [
+            new OverviewStat(
+                $"{Analyzer.EvaluatedWindows}",
+                "Windows",
+                "Total Winter's Embrace windows evaluated (AoE excluded)."),
+            new OverviewStat(
+                $"{successRate}%",
+                "Success Rate",
+                $"{Analyzer.SuccessfulWindows} successful / {total} evaluated.",
+                successRate >= 75 ? PerformanceTier.Perfect
+                    : successRate >= 50 ? PerformanceTier.Good
+                    : successRate >= 25 ? PerformanceTier.Ok
+                    : PerformanceTier.Fail),
+            new OverviewStat(
+                $"{Analyzer.PartialWindows}",
+                "Partial",
+                "Windows where Glacial Blast was cast first but the finisher was suboptimal.",
+                Analyzer.PartialWindows == 0 ? PerformanceTier.Perfect : PerformanceTier.Ok),
+        ];
+    }
+
+    private IEnumerable<PerCastData> BuildPerCastData()
+    {
+        return Analyzer.Windows.Select(window =>
+        {
+            var perf = window.Successful ? PerformanceTier.Perfect
+                : window.Partial ? PerformanceTier.Ok
+                : PerformanceTier.Fail;
+
+            var stats = new[]
+            {
+                new PerCastStat(
+                    window.Outcome,
+                    "Outcome",
+                    Performance: perf),
+                new PerCastStat(
+                    $"{window.CastsInWindow.Count}",
+                    "Spells Cast",
+                    "Total spells cast during this Winter's Embrace window."),
+                new PerCastStat(
+                    $"{window.EndTimestamp - window.StartTimestamp}ms",
+                    "Duration",
+                    "Window duration in milliseconds."),
+            };
+
+            var sequence = window.CastsInWindow
+                .Select(c => new SpellCastEntry(c.AbilityId))
+                .ToArray();
+
+            return new PerCastData
+            {
+                Performance = perf,
+                Stats = stats,
+                Timestamp = Parser.FormatTimestamp(window.StartTimestamp),
+                Sequence = sequence,
+            };
+        });
+    }
+}

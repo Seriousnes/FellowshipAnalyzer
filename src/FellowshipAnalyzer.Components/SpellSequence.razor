@@ -1,0 +1,27 @@
+@* SpellSequence — horizontal filmstrip of spell-name text badges *@
+
+<div class="spell-sequence">
+    @foreach (var cast in Casts)
+    {
+        var color = cast.Performance.HasValue
+            ? PerformanceColors.ToColor(cast.Performance.Value)
+            : "rgba(255, 255, 255, 0.6)";
+
+        <span class="spell-badge @SizeClass" style="border-color: @(color)60; color: @color;"
+              title="@cast.Tooltip">
+              <SpellIcon SpellId="cast.SpellId" />
+        </span>
+    }
+</div>
+
+@code {
+    [Parameter] public IEnumerable<SpellCastEntry> Casts { get; set; } = [];
+    [Parameter] public SpellBadgeSize Size { get; set; } = SpellBadgeSize.Medium;
+
+    private string SizeClass => Size switch
+    {
+        SpellBadgeSize.Small => "badge-sm",
+        SpellBadgeSize.Large => "badge-lg",
+        _ => "badge-md",
+    };
+}

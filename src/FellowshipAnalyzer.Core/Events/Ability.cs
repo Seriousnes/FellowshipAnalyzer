@@ -1,0 +1,26 @@
+using System.Diagnostics;
+using System.Text.Json.Serialization;
+
+namespace FellowshipAnalyzer.Core.Events;
+
+public interface ISpell
+{
+    int Id { get; }
+    int Guid { get; }
+}
+
+[DebuggerDisplay("{Name,nq} - SpellId: {Guid}")]
+public record Ability : ISpell
+{
+    [JsonIgnore]
+    public virtual int Id { get => Guid; set => Guid = value; }
+
+    [JsonPropertyName("gameID")]
+    public virtual int Guid { get; set; }
+
+    public virtual string Name { get; set; } = string.Empty;
+
+    public virtual string Icon { get; set; } = string.Empty;
+
+    public virtual MagicSchool Type { get; set; }
+}

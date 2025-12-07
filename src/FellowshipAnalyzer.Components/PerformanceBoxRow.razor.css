@@ -1,0 +1,30 @@
+.perf-box-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px;
+    align-items: center;
+}
+
+.perf-box {
+    width: 16px;
+    height: 16px;
+    border-radius: 2px;
+    border: none;
+    padding: 0;
+    cursor: default;
+    transition: opacity 0.12s ease, transform 0.12s ease;
+}
+
+.perf-box.clickable {
+    cursor: pointer;
+}
+
+.perf-box.clickable:hover {
+    opacity: 0.85;
+    transform: scale(1.15);
+}
+
+.perf-box.perfect { background: var(--fa-perf-perfect, #56d67b); }
+.perf-box.good    { background: var(--fa-perf-good, #90cc60); }
+.perf-box.ok      { background: var(--fa-perf-ok, #d4a744); }
+.perf-box.fail    { background: var(--fa-perf-fail, #d4564a); }

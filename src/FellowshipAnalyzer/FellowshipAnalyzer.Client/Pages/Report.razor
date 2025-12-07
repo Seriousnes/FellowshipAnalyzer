@@ -1,0 +1,126 @@
+@page "/report/{ReportCode}/{FightId:int}/{PlayerId:int}"
+@using FellowshipAnalyzer.Core.Analysis
+@using FellowshipAnalyzer.Core.Events
+@using FellowshipAnalyzer.Core.FellowshipLogs
+@using Microsoft.Extensions.DependencyInjection
+@using System.Text.Json
+@inject HttpClient Http
+@inject JsonSerializerOptions JsonOptions
+@inject IServiceProvider ServiceProvider
+
+<PageTitle>Analysis Report</PageTitle>
+
+<div class="analysis-page">
+    <section class="hero-panel">
+        <div>
+            <p class="eyebrow">Combat Analysis</p>
+            <h1>@(_result is not null ? "Analysis Report" : "Loading...")</h1>
+            <p class="lede">Detailed analysis of combat performance from Fellowship Logs.</p>
+        </div>
+        <div class="hero-meta">
+            <span>Player @PlayerId</span>
+            <span>Report: @ReportCode</span>
+            <span>Fight: @FightId</span>
+        </div>
+    </section>
+
+    @if (_isLoading)
+    {
+        <ReportLoadingScreen Steps="@_loadingSteps" />
+    }
+    else if (!string.IsNullOrWhiteSpace(_error))
+    {
+        <section class="status-panel error">@_error</section>
+    }
+    else if (_result is not null)
+    {
+        @* Guide tab — render the hero's Guide.razor via DynamicComponent *@
+        <section class="guide-panel">
+            <DynamicComponent Type="@_result.GuideComponentType" />
+        </section>
+
+        @* Statistics tab — auto-collected from modules with StatisticsComponentType set *@
+        @if (_result.Statistics.Count > 0)
+        {
+            <section class="statistics-panel">
+                @foreach (var (module, componentType) in _result.Statistics)
+                {
+                    <CascadingValue Value="@module">
+                        <DynamicComponent Type="@componentType" />
+                    </CascadingValue>
+                }
+            </section>
+        }
+    }
+</div>
+
+@code {
+    [Parameter] public string ReportCode { get; set; } = "";
+    [Parameter] public int FightId { get; set; }
+    [Parameter] public int PlayerId { get; set; }
+
+    private HeroAnalysisResult? _result;
+    private bool _isLoading = true;
+    private string? _error;
+    private List<ReportLoadingScreen.LoadingStep> _loadingSteps = [];
+
+    protected override void OnInitialized()
+    {
+        _loadingSteps =
+        [
+            new("Fetching combat events from Fellowship Logs", ReportLoadingScreen.LoadingStepStatus.Loading),
+            new("Deserializing events", ReportLoadingScreen.LoadingStepStatus.Waiting),
+            new("Analyzing combat log", ReportLoadingScreen.LoadingStepStatus.Waiting),
+        ];
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var url = $"/api/events?reportCode={Uri.EscapeDataString(ReportCode)}&playerId={PlayerId}&fightId={FightId}";
+            var reportUrl = $"/api/report/{Uri.EscapeDataString(ReportCode)}";
+
+            // Fetch events and report info in parallel
+            var eventsTask = Http.GetByteArrayAsync(url);
+            var reportTask = Http.GetByteArrayAsync(reportUrl);
+            await Task.WhenAll(eventsTask, reportTask);
+
+            SetStep(0, ReportLoadingScreen.LoadingStepStatus.Ok);
+            SetStep(1, ReportLoadingScreen.LoadingStepStatus.Loading);
+
+            var events = JsonSerializer.Deserialize<List<Event>>(eventsTask.Result, JsonOptions) ?? [];
+            var reportInfo = JsonSerializer.Deserialize<FellowshipLogsReportInfo>(reportTask.Result, JsonOptions)
+                ?? throw new InvalidOperationException("Failed to deserialize report info.");
+
+            var fight = reportInfo.Fights.FirstOrDefault(f => f.Id == FightId)
+                ?? throw new InvalidOperationException($"Fight {FightId} not found in report.");
+
+            SetStep(1, ReportLoadingScreen.LoadingStepStatus.Ok);
+            SetStep(2, ReportLoadingScreen.LoadingStepStatus.Loading);
+
+            // TODO: Determine hero ID from player/report data.
+            // For now, default to "rime" as the only hero analyzer.
+            var heroId = "rime";
+            var analyzer = ServiceProvider.GetKeyedService<IHeroAnalyzer>(heroId)
+                ?? throw new InvalidOperationException($"No hero analyzer found for '{heroId}'.");
+
+            _result = await analyzer.Analyze(events, PlayerId, (int)fight.StartTime);
+            SetStep(2, ReportLoadingScreen.LoadingStepStatus.Ok);
+        }
+        catch (Exception exception)
+        {
+            _error = exception.Message;
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private void SetStep(int index, ReportLoadingScreen.LoadingStepStatus status)
+    {
+        _loadingSteps[index] = _loadingSteps[index] with { Status = status };
+        StateHasChanged();
+    }
+}

@@ -1,0 +1,310 @@
+using FellowshipAnalyzer.Core.Analysis;
+using FellowshipAnalyzer.Core.Events;
+
+using NSubstitute;
+
+using static FellowshipAnalyzer.Core.Analysis.Events;
+
+using Xunit;
+
+namespace FellowshipAnalyzer.Core.Tests.Analysis;
+
+public sealed class CombatLogParserTests
+{
+    [Fact]
+    public async Task Analyze_ShouldTrackCastsAndNotify()
+    {
+        var trackedState = new TrackedStateModule();
+        var probe = new ProbeModule(trackedState);
+        var owner = CreateCombatLogParser(modules: [trackedState, probe]);
+
+        await owner.Analyze(CreateEvents(), playerId: 7, fightStartTime: 0);
+
+        Assert.Equal(6, probe.SeenCastCount);
+        Assert.Equal(6, probe.ListenerCastCount);
+        Assert.Same(trackedState, probe.State);
+    }
+
+    [Fact]
+    public async Task ResourceTracker_ShouldTrackGainsAndSpends()
+    {
+        var events = new List<Event>
+        {
+            CreateResourceChange(timestamp: 100, abilityId: 1, resourceTypeId: 42, resourceChange: 1, waste: 0),
+            CreateResourceChange(timestamp: 200, abilityId: 1, resourceTypeId: 42, resourceChange: 1, waste: 0),
+            CreateResourceChange(timestamp: 300, abilityId: 1, resourceTypeId: 42, resourceChange: 1, waste: 1),
+            CreateCast(timestamp: 400, abilityId: 2, classResources: [new ClassResource { Type = 42, Amount = 2, Max = 2, Cost = 2 }]),
+            CreateResourceChange(timestamp: 500, abilityId: 3, resourceTypeId: 42, resourceChange: 1, waste: 0),
+            CreateCast(timestamp: 900, abilityId: 2, classResources: [new ClassResource { Type = 42, Amount = 1, Max = 2, Cost = 2 }]),
+        };
+
+        var tracker = new TestResourceTracker(resourceTypeId: 42, maxResource: 2, initialResource: 0);
+        var owner = CreateCombatLogParser(modules: [tracker]);
+
+        await owner.Analyze(events, playerId: 7, fightStartTime: 0);
+
+        Assert.Equal(3, tracker.Generated);
+        Assert.Equal(1, tracker.Wasted);
+        Assert.Equal(4, tracker.Spent);
+        Assert.Equal(0, tracker.Current);
+        Assert.Equal(3, tracker.GeneratorCastCounts[1]);
+        Assert.Equal(1, tracker.GeneratorCastCounts[3]);
+        Assert.Equal(2, tracker.SpenderCastCounts[2]);
+    }
+
+    [Fact]
+    public async Task ResourceTracker_ShouldIgnoreOtherResourceTypes()
+    {
+        var events = new List<Event>
+        {
+            CreateResourceChange(timestamp: 100, abilityId: 1, resourceTypeId: 42, resourceChange: 1, waste: 0),
+            CreateResourceChange(timestamp: 200, abilityId: 1, resourceTypeId: 99, resourceChange: 5, waste: 0),
+        };
+
+        var tracker = new TestResourceTracker(resourceTypeId: 42, maxResource: 5, initialResource: 0);
+        var owner = CreateCombatLogParser(modules: [tracker]);
+
+        await owner.Analyze(events, playerId: 7, fightStartTime: 0);
+        Assert.Equal(1, tracker.Generated);
+        Assert.Equal(1, tracker.Current);
+    }
+
+    [Fact]
+    public async Task Listener_ShouldFilterBySpellId()
+    {
+        var trackedState = new TrackedStateModule();
+        var probe = new SpellFilterProbeModule();
+        var owner = CreateCombatLogParser(modules: [trackedState, probe]);
+
+        await owner.Analyze(CreateEvents(), playerId: 7, fightStartTime: 0);
+
+        Assert.Equal(2, probe.MatchedCastCount);
+    }
+
+    [Fact]
+    public async Task Listener_ShouldIgnoreEventsFromOtherPlayers()
+    {
+        var events = new List<Event>
+        {
+            CreateCast(timestamp: 100, abilityId: 1),
+            CreateCast(timestamp: 200, abilityId: 1, sourceId: 99),
+            CreateCast(timestamp: 300, abilityId: 1),
+        };
+
+        var trackedState = new TrackedStateModule();
+        var probe = new ProbeModule(trackedState);
+        var owner = CreateCombatLogParser(modules: [trackedState, probe]);
+
+        await owner.Analyze(events, playerId: 7, fightStartTime: 0);
+
+        Assert.Equal(2, probe.ListenerCastCount);
+    }
+
+    [Fact]
+    public async Task FabricateEvent_ShouldMarkAsFabricated()
+    {
+        var probe = new ProbeModule(new TrackedStateModule());
+        var owner = CreateCombatLogParser(modules: [probe]);
+
+        await owner.Analyze(new List<Event>(), playerId: 7, fightStartTime: 0);
+
+        // Fabricate a cast event after the owner has run (outside dispatch)
+        var fabricated = owner.EventEmitter.FabricateEvent(CreateCast(timestamp: 500, abilityId: 1));
+
+        Assert.True(fabricated.Fabricated);
+        Assert.Equal(0, probe.ListenerCastCount);
+    }
+
+    [Fact]
+    public void FormatTimestamp_ShouldReturnFightRelativeTime()
+    {
+        var owner = CreateCombatLogParser();
+        owner.FightStartTime = 1_741_000;
+
+        var formatted = owner.FormatTimestamp(1_744_535);
+
+        Assert.Equal("0:03", formatted);
+    }
+
+    [Fact]
+    public async Task FabricateEvent_ShouldDeferDuringDispatch()
+    {
+        var events = new List<Event>
+        {
+            CreateCast(timestamp: 100, abilityId: 1),
+        };
+
+        var fabricator = new FabricatingProbeModule();
+        var owner = CreateCombatLogParser(modules: [fabricator]);
+
+        await owner.Analyze(events, playerId: 7, fightStartTime: 0);
+
+        // The original event + the fabricated event should both be processed
+        Assert.Equal(2, fabricator.TotalCalls);
+        Assert.True(fabricator.FabricatedEventWasDeferred);
+    }
+
+    private static TestCombatLogParser CreateCombatLogParser(Module[]? modules = null)
+    {
+        modules ??= [];
+        var emitter = new EventEmitter();
+        var provider = Substitute.For<IServiceProvider>();
+        foreach (var m in modules)
+            provider.GetService(m.GetType()).Returns(m);
+        return new TestCombatLogParser(emitter, provider, modules);
+    }
+
+    private sealed class TestCombatLogParser(EventEmitter emitter, IServiceProvider provider, Module[] modules)
+        : CombatLogParser(emitter, provider)
+    {
+        public override string HeroId => "test";
+        protected override Type[] GetModuleTypes() => [.. modules.Select(m => m.GetType())];
+    }
+
+    private static List<Event> CreateEvents()
+    {
+        return
+        [
+            CreateCast(timestamp: 100, abilityId: 1),
+            CreateCast(timestamp: 200, abilityId: 1),
+            CreateCast(timestamp: 300, abilityId: 1),
+            CreateCast(timestamp: 400, abilityId: 2),
+            CreateCast(timestamp: 500, abilityId: 3),
+            CreateCast(timestamp: 900, abilityId: 2),
+        ];
+    }
+
+    private static CastEvent CreateCast(int timestamp, int abilityId, int sourceId = 7, List<ClassResource>? classResources = null)
+    {
+        return new CastEvent
+        {
+            Timestamp = timestamp,
+            SourceId = sourceId,
+            TargetId = 11,
+            AbilityGameId = abilityId,
+            Ability = new Ability
+            {
+                Guid = abilityId,
+                Name = $"Spell {abilityId}",
+            },
+            Target = new CastTarget(),
+            Channel = new BeginChannelEvent(),
+            ClassResources = classResources,
+        };
+    }
+
+    private static ResourceChangeEvent CreateResourceChange(int timestamp, int abilityId, int resourceTypeId, double resourceChange, double waste, int sourceId = 7)
+    {
+        return new ResourceChangeEvent
+        {
+            Timestamp = timestamp,
+            SourceId = sourceId,
+            TargetId = 11,
+            AbilityGameId = abilityId,
+            ResourceChangeType = resourceTypeId,
+            ResourceChange = resourceChange,
+            Waste = waste,
+            Ability = new Ability { Guid = abilityId, Name = $"Spell {abilityId}" },
+        };
+    }
+
+    private sealed class ProbeModule(TrackedStateModule state) : Analyzer
+    {
+        public TrackedStateModule State { get; } = state;
+
+        public int SeenCastCount { get; private set; }
+
+        public int ListenerCastCount { get; private set; }
+
+        public override void Initialize()
+        {
+            AddEventListener(Cast.By(SELECTED_PLAYER), OnCast);
+        }
+
+        private void OnCast(CastEvent e)
+        {
+            ListenerCastCount += 1;
+        }
+
+        public override void Complete()
+        {
+            SeenCastCount = State.Casts.Count;
+        }
+    }
+
+    private sealed class CastTarget : ICastTarget
+    {
+        public string Name { get; set; } = string.Empty;
+
+        public int Id { get; set; }
+
+        public int Guid { get; set; }
+
+        public string Type { get; set; } = string.Empty;
+
+        public string Icon { get; set; } = string.Empty;
+    }
+
+    private sealed class SpellFilterProbeModule : Analyzer
+    {
+        public int MatchedCastCount { get; private set; }
+
+        public override void Initialize()
+        {
+            AddEventListener(Cast.By(SELECTED_PLAYER).Spell(2), OnSpender);
+        }
+
+        private void OnSpender(CastEvent e)
+        {
+            MatchedCastCount += 1;
+        }
+    }
+
+    private sealed class TestResourceTracker(int resourceTypeId, int maxResource, int initialResource) : ResourceTracker
+    {
+        public override void Initialize()
+        {
+            ResourceTypeId = resourceTypeId;
+            MaxResource = maxResource;
+            InitialResource = initialResource;
+            base.Initialize();
+        }
+    }
+
+    private sealed class FabricatingProbeModule : Analyzer
+    {
+        public int TotalCalls { get; private set; }
+        public bool FabricatedEventWasDeferred { get; private set; }
+        private bool _alreadyFabricated;
+
+        public override void Initialize()
+        {
+            AddEventListener(Cast.By(SELECTED_PLAYER), OnCast);
+        }
+
+        private void OnCast(CastEvent e)
+        {
+            TotalCalls++;
+
+            if (!_alreadyFabricated)
+            {
+                _alreadyFabricated = true;
+                // Fabricate during dispatch — should be deferred
+                Owner.EventEmitter.FabricateEvent(new CastEvent
+                {
+                    Timestamp = e.Timestamp + 50,
+                    SourceId = 7,
+                    TargetId = 11,
+                    AbilityGameId = 99,
+                    Ability = new Ability { Guid = 99, Name = "Fabricated" },
+                    Target = new CastTarget(),
+                    Channel = new BeginChannelEvent(),
+                });
+            }
+            else if (e.Fabricated == true)
+            {
+                FabricatedEventWasDeferred = true;
+            }
+        }
+    }
+}

@@ -1,0 +1,46 @@
+@* GradiatedPerformanceBar — horizontal segmented bar with up to 4 performance tiers *@
+
+@{
+    var total = (Perfect ?? 0) + (Good ?? 0) + (Ok ?? 0) + (Fail ?? 0);
+}
+
+@if (total > 0)
+{
+    <div class="gradiated-bar">
+        @if (Perfect.HasValue && Perfect.Value > 0)
+        {
+            var pct = (double)Perfect.Value / total * 100;
+            <div class="bar-segment perfect" style="width: @(pct.ToString("F1"))%;"
+                 title="Perfect: @Perfect.Value">
+            </div>
+        }
+        @if (Good.HasValue && Good.Value > 0)
+        {
+            var pct = (double)Good.Value / total * 100;
+            <div class="bar-segment good" style="width: @(pct.ToString("F1"))%;"
+                 title="Good: @Good.Value">
+            </div>
+        }
+        @if (Ok.HasValue && Ok.Value > 0)
+        {
+            var pct = (double)Ok.Value / total * 100;
+            <div class="bar-segment ok" style="width: @(pct.ToString("F1"))%;"
+                 title="Ok: @Ok.Value">
+            </div>
+        }
+        @if (Fail.HasValue && Fail.Value > 0)
+        {
+            var pct = (double)Fail.Value / total * 100;
+            <div class="bar-segment fail" style="width: @(pct.ToString("F1"))%;"
+                 title="Bad: @Fail.Value">
+            </div>
+        }
+    </div>
+}
+
+@code {
+    [Parameter] public int? Perfect { get; set; }
+    [Parameter] public int? Good { get; set; }
+    [Parameter] public int? Ok { get; set; }
+    [Parameter] public int? Fail { get; set; }
+}

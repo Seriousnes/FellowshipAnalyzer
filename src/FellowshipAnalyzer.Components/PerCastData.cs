@@ -1,0 +1,22 @@
+using Microsoft.AspNetCore.Components;
+
+namespace FellowshipAnalyzer.Components;
+
+/// <summary>
+/// Complete data for displaying a single cast in a <see cref="CastDetail"/> inspector.
+/// </summary>
+public sealed class PerCastData
+{
+    public required PerformanceTier Performance { get; init; }
+    public required PerCastStat[] Stats { get; init; }
+    public required string Timestamp { get; init; }
+    public string? Tooltip { get; init; }
+    public RenderFragment? Details { get; init; }
+    public RenderFragment? AdditionalContent { get; init; }
+    public string? AdditionalContentTitle { get; init; }
+
+    /// <summary>
+    /// Optional spell sequence entries to display in a <see cref="SpellSequence"/> filmstrip.
+    /// </summary>
+    public SpellCastEntry[]? Sequence { get; init; }
+}

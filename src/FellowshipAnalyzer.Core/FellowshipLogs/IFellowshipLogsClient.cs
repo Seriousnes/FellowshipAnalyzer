@@ -1,0 +1,67 @@
+using FellowshipAnalyzer.Core.Events;
+
+namespace FellowshipAnalyzer.Core.FellowshipLogs;
+
+public sealed record FellowshipLogsEventsRequest(
+    string ReportCode,
+    int PlayerId,
+    int FightId,
+    int PageSize = 10_000
+);
+
+/// <summary>
+/// Represents metadata about a combat log report, including fights and actors.
+/// </summary>
+public sealed record FellowshipLogsReportInfo(
+    string Code,
+    string? Title,
+    double StartTime,
+    double? EndTime,
+    IReadOnlyList<FellowshipLogsFight> Fights,
+    IReadOnlyList<FellowshipLogsActor> Actors
+);
+
+/// <summary>
+/// Represents a single fight/encounter within a report.
+/// </summary>
+public sealed record FellowshipLogsFight(
+    int Id,
+    string Name,
+    int EncounterId,
+    bool? Kill,
+    double StartTime,
+    double EndTime,
+    int? Difficulty,
+    IReadOnlyList<int>? FriendlyPlayers
+);
+
+/// <summary>
+/// Represents a player, NPC, or pet actor in a report.
+/// </summary>
+public sealed record FellowshipLogsActor(
+    int Id,
+    string Name,
+    string Type,
+    string? SubType,
+    string? Server
+);
+
+public interface IFellowshipLogsClient
+{
+    IReportFunction Report { get; }
+    IEventsFunction Events { get; }
+}
+
+public interface IReportFunction
+{
+    Task<FellowshipLogsReportInfo> GetAsync(
+        string reportCode,
+        CancellationToken cancellationToken = default);
+}
+
+public interface IEventsFunction
+{
+    Task<IReadOnlyList<Event>> GetAsync(
+        FellowshipLogsEventsRequest request,
+        CancellationToken cancellationToken = default);
+}

@@ -1,0 +1,30 @@
+@* PassFailBar — two-segment green/red bar *@
+
+@if (Total > 0)
+{
+    <div class="pass-fail-bar">
+        @if (Pass > 0)
+        {
+            <div class="pass-segment" style="width: @(PassPct.ToString("F1"))%;"
+                 title="@(PassTooltip ?? $"Pass: {Pass}")">
+            </div>
+        }
+        @if (FailCount > 0)
+        {
+            <div class="fail-segment" style="width: @(FailPct.ToString("F1"))%;"
+                 title="@(FailTooltip ?? $"Fail: {FailCount}")">
+            </div>
+        }
+    </div>
+}
+
+@code {
+    [Parameter] public int Pass { get; set; }
+    [Parameter] public int Total { get; set; }
+    [Parameter] public string? PassTooltip { get; set; }
+    [Parameter] public string? FailTooltip { get; set; }
+
+    private int FailCount => Total - Pass;
+    private double PassPct => (double)Pass / Total * 100;
+    private double FailPct => (double)FailCount / Total * 100;
+}

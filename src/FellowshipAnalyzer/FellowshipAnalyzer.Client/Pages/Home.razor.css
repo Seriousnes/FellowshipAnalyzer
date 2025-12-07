@@ -1,0 +1,29 @@
+.home-shell {
+    min-height: calc(100vh - 5rem);
+    display: grid;
+    place-items: center;
+    padding: 2rem 0;
+}
+
+.home-card {
+    width: min(44rem, 100%);
+    border-radius: var(--fa-radius-lg);
+    padding: 2.5rem 2.25rem;
+    border: 1px solid var(--fa-border-card);
+    background: var(--fa-bg-card);
+    box-shadow: var(--fa-shadow-card);
+}
+
+.home-card h1 {
+    margin: 0 0 0.4rem;
+    font-size: clamp(2rem, 5vw, 2.8rem);
+    background: linear-gradient(135deg, var(--fa-text), var(--fa-gold-light));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.home-card p {
+    color: var(--fa-text-muted);
+    line-height: 1.6;
+}

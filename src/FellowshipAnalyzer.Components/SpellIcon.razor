@@ -1,0 +1,49 @@
+@using FellowshipAnalyzer.Core.Common.Spells
+
+@if (Spell is not null)
+{
+    <div class="spell-icon @SizeClass" title="@Spell.Name">
+        <img src="@IconUrl" alt="@(_alt ?? Spell.Name)" />
+    </div>
+}
+
+@code {
+    /// <summary>Pass a <see cref="Core.Common.Spells.Spell"/> object directly.</summary>
+    [Parameter]
+    public Spell? Spell { get; set; }
+
+    /// <summary>Pass a spell ID to resolve via <see cref="SpellRegistry"/>.</summary>
+    [Parameter]
+    public int? SpellId { get; set; }
+
+    /// <summary>Pass a <see cref="SpellbookAbility"/> — its <see cref="SpellbookAbility.Spell"/> ID is used for lookup.</summary>
+    [Parameter]
+    public SpellbookAbility? Ability { get; set; }
+
+    /// <summary>Alt text override. Defaults to the spell name.</summary>
+    [Parameter]
+    public string? Alt { get => _alt; set => _alt = value; }
+
+    /// <summary>Icon size. Defaults to <see cref="SpellIconSize.Medium"/>.</summary>
+    [Parameter]
+    public SpellIconSize Size { get; set; } = SpellIconSize.Medium;
+
+    private string? _alt;
+
+    private string IconUrl => $"https://assets.rpglogs.com/img/fellowship/abilities/{Spell!.Icon}";
+
+    private string SizeClass => Size switch
+    {
+        SpellIconSize.Small => "spell-icon--sm",
+        SpellIconSize.Large => "spell-icon--lg",
+        _ => ""
+    };
+
+    protected override void OnParametersSet()
+    {
+        Spell ??= ResolveById(SpellId) ?? ResolveById(Ability?.Spell);
+    }
+
+    private static Spell? ResolveById(int? id) =>
+        id.HasValue ? SpellRegistry.MaybeGet(id.Value) : null;
+}

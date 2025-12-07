@@ -1,0 +1,32 @@
+@* PerformanceBoxRow — horizontal row of small colored squares, one per event/window *@
+
+<div class="perf-box-row">
+    @{ var index = 0; }
+    @foreach (var entry in Entries)
+    {
+        var idx = index;
+        var tierClass = entry.Performance.ToString().ToLowerInvariant();
+        var clickable = OnClick.HasDelegate;
+
+        <button class="perf-box @tierClass @(clickable ? "clickable" : "")"
+                title="@entry.Tooltip"
+                @onclick="() => HandleClick(idx)"
+                disabled="@(!clickable)">
+        </button>
+
+        index++;
+    }
+</div>
+
+@code {
+    [Parameter] public IEnumerable<PerformanceBoxEntry> Entries { get; set; } = [];
+    [Parameter] public EventCallback<int> OnClick { get; set; }
+
+    private async Task HandleClick(int index)
+    {
+        if (OnClick.HasDelegate)
+        {
+            await OnClick.InvokeAsync(index);
+        }
+    }
+}

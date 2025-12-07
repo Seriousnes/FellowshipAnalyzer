@@ -1,0 +1,33 @@
+@* CastOverview — 3-column stat card grid for overview statistics *@
+
+<div style="margin-bottom: 18px;">
+    <GuideDataWrapper Bare="true" Title="@Title">
+        <div class="stats-grid">
+            @foreach (var stat in Stats)
+            {
+                var color = stat.Performance.HasValue
+                    ? PerformanceColors.ToColor(stat.Performance.Value)
+                    : "#ffffff";
+
+                <StatTile Color="@color" Value="@stat.Value" Label="@stat.Label" Tooltip="@stat.Tooltip" />
+            }
+        </div>
+        @if (AdditionalContent is not null)
+        {
+            <div class="additional-content">
+                @if (!string.IsNullOrEmpty(AdditionalContentTitle))
+                {
+                    <div class="additional-content-heading">@AdditionalContentTitle</div>
+                }
+                @AdditionalContent
+            </div>
+        }
+    </GuideDataWrapper>
+</div>
+
+@code {
+    [Parameter] public string Title { get; set; } = "";
+    [Parameter] public IEnumerable<OverviewStat> Stats { get; set; } = [];
+    [Parameter] public RenderFragment? AdditionalContent { get; set; }
+    [Parameter] public string? AdditionalContentTitle { get; set; }
+}

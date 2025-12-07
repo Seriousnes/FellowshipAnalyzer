@@ -1,0 +1,21 @@
+@* FindingsList — severity-colored list of analyzer findings *@
+
+@if (Findings.Any())
+{
+    <ul class="findings-list">
+        @foreach (var finding in Findings)
+        {
+            <li class="finding @finding.Severity">
+                <span>@finding.Message</span>
+                @if (!string.IsNullOrEmpty(finding.Timestamp))
+                {
+                    <small>@finding.Timestamp</small>
+                }
+            </li>
+        }
+    </ul>
+}
+
+@code {
+    [Parameter] public IEnumerable<Finding> Findings { get; set; } = [];
+}
