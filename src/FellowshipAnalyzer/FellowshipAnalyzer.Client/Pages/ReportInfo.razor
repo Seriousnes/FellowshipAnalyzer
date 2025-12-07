@@ -1,0 +1,291 @@
+@page "/report/{ReportCode}"
+@using FellowshipAnalyzer.Core.FellowshipLogs
+@using CoreReportInfo = FellowshipAnalyzer.Core.FellowshipLogs.ReportInfo
+@using FellowshipAnalyzer.Client.Services
+@inject IFellowshipLogsClient FellowshipLogs
+@inject ReportNavigationState NavState
+@inject NavigationManager Navigation
+
+<PageTitle>@(_report is not null ? $"Report — {_report.Title}" : "Report")</PageTitle>
+
+<div class="analysis-page">
+    <section class="hero-panel">
+        <div>
+            <p class="eyebrow">Combat Report</p>
+            <h1>@_report?.Title</h1>
+            <p class="lede">Select a fight and player to analyze.</p>
+        </div>
+    </section>
+
+    @if (_isLoading)
+    {
+        <section class="status-panel">Loading report data...</section>
+    }
+    else if (!string.IsNullOrWhiteSpace(_error))
+    {
+        <section class="status-panel error">@_error</section>
+    }
+    else if (_report is not null)
+    {
+        <section class="fights-section">
+            <div class="view-toggle">
+                <button class="view-toggle-btn @(!_byPlayer ? "active" : "")" @onclick="() => { _byPlayer = false; _expandedPlayerId = null; }">By Fight</button>
+                <button class="view-toggle-btn @(_byPlayer ? "active" : "")" @onclick="() => { _byPlayer = true; _expandedFightId = null; }">By Player</button>
+            </div>
+
+            @if (!_byPlayer)
+            {
+                @foreach (var group in GetFightGroups())
+                {
+                    <div class="encounter-group">
+                        <div class="encounter-header">
+                            @{
+                                var bossIcon = _bossIconByName.TryGetValue(group.Key, out var ic) ? ic : null;
+                                var firstLetter = group.Key.Length > 0 ? group.Key[0].ToString() : "?";
+                            }
+                            @if (bossIcon is not null)
+                            {
+                                <img class="encounter-icon"
+                                     src="https://assets.rpglogs.com/img/fellowship/abilities/@bossIcon"
+                                     alt="@group.Key"
+                                     onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />
+                                <div class="encounter-icon-placeholder" style="display:none">@firstLetter</div>
+                            }
+                            else
+                            {
+                                <div class="encounter-icon-placeholder">@firstLetter</div>
+                            }
+                            <h3 class="encounter-name">@group.Key</h3>
+                        </div>
+                        <div class="attempts-row">
+                            @{ int wipeIndex = 0; }
+                            @foreach (var fight in group.Value)
+                            {
+                                var isKill = fight.Kill == true;
+                                if (!isKill) wipeIndex++;
+                                var isExpanded = _expandedFightId == fight.Id;
+                                var pillClass = isKill ? "kill" : "wipe";
+                                var expandedClass = isExpanded ? " expanded" : "";
+                                <button class="attempt-pill @(pillClass + expandedClass)"
+                                        @onclick="() => _expandedFightId = isExpanded ? null : fight.Id">
+                                    @if (isKill)
+                                    {
+                                        <span>✓</span>
+                                        <span>@FormatDuration(fight.EndTime - fight.StartTime)</span>
+                                    }
+                                    else
+                                    {
+                                        <span>✗</span>
+                                        <span>Wipe @wipeIndex</span>
+                                        @if (fight.FightPercentage is { } pct)
+                                        {
+                                            <span class="pill-pct">@pct.ToString("F2")%</span>
+                                        }
+                                        <span>@FormatDuration(fight.EndTime - fight.StartTime)</span>
+                                    }
+                                </button>
+                            }
+                        </div>
+                        @if (_expandedFightId is { } expandedId && group.Value.Any(f => f.Id == expandedId))
+                        {
+                            var expandedFight = group.Value.First(f => f.Id == expandedId);
+                            var players = GetPlayersForFight(expandedFight).ToList();
+                            var tankCount = players.Count(p => GetRole(p.SubType) == HeroRole.Tank);
+                            var healCount = players.Count(p => GetRole(p.SubType) == HeroRole.Healer);
+                            var dpsCount = players.Count(p => GetRole(p.SubType) == HeroRole.Dps);
+                            <div class="player-grid">
+                                <div class="role-counts">
+                                    🛡 @tankCount Tank&nbsp;&nbsp;
+                                    💚 @healCount Healer&nbsp;&nbsp;
+                                    ⚔ @dpsCount DPS
+                                </div>
+                                @foreach (var player in players.OrderBy(p => GetRole(p.SubType)).ThenBy(p => p.Name))
+                                {
+                                    var role = GetRole(player.SubType);
+                                    var borderColor = GetRoleBorderColor(role);
+                                    <a class="player-card"
+                                       href="/report/@ReportCode/@expandedId/@player.Id"
+                                       style="border-left-color: @borderColor">
+                                        @if (player.Icon is not null)
+                                        {
+                                            <img class="player-icon"
+                                                 src="https://assets.rpglogs.com/img/fellowship/abilities/@player.Icon"
+                                                 alt="@(player.SubType ?? "")"
+                                                 onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />
+                                            <div class="player-icon-placeholder" style="display:none">@(player.Name.Length > 0 ? player.Name[0].ToString() : "?")</div>
+                                        }
+                                        else
+                                        {
+                                            <div class="player-icon-placeholder">@(player.Name.Length > 0 ? player.Name[0].ToString() : "?")</div>
+                                        }
+                                        <div class="player-info">
+                                            <span class="player-name">@player.Name</span>
+                                            <span class="player-class">@(player.SubType ?? "Unknown")</span>
+                                        </div>
+                                    </a>
+                                }
+                            </div>
+                        }
+                    </div>
+                }
+            }
+            else
+            {
+                @foreach (var player in GetSortedPlayers())
+                {
+                    var role = GetRole(player.SubType);
+                    var borderColor = GetRoleBorderColor(role);
+                    var isExpanded = _expandedPlayerId == player.Id;
+                    <div class="player-accordion">
+                        <div class="player-accordion-header"
+                             style="border-left-color: @borderColor"
+                             @onclick="() => _expandedPlayerId = isExpanded ? null : player.Id">
+                            @if (player.Icon is not null)
+                            {
+                                <img class="player-icon"
+                                     src="https://assets.rpglogs.com/img/fellowship/abilities/@player.Icon"
+                                     alt="@(player.SubType ?? "")"
+                                     onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />
+                                <div class="player-icon-placeholder" style="display:none">@(player.Name.Length > 0 ? player.Name[0].ToString() : "?")</div>
+                            }
+                            else
+                            {
+                                <div class="player-icon-placeholder">@(player.Name.Length > 0 ? player.Name[0].ToString() : "?")</div>
+                            }
+                            <div class="player-info">
+                                <span class="player-name">@player.Name</span>
+                                <span class="player-class">@(player.SubType ?? "Unknown")</span>
+                            </div>
+                        </div>
+                        @if (isExpanded)
+                        {
+                            var playerFights = _report.Fights.Where(f => f.FriendlyPlayers?.Contains(player.Id) == true).ToList();
+                            <div class="player-accordion-fights">
+                                @foreach (var fight in playerFights)
+                                {
+                                    var isKill = fight.Kill == true;
+                                    <a class="fight-pill @(isKill ? "kill" : "wipe")"
+                                       href="/report/@ReportCode/@fight.Id/@player.Id">
+                                        @(isKill ? "✓" : "✗") @fight.Name — @FormatDuration(fight.EndTime - fight.StartTime)
+                                    </a>
+                                }
+                            </div>
+                        }
+                    </div>
+                }
+            }
+        </section>
+    }
+</div>
+
+@code {
+    private enum HeroRole { Tank, Healer, Dps, Unknown }
+
+    private static readonly Dictionary<string, HeroRole> RoleBySubType = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ["rime"] = HeroRole.Dps,
+    };
+
+    [Parameter] public string ReportCode { get; set; } = "";
+
+    private CoreReportInfo? _report;
+    private bool _isLoading = true;
+    private string? _error;
+    private Dictionary<string, string?> _bossIconByName = [];
+    private int? _expandedFightId;
+    private int? _expandedPlayerId;
+    private bool _byPlayer = false;
+
+    protected override void OnInitialized()
+    {
+        if (!NavState.TryGet(ReportCode, out _report) || _report is null)
+            return;
+
+        _bossIconByName = _report.Actors
+            .Where(a => !string.Equals(a.Type, "Player", StringComparison.OrdinalIgnoreCase))
+            .Where(a => !string.IsNullOrEmpty(a.Icon))
+            .GroupBy(a => a.Name)
+            .ToDictionary(g => g.Key, g => g.First().Icon, StringComparer.OrdinalIgnoreCase);
+        _isLoading = false;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (_report is not null) return;
+
+        try
+        {
+            _report = (await FellowshipLogs.AnalysisPreload.GetAsync(ReportCode)).ReportInfo;
+            NavState.Set(ReportCode, _report);
+            _bossIconByName = _report.Actors
+                .Where(a => !string.Equals(a.Type, "Player", StringComparison.OrdinalIgnoreCase))
+                .Where(a => !string.IsNullOrEmpty(a.Icon))
+                .GroupBy(a => a.Name)
+                .ToDictionary(g => g.Key, g => g.First().Icon, StringComparer.OrdinalIgnoreCase);
+        }
+        catch (Exception exception)
+        {
+            _error = exception.Message;
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private Dictionary<string, List<ReportFight>> GetFightGroups()
+    {
+        var groups = new Dictionary<string, List<ReportFight>>(StringComparer.OrdinalIgnoreCase);
+        foreach (var fight in _report!.Fights)
+        {
+            if (!groups.TryGetValue(fight.Name, out var list))
+            {
+                list = [];
+                groups[fight.Name] = list;
+            }
+            list.Add(fight);
+        }
+        return groups;
+    }
+
+    private IEnumerable<ReportActor> GetSortedPlayers()
+    {
+        if (_report is null) return [];
+        return _report.Actors
+            .Where(a => string.Equals(a.Type, "Player", StringComparison.OrdinalIgnoreCase))
+            .OrderBy(a => GetRole(a.SubType))
+            .ThenBy(a => a.Name);
+    }
+
+    private IEnumerable<ReportActor> GetPlayersForFight(ReportFight fight)
+    {
+        if (_report is null) return [];
+
+        var players = _report.Actors.Where(a =>
+            string.Equals(a.Type, "Player", StringComparison.OrdinalIgnoreCase));
+
+        if (fight.FriendlyPlayers is { Count: > 0 } friendlies)
+            players = players.Where(a => friendlies.Contains(a.Id));
+
+        return players;
+    }
+
+    private static HeroRole GetRole(string? subType) =>
+        subType is not null && RoleBySubType.TryGetValue(subType, out var role) ? role : HeroRole.Unknown;
+
+    private static string GetRoleBorderColor(HeroRole role) => role switch
+    {
+        HeroRole.Tank    => "#336699",
+        HeroRole.Healer  => "#4ec04e",
+        HeroRole.Dps     => "#ac1f39",
+        _                => "var(--fa-border)"
+    };
+
+    private static string FormatDuration(double milliseconds)
+    {
+        var ts = TimeSpan.FromMilliseconds(milliseconds);
+        return ts.TotalMinutes >= 1
+            ? $"{(int)ts.TotalMinutes}:{ts.Seconds:D2}"
+            : $"{ts.Seconds}s";
+    }
+}

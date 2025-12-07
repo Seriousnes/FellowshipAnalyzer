@@ -1,0 +1,37 @@
+query GetReport($code: String!) {
+  reportData {
+    report(code: $code) {
+      title
+      startTime
+      endTime
+      fights {
+        id
+        name
+        encounterID
+        kill
+        startTime
+        endTime
+        difficulty
+        friendlyPlayers
+        inProgress
+        fightPercentage
+        dungeonPulls {
+          encounterID
+          startTime
+          endTime
+          name
+        }
+      }
+      masterData {
+        actors {
+          id
+          name
+          type
+          subType
+          server
+          icon
+        }
+      }
+    }
+  }
+}

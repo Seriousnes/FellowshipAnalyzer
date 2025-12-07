@@ -1,0 +1,84 @@
+// ── FellowshipAnalyzer Mixins ────────────────────────────────────────────────
+// Import: @use 'mixins' as mx;  then call @include mx.card-surface;
+//
+// Requires _tokens.scss to be available via includePaths.
+
+@use 'tokens' as t;
+@use 'sass:color';
+
+// ── Surfaces ─────────────────────────────────────────────────────────────────
+
+/// Standard card / panel surface: dark inset bg, gold-tinted border, shadow.
+@mixin card-surface($radius: t.$fa-radius-md) {
+    background: t.$fa-bg-card;
+    border: 1px solid t.$fa-border-card;
+    border-radius: $radius;
+    box-shadow: t.$fa-shadow-card;
+}
+
+/// Slightly raised panel (less prominent than a card).
+@mixin panel-surface($radius: t.$fa-radius-sm) {
+    background: t.$fa-bg-raised;
+    border: 1px solid t.$fa-border;
+    border-radius: $radius;
+}
+
+/// Inset / recessed region inside a card.
+@mixin inset-surface($radius: t.$fa-radius-sm) {
+    background: t.$fa-bg-inset;
+    border: 1px solid t.$fa-border;
+    border-radius: $radius;
+}
+
+// ── Typography helpers ────────────────────────────────────────────────────────
+
+/// Small all-caps label above a section (eyebrow text).
+@mixin eyebrow {
+    margin: 0 0 0.4rem;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: t.$fa-gold;
+}
+
+/// Heading that uses the gold gradient text fill.
+@mixin gradient-heading {
+    background: linear-gradient(135deg, t.$fa-text, t.$fa-gold-light);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+// ── Performance ───────────────────────────────────────────────────────────────
+
+/// Returns the performance accent color for a string tier.
+/// Usage: color: perf-color('perfect');
+@function perf-color($tier) {
+    @if $tier == 'perfect' { @return t.$fa-perf-perfect; }
+    @if $tier == 'good'    { @return t.$fa-perf-good; }
+    @if $tier == 'ok'      { @return t.$fa-perf-ok; }
+    @if $tier == 'fail'    { @return t.$fa-perf-fail; }
+    @return #ffffff;
+}
+
+/// Outputs background-color for each performance tier class.
+/// Place inside a selector that will be combined with tier suffixes.
+@mixin perf-tier-colors {
+    &.perfect { background: t.$fa-perf-perfect; }
+    &.good    { background: t.$fa-perf-good; }
+    &.ok      { background: t.$fa-perf-ok; }
+    &.fail    { background: t.$fa-perf-fail; }
+}
+
+// ── Responsive ───────────────────────────────────────────────────────────────
+
+/// Narrow breakpoint (phones / narrow panels).
+@mixin mobile {
+    @media (max-width: 768px) { @content; }
+}
+
+/// Very narrow breakpoint (small phones).
+@mixin mobile-sm {
+    @media (max-width: 600px) { @content; }
+}

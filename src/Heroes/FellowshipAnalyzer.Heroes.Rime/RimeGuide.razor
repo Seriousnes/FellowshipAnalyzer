@@ -1,0 +1,13 @@
+@namespace FellowshipAnalyzer.Heroes.Rime.Guides
+@using FellowshipAnalyzer.Heroes.Rime.Analysis
+@inject RimeCombatLogParser Parser
+
+@if (Parser.BasicStCombo is not null)
+{
+    <BasicStComboGuide />
+}
+
+@if (Parser.WinterOrbTracker is not null)
+{
+    <WinterOrbGuide />
+}

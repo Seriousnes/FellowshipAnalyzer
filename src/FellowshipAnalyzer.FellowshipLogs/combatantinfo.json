@@ -1,0 +1,351 @@
+{
+  "timestamp": 1600759,
+  "type": "combatantinfo",
+  "fight": 4,
+  "sourceID": 3,
+  "gear": [
+    {
+      "id": 3644,
+      "quality": 5,
+      "icon": "Icon_Rime_ArcticOwl_Head_R1_T0.jpg",
+      "name": "Headdress of the Nightshriek",
+      "itemLevel": 330,
+      "upgrades": 6,
+      "maxUpgrades": 6,
+      "hasGemSocket": false,
+      "gem": {
+        "id": 45,
+        "icon": "T_Icons_Gems_Sapphire3.png",
+        "name": "Splendid Sapphire",
+        "quality": 15
+      },
+      "attributes": [
+        { "id": 1, "name": "Stamina", "value": 400 },
+        { "id": 3, "name": "Intellect", "value": 134 },
+        { "id": 14, "name": "Haste", "value": 234 },
+        { "id": 23, "name": "Spirit", "value": 100 },
+        { "id": 26, "name": "Armor", "value": 682 }
+      ]
+    },
+    {
+      "id": 1575,
+      "quality": 6,
+      "icon": "Tex_necklace_03_b.jpg",
+      "name": "Eldrin Amulet of Undulating Spirits",
+      "itemLevel": 330,
+      "upgrades": 0,
+      "maxUpgrades": 0,
+      "hasGemSocket": false,
+      "gem": {
+        "id": 24,
+        "icon": "T_Icons_Gems_Amethyst3.png",
+        "name": "Splendid Amethyst",
+        "quality": 11
+      },
+      "attributes": [
+        { "id": 1, "name": "Stamina", "value": 208 },
+        { "id": 10, "name": "Critical Strike", "value": 70 },
+        { "id": 15, "name": "Expertise", "value": 397 }
+      ]
+    },
+    {
+      "id": 3628,
+      "quality": 5,
+      "icon": "Icon_Rime_ArcticOwl_Shoulders_R1_T0.jpg",
+      "name": "Bonebleached Shoulders",
+      "itemLevel": 330,
+      "upgrades": 6,
+      "maxUpgrades": 6,
+      "hasGemSocket": false,
+      "gem": {
+        "id": 45,
+        "icon": "T_Icons_Gems_Sapphire3.png",
+        "name": "Splendid Sapphire",
+        "quality": 15
+      },
+      "attributes": [
+        { "id": 1, "name": "Stamina", "value": 356 },
+        { "id": 3, "name": "Intellect", "value": 119 },
+        { "id": 15, "name": "Expertise", "value": 208 },
+        { "id": 23, "name": "Spirit", "value": 89 },
+        { "id": 26, "name": "Armor", "value": 638 }
+      ]
+    },
+    {
+      "id": 3575,
+      "quality": 5,
+      "icon": "Icon_Cloak01_MF_Back_R2_T1.jpg",
+      "name": "Fur Trim Cloak",
+      "itemLevel": 330,
+      "upgrades": 6,
+      "maxUpgrades": 6,
+      "hasGemSocket": false,
+      "gem": {
+        "id": 45,
+        "icon": "T_Icons_Gems_Sapphire3.png",
+        "name": "Splendid Sapphire",
+        "quality": 15
+      },
+      "attributes": [
+        { "id": 1, "name": "Stamina", "value": 223 },
+        { "id": 3, "name": "Intellect", "value": 75 },
+        { "id": 14, "name": "Haste", "value": 102 },
+        { "id": 23, "name": "Spirit", "value": 84 },
+        { "id": 26, "name": "Armor", "value": 352 }
+      ]
+    },
+    {
+      "id": 1222,
+      "quality": 5,
+      "icon": "Icon_Rime_ArcticOwl_Chest_R1_T0.jpg",
+      "name": "Ruinharrow Furred Tunic",
+      "itemLevel": 330,
+      "upgrades": 6,
+      "maxUpgrades": 6,
+      "hasGemSocket": false,
+      "attributes": [
+        { "id": 1, "name": "Stamina", "value": 489 },
+        { "id": 3, "name": "Intellect", "value": 163 },
+        { "id": 10, "name": "Critical Strike", "value": 224 },
+        { "id": 14, "name": "Haste", "value": 184 },
+        { "id": 26, "name": "Armor", "value": 793 }
+      ],
+      "set": { "id": 691, "name": "Drakheim's Absolution" }
+    },
+    {
+      "id": 447,
+      "quality": 5,
+      "icon": "Tex_bracers_03_b.jpg",
+      "name": "Mandible Bracers",
+      "itemLevel": 330,
+      "upgrades": 6,
+      "maxUpgrades": 6,
+      "hasGemSocket": false,
+      "gem": {
+        "id": 34,
+        "icon": "T_Icons_Gems_Emerald3.png",
+        "name": "Splendid Emerald",
+        "quality": 13
+      },
+      "attributes": [
+        { "id": 1, "name": "Stamina", "value": 223 },
+        { "id": 3, "name": "Intellect", "value": 75 },
+        { "id": 10, "name": "Critical Strike", "value": 28 },
+        { "id": 15, "name": "Expertise", "value": 158 },
+        { "id": 26, "name": "Armor", "value": 374 }
+      ]
+    },
+    {
+      "id": 1188,
+      "quality": 5,
+      "icon": "Icon_Rime_ArcticOwl_Hands_R1_T0.jpg",
+      "name": "Desanctified Gloves",
+      "itemLevel": 330,
+      "upgrades": 6,
+      "maxUpgrades": 6,
+      "hasGemSocket": false,
+      "gem": {
+        "id": 24,
+        "icon": "T_Icons_Gems_Amethyst3.png",
+        "name": "Splendid Amethyst",
+        "quality": 11
+      },
+      "attributes": [
+        { "id": 1, "name": "Stamina", "value": 267 },
+        { "id": 3, "name": "Intellect", "value": 89 },
+        { "id": 10, "name": "Critical Strike", "value": 123 },
+        { "id": 14, "name": "Haste", "value": 100 },
+        { "id": 26, "name": "Armor", "value": 397 }
+      ]
+    },
+    {
+      "id": 1225,
+      "quality": 5,
+      "icon": "Icon_Rime_ArcticOwl_Waist_R1_T0.jpg",
+      "name": "Ruinharrow Leggings",
+      "itemLevel": 330,
+      "upgrades": 6,
+      "maxUpgrades": 6,
+      "hasGemSocket": false,
+      "attributes": [
+        { "id": 1, "name": "Stamina", "value": 445 },
+        { "id": 3, "name": "Intellect", "value": 149 },
+        { "id": 14, "name": "Haste", "value": 204 },
+        { "id": 23, "name": "Spirit", "value": 167 },
+        { "id": 26, "name": "Armor", "value": 726 }
+      ],
+      "set": { "id": 691, "name": "Drakheim's Absolution" }
+    },
+    {
+      "id": 3622,
+      "quality": 5,
+      "icon": "Icon_Rime_ArcticOwl_Feet_R1_T0.jpg",
+      "name": "Driftwood Boots",
+      "itemLevel": 330,
+      "upgrades": 6,
+      "maxUpgrades": 6,
+      "hasGemSocket": false,
+      "gem": {
+        "id": 45,
+        "icon": "T_Icons_Gems_Sapphire3.png",
+        "name": "Splendid Sapphire",
+        "quality": 15
+      },
+      "attributes": [
+        { "id": 1, "name": "Stamina", "value": 312 },
+        { "id": 3, "name": "Intellect", "value": 104 },
+        { "id": 10, "name": "Critical Strike", "value": 143 },
+        { "id": 15, "name": "Expertise", "value": 117 },
+        { "id": 26, "name": "Armor", "value": 440 }
+      ]
+    },
+    {
+      "id": 3589,
+      "quality": 5,
+      "icon": "Tex_rings_07_b.jpg",
+      "name": "Moraine Ring",
+      "itemLevel": 330,
+      "upgrades": 6,
+      "maxUpgrades": 6,
+      "hasGemSocket": false,
+      "gem": {
+        "id": 45,
+        "icon": "T_Icons_Gems_Sapphire3.png",
+        "name": "Splendid Sapphire",
+        "quality": 15
+      },
+      "attributes": [
+        { "id": 1, "name": "Stamina", "value": 119 },
+        { "id": 15, "name": "Expertise", "value": 120 },
+        { "id": 23, "name": "Spirit", "value": 147 }
+      ]
+    },
+    {
+      "id": 1196,
+      "quality": 5,
+      "icon": "Tex_rings_02_b.jpg",
+      "name": "Lacquered Wood Loop",
+      "itemLevel": 330,
+      "upgrades": 6,
+      "maxUpgrades": 6,
+      "hasGemSocket": false,
+      "gem": {
+        "id": 45,
+        "icon": "T_Icons_Gems_Sapphire3.png",
+        "name": "Splendid Sapphire",
+        "quality": 15
+      },
+      "attributes": [
+        { "id": 1, "name": "Stamina", "value": 119 },
+        { "id": 10, "name": "Critical Strike", "value": 187 },
+        { "id": 15, "name": "Expertise", "value": 80 }
+      ]
+    },
+    {
+      "id": 177,
+      "quality": 5,
+      "icon": "T_Relic_DispelRune.jpg",
+      "name": "Ancient Wardstone",
+      "itemLevel": 330,
+      "upgrades": 6,
+      "maxUpgrades": 6,
+      "hasGemSocket": false,
+      "attributes": [
+        { "id": 3, "name": "Intellect", "value": 178 },
+        { "id": 14, "name": "Haste", "value": 280 },
+        { "id": 15, "name": "Expertise", "value": 120 }
+      ]
+    },
+    {
+      "id": 1491,
+      "quality": 5,
+      "icon": "T_OrbofShadow.jpg",
+      "name": "Orb of Shadows",
+      "itemLevel": 330,
+      "upgrades": 6,
+      "maxUpgrades": 6,
+      "hasGemSocket": false,
+      "attributes": [
+        { "id": 3, "name": "Intellect", "value": 178 },
+        { "id": 15, "name": "Expertise", "value": 180 },
+        { "id": 23, "name": "Spirit", "value": 220 }
+      ]
+    },
+    {
+      "id": 1918,
+      "quality": 5,
+      "icon": "Tex_staff_cl_01_bg.jpg",
+      "name": "Void-touched Conduit",
+      "itemLevel": 330,
+      "upgrades": 6,
+      "maxUpgrades": 6,
+      "hasGemSocket": false,
+      "attributes": [
+        { "id": 1, "name": "Stamina", "value": 534 },
+        { "id": 3, "name": "Intellect", "value": 178 },
+        { "id": 14, "name": "Haste", "value": 200 },
+        { "id": 15, "name": "Expertise", "value": 245 }
+      ]
+    }
+  ],
+  "auras": [
+    {
+      "source": 2,
+      "ability": 1002739,
+      "stacks": 1,
+      "icon": "T_Lisa_BeaconOfTime.jpg",
+      "name": "Aura of Deferred Fate"
+    },
+    {
+      "source": 3,
+      "ability": 1001968,
+      "stacks": 1,
+      "icon": "T_Nhance_RPG_Icons_SpiritAmulet_SentinelBastion.jpg",
+      "name": "Sentinel's Bastion"
+    }
+  ],
+  "itemLevel": 3300,
+  "talents": [
+    { "id": 2000186, "icon": "Cryomancer8.jpg" },
+    { "id": 2000190, "icon": "T_Nhance_RPG_Icons_ArcaneBolt.jpg" },
+    { "id": 2000051, "icon": "T_Nhance_RPG_Frost_01.jpg" },
+    { "id": 2000191, "icon": "T_Icon_Frost_115.jpg" },
+    { "id": 2000193, "icon": "Cryomancer7.jpg" },
+    { "id": 2000044, "icon": "Tex_b_16.jpg" },
+    { "id": 2000048, "icon": "T_Rime_OnTargetPulsatingAOE.jpg" },
+    { "id": 2000049, "icon": "T_Nhance_RPG_Frost_04.jpg" }
+  ],
+  "health": 266379,
+  "mana": 0,
+  "armor": 4402,
+  "strength": 0,
+  "agility": 0,
+  "intellect": 2476,
+  "stamina": 5267,
+  "crit": 875,
+  "haste": 1304,
+  "expertise": 1725,
+  "spirit": 1255,
+  "amethyst": 1206,
+  "diamond": 0,
+  "topaz": 0,
+  "ruby": 0,
+  "sapphire": 2916,
+  "emerald": 486,
+  "weaponTreeID": 5,
+  "weaponTraits": [
+    { "id": 155, "level": 1, "points": 1 },
+    { "id": 3000005, "level": 1, "points": 0 },
+    { "id": 3000028, "level": 4, "points": 1 },
+    { "id": 3000037, "level": 1, "points": 0 },
+    { "id": 3000040, "level": 1, "points": 0 },
+    { "id": 3000053, "level": 4, "points": 1 },
+    { "id": 3000001, "level": 1, "points": 0 },
+    { "id": 3000039, "level": 4, "points": 1 },
+    { "id": 3000041, "level": 1, "points": 0 },
+    { "id": 3000052, "level": 4, "points": 1 },
+    { "id": 3000006, "level": 1, "points": 0 },
+    { "id": 3000032, "level": 4, "points": 1 },
+    { "id": 3000051, "level": 1, "points": 0 }
+  ]
+}

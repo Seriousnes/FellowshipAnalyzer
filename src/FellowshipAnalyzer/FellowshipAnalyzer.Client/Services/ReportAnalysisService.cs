@@ -1,0 +1,257 @@
+using System.Text.Json;
+
+using FellowshipAnalyzer.Core.Analysis;
+using FellowshipAnalyzer.Core.Events;
+using FellowshipAnalyzer.Core.FellowshipLogs;
+using FellowshipAnalyzer.Core.Serialization;
+
+using Microsoft.Extensions.DependencyInjection;
+
+
+
+namespace FellowshipAnalyzer.Client.Services;
+
+/// <summary>
+/// Returned by <see cref="ReportAnalysisService.RunAsync"/> once a fight has been
+/// fully fetched and analyzed. All display-layer data is read directly from these
+/// objects — no redundant string fields.
+/// </summary>
+public sealed record ReportAnalysisContext(
+    ReportInfo ReportInfo,
+    ReportFight Fight,
+    ReportActor Player,
+    HeroAnalysisResult Analysis,
+    IHeroAnalyzer Analyzer,
+    int FightStartTime,
+    int FightEndTime
+);
+
+/// <summary>
+/// Orchestrates the full analysis pipeline for a single fight:
+/// concurrent API fetch, master-data loading, hero resolution, analysis, and caching.
+/// Extracted from Report.razor to keep the component a thin view layer.
+/// </summary>
+public sealed class ReportAnalysisService(
+    IFellowshipLogsClient fellowshipLogs,
+    ReportLoadingTracker loadingTracker,
+    ReportMasterDataService masterDataService,
+    IServiceProvider serviceProvider,
+    IReportCacheService reportCache,
+    FellowshipAnalyzerJsonContext jsonContext,
+    ReportNavigationState navState)
+{
+    private const int DeserializeProgressBatchSize = 250;
+
+    public async Task<ReportAnalysisContext> RunAsync(
+        string reportCode,
+        int fightId,
+        int playerId,
+        Func<ReportInfo, Task>? reportInfoLoaded = null)
+    {
+        loadingTracker.Reset();
+        loadingTracker.FetchEventsState = ReportLoadingTracker.StepState.Loading;
+        await Task.Yield();
+
+        // Start preload and the local cache check concurrently. The cache check is fast (IndexedDB)
+        // and determines whether a live events request is needed at all. Awaiting it first lets us
+        // fire the events request immediately on a miss so it overlaps with the remaining preload wait.
+        var preloadTask = fellowshipLogs.AnalysisPreload.GetAsync(reportCode);
+        var eventsRequest = new FellowshipLogsEventsRequest(reportCode, playerId, fightId);
+        var cachedEventsBytesTask = reportCache.GetCachedEventsBytesAsync(reportCode, fightId, playerId).AsTask();
+
+        var cachedEventsBytes = await cachedEventsBytesTask;
+        // On a miss, fetch raw UTF-8 JSON bytes only — defer deserialization to its own step so we
+        // can measure network I/O vs JSON parsing separately, and cache the network bytes verbatim.
+        Task<RawEventsResponse>? liveEventsRawTask = cachedEventsBytes is null
+            ? fellowshipLogs.Events.GetRawBytesAsync(eventsRequest)
+            : null;
+
+        var preload = await preloadTask;
+        var reportInfo = preload.ReportInfo;
+        masterDataService.Load(preload.MasterData);
+
+        var fight = reportInfo.Fights.FirstOrDefault(f => f.Id == fightId)
+            ?? throw new InvalidOperationException($"Fight {fightId} not found in report.");
+        var player = reportInfo.Actors.FirstOrDefault(a => a.Id == playerId)
+            ?? throw new InvalidOperationException($"Player {playerId} not found in report.");
+
+        navState.Set(reportCode, reportInfo);
+        if (reportInfoLoaded is not null)
+        {
+            await reportInfoLoaded(reportInfo);
+        }
+
+        // The JSON bytes we hold at this point are always shaped as EventsResult: { events: [...], inProgress: bool }.
+        // On hit it came from IndexedDB; on miss it came directly from the proxy and has not yet been parsed.
+        byte[] eventsResultJsonBytes = cachedEventsBytes ?? (await liveEventsRawTask!).JsonBytes;
+        bool isFreshFromNetwork = cachedEventsBytes is null;
+
+        loadingTracker.FetchEventsState = ReportLoadingTracker.StepState.Ok;
+        loadingTracker.DeserializeState = ReportLoadingTracker.StepState.Loading;
+        await Task.Yield();
+
+        var eventsResult = await DeserializeEventsResultAsync(eventsResultJsonBytes);
+        var events = eventsResult.Events;
+
+        loadingTracker.DeserializeState = ReportLoadingTracker.StepState.Ok;
+        await Task.Yield();
+
+        var heroId = masterDataService.GetHeroId(playerId)
+            ?? throw new InvalidOperationException($"Could not determine hero for player {playerId}.");
+        var analyzer = serviceProvider.GetKeyedService<IHeroAnalyzer>(heroId)
+            ?? throw new InvalidOperationException($"No hero analyzer found for '{heroId}'.");
+
+        var fightStartTime = (int)fight.StartTime;
+        var fightEndTime = (int)fight.EndTime;
+
+        analyzer.ActorNames = reportInfo.Actors.ToDictionary(a => a.Id, a => a.Name);
+        var result = await analyzer.Analyze(events, playerId, fightStartTime);
+
+        loadingTracker.PrepareDisplayState = ReportLoadingTracker.StepState.Loading;
+        await Task.Yield();
+
+        // Cache only fresh, completed network responses — never overwrite from a cache-hit path,
+        // and never cache an in-progress fight (which may still be receiving events).
+        if (isFreshFromNetwork && !eventsResult.InProgress)
+        {
+            var entry = new ReportHistoryEntry(
+                reportCode, fightId, playerId,
+                fight.Name, player.Name, heroId,
+                DateTimeOffset.UtcNow);
+            await reportCache.CacheAsync(entry, eventsResultJsonBytes);
+        }
+
+        loadingTracker.PrepareDisplayState = ReportLoadingTracker.StepState.Ok;
+        await Task.Yield();
+
+        return new ReportAnalysisContext(
+            reportInfo,
+            fight,
+            player,
+            result,
+            analyzer,
+            fightStartTime,
+            fightEndTime);
+    }
+
+    private async Task<EventsResult> DeserializeEventsResultAsync(byte[] jsonBytes)
+    {
+        var metadata = ReadEventsResultMetadata(jsonBytes);
+
+        loadingTracker.TotalDeserializeEventCount = metadata.EventRanges.Count;
+        loadingTracker.DeserializedEventCount = 0;
+        await Task.Yield();
+
+        var events = new List<Event>(metadata.EventRanges.Count);
+        for (var i = 0; i < metadata.EventRanges.Count; i++)
+        {
+            events.Add(DeserializeEvent(jsonBytes, metadata.EventRanges[i], jsonContext));
+
+            var completed = i + 1;
+            if (completed % DeserializeProgressBatchSize == 0 || completed == metadata.EventRanges.Count)
+            {
+                loadingTracker.DeserializedEventCount = completed;
+                await Task.Yield();
+            }
+        }
+
+        return new EventsResult(events, metadata.InProgress);
+    }
+
+    private static Event DeserializeEvent(
+        byte[] jsonBytes,
+        EventJsonRange range,
+        FellowshipAnalyzerJsonContext jsonContext)
+    {
+        return JsonSerializer.Deserialize(jsonBytes.AsSpan(range.Start, range.Length), jsonContext.Event)
+            ?? throw new InvalidOperationException("Event data contained a null event.");
+    }
+
+    private static EventsResultMetadata ReadEventsResultMetadata(byte[] jsonBytes)
+    {
+        var reader = new Utf8JsonReader(jsonBytes);
+
+        if (!reader.Read() || reader.TokenType != JsonTokenType.StartObject)
+        {
+            throw new InvalidOperationException("Event data was not a JSON object.");
+        }
+
+        bool? inProgress = null;
+        List<EventJsonRange>? eventRanges = null;
+
+        while (reader.Read())
+        {
+            if (reader.TokenType == JsonTokenType.EndObject)
+            {
+                break;
+            }
+
+            if (reader.TokenType != JsonTokenType.PropertyName)
+            {
+                throw new InvalidOperationException($"Unexpected token in event data: {reader.TokenType}.");
+            }
+
+            var propertyName = reader.GetString();
+            if (!reader.Read())
+            {
+                throw new InvalidOperationException("Event data ended while reading a property value.");
+            }
+
+            switch (propertyName)
+            {
+                case "inProgress":
+                case "InProgress":
+                    if (reader.TokenType is not JsonTokenType.True and not JsonTokenType.False)
+                    {
+                        throw new InvalidOperationException("Event data inProgress value was not a boolean.");
+                    }
+                    inProgress = reader.GetBoolean();
+                    break;
+                case "events":
+                case "Events":
+                    if (reader.TokenType != JsonTokenType.StartArray)
+                    {
+                        throw new InvalidOperationException("Event data events value was not an array.");
+                    }
+                    eventRanges = ReadEventRanges(ref reader);
+                    break;
+                default:
+                    reader.Skip();
+                    break;
+            }
+        }
+
+        return new EventsResultMetadata(
+            inProgress ?? throw new InvalidOperationException("Event data did not include inProgress."),
+            eventRanges ?? throw new InvalidOperationException("Event data did not include events."));
+    }
+
+    private static List<EventJsonRange> ReadEventRanges(ref Utf8JsonReader reader)
+    {
+        var ranges = new List<EventJsonRange>();
+
+        while (reader.Read())
+        {
+            if (reader.TokenType == JsonTokenType.EndArray)
+            {
+                return ranges;
+            }
+
+            if (reader.TokenType != JsonTokenType.StartObject)
+            {
+                throw new InvalidOperationException($"Unexpected token in events array: {reader.TokenType}.");
+            }
+
+            var start = checked((int)reader.TokenStartIndex);
+            reader.Skip();
+            var end = checked((int)reader.BytesConsumed);
+            ranges.Add(new EventJsonRange(start, end - start));
+        }
+
+        throw new InvalidOperationException("Event data ended while reading the events array.");
+    }
+
+    private readonly record struct EventJsonRange(int Start, int Length);
+
+    private sealed record EventsResultMetadata(bool InProgress, List<EventJsonRange> EventRanges);
+}

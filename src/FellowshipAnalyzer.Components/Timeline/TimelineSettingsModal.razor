@@ -1,0 +1,272 @@
+@using FellowshipAnalyzer.Core.Common.Spells
+@using FellowshipAnalyzer.Core.Events
+
+@if (IsOpen)
+{
+    <div class="timeline-settings-backdrop" @onclick="OnClose"></div>
+    <div class="timeline-settings-modal" role="dialog" aria-modal="true" aria-label="Timeline settings"
+         @onclick:stopPropagation="true">
+        <header class="timeline-settings-header">
+            <h2 class="timeline-settings-title">Timeline settings</h2>
+            <button type="button" class="timeline-settings-close" @onclick="OnClose" aria-label="Close">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </button>
+        </header>
+
+        <nav class="timeline-settings-tabs" role="tablist">
+            <button type="button"
+                    role="tab"
+                    aria-selected="@(_activeTab == Tab.Auras ? "true" : "false")"
+                    class="timeline-settings-tab @(_activeTab == Tab.Auras ? "timeline-settings-tab--active" : "")"
+                    @onclick="() => _activeTab = Tab.Auras">
+                Auras
+            </button>
+            <button type="button"
+                    role="tab"
+                    aria-selected="@(_activeTab == Tab.Cooldowns ? "true" : "false")"
+                    class="timeline-settings-tab @(_activeTab == Tab.Cooldowns ? "timeline-settings-tab--active" : "")"
+                    @onclick="() => _activeTab = Tab.Cooldowns">
+                Cooldowns
+            </button>
+        </nav>
+
+        <div class="timeline-settings-body">
+            @if (_activeTab == Tab.Auras)
+            {
+                @if (AvailableAuras.Count == 0)
+                {
+                    <p class="timeline-settings-empty">No auras detected in this fight.</p>
+                }
+                else
+                {
+                    <ul class="timeline-settings-list">
+                        @foreach (var option in SortedAuras())
+                        {
+                            var spellId = option.SpellId;
+                            var name = option.Name;
+                            var icon = option.IconUrl;
+                            var entry = AuraEntry(spellId);
+                            <li class="timeline-settings-row" @key="spellId">
+                                <label class="timeline-settings-visibility">
+                                    <input type="checkbox"
+                                           checked="@entry.Visible"
+                                           @onchange="e => UpdateAuraVisibility(spellId, (bool)e.Value!)" />
+                                </label>
+                                <span class="timeline-settings-icon">
+                                    <SpellIcon Spell="@(new Ability { Guid = spellId, Name = name, Icon = icon ?? string.Empty })"
+                                               Size="SpellIconSize.Small" />
+                                </span>
+                                <span class="timeline-settings-name">@name</span>
+                                <label class="timeline-settings-numeric">
+                                    <span class="timeline-settings-numeric-label">Priority</span>
+                                    <input type="number"
+                                           value="@entry.Priority"
+                                           @onchange="e => UpdateAuraPriority(spellId, ParseInt(e.Value, 0))" />
+                                </label>
+                            </li>
+                        }
+                    </ul>
+                }
+            }
+            else
+            {
+                @if (AvailableCooldowns.Count == 0)
+                {
+                    <p class="timeline-settings-empty">No cooldowns detected in this fight.</p>
+                }
+                else
+                {
+                    <ul class="timeline-settings-list">
+                        @foreach (var option in SortedCooldowns())
+                        {
+                            var spellId = option.SpellId;
+                            var name = option.Name;
+                            var icon = option.IconUrl;
+                            var entry = CooldownEntry(spellId);
+                            var capturedId = spellId;
+                            <li class="timeline-settings-row draggable @(_draggingCooldownId == spellId ? "dragging" : "")"
+                                @key="spellId"
+                                draggable="true"
+                                @ondragstart="() => OnCooldownDragStart(capturedId)"
+                                @ondragover:preventDefault="true"
+                                @ondragover="() => OnCooldownDragOver(capturedId)"
+                                @ondragend="OnCooldownDragEnd"
+                                @ondrop="() => OnCooldownDrop(capturedId)">
+                                <span class="timeline-settings-drag-handle" aria-hidden="true">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
+                                         fill="currentColor" aria-hidden="true">
+                                        <circle cx="9" cy="6" r="1.5"></circle>
+                                        <circle cx="15" cy="6" r="1.5"></circle>
+                                        <circle cx="9" cy="12" r="1.5"></circle>
+                                        <circle cx="15" cy="12" r="1.5"></circle>
+                                        <circle cx="9" cy="18" r="1.5"></circle>
+                                        <circle cx="15" cy="18" r="1.5"></circle>
+                                    </svg>
+                                </span>
+                                <label class="timeline-settings-visibility">
+                                    <input type="checkbox"
+                                           checked="@entry.Visible"
+                                           @onchange="e => UpdateCooldownVisibility(capturedId, (bool)e.Value!)" />
+                                </label>
+                                <span class="timeline-settings-icon">
+                                    <SpellIcon Spell="@(new Ability { Guid = capturedId, Name = name, Icon = icon ?? string.Empty })"
+                                               Size="SpellIconSize.Small" />
+                                </span>
+                                <span class="timeline-settings-name">@name</span>
+                                <label class="timeline-settings-numeric">
+                                    <span class="timeline-settings-numeric-label">Order</span>
+                                    <input type="number"
+                                           value="@entry.SortOrder"
+                                           @onchange="e => UpdateCooldownOrder(capturedId, ParseInt(e.Value, int.MaxValue))" />
+                                </label>
+                            </li>
+                        }
+                    </ul>
+                }
+            }
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter, EditorRequired] public bool IsOpen { get; set; }
+    [Parameter, EditorRequired] public EventCallback OnClose { get; set; }
+    [Parameter, EditorRequired] public TimelineConfig Config { get; set; } = new();
+    [Parameter, EditorRequired] public EventCallback<TimelineConfig> OnConfigChanged { get; set; }
+    [Parameter, EditorRequired] public IReadOnlyList<TimelineSpellOption> AvailableAuras { get; set; } = [];
+    [Parameter, EditorRequired] public IReadOnlyList<TimelineSpellOption> AvailableCooldowns { get; set; } = [];
+
+    private enum Tab { Auras, Cooldowns }
+    private Tab _activeTab = Tab.Auras;
+    private int? _draggingCooldownId;
+
+    private AuraConfigEntry AuraEntry(int spellId) =>
+        Config.Auras.FirstOrDefault(a => a.SpellId == spellId)
+        ?? new AuraConfigEntry(spellId, false, 0);
+
+    private CooldownConfigEntry CooldownEntry(int spellId) =>
+        Config.Cooldowns.FirstOrDefault(c => c.SpellId == spellId)
+        ?? new CooldownConfigEntry(spellId, false, int.MaxValue);
+
+    private IEnumerable<TimelineSpellOption> SortedAuras() =>
+        AvailableAuras
+            .OrderBy(o => AuraEntry(o.SpellId).Priority)
+            .ThenBy(o => o.Name, StringComparer.OrdinalIgnoreCase);
+
+    private IEnumerable<TimelineSpellOption> SortedCooldowns() =>
+        AvailableCooldowns
+            .OrderBy(o => CooldownEntry(o.SpellId).SortOrder)
+            .ThenBy(o => o.Name, StringComparer.OrdinalIgnoreCase);
+
+    private static int ParseInt(object? raw, int fallback) =>
+        int.TryParse(raw?.ToString(), out var v) ? v : fallback;
+
+    private Task UpdateAuraVisibility(int spellId, bool visible)
+    {
+        var entry = AuraEntry(spellId);
+        return EmitConfig(new TimelineConfig
+        {
+            Auras = ReplaceOrAdd(Config.Auras, a => a.SpellId == spellId, entry with { Visible = visible }),
+            Cooldowns = [.. Config.Cooldowns],
+        });
+    }
+
+    private Task UpdateAuraPriority(int spellId, int priority)
+    {
+        var entry = AuraEntry(spellId);
+        return EmitConfig(new TimelineConfig
+        {
+            Auras = ReplaceOrAdd(Config.Auras, a => a.SpellId == spellId, entry with { Priority = priority }),
+            Cooldowns = [.. Config.Cooldowns],
+        });
+    }
+
+    private Task UpdateCooldownVisibility(int spellId, bool visible)
+    {
+        var entry = CooldownEntry(spellId);
+        return EmitConfig(new TimelineConfig
+        {
+            Auras = [.. Config.Auras],
+            Cooldowns = ReplaceOrAdd(Config.Cooldowns, c => c.SpellId == spellId, entry with { Visible = visible }),
+        });
+    }
+
+    private Task UpdateCooldownOrder(int spellId, int sortOrder)
+    {
+        var entry = CooldownEntry(spellId);
+        return EmitConfig(new TimelineConfig
+        {
+            Auras = [.. Config.Auras],
+            Cooldowns = ReplaceOrAdd(Config.Cooldowns, c => c.SpellId == spellId, entry with { SortOrder = sortOrder }),
+        });
+    }
+
+    private void OnCooldownDragStart(int spellId) => _draggingCooldownId = spellId;
+    private void OnCooldownDragEnd() => _draggingCooldownId = null;
+
+    private void OnCooldownDragOver(int targetSpellId)
+    {
+        // Drag-over fires constantly; we only care about drop. No-op kept for symmetry.
+    }
+
+    private async Task OnCooldownDrop(int targetSpellId)
+    {
+        if (_draggingCooldownId is not int sourceSpellId || sourceSpellId == targetSpellId)
+        {
+            _draggingCooldownId = null;
+            return;
+        }
+
+        // Reorder: insert source before target in the visible (sorted) order, then renumber SortOrder.
+        var sorted = SortedCooldowns().Select(o => o.SpellId).ToList();
+        sorted.Remove(sourceSpellId);
+        var targetIndex = sorted.IndexOf(targetSpellId);
+        if (targetIndex < 0) targetIndex = sorted.Count;
+        sorted.Insert(targetIndex, sourceSpellId);
+
+        var renumbered = sorted
+            .Select((id, i) =>
+            {
+                var existing = CooldownEntry(id);
+                return existing with { SortOrder = i };
+            })
+            .ToList();
+
+        // Preserve any cooldown entries that aren't in the visible list (defensive).
+        var visibleIds = renumbered.Select(c => c.SpellId).ToHashSet();
+        var preserved = Config.Cooldowns.Where(c => !visibleIds.Contains(c.SpellId));
+
+        _draggingCooldownId = null;
+        await EmitConfig(new TimelineConfig
+        {
+            Auras = [.. Config.Auras],
+            Cooldowns = [.. renumbered, .. preserved],
+        });
+    }
+
+    private static List<T> ReplaceOrAdd<T>(IEnumerable<T> source, Func<T, bool> predicate, T replacement)
+    {
+        var result = new List<T>();
+        var replaced = false;
+        foreach (var item in source)
+        {
+            if (!replaced && predicate(item))
+            {
+                result.Add(replacement);
+                replaced = true;
+            }
+            else
+            {
+                result.Add(item);
+            }
+        }
+        if (!replaced) result.Add(replacement);
+        return result;
+    }
+
+    private Task EmitConfig(TimelineConfig next) => OnConfigChanged.InvokeAsync(next);
+}

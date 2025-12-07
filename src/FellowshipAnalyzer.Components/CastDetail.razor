@@ -1,0 +1,227 @@
+@* CastDetail — per-cast paginated inspector with timeline, stats, and navigation *@
+
+@{
+    var filteredCasts = _filteredCasts;
+    var filteredCount = filteredCasts.Count;
+    var validIndex = Math.Min(_currentIndex, Math.Max(0, filteredCount - 1));
+    var currentCast = filteredCount > 0 ? filteredCasts[validIndex] : null;
+    var originalIndex = currentCast is not null ? _allCasts.IndexOf(currentCast) : -1;
+    var castColor = currentCast is not null
+        ? PerformanceColors.ToColor(currentCast.Performance)
+        : "rgba(255,255,255,0.3)";
+    var rectWidthPct = Math.Max(100.0 / Math.Max(filteredCount, 5), 100.0 / 30);
+}
+
+<GuideDataWrapper Bare="true" Title="@Title" Subtitle="Cast Details">
+    <Stats>
+        <div class="perf-badge-grid">
+            @foreach (var (tier, label) in _perfLevels)
+            {
+                var count = _perfCounts.GetValueOrDefault(tier);
+                var disabled = count == 0;
+                var color = disabled ? "#c8c8c8" : PerformanceColors.ToColor(tier);
+                var active = !disabled && _performanceFilter.Contains(tier);
+
+                <button class="filter-badge @(active ? "active" : "") @(disabled ? "disabled" : "")"
+                        style="border-color: @(disabled ? "rgba(255,255,255,0.1)" : active ? color + "60" : "rgba(255,255,255,0.08)");
+                               background: @(disabled ? "rgba(255,255,255,0.04)" : active ? color + "08" : "rgba(0,0,0,0.2)");
+                               opacity: @(disabled || !active ? "0.4" : "1");"
+                        disabled="@disabled"
+                        @onclick="() => ToggleFilter(tier)">
+                    <span class="badge-count" style="color: @color;">@count</span>
+                    <span class="badge-divider" style="background: @(color)40;"></span>
+                    <span class="badge-label">@label</span>
+                </button>
+            }
+        </div>
+    </Stats>
+    <StatsHelperText>
+        <span class="helper-text">Click a filter to show only those casts</span>
+    </StatsHelperText>
+    <HelperText>
+        @if (!string.IsNullOrEmpty(Description))
+        {
+            <span class="helper-text">@Description</span>
+        }
+    </HelperText>
+    <ChildContent>
+        @if (filteredCount == 0)
+        {
+            <div class="no-results">
+                <div class="no-results-title">No casts match the current filter</div>
+                <div class="no-results-hint">Click the performance badges above to toggle filters</div>
+            </div>
+        }
+        else
+        {
+            <div class="card-container" tabindex="0" @onkeydown="HandleKeyDown">
+                @* Timeline scrubber *@
+                <div class="timeline-row">
+                    <div class="timeline-rect-container">
+                        @for (var i = 0; i < filteredCount; i++)
+                        {
+                            var idx = i;
+                            var cast = filteredCasts[idx];
+                            var color = PerformanceColors.ToColor(cast.Performance);
+                            var isActive = idx == validIndex;
+
+                            <button class="timeline-rect @(isActive ? "active" : "")"
+                                    style="width: calc(@(rectWidthPct.ToString("F1"))% - 3px);
+                                           background: @(isActive ? color : color + "55");
+                                           border-color: @(isActive ? color : "transparent");
+                                           @(isActive ? $"outline: 2px solid rgba(255,255,255,0.6); outline-offset: 1px;" : "")"
+                                    title="Cast #@(_allCasts.IndexOf(cast) + 1) · @cast.Timestamp · @PerformanceColors.ToLabel(cast.Performance)"
+                                    @onclick="() => SetIndex(idx)">
+                            </button>
+                        }
+                    </div>
+                </div>
+
+                @* Cast card *@
+                <div class="cast-card" style="--accent-color: @castColor;">
+                    <div class="card-header">
+                        <button class="nav-btn" disabled="@(validIndex == 0)" @onclick="HandlePrevious">
+                            <span class="nav-chevron">&#8249;</span>
+                            <span class="nav-divider-v"></span>
+                            <span class="nav-label">Prev</span>
+                        </button>
+                        <div class="cast-meta">
+                            <span class="perf-badge-inline" style="border-color: @(castColor)45; background: @(castColor)12; color: @castColor;">
+                                @PerformanceColors.ToLabel(currentCast!.Performance)
+                            </span>
+                            <span class="cast-label">
+                                Cast @(originalIndex + 1) / @filteredCount · @currentCast.Timestamp
+                            </span>
+                        </div>
+                        <button class="nav-btn" disabled="@(validIndex == filteredCount - 1)" @onclick="HandleNext">
+                            <span class="nav-label">Next</span>
+                            <span class="nav-divider-v"></span>
+                            <span class="nav-chevron">&#8250;</span>
+                        </button>
+                    </div>
+
+                    @* Stats grid *@
+                    <div class="stats-grid" style="margin-bottom: 10px;">
+                        @foreach (var stat in currentCast.Stats)
+                        {
+                            var statColor = stat.Performance.HasValue
+                                ? PerformanceColors.ToColor(stat.Performance.Value)
+                                : castColor;
+
+                            <StatTile Color="@statColor" Value="@stat.Value" Label="@stat.Label" Tooltip="@stat.Tooltip" />
+                        }
+                    </div>
+
+                    @* Spell sequence / additional content *@
+                    @if (currentCast.Sequence is { Length: > 0 })
+                    {
+                        @RenderAdditionalBlock("Cast Sequence", @<SpellSequence Casts="@currentCast.Sequence" />)
+                    }
+
+                    @if (currentCast.AdditionalContent is not null)
+                    {
+                        @RenderAdditionalBlock(currentCast.AdditionalContent.Title, currentCast.AdditionalContent.Content)
+                    }
+
+                    @* Details *@
+                    @if (currentCast.Details is not null)
+                    {
+                        <div class="details-box">
+                            @currentCast.Details
+                        </div>
+                    }
+
+                    @* Accent bar *@
+                    <div class="accent-bar" style="background: linear-gradient(to right, @(castColor)90, @(castColor)20);"></div>
+                </div>
+            </div>
+        }
+    </ChildContent>
+</GuideDataWrapper>
+
+@code {
+    [Parameter] public string Title { get; set; } = "";
+    [Parameter] public IEnumerable<PerCastData> Casts { get; set; } = [];
+    [Parameter] public string? Description { get; set; }
+
+    private int _currentIndex;
+    private List<PerCastData> _allCasts = [];
+    private List<PerCastData> _filteredCasts = [];
+    private Dictionary<PerformanceTier, int> _perfCounts = [];
+    private readonly HashSet<PerformanceTier> _performanceFilter =
+    [
+        PerformanceTier.Perfect,
+        PerformanceTier.Good,
+        PerformanceTier.Ok,
+        PerformanceTier.Fail,
+    ];
+
+    private static readonly (PerformanceTier Tier, string Label)[] _perfLevels =
+    [
+        (PerformanceTier.Perfect, "Perfect"),
+        (PerformanceTier.Good, "Good"),
+        (PerformanceTier.Ok, "Ok"),
+        (PerformanceTier.Fail, "Bad"),
+    ];
+
+    protected override void OnParametersSet()
+    {
+        _allCasts = Casts.ToList();
+        _perfCounts = new Dictionary<PerformanceTier, int>
+        {
+            [PerformanceTier.Perfect] = _allCasts.Count(c => c.Performance == PerformanceTier.Perfect),
+            [PerformanceTier.Good] = _allCasts.Count(c => c.Performance == PerformanceTier.Good),
+            [PerformanceTier.Ok] = _allCasts.Count(c => c.Performance == PerformanceTier.Ok),
+            [PerformanceTier.Fail] = _allCasts.Count(c => c.Performance == PerformanceTier.Fail),
+        };
+        RebuildFilteredCasts();
+    }
+
+    private void RebuildFilteredCasts()
+    {
+        _filteredCasts = _allCasts.Where(c => _performanceFilter.Contains(c.Performance)).ToList();
+    }
+
+    private void ToggleFilter(PerformanceTier tier)
+    {
+        if (_performanceFilter.Contains(tier))
+            _performanceFilter.Remove(tier);
+        else
+            _performanceFilter.Add(tier);
+
+        RebuildFilteredCasts();
+        _currentIndex = 0;
+    }
+
+    private void SetIndex(int index) => _currentIndex = index;
+
+    private void HandlePrevious()
+    {
+        _currentIndex = _currentIndex > 0 ? _currentIndex - 1 : _filteredCasts.Count - 1;
+    }
+
+    private void HandleNext()
+    {
+        _currentIndex = _currentIndex < _filteredCasts.Count - 1 ? _currentIndex + 1 : 0;
+    }
+
+    private void HandleKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "ArrowLeft") HandlePrevious();
+        else if (e.Key == "ArrowRight") HandleNext();
+    }
+
+    private static RenderFragment? RenderAdditionalBlock(string? title, RenderFragment? content)
+    {
+        if (content is null)
+            return null;
+
+        return @<div class="additional-content-container">
+            @if (!string.IsNullOrWhiteSpace(title))
+            {
+                <div class="additional-content-heading">@title</div>
+            }
+            @content
+        </div>;
+    }
+}

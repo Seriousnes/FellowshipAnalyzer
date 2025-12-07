@@ -1,0 +1,87 @@
+name: CI
+
+on:
+  pull_request:
+    branches:
+      - master
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  DOTNET_VERSION: 10.0.x
+  DOTNET_NOLOGO: true
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+
+jobs:
+  build:
+    name: Build solution
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore workloads
+        run: dotnet workload restore FellowshipAnalyzer.slnx
+
+      - name: Restore solution
+        run: dotnet restore FellowshipAnalyzer.slnx
+
+      - name: Build solution
+        run: dotnet build FellowshipAnalyzer.slnx --configuration Release --no-restore
+
+  test:
+    name: Test ${{ matrix.name }}
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Core
+            project: tests/FellowshipAnalyzer.Core.Tests/FellowshipAnalyzer.Core.Tests.csproj
+          - name: FellowshipLogs
+            project: tests/FellowshipAnalyzer.FellowshipLogs.Tests/FellowshipAnalyzer.FellowshipLogs.Tests.csproj
+          - name: Generators
+            project: tests/FellowshipAnalyzer.Generators.Tests/FellowshipAnalyzer.Generators.Tests.csproj
+          - name: Heroes.Rime
+            project: tests/FellowshipAnalyzer.Heroes.Rime.Tests/FellowshipAnalyzer.Heroes.Rime.Tests.csproj
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore test project
+        run: dotnet restore ${{ matrix.project }}
+
+      - name: Run tests
+        run: >-
+          dotnet test ${{ matrix.project }}
+          --configuration Release
+          --no-restore
+          --logger "trx;LogFileName=${{ matrix.name }}.trx"
+          --results-directory TestResults
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-${{ matrix.name }}
+          path: TestResults/*.trx
+          if-no-files-found: ignore

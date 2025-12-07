@@ -1,0 +1,20 @@
+@use 'tokens' as t;
+
+.gradiated-bar {
+    display: flex;
+    height: 10px;
+    border-radius: 5px;
+    overflow: hidden;
+    background: var(--fa-bg-inset, rgba(10, 12, 24, 0.6));
+}
+
+.bar-segment {
+    height: 100%;
+    transition: width 0.3s ease;
+    cursor: default;
+
+    &.perfect { background: var(--fa-perf-perfect, #56d67b); }
+    &.good    { background: var(--fa-perf-good, #90cc60); }
+    &.ok      { background: var(--fa-perf-ok, #d4a744); }
+    &.fail    { background: var(--fa-perf-fail, #d4564a); }
+}

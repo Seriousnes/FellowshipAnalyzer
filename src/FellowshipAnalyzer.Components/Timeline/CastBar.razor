@@ -1,0 +1,232 @@
+@using System.Globalization
+@using FellowshipAnalyzer.Core.Analysis
+@using FellowshipAnalyzer.Core.Common.Spells
+@using FellowshipAnalyzer.Core.Events
+@using OneOf
+
+<div class="cast-bar-container" style="position: relative; width: @F(TrackWidthPx)px;">
+    <div class="cast-bar-time-line" style="height: calc(100% + 10px);">
+        @for (var sec = 1; sec < _totalSeconds; sec++)
+        {
+            <div class="cast-bar-time-line-sec" style="width: @F(PixelsPerSecond)px;" data-duration="@FormatSec(sec - 1)"></div>
+        }
+    </div>
+
+    <div class="cast-bar" style="@CastBarStyle">
+        @foreach (var item in _items)
+        {
+            @if (item is CastItem ci)
+            {
+                @if (ci.IsLower)
+                {
+                    @CastIconDiv(ci.Ability, ci.Cast.Ability, Px(ci.Cast.Timestamp), extraClass: "cast-bar-cast-lower", extraStyle: $"--level: {ci.Level};", showTimeIndicator: true)
+                }
+                else
+                {
+                    @if (ci.Gcd is not null)
+                    {
+                        <div class="cast-bar-gcd" style="left: @Px(ci.BeginCast?.Timestamp ?? ci.Cast.Timestamp); width: @DurPx(ci.Gcd.Duration);"></div>
+                    }
+                    @if (ci.BeginCast is not null && ci.Cast.Timestamp > ci.BeginCast.Timestamp)
+                    {
+                        <div class="cast-bar-cast-time" style="left: @Px(ci.BeginCast.Timestamp); width: @DurPx(ci.Cast.Timestamp - ci.BeginCast.Timestamp);"></div>
+                    }
+                    @CastIconDiv(ci.Ability, ci.Cast.Ability, Px(ci.BeginCast?.Timestamp ?? ci.Cast.Timestamp), title: FormatTimestamp(ci.BeginCast?.Timestamp ?? ci.Cast.Timestamp))
+                }
+            }
+            else if (item is CancelledCastItem cci)
+            {
+                @CastIconDiv(cci.Ability, cci.BeginCast.Ability, Px(cci.BeginCast.Timestamp), extraClass: "cast-bar-cast-cancelled", title: $"Cancelled — {FormatTimestamp(cci.BeginCast.Timestamp)}")
+            }
+            else if (item is ChannelItem chi)
+            {
+                @if (chi.Gcd is not null)
+                {
+                    <div class="cast-bar-gcd" style="left: @Px(chi.BeginChannel.Timestamp); width: @DurPx(chi.Gcd.Duration);"></div>
+                }
+                @if (chi.EndChannel is not null)
+                {
+                    var chanStart = chi.EndChannel.Start > 0 ? chi.EndChannel.Start : chi.BeginChannel.Timestamp;
+                    var chanWidth = chi.EndChannel.Duration > 0
+                        ? chi.EndChannel.Duration
+                        : chi.EndChannel.Timestamp - chi.BeginChannel.Timestamp;
+                    @if (chanWidth > 0)
+                    {
+                        <div class="cast-bar-channel" style="left: @Px(chanStart); width: @DurPx(chanWidth);"></div>
+                    }
+                }
+                @CastIconDiv(chi.Ability, chi.BeginChannel.Ability, Px(chi.BeginChannel.Timestamp), title: FormatTimestamp(chi.BeginChannel.Timestamp))
+            }
+        }
+    </div>
+</div>
+
+@code {
+    private const int IconWidth = 24;
+
+    [Parameter, EditorRequired] public IReadOnlyList<Event> Events { get; set; } = [];
+    [Parameter, EditorRequired] public int PlayerId { get; set; }
+    [Parameter, EditorRequired] public int FightStartTime { get; set; }
+    [Parameter, EditorRequired] public int FightEndTime { get; set; }
+    [Parameter] public double PixelsPerSecond { get; set; } = 60.0;
+    [Parameter] public Abilities? Abilities { get; set; }
+
+    private abstract record TimelineItem(int Timestamp);
+    private sealed record CastItem(CastEvent Cast, BeginCastEvent? BeginCast, GlobalCooldownEvent? Gcd, SpellbookAbility? Ability, bool IsLower, int Level) : TimelineItem(Cast.Timestamp);
+    private sealed record ChannelItem(BeginChannelEvent BeginChannel, EndChannelEvent? EndChannel, GlobalCooldownEvent? Gcd, SpellbookAbility? Ability) : TimelineItem(BeginChannel.Timestamp);
+    private sealed record CancelledCastItem(BeginCastEvent BeginCast, SpellbookAbility? Ability) : TimelineItem(BeginCast.Timestamp);
+
+    private List<TimelineItem> _items = [];
+    private bool _hasLevels;
+    private int _maxLevel = 1;
+    private int _totalSeconds;
+
+    private double TrackWidthPx => ((FightEndTime - FightStartTime) / 1000.0) * PixelsPerSecond;
+
+    private string CastBarStyle =>
+        $"--has-levels: {(_hasLevels ? 1 : 0)}; --levels: {(_hasLevels ? _maxLevel : 0)};";
+
+    private string Px(int timestamp) =>
+        $"{(timestamp - FightStartTime) / 1000.0 * PixelsPerSecond:F1}px";
+
+    private string DurPx(int durationMs) =>
+        $"{durationMs / 1000.0 * PixelsPerSecond:F1}px";
+
+    private static bool HasDisplaySpell(SpellbookAbility? ability, Ability? fallbackAbility) =>
+        ability is not null || fallbackAbility is not null;
+
+    private RenderFragment? CastIconDiv(
+        SpellbookAbility? ability,
+        Ability? fallbackAbility,
+        string leftPx,
+        string? extraClass = null,
+        string? title = null,
+        string? extraStyle = null,
+        bool showTimeIndicator = false)
+    {
+        if (!HasDisplaySpell(ability, fallbackAbility))
+            return null;
+
+        var spell = ResolveDisplaySpell(ability, fallbackAbility);
+        var cssClass = extraClass is not null ? $"cast-bar-cast {extraClass}" : "cast-bar-cast";
+        var style = extraStyle is not null ? $"left: {leftPx}; {extraStyle}" : $"left: {leftPx};";
+
+        return @<div class="@cssClass" style="@style" title="@title">
+            <SpellIcon Spell="spell" Size="SpellIconSize.Small" />
+            @if (showTimeIndicator)
+            {
+                <div class="cast-bar-time-indicator"></div>
+            }
+        </div>
+    ;
+    }
+
+    private static OneOf<Spell, int, SpellbookAbility, Ability> ResolveDisplaySpell(SpellbookAbility? ability, Ability? fallbackAbility)
+    {
+        if (ability is not null)
+        {
+            return ability;
+        }
+
+        if (fallbackAbility is not null)
+        {
+            return fallbackAbility;
+        }
+
+        return Ability.UnknownAbility;
+    }
+
+    private static string F(double v) => v.ToString("F1", CultureInfo.InvariantCulture);
+
+    private string FormatTimestamp(int timestamp)
+    {
+        var totalSec = (timestamp - FightStartTime) / 1000;
+        var min = totalSec / 60;
+        var sec = totalSec % 60;
+        return $"{min}:{sec:D2}";
+    }
+
+    private static string FormatSec(int sec)
+    {
+        var min = sec / 60;
+        var s = sec % 60;
+        return $"{min}:{s:D2}";
+    }
+
+    protected override void OnParametersSet()
+    {
+        _totalSeconds = (int)Math.Ceiling((FightEndTime - FightStartTime) / 1000.0);
+
+        var beginCastByCast = new Dictionary<CastEvent, BeginCastEvent>();
+        foreach (var e in Events.OfType<BeginCastEvent>())
+        {
+            if (e.CastEvent is not null)
+                beginCastByCast[e.CastEvent] = e;
+        }
+
+        var endChannelByBegin = new Dictionary<BeginChannelEvent, EndChannelEvent>();
+        foreach (var e in Events.OfType<EndChannelEvent>())
+        {
+            if (e.BeginChannel is not null)
+                endChannelByBegin[e.BeginChannel] = e;
+        }
+
+        _items = [];
+        _hasLevels = false;
+        _maxLevel = 1;
+        double lastLoweredLeft = double.MinValue;
+        int currentLevel = 0;
+
+        foreach (var e in Events)
+        {
+            switch (e)
+            {
+                case CastEvent cast when cast.SourceId == PlayerId && cast.Channel is null:
+                {
+                    beginCastByCast.TryGetValue(cast, out var beginCast);
+                    var isLower = cast.GlobalCooldown is null;
+                    var level = 0;
+                    if (isLower)
+                    {
+                        var left = (cast.Timestamp - FightStartTime) / 1000.0 * PixelsPerSecond;
+                        if (left - lastLoweredLeft < IconWidth)
+                        {
+                            currentLevel++;
+                            level = currentLevel;
+                            _maxLevel = Math.Max(_maxLevel, level + 1);
+                        }
+                        else
+                        {
+                            currentLevel = 0;
+                        }
+                        lastLoweredLeft = left;
+                        _hasLevels = true;
+                    }
+                    _items.Add(new CastItem(
+                        cast,
+                        beginCast,
+                        cast.GlobalCooldown,
+                        Abilities?.GetAbility(cast.Ability.Id),
+                        isLower,
+                        level));
+                    break;
+                }
+
+                case BeginChannelEvent bc when bc.SourceId == PlayerId:
+                    endChannelByBegin.TryGetValue(bc, out var endChannel);
+                    _items.Add(new ChannelItem(
+                        bc,
+                        endChannel,
+                        bc.GlobalCooldown,
+                        Abilities?.GetAbility(bc.Ability.Id)));
+                    break;
+
+                case BeginCastEvent cancelledBc when cancelledBc.SourceId == PlayerId && cancelledBc.IsCancelled:
+                    _items.Add(new CancelledCastItem(
+                        cancelledBc,
+                        Abilities?.GetAbility(cancelledBc.Ability.Id)));
+                    break;
+            }
+        }
+    }
+}

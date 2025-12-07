@@ -1,0 +1,40 @@
+@* StackedBar — horizontal stacked proportional bar chart with optional legend *@
+
+@{
+    var total = Segments.Sum(s => s.Value);
+}
+
+@if (total > 0)
+{
+    <div>
+        <div class="stacked-bar" style="height: @(Height)px;">
+            @foreach (var segment in Segments.Where(s => s.Value > 0))
+            {
+                var pct = segment.Value / total * 100;
+                <div class="stacked-segment"
+                     style="width: @(pct.ToString("F1"))%; background: @segment.Color;"
+                     title="@(segment.Tooltip ?? $"{segment.Label}: {segment.Value}")">
+                </div>
+            }
+        </div>
+        @if (!HideLegend)
+        {
+            <div class="stacked-legend">
+                @foreach (var segment in Segments.Where(s => s.Value > 0))
+                {
+                    <div class="legend-item">
+                        <span class="legend-swatch" style="background: @segment.Color;"></span>
+                        <span class="legend-label">@segment.Label</span>
+                        <span class="legend-value">@segment.Value</span>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+}
+
+@code {
+    [Parameter] public IEnumerable<StackedBarSegment> Segments { get; set; } = [];
+    [Parameter] public int Height { get; set; } = 35;
+    [Parameter] public bool HideLegend { get; set; }
+}

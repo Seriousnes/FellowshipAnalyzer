@@ -1,0 +1,78 @@
+@using FellowshipAnalyzer.Core.Common.Spells
+@using OneOf
+
+@if (NoTooltip)
+{
+    <img src="@IconUrl" class="spell-icon @SizeClass" alt="@_name" @attributes="InputAttributes" />
+}
+else if (_icon is { Length: > 0 })
+{
+    <a href="@AbilityUrl" target="_blank" rel="noopener noreferrer" data-tooltip-spell-id="@TooltipSpellId" class="spell-icon-link" @attributes="InputAttributes">
+        <img src="@IconUrl" class="spell-icon @SizeClass" alt="@_name" />
+    </a>
+}
+
+@code {
+    [Parameter, EditorRequired]
+    public OneOf<Spell, int, SpellbookAbility, Ability> Spell { get; set; }
+
+    /// <summary>Icon size. Defaults to <see cref="SpellIconSize.Medium"/>.</summary>
+    [Parameter]
+    public SpellIconSize Size { get; set; } = SpellIconSize.Medium;
+
+    /// <summary>Suppress the API tooltip (e.g. when nested inside a <see cref="SpellLink"/>).</summary>
+    [Parameter]
+    public bool NoTooltip { get; set; }
+
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object> InputAttributes { get; set; } = new();
+
+    private string _name = "";
+    private string _icon = "";
+    private int _id;
+    private bool _isEffect;
+
+    private string IconUrl => $"https://assets.rpglogs.com/img/fellowship/abilities/{_icon}";
+    private string LinkUri => _isEffect ? $"effect/{_id}" : $"ability/{_id}";
+    private string AbilityUrl => $"https://fellows.gg/{LinkUri}";
+
+    private string SizeClass => Size switch
+    {
+        SpellIconSize.Small => "spell-icon--sm",
+        SpellIconSize.Large => "spell-icon--lg",
+        _ => ""
+    };
+
+    private string? TooltipSpellId => _id > 0 ? LinkUri : null;
+
+    private static (int ShortId, bool IsEffect) NormalizeGuid(int guid) =>
+        guid >= 1_000_000
+            ? (guid - 1_000_000, true)
+            : (guid, false);
+
+    protected override void OnParametersSet()
+    {
+        Spell.Switch(
+            s => { _id = s.Id; _name = s.Name; _icon = s.Icon; _isEffect = s is Effect; },
+            id =>
+            {
+                var s = SpellRegistry.MaybeGet(id);
+                if (s is not null)
+                {
+                    _id = s.Id; _name = s.Name; _icon = s.Icon; _isEffect = s is Effect;
+                }
+                else
+                {
+                    var normalized = NormalizeGuid(id);
+                    _id = normalized.ShortId; _name = ""; _icon = ""; _isEffect = normalized.IsEffect;
+                }
+            },
+            a => { var s = a.PrimarySpell; _id = s.Id; _name = a.Name ?? s.Name; _icon = s.Icon; _isEffect = s is Effect; },
+            a =>
+            {
+                var normalized = NormalizeGuid(a.Guid);
+                _id = normalized.ShortId; _name = a.Name; _icon = a.Icon; _isEffect = normalized.IsEffect;
+            }
+        );
+    }
+}

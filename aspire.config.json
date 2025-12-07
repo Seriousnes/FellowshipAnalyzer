@@ -1,0 +1,5 @@
+{
+  "appHost": {
+    "path": "src/FellowshipAnalyzer.AppHost/FellowshipAnalyzer.AppHost.csproj"
+  }
+}

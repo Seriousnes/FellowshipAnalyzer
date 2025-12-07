@@ -1,0 +1,7 @@
+{
+  "SourceFolder": ".",
+  "TargetFolder": ".",
+  "GenerateScopedCss": true,
+  "ScopedCssFolders": [ "." ],
+  "IncludePaths": [ "Styles" ]
+}

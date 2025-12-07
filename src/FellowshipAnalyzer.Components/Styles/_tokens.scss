@@ -1,0 +1,50 @@
+// ── FellowshipAnalyzer Design Tokens ────────────────────────────────────────
+// SCSS compile-time mirrors of the CSS custom properties in app.scss.
+// Use these for SCSS functions (color.adjust, darken, etc.) or interpolation.
+// The canonical runtime values are the --fa-* CSS variables; keep both in sync.
+
+@use 'sass:color';
+
+// ── Surface palette — deep twilight ─────────────────────────────────────────
+$fa-bg-base:    #0c0e18;
+$fa-bg-raised:  #12152a;
+$fa-bg-surface: #181c35;
+$fa-bg-card:    rgba(22, 26, 52, 0.82);
+$fa-bg-inset:   rgba(10, 12, 24, 0.6);
+
+// ── Accent gold — warm, heroic ───────────────────────────────────────────────
+$fa-gold:       #d4a744;
+$fa-gold-light: #f0d078;
+$fa-gold-dim:   rgba(212, 167, 68, 0.14);
+
+// ── Text ─────────────────────────────────────────────────────────────────────
+$fa-text:       #e2dfd8;
+$fa-text-muted: #9a9586;
+$fa-text-dim:   #6b6558;
+
+// ── Borders & dividers ───────────────────────────────────────────────────────
+$fa-border:      rgba(212, 167, 68, 0.12);
+$fa-border-card: rgba(212, 167, 68, 0.18);
+
+// ── Performance accents ──────────────────────────────────────────────────────
+$fa-perf-perfect: #56d67b;
+$fa-perf-good:    #90cc60;
+$fa-perf-ok:      #d4a744;
+$fa-perf-fail:    #d4564a;
+
+// ── Hero / element accents ───────────────────────────────────────────────────
+$fa-ice: #6ec8e8;   // Rime hero (frost / ice)
+
+// ── Shadows ──────────────────────────────────────────────────────────────────
+$fa-shadow-card: (0 8px 32px rgba(0, 0, 0, 0.45));
+$fa-shadow-lg:   (0 16px 48px rgba(0, 0, 0, 0.55));
+
+// ── Radii ────────────────────────────────────────────────────────────────────
+$fa-radius-sm: 8px;
+$fa-radius-md: 14px;
+$fa-radius-lg: 20px;
+$fa-radius-xl: 28px;
+
+// ── Typography ───────────────────────────────────────────────────────────────
+$fa-font-body:    'Noto Sans', system-ui, -apple-system, sans-serif;
+$fa-font-heading: 'Nunito', system-ui, -apple-system, sans-serif;

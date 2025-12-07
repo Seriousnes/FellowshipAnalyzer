@@ -1,0 +1,34 @@
+@use 'tokens' as t;
+
+.spell-sequence {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    align-items: center;
+}
+
+.spell-badge {
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid;
+    border-radius: 4px;
+    background: var(--fa-bg-inset, rgba(10, 12, 24, 0.6));
+    font-weight: 600;
+    white-space: nowrap;
+    letter-spacing: 0.3px;
+
+    &.badge-sm {
+        padding: 2px 6px;
+        font-size: 0.75rem;
+    }
+
+    &.badge-md {
+        padding: 4px 8px;
+        font-size: 0.85rem;
+    }
+
+    &.badge-lg {
+        padding: 6px 12px;
+        font-size: 1rem;
+    }
+}

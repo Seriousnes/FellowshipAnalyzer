@@ -1,0 +1,70 @@
+@* GuideDataWrapper — dark section box with gold title, optional subtitle, stats, and content *@
+
+@if (Bare)
+{
+    <div class="bare-section">
+        @if (HelperText is not null)
+        {
+            <div class="helper-text-row">@HelperText</div>
+        }
+        <div class="section-header">
+            <div class="title-column">
+                <h3 class="section-title">@Title</h3>
+                @if (!string.IsNullOrEmpty(Subtitle))
+                {
+                    <div class="section-label">@Subtitle</div>
+                }
+            </div>
+            @if (Stats is not null)
+            {
+                <div class="stats-column">
+                    <div class="stats-row">@Stats</div>
+                    @if (StatsHelperText is not null)
+                    {
+                        <div class="helper-text" style="margin-top: 0;">@StatsHelperText</div>
+                    }
+                </div>
+            }
+        </div>
+        @ChildContent
+    </div>
+}
+else
+{
+    <div class="section-container">
+        @if (HelperText is not null)
+        {
+            <div class="helper-text-row">@HelperText</div>
+        }
+        <div class="section-header">
+            <div class="title-column">
+                <h3 class="section-title">@Title</h3>
+                @if (!string.IsNullOrEmpty(Subtitle))
+                {
+                    <div class="section-label">@Subtitle</div>
+                }
+            </div>
+            @if (Stats is not null)
+            {
+                <div class="stats-column">
+                    <div class="stats-row">@Stats</div>
+                    @if (StatsHelperText is not null)
+                    {
+                        <div class="helper-text" style="margin-top: 0;">@StatsHelperText</div>
+                    }
+                </div>
+            }
+        </div>
+        @ChildContent
+    </div>
+}
+
+@code {
+    [Parameter] public string Title { get; set; } = "";
+    [Parameter] public string? Subtitle { get; set; }
+    [Parameter] public RenderFragment? Stats { get; set; }
+    [Parameter] public RenderFragment? StatsHelperText { get; set; }
+    [Parameter] public RenderFragment? HelperText { get; set; }
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public bool Bare { get; set; }
+}

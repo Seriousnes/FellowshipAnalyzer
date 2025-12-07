@@ -1,0 +1,23 @@
+@* GuideSection — two-column layout: left explanation, right data content *@
+
+<section class="guide-section">
+    <header class="guide-section-header">
+        <h3>@Title</h3>
+    </header>
+    <div class="guide-section-body" style="--explanation-pct: @(ExplanationPercent)%;">
+        @if (Explanation is not null)
+        {
+            <div class="guide-section-explanation">@Explanation</div>
+        }
+        <div class="guide-section-data">
+            @ChildContent
+        </div>
+    </div>
+</section>
+
+@code {
+    [Parameter] public string Title { get; set; } = "";
+    [Parameter] public RenderFragment? Explanation { get; set; }
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public int ExplanationPercent { get; set; } = 40;
+}

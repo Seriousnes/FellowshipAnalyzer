@@ -1,0 +1,25 @@
+@use 'tokens' as t;
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+    margin-bottom: 6px;
+
+    @media (max-width: 600px) {
+        grid-template-columns: 1fr;
+    }
+}
+
+.additional-content {
+    margin-top: 10px;
+
+    &-heading {
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--fa-text-dim, #{t.$fa-text-dim});
+        margin-bottom: 6px;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+    }
+}
