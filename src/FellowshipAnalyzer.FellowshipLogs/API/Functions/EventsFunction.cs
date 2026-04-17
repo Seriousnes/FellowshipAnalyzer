@@ -7,10 +7,13 @@ internal sealed class EventsFunction(IApiRequestExecutor api, FellowshipLogsClie
     : BaseFunction(api, options), IEventsFunction
 {
     private const string Query = """
-        query ReportEvents($code: String!, $fightIDs: [Int!], $sourceID: Int!, $startTime: Float, $limit: Int!) {
+        query ReportEvents($code: String!, $fightIDs: [Int!], $sourceID: Int!) {          
           reportData {
             report(code: $code) {
-              events(fightIDs: $fightIDs, sourceID: $sourceID, startTime: $startTime, limit: $limit, dataType: All) {
+              fights(fightIDs: $fightIDs) {
+                inProgress                
+              }
+              events(fightIDs: $fightIDs, sourceID: $sourceID) {
                 data
                 nextPageTimestamp
               }
@@ -19,7 +22,7 @@ internal sealed class EventsFunction(IApiRequestExecutor api, FellowshipLogsClie
         }
         """;
 
-    public async Task<IReadOnlyList<Event>> GetAsync(
+    public async Task<EventsResult> GetAsync(
         FellowshipLogsEventsRequest request,
         CancellationToken cancellationToken = default)
     {
@@ -27,11 +30,13 @@ internal sealed class EventsFunction(IApiRequestExecutor api, FellowshipLogsClie
 
         var events = new List<Event>();
         double? startTime = null;
+        var inProgress = false;
 
         while (true)
         {
-            var (page, nextPageTimestamp) = await FetchPageAsync(request, startTime, cancellationToken);
+            var (page, nextPageTimestamp, pageInProgress) = await FetchPageAsync(request, startTime, cancellationToken);
             events.AddRange(page);
+            inProgress = pageInProgress;
 
             if (!nextPageTimestamp.HasValue ||
                 (startTime.HasValue && nextPageTimestamp.Value <= startTime.Value))
@@ -42,10 +47,10 @@ internal sealed class EventsFunction(IApiRequestExecutor api, FellowshipLogsClie
             startTime = nextPageTimestamp;
         }
 
-        return events;
+        return new EventsResult(events, inProgress);
     }
 
-    private async Task<(List<Event> Events, double? NextPageTimestamp)> FetchPageAsync(
+    private async Task<(List<Event> Events, double? NextPageTimestamp, bool InProgress)> FetchPageAsync(
         FellowshipLogsEventsRequest request,
         double? startTime,
         CancellationToken cancellationToken)
@@ -58,9 +63,7 @@ internal sealed class EventsFunction(IApiRequestExecutor api, FellowshipLogsClie
                 {
                     code = request.ReportCode,
                     fightIDs = new[] { request.FightId },
-                    sourceID = request.PlayerId,
-                    startTime,
-                    limit = Math.Clamp(request.PageSize, 100, 10_000)
+                    sourceID = request.PlayerId
                 }
             },
             cancellationToken);
@@ -68,7 +71,10 @@ internal sealed class EventsFunction(IApiRequestExecutor api, FellowshipLogsClie
         var eventsData = payload?.Data?.ReportData?.Report?.Events
             ?? throw new InvalidOperationException("GraphQL response did not contain expected event data.");
 
-        return (eventsData.Data, eventsData.NextPageTimestamp);
+        // The root-level fights array contains live status for the requested fight IDs.
+        var inProgress = payload?.Data?.Fights?.FirstOrDefault()?.InProgress ?? false;
+
+        return (eventsData.Data, eventsData.NextPageTimestamp, inProgress);
     }
 
     private static void ValidateRequest(FellowshipLogsEventsRequest request)

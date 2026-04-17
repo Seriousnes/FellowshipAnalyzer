@@ -30,10 +30,10 @@ public sealed class GlobalCooldown : Analyzer
 
     private void OnBeginChannel(BeginChannelEvent e)
     {
-        var gcdMs = GetGcdDuration(e.Ability?.Guid ?? 0);
+        var gcdMs = GetGcdDuration(e.AbilityGameId);
         if (gcdMs <= 0) return;
 
-        var gcdEvent = FabricateGcdEvent(e.Ability!.Guid, e.Timestamp, gcdMs);
+        var gcdEvent = FabricateGcdEvent(e.AbilityGameId, e.Timestamp, gcdMs);
         e.GlobalCooldown = gcdEvent;
     }
 

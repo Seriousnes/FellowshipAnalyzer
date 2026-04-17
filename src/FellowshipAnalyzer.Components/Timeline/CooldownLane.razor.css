@@ -1,0 +1,24 @@
+.cooldown-lane {
+    overflow: visible;
+}
+
+.cooldown-lane__bar {
+    position: absolute;
+    top: 2px;
+    height: 16px;
+    background: rgba(120, 120, 120, 0.55);
+    border: 1px solid rgba(80, 80, 80, 0.4);
+    border-radius: 2px;
+    z-index: 1;
+}
+
+.cooldown-lane__restore {
+    position: absolute;
+    top: 0;
+    width: 3px;
+    height: 20px;
+    background: rgba(255, 255, 255, 0.75);
+    transform: translateX(-50%);
+    border-radius: 1px;
+    z-index: 2;
+}

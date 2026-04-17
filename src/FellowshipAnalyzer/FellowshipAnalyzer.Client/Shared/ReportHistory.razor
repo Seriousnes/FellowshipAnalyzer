@@ -1,0 +1,45 @@
+@using FellowshipAnalyzer.Core.FellowshipLogs
+@inject IReportCacheService ReportCache
+
+@if (_history.Count > 0)
+{
+    <div class="report-history">
+        <h3 class="report-history__title">Recently Viewed</h3>
+        <ul class="report-history__list">
+            @foreach (var entry in _history)
+            {
+                <li class="report-history__item">
+                    <a href="/report/@entry.ReportCode/@entry.FightId/@entry.PlayerId"
+                       class="report-history__link">
+                        <span class="report-history__player">@(entry.PlayerName ?? $"Player {entry.PlayerId}")</span>
+                        <span class="report-history__fight">@(entry.FightName ?? entry.ReportCode)</span>
+                        <span class="report-history__age">@FormatAge(entry.CachedAt)</span>
+                    </a>
+                </li>
+            }
+        </ul>
+    </div>
+}
+
+@code {
+    private IReadOnlyList<ReportHistoryEntry> _history = [];
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+
+        // IndexedDB is only available after the first render (JS interop requires the DOM)
+        _history = await ReportCache.GetHistoryAsync();
+        StateHasChanged();
+    }
+
+    private static string FormatAge(DateTimeOffset cachedAt)
+    {
+        var age = DateTimeOffset.UtcNow - cachedAt;
+
+        if (age.TotalMinutes < 1) return "just now";
+        if (age.TotalHours < 1) return $"{(int)age.TotalMinutes}m ago";
+        if (age.TotalDays < 1) return $"{(int)age.TotalHours}h ago";
+        return $"{(int)age.TotalDays}d ago";
+    }
+}

@@ -1,0 +1,69 @@
+@using System.Globalization
+@using FellowshipAnalyzer.Core.Analysis
+@using FellowshipAnalyzer.Core.Events
+
+<div class="cooldown-lane" style="position: relative; width: @(TrackWidthPx.ToString("F1", CultureInfo.InvariantCulture))px; height: 20px;">
+    @foreach (var seg in _segments)
+    {
+        <div class="cooldown-lane__bar"
+             style="left: @Px(seg.Start); width: @DurPx(seg.End - seg.Start);"
+             title="@FormatTimestamp(seg.Start)"></div>
+    }
+    @foreach (var ts in _chargeRestoreTimestamps)
+    {
+        <div class="cooldown-lane__restore" style="left: @Px(ts);" title="@FormatTimestamp(ts)"></div>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired] public SpellbookAbility Ability { get; set; } = null!;
+    [Parameter, EditorRequired] public IReadOnlyList<UpdateSpellUsableEvent> CooldownEvents { get; set; } = [];
+    [Parameter, EditorRequired] public int FightStartTime { get; set; }
+    [Parameter, EditorRequired] public int FightEndTime { get; set; }
+    [Parameter] public double PixelsPerSecond { get; set; } = 60.0;
+
+    private sealed record CooldownSegment(int Start, int End);
+
+    private List<CooldownSegment> _segments = [];
+    private List<int> _chargeRestoreTimestamps = [];
+
+    private double TrackWidthPx => ((FightEndTime - FightStartTime) / 1000.0) * PixelsPerSecond;
+
+    private string Px(int timestamp) =>
+        ((timestamp - FightStartTime) / 1000.0 * PixelsPerSecond).ToString("F1", CultureInfo.InvariantCulture) + "px";
+
+    private string DurPx(int durationMs) =>
+        (durationMs / 1000.0 * PixelsPerSecond).ToString("F1", CultureInfo.InvariantCulture) + "px";
+
+    private string FormatTimestamp(int timestamp)
+    {
+        var totalSec = (timestamp - FightStartTime) / 1000;
+        var min = totalSec / 60;
+        var sec = totalSec % 60;
+        return min > 0 ? $"{min}:{sec:D2}" : $"{sec}s";
+    }
+
+    protected override void OnParametersSet()
+    {
+        _segments = [];
+        _chargeRestoreTimestamps = [];
+
+        foreach (var e in CooldownEvents)
+        {
+            switch (e.UpdateType)
+            {
+                case UpdateSpellUsableType.BeginCooldown:
+                    _segments.Add(new(e.ChargeStartTimestamp, e.ExpectedRechargeTimestamp));
+                    break;
+
+                case UpdateSpellUsableType.RestoreCharge:
+                    _chargeRestoreTimestamps.Add(e.Timestamp);
+                    if (e.IsOnCooldown)
+                        _segments.Add(new(e.Timestamp, e.ExpectedRechargeTimestamp));
+                    break;
+
+                // UseCharge and EndCooldown have no additional visual segments
+            }
+        }
+    }
+}

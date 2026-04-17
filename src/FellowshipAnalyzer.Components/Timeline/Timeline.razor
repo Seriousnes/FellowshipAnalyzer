@@ -1,48 +1,71 @@
-@using System.Globalization
+@using FellowshipAnalyzer.Core.Events
 
 <div class="timeline">
     @{
-        var spellUsable = Result.Modules.OfType<SpellUsable>().FirstOrDefault();
         var abilities = Result.Modules.OfType<Abilities>().FirstOrDefault();
+        var allEvents = Result.Events;
     }
 
-    @if (spellUsable is null || abilities is null || spellUsable.Casts.Count == 0)
+    @if (allEvents.Count == 0)
     {
-        <p class="timeline-empty">No cast data available for this fight.</p>
+        <p class="timeline-empty">No event data available for this fight.</p>
     }
     else
     {
         var fightDurationMs = FightEndTime - FightStartTime;
-        var spellRows = spellUsable.Casts
-            .GroupBy(c => c.AbilityId)
-            .Select(g => (Ability: abilities.GetAbility(g.Key), Casts: (IReadOnlyList<TrackedAbilityCast>)[.. g]))
+
+        @* Cooldown rows — grouped by spell, ordered by TimelineSortIndex then event count *@
+        var cooldownRows = allEvents
+            .OfType<UpdateSpellUsableEvent>()
+            .Where(e => e.SourceId == PlayerId)
+            .GroupBy(e => e.AbilityGameId)
+            .Select(g => (
+                Ability: abilities?.GetAbility(g.Key),
+                Events: (IReadOnlyList<UpdateSpellUsableEvent>)[.. g.OrderBy(e => e.Timestamp)]
+            ))
             .Where(r => r.Ability is not null)
-            .Select(r => (r.Ability!, r.Casts))
+            .Select(r => (r.Ability!, r.Events))
             .OrderBy(r => r.Item1.TimelineSortIndex ?? int.MaxValue)
             .ThenByDescending(r => r.Item2.Count)
             .ToList();
 
         <div class="timeline-inner">
-            @* Time ruler *@
+            @* Consolidated cast bar — time-line + casts overlapping *@
             <div class="timeline-row">
-                <div class="timeline-label"></div>
-                <TimeIndicators FightDurationMs="@fightDurationMs" PixelsPerSecond="@PixelsPerSecond" />
+                <div class="timeline-label">
+                    <span class="timeline-label__name">Casts</span>
+                </div>
+                <CastBar Events="@allEvents"
+                         PlayerId="@PlayerId"
+                         FightStartTime="@FightStartTime"
+                         FightEndTime="@FightEndTime"
+                         PixelsPerSecond="@PixelsPerSecond"
+                         Abilities="@abilities" />
             </div>
 
-            @* One row per tracked spell *@
-            @foreach (var (ability, casts) in spellRows)
+            @* Cooldowns section — one row per tracked spell *@
+            @if (cooldownRows.Count > 0)
             {
-                <div class="timeline-row">
+                <div class="timeline-section-divider" style="margin-top: 24px;">
                     <div class="timeline-label">
-                        <SpellIcon Ability="@ability" Size="SpellIconSize.Small" />
-                        <span class="timeline-label__name">@(ability.Name ?? $"Spell {ability.Spell}")</span>
+                        <span class="timeline-label__name timeline-label__name--section">Cooldowns</span>
                     </div>
-                    <CastTimeline Ability="@ability"
-                                  Casts="@casts"
-                                  FightStartTime="@FightStartTime"
-                                  FightEndTime="@FightEndTime"
-                                  PixelsPerSecond="@PixelsPerSecond" />
+                    <div class="timeline-section-line" style="width: @((fightDurationMs / 1000.0 * PixelsPerSecond).ToString("F0", System.Globalization.CultureInfo.InvariantCulture))px;"></div>
                 </div>
+
+                @foreach (var (ability, cdEvents) in cooldownRows)
+                {
+                    <div class="timeline-row">
+                        <div class="timeline-label">
+                            <SpellLink Ability="@ability" />
+                        </div>
+                        <CooldownLane Ability="@ability"
+                                      CooldownEvents="@cdEvents"
+                                      FightStartTime="@FightStartTime"
+                                      FightEndTime="@FightEndTime"
+                                      PixelsPerSecond="@PixelsPerSecond" />
+                    </div>
+                }
             }
         </div>
     }
@@ -59,5 +82,8 @@
     [Parameter, EditorRequired] public int FightEndTime { get; set; }
 
     /// <summary>Pixels rendered per second of fight time. Default: 30 px/s (1 min = 1800 px).</summary>
-    [Parameter] public double PixelsPerSecond { get; set; } = 30.0;
+    [Parameter] public double PixelsPerSecond { get; set; } = 60.0;
+
+    /// <summary>The source ID of the analyzed player, used to filter events.</summary>
+    [Parameter] public int PlayerId { get; set; }
 }

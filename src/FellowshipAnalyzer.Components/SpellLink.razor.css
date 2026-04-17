@@ -1,0 +1,11 @@
+.spell-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    vertical-align: middle;
+}
+
+.spell-link__name {
+    color: inherit;
+    font-size: inherit;
+}

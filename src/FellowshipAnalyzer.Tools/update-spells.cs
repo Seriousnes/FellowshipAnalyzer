@@ -37,7 +37,7 @@ Console.WriteLine($"Found {abilities.Count} unique abilities in JSON.");
 
 // Read C# file and update spell definitions
 var lines = await File.ReadAllLinesAsync(csPath);
-var spellPattern = new Regex(@"new\((\d+),\s*""([^""]*?)""(?:,\s*""([^""]*)"")?\)");
+var spellPattern = new Regex(@"new\((\d+)(?:,\s*""([^""]*?)""(?:,\s*""([^""]*)"")?)?\)");
 
 var matchedIds = new HashSet<int>();
 int updated = 0;
@@ -52,7 +52,7 @@ for (int i = 0; i < lines.Length; i++)
 
     matchedIds.Add(id);
 
-    var existingName = match.Groups[2].Value;
+    var existingName = match.Groups[2].Success ? match.Groups[2].Value : null;
     var existingIcon = match.Groups[3].Success ? match.Groups[3].Value : null;
 
     var finalName = ability.Name;

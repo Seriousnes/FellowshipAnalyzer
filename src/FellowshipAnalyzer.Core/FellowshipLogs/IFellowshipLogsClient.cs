@@ -32,7 +32,17 @@ public sealed record FellowshipLogsFight(
     double StartTime,
     double EndTime,
     int? Difficulty,
-    IReadOnlyList<int>? FriendlyPlayers
+    IReadOnlyList<int>? FriendlyPlayers,
+    bool InProgress = false
+);
+
+/// <summary>
+/// The result of fetching events for a fight, including whether the fight was still in progress
+/// at the time of the request. In-progress fights should not be cached.
+/// </summary>
+public sealed record EventsResult(
+    IReadOnlyList<Event> Events,
+    bool InProgress
 );
 
 /// <summary>
@@ -61,7 +71,7 @@ public interface IReportFunction
 
 public interface IEventsFunction
 {
-    Task<IReadOnlyList<Event>> GetAsync(
+    Task<EventsResult> GetAsync(
         FellowshipLogsEventsRequest request,
         CancellationToken cancellationToken = default);
 }

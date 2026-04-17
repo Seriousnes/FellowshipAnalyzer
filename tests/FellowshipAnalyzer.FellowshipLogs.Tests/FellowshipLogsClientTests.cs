@@ -50,13 +50,14 @@ public sealed class FellowshipLogsClientTests
 
         var events = await client.Events.GetAsync(new FellowshipLogsEventsRequest("abc123", 12, 34));
 
-        events.Count.ShouldBe(3);
-        events[0].ShouldBeOfType<DamageEvent>();
-        events[0].Timestamp.ShouldBe(1);
-        events[1].ShouldBeOfType<CastEvent>();
-        events[1].Timestamp.ShouldBe(2);
-        events[2].ShouldBeOfType<HealEvent>();
-        events[2].Timestamp.ShouldBe(3);
+        events.Events.Count.ShouldBe(3);
+        events.Events[0].ShouldBeOfType<DamageEvent>();
+        events.Events[0].Timestamp.ShouldBe(1);
+        events.Events[1].ShouldBeOfType<CastEvent>();
+        events.Events[1].Timestamp.ShouldBe(2);
+        events.Events[2].ShouldBeOfType<HealEvent>();
+        events.Events[2].Timestamp.ShouldBe(3);
+        events.InProgress.ShouldBeFalse();
     }
 
     private sealed class QueueMessageHandler(params HttpResponseMessage[] responses) : HttpMessageHandler

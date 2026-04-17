@@ -13,6 +13,8 @@ namespace FellowshipAnalyzer.Core.Analysis;
 [AddModule<Combatants>]
 [AddModule<GlobalCooldown>]
 [AddModule<SpellUsable>]
+[AddNormalizer<AbilityNormalizer>]
+[AddNormalizer<CastLinkNormalizer>]
 public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServiceProvider provider) : IHeroAnalyzer
 {
     public EventEmitter EventEmitter { get; } = eventEmitter;
@@ -56,7 +58,20 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
     /// Looks up an active module by type. Returns null if the module is
     /// inactive or has not been resolved yet.
     /// </summary>
-    public T? GetModule<T>() where T : Module => _activeModules.TryGetValue(typeof(T), out var module) ? (T)module : null;
+    public T? GetModule<T>() where T : Module
+    {
+        if (_activeModules.TryGetValue(typeof(T), out var exact))
+            return (T)exact;
+
+        // Support polymorphic lookup: GetModule<BaseType>() finds a registered subclass.
+        foreach (var m in _activeModules.Values)
+        {
+            if (m is T match)
+                return match;
+        }
+
+        return null;
+    }
 
     public async Task<HeroAnalysisResult> Analyze(IReadOnlyList<Event> events, int playerId, int fightStartTime)
     {
@@ -108,6 +123,7 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
                     .Select(m => (m, m.StatisticsComponentType!))
                     .ToList(),
             Modules = [.. _activeModules.Values],
+            Events = Events,
         };
     }
 

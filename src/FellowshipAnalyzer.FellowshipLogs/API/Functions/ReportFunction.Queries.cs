@@ -18,6 +18,7 @@ internal sealed partial class ReportFunction
                 endTime
                 difficulty
                 friendlyPlayers
+                inProgress
               }
               masterData {
                 actors {

@@ -1,0 +1,44 @@
+@using FellowshipAnalyzer.Core.Common.Spells
+
+<span class="spell-link">
+    @if (icon)
+    {
+        <SpellIcon Spell="@_resolved" Size="@IconSize" />
+    }
+    <span class="spell-link__name">@(_resolved?.Name ?? $"Unknown Spell")</span>
+</span>
+
+@code {
+    /// <summary>Pass a <see cref="Core.Common.Spells.Spell"/> object directly.</summary>
+    [Parameter]
+    public Spell? Spell { get; set; }
+
+    /// <summary>Pass a spell ID to resolve via <see cref="SpellRegistry"/>.</summary>
+    [Parameter]
+    public int? SpellId { get; set; }
+
+    /// <summary>Pass a <see cref="SpellbookAbility"/> — its <see cref="SpellbookAbility.Spell"/> ID is used for lookup.</summary>
+    [Parameter]
+    public SpellbookAbility? Ability { get; set; }
+
+    /// <summary>Whether to render the spell icon alongside the name. Defaults to <c>true</c>.</summary>
+    [Parameter]
+    public bool Icon { get => icon; set => icon = value; }
+
+    /// <summary>Icon size when <see cref="Icon"/> is <c>true</c>. Defaults to <see cref="SpellIconSize.Small"/>.</summary>
+    [Parameter]
+    public SpellIconSize IconSize { get; set; } = SpellIconSize.Small;
+
+    private bool icon = true;
+    private Spell? _resolved;
+
+    protected override void OnParametersSet()
+    {
+        _resolved = Spell ?? ResolveById(SpellId) ?? ResolveById(Ability?.Spell);
+    }
+
+    private static Spell? ResolveById(int? id) =>
+        id.HasValue ? SpellRegistry.MaybeGet(id.Value) : null;
+
+    private int? ResolveId() => SpellId ?? Ability?.Spell;
+}

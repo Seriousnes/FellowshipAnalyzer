@@ -1,3 +1,5 @@
+using FellowshipAnalyzer.Core.Events;
+
 namespace FellowshipAnalyzer.Core.Analysis;
 
 /// <summary>
@@ -19,4 +21,10 @@ public sealed class HeroAnalysisResult
     public required IReadOnlyList<(Module Module, Type ComponentType)> Statistics { get; init; }
 
     public required IReadOnlyList<Module> Modules { get; init; }
+
+    /// <summary>
+    /// All events processed during analysis, including fabricated events (e.g. GlobalCooldownEvent,
+    /// UpdateSpellUsableEvent). Ordered by timestamp. Exposed for Timeline rendering.
+    /// </summary>
+    public required IReadOnlyList<Event> Events { get; init; }
 }

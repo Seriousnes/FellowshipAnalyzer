@@ -10,6 +10,20 @@ internal sealed class FellowshipLogsResponse<T>
 internal sealed class FellowshipLogsReportResponse
 {
     public FellowshipLogsReportData ReportData { get; set; } = default!;
+
+    /// <summary>
+    /// Root-level fights from the events query (contains inProgress status).
+    /// Not present in report queries.
+    /// </summary>
+    public List<FellowshipLogsEventFightStatus>? Fights { get; set; }
+}
+
+/// <summary>
+/// Minimal fight metadata returned at the root level of the events GraphQL query.
+/// </summary>
+internal sealed class FellowshipLogsEventFightStatus
+{
+    public bool InProgress { get; set; }
 }
 
 internal sealed class FellowshipLogsReportData
@@ -43,6 +57,7 @@ internal sealed class FellowshipLogsReportFight
     public double EndTime { get; set; }
     public int? Difficulty { get; set; }
     public List<int>? FriendlyPlayers { get; set; }
+    public bool InProgress { get; set; }
 }
 
 internal sealed class FellowshipLogsReportMasterData

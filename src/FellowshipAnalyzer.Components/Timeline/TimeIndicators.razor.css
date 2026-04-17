@@ -2,22 +2,32 @@
     position: relative;
     height: 24px;
     flex-shrink: 0;
+    overflow: visible;
 }
 
-.time-tick {
+.time-second {
     position: absolute;
     top: 0;
     bottom: 0;
-    display: flex;
-    flex-direction: column;
-    border-left: 1px solid rgba(255, 255, 255, 0.15);
-    padding-left: 3px;
+    border-left: 1px solid rgba(255, 255, 255, 0.2);
+    box-sizing: border-box;
 }
 
-.time-tick__label {
+.time-second__label {
     font-size: 11px;
     color: rgba(255, 255, 255, 0.5);
     white-space: nowrap;
     line-height: 1;
     padding-top: 4px;
+    padding-left: 3px;
+    display: block;
+}
+
+.time-second__half-tick {
+    position: absolute;
+    left: 50%;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    background: rgba(255, 255, 255, 0.08);
 }

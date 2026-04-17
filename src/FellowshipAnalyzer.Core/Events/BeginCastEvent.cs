@@ -1,8 +1,9 @@
 ﻿namespace FellowshipAnalyzer.Core.Events;
 
-public record BeginCastEvent : Event
+public record BeginCastEvent : Event, IAbilityEvent
 {
     public virtual Ability Ability { get; set; }
+    public virtual int AbilityGameId { get; set; }
     public virtual CastEvent? CastEvent { get; set; }
     public virtual BeginChannelEvent? Channel { get; set; }
     public virtual bool IsCancelled { get; set; }

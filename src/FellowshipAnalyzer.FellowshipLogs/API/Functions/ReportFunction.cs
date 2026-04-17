@@ -25,7 +25,8 @@ internal sealed partial class ReportFunction(IApiRequestExecutor api, Fellowship
 
         var fights = report.Fights?.Select(f => new FellowshipLogsFight(
             f.Id, f.Name, f.EncounterID, f.Kill, f.StartTime, f.EndTime, f.Difficulty,
-            f.FriendlyPlayers is { } fp ? fp.AsReadOnly() : null
+            f.FriendlyPlayers is { } fp ? fp.AsReadOnly() : null,
+            f.InProgress
         )).ToList().AsReadOnly() ?? (IReadOnlyList<FellowshipLogsFight>)[];
 
         var actors = report.MasterData?.Actors?.Select(a => new FellowshipLogsActor(

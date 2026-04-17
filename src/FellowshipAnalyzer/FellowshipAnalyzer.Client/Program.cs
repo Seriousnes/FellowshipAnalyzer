@@ -1,6 +1,8 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using FellowshipAnalyzer.Client.Services;
 using FellowshipAnalyzer.Core.Events;
+using FellowshipAnalyzer.Core.FellowshipLogs;
 using FellowshipAnalyzer.Core.Serialization;
 using FellowshipAnalyzer.Heroes.Rime.Analysis;
 
@@ -21,5 +23,8 @@ builder.Services.AddSingleton(jsonOptions);
 
 // Hero analysis runs client-side in WASM
 builder.Services.AddRimeAnalysis();
+
+// Report history + event cache (IndexedDB-backed)
+builder.Services.AddScoped<IReportCacheService, IndexedDbReportCacheService>();
 
 await builder.Build().RunAsync();

@@ -8,6 +8,7 @@
 @inject HttpClient Http
 @inject JsonSerializerOptions JsonOptions
 @inject IServiceProvider ServiceProvider
+@inject IReportCacheService ReportCache
 
 <PageTitle>Analysis Report</PageTitle>
 
@@ -72,7 +73,8 @@
             <section class="timeline-panel">
                 <Timeline Result="@_result"
                           FightStartTime="@_fightStartTime"
-                          FightEndTime="@_fightEndTime" />
+                          FightEndTime="@_fightEndTime"
+                          PlayerId="@PlayerId" />
             </section>
         }
     }
@@ -92,6 +94,7 @@
     private ReportTab _activeTab = ReportTab.Guide;
     private int _fightStartTime;
     private int _fightEndTime;
+    private string? _pendingCacheEventsJson;
 
     protected override void OnInitialized()
     {
@@ -107,19 +110,45 @@
     {
         try
         {
-            var url = $"/api/events?reportCode={Uri.EscapeDataString(ReportCode)}&playerId={PlayerId}&fightId={FightId}";
             var reportUrl = $"/api/report/{Uri.EscapeDataString(ReportCode)}";
-
-            // Fetch events and report info in parallel
-            var eventsTask = Http.GetByteArrayAsync(url);
             var reportTask = Http.GetByteArrayAsync(reportUrl);
-            await Task.WhenAll(eventsTask, reportTask);
 
-            SetStep(0, ReportLoadingScreen.LoadingStepStatus.Ok);
-            SetStep(1, ReportLoadingScreen.LoadingStepStatus.Loading);
+            // Check cache before hitting the events API
+            var cachedEventsJson = await ReportCache.GetCachedEventsJsonAsync(ReportCode, FightId, PlayerId);
+            List<Event> events;
 
-            var events = JsonSerializer.Deserialize<List<Event>>(eventsTask.Result, JsonOptions) ?? [];
-            var reportInfo = JsonSerializer.Deserialize<FellowshipLogsReportInfo>(reportTask.Result, JsonOptions)
+            if (cachedEventsJson is not null)
+            {
+                _loadingSteps[0] = _loadingSteps[0] with
+                {
+                    Label = "Loading combat events from cache",
+                    Status = ReportLoadingScreen.LoadingStepStatus.Ok
+                };
+                StateHasChanged();
+
+                SetStep(1, ReportLoadingScreen.LoadingStepStatus.Loading);
+                events = JsonSerializer.Deserialize<List<Event>>(cachedEventsJson, JsonOptions) ?? [];
+            }
+            else
+            {
+                var url = $"/api/events?reportCode={Uri.EscapeDataString(ReportCode)}&playerId={PlayerId}&fightId={FightId}";
+                var eventsBytes = await Http.GetByteArrayAsync(url);
+
+                SetStep(0, ReportLoadingScreen.LoadingStepStatus.Ok);
+                SetStep(1, ReportLoadingScreen.LoadingStepStatus.Loading);
+
+                var result = JsonSerializer.Deserialize<EventsResult>(eventsBytes, JsonOptions)
+                    ?? throw new InvalidOperationException("Failed to deserialize events result.");
+                events = [.. result.Events];
+
+                // Only cache completed fights; serialize just the events array (not the wrapper)
+                if (!result.InProgress)
+                {
+                    _pendingCacheEventsJson = JsonSerializer.Serialize(result.Events, JsonOptions);
+                }
+            }
+
+            var reportInfo = JsonSerializer.Deserialize<FellowshipLogsReportInfo>(await reportTask, JsonOptions)
                 ?? throw new InvalidOperationException("Failed to deserialize report info.");
 
             var fight = reportInfo.Fights.FirstOrDefault(f => f.Id == FightId)
@@ -138,6 +167,18 @@
             _fightEndTime = (int)fight.EndTime;
             _result = await analyzer.Analyze(events, PlayerId, _fightStartTime);
             SetStep(2, ReportLoadingScreen.LoadingStepStatus.Ok);
+
+            // Persist to cache now that we have fight metadata
+            if (_pendingCacheEventsJson is not null)
+            {
+                var actor = reportInfo.Actors.FirstOrDefault(a => a.Id == PlayerId);
+                var entry = new ReportHistoryEntry(
+                    ReportCode, FightId, PlayerId,
+                    fight.Name, actor?.Name, heroId,
+                    DateTimeOffset.UtcNow);
+                await ReportCache.CacheAsync(entry, _pendingCacheEventsJson);
+                _pendingCacheEventsJson = null;
+            }
         }
         catch (Exception exception)
         {

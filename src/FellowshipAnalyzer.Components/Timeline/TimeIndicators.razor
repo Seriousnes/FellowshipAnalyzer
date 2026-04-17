@@ -1,11 +1,16 @@
 @using System.Globalization
 
 <div class="time-indicators" style="width: @(TrackWidthPx.ToString("F1", CultureInfo.InvariantCulture))px">
-    @for (var tickMs = 0; tickMs <= FightDurationMs; tickMs += TickIntervalMs)
+    @{
+        var totalSeconds = (int)Math.Ceiling(FightDurationMs / 1000.0);
+    }
+    @for (var sec = 0; sec < totalSeconds; sec++)
     {
-        var left = (tickMs / 1000.0) * PixelsPerSecond;
-        <div class="time-tick" style="left: @(left.ToString("F1", CultureInfo.InvariantCulture))px">
-            <span class="time-tick__label">@FormatMs(tickMs)</span>
+        var leftPx = sec * PixelsPerSecond;
+        var widthPx = Math.Min(PixelsPerSecond, TrackWidthPx - leftPx);
+        <div class="time-second" style="left: @(leftPx.ToString("F1", CultureInfo.InvariantCulture))px; width: @(widthPx.ToString("F1", CultureInfo.InvariantCulture))px">
+            <span class="time-second__label">@FormatSec(sec)</span>
+            <div class="time-second__half-tick"></div>
         </div>
     }
 </div>
@@ -15,18 +20,14 @@
     [Parameter, EditorRequired] public int FightDurationMs { get; set; }
 
     /// <summary>Horizontal scale factor — pixels rendered per second of fight time.</summary>
-    [Parameter] public double PixelsPerSecond { get; set; } = 30.0;
-
-    /// <summary>Interval between ruler ticks in milliseconds. Defaults to 30 s.</summary>
-    [Parameter] public int TickIntervalMs { get; set; } = 30_000;
+    [Parameter] public double PixelsPerSecond { get; set; } = 60.0;
 
     private double TrackWidthPx => (FightDurationMs / 1000.0) * PixelsPerSecond;
 
-    private static string FormatMs(int ms)
+    private static string FormatSec(int sec)
     {
-        var totalSec = ms / 1000;
-        var min = totalSec / 60;
-        var sec = totalSec % 60;
-        return min > 0 ? $"{min}:{sec:D2}" : $"{sec}s";
+        var min = sec / 60;
+        var s = sec % 60;
+        return min > 0 ? $"{min}:{s:D2}" : $"{sec}s";
     }
 }

@@ -115,6 +115,16 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
             baseType = baseType.BaseType;
         }
 
+        // Walk base type chain to collect inherited base normalizers
+        var baseNormalizers = new List<TypeInfo>();
+        var bnType = symbol.BaseType;
+        while (bnType != null && bnType.SpecialType != SpecialType.System_Object)
+        {
+            CollectNormalizersFromSymbol(bnType, baseNormalizers);
+            if (bnType.Name == CombatLogParserClassName) break;
+            bnType = bnType.BaseType;
+        }
+
         var parserNs = GetNamespace(symbol);
 
         return new ParserInfo(
@@ -122,7 +132,7 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
             parserNs,
             [.. ownModules],
             [.. baseModules],
-            [.. normalizerTypes],
+            [.. baseNormalizers, .. normalizerTypes],
             heroId);
     }
 
@@ -138,6 +148,21 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
             if (typeArg == null) continue;
 
             modules.Add(new TypeInfo(typeArg.Name, GetNamespace(typeArg)));
+        }
+    }
+
+    private static void CollectNormalizersFromSymbol(INamedTypeSymbol symbol, List<TypeInfo> normalizers)
+    {
+        foreach (var attr in symbol.GetAttributes())
+        {
+            if (attr.AttributeClass == null) continue;
+            if (attr.AttributeClass.Name != AddNormalizerAttributeShortName) continue;
+            if (!attr.AttributeClass.IsGenericType || attr.AttributeClass.TypeArguments.Length == 0) continue;
+
+            var typeArg = attr.AttributeClass.TypeArguments[0] as INamedTypeSymbol;
+            if (typeArg == null) continue;
+
+            normalizers.Add(new TypeInfo(typeArg.Name, GetNamespace(typeArg)));
         }
     }
 
@@ -217,10 +242,7 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
             sb.AppendLine("    protected override Type[] GetNormalizerTypes() =>");
             sb.AppendLine("    [");
             foreach (var n in info.NormalizerTypes)
-        if (info.HeroId != null)
-        {
-            sb.AppendLine("        services.AddKeyedScoped<IHeroAnalyzer>(\"" + info.HeroId + "\", (sp, _) => sp.GetRequiredService<" + info.ClassName + ">());");
-        }
+                sb.AppendLine("        typeof(" + n.FullyQualifiedName + "),");
             sb.AppendLine("    ];");
         }
 

@@ -18,6 +18,7 @@ When creating or modifying analysis modules, use the appropriate skill:
 - **create-resource-tracker** — Adding resource generation/spending tracking
 - **create-normalizer** — Adding event pre-processing (reordering, linking, fabrication)
 - **create-hero** — Scaffolding an entire new hero from scratch
+- **run-tool** — Running file-based dotnet tools (update-spells, fetch-abilities)
 
 ## Reference / Inspiration
 - The project is loosely based on [WoWAnalyzer](https://github.com/WoWAnalyzer/WoWAnalyzer). Some principles and patterns from that project are followed, but the architecture is designed take advantage of modern C# features where WoWAnalyzer is a long-running project written in TypeScript and React. Always consider using the latest C# features when adapting patterns from WoWAnalyzer, and feel free to deviate from their architecture when it makes sense to do so in the context of C# and Blazor.

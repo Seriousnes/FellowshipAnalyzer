@@ -104,8 +104,8 @@ app.MapGet(
         CancellationToken cancellationToken) =>
     {
         var request = new FellowshipLogsEventsRequest(reportCode, playerId, fightId);
-        var events = await client.Events.GetAsync(request, cancellationToken);
-        return Results.Json(events, jsonOptions);
+        var result = await client.Events.GetAsync(request, cancellationToken);
+        return Results.Json(result, jsonOptions);
     });
 
 app.Run();
