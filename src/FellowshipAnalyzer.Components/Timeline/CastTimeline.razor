@@ -1,0 +1,38 @@
+@using System.Globalization
+
+<div class="cast-timeline-track" style="position: relative; width: @(TrackWidthPx.ToString("F1", CultureInfo.InvariantCulture))px; height: 32px;">
+    @foreach (var cast in Casts)
+    {
+        var left = ((cast.Timestamp - FightStartTime) / 1000.0) * PixelsPerSecond;
+        <div class="cast-icon-wrapper" style="left: @(left.ToString("F1", CultureInfo.InvariantCulture))px" title="@FormatTimestamp(cast.Timestamp)">
+            <SpellIcon Ability="@Ability" Size="SpellIconSize.Small" />
+        </div>
+    }
+</div>
+
+@code {
+    /// <summary>The ability whose casts are displayed in this row.</summary>
+    [Parameter, EditorRequired] public SpellbookAbility Ability { get; set; } = null!;
+
+    /// <summary>All casts of this ability during the fight.</summary>
+    [Parameter, EditorRequired] public IReadOnlyList<TrackedAbilityCast> Casts { get; set; } = [];
+
+    /// <summary>Fight start timestamp in milliseconds (absolute).</summary>
+    [Parameter, EditorRequired] public int FightStartTime { get; set; }
+
+    /// <summary>Fight end timestamp in milliseconds (absolute).</summary>
+    [Parameter, EditorRequired] public int FightEndTime { get; set; }
+
+    /// <summary>Horizontal scale factor — pixels rendered per second of fight time.</summary>
+    [Parameter] public double PixelsPerSecond { get; set; } = 30.0;
+
+    private double TrackWidthPx => ((FightEndTime - FightStartTime) / 1000.0) * PixelsPerSecond;
+
+    private string FormatTimestamp(int timestamp)
+    {
+        var totalSec = (timestamp - FightStartTime) / 1000;
+        var min = totalSec / 60;
+        var sec = totalSec % 60;
+        return min > 0 ? $"{min}:{sec:D2}" : $"{sec}s";
+    }
+}

@@ -2,6 +2,7 @@
 @using FellowshipAnalyzer.Core.Analysis
 @using FellowshipAnalyzer.Core.Events
 @using FellowshipAnalyzer.Core.FellowshipLogs
+@using FellowshipAnalyzer.Components.Timeline
 @using Microsoft.Extensions.DependencyInjection
 @using System.Text.Json
 @inject HttpClient Http
@@ -34,27 +35,52 @@
     }
     else if (_result is not null)
     {
-        @* Guide tab — render the hero's Guide.razor via DynamicComponent *@
-        <section class="guide-panel">
-            <DynamicComponent Type="@_result.GuideComponentType" />
-        </section>
+        <nav class="report-tabs">
+            <button class="report-tab @(_activeTab == ReportTab.Guide ? "report-tab--active" : "")" @onclick="() => _activeTab = ReportTab.Guide">Guide</button>
+            <button class="report-tab @(_activeTab == ReportTab.Statistics ? "report-tab--active" : "")" @onclick="() => _activeTab = ReportTab.Statistics">Statistics</button>
+            <button class="report-tab @(_activeTab == ReportTab.Timeline ? "report-tab--active" : "")" @onclick="() => _activeTab = ReportTab.Timeline">Timeline</button>
+        </nav>
 
-        @* Statistics tab — auto-collected from modules with StatisticsComponentType set *@
-        @if (_result.Statistics.Count > 0)
+        @if (_activeTab == ReportTab.Guide)
         {
-            <section class="statistics-panel">
-                @foreach (var (module, componentType) in _result.Statistics)
-                {
-                    <CascadingValue Value="@module">
-                        <DynamicComponent Type="@componentType" />
-                    </CascadingValue>
-                }
+            @* Guide tab — render the hero's Guide.razor via DynamicComponent *@
+            <section class="guide-panel">
+                <DynamicComponent Type="@_result.GuideComponentType" />
+            </section>
+        }
+        else if (_activeTab == ReportTab.Statistics)
+        {
+            @* Statistics tab — auto-collected from modules with StatisticsComponentType set *@
+            @if (_result.Statistics.Count > 0)
+            {
+                <section class="statistics-panel">
+                    @foreach (var (module, componentType) in _result.Statistics)
+                    {
+                        <CascadingValue Value="@module">
+                            <DynamicComponent Type="@componentType" />
+                        </CascadingValue>
+                    }
+                </section>
+            }
+            else
+            {
+                <section class="status-panel">No statistics available.</section>
+            }
+        }
+        else if (_activeTab == ReportTab.Timeline)
+        {
+            <section class="timeline-panel">
+                <Timeline Result="@_result"
+                          FightStartTime="@_fightStartTime"
+                          FightEndTime="@_fightEndTime" />
             </section>
         }
     }
 </div>
 
 @code {
+    private enum ReportTab { Guide, Statistics, Timeline }
+
     [Parameter] public string ReportCode { get; set; } = "";
     [Parameter] public int FightId { get; set; }
     [Parameter] public int PlayerId { get; set; }
@@ -63,6 +89,9 @@
     private bool _isLoading = true;
     private string? _error;
     private List<ReportLoadingScreen.LoadingStep> _loadingSteps = [];
+    private ReportTab _activeTab = ReportTab.Guide;
+    private int _fightStartTime;
+    private int _fightEndTime;
 
     protected override void OnInitialized()
     {
@@ -105,7 +134,9 @@
             var analyzer = ServiceProvider.GetKeyedService<IHeroAnalyzer>(heroId)
                 ?? throw new InvalidOperationException($"No hero analyzer found for '{heroId}'.");
 
-            _result = await analyzer.Analyze(events, PlayerId, (int)fight.StartTime);
+            _fightStartTime = (int)fight.StartTime;
+            _fightEndTime = (int)fight.EndTime;
+            _result = await analyzer.Analyze(events, PlayerId, _fightStartTime);
             SetStep(2, ReportLoadingScreen.LoadingStepStatus.Ok);
         }
         catch (Exception exception)

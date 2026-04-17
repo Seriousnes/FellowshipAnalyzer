@@ -11,7 +11,8 @@ namespace FellowshipAnalyzer.Core.Analysis;
 /// Registered as a scoped DI service — one instance per analysis run.
 /// </summary>
 [AddModule<Combatants>]
-[AddModule<TrackedStateModule>]
+[AddModule<GlobalCooldown>]
+[AddModule<SpellUsable>]
 public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServiceProvider provider) : IHeroAnalyzer
 {
     public EventEmitter EventEmitter { get; } = eventEmitter;
@@ -22,7 +23,8 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
     public abstract string HeroId { get; }
 
     public Combatants? Combatants => GetModule<Combatants>();
-    public TrackedStateModule? TrackedStateModule => GetModule<TrackedStateModule>();
+    public GlobalCooldown? GlobalCooldown => GetModule<GlobalCooldown>();
+    public SpellUsable? SpellUsable => GetModule<SpellUsable>();
 
     /// <summary>
     /// The combatant representing the selected (analyzed) player.

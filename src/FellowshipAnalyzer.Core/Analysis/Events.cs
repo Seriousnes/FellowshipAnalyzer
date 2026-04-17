@@ -11,6 +11,7 @@ public static class Events
     public static EventFilter<ApplyDebuffEvent> ApplyDebuff => new();
     public static EventFilter<ApplyDebuffStackEvent> ApplyDebuffStack => new();
     public static EventFilter<BeginCastEvent> BeginCast => new();
+    public static EventFilter<BeginChannelEvent> BeginChannel => new();
     public static EventFilter<CastEvent> Cast => new();
     public static EventFilter<ChangeBuffStackEvent> ChangeBuffStack => new();
     public static EventFilter<ChangeDebuffStackEvent> ChangeDebuffStack => new();

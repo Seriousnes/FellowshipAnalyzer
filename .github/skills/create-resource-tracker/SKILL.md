@@ -48,7 +48,7 @@ public sealed class {Resource}Tracker : ResourceTracker
 ### 3. Register on the CombatLogParser
 
 ```csharp
-[AddModule<TrackedStateModule>]
+[AddModule<SpellUsable>]
 [AddModule<{Resource}Tracker>]   // ← Add here, before analyzers that depend on it
 [AddModule<Abilities>]
 public sealed partial class {Hero}CombatLogParser : CombatLogParser

@@ -61,7 +61,7 @@ public sealed class {Name}Analyzer(CombatLogParser parser) : Analyzer(parser)
 Add `[AddModule<{Name}Analyzer>]` to the hero's parser. Order matters — modules initialize in declaration order.
 
 ```csharp
-[AddModule<TrackedStateModule>]
+[AddModule<SpellUsable>]
 [AddModule<WinterOrbTracker>]
 [AddModule<Abilities>]
 [AddModule<{Name}Analyzer>]      // ← Add here

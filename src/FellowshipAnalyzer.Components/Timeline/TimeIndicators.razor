@@ -1,0 +1,32 @@
+@using System.Globalization
+
+<div class="time-indicators" style="width: @(TrackWidthPx.ToString("F1", CultureInfo.InvariantCulture))px">
+    @for (var tickMs = 0; tickMs <= FightDurationMs; tickMs += TickIntervalMs)
+    {
+        var left = (tickMs / 1000.0) * PixelsPerSecond;
+        <div class="time-tick" style="left: @(left.ToString("F1", CultureInfo.InvariantCulture))px">
+            <span class="time-tick__label">@FormatMs(tickMs)</span>
+        </div>
+    }
+</div>
+
+@code {
+    /// <summary>Total fight length in milliseconds.</summary>
+    [Parameter, EditorRequired] public int FightDurationMs { get; set; }
+
+    /// <summary>Horizontal scale factor — pixels rendered per second of fight time.</summary>
+    [Parameter] public double PixelsPerSecond { get; set; } = 30.0;
+
+    /// <summary>Interval between ruler ticks in milliseconds. Defaults to 30 s.</summary>
+    [Parameter] public int TickIntervalMs { get; set; } = 30_000;
+
+    private double TrackWidthPx => (FightDurationMs / 1000.0) * PixelsPerSecond;
+
+    private static string FormatMs(int ms)
+    {
+        var totalSec = ms / 1000;
+        var min = totalSec / 60;
+        var sec = totalSec % 60;
+        return min > 0 ? $"{min}:{sec:D2}" : $"{sec}s";
+    }
+}

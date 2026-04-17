@@ -15,17 +15,16 @@ Reference patterns from WoWAnalyzer's TypeScript/React architecture, adapted for
 | Provides | Read-only accessors (current value, history) | Computed metrics, scorecards, guide rendering |
 | Shared | Yes — multiple analyzers may depend on one tracker | No — each guide owns its analysis |
 | Examples (WoW) | `SpellUsable`, `Haste`, `ResourceTracker`, `Entities` | `HotHand`, `DoomWinds`, `MaelstromWeaponSpenders` |
-| Examples (Fellowship) | `TrackedStateModule` | Guide components (`.razor` / `.razor.cs`) |
+| Examples (Fellowship) | `SpellUsable`, `GlobalCooldown` | Guide components (`.razor` / `.razor.cs`) |
 
-## TrackedStateModule Responsibilities
+## SpellUsable Responsibilities
 
-TrackedStateModule should **only** track ability state:
-- Resource values (generation, spending, overcap, underfund tracking)
-- Cast history with resource snapshots
-- Buff/debuff state (active buffs, targets, stacks) — future
-- Cooldown state (ability availability) — future
+`SpellUsable` is the core state tracker for ability cooldowns and cast history:
+- Cast history: all player casts via `Casts` (list of `TrackedAbilityCast`)
+- Cooldown state: `IsAvailable`, `IsOnCooldown`, `ChargesAvailable`, `CooldownRemaining`
+- Fabricates `UpdateSpellUsableEvent` events as cooldowns change
 
-TrackedStateModule should **NOT** track:
+`SpellUsable` should **NOT** track:
 - Windows (buff windows, combo windows) — these are analysis concepts owned by guide components
 - Performance evaluations — these belong in guide components
 
@@ -64,7 +63,7 @@ class HotHand extends Analyzer.withDependencies({
 ## FellowshipAnalyzer Equivalent
 
 In FellowshipAnalyzer, guide components combine analysis + rendering. The guide Razor component (or its code-behind) contains:
-1. Analysis logic that computes evaluations from `TrackedStateModule` data
+1. Analysis logic that computes evaluations from `SpellUsable` data
 2. Scorecard computation
 3. Blazor rendering via the `.razor` template
 

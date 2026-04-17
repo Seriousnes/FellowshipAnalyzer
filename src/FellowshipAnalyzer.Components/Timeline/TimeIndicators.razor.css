@@ -1,0 +1,23 @@
+.time-indicators {
+    position: relative;
+    height: 24px;
+    flex-shrink: 0;
+}
+
+.time-tick {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    display: flex;
+    flex-direction: column;
+    border-left: 1px solid rgba(255, 255, 255, 0.15);
+    padding-left: 3px;
+}
+
+.time-tick__label {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.5);
+    white-space: nowrap;
+    line-height: 1;
+    padding-top: 4px;
+}

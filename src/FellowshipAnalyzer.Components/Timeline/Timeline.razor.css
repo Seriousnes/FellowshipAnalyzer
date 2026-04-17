@@ -1,0 +1,51 @@
+.timeline {
+    overflow-x: auto;
+    overflow-y: visible;
+    background: rgba(0, 0, 0, 0.15);
+    border-radius: 6px;
+    padding: 8px 0;
+}
+
+.timeline-inner {
+    display: flex;
+    flex-direction: column;
+    min-width: max-content;
+}
+
+.timeline-row {
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.timeline-row:last-child {
+    border-bottom: none;
+}
+
+.timeline-label {
+    width: 180px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 8px;
+    overflow: hidden;
+    position: sticky;
+    left: 0;
+    background: inherit;
+    z-index: 1;
+}
+
+.timeline-label__name {
+    font-size: 13px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.timeline-empty {
+    color: rgba(255, 255, 255, 0.4);
+    padding: 24px;
+    text-align: center;
+    font-size: 14px;
+}

@@ -1,0 +1,63 @@
+@using System.Globalization
+
+<div class="timeline">
+    @{
+        var spellUsable = Result.Modules.OfType<SpellUsable>().FirstOrDefault();
+        var abilities = Result.Modules.OfType<Abilities>().FirstOrDefault();
+    }
+
+    @if (spellUsable is null || abilities is null || spellUsable.Casts.Count == 0)
+    {
+        <p class="timeline-empty">No cast data available for this fight.</p>
+    }
+    else
+    {
+        var fightDurationMs = FightEndTime - FightStartTime;
+        var spellRows = spellUsable.Casts
+            .GroupBy(c => c.AbilityId)
+            .Select(g => (Ability: abilities.GetAbility(g.Key), Casts: (IReadOnlyList<TrackedAbilityCast>)[.. g]))
+            .Where(r => r.Ability is not null)
+            .Select(r => (r.Ability!, r.Casts))
+            .OrderBy(r => r.Item1.TimelineSortIndex ?? int.MaxValue)
+            .ThenByDescending(r => r.Item2.Count)
+            .ToList();
+
+        <div class="timeline-inner">
+            @* Time ruler *@
+            <div class="timeline-row">
+                <div class="timeline-label"></div>
+                <TimeIndicators FightDurationMs="@fightDurationMs" PixelsPerSecond="@PixelsPerSecond" />
+            </div>
+
+            @* One row per tracked spell *@
+            @foreach (var (ability, casts) in spellRows)
+            {
+                <div class="timeline-row">
+                    <div class="timeline-label">
+                        <SpellIcon Ability="@ability" Size="SpellIconSize.Small" />
+                        <span class="timeline-label__name">@(ability.Name ?? $"Spell {ability.Spell}")</span>
+                    </div>
+                    <CastTimeline Ability="@ability"
+                                  Casts="@casts"
+                                  FightStartTime="@FightStartTime"
+                                  FightEndTime="@FightEndTime"
+                                  PixelsPerSecond="@PixelsPerSecond" />
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    /// <summary>The completed analysis result containing all active modules.</summary>
+    [Parameter, EditorRequired] public HeroAnalysisResult Result { get; set; } = null!;
+
+    /// <summary>Absolute fight start timestamp in milliseconds.</summary>
+    [Parameter, EditorRequired] public int FightStartTime { get; set; }
+
+    /// <summary>Absolute fight end timestamp in milliseconds.</summary>
+    [Parameter, EditorRequired] public int FightEndTime { get; set; }
+
+    /// <summary>Pixels rendered per second of fight time. Default: 30 px/s (1 min = 1800 px).</summary>
+    [Parameter] public double PixelsPerSecond { get; set; } = 30.0;
+}

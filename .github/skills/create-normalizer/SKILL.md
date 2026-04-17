@@ -44,7 +44,7 @@ Add `[AddNormalizer<{Name}Normalizer>]` to the hero's parser:
 
 ```csharp
 [AddNormalizer<{Name}Normalizer>]
-[AddModule<TrackedStateModule>]
+[AddModule<SpellUsable>]
 [AddModule<WinterOrbTracker>]
 public sealed partial class {Hero}CombatLogParser : CombatLogParser
 ```

@@ -77,6 +77,18 @@ public sealed record SpellbookAbility
     public bool IsDefensive { get; init; }
 
     /// <summary>
+    /// Controls the display order of this spell's lane on the cooldown timeline.
+    /// Lower values appear first. Null means the lane is ordered by cast frequency.
+    /// </summary>
+    public int? TimelineSortIndex { get; init; }
+
+    /// <summary>
+    /// A buff spell ID that, when active, marks a window during which this ability
+    /// can be cast. Used by the timeline to shade "castable" windows.
+    /// </summary>
+    public int? TimelineCastableBuff { get; init; }
+
+    /// <summary>
     /// Gets the effective cooldown in seconds, applying haste if a
     /// <see cref="CooldownWithHaste"/> function is provided.
     /// </summary>

@@ -14,15 +14,15 @@ public sealed class CombatLogParserTests
     [Fact]
     public async Task Analyze_ShouldTrackCastsAndNotify()
     {
-        var trackedState = new TrackedStateModule();
-        var probe = new ProbeModule(trackedState);
-        var owner = CreateCombatLogParser(modules: [trackedState, probe]);
+        var spellUsable = new SpellUsable();
+        var probe = new ProbeModule(spellUsable);
+        var owner = CreateCombatLogParser(modules: [spellUsable, probe]);
 
         await owner.Analyze(CreateEvents(), playerId: 7, fightStartTime: 0);
 
         Assert.Equal(6, probe.SeenCastCount);
         Assert.Equal(6, probe.ListenerCastCount);
-        Assert.Same(trackedState, probe.State);
+        Assert.Same(spellUsable, probe.State);
     }
 
     [Fact]
@@ -72,9 +72,9 @@ public sealed class CombatLogParserTests
     [Fact]
     public async Task Listener_ShouldFilterBySpellId()
     {
-        var trackedState = new TrackedStateModule();
+        var spellUsable = new SpellUsable();
         var probe = new SpellFilterProbeModule();
-        var owner = CreateCombatLogParser(modules: [trackedState, probe]);
+        var owner = CreateCombatLogParser(modules: [spellUsable, probe]);
 
         await owner.Analyze(CreateEvents(), playerId: 7, fightStartTime: 0);
 
@@ -91,9 +91,9 @@ public sealed class CombatLogParserTests
             CreateCast(timestamp: 300, abilityId: 1),
         };
 
-        var trackedState = new TrackedStateModule();
-        var probe = new ProbeModule(trackedState);
-        var owner = CreateCombatLogParser(modules: [trackedState, probe]);
+        var spellUsable = new SpellUsable();
+        var probe = new ProbeModule(spellUsable);
+        var owner = CreateCombatLogParser(modules: [spellUsable, probe]);
 
         await owner.Analyze(events, playerId: 7, fightStartTime: 0);
 
@@ -103,7 +103,7 @@ public sealed class CombatLogParserTests
     [Fact]
     public async Task FabricateEvent_ShouldMarkAsFabricated()
     {
-        var probe = new ProbeModule(new TrackedStateModule());
+        var probe = new ProbeModule(new SpellUsable());
         var owner = CreateCombatLogParser(modules: [probe]);
 
         await owner.Analyze(new List<Event>(), playerId: 7, fightStartTime: 0);
@@ -208,9 +208,9 @@ public sealed class CombatLogParserTests
         };
     }
 
-    private sealed class ProbeModule(TrackedStateModule state) : Analyzer
+    private sealed class ProbeModule(SpellUsable state) : Analyzer
     {
-        public TrackedStateModule State { get; } = state;
+        public SpellUsable State { get; } = state;
 
         public int SeenCastCount { get; private set; }
 
