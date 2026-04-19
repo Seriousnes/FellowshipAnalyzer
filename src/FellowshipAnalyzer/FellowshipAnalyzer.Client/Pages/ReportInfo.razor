@@ -1,8 +1,6 @@
 @page "/report/{ReportCode}"
 @using FellowshipAnalyzer.Core.FellowshipLogs
-@using System.Text.Json
-@inject HttpClient Http
-@inject JsonSerializerOptions JsonOptions
+@inject IFellowshipLogsClient FellowshipLogs
 @inject NavigationManager Navigation
 
 <PageTitle>Report — @ReportCode</PageTitle>
@@ -71,8 +69,7 @@
     {
         try
         {
-            _report = await Http.GetFromJsonAsync<FellowshipLogsReportInfo>(
-                $"/api/report/{Uri.EscapeDataString(ReportCode)}", JsonOptions);
+            _report = await FellowshipLogs.Report.GetAsync(ReportCode);
         }
         catch (Exception exception)
         {

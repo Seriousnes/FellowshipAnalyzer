@@ -1,4 +1,5 @@
 using System.Linq.Expressions;
+using FellowshipAnalyzer.Core.Common.Spells;
 using FellowshipAnalyzer.Core.Events;
 using FellowshipAnalyzer.Core.Utility;
 
@@ -85,9 +86,17 @@ public class EventFilter<T> : EventFilter where T : Event
         return this;
     }
 
-    public EventFilter<T> Spell(params int[] spellIds)
+    public EventFilter<T> Spell(params Spell[] spells)
     {
-        AddCriteria(e => e is IAbilityEvent && spellIds.Contains(((IAbilityEvent)e).Ability.Id));
+        var ids = spells.Select(s => s.CombatLogId).ToArray();
+        AddCriteria(e => e is IAbilityEvent && ids.Contains(((IAbilityEvent)e).Ability.Id));
+        return this;
+    }
+
+    public EventFilter<T> ExtraSpell(params Spell[] spells)
+    {
+        var ids = spells.Select(s => s.CombatLogId).ToArray();
+        AddCriteria(e => e is IExtraAbilityEvent && ids.Contains(((IExtraAbilityEvent)e).ExtraAbility.Id));
         return this;
     }
 

@@ -45,8 +45,8 @@ public sealed class BasicStComboAnalyzer : Analyzer
 
     public override void Initialize()
     {
-        AddEventListener(Events.ApplyBuff.By(SELECTED_PLAYER).Spell(RimeSpells.WintersBlessing.Id + 1_000_000), OnWintersBlessingApplied);
-        AddEventListener(Events.RemoveBuff.By(SELECTED_PLAYER).Spell(RimeSpells.WintersBlessing.Id + 1_000_000), OnWintersBlessingRemoved);
+        AddEventListener(Events.ApplyBuff.By(SELECTED_PLAYER).Spell(RimeSpells.WintersBlessingBuff), OnWintersBlessingApplied);
+        AddEventListener(Events.RemoveBuff.By(SELECTED_PLAYER).Spell(RimeSpells.WintersBlessingBuff), OnWintersBlessingRemoved);
         AddEventListener(Events.Damage.By(SELECTED_PLAYER), OnDamage);
     }   
 
@@ -66,8 +66,8 @@ public sealed class BasicStComboAnalyzer : Analyzer
             return;
 
         // Winter's Embrace does not affect Bursting Ice itself
-        if (damageEvent.Ability.Id == RimeSpells.BurstingIce.Id ||
-            damageEvent.Ability.Id == RimeSpells.BurstingIceDamage.SpellId)
+        if (damageEvent.Ability.Id == RimeSpells.BurstingIce.CombatLogId ||
+            damageEvent.Ability.Id == RimeSpells.BurstingIceDamage.CombatLogId)
             return;
 
         var bonus = CombatMath.CalculateEffectiveDamage(damageEvent, WintersEmbraceIncrease);
@@ -92,7 +92,7 @@ public sealed class BasicStComboAnalyzer : Analyzer
 
         foreach (var cast in casts)
         {
-            if (cast.AbilityId != RimeSpells.BurstingIce.Id)
+            if (cast.AbilityId != RimeSpells.BurstingIce.CombatLogId)
                 continue;
 
             var startTimestamp = cast.Timestamp;

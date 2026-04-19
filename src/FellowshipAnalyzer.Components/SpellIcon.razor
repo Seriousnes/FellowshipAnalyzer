@@ -16,8 +16,8 @@
     [Parameter]
     public int? SpellId { get; set; }
 
-    /// <summary>Pass a <see cref="SpellbookAbility"/> — its <see cref="SpellbookAbility.Spell"/>
-    /// ID is used for lookup.
+    /// <summary>Pass a <see cref="SpellbookAbility"/> — its <see cref="SpellbookAbility.PrimarySpell"/>
+    /// is used directly.
     /// </summary>
     [Parameter]
     public SpellbookAbility? Ability { get; set; }
@@ -46,7 +46,7 @@
 
     protected override void OnParametersSet()
     {
-        Spell ??= ResolveById(SpellId) ?? ResolveById(Ability?.Spell);
+        Spell ??= ResolveById(SpellId) ?? Ability?.PrimarySpell;
     }
 
     private static Spell? ResolveById(int? id) =>

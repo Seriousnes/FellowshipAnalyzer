@@ -24,6 +24,9 @@ builder.Services.AddSingleton(jsonOptions);
 // Hero analysis runs client-side in WASM
 builder.Services.AddRimeAnalysis();
 
+// IFellowshipLogsClient: WASM proxy client deserializes raw GraphQL responses from server endpoints
+builder.Services.AddScoped<IFellowshipLogsClient, FellowshipLogsProxyClient>();
+
 // Report history + event cache (IndexedDB-backed)
 builder.Services.AddScoped<IReportCacheService, IndexedDbReportCacheService>();
 

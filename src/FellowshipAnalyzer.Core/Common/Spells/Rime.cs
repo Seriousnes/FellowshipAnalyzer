@@ -21,6 +21,7 @@ public class RimeSpells : ISpellRegistry
     public static Spell IceComet { get; } = new(1018, "Ice Comet", "T_Rime_OnTargetPulsatingAOE.jpg");
     public static Spell IceDash { get; } = new(1024, "Ice Dash", "T_Rime_Dash.jpg");
     public static Spell WintersBlessing { get; } = new(1026, "Winter's Blessing", "T_Rime_HealingBuff.jpg");
+    public static Effect WintersBlessingBuff { get; } = new(1026, "Winter's Blessing", "T_Rime_HealingBuff.jpg");
     public static Spell WrathOfWinter { get; } = new(1023, "Wrath of Winter", "T_Rime_SpiritAbility.jpg");
 
     // Talents

@@ -31,6 +31,11 @@ public static class ServiceCollectionExtensions
             {
                 AutomaticDecompression = DecompressionMethods.GZip,
             });
+        services.AddHttpClient("FellowshipLogsProxy")
+            .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
+            {
+                AutomaticDecompression = DecompressionMethods.None,
+            });
         services.AddScoped<IApiRequestExecutor>(sp =>
             new ApiRequestExecutor(
                 sp.GetRequiredService<IHttpClientFactory>().CreateClient("FellowshipLogs"),
@@ -39,6 +44,7 @@ public static class ServiceCollectionExtensions
             new ApiClient(
                 sp.GetRequiredService<IApiRequestExecutor>(),
                 sp.GetRequiredService<FellowshipLogsClientOptions>()));
+        services.AddSingleton<FellowshipLogsProxy>();
 
         return services;
     }

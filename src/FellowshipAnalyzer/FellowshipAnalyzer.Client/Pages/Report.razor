@@ -5,7 +5,7 @@
 @using FellowshipAnalyzer.Components.Timeline
 @using Microsoft.Extensions.DependencyInjection
 @using System.Text.Json
-@inject HttpClient Http
+@inject IFellowshipLogsClient FellowshipLogs
 @inject JsonSerializerOptions JsonOptions
 @inject IServiceProvider ServiceProvider
 @inject IReportCacheService ReportCache
@@ -151,8 +151,7 @@
     {
         try
         {
-            var reportUrl = $"/api/report/{Uri.EscapeDataString(ReportCode)}";
-            var reportTask = Http.GetByteArrayAsync(reportUrl);
+            var reportTask = FellowshipLogs.Report.GetAsync(ReportCode);
 
             // Check cache before hitting the events API
             var cachedEventsJson = await ReportCache.GetCachedEventsJsonAsync(ReportCode, FightId, PlayerId);
@@ -172,14 +171,12 @@
             }
             else
             {
-                var url = $"/api/events?reportCode={Uri.EscapeDataString(ReportCode)}&playerId={PlayerId}&fightId={FightId}";
-                var eventsBytes = await Http.GetByteArrayAsync(url);
+                var eventsRequest = new FellowshipLogsEventsRequest(ReportCode, PlayerId, FightId);
+                var result = await FellowshipLogs.Events.GetAsync(eventsRequest);
 
                 SetStep(0, ReportLoadingScreen.LoadingStepStatus.Ok);
                 SetStep(1, ReportLoadingScreen.LoadingStepStatus.Loading);
 
-                var result = JsonSerializer.Deserialize<EventsResult>(eventsBytes, JsonOptions)
-                    ?? throw new InvalidOperationException("Failed to deserialize events result.");
                 events = [.. result.Events];
 
                 // Only cache completed fights; serialize just the events array (not the wrapper)
@@ -189,8 +186,7 @@
                 }
             }
 
-            var reportInfo = JsonSerializer.Deserialize<FellowshipLogsReportInfo>(await reportTask, JsonOptions)
-                ?? throw new InvalidOperationException("Failed to deserialize report info.");
+            var reportInfo = await reportTask;
 
             var fight = reportInfo.Fights.FirstOrDefault(f => f.Id == FightId)
                 ?? throw new InvalidOperationException($"Fight {FightId} not found in report.");

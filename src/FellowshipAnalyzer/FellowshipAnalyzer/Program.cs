@@ -1,9 +1,7 @@
-using System.Text.Json;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using FellowshipAnalyzer.Core.FellowshipLogs;
 using FellowshipAnalyzer.FellowshipLogs;
 using FellowshipAnalyzer.Components;
 using FellowshipAnalyzer.Components.Account;
@@ -86,11 +84,12 @@ app.MapGet(
     "/api/report/{reportCode}",
     async (
         string reportCode,
-        IFellowshipLogsClient client,
+        FellowshipLogsProxy proxy,
+        HttpContext ctx,
         CancellationToken cancellationToken) =>
     {
-        var report = await client.Report.GetAsync(reportCode, cancellationToken);
-        return Results.Ok(report);
+        using var upstream = await proxy.ProxyReportAsync(reportCode, cancellationToken);
+        await StreamUpstreamResponseAsync(upstream, ctx, cancellationToken);
     });
 
 app.MapGet(
@@ -99,13 +98,32 @@ app.MapGet(
         string reportCode,
         int playerId,
         int fightId,
-        IFellowshipLogsClient client,
-        JsonSerializerOptions jsonOptions,
+        FellowshipLogsProxy proxy,
+        HttpContext ctx,
         CancellationToken cancellationToken) =>
     {
-        var request = new FellowshipLogsEventsRequest(reportCode, playerId, fightId);
-        var result = await client.Events.GetAsync(request, cancellationToken);
-        return Results.Json(result, jsonOptions);
+        using var upstream = await proxy.ProxyEventsAsync(reportCode, playerId, fightId, cancellationToken);
+        await StreamUpstreamResponseAsync(upstream, ctx, cancellationToken);
     });
+
+static async Task StreamUpstreamResponseAsync(
+    HttpResponseMessage upstream,
+    HttpContext ctx,
+    CancellationToken cancellationToken)
+{
+    if (!upstream.IsSuccessStatusCode)
+    {
+        ctx.Response.StatusCode = (int)upstream.StatusCode;
+        return;
+    }
+
+    ctx.Response.ContentType = "application/json";
+    if (upstream.Content.Headers.ContentEncoding.Contains("gzip"))
+    {
+        ctx.Response.Headers.ContentEncoding = "gzip";
+    }
+
+    await upstream.Content.CopyToAsync(ctx.Response.Body, cancellationToken);
+}
 
 app.Run();

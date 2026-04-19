@@ -5,7 +5,14 @@ namespace FellowshipAnalyzer.Core.Common.Spells;
 /// Contains identity and display metadata. Gameplay metadata (cooldowns, GCD, etc.) lives in
 /// <see cref="Analysis.SpellbookAbility"/>.
 /// </summary>
-public record Spell(int Id, string Name = "", string Icon = "");
+public record Spell(int Id, string Name = "", string Icon = "")
+{
+    /// <summary>
+    /// The combat-log <c>abilityGameID</c> used to match events.
+    /// For <see cref="Effect"/> this is <c>1_000_000 + Id</c>; for plain spells it equals <see cref="Id"/>.
+    /// </summary>
+    public int CombatLogId => this is Effect e ? e.SpellId : Id;
+}
 
 /// <summary>
 /// A spell effect — a secondary spell whose combat-log <c>abilityGameID</c> is encoded as

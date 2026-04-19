@@ -1,4 +1,5 @@
 using FellowshipAnalyzer.Core.Analysis;
+using FellowshipAnalyzer.Core.Common.Spells;
 using FellowshipAnalyzer.Core.Events;
 
 using NSubstitute;
@@ -249,7 +250,7 @@ public sealed class CombatLogParserTests
 
         public override void Initialize()
         {
-            AddEventListener(Cast.By(SELECTED_PLAYER).Spell(2), OnSpender);
+            AddEventListener(Cast.By(SELECTED_PLAYER).Spell(new Spell(2)), OnSpender);
         }
 
         private void OnSpender(CastEvent e)

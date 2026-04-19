@@ -1,3 +1,4 @@
+using FellowshipAnalyzer.Core.Common.Spells;
 using OneOf;
 
 namespace FellowshipAnalyzer.Core.Analysis;
@@ -31,17 +32,17 @@ public partial class ChargesValue : OneOfBase<int, Func<Combatant, int>>;
 public sealed record SpellbookAbility
 {
     /// <summary>
-    /// The primary spell ID. If an ability has multiple associated spell IDs
+    /// The primary spell. If an ability has multiple associated spells
     /// (e.g. main-hand and off-hand), list the primary here and extras in
-    /// <see cref="AdditionalSpellIds"/>.
+    /// <see cref="AdditionalSpells"/>.
     /// </summary>
-    public required int Spell { get; init; }
+    public required Spell PrimarySpell { get; init; }
 
     /// <summary>
-    /// Additional spell IDs tied to this ability (e.g. off-hand hits, buff IDs).
+    /// Additional spells tied to this ability (e.g. off-hand hits, buff IDs).
     /// These share the same cooldown and are treated as the same ability.
     /// </summary>
-    public int[]? AdditionalSpellIds { get; init; }
+    public Spell[]? AdditionalSpells { get; init; }
 
     /// <summary>
     /// The display name override. If null, the name is resolved from the

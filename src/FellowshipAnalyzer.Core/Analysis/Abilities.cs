@@ -21,13 +21,13 @@ public class Abilities : Module
                 continue;
             }
 
-            _abilities[entry.Spell] = entry;
+            _abilities[entry.PrimarySpell.CombatLogId] = entry;
 
-            if (entry.AdditionalSpellIds is not null)
+            if (entry.AdditionalSpells is not null)
             {
-                foreach (var extraId in entry.AdditionalSpellIds)
+                foreach (var extra in entry.AdditionalSpells)
                 {
-                    _abilities[extraId] = entry;
+                    _abilities[extra.CombatLogId] = entry;
                 }
             }
         }
