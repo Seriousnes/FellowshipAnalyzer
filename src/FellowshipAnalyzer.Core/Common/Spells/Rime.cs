@@ -23,6 +23,9 @@ public class RimeSpells : ISpellRegistry
     public static Spell WintersBlessing { get; } = new(1026, "Winter's Blessing", "T_Rime_HealingBuff.jpg");
     public static Spell WrathOfWinter { get; } = new(1023, "Wrath of Winter", "T_Rime_SpiritAbility.jpg");
 
+    // Talents
+    public static Effect WintersEmbrace { get; } = new(2303, "Winter's Embrace", "Cryomancer8.jpg");
+
 
     // Other
     public static Spell FrostSwallows { get; } = new(1033, "Frost Swallows", "T_Rime_BirdCD.jpg");

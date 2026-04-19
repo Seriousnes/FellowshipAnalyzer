@@ -8,14 +8,14 @@ public class EventSubscriber : Module
 
     public void AddEventListener<T>(EventFilter<T> filter, Action<T> callback) where T : Event
     {
-        var compiledFilter = filter.Build(Owner);
+        var compiledFilter = filter.Compile(Owner);
         void handler(Event e) => callback((T)e);
         Owner.EventEmitter.Subscribe(this, compiledFilter, handler);
     }
 
     public void AddEventListener<T>(EventFilter<T> filter, Func<T, Task> callback) where T : Event
     {
-        var compiledFilter = filter.Build(Owner);
+        var compiledFilter = filter.Compile(Owner);
         Task handler(Event e) => callback((T)e);
         Owner.EventEmitter.Subscribe(this, compiledFilter, handler);
     }

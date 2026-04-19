@@ -1,4 +1,6 @@
+using System.Linq.Expressions;
 using FellowshipAnalyzer.Core.Events;
+using FellowshipAnalyzer.Core.Utility;
 
 using static FellowshipAnalyzer.Core.Analysis.Analyzer;
 
@@ -6,31 +8,45 @@ namespace FellowshipAnalyzer.Core.Analysis;
 
 public abstract class EventFilter
 {
-    private readonly List<Func<CombatLogParser, Event, bool>> _criteria = [];
+    private readonly List<Expression<Func<Event, bool>>> _conditions = [];
+    private Func<Event, bool>? _compiled;
 
-    protected void AddCriteria(Func<CombatLogParser, Event, bool> criterion) => _criteria.Add(criterion);
+    internal CombatLogParser Owner { get; private set; } = null!;
 
-    public Func<Event, bool> Build(CombatLogParser owner)
+    public void AddCriteria(Expression<Func<Event, bool>> expression) => _conditions.Add(expression);
+
+    public Func<Event, bool> Compile(CombatLogParser owner)
     {
-        var snapshot = _criteria.ToArray();
-        return e =>
+        Owner = owner;
+
+        if (_compiled is null)
         {
-            foreach (var criterion in snapshot)
+            var combined = _conditions[0];
+            foreach (var condition in _conditions.Skip(1))
             {
-                if (!criterion(owner, e))
-                {
-                    return false;
-                }
+                combined = AndAlso(combined, condition);
             }
 
-            return true;
-        };
+            _compiled = combined.Compile();
+        }
+
+        return _compiled;
+    }
+
+    private static Expression<Func<Event, bool>> AndAlso(
+        Expression<Func<Event, bool>> left,
+        Expression<Func<Event, bool>> right)
+    {
+        var visitor = new ReplaceParameterVisitor(right.Parameters[0], left.Parameters[0]);
+        var rewritten = (Expression<Func<Event, bool>>)visitor.Visit(right);
+        var body = Expression.AndAlso(left.Body, rewritten.Body);
+        return Expression.Lambda<Func<Event, bool>>(body, left.Parameters);
     }
 }
 
 public class AnyEventFilter : EventFilter<Event>
 {
-    protected override Func<CombatLogParser, Event, bool> GetInitialCriteria() => static (_, _) => true;
+    protected override Expression<Func<Event, bool>> GetInitialCriteria() => static e => true;
 }
 
 public class EventFilter<T> : EventFilter where T : Event
@@ -40,7 +56,7 @@ public class EventFilter<T> : EventFilter where T : Event
         AddCriteria(GetInitialCriteria());
     }
 
-    protected virtual Func<CombatLogParser, Event, bool> GetInitialCriteria() => static (_, e) => e is T;
+    protected virtual Expression<Func<Event, bool>> GetInitialCriteria() => static e => e is T;
 
     public EventFilter<T> By(int by)
     {
@@ -71,51 +87,51 @@ public class EventFilter<T> : EventFilter where T : Event
 
     public EventFilter<T> Spell(params int[] spellIds)
     {
-        AddCriteria((_, e) => e is IAbilityEvent ability && spellIds.Contains(ability.AbilityGameId));
+        AddCriteria(e => e is IAbilityEvent && spellIds.Contains(((IAbilityEvent)e).AbilityGameId));
         return this;
     }
 
-    private static Func<CombatLogParser, Event, bool>? GetByCheck(int by)
+    private Expression<Func<Event, bool>>? GetByCheck(int by)
     {
         var checkPlayer = (by & SELECTED_PLAYER) != 0;
         var checkPet = (by & SELECTED_PLAYER_PET) != 0;
 
         if (checkPlayer && checkPet)
         {
-            return (pipeline, e) => e is IHasSourceEvent src && (pipeline.ByPlayer(src) || pipeline.ByPlayerPet(src));
+            return e => e is IHasSourceEvent && (Owner.ByPlayer((IHasSourceEvent)e) || Owner.ByPlayerPet((IHasSourceEvent)e));
         }
 
         if (checkPlayer)
         {
-            return (pipeline, e) => e is IHasSourceEvent src && pipeline.ByPlayer(src);
+            return e => e is IHasSourceEvent && Owner.ByPlayer((IHasSourceEvent)e);
         }
 
         if (checkPet)
         {
-            return (pipeline, e) => e is IHasSourceEvent src && pipeline.ByPlayerPet(src);
+            return e => e is IHasSourceEvent && Owner.ByPlayerPet((IHasSourceEvent)e);
         }
 
         return null;
     }
 
-    private static Func<CombatLogParser, Event, bool>? GetToCheck(int to)
+    private Expression<Func<Event, bool>>? GetToCheck(int to)
     {
         var checkPlayer = (to & SELECTED_PLAYER) != 0;
         var checkPet = (to & SELECTED_PLAYER_PET) != 0;
 
         if (checkPlayer && checkPet)
         {
-            return (pipeline, e) => e is IHasTargetEvent tgt && (pipeline.ToPlayer(tgt) || pipeline.ToPlayerPet(tgt));
+            return e => e is IHasTargetEvent && (Owner.ToPlayer((IHasTargetEvent)e) || Owner.ToPlayerPet((IHasTargetEvent)e));
         }
 
         if (checkPlayer)
         {
-            return (pipeline, e) => e is IHasTargetEvent tgt && pipeline.ToPlayer(tgt);
+            return e => e is IHasTargetEvent && Owner.ToPlayer((IHasTargetEvent)e);
         }
 
         if (checkPet)
         {
-            return (pipeline, e) => e is IHasTargetEvent tgt && pipeline.ToPlayerPet(tgt);
+            return e => e is IHasTargetEvent && Owner.ToPlayerPet((IHasTargetEvent)e);
         }
 
         return null;

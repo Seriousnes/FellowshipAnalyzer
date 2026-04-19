@@ -1,15 +1,39 @@
 using FellowshipAnalyzer.Core.Analysis;
 using FellowshipAnalyzer.Core.Common.Spells;
-
-using static FellowshipAnalyzer.Core.Analysis.Events;
+using FellowshipAnalyzer.Core.Events;
+using FellowshipAnalyzer.Core.Utility;
 
 namespace FellowshipAnalyzer.Heroes.Rime.Modules;
 
+/**
+ * While Bursting Ice is active on an enemy you gain Winter's Embrace, causing you to deal 20% more damage.
+ * 
+ * Winter's Embrace does not affect Bursting Ice.
+ */
 public sealed class BasicStComboAnalyzer : Analyzer
 {
     private const int WintersEmbraceDurationMs = 3000;
+    private const double WintersEmbraceIncrease = 0.20;
 
-    private readonly List<TrackedAbilityCast> _casts = [];
+    // ── Damage tracking for Winter's Embrace ──────────────────────────────────
+
+    private bool _wintersEmbraceActive;
+    private long _totalBonusDamage;
+    private int _buffedDamageEventCount;
+    private readonly Dictionary<int, (string Name, long Damage)> _bonusDamageBySpell = [];
+
+    // ── Public accessors ──────────────────────────────────────────────────────
+
+    /// <summary>Total effective damage attributable to the Winter's Embrace 20% buff.</summary>
+    public long TotalBonusDamage => _totalBonusDamage;
+
+    /// <summary>Number of damage events that occurred while Winter's Embrace was active (excluding Bursting Ice).</summary>
+    public int BuffedDamageEventCount => _buffedDamageEventCount;
+
+    /// <summary>Per-spell breakdown of effective bonus damage from Winter's Embrace, keyed by ability game ID.</summary>
+    public IReadOnlyDictionary<int, (string Name, long Damage)> BonusDamageBySpell => _bonusDamageBySpell;
+
+    // ── Score card & window results ───────────────────────────────────────────
 
     public AnalyzerScoreCard ScoreCard { get; private set; } = null!;
     public int EvaluatedWindows { get; private set; }
@@ -18,21 +42,62 @@ public sealed class BasicStComboAnalyzer : Analyzer
     public int IgnoredAoeWindows { get; private set; }
     public IReadOnlyList<StComboWindowEvaluation> Windows { get; private set; } = [];
     public IReadOnlyList<RimeAnalyzerFinding> Findings { get; private set; } = [];
-    
+
+    public override void Initialize()
+    {
+        AddEventListener(Events.ApplyBuff.By(SELECTED_PLAYER).Spell(RimeSpells.WintersBlessing.Id + 1_000_000), OnWintersBlessingApplied);
+        AddEventListener(Events.RemoveBuff.By(SELECTED_PLAYER).Spell(RimeSpells.WintersBlessing.Id + 1_000_000), OnWintersBlessingRemoved);
+        AddEventListener(Events.Damage.By(SELECTED_PLAYER), OnDamage);
+    }   
+
+    private void OnWintersBlessingApplied(ApplyBuffEvent @event)
+    {
+        _wintersEmbraceActive = true;
+    }
+
+    private void OnWintersBlessingRemoved(RemoveBuffEvent @event)
+    {
+        _wintersEmbraceActive = false;
+    }
+
+    private void OnDamage(DamageEvent damageEvent)
+    {
+        if (!_wintersEmbraceActive)
+            return;
+
+        // Winter's Embrace does not affect Bursting Ice itself
+        if (damageEvent.AbilityGameId == RimeSpells.BurstingIce.Id ||
+            damageEvent.AbilityGameId == RimeSpells.BurstingIceDamage.SpellId)
+            return;
+
+        var bonus = CombatMath.CalculateEffectiveDamage(damageEvent, WintersEmbraceIncrease);
+        _totalBonusDamage += bonus;
+        _buffedDamageEventCount++;
+
+        var id = damageEvent.AbilityGameId;
+        var name = damageEvent.Ability?.Name ?? id.ToString();
+        _bonusDamageBySpell[id] = _bonusDamageBySpell.TryGetValue(id, out var existing)
+            ? (existing.Name, existing.Damage + bonus)
+            : (name, bonus);
+    }
+
+
     public override void Complete()
     {
+        var casts = Owner.GetModule<SpellUsable>()?.Casts ?? [];
+
         var evaluations = new List<StComboWindowEvaluation>();
         var findings = new List<RimeAnalyzerFinding>();
         var ignoredAoeWindows = 0;
 
-        foreach (var cast in _casts)
+        foreach (var cast in casts)
         {
             if (cast.AbilityId != RimeSpells.BurstingIce.Id)
                 continue;
 
             var startTimestamp = cast.Timestamp;
             var endTimestamp = startTimestamp + WintersEmbraceDurationMs;
-            var castsInWindow = _casts
+            var castsInWindow = casts
                 .Where(c => c.Timestamp > startTimestamp && c.Timestamp <= endTimestamp)
                 .ToList();
 
