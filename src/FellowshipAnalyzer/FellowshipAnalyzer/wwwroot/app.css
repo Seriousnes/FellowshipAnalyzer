@@ -41,8 +41,8 @@
     --fa-radius-xl:  28px;
 
     /* Type scale */
-    --fa-font-body: 'Segoe UI', system-ui, -apple-system, sans-serif;
-    --fa-font-heading: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    --fa-font-body: 'Noto Sans', system-ui, -apple-system, sans-serif;
+    --fa-font-heading: 'Nunito', system-ui, -apple-system, sans-serif;
 }
 
 /* ── Reset & Base ───────────────────────────────────────────────── */

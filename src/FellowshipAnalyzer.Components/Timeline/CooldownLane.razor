@@ -5,12 +5,20 @@
 <div class="cooldown-lane" style="position: relative; width: @(TrackWidthPx.ToString("F1", CultureInfo.InvariantCulture))px; height: 24px;">
     @foreach (var seg in _segments)
     {
-        <div class="cooldown-lane__segment" style="left: @Px(seg.Start);">
-            <SpellIcon Ability="@Ability" Size="SpellIconSize.Small" />
-            <div class="cooldown-lane__bar"
-                 style="width: @DurPx(seg.End - seg.Start);"
-                 title="@FormatDuration(seg.End - seg.Start) cooldown"></div>
-        </div>
+        @if (seg.ShowIcon)
+        {
+            <div class="cooldown-lane__icon" style="left: @Px(seg.IconAt);">
+                <SpellIcon Ability="@Ability" Size="SpellIconSize.Small" />
+            </div>
+        }
+        @if (seg.End > seg.Start)
+        {
+            <div class="cooldown-lane__bar-wrap" style="left: @Px(seg.Start);">
+                <div class="cooldown-lane__bar"
+                     style="width: @DurPx(seg.End - seg.Start);"
+                     title="@FormatDuration(seg.End - seg.Start) cooldown"></div>
+            </div>
+        }
     }
     @foreach (var ts in _chargeRestoreTimestamps)
     {
@@ -25,7 +33,7 @@
     [Parameter, EditorRequired] public int FightEndTime { get; set; }
     [Parameter] public double PixelsPerSecond { get; set; } = 60.0;
 
-    private sealed record CooldownSegment(int Start, int End);
+    private sealed record CooldownSegment(int Start, int End, int IconAt, bool ShowIcon);
 
     private List<CooldownSegment> _segments = [];
     private List<int> _chargeRestoreTimestamps = [];
@@ -62,16 +70,22 @@
             switch (e.UpdateType)
             {
                 case UpdateSpellUsableType.BeginCooldown:
-                    _segments.Add(new(e.ChargeStartTimestamp, e.ExpectedRechargeTimestamp));
+                    _segments.Add(new(e.ChargeStartTimestamp, e.ExpectedRechargeTimestamp, e.CastStartTimestamp, ShowIcon: true));
+                    break;
+
+                case UpdateSpellUsableType.UseCharge:
+                    // A charge was consumed — show an icon at this timestamp but no new bar
+                    // (the existing bar from BeginCooldown is still running).
+                    _segments.Add(new(e.Timestamp, e.Timestamp, e.CastStartTimestamp, ShowIcon: true));
                     break;
 
                 case UpdateSpellUsableType.RestoreCharge:
                     _chargeRestoreTimestamps.Add(e.Timestamp);
                     if (e.IsOnCooldown)
-                        _segments.Add(new(e.Timestamp, e.ExpectedRechargeTimestamp));
+                        _segments.Add(new(e.Timestamp, e.ExpectedRechargeTimestamp, e.Timestamp, ShowIcon: false));
                     break;
 
-                // UseCharge and EndCooldown have no additional visual segments
+                // EndCooldown has no additional visual segments
             }
         }
     }

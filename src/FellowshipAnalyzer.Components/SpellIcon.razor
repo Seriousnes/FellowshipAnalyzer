@@ -2,8 +2,8 @@
 
 @if (Spell is not null)
 {
-    <div class="spell-icon @SizeClass" title="@Spell.Name">
-        <img src="@IconUrl" alt="@(_alt ?? Spell.Name)" />
+    <div class="spell-icon @SizeClass" title="@TooltipTitle" data-tooltip-spell-id="@TooltipSpellId">
+        <img src="@IconUrl" />
     </div>
 }
 
@@ -16,19 +16,19 @@
     [Parameter]
     public int? SpellId { get; set; }
 
-    /// <summary>Pass a <see cref="SpellbookAbility"/> — its <see cref="SpellbookAbility.Spell"/> ID is used for lookup.</summary>
+    /// <summary>Pass a <see cref="SpellbookAbility"/> — its <see cref="SpellbookAbility.Spell"/>
+    /// ID is used for lookup.
+    /// </summary>
     [Parameter]
     public SpellbookAbility? Ability { get; set; }
-
-    /// <summary>Alt text override. Defaults to the spell name.</summary>
-    [Parameter]
-    public string? Alt { get => _alt; set => _alt = value; }
 
     /// <summary>Icon size. Defaults to <see cref="SpellIconSize.Medium"/>.</summary>
     [Parameter]
     public SpellIconSize Size { get; set; } = SpellIconSize.Medium;
 
-    private string? _alt;
+    /// <summary>Suppress the API tooltip (e.g. when nested inside a <see cref="SpellLink"/>).</summary>
+    [Parameter]
+    public bool NoTooltip { get; set; }
 
     private string IconUrl => $"https://assets.rpglogs.com/img/fellowship/abilities/{Spell!.Icon}";
 
@@ -38,6 +38,11 @@
         SpellIconSize.Large => "spell-icon--lg",
         _ => ""
     };
+
+    private string? TooltipTitle => NoTooltip ? null : Spell?.Name;
+    private string? TooltipSpellId => NoTooltip ? null : Spell is Effect effect
+        ? $"effect/{effect.Id}"
+        : Spell is not null ? $"ability/{Spell.Id}" : null;
 
     protected override void OnParametersSet()
     {

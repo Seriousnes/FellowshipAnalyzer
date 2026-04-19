@@ -8,7 +8,7 @@
     <div class="cast-bar__time-line" style="height: calc(100% + 10px);">
         @for (var sec = 1; sec < _totalSeconds; sec++)
         {
-            <div class="cast-bar__time-line-sec" style="width: @F(PixelsPerSecond)px;" data-duration="@FormatSec(sec)"></div>
+            <div class="cast-bar__time-line-sec" style="width: @F(PixelsPerSecond)px;" data-duration="@FormatSec(sec - 1)"></div>
         }
     </div>
 

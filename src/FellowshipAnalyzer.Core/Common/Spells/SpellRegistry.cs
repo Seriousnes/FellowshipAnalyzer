@@ -83,13 +83,14 @@ public static class SpellRegistry
 
                 foreach (var prop in type.GetProperties(BindingFlags.Public | BindingFlags.Static))
                 {
-                    if (prop.PropertyType != spellType)
+                    if (!prop.PropertyType.IsAssignableTo(spellType))
                         continue;
 
                     if (prop.GetValue(null) is Spell spell)
                     {
-                        // Last-writer-wins: hero-specific overrides can shadow generic spells.
-                        entries[spell.Id] = spell;
+                        // Effects are keyed by their combat-log SpellId (1_000_000 + Id).
+                        var key = spell is Effect effect ? effect.SpellId : spell.Id;
+                        entries[key] = spell;
                     }
                 }
             }

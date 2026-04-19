@@ -1,12 +1,13 @@
 @using FellowshipAnalyzer.Core.Common.Spells
 
-<span class="spell-link">
+<a href="@AbilityUrl" target="_blank" rel="noopener noreferrer"
+   data-tooltip-spell-id="@TooltipSpellId" class="spell-link">
     @if (icon)
     {
-        <SpellIcon Spell="@_resolved" Size="@IconSize" />
+        <SpellIcon Spell="@_resolved" Size="@IconSize" NoTooltip />
     }
-    <span class="spell-link__name">@(_resolved?.Name ?? $"Unknown Spell")</span>
-</span>
+    <span class="spell-link__name">@(_resolved?.Name ?? "Unknown Spell")</span>
+</a>
 
 @code {
     /// <summary>Pass a <see cref="Core.Common.Spells.Spell"/> object directly.</summary>
@@ -32,6 +33,13 @@
     private bool icon = true;
     private Spell? _resolved;
 
+    private string? TooltipSpellId => _resolved is Effect
+        ? $"effect/{_resolved.Id}"
+        : _resolved is not null ? $"ability/{_resolved.Id}" : null;
+    private string AbilityUrl => _resolved is not null
+        ? $"https://fellows.gg/{TooltipSpellId}"
+        : "#";
+
     protected override void OnParametersSet()
     {
         _resolved = Spell ?? ResolveById(SpellId) ?? ResolveById(Ability?.Spell);
@@ -39,6 +47,4 @@
 
     private static Spell? ResolveById(int? id) =>
         id.HasValue ? SpellRegistry.MaybeGet(id.Value) : null;
-
-    private int? ResolveId() => SpellId ?? Ability?.Spell;
 }

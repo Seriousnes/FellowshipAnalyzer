@@ -21,7 +21,7 @@ public class Abilities : CoreAbilities
         new()
         {
             Spell = RimeSpells.BurstingIce.Id,
-            AdditionalSpellIds = [RimeSpells.BurstingIceDamage.Id],
+            AdditionalSpellIds = [RimeSpells.BurstingIceDamage.SpellId],
             Category = SpellCategory.Rotational,
             Gcd = StandardGcd,
             Cooldown = 10,
@@ -34,6 +34,7 @@ public class Abilities : CoreAbilities
             Gcd = StandardGcd,
             Cooldown = (Func<double, double>)(haste => 12 / (1 + haste)),
             Range = 30,
+            Charges = 2,
         },
         new()
         {
@@ -128,7 +129,7 @@ public class Abilities : CoreAbilities
         },
         new()
         {
-            Spell = Spells.Kindling.Id,
+            Spell = Spells.Kindling.SpellId,
             Category = SpellCategory.Hidden,
         },
     ];

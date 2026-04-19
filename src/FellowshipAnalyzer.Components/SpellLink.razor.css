@@ -3,6 +3,12 @@
     align-items: center;
     gap: 6px;
     vertical-align: middle;
+    color: inherit;
+    text-decoration: none;
+}
+
+.spell-link:hover .spell-link__name {
+    text-decoration: underline;
 }
 
 .spell-link__name {

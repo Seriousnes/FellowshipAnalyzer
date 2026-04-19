@@ -15,11 +15,16 @@ public sealed class SpellUsable : Analyzer
     private Abilities? _abilities;
     private DebugAnnotations? _debugAnnotations;
 
+    // Tracks the most recent BeginCast timestamp per (abilityId, sourceId) so that
+    // cooldown lane icons align with cast bar icons for cast-time spells.
+    private readonly Dictionary<(int, int), int> _pendingBeginCastTimestamps = [];
+
     public override void Initialize()
     {
         _abilities = Owner.GetModule<Abilities>();
         _debugAnnotations = Owner.GetModule<DebugAnnotations>();
 
+        AddEventListener(Events.BeginCast.By(SELECTED_PLAYER), OnBeginCast);
         AddEventListener(Events.Cast.By(SELECTED_PLAYER), OnCast);
         AddEventListener(Events.PrefilterCD.By(SELECTED_PLAYER), OnFilterCooldown);
         AddEventListener(Events.Any, OnAnyEvent);
@@ -51,9 +56,10 @@ public sealed class SpellUsable : Analyzer
 
     // ── Cooldown lifecycle API (callable from other modules) ──────────────────
 
-    public void BeginCooldown(int spellId, int timestamp)
+    public void BeginCooldown(int spellId, int timestamp, int castStart = 0)
     {
         if (_abilities is null) return;
+        if (castStart <= 0) castStart = timestamp;
 
         if (!_cooldowns.TryGetValue(spellId, out var cd))
         {
@@ -70,20 +76,20 @@ public sealed class SpellUsable : Analyzer
                 MaxCharges: maxCharges);
             _cooldowns[spellId] = cd;
 
-            FabricateUpdate(UpdateSpellUsableType.BeginCooldown, spellId, timestamp, cd);
+            FabricateUpdate(UpdateSpellUsableType.BeginCooldown, spellId, timestamp, cd, castStart);
         }
         else if (cd.ChargesAvailable > 0)
         {
             cd = cd with { ChargesAvailable = cd.ChargesAvailable - 1 };
             _cooldowns[spellId] = cd;
-            FabricateUpdate(UpdateSpellUsableType.UseCharge, spellId, timestamp, cd);
+            FabricateUpdate(UpdateSpellUsableType.UseCharge, spellId, timestamp, cd, castStart);
         }
         else
         {
             // Spell cast while already on cooldown — treat as missed natural expiration.
             // Annotate the cast event so developers can see this happened in the Debug tab.
             EndCooldown(spellId, timestamp);
-            BeginCooldown(spellId, timestamp);
+            BeginCooldown(spellId, timestamp, castStart);
         }
     }
 
@@ -112,6 +118,12 @@ public sealed class SpellUsable : Analyzer
 
     // ── Event handlers ────────────────────────────────────────────────────────
 
+    private void OnBeginCast(BeginCastEvent e)
+    {
+        if (e.Ability is not null)
+            _pendingBeginCastTimestamps[(e.AbilityGameId, e.SourceId)] = e.Timestamp;
+    }
+
     private void OnCast(CastEvent e)
     {
         _casts.Add(new TrackedAbilityCast(e.Timestamp, e.AbilityGameId, e.TargetId));
@@ -134,7 +146,10 @@ public sealed class SpellUsable : Analyzer
                 Priority: 10));
         }
 
-        BeginCooldown(e.AbilityGameId, e.Timestamp);
+        // Consume any recorded BeginCast timestamp so the cooldown lane icon aligns
+        // with the cast bar icon (which renders at BeginCast time for cast-time spells).
+        _pendingBeginCastTimestamps.Remove((e.AbilityGameId, e.SourceId), out var castStart);
+        BeginCooldown(e.AbilityGameId, e.Timestamp, castStart);
     }
 
     private void OnFilterCooldown(FilterCooldownInfoEvent e) =>
@@ -172,7 +187,7 @@ public sealed class SpellUsable : Analyzer
 
     // ── Event fabrication ─────────────────────────────────────────────────────
 
-    private void FabricateUpdate(UpdateSpellUsableType updateType, int spellId, int timestamp, CooldownInfo cd)
+    private void FabricateUpdate(UpdateSpellUsableType updateType, int spellId, int timestamp, CooldownInfo cd, int castStart = 0)
     {
         var ability = _abilities?.GetAbility(spellId);
 
@@ -188,6 +203,7 @@ public sealed class SpellUsable : Analyzer
             MaxCharges = cd.MaxCharges,
             OverallStartTimestamp = cd.OverallStart,
             ChargeStartTimestamp = cd.ChargeStart,
+            CastStartTimestamp = castStart > 0 ? castStart : timestamp,
             ExpectedRechargeTimestamp = cd.ExpectedEnd,
             ExpectedRechargeDuration = cd.RechargeDuration,
             SourceId = Owner.PlayerId,

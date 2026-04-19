@@ -59,6 +59,12 @@ public record UpdateSpellUsableEvent : Event, IAbilityEvent, IHasSourceEvent, IH
      *  Only filled in for EndCooldown updateType. */
     public virtual int? TimeWaitingOnGCD { get; set; }
     /// <summary>
+    /// The timestamp the cast that triggered this cooldown began (i.e. the BeginCast timestamp
+    /// for cast-time spells, or equals <see cref="ChargeStartTimestamp"/> for instant spells).
+    /// Used by the timeline to align cooldown lane icons with cast bar icons.
+    /// </summary>
+    public virtual int CastStartTimestamp { get; set; }
+    /// <summary>
     /// In practice will always be the selected player - included to make filtering easier
     /// </summary>
     public virtual int SourceId { get; set; }

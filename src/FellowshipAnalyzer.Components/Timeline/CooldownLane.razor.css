@@ -2,8 +2,17 @@
     overflow: visible;
 }
 
-/* Segment wrapper — positions icon + bar together */
-.cooldown-lane__segment {
+/* Icon — absolutely positioned at the cast-start timestamp */
+.cooldown-lane__icon {
+    position: absolute;
+    top: 0;
+    height: 24px;
+    z-index: 2;
+    transform: translateX(-50%);
+}
+
+/* Bar wrapper — absolutely positioned at the cooldown-start timestamp */
+.cooldown-lane__bar-wrap {
     position: absolute;
     top: 0;
     height: 24px;

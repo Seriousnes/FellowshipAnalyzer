@@ -9,7 +9,7 @@ public class RimeSpells : ISpellRegistry
     // Core
     public static Spell BrainFreeze { get; } = new(1019, "Brain Freeze", "T_RimeIcon_Interrupt.jpg");
     public static Spell BurstingIce { get; } = new(1031, "Bursting Ice", "T_Rime_CastedDebuffAOEdamage.jpg");
-    public static Spell BurstingIceDamage { get; } = new(1001396, "Bursting Ice", "T_Rime_CastedDebuffAOEdamage.jpg");
+    public static Effect BurstingIceDamage { get; } = new(1396, "Bursting Ice", "T_Rime_CastedDebuffAOEdamage.jpg");
     public static Spell ColdSnap { get; } = new(1020, "Cold Snap", "T_Rime_InstantHit.jpg");
     public static Spell FlightOfTheNavir { get; } = new(1009, "Flight of the Navir", "T_Rime_BirdCD.jpg");
     public static Spell FreezingTorrent { get; } = new(1027, "Freezing Torrent", "T_Rime_ChanneledBeam.jpg");
@@ -26,5 +26,5 @@ public class RimeSpells : ISpellRegistry
 
     // Other
     public static Spell FrostSwallows { get; } = new(1033, "Frost Swallows", "T_Rime_BirdCD.jpg");
-    public static Spell FrostSwallowsDamage { get; } = new(1001365, "Frost Swallows", "T_Rime_BirdCD.jpg");    
+    public static Effect FrostSwallowsDamage { get; } = new(1365, "Frost Swallows", "T_Rime_BirdCD.jpg");    
 }
