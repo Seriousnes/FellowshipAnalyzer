@@ -175,7 +175,7 @@
                         cast,
                         beginCast,
                         cast.GlobalCooldown,
-                        Abilities?.GetAbility(cast.AbilityGameId),
+                        Abilities?.GetAbility(cast.Ability.Id),
                         isLower,
                         level));
                     break;
@@ -187,13 +187,13 @@
                         bc,
                         endChannel,
                         bc.GlobalCooldown,
-                        Abilities?.GetAbility(bc.AbilityGameId)));
+                        Abilities?.GetAbility(bc.Ability.Id)));
                     break;
 
                 case BeginCastEvent cancelledBc when cancelledBc.SourceId == PlayerId && cancelledBc.IsCancelled:
                     _items.Add(new CancelledCastItem(
                         cancelledBc,
-                        Abilities?.GetAbility(cancelledBc.AbilityGameId)));
+                        Abilities?.GetAbility(cancelledBc.Ability.Id)));
                     break;
             }
         }

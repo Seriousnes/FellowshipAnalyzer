@@ -67,8 +67,8 @@
                     <span class="ev-col ev-ability">
                         @if (e is IAbilityEvent ae)
                         {
-                            <SpellLink SpellId="@ae.AbilityGameId" IconSize="SpellIconSize.Small" />
-                            <small class="ev-spell-id"> ID: @ae.AbilityGameId</small>
+                            <SpellLink SpellId="@ae.Ability.Id" IconSize="SpellIconSize.Small" />
+                            <small class="ev-spell-id"> ID: @ae.Ability.Id</small>
                         }
                     </span>
                     <span class="ev-col ev-amount">@GetAmount(e)</span>
@@ -172,7 +172,7 @@
             {
                 if (e is IAbilityEvent ae)
                 {
-                    if (ae.AbilityGameId.ToString() == term) return true;
+                    if (ae.Ability.Id.ToString() == term) return true;
                     if (ae.Ability?.Name?.Contains(term, StringComparison.OrdinalIgnoreCase) == true) return true;
                 }
                 if (e is IHasSourceEvent src)

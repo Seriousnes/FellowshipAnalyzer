@@ -121,39 +121,39 @@ public sealed class SpellUsable : Analyzer
     private void OnBeginCast(BeginCastEvent e)
     {
         if (e.Ability is not null)
-            _pendingBeginCastTimestamps[(e.AbilityGameId, e.SourceId)] = e.Timestamp;
+            _pendingBeginCastTimestamps[(e.Ability.Id, e.SourceId)] = e.Timestamp;
     }
 
     private void OnCast(CastEvent e)
     {
-        _casts.Add(new TrackedAbilityCast(e.Timestamp, e.AbilityGameId, e.TargetId));
+        _casts.Add(new TrackedAbilityCast(e.Timestamp, e.Ability.Id, e.TargetId));
 
-        if (_abilities?.GetAbility(e.AbilityGameId) is null)
+        if (_abilities?.GetAbility(e.Ability.Id) is null)
         {
             _debugAnnotations?.AddAnnotation(this, e, new DebugAnnotation(
                 Color: "#e67e22",
-                Summary: $"Unconfigured spell: {e.Ability?.Name ?? "?"}  (ID: {e.AbilityGameId})",
+                Summary: $"Unconfigured spell: {e.Ability.Name}  (ID: {e.Ability.Id})",
                 Details: "This spell was cast by the player but is not in the hero's spellbook. " +
                          "Consider adding it to the Abilities module."));
         }
 
-        if (!IsAvailable(e.AbilityGameId))
+        if (!IsAvailable(e.Ability.Id))
         {
             _debugAnnotations?.AddAnnotation(this, e, new DebugAnnotation(
                 Color: "#e74c3c",
-                Summary: $"Cast while on cooldown: {e.Ability?.Name ?? "?"}  (ID: {e.AbilityGameId})",
-                Details: $"{CooldownRemaining(e.AbilityGameId, e.Timestamp)}ms remaining at time of cast.",
+                Summary: $"Cast while on cooldown: {e.Ability.Name}  (ID: {e.Ability.Id})",
+                Details: $"{CooldownRemaining(e.Ability.Id, e.Timestamp)}ms remaining at time of cast.",
                 Priority: 10));
         }
 
         // Consume any recorded BeginCast timestamp so the cooldown lane icon aligns
         // with the cast bar icon (which renders at BeginCast time for cast-time spells).
-        _pendingBeginCastTimestamps.Remove((e.AbilityGameId, e.SourceId), out var castStart);
-        BeginCooldown(e.AbilityGameId, e.Timestamp, castStart);
+        _pendingBeginCastTimestamps.Remove((e.Ability.Id, e.SourceId), out var castStart);
+        BeginCooldown(e.Ability.Id, e.Timestamp, castStart);
     }
 
     private void OnFilterCooldown(FilterCooldownInfoEvent e) =>
-        BeginCooldown(e.AbilityGameId, e.Timestamp);
+        BeginCooldown(e.Ability.Id, e.Timestamp);
 
     private int _currentTimestamp;
 
@@ -195,7 +195,6 @@ public sealed class SpellUsable : Analyzer
         {
             Timestamp = timestamp,
             Ability = new Ability { Guid = spellId, Name = ability?.Name ?? string.Empty },
-            AbilityGameId = spellId,
             UpdateType = updateType,
             IsOnCooldown = cd.ChargesAvailable < cd.MaxCharges,
             IsAvailable = cd.ChargesAvailable > 0,

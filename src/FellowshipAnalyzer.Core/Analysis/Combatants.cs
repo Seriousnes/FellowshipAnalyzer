@@ -39,7 +39,7 @@ public sealed class Combatants : Analyzer
                 var prepullBuff = new TrackedBuffEvent
                 {
                     Timestamp = combatant.Info.Timestamp,
-                    AbilityGameId = aura.Ability,
+                    Ability = new Ability { Guid = aura.Ability, Name = aura.Name, Icon = aura.Icon },
                     SourceId = aura.Source,
                     TargetId = combatant.Id,
                     Start = combatant.Info.Timestamp,
@@ -82,7 +82,6 @@ public sealed class Combatants : Analyzer
         var buff = new TrackedBuffEvent
         {
             Timestamp = e.Timestamp,
-            AbilityGameId = e.AbilityGameId,
             Ability = e.Ability,
             SourceId = e.SourceId,
             TargetId = e.TargetId,
@@ -109,7 +108,7 @@ public sealed class Combatants : Analyzer
     private void RemoveBuff(BuffEvent e, bool isDebuff)
     {
         var entity = GetOrCreateEntity(e.TargetId);
-        var existing = GetExistingBuff(entity, e.AbilityGameId, e.SourceId);
+        var existing = GetExistingBuff(entity, e.Ability.Id, e.SourceId);
 
         if (existing is not null)
         {
@@ -129,7 +128,6 @@ public sealed class Combatants : Analyzer
             var synthetic = new TrackedBuffEvent
             {
                 Timestamp = e.Timestamp,
-                AbilityGameId = e.AbilityGameId,
                 Ability = e.Ability,
                 SourceId = e.SourceId,
                 TargetId = e.TargetId,
@@ -152,13 +150,13 @@ public sealed class Combatants : Analyzer
     private void OnRefreshBuff(RefreshBuffEvent e)
     {
         var entity = GetOrCreateEntity(e.TargetId);
-        GetExistingBuff(entity, e.AbilityGameId, e.SourceId)?.RefreshHistory.Add(e.Timestamp);
+        GetExistingBuff(entity, e.Ability.Id, e.SourceId)?.RefreshHistory.Add(e.Timestamp);
     }
 
     private void OnRefreshDebuff(RefreshDebuffEvent e)
     {
         var entity = GetOrCreateEntity(e.TargetId);
-        GetExistingBuff(entity, e.AbilityGameId, e.SourceId)?.RefreshHistory.Add(e.Timestamp);
+        GetExistingBuff(entity, e.Ability.Id, e.SourceId)?.RefreshHistory.Add(e.Timestamp);
     }
 
     // -------------------------------------------------------------------------
@@ -173,7 +171,7 @@ public sealed class Combatants : Analyzer
     private void UpdateStack(BuffEvent e, bool isDebuff)
     {
         var entity = GetOrCreateEntity(e.TargetId);
-        var existing = GetExistingBuff(entity, e.AbilityGameId, e.SourceId);
+        var existing = GetExistingBuff(entity, e.Ability.Id, e.SourceId);
         if (existing is null) return;
 
         if (e is not IBuffStackEvent stackEvent) return;
@@ -225,7 +223,7 @@ public sealed class Combatants : Analyzer
     }
 
     private static TrackedBuffEvent? GetExistingBuff(Combatant entity, int spellId, int sourceId)
-        => entity.Buffs.LastOrDefault(b => b.AbilityGameId == spellId && b.SourceId == sourceId && b.End is null);
+        => entity.Buffs.LastOrDefault(b => b.Ability.Id == spellId && b.SourceId == sourceId && b.End is null);
 
     private void FabricateStackChange(TrackedBuffEvent tracked, BuffEvent trigger, int oldStacks, int newStacks, bool isDebuff)
     {
@@ -234,7 +232,6 @@ public sealed class Combatants : Analyzer
             : new ChangeBuffStackEvent();
 
         change.Timestamp = trigger.Timestamp;
-        change.AbilityGameId = trigger.AbilityGameId;
         change.Ability = trigger.Ability;
         change.SourceId = trigger.SourceId;
         change.TargetId = trigger.TargetId;

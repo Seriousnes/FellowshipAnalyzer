@@ -53,7 +53,7 @@ public abstract class Entity
     internal void ApplyBuff(TrackedBuffEvent buff) => Buffs.Add(buff);
 
     protected Func<TrackedBuffEvent, bool> SpellIdFilter(int spellId)
-        => b => b.AbilityGameId == spellId;
+        => b => b.Ability.Id == spellId;
 
     protected Func<TrackedBuffEvent, bool> SourceIdFilter(int? sourceId)
         => sourceId is null ? _ => true : b => b.SourceId == sourceId;

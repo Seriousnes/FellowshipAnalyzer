@@ -87,7 +87,7 @@ public class EventFilter<T> : EventFilter where T : Event
 
     public EventFilter<T> Spell(params int[] spellIds)
     {
-        AddCriteria(e => e is IAbilityEvent && spellIds.Contains(((IAbilityEvent)e).AbilityGameId));
+        AddCriteria(e => e is IAbilityEvent && spellIds.Contains(((IAbilityEvent)e).Ability.Id));
         return this;
     }
 

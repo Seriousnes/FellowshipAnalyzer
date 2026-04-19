@@ -18,7 +18,7 @@
         var cooldownRows = allEvents
             .OfType<UpdateSpellUsableEvent>()
             .Where(e => e.SourceId == PlayerId)
-            .GroupBy(e => e.AbilityGameId)
+            .GroupBy(e => e.Ability.Id)
             .Select(g => (
                 Ability: abilities?.GetAbility(g.Key),
                 Events: (IReadOnlyList<UpdateSpellUsableEvent>)[.. g.OrderBy(e => e.Timestamp)]

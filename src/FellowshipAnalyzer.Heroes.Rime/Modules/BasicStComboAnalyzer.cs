@@ -66,16 +66,16 @@ public sealed class BasicStComboAnalyzer : Analyzer
             return;
 
         // Winter's Embrace does not affect Bursting Ice itself
-        if (damageEvent.AbilityGameId == RimeSpells.BurstingIce.Id ||
-            damageEvent.AbilityGameId == RimeSpells.BurstingIceDamage.SpellId)
+        if (damageEvent.Ability.Id == RimeSpells.BurstingIce.Id ||
+            damageEvent.Ability.Id == RimeSpells.BurstingIceDamage.SpellId)
             return;
 
         var bonus = CombatMath.CalculateEffectiveDamage(damageEvent, WintersEmbraceIncrease);
         _totalBonusDamage += bonus;
         _buffedDamageEventCount++;
 
-        var id = damageEvent.AbilityGameId;
-        var name = damageEvent.Ability?.Name ?? id.ToString();
+        var id = damageEvent.Ability.Id;
+        var name = damageEvent.Ability.Name;
         _bonusDamageBySpell[id] = _bonusDamageBySpell.TryGetValue(id, out var existing)
             ? (existing.Name, existing.Damage + bonus)
             : (name, bonus);

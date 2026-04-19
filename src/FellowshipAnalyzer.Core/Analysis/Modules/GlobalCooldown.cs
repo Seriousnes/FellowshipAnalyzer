@@ -25,7 +25,7 @@ public sealed class GlobalCooldown : Analyzer
 
     private void OnCast(CastEvent e)
     {
-        var gcdMs = GetGcdDuration(e.AbilityGameId);
+        var gcdMs = GetGcdDuration(e.Ability.Id);
         if (gcdMs <= 0) return;
 
         if (e.Timestamp < _lastGcdEnd)
@@ -38,14 +38,14 @@ public sealed class GlobalCooldown : Analyzer
                          "This may indicate a log timing issue or a spell that bypasses the GCD."));
         }
 
-        var gcdEvent = FabricateGcdEvent(e.AbilityGameId, e.Timestamp, gcdMs);
+        var gcdEvent = FabricateGcdEvent(e.Ability.Id, e.Timestamp, gcdMs);
         e.GlobalCooldown = gcdEvent;
         _lastGcdEnd = e.Timestamp + gcdMs;
     }
 
     private void OnBeginChannel(BeginChannelEvent e)
     {
-        var gcdMs = GetGcdDuration(e.AbilityGameId);
+        var gcdMs = GetGcdDuration(e.Ability.Id);
         if (gcdMs <= 0) return;
 
         if (e.Timestamp < _lastGcdEnd)
@@ -57,7 +57,7 @@ public sealed class GlobalCooldown : Analyzer
                 Details: $"The GCD was still active for {overlapMs}ms when this channel start was registered."));
         }
 
-        var gcdEvent = FabricateGcdEvent(e.AbilityGameId, e.Timestamp, gcdMs);
+        var gcdEvent = FabricateGcdEvent(e.Ability.Id, e.Timestamp, gcdMs);
         e.GlobalCooldown = gcdEvent;
         _lastGcdEnd = e.Timestamp + gcdMs;
     }

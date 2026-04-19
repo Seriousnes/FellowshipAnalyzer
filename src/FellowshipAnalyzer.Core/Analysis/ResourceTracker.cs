@@ -48,11 +48,11 @@ public abstract class ResourceTracker : Analyzer
         Wasted += wasted;
         Current = Math.Min(Current + gained, MaxResource);
 
-        IncrementDict(_generatorCasts, e.AbilityGameId);
+        IncrementDict(_generatorCasts, e.Ability.Id);
 
         _events.Add(new ResourceEvent(
             e.Timestamp,
-            e.AbilityGameId,
+            e.Ability.Id,
             ResourceEventKind.Gain,
             gained,
             wasted,
@@ -76,11 +76,11 @@ public abstract class ResourceTracker : Analyzer
         Spent += cost;
         Current = Math.Max(0, Current - cost);
 
-        IncrementDict(_spenderCasts, e.AbilityGameId);
+        IncrementDict(_spenderCasts, e.Ability.Id);
 
         _events.Add(new ResourceEvent(
             e.Timestamp,
-            e.AbilityGameId,
+            e.Ability.Id,
             ResourceEventKind.Spend,
             cost,
             Wasted: 0,

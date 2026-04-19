@@ -181,7 +181,6 @@ public sealed class CombatLogParserTests
             Timestamp = timestamp,
             SourceId = sourceId,
             TargetId = 11,
-            AbilityGameId = abilityId,
             Ability = new Ability
             {
                 Guid = abilityId,
@@ -200,7 +199,6 @@ public sealed class CombatLogParserTests
             Timestamp = timestamp,
             SourceId = sourceId,
             TargetId = 11,
-            AbilityGameId = abilityId,
             ResourceChangeType = resourceTypeId,
             ResourceChange = resourceChange,
             Waste = waste,
@@ -295,7 +293,6 @@ public sealed class CombatLogParserTests
                     Timestamp = e.Timestamp + 50,
                     SourceId = 7,
                     TargetId = 11,
-                    AbilityGameId = 99,
                     Ability = new Ability { Guid = 99, Name = "Fabricated" },
                     Target = new CastTarget(),
                     Channel = new BeginChannelEvent(),
