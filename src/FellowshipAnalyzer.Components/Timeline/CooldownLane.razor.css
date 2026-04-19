@@ -2,21 +2,28 @@
     overflow: visible;
 }
 
-.cooldown-lane__bar {
+/* Segment wrapper — positions icon + bar together */
+.cooldown-lane__segment {
     position: absolute;
-    top: 2px;
+    top: 0;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    z-index: 1;
+}
+
+.cooldown-lane__bar {
     height: 16px;
     background: rgba(120, 120, 120, 0.55);
     border: 1px solid rgba(80, 80, 80, 0.4);
     border-radius: 2px;
-    z-index: 1;
 }
 
 .cooldown-lane__restore {
     position: absolute;
     top: 0;
     width: 3px;
-    height: 20px;
+    height: 24px;
     background: rgba(255, 255, 255, 0.75);
     transform: translateX(-50%);
     border-radius: 1px;

@@ -1,6 +1,6 @@
 ﻿namespace FellowshipAnalyzer.Core.Events;
 
-[WCLEventDiscriminator("absorbed")]
+[FSLEventDiscriminator("absorbed")]
 public record AbsorbedEvent : Event, IAbilityEvent, IExtraAbilityEvent, IHasSourceEvent, IHasTargetEvent, IHitpointsEvent, IAmountEvent
 {
     public virtual int SourceId { get; set; }

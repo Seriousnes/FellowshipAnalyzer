@@ -32,7 +32,7 @@ public class Abilities : CoreAbilities
             Spell = RimeSpells.ColdSnap.Id,
             Category = SpellCategory.Rotational,
             Gcd = StandardGcd,
-            CooldownWithHaste = (haste) => 12 / (1 + haste),
+            Cooldown = (Func<double, double>)(haste => 12 / (1 + haste)),
             Range = 30,
         },
         new()
@@ -84,6 +84,7 @@ public class Abilities : CoreAbilities
             Category = SpellCategory.Cooldowns,
             Gcd = null,
             Cooldown = 120,
+            CastableWhileCasting = true,
         },
         new()
         {

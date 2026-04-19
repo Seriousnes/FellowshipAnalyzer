@@ -10,6 +10,7 @@ namespace FellowshipAnalyzer.Core.Analysis;
 /// event dispatching to <see cref="EventEmitter"/>.
 /// Registered as a scoped DI service — one instance per analysis run.
 /// </summary>
+[AddModule<DebugAnnotations>]
 [AddModule<Combatants>]
 [AddModule<GlobalCooldown>]
 [AddModule<SpellUsable>]
@@ -24,9 +25,16 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
     public int FightStartTime { get; set; }
     public abstract string HeroId { get; }
 
+    public DebugAnnotations? DebugAnnotations => GetModule<DebugAnnotations>();
     public Combatants? Combatants => GetModule<Combatants>();
     public GlobalCooldown? GlobalCooldown => GetModule<GlobalCooldown>();
     public SpellUsable? SpellUsable => GetModule<SpellUsable>();
+
+    /// <summary>
+    /// Report-level actor name lookup, keyed by actor ID.
+    /// Set by the host (e.g. Report.razor) before <see cref="Analyze"/> is called.
+    /// </summary>
+    public Dictionary<int, string> ActorNames { get; set; } = [];
 
     /// <summary>
     /// The combatant representing the selected (analyzed) player.
@@ -124,6 +132,7 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
                     .ToList(),
             Modules = [.. _activeModules.Values],
             Events = Events,
+            DebugAnnotations = GetModule<DebugAnnotations>(),
         };
     }
 

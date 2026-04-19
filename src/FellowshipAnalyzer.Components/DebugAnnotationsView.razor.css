@@ -1,0 +1,214 @@
+.da-empty {
+    padding: 2rem;
+    text-align: center;
+    color: var(--fa-text-muted);
+    font-style: italic;
+}
+
+.da-view {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+/* ── Module section ─────────────────────────────────────────────────────── */
+
+.da-module {
+    border: 1px solid var(--fa-border-card);
+    border-radius: var(--fa-radius-md);
+    background: var(--fa-bg-card);
+    overflow: hidden;
+}
+
+.da-module-header {
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+    padding: 0.6rem 1rem;
+    background: hsl(0 0% 12%);
+    border-bottom: 1px solid var(--fa-border-card);
+}
+
+.da-module-title {
+    margin: 0;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--fa-gold);
+}
+
+.da-module-count {
+    font-size: 0.8rem;
+    color: var(--fa-text-muted);
+}
+
+/* ── Dot grid ───────────────────────────────────────────────────────────── */
+
+.da-dot-container {
+    padding: 0.75rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.da-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+}
+
+.da-row-label {
+    width: 32px;
+    flex-shrink: 0;
+    font-size: 0.72rem;
+    color: var(--fa-text-muted);
+    font-family: monospace;
+    padding-top: 2px;
+    text-align: right;
+}
+
+.da-row-dots {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 3px;
+}
+
+.da-dot {
+    appearance: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 1px solid transparent;
+    cursor: pointer;
+    padding: 0;
+    flex-shrink: 0;
+    transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+
+.da-dot:hover {
+    transform: scale(1.3);
+    box-shadow: 0 0 4px rgba(255, 255, 255, 0.3);
+    z-index: 1;
+}
+
+.da-dot--selected {
+    transform: scale(1.35);
+    box-shadow: 0 0 0 2px white;
+    z-index: 2;
+}
+
+/* ── Event detail panel ─────────────────────────────────────────────────── */
+
+.da-detail {
+    border-top: 1px solid var(--fa-border-card);
+    padding: 1rem;
+    background: hsl(0 0% 10%);
+}
+
+.da-detail-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.75rem;
+}
+
+.da-detail-header h4 {
+    margin: 0;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--fa-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.da-clear-btn {
+    appearance: none;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--fa-gold);
+    font-size: 0.78rem;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    padding: 0;
+}
+
+.da-clear-btn:hover { opacity: 0.75; }
+
+.da-detail-columns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    align-items: start;
+}
+
+@media (max-width: 800px) {
+    .da-detail-columns {
+        grid-template-columns: 1fr;
+    }
+}
+
+.da-detail-meta dl {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 2px 0.75rem;
+    font-size: 0.82rem;
+    margin: 0 0 0.75rem 0;
+}
+
+.da-detail-meta dt {
+    color: var(--fa-text-muted);
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.da-detail-meta dd {
+    margin: 0;
+    font-family: monospace;
+}
+
+.da-detail-meta dd small {
+    color: var(--fa-text-muted);
+    font-size: 0.85em;
+}
+
+.da-type {
+    font-size: 0.78rem;
+    opacity: 0.85;
+}
+
+/* Annotation blocks */
+.da-annotation {
+    border-left: 3px solid;
+    padding: 0.4rem 0.6rem;
+    margin-top: 0.5rem;
+    border-radius: 0 4px 4px 0;
+    background: hsl(0 0% 13%);
+    font-size: 0.82rem;
+}
+
+.da-annotation-summary {
+    font-weight: 600;
+    margin-bottom: 2px;
+}
+
+.da-annotation-details {
+    color: var(--fa-text-muted);
+    font-size: 0.78rem;
+    line-height: 1.4;
+}
+
+/* JSON panel */
+.da-json {
+    margin: 0;
+    padding: 0.75rem;
+    background: hsl(0 0% 8%);
+    border: 1px solid var(--fa-border-card);
+    border-radius: var(--fa-radius-sm);
+    font-size: 0.72rem;
+    font-family: monospace;
+    overflow: auto;
+    max-height: 300px;
+    color: #a8d8a8;
+    line-height: 1.5;
+    white-space: pre;
+}

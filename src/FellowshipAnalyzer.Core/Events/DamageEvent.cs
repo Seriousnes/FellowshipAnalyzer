@@ -1,6 +1,6 @@
 ﻿namespace FellowshipAnalyzer.Core.Events;
 
-[WCLEventDiscriminator("damage")]
+[FSLEventDiscriminator("damage")]
 public record DamageEvent : Event, IAbilityEvent, IHasSourceWithInstanceEvent, IHasTargetWithInstanceEvent, IHitpointsEvent, ILocationEvent, IAdvancedDetailsEvent, IAmountEvent
 {
     public virtual Unit? Actor { get; set; } = DefaultActors.Environment;

@@ -10,7 +10,7 @@ namespace FellowshipAnalyzer.Core.Serialization;
 /// based on the "type" discriminator property.
 /// Scans assemblies for subtypes of <typeparamref name="T"/> and maps their discriminator values.
 /// </summary>
-public sealed class WCLJsonConverter<T> : JsonConverter<T>
+public sealed class FSLJsonConverter<T> : JsonConverter<T>
 {
     private const string DiscriminatorPropName = "type";
     private readonly Dictionary<string, Type> _discriminatorToSubtype = [];
@@ -20,14 +20,14 @@ public sealed class WCLJsonConverter<T> : JsonConverter<T>
     /// </summary>
     private JsonSerializerOptions? _writeOptions;
 
-    public WCLJsonConverter()
+    public FSLJsonConverter()
     {
         foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
         {
             foreach (var subType in assembly.GetTypes().Where(type => type.IsSubclassOf(typeof(T)) && !type.IsAbstract))
             {
                 if (subType.GetCustomAttribute<FabricatedAttribute>() is { }) continue;
-                var discriminator = subType.GetCustomAttribute<WCLEventDiscriminatorAttribute>()?.TypeDiscriminator;
+                var discriminator = subType.GetCustomAttribute<FSLEventDiscriminatorAttribute>()?.TypeDiscriminator;
                 if (string.IsNullOrEmpty(discriminator))
                 {
                     if (!subType.Name.EndsWith("Event"))
@@ -85,7 +85,7 @@ public sealed class WCLJsonConverter<T> : JsonConverter<T>
 
         foreach (var converter in source.Converters)
         {
-            if (converter is not WCLJsonConverter<T>)
+            if (converter is not FSLJsonConverter<T>)
                 opts.Converters.Add(converter);
         }
 

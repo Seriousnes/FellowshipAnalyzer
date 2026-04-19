@@ -8,7 +8,7 @@ namespace FellowshipAnalyzer.Core.Analysis;
 public class Abilities : Module
 {
     private Dictionary<int, SpellbookAbility> _abilities = [];
-    public static GcdInfo StandardGcd => new() { Base = 1500 };
+    public static GcdInfo StandardGcd => new() { Base = 1500.0 };
 
     public override void Initialize()
     {
@@ -70,6 +70,6 @@ public class Abilities : Module
     public int GetMaxCharges(int spellId)
     {
         var ability = GetAbility(spellId);
-        return ability?.Charges ?? 1;
+        return ability?.GetCharges(Owner.SelectedCombatant) ?? 1;
     }
 }

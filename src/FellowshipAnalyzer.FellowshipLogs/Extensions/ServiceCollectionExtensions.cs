@@ -52,7 +52,7 @@ public static class ServiceCollectionExtensions
             PropertyNameCaseInsensitive = true,
         };
         jsonOptions.Converters.Add(new JsonStringEnumConverter(allowIntegerValues: true));
-        jsonOptions.Converters.Add(new WCLJsonConverter<Event>());
+        jsonOptions.Converters.Add(new FSLJsonConverter<Event>());
         return jsonOptions;
     }
 }

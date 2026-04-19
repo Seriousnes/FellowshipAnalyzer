@@ -2,16 +2,19 @@
 @using FellowshipAnalyzer.Core.Analysis
 @using FellowshipAnalyzer.Core.Events
 
-<div class="cooldown-lane" style="position: relative; width: @(TrackWidthPx.ToString("F1", CultureInfo.InvariantCulture))px; height: 20px;">
+<div class="cooldown-lane" style="position: relative; width: @(TrackWidthPx.ToString("F1", CultureInfo.InvariantCulture))px; height: 24px;">
     @foreach (var seg in _segments)
     {
-        <div class="cooldown-lane__bar"
-             style="left: @Px(seg.Start); width: @DurPx(seg.End - seg.Start);"
-             title="@FormatTimestamp(seg.Start)"></div>
+        <div class="cooldown-lane__segment" style="left: @Px(seg.Start);">
+            <SpellIcon Ability="@Ability" Size="SpellIconSize.Small" />
+            <div class="cooldown-lane__bar"
+                 style="width: @DurPx(seg.End - seg.Start);"
+                 title="@FormatDuration(seg.End - seg.Start) cooldown"></div>
+        </div>
     }
     @foreach (var ts in _chargeRestoreTimestamps)
     {
-        <div class="cooldown-lane__restore" style="left: @Px(ts);" title="@FormatTimestamp(ts)"></div>
+        <div class="cooldown-lane__restore" style="left: @Px(ts);" title="Charge restored at @FormatTimestamp(ts)"></div>
     }
 </div>
 
@@ -41,6 +44,12 @@
         var min = totalSec / 60;
         var sec = totalSec % 60;
         return min > 0 ? $"{min}:{sec:D2}" : $"{sec}s";
+    }
+
+    private static string FormatDuration(int durationMs)
+    {
+        var seconds = durationMs / 1000.0;
+        return $"{seconds:F1}s";
     }
 
     protected override void OnParametersSet()

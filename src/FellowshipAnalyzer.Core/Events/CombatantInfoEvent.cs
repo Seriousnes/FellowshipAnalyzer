@@ -2,7 +2,7 @@
 
 namespace FellowshipAnalyzer.Core.Events;
 
-[WCLEventDiscriminator("combatantinfo")]
+[FSLEventDiscriminator("combatantinfo")]
 public record CombatantInfoEvent : Event
 {
     public int Fight { get; set; }

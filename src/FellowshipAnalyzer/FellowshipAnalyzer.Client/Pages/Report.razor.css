@@ -99,3 +99,70 @@ h1 {
         align-items: start;
     }
 }
+
+/* ── About tab ──────────────────────────────────────────────────────────── */
+
+.about-panel {
+    margin-top: 1rem;
+}
+
+.about-subnav {
+    display: flex;
+    gap: 0.25rem;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid var(--fa-border-card);
+    padding-bottom: 0.5rem;
+}
+
+.about-subtab {
+    appearance: none;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: var(--fa-radius-sm);
+    padding: 0.35rem 0.85rem;
+    font-size: 0.85rem;
+    color: var(--fa-text-muted);
+    cursor: pointer;
+    transition: color 0.15s, border-color 0.15s;
+}
+
+.about-subtab:hover {
+    color: inherit;
+    border-color: var(--fa-border-card);
+}
+
+.about-subtab--active {
+    color: var(--fa-gold-light);
+    border-color: var(--fa-gold-dim);
+    background: var(--fa-gold-dim);
+}
+
+.about-overview {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    padding: 0.5rem 0;
+}
+
+.about-meta {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.35rem 1rem;
+    font-size: 0.9rem;
+    margin: 0;
+}
+
+.about-meta dt {
+    color: var(--fa-text-muted);
+    font-weight: 500;
+}
+
+.about-meta dd {
+    margin: 0;
+    font-family: monospace;
+}
+
+.about-overview-links {
+    display: flex;
+    gap: 0.75rem;
+}

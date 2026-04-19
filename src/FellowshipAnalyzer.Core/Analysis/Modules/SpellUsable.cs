@@ -13,10 +13,12 @@ public sealed class SpellUsable : Analyzer
     private readonly List<TrackedAbilityCast> _casts = [];
 
     private Abilities? _abilities;
+    private DebugAnnotations? _debugAnnotations;
 
     public override void Initialize()
     {
         _abilities = Owner.GetModule<Abilities>();
+        _debugAnnotations = Owner.GetModule<DebugAnnotations>();
 
         AddEventListener(Events.Cast.By(SELECTED_PLAYER), OnCast);
         AddEventListener(Events.PrefilterCD.By(SELECTED_PLAYER), OnFilterCooldown);
@@ -79,6 +81,7 @@ public sealed class SpellUsable : Analyzer
         else
         {
             // Spell cast while already on cooldown — treat as missed natural expiration.
+            // Annotate the cast event so developers can see this happened in the Debug tab.
             EndCooldown(spellId, timestamp);
             BeginCooldown(spellId, timestamp);
         }
@@ -112,6 +115,25 @@ public sealed class SpellUsable : Analyzer
     private void OnCast(CastEvent e)
     {
         _casts.Add(new TrackedAbilityCast(e.Timestamp, e.AbilityGameId, e.TargetId));
+
+        if (_abilities?.GetAbility(e.AbilityGameId) is null)
+        {
+            _debugAnnotations?.AddAnnotation(this, e, new DebugAnnotation(
+                Color: "#e67e22",
+                Summary: $"Unconfigured spell: {e.Ability?.Name ?? "?"}  (ID: {e.AbilityGameId})",
+                Details: "This spell was cast by the player but is not in the hero's spellbook. " +
+                         "Consider adding it to the Abilities module."));
+        }
+
+        if (!IsAvailable(e.AbilityGameId))
+        {
+            _debugAnnotations?.AddAnnotation(this, e, new DebugAnnotation(
+                Color: "#e74c3c",
+                Summary: $"Cast while on cooldown: {e.Ability?.Name ?? "?"}  (ID: {e.AbilityGameId})",
+                Details: $"{CooldownRemaining(e.AbilityGameId, e.Timestamp)}ms remaining at time of cast.",
+                Priority: 10));
+        }
+
         BeginCooldown(e.AbilityGameId, e.Timestamp);
     }
 

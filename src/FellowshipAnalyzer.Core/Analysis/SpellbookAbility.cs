@@ -1,4 +1,27 @@
+using OneOf;
+
 namespace FellowshipAnalyzer.Core.Analysis;
+
+/// <summary>
+/// A cooldown value — either a fixed number of seconds, or a function of the
+/// player's haste multiplier (e.g. 1.2 for 20% haste) that returns seconds.
+/// </summary>
+[GenerateOneOf]
+public partial class CooldownValue : OneOfBase<double, Func<double, double>>;
+
+/// <summary>
+/// A GCD sub-value — either a fixed number of milliseconds, or a function of
+/// the player's <see cref="Combatant"/> that returns milliseconds.
+/// </summary>
+[GenerateOneOf]
+public partial class GcdValue : OneOfBase<double, Func<Combatant, double>>;
+
+/// <summary>
+/// A charges value — either a fixed count, or a function of the player's
+/// <see cref="Combatant"/> that returns the count.
+/// </summary>
+[GenerateOneOf]
+public partial class ChargesValue : OneOfBase<int, Func<Combatant, int>>;
 
 /// <summary>
 /// Defines a spell's gameplay metadata for the spellbook.
@@ -32,23 +55,17 @@ public sealed record SpellbookAbility
     public required SpellCategory Category { get; init; }
 
     /// <summary>
-    /// The base cooldown in seconds. For abilities whose cooldown scales with haste,
-    /// use <see cref="CooldownWithHaste"/> instead.
+    /// The cooldown in seconds. Can be a fixed value or a function of the
+    /// player's haste multiplier (e.g. 1.2 for 20% haste).
     /// </summary>
-    public double? Cooldown { get; init; }
-
-    /// <summary>
-    /// A function that returns the cooldown in seconds given the player's current
-    /// haste multiplier (e.g. 1.2 for 20% haste). Use this for haste-scaling cooldowns.
-    /// Takes precedence over <see cref="Cooldown"/> when set.
-    /// </summary>
-    public Func<double, double>? CooldownWithHaste { get; init; }
+    public CooldownValue? Cooldown { get; init; }
 
     /// <summary>
     /// The number of charges the ability has. Defaults to 1 (no extra charges).
-    /// Only one charge recharges at a time.
+    /// Only one charge recharges at a time. Can be a fixed value or a function
+    /// of the player's <see cref="Combatant"/>.
     /// </summary>
-    public int Charges { get; init; } = 1;
+    public ChargesValue Charges { get; init; } = 1;
 
     /// <summary>
     /// GCD information. Null means the spell is off the GCD.
@@ -89,22 +106,30 @@ public sealed record SpellbookAbility
     public int? TimelineCastableBuff { get; init; }
 
     /// <summary>
-    /// Gets the effective cooldown in seconds, applying haste if a
-    /// <see cref="CooldownWithHaste"/> function is provided.
+    /// When true, casting this ability does not interrupt or cancel another in-progress
+    /// cast (e.g. Ice Blitz, which can be used mid-cast without cancelling it).
+    /// Used by <see cref="CastLinkNormalizer"/> to avoid false-positive cancelled cast detection.
     /// </summary>
-    public double GetCooldown(double haste = 1.0)
-    {
-        if (CooldownWithHaste is not null)
-        {
-            return CooldownWithHaste(haste);
-        }
+    public bool CastableWhileCasting { get; init; }
 
-        return Cooldown ?? 0;
-    }
+    /// <summary>
+    /// Gets the effective cooldown in seconds, resolving haste-scaling functions
+    /// when present.
+    /// </summary>
+    public double GetCooldown(double haste = 1.0) =>
+        Cooldown?.Match(value => value, withHaste => withHaste(haste)) ?? 0;
+
+    /// <summary>
+    /// Gets the effective charge count, resolving combatant-dependent functions
+    /// when present.
+    /// </summary>
+    public int GetCharges(Combatant? combatant = null) =>
+        Charges.Match(value => value, func => combatant is not null ? func(combatant) : 1);
 }
 
 /// <summary>
-/// GCD configuration for a spell.
+/// GCD configuration for a spell. Each sub-value can be a fixed number of
+/// milliseconds or a function of the player's <see cref="Combatant"/>.
 /// </summary>
 public sealed record GcdInfo
 {
@@ -112,17 +137,17 @@ public sealed record GcdInfo
     /// The base GCD in milliseconds before haste reduction.
     /// Typically 1500ms for most abilities.
     /// </summary>
-    public double? Base { get; init; }
+    public GcdValue? Base { get; init; }
 
     /// <summary>
     /// A fixed GCD in milliseconds that is not affected by haste.
     /// </summary>
-    public double? Static { get; init; }
+    public GcdValue? Static { get; init; }
 
     /// <summary>
     /// The minimum GCD in milliseconds (floor after haste reduction).
     /// </summary>
-    public double? Minimum { get; init; }
+    public GcdValue? Minimum { get; init; }
 }
 
 /// <summary>

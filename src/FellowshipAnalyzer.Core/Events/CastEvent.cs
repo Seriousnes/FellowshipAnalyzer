@@ -30,7 +30,15 @@ public abstract record BaseCastEvent : Event, IAbilityEvent, IHasSourceWithInsta
     public virtual GlobalCooldownEvent? GlobalCooldown { get; set; }
     public virtual object? Meta { get; set; }
 }
-public record CastEvent : BaseCastEvent { }
+[FSLEventDiscriminator("cast")]
+public record CastEvent : BaseCastEvent
+{
+    /// <summary>FellowshipLogs synthetic event — not a real player action.</summary>
+    public virtual bool Fake { get; set; }
+
+    /// <summary>FellowshipLogs cast-start marker (beginning of a cast with cast time).</summary>
+    public virtual bool Activation { get; set; }
+}
 public record FreeCastEvent : BaseCastEvent { }
 public record LeechEvent : BaseCastEvent { }
 public record EmpowerStartCast : BaseCastEvent { }

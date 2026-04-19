@@ -28,21 +28,28 @@
                 }
                 else
                 {
-                    @* GCD bar *@
+                    @* GCD bar — starts at begin-cast (or cast success if instant) *@
                     @if (ci.Gcd is not null)
                     {
-                        <div class="cast-bar__gcd" style="left: @Px(ci.Cast.Timestamp); width: @DurPx(ci.Gcd.Duration);"></div>
+                        <div class="cast-bar__gcd" style="left: @Px(ci.BeginCast?.Timestamp ?? ci.Cast.Timestamp); width: @DurPx(ci.Gcd.Duration);"></div>
                     }
                     @* Cast time bar *@
                     @if (ci.BeginCast is not null && ci.Cast.Timestamp > ci.BeginCast.Timestamp)
                     {
                         <div class="cast-bar__cast-time" style="left: @Px(ci.BeginCast.Timestamp); width: @DurPx(ci.Cast.Timestamp - ci.BeginCast.Timestamp);"></div>
                     }
-                    @* On-GCD icon *@
-                    <div class="cast-bar__cast" style="left: @Px(ci.Cast.Timestamp);" title="@FormatTimestamp(ci.Cast.Timestamp)">
+                    @* On-GCD icon — positioned at begin-cast (start of cast) *@
+                    <div class="cast-bar__cast" style="left: @Px(ci.BeginCast?.Timestamp ?? ci.Cast.Timestamp);" title="@FormatTimestamp(ci.BeginCast?.Timestamp ?? ci.Cast.Timestamp)">
                         <SpellIcon Ability="@ci.Ability" Size="SpellIconSize.Small" />
                     </div>
                 }
+            }
+            else if (item is CancelledCastItem cci)
+            {
+                @* Cancelled cast: icon with red X overlay *@
+                <div class="cast-bar__cast cast-bar__cast--cancelled" style="left: @Px(cci.BeginCast.Timestamp);" title="Cancelled — @FormatTimestamp(cci.BeginCast.Timestamp)">
+                    <SpellIcon Ability="@cci.Ability" Size="SpellIconSize.Small" />
+                </div>
             }
             else if (item is ChannelItem chi)
             {
@@ -78,6 +85,7 @@
     private abstract record TimelineItem(int Timestamp);
     private sealed record CastItem(CastEvent Cast, BeginCastEvent? BeginCast, GlobalCooldownEvent? Gcd, SpellbookAbility? Ability, bool IsLower, int Level) : TimelineItem(Cast.Timestamp);
     private sealed record ChannelItem(BeginChannelEvent BeginChannel, EndChannelEvent? EndChannel, GlobalCooldownEvent? Gcd, SpellbookAbility? Ability) : TimelineItem(BeginChannel.Timestamp);
+    private sealed record CancelledCastItem(BeginCastEvent BeginCast, SpellbookAbility? Ability) : TimelineItem(BeginCast.Timestamp);
 
     private List<TimelineItem> _items = [];
     private bool _hasLevels;
@@ -180,6 +188,12 @@
                         endChannel,
                         bc.GlobalCooldown,
                         Abilities?.GetAbility(bc.AbilityGameId)));
+                    break;
+
+                case BeginCastEvent cancelledBc when cancelledBc.SourceId == PlayerId && cancelledBc.IsCancelled:
+                    _items.Add(new CancelledCastItem(
+                        cancelledBc,
+                        Abilities?.GetAbility(cancelledBc.AbilityGameId)));
                     break;
             }
         }

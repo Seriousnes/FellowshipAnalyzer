@@ -18,7 +18,7 @@ builder.Services.AddAuthenticationStateDeserialization();
 // JSON options for deserializing API responses (including polymorphic events)
 var jsonOptions = new JsonSerializerOptions(JsonSerializerDefaults.Web);
 jsonOptions.Converters.Add(new JsonStringEnumConverter(allowIntegerValues: true));
-jsonOptions.Converters.Add(new WCLJsonConverter<Event>());
+jsonOptions.Converters.Add(new FSLJsonConverter<Event>());
 builder.Services.AddSingleton(jsonOptions);
 
 // Hero analysis runs client-side in WASM

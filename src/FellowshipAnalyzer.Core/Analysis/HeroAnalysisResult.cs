@@ -27,4 +27,10 @@ public sealed class HeroAnalysisResult
     /// UpdateSpellUsableEvent). Ordered by timestamp. Exposed for Timeline rendering.
     /// </summary>
     public required IReadOnlyList<Event> Events { get; init; }
+
+    /// <summary>
+    /// Debug annotations collected during analysis. Null if the DebugAnnotations module was not active.
+    /// Exposed for the Debug tab in the UI.
+    /// </summary>
+    public DebugAnnotations? DebugAnnotations { get; init; }
 }

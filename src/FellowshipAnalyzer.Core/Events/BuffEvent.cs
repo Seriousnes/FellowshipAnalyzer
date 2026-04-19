@@ -32,32 +32,32 @@ public record TrackedBuffEvent : BuffEvent
 
 #region Buffs
 
-[WCLEventDiscriminator("applybuff")]
+[FSLEventDiscriminator("applybuff")]
 public record ApplyBuffEvent : BuffEvent
 {
     public virtual int? Absorb { get; set; }
     public virtual bool? FromCombatantInfo { get; set; }
 }
 
-[WCLEventDiscriminator("applybuffstack")]
+[FSLEventDiscriminator("applybuffstack")]
 public record ApplyBuffStackEvent : BuffEvent, IBuffStackEvent
 {
     public virtual int Stack { get; set; }
 }
 
-[WCLEventDiscriminator("removebuff")]
+[FSLEventDiscriminator("removebuff")]
 public record RemoveBuffEvent : BuffEvent
 {
     public virtual int? Absorb { get; set; }
 }
 
-[WCLEventDiscriminator("removebuffstack")]
+[FSLEventDiscriminator("removebuffstack")]
 public record RemoveBuffStackEvent : BuffEvent, IBuffStackEvent
 {
     public virtual int Stack { get; set; }
 }
 
-[WCLEventDiscriminator("refreshbuff")]
+[FSLEventDiscriminator("refreshbuff")]
 public record RefreshBuffEvent : BuffEvent
 {
     public virtual int? Absorb { get; set; }
@@ -69,7 +69,7 @@ public record RefreshBuffEvent : BuffEvent
 
 #region Debuffs
 
-[WCLEventDiscriminator("applydebuff")]
+[FSLEventDiscriminator("applydebuff")]
 public record ApplyDebuffEvent : BuffEvent
 {
     public virtual Unit? Source { get; set; } = DefaultActors.Environment;
@@ -77,26 +77,26 @@ public record ApplyDebuffEvent : BuffEvent
     public virtual bool? FromCombatantInfo { get; set; }
 }
 
-[WCLEventDiscriminator("applydebuffstack")]
+[FSLEventDiscriminator("applydebuffstack")]
 public record ApplyDebuffStackEvent : BuffEvent, IBuffStackEvent
 {
     public virtual int Stack { get; set; }
 }
 
-[WCLEventDiscriminator("removedebuff")]
+[FSLEventDiscriminator("removedebuff")]
 public record RemoveDebuffEvent : BuffEvent
 {
     public virtual Unit? Source { get; set; } = DefaultActors.Environment;
     public virtual int? Absorb { get; set; }
 }
 
-[WCLEventDiscriminator("removedebuffstack")]
+[FSLEventDiscriminator("removedebuffstack")]
 public record RemoveDebuffStackEvent : BuffEvent, IBuffStackEvent
 {
     public virtual int Stack { get; set; }
 }
 
-[WCLEventDiscriminator("refreshdebuff")]
+[FSLEventDiscriminator("refreshdebuff")]
 public record RefreshDebuffEvent : BuffEvent
 {
     public virtual ICastTarget? Source { get; set; }

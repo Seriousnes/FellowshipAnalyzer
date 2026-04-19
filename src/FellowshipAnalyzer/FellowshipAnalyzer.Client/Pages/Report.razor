@@ -36,10 +36,12 @@
     }
     else if (_result is not null)
     {
+        <CascadingValue Value="@_parser" IsFixed="true">
         <nav class="report-tabs">
             <button class="report-tab @(_activeTab == ReportTab.Guide ? "report-tab--active" : "")" @onclick="() => _activeTab = ReportTab.Guide">Guide</button>
             <button class="report-tab @(_activeTab == ReportTab.Statistics ? "report-tab--active" : "")" @onclick="() => _activeTab = ReportTab.Statistics">Statistics</button>
             <button class="report-tab @(_activeTab == ReportTab.Timeline ? "report-tab--active" : "")" @onclick="() => _activeTab = ReportTab.Timeline">Timeline</button>
+            <button class="report-tab @(_activeTab == ReportTab.About ? "report-tab--active" : "")" @onclick="() => _activeTab = ReportTab.About">About</button>
         </nav>
 
         @if (_activeTab == ReportTab.Guide)
@@ -77,11 +79,48 @@
                           PlayerId="@PlayerId" />
             </section>
         }
+        else if (_activeTab == ReportTab.About)
+        {
+            <section class="about-panel">
+                <nav class="about-subnav">
+                    <button class="about-subtab @(_aboutSubView == AboutSubView.Overview ? "about-subtab--active" : "")" @onclick="() => _aboutSubView = AboutSubView.Overview">Overview</button>
+                    <button class="about-subtab @(_aboutSubView == AboutSubView.Events ? "about-subtab--active" : "")" @onclick="() => _aboutSubView = AboutSubView.Events">Events</button>
+                    <button class="about-subtab @(_aboutSubView == AboutSubView.Debug ? "about-subtab--active" : "")" @onclick="() => _aboutSubView = AboutSubView.Debug">Debug Annotations</button>
+                </nav>
+
+                @if (_aboutSubView == AboutSubView.Overview)
+                {
+                    <div class="about-overview">
+                        <dl class="about-meta">
+                            <dt>Report</dt><dd>@ReportCode</dd>
+                            <dt>Fight</dt><dd>@FightId</dd>
+                            <dt>Player</dt><dd>@PlayerId</dd>
+                            <dt>Events</dt><dd>@_result.Events.Count total</dd>
+                            <dt>Fight Duration</dt><dd>@FormatDuration(_fightStartTime, _fightEndTime)</dd>
+                        </dl>
+                        <div class="about-overview-links">
+                            <button class="about-subtab" @onclick="() => _aboutSubView = AboutSubView.Events">View Events List →</button>
+                            <button class="about-subtab" @onclick="() => _aboutSubView = AboutSubView.Debug">View Debug Annotations →</button>
+                        </div>
+                    </div>
+                }
+                else if (_aboutSubView == AboutSubView.Events)
+                {
+                    <EventsView Events="@_result.Events" FightStartTime="@_fightStartTime" />
+                }
+                else if (_aboutSubView == AboutSubView.Debug)
+                {
+                    <DebugAnnotationsView DebugAnnotations="@_result.DebugAnnotations" FightStartTime="@_fightStartTime" />
+                }
+            </section>
+        }
+        </CascadingValue>
     }
 </div>
 
 @code {
-    private enum ReportTab { Guide, Statistics, Timeline }
+    private enum ReportTab { Guide, Statistics, Timeline, About }
+    private enum AboutSubView { Overview, Events, Debug }
 
     [Parameter] public string ReportCode { get; set; } = "";
     [Parameter] public int FightId { get; set; }
@@ -92,9 +131,11 @@
     private string? _error;
     private List<ReportLoadingScreen.LoadingStep> _loadingSteps = [];
     private ReportTab _activeTab = ReportTab.Guide;
+    private AboutSubView _aboutSubView = AboutSubView.Overview;
     private int _fightStartTime;
     private int _fightEndTime;
     private string? _pendingCacheEventsJson;
+    private CombatLogParser? _parser;
 
     protected override void OnInitialized()
     {
@@ -165,7 +206,9 @@
 
             _fightStartTime = (int)fight.StartTime;
             _fightEndTime = (int)fight.EndTime;
-            _result = await analyzer.Analyze(events, PlayerId, _fightStartTime);
+            _parser = (CombatLogParser)analyzer;
+            _parser.ActorNames = reportInfo.Actors.ToDictionary(a => a.Id, a => a.Name);
+            _result = await _parser.Analyze(events, PlayerId, _fightStartTime);
             SetStep(2, ReportLoadingScreen.LoadingStepStatus.Ok);
 
             // Persist to cache now that we have fight metadata
@@ -194,5 +237,13 @@
     {
         _loadingSteps[index] = _loadingSteps[index] with { Status = status };
         StateHasChanged();
+    }
+
+    private static string FormatDuration(int startMs, int endMs)
+    {
+        var totalSec = (endMs - startMs) / 1000;
+        var min = totalSec / 60;
+        var sec = totalSec % 60;
+        return $"{min}:{sec:D2}";
     }
 }

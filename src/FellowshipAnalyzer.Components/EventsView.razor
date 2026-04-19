@@ -1,0 +1,356 @@
+@using FellowshipAnalyzer.Core.Events
+@using System.Text
+@using System.Text.Json
+@using Microsoft.JSInterop
+@inject IJSRuntime JS
+
+<div class="events-view">
+    <div class="events-sidebar">
+        <input type="text"
+               class="events-search"
+               placeholder="Search…"
+               value="@_searchInput"
+               @oninput="OnSearchInput" />
+
+        <div class="events-toggles">
+            @foreach (var (key, info) in FilterableTypes)
+            {
+                @if (!info.IsFabricated || _showFabricated)
+                {
+                    <label class="toggle-row" title="@info.Explanation">
+                        <input type="checkbox"
+                               checked="@_typeFilters[key]"
+                               @onchange="() => ToggleType(key)" />
+                        <span>@(_rawNames ? key : info.DisplayName)</span>
+                    </label>
+                }
+            }
+        </div>
+
+        <button class="events-btn-link" @onclick="TurnAllOff">Toggle off all</button>
+
+        <div class="events-meta-toggles">
+            <label class="toggle-row">
+                <input type="checkbox" checked="@_showFabricated" @onchange="ToggleFabricated" />
+                <span>Fabricated events</span>
+            </label>
+            <label class="toggle-row">
+                <input type="checkbox" @bind="_rawNames" />
+                <span>Raw type names</span>
+            </label>
+        </div>
+
+        <div class="events-legend">
+            <span class="legend-row legend-modified"><span class="legend-swatch"></span> Modified</span>
+            <span class="legend-row legend-fabricated"><span class="legend-swatch"></span> Fabricated</span>
+            <span class="legend-row legend-reordered"><span class="legend-swatch"></span> Reordered</span>
+        </div>
+    </div>
+
+    <div class="events-main">
+        <div class="events-header">
+            <span class="ev-col ev-time">Time</span>
+            <span class="ev-col ev-type">Event</span>
+            <span class="ev-col ev-source">Source</span>
+            <span class="ev-col ev-target">Target</span>
+            <span class="ev-col ev-ability">Ability</span>
+            <span class="ev-col ev-amount">Amount</span>
+            <span class="ev-col ev-extra"></span>
+        </div>
+        <div class="events-scroll">
+            <Virtualize Items="@_filteredEvents" Context="e" ItemSize="26" OverscanCount="20">
+                <div class="ev-row @GetRowClass(e)" @onclick="() => LogEvent(e)">
+                    <span class="ev-col ev-time">@FormatTime(e.Timestamp)</span>
+                    <span class="ev-col ev-type @GetTypeCssClass(e)">@GetDisplayType(e)</span>
+                    <span class="ev-col ev-source">@GetActorName(e, source: true)</span>
+                    <span class="ev-col ev-target">@GetActorName(e, source: false)</span>
+                    <span class="ev-col ev-ability">
+                        @if (e is IAbilityEvent ae)
+                        {
+                            <SpellLink SpellId="@ae.AbilityGameId" IconSize="SpellIconSize.Small" />
+                            <small class="ev-spell-id"> ID: @ae.AbilityGameId</small>
+                        }
+                    </span>
+                    <span class="ev-col ev-amount">@GetAmount(e)</span>
+                    <span class="ev-col ev-extra"></span>
+                </div>
+            </Virtualize>
+        </div>
+        <div class="events-count">Showing @_filteredEvents.Count of @Events.Count events</div>
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public IReadOnlyList<Event> Events { get; set; } = [];
+    [Parameter, EditorRequired] public int FightStartTime { get; set; }
+    [CascadingParameter] public CombatLogParser? Owner { get; set; }
+
+    // ── Filter state ──────────────────────────────────────────────────────────
+
+    private string _searchInput = "";
+    private string _appliedSearch = "";
+    private bool _showFabricated = false;
+    private bool _rawNames = false;
+    private List<Event> _filteredEvents = [];
+    private CancellationTokenSource? _debounceCts;
+
+    private static readonly JsonSerializerOptions _jsonOptions = new() { WriteIndented = true };
+
+    private Dictionary<string, bool> _typeFilters = FilterableTypes
+        .ToDictionary(kvp => kvp.Key, _ => true);
+
+    protected override void OnParametersSet()
+    {
+        RecomputeFilter();
+    }
+
+    private async Task OnSearchInput(ChangeEventArgs e)
+    {
+        _searchInput = e.Value?.ToString() ?? "";
+        _debounceCts?.Cancel();
+        _debounceCts = new CancellationTokenSource();
+        var token = _debounceCts.Token;
+
+        try
+        {
+            await Task.Delay(250, token);
+            _appliedSearch = _searchInput;
+            RecomputeFilter();
+            StateHasChanged();
+        }
+        catch (TaskCanceledException) { }
+    }
+
+    private void ToggleType(string key)
+    {
+        _typeFilters[key] = !_typeFilters[key];
+        RecomputeFilter();
+    }
+
+    private void TurnAllOff()
+    {
+        foreach (var key in _typeFilters.Keys.ToList())
+            _typeFilters[key] = false;
+        RecomputeFilter();
+    }
+
+    private void ToggleFabricated(ChangeEventArgs e)
+    {
+        _showFabricated = e.Value is true;
+        RecomputeFilter();
+    }
+
+    private async Task LogEvent(Event e)
+    {
+        try
+        {
+            var json = JsonSerializer.Serialize(e, e.GetType(), _jsonOptions);
+            await JS.InvokeVoidAsync("console.log", $"[{GetTypeKey(e)}]", json);
+        }
+        catch
+        {
+            await JS.InvokeVoidAsync("console.log", $"[{GetTypeKey(e)}]", e.ToString());
+        }
+    }
+
+    // ── Cached filtered list ─────────────────────────────────────────────────
+
+    private void RecomputeFilter()
+    {
+        var terms = ParseSearchTerms(_appliedSearch);
+
+        _filteredEvents = Events.Where(e =>
+        {
+            if (!_showFabricated && e.Fabricated == true) return false;
+
+            var typeKey = GetTypeKey(e);
+            if (_typeFilters.TryGetValue(typeKey, out var enabled) && !enabled) return false;
+
+            if (terms.Length == 0) return true;
+
+            return terms.Any(term =>
+            {
+                if (e is IAbilityEvent ae)
+                {
+                    if (ae.AbilityGameId.ToString() == term) return true;
+                    if (ae.Ability?.Name?.Contains(term, StringComparison.OrdinalIgnoreCase) == true) return true;
+                }
+                if (e is IHasSourceEvent src)
+                {
+                    if (src.SourceId.ToString() == term) return true;
+                    if (Owner?.ActorNames.TryGetValue(src.SourceId, out var srcName) == true &&
+                        srcName.Contains(term, StringComparison.OrdinalIgnoreCase)) return true;
+                }
+                if (e is IHasTargetEvent tgt)
+                {
+                    if (tgt.TargetId.ToString() == term) return true;
+                    if (Owner?.ActorNames.TryGetValue(tgt.TargetId, out var tgtName) == true &&
+                        tgtName.Contains(term, StringComparison.OrdinalIgnoreCase)) return true;
+                }
+                if (typeKey.Contains(term, StringComparison.OrdinalIgnoreCase)) return true;
+                if (GetDisplayName(typeKey).Contains(term, StringComparison.OrdinalIgnoreCase)) return true;
+                return false;
+            });
+        }).ToList();
+    }
+
+    // ── Helpers ───────────────────────────────────────────────────────────────
+
+    private string FormatTime(int timestamp)
+    {
+        var ms = timestamp - FightStartTime;
+        var absMs = Math.Abs(ms);
+        var min = absMs / 60_000;
+        var sec = (absMs / 1000) % 60;
+        var frac = absMs % 1000;
+        var prefix = ms < 0 ? "-" : "";
+        return $"{prefix}{min}:{sec:D2}.{frac:D3}";
+    }
+
+    private static string GetTypeKey(Event e) =>
+        e.GetType().Name.EndsWith("Event")
+            ? e.GetType().Name[..^5].ToLowerInvariant()
+            : e.GetType().Name.ToLowerInvariant();
+
+    private string GetDisplayType(Event e)
+    {
+        var key = GetTypeKey(e);
+        return _rawNames ? key : GetDisplayName(key);
+    }
+
+    private static string GetDisplayName(string key) =>
+        FilterableTypes.TryGetValue(key, out var info) ? info.DisplayName : key;
+
+    private static string GetTypeCssClass(Event e) => "ev-" + GetTypeKey(e);
+
+    private static string GetRowClass(Event e)
+    {
+        if (e.Fabricated == true) return "ev-row-fabricated";
+        if (e.Modified == true) return "ev-row-modified";
+        if (e.Reordered == true) return "ev-row-reordered";
+        return "";
+    }
+
+    private string GetActorName(Event e, bool source)
+    {
+        int? id = source
+            ? (e is IHasSourceEvent src ? src.SourceId : null)
+            : (e is IHasTargetEvent tgt ? tgt.TargetId : null);
+
+        if (id is null) return "";
+        if (Owner?.ActorNames.TryGetValue(id.Value, out var name) == true) return name;
+        return id.Value.ToString();
+    }
+
+    private static string GetAmount(Event e) => e switch
+    {
+        DamageEvent d => d.Amount.ToString("N0"),
+        HealEvent h => h.Amount.ToString("N0"),
+        AbsorbedEvent a => a.Amount.ToString("N0"),
+        ResourceChangeEvent rc => $"{(rc.ResourceChange >= 0 ? "+" : "")}{rc.ResourceChange}",
+        _ => ""
+    };
+
+    private static string[] ParseSearchTerms(string search)
+    {
+        if (string.IsNullOrWhiteSpace(search)) return [];
+
+        var terms = new List<string>();
+        var sb = new StringBuilder();
+        bool inQuote = false;
+
+        foreach (var ch in search.Trim())
+        {
+            if (ch == '"')
+            {
+                if (inQuote)
+                {
+                    if (sb.Length > 0) terms.Add(sb.ToString());
+                    sb.Clear();
+                    inQuote = false;
+                }
+                else
+                {
+                    inQuote = true;
+                }
+            }
+            else if (ch == ' ' && !inQuote)
+            {
+                if (sb.Length > 0) terms.Add(sb.ToString());
+                sb.Clear();
+            }
+            else
+            {
+                sb.Append(ch);
+            }
+        }
+
+        if (sb.Length > 0) terms.Add(sb.ToString());
+        return [.. terms];
+    }
+
+    // ── Filterable event types dictionary ─────────────────────────────────────
+
+    private sealed record EventTypeInfo(string DisplayName, string? Explanation = null, bool IsFabricated = false);
+
+    private static readonly IReadOnlyDictionary<string, EventTypeInfo> FilterableTypes =
+        new Dictionary<string, EventTypeInfo>(StringComparer.Ordinal)
+        {
+            // Casts & channels
+            ["begincast"]     = new("Begin Cast"),
+            ["beginchannel"]  = new("Begin Channel"),
+            ["cast"]          = new("Cast", "Triggered when a cast completes successfully."),
+            ["freecast"]      = new("Free Cast", "Casts detected as cast without resource cost."),
+            ["empowerstart"]  = new("Empower Start"),
+            ["empowerend"]    = new("Empower End"),
+
+            // Damage & healing
+            ["damage"]        = new("Damage"),
+            ["heal"]          = new("Heal"),
+            ["absorbed"]      = new("Absorb", "Friendly shield absorbing damage."),
+            ["healabsorbed"]  = new("Heal Absorbed", "Absorb of a heal."),
+            ["leech"]         = new("Leech"),
+            ["drain"]         = new("Drain"),
+
+            // Buffs
+            ["applybuff"]         = new("Buff Apply"),
+            ["removebuff"]        = new("Buff Remove"),
+            ["applybuffstack"]    = new("Buff Stack Gained"),
+            ["removebuffstack"]   = new("Buff Stack Lost"),
+            ["refreshbuff"]       = new("Buff Refresh"),
+            ["changebuffstack"]   = new("Buff Stacks Changed", IsFabricated: true),
+
+            // Debuffs
+            ["applydebuff"]       = new("Debuff Apply"),
+            ["removedebuff"]      = new("Debuff Remove"),
+            ["applydebuffstack"]  = new("Debuff Stack Gained"),
+            ["removedebuffstack"] = new("Debuff Stack Lost"),
+            ["refreshdebuff"]     = new("Debuff Refresh"),
+            ["changedebuffstack"] = new("Debuff Stacks Changed", IsFabricated: true),
+
+            // Resources
+            ["resourcechange"] = new("Resource Change"),
+            ["spendresource"]  = new("Spend Resource", IsFabricated: true),
+
+            // Crowd control / utility
+            ["interrupt"]     = new("Interrupt"),
+            ["dispel"]        = new("Dispel"),
+            ["aurabroken"]    = new("Aura Broken"),
+            ["summon"]        = new("Summon"),
+            ["extraattacks"]  = new("Extra Attacks"),
+
+            // Life events
+            ["death"]         = new("Death"),
+            ["resurrect"]     = new("Resurrect"),
+
+            // Stat changes
+            ["changehaste"]   = new("Haste Change", "Triggered when haste changes (e.g. from a buff)."),
+            ["changestats"]   = new("Stats Change"),
+
+            // Meta / fabricated
+            ["globalcooldown"]     = new("Global Cooldown", "Fabricated GCD event.", IsFabricated: true),
+            ["updatespellusable"]  = new("Spell Usable Update", "Fabricated cooldown tracking event.", IsFabricated: true),
+            ["combatantinfo"]      = new("Player Info", "Player gear and talents at fight start."),
+            ["fightend"]           = new("Fight End"),
+        };
+}

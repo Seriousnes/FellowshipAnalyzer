@@ -1,6 +1,6 @@
 ﻿namespace FellowshipAnalyzer.Core.Events;
 
-[WCLEventDiscriminator("heal")]
+[FSLEventDiscriminator("heal")]
 public record HealEvent : Event, IAbilityEvent, IHasSourceWithInstanceEvent, IHasTargetWithInstanceEvent, IHitpointsEvent, ILocationEvent, IAdvancedDetailsEvent, IAmountEvent, ISpellPowerEvent
 {
     /// <summary>

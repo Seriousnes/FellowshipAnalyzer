@@ -83,7 +83,7 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
                 var ns = GetNamespace(typeArg);
 
                 if (containingType.Name == AddModuleAttributeShortName)
-                    ownModules.Add(new TypeInfo(typeArg.Name, ns));
+                    ownModules.Add(new TypeInfo(typeArg.Name, ns, InheritsFromAbilities(typeArg)));
                 else if (containingType.Name == AddNormalizerAttributeShortName)
                     normalizerTypes.Add(new TypeInfo(typeArg.Name, ns));
             }
@@ -183,6 +183,18 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
         return false;
     }
 
+    private static bool InheritsFromAbilities(INamedTypeSymbol symbol)
+    {
+        var current = symbol.BaseType;
+        while (current != null)
+        {
+            if (current.Name == "Abilities")
+                return true;
+            current = current.BaseType;
+        }
+        return false;
+    }
+
     private static string StripSuffix(string name, string suffix)
     {
         if (name.Length > suffix.Length && name.EndsWith(suffix))
@@ -267,6 +279,12 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
             sb.AppendLine("        services.AddScoped<" + m.FullyQualifiedName + ">();");
         foreach (var n in info.NormalizerTypes)
             sb.AppendLine("        services.AddScoped<" + n.FullyQualifiedName + ">();");
+        // Register base Abilities type as an alias so Core normalizers (e.g. CastLinkNormalizer) can inject it.
+        foreach (var m in info.OwnModules)
+        {
+            if (m.ExtendsAbilities)
+                sb.AppendLine("        services.AddScoped<global::FellowshipAnalyzer.Core.Analysis.Abilities>(sp => sp.GetRequiredService<" + m.FullyQualifiedName + ">());");
+        }
         sb.AppendLine("        return services;");
         sb.AppendLine("    }");
         sb.AppendLine("}");
@@ -276,13 +294,16 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
 
     private sealed class TypeInfo
     {
-        public TypeInfo(string name, string ns)
+        public TypeInfo(string name, string ns, bool extendsAbilities = false)
         {
             Name = name;
             Namespace = ns;
+            ExtendsAbilities = extendsAbilities;
         }
         public string Name { get; }
         public string Namespace { get; }
+        /// <summary>True when this module extends FellowshipAnalyzer.Core.Analysis.Abilities.</summary>
+        public bool ExtendsAbilities { get; }
         public string FullyQualifiedName => string.IsNullOrEmpty(Namespace) ? Name : Namespace + "." + Name;
     }
 
