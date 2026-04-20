@@ -12,6 +12,15 @@ public record Spell(int Id, string Name = "", string Icon = "")
     /// For <see cref="Effect"/> this is <c>1_000_000 + Id</c>; for plain spells it equals <see cref="Id"/>.
     /// </summary>
     public virtual int Guid => Id;
+
+    /// <summary>
+    /// Creates a <see cref="Spell"/> or <see cref="Effect"/> from a combat-log <c>abilityGameID</c>.
+    /// IDs &ge; 1,000,000 are effects; below that are plain spells.
+    /// </summary>
+    public static Spell FromGuid(int guid, string name = "", string icon = "") =>
+        guid >= 1_000_000
+            ? new Effect(guid - 1_000_000, name, icon)
+            : new Spell(guid, name, icon);
 }
 
 /// <summary>

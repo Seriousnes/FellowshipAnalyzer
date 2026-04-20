@@ -67,7 +67,7 @@
                     <span class="ev-col ev-ability">
                         @if (e is IAbilityEvent ae)
                         {
-                            <SpellLink SpellId="@ae.Ability.Id" IconSize="SpellIconSize.Small" />
+                            <SpellLink Spell="@ae.Ability" IconSize="SpellIconSize.Small" />
                             <small class="ev-spell-id"> ID: @ae.Ability.Id</small>
                         }
                     </span>

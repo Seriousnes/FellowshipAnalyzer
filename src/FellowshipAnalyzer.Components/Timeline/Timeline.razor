@@ -1,9 +1,15 @@
+@using FellowshipAnalyzer.Core.Analysis
 @using FellowshipAnalyzer.Core.Events
 
 <div class="timeline">
     @{
         var abilities = Result.Modules.OfType<Abilities>().FirstOrDefault();
+        var combatants = Result.Modules.OfType<Combatants>().FirstOrDefault();
         var allEvents = Result.Events;
+
+        var playerSelfBuffs = combatants?.Selected?.Buffs
+            .Where(b => b.TargetId == PlayerId && b.SourceId == PlayerId && !b.IsDebuff)
+            .ToList() ?? [];
     }
 
     @if (allEvents.Count == 0)
@@ -30,17 +36,26 @@
             .ToList();
 
         <div class="timeline-inner">
-            @* Consolidated cast bar — time-line + casts overlapping *@
+            @* Consolidated cast bar with aura overlay *@
             <div class="timeline-row">
                 <div class="timeline-label">
                     <span class="timeline-label__name">Casts</span>
                 </div>
-                <CastBar Events="@allEvents"
-                         PlayerId="@PlayerId"
-                         FightStartTime="@FightStartTime"
-                         FightEndTime="@FightEndTime"
-                         PixelsPerSecond="@PixelsPerSecond"
-                         Abilities="@abilities" />
+                <div class="timeline-cast-area">
+                    @if (playerSelfBuffs.Count > 0)
+                    {
+                        <AuraBar Auras="@playerSelfBuffs"
+                                 FightStartTime="@FightStartTime"
+                                 FightEndTime="@FightEndTime"
+                                 PixelsPerSecond="@PixelsPerSecond" />
+                    }
+                    <CastBar Events="@allEvents"
+                             PlayerId="@PlayerId"
+                             FightStartTime="@FightStartTime"
+                             FightEndTime="@FightEndTime"
+                             PixelsPerSecond="@PixelsPerSecond"
+                             Abilities="@abilities" />
+                </div>
             </div>
 
             @* Cooldowns section — one row per tracked spell *@

@@ -1,0 +1,65 @@
+/* ===== Outer container — establishes the positioning context ===== */
+.aura-bar {
+    position: relative;
+    overflow: visible;
+}
+
+/* ===== Duration strip (z-index 10-99 = background layer) ===== */
+/*
+ * Positioned from the bottom of the container upward so strips are flush
+ * against the cast bar below. Level 0 = 24px strip, each extra level adds 30px.
+ */
+.aura-bar__strip {
+    position: absolute;
+    --level: 0;
+    bottom: 0;
+    height: calc(24px + var(--level) * 30px);
+    border-top-left-radius: 2px;
+    border-top-right-radius: 5px;
+    background: hsla(41, 10%, 68%, 0.2);
+    box-shadow: 0 0 3px rgba(0, 0, 0, 0.4);
+    z-index: calc(10 + var(--level));
+    box-sizing: border-box;
+    pointer-events: none;
+}
+
+/* ===== Indicator line (z-index 100-999 = line layer) ===== */
+/*
+ * Sibling of the icon. Same `left` as the icon, but shifted -12px so it sits
+ * on the LEFT edge of the 24px icon. Bridges from the icon bottom to the
+ * container bottom (where the cast bar begins).
+ */
+.aura-bar__indicator {
+    position: absolute;
+    --level: 0;
+    bottom: 0;
+    transform: translateX(-12px);
+    width: 1px;
+    height: calc(var(--level) * 30px);
+    background: #f8b700;
+    z-index: calc(100 + var(--level));
+    pointer-events: none;
+}
+
+/* ===== Icon (z-index 1000+ = icon layer) ===== */
+/*
+ * Level 0 sits flush at the bottom of the container (right above the cast bar).
+ * Each higher level moves the icon up by 30px.
+ */
+.aura-bar__icon {
+    position: absolute;
+    --level: 0;
+    bottom: calc(var(--level) * 30px);
+    height: 24px;
+    transform: translateX(-50%);
+    z-index: calc(1000 + var(--level));
+    cursor: default;
+}
+
+/* Gold border on the spell icon */
+.aura-bar__icon ::deep .spell-icon img,
+.aura-bar__icon ::deep .spell-icon {
+    border: 1px solid #f8b700;
+    border-radius: 2px;
+    box-shadow: 0 0 3px rgba(0, 0, 0, 0.6);
+}

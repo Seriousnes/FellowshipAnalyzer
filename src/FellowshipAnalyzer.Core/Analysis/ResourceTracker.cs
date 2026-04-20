@@ -1,4 +1,5 @@
 using FellowshipAnalyzer.Core.Events;
+using FellowshipAnalyzer.Core.Game;
 
 namespace FellowshipAnalyzer.Core.Analysis;
 
@@ -66,7 +67,7 @@ public abstract class ResourceTracker : Analyzer
             return;
         }
 
-        var resource = e.ClassResources.FirstOrDefault(cr => cr.Type == ResourceTypeId);
+        var resource = e.ClassResources.FirstOrDefault(cr => cr.Type == (ResourceTypes)ResourceTypeId);
         if (resource is null || resource.Cost is null or 0)
         {
             return;

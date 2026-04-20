@@ -39,12 +39,7 @@ public enum UpdateSpellUsableType
 [Flags]
 public enum MagicSchool
 {
-    None = 0,
-    Physical = 0x1,
-    Holy = 0x2,
-    Fire = 0x4,
-    Nature = 0x8,
-    Frost = 0x10,
-    Shadow = 0x20,
-    Arcane = 0x40
+    Physical = 0,
+    Magic = 1,
+    Stagger = 1024
 }

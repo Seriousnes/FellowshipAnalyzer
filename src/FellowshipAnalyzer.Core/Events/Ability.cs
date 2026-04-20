@@ -20,6 +20,7 @@ public record Ability : ISpell
 
     public virtual string Name { get; set; } = string.Empty;
 
+    [JsonPropertyName("abilityIcon")]
     public virtual string Icon { get; set; } = string.Empty;
 
     public virtual MagicSchool Type { get; set; }

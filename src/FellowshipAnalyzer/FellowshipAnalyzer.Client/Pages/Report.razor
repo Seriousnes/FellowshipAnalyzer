@@ -197,6 +197,9 @@
             _parser.ActorNames = reportInfo.Actors.ToDictionary(a => a.Id, a => a.Name);
             _result = await _parser.Analyze(events, PlayerId, _fightStartTime);
 
+            LoadingTracker.PrepareDisplayState = ReportLoadingTracker.StepState.Loading;
+            await Task.Yield();
+
             // Persist to cache now that we have fight metadata
             if (_pendingCacheEventsJson is not null)
             {

@@ -1,0 +1,108 @@
+@using System.Globalization
+@using FellowshipAnalyzer.Core.Common.Spells
+@using FellowshipAnalyzer.Core.Events
+
+<div class="aura-bar" style="position: relative; width: @F(TrackWidthPx)px; height: @F(BarHeightPx)px; overflow: visible;">
+    @foreach (var aura in _auras)
+    {
+        var left = OffsetPx(aura.ClippedStart);
+        var width = DurPx(aura.ClippedEnd - aura.ClippedStart);
+
+        @* Duration strip — spans the buff's active window *@
+        <div class="aura-bar__strip"
+             style="left: @left; width: @width; --level: @aura.Level;"
+             title="@aura.Name — @FormatDuration(aura.ClippedEnd - aura.ClippedStart)"></div>
+
+        @* Indicator line — sibling of icon, at left edge of the 24px icon *@
+        <div class="aura-bar__indicator" style="left: @OffsetPx(aura.IconAt); --level: @aura.Level;"></div>
+
+        @* Icon centered on apply timestamp *@
+        <div class="aura-bar__icon" style="left: @OffsetPx(aura.IconAt); --level: @aura.Level;"
+             title="@aura.Name applied at @FormatTimestamp(aura.IconAt)">
+            <SpellIcon Spell="@aura.Spell" Size="SpellIconSize.Small" />
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired] public IReadOnlyList<TrackedBuffEvent> Auras { get; set; } = [];
+    [Parameter, EditorRequired] public int FightStartTime { get; set; }
+    [Parameter, EditorRequired] public int FightEndTime { get; set; }
+    [Parameter] public double PixelsPerSecond { get; set; } = 60.0;
+
+    private sealed record AuraSegment(
+        Spell Spell,
+        string Name,
+        int ClippedStart,
+        int ClippedEnd,
+        int IconAt,
+        int Level);
+
+    private List<AuraSegment> _auras = [];
+    private int _maxLevel;
+
+    private double TrackWidthPx => (FightEndTime - FightStartTime) / 1000.0 * PixelsPerSecond;
+
+    // 24px per level; level 0 = bottom row (closest to cast bar)
+    private double BarHeightPx => 24.0 + _maxLevel * 30.0;
+
+    private string F(double v) => v.ToString("F1", CultureInfo.InvariantCulture);
+    private string OffsetPx(int ts) => F((ts - FightStartTime) / 1000.0 * PixelsPerSecond) + "px";
+    private string DurPx(int ms) => F(ms / 1000.0 * PixelsPerSecond) + "px";
+
+    private string FormatTimestamp(int ts)
+    {
+        var totalSec = (ts - FightStartTime) / 1000;
+        var min = totalSec / 60;
+        var sec = totalSec % 60;
+        return min > 0 ? $"{min}:{sec:D2}" : $"{sec}s";
+    }
+
+    private static string FormatDuration(int ms)
+    {
+        var seconds = ms / 1000.0;
+        return $"{seconds:F1}s";
+    }
+
+    protected override void OnParametersSet()
+    {
+        _auras = [];
+        _maxLevel = 0;
+
+        // Track the end-timestamp of the aura occupying each level, so we can
+        // reuse levels that are no longer active (greedy level-assignment).
+        var levelEnds = new List<int>();
+
+        var visible = Auras
+            .Where(b => b.Start < FightEndTime && (b.End ?? FightEndTime) > FightStartTime)
+            .OrderBy(b => b.Start);
+
+        foreach (var buff in visible)
+        {
+            var clippedStart = Math.Max(buff.Start, FightStartTime);
+            var clippedEnd = Math.Min(buff.End ?? FightEndTime, FightEndTime);
+            var iconAt = Math.Max(buff.Start, FightStartTime);
+
+            // Find the lowest level that is free at this aura's start time
+            int level = 0;
+            while (level < levelEnds.Count && levelEnds[level] > clippedStart)
+                level++;
+
+            // Reserve this level until the aura ends
+            if (level < levelEnds.Count)
+                levelEnds[level] = clippedEnd;
+            else
+                levelEnds.Add(clippedEnd);
+
+            _maxLevel = Math.Max(_maxLevel, level);
+
+            _auras.Add(new AuraSegment(
+                Spell: Spell.FromGuid(buff.Ability.Guid, buff.Ability.Name, buff.Ability.Icon),
+                Name: buff.Ability.Name,
+                ClippedStart: clippedStart,
+                ClippedEnd: clippedEnd,
+                IconAt: iconAt,
+                Level: level));
+        }
+    }
+}

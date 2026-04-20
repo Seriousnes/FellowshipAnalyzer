@@ -1,6 +1,7 @@
 using FellowshipAnalyzer.Core.Analysis;
 using FellowshipAnalyzer.Core.Common.Spells;
 using FellowshipAnalyzer.Core.Events;
+using FellowshipAnalyzer.Core.Game;
 
 using NSubstitute;
 
@@ -34,9 +35,9 @@ public sealed class CombatLogParserTests
             CreateResourceChange(timestamp: 100, abilityId: 1, resourceTypeId: 42, resourceChange: 1, waste: 0),
             CreateResourceChange(timestamp: 200, abilityId: 1, resourceTypeId: 42, resourceChange: 1, waste: 0),
             CreateResourceChange(timestamp: 300, abilityId: 1, resourceTypeId: 42, resourceChange: 1, waste: 1),
-            CreateCast(timestamp: 400, abilityId: 2, classResources: [new ClassResource { Type = 42, Amount = 2, Max = 2, Cost = 2 }]),
+            CreateCast(timestamp: 400, abilityId: 2, classResources: [new ClassResource { Type = (ResourceTypes)42, Amount = 2, Max = 2, Cost = 2 }]),
             CreateResourceChange(timestamp: 500, abilityId: 3, resourceTypeId: 42, resourceChange: 1, waste: 0),
-            CreateCast(timestamp: 900, abilityId: 2, classResources: [new ClassResource { Type = 42, Amount = 1, Max = 2, Cost = 2 }]),
+            CreateCast(timestamp: 900, abilityId: 2, classResources: [new ClassResource { Type = (ResourceTypes)42, Amount = 1, Max = 2, Cost = 2 }]),
         };
 
         var tracker = new TestResourceTracker(resourceTypeId: 42, maxResource: 2, initialResource: 0);

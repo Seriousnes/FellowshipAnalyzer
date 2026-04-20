@@ -1,24 +1,15 @@
 @* CastDetail — per-cast paginated inspector with timeline, stats, and navigation *@
 
 @{
-    var allCasts = Casts.ToList();
-    var filteredCasts = allCasts.Where(c => _performanceFilter.Contains(c.Performance)).ToList();
+    var filteredCasts = _filteredCasts;
     var filteredCount = filteredCasts.Count;
     var validIndex = Math.Min(_currentIndex, Math.Max(0, filteredCount - 1));
     var currentCast = filteredCount > 0 ? filteredCasts[validIndex] : null;
-    var originalIndex = currentCast is not null ? allCasts.IndexOf(currentCast) : -1;
+    var originalIndex = currentCast is not null ? _allCasts.IndexOf(currentCast) : -1;
     var castColor = currentCast is not null
         ? PerformanceColors.ToColor(currentCast.Performance)
         : "rgba(255,255,255,0.3)";
     var rectWidthPct = Math.Max(100.0 / Math.Max(filteredCount, 5), 100.0 / 30);
-
-    var perfCounts = new Dictionary<PerformanceTier, int>
-    {
-        [PerformanceTier.Perfect] = allCasts.Count(c => c.Performance == PerformanceTier.Perfect),
-        [PerformanceTier.Good] = allCasts.Count(c => c.Performance == PerformanceTier.Good),
-        [PerformanceTier.Ok] = allCasts.Count(c => c.Performance == PerformanceTier.Ok),
-        [PerformanceTier.Fail] = allCasts.Count(c => c.Performance == PerformanceTier.Fail),
-    };
 }
 
 <GuideDataWrapper Bare="true" Title="@Title" Subtitle="Cast Details">
@@ -26,7 +17,7 @@
         <div class="perf-badge-grid">
             @foreach (var (tier, label) in _perfLevels)
             {
-                var count = perfCounts.GetValueOrDefault(tier);
+                var count = _perfCounts.GetValueOrDefault(tier);
                 var disabled = count == 0;
                 var color = disabled ? "#c8c8c8" : PerformanceColors.ToColor(tier);
                 var active = !disabled && _performanceFilter.Contains(tier);
@@ -79,7 +70,7 @@
                                            background: @(isActive ? color : color + "55");
                                            border-color: @(isActive ? color : "transparent");
                                            @(isActive ? $"outline: 2px solid rgba(255,255,255,0.6); outline-offset: 1px;" : "")"
-                                    title="Cast #@(allCasts.IndexOf(cast) + 1) · @cast.Timestamp · @PerformanceColors.ToLabel(cast.Performance)"
+                                    title="Cast #@(_allCasts.IndexOf(cast) + 1) · @cast.Timestamp · @PerformanceColors.ToLabel(cast.Performance)"
                                     @onclick="() => SetIndex(idx)">
                             </button>
                         }
@@ -164,6 +155,9 @@
     [Parameter] public string? Description { get; set; }
 
     private int _currentIndex;
+    private List<PerCastData> _allCasts = [];
+    private List<PerCastData> _filteredCasts = [];
+    private Dictionary<PerformanceTier, int> _perfCounts = [];
     private readonly HashSet<PerformanceTier> _performanceFilter =
     [
         PerformanceTier.Perfect,
@@ -180,6 +174,24 @@
         (PerformanceTier.Fail, "Bad"),
     ];
 
+    protected override void OnParametersSet()
+    {
+        _allCasts = Casts.ToList();
+        _perfCounts = new Dictionary<PerformanceTier, int>
+        {
+            [PerformanceTier.Perfect] = _allCasts.Count(c => c.Performance == PerformanceTier.Perfect),
+            [PerformanceTier.Good] = _allCasts.Count(c => c.Performance == PerformanceTier.Good),
+            [PerformanceTier.Ok] = _allCasts.Count(c => c.Performance == PerformanceTier.Ok),
+            [PerformanceTier.Fail] = _allCasts.Count(c => c.Performance == PerformanceTier.Fail),
+        };
+        RebuildFilteredCasts();
+    }
+
+    private void RebuildFilteredCasts()
+    {
+        _filteredCasts = _allCasts.Where(c => _performanceFilter.Contains(c.Performance)).ToList();
+    }
+
     private void ToggleFilter(PerformanceTier tier)
     {
         if (_performanceFilter.Contains(tier))
@@ -187,6 +199,7 @@
         else
             _performanceFilter.Add(tier);
 
+        RebuildFilteredCasts();
         _currentIndex = 0;
     }
 
@@ -194,14 +207,12 @@
 
     private void HandlePrevious()
     {
-        var filtered = Casts.Where(c => _performanceFilter.Contains(c.Performance)).ToList();
-        _currentIndex = _currentIndex > 0 ? _currentIndex - 1 : filtered.Count - 1;
+        _currentIndex = _currentIndex > 0 ? _currentIndex - 1 : _filteredCasts.Count - 1;
     }
 
     private void HandleNext()
     {
-        var filtered = Casts.Where(c => _performanceFilter.Contains(c.Performance)).ToList();
-        _currentIndex = _currentIndex < filtered.Count - 1 ? _currentIndex + 1 : 0;
+        _currentIndex = _currentIndex < _filteredCasts.Count - 1 ? _currentIndex + 1 : 0;
     }
 
     private void HandleKeyDown(KeyboardEventArgs e)

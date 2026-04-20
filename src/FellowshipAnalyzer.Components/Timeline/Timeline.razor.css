@@ -70,3 +70,11 @@
     font-size: 14px;
 }
 
+/* ===== Cast area — stacks AuraBar above CastBar ===== */
+.timeline-cast-area {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    overflow: visible;
+}
+

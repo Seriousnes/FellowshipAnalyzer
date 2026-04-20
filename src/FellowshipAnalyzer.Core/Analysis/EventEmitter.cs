@@ -48,7 +48,11 @@ public sealed class EventEmitter(ILogger<EventEmitter> logger) : Module
 
             if (i % YieldInterval == YieldInterval - 1)
             {
-                tracker?.AnalyzedEventCount = i + 1;
+                if (tracker is not null)
+                {
+                    tracker.TotalEventCount = events.Count;
+                    tracker.AnalyzedEventCount = i + 1;
+                }
                 await Task.Yield();
             }
         }

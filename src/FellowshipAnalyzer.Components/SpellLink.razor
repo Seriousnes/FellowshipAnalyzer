@@ -1,8 +1,9 @@
 @using FellowshipAnalyzer.Core.Common.Spells
+@using OneOf
 
 <a href="@AbilityUrl" target="_blank" rel="noopener noreferrer"
    data-tooltip-spell-id="@TooltipSpellId" class="spell-link">
-    @if (icon)
+    @if (Icon)
     {
         <SpellIcon Spell="@_resolved" Size="@IconSize" NoTooltip />
     }
@@ -12,37 +13,30 @@
 @code {
     /// <summary>Pass a <see cref="Core.Common.Spells.Spell"/> object directly.</summary>
     [Parameter]
-    public Spell? Spell { get; set; }
-
-    /// <summary>Pass a spell ID to resolve via <see cref="SpellRegistry"/>.</summary>
-    [Parameter]
-    public int? SpellId { get; set; }
-
-    /// <summary>Pass a <see cref="SpellbookAbility"/> — its <see cref="SpellbookAbility.PrimarySpell"/> is used directly.</summary>
-    [Parameter]
-    public SpellbookAbility? Ability { get; set; }
+    public OneOf<Spell, int, SpellbookAbility, Ability> Spell { get; set; }
 
     /// <summary>Whether to render the spell icon alongside the name. Defaults to <c>true</c>.</summary>
     [Parameter]
-    public bool Icon { get => icon; set => icon = value; }
+    public bool Icon { get; set; } = true;
 
     /// <summary>Icon size when <see cref="Icon"/> is <c>true</c>. Defaults to <see cref="SpellIconSize.Small"/>.</summary>
     [Parameter]
     public SpellIconSize IconSize { get; set; } = SpellIconSize.Small;
 
-    private bool icon = true;
-    private Spell? _resolved;
+    private int id;
+    private int spellId;
+    private string _name;
+    private string icon;
 
-    private string? TooltipSpellId => _resolved is Effect
-        ? $"effect/{_resolved.Id}"
-        : _resolved is not null ? $"ability/{_resolved.Id}" : null;
-    private string AbilityUrl => _resolved is not null
-        ? $"https://fellows.gg/{TooltipSpellId}"
-        : "#";
+    private string LinkType => id > 1_000_000
+        ? $"effect/{spellId}"
+        : $"ability/{spellId}";
+
+    private string AbilityUrl => $"https://fellows.gg/{id}";
 
     protected override void OnParametersSet()
     {
-        _resolved = Spell ?? ResolveById(SpellId) ?? Ability?.PrimarySpell;
+        
     }
 
     private static Spell? ResolveById(int? id) =>

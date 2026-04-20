@@ -62,6 +62,10 @@
                 </div>
             }
         </div>
+        <div class="loading-row">
+            <span class="loading-label">Preparing display</span>
+            <span class="loading-status @StatusClass(Tracker.PrepareDisplayState)">@StatusText(Tracker.PrepareDisplayState)</span>
+        </div>
     </div>
 </div>
 
@@ -90,10 +94,7 @@
             _subscribedTracker.OnChanged -= StateHasChanged;
     }
 
-    private string AnalyzeLabel =>
-        Tracker.AnalyzeState == ReportLoadingTracker.StepState.Loading && Tracker.TotalEventCount > 0
-            ? $"Analyzing combat log ({Tracker.AnalyzeSubProgress:P0})"
-            : "Analyzing combat log";
+    private string AnalyzeLabel => "Analyzing combat log";
 
     private double ChunkFill(int chunkIndex)
     {
