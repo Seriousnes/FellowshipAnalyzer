@@ -37,25 +37,25 @@ public sealed class StatTracker : Analyzer
         _pullStats = new PlayerStats
         {
             Intellect = combatant.Intellect,
-            Stamina   = combatant.Stamina,
-            Armor     = combatant.Armor,
-            Crit      = combatant.Crit,
-            Haste     = combatant.Haste,
+            Stamina = combatant.Stamina,
+            Armor = combatant.Armor,
+            Crit = combatant.Crit,
+            Haste = combatant.Haste,
             Expertise = combatant.Expertise,
-            Spirit    = combatant.Spirit,
+            Spirit = combatant.Spirit,
         };
         _currentStats = _pullStats.Clone();
 
-        AddEventListener(Events.ApplyBuff.To(SELECTED_PLAYER),          OnApplyBuff);
-        AddEventListener(Events.RemoveBuff.To(SELECTED_PLAYER),         OnRemoveBuff);
-        AddEventListener(Events.ApplyBuffStack.To(SELECTED_PLAYER),     OnApplyBuffStack);
-        AddEventListener(Events.RemoveBuffStack.To(SELECTED_PLAYER),    OnRemoveBuffStack);
-        AddEventListener(Events.ApplyDebuff.To(SELECTED_PLAYER),        OnApplyDebuff);
-        AddEventListener(Events.RemoveDebuff.To(SELECTED_PLAYER),       OnRemoveDebuff);
-        AddEventListener(Events.ApplyDebuffStack.To(SELECTED_PLAYER),   OnApplyDebuffStack);
-        AddEventListener(Events.RemoveDebuffStack.To(SELECTED_PLAYER),  OnRemoveDebuffStack);
-        AddEventListener(Events.Cast.By(SELECTED_PLAYER),               OnCast);
-        AddEventListener(Events.Heal.To(SELECTED_PLAYER),               OnHeal);
+        AddEventListener(Events.ApplyBuff.To(SELECTED_PLAYER), OnApplyBuff);
+        AddEventListener(Events.RemoveBuff.To(SELECTED_PLAYER), OnRemoveBuff);
+        AddEventListener(Events.ApplyBuffStack.To(SELECTED_PLAYER), OnApplyBuffStack);
+        AddEventListener(Events.RemoveBuffStack.To(SELECTED_PLAYER), OnRemoveBuffStack);
+        AddEventListener(Events.ApplyDebuff.To(SELECTED_PLAYER), OnApplyDebuff);
+        AddEventListener(Events.RemoveDebuff.To(SELECTED_PLAYER), OnRemoveDebuff);
+        AddEventListener(Events.ApplyDebuffStack.To(SELECTED_PLAYER), OnApplyDebuffStack);
+        AddEventListener(Events.RemoveDebuffStack.To(SELECTED_PLAYER), OnRemoveDebuffStack);
+        AddEventListener(Events.Cast.By(SELECTED_PLAYER), OnCast);
+        AddEventListener(Events.Heal.To(SELECTED_PLAYER), OnHeal);
     }
 
     // -------------------------------------------------------------------------
@@ -77,19 +77,19 @@ public sealed class StatTracker : Analyzer
     // Rating accessors
     // -------------------------------------------------------------------------
 
-    public double CurrentIntellect    => _currentStats.Intellect;
-    public double CurrentStamina      => _currentStats.Stamina;
-    public double CurrentArmor        => _currentStats.Armor;
-    public double CurrentCritRating   => _currentStats.Crit;
-    public double CurrentHasteRating  => _currentStats.Haste;
+    public double CurrentIntellect => _currentStats.Intellect;
+    public double CurrentStamina => _currentStats.Stamina;
+    public double CurrentArmor => _currentStats.Armor;
+    public double CurrentCritRating => _currentStats.Crit;
+    public double CurrentHasteRating => _currentStats.Haste;
     public double CurrentExpertiseRating => _currentStats.Expertise;
     public double CurrentSpiritRating => _currentStats.Spirit;
 
-    public double StartingCritRating      => _pullStats.Crit;
-    public double StartingHasteRating     => _pullStats.Haste;
+    public double StartingCritRating => _pullStats.Crit;
+    public double StartingHasteRating => _pullStats.Haste;
     public double StartingExpertiseRating => _pullStats.Expertise;
-    public double StartingSpiritRating    => _pullStats.Spirit;
-    public double StartingIntellect       => _pullStats.Intellect;
+    public double StartingSpiritRating => _pullStats.Spirit;
+    public double StartingIntellect => _pullStats.Intellect;
 
     // -------------------------------------------------------------------------
     // Rating → percentage conversion  (Fellowship piecewise DR)
@@ -129,18 +129,18 @@ public sealed class StatTracker : Analyzer
     public double CritPercentage(double rating, bool withBase = false) =>
         (withBase ? BaseCritChance : 0.0) + RatingToPercentage(rating);
 
-    public double HastePercentage(double rating)     => RatingToPercentage(rating);
+    public double HastePercentage(double rating) => RatingToPercentage(rating);
     public double ExpertisePercentage(double rating) => RatingToPercentage(rating);
-    public double SpiritPercentage(double rating)    => RatingToPercentage(rating);
+    public double SpiritPercentage(double rating) => RatingToPercentage(rating);
 
     // -------------------------------------------------------------------------
     // Current percentage getters
     // -------------------------------------------------------------------------
 
-    public double CurrentCritPercentage      => CritPercentage(CurrentCritRating, withBase: true);
-    public double CurrentHastePercentage     => HastePercentage(CurrentHasteRating);
+    public double CurrentCritPercentage => CritPercentage(CurrentCritRating, withBase: true);
+    public double CurrentHastePercentage => HastePercentage(CurrentHasteRating);
     public double CurrentExpertisePercentage => ExpertisePercentage(CurrentExpertiseRating);
-    public double CurrentSpiritPercentage    => SpiritPercentage(CurrentSpiritRating);
+    public double CurrentSpiritPercentage => SpiritPercentage(CurrentSpiritRating);
 
     // -------------------------------------------------------------------------
     // External stat forcing (for non-standard buffs)
@@ -162,17 +162,17 @@ public sealed class StatTracker : Analyzer
     // Event handlers
     // -------------------------------------------------------------------------
 
-    private void OnApplyBuff(ApplyBuffEvent e)         => HandleBuffGain(e.Ability.Guid, e.Prepull.GetValueOrDefault(), e);
-    private void OnRemoveBuff(RemoveBuffEvent e)        => HandleBuffLoss(e.Ability.Guid, e);
-    private void OnApplyBuffStack(ApplyBuffStackEvent e)    => HandleBuffGain(e.Ability.Guid, isPrepull: false, e);
-    private void OnRemoveBuffStack(RemoveBuffStackEvent e)  => HandleBuffLoss(e.Ability.Guid, e);
-    private void OnApplyDebuff(ApplyDebuffEvent e)      => HandleBuffGain(e.Ability.Guid, e.Prepull.GetValueOrDefault(), e);
-    private void OnRemoveDebuff(RemoveDebuffEvent e)    => HandleBuffLoss(e.Ability.Guid, e);
-    private void OnApplyDebuffStack(ApplyDebuffStackEvent e)   => HandleBuffGain(e.Ability.Guid, isPrepull: false, e);
+    private void OnApplyBuff(ApplyBuffEvent e) => HandleBuffGain(e.Ability.Guid, e.Prepull.GetValueOrDefault(), e);
+    private void OnRemoveBuff(RemoveBuffEvent e) => HandleBuffLoss(e.Ability.Guid, e);
+    private void OnApplyBuffStack(ApplyBuffStackEvent e) => HandleBuffGain(e.Ability.Guid, isPrepull: false, e);
+    private void OnRemoveBuffStack(RemoveBuffStackEvent e) => HandleBuffLoss(e.Ability.Guid, e);
+    private void OnApplyDebuff(ApplyDebuffEvent e) => HandleBuffGain(e.Ability.Guid, e.Prepull.GetValueOrDefault(), e);
+    private void OnRemoveDebuff(RemoveDebuffEvent e) => HandleBuffLoss(e.Ability.Guid, e);
+    private void OnApplyDebuffStack(ApplyDebuffStackEvent e) => HandleBuffGain(e.Ability.Guid, isPrepull: false, e);
     private void OnRemoveDebuffStack(RemoveDebuffStackEvent e) => HandleBuffLoss(e.Ability.Guid, e);
 
-    private void OnCast(CastEvent e)   => ValidateIntellect(e.SpellPower, e);
-    private void OnHeal(HealEvent e)   => ValidateIntellect(e.SpellPower, e);
+    private void OnCast(CastEvent e) => ValidateIntellect(e.SpellPower, e);
+    private void OnHeal(HealEvent e) => ValidateIntellect(e.SpellPower, e);
 
     // -------------------------------------------------------------------------
     // Internal helpers
@@ -241,12 +241,12 @@ public sealed class StatTracker : Analyzer
     private void ApplyRatingBuff(StatBuff buff, double factor, bool withMultipliers = true)
     {
         _currentStats.Intellect += ResolveBuffVal(buff, buff.Intellect) * factor * (withMultipliers ? _multipliers.Intellect : 1.0);
-        _currentStats.Stamina   += ResolveBuffVal(buff, buff.Stamina)   * factor * (withMultipliers ? _multipliers.Stamina   : 1.0);
-        _currentStats.Armor     += ResolveBuffVal(buff, buff.Armor)     * factor * (withMultipliers ? _multipliers.Armor     : 1.0);
-        _currentStats.Crit      += ResolveBuffVal(buff, buff.Crit)      * factor * (withMultipliers ? _multipliers.Crit      : 1.0);
-        _currentStats.Haste     += ResolveBuffVal(buff, buff.Haste)     * factor * (withMultipliers ? _multipliers.Haste     : 1.0);
+        _currentStats.Stamina += ResolveBuffVal(buff, buff.Stamina) * factor * (withMultipliers ? _multipliers.Stamina : 1.0);
+        _currentStats.Armor += ResolveBuffVal(buff, buff.Armor) * factor * (withMultipliers ? _multipliers.Armor : 1.0);
+        _currentStats.Crit += ResolveBuffVal(buff, buff.Crit) * factor * (withMultipliers ? _multipliers.Crit : 1.0);
+        _currentStats.Haste += ResolveBuffVal(buff, buff.Haste) * factor * (withMultipliers ? _multipliers.Haste : 1.0);
         _currentStats.Expertise += ResolveBuffVal(buff, buff.Expertise) * factor * (withMultipliers ? _multipliers.Expertise : 1.0);
-        _currentStats.Spirit    += ResolveBuffVal(buff, buff.Spirit)    * factor * (withMultipliers ? _multipliers.Spirit    : 1.0);
+        _currentStats.Spirit += ResolveBuffVal(buff, buff.Spirit) * factor * (withMultipliers ? _multipliers.Spirit : 1.0);
     }
 
     /// <summary>
@@ -270,12 +270,12 @@ public sealed class StatTracker : Analyzer
         double Factor(double m) => isGaining ? m : 1.0 / m;
 
         if (buff.Intellect is double iMult) _multipliers.Intellect *= Factor(iMult);
-        if (buff.Stamina   is double sMult) _multipliers.Stamina   *= Factor(sMult);
-        if (buff.Armor     is double aMult) _multipliers.Armor     *= Factor(aMult);
-        if (buff.Crit      is double cMult) _multipliers.Crit      *= Factor(cMult);
-        if (buff.Haste     is double hMult) _multipliers.Haste     *= Factor(hMult);
+        if (buff.Stamina is double sMult) _multipliers.Stamina *= Factor(sMult);
+        if (buff.Armor is double aMult) _multipliers.Armor *= Factor(aMult);
+        if (buff.Crit is double cMult) _multipliers.Crit *= Factor(cMult);
+        if (buff.Haste is double hMult) _multipliers.Haste *= Factor(hMult);
         if (buff.Expertise is double eMult) _multipliers.Expertise *= Factor(eMult);
-        if (buff.Spirit    is double spMult) _multipliers.Spirit   *= Factor(spMult);
+        if (buff.Spirit is double spMult) _multipliers.Spirit *= Factor(spMult);
     }
 
     private void ScaleStatsByMultiplier(StatMultiplierBuff buff, bool isGaining)
@@ -283,12 +283,12 @@ public sealed class StatTracker : Analyzer
         double Factor(double m) => isGaining ? m : 1.0 / m;
 
         if (buff.Intellect is double iMult) _currentStats.Intellect *= Factor(iMult);
-        if (buff.Stamina   is double sMult) _currentStats.Stamina   *= Factor(sMult);
-        if (buff.Armor     is double aMult) _currentStats.Armor     *= Factor(aMult);
-        if (buff.Crit      is double cMult) _currentStats.Crit      *= Factor(cMult);
-        if (buff.Haste     is double hMult) _currentStats.Haste     *= Factor(hMult);
+        if (buff.Stamina is double sMult) _currentStats.Stamina *= Factor(sMult);
+        if (buff.Armor is double aMult) _currentStats.Armor *= Factor(aMult);
+        if (buff.Crit is double cMult) _currentStats.Crit *= Factor(cMult);
+        if (buff.Haste is double hMult) _currentStats.Haste *= Factor(hMult);
         if (buff.Expertise is double eMult) _currentStats.Expertise *= Factor(eMult);
-        if (buff.Spirit    is double spMult) _currentStats.Spirit   *= Factor(spMult);
+        if (buff.Spirit is double spMult) _currentStats.Spirit *= Factor(spMult);
     }
 
     private double ResolveBuffVal(StatBuff buffObj, BuffVal? buffVal)
@@ -309,11 +309,11 @@ public sealed class StatTracker : Analyzer
         Owner.EventEmitter.FabricateEvent(new ChangeStatsEvent
         {
             Timestamp = trigger?.Timestamp ?? 0,
-            SourceId  = Owner.PlayerId,
-            TargetId  = Owner.PlayerId,
-            Before    = before,
-            Delta     = delta,
-            After     = after,
+            SourceId = Owner.PlayerId,
+            TargetId = Owner.PlayerId,
+            Before = before,
+            Delta = delta,
+            After = after,
         }, trigger);
 }
 
@@ -335,12 +335,12 @@ public partial class BuffVal : OneOfBase<double, Func<Combatant, Item?, double>>
 public sealed class StatBuff
 {
     public BuffVal? Intellect { get; init; }
-    public BuffVal? Stamina   { get; init; }
-    public BuffVal? Armor     { get; init; }
-    public BuffVal? Crit      { get; init; }
-    public BuffVal? Haste     { get; init; }
+    public BuffVal? Stamina { get; init; }
+    public BuffVal? Armor { get; init; }
+    public BuffVal? Crit { get; init; }
+    public BuffVal? Haste { get; init; }
     public BuffVal? Expertise { get; init; }
-    public BuffVal? Spirit    { get; init; }
+    public BuffVal? Spirit { get; init; }
 
     /// <summary>Item ID to pass to function-based <see cref="BuffVal"/> callbacks.</summary>
     public int? ItemId { get; init; }
@@ -353,36 +353,36 @@ public sealed class StatBuff
 public sealed class StatMultiplierBuff
 {
     public double? Intellect { get; init; }
-    public double? Stamina   { get; init; }
-    public double? Armor     { get; init; }
-    public double? Crit      { get; init; }
-    public double? Haste     { get; init; }
+    public double? Stamina { get; init; }
+    public double? Armor { get; init; }
+    public double? Crit { get; init; }
+    public double? Haste { get; init; }
     public double? Expertise { get; init; }
-    public double? Spirit    { get; init; }
+    public double? Spirit { get; init; }
 }
 
 /// <summary>Mutable snapshot of a player's stat ratings.</summary>
 internal sealed class PlayerStats
 {
     public double Intellect { get; set; }
-    public double Stamina   { get; set; }
-    public double Armor     { get; set; }
-    public double Crit      { get; set; }
-    public double Haste     { get; set; }
+    public double Stamina { get; set; }
+    public double Armor { get; set; }
+    public double Crit { get; set; }
+    public double Haste { get; set; }
     public double Expertise { get; set; }
-    public double Spirit    { get; set; }
+    public double Spirit { get; set; }
 
     public PlayerStats Clone() => (PlayerStats)MemberwiseClone();
 
     public Stats ToStats() => new()
     {
         Intellect = Intellect,
-        Stamina   = Stamina,
-        Armor     = Armor,
-        Crit      = Crit,
-        Haste     = Haste,
+        Stamina = Stamina,
+        Armor = Armor,
+        Crit = Crit,
+        Haste = Haste,
         Expertise = Expertise,
-        Spirit    = Spirit,
+        Spirit = Spirit,
     };
 }
 
@@ -390,10 +390,10 @@ internal sealed class PlayerStats
 internal sealed class PlayerMultipliers
 {
     public double Intellect { get; set; } = 1.0;
-    public double Stamina   { get; set; } = 1.0;
-    public double Armor     { get; set; } = 1.0;
-    public double Crit      { get; set; } = 1.0;
-    public double Haste     { get; set; } = 1.0;
+    public double Stamina { get; set; } = 1.0;
+    public double Armor { get; set; } = 1.0;
+    public double Crit { get; set; } = 1.0;
+    public double Haste { get; set; } = 1.0;
     public double Expertise { get; set; } = 1.0;
-    public double Spirit    { get; set; } = 1.0;
+    public double Spirit { get; set; } = 1.0;
 }

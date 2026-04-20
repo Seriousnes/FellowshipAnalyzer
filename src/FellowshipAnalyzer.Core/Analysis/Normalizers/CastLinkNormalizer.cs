@@ -82,42 +82,42 @@ public sealed class CastLinkNormalizer(Abilities? abilities) : IEventNormalizer
             switch (e)
             {
                 case BeginCastEvent bc when bc.Ability is not null:
-                {
-                    var key = (bc.Ability.Guid, bc.SourceId);
-                    CancelPending(lastBeginCast, bc.SourceId, key, pendingCasts);
-                    pendingCasts[key] = bc;
-                    lastBeginCast[bc.SourceId] = bc;
-                    break;
-                }
+                    {
+                        var key = (bc.Ability.Guid, bc.SourceId);
+                        CancelPending(lastBeginCast, bc.SourceId, key, pendingCasts);
+                        pendingCasts[key] = bc;
+                        lastBeginCast[bc.SourceId] = bc;
+                        break;
+                    }
 
                 case CastEvent cast when cast.Ability is not null:
-                {
-                    var castKey = (cast.Ability.Guid, cast.SourceId);
-
-                    // Check whether this cast cancels a pending begincast for a different spell
-                    if (lastBeginCast.TryGetValue(cast.SourceId, out var pending)
-                        && pending.Ability?.Guid != cast.Ability.Guid)
                     {
-                        // This cast is for a different ability. If the new ability is
-                        // castable-while-casting, don't cancel the pending begincast.
-                        if (!castableWhileCasting.Contains(cast.Ability.Guid))
+                        var castKey = (cast.Ability.Guid, cast.SourceId);
+
+                        // Check whether this cast cancels a pending begincast for a different spell
+                        if (lastBeginCast.TryGetValue(cast.SourceId, out var pending)
+                            && pending.Ability?.Guid != cast.Ability.Guid)
                         {
-                            pending.IsCancelled = true;
-                            pending.CastEvent = null;
-                            lastBeginCast.Remove(cast.SourceId);
-                            pendingCasts.Remove((pending.Ability!.Guid, pending.SourceId));
+                            // This cast is for a different ability. If the new ability is
+                            // castable-while-casting, don't cancel the pending begincast.
+                            if (!castableWhileCasting.Contains(cast.Ability.Guid))
+                            {
+                                pending.IsCancelled = true;
+                                pending.CastEvent = null;
+                                lastBeginCast.Remove(cast.SourceId);
+                                pendingCasts.Remove((pending.Ability!.Guid, pending.SourceId));
+                            }
+                            // else: castable-while-casting — don't disturb the pending begincast
                         }
-                        // else: castable-while-casting — don't disturb the pending begincast
-                    }
 
-                    if (pendingCasts.TryGetValue(castKey, out var beginCast))
-                    {
-                        beginCast.CastEvent = cast;
-                        pendingCasts.Remove(castKey);
-                        lastBeginCast.Remove(cast.SourceId);
+                        if (pendingCasts.TryGetValue(castKey, out var beginCast))
+                        {
+                            beginCast.CastEvent = cast;
+                            pendingCasts.Remove(castKey);
+                            lastBeginCast.Remove(cast.SourceId);
+                        }
+                        break;
                     }
-                    break;
-                }
 
                 case BeginChannelEvent beginChannel when beginChannel.Ability is not null:
                     pendingChannels[(beginChannel.Ability.Guid, beginChannel.SourceId)] = beginChannel;

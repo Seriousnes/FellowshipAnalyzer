@@ -1,3 +1,5 @@
+using FellowshipAnalyzer.Core.Game;
+
 namespace FellowshipAnalyzer.Core.Events;
 
 /// <summary>
@@ -18,7 +20,7 @@ public class ClassResource
     /// <summary>
     /// The type of resource.
     /// </summary>
-    public int Type { get; set; }
+    public ResourceTypes Type { get; set; }
 
     /// <summary>
     /// The amount of resource spent (only populated for spenders).

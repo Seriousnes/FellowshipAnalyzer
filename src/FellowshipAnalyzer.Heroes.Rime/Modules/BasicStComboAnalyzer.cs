@@ -48,7 +48,7 @@ public sealed class BasicStComboAnalyzer : Analyzer
         AddEventListener(Events.ApplyBuff.By(SELECTED_PLAYER).Spell(RimeSpells.WintersBlessingBuff), OnWintersBlessingApplied);
         AddEventListener(Events.RemoveBuff.By(SELECTED_PLAYER).Spell(RimeSpells.WintersBlessingBuff), OnWintersBlessingRemoved);
         AddEventListener(Events.Damage.By(SELECTED_PLAYER), OnDamage);
-    }   
+    }
 
     private void OnWintersBlessingApplied(ApplyBuffEvent @event)
     {

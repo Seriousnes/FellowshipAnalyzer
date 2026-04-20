@@ -26,7 +26,7 @@ public class Abilities : CoreAbilities
             Category = SpellCategory.Rotational,
             Gcd = StandardGcd,
             Cooldown = 10,
-            Range = 30,            
+            Range = 30,
         },
         new()
         {
@@ -52,7 +52,7 @@ public class Abilities : CoreAbilities
             Cooldown = 15,
             Range = 30,
         },
-        new() 
+        new()
         {
             PrimarySpell = RimeSpells.FrigidWinds,
             Category = SpellCategory.Utility,

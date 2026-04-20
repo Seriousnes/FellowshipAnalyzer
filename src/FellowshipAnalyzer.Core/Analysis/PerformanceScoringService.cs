@@ -65,8 +65,8 @@ internal sealed class PerformanceScoringService : IPerformanceScoringService
     {
         var t = thresholds ?? PerformanceScoreThresholds.Default;
         if (score >= t.Perfect) return PerformanceTier.Perfect;
-        if (score >= t.Good)    return PerformanceTier.Good;
-        if (score >= t.Ok)      return PerformanceTier.Ok;
+        if (score >= t.Good) return PerformanceTier.Good;
+        if (score >= t.Ok) return PerformanceTier.Ok;
         return PerformanceTier.Fail;
     }
 }

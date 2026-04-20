@@ -3,8 +3,7 @@ using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using FellowshipAnalyzer.FellowshipLogs;
-using FellowshipAnalyzer.Components;
-using FellowshipAnalyzer.Components.Account;
+using FellowshipAnalyzer.Components;using FellowshipAnalyzer.Components.Account;
 using FellowshipAnalyzer.Data;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -84,7 +83,7 @@ app.MapGet(
     "/api/report/{reportCode}",
     async (
         string reportCode,
-        FellowshipLogsProxy proxy,
+        IFellowshipLogsProxy proxy,
         HttpContext ctx,
         CancellationToken cancellationToken) =>
     {
@@ -98,7 +97,7 @@ app.MapGet(
         string reportCode,
         int playerId,
         int fightId,
-        FellowshipLogsProxy proxy,
+        IFellowshipLogsProxy proxy,
         HttpContext ctx,
         CancellationToken cancellationToken) =>
     {

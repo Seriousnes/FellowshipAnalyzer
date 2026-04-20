@@ -30,5 +30,5 @@ public class RimeSpells : ISpellRegistry
 
     // Other
     public static Spell FrostSwallows { get; } = new(1033, "Frost Swallows", "T_Rime_BirdCD.jpg");
-    public static Effect FrostSwallowsDamage { get; } = new(1365, "Frost Swallows", "T_Rime_BirdCD.jpg");    
+    public static Effect FrostSwallowsDamage { get; } = new(1365, "Frost Swallows", "T_Rime_BirdCD.jpg");
 }

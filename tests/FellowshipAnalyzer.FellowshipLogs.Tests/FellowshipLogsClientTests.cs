@@ -5,6 +5,8 @@ using FellowshipAnalyzer.Core.Events;
 using FellowshipAnalyzer.Core.FellowshipLogs;
 using FellowshipAnalyzer.FellowshipLogs.API;
 
+using Microsoft.Extensions.DependencyInjection;
+
 using Shouldly;
 
 using Xunit;
@@ -39,7 +41,7 @@ public sealed class FellowshipLogsClientTests
             TokenEndpoint = "https://token.test/oauth/token",
             GraphQlEndpoint = "https://api.test/graphql"
         };
-        var client = new ApiClient(apiExecutor, options);
+        var client = new ApiClient(apiExecutor, options, NSubstitute.Substitute.For<IHttpClientFactory>());
 
         var events = await client.Events.GetAsync(new FellowshipLogsEventsRequest("abc123", 12, 34));
 

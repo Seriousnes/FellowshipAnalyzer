@@ -1662,29 +1662,19 @@ public class FellowshipLogsClient : IFellowshipLogsClient
             query GetEvents($code: String!, $fightId: Int!, $startTime: Float!, $endTime: Float!) {
                 reportData {
                     report(code: $code) {
-                        events(fightIDs: [$fightId], startTime: $startTime, endTime: $endTime) {
+                        events(fightIDs: $fightIDs, sourceID: $sourceID, useAbilityIDs: false) {
                             data
-                            nextPageTimestamp
                         }
                     }
                 }
             }
             """;
 
-        // Paginate through all events
-        var allEvents = new List<ICombatEvent>();
-        float? nextPage = 0;
-
-        while (nextPage.HasValue)
-        {
-            var result = await ExecuteQueryAsync<EventsResponse>(query, 
-                new { code, fightId, startTime = nextPage.Value, endTime = float.MaxValue }, ct);
-            
-            var events = ParseEvents(result.ReportData.Report.Events.Data);
-            allEvents.AddRange(events);
-            
-            nextPage = result.ReportData.Report.Events.NextPageTimestamp;
-        }
+        
+        var result = await ExecuteQueryAsync<EventsResponse>(query, 
+            new { code, fightId, sourceId }, ct);
+        
+        return ParseEvents(result.ReportData.Report.Events.Data);
 
         return allEvents;
     }

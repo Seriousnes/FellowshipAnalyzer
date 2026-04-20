@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 
 namespace FellowshipAnalyzer.FellowshipLogs.API.Functions;
 
-internal abstract class BaseFunction(IApiRequestExecutor api, FellowshipLogsClientOptions options)
+internal abstract class BaseFunction(IApiRequestExecutor api, FellowshipLogsClientOptions options, IHttpClientFactory httpClientFactory)
 {
     private readonly ClientCredentialsTokenCache _tokenCache = new(api, options);
 
@@ -15,6 +15,17 @@ internal abstract class BaseFunction(IApiRequestExecutor api, FellowshipLogsClie
         request.AddHeaders();
         request.Content = api.SerializeContent(query);
         return await api.ExecuteAsync<TResult>(request, cancellationToken);
+    }
+
+    protected async Task<HttpResponseMessage> ApiProxyRequestAsync(object query, CancellationToken cancellationToken)
+    {
+        var token = await _tokenCache.GetTokenAsync(cancellationToken);
+        var client = httpClientFactory.CreateClient("FellowshipLogsProxy");
+        var request = new HttpRequestMessage(HttpMethod.Post, options.GraphQlEndpoint);
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        request.Headers.AcceptEncoding.Add(new StringWithQualityHeaderValue("gzip"));
+        request.Content = api.SerializeContent(query);
+        return await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
     }
 }
 

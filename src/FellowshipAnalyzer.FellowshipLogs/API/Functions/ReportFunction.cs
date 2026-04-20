@@ -2,8 +2,8 @@ using FellowshipAnalyzer.Core.FellowshipLogs;
 
 namespace FellowshipAnalyzer.FellowshipLogs.API.Functions;
 
-internal sealed partial class ReportFunction(IApiRequestExecutor api, FellowshipLogsClientOptions options)
-    : BaseFunction(api, options), IReportFunction
+internal sealed partial class ReportFunction(IApiRequestExecutor api, FellowshipLogsClientOptions options, IHttpClientFactory httpClientFactory)
+    : BaseFunction(api, options, httpClientFactory), IReportFunction
 {
     public async Task<FellowshipLogsReportInfo> GetAsync(
         string reportCode,
@@ -36,4 +36,9 @@ internal sealed partial class ReportFunction(IApiRequestExecutor api, Fellowship
         return new FellowshipLogsReportInfo(
             reportCode, report.Title, report.StartTime, report.EndTime, fights, actors);
     }
+
+    public Task<HttpResponseMessage> ProxyAsync(string reportCode, CancellationToken cancellationToken) =>
+        ApiProxyRequestAsync(
+            new { query = ReportQueryString, variables = new { code = reportCode } },
+            cancellationToken);
 }

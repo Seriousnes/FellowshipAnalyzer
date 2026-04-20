@@ -44,15 +44,15 @@ public sealed class Haste : Analyzer
         // Hero modules register their buffs in Initialize(), which runs after Haste.Initialize(),
         // so prepull aura checks must be handled by the hero module itself after calling AddHasteBuff().
 
-        AddEventListener(Events.ApplyBuff.To(SELECTED_PLAYER),           OnApplyBuff);
-        AddEventListener(Events.RemoveBuff.To(SELECTED_PLAYER),          OnRemoveBuff);
-        AddEventListener(Events.ApplyDebuff.To(SELECTED_PLAYER),         OnApplyDebuff);
-        AddEventListener(Events.RemoveDebuff.To(SELECTED_PLAYER),        OnRemoveDebuff);
-        AddEventListener(Events.ApplyBuffStack.To(SELECTED_PLAYER),      OnApplyBuffStack);
-        AddEventListener(Events.RemoveBuffStack.To(SELECTED_PLAYER),     OnRemoveBuffStack);
-        AddEventListener(Events.ApplyDebuffStack.To(SELECTED_PLAYER),    OnApplyDebuffStack);
-        AddEventListener(Events.RemoveDebuffStack.To(SELECTED_PLAYER),   OnRemoveDebuffStack);
-        AddEventListener(Events.ChangeStats.To(SELECTED_PLAYER),         OnChangeStats);
+        AddEventListener(Events.ApplyBuff.To(SELECTED_PLAYER), OnApplyBuff);
+        AddEventListener(Events.RemoveBuff.To(SELECTED_PLAYER), OnRemoveBuff);
+        AddEventListener(Events.ApplyDebuff.To(SELECTED_PLAYER), OnApplyDebuff);
+        AddEventListener(Events.RemoveDebuff.To(SELECTED_PLAYER), OnRemoveDebuff);
+        AddEventListener(Events.ApplyBuffStack.To(SELECTED_PLAYER), OnApplyBuffStack);
+        AddEventListener(Events.RemoveBuffStack.To(SELECTED_PLAYER), OnRemoveBuffStack);
+        AddEventListener(Events.ApplyDebuffStack.To(SELECTED_PLAYER), OnApplyDebuffStack);
+        AddEventListener(Events.RemoveDebuffStack.To(SELECTED_PLAYER), OnRemoveDebuffStack);
+        AddEventListener(Events.ChangeStats.To(SELECTED_PLAYER), OnChangeStats);
 
         // Emit the starting haste so other modules can read the initial value.
         TriggerChangeHaste(null, null, Current);
@@ -120,14 +120,14 @@ public sealed class Haste : Analyzer
     // Event handlers
     // -------------------------------------------------------------------------
 
-    private void OnApplyBuff(ApplyBuffEvent e)          => ApplyActiveBuff(e.Ability.Guid, e);
-    private void OnRemoveBuff(RemoveBuffEvent e)         => RemoveActiveBuff(e.Ability.Guid, e);
-    private void OnApplyDebuff(ApplyDebuffEvent e)       => ApplyActiveBuff(e.Ability.Guid, e);
-    private void OnRemoveDebuff(RemoveDebuffEvent e)     => RemoveActiveBuff(e.Ability.Guid, e);
+    private void OnApplyBuff(ApplyBuffEvent e) => ApplyActiveBuff(e.Ability.Guid, e);
+    private void OnRemoveBuff(RemoveBuffEvent e) => RemoveActiveBuff(e.Ability.Guid, e);
+    private void OnApplyDebuff(ApplyDebuffEvent e) => ApplyActiveBuff(e.Ability.Guid, e);
+    private void OnRemoveDebuff(RemoveDebuffEvent e) => RemoveActiveBuff(e.Ability.Guid, e);
 
-    private void OnApplyBuffStack(ApplyBuffStackEvent e)      => ChangeStack(e.Ability.Guid, +1, e);
-    private void OnRemoveBuffStack(RemoveBuffStackEvent e)    => ChangeStack(e.Ability.Guid, -1, e);
-    private void OnApplyDebuffStack(ApplyDebuffStackEvent e)  => ChangeStack(e.Ability.Guid, +1, e);
+    private void OnApplyBuffStack(ApplyBuffStackEvent e) => ChangeStack(e.Ability.Guid, +1, e);
+    private void OnRemoveBuffStack(RemoveBuffStackEvent e) => ChangeStack(e.Ability.Guid, -1, e);
+    private void OnApplyDebuffStack(ApplyDebuffStackEvent e) => ChangeStack(e.Ability.Guid, +1, e);
     private void OnRemoveDebuffStack(RemoveDebuffStackEvent e) => ChangeStack(e.Ability.Guid, -1, e);
 
     private void ApplyActiveBuff(int spellId, Event trigger)
@@ -194,14 +194,14 @@ public sealed class Haste : Analyzer
     private void TriggerChangeHaste(Event? trigger, double? oldHaste, double newHaste) =>
         Owner.EventEmitter.FabricateEvent(new ChangeHasteEvent
         {
-            Timestamp  = trigger?.Timestamp ?? 0,
-            SourceId   = Owner.PlayerId,
-            TargetId   = Owner.PlayerId,
-            OldHaste   = oldHaste,
-            NewHaste   = newHaste,
-            Before     = new Stats { Haste = oldHaste.HasValue ? oldHaste.Value * 100 : null },
-            After      = new Stats { Haste = newHaste * 100 },
-            Delta      = new Stats { Haste = oldHaste.HasValue ? (newHaste - oldHaste.Value) * 100 : null },
+            Timestamp = trigger?.Timestamp ?? 0,
+            SourceId = Owner.PlayerId,
+            TargetId = Owner.PlayerId,
+            OldHaste = oldHaste,
+            NewHaste = newHaste,
+            Before = new Stats { Haste = oldHaste.HasValue ? oldHaste.Value * 100 : null },
+            After = new Stats { Haste = newHaste * 100 },
+            Delta = new Stats { Haste = oldHaste.HasValue ? (newHaste - oldHaste.Value) * 100 : null },
         }, trigger);
 }
 

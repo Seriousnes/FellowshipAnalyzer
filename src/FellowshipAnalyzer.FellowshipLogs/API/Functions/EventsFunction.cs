@@ -3,8 +3,8 @@ using FellowshipAnalyzer.Core.FellowshipLogs;
 
 namespace FellowshipAnalyzer.FellowshipLogs.API.Functions;
 
-internal sealed class EventsFunction(IApiRequestExecutor api, FellowshipLogsClientOptions options)
-    : BaseFunction(api, options), IEventsFunction
+internal sealed class EventsFunction(IApiRequestExecutor api, FellowshipLogsClientOptions options, IHttpClientFactory httpClientFactory)
+    : BaseFunction(api, options, httpClientFactory), IEventsFunction
 {
     private const string Query = """
         query ReportEvents($code: String!, $fightIDs: [Int!], $sourceID: Int!) {          
@@ -13,7 +13,7 @@ internal sealed class EventsFunction(IApiRequestExecutor api, FellowshipLogsClie
               fights(fightIDs: $fightIDs) {
                 inProgress                
               }
-              events(fightIDs: $fightIDs, sourceID: $sourceID, useAbilityIDs: false) {
+              events(fightIDs: $fightIDs, sourceID: $sourceID, useAbilityIDs: false, includeResources: true) {
                 data
               }
             }
@@ -58,4 +58,22 @@ internal sealed class EventsFunction(IApiRequestExecutor api, FellowshipLogsClie
         if (request.FightId <= 0)
             throw new ArgumentOutOfRangeException(nameof(request.FightId), "Fight ID must be greater than zero.");
     }
+
+    public Task<HttpResponseMessage> ProxyAsync(
+        string reportCode,
+        int playerId,
+        int fightId,
+        CancellationToken cancellationToken) =>
+        ApiProxyRequestAsync(
+            new
+            {
+                query = Query,
+                variables = new
+                {
+                    code = reportCode,
+                    fightIDs = new[] { fightId },
+                    sourceID = playerId
+                }
+            },
+            cancellationToken);
 }

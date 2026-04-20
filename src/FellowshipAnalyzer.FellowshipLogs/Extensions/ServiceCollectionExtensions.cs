@@ -40,11 +40,13 @@ public static class ServiceCollectionExtensions
             new ApiRequestExecutor(
                 sp.GetRequiredService<IHttpClientFactory>().CreateClient("FellowshipLogs"),
                 sp.GetRequiredService<JsonSerializerOptions>()));
-        services.AddScoped<IFellowshipLogsClient>(sp =>
+        services.AddScoped<ApiClient>(sp =>
             new ApiClient(
                 sp.GetRequiredService<IApiRequestExecutor>(),
-                sp.GetRequiredService<FellowshipLogsClientOptions>()));
-        services.AddSingleton<FellowshipLogsProxy>();
+                sp.GetRequiredService<FellowshipLogsClientOptions>(),
+                sp.GetRequiredService<IHttpClientFactory>()));
+        services.AddScoped<IFellowshipLogsClient>(sp => sp.GetRequiredService<ApiClient>());
+        services.AddScoped<IFellowshipLogsProxy>(sp => sp.GetRequiredService<ApiClient>());
 
         return services;
     }
