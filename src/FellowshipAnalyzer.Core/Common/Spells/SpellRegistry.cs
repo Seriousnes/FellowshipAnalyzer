@@ -88,7 +88,6 @@ public static class SpellRegistry
 
                     if (prop.GetValue(null) is Spell spell)
                     {
-                        // Effects are keyed by their combat-log SpellId (1_000_000 + Id).
                         var key = spell is Effect effect ? effect.SpellId : spell.Id;
                         entries[key] = spell;
                     }

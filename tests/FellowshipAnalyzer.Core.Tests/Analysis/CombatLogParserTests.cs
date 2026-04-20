@@ -148,7 +148,7 @@ public sealed class CombatLogParserTests
     private static TestCombatLogParser CreateCombatLogParser(Module[]? modules = null)
     {
         modules ??= [];
-        var emitter = new EventEmitter();
+        var emitter = new EventEmitter(Microsoft.Extensions.Logging.Abstractions.NullLogger<EventEmitter>.Instance);
         var provider = Substitute.For<IServiceProvider>();
         foreach (var m in modules)
             provider.GetService(m.GetType()).Returns(m);

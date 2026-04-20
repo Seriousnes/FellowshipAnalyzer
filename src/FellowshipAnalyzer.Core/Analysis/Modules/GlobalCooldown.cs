@@ -11,12 +11,14 @@ public sealed class GlobalCooldown : Analyzer
 {
     private Abilities? _abilities;
     private DebugAnnotations? _debugAnnotations;
+    private Haste? _haste;
     private int _lastGcdEnd;
 
     public override void Initialize()
     {
         _abilities = Owner.GetModule<Abilities>();
         _debugAnnotations = Owner.GetModule<DebugAnnotations>();
+        _haste = Owner.GetModule<Haste>();
         _lastGcdEnd = 0;
 
         AddEventListener(Events.Cast.By(SELECTED_PLAYER), OnCast);
@@ -76,11 +78,11 @@ public sealed class GlobalCooldown : Analyzer
         if (gcd.Static is not null)
             return (int)Resolve(gcd.Static);
 
-        // Base GCD reduced by haste — haste multiplier is not tracked yet, so use 1.0.
-        // TODO: integrate with a Haste module when available.
+        // Base GCD scaled by current haste: effective = base × 100 / (100 + hastePercent)
         var baseGcd = gcd.Base is not null ? Resolve(gcd.Base) : 1500;
         var minimumGcd = gcd.Minimum is not null ? Resolve(gcd.Minimum) : 750;
-        var hasteReduced = baseGcd; // base / haste — haste = 1.0 for now
+        var hastePercent = (_haste?.Current ?? 0.0) * 100.0;
+        var hasteReduced = baseGcd * 100.0 / (100.0 + hastePercent);
         return (int)Math.Max(minimumGcd, hasteReduced);
     }
 

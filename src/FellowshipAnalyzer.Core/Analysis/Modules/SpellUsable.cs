@@ -11,18 +11,15 @@ public sealed class SpellUsable : Analyzer
 {
     private readonly Dictionary<int, CooldownInfo> _cooldowns = [];
     private readonly List<TrackedAbilityCast> _casts = [];
-
-    private Abilities? _abilities;
-    private DebugAnnotations? _debugAnnotations;
-
-    // Tracks the most recent BeginCast timestamp per (abilityId, sourceId) so that
-    // cooldown lane icons align with cast bar icons for cast-time spells.
     private readonly Dictionary<(int, int), int> _pendingBeginCastTimestamps = [];
+
+    private Abilities _abilities = null!;
+    private DebugAnnotations _debugAnnotations = null!;
 
     public override void Initialize()
     {
-        _abilities = Owner.GetModule<Abilities>();
-        _debugAnnotations = Owner.GetModule<DebugAnnotations>();
+        _abilities = Owner.GetModule<Abilities>()!;
+        _debugAnnotations = Owner.GetModule<DebugAnnotations>()!;
 
         AddEventListener(Events.BeginCast.By(SELECTED_PLAYER), OnBeginCast);
         AddEventListener(Events.Cast.By(SELECTED_PLAYER), OnCast);
@@ -30,21 +27,16 @@ public sealed class SpellUsable : Analyzer
         AddEventListener(Events.Any, OnAnyEvent);
     }
 
-    /// <summary>All player casts observed during the fight, in timestamp order.</summary>
     public IReadOnlyList<TrackedAbilityCast> Casts => _casts;
 
-    // ── Public cooldown query API ─────────────────────────────────────────────
+    public bool IsAvailable(int spellId) => !_cooldowns.TryGetValue(spellId, out var cd) || cd.ChargesAvailable > 0;
 
-    public bool IsAvailable(int spellId) =>
-        !_cooldowns.TryGetValue(spellId, out var cd) || cd.ChargesAvailable > 0;
-
-    public bool IsOnCooldown(int spellId) =>
-        _cooldowns.ContainsKey(spellId);
+    public bool IsOnCooldown(int spellId) => _cooldowns.ContainsKey(spellId);
 
     public int ChargesAvailable(int spellId) =>
         _cooldowns.TryGetValue(spellId, out var cd)
             ? cd.ChargesAvailable
-            : (_abilities?.GetMaxCharges(spellId) ?? 1);
+            : _abilities.GetMaxCharges(spellId);
 
     public int CooldownRemaining(int spellId, int? atTimestamp = null)
     {
@@ -54,11 +46,8 @@ public sealed class SpellUsable : Analyzer
             : 0;
     }
 
-    // ── Cooldown lifecycle API (callable from other modules) ──────────────────
-
     public void BeginCooldown(int spellId, int timestamp, int castStart = 0)
     {
-        if (_abilities is null) return;
         if (castStart <= 0) castStart = timestamp;
 
         if (!_cooldowns.TryGetValue(spellId, out var cd))
@@ -86,8 +75,6 @@ public sealed class SpellUsable : Analyzer
         }
         else
         {
-            // Spell cast while already on cooldown — treat as missed natural expiration.
-            // Annotate the cast event so developers can see this happened in the Debug tab.
             EndCooldown(spellId, timestamp);
             BeginCooldown(spellId, timestamp, castStart);
         }
@@ -116,8 +103,6 @@ public sealed class SpellUsable : Analyzer
         }
     }
 
-    // ── Event handlers ────────────────────────────────────────────────────────
-
     private void OnBeginCast(BeginCastEvent e)
     {
         if (e.Ability is not null)
@@ -128,9 +113,9 @@ public sealed class SpellUsable : Analyzer
     {
         _casts.Add(new TrackedAbilityCast(e.Timestamp, e.Ability.Id, e.TargetId));
 
-        if (_abilities?.GetAbility(e.Ability.Id) is null)
+        if (_abilities.GetAbility(e.Ability.Id) is null)
         {
-            _debugAnnotations?.AddAnnotation(this, e, new DebugAnnotation(
+            _debugAnnotations.AddAnnotation(this, e, new DebugAnnotation(
                 Color: "#e67e22",
                 Summary: $"Unconfigured spell: {e.Ability.Name}  (ID: {e.Ability.Id})",
                 Details: "This spell was cast by the player but is not in the hero's spellbook. " +
@@ -139,15 +124,13 @@ public sealed class SpellUsable : Analyzer
 
         if (!IsAvailable(e.Ability.Id))
         {
-            _debugAnnotations?.AddAnnotation(this, e, new DebugAnnotation(
+            _debugAnnotations.AddAnnotation(this, e, new DebugAnnotation(
                 Color: "#e74c3c",
                 Summary: $"Cast while on cooldown: {e.Ability.Name}  (ID: {e.Ability.Id})",
                 Details: $"{CooldownRemaining(e.Ability.Id, e.Timestamp)}ms remaining at time of cast.",
                 Priority: 10));
         }
 
-        // Consume any recorded BeginCast timestamp so the cooldown lane icon aligns
-        // with the cast bar icon (which renders at BeginCast time for cast-time spells).
         _pendingBeginCastTimestamps.Remove((e.Ability.Id, e.SourceId), out var castStart);
         BeginCooldown(e.Ability.Id, e.Timestamp, castStart);
     }
@@ -185,11 +168,9 @@ public sealed class SpellUsable : Analyzer
             EndCooldown(spellId, _cooldowns[spellId].ExpectedEnd);
     }
 
-    // ── Event fabrication ─────────────────────────────────────────────────────
-
     private void FabricateUpdate(UpdateSpellUsableType updateType, int spellId, int timestamp, CooldownInfo cd, int castStart = 0)
     {
-        var ability = _abilities?.GetAbility(spellId);
+        var ability = _abilities.GetAbility(spellId);
 
         Owner.EventEmitter.FabricateEvent(new UpdateSpellUsableEvent
         {
@@ -212,9 +193,7 @@ public sealed class SpellUsable : Analyzer
         });
     }
 
-    // ── Inner types ───────────────────────────────────────────────────────────
-
-    private sealed record CooldownInfo(
+    private record struct CooldownInfo(
         int OverallStart,
         int ChargeStart,
         int ExpectedEnd,
@@ -226,7 +205,7 @@ public sealed class SpellUsable : Analyzer
 /// <summary>
 /// A point-in-time record of a single player cast.
 /// </summary>
-public sealed record TrackedAbilityCast(
+public readonly record struct TrackedAbilityCast(
     int Timestamp,
-    int AbilityId,
+    int SpellId,
     int TargetId);

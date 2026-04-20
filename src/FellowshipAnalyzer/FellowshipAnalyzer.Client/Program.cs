@@ -1,6 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using FellowshipAnalyzer.Client.Services;
+using FellowshipAnalyzer.Core;
 using FellowshipAnalyzer.Core.Analysis;
 using FellowshipAnalyzer.Core.Events;
 using FellowshipAnalyzer.Core.FellowshipLogs;
@@ -23,6 +24,7 @@ jsonOptions.Converters.Add(new FSLJsonConverter<Event>());
 builder.Services.AddSingleton(jsonOptions);
 
 // Hero analysis runs client-side in WASM
+builder.Services.AddCoreAnalysisServices();
 builder.Services.AddRimeAnalysis();
 
 // Per-report loading progress tracker

@@ -24,19 +24,50 @@
             <span class="loading-label">Deserializing events</span>
             <span class="loading-status @StatusClass(Tracker.DeserializeState)">@StatusText(Tracker.DeserializeState)</span>
         </div>
-        <div class="loading-row">
-            <span class="loading-label">Normalizing events</span>
-            <span class="loading-status @StatusClass(Tracker.NormalizeState)">@StatusText(Tracker.NormalizeState)</span>
+        <div class="loading-row loading-row--has-sub">
+            <div class="loading-row-header">
+                <span class="loading-label">Normalizing events</span>
+                <span class="loading-status @StatusClass(Tracker.NormalizeState)">@StatusText(Tracker.NormalizeState)</span>
+            </div>
+            @if (Tracker.NormalizeState == ReportLoadingTracker.StepState.Loading)
+            {
+                <div class="loading-sub-bar" role="progressbar"
+                     aria-valuenow="@((int)(Tracker.NormalizeSubProgress * 100))" aria-valuemin="0" aria-valuemax="100">
+                    @for (int i = 0; i < SubBarChunkCount; i++)
+                    {
+                        var fill = SubChunkFill(i, Tracker.NormalizeSubProgress);
+                        <div class="loading-bar-chunk">
+                            <div class="loading-bar-fill" style="opacity: @fill.ToString("F2", System.Globalization.CultureInfo.InvariantCulture)"></div>
+                        </div>
+                    }
+                </div>
+            }
         </div>
-        <div class="loading-row">
-            <span class="loading-label">@AnalyzeLabel</span>
-            <span class="loading-status @StatusClass(Tracker.AnalyzeState)">@StatusText(Tracker.AnalyzeState)</span>
+        <div class="loading-row loading-row--has-sub">
+            <div class="loading-row-header">
+                <span class="loading-label">@AnalyzeLabel</span>
+                <span class="loading-status @StatusClass(Tracker.AnalyzeState)">@StatusText(Tracker.AnalyzeState)</span>
+            </div>
+            @if (Tracker.AnalyzeState == ReportLoadingTracker.StepState.Loading)
+            {
+                <div class="loading-sub-bar" role="progressbar"
+                     aria-valuenow="@((int)(Tracker.AnalyzeSubProgress * 100))" aria-valuemin="0" aria-valuemax="100">
+                    @for (int i = 0; i < SubBarChunkCount; i++)
+                    {
+                        var fill = SubChunkFill(i, Tracker.AnalyzeSubProgress);
+                        <div class="loading-bar-chunk">
+                            <div class="loading-bar-fill" style="opacity: @fill.ToString("F2", System.Globalization.CultureInfo.InvariantCulture)"></div>
+                        </div>
+                    }
+                </div>
+            }
         </div>
     </div>
 </div>
 
 @code {
     private const int ChunkCount = 12;
+    private const int SubBarChunkCount = 8;
     private ReportLoadingTracker? _subscribedTracker;
 
     [Parameter, EditorRequired]
@@ -61,7 +92,7 @@
 
     private string AnalyzeLabel =>
         Tracker.AnalyzeState == ReportLoadingTracker.StepState.Loading && Tracker.TotalEventCount > 0
-            ? $"Analyzing combat log ({Tracker.AnalyzedEventCount:N0} / {Tracker.TotalEventCount:N0} events)"
+            ? $"Analyzing combat log ({Tracker.AnalyzeSubProgress:P0})"
             : "Analyzing combat log";
 
     private double ChunkFill(int chunkIndex)
@@ -73,6 +104,16 @@
         if (progress <= chunkStart) return 0;
         if (progress >= chunkEnd) return 1;
         return (progress - chunkStart) / chunkWidth;
+    }
+
+    private static double SubChunkFill(int chunkIndex, double subProgress)
+    {
+        var chunkWidth = 1.0 / SubBarChunkCount;
+        var chunkStart = chunkIndex * chunkWidth;
+        var chunkEnd = chunkStart + chunkWidth;
+        if (subProgress <= chunkStart) return 0;
+        if (subProgress >= chunkEnd) return 1;
+        return (subProgress - chunkStart) / chunkWidth;
     }
 
     private static string StatusClass(ReportLoadingTracker.StepState state) => state switch

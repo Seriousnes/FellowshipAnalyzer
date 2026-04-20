@@ -66,7 +66,7 @@ public sealed class RimeAnalysisEngineTests
 
     private static string GetFixturePath()
     {
-        return Path.Combine(AppContext.BaseDirectory, "TestData", "events-minimal.json");
+        return Path.Combine(AppContext.BaseDirectory, "TestData", "events-with-ability-details.json");
     }
 }
 

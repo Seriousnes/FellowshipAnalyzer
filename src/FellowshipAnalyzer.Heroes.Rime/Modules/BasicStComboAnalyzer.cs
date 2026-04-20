@@ -92,7 +92,7 @@ public sealed class BasicStComboAnalyzer : Analyzer
 
         foreach (var cast in casts)
         {
-            if (cast.AbilityId != RimeSpells.BurstingIce.CombatLogId)
+            if (cast.SpellId != RimeSpells.BurstingIce.CombatLogId)
                 continue;
 
             var startTimestamp = cast.Timestamp;
@@ -103,21 +103,21 @@ public sealed class BasicStComboAnalyzer : Analyzer
 
             var relevant = castsInWindow
                 .Where(c =>
-                    c.AbilityId == RimeSpells.GlacialBlast.Id ||
-                    c.AbilityId == RimeSpells.ColdSnap.Id ||
-                    c.AbilityId == RimeSpells.FreezingTorrent.Id ||
-                    c.AbilityId == RimeSpells.IceComet.Id)
+                    c.SpellId == RimeSpells.GlacialBlast.Id ||
+                    c.SpellId == RimeSpells.ColdSnap.Id ||
+                    c.SpellId == RimeSpells.FreezingTorrent.Id ||
+                    c.SpellId == RimeSpells.IceComet.Id)
                 .ToList();
 
-            if (relevant.Count > 0 && relevant[0].AbilityId == RimeSpells.IceComet.Id)
+            if (relevant.Count > 0 && relevant[0].SpellId == RimeSpells.IceComet.Id)
             {
                 ignoredAoeWindows += 1;
                 continue;
             }
 
-            var glacialBlastIndex = relevant.FindIndex(c => c.AbilityId == RimeSpells.GlacialBlast.Id);
+            var glacialBlastIndex = relevant.FindIndex(c => c.SpellId == RimeSpells.GlacialBlast.Id);
             var finisherIndex = relevant.FindIndex(c =>
-                c.AbilityId == RimeSpells.ColdSnap.Id || c.AbilityId == RimeSpells.FreezingTorrent.Id);
+                c.SpellId == RimeSpells.ColdSnap.Id || c.SpellId == RimeSpells.FreezingTorrent.Id);
 
             var successful = glacialBlastIndex == 0 && finisherIndex == 1;
             var partial = glacialBlastIndex == 0 && !successful;

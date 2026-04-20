@@ -16,6 +16,8 @@ public sealed class ReportLoadingTracker
     private StepState _analyzeState;
     private int _analyzedEventCount;
     private int _totalEventCount;
+    private int _normalizedCount;
+    private int _totalNormalizerCount;
 
     /// <summary>Fired whenever any tracked state changes.</summary>
     public event Action? OnChanged;
@@ -62,6 +64,41 @@ public sealed class ReportLoadingTracker
         set => Set(ref _totalEventCount, value);
     }
 
+    /// <summary>Number of normalizers that have completed so far.</summary>
+    public int NormalizedCount
+    {
+        get => _normalizedCount;
+        set => Set(ref _normalizedCount, value);
+    }
+
+    /// <summary>Total number of normalizers to run.</summary>
+    public int TotalNormalizerCount
+    {
+        get => _totalNormalizerCount;
+        set => Set(ref _totalNormalizerCount, value);
+    }
+
+    /// <summary>
+    /// Returns the sub-progress (0–1) for a step that is currently in <see cref="StepState.Loading"/>.
+    /// Returns 0 for Waiting, 1 for Ok.
+    /// </summary>
+    public double NormalizeSubProgress => _normalizeState switch
+    {
+        StepState.Ok => 1,
+        StepState.Loading when _totalNormalizerCount > 0 => (double)_normalizedCount / _totalNormalizerCount,
+        _ => 0,
+    };
+
+    /// <summary>
+    /// Returns the sub-progress (0–1) for event analysis.
+    /// </summary>
+    public double AnalyzeSubProgress => _analyzeState switch
+    {
+        StepState.Ok => 1,
+        StepState.Loading when _totalEventCount > 0 => (double)_analyzedEventCount / _totalEventCount,
+        _ => 0,
+    };
+
     /// <summary>
     /// Overall loading progress, 0–1.
     /// Each of the 4 steps contributes 25%; the Analyze step uses event-count ratio while in progress.
@@ -73,7 +110,10 @@ public sealed class ReportLoadingTracker
             var p = 0.0;
             if (_fetchEventsState == StepState.Ok) p += 0.25;
             if (_deserializeState == StepState.Ok) p += 0.25;
-            if (_normalizeState == StepState.Ok) p += 0.25;
+            if (_normalizeState == StepState.Ok)
+                p += 0.25;
+            else if (_normalizeState == StepState.Loading && _totalNormalizerCount > 0)
+                p += 0.25 * ((double)_normalizedCount / _totalNormalizerCount);
             if (_analyzeState == StepState.Ok)
                 p += 0.25;
             else if (_analyzeState == StepState.Loading && _totalEventCount > 0)
@@ -91,6 +131,8 @@ public sealed class ReportLoadingTracker
         _analyzeState = StepState.Waiting;
         _analyzedEventCount = 0;
         _totalEventCount = 0;
+        _normalizedCount = 0;
+        _totalNormalizerCount = 0;
         OnChanged?.Invoke();
     }
 

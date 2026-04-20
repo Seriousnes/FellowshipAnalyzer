@@ -12,9 +12,10 @@ namespace FellowshipAnalyzer.Core.Analysis;
 /// </summary>
 [AddModule<DebugAnnotations>]
 [AddModule<Combatants>]
+[AddModule<StatTracker>]
+[AddModule<Haste>]
 [AddModule<GlobalCooldown>]
 [AddModule<SpellUsable>]
-[AddNormalizer<AbilityNormalizer>]
 [AddNormalizer<CastLinkNormalizer>]
 public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServiceProvider provider) : IHeroAnalyzer
 {
@@ -101,14 +102,22 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
         var tracker = provider.GetService(typeof(ReportLoadingTracker)) as ReportLoadingTracker;
 
         // Run normalizers
-        if (tracker is not null) tracker.NormalizeState = ReportLoadingTracker.StepState.Loading;
+        var normalizerTypes = GetNormalizerTypes();
+        if (tracker is not null)
+        {
+            tracker.NormalizeState = ReportLoadingTracker.StepState.Loading;
+            tracker.TotalNormalizerCount = normalizerTypes.Length;
+            tracker.NormalizedCount = 0;
+        }
         await Task.Yield();
 
-        foreach (var normalizerType in GetNormalizerTypes())
+        foreach (var normalizerType in normalizerTypes)
         {
             var normalizer = (IEventNormalizer)(provider.GetService(normalizerType)
                 ?? throw new InvalidOperationException($"Normalizer {normalizerType.Name} not registered."));
             Events = normalizer.Normalize(Events, playerId);
+            if (tracker is not null) tracker.NormalizedCount++;
+            await Task.Yield();
         }
 
         foreach (var m in _activeModules.Values)

@@ -18,6 +18,6 @@
     <ProjectReference Include="..\..\src\FellowshipAnalyzer.Heroes.Rime\FellowshipAnalyzer.Heroes.Rime.csproj" />
   </ItemGroup>
   <ItemGroup>    
-    <None Include="..\..\src\FellowshipAnalyzer.FellowshipLogs\events-minimal.json" Link="TestData\events-minimal.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\src\FellowshipAnalyzer.FellowshipLogs\events-with-ability-details.json" Link="TestData\events-with-ability-details.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

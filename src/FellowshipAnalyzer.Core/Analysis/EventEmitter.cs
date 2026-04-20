@@ -1,5 +1,7 @@
 using FellowshipAnalyzer.Core.Events;
 
+using Microsoft.Extensions.Logging;
+
 namespace FellowshipAnalyzer.Core.Analysis;
 
 /// <summary>
@@ -9,7 +11,7 @@ namespace FellowshipAnalyzer.Core.Analysis;
 /// current event, so they are processed as the very next event.
 /// Registered as a scoped DI service — one instance per analysis run.
 /// </summary>
-public sealed class EventEmitter : Module
+public sealed class EventEmitter(ILogger<EventEmitter> logger) : Module
 {
     private readonly List<RegisteredListener> _listeners = [];
     private List<Event>? _events;
@@ -63,7 +65,16 @@ public sealed class EventEmitter : Module
             if (listener.Module.Active && listener.Filter(e))
             {
                 listener.Module.NumExecutions++;
-                await listener.InvokeAsync(e);
+                try
+                {
+                    await listener.InvokeAsync(e);
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex,
+                        "Event handler in {Module} threw while processing {EventType} (Timestamp={Timestamp})",
+                        listener.Module.GetType().Name, e.GetType().Name, e.Timestamp);
+                }
             }
         }
     }

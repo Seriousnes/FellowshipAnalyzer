@@ -15,7 +15,7 @@ public record Ability : ISpell
     [JsonIgnore]
     public virtual int Id { get => Guid; set => Guid = value; }
 
-    [JsonPropertyName("gameID")]
+    [JsonPropertyName("guid")]
     public virtual int Guid { get; set; }
 
     public virtual string Name { get; set; } = string.Empty;

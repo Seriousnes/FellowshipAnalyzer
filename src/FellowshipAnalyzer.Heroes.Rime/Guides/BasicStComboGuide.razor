@@ -75,7 +75,7 @@
             };
 
             var sequence = window.CastsInWindow
-                .Select(c => new SpellCastEntry(c.AbilityId))
+                .Select(c => new SpellCastEntry(c.SpellId))
                 .ToArray();
 
             return new PerCastData
