@@ -9,6 +9,7 @@
 @inject JsonSerializerOptions JsonOptions
 @inject IServiceProvider ServiceProvider
 @inject IReportCacheService ReportCache
+@inject ReportLoadingTracker LoadingTracker
 
 <PageTitle>Analysis Report</PageTitle>
 
@@ -28,7 +29,7 @@
 
     @if (_isLoading)
     {
-        <ReportLoadingScreen Steps="@_loadingSteps" />
+        <ReportLoadingScreen Tracker="@LoadingTracker" />
     }
     else if (!string.IsNullOrWhiteSpace(_error))
     {
@@ -129,7 +130,6 @@
     private HeroAnalysisResult? _result;
     private bool _isLoading = true;
     private string? _error;
-    private List<ReportLoadingScreen.LoadingStep> _loadingSteps = [];
     private ReportTab _activeTab = ReportTab.Guide;
     private AboutSubView _aboutSubView = AboutSubView.Overview;
     private int _fightStartTime;
@@ -137,20 +137,14 @@
     private string? _pendingCacheEventsJson;
     private CombatLogParser? _parser;
 
-    protected override void OnInitialized()
-    {
-        _loadingSteps =
-        [
-            new("Fetching combat events from Fellowship Logs", ReportLoadingScreen.LoadingStepStatus.Loading),
-            new("Deserializing events", ReportLoadingScreen.LoadingStepStatus.Waiting),
-            new("Analyzing combat log", ReportLoadingScreen.LoadingStepStatus.Waiting),
-        ];
-    }
-
     protected override async Task OnInitializedAsync()
     {
         try
         {
+            LoadingTracker.Reset();
+            LoadingTracker.FetchEventsState = ReportLoadingTracker.StepState.Loading;
+            await Task.Yield();
+
             var reportTask = FellowshipLogs.Report.GetAsync(ReportCode);
 
             // Check cache before hitting the events API
@@ -159,14 +153,10 @@
 
             if (cachedEventsJson is not null)
             {
-                _loadingSteps[0] = _loadingSteps[0] with
-                {
-                    Label = "Loading combat events from cache",
-                    Status = ReportLoadingScreen.LoadingStepStatus.Ok
-                };
-                StateHasChanged();
+                LoadingTracker.FetchEventsState = ReportLoadingTracker.StepState.Ok;
+                LoadingTracker.DeserializeState = ReportLoadingTracker.StepState.Loading;
+                await Task.Yield();
 
-                SetStep(1, ReportLoadingScreen.LoadingStepStatus.Loading);
                 events = JsonSerializer.Deserialize<List<Event>>(cachedEventsJson, JsonOptions) ?? [];
             }
             else
@@ -174,8 +164,9 @@
                 var eventsRequest = new FellowshipLogsEventsRequest(ReportCode, PlayerId, FightId);
                 var result = await FellowshipLogs.Events.GetAsync(eventsRequest);
 
-                SetStep(0, ReportLoadingScreen.LoadingStepStatus.Ok);
-                SetStep(1, ReportLoadingScreen.LoadingStepStatus.Loading);
+                LoadingTracker.FetchEventsState = ReportLoadingTracker.StepState.Ok;
+                LoadingTracker.DeserializeState = ReportLoadingTracker.StepState.Loading;
+                await Task.Yield();
 
                 events = [.. result.Events];
 
@@ -191,8 +182,8 @@
             var fight = reportInfo.Fights.FirstOrDefault(f => f.Id == FightId)
                 ?? throw new InvalidOperationException($"Fight {FightId} not found in report.");
 
-            SetStep(1, ReportLoadingScreen.LoadingStepStatus.Ok);
-            SetStep(2, ReportLoadingScreen.LoadingStepStatus.Loading);
+            LoadingTracker.DeserializeState = ReportLoadingTracker.StepState.Ok;
+            await Task.Yield();
 
             // TODO: Determine hero ID from player/report data.
             // For now, default to "rime" as the only hero analyzer.
@@ -205,7 +196,6 @@
             _parser = (CombatLogParser)analyzer;
             _parser.ActorNames = reportInfo.Actors.ToDictionary(a => a.Id, a => a.Name);
             _result = await _parser.Analyze(events, PlayerId, _fightStartTime);
-            SetStep(2, ReportLoadingScreen.LoadingStepStatus.Ok);
 
             // Persist to cache now that we have fight metadata
             if (_pendingCacheEventsJson is not null)
@@ -227,12 +217,6 @@
         {
             _isLoading = false;
         }
-    }
-
-    private void SetStep(int index, ReportLoadingScreen.LoadingStepStatus status)
-    {
-        _loadingSteps[index] = _loadingSteps[index] with { Status = status };
-        StateHasChanged();
     }
 
     private static string FormatDuration(int startMs, int endMs)

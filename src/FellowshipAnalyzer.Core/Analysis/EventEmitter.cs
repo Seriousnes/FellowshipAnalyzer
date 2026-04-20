@@ -32,8 +32,9 @@ public sealed class EventEmitter : Module
 
     /// <summary>
     /// Dispatches all events sequentially, processing fabricated events inline.
+    /// Yields to the UI scheduler every <c>YieldInterval</c> events to maintain responsiveness.
     /// </summary>
-    public async Task DispatchEventsAsync(List<Event> events)
+    public async Task DispatchEventsAsync(List<Event> events, ReportLoadingTracker? tracker = null)
     {
         _events = events;
         events.Sort(static (a, b) => a.Timestamp.CompareTo(b.Timestamp));
@@ -42,10 +43,18 @@ public sealed class EventEmitter : Module
         {
             _insertionIndex = i;
             await TriggerEventAsync(events[i]);
+
+            if (i % YieldInterval == YieldInterval - 1)
+            {
+                if (tracker is not null) tracker.AnalyzedEventCount = i + 1;
+                await Task.Yield();
+            }
         }
 
         _events = null;
     }
+
+    private const int YieldInterval = 250;
 
     private async Task TriggerEventAsync(Event e)
     {

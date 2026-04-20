@@ -1,6 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using FellowshipAnalyzer.Client.Services;
+using FellowshipAnalyzer.Core.Analysis;
 using FellowshipAnalyzer.Core.Events;
 using FellowshipAnalyzer.Core.FellowshipLogs;
 using FellowshipAnalyzer.Core.Serialization;
@@ -23,6 +24,9 @@ builder.Services.AddSingleton(jsonOptions);
 
 // Hero analysis runs client-side in WASM
 builder.Services.AddRimeAnalysis();
+
+// Per-report loading progress tracker
+builder.Services.AddScoped<ReportLoadingTracker>();
 
 // IFellowshipLogsClient: WASM proxy client deserializes raw GraphQL responses from server endpoints
 builder.Services.AddScoped<IFellowshipLogsClient, FellowshipLogsProxyClient>();

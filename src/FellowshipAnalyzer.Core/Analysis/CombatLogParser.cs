@@ -98,30 +98,43 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
             .Where(m => m.Active)
             .ToDictionary(m => m.GetType(), m => m);
 
-        await Task.Run(async () =>
+        var tracker = provider.GetService(typeof(ReportLoadingTracker)) as ReportLoadingTracker;
+
+        // Run normalizers
+        if (tracker is not null) tracker.NormalizeState = ReportLoadingTracker.StepState.Loading;
+        await Task.Yield();
+
+        foreach (var normalizerType in GetNormalizerTypes())
         {
-            // Run normalizers
-            foreach (var normalizerType in GetNormalizerTypes())
-            {
-                var normalizer = (IEventNormalizer)(provider.GetService(normalizerType)
-                    ?? throw new InvalidOperationException($"Normalizer {normalizerType.Name} not registered."));
-                Events = normalizer.Normalize(Events, playerId);
-            }
+            var normalizer = (IEventNormalizer)(provider.GetService(normalizerType)
+                ?? throw new InvalidOperationException($"Normalizer {normalizerType.Name} not registered."));
+            Events = normalizer.Normalize(Events, playerId);
+        }
 
-            foreach (var m in _activeModules.Values)
-            {
-                m.Initialize();
-            }
+        foreach (var m in _activeModules.Values)
+        {
+            m.Initialize();
+        }
 
-            EventEmitter.SortListeners();
+        EventEmitter.SortListeners();
 
-            await EventEmitter.DispatchEventsAsync(Events);
+        if (tracker is not null)
+        {
+            tracker.NormalizeState = ReportLoadingTracker.StepState.Ok;
+            tracker.AnalyzeState = ReportLoadingTracker.StepState.Loading;
+            tracker.TotalEventCount = Events.Count;
+        }
+        await Task.Yield();
 
-            foreach (var m in _activeModules.Values)
-            {
-                m.Complete();
-            }
-        });
+        await EventEmitter.DispatchEventsAsync(Events, tracker);
+
+        if (tracker is not null) tracker.AnalyzeState = ReportLoadingTracker.StepState.Ok;
+        await Task.Yield();
+
+        foreach (var m in _activeModules.Values)
+        {
+            m.Complete();
+        }
 
         return new HeroAnalysisResult
         {
