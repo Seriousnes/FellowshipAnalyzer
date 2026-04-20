@@ -14,7 +14,7 @@ namespace FellowshipAnalyzer.FellowshipLogs.Tests;
 public sealed class FellowshipLogsClientTests
 {
     [Fact]
-    public async Task GetEventsAsync_FetchesAllPages()
+    public async Task GetEventsAsync_FetchesAllEvents()
     {
         var handler = new QueueMessageHandler(
             new HttpResponseMessage(HttpStatusCode.OK)
@@ -24,14 +24,7 @@ public sealed class FellowshipLogsClientTests
             new HttpResponseMessage(HttpStatusCode.OK)
             {
                 Content = new StringContent(
-                    """{"data":{"reportData":{"report":{"events":{"data":[{"timestamp":1,"type":"damage","sourceID":1,"targetID":2,"abilityGameID":100,"fight":1,"hitType":1,"amount":1000},{"timestamp":2,"type":"cast","sourceID":1,"abilityGameID":200,"fight":1}],"nextPageTimestamp":1000}}}}}""",
-                    Encoding.UTF8,
-                    "application/json")
-            },
-            new HttpResponseMessage(HttpStatusCode.OK)
-            {
-                Content = new StringContent(
-                    """{"data":{"reportData":{"report":{"events":{"data":[{"timestamp":3,"type":"heal","sourceID":1,"targetID":2,"abilityGameID":300,"fight":1,"hitType":1,"amount":500}],"nextPageTimestamp":null}}}}}""",
+                    """{"data":{"reportData":{"report":{"events":{"data":[{"timestamp":1,"type":"damage","sourceID":1,"targetID":2,"abilityGameID":100,"fight":1,"hitType":1,"amount":1000},{"timestamp":2,"type":"cast","sourceID":1,"abilityGameID":200,"fight":1},{"timestamp":3,"type":"heal","sourceID":1,"targetID":2,"abilityGameID":300,"fight":1,"hitType":1,"amount":500}]}}}}}""",
                     Encoding.UTF8,
                     "application/json")
             });

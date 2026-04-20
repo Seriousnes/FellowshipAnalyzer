@@ -17,6 +17,6 @@
     <ProjectReference Include="..\..\src\FellowshipAnalyzer.FellowshipLogs\FellowshipAnalyzer.FellowshipLogs.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\src\FellowshipAnalyzer.FellowshipLogs\events-minimal.json" Link="TestData\events-minimal.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\src\FellowshipAnalyzer.FellowshipLogs\events-with-ability-details.json" Link="TestData\events-with-ability-details.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

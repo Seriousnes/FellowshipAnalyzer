@@ -66,8 +66,8 @@ public sealed class BasicStComboAnalyzer : Analyzer
             return;
 
         // Winter's Embrace does not affect Bursting Ice itself
-        if (damageEvent.Ability.Id == RimeSpells.BurstingIce.CombatLogId ||
-            damageEvent.Ability.Id == RimeSpells.BurstingIceDamage.CombatLogId)
+        if (damageEvent.Ability.Id == RimeSpells.BurstingIce.Guid ||
+            damageEvent.Ability.Id == RimeSpells.BurstingIceDamage.Guid)
             return;
 
         var bonus = CombatMath.CalculateEffectiveDamage(damageEvent, WintersEmbraceIncrease);
@@ -92,7 +92,7 @@ public sealed class BasicStComboAnalyzer : Analyzer
 
         foreach (var cast in casts)
         {
-            if (cast.SpellId != RimeSpells.BurstingIce.CombatLogId)
+            if (cast.Id != RimeSpells.BurstingIce.Guid)
                 continue;
 
             var startTimestamp = cast.Timestamp;
@@ -103,21 +103,21 @@ public sealed class BasicStComboAnalyzer : Analyzer
 
             var relevant = castsInWindow
                 .Where(c =>
-                    c.SpellId == RimeSpells.GlacialBlast.Id ||
-                    c.SpellId == RimeSpells.ColdSnap.Id ||
-                    c.SpellId == RimeSpells.FreezingTorrent.Id ||
-                    c.SpellId == RimeSpells.IceComet.Id)
+                    c.Id == RimeSpells.GlacialBlast.Id ||
+                    c.Id == RimeSpells.ColdSnap.Id ||
+                    c.Id == RimeSpells.FreezingTorrent.Id ||
+                    c.Id == RimeSpells.IceComet.Id)
                 .ToList();
 
-            if (relevant.Count > 0 && relevant[0].SpellId == RimeSpells.IceComet.Id)
+            if (relevant.Count > 0 && relevant[0].Id == RimeSpells.IceComet.Id)
             {
                 ignoredAoeWindows += 1;
                 continue;
             }
 
-            var glacialBlastIndex = relevant.FindIndex(c => c.SpellId == RimeSpells.GlacialBlast.Id);
+            var glacialBlastIndex = relevant.FindIndex(c => c.Id == RimeSpells.GlacialBlast.Id);
             var finisherIndex = relevant.FindIndex(c =>
-                c.SpellId == RimeSpells.ColdSnap.Id || c.SpellId == RimeSpells.FreezingTorrent.Id);
+                c.Id == RimeSpells.ColdSnap.Id || c.Id == RimeSpells.FreezingTorrent.Id);
 
             var successful = glacialBlastIndex == 0 && finisherIndex == 1;
             var partial = glacialBlastIndex == 0 && !successful;

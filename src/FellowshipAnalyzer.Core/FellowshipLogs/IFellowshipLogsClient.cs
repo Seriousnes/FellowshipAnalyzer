@@ -5,8 +5,7 @@ namespace FellowshipAnalyzer.Core.FellowshipLogs;
 public sealed record FellowshipLogsEventsRequest(
     string ReportCode,
     int PlayerId,
-    int FightId,
-    int PageSize = 10_000
+    int FightId
 );
 
 /// <summary>

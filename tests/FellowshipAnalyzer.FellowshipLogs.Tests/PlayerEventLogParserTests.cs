@@ -1,6 +1,9 @@
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 using FellowshipAnalyzer.Core.Events;
+using FellowshipAnalyzer.Core.FellowshipLogs;
+using FellowshipAnalyzer.Core.Serialization;
 using FellowshipAnalyzer.FellowshipLogs.API;
 
 using Shouldly;
@@ -37,7 +40,7 @@ public sealed class EventDeserializationTests
 
         var casts = events.OfType<CastEvent>()
             .Where(e => e.SourceId == 3)
-            .GroupBy(e => e.AbilityGameId)
+            .GroupBy(e => e.Ability.Guid)
             .ToDictionary(g => g.Key, g => g.Count());
 
         casts[1018].ShouldBe(254, "Ice Comet casts");
@@ -88,7 +91,7 @@ public sealed class EventDeserializationTests
 
         var damageByAbility = events.OfType<DamageEvent>()
             .Where(e => e.SourceId == 3 && e.TargetId != 3)
-            .GroupBy(e => e.AbilityGameId)
+            .GroupBy(e => e.Ability.Guid)
             .ToDictionary(g => g.Key, g => (Damage: g.Sum(e => e.Amount), Hits: g.Count()));
 
         damageByAbility[1018].Damage.ShouldBe(125_361_701);
@@ -104,6 +107,58 @@ public sealed class EventDeserializationTests
         damageByAbility[1001365].Damage.ShouldBe(1_748_769);
     }
 
+    [Fact]
+    public void Deserialize_CastEvents_ShouldHavePopulatedAbility()
+    {
+        var events = DeserializeFixtureEvents();
+        var casts = events.OfType<CastEvent>().ToList();
+
+        casts.ShouldNotBeEmpty();
+        foreach (var cast in casts)
+        {
+            cast.Ability.ShouldNotBeNull($"CastEvent at timestamp {cast.Timestamp} has null Ability");
+            cast.Ability.Guid.ShouldBeGreaterThan(0, $"CastEvent at timestamp {cast.Timestamp} has Ability.Guid == 0");
+            cast.Ability.Name.ShouldNotBeNullOrEmpty($"CastEvent at timestamp {cast.Timestamp} has empty Ability.Name");
+        }
+    }
+
+    /// <summary>
+    /// Reproduces the exact WASM client-side deserialization path:
+    /// JsonSerializerDefaults.Web + GraphQLResponse models (not internal FellowshipLogs models).
+    /// </summary>
+    [Fact]
+    public void Deserialize_WithWasmClientOptions_ShouldHavePopulatedAbility()
+    {
+        // Exactly mirrors FellowshipAnalyzer.Client/Program.cs
+        var wasmOptions = new JsonSerializerOptions(JsonSerializerDefaults.Web);
+        wasmOptions.Converters.Add(new JsonStringEnumConverter(allowIntegerValues: true));
+        wasmOptions.Converters.Add(new FSLJsonConverter<Event>());
+
+        var json = File.ReadAllText(GetFixturePath());
+
+        // Use public GraphQL models (same as FellowshipLogsProxyClient)
+        var response = JsonSerializer.Deserialize<GraphQLResponse<GraphQLReportResponse>>(json, wasmOptions)!;
+        var events = response.Data.ReportData.Report.Events!.Data;
+
+        events.ShouldNotBeEmpty();
+
+        var casts = events.OfType<CastEvent>().ToList();
+        casts.ShouldNotBeEmpty();
+        foreach (var cast in casts)
+        {
+            cast.Ability.ShouldNotBeNull($"CastEvent at timestamp {cast.Timestamp} has null Ability");
+            cast.Ability.Guid.ShouldBeGreaterThan(0);
+            cast.Ability.Name.ShouldNotBeNullOrEmpty();
+        }
+
+        var damageEvents = events.OfType<DamageEvent>().ToList();
+        damageEvents.ShouldNotBeEmpty();
+        foreach (var dmg in damageEvents)
+        {
+            dmg.Ability.ShouldNotBeNull($"DamageEvent at timestamp {dmg.Timestamp} has null Ability");
+        }
+    }
+
     private static List<Event> DeserializeFixtureEvents()
     {
         var json = File.ReadAllText(GetFixturePath());
@@ -113,6 +168,6 @@ public sealed class EventDeserializationTests
 
     private static string GetFixturePath()
     {
-        return Path.Combine(AppContext.BaseDirectory, "TestData", "events-minimal.json");
+        return Path.Combine(AppContext.BaseDirectory, "TestData", "events-with-ability-details.json");
     }
 }

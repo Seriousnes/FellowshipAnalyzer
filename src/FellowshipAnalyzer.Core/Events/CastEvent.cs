@@ -30,6 +30,7 @@ public abstract record BaseCastEvent : Event, IAbilityEvent, IHasSourceWithInsta
     public virtual GlobalCooldownEvent? GlobalCooldown { get; set; }
     public virtual object? Meta { get; set; }
 }
+
 [FSLEventDiscriminator("cast")]
 public record CastEvent : BaseCastEvent
 {

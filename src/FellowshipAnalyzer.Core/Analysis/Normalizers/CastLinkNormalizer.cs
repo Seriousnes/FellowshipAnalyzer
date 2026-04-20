@@ -22,7 +22,7 @@ public sealed class CastLinkNormalizer(Abilities? abilities) : IEventNormalizer
         // (e.g. off-GCD instants). These do NOT cancel a pending cast.
         var castableWhileCasting = abilities?.Spellbook()
             .Where(a => a.CastableWhileCasting)
-            .Select(a => a.PrimarySpell.CombatLogId)
+            .Select(a => a.PrimarySpell.Guid)
             .ToHashSet() ?? [];
 
         // Additional spell IDs from AdditionalSpells
@@ -32,7 +32,7 @@ public sealed class CastLinkNormalizer(Abilities? abilities) : IEventNormalizer
             {
                 if (a.CastableWhileCasting && a.AdditionalSpells is not null)
                     foreach (var spell in a.AdditionalSpells)
-                        castableWhileCasting.Add(spell.CombatLogId);
+                        castableWhileCasting.Add(spell.Guid);
             }
         }
 

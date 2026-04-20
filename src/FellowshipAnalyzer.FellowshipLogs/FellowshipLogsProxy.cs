@@ -50,9 +50,8 @@ public sealed class FellowshipLogsProxy(IHttpClientFactory httpClientFactory, Fe
               fights(fightIDs: $fightIDs) {
                 inProgress
               }
-              events(fightIDs: $fightIDs, sourceID: $sourceID, useAbilityIDs: true) {
+              events(fightIDs: $fightIDs, sourceID: $sourceID, useAbilityIDs: false) {
                 data
-                nextPageTimestamp
               }
             }
           }

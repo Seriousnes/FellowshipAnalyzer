@@ -18,7 +18,12 @@ builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddAuthenticationStateDeserialization();
 
 // JSON options for deserializing API responses (including polymorphic events)
-var jsonOptions = new JsonSerializerOptions(JsonSerializerDefaults.Web);
+var jsonOptions = new JsonSerializerOptions(JsonSerializerOptions.Web)
+{
+    DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+    PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+    PropertyNameCaseInsensitive = true,
+};
 jsonOptions.Converters.Add(new JsonStringEnumConverter(allowIntegerValues: true));
 jsonOptions.Converters.Add(new FSLJsonConverter<Event>());
 builder.Services.AddSingleton(jsonOptions);

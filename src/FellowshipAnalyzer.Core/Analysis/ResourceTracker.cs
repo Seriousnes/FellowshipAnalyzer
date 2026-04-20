@@ -95,7 +95,7 @@ public abstract class ResourceTracker : Analyzer
 
 public sealed record ResourceEvent(
     int Timestamp,
-    int AbilityId,
+    int Id,
     ResourceEventKind Kind,
     int Amount,
     int Wasted,

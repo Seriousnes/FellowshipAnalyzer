@@ -88,7 +88,7 @@ public static class SpellRegistry
 
                     if (prop.GetValue(null) is Spell spell)
                     {
-                        var key = spell is Effect effect ? effect.SpellId : spell.Id;
+                        var key = spell.Guid;
                         entries[key] = spell;
                     }
                 }

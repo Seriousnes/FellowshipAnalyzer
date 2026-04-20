@@ -207,5 +207,5 @@ public sealed class SpellUsable : Analyzer
 /// </summary>
 public readonly record struct TrackedAbilityCast(
     int Timestamp,
-    int SpellId,
+    int Id,
     int TargetId);

@@ -13,9 +13,8 @@ internal sealed class EventsFunction(IApiRequestExecutor api, FellowshipLogsClie
               fights(fightIDs: $fightIDs) {
                 inProgress                
               }
-              events(fightIDs: $fightIDs, sourceID: $sourceID, useAbilityIDs: true) {
+              events(fightIDs: $fightIDs, sourceID: $sourceID, useAbilityIDs: false) {
                 data
-                nextPageTimestamp
               }
             }
           }
@@ -28,33 +27,6 @@ internal sealed class EventsFunction(IApiRequestExecutor api, FellowshipLogsClie
     {
         ValidateRequest(request);
 
-        var events = new List<Event>();
-        double? startTime = null;
-        var inProgress = false;
-
-        while (true)
-        {
-            var (page, nextPageTimestamp, pageInProgress) = await FetchPageAsync(request, startTime, cancellationToken);
-            events.AddRange(page);
-            inProgress = pageInProgress;
-
-            if (!nextPageTimestamp.HasValue ||
-                (startTime.HasValue && nextPageTimestamp.Value <= startTime.Value))
-            {
-                break;
-            }
-
-            startTime = nextPageTimestamp;
-        }
-
-        return new EventsResult(events, inProgress);
-    }
-
-    private async Task<(List<Event> Events, double? NextPageTimestamp, bool InProgress)> FetchPageAsync(
-        FellowshipLogsEventsRequest request,
-        double? startTime,
-        CancellationToken cancellationToken)
-    {
         var payload = await ApiRequestAsync<FellowshipLogsResponse<FellowshipLogsReportResponse>>(
             new
             {
@@ -74,7 +46,7 @@ internal sealed class EventsFunction(IApiRequestExecutor api, FellowshipLogsClie
         // The root-level fights array contains live status for the requested fight IDs.
         var inProgress = payload?.Data?.Fights?.FirstOrDefault()?.InProgress ?? false;
 
-        return (eventsData.Data, eventsData.NextPageTimestamp, inProgress);
+        return new EventsResult(eventsData.Data, inProgress);
     }
 
     private static void ValidateRequest(FellowshipLogsEventsRequest request)

@@ -325,8 +325,8 @@ public sealed class StatTracker : Analyzer
 /// A buff value that is either a fixed rating amount or a function that
 /// derives the amount from the combatant (and optionally an item).
 /// </summary>
-[OneOf.GenerateOneOf]
-public partial class BuffVal : OneOf.OneOfBase<double, Func<Combatant, Item?, double>>;
+[GenerateOneOf]
+public partial class BuffVal : OneOfBase<double, Func<Combatant, Item?, double>>;
 
 /// <summary>
 /// Describes a stat rating buff. Unset fields contribute 0 to each stat.

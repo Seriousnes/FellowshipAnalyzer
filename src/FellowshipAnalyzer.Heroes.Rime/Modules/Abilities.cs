@@ -17,6 +17,7 @@ public class Abilities : CoreAbilities
             Gcd = null,
             Cooldown = 20,
             Range = 30,
+            CastableWhileCasting = true,
         },
         new()
         {
@@ -106,7 +107,7 @@ public class Abilities : CoreAbilities
         {
             PrimarySpell = RimeSpells.WintersBlessing,
             Category = SpellCategory.Cooldowns,
-            Gcd = StandardGcd,
+            Gcd = null,
             Cooldown = 60,
         },
         new()

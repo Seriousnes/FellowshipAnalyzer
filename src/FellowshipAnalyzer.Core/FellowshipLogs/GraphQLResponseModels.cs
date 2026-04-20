@@ -50,7 +50,6 @@ public sealed class GraphQLReport
 public sealed class GraphQLEventsData
 {
     public List<Event> Data { get; set; } = [];
-    public double? NextPageTimestamp { get; set; }
 }
 
 public sealed class GraphQLReportFight

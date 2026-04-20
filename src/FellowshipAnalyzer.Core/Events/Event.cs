@@ -33,7 +33,7 @@ public abstract record Event : IEventFilter
     /// <summary>
     /// If this event was triggered, this is the triggering event
     /// </summary>
-    public virtual object? Trigger { get; set; }
+    public virtual Event? Trigger { get; set; }
     /// <summary>
     /// Event content modified by WoWA
     /// </summary>

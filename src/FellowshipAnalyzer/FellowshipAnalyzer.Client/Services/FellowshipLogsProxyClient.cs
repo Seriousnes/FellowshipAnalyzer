@@ -25,9 +25,7 @@ public sealed class FellowshipLogsProxyClient : IFellowshipLogsClient
             string reportCode,
             CancellationToken cancellationToken = default)
         {
-            var url = $"/api/report/{Uri.EscapeDataString(reportCode)}";
-            var response = await http.GetFromJsonAsync<GraphQLResponse<GraphQLReportResponse>>(
-                url, jsonOptions, cancellationToken)
+            var response = await http.GetFromJsonAsync<GraphQLResponse<GraphQLReportResponse>>($"/api/report/{Uri.EscapeDataString(reportCode)}", jsonOptions, cancellationToken)
                 ?? throw new InvalidOperationException("Failed to deserialize report response.");
 
             var report = response.Data.ReportData.Report;
@@ -53,11 +51,8 @@ public sealed class FellowshipLogsProxyClient : IFellowshipLogsClient
             FellowshipLogsEventsRequest request,
             CancellationToken cancellationToken = default)
         {
-            var url = $"/api/events?reportCode={Uri.EscapeDataString(request.ReportCode)}" +
-                      $"&playerId={request.PlayerId}&fightId={request.FightId}";
-
             var response = await http.GetFromJsonAsync<GraphQLResponse<GraphQLReportResponse>>(
-                url, jsonOptions, cancellationToken)
+                $"/api/events?reportCode={Uri.EscapeDataString(request.ReportCode)}&playerId={request.PlayerId}&fightId={request.FightId}", jsonOptions, cancellationToken)
                 ?? throw new InvalidOperationException("Failed to deserialize events response.");
 
             var report = response.Data.ReportData.Report;

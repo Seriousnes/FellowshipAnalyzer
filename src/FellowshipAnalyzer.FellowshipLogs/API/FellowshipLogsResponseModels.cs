@@ -44,7 +44,6 @@ internal sealed class FellowshipLogsReport
 internal sealed class FellowshipLogsEventsData
 {
     public List<Event> Data { get; set; } = [];
-    public double? NextPageTimestamp { get; set; }
 }
 
 internal sealed class FellowshipLogsReportFight

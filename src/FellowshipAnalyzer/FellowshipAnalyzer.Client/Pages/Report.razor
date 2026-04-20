@@ -148,7 +148,7 @@
             var reportTask = FellowshipLogs.Report.GetAsync(ReportCode);
 
             // Check cache before hitting the events API
-            var cachedEventsJson = await ReportCache.GetCachedEventsJsonAsync(ReportCode, FightId, PlayerId);
+            string? cachedEventsJson = null; //await ReportCache.GetCachedEventsJsonAsync(ReportCode, FightId, PlayerId);
             List<Event> events;
 
             if (cachedEventsJson is not null)

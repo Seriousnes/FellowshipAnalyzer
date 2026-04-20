@@ -11,7 +11,7 @@ public record Spell(int Id, string Name = "", string Icon = "")
     /// The combat-log <c>abilityGameID</c> used to match events.
     /// For <see cref="Effect"/> this is <c>1_000_000 + Id</c>; for plain spells it equals <see cref="Id"/>.
     /// </summary>
-    public int CombatLogId => this is Effect e ? e.SpellId : Id;
+    public virtual int Guid => Id;
 }
 
 /// <summary>
@@ -21,7 +21,7 @@ public record Spell(int Id, string Name = "", string Icon = "")
 public record Effect(int Id, string Name = "", string Icon = "") : Spell(Id, Name, Icon)
 {
     /// <summary>The combat-log <c>abilityGameID</c> (<c>1_000_000 + Id</c>).</summary>
-    public int SpellId => 1_000_000 + Id;
+    public override int Guid => 1_000_000 + Id;
 }
 
 public interface ISpellRegistry

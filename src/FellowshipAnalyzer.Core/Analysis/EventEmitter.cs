@@ -48,7 +48,7 @@ public sealed class EventEmitter(ILogger<EventEmitter> logger) : Module
 
             if (i % YieldInterval == YieldInterval - 1)
             {
-                if (tracker is not null) tracker.AnalyzedEventCount = i + 1;
+                tracker?.AnalyzedEventCount = i + 1;
                 await Task.Yield();
             }
         }
@@ -83,15 +83,12 @@ public sealed class EventEmitter(ILogger<EventEmitter> logger) : Module
     /// Inserts a fabricated event into the event list immediately after the current event,
     /// so it will be the very next event processed.
     /// </summary>
-    public T FabricateEvent<T>(T e, object? trigger = null) where T : Event
+    public T FabricateEvent<T>(T e, Event? trigger = null) where T : Event
     {
         e.Fabricated = true;
         e.Trigger = trigger;
 
-        if (_events != null)
-        {
-            _events.Insert(++_insertionIndex, e);
-        }
+        _events?.Insert(++_insertionIndex, e);
 
         return e;
     }

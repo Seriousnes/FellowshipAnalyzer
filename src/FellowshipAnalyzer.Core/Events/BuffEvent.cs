@@ -2,7 +2,7 @@
 
 public abstract record BuffEvent : Event, IAbilityEvent, IHasTargetWithInstanceEvent, IHasSourceWithInstanceEvent
 {
-    public virtual Ability Ability { get; set; }
+    public virtual Ability Ability { get; set; } = new();
     public virtual int AbilityGameId { get; set; }
     public virtual int? TargetInstance { get; set; }
     public virtual int TargetId { get; set; }

@@ -53,6 +53,7 @@ public sealed class RimeAnalysisEngineTests
     private static async Task<HeroAnalysisResult> AnalyzeFixtureAsync()
     {
         var services = new ServiceCollection();
+        services.AddLogging();
         services.AddRimeAnalysis();
         using var provider = services.BuildServiceProvider();
         using var scope = provider.CreateScope();
