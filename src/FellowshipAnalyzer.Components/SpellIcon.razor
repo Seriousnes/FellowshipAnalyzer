@@ -1,6 +1,7 @@
 @using FellowshipAnalyzer.Core.Common.Spells
+@using OneOf
 
-@if (Spell is not null)
+@if (_icon is not { Length: 0 })
 {
     <div class="spell-icon @SizeClass" title="@TooltipTitle" data-tooltip-spell-id="@TooltipSpellId">
         <img src="@IconUrl" />
@@ -8,19 +9,8 @@
 }
 
 @code {
-    /// <summary>Pass a <see cref="Core.Common.Spells.Spell"/> object directly.</summary>
-    [Parameter]
-    public Spell? Spell { get; set; }
-
-    /// <summary>Pass a spell ID to resolve via <see cref="SpellRegistry"/>.</summary>
-    [Parameter]
-    public int? SpellId { get; set; }
-
-    /// <summary>Pass a <see cref="SpellbookAbility"/> — its <see cref="SpellbookAbility.PrimarySpell"/>
-    /// is used directly.
-    /// </summary>
-    [Parameter]
-    public SpellbookAbility? Ability { get; set; }
+    [Parameter, EditorRequired]
+    public OneOf<Spell, int, SpellbookAbility, Ability> Spell { get; set; }
 
     /// <summary>Icon size. Defaults to <see cref="SpellIconSize.Medium"/>.</summary>
     [Parameter]
@@ -30,7 +20,12 @@
     [Parameter]
     public bool NoTooltip { get; set; }
 
-    private string IconUrl => $"https://assets.rpglogs.com/img/fellowship/abilities/{Spell!.Icon}";
+    private string _name = "";
+    private string _icon = "";
+    private int _id;
+    private bool _isEffect;
+
+    private string IconUrl => $"https://assets.rpglogs.com/img/fellowship/abilities/{_icon}";
 
     private string SizeClass => Size switch
     {
@@ -39,16 +34,18 @@
         _ => ""
     };
 
-    private string? TooltipTitle => NoTooltip ? null : Spell?.Name;
-    private string? TooltipSpellId => NoTooltip ? null : Spell is Effect effect
-        ? $"effect/{effect.Id}"
-        : Spell is not null ? $"ability/{Spell.Id}" : null;
+    private string? TooltipTitle => NoTooltip ? null : _name;
+    private string? TooltipSpellId => NoTooltip ? null : _isEffect
+        ? $"effect/{_id}"
+        : _id > 0 ? $"ability/{_id}" : null;
 
     protected override void OnParametersSet()
     {
-        Spell ??= ResolveById(SpellId) ?? Ability?.PrimarySpell;
+        Spell.Switch(
+            s => { _id = s.Id; _name = s.Name; _icon = s.Icon; _isEffect = s is Effect; },
+            id => { var s = SpellRegistry.MaybeGet(id); _id = s?.Id ?? id; _name = s?.Name ?? ""; _icon = s?.Icon ?? ""; _isEffect = false; },
+            a => { var s = a.PrimarySpell; _id = s.Id; _name = a.Name ?? s.Name; _icon = s.Icon; _isEffect = s is Effect; },
+            a => { _id = a.Id; _name = a.Name; _icon = a.Icon; _isEffect = a.Guid >= 1_000_000; }
+        );
     }
-
-    private static Spell? ResolveById(int? id) =>
-        id.HasValue ? SpellRegistry.MaybeGet(id.Value) : null;
 }

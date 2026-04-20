@@ -22,7 +22,7 @@
                 {
                     @* Off-GCD: icon below the bar with a time-indicator line *@
                     <div class="cast-bar__cast cast-bar__cast--lower" style="left: @Px(ci.Cast.Timestamp); --level: @ci.Level;">
-                        <SpellIcon Ability="@ci.Ability" Size="SpellIconSize.Small" />
+                        <SpellIcon Spell="@ci.Ability" Size="SpellIconSize.Small" />
                         <div class="cast-bar__time-indicator"></div>
                     </div>
                 }
@@ -39,17 +39,23 @@
                         <div class="cast-bar__cast-time" style="left: @Px(ci.BeginCast.Timestamp); width: @DurPx(ci.Cast.Timestamp - ci.BeginCast.Timestamp);"></div>
                     }
                     @* On-GCD icon — positioned at begin-cast (start of cast) *@
-                    <div class="cast-bar__cast" style="left: @Px(ci.BeginCast?.Timestamp ?? ci.Cast.Timestamp);" title="@FormatTimestamp(ci.BeginCast?.Timestamp ?? ci.Cast.Timestamp)">
-                        <SpellIcon Ability="@ci.Ability" Size="SpellIconSize.Small" />
-                    </div>
+                    @if (ci.Ability is not null)
+                    {
+                        <div class="cast-bar__cast" style="left: @Px(ci.BeginCast?.Timestamp ?? ci.Cast.Timestamp);" title="@FormatTimestamp(ci.BeginCast?.Timestamp ?? ci.Cast.Timestamp)">
+                            <SpellIcon Spell="@ci.Ability" Size="SpellIconSize.Small" />
+                        </div>
+                    }
                 }
             }
             else if (item is CancelledCastItem cci)
             {
                 @* Cancelled cast: icon with red X overlay *@
-                <div class="cast-bar__cast cast-bar__cast--cancelled" style="left: @Px(cci.BeginCast.Timestamp);" title="Cancelled — @FormatTimestamp(cci.BeginCast.Timestamp)">
-                    <SpellIcon Ability="@cci.Ability" Size="SpellIconSize.Small" />
-                </div>
+                @if (cci.Ability is not null)
+                {
+                    <div class="cast-bar__cast cast-bar__cast--cancelled" style="left: @Px(cci.BeginCast.Timestamp);" title="Cancelled — @FormatTimestamp(cci.BeginCast.Timestamp)">
+                        <SpellIcon Spell="@cci.Ability" Size="SpellIconSize.Small" />
+                    </div>
+                }
             }
             else if (item is ChannelItem chi)
             {
@@ -64,9 +70,12 @@
                     <div class="cast-bar__channel" style="left: @Px(chi.EndChannel.Start); width: @DurPx(chi.EndChannel.Duration);"></div>
                 }
                 @* Icon *@
-                <div class="cast-bar__cast" style="left: @Px(chi.BeginChannel.Timestamp);" title="@FormatTimestamp(chi.BeginChannel.Timestamp)">
-                    <SpellIcon Ability="@chi.Ability" Size="SpellIconSize.Small" />
-                </div>
+                @if (chi.Ability is not null)
+                {
+                    <div class="cast-bar__cast" style="left: @Px(chi.BeginChannel.Timestamp);" title="@FormatTimestamp(chi.BeginChannel.Timestamp)">
+                        <SpellIcon Spell="@chi.Ability" Size="SpellIconSize.Small" />
+                    </div>
+                }
             }
         }
     </div>
