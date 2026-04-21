@@ -7,14 +7,17 @@
  *              heroId: string|null, cachedAt: number (ms since epoch) }
  *   Store "history": same key, same metadata minus eventsJson (for listing without loading events)
  *     value: { reportCode, fightId, playerId, fightName, playerName, heroId, cachedAt }
+ *   Store "masterdata": keyed by reportCode
+ *     value: { masterDataJson: string }
  *
  * Max 20 entries are kept; oldest (by cachedAt) are evicted on insert.
  */
 
 const DB_NAME = 'fellowship-analyzer';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 const EVENTS_STORE = 'events';
 const HISTORY_STORE = 'history';
+const MASTERDATA_STORE = 'masterdata';
 const MAX_ENTRIES = 20;
 
 let _db = null;
@@ -32,6 +35,9 @@ function openDb() {
             }
             if (!db.objectStoreNames.contains(HISTORY_STORE)) {
                 db.createObjectStore(HISTORY_STORE);
+            }
+            if (!db.objectStoreNames.contains(MASTERDATA_STORE)) {
+                db.createObjectStore(MASTERDATA_STORE);
             }
         };
 
@@ -136,6 +142,32 @@ export async function removeEntry(reportCode, fightId, playerId) {
     const t = txn(db, [EVENTS_STORE, HISTORY_STORE], 'readwrite');
     t.objectStore(EVENTS_STORE).delete(key);
     t.objectStore(HISTORY_STORE).delete(key);
+    await new Promise((resolve, reject) => {
+        t.oncomplete = resolve;
+        t.onerror = () => reject(t.error);
+    });
+}
+
+/**
+ * Retrieve cached master data JSON for the given report code.
+ * @returns {Promise<string|null>}
+ */
+export async function getCachedMasterData(reportCode) {
+    const db = await openDb();
+    const t = txn(db, [MASTERDATA_STORE], 'readonly');
+    const entry = await promisify(t.objectStore(MASTERDATA_STORE).get(reportCode));
+    return entry?.masterDataJson ?? null;
+}
+
+/**
+ * Store master data JSON for a report.
+ * @param {string} reportCode
+ * @param {string} masterDataJson
+ */
+export async function cacheMasterData(reportCode, masterDataJson) {
+    const db = await openDb();
+    const t = txn(db, [MASTERDATA_STORE], 'readwrite');
+    t.objectStore(MASTERDATA_STORE).put({ masterDataJson }, reportCode);
     await new Promise((resolve, reject) => {
         t.oncomplete = resolve;
         t.onerror = () => reject(t.error);

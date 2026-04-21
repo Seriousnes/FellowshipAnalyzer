@@ -16,10 +16,14 @@ internal sealed class ApiClient : IFellowshipLogsClient, IFellowshipLogsProxy
 
     public IReportFunction Report => _report;
     public IEventsFunction Events => _events;
+    public IMasterDataFunction MasterData => _report;
 
     public Task<HttpResponseMessage> ProxyReportAsync(string reportCode, CancellationToken cancellationToken) =>
         _report.ProxyAsync(reportCode, cancellationToken);
 
     public Task<HttpResponseMessage> ProxyEventsAsync(string reportCode, int playerId, int fightId, CancellationToken cancellationToken) =>
         _events.ProxyAsync(reportCode, playerId, fightId, cancellationToken);
+
+    public Task<HttpResponseMessage> ProxyMasterDataAsync(string reportCode, CancellationToken cancellationToken) =>
+        _report.ProxyMasterDataAsync(reportCode, cancellationToken);
 }

@@ -9,6 +9,24 @@ public sealed record FellowshipLogsEventsRequest(
 );
 
 /// <summary>
+/// Represents a single ability entry from report master data.
+/// </summary>
+public sealed record FellowshipLogsAbility(
+    int GameId,
+    string Name,
+    string Icon,
+    string Type
+);
+
+/// <summary>
+/// Master data for a report: abilities and player actors, cached at the report level.
+/// </summary>
+public sealed record FellowshipLogsMasterData(
+    IReadOnlyList<FellowshipLogsAbility> Abilities,
+    IReadOnlyList<FellowshipLogsActor> Actors
+);
+
+/// <summary>
 /// Represents metadata about a combat log report, including fights and actors.
 /// </summary>
 public sealed record FellowshipLogsReportInfo(
@@ -59,6 +77,7 @@ public interface IFellowshipLogsClient
 {
     IReportFunction Report { get; }
     IEventsFunction Events { get; }
+    IMasterDataFunction MasterData { get; }
 }
 
 public interface IReportFunction
@@ -72,5 +91,12 @@ public interface IEventsFunction
 {
     Task<EventsResult> GetAsync(
         FellowshipLogsEventsRequest request,
+        CancellationToken cancellationToken = default);
+}
+
+public interface IMasterDataFunction
+{
+    Task<FellowshipLogsMasterData> GetAsync(
+        string reportCode,
         CancellationToken cancellationToken = default);
 }

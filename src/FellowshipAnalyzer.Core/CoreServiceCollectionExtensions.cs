@@ -1,4 +1,5 @@
 using FellowshipAnalyzer.Core.Analysis;
+using FellowshipAnalyzer.Core.FellowshipLogs;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace FellowshipAnalyzer.Core;
@@ -12,6 +13,7 @@ public static class CoreServiceCollectionExtensions
     public static IServiceCollection AddCoreAnalysisServices(this IServiceCollection services)
     {
         services.AddSingleton<IPerformanceScoringService, PerformanceScoringService>();
+        services.AddScoped<ReportMasterDataService>();
         return services;
     }
 }

@@ -3,7 +3,7 @@
 
 @if (_icon is not { Length: 0 })
 {
-    <div class="spell-icon @SizeClass" title="@TooltipTitle" data-tooltip-spell-id="@TooltipSpellId">
+    <div class="spell-icon @SizeClass" data-tooltip-spell-id="@TooltipSpellId">
         <img src="@IconUrl" />
     </div>
 }
@@ -34,7 +34,6 @@
         _ => ""
     };
 
-    private string? TooltipTitle => NoTooltip ? null : _name;
     private string? TooltipSpellId => NoTooltip ? null : _isEffect
         ? $"effect/{_id}"
         : _id > 0 ? $"ability/{_id}" : null;

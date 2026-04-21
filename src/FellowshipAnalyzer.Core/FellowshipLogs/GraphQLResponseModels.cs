@@ -67,7 +67,16 @@ public sealed class GraphQLReportFight
 
 public sealed class GraphQLReportMasterData
 {
+    public List<GraphQLReportAbility>? Abilities { get; set; }
     public List<GraphQLReportActor>? Actors { get; set; }
+}
+
+public sealed class GraphQLReportAbility
+{
+    public int GameID { get; set; }
+    public string Name { get; set; } = "";
+    public string Icon { get; set; } = "";
+    public string Type { get; set; } = "";
 }
 
 public sealed class GraphQLReportActor

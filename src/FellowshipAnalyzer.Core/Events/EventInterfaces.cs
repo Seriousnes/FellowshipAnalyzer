@@ -3,11 +3,13 @@
 public interface IAbilityEvent
 {
     Ability Ability { get; set; }
+    int AbilityGameId { get; set; }
 }
 
 public interface IExtraAbilityEvent
 {
     Ability ExtraAbility { get; set; }
+    int ExtraAbilityGameId { get; set; }
 }
 
 public interface IAmountEvent

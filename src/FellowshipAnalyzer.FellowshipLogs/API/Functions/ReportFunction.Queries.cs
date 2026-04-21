@@ -2,6 +2,29 @@ namespace FellowshipAnalyzer.FellowshipLogs.API.Functions;
 
 internal sealed partial class ReportFunction
 {
+    private const string MasterDataQueryString = """
+        query MasterData($code: String!) {
+          reportData {
+            report(code: $code) {
+              masterData {
+                abilities {
+                  gameID
+                  icon
+                  name
+                  type
+                }
+                actors(type: "Player") {
+                  id
+                  name
+                  type
+                  subType
+                }
+              }
+            }
+          }
+        }
+        """;
+
     private const string ReportQueryString = """
         query GetReport($code: String!) {
           reportData {

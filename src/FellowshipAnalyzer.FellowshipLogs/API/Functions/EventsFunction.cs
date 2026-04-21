@@ -13,7 +13,7 @@ internal sealed class EventsFunction(IApiRequestExecutor api, FellowshipLogsClie
               fights(fightIDs: $fightIDs) {
                 inProgress                
               }
-              events(fightIDs: $fightIDs, sourceID: $sourceID, useAbilityIDs: false, includeResources: true) {
+              events(fightIDs: $fightIDs, sourceID: $sourceID, includeResources: true) {
                 data
               }
             }

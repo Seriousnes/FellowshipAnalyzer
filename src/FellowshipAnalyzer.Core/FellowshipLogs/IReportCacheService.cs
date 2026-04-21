@@ -35,4 +35,14 @@ public interface IReportCacheService
     /// Returns all history entries, newest first.
     /// </summary>
     ValueTask<IReadOnlyList<ReportHistoryEntry>> GetHistoryAsync();
+
+    /// <summary>
+    /// Returns the raw serialized master data JSON for a report, or null on cache miss.
+    /// </summary>
+    ValueTask<string?> GetCachedMasterDataJsonAsync(string reportCode);
+
+    /// <summary>
+    /// Caches the serialized master data JSON for a report.
+    /// </summary>
+    ValueTask CacheMasterDataAsync(string reportCode, string masterDataJson);
 }

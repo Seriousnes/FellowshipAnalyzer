@@ -53,6 +53,18 @@ internal sealed class IndexedDbReportCacheService(IJSRuntime js) : IReportCacheS
         )).ToList();
     }
 
+    public async ValueTask<string?> GetCachedMasterDataJsonAsync(string reportCode)
+    {
+        var module = await GetModuleAsync();
+        return await module.InvokeAsync<string?>("getCachedMasterData", reportCode);
+    }
+
+    public async ValueTask CacheMasterDataAsync(string reportCode, string masterDataJson)
+    {
+        var module = await GetModuleAsync();
+        await module.InvokeVoidAsync("cacheMasterData", reportCode, masterDataJson);
+    }
+
     public async ValueTask DisposeAsync()
     {
         if (_module is not null)

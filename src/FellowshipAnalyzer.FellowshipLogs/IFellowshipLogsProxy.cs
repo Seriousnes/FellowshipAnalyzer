@@ -13,4 +13,6 @@ public interface IFellowshipLogsProxy
         int playerId,
         int fightId,
         CancellationToken cancellationToken);
+
+    Task<HttpResponseMessage> ProxyMasterDataAsync(string reportCode, CancellationToken cancellationToken);
 }

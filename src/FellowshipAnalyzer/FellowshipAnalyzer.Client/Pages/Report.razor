@@ -10,6 +10,7 @@
 @inject IServiceProvider ServiceProvider
 @inject IReportCacheService ReportCache
 @inject ReportLoadingTracker LoadingTracker
+@inject ReportMasterDataService MasterDataService
 
 <PageTitle>Analysis Report</PageTitle>
 
@@ -146,6 +147,7 @@
             await Task.Yield();
 
             var reportTask = FellowshipLogs.Report.GetAsync(ReportCode);
+            var masterDataTask = FellowshipLogs.MasterData.GetAsync(ReportCode);
 
             // Check cache before hitting the events API
             string? cachedEventsJson = null; //await ReportCache.GetCachedEventsJsonAsync(ReportCode, FightId, PlayerId);
@@ -178,6 +180,7 @@
             }
 
             var reportInfo = await reportTask;
+            MasterDataService.Load(await masterDataTask);
 
             var fight = reportInfo.Fights.FirstOrDefault(f => f.Id == FightId)
                 ?? throw new InvalidOperationException($"Fight {FightId} not found in report.");
@@ -185,9 +188,8 @@
             LoadingTracker.DeserializeState = ReportLoadingTracker.StepState.Ok;
             await Task.Yield();
 
-            // TODO: Determine hero ID from player/report data.
-            // For now, default to "rime" as the only hero analyzer.
-            var heroId = "rime";
+            var heroId = MasterDataService.GetHeroId(PlayerId)
+                ?? throw new InvalidOperationException($"Could not determine hero for player {PlayerId}.");
             var analyzer = ServiceProvider.GetKeyedService<IHeroAnalyzer>(heroId)
                 ?? throw new InvalidOperationException($"No hero analyzer found for '{heroId}'.");
 

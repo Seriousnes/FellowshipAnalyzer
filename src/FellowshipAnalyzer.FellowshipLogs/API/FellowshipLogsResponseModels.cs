@@ -61,7 +61,16 @@ internal sealed class FellowshipLogsReportFight
 
 internal sealed class FellowshipLogsReportMasterData
 {
+    public List<FellowshipLogsReportAbility>? Abilities { get; set; }
     public List<FellowshipLogsReportActor>? Actors { get; set; }
+}
+
+internal sealed class FellowshipLogsReportAbility
+{
+    public int GameID { get; set; }
+    public string Name { get; set; } = "";
+    public string Icon { get; set; } = "";
+    public string Type { get; set; } = "";
 }
 
 internal sealed class FellowshipLogsReportActor

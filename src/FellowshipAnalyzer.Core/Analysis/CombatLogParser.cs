@@ -16,6 +16,7 @@ namespace FellowshipAnalyzer.Core.Analysis;
 [AddModule<Haste>]
 [AddModule<GlobalCooldown>]
 [AddModule<SpellUsable>]
+[AddNormalizer<AbilityMasterDataNormalizer>]
 [AddNormalizer<CastLinkNormalizer>]
 public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServiceProvider provider) : IHeroAnalyzer
 {

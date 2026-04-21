@@ -14,10 +14,12 @@ public sealed class FellowshipLogsProxyClient : IFellowshipLogsClient
     {
         Report = new ProxyReportFunction(http, jsonOptions);
         Events = new ProxyEventsFunction(http, jsonOptions);
+        MasterData = new ProxyMasterDataFunction(http, jsonOptions);
     }
 
     public IReportFunction Report { get; }
     public IEventsFunction Events { get; }
+    public IMasterDataFunction MasterData { get; }
 
     private sealed class ProxyReportFunction(HttpClient http, JsonSerializerOptions jsonOptions) : IReportFunction
     {
@@ -62,6 +64,31 @@ public sealed class FellowshipLogsProxyClient : IFellowshipLogsClient
             var inProgress = report.Fights?.FirstOrDefault()?.InProgress ?? false;
 
             return new EventsResult(eventsData.Data, inProgress);
+        }
+    }
+
+    private sealed class ProxyMasterDataFunction(HttpClient http, JsonSerializerOptions jsonOptions) : IMasterDataFunction
+    {
+        public async Task<FellowshipLogsMasterData> GetAsync(
+            string reportCode,
+            CancellationToken cancellationToken = default)
+        {
+            var response = await http.GetFromJsonAsync<GraphQLResponse<GraphQLReportResponse>>(
+                $"/api/masterdata/{Uri.EscapeDataString(reportCode)}", jsonOptions, cancellationToken)
+                ?? throw new InvalidOperationException("Failed to deserialize master data response.");
+
+            var masterData = response.Data.ReportData.Report.MasterData
+                ?? throw new InvalidOperationException("GraphQL response did not contain expected master data.");
+
+            var abilities = masterData.Abilities?.Select(a => new FellowshipLogsAbility(
+                a.GameID, a.Name, a.Icon, a.Type
+            )).ToList().AsReadOnly() ?? (IReadOnlyList<FellowshipLogsAbility>)[];
+
+            var actors = masterData.Actors?.Select(a => new FellowshipLogsActor(
+                a.Id, a.Name, a.Type, a.SubType, a.Server
+            )).ToList().AsReadOnly() ?? (IReadOnlyList<FellowshipLogsActor>)[];
+
+            return new FellowshipLogsMasterData(abilities, actors);
         }
     }
 }

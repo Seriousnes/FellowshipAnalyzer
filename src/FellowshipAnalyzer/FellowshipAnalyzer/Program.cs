@@ -105,6 +105,18 @@ app.MapGet(
         await StreamUpstreamResponseAsync(upstream, ctx, cancellationToken);
     });
 
+app.MapGet(
+    "/api/masterdata/{reportCode}",
+    async (
+        string reportCode,
+        IFellowshipLogsProxy proxy,
+        HttpContext ctx,
+        CancellationToken cancellationToken) =>
+    {
+        using var upstream = await proxy.ProxyMasterDataAsync(reportCode, cancellationToken);
+        await StreamUpstreamResponseAsync(upstream, ctx, cancellationToken);
+    });
+
 static async Task StreamUpstreamResponseAsync(
     HttpResponseMessage upstream,
     HttpContext ctx,
