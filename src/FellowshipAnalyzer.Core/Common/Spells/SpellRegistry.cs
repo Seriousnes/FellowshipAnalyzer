@@ -98,3 +98,7 @@ public static class SpellRegistry
         return entries.ToFrozenDictionary();
     }
 }
+
+public interface ISpellRegistry
+{
+}

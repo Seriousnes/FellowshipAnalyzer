@@ -1,5 +1,6 @@
 using System.Globalization;
 
+using FellowshipAnalyzer.Core.Analysis.Normalizers;
 using FellowshipAnalyzer.Core.Events;
 
 namespace FellowshipAnalyzer.Core.Analysis;
@@ -16,6 +17,7 @@ namespace FellowshipAnalyzer.Core.Analysis;
 [AddModule<Haste>]
 [AddModule<GlobalCooldown>]
 [AddModule<SpellUsable>]
+[AddModule<ChronoshiftAnalyzer>]
 [AddNormalizer<AbilityMasterDataNormalizer>]
 [AddNormalizer<CastLinkNormalizer>]
 public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServiceProvider provider) : IHeroAnalyzer
@@ -31,6 +33,7 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
     public Combatants? Combatants => GetModule<Combatants>();
     public GlobalCooldown? GlobalCooldown => GetModule<GlobalCooldown>();
     public SpellUsable? SpellUsable => GetModule<SpellUsable>();
+    public ChronoshiftAnalyzer? Chronoshift => GetModule<ChronoshiftAnalyzer>();
 
     /// <summary>
     /// Report-level actor name lookup, keyed by actor ID.

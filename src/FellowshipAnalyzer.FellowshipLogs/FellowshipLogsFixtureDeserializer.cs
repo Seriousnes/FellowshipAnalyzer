@@ -1,6 +1,7 @@
 using System.Text.Json;
 using FellowshipAnalyzer.Core.Events;
 using FellowshipAnalyzer.FellowshipLogs.API;
+using FellowshipAnalyzer.FellowshipLogs.Extensions;
 
 namespace FellowshipAnalyzer.FellowshipLogs;
 

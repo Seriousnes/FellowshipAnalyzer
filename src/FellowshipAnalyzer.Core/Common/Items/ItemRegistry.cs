@@ -98,3 +98,11 @@ public static class ItemRegistry
         return entries.ToFrozenDictionary();
     }
 }
+
+/// <summary>
+/// Marker interface for item registry classes. Implement this on any class that declares static
+/// <see cref="Item"/> properties to have them auto-discovered by <see cref="ItemRegistry"/>.
+/// </summary>
+public interface IItemRegistry
+{
+}

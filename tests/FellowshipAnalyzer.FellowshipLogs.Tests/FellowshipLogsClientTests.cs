@@ -4,6 +4,7 @@ using System.Text;
 using FellowshipAnalyzer.Core.Events;
 using FellowshipAnalyzer.Core.FellowshipLogs;
 using FellowshipAnalyzer.FellowshipLogs.API;
+using FellowshipAnalyzer.FellowshipLogs.Extensions;
 
 using Microsoft.Extensions.DependencyInjection;
 

@@ -1,3 +1,4 @@
+using FellowshipAnalyzer.Core.Analysis.Normalizers;
 using FellowshipAnalyzer.Core.Common.Spells;
 using OneOf;
 

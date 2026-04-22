@@ -1,11 +1,16 @@
 @using FellowshipAnalyzer.Core.Common.Spells
 @using OneOf
 
-@if (_icon is not { Length: 0 })
+@if (NoTooltip)
 {
-    <div class="spell-icon @SizeClass" data-tooltip-spell-id="@TooltipSpellId" @attributes="InputAttributes">
-        <img src="@IconUrl" />
-    </div>
+    <img src="@IconUrl" class="spell-icon @SizeClass" alt="@_name" @attributes="InputAttributes" />
+}
+else if (_icon is { Length: > 0 })
+{
+    <a href="@AbilityUrl" target="_blank" rel="noopener noreferrer"
+       data-tooltip-spell-id="@TooltipSpellId" class="spell-icon-link" @attributes="InputAttributes">
+        <img src="@IconUrl" class="spell-icon @SizeClass" alt="@_name" />
+    </a>
 }
 
 @code {
@@ -25,10 +30,12 @@
 
     private string _name = "";
     private string _icon = "";
+    private int _guid;
     private int _id;
     private bool _isEffect;
 
     private string IconUrl => $"https://assets.rpglogs.com/img/fellowship/abilities/{_icon}";
+    private string AbilityUrl => $"https://fellows.gg/{_guid}";
 
     private string SizeClass => Size switch
     {
@@ -37,17 +44,17 @@
         _ => ""
     };
 
-    private string? TooltipSpellId => NoTooltip ? null : _isEffect
+    private string? TooltipSpellId => _isEffect
         ? $"effect/{_id}"
         : _id > 0 ? $"ability/{_id}" : null;
 
     protected override void OnParametersSet()
     {
         Spell.Switch(
-            s => { _id = s.Id; _name = s.Name; _icon = s.Icon; _isEffect = s is Effect; },
-            id => { var s = SpellRegistry.MaybeGet(id); _id = s?.Id ?? id; _name = s?.Name ?? ""; _icon = s?.Icon ?? ""; _isEffect = false; },
-            a => { var s = a.PrimarySpell; _id = s.Id; _name = a.Name ?? s.Name; _icon = s.Icon; _isEffect = s is Effect; },
-            a => { _id = a.Id; _name = a.Name; _icon = a.Icon; _isEffect = a.Guid >= 1_000_000; }
+            s => { _guid = s.Guid; _id = s.Id; _name = s.Name; _icon = s.Icon; _isEffect = s is Effect; },
+            id => { var s = SpellRegistry.MaybeGet(id); _guid = s?.Guid ?? id; _id = s?.Id ?? id; _name = s?.Name ?? ""; _icon = s?.Icon ?? ""; _isEffect = false; },
+            a => { var s = a.PrimarySpell; _guid = s.Guid; _id = s.Id; _name = a.Name ?? s.Name; _icon = s.Icon; _isEffect = s is Effect; },
+            a => { _guid = a.Guid; _id = a.Id; _name = a.Name; _icon = a.Icon; _isEffect = a.Guid >= 1_000_000; }
         );
     }
 }

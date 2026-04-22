@@ -1,14 +1,16 @@
 using System.Net;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+
 using FellowshipAnalyzer.Core.Events;
 using FellowshipAnalyzer.Core.FellowshipLogs;
 using FellowshipAnalyzer.Core.Serialization;
 using FellowshipAnalyzer.FellowshipLogs.API;
+
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace FellowshipAnalyzer.FellowshipLogs;
+namespace FellowshipAnalyzer.FellowshipLogs.Extensions;
 
 public static class ServiceCollectionExtensions
 {

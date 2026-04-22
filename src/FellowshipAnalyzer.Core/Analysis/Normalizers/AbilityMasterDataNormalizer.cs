@@ -1,7 +1,7 @@
 using FellowshipAnalyzer.Core.Events;
 using FellowshipAnalyzer.Core.FellowshipLogs;
 
-namespace FellowshipAnalyzer.Core.Analysis;
+namespace FellowshipAnalyzer.Core.Analysis.Normalizers;
 
 /// <summary>
 /// Populates <see cref="IAbilityEvent.Ability"/> and <see cref="IExtraAbilityEvent.ExtraAbility"/>

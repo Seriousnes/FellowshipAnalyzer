@@ -1,4 +1,5 @@
 using FellowshipAnalyzer.Components;
+using FellowshipAnalyzer.ServiceDefaults;
 
 var builder = WebApplication.CreateBuilder(args);
 

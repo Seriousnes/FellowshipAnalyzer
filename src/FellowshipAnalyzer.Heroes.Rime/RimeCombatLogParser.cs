@@ -14,5 +14,3 @@ public sealed partial class RimeCombatLogParser : CombatLogParser
     public override string HeroId => "rime";
     public override Type? GuideComponent => typeof(RimeGuide);
 }
-
-

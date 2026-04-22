@@ -1,17 +1,21 @@
 .spell-link {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    vertical-align: middle;
-    color: inherit;
+    color: var(--fa-gold);
     text-decoration: none;
 }
 
-.spell-link:hover .spell-link__name {
-    text-decoration: underline;
+.spell-link:hover {
+    color: var(--fa-gold-light);
 }
 
-.spell-link__name {
-    color: inherit;
-    font-size: inherit;
+.spell-link__icon {
+    height: 1.3em;
+    width: 1.3em;
+    margin-top: -0.3em;
+    vertical-align: middle;
+    border-radius: 2px;
+    object-fit: cover;
+}
+
+.spell-link:hover {
+    text-decoration: underline;
 }

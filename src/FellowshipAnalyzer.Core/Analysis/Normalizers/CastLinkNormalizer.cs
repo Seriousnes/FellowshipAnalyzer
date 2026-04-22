@@ -1,6 +1,6 @@
 using FellowshipAnalyzer.Core.Events;
 
-namespace FellowshipAnalyzer.Core.Analysis;
+namespace FellowshipAnalyzer.Core.Analysis.Normalizers;
 
 /// <summary>
 /// Pre-processes cast and channel events before any module sees them:

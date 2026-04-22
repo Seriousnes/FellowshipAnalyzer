@@ -5,6 +5,7 @@ using FellowshipAnalyzer.Core.Events;
 using FellowshipAnalyzer.Core.FellowshipLogs;
 using FellowshipAnalyzer.Core.Serialization;
 using FellowshipAnalyzer.FellowshipLogs.API;
+using FellowshipAnalyzer.FellowshipLogs.Extensions;
 
 using Shouldly;
 

@@ -29,6 +29,34 @@ public sealed class SpellUsable : Analyzer
 
     public IReadOnlyList<TrackedAbilityCast> Casts => _casts;
 
+    /// <summary>Returns the IDs of all spells currently on cooldown (any charges on cooldown).</summary>
+    public IReadOnlyCollection<int> GetSpellsOnCooldown() => _cooldowns.Keys;
+
+    /// <summary>
+    /// Reduces the remaining cooldown of a spell by up to <paramref name="milliseconds"/>.
+    /// For multi-charge spells, properly restores each charge in sequence as CDR overflows
+    /// into the next, without requiring a workaround for skipping multiple charges at once.
+    /// </summary>
+    /// <returns>The actual amount of CDR applied in milliseconds.</returns>
+    public int ReduceCooldown(int spellId, int milliseconds, int timestamp)
+    {
+        if (!_cooldowns.TryGetValue(spellId, out var cd) || milliseconds <= 0)
+            return 0;
+
+        var remaining = Math.Max(0, cd.ExpectedEnd - timestamp);
+
+        if (milliseconds < remaining)
+        {
+            _cooldowns[spellId] = cd with { ExpectedEnd = cd.ExpectedEnd - milliseconds };
+            return milliseconds;
+        }
+
+        // CDR meets or exceeds this charge's remaining time — restore the charge and recurse
+        // into the next charge's cooldown with any leftover CDR.
+        EndCooldown(spellId, timestamp);
+        return remaining + ReduceCooldown(spellId, milliseconds - remaining, timestamp);
+    }
+
     public bool IsAvailable(int spellId) => !_cooldowns.TryGetValue(spellId, out var cd) || cd.ChargesAvailable > 0;
 
     public bool IsOnCooldown(int spellId) => _cooldowns.ContainsKey(spellId);

@@ -3,11 +3,11 @@
 
 <a href="@AbilityUrl" target="_blank" rel="noopener noreferrer"
    data-tooltip-spell-id="@TooltipSpellId" class="spell-link">
-    @if (Icon)
+    @if (Icon && _icon is { Length: > 0 })
     {
-        <SpellIcon Spell="@Spell" Size="@IconSize" NoTooltip />
+        <img src="@IconUrl" class="spell-link__icon" alt="" />
     }
-    <span class="spell-link__name">@(_name ?? "Unknown Spell")</span>
+    @(_name ?? "Unknown Spell")
 </a>
 
 @code {
@@ -34,6 +34,7 @@
     private string AbilityUrl => $"https://fellows.gg/{_id}";
 
     private string? TooltipSpellId => _spellId > 0 ? LinkType : null;
+    private string IconUrl => $"https://assets.rpglogs.com/img/fellowship/abilities/{_icon}";
 
     protected override void OnParametersSet()
     {

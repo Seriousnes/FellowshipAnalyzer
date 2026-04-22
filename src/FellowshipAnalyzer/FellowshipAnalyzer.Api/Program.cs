@@ -1,4 +1,6 @@
 using FellowshipAnalyzer.FellowshipLogs;
+using FellowshipAnalyzer.FellowshipLogs.Extensions;
+using FellowshipAnalyzer.ServiceDefaults;
 
 var builder = WebApplication.CreateBuilder(args);
 
