@@ -16,6 +16,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\FellowshipAnalyzer\FellowshipAnalyzer\FellowshipAnalyzer.csproj" />
+    <ProjectReference Include="..\FellowshipAnalyzer\FellowshipAnalyzer.Api\FellowshipAnalyzer.Api.csproj" />
   </ItemGroup>
 
 </Project>

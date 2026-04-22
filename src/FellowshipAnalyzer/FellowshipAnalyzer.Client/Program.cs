@@ -1,5 +1,6 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Net.Http.Json;
 using FellowshipAnalyzer.Client.Services;
 using FellowshipAnalyzer.Core;
 using FellowshipAnalyzer.Core.Analysis;
@@ -12,10 +13,15 @@ using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 
-builder.Services.AddScoped(_ => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
-builder.Services.AddAuthorizationCore();
-builder.Services.AddCascadingAuthenticationState();
-builder.Services.AddAuthenticationStateDeserialization();
+using var hostConfigurationClient = new HttpClient
+{
+    BaseAddress = new Uri(builder.HostEnvironment.BaseAddress)
+};
+
+var clientConfiguration = await hostConfigurationClient.GetFromJsonAsync<ClientConfiguration>("config.json")
+    ?? throw new InvalidOperationException("The FellowshipAnalyzer host did not provide client configuration.");
+
+builder.Services.AddScoped(_ => new HttpClient { BaseAddress = new Uri(clientConfiguration.ApiBaseUrl) });
 
 // JSON options for deserializing API responses (including polymorphic events)
 var jsonOptions = new JsonSerializerOptions(JsonSerializerOptions.Web)
@@ -35,10 +41,12 @@ builder.Services.AddRimeAnalysis();
 // Per-report loading progress tracker
 builder.Services.AddScoped<ReportLoadingTracker>();
 
-// IFellowshipLogsClient: WASM proxy client deserializes raw GraphQL responses from server endpoints
+// IFellowshipLogsClient: WASM proxy client deserializes raw GraphQL responses from API endpoints
 builder.Services.AddScoped<IFellowshipLogsClient, FellowshipLogsProxyClient>();
 
 // Report history + event cache (IndexedDB-backed)
 builder.Services.AddScoped<IReportCacheService, IndexedDbReportCacheService>();
 
 await builder.Build().RunAsync();
+
+internal sealed record ClientConfiguration(string ApiBaseUrl);

@@ -149,7 +149,7 @@
     background: #f8b700;
     border-radius: 2px;
     border: 1px solid #ffffff;
-    z-index: 2;
+    z-index: 1;
 }
 
 /* ===== Cast-time / Channel bar ===== */
@@ -165,5 +165,6 @@
         #ffffff 10px
     );
     border-radius: 2px;
-    z-index: 1;
+    border: 1px solid #ffffff;
+    z-index: 2;
 }

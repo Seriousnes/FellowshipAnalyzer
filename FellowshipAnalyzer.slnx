@@ -11,6 +11,7 @@
   <Project Path="src/FellowshipAnalyzer.FellowshipLogs/FellowshipAnalyzer.FellowshipLogs.csproj" />
   <Project Path="src/FellowshipAnalyzer.Generators/FellowshipAnalyzer.Generators.csproj" />
   <Project Path="src/FellowshipAnalyzer.ServiceDefaults/FellowshipAnalyzer.ServiceDefaults.csproj" />
+  <Project Path="src/FellowshipAnalyzer/FellowshipAnalyzer.Api/FellowshipAnalyzer.Api.csproj" />
   <Project Path="src/FellowshipAnalyzer/FellowshipAnalyzer.Client/FellowshipAnalyzer.Client.csproj" />
   <Project Path="src/FellowshipAnalyzer/FellowshipAnalyzer/FellowshipAnalyzer.csproj" />
   <Project Path="tests/FellowshipAnalyzer.Core.Tests/FellowshipAnalyzer.Core.Tests.csproj" />

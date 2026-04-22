@@ -1,4 +1,6 @@
-﻿namespace FellowshipAnalyzer.Core.Events;
+﻿using FellowshipAnalyzer.Core.Game;
+
+namespace FellowshipAnalyzer.Core.Events;
 
 public record ExtraAttacksEvent : Event, IAbilityEvent, IHasSourceEvent, IHasTargetEvent
 {
@@ -25,7 +27,7 @@ public record ResourceChangeEvent : Event, IAbilityEvent, IHasSourceEvent, IHasT
     /// <summary>
     /// The id for the resource. See the <see cref="Resource"/> file for all available resource types.
     /// </summary>
-    public virtual int ResourceChangeType { get; set; }
+    public virtual ResourceTypes ResourceChangeType { get; set; }
     /// <summary>
     /// The amount of resource gained. This includes any wasted gain, see <see cref="Waste"/>
     /// </summary>

@@ -10,10 +10,28 @@ namespace FellowshipAnalyzer.Core.Analysis;
 ///   <item>Links <see cref="BeginCastEvent"/> to its completing <see cref="CastEvent"/> via <see cref="BeginCastEvent.CastEvent"/>.</item>
 ///   <item>Links <see cref="EndChannelEvent"/> back to its <see cref="BeginChannelEvent"/> via <see cref="EndChannelEvent.BeginChannel"/>.</item>
 ///   <item>Marks <see cref="BeginCastEvent.IsCancelled"/> = true when a cast has no matching completion event.</item>
+///   <item>
+///     When a <see cref="CastEvent"/> is immediately followed by a <see cref="BeginChannelEvent"/> for the same
+///     source and spell GUID (within <see cref="MaxChannelCastWindowMs"/>), establishes the WoWA-style
+///     cast-to-channel relationship contract:
+///     <list type="bullet">
+///       <item><see cref="CastEvent.Channel"/> → <see cref="EndChannelEvent"/> (via <see cref="BaseCastEvent.Channel"/>)</item>
+///       <item><see cref="BeginCastEvent.Channel"/> → <see cref="BeginChannelEvent"/> (when a begincast preceded the cast)</item>
+///       <item><see cref="EndChannelEvent.BeginChannel"/> → <see cref="BeginChannelEvent"/> (already linked)</item>
+///     </list>
+///   </item>
 /// </list>
 /// </summary>
 public sealed class CastLinkNormalizer(Abilities? abilities) : IEventNormalizer
 {
+    /// <summary>
+    /// Maximum milliseconds between a <see cref="CastEvent"/> and the following
+    /// <see cref="BeginChannelEvent"/> for the same spell/source to be treated as
+    /// a single cast-to-channel sequence. Fellowship logs emit them at the same timestamp;
+    /// this generous window tolerates minor log jitter.
+    /// </summary>
+    private const int MaxChannelCastWindowMs = 200;
+
     public int Priority => 0;
 
     public List<Event> Normalize(List<Event> events, int playerId)
@@ -41,6 +59,14 @@ public sealed class CastLinkNormalizer(Abilities? abilities) : IEventNormalizer
 
         // Per-source tracking for cancel detection (WoWA-style)
         var lastBeginCast = new Dictionary<int, BeginCastEvent>();
+
+        // Cast-to-channel linking state:
+        // Tracks casts that may transition into a channel (keyed by abilityGuid + sourceId).
+        // Entry is cleared when a BeginChannelEvent matches within MaxChannelCastWindowMs, or
+        // naturally overwritten when the same spell is cast again.
+        var pendingChannelCasts = new Dictionary<(int abilityId, int sourceId), (CastEvent Cast, BeginCastEvent? BeginCast, int Timestamp)>();
+        // Tracks the cast that has been linked to a pending channel, waiting for EndChannelEvent.
+        var pendingCastForEndChannel = new Dictionary<(int abilityId, int sourceId), CastEvent>();
 
         // Pre-pass: identify activation CastEvents that have a matching non-activation
         // CastEvent at the same timestamp (instant casts with duplicate events).
@@ -110,18 +136,41 @@ public sealed class CastLinkNormalizer(Abilities? abilities) : IEventNormalizer
                             // else: castable-while-casting — don't disturb the pending begincast
                         }
 
+                        BeginCastEvent? linkedBeginCast = null;
                         if (pendingCasts.TryGetValue(castKey, out var beginCast))
                         {
                             beginCast.CastEvent = cast;
+                            linkedBeginCast = beginCast;
                             pendingCasts.Remove(castKey);
                             lastBeginCast.Remove(cast.SourceId);
                         }
+
+                        // Store as a potential channel cast. If a BeginChannelEvent for the same
+                        // spell/source arrives within MaxChannelCastWindowMs, these will be linked.
+                        pendingChannelCasts[castKey] = (cast, linkedBeginCast, cast.Timestamp);
                         break;
                     }
 
                 case BeginChannelEvent beginChannel when beginChannel.Ability is not null:
-                    pendingChannels[(beginChannel.Ability.Guid, beginChannel.SourceId)] = beginChannel;
-                    break;
+                    {
+                        var channelKey = (beginChannel.Ability.Guid, beginChannel.SourceId);
+                        pendingChannels[channelKey] = beginChannel;
+
+                        // If a cast for this spell/source just fired within the window, treat
+                        // the pair as a single cast-to-channel sequence and establish links.
+                        if (pendingChannelCasts.TryGetValue(channelKey, out var castInfo)
+                            && beginChannel.Timestamp - castInfo.Timestamp <= MaxChannelCastWindowMs)
+                        {
+                            // BeginCastEvent.Channel → BeginChannelEvent
+                            if (castInfo.BeginCast is not null)
+                                castInfo.BeginCast.Channel = beginChannel;
+
+                            // Remember the cast so we can set CastEvent.Channel when endchannel arrives.
+                            pendingCastForEndChannel[channelKey] = castInfo.Cast;
+                            pendingChannelCasts.Remove(channelKey);
+                        }
+                        break;
+                    }
 
                 case EndChannelEvent ec when ec.Ability is not null:
                     var ecKey = (ec.Ability.Guid, ec.SourceId);
@@ -129,6 +178,12 @@ public sealed class CastLinkNormalizer(Abilities? abilities) : IEventNormalizer
                     {
                         ec.BeginChannel = beginChannel2;
                         pendingChannels.Remove(ecKey);
+                    }
+                    // CastEvent.Channel → EndChannelEvent (completing the contract)
+                    if (pendingCastForEndChannel.TryGetValue(ecKey, out var channelCast))
+                    {
+                        channelCast.Channel = ec;
+                        pendingCastForEndChannel.Remove(ecKey);
                     }
                     break;
             }

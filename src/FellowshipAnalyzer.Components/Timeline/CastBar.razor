@@ -1,10 +1,10 @@
 @using System.Globalization
 @using FellowshipAnalyzer.Core.Analysis
+@using FellowshipAnalyzer.Core.Common.Spells
 @using FellowshipAnalyzer.Core.Events
+@using OneOf
 
-@* Wrapper container — positions time-line behind casts *@
 <div class="cast-bar-container" style="position: relative; width: @F(TrackWidthPx)px;">
-    @* Time-line: one div per second, positioned absolutely behind the casts *@
     <div class="cast-bar__time-line" style="height: calc(100% + 10px);">
         @for (var sec = 1; sec < _totalSeconds; sec++)
         {
@@ -12,68 +12,66 @@
         }
     </div>
 
-    @* Casts row — icons, GCD bars, cast/channel bars *@
     <div class="cast-bar" style="@CastBarStyle">
         @foreach (var item in _items)
         {
             @if (item is CastItem ci)
             {
-                @if (ci.IsLower && ci.Ability is not null)
+                @if (ci.IsLower && HasDisplaySpell(ci.Ability, ci.Cast.Ability))
                 {
-                    @* Off-GCD: icon below the bar with a time-indicator line *@
                     <div class="cast-bar__cast cast-bar__cast--lower" style="left: @Px(ci.Cast.Timestamp); --level: @ci.Level;">
-                        <SpellIcon Spell="@ci.Ability" Size="SpellIconSize.Small" />
+                        <SpellIcon Spell="@ResolveDisplaySpell(ci.Ability, ci.Cast.Ability)" Size="SpellIconSize.Small" />
                         <div class="cast-bar__time-indicator"></div>
                     </div>
                 }
                 else
                 {
-                    @* GCD bar — starts at begin-cast (or cast success if instant) *@
                     @if (ci.Gcd is not null)
                     {
                         <div class="cast-bar__gcd" style="left: @Px(ci.BeginCast?.Timestamp ?? ci.Cast.Timestamp); width: @DurPx(ci.Gcd.Duration);"></div>
                     }
-                    @* Cast time bar *@
                     @if (ci.BeginCast is not null && ci.Cast.Timestamp > ci.BeginCast.Timestamp)
                     {
                         <div class="cast-bar__cast-time" style="left: @Px(ci.BeginCast.Timestamp); width: @DurPx(ci.Cast.Timestamp - ci.BeginCast.Timestamp);"></div>
                     }
-                    @* On-GCD icon — positioned at begin-cast (start of cast) *@
-                    @if (ci.Ability is not null)
+                    @if (HasDisplaySpell(ci.Ability, ci.Cast.Ability))
                     {
                         <div class="cast-bar__cast" style="left: @Px(ci.BeginCast?.Timestamp ?? ci.Cast.Timestamp);" title="@FormatTimestamp(ci.BeginCast?.Timestamp ?? ci.Cast.Timestamp)">
-                            <SpellIcon Spell="@ci.Ability" Size="SpellIconSize.Small" />
+                            <SpellIcon Spell="@ResolveDisplaySpell(ci.Ability, ci.Cast.Ability)" Size="SpellIconSize.Small" />
                         </div>
                     }
                 }
             }
             else if (item is CancelledCastItem cci)
             {
-                @* Cancelled cast: icon with red X overlay *@
-                @if (cci.Ability is not null)
+                @if (HasDisplaySpell(cci.Ability, cci.BeginCast.Ability))
                 {
                     <div class="cast-bar__cast cast-bar__cast--cancelled" style="left: @Px(cci.BeginCast.Timestamp);" title="Cancelled — @FormatTimestamp(cci.BeginCast.Timestamp)">
-                        <SpellIcon Spell="@cci.Ability" Size="SpellIconSize.Small" />
+                        <SpellIcon Spell="@ResolveDisplaySpell(cci.Ability, cci.BeginCast.Ability)" Size="SpellIconSize.Small" />
                     </div>
                 }
             }
             else if (item is ChannelItem chi)
             {
-                @* GCD bar *@
                 @if (chi.Gcd is not null)
                 {
                     <div class="cast-bar__gcd" style="left: @Px(chi.BeginChannel.Timestamp); width: @DurPx(chi.Gcd.Duration);"></div>
                 }
-                @* Channel bar *@
-                @if (chi.EndChannel is not null && chi.EndChannel.Duration > 0)
+                @if (chi.EndChannel is not null)
                 {
-                    <div class="cast-bar__channel" style="left: @Px(chi.EndChannel.Start); width: @DurPx(chi.EndChannel.Duration);"></div>
+                    var chanStart = chi.EndChannel.Start > 0 ? chi.EndChannel.Start : chi.BeginChannel.Timestamp;
+                    var chanWidth = chi.EndChannel.Duration > 0
+                        ? chi.EndChannel.Duration
+                        : chi.EndChannel.Timestamp - chi.BeginChannel.Timestamp;
+                    @if (chanWidth > 0)
+                    {
+                        <div class="cast-bar__channel" style="left: @Px(chanStart); width: @DurPx(chanWidth);"></div>
+                    }
                 }
-                @* Icon *@
-                @if (chi.Ability is not null)
+                @if (HasDisplaySpell(chi.Ability, chi.BeginChannel.Ability))
                 {
                     <div class="cast-bar__cast" style="left: @Px(chi.BeginChannel.Timestamp);" title="@FormatTimestamp(chi.BeginChannel.Timestamp)">
-                        <SpellIcon Spell="@chi.Ability" Size="SpellIconSize.Small" />
+                        <SpellIcon Spell="@ResolveDisplaySpell(chi.Ability, chi.BeginChannel.Ability)" Size="SpellIconSize.Small" />
                     </div>
                 }
             }
@@ -112,6 +110,24 @@
     private string DurPx(int durationMs) =>
         $"{durationMs / 1000.0 * PixelsPerSecond:F1}px";
 
+    private static bool HasDisplaySpell(SpellbookAbility? ability, Ability? fallbackAbility) =>
+        ability is not null || fallbackAbility is not null;
+
+    private static OneOf<Spell, int, SpellbookAbility, Ability> ResolveDisplaySpell(SpellbookAbility? ability, Ability? fallbackAbility)
+    {
+        if (ability is not null)
+        {
+            return ability;
+        }
+
+        if (fallbackAbility is not null)
+        {
+            return fallbackAbility;
+        }
+
+        throw new InvalidOperationException("Display spell was requested without spellbook or event ability data.");
+    }
+
     private static string F(double v) => v.ToString("F1", CultureInfo.InvariantCulture);
 
     private string FormatTimestamp(int timestamp)
@@ -133,7 +149,6 @@
     {
         _totalSeconds = (int)Math.Ceiling((FightEndTime - FightStartTime) / 1000.0);
 
-        // Build reverse lookup: CastEvent → BeginCastEvent (via normalizer-linked property)
         var beginCastByCast = new Dictionary<CastEvent, BeginCastEvent>();
         foreach (var e in Events.OfType<BeginCastEvent>())
         {
@@ -141,7 +156,6 @@
                 beginCastByCast[e.CastEvent] = e;
         }
 
-        // Build reverse lookup: BeginChannelEvent → EndChannelEvent (via normalizer-linked property)
         var endChannelByBegin = new Dictionary<BeginChannelEvent, EndChannelEvent>();
         foreach (var e in Events.OfType<EndChannelEvent>())
         {

@@ -3,7 +3,7 @@
 
 @if (_icon is not { Length: 0 })
 {
-    <div class="spell-icon @SizeClass" data-tooltip-spell-id="@TooltipSpellId">
+    <div class="spell-icon @SizeClass" data-tooltip-spell-id="@TooltipSpellId" @attributes="InputAttributes">
         <img src="@IconUrl" />
     </div>
 }
@@ -19,6 +19,9 @@
     /// <summary>Suppress the API tooltip (e.g. when nested inside a <see cref="SpellLink"/>).</summary>
     [Parameter]
     public bool NoTooltip { get; set; }
+
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object> InputAttributes { get; set; } = new();
 
     private string _name = "";
     private string _icon = "";

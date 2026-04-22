@@ -6,12 +6,12 @@ namespace FellowshipAnalyzer.Core.Analysis;
 /// <summary>
 /// Base class for tracking a specific resource type by subscribing to
 /// <see cref="ResourceChangeEvent"/> and <see cref="CastEvent"/> events.
-/// Subclasses set <see cref="ResourceTypeId"/> and <see cref="MaxResource"/>
+/// Subclasses set <see cref="ResourceType"/> and <see cref="MaxResource"/>
 /// to configure which resource to track.
 /// </summary>
 public abstract class ResourceTracker : Analyzer
 {
-    protected int ResourceTypeId { get; set; }
+    protected ResourceTypes ResourceType { get; set; }
     protected int MaxResource { get; set; }
     protected int InitialResource { get; set; }
 
@@ -37,7 +37,7 @@ public abstract class ResourceTracker : Analyzer
 
     private void OnResourceChange(ResourceChangeEvent e)
     {
-        if (e.ResourceChangeType != ResourceTypeId)
+        if (e.ResourceChangeType != ResourceType)
         {
             return;
         }
@@ -67,7 +67,7 @@ public abstract class ResourceTracker : Analyzer
             return;
         }
 
-        var resource = e.ClassResources.FirstOrDefault(cr => cr.Type == (ResourceTypes)ResourceTypeId);
+        var resource = e.ClassResources.FirstOrDefault(cr => cr.Type == (ResourceTypes)ResourceType);
         if (resource is null || resource.Cost is null or 0)
         {
             return;

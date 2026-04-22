@@ -13,6 +13,7 @@ Execute a .NET 10 file-based app from `src/FellowshipAnalyzer.Tools/`.
 | Script | Purpose | Usage |
 |--------|---------|-------|
 | `fetch-abilities.cs` | Fetches all abilities from the FellowshipLogs API and writes `abilities.json` at the repo root | `dotnet run src/FellowshipAnalyzer.Tools/fetch-abilities.cs` |
+| `resource-analysis.cs` | Analyzes `sourceResources.resources` across a log JSON and prints a Markdown summary of unique resource types, change patterns, and common event/ability pairings | `dotnet run src/FellowshipAnalyzer.Tools/resource-analysis.cs <log-json>` |
 | `update-spells.cs` | Reads ability data from a JSON file and updates a hero spell registry `.cs` file. JSON is authoritative for name and icon. | `dotnet run src/FellowshipAnalyzer.Tools/update-spells.cs <events-json> <target-cs>` |
 
 ## Procedure
@@ -37,6 +38,18 @@ Execute a .NET 10 file-based app from `src/FellowshipAnalyzer.Tools/`.
    dotnet run src/FellowshipAnalyzer.Tools/fetch-abilities.cs
    ```
 3. Output is written to `abilities.json` at the repo root.
+
+### resource-analysis
+
+1. Identify the log JSON file to analyze. This works with `raw-report.json`, a top-level event array, or similar JSON that contains event objects with `sourceResources.resources`.
+2. Run from the repo root:
+   ```
+   dotnet run src/FellowshipAnalyzer.Tools/resource-analysis.cs <log-json>
+   ```
+3. Review the Markdown output:
+   - The top table summarizes each unique resource type.
+   - Each type section shows amount/max ranges, event and ability pairings, and change patterns.
+   - If no matching resource objects are found, the tool reports that explicitly.
 
 ## Notes
 

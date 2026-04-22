@@ -12,13 +12,8 @@
     <ProjectReference Include="..\..\FellowshipAnalyzer.ServiceDefaults\FellowshipAnalyzer.ServiceDefaults.csproj" />
     <ProjectReference Include="..\FellowshipAnalyzer.Client\FellowshipAnalyzer.Client.csproj" />
     <ProjectReference Include="..\..\FellowshipAnalyzer.Core\FellowshipAnalyzer.Core.csproj" />
-    <ProjectReference Include="..\..\FellowshipAnalyzer.FellowshipLogs\FellowshipAnalyzer.FellowshipLogs.csproj" />
     <ProjectReference Include="..\..\FellowshipAnalyzer.Generators\FellowshipAnalyzer.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="10.0.0" />
-    <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="10.0.0" />
-    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.0" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.0" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="10.0.0" />
   </ItemGroup>
 
 </Project>

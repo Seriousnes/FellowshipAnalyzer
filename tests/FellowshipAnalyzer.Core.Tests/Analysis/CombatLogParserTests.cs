@@ -32,15 +32,15 @@ public sealed class CombatLogParserTests
     {
         var events = new List<Event>
         {
-            CreateResourceChange(timestamp: 100, abilityId: 1, resourceTypeId: 42, resourceChange: 1, waste: 0),
-            CreateResourceChange(timestamp: 200, abilityId: 1, resourceTypeId: 42, resourceChange: 1, waste: 0),
-            CreateResourceChange(timestamp: 300, abilityId: 1, resourceTypeId: 42, resourceChange: 1, waste: 1),
-            CreateCast(timestamp: 400, abilityId: 2, classResources: [new ClassResource { Type = (ResourceTypes)42, Amount = 2, Max = 2, Cost = 2 }]),
-            CreateResourceChange(timestamp: 500, abilityId: 3, resourceTypeId: 42, resourceChange: 1, waste: 0),
-            CreateCast(timestamp: 900, abilityId: 2, classResources: [new ClassResource { Type = (ResourceTypes)42, Amount = 1, Max = 2, Cost = 2 }]),
+            CreateResourceChange(timestamp: 100, abilityId: 1, resourceType: ResourceTypes.Primary, resourceChange: 1, waste: 0),
+            CreateResourceChange(timestamp: 200, abilityId: 1, resourceType: ResourceTypes.Primary, resourceChange: 1, waste: 0),
+            CreateResourceChange(timestamp: 300, abilityId: 1, resourceType: ResourceTypes.Primary, resourceChange: 1, waste: 1),
+            CreateCast(timestamp: 400, abilityId: 2, classResources: [new ClassResource { Type = ResourceTypes.Primary, Amount = 2, Max = 2, Cost = 2 }]),
+            CreateResourceChange(timestamp: 500, abilityId: 3, resourceType: ResourceTypes.Primary, resourceChange: 1, waste: 0),
+            CreateCast(timestamp: 900, abilityId: 2, classResources: [new ClassResource { Type = ResourceTypes.Primary, Amount = 1, Max = 2, Cost = 2 }]),
         };
 
-        var tracker = new TestResourceTracker(resourceTypeId: 42, maxResource: 2, initialResource: 0);
+        var tracker = new TestResourceTracker(resourceType: ResourceTypes.Primary, maxResource: 2, initialResource: 0);
         var owner = CreateCombatLogParser(modules: [tracker]);
 
         await owner.Analyze(events, playerId: 7, fightStartTime: 0);
@@ -59,11 +59,11 @@ public sealed class CombatLogParserTests
     {
         var events = new List<Event>
         {
-            CreateResourceChange(timestamp: 100, abilityId: 1, resourceTypeId: 42, resourceChange: 1, waste: 0),
-            CreateResourceChange(timestamp: 200, abilityId: 1, resourceTypeId: 99, resourceChange: 5, waste: 0),
+            CreateResourceChange(timestamp: 100, abilityId: 1, resourceType: ResourceTypes.Primary, resourceChange: 1, waste: 0),
+            CreateResourceChange(timestamp: 200, abilityId: 1, resourceType: ResourceTypes.Secondary, resourceChange: 5, waste: 0),
         };
 
-        var tracker = new TestResourceTracker(resourceTypeId: 42, maxResource: 5, initialResource: 0);
+        var tracker = new TestResourceTracker(resourceType: ResourceTypes.Primary, maxResource: 5, initialResource: 0);
         var owner = CreateCombatLogParser(modules: [tracker]);
 
         await owner.Analyze(events, playerId: 7, fightStartTime: 0);
@@ -189,19 +189,19 @@ public sealed class CombatLogParserTests
                 Name = $"Spell {abilityId}",
             },
             Target = new CastTarget(),
-            Channel = new BeginChannelEvent(),
+            Channel = new EndChannelEvent(),
             ClassResources = classResources,
         };
     }
 
-    private static ResourceChangeEvent CreateResourceChange(int timestamp, int abilityId, int resourceTypeId, double resourceChange, double waste, int sourceId = 7)
+    private static ResourceChangeEvent CreateResourceChange(int timestamp, int abilityId, ResourceTypes resourceType, double resourceChange, double waste, int sourceId = 7)
     {
         return new ResourceChangeEvent
         {
             Timestamp = timestamp,
             SourceId = sourceId,
             TargetId = 11,
-            ResourceChangeType = resourceTypeId,
+            ResourceChangeType = resourceType,
             ResourceChange = resourceChange,
             Waste = waste,
             Ability = new Ability { Guid = abilityId, Name = $"Spell {abilityId}" },
@@ -260,11 +260,11 @@ public sealed class CombatLogParserTests
         }
     }
 
-    private sealed class TestResourceTracker(int resourceTypeId, int maxResource, int initialResource) : ResourceTracker
+    private sealed class TestResourceTracker(ResourceTypes resourceType, int maxResource, int initialResource) : ResourceTracker
     {
         public override void Initialize()
         {
-            ResourceTypeId = resourceTypeId;
+            ResourceType = resourceType;
             MaxResource = maxResource;
             InitialResource = initialResource;
             base.Initialize();
@@ -297,7 +297,7 @@ public sealed class CombatLogParserTests
                     TargetId = 11,
                     Ability = new Ability { Guid = 99, Name = "Fabricated" },
                     Target = new CastTarget(),
-                    Channel = new BeginChannelEvent(),
+                    Channel = new EndChannelEvent(),
                 });
             }
             else if (e.Fabricated == true)

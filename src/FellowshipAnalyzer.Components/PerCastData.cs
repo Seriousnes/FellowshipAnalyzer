@@ -2,6 +2,8 @@ using Microsoft.AspNetCore.Components;
 
 namespace FellowshipAnalyzer.Components;
 
+public sealed record AdditionalContent(string? Title, RenderFragment Content);
+
 /// <summary>
 /// Complete data for displaying a single cast in a <see cref="CastDetail"/> inspector.
 /// </summary>
@@ -12,8 +14,7 @@ public sealed class PerCastData
     public required string Timestamp { get; init; }
     public string? Tooltip { get; init; }
     public RenderFragment? Details { get; init; }
-    public RenderFragment? AdditionalContent { get; init; }
-    public string? AdditionalContentTitle { get; init; }
+    public AdditionalContent? AdditionalContent { get; init; }
 
     /// <summary>
     /// Optional spell sequence entries to display in a <see cref="SpellSequence"/> filmstrip.

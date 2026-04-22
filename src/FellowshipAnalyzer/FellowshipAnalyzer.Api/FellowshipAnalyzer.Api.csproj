@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>aspnet-FellowshipAnalyzer-8badee50-529d-49d0-b376-2b6d4ff24b83</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\FellowshipAnalyzer.ServiceDefaults\FellowshipAnalyzer.ServiceDefaults.csproj" />
+    <ProjectReference Include="..\..\FellowshipAnalyzer.FellowshipLogs\FellowshipAnalyzer.FellowshipLogs.csproj" />
+  </ItemGroup>
+
+</Project>

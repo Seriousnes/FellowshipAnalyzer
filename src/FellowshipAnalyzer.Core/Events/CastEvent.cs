@@ -7,7 +7,7 @@ public abstract record BaseCastEvent : Event, IAbilityEvent, IHasSourceWithInsta
     public virtual int? Absorb { get; set; }
     public virtual int? Armor { get; set; }
     public virtual int? AttackPower { get; set; }
-    public virtual BeginChannelEvent Channel { get; set; }
+    public virtual EndChannelEvent? Channel { get; set; }
     public List<ClassResource>? ClassResources { get; set; }
     public virtual double? Facing { get; set; }
     public virtual int? HitPoints { get; set; }
@@ -42,13 +42,6 @@ public record CastEvent : BaseCastEvent
 }
 public record FreeCastEvent : BaseCastEvent { }
 public record LeechEvent : BaseCastEvent { }
-public record EmpowerStartCast : BaseCastEvent { }
-
-public record EmpowerEndEvent : BaseCastEvent
-{
-    public virtual int EmpowermentLevel { get; set; }
-}
-
 public record FilterCooldownInfoEvent : BaseCastEvent
 {
 }

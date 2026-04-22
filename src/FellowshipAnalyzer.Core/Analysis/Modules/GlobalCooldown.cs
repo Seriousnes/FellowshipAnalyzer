@@ -27,6 +27,10 @@ public sealed class GlobalCooldown : Analyzer
 
     private void OnCast(CastEvent e)
     {
+        // Channel casts: the GCD is owned by the BeginChannelEvent that immediately follows.
+        // Emitting a GCD here would produce a duplicate; skip it.
+        if (e.Channel is not null) return;
+
         var gcdMs = GetGcdDuration(e.Ability.Id);
         if (gcdMs <= 0) return;
 

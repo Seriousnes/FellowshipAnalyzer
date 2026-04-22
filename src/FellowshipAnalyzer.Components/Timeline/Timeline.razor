@@ -71,8 +71,8 @@
                 @foreach (var (ability, cdEvents) in cooldownRows)
                 {
                     <div class="timeline-row">
-                        <div class="timeline-label">
-                            <SpellLink Spell="@ability" />
+                        <div class="timeline-label" style="z-index: 100">
+                            <SpellIcon Spell="@ability" Size="SpellIconSize.Small" />
                         </div>
                         <CooldownLane Ability="@ability"
                                       CooldownEvents="@cdEvents"

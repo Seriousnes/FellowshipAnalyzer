@@ -32,13 +32,3 @@ public record Effect(int Id, string Name = "", string Icon = "") : Spell(Id, Nam
     /// <summary>The combat-log <c>abilityGameID</c> (<c>1_000_000 + Id</c>).</summary>
     public override int Guid => 1_000_000 + Id;
 }
-
-public interface ISpellRegistry
-{
-}
-
-public class Spells : ISpellRegistry
-{
-    public static Effect Kindling { get; } = new(104, "Kindling", "T_Nhance_RPG_Gold_10.jpg");
-    public static Spell VoidbringerTouch { get; } = new(155, "Voidbringer's Touch", "T_Weapon_VoidTouch.jpg");
-}

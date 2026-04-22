@@ -27,7 +27,7 @@ public sealed class FellowshipLogsProxyClient : IFellowshipLogsClient
             string reportCode,
             CancellationToken cancellationToken = default)
         {
-            var response = await http.GetFromJsonAsync<GraphQLResponse<GraphQLReportResponse>>($"/api/report/{Uri.EscapeDataString(reportCode)}", jsonOptions, cancellationToken)
+            var response = await http.GetFromJsonAsync<GraphQLResponse<GraphQLReportResponse>>($"api/report/{Uri.EscapeDataString(reportCode)}", jsonOptions, cancellationToken)
                 ?? throw new InvalidOperationException("Failed to deserialize report response.");
 
             var report = response.Data.ReportData.Report;
@@ -54,7 +54,7 @@ public sealed class FellowshipLogsProxyClient : IFellowshipLogsClient
             CancellationToken cancellationToken = default)
         {
             var response = await http.GetFromJsonAsync<GraphQLResponse<GraphQLReportResponse>>(
-                $"/api/events?reportCode={Uri.EscapeDataString(request.ReportCode)}&playerId={request.PlayerId}&fightId={request.FightId}", jsonOptions, cancellationToken)
+                $"api/events?reportCode={Uri.EscapeDataString(request.ReportCode)}&playerId={request.PlayerId}&fightId={request.FightId}", jsonOptions, cancellationToken)
                 ?? throw new InvalidOperationException("Failed to deserialize events response.");
 
             var report = response.Data.ReportData.Report;
@@ -74,7 +74,7 @@ public sealed class FellowshipLogsProxyClient : IFellowshipLogsClient
             CancellationToken cancellationToken = default)
         {
             var response = await http.GetFromJsonAsync<GraphQLResponse<GraphQLReportResponse>>(
-                $"/api/masterdata/{Uri.EscapeDataString(reportCode)}", jsonOptions, cancellationToken)
+                $"api/masterdata/{Uri.EscapeDataString(reportCode)}", jsonOptions, cancellationToken)
                 ?? throw new InvalidOperationException("Failed to deserialize master data response.");
 
             var masterData = response.Data.ReportData.Report.MasterData

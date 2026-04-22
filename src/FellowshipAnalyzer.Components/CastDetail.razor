@@ -112,25 +112,15 @@
                         }
                     </div>
 
-                    @* Spell sequence *@
+                    @* Spell sequence / additional content *@
                     @if (currentCast.Sequence is { Length: > 0 })
                     {
-                        <div class="additional-content-container">
-                            <div class="additional-content-heading">Cast Sequence</div>
-                            <SpellSequence Casts="@currentCast.Sequence" />
-                        </div>
+                        @RenderAdditionalBlock("Cast Sequence", @<SpellSequence Casts="@currentCast.Sequence" />)
                     }
 
-                    @* Additional content *@
                     @if (currentCast.AdditionalContent is not null)
                     {
-                        <div class="additional-content-container">
-                            @if (!string.IsNullOrEmpty(currentCast.AdditionalContentTitle))
-                            {
-                                <div class="additional-content-heading">@currentCast.AdditionalContentTitle</div>
-                            }
-                            @currentCast.AdditionalContent
-                        </div>
+                        @RenderAdditionalBlock(currentCast.AdditionalContent.Title, currentCast.AdditionalContent.Content)
                     }
 
                     @* Details *@
@@ -220,4 +210,27 @@
         if (e.Key == "ArrowLeft") HandlePrevious();
         else if (e.Key == "ArrowRight") HandleNext();
     }
+
+    private static RenderFragment RenderAdditionalBlock(string? title, RenderFragment? content) => builder =>
+    {
+        if (content is null)
+        {
+            return;
+        }
+
+        var sequence = 0;
+        builder.OpenElement(sequence++, "div");
+        builder.AddAttribute(sequence++, "class", "additional-content-container");
+
+        if (!string.IsNullOrWhiteSpace(title))
+        {
+            builder.OpenElement(sequence++, "div");
+            builder.AddAttribute(sequence++, "class", "additional-content-heading");
+            builder.AddContent(sequence++, title);
+            builder.CloseElement();
+        }
+
+        builder.AddContent(sequence++, content);
+        builder.CloseElement();
+    };
 }
