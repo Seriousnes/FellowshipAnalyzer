@@ -14,11 +14,23 @@ public abstract record Event : IEventFilter
     /// </summary>
     public virtual int Timestamp { get; set; }
     /// <summary>
-    /// The event happened before the pull. Added by WoWA
+    /// Fight ID
+    /// </summary>
+    public virtual int Fight { get; set; }
+    /// <summary>
+    /// Resource snapshot for the source actor (typically the casting player).
+    /// </summary>
+    public virtual ActorResources? SourceResources { get; set; }
+    /// <summary>
+    /// Resource snapshot for the target actor.
+    /// </summary>
+    public virtual ActorResources? TargetResources { get; set; }
+    /// <summary>
+    /// The event happened before the pull
     /// </summary>
     public virtual bool? Prepull { get; set; }
     /// <summary>
-    /// Other events associated with this event. Added by WoWA normalizers
+    /// Other events associated with this event
     /// </summary>
     [JsonIgnore]
     public virtual List<LinkedEvent> LinkedEvents { get; set; } = [];
@@ -35,7 +47,7 @@ public abstract record Event : IEventFilter
     /// </summary>
     public virtual Event? Trigger { get; set; }
     /// <summary>
-    /// Event content modified by WoWA
+    /// Event content modified by FSA
     /// </summary>
     public virtual bool? Modified { get; set; }
     /// <summary>

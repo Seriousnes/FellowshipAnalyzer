@@ -36,6 +36,7 @@ builder.Services.AddSingleton(jsonOptions);
 
 // Hero analysis runs client-side in WASM
 builder.Services.AddCoreAnalysisServices();
+builder.Services.AddCoreAnalysis();
 builder.Services.AddRimeAnalysis();
 
 // Per-report loading progress tracker

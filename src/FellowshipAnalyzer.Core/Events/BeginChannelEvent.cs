@@ -9,8 +9,6 @@ public record BeginChannelEvent : Event, IAbilityEvent, IHasSourceEvent
     public virtual bool IsCancelled { get; set; }
     public virtual int? TargetId { get; set; }
     public virtual int? TargetInstance { get; set; }
-    public virtual bool? SourceIsFriendly { get; set; }
-    public virtual bool? TargetIsFriendly { get; set; }
     public virtual object? Meta { get; set; }
     public virtual GlobalCooldownEvent? GlobalCooldown { get; set; }
 }

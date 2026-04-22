@@ -53,11 +53,11 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
         if (symbol == null)
             return null;
 
-        // Only generate for concrete parsers that inherit from CombatLogParser
-        if (symbol.IsAbstract)
-            return null;
+        // Generate for the abstract CombatLogParser base (→ AddCoreAnalysis) or concrete subclasses (→ AddHeroAnalysis).
+        bool isCombatLogParserBase = symbol.IsAbstract && symbol.Name == CombatLogParserClassName;
+        bool isConcreteParser = !symbol.IsAbstract && InheritsFromCombatLogParser(symbol);
 
-        if (!InheritsFromCombatLogParser(symbol))
+        if (!isCombatLogParserBase && !isConcreteParser)
             return null;
 
         var ownModules = new List<TypeInfo>();
@@ -92,6 +92,22 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
         if (ownModules.Count == 0 && normalizerTypes.Count == 0)
             return null;
 
+        var parserNs = GetNamespace(symbol);
+
+        // The abstract CombatLogParser base class emits AddCoreAnalysis (shared registrations).
+        if (isCombatLogParserBase)
+        {
+            return new ParserInfo(
+                symbol.Name,
+                parserNs,
+                [.. ownModules],
+                [],
+                [.. normalizerTypes],
+                [.. normalizerTypes],
+                null,
+                isAbstractBase: true);
+        }
+
         // Extract [HeroAnalyzer("id")] attribute
         string heroId = null;
         foreach (var attr in symbol.GetAttributes())
@@ -105,7 +121,7 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
             }
         }
 
-        // Walk base type chain to collect inherited base modules
+        // Walk base type chain to collect inherited base modules (for GetModuleTypes override only)
         var baseModules = new List<TypeInfo>();
         var baseType = symbol.BaseType;
         while (baseType != null && baseType.SpecialType != SpecialType.System_Object)
@@ -115,7 +131,7 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
             baseType = baseType.BaseType;
         }
 
-        // Walk base type chain to collect inherited base normalizers
+        // Walk base type chain to collect inherited base normalizers (for GetNormalizerTypes override only)
         var baseNormalizers = new List<TypeInfo>();
         var bnType = symbol.BaseType;
         while (bnType != null && bnType.SpecialType != SpecialType.System_Object)
@@ -125,15 +141,15 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
             bnType = bnType.BaseType;
         }
 
-        var parserNs = GetNamespace(symbol);
-
         return new ParserInfo(
             symbol.Name,
             parserNs,
             [.. ownModules],
             [.. baseModules],
             [.. baseNormalizers, .. normalizerTypes],
-            heroId);
+            [.. normalizerTypes],
+            heroId,
+            isAbstractBase: false);
     }
 
     private static void CollectModulesFromSymbol(INamedTypeSymbol symbol, List<TypeInfo> modules)
@@ -204,7 +220,10 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
 
     private static void Execute(SourceProductionContext ctx, ParserInfo info)
     {
-        EmitConcreteParser(ctx, info);
+        if (info.IsAbstractBase)
+            EmitCoreExtension(ctx, info);
+        else
+            EmitConcreteParser(ctx, info);
     }
 
     /// <summary>
@@ -247,7 +266,7 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
             sb.AppendLine("        typeof(" + m.FullyQualifiedName + "),");
         sb.AppendLine("    ];");
 
-        // GetNormalizerTypes — only emitted if normalizers are declared
+        // GetNormalizerTypes — NormalizerTypes already contains [baseNormalizers, ..ownNormalizers] in order
         if (info.NormalizerTypes.Length > 0)
         {
             sb.AppendLine();
@@ -261,23 +280,21 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
         sb.AppendLine("}");
         sb.AppendLine();
 
-        // DI extension method
+        // DI extension method — registers only hero-specific services.
+        // Shared services (EventEmitter, base modules, base normalizers) come from AddCoreAnalysis().
         var parserBaseName = StripSuffix(info.ClassName, "CombatLogParser");
         sb.AppendLine("public static class " + parserBaseName + "ServiceCollectionExtensions");
         sb.AppendLine("{");
         sb.AppendLine("    public static IServiceCollection Add" + parserBaseName + "Analysis(this IServiceCollection services)");
         sb.AppendLine("    {");
-        sb.AppendLine("        services.AddScoped<EventEmitter>();");
         sb.AppendLine("        services.AddScoped<" + info.ClassName + ">();");
         if (info.HeroId != null)
         {
             sb.AppendLine("        services.AddKeyedScoped<IHeroAnalyzer>(\"" + info.HeroId + "\", (sp, _) => sp.GetRequiredService<" + info.ClassName + ">());");
         }
-        foreach (var m in info.BaseModules)
-            sb.AppendLine("        services.AddScoped<" + m.FullyQualifiedName + ">();");
         foreach (var m in info.OwnModules)
             sb.AppendLine("        services.AddScoped<" + m.FullyQualifiedName + ">();");
-        foreach (var n in info.NormalizerTypes)
+        foreach (var n in info.OwnNormalizerTypes)
             sb.AppendLine("        services.AddScoped<" + n.FullyQualifiedName + ">();");
         // Register base Abilities type as an alias so Core normalizers (e.g. CastLinkNormalizer) can inject it.
         foreach (var m in info.OwnModules)
@@ -291,6 +308,41 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
 
         ctx.AddSource(info.ClassName + ".g.cs", sb.ToString());
     }
+
+    /// <summary>
+    /// Generates the AddCoreAnalysis DI extension from the abstract CombatLogParser base class.
+    /// Registers EventEmitter, all base modules, and all base normalizers — shared across every hero.
+    /// </summary>
+    private static void EmitCoreExtension(SourceProductionContext ctx, ParserInfo info)
+    {
+        var sb = new StringBuilder();
+        sb.AppendLine("#nullable enable");
+        sb.AppendLine("using FellowshipAnalyzer.Core.Analysis;");
+        sb.AppendLine("using Microsoft.Extensions.DependencyInjection;");
+        sb.AppendLine();
+        sb.AppendLine("namespace " + info.Namespace + ";");
+        sb.AppendLine();
+        sb.AppendLine("public static class CombatLogParserServiceCollectionExtensions");
+        sb.AppendLine("{");
+        sb.AppendLine("    /// <summary>");
+        sb.AppendLine("    /// Registers shared analysis services required by all hero analyzers:");
+        sb.AppendLine("    /// EventEmitter, base modules (Combatants, StatTracker, etc.), and base normalizers.");
+        sb.AppendLine("    /// Call this once during application startup before registering any hero-specific analysis.");
+        sb.AppendLine("    /// </summary>");
+        sb.AppendLine("    public static IServiceCollection AddCoreAnalysis(this IServiceCollection services)");
+        sb.AppendLine("    {");
+        sb.AppendLine("        services.AddScoped<EventEmitter>();");
+        foreach (var m in info.OwnModules)
+            sb.AppendLine("        services.AddScoped<" + m.FullyQualifiedName + ">();");
+        foreach (var n in info.NormalizerTypes)
+            sb.AppendLine("        services.AddScoped<" + n.FullyQualifiedName + ">();");
+        sb.AppendLine("        return services;");
+        sb.AppendLine("    }");
+        sb.AppendLine("}");
+
+        ctx.AddSource(info.ClassName + ".g.cs", sb.ToString());
+    }
+
 
     private sealed class TypeInfo
     {
@@ -314,14 +366,18 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
             ImmutableArray<TypeInfo> ownModules,
             ImmutableArray<TypeInfo> baseModules,
             ImmutableArray<TypeInfo> normalizerTypes,
-            string heroId)
+            ImmutableArray<TypeInfo> ownNormalizerTypes,
+            string heroId,
+            bool isAbstractBase = false)
         {
             ClassName = cn;
             Namespace = ns;
             OwnModules = ownModules;
             BaseModules = baseModules;
             NormalizerTypes = normalizerTypes;
+            OwnNormalizerTypes = ownNormalizerTypes;
             HeroId = heroId;
+            IsAbstractBase = isAbstractBase;
         }
         public string ClassName { get; }
         public string Namespace { get; }
@@ -329,9 +385,14 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
         public ImmutableArray<TypeInfo> OwnModules { get; }
         /// <summary>Modules inherited from the base class chain (collected via GetAttributes on base symbols).</summary>
         public ImmutableArray<TypeInfo> BaseModules { get; }
+        /// <summary>All normalizers (base + own) — used for the GetNormalizerTypes override.</summary>
         public ImmutableArray<TypeInfo> NormalizerTypes { get; }
+        /// <summary>Normalizers declared directly on this class — used for hero-specific DI registration.</summary>
+        public ImmutableArray<TypeInfo> OwnNormalizerTypes { get; }
         /// <summary>Hero ID from [HeroAnalyzer] attribute, if present.</summary>
         public string HeroId { get; }
+        /// <summary>True when this info was collected from the abstract CombatLogParser base class.</summary>
+        public bool IsAbstractBase { get; }
     }
 }
 

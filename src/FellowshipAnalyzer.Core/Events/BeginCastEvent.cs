@@ -9,7 +9,5 @@ public record BeginCastEvent : Event, IAbilityEvent, IHasSourceEvent
     public virtual BeginChannelEvent? Channel { get; set; }
     public virtual bool IsCancelled { get; set; }
     public virtual int SourceId { get; set; }
-    public virtual bool? SourceIsFriendly { get; set; }
     public virtual ICastTarget? Target { get; set; }
-    public virtual bool? TargetIsFriendly { get; set; }
 }

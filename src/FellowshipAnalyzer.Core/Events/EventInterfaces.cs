@@ -25,7 +25,6 @@ public interface ISpellPowerEvent
 public interface IHasSourceEvent
 {
     int SourceId { get; set; }
-    bool? SourceIsFriendly { get; set; }
 }
 
 public interface IHasSourceWithInstanceEvent : IHasSourceEvent
@@ -36,34 +35,11 @@ public interface IHasSourceWithInstanceEvent : IHasSourceEvent
 public interface IHasTargetEvent
 {
     int TargetId { get; set; }
-    bool? TargetIsFriendly { get; set; }
 }
 
 public interface IHasTargetWithInstanceEvent : IHasTargetEvent
 {
     int? TargetInstance { get; set; }
-}
-
-public interface IHitpointsEvent
-{
-    long HitPoints { get; set; }
-    long MaxHitPoints { get; set; }
-}
-
-public interface ILocationEvent
-{
-    double X { get; set; }
-    double Y { get; set; }
-    double Facing { get; set; }
-    MapIdEnum MapId { get; set; }
-}
-
-public interface IAdvancedDetailsEvent
-{
-    int AttackPower { get; set; }
-    int SpellPower { get; set; }
-    int Armor { get; set; }
-    int ItemLevel { get; set; }
 }
 
 public interface ICastTarget

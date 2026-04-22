@@ -1,3 +1,4 @@
+using FellowshipAnalyzer.Core;
 using FellowshipAnalyzer.Core.Analysis;
 using FellowshipAnalyzer.FellowshipLogs;
 using FellowshipAnalyzer.Heroes.Rime.Analysis;
@@ -54,6 +55,8 @@ public sealed class RimeAnalysisEngineTests
     {
         var services = new ServiceCollection();
         services.AddLogging();
+        services.AddCoreAnalysisServices();
+        services.AddCoreAnalysis();
         services.AddRimeAnalysis();
         using var provider = services.BuildServiceProvider();
         using var scope = provider.CreateScope();

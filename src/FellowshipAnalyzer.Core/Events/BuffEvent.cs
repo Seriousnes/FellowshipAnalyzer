@@ -6,10 +6,8 @@ public abstract record BuffEvent : Event, IAbilityEvent, IHasTargetWithInstanceE
     public virtual int AbilityGameId { get; set; }
     public virtual int? TargetInstance { get; set; }
     public virtual int TargetId { get; set; }
-    public virtual bool? TargetIsFriendly { get; set; }
     public virtual int? SourceInstance { get; set; }
     public virtual int SourceId { get; set; }
-    public virtual bool? SourceIsFriendly { get; set; }
 }
 
 [Fabricated]

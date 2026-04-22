@@ -40,22 +40,22 @@ public sealed class CombatLogParserTests
             CreateCast(timestamp: 900, abilityId: 2, classResources: [new ClassResource { Type = ResourceTypes.Primary, Amount = 1, Max = 2, Cost = 2 }]),
         };
 
-        var tracker = new TestResourceTracker(resourceType: ResourceTypes.Primary, maxResource: 2, initialResource: 0);
+        var tracker = new TestResourceTracker();
         var owner = CreateCombatLogParser(modules: [tracker]);
 
         await owner.Analyze(events, playerId: 7, fightStartTime: 0);
 
-        Assert.Equal(3, tracker.Generated);
-        Assert.Equal(1, tracker.Wasted);
-        Assert.Equal(4, tracker.Spent);
-        Assert.Equal(0, tracker.Current);
-        Assert.Equal(3, tracker.GeneratorCastCounts[1]);
-        Assert.Equal(1, tracker.GeneratorCastCounts[3]);
-        Assert.Equal(2, tracker.SpenderCastCounts[2]);
+        Assert.Equal(3, tracker.GetGenerated(ResourceTypes.Primary));
+        Assert.Equal(1, tracker.GetWasted(ResourceTypes.Primary));
+        Assert.Equal(4, tracker.GetSpent(ResourceTypes.Primary));
+        Assert.Equal(0, tracker.GetCurrent(ResourceTypes.Primary));
+        Assert.Equal(3, tracker.GetGeneratorCasts(ResourceTypes.Primary)[1]);
+        Assert.Equal(1, tracker.GetGeneratorCasts(ResourceTypes.Primary)[3]);
+        Assert.Equal(2, tracker.GetSpenderCasts(ResourceTypes.Primary)[2]);
     }
 
     [Fact]
-    public async Task ResourceTracker_ShouldIgnoreOtherResourceTypes()
+    public async Task ResourceTracker_ShouldTrackAllResourceTypes()
     {
         var events = new List<Event>
         {
@@ -63,12 +63,14 @@ public sealed class CombatLogParserTests
             CreateResourceChange(timestamp: 200, abilityId: 1, resourceType: ResourceTypes.Secondary, resourceChange: 5, waste: 0),
         };
 
-        var tracker = new TestResourceTracker(resourceType: ResourceTypes.Primary, maxResource: 5, initialResource: 0);
+        var tracker = new TestResourceTracker();
         var owner = CreateCombatLogParser(modules: [tracker]);
 
         await owner.Analyze(events, playerId: 7, fightStartTime: 0);
-        Assert.Equal(1, tracker.Generated);
-        Assert.Equal(1, tracker.Current);
+        Assert.Equal(1, tracker.GetGenerated(ResourceTypes.Primary));
+        Assert.Equal(5, tracker.GetGenerated(ResourceTypes.Secondary));
+        Assert.Equal(1, tracker.GetCurrent(ResourceTypes.Primary));
+        Assert.Equal(5, tracker.GetCurrent(ResourceTypes.Secondary));
     }
 
     [Fact]
@@ -190,7 +192,7 @@ public sealed class CombatLogParserTests
             },
             Target = new CastTarget(),
             Channel = new EndChannelEvent(),
-            ClassResources = classResources,
+            SourceResources = classResources is null ? null : new ActorResources { Resources = classResources },
         };
     }
 
@@ -204,6 +206,7 @@ public sealed class CombatLogParserTests
             ResourceChangeType = resourceType,
             ResourceChange = resourceChange,
             Waste = waste,
+            ResourceActor = ResourceActorEnum.Source,
             Ability = new Ability { Guid = abilityId, Name = $"Spell {abilityId}" },
         };
     }
@@ -260,16 +263,7 @@ public sealed class CombatLogParserTests
         }
     }
 
-    private sealed class TestResourceTracker(ResourceTypes resourceType, int maxResource, int initialResource) : ResourceTracker
-    {
-        public override void Initialize()
-        {
-            ResourceType = resourceType;
-            MaxResource = maxResource;
-            InitialResource = initialResource;
-            base.Initialize();
-        }
-    }
+    private sealed class TestResourceTracker : ResourceTracker { }
 
     private sealed class FabricatingProbeModule : Analyzer
     {
