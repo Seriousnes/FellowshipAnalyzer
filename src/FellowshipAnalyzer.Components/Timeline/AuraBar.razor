@@ -30,6 +30,12 @@
     [Parameter, EditorRequired] public int FightEndTime { get; set; }
     [Parameter] public double PixelsPerSecond { get; set; } = 60.0;
 
+    /// <summary>
+    /// When provided, only auras whose spell ID appears in this set are rendered.
+    /// When null, all auras are rendered (backward-compatible default).
+    /// </summary>
+    [Parameter] public IReadOnlySet<int>? HighlightedSpellIds { get; set; }
+
     private sealed record AuraSegment(
         Spell Spell,
         string Name,
@@ -64,6 +70,15 @@
         return $"{seconds:F1}s";
     }
 
+    /// <summary>
+    /// Returns the auras to render. When <see cref="HighlightedSpellIds"/> is set,
+    /// only auras in that set are returned. Otherwise all auras are returned.
+    /// </summary>
+    private IEnumerable<TrackedBuffEvent> AurasToRender() =>
+        HighlightedSpellIds is null
+            ? Auras
+            : Auras.Where(b => HighlightedSpellIds.Contains(b.Ability.Guid));
+
     protected override void OnParametersSet()
     {
         _auras = [];
@@ -73,7 +88,7 @@
         // reuse levels that are no longer active (greedy level-assignment).
         var levelEnds = new List<int>();
 
-        var visible = Auras
+        var visible = AurasToRender()
             .Where(b => b.Start < FightEndTime && (b.End ?? FightEndTime) > FightStartTime)
             .OrderBy(b => b.Start);
 

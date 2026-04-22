@@ -164,17 +164,14 @@ public sealed class BasicStComboAnalyzer : Analyzer
     }
 
     private static List<CastEvent> GetWindowCasts(StComboWindowEvaluation window) =>
-        window.CastsInWindow
-            .Where(c => c.Timestamp > window.StartTimestamp && c.Timestamp <= window.EndTimestamp)
-            .ToList();
+        [.. window.CastsInWindow.Where(c => c.Timestamp > window.StartTimestamp && c.Timestamp <= window.EndTimestamp)];
 
     private static List<CastEvent> GetRelevantCasts(IEnumerable<CastEvent> casts) =>
-        casts.Where(c =>
+        [.. casts.Where(c =>
                 c.Ability.Id == RimeSpells.GlacialBlast.Id ||
                 c.Ability.Id == RimeSpells.ColdSnap.Id ||
                 c.Ability.Id == RimeSpells.FreezingTorrent.Id ||
-                c.Ability.Id == RimeSpells.IceComet.Id)
-            .ToList();
+                c.Ability.Id == RimeSpells.IceComet.Id)];
 
     private static BurstingIceWindowType ClassifyWindow(StComboWindowEvaluation window) =>
         window.UniqueBurstingIceTargets.Count >= 2 ? BurstingIceWindowType.Aoe : BurstingIceWindowType.SingleTarget;

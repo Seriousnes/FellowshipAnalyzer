@@ -8,6 +8,7 @@ namespace FellowshipAnalyzer.Heroes.Rime.Analysis;
 [AddModule<WinterOrbTracker>]
 [AddModule<BasicStComboAnalyzer>]
 [AddModule<Modules.Abilities>]
+[AddModule<RimeAuras>]
 public sealed partial class RimeCombatLogParser : CombatLogParser
 {
     public override string HeroId => "rime";

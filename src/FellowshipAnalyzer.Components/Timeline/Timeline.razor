@@ -5,6 +5,7 @@
     @{
         var abilities = Result.Modules.OfType<Abilities>().FirstOrDefault();
         var combatants = Result.Modules.OfType<Combatants>().FirstOrDefault();
+        var aurasModule = Result.Modules.OfType<Auras>().FirstOrDefault();
         var allEvents = Result.Events;
 
         var playerSelfBuffs = combatants?.Selected?.Buffs
@@ -47,7 +48,8 @@
                         <AuraBar Auras="@playerSelfBuffs"
                                  FightStartTime="@FightStartTime"
                                  FightEndTime="@FightEndTime"
-                                 PixelsPerSecond="@PixelsPerSecond" />
+                                 PixelsPerSecond="@PixelsPerSecond"
+                                 HighlightedSpellIds="@aurasModule?.TimelineHighlightedIds" />
                     }
                     <CastBar Events="@allEvents"
                              PlayerId="@PlayerId"

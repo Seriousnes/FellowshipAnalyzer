@@ -1,14 +1,23 @@
 @namespace FellowshipAnalyzer.Heroes.Rime.Guides
 @using FellowshipAnalyzer.Components
 @using FellowshipAnalyzer.Heroes.Rime.Analysis
+@using FellowshipAnalyzer.Core.Common.Spells
 @inject RimeCombatLogParser Parser
+
+@{
+    RenderFragment bi = @<SpellLink Spell="RimeSpells.BurstingIce" />;
+    RenderFragment gb = @<SpellLink Spell="RimeSpells.GlacialBlast" />;
+    RenderFragment cs = @<SpellLink Spell="RimeSpells.ColdSnap" />;
+    RenderFragment ft = @<SpellLink Spell="RimeSpells.FreezingTorrent" />;
+    RenderFragment ic = @<SpellLink Spell="RimeSpells.IceComet" />;
+}
 
 <GuideSection Title="Winter's Embrace Windows">
     <Explanation>
         <ol>
-            <li>Build Winter Orbs to at least 3 before casting <strong>Bursting Ice</strong>.</li>
-            <li>Single-target windows expect <strong>Glacial Blast</strong> follow-up, with <strong>Cold Snap</strong> or <strong>Freezing Torrent</strong> added when the window can support it. <strong>Freezing Torrent → Cold Snap</strong> is also acceptable.</li>
-            <li>AoE windows are identified by <strong>Bursting Ice</strong> hitting 2 or more unique targets and should contain <strong>2 Ice Comets</strong> plus <strong>1 Cold Snap</strong> in any order.</li>
+            <li>Build Winter Orbs to at least 3 before casting @bi</li>
+            <li>Single-target windows expect @gb follow-up, with @cs or @ft added when the window can support it. @ft → @cs is also acceptable.</li>
+            <li>AoE windows are identified by @bi hitting 2 or more unique targets and should contain @ic plus @cs in any order.</li>
             <li>Each window below shows the spell sequence, compact metrics, and a short note explaining what matched or was missing.</li>
         </ol>
     </Explanation>
