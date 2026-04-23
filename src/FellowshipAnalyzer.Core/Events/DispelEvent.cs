@@ -1,6 +1,6 @@
 ﻿namespace FellowshipAnalyzer.Core.Events;
 
-public record DispelEvent : Event, IAbilityEvent, IExtraAbilityEvent, IHasSourceEvent, IHasTargetWithInstanceEvent
+public class DispelEvent : Event, IAbilityEvent, IExtraAbilityEvent, IHasSourceEvent, IHasTargetWithInstanceEvent
 {
     /// <summary>
     /// The ability used to dispel <see cref="ExtraAbility"/>

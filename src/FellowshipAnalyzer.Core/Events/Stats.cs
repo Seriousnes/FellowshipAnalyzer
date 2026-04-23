@@ -1,6 +1,6 @@
 namespace FellowshipAnalyzer.Core.Events;
 
-public record Stats
+public class Stats
 {
     public double? Intellect { get; set; }
     public double? Stamina { get; set; }

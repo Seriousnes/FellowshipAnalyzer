@@ -1,7 +1,7 @@
 ﻿namespace FellowshipAnalyzer.Core.Events;
 
 [Fabricated]
-public record SpendResourceEvent : Event, IAbilityEvent
+public class SpendResourceEvent : Event, IAbilityEvent
 {
     public int SourceId { get; set; }
     public int ResourceChange { get; set; }

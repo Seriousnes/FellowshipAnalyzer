@@ -186,7 +186,7 @@ public sealed class JsonDerivedTypeGenerator : IIncrementalGenerator
         sb.AppendLine("{");
         sb.AppendLine("}");
 
-        ctx.AddSource("Event.Derived.g.cs", sb.ToString());
+        ctx.AddSource("Event.g.cs", sb.ToString());
     }
 
     private sealed class TriggerInfo

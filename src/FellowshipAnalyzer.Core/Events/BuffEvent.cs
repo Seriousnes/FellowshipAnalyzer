@@ -1,6 +1,6 @@
 ﻿namespace FellowshipAnalyzer.Core.Events;
 
-public abstract record BuffEvent : Event, IAbilityEvent, IHasTargetWithInstanceEvent, IHasSourceWithInstanceEvent
+public abstract class BuffEvent : Event, IAbilityEvent, IHasTargetWithInstanceEvent, IHasSourceWithInstanceEvent
 {
     public virtual Ability Ability { get; set; } = new();
     public virtual int AbilityGameId { get; set; }
@@ -11,7 +11,7 @@ public abstract record BuffEvent : Event, IAbilityEvent, IHasTargetWithInstanceE
 }
 
 [Fabricated]
-public record TrackedBuffEvent : BuffEvent
+public class TrackedBuffEvent : BuffEvent
 {
     public int Start { get; set; }
     public int? End { get; set; }
@@ -21,7 +21,7 @@ public record TrackedBuffEvent : BuffEvent
     public bool IsDebuff { get; set; }
     public override bool? Fabricated => true;
 
-    public record StackHistoryElement
+    public class StackHistoryElement
     {
         public int Stacks { get; set; }
         public int Timestamp { get; set; }
@@ -30,28 +30,28 @@ public record TrackedBuffEvent : BuffEvent
 
 #region Buffs
 
-public record ApplyBuffEvent : BuffEvent
+public class ApplyBuffEvent : BuffEvent
 {
     public virtual int? Absorb { get; set; }
     public virtual bool? FromCombatantInfo { get; set; }
 }
 
-public record ApplyBuffStackEvent : BuffEvent, IBuffStackEvent
+public class ApplyBuffStackEvent : BuffEvent, IBuffStackEvent
 {
     public virtual int Stack { get; set; }
 }
 
-public record RemoveBuffEvent : BuffEvent
+public class RemoveBuffEvent : BuffEvent
 {
     public virtual int? Absorb { get; set; }
 }
 
-public record RemoveBuffStackEvent : BuffEvent, IBuffStackEvent
+public class RemoveBuffStackEvent : BuffEvent, IBuffStackEvent
 {
     public virtual int Stack { get; set; }
 }
 
-public record RefreshBuffEvent : BuffEvent
+public class RefreshBuffEvent : BuffEvent
 {
     public virtual int? Absorb { get; set; }
     public virtual ICastTarget? Source { get; set; }
@@ -62,30 +62,30 @@ public record RefreshBuffEvent : BuffEvent
 
 #region Debuffs
 
-public record ApplyDebuffEvent : BuffEvent
+public class ApplyDebuffEvent : BuffEvent
 {
     public virtual Unit? Source { get; set; } = DefaultActors.Environment;
     public virtual int? Absorb { get; set; }
     public virtual bool? FromCombatantInfo { get; set; }
 }
 
-public record ApplyDebuffStackEvent : BuffEvent, IBuffStackEvent
+public class ApplyDebuffStackEvent : BuffEvent, IBuffStackEvent
 {
     public virtual int Stack { get; set; }
 }
 
-public record RemoveDebuffEvent : BuffEvent
+public class RemoveDebuffEvent : BuffEvent
 {
     public virtual Unit? Source { get; set; } = DefaultActors.Environment;
     public virtual int? Absorb { get; set; }
 }
 
-public record RemoveDebuffStackEvent : BuffEvent, IBuffStackEvent
+public class RemoveDebuffStackEvent : BuffEvent, IBuffStackEvent
 {
     public virtual int Stack { get; set; }
 }
 
-public record RefreshDebuffEvent : BuffEvent
+public class RefreshDebuffEvent : BuffEvent
 {
     public virtual ICastTarget? Source { get; set; }
 }

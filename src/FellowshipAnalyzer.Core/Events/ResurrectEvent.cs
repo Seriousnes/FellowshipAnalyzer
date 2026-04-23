@@ -1,6 +1,6 @@
 ﻿namespace FellowshipAnalyzer.Core.Events;
 
-public record ResurrectEvent : Event, IAbilityEvent, IHasSourceEvent, IHasTargetEvent
+public class ResurrectEvent : Event, IAbilityEvent, IHasSourceEvent, IHasTargetEvent
 {
     public virtual Ability Ability { get; set; }
     public virtual int AbilityGameId { get; set; }

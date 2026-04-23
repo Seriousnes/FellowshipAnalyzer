@@ -206,7 +206,6 @@ public sealed class CombatLogParserTests
             ResourceChangeType = resourceType,
             ResourceChange = resourceChange,
             Waste = waste,
-            ResourceActor = ResourceActorEnum.Source,
             Ability = new Ability { Guid = abilityId, Name = $"Spell {abilityId}" },
         };
     }

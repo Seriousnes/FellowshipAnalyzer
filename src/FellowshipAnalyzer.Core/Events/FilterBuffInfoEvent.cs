@@ -1,5 +1,5 @@
 ﻿namespace FellowshipAnalyzer.Core.Events;
 
-public record FilterBuffInfoEvent : BuffEvent
+public class FilterBuffInfoEvent : BuffEvent
 {
 }

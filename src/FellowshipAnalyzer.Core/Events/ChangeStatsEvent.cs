@@ -1,7 +1,7 @@
 ﻿namespace FellowshipAnalyzer.Core.Events;
 
 [Fabricated]
-public record ChangeStatsEvent : Event
+public class ChangeStatsEvent : Event
 {
     public virtual int SourceId { get; set; }
     public virtual int TargetId { get; set; }
@@ -12,7 +12,7 @@ public record ChangeStatsEvent : Event
     public override bool? Fabricated => true;
 }
 
-public record ChangeHasteEvent : ChangeStatsEvent
+public class ChangeHasteEvent : ChangeStatsEvent
 {
     public virtual double? OldHaste { get; set; }
     public virtual double? NewHaste { get; set; }

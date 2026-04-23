@@ -1,6 +1,6 @@
 ﻿namespace FellowshipAnalyzer.Core.Events;
 
-public record AbsorbedEvent : Event, IAbilityEvent, IExtraAbilityEvent, IHasSourceEvent, IHasTargetEvent, IAmountEvent
+public class AbsorbedEvent : Event, IAbilityEvent, IExtraAbilityEvent, IHasSourceEvent, IHasTargetEvent, IAmountEvent
 {
     public virtual int SourceId { get; set; }
     public virtual int TargetId { get; set; }

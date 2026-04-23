@@ -17,11 +17,6 @@ public interface IAmountEvent
     long Amount { get; set; }
 }
 
-public interface ISpellPowerEvent
-{
-    int SpellPower { get; set; }
-}
-
 public interface IHasSourceEvent
 {
     int SourceId { get; set; }

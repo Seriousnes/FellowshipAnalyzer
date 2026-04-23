@@ -15,12 +15,6 @@ public enum HitTypeEnum
 
 public enum MapIdEnum { }
 
-public enum ResourceActorEnum
-{
-    Source = 1,
-    Target = 2
-}
-
 public enum UnitTypeEnum
 {
     Player,

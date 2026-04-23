@@ -1,7 +1,7 @@
 ﻿namespace FellowshipAnalyzer.Core.Events;
 
 [Fabricated]
-public abstract record MaxChargesChangedEvent : Event
+public abstract class MaxChargesChangedEvent : Event
 {
     /// <summary>
     /// The ID of the spell that's changing
@@ -14,5 +14,5 @@ public abstract record MaxChargesChangedEvent : Event
     public override bool? Fabricated => true;
 }
 
-public record MaxChargesIncreasedEvent : MaxChargesChangedEvent { }
-public record MaxChargesDecreasedEvent : MaxChargesChangedEvent { }
+public class MaxChargesIncreasedEvent : MaxChargesChangedEvent { }
+public class MaxChargesDecreasedEvent : MaxChargesChangedEvent { }

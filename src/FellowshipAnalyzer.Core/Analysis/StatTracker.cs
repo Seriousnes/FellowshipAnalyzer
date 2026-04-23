@@ -25,7 +25,6 @@ public sealed class StatTracker : Analyzer
     // Registered multiplier buffs: spellId → StatMultiplierBuff
     private readonly Dictionary<int, StatMultiplierBuff> _statMultiplierBuffs = [];
 
-    // --- Base stat values ---
     /// <summary>5% base critical strike chance, added after diminishing returns.</summary>
     public const double BaseCritChance = 0.05;
 
@@ -54,13 +53,7 @@ public sealed class StatTracker : Analyzer
         AddEventListener(Events.RemoveDebuff.To(SELECTED_PLAYER), OnRemoveDebuff);
         AddEventListener(Events.ApplyDebuffStack.To(SELECTED_PLAYER), OnApplyDebuffStack);
         AddEventListener(Events.RemoveDebuffStack.To(SELECTED_PLAYER), OnRemoveDebuffStack);
-        AddEventListener(Events.Cast.By(SELECTED_PLAYER), OnCast);
-        AddEventListener(Events.Heal.To(SELECTED_PLAYER), OnHeal);
     }
-
-    // -------------------------------------------------------------------------
-    // Registration API (for hero modules)
-    // -------------------------------------------------------------------------
 
     /// <summary>
     /// Registers a stat rating buff so StatTracker will track it when active.
@@ -72,10 +65,6 @@ public sealed class StatTracker : Analyzer
     /// </summary>
     public void AddMultiplier(int spellId, StatMultiplierBuff multiplier) =>
         _statMultiplierBuffs[spellId] = multiplier;
-
-    // -------------------------------------------------------------------------
-    // Rating accessors
-    // -------------------------------------------------------------------------
 
     public double CurrentIntellect => _currentStats.Intellect;
     public double CurrentStamina => _currentStats.Stamina;
@@ -90,10 +79,6 @@ public sealed class StatTracker : Analyzer
     public double StartingExpertiseRating => _pullStats.Expertise;
     public double StartingSpiritRating => _pullStats.Spirit;
     public double StartingIntellect => _pullStats.Intellect;
-
-    // -------------------------------------------------------------------------
-    // Rating → percentage conversion  (Fellowship piecewise DR)
-    // -------------------------------------------------------------------------
 
     /// <summary>
     /// Converts a stat rating to a percentage using Fellowship's piecewise
@@ -133,18 +118,10 @@ public sealed class StatTracker : Analyzer
     public double ExpertisePercentage(double rating) => RatingToPercentage(rating);
     public double SpiritPercentage(double rating) => RatingToPercentage(rating);
 
-    // -------------------------------------------------------------------------
-    // Current percentage getters
-    // -------------------------------------------------------------------------
-
     public double CurrentCritPercentage => CritPercentage(CurrentCritRating, withBase: true);
     public double CurrentHastePercentage => HastePercentage(CurrentHasteRating);
     public double CurrentExpertisePercentage => ExpertisePercentage(CurrentExpertiseRating);
     public double CurrentSpiritPercentage => SpiritPercentage(CurrentSpiritRating);
-
-    // -------------------------------------------------------------------------
-    // External stat forcing (for non-standard buffs)
-    // -------------------------------------------------------------------------
 
     /// <summary>
     /// Forces an immediate stat change. Use only for buffs that cannot be described
@@ -158,10 +135,6 @@ public sealed class StatTracker : Analyzer
         FabricateChangeStats(trigger, before, after - before, after);
     }
 
-    // -------------------------------------------------------------------------
-    // Event handlers
-    // -------------------------------------------------------------------------
-
     private void OnApplyBuff(ApplyBuffEvent e) => HandleBuffGain(e.Ability.Guid, e.Prepull.GetValueOrDefault(), e);
     private void OnRemoveBuff(RemoveBuffEvent e) => HandleBuffLoss(e.Ability.Guid, e);
     private void OnApplyBuffStack(ApplyBuffStackEvent e) => HandleBuffGain(e.Ability.Guid, isPrepull: false, e);
@@ -170,13 +143,6 @@ public sealed class StatTracker : Analyzer
     private void OnRemoveDebuff(RemoveDebuffEvent e) => HandleBuffLoss(e.Ability.Guid, e);
     private void OnApplyDebuffStack(ApplyDebuffStackEvent e) => HandleBuffGain(e.Ability.Guid, isPrepull: false, e);
     private void OnRemoveDebuffStack(RemoveDebuffStackEvent e) => HandleBuffLoss(e.Ability.Guid, e);
-
-    private void OnCast(CastEvent e) => ValidateIntellect(e.SpellPower, e);
-    private void OnHeal(HealEvent e) => ValidateIntellect(e.SpellPower, e);
-
-    // -------------------------------------------------------------------------
-    // Internal helpers
-    // -------------------------------------------------------------------------
 
     private void HandleBuffGain(int spellId, bool isPrepull, Event trigger)
     {
@@ -218,25 +184,7 @@ public sealed class StatTracker : Analyzer
         {
             ApplyMultiplierBuff(multBuff, isGaining: false, trigger);
         }
-    }
-
-    /// <summary>
-    /// Cast and Heal events include the caster's spell power (= intellect).
-    /// Use this to self-correct the tracked intellect value if it drifts.
-    /// </summary>
-    private void ValidateIntellect(int spellPower, Event trigger)
-    {
-        if (spellPower <= 0) return; // Physical events carry 0
-
-        var tracked = (int)_currentStats.Intellect;
-        if (spellPower == tracked) return;
-
-        var delta = spellPower - tracked;
-        var before = _currentStats.ToStats();
-        _currentStats.Intellect = spellPower;
-        var after = _currentStats.ToStats();
-        FabricateChangeStats(trigger, before, new Stats { Intellect = delta }, after);
-    }
+    }    
 
     private void ApplyRatingBuff(StatBuff buff, double factor, bool withMultipliers = true)
     {

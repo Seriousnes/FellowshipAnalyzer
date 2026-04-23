@@ -1,7 +1,7 @@
 ﻿namespace FellowshipAnalyzer.Core.Events;
 
 [Fabricated]
-public record GlobalCooldownEvent : Event, IAbilityEvent
+public class GlobalCooldownEvent : Event, IAbilityEvent
 {
     public virtual Ability Ability { get; set; }
     public virtual int AbilityGameId { get; set; }

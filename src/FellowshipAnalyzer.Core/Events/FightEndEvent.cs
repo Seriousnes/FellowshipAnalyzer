@@ -1,7 +1,7 @@
 ﻿namespace FellowshipAnalyzer.Core.Events;
 
 [Fabricated]
-public record FightEndEvent : Event
+public class FightEndEvent : Event
 {
     public override bool? Fabricated => true;
 }

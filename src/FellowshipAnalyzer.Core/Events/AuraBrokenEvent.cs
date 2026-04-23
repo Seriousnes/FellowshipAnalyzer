@@ -1,6 +1,6 @@
 ﻿namespace FellowshipAnalyzer.Core.Events;
 
-public record AuraBrokenEvent : Event, IAbilityEvent, IHasSourceEvent, IHasTargetWithInstanceEvent
+public class AuraBrokenEvent : Event, IAbilityEvent, IHasSourceEvent, IHasTargetWithInstanceEvent
 {
     public virtual Ability Ability { get; set; }
     public virtual int AbilityGameId { get; set; }

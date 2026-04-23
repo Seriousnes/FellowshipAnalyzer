@@ -1,7 +1,7 @@
 ﻿namespace FellowshipAnalyzer.Core.Events;
 
 [Fabricated]
-public record AutoAttackCooldownEvent : Event, IAbilityEvent
+public class AutoAttackCooldownEvent : Event, IAbilityEvent
 {
     public virtual Ability Ability { get; set; }
     public virtual int AbilityGameId { get; set; }

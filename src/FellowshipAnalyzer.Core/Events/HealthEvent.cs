@@ -1,5 +1,5 @@
 ﻿namespace FellowshipAnalyzer.Core.Events;
 
-public record HealthEvent : Event
+public class HealthEvent : Event
 {
 }

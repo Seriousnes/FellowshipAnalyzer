@@ -2,7 +2,7 @@
 
 namespace FellowshipAnalyzer.Core.Events;
 
-public record CombatantInfoEvent : Event
+public class CombatantInfoEvent : Event
 {
     public int Fight { get; set; }
     public int SourceId { get; set; }
@@ -40,7 +40,7 @@ public record CombatantInfoEvent : Event
     public decimal ComputedItemLevel => ItemLevel / 10m;
 }
 
-public record Aura
+public class Aura
 {
     public int Source { get; set; }
     public int Ability { get; set; }
@@ -49,20 +49,20 @@ public record Aura
     public string Name { get; set; } = string.Empty;
 }
 
-public record TalentInfo
+public class TalentInfo
 {
     public int Id { get; set; }
     public string Icon { get; set; } = string.Empty;
 }
 
-public record WeaponTrait
+public class WeaponTrait
 {
     public int Id { get; set; }
     public int Level { get; set; }
     public int Points { get; set; }
 }
 
-public record Item
+public class Item
 {
     public int Id { get; set; }
     public string Name { get; set; } = string.Empty;
@@ -79,13 +79,13 @@ public record Item
     public static implicit operator int(Item i) => i.Id;
 }
 
-public record ItemSet
+public class ItemSet
 {
     public int Id { get; set; }
     public string Name { get; set; } = string.Empty;
 }
 
-public record ItemGem
+public class ItemGem
 {
     public int Id { get; set; }
     public string Icon { get; set; } = string.Empty;
@@ -93,7 +93,7 @@ public record ItemGem
     public int Quality { get; set; }
 }
 
-public record ItemAttribute
+public class ItemAttribute
 {
     public int Id { get; set; }
     public string Name { get; set; } = string.Empty;

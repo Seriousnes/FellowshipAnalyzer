@@ -1,6 +1,6 @@
 ﻿namespace FellowshipAnalyzer.Core.Events;
 
-public record LinkedEvent(Event @event, string relation)
+public class LinkedEvent(Event @event, string relation)
 {
     /// <summary>
     /// A string specifying the relationship of the linked event. Used as key during lookup

@@ -1,6 +1,6 @@
 ﻿namespace FellowshipAnalyzer.Core.Events;
 
-public record DeathEvent : Event, IAbilityEvent, IHasTargetEvent
+public class DeathEvent : Event, IAbilityEvent, IHasTargetEvent
 {
     public virtual Ability? KillingAbility { get; set; }
     public virtual Ability Ability { get; set; }

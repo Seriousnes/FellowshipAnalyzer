@@ -4,9 +4,10 @@ using FellowshipAnalyzer.Core.Game;
 namespace FellowshipAnalyzer.Core.Analysis;
 
 /// <summary>
-/// Tracks all resource types for the selected player by subscribing to
-/// <see cref="ResourceChangeEvent"/>, <see cref="CastEvent"/>, and <see cref="DrainEvent"/>.
-/// Handles both source and target roles via <see cref="ResourceActorEnum"/>.
+/// Tracks all resource types for the selected player by subscribing to all events via
+/// <see cref="Events.Any"/> and inspecting <see cref="Event.SourceResources"/> /
+/// <see cref="Event.TargetResources"/> to find the selected player's resources.
+/// Spend tracking is driven by <see cref="CastEvent"/> via <see cref="Events.Cast"/>.
 /// </summary>
 public class ResourceTracker : Analyzer
 {
@@ -21,10 +22,8 @@ public class ResourceTracker : Analyzer
 
     public override void Initialize()
     {
-        AddEventListener(Events.ResourceChange.By(SELECTED_PLAYER), OnResourceChangeByPlayer);
-        AddEventListener(Events.ResourceChange.To(SELECTED_PLAYER), OnResourceChangeToPlayer);
         AddEventListener(Events.Cast.By(SELECTED_PLAYER), OnCast);
-        AddEventListener(Events.Drain.To(SELECTED_PLAYER), OnDrainToPlayer);
+        AddEventListener(Events.Any, OnEvent);
     }
 
     // Named convenience properties — null if the resource type has not appeared in any event.
@@ -55,36 +54,47 @@ public class ResourceTracker : Analyzer
     public IReadOnlyDictionary<int, int> GetSpenderCasts(ResourceTypes type) => GetOrCreateState(type).SpenderCasts;
     public IReadOnlyList<ResourceEvent> GetResourceEvents(ResourceTypes type) => GetOrCreateState(type).Events;
 
-    private void OnResourceChangeByPlayer(ResourceChangeEvent e)
+    private void OnEvent(Event e)
     {
-        // ResourceActor == Source means ClassResources shows the source (player's) resources.
-        if (e.ResourceActor != ResourceActorEnum.Source) return;
+        if (e is ResourceChangeEvent or BaseCastEvent) return;
 
-        var classResource = e.ClassResources?.FirstOrDefault(cr => cr.Type == e.ResourceChangeType);
-        RecordGain(
-            e.ResourceChangeType,
-            e.Ability.Id,
-            gained: (int)(e.ResourceChange - e.Waste),
-            wasted: (int)e.Waste,
-            currentAfterFromEvent: classResource?.Amount,
-            maxFromEvent: classResource?.Max,
-            e.Timestamp);
-    }
+        // Determine which ActorResources belong to the selected player.
+        ActorResources? playerResources = null;
+        if (e is IHasSourceEvent src && Owner.ByPlayer(src))
+            playerResources = e.SourceResources;
+        else if (e is IHasTargetEvent tgt && Owner.ToPlayer(tgt))
+            playerResources = e.TargetResources;
 
-    private void OnResourceChangeToPlayer(ResourceChangeEvent e)
-    {
-        // ResourceActor == Target means ClassResources shows the target (player's) resources.
-        if (e.ResourceActor != ResourceActorEnum.Target) return;
+        if (playerResources is null || playerResources.Resources.Count == 0) return;
 
-        var classResource = e.ClassResources?.FirstOrDefault(cr => cr.Type == e.ResourceChangeType);
-        RecordGain(
-            e.ResourceChangeType,
-            e.Ability.Id,
-            gained: (int)(e.ResourceChange - e.Waste),
-            wasted: (int)e.Waste,
-            currentAfterFromEvent: classResource?.Amount,
-            maxFromEvent: classResource?.Max,
-            e.Timestamp);
+        var ability = (e as IAbilityEvent)?.Ability ?? new Ability();
+
+        foreach (var resource in playerResources.Resources)
+        {
+            var state = GetOrCreateState(resource.Type, resource.Max);
+            var delta = resource.Amount - state.Current;
+            if (delta <= 0) continue;
+
+            RecordGain(
+                resource.Type,
+                ability.Id,
+                gained: delta,
+                wasted: 0,
+                currentAfterFromEvent: resource.Amount,
+                maxFromEvent: resource.Max,
+                e.Timestamp);
+
+            Owner.EventEmitter.FabricateEvent(new ResourceChangeEvent
+            {
+                Timestamp = e.Timestamp,
+                SourceId = PlayerId,
+                TargetId = PlayerId,
+                Ability = ability,
+                ResourceChangeType = resource.Type,
+                ResourceChange = delta,
+                Waste = 0,
+            }, e);
+        }
     }
 
     private void OnCast(CastEvent e)
@@ -115,28 +125,7 @@ public class ResourceTracker : Analyzer
                 state.Current = resource.Amount;
             }
         }
-    }
-
-    private void OnDrainToPlayer(DrainEvent e)
-    {
-        // ResourceActor == Target means ClassResources shows the target (player's) resources.
-        if (e.ResourceActor != ResourceActorEnum.Target) return;
-
-        var resourceType = (ResourceTypes)e.ResourceChangeType;
-        var amount = (int)e.ResourceChange;
-        var classResource = e.ClassResources?.FirstOrDefault(cr => cr.Type == resourceType);
-
-        var state = GetOrCreateState(resourceType, classResource?.Max);
-        state.Drained += amount;
-        // ClassResource.Amount for a drain is the amount BEFORE the drain.
-        state.Current = classResource?.Amount is { } before
-            ? Math.Max(0, before - amount)
-            : Math.Max(0, state.Current - amount);
-
-        var ev = new ResourceEvent(e.Timestamp, e.Ability.Id, resourceType, ResourceEventKind.Drain, amount, Wasted: 0, state.Current);
-        state.Events.Add(ev);
-        _allEvents.Add(ev);
-    }
+    }    
 
     private void RecordGain(
         ResourceTypes type,

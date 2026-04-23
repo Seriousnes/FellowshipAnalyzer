@@ -1,9 +1,9 @@
 ﻿namespace FellowshipAnalyzer.Core.Events;
 
 [Fabricated]
-public abstract record ChangeStackEvent : BuffEvent
+public abstract class ChangeStackEvent : BuffEvent
 {
-    public record History(int Stacks, long Timestamp);
+    public class History(int Stacks, long Timestamp);
 
     public virtual int? End { get; set; }
     public virtual bool? IsDebuff { get; set; }
@@ -17,6 +17,6 @@ public abstract record ChangeStackEvent : BuffEvent
     public override bool? Fabricated => true;
 }
 
-public record ChangeBuffStackEvent : ChangeStackEvent { }
+public class ChangeBuffStackEvent : ChangeStackEvent { }
 
-public record ChangeDebuffStackEvent : ChangeStackEvent { }
+public class ChangeDebuffStackEvent : ChangeStackEvent { }

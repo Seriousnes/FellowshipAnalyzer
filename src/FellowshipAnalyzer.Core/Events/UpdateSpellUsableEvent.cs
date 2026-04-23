@@ -1,7 +1,7 @@
 ﻿namespace FellowshipAnalyzer.Core.Events;
 
 [Fabricated]
-public record UpdateSpellUsableEvent : Event, IAbilityEvent, IHasSourceEvent, IHasTargetEvent
+public class UpdateSpellUsableEvent : Event, IAbilityEvent, IHasSourceEvent, IHasTargetEvent
 {
     public virtual Ability Ability { get; set; }
     public virtual int AbilityGameId { get; set; }

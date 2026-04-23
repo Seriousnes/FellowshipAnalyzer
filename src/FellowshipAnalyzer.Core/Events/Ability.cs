@@ -10,7 +10,7 @@ public interface ISpell
 }
 
 [DebuggerDisplay("{Name,nq} - SpellId: {Guid}")]
-public record Ability : ISpell
+public class Ability : ISpell
 {
     [JsonIgnore]
     public virtual int Id { get => Guid; set => Guid = value; }
