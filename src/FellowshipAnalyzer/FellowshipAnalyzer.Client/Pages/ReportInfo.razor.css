@@ -41,120 +41,6 @@ h1 {
     padding: 1.5rem;
 }
 
-.fights-section h2 {
-    margin-top: 0;
-    font-size: 1.15rem;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--fa-gold);
-}
-
-.fight-list {
-    display: flex;
-    flex-direction: column;
-    gap: 0.65rem;
-}
-
-.fight-card {
-    border: 1px solid var(--fa-border);
-    border-radius: var(--fa-radius-sm);
-    background: var(--fa-bg-inset);
-    overflow: hidden;
-    transition: border-color 0.15s;
-}
-
-.fight-card[open] {
-    border-color: var(--fa-border-card);
-}
-
-.fight-card summary {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    padding: 0.75rem 1rem;
-    cursor: pointer;
-    list-style: none;
-    transition: background 0.12s;
-}
-
-.fight-card summary:hover {
-    background: rgba(212, 167, 68, 0.04);
-}
-
-.fight-card summary::-webkit-details-marker {
-    display: none;
-}
-
-.fight-name {
-    flex: 1;
-    font-weight: 600;
-}
-
-.fight-status {
-    font-size: 0.75rem;
-    font-weight: 700;
-    padding: 0.2rem 0.6rem;
-    border-radius: 999px;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-}
-
-.fight-status.kill {
-    background: rgba(86, 214, 123, 0.14);
-    color: var(--fa-perf-perfect);
-}
-
-.fight-status.wipe {
-    background: rgba(212, 86, 74, 0.14);
-    color: var(--fa-perf-fail);
-}
-
-.fight-duration {
-    color: var(--fa-text-dim);
-    font-size: 0.85rem;
-    font-variant-numeric: tabular-nums;
-}
-
-.player-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-    gap: 0.5rem;
-    padding: 0.75rem 1rem 1rem;
-    border-top: 1px solid var(--fa-border);
-}
-
-.player-card {
-    display: flex;
-    flex-direction: column;
-    padding: 0.6rem 0.8rem;
-    border: 1px solid var(--fa-border);
-    border-radius: 6px;
-    background: var(--fa-bg-raised);
-    color: var(--fa-text);
-    text-decoration: none;
-    transition: border-color 0.15s, background 0.15s, transform 0.1s;
-}
-
-.player-card:hover {
-    border-color: var(--fa-gold);
-    background: var(--fa-bg-surface);
-    transform: translateY(-1px);
-}
-
-.player-name {
-    font-weight: 600;
-}
-
-.player-class {
-    font-size: 0.8rem;
-    color: var(--fa-gold);
-}
-
-.player-server {
-    font-size: 0.75rem;
-    color: var(--fa-text-dim);
-}
-
 .status-panel {
     border-radius: var(--fa-radius-lg);
     padding: 1.25rem;
@@ -163,6 +49,265 @@ h1 {
 .status-panel.error {
     color: #f5b8a8;
     border-color: rgba(212, 86, 74, 0.35);
+}
+
+/* View toggle */
+.view-toggle {
+    display: flex;
+    gap: 0;
+    margin-bottom: 1rem;
+    border: 1px solid var(--fa-border-card);
+    border-radius: var(--fa-radius-sm);
+    overflow: hidden;
+    width: fit-content;
+}
+
+.view-toggle-btn {
+    appearance: none;
+    background: transparent;
+    border: none;
+    padding: 0.4rem 1rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--fa-text-muted);
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+}
+
+.view-toggle-btn.active {
+    background: var(--fa-gold-dim);
+    color: var(--fa-gold-light);
+}
+
+/* Encounter group */
+.encounter-group {
+    margin-bottom: 1.5rem;
+}
+
+.encounter-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.6rem;
+}
+
+.encounter-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.encounter-icon-placeholder {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: var(--fa-bg-raised);
+    border: 1px solid var(--fa-border-card);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--fa-text-muted);
+    flex-shrink: 0;
+}
+
+.encounter-name {
+    font-size: 1.05rem;
+    font-weight: 700;
+    margin: 0;
+}
+
+/* Attempt pills */
+.attempts-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-bottom: 0.75rem;
+}
+
+.attempt-pill {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.3rem 0.75rem;
+    border-radius: 999px;
+    border: 1px solid;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    background: transparent;
+    transition: background 0.15s;
+    white-space: nowrap;
+    font-family: inherit;
+}
+
+.attempt-pill.kill {
+    border-color: rgba(86, 214, 123, 0.35);
+    color: var(--fa-perf-perfect);
+}
+
+.attempt-pill.kill:hover,
+.attempt-pill.kill.expanded {
+    background: rgba(86, 214, 123, 0.1);
+}
+
+.attempt-pill.wipe {
+    border-color: rgba(212, 86, 74, 0.35);
+    color: var(--fa-perf-fail);
+}
+
+.attempt-pill.wipe:hover,
+.attempt-pill.wipe.expanded {
+    background: rgba(212, 86, 74, 0.1);
+}
+
+.pill-pct {
+    color: var(--fa-text-muted);
+    font-weight: 500;
+}
+
+/* Player grid */
+.player-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 0.5rem;
+    padding: 0.5rem 0 0.75rem;
+    border-top: 1px solid var(--fa-border);
+}
+
+.role-counts {
+    grid-column: 1 / -1;
+    font-size: 0.78rem;
+    color: var(--fa-text-muted);
+    padding-bottom: 0.3rem;
+}
+
+.player-card {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.55rem 0.75rem;
+    border: 1px solid var(--fa-border);
+    border-radius: 6px;
+    border-left-width: 4px;
+    background: var(--fa-bg-raised);
+    color: var(--fa-text);
+    text-decoration: none;
+    transition: background 0.15s, transform 0.1s;
+}
+
+.player-card:hover {
+    background: var(--fa-bg-surface);
+    transform: translateY(-1px);
+}
+
+.player-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.player-icon-placeholder {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--fa-bg-surface);
+    border: 1px solid var(--fa-border-card);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--fa-text-muted);
+    flex-shrink: 0;
+}
+
+.player-info {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.player-name {
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.player-class {
+    font-size: 0.78rem;
+    color: var(--fa-text-muted);
+}
+
+/* By Player view */
+.player-accordion {
+    margin-bottom: 0.5rem;
+}
+
+.player-accordion-header {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.6rem 0.85rem;
+    border: 1px solid var(--fa-border);
+    border-radius: var(--fa-radius-sm);
+    border-left-width: 4px;
+    background: var(--fa-bg-raised);
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.player-accordion-header:hover {
+    background: var(--fa-bg-surface);
+}
+
+.player-accordion-fights {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    padding: 0.5rem 0.85rem 0.75rem 1rem;
+    border: 1px solid var(--fa-border);
+    border-top: none;
+    border-radius: 0 0 var(--fa-radius-sm) var(--fa-radius-sm);
+    background: var(--fa-bg-inset);
+}
+
+.fight-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.25rem 0.6rem;
+    border-radius: 999px;
+    border: 1px solid;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: background 0.15s;
+}
+
+.fight-pill.kill {
+    border-color: rgba(86, 214, 123, 0.35);
+    color: var(--fa-perf-perfect);
+}
+
+.fight-pill.kill:hover {
+    background: rgba(86, 214, 123, 0.1);
+}
+
+.fight-pill.wipe {
+    border-color: rgba(212, 86, 74, 0.35);
+    color: var(--fa-perf-fail);
+}
+
+.fight-pill.wipe:hover {
+    background: rgba(212, 86, 74, 0.1);
 }
 
 @media (max-width: 720px) {

@@ -62,6 +62,7 @@ public sealed class GraphQLReportFight
     public double EndTime { get; set; }
     public int? Difficulty { get; set; }
     public List<int>? FriendlyPlayers { get; set; }
+    public double? FightPercentage { get; set; }
     public bool InProgress { get; set; }
 }
 
@@ -86,4 +87,5 @@ public sealed class GraphQLReportActor
     public string Type { get; set; } = "";
     public string? SubType { get; set; }
     public string? Server { get; set; }
+    public string? Icon { get; set; }
 }

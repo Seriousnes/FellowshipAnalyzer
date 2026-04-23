@@ -13,7 +13,7 @@ internal sealed partial class ReportFunction
                   name
                   type
                 }
-                actors(type: "Player") {
+                actors {
                   id
                   name
                   type
@@ -44,7 +44,8 @@ internal sealed partial class ReportFunction
                 difficulty
                 friendlyPlayers
                 inProgress
-                dungeonPulls {            
+                fightPercentage
+                dungeonPulls {
                   encounterID
                   startTime
                   endTime
@@ -58,6 +59,7 @@ internal sealed partial class ReportFunction
                   type
                   subType
                   server
+                  icon
                 }
               }
             }

@@ -35,11 +35,12 @@ public sealed class FellowshipLogsProxyClient : IFellowshipLogsClient
             var fights = report.Fights?.Select(f => new FellowshipLogsFight(
                 f.Id, f.Name, f.EncounterID, f.Kill, f.StartTime, f.EndTime, f.Difficulty,
                 f.FriendlyPlayers?.AsReadOnly(),
+                f.FightPercentage,
                 f.InProgress
             )).ToList().AsReadOnly() ?? (IReadOnlyList<FellowshipLogsFight>)[];
 
             var actors = report.MasterData?.Actors?.Select(a => new FellowshipLogsActor(
-                a.Id, a.Name, a.Type, a.SubType, a.Server
+                a.Id, a.Name, a.Type, a.SubType, a.Server, a.Icon
             )).ToList().AsReadOnly() ?? (IReadOnlyList<FellowshipLogsActor>)[];
 
             return new FellowshipLogsReportInfo(
@@ -85,7 +86,7 @@ public sealed class FellowshipLogsProxyClient : IFellowshipLogsClient
             )).ToList().AsReadOnly() ?? (IReadOnlyList<FellowshipLogsAbility>)[];
 
             var actors = masterData.Actors?.Select(a => new FellowshipLogsActor(
-                a.Id, a.Name, a.Type, a.SubType, a.Server
+                a.Id, a.Name, a.Type, a.SubType, a.Server, a.Icon
             )).ToList().AsReadOnly() ?? (IReadOnlyList<FellowshipLogsActor>)[];
 
             return new FellowshipLogsMasterData(abilities, actors);

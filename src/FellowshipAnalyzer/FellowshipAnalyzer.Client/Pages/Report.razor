@@ -3,6 +3,7 @@
 @using FellowshipAnalyzer.Core.Events
 @using FellowshipAnalyzer.Core.FellowshipLogs
 @using FellowshipAnalyzer.Components.Timeline
+@using FellowshipAnalyzer.Client.Services
 @using Microsoft.Extensions.DependencyInjection
 @using System.Text.Json
 @inject IFellowshipLogsClient FellowshipLogs
@@ -11,20 +12,78 @@
 @inject IReportCacheService ReportCache
 @inject ReportLoadingTracker LoadingTracker
 @inject ReportMasterDataService MasterDataService
+@inject ReportNavigationState NavState
 
 <PageTitle>Analysis Report</PageTitle>
 
 <div class="analysis-page">
     <section class="hero-panel">
-        <div>
-            <p class="eyebrow">Combat Analysis</p>
-            <h1>@(_result is not null ? "Analysis Report" : "Loading...")</h1>
-            <p class="lede">Detailed analysis of combat performance from Fellowship Logs.</p>
-        </div>
-        <div class="hero-meta">
-            <span>Player @PlayerId</span>
-            <span>Report: @ReportCode</span>
-            <span>Fight: @FightId</span>
+        <nav class="breadcrumbs" aria-label="breadcrumb">
+            <a href="/report/@ReportCode">@(_reportTitle ?? ReportCode)</a>
+            <span class="breadcrumb-sep">›</span>
+            <span class="breadcrumb-current">@(_fightName ?? $"Fight {FightId}")</span>
+            <span class="breadcrumb-sep">›</span>
+            <span class="breadcrumb-current">@(_playerName ?? $"Player {PlayerId}")</span>
+        </nav>
+        <div class="hero-panel-body">
+            <div class="encounter-block">
+                @if (_bossIcon is not null)
+                {
+                    <img class="encounter-portrait"
+                         src="https://assets.rpglogs.com/img/fellowship/abilities/@_bossIcon"
+                         alt="@_fightName"
+                         onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />
+                    <div class="encounter-portrait-placeholder" style="display:none">
+                        @(_fightName?.Length > 0 ? _fightName[0].ToString() : "?")
+                    </div>
+                }
+                else
+                {
+                    <div class="encounter-portrait-placeholder">
+                        @(_fightName?.Length > 0 ? _fightName[0].ToString() : "?")
+                    </div>
+                }
+                <div class="encounter-text">
+                    <h1 class="encounter-title">@(_fightName ?? $"Fight {FightId}")</h1>
+                    @if (_fightKill == true)
+                    {
+                        <span class="fight-badge kill">✓ Kill</span>
+                    }
+                    else if (_fightKill == false)
+                    {
+                        <span class="fight-badge wipe">✗ Wipe</span>
+                    }
+                    @if (_fightDuration is not null)
+                    {
+                        <span class="fight-duration">@_fightDuration</span>
+                    }
+                </div>
+            </div>
+            <div class="player-block">
+                @if (_playerIcon is not null)
+                {
+                    <img class="player-portrait"
+                         src="https://assets.rpglogs.com/img/fellowship/abilities/@_playerIcon"
+                         alt="@_playerName"
+                         onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />
+                    <div class="player-portrait-placeholder" style="display:none">
+                        @(_playerName?.Length > 0 ? _playerName[0].ToString() : "?")
+                    </div>
+                }
+                else
+                {
+                    <div class="player-portrait-placeholder">
+                        @(_playerName?.Length > 0 ? _playerName[0].ToString() : "?")
+                    </div>
+                }
+                <div class="player-text">
+                    <h2 class="player-title">@(_playerName ?? $"Player {PlayerId}")</h2>
+                    @if (_playerClass is not null)
+                    {
+                        <span class="player-class-label">@_playerClass</span>
+                    }
+                </div>
+            </div>
         </div>
     </section>
 
@@ -40,10 +99,31 @@
     {
         <CascadingValue Value="@_parser" IsFixed="true">
         <nav class="report-tabs">
-            <button class="report-tab @(_activeTab == ReportTab.Guide ? "report-tab--active" : "")" @onclick="() => _activeTab = ReportTab.Guide">Guide</button>
-            <button class="report-tab @(_activeTab == ReportTab.Statistics ? "report-tab--active" : "")" @onclick="() => _activeTab = ReportTab.Statistics">Statistics</button>
-            <button class="report-tab @(_activeTab == ReportTab.Timeline ? "report-tab--active" : "")" @onclick="() => _activeTab = ReportTab.Timeline">Timeline</button>
-            <button class="report-tab @(_activeTab == ReportTab.About ? "report-tab--active" : "")" @onclick="() => _activeTab = ReportTab.About">About</button>
+            <button class="report-tab @(_activeTab == ReportTab.Guide ? "report-tab--active" : "")" @onclick="() => _activeTab = ReportTab.Guide">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/>
+                    <line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>
+                </svg>
+                Guide
+            </button>
+            <button class="report-tab @(_activeTab == ReportTab.Statistics ? "report-tab--active" : "")" @onclick="() => _activeTab = ReportTab.Statistics">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>
+                </svg>
+                Statistics
+            </button>
+            <button class="report-tab @(_activeTab == ReportTab.Timeline ? "report-tab--active" : "")" @onclick="() => _activeTab = ReportTab.Timeline">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="15" y2="12"/><line x1="3" y1="18" x2="18" y2="18"/>
+                </svg>
+                Timeline
+            </button>
+            <button class="report-tab @(_activeTab == ReportTab.About ? "report-tab--active" : "")" @onclick="() => _activeTab = ReportTab.About">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+                </svg>
+                About
+            </button>
         </nav>
 
         @if (_activeTab == ReportTab.Guide)
@@ -138,6 +218,15 @@
     private string? _pendingCacheEventsJson;
     private CombatLogParser? _parser;
 
+    private string? _reportTitle;
+    private string? _fightName;
+    private bool? _fightKill;
+    private string? _fightDuration;
+    private string? _bossIcon;
+    private string? _playerName;
+    private string? _playerClass;
+    private string? _playerIcon;
+
     protected override async Task OnInitializedAsync()
     {
         try
@@ -184,6 +273,23 @@
 
             var fight = reportInfo.Fights.FirstOrDefault(f => f.Id == FightId)
                 ?? throw new InvalidOperationException($"Fight {FightId} not found in report.");
+
+            NavState.Set(ReportCode, reportInfo);
+            _reportTitle = reportInfo.Title;
+            _fightName = fight.Name;
+            _fightKill = fight.Kill;
+            var durationMs = fight.EndTime - fight.StartTime;
+            var ts = TimeSpan.FromMilliseconds(durationMs);
+            _fightDuration = ts.TotalMinutes >= 1 ? $"{(int)ts.TotalMinutes}:{ts.Seconds:D2}" : $"{ts.Seconds}s";
+            var bossActor = reportInfo.Actors.FirstOrDefault(a =>
+                !string.Equals(a.Type, "Player", StringComparison.OrdinalIgnoreCase)
+                && string.Equals(a.Name, fight.Name, StringComparison.OrdinalIgnoreCase)
+                && !string.IsNullOrEmpty(a.Icon));
+            _bossIcon = bossActor?.Icon;
+            var playerActor = reportInfo.Actors.FirstOrDefault(a => a.Id == PlayerId);
+            _playerName = playerActor?.Name;
+            _playerClass = playerActor?.SubType;
+            _playerIcon = playerActor?.Icon;
 
             LoadingTracker.DeserializeState = ReportLoadingTracker.StepState.Ok;
             await Task.Yield();

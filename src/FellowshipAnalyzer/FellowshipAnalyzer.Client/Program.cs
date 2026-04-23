@@ -42,6 +42,9 @@ builder.Services.AddRimeAnalysis();
 // Per-report loading progress tracker
 builder.Services.AddScoped<ReportLoadingTracker>();
 
+// Navigation state cache (fight/player selection → analysis page)
+builder.Services.AddScoped<ReportNavigationState>();
+
 // IFellowshipLogsClient: WASM proxy client deserializes raw GraphQL responses from API endpoints
 builder.Services.AddScoped<IFellowshipLogsClient, FellowshipLogsProxyClient>();
 

@@ -50,6 +50,7 @@ public sealed record FellowshipLogsFight(
     double EndTime,
     int? Difficulty,
     IReadOnlyList<int>? FriendlyPlayers,
+    double? FightPercentage,
     bool InProgress = false
 );
 
@@ -70,7 +71,8 @@ public sealed record FellowshipLogsActor(
     string Name,
     string Type,
     string? SubType,
-    string? Server
+    string? Server,
+    string? Icon
 );
 
 public interface IFellowshipLogsClient
