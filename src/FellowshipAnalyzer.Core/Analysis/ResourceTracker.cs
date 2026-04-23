@@ -33,6 +33,12 @@ public class ResourceTracker : Analyzer
     public ResourceState? Spirit => GetResourceState(ResourceTypes.Spirit);
     public ResourceState? Stagger => GetResourceState(ResourceTypes.Stagger);
 
+    /// <summary>The player's most recently observed current hit points.</summary>
+    public long CurrentHealth { get; private set; }
+
+    /// <summary>The player's most recently observed maximum hit points.</summary>
+    public long MaxHealth { get; private set; }
+
     /// <summary>All resource events across all types, in chronological order.</summary>
     public IReadOnlyList<ResourceEvent> AllResourceEvents => _allEvents;
 
@@ -56,19 +62,21 @@ public class ResourceTracker : Analyzer
 
     private void OnEvent(Event e)
     {
-        if (e is ResourceChangeEvent or BaseCastEvent) return;
-
         // Determine which ActorResources belong to the selected player.
         ActorResources? playerResources = null;
         if (e is IHasSourceEvent src && Owner.ByPlayer(src))
             playerResources = e.SourceResources;
         else if (e is IHasTargetEvent tgt && Owner.ToPlayer(tgt))
-            playerResources = e.TargetResources;
+            playerResources = e.TargetResources;        
+        
+        if (e is ResourceChangeEvent or BaseCastEvent || playerResources is not { Resources.Count: > 0 }) 
+        {
+            return;
+        };
 
-        if (playerResources is null || playerResources.Resources.Count == 0) return;
+        UpdateHealth(playerResources);
 
         var ability = (e as IAbilityEvent)?.Ability ?? new Ability();
-
         foreach (var resource in playerResources.Resources)
         {
             var state = GetOrCreateState(resource.Type, resource.Max);
@@ -100,6 +108,9 @@ public class ResourceTracker : Analyzer
     private void OnCast(CastEvent e)
     {
         // Player is always source for Cast.By(SELECTED_PLAYER).
+        if (e.SourceResources is not null)
+            UpdateHealth(e.SourceResources);
+
         var resources = e.SourceResources?.Resources;
         if (resources is null || resources.Count == 0) return;
 
@@ -167,6 +178,16 @@ public class ResourceTracker : Analyzer
         }
 
         return state;
+    }
+
+    private void UpdateHealth(ActorResources resources)
+    {
+        // MaxHitPoints > 0 guards against unpopulated ActorResources objects.
+        if (resources.MaxHitPoints > 0)
+        {
+            CurrentHealth = resources.HitPoints;
+            MaxHealth = resources.MaxHitPoints;
+        }
     }
 
     private static void IncrementDict(Dictionary<int, int> dict, int key)
