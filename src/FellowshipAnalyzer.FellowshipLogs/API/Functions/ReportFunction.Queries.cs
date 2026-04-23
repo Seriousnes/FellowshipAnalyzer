@@ -18,6 +18,8 @@ internal sealed partial class ReportFunction
                   name
                   type
                   subType
+                  gameID
+                  icon
                 }
               }
             }
@@ -42,6 +44,12 @@ internal sealed partial class ReportFunction
                 difficulty
                 friendlyPlayers
                 inProgress
+                dungeonPulls {            
+                  encounterID
+                  startTime
+                  endTime
+                  name
+                }
               }
               masterData {
                 actors {

@@ -11,7 +11,14 @@ internal sealed class EventsFunction(IApiRequestExecutor api, FellowshipLogsClie
           reportData {
             report(code: $code) {
               fights(fightIDs: $fightIDs) {
-                inProgress                
+                inProgress
+                startTime
+                dungeonPulls {            
+                  encounterID
+                  startTime
+                  endTime
+                  name
+                }
               }
               events(fightIDs: $fightIDs, sourceID: $sourceID, includeResources: true) {
                 data
