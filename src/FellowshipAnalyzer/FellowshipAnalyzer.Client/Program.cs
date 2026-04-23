@@ -1,6 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Net.Http.Json;
+using ApexCharts;
 using FellowshipAnalyzer.Client.Services;
 using FellowshipAnalyzer.Core;
 using FellowshipAnalyzer.Core.Analysis;
@@ -33,6 +34,7 @@ jsonOptions.Converters.Add(new JsonStringEnumConverter(allowIntegerValues: true)
 builder.Services.AddSingleton(jsonOptions);
 
 // Hero analysis runs client-side in WASM
+builder.Services.AddApexCharts();
 builder.Services.AddCoreAnalysisServices();
 builder.Services.AddCoreAnalysis();
 builder.Services.AddRimeAnalysis();

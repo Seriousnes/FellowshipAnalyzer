@@ -1,15 +1,22 @@
 <Project Sdk="Microsoft.NET.Sdk.Razor">
 
-  <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
-    <Nullable>enable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFramework>net10.0</TargetFramework>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <SupportedPlatform Include="browser" />
-    <ProjectReference Include="..\FellowshipAnalyzer.Core\FellowshipAnalyzer.Core.csproj" />
-    <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="10.0.0" />
-  </ItemGroup>
+	<ItemGroup>
+		<SupportedPlatform Include="browser" />
+	</ItemGroup>
+	
+	<ItemGroup>
+		<ProjectReference Include="..\FellowshipAnalyzer.Core\FellowshipAnalyzer.Core.csproj" />
+	</ItemGroup>
+	
+	<ItemGroup>
+		<PackageReference Include="Blazor-ApexCharts" Version="6.1.0" />
+		<PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="10.0.0" />
+	</ItemGroup>
 
 </Project>

@@ -5,7 +5,7 @@ namespace FellowshipAnalyzer.Core.Common.Spells;
 /// hero-specific spell properties are source-generated from every <see cref="ISpellRegistry"/>
 /// implementor visible in this assembly.
 /// </summary>
-[GenerateSpellRegistry]
+[GenerateRegistry<ISpellRegistry>]
 public static partial class Spells
 {
     public static Effect Kindling { get; } = new(104, "Kindling", "T_Nhance_RPG_Gold_10.jpg");

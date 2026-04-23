@@ -8,17 +8,15 @@ using System.Text;
 namespace FellowshipAnalyzer.Generators;
 
 [Generator]
-public sealed class SpellRegistryGenerator : IIncrementalGenerator
+public sealed class RegistryGenerator : IIncrementalGenerator
 {
-    private const string GenerateSpellRegistryAttributeName = "GenerateSpellRegistryAttribute";
-    private const string ISpellRegistryName = "ISpellRegistry";
-    private const string SpellTypeName = "Spell";
+    private const string AttributeName = "GenerateRegistryAttribute";
 
-    private static readonly DiagnosticDescriptor DuplicateSpellDescriptor = new(
+    private static readonly DiagnosticDescriptor DuplicateEntryDescriptor = new(
         id: "FA0001",
-        title: "Duplicate spell property name in ISpellRegistry",
-        messageFormat: "Spell property '{0}' is defined in both '{1}' and '{2}'. Rename one to resolve the conflict.",
-        category: "SpellRegistry",
+        title: "Duplicate property name in registry",
+        messageFormat: "Property '{0}' is defined in both '{1}' and '{2}'. Rename one to resolve the conflict.",
+        category: "Registry",
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true);
 
@@ -60,21 +58,26 @@ public sealed class SpellRegistryGenerator : IIncrementalGenerator
         if (symbol == null)
             return null;
 
-        bool hasAttribute = false;
+        // Find [GenerateRegistry<T>] and extract the registry interface symbol T.
+        INamedTypeSymbol? registryInterface = null;
         foreach (var attr in symbol.GetAttributes())
         {
-            if (attr.AttributeClass?.Name == GenerateSpellRegistryAttributeName)
+            if (attr.AttributeClass?.Name == AttributeName &&
+                attr.AttributeClass.IsGenericType &&
+                attr.AttributeClass.TypeArguments.Length == 1)
             {
-                hasAttribute = true;
+                registryInterface = attr.AttributeClass.TypeArguments[0] as INamedTypeSymbol;
                 break;
             }
         }
 
-        if (!hasAttribute)
+        if (registryInterface == null)
             return null;
 
-        // Scan the entire compilation for ISpellRegistry implementors
+        // Scan the compilation for all concrete types implementing the registry interface.
         var registries = new List<RegistryInfo>();
+        ITypeSymbol? lcaType = null;
+
         foreach (var type in GetAllNamedTypes(ctx.SemanticModel.Compilation.Assembly.GlobalNamespace))
         {
             ct.ThrowIfCancellationRequested();
@@ -82,55 +85,57 @@ public sealed class SpellRegistryGenerator : IIncrementalGenerator
             if (type.IsAbstract || type.TypeKind == TypeKind.Interface)
                 continue;
 
-            if (!ImplementsISpellRegistry(type))
+            if (!ImplementsInterface(type, registryInterface))
                 continue;
 
-            var entries = new List<SpellEntry>();
+            var entries = new List<EntryProperty>();
             foreach (var member in type.GetMembers())
             {
                 if (member is not IPropertySymbol prop)
                     continue;
                 if (!prop.IsStatic || prop.GetMethod == null)
                     continue;
-                if (!IsSpellOrSubtype(prop.Type))
+                if (!HasGuidProperty(prop.Type))
                     continue;
 
-                entries.Add(new SpellEntry(prop.Name, prop.Type.Name));
+                entries.Add(new EntryProperty(prop.Name, GlobalName(prop.Type)));
+                lcaType = lcaType == null ? prop.Type : ComputeLca(lcaType, prop.Type);
             }
 
             if (entries.Count == 0)
                 continue;
 
-            var typeNs = type.ContainingNamespace?.IsGlobalNamespace == false
-                ? type.ContainingNamespace.ToDisplayString()
-                : string.Empty;
-
-            registries.Add(new RegistryInfo(type.Name, typeNs, entries.ToImmutableArray()));
+            registries.Add(new RegistryInfo(type.Name, NamespaceOf(type), entries.ToImmutableArray()));
         }
 
-        // Sort for deterministic output
+        // Sort for deterministic output.
         registries.Sort(static (a, b) => string.Compare(a.TypeName, b.TypeName, StringComparison.Ordinal));
 
-        var triggerNs = symbol.ContainingNamespace?.IsGlobalNamespace == false
-            ? symbol.ContainingNamespace.ToDisplayString()
-            : string.Empty;
-
-        // Scan the trigger class's own hand-written Spell properties for the All dict.
-        // These don't get forwarding properties (they already exist on the partial class).
-        var ownEntries = new List<SpellEntry>();
+        // Scan the trigger class's own hand-written entry properties.
+        // These don't get forwarding properties (they're already on the partial class), but are
+        // included in the All dictionary.
+        var ownEntries = new List<EntryProperty>();
         foreach (var member in symbol.GetMembers())
         {
             if (member is not IPropertySymbol prop)
                 continue;
             if (!prop.IsStatic || prop.GetMethod == null)
                 continue;
-            if (!IsSpellOrSubtype(prop.Type))
+            if (!HasGuidProperty(prop.Type))
                 continue;
 
-            ownEntries.Add(new SpellEntry(prop.Name, prop.Type.Name));
+            ownEntries.Add(new EntryProperty(prop.Name, GlobalName(prop.Type)));
+            lcaType = lcaType == null ? prop.Type : ComputeLca(lcaType, prop.Type);
         }
 
-        return new TriggerInfo(symbol.Name, triggerNs, registries.ToImmutableArray(), ownEntries.ToImmutableArray());
+        var lcaGlobalName = lcaType != null ? GlobalName(lcaType) : null;
+
+        return new TriggerInfo(
+            symbol.Name,
+            NamespaceOf(symbol),
+            registries.ToImmutableArray(),
+            ownEntries.ToImmutableArray(),
+            lcaGlobalName);
     }
 
     private static void Execute(SourceProductionContext ctx, TriggerInfo trigger)
@@ -138,20 +143,20 @@ public sealed class SpellRegistryGenerator : IIncrementalGenerator
         if (trigger.Registries.IsEmpty && trigger.OwnEntries.IsEmpty)
             return;
 
-        // Check for duplicate property names across all registries
+        // Check for duplicate property names across all registries.
         var seen = new Dictionary<string, string>(StringComparer.Ordinal);
         bool hasError = false;
         foreach (var registry in trigger.Registries)
         {
             foreach (var entry in registry.Entries)
             {
-                if (seen.TryGetValue(entry.PropertyName, out var existingType))
+                if (seen.TryGetValue(entry.PropertyName, out var existing))
                 {
                     ctx.ReportDiagnostic(Diagnostic.Create(
-                        DuplicateSpellDescriptor,
+                        DuplicateEntryDescriptor,
                         Location.None,
                         entry.PropertyName,
-                        existingType,
+                        existing,
                         registry.TypeName));
                     hasError = true;
                 }
@@ -184,68 +189,109 @@ public sealed class SpellRegistryGenerator : IIncrementalGenerator
         // Forwarding properties, grouped by source registry.
         // The trigger class itself is skipped — its properties are hand-written on the partial class.
         bool firstBlock = true;
-        for (int i = 0; i < trigger.Registries.Length; i++)
+        foreach (var registry in trigger.Registries)
         {
-            var registry = trigger.Registries[i];
             if (registry.GlobalName == triggerGlobalName)
                 continue;
 
             if (!firstBlock) sb.AppendLine();
             firstBlock = false;
+
             sb.AppendLine("    // From " + registry.TypeName);
             foreach (var entry in registry.Entries)
             {
-                sb.AppendLine("    public static " + entry.PropertyTypeName + " " + entry.PropertyName +
+                sb.AppendLine("    public static " + entry.GlobalTypeName + " " + entry.PropertyName +
                               " => " + registry.GlobalName + "." + entry.PropertyName + ";");
             }
         }
 
-        // All dictionary — includes own hand-written entries and all registry entries
-        sb.AppendLine();
-        sb.AppendLine("    /// <summary>All registered spells keyed by <see cref=\"Spell.Guid\"/>.</summary>");
-        sb.AppendLine("    public static FrozenDictionary<int, Spell> All { get; } =");
-        sb.AppendLine("        new Dictionary<int, Spell>");
-        sb.AppendLine("        {");
-        foreach (var entry in trigger.OwnEntries)
+        // All dictionary — value type is the LCA of all entry types.
+        if (trigger.LcaGlobalName != null)
         {
-            sb.AppendLine("            [" + triggerGlobalName + "." + entry.PropertyName + ".Guid] = " +
-                          triggerGlobalName + "." + entry.PropertyName + ",");
-        }
-        foreach (var registry in trigger.Registries)
-        {
-            foreach (var entry in registry.Entries)
+            sb.AppendLine();
+            sb.AppendLine("    /// <summary>All registered entries keyed by <c>Guid</c>.</summary>");
+            sb.AppendLine("    public static FrozenDictionary<int, " + trigger.LcaGlobalName + "> All { get; } =");
+            sb.AppendLine("        new Dictionary<int, " + trigger.LcaGlobalName + ">");
+            sb.AppendLine("        {");
+            foreach (var entry in trigger.OwnEntries)
             {
-                sb.AppendLine("            [" + registry.GlobalName + "." + entry.PropertyName + ".Guid] = " +
-                              registry.GlobalName + "." + entry.PropertyName + ",");
+                sb.AppendLine("            [" + triggerGlobalName + "." + entry.PropertyName + ".Guid] = " +
+                              triggerGlobalName + "." + entry.PropertyName + ",");
             }
+            foreach (var registry in trigger.Registries)
+            {
+                foreach (var entry in registry.Entries)
+                {
+                    sb.AppendLine("            [" + registry.GlobalName + "." + entry.PropertyName + ".Guid] = " +
+                                  registry.GlobalName + "." + entry.PropertyName + ",");
+                }
+            }
+            sb.AppendLine("        }.ToFrozenDictionary();");
         }
-        sb.AppendLine("        }.ToFrozenDictionary();");
+
         sb.AppendLine("}");
 
-        ctx.AddSource("Spells.g.cs", sb.ToString());
+        ctx.AddSource(trigger.ClassName + ".g.cs", sb.ToString());
     }
 
-    private static bool ImplementsISpellRegistry(INamedTypeSymbol type)
+    /// <summary>Returns true when <paramref name="type"/> directly or transitively implements <paramref name="targetInterface"/>.</summary>
+    private static bool ImplementsInterface(INamedTypeSymbol type, INamedTypeSymbol targetInterface)
     {
         foreach (var iface in type.AllInterfaces)
         {
-            if (iface.Name == ISpellRegistryName)
+            if (SymbolEqualityComparer.Default.Equals(iface, targetInterface))
                 return true;
         }
         return false;
     }
 
-    private static bool IsSpellOrSubtype(ITypeSymbol type)
+    /// <summary>Returns true when <paramref name="type"/> or any of its base types has an <c>int Guid { get; }</c> property.</summary>
+    private static bool HasGuidProperty(ITypeSymbol type)
     {
         var current = type;
         while (current != null)
         {
-            if (current.Name == SpellTypeName)
-                return true;
-            current = current.BaseType;
+            foreach (var member in current.GetMembers("Guid"))
+            {
+                if (member is IPropertySymbol prop &&
+                    prop.Type.SpecialType == SpecialType.System_Int32 &&
+                    prop.GetMethod != null)
+                    return true;
+            }
+            current = (current as INamedTypeSymbol)?.BaseType;
         }
         return false;
     }
+
+    /// <summary>Computes the lowest common ancestor of two types by walking base-type chains.</summary>
+    private static ITypeSymbol ComputeLca(ITypeSymbol a, ITypeSymbol b)
+    {
+        var ancestors = new HashSet<string>(StringComparer.Ordinal);
+        var curr = a;
+        while (curr != null)
+        {
+            ancestors.Add(curr.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat));
+            curr = (curr as INamedTypeSymbol)?.BaseType;
+        }
+
+        curr = b;
+        while (curr != null)
+        {
+            if (ancestors.Contains(curr.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)))
+                return curr;
+            curr = (curr as INamedTypeSymbol)?.BaseType;
+        }
+
+        return a; // fallback — should not be reached for well-typed registries
+    }
+
+    private static string GlobalName(ITypeSymbol type) =>
+        type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+
+    private static string NamespaceOf(INamedTypeSymbol type) =>
+        type.ContainingNamespace?.IsGlobalNamespace == false
+            ? type.ContainingNamespace.ToDisplayString()
+            : string.Empty;
 
     private static IEnumerable<INamedTypeSymbol> GetAllNamedTypes(INamespaceSymbol ns)
     {
@@ -275,23 +321,30 @@ public sealed class SpellRegistryGenerator : IIncrementalGenerator
 
     private sealed class TriggerInfo
     {
-        public TriggerInfo(string className, string ns, ImmutableArray<RegistryInfo> registries, ImmutableArray<SpellEntry> ownEntries)
+        public TriggerInfo(
+            string className,
+            string ns,
+            ImmutableArray<RegistryInfo> registries,
+            ImmutableArray<EntryProperty> ownEntries,
+            string? lcaGlobalName)
         {
             ClassName = className;
             Namespace = ns;
             Registries = registries;
             OwnEntries = ownEntries;
+            LcaGlobalName = lcaGlobalName;
         }
 
         public string ClassName { get; }
         public string Namespace { get; }
         public ImmutableArray<RegistryInfo> Registries { get; }
-        public ImmutableArray<SpellEntry> OwnEntries { get; }
+        public ImmutableArray<EntryProperty> OwnEntries { get; }
+        public string? LcaGlobalName { get; }
     }
 
     private sealed class RegistryInfo
     {
-        public RegistryInfo(string typeName, string ns, ImmutableArray<SpellEntry> entries)
+        public RegistryInfo(string typeName, string ns, ImmutableArray<EntryProperty> entries)
         {
             TypeName = typeName;
             Namespace = ns;
@@ -302,18 +355,18 @@ public sealed class SpellRegistryGenerator : IIncrementalGenerator
         public string TypeName { get; }
         public string Namespace { get; }
         public string GlobalName { get; }
-        public ImmutableArray<SpellEntry> Entries { get; }
+        public ImmutableArray<EntryProperty> Entries { get; }
     }
 
-    private sealed class SpellEntry
+    private sealed class EntryProperty
     {
-        public SpellEntry(string propertyName, string propertyTypeName)
+        public EntryProperty(string propertyName, string globalTypeName)
         {
             PropertyName = propertyName;
-            PropertyTypeName = propertyTypeName;
+            GlobalTypeName = globalTypeName;
         }
 
         public string PropertyName { get; }
-        public string PropertyTypeName { get; }
+        public string GlobalTypeName { get; }
     }
 }
