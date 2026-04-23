@@ -1,3 +1,5 @@
+using System.Text.Json;
+using FellowshipAnalyzer.Core.FellowshipLogs;
 using FellowshipAnalyzer.FellowshipLogs;
 using FellowshipAnalyzer.FellowshipLogs.Extensions;
 using FellowshipAnalyzer.ServiceDefaults;
@@ -54,43 +56,31 @@ app.UseHttpsRedirection();
 app.UseCors();
 
 app.MapGet(
-        "/api/report/{reportCode}",
-        async (
-            string reportCode,
-            IFellowshipLogsProxy proxy,
-            HttpContext ctx,
-            CancellationToken cancellationToken) =>
-        {
-            using var upstream = await proxy.ProxyReportAsync(reportCode, cancellationToken);
-            await StreamUpstreamResponseAsync(upstream, ctx, cancellationToken);
-        })
-    .RequireCors("WasmHost");
-
-app.MapGet(
         "/api/events",
         async (
             string reportCode,
             int playerId,
             int fightId,
-            IFellowshipLogsProxy proxy,
-            HttpContext ctx,
+            IFellowshipLogsClient client,
+            JsonSerializerOptions jsonOptions,
             CancellationToken cancellationToken) =>
         {
-            using var upstream = await proxy.ProxyEventsAsync(reportCode, playerId, fightId, cancellationToken);
-            await StreamUpstreamResponseAsync(upstream, ctx, cancellationToken);
+            var request = new FellowshipLogsEventsRequest(reportCode, playerId, fightId);
+            var result = await client.Events.GetAsync(request, cancellationToken);
+            return Results.Json(result, jsonOptions);
         })
     .RequireCors("WasmHost");
 
 app.MapGet(
-        "/api/masterdata/{reportCode}",
+        "/api/analysis/{reportCode}",
         async (
             string reportCode,
-            IFellowshipLogsProxy proxy,
-            HttpContext ctx,
+            IFellowshipLogsClient client,
+            JsonSerializerOptions jsonOptions,
             CancellationToken cancellationToken) =>
         {
-            using var upstream = await proxy.ProxyMasterDataAsync(reportCode, cancellationToken);
-            await StreamUpstreamResponseAsync(upstream, ctx, cancellationToken);
+            var preload = await client.AnalysisPreload.GetAsync(reportCode, cancellationToken);
+            return Results.Json(preload, jsonOptions);
         })
     .RequireCors("WasmHost");
 
@@ -112,25 +102,4 @@ static bool IsDevelopmentLoopbackOrigin(string origin)
     return uri.IsLoopback
         || string.Equals(uri.Host, "localhost", StringComparison.OrdinalIgnoreCase)
         || uri.Host.EndsWith(".localhost", StringComparison.OrdinalIgnoreCase);
-}
-
-static async Task StreamUpstreamResponseAsync(
-    HttpResponseMessage upstream,
-    HttpContext ctx,
-    CancellationToken cancellationToken)
-{
-    if (!upstream.IsSuccessStatusCode)
-    {
-        ctx.Response.StatusCode = (int)upstream.StatusCode;
-        return;
-    }
-
-    ctx.Response.ContentType = "application/json";
-
-    if (upstream.Content.Headers.ContentEncoding.Contains("gzip"))
-    {
-        ctx.Response.Headers.ContentEncoding = "gzip";
-    }
-
-    await upstream.Content.CopyToAsync(ctx.Response.Body, cancellationToken);
 }

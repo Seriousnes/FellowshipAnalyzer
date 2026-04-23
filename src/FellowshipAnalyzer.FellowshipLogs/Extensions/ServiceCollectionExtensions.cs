@@ -1,4 +1,3 @@
-using System.Net;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -26,27 +25,25 @@ public static class ServiceCollectionExtensions
 
         services.AddSingleton(options);
         services.AddSingleton(CreateJsonSerializerOptions());
-        services.AddHttpClient("FellowshipLogs")
-            .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
-            {
-                AutomaticDecompression = DecompressionMethods.GZip,
-            });
-        services.AddHttpClient("FellowshipLogsProxy")
-            .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
-            {
-                AutomaticDecompression = DecompressionMethods.None,
-            });
-        services.AddScoped<IApiRequestExecutor>(sp =>
-            new ApiRequestExecutor(
-                sp.GetRequiredService<IHttpClientFactory>().CreateClient("FellowshipLogs"),
+
+        services.AddHttpClient("FellowshipLogsAuth");
+
+        services.AddSingleton<ClientCredentialsTokenCache>(sp =>
+            new ClientCredentialsTokenCache(
+                sp.GetRequiredService<IHttpClientFactory>().CreateClient("FellowshipLogsAuth"),
+                sp.GetRequiredService<FellowshipLogsClientOptions>()));
+
+        services.AddTransient<BearerTokenHandler>();
+
+        services.AddFellowshipLogsApiClient()
+            .ConfigureHttpClient(
+                client => client.BaseAddress = new Uri(options.GraphQlEndpoint),
+                builder => builder.AddHttpMessageHandler<BearerTokenHandler>());
+
+        services.AddScoped<IFellowshipLogsClient>(sp =>
+            new FellowshipLogsGraphQLWrapper(
+                sp.GetRequiredService<IFellowshipLogsApiClient>(),
                 sp.GetRequiredService<JsonSerializerOptions>()));
-        services.AddScoped<ApiClient>(sp =>
-            new ApiClient(
-                sp.GetRequiredService<IApiRequestExecutor>(),
-                sp.GetRequiredService<FellowshipLogsClientOptions>(),
-                sp.GetRequiredService<IHttpClientFactory>()));
-        services.AddScoped<IFellowshipLogsClient>(sp => sp.GetRequiredService<ApiClient>());
-        services.AddScoped<IFellowshipLogsProxy>(sp => sp.GetRequiredService<ApiClient>());
 
         return services;
     }

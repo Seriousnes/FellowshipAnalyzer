@@ -27,6 +27,14 @@ public sealed record FellowshipLogsMasterData(
 );
 
 /// <summary>
+/// Combined preload data for analysis: report info and master data fetched in a single API call.
+/// </summary>
+public sealed record FellowshipLogsAnalysisPreload(
+    FellowshipLogsReportInfo ReportInfo,
+    FellowshipLogsMasterData MasterData
+);
+
+/// <summary>
 /// Represents metadata about a combat log report, including fights and actors.
 /// </summary>
 public sealed record FellowshipLogsReportInfo(
@@ -80,6 +88,7 @@ public interface IFellowshipLogsClient
     IReportFunction Report { get; }
     IEventsFunction Events { get; }
     IMasterDataFunction MasterData { get; }
+    IAnalysisPreloadFunction AnalysisPreload { get; }
 }
 
 public interface IReportFunction
@@ -99,6 +108,13 @@ public interface IEventsFunction
 public interface IMasterDataFunction
 {
     Task<FellowshipLogsMasterData> GetAsync(
+        string reportCode,
+        CancellationToken cancellationToken = default);
+}
+
+public interface IAnalysisPreloadFunction
+{
+    Task<FellowshipLogsAnalysisPreload> GetAsync(
         string reportCode,
         CancellationToken cancellationToken = default);
 }

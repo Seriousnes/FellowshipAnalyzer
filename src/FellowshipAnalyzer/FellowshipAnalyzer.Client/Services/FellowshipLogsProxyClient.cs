@@ -6,45 +6,44 @@ namespace FellowshipAnalyzer.Client.Services;
 
 /// <summary>
 /// WASM-side implementation of <see cref="IFellowshipLogsClient"/> that calls the server
-/// proxy endpoints and deserializes the raw GraphQL responses into public domain types.
+/// proxy endpoints and deserializes typed domain responses.
 /// </summary>
 public sealed class FellowshipLogsProxyClient : IFellowshipLogsClient
 {
     public FellowshipLogsProxyClient(HttpClient http, JsonSerializerOptions jsonOptions)
     {
-        Report = new ProxyReportFunction(http, jsonOptions);
+        var analysisPreload = new ProxyAnalysisPreloadFunction(http, jsonOptions);
+        Report = new ProxyReportFunction(analysisPreload);
         Events = new ProxyEventsFunction(http, jsonOptions);
-        MasterData = new ProxyMasterDataFunction(http, jsonOptions);
+        MasterData = new ProxyMasterDataFunction(analysisPreload);
+        AnalysisPreload = analysisPreload;
     }
 
     public IReportFunction Report { get; }
     public IEventsFunction Events { get; }
     public IMasterDataFunction MasterData { get; }
+    public IAnalysisPreloadFunction AnalysisPreload { get; }
 
-    private sealed class ProxyReportFunction(HttpClient http, JsonSerializerOptions jsonOptions) : IReportFunction
+    private sealed class ProxyAnalysisPreloadFunction(HttpClient http, JsonSerializerOptions jsonOptions) : IAnalysisPreloadFunction
+    {
+        public async Task<FellowshipLogsAnalysisPreload> GetAsync(
+            string reportCode,
+            CancellationToken cancellationToken = default)
+        {
+            return await http.GetFromJsonAsync<FellowshipLogsAnalysisPreload>(
+                $"api/analysis/{Uri.EscapeDataString(reportCode)}", jsonOptions, cancellationToken)
+                ?? throw new InvalidOperationException("Failed to deserialize analysis preload response.");
+        }
+    }
+
+    private sealed class ProxyReportFunction(ProxyAnalysisPreloadFunction analysisPreload) : IReportFunction
     {
         public async Task<FellowshipLogsReportInfo> GetAsync(
             string reportCode,
             CancellationToken cancellationToken = default)
         {
-            var response = await http.GetFromJsonAsync<GraphQLResponse<GraphQLReportResponse>>($"api/report/{Uri.EscapeDataString(reportCode)}", jsonOptions, cancellationToken)
-                ?? throw new InvalidOperationException("Failed to deserialize report response.");
-
-            var report = response.Data.ReportData.Report;
-
-            var fights = report.Fights?.Select(f => new FellowshipLogsFight(
-                f.Id, f.Name, f.EncounterID, f.Kill, f.StartTime, f.EndTime, f.Difficulty,
-                f.FriendlyPlayers?.AsReadOnly(),
-                f.FightPercentage,
-                f.InProgress
-            )).ToList().AsReadOnly() ?? (IReadOnlyList<FellowshipLogsFight>)[];
-
-            var actors = report.MasterData?.Actors?.Select(a => new FellowshipLogsActor(
-                a.Id, a.Name, a.Type, a.SubType, a.Server, a.Icon
-            )).ToList().AsReadOnly() ?? (IReadOnlyList<FellowshipLogsActor>)[];
-
-            return new FellowshipLogsReportInfo(
-                reportCode, report.Title, report.StartTime, report.EndTime, fights, actors);
+            var preload = await analysisPreload.GetAsync(reportCode, cancellationToken);
+            return preload.ReportInfo;
         }
     }
 
@@ -54,42 +53,21 @@ public sealed class FellowshipLogsProxyClient : IFellowshipLogsClient
             FellowshipLogsEventsRequest request,
             CancellationToken cancellationToken = default)
         {
-            var response = await http.GetFromJsonAsync<GraphQLResponse<GraphQLReportResponse>>(
-                $"api/events?reportCode={Uri.EscapeDataString(request.ReportCode)}&playerId={request.PlayerId}&fightId={request.FightId}", jsonOptions, cancellationToken)
+            return await http.GetFromJsonAsync<EventsResult>(
+                $"api/events?reportCode={Uri.EscapeDataString(request.ReportCode)}&playerId={request.PlayerId}&fightId={request.FightId}",
+                jsonOptions, cancellationToken)
                 ?? throw new InvalidOperationException("Failed to deserialize events response.");
-
-            var report = response.Data.ReportData.Report;
-            var eventsData = report.Events
-                ?? throw new InvalidOperationException("GraphQL response did not contain expected event data.");
-
-            var inProgress = report.Fights?.FirstOrDefault()?.InProgress ?? false;
-
-            return new EventsResult(eventsData.Data, inProgress);
         }
     }
 
-    private sealed class ProxyMasterDataFunction(HttpClient http, JsonSerializerOptions jsonOptions) : IMasterDataFunction
+    private sealed class ProxyMasterDataFunction(ProxyAnalysisPreloadFunction analysisPreload) : IMasterDataFunction
     {
         public async Task<FellowshipLogsMasterData> GetAsync(
             string reportCode,
             CancellationToken cancellationToken = default)
         {
-            var response = await http.GetFromJsonAsync<GraphQLResponse<GraphQLReportResponse>>(
-                $"api/masterdata/{Uri.EscapeDataString(reportCode)}", jsonOptions, cancellationToken)
-                ?? throw new InvalidOperationException("Failed to deserialize master data response.");
-
-            var masterData = response.Data.ReportData.Report.MasterData
-                ?? throw new InvalidOperationException("GraphQL response did not contain expected master data.");
-
-            var abilities = masterData.Abilities?.Select(a => new FellowshipLogsAbility(
-                a.GameID, a.Name, a.Icon, a.Type
-            )).ToList().AsReadOnly() ?? (IReadOnlyList<FellowshipLogsAbility>)[];
-
-            var actors = masterData.Actors?.Select(a => new FellowshipLogsActor(
-                a.Id, a.Name, a.Type, a.SubType, a.Server, a.Icon
-            )).ToList().AsReadOnly() ?? (IReadOnlyList<FellowshipLogsActor>)[];
-
-            return new FellowshipLogsMasterData(abilities, actors);
+            var preload = await analysisPreload.GetAsync(reportCode, cancellationToken);
+            return preload.MasterData;
         }
     }
 }

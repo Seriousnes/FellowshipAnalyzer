@@ -235,8 +235,7 @@
             LoadingTracker.FetchEventsState = ReportLoadingTracker.StepState.Loading;
             await Task.Yield();
 
-            var reportTask = FellowshipLogs.Report.GetAsync(ReportCode);
-            var masterDataTask = FellowshipLogs.MasterData.GetAsync(ReportCode);
+            var preloadTask = FellowshipLogs.AnalysisPreload.GetAsync(ReportCode);
 
             // Check cache before hitting the events API
             string? cachedEventsJson = null; //await ReportCache.GetCachedEventsJsonAsync(ReportCode, FightId, PlayerId);
@@ -268,8 +267,9 @@
                 }
             }
 
-            var reportInfo = await reportTask;
-            MasterDataService.Load(await masterDataTask);
+            var preload = await preloadTask;
+            var reportInfo = preload.ReportInfo;
+            MasterDataService.Load(preload.MasterData);
 
             var fight = reportInfo.Fights.FirstOrDefault(f => f.Id == FightId)
                 ?? throw new InvalidOperationException($"Fight {FightId} not found in report.");

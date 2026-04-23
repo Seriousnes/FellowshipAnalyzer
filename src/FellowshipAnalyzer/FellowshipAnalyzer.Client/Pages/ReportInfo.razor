@@ -201,7 +201,7 @@
         {
             if (!NavState.TryGet(ReportCode, out _report) || _report is null)
             {
-                _report = await FellowshipLogs.Report.GetAsync(ReportCode);
+                _report = (await FellowshipLogs.AnalysisPreload.GetAsync(ReportCode)).ReportInfo;
                 NavState.Set(ReportCode, _report);
             }
 

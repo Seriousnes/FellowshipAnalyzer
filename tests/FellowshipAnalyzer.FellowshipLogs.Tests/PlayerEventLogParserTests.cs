@@ -3,7 +3,6 @@ using System.Text.Json.Serialization;
 
 using FellowshipAnalyzer.Core.Events;
 using FellowshipAnalyzer.Core.FellowshipLogs;
-using FellowshipAnalyzer.FellowshipLogs.API;
 using FellowshipAnalyzer.FellowshipLogs.Extensions;
 
 using Shouldly;
@@ -20,9 +19,7 @@ public sealed class EventDeserializationTests
     [Fact]
     public void Deserialize_ShouldProduceStronglyTypedEvents()
     {
-        var json = File.ReadAllText(GetFixturePath());
-        var response = JsonSerializer.Deserialize<FellowshipLogsResponse<FellowshipLogsReportResponse>>(json, JsonOptions)!;
-        var events = response.Data.ReportData.Report.Events.Data;
+        var events = DeserializeFixtureEvents();
 
         events.ShouldNotBeEmpty();
         events.OfType<CastEvent>().ShouldNotBeEmpty();
@@ -124,7 +121,7 @@ public sealed class EventDeserializationTests
 
     /// <summary>
     /// Reproduces the exact WASM client-side deserialization path:
-    /// JsonSerializerDefaults.Web + GraphQLResponse models (not internal FellowshipLogs models).
+    /// server serializes EventsResult to JSON, WASM deserializes with Web options.
     /// </summary>
     [Fact]
     public void Deserialize_WithWasmClientOptions_ShouldHavePopulatedAbility()
@@ -136,11 +133,16 @@ public sealed class EventDeserializationTests
         };
         wasmOptions.Converters.Add(new JsonStringEnumConverter(allowIntegerValues: true));
 
-        var json = File.ReadAllText(GetFixturePath());
+        // Server-side path: deserialize from raw fixture and wrap as EventsResult
+        var serverEvents = DeserializeFixtureEvents();
+        var eventsResult = new EventsResult(serverEvents, false);
 
-        // Use public GraphQL models (same as FellowshipLogsProxyClient)
-        var response = JsonSerializer.Deserialize<GraphQLResponse<GraphQLReportResponse>>(json, wasmOptions)!;
-        var events = response.Data.ReportData.Report.Events!.Data;
+        // Simulate the proxy endpoint: server serializes EventsResult to JSON
+        var json = JsonSerializer.Serialize(eventsResult, JsonOptions);
+
+        // WASM client: deserialize EventsResult from the proxy response
+        var result = JsonSerializer.Deserialize<EventsResult>(json, wasmOptions)!;
+        var events = result.Events;
 
         events.ShouldNotBeEmpty();
 
@@ -164,8 +166,14 @@ public sealed class EventDeserializationTests
     private static List<Event> DeserializeFixtureEvents()
     {
         var json = File.ReadAllText(GetFixturePath());
-        var response = JsonSerializer.Deserialize<FellowshipLogsResponse<FellowshipLogsReportResponse>>(json, JsonOptions)!;
-        return response.Data.ReportData.Report.Events.Data;
+        using var doc = JsonDocument.Parse(json);
+        var eventsEl = doc.RootElement
+            .GetProperty("data")
+            .GetProperty("reportData")
+            .GetProperty("report")
+            .GetProperty("events")
+            .GetProperty("data");
+        return JsonSerializer.Deserialize<List<Event>>(eventsEl, JsonOptions)!;
     }
 
     private static string GetFixturePath()
