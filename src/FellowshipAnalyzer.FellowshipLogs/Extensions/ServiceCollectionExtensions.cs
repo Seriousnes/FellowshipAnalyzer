@@ -1,8 +1,6 @@
 using System.Net;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 
-using FellowshipAnalyzer.Core.Events;
 using FellowshipAnalyzer.Core.FellowshipLogs;
 using FellowshipAnalyzer.Core.Serialization;
 using FellowshipAnalyzer.FellowshipLogs.API;
@@ -53,16 +51,6 @@ public static class ServiceCollectionExtensions
         return services;
     }
 
-    public static JsonSerializerOptions CreateJsonSerializerOptions()
-    {
-        var jsonOptions = new JsonSerializerOptions(JsonSerializerOptions.Default)
-        {
-            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-            PropertyNameCaseInsensitive = true,
-        };
-        jsonOptions.Converters.Add(new JsonStringEnumConverter(allowIntegerValues: true));
-        jsonOptions.Converters.Add(new FSLJsonConverter<Event>());
-        return jsonOptions;
-    }
+    public static JsonSerializerOptions CreateJsonSerializerOptions() =>
+        FellowshipAnalyzerJsonContext.Default.Options;
 }

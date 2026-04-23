@@ -1,6 +1,5 @@
 ﻿namespace FellowshipAnalyzer.Core.Events;
 
-[FSLEventDiscriminator("death")]
 public record DeathEvent : Event, IAbilityEvent, IHasTargetEvent
 {
     public virtual Ability? KillingAbility { get; set; }

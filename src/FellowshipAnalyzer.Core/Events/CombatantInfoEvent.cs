@@ -2,7 +2,6 @@
 
 namespace FellowshipAnalyzer.Core.Events;
 
-[FSLEventDiscriminator("combatantinfo")]
 public record CombatantInfoEvent : Event
 {
     public int Fight { get; set; }

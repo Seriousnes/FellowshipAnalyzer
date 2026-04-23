@@ -20,7 +20,6 @@ public abstract record BaseCastEvent : Event, IAbilityEvent, IHasSourceWithInsta
     public virtual object? Meta { get; set; }
 }
 
-[FSLEventDiscriminator("cast")]
 public record CastEvent : BaseCastEvent
 {
     /// <summary>FellowshipLogs synthetic event — not a real player action.</summary>

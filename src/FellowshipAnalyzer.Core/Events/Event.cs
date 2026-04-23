@@ -2,13 +2,9 @@
 
 namespace FellowshipAnalyzer.Core.Events;
 
-public abstract record Event : IEventFilter
+[JsonPolymorphic(TypeDiscriminatorPropertyName = "type", UnknownDerivedTypeHandling = JsonUnknownDerivedTypeHandling.FailSerialization)]
+public abstract partial class Event : IEventFilter
 {
-    /// <summary>
-    /// Event type discriminator for <see cref="CustomJsonDerivedTypeAttribute"/>.
-    /// </summary>
-    [JsonPropertyName("type")]
-    public virtual string EventType { get; set; }
     /// <summary>
     /// Timestamp in milliseconds
     /// </summary>

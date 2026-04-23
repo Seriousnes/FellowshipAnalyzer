@@ -1,6 +1,5 @@
 ﻿namespace FellowshipAnalyzer.Core.Events;
 
-[FSLEventDiscriminator("dispel")]
 public record DispelEvent : Event, IAbilityEvent, IExtraAbilityEvent, IHasSourceEvent, IHasTargetWithInstanceEvent
 {
     /// <summary>

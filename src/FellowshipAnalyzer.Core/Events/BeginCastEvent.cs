@@ -1,6 +1,5 @@
 ﻿namespace FellowshipAnalyzer.Core.Events;
 
-[FSLEventDiscriminator("begincast")]
 public record BeginCastEvent : Event, IAbilityEvent, IHasSourceEvent
 {
     public virtual Ability Ability { get; set; }

@@ -1,6 +1,5 @@
 ﻿namespace FellowshipAnalyzer.Core.Events;
 
-[FSLEventDiscriminator("endchannel")]
 public record EndChannelEvent : Event, IAbilityEvent
 {
     public virtual Ability Ability { get; set; }

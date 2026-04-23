@@ -1,5 +1,4 @@
 using System.Text.Json;
-using System.Text.Json.Serialization;
 
 using FellowshipAnalyzer.Core.Events;
 using FellowshipAnalyzer.Core.FellowshipLogs;
@@ -131,9 +130,7 @@ public sealed class EventDeserializationTests
     public void Deserialize_WithWasmClientOptions_ShouldHavePopulatedAbility()
     {
         // Exactly mirrors FellowshipAnalyzer.Client/Program.cs
-        var wasmOptions = new JsonSerializerOptions(JsonSerializerDefaults.Web);
-        wasmOptions.Converters.Add(new JsonStringEnumConverter(allowIntegerValues: true));
-        wasmOptions.Converters.Add(new FSLJsonConverter<Event>());
+        var wasmOptions = FellowshipAnalyzerJsonContext.Default.Options;
 
         var json = File.ReadAllText(GetFixturePath());
 

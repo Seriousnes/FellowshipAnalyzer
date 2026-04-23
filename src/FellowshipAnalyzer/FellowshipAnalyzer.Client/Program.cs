@@ -1,10 +1,7 @@
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using System.Net.Http.Json;
 using FellowshipAnalyzer.Client.Services;
 using FellowshipAnalyzer.Core;
 using FellowshipAnalyzer.Core.Analysis;
-using FellowshipAnalyzer.Core.Events;
 using FellowshipAnalyzer.Core.FellowshipLogs;
 using FellowshipAnalyzer.Core.Serialization;
 using FellowshipAnalyzer.Heroes.Rime.Analysis;
@@ -24,15 +21,7 @@ var clientConfiguration = await hostConfigurationClient.GetFromJsonAsync<ClientC
 builder.Services.AddScoped(_ => new HttpClient { BaseAddress = new Uri(clientConfiguration.ApiBaseUrl) });
 
 // JSON options for deserializing API responses (including polymorphic events)
-var jsonOptions = new JsonSerializerOptions(JsonSerializerOptions.Web)
-{
-    DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-    PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-    PropertyNameCaseInsensitive = true,
-};
-jsonOptions.Converters.Add(new JsonStringEnumConverter(allowIntegerValues: true));
-jsonOptions.Converters.Add(new FSLJsonConverter<Event>());
-builder.Services.AddSingleton(jsonOptions);
+builder.Services.AddSingleton(FellowshipAnalyzerJsonContext.Default.Options);
 
 // Hero analysis runs client-side in WASM
 builder.Services.AddCoreAnalysisServices();
