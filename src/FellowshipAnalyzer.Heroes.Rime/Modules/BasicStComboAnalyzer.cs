@@ -1,7 +1,8 @@
 using FellowshipAnalyzer.Core.Analysis;
-using FellowshipAnalyzer.Core.Common.Spells;
+using FellowshipAnalyzer.Core.Common.Spells.Rime;
 using FellowshipAnalyzer.Core.Events;
 using FellowshipAnalyzer.Core.Utility;
+
 using System.Text;
 
 namespace FellowshipAnalyzer.Heroes.Rime.Modules;
@@ -39,10 +40,10 @@ public sealed class BasicStComboAnalyzer : Analyzer
 
     public override void Initialize()
     {
-        AddEventListener(Events.ApplyBuff.By(SELECTED_PLAYER).Spell(RimeSpells.WintersEmbrace), OnWintersEmbraceApplied);
-        AddEventListener(Events.RemoveBuff.By(SELECTED_PLAYER).Spell(RimeSpells.WintersEmbrace), OnWintersEmbraceRemoved);
+        AddEventListener(Events.ApplyBuff.By(SELECTED_PLAYER).Spell(Spells.WintersEmbrace), OnWintersEmbraceApplied);
+        AddEventListener(Events.RemoveBuff.By(SELECTED_PLAYER).Spell(Spells.WintersEmbrace), OnWintersEmbraceRemoved);
         AddEventListener(Events.Damage.By(SELECTED_PLAYER), OnDamage);
-        AddEventListener(Events.Damage.By(SELECTED_PLAYER).Spell(RimeSpells.BurstingIceDamage), OnBurstingIceDamage);
+        AddEventListener(Events.Damage.By(SELECTED_PLAYER).Spell(Spells.BurstingIceDamage), OnBurstingIceDamage);
         AddEventListener(Events.Cast.By(SELECTED_PLAYER), OnCast);
     }
 
@@ -65,7 +66,7 @@ public sealed class BasicStComboAnalyzer : Analyzer
     private void OnCast(CastEvent castEvent)
     {
         if (_currentWindow is not null && 
-            castEvent.Ability.Id != RimeSpells.BurstingIce.Guid &&
+            castEvent.Ability.Id != Spells.BurstingIce.Guid &&
             castEvent.GlobalCooldown is not null)
         {
             _currentWindow.CastsInWindow.Add(castEvent);
@@ -78,8 +79,8 @@ public sealed class BasicStComboAnalyzer : Analyzer
             return;
 
         // Winter's Embrace does not affect Bursting Ice itself
-        if (damageEvent.Ability.Id == RimeSpells.BurstingIce.Guid ||
-            damageEvent.Ability.Id == RimeSpells.BurstingIceDamage.Guid)
+        if (damageEvent.Ability.Id == Spells.BurstingIce.Guid ||
+            damageEvent.Ability.Id == Spells.BurstingIceDamage.Guid)
             return;
 
         var bonus = CombatMath.CalculateEffectiveDamage(damageEvent, WintersEmbraceIncrease);
@@ -168,18 +169,18 @@ public sealed class BasicStComboAnalyzer : Analyzer
 
     private static List<CastEvent> GetRelevantCasts(IEnumerable<CastEvent> casts) =>
         [.. casts.Where(c =>
-                c.Ability.Id == RimeSpells.GlacialBlast.Id ||
-                c.Ability.Id == RimeSpells.ColdSnap.Id ||
-                c.Ability.Id == RimeSpells.FreezingTorrent.Id ||
-                c.Ability.Id == RimeSpells.IceComet.Id)];
+                c.Ability.Id == Spells.GlacialBlast.Id ||
+                c.Ability.Id == Spells.ColdSnap.Id ||
+                c.Ability.Id == Spells.FreezingTorrent.Id ||
+                c.Ability.Id == Spells.IceComet.Id)];
 
     private static BurstingIceWindowType ClassifyWindow(StComboWindowEvaluation window) =>
         window.UniqueBurstingIceTargets.Count >= 2 ? BurstingIceWindowType.Aoe : BurstingIceWindowType.SingleTarget;
 
-    private static bool IsGlacialBlast(CastEvent cast) => cast.Ability.Id == RimeSpells.GlacialBlast.Id;
-    private static bool IsIceComet(CastEvent cast) => cast.Ability.Id == RimeSpells.IceComet.Id;
-    private static bool IsColdSnap(CastEvent cast) => cast.Ability.Id == RimeSpells.ColdSnap.Id;
-    private static bool IsFreezingTorrent(CastEvent cast) => cast.Ability.Id == RimeSpells.FreezingTorrent.Id;
+    private static bool IsGlacialBlast(CastEvent cast) => cast.Ability.Id == Spells.GlacialBlast.Id;
+    private static bool IsIceComet(CastEvent cast) => cast.Ability.Id == Spells.IceComet.Id;
+    private static bool IsColdSnap(CastEvent cast) => cast.Ability.Id == Spells.ColdSnap.Id;
+    private static bool IsFreezingTorrent(CastEvent cast) => cast.Ability.Id == Spells.FreezingTorrent.Id;
     private static bool IsFinisher(CastEvent cast) => IsColdSnap(cast) || IsFreezingTorrent(cast);
 
     private StComboWindowEvaluation EvaluateSingleTargetWindow(

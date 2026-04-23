@@ -1,10 +1,10 @@
-namespace FellowshipAnalyzer.Core.Common.Spells;
+namespace FellowshipAnalyzer.Core.Common.Spells.Rime;
 
 /// <summary>
 /// All Rime hero spells. Contains spell identity and icon data.
 /// Gameplay metadata (cooldowns, GCD, etc.) is defined in the Abilities module.
 /// </summary>
-public class RimeSpells : ISpellRegistry
+public class Spells : ISpellRegistry
 {
     // Core
     public static Spell BrainFreeze { get; } = new(1019, "Brain Freeze", "T_RimeIcon_Interrupt.jpg");

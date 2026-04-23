@@ -1,5 +1,5 @@
 using FellowshipAnalyzer.Core.Analysis;
-using FellowshipAnalyzer.Core.Common.Spells;
+using FellowshipAnalyzer.Core.Common.Spells.Rime;
 
 namespace FellowshipAnalyzer.Heroes.Rime.Modules;
 
@@ -9,7 +9,7 @@ public sealed class RimeAuras : Auras
     {
         yield return new SpellbookAura
         {
-            SpellId = RimeSpells.WintersEmbrace.Guid,
+            SpellId = Spells.WintersEmbrace.Guid,
             TimelineHighlight = true,
         };
     }
