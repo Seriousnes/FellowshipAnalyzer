@@ -51,6 +51,9 @@ builder.Services.AddScoped<IFellowshipLogsClient, FellowshipLogsProxyClient>();
 // Report history + event cache (IndexedDB-backed)
 builder.Services.AddScoped<IReportCacheService, IndexedDbReportCacheService>();
 
+// Analysis orchestration service
+builder.Services.AddScoped<ReportAnalysisService>();
+
 await builder.Build().RunAsync();
 
 internal sealed record ClientConfiguration(string ApiBaseUrl);

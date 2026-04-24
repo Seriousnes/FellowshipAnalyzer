@@ -11,6 +11,9 @@ namespace FellowshipAnalyzer.Core.Analysis;
 /// event dispatching to <see cref="EventEmitter"/>.
 /// Registered as a scoped DI service — one instance per analysis run.
 /// </summary>
+[AddNormalizer<AbilityMasterDataNormalizer>]
+[AddNormalizer<ResourceNormalizer>]
+[AddNormalizer<CastLinkNormalizer>]
 [AddModule<DebugAnnotations>]
 [AddModule<Combatants>]
 [AddModule<StatTracker>]
@@ -18,8 +21,6 @@ namespace FellowshipAnalyzer.Core.Analysis;
 [AddModule<GlobalCooldown>]
 [AddModule<SpellUsable>]
 [AddModule<ChronoshiftAnalyzer>]
-[AddNormalizer<AbilityMasterDataNormalizer>]
-[AddNormalizer<CastLinkNormalizer>]
 public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServiceProvider provider) : IHeroAnalyzer
 {
     public EventEmitter EventEmitter { get; } = eventEmitter;
@@ -28,12 +29,6 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
     public int PlayerId { get; set; }
     public int FightStartTime { get; set; }
     public abstract string HeroId { get; }
-
-    public DebugAnnotations? DebugAnnotations => GetModule<DebugAnnotations>();
-    public Combatants? Combatants => GetModule<Combatants>();
-    public GlobalCooldown? GlobalCooldown => GetModule<GlobalCooldown>();
-    public SpellUsable? SpellUsable => GetModule<SpellUsable>();
-    public ChronoshiftAnalyzer? Chronoshift => GetModule<ChronoshiftAnalyzer>();
 
     /// <summary>
     /// Report-level actor name lookup, keyed by actor ID.

@@ -105,6 +105,13 @@ public class ResourceTracker : Analyzer
         }
     }
 
+    /// <summary>
+    /// Override to supply a resource cost from spell definitions when <see cref="ClassResource.Cost"/>
+    /// is null. Called for each resource type on every cast by the selected player.
+    /// Return null to indicate the spell has no cost for <paramref name="type"/>.
+    /// </summary>
+    protected virtual int? GetResourceCost(CastEvent e, ResourceTypes type) => null;
+
     private void OnCast(CastEvent e)
     {
         // Player is always source for Cast.By(SELECTED_PLAYER).
@@ -118,9 +125,13 @@ public class ResourceTracker : Analyzer
         {
             var state = GetOrCreateState(resource.Type, resource.Max);
 
-            if (resource.Cost is > 0)
+            // Prefer the cost reported by the event; fall back to the spell-definition cost
+            // (Fellowship logs record pre-cast resource amounts, not spend deltas).
+            var effectiveCost = resource.Cost ?? GetResourceCost(e, resource.Type);
+
+            if (effectiveCost is > 0)
             {
-                var cost = resource.Cost.Value;
+                var cost = effectiveCost.Value;
                 state.Spent += cost;
                 // ClassResource.Amount for a spend is the amount BEFORE the spend.
                 state.Current = Math.Max(0, resource.Amount - cost);

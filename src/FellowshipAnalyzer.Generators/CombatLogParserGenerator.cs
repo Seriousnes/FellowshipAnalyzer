@@ -322,6 +322,18 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
         sb.AppendLine();
         sb.AppendLine("namespace " + info.Namespace + ";");
         sb.AppendLine();
+
+        // Emit computed module accessor properties on the abstract base partial class.
+        sb.AppendLine("public abstract partial class " + info.ClassName);
+        sb.AppendLine("{");
+        foreach (var m in info.OwnModules)
+        {
+            var propName = StripSuffix(m.Name, "Analyzer");
+            sb.AppendLine("    public " + m.FullyQualifiedName + "? " + propName + " => GetModule<" + m.FullyQualifiedName + ">();");
+        }
+        sb.AppendLine("}");
+        sb.AppendLine();
+
         sb.AppendLine("public static class CombatLogParserServiceCollectionExtensions");
         sb.AppendLine("{");
         sb.AppendLine("    /// <summary>");

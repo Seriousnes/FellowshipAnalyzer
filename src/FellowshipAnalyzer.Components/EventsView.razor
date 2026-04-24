@@ -83,7 +83,7 @@
 @code {
     [Parameter, EditorRequired] public IReadOnlyList<Event> Events { get; set; } = [];
     [Parameter, EditorRequired] public int FightStartTime { get; set; }
-    [CascadingParameter] public CombatLogParser? Owner { get; set; }
+    [CascadingParameter] public IHeroAnalyzer? Owner { get; set; }
 
     // ── Filter state ──────────────────────────────────────────────────────────
 

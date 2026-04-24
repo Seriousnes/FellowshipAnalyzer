@@ -1,4 +1,6 @@
 using FellowshipAnalyzer.Core.Analysis;
+using FellowshipAnalyzer.Core.Common.Spells;
+using FellowshipAnalyzer.Core.Events;
 using FellowshipAnalyzer.Core.Game;
 using FellowshipAnalyzer.Heroes.Rime.Statistics;
 
@@ -6,7 +8,19 @@ namespace FellowshipAnalyzer.Heroes.Rime.Modules;
 
 public sealed class WinterOrbTracker : ResourceTracker
 {
+    protected override int? GetResourceCost(CastEvent e, ResourceTypes type)
+    {
+        var spell = SpellRegistry.MaybeGet(e.Ability.Guid) as IRimeSpell;
+        return type switch
+        {
+            ResourceTypes.WinterOrb => spell?.WinterOrbCost,
+            ResourceTypes.Primary   => spell?.AnimaCost,
+            _                       => null,
+        };
+    }
+
     public override Type? StatisticsComponentType => typeof(WinterOrbStatistics);
+
 
     public override void Initialize()
     {

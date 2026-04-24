@@ -1,17 +1,10 @@
 @page "/report/{ReportCode}/{FightId:int}/{PlayerId:int}"
 @using FellowshipAnalyzer.Core.Analysis
 @using FellowshipAnalyzer.Core.Events
-@using FellowshipAnalyzer.Core.FellowshipLogs
 @using FellowshipAnalyzer.Components.Timeline
 @using FellowshipAnalyzer.Client.Services
-@using Microsoft.Extensions.DependencyInjection
-@using System.Text.Json
-@inject IFellowshipLogsClient FellowshipLogs
-@inject JsonSerializerOptions JsonOptions
-@inject IServiceProvider ServiceProvider
-@inject IReportCacheService ReportCache
+@inject ReportAnalysisService AnalysisService
 @inject ReportLoadingTracker LoadingTracker
-@inject ReportMasterDataService MasterDataService
 @inject ReportNavigationState NavState
 
 <PageTitle>Analysis Report</PageTitle>
@@ -19,68 +12,68 @@
 <div class="analysis-page">
     <section class="hero-panel">
         <nav class="breadcrumbs" aria-label="breadcrumb">
-            <a href="/report/@ReportCode">@(_reportTitle ?? ReportCode)</a>
+            <a href="/report/@ReportCode">@(CurrentReport?.Title ?? ReportCode)</a>
             <span class="breadcrumb-sep">›</span>
-            <span class="breadcrumb-current">@_fightName</span>
+            <span class="breadcrumb-current">@Fight?.Name</span>
             <span class="breadcrumb-sep">›</span>
-            <span class="breadcrumb-current">@_playerName</span>
+            <span class="breadcrumb-current">@Player?.Name</span>
         </nav>
         <div class="hero-panel-body">
             <div class="encounter-block">
-                @if (_bossIcon is not null)
+                @if (BossIcon is not null)
                 {
                     <img class="encounter-portrait"
-                         src="https://assets.rpglogs.com/img/fellowship/abilities/@_bossIcon"
-                         alt="@_fightName"
+                         src="https://assets.rpglogs.com/img/fellowship/abilities/@BossIcon"
+                         alt="@Fight?.Name"
                          onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />
                     <div class="encounter-portrait-placeholder" style="display:none">
-                        @(_fightName?.Length > 0 ? _fightName[0].ToString() : "?")
+                        @(Fight?.Name?.Length > 0 ? Fight.Name[0].ToString() : "?")
                     </div>
                 }
                 else
                 {
                     <div class="encounter-portrait-placeholder">
-                        @(_fightName?.Length > 0 ? _fightName[0].ToString() : "?")
+                        @(Fight?.Name?.Length > 0 ? Fight.Name[0].ToString() : "?")
                     </div>
                 }
                 <div class="encounter-text">
-                    <h1 class="encounter-title">@_fightName</h1>
-                    @if (_fightKill == true)
+                    <h1 class="encounter-title">@Fight?.Name</h1>
+                    @if (Fight?.Kill == true)
                     {
                         <span class="fight-badge kill">✓ Kill</span>
                     }
-                    else if (_fightKill == false)
+                    else if (Fight?.Kill == false)
                     {
                         <span class="fight-badge wipe">✗ Wipe</span>
                     }
-                    @if (_fightDuration is not null)
+                    @if (FightDuration is not null)
                     {
-                        <span class="fight-duration">@_fightDuration</span>
+                        <span class="fight-duration">@FightDuration</span>
                     }
                 </div>
             </div>
             <div class="player-block">
-                @if (_playerIcon is not null)
+                @if (Player?.Icon is not null)
                 {
                     <img class="player-portrait"
-                         src="https://assets.rpglogs.com/img/fellowship/abilities/@_playerIcon"
-                         alt="@_playerName"
+                         src="https://assets.rpglogs.com/img/fellowship/abilities/@Player.Icon"
+                         alt="@Player.Name"
                          onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />
                     <div class="player-portrait-placeholder" style="display:none">
-                        @(_playerName?.Length > 0 ? _playerName[0].ToString() : "?")
+                        @(Player.Name.Length > 0 ? Player.Name[0].ToString() : "?")
                     </div>
                 }
                 else
                 {
                     <div class="player-portrait-placeholder">
-                        @(_playerName?.Length > 0 ? _playerName[0].ToString() : "?")
+                        @(Player?.Name?.Length > 0 ? Player.Name[0].ToString() : "?")
                     </div>
                 }
                 <div class="player-text">
-                    <h2 class="player-title">@_playerName</h2>
-                    @if (_playerClass is not null)
+                    <h2 class="player-title">@Player?.Name</h2>
+                    @if (Player?.SubType is not null)
                     {
-                        <span class="player-class-label">@_playerClass</span>
+                        <span class="player-class-label">@Player.SubType</span>
                     }
                 </div>
             </div>
@@ -95,9 +88,9 @@
     {
         <section class="status-panel error">@_error</section>
     }
-    else if (_result is not null)
+    else if (_context is not null)
     {
-        <CascadingValue Value="@_parser" IsFixed="true">
+        <CascadingValue Value="@_context.Analyzer" IsFixed="true">
         <nav class="report-tabs">
             <button class="report-tab @(_activeTab == ReportTab.Guide ? "report-tab--active" : "")" @onclick="() => _activeTab = ReportTab.Guide">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -130,16 +123,16 @@
         {
             @* Guide tab — render the hero's Guide.razor via DynamicComponent *@
             <section class="guide-panel">
-                <DynamicComponent Type="@_result.GuideComponentType" />
+                <DynamicComponent Type="@_context.Analysis.GuideComponentType" />
             </section>
         }
         else if (_activeTab == ReportTab.Statistics)
         {
             @* Statistics tab — auto-collected from modules with StatisticsComponentType set *@
-            @if (_result.Statistics.Count > 0)
+            @if (_context.Analysis.Statistics.Count > 0)
             {
                 <section class="statistics-panel">
-                    @foreach (var (module, componentType) in _result.Statistics)
+                    @foreach (var (module, componentType) in _context.Analysis.Statistics)
                     {
                         <CascadingValue Value="@module">
                             <DynamicComponent Type="@componentType" />
@@ -155,9 +148,9 @@
         else if (_activeTab == ReportTab.Timeline)
         {
             <section class="timeline-panel">
-                <Timeline Result="@_result"
-                          FightStartTime="@_fightStartTime"
-                          FightEndTime="@_fightEndTime"
+                <Timeline Result="@_context.Analysis"
+                          FightStartTime="@_context.FightStartTime"
+                          FightEndTime="@_context.FightEndTime"
                           PlayerId="@PlayerId" />
             </section>
         }
@@ -177,8 +170,8 @@
                             <dt>Report</dt><dd>@ReportCode</dd>
                             <dt>Fight</dt><dd>@FightId</dd>
                             <dt>Player</dt><dd>@PlayerId</dd>
-                            <dt>Events</dt><dd>@_result.Events.Count total</dd>
-                            <dt>Fight Duration</dt><dd>@FormatDuration(_fightStartTime, _fightEndTime)</dd>
+                            <dt>Events</dt><dd>@_context.Analysis.Events.Count total</dd>
+                            <dt>Fight Duration</dt><dd>@FightDuration</dd>
                         </dl>
                         <div class="about-overview-links">
                             <button class="about-subtab" @onclick="() => _aboutSubView = AboutSubView.Events">View Events List →</button>
@@ -188,11 +181,11 @@
                 }
                 else if (_aboutSubView == AboutSubView.Events)
                 {
-                    <EventsView Events="@_result.Events" FightStartTime="@_fightStartTime" />
+                    <EventsView Events="@_context.Analysis.Events" FightStartTime="@_context.FightStartTime" />
                 }
                 else if (_aboutSubView == AboutSubView.Debug)
                 {
-                    <DebugAnnotationsView DebugAnnotations="@_result.DebugAnnotations" FightStartTime="@_fightStartTime" />
+                    <DebugAnnotationsView DebugAnnotations="@_context.Analysis.DebugAnnotations" FightStartTime="@_context.FightStartTime" />
                 }
             </section>
         }
@@ -208,133 +201,49 @@
     [Parameter] public int FightId { get; set; }
     [Parameter] public int PlayerId { get; set; }
 
-    private HeroAnalysisResult? _result;
+    private ReportAnalysisContext? _context;
+    private FellowshipAnalyzer.Core.FellowshipLogs.ReportInfo? _previewInfo;
+    private FellowshipAnalyzer.Core.FellowshipLogs.ReportFight? _previewFight;
+    private FellowshipAnalyzer.Core.FellowshipLogs.ReportActor? _previewPlayer;
     private bool _isLoading = true;
     private string? _error;
     private ReportTab _activeTab = ReportTab.Guide;
     private AboutSubView _aboutSubView = AboutSubView.Overview;
-    private int _fightStartTime;
-    private int _fightEndTime;
-    private string? _pendingCacheEventsJson;
-    private CombatLogParser? _parser;
 
-    private string? _reportTitle;
-    private string? _fightName;
-    private bool? _fightKill;
-    private string? _fightDuration;
-    private string? _bossIcon;
-    private string? _playerName;
-    private string? _playerClass;
-    private string? _playerIcon;
+    // Resolved display values — prefer confirmed context, fall back to NavState preview.
+    private FellowshipAnalyzer.Core.FellowshipLogs.ReportInfo? CurrentReport => _context?.ReportInfo ?? _previewInfo;
+    private FellowshipAnalyzer.Core.FellowshipLogs.ReportFight? Fight => _context?.Fight ?? _previewFight;
+    private FellowshipAnalyzer.Core.FellowshipLogs.ReportActor? Player => _context?.Player ?? _previewPlayer;
+
+    private string? BossIcon => CurrentReport?.Actors.FirstOrDefault(a =>
+        !string.Equals(a.Type, "Player", StringComparison.OrdinalIgnoreCase)
+        && string.Equals(a.Name, Fight?.Name, StringComparison.OrdinalIgnoreCase)
+        && !string.IsNullOrEmpty(a.Icon))?.Icon;
+
+    private string? FightDuration
+    {
+        get
+        {
+            if (Fight is null) return null;
+            var ts = TimeSpan.FromMilliseconds(Fight.EndTime - Fight.StartTime);
+            return ts.TotalMinutes >= 1 ? $"{(int)ts.TotalMinutes}:{ts.Seconds:D2}" : $"{ts.Seconds}s";
+        }
+    }
 
     protected override async Task OnInitializedAsync()
     {
+        // Pre-populate header from NavState for snappy display on normal navigation.
+        // Deep-link navigations skip the report list, so NavState will be empty here.
+        if (NavState.TryGet(ReportCode, out var cached) && cached is not null)
+        {
+            _previewInfo = cached;
+            _previewFight = cached.Fights.FirstOrDefault(f => f.Id == FightId);
+            _previewPlayer = cached.Actors.FirstOrDefault(a => a.Id == PlayerId);
+        }
+
         try
         {
-            // Pre-populate header immediately from NavState (populated by ReportInfo.razor in normal flow).
-            // Deep-link navigations skip ReportInfo.razor so NavState will be empty here; header fields
-            // remain null and are populated below once the preload API response arrives.
-            if (NavState.TryGet(ReportCode, out var cachedReport) && cachedReport is not null)
-            {
-                var cachedFight = cachedReport.Fights.FirstOrDefault(f => f.Id == FightId);
-                if (cachedFight is not null)
-                {
-                    _reportTitle = cachedReport.Title;
-                    _fightName = cachedFight.Name;
-                    _fightKill = cachedFight.Kill;
-                    var cachedDurationMs = cachedFight.EndTime - cachedFight.StartTime;
-                    var cachedTs = TimeSpan.FromMilliseconds(cachedDurationMs);
-                    _fightDuration = cachedTs.TotalMinutes >= 1
-                        ? $"{(int)cachedTs.TotalMinutes}:{cachedTs.Seconds:D2}"
-                        : $"{cachedTs.Seconds}s";
-                    var cachedBossActor = cachedReport.Actors.FirstOrDefault(a =>
-                        !string.Equals(a.Type, "Player", StringComparison.OrdinalIgnoreCase)
-                        && string.Equals(a.Name, cachedFight.Name, StringComparison.OrdinalIgnoreCase)
-                        && !string.IsNullOrEmpty(a.Icon));
-                    _bossIcon = cachedBossActor?.Icon;
-                    var cachedPlayerActor = cachedReport.Actors.FirstOrDefault(a => a.Id == PlayerId);
-                    _playerName = cachedPlayerActor?.Name;
-                    _playerClass = cachedPlayerActor?.SubType;
-                    _playerIcon = cachedPlayerActor?.Icon;
-                }
-            }
-
-            LoadingTracker.Reset();
-            LoadingTracker.FetchEventsState = ReportLoadingTracker.StepState.Loading;
-            await Task.Yield();
-
-            // Start both requests concurrently. Await preload first — it is typically lighter than
-            // the full events payload and lets us populate header fields before the events arrive.
-            var preloadTask = FellowshipLogs.AnalysisPreload.GetAsync(ReportCode);
-            var eventsRequest = new FellowshipLogsEventsRequest(ReportCode, PlayerId, FightId);
-            var eventsTask = FellowshipLogs.Events.GetAsync(eventsRequest);
-
-            var preload = await preloadTask;
-            var reportInfo = preload.ReportInfo;
-            MasterDataService.Load(preload.MasterData);
-
-            var fight = reportInfo.Fights.FirstOrDefault(f => f.Id == FightId)
-                ?? throw new InvalidOperationException($"Fight {FightId} not found in report.");
-
-            NavState.Set(ReportCode, reportInfo);
-            _reportTitle = reportInfo.Title;
-            _fightName = fight.Name;
-            _fightKill = fight.Kill;
-            var durationMs = fight.EndTime - fight.StartTime;
-            var ts = TimeSpan.FromMilliseconds(durationMs);
-            _fightDuration = ts.TotalMinutes >= 1 ? $"{(int)ts.TotalMinutes}:{ts.Seconds:D2}" : $"{ts.Seconds}s";
-            var bossActor = reportInfo.Actors.FirstOrDefault(a =>
-                !string.Equals(a.Type, "Player", StringComparison.OrdinalIgnoreCase)
-                && string.Equals(a.Name, fight.Name, StringComparison.OrdinalIgnoreCase)
-                && !string.IsNullOrEmpty(a.Icon));
-            _bossIcon = bossActor?.Icon;
-            var playerActor = reportInfo.Actors.FirstOrDefault(a => a.Id == PlayerId);
-            _playerName = playerActor?.Name;
-            _playerClass = playerActor?.SubType;
-            _playerIcon = playerActor?.Icon;
-
-            var eventsResult = await eventsTask;
-
-            LoadingTracker.FetchEventsState = ReportLoadingTracker.StepState.Ok;
-            LoadingTracker.DeserializeState = ReportLoadingTracker.StepState.Loading;
-            await Task.Yield();
-
-            var events = [.. eventsResult.Events];
-
-            // Only cache completed fights; serialize just the events array (not the wrapper)
-            if (!eventsResult.InProgress)
-            {
-                _pendingCacheEventsJson = JsonSerializer.Serialize(eventsResult.Events, JsonOptions);
-            }
-
-            LoadingTracker.DeserializeState = ReportLoadingTracker.StepState.Ok;
-            await Task.Yield();
-
-            var heroId = MasterDataService.GetHeroId(PlayerId)
-                ?? throw new InvalidOperationException($"Could not determine hero for player {PlayerId}.");
-            var analyzer = ServiceProvider.GetKeyedService<IHeroAnalyzer>(heroId)
-                ?? throw new InvalidOperationException($"No hero analyzer found for '{heroId}'.");
-
-            _fightStartTime = (int)fight.StartTime;
-            _fightEndTime = (int)fight.EndTime;
-            _parser = (CombatLogParser)analyzer;
-            _parser.ActorNames = reportInfo.Actors.ToDictionary(a => a.Id, a => a.Name);
-            _result = await _parser.Analyze(events, PlayerId, _fightStartTime);
-
-            LoadingTracker.PrepareDisplayState = ReportLoadingTracker.StepState.Loading;
-            await Task.Yield();
-
-            // Persist to cache now that we have fight metadata
-            if (_pendingCacheEventsJson is not null)
-            {
-                var actor = reportInfo.Actors.FirstOrDefault(a => a.Id == PlayerId);
-                var entry = new ReportHistoryEntry(
-                    ReportCode, FightId, PlayerId,
-                    fight.Name, actor?.Name, heroId,
-                    DateTimeOffset.UtcNow);
-                await ReportCache.CacheAsync(entry, _pendingCacheEventsJson);
-                _pendingCacheEventsJson = null;
-            }
+            _context = await AnalysisService.RunAsync(ReportCode, FightId, PlayerId);
         }
         catch (Exception exception)
         {
@@ -344,13 +253,5 @@
         {
             _isLoading = false;
         }
-    }
-
-    private static string FormatDuration(int startMs, int endMs)
-    {
-        var totalSec = (endMs - startMs) / 1000;
-        var min = totalSec / 60;
-        var sec = totalSec % 60;
-        return $"{min}:{sec:D2}";
     }
 }

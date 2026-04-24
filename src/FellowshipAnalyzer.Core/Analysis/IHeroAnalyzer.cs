@@ -10,5 +10,12 @@ namespace FellowshipAnalyzer.Core.Analysis;
 public interface IHeroAnalyzer
 {
     string HeroId { get; }
+
+    /// <summary>
+    /// Report-level actor name lookup, keyed by actor ID.
+    /// Must be populated before calling <see cref="Analyze"/>.
+    /// </summary>
+    Dictionary<int, string> ActorNames { get; set; }
+
     Task<HeroAnalysisResult> Analyze(IReadOnlyList<Event> events, int playerId, int fightStartTime);
 }

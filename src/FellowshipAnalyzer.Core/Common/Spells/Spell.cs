@@ -4,14 +4,22 @@ namespace FellowshipAnalyzer.Core.Common.Spells;
 /// A static spell definition used in spell registries.
 /// Contains identity and display metadata. Gameplay metadata (cooldowns, GCD, etc.) lives in
 /// <see cref="Analysis.SpellbookAbility"/>.
+/// Resource costs (e.g. <see cref="IRimeSpell.WinterOrbCost"/>) are set via <c>init</c>
+/// properties and used by hero-specific resource trackers.
 /// </summary>
-public record Spell(int Id, string Name = "", string Icon = "")
+public record Spell(int Id, string Name = "", string Icon = "") : IRimeSpell
 {
     /// <summary>
     /// The combat-log <c>abilityGameID</c> used to match events.
     /// For <see cref="Effect"/> this is <c>1_000_000 + Id</c>; for plain spells it equals <see cref="Id"/>.
     /// </summary>
     public virtual int Guid => Id;
+
+    /// <inheritdoc cref="IRimeSpell.WinterOrbCost"/>
+    public int? WinterOrbCost { get; init; }
+
+    /// <inheritdoc cref="IRimeSpell.AnimaCost"/>
+    public int? AnimaCost { get; init; }
 
     /// <summary>
     /// Creates a <see cref="Spell"/> or <see cref="Effect"/> from a combat-log <c>abilityGameID</c>.
