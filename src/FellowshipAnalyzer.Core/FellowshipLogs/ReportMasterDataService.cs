@@ -10,29 +10,18 @@ namespace FellowshipAnalyzer.Core.FellowshipLogs;
 public sealed class ReportMasterDataService
 {
     private IReadOnlyDictionary<int, Ability> _abilitiesByGameId = new Dictionary<int, Ability>();
-    private IReadOnlyList<FellowshipLogsActor> _actors = [];
+    private IReadOnlyList<ReportActor> _actors = [];
 
     /// <summary>
     /// Populates the service from fetched master data.
     /// </summary>
-    public void Load(FellowshipLogsMasterData masterData)
+    public void Load(ReportMasterData masterData)
     {
         _actors = masterData.Actors;
 
         var dict = new Dictionary<int, Ability>(masterData.Abilities.Count);
-        foreach (var a in masterData.Abilities)
-        {
-            if (!int.TryParse(a.Type, out var typeInt))
-                typeInt = 0;
-
-            dict[a.GameId] = new Ability
-            {
-                Guid = a.GameId,
-                Name = a.Name,
-                Icon = a.Icon,
-                Type = (MagicSchool)typeInt,
-            };
-        }
+        foreach (var ability in masterData.Abilities)
+            dict[ability.Guid] = ability;
 
         _abilitiesByGameId = dict;
     }

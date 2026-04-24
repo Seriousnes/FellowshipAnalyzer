@@ -1,5 +1,6 @@
 @page "/report/{ReportCode}"
 @using FellowshipAnalyzer.Core.FellowshipLogs
+@using CoreReportInfo = FellowshipAnalyzer.Core.FellowshipLogs.ReportInfo
 @using FellowshipAnalyzer.Client.Services
 @inject IFellowshipLogsClient FellowshipLogs
 @inject ReportNavigationState NavState
@@ -187,7 +188,7 @@
 
     [Parameter] public string ReportCode { get; set; } = "";
 
-    private FellowshipLogsReportInfo? _report;
+    private CoreReportInfo? _report;
     private bool _isLoading = true;
     private string? _error;
     private Dictionary<string, string?> _bossIconByName = [];
@@ -221,9 +222,9 @@
         }
     }
 
-    private Dictionary<string, List<FellowshipLogsFight>> GetFightGroups()
+    private Dictionary<string, List<ReportFight>> GetFightGroups()
     {
-        var groups = new Dictionary<string, List<FellowshipLogsFight>>(StringComparer.OrdinalIgnoreCase);
+        var groups = new Dictionary<string, List<ReportFight>>(StringComparer.OrdinalIgnoreCase);
         foreach (var fight in _report!.Fights)
         {
             if (!groups.TryGetValue(fight.Name, out var list))
@@ -236,7 +237,7 @@
         return groups;
     }
 
-    private IEnumerable<FellowshipLogsActor> GetSortedPlayers()
+    private IEnumerable<ReportActor> GetSortedPlayers()
     {
         if (_report is null) return [];
         return _report.Actors
@@ -245,7 +246,7 @@
             .ThenBy(a => a.Name);
     }
 
-    private IEnumerable<FellowshipLogsActor> GetPlayersForFight(FellowshipLogsFight fight)
+    private IEnumerable<ReportActor> GetPlayersForFight(ReportFight fight)
     {
         if (_report is null) return [];
 

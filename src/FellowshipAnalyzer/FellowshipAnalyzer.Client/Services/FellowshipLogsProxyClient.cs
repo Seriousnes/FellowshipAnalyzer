@@ -26,11 +26,11 @@ public sealed class FellowshipLogsProxyClient : IFellowshipLogsClient
 
     private sealed class ProxyAnalysisPreloadFunction(HttpClient http, JsonSerializerOptions jsonOptions) : IAnalysisPreloadFunction
     {
-        public async Task<FellowshipLogsAnalysisPreload> GetAsync(
+        public async Task<AnalysisPreload> GetAsync(
             string reportCode,
             CancellationToken cancellationToken = default)
         {
-            return await http.GetFromJsonAsync<FellowshipLogsAnalysisPreload>(
+            return await http.GetFromJsonAsync<AnalysisPreload>(
                 $"api/analysis/{Uri.EscapeDataString(reportCode)}", jsonOptions, cancellationToken)
                 ?? throw new InvalidOperationException("Failed to deserialize analysis preload response.");
         }
@@ -38,7 +38,7 @@ public sealed class FellowshipLogsProxyClient : IFellowshipLogsClient
 
     private sealed class ProxyReportFunction(ProxyAnalysisPreloadFunction analysisPreload) : IReportFunction
     {
-        public async Task<FellowshipLogsReportInfo> GetAsync(
+        public async Task<ReportInfo> GetAsync(
             string reportCode,
             CancellationToken cancellationToken = default)
         {
@@ -62,7 +62,7 @@ public sealed class FellowshipLogsProxyClient : IFellowshipLogsClient
 
     private sealed class ProxyMasterDataFunction(ProxyAnalysisPreloadFunction analysisPreload) : IMasterDataFunction
     {
-        public async Task<FellowshipLogsMasterData> GetAsync(
+        public async Task<ReportMasterData> GetAsync(
             string reportCode,
             CancellationToken cancellationToken = default)
         {

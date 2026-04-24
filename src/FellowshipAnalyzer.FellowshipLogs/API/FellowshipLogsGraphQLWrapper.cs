@@ -34,7 +34,7 @@ internal sealed class FellowshipLogsGraphQLWrapper : IFellowshipLogsClient
             throw new InvalidOperationException("GraphQL response contained no data.");
     }
 
-    private static FellowshipLogsFight MapFight(
+    private static ReportFight MapFight(
         int id, string name, int encounterID, bool? kill,
         double startTime, double endTime, int? difficulty,
         IReadOnlyList<int?>? friendlyPlayers, double? fightPercentage, bool inProgress)
@@ -44,11 +44,11 @@ internal sealed class FellowshipLogsGraphQLWrapper : IFellowshipLogsClient
             .Select(x => x!.Value)
             .ToList()
             .AsReadOnly();
-        return new FellowshipLogsFight(id, name, encounterID, kill, startTime, endTime,
+        return new ReportFight(id, name, encounterID, kill, startTime, endTime,
             difficulty, fp, fightPercentage, inProgress);
     }
 
-    private static IReadOnlyList<FellowshipLogsFight> MapFights(
+    private static IReadOnlyList<ReportFight> MapFights(
         IReadOnlyList<IGetReport_ReportData_Report_Fights?>? fights)
     {
         if (fights is null) return [];
@@ -61,7 +61,7 @@ internal sealed class FellowshipLogsGraphQLWrapper : IFellowshipLogsClient
             .AsReadOnly();
     }
 
-    private static IReadOnlyList<FellowshipLogsFight> MapFights(
+    private static IReadOnlyList<ReportFight> MapFights(
         IReadOnlyList<IGetAnalysisPreload_ReportData_Report_Fights?>? fights)
     {
         if (fights is null) return [];
@@ -74,28 +74,43 @@ internal sealed class FellowshipLogsGraphQLWrapper : IFellowshipLogsClient
             .AsReadOnly();
     }
 
-    private static FellowshipLogsMasterData MapMasterData(
+    private static ReportMasterData MapMasterData(
         IReadOnlyList<IGetAnalysisPreload_ReportData_Report_MasterData_Abilities?>? abilities,
         IReadOnlyList<IGetAnalysisPreload_ReportData_Report_MasterData_Actors?>? actors)
     {
         var mappedAbilities = abilities?
             .Where(a => a is not null)
-            .Select(a => new FellowshipLogsAbility(a!.GameID, a.Name, a.Icon, a.Type))
+            .Select(a =>
+            {
+                if (!int.TryParse(a!.Type, out var typeInt)) typeInt = 0;
+                return new Ability { Guid = a.GameID, Name = a.Name, Icon = a.Icon, Type = (MagicSchool)typeInt };
+            })
             .ToList()
-            .AsReadOnly() ?? (IReadOnlyList<FellowshipLogsAbility>)[];
+            .AsReadOnly() ?? (IReadOnlyList<Ability>)[];
 
         var mappedActors = actors?
             .Where(a => a is not null)
-            .Select(a => new FellowshipLogsActor(a!.Id, a.Name, a.Type, a.SubType, a.Server, a.Icon))
+            .Select(a => new ReportActor(a!.Id, a.Name, a.Type, a.SubType, a.Server, a.Icon))
             .ToList()
-            .AsReadOnly() ?? (IReadOnlyList<FellowshipLogsActor>)[];
+            .AsReadOnly() ?? (IReadOnlyList<ReportActor>)[];
 
-        return new FellowshipLogsMasterData(mappedAbilities, mappedActors);
+        return new ReportMasterData(mappedAbilities, mappedActors);
+    }
+
+    private static IReadOnlyList<ReportActor> MapActors(
+        IReadOnlyList<IGetReport_ReportData_Report_MasterData_Actors?>? actors)
+    {
+        if (actors is null) return [];
+        return actors
+            .Where(a => a is not null)
+            .Select(a => new ReportActor(a!.Id, a.Name, a.Type, a.SubType, a.Server, a.Icon))
+            .ToList()
+            .AsReadOnly();
     }
 
     private sealed class GraphQLReportFunction(IFellowshipLogsApiClient client) : IReportFunction
     {
-        public async Task<FellowshipLogsReportInfo> GetAsync(
+        public async Task<ReportInfo> GetAsync(
             string reportCode,
             CancellationToken cancellationToken = default)
         {
@@ -109,13 +124,9 @@ internal sealed class FellowshipLogsGraphQLWrapper : IFellowshipLogsClient
                 ?? throw new InvalidOperationException("GraphQL response did not contain expected report data.");
 
             var fights = MapFights(report.Fights);
-            var actors = report.MasterData?.Actors?
-                .Where(a => a is not null)
-                .Select(a => new FellowshipLogsActor(a!.Id, a.Name, a.Type, a.SubType, a.Server, a.Icon))
-                .ToList()
-                .AsReadOnly() ?? (IReadOnlyList<FellowshipLogsActor>)[];
+            var actors = MapActors(report.MasterData?.Actors);
 
-            return new FellowshipLogsReportInfo(reportCode, report.Title, report.StartTime, report.EndTime, fights, actors);
+            return new ReportInfo(reportCode, report.Title, report.StartTime, report.EndTime, fights, actors);
         }
     }
 
@@ -165,7 +176,7 @@ internal sealed class FellowshipLogsGraphQLWrapper : IFellowshipLogsClient
 
     private sealed class GraphQLMasterDataFunction(GraphQLAnalysisPreloadFunction analysisPreload) : IMasterDataFunction
     {
-        public async Task<FellowshipLogsMasterData> GetAsync(
+        public async Task<ReportMasterData> GetAsync(
             string reportCode,
             CancellationToken cancellationToken = default)
         {
@@ -176,7 +187,7 @@ internal sealed class FellowshipLogsGraphQLWrapper : IFellowshipLogsClient
 
     private sealed class GraphQLAnalysisPreloadFunction(IFellowshipLogsApiClient client) : IAnalysisPreloadFunction
     {
-        public async Task<FellowshipLogsAnalysisPreload> GetAsync(
+        public async Task<AnalysisPreload> GetAsync(
             string reportCode,
             CancellationToken cancellationToken = default)
         {
@@ -194,10 +205,10 @@ internal sealed class FellowshipLogsGraphQLWrapper : IFellowshipLogsClient
 
             var mapped = MapMasterData(masterData.Abilities, masterData.Actors);
             var fights = MapFights(report.Fights);
-            var reportInfo = new FellowshipLogsReportInfo(
+            var reportInfo = new ReportInfo(
                 reportCode, report.Title, report.StartTime, report.EndTime, fights, mapped.Actors);
 
-            return new FellowshipLogsAnalysisPreload(reportInfo, mapped);
+            return new AnalysisPreload(reportInfo, mapped);
         }
     }
 }

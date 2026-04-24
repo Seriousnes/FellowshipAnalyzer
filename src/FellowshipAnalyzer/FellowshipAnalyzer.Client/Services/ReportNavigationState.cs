@@ -8,12 +8,12 @@ namespace FellowshipAnalyzer.Client.Services;
 /// </summary>
 public sealed class ReportNavigationState
 {
-    private readonly Dictionary<string, FellowshipLogsReportInfo> _cache = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, ReportInfo> _cache = new(StringComparer.OrdinalIgnoreCase);
 
-    public void Set(string code, FellowshipLogsReportInfo reportInfo) =>
+    public void Set(string code, ReportInfo reportInfo) =>
         _cache[code] = reportInfo;
 
-    public bool TryGet(string code, out FellowshipLogsReportInfo? reportInfo) =>
+    public bool TryGet(string code, out ReportInfo? reportInfo) =>
         _cache.TryGetValue(code, out reportInfo);
 
     public void Clear() => _cache.Clear();
