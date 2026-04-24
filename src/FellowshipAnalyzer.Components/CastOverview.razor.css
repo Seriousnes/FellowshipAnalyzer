@@ -1,25 +1,25 @@
 .stats-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 6px;
-    margin-bottom: 6px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  margin-bottom: 6px;
 }
-
 @media (max-width: 600px) {
-    .stats-grid {
-        grid-template-columns: 1fr;
-    }
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .additional-content {
-    margin-top: 10px;
+  margin-top: 10px;
+}
+.additional-content-heading {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--fa-text-dim, #6b6558);
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
 }
 
-.additional-content-heading {
-    font-size: 1rem;
-    font-weight: 600;
-    color: var(--fa-text-dim, #6b6558);
-    margin-bottom: 6px;
-    text-transform: uppercase;
-    letter-spacing: 0.8px;
-}
+/*# sourceMappingURL=CastOverview.razor.css.map */

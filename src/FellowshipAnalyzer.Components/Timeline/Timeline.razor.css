@@ -1,80 +1,77 @@
 .timeline {
-    overflow-x: auto;
-    overflow-y: visible;
-    background: rgba(0, 0, 0, 0.15);
-    border-radius: 6px;
-    padding: 8px 0;
+  overflow-x: auto;
+  overflow-y: visible;
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 6px;
+  padding: 8px 0;
 }
 
 .timeline-inner {
-    display: flex;
-    flex-direction: column;
-    min-width: max-content;
+  display: flex;
+  flex-direction: column;
+  min-width: max-content;
 }
 
 .timeline-row {
-    display: flex;
-    align-items: center;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
-
 .timeline-row:last-child {
-    border-bottom: none;
+  border-bottom: none;
 }
 
 .timeline-label {
-    width: 180px;
-    flex-shrink: 0;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 4px 8px;
-    overflow: hidden;
-    position: sticky;
-    left: 0;
-    background: inherit;
-    z-index: 1;
+  width: 180px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  overflow: hidden;
+  position: sticky;
+  left: 0;
+  background: inherit;
+  z-index: 1;
 }
-
 .timeline-label__name {
-    font-size: 13px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+  font-size: 13px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
-
 .timeline-label__name--section {
-    font-size: 11px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: rgba(255, 255, 255, 0.45);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: rgba(255, 255, 255, 0.45);
 }
 
 .timeline-section-divider {
-    display: flex;
-    align-items: center;
-    border-top: 1px solid rgba(255, 255, 255, 0.08);
-    margin-top: 4px;
+  display: flex;
+  align-items: center;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  margin-top: 4px;
 }
 
 .timeline-section-line {
-    height: 1px;
-    background: rgba(255, 255, 255, 0.08);
+  height: 1px;
+  background: rgba(255, 255, 255, 0.08);
 }
 
 .timeline-empty {
-    color: rgba(255, 255, 255, 0.4);
-    padding: 24px;
-    text-align: center;
-    font-size: 14px;
+  color: rgba(255, 255, 255, 0.4);
+  padding: 24px;
+  text-align: center;
+  font-size: 14px;
 }
 
-/* ===== Cast area — stacks AuraBar above CastBar ===== */
 .timeline-cast-area {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    overflow: visible;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  overflow: visible;
 }
 
+/*# sourceMappingURL=Timeline.razor.css.map */

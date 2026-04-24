@@ -1,99 +1,93 @@
 .layout-shell {
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    background:
-        radial-gradient(ellipse at 20% -8%, rgba(212, 167, 68, 0.06), transparent 50%),
-        linear-gradient(180deg, var(--fa-bg-base) 0%, #0f1224 100%);
-    color: var(--fa-text);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: radial-gradient(ellipse at 20% -8%, rgba(212, 167, 68, 0.06), transparent 50%), linear-gradient(180deg, var(--fa-bg-base) 0%, #0f1224 100%);
+  color: var(--fa-text);
 }
 
-/* ── Topbar ──────────────────────────────────────────────────── */
 .topbar {
-    position: sticky;
-    top: 0;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 1rem;
-    padding: 0.8rem 2rem;
-    border-bottom: 1px solid var(--fa-border);
-    background: rgba(12, 14, 24, 0.92);
-    backdrop-filter: blur(16px);
-    z-index: 10;
+  position: sticky;
+  top: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.8rem 2rem;
+  border-bottom: 1px solid var(--fa-border);
+  background: rgba(12, 14, 24, 0.92);
+  backdrop-filter: blur(16px);
+  z-index: 10;
 }
 
 .brand {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-weight: 800;
-    letter-spacing: 0.03em;
-    color: var(--fa-text);
-    text-decoration: none;
-    transition: color 0.15s;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  color: var(--fa-text);
+  text-decoration: none;
+  transition: color 0.15s;
 }
-
-.brand:hover { color: var(--fa-gold); }
-
+.brand:hover {
+  color: var(--fa-gold);
+}
 .brand-icon {
-    font-size: 1.25rem;
-    color: var(--fa-gold);
+  font-size: 1.25rem;
+  color: var(--fa-gold);
 }
 
-/* ── Main ────────────────────────────────────────────────────── */
 main {
-    flex: 1;
-    width: min(1400px, 100%);
-    margin: 0 auto;
-    padding: 0 1.5rem;
+  flex: 1;
+  width: min(1400px, 100%);
+  margin: 0 auto;
+  padding: 0 1.5rem;
 }
 
-/* ── Footer ──────────────────────────────────────────────────── */
 .site-footer {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 1.5rem 2rem;
-    margin-top: auto;
-    font-size: 0.78rem;
-    color: var(--fa-text-dim);
-    border-top: 1px solid var(--fa-border);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1.5rem 2rem;
+  margin-top: auto;
+  font-size: 0.78rem;
+  color: var(--fa-text-dim);
+  border-top: 1px solid var(--fa-border);
 }
 
-.separator { opacity: 0.4; }
+.separator {
+  opacity: 0.4;
+}
 
-/* ── Error UI ────────────────────────────────────────────────── */
 #blazor-error-ui {
-    color-scheme: light only;
-    background: lightyellow;
-    bottom: 0;
-    box-shadow: 0 -1px 2px rgba(0, 0, 0, 0.2);
-    box-sizing: border-box;
-    display: none;
-    left: 0;
-    padding: 0.6rem 1.25rem 0.7rem 1.25rem;
-    position: fixed;
-    width: 100%;
-    z-index: 1000;
+  color-scheme: light only;
+  background: lightyellow;
+  bottom: 0;
+  box-shadow: 0 -1px 2px rgba(0, 0, 0, 0.2);
+  box-sizing: border-box;
+  display: none;
+  left: 0;
+  padding: 0.6rem 1.25rem 0.7rem 1.25rem;
+  position: fixed;
+  width: 100%;
+  z-index: 1000;
 }
-
 #blazor-error-ui .dismiss {
-    cursor: pointer;
-    position: absolute;
-    right: 0.75rem;
-    top: 0.5rem;
+  cursor: pointer;
+  position: absolute;
+  right: 0.75rem;
+  top: 0.5rem;
 }
 
 @media (max-width: 720px) {
-    .topbar {
-        padding: 0.8rem 1rem;
-    }
-
-
-
-    main {
-        padding: 0 1rem;
-    }
+  .topbar {
+    padding: 0.8rem 1rem;
+  }
+  main {
+    padding: 0 1rem;
+  }
 }
+
+/*# sourceMappingURL=MainLayout.razor.css.map */
