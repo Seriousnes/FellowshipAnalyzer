@@ -10,19 +10,21 @@ public sealed class WinterOrbTracker : ResourceTracker
 
     public override void Initialize()
     {
-        MaxOverrides[ResourceTypes.Secondary] = 5;
+        //MaxOverrides[ResourceTypes.WinterOrb] = 5;
         base.Initialize();
     }
 
+    public ResourceState? WinterOrbs => GetResourceState(ResourceTypes.WinterOrb);
+
     /// <summary>Current Winter Orb count.</summary>
-    public int CurrentOrbs => Secondary?.Current ?? 0;
+    public int CurrentOrbs => WinterOrbs?.Current ?? 0;
 
     /// <summary>Maximum Winter Orbs Rime can hold.</summary>
-    public int MaxOrbs => MaxOverrides[ResourceTypes.Secondary];
+    public int MaxOrbs => MaxOverrides[ResourceTypes.WinterOrb];
 
     // Convenience accessors used by WinterOrbGuide.razor and WinterOrbStatistics.razor.
-    public int Generated => Secondary?.Generated ?? 0;
-    public int Wasted => Secondary?.Wasted ?? 0;
-    public int Spent => Secondary?.Spent ?? 0;
-    public int Current => Secondary?.Current ?? 0;
+    public int Generated => WinterOrbs?.Generated ?? 0;
+    public int Wasted => WinterOrbs?.Wasted ?? 0;
+    public int Spent => WinterOrbs?.Spent ?? 0;
+    public int Current => WinterOrbs?.Current ?? 0;
 }

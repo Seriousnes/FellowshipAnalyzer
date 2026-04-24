@@ -7,10 +7,17 @@ public sealed class RimeAuras : Auras
 {
     public override IEnumerable<SpellbookAura> GetAuras()
     {
-        yield return new SpellbookAura
-        {
-            SpellId = Spells.WintersEmbrace.Guid,
-            TimelineHighlight = true,
-        };
+        return [
+            new()
+            {
+                SpellId = Spells.WintersEmbrace.Guid,
+                TimelineHighlight = true,
+            },
+            new()
+            {
+                SpellId = Spells.FlightOfTheNavirBuff.Guid,
+                TimelineHighlight = true
+            }
+        ];
     }
 }

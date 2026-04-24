@@ -21,9 +21,9 @@
         <nav class="breadcrumbs" aria-label="breadcrumb">
             <a href="/report/@ReportCode">@(_reportTitle ?? ReportCode)</a>
             <span class="breadcrumb-sep">›</span>
-            <span class="breadcrumb-current">@(_fightName ?? $"Fight {FightId}")</span>
+            <span class="breadcrumb-current">@_fightName</span>
             <span class="breadcrumb-sep">›</span>
-            <span class="breadcrumb-current">@(_playerName ?? $"Player {PlayerId}")</span>
+            <span class="breadcrumb-current">@_playerName</span>
         </nav>
         <div class="hero-panel-body">
             <div class="encounter-block">
@@ -44,7 +44,7 @@
                     </div>
                 }
                 <div class="encounter-text">
-                    <h1 class="encounter-title">@(_fightName ?? $"Fight {FightId}")</h1>
+                    <h1 class="encounter-title">@_fightName</h1>
                     @if (_fightKill == true)
                     {
                         <span class="fight-badge kill">✓ Kill</span>
@@ -77,7 +77,7 @@
                     </div>
                 }
                 <div class="player-text">
-                    <h2 class="player-title">@(_playerName ?? $"Player {PlayerId}")</h2>
+                    <h2 class="player-title">@_playerName</h2>
                     @if (_playerClass is not null)
                     {
                         <span class="player-class-label">@_playerClass</span>
@@ -231,41 +231,43 @@
     {
         try
         {
+            // Pre-populate header immediately from NavState (populated by ReportInfo.razor in normal flow).
+            // Deep-link navigations skip ReportInfo.razor so NavState will be empty here; header fields
+            // remain null and are populated below once the preload API response arrives.
+            if (NavState.TryGet(ReportCode, out var cachedReport) && cachedReport is not null)
+            {
+                var cachedFight = cachedReport.Fights.FirstOrDefault(f => f.Id == FightId);
+                if (cachedFight is not null)
+                {
+                    _reportTitle = cachedReport.Title;
+                    _fightName = cachedFight.Name;
+                    _fightKill = cachedFight.Kill;
+                    var cachedDurationMs = cachedFight.EndTime - cachedFight.StartTime;
+                    var cachedTs = TimeSpan.FromMilliseconds(cachedDurationMs);
+                    _fightDuration = cachedTs.TotalMinutes >= 1
+                        ? $"{(int)cachedTs.TotalMinutes}:{cachedTs.Seconds:D2}"
+                        : $"{cachedTs.Seconds}s";
+                    var cachedBossActor = cachedReport.Actors.FirstOrDefault(a =>
+                        !string.Equals(a.Type, "Player", StringComparison.OrdinalIgnoreCase)
+                        && string.Equals(a.Name, cachedFight.Name, StringComparison.OrdinalIgnoreCase)
+                        && !string.IsNullOrEmpty(a.Icon));
+                    _bossIcon = cachedBossActor?.Icon;
+                    var cachedPlayerActor = cachedReport.Actors.FirstOrDefault(a => a.Id == PlayerId);
+                    _playerName = cachedPlayerActor?.Name;
+                    _playerClass = cachedPlayerActor?.SubType;
+                    _playerIcon = cachedPlayerActor?.Icon;
+                }
+            }
+
             LoadingTracker.Reset();
             LoadingTracker.FetchEventsState = ReportLoadingTracker.StepState.Loading;
             await Task.Yield();
 
+            // Start both requests concurrently. Await preload first — it is typically lighter than
+            // the full events payload and lets us populate header fields before the events arrive.
             var preloadTask = FellowshipLogs.AnalysisPreload.GetAsync(ReportCode);
-
-            // Check cache before hitting the events API
-            string? cachedEventsJson = null; //await ReportCache.GetCachedEventsJsonAsync(ReportCode, FightId, PlayerId);
-            List<Event> events;
-
-            if (cachedEventsJson is not null)
-            {
-                LoadingTracker.FetchEventsState = ReportLoadingTracker.StepState.Ok;
-                LoadingTracker.DeserializeState = ReportLoadingTracker.StepState.Loading;
-                await Task.Yield();
-
-                events = JsonSerializer.Deserialize<List<Event>>(cachedEventsJson, JsonOptions) ?? [];
-            }
-            else
-            {
-                var eventsRequest = new FellowshipLogsEventsRequest(ReportCode, PlayerId, FightId);
-                var result = await FellowshipLogs.Events.GetAsync(eventsRequest);
-
-                LoadingTracker.FetchEventsState = ReportLoadingTracker.StepState.Ok;
-                LoadingTracker.DeserializeState = ReportLoadingTracker.StepState.Loading;
-                await Task.Yield();
-
-                events = [.. result.Events];
-
-                // Only cache completed fights; serialize just the events array (not the wrapper)
-                if (!result.InProgress)
-                {
-                    _pendingCacheEventsJson = JsonSerializer.Serialize(result.Events, JsonOptions);
-                }
-            }
+            var eventsRequest = new FellowshipLogsEventsRequest(ReportCode, PlayerId, FightId);
+            var eventsTask = FellowshipLogs.Events.GetAsync(eventsRequest);
 
             var preload = await preloadTask;
             var reportInfo = preload.ReportInfo;
@@ -290,6 +292,20 @@
             _playerName = playerActor?.Name;
             _playerClass = playerActor?.SubType;
             _playerIcon = playerActor?.Icon;
+
+            var eventsResult = await eventsTask;
+
+            LoadingTracker.FetchEventsState = ReportLoadingTracker.StepState.Ok;
+            LoadingTracker.DeserializeState = ReportLoadingTracker.StepState.Loading;
+            await Task.Yield();
+
+            var events = [.. eventsResult.Events];
+
+            // Only cache completed fights; serialize just the events array (not the wrapper)
+            if (!eventsResult.InProgress)
+            {
+                _pendingCacheEventsJson = JsonSerializer.Serialize(eventsResult.Events, JsonOptions);
+            }
 
             LoadingTracker.DeserializeState = ReportLoadingTracker.StepState.Ok;
             await Task.Yield();

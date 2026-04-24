@@ -23,6 +23,7 @@ public class Spells : ISpellRegistry
     public static Spell WintersBlessing { get; } = new(1026, "Winter's Blessing", "T_Rime_HealingBuff.jpg");
     public static Effect WintersBlessingBuff { get; } = new(1026, "Winter's Blessing", "T_Rime_HealingBuff.jpg");
     public static Spell WrathOfWinter { get; } = new(1023, "Wrath of Winter", "T_Rime_SpiritAbility.jpg");
+    public static Spell FlightOfTheNavirBuff { get; } = new(2446, "Flight Of the Navir", "T_Rime_BirdCD.jpg");
 
     // Talents
     public static Effect WintersEmbrace { get; } = new(2303, "Winter's Embrace", "Cryomancer8.jpg");
