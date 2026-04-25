@@ -23,6 +23,7 @@ public class ResourceTracker : Analyzer
     public override void Initialize()
     {
         AddEventListener(Events.Cast.By(SELECTED_PLAYER), OnCast);
+        AddEventListener(Events.ResourceChange.By(SELECTED_PLAYER), OnResourceChange);
         AddEventListener(Events.Any, OnEvent);
     }
 
@@ -59,6 +60,20 @@ public class ResourceTracker : Analyzer
     public IReadOnlyDictionary<int, int> GetGeneratorCasts(ResourceTypes type) => GetOrCreateState(type).GeneratorCasts;
     public IReadOnlyDictionary<int, int> GetSpenderCasts(ResourceTypes type) => GetOrCreateState(type).SpenderCasts;
     public IReadOnlyList<ResourceEvent> GetResourceEvents(ResourceTypes type) => GetOrCreateState(type).Events;
+
+    private void OnResourceChange(ResourceChangeEvent e)
+    {
+        var gained = (int)(e.ResourceChange - e.Waste);
+        var wasted = (int)e.Waste;
+        RecordGain(
+            e.ResourceChangeType,
+            e.Ability.Id,
+            gained: gained,
+            wasted: wasted,
+            currentAfterFromEvent: null,
+            maxFromEvent: null,
+            e.Timestamp);
+    }
 
     private void OnEvent(Event e)
     {

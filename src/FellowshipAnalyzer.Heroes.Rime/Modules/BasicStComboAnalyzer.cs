@@ -112,7 +112,7 @@ public sealed class BasicStComboAnalyzer : Analyzer
             evaluations.Add(EvaluateWindow(window));
         }
 
-        var ignoredAoeWindows = 0;
+        var ignoredAoeWindows = evaluations.Count(w => w.WindowType == BurstingIceWindowType.Aoe);
 
         var evaluatedWindows = evaluations.Count;
         var successfulWindows = evaluations.Count(w => w.Successful);
