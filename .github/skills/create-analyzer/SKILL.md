@@ -5,77 +5,86 @@ description: "Create a pure C# analyzer module that subscribes to combat log eve
 
 # Create Analyzer
 
-An analyzer is a **pure C# class** in the `Analyzers/` folder that subscribes to combat log events, tracks state, and exposes computed metrics. It has no Blazor dependency. Guide and statistics rendering are separate files handled by the `create-guide` and `create-statistics` skills.
+An analyzer is a pure C# module in the `Modules/` folder. It subscribes to combat log events, tracks state, and exposes computed metrics for guide and statistics components. It has no Blazor dependency.
+
+Guide rendering belongs in the `create-guide` skill. Statistics rendering belongs in the `create-statistics` skill. Resource tracking belongs in the `create-resource-tracker` skill.
 
 ## Procedure
 
-### 1. Create the analyzer class
+### 1. Create The Analyzer Class
 
-Place at `src/FellowshipAnalyzer.Heroes.{Hero}/Analyzers/{Name}Analyzer.cs`.
+Place at `src/FellowshipAnalyzer.Heroes.{Hero}/Modules/{Name}Analyzer.cs`.
 
 ```csharp
 using FellowshipAnalyzer.Core.Analysis;
 using FellowshipAnalyzer.Core.Events;
-using FellowshipAnalyzer.Heroes.{Hero}.Combat;
+using FellowshipAnalyzer.Core.Common.Spells.{Hero};
 
-namespace FellowshipAnalyzer.Heroes.{Hero}.Analyzers;
+namespace FellowshipAnalyzer.Heroes.{Hero}.Modules;
 
-public sealed class {Name}Analyzer(CombatLogParser parser) : Analyzer(parser)
+public sealed class {Name}Analyzer : Analyzer
 {
-    // --- Internal state ---
     private readonly List<SomeWindow> _windows = [];
 
-    // --- Public accessors (consumed by guide/statistics components) ---
     public IReadOnlyList<SomeWindow> Windows => _windows;
-    public int GoodCount => _windows.Count(w => w.IsGood);
-    public int BadCount => _windows.Count(w => !w.IsGood);
+    public int GoodCount => _windows.Count(window => window.IsGood);
+    public int BadCount => _windows.Count(window => !window.IsGood);
 
     public override void Initialize()
     {
-        AddEventListener(Events.ApplyBuff.By(SELECTED_PLAYER).Spell({Hero}Spells.SomeBuff.Id), OnBuffApply);
-        AddEventListener(Events.RemoveBuff.By(SELECTED_PLAYER).Spell({Hero}Spells.SomeBuff.Id), OnBuffRemove);
+        AddEventListener(Events.ApplyBuff.By(SELECTED_PLAYER).Spell(Spells.SomeBuff), OnBuffApply);
+        AddEventListener(Events.RemoveBuff.By(SELECTED_PLAYER).Spell(Spells.SomeBuff), OnBuffRemove);
         AddEventListener(Events.Cast.By(SELECTED_PLAYER), OnCast);
     }
 
-    private void OnBuffApply(ApplyBuffEvent e)
+    private void OnBuffApply(ApplyBuffEvent applyBuffEvent)
     {
-        _windows.Add(new SomeWindow(e.Timestamp));
+        _windows.Add(new SomeWindow(applyBuffEvent.Timestamp));
     }
 
-    private void OnBuffRemove(RemoveBuffEvent e)
+    private void OnBuffRemove(RemoveBuffEvent removeBuffEvent)
     {
-        if (_windows.Count > 0)
-            _windows[^1] = _windows[^1] with { EndTimestamp = e.Timestamp };
+        var openWindow = _windows.LastOrDefault(window => window.EndTimestamp is null);
+        if (openWindow is not null)
+        {
+            openWindow.EndTimestamp = removeBuffEvent.Timestamp;
+        }
     }
 
-    private void OnCast(CastEvent e)
+    private void OnCast(CastEvent castEvent)
     {
-        if (_windows.Count > 0 && _windows[^1].EndTimestamp is null)
-            _windows[^1].Casts.Add(e);
+        var openWindow = _windows.LastOrDefault(window => window.EndTimestamp is null);
+        if (openWindow is not null)
+        {
+            openWindow.Casts.Add(castEvent);
+        }
     }
 }
 ```
 
-### 2. Register on the CombatLogParser
+Use simple helper records/classes in the same file unless they are large or shared.
 
-Add `[AddModule<{Name}Analyzer>]` to the hero's parser. Order matters — modules initialize in declaration order.
+### 2. Register On The CombatLogParser
+
+Add `[AddModule<{Name}Analyzer>]` to the hero parser. Declaration order is module priority.
 
 ```csharp
-[AddModule<SpellUsable>]
+[HeroAnalyzer("{hero-id}")]
 [AddModule<WinterOrbTracker>]
-[AddModule<Abilities>]
-[AddModule<{Name}Analyzer>]      // ← Add here
+[AddModule<Modules.Abilities>]
+[AddModule<{Name}Analyzer>]
 public sealed partial class {Hero}CombatLogParser : CombatLogParser
 ```
 
 The source generator produces:
-- A typed nullable property: `{Name}Analyzer? {Name}` (strips "Analyzer" suffix)
-- DI registration in `Add{Hero}Analysis()`
-- Assignment in `AssignModule()` switch
 
-### 3. Optionally set StatisticsComponentType
+- A typed nullable property on the parser: `{Name}Analyzer? {Name}`. The `Analyzer` suffix is stripped.
+- DI registration in `Add{Hero}Analysis()`.
+- Inclusion in `GetModuleTypes()` in declaration order.
 
-If this analyzer will have a statistics component (created via the `create-statistics` skill), declare it:
+### 3. Optionally Set StatisticsComponentType
+
+If this analyzer has a statistics component, expose it from the module:
 
 ```csharp
 public override Type? StatisticsComponentType => typeof({Name}Statistics);
@@ -84,33 +93,43 @@ public override Type? StatisticsComponentType => typeof({Name}Statistics);
 ## Event Filter API
 
 ```csharp
-// Static factory (Events.cs)
 Events.Cast                    // EventFilter<CastEvent>
 Events.ApplyBuff               // EventFilter<ApplyBuffEvent>
 Events.RemoveBuff              // EventFilter<RemoveBuffEvent>
 Events.Damage                  // EventFilter<DamageEvent>
 Events.Heal                    // EventFilter<HealEvent>
 Events.ResourceChange          // EventFilter<ResourceChangeEvent>
-Events.Any                     // AnyEventFilter (matches all)
+Events.Any                     // AnyEventFilter, matches all events
 
-// Fluent filters
-.By(SELECTED_PLAYER)           // sourceId == playerId
-.By(SELECTED_PLAYER_PET)       // sourceId == player's pet
-.To(SELECTED_PLAYER)           // targetId == playerId
-.Spell(spellId)                // abilityGameId matches
-.Spell(id1, id2, id3)          // abilityGameId matches any
+.By(SELECTED_PLAYER)           // source matches analyzed player
+.By(SELECTED_PLAYER_PET)       // source matches analyzed player's pet, when pet tracking exists
+.To(SELECTED_PLAYER)           // target matches analyzed player
+.Spell(spellA, spellB)         // ability id matches any Spell.Guid
+.ExtraSpell(spellA)            // extra ability id matches any Spell.Guid
 ```
+
+`Spell(...)` takes `Spell` or `Effect` instances from `FellowshipAnalyzer.Core.Common.Spells`, not raw IDs.
 
 ## Dependencies
 
-- **Required**: Constructor injection. DI resolves automatically.
-  ```csharp
-  public class MyAnalyzer(CombatLogParser parser, WinterOrbTracker tracker) : Analyzer(parser)
-  ```
-- **Optional**: Access via the parser's source-generated nullable properties.
-  ```csharp
-  var feralSpirit = Owner is RimeCombatLogParser rp ? rp.FeralSpirit : null;
-  ```
+Modules are resolved from DI, then the parser assigns `Owner`. Do not require `CombatLogParser` in an analyzer constructor.
+
+For module-to-module access, use `Owner.GetModule<T>()` or the hero parser's generated properties:
+
+```csharp
+public override void Complete()
+{
+    var tracker = Owner.GetModule<WinterOrbTracker>();
+    if (tracker is null)
+    {
+        return;
+    }
+
+    var generated = tracker.Generated;
+}
+```
+
+Constructor injection is acceptable for ordinary DI services. If injecting another module, confirm it is registered by `[AddModule<T>]` and avoid using it before both modules have completed `Initialize()`.
 
 ## Naming Conventions
 
@@ -120,22 +139,22 @@ Events.Any                     // AnyEventFilter (matches all)
 | `FreezingTorrentAnalyzer` | `FreezingTorrent` |
 | `Abilities` | `Abilities` |
 
-The source generator strips the "Analyzer" suffix from the class name.
+The source generator strips the `Analyzer` suffix from generated parser properties.
 
 ## Key Rules
 
-- Extends `Analyzer` (for resources, use the `create-resource-tracker` skill instead)
-- Event subscriptions go in `Initialize()`, never the constructor
-- Uses primary constructor with `CombatLogParser` (plus any required dependencies)
-- Expose state via public read-only accessors — guide/statistics components consume these
-- Pure C#: no `@using Microsoft.AspNetCore.Components`, no Razor, no `RenderFragment`
-- File goes in `Analyzers/` folder
+- Extend `Analyzer`. For resources, use `ResourceTracker` through the `create-resource-tracker` skill.
+- Put event subscriptions in `Initialize()`, never in the constructor.
+- Keep final scoring, aggregations, and derived summaries in `Complete()` when they depend on the full event stream.
+- Expose state through public read-only accessors for guide/statistics components.
+- Keep the module pure C#: no Razor, `RenderFragment`, or Blazor component dependencies.
+- Place the file in `Modules/`.
 
 ## Checklist
 
-- [ ] File is at `Analyzers/{Name}Analyzer.cs`, pure C# with no Blazor references
-- [ ] Extends `Analyzer` with primary constructor taking `CombatLogParser`
-- [ ] Event subscriptions are in `Initialize()`
-- [ ] Public accessors expose computed state for consumers
-- [ ] `[AddModule<T>]` added to the hero's CombatLogParser in correct priority order
-- [ ] `StatisticsComponentType` set if a statistics component exists
+- [ ] File is at `Modules/{Name}Analyzer.cs`.
+- [ ] Class extends `Analyzer` and does not require `CombatLogParser` in its constructor.
+- [ ] Event subscriptions are in `Initialize()`.
+- [ ] Public accessors expose computed state for consumers.
+- [ ] `[AddModule<T>]` is added to the hero parser in the correct priority order.
+- [ ] `StatisticsComponentType` is set if a statistics component exists.

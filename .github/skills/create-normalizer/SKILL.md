@@ -5,11 +5,13 @@ description: "Create an IEventNormalizer that pre-processes combat log events be
 
 # Create Normalizer
 
-A normalizer is a standalone class that implements `IEventNormalizer`. It runs **before** event dispatch, transforming the event list (reordering, linking, fabricating, filtering). Normalizers are not modules — they have no event subscriptions or lifecycle.
+A normalizer is a standalone class that implements `IEventNormalizer`. It runs before module initialization and event dispatch, transforming the event list through hydration, scaling, reordering, linking, fabrication, or filtering.
+
+Normalizers are not modules. They do not extend `Module`, have no `Initialize()` or `Complete()`, and do not subscribe to events.
 
 ## Procedure
 
-### 1. Create the normalizer class
+### 1. Create The Normalizer Class
 
 Place at `src/FellowshipAnalyzer.Heroes.{Hero}/Normalizers/{Name}Normalizer.cs`.
 
@@ -21,16 +23,15 @@ namespace FellowshipAnalyzer.Heroes.{Hero}.Normalizers;
 
 public sealed class {Name}Normalizer : IEventNormalizer
 {
-    public int Priority => 0; // Lower runs first
+    public int Priority => 0;
 
-    public IReadOnlyList<Event> Normalize(IReadOnlyList<Event> events, int playerId)
+    public List<Event> Normalize(List<Event> events, int playerId)
     {
         var result = new List<Event>(events.Count);
 
-        foreach (var e in events)
+        foreach (var combatEvent in events)
         {
-            // Transform, reorder, filter, or fabricate events
-            result.Add(e);
+            result.Add(combatEvent);
         }
 
         return result;
@@ -38,87 +39,110 @@ public sealed class {Name}Normalizer : IEventNormalizer
 }
 ```
 
-### 2. Register on the CombatLogParser
-
-Add `[AddNormalizer<{Name}Normalizer>]` to the hero's parser:
-
-```csharp
-[AddNormalizer<{Name}Normalizer>]
-[AddModule<SpellUsable>]
-[AddModule<WinterOrbTracker>]
-public sealed partial class {Hero}CombatLogParser : CombatLogParser
-```
-
-The source generator adds the normalizer to `RegisteredNormalizerTypes` and DI registration.
-
-## Common Normalizer Patterns
-
-### Event Reordering
-Fix events that arrive out of logical order:
-```csharp
-public IReadOnlyList<Event> Normalize(IReadOnlyList<Event> events, int playerId)
-{
-    var result = events.ToList();
-    // Move buff applications before the cast that triggered them
-    // when they share the same timestamp
-    result.Sort((a, b) => /* custom ordering logic */);
-    return result;
-}
-```
-
-### Event Linking
-Associate related events (e.g., link a damage event to the cast that caused it):
-```csharp
-public IReadOnlyList<Event> Normalize(IReadOnlyList<Event> events, int playerId)
-{
-    // Build lookup of casts, then link subsequent damage/heal events
-    return events;
-}
-```
-
-### Event Fabrication
-Synthesize events that the combat log doesn't emit directly:
-```csharp
-public IReadOnlyList<Event> Normalize(IReadOnlyList<Event> events, int playerId)
-{
-    var result = new List<Event>(events.Count);
-    foreach (var e in events)
-    {
-        result.Add(e);
-        if (e is CastEvent cast && ShouldFabricateSpend(cast))
-        {
-            result.Add(new SpendResourceEvent { Fabricated = true, Trigger = cast, /* ... */ });
-        }
-    }
-    return result;
-}
-```
-
-## IEventNormalizer Interface
+The current interface is:
 
 ```csharp
 public interface IEventNormalizer
 {
     int Priority { get; }
-    IReadOnlyList<Event> Normalize(IReadOnlyList<Event> events, int playerId);
+    List<Event> Normalize(List<Event> events, int playerId);
 }
 ```
 
-Normalizers run in `Priority` order (ascending) before any module initialization or event dispatch.
+### 2. Register On The CombatLogParser
+
+Add `[AddNormalizer<{Name}Normalizer>]` to the hero parser:
+
+```csharp
+[HeroAnalyzer("{hero-id}")]
+[AddNormalizer<{Name}Normalizer>]
+[AddModule<Modules.Abilities>]
+public sealed partial class {Hero}CombatLogParser : CombatLogParser
+```
+
+The source generator emits `GetNormalizerTypes()` and DI registration for hero-specific normalizers.
+
+Current execution follows the generated normalizer type list, which preserves `[AddNormalizer<T>]` declaration order with base parser normalizers before hero parser normalizers. Keep `Priority` consistent with the intended order because normalizer implementations use it as documentation.
+
+## Common Normalizer Patterns
+
+### Event Reordering
+
+```csharp
+public List<Event> Normalize(List<Event> events, int playerId)
+{
+    var result = events.ToList();
+    result.Sort((left, right) => left.Timestamp.CompareTo(right.Timestamp));
+    return result;
+}
+```
+
+### Event Linking
+
+```csharp
+public List<Event> Normalize(List<Event> events, int playerId)
+{
+    var castsByTimestamp = events
+        .OfType<CastEvent>()
+        .ToLookup(castEvent => (castEvent.Timestamp, castEvent.SourceId, castEvent.Ability.Guid));
+
+    foreach (var damageEvent in events.OfType<DamageEvent>())
+    {
+        var matchingCast = castsByTimestamp[(damageEvent.Timestamp, damageEvent.SourceId, damageEvent.Ability.Guid)]
+            .FirstOrDefault();
+        if (matchingCast is not null)
+        {
+            damageEvent.LinkedEvents.Add(new LinkedEvent(matchingCast, "matching-cast"));
+        }
+    }
+
+    return events;
+}
+```
+
+### Event Fabrication
+
+```csharp
+public List<Event> Normalize(List<Event> events, int playerId)
+{
+    var result = new List<Event>(events.Count);
+
+    foreach (var combatEvent in events)
+    {
+        result.Add(combatEvent);
+
+        if (combatEvent is CastEvent castEvent && ShouldFabricateSpend(castEvent))
+        {
+            result.Add(new SpendResourceEvent
+            {
+                Timestamp = castEvent.Timestamp,
+                SourceId = castEvent.SourceId,
+                TargetId = castEvent.TargetId,
+                Ability = castEvent.Ability,
+                Fabricated = true,
+                Trigger = castEvent,
+            });
+        }
+    }
+
+    return result;
+}
+```
 
 ## Key Rules
 
-- Normalizers are **not** modules — they don't extend `Module`, have no `Initialize()`/`Complete()`, no event subscriptions
-- Registered via `[AddNormalizer<T>]`, not `[AddModule<T>]`
-- File goes in `Normalizers/` folder
-- Must be pure transformations — read the input list, return a new/modified list
-- `Priority` controls execution order among normalizers (lower runs first)
-- Normalizers are resolved from DI, so they can take constructor dependencies if needed
+- Normalizers are not modules.
+- Register with `[AddNormalizer<T>]`, not `[AddModule<T>]`.
+- Use the current `List<Event> Normalize(List<Event> events, int playerId)` signature.
+- File goes in `Normalizers/`.
+- Return a complete event list; do not accidentally drop events.
+- Mutating the input list is allowed when intentional. Return a new list when reordering or filtering is clearer.
+- Normalizers are resolved from DI, so constructor injection can be used for registered services.
 
 ## Checklist
 
-- [ ] File is at `Normalizers/{Name}Normalizer.cs`
-- [ ] Implements `IEventNormalizer`
-- [ ] `Priority` is set appropriately relative to other normalizers
-- [ ] `[AddNormalizer<T>]` on the hero's CombatLogParser
-- [ ] Returns a complete event list (doesn't accidentally drop events)
+- [ ] File is at `Normalizers/{Name}Normalizer.cs`.
+- [ ] Implements `IEventNormalizer` with the current `List<Event>` signature.
+- [ ] `[AddNormalizer<T>]` is on the hero parser.
+- [ ] Declaration order and `Priority` agree with the intended order.
+- [ ] Returns a complete event list.

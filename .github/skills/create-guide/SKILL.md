@@ -5,82 +5,79 @@ description: "Create a Guide Razor component for a FellowshipAnalyzer analyzer. 
 
 # Create Guide Component
 
-A guide component is a **Razor file** in the `Guides/` folder that renders analysis results in the Guide tab. It `@inject`s the hero's CombatLogParser to access analyzer state. Guide components are manually composed in the hero's main `Guide.razor` page.
+A guide component is a Razor file in `Guides/` that renders analyzer state in the Guide tab. It injects the hero parser and reads source-generated module properties.
+
+Keep state tracking, scoring, and durable analysis in the module. The guide may contain small display-shaping helpers that turn module state into shared component inputs.
 
 ## Procedure
 
-### 1. Create the guide component
+### 1. Create The Feature Guide
 
 Place at `src/FellowshipAnalyzer.Heroes.{Hero}/Guides/{Name}Guide.razor`.
 
 ```razor
-@using FellowshipAnalyzer.Heroes.{Hero}.Analysis
-@using FellowshipAnalyzer.Heroes.{Hero}.Analyzers
+@namespace FellowshipAnalyzer.Heroes.{Hero}.Guides
 @using FellowshipAnalyzer.Components
-
+@using FellowshipAnalyzer.Heroes.{Hero}.Analysis
 @inject {Hero}CombatLogParser Parser
-
-@{ var analyzer = Parser.{Name}!; }
 
 <GuideSection Title="{Feature Name}">
-    <CastOverview Stats="@analyzer.BuildOverviewStats()" />
-    <CastDetail Casts="@analyzer.BuildPerCastData()" />
+    <ChildContent>
+        <CastOverview Title="Overview" Stats="@BuildOverviewStats()" />
+        <CastDetail Title="{Feature Name}" Casts="@BuildPerCastData()" />
+    </ChildContent>
 </GuideSection>
-```
 
-The guide component:
-- Accesses the analyzer via `Parser.{Name}` (the source-generated typed property)
-- Uses shared UI widgets from `FellowshipAnalyzer.Components` (`GuideSection`, `CastOverview`, `CastDetail`, `FindingsList`, `PerformanceBoxRow`, etc.)
-- Contains **no analysis logic** — it only reads state from the analyzer and renders it
+@code {
+    private {Name}Analyzer Analyzer => Parser.{Name}!;
 
-### 2. Add to the hero's main Guide.razor
-
-Each hero has a mandatory `Guides/{Hero}Guide.razor` that manually composes all guide sections:
-
-```razor
-@using FellowshipAnalyzer.Heroes.{Hero}.Analysis
-@inject {Hero}CombatLogParser Parser
-
-<Section Title="Single Target Combo">
-    @if (Parser.BasicStCombo is not null)
+    private IEnumerable<OverviewStat> BuildOverviewStats()
     {
-        <BasicStComboGuide />
+        return
+        [
+            new OverviewStat(
+                $"{Analyzer.GoodCount}",
+                "Good",
+                "Successful usages detected by the analyzer."),
+        ];
     }
-</Section>
 
-<Section Title="{Feature Name}">
-    @if (Parser.{Name} is not null)
+    private IEnumerable<PerCastData> BuildPerCastData()
     {
-        <{Name}Guide />
+        return Analyzer.Windows.Select(window => new PerCastData
+        {
+            Timestamp = Parser.FormatTimestamp(window.StartTimestamp),
+            Performance = window.IsGood ? PerformanceTier.Good : PerformanceTier.Fail,
+        });
     }
-</Section>
-```
-
-Null-check the analyzer property — modules can be inactive.
-
-### 3. (If it doesn't exist) Create the hero's main Guide.razor
-
-The hero's `GuideComponentType` property points to this page:
-
-```razor
-@using FellowshipAnalyzer.Heroes.{Hero}.Analysis
-@inject {Hero}CombatLogParser Parser
-
-<!-- Compose all guide sections in desired order -->
-@if (Parser.BasicStCombo is not null)
-{
-    <BasicStComboGuide />
-}
-
-@if (Parser.WinterOrbTracker is not null)
-{
-    <WinterOrbGuide />
 }
 ```
 
-Register it on the parser:
+`_Imports.razor` should include the hero `Modules` namespace, as Rime does, so analyzer types are available to guides.
+
+### 2. Add To The Hero Root Guide
+
+Each hero has a root guide component at `src/FellowshipAnalyzer.Heroes.{Hero}/{Hero}Guide.razor`.
+
+```razor
+@namespace FellowshipAnalyzer.Heroes.{Hero}.Guides
+@using FellowshipAnalyzer.Heroes.{Hero}.Analysis
+@inject {Hero}CombatLogParser Parser
+
+@if (Parser.{Name} is not null)
+{
+    <{Name}Guide />
+}
+```
+
+Null-check generated module properties because modules may be inactive.
+
+### 3. Ensure The Parser Points To The Root Guide
+
+The hero parser exposes the root guide through `GuideComponent`:
+
 ```csharp
-public override Type GuideComponentType => typeof({Hero}Guide);
+public override Type? GuideComponent => typeof({Hero}Guide);
 ```
 
 ## Available UI Widgets
@@ -89,29 +86,32 @@ From `FellowshipAnalyzer.Components`:
 
 | Component | Purpose |
 |-----------|---------|
-| `GuideSection` | Titled collapsible section wrapper |
-| `CastOverview` | Summary bar with overview stats |
-| `CastDetail` | Per-cast breakdown with performance boxes |
-| `FindingsList` | List of findings/suggestions |
-| `GradiatedPerformanceBar` | Color-graded performance bar (0–100) |
-| `PassFailBar` | Binary pass/fail bar |
-| `PerformanceBoxRow` | Row of colored performance boxes |
-| `SpellSequence` | Filmstrip of spell casts |
-| `StatCard` | Card with title and content |
-| `StackedBar` | Stacked horizontal bar chart |
+| `GuideSection` | Titled collapsible guide section wrapper. |
+| `CastOverview` | Summary stats across all occurrences. |
+| `CastDetail` | Per-cast breakdown with performance boxes and optional sequence/details. |
+| `FindingsList` | List of findings/suggestions. |
+| `GradiatedPerformanceBar` | Color-graded performance bar. |
+| `PassFailBar` | Binary pass/fail bar. |
+| `PerformanceBoxRow` | Row of colored performance boxes. |
+| `SpellSequence` | Filmstrip of spell casts. |
+| `StackedBar` | Stacked horizontal bar chart. |
+| `StatCard` | Statistics card container; normally used by statistics components. |
 
 ## Key Rules
 
-- Guide components go in `Guides/` folder, never `Analyzers/`
-- Access the parser via `@inject`, not `[CascadingParameter]`
-- Access analyzer data via `Parser.{Name}` — the source-generated typed property
-- No analysis logic in guide components — they only render
-- Always null-check `Parser.{Name}` before rendering (module may be inactive)
-- Guide composition order is controlled manually in `{Hero}Guide.razor`
+- Guide components go in `Guides/`.
+- The hero root guide lives at the hero project root as `{Hero}Guide.razor`.
+- Inject the hero parser with `@inject`.
+- Read module state via generated parser properties such as `Parser.BasicStCombo`.
+- Keep scoring and event-derived state in modules.
+- Null-check generated module properties before rendering a feature guide from the root guide.
+- Use shared components from `FellowshipAnalyzer.Components` when possible.
+- Use the `style-guide` skill before adding or changing component styles.
 
 ## Checklist
 
-- [ ] File is at `Guides/{Name}Guide.razor`
-- [ ] `@inject`s the hero's CombatLogParser
-- [ ] Reads analyzer state via `Parser.{Name}` (no analysis logic in the component)
-- [ ] Added to the hero's main `{Hero}Guide.razor` with null-check
+- [ ] File is at `Guides/{Name}Guide.razor`.
+- [ ] Component injects the hero parser.
+- [ ] Component reads analyzer state from `Parser.{Name}`.
+- [ ] Feature guide is added to `{Hero}Guide.razor` with a null-check.
+- [ ] Parser `GuideComponent` points to the root guide.

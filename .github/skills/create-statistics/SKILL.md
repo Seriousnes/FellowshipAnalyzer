@@ -5,48 +5,59 @@ description: "Create an auto-collected statistics Razor component for a Fellowsh
 
 # Create Statistics Component
 
-A statistics component is a **Razor file** in the `Statistics/` folder that renders a summary card on the Statistics tab. It receives its analyzer via `[CascadingParameter]` and is auto-collected — no manual composition needed.
+A statistics component is a Razor file in `Statistics/` that renders a summary card on the Statistics tab. It receives its module through a cascading value and is auto-collected from active modules with a non-null `StatisticsComponentType`.
 
 ## Procedure
 
-### 1. Create the statistics component
+### 1. Create The Statistics Component
 
 Place at `src/FellowshipAnalyzer.Heroes.{Hero}/Statistics/{Name}Statistics.razor`.
 
 ```razor
+@namespace FellowshipAnalyzer.Heroes.{Hero}.Statistics
 @using FellowshipAnalyzer.Components
-@using FellowshipAnalyzer.Heroes.{Hero}.Analyzers
-
 @inherits AnalyzerStatistic<{Name}Analyzer>
 
 <StatCard Title="{Feature Name}">
-    <p>@Analyzer.Generated generated, @Analyzer.Wasted wasted</p>
-    <GradiatedPerformanceBar Score="@Analyzer.EfficiencyScore" />
+    <CastOverview Title="Overview" Stats="@BuildOverviewStats()" />
 </StatCard>
+
+@code {
+    private IEnumerable<OverviewStat> BuildOverviewStats()
+    {
+        return
+        [
+            new OverviewStat(
+                $"{Analyzer.Generated}",
+                "Generated",
+                "Total resource generated during the encounter."),
+        ];
+    }
+}
 ```
 
-`AnalyzerStatistic<T>` provides:
+`AnalyzerStatistic<T>` provides a typed `Analyzer` property from the cascading module value:
+
 ```csharp
 public abstract class AnalyzerStatistic<T> : ComponentBase where T : Module
 {
-    [CascadingParameter] public Module Module { get; set; }
+    [CascadingParameter] public Module Module { get; set; } = null!;
     protected T Analyzer => (T)Module;
 }
 ```
 
-### 2. Link from the analyzer
+### 2. Link From The Module
 
-In the analyzer class, set `StatisticsComponentType`:
+In the analyzer or tracker class, set `StatisticsComponentType`:
 
 ```csharp
-public sealed class {Name}Analyzer(CombatLogParser parser) : Analyzer(parser)
+public sealed class {Name}Analyzer : Analyzer
 {
     public override Type? StatisticsComponentType => typeof({Name}Statistics);
-    // ... rest of analyzer
 }
 ```
 
-That's it. The framework auto-collects statistics from active modules that have a non-null `StatisticsComponentType` and renders them via:
+The framework auto-collects statistics from active modules and renders them with `DynamicComponent`:
 
 ```razor
 @foreach (var (module, componentType) in _result.Statistics)
@@ -61,23 +72,25 @@ That's it. The framework auto-collects statistics from active modules that have 
 
 | Component | Purpose |
 |-----------|---------|
-| `StatCard` | Card with title and content slot |
-| `GradiatedPerformanceBar` | Color-graded 0–100 bar |
-| `PassFailBar` | Binary pass/fail bar |
-| `StackedBar` | Stacked horizontal bar with segments |
+| `StatCard` | Card with title and content slot. |
+| `CastOverview` | Summary stat group. |
+| `GradiatedPerformanceBar` | Color-graded performance bar. |
+| `PassFailBar` | Binary pass/fail bar. |
+| `StackedBar` | Stacked horizontal bar with segments. |
 
 ## Key Rules
 
-- Statistics components go in `Statistics/` folder
-- Inherit `AnalyzerStatistic<T>` where `T` is the analyzer type
-- Access analyzer data via `Analyzer` property (typed, provided by CascadingParameter)
-- No `@inject` needed — the analyzer comes via cascading value
-- Keep statistics components simple — summary cards, not detailed breakdowns (those belong in guides)
-- The analyzer must set `StatisticsComponentType` for auto-collection to work
+- Statistics components go in `Statistics/`.
+- Inherit `AnalyzerStatistic<T>` where `T` is the module type.
+- Access module data through the `Analyzer` property.
+- Do not inject the parser; the module comes from the cascading value.
+- Keep statistics components summary-focused. Detailed per-cast analysis belongs in guide components.
+- The module must set `StatisticsComponentType` for auto-collection to work.
+- Use the `style-guide` skill before adding or changing component styles.
 
 ## Checklist
 
-- [ ] File is at `Statistics/{Name}Statistics.razor`
-- [ ] Inherits `AnalyzerStatistic<{Name}Analyzer>`
-- [ ] Uses `Analyzer` property to access data
-- [ ] Analyzer's `StatisticsComponentType` returns `typeof({Name}Statistics)`
+- [ ] File is at `Statistics/{Name}Statistics.razor`.
+- [ ] Component inherits `AnalyzerStatistic<{Name}Analyzer>` or the matching tracker/module type.
+- [ ] Component uses `Analyzer` to access state.
+- [ ] Module `StatisticsComponentType` returns `typeof({Name}Statistics)`.
