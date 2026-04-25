@@ -1,5 +1,5 @@
 #:package Microsoft.Extensions.Configuration.UserSecrets@10.0.0
-#:property UserSecretsId=aspnet-FellowshipAnalyzer-8badee50-529d-49d0-b376-2b6d4ff24b83
+#:property UserSecretsId=YOUR-USER-SECRETS-ID-HERE
 
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
@@ -8,7 +8,10 @@ using System.Text.Json.Serialization;
 using Microsoft.Extensions.Configuration;
 
 var configuration = new ConfigurationBuilder()
-    .AddUserSecrets("aspnet-FellowshipAnalyzer-8badee50-529d-49d0-b376-2b6d4ff24b83")
+    // Replace YOUR-USER-SECRETS-ID-HERE with your own UserSecretsId.
+    // Run `dotnet user-secrets init` in the FellowshipAnalyzer project to generate one,
+    // then set FellowshipLogs:ClientId and FellowshipLogs:ClientSecret via `dotnet user-secrets set`.
+    .AddUserSecrets("YOUR-USER-SECRETS-ID-HERE")
     .Build();
 
 var clientId = configuration["FellowshipLogs:ClientId"] ?? configuration["ClientId"];
