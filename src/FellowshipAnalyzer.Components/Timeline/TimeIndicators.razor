@@ -9,8 +9,8 @@
         var leftPx = sec * PixelsPerSecond;
         var widthPx = Math.Min(PixelsPerSecond, TrackWidthPx - leftPx);
         <div class="time-second" style="left: @(leftPx.ToString("F1", CultureInfo.InvariantCulture))px; width: @(widthPx.ToString("F1", CultureInfo.InvariantCulture))px">
-            <span class="time-second__label">@FormatSec(sec)</span>
-            <div class="time-second__half-tick"></div>
+            <span class="time-second-label">@FormatSec(sec)</span>
+            <div class="time-second-half-tick"></div>
         </div>
     }
 </div>

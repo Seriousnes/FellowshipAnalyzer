@@ -185,21 +185,21 @@ Horizontal scrolling layout with a sticky left label column.
     background: inherit;   // inherit from parent for sticky bg
     z-index: 1;
     padding: 4px 8px;
+}
 
-    &__name {
-        font-size: 13px;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
+.timeline-label-name {
+    font-size: 13px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
 
-        &--section {
-            font-size: 11px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            color: rgba(255, 255, 255, 0.45);
-        }
-    }
+.timeline-label-name-section {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: rgba(255, 255, 255, 0.45);
 }
 ```
 

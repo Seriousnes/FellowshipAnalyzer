@@ -1,181 +1,168 @@
+@charset "UTF-8";
 /* ===== Container — establishes the positioning context ===== */
 .cast-bar-container {
-    position: relative;
+  position: relative;
 }
 
 /* ===== Time-line — absolute layer behind casts ===== */
-.cast-bar__time-line {
-    white-space: nowrap;
-    position: absolute;
-    top: 0;
+.cast-bar-time-line {
+  white-space: nowrap;
+  position: absolute;
+  top: 0;
 }
 
-.cast-bar__time-line-sec {
-    display: inline-block;
-    height: 100%;
-    border-left: 1px solid rgba(255, 255, 255, 0.3);
-    padding-left: 3px;
-    line-height: 1;
-    font-size: 14px;
-    position: relative;
-    box-sizing: border-box;
+.cast-bar-time-line-sec {
+  display: inline-block;
+  height: 100%;
+  border-left: 1px solid rgba(255, 255, 255, 0.3);
+  padding-left: 3px;
+  line-height: 1;
+  font-size: 14px;
+  position: relative;
+  box-sizing: border-box;
+  /* Timestamp label — positioned below the cast row */
+  /* Half-second marker */
+  /* Hide border & label on first tick (0:00) */
 }
-
-/* Timestamp label — positioned below the cast row */
-.cast-bar__time-line-sec::before {
-    content: attr(data-duration);
-    position: absolute;
-    left: 0;
-    bottom: -16px;
-    transform: translateX(-50%);
-    color: rgba(200, 200, 200, 0.8);
-    font-size: 13px;
-    white-space: nowrap;
+.cast-bar-time-line-sec::before {
+  content: attr(data-duration);
+  position: absolute;
+  left: 0;
+  bottom: -16px;
+  transform: translateX(-50%);
+  color: rgba(200, 200, 200, 0.8);
+  font-size: 13px;
+  white-space: nowrap;
 }
-
-/* Half-second marker */
-.cast-bar__time-line-sec::after {
-    content: '';
-    width: 1px;
-    background: rgba(255, 255, 255, 0.2);
-    position: absolute;
-    bottom: 3px;
-    height: 7px;
-    left: 50%;
+.cast-bar-time-line-sec::after {
+  content: "";
+  width: 1px;
+  background: rgba(255, 255, 255, 0.2);
+  position: absolute;
+  bottom: 3px;
+  height: 7px;
+  left: 50%;
 }
-
-/* Hide border & label on first tick (0:00) */
-.cast-bar__time-line-sec:first-child {
-    border-left: none;
+.cast-bar-time-line-sec:first-child {
+  border-left: none;
 }
-
-.cast-bar__time-line-sec:first-child::before {
-    display: none;
+.cast-bar-time-line-sec:first-child::before {
+  display: none;
 }
 
 /* ===== Casts row — icons, bars ===== */
 .cast-bar {
-    position: relative;
-    width: 100%;
-    height: calc(24px + var(--has-levels, 0) * 34px + var(--levels, 0) * 27px);
-    box-shadow: 0 0 3px rgba(0, 0, 0, 0.3);
-    box-sizing: content-box;
+  position: relative;
+  width: 100%;
+  height: calc(24px + var(--has-levels, 0) * 34px + var(--levels, 0) * 27px);
+  box-shadow: 0 0 3px rgba(0, 0, 0, 0.3);
+  box-sizing: content-box;
+  /* Subtle background strip behind the 24px main row */
+  /* All direct children are absolutely positioned within the 24px row */
 }
-
-/* Subtle background strip behind the 24px main row */
 .cast-bar::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    right: 0;
-    top: 0;
-    height: 24px;
-    background: hsla(44, 2%, 40%, 0.15);
-    border-radius: 10px;
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 24px;
+  background: hsla(44, 2%, 40%, 0.15);
+  border-radius: 10px;
 }
-
-/* All direct children are absolutely positioned within the 24px row */
 .cast-bar > * {
-    position: absolute;
-    height: 24px;
+  position: absolute;
+  height: 24px;
 }
 
 /* ===== Icon (on-GCD, top-aligned) ===== */
-.cast-bar__cast {
-    z-index: 3;
-    width: 24px;
-    height: 24px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transform: translateX(-50%);
+.cast-bar-cast {
+  z-index: 3;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: translateX(-50%);
 }
-
-.cast-bar__cast ::deep .spell-icon-link,
-.cast-bar__cast ::deep .spell-icon {
-    display: block;
-    width: 24px;
-    height: 24px;
-    box-sizing: border-box;
+.cast-bar-cast ::deep .spell-icon-link,
+.cast-bar-cast ::deep .spell-icon {
+  display: block;
+  width: 24px;
+  height: 24px;
+  box-sizing: border-box;
 }
 
 /* ===== Off-GCD icon — below the row with time-indicator line ===== */
-.cast-bar__cast--lower {
-    top: calc(34px + var(--level, 0) * 27px);
-    height: 24px;
+.cast-bar-cast-lower {
+  top: calc(34px + var(--level, 0) * 27px);
+  height: 24px;
 }
-
-.cast-bar__cast--lower ::deep .spell-icon {
-    position: relative;
-    z-index: 2;
+.cast-bar-cast-lower ::deep .spell-icon {
+  position: relative;
+  z-index: 2;
 }
 
 /* ===== Cancelled cast — red border on spell-icon + X overlay ===== */
-.cast-bar__cast--cancelled ::deep .spell-icon {
-    border-color: red;
+.cast-bar-cast-cancelled ::deep .spell-icon {
+  border-color: red;
+}
+.cast-bar-cast-cancelled::before {
+  content: "❌";
+  position: absolute;
+  text-align: center;
+  font-size: 15px;
+  line-height: 24px;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 4;
+  pointer-events: none;
 }
 
-.cast-bar__cast--cancelled::before {
-    content: '❌';
-    position: absolute;
-    text-align: center;
-    font-size: 15px;
-    line-height: 24px;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 4;
-    pointer-events: none;
+.cast-bar-time-indicator {
+  position: absolute;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  height: calc(15px + var(--level, 0) * 27px);
+  width: 1px;
+  background: #ecb000;
+  /* Arrow pointing up from time-indicator */
 }
-
-.cast-bar__time-indicator {
-    position: absolute;
-    bottom: 24px;
-    left: 50%;
-    transform: translateX(-50%);
-    height: calc(15px + var(--level, 0) * 27px);
-    width: 1px;
-    background: #ecb000;
-}
-
-/* Arrow pointing up from time-indicator */
-.cast-bar__time-indicator::before {
-    content: '';
-    width: 0;
-    height: 0;
-    border-left: 5px solid transparent;
-    border-right: 5px solid transparent;
-    border-bottom: 5px solid #ecb000;
-    position: absolute;
-    top: 0;
-    left: 50%;
-    transform: translateX(-50%);
+.cast-bar-time-indicator::before {
+  content: "";
+  width: 0;
+  height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-bottom: 5px solid #ecb000;
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
 }
 
 /* ===== GCD bar ===== */
-.cast-bar__gcd {
-    height: 8px;
-    top: 8px;
-    background: #f8b700;
-    border-radius: 2px;
-    border: 1px solid #ffffff;
-    z-index: 1;
+.cast-bar-gcd {
+  height: 8px;
+  top: 8px;
+  background: #f8b700;
+  border-radius: 2px;
+  border: 1px solid #ffffff;
+  z-index: 1;
 }
 
 /* ===== Cast-time / Channel bar ===== */
-.cast-bar__cast-time,
-.cast-bar__channel {
-    height: 10px;
-    top: 7px;
-    background: repeating-linear-gradient(
-        135deg,
-        #f8b700 0px,
-        #f8b700 5px,
-        #ffffff 5px,
-        #ffffff 10px
-    );
-    border-radius: 2px;
-    border: 1px solid #ffffff;
-    z-index: 2;
+.cast-bar-cast-time,
+.cast-bar-channel {
+  height: 10px;
+  top: 7px;
+  background: repeating-linear-gradient(135deg, #f8b700 0px, #f8b700 5px, #ffffff 5px, #ffffff 10px);
+  border-radius: 2px;
+  border: 1px solid #ffffff;
+  z-index: 2;
 }
+
+/*# sourceMappingURL=CastBar.razor.css.map */

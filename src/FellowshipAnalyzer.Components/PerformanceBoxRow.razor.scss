@@ -1,0 +1,32 @@
+@use 'tokens' as t;
+
+.perf-box-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px;
+    align-items: center;
+}
+
+.perf-box {
+    width: 16px;
+    height: 16px;
+    border-radius: 2px;
+    border: none;
+    padding: 0;
+    cursor: default;
+    transition: opacity 0.12s ease, transform 0.12s ease;
+
+    &.clickable {
+        cursor: pointer;
+
+        &:hover {
+            opacity: 0.85;
+            transform: scale(1.15);
+        }
+    }
+
+    &.perfect { background: var(--fa-perf-perfect, #56d67b); }
+    &.good    { background: var(--fa-perf-good, #90cc60); }
+    &.ok      { background: var(--fa-perf-ok, #d4a744); }
+    &.fail    { background: var(--fa-perf-fail, #d4564a); }
+}

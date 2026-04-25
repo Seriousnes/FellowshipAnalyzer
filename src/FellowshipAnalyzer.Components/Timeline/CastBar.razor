@@ -5,10 +5,10 @@
 @using OneOf
 
 <div class="cast-bar-container" style="position: relative; width: @F(TrackWidthPx)px;">
-    <div class="cast-bar__time-line" style="height: calc(100% + 10px);">
+    <div class="cast-bar-time-line" style="height: calc(100% + 10px);">
         @for (var sec = 1; sec < _totalSeconds; sec++)
         {
-            <div class="cast-bar__time-line-sec" style="width: @F(PixelsPerSecond)px;" data-duration="@FormatSec(sec - 1)"></div>
+            <div class="cast-bar-time-line-sec" style="width: @F(PixelsPerSecond)px;" data-duration="@FormatSec(sec - 1)"></div>
         }
     </div>
 
@@ -17,45 +17,32 @@
         {
             @if (item is CastItem ci)
             {
-                @if (ci.IsLower && HasDisplaySpell(ci.Ability, ci.Cast.Ability))
+                @if (ci.IsLower)
                 {
-                    <div class="cast-bar__cast cast-bar__cast--lower" style="left: @Px(ci.Cast.Timestamp); --level: @ci.Level;">
-                        <SpellIcon Spell="@ResolveDisplaySpell(ci.Ability, ci.Cast.Ability)" Size="SpellIconSize.Small" />
-                        <div class="cast-bar__time-indicator"></div>
-                    </div>
+                    @CastIconDiv(ci.Ability, ci.Cast.Ability, Px(ci.Cast.Timestamp), extraClass: "cast-bar-cast-lower", extraStyle: $"--level: {ci.Level};", showTimeIndicator: true)
                 }
                 else
                 {
                     @if (ci.Gcd is not null)
                     {
-                        <div class="cast-bar__gcd" style="left: @Px(ci.BeginCast?.Timestamp ?? ci.Cast.Timestamp); width: @DurPx(ci.Gcd.Duration);"></div>
+                        <div class="cast-bar-gcd" style="left: @Px(ci.BeginCast?.Timestamp ?? ci.Cast.Timestamp); width: @DurPx(ci.Gcd.Duration);"></div>
                     }
                     @if (ci.BeginCast is not null && ci.Cast.Timestamp > ci.BeginCast.Timestamp)
                     {
-                        <div class="cast-bar__cast-time" style="left: @Px(ci.BeginCast.Timestamp); width: @DurPx(ci.Cast.Timestamp - ci.BeginCast.Timestamp);"></div>
+                        <div class="cast-bar-cast-time" style="left: @Px(ci.BeginCast.Timestamp); width: @DurPx(ci.Cast.Timestamp - ci.BeginCast.Timestamp);"></div>
                     }
-                    @if (HasDisplaySpell(ci.Ability, ci.Cast.Ability))
-                    {
-                        <div class="cast-bar__cast" style="left: @Px(ci.BeginCast?.Timestamp ?? ci.Cast.Timestamp);" title="@FormatTimestamp(ci.BeginCast?.Timestamp ?? ci.Cast.Timestamp)">
-                            <SpellIcon Spell="@ResolveDisplaySpell(ci.Ability, ci.Cast.Ability)" Size="SpellIconSize.Small" />
-                        </div>
-                    }
+                    @CastIconDiv(ci.Ability, ci.Cast.Ability, Px(ci.BeginCast?.Timestamp ?? ci.Cast.Timestamp), title: FormatTimestamp(ci.BeginCast?.Timestamp ?? ci.Cast.Timestamp))
                 }
             }
             else if (item is CancelledCastItem cci)
             {
-                @if (HasDisplaySpell(cci.Ability, cci.BeginCast.Ability))
-                {
-                    <div class="cast-bar__cast cast-bar__cast--cancelled" style="left: @Px(cci.BeginCast.Timestamp);" title="Cancelled — @FormatTimestamp(cci.BeginCast.Timestamp)">
-                        <SpellIcon Spell="@ResolveDisplaySpell(cci.Ability, cci.BeginCast.Ability)" Size="SpellIconSize.Small" />
-                    </div>
-                }
+                @CastIconDiv(cci.Ability, cci.BeginCast.Ability, Px(cci.BeginCast.Timestamp), extraClass: "cast-bar-cast-cancelled", title: $"Cancelled — {FormatTimestamp(cci.BeginCast.Timestamp)}")
             }
             else if (item is ChannelItem chi)
             {
                 @if (chi.Gcd is not null)
                 {
-                    <div class="cast-bar__gcd" style="left: @Px(chi.BeginChannel.Timestamp); width: @DurPx(chi.Gcd.Duration);"></div>
+                    <div class="cast-bar-gcd" style="left: @Px(chi.BeginChannel.Timestamp); width: @DurPx(chi.Gcd.Duration);"></div>
                 }
                 @if (chi.EndChannel is not null)
                 {
@@ -65,15 +52,10 @@
                         : chi.EndChannel.Timestamp - chi.BeginChannel.Timestamp;
                     @if (chanWidth > 0)
                     {
-                        <div class="cast-bar__channel" style="left: @Px(chanStart); width: @DurPx(chanWidth);"></div>
+                        <div class="cast-bar-channel" style="left: @Px(chanStart); width: @DurPx(chanWidth);"></div>
                     }
                 }
-                @if (HasDisplaySpell(chi.Ability, chi.BeginChannel.Ability))
-                {
-                    <div class="cast-bar__cast" style="left: @Px(chi.BeginChannel.Timestamp);" title="@FormatTimestamp(chi.BeginChannel.Timestamp)">
-                        <SpellIcon Spell="@ResolveDisplaySpell(chi.Ability, chi.BeginChannel.Ability)" Size="SpellIconSize.Small" />
-                    </div>
-                }
+                @CastIconDiv(chi.Ability, chi.BeginChannel.Ability, Px(chi.BeginChannel.Timestamp), title: FormatTimestamp(chi.BeginChannel.Timestamp))
             }
         }
     </div>
@@ -113,6 +95,32 @@
     private static bool HasDisplaySpell(SpellbookAbility? ability, Ability? fallbackAbility) =>
         ability is not null || fallbackAbility is not null;
 
+    private RenderFragment? CastIconDiv(
+        SpellbookAbility? ability,
+        Ability? fallbackAbility,
+        string leftPx,
+        string? extraClass = null,
+        string? title = null,
+        string? extraStyle = null,
+        bool showTimeIndicator = false)
+    {
+        if (!HasDisplaySpell(ability, fallbackAbility))
+            return null;
+
+        var spell = ResolveDisplaySpell(ability, fallbackAbility);
+        var cssClass = extraClass is not null ? $"cast-bar-cast {extraClass}" : "cast-bar-cast";
+        var style = extraStyle is not null ? $"left: {leftPx}; {extraStyle}" : $"left: {leftPx};";
+
+        return @<div class="@cssClass" style="@style" title="@title">
+            <SpellIcon Spell="spell" Size="SpellIconSize.Small" />
+            @if (showTimeIndicator)
+            {
+                <div class="cast-bar-time-indicator"></div>
+            }
+        </div>
+    ;
+    }
+
     private static OneOf<Spell, int, SpellbookAbility, Ability> ResolveDisplaySpell(SpellbookAbility? ability, Ability? fallbackAbility)
     {
         if (ability is not null)
@@ -125,7 +133,7 @@
             return fallbackAbility;
         }
 
-        throw new InvalidOperationException("Display spell was requested without spellbook or event ability data.");
+        return Ability.UnknownAbility;
     }
 
     private static string F(double v) => v.ToString("F1", CultureInfo.InvariantCulture);

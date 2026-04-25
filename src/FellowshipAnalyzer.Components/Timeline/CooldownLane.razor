@@ -7,14 +7,14 @@
     {
         @if (seg.ShowIcon)
         {
-            <div class="cooldown-lane__icon" style="left: @Px(seg.IconAt);">
+            <div class="cooldown-lane-icon" style="left: @Px(seg.IconAt);">
                 <SpellIcon Spell="@Ability" Size="SpellIconSize.Small" />
             </div>
         }
         @if (seg.End > seg.Start)
         {
-            <div class="cooldown-lane__bar-wrap" style="left: @Px(seg.Start);">
-                <div class="cooldown-lane__bar"
+            <div class="cooldown-lane-bar-wrap" style="left: @Px(seg.Start);">
+                <div class="cooldown-lane-bar"
                      style="width: @DurPx(seg.End - seg.Start);"
                      title="@FormatDuration(seg.End - seg.Start) cooldown"></div>
             </div>
@@ -22,7 +22,7 @@
     }
     @foreach (var ts in _chargeRestoreTimestamps)
     {
-        <div class="cooldown-lane__restore" style="left: @Px(ts);" title="Charge restored at @FormatTimestamp(ts)"></div>
+        <div class="cooldown-lane-restore" style="left: @Px(ts);" title="Charge restored at @FormatTimestamp(ts)"></div>
     }
 </div>
 

@@ -105,10 +105,10 @@
 .timeline-settings-row:hover {
   background: rgba(255, 255, 255, 0.04);
 }
-.timeline-settings-row--draggable {
+.timeline-settings-row.draggable {
   cursor: grab;
 }
-.timeline-settings-row--dragging {
+.timeline-settings-row.dragging {
   opacity: 0.45;
 }
 

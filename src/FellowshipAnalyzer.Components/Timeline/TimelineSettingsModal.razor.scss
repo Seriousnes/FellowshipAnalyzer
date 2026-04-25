@@ -111,11 +111,11 @@
         background: rgba(255, 255, 255, 0.04);
     }
 
-    &--draggable {
+    &.draggable {
         cursor: grab;
     }
 
-    &--dragging {
+    &.dragging {
         opacity: 0.45;
     }
 }

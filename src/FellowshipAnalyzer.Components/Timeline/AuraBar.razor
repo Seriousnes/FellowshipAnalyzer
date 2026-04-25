@@ -9,15 +9,15 @@
         var width = DurPx(aura.ClippedEnd - aura.ClippedStart);
 
         @* Duration strip — spans the buff's active window *@
-        <div class="aura-bar__strip"
+        <div class="aura-bar-strip"
              style="left: @left; width: @width; --level: @aura.Level;"
              title="@aura.Name — @FormatDuration(aura.ClippedEnd - aura.ClippedStart)"></div>
 
         @* Indicator line — sibling of icon, at left edge of the 24px icon *@
-        <div class="aura-bar__indicator" style="left: @OffsetPx(aura.IconAt); --level: @aura.Level;"></div>
+        <div class="aura-bar-indicator" style="left: @OffsetPx(aura.IconAt); --level: @aura.Level;"></div>
 
         @* Icon left-aligned to apply timestamp *@
-        <div class="aura-bar__icon" style="left: @OffsetPx(aura.IconAt); --level: @aura.Level;"
+        <div class="aura-bar-icon" style="left: @OffsetPx(aura.IconAt); --level: @aura.Level;"
              title="@aura.Name applied at @FormatTimestamp(aura.IconAt)">
             <SpellIcon Spell="@aura.Spell" Size="SpellIconSize.Small" />
         </div>

@@ -211,26 +211,17 @@
         else if (e.Key == "ArrowRight") HandleNext();
     }
 
-    private static RenderFragment RenderAdditionalBlock(string? title, RenderFragment? content) => builder =>
+    private static RenderFragment? RenderAdditionalBlock(string? title, RenderFragment? content)
     {
         if (content is null)
-        {
-            return;
-        }
+            return null;
 
-        var sequence = 0;
-        builder.OpenElement(sequence++, "div");
-        builder.AddAttribute(sequence++, "class", "additional-content-container");
-
-        if (!string.IsNullOrWhiteSpace(title))
-        {
-            builder.OpenElement(sequence++, "div");
-            builder.AddAttribute(sequence++, "class", "additional-content-heading");
-            builder.AddContent(sequence++, title);
-            builder.CloseElement();
-        }
-
-        builder.AddContent(sequence++, content);
-        builder.CloseElement();
-    };
+        return @<div class="additional-content-container">
+            @if (!string.IsNullOrWhiteSpace(title))
+            {
+                <div class="additional-content-heading">@title</div>
+            }
+            @content
+        </div>;
+    }
 }

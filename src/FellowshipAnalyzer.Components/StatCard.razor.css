@@ -1,26 +1,28 @@
 .stat-card {
-    border: 1px solid var(--fa-border, rgba(255, 255, 255, 0.1));
-    border-radius: 8px;
-    background: var(--fa-bg-inset, rgba(10, 12, 24, 0.6));
-    overflow: hidden;
-    margin-bottom: 16px;
+  border: 1px solid var(--fa-border, rgba(255, 255, 255, 0.1));
+  border-radius: 8px;
+  background: var(--fa-bg-inset, rgba(10, 12, 24, 0.6));
+  overflow: hidden;
+  margin-bottom: 16px;
 }
 
 .stat-card-header {
-    padding: 10px 16px;
-    border-bottom: 1px solid var(--fa-border, rgba(255, 255, 255, 0.1));
-    background: rgba(255, 255, 255, 0.03);
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--fa-border, rgba(255, 255, 255, 0.1));
+  background: rgba(255, 255, 255, 0.03);
 }
 
 .stat-card-title {
-    margin: 0;
-    font-size: 1rem;
-    font-weight: 700;
-    color: var(--fa-gold, #c8a96e);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--fa-gold, #c8a96e);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .stat-card-body {
-    padding: 14px 16px;
+  padding: 14px 16px;
 }
+
+/*# sourceMappingURL=StatCard.razor.css.map */

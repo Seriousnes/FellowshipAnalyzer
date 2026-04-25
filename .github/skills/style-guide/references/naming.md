@@ -1,40 +1,66 @@
 # Class Naming Reference
 
-## Convention: Flat Component-Prefixed
+## Convention: Atomic Design + Flat Hyphenated
 
-Class names are **lowercase**, **hyphenated**, starting with the component name.
+FellowshipAnalyzer uses **Atomic Design** to organize components by complexity.
+Class names are **lowercase** and **hyphenated** — always flat, never BEM.
 
 ```
-{component}-{part}[-{modifier}]
+{atom}               — smallest self-contained element
+{molecule}-{part}    — group of atoms, sub-parts named descriptively
+{organism}-{part}    — group of molecules, larger layout sections
 ```
+
+---
+
+## Atomic Levels
+
+| Level | Description | Examples |
+|---|---|---|
+| **Atom** | Smallest, indivisible UI unit | `.spell-icon`, `.perf-dot`, `.stat-value`, `.eyebrow` |
+| **Molecule** | Composed of atoms, a distinct UI concept | `.stat-card`, `.spell-badge`, `.perf-box`, `.cast-row` |
+| **Organism** | Composed of molecules, a major UI region | `.guide-section`, `.cast-overview`, `.timeline` |
+| **Global** | Layout / page-level | `app.scss` only — resets, typography, Blazor defaults |
+
+Blazor `.razor.scss` scoping means atoms and molecules can share short names without collision. Use the atomic level to guide *how* you name, not as a CSS class prefix.
 
 ---
 
 ## Good Examples
 
 ```scss
-// Component root
-.stat-card { }
+// Atom — single element, no sub-parts needed
+.spell-icon { }
+.perf-dot { }
 
-// Parts (append meaningful name)
+// Molecule — root + flat named parts
+.stat-card { }
 .stat-card-header { }
 .stat-card-title { }
 .stat-card-body { }
 
-// State modifiers (single dash)
+// State modifiers — compound class, always alongside root
 .perf-box { }
 .perf-box.active { }
 .perf-box.clickable { }
 
-// Performance tier modifiers (no prefix needed — they're conventional)
+// Performance tier modifiers (conventional short names)
 .perf-box.perfect { }
 .perf-box.good { }
 .perf-box.ok { }
 .perf-box.fail { }
 
-// BEM-style double-underscore is allowed for sub-elements inside complex components
-.timeline-label__name { }
-.timeline-label__name--section { }
+// Organism — flat named parts, no nesting in class names
+.guide-section { }
+.guide-section-header { }
+.guide-section-body { }
+.guide-section-explanation { }
+.guide-section-data { }
+
+// Timeline atom parts — stay flat, no BEM
+.timeline-label { }
+.timeline-label-name { }      // ✓  (not .timeline-label__name)
+.timeline-label-name-section { }  // ✓  (not .timeline-label__name--section)
 ```
 
 ---
@@ -43,11 +69,13 @@ Class names are **lowercase**, **hyphenated**, starting with the component name.
 
 | Rule | Example |
 |---|---|
-| Start with component name | `.guide-section`, `.cast-overview` |
-| Hyphenate parts | `.guide-section-header`, `.guide-section-body` |
-| Single dash for state | `.spell-badge.disabled`, `.cast-card.expanded` |
+| Always flat hyphenated | `.guide-section-header` ✓ not `.guide-section__header` ✗ |
+| No BEM (`__` or `--`) ever | `.timeline-label-name` ✓ not `.timeline-label__name` ✗ |
+| Start with the atom/molecule/organism name | `.guide-section`, `.cast-overview` |
+| Append meaningful part names | `.guide-section-header`, `.guide-section-body` |
+| State via compound class (no dash) | `.spell-badge.disabled`, `.cast-card.expanded` |
 | No camelCase | `.statCard` ✗ → `.stat-card` ✓ |
-| No underscores (except BEM `__`) | `.stat_card` ✗ → `.stat-card` ✓ |
+| No underscores | `.stat_card` ✗ → `.stat-card` ✓ |
 | Performance tiers: short names | `.perfect`, `.good`, `.ok`, `.fail` |
 | Sizes: sm/md/lg suffix | `.badge-sm`, `.badge-md`, `.badge-lg` |
 | Global utilities: keep in app.scss | `.eyebrow` |
@@ -57,8 +85,12 @@ Class names are **lowercase**, **hyphenated**, starting with the component name.
 ## Anti-patterns
 
 ```scss
-// ✗ Too deeply nested / verbose BEM
-.guide-section__body__explanation__list { }
+// ✗ BEM double-underscore
+.guide-section__body { }
+.timeline-label__name { }
+
+// ✗ BEM modifier double-dash
+.guide-section__header--active { }
 
 // ✗ Abbreviations that aren't obvious
 .gs-hdr { }

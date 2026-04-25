@@ -6,13 +6,13 @@
 @inject ReportNavigationState NavState
 @inject NavigationManager Navigation
 
-<PageTitle>Report — @ReportCode</PageTitle>
+<PageTitle>@(_report is not null ? $"Report — {_report.Title}" : "Report")</PageTitle>
 
 <div class="analysis-page">
     <section class="hero-panel">
         <div>
             <p class="eyebrow">Combat Report</p>
-            <h1>@(_report?.Title ?? ReportCode)</h1>
+            <h1>@_report?.Title</h1>
             <p class="lede">Select a fight and player to analyze.</p>
         </div>
     </section>
@@ -196,16 +196,27 @@
     private int? _expandedPlayerId;
     private bool _byPlayer = false;
 
+    protected override void OnInitialized()
+    {
+        if (!NavState.TryGet(ReportCode, out _report) || _report is null)
+            return;
+
+        _bossIconByName = _report.Actors
+            .Where(a => !string.Equals(a.Type, "Player", StringComparison.OrdinalIgnoreCase))
+            .Where(a => !string.IsNullOrEmpty(a.Icon))
+            .GroupBy(a => a.Name)
+            .ToDictionary(g => g.Key, g => g.First().Icon, StringComparer.OrdinalIgnoreCase);
+        _isLoading = false;
+    }
+
     protected override async Task OnInitializedAsync()
     {
+        if (_report is not null) return;
+
         try
         {
-            if (!NavState.TryGet(ReportCode, out _report) || _report is null)
-            {
-                _report = (await FellowshipLogs.AnalysisPreload.GetAsync(ReportCode)).ReportInfo;
-                NavState.Set(ReportCode, _report);
-            }
-
+            _report = (await FellowshipLogs.AnalysisPreload.GetAsync(ReportCode)).ReportInfo;
+            NavState.Set(ReportCode, _report);
             _bossIconByName = _report.Actors
                 .Where(a => !string.Equals(a.Type, "Player", StringComparison.OrdinalIgnoreCase))
                 .Where(a => !string.IsNullOrEmpty(a.Icon))

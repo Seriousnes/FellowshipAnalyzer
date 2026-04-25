@@ -88,7 +88,7 @@
                             var icon = option.IconUrl;
                             var entry = CooldownEntry(spellId);
                             var capturedId = spellId;
-                            <li class="timeline-settings-row timeline-settings-row--draggable @(_draggingCooldownId == spellId ? "timeline-settings-row--dragging" : "")"
+                            <li class="timeline-settings-row draggable @(_draggingCooldownId == spellId ? "dragging" : "")"
                                 @key="spellId"
                                 draggable="true"
                                 @ondragstart="() => OnCooldownDragStart(capturedId)"

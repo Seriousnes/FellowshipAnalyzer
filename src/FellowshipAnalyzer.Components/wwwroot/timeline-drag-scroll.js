@@ -11,13 +11,13 @@ export function attach(element) {
 
         dragging = true;
         clientX = event.clientX;
-        element.classList.add('timeline-scroll--dragging');
+        element.classList.add('dragging');
         event.preventDefault();
     };
 
     const onMouseUp = () => {
         dragging = false;
-        element.classList.remove('timeline-scroll--dragging');
+        element.classList.remove('dragging');
     };
 
     const onMouseMove = (event) => {

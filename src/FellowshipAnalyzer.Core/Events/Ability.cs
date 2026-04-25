@@ -24,4 +24,6 @@ public class Ability : ISpell
     public virtual string Icon { get; set; } = string.Empty;
 
     public virtual MagicSchool Type { get; set; }
+
+    public static readonly Ability UnknownAbility = new() { Id = 0, Name = "Unknown" };
 }

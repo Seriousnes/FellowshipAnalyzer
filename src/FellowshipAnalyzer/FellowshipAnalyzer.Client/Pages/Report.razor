@@ -12,7 +12,7 @@
 <div class="analysis-page">
     <section class="hero-panel">
         <nav class="breadcrumbs" aria-label="breadcrumb">
-            <a href="/report/@ReportCode">@(CurrentReport?.Title ?? ReportCode)</a>
+            <a href="/report/@ReportCode">@CurrentReport?.Title</a>
             <span class="breadcrumb-sep">›</span>
             <span class="breadcrumb-current">@Fight?.Name</span>
             <span class="breadcrumb-sep">›</span>
@@ -92,26 +92,26 @@
     {
         <CascadingValue Value="@_context.Analyzer" IsFixed="true">
         <nav class="report-tabs">
-            <button class="report-tab @(_activeTab == ReportTab.Guide ? "report-tab--active" : "")" @onclick="() => _activeTab = ReportTab.Guide">
+            <button class="report-tab @(_activeTab == ReportTab.Guide ? "active" : "")" @onclick="() => _activeTab = ReportTab.Guide">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                     <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/>
                     <line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>
                 </svg>
                 Guide
             </button>
-            <button class="report-tab @(_activeTab == ReportTab.Statistics ? "report-tab--active" : "")" @onclick="() => _activeTab = ReportTab.Statistics">
+            <button class="report-tab @(_activeTab == ReportTab.Statistics ? "active" : "")" @onclick="() => _activeTab = ReportTab.Statistics">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                     <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>
                 </svg>
                 Statistics
             </button>
-            <button class="report-tab @(_activeTab == ReportTab.Timeline ? "report-tab--active" : "")" @onclick="() => _activeTab = ReportTab.Timeline">
+            <button class="report-tab @(_activeTab == ReportTab.Timeline ? "active" : "")" @onclick="() => _activeTab = ReportTab.Timeline">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                     <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="15" y2="12"/><line x1="3" y1="18" x2="18" y2="18"/>
                 </svg>
                 Timeline
             </button>
-            <button class="report-tab @(_activeTab == ReportTab.About ? "report-tab--active" : "")" @onclick="() => _activeTab = ReportTab.About">
+            <button class="report-tab @(_activeTab == ReportTab.About ? "active" : "")" @onclick="() => _activeTab = ReportTab.About">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                     <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
                 </svg>
@@ -158,9 +158,9 @@
         {
             <section class="about-panel">
                 <nav class="about-subnav">
-                    <button class="about-subtab @(_aboutSubView == AboutSubView.Overview ? "about-subtab--active" : "")" @onclick="() => _aboutSubView = AboutSubView.Overview">Overview</button>
-                    <button class="about-subtab @(_aboutSubView == AboutSubView.Events ? "about-subtab--active" : "")" @onclick="() => _aboutSubView = AboutSubView.Events">Events</button>
-                    <button class="about-subtab @(_aboutSubView == AboutSubView.Debug ? "about-subtab--active" : "")" @onclick="() => _aboutSubView = AboutSubView.Debug">Debug Annotations</button>
+                    <button class="about-subtab @(_aboutSubView == AboutSubView.Overview ? "active" : "")" @onclick="() => _aboutSubView = AboutSubView.Overview">Overview</button>
+                    <button class="about-subtab @(_aboutSubView == AboutSubView.Events ? "active" : "")" @onclick="() => _aboutSubView = AboutSubView.Events">Events</button>
+                    <button class="about-subtab @(_aboutSubView == AboutSubView.Debug ? "active" : "")" @onclick="() => _aboutSubView = AboutSubView.Debug">Debug Annotations</button>
                 </nav>
 
                 @if (_aboutSubView == AboutSubView.Overview)
@@ -230,17 +230,18 @@
         }
     }
 
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
-        // Pre-populate header from NavState for snappy display on normal navigation.
-        // Deep-link navigations skip the report list, so NavState will be empty here.
         if (NavState.TryGet(ReportCode, out var cached) && cached is not null)
         {
             _previewInfo = cached;
             _previewFight = cached.Fights.FirstOrDefault(f => f.Id == FightId);
             _previewPlayer = cached.Actors.FirstOrDefault(a => a.Id == PlayerId);
         }
+    }
 
+    protected override async Task OnInitializedAsync()
+    {
         try
         {
             _context = await AnalysisService.RunAsync(ReportCode, FightId, PlayerId);

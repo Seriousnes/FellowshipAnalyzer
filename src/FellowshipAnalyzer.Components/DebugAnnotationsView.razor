@@ -26,7 +26,7 @@ else
                                 {
                                     var topAnnotation = GetTopAnnotation(annotatedEvent.Annotations);
                                     var isSelected = _selectedEvent == annotatedEvent;
-                                    <button class="da-dot @(isSelected ? "da-dot--selected" : "")"
+                                    <button class="da-dot @(isSelected ? "selected" : "")"
                                             style="background-color: @topAnnotation.Color; border-color: @(isSelected ? "white" : topAnnotation.Color)"
                                             title="@(FormatTime(annotatedEvent.Event.Timestamp)) — @topAnnotation.Summary"
                                             @onclick="() => SelectEvent(annotatedEvent)">
