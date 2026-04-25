@@ -98,15 +98,7 @@ public class ResourceTracker : Analyzer
             var delta = resource.Amount - state.Current;
             if (delta <= 0) continue;
 
-            RecordGain(
-                resource.Type,
-                ability.Id,
-                gained: delta,
-                wasted: 0,
-                currentAfterFromEvent: resource.Amount,
-                maxFromEvent: resource.Max,
-                e.Timestamp);
-
+            // Only fabricate — OnResourceChange is the single place RecordGain is called.
             Owner.EventEmitter.FabricateEvent(new ResourceChangeEvent
             {
                 Timestamp = e.Timestamp,

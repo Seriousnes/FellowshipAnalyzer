@@ -70,21 +70,26 @@ jobs:
           FELLOWSHIPLOGS_TOKEN_ENDPOINT: ${{ vars.FELLOWSHIPLOGS_TOKEN_ENDPOINT }}
           FELLOWSHIPLOGS_GRAPHQL_ENDPOINT: ${{ vars.FELLOWSHIPLOGS_GRAPHQL_ENDPOINT }}
           STATIC_WEB_APP_ORIGIN: ${{ vars.STATIC_WEB_APP_ORIGIN }}
+          PROXY_RATE_LIMIT_PERMIT_LIMIT: ${{ vars.PROXY_RATE_LIMIT_PERMIT_LIMIT }}
+          PROXY_RATE_LIMIT_QUEUE_LIMIT: ${{ vars.PROXY_RATE_LIMIT_QUEUE_LIMIT }}
+          PROXY_RATE_LIMIT_WINDOW: ${{ vars.PROXY_RATE_LIMIT_WINDOW }}
         run: |
           if ([string]::IsNullOrWhiteSpace($env:AZURE_RESOURCE_GROUP)) { throw "Set repository variable AZURE_RESOURCE_GROUP." }
           if ([string]::IsNullOrWhiteSpace($env:AZURE_WEBAPP_NAME)) { throw "Set repository variable AZURE_WEBAPP_NAME." }
           if ([string]::IsNullOrWhiteSpace($env:FELLOWSHIPLOGS_CLIENT_ID)) { throw "Set secret FELLOWSHIPLOGS_CLIENT_ID." }
           if ([string]::IsNullOrWhiteSpace($env:FELLOWSHIPLOGS_CLIENT_SECRET)) { throw "Set secret FELLOWSHIPLOGS_CLIENT_SECRET." }
-          if ([string]::IsNullOrWhiteSpace($env:STATIC_WEB_APP_ORIGIN)) { throw "Set repository variable STATIC_WEB_APP_ORIGIN, for example https://your-site.azurestaticapps.net." }
 
           Write-Output "::add-mask::$env:FELLOWSHIPLOGS_CLIENT_ID"
           Write-Output "::add-mask::$env:FELLOWSHIPLOGS_CLIENT_SECRET"
 
           $settings = @(
             "FellowshipLogs__ClientId=$env:FELLOWSHIPLOGS_CLIENT_ID",
-            "FellowshipLogs__ClientSecret=$env:FELLOWSHIPLOGS_CLIENT_SECRET",
-            "Cors__AllowedOrigins__0=$env:STATIC_WEB_APP_ORIGIN"
+            "FellowshipLogs__ClientSecret=$env:FELLOWSHIPLOGS_CLIENT_SECRET"
           )
+
+          if (-not [string]::IsNullOrWhiteSpace($env:STATIC_WEB_APP_ORIGIN)) {
+            $settings += "Cors__AllowedOrigins__0=$env:STATIC_WEB_APP_ORIGIN"
+          }
 
           if (-not [string]::IsNullOrWhiteSpace($env:FELLOWSHIPLOGS_TOKEN_ENDPOINT)) {
             $settings += "FellowshipLogs__TokenEndpoint=$env:FELLOWSHIPLOGS_TOKEN_ENDPOINT"
@@ -92,6 +97,18 @@ jobs:
 
           if (-not [string]::IsNullOrWhiteSpace($env:FELLOWSHIPLOGS_GRAPHQL_ENDPOINT)) {
             $settings += "FellowshipLogs__GraphQlEndpoint=$env:FELLOWSHIPLOGS_GRAPHQL_ENDPOINT"
+          }
+
+          if (-not [string]::IsNullOrWhiteSpace($env:PROXY_RATE_LIMIT_PERMIT_LIMIT)) {
+            $settings += "FellowshipLogsProxy__RateLimit__PermitLimit=$env:PROXY_RATE_LIMIT_PERMIT_LIMIT"
+          }
+
+          if (-not [string]::IsNullOrWhiteSpace($env:PROXY_RATE_LIMIT_QUEUE_LIMIT)) {
+            $settings += "FellowshipLogsProxy__RateLimit__QueueLimit=$env:PROXY_RATE_LIMIT_QUEUE_LIMIT"
+          }
+
+          if (-not [string]::IsNullOrWhiteSpace($env:PROXY_RATE_LIMIT_WINDOW)) {
+            $settings += "FellowshipLogsProxy__RateLimit__Window=$env:PROXY_RATE_LIMIT_WINDOW"
           }
 
           az webapp config appsettings set `
@@ -127,16 +144,20 @@ jobs:
         env:
           API_BASE_URL: ${{ vars.API_BASE_URL }}
         run: |
-          if ([string]::IsNullOrWhiteSpace($env:API_BASE_URL)) { throw "Set repository variable API_BASE_URL to the public API proxy base URL." }
-
           $configPath = "src/FellowshipAnalyzer/FellowshipAnalyzer.Client/wwwroot/config.json"
-          $config = @{ apiBaseUrl = $env:API_BASE_URL.TrimEnd('/') } | ConvertTo-Json -Compress
+          $apiBaseUrl = "/"
+          if (-not [string]::IsNullOrWhiteSpace($env:API_BASE_URL)) {
+            $apiBaseUrl = $env:API_BASE_URL.TrimEnd('/')
+          }
+
+          $config = @{ apiBaseUrl = $apiBaseUrl } | ConvertTo-Json -Compress
           Set-Content -Path $configPath -Value $config -Encoding utf8
 
       - name: Publish static client
         run: >-
           dotnet publish ${{ env.CLIENT_PROJECT }}
           --configuration ${{ env.CONFIGURATION }}
+          -p:StandaloneWasmHost=true
           --output ./publish/static
 
       - name: Validate Static Web Apps artifact
@@ -144,6 +165,12 @@ jobs:
         run: |
           if (-not (Test-Path "publish/static/wwwroot/index.html")) {
             throw "Static Web Apps deployment requires a standalone Blazor WebAssembly host page at wwwroot/index.html. The current client project does not publish one yet."
+          }
+          if (-not (Test-Path "publish/static/wwwroot/config.json")) {
+            throw "Static Web Apps deployment requires config.json in the published wwwroot."
+          }
+          if (-not (Test-Path "publish/static/wwwroot/staticwebapp.config.json")) {
+            throw "Static Web Apps deployment requires staticwebapp.config.json in the published wwwroot."
           }
 
       - name: Deploy Static Web App

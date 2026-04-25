@@ -21,15 +21,15 @@ public sealed record ReportHistoryEntry(
 public interface IReportCacheService
 {
     /// <summary>
-    /// Returns the raw serialized events JSON for a previously cached fight, or null on cache miss.
+    /// Returns the raw UTF-8 events JSON bytes for a previously cached fight, or null on cache miss.
     /// </summary>
-    ValueTask<string?> GetCachedEventsJsonAsync(string reportCode, int fightId, int playerId);
+    ValueTask<byte[]?> GetCachedEventsBytesAsync(string reportCode, int fightId, int playerId);
 
     /// <summary>
-    /// Caches the serialized events JSON for a completed fight and records it in history.
+    /// Caches the raw UTF-8 events JSON bytes for a completed fight and records it in history.
     /// Must only be called when <c>inProgress = false</c>.
     /// </summary>
-    ValueTask CacheAsync(ReportHistoryEntry entry, string eventsJson);
+    ValueTask CacheAsync(ReportHistoryEntry entry, byte[] eventsJsonBytes);
 
     /// <summary>
     /// Returns all history entries, newest first.

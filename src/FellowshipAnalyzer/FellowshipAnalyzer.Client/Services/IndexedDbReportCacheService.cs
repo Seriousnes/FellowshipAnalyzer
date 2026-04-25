@@ -5,7 +5,7 @@ namespace FellowshipAnalyzer.Client.Services;
 
 /// <summary>
 /// IndexedDB-backed implementation of <see cref="IReportCacheService"/> for Blazor WebAssembly.
-/// Events are stored as raw JSON strings to avoid redundant serialization/deserialization.
+/// Events are stored as gzip-compressed UTF-8 JSON bytes to avoid giant-string JS interop.
 /// </summary>
 internal sealed class IndexedDbReportCacheService(IJSRuntime js) : IReportCacheService, IAsyncDisposable
 {
@@ -18,21 +18,21 @@ internal sealed class IndexedDbReportCacheService(IJSRuntime js) : IReportCacheS
         return _module;
     }
 
-    public async ValueTask<string?> GetCachedEventsJsonAsync(string reportCode, int fightId, int playerId)
+    public async ValueTask<byte[]?> GetCachedEventsBytesAsync(string reportCode, int fightId, int playerId)
     {
         var module = await GetModuleAsync();
-        return await module.InvokeAsync<string?>("getCachedEvents", reportCode, fightId, playerId);
+        return await module.InvokeAsync<byte[]?>("getCachedEventsBytes", reportCode, fightId, playerId);
     }
 
-    public async ValueTask CacheAsync(ReportHistoryEntry entry, string eventsJson)
+    public async ValueTask CacheAsync(ReportHistoryEntry entry, byte[] eventsJsonBytes)
     {
         var module = await GetModuleAsync();
         await module.InvokeVoidAsync(
-            "cacheEvents",
+            "cacheEventsBytes",
             entry.ReportCode,
             entry.FightId,
             entry.PlayerId,
-            eventsJson,
+            eventsJsonBytes,
             entry.FightName,
             entry.PlayerName,
             entry.HeroId);

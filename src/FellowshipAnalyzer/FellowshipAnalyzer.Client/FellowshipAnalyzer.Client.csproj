@@ -9,6 +9,14 @@
 		<BlazorDisableThrowNavigationException>true</BlazorDisableThrowNavigationException>
 	</PropertyGroup>
 
+	<PropertyGroup Condition="'$(StandaloneWasmHost)' == 'true'">
+		<DefineConstants>$(DefineConstants);STANDALONE_WASM</DefineConstants>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)' == 'Release'">
+		<RunAOTCompilation>true</RunAOTCompilation>
+	</PropertyGroup>
+
 	<ItemGroup>
 		<ProjectReference Include="..\..\FellowshipAnalyzer.Components\FellowshipAnalyzer.Components.csproj" />
 		<ProjectReference Include="..\..\FellowshipAnalyzer.Core\FellowshipAnalyzer.Core.csproj" />

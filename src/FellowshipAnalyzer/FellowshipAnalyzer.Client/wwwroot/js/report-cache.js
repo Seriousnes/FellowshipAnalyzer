@@ -3,9 +3,9 @@
  *
  * Database: "fellowship-analyzer"
  *   Store "events": keyed by "{reportCode}/{fightId}/{playerId}"
- *     value: { eventsJson: string, fightName: string|null, playerName: string|null,
- *              heroId: string|null, cachedAt: number (ms since epoch) }
- *   Store "history": same key, same metadata minus eventsJson (for listing without loading events)
+ *     value: { eventsBlob: Blob, compression: 'gzip'|'identity', fightName: string|null,
+ *              playerName: string|null, heroId: string|null, cachedAt: number (ms since epoch) }
+ *   Store "history": same key, same metadata minus eventsBlob (for listing without loading events)
  *     value: { reportCode, fightId, playerId, fightName, playerName, heroId, cachedAt }
  *   Store "masterdata": keyed by reportCode
  *     value: { masterDataJson: string }
@@ -14,7 +14,7 @@
  */
 
 const DB_NAME = 'fellowship-analyzer';
-const DB_VERSION = 2;
+const DB_VERSION = 3;
 const EVENTS_STORE = 'events';
 const HISTORY_STORE = 'history';
 const MASTERDATA_STORE = 'masterdata';
@@ -39,6 +39,17 @@ function openDb() {
             if (!db.objectStoreNames.contains(MASTERDATA_STORE)) {
                 db.createObjectStore(MASTERDATA_STORE);
             }
+
+            // Version 3 changes cached events from raw JSON strings to compressed binary blobs.
+            // Old entries cannot be read without reintroducing the giant-string path, so evict them.
+            if (event.oldVersion > 0 && event.oldVersion < 3) {
+                if (db.objectStoreNames.contains(EVENTS_STORE)) {
+                    event.target.transaction.objectStore(EVENTS_STORE).clear();
+                }
+                if (db.objectStoreNames.contains(HISTORY_STORE)) {
+                    event.target.transaction.objectStore(HISTORY_STORE).clear();
+                }
+            }
         };
 
         req.onsuccess = (event) => {
@@ -61,16 +72,61 @@ function promisify(req) {
     });
 }
 
+function toUint8Array(bytes) {
+    if (bytes instanceof Uint8Array) return bytes;
+    if (bytes instanceof ArrayBuffer) return new Uint8Array(bytes);
+    if (Array.isArray(bytes)) return new Uint8Array(bytes);
+    if (ArrayBuffer.isView(bytes)) {
+        return new Uint8Array(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+    }
+    throw new TypeError('Expected a Uint8Array-compatible value.');
+}
+
+async function compressBytes(bytes) {
+    const data = toUint8Array(bytes);
+    if (!('CompressionStream' in globalThis)) {
+        return {
+            blob: new Blob([data], { type: 'application/json' }),
+            compression: 'identity'
+        };
+    }
+
+    const compressedStream = new Blob([data])
+        .stream()
+        .pipeThrough(new CompressionStream('gzip'));
+
+    return {
+        blob: await new Response(compressedStream).blob(),
+        compression: 'gzip'
+    };
+}
+
+async function decompressBlob(blob, compression) {
+    if (compression === 'gzip') {
+        if (!('DecompressionStream' in globalThis)) {
+            throw new Error('This browser cannot decompress cached gzip event data.');
+        }
+
+        const decompressedStream = blob
+            .stream()
+            .pipeThrough(new DecompressionStream('gzip'));
+        return new Uint8Array(await new Response(decompressedStream).arrayBuffer());
+    }
+
+    return new Uint8Array(await blob.arrayBuffer());
+}
+
 /**
- * Retrieve cached events JSON for the given key.
- * @returns {Promise<string|null>} Raw events JSON string, or null on miss.
+ * Retrieve cached UTF-8 events JSON bytes for the given key.
+ * @returns {Promise<Uint8Array|null>} Raw events JSON bytes, or null on miss.
  */
-export async function getCachedEvents(reportCode, fightId, playerId) {
+export async function getCachedEventsBytes(reportCode, fightId, playerId) {
     const db = await openDb();
     const key = `${reportCode}/${fightId}/${playerId}`;
     const t = txn(db, [EVENTS_STORE], 'readonly');
     const entry = await promisify(t.objectStore(EVENTS_STORE).get(key));
-    return entry?.eventsJson ?? null;
+    if (!entry?.eventsBlob) return null;
+    return await decompressBlob(entry.eventsBlob, entry.compression ?? 'identity');
 }
 
 /**
@@ -80,15 +136,16 @@ export async function getCachedEvents(reportCode, fightId, playerId) {
  * @param {string} reportCode
  * @param {number} fightId
  * @param {number} playerId
- * @param {string} eventsJson    Serialized events array JSON
+ * @param {Uint8Array} eventsJsonBytes    UTF-8 EventsResult JSON bytes
  * @param {string|null} fightName
  * @param {string|null} playerName
  * @param {string|null} heroId
  */
-export async function cacheEvents(reportCode, fightId, playerId, eventsJson, fightName, playerName, heroId) {
+export async function cacheEventsBytes(reportCode, fightId, playerId, eventsJsonBytes, fightName, playerName, heroId) {
     const db = await openDb();
     const key = `${reportCode}/${fightId}/${playerId}`;
     const cachedAt = Date.now();
+    const { blob: eventsBlob, compression } = await compressBytes(eventsJsonBytes);
 
     const meta = { reportCode, fightId, playerId, fightName, playerName, heroId, cachedAt };
 
@@ -96,7 +153,7 @@ export async function cacheEvents(reportCode, fightId, playerId, eventsJson, fig
     const eventsStore = t.objectStore(EVENTS_STORE);
     const historyStore = t.objectStore(HISTORY_STORE);
 
-    eventsStore.put({ eventsJson, ...meta }, key);
+    eventsStore.put({ eventsBlob, compression, ...meta }, key);
     historyStore.put(meta, key);
 
     // Evict oldest entries if over the limit

@@ -1,21 +1,35 @@
 <Project Sdk="Microsoft.NET.Sdk.Razor">
-  <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
-    <Nullable>enable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
-  </PropertyGroup>
-  <ItemGroup>
-    <Content Update="sasscompiler.json" CopyToPublishDirectory="Never" />
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="AspNetCore.SassCompiler" Version="1.77.8" />
-    <PackageReference Include="OneOf" Version="3.0.271" />
-    <PackageReference Include="OneOf.SourceGenerator" Version="3.0.271" />
-    <SupportedPlatform Include="browser" />
-    <ProjectReference Include="..\FellowshipAnalyzer.Core\FellowshipAnalyzer.Core.csproj" />
-    <ProjectReference Include="..\FellowshipAnalyzer.Components\FellowshipAnalyzer.Components.csproj" />
-    <ProjectReference Include="..\FellowshipAnalyzer.Generators\FellowshipAnalyzer.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
-    <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="10.0.7" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.7" />
-  </ItemGroup>
+	
+	<PropertyGroup>
+		<TargetFramework>net10.0</TargetFramework>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+	</PropertyGroup>
+	
+	<PropertyGroup Condition="'$(Configuration)' == 'Release'">
+		<RunAOTCompilation>true</RunAOTCompilation>
+	</PropertyGroup>
+	
+	<ItemGroup>
+		<SupportedPlatform Include="browser" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Content Update="sasscompiler.json" CopyToPublishDirectory="Never" />
+	</ItemGroup>
+	
+	<ItemGroup>
+		<PackageReference Include="AspNetCore.SassCompiler" Version="1.77.8" />
+		<PackageReference Include="OneOf" Version="3.0.271" />
+		<PackageReference Include="OneOf.SourceGenerator" Version="3.0.271" />
+		<PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="10.0.7" />
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.7" />
+	</ItemGroup>
+	
+	<ItemGroup>
+		<ProjectReference Include="..\FellowshipAnalyzer.Core\FellowshipAnalyzer.Core.csproj" />
+		<ProjectReference Include="..\FellowshipAnalyzer.Components\FellowshipAnalyzer.Components.csproj" />
+		<ProjectReference Include="..\FellowshipAnalyzer.Generators\FellowshipAnalyzer.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+	</ItemGroup>
+	
 </Project>

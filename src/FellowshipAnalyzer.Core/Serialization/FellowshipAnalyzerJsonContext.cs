@@ -11,6 +11,9 @@ namespace FellowshipAnalyzer.Core.Serialization;
     PropertyNameCaseInsensitive = true,
     UseStringEnumConverter = true)]
 [JsonSerializable(typeof(Event))]
+[JsonSerializable(typeof(List<Event>))]
+[JsonSerializable(typeof(EventsResult))]
+[JsonSerializable(typeof(AnalysisPreload))]
 [JsonSerializable(typeof(GraphQLResponse<GraphQLReportResponse>))]
 public partial class FellowshipAnalyzerJsonContext : JsonSerializerContext
 {

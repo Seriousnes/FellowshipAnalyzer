@@ -1,26 +1,31 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
-    <IsPackable>false</IsPackable>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-  </PropertyGroup>
-  <ItemGroup>
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.4.0" />
-    <PackageReference Include="xunit" Version="2.9.3" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="3.1.5">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-    <PackageReference Include="Shouldly" Version="4.3.0" />
-    <PackageReference Include="NSubstitute" Version="5.3.0" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.7" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\src\FellowshipAnalyzer.FellowshipLogs\FellowshipAnalyzer.FellowshipLogs.csproj" />
-    <ProjectReference Include="..\..\src\FellowshipAnalyzer.Heroes.Rime\FellowshipAnalyzer.Heroes.Rime.csproj" />
-  </ItemGroup>
-  <ItemGroup>    
-    <None Include="..\..\src\FellowshipAnalyzer.FellowshipLogs\events-with-ability-details.json" Link="TestData\events-with-ability-details.json" CopyToOutputDirectory="PreserveNewest" />
-  </ItemGroup>
+	
+	<PropertyGroup>
+		<TargetFramework>net10.0</TargetFramework>
+		<IsPackable>false</IsPackable>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+	</PropertyGroup>
+	
+	<ItemGroup>
+		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.4.0" />
+		<PackageReference Include="xunit" Version="2.9.3" />
+		<PackageReference Include="xunit.runner.visualstudio" Version="3.1.5">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+		<PackageReference Include="Shouldly" Version="4.3.0" />
+		<PackageReference Include="NSubstitute" Version="5.3.0" />
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.7" />
+	</ItemGroup>
+	
+	<ItemGroup>
+		<ProjectReference Include="..\..\src\FellowshipAnalyzer.FellowshipLogs\FellowshipAnalyzer.FellowshipLogs.csproj" />
+		<ProjectReference Include="..\..\src\FellowshipAnalyzer.Heroes.Rime\FellowshipAnalyzer.Heroes.Rime.csproj" />
+	</ItemGroup>
+	
+	<ItemGroup>
+		<None Include="..\..\src\FellowshipAnalyzer.FellowshipLogs\events-with-ability-details.json" Link="TestData\events-with-ability-details.json" CopyToOutputDirectory="PreserveNewest" />
+	</ItemGroup>
+	
 </Project>

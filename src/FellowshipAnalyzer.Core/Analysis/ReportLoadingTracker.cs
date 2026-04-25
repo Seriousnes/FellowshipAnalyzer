@@ -1,3 +1,7 @@
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
+
 namespace FellowshipAnalyzer.Core.Analysis;
 
 /// <summary>
@@ -20,6 +24,11 @@ public sealed class ReportLoadingTracker
     private int _normalizedCount;
     private int _totalNormalizerCount;
 
+    // Per-step stopwatches keyed by property name. Started on Waiting/Ok -> Loading,
+    // stopped & logged on Loading -> Ok. Logged to Console so the timings are visible
+    // in the browser DevTools console in both dev and production WASM builds.
+    private readonly Dictionary<string, Stopwatch> _stepStopwatches = new(StringComparer.Ordinal);
+
     /// <summary>Fired whenever any tracked state changes.</summary>
     public event Action? OnChanged;
 
@@ -27,35 +36,35 @@ public sealed class ReportLoadingTracker
     public StepState FetchEventsState
     {
         get => _fetchEventsState;
-        set => Set(ref _fetchEventsState, value);
+        set => SetStepState(ref _fetchEventsState, value);
     }
 
     /// <summary>Deserializing the raw event JSON into typed event objects.</summary>
     public StepState DeserializeState
     {
         get => _deserializeState;
-        set => Set(ref _deserializeState, value);
+        set => SetStepState(ref _deserializeState, value);
     }
 
     /// <summary>Running event normalizers (reordering, linking, fabrication).</summary>
     public StepState NormalizeState
     {
         get => _normalizeState;
-        set => Set(ref _normalizeState, value);
+        set => SetStepState(ref _normalizeState, value);
     }
 
     /// <summary>Dispatching events through all analyzer modules.</summary>
     public StepState AnalyzeState
     {
         get => _analyzeState;
-        set => Set(ref _analyzeState, value);
+        set => SetStepState(ref _analyzeState, value);
     }
 
     /// <summary>Preparing the display / rendering results.</summary>
     public StepState PrepareDisplayState
     {
         get => _prepareDisplayState;
-        set => Set(ref _prepareDisplayState, value);
+        set => SetStepState(ref _prepareDisplayState, value);
     }
 
     /// <summary>Number of events dispatched so far. Updated periodically during dispatch.</summary>
@@ -144,6 +153,7 @@ public sealed class ReportLoadingTracker
         _totalEventCount = 0;
         _normalizedCount = 0;
         _totalNormalizerCount = 0;
+        _stepStopwatches.Clear();
         OnChanged?.Invoke();
     }
 
@@ -151,6 +161,34 @@ public sealed class ReportLoadingTracker
     {
         if (EqualityComparer<T>.Default.Equals(field, value)) return;
         field = value;
+        OnChanged?.Invoke();
+    }
+
+    /// <summary>
+    /// Step setter that also records timing. Logs elapsed milliseconds to the console
+    /// when a step transitions from <see cref="StepState.Loading"/> to <see cref="StepState.Ok"/>.
+    /// </summary>
+    private void SetStepState(ref StepState field, StepState value, [CallerMemberName] string stepName = "")
+    {
+        if (field == value) return;
+        var previous = field;
+        field = value;        
+
+        if (value is StepState.Loading)
+        {
+            if (!_stepStopwatches.TryGetValue(stepName, out var sw))
+            {
+                sw = new Stopwatch();
+                _stepStopwatches[stepName] = sw;
+            }
+            sw.Restart();
+        }
+        else if (value is StepState.Ok && previous is StepState.Loading && _stepStopwatches.TryGetValue(stepName, out var sw))
+        {
+            sw.Stop();
+            Console.WriteLine($"[ReportLoadingTracker] {stepName}: {sw.ElapsedMilliseconds} ms");
+        }
+
         OnChanged?.Invoke();
     }
 }

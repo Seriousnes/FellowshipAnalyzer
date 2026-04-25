@@ -1,9 +1,12 @@
 using System.Text.Json;
 
 using FellowshipAnalyzer.Core.Analysis;
+using FellowshipAnalyzer.Core.Events;
 using FellowshipAnalyzer.Core.FellowshipLogs;
 
 using Microsoft.Extensions.DependencyInjection;
+
+
 
 namespace FellowshipAnalyzer.Client.Services;
 
@@ -42,11 +45,19 @@ public sealed class ReportAnalysisService(
         loadingTracker.FetchEventsState = ReportLoadingTracker.StepState.Loading;
         await Task.Yield();
 
-        // Start both requests concurrently. Await preload first — it is typically lighter
-        // than the full events payload and lets us populate header fields sooner.
+        // Start preload and the local cache check concurrently. The cache check is fast (IndexedDB)
+        // and determines whether a live events request is needed at all. Awaiting it first lets us
+        // fire the events request immediately on a miss so it overlaps with the remaining preload wait.
         var preloadTask = fellowshipLogs.AnalysisPreload.GetAsync(reportCode);
         var eventsRequest = new FellowshipLogsEventsRequest(reportCode, playerId, fightId);
-        var eventsTask = fellowshipLogs.Events.GetAsync(eventsRequest);
+        var cachedEventsBytesTask = reportCache.GetCachedEventsBytesAsync(reportCode, fightId, playerId).AsTask();
+
+        var cachedEventsBytes = await cachedEventsBytesTask;
+        // On a miss, fetch raw UTF-8 JSON bytes only — defer deserialization to its own step so we
+        // can measure network I/O vs JSON parsing separately, and cache the network bytes verbatim.
+        Task<RawEventsResponse>? liveEventsRawTask = cachedEventsBytes is null
+            ? fellowshipLogs.Events.GetRawBytesAsync(eventsRequest)
+            : null;
 
         var preload = await preloadTask;
         var reportInfo = preload.ReportInfo;
@@ -57,17 +68,18 @@ public sealed class ReportAnalysisService(
 
         navState.Set(reportCode, reportInfo);
 
-        var eventsResult = await eventsTask;
+        // The JSON bytes we hold at this point are always shaped as EventsResult: { events: [...], inProgress: bool }.
+        // On hit it came from IndexedDB; on miss it came directly from the proxy and has not yet been parsed.
+        byte[] eventsResultJsonBytes = cachedEventsBytes ?? (await liveEventsRawTask!).JsonBytes;
+        bool isFreshFromNetwork = cachedEventsBytes is null;
 
         loadingTracker.FetchEventsState = ReportLoadingTracker.StepState.Ok;
         loadingTracker.DeserializeState = ReportLoadingTracker.StepState.Loading;
         await Task.Yield();
 
+        var eventsResult = JsonSerializer.Deserialize<EventsResult>(eventsResultJsonBytes, jsonOptions)
+            ?? throw new InvalidOperationException("Event data could not be deserialized.");
         var events = eventsResult.Events.ToList();
-
-        string? pendingCacheEventsJson = !eventsResult.InProgress
-            ? JsonSerializer.Serialize(eventsResult.Events, jsonOptions)
-            : null;
 
         loadingTracker.DeserializeState = ReportLoadingTracker.StepState.Ok;
         await Task.Yield();
@@ -86,14 +98,16 @@ public sealed class ReportAnalysisService(
         loadingTracker.PrepareDisplayState = ReportLoadingTracker.StepState.Loading;
         await Task.Yield();
 
-        if (pendingCacheEventsJson is not null)
+        // Cache only fresh, completed network responses — never overwrite from a cache-hit path,
+        // and never cache an in-progress fight (which may still be receiving events).
+        if (isFreshFromNetwork && !eventsResult.InProgress)
         {
             var player = reportInfo.Actors.FirstOrDefault(a => a.Id == playerId);
             var entry = new ReportHistoryEntry(
                 reportCode, fightId, playerId,
                 fight.Name, player?.Name, heroId,
                 DateTimeOffset.UtcNow);
-            await reportCache.CacheAsync(entry, pendingCacheEventsJson);
+            await reportCache.CacheAsync(entry, eventsResultJsonBytes);
         }
 
         loadingTracker.PrepareDisplayState = ReportLoadingTracker.StepState.Ok;

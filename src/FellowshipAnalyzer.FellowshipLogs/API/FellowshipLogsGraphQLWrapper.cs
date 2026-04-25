@@ -136,12 +136,7 @@ internal sealed class FellowshipLogsGraphQLWrapper : IFellowshipLogsClient
             FellowshipLogsEventsRequest request,
             CancellationToken cancellationToken = default)
         {
-            if (string.IsNullOrWhiteSpace(request.ReportCode))
-                throw new ArgumentException("Report code is required.", nameof(request));
-            if (request.PlayerId <= 0)
-                throw new ArgumentOutOfRangeException(nameof(request.PlayerId), "Player ID must be greater than zero.");
-            if (request.FightId <= 0)
-                throw new ArgumentOutOfRangeException(nameof(request.FightId), "Fight ID must be greater than zero.");
+            ValidateRequest(request);
 
             var result = await client.GetEvents.ExecuteAsync(
                 request.ReportCode,
@@ -171,6 +166,62 @@ internal sealed class FellowshipLogsGraphQLWrapper : IFellowshipLogsClient
             }
 
             return new EventsResult(events, inProgress);
+        }
+
+        public async Task<RawEventsResponse> GetRawBytesAsync(
+            FellowshipLogsEventsRequest request,
+            CancellationToken cancellationToken = default)
+        {
+            ValidateRequest(request);
+
+            var result = await client.GetEvents.ExecuteAsync(
+                request.ReportCode,
+                new int?[] { request.FightId },
+                request.PlayerId,
+                cancellationToken);
+            ThrowIfErrors(result);
+
+            var report = result.Data!.ReportData?.Report
+                ?? throw new InvalidOperationException("GraphQL response did not contain expected event data.");
+
+            var inProgress = report.Fights?.FirstOrDefault(f => f is not null)?.InProgress ?? false;
+            var data = report.Events?.Data;
+
+            using var stream = new MemoryStream();
+            using (var writer = new Utf8JsonWriter(stream))
+            {
+                writer.WriteStartObject();
+                writer.WriteBoolean("inProgress", inProgress);
+                writer.WritePropertyName("events");
+
+                if (data is { ValueKind: System.Text.Json.JsonValueKind.Array } d)
+                {
+                    d.WriteTo(writer);
+                }
+                else if (data is null)
+                {
+                    writer.WriteStartArray();
+                    writer.WriteEndArray();
+                }
+                else
+                {
+                    throw new InvalidOperationException($"Unexpected JSON kind for events data: {data.Value.ValueKind}.");
+                }
+
+                writer.WriteEndObject();
+            }
+
+            return new RawEventsResponse(stream.ToArray(), inProgress);
+        }
+
+        private static void ValidateRequest(FellowshipLogsEventsRequest request)
+        {
+            if (string.IsNullOrWhiteSpace(request.ReportCode))
+                throw new ArgumentException("Report code is required.", nameof(request));
+            if (request.PlayerId <= 0)
+                throw new ArgumentOutOfRangeException(nameof(request.PlayerId), "Player ID must be greater than zero.");
+            if (request.FightId <= 0)
+                throw new ArgumentOutOfRangeException(nameof(request.FightId), "Fight ID must be greater than zero.");
         }
     }
 

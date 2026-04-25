@@ -1,0 +1,42 @@
+{
+  "navigationFallback": {
+    "rewrite": "/index.html",
+    "exclude": [
+      "/api/*",
+      "/_framework/*",
+      "/js/*",
+      "/app.css",
+      "/app.css.map",
+      "/FellowshipAnalyzer.Client.styles.css",
+      "/config.json",
+      "/*.dll",
+      "/*.wasm",
+      "/*.dat",
+      "/*.json"
+    ]
+  },
+  "routes": [
+    {
+      "route": "/config.json",
+      "headers": {
+        "Cache-Control": "no-store"
+      }
+    },
+    {
+      "route": "/api/*",
+      "allowedRoles": [
+        "anonymous"
+      ]
+    }
+  ],
+  "globalHeaders": {
+    "X-Content-Type-Options": "nosniff",
+    "Referrer-Policy": "strict-origin-when-cross-origin"
+  },
+  "mimeTypes": {
+    ".dat": "application/octet-stream",
+    ".dll": "application/octet-stream",
+    ".json": "application/json",
+    ".wasm": "application/wasm"
+  }
+}

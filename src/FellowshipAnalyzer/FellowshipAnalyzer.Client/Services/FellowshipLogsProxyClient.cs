@@ -54,10 +54,23 @@ public sealed class FellowshipLogsProxyClient : IFellowshipLogsClient
             CancellationToken cancellationToken = default)
         {
             return await http.GetFromJsonAsync<EventsResult>(
-                $"api/events?reportCode={Uri.EscapeDataString(request.ReportCode)}&playerId={request.PlayerId}&fightId={request.FightId}",
+                BuildUrl(request),
                 jsonOptions, cancellationToken)
                 ?? throw new InvalidOperationException("Failed to deserialize events response.");
         }
+
+        public async Task<RawEventsResponse> GetRawBytesAsync(
+            FellowshipLogsEventsRequest request,
+            CancellationToken cancellationToken = default)
+        {
+            // Read the raw UTF-8 response bytes so the caller can deserialize without first
+            // materializing a giant managed string, and cache the network payload verbatim.
+            var jsonBytes = await http.GetByteArrayAsync(BuildUrl(request), cancellationToken);
+            return new RawEventsResponse(jsonBytes);
+        }
+
+        private static string BuildUrl(FellowshipLogsEventsRequest request) =>
+            $"api/events?reportCode={Uri.EscapeDataString(request.ReportCode)}&playerId={request.PlayerId}&fightId={request.FightId}";
     }
 
     private sealed class ProxyMasterDataFunction(ProxyAnalysisPreloadFunction analysisPreload) : IMasterDataFunction

@@ -24,7 +24,6 @@ public sealed class WinterOrbTracker : ResourceTracker
 
     public override void Initialize()
     {
-        //MaxOverrides[ResourceTypes.WinterOrb] = 5;
         base.Initialize();
     }
 

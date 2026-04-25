@@ -14,8 +14,8 @@ builder.AddProject<Projects.FellowshipAnalyzer>("fellowshipanalyzer")
     .WithReference(api)
     .WithEndpoint("http", e =>
     {
-        e.Port = 5122;
-        e.TargetPort = 5122;
+        e.Port = 5120;
+        e.TargetPort = 5120;
         e.TargetHost = "fellowshipanalyzer.dev.localhost";
         e.UriScheme = "http";
         e.IsProxied = false;
