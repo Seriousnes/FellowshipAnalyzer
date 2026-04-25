@@ -363,7 +363,5 @@ MigrationBackup/
 FodyWeavers.xsd
 
 # Generated files
-**/*.razor.css
 **/*.css
 **/*.css.map
-**/*.map
