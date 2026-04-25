@@ -21,31 +21,48 @@
     [Parameter]
     public SpellIconSize IconSize { get; set; } = SpellIconSize.Small;
 
-    private int _id;
     private int _spellId;
+    private bool _isEffect;
     private string? _name;
     private string? _icon;
 
-    private string linkUri => _id > 1_000_000
+    private string LinkUri => _isEffect
         ? $"effect/{_spellId}"
         : $"ability/{_spellId}";
 
-    private string AbilityUrl => $"https://fellows.gg/{linkUri}";
+    private string AbilityUrl => $"https://fellows.gg/{LinkUri}";
 
-    private string? TooltipSpellId => _spellId > 0 ? linkUri : null;
+    private string? TooltipSpellId => _spellId > 0 ? LinkUri : null;
     private string IconUrl => $"https://assets.rpglogs.com/img/fellowship/abilities/{_icon}";
+
+    private static (int ShortId, bool IsEffect) NormalizeGuid(int guid) =>
+        guid >= 1_000_000
+            ? (guid - 1_000_000, true)
+            : (guid, false);
 
     protected override void OnParametersSet()
     {
         Spell.Switch(
-            s => { _id = s.Guid; _spellId = s.Id; _name = s.Name; _icon = s.Icon; },
+            s => { _spellId = s.Id; _isEffect = s is Effect; _name = s.Name; _icon = s.Icon; },
             id =>
             {
-                var s = SpellRegistry.MaybeGet(id); _id = s?.Guid ?? id; _spellId = s?.Id ?? id; _name = s?.Name; _icon =
-s?.Icon;
+                var s = SpellRegistry.MaybeGet(id);
+                if (s is not null)
+                {
+                    _spellId = s.Id; _isEffect = s is Effect; _name = s.Name; _icon = s.Icon;
+                }
+                else
+                {
+                    var normalized = NormalizeGuid(id);
+                    _spellId = normalized.ShortId; _isEffect = normalized.IsEffect; _name = null; _icon = null;
+                }
             },
-            a => { var s = a.PrimarySpell; _id = s.Guid; _spellId = s.Id; _name = a.Name ?? s.Name; _icon = s.Icon; },
-            a => { _id = a.Guid; _spellId = a.Id; _name = a.Name; _icon = a.Icon; }
+            a => { var s = a.PrimarySpell; _spellId = s.Id; _isEffect = s is Effect; _name = a.Name ?? s.Name; _icon = s.Icon; },
+            a =>
+            {
+                var normalized = NormalizeGuid(a.Guid);
+                _spellId = normalized.ShortId; _isEffect = normalized.IsEffect; _name = a.Name; _icon = a.Icon;
+            }
         );
     }
 }

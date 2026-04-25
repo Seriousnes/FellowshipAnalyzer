@@ -1,21 +1,23 @@
 .spell-link {
-    color: var(--fa-gold);
-    text-decoration: none;
+  color: var(--fa-gold);
+  text-decoration: none;
 }
 
 .spell-link:hover {
-    color: var(--fa-gold-light);
+  color: var(--fa-gold-light);
 }
 
 .spell-link__icon {
-    height: 1.3em;
-    width: 1.3em;
-    margin-top: -0.3em;
-    vertical-align: middle;
-    border-radius: 2px;
-    object-fit: cover;
+  height: 1.3em;
+  width: 1.3em;
+  margin-top: -0.3em;
+  vertical-align: middle;
+  border-radius: 2px;
+  object-fit: cover;
 }
 
 .spell-link:hover {
-    text-decoration: underline;
+  text-decoration: underline;
 }
+
+/*# sourceMappingURL=SpellLink.razor.css.map */

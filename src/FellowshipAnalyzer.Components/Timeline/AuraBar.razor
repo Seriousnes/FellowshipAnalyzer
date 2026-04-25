@@ -16,7 +16,7 @@
         @* Indicator line — sibling of icon, at left edge of the 24px icon *@
         <div class="aura-bar__indicator" style="left: @OffsetPx(aura.IconAt); --level: @aura.Level;"></div>
 
-        @* Icon centered on apply timestamp *@
+        @* Icon left-aligned to apply timestamp *@
         <div class="aura-bar__icon" style="left: @OffsetPx(aura.IconAt); --level: @aura.Level;"
              title="@aura.Name applied at @FormatTimestamp(aura.IconAt)">
             <SpellIcon Spell="@aura.Spell" Size="SpellIconSize.Small" />
@@ -36,6 +36,18 @@
     /// </summary>
     [Parameter] public IReadOnlySet<int>? HighlightedSpellIds { get; set; }
 
+    /// <summary>
+    /// When provided, only auras whose spell ID appears in this set are rendered.
+    /// Takes precedence over <see cref="HighlightedSpellIds"/> when both are set.
+    /// </summary>
+    [Parameter] public IReadOnlySet<int>? VisibleAuraIds { get; set; }
+
+    /// <summary>
+    /// Optional per-spell priority used for vertical level assignment. Lower priority = lower level
+    /// (closer to the cast bar). Defaults to 0 for any spell not present in the dictionary.
+    /// </summary>
+    [Parameter] public IReadOnlyDictionary<int, int>? AuraPriorities { get; set; }
+
     private sealed record AuraSegment(
         Spell Spell,
         string Name,
@@ -49,8 +61,8 @@
 
     private double TrackWidthPx => (FightEndTime - FightStartTime) / 1000.0 * PixelsPerSecond;
 
-    // 24px per level; level 0 = bottom row (closest to cast bar)
-    private double BarHeightPx => 24.0 + _maxLevel * 30.0;
+    // 4px gap + 24px icon + 30px per additional level above 0
+    private double BarHeightPx => 4.0 + 24.0 + _maxLevel * 30.0;
 
     private string F(double v) => v.ToString("F1", CultureInfo.InvariantCulture);
     private string OffsetPx(int ts) => F((ts - FightStartTime) / 1000.0 * PixelsPerSecond) + "px";
@@ -71,13 +83,24 @@
     }
 
     /// <summary>
-    /// Returns the auras to render. When <see cref="HighlightedSpellIds"/> is set,
-    /// only auras in that set are returned. Otherwise all auras are returned.
+    /// Returns the auras to render. <see cref="VisibleAuraIds"/> takes precedence over
+    /// <see cref="HighlightedSpellIds"/>; when both are null, all auras are returned.
     /// </summary>
-    private IEnumerable<TrackedBuffEvent> AurasToRender() =>
-        HighlightedSpellIds is null
-            ? Auras
-            : Auras.Where(b => HighlightedSpellIds.Contains(b.Ability.Guid));
+    private IEnumerable<TrackedBuffEvent> AurasToRender()
+    {
+        if (VisibleAuraIds is not null)
+        {
+            return Auras.Where(b => VisibleAuraIds.Contains(b.Ability.Guid));
+        }
+        if (HighlightedSpellIds is not null)
+        {
+            return Auras.Where(b => HighlightedSpellIds.Contains(b.Ability.Guid));
+        }
+        return Auras;
+    }
+
+    private int PriorityOf(TrackedBuffEvent buff) =>
+        AuraPriorities is not null && AuraPriorities.TryGetValue(buff.Ability.Guid, out var p) ? p : 0;
 
     protected override void OnParametersSet()
     {
@@ -90,7 +113,8 @@
 
         var visible = AurasToRender()
             .Where(b => b.Start < FightEndTime && (b.End ?? FightEndTime) > FightStartTime)
-            .OrderBy(b => b.Start);
+            .OrderBy(PriorityOf)
+            .ThenBy(b => b.Start);
 
         foreach (var buff in visible)
         {

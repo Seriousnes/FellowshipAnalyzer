@@ -57,7 +57,6 @@
 .cast-bar {
     position: relative;
     width: 100%;
-    border-radius: 10px;
     height: calc(24px + var(--has-levels, 0) * 34px + var(--levels, 0) * 27px);
     box-shadow: 0 0 3px rgba(0, 0, 0, 0.3);
     box-sizing: content-box;
@@ -84,8 +83,20 @@
 /* ===== Icon (on-GCD, top-aligned) ===== */
 .cast-bar__cast {
     z-index: 3;
-    display: block;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     transform: translateX(-50%);
+}
+
+.cast-bar__cast ::deep .spell-icon-link,
+.cast-bar__cast ::deep .spell-icon {
+    display: block;
+    width: 24px;
+    height: 24px;
+    box-sizing: border-box;
 }
 
 /* ===== Off-GCD icon — below the row with time-indicator line ===== */

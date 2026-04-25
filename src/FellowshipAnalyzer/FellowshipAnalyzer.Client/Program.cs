@@ -3,6 +3,7 @@ using System.Text.Json.Serialization;
 using System.Net.Http.Json;
 using ApexCharts;
 using FellowshipAnalyzer.Client.Services;
+using FellowshipAnalyzer.Components.Timeline;
 using FellowshipAnalyzer.Core;
 using FellowshipAnalyzer.Core.Analysis;
 using FellowshipAnalyzer.Core.FellowshipLogs;
@@ -53,6 +54,9 @@ builder.Services.AddScoped<IReportCacheService, IndexedDbReportCacheService>();
 
 // Analysis orchestration service
 builder.Services.AddScoped<ReportAnalysisService>();
+
+// Per-hero Timeline customization (cooldown lanes / aura priorities), persisted in localStorage
+builder.Services.AddScoped<TimelineConfigService>();
 
 await builder.Build().RunAsync();
 

@@ -2,11 +2,52 @@
 @use 'sass:color';
 
 .timeline {
-    overflow-x: auto;
-    overflow-y: visible;
     background: rgba(0, 0, 0, 0.15);
     border-radius: 6px;
-    padding: 8px 0;
+    padding: 44px 0 8px;
+    position: relative;
+    overflow: hidden;
+}
+
+.timeline-scroll {
+    overflow-x: auto;
+    overflow-y: hidden;
+    cursor: grab;
+    user-select: none;
+
+    &--dragging {
+        cursor: grabbing;
+    }
+}
+
+.timeline-toolbar {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    z-index: 10;
+    display: flex;
+    gap: 4px;
+}
+
+.timeline-settings-button {
+    background: rgba(0, 0, 0, 0.35);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.7);
+    width: 28px;
+    height: 28px;
+    border-radius: 4px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: 0;
+    user-select: none;
+
+    &:hover {
+        color: var(--fa-gold, #d4b870);
+        border-color: rgba(255, 255, 255, 0.25);
+        background: rgba(0, 0, 0, 0.55);
+    }
 }
 
 .timeline-inner {
@@ -55,15 +96,9 @@
 }
 
 .timeline-section-divider {
-    display: flex;
-    align-items: center;
-    border-top: 1px solid rgba(255, 255, 255, 0.08);
-    margin-top: 4px;
-}
-
-.timeline-section-line {
-    height: 1px;
-    background: rgba(255, 255, 255, 0.08);
+    height: 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    margin: 16px 0 0;
 }
 
 .timeline-empty {
@@ -78,4 +113,5 @@
     display: flex;
     flex-direction: column;
     overflow: visible;
+    padding-top: 8px;
 }

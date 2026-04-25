@@ -6,13 +6,13 @@
 
 /* ===== Duration strip (z-index 10-99 = background layer) ===== */
 /*
- * Positioned from the bottom of the container upward so strips are flush
- * against the cast bar below. Level 0 = 24px strip, each extra level adds 30px.
+ * Raised 4px off the cast bar so the indicator line is always visible.
+ * Level 0 = 24px strip, each extra level adds 30px.
  */
 .aura-bar__strip {
     position: absolute;
     --level: 0;
-    bottom: 0;
+    bottom: 4px;
     height: calc(24px + var(--level) * 30px);
     border-top-left-radius: 2px;
     border-top-right-radius: 5px;
@@ -25,17 +25,15 @@
 
 /* ===== Indicator line (z-index 100-999 = line layer) ===== */
 /*
- * Sibling of the icon. Same `left` as the icon, but shifted -12px so it sits
- * on the LEFT edge of the 24px icon. Bridges from the icon bottom to the
- * container bottom (where the cast bar begins).
+ * Bridges from the cast bar (bottom: 0) up to the icon bottom, including
+ * the 4px gap so the line is always visible even at level 0.
  */
 .aura-bar__indicator {
     position: absolute;
     --level: 0;
     bottom: 0;
-    transform: translateX(-12px);
     width: 1px;
-    height: calc(var(--level) * 30px);
+    height: calc(4px + var(--level) * 30px);
     background: #f8b700;
     z-index: calc(100 + var(--level));
     pointer-events: none;
@@ -43,17 +41,29 @@
 
 /* ===== Icon (z-index 1000+ = icon layer) ===== */
 /*
- * Level 0 sits flush at the bottom of the container (right above the cast bar).
- * Each higher level moves the icon up by 30px.
+ * Level 0 sits 4px above the cast bar so the indicator line is always visible.
+ * Each higher level moves the icon up by an additional 30px.
+ * The icon's LEFT edge is aligned to the aura apply timestamp.
  */
 .aura-bar__icon {
     position: absolute;
     --level: 0;
-    bottom: calc(var(--level) * 30px);
+    bottom: calc(4px + var(--level) * 30px);
+    width: 24px;
     height: 24px;
-    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
     z-index: calc(1000 + var(--level));
     cursor: default;
+}
+
+.aura-bar__icon ::deep .spell-icon-link,
+.aura-bar__icon ::deep .spell-icon {
+    display: block;
+    width: 24px;
+    height: 24px;
+    box-sizing: border-box;
 }
 
 /* Gold border on the spell icon */

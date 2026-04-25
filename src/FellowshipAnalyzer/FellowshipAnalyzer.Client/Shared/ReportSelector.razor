@@ -24,16 +24,12 @@
     private void HandleInput(ChangeEventArgs e)
     {
         _reportInput = e.Value?.ToString() ?? "";
+        var url = BuildUrl(_reportInput);        
 
-        // Auto-navigate when a URL-like value is entered (bare codes never contain '/')
-        if (_reportInput.Contains('/'))
+        if (url is not null)
         {
-            var url = BuildUrl(_reportInput);
-            if (url is not null)
-            {
-                Navigation.NavigateTo(url);
-            }
-        }
+            Navigation.NavigateTo(url);
+        }        
     }
 
     private void HandleKeyDown(KeyboardEventArgs e)
