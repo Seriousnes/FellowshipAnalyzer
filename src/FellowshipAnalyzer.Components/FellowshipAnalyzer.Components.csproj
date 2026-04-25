@@ -9,6 +9,10 @@
 	<ItemGroup>
 		<SupportedPlatform Include="browser" />
 	</ItemGroup>
+
+	<ItemGroup>
+		<Content Update="sasscompiler.json" CopyToPublishDirectory="Never" />
+	</ItemGroup>
 	
 	<ItemGroup>
 		<ProjectReference Include="..\FellowshipAnalyzer.Core\FellowshipAnalyzer.Core.csproj" />
