@@ -361,3 +361,9 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+
+# Generated files
+**/*.razor.css
+**/*.css
+**/*.css.map
+**/*.map
