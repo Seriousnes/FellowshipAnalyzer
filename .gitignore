@@ -362,6 +362,9 @@ MigrationBackup/
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
 
+# Planning files
+.github/prompts/plan*.md
+
 # Generated files
 **/*.css
 **/*.css.map

@@ -1,7 +1,5 @@
 # FellowshipAnalyzer Architecture Overview
 
-A C# architectural reference based on WoWAnalyzer's TypeScript/React patterns, optimized for Blazor Hybrid (Server + WASM).
-
 ---
 
 ## Table of Contents
@@ -22,10 +20,10 @@ A C# architectural reference based on WoWAnalyzer's TypeScript/React patterns, o
 
 ## High-Level Architecture
 
-### WoWAnalyzer Flow (Reference)
+### Reference Flow
 
 ```
-WarcraftLogs API → Report Data → CombatLogParser → Normalizers → EventEmitter → Analyzers → UI Components
+FellowshipLogs API → Report Data → CombatLogParser → Normalizers → EventEmitter → Analyzers → UI Components
 ```
 
 ### FellowshipAnalyzer Flow (Target)
@@ -61,34 +59,22 @@ WarcraftLogs API → Report Data → CombatLogParser → Normalizers → EventEm
 
 ## Core Abstractions
 
-### Class Hierarchy (WoWAnalyzer → FellowshipAnalyzer)
+### Class Hierarchy
 
 ```
-WoWAnalyzer (TypeScript)              FellowshipAnalyzer (C#)
-─────────────────────────             ──────────────────────────
-Module                          →     Module (abstract class)
-  └── EventSubscriber           →       └── EventSubscriber
-        └── Analyzer            →             └── Analyzer
-              └── [SpecAnalyzer]→                   └── [SpecAnalyzer]
+FellowshipAnalyzer (C#)
+─────────────────────────
+Module (abstract class)
+    └── EventSubscriber
+                └── Analyzer
+                            └── [SpecAnalyzer]
 
-EventsNormalizer                →     EventsNormalizer (abstract)
-  └── EventLinkNormalizer       →       └── EventLinkNormalizer
+EventsNormalizer (abstract)
+    └── EventLinkNormalizer
 ```
 
 ### Module Base Class
 
-**WoWAnalyzer (Module.ts)**
-```typescript
-class Module {
-  static dependencies: Record<string, typeof Module> = {};
-  protected readonly owner!: CombatLogParser;
-  active = true;
-  priority = 0;
-  key!: string;
-}
-```
-
-**FellowshipAnalyzer (C#)**
 ```csharp
 public abstract class Module
 {
@@ -135,20 +121,7 @@ public readonly record struct ModuleOptions(
 
 ### EventSubscriber
 
-**WoWAnalyzer (EventSubscriber.ts)**
-```typescript
-class EventSubscriber extends Module {
-  addEventListener<ET extends EventType, E extends AnyEvent<ET>>(
-    eventFilter: ET | EventFilter<ET>,
-    listener: EventListener<ET, E>,
-  ) {
-    if (!this.active) return;
-    this.owner.addEventListener(eventFilter, listener.bind(this), this);
-  }
-}
-```
 
-**FellowshipAnalyzer (C#)**
 ```csharp
 public abstract class EventSubscriber : Module
 {
@@ -221,7 +194,7 @@ public enum SuggestionImportance { Major, Regular, Minor }
 
 ### Event Types (Partial Mapping)
 
-WoWAnalyzer defines events as interfaces with a discriminated union pattern. In C#, we use a base interface with concrete record structs.
+We use a base interface with concrete record structs.
 
 ```csharp
 /// <summary>
@@ -396,8 +369,6 @@ public static class EventExtensions
 
 ### Event Linking
 
-WoWAnalyzer uses `_linkedEvents` to associate related events. In C#, we can use a more efficient approach:
-
 ```csharp
 /// <summary>
 /// Stores relationships between events.
@@ -439,17 +410,6 @@ public sealed class EventLinks
 
 ### Module Registration
 
-**WoWAnalyzer Pattern**
-```typescript
-class CombatLogParser {
-  static internalModules: DependenciesDefinition = { ... };
-  static defaultModules: DependenciesDefinition = { ... };
-  static specModules: DependenciesDefinition = { ... };
-}
-```
-
-**FellowshipAnalyzer Pattern**
-
 Uses Microsoft DI extension methods for familiar, contributor-friendly registration:
 
 ```csharp
@@ -482,7 +442,7 @@ See [Dependency Injection](#dependency-injection) for complete implementation de
 ### Design Goals
 
 1. **Use Microsoft.Extensions.DependencyInjection** - Native Blazor support, familiar to contributors
-2. **Maintain WoWAnalyzer's module flexibility** - Active state toggling, priority ordering
+2. **Maintain module flexibility** - Active state toggling, priority ordering
 3. **Support per-fight scoping** - Each fight analysis gets fresh module instances
 4. **Easy for contributors** - Simple constructor injection, no magic
 
@@ -1158,18 +1118,6 @@ public readonly record struct SpellFilter(ImmutableHashSet<int> SpellIds)
 
 ### Config Pattern
 
-**WoWAnalyzer**
-```typescript
-const Config: Config = {
-  contributors: [CONTRIBUTORS.Abelito75],
-  patchCompatibility: '11.0.5',
-  spec: SPECS.PRESERVATION_EVOKER,
-  exampleReport: '/report/...',
-  // ...
-};
-```
-
-**FellowshipAnalyzer**
 ```csharp
 public abstract record SpecConfig
 {
@@ -2173,22 +2121,6 @@ public static class AuthEndpoints
 1. [ ] Source generators for event subscriptions
 2. [ ] Memory pooling
 3. [ ] Profiling and benchmarking
-
----
-
-## Key Differences from WoWAnalyzer
-
-| Aspect | WoWAnalyzer (TS) | FellowshipAnalyzer (C#) |
-|--------|------------------|-------------------------|
-| Events | Interface + type field | `readonly record struct` implementing interfaces |
-| Event Linking | Mutable `_linkedEvents` array | Separate `EventLinks` class with indices |
-| Module DI | Custom iterative resolver | Microsoft.Extensions.DependencyInjection |
-| Module Dependencies | Static `dependencies` object | Constructor injection |
-| Event Filters | Runtime closure compilation | Compile-time source generation option |
-| Memory | GC managed, object allocations | Stack-allocated structs, pooling, `Span<T>` |
-| UI Integration | React components | Blazor `RenderFragment` |
-| Static Data | TypeScript objects | `FrozenDictionary`, `FrozenSet` |
-| Authentication | N/A (client-side only) | OAuth2 with BFF pattern |
 
 ---
 

@@ -1,8 +1,7 @@
 namespace FellowshipAnalyzer.Core.Common.Items;
 
 /// <summary>
-/// A static item definition used in item registries (the equivalent of WoWAnalyzer's ITEMS entries).
-/// Contains identity and display metadata only.
+/// A static item definition used in item registries. Contains identity and display metadata only.
 /// </summary>
 /// <remarks>
 /// Item subtypes (e.g. trinkets, enchants, consumables) can be added later as sealed subrecords.

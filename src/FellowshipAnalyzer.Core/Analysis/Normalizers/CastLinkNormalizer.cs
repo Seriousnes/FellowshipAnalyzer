@@ -12,7 +12,7 @@ namespace FellowshipAnalyzer.Core.Analysis.Normalizers;
 ///   <item>Marks <see cref="BeginCastEvent.IsCancelled"/> = true when a cast has no matching completion event.</item>
 ///   <item>
 ///     When a <see cref="CastEvent"/> is immediately followed by a <see cref="BeginChannelEvent"/> for the same
-///     source and spell GUID (within <see cref="MaxChannelCastWindowMs"/>), establishes the WoWA-style
+///     source and spell GUID (within <see cref="MaxChannelCastWindowMs"/>), establishes the expected
 ///     cast-to-channel relationship contract:
 ///     <list type="bullet">
 ///       <item><see cref="CastEvent.Channel"/> → <see cref="EndChannelEvent"/> (via <see cref="BaseCastEvent.Channel"/>)</item>
@@ -57,7 +57,7 @@ public sealed class CastLinkNormalizer(Abilities? abilities) : IEventNormalizer
         var pendingCasts = new Dictionary<(int abilityId, int sourceId), BeginCastEvent>();
         var pendingChannels = new Dictionary<(int abilityId, int sourceId), BeginChannelEvent>();
 
-        // Per-source tracking for cancel detection (WoWA-style)
+        // Per-source tracking for cancel detection.
         var lastBeginCast = new Dictionary<int, BeginCastEvent>();
 
         // Cast-to-channel linking state:

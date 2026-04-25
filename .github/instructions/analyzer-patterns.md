@@ -2,9 +2,8 @@
 applyTo: 'src/**'
 ---
 
-# Analyzer Patterns (WoWAnalyzer → FellowshipAnalyzer)
+# Analyzer Patterns
 
-Reference patterns from WoWAnalyzer's TypeScript/React architecture, adapted for C#/Blazor.
 
 ## Key Principle: State Trackers vs. Analysis Modules
 
@@ -28,39 +27,7 @@ Reference patterns from WoWAnalyzer's TypeScript/React architecture, adapted for
 - Windows (buff windows, combo windows) — these are analysis concepts owned by guide components
 - Performance evaluations — these belong in guide components
 
-## WoWAnalyzer Analyzer Pattern (HotHand.tsx reference)
-
-In WoWAnalyzer, a talent analyzer like HotHand:
-1. Extends `Analyzer.withDependencies({...})` for typed dependency access
-2. Subscribes to events in constructor: `addEventListener(Events.applybuff.by(SELECTED_PLAYER).spell(...), handler)`
-3. Maintains internal state (windows, casts, counters) built from events
-4. Provides a `guideSubsection` getter returning JSX for the guide tab
-5. Optionally provides a `statistic()` method for the overview tab
-
-```typescript
-class HotHand extends Analyzer.withDependencies({
-  spellUsable: SpellUsable,
-  haste: Haste,
-}) {
-  private windows: HotHandWindow[] = [];
-  
-  constructor(options) {
-    super(options);
-    this.addEventListener(Events.applybuff.by(SELECTED_PLAYER).spell(HOT_HAND_BUFF), this.onApply);
-    this.addEventListener(Events.removebuff.by(SELECTED_PLAYER).spell(HOT_HAND_BUFF), this.onRemove);
-    this.addEventListener(Events.cast.by(SELECTED_PLAYER), this.onCast);
-  }
-  
-  get guideSubsection() {
-    return <GuideSection spell={TALENTS.HOT_HAND_TALENT} ...>
-      <CastOverview stats={this.buildOverviewStats()} />
-      <CastDetail casts={this.buildPerCastData()} />
-    </GuideSection>;
-  }
-}
-```
-
-## FellowshipAnalyzer Equivalent
+## Analyzer Pattern
 
 In FellowshipAnalyzer, guide components combine analysis + rendering. The guide Razor component (or its code-behind) contains:
 1. Analysis logic that computes evaluations from `SpellUsable` data
@@ -69,7 +36,7 @@ In FellowshipAnalyzer, guide components combine analysis + rendering. The guide 
 
 Guide components receive state trackers as parameters and compute their own derived analysis (windows, combos, evaluations) without exposing these concepts outside the component.
 
-## WoWAnalyzer Module Organization (Enhancement Shaman reference)
+## Module Organization (Enhancement Shaman reference)
 
 ```
 modules/
@@ -88,7 +55,7 @@ modules/
 
 Key: each talent/feature file contains both the event handling, analysis logic, AND guide rendering.
 
-## WoWAnalyzer State Tracking Patterns
+## State Tracking Patterns
 
 ### Haste Tracking
 - Maintains `current` haste percentage
@@ -114,13 +81,6 @@ Key: each talent/feature file contains both the event handling, analysis logic, 
 
 ## Event Listener Patterns
 
-### WoWAnalyzer
-```typescript
-Events.applybuff.by(SELECTED_PLAYER).spell(SPELLS.HOT_HAND_BUFF)
-Events.cast.by(SELECTED_PLAYER)
-Events.damage.by(SELECTED_PLAYER).spell([spell1, spell2])
-```
-
 ### FellowshipAnalyzer
 ```csharp
 Events.ApplyBuff.By(Analyzer.SELECTED_PLAYER).Spell(RimeSpells.WintersEmbrace.Id)
@@ -128,7 +88,7 @@ Events.Cast.By(Analyzer.SELECTED_PLAYER)
 Events.Damage.By(Analyzer.SELECTED_PLAYER).Spell(RimeSpells.GlacialBlast.Id, RimeSpells.IceComet.Id)
 ```
 
-## Guide Component Patterns (WoWAnalyzer)
+## Guide Component Patterns
 
 ```
 <GuideSection>         → Top-level section with explanation + data
@@ -136,19 +96,4 @@ Events.Damage.By(Analyzer.SELECTED_PLAYER).Spell(RimeSpells.GlacialBlast.Id, Rim
 <CastDetail>           → Per-occurrence breakdown with expandable rows
 <CastSequence>         → Timeline/sequence visualization
 <BuffUptimeBar>        → Buff uptime visual bar
-```
-
-Guide assembly in WoWAnalyzer (`Guide.tsx`):
-```typescript
-export default function Guide({ modules }: GuideProps<typeof CombatLogParser>) {
-  return (
-    <>
-      {modules.hotHand.guideSubsection}
-      {modules.doomWinds.guideSubsection}
-      <SubSection title="Resources">
-        {modules.maelstromDetails.guideSubsection}
-      </SubSection>
-    </>
-  );
-}
 ```

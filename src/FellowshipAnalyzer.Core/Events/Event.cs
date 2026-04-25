@@ -35,7 +35,7 @@ public abstract partial class Event : IEventFilter
     /// </summary>
     public virtual HashSet<EventLink> ProcessedLinks { get; set; } = [];
     /// <summary>
-    /// Was the event created by WoWA
+    /// Was the event created by FSA
     /// </summary>
     public virtual bool? Fabricated { get; set; }
     /// <summary>
@@ -47,7 +47,7 @@ public abstract partial class Event : IEventFilter
     /// </summary>
     public virtual bool? Modified { get; set; }
     /// <summary>
-    /// A WoWA analyzer has reordered this event
+    /// An analyzer has reordered this event.
     /// </summary>
     public virtual bool? Reordered { get; set; }
 }

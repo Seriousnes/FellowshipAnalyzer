@@ -9,7 +9,6 @@ public sealed record SpellbookAura
 
     /// <summary>
     /// When true, this aura is shown on the Timeline aura bar by default.
-    /// Analogous to WoWAnalyzer's <c>timelineHighlight</c> property.
     /// </summary>
     public bool TimelineHighlight { get; init; }
 }

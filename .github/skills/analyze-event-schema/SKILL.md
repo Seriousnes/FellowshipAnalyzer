@@ -153,7 +153,7 @@ JSON `death` events always include `killScore` (`Number`), which is not modeled 
 
 ### Event types in C# that do not appear in this log
 
-These classes exist in `Events/` but were not observed in `raw-report.json`. They may be valid Fellowship log types that simply did not occur in this fight, or they may be WoWAnalyzer-era remnants that Fellowship does not emit:
+These classes exist in `Events/` but were not observed in `raw-report.json`. They may be valid Fellowship log types that simply did not occur in this fight, or they may be legacy remnants that Fellowship does not emit:
 
 `FreeCastEvent`, `LeechEvent`, `FilterCooldownInfoEvent`, `DispelEvent`, `DrainEvent`,
 `ExtraAttacksEvent`, `ResurrectEvent`, `SummonEvent`, `FilterBuffInfoEvent`, `HealthEvent`,

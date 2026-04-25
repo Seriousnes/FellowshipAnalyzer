@@ -4,7 +4,6 @@ namespace FellowshipAnalyzer.Core.Utility;
 
 /// <summary>
 /// Static helpers for attributing damage and healing to combat effects.
-/// Ported from WoWAnalyzer's EventCalculateLib.
 /// </summary>
 public static class CombatMath
 {
