@@ -11,8 +11,8 @@
                 <li class="report-history__item">
                     <a href="/report/@entry.ReportCode/@entry.FightId/@entry.PlayerId"
                        class="report-history__link">
-                        <span class="report-history__player">@(entry.PlayerName ?? $"Player {entry.PlayerId}")</span>
-                        <span class="report-history__fight">@(entry.FightName ?? entry.ReportCode)</span>
+                        <span class="report-history__player">@entry.PlayerName</span>
+                        <span class="report-history__fight">@entry.FightName</span>
                         <span class="report-history__age">@FormatAge(entry.CachedAt)</span>
                     </a>
                 </li>
@@ -29,7 +29,10 @@
         if (!firstRender) return;
 
         // IndexedDB is only available after the first render (JS interop requires the DOM)
-        _history = await ReportCache.GetHistoryAsync();
+        _history = (await ReportCache.GetHistoryAsync())
+            .Where(entry => !string.IsNullOrWhiteSpace(entry.PlayerName)
+                && !string.IsNullOrWhiteSpace(entry.FightName))
+            .ToList();
         StateHasChanged();
     }
 

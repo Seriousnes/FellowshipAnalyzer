@@ -20,9 +20,24 @@
             <span class="loading-label">Fetching combat events</span>
             <span class="loading-status @StatusClass(Tracker.FetchEventsState)">@StatusText(Tracker.FetchEventsState)</span>
         </div>
-        <div class="loading-row">
-            <span class="loading-label">Deserializing events</span>
-            <span class="loading-status @StatusClass(Tracker.DeserializeState)">@StatusText(Tracker.DeserializeState)</span>
+        <div class="loading-row has-sub">
+            <div class="loading-row-header">
+                <span class="loading-label">Deserializing events</span>
+                <span class="loading-status @StatusClass(Tracker.DeserializeState)">@StatusText(Tracker.DeserializeState)</span>
+            </div>
+            @if (Tracker.DeserializeState == ReportLoadingTracker.StepState.Loading)
+            {
+                <div class="loading-sub-bar" role="progressbar"
+                     aria-valuenow="@((int)(Tracker.DeserializeSubProgress * 100))" aria-valuemin="0" aria-valuemax="100">
+                    @for (int i = 0; i < SubBarChunkCount; i++)
+                    {
+                        var fill = SubChunkFill(i, Tracker.DeserializeSubProgress);
+                        <div class="loading-bar-chunk">
+                            <div class="loading-bar-fill" style="opacity: @fill.ToString("F2", System.Globalization.CultureInfo.InvariantCulture)"></div>
+                        </div>
+                    }
+                </div>
+            }
         </div>
         <div class="loading-row has-sub">
             <div class="loading-row-header">

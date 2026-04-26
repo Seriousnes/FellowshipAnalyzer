@@ -19,6 +19,8 @@ public sealed class ReportLoadingTracker
     private StepState _normalizeState;
     private StepState _analyzeState;
     private StepState _prepareDisplayState;
+    private int _deserializedEventCount;
+    private int _totalDeserializeEventCount;
     private int _analyzedEventCount;
     private int _totalEventCount;
     private int _normalizedCount;
@@ -44,6 +46,20 @@ public sealed class ReportLoadingTracker
     {
         get => _deserializeState;
         set => SetStepState(ref _deserializeState, value);
+    }
+
+    /// <summary>Number of raw events deserialized so far.</summary>
+    public int DeserializedEventCount
+    {
+        get => _deserializedEventCount;
+        set => Set(ref _deserializedEventCount, value);
+    }
+
+    /// <summary>Total number of raw events to deserialize.</summary>
+    public int TotalDeserializeEventCount
+    {
+        get => _totalDeserializeEventCount;
+        set => Set(ref _totalDeserializeEventCount, value);
     }
 
     /// <summary>Running event normalizers (reordering, linking, fabrication).</summary>
@@ -99,6 +115,16 @@ public sealed class ReportLoadingTracker
     /// Returns the sub-progress (0–1) for a step that is currently in <see cref="StepState.Loading"/>.
     /// Returns 0 for Waiting, 1 for Ok.
     /// </summary>
+    public double DeserializeSubProgress => _deserializeState switch
+    {
+        StepState.Ok => 1,
+        StepState.Loading when _totalDeserializeEventCount > 0 => (double)_deserializedEventCount / _totalDeserializeEventCount,
+        _ => 0,
+    };
+
+    /// <summary>
+    /// Returns the sub-progress (0–1) for normalizer execution.
+    /// </summary>
     public double NormalizeSubProgress => _normalizeState switch
     {
         StepState.Ok => 1,
@@ -127,7 +153,10 @@ public sealed class ReportLoadingTracker
             const double stepWeight = 0.2;
             var p = 0.0;
             if (_fetchEventsState == StepState.Ok) p += stepWeight;
-            if (_deserializeState == StepState.Ok) p += stepWeight;
+            if (_deserializeState == StepState.Ok)
+                p += stepWeight;
+            else if (_deserializeState == StepState.Loading && _totalDeserializeEventCount > 0)
+                p += stepWeight * ((double)_deserializedEventCount / _totalDeserializeEventCount);
             if (_normalizeState == StepState.Ok)
                 p += stepWeight;
             else if (_normalizeState == StepState.Loading && _totalNormalizerCount > 0)
@@ -149,6 +178,8 @@ public sealed class ReportLoadingTracker
         _normalizeState = StepState.Waiting;
         _analyzeState = StepState.Waiting;
         _prepareDisplayState = StepState.Waiting;
+        _deserializedEventCount = 0;
+        _totalDeserializeEventCount = 0;
         _analyzedEventCount = 0;
         _totalEventCount = 0;
         _normalizedCount = 0;

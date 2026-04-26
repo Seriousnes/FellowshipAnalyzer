@@ -2,7 +2,6 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Net.Http.Json;
 using ApexCharts;
-using FellowshipAnalyzer.Client;
 using FellowshipAnalyzer.Client.Services;
 using FellowshipAnalyzer.Components.Timeline;
 using FellowshipAnalyzer.Core;
@@ -14,6 +13,7 @@ using FellowshipAnalyzer.Heroes.Rime.Analysis;
 #if STANDALONE_WASM
 using Microsoft.AspNetCore.Components.Web;
 #endif
+
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
@@ -36,11 +36,6 @@ var clientConfiguration = await hostConfigurationClient.GetFromJsonAsync<ClientC
 var apiBaseAddress = ResolveApiBaseAddress(hostBaseAddress, clientConfiguration.ApiBaseUrl);
 builder.Services.AddScoped(_ => new HttpClient { BaseAddress = apiBaseAddress });
 
-// JSON options for deserializing API responses (including polymorphic events).
-// Source-generated FellowshipAnalyzerJsonContext is inserted at the head of the resolver chain
-// so registered types use precompiled metadata (critical for WASM perf — reflection-based JSON
-// deserialization of ~30k polymorphic events takes 20+ seconds in interpreted WASM).
-// Unregistered types fall through to the default reflection-based resolver.
 var jsonOptions = new JsonSerializerOptions(JsonSerializerOptions.Web)
 {
     DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
@@ -49,31 +44,22 @@ var jsonOptions = new JsonSerializerOptions(JsonSerializerOptions.Web)
     AllowOutOfOrderMetadataProperties = true,
 };
 jsonOptions.Converters.Add(new JsonStringEnumConverter(allowIntegerValues: true));
-jsonOptions.TypeInfoResolverChain.Insert(0, FellowshipAnalyzerJsonContext.Default);
+var jsonContext = new FellowshipAnalyzerJsonContext(new JsonSerializerOptions(jsonOptions));
+jsonOptions.TypeInfoResolverChain.Insert(0, jsonContext);
 builder.Services.AddSingleton(jsonOptions);
+builder.Services.AddSingleton(jsonContext);
 
-// Hero analysis runs client-side in WASM
+
 builder.Services.AddApexCharts();
 builder.Services.AddCoreAnalysisServices();
 builder.Services.AddCoreAnalysis();
 builder.Services.AddRimeAnalysis();
 
-// Per-report loading progress tracker
 builder.Services.AddScoped<ReportLoadingTracker>();
-
-// Navigation state cache (fight/player selection → analysis page)
 builder.Services.AddScoped<ReportNavigationState>();
-
-// IFellowshipLogsClient: WASM proxy client deserializes raw GraphQL responses from API endpoints
 builder.Services.AddScoped<IFellowshipLogsClient, FellowshipLogsProxyClient>();
-
-// Report history + event cache (IndexedDB-backed)
 builder.Services.AddScoped<IReportCacheService, IndexedDbReportCacheService>();
-
-// Analysis orchestration service
 builder.Services.AddScoped<ReportAnalysisService>();
-
-// Per-hero Timeline customization (cooldown lanes / aura priorities), persisted in localStorage
 builder.Services.AddScoped<TimelineConfigService>();
 
 await builder.Build().RunAsync();

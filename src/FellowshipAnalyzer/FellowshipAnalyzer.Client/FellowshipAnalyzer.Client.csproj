@@ -17,6 +17,10 @@
 		<RunAOTCompilation>true</RunAOTCompilation>
 	</PropertyGroup>
 
+	<PropertyGroup Condition="'$(RunAOTCompilation)' == 'true'">
+		<DefineConstants>$(DefineConstants);WASM_AOT_BUILD</DefineConstants>
+	</PropertyGroup>
+
 	<ItemGroup>
 		<ProjectReference Include="..\..\FellowshipAnalyzer.Components\FellowshipAnalyzer.Components.csproj" />
 		<ProjectReference Include="..\..\FellowshipAnalyzer.Core\FellowshipAnalyzer.Core.csproj" />

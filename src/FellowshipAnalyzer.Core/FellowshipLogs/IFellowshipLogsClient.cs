@@ -13,7 +13,7 @@ public sealed record FellowshipLogsEventsRequest(
 /// at the time of the request. In-progress fights should not be cached.
 /// </summary>
 public sealed record EventsResult(
-    IReadOnlyList<Event> Events,
+    List<Event> Events,
     bool InProgress
 );
 

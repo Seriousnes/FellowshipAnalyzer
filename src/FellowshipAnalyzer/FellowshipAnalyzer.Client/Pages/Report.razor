@@ -1,6 +1,9 @@
 @page "/report/{ReportCode}/{FightId:int}/{PlayerId:int}"
 @using FellowshipAnalyzer.Core.Analysis
 @using FellowshipAnalyzer.Core.Events
+@using CoreReportActor = FellowshipAnalyzer.Core.FellowshipLogs.ReportActor
+@using CoreReportFight = FellowshipAnalyzer.Core.FellowshipLogs.ReportFight
+@using CoreReportInfo = FellowshipAnalyzer.Core.FellowshipLogs.ReportInfo
 @using FellowshipAnalyzer.Components.Timeline
 @using FellowshipAnalyzer.Client.Services
 @inject ReportAnalysisService AnalysisService
@@ -10,75 +13,87 @@
 <PageTitle>Analysis Report</PageTitle>
 
 <div class="analysis-page">
-    <section class="hero-panel">
-        <nav class="breadcrumbs" aria-label="breadcrumb">
-            <a href="/report/@ReportCode">@CurrentReport?.Title</a>
-            <span class="breadcrumb-sep">›</span>
-            <span class="breadcrumb-current">@Fight?.Name</span>
-            <span class="breadcrumb-sep">›</span>
-            <span class="breadcrumb-current">@Player?.Name</span>
-        </nav>
-        <div class="hero-panel-body">
-            <div class="encounter-block">
-                @if (BossIcon is not null)
+    @if (Header is { } header)
+    {
+        <section class="hero-panel">
+            <nav class="breadcrumbs" aria-label="breadcrumb">
+                @if (!string.IsNullOrWhiteSpace(header.ReportInfo.Title))
                 {
-                    <img class="encounter-portrait"
-                         src="https://assets.rpglogs.com/img/fellowship/abilities/@BossIcon"
-                         alt="@Fight?.Name"
-                         onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />
-                    <div class="encounter-portrait-placeholder" style="display:none">
-                        @(Fight?.Name?.Length > 0 ? Fight.Name[0].ToString() : "?")
-                    </div>
+                    <a href="/report/@ReportCode">@header.ReportInfo.Title</a>
+                    <span class="breadcrumb-sep">›</span>
                 }
-                else
-                {
-                    <div class="encounter-portrait-placeholder">
-                        @(Fight?.Name?.Length > 0 ? Fight.Name[0].ToString() : "?")
+                <span class="breadcrumb-current">@header.Fight.Name</span>
+                <span class="breadcrumb-sep">›</span>
+                <span class="breadcrumb-current">@header.Player.Name</span>
+            </nav>
+            <div class="hero-panel-body">
+                <div class="encounter-block">
+                    @if (header.BossIcon is not null)
+                    {
+                        <img class="encounter-portrait"
+                             src="https://assets.rpglogs.com/img/fellowship/abilities/@header.BossIcon"
+                             alt="@header.Fight.Name"
+                             onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />
+                        <div class="encounter-portrait-placeholder" style="display:none">
+                            @FirstCharacter(header.Fight.Name)
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="encounter-portrait-placeholder">
+                            @FirstCharacter(header.Fight.Name)
+                        </div>
+                    }
+                    <div class="encounter-text">
+                        <h1 class="encounter-title">@header.Fight.Name</h1>
+                        @if (header.Fight.Kill == true)
+                        {
+                            <span class="fight-badge kill">✓ Kill</span>
+                        }
+                        else if (header.Fight.Kill == false)
+                        {
+                            <span class="fight-badge wipe">✗ Wipe</span>
+                        }
+                        <span class="fight-duration">@header.FightDuration</span>
                     </div>
-                }
-                <div class="encounter-text">
-                    <h1 class="encounter-title">@Fight?.Name</h1>
-                    @if (Fight?.Kill == true)
+                </div>
+                <div class="player-block">
+                    @if (header.Player.Icon is not null)
                     {
-                        <span class="fight-badge kill">✓ Kill</span>
+                        <img class="player-portrait"
+                             src="https://assets.rpglogs.com/img/fellowship/abilities/@header.Player.Icon"
+                             alt="@header.Player.Name"
+                             onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />
+                        <div class="player-portrait-placeholder" style="display:none">
+                            @FirstCharacter(header.Player.Name)
+                        </div>
                     }
-                    else if (Fight?.Kill == false)
+                    else
                     {
-                        <span class="fight-badge wipe">✗ Wipe</span>
+                        <div class="player-portrait-placeholder">
+                            @FirstCharacter(header.Player.Name)
+                        </div>
                     }
-                    @if (FightDuration is not null)
-                    {
-                        <span class="fight-duration">@FightDuration</span>
-                    }
+                    <div class="player-text">
+                        <h2 class="player-title">@header.Player.Name</h2>
+                        @if (header.Player.SubType is not null)
+                        {
+                            <span class="player-class-label">@header.Player.SubType</span>
+                        }
+                    </div>
                 </div>
             </div>
-            <div class="player-block">
-                @if (Player?.Icon is not null)
-                {
-                    <img class="player-portrait"
-                         src="https://assets.rpglogs.com/img/fellowship/abilities/@Player.Icon"
-                         alt="@Player.Name"
-                         onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />
-                    <div class="player-portrait-placeholder" style="display:none">
-                        @(Player.Name.Length > 0 ? Player.Name[0].ToString() : "?")
-                    </div>
-                }
-                else
-                {
-                    <div class="player-portrait-placeholder">
-                        @(Player?.Name?.Length > 0 ? Player.Name[0].ToString() : "?")
-                    </div>
-                }
-                <div class="player-text">
-                    <h2 class="player-title">@Player?.Name</h2>
-                    @if (Player?.SubType is not null)
-                    {
-                        <span class="player-class-label">@Player.SubType</span>
-                    }
-                </div>
+        </section>
+    }
+    else
+    {
+        <section class="hero-panel" aria-busy="true">
+            <div>
+                <p class="eyebrow">Combat Report</p>
+                <h1>Loading report details...</h1>
             </div>
-        </div>
-    </section>
+        </section>
+    }
 
     @if (_isLoading)
     {
@@ -171,7 +186,7 @@
                             <dt>Fight</dt><dd>@FightId</dd>
                             <dt>Player</dt><dd>@PlayerId</dd>
                             <dt>Events</dt><dd>@_context.Analysis.Events.Count total</dd>
-                            <dt>Fight Duration</dt><dd>@FightDuration</dd>
+                            <dt>Fight Duration</dt><dd>@FormatDuration(_context.Fight.EndTime - _context.Fight.StartTime)</dd>
                         </dl>
                         <div class="about-overview-links">
                             <button class="about-subtab" @onclick="() => _aboutSubView = AboutSubView.Events">View Events List →</button>
@@ -202,31 +217,33 @@
     [Parameter] public int PlayerId { get; set; }
 
     private ReportAnalysisContext? _context;
-    private FellowshipAnalyzer.Core.FellowshipLogs.ReportInfo? _previewInfo;
-    private FellowshipAnalyzer.Core.FellowshipLogs.ReportFight? _previewFight;
-    private FellowshipAnalyzer.Core.FellowshipLogs.ReportActor? _previewPlayer;
+    private CoreReportInfo? _reportInfo;
     private bool _isLoading = true;
     private string? _error;
     private ReportTab _activeTab = ReportTab.Guide;
     private AboutSubView _aboutSubView = AboutSubView.Overview;
 
-    // Resolved display values — prefer confirmed context, fall back to NavState preview.
-    private FellowshipAnalyzer.Core.FellowshipLogs.ReportInfo? CurrentReport => _context?.ReportInfo ?? _previewInfo;
-    private FellowshipAnalyzer.Core.FellowshipLogs.ReportFight? Fight => _context?.Fight ?? _previewFight;
-    private FellowshipAnalyzer.Core.FellowshipLogs.ReportActor? Player => _context?.Player ?? _previewPlayer;
-
-    private string? BossIcon => CurrentReport?.Actors.FirstOrDefault(a =>
-        !string.Equals(a.Type, "Player", StringComparison.OrdinalIgnoreCase)
-        && string.Equals(a.Name, Fight?.Name, StringComparison.OrdinalIgnoreCase)
-        && !string.IsNullOrEmpty(a.Icon))?.Icon;
-
-    private string? FightDuration
+    private ReportHeader? Header
     {
         get
         {
-            if (Fight is null) return null;
-            var ts = TimeSpan.FromMilliseconds(Fight.EndTime - Fight.StartTime);
-            return ts.TotalMinutes >= 1 ? $"{(int)ts.TotalMinutes}:{ts.Seconds:D2}" : $"{ts.Seconds}s";
+            if (_reportInfo is null)
+                return null;
+
+            var fight = _reportInfo.Fights.FirstOrDefault(f => f.Id == FightId);
+            if (fight is null)
+                return null;
+
+            var player = _reportInfo.Actors.FirstOrDefault(a => a.Id == PlayerId);
+            if (player is null)
+                return null;
+
+            return new ReportHeader(
+                _reportInfo,
+                fight,
+                player,
+                GetBossIcon(_reportInfo, fight),
+                FormatDuration(fight.EndTime - fight.StartTime));
         }
     }
 
@@ -234,9 +251,7 @@
     {
         if (NavState.TryGet(ReportCode, out var cached) && cached is not null)
         {
-            _previewInfo = cached;
-            _previewFight = cached.Fights.FirstOrDefault(f => f.Id == FightId);
-            _previewPlayer = cached.Actors.FirstOrDefault(a => a.Id == PlayerId);
+            _reportInfo = cached;
         }
     }
 
@@ -244,7 +259,8 @@
     {
         try
         {
-            _context = await AnalysisService.RunAsync(ReportCode, FightId, PlayerId);
+            _context = await AnalysisService.RunAsync(ReportCode, FightId, PlayerId, UpdateReportInfoAsync);
+            _reportInfo = _context.ReportInfo;
         }
         catch (Exception exception)
         {
@@ -255,4 +271,33 @@
             _isLoading = false;
         }
     }
+
+    private Task UpdateReportInfoAsync(CoreReportInfo reportInfo) =>
+        InvokeAsync(() =>
+        {
+            _reportInfo = reportInfo;
+            StateHasChanged();
+        });
+
+    private static string? GetBossIcon(CoreReportInfo reportInfo, CoreReportFight fight) =>
+        reportInfo.Actors.FirstOrDefault(a =>
+            !string.Equals(a.Type, "Player", StringComparison.OrdinalIgnoreCase)
+            && string.Equals(a.Name, fight.Name, StringComparison.OrdinalIgnoreCase)
+            && !string.IsNullOrEmpty(a.Icon))?.Icon;
+
+    private static string FormatDuration(double milliseconds)
+    {
+        var ts = TimeSpan.FromMilliseconds(milliseconds);
+        return ts.TotalMinutes >= 1 ? $"{(int)ts.TotalMinutes}:{ts.Seconds:D2}" : $"{ts.Seconds}s";
+    }
+
+    private static string FirstCharacter(string value) =>
+        value.Length > 0 ? value[0].ToString() : "";
+
+    private sealed record ReportHeader(
+        CoreReportInfo ReportInfo,
+        CoreReportFight Fight,
+        CoreReportActor Player,
+        string? BossIcon,
+        string FightDuration);
 }

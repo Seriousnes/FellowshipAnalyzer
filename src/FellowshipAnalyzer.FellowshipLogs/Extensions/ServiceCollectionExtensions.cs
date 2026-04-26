@@ -28,7 +28,7 @@ public static class ServiceCollectionExtensions
 
         services.AddHttpClient("FellowshipLogsAuth");
 
-        services.AddSingleton<ClientCredentialsTokenCache>(sp =>
+        services.AddSingleton(sp =>
             new ClientCredentialsTokenCache(
                 sp.GetRequiredService<IHttpClientFactory>().CreateClient("FellowshipLogsAuth"),
                 sp.GetRequiredService<FellowshipLogsClientOptions>()));

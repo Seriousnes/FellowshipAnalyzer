@@ -6,6 +6,7 @@
     <Project Path="src/FellowshipAnalyzer.Heroes.Rime/FellowshipAnalyzer.Heroes.Rime.csproj" />
     <Project Path="tests/FellowshipAnalyzer.Heroes.Rime.Tests/FellowshipAnalyzer.Heroes.Rime.Tests.csproj" />
   </Folder>
+  <Project Path="src/FellowshipAnalyzer.Analyzers/FellowshipAnalyzer.Analyzers.csproj" />
   <Project Path="src/FellowshipAnalyzer.AppHost/FellowshipAnalyzer.AppHost.csproj" />
   <Project Path="src/FellowshipAnalyzer.Components/FellowshipAnalyzer.Components.csproj" />
   <Project Path="src/FellowshipAnalyzer.FellowshipLogs/FellowshipAnalyzer.FellowshipLogs.csproj" />
