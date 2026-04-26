@@ -1,6 +1,6 @@
 var builder = DistributedApplication.CreateBuilder(args);
 
-var api = builder.AddProject<Projects.FellowshipAnalyzer_Api>("fellowshipanalyzerapi")
+var api = builder.AddAzureFunctionsProject<Projects.FellowshipAnalyzer_Api>("fellowshipanalyzerapi")
     .WithEndpoint("http", e =>
     {
         e.Port = 5123;

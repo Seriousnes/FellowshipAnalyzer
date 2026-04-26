@@ -32,27 +32,13 @@ jobs:
       - name: Explain deployment gate
         run: echo "Set repository variable ENABLE_AZURE_DEPLOYMENTS=true after configuring Azure secrets and variables."
 
-  deploy-api:
-    name: Deploy API proxy
+  configure-static-web-app:
+    name: Configure Static Web App
     runs-on: ubuntu-latest
     if: ${{ vars.ENABLE_AZURE_DEPLOYMENTS == 'true' }}
     environment: production
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: ${{ env.DOTNET_VERSION }}
-
-      - name: Publish API proxy
-        run: >-
-          dotnet publish ${{ env.API_PROJECT }}
-          --configuration ${{ env.CONFIGURATION }}
-          --output ./publish/api
-
       - name: Azure login
         uses: azure/login@v2
         with:
@@ -60,22 +46,21 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-      - name: Configure API application settings
+      - name: Configure managed API application settings
         shell: pwsh
         env:
           AZURE_RESOURCE_GROUP: ${{ vars.AZURE_RESOURCE_GROUP }}
-          AZURE_WEBAPP_NAME: ${{ vars.AZURE_WEBAPP_NAME }}
+          AZURE_STATIC_WEB_APP_NAME: ${{ vars.AZURE_STATIC_WEB_APP_NAME }}
           FELLOWSHIPLOGS_CLIENT_ID: ${{ secrets.FELLOWSHIPLOGS_CLIENT_ID }}
           FELLOWSHIPLOGS_CLIENT_SECRET: ${{ secrets.FELLOWSHIPLOGS_CLIENT_SECRET }}
           FELLOWSHIPLOGS_TOKEN_ENDPOINT: ${{ vars.FELLOWSHIPLOGS_TOKEN_ENDPOINT }}
           FELLOWSHIPLOGS_GRAPHQL_ENDPOINT: ${{ vars.FELLOWSHIPLOGS_GRAPHQL_ENDPOINT }}
-          STATIC_WEB_APP_ORIGIN: ${{ vars.STATIC_WEB_APP_ORIGIN }}
           PROXY_RATE_LIMIT_PERMIT_LIMIT: ${{ vars.PROXY_RATE_LIMIT_PERMIT_LIMIT }}
           PROXY_RATE_LIMIT_QUEUE_LIMIT: ${{ vars.PROXY_RATE_LIMIT_QUEUE_LIMIT }}
           PROXY_RATE_LIMIT_WINDOW: ${{ vars.PROXY_RATE_LIMIT_WINDOW }}
         run: |
           if ([string]::IsNullOrWhiteSpace($env:AZURE_RESOURCE_GROUP)) { throw "Set repository variable AZURE_RESOURCE_GROUP." }
-          if ([string]::IsNullOrWhiteSpace($env:AZURE_WEBAPP_NAME)) { throw "Set repository variable AZURE_WEBAPP_NAME." }
+          if ([string]::IsNullOrWhiteSpace($env:AZURE_STATIC_WEB_APP_NAME)) { throw "Set repository variable AZURE_STATIC_WEB_APP_NAME." }
           if ([string]::IsNullOrWhiteSpace($env:FELLOWSHIPLOGS_CLIENT_ID)) { throw "Set secret FELLOWSHIPLOGS_CLIENT_ID." }
           if ([string]::IsNullOrWhiteSpace($env:FELLOWSHIPLOGS_CLIENT_SECRET)) { throw "Set secret FELLOWSHIPLOGS_CLIENT_SECRET." }
 
@@ -83,13 +68,10 @@ jobs:
           Write-Output "::add-mask::$env:FELLOWSHIPLOGS_CLIENT_SECRET"
 
           $settings = @(
+            "FUNCTIONS_WORKER_RUNTIME=dotnet-isolated",
             "FellowshipLogs__ClientId=$env:FELLOWSHIPLOGS_CLIENT_ID",
             "FellowshipLogs__ClientSecret=$env:FELLOWSHIPLOGS_CLIENT_SECRET"
           )
-
-          if (-not [string]::IsNullOrWhiteSpace($env:STATIC_WEB_APP_ORIGIN)) {
-            $settings += "Cors__AllowedOrigins__0=$env:STATIC_WEB_APP_ORIGIN"
-          }
 
           if (-not [string]::IsNullOrWhiteSpace($env:FELLOWSHIPLOGS_TOKEN_ENDPOINT)) {
             $settings += "FellowshipLogs__TokenEndpoint=$env:FELLOWSHIPLOGS_TOKEN_ENDPOINT"
@@ -111,22 +93,16 @@ jobs:
             $settings += "FellowshipLogsProxy__RateLimit__Window=$env:PROXY_RATE_LIMIT_WINDOW"
           }
 
-          az webapp config appsettings set `
+          az staticwebapp appsettings set `
             --resource-group $env:AZURE_RESOURCE_GROUP `
-            --name $env:AZURE_WEBAPP_NAME `
-            --settings $settings `
+            --name $env:AZURE_STATIC_WEB_APP_NAME `
+            --setting-names $settings `
             --output none
-
-      - name: Deploy API proxy
-        uses: azure/webapps-deploy@v3
-        with:
-          app-name: ${{ vars.AZURE_WEBAPP_NAME }}
-          package: ./publish/api
 
   deploy-static-web-app:
     name: Deploy Static Web App
     runs-on: ubuntu-latest
-    needs: deploy-api
+    needs: configure-static-web-app
     if: ${{ vars.ENABLE_AZURE_DEPLOYMENTS == 'true' }}
     environment: production
 
@@ -141,14 +117,9 @@ jobs:
 
       - name: Generate static client configuration
         shell: pwsh
-        env:
-          API_BASE_URL: ${{ vars.API_BASE_URL }}
         run: |
           $configPath = "src/FellowshipAnalyzer/FellowshipAnalyzer.Client/wwwroot/config.json"
           $apiBaseUrl = "/"
-          if (-not [string]::IsNullOrWhiteSpace($env:API_BASE_URL)) {
-            $apiBaseUrl = $env:API_BASE_URL.TrimEnd('/')
-          }
 
           $config = @{ apiBaseUrl = $apiBaseUrl } | ConvertTo-Json -Compress
           Set-Content -Path $configPath -Value $config -Encoding utf8
@@ -159,6 +130,12 @@ jobs:
           --configuration ${{ env.CONFIGURATION }}
           -p:StandaloneWasmHost=true
           --output ./publish/static
+
+      - name: Publish managed API
+        run: >-
+          dotnet publish ${{ env.API_PROJECT }}
+          --configuration ${{ env.CONFIGURATION }}
+          --output ./publish/api
 
       - name: Validate Static Web Apps artifact
         shell: pwsh
@@ -172,6 +149,9 @@ jobs:
           if (-not (Test-Path "publish/static/wwwroot/staticwebapp.config.json")) {
             throw "Static Web Apps deployment requires staticwebapp.config.json in the published wwwroot."
           }
+          if (-not (Test-Path "publish/api/host.json")) {
+            throw "Static Web Apps managed API deployment requires host.json in the published API artifact."
+          }
 
       - name: Deploy Static Web App
         uses: Azure/static-web-apps-deploy@v1
@@ -180,4 +160,6 @@ jobs:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           action: upload
           app_location: publish/static/wwwroot
+          api_location: publish/api
           skip_app_build: true
+          skip_api_build: true
