@@ -14,7 +14,6 @@ namespace FellowshipAnalyzer.Core.Serialization;
 [JsonSerializable(typeof(List<Event>))]
 [JsonSerializable(typeof(EventsResult))]
 [JsonSerializable(typeof(AnalysisPreload))]
-[JsonSerializable(typeof(GraphQLResponse<GraphQLReportResponse>))]
 [JsonSerializable(typeof(AbsorbedEvent))]
 [JsonSerializable(typeof(ApplyBuffEvent))]
 [JsonSerializable(typeof(ApplyBuffStackEvent))]

@@ -2,7 +2,7 @@
 @using FellowshipAnalyzer.Core.FellowshipLogs
 @using CoreReportInfo = FellowshipAnalyzer.Core.FellowshipLogs.ReportInfo
 @using FellowshipAnalyzer.Client.Services
-@inject IFellowshipLogsClient FellowshipLogs
+@inject FellowshipLogsApiClient FellowshipLogs
 @inject ReportNavigationState NavState
 @inject NavigationManager Navigation
 
@@ -183,7 +183,7 @@
 
     private static readonly Dictionary<string, HeroRole> RoleBySubType = new(StringComparer.OrdinalIgnoreCase)
     {
-        ["rime"] = HeroRole.Dps,
+        ["rime"] = HeroRole.Dps,        
     };
 
     [Parameter] public string ReportCode { get; set; } = "";
@@ -215,7 +215,7 @@
 
         try
         {
-            _report = (await FellowshipLogs.AnalysisPreload.GetAsync(ReportCode)).ReportInfo;
+            _report = (await FellowshipLogs.GetAnalysisPreloadAsync(ReportCode)).ReportInfo;
             NavState.Set(ReportCode, _report);
             _bossIconByName = _report.Actors
                 .Where(a => !string.Equals(a.Type, "Player", StringComparison.OrdinalIgnoreCase))

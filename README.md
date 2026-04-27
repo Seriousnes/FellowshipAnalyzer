@@ -10,7 +10,7 @@ The solution is split into a few major areas:
 
 - `src/FellowshipAnalyzer/FellowshipAnalyzer` - the Blazor host application.
 - `src/FellowshipAnalyzer/FellowshipAnalyzer.Client` - the Blazor WebAssembly client that performs analysis in the browser.
-- `src/FellowshipAnalyzer/FellowshipAnalyzer.Api` - the Azure Functions API proxy for Fellowship Logs.
+- `src/FellowshipAnalyzer/FellowshipAnalyzer.Api` - the Azure Functions API for Fellowship Logs.
 - `src/FellowshipAnalyzer.Core` - combat events, parser infrastructure, shared analysis modules, normalizers, spell data, and source-generated JSON context.
 - `src/FellowshipAnalyzer.Components` - shared Razor components and styling used by guides and statistics.
 - `src/Heroes/FellowshipAnalyzer.Heroes.{Hero}` - one Razor class library per hero analyzer.
@@ -31,14 +31,15 @@ Install these before running the app locally:
 - Docker, required by Aspire to run local service containers
 - Optional: Visual Studio or VS Code with C# Dev Kit
 
-The API needs Fellowship Logs credentials. For local development, provide these through user secrets, environment variables, or your launch profile:
+The API needs Fellowship Logs credentials. For local development, set them as user secrets on the DevApi project:
 
 ```powershell
-$env:FellowshipLogs__ClientId = "your-client-id"
-$env:FellowshipLogs__ClientSecret = "your-client-secret"
+dotnet user-secrets set "FellowshipLogs:ClientId" "your-client-id" --project src/FellowshipAnalyzer/FellowshipAnalyzer.DevApi
+dotnet user-secrets set "FellowshipLogs:ClientSecret" "your-client-secret" --project src/FellowshipAnalyzer/FellowshipAnalyzer.DevApi
 ```
 
-Configuration also supports `FellowshipLogs:TokenEndpoint` and `FellowshipLogs:GraphQlEndpoint` if you need to override the defaults.
+Alternatively, use environment variables or a launch profile with double-underscore notation (`FellowshipLogs__ClientId`). Configuration also supports `FellowshipLogs:TokenEndpoint` and `FellowshipLogs:GraphQlEndpoint` if you need to override the defaults.
+
 
 ## Getting Started
 

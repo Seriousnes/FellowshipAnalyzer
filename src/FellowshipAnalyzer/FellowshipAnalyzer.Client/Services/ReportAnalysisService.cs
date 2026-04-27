@@ -32,7 +32,7 @@ public sealed record ReportAnalysisContext(
 /// Extracted from Report.razor to keep the component a thin view layer.
 /// </summary>
 public sealed class ReportAnalysisService(
-    IFellowshipLogsClient fellowshipLogs,
+    FellowshipLogsApiClient fellowshipLogs,
     ReportLoadingTracker loadingTracker,
     ReportMasterDataService masterDataService,
     IServiceProvider serviceProvider,
@@ -55,15 +55,14 @@ public sealed class ReportAnalysisService(
         // Start preload and the local cache check concurrently. The cache check is fast (IndexedDB)
         // and determines whether a live events request is needed at all. Awaiting it first lets us
         // fire the events request immediately on a miss so it overlaps with the remaining preload wait.
-        var preloadTask = fellowshipLogs.AnalysisPreload.GetAsync(reportCode);
-        var eventsRequest = new FellowshipLogsEventsRequest(reportCode, playerId, fightId);
+        var preloadTask = fellowshipLogs.GetAnalysisPreloadAsync(reportCode);
         var cachedEventsBytesTask = reportCache.GetCachedEventsBytesAsync(reportCode, fightId, playerId).AsTask();
 
         var cachedEventsBytes = await cachedEventsBytesTask;
         // On a miss, fetch raw UTF-8 JSON bytes only — defer deserialization to its own step so we
         // can measure network I/O vs JSON parsing separately, and cache the network bytes verbatim.
-        Task<RawEventsResponse>? liveEventsRawTask = cachedEventsBytes is null
-            ? fellowshipLogs.Events.GetRawBytesAsync(eventsRequest)
+        Task<byte[]>? liveEventsRawTask = cachedEventsBytes is null
+            ? fellowshipLogs.GetRawEventsAsync(reportCode, playerId, fightId)
             : null;
 
         var preload = await preloadTask;
@@ -83,7 +82,7 @@ public sealed class ReportAnalysisService(
 
         // The JSON bytes we hold at this point are always shaped as EventsResult: { events: [...], inProgress: bool }.
         // On hit it came from IndexedDB; on miss it came directly from the proxy and has not yet been parsed.
-        byte[] eventsResultJsonBytes = cachedEventsBytes ?? (await liveEventsRawTask!).JsonBytes;
+        byte[] eventsResultJsonBytes = cachedEventsBytes ?? await liveEventsRawTask!;
         bool isFreshFromNetwork = cachedEventsBytes is null;
 
         loadingTracker.FetchEventsState = ReportLoadingTracker.StepState.Ok;

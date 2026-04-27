@@ -1,7 +1,7 @@
 @using System.Text.RegularExpressions
 @using FellowshipAnalyzer.Core.FellowshipLogs
 @using FellowshipAnalyzer.Client.Services
-@inject IFellowshipLogsClient FellowshipLogs
+@inject FellowshipLogsApiClient FellowshipLogs
 @inject ReportNavigationState NavState
 @inject NavigationManager Navigation
 
@@ -68,7 +68,7 @@
 
         try
         {
-            var preload = await FellowshipLogs.AnalysisPreload.GetAsync(code);
+            var preload = await FellowshipLogs.GetAnalysisPreloadAsync(code);
             NavState.Set(code, preload.ReportInfo);
 
             var fight = ExtractQueryParam(_reportInput, "fight");

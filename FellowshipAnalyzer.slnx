@@ -1,4 +1,9 @@
 <Solution>
+  <Folder Name="/API/">
+    <Project Path="src/FellowshipAnalyzer/FellowshipAnalyzer.Api.Core/FellowshipAnalyzer.Api.Core.csproj" />
+    <Project Path="src/FellowshipAnalyzer/FellowshipAnalyzer.Api/FellowshipAnalyzer.Api.csproj" />
+    <Project Path="src/FellowshipAnalyzer/FellowshipAnalyzer.DevApi/FellowshipAnalyzer.DevApi.csproj" />
+  </Folder>
   <Folder Name="/Heroes/">
     <Project Path="src/FellowshipAnalyzer.Core/FellowshipAnalyzer.Core.csproj" />
   </Folder>
@@ -49,13 +54,10 @@
   <Project Path="src/FellowshipAnalyzer.Analyzers/FellowshipAnalyzer.Analyzers.csproj" />
   <Project Path="src/FellowshipAnalyzer.AppHost/FellowshipAnalyzer.AppHost.csproj" />
   <Project Path="src/FellowshipAnalyzer.Components/FellowshipAnalyzer.Components.csproj" />
-  <Project Path="src/FellowshipAnalyzer.FellowshipLogs/FellowshipAnalyzer.FellowshipLogs.csproj" />
   <Project Path="src/FellowshipAnalyzer.Generators/FellowshipAnalyzer.Generators.csproj" />
   <Project Path="src/FellowshipAnalyzer.ServiceDefaults/FellowshipAnalyzer.ServiceDefaults.csproj" />
-  <Project Path="src/FellowshipAnalyzer/FellowshipAnalyzer.Api/FellowshipAnalyzer.Api.csproj" />
   <Project Path="src/FellowshipAnalyzer/FellowshipAnalyzer.Client/FellowshipAnalyzer.Client.csproj" />
   <Project Path="src/FellowshipAnalyzer/FellowshipAnalyzer/FellowshipAnalyzer.csproj" />
   <Project Path="tests/FellowshipAnalyzer.Core.Tests/FellowshipAnalyzer.Core.Tests.csproj" />
-  <Project Path="tests/FellowshipAnalyzer.FellowshipLogs.Tests/FellowshipAnalyzer.FellowshipLogs.Tests.csproj" />
   <Project Path="tests/FellowshipAnalyzer.Generators.Tests/FellowshipAnalyzer.Generators.Tests.csproj" />
 </Solution>

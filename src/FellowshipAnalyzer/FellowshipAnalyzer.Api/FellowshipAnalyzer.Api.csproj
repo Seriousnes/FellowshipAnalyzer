@@ -9,15 +9,14 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\FellowshipAnalyzer.ServiceDefaults\FellowshipAnalyzer.ServiceDefaults.csproj" />
-    <ProjectReference Include="..\..\FellowshipAnalyzer.FellowshipLogs\FellowshipAnalyzer.FellowshipLogs.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="Microsoft.Azure.Functions.Worker" />
     <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore" />
     <PackageReference Include="Microsoft.Azure.Functions.Worker.Sdk" OutputItemType="Analyzer" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\FellowshipAnalyzer.Api.Core\FellowshipAnalyzer.Api.Core.csproj" />
   </ItemGroup>
 
   <ItemGroup>

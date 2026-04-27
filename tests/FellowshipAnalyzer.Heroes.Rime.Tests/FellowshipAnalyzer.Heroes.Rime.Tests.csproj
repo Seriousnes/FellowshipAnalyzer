@@ -20,12 +20,11 @@
 	</ItemGroup>
 	
 	<ItemGroup>
-		<ProjectReference Include="..\..\src\FellowshipAnalyzer.FellowshipLogs\FellowshipAnalyzer.FellowshipLogs.csproj" />
 		<ProjectReference Include="..\..\src\Heroes\FellowshipAnalyzer.Heroes.Rime\FellowshipAnalyzer.Heroes.Rime.csproj" />
 	</ItemGroup>
 	
 	<ItemGroup>
-		<None Include="..\..\src\FellowshipAnalyzer.FellowshipLogs\events-with-ability-details.json" Link="TestData\events-with-ability-details.json" CopyToOutputDirectory="PreserveNewest" />
+		<None Include="..\TestData\events-with-ability-details.json" Link="TestData\events-with-ability-details.json" CopyToOutputDirectory="PreserveNewest" />
 	</ItemGroup>
 	
 </Project>

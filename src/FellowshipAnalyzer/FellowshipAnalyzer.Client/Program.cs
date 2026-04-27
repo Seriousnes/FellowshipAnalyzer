@@ -61,7 +61,7 @@ builder.Services.AddFellowshipHeroAnalysis();
 
 builder.Services.AddScoped<ReportLoadingTracker>();
 builder.Services.AddScoped<ReportNavigationState>();
-builder.Services.AddScoped<IFellowshipLogsClient, FellowshipLogsProxyClient>();
+builder.Services.AddScoped<FellowshipLogsApiClient>();
 builder.Services.AddScoped<IReportCacheService, IndexedDbReportCacheService>();
 builder.Services.AddScoped<ReportAnalysisService>();
 builder.Services.AddScoped<TimelineConfigService>();

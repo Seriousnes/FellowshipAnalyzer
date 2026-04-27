@@ -31,12 +31,14 @@ To run the app locally:
 dotnet run --project src/FellowshipAnalyzer.AppHost/FellowshipAnalyzer.AppHost.csproj
 ```
 
-The local API needs Fellowship Logs credentials. The simplest local setup is environment variables:
+The local API needs Fellowship Logs credentials. The recommended setup is user secrets on the DevApi project:
 
 ```powershell
-$env:FellowshipLogs__ClientId = "your-client-id"
-$env:FellowshipLogs__ClientSecret = "your-client-secret"
+dotnet user-secrets set "FellowshipLogs:ClientId" "your-client-id" --project src/FellowshipAnalyzer/FellowshipAnalyzer.DevApi
+dotnet user-secrets set "FellowshipLogs:ClientSecret" "your-client-secret" --project src/FellowshipAnalyzer/FellowshipAnalyzer.DevApi
 ```
+
+Alternatively use environment variables with double-underscore notation (`FellowshipLogs__ClientId`). Aspire does not forward the AppHost's user secrets to child projects, so secrets set against the AppHost project will not work.
 
 ## Choosing Where Code Goes
 

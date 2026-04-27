@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>fellowshipanalyzer-devapi</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\FellowshipAnalyzer.Api.Core\FellowshipAnalyzer.Api.Core.csproj" />
+    <ProjectReference Include="..\..\FellowshipAnalyzer.ServiceDefaults\FellowshipAnalyzer.ServiceDefaults.csproj" />
+  </ItemGroup>
+
+</Project>

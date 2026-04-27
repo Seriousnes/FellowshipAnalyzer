@@ -1,6 +1,8 @@
 var builder = DistributedApplication.CreateBuilder(args);
 
-var api = builder.AddAzureFunctionsProject<Projects.FellowshipAnalyzer_Api>("fellowshipanalyzerapi");
+var api = builder
+    .AddProject<Projects.FellowshipAnalyzer_DevApi>("fellowshipanalyzerapi")
+    .WithExternalHttpEndpoints();
 
 builder.AddProject<Projects.FellowshipAnalyzer>("fellowshipanalyzer")
     .WithReference(api)

@@ -1,8 +1,0 @@
-extend schema
-  @strawberryShake(
-    name: "FellowshipLogsApiClient",
-    namespace: "FellowshipAnalyzer.FellowshipLogs.API",
-    accessibility: "internal"
-  )
-
-scalar JSON @binding(name: "System.Text.Json.JsonElement")

@@ -22,16 +22,23 @@ else
     app.UseHsts();
 }
 
+// Fail fast if the API base URL cannot be resolved. We deliberately do NOT
+// silently fall back to a hardcoded localhost URL: missing service discovery
+// or configuration must surface as an error rather than be hidden behind a
+// stale default that masks broken Aspire wiring.
 var publicApiHttpBaseUrl =
     builder.Configuration["Services:fellowshipanalyzerapi:http:0"]?.TrimEnd('/')
     ?? builder.Configuration["PublicApi:HttpBaseUrl"]?.TrimEnd('/')
     ?? builder.Configuration["PublicApi:BaseUrl"]?.TrimEnd('/')
-    ?? "http://localhost:5123";
+    ?? throw new InvalidOperationException(
+        "API base URL (http) is not configured. Expected one of "
+        + "'Services:fellowshipanalyzerapi:http:0' (Aspire service discovery), "
+        + "'PublicApi:HttpBaseUrl', or 'PublicApi:BaseUrl'.");
 
 var publicApiHttpsBaseUrl =
     builder.Configuration["Services:fellowshipanalyzerapi:https:0"]?.TrimEnd('/')
     ?? builder.Configuration["PublicApi:HttpsBaseUrl"]?.TrimEnd('/')
-    ?? "https://localhost:57510";
+    ?? publicApiHttpBaseUrl;
 
 app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
 app.UseHttpsRedirection();
