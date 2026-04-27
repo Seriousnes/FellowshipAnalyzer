@@ -55,7 +55,9 @@ public static class ServiceCollectionExtensions
             DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
             PropertyNameCaseInsensitive = true,
+#if NET9_0_OR_GREATER
             AllowOutOfOrderMetadataProperties = true,
+#endif
         };
         options.Converters.Add(new JsonStringEnumConverter(allowIntegerValues: true));
         return options;

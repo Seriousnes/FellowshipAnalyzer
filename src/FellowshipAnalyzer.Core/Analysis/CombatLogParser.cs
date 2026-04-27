@@ -136,7 +136,10 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
 
         await EventEmitter.DispatchEventsAsync(Events, tracker);
 
-        tracker?.AnalyzeState = ReportLoadingTracker.StepState.Ok;
+        if (tracker is not null)
+        {
+            tracker.AnalyzeState = ReportLoadingTracker.StepState.Ok;
+        }
         await Task.Yield();
 
         foreach (var m in _activeModules.Values)
