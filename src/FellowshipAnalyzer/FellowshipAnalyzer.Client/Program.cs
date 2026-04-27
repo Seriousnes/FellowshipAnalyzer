@@ -25,6 +25,9 @@ builder.RootComponents.Add<HeadOutlet>("head::after");
 
 var hostBaseAddress = new Uri(builder.HostEnvironment.BaseAddress);
 
+#if STANDALONE_WASM
+var apiBaseAddress = hostBaseAddress;
+#else
 using var hostConfigurationClient = new HttpClient
 {
     BaseAddress = hostBaseAddress
@@ -34,6 +37,7 @@ var clientConfiguration = await hostConfigurationClient.GetFromJsonAsync<ClientC
     ?? throw new InvalidOperationException("The FellowshipAnalyzer host did not provide client configuration.");
 
 var apiBaseAddress = ResolveApiBaseAddress(hostBaseAddress, clientConfiguration.ApiBaseUrl);
+#endif
 builder.Services.AddScoped(_ => new HttpClient { BaseAddress = apiBaseAddress });
 
 var jsonOptions = new JsonSerializerOptions(JsonSerializerOptions.Web)
@@ -64,6 +68,7 @@ builder.Services.AddScoped<TimelineConfigService>();
 
 await builder.Build().RunAsync();
 
+#if !STANDALONE_WASM
 static Uri ResolveApiBaseAddress(Uri hostBaseAddress, string apiBaseUrl)
 {
     if (string.IsNullOrWhiteSpace(apiBaseUrl))
@@ -81,3 +86,4 @@ static Uri ResolveApiBaseAddress(Uri hostBaseAddress, string apiBaseUrl)
 }
 
 internal sealed record ClientConfiguration(string ApiBaseUrl);
+#endif
