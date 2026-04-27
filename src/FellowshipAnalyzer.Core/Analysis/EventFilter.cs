@@ -107,12 +107,12 @@ public class EventFilter<T> : EventFilter where T : Event
 
         if (checkPlayer && checkPet)
         {
-            return e => e is IHasSourceEvent && (Owner.ByPlayer((IHasSourceEvent)e) || Owner.ByPlayerPet((IHasSourceEvent)e));
+            return e => e is IHasSourceEvent && (Owner.ByPlayer((IHasSourceEvent)e, null) || Owner.ByPlayerPet((IHasSourceEvent)e));
         }
 
         if (checkPlayer)
         {
-            return e => e is IHasSourceEvent && Owner.ByPlayer((IHasSourceEvent)e);
+            return e => e is IHasSourceEvent && Owner.ByPlayer((IHasSourceEvent)e, null);
         }
 
         if (checkPet)
@@ -130,12 +130,12 @@ public class EventFilter<T> : EventFilter where T : Event
 
         if (checkPlayer && checkPet)
         {
-            return e => e is IHasTargetEvent && (Owner.ToPlayer((IHasTargetEvent)e) || Owner.ToPlayerPet((IHasTargetEvent)e));
+            return e => e is IHasTargetEvent && (Owner.ToPlayer((IHasTargetEvent)e, null) || Owner.ToPlayerPet((IHasTargetEvent)e));
         }
 
         if (checkPlayer)
         {
-            return e => e is IHasTargetEvent && Owner.ToPlayer((IHasTargetEvent)e);
+            return e => e is IHasTargetEvent && Owner.ToPlayer((IHasTargetEvent)e, null);
         }
 
         if (checkPet)
