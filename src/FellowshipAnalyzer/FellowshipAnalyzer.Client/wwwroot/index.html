@@ -139,13 +139,13 @@
                 }
 
                 // Resource callbacks can finish while Blazor is still discovering boot resources.
-                // Debounce the all-complete check so newly queued resources are counted first.
+                // Debounce the all-complete check briefly so newly queued resources are counted first.
                 completionCheckHandle = window.setTimeout(function () {
                     completionCheckHandle = null;
                     if (completedResources === requestedResources) {
                         setStatus('Initialising…');
                     }
-                }, 0);
+                }, 25);
             }
 
             Blazor.start({
@@ -171,9 +171,8 @@
                             throw new Error('Failed to load ' + name + ' (' + response.status + ' ' + response.statusText + ')');
                         }
 
-                        var contentLength = response.headers.get('Content-Length');
-                        var total = contentLength ? parseInt(contentLength, 10) : 0;
-                        if (!Number.isFinite(total)) {
+                        var total = parseInt(response.headers.get('Content-Length') || '0', 10);
+                        if (isNaN(total) || total < 0) {
                             total = 0;
                         }
 
@@ -181,8 +180,6 @@
                             totalBytes += total;
                             hasByteProgress = true;
                             updateProgress();
-                        } else {
-                            total = 0;
                         }
 
                         if (response.body) {
