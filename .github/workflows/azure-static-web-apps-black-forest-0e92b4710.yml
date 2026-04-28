@@ -26,8 +26,24 @@ jobs:
             8.0.x
             10.0.x
 
+      - name: Resolve .NET SDK version
+        id: dotnet
+        run: echo "version=$(dotnet --version)" >> "$GITHUB_OUTPUT"
+
+      - name: Cache wasm-tools workload
+        id: cache-wasm-tools
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.dotnet/sdk-manifests
+            ~/.dotnet/packs
+            ~/.dotnet/metadata
+            ~/.dotnet/library-packs
+          key: dotnet-workload-wasm-tools-${{ runner.os }}-${{ steps.dotnet.outputs.version }}
+
       - name: Install wasm-tools workload
-        run: dotnet workload install wasm-tools
+        if: steps.cache-wasm-tools.outputs.cache-hit != 'true'
+        run: dotnet workload install wasm-tools --skip-manifest-update
 
       - name: Publish Blazor WebAssembly (standalone)
         run: |
