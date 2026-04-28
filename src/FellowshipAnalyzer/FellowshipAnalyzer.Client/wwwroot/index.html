@@ -109,6 +109,7 @@
             var totalBytes = 0;
             var loadedBytes = 0;
             var hasByteProgress = false;
+            var completionCheckHandle = null;
 
             function setStatus(text) {
                 if (status) status.textContent = text;
@@ -150,11 +151,15 @@
                 completedResources++;
                 updateProgress();
 
+                if (completionCheckHandle) {
+                    window.clearTimeout(completionCheckHandle);
+                }
+
                 // Resource callbacks can finish while Blazor is still discovering boot resources.
-                // Defer the all-complete check so newly queued resources are counted first.
-                window.setTimeout(function () {
+                // Debounce the all-complete check so newly queued resources are counted first.
+                completionCheckHandle = window.setTimeout(function () {
+                    completionCheckHandle = null;
                     if (completedResources === requestedResources) {
-                        setProgress(100);
                         setStatus('Initialising…');
                     } else {
                         updateLoadingStatus(type);
@@ -164,6 +169,8 @@
 
             Blazor.start({
                 loadBootResource: function (type, name, defaultUri, integrity) {
+                    // Let Blazor load the dotnet.js bootstrap script itself; custom loading is
+                    // only used for fetchable boot resources where we can observe completion.
                     if (type === 'dotnetjs') {
                         setStatus('Loading runtime…');
                         return null;
@@ -187,7 +194,7 @@
                         var total = contentLength ? parseInt(contentLength, 10) : 0;
                         var loaded = 0;
 
-                        if (Number.isFinite(total) && total > 0) {
+                        if (total > 0) {
                             totalBytes += total;
                             hasByteProgress = true;
                             updateProgress();
