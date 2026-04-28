@@ -4,10 +4,9 @@ using FellowshipAnalyzer.Heroes.Helena.Modules;
 
 namespace FellowshipAnalyzer.Heroes.Helena.Analysis;
 
-[HeroAnalyzer("helena")]
+[HeroAnalyzer(HeroName.Helena)]
 [AddModule<Modules.Abilities>]
 public sealed partial class HelenaCombatLogParser : CombatLogParser
 {
-    public override string HeroId => "helena";
     public override Type? GuideComponent => typeof(HelenaGuide);
 }

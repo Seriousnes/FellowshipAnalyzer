@@ -9,7 +9,7 @@ public sealed record ReportHistoryEntry(
     int PlayerId,
     string? FightName,
     string? PlayerName,
-    string? HeroId,
+    Analysis.HeroName? Hero,
     DateTimeOffset CachedAt
 );
 

@@ -68,7 +68,7 @@ Only set `MaxOverrides` when the resource cap cannot be trusted from event snaps
 Register the tracker before analyzers that depend on it:
 
 ```csharp
-[HeroAnalyzer("{hero-id}")]
+[HeroAnalyzer(HeroName.{Hero})]
 [AddModule<{Resource}Tracker>]
 [AddModule<Modules.Abilities>]
 [AddModule<SomeAnalyzer>]

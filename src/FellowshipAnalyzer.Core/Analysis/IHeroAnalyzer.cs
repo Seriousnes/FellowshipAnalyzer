@@ -9,8 +9,6 @@ namespace FellowshipAnalyzer.Core.Analysis;
 /// </summary>
 public interface IHeroAnalyzer
 {
-    string HeroId { get; }
-
     /// <summary>
     /// Report-level actor name lookup, keyed by actor ID.
     /// Must be populated before calling <see cref="Analyze"/>.

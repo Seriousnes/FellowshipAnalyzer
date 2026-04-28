@@ -23,7 +23,7 @@ public sealed class TariqAnalysisEngineTests
         using var provider = services.BuildServiceProvider();
         using var scope = provider.CreateScope();
 
-        var analyzer = scope.ServiceProvider.GetRequiredKeyedService<IHeroAnalyzer>("tariq");
+        var analyzer = scope.ServiceProvider.GetRequiredKeyedService<IHeroAnalyzer>(HeroName.Tariq);
         var result = await analyzer.Analyze([], playerId: 1, fightStartTime: 0);
 
         result.GuideComponentType.ShouldNotBeNull();

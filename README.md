@@ -92,7 +92,7 @@ Modules are scoped services resolved per analysis run. Put event subscriptions i
 
 ## Source Generation And Registration
 
-Hero analyzers are registered without runtime reflection. The parser source generator reads attributes like `[HeroAnalyzer("rime")]` and `[AddModule<T>]` and emits strongly typed constructors, module accessors, DI registration, and keyed `IHeroAnalyzer` registration.
+Hero analyzers are registered without runtime reflection. The parser source generator reads attributes like `[HeroAnalyzer(HeroName.Rime)]` and `[AddModule<T>]` and emits strongly typed constructors, module accessors, DI registration, and keyed `IHeroAnalyzer` registration.
 
 The WebAssembly client calls a single reflection-free aggregate registration method in `FellowshipAnalyzer.Client`:
 

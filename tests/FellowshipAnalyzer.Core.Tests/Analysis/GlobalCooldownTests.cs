@@ -315,7 +315,6 @@ public sealed class GlobalCooldownTests
         Type[] normalizerTypes)
         : CombatLogParser(emitter, provider)
     {
-        public override string HeroId => "test";
         protected override Type[] GetModuleTypes() => [.. modules.Select(m => m.GetType())];
         protected override Type[] GetNormalizerTypes() => normalizerTypes;
     }

@@ -36,6 +36,12 @@
     --fa-perf-ok:      #{t.$fa-perf-ok};
     --fa-perf-fail:    #{t.$fa-perf-fail};
 
+    // Hero role accents
+    --fa-role-tank:    #{t.$fa-role-tank};
+    --fa-role-healer:  #{t.$fa-role-healer};
+    --fa-role-dps:     #{t.$fa-role-dps};
+    --fa-role-unknown: #{t.$fa-role-unknown};
+
     // Hero accents
     --fa-ice: #{t.$fa-ice};
 

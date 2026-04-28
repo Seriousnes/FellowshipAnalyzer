@@ -79,12 +79,11 @@ Analyzer discovery and DI registration are source-generated and reflection-free 
 Use the existing attributes instead of runtime scanning:
 
 ```csharp
-[HeroAnalyzer("rime")]
+[HeroAnalyzer(HeroName.Rime)]
 [AddModule<WinterOrbTracker>]
 [AddModule<BasicStComboAnalyzer>]
 public sealed partial class RimeCombatLogParser : CombatLogParser
 {
-    public override string HeroId => "rime";
     public override Type? GuideComponent => typeof(RimeGuide);
 }
 ```

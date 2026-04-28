@@ -4,10 +4,9 @@ using FellowshipAnalyzer.Heroes.Mara.Modules;
 
 namespace FellowshipAnalyzer.Heroes.Mara.Analysis;
 
-[HeroAnalyzer("mara")]
+[HeroAnalyzer(HeroName.Mara)]
 [AddModule<Modules.Abilities>]
 public sealed partial class MaraCombatLogParser : CombatLogParser
 {
-    public override string HeroId => "mara";
     public override Type? GuideComponent => typeof(MaraGuide);
 }

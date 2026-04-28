@@ -54,7 +54,7 @@ public interface IEventNormalizer
 Add `[AddNormalizer<{Name}Normalizer>]` to the hero parser:
 
 ```csharp
-[HeroAnalyzer("{hero-id}")]
+[HeroAnalyzer(HeroName.{Hero})]
 [AddNormalizer<{Name}Normalizer>]
 [AddModule<Modules.Abilities>]
 public sealed partial class {Hero}CombatLogParser : CombatLogParser

@@ -470,7 +470,6 @@ public sealed class HasteTests
     private sealed class TestCombatLogParser(EventEmitter emitter, IServiceProvider provider, Module[] modules)
         : CombatLogParser(emitter, provider)
     {
-        public override string HeroId => "test";
         protected override Type[] GetModuleTypes() => [.. modules.Select(m => m.GetType())];
     }
 

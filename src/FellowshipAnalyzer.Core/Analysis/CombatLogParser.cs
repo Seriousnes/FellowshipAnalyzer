@@ -28,7 +28,6 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
     public List<Event> Events { get; set; } = [];
     public int PlayerId { get; set; }
     public int FightStartTime { get; set; }
-    public abstract string HeroId { get; }
 
     /// <summary>
     /// Report-level actor name lookup, keyed by actor ID.
@@ -47,6 +46,12 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
     /// Source-generated parsers override this to return their hero's Guide.razor type.
     /// </summary>
     public virtual Type? GuideComponent => null;
+
+    /// <summary>
+    /// The hero this parser is for. Source-generated from <see cref="HeroAnalyzerAttribute"/>.
+    /// Returns <c>null</c> for parsers without a <see cref="HeroAnalyzerAttribute"/> (e.g. test parsers).
+    /// </summary>
+    public virtual Hero? Hero => null;
 
     private Dictionary<Type, Module> _activeModules = [];
 

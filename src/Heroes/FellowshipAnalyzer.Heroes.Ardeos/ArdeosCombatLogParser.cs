@@ -4,10 +4,9 @@ using FellowshipAnalyzer.Heroes.Ardeos.Modules;
 
 namespace FellowshipAnalyzer.Heroes.Ardeos.Analysis;
 
-[HeroAnalyzer("ardeos")]
+[HeroAnalyzer(HeroName.Ardeos)]
 [AddModule<Modules.Abilities>]
 public sealed partial class ArdeosCombatLogParser : CombatLogParser
 {
-    public override string HeroId => "ardeos";
     public override Type? GuideComponent => typeof(ArdeosGuide);
 }

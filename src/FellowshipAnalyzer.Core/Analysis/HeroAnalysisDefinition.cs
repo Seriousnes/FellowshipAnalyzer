@@ -1,7 +1,7 @@
 namespace FellowshipAnalyzer.Core.Analysis;
 
 public sealed record HeroAnalysisDefinition(
-    string HeroId,
+    HeroName Hero,
     IReadOnlyDictionary<int, AbilityDefinition> Abilities)
 {
     public AbilityDefinition? FindAbility(int abilityId)

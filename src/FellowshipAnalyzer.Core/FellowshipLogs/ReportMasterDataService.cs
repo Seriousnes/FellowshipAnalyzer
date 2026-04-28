@@ -1,3 +1,4 @@
+using FellowshipAnalyzer.Core.Analysis;
 using FellowshipAnalyzer.Core.Events;
 
 namespace FellowshipAnalyzer.Core.FellowshipLogs;
@@ -5,7 +6,7 @@ namespace FellowshipAnalyzer.Core.FellowshipLogs;
 /// <summary>
 /// Scoped service that holds the loaded master data for the current report.
 /// Call <see cref="Load"/> once after fetching master data, then use
-/// <see cref="GetAbility"/> and <see cref="GetHeroId"/> during analysis.
+/// <see cref="GetAbility"/> and <see cref="GetHero"/> during analysis.
 /// </summary>
 public sealed class ReportMasterDataService
 {
@@ -39,12 +40,13 @@ public sealed class ReportMasterDataService
     }
 
     /// <summary>
-    /// Returns the hero ID string for the given player actor ID, derived from the actor's SubType.
-    /// Returns <c>null</c> if the actor is not found or has no SubType.
+    /// Returns the <see cref="Hero"/> definition for the given player actor ID,
+    /// derived from the actor's <c>SubType</c>. Returns <c>null</c> if the actor
+    /// is unknown or its SubType does not match a supported hero.
     /// </summary>
-    public string? GetHeroId(int playerId)
+    public Hero? GetHero(int playerId)
     {
         var actor = _actors.FirstOrDefault(a => a.Id == playerId);
-        return actor?.SubType?.ToLowerInvariant();
+        return Hero.TryParse(actor?.SubType, out var hero) ? hero : null;
     }
 }

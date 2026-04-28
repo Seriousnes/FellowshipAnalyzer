@@ -1,5 +1,7 @@
 @page "/report/{ReportCode}"
+@using FellowshipAnalyzer.Core.Analysis
 @using FellowshipAnalyzer.Core.FellowshipLogs
+@using FellowshipAnalyzer.Components
 @using CoreReportInfo = FellowshipAnalyzer.Core.FellowshipLogs.ReportInfo
 @using FellowshipAnalyzer.Client.Services
 @inject FellowshipLogsApiClient FellowshipLogs
@@ -179,13 +181,6 @@
 </div>
 
 @code {
-    private enum HeroRole { Tank, Healer, Dps, Unknown }
-
-    private static readonly Dictionary<string, HeroRole> RoleBySubType = new(StringComparer.OrdinalIgnoreCase)
-    {
-        ["rime"] = HeroRole.Dps,        
-    };
-
     [Parameter] public string ReportCode { get; set; } = "";
 
     private CoreReportInfo? _report;
@@ -271,15 +266,9 @@
     }
 
     private static HeroRole GetRole(string? subType) =>
-        subType is not null && RoleBySubType.TryGetValue(subType, out var role) ? role : HeroRole.Unknown;
+        Hero.TryParse(subType, out var hero) ? hero.Role : HeroRole.Unknown;
 
-    private static string GetRoleBorderColor(HeroRole role) => role switch
-    {
-        HeroRole.Tank    => "#336699",
-        HeroRole.Healer  => "#4ec04e",
-        HeroRole.Dps     => "#ac1f39",
-        _                => "var(--fa-border)"
-    };
+    private static string GetRoleBorderColor(HeroRole role) => HeroRoleStyles.GetAccentColorVar(role);
 
     private static string FormatDuration(double milliseconds)
     {

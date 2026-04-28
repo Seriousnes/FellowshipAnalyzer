@@ -108,17 +108,30 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
                 isAbstractBase: true);
         }
 
-        // Extract [HeroAnalyzer("id")] attribute
-        string heroId = null;
+        // Extract [HeroAnalyzer(HeroName.X)] attribute — argument is an enum value.
+        // Capture the enum field name so we can emit a strongly typed reference
+        // (e.g. global::FellowshipAnalyzer.Core.Analysis.HeroName.Rime) in the keyed DI registration.
+        string heroEnumMember = null;
         foreach (var attr in symbol.GetAttributes())
         {
-            if (attr.AttributeClass?.Name == HeroAnalyzerAttributeShortName
-                && attr.ConstructorArguments.Length == 1
-                && attr.ConstructorArguments[0].Value is string id)
+            if (attr.AttributeClass?.Name != HeroAnalyzerAttributeShortName) continue;
+            if (attr.ConstructorArguments.Length != 1) continue;
+
+            var arg = attr.ConstructorArguments[0];
+            if (arg.Type is not INamedTypeSymbol enumType || enumType.TypeKind != TypeKind.Enum)
+                continue;
+
+            foreach (var member in enumType.GetMembers())
             {
-                heroId = id;
-                break;
+                if (member is IFieldSymbol field
+                    && field.HasConstantValue
+                    && Equals(field.ConstantValue, arg.Value))
+                {
+                    heroEnumMember = field.Name;
+                    break;
+                }
             }
+            break;
         }
 
         // Walk base type chain to collect inherited base modules (for GetModuleTypes override only)
@@ -148,7 +161,7 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
             [.. baseModules],
             [.. baseNormalizers, .. normalizerTypes],
             [.. normalizerTypes],
-            heroId,
+            heroEnumMember,
             isAbstractBase: false);
     }
 
@@ -248,6 +261,13 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
         sb.AppendLine("    public " + info.ClassName + "(EventEmitter emitter, IServiceProvider provider) : base(emitter, provider) { }");
         sb.AppendLine();
 
+        // Hero override — emitted when [HeroAnalyzer(HeroName.X)] is present.
+        if (info.HeroEnumMember != null)
+        {
+            sb.AppendLine("    public override global::FellowshipAnalyzer.Core.Analysis.Hero? Hero => global::FellowshipAnalyzer.Core.Analysis.Hero." + info.HeroEnumMember + ";");
+            sb.AppendLine();
+        }
+
         // Computed properties for OWN modules only (base module properties are on the base class)
         foreach (var m in info.OwnModules)
         {
@@ -288,9 +308,9 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
         sb.AppendLine("    public static IServiceCollection Add" + parserBaseName + "Analysis(this IServiceCollection services)");
         sb.AppendLine("    {");
         sb.AppendLine("        services.AddScoped<" + info.ClassName + ">();");
-        if (info.HeroId != null)
+        if (info.HeroEnumMember != null)
         {
-            sb.AppendLine("        services.AddKeyedScoped<IHeroAnalyzer>(\"" + info.HeroId + "\", (sp, _) => sp.GetRequiredService<" + info.ClassName + ">());");
+            sb.AppendLine("        services.AddKeyedScoped<IHeroAnalyzer>(global::FellowshipAnalyzer.Core.Analysis.HeroName." + info.HeroEnumMember + ", (sp, _) => sp.GetRequiredService<" + info.ClassName + ">());");
         }
         foreach (var m in info.OwnModules)
             sb.AppendLine("        services.AddScoped<" + m.FullyQualifiedName + ">();");
@@ -379,7 +399,7 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
             ImmutableArray<TypeInfo> baseModules,
             ImmutableArray<TypeInfo> normalizerTypes,
             ImmutableArray<TypeInfo> ownNormalizerTypes,
-            string heroId,
+            string heroEnumMember,
             bool isAbstractBase = false)
         {
             ClassName = cn;
@@ -388,7 +408,7 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
             BaseModules = baseModules;
             NormalizerTypes = normalizerTypes;
             OwnNormalizerTypes = ownNormalizerTypes;
-            HeroId = heroId;
+            HeroEnumMember = heroEnumMember;
             IsAbstractBase = isAbstractBase;
         }
         public string ClassName { get; }
@@ -401,8 +421,8 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
         public ImmutableArray<TypeInfo> NormalizerTypes { get; }
         /// <summary>Normalizers declared directly on this class — used for hero-specific DI registration.</summary>
         public ImmutableArray<TypeInfo> OwnNormalizerTypes { get; }
-        /// <summary>Hero ID from [HeroAnalyzer] attribute, if present.</summary>
-        public string HeroId { get; }
+        /// <summary>HeroName enum field name from [HeroAnalyzer] attribute (e.g. "Rime"), if present.</summary>
+        public string HeroEnumMember { get; }
         /// <summary>True when this info was collected from the abstract CombatLogParser base class.</summary>
         public bool IsAbstractBase { get; }
     }

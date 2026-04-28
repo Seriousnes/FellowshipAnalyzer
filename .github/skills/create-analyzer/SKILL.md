@@ -69,7 +69,7 @@ Use simple helper records/classes in the same file unless they are large or shar
 Add `[AddModule<{Name}Analyzer>]` to the hero parser. Declaration order is module priority.
 
 ```csharp
-[HeroAnalyzer("{hero-id}")]
+[HeroAnalyzer(HeroName.{Hero})]
 [AddModule<WinterOrbTracker>]
 [AddModule<Modules.Abilities>]
 [AddModule<{Name}Analyzer>]

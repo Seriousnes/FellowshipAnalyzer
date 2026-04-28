@@ -172,8 +172,8 @@
 
     protected override async Task OnParametersSetAsync()
     {
-        var heroKey = Result.Modules.OfType<Auras>().FirstOrDefault()?.Owner.HeroId
-            ?? Result.Modules.FirstOrDefault()?.Owner.HeroId
+        var heroKey = Result.Modules.OfType<Auras>().FirstOrDefault()?.Owner.Hero?.Id
+            ?? Result.Modules.FirstOrDefault()?.Owner.Hero?.Id
             ?? "default";
 
         if (_loadedHeroKey != heroKey)

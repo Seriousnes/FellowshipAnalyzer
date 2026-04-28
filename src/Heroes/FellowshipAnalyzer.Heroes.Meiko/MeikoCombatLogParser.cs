@@ -4,10 +4,9 @@ using FellowshipAnalyzer.Heroes.Meiko.Modules;
 
 namespace FellowshipAnalyzer.Heroes.Meiko.Analysis;
 
-[HeroAnalyzer("meiko")]
+[HeroAnalyzer(HeroName.Meiko)]
 [AddModule<Modules.Abilities>]
 public sealed partial class MeikoCombatLogParser : CombatLogParser
 {
-    public override string HeroId => "meiko";
     public override Type? GuideComponent => typeof(MeikoGuide);
 }

@@ -1,3 +1,4 @@
+using FellowshipAnalyzer.Core.Analysis;
 using FellowshipAnalyzer.Core.FellowshipLogs;
 using Microsoft.JSInterop;
 
@@ -35,7 +36,9 @@ internal sealed class IndexedDbReportCacheService(IJSRuntime js) : IReportCacheS
             eventsJsonBytes,
             entry.FightName,
             entry.PlayerName,
-            entry.HeroId);
+            // Stored as the lowercase hero id string in IndexedDB so the JS layer
+            // can treat it as opaque metadata; converted back via Hero.TryParse on read.
+            entry.Hero?.ToHeroId());
     }
 
     public async ValueTask<IReadOnlyList<ReportHistoryEntry>> GetHistoryAsync()
@@ -48,7 +51,7 @@ internal sealed class IndexedDbReportCacheService(IJSRuntime js) : IReportCacheS
             e.PlayerId,
             e.FightName,
             e.PlayerName,
-            e.HeroId,
+            Hero.TryParse(e.HeroId, out var hero) ? hero.Name : null,
             DateTimeOffset.FromUnixTimeMilliseconds(e.CachedAt)
         )).ToList();
     }

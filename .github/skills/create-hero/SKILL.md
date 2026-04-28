@@ -70,6 +70,9 @@ Use the `run-tool` skill for `update-spells` when refreshing names/icons from JS
 
 ### 4. Create The CombatLogParser
 
+Add `{Hero}` to the `HeroName` enum in `src/FellowshipAnalyzer.Core/Analysis/Heroes.cs` (alphabetical),
+add a matching `Hero.{Hero}` static field with the appropriate `HeroRole`, and include it in `Hero.All`.
+
 `{Hero}CombatLogParser.cs`:
 
 ```csharp
@@ -79,11 +82,10 @@ using FellowshipAnalyzer.Heroes.{Hero}.Modules;
 
 namespace FellowshipAnalyzer.Heroes.{Hero}.Analysis;
 
-[HeroAnalyzer("{hero-id}")]
+[HeroAnalyzer(HeroName.{Hero})]
 [AddModule<Modules.Abilities>]
 public sealed partial class {Hero}CombatLogParser : CombatLogParser
 {
-    public override string HeroId => "{hero-id}";
     public override Type? GuideComponent => typeof({Hero}Guide);
 }
 ```
@@ -191,7 +193,7 @@ Once the scaffold is in place, use the individual skills:
 - [ ] Project is added to the solution and Client project references.
 - [ ] Folder structure uses `Modules/`, `Guides/`, `Statistics/`, and `Normalizers/`.
 - [ ] Spell identity data is defined under `Core/Common/Spells/{Hero}/`.
-- [ ] `{Hero}CombatLogParser` is `partial`, has `[HeroAnalyzer]`, and overrides `HeroId` and `GuideComponent`.
+- [ ] `{Hero}CombatLogParser` is `partial`, has `[HeroAnalyzer(HeroName.{Hero})]`, and overrides `GuideComponent`.
 - [ ] `Modules/Abilities.cs` exists and is registered with `[AddModule<Modules.Abilities>]`.
 - [ ] `_Imports.razor` includes hero Analysis, Guides, Modules, and Statistics namespaces.
 - [ ] `{Hero}Guide.razor` exists.

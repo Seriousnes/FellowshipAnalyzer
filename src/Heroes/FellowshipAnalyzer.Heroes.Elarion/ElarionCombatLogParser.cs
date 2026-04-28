@@ -4,10 +4,9 @@ using FellowshipAnalyzer.Heroes.Elarion.Modules;
 
 namespace FellowshipAnalyzer.Heroes.Elarion.Analysis;
 
-[HeroAnalyzer("elarion")]
+[HeroAnalyzer(HeroName.Elarion)]
 [AddModule<Modules.Abilities>]
 public sealed partial class ElarionCombatLogParser : CombatLogParser
 {
-    public override string HeroId => "elarion";
     public override Type? GuideComponent => typeof(ElarionGuide);
 }

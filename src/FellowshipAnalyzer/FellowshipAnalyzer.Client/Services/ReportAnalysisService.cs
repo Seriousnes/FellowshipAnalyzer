@@ -95,10 +95,10 @@ public sealed class ReportAnalysisService(
         loadingTracker.DeserializeState = ReportLoadingTracker.StepState.Ok;
         await Task.Yield();
 
-        var heroId = masterDataService.GetHeroId(playerId)
+        var hero = masterDataService.GetHero(playerId)
             ?? throw new InvalidOperationException($"Could not determine hero for player {playerId}.");
-        var analyzer = serviceProvider.GetKeyedService<IHeroAnalyzer>(heroId)
-            ?? throw new InvalidOperationException($"No hero analyzer found for '{heroId}'.");
+        var analyzer = serviceProvider.GetKeyedService<IHeroAnalyzer>(hero.Name)
+            ?? throw new InvalidOperationException($"No hero analyzer found for '{hero.Name}'.");
 
         var fightStartTime = (int)fight.StartTime;
         var fightEndTime = (int)fight.EndTime;
@@ -115,7 +115,7 @@ public sealed class ReportAnalysisService(
         {
             var entry = new ReportHistoryEntry(
                 reportCode, fightId, playerId,
-                fight.Name, player.Name, heroId,
+                fight.Name, player.Name, hero.Name,
                 DateTimeOffset.UtcNow);
             await reportCache.CacheAsync(entry, eventsResultJsonBytes);
         }

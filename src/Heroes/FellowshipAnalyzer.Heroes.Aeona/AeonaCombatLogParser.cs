@@ -4,10 +4,9 @@ using FellowshipAnalyzer.Heroes.Aeona.Modules;
 
 namespace FellowshipAnalyzer.Heroes.Aeona.Analysis;
 
-[HeroAnalyzer("aeona")]
+[HeroAnalyzer(HeroName.Aeona)]
 [AddModule<Modules.Abilities>]
 public sealed partial class AeonaCombatLogParser : CombatLogParser
 {
-    public override string HeroId => "aeona";
     public override Type? GuideComponent => typeof(AeonaGuide);
 }

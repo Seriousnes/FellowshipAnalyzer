@@ -65,7 +65,7 @@ public sealed class RimeAnalysisEngineTests
         using var provider = services.BuildServiceProvider();
         using var scope = provider.CreateScope();
 
-        var analyzer = scope.ServiceProvider.GetRequiredKeyedService<IHeroAnalyzer>("rime");
+        var analyzer = scope.ServiceProvider.GetRequiredKeyedService<IHeroAnalyzer>(HeroName.Rime);
         var json = File.ReadAllText(GetFixturePath());
         using var doc = JsonDocument.Parse(json);
         var eventsEl = doc.RootElement
