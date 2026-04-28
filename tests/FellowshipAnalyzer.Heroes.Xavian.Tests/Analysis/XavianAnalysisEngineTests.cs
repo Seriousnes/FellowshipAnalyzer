@@ -13,7 +13,7 @@ namespace FellowshipAnalyzer.Heroes.Xavian.Tests.Analysis;
 public sealed class XavianAnalysisEngineTests
 {
     [Fact]
-    public async Task Analyze_ShouldProvideGuideComponentType()
+    public async Task Analyze_ShouldNotProvideGuideComponentType_ForWipHero()
     {
         var services = new ServiceCollection();
         services.AddLogging();
@@ -26,6 +26,6 @@ public sealed class XavianAnalysisEngineTests
         var analyzer = scope.ServiceProvider.GetRequiredKeyedService<IHeroAnalyzer>(HeroName.Xavian);
         var result = await analyzer.Analyze([], playerId: 1, fightStartTime: 0);
 
-        result.GuideComponentType.ShouldNotBeNull();
+        result.GuideComponentType.ShouldBeNull();
     }
 }

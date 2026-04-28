@@ -1,6 +1,7 @@
 using FellowshipAnalyzer.Core.Analysis;
 using FellowshipAnalyzer.Core.Events;
 
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
 using NSubstitute;
@@ -380,14 +381,15 @@ public sealed class HasteTests
     [Fact]
     public async Task ApplyBuff_ShouldFabricateChangeHasteEvent()
     {
-        var probe = new ChangeHasteProbe();
-        var (_, _) = await RunWithHaste(
+        var (parser, _) = await RunWithHaste(
             events:
             [
                 CreateApplyBuff(100, HasteBuffSpellId),
             ],
             configureHaste: h => h.AddHasteBuff(HasteBuffSpellId, FlatHaste),
-            additionalModules: [probe]);
+            additionalModules: [new ChangeHasteProbe()]);
+
+        var probe = parser.GetModule<ChangeHasteProbe>()!;
 
         // The initial ChangeHasteEvent fires during Initialize() before the probe
         // registers, so we only see the buff application event.
@@ -438,48 +440,41 @@ public sealed class HasteTests
         Action<Haste>? configureHaste = null,
         Module[]? additionalModules = null)
     {
-        var haste = new Haste();
-        var allModules = new List<Module> { haste };
+        var moduleTypes = new List<Type> { typeof(HasteConfigWrapper), typeof(Haste) };
         if (additionalModules is not null)
-            allModules.AddRange(additionalModules);
+            moduleTypes.AddRange(additionalModules.Select(static module => module.GetType()));
 
-        var parser = CreateCombatLogParser([.. allModules]);
-
-        // Allow test to register haste buffs before Analyze calls Initialize.
-        // We need to set Owner first so AddHasteBuff works (it doesn't need Owner,
-        // but Initialize does). We'll configure after Owner is set but before events run.
-        var wrapper = new HasteConfigWrapper(haste, configureHaste);
-        // Insert the wrapper as first module so it initializes before Haste.
-        allModules.Insert(0, wrapper);
-
-        parser = CreateCombatLogParser([.. allModules]);
+        var parser = CreateCombatLogParser([.. moduleTypes], configureHaste);
         await parser.Analyze(events ?? [], PlayerId, fightStartTime: 0);
 
+        var haste = parser.GetModule<Haste>()!;
         return (parser, haste);
     }
 
-    private static TestCombatLogParser CreateCombatLogParser(Module[] modules)
+    private static TestCombatLogParser CreateCombatLogParser(Type[] moduleTypes, Action<Haste>? configureHaste)
     {
         var emitter = new EventEmitter(NullLogger<EventEmitter>.Instance);
         var provider = Substitute.For<IServiceProvider>();
-        foreach (var m in modules)
-            provider.GetService(m.GetType()).Returns(m);
-        return new TestCombatLogParser(emitter, provider, modules);
+        provider.GetService(typeof(ILogger<EventEmitter>)).Returns(NullLogger<EventEmitter>.Instance);
+        provider.GetService(typeof(HasteTestConfiguration)).Returns(new HasteTestConfiguration(configureHaste));
+        return new TestCombatLogParser(emitter, provider, moduleTypes);
     }
 
-    private sealed class TestCombatLogParser(EventEmitter emitter, IServiceProvider provider, Module[] modules)
+    private sealed class TestCombatLogParser(EventEmitter emitter, IServiceProvider provider, Type[] moduleTypes)
         : CombatLogParser(emitter, provider)
     {
-        protected override Type[] GetModuleTypes() => [.. modules.Select(m => m.GetType())];
+        protected override Type[] GetModuleTypes() => moduleTypes;
     }
+
+    private sealed record HasteTestConfiguration(Action<Haste>? Configure);
 
     /// <summary>
     /// Module that runs before Haste and calls the configuration action
     /// (registering haste buffs) during Initialize.
     /// </summary>
-    private sealed class HasteConfigWrapper(Haste haste, Action<Haste>? configure) : Module
+    private sealed class HasteConfigWrapper(Haste haste, HasteTestConfiguration configuration) : Module
     {
-        public override void Initialize() => configure?.Invoke(haste);
+        public override void Initialize() => configuration.Configure?.Invoke(haste);
     }
 
     /// <summary>

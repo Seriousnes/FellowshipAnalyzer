@@ -15,16 +15,29 @@ namespace FellowshipAnalyzer.Client.Services;
 /// Returned by <see cref="ReportAnalysisService.RunAsync"/> once a fight has been
 /// fully fetched and analyzed. All display-layer data is read directly from these
 /// objects — no redundant string fields.
+/// <para>
+/// When <see cref="Analysis"/> is <c>null</c> the report belongs to a hero with no
+/// implemented analysis yet (WIP). In that case the events fetch and analysis are
+/// skipped entirely; the host should render the WIP placeholder.
+/// </para>
 /// </summary>
 public sealed record ReportAnalysisContext(
     ReportInfo ReportInfo,
     ReportFight Fight,
     ReportActor Player,
-    HeroAnalysisResult Analysis,
+    HeroAnalysisResult? Analysis,
     IHeroAnalyzer Analyzer,
     int FightStartTime,
     int FightEndTime
-);
+)
+{
+    /// <summary>
+    /// True when the resolved hero analyzer has no guide component, i.e. analysis
+    /// has not been implemented for this hero. In this state <see cref="Analysis"/>
+    /// is <c>null</c> and no events were fetched.
+    /// </summary>
+    public bool IsWip => Analysis is null;
+}
 
 /// <summary>
 /// Orchestrates the full analysis pipeline for a single fight:
@@ -52,20 +65,10 @@ public sealed class ReportAnalysisService(
         loadingTracker.FetchEventsState = ReportLoadingTracker.StepState.Loading;
         await Task.Yield();
 
-        // Start preload and the local cache check concurrently. The cache check is fast (IndexedDB)
-        // and determines whether a live events request is needed at all. Awaiting it first lets us
-        // fire the events request immediately on a miss so it overlaps with the remaining preload wait.
-        var preloadTask = fellowshipLogs.GetAnalysisPreloadAsync(reportCode);
-        var cachedEventsBytesTask = reportCache.GetCachedEventsBytesAsync(reportCode, fightId, playerId).AsTask();
-
-        var cachedEventsBytes = await cachedEventsBytesTask;
-        // On a miss, fetch raw UTF-8 JSON bytes only — defer deserialization to its own step so we
-        // can measure network I/O vs JSON parsing separately, and cache the network bytes verbatim.
-        Task<byte[]>? liveEventsRawTask = cachedEventsBytes is null
-            ? fellowshipLogs.GetRawEventsAsync(reportCode, playerId, fightId)
-            : null;
-
-        var preload = await preloadTask;
+        // Fetch the preload first so we can determine which hero is being analyzed.
+        // Knowing the hero lets us short-circuit WIP heroes (no GuideComponent registered)
+        // *before* paying for the events fetch / deserialize / analysis.
+        var preload = await fellowshipLogs.GetAnalysisPreloadAsync(reportCode);
         var reportInfo = preload.ReportInfo;
         masterDataService.Load(preload.MasterData);
 
@@ -80,9 +83,39 @@ public sealed class ReportAnalysisService(
             await reportInfoLoaded(reportInfo);
         }
 
-        // The JSON bytes we hold at this point are always shaped as EventsResult: { events: [...], inProgress: bool }.
-        // On hit it came from IndexedDB; on miss it came directly from the proxy and has not yet been parsed.
-        byte[] eventsResultJsonBytes = cachedEventsBytes ?? await liveEventsRawTask!;
+        var hero = masterDataService.GetHero(playerId)
+            ?? throw new InvalidOperationException($"Could not determine hero for player {playerId}.");
+        var analyzer = serviceProvider.GetKeyedService<IHeroAnalyzer>(hero.Name)
+            ?? throw new InvalidOperationException($"No hero analyzer found for '{hero.Name}'.");
+
+        var fightStartTime = (int)fight.StartTime;
+        var fightEndTime = (int)fight.EndTime;
+
+        // WIP short-circuit: hero has no implemented analysis. Skip the events API call,
+        // skip deserialization and analysis entirely. The host renders a WIP placeholder.
+        if (analyzer.GuideComponent is null)
+        {
+            loadingTracker.FetchEventsState = ReportLoadingTracker.StepState.Ok;
+            loadingTracker.DeserializeState = ReportLoadingTracker.StepState.Ok;
+            loadingTracker.NormalizeState = ReportLoadingTracker.StepState.Ok;
+            loadingTracker.AnalyzeState = ReportLoadingTracker.StepState.Ok;
+            loadingTracker.PrepareDisplayState = ReportLoadingTracker.StepState.Ok;
+            return new ReportAnalysisContext(
+                reportInfo,
+                fight,
+                player,
+                Analysis: null,
+                analyzer,
+                fightStartTime,
+                fightEndTime);
+        }
+
+        // Local cache check is fast (IndexedDB); on a miss, fetch raw UTF-8 JSON bytes only —
+        // defer deserialization to its own step so we can measure network I/O vs JSON parsing
+        // separately, and cache the network bytes verbatim.
+        var cachedEventsBytes = await reportCache.GetCachedEventsBytesAsync(reportCode, fightId, playerId);
+        byte[] eventsResultJsonBytes = cachedEventsBytes
+            ?? await fellowshipLogs.GetRawEventsAsync(reportCode, playerId, fightId);
         bool isFreshFromNetwork = cachedEventsBytes is null;
 
         loadingTracker.FetchEventsState = ReportLoadingTracker.StepState.Ok;
@@ -94,14 +127,6 @@ public sealed class ReportAnalysisService(
 
         loadingTracker.DeserializeState = ReportLoadingTracker.StepState.Ok;
         await Task.Yield();
-
-        var hero = masterDataService.GetHero(playerId)
-            ?? throw new InvalidOperationException($"Could not determine hero for player {playerId}.");
-        var analyzer = serviceProvider.GetKeyedService<IHeroAnalyzer>(hero.Name)
-            ?? throw new InvalidOperationException($"No hero analyzer found for '{hero.Name}'.");
-
-        var fightStartTime = (int)fight.StartTime;
-        var fightEndTime = (int)fight.EndTime;
 
         analyzer.ActorNames = reportInfo.Actors.ToDictionary(a => a.Id, a => a.Name);
         var result = await analyzer.Analyze(events, playerId, fightStartTime);

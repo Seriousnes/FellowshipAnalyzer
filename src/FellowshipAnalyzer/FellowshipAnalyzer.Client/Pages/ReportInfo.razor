@@ -1,4 +1,5 @@
 @page "/report/{ReportCode}"
+@page "/report/{ReportCode}/{FightId:int}"
 @using FellowshipAnalyzer.Core.Analysis
 @using FellowshipAnalyzer.Core.FellowshipLogs
 @using FellowshipAnalyzer.Components
@@ -39,7 +40,8 @@
             {
                 @foreach (var group in GetFightGroups())
                 {
-                    <div class="encounter-group">
+                    var groupHasExpandedFight = _expandedFightId is { } expandedFightId && group.Value.Any(f => f.Id == expandedFightId);
+                    <div class="encounter-group @(groupHasExpandedFight ? "selected" : "")">
                         <div class="encounter-header">
                             @{
                                 var bossIcon = _bossIconByName.TryGetValue(group.Key, out var ic) ? ic : null;
@@ -69,6 +71,7 @@
                                 var pillClass = isKill ? "kill" : "wipe";
                                 var expandedClass = isExpanded ? " expanded" : "";
                                 <button class="attempt-pill @(pillClass + expandedClass)"
+                                    aria-pressed="@isExpanded"
                                         @onclick="() => _expandedFightId = isExpanded ? null : fight.Id">
                                     @if (isKill)
                                     {
@@ -182,6 +185,7 @@
 
 @code {
     [Parameter] public string ReportCode { get; set; } = "";
+    [Parameter] public int? FightId { get; set; }
 
     private CoreReportInfo? _report;
     private bool _isLoading = true;
@@ -201,6 +205,7 @@
             .Where(a => !string.IsNullOrEmpty(a.Icon))
             .GroupBy(a => a.Name)
             .ToDictionary(g => g.Key, g => g.First().Icon, StringComparer.OrdinalIgnoreCase);
+        SetInitialExpandedFight();
         _isLoading = false;
     }
 
@@ -217,6 +222,7 @@
                 .Where(a => !string.IsNullOrEmpty(a.Icon))
                 .GroupBy(a => a.Name)
                 .ToDictionary(g => g.Key, g => g.First().Icon, StringComparer.OrdinalIgnoreCase);
+            SetInitialExpandedFight();
         }
         catch (Exception exception)
         {
@@ -267,6 +273,15 @@
 
     private static HeroRole GetRole(string? subType) =>
         Hero.TryParse(subType, out var hero) ? hero.Role : HeroRole.Unknown;
+
+    private void SetInitialExpandedFight()
+    {
+        if (_report is null || FightId is not { } fightId)
+            return;
+
+        if (_report.Fights.Any(f => f.Id == fightId))
+            _expandedFightId = fightId;
+    }
 
     private static string GetRoleBorderColor(HeroRole role) => HeroRoleStyles.GetAccentColorVar(role);
 

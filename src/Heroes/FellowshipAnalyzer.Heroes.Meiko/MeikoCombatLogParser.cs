@@ -1,5 +1,4 @@
 using FellowshipAnalyzer.Core.Analysis;
-using FellowshipAnalyzer.Heroes.Meiko.Guides;
 using FellowshipAnalyzer.Heroes.Meiko.Modules;
 
 namespace FellowshipAnalyzer.Heroes.Meiko.Analysis;
@@ -8,5 +7,4 @@ namespace FellowshipAnalyzer.Heroes.Meiko.Analysis;
 [AddModule<Modules.Abilities>]
 public sealed partial class MeikoCombatLogParser : CombatLogParser
 {
-    public override Type? GuideComponent => typeof(MeikoGuide);
 }

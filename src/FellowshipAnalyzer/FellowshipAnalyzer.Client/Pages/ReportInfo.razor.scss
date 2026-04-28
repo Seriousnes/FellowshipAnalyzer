@@ -86,6 +86,11 @@ h1 {
 /* Encounter group */
 .encounter-group {
     margin-bottom: 1.5rem;
+
+    &.selected {
+        border-left: 3px solid var(--fa-gold);
+        padding-left: 0.65rem;
+    }
 }
 
 .encounter-header {
@@ -111,8 +116,8 @@ h1 {
 
 /* Attempt pills */
 .attempts-row {
-    display: flex;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
     gap: 0.4rem;
     margin-bottom: 0.75rem;
 }
@@ -121,6 +126,7 @@ h1 {
     display: flex;
     align-items: center;
     gap: 0.35rem;
+    width: 100%;
     padding: 0.3rem 0.75rem;
     border-radius: 999px;
     border: 1px solid;
@@ -132,12 +138,18 @@ h1 {
     white-space: nowrap;
     font-family: inherit;
 
+    &.expanded {
+        box-shadow:
+            0 0 0 2px color-mix(in srgb, var(--fa-gold) 28%, transparent),
+            inset 0 0 0 1px color-mix(in srgb, var(--fa-gold) 45%, transparent);
+    }
+
     &.kill {
         border-color: rgba(86, 214, 123, 0.35);
         color: var(--fa-perf-perfect);
 
         &:hover,
-        &.expanded { background: rgba(86, 214, 123, 0.1); }
+        &.expanded { background: rgba(86, 214, 123, 0.16); }
     }
 
     &.wipe {
@@ -145,7 +157,7 @@ h1 {
         color: var(--fa-perf-fail);
 
         &:hover,
-        &.expanded { background: rgba(212, 86, 74, 0.1); }
+        &.expanded { background: rgba(212, 86, 74, 0.16); }
     }
 }
 
@@ -251,8 +263,8 @@ h1 {
 }
 
 .player-accordion-fights {
-    display: flex;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
     gap: 0.4rem;
     padding: 0.5rem 0.85rem 0.75rem 1rem;
     border: 1px solid var(--fa-border);
@@ -265,6 +277,7 @@ h1 {
     display: inline-flex;
     align-items: center;
     gap: 0.3rem;
+    width: 100%;
     padding: 0.25rem 0.6rem;
     border-radius: 999px;
     border: 1px solid;

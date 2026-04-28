@@ -3,6 +3,7 @@ using FellowshipAnalyzer.Core.Analysis.Normalizers;
 using FellowshipAnalyzer.Core.Common.Spells;
 using FellowshipAnalyzer.Core.Events;
 
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
 using NSubstitute;
@@ -267,61 +268,57 @@ public sealed class GlobalCooldownTests
         bool includeNormalizer = false,
         Action<TestAbilities>? configureAbilities = null)
     {
-        var abilities = new TestAbilities();
-        // Register a default test spell with standard GCD
-        abilities.AddSpell(new SpellbookAbility
-        {
-            PrimarySpell = new Spell(TestSpellId, "Test Spell"),
-            Category = SpellCategory.Rotational,
-            Gcd = Abilities.StandardGcd,
-        });
-        configureAbilities?.Invoke(abilities);
+        Type[] moduleTypes = [typeof(TestAbilities), typeof(Haste), typeof(DebugAnnotations), typeof(GlobalCooldown)];
+        Type[] normalizerTypes = includeNormalizer ? [typeof(CastLinkNormalizer)] : [];
 
-        var gcd = new GlobalCooldown();
-        var haste = new Haste();
-        var debugAnnotations = new DebugAnnotations();
-
-        Module[] modules = [abilities, haste, debugAnnotations, gcd];
-
-        IEventNormalizer[]? normalizers = includeNormalizer
-            ? [new CastLinkNormalizer(abilities)]
-            : null;
-
-        var parser = CreateCombatLogParser(modules, normalizers);
+        var parser = CreateCombatLogParser(moduleTypes, normalizerTypes, configureAbilities);
         await parser.Analyze(events ?? [], PlayerId, fightStartTime: 0);
 
+        var gcd = parser.GetModule<GlobalCooldown>()!;
         return (parser, gcd);
     }
 
     private static TestCombatLogParser CreateCombatLogParser(
-        Module[] modules,
-        IEventNormalizer[]? normalizers = null)
+        Type[] moduleTypes,
+        Type[] normalizerTypes,
+        Action<TestAbilities>? configureAbilities)
     {
         var emitter = new EventEmitter(NullLogger<EventEmitter>.Instance);
         var provider = Substitute.For<IServiceProvider>();
-        foreach (var m in modules)
-            provider.GetService(m.GetType()).Returns(m);
-        if (normalizers is not null)
-            foreach (var n in normalizers)
-                provider.GetService(n.GetType()).Returns(n);
-        return new TestCombatLogParser(emitter, provider, modules,
-            normalizers?.Select(n => n.GetType()).ToArray() ?? []);
+        provider.GetService(typeof(ILogger<EventEmitter>)).Returns(NullLogger<EventEmitter>.Instance);
+        provider.GetService(typeof(TestAbilityConfiguration)).Returns(new TestAbilityConfiguration(configureAbilities));
+        return new TestCombatLogParser(emitter, provider, moduleTypes, normalizerTypes);
     }
 
     internal sealed class TestCombatLogParser(
         EventEmitter emitter,
         IServiceProvider provider,
-        Module[] modules,
+        Type[] moduleTypes,
         Type[] normalizerTypes)
         : CombatLogParser(emitter, provider)
     {
-        protected override Type[] GetModuleTypes() => [.. modules.Select(m => m.GetType())];
+        protected override Type[] GetModuleTypes() => moduleTypes;
         protected override Type[] GetNormalizerTypes() => normalizerTypes;
     }
 
-    internal class TestAbilities : Abilities
+    internal sealed record TestAbilityConfiguration(Action<TestAbilities>? Configure);
+
+    internal class TestAbilities(TestAbilityConfiguration configuration) : Abilities
     {
         private readonly List<SpellbookAbility> _spells = [];
+
+        public override void Initialize()
+        {
+            AddSpell(new SpellbookAbility
+            {
+                PrimarySpell = new Spell(TestSpellId, "Test Spell"),
+                Category = SpellCategory.Rotational,
+                Gcd = Abilities.StandardGcd,
+            });
+            configuration.Configure?.Invoke(this);
+            base.Initialize();
+        }
+
         public void AddSpell(SpellbookAbility spell) => _spells.Add(spell);
         public override IEnumerable<SpellbookAbility> Spellbook() => _spells;
     }

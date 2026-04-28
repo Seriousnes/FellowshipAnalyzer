@@ -55,7 +55,13 @@ else
                                     @if (_selectedEvent.Event is IAbilityEvent ae)
                                     {
                                         <dt>Ability</dt>
-                                        <dd>@ae.Ability?.Name <small>(@ae.Ability?.Id)</small></dd>
+                                        <dd>
+                                            @ae.Ability?.Name <small>(@ae.Ability?.Id)</small>
+                                            @if (ae.Ability is not null)
+                                            {
+                                                <CopySpellDefinition Spell="ae.Ability" />
+                                            }
+                                        </dd>
                                     }
                                     @if (_selectedEvent.Event is IHasSourceEvent src)
                                     {

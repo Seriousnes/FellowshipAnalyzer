@@ -13,7 +13,7 @@ namespace FellowshipAnalyzer.Heroes.Mara.Tests.Analysis;
 public sealed class MaraAnalysisEngineTests
 {
     [Fact]
-    public async Task Analyze_ShouldProvideGuideComponentType()
+    public async Task Analyze_ShouldNotProvideGuideComponentType_ForWipHero()
     {
         var services = new ServiceCollection();
         services.AddLogging();
@@ -26,6 +26,6 @@ public sealed class MaraAnalysisEngineTests
         var analyzer = scope.ServiceProvider.GetRequiredKeyedService<IHeroAnalyzer>(HeroName.Mara);
         var result = await analyzer.Analyze([], playerId: 1, fightStartTime: 0);
 
-        result.GuideComponentType.ShouldNotBeNull();
+        result.GuideComponentType.ShouldBeNull();
     }
 }

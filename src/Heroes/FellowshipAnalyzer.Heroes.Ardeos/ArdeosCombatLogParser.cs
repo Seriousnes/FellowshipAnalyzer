@@ -1,5 +1,4 @@
 using FellowshipAnalyzer.Core.Analysis;
-using FellowshipAnalyzer.Heroes.Ardeos.Guides;
 using FellowshipAnalyzer.Heroes.Ardeos.Modules;
 
 namespace FellowshipAnalyzer.Heroes.Ardeos.Analysis;
@@ -8,5 +7,4 @@ namespace FellowshipAnalyzer.Heroes.Ardeos.Analysis;
 [AddModule<Modules.Abilities>]
 public sealed partial class ArdeosCombatLogParser : CombatLogParser
 {
-    public override Type? GuideComponent => typeof(ArdeosGuide);
 }

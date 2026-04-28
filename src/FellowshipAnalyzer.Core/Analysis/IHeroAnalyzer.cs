@@ -17,5 +17,13 @@ public interface IHeroAnalyzer
     int PlayerId { get; set; }
     Combatant? SelectedCombatant { get; set; }
 
+    /// <summary>
+    /// The Razor component type to render for the Guide tab.
+    /// <c>null</c> indicates this hero has no implemented analysis yet (WIP).
+    /// Hosts can read this without invoking <see cref="Analyze"/> to short-circuit
+    /// the analysis pipeline (e.g. skip fetching events).
+    /// </summary>
+    Type? GuideComponent { get; }
+
     Task<HeroAnalysisResult> Analyze(IReadOnlyList<Event> events, int playerId, int fightStartTime);
 }

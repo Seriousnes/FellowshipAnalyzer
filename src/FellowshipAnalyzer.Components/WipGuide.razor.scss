@@ -1,0 +1,75 @@
+@use 'tokens' as t;
+
+.wip-guide {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 0.85rem;
+    padding: 2.5rem 1.5rem 2.75rem;
+    margin: 1.25rem 0;
+    background: var(--fa-bg-card);
+    border: 1px solid var(--fa-border-card);
+    border-radius: var(--fa-radius-lg);
+    box-shadow: t.$fa-shadow-card;
+}
+
+.wip-guide-icon {
+    font-size: 2.4rem;
+    line-height: 1;
+    color: var(--fa-gold);
+    filter: drop-shadow(0 2px 6px rgba(212, 167, 68, 0.3));
+}
+
+.wip-guide-title {
+    font-family: t.$fa-font-heading;
+    font-size: 1.35rem;
+    font-weight: 700;
+    margin: 0;
+    color: var(--fa-text);
+}
+
+.wip-guide-body {
+    max-width: 46ch;
+    margin: 0;
+    font-size: 0.95rem;
+    line-height: 1.55;
+    color: var(--fa-text-muted);
+
+    strong {
+        color: var(--fa-text);
+        font-weight: 600;
+    }
+}
+
+.wip-guide-cta {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.4rem;
+    margin-top: 0.75rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--fa-border);
+    width: min(420px, 100%);
+}
+
+.wip-guide-cta-label {
+    margin: 0;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--fa-text-dim);
+}
+
+.wip-guide-link {
+    color: var(--fa-gold);
+    font-weight: 600;
+    text-decoration: none;
+    transition: color 0.15s;
+
+    &:hover,
+    &:focus-visible {
+        color: var(--fa-gold-light);
+        text-decoration: underline;
+    }
+}

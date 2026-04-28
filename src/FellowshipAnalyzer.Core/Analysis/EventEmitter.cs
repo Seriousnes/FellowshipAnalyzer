@@ -9,7 +9,7 @@ namespace FellowshipAnalyzer.Core.Analysis;
 /// and fabricated (synthetic) event injection.
 /// Fabricated events are inserted into the main event queue immediately after the
 /// current event, so they are processed as the very next event.
-/// Registered as a scoped DI service — one instance per analysis run.
+/// Resolved through the parser's per-analysis service cache so each analysis run has its own listener set.
 /// </summary>
 public sealed class EventEmitter(ILogger<EventEmitter> logger) : Module
 {

@@ -43,6 +43,33 @@
     }
 }
 
+.topbar-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.topbar-icon-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    color: var(--fa-text-muted);
+    text-decoration: none;
+    transition: color 0.15s, background 0.15s;
+
+    svg { display: block; }
+
+    &:hover,
+    &:focus-visible {
+        color: var(--fa-gold);
+        background: var(--fa-gold-dim);
+        outline: none;
+    }
+}
+
 // ── Main ──────────────────────────────────────────────────────────────────────
 main {
     flex: 1;

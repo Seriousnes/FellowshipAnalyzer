@@ -1,0 +1,27 @@
+@namespace FellowshipAnalyzer.Components
+
+<section class="wip-guide">
+    <div class="wip-guide-icon" aria-hidden="true">🛠</div>
+    <h2 class="wip-guide-title">
+        Analysis for @Hero is in progress
+    </h2>
+    <p class="wip-guide-body">
+        Combat log analysis for @Hero hasn't been built yet. You can still browse other reports, or check back as new heroes are added.
+        <hr />
+        If you know @Hero well, contributions are welcome.
+    </p>
+    <div class="wip-guide-cta">
+        <p class="wip-guide-cta-label">Want to help?</p>
+        <a class="wip-guide-link" href="https://github.com/Seriousnes/FellowshipAnalyzer" target="_blank" rel="noopener noreferrer">
+            Contribute on GitHub →
+        </a>
+    </div>
+</section>
+
+@code {
+    /// <summary>
+    /// The hero this WIP placeholder is being shown for. Used in the heading.
+    /// Optional — falls back to a generic message when not set.
+    /// </summary>
+    [Parameter, EditorRequired] public string Hero { get; set; } = null!;
+}

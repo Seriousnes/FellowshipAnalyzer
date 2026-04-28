@@ -13,7 +13,7 @@ namespace FellowshipAnalyzer.Heroes.Sylvie.Tests.Analysis;
 public sealed class SylvieAnalysisEngineTests
 {
     [Fact]
-    public async Task Analyze_ShouldProvideGuideComponentType()
+    public async Task Analyze_ShouldNotProvideGuideComponentType_ForWipHero()
     {
         var services = new ServiceCollection();
         services.AddLogging();
@@ -26,6 +26,6 @@ public sealed class SylvieAnalysisEngineTests
         var analyzer = scope.ServiceProvider.GetRequiredKeyedService<IHeroAnalyzer>(HeroName.Sylvie);
         var result = await analyzer.Analyze([], playerId: 1, fightStartTime: 0);
 
-        result.GuideComponentType.ShouldNotBeNull();
+        result.GuideComponentType.ShouldBeNull();
     }
 }

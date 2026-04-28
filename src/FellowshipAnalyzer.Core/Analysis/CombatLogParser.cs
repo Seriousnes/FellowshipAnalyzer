@@ -3,13 +3,16 @@ using System.Globalization;
 using FellowshipAnalyzer.Core.Analysis.Normalizers;
 using FellowshipAnalyzer.Core.Events;
 
+using Microsoft.Extensions.DependencyInjection;
+
 namespace FellowshipAnalyzer.Core.Analysis;
 
 /// <summary>
 /// Orchestrates event processing through a set of modules.
 /// Owns runtime analysis state (events, player, definition) and delegates
 /// event dispatching to <see cref="EventEmitter"/>.
-/// Registered as a scoped DI service — one instance per analysis run.
+/// Registered as a scoped DI service; each <see cref="Analyze"/> call creates an
+/// internal analysis-run service cache so repeated analyses do not share module state.
 /// </summary>
 [AddNormalizer<AbilityMasterDataNormalizer>]
 [AddNormalizer<ResourceNormalizer>]
@@ -23,7 +26,7 @@ namespace FellowshipAnalyzer.Core.Analysis;
 [AddModule<ChronoshiftAnalyzer>]
 public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServiceProvider provider) : IHeroAnalyzer
 {
-    public EventEmitter EventEmitter { get; } = eventEmitter;
+    public EventEmitter EventEmitter { get; private set; } = eventEmitter;
 
     public List<Event> Events { get; set; } = [];
     public int PlayerId { get; set; }
@@ -88,14 +91,19 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
 
     public async Task<HeroAnalysisResult> Analyze(IReadOnlyList<Event> events, int playerId, int fightStartTime)
     {
+        var moduleTypes = GetModuleTypes();
+        var normalizerTypes = GetNormalizerTypes();
+        var analysisServices = new AnalysisRunServiceProvider(provider, this, moduleTypes, normalizerTypes);
+
+        EventEmitter = analysisServices.GetRequiredService<EventEmitter>();
         Events = [.. events];
         PlayerId = playerId;
         FightStartTime = fightStartTime;
         SelectedCombatant = null;
-        _activeModules = GetModuleTypes()
+        _activeModules = moduleTypes
             .Select((t, i) =>
             {
-                var m = (Module)(provider.GetService(t) ?? throw new InvalidOperationException($"Module {t.Name} not registered."));
+                var m = (Module)(analysisServices.GetService(t) ?? throw new InvalidOperationException($"Module {t.Name} not registered."));
                 m.Priority = i;
                 m.Owner = this;
                 return m;
@@ -106,7 +114,6 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
         var tracker = provider.GetService(typeof(ReportLoadingTracker)) as ReportLoadingTracker;
 
         // Run normalizers
-        var normalizerTypes = GetNormalizerTypes();
         if (tracker is not null)
         {
             tracker.NormalizeState = ReportLoadingTracker.StepState.Loading;
@@ -117,7 +124,7 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
 
         foreach (var normalizerType in normalizerTypes)
         {
-            var normalizer = (IEventNormalizer)(provider.GetService(normalizerType)
+            var normalizer = (IEventNormalizer)(analysisServices.GetService(normalizerType)
                 ?? throw new InvalidOperationException($"Normalizer {normalizerType.Name} not registered."));
             Events = normalizer.Normalize(Events, playerId);
             if (tracker is not null) tracker.NormalizedCount++;
@@ -154,7 +161,7 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
 
         return new HeroAnalysisResult
         {
-            GuideComponentType = GuideComponent!,
+            GuideComponentType = GuideComponent,
             Statistics = _activeModules.Values
                     .Where(m => m.StatisticsComponentType != null)
                     .Select(m => (m, m.StatisticsComponentType!))
@@ -192,5 +199,84 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
     public bool ByPlayerPet(IHasSourceEvent e) => false; // TODO: implement when pet tracking is added
 
     public bool ToPlayerPet(IHasTargetEvent e) => false; // TODO: implement when pet tracking is added
+
+    private sealed class AnalysisRunServiceProvider(
+        IServiceProvider fallback,
+        CombatLogParser owner,
+        IReadOnlyList<Type> moduleTypes,
+        IReadOnlyList<Type> normalizerTypes) : IServiceProvider
+    {
+        private readonly Dictionary<Type, object> _instances = [];
+        private readonly Dictionary<Type, int> _modulePriorities = moduleTypes
+            .Select((type, index) => (type, index))
+            .ToDictionary(static x => x.type, static x => x.index);
+        private readonly HashSet<Type> _normalizerTypes = [.. normalizerTypes];
+
+        public object? GetService(Type serviceType)
+        {
+            if (serviceType == typeof(IServiceProvider))
+            {
+                return this;
+            }
+
+            if (serviceType == typeof(EventEmitter))
+            {
+                return GetOrCreate(typeof(EventEmitter));
+            }
+
+            if (TryGetModuleType(serviceType, out var moduleType))
+            {
+                return GetOrCreate(moduleType);
+            }
+
+            if (_normalizerTypes.Contains(serviceType))
+            {
+                return GetOrCreate(serviceType);
+            }
+
+            return fallback.GetService(serviceType);
+        }
+
+        private object GetOrCreate(Type implementationType)
+        {
+            if (_instances.TryGetValue(implementationType, out var existing))
+            {
+                return existing;
+            }
+
+            var instance = ActivatorUtilities.CreateInstance(this, implementationType);
+            _instances[implementationType] = instance;
+
+            if (instance is Module module)
+            {
+                module.Owner = owner;
+                if (_modulePriorities.TryGetValue(implementationType, out var priority))
+                {
+                    module.Priority = priority;
+                }
+            }
+
+            return instance;
+        }
+
+        private bool TryGetModuleType(Type serviceType, out Type moduleType)
+        {
+            if (_modulePriorities.ContainsKey(serviceType))
+            {
+                moduleType = serviceType;
+                return true;
+            }
+
+            var matches = moduleTypes.Where(serviceType.IsAssignableFrom).ToList();
+            if (matches.Count == 1)
+            {
+                moduleType = matches[0];
+                return true;
+            }
+
+            moduleType = null!;
+            return false;
+        }
+    }
 }
 

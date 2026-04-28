@@ -103,7 +103,12 @@
     {
         <section class="status-panel error">@_error</section>
     }
-    else if (_context is not null)
+    else if (_context is { IsWip: true })
+    {
+        @* WIP hero — no analysis was run, no events were fetched. Show only the WipGuide. *@
+        <WipGuide Hero="@_context.Player.SubType" />
+    }
+    else if (_context is { Analysis: { } analysis })
     {
         <ReportValuesProvider Context="_context">        
             <nav class="report-tabs">
@@ -146,9 +151,17 @@
 
             @if (_activeTab == ReportTab.Guide)
             {
-                @* Guide tab — render the hero's Guide.razor via DynamicComponent *@
+                @* Guide tab — render the hero's Guide.razor via DynamicComponent,
+                   or a WIP fallback when no guide component has been registered. *@
                 <section class="guide-panel">
-                    <DynamicComponent Type="@_context.Analysis.GuideComponentType" />
+                    @if (_context.Analysis.GuideComponentType is { } guideType)
+                    {
+                        <DynamicComponent Type="@guideType" />
+                    }
+                    else
+                    {
+                        <WipGuide Hero="@_context.Player.SubType" />
+                    }
                 </section>
             }
             else if (_activeTab == ReportTab.Statistics)
