@@ -1,0 +1,33 @@
+@use 'tokens' as t;
+
+.copy-spell-link {
+    appearance: none;
+    background: none;
+    border: none;
+    padding: 0;
+    margin-left: 0.4rem;
+    cursor: pointer;
+    color: var(--fa-text-muted);
+    font-size: 0.75rem;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    font-family: inherit;
+
+    &:hover {
+        color: var(--fa-gold);
+    }
+}
+
+.copy-spell-status {
+    margin-left: 0.4rem;
+    font-size: 0.72rem;
+    font-style: italic;
+
+    &.ok {
+        color: var(--fa-perf-good, var(--fa-gold));
+    }
+
+    &.failed {
+        color: var(--fa-perf-fail, #d66);
+    }
+}

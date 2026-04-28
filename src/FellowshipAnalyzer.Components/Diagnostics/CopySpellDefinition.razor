@@ -1,0 +1,113 @@
+@using FellowshipAnalyzer.Core.Common.Spells
+@using FellowshipAnalyzer.Core.Events
+@using Microsoft.JSInterop
+@using OneOf
+@inject IJSRuntime JS
+
+<button type="button" class="copy-spell-link" @onclick="Copy">@Label</button>
+@if (_status is not null)
+{
+    <span class="copy-spell-status @(_failed ? "failed" : "ok")">@_status</span>
+}
+
+@code {
+    [Parameter, EditorRequired]
+    public OneOf<Spell, int, SpellbookAbility, Ability> Spell { get; set; }
+
+    [Parameter] public string Label { get; set; } = "(copy definition)";
+
+    private int _id;
+    private bool _isEffect;
+    private string _name = "";
+    private string _icon = "";
+
+    private string? _status;
+    private bool _failed;
+
+    private static (int ShortId, bool IsEffect) NormalizeGuid(int guid) =>
+        guid >= 1_000_000
+            ? (guid - 1_000_000, true)
+            : (guid, false);
+
+    protected override void OnParametersSet()
+    {
+        Spell.Switch(
+            s => { _id = s.Id; _isEffect = s is Effect; _name = s.Name; _icon = s.Icon; },
+            id =>
+            {
+                var s = SpellRegistry.MaybeGet(id);
+                if (s is not null)
+                {
+                    _id = s.Id; _isEffect = s is Effect; _name = s.Name; _icon = s.Icon;
+                }
+                else
+                {
+                    var normalized = NormalizeGuid(id);
+                    _id = normalized.ShortId; _isEffect = normalized.IsEffect; _name = ""; _icon = "";
+                }
+            },
+            a => { var s = a.PrimarySpell; _id = s.Id; _isEffect = s is Effect; _name = a.Name ?? s.Name; _icon = s.Icon; },
+            a =>
+            {
+                var normalized = NormalizeGuid(a.Guid);
+                _id = normalized.ShortId; _isEffect = normalized.IsEffect; _name = a.Name ?? ""; _icon = a.Icon ?? "";
+            }
+        );
+
+        // Reset status when the spell parameter changes.
+        _status = null;
+        _failed = false;
+    }
+
+    private async Task Copy()
+    {
+        var text = BuildText(_id, _isEffect, _name, _icon);
+        try
+        {
+            await JS.InvokeVoidAsync("navigator.clipboard.writeText", text);
+            _status = "copied!";
+            _failed = false;
+        }
+        catch
+        {
+            _status = "copy failed";
+            _failed = true;
+        }
+    }
+
+    internal static string BuildText(int id, bool isEffect, string name, string icon)
+    {
+        var typeKeyword = isEffect ? "Effect" : "Spell";
+        var identifier = ToPascalIdentifier(name, id);
+        return $"public static {typeKeyword} {identifier} {{ get; }} = new({id}, \"{EscapeForString(name)}\", \"{EscapeForString(icon)}\");";
+    }
+
+    internal static string ToPascalIdentifier(string name, int fallbackId)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            return $"Spell{fallbackId}";
+        }
+
+        var sb = new System.Text.StringBuilder(name.Length);
+        var capitalizeNext = true;
+        foreach (var ch in name)
+        {
+            if (char.IsLetter(ch))
+            {
+                sb.Append(capitalizeNext ? char.ToUpperInvariant(ch) : ch);
+                capitalizeNext = false;
+            }
+            else
+            {
+                capitalizeNext = true;
+            }
+        }
+
+        var result = sb.ToString();
+        return result.Length == 0 ? $"Spell{fallbackId}" : result;
+    }
+
+    private static string EscapeForString(string value)
+        => value.Replace("\\", "\\\\").Replace("\"", "\\\"");
+}
