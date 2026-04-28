@@ -14,6 +14,8 @@ public interface IHeroAnalyzer
     /// Must be populated before calling <see cref="Analyze"/>.
     /// </summary>
     Dictionary<int, string> ActorNames { get; set; }
+    int PlayerId { get; set; }
+    Combatant? SelectedCombatant { get; set; }
 
     Task<HeroAnalysisResult> Analyze(IReadOnlyList<Event> events, int playerId, int fightStartTime);
 }

@@ -20,6 +20,20 @@ public class ResourceTracker : Analyzer
     /// </summary>
     protected Dictionary<ResourceTypes, int> MaxOverrides { get; } = [];
 
+    /// <summary>
+    /// Override the display name for specific resource types (e.g. <c>"Focus"</c> for
+    /// <see cref="ResourceTypes.Primary"/>). Used by UI components to label series and
+    /// statistics. If no override is registered, the enum name is used.
+    /// </summary>
+    protected Dictionary<ResourceTypes, string> DisplayNameOverrides { get; } = [];
+
+    /// <summary>
+    /// Returns the display name for <paramref name="type"/>: either the registered override
+    /// from <see cref="DisplayNameOverrides"/> or the enum name as a fallback.
+    /// </summary>
+    public string GetDisplayName(ResourceTypes type) =>
+        DisplayNameOverrides.TryGetValue(type, out var name) ? name : type.ToString();
+
     public override void Initialize()
     {
         AddEventListener(Events.Cast.By(SELECTED_PLAYER), OnCast);

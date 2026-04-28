@@ -1,6 +1,6 @@
 @page "/report/{ReportCode}/{FightId:int}/{PlayerId:int}"
+@using FellowshipAnalyzer.Client.Components.Providers
 @using FellowshipAnalyzer.Core.Analysis
-@using FellowshipAnalyzer.Core.Events
 @using CoreReportActor = FellowshipAnalyzer.Core.FellowshipLogs.ReportActor
 @using CoreReportFight = FellowshipAnalyzer.Core.FellowshipLogs.ReportFight
 @using CoreReportInfo = FellowshipAnalyzer.Core.FellowshipLogs.ReportInfo
@@ -105,106 +105,118 @@
     }
     else if (_context is not null)
     {
-        <CascadingValue Value="@_context.Analyzer" IsFixed="true">
-        <nav class="report-tabs">
-            <button class="report-tab @(_activeTab == ReportTab.Guide ? "active" : "")" @onclick="() => _activeTab = ReportTab.Guide">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/>
-                    <line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>
-                </svg>
-                Guide
-            </button>
-            <button class="report-tab @(_activeTab == ReportTab.Statistics ? "active" : "")" @onclick="() => _activeTab = ReportTab.Statistics">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>
-                </svg>
-                Statistics
-            </button>
-            <button class="report-tab @(_activeTab == ReportTab.Timeline ? "active" : "")" @onclick="() => _activeTab = ReportTab.Timeline">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="15" y2="12"/><line x1="3" y1="18" x2="18" y2="18"/>
-                </svg>
-                Timeline
-            </button>
-            <button class="report-tab @(_activeTab == ReportTab.About ? "active" : "")" @onclick="() => _activeTab = ReportTab.About">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-                </svg>
-                About
-            </button>
-        </nav>
+        <ReportValuesProvider Context="_context">        
+            <nav class="report-tabs">
+                <button class="report-tab @(_activeTab == ReportTab.Guide ? "active" : "")" @onclick="() => _activeTab = ReportTab.Guide">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <line x1="8" y1="6" x2="21" y2="6" />
+                        <line x1="8" y1="12" x2="21" y2="12" />
+                        <line x1="8" y1="18" x2="21" y2="18" />
+                        <line x1="3" y1="6" x2="3.01" y2="6" />
+                        <line x1="3" y1="12" x2="3.01" y2="12" />
+                        <line x1="3" y1="18" x2="3.01" y2="18" />
+                    </svg>
+                    Guide
+                </button>
+                <button class="report-tab @(_activeTab == ReportTab.Statistics ? "active" : "")" @onclick="() => _activeTab = ReportTab.Statistics">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <line x1="18" y1="20" x2="18" y2="10" />
+                        <line x1="12" y1="20" x2="12" y2="4" />
+                        <line x1="6" y1="20" x2="6" y2="14" />
+                    </svg>
+                    Statistics
+                </button>
+                <button class="report-tab @(_activeTab == ReportTab.Timeline ? "active" : "")" @onclick="() => _activeTab = ReportTab.Timeline">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <line x1="3" y1="6" x2="21" y2="6" />
+                        <line x1="3" y1="12" x2="15" y2="12" />
+                        <line x1="3" y1="18" x2="18" y2="18" />
+                    </svg>
+                    Timeline
+                </button>
+                <button class="report-tab @(_activeTab == ReportTab.About ? "active" : "")" @onclick="() => _activeTab = ReportTab.About">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <circle cx="12" cy="12" r="10" />
+                        <line x1="12" y1="8" x2="12" y2="12" />
+                        <line x1="12" y1="16" x2="12.01" y2="16" />
+                    </svg>
+                    About
+                </button>
+            </nav>
 
-        @if (_activeTab == ReportTab.Guide)
-        {
-            @* Guide tab — render the hero's Guide.razor via DynamicComponent *@
-            <section class="guide-panel">
-                <DynamicComponent Type="@_context.Analysis.GuideComponentType" />
-            </section>
-        }
-        else if (_activeTab == ReportTab.Statistics)
-        {
-            @* Statistics tab — auto-collected from modules with StatisticsComponentType set *@
-            @if (_context.Analysis.Statistics.Count > 0)
+            @if (_activeTab == ReportTab.Guide)
             {
-                <section class="statistics-panel">
-                    @foreach (var (module, componentType) in _context.Analysis.Statistics)
+                @* Guide tab — render the hero's Guide.razor via DynamicComponent *@
+                <section class="guide-panel">
+                    <DynamicComponent Type="@_context.Analysis.GuideComponentType" />
+                </section>
+            }
+            else if (_activeTab == ReportTab.Statistics)
+            {
+                @* Statistics tab — auto-collected from modules with StatisticsComponentType set *@
+                @if (_context.Analysis.Statistics.Count > 0)
+                {
+                    <section class="statistics-panel">
+                        @foreach (var (module, componentType) in _context.Analysis.Statistics)
+                        {
+                            <CascadingValue Value="@module">
+                                <DynamicComponent Type="@componentType" />
+                            </CascadingValue>
+                        }
+                    </section>
+                }
+                else
+                {
+                    <section class="status-panel">No statistics available.</section>
+                }
+            }
+            else if (_activeTab == ReportTab.Timeline)
+            {
+                <section class="timeline-panel">
+                    <Timeline />
+                </section>
+            }
+            else if (_activeTab == ReportTab.About)
+            {
+                <section class="about-panel">
+                    <nav class="about-subnav">
+                        <button class="about-subtab @(_aboutSubView == AboutSubView.Overview ? "active" : "")" @onclick="() => _aboutSubView = AboutSubView.Overview">Overview</button>
+                        <button class="about-subtab @(_aboutSubView == AboutSubView.Events ? "active" : "")" @onclick="() => _aboutSubView = AboutSubView.Events">Events</button>
+                        <button class="about-subtab @(_aboutSubView == AboutSubView.Debug ? "active" : "")" @onclick="() => _aboutSubView = AboutSubView.Debug">Debug Annotations</button>
+                    </nav>
+
+                    @if (_aboutSubView == AboutSubView.Overview)
                     {
-                        <CascadingValue Value="@module">
-                            <DynamicComponent Type="@componentType" />
-                        </CascadingValue>
+                        <div class="about-overview">
+                            <dl class="about-meta">
+                                <dt>Report</dt>
+                                <dd>@ReportCode</dd>
+                                <dt>Fight</dt>
+                                <dd>@FightId</dd>
+                                <dt>Player</dt>
+                                <dd>@PlayerId</dd>
+                                <dt>Events</dt>
+                                <dd>@_context.Analysis.Events.Count total</dd>
+                                <dt>Fight Duration</dt>
+                                <dd>@FormatDuration(_context.Fight.EndTime - _context.Fight.StartTime)</dd>
+                            </dl>
+                            <div class="about-overview-links">
+                                <button class="about-subtab" @onclick="() => _aboutSubView = AboutSubView.Events">View Events List →</button>
+                                <button class="about-subtab" @onclick="() => _aboutSubView = AboutSubView.Debug">View Debug Annotations →</button>
+                            </div>
+                        </div>
+                    }
+                    else if (_aboutSubView == AboutSubView.Events)
+                    {
+                        <EventsView Events="@_context.Analysis.Events" />
+                    }
+                    else if (_aboutSubView == AboutSubView.Debug)
+                    {
+                        <DebugAnnotationsView DebugAnnotations="@_context.Analysis.DebugAnnotations" />
                     }
                 </section>
             }
-            else
-            {
-                <section class="status-panel">No statistics available.</section>
-            }
-        }
-        else if (_activeTab == ReportTab.Timeline)
-        {
-            <section class="timeline-panel">
-                <Timeline Result="@_context.Analysis"
-                          FightStartTime="@_context.FightStartTime"
-                          FightEndTime="@_context.FightEndTime"
-                          PlayerId="@PlayerId" />
-            </section>
-        }
-        else if (_activeTab == ReportTab.About)
-        {
-            <section class="about-panel">
-                <nav class="about-subnav">
-                    <button class="about-subtab @(_aboutSubView == AboutSubView.Overview ? "active" : "")" @onclick="() => _aboutSubView = AboutSubView.Overview">Overview</button>
-                    <button class="about-subtab @(_aboutSubView == AboutSubView.Events ? "active" : "")" @onclick="() => _aboutSubView = AboutSubView.Events">Events</button>
-                    <button class="about-subtab @(_aboutSubView == AboutSubView.Debug ? "active" : "")" @onclick="() => _aboutSubView = AboutSubView.Debug">Debug Annotations</button>
-                </nav>
-
-                @if (_aboutSubView == AboutSubView.Overview)
-                {
-                    <div class="about-overview">
-                        <dl class="about-meta">
-                            <dt>Report</dt><dd>@ReportCode</dd>
-                            <dt>Fight</dt><dd>@FightId</dd>
-                            <dt>Player</dt><dd>@PlayerId</dd>
-                            <dt>Events</dt><dd>@_context.Analysis.Events.Count total</dd>
-                            <dt>Fight Duration</dt><dd>@FormatDuration(_context.Fight.EndTime - _context.Fight.StartTime)</dd>
-                        </dl>
-                        <div class="about-overview-links">
-                            <button class="about-subtab" @onclick="() => _aboutSubView = AboutSubView.Events">View Events List →</button>
-                            <button class="about-subtab" @onclick="() => _aboutSubView = AboutSubView.Debug">View Debug Annotations →</button>
-                        </div>
-                    </div>
-                }
-                else if (_aboutSubView == AboutSubView.Events)
-                {
-                    <EventsView Events="@_context.Analysis.Events" FightStartTime="@_context.FightStartTime" />
-                }
-                else if (_aboutSubView == AboutSubView.Debug)
-                {
-                    <DebugAnnotationsView DebugAnnotations="@_context.Analysis.DebugAnnotations" FightStartTime="@_context.FightStartTime" />
-                }
-            </section>
-        }
-        </CascadingValue>
+        </ReportValuesProvider>
     }
 </div>
 

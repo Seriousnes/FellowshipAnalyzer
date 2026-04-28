@@ -1,6 +1,7 @@
 @using FellowshipAnalyzer.Core.Analysis
 @using FellowshipAnalyzer.Core.Events
 @using Microsoft.JSInterop
+@inherits ReportComponentBase
 @implements IAsyncDisposable
 @inject TimelineConfigService TimelineConfigService
 @inject IJSRuntime JS
@@ -148,20 +149,8 @@
 </div>
 
 @code {
-    /// <summary>The completed analysis result containing all active modules.</summary>
-    [Parameter, EditorRequired] public HeroAnalysisResult Result { get; set; } = null!;
-
-    /// <summary>Absolute fight start timestamp in milliseconds.</summary>
-    [Parameter, EditorRequired] public int FightStartTime { get; set; }
-
-    /// <summary>Absolute fight end timestamp in milliseconds.</summary>
-    [Parameter, EditorRequired] public int FightEndTime { get; set; }
-
     /// <summary>Pixels rendered per second of fight time. Default: 30 px/s (1 min = 1800 px).</summary>
     [Parameter] public double PixelsPerSecond { get; set; } = 60.0;
-
-    /// <summary>The source ID of the analyzed player, used to filter events.</summary>
-    [Parameter] public int PlayerId { get; set; }
 
     private TimelineConfig _effectiveConfig = new();
     private bool _settingsOpen;
@@ -169,6 +158,8 @@
     private ElementReference _timelineScrollElement;
     private IJSObjectReference? _dragScrollModule;
     private IJSObjectReference? _dragScrollHandle;
+
+    private int PlayerId => Owner.PlayerId;
 
     protected override async Task OnParametersSetAsync()
     {

@@ -1,5 +1,6 @@
 @using FellowshipAnalyzer.Core.Events
 @using System.Text.Json
+@inherits ReportComponentBase
 
 @if (DebugAnnotations is null || !DebugAnnotations.GetAll().Any())
 {
@@ -92,7 +93,6 @@ else
 
 @code {
     [Parameter, EditorRequired] public DebugAnnotations? DebugAnnotations { get; set; }
-    [Parameter, EditorRequired] public int FightStartTime { get; set; }
 
     private AnnotatedEvent? _selectedEvent;
 

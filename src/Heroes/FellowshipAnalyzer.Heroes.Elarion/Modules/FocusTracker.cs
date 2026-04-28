@@ -9,8 +9,13 @@ using FellowshipAnalyzer.Core.Game;
 
 namespace FellowshipAnalyzer.Heroes.Elarion.Modules;
 
-internal class FocusTracker : ResourceTracker
+public class FocusTracker : ResourceTracker
 {
+    public FocusTracker()
+    {
+        DisplayNameOverrides[ResourceTypes.Primary] = "Focus";
+    }
+
     protected override int? GetResourceCost(CastEvent e, ResourceTypes type)
     {
         var spell = SpellRegistry.MaybeGet(e.Ability.Guid);

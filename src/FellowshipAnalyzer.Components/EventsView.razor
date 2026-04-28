@@ -2,6 +2,7 @@
 @using System.Text
 @using System.Text.Json
 @using Microsoft.JSInterop
+@inherits ReportComponentBase
 @inject IJSRuntime JS
 
 <div class="events-view">
@@ -81,9 +82,7 @@
 </div>
 
 @code {
-    [Parameter, EditorRequired] public IReadOnlyList<Event> Events { get; set; } = [];
-    [Parameter, EditorRequired] public int FightStartTime { get; set; }
-    [CascadingParameter] public IHeroAnalyzer? Owner { get; set; }
+    [Parameter, EditorRequired] public IReadOnlyList<Event> Events { get; set; } = [];    
 
     // ── Filter state ──────────────────────────────────────────────────────────
 

@@ -1,12 +1,13 @@
 @using ApexCharts
 @using FellowshipAnalyzer.Core.Game
+@inherits ReportComponentBase
 
 <ApexChart TItem="GraphPoint"
            Options="@_options"
            Height="@Height">
     <ApexPointSeries TItem="GraphPoint"
                      Items="@_resourceData"
-                     Name="@Resource.ToString()"
+                     Name="@Tracker.GetDisplayName(Resource)"
                      SeriesType="SeriesType.Line"
                      XValue="@(e => e.X)"
                      YValue="@(e => (decimal)e.Y)" />
@@ -14,7 +15,7 @@
     {
         <ApexPointSeries TItem="GraphPoint"
                          Items="@_wastedData"
-                         Name="@($"Wasted {Resource}")"
+                         Name="@($"Wasted {Tracker.GetDisplayName(Resource)}")"
                          SeriesType="SeriesType.Line"
                          XValue="@(e => e.X)"
                          YValue="@(e => (decimal)e.Y)" />
@@ -25,7 +26,6 @@
     [Parameter, EditorRequired] public required ResourceTracker Tracker { get; set; }
     [Parameter, EditorRequired] public required ResourceTypes Resource { get; set; }
     [Parameter] public bool IncludeWasted { get; set; }
-    [Parameter] public int FightStartTime { get; set; }
     [Parameter] public int Height { get; set; } = 200;
 
     private List<GraphPoint> _resourceData = [];
@@ -38,23 +38,33 @@
             Type = XAxisType.Numeric,
             Labels = new XAxisLabels
             {
-                Formatter = "function(val) { var s = Math.floor(val / 1000); return Math.floor(s / 60) + ':' + (s % 60 < 10 ? '0' : '') + (s % 60); }"
-            }
+                Formatter = TimeFormatters.MmSsJs,
+            },
         },
         Yaxis = [new YAxis { Min = 0 }],
-        Stroke = new Stroke { Curve = [Curve.Straight, Curve.Stepline] },
+        Stroke = new Stroke
+        {
+            Curve = [Curve.Straight, Curve.Stepline],
+            Width = 2,
+        },
         Chart = new Chart
         {
             Toolbar = new Toolbar { Show = false },
-            Animations = new Animations { Enabled = false }
+            Animations = new Animations { Enabled = false },
         },
         Tooltip = new Tooltip
         {
+            Shared = false,
+            Intersect = true,
             X = new TooltipX
             {
-                Formatter = "function(val) { var s = Math.floor(val / 1000); return Math.floor(s / 60) + ':' + (s % 60 < 10 ? '0' : '') + (s % 60); }"
-            }
-        }
+                Formatter = TimeFormatters.MmSsJs,
+            },
+            Y = new TooltipY
+            {
+                Formatter = TimeFormatters.IdentityJs,
+            },
+        },
     };
 
     protected override void OnParametersSet()

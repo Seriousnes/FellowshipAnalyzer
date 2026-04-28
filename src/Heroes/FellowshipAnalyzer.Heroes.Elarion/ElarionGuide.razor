@@ -1,3 +1,8 @@
 @namespace FellowshipAnalyzer.Heroes.Elarion.Guides
 @using FellowshipAnalyzer.Heroes.Elarion.Analysis
 @inject ElarionCombatLogParser Parser
+
+<ResourceGraph 
+    Tracker="Parser.FocusTracker"
+    Resource="Core.Game.ResourceTypes.Primary"
+/>
