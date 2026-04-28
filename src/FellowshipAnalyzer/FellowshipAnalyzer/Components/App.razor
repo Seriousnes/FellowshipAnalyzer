@@ -9,6 +9,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@600&family=Noto+Sans:wght@400&display=swap" />
+    <link rel="stylesheet" href="@Assets["css/splash.css"]" />
     <link rel="stylesheet" href="@Assets["app.css"]" />
     <link rel="stylesheet" href="@Assets["FellowshipAnalyzer.styles.css"]" />
     <ImportMap />
@@ -16,9 +17,19 @@
 </head>
 
 <body>
+    <div class="fa-splash" id="fa-splash">
+        <h1 class="fa-splash-brand">Fellowship Analyzer</h1>
+        <p class="fa-splash-tagline">Combat log analysis for Fellowship</p>
+        <div class="fa-splash-bar" id="fa-splash-bar" role="progressbar"
+             aria-label="Loading application" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+            <div class="fa-splash-bar-fill" id="fa-splash-bar-fill"></div>
+        </div>
+        <div class="fa-splash-status" id="fa-splash-status">Loading runtime…</div>
+    </div>
+    <script src="@Assets["js/splash.js"]"></script>
     <Routes @rendermode="PageRenderMode" />
     <ReconnectModal />
-    <script src="@Assets["_framework/blazor.web.js"]"></script>
+    <script src="@Assets["_framework/blazor.web.js"]" autostart="false"></script>
 </body>
 
 </html>

@@ -9,66 +9,9 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700&family=Noto+Sans:wght@400&display=swap" />
+    <link rel="stylesheet" href="css/splash.css" />
     <link rel="stylesheet" href="app.css" />
     <link rel="stylesheet" href="FellowshipAnalyzer.Client.styles.css" />
-    <style>
-        /* Inline splash styles so the loading screen is visible before app.css downloads. */
-        .fa-splash {
-            position: fixed;
-            inset: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 1.5rem;
-            background: #0c0e18;
-            color: #e2dfd8;
-            font-family: 'Nunito', system-ui, -apple-system, sans-serif;
-            z-index: 9999;
-            transition: opacity 250ms ease-out;
-        }
-        .fa-splash--hidden {
-            opacity: 0;
-            pointer-events: none;
-        }
-        .fa-splash-brand {
-            font-size: clamp(1.75rem, 4vw, 2.75rem);
-            font-weight: 700;
-            letter-spacing: 0.02em;
-            color: #f0d078;
-            text-shadow: 0 0 24px rgba(212, 167, 68, 0.25);
-            margin: 0;
-        }
-        .fa-splash-tagline {
-            font-family: 'Noto Sans', system-ui, sans-serif;
-            font-size: 0.95rem;
-            color: #9a9586;
-            margin: -0.75rem 0 0;
-        }
-        .fa-splash-bar {
-            position: relative;
-            width: min(360px, 70vw);
-            height: 6px;
-            border-radius: 999px;
-            background: rgba(212, 167, 68, 0.14);
-            overflow: hidden;
-        }
-        .fa-splash-bar-fill {
-            position: absolute;
-            inset: 0;
-            width: var(--fa-splash-progress, 0%);
-            border-radius: 999px;
-            background: linear-gradient(90deg, #d4a744, #f0d078);
-            transition: width 180ms ease-out;
-        }
-        .fa-splash-status {
-            font-family: 'Noto Sans', system-ui, sans-serif;
-            font-size: 0.8rem;
-            color: #6b6558;
-            letter-spacing: 0.04em;
-            min-height: 1em;
-        }
-    </style>
 </head>
 
 <body>
@@ -76,181 +19,15 @@
         <div class="fa-splash" id="fa-splash">
             <h1 class="fa-splash-brand">Fellowship Analyzer</h1>
             <p class="fa-splash-tagline">Combat log analysis for Fellowship</p>
-            <div class="fa-splash-bar" id="fa-splash-bar" role="progressbar" aria-label="Loading application" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+            <div class="fa-splash-bar" id="fa-splash-bar" role="progressbar"
+                 aria-label="Loading application" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
                 <div class="fa-splash-bar-fill" id="fa-splash-bar-fill"></div>
             </div>
             <div class="fa-splash-status" id="fa-splash-status">Loading runtime…</div>
         </div>
     </div>
+    <script src="js/splash.js"></script>
     <script src="_framework/blazor.webassembly.js" autostart="false"></script>
-    <script>
-        (function () {
-            var status = document.getElementById('fa-splash-status');
-            var bar = document.getElementById('fa-splash-bar');
-            var barFill = document.getElementById('fa-splash-bar-fill');
-            var requestedResources = 0;
-            var completedResources = 0;
-            var totalBytes = 0;
-            var loadedBytes = 0;
-            var hasByteProgress = false;
-            var completionCheckHandle = null;
-            var completionCheckDebounceMs = 25;
-
-            function setStatus(text) {
-                if (status) status.textContent = text;
-            }
-
-            function setProgress(value) {
-                var progress = Math.max(0, Math.min(100, Math.round(value)));
-                if (bar) {
-                    bar.setAttribute('aria-valuenow', progress.toString());
-                }
-                if (barFill) {
-                    barFill.style.setProperty('--fa-splash-progress', progress + '%');
-                }
-            }
-
-            function updateProgress() {
-                if (hasByteProgress && totalBytes > 0) {
-                    setProgress((loadedBytes / totalBytes) * 100);
-                    return;
-                }
-
-                if (requestedResources > 0) {
-                    setProgress((completedResources / requestedResources) * 100);
-                }
-            }
-
-            function updateLoadingStatus(type) {
-                if (type === 'dotnetjs' || type === 'dotnetwasm') {
-                    setStatus('Loading runtime…');
-                } else if (type === 'assembly' || type === 'pdb') {
-                    setStatus('Loading assemblies…');
-                } else {
-                    setStatus('Loading resources…');
-                }
-            }
-
-            function markResourceComplete() {
-                completedResources++;
-                updateProgress();
-
-                if (completionCheckHandle) {
-                    window.clearTimeout(completionCheckHandle);
-                }
-
-                // Resource callbacks can finish while Blazor is still discovering boot resources.
-                // Debounce the all-complete check briefly so newly queued resources are counted first.
-                completionCheckHandle = window.setTimeout(function () {
-                    completionCheckHandle = null;
-                    if (completedResources === requestedResources) {
-                        setStatus('Initialising…');
-                    }
-                }, completionCheckDebounceMs);
-            }
-
-            Blazor.start({
-                loadBootResource: function (type, name, defaultUri, integrity) {
-                    // Let Blazor load the dotnet.js bootstrap script itself; custom loading is
-                    // only used for fetchable boot resources where we can observe completion.
-                    if (type === 'dotnetjs') {
-                        setStatus('Loading runtime…');
-                        return null;
-                    }
-
-                    requestedResources++;
-                    updateLoadingStatus(type);
-                    updateProgress();
-
-                    var fetchOptions = {};
-                    if (integrity) {
-                        fetchOptions.integrity = integrity;
-                    }
-
-                    return fetch(defaultUri, fetchOptions).then(function (response) {
-                        if (!response.ok) {
-                            throw new Error('Failed to load ' + name + ' (' + response.status + ' ' + response.statusText + ')');
-                        }
-
-                        var total = parseInt(response.headers.get('Content-Length'), 10) || 0;
-                        if (total < 0) {
-                            total = 0;
-                        }
-
-                        if (total > 0) {
-                            totalBytes += total;
-                            hasByteProgress = true;
-                            updateProgress();
-                        }
-
-                        if (response.body) {
-                            var reader = response.body.getReader();
-                            var stream = new ReadableStream({
-                                start: function (controller) {
-                                    function readChunk() {
-                                        return reader.read().then(function (result) {
-                                            if (result.done) {
-                                                markResourceComplete();
-                                                controller.close();
-                                                return;
-                                            }
-
-                                            if (total > 0) {
-                                                loadedBytes += result.value.byteLength;
-                                                updateProgress();
-                                            }
-
-                                            controller.enqueue(result.value);
-                                            return readChunk();
-                                        }).catch(function (err) {
-                                            controller.error(err);
-                                            throw err;
-                                        });
-                                    }
-
-                                    return readChunk();
-                                }
-                            });
-
-                            return new Response(stream, {
-                                status: response.status,
-                                statusText: response.statusText,
-                                headers: response.headers
-                            });
-                        }
-
-                        return response.arrayBuffer().then(function (buffer) {
-                            if (total > 0) {
-                                loadedBytes += buffer.byteLength;
-                            }
-
-                            markResourceComplete();
-
-                            return new Response(buffer, {
-                                status: response.status,
-                                statusText: response.statusText,
-                                headers: response.headers
-                            });
-                        });
-                    }).catch(function (err) {
-                        // Keep the resource incomplete on failure; Blazor startup will reject and
-                        // the catch below replaces the loading state with the startup error.
-                        setStatus('Failed to load ' + name);
-                        throw err;
-                    });
-                }
-            }).then(function () {
-                var splash = document.getElementById('fa-splash');
-                if (splash) {
-                    splash.classList.add('fa-splash--hidden');
-                    setTimeout(function () { splash.remove(); }, 300);
-                }
-            }).catch(function (err) {
-                setStatus('Failed to start: ' + (err && err.message ? err.message : err));
-                console.error(err);
-            });
-        })();
-    </script>
 </body>
 
 </html>
