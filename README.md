@@ -2,7 +2,6 @@
 
 FellowshipAnalyzer is a combat log analysis tool for the online RPG Fellowship. It reads reports from Fellowship Logs, runs hero-specific analyzers over combat events, and presents guide and statistics views that help players understand their performance.
 
-FellowshipAnalyzer is based on [WoWAnalyzer](https://github.com/WoWAnalyzer/WoWAnalyzer) and is, in effect, a C# and Blazor WebAssembly clone of WoWAnalyzer adapted for Fellowship. Many analyzer patterns, module structures, guide and statistics concepts, and the overall event-driven analysis pipeline are derived from WoWAnalyzer; the implementation has been ported to modern C# and Blazor with a stronger compile-time separation between hero analyzers, source-generated registration, and other .NET-specific changes. FellowshipAnalyzer is distributed under the same [GNU Affero General Public License v3.0](LICENSE) as WoWAnalyzer. See [NOTICE.md](NOTICE.md) for full credits and acknowledgements.
 
 ## Project Shape
 
@@ -147,4 +146,4 @@ dotnet run --project src/FellowshipAnalyzer.AppHost/FellowshipAnalyzer.AppHost.c
 
 ## Acknowledgements
 
-FellowshipAnalyzer would not exist without [WoWAnalyzer](https://github.com/WoWAnalyzer/WoWAnalyzer). It is essentially a C# and Blazor WebAssembly clone of WoWAnalyzer for Fellowship: many of the analysis patterns, module structures, guide and statistics concepts, and the overall event-driven design used here are ported or adapted from that project. FellowshipAnalyzer is licensed under the [GNU Affero General Public License v3.0](LICENSE), the same license as WoWAnalyzer. See [NOTICE.md](NOTICE.md) for full credits.
+FellowshipAnalyzer would not exist without [WoWAnalyzer](https://github.com/WoWAnalyzer/WoWAnalyzer). It is a C# and Blazor WebAssembly port of WoWAnalyzer for Fellowship: many of the analysis patterns, module structures, guide and statistics concepts, and the overall event-driven design used here are adapted from that project. FellowshipAnalyzer is licensed under the [GNU Affero General Public License v3.0](LICENSE), the same license as WoWAnalyzer. See [NOTICE.md](NOTICE.md) for full credits.
