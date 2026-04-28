@@ -203,7 +203,7 @@ public sealed class ReportLoadingTracker
     {
         if (field == value) return;
         var previous = field;
-        field = value;        
+        field = value;
 
         if (value is StepState.Loading)
         {

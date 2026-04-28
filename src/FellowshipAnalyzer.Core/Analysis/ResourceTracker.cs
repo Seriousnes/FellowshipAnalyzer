@@ -82,13 +82,13 @@ public class ResourceTracker : Analyzer
         if (e is IHasSourceEvent src && Owner.ByPlayer(src))
             playerResources = e.SourceResources;
         else if (e is IHasTargetEvent tgt && Owner.ToPlayer(tgt))
-            playerResources = e.TargetResources;        
-        
-        if (e is ResourceChangeEvent or BaseCastEvent || playerResources is not { Resources.Count: > 0 }) 
+            playerResources = e.TargetResources;
+
+        if (e is ResourceChangeEvent or BaseCastEvent || playerResources is not { Resources.Count: > 0 })
         {
             return;
-        };
-
+        }
+        
         UpdateHealth(playerResources);
 
         var ability = (e as IAbilityEvent)?.Ability ?? new Ability();
@@ -154,7 +154,7 @@ public class ResourceTracker : Analyzer
                 state.Current = resource.Amount;
             }
         }
-    }    
+    }
 
     private void RecordGain(
         ResourceTypes type,

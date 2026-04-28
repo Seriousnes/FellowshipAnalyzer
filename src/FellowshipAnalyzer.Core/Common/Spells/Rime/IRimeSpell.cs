@@ -1,4 +1,4 @@
-namespace FellowshipAnalyzer.Core.Common.Spells;
+namespace FellowshipAnalyzer.Core.Common.Spells.Rime;
 
 /// <summary>
 /// Cost metadata for Rime hero spells. Implemented by <see cref="Spell"/> so that any spell

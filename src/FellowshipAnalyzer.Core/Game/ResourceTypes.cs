@@ -1,7 +1,7 @@
 namespace FellowshipAnalyzer.Core.Game;
 
 public enum ResourceTypes
-{    
+{
     Mana = 1,
     /// <summary>
     /// Common primary resource for hereos, e.g. Mara's Energy, Rime's Anima, etc

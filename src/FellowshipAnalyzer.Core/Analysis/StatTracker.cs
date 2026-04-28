@@ -184,7 +184,7 @@ public sealed class StatTracker : Analyzer
         {
             ApplyMultiplierBuff(multBuff, isGaining: false, trigger);
         }
-    }    
+    }
 
     private void ApplyRatingBuff(StatBuff buff, double factor, bool withMultipliers = true)
     {

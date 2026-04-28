@@ -1,5 +1,4 @@
 using FellowshipAnalyzer.Core.Analysis;
-using FellowshipAnalyzer.Core.Common.Spells;
 using FellowshipAnalyzer.Core.Common.Spells.Rime;
 
 using CoreAbilities = FellowshipAnalyzer.Core.Analysis.Abilities;
@@ -13,7 +12,7 @@ public class Abilities : CoreAbilities
         // Core
         new()
         {
-            PrimarySpell = Core.Common.Spells.Rime.Spells.BrainFreeze,
+            PrimarySpell = Spells.BrainFreeze,
             Category = SpellCategory.Utility,
             Gcd = null,
             Cooldown = 20,
@@ -22,8 +21,8 @@ public class Abilities : CoreAbilities
         },
         new()
         {
-            PrimarySpell = Core.Common.Spells.Rime.Spells.BurstingIce,
-            AdditionalSpells = [Core.Common.Spells.Rime.Spells.BurstingIceDamage],
+            PrimarySpell = Spells.BurstingIce,
+            AdditionalSpells = [Spells.BurstingIceDamage],
             Category = SpellCategory.Rotational,
             Gcd = StandardGcd,
             Cooldown = 10,
@@ -31,7 +30,7 @@ public class Abilities : CoreAbilities
         },
         new()
         {
-            PrimarySpell = Core.Common.Spells.Rime.Spells.ColdSnap,
+            PrimarySpell = Spells.ColdSnap,
             Category = SpellCategory.Rotational,
             Gcd = StandardGcd,
             Cooldown = (Func<double, double>)(haste => 12 / (1 + haste)),
@@ -40,14 +39,14 @@ public class Abilities : CoreAbilities
         },
         new()
         {
-            PrimarySpell = Core.Common.Spells.Rime.Spells.FlightOfTheNavir,
+            PrimarySpell = Spells.FlightOfTheNavir,
             Category = SpellCategory.Cooldowns,
             Gcd = StandardGcd,
             Cooldown = 60,
         },
         new()
         {
-            PrimarySpell = Core.Common.Spells.Rime.Spells.FreezingTorrent,
+            PrimarySpell = Spells.FreezingTorrent,
             Category = SpellCategory.Rotational,
             Gcd = StandardGcd,
             Cooldown = 15,
@@ -55,35 +54,35 @@ public class Abilities : CoreAbilities
         },
         new()
         {
-            PrimarySpell = Core.Common.Spells.Rime.Spells.FrigidWinds,
+            PrimarySpell = Spells.FrigidWinds,
             Category = SpellCategory.Utility,
             Gcd = null,
             Cooldown = 60,
         },
         new()
         {
-            PrimarySpell = Core.Common.Spells.Rime.Spells.FrostBolt,
+            PrimarySpell = Spells.FrostBolt,
             Category = SpellCategory.Rotational,
             Gcd = StandardGcd,
             Range = 30,
         },
         new()
         {
-            PrimarySpell = Core.Common.Spells.Rime.Spells.FrostWard,
+            PrimarySpell = Spells.FrostWard,
             Category = SpellCategory.Defensive,
             Gcd = null,
             Cooldown = 30,
         },
         new()
         {
-            PrimarySpell = Core.Common.Spells.Rime.Spells.GlacialBlast,
+            PrimarySpell = Spells.GlacialBlast,
             Category = SpellCategory.Rotational,
             Gcd = StandardGcd,
             Range = 30,
         },
         new()
         {
-            PrimarySpell = Core.Common.Spells.Rime.Spells.IceBlitz,
+            PrimarySpell = Spells.IceBlitz,
             Category = SpellCategory.Cooldowns,
             Gcd = null,
             Cooldown = 120,
@@ -91,14 +90,14 @@ public class Abilities : CoreAbilities
         },
         new()
         {
-            PrimarySpell = Core.Common.Spells.Rime.Spells.IceComet,
+            PrimarySpell = Spells.IceComet,
             Category = SpellCategory.Rotational,
             Gcd = StandardGcd,
             Range = 30,
         },
         new()
         {
-            PrimarySpell = Core.Common.Spells.Rime.Spells.IceDash,
+            PrimarySpell = Spells.IceDash,
             Category = SpellCategory.Defensive,
             Gcd = null,
             Cooldown = 25,
@@ -106,21 +105,21 @@ public class Abilities : CoreAbilities
         },
         new()
         {
-            PrimarySpell = Core.Common.Spells.Rime.Spells.WintersBlessing,
+            PrimarySpell = Spells.WintersBlessing,
             Category = SpellCategory.Cooldowns,
             Gcd = null,
             Cooldown = 60,
         },
         new()
         {
-            PrimarySpell = Core.Common.Spells.Rime.Spells.WrathOfWinter,
+            PrimarySpell = Spells.WrathOfWinter,
             Category = SpellCategory.Cooldowns,
             Gcd = StandardGcd,
         },
         new()
         {
-            PrimarySpell = Core.Common.Spells.Rime.Spells.FrostSwallows,
-            AdditionalSpells = [Core.Common.Spells.Rime.Spells.FrostSwallowsDamage],
+            PrimarySpell = Spells.FrostSwallows,
+            AdditionalSpells = [Spells.FrostSwallowsDamage],
             Category = SpellCategory.Cooldowns,
             Gcd = StandardGcd,
         },

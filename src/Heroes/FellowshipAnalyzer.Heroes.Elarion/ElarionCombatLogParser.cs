@@ -6,6 +6,7 @@ namespace FellowshipAnalyzer.Heroes.Elarion.Analysis;
 
 [HeroAnalyzer(HeroName.Elarion)]
 [AddModule<Modules.Abilities>]
+[AddModule<Modules.ElarionAuras>]
 public sealed partial class ElarionCombatLogParser : CombatLogParser
 {
     public override Type? GuideComponent => typeof(ElarionGuide);

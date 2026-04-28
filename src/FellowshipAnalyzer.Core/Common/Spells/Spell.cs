@@ -1,3 +1,6 @@
+using FellowshipAnalyzer.Core.Common.Spells.Elarion;
+using FellowshipAnalyzer.Core.Common.Spells.Rime;
+
 namespace FellowshipAnalyzer.Core.Common.Spells;
 
 /// <summary>
@@ -7,23 +10,16 @@ namespace FellowshipAnalyzer.Core.Common.Spells;
 /// Resource costs (e.g. <see cref="IRimeSpell.WinterOrbCost"/>) are set via <c>init</c>
 /// properties and used by hero-specific resource trackers.
 /// </summary>
-public record Spell(int Id, string Name = "", string Icon = "") : IRimeSpell
+public record Spell(int Id, string Name = "", string Icon = "") : IRimeSpell, IElarionSpell
 {
     /// <summary>
     /// The combat-log <c>abilityGameID</c> used to match events.
     /// For <see cref="Effect"/> this is <c>1_000_000 + Id</c>; for plain spells it equals <see cref="Id"/>.
     /// </summary>
     public virtual int Guid => Id;
-
     public virtual int? SpiritCost { get; init; }
 
-    /// <inheritdoc cref="IRimeSpell.WinterOrbCost"/>
-    public virtual int? WinterOrbCost { get; init; }
-
-    /// <inheritdoc cref="IRimeSpell.AnimaCost"/>
-    public virtual int? AnimaCost { get; init; }
-
-    /// <summary>
+/// <summary>
     /// Creates a <see cref="Spell"/> or <see cref="Effect"/> from a combat-log <c>abilityGameID</c>.
     /// IDs &ge; 1,000,000 are effects; below that are plain spells.
     /// </summary>
@@ -31,6 +27,18 @@ public record Spell(int Id, string Name = "", string Icon = "") : IRimeSpell
         guid >= 1_000_000
             ? new Effect(guid - 1_000_000, name, icon)
             : new Spell(guid, name, icon);
+
+    #region Rime-specific properties
+    /// <inheritdoc cref="IRimeSpell.WinterOrbCost"/>
+    public virtual int? WinterOrbCost { get; init; }
+    /// <inheritdoc cref="IRimeSpell.AnimaCost"/>
+    public virtual int? AnimaCost { get; init; }
+    #endregion
+
+    #region Elarion-specific properties
+    /// <inheritdoc cref="IElarionSpell.FocusCost"/>
+    public int? FocusCost { get; }
+    #endregion
 }
 
 /// <summary>

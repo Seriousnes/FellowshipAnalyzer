@@ -37,7 +37,7 @@ public class HealEvent : Event, IAbilityEvent, IHasSourceWithInstanceEvent, IHas
     /// The overheal the event did
     /// </summary>
     public virtual long? Overheal { get; set; }
-    
+
 }
 
 public class BeaconHealEvent : HealEvent

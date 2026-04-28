@@ -14,9 +14,9 @@ public static class HeroRoleStyles
     /// </summary>
     public static string GetAccentColorVar(HeroRole role) => role switch
     {
-        HeroRole.Tank   => "var(--fa-role-tank)",
+        HeroRole.Tank => "var(--fa-role-tank)",
         HeroRole.Healer => "var(--fa-role-healer)",
-        HeroRole.Dps    => "var(--fa-role-dps)",
-        _               => "var(--fa-role-unknown)",
+        HeroRole.Dps => "var(--fa-role-dps)",
+        _ => "var(--fa-role-unknown)",
     };
 }

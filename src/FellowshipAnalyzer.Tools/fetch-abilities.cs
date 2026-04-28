@@ -7,11 +7,23 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.Extensions.Configuration;
 
+bool refresh = args.Contains("--refresh", StringComparer.OrdinalIgnoreCase);
+
+var repoRoot = FindRepoRoot();
+var outputPath = Path.Combine(repoRoot, "abilities.json");
+
+if (!refresh && File.Exists(outputPath))
+{
+    Console.WriteLine($"Using cached abilities from {outputPath}");
+    Console.WriteLine("Pass --refresh to re-fetch from the API.");
+    return 0;
+}
+
 var configuration = new ConfigurationBuilder()
     // Replace YOUR-USER-SECRETS-ID-HERE with your own UserSecretsId.
     // Run `dotnet user-secrets init` in the FellowshipAnalyzer project to generate one,
     // then set FellowshipLogs:ClientId and FellowshipLogs:ClientSecret via `dotnet user-secrets set`.
-    .AddUserSecrets("YOUR-USER-SECRETS-ID-HERE")
+    .AddUserSecrets("fellowshipanalyzer-devapi")
     .Build();
 
 var clientId = configuration["FellowshipLogs:ClientId"] ?? configuration["ClientId"];
@@ -80,9 +92,6 @@ while (hasMore)
 }
 
 Console.WriteLine($"Fetched {allAbilities.Count} abilities total.");
-
-var repoRoot = FindRepoRoot();
-var outputPath = Path.Combine(repoRoot, "abilities.json");
 
 var writeOptions = new JsonSerializerOptions { WriteIndented = true };
 await using var stream = File.Create(outputPath);

@@ -1,5 +1,6 @@
 using FellowshipAnalyzer.Core.Analysis;
 using FellowshipAnalyzer.Core.Common.Spells;
+using FellowshipAnalyzer.Core.Common.Spells.Rime;
 using FellowshipAnalyzer.Core.Events;
 using FellowshipAnalyzer.Core.Game;
 using FellowshipAnalyzer.Heroes.Rime.Statistics;
@@ -14,8 +15,8 @@ public sealed class WinterOrbTracker : ResourceTracker
         return type switch
         {
             ResourceTypes.WinterOrb => spell?.WinterOrbCost,
-            ResourceTypes.Primary   => spell?.AnimaCost,
-            _                       => null,
+            ResourceTypes.Primary => spell?.AnimaCost,
+            _ => base.GetResourceCost(e, type),
         };
     }
 

@@ -27,7 +27,7 @@ public class Spells : ISpellRegistry
 
     // Talents
     public static Effect WintersEmbrace { get; } = new(2303, "Winter's Embrace", "Cryomancer8.jpg");
-
+    public static Effect WrathOfWinterBuff {  get; } = new(1387, "Wrath of Winter", "T_Rime_SpiritAbility.jpg");
 
     // Other
     public static Spell FrostSwallows { get; } = new(1033, "Frost Swallows", "T_Rime_BirdCD.jpg");

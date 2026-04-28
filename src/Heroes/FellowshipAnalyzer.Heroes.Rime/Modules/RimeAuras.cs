@@ -17,7 +17,12 @@ public sealed class RimeAuras : Auras
             {
                 SpellId = Spells.FlightOfTheNavirBuff.Guid,
                 TimelineHighlight = true
-            }
+            },
+            new()
+            {
+                SpellId = Spells.WrathOfWinterBuff.Guid,              
+                TimelineHighlight = true
+            },
         ];
     }
 }

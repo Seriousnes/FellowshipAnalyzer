@@ -23,5 +23,5 @@ public class ResourceChangeEvent : Event, IAbilityEvent, IHasSourceEvent, IHasTa
     /// The amount of wasted resource gain (overcapped).
     /// </summary>
     public virtual double Waste { get; set; }
-    public virtual double OtherResourceChange { get; set; } = 0;    
+    public virtual double OtherResourceChange { get; set; } = 0;
 }

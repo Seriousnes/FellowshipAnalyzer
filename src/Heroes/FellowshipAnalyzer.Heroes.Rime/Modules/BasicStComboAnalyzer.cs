@@ -65,7 +65,7 @@ public sealed class BasicStComboAnalyzer : Analyzer
 
     private void OnCast(CastEvent castEvent)
     {
-        if (_currentWindow is not null && 
+        if (_currentWindow is not null &&
             castEvent.Ability.Id != Spells.BurstingIce.Guid &&
             castEvent.GlobalCooldown is not null)
         {

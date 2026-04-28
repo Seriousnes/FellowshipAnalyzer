@@ -1,3 +1,4 @@
+using FellowshipAnalyzer.Core.Common.Spells;
 using FellowshipAnalyzer.Core.Events;
 
 namespace FellowshipAnalyzer.Core.Analysis;
@@ -31,7 +32,12 @@ public sealed class Haste : Analyzer
     public double Current { get; private set; }
 
     // Registered percentage-based haste buffs: spellId → HasteBuff
-    private readonly Dictionary<int, HasteBuff> _hasteBuffs = [];
+    private readonly Dictionary<int, HasteBuff> _hasteBuffs = new()
+    {
+        { Spells.EventHorizonBuff.Guid, new(Haste: 0.3) },
+        { Spells.SkystridersGraceBuff.Guid, new(Haste: 0.3) },
+        { Spells.WrathOfWinterBuff.Guid, new(Haste: 0.3)  },
+    };
 
     public override void Initialize()
     {
