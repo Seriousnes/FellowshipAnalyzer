@@ -11,9 +11,9 @@
 
     var requestedResources = 0;
     var completedResources = 0;
+    var resourcesWithKnownLength = 0;
     var totalBytes = 0;
     var loadedBytes = 0;
-    var hasByteProgress = false;
     var completionCheckHandle = null;
     var dismissed = false;
 
@@ -31,7 +31,9 @@
     }
 
     function updateProgress() {
-        if (hasByteProgress && totalBytes > 0) {
+        var allLengthsKnown =
+            requestedResources > 0 && resourcesWithKnownLength === requestedResources;
+        if (allLengthsKnown && totalBytes > 0) {
             setProgress((loadedBytes / totalBytes) * 100);
             return;
         }
@@ -89,33 +91,32 @@
             if (total < 0) total = 0;
             if (total > 0) {
                 totalBytes += total;
-                hasByteProgress = true;
+                resourcesWithKnownLength++;
                 updateProgress();
             }
 
             if (response.body) {
                 var reader = response.body.getReader();
                 var stream = new ReadableStream({
-                    start: function (controller) {
-                        function readChunk() {
-                            return reader.read().then(function (result) {
-                                if (result.done) {
-                                    markResourceComplete();
-                                    controller.close();
-                                    return;
-                                }
-                                if (total > 0) {
-                                    loadedBytes += result.value.byteLength;
-                                    updateProgress();
-                                }
-                                controller.enqueue(result.value);
-                                return readChunk();
-                            }).catch(function (err) {
-                                controller.error(err);
-                                throw err;
-                            });
-                        }
-                        return readChunk();
+                    pull: function (controller) {
+                        return reader.read().then(function (result) {
+                            if (result.done) {
+                                markResourceComplete();
+                                controller.close();
+                                return;
+                            }
+                            if (total > 0) {
+                                loadedBytes += result.value.byteLength;
+                                updateProgress();
+                            }
+                            controller.enqueue(result.value);
+                        }).catch(function (err) {
+                            controller.error(err);
+                            throw err;
+                        });
+                    },
+                    cancel: function (reason) {
+                        return reader.cancel(reason);
                     }
                 });
 
@@ -159,7 +160,6 @@
 
     function startBlazor() {
         if (typeof window.Blazor === 'undefined' || typeof window.Blazor.start !== 'function') {
-            // Blazor script not yet on the page; try again shortly.
             window.setTimeout(startBlazor, 25);
             return;
         }
