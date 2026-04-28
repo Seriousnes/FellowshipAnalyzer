@@ -92,7 +92,7 @@
         <div class="fa-splash" id="fa-splash">
             <h1 class="fa-splash-brand">Fellowship Analyzer</h1>
             <p class="fa-splash-tagline">Combat log analysis for Fellowship</p>
-            <div class="fa-splash-bar" id="fa-splash-bar" role="progressbar" aria-label="Loading application" aria-valuemin="0" aria-valuemax="100">
+            <div class="fa-splash-bar" id="fa-splash-bar" role="progressbar" aria-label="Loading application" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
                 <div class="fa-splash-bar-fill indeterminate" id="fa-splash-bar-fill"></div>
             </div>
             <div class="fa-splash-status" id="fa-splash-status">Loading runtime…</div>
@@ -150,6 +150,8 @@
                 completedResources++;
                 updateProgress();
 
+                // Resource callbacks can finish while Blazor is still discovering boot resources.
+                // Defer the all-complete check so newly queued resources are counted first.
                 window.setTimeout(function () {
                     if (completedResources === requestedResources) {
                         setProgress(100);
@@ -171,9 +173,12 @@
                     updateLoadingStatus(type);
                     updateProgress();
 
-                    return fetch(defaultUri, {
-                        integrity: integrity || undefined
-                    }).then(function (response) {
+                    var fetchOptions = {};
+                    if (integrity) {
+                        fetchOptions.integrity = integrity;
+                    }
+
+                    return fetch(defaultUri, fetchOptions).then(function (response) {
                         if (!response.ok) {
                             throw new Error('Failed to load ' + name + ' (' + response.status + ' ' + response.statusText + ')');
                         }
@@ -188,6 +193,43 @@
                             updateProgress();
                         } else {
                             total = 0;
+                        }
+
+                        if (response.body) {
+                            var reader = response.body.getReader();
+                            var stream = new ReadableStream({
+                                start: function (controller) {
+                                    function readChunk() {
+                                        return reader.read().then(function (result) {
+                                            if (result.done) {
+                                                markResourceComplete(type);
+                                                controller.close();
+                                                return;
+                                            }
+
+                                            if (total > 0) {
+                                                loaded += result.value.byteLength;
+                                                loadedBytes += result.value.byteLength;
+                                                updateProgress();
+                                            }
+
+                                            controller.enqueue(result.value);
+                                            return readChunk();
+                                        }).catch(function (err) {
+                                            controller.error(err);
+                                            throw err;
+                                        });
+                                    }
+
+                                    return readChunk();
+                                }
+                            });
+
+                            return new Response(stream, {
+                                status: response.status,
+                                statusText: response.statusText,
+                                headers: response.headers
+                            });
                         }
 
                         return response.arrayBuffer().then(function (buffer) {
