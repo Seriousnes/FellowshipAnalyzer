@@ -61,28 +61,12 @@
             background: linear-gradient(90deg, #d4a744, #f0d078);
             transition: width 180ms ease-out;
         }
-        .fa-splash-bar-fill.indeterminate {
-            width: 40%;
-            background: linear-gradient(90deg, transparent, #d4a744 40%, #f0d078 60%, transparent);
-            animation: fa-splash-slide 1.4s ease-in-out infinite;
-        }
         .fa-splash-status {
             font-family: 'Noto Sans', system-ui, sans-serif;
             font-size: 0.8rem;
             color: #6b6558;
             letter-spacing: 0.04em;
             min-height: 1em;
-        }
-        @keyframes fa-splash-slide {
-            0%   { transform: translateX(-100%); }
-            100% { transform: translateX(250%); }
-        }
-        @media (prefers-reduced-motion: reduce) {
-            .fa-splash-bar-fill.indeterminate {
-                animation: none;
-                width: 100%;
-                background: #d4a744;
-            }
         }
     </style>
 </head>
@@ -93,7 +77,7 @@
             <h1 class="fa-splash-brand">Fellowship Analyzer</h1>
             <p class="fa-splash-tagline">Combat log analysis for Fellowship</p>
             <div class="fa-splash-bar" id="fa-splash-bar" role="progressbar" aria-label="Loading application" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
-                <div class="fa-splash-bar-fill indeterminate" id="fa-splash-bar-fill"></div>
+                <div class="fa-splash-bar-fill" id="fa-splash-bar-fill"></div>
             </div>
             <div class="fa-splash-status" id="fa-splash-status">Loading runtime…</div>
         </div>
@@ -121,7 +105,6 @@
                     bar.setAttribute('aria-valuenow', progress.toString());
                 }
                 if (barFill) {
-                    barFill.classList.remove('indeterminate');
                     barFill.style.setProperty('--fa-splash-progress', progress + '%');
                 }
             }
@@ -190,7 +173,9 @@
 
                         var contentLength = response.headers.get('Content-Length');
                         var total = contentLength ? parseInt(contentLength, 10) : 0;
-                        var resourceLoadedBytes = 0;
+                        if (!Number.isFinite(total)) {
+                            total = 0;
+                        }
 
                         if (total > 0) {
                             totalBytes += total;
@@ -213,7 +198,6 @@
                                             }
 
                                             if (total > 0) {
-                                                resourceLoadedBytes += result.value.byteLength;
                                                 loadedBytes += result.value.byteLength;
                                                 updateProgress();
                                             }
@@ -238,9 +222,8 @@
                         }
 
                         return response.arrayBuffer().then(function (buffer) {
-                            resourceLoadedBytes = buffer.byteLength;
                             if (total > 0) {
-                                loadedBytes += resourceLoadedBytes;
+                                loadedBytes += buffer.byteLength;
                             }
 
                             markResourceComplete();
