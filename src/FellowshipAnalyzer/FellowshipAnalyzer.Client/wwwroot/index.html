@@ -94,6 +94,7 @@
             var loadedBytes = 0;
             var hasByteProgress = false;
             var completionCheckHandle = null;
+            var completionCheckDebounceMs = 25;
 
             function setStatus(text) {
                 if (status) status.textContent = text;
@@ -145,7 +146,7 @@
                     if (completedResources === requestedResources) {
                         setStatus('Initialising…');
                     }
-                }, 25);
+                }, completionCheckDebounceMs);
             }
 
             Blazor.start({
@@ -171,8 +172,8 @@
                             throw new Error('Failed to load ' + name + ' (' + response.status + ' ' + response.statusText + ')');
                         }
 
-                        var total = parseInt(response.headers.get('Content-Length') || '0', 10);
-                        if (isNaN(total) || total < 0) {
+                        var total = parseInt(response.headers.get('Content-Length'), 10) || 0;
+                        if (total < 0) {
                             total = 0;
                         }
 
