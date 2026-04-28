@@ -147,7 +147,7 @@
                 }
             }
 
-            function markResourceComplete(type) {
+            function markResourceComplete() {
                 completedResources++;
                 updateProgress();
 
@@ -162,7 +162,7 @@
                     if (completedResources === requestedResources) {
                         setStatus('Initialising…');
                     } else {
-                        updateLoadingStatus(type);
+                        setStatus('Loading resources…');
                     }
                 }, 0);
             }
@@ -192,7 +192,7 @@
 
                         var contentLength = response.headers.get('Content-Length');
                         var total = contentLength ? parseInt(contentLength, 10) : 0;
-                        var loaded = 0;
+                        var resourceLoadedBytes = 0;
 
                         if (total > 0) {
                             totalBytes += total;
@@ -209,13 +209,13 @@
                                     function readChunk() {
                                         return reader.read().then(function (result) {
                                             if (result.done) {
-                                                markResourceComplete(type);
+                                                markResourceComplete();
                                                 controller.close();
                                                 return;
                                             }
 
                                             if (total > 0) {
-                                                loaded += result.value.byteLength;
+                                                resourceLoadedBytes += result.value.byteLength;
                                                 loadedBytes += result.value.byteLength;
                                                 updateProgress();
                                             }
@@ -240,12 +240,12 @@
                         }
 
                         return response.arrayBuffer().then(function (buffer) {
-                            loaded = buffer.byteLength;
+                            resourceLoadedBytes = buffer.byteLength;
                             if (total > 0) {
-                                loadedBytes += loaded;
+                                loadedBytes += resourceLoadedBytes;
                             }
 
-                            markResourceComplete(type);
+                            markResourceComplete();
 
                             return new Response(buffer, {
                                 status: response.status,
@@ -254,6 +254,8 @@
                             });
                         });
                     }).catch(function (err) {
+                        // Keep the resource incomplete on failure; Blazor startup will reject and
+                        // the catch below replaces the loading state with the startup error.
                         setStatus('Failed to load ' + name);
                         throw err;
                     });
