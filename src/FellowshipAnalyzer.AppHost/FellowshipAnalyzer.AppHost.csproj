@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\FellowshipAnalyzer\FellowshipAnalyzer\FellowshipAnalyzer.csproj" />
+    <ProjectReference Include="..\FellowshipAnalyzer\FellowshipAnalyzer.DevHost\FellowshipAnalyzer.DevHost.csproj" />
     <ProjectReference Include="..\FellowshipAnalyzer\FellowshipAnalyzer.DevApi\FellowshipAnalyzer.DevApi.csproj" />
   </ItemGroup>
 

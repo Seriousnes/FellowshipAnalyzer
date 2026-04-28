@@ -8,7 +8,6 @@
       "/app.css",
       "/app.css.map",
       "/FellowshipAnalyzer.Client.styles.css",
-      "/config.json",
       "/*.dll",
       "/*.wasm",
       "/*.dat",
@@ -16,12 +15,6 @@
     ]
   },
   "routes": [
-    {
-      "route": "/config.json",
-      "headers": {
-        "Cache-Control": "no-store"
-      }
-    },
     {
       "route": "/api/*",
       "allowedRoles": [

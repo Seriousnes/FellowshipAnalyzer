@@ -4,60 +4,64 @@
     <Project Path="src/FellowshipAnalyzer/FellowshipAnalyzer.Api/FellowshipAnalyzer.Api.csproj" />
     <Project Path="src/FellowshipAnalyzer/FellowshipAnalyzer.DevApi/FellowshipAnalyzer.DevApi.csproj" />
   </Folder>
-  <Folder Name="/Heroes/">
+  <Folder Name="/App/">
+    <Project Path="src/FellowshipAnalyzer.Components/FellowshipAnalyzer.Components.csproj" />
+    <Project Path="src/FellowshipAnalyzer/FellowshipAnalyzer.Client/FellowshipAnalyzer.Client.csproj" />
+    <Project Path="src/FellowshipAnalyzer/FellowshipAnalyzer.DevHost/FellowshipAnalyzer.DevHost.csproj" />
+  </Folder>
+  <Folder Name="/App/Heroes/">
     <Project Path="src/FellowshipAnalyzer.Core/FellowshipAnalyzer.Core.csproj" />
   </Folder>
-  <Folder Name="/Heroes/Aeona/">
+  <Folder Name="/App/Heroes/Aeona/">
     <Project Path="src/Heroes/FellowshipAnalyzer.Heroes.Aeona/FellowshipAnalyzer.Heroes.Aeona.csproj" />
     <Project Path="tests/FellowshipAnalyzer.Heroes.Aeona.Tests/FellowshipAnalyzer.Heroes.Aeona.Tests.csproj" />
   </Folder>
-  <Folder Name="/Heroes/Ardeos/">
+  <Folder Name="/App/Heroes/Ardeos/">
     <Project Path="src/Heroes/FellowshipAnalyzer.Heroes.Ardeos/FellowshipAnalyzer.Heroes.Ardeos.csproj" />
     <Project Path="tests/FellowshipAnalyzer.Heroes.Ardeos.Tests/FellowshipAnalyzer.Heroes.Ardeos.Tests.csproj" />
   </Folder>
-  <Folder Name="/Heroes/Elarion/">
+  <Folder Name="/App/Heroes/Elarion/">
     <Project Path="src/Heroes/FellowshipAnalyzer.Heroes.Elarion/FellowshipAnalyzer.Heroes.Elarion.csproj" />
     <Project Path="tests/FellowshipAnalyzer.Heroes.Elarion.Tests/FellowshipAnalyzer.Heroes.Elarion.Tests.csproj" />
   </Folder>
-  <Folder Name="/Heroes/Helena/">
+  <Folder Name="/App/Heroes/Helena/">
     <Project Path="src/Heroes/FellowshipAnalyzer.Heroes.Helena/FellowshipAnalyzer.Heroes.Helena.csproj" />
     <Project Path="tests/FellowshipAnalyzer.Heroes.Helena.Tests/FellowshipAnalyzer.Heroes.Helena.Tests.csproj" />
   </Folder>
-  <Folder Name="/Heroes/Mara/">
+  <Folder Name="/App/Heroes/Mara/">
     <Project Path="src/Heroes/FellowshipAnalyzer.Heroes.Mara/FellowshipAnalyzer.Heroes.Mara.csproj" />
     <Project Path="tests/FellowshipAnalyzer.Heroes.Mara.Tests/FellowshipAnalyzer.Heroes.Mara.Tests.csproj" />
   </Folder>
-  <Folder Name="/Heroes/Meiko/">
+  <Folder Name="/App/Heroes/Meiko/">
     <Project Path="src/Heroes/FellowshipAnalyzer.Heroes.Meiko/FellowshipAnalyzer.Heroes.Meiko.csproj" />
     <Project Path="tests/FellowshipAnalyzer.Heroes.Meiko.Tests/FellowshipAnalyzer.Heroes.Meiko.Tests.csproj" />
   </Folder>
-  <Folder Name="/Heroes/Rime/">
+  <Folder Name="/App/Heroes/Rime/">
     <Project Path="src/Heroes/FellowshipAnalyzer.Heroes.Rime/FellowshipAnalyzer.Heroes.Rime.csproj" />
     <Project Path="tests/FellowshipAnalyzer.Heroes.Rime.Tests/FellowshipAnalyzer.Heroes.Rime.Tests.csproj" />
   </Folder>
-  <Folder Name="/Heroes/Sylvie/">
+  <Folder Name="/App/Heroes/Sylvie/">
     <Project Path="src/Heroes/FellowshipAnalyzer.Heroes.Sylvie/FellowshipAnalyzer.Heroes.Sylvie.csproj" />
     <Project Path="tests/FellowshipAnalyzer.Heroes.Sylvie.Tests/FellowshipAnalyzer.Heroes.Sylvie.Tests.csproj" />
   </Folder>
-  <Folder Name="/Heroes/Tariq/">
+  <Folder Name="/App/Heroes/Tariq/">
     <Project Path="src/Heroes/FellowshipAnalyzer.Heroes.Tariq/FellowshipAnalyzer.Heroes.Tariq.csproj" />
     <Project Path="tests/FellowshipAnalyzer.Heroes.Tariq.Tests/FellowshipAnalyzer.Heroes.Tariq.Tests.csproj" />
   </Folder>
-  <Folder Name="/Heroes/Vigour/">
+  <Folder Name="/App/Heroes/Vigour/">
     <Project Path="src/Heroes/FellowshipAnalyzer.Heroes.Vigour/FellowshipAnalyzer.Heroes.Vigour.csproj" />
     <Project Path="tests/FellowshipAnalyzer.Heroes.Vigour.Tests/FellowshipAnalyzer.Heroes.Vigour.Tests.csproj" />
   </Folder>
-  <Folder Name="/Heroes/Xavian/">
+  <Folder Name="/App/Heroes/Xavian/">
     <Project Path="src/Heroes/FellowshipAnalyzer.Heroes.Xavian/FellowshipAnalyzer.Heroes.Xavian.csproj" />
     <Project Path="tests/FellowshipAnalyzer.Heroes.Xavian.Tests/FellowshipAnalyzer.Heroes.Xavian.Tests.csproj" />
   </Folder>
+  <Folder Name="/Tests/">
+    <Project Path="tests/FellowshipAnalyzer.Core.Tests/FellowshipAnalyzer.Core.Tests.csproj" />
+    <Project Path="tests/FellowshipAnalyzer.Generators.Tests/FellowshipAnalyzer.Generators.Tests.csproj" />
+  </Folder>
   <Project Path="src/FellowshipAnalyzer.Analyzers/FellowshipAnalyzer.Analyzers.csproj" />
   <Project Path="src/FellowshipAnalyzer.AppHost/FellowshipAnalyzer.AppHost.csproj" />
-  <Project Path="src/FellowshipAnalyzer.Components/FellowshipAnalyzer.Components.csproj" />
   <Project Path="src/FellowshipAnalyzer.Generators/FellowshipAnalyzer.Generators.csproj" />
   <Project Path="src/FellowshipAnalyzer.ServiceDefaults/FellowshipAnalyzer.ServiceDefaults.csproj" />
-  <Project Path="src/FellowshipAnalyzer/FellowshipAnalyzer.Client/FellowshipAnalyzer.Client.csproj" />
-  <Project Path="src/FellowshipAnalyzer/FellowshipAnalyzer/FellowshipAnalyzer.csproj" />
-  <Project Path="tests/FellowshipAnalyzer.Core.Tests/FellowshipAnalyzer.Core.Tests.csproj" />
-  <Project Path="tests/FellowshipAnalyzer.Generators.Tests/FellowshipAnalyzer.Generators.Tests.csproj" />
 </Solution>
