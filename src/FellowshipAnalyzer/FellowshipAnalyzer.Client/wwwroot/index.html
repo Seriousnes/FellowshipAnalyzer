@@ -31,7 +31,7 @@
             opacity: 0;
             pointer-events: none;
         }
-        .fa-splash__brand {
+        .fa-splash-brand {
             font-size: clamp(1.75rem, 4vw, 2.75rem);
             font-weight: 700;
             letter-spacing: 0.02em;
@@ -39,13 +39,13 @@
             text-shadow: 0 0 24px rgba(212, 167, 68, 0.25);
             margin: 0;
         }
-        .fa-splash__tagline {
+        .fa-splash-tagline {
             font-family: 'Noto Sans', system-ui, sans-serif;
             font-size: 0.95rem;
             color: #9a9586;
             margin: -0.75rem 0 0;
         }
-        .fa-splash__bar {
+        .fa-splash-bar {
             position: relative;
             width: min(360px, 70vw);
             height: 6px;
@@ -53,16 +53,20 @@
             background: rgba(212, 167, 68, 0.14);
             overflow: hidden;
         }
-        .fa-splash__bar::after {
-            content: '';
+        .fa-splash-bar-fill {
             position: absolute;
             inset: 0;
-            width: 40%;
+            width: var(--fa-splash-progress, 0%);
             border-radius: 999px;
+            background: linear-gradient(90deg, #d4a744, #f0d078);
+            transition: width 180ms ease-out;
+        }
+        .fa-splash-bar-fill.indeterminate {
+            width: 40%;
             background: linear-gradient(90deg, transparent, #d4a744 40%, #f0d078 60%, transparent);
             animation: fa-splash-slide 1.4s ease-in-out infinite;
         }
-        .fa-splash__status {
+        .fa-splash-status {
             font-family: 'Noto Sans', system-ui, sans-serif;
             font-size: 0.8rem;
             color: #6b6558;
@@ -74,7 +78,7 @@
             100% { transform: translateX(250%); }
         }
         @media (prefers-reduced-motion: reduce) {
-            .fa-splash__bar::after {
+            .fa-splash-bar-fill.indeterminate {
                 animation: none;
                 width: 100%;
                 background: #d4a744;
@@ -86,34 +90,126 @@
 <body>
     <div id="app">
         <div class="fa-splash" id="fa-splash">
-            <h1 class="fa-splash__brand">Fellowship Analyzer</h1>
-            <p class="fa-splash__tagline">Combat log analysis for Fellowship</p>
-            <div class="fa-splash__bar" role="progressbar" aria-label="Loading application"></div>
-            <div class="fa-splash__status" id="fa-splash-status">Loading runtime…</div>
+            <h1 class="fa-splash-brand">Fellowship Analyzer</h1>
+            <p class="fa-splash-tagline">Combat log analysis for Fellowship</p>
+            <div class="fa-splash-bar" id="fa-splash-bar" role="progressbar" aria-label="Loading application" aria-valuemin="0" aria-valuemax="100">
+                <div class="fa-splash-bar-fill indeterminate" id="fa-splash-bar-fill"></div>
+            </div>
+            <div class="fa-splash-status" id="fa-splash-status">Loading runtime…</div>
         </div>
     </div>
     <script src="_framework/blazor.webassembly.js" autostart="false"></script>
     <script>
         (function () {
             var status = document.getElementById('fa-splash-status');
-            var loaded = 0;
+            var bar = document.getElementById('fa-splash-bar');
+            var barFill = document.getElementById('fa-splash-bar-fill');
+            var requestedResources = 0;
+            var completedResources = 0;
+            var totalBytes = 0;
+            var loadedBytes = 0;
+            var hasByteProgress = false;
+
             function setStatus(text) {
                 if (status) status.textContent = text;
             }
-            Blazor.start({
-                loadBootResource: function (type, name) {
-                    loaded++;
-                    if (type === 'dotnetjs' || type === 'dotnetwasm') {
-                        setStatus('Loading runtime…');
-                    } else if (type === 'assembly' || type === 'pdb') {
-                        setStatus('Loading assemblies (' + loaded + ')…');
+
+            function setProgress(value) {
+                var progress = Math.max(0, Math.min(100, Math.round(value)));
+                if (bar) {
+                    bar.setAttribute('aria-valuenow', progress.toString());
+                }
+                if (barFill) {
+                    barFill.classList.remove('indeterminate');
+                    barFill.style.setProperty('--fa-splash-progress', progress + '%');
+                }
+            }
+
+            function updateProgress() {
+                if (hasByteProgress && totalBytes > 0) {
+                    setProgress((loadedBytes / totalBytes) * 100);
+                    return;
+                }
+
+                if (requestedResources > 0) {
+                    setProgress((completedResources / requestedResources) * 100);
+                }
+            }
+
+            function updateLoadingStatus(type) {
+                if (type === 'dotnetjs' || type === 'dotnetwasm') {
+                    setStatus('Loading runtime…');
+                } else if (type === 'assembly' || type === 'pdb') {
+                    setStatus('Loading assemblies…');
+                } else {
+                    setStatus('Loading resources…');
+                }
+            }
+
+            function markResourceComplete(type) {
+                completedResources++;
+                updateProgress();
+
+                window.setTimeout(function () {
+                    if (completedResources === requestedResources) {
+                        setProgress(100);
+                        setStatus('Initialising…');
                     } else {
-                        setStatus('Loading resources (' + loaded + ')…');
+                        updateLoadingStatus(type);
                     }
-                    return null; // let the framework fetch with default URL
+                }, 0);
+            }
+
+            Blazor.start({
+                loadBootResource: function (type, name, defaultUri, integrity) {
+                    if (type === 'dotnetjs') {
+                        setStatus('Loading runtime…');
+                        return null;
+                    }
+
+                    requestedResources++;
+                    updateLoadingStatus(type);
+                    updateProgress();
+
+                    return fetch(defaultUri, {
+                        integrity: integrity || undefined
+                    }).then(function (response) {
+                        if (!response.ok) {
+                            throw new Error('Failed to load ' + name + ' (' + response.status + ' ' + response.statusText + ')');
+                        }
+
+                        var contentLength = response.headers.get('Content-Length');
+                        var total = contentLength ? parseInt(contentLength, 10) : 0;
+                        var loaded = 0;
+
+                        if (Number.isFinite(total) && total > 0) {
+                            totalBytes += total;
+                            hasByteProgress = true;
+                            updateProgress();
+                        } else {
+                            total = 0;
+                        }
+
+                        return response.arrayBuffer().then(function (buffer) {
+                            loaded = buffer.byteLength;
+                            if (total > 0) {
+                                loadedBytes += loaded;
+                            }
+
+                            markResourceComplete(type);
+
+                            return new Response(buffer, {
+                                status: response.status,
+                                statusText: response.statusText,
+                                headers: response.headers
+                            });
+                        });
+                    }).catch(function (err) {
+                        setStatus('Failed to load ' + name);
+                        throw err;
+                    });
                 }
             }).then(function () {
-                setStatus('Starting…');
                 var splash = document.getElementById('fa-splash');
                 if (splash) {
                     splash.classList.add('fa-splash--hidden');
