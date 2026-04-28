@@ -7,6 +7,7 @@ Thanks for helping with FellowshipAnalyzer. The project is designed so most game
 - Read the relevant section of [README.md](README.md) for setup and project layout.
 - Skim [.github/instructions/FellowshipAnalyzer-Architecture-Overview.md](.github/instructions/FellowshipAnalyzer-Architecture-Overview.md) if you are touching parser, module, normalizer, or UI integration code.
 - Check [CombatMechanics.md](CombatMechanics.md) when analyzer behavior depends on game mechanics.
+- Review [NOTICE.md](NOTICE.md) for the project's lineage from [WoWAnalyzer](https://github.com/WoWAnalyzer/WoWAnalyzer). FellowshipAnalyzer is distributed under the same AGPL-3.0 license, and contributions are accepted on those terms.
 - Prefer small, focused changes. A single analyzer, guide section, normalizer, or bug fix is easier to review than a broad rewrite.
 
 ## Local Setup
