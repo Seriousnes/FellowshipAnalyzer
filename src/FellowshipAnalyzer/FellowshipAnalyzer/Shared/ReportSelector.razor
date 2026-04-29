@@ -1,0 +1,104 @@
+@using System.Text.RegularExpressions
+@using FellowshipAnalyzer.Core.FellowshipLogs
+@using FellowshipAnalyzer.Services
+@inject FellowshipLogsApiClient FellowshipLogs
+@inject ReportNavigationState NavState
+@inject NavigationManager Navigation
+
+<div class="report-selector @(_isLoading ? "loading" : "")">
+    <div class="input-wrapper">
+        <input type="text"
+               class="report-input"
+               placeholder="https://www.fellowshiplogs.com/reports/<report code>"
+               autocorrect="off"
+               autocapitalize="off"
+               spellcheck="false"
+               disabled="@_isLoading"
+               value="@_reportInput"
+               @oninput="HandleInput"
+               @onkeydown="HandleKeyDown" />
+    </div>
+    <button type="button" class="analyze-btn" disabled="@_isLoading" @onclick="SubmitAsync">
+        @if (_isLoading)
+        {
+            <span class="btn-spinner"></span>
+        }
+        else
+        {
+            <text>Analyze</text>
+        }
+    </button>
+</div>
+@if (!string.IsNullOrWhiteSpace(_error))
+{
+    <p class="selector-error">@_error</p>
+}
+
+@code {
+    private string _reportInput = "";
+    private bool _isLoading;
+    private string? _error;
+
+    private async Task HandleInput(ChangeEventArgs e)
+    {
+        _reportInput = e.Value?.ToString() ?? "";
+        _error = null;
+
+        if (!_isLoading && ExtractReportCode(_reportInput) is not null)
+            await SubmitAsync();
+    }
+
+    private async Task HandleKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+            await SubmitAsync();
+    }
+
+    private async Task SubmitAsync()
+    {
+        var code = ExtractReportCode(_reportInput);
+        if (code is null)
+        {
+            _error = "Enter a valid Fellowship Logs report URL or report code.";
+            return;
+        }
+
+        _isLoading = true;
+        _error = null;
+
+        try
+        {
+            var preload = await FellowshipLogs.GetAnalysisPreloadAsync(code);
+            NavState.Set(code, preload.ReportInfo);
+
+            var fight = ExtractQueryParam(_reportInput, "fight");
+            var player = ExtractQueryParam(_reportInput, "source");
+            var segments = new[] { code, fight, player }.Where(s => !string.IsNullOrEmpty(s));
+            Navigation.NavigateTo("/report/" + string.Join("/", segments));
+        }
+        catch (Exception ex)
+        {
+            _error = $"Could not load report: {ex.Message}";
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private static string? ExtractReportCode(string input)
+    {
+        // Matches:
+        //   - bare 16-char alphanumeric code
+        //   - full URL with /reports/ prefix
+        var match = Regex.Match(input.Trim(),
+            @"^(?:.*reports\/)?([a-zA-Z0-9]{16})(?:[\/\?#].*)?$");
+        return match.Success ? match.Groups[1].Value : null;
+    }
+
+    private static string? ExtractQueryParam(string input, string paramName)
+    {
+        var match = Regex.Match(input.Trim(), $@"{paramName}=([^&#]*)");
+        return match.Success ? match.Groups[1].Value : null;
+    }
+}

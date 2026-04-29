@@ -32,14 +32,11 @@ jobs:
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
-      - name: Restore workloads
-        run: dotnet workload restore FellowshipAnalyzer.slnx
-
       - name: Restore solution
-        run: dotnet restore FellowshipAnalyzer.slnx
+        run: dotnet restore FellowshipAnalyzer.slnx -p:RunAOTCompilation=false
 
       - name: Build solution
-        run: dotnet build FellowshipAnalyzer.slnx --configuration Release --no-restore
+        run: dotnet build FellowshipAnalyzer.slnx --configuration Release --no-restore -p:RunAOTCompilation=false
 
   test:
     name: Test ${{ matrix.name }}
@@ -51,8 +48,6 @@ jobs:
         include:
           - name: Core
             project: tests/FellowshipAnalyzer.Core.Tests/FellowshipAnalyzer.Core.Tests.csproj
-          - name: FellowshipLogs
-            project: tests/FellowshipAnalyzer.FellowshipLogs.Tests/FellowshipAnalyzer.FellowshipLogs.Tests.csproj
           - name: Generators
             project: tests/FellowshipAnalyzer.Generators.Tests/FellowshipAnalyzer.Generators.Tests.csproj
           - name: Heroes.Rime
@@ -68,13 +63,14 @@ jobs:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
       - name: Restore test project
-        run: dotnet restore ${{ matrix.project }}
+        run: dotnet restore ${{ matrix.project }} -p:RunAOTCompilation=false
 
       - name: Run tests
         run: >-
           dotnet test ${{ matrix.project }}
           --configuration Release
           --no-restore
+          -p:RunAOTCompilation=false
           --logger "trx;LogFileName=${{ matrix.name }}.trx"
           --results-directory TestResults
 

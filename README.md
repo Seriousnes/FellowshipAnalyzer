@@ -8,7 +8,7 @@ FellowshipAnalyzer is a combat log analysis tool for the online RPG Fellowship. 
 The solution is split into a few major areas:
 
 - `src/FellowshipAnalyzer/FellowshipAnalyzer` - the Blazor host application.
-- `src/FellowshipAnalyzer/FellowshipAnalyzer.Client` - the Blazor WebAssembly client that performs analysis in the browser.
+- `src/FellowshipAnalyzer/FellowshipAnalyzer` - the Blazor WebAssembly client that performs analysis in the browser.
 - `src/FellowshipAnalyzer/FellowshipAnalyzer.Api` - the Azure Functions API for Fellowship Logs.
 - `src/FellowshipAnalyzer.Core` - combat events, parser infrastructure, shared analysis modules, normalizers, spell data, and source-generated JSON context.
 - `src/FellowshipAnalyzer.Components` - shared Razor components and styling used by guides and statistics.
@@ -93,7 +93,7 @@ Modules are scoped services resolved per analysis run. Put event subscriptions i
 
 Hero analyzers are registered without runtime reflection. The parser source generator reads attributes like `[HeroAnalyzer(HeroName.Rime)]` and `[AddModule<T>]` and emits strongly typed constructors, module accessors, DI registration, and keyed `IHeroAnalyzer` registration.
 
-The WebAssembly client calls a single reflection-free aggregate registration method in `FellowshipAnalyzer.Client`:
+The WebAssembly client calls a single reflection-free aggregate registration method in `FellowshipAnalyzer`:
 
 ```csharp
 builder.Services.AddCoreAnalysisServices();

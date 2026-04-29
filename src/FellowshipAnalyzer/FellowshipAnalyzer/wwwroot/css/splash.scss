@@ -1,0 +1,72 @@
+@use 'tokens' as t;
+
+$fa-splash-bg:     t.$fa-bg-base;
+$fa-splash-text:   t.$fa-text;
+$fa-splash-muted:  t.$fa-text-muted;
+$fa-splash-dim:    t.$fa-text-dim;
+$fa-splash-accent: t.$fa-gold;
+$fa-splash-accent-light: t.$fa-gold-light;
+$fa-splash-accent-dim:   t.$fa-gold-dim;
+$fa-splash-fade-ms: 150ms;
+
+.fa-splash {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1.5rem;
+    background: $fa-splash-bg;
+    color: $fa-splash-text;
+    font-family: t.$fa-font-heading;
+    z-index: 9999;
+    transition: opacity $fa-splash-fade-ms ease-out;
+
+    &.fa-splash-hidden {
+        opacity: 0;
+        pointer-events: none;
+    }
+}
+
+.fa-splash-brand {
+    margin: 0;
+    font-size: clamp(1.75rem, 4vw, 2.75rem);
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    color: $fa-splash-accent-light;
+    text-shadow: 0 0 24px rgba(t.$fa-gold, 0.25);
+}
+
+.fa-splash-tagline {
+    margin: -0.75rem 0 0;
+    font-family: t.$fa-font-body;
+    font-size: 0.95rem;
+    color: $fa-splash-muted;
+}
+
+.fa-splash-bar {
+    position: relative;
+    width: min(360px, 70vw);
+    height: 6px;
+    border-radius: 999px;
+    background: $fa-splash-accent-dim;
+    overflow: hidden;
+}
+
+.fa-splash-bar-fill {
+    position: absolute;
+    inset: 0;
+    width: var(--fa-splash-progress, 0%);
+    border-radius: 999px;
+    background: linear-gradient(90deg, $fa-splash-accent, $fa-splash-accent-light);
+    transition: width 180ms ease-out;
+}
+
+.fa-splash-status {
+    min-height: 1em;
+    font-family: t.$fa-font-body;
+    font-size: 0.8rem;
+    color: $fa-splash-dim;
+    letter-spacing: 0.04em;
+}

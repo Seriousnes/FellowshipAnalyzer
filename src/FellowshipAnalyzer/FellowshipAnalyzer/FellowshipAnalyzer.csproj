@@ -1,21 +1,46 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+<Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
 
 	<PropertyGroup>
 		<TargetFramework>net10.0</TargetFramework>
-		<Nullable>enable</Nullable>
 		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<NoDefaultLaunchSettingsFile>true</NoDefaultLaunchSettingsFile>
+		<StaticWebAssetProjectMode>Default</StaticWebAssetProjectMode>
 		<BlazorDisableThrowNavigationException>true</BlazorDisableThrowNavigationException>
 	</PropertyGroup>
 
+	<PropertyGroup Condition="'$(Configuration)' == 'Release'">
+		<RunAOTCompilation>true</RunAOTCompilation>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(RunAOTCompilation)' == 'true'">
+		<DefineConstants>$(DefineConstants);WASM_AOT_BUILD</DefineConstants>
+	</PropertyGroup>
+
 	<ItemGroup>
-		<ProjectReference Include="..\..\FellowshipAnalyzer.ServiceDefaults\FellowshipAnalyzer.ServiceDefaults.csproj" />
-		<ProjectReference Include="..\FellowshipAnalyzer.Client\FellowshipAnalyzer.Client.csproj" />
+		<ProjectReference Include="..\..\FellowshipAnalyzer.Components\FellowshipAnalyzer.Components.csproj" />
 		<ProjectReference Include="..\..\FellowshipAnalyzer.Core\FellowshipAnalyzer.Core.csproj" />
+		<ProjectReference Include="..\..\Heroes\FellowshipAnalyzer.Heroes.Aeona\FellowshipAnalyzer.Heroes.Aeona.csproj" />
+		<ProjectReference Include="..\..\Heroes\FellowshipAnalyzer.Heroes.Ardeos\FellowshipAnalyzer.Heroes.Ardeos.csproj" />
+		<ProjectReference Include="..\..\Heroes\FellowshipAnalyzer.Heroes.Elarion\FellowshipAnalyzer.Heroes.Elarion.csproj" />
+		<ProjectReference Include="..\..\Heroes\FellowshipAnalyzer.Heroes.Helena\FellowshipAnalyzer.Heroes.Helena.csproj" />
+		<ProjectReference Include="..\..\Heroes\FellowshipAnalyzer.Heroes.Mara\FellowshipAnalyzer.Heroes.Mara.csproj" />
+		<ProjectReference Include="..\..\Heroes\FellowshipAnalyzer.Heroes.Meiko\FellowshipAnalyzer.Heroes.Meiko.csproj" />
+		<ProjectReference Include="..\..\Heroes\FellowshipAnalyzer.Heroes.Rime\FellowshipAnalyzer.Heroes.Rime.csproj" />
+		<ProjectReference Include="..\..\Heroes\FellowshipAnalyzer.Heroes.Sylvie\FellowshipAnalyzer.Heroes.Sylvie.csproj" />
+		<ProjectReference Include="..\..\Heroes\FellowshipAnalyzer.Heroes.Tariq\FellowshipAnalyzer.Heroes.Tariq.csproj" />
+		<ProjectReference Include="..\..\Heroes\FellowshipAnalyzer.Heroes.Vigour\FellowshipAnalyzer.Heroes.Vigour.csproj" />
+		<ProjectReference Include="..\..\Heroes\FellowshipAnalyzer.Heroes.Xavian\FellowshipAnalyzer.Heroes.Xavian.csproj" />
 		<ProjectReference Include="..\..\FellowshipAnalyzer.Generators\FellowshipAnalyzer.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" />
+		<Content Update="sasscompiler.json" CopyToPublishDirectory="Never" />
+	</ItemGroup>
+	
+	<ItemGroup>
+		<PackageReference Include="AspNetCore.SassCompiler" />
+		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" />
 	</ItemGroup>
 
 </Project>

@@ -1,0 +1,17 @@
+@using FellowshipAnalyzer.Services
+
+<CascadingValue Value="@Context.Analyzer" IsFixed="true">
+    <CascadingValue Value="@(new FightTimeContext(Context.FightStartTime, Context.FightEndTime))" IsFixed="true">
+        <CascadingValue Value="@Context.Analysis">
+            @ChildContent
+        </CascadingValue>
+    </CascadingValue>
+</CascadingValue>
+
+@code {
+    [Parameter, EditorRequired]
+    public ReportAnalysisContext Context { get; set; } = null!;
+
+    [Parameter]
+    public RenderFragment ChildContent { get; set; } = null!;
+}

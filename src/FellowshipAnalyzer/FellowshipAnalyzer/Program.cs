@@ -1,64 +1,49 @@
-using FellowshipAnalyzer.Components;
-using FellowshipAnalyzer.ServiceDefaults;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using ApexCharts;
+using FellowshipAnalyzer;
+using FellowshipAnalyzer.Services;
+using FellowshipAnalyzer.Components.Timeline;
+using FellowshipAnalyzer.Core;
+using FellowshipAnalyzer.Core.Analysis;
+using FellowshipAnalyzer.Core.FellowshipLogs;
+using FellowshipAnalyzer.Core.Serialization;
+using Microsoft.AspNetCore.Components.Web;
 
-var builder = WebApplication.CreateBuilder(args);
+using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 
-builder.AddServiceDefaults();
+var builder = WebAssemblyHostBuilder.CreateDefault(args);
 
-builder.Services.AddRazorComponents()
-    .AddInteractiveWebAssemblyComponents();
+builder.RootComponents.Add<Routes>("#app");
+builder.RootComponents.Add<HeadOutlet>("head::after");
 
-var app = builder.Build();
+var hostBaseAddress = new Uri(builder.HostEnvironment.BaseAddress);
+builder.Services.AddScoped(_ => new HttpClient { BaseAddress = hostBaseAddress });
 
-app.MapDefaultEndpoints();
-
-if (app.Environment.IsDevelopment())
+var jsonOptions = new JsonSerializerOptions(JsonSerializerOptions.Web)
 {
-    app.UseWebAssemblyDebugging();
-}
-else
-{
-    app.UseExceptionHandler("/Error", createScopeForErrors: true);
-    app.UseHsts();
-}
+    DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+    PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+    PropertyNameCaseInsensitive = true,
+    AllowOutOfOrderMetadataProperties = true,
+};
+jsonOptions.Converters.Add(new JsonStringEnumConverter(allowIntegerValues: true));
+var jsonContext = new FellowshipAnalyzerJsonContext(new JsonSerializerOptions(jsonOptions));
+jsonOptions.TypeInfoResolverChain.Insert(0, jsonContext);
+builder.Services.AddSingleton(jsonOptions);
+builder.Services.AddSingleton(jsonContext);
 
-// Fail fast if the API base URL cannot be resolved. We deliberately do NOT
-// silently fall back to a hardcoded localhost URL: missing service discovery
-// or configuration must surface as an error rather than be hidden behind a
-// stale default that masks broken Aspire wiring.
-var publicApiHttpBaseUrl =
-    builder.Configuration["Services:fellowshipanalyzerapi:http:0"]?.TrimEnd('/')
-    ?? builder.Configuration["PublicApi:HttpBaseUrl"]?.TrimEnd('/')
-    ?? builder.Configuration["PublicApi:BaseUrl"]?.TrimEnd('/')
-    ?? throw new InvalidOperationException(
-        "API base URL (http) is not configured. Expected one of "
-        + "'Services:fellowshipanalyzerapi:http:0' (Aspire service discovery), "
-        + "'PublicApi:HttpBaseUrl', or 'PublicApi:BaseUrl'.");
 
-var publicApiHttpsBaseUrl =
-    builder.Configuration["Services:fellowshipanalyzerapi:https:0"]?.TrimEnd('/')
-    ?? builder.Configuration["PublicApi:HttpsBaseUrl"]?.TrimEnd('/')
-    ?? publicApiHttpBaseUrl;
+builder.Services.AddApexCharts();
+builder.Services.AddCoreAnalysisServices();
+builder.Services.AddCoreAnalysis();
+builder.Services.AddFellowshipHeroAnalysis();
 
-app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
-app.UseHttpsRedirection();
+builder.Services.AddScoped<ReportLoadingTracker>();
+builder.Services.AddScoped<ReportNavigationState>();
+builder.Services.AddScoped<FellowshipLogsApiClient>();
+builder.Services.AddScoped<IReportCacheService, IndexedDbReportCacheService>();
+builder.Services.AddScoped<ReportAnalysisService>();
+builder.Services.AddScoped<TimelineConfigService>();
 
-app.UseAntiforgery();
-
-app.MapStaticAssets();
-app.MapRazorComponents<App>()
-    .AddInteractiveWebAssemblyRenderMode()
-    .AddAdditionalAssemblies(
-        typeof(FellowshipAnalyzer.Client._Imports).Assembly);
-
-app.MapGet(
-    "/config.json",
-    (HttpContext httpContext) => TypedResults.Ok(
-        new ClientConfiguration(
-            string.Equals(httpContext.Request.Scheme, "https", StringComparison.OrdinalIgnoreCase)
-                ? publicApiHttpsBaseUrl
-                : publicApiHttpBaseUrl)));
-
-app.Run();
-
-internal sealed record ClientConfiguration(string ApiBaseUrl);
+await builder.Build().RunAsync();

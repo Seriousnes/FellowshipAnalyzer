@@ -1,7 +1,7 @@
 # Design Tokens Reference
 
 All tokens are declared in `src/FellowshipAnalyzer.Components/Styles/_tokens.scss`
-and emitted as CSS custom properties in `src/FellowshipAnalyzer.Client/wwwroot/app.scss`.
+and emitted as CSS custom properties in `src/FellowshipAnalyzer/wwwroot/app.scss`.
 
 ---
 
