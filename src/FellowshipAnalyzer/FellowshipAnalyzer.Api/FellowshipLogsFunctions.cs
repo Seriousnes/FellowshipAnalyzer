@@ -43,6 +43,22 @@ internal sealed class FellowshipLogsFunctions(FellowshipLogsApiHandler handler)
         return await TranslateAsync(request.HttpContext, response);
     }
 
+    [Function(nameof(GetCharacterReports))]
+    public async Task<IActionResult> GetCharacterReports(
+        [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "character/{id}")] HttpRequest request,
+        string id,
+        CancellationToken cancellationToken)
+    {
+        var characterId = TryParseInt(id);
+
+        var response = await handler.GetCharacterReportsAsync(
+            BuildContext(request),
+            characterId,
+            cancellationToken);
+
+        return await TranslateAsync(request.HttpContext, response);
+    }
+
     private static EndpointRequestContext BuildContext(HttpRequest request) => new()
     {
         Origin = request.Headers.Origin.ToString(),
@@ -59,6 +75,18 @@ internal sealed class FellowshipLogsFunctions(FellowshipLogsApiHandler handler)
         }
 
         return int.TryParse(text, NumberStyles.Integer, CultureInfo.InvariantCulture, out var value)
+            ? value
+            : null;
+    }
+
+    private static int? TryParseInt(string? raw)
+    {
+        if (string.IsNullOrWhiteSpace(raw))
+        {
+            return null;
+        }
+
+        return int.TryParse(raw, NumberStyles.Integer, CultureInfo.InvariantCulture, out var value)
             ? value
             : null;
     }

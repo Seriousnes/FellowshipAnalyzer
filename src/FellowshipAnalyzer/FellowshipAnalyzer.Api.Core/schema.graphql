@@ -9,7 +9,23 @@ scalar String
 scalar JSON
 
 type Query {
+  characterData: CharacterData
   reportData: ReportData
+}
+
+type CharacterData {
+  character(id: Int, name: String, serverSlug: String, serverRegion: String): Character
+}
+
+type Character {
+  id: Int!
+  name: String!
+  recentReports: ReportPagination
+}
+
+type ReportPagination {
+  data: [Report]
+  has_more_pages: Boolean!
 }
 
 type ReportData {
@@ -17,6 +33,7 @@ type ReportData {
 }
 
 type Report {
+  code: String!
   title: String
   startTime: Float!
   endTime: Float

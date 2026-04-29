@@ -1,0 +1,123 @@
+@use 'tokens' as t;
+
+.analysis-page {
+    padding: 2rem 0;
+
+    @media (max-width: 720px) { padding: 1rem 0; }
+}
+
+.hero-panel,
+.status-panel,
+.character-reports-section {
+    border: 1px solid var(--fa-border-card);
+    background: var(--fa-bg-card);
+    box-shadow: var(--fa-shadow-card);
+}
+
+.hero-panel {
+    border-radius: var(--fa-radius-lg);
+    padding: 1.75rem;
+    margin-bottom: 1.5rem;
+}
+
+.eyebrow {
+    margin: 0 0 0.4rem;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--fa-gold);
+}
+
+h1 {
+    margin: 0;
+    font-size: clamp(1.8rem, 4vw, 2.6rem);
+    line-height: 1.1;
+}
+
+.lede {
+    color: var(--fa-text-muted);
+}
+
+.status-panel {
+    border-radius: var(--fa-radius-lg);
+    padding: 1.25rem;
+    color: var(--fa-text-muted);
+
+    &.error {
+        color: #f5b8a8;
+        border-color: rgba(212, 86, 74, 0.35);
+    }
+}
+
+.loading-placeholder {
+    color: var(--fa-text-dim);
+}
+
+.character-reports-section {
+    border-radius: var(--fa-radius-lg);
+    overflow: hidden;
+}
+
+.character-report-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+
+    thead tr {
+        border-bottom: 1px solid var(--fa-border-card);
+    }
+
+    th {
+        padding: 0.75rem 1rem;
+        text-align: left;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--fa-text-muted);
+    }
+}
+
+.character-report-row {
+    border-bottom: 1px solid var(--fa-border-subtle);
+
+    &:last-child {
+        border-bottom: none;
+    }
+
+    &:hover {
+        background: var(--fa-bg-hover);
+    }
+
+    td {
+        padding: 0.75rem 1rem;
+        color: var(--fa-text);
+    }
+}
+
+.col-title {
+    width: 60%;
+}
+
+.col-date {
+    color: var(--fa-text-muted);
+    white-space: nowrap;
+}
+
+.col-fights {
+    text-align: right;
+    color: var(--fa-text-muted);
+    white-space: nowrap;
+}
+
+.report-link {
+    color: var(--fa-gold);
+    text-decoration: none;
+    font-weight: 500;
+
+    &:hover {
+        color: var(--fa-gold-light);
+        text-decoration: underline;
+    }
+}

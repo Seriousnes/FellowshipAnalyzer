@@ -59,6 +59,25 @@ public sealed record AnalysisPreload(
 );
 
 /// <summary>
+/// A character's recent reports as returned by the character API endpoint.
+/// </summary>
+public sealed record CharacterReports(
+    string Name,
+    IReadOnlyList<ReportSummary> Reports
+);
+
+/// <summary>
+/// A brief summary of a report used in character report listings.
+/// </summary>
+public sealed record ReportSummary(
+    string Code,
+    string? Title,
+    double StartTime,
+    double? EndTime,
+    int FightCount
+);
+
+/// <summary>
 /// Represents the deserialized events from a combat log fight, with progress status.
 /// </summary>
 public sealed record EventsResult(List<Event> Events, bool InProgress);

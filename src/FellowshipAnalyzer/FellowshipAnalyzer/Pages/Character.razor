@@ -1,0 +1,109 @@
+@page "/character/{Id:int}"
+@using FellowshipAnalyzer.Core.FellowshipLogs
+@using FellowshipAnalyzer.Services
+@inject FellowshipLogsApiClient FellowshipLogs
+
+<PageTitle>@(_character?.Name is { } name ? $"{name} – Fellowship Analyzer" : "Fellowship Analyzer")</PageTitle>
+
+<div class="analysis-page">
+    <section class="hero-panel">
+        <div>
+            <p class="eyebrow">Character Profile</p>
+            @if (_character is not null)
+            {
+                <h1>@_character.Name</h1>
+    
+            }
+            else if (_isLoading)
+            {
+                <h1 class="loading-placeholder">Loading...</h1>
+            }
+        </div>
+    </section>
+
+    @if (_isLoading)
+    {
+        <section class="status-panel">Loading character reports...</section>
+    }
+    else if (!string.IsNullOrWhiteSpace(_error))
+    {
+        <section class="status-panel error">@_error</section>
+    }
+    else if (_character is not null)
+    {
+        <section class="character-reports-section">
+            @if (_character.Reports.Count == 0)
+            {
+                <p class="status-panel">No recent reports found for this character.</p>
+            }
+            else
+            {
+                <table class="character-report-table">
+                    <thead>
+                        <tr>
+                            <th class="col-title">Report</th>
+                            <th class="col-date">Date</th>
+                            <th class="col-fights">Fights</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var report in _character.Reports)
+                        {
+                            <tr class="character-report-row">
+                                <td class="col-title">
+                                    <a href="/report/@report.Code" class="report-link">
+                                        @(string.IsNullOrWhiteSpace(report.Title) ? report.Code : report.Title)
+                                    </a>
+                                </td>
+                                <td class="col-date">@FormatDate(report.StartTime)</td>
+                                <td class="col-fights">@report.FightCount</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+        </section>
+    }
+</div>
+
+@code {
+    [Parameter] public int Id { get; set; }
+
+    private CharacterReports? _character;
+    private bool _isLoading;
+    private string? _error;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _isLoading = true;
+        _error = null;
+        _character = null;
+
+        try
+        {
+            _character = await FellowshipLogs.GetCharacterReportsAsync(Id);
+        }
+        catch (Exception ex)
+        {
+            _error = $"Could not load character: {ex.Message}";
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private static string FormatDate(double startTime)
+    {
+        try
+        {
+            var milliseconds = startTime < 10_000_000_000 ? startTime * 1000 : startTime;
+            var date = DateTimeOffset.FromUnixTimeMilliseconds((long)milliseconds);
+            return date.LocalDateTime.ToString("d MMM yyyy");
+        }
+        catch
+        {
+            return string.Empty;
+        }
+    }
+}

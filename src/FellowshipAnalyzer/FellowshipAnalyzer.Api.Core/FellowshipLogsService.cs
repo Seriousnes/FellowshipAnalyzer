@@ -102,6 +102,34 @@ public sealed class FellowshipLogsService(IFellowshipLogsApiClient client)
         return new AnalysisPreloadResponse(reportInfo, new MasterDataResponse(abilities, actors));
     }
 
+    public async Task<CharacterReportsResponse> GetCharacterReportsAsync(
+        int characterId,
+        CancellationToken cancellationToken = default)
+    {
+        if (characterId <= 0)
+            throw new ArgumentOutOfRangeException(nameof(characterId), "Character ID must be greater than zero.");
+
+        var result = await client.GetCharacterReports.ExecuteAsync(characterId, cancellationToken);
+        ThrowIfErrors(result);
+
+        var character = result.Data!.CharacterData?.Character
+            ?? throw new InvalidOperationException("GraphQL response did not contain expected character data.");
+
+        var reports = character.RecentReports?.Data?
+            .Where(r => r is not null)
+            .Select(r => new ReportSummaryResponse(
+                r!.Code,
+                r.Title,
+                r.StartTime,
+                r.EndTime,
+                r.Fights?.Count(f => f is not null) ?? 0))
+            .ToList() ?? [];
+
+        return new CharacterReportsResponse(
+            character.Name,
+            reports);
+    }
+
     private static void ThrowIfErrors<T>(IOperationResult<T> result) where T : class
     {
         if (result.Errors is { Count: > 0 })

@@ -9,7 +9,7 @@
     <div class="input-wrapper">
         <input type="text"
                class="report-input"
-               placeholder="https://www.fellowshiplogs.com/reports/<report code>"
+               placeholder="Fellowship Logs report or character profile URL"
                autocorrect="off"
                autocapitalize="off"
                spellcheck="false"
@@ -44,7 +44,7 @@
         _reportInput = e.Value?.ToString() ?? "";
         _error = null;
 
-        if (!_isLoading && ExtractReportCode(_reportInput) is not null)
+        if (!_isLoading && (ExtractReportCode(_reportInput) is not null || ExtractCharacterId(_reportInput) is not null))
             await SubmitAsync();
     }
 
@@ -56,10 +56,17 @@
 
     private async Task SubmitAsync()
     {
+        var characterId = ExtractCharacterId(_reportInput);
+        if (characterId is not null)
+        {
+            Navigation.NavigateTo($"/character/{characterId}");
+            return;
+        }
+
         var code = ExtractReportCode(_reportInput);
         if (code is null)
         {
-            _error = "Enter a valid Fellowship Logs report URL or report code.";
+            _error = "Enter a valid Fellowship Logs report or character profile URL.";
             return;
         }
 
@@ -102,6 +109,17 @@
         var match = Regex.Match(input.Trim(),
             @"^(?:.*reports\/)?([a-zA-Z0-9]{16})(?:[\/\?#].*)?$");
         return match.Success ? match.Groups[1].Value : null;
+    }
+
+    private static int? ExtractCharacterId(string input)
+    {
+        // Matches: https://www.fellowshiplogs.com/character/id/{numericId}
+        var match = Regex.Match(input.Trim(),
+            @"fellowshiplogs\.com/character/id/([0-9]+)");
+        if (!match.Success)
+            return null;
+
+        return int.TryParse(match.Groups[1].Value, out var id) ? id : null;
     }
 
     private static string? ExtractQueryParam(string input, string paramName)

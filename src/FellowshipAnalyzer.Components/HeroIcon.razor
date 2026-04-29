@@ -1,0 +1,19 @@
+<img src="@Hero.IconUrl"
+     class="hero-icon"
+     alt="@_initial"
+     @attributes="InputAttributes" />
+
+@code {
+    [Parameter, EditorRequired]
+    public Hero Hero { get; set; }
+
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object> InputAttributes { get; set; } = new();
+
+    private string _initial = "";
+
+    protected override void OnParametersSet()
+    {
+        _initial = Hero.Id.Length > 0 ? char.ToUpperInvariant(Hero.Id[0]).ToString() : "?";
+    }
+}

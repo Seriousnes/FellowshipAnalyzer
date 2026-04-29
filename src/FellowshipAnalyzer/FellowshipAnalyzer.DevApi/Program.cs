@@ -9,9 +9,19 @@ builder.Services.AddFellowshipLogsApi(
     builder.Configuration,
     allowDevelopmentLoopbackOrigins: builder.Environment.IsDevelopment());
 
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
 var app = builder.Build();
 
 app.MapDefaultEndpoints();
+
+app.UseSwagger();
+app.UseSwaggerUI(o =>
+{
+    o.SwaggerEndpoint("/swagger/v1/swagger.json", "v1");
+    o.RoutePrefix = string.Empty;
+});
 
 app.MapGet("/api/events", async (
     HttpContext httpContext,
@@ -40,6 +50,20 @@ app.MapGet("/api/analysis/{reportCode}", async (
     var response = await handler.GetAnalysisAsync(
         BuildContext(httpContext.Request),
         reportCode,
+        cancellationToken);
+
+    await WriteResponseAsync(httpContext, response);
+});
+
+app.MapGet("/api/character/{id:int}", async (
+    HttpContext httpContext,
+    FellowshipLogsApiHandler handler,
+    int id,
+    CancellationToken cancellationToken) =>
+{
+    var response = await handler.GetCharacterReportsAsync(
+        BuildContext(httpContext.Request),
+        id,
         cancellationToken);
 
     await WriteResponseAsync(httpContext, response);

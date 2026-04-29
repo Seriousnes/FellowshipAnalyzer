@@ -52,6 +52,23 @@ public readonly record struct Hero(HeroName Name, HeroRole Role)
     /// <summary>Lowercase string identifier (e.g. <c>"rime"</c>).</summary>
     public string Id => Name.ToHeroId();
 
+    /// <summary>Portrait image URL from the Fellowship CDN.</summary>
+    public string IconUrl => Name switch
+    {
+        HeroName.Aeona   => "https://assets.fellows.gg/static/heroes/hero_portrait_Lisa_default.webp?v=1",
+        HeroName.Ardeos  => "https://assets.fellows.gg/static/heroes/hero_portrait_Firemage_default.webp?v=1",
+        HeroName.Elarion => "https://assets.fellows.gg/static/heroes/hero_portrait_Bowguy_01.webp?v=1",
+        HeroName.Helena  => "https://assets.fellows.gg/static/heroes/hero_portrait_warmaster_01.webp?v=1",
+        HeroName.Mara    => "https://assets.fellows.gg/static/heroes/hero_portrait_Mara_01.webp?v=1",
+        HeroName.Meiko   => "https://assets.fellows.gg/static/heroes/hero_portrait_meiko_default.webp?v=1",
+        HeroName.Rime    => "https://assets.fellows.gg/static/heroes/hero_portrait_rime_default.webp?v=1",
+        HeroName.Sylvie  => "https://assets.fellows.gg/static/heroes/hero_portrait_Mosse_01_default.webp?v=1",
+        HeroName.Tariq   => "https://assets.fellows.gg/static/heroes/hero_portrait_Ink_01.webp?v=1",
+        HeroName.Vigour  => "https://assets.fellows.gg/static/heroes/hero_portrait_vigor_default.webp?v=1",
+        HeroName.Xavian  => "https://assets.fellows.gg/static/heroes/T_HeroPortrait_Sune.webp?v=1",
+        _                => "",
+    };
+
     /* Tanks */
     public static readonly Hero Helena = new(HeroName.Helena, HeroRole.Tank);
     public static readonly Hero Meiko = new(HeroName.Meiko, HeroRole.Tank);

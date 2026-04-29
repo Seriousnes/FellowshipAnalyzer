@@ -111,17 +111,19 @@
                                     <a class="player-card"
                                        href="/report/@ReportCode/@expandedId/@player.Id"
                                        style="border-left-color: @borderColor">
-                                        @if (player.Icon is not null)
+                                        @{
+                                            var initial = player.Name.Length > 0 ? player.Name[0].ToString() : "?";
+                                            var hasHero = Hero.TryParse(player.SubType, out var playerHero);
+                                        }
+                                        @if (hasHero)
                                         {
-                                            <img class="player-icon"
-                                                 src="https://assets.rpglogs.com/img/fellowship/abilities/@player.Icon"
-                                                 alt="@(player.SubType ?? "")"
-                                                 onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />
-                                            <div class="player-icon-placeholder" style="display:none">@(player.Name.Length > 0 ? player.Name[0].ToString() : "?")</div>
+                                            <HeroIcon Hero="playerHero"
+                                                      onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />
+                                            <div class="player-icon-placeholder" style="display:none">@initial</div>
                                         }
                                         else
                                         {
-                                            <div class="player-icon-placeholder">@(player.Name.Length > 0 ? player.Name[0].ToString() : "?")</div>
+                                            <div class="player-icon-placeholder">@initial</div>
                                         }
                                         <div class="player-info">
                                             <span class="player-name">@player.Name</span>
@@ -145,17 +147,19 @@
                         <div class="player-accordion-header"
                              style="border-left-color: @borderColor"
                              @onclick="() => _expandedPlayerId = isExpanded ? null : player.Id">
-                            @if (player.Icon is not null)
+                            @{
+                                var initial = player.Name.Length > 0 ? player.Name[0].ToString() : "?";
+                                var hasHero = Hero.TryParse(player.SubType, out var playerHero);
+                            }
+                            @if (hasHero)
                             {
-                                <img class="player-icon"
-                                     src="https://assets.rpglogs.com/img/fellowship/abilities/@player.Icon"
-                                     alt="@(player.SubType ?? "")"
-                                     onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />
-                                <div class="player-icon-placeholder" style="display:none">@(player.Name.Length > 0 ? player.Name[0].ToString() : "?")</div>
+                                <HeroIcon Hero="playerHero"
+                                          onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />
+                                <div class="player-icon-placeholder" style="display:none">@initial</div>
                             }
                             else
                             {
-                                <div class="player-icon-placeholder">@(player.Name.Length > 0 ? player.Name[0].ToString() : "?")</div>
+                                <div class="player-icon-placeholder">@initial</div>
                             }
                             <div class="player-info">
                                 <span class="player-name">@player.Name</span>

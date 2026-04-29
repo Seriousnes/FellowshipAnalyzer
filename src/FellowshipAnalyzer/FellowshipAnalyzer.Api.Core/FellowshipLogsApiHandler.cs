@@ -103,6 +103,43 @@ public sealed class FellowshipLogsApiHandler(
         return JsonOk(response, preload);
     }
 
+    public async Task<EndpointResponse> GetCharacterReportsAsync(
+        EndpointRequestContext requestContext,
+        int? characterId,
+        CancellationToken cancellationToken)
+    {
+        var response = StartResponse(requestContext);
+
+        if (await TryApplyRateLimitAsync(response, requestContext, cancellationToken) is { } limited)
+        {
+            return limited;
+        }
+
+        if (characterId is null or <= 0)
+        {
+            return BadRequest(response, "Route parameter 'id' must be a positive integer.");
+        }
+
+        var cacheKey = CacheKeys.Character(characterId.Value);
+
+        if (cache.TryGetValue(cacheKey, out CharacterReportsResponse? cached) && cached is not null)
+        {
+            ApplyNoStoreCacheHeaders(response, hit: true);
+            return JsonOk(response, cached);
+        }
+
+        var result = await fellowshipLogsService.GetCharacterReportsAsync(characterId.Value, cancellationToken);
+        cache.Set(cacheKey, result, new MemoryCacheEntryOptions
+        {
+            AbsoluteExpirationRelativeToNow = PositiveDuration(
+                cacheOptions.RecentReportMetadataCacheDuration,
+                TimeSpan.FromMinutes(10))
+        });
+        ApplyNoStoreCacheHeaders(response, hit: false);
+
+        return JsonOk(response, result);
+    }
+
     private EndpointResponse StartResponse(EndpointRequestContext requestContext)
     {
         var response = new EndpointResponse

@@ -6,6 +6,19 @@ public sealed record RawEventsResult(byte[] JsonBytes, bool InProgress);
 
 public sealed record AnalysisPreloadResponse(ReportInfoResponse ReportInfo, MasterDataResponse MasterData);
 
+public sealed record CharacterReportsResponse(
+    string Name,
+    IReadOnlyList<ReportSummaryResponse> Reports
+);
+
+public sealed record ReportSummaryResponse(
+    string Code,
+    string? Title,
+    double StartTime,
+    double? EndTime,
+    int FightCount
+);
+
 public sealed record ReportInfoResponse(
     string Code,
     string? Title,

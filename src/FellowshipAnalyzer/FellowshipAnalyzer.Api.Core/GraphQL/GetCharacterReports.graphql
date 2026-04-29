@@ -1,0 +1,18 @@
+query GetCharacterReports($id: Int!) {
+  characterData {
+    character(id: $id) {
+      name
+      recentReports {
+        data {
+          code
+          title
+          startTime
+          endTime
+          fights {
+            id
+          }
+        }
+      }
+    }
+  }
+}
