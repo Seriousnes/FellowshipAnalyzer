@@ -58,12 +58,10 @@
                     </div>
                 </div>
                 <div class="player-block">
-                    @if (header.Player.Icon is not null)
+                    @if (Hero.TryParse(header.Player.SubType, out var headerHero))
                     {
-                        <img class="player-portrait"
-                             src="https://assets.rpglogs.com/img/fellowship/abilities/@header.Player.Icon"
-                             alt="@header.Player.Name"
-                             onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />
+                        <HeroIcon Hero="headerHero" style="width:56px;height:56px;"
+                                  onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />
                         <div class="player-portrait-placeholder" style="display:none">
                             @FirstCharacter(header.Player.Name)
                         </div>

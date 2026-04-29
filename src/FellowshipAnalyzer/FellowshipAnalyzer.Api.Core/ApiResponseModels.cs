@@ -7,7 +7,7 @@ public sealed record RawEventsResult(byte[] JsonBytes, bool InProgress);
 public sealed record AnalysisPreloadResponse(ReportInfoResponse ReportInfo, MasterDataResponse MasterData);
 
 public sealed record CharacterReportsResponse(
-    string Name,
+    IGetCharacterReports_CharacterData_Character Character,
     IReadOnlyList<ReportSummaryResponse> Reports
 );
 

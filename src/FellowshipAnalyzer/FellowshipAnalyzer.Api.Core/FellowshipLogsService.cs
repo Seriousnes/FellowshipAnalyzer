@@ -126,7 +126,7 @@ public sealed class FellowshipLogsService(IFellowshipLogsApiClient client)
             .ToList() ?? [];
 
         return new CharacterReportsResponse(
-            character.Name,
+            character,
             reports);
     }
 

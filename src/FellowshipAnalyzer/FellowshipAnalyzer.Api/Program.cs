@@ -13,4 +13,5 @@ builder.Services.AddFellowshipLogsApi(
     builder.Configuration,
     allowDevelopmentLoopbackOrigins: builder.Environment.IsDevelopment());
 
-builder.Build().Run();
+var app = builder.Build();
+app.Run();

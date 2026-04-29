@@ -20,6 +20,7 @@ type CharacterData {
 type Character {
   id: Int!
   name: String!
+  canonicalID: Int
   recentReports: ReportPagination
 }
 

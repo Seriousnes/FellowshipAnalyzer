@@ -6,7 +6,12 @@
     <AzureFunctionsVersion>v4</AzureFunctionsVersion>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <FellowshipApiHostKind>Functions</FellowshipApiHostKind>
   </PropertyGroup>
+
+  <ItemGroup>
+    <CompilerVisibleProperty Include="FellowshipApiHostKind" />
+  </ItemGroup>
 
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
@@ -17,6 +22,9 @@
 
   <ItemGroup>
     <ProjectReference Include="..\FellowshipAnalyzer.Api.Core\FellowshipAnalyzer.Api.Core.csproj" />
+    <ProjectReference Include="..\..\FellowshipAnalyzer.Generators\FellowshipAnalyzer.Generators.csproj"
+                      OutputItemType="Analyzer"
+                      ReferenceOutputAssembly="false" />
   </ItemGroup>
 
   <ItemGroup>

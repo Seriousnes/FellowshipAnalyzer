@@ -66,7 +66,7 @@ public static class FellowshipLogsServiceCollectionExtensions
                 .Get<FellowshipLogsRateLimitOptions>()
             ?? new FellowshipLogsRateLimitOptions());
 
-        services.AddSingleton(new FellowshipLogsCorsOptions(
+        var corsOptions = new FellowshipLogsCorsOptions(
             configuration
                 .GetSection("Cors:AllowedOrigins")
                 .Get<string[]>()
@@ -74,10 +74,22 @@ public static class FellowshipLogsServiceCollectionExtensions
                 .Distinct(StringComparer.OrdinalIgnoreCase)
                 .ToArray()
             ?? [],
-            allowDevelopmentLoopbackOrigins));
+            allowDevelopmentLoopbackOrigins);
+        services.AddSingleton(corsOptions);
+
+        services.AddCors(options =>
+        {
+            options.AddPolicy(FellowshipLogsApiBuilderExtensions.CorsPolicyName, policy =>
+            {
+                policy.SetIsOriginAllowed(corsOptions.IsAllowedOrigin)
+                    .AllowAnyHeader()
+                    .AllowAnyMethod();
+            });
+        });
 
         services.AddSingleton<FellowshipLogsRateLimiter>();
         services.AddScoped<FellowshipLogsApiHandler>();
+        services.AddSingleton<Microsoft.AspNetCore.Hosting.IStartupFilter, FellowshipLogsApiStartupFilter>();
 
         return services;
     }

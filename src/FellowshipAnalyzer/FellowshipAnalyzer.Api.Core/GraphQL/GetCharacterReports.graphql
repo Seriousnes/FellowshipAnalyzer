@@ -1,7 +1,9 @@
 query GetCharacterReports($id: Int!) {
   characterData {
     character(id: $id) {
+      id
       name
+      canonicalID
       recentReports {
         data {
           code
