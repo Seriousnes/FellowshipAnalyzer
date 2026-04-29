@@ -72,6 +72,14 @@
             NavState.Set(code, preload.ReportInfo);
 
             var fight = ExtractQueryParam(_reportInput, "fight");
+
+            if (string.Equals(fight, "last", StringComparison.OrdinalIgnoreCase))
+            {
+                fight = preload.ReportInfo.Fights
+                    .OrderByDescending(f => f.Id)
+                    .FirstOrDefault()?.Id.ToString();
+            }
+
             var player = ExtractQueryParam(_reportInput, "source");
             var segments = new[] { code, fight, player }.Where(s => !string.IsNullOrEmpty(s));
             Navigation.NavigateTo("/report/" + string.Join("/", segments));
