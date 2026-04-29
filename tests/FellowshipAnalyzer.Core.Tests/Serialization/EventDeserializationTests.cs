@@ -139,7 +139,7 @@ public sealed class EventDeserializationTests
     [Fact]
     public void Deserialize_WithWasmClientOptions_ShouldHavePopulatedAbility()
     {
-        // Exactly mirrors FellowshipAnalyzer.Client/Program.cs
+        // Exactly mirrors FellowshipAnalyzer/Program.cs
         var wasmOptions = new JsonSerializerOptions(JsonSerializerDefaults.Web)
         {
             AllowOutOfOrderMetadataProperties = true,

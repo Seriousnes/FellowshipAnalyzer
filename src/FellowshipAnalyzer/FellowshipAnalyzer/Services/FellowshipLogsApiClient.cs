@@ -4,7 +4,7 @@ using System.Text.Json;
 using FellowshipAnalyzer.Core.FellowshipLogs;
 using FellowshipAnalyzer.Core.Serialization;
 
-namespace FellowshipAnalyzer.Client.Services;
+namespace FellowshipAnalyzer.Services;
 
 public sealed class FellowshipLogsApiClient(HttpClient http, FellowshipAnalyzerJsonContext jsonContext)
 {

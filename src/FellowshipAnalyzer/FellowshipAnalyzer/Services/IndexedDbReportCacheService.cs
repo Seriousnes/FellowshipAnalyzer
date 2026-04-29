@@ -2,7 +2,7 @@ using FellowshipAnalyzer.Core.Analysis;
 using FellowshipAnalyzer.Core.FellowshipLogs;
 using Microsoft.JSInterop;
 
-namespace FellowshipAnalyzer.Client.Services;
+namespace FellowshipAnalyzer.Services;
 
 /// <summary>
 /// IndexedDB-backed implementation of <see cref="IReportCacheService"/> for Blazor WebAssembly.

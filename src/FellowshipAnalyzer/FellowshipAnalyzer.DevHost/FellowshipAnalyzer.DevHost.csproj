@@ -8,7 +8,7 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\..\FellowshipAnalyzer.ServiceDefaults\FellowshipAnalyzer.ServiceDefaults.csproj" />
-		<ProjectReference Include="..\FellowshipAnalyzer.Client\FellowshipAnalyzer.Client.csproj" />
+		<ProjectReference Include="..\FellowshipAnalyzer\FellowshipAnalyzer.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>

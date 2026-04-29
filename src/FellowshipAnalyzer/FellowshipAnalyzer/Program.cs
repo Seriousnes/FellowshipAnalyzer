@@ -1,14 +1,14 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using ApexCharts;
-using FellowshipAnalyzer.Client.Services;
+using FellowshipAnalyzer;
+using FellowshipAnalyzer.Services;
 using FellowshipAnalyzer.Components.Timeline;
 using FellowshipAnalyzer.Core;
 using FellowshipAnalyzer.Core.Analysis;
 using FellowshipAnalyzer.Core.FellowshipLogs;
 using FellowshipAnalyzer.Core.Serialization;
 using Microsoft.AspNetCore.Components.Web;
-using FellowshipAnalyzer.Client;
 
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 

@@ -7,7 +7,7 @@
       "/js/*",
       "/app.css",
       "/app.css.map",
-      "/FellowshipAnalyzer.Client.styles.css",
+      "/FellowshipAnalyzer.styles.css",
       "/*.dll",
       "/*.wasm",
       "/*.dat",

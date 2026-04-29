@@ -36,11 +36,6 @@
     transition: color 0.15s;
 
     &:hover { color: var(--fa-gold); }
-
-    &-icon {
-        font-size: 1.25rem;
-        color: var(--fa-gold);
-    }
 }
 
 .topbar-actions {

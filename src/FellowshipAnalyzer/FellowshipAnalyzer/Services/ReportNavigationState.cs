@@ -1,6 +1,6 @@
 using FellowshipAnalyzer.Core.FellowshipLogs;
 
-namespace FellowshipAnalyzer.Client.Services;
+namespace FellowshipAnalyzer.Services;
 
 /// <summary>
 /// Scoped service that caches report info during a navigation session,

@@ -9,7 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 
 
-namespace FellowshipAnalyzer.Client.Services;
+namespace FellowshipAnalyzer.Services;
 
 /// <summary>
 /// Returned by <see cref="ReportAnalysisService.RunAsync"/> once a fight has been

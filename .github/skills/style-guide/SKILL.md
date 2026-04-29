@@ -21,7 +21,7 @@ Design tokens live in `_tokens.scss` and are mirrored to CSS custom properties a
 
 | Concern | File | Location |
 |---|---|---|
-| Global tokens → CSS vars | `app.scss` | `FellowshipAnalyzer.Client/wwwroot/` |
+| Global tokens → CSS vars | `app.scss` | `FellowshipAnalyzer/wwwroot/` |
 | SCSS token variables | `_tokens.scss` | `FellowshipAnalyzer.Components/Styles/` |
 | SCSS mixins & helpers | `_mixins.scss` | `FellowshipAnalyzer.Components/Styles/` |
 | Component styles | `ComponentName.razor.scss` | Beside its `.razor` file |

@@ -4,12 +4,12 @@
 @using FellowshipAnalyzer.Core.FellowshipLogs
 @using FellowshipAnalyzer.Components
 @using CoreReportInfo = FellowshipAnalyzer.Core.FellowshipLogs.ReportInfo
-@using FellowshipAnalyzer.Client.Services
+@using FellowshipAnalyzer.Services
 @inject FellowshipLogsApiClient FellowshipLogs
 @inject ReportNavigationState NavState
 @inject NavigationManager Navigation
 
-<PageTitle>@(_report is not null ? $"Report — {_report.Title}" : "Report")</PageTitle>
+<PageTitle>@(!string.IsNullOrWhiteSpace(_report?.Title) ? _report.Title : "Fellowship Analyzer")</PageTitle>
 
 <div class="analysis-page">
     <section class="hero-panel">

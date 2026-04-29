@@ -1,16 +1,16 @@
 @page "/report/{ReportCode}/{FightId:int}/{PlayerId:int}"
-@using FellowshipAnalyzer.Client.Components.Providers
+@using FellowshipAnalyzer.Components.Providers
 @using FellowshipAnalyzer.Core.Analysis
 @using CoreReportActor = FellowshipAnalyzer.Core.FellowshipLogs.ReportActor
 @using CoreReportFight = FellowshipAnalyzer.Core.FellowshipLogs.ReportFight
 @using CoreReportInfo = FellowshipAnalyzer.Core.FellowshipLogs.ReportInfo
 @using FellowshipAnalyzer.Components.Timeline
-@using FellowshipAnalyzer.Client.Services
+@using FellowshipAnalyzer.Services
 @inject ReportAnalysisService AnalysisService
 @inject ReportLoadingTracker LoadingTracker
 @inject ReportNavigationState NavState
 
-<PageTitle>Analysis Report</PageTitle>
+<PageTitle>@PageTitleText</PageTitle>
 
 <div class="analysis-page">
     @if (Header is { } header)
@@ -318,6 +318,42 @@
 
     private static string FirstCharacter(string value) =>
         value.Length > 0 ? value[0].ToString() : "";
+
+    private string PageTitleText
+    {
+        get
+        {
+            if (Header is not { } header)
+                return !string.IsNullOrWhiteSpace(_reportInfo?.Title)
+                    ? _reportInfo.Title
+                    : "Fellowship Analyzer";
+
+            var fightLabel = FormatFightLabel(_reportInfo!, header.Fight, header.FightDuration);
+            return $"{fightLabel} by {header.Player.Name} in {header.ReportInfo.Title}";
+        }
+    }
+
+    private static string FormatFightLabel(CoreReportInfo reportInfo, CoreReportFight fight, string duration)
+    {
+        string result;
+        if (fight.Kill == true)
+        {
+            result = "Kill";
+        }
+        else
+        {
+            var wipeNumber = 0;
+            foreach (var f in reportInfo.Fights.Where(f => string.Equals(f.Name, fight.Name, StringComparison.OrdinalIgnoreCase)))
+            {
+                if (f.Kill != true)
+                    wipeNumber++;
+                if (f.Id == fight.Id)
+                    break;
+            }
+            result = wipeNumber > 0 ? $"Wipe {wipeNumber}" : "Wipe";
+        }
+        return $"{fight.Name} - {result} ({duration})";
+    }
 
     private sealed record ReportHeader(
         CoreReportInfo ReportInfo,
