@@ -2,6 +2,8 @@ using System.Globalization;
 using System.Text.Json;
 using System.Threading.RateLimiting;
 
+using FellowshipAnalyzer.Core.FellowshipLogs;
+
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Memory;
 
@@ -88,7 +90,7 @@ public sealed class FellowshipLogsApiHandler(
 
         var cacheKey = CacheKeys.Analysis(reportCode);
 
-        if (cache.TryGetValue(cacheKey, out AnalysisPreloadResponse? cachedPreload) && cachedPreload is not null)
+        if (cache.TryGetValue(cacheKey, out AnalysisPreload? cachedPreload) && cachedPreload is not null)
         {
             ApplyAnalysisPreloadCacheHeaders(context.Response, cachedPreload, hit: true);
             return Json(cachedPreload);
@@ -119,7 +121,7 @@ public sealed class FellowshipLogsApiHandler(
 
         var cacheKey = CacheKeys.Character(id);
 
-        if (cache.TryGetValue(cacheKey, out CharacterReportsResponse? cached) && cached is not null)
+        if (cache.TryGetValue(cacheKey, out CharacterReports? cached) && cached is not null)
         {
             ApplyNoStoreCacheHeaders(context.Response, hit: true);
             return Json(cached);
@@ -160,7 +162,7 @@ public sealed class FellowshipLogsApiHandler(
     private static IResult BadRequest(string message) =>
         Results.Json(new { error = message }, statusCode: 400);
 
-    private void ApplyAnalysisPreloadCacheHeaders(HttpResponse response, AnalysisPreloadResponse preload, bool hit)
+    private void ApplyAnalysisPreloadCacheHeaders(HttpResponse response, AnalysisPreload preload, bool hit)
     {
         ApplyPublicCacheHeaders(response, GetAnalysisPreloadCacheDuration(preload, cacheOptions), hit);
     }
@@ -186,7 +188,7 @@ public sealed class FellowshipLogsApiHandler(
     }
 
     private static MemoryCacheEntryOptions CreateAnalysisPreloadCacheEntryOptions(
-        AnalysisPreloadResponse preload,
+        AnalysisPreload preload,
         FellowshipLogsCacheOptions cacheOptions)
     {
         return new MemoryCacheEntryOptions
@@ -206,7 +208,7 @@ public sealed class FellowshipLogsApiHandler(
     }
 
     private static TimeSpan GetAnalysisPreloadCacheDuration(
-        AnalysisPreloadResponse preload,
+        AnalysisPreload preload,
         FellowshipLogsCacheOptions cacheOptions)
     {
         if (preload.ReportInfo.Fights.Any(fight => fight.InProgress)
@@ -218,7 +220,7 @@ public sealed class FellowshipLogsApiHandler(
         return PositiveDuration(cacheOptions.StableReportMetadataCacheDuration, TimeSpan.FromDays(30));
     }
 
-    private static bool ReportEndedRecently(ReportInfoResponse reportInfo, TimeSpan recentWindow)
+    private static bool ReportEndedRecently(ReportInfo reportInfo, TimeSpan recentWindow)
     {
         if (reportInfo.EndTime is null)
         {

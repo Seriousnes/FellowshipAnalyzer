@@ -1,5 +1,4 @@
 using FellowshipAnalyzer.Core.Analysis;
-using FellowshipAnalyzer.Heroes.Elarion.Guides;
 using FellowshipAnalyzer.Heroes.Elarion.Modules;
 
 namespace FellowshipAnalyzer.Heroes.Elarion.Analysis;

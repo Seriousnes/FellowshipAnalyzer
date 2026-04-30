@@ -4,8 +4,8 @@
   "extensions": {
     "strawberryShake": {
       "name": "FellowshipLogsApiClient",
-      "namespace": "FellowshipAnalyzer.Api.Core",
-      "url": "https://www.fellowshiplogs.com/api/v1",
+      "namespace": "FellowshipAnalyzer.Api.GraphQL",
+      "url": "https://www.fellowshiplogs.com/api/v2/client",
       "accessModifier": "public",
       "dependencyInjection": true
     }

@@ -1,5 +1,4 @@
 using FellowshipAnalyzer.Core.Common.Spells;
-using FellowshipAnalyzer.Core.Common.Spells.Rime;
 
 using Xunit;
 

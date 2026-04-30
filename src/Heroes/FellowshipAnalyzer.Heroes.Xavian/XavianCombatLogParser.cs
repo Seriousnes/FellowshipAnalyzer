@@ -1,5 +1,4 @@
 using FellowshipAnalyzer.Core.Analysis;
-using FellowshipAnalyzer.Heroes.Xavian.Modules;
 
 namespace FellowshipAnalyzer.Heroes.Xavian.Analysis;
 

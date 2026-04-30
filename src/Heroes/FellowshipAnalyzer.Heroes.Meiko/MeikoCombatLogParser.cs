@@ -1,5 +1,4 @@
 using FellowshipAnalyzer.Core.Analysis;
-using FellowshipAnalyzer.Heroes.Meiko.Modules;
 
 namespace FellowshipAnalyzer.Heroes.Meiko.Analysis;
 

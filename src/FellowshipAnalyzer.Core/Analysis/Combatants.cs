@@ -242,7 +242,7 @@ public sealed class Combatants : Analyzer
         change.NewStacks = newStacks;
         change.Stacks = newStacks;
         change.StacksGained = newStacks - oldStacks;
-        change.StackHistory = new ChangeStackEvent.History(newStacks, trigger.Timestamp);
+        change.StackHistory.Add(new ChangeStackEvent.History(newStacks, trigger.Timestamp));
 
         Owner.EventEmitter.FabricateEvent(change, trigger);
     }

@@ -1,5 +1,4 @@
 using FellowshipAnalyzer.Core.Analysis;
-using FellowshipAnalyzer.Heroes.Sylvie.Modules;
 
 namespace FellowshipAnalyzer.Heroes.Sylvie.Analysis;
 

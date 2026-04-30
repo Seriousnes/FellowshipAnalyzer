@@ -14,6 +14,7 @@ Execute a .NET 10 file-based app from `src/FellowshipAnalyzer.Tools/`.
 |--------|---------|-------|
 | `fetch-abilities.cs` | Fetches all abilities from the FellowshipLogs API and writes `abilities.json` at the repo root. Uses the cached file if it exists; pass `--refresh` to re-fetch. | `dotnet run src/FellowshipAnalyzer.Tools/fetch-abilities.cs [--refresh]` |
 | `event-schema.cs` | Scans a log JSON events array and prints every unique event type with all properties each type can have, their frequency, and JSON value kinds. Use for C# model comparison and deserialization audits. | `dotnet run src/FellowshipAnalyzer.Tools/event-schema.cs <log-json>` |
+| `refresh-schema.cs` | Converts `docs/schema.json` (GraphQL introspection result) to SDL and writes it to `src/FellowshipAnalyzer/FellowshipAnalyzer.Api.GraphQL/schema.graphql`. Pass `--no-fetch` to skip the network call and convert from the existing local file. Requires `FellowshipLogs:ClientId` and `FellowshipLogs:ClientSecret` in user secrets when fetching. | `dotnet run src/FellowshipAnalyzer.Tools/refresh-schema.cs [--no-fetch]` |
 | `resource-analysis.cs` | Analyzes `sourceResources.resources` across a log JSON and prints a Markdown summary of unique resource types, change patterns, and common event/ability pairings | `dotnet run src/FellowshipAnalyzer.Tools/resource-analysis.cs <log-json>` |
 | `update-spells.cs` | Reads ability data from a JSON file and updates a hero spell registry `.cs` file. JSON is authoritative for name and icon. Supports both `abilities.json` (API format) and combat-log export format. | `dotnet run src/FellowshipAnalyzer.Tools/update-spells.cs <abilities-json> <target-cs>` |
 
@@ -50,6 +51,25 @@ Requires `FellowshipLogs:ClientId` and `FellowshipLogs:ClientSecret` in user sec
    dotnet run src/FellowshipAnalyzer.Tools/fetch-abilities.cs --refresh
    ```
 4. Output is written to `abilities.json` at the repo root.
+
+### refresh-schema
+
+Updates `src/FellowshipAnalyzer/FellowshipAnalyzer.Api.GraphQL/schema.graphql` from the FellowshipLogs API introspection. Run this whenever the GraphQL API schema changes before regenerating StrawberryShake client code.
+
+1. To convert from the existing cached `docs/schema.json` (no network call):
+   ```
+   dotnet run src/FellowshipAnalyzer.Tools/refresh-schema.cs --no-fetch
+   ```
+2. To fetch a fresh introspection result from the live API (requires credentials):
+   ```
+   dotnet run src/FellowshipAnalyzer.Tools/refresh-schema.cs
+   ```
+   This saves the introspection JSON to `docs/schema.json` and then converts it to SDL.
+3. After regenerating `schema.graphql`, rebuild the solution to trigger StrawberryShake's source generator:
+   ```
+   dotnet build FellowshipAnalyzer.slnx
+   ```
+4. If the schema adds new fields used in queries, update the relevant `.graphql` files in `src/FellowshipAnalyzer/FellowshipAnalyzer.Api.GraphQL/GraphQL/` and add corresponding mapper logic in `FellowshipAnalyzer.Api.Core/GraphQLMapper.cs`.
 
 ### event-schema
 

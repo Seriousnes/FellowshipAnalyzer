@@ -1,5 +1,6 @@
 #:package Microsoft.Extensions.Configuration.UserSecrets@10.0.0
 #:property UserSecretsId=YOUR-USER-SECRETS-ID-HERE
+#:property PublishAot=false
 
 using System.Net.Http.Headers;
 using System.Net.Http.Json;

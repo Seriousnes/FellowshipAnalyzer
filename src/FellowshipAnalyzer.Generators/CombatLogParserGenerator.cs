@@ -46,7 +46,7 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
         return classDecl.AttributeLists.Count > 0;
     }
 
-    private static ParserInfo GetParserInfo(GeneratorSyntaxContext ctx, CancellationToken ct)
+    private static ParserInfo? GetParserInfo(GeneratorSyntaxContext ctx, CancellationToken ct)
     {
         var classDecl = (ClassDeclarationSyntax)ctx.Node;
         var symbol = ctx.SemanticModel.GetDeclaredSymbol(classDecl, ct) as INamedTypeSymbol;
@@ -111,7 +111,7 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
         // Extract [HeroAnalyzer(HeroName.X)] attribute — argument is an enum value.
         // Capture the enum field name so we can emit a strongly typed reference
         // (e.g. global::FellowshipAnalyzer.Core.Analysis.HeroName.Rime) in the keyed DI registration.
-        string heroEnumMember = null;
+        string? heroEnumMember = null;
         foreach (var attr in symbol.GetAttributes())
         {
             if (attr.AttributeClass?.Name != HeroAnalyzerAttributeShortName) continue;
@@ -399,7 +399,7 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
             ImmutableArray<TypeInfo> baseModules,
             ImmutableArray<TypeInfo> normalizerTypes,
             ImmutableArray<TypeInfo> ownNormalizerTypes,
-            string heroEnumMember,
+            string? heroEnumMember,
             bool isAbstractBase = false)
         {
             ClassName = cn;
@@ -422,7 +422,7 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
         /// <summary>Normalizers declared directly on this class — used for hero-specific DI registration.</summary>
         public ImmutableArray<TypeInfo> OwnNormalizerTypes { get; }
         /// <summary>HeroName enum field name from [HeroAnalyzer] attribute (e.g. "Rime"), if present.</summary>
-        public string HeroEnumMember { get; }
+        public string? HeroEnumMember { get; }
         /// <summary>True when this info was collected from the abstract CombatLogParser base class.</summary>
         public bool IsAbstractBase { get; }
     }

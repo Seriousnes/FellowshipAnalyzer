@@ -1,0 +1,6 @@
+<Project>
+  <!-- File-based dotnet apps declare inline #:package versions; disable CPM for this directory. -->
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally>
+  </PropertyGroup>
+</Project>

@@ -1,5 +1,4 @@
 using FellowshipAnalyzer.Core.Analysis;
-using FellowshipAnalyzer.Heroes.Tariq.Modules;
 
 namespace FellowshipAnalyzer.Heroes.Tariq.Analysis;
 

@@ -47,6 +47,6 @@ public sealed class ReportMasterDataService
     public Hero? GetHero(int playerId)
     {
         var actor = _actors.FirstOrDefault(a => a.Id == playerId);
-        return Hero.TryParse(actor?.SubType, out var hero) ? hero : null;
+        return Hero.TryParse(actor?.SubType, out var hero) ? hero : (Hero?)null;
     }
 }

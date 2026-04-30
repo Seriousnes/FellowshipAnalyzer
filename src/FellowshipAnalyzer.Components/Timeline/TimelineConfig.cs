@@ -1,5 +1,3 @@
-using FellowshipAnalyzer.Core.Analysis;
-
 namespace FellowshipAnalyzer.Components.Timeline;
 
 /// <summary>

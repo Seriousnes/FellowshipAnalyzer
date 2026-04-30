@@ -52,6 +52,7 @@ public static class FellowshipLogsServiceCollectionExtensions
                 httpBuilder => httpBuilder.AddHttpMessageHandler<BearerTokenHandler>());
 
         services.AddScoped<FellowshipLogsService>();
+        services.AddSingleton<GraphQLMapper>();
         services.AddMemoryCache();
 
         services.AddSingleton(

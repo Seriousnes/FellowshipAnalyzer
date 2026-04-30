@@ -18,13 +18,12 @@
     <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" />
     <PackageReference Include="OpenTelemetry.Instrumentation.Http" />
     <PackageReference Include="OpenTelemetry.Instrumentation.Runtime" />
-    <PackageReference Include="StrawberryShake.Server" />
+    <PackageReference Include="Riok.Mapperly" />
   </ItemGroup>
 
   <ItemGroup>
-    <GraphQL Include="schema.graphql" />
-    <GraphQL Include="schema.extensions.graphql" />
-    <GraphQL Include="GraphQL/**/*.graphql" />
+    <ProjectReference Include="..\..\FellowshipAnalyzer.Core.Contracts\FellowshipAnalyzer.Core.Contracts.csproj" />
+    <ProjectReference Include="..\FellowshipAnalyzer.Api.GraphQL\FellowshipAnalyzer.Api.GraphQL.csproj" />
   </ItemGroup>
 
 </Project>

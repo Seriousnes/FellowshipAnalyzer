@@ -29,11 +29,3 @@ public enum UpdateSpellUsableType
     UseCharge,
     RestoreCharge
 }
-
-[Flags]
-public enum MagicSchool
-{
-    Physical = 0,
-    Magic = 1,
-    Stagger = 1024
-}

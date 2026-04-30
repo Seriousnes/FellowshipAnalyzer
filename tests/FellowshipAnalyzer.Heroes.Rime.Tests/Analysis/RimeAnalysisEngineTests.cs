@@ -3,7 +3,6 @@ using System.Text.Json.Serialization;
 
 using FellowshipAnalyzer.Core;
 using FellowshipAnalyzer.Core.Analysis;
-using FellowshipAnalyzer.Core.Events;
 using FellowshipAnalyzer.Core.Serialization;
 using FellowshipAnalyzer.Heroes.Rime.Analysis;
 using FellowshipAnalyzer.Heroes.Rime.Modules;
