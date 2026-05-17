@@ -34,4 +34,5 @@ public static class Events
     public static EventFilter<ResurrectEvent> Resurrect => new();
     public static EventFilter<SpendResourceEvent> SpendResource => new();
     public static EventFilter<FilterCooldownInfoEvent> PrefilterCD => new();
+    public static EventFilter<UpdateSpellUsableEvent> UpdateSpellUsable => new();
 }

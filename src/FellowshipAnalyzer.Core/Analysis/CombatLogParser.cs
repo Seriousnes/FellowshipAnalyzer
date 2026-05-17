@@ -2,6 +2,7 @@ using System.Globalization;
 
 using FellowshipAnalyzer.Core.Analysis.Normalizers;
 using FellowshipAnalyzer.Core.Events;
+using FellowshipAnalyzer.Core.FellowshipLogs;
 
 using Microsoft.Extensions.DependencyInjection;
 
@@ -30,7 +31,20 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
 
     public List<Event> Events { get; set; } = [];
     public int PlayerId { get; set; }
-    public int FightStartTime { get; set; }
+
+    /// <summary>
+    /// The fight currently being analyzed. Set at the start of every <see cref="Analyze"/> call.
+    /// </summary>
+    public ReportFight Fight { get; private set; } = null!;
+
+    /// <summary>
+    /// The timestamp of the event currently being dispatched. Updated by <see cref="EventEmitter"/>
+    /// before each listener invocation. Initialized to <see cref="Fight"/>.StartTime when <see cref="Analyze"/> begins.
+    /// </summary>
+    public int CurrentTimestamp { get; internal set; }
+
+    public int FightStartTime => (int)Fight.StartTime;
+    public int FightEndTime => (int)Fight.EndTime;
 
     /// <summary>
     /// Report-level actor name lookup, keyed by actor ID.
@@ -89,7 +103,7 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
         return null;
     }
 
-    public async Task<HeroAnalysisResult> Analyze(IReadOnlyList<Event> events, int playerId, int fightStartTime)
+    public async Task<HeroAnalysisResult> Analyze(IReadOnlyList<Event> events, int playerId, ReportFight fight)
     {
         var moduleTypes = GetModuleTypes();
         var normalizerTypes = GetNormalizerTypes();
@@ -98,7 +112,8 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
         EventEmitter = analysisServices.GetRequiredService<EventEmitter>();
         Events = [.. events];
         PlayerId = playerId;
-        FightStartTime = fightStartTime;
+        Fight = fight;
+        CurrentTimestamp = (int)fight.StartTime;
         SelectedCombatant = null;
         _activeModules = moduleTypes
             .Select((t, i) =>

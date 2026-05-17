@@ -158,7 +158,7 @@ public sealed class ReportAnalysisService(
         await Task.Yield();
 
         analyzer.ActorNames = reportInfo.Actors.ToDictionary(a => a.Id, a => a.Name);
-        var result = await analyzer.Analyze(events, playerId, fightStartTime);
+        var result = await analyzer.Analyze(events, playerId, fight);
 
         loadingTracker.PrepareDisplayState = ReportLoadingTracker.StepState.Loading;
         await Task.Yield();

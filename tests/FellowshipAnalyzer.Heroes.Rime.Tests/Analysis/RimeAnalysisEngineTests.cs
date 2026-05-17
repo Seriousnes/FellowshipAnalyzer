@@ -3,6 +3,7 @@ using System.Text.Json.Serialization;
 
 using FellowshipAnalyzer.Core;
 using FellowshipAnalyzer.Core.Analysis;
+using FellowshipAnalyzer.Core.FellowshipLogs;
 using FellowshipAnalyzer.Core.Serialization;
 using FellowshipAnalyzer.Heroes.Rime.Analysis;
 using FellowshipAnalyzer.Heroes.Rime.Modules;
@@ -85,7 +86,8 @@ public sealed class RimeAnalysisEngineTests
         var jsonContext = new FellowshipAnalyzerJsonContext(jsonOptions);
         var events = JsonSerializer.Deserialize(eventsEl, jsonContext.ListEvent)!;
         var fightStartTime = events.Count > 0 ? events[0].Timestamp : 0;
-        return await analyzer.Analyze(events, playerId: 3, fightStartTime: fightStartTime);
+        var fight = new ReportFight(0, "", 0, null, fightStartTime, 0, null, null, null);
+        return await analyzer.Analyze(events, playerId: 3, fight: fight);
     }
 
     private static string GetFixturePath()

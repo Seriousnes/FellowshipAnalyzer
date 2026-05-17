@@ -1,4 +1,5 @@
 using FellowshipAnalyzer.Core.Events;
+using FellowshipAnalyzer.Core.FellowshipLogs;
 
 namespace FellowshipAnalyzer.Core.Analysis;
 
@@ -25,5 +26,5 @@ public interface IHeroAnalyzer
     /// </summary>
     Type? GuideComponent { get; }
 
-    Task<HeroAnalysisResult> Analyze(IReadOnlyList<Event> events, int playerId, int fightStartTime);
+    Task<HeroAnalysisResult> Analyze(IReadOnlyList<Event> events, int playerId, ReportFight fight);
 }

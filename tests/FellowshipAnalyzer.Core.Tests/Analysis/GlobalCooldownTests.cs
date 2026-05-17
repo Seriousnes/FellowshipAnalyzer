@@ -2,6 +2,7 @@ using FellowshipAnalyzer.Core.Analysis;
 using FellowshipAnalyzer.Core.Analysis.Normalizers;
 using FellowshipAnalyzer.Core.Common.Spells;
 using FellowshipAnalyzer.Core.Events;
+using FellowshipAnalyzer.Core.FellowshipLogs;
 
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -272,7 +273,7 @@ public sealed class GlobalCooldownTests
         Type[] normalizerTypes = includeNormalizer ? [typeof(CastLinkNormalizer)] : [];
 
         var parser = CreateCombatLogParser(moduleTypes, normalizerTypes, configureAbilities);
-        await parser.Analyze(events ?? [], PlayerId, fightStartTime: 0);
+        await parser.Analyze(events ?? [], PlayerId, fight: new ReportFight(0, "", 0, null, 0, 0, null, null, null));
 
         var gcd = parser.GetModule<GlobalCooldown>()!;
         return (parser, gcd);

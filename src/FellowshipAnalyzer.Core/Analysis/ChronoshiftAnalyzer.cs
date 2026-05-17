@@ -6,21 +6,35 @@ namespace FellowshipAnalyzer.Core.Analysis;
 
 /// <summary>
 /// Tracks cooldown recovery applied by Asha's Chronoshift Spire during each channel window.
-/// Chronoshift grants 800% increased cooldown recovery (9× total = 8× bonus beyond natural recovery).
-/// The bonus CDR is applied to every spell on cooldown at channel end, with multi-charge spells
-/// handled by properly restoring each charge in sequence rather than capping at one charge.
+/// Chronoshift grants 800% increased cooldown recovery (9× total rate). The rate is applied
+/// continuously across the channel window via <see cref="SpellUsable"/>'s rate API, which:
+/// <list type="bullet">
+///   <item><description>Rescales every in-flight cooldown by 9× when the channel begins.</description></item>
+///   <item><description>Makes any cooldown started during the channel start 9× shorter automatically.</description></item>
+///   <item><description>Lets cooldowns that complete mid-channel fire <see cref="UpdateSpellUsableEvent"/>
+///     at their true historical expiry rather than at channel end.</description></item>
+/// </list>
+/// Per-window applied/wasted CDR is reconstructed from the observed
+/// <see cref="UpdateSpellUsableEvent"/>s between channel begin and end.
 /// </summary>
 public sealed class ChronoshiftAnalyzer : Analyzer
 {
+    private const double ChronoshiftRate = 9.0;
+
     /// <summary>
-    /// Bonus CDR per real millisecond of channel.
-    /// 800% increased = 9× total rate; natural recovery (1×) already advances via SpellUsable,
-    /// so only the 8× bonus needs to be applied explicitly.
+    /// Bonus CDR per real millisecond of channel: 800% increased = 9× total rate; natural recovery (1×)
+    /// is already counted by the spell's own cooldown timer, so the "bonus" portion is 8× per ms.
     /// </summary>
     private const int CdrBonusPerMs = 8;
 
     private SpellUsable _spellUsable = null!;
     private readonly List<ChronoshiftWindow> _windows = [];
+
+    // Snapshot of expected-end timestamps at channel-begin, indexed by spell ID,
+    // for the current in-flight window. Used to compute per-spell CDR applied.
+    private readonly Dictionary<int, int> _windowStartExpectedEnds = [];
+    private readonly Dictionary<int, int> _windowAppliedBySpell = [];
+    private bool _windowActive;
 
     /// <summary>All Chronoshift channel windows observed for the selected player.</summary>
     public IReadOnlyList<ChronoshiftWindow> Windows => _windows;
@@ -47,27 +61,48 @@ public sealed class ChronoshiftAnalyzer : Analyzer
         AddEventListener(
             Events.EndChannel.By(SELECTED_PLAYER).Spell(Spells.Chronoshift),
             OnEndChannel);
+
+        AddEventListener(Events.UpdateSpellUsable, OnUpdateSpellUsable);
     }
 
     private void OnBeginChannel(BeginChannelEvent e)
     {
         _windows.Add(new ChronoshiftWindow(e.Timestamp));
+
+        _windowStartExpectedEnds.Clear();
+        _windowAppliedBySpell.Clear();
+        foreach (var spellId in _spellUsable.GetSpellsOnCooldown())
+            _windowStartExpectedEnds[spellId] = e.Timestamp + _spellUsable.CooldownRemaining(spellId, e.Timestamp);
+        _windowActive = true;
+
+        _spellUsable.ApplyCooldownRateChangeToAll(ChronoshiftRate, e.Timestamp);
     }
 
     private void OnEndChannel(EndChannelEvent e)
     {
         if (_windows.Count == 0) return;
 
+        _spellUsable.RemoveCooldownRateChangeFromAll(ChronoshiftRate, e.Timestamp);
+        _windowActive = false;
+
         var channelDuration = e.Timestamp - e.BeginChannel.Timestamp;
         var totalCdrAvailable = channelDuration * CdrBonusPerMs;
 
-        var spellsOnCooldown = _spellUsable.GetSpellsOnCooldown().ToList();
-        var cdrBySpell = new Dictionary<int, SpellCdrRecord>(spellsOnCooldown.Count);
+        // Total applied across all spells, capped at the channel's total CDR budget.
+        var totalApplied = 0;
+        foreach (var amount in _windowAppliedBySpell.Values)
+            totalApplied += amount;
+        var wasted = Math.Max(0, totalCdrAvailable - totalApplied);
 
-        foreach (var spellId in spellsOnCooldown)
+        var cdrBySpell = new Dictionary<int, SpellCdrRecord>(_windowAppliedBySpell.Count);
+        foreach (var (spellId, applied) in _windowAppliedBySpell)
+            cdrBySpell[spellId] = new SpellCdrRecord(spellId, Applied: applied, Wasted: 0);
+
+        if (cdrBySpell.Count > 0 && wasted > 0)
         {
-            var applied = _spellUsable.ReduceCooldown(spellId, totalCdrAvailable, e.Timestamp);
-            cdrBySpell[spellId] = new SpellCdrRecord(spellId, Applied: applied, Wasted: totalCdrAvailable - applied);
+            // Attribute wasted CDR to a synthetic bucket (spell id 0) — preserves total bookkeeping
+            // without inventing a per-spell share that the continuous-rate model can't determine.
+            cdrBySpell[0] = new SpellCdrRecord(SpellId: 0, Applied: 0, Wasted: wasted);
         }
 
         _windows[^1] = _windows[^1] with
@@ -77,6 +112,32 @@ public sealed class ChronoshiftAnalyzer : Analyzer
             TotalCdrAvailable = totalCdrAvailable,
             CdrBySpell = cdrBySpell,
         };
+    }
+
+    private void OnUpdateSpellUsable(UpdateSpellUsableEvent e)
+    {
+        if (!_windowActive) return;
+
+        var spellId = e.Ability.Guid;
+        switch (e.UpdateType)
+        {
+            case UpdateSpellUsableType.ChangeCooldownRate:
+                if (_windowStartExpectedEnds.TryGetValue(spellId, out var initialEnd))
+                {
+                    var applied = Math.Max(0, initialEnd - e.ExpectedRechargeTimestamp);
+                    _windowAppliedBySpell[spellId] = applied;
+                }
+                break;
+
+            case UpdateSpellUsableType.EndCooldown:
+            case UpdateSpellUsableType.RestoreCharge:
+                if (_windowStartExpectedEnds.TryGetValue(spellId, out var initialEnd2))
+                {
+                    var applied = Math.Max(0, initialEnd2 - e.Timestamp);
+                    _windowAppliedBySpell[spellId] = applied;
+                }
+                break;
+        }
     }
 
     public override void Complete()

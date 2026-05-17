@@ -1,5 +1,6 @@
 using FellowshipAnalyzer.Core.Analysis;
 using FellowshipAnalyzer.Core.Events;
+using FellowshipAnalyzer.Core.FellowshipLogs;
 
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -445,7 +446,7 @@ public sealed class HasteTests
             moduleTypes.AddRange(additionalModules.Select(static module => module.GetType()));
 
         var parser = CreateCombatLogParser([.. moduleTypes], configureHaste);
-        await parser.Analyze(events ?? [], PlayerId, fightStartTime: 0);
+        await parser.Analyze(events ?? [], PlayerId, fight: new ReportFight(0, "", 0, null, 0, 0, null, null, null));
 
         var haste = parser.GetModule<Haste>()!;
         return (parser, haste);

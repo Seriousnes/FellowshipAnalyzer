@@ -27,5 +27,6 @@ public enum UpdateSpellUsableType
     BeginCooldown,
     EndCooldown,
     UseCharge,
-    RestoreCharge
+    RestoreCharge,
+    ChangeCooldownRate
 }
