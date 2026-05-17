@@ -103,7 +103,6 @@
     }
     else if (_context is { IsWip: true })
     {
-        @* WIP hero — no analysis was run, no events were fetched. Show only the WipGuide. *@
         <WipGuide Hero="@_context.Player.SubType" />
     }
     else if (_context is { Analysis: { } analysis })

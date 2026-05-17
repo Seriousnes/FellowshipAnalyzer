@@ -8,9 +8,13 @@ var builder = FunctionsApplication.CreateBuilder(args);
 builder.AddApiDefaults();
 builder.ConfigureFunctionsWebApplication();
 
+builder.AddAzureBlobClient("BlobsConnection");
+
 builder.Services.AddFellowshipLogsApi(
     builder.Configuration,
     allowDevelopmentLoopbackOrigins: builder.Environment.IsDevelopment());
+
+builder.Services.AddBlobPersistentCache();
 
 var app = builder.Build();
 app.Run();

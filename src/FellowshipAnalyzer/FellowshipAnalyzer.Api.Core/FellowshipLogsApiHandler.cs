@@ -1,11 +1,17 @@
+using System.Diagnostics;
 using System.Globalization;
+using System.IO.Compression;
+using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Threading.RateLimiting;
 
+using FellowshipAnalyzer.Api.Core.Caching;
 using FellowshipAnalyzer.Core.FellowshipLogs;
 
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Logging;
+using Microsoft.IO;
 
 namespace FellowshipAnalyzer.Api.Core;
 
@@ -19,7 +25,10 @@ public sealed class FellowshipLogsApiHandler(
     IMemoryCache cache,
     FellowshipLogsCacheOptions cacheOptions,
     FellowshipLogsRateLimiter rateLimiter,
-    JsonSerializerOptions jsonOptions)
+    JsonSerializerOptions jsonOptions,
+    IPersistentCache persistentCache,
+    RecyclableMemoryStreamManager streamManager,
+    ILogger<FellowshipLogsApiHandler> logger)
 {
     [ApiEndpoint("GET", "events")]
     public async Task<IResult> GetEventsAsync(
@@ -29,8 +38,14 @@ public sealed class FellowshipLogsApiHandler(
         int? fightId,
         CancellationToken cancellationToken)
     {
+        var sw = Stopwatch.StartNew();
+        logger.LogInformation(
+            "GetEventsAsync ENTER reportCode={ReportCode} playerId={PlayerId} fightId={FightId}",
+            reportCode, playerId, fightId);
+
         if (await TryApplyRateLimitAsync(context, cancellationToken) is { } limited)
         {
+            logger.LogWarning("GetEventsAsync rate-limited at {ElapsedMs}ms", sw.ElapsedMilliseconds);
             return limited;
         }
 
@@ -48,28 +63,73 @@ public sealed class FellowshipLogsApiHandler(
         }
 
         var trimmedReportCode = reportCode.Trim();
-        var cacheKey = CacheKeys.Events(trimmedReportCode, playerId.Value, fightId.Value);
 
-        if (cache.TryGetValue(cacheKey, out RawEventsResult? cachedResult) && cachedResult is not null)
+        // L1 skipped for events — payloads too large for in-process cache.
+
+        // L2: Blob cache
+        var blobKey = CacheKeys.BlobEvents(trimmedReportCode, playerId.Value, fightId.Value);
+        logger.LogInformation("GetEventsAsync L2 lookup blobKey={BlobKey} t={ElapsedMs}ms", blobKey, sw.ElapsedMilliseconds);
+        var blobEntry = await persistentCache.GetAsync(CachePartition.Events, blobKey, cancellationToken);
+        logger.LogInformation(
+            "GetEventsAsync L2 lookup result hit={Hit} encoding={Encoding} length={Length} t={ElapsedMs}ms",
+            blobEntry is not null,
+            blobEntry?.ContentEncoding,
+            blobEntry?.ContentLength,
+            sw.ElapsedMilliseconds);
+
+        if (blobEntry is not null)
         {
-            ApplyCompletedEventsCacheHeaders(context.Response, hit: true);
-            return Results.Bytes(cachedResult.JsonBytes, "application/json");
+            ApplyCompletedEventsCacheHeaders(context.Response, blobEntry.ExpiresAt, hit: true);
+            // Blob is gzip-compressed for storage efficiency. Decompress on the wire so
+            // clients (Swagger UI, browsers, the WASM HttpClient) receive plain JSON without
+            // having to handle a custom transport encoding.
+            Stream payload = blobEntry.Content;
+            if (string.Equals(blobEntry.ContentEncoding, "gzip", StringComparison.OrdinalIgnoreCase))
+            {
+                payload = new GZipStream(blobEntry.Content, CompressionMode.Decompress, leaveOpen: false);
+            }
+            logger.LogInformation("GetEventsAsync returning HIT stream at t={ElapsedMs}ms", sw.ElapsedMilliseconds);
+            return Results.Stream(payload, "application/json");
         }
 
+        // L3: Upstream
+        logger.LogInformation("GetEventsAsync L3 upstream call starting t={ElapsedMs}ms", sw.ElapsedMilliseconds);
         var result = await fellowshipLogsService.GetRawEventsAsync(
             trimmedReportCode, playerId.Value, fightId.Value, cancellationToken);
+        logger.LogInformation(
+            "GetEventsAsync L3 upstream returned bytes={Bytes} inProgress={InProgress} t={ElapsedMs}ms",
+            result.JsonBytes.Length, result.InProgress, sw.ElapsedMilliseconds);
 
         if (!result.InProgress)
         {
-            cache.Set(cacheKey, result, CreateCompletedEventsCacheEntryOptions(cacheOptions));
-            ApplyCompletedEventsCacheHeaders(context.Response, hit: false);
+            var duration = PositiveDuration(cacheOptions.CompletedEventsCacheDuration, TimeSpan.FromDays(30));
+            var expiresAt = DateTimeOffset.UtcNow.Add(duration);
+
+            // Compress JSON to gzip and upload to blob (fire-and-forget — don't delay client).
+            var gzipBytes = CompressGzip(result.JsonBytes, streamManager);
+            logger.LogInformation(
+                "GetEventsAsync compressed for blob raw={Raw} gzip={Gzip} t={ElapsedMs}ms",
+                result.JsonBytes.Length, gzipBytes.Length, sw.ElapsedMilliseconds);
+
+            _ = persistentCache.SetAsync(
+                CachePartition.Events, blobKey,
+                gzipBytes,
+                new PersistentCacheWriteOptions(
+                    ExpiresAt: expiresAt,
+                    ContentType: "application/json",
+                    ContentEncoding: "gzip"),
+                cancellationToken);
+
+            ApplyCompletedEventsCacheHeaders(context.Response, expiresAt, hit: false);
+            logger.LogInformation("GetEventsAsync returning MISS bytes (completed) at t={ElapsedMs}ms", sw.ElapsedMilliseconds);
+            return Results.Bytes(result.JsonBytes, "application/json");
         }
         else
         {
             ApplyNoStoreCacheHeaders(context.Response, hit: false);
+            logger.LogInformation("GetEventsAsync returning MISS bytes (in-progress) at t={ElapsedMs}ms", sw.ElapsedMilliseconds);
+            return Results.Bytes(result.JsonBytes, "application/json");
         }
-
-        return Results.Bytes(result.JsonBytes, "application/json");
     }
 
     [ApiEndpoint("GET", "analysis/{reportCode}")]
@@ -90,16 +150,49 @@ public sealed class FellowshipLogsApiHandler(
 
         var cacheKey = CacheKeys.Analysis(reportCode);
 
+        // L1: In-process cache
         if (cache.TryGetValue(cacheKey, out AnalysisPreload? cachedPreload) && cachedPreload is not null)
         {
             ApplyAnalysisPreloadCacheHeaders(context.Response, cachedPreload, hit: true);
             return Json(cachedPreload);
         }
 
-        var preload = await fellowshipLogsService.GetReportMasterDataAsync(reportCode, cancellationToken);
-        cache.Set(cacheKey, preload, CreateAnalysisPreloadCacheEntryOptions(preload, cacheOptions));
-        ApplyAnalysisPreloadCacheHeaders(context.Response, preload, hit: false);
+        // L2: Blob cache
+        var blobKey = CacheKeys.BlobAnalysis(reportCode);
+        var blobEntry = await persistentCache.GetAsync(CachePartition.Metadata, blobKey, cancellationToken);
+        if (blobEntry is not null)
+        {
+            var blobPreload = await JsonSerializer.DeserializeAsync<AnalysisPreload>(
+                blobEntry.Content, jsonOptions, cancellationToken);
+            await blobEntry.Content.DisposeAsync();
 
+            if (blobPreload is not null)
+            {
+                cache.Set(cacheKey, blobPreload, CreateAnalysisPreloadCacheEntryOptions(blobPreload, cacheOptions));
+                ApplyAnalysisPreloadCacheHeaders(context.Response, blobPreload, hit: true);
+                return Json(blobPreload);
+            }
+        }
+
+        // L3: Upstream
+        var preload = await fellowshipLogsService.GetReportMasterDataAsync(reportCode, cancellationToken);
+        var analysisDuration = GetAnalysisPreloadCacheDuration(preload, cacheOptions);
+        var analysisExpiresAt = DateTimeOffset.UtcNow.Add(analysisDuration);
+
+        cache.Set(cacheKey, preload, CreateAnalysisPreloadCacheEntryOptions(preload, cacheOptions));
+
+        // Write-through to L2 (fire-and-forget)
+        var preloadBytes = JsonSerializer.SerializeToUtf8Bytes(preload, jsonOptions);
+        _ = persistentCache.SetAsync(
+            CachePartition.Metadata, blobKey,
+            preloadBytes,
+            new PersistentCacheWriteOptions(
+                ExpiresAt: analysisExpiresAt,
+                ContentType: "application/json",
+                ContentEncoding: null),
+            cancellationToken);
+
+        ApplyAnalysisPreloadCacheHeaders(context.Response, preload, hit: false);
         return Json(preload);
     }
 
@@ -121,21 +214,58 @@ public sealed class FellowshipLogsApiHandler(
 
         var cacheKey = CacheKeys.Character(id);
 
+        // L1: In-process cache
         if (cache.TryGetValue(cacheKey, out CharacterReports? cached) && cached is not null)
         {
             ApplyNoStoreCacheHeaders(context.Response, hit: true);
             return Json(cached);
         }
 
+        // L2: Blob cache
+        var blobKey = CacheKeys.BlobCharacter(id);
+        var blobEntry = await persistentCache.GetAsync(CachePartition.Metadata, blobKey, cancellationToken);
+        if (blobEntry is not null)
+        {
+            var blobReports = await JsonSerializer.DeserializeAsync<CharacterReports>(
+                blobEntry.Content, jsonOptions, cancellationToken);
+            await blobEntry.Content.DisposeAsync();
+
+            if (blobReports is not null)
+            {
+                var characterDuration = PositiveDuration(
+                    cacheOptions.RecentReportMetadataCacheDuration,
+                    TimeSpan.FromMinutes(10));
+                cache.Set(cacheKey, blobReports, new MemoryCacheEntryOptions
+                {
+                    AbsoluteExpirationRelativeToNow = characterDuration
+                });
+                ApplyNoStoreCacheHeaders(context.Response, hit: true);
+                return Json(blobReports);
+            }
+        }
+
+        // L3: Upstream
         var result = await fellowshipLogsService.GetCharacterReportsAsync(id, cancellationToken);
+        var charDuration = PositiveDuration(
+            cacheOptions.RecentReportMetadataCacheDuration,
+            TimeSpan.FromMinutes(10));
         cache.Set(cacheKey, result, new MemoryCacheEntryOptions
         {
-            AbsoluteExpirationRelativeToNow = PositiveDuration(
-                cacheOptions.RecentReportMetadataCacheDuration,
-                TimeSpan.FromMinutes(10))
+            AbsoluteExpirationRelativeToNow = charDuration
         });
-        ApplyNoStoreCacheHeaders(context.Response, hit: false);
 
+
+        var resultBytes = JsonSerializer.SerializeToUtf8Bytes(result, jsonOptions);
+        await persistentCache.SetAsync(
+            CachePartition.Metadata, blobKey,
+            resultBytes,
+            new PersistentCacheWriteOptions(
+                ExpiresAt: DateTimeOffset.UtcNow.Add(charDuration),
+                ContentType: "application/json",
+                ContentEncoding: null),
+            cancellationToken);
+
+        ApplyNoStoreCacheHeaders(context.Response, hit: false);
         return Json(result);
     }
 
@@ -150,8 +280,7 @@ public sealed class FellowshipLogsApiHandler(
 
         if (lease.TryGetMetadata(MetadataName.RetryAfter, out var retryAfter))
         {
-            context.Response.Headers["Retry-After"] = ((int)retryAfter.TotalSeconds)
-                .ToString(CultureInfo.InvariantCulture);
+            context.Response.Headers.RetryAfter = ((int)retryAfter.TotalSeconds).ToString(CultureInfo.InvariantCulture);
         }
 
         return Results.Json(new { error = "Rate limit exceeded." }, jsonOptions, statusCode: 429);
@@ -164,26 +293,26 @@ public sealed class FellowshipLogsApiHandler(
 
     private void ApplyAnalysisPreloadCacheHeaders(HttpResponse response, AnalysisPreload preload, bool hit)
     {
-        ApplyPublicCacheHeaders(response, GetAnalysisPreloadCacheDuration(preload, cacheOptions), hit);
+        var duration = GetAnalysisPreloadCacheDuration(preload, cacheOptions);
+        ApplyPublicCacheHeaders(response, duration, DateTimeOffset.UtcNow.Add(duration), hit);
     }
 
-    private void ApplyCompletedEventsCacheHeaders(HttpResponse response, bool hit)
+    private void ApplyCompletedEventsCacheHeaders(HttpResponse response, DateTimeOffset? expiresAt, bool hit)
     {
-        ApplyPublicCacheHeaders(
-            response,
-            PositiveDuration(cacheOptions.CompletedEventsCacheDuration, TimeSpan.FromDays(30)),
-            hit);
+        var duration = PositiveDuration(cacheOptions.CompletedEventsCacheDuration, TimeSpan.FromDays(30));
+        ApplyPublicCacheHeaders(response, duration, expiresAt ?? DateTimeOffset.UtcNow.Add(duration), hit);
     }
 
-    private static void ApplyPublicCacheHeaders(HttpResponse response, TimeSpan duration, bool hit)
+    private static void ApplyPublicCacheHeaders(HttpResponse response, TimeSpan duration, DateTimeOffset expiresAt, bool hit)
     {
-        response.Headers["Cache-Control"] = $"public, max-age={(int)duration.TotalSeconds}";
+        response.Headers.CacheControl = $"public, max-age={(int)duration.TotalSeconds}";
         response.Headers["X-FellowshipAnalyzer-Cache"] = hit ? "HIT" : "MISS";
+        response.Headers["X-FellowshipAnalyzer-ExpiresAt"] = expiresAt.ToString("O");
     }
 
     private static void ApplyNoStoreCacheHeaders(HttpResponse response, bool hit)
     {
-        response.Headers["Cache-Control"] = "no-store";
+        response.Headers.CacheControl = "no-store";
         response.Headers["X-FellowshipAnalyzer-Cache"] = hit ? "HIT" : "MISS";
     }
 
@@ -194,16 +323,6 @@ public sealed class FellowshipLogsApiHandler(
         return new MemoryCacheEntryOptions
         {
             AbsoluteExpirationRelativeToNow = GetAnalysisPreloadCacheDuration(preload, cacheOptions)
-        };
-    }
-
-    private static MemoryCacheEntryOptions CreateCompletedEventsCacheEntryOptions(FellowshipLogsCacheOptions cacheOptions)
-    {
-        return new MemoryCacheEntryOptions
-        {
-            AbsoluteExpirationRelativeToNow = PositiveDuration(
-                cacheOptions.CompletedEventsCacheDuration,
-                TimeSpan.FromDays(30))
         };
     }
 
@@ -276,4 +395,26 @@ public sealed class FellowshipLogsApiHandler(
 
         return context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
     }
+
+    /// <summary>
+    /// Compresses <paramref name="input"/> bytes using gzip (Optimal level).
+    /// Uses <see cref="RecyclableMemoryStreamManager"/> to pool the intermediate buffer.
+    /// </summary>
+    private static byte[] CompressGzip(byte[] input, RecyclableMemoryStreamManager mgr)
+    {
+        using var output = mgr.GetStream("gzip-compress");
+        using (var gzip = new GZipStream(output, CompressionLevel.Optimal, leaveOpen: true))
+        {
+            if (MemoryMarshal.TryGetArray<byte>(input, out var seg))
+            {
+                gzip.Write(seg.Array!, seg.Offset, seg.Count);
+            }
+            else
+            {
+                gzip.Write(input, 0, input.Length);
+            }
+        }
+        return output.GetBuffer();
+    }
 }
+

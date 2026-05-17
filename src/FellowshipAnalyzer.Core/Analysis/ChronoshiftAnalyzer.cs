@@ -44,10 +44,8 @@ public sealed class ChronoshiftAnalyzer : Analyzer
             Events.BeginChannel.By(SELECTED_PLAYER).Spell(Spells.Chronoshift),
             OnBeginChannel);
 
-        // EndChannelEvent does not implement IHasSourceEvent, so By() cannot be used.
-        // Source is verified inside the handler instead.
         AddEventListener(
-            Events.EndChannel.Spell(Spells.Chronoshift),
+            Events.EndChannel.By(SELECTED_PLAYER).Spell(Spells.Chronoshift),
             OnEndChannel);
     }
 
@@ -58,7 +56,6 @@ public sealed class ChronoshiftAnalyzer : Analyzer
 
     private void OnEndChannel(EndChannelEvent e)
     {
-        if (e.SourceId != Owner.PlayerId) return;
         if (_windows.Count == 0) return;
 
         var channelDuration = e.Timestamp - e.BeginChannel.Timestamp;

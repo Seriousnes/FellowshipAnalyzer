@@ -3,13 +3,15 @@ using System.Text.Json;
 using FellowshipAnalyzer.Api.GraphQL;
 using FellowshipAnalyzer.Core.FellowshipLogs;
 
+using Microsoft.IO;
+
 using StrawberryShake;
 
 namespace FellowshipAnalyzer.Api.Core;
 
 internal sealed record RawEventsResult(byte[] JsonBytes, bool InProgress);
 
-public sealed class FellowshipLogsService(IFellowshipLogsApiClient client, GraphQLMapper mapper)
+public sealed class FellowshipLogsService(IFellowshipLogsApiClient client, GraphQLMapper mapper, RecyclableMemoryStreamManager streamManager)
 {
     internal async Task<RawEventsResult> GetRawEventsAsync(
         string reportCode, int playerId, int fightId,
@@ -32,8 +34,8 @@ public sealed class FellowshipLogsService(IFellowshipLogsApiClient client, Graph
         var inProgress = report.Fights?.FirstOrDefault(f => f is not null)?.InProgress ?? false;
         var data = report.Events?.Data;
 
-        using var stream = new MemoryStream();
-        using (var writer = new Utf8JsonWriter(stream))
+        using var stream = streamManager.GetStream("fellowship-events");
+        using (var writer = new Utf8JsonWriter((Stream)stream))
         {
             writer.WriteStartObject();
             writer.WriteBoolean("inProgress", inProgress);

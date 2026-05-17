@@ -68,7 +68,7 @@ public sealed class SpellUsable : Analyzer
 
     public int CooldownRemaining(int spellId, int? atTimestamp = null)
     {
-        var ts = atTimestamp ?? _currentTimestamp;
+        var ts = atTimestamp ?? this.Owner.CurrentTimestamp;
         return _cooldowns.TryGetValue(spellId, out var cd)
             ? Math.Max(0, cd.ExpectedEnd - ts)
             : 0;
@@ -165,14 +165,6 @@ public sealed class SpellUsable : Analyzer
 
     private void OnFilterCooldown(FilterCooldownInfoEvent e) =>
         BeginCooldown(e.Ability.Id, e.Timestamp);
-
-    private int _currentTimestamp;
-
-    private void OnAnyEvent(Event e)
-    {
-        _currentTimestamp = e.Timestamp;
-        AdvanceCooldowns(e.Timestamp);
-    }
 
     /// <summary>
     /// Checks whether any in-flight cooldowns have naturally expired and fires

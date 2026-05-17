@@ -1,8 +1,14 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
+using Azure.Storage.Blobs;
+
+using FellowshipAnalyzer.Api.Core.Caching;
+
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+
+using Microsoft.IO;
 
 namespace FellowshipAnalyzer.Api.Core;
 
@@ -84,14 +90,35 @@ public static class FellowshipLogsServiceCollectionExtensions
             {
                 policy.SetIsOriginAllowed(corsOptions.IsAllowedOrigin)
                     .AllowAnyHeader()
-                    .AllowAnyMethod();
+                    .AllowAnyMethod()
+                    .WithExposedHeaders(
+                        "X-FellowshipAnalyzer-Cache",
+                        "X-FellowshipAnalyzer-ExpiresAt");
             });
         });
 
+        services.AddSingleton(new RecyclableMemoryStreamManager());
         services.AddSingleton<FellowshipLogsRateLimiter>();
         services.AddScoped<FellowshipLogsApiHandler>();
         services.AddSingleton<Microsoft.AspNetCore.Hosting.IStartupFilter, FellowshipLogsApiStartupFilter>();
 
+        return services;
+    }
+
+    /// <summary>
+    /// Registers <see cref="BlobPersistentCache"/> as the <see cref="IPersistentCache"/>
+    /// implementation. Call this from each host after calling
+    /// <see cref="AddFellowshipLogsApi"/>; the core registration deliberately leaves
+    /// <see cref="IPersistentCache"/> unregistered so each host can choose its storage backend.
+    /// </summary>
+    public static IServiceCollection AddBlobPersistentCache(
+        this IServiceCollection services,
+        Action<BlobPersistentCacheOptions>? configure = null)
+    {
+        var options = new BlobPersistentCacheOptions();
+        configure?.Invoke(options);
+        services.AddSingleton(options);
+        services.AddSingleton<IPersistentCache, BlobPersistentCache>();
         return services;
     }
 }

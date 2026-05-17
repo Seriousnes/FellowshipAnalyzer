@@ -4,17 +4,22 @@
  * Database: "fellowship-analyzer"
  *   Store "events": keyed by "{reportCode}/{fightId}/{playerId}"
  *     value: { eventsBlob: Blob, compression: 'gzip'|'identity', fightName: string|null,
- *              playerName: string|null, heroId: string|null, cachedAt: number (ms since epoch) }
+ *              playerName: string|null, heroId: string|null, cachedAt: number (ms since epoch),
+ *              expiresAt: number|null (ms since epoch; null = never expires) }
  *   Store "history": same key, same metadata minus eventsBlob (for listing without loading events)
  *     value: { reportCode, fightId, playerId, fightName, playerName, heroId, cachedAt }
  *   Store "masterdata": keyed by reportCode
  *     value: { masterDataJson: string }
  *
- * Max 20 entries are kept; oldest (by cachedAt) are evicted on insert.
+ *   Max 20 entries are kept; oldest (by cachedAt) are evicted on insert.
+ * Version 4: added expiresAt to events entries.
+ * Version 5: clears events/history; earlier broken server iterations returned
+ *   double-encoded payloads that were cached as if they were plain JSON. Those
+ *   entries hang on decompress and must be evicted.
  */
 
 const DB_NAME = 'fellowship-analyzer';
-const DB_VERSION = 3;
+const DB_VERSION = 5;
 const EVENTS_STORE = 'events';
 const HISTORY_STORE = 'history';
 const MASTERDATA_STORE = 'masterdata';
@@ -43,6 +48,19 @@ function openDb() {
             // Version 3 changes cached events from raw JSON strings to compressed binary blobs.
             // Old entries cannot be read without reintroducing the giant-string path, so evict them.
             if (event.oldVersion > 0 && event.oldVersion < 3) {
+                if (db.objectStoreNames.contains(EVENTS_STORE)) {
+                    event.target.transaction.objectStore(EVENTS_STORE).clear();
+                }
+                if (db.objectStoreNames.contains(HISTORY_STORE)) {
+                    event.target.transaction.objectStore(HISTORY_STORE).clear();
+                }
+            }
+            // Version 4 adds expiresAt to events entries — existing entries remain valid
+            // (they simply have no expiry and will be served until evicted by LRU).
+
+            // Version 5: evict events/history that may contain double-gzipped payloads
+            // produced by earlier broken server iterations.
+            if (event.oldVersion > 0 && event.oldVersion < 5) {
                 if (db.objectStoreNames.contains(EVENTS_STORE)) {
                     event.target.transaction.objectStore(EVENTS_STORE).clear();
                 }
@@ -118,15 +136,38 @@ async function decompressBlob(blob, compression) {
 
 /**
  * Retrieve cached UTF-8 events JSON bytes for the given key.
- * @returns {Promise<Uint8Array|null>} Raw events JSON bytes, or null on miss.
+ * Returns null on cache miss or if the entry has exceeded its server-provided expiry.
+ * @returns {Promise<Uint8Array|null>} Raw events JSON bytes, or null on miss/expired.
  */
 export async function getCachedEventsBytes(reportCode, fightId, playerId) {
     const db = await openDb();
     const key = `${reportCode}/${fightId}/${playerId}`;
-    const t = txn(db, [EVENTS_STORE], 'readonly');
+    const t = txn(db, [EVENTS_STORE, HISTORY_STORE], 'readwrite');
     const entry = await promisify(t.objectStore(EVENTS_STORE).get(key));
     if (!entry?.eventsBlob) return null;
-    return await decompressBlob(entry.eventsBlob, entry.compression ?? 'identity');
+
+    // Respect server-provided expiry: treat as a miss and evict if the entry has expired.
+    if (entry.expiresAt != null && Date.now() >= entry.expiresAt) {
+        t.objectStore(EVENTS_STORE).delete(key);
+        t.objectStore(HISTORY_STORE).delete(key);
+        return null;
+    }
+
+    try {
+        return await decompressBlob(entry.eventsBlob, entry.compression ?? 'identity');
+    } catch (err) {
+        // Corrupt/incompatible cache entry — evict and treat as a miss so the
+        // caller can fall back to the network instead of hanging on a broken stream.
+        console.warn('[report-cache] decompress failed; evicting cached entry', { key, err });
+        try {
+            const evictTxn = txn(db, [EVENTS_STORE, HISTORY_STORE], 'readwrite');
+            evictTxn.objectStore(EVENTS_STORE).delete(key);
+            evictTxn.objectStore(HISTORY_STORE).delete(key);
+        } catch {
+            // Best-effort cleanup.
+        }
+        return null;
+    }
 }
 
 /**
@@ -140,12 +181,14 @@ export async function getCachedEventsBytes(reportCode, fightId, playerId) {
  * @param {string|null} fightName
  * @param {string|null} playerName
  * @param {string|null} heroId
+ * @param {number|null} expiresAtMs  Server-provided expiry as epoch milliseconds, or null.
  */
-export async function cacheEventsBytes(reportCode, fightId, playerId, eventsJsonBytes, fightName, playerName, heroId) {
+export async function cacheEventsBytes(reportCode, fightId, playerId, eventsJsonBytes, fightName, playerName, heroId, expiresAtMs) {
     const db = await openDb();
     const key = `${reportCode}/${fightId}/${playerId}`;
     const cachedAt = Date.now();
     const { blob: eventsBlob, compression } = await compressBytes(eventsJsonBytes);
+    const expiresAt = (expiresAtMs != null && expiresAtMs > 0) ? expiresAtMs : null;
 
     const meta = { reportCode, fightId, playerId, fightName, playerName, heroId, cachedAt };
 
@@ -153,7 +196,7 @@ export async function cacheEventsBytes(reportCode, fightId, playerId, eventsJson
     const eventsStore = t.objectStore(EVENTS_STORE);
     const historyStore = t.objectStore(HISTORY_STORE);
 
-    eventsStore.put({ eventsBlob, compression, ...meta }, key);
+    eventsStore.put({ eventsBlob, compression, expiresAt, ...meta }, key);
     historyStore.put(meta, key);
 
     // Evict oldest entries if over the limit

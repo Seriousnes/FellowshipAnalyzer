@@ -88,25 +88,7 @@
                             var icon = option.IconUrl;
                             var entry = CooldownEntry(spellId);
                             var capturedId = spellId;
-                            <li class="timeline-settings-row draggable @(_draggingCooldownId == spellId ? "dragging" : "")"
-                                @key="spellId"
-                                draggable="true"
-                                @ondragstart="() => OnCooldownDragStart(capturedId)"
-                                @ondragover:preventDefault="true"
-                                @ondragover="() => OnCooldownDragOver(capturedId)"
-                                @ondragend="OnCooldownDragEnd"
-                                @ondrop="() => OnCooldownDrop(capturedId)">
-                                <span class="timeline-settings-drag-handle" aria-hidden="true">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
-                                         fill="currentColor" aria-hidden="true">
-                                        <circle cx="9" cy="6" r="1.5"></circle>
-                                        <circle cx="15" cy="6" r="1.5"></circle>
-                                        <circle cx="9" cy="12" r="1.5"></circle>
-                                        <circle cx="15" cy="12" r="1.5"></circle>
-                                        <circle cx="9" cy="18" r="1.5"></circle>
-                                        <circle cx="15" cy="18" r="1.5"></circle>
-                                    </svg>
-                                </span>
+                            <li class="timeline-settings-row" @key="spellId">
                                 <label class="timeline-settings-visibility">
                                     <input type="checkbox"
                                            checked="@entry.Visible"
@@ -142,7 +124,6 @@
 
     private enum Tab { Auras, Cooldowns }
     private Tab _activeTab = Tab.Auras;
-    private int? _draggingCooldownId;
 
     private AuraConfigEntry AuraEntry(int spellId) =>
         Config.Auras.FirstOrDefault(a => a.SpellId == spellId)
@@ -154,12 +135,14 @@
 
     private IEnumerable<TimelineSpellOption> SortedAuras() =>
         AvailableAuras
-            .OrderBy(o => AuraEntry(o.SpellId).Priority)
+            .OrderBy(o => Config.Auras.Any(a => a.SpellId == o.SpellId))
+            .ThenBy(o => AuraEntry(o.SpellId).Priority)
             .ThenBy(o => o.Name, StringComparer.OrdinalIgnoreCase);
 
     private IEnumerable<TimelineSpellOption> SortedCooldowns() =>
         AvailableCooldowns
-            .OrderBy(o => CooldownEntry(o.SpellId).SortOrder)
+            .OrderBy(o => Config.Cooldowns.Any(c => c.SpellId == o.SpellId))
+            .ThenBy(o => CooldownEntry(o.SpellId).SortOrder)
             .ThenBy(o => o.Name, StringComparer.OrdinalIgnoreCase);
 
     private static int ParseInt(object? raw, int fallback) =>
@@ -203,50 +186,7 @@
             Auras = [.. Config.Auras],
             Cooldowns = ReplaceOrAdd(Config.Cooldowns, c => c.SpellId == spellId, entry with { SortOrder = sortOrder }),
         });
-    }
-
-    private void OnCooldownDragStart(int spellId) => _draggingCooldownId = spellId;
-    private void OnCooldownDragEnd() => _draggingCooldownId = null;
-
-    private void OnCooldownDragOver(int targetSpellId)
-    {
-        // Drag-over fires constantly; we only care about drop. No-op kept for symmetry.
-    }
-
-    private async Task OnCooldownDrop(int targetSpellId)
-    {
-        if (_draggingCooldownId is not int sourceSpellId || sourceSpellId == targetSpellId)
-        {
-            _draggingCooldownId = null;
-            return;
-        }
-
-        // Reorder: insert source before target in the visible (sorted) order, then renumber SortOrder.
-        var sorted = SortedCooldowns().Select(o => o.SpellId).ToList();
-        sorted.Remove(sourceSpellId);
-        var targetIndex = sorted.IndexOf(targetSpellId);
-        if (targetIndex < 0) targetIndex = sorted.Count;
-        sorted.Insert(targetIndex, sourceSpellId);
-
-        var renumbered = sorted
-            .Select((id, i) =>
-            {
-                var existing = CooldownEntry(id);
-                return existing with { SortOrder = i };
-            })
-            .ToList();
-
-        // Preserve any cooldown entries that aren't in the visible list (defensive).
-        var visibleIds = renumbered.Select(c => c.SpellId).ToHashSet();
-        var preserved = Config.Cooldowns.Where(c => !visibleIds.Contains(c.SpellId));
-
-        _draggingCooldownId = null;
-        await EmitConfig(new TimelineConfig
-        {
-            Auras = [.. Config.Auras],
-            Cooldowns = [.. renumbered, .. preserved],
-        });
-    }
+    }    
 
     private static List<T> ReplaceOrAdd<T>(IEnumerable<T> source, Func<T, bool> predicate, T replacement)
     {
