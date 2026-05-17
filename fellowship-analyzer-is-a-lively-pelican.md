@@ -70,56 +70,101 @@ The generator emits a `RegisterSubscriptions(EventEmitter, ParseContext)` partia
 
 ---
 
-### 2. Module shape: mutable accumulator + immutable Report record
+### 2. Module shape: declarative surface, no Initialize / Complete ceremony
 
-**Today** — UI components reach into mutable module fields (`Statistics/WinterOrbStatistics.razor` reads tracker state directly). The module *is* its result.
+**Today** — `Module` is a base class with virtual `Initialize()` / `Complete()` hooks, mutable `Active` / `Priority` / `Owner` fields set externally post-DI, subscriptions registered imperatively inside `Initialize()`, derived values computed inside `Complete()`, and UI components reaching into mutable module fields (`Statistics/WinterOrbStatistics.razor`).
 
-**Proposal** — separate the accumulator from the result surface:
+Each piece is there for a reason — and none of those reasons survive the rest of this design. The WoWAnalyzer `Module` shape is cleaner not because it's older but because it doesn't carry the post-DI assignment problem C# inherited via ASP-style DI patterns.
+
+| Today's mechanic | Why it exists today | What replaces it |
+|---|---|---|
+| `Initialize()` for subscriptions | `Owner` (and thus `EventEmitter`) is set post-construction | §1's `[On<TEvent>]` source-gen wires subscriptions at compile time. The constructor does all setup it needs. |
+| `Complete()` for derived values | Single pass to finalize after events stop | `ToReport()` projection (below). Called once when the UI materializes the result — identical cost, no lifecycle hook. |
+| `Active` mutable flag | Modules that don't apply to the fight exist-but-do-nothing | `[ActiveWhen<TPredicate>]` evaluated against `ParseContext` at parser construction. If false, the module isn't instantiated at all — zero memory, zero subscriptions, zero dispatch overhead. |
+| `Priority` int for dispatch order | Implicit handler ordering across modules | `[Before<TOther>]` / `[After<TOther>]` on individual handlers when ordering matters; generator topologically sorts. Most handlers don't need ordering. |
+| `Owner` back-reference | Service-locator lookups | §3's constructor injection. |
+
+**The full module surface a hero author writes:**
 
 ```csharp
-public sealed partial class WinterOrbTracker : ResourceTracker
+[Module]
+public sealed partial class BasicStComboAnalyzer(WinterOrbTracker orbs, Abilities abilities)
 {
-    // mutable accumulator stays private
-    private int _totalGenerated, _wasted, _spent;
+    private int _embracesApplied;
+    private long _totalEmbraceDamage;
 
-    // generator-friendly result projection
-    public WinterOrbReport ToReport() => new(_totalGenerated, _wasted, _spent, ...);
+    [On<ApplyBuffEvent>(By = Actor.Self, Spell = SpellIds.WintersEmbrace)]
+    private void OnEmbraceApplied(ApplyBuffEvent e) => _embracesApplied++;
+
+    [On<DamageEvent>(By = Actor.Self)]
+    private void OnSelfDamage(DamageEvent e) { /* accumulate */ }
+
+    public BasicStComboReport ToReport() =>
+        new(_embracesApplied, _totalEmbraceDamage,
+            AvgDamage: _totalEmbraceDamage / Math.Max(1, _embracesApplied));
 }
 
-public sealed record WinterOrbReport(int Generated, int Wasted, int Spent, ...);
+public sealed record BasicStComboReport(int EmbracesApplied, long TotalEmbraceDamage, double AvgDamage);
 ```
 
-`HeroAnalysisResult` carries the `*Report` records, not the module instances. Components bind to the report.
+No `Initialize`, no `Complete`, no `Active`, no `Priority`, no `Owner`. No base class to memorize. The module **is** its constructor deps + its handlers + its `ToReport()` projection. The `[Module]` marker is the only ceremony, and it exists so the generator can find the type — it carries no behavior.
 
-**Why:**
+`HeroAnalysisResult` carries the `*Report` records, not the module instances. The §8 generator emits a typed `RimeAnalysisResult(WinterOrbReport WinterOrb, BasicStComboReport BasicStCombo, ...)` that pulls each module's `ToReport()` on materialization. UI components bind to the report; the module instances can be discarded once the result is built.
 
-- Lets the *result* (not the raw modules) be cached, snapshotted, serialized, or sent over the wire later if the constraint loosens.
-- Decouples render shape from accumulator shape — refactor a module without breaking the guide.
-- Makes "go back to a previous report" a memcache hit instead of a re-parse (see §7).
-- Reports are records → trivially diffable, trivially testable, trivially equality-comparable in xUnit.
+**Why this lands:**
+
+- **Lifecycle is invisible** in the WoWAnalyzer sense — you write declarations, the engine handles when they fire. A new author never has to learn "what's safe in Initialize vs Complete vs an event handler".
+- **Result snapshot is trivially serializable** because it's records the source-gen `JsonSerializerContext` already knows about. Cache it (§7), diff it in tests, send it across a worker thread if WASM ever spawns one.
+- **Render shape decouples from accumulator shape** — refactor accumulators without touching guides; refactor reports without touching subscriptions.
+- **Inactive modules cost zero.** A Rime-specific module never instantiates when analyzing a Helena fight. Today's `Active = false` still constructs the object and subscribes its filters before deciding to short-circuit.
+- **The base class can shrink to nothing.** `Module` becomes an attribute (or an empty marker interface for DI grouping), not an inherited class with mutable plumbing. Modules are sealed by default.
+
+**What we lose:** imperative setup code that runs after construction but before events flow. C# field initializers and constructor bodies cover what we have today. If a genuine need surfaces (rare — e.g. cross-module validation after the DAG is built), an opt-in `[OnReady]` attribute on a single method gives us back exactly that hook — without making every module pay for a virtual-method dispatch it doesn't use.
 
 ---
 
-### 3. Module dependencies: constructor injection, no service locator
+### 3. Module dependencies: DI-first, with a ranked ladder of escape hatches for cycles
 
-**Today** — modules call `Owner.GetModule<T>()` to find siblings (`Module.cs:77`). `Owner` is set externally after DI resolution, so it cannot appear in the constructor. This is a port artifact of WoWAnalyzer's `this.owner.getModule(Foo)`.
+**Today** — modules call `Owner.GetModule<T>()` to find siblings (`Module.cs:77`). `Owner` is set externally after DI resolution, so it cannot appear in the constructor. This is a port of WoWAnalyzer's `this.owner.getModule(Foo)`.
 
-**Proposal** — modules take their dependencies as ctor args:
+**Why this is here today:** a previous attempt at DI-first wiring hit circular dependencies between modules and was reverted. Late-binding every reference via the service locator sidesteps cycles entirely — at the cost of losing every benefit constructor injection brings (compile-time validation, no temporal coupling, no `Owner`/`Priority` mutable-after-construction dance, generator-emitted topological order).
+
+**The audit, however, is encouraging.** An exploration of WoWAnalyzer's `parser/shared/modules/` found that almost no case is a true construction-time cycle:
+
+- *SpellHistory ↔ SpellUsable* — SpellHistory consumes events SpellUsable fabricates. **Runtime-only.** Resolves to event-based decoupling.
+- *CastEfficiency → SpellHistory → SpellUsable* — CastEfficiency reads `historyBySpellId` during event handling. **Runtime-only, ordering-sensitive.**
+- *EventHistory → EventEmitter* — Pure runtime utility call inside filter builders. **Runtime-only, intentionally late-bound.**
+- *Haste → StatTracker* — Linear today; cycle risk only if a spec subclass introduces back-references. **Not currently a cycle.**
+- *DeathRecapTracker → {SpellUsable, Combatants, Buffs}* — Fan-in, no fan-back. **Not a cycle.**
+
+The conclusion isn't "abandon DI" — it's **"DI-first, with a clear ladder of escape hatches for the genuinely cyclical cases, ranked by smell."**
+
+**Default (target: 90%+ of modules) — constructor injection.**
 
 ```csharp
-public sealed class BasicStComboAnalyzer(WinterOrbTracker orbs, Abilities abilities) : Analyzer
-{
-    // generator wires this up; ParseContext is injected separately via interface
-}
+public sealed class BasicStComboAnalyzer(WinterOrbTracker orbs, Abilities abilities) : Analyzer;
 ```
 
-Per-run `AnalysisRunServiceProvider` already scopes everything correctly. The source generator builds the DAG at compile time and:
+The generator builds the DAG at compile time, topologically sorts construction, eliminates the mutable `Owner`/`Priority` dance, and reports **FA0013** (error) on a construction-time cycle. `ParseContext` (player id, fight bounds, master data) is a value record injected via a single context interface, not a back-reference to the parser.
 
-- Emits the parser's instantiation order from a topological sort.
-- Reports a diagnostic (FA0010) on cycles instead of throwing at startup.
-- Eliminates the `Owner` / `Priority` mutable-after-construction dance.
+**Escape ladder for cycles — applied in order of preference:**
 
-`ParseContext` (player id, fight bounds, master data) becomes a value-type record passed via a single context interface, not a back-reference to the parser.
+| Rung | Pattern | Use when | Cost |
+|---|---|---|---|
+| **(a)** | **Event-based decoupling** | A needs B's *computed state* at runtime. B fabricates an event (e.g. `SpellCooldownCalculatedEvent`); A subscribes. | Forces the right shape — state changes become observable to anyone. Needs a fabricated event type per signal. |
+| **(b)** | **`Lazy<TOther>` ctor injection** | A only calls B's *methods or utilities* during event handling, never at construction. | Generator wires `Lazy<TOther>` so construction stays acyclic; first `.Value` access binds. Reads cleanly. Solves the *EventHistory → EventEmitter* case. |
+| **(c)** | **Result-level composition** | A's *report* needs B's *report*. Expressed in the §8 typed-result projection (`RimeAnalysisResult(WinterOrb, BasicStCombo, ...)`), not in any module ctor. | The cycle dissolves because Report-to-Report composition is a build-order concern on a separate (immutable) layer. The generator topologically orders `ToReport()` calls. Mutual report dependencies are still cycles, but they're rarer and the error message points at the result record, not at modules. |
+| **(d)** | **`IModuleLocator.Get<T>()` last-resort lookup** | (a)/(b)/(c) all fail or the smell is unavoidable. | Functionally identical to today's `Owner.GetModule<T>()`. **FA0015** (info-level) flags every call site so the cycle stays visible in PR review. The escape hatch exists, but it's loud. |
+
+**The strong plan for "what if a cycle arises later":**
+
+1. The generator's topological sort fails fast at compile time with **FA0013**, naming both modules and the offending ctor parameter pair. No runtime surprises, no startup throws.
+2. The diagnostic message links to this section and lists the four escape hatches in order.
+3. Hero authors pick the first applicable rung. Reaching (d) is treated like a `// HACK:` — accepted but justified in the PR description.
+4. If (d) shows up in more than ~3 places across the codebase, that's a signal the **module boundaries are wrong**, not that DI-first was a mistake. The mitigation is to extract the shared concern into a third module (option a, generalized) — typically a new event surface or a state-cache module both sides observe.
+5. Hero-specific subclasses that introduce a new cycle on a previously-clean base module trigger FA0013 *in the hero project*, not in core. Cycles never leak silently across project boundaries.
+
+This keeps the user's stated preference (DI-first) without leaving the cycle question to "we'll find out when it breaks."
 
 ---
 

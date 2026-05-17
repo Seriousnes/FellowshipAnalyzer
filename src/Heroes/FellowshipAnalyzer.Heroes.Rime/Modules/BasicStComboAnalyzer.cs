@@ -12,7 +12,7 @@ namespace FellowshipAnalyzer.Heroes.Rime.Modules;
  * 
  * Winter's Embrace does not affect Bursting Ice.
  */
-public sealed class BasicStComboAnalyzer : Analyzer
+public sealed partial class BasicStComboAnalyzer : Analyzer
 {
     private const int WintersEmbraceDurationMs = 3000;
     private const double WintersEmbraceIncrease = 0.20;
@@ -38,15 +38,7 @@ public sealed class BasicStComboAnalyzer : Analyzer
 
     private StComboWindowEvaluation? _currentWindow;
 
-    public override void Initialize()
-    {
-        AddEventListener(Events.ApplyBuff.By(SELECTED_PLAYER).Spell(Spells.WintersEmbrace), OnWintersEmbraceApplied);
-        AddEventListener(Events.RemoveBuff.By(SELECTED_PLAYER).Spell(Spells.WintersEmbrace), OnWintersEmbraceRemoved);
-        AddEventListener(Events.Damage.By(SELECTED_PLAYER), OnDamage);
-        AddEventListener(Events.Damage.By(SELECTED_PLAYER).Spell(Spells.BurstingIceDamage), OnBurstingIceDamage);
-        AddEventListener(Events.Cast.By(SELECTED_PLAYER), OnCast);
-    }
-
+    [On<ApplyBuffEvent>(By = Actor.Self, Spell = SpellIds.WintersEmbrace)]
     private void OnWintersEmbraceApplied(ApplyBuffEvent @event)
     {
         _currentWindow = new StComboWindowEvaluation()
@@ -56,6 +48,7 @@ public sealed class BasicStComboAnalyzer : Analyzer
         };
     }
 
+    [On<RemoveBuffEvent>(By = Actor.Self, Spell = SpellIds.WintersEmbrace)]
     private void OnWintersEmbraceRemoved(RemoveBuffEvent @event)
     {
         _currentWindow!.EndTimestamp = @event.Timestamp;
@@ -63,6 +56,7 @@ public sealed class BasicStComboAnalyzer : Analyzer
         _currentWindow = null;
     }
 
+    [On<CastEvent>(By = Actor.Self)]
     private void OnCast(CastEvent castEvent)
     {
         if (_currentWindow is not null &&
@@ -73,6 +67,7 @@ public sealed class BasicStComboAnalyzer : Analyzer
         }
     }
 
+    [On<DamageEvent>(By = Actor.Self)]
     private void OnDamage(DamageEvent damageEvent)
     {
         if (_currentWindow is null)
@@ -94,6 +89,7 @@ public sealed class BasicStComboAnalyzer : Analyzer
             : (name, bonus);
     }
 
+    [On<DamageEvent>(By = Actor.Self, Spell = SpellIds.BurstingIceDamage)]
     private void OnBurstingIceDamage(DamageEvent damageEvent)
     {
         if (_currentWindow is null)
