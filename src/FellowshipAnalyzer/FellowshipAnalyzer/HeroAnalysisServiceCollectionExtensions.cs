@@ -1,33 +1,15 @@
-using FellowshipAnalyzer.Heroes.Aeona.Analysis;
-using FellowshipAnalyzer.Heroes.Ardeos.Analysis;
-using FellowshipAnalyzer.Heroes.Elarion.Analysis;
-using FellowshipAnalyzer.Heroes.Helena.Analysis;
-using FellowshipAnalyzer.Heroes.Mara.Analysis;
-using FellowshipAnalyzer.Heroes.Meiko.Analysis;
-using FellowshipAnalyzer.Heroes.Rime.Analysis;
-using FellowshipAnalyzer.Heroes.Sylvie.Analysis;
-using FellowshipAnalyzer.Heroes.Tariq.Analysis;
-using FellowshipAnalyzer.Heroes.Vigour.Analysis;
-using FellowshipAnalyzer.Heroes.Xavian.Analysis;
+using FellowshipAnalyzer.Core.Analysis;
 
-namespace Microsoft.Extensions.DependencyInjection;
+namespace FellowshipAnalyzer;
 
-public static class HeroAnalysisServiceCollectionExtensions
-{
-    public static IServiceCollection AddFellowshipHeroAnalysis(this IServiceCollection services)
-    {
-        services.AddAeonaAnalysis();
-        services.AddArdeosAnalysis();
-        services.AddElarionAnalysis();
-        services.AddHelenaAnalysis();
-        services.AddMaraAnalysis();
-        services.AddMeikoAnalysis();
-        services.AddRimeAnalysis();
-        services.AddSylvieAnalysis();
-        services.AddTariqAnalysis();
-        services.AddVigourAnalysis();
-        services.AddXavianAnalysis();
-
-        return services;
-    }
-}
+/// <summary>
+/// §6 of the redesign doc: the marker that triggers <c>HeroManifestGenerator</c> to scan all
+/// referenced hero assemblies for <c>[HeroAnalyzer]</c> types and emit:
+/// <list type="bullet">
+///   <item><c>HeroManifestEntry</c> record + <c>HeroManifest.Entries</c> static list</item>
+///   <item><c>AddFellowshipHeroAnalysis</c> extension method that calls each hero's generated <c>Add{Hero}Analysis()</c></item>
+/// </list>
+/// Replaces the eleven-line DI chain that previously lived here.
+/// </summary>
+[GenerateHeroManifest]
+internal static partial class HeroAnalysisHost { }

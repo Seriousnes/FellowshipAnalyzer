@@ -55,6 +55,16 @@ public sealed class RimeAnalysisEngineTests
         result.GuideComponentType.ShouldNotBeNull();
     }
 
+    [Fact]
+    public async Task Analyze_ShouldProduceTypedReportWithBasicStCombo()
+    {
+        var result = await AnalyzeFixtureAsync();
+
+        var typed = result.TypedReport.ShouldBeOfType<RimeAnalysisResult>();
+        typed.BasicStCombo.ShouldNotBeNull();
+        typed.BasicStCombo!.EvaluatedWindows.ShouldBeGreaterThan(0);
+    }
+
     private static async Task<HeroAnalysisResult> AnalyzeFixtureAsync()
     {
         var services = new ServiceCollection();

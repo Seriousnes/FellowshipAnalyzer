@@ -89,9 +89,13 @@ public class ResourceTracker : Analyzer
             e.Timestamp);
     }
 
+    /// <summary>
+    /// §4: observes the post-normalized event stream to update health and seed per-resource Max.
+    /// Snapshot-delta fabrication is now done by <see cref="Normalizers.ResourceFabricationNormalizer"/>
+    /// before dispatch — modules are pure observers and never mutate the stream they observe.
+    /// </summary>
     private void OnEvent(Event e)
     {
-        // Determine which ActorResources belong to the selected player.
         ActorResources? playerResources = null;
         if (e is IHasSourceEvent src && Owner.ByPlayer(src))
             playerResources = e.SourceResources;
@@ -99,31 +103,14 @@ public class ResourceTracker : Analyzer
             playerResources = e.TargetResources;
 
         if (e is ResourceChangeEvent or BaseCastEvent || playerResources is not { Resources.Count: > 0 })
-        {
             return;
-        }
-        
+
         UpdateHealth(playerResources);
 
-        var ability = (e as IAbilityEvent)?.Ability ?? new Ability();
+        // Seed Max — fabricated ResourceChangeEvents from the normalizer carry the delta but
+        // not the resource's reported max.
         foreach (var resource in playerResources.Resources)
-        {
-            var state = GetOrCreateState(resource.Type, resource.Max);
-            var delta = resource.Amount - state.Current;
-            if (delta <= 0) continue;
-
-            // Only fabricate — OnResourceChange is the single place RecordGain is called.
-            Owner.EventEmitter.FabricateEvent(new ResourceChangeEvent
-            {
-                Timestamp = e.Timestamp,
-                SourceId = PlayerId,
-                TargetId = PlayerId,
-                Ability = ability,
-                ResourceChangeType = resource.Type,
-                ResourceChange = delta,
-                Waste = 0,
-            }, e);
-        }
+            GetOrCreateState(resource.Type, resource.Max);
     }
 
     /// <summary>

@@ -18,6 +18,7 @@ namespace FellowshipAnalyzer.Core.Analysis;
 [AddNormalizer<AbilityMasterDataNormalizer>]
 [AddNormalizer<ResourceNormalizer>]
 [AddNormalizer<CastLinkNormalizer>]
+[AddNormalizer<ResourceFabricationNormalizer>]
 [AddModule<DebugAnnotations>]
 [AddModule<Combatants>]
 [AddModule<StatTracker>]
@@ -83,6 +84,14 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
     /// Source-generated when the parser has <see cref="AddNormalizerAttribute{T}"/> attributes.
     /// </summary>
     protected virtual Type[] GetNormalizerTypes() => [];
+
+    /// <summary>
+    /// Builds the source-generated typed projection of this analysis run (§8 of the redesign doc).
+    /// The default returns <c>null</c>. Source-generated concrete parsers override this when at
+    /// least one of their modules declares a <c>ToReport()</c> method, returning a hero-specific
+    /// result record (e.g. <c>RimeAnalysisResult</c>).
+    /// </summary>
+    protected virtual object? BuildTypedReport() => null;
 
     /// <summary>
     /// Looks up an active module by type. Returns null if the module is
@@ -184,6 +193,7 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
             Modules = [.. _activeModules.Values],
             Events = Events,
             DebugAnnotations = GetModule<DebugAnnotations>(),
+            TypedReport = BuildTypedReport(),
         };
     }
 
@@ -221,11 +231,19 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
         IReadOnlyList<Type> moduleTypes,
         IReadOnlyList<Type> normalizerTypes) : IServiceProvider
     {
+        private static readonly System.Reflection.MethodInfo CreateLazyMethod =
+            typeof(AnalysisRunServiceProvider).GetMethod(
+                nameof(CreateLazy),
+                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!;
+
         private readonly Dictionary<Type, object> _instances = [];
         private readonly Dictionary<Type, int> _modulePriorities = moduleTypes
             .Select((type, index) => (type, index))
             .ToDictionary(static x => x.type, static x => x.index);
         private readonly HashSet<Type> _normalizerTypes = [.. normalizerTypes];
+
+        private Lazy<T> CreateLazy<T>() where T : class =>
+            new(() => (T)GetService(typeof(T))!);
 
         public object? GetService(Type serviceType)
         {
@@ -237,6 +255,23 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
             if (serviceType == typeof(EventEmitter))
             {
                 return GetOrCreate(typeof(EventEmitter));
+            }
+
+            if (serviceType == typeof(ParseContext))
+            {
+                // Materialized lazily — the parser fills PlayerId/Fight before any handler fires,
+                // but ctors run before that. The closure resolves through Owner at call time.
+                return new ParseContext(owner.PlayerId, owner.Fight, owner.ActorNames);
+            }
+
+            // §3 escape rung (b): Lazy<TModule> defers resolution to break ctor cycles without
+            // giving up DI. Cycle analyzer FA0013 ignores Lazy<>-shaped edges.
+            if (serviceType.IsGenericType && serviceType.GetGenericTypeDefinition() == typeof(Lazy<>))
+            {
+                var inner = serviceType.GetGenericArguments()[0];
+                return CreateLazyMethod
+                    .MakeGenericMethod(inner)
+                    .Invoke(this, null);
             }
 
             if (TryGetModuleType(serviceType, out var moduleType))

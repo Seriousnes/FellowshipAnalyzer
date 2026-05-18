@@ -35,4 +35,12 @@ public sealed class HeroAnalysisResult
     /// Exposed for the Debug tab in the UI.
     /// </summary>
     public DebugAnnotations? DebugAnnotations { get; init; }
+
+    /// <summary>
+    /// Source-generated typed projection of this analysis run (§8 of the redesign doc).
+    /// Each contributing module exposes a <c>ToReport()</c> method returning a record; the parser
+    /// generator emits a hero-specific result record (e.g. <c>RimeAnalysisResult</c>) and populates
+    /// this slot. <c>null</c> when no modules on the parser declare <c>ToReport()</c>.
+    /// </summary>
+    public object? TypedReport { get; init; }
 }

@@ -83,7 +83,7 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
                 var ns = GetNamespace(typeArg);
 
                 if (containingType.Name == AddModuleAttributeShortName)
-                    ownModules.Add(new TypeInfo(typeArg.Name, ns, InheritsFromAbilities(typeArg)));
+                    ownModules.Add(new TypeInfo(typeArg.Name, ns, InheritsFromAbilities(typeArg), TryGetReportType(typeArg)));
                 else if (containingType.Name == AddNormalizerAttributeShortName)
                     normalizerTypes.Add(new TypeInfo(typeArg.Name, ns));
             }
@@ -176,8 +176,29 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
             var typeArg = attr.AttributeClass.TypeArguments[0] as INamedTypeSymbol;
             if (typeArg == null) continue;
 
-            modules.Add(new TypeInfo(typeArg.Name, GetNamespace(typeArg)));
+            modules.Add(new TypeInfo(typeArg.Name, GetNamespace(typeArg), false, TryGetReportType(typeArg)));
         }
+    }
+
+    /// <summary>
+    /// §8: a module participates in the typed result projection by exposing a public instance
+    /// <c>ToReport()</c> method that takes no parameters. The return type is the report record.
+    /// </summary>
+    private static string? TryGetReportType(INamedTypeSymbol moduleType)
+    {
+        foreach (var member in moduleType.GetMembers("ToReport"))
+        {
+            if (member is not IMethodSymbol method) continue;
+            if (method.IsStatic) continue;
+            if (method.DeclaredAccessibility != Accessibility.Public) continue;
+            if (method.Parameters.Length != 0) continue;
+            if (method.ReturnsVoid) continue;
+            if (method.ReturnType is not INamedTypeSymbol rt) continue;
+
+            var rtNs = GetNamespace(rt);
+            return string.IsNullOrEmpty(rtNs) ? rt.Name : rtNs + "." + rt.Name;
+        }
+        return null;
     }
 
     private static void CollectNormalizersFromSymbol(INamedTypeSymbol symbol, List<TypeInfo> normalizers)
@@ -228,6 +249,20 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
     {
         if (name.Length > suffix.Length && name.EndsWith(suffix))
             return name.Substring(0, name.Length - suffix.Length);
+        return name;
+    }
+
+    /// <summary>
+    /// §8: friendly property name for the result record — strips "Analyzer" / "Tracker" /
+    /// "Module" suffixes to match the doc's example (BasicStComboAnalyzer → BasicStCombo,
+    /// WinterOrbTracker → WinterOrb).
+    /// </summary>
+    private static string ReportPropertyName(TypeInfo module)
+    {
+        var name = module.Name;
+        name = StripSuffix(name, "Analyzer");
+        name = StripSuffix(name, "Tracker");
+        name = StripSuffix(name, "Module");
         return name;
     }
 
@@ -297,12 +332,56 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
             sb.AppendLine("    ];");
         }
 
+        // §8 typed-result projection — emit only when at least one module declares ToReport().
+        var reportContributors = new List<(TypeInfo Module, string PropertyName)>();
+        foreach (var m in info.BaseModules)
+        {
+            if (m.ReportTypeFullyQualified != null)
+                reportContributors.Add((m, ReportPropertyName(m)));
+        }
+        foreach (var m in info.OwnModules)
+        {
+            if (m.ReportTypeFullyQualified != null)
+                reportContributors.Add((m, ReportPropertyName(m)));
+        }
+        var parserBaseName = StripSuffix(info.ClassName, "CombatLogParser");
+        if (reportContributors.Count > 0)
+        {
+            sb.AppendLine();
+            sb.AppendLine("    protected override object? BuildTypedReport()");
+            sb.AppendLine("    {");
+            sb.Append("        return new ").Append(parserBaseName).Append("AnalysisResult(");
+            for (var i = 0; i < reportContributors.Count; i++)
+            {
+                if (i > 0) sb.Append(", ");
+                var contrib = reportContributors[i];
+                sb.Append("GetModule<global::").Append(contrib.Module.FullyQualifiedName).Append(">()?.ToReport()");
+            }
+            sb.AppendLine(");");
+            sb.AppendLine("    }");
+        }
+
         sb.AppendLine("}");
         sb.AppendLine();
 
+        // §8: emit the typed result record type. Each contributing module gets one nullable property —
+        // nullable because a module may be Active=false on a given fight and thus not resolved.
+        if (reportContributors.Count > 0)
+        {
+            sb.Append("public sealed record ").Append(parserBaseName).Append("AnalysisResult(");
+            for (var i = 0; i < reportContributors.Count; i++)
+            {
+                if (i > 0) sb.Append(", ");
+                var contrib = reportContributors[i];
+                sb.Append("global::").Append(contrib.Module.ReportTypeFullyQualified)
+                  .Append("? ").Append(contrib.PropertyName);
+            }
+            sb.AppendLine(");");
+            sb.AppendLine();
+        }
+
         // DI extension method — registers only hero-specific services.
         // Shared services (EventEmitter, base modules, base normalizers) come from AddCoreAnalysis().
-        var parserBaseName = StripSuffix(info.ClassName, "CombatLogParser");
         sb.AppendLine("public static class " + parserBaseName + "ServiceCollectionExtensions");
         sb.AppendLine("{");
         sb.AppendLine("    public static IServiceCollection Add" + parserBaseName + "Analysis(this IServiceCollection services)");
@@ -378,16 +457,19 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
 
     private sealed class TypeInfo
     {
-        public TypeInfo(string name, string ns, bool extendsAbilities = false)
+        public TypeInfo(string name, string ns, bool extendsAbilities = false, string? reportTypeFullyQualified = null)
         {
             Name = name;
             Namespace = ns;
             ExtendsAbilities = extendsAbilities;
+            ReportTypeFullyQualified = reportTypeFullyQualified;
         }
         public string Name { get; }
         public string Namespace { get; }
         /// <summary>True when this module extends FellowshipAnalyzer.Core.Analysis.Abilities.</summary>
         public bool ExtendsAbilities { get; }
+        /// <summary>§8: fully-qualified report record type if this module declares <c>ToReport()</c>; otherwise null.</summary>
+        public string? ReportTypeFullyQualified { get; }
         public string FullyQualifiedName => string.IsNullOrEmpty(Namespace) ? Name : Namespace + "." + Name;
     }
 
