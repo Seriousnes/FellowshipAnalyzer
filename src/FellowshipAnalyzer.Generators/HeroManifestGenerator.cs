@@ -12,8 +12,7 @@ namespace FellowshipAnalyzer.Generators;
 /// Emits a compile-time <c>HeroManifest</c> by scanning all referenced assemblies (plus the
 /// current compilation) for classes carrying <c>[HeroAnalyzer]</c>. Also emits an
 /// <c>AddFellowshipHeroAnalysis</c> DI extension that calls each hero's generated
-/// <c>Add{Hero}Analysis()</c>. Replaces the hand-maintained DI chain in the main project once
-/// a single class is marked <c>[GenerateHeroManifest]</c>.
+/// <c>Add{Hero}Analysis()</c>. Triggered by a single class marked <c>[GenerateHeroManifest]</c>.
 /// </summary>
 [Generator]
 public sealed class HeroManifestGenerator : IIncrementalGenerator
@@ -119,7 +118,7 @@ public sealed class HeroManifestGenerator : IIncrementalGenerator
         sb.AppendLine("{");
         sb.AppendLine("    /// <summary>");
         sb.AppendLine("    /// Registers every discovered hero analyzer with DI. Generated from the compile-time");
-        sb.AppendLine("    /// <c>HeroManifest</c> — replaces the hand-maintained DI chain.");
+        sb.AppendLine("    /// <c>HeroManifest</c>.");
         sb.AppendLine("    /// </summary>");
         sb.AppendLine("    public static IServiceCollection AddFellowshipHeroAnalysis(this IServiceCollection services)");
         sb.AppendLine("    {");

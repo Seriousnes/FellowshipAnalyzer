@@ -1,8 +1,9 @@
 namespace FellowshipAnalyzer.Core.Analysis;
 
 /// <summary>
-/// Replaces the mutable <see cref="Module.Active"/> flag with a compile-time activation
-/// predicate evaluated at parser construction.
+/// Gates module construction behind a compile-time activation predicate evaluated at parser
+/// construction. Use this when activation is known up front; for dynamic deactivation during
+/// dispatch, use the mutable <see cref="Module.Active"/> flag instead.
 /// </summary>
 /// <typeparam name="TPredicate">
 /// A type implementing <see cref="IModuleActivePredicate"/>. Its static
@@ -11,8 +12,8 @@ namespace FellowshipAnalyzer.Core.Analysis;
 /// </typeparam>
 /// <remarks>
 /// <para>
-/// Modules without this attribute keep today's behavior — the mutable <c>Active</c> flag
-/// is consulted per event in the dispatch loop, so dynamic deactivation is still possible.
+/// Modules without this attribute fall back to the mutable <c>Active</c> flag, which is
+/// consulted per event in the dispatch loop and allows dynamic deactivation.
 /// </para>
 /// <para>
 /// When the predicate returns <c>false</c>, the source generator's parser switch skips

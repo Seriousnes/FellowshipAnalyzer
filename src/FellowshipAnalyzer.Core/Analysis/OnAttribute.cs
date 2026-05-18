@@ -5,8 +5,7 @@ namespace FellowshipAnalyzer.Core.Analysis;
 /// <summary>
 /// Declares an event handler on an <see cref="EventSubscriber"/>. The source generator emits
 /// a <c>RegisterAttributeSubscriptions</c> override that wires every <see cref="OnAttribute{TEvent}"/>
-/// directly into the <see cref="EventEmitter"/> with inlined predicates — no expression trees, no
-/// runtime compilation.
+/// directly into the <see cref="EventEmitter"/> with inlined predicates
 /// </summary>
 [AttributeUsage(AttributeTargets.Method, AllowMultiple = true)]
 public sealed class OnAttribute<TEvent> : Attribute

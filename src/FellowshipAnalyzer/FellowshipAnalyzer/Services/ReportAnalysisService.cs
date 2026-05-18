@@ -43,7 +43,6 @@ public sealed record ReportAnalysisContext(
 /// <summary>
 /// Orchestrates the full analysis pipeline for a single fight:
 /// concurrent API fetch, master-data loading, hero resolution, analysis, and caching.
-/// Extracted from Report.razor to keep the component a thin view layer.
 /// </summary>
 public sealed class ReportAnalysisService(
     FellowshipLogsApiClient fellowshipLogs,
