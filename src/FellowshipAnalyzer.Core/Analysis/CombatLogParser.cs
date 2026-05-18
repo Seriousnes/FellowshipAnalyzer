@@ -15,10 +15,10 @@ namespace FellowshipAnalyzer.Core.Analysis;
 /// Registered as a scoped DI service; each <see cref="Analyze"/> call creates an
 /// internal analysis-run service cache so repeated analyses do not share module state.
 /// </summary>
+[AddNormalizer<FightBookendNormalizer>]
 [AddNormalizer<AbilityMasterDataNormalizer>]
 [AddNormalizer<ResourceNormalizer>]
 [AddNormalizer<CastLinkNormalizer>]
-[AddNormalizer<ResourceFabricationNormalizer>]
 [AddModule<DebugAnnotations>]
 [AddModule<Combatants>]
 [AddModule<StatTracker>]
@@ -55,9 +55,10 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
 
     /// <summary>
     /// The combatant representing the selected (analyzed) player.
-    /// Set by the <see cref="Combatants"/> module before event dispatch.
+    /// Computed from the <see cref="Combatants"/> module — null until that module has populated
+    /// its own <c>Selected</c>.
     /// </summary>
-    public Combatant? SelectedCombatant { get; set; }
+    public Combatant? SelectedCombatant => GetModule<Combatants>()?.Selected;
 
     /// <summary>
     /// The Razor component type to render for the Guide tab.
@@ -128,27 +129,25 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
         Fight = fight;
         CurrentTimestamp = (int)fight.StartTime;
 
-        // Filter modules through the source-generated activation predicate before resolution
-        // so [ActiveWhen<>]-disabled modules never instantiate, subscribe, or accumulate state.
-        var parseContext = new ParseContext(playerId, fight, ActorNames);
+        // [ActiveWhen<>] gates are evaluated per-module in declaration order so that earlier
+        // modules can populate state (e.g. Combatants.Selected) that later predicates depend on.
         var allModuleTypes = GetModuleTypes();
-        var moduleTypes = Array.FindAll(allModuleTypes, t => IsModuleActive(t, parseContext));
         var normalizerTypes = GetNormalizerTypes();
-        var analysisServices = new AnalysisRunServiceProvider(provider, this, moduleTypes, normalizerTypes);
+        var analysisServices = new AnalysisRunServiceProvider(provider, this, allModuleTypes, normalizerTypes);
 
         EventEmitter = analysisServices.GetRequiredService<EventEmitter>();
         Events = [.. events];
-        SelectedCombatant = null;
-        _activeModules = moduleTypes
-            .Select((t, i) =>
-            {
-                var m = (Module)(analysisServices.GetService(t) ?? throw new InvalidOperationException($"Module {t.Name} not registered."));
-                m.Priority = i;
-                m.Owner = this;
-                return m;
-            })
-            .Where(m => m.Active)
-            .ToDictionary(m => m.GetType(), m => m);
+        _activeModules = [];
+        foreach (var t in allModuleTypes)
+        {
+            var parseContext = new ParseContext(playerId, fight, ActorNames, SelectedCombatant);
+            if (!IsModuleActive(t, parseContext)) continue;
+            var m = (Module)(analysisServices.GetService(t) ?? throw new InvalidOperationException($"Module {t.Name} not registered."));
+            m.Priority = _activeModules.Count;
+            m.Owner = this;
+            if (m.Active)
+                _activeModules[m.GetType()] = m;
+        }
 
         var tracker = provider.GetService(typeof(ReportLoadingTracker)) as ReportLoadingTracker;
 
@@ -172,7 +171,7 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
 
         foreach (var m in _activeModules.Values)
         {
-            m.Initialize();
+            if (m is EventSubscriber es) es.RegisterSubscriptions();
         }
 
         EventEmitter.SortListeners();
@@ -192,11 +191,6 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
             tracker.AnalyzeState = ReportLoadingTracker.StepState.Ok;
         }
         await Task.Yield();
-
-        foreach (var m in _activeModules.Values)
-        {
-            m.Complete();
-        }
 
         return new HeroAnalysisResult
         {
@@ -274,9 +268,12 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
 
             if (serviceType == typeof(ParseContext))
             {
-                // Materialized lazily — the parser fills PlayerId/Fight before any handler fires,
-                // but ctors run before that. The closure resolves through Owner at call time.
-                return new ParseContext(owner.PlayerId, owner.Fight, owner.ActorNames);
+                return new ParseContext(owner.PlayerId, owner.Fight, owner.ActorNames, owner.SelectedCombatant);
+            }
+
+            if (serviceType == typeof(IReadOnlyList<Event>))
+            {
+                return owner.Events;
             }
 
             // Lazy<TModule> defers resolution to break ctor cycles without giving up DI.

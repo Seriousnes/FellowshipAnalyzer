@@ -304,11 +304,11 @@ public sealed class GlobalCooldownTests
 
     internal sealed record TestAbilityConfiguration(Action<TestAbilities>? Configure);
 
-    internal class TestAbilities(TestAbilityConfiguration configuration) : Abilities
+    internal class TestAbilities : Abilities
     {
         private readonly List<SpellbookAbility> _spells = [];
 
-        public override void Initialize()
+        public TestAbilities(TestAbilityConfiguration configuration)
         {
             AddSpell(new SpellbookAbility
             {
@@ -317,7 +317,6 @@ public sealed class GlobalCooldownTests
                 Gcd = Abilities.StandardGcd,
             });
             configuration.Configure?.Invoke(this);
-            base.Initialize();
         }
 
         public void AddSpell(SpellbookAbility spell) => _spells.Add(spell);

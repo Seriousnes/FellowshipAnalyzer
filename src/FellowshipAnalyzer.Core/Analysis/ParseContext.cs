@@ -7,7 +7,11 @@ namespace FellowshipAnalyzer.Core.Analysis;
 /// time: the selected player, the fight being analyzed, and report-level actor names. Resolved
 /// per-analysis-run through <c>AnalysisRunServiceProvider</c>.
 /// </summary>
-public sealed record ParseContext(int PlayerId, ReportFight Fight, IReadOnlyDictionary<int, string> ActorNames)
+public sealed record ParseContext(
+    int PlayerId,
+    ReportFight Fight,
+    IReadOnlyDictionary<int, string> ActorNames,
+    Combatant? SelectedCombatant = null)
 {
     public int FightStartTime => (int)Fight.StartTime;
     public int FightEndTime => (int)Fight.EndTime;

@@ -5,9 +5,11 @@ using FellowshipAnalyzer.Core.Events;
 using FellowshipAnalyzer.Core.Game;
 using FellowshipAnalyzer.Heroes.Rime.Statistics;
 
+using Microsoft.Extensions.Logging;
+
 namespace FellowshipAnalyzer.Heroes.Rime.Modules;
 
-public sealed class WinterOrbTracker : ResourceTracker
+public sealed partial class WinterOrbTracker(ILogger<ResourceTracker> logger) : ResourceTracker(logger)
 {
     protected override int? GetResourceCost(CastEvent e, ResourceTypes type)
     {
@@ -21,12 +23,6 @@ public sealed class WinterOrbTracker : ResourceTracker
     }
 
     public override Type? StatisticsComponentType => typeof(WinterOrbStatistics);
-
-
-    public override void Initialize()
-    {
-        base.Initialize();
-    }
 
     public ResourceState? WinterOrbs => GetResourceState(ResourceTypes.WinterOrb);
 

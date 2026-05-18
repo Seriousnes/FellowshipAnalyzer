@@ -16,14 +16,10 @@ namespace FellowshipAnalyzer.Core.Analysis;
 ///
 /// Haste time-scaling: <c>effective_duration = base_duration × 100 / (100 + hastePercent)</c>
 /// where <c>hastePercent = Current × 100</c> (e.g., 30 for 30% haste).
-///
-/// Hero modules should call <see cref="AddHasteBuff"/> in their <see cref="Module.Initialize"/>
-/// to register percentage-based haste buffs.
 /// </remarks>
-public sealed class Haste : Analyzer
+[After<StatTracker>]
+public sealed partial class Haste(Lazy<StatTracker> statTracker) : Analyzer
 {
-    private StatTracker? _statTracker;
-
     /// <summary>
     /// Current total effective haste percentage as a decimal fraction (0.30 = 30%).
     /// Includes both rating-based haste (via <see cref="StatTracker"/>) and any
@@ -31,7 +27,6 @@ public sealed class Haste : Analyzer
     /// </summary>
     public double Current { get; private set; }
 
-    // Registered percentage-based haste buffs: spellId → HasteBuff
     private readonly Dictionary<int, HasteBuff> _hasteBuffs = new()
     {
         { Spells.EventHorizonBuff.Guid, new(Haste: 0.3) },
@@ -39,38 +34,15 @@ public sealed class Haste : Analyzer
         { Spells.WrathOfWinterBuff.Guid, new(Haste: 0.3)  },
     };
 
-    public override void Initialize()
+    [On<FightStartEvent>]
+    private void OnFightStart(FightStartEvent e)
     {
-        _statTracker = Owner.GetModule<StatTracker>();
-
-        // Start from the rating-based haste at pull.
-        Current = _statTracker?.CurrentHastePercentage ?? 0.0;
-
-        // TODO: apply prepull percentage haste buffs from combatant auras.
-        // Hero modules register their buffs in Initialize(), which runs after Haste.Initialize(),
-        // so prepull aura checks must be handled by the hero module itself after calling AddHasteBuff().
-
-        AddEventListener(Events.ApplyBuff.To(SELECTED_PLAYER), OnApplyBuff);
-        AddEventListener(Events.RemoveBuff.To(SELECTED_PLAYER), OnRemoveBuff);
-        AddEventListener(Events.ApplyDebuff.To(SELECTED_PLAYER), OnApplyDebuff);
-        AddEventListener(Events.RemoveDebuff.To(SELECTED_PLAYER), OnRemoveDebuff);
-        AddEventListener(Events.ApplyBuffStack.To(SELECTED_PLAYER), OnApplyBuffStack);
-        AddEventListener(Events.RemoveBuffStack.To(SELECTED_PLAYER), OnRemoveBuffStack);
-        AddEventListener(Events.ApplyDebuffStack.To(SELECTED_PLAYER), OnApplyDebuffStack);
-        AddEventListener(Events.RemoveDebuffStack.To(SELECTED_PLAYER), OnRemoveDebuffStack);
-        AddEventListener(Events.ChangeStats.To(SELECTED_PLAYER), OnChangeStats);
-
-        // Emit the starting haste so other modules can read the initial value.
-        TriggerChangeHaste(null, null, Current);
+        Current = _statTracker.CurrentHastePercentage;
+        TriggerChangeHaste(e, null, Current);
     }
-
-    // -------------------------------------------------------------------------
-    // Registration API (for hero modules)
-    // -------------------------------------------------------------------------
 
     /// <summary>
     /// Registers a flat percentage haste buff (e.g., 0.30 for 30% haste).
-    /// Call this in your hero module's <see cref="Module.Initialize"/>.
     /// </summary>
     public void AddHasteBuff(int spellId, double hastePercentage) =>
         _hasteBuffs[spellId] = new HasteBuff(hastePercentage);
@@ -86,10 +58,6 @@ public sealed class Haste : Analyzer
     /// </summary>
     public void AddHasteBuff(int spellId, HasteBuff buff) =>
         _hasteBuffs[spellId] = buff;
-
-    // -------------------------------------------------------------------------
-    // Haste math (static helpers)
-    // -------------------------------------------------------------------------
 
     /// <summary>
     /// Adds a haste percentage multiplicatively:
@@ -122,18 +90,28 @@ public sealed class Haste : Analyzer
     public int ScaleDuration(int baseDurationMs) =>
         (int)(baseDurationMs * 100.0 / (100.0 + Current * 100.0));
 
-    // -------------------------------------------------------------------------
-    // Event handlers
-    // -------------------------------------------------------------------------
-
+    [On<ApplyBuffEvent>(To = Actor.Player)]
     private void OnApplyBuff(ApplyBuffEvent e) => ApplyActiveBuff(e.Ability.Guid, e);
+
+    [On<RemoveBuffEvent>(To = Actor.Player)]
     private void OnRemoveBuff(RemoveBuffEvent e) => RemoveActiveBuff(e.Ability.Guid, e);
+
+    [On<ApplyDebuffEvent>(To = Actor.Player)]
     private void OnApplyDebuff(ApplyDebuffEvent e) => ApplyActiveBuff(e.Ability.Guid, e);
+
+    [On<RemoveDebuffEvent>(To = Actor.Player)]
     private void OnRemoveDebuff(RemoveDebuffEvent e) => RemoveActiveBuff(e.Ability.Guid, e);
 
+    [On<ApplyBuffStackEvent>(To = Actor.Player)]
     private void OnApplyBuffStack(ApplyBuffStackEvent e) => ChangeStack(e.Ability.Guid, +1, e);
+
+    [On<RemoveBuffStackEvent>(To = Actor.Player)]
     private void OnRemoveBuffStack(RemoveBuffStackEvent e) => ChangeStack(e.Ability.Guid, -1, e);
+
+    [On<ApplyDebuffStackEvent>(To = Actor.Player)]
     private void OnApplyDebuffStack(ApplyDebuffStackEvent e) => ChangeStack(e.Ability.Guid, +1, e);
+
+    [On<RemoveDebuffStackEvent>(To = Actor.Player)]
     private void OnRemoveDebuffStack(RemoveDebuffStackEvent e) => ChangeStack(e.Ability.Guid, -1, e);
 
     private void ApplyActiveBuff(int spellId, Event trigger)
@@ -157,36 +135,25 @@ public sealed class Haste : Analyzer
         if (!_hasteBuffs.TryGetValue(spellId, out var buff)) return;
         if (buff.HastePerStack is not double perStack) return;
 
-        // Per-stack buffs are additive within the buff. Each additional stack adds
-        // hastePerStack multiplicatively to the total. Because each stack is treated
-        // independently (same as WoW's starlord-style buffs), apply one stack delta.
         if (stackDelta > 0)
             SetHaste(trigger, AddHaste(Current, perStack));
         else
             SetHaste(trigger, RemoveHaste(Current, perStack));
     }
 
+    [On<ChangeStatsEvent>(To = Actor.Player)]
     private void OnChangeStats(ChangeStatsEvent e)
     {
-        // Only react to haste rating changes.
         if (e.Delta.Haste is null or 0) return;
-        if (_statTracker is null) return;
 
-        // Recalculate total haste after rating change.
-        // 1. Remove the old rating-based haste from the total.
         var ratingHasteBefore = _statTracker.HastePercentage(e.Before.Haste ?? 0);
         var withoutRatingHaste = RemoveHaste(Current, ratingHasteBefore);
 
-        // 2. Add the new rating-based haste.
         var ratingHasteAfter = _statTracker.HastePercentage(e.After.Haste ?? 0);
         var newTotal = AddHaste(withoutRatingHaste, ratingHasteAfter);
 
         SetHaste(e, newTotal);
     }
-
-    // -------------------------------------------------------------------------
-    // Internal helpers
-    // -------------------------------------------------------------------------
 
     private void SetHaste(Event? trigger, double newHaste)
     {

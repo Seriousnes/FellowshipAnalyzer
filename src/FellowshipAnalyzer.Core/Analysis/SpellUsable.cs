@@ -7,7 +7,7 @@ namespace FellowshipAnalyzer.Core.Analysis;
 /// <see cref="UpdateSpellUsableEvent"/> events when spells go on/off cooldown.
 /// Also tracks all player casts (replacing the former TrackedStateModule).
 /// </summary>
-public sealed class SpellUsable : Analyzer
+public sealed partial class SpellUsable(Lazy<Abilities> abilities, Lazy<DebugAnnotations> debugAnnotations, Lazy<Haste> haste) : Analyzer
 {
     private readonly Dictionary<int, CooldownInfo> _cooldowns = [];
     private readonly List<TrackedAbilityCast> _casts = [];
@@ -18,21 +18,6 @@ public sealed class SpellUsable : Analyzer
 
     private int _nextLeaseId = 1;
     private readonly Dictionary<int, HasteScaledLease> _hasteScaledLeases = [];
-
-    private Abilities _abilities = null!;
-    private DebugAnnotations _debugAnnotations = null!;
-
-    public override void Initialize()
-    {
-        _abilities = Owner.GetModule<Abilities>()!;
-        _debugAnnotations = Owner.GetModule<DebugAnnotations>()!;
-
-        AddEventListener(Events.BeginCast.By(SELECTED_PLAYER), OnBeginCast);
-        AddEventListener(Events.Cast.By(SELECTED_PLAYER), OnCast);
-        AddEventListener(Events.PrefilterCD.By(SELECTED_PLAYER), OnFilterCooldown);
-        AddEventListener(Events.ChangeHaste, OnChangeHaste);
-        AddEventListener(Events.Any, OnAnyEvent);
-    }
 
     public IReadOnlyList<TrackedAbilityCast> Casts => _casts;
 
@@ -58,8 +43,6 @@ public sealed class SpellUsable : Analyzer
             return milliseconds;
         }
 
-        // CDR meets or exceeds this charge's remaining time — restore the charge and recurse
-        // into the next charge's cooldown with any leftover CDR.
         EndCooldown(spellId, timestamp);
         return remaining + ReduceCooldown(spellId, milliseconds - remaining, timestamp);
     }
@@ -139,12 +122,14 @@ public sealed class SpellUsable : Analyzer
         }
     }
 
+    [On<BeginCastEvent>(By = Actor.Player)]
     private void OnBeginCast(BeginCastEvent e)
     {
         if (e.Ability is not null)
             _pendingBeginCastTimestamps[(e.Ability.Id, e.SourceId)] = e.Timestamp;
     }
 
+    [On<CastEvent>(By = Actor.Player)]
     private void OnCast(CastEvent e)
     {
         _casts.Add(new TrackedAbilityCast(e.Timestamp, e.Ability.Id, e.TargetId));
@@ -171,9 +156,11 @@ public sealed class SpellUsable : Analyzer
         BeginCooldown(e.Ability.Id, e.Timestamp, castStart);
     }
 
+    [On<FilterCooldownInfoEvent>(By = Actor.Player)]
     private void OnFilterCooldown(FilterCooldownInfoEvent e) =>
         BeginCooldown(e.Ability.Id, e.Timestamp);
 
+    [On<Event>]
     private void OnAnyEvent(Event e) => AdvanceCooldowns(e.Timestamp);
 
     /// <summary>
@@ -199,10 +186,6 @@ public sealed class SpellUsable : Analyzer
         foreach (var spellId in expired)
             EndCooldown(spellId, _cooldowns[spellId].ExpectedEnd);
     }
-
-    // -------------------------------------------------------------------------
-    // Cooldown-rate API
-    // -------------------------------------------------------------------------
 
     /// <summary>
     /// Returns the current effective cooldown-rate multiplier for the given spell:
@@ -276,10 +259,6 @@ public sealed class SpellUsable : Analyzer
         FabricateUpdate(UpdateSpellUsableType.ChangeCooldownRate, spellId, timestamp, cd);
     }
 
-    // -------------------------------------------------------------------------
-    // Haste-scaled rate leases
-    // -------------------------------------------------------------------------
-
     /// <summary>
     /// Applies a cooldown-rate change scaled to the player's current haste:
     /// <c>rate = 1.0 + Haste.Current</c>. The lease automatically re-balances on every
@@ -288,8 +267,7 @@ public sealed class SpellUsable : Analyzer
     /// <param name="spellId">When non-null, scopes the rate change to a single spell; otherwise applies to all.</param>
     public CooldownRateLease ApplyHasteScaledRateChange(int? spellId = null, int? timestamp = null)
     {
-        var haste = Owner.GetModule<Haste>();
-        var rate = 1.0 + (haste?.Current ?? 0.0);
+        var rate = 1.0 + _haste.Current;
         var ts = timestamp ?? Owner.CurrentTimestamp;
         ApplyForLease(spellId, rate, ts);
         var lease = new CooldownRateLease(_nextLeaseId++);
@@ -305,6 +283,7 @@ public sealed class SpellUsable : Analyzer
         RemoveForLease(info.SpellId, info.LastAppliedRate, ts);
     }
 
+    [On<ChangeHasteEvent>]
     private void OnChangeHaste(ChangeHasteEvent e)
     {
         if (_hasteScaledLeases.Count == 0) return;

@@ -1,6 +1,8 @@
 ﻿using FellowshipAnalyzer.Core.Events;
 using FellowshipAnalyzer.Core.Game;
 
+using Microsoft.Extensions.Logging;
+
 namespace FellowshipAnalyzer.Core.Analysis;
 
 /// <summary>
@@ -9,14 +11,17 @@ namespace FellowshipAnalyzer.Core.Analysis;
 /// <see cref="Event.TargetResources"/> to find the selected player's resources.
 /// Spend tracking is driven by <see cref="CastEvent"/> via <see cref="Events.Cast"/>.
 /// </summary>
-public class ResourceTracker : Analyzer
+public partial class ResourceTracker(ILogger<ResourceTracker> logger) : Analyzer
 {
+    private readonly ILogger<ResourceTracker> _logger = logger;
+
+
     private readonly Dictionary<ResourceTypes, ResourceState> _states = [];
     private readonly List<ResourceEvent> _allEvents = [];
 
     /// <summary>
-    /// Override the maximum value for specific resource types before calling
-    /// <c>base.Initialize()</c>. Events will still update max unless an override exists.
+    /// Override the maximum value for specific resource types before the module starts
+    /// observing events. Events will still update max unless an override exists.
     /// </summary>
     protected Dictionary<ResourceTypes, int> MaxOverrides { get; } = [];
 
@@ -34,14 +39,6 @@ public class ResourceTracker : Analyzer
     public string GetDisplayName(ResourceTypes type) =>
         DisplayNameOverrides.TryGetValue(type, out var name) ? name : type.ToString();
 
-    public override void Initialize()
-    {
-        AddEventListener(Events.Cast.By(SELECTED_PLAYER), OnCast);
-        AddEventListener(Events.ResourceChange.By(SELECTED_PLAYER), OnResourceChange);
-        AddEventListener(Events.Any, OnEvent);
-    }
-
-    // Named convenience properties — null if the resource type has not appeared in any event.
     public ResourceState? Mana => GetResourceState(ResourceTypes.Mana);
     public ResourceState? Primary => GetResourceState(ResourceTypes.Primary);
     public ResourceState? Secondary => GetResourceState(ResourceTypes.Secondary);
@@ -64,7 +61,6 @@ public class ResourceTracker : Analyzer
     public ResourceState? GetResourceState(ResourceTypes type) =>
         _states.TryGetValue(type, out var state) ? state : null;
 
-    // Query methods — create an empty state on demand so callers always get a valid value.
     public int GetCurrent(ResourceTypes type) => GetOrCreateState(type).Current;
     public int GetMax(ResourceTypes type) => GetOrCreateState(type).Max;
     public int GetGenerated(ResourceTypes type) => GetOrCreateState(type).Generated;
@@ -75,6 +71,7 @@ public class ResourceTracker : Analyzer
     public IReadOnlyDictionary<int, int> GetSpenderCasts(ResourceTypes type) => GetOrCreateState(type).SpenderCasts;
     public IReadOnlyList<ResourceEvent> GetResourceEvents(ResourceTypes type) => GetOrCreateState(type).Events;
 
+    [On<ResourceChangeEvent>(By = Actor.Player)]
     private void OnResourceChange(ResourceChangeEvent e)
     {
         var gained = (int)(e.ResourceChange - e.Waste);
@@ -90,10 +87,12 @@ public class ResourceTracker : Analyzer
     }
 
     /// <summary>
-    /// Observes the post-normalized event stream to update health and seed per-resource Max.
-    /// Snapshot-delta fabrication is done by <see cref="Normalizers.ResourceFabricationNormalizer"/>
-    /// before dispatch — modules are pure observers and never mutate the stream they observe.
+    /// Observes the post-normalized event stream. Updates health, seeds per-resource Max, and
+    /// detects implicit gains (snapshot deltas) by comparing each event's resource amounts
+    /// against the tracker's running <see cref="ResourceState.Current"/>. Casts and explicit
+    /// <see cref="ResourceChangeEvent"/>s are handled by their own subscribers.
     /// </summary>
+    [On<Event>]
     private void OnEvent(Event e)
     {
         ActorResources? playerResources = null;
@@ -107,10 +106,29 @@ public class ResourceTracker : Analyzer
 
         UpdateHealth(playerResources);
 
-        // Seed Max — fabricated ResourceChangeEvents from the normalizer carry the delta but
-        // not the resource's reported max.
+        var spellId = (e as IAbilityEvent)?.Ability.Id ?? 0;
+
         foreach (var resource in playerResources.Resources)
-            GetOrCreateState(resource.Type, resource.Max);
+        {
+            var state = GetOrCreateState(resource.Type, resource.Max);
+            var delta = resource.Amount - state.Current;
+
+            if (delta > 0)
+            {
+                RecordGain(
+                    resource.Type,
+                    spellId,
+                    gained: delta,
+                    wasted: 0,
+                    currentAfterFromEvent: resource.Amount,
+                    maxFromEvent: null,
+                    e.Timestamp);
+            }
+            else if (delta < 0)
+            {
+                state.Current = resource.Amount;
+            }
+        }
     }
 
     /// <summary>
@@ -120,9 +138,9 @@ public class ResourceTracker : Analyzer
     /// </summary>
     protected virtual int? GetResourceCost(CastEvent e, ResourceTypes type) => null;
 
+    [On<CastEvent>(By = Actor.Player)]
     private void OnCast(CastEvent e)
     {
-        // Player is always source for Cast.By(SELECTED_PLAYER).
         if (e.SourceResources is not null)
             UpdateHealth(e.SourceResources);
 
@@ -132,27 +150,49 @@ public class ResourceTracker : Analyzer
         foreach (var resource in resources)
         {
             var state = GetOrCreateState(resource.Type, resource.Max);
-
-            // Prefer the cost reported by the event; fall back to the spell-definition cost
-            // (Fellowship logs record pre-cast resource amounts, not spend deltas).
             var effectiveCost = resource.Cost ?? GetResourceCost(e, resource.Type);
+
+            if (effectiveCost is > 0 && effectiveCost.Value > state.Current)
+            {
+                _logger.LogError(
+                    "{Tracker} overspend: cast of {AbilityName} ({AbilityId}) at {Timestamp} spends {Cost} {ResourceType} but tracker has only {TrackerAvailable} (event amount: {EventAmount}.",
+                    GetType().Name,
+                    e.Ability.Name,
+                    e.Ability.Id,
+                    this.Owner.FormatTimestamp(e.Timestamp, 3),
+                    effectiveCost.Value,
+                    resource.Type,
+                    state.Current,
+                    resource.Amount);
+            }
+
+            var implicitGain = resource.Amount - state.Current;
+            if (implicitGain > 0)
+            {
+                RecordGain(
+                    resource.Type,
+                    spellId: 0,
+                    gained: implicitGain,
+                    wasted: 0,
+                    currentAfterFromEvent: resource.Amount,
+                    maxFromEvent: null,
+                    e.Timestamp);
+            }
+            else if (implicitGain < 0)
+            {
+                state.Current = resource.Amount;
+            }
 
             if (effectiveCost is > 0)
             {
                 var cost = effectiveCost.Value;
                 state.Spent += cost;
-                // ClassResource.Amount for a spend is the amount BEFORE the spend.
-                state.Current = Math.Max(0, resource.Amount - cost);
+                state.Current = Math.Max(0, state.Current - cost);
                 IncrementDict(state.SpenderCasts, e.Ability.Id);
 
                 var ev = new ResourceEvent(e.Timestamp, e.Ability.Id, resource.Type, ResourceEventKind.Spend, cost, Wasted: 0, state.Current);
                 state.Events.Add(ev);
                 _allEvents.Add(ev);
-            }
-            else
-            {
-                // Snapshot update only (no spend event).
-                state.Current = resource.Amount;
             }
         }
     }
@@ -185,10 +225,12 @@ public class ResourceTracker : Analyzer
     {
         if (!_states.TryGetValue(type, out var state))
         {
-            state = new ResourceState();
-            state.Max = MaxOverrides.TryGetValue(type, out var maxOverride)
-                ? maxOverride
-                : maxFromEvent ?? 0;
+            state = new ResourceState
+            {
+                Max = MaxOverrides.TryGetValue(type, out var maxOverride)
+                    ? maxOverride
+                    : maxFromEvent ?? 0
+            };
             _states[type] = state;
         }
         else if (maxFromEvent.HasValue && !MaxOverrides.ContainsKey(type))
@@ -201,7 +243,6 @@ public class ResourceTracker : Analyzer
 
     private void UpdateHealth(ActorResources resources)
     {
-        // MaxHitPoints > 0 guards against unpopulated ActorResources objects.
         if (resources.MaxHitPoints > 0)
         {
             CurrentHealth = resources.HitPoints;

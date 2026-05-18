@@ -3,11 +3,13 @@ using FellowshipAnalyzer.Core.Common.Spells;
 using FellowshipAnalyzer.Core.Events;
 using FellowshipAnalyzer.Core.Game;
 
+using Microsoft.Extensions.Logging;
+
 namespace FellowshipAnalyzer.Heroes.Elarion.Modules;
 
 public class FocusTracker : ResourceTracker
 {
-    public FocusTracker()
+    public FocusTracker(ILogger<ResourceTracker> logger) : base(logger)
     {
         DisplayNameOverrides[ResourceTypes.Primary] = "Focus";
     }

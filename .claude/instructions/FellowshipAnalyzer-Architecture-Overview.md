@@ -8,11 +8,11 @@ This is the current implementation reference for FellowshipAnalyzer. Keep it con
 FellowshipLogs API JSON
   -> event deserialization
   -> CombatLogParser.Analyze
-  -> normalizers
-  -> module Initialize
-  -> EventEmitter dispatch
-  -> module Complete
-  -> HeroAnalysisResult
+  -> module construction (DI, ctor-time setup, [ActiveWhen<>] gating)
+  -> normalizers (FightBookendNormalizer prepends FightStartEvent, appends FightEndEvent)
+  -> RegisterSubscriptions on every EventSubscriber
+  -> EventEmitter dispatch (FightStartEvent first, FightEndEvent last)
+  -> HeroAnalysisResult (modules expose state via ToReport() projections)
   -> Blazor guide/statistics components
 ```
 
@@ -93,7 +93,7 @@ builder.Services.AddRimeAnalysis();
 
 ## Module Lifecycle
 
-Modules are scoped DI services resolved by `CombatLogParser.Analyze`. The parser assigns `Owner` and `Priority` after resolving each module.
+Modules are scoped DI services resolved by `CombatLogParser.Analyze`. The parser assigns `Owner` and `Priority` after resolving each module. There is no `Initialize` or `Complete` virtual — setup runs in the constructor and finalization lives in a `ToReport()` projection.
 
 ```csharp
 public abstract class Module
@@ -104,20 +104,20 @@ public abstract class Module
     public virtual Type? StatisticsComponentType => null;
 
     protected int PlayerId => Owner.PlayerId;
-
-    public virtual void Initialize() { }
-    public virtual void Complete() { }
 }
 ```
 
 Use this lifecycle:
 
-- Declare modules with `[AddModule<T>]` on the parser. Declaration order becomes module priority.
-- Put event subscriptions in `Initialize()`.
-- Compute final derived metrics in `Complete()` after all events have been dispatched.
-- Expose read-only state for guide and statistics components.
-- Use `Owner.GetModule<T>()` or the parser's generated properties for module-to-module access.
+- Declare modules with `[AddModule<T>]` on the parser. Declaration order becomes module priority; `[Before<T>]` / `[After<T>]` refine it.
+- Do setup work that needs the selected player or the raw event list in the constructor — inject `ParseContext` and/or `IReadOnlyList<Event>`.
+- Subscribe to events declaratively with `[On<TEvent>]` attributes on instance methods. The `ModuleGenerator` emits the corresponding `RegisterSubscriptions` plumbing.
+- Hook fight-boundary setup via `[On<FightStartEvent>]` and finalization via `[On<FightEndEvent>]` (the `FightBookendNormalizer` fabricates both).
+- Expose finalized metrics through a `public TReport ToReport()` method. The parser source generator picks it up and includes it in the hero's typed `…AnalysisResult` record. `ToReport()` must be idempotent.
+- Use `Lazy<TOther>` ctor injection for cross-module references; the generator emits a cached `_camelCaseName` accessor. `Lazy<>` edges are ignored by the FA0013 cycle analyzer.
 - Do not require `CombatLogParser` in module constructors; the parser sets `Owner` after DI resolution.
+
+Activation is two-tiered. Use the mutable `Active` flag for dynamic deactivation that must respect mid-fight state. Use `[ActiveWhen<TPredicate>]` (where `TPredicate : IModuleActivePredicate`) for compile-time gating evaluated at parser construction — predicates read `ParseContext`, including `SelectedCombatant` populated by the earlier `Combatants` module.
 
 `Analyzer` is a lightweight specialization of `EventSubscriber`:
 
@@ -131,25 +131,33 @@ public class Analyzer : EventSubscriber
 
 ## Event Subscriptions
 
-Analyzers subscribe through the fluent `Events` filter API:
+Analyzers declare event handlers with `[On<TEvent>]` attributes on instance methods. The class must be `partial`; the `ModuleGenerator` emits the corresponding `RegisterSubscriptions` plumbing.
 
 ```csharp
-public override void Initialize()
+public sealed partial class WintersEmbraceAnalyzer : Analyzer
 {
-    AddEventListener(Events.ApplyBuff.By(SELECTED_PLAYER).Spell(Spells.WintersEmbrace), OnWintersEmbraceApplied);
-    AddEventListener(Events.RemoveBuff.By(SELECTED_PLAYER).Spell(Spells.WintersEmbrace), OnWintersEmbraceRemoved);
-    AddEventListener(Events.Damage.By(SELECTED_PLAYER), OnDamage);
-    AddEventListener(Events.Cast.By(SELECTED_PLAYER), OnCast);
+    [On<ApplyBuffEvent>(By = Actor.Player, Spell = SpellIds.WintersEmbrace)]
+    private void OnWintersEmbraceApplied(ApplyBuffEvent e) { … }
+
+    [On<RemoveBuffEvent>(By = Actor.Player, Spell = SpellIds.WintersEmbrace)]
+    private void OnWintersEmbraceRemoved(RemoveBuffEvent e) { … }
+
+    [On<DamageEvent>(By = Actor.Player)]
+    private void OnDamage(DamageEvent e) { … }
+
+    [On<CastEvent>(By = Actor.Player)]
+    private void OnCast(CastEvent e) { … }
 }
 ```
 
-Common filters:
+Supported attribute arguments:
 
-- `Events.Cast`, `Events.Damage`, `Events.Heal`, `Events.ApplyBuff`, `Events.RemoveBuff`, `Events.ResourceChange`, and `Events.Any`.
-- `.By(SELECTED_PLAYER)` matches event sources.
-- `.To(SELECTED_PLAYER)` matches event targets.
-- `.Spell(spellA, spellB)` matches `IAbilityEvent.Ability.Id` against `Spell.Guid` values.
-- `.ExtraSpell(spellA)` matches `IExtraAbilityEvent.ExtraAbility.Id`.
+- `By = Actor.Player` / `Actor.Pet` / `Actor.PlayerOrPet` restricts source actor (event must implement `IHasSourceEvent`).
+- `To = Actor.Player` / `Actor.Pet` / `Actor.PlayerOrPet` restricts target actor (event must implement `IHasTargetEvent`).
+- `Spell = SpellIds.X` or `Spells = new[] { SpellIds.X, SpellIds.Y }` filters `IAbilityEvent.Ability.Id`.
+- `ExtraSpell` / `ExtraSpells` filter `IExtraAbilityEvent.ExtraAbility.Id`.
+
+Use `[On<Event>]` for an unfiltered "any event" subscription. The fabricated `FightStartEvent` and `FightEndEvent` always dispatch first and last respectively, courtesy of `FightBookendNormalizer`.
 
 ## Normalizers
 
@@ -171,11 +179,11 @@ Normalizers may mutate the list in place or return a new list. They are appropri
 
 `ResourceTracker` tracks all observed `ResourceTypes` for the selected player.
 
-- It subscribes to `Events.Any` to inspect selected-player `SourceResources` or `TargetResources` snapshots.
-- It subscribes to `Events.Cast.By(SELECTED_PLAYER)` to track spends.
+- It subscribes to `[On<Event>]` to inspect selected-player `SourceResources` or `TargetResources` snapshots.
+- It subscribes to `[On<CastEvent>(By = Actor.Player)]` to track spends and `[On<ResourceChangeEvent>(By = Actor.Player)]` to track gains.
 - It stores per-resource `ResourceState` objects keyed by `ResourceTypes`.
 - Hero trackers override `GetResourceCost(CastEvent, ResourceTypes)` when logs do not provide cost deltas directly.
-- Hero trackers may set `MaxOverrides[ResourceTypes.X]` before `base.Initialize()`.
+- Hero trackers may set `MaxOverrides[ResourceTypes.X]` in their constructor.
 - Convenience properties should expose the hero-specific resource state, totals, and statistics component type.
 
 Use the `create-resource-tracker` skill for new resource trackers.

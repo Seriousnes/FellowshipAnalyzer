@@ -132,7 +132,7 @@ public sealed class ModuleCycleAnalyzer : DiagnosticAnalyzer
         return sb.ToString();
     }
 
-    private static HashSet<INamedTypeSymbol> CollectModules(Compilation compilation, System.Threading.CancellationToken ct)
+    private static HashSet<INamedTypeSymbol> CollectModules(Compilation compilation, CancellationToken ct)
     {
         var set = new HashSet<INamedTypeSymbol>(SymbolEqualityComparer.Default);
         foreach (var type in GetAllNamedTypes(compilation.Assembly.GlobalNamespace))

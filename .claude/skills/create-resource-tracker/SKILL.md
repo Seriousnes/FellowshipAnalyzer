@@ -29,17 +29,18 @@ using FellowshipAnalyzer.Core.Events;
 using FellowshipAnalyzer.Core.Game;
 using FellowshipAnalyzer.Heroes.{Hero}.Statistics;
 
+using Microsoft.Extensions.Logging;
+
 namespace FellowshipAnalyzer.Heroes.{Hero}.Modules;
 
-public sealed class {Resource}Tracker : ResourceTracker
+public sealed partial class {Resource}Tracker : ResourceTracker
 {
-    public override Type? StatisticsComponentType => typeof({Resource}Statistics);
-
-    public override void Initialize()
+    public {Resource}Tracker(ILogger<ResourceTracker> logger) : base(logger)
     {
         MaxOverrides[ResourceTypes.{Resource}] = {ResourceCap};
-        base.Initialize();
     }
+
+    public override Type? StatisticsComponentType => typeof({Resource}Statistics);
 
     protected override int? GetResourceCost(CastEvent castEvent, ResourceTypes type)
     {
@@ -61,7 +62,7 @@ public sealed class {Resource}Tracker : ResourceTracker
 }
 ```
 
-Only set `MaxOverrides` when the resource cap cannot be trusted from event snapshots or should be fixed for the hero.
+Mark the class `partial` so the `ModuleGenerator` can emit the inherited `[On<>]` subscriptions. Only set `MaxOverrides` when the resource cap cannot be trusted from event snapshots or should be fixed for the hero.
 
 ### 3. Register On The CombatLogParser
 
@@ -89,41 +90,40 @@ Declaration order is module priority.
 | `AllResourceEvents` | Combined timeline across all resource types. |
 | `CurrentHealth` / `MaxHealth` | Most recently observed selected-player health. |
 
-The base tracker subscribes to:
+The base tracker declares the following `[On<>]` subscriptions:
 
-- `Events.Any` to inspect selected-player `SourceResources` and `TargetResources` snapshots and fabricate `ResourceChangeEvent` gains.
-- `Events.Cast.By(SELECTED_PLAYER)` to record spends from `ClassResource.Cost` or `GetResourceCost`.
+- `[On<Event>]` to inspect selected-player `SourceResources` and `TargetResources` snapshots.
+- `[On<CastEvent>(By = Actor.Player)]` to record spends from `ClassResource.Cost` or `GetResourceCost`.
+- `[On<ResourceChangeEvent>(By = Actor.Player)]` to record gains.
 
 ## Using Tracker Data In Other Analyzers
 
-Use `Owner.GetModule<T>()` in `Complete()` or after initialization:
+Inject the tracker via `Lazy<{Resource}Tracker>` on the consuming module and read it through the generator-emitted accessor:
 
 ```csharp
-public sealed class SpenderAnalyzer : Analyzer
+public sealed partial class SpenderAnalyzer(Lazy<{Resource}Tracker> tracker) : Analyzer
 {
-    public double Efficiency { get; private set; }
+    public double Efficiency => ToReport().Efficiency;
 
-    public override void Complete()
+    public EfficiencyReport ToReport()
     {
-        var tracker = Owner.GetModule<{Resource}Tracker>();
-        if (tracker is null)
-        {
-            return;
-        }
-
-        var totalPotential = tracker.Generated + tracker.Wasted;
-        Efficiency = totalPotential == 0 ? 1 : 1.0 - (double)tracker.Wasted / totalPotential;
+        var totalPotential = _tracker.Generated + _tracker.Wasted;
+        var efficiency = totalPotential == 0 ? 1 : 1.0 - (double)_tracker.Wasted / totalPotential;
+        return new EfficiencyReport(efficiency);
     }
 }
 ```
 
+For ad-hoc reads outside a ctor-injected scenario, `Owner.GetModule<T>()` also works.
+
 ## Key Rules
 
 - Extend `ResourceTracker`, not `Analyzer`.
+- Mark the class `partial`.
 - Place the file in `Modules/` with naming convention `{Resource}Tracker.cs`.
 - Use `ResourceTypes`, not raw resource IDs, in analyzer code.
 - Override `GetResourceCost` when the log does not directly provide spend cost information.
-- Call `base.Initialize()` if you override `Initialize()`.
+- Set `MaxOverrides` in the constructor, not in any post-construction hook (`Module.Initialize` no longer exists).
 - Register before dependent analyzers.
 - Use the `analyze-log-resources` skill before adding enum values or guessing resource behavior.
 
@@ -131,7 +131,7 @@ public sealed class SpenderAnalyzer : Analyzer
 
 - [ ] Resource type exists in `ResourceTypes` or was verified from logs before adding.
 - [ ] File is at `Modules/{Resource}Tracker.cs`.
-- [ ] Class extends `ResourceTracker`.
-- [ ] Optional `MaxOverrides` are set before `base.Initialize()`.
+- [ ] Class is `partial` and extends `ResourceTracker`.
+- [ ] Optional `MaxOverrides` are set in the constructor.
 - [ ] `GetResourceCost` is implemented if spend costs must come from spell metadata.
 - [ ] `[AddModule<T>]` is on the parser before dependent analyzers.

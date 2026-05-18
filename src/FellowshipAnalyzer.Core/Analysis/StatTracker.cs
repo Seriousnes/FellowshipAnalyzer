@@ -13,24 +13,23 @@ namespace FellowshipAnalyzer.Core.Analysis;
 /// formula (CombatMechanics.md). All secondary stats share the same curve.
 /// Critical Strike has an additional 5% base chance added after DR.
 /// </remarks>
-public sealed class StatTracker : Analyzer
+public sealed partial class StatTracker(Lazy<Combatants> combatants) : Analyzer
 {
     private PlayerStats _currentStats = new();
     private PlayerStats _pullStats = new();
     private readonly PlayerMultipliers _multipliers = new();
 
-    // Registered rating buffs: spellId → StatBuff
     private readonly Dictionary<int, StatBuff> _statBuffs = [];
 
-    // Registered multiplier buffs: spellId → StatMultiplierBuff
     private readonly Dictionary<int, StatMultiplierBuff> _statMultiplierBuffs = [];
 
     /// <summary>5% base critical strike chance, added after diminishing returns.</summary>
     public const double BaseCritChance = 0.05;
 
-    public override void Initialize()
+    [On<FightStartEvent>]
+    private void OnFightStart(FightStartEvent _)
     {
-        var combatant = Owner.SelectedCombatant;
+        var combatant = _combatants.Selected;
         if (combatant is null) return;
 
         _pullStats = new PlayerStats
@@ -44,15 +43,6 @@ public sealed class StatTracker : Analyzer
             Spirit = combatant.Spirit,
         };
         _currentStats = _pullStats.Clone();
-
-        AddEventListener(Events.ApplyBuff.To(SELECTED_PLAYER), OnApplyBuff);
-        AddEventListener(Events.RemoveBuff.To(SELECTED_PLAYER), OnRemoveBuff);
-        AddEventListener(Events.ApplyBuffStack.To(SELECTED_PLAYER), OnApplyBuffStack);
-        AddEventListener(Events.RemoveBuffStack.To(SELECTED_PLAYER), OnRemoveBuffStack);
-        AddEventListener(Events.ApplyDebuff.To(SELECTED_PLAYER), OnApplyDebuff);
-        AddEventListener(Events.RemoveDebuff.To(SELECTED_PLAYER), OnRemoveDebuff);
-        AddEventListener(Events.ApplyDebuffStack.To(SELECTED_PLAYER), OnApplyDebuffStack);
-        AddEventListener(Events.RemoveDebuffStack.To(SELECTED_PLAYER), OnRemoveDebuffStack);
     }
 
     /// <summary>
@@ -135,20 +125,34 @@ public sealed class StatTracker : Analyzer
         FabricateChangeStats(trigger, before, after - before, after);
     }
 
+    [On<ApplyBuffEvent>(To = Actor.Player)]
     private void OnApplyBuff(ApplyBuffEvent e) => HandleBuffGain(e.Ability.Guid, e.Prepull.GetValueOrDefault(), e);
+
+    [On<RemoveBuffEvent>(To = Actor.Player)]
     private void OnRemoveBuff(RemoveBuffEvent e) => HandleBuffLoss(e.Ability.Guid, e);
+
+    [On<ApplyBuffStackEvent>(To = Actor.Player)]
     private void OnApplyBuffStack(ApplyBuffStackEvent e) => HandleBuffGain(e.Ability.Guid, isPrepull: false, e);
+
+    [On<RemoveBuffStackEvent>(To = Actor.Player)]
     private void OnRemoveBuffStack(RemoveBuffStackEvent e) => HandleBuffLoss(e.Ability.Guid, e);
+
+    [On<ApplyDebuffEvent>(To = Actor.Player)]
     private void OnApplyDebuff(ApplyDebuffEvent e) => HandleBuffGain(e.Ability.Guid, e.Prepull.GetValueOrDefault(), e);
+
+    [On<RemoveDebuffEvent>(To = Actor.Player)]
     private void OnRemoveDebuff(RemoveDebuffEvent e) => HandleBuffLoss(e.Ability.Guid, e);
+
+    [On<ApplyDebuffStackEvent>(To = Actor.Player)]
     private void OnApplyDebuffStack(ApplyDebuffStackEvent e) => HandleBuffGain(e.Ability.Guid, isPrepull: false, e);
+
+    [On<RemoveDebuffStackEvent>(To = Actor.Player)]
     private void OnRemoveDebuffStack(RemoveDebuffStackEvent e) => HandleBuffLoss(e.Ability.Guid, e);
 
     private void HandleBuffGain(int spellId, bool isPrepull, Event trigger)
     {
         if (_statBuffs.TryGetValue(spellId, out var ratingBuff))
         {
-            // Rating buffs are already factored into combatantinfo for prepull buffs.
             if (isPrepull) return;
 
             var before = _currentStats.ToStats();
@@ -161,8 +165,6 @@ public sealed class StatTracker : Analyzer
         {
             if (isPrepull)
             {
-                // Multiplied values are already in combatantinfo. Update the multiplier
-                // state so future rating buffs scale correctly, but don't change current stats.
                 UpdateMultiplierState(multBuff, isGaining: true);
                 return;
             }
@@ -209,10 +211,6 @@ public sealed class StatTracker : Analyzer
         FabricateChangeStats(trigger, before, after - before, after);
     }
 
-    /// <summary>
-    /// Updates <see cref="_multipliers"/> only — used when the multiplied values are
-    /// already reflected in combatantinfo (prepull buff scenario).
-    /// </summary>
     private void UpdateMultiplierState(StatMultiplierBuff buff, bool isGaining)
     {
         double Factor(double m) => isGaining ? m : 1.0 / m;
@@ -248,8 +246,8 @@ public sealed class StatTracker : Analyzer
             {
                 Item? item = null;
                 if (buffObj.ItemId is int itemId)
-                    item = Owner.SelectedCombatant?.GetItem(itemId);
-                return func(Owner.SelectedCombatant!, item);
+                    item = _combatants.Selected?.GetItem(itemId);
+                return func(_combatants.Selected!, item);
             });
     }
 

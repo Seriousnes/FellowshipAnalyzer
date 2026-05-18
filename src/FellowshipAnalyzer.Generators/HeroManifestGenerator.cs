@@ -51,7 +51,7 @@ public sealed class HeroManifestGenerator : IIncrementalGenerator
         return false;
     }
 
-    private static HostInfo? GetHostInfo(GeneratorSyntaxContext ctx, System.Threading.CancellationToken ct)
+    private static HostInfo? GetHostInfo(GeneratorSyntaxContext ctx, CancellationToken ct)
     {
         var classDecl = (ClassDeclarationSyntax)ctx.Node;
         if (ctx.SemanticModel.GetDeclaredSymbol(classDecl, ct) is not INamedTypeSymbol symbol)

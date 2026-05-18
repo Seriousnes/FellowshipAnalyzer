@@ -13,7 +13,7 @@ using static FellowshipAnalyzer.Core.Analysis.Events;
 
 namespace FellowshipAnalyzer.Core.Tests.Analysis;
 
-public sealed class HasteTests
+public sealed partial class HasteTests
 {
     private const int PlayerId = 7;
     private const int HasteBuffSpellId = 100;
@@ -293,14 +293,8 @@ public sealed class HasteTests
     // -------------------------------------------------------------------------
 
     [Fact]
-    public async Task ChangeStats_WithHasteRatingChange_DoesNotUpdate_BecauseFilterMismatch()
+    public async Task ChangeStats_WithHasteRatingChange_UpdatesHaste()
     {
-        // NOTE: ChangeStatsEvent does not implement IHasTargetEvent, so Haste's
-        // .To(SELECTED_PLAYER) filter never matches. This test documents the
-        // current behavior — a fix would require ChangeStatsEvent to implement
-        // IHasTargetEvent or Haste to use a different filter.
-        var statTracker = new StatTracker();
-
         var (_, haste) = await RunWithHaste(
             events:
             [
@@ -314,17 +308,14 @@ public sealed class HasteTests
                     Delta = new Stats { Haste = 200 },
                 },
             ],
-            additionalModules: [statTracker]);
+            additionalModules: [typeof(StatTracker)]);
 
-        // Current behavior: haste is NOT updated because the event filter doesn't match.
-        Assert.Equal(0.0, haste.Current, precision: 10);
+        Assert.True(haste.Current > 0, $"Expected non-zero haste, got {haste.Current}");
     }
 
     [Fact]
     public async Task ChangeStats_WithZeroHasteDelta_ShouldNotChangeHaste()
     {
-        var statTracker = new StatTracker();
-
         var (_, haste) = await RunWithHaste(
             events:
             [
@@ -338,7 +329,7 @@ public sealed class HasteTests
                     Delta = new Stats { Haste = 0 },
                 },
             ],
-            additionalModules: [statTracker]);
+            additionalModules: [typeof(StatTracker)]);
 
         Assert.Equal(0.0, haste.Current, precision: 10);
     }
@@ -346,8 +337,6 @@ public sealed class HasteTests
     [Fact]
     public async Task ChangeStats_WithNullHasteDelta_ShouldNotChangeHaste()
     {
-        var statTracker = new StatTracker();
-
         var (_, haste) = await RunWithHaste(
             events:
             [
@@ -361,7 +350,7 @@ public sealed class HasteTests
                     Delta = new Stats { Intellect = 100 },
                 },
             ],
-            additionalModules: [statTracker]);
+            additionalModules: [typeof(StatTracker)]);
 
         Assert.Equal(0.0, haste.Current, precision: 10);
     }
@@ -388,7 +377,7 @@ public sealed class HasteTests
                 CreateApplyBuff(100, HasteBuffSpellId),
             ],
             configureHaste: h => h.AddHasteBuff(HasteBuffSpellId, FlatHaste),
-            additionalModules: [new ChangeHasteProbe()]);
+            additionalModules: [typeof(ChangeHasteProbe)]);
 
         var probe = parser.GetModule<ChangeHasteProbe>()!;
 
@@ -439,14 +428,14 @@ public sealed class HasteTests
     private static async Task<(TestCombatLogParser parser, Haste haste)> RunWithHaste(
         List<Event>? events = null,
         Action<Haste>? configureHaste = null,
-        Module[]? additionalModules = null)
+        Type[]? additionalModules = null)
     {
         var moduleTypes = new List<Type> { typeof(HasteConfigWrapper), typeof(Haste) };
         if (additionalModules is not null)
-            moduleTypes.AddRange(additionalModules.Select(static module => module.GetType()));
+            moduleTypes.AddRange(additionalModules);
 
         var parser = CreateCombatLogParser([.. moduleTypes], configureHaste);
-        await parser.Analyze(events ?? [], PlayerId, fight: new ReportFight(0, "", 0, null, 0, 0, null, null, null));
+        await parser.Analyze(events ?? [], PlayerId, fight: new ReportFight(0, "", 0, null, 0, 60_000, null, null, null));
 
         var haste = parser.GetModule<Haste>()!;
         return (parser, haste);
@@ -471,27 +460,24 @@ public sealed class HasteTests
 
     /// <summary>
     /// Module that runs before Haste and calls the configuration action
-    /// (registering haste buffs) during Initialize.
+    /// (registering haste buffs) at construction time.
     /// </summary>
-    private sealed class HasteConfigWrapper(Haste haste, HasteTestConfiguration configuration) : Module
+    private sealed class HasteConfigWrapper : Module
     {
-        public override void Initialize() => configuration.Configure?.Invoke(haste);
+        public HasteConfigWrapper(Haste haste, HasteTestConfiguration configuration)
+        {
+            configuration.Configure?.Invoke(haste);
+        }
     }
 
     /// <summary>
     /// Probe that listens for fabricated <see cref="ChangeHasteEvent"/>s.
     /// </summary>
-    private sealed class ChangeHasteProbe : Analyzer
+    private sealed partial class ChangeHasteProbe : Analyzer
     {
         public List<ChangeHasteEvent> ReceivedEvents { get; } = [];
 
-        public override void Initialize()
-        {
-            // ChangeHasteEvent doesn't implement IHasTargetEvent, so we can't
-            // use .To(SELECTED_PLAYER). Use unfiltered type check instead.
-            AddEventListener(ChangeHaste, OnChangeHaste);
-        }
-
+        [On<ChangeHasteEvent>]
         private void OnChangeHaste(ChangeHasteEvent e)
         {
             ReceivedEvents.Add(e);

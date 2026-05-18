@@ -22,6 +22,7 @@ public static class Events
     public static EventFilter<DeathEvent> Death => new();
     public static EventFilter<DispelEvent> Dispel => new();
     public static EventFilter<FightEndEvent> FightEnd => new();
+    public static EventFilter<FightStartEvent> FightStart => new();
     public static EventFilter<HealEvent> Heal => new();
     public static EventFilter<InterruptEvent> Interrupt => new();
     public static EventFilter<RefreshBuffEvent> RefreshBuff => new();

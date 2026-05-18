@@ -7,43 +7,40 @@ namespace FellowshipAnalyzer.Core.Analysis;
 /// </summary>
 public class Abilities : Module
 {
-    private Dictionary<int, SpellbookAbility> _abilities = [];
+    private Dictionary<int, SpellbookAbility>? _abilities;
     public static GcdInfo StandardGcd => new() { Base = 1500.0 };
-
-    public override void Initialize()
-    {
-        _abilities = [];
-
-        foreach (var entry in Spellbook())
-        {
-            if (!entry.Enabled)
-            {
-                continue;
-            }
-
-            _abilities[entry.PrimarySpell.Guid] = entry;
-
-            if (entry.AdditionalSpells is not null)
-            {
-                foreach (var extra in entry.AdditionalSpells)
-                {
-                    _abilities[extra.Guid] = entry;
-                }
-            }
-        }
-    }
 
     /// <summary>
     /// Override this in hero-specific subclasses to define the spellbook.
     /// </summary>
     public virtual IEnumerable<SpellbookAbility> Spellbook() => [];
 
+    private Dictionary<int, SpellbookAbility> AbilitiesByGuid
+    {
+        get
+        {
+            if (_abilities is not null) return _abilities;
+            _abilities = [];
+            foreach (var entry in Spellbook())
+            {
+                if (!entry.Enabled) continue;
+                _abilities[entry.PrimarySpell.Guid] = entry;
+                if (entry.AdditionalSpells is not null)
+                {
+                    foreach (var extra in entry.AdditionalSpells)
+                        _abilities[extra.Guid] = entry;
+                }
+            }
+            return _abilities;
+        }
+    }
+
     /// <summary>
     /// Looks up an ability by spell ID. Returns null if the spell is not in the spellbook.
     /// </summary>
     public SpellbookAbility? GetAbility(int? spellId)
     {
-        return spellId.HasValue ? _abilities.GetValueOrDefault(spellId.Value) : null;
+        return spellId.HasValue ? AbilitiesByGuid.GetValueOrDefault(spellId.Value) : null;
     }
 
     /// <summary>
@@ -51,7 +48,7 @@ public class Abilities : Module
     /// </summary>
     public IEnumerable<SpellbookAbility> GetAbilities()
     {
-        return _abilities.Values.Distinct();
+        return AbilitiesByGuid.Values.Distinct();
     }
 
     /// <summary>

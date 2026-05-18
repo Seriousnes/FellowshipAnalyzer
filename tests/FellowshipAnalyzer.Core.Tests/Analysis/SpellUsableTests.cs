@@ -16,7 +16,7 @@ namespace FellowshipAnalyzer.Core.Tests.Analysis;
 /// Tests for <see cref="SpellUsable"/>'s cooldown-rate API: per-spell and per-all
 /// Apply/Remove, multiplicative stacking, in-flight rescaling, and chronological flush.
 /// </summary>
-public sealed class SpellUsableTests
+public sealed partial class SpellUsableTests
 {
     private const int PlayerId = 7;
     private const int SpellA = 101;
@@ -216,11 +216,11 @@ public sealed class SpellUsableTests
     }
 
     /// <summary>Captures every <see cref="UpdateSpellUsableEvent"/> in dispatch order.</summary>
-    internal sealed class UpdateProbeModule : Analyzer
+    internal sealed partial class UpdateProbeModule : Analyzer
     {
         public List<UpdateSpellUsableEvent> Updates { get; } = [];
 
-        public override void Initialize() =>
-            AddEventListener(FellowshipAnalyzer.Core.Analysis.Events.UpdateSpellUsable, e => Updates.Add(e));
+        [On<UpdateSpellUsableEvent>]
+        private void OnUpdate(UpdateSpellUsableEvent e) => Updates.Add(e);
     }
 }

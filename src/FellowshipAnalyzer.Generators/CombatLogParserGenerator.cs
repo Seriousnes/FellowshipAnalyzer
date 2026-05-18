@@ -52,11 +52,9 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
     private static ParserInfo? GetParserInfo(GeneratorSyntaxContext ctx, CancellationToken ct)
     {
         var classDecl = (ClassDeclarationSyntax)ctx.Node;
-        var symbol = ctx.SemanticModel.GetDeclaredSymbol(classDecl, ct) as INamedTypeSymbol;
-        if (symbol == null)
+        if (ctx.SemanticModel.GetDeclaredSymbol(classDecl, ct) is not INamedTypeSymbol symbol)
             return null;
 
-        // Generate for the abstract CombatLogParser base (→ AddCoreAnalysis) or concrete subclasses (→ AddHeroAnalysis).
         bool isCombatLogParserBase = symbol.IsAbstract && symbol.Name == CombatLogParserClassName;
         bool isConcreteParser = !symbol.IsAbstract && InheritsFromCombatLogParser(symbol);
 
@@ -66,21 +64,18 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
         var ownModules = new List<TypeInfo>();
         var normalizerTypes = new List<TypeInfo>();
 
-        // Collect own [AddModule<>] / [AddNormalizer<>] from syntax (preserves declaration order)
         foreach (var attrList in classDecl.AttributeLists)
         {
             foreach (var attr in attrList.Attributes)
             {
-                var attrSymbol = ctx.SemanticModel.GetSymbolInfo(attr, ct).Symbol as IMethodSymbol;
-                if (attrSymbol == null)
+                if (ctx.SemanticModel.GetSymbolInfo(attr, ct).Symbol is not IMethodSymbol attrSymbol)
                     continue;
 
                 var containingType = attrSymbol.ContainingType;
                 if (!containingType.IsGenericType || containingType.TypeArguments.Length == 0)
                     continue;
 
-                var typeArg = containingType.TypeArguments[0] as INamedTypeSymbol;
-                if (typeArg == null)
+                if (containingType.TypeArguments[0] is not INamedTypeSymbol typeArg)
                     continue;
 
                 var ns = GetNamespace(typeArg);
@@ -97,7 +92,6 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
 
         var parserNs = GetNamespace(symbol);
 
-        // The abstract CombatLogParser base class emits AddCoreAnalysis (shared registrations).
         if (isCombatLogParserBase)
         {
             return new ParserInfo(
@@ -111,9 +105,6 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
                 isAbstractBase: true);
         }
 
-        // Extract [HeroAnalyzer(HeroName.X)] attribute — argument is an enum value.
-        // Capture the enum field name so we can emit a strongly typed reference
-        // (e.g. global::FellowshipAnalyzer.Core.Analysis.HeroName.Rime) in the keyed DI registration.
         string? heroEnumMember = null;
         foreach (var attr in symbol.GetAttributes())
         {
@@ -137,7 +128,6 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
             break;
         }
 
-        // Walk base type chain to collect inherited base modules (for GetModuleTypes override only)
         var baseModules = new List<TypeInfo>();
         var baseType = symbol.BaseType;
         while (baseType != null && baseType.SpecialType != SpecialType.System_Object)
@@ -147,7 +137,6 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
             baseType = baseType.BaseType;
         }
 
-        // Walk base type chain to collect inherited base normalizers (for GetNormalizerTypes override only)
         var baseNormalizers = new List<TypeInfo>();
         var bnType = symbol.BaseType;
         while (bnType != null && bnType.SpecialType != SpecialType.System_Object)
@@ -176,8 +165,7 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
             if (attr.AttributeClass.Name != AddModuleAttributeShortName) continue;
             if (!attr.AttributeClass.IsGenericType || attr.AttributeClass.TypeArguments.Length == 0) continue;
 
-            var typeArg = attr.AttributeClass.TypeArguments[0] as INamedTypeSymbol;
-            if (typeArg == null) continue;
+            if (attr.AttributeClass.TypeArguments[0] is not INamedTypeSymbol typeArg) continue;
 
             modules.Add(BuildModuleTypeInfo(typeArg));
         }
@@ -203,8 +191,7 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
             var ac = attr.AttributeClass;
             if (ac == null || !ac.IsGenericType || ac.TypeArguments.Length == 0) continue;
 
-            var arg = ac.TypeArguments[0] as INamedTypeSymbol;
-            if (arg == null) continue;
+            if (ac.TypeArguments[0] is not INamedTypeSymbol arg) continue;
 
             var argFqn = FullyQualifiedName(arg);
 
@@ -255,8 +242,7 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
             if (attr.AttributeClass.Name != AddNormalizerAttributeShortName) continue;
             if (!attr.AttributeClass.IsGenericType || attr.AttributeClass.TypeArguments.Length == 0) continue;
 
-            var typeArg = attr.AttributeClass.TypeArguments[0] as INamedTypeSymbol;
-            if (typeArg == null) continue;
+            if (attr.AttributeClass.TypeArguments[0] is not INamedTypeSymbol typeArg) continue;
 
             normalizers.Add(new TypeInfo(typeArg.Name, GetNamespace(typeArg)));
         }
@@ -342,7 +328,6 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
             indexByFqn[declarationOrder[i].FullyQualifiedName] = i;
         }
 
-        // Edges: u → v means u must appear before v.
         var edges = new HashSet<(int u, int v)>();
         for (var i = 0; i < declarationOrder.Count; i++)
         {
@@ -368,7 +353,6 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
             inDegree[v]++;
         }
 
-        // Min-heap by original index keeps the sort stable / deterministic.
         var ready = new SortedSet<int>();
         for (var i = 0; i < inDegree.Length; i++)
             if (inDegree[i] == 0) ready.Add(i);
@@ -385,7 +369,6 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
             }
         }
 
-        // Cycle fallback — emit any remaining modules in declaration order.
         if (sorted.Count != declarationOrder.Count)
         {
             var emitted = new HashSet<TypeInfo>(sorted);
@@ -436,18 +419,15 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
         sb.AppendLine("public sealed partial class " + info.ClassName);
         sb.AppendLine("{");
 
-        // Constructor — passes EventEmitter + IServiceProvider to base
         sb.AppendLine("    public " + info.ClassName + "(EventEmitter emitter, IServiceProvider provider) : base(emitter, provider) { }");
         sb.AppendLine();
 
-        // Hero override — emitted when [HeroAnalyzer(HeroName.X)] is present.
         if (info.HeroEnumMember != null)
         {
             sb.AppendLine("    public override global::FellowshipAnalyzer.Core.Analysis.Hero? Hero => global::FellowshipAnalyzer.Core.Analysis.Hero." + info.HeroEnumMember + ";");
             sb.AppendLine();
         }
 
-        // Computed properties for OWN modules only (base module properties are on the base class)
         foreach (var m in info.OwnModules)
         {
             var propName = StripSuffix(m.Name, "Analyzer");
@@ -456,8 +436,6 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
 
         sb.AppendLine();
 
-        // GetModuleTypes — base modules first (higher priority), then own modules, then
-        // topologically sorted by any [Before<>] / [After<>] ordering constraints.
         var orderedModules = TopologicalSort(info.BaseModules, info.OwnModules);
         sb.AppendLine("    protected override Type[] GetModuleTypes() =>");
         sb.AppendLine("    [");
@@ -465,11 +443,8 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
             sb.AppendLine("        typeof(" + m.FullyQualifiedName + "),");
         sb.AppendLine("    ];");
 
-        // IsModuleActive override — emitted only when at least one module declares
-        // [ActiveWhen<TPredicate>]. Default base implementation returns true for all modules.
         EmitIsModuleActive(sb, orderedModules);
 
-        // GetNormalizerTypes — NormalizerTypes already contains [baseNormalizers, ..ownNormalizers] in order
         if (info.NormalizerTypes.Length > 0)
         {
             sb.AppendLine();
@@ -480,7 +455,6 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
             sb.AppendLine("    ];");
         }
 
-        // Typed-result projection — emit only when at least one module declares ToReport().
         var reportContributors = new List<(TypeInfo Module, string PropertyName)>();
         foreach (var m in info.BaseModules)
         {
@@ -512,8 +486,6 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
         sb.AppendLine("}");
         sb.AppendLine();
 
-        // Emit the typed result record type. Each contributing module gets one nullable property —
-        // nullable because a module may be Active=false on a given fight and thus not resolved.
         if (reportContributors.Count > 0)
         {
             sb.Append("public sealed record ").Append(parserBaseName).Append("AnalysisResult(");
@@ -528,8 +500,6 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
             sb.AppendLine();
         }
 
-        // DI extension method — registers only hero-specific services.
-        // Shared services (EventEmitter, base modules, base normalizers) come from AddCoreAnalysis().
         sb.AppendLine("public static class " + parserBaseName + "ServiceCollectionExtensions");
         sb.AppendLine("{");
         sb.AppendLine("    public static IServiceCollection Add" + parserBaseName + "Analysis(this IServiceCollection services)");
@@ -538,16 +508,6 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
         if (info.HeroEnumMember != null)
         {
             sb.AppendLine("        services.AddKeyedScoped<IHeroAnalyzer>(global::FellowshipAnalyzer.Core.Analysis.HeroName." + info.HeroEnumMember + ", (sp, _) => sp.GetRequiredService<" + info.ClassName + ">());");
-        }
-        foreach (var m in info.OwnModules)
-            sb.AppendLine("        services.AddScoped<" + m.FullyQualifiedName + ">();");
-        foreach (var n in info.OwnNormalizerTypes)
-            sb.AppendLine("        services.AddScoped<" + n.FullyQualifiedName + ">();");
-        // Register base Abilities type as an alias so Core normalizers (e.g. CastLinkNormalizer) can inject it.
-        foreach (var m in info.OwnModules)
-        {
-            if (m.ExtendsAbilities)
-                sb.AppendLine("        services.AddScoped<global::FellowshipAnalyzer.Core.Analysis.Abilities>(sp => sp.GetRequiredService<" + m.FullyQualifiedName + ">());");
         }
         sb.AppendLine("        return services;");
         sb.AppendLine("    }");
@@ -558,7 +518,8 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
 
     /// <summary>
     /// Generates the AddCoreAnalysis DI extension from the abstract CombatLogParser base class.
-    /// Registers EventEmitter, all base modules, and all base normalizers — shared across every hero.
+    /// Registers EventEmitter; modules and normalizers are constructed per-analysis
+    /// via AnalysisRunServiceProvider and are not registered in the outer DI container.
     /// </summary>
     private static void EmitCoreExtension(SourceProductionContext ctx, ParserInfo info)
     {
@@ -570,7 +531,6 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
         sb.AppendLine("namespace " + info.Namespace + ";");
         sb.AppendLine();
 
-        // Emit computed module accessor properties on the abstract base partial class.
         sb.AppendLine("public abstract partial class " + info.ClassName);
         sb.AppendLine("{");
         foreach (var m in info.OwnModules)
@@ -584,17 +544,12 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
         sb.AppendLine("public static class CombatLogParserServiceCollectionExtensions");
         sb.AppendLine("{");
         sb.AppendLine("    /// <summary>");
-        sb.AppendLine("    /// Registers shared analysis services required by all hero analyzers:");
-        sb.AppendLine("    /// EventEmitter, base modules (Combatants, StatTracker, etc.), and base normalizers.");
+        sb.AppendLine("    /// Registers shared analysis services required by all hero analyzers.");
         sb.AppendLine("    /// Call this once during application startup before registering any hero-specific analysis.");
         sb.AppendLine("    /// </summary>");
         sb.AppendLine("    public static IServiceCollection AddCoreAnalysis(this IServiceCollection services)");
         sb.AppendLine("    {");
         sb.AppendLine("        services.AddScoped<EventEmitter>();");
-        foreach (var m in info.OwnModules)
-            sb.AppendLine("        services.AddScoped<" + m.FullyQualifiedName + ">();");
-        foreach (var n in info.NormalizerTypes)
-            sb.AppendLine("        services.AddScoped<" + n.FullyQualifiedName + ">();");
         sb.AppendLine("        return services;");
         sb.AppendLine("    }");
         sb.AppendLine("}");
@@ -637,40 +592,29 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
         public string FullyQualifiedName => string.IsNullOrEmpty(Namespace) ? Name : Namespace + "." + Name;
     }
 
-    private sealed class ParserInfo
+    private sealed class ParserInfo(
+        string cn, string ns,
+        ImmutableArray<TypeInfo> ownModules,
+        ImmutableArray<TypeInfo> baseModules,
+        ImmutableArray<TypeInfo> normalizerTypes,
+        ImmutableArray<TypeInfo> ownNormalizerTypes,
+        string? heroEnumMember,
+        bool isAbstractBase = false)
     {
-        public ParserInfo(
-            string cn, string ns,
-            ImmutableArray<TypeInfo> ownModules,
-            ImmutableArray<TypeInfo> baseModules,
-            ImmutableArray<TypeInfo> normalizerTypes,
-            ImmutableArray<TypeInfo> ownNormalizerTypes,
-            string? heroEnumMember,
-            bool isAbstractBase = false)
-        {
-            ClassName = cn;
-            Namespace = ns;
-            OwnModules = ownModules;
-            BaseModules = baseModules;
-            NormalizerTypes = normalizerTypes;
-            OwnNormalizerTypes = ownNormalizerTypes;
-            HeroEnumMember = heroEnumMember;
-            IsAbstractBase = isAbstractBase;
-        }
-        public string ClassName { get; }
-        public string Namespace { get; }
+        public string ClassName { get; } = cn;
+        public string Namespace { get; } = ns;
         /// <summary>Modules declared directly on this class.</summary>
-        public ImmutableArray<TypeInfo> OwnModules { get; }
+        public ImmutableArray<TypeInfo> OwnModules { get; } = ownModules;
         /// <summary>Modules inherited from the base class chain (collected via GetAttributes on base symbols).</summary>
-        public ImmutableArray<TypeInfo> BaseModules { get; }
+        public ImmutableArray<TypeInfo> BaseModules { get; } = baseModules;
         /// <summary>All normalizers (base + own) — used for the GetNormalizerTypes override.</summary>
-        public ImmutableArray<TypeInfo> NormalizerTypes { get; }
+        public ImmutableArray<TypeInfo> NormalizerTypes { get; } = normalizerTypes;
         /// <summary>Normalizers declared directly on this class — used for hero-specific DI registration.</summary>
-        public ImmutableArray<TypeInfo> OwnNormalizerTypes { get; }
+        public ImmutableArray<TypeInfo> OwnNormalizerTypes { get; } = ownNormalizerTypes;
         /// <summary>HeroName enum field name from [HeroAnalyzer] attribute (e.g. "Rime"), if present.</summary>
-        public string? HeroEnumMember { get; }
+        public string? HeroEnumMember { get; } = heroEnumMember;
         /// <summary>True when this info was collected from the abstract CombatLogParser base class.</summary>
-        public bool IsAbstractBase { get; }
+        public bool IsAbstractBase { get; } = isAbstractBase;
     }
 }
 

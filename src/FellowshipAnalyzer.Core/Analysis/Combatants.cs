@@ -4,34 +4,29 @@ namespace FellowshipAnalyzer.Core.Analysis;
 
 /// <summary>
 /// Core module that tracks buff/debuff state for all combatants seen in the event log.
-/// Populates <see cref="Combatant.Buffs"/> throughout event dispatch and sets
-/// <see cref="CombatLogParser.SelectedCombatant"/> before other modules initialize.
+/// Populates <see cref="Combatant.Buffs"/> throughout event dispatch and exposes
+/// <see cref="Selected"/> for downstream modules that depend on the analyzed player.
 /// </summary>
-public sealed class Combatants : Analyzer
+public sealed partial class Combatants : Analyzer
 {
     private readonly Dictionary<int, Combatant> _combatants = [];
 
     /// <summary>The combatant representing the selected (analyzed) player.</summary>
-    public Combatant? Selected { get; private set; }
+    public Combatant? Selected { get; }
 
     public IReadOnlyDictionary<int, Combatant> All => _combatants;
 
-    public override void Initialize()
+    public Combatants(ParseContext parseContext, IReadOnlyList<Event> events)
     {
-        // Pre-scan events to build Combatant instances before dispatch begins.
-        foreach (var e in Owner.Events.OfType<CombatantInfoEvent>())
+        foreach (var e in events)
         {
-            if (!_combatants.ContainsKey(e.SourceId))
-                _combatants[e.SourceId] = new Combatant(e);
+            if (e is CombatantInfoEvent info && !_combatants.ContainsKey(info.SourceId))
+                _combatants[info.SourceId] = new Combatant(info);
         }
 
-        if (_combatants.TryGetValue(Owner.PlayerId, out var selected))
-        {
+        if (_combatants.TryGetValue(parseContext.PlayerId, out var selected))
             Selected = selected;
-            Owner.SelectedCombatant = selected;
-        }
 
-        // Seed prepull auras as open TrackedBuffEvents.
         foreach (var (_, combatant) in _combatants)
         {
             foreach (var aura in combatant.Auras)
@@ -54,25 +49,12 @@ public sealed class Combatants : Analyzer
                 combatant.ApplyBuff(prepullBuff);
             }
         }
-
-        AddEventListener(Events.ApplyBuff, OnApplyBuff);
-        AddEventListener(Events.ApplyDebuff, OnApplyDebuff);
-        AddEventListener(Events.RemoveBuff, OnRemoveBuff);
-        AddEventListener(Events.RemoveDebuff, OnRemoveDebuff);
-        AddEventListener(Events.RefreshBuff, OnRefreshBuff);
-        AddEventListener(Events.RefreshDebuff, OnRefreshDebuff);
-        AddEventListener(Events.ApplyBuffStack, OnApplyBuffStack);
-        AddEventListener(Events.RemoveBuffStack, OnRemoveBuffStack);
-        AddEventListener(Events.ApplyDebuffStack, OnApplyDebuffStack);
-        AddEventListener(Events.RemoveDebuffStack, OnRemoveDebuffStack);
-        AddEventListener(Events.FightEnd, OnFightEnd);
     }
 
-    // -------------------------------------------------------------------------
-    // Apply
-    // -------------------------------------------------------------------------
-
+    [On<ApplyBuffEvent>]
     private void OnApplyBuff(ApplyBuffEvent e) => ApplyBuff(e, isDebuff: false);
+
+    [On<ApplyDebuffEvent>]
     private void OnApplyDebuff(ApplyDebuffEvent e) => ApplyBuff(e, isDebuff: true);
 
     private void ApplyBuff(BuffEvent e, bool isDebuff)
@@ -98,11 +80,10 @@ public sealed class Combatants : Analyzer
         entity.ApplyBuff(buff);
     }
 
-    // -------------------------------------------------------------------------
-    // Remove
-    // -------------------------------------------------------------------------
-
+    [On<RemoveBuffEvent>]
     private void OnRemoveBuff(RemoveBuffEvent e) => RemoveBuff(e, isDebuff: false);
+
+    [On<RemoveDebuffEvent>]
     private void OnRemoveDebuff(RemoveDebuffEvent e) => RemoveBuff(e, isDebuff: true);
 
     private void RemoveBuff(BuffEvent e, bool isDebuff)
@@ -124,7 +105,6 @@ public sealed class Combatants : Analyzer
         }
         else
         {
-            // Buff was active before the fight started and never received an apply event.
             var synthetic = new TrackedBuffEvent
             {
                 Timestamp = e.Timestamp,
@@ -143,29 +123,30 @@ public sealed class Combatants : Analyzer
         }
     }
 
-    // -------------------------------------------------------------------------
-    // Refresh
-    // -------------------------------------------------------------------------
-
+    [On<RefreshBuffEvent>]
     private void OnRefreshBuff(RefreshBuffEvent e)
     {
         var entity = GetOrCreateEntity(e.TargetId);
         GetExistingBuff(entity, e.Ability.Id, e.SourceId)?.RefreshHistory.Add(e.Timestamp);
     }
 
+    [On<RefreshDebuffEvent>]
     private void OnRefreshDebuff(RefreshDebuffEvent e)
     {
         var entity = GetOrCreateEntity(e.TargetId);
         GetExistingBuff(entity, e.Ability.Id, e.SourceId)?.RefreshHistory.Add(e.Timestamp);
     }
 
-    // -------------------------------------------------------------------------
-    // Stack changes
-    // -------------------------------------------------------------------------
-
+    [On<ApplyBuffStackEvent>]
     private void OnApplyBuffStack(ApplyBuffStackEvent e) => UpdateStack(e, isDebuff: false);
+
+    [On<RemoveBuffStackEvent>]
     private void OnRemoveBuffStack(RemoveBuffStackEvent e) => UpdateStack(e, isDebuff: false);
+
+    [On<ApplyDebuffStackEvent>]
     private void OnApplyDebuffStack(ApplyDebuffStackEvent e) => UpdateStack(e, isDebuff: true);
+
+    [On<RemoveDebuffStackEvent>]
     private void OnRemoveDebuffStack(RemoveDebuffStackEvent e) => UpdateStack(e, isDebuff: true);
 
     private void UpdateStack(BuffEvent e, bool isDebuff)
@@ -186,10 +167,7 @@ public sealed class Combatants : Analyzer
         FabricateStackChange(existing, e, oldStacks, stackEvent.Stack, isDebuff);
     }
 
-    // -------------------------------------------------------------------------
-    // Fight end — close all open buffs
-    // -------------------------------------------------------------------------
-
+    [On<FightEndEvent>]
     private void OnFightEnd(FightEndEvent e)
     {
         foreach (var combatant in _combatants.Values)
@@ -206,15 +184,10 @@ public sealed class Combatants : Analyzer
         }
     }
 
-    // -------------------------------------------------------------------------
-    // Helpers
-    // -------------------------------------------------------------------------
-
     private Combatant GetOrCreateEntity(int targetId)
     {
         if (!_combatants.TryGetValue(targetId, out var entity))
         {
-            // No CombatantInfoEvent for this actor — create a shell.
             var shell = new CombatantInfoEvent { SourceId = targetId };
             entity = new Combatant(shell);
             _combatants[targetId] = entity;

@@ -22,7 +22,7 @@ using FellowshipAnalyzer.Core.Common.Spells.{Hero};
 
 namespace FellowshipAnalyzer.Heroes.{Hero}.Modules;
 
-public sealed class {Name}Analyzer : Analyzer
+public sealed partial class {Name}Analyzer : Analyzer
 {
     private readonly List<SomeWindow> _windows = [];
 
@@ -30,18 +30,13 @@ public sealed class {Name}Analyzer : Analyzer
     public int GoodCount => _windows.Count(window => window.IsGood);
     public int BadCount => _windows.Count(window => !window.IsGood);
 
-    public override void Initialize()
-    {
-        AddEventListener(Events.ApplyBuff.By(SELECTED_PLAYER).Spell(Spells.SomeBuff), OnBuffApply);
-        AddEventListener(Events.RemoveBuff.By(SELECTED_PLAYER).Spell(Spells.SomeBuff), OnBuffRemove);
-        AddEventListener(Events.Cast.By(SELECTED_PLAYER), OnCast);
-    }
-
+    [On<ApplyBuffEvent>(By = Actor.Player, Spell = SpellIds.SomeBuff)]
     private void OnBuffApply(ApplyBuffEvent applyBuffEvent)
     {
         _windows.Add(new SomeWindow(applyBuffEvent.Timestamp));
     }
 
+    [On<RemoveBuffEvent>(By = Actor.Player, Spell = SpellIds.SomeBuff)]
     private void OnBuffRemove(RemoveBuffEvent removeBuffEvent)
     {
         var openWindow = _windows.LastOrDefault(window => window.EndTimestamp is null);
@@ -51,6 +46,7 @@ public sealed class {Name}Analyzer : Analyzer
         }
     }
 
+    [On<CastEvent>(By = Actor.Player)]
     private void OnCast(CastEvent castEvent)
     {
         var openWindow = _windows.LastOrDefault(window => window.EndTimestamp is null);
@@ -62,7 +58,7 @@ public sealed class {Name}Analyzer : Analyzer
 }
 ```
 
-Use simple helper records/classes in the same file unless they are large or shared.
+Mark the class `partial` so the `ModuleGenerator` can emit its event-subscription override and any lazy-module accessors. Use simple helper records/classes in the same file unless they are large or shared.
 
 ### 2. Register On The CombatLogParser
 
@@ -90,46 +86,53 @@ If this analyzer has a statistics component, expose it from the module:
 public override Type? StatisticsComponentType => typeof({Name}Statistics);
 ```
 
-## Event Filter API
+## Event Subscription API
+
+Declare each handler with a `[On<TEvent>]` attribute on a private (or internal) instance method. The `ModuleGenerator` translates the attributes into a `RegisterAttributeSubscriptions` override with inlined predicates.
 
 ```csharp
-Events.Cast                    // EventFilter<CastEvent>
-Events.ApplyBuff               // EventFilter<ApplyBuffEvent>
-Events.RemoveBuff              // EventFilter<RemoveBuffEvent>
-Events.Damage                  // EventFilter<DamageEvent>
-Events.Heal                    // EventFilter<HealEvent>
-Events.ResourceChange          // EventFilter<ResourceChangeEvent>
-Events.Any                     // AnyEventFilter, matches all events
+[On<CastEvent>(By = Actor.Player)]
+private void OnCast(CastEvent e) { … }
 
-.By(SELECTED_PLAYER)           // source matches analyzed player
-.By(SELECTED_PLAYER_PET)       // source matches analyzed player's pet, when pet tracking exists
-.To(SELECTED_PLAYER)           // target matches analyzed player
-.Spell(spellA, spellB)         // ability id matches any Spell.Guid
-.ExtraSpell(spellA)            // extra ability id matches any Spell.Guid
+[On<ApplyBuffEvent>(To = Actor.Player, Spell = SpellIds.SomeBuff)]
+private void OnBuffApply(ApplyBuffEvent e) { … }
+
+[On<DamageEvent>(By = Actor.Player, Spells = new[] { SpellIds.A, SpellIds.B })]
+private void OnDamage(DamageEvent e) { … }
 ```
 
-`Spell(...)` takes `Spell` or `Effect` instances from `FellowshipAnalyzer.Core.Common.Spells`, not raw IDs.
+Supported attribute arguments:
+
+| Argument | Effect |
+|---|---|
+| `By = Actor.Player` / `Actor.Pet` / `Actor.PlayerOrPet` | restrict source actor (event must implement `IHasSourceEvent`) |
+| `To = Actor.Player` / `Actor.Pet` / `Actor.PlayerOrPet` | restrict target actor (event must implement `IHasTargetEvent`) |
+| `Spell = SpellIds.X` | single ability guid match (event must implement `IAbilityEvent`) |
+| `Spells = new[] { … }` | any of several ability guids |
+| `ExtraSpell = …` / `ExtraSpells = new[] { … }` | filter `IExtraAbilityEvent.ExtraAbility.Id` |
+
+Use `[On<Event>]` for an unfiltered "any event" subscription. Use `[On<FightStartEvent>]` / `[On<FightEndEvent>]` to hook the fabricated fight-boundary events for setup/finalization work — the `FightBookendNormalizer` prepends/appends those events to every analysis run.
 
 ## Dependencies
 
 Modules are resolved from DI, then the parser assigns `Owner`. Do not require `CombatLogParser` in an analyzer constructor.
 
-For module-to-module access, use `Owner.GetModule<T>()` or the hero parser's generated properties:
+For module-to-module access, prefer `Lazy<TOther>` constructor injection. The `ModuleGenerator` emits a cached `_camelCaseName` private accessor for every primary-ctor parameter of type `Lazy<TModule>`:
 
 ```csharp
-public override void Complete()
+public sealed partial class FreezingTorrentAnalyzer(Lazy<SpellUsable> spellUsable) : Analyzer
 {
-    var tracker = Owner.GetModule<WinterOrbTracker>();
-    if (tracker is null)
-    {
-        return;
-    }
+    // generator emits: private SpellUsable _spellUsable => field ??= spellUsable.Value;
 
-    var generated = tracker.Generated;
+    [On<CastEvent>(By = Actor.Player)]
+    private void OnCast(CastEvent e)
+    {
+        if (_spellUsable.IsAvailable(e.Ability.Id)) { … }
+    }
 }
 ```
 
-Constructor injection is acceptable for ordinary DI services. If injecting another module, confirm it is registered by `[AddModule<T>]` and avoid using it before both modules have completed `Initialize()`.
+`Lazy<T>` defers resolution to dispatch time, so two modules that reference each other can ctor-inject through `Lazy<>` without hitting the FA0013 cycle diagnostic. Plain (non-Lazy) module-to-module ctor injection is fine for acyclic dependencies. For ad-hoc lookups, use `Owner.GetModule<T>()`.
 
 ## Naming Conventions
 
@@ -141,11 +144,19 @@ Constructor injection is acceptable for ordinary DI services. If injecting anoth
 
 The source generator strips the `Analyzer` suffix from generated parser properties.
 
+## Final Projections
+
+For finalized metrics that depend on the entire event stream (window evaluations, score cards, summary findings), expose a `public TReport ToReport()` method on the module. The parser source generator picks up `ToReport()` automatically and includes it in the hero's typed `…AnalysisResult` record. Compute lazily — `ToReport()` must be idempotent and re-invokable.
+
+For mutable public properties that older callers read, delegate to the report: `public int GoodCount => ToReport().GoodCount;`.
+
 ## Key Rules
 
 - Extend `Analyzer`. For resources, use `ResourceTracker` through the `create-resource-tracker` skill.
-- Put event subscriptions in `Initialize()`, never in the constructor.
-- Keep final scoring, aggregations, and derived summaries in `Complete()` when they depend on the full event stream.
+- Mark the class `partial`.
+- Declare event subscriptions with `[On<TEvent>]` attributes, never in the constructor.
+- Use `Lazy<TOther>` ctor injection to break dependency cycles. Do not take `CombatLogParser` in the constructor.
+- Compute finalized metrics in `ToReport()` (idempotent), not in any post-dispatch hook — `Module.Complete()` no longer exists.
 - Expose state through public read-only accessors for guide/statistics components.
 - Keep the module pure C#: no Razor, `RenderFragment`, or Blazor component dependencies.
 - Place the file in `Modules/`.
@@ -153,8 +164,10 @@ The source generator strips the `Analyzer` suffix from generated parser properti
 ## Checklist
 
 - [ ] File is at `Modules/{Name}Analyzer.cs`.
-- [ ] Class extends `Analyzer` and does not require `CombatLogParser` in its constructor.
-- [ ] Event subscriptions are in `Initialize()`.
+- [ ] Class is `partial` and extends `Analyzer`.
+- [ ] Event handlers are decorated with `[On<TEvent>]` attributes.
+- [ ] Cross-module reads use `Lazy<TOther>` ctor injection (or `Owner.GetModule<T>()`).
+- [ ] Finalized projections live in `ToReport()`, not in a `Complete()` override.
 - [ ] Public accessors expose computed state for consumers.
 - [ ] `[AddModule<T>]` is added to the hero parser in the correct priority order.
 - [ ] `StatisticsComponentType` is set if a statistics component exists.

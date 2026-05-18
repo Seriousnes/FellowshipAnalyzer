@@ -1,4 +1,5 @@
 using FellowshipAnalyzer.Core.Analysis;
+using FellowshipAnalyzer.Core.Analysis.Normalizers;
 using FellowshipAnalyzer.Core.Common.Spells;
 using FellowshipAnalyzer.Core.Events;
 using FellowshipAnalyzer.Core.FellowshipLogs;
@@ -15,7 +16,7 @@ using Xunit;
 
 namespace FellowshipAnalyzer.Core.Tests.Analysis;
 
-public sealed class CombatLogParserTests
+public sealed partial class CombatLogParserTests
 {
     [Fact]
     public async Task Analyze_ShouldTrackCastsAndNotify()
@@ -248,7 +249,7 @@ public sealed class CombatLogParserTests
 
     private static readonly ReportFight TestFight =
         new(Id: 0, Name: "", EncounterId: 0, Kill: null,
-            StartTime: 0, EndTime: 0, Difficulty: null,
+            StartTime: 0, EndTime: 60_000, Difficulty: null,
             FriendlyPlayers: null, FightPercentage: null);
 
     private static TestCombatLogParser CreateCombatLogParser(Type[]? moduleTypes = null, Type[]? normalizerTypes = null)
@@ -256,7 +257,8 @@ public sealed class CombatLogParserTests
         var emitter = new EventEmitter(NullLogger<EventEmitter>.Instance);
         var provider = Substitute.For<IServiceProvider>();
         provider.GetService(typeof(ILogger<EventEmitter>)).Returns(NullLogger<EventEmitter>.Instance);
-        return new TestCombatLogParser(emitter, provider, moduleTypes ?? [], normalizerTypes ?? []);
+        provider.GetService(typeof(ILogger<ResourceTracker>)).Returns(NullLogger<ResourceTracker>.Instance);
+        return new TestCombatLogParser(emitter, provider, moduleTypes ?? [], normalizerTypes ?? [typeof(FightBookendNormalizer)]);
     }
 
     private sealed class TestCombatLogParser(
@@ -344,22 +346,18 @@ public sealed class CombatLogParserTests
         Assert.Equal(200, buff.End);
     }
 
-    private sealed class CountingProbeModule : Analyzer
+    private sealed partial class CountingProbeModule : Analyzer
     {
         public int ListenerCastCount { get; private set; }
 
-        public override void Initialize()
-        {
-            AddEventListener(Cast.By(SELECTED_PLAYER), OnCast);
-        }
-
+        [On<CastEvent>(By = Actor.Player)]
         private void OnCast(CastEvent e)
         {
             ListenerCastCount += 1;
         }
     }
 
-    private sealed class ProbeModule(SpellUsable state) : Analyzer
+    private sealed partial class ProbeModule(SpellUsable state) : Analyzer
     {
         public SpellUsable State { get; } = state;
 
@@ -367,17 +365,14 @@ public sealed class CombatLogParserTests
 
         public int ListenerCastCount { get; private set; }
 
-        public override void Initialize()
-        {
-            AddEventListener(Cast.By(SELECTED_PLAYER), OnCast);
-        }
-
+        [On<CastEvent>(By = Actor.Player)]
         private void OnCast(CastEvent e)
         {
             ListenerCastCount += 1;
         }
 
-        public override void Complete()
+        [On<FightEndEvent>]
+        private void OnFightEnd(FightEndEvent e)
         {
             SeenCastCount = State.Casts.Count;
         }
@@ -396,34 +391,26 @@ public sealed class CombatLogParserTests
         public string Icon { get; set; } = string.Empty;
     }
 
-    private sealed class SpellFilterProbeModule : Analyzer
+    private sealed partial class SpellFilterProbeModule : Analyzer
     {
         public int MatchedCastCount { get; private set; }
 
-        public override void Initialize()
-        {
-            AddEventListener(Cast.By(SELECTED_PLAYER).Spell(new Spell(2)), OnSpender);
-        }
-
+        [On<CastEvent>(By = Actor.Player, Spell = 2)]
         private void OnSpender(CastEvent e)
         {
             MatchedCastCount += 1;
         }
     }
 
-    private sealed class TestResourceTracker : ResourceTracker { }
+    private sealed class TestResourceTracker(ILogger<ResourceTracker> logger) : ResourceTracker(logger) { }
 
-    private sealed class FabricatingProbeModule : Analyzer
+    private sealed partial class FabricatingProbeModule : Analyzer
     {
         public int TotalCalls { get; private set; }
         public bool FabricatedEventWasDeferred { get; private set; }
         private bool _alreadyFabricated;
 
-        public override void Initialize()
-        {
-            AddEventListener(Cast.By(SELECTED_PLAYER), OnCast);
-        }
-
+        [On<CastEvent>(By = Actor.Player)]
         private void OnCast(CastEvent e)
         {
             TotalCalls++;

@@ -1,5 +1,3 @@
-using FellowshipAnalyzer.Core.Common.Items;
-using FellowshipAnalyzer.Core.Common.Spells;
 using FellowshipAnalyzer.Core.Events;
 
 namespace FellowshipAnalyzer.Core.Analysis;
@@ -17,7 +15,8 @@ namespace FellowshipAnalyzer.Core.Analysis;
 /// Per-window applied/wasted CDR is reconstructed from the observed
 /// <see cref="UpdateSpellUsableEvent"/>s between channel begin and end.
 /// </summary>
-public sealed class ChronoshiftAnalyzer : Analyzer
+[ActiveWhen<HasChronoshiftGear>]
+public sealed partial class ChronoshiftAnalyzer(Lazy<SpellUsable> spellUsable) : Analyzer
 {
     private const double ChronoshiftRate = 9.0;
 
@@ -27,11 +26,8 @@ public sealed class ChronoshiftAnalyzer : Analyzer
     /// </summary>
     private const int CdrBonusPerMs = 8;
 
-    private SpellUsable _spellUsable = null!;
     private readonly List<ChronoshiftWindow> _windows = [];
 
-    // Snapshot of expected-end timestamps at channel-begin, indexed by spell ID,
-    // for the current in-flight window. Used to compute per-spell CDR applied.
     private readonly Dictionary<int, int> _windowStartExpectedEnds = [];
     private readonly Dictionary<int, int> _windowAppliedBySpell = [];
     private bool _windowActive;
@@ -40,31 +36,29 @@ public sealed class ChronoshiftAnalyzer : Analyzer
     public IReadOnlyList<ChronoshiftWindow> Windows => _windows;
 
     /// <summary>Aggregate CDR applied per spell ID across all Chronoshift windows.</summary>
-    public IReadOnlyDictionary<int, int> TotalAppliedBySpell { get; private set; } =
-        new Dictionary<int, int>();
+    public IReadOnlyDictionary<int, int> TotalAppliedBySpell => ToReport().TotalAppliedBySpell;
 
     /// <summary>Aggregate CDR wasted per spell ID across all Chronoshift windows.</summary>
-    public IReadOnlyDictionary<int, int> TotalWastedBySpell { get; private set; } =
-        new Dictionary<int, int>();
+    public IReadOnlyDictionary<int, int> TotalWastedBySpell => ToReport().TotalWastedBySpell;
 
-    public override void Initialize()
+    public ChronoshiftReport ToReport()
     {
-        Active = Owner.SelectedCombatant?.HasGear(Items.AshasChronoshiftSpire.Id) ?? false;
-        if (!Active) return;
+        var applied = new Dictionary<int, int>();
+        var wasted = new Dictionary<int, int>();
 
-        _spellUsable = Owner.GetModule<SpellUsable>()!;
+        foreach (var window in _windows)
+        {
+            foreach (var (spellId, record) in window.CdrBySpell)
+            {
+                applied[spellId] = applied.GetValueOrDefault(spellId) + record.Applied;
+                wasted[spellId] = wasted.GetValueOrDefault(spellId) + record.Wasted;
+            }
+        }
 
-        AddEventListener(
-            Events.BeginChannel.By(SELECTED_PLAYER).Spell(Spells.Chronoshift),
-            OnBeginChannel);
-
-        AddEventListener(
-            Events.EndChannel.By(SELECTED_PLAYER).Spell(Spells.Chronoshift),
-            OnEndChannel);
-
-        AddEventListener(Events.UpdateSpellUsable, OnUpdateSpellUsable);
+        return new ChronoshiftReport(applied, wasted);
     }
 
+    [On<BeginChannelEvent>(By = Actor.Player, Spell = 1558)]
     private void OnBeginChannel(BeginChannelEvent e)
     {
         _windows.Add(new ChronoshiftWindow(e.Timestamp));
@@ -78,6 +72,7 @@ public sealed class ChronoshiftAnalyzer : Analyzer
         _spellUsable.ApplyCooldownRateChangeToAll(ChronoshiftRate, e.Timestamp);
     }
 
+    [On<EndChannelEvent>(By = Actor.Player, Spell = 1558)]
     private void OnEndChannel(EndChannelEvent e)
     {
         if (_windows.Count == 0) return;
@@ -88,7 +83,6 @@ public sealed class ChronoshiftAnalyzer : Analyzer
         var channelDuration = e.Timestamp - e.BeginChannel.Timestamp;
         var totalCdrAvailable = channelDuration * CdrBonusPerMs;
 
-        // Total applied across all spells, capped at the channel's total CDR budget.
         var totalApplied = 0;
         foreach (var amount in _windowAppliedBySpell.Values)
             totalApplied += amount;
@@ -100,8 +94,6 @@ public sealed class ChronoshiftAnalyzer : Analyzer
 
         if (cdrBySpell.Count > 0 && wasted > 0)
         {
-            // Attribute wasted CDR to a synthetic bucket (spell id 0) — preserves total bookkeeping
-            // without inventing a per-spell share that the continuous-rate model can't determine.
             cdrBySpell[0] = new SpellCdrRecord(SpellId: 0, Applied: 0, Wasted: wasted);
         }
 
@@ -114,6 +106,7 @@ public sealed class ChronoshiftAnalyzer : Analyzer
         };
     }
 
+    [On<UpdateSpellUsableEvent>]
     private void OnUpdateSpellUsable(UpdateSpellUsableEvent e)
     {
         if (!_windowActive) return;
@@ -138,24 +131,6 @@ public sealed class ChronoshiftAnalyzer : Analyzer
                 }
                 break;
         }
-    }
-
-    public override void Complete()
-    {
-        var applied = new Dictionary<int, int>();
-        var wasted = new Dictionary<int, int>();
-
-        foreach (var window in _windows)
-        {
-            foreach (var (spellId, record) in window.CdrBySpell)
-            {
-                applied[spellId] = applied.GetValueOrDefault(spellId) + record.Applied;
-                wasted[spellId] = wasted.GetValueOrDefault(spellId) + record.Wasted;
-            }
-        }
-
-        TotalAppliedBySpell = applied;
-        TotalWastedBySpell = wasted;
     }
 }
 

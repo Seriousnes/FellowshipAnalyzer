@@ -16,12 +16,4 @@ public abstract class Module
     public virtual Type? StatisticsComponentType => null;
 
     protected int PlayerId => Owner.PlayerId;
-
-    public virtual void Initialize()
-    {
-    }
-
-    public virtual void Complete()
-    {
-    }
 }
