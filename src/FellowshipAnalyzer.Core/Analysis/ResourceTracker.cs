@@ -90,8 +90,8 @@ public class ResourceTracker : Analyzer
     }
 
     /// <summary>
-    /// §4: observes the post-normalized event stream to update health and seed per-resource Max.
-    /// Snapshot-delta fabrication is now done by <see cref="Normalizers.ResourceFabricationNormalizer"/>
+    /// Observes the post-normalized event stream to update health and seed per-resource Max.
+    /// Snapshot-delta fabrication is done by <see cref="Normalizers.ResourceFabricationNormalizer"/>
     /// before dispatch — modules are pure observers and never mutate the stream they observe.
     /// </summary>
     private void OnEvent(Event e)

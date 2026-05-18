@@ -13,6 +13,9 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
     private const string AddModuleAttributeShortName = "AddModuleAttribute";
     private const string AddNormalizerAttributeShortName = "AddNormalizerAttribute";
     private const string HeroAnalyzerAttributeShortName = "HeroAnalyzerAttribute";
+    private const string ActiveWhenAttributeShortName = "ActiveWhenAttribute";
+    private const string BeforeAttributeShortName = "BeforeAttribute";
+    private const string AfterAttributeShortName = "AfterAttribute";
     private const string CombatLogParserClassName = "CombatLogParser";
 
     public void Initialize(IncrementalGeneratorInitializationContext context)
@@ -83,7 +86,7 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
                 var ns = GetNamespace(typeArg);
 
                 if (containingType.Name == AddModuleAttributeShortName)
-                    ownModules.Add(new TypeInfo(typeArg.Name, ns, InheritsFromAbilities(typeArg), TryGetReportType(typeArg)));
+                    ownModules.Add(BuildModuleTypeInfo(typeArg));
                 else if (containingType.Name == AddNormalizerAttributeShortName)
                     normalizerTypes.Add(new TypeInfo(typeArg.Name, ns));
             }
@@ -176,12 +179,55 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
             var typeArg = attr.AttributeClass.TypeArguments[0] as INamedTypeSymbol;
             if (typeArg == null) continue;
 
-            modules.Add(new TypeInfo(typeArg.Name, GetNamespace(typeArg), false, TryGetReportType(typeArg)));
+            modules.Add(BuildModuleTypeInfo(typeArg));
         }
     }
 
     /// <summary>
-    /// §8: a module participates in the typed result projection by exposing a public instance
+    /// Builds a <see cref="TypeInfo"/> for a module type, capturing all module-level metadata
+    /// (Abilities inheritance, <c>ToReport()</c> result type, <c>[ActiveWhen&lt;T&gt;]</c>
+    /// predicate, and <c>[Before&lt;T&gt;]</c> / <c>[After&lt;T&gt;]</c> ordering constraints).
+    /// </summary>
+    private static TypeInfo BuildModuleTypeInfo(INamedTypeSymbol moduleType)
+    {
+        var ns = GetNamespace(moduleType);
+        var extendsAbilities = InheritsFromAbilities(moduleType);
+        var reportType = TryGetReportType(moduleType);
+
+        string? activePredicate = null;
+        var beforeFqns = new List<string>();
+        var afterFqns = new List<string>();
+
+        foreach (var attr in moduleType.GetAttributes())
+        {
+            var ac = attr.AttributeClass;
+            if (ac == null || !ac.IsGenericType || ac.TypeArguments.Length == 0) continue;
+
+            var arg = ac.TypeArguments[0] as INamedTypeSymbol;
+            if (arg == null) continue;
+
+            var argFqn = FullyQualifiedName(arg);
+
+            if (ac.Name == ActiveWhenAttributeShortName)
+                activePredicate = argFqn;
+            else if (ac.Name == BeforeAttributeShortName)
+                beforeFqns.Add(argFqn);
+            else if (ac.Name == AfterAttributeShortName)
+                afterFqns.Add(argFqn);
+        }
+
+        return new TypeInfo(moduleType.Name, ns, extendsAbilities, reportType, activePredicate,
+            beforeFqns.ToImmutableArray(), afterFqns.ToImmutableArray());
+    }
+
+    private static string FullyQualifiedName(INamedTypeSymbol t)
+    {
+        var ns = GetNamespace(t);
+        return string.IsNullOrEmpty(ns) ? t.Name : ns + "." + t.Name;
+    }
+
+    /// <summary>
+    /// A module participates in the typed result projection by exposing a public instance
     /// <c>ToReport()</c> method that takes no parameters. The return type is the report record.
     /// </summary>
     private static string? TryGetReportType(INamedTypeSymbol moduleType)
@@ -253,9 +299,8 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
     }
 
     /// <summary>
-    /// §8: friendly property name for the result record — strips "Analyzer" / "Tracker" /
-    /// "Module" suffixes to match the doc's example (BasicStComboAnalyzer → BasicStCombo,
-    /// WinterOrbTracker → WinterOrb).
+    /// Friendly property name for the result record — strips "Analyzer" / "Tracker" / "Module"
+    /// suffixes (BasicStComboAnalyzer → BasicStCombo, WinterOrbTracker → WinterOrb).
     /// </summary>
     private static string ReportPropertyName(TypeInfo module)
     {
@@ -272,6 +317,105 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
             EmitCoreExtension(ctx, info);
         else
             EmitConcreteParser(ctx, info);
+    }
+
+    /// <summary>
+    /// Kahn's algorithm over the union of base + own modules. Default order = base first
+    /// (in declaration order), then own (in declaration order). <c>[Before&lt;X&gt;]</c> creates an
+    /// edge module→X; <c>[After&lt;X&gt;]</c> creates an edge X→module. Modules with no incoming
+    /// edges drain in original-declaration order so the sort is stable. Cycle fallback: emit
+    /// remaining modules in declaration order so the build still succeeds.
+    /// </summary>
+    private static List<TypeInfo> TopologicalSort(ImmutableArray<TypeInfo> baseModules, ImmutableArray<TypeInfo> ownModules)
+    {
+        var declarationOrder = new List<TypeInfo>(baseModules.Length + ownModules.Length);
+        declarationOrder.AddRange(baseModules);
+        declarationOrder.AddRange(ownModules);
+
+        if (declarationOrder.Count == 0) return declarationOrder;
+
+        var byFqn = new Dictionary<string, TypeInfo>(declarationOrder.Count);
+        var indexByFqn = new Dictionary<string, int>(declarationOrder.Count);
+        for (var i = 0; i < declarationOrder.Count; i++)
+        {
+            byFqn[declarationOrder[i].FullyQualifiedName] = declarationOrder[i];
+            indexByFqn[declarationOrder[i].FullyQualifiedName] = i;
+        }
+
+        // Edges: u → v means u must appear before v.
+        var edges = new HashSet<(int u, int v)>();
+        for (var i = 0; i < declarationOrder.Count; i++)
+        {
+            var m = declarationOrder[i];
+            foreach (var other in m.BeforeModules)
+            {
+                if (indexByFqn.TryGetValue(other, out var j)) edges.Add((i, j));
+            }
+            foreach (var other in m.AfterModules)
+            {
+                if (indexByFqn.TryGetValue(other, out var j)) edges.Add((j, i));
+            }
+        }
+
+        if (edges.Count == 0) return declarationOrder;
+
+        var inDegree = new int[declarationOrder.Count];
+        var outNeighbors = new List<int>[declarationOrder.Count];
+        for (var i = 0; i < outNeighbors.Length; i++) outNeighbors[i] = new List<int>();
+        foreach (var (u, v) in edges)
+        {
+            outNeighbors[u].Add(v);
+            inDegree[v]++;
+        }
+
+        // Min-heap by original index keeps the sort stable / deterministic.
+        var ready = new SortedSet<int>();
+        for (var i = 0; i < inDegree.Length; i++)
+            if (inDegree[i] == 0) ready.Add(i);
+
+        var sorted = new List<TypeInfo>(declarationOrder.Count);
+        while (ready.Count > 0)
+        {
+            var i = ready.Min;
+            ready.Remove(i);
+            sorted.Add(declarationOrder[i]);
+            foreach (var j in outNeighbors[i])
+            {
+                if (--inDegree[j] == 0) ready.Add(j);
+            }
+        }
+
+        // Cycle fallback — emit any remaining modules in declaration order.
+        if (sorted.Count != declarationOrder.Count)
+        {
+            var emitted = new HashSet<TypeInfo>(sorted);
+            foreach (var m in declarationOrder)
+                if (emitted.Add(m)) sorted.Add(m);
+        }
+
+        return sorted;
+    }
+
+    /// <summary>
+    /// Emits an <c>IsModuleActive</c> override that switches on the module Type and invokes
+    /// the static <c>IsActive(ParseContext)</c> method of the attribute's predicate. Only emitted
+    /// when at least one module in <paramref name="orderedModules"/> declared <c>[ActiveWhen]</c>.
+    /// </summary>
+    private static void EmitIsModuleActive(StringBuilder sb, List<TypeInfo> orderedModules)
+    {
+        var gated = orderedModules.FindAll(m => m.ActivePredicateFullyQualified != null);
+        if (gated.Count == 0) return;
+
+        sb.AppendLine();
+        sb.AppendLine("    protected override bool IsModuleActive(global::System.Type moduleType, global::FellowshipAnalyzer.Core.Analysis.ParseContext context)");
+        sb.AppendLine("    {");
+        foreach (var m in gated)
+        {
+            sb.AppendLine("        if (moduleType == typeof(global::" + m.FullyQualifiedName + "))");
+            sb.AppendLine("            return global::" + m.ActivePredicateFullyQualified + ".IsActive(context);");
+        }
+        sb.AppendLine("        return true;");
+        sb.AppendLine("    }");
     }
 
     /// <summary>
@@ -312,14 +456,18 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
 
         sb.AppendLine();
 
-        // GetModuleTypes — base modules first (higher priority), then own modules
+        // GetModuleTypes — base modules first (higher priority), then own modules, then
+        // topologically sorted by any [Before<>] / [After<>] ordering constraints.
+        var orderedModules = TopologicalSort(info.BaseModules, info.OwnModules);
         sb.AppendLine("    protected override Type[] GetModuleTypes() =>");
         sb.AppendLine("    [");
-        foreach (var m in info.BaseModules)
-            sb.AppendLine("        typeof(" + m.FullyQualifiedName + "),");
-        foreach (var m in info.OwnModules)
+        foreach (var m in orderedModules)
             sb.AppendLine("        typeof(" + m.FullyQualifiedName + "),");
         sb.AppendLine("    ];");
+
+        // IsModuleActive override — emitted only when at least one module declares
+        // [ActiveWhen<TPredicate>]. Default base implementation returns true for all modules.
+        EmitIsModuleActive(sb, orderedModules);
 
         // GetNormalizerTypes — NormalizerTypes already contains [baseNormalizers, ..ownNormalizers] in order
         if (info.NormalizerTypes.Length > 0)
@@ -332,7 +480,7 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
             sb.AppendLine("    ];");
         }
 
-        // §8 typed-result projection — emit only when at least one module declares ToReport().
+        // Typed-result projection — emit only when at least one module declares ToReport().
         var reportContributors = new List<(TypeInfo Module, string PropertyName)>();
         foreach (var m in info.BaseModules)
         {
@@ -364,7 +512,7 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
         sb.AppendLine("}");
         sb.AppendLine();
 
-        // §8: emit the typed result record type. Each contributing module gets one nullable property —
+        // Emit the typed result record type. Each contributing module gets one nullable property —
         // nullable because a module may be Active=false on a given fight and thus not resolved.
         if (reportContributors.Count > 0)
         {
@@ -457,19 +605,35 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
 
     private sealed class TypeInfo
     {
-        public TypeInfo(string name, string ns, bool extendsAbilities = false, string? reportTypeFullyQualified = null)
+        public TypeInfo(
+            string name,
+            string ns,
+            bool extendsAbilities = false,
+            string? reportTypeFullyQualified = null,
+            string? activePredicateFullyQualified = null,
+            ImmutableArray<string> beforeModules = default,
+            ImmutableArray<string> afterModules = default)
         {
             Name = name;
             Namespace = ns;
             ExtendsAbilities = extendsAbilities;
             ReportTypeFullyQualified = reportTypeFullyQualified;
+            ActivePredicateFullyQualified = activePredicateFullyQualified;
+            BeforeModules = beforeModules.IsDefault ? ImmutableArray<string>.Empty : beforeModules;
+            AfterModules = afterModules.IsDefault ? ImmutableArray<string>.Empty : afterModules;
         }
         public string Name { get; }
         public string Namespace { get; }
         /// <summary>True when this module extends FellowshipAnalyzer.Core.Analysis.Abilities.</summary>
         public bool ExtendsAbilities { get; }
-        /// <summary>§8: fully-qualified report record type if this module declares <c>ToReport()</c>; otherwise null.</summary>
+        /// <summary>Fully-qualified report record type if this module declares <c>ToReport()</c>; otherwise null.</summary>
         public string? ReportTypeFullyQualified { get; }
+        /// <summary>Fully-qualified predicate type from <c>[ActiveWhen&lt;T&gt;]</c>; otherwise null.</summary>
+        public string? ActivePredicateFullyQualified { get; }
+        /// <summary>Fully-qualified module names this module must come before (from <c>[Before&lt;T&gt;]</c>).</summary>
+        public ImmutableArray<string> BeforeModules { get; }
+        /// <summary>Fully-qualified module names this module must come after (from <c>[After&lt;T&gt;]</c>).</summary>
+        public ImmutableArray<string> AfterModules { get; }
         public string FullyQualifiedName => string.IsNullOrEmpty(Namespace) ? Name : Namespace + "." + Name;
     }
 

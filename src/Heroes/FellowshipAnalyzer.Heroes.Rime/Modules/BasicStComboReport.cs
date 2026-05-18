@@ -4,9 +4,9 @@ using FellowshipAnalyzer.Heroes.Rime.Analysis;
 namespace FellowshipAnalyzer.Heroes.Rime.Modules;
 
 /// <summary>
-/// Immutable §8 projection of <see cref="BasicStComboAnalyzer"/> state. Serializable via
-/// the source-generated <c>JsonSerializerContext</c>, which makes it cacheable (§7) and
-/// safe to send across worker boundaries if WASM ever spawns one.
+/// Immutable projection of <see cref="BasicStComboAnalyzer"/> state. Serializable via the
+/// source-generated <c>JsonSerializerContext</c>, so it can be cached or sent across worker
+/// boundaries.
 /// </summary>
 public sealed record BasicStComboReport(
     AnalyzerScoreCard ScoreCard,

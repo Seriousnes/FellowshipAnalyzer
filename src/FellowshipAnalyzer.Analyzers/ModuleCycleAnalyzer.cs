@@ -10,7 +10,7 @@ namespace FellowshipAnalyzer.Analyzers;
 
 /// <summary>
 /// FA0013: Module constructor dependency cycle. Constructor injection between modules forms a
-/// DAG; cycles break topological resolution. The escape ladder in §3 of the redesign doc is:
+/// DAG; cycles break topological resolution. Escape ladder, in order of preference:
 /// (a) event-based decoupling, (b) <c>Lazy&lt;TOther&gt;</c> in the ctor (the generator threads
 /// it through without participating in cycle detection), (c) result-level composition, or
 /// (d) the last-resort <c>Owner.GetModule&lt;T&gt;()</c> service-locator lookup.

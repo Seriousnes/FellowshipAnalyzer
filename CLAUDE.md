@@ -2,6 +2,12 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Critical
+
+### Comments
+- **IMPORTANT** - Never include comments referencing design docs or plan.md points. Comments are reserved exclusively for API/usage notes.
+- **Never** add inline comments or comments within methods for any reason.
+
 ## Project
 
 FellowshipAnalyzer parses and analyzes combat logs from the online RPG "Fellowship". Logs are uploaded to fellowshiplogs.com; this app calls the Fellowship Logs GraphQL API, runs hero-specific analyzers over combat events, and renders guide/statistics views.

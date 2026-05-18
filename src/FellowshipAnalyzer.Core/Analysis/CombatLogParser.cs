@@ -86,12 +86,21 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
     protected virtual Type[] GetNormalizerTypes() => [];
 
     /// <summary>
-    /// Builds the source-generated typed projection of this analysis run (§8 of the redesign doc).
-    /// The default returns <c>null</c>. Source-generated concrete parsers override this when at
-    /// least one of their modules declares a <c>ToReport()</c> method, returning a hero-specific
-    /// result record (e.g. <c>RimeAnalysisResult</c>).
+    /// Builds the source-generated typed projection of this analysis run. The default returns
+    /// <c>null</c>. Source-generated concrete parsers override this when at least one of their
+    /// modules declares a <c>ToReport()</c> method, returning a hero-specific result record
+    /// (e.g. <c>RimeAnalysisResult</c>).
     /// </summary>
     protected virtual object? BuildTypedReport() => null;
+
+    /// <summary>
+    /// Consulted before constructing each module declared in <see cref="GetModuleTypes"/>.
+    /// The default returns <c>true</c> for every module. The source generator overrides this
+    /// on concrete parsers that have at least one module decorated with
+    /// <see cref="ActiveWhenAttribute{TPredicate}"/>, switching on the module type and
+    /// invoking the predicate's static <c>IsActive</c> method.
+    /// </summary>
+    protected virtual bool IsModuleActive(Type moduleType, ParseContext context) => true;
 
     /// <summary>
     /// Looks up an active module by type. Returns null if the module is
@@ -114,15 +123,21 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
 
     public async Task<HeroAnalysisResult> Analyze(IReadOnlyList<Event> events, int playerId, ReportFight fight)
     {
-        var moduleTypes = GetModuleTypes();
+        // Assign parse-time state up-front so ParseContext and IsModuleActive can read it.
+        PlayerId = playerId;
+        Fight = fight;
+        CurrentTimestamp = (int)fight.StartTime;
+
+        // Filter modules through the source-generated activation predicate before resolution
+        // so [ActiveWhen<>]-disabled modules never instantiate, subscribe, or accumulate state.
+        var parseContext = new ParseContext(playerId, fight, ActorNames);
+        var allModuleTypes = GetModuleTypes();
+        var moduleTypes = Array.FindAll(allModuleTypes, t => IsModuleActive(t, parseContext));
         var normalizerTypes = GetNormalizerTypes();
         var analysisServices = new AnalysisRunServiceProvider(provider, this, moduleTypes, normalizerTypes);
 
         EventEmitter = analysisServices.GetRequiredService<EventEmitter>();
         Events = [.. events];
-        PlayerId = playerId;
-        Fight = fight;
-        CurrentTimestamp = (int)fight.StartTime;
         SelectedCombatant = null;
         _activeModules = moduleTypes
             .Select((t, i) =>
@@ -264,8 +279,8 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
                 return new ParseContext(owner.PlayerId, owner.Fight, owner.ActorNames);
             }
 
-            // §3 escape rung (b): Lazy<TModule> defers resolution to break ctor cycles without
-            // giving up DI. Cycle analyzer FA0013 ignores Lazy<>-shaped edges.
+            // Lazy<TModule> defers resolution to break ctor cycles without giving up DI.
+            // Cycle analyzer FA0013 ignores Lazy<>-shaped edges.
             if (serviceType.IsGenericType && serviceType.GetGenericTypeDefinition() == typeof(Lazy<>))
             {
                 var inner = serviceType.GetGenericArguments()[0];

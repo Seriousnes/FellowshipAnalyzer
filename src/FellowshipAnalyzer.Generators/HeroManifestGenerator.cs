@@ -9,11 +9,11 @@ using System.Text;
 namespace FellowshipAnalyzer.Generators;
 
 /// <summary>
-/// §6 of the redesign doc: emits a compile-time <c>HeroManifest</c> by scanning all referenced
-/// assemblies (plus the current compilation) for classes carrying <c>[HeroAnalyzer]</c>. Also
-/// emits an <c>AddFellowshipHeroAnalysis</c> DI extension that calls each hero's generated
-/// <c>Add{Hero}Analysis()</c>. The hand-maintained <c>HeroAnalysisServiceCollectionExtensions.cs</c>
-/// in the main project can be deleted once a single class is marked <c>[GenerateHeroManifest]</c>.
+/// Emits a compile-time <c>HeroManifest</c> by scanning all referenced assemblies (plus the
+/// current compilation) for classes carrying <c>[HeroAnalyzer]</c>. Also emits an
+/// <c>AddFellowshipHeroAnalysis</c> DI extension that calls each hero's generated
+/// <c>Add{Hero}Analysis()</c>. Replaces the hand-maintained DI chain in the main project once
+/// a single class is marked <c>[GenerateHeroManifest]</c>.
 /// </summary>
 [Generator]
 public sealed class HeroManifestGenerator : IIncrementalGenerator

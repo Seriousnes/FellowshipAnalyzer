@@ -98,7 +98,7 @@ public sealed partial class BasicStComboAnalyzer : Analyzer
         _currentWindow.UniqueBurstingIceTargets.Add(damageEvent.TargetId);
     }
 
-    /// <summary>§8 typed-result projection of this module's accumulated state.</summary>
+    /// <summary>Typed-result projection of this module's accumulated state.</summary>
     public BasicStComboReport ToReport() => new(
         ScoreCard,
         EvaluatedWindows,

@@ -4,26 +4,13 @@ using FellowshipAnalyzer.Core.Game;
 namespace FellowshipAnalyzer.Core.Analysis.Normalizers;
 
 /// <summary>
-/// §4 of the redesign doc — moves the snapshot-delta fabrication that previously lived inside
-/// <see cref="ResourceTracker.OnEvent"/> into the pre-dispatch normalizer pass.
+/// Pre-dispatch normalizer that emits fabricated <see cref="ResourceChangeEvent"/>s whenever a
+/// non-cast event's player <see cref="ActorResources"/> snapshot shows a positive delta against
+/// the running last-observed amount. Cast events update the snapshot (subtracting
+/// <see cref="ClassResource.Cost"/> when present) but never trigger fabrication. Keeps the
+/// dispatch loop non-mutating; modules become pure observers. Runs at <see cref="Priority"/> 50,
+/// after the existing normalizers.
 /// </summary>
-/// <remarks>
-/// <para>
-/// Today: <see cref="ResourceTracker"/> would fabricate a <see cref="ResourceChangeEvent"/>
-/// mid-dispatch when it observed a positive snapshot delta on the player's resources. That
-/// conflated mutation with observation — modules saw a stream the parser was still rewriting.
-/// </para>
-/// <para>
-/// Now: this normalizer inspects every event with player resources, tracks a per-resource-type
-/// "last observed" amount, and emits a fabricated <see cref="ResourceChangeEvent"/> immediately
-/// after any non-cast event that increased the amount. Cast events update the running snapshot
-/// (subtracting <see cref="ClassResource.Cost"/> when present) but never trigger fabrication.
-/// </para>
-/// <para>
-/// Modules become pure observers of the post-normalized stream — the dispatch loop no longer
-/// mutates events. Runs at <see cref="Priority"/> 50, after the existing normalizers.
-/// </para>
-/// </remarks>
 public sealed class ResourceFabricationNormalizer : IEventNormalizer
 {
     public int Priority => 50;

@@ -9,7 +9,7 @@ namespace FellowshipAnalyzer.Analyzers;
 /// FA0010: Module constructors must not accept <c>CombatLogParser</c> or <c>EventEmitter</c>.
 /// Both are set on the module by the parser after DI resolution; accepting them in the ctor
 /// would create circular initialization order. Use ctor injection for sibling modules, or
-/// fall through to <c>Owner.GetModule&lt;T&gt;()</c> for last-resort cycle escapes (rung d in §3).
+/// fall through to <c>Owner.GetModule&lt;T&gt;()</c> for last-resort cycle escapes.
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public sealed class ModuleConstructorAnalyzer : DiagnosticAnalyzer

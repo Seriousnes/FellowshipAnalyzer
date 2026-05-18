@@ -13,8 +13,7 @@ namespace FellowshipAnalyzer.Generators;
 /// Emits <c>RegisterAttributeSubscriptions</c> overrides for classes that declare
 /// <see cref="OnAttribute{TEvent}"/> handlers. Each handler is wired directly into the
 /// <c>EventEmitter</c> with an inlined predicate — no <c>Expression.Compile()</c> at runtime,
-/// no LINQ tree allocation, and no per-analysis subscription cost. Implements the §1
-/// proposal from the FellowshipAnalyzer redesign doc.
+/// no LINQ tree allocation, and no per-analysis subscription cost.
 /// </summary>
 [Generator]
 public sealed class EventSubscriptionGenerator : IIncrementalGenerator
