@@ -21,4 +21,5 @@ public class Spells : ISpellRegistry
     public static Effect SkystridersGraceBuff { get; } = new(1869, "Skystrider's Grace", "");
     public static Effect CelestialImpetus { get; } = new(1867, "", "");
     public static Effect ImpendingHeartseeker { get; } = new(2317, "", "");
+    public static Effect SpiritOfHeroism { get; } = new(2253, "Spirit of Heroism", "Tex_b_02.jpg");
 }

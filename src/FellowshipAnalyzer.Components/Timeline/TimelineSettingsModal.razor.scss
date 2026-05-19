@@ -173,3 +173,110 @@
         color: var(--fa-text-muted, rgba(255, 255, 255, 0.5));
     }
 }
+
+.timeline-settings-section {
+    padding: 4px 0;
+
+    & + & {
+        margin-top: 4px;
+    }
+}
+
+.timeline-settings-section-title {
+    margin: 0 0 6px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--fa-gold, #d4b870);
+}
+
+.timeline-settings-section-divider {
+    border: 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    margin: 12px 0;
+}
+
+.timeline-settings-search {
+    margin-bottom: 8px;
+
+    input[type='text'] {
+        width: 100%;
+        padding: 6px 8px;
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 4px;
+        color: inherit;
+        font-size: 13px;
+
+        &::placeholder {
+            color: var(--fa-text-muted, rgba(255, 255, 255, 0.4));
+        }
+
+        &:focus {
+            outline: none;
+            border-color: var(--fa-gold, #d4b870);
+        }
+    }
+}
+
+.timeline-settings-search-results {
+    list-style: none;
+    margin: 0 0 8px;
+    padding: 4px 0;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 6px;
+    max-height: 220px;
+    overflow-y: auto;
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.timeline-settings-search-result {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 8px;
+
+    &:hover {
+        background: rgba(255, 255, 255, 0.04);
+    }
+}
+
+.timeline-settings-add {
+    background: transparent;
+    border: 1px solid rgba(212, 184, 112, 0.4);
+    color: var(--fa-gold, #d4b870);
+    padding: 3px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+
+    &:hover {
+        background: rgba(212, 184, 112, 0.12);
+        border-color: var(--fa-gold, #d4b870);
+    }
+}
+
+.timeline-settings-delete {
+    background: transparent;
+    border: none;
+    color: var(--fa-text-muted, rgba(255, 255, 255, 0.5));
+    padding: 4px;
+    border-radius: 4px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+
+    &:hover {
+        color: var(--fa-danger, #d35454);
+        background: rgba(255, 255, 255, 0.06);
+    }
+}
+
+.timeline-settings-row--absent {
+    opacity: 0.45;
+
+    .timeline-settings-delete {
+        opacity: 1;
+    }
+}

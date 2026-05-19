@@ -1,15 +1,18 @@
 using System.Collections.Immutable;
 
+using FellowshipAnalyzer.Generators;
+
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace FellowshipAnalyzer.Analyzers;
 
 /// <summary>
-/// FA0011: <c>[On&lt;TEvent&gt;]</c> handler signature must take a single parameter assignable from
-/// <c>TEvent</c> and return <c>void</c>, <c>Task</c>, or <c>ValueTask</c>.
-/// Without this the source generator silently produces no subscription, leading to a confusing
-/// "the handler never fires" debugging session.
+/// FA0011: <c>[On&lt;TEvent&gt;]</c> handler signature must take a single parameter assignable
+/// from <c>TEvent</c> (concrete event, base class, interface, or a <c>OneOf&lt;…&gt;</c> with a
+/// uniquely-resolvable slot for <c>TEvent</c>) and return <c>void</c>, <c>Task</c>, or
+/// <c>ValueTask</c>. Without this the source generator silently produces no subscription,
+/// leading to a confusing "the handler never fires" debugging session.
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public sealed class OnHandlerSignatureAnalyzer : DiagnosticAnalyzer
@@ -19,11 +22,11 @@ public sealed class OnHandlerSignatureAnalyzer : DiagnosticAnalyzer
     private static readonly DiagnosticDescriptor Rule = new(
         id: DiagnosticId,
         title: "[On<TEvent>] handler signature mismatch",
-        messageFormat: "Handler '{0}' marked with [On<{1}>] must take a single parameter assignable from {1} and return void/Task/ValueTask",
+        messageFormat: "Handler '{0}' marked with [On<{1}>] is incompatible: {2}",
         category: "Analysis",
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true,
-        description: "The source-generated subscription wires a delegate that invokes the handler with the dispatched event cast to the handler parameter type. The parameter type must be assignable from the [On<>] type argument.");
+        description: "The source-generated subscription wires a delegate that invokes the handler with the dispatched event cast to the handler parameter type. The parameter type must be the event type, one of its base classes or interfaces, or a OneOf<…> with a uniquely-resolvable slot for the event type.");
 
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [Rule];
 
@@ -45,12 +48,11 @@ public sealed class OnHandlerSignatureAnalyzer : DiagnosticAnalyzer
             if (attr.AttributeClass!.TypeArguments.Length != 1) continue;
             if (attr.AttributeClass.TypeArguments[0] is not INamedTypeSymbol eventType) continue;
 
-            var problem = ValidateSignature(method, eventType);
-            if (problem)
-            {
-                var loc = method.Locations.Length > 0 ? method.Locations[0] : Location.None;
-                context.ReportDiagnostic(Diagnostic.Create(Rule, loc, method.Name, eventType.Name));
-            }
+            var reason = DescribeProblem(method, eventType);
+            if (reason is null) continue;
+
+            var loc = method.Locations.Length > 0 ? method.Locations[0] : Location.None;
+            context.ReportDiagnostic(Diagnostic.Create(Rule, loc, method.Name, eventType.Name, reason));
         }
     }
 
@@ -58,34 +60,34 @@ public sealed class OnHandlerSignatureAnalyzer : DiagnosticAnalyzer
         cls is { Name: "OnAttribute" }
         && cls.ContainingNamespace?.ToDisplayString() == "FellowshipAnalyzer.Core.Analysis";
 
-    private static bool ValidateSignature(IMethodSymbol method, INamedTypeSymbol eventType)
+    private static string? DescribeProblem(IMethodSymbol method, INamedTypeSymbol eventType)
     {
-        // Returns true when the signature is INVALID.
-        if (method.Parameters.Length != 1) return true;
+        if (method.Parameters.Length != 1)
+            return "handler must take exactly one parameter";
+
+        if (!method.ReturnsVoid)
+        {
+            var rt = method.ReturnType;
+            if (rt.Name is not ("Task" or "ValueTask"))
+                return "handler must return void, Task, or ValueTask";
+        }
 
         var paramType = method.Parameters[0].Type;
-        if (!IsAssignableFrom(paramType, eventType)) return true;
+        if (paramType is not INamedTypeSymbol paramNamed)
+            return "parameter type '" + paramType.ToDisplayString() + "' is not a named type";
 
-        if (method.ReturnsVoid) return false;
-        var rt = method.ReturnType;
-        if (rt.Name is "Task" or "ValueTask") return false;
-        return true;
-    }
-
-    private static bool IsAssignableFrom(ITypeSymbol target, INamedTypeSymbol source)
-    {
-        if (SymbolEqualityComparer.Default.Equals(target, source)) return true;
-
-        var current = source.BaseType;
-        while (current is not null)
+        if (HandlerSignatureRules.IsOneOfParam(paramNamed, out var oneOf))
         {
-            if (SymbolEqualityComparer.Default.Equals(target, current)) return true;
-            current = current.BaseType;
+            if (HandlerSignatureRules.TryResolveOneOfSlot(oneOf, eventType, out _, out var ambiguityReason))
+                return null;
+            return "parameter '" + paramNamed.ToDisplayString() + "' has no unique slot for "
+                + eventType.Name + " (" + ambiguityReason + ")";
         }
-        foreach (var iface in source.AllInterfaces)
-        {
-            if (SymbolEqualityComparer.Default.Equals(target, iface)) return true;
-        }
-        return false;
+
+        if (HandlerSignatureRules.IsCompatibleParam(paramNamed, eventType))
+            return null;
+
+        return "parameter type '" + paramNamed.ToDisplayString()
+            + "' is not assignable from " + eventType.Name;
     }
 }

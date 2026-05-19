@@ -193,6 +193,13 @@ public sealed partial class SpellUsableTests
         : CombatLogParser(emitter, provider)
     {
         protected override Type[] GetModuleTypes() => moduleTypes;
+
+        protected override object? CreateInstance(Type type)
+        {
+            if (type == typeof(TestAbilities)) return new TestAbilities();
+            if (type == typeof(UpdateProbeModule)) return new UpdateProbeModule();
+            return base.CreateInstance(type);
+        }
     }
 
     internal sealed class TestAbilities : Abilities

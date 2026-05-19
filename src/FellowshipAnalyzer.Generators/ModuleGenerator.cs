@@ -249,9 +249,19 @@ public sealed class ModuleGenerator : IIncrementalGenerator
 
         var paramType = method.Parameters[0].Type;
         if (paramType is not INamedTypeSymbol paramNamed) return null;
-        if (!SymbolEqualityComparer.Default.Equals(paramNamed, eventType)
-            && !InheritsFrom(eventType, paramNamed))
+
+        string? oneOfTypeFullyQualified = null;
+        var oneOfSlotIndex = -1;
+        if (HandlerSignatureRules.IsOneOfParam(paramNamed, out var oneOfType))
+        {
+            if (!HandlerSignatureRules.TryResolveOneOfSlot(oneOfType, eventType, out oneOfSlotIndex, out _))
+                return null;
+            oneOfTypeFullyQualified = ToFullyQualified(oneOfType);
+        }
+        else if (!HandlerSignatureRules.IsCompatibleParam(paramNamed, eventType))
+        {
             return null;
+        }
 
         var by = GetIntNamedArg(attr, "By");
         var to = GetIntNamedArg(attr, "To");
@@ -279,7 +289,9 @@ public sealed class ModuleGenerator : IIncrementalGenerator
             EventImplementsAbility: implementsAbility,
             EventImplementsExtraAbility: implementsExtraAbility,
             EventImplementsHasSource: implementsHasSource,
-            EventImplementsHasTarget: implementsHasTarget);
+            EventImplementsHasTarget: implementsHasTarget,
+            OneOfTypeFullyQualified: oneOfTypeFullyQualified,
+            OneOfSlotIndex: oneOfSlotIndex);
     }
 
     private static int GetIntNamedArg(AttributeData attr, string name)
@@ -320,17 +332,6 @@ public sealed class ModuleGenerator : IIncrementalGenerator
         foreach (var iface in type.AllInterfaces)
         {
             if (iface.Name == interfaceName) return true;
-        }
-        return false;
-    }
-
-    private static bool InheritsFrom(INamedTypeSymbol type, INamedTypeSymbol baseType)
-    {
-        var current = type.BaseType;
-        while (current is not null)
-        {
-            if (SymbolEqualityComparer.Default.Equals(current, baseType)) return true;
-            current = current.BaseType;
         }
         return false;
     }
@@ -477,14 +478,25 @@ public sealed class ModuleGenerator : IIncrementalGenerator
             ? "e is " + h.EventTypeFullyQualified + " " + local
             : "e is " + h.EventTypeFullyQualified + " " + local + " && " + string.Join(" && ", conditions);
 
+        string argExpression;
+        if (h.OneOfTypeFullyQualified is not null)
+        {
+            argExpression = h.OneOfTypeFullyQualified + ".FromT" + h.OneOfSlotIndex
+                + "((" + h.EventTypeFullyQualified + ")e)";
+        }
+        else
+        {
+            argExpression = "(" + h.EventTypeFullyQualified + ")e";
+        }
+
         sb.Append(indent).Append("__emitter.Subscribe(this, ");
         sb.Append("(global::System.Func<global::FellowshipAnalyzer.Core.Events.Event, bool>)(e => ").Append(predicate).Append("), ");
         if (h.IsAsync)
             sb.Append("(global::System.Func<global::FellowshipAnalyzer.Core.Events.Event, global::System.Threading.Tasks.Task>)(e => ")
-              .Append(h.MethodName).Append("((").Append(h.EventTypeFullyQualified).Append(")e))");
+              .Append(h.MethodName).Append("(").Append(argExpression).Append("))");
         else
             sb.Append("(global::System.Action<global::FellowshipAnalyzer.Core.Events.Event>)(e => ")
-              .Append(h.MethodName).Append("((").Append(h.EventTypeFullyQualified).Append(")e))");
+              .Append(h.MethodName).Append("(").Append(argExpression).Append("))");
         sb.AppendLine(");");
     }
 
@@ -536,7 +548,9 @@ public sealed class ModuleGenerator : IIncrementalGenerator
             bool EventImplementsAbility,
             bool EventImplementsExtraAbility,
             bool EventImplementsHasSource,
-            bool EventImplementsHasTarget)
+            bool EventImplementsHasTarget,
+            string? OneOfTypeFullyQualified,
+            int OneOfSlotIndex)
         {
             MethodName = methodName;
             EventTypeFullyQualified = eventTypeFullyQualified;
@@ -551,6 +565,8 @@ public sealed class ModuleGenerator : IIncrementalGenerator
             this.EventImplementsExtraAbility = EventImplementsExtraAbility;
             this.EventImplementsHasSource = EventImplementsHasSource;
             this.EventImplementsHasTarget = EventImplementsHasTarget;
+            this.OneOfTypeFullyQualified = OneOfTypeFullyQualified;
+            this.OneOfSlotIndex = OneOfSlotIndex;
         }
         public string MethodName { get; }
         public string EventTypeFullyQualified { get; }
@@ -565,6 +581,8 @@ public sealed class ModuleGenerator : IIncrementalGenerator
         public bool EventImplementsExtraAbility { get; }
         public bool EventImplementsHasSource { get; }
         public bool EventImplementsHasTarget { get; }
+        public string? OneOfTypeFullyQualified { get; }
+        public int OneOfSlotIndex { get; }
     }
 
     private sealed record LazyAccessorInfo(

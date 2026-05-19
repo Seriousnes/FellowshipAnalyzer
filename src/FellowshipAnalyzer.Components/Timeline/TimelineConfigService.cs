@@ -68,8 +68,10 @@ public sealed class TimelineConfigService(IJSRuntime js)
     /// <summary>
     /// Merges the stored config with defaults derived from the analysis run:
     /// <list type="bullet">
-    /// <item>Auras seen in the log but not in <paramref name="stored"/> are added with
-    /// <c>Visible = defaultHighlightedAuras.Contains(spellId)</c> and <c>Priority = 0</c>.</item>
+    /// <item>Pre-configured auras (those the hero declared via <c>TimelineHighlight = true</c>) that
+    /// aren't already in <paramref name="stored"/> are added with <c>Visible = true</c> and
+    /// <c>Priority = 0</c>. Non-pre-configured in-log auras are NOT auto-added — they only enter the
+    /// config when the user explicitly adds them via the settings modal.</item>
     /// <item>Cooldowns seen in the log but not in <paramref name="stored"/> are added visible by default.
     /// <c>SortOrder</c> is the spellbook entry's <c>TimelineSortIndex</c> when present, otherwise the
     /// cooldown's discovery order in the report.</item>
@@ -78,19 +80,18 @@ public sealed class TimelineConfigService(IJSRuntime js)
     /// </summary>
     public static TimelineConfig MergeWithDefaults(
         TimelineConfig stored,
-        IEnumerable<int> allAuraIds,
         IEnumerable<int> allCooldownIds,
         IReadOnlySet<int> defaultHighlightedAuras,
         IReadOnlyDictionary<int, int?> cooldownDefaultSortIndices)
     {
         var auraMap = stored.Auras.ToDictionary(a => a.SpellId);
-        foreach (var id in allAuraIds)
+        foreach (var id in defaultHighlightedAuras)
         {
             if (!auraMap.ContainsKey(id))
             {
                 auraMap[id] = new AuraConfigEntry(
                     SpellId: id,
-                    Visible: defaultHighlightedAuras.Contains(id),
+                    Visible: true,
                     Priority: 0);
             }
         }

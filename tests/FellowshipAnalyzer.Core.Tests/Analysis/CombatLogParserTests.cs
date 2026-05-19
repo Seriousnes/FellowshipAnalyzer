@@ -270,6 +270,21 @@ public sealed partial class CombatLogParserTests
     {
         protected override Type[] GetModuleTypes() => moduleTypes;
         protected override Type[] GetNormalizerTypes() => normalizerTypes;
+
+        protected override object? CreateInstance(Type type)
+        {
+            if (type == typeof(ProbeModule))
+                return new ProbeModule((SpellUsable)ResolveAnalysisModule(typeof(SpellUsable)));
+            if (type == typeof(CountingProbeModule))
+                return new CountingProbeModule();
+            if (type == typeof(SpellFilterProbeModule))
+                return new SpellFilterProbeModule();
+            if (type == typeof(FabricatingProbeModule))
+                return new FabricatingProbeModule();
+            if (type == typeof(TestResourceTracker))
+                return new TestResourceTracker(NullLogger<ResourceTracker>.Instance);
+            return base.CreateInstance(type);
+        }
     }
 
     private static List<Event> CreateEvents()

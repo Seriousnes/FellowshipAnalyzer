@@ -454,6 +454,17 @@ public sealed partial class HasteTests
         : CombatLogParser(emitter, provider)
     {
         protected override Type[] GetModuleTypes() => moduleTypes;
+
+        protected override object? CreateInstance(Type type)
+        {
+            if (type == typeof(HasteConfigWrapper))
+                return new HasteConfigWrapper(
+                    (Haste)ResolveAnalysisModule(typeof(Haste)),
+                    (HasteTestConfiguration)Provider.GetService(typeof(HasteTestConfiguration))!);
+            if (type == typeof(ChangeHasteProbe))
+                return new ChangeHasteProbe();
+            return base.CreateInstance(type);
+        }
     }
 
     private sealed record HasteTestConfiguration(Action<Haste>? Configure);

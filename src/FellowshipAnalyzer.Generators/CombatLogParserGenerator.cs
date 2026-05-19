@@ -83,7 +83,7 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
                 if (containingType.Name == AddModuleAttributeShortName)
                     ownModules.Add(BuildModuleTypeInfo(typeArg));
                 else if (containingType.Name == AddNormalizerAttributeShortName)
-                    normalizerTypes.Add(new TypeInfo(typeArg.Name, ns));
+                    normalizerTypes.Add(BuildNormalizerTypeInfo(typeArg));
             }
         }
 
@@ -172,6 +172,102 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
     }
 
     /// <summary>
+    /// Extracts the constructor parameters that the generator will pass when emitting
+    /// <c>new T(...)</c> in <c>CreateInstance</c>. Picks the public constructor with the
+    /// most parameters (single ctor in practice). For Lazy&lt;T&gt; parameters, captures
+    /// the inner type so the generator can emit <c>new Lazy&lt;T&gt;(() =&gt; ...)</c>
+    /// inline without a runtime <c>MakeGenericMethod</c> call.
+    /// </summary>
+    private static ImmutableArray<CtorParam> BuildCtorParams(INamedTypeSymbol type)
+    {
+        var fmt = SymbolDisplayFormat.FullyQualifiedFormat;
+        var ctor = type.InstanceConstructors
+            .Where(c => c.DeclaredAccessibility == Accessibility.Public)
+            .OrderByDescending(c => c.Parameters.Length)
+            .FirstOrDefault();
+
+        if (ctor is null || ctor.Parameters.Length == 0)
+            return ImmutableArray<CtorParam>.Empty;
+
+        var builder = ImmutableArray.CreateBuilder<CtorParam>(ctor.Parameters.Length);
+        foreach (var p in ctor.Parameters)
+        {
+            var nullable = p.NullableAnnotation == NullableAnnotation.Annotated;
+            if (p.Type is INamedTypeSymbol named
+                && named.IsGenericType
+                && named.Name == "Lazy"
+                && named.ContainingNamespace?.ToDisplayString() == "System"
+                && named.TypeArguments.Length == 1)
+            {
+                var inner = named.TypeArguments[0].ToDisplayString(fmt);
+                var lazyFq = named.ToDisplayString(fmt);
+                builder.Add(new CtorParam(lazyFq, inner, nullable));
+            }
+            else
+            {
+                builder.Add(new CtorParam(p.Type.ToDisplayString(fmt), null, nullable));
+            }
+        }
+        return builder.ToImmutable();
+    }
+
+    private const string ParseContextFqn = "global::FellowshipAnalyzer.Core.Analysis.ParseContext";
+    private const string EventReadOnlyListFqn = "global::System.Collections.Generic.IReadOnlyList<global::FellowshipAnalyzer.Core.Events.Event>";
+
+    /// <summary>
+    /// Emits the C# expression for a single constructor argument. Routes by parameter kind:
+    /// <list type="bullet">
+    /// <item><c>Lazy&lt;T&gt;</c> deps build inline via <c>ResolveAnalysisModule</c>.</item>
+    /// <item><see cref="ParseContextFqn"/> reads from the parser's <c>CurrentParseContext</c>.</item>
+    /// <item><see cref="EventReadOnlyListFqn"/> reads from the parser's <c>Events</c> property.</item>
+    /// <item>Module-type deps resolve via <c>ResolveAnalysisModule</c>.</item>
+    /// <item>Everything else falls back to the outer DI container via <c>Provider</c>.</item>
+    /// </list>
+    /// </summary>
+    private static string EmitCtorArg(CtorParam p, HashSet<string> moduleTypeFqns)
+    {
+        if (p.LazyInnerFullyQualified != null)
+        {
+            var inner = p.LazyInnerFullyQualified;
+            return "new " + p.FullyQualified + "(() => (" + inner + ")ResolveAnalysisModule(typeof(" + inner + ")))";
+        }
+        if (p.FullyQualified == ParseContextFqn)
+            return "CurrentParseContext";
+        if (p.FullyQualified == EventReadOnlyListFqn)
+            return "Events";
+        if (moduleTypeFqns.Contains(p.FullyQualified))
+        {
+            var castType = p.Nullable ? p.FullyQualified + "?" : p.FullyQualified;
+            return "(" + castType + ")ResolveAnalysisModule(typeof(" + p.FullyQualified + "))";
+        }
+        var outerCast = p.Nullable ? p.FullyQualified + "?" : p.FullyQualified;
+        var bang = p.Nullable ? "" : "!";
+        return "(" + outerCast + ")Provider.GetService(typeof(" + p.FullyQualified + "))" + bang;
+    }
+
+    private static void EmitCreateInstanceBody(StringBuilder sb, IEnumerable<TypeInfo> types, string indent, HashSet<string> moduleTypeFqns)
+    {
+        foreach (var t in types)
+        {
+            sb.Append(indent).Append("if (type == typeof(global::").Append(t.FullyQualifiedName).AppendLine("))");
+            if (t.CtorParams.Length == 0)
+            {
+                sb.Append(indent).Append("    return new global::").Append(t.FullyQualifiedName).AppendLine("();");
+            }
+            else
+            {
+                sb.Append(indent).Append("    return new global::").Append(t.FullyQualifiedName).Append('(');
+                for (var i = 0; i < t.CtorParams.Length; i++)
+                {
+                    if (i > 0) sb.Append(", ");
+                    sb.Append(EmitCtorArg(t.CtorParams[i], moduleTypeFqns));
+                }
+                sb.AppendLine(");");
+            }
+        }
+    }
+
+    /// <summary>
     /// Builds a <see cref="TypeInfo"/> for a module type, capturing all module-level metadata
     /// (Abilities inheritance, <c>ToReport()</c> result type, <c>[ActiveWhen&lt;T&gt;]</c>
     /// predicate, and <c>[Before&lt;T&gt;]</c> / <c>[After&lt;T&gt;]</c> ordering constraints).
@@ -204,7 +300,15 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
         }
 
         return new TypeInfo(moduleType.Name, ns, extendsAbilities, reportType, activePredicate,
-            beforeFqns.ToImmutableArray(), afterFqns.ToImmutableArray());
+            beforeFqns.ToImmutableArray(), afterFqns.ToImmutableArray(), BuildCtorParams(moduleType));
+    }
+
+    private static TypeInfo BuildNormalizerTypeInfo(INamedTypeSymbol normalizerType)
+    {
+        return new TypeInfo(
+            normalizerType.Name,
+            GetNamespace(normalizerType),
+            ctorParams: BuildCtorParams(normalizerType));
     }
 
     private static string FullyQualifiedName(INamedTypeSymbol t)
@@ -244,7 +348,7 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
 
             if (attr.AttributeClass.TypeArguments[0] is not INamedTypeSymbol typeArg) continue;
 
-            normalizers.Add(new TypeInfo(typeArg.Name, GetNamespace(typeArg)));
+            normalizers.Add(BuildNormalizerTypeInfo(typeArg));
         }
     }
 
@@ -455,6 +559,21 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
             sb.AppendLine("    ];");
         }
 
+        var moduleTypeFqns = new HashSet<string>();
+        foreach (var m in info.BaseModules) moduleTypeFqns.Add("global::" + m.FullyQualifiedName);
+        foreach (var m in info.OwnModules) moduleTypeFqns.Add("global::" + m.FullyQualifiedName);
+
+        if (info.OwnModules.Length > 0 || info.OwnNormalizerTypes.Length > 0)
+        {
+            sb.AppendLine();
+            sb.AppendLine("    protected override object? CreateInstance(global::System.Type type)");
+            sb.AppendLine("    {");
+            EmitCreateInstanceBody(sb, info.OwnModules, "        ", moduleTypeFqns);
+            EmitCreateInstanceBody(sb, info.OwnNormalizerTypes, "        ", moduleTypeFqns);
+            sb.AppendLine("        return base.CreateInstance(type);");
+            sb.AppendLine("    }");
+        }
+
         var reportContributors = new List<(TypeInfo Module, string PropertyName)>();
         foreach (var m in info.BaseModules)
         {
@@ -517,9 +636,11 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
     }
 
     /// <summary>
-    /// Generates the AddCoreAnalysis DI extension from the abstract CombatLogParser base class.
-    /// Registers EventEmitter; modules and normalizers are constructed per-analysis
-    /// via AnalysisRunServiceProvider and are not registered in the outer DI container.
+    /// Generates the abstract base partial for <c>CombatLogParser</c>. Emits the typed
+    /// module accessors, the <c>CreateInstance</c> factory for base-declared modules and
+    /// normalizers, and the <c>AddCoreAnalysis</c> DI extension. Modules and normalizers are
+    /// constructed per-analysis via <c>CreateInstance</c> and are never registered in the
+    /// outer DI container.
     /// </summary>
     private static void EmitCoreExtension(SourceProductionContext ctx, ParserInfo info)
     {
@@ -538,6 +659,22 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
             var propName = StripSuffix(m.Name, "Analyzer");
             sb.AppendLine("    public " + m.FullyQualifiedName + "? " + propName + " => GetModule<" + m.FullyQualifiedName + ">();");
         }
+
+        var baseModuleTypeFqns = new HashSet<string>();
+        foreach (var m in info.OwnModules) baseModuleTypeFqns.Add("global::" + m.FullyQualifiedName);
+
+        sb.AppendLine();
+        sb.AppendLine("    /// <summary>");
+        sb.AppendLine("    /// Per-analysis factory hook. Source-generated on the abstract base for every module and");
+        sb.AppendLine("    /// normalizer declared via <c>[AddModule]</c> / <c>[AddNormalizer]</c> on this class.");
+        sb.AppendLine("    /// Concrete hero parsers override this and chain to <c>base.CreateInstance</c>.");
+        sb.AppendLine("    /// </summary>");
+        sb.AppendLine("    protected virtual object? CreateInstance(global::System.Type type)");
+        sb.AppendLine("    {");
+        EmitCreateInstanceBody(sb, info.OwnModules, "        ", baseModuleTypeFqns);
+        EmitCreateInstanceBody(sb, info.OwnNormalizerTypes, "        ", baseModuleTypeFqns);
+        sb.AppendLine("        return null;");
+        sb.AppendLine("    }");
         sb.AppendLine("}");
         sb.AppendLine();
 
@@ -567,7 +704,8 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
             string? reportTypeFullyQualified = null,
             string? activePredicateFullyQualified = null,
             ImmutableArray<string> beforeModules = default,
-            ImmutableArray<string> afterModules = default)
+            ImmutableArray<string> afterModules = default,
+            ImmutableArray<CtorParam> ctorParams = default)
         {
             Name = name;
             Namespace = ns;
@@ -576,6 +714,7 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
             ActivePredicateFullyQualified = activePredicateFullyQualified;
             BeforeModules = beforeModules.IsDefault ? ImmutableArray<string>.Empty : beforeModules;
             AfterModules = afterModules.IsDefault ? ImmutableArray<string>.Empty : afterModules;
+            CtorParams = ctorParams.IsDefault ? ImmutableArray<CtorParam>.Empty : ctorParams;
         }
         public string Name { get; }
         public string Namespace { get; }
@@ -589,7 +728,25 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
         public ImmutableArray<string> BeforeModules { get; }
         /// <summary>Fully-qualified module names this module must come after (from <c>[After&lt;T&gt;]</c>).</summary>
         public ImmutableArray<string> AfterModules { get; }
+        /// <summary>Parameters of the public constructor selected for generator-emitted construction.</summary>
+        public ImmutableArray<CtorParam> CtorParams { get; }
         public string FullyQualifiedName => string.IsNullOrEmpty(Namespace) ? Name : Namespace + "." + Name;
+    }
+
+    private sealed class CtorParam
+    {
+        public CtorParam(string fullyQualified, string? lazyInnerFullyQualified, bool nullable)
+        {
+            FullyQualified = fullyQualified;
+            LazyInnerFullyQualified = lazyInnerFullyQualified;
+            Nullable = nullable;
+        }
+        /// <summary>The parameter's type, fully qualified with <c>global::</c> prefix.</summary>
+        public string FullyQualified { get; }
+        /// <summary>For <c>Lazy&lt;T&gt;</c> parameters, the inner T fully qualified; otherwise null.</summary>
+        public string? LazyInnerFullyQualified { get; }
+        /// <summary>True when the parameter has a nullable reference type annotation.</summary>
+        public bool Nullable { get; }
     }
 
     private sealed class ParserInfo(

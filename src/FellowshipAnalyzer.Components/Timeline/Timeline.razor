@@ -139,12 +139,16 @@
             </div>
         </div>
 
+        var preconfiguredAuraIds = aurasModule?.TimelineHighlightedIds
+            ?? (IReadOnlySet<int>)new HashSet<int>();
+
         <TimelineSettingsModal IsOpen="@_settingsOpen"
                                OnClose="() => _settingsOpen = false"
                                Config="@_effectiveConfig"
                                OnConfigChanged="OnConfigChangedAsync"
                                AvailableAuras="@availableAuraOptions"
-                               AvailableCooldowns="@availableCooldownOptions" />
+                               AvailableCooldowns="@availableCooldownOptions"
+                               PreconfiguredAuraIds="@preconfiguredAuraIds" />
     }
 </div>
 
@@ -183,15 +187,8 @@
 
     private TimelineConfig BuildMergedConfig(TimelineConfig stored)
     {
-        var combatants = Result.Modules.OfType<Combatants>().FirstOrDefault();
         var abilities = Result.Modules.OfType<Abilities>().FirstOrDefault();
         var aurasModule = Result.Modules.OfType<Auras>().FirstOrDefault();
-
-        var allAuraIds = combatants?.Selected?.Buffs
-            .Where(b => b.TargetId == PlayerId && !b.IsDebuff)
-            .Select(b => b.Ability.Guid)
-            .Distinct()
-            .ToList() ?? [];
 
         var allCooldownIds = Result.Events
             .OfType<UpdateSpellUsableEvent>()
@@ -209,7 +206,6 @@
 
         return TimelineConfigService.MergeWithDefaults(
             stored,
-            allAuraIds,
             allCooldownIds,
             defaultHighlights,
             cooldownDefaultSortIndices);

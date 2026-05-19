@@ -300,6 +300,13 @@ public sealed class GlobalCooldownTests
     {
         protected override Type[] GetModuleTypes() => moduleTypes;
         protected override Type[] GetNormalizerTypes() => normalizerTypes;
+
+        protected override object? CreateInstance(Type type)
+        {
+            if (type == typeof(TestAbilities))
+                return new TestAbilities((TestAbilityConfiguration)Provider.GetService(typeof(TestAbilityConfiguration))!);
+            return base.CreateInstance(type);
+        }
     }
 
     internal sealed record TestAbilityConfiguration(Action<TestAbilities>? Configure);

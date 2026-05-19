@@ -4,7 +4,7 @@ using FellowshipAnalyzer.Core.Analysis.Normalizers;
 using FellowshipAnalyzer.Core.Events;
 using FellowshipAnalyzer.Core.FellowshipLogs;
 
-using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace FellowshipAnalyzer.Core.Analysis;
 
@@ -28,6 +28,11 @@ namespace FellowshipAnalyzer.Core.Analysis;
 [AddModule<ChronoshiftAnalyzer>]
 public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServiceProvider provider) : IHeroAnalyzer
 {
+    /// <summary>The outer DI container, passed through from the parser's primary constructor.
+    /// Generated <c>CreateInstance</c> emits read from this to obtain framework-supplied
+    /// dependencies such as <c>ILogger&lt;T&gt;</c> and <see cref="ReportMasterDataService"/>.</summary>
+    protected IServiceProvider Provider { get; } = provider;
+
     public EventEmitter EventEmitter { get; private set; } = eventEmitter;
 
     public List<Event> Events { get; set; } = [];
@@ -73,6 +78,62 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
     public virtual Hero? Hero => null;
 
     private Dictionary<Type, Module> _activeModules = [];
+    private readonly Dictionary<Type, object> _runInstances = [];
+    private readonly Dictionary<Type, int> _moduleTypeIndex = [];
+    private Type[] _runModuleTypes = [];
+
+    /// <summary>
+    /// The <see cref="ParseContext"/> for the analysis currently in progress. Populated at the
+    /// start of <see cref="Analyze"/> and read by generator-emitted <see cref="CreateInstance"/>
+    /// to inject context into modules and normalizers that need it.
+    /// </summary>
+    protected ParseContext CurrentParseContext { get; private set; } = null!;
+
+    /// <summary>
+    /// Resolves a module by type for the current analysis run. Supports polymorphic resolution
+    /// (e.g. <c>typeof(Abilities)</c> resolves to a hero's <c>Abilities</c> subclass when one is
+    /// registered). Constructs via <see cref="CreateInstance"/> on first request, caches the
+    /// result for the rest of the run, and assigns <see cref="Module.Owner"/> on construction.
+    /// </summary>
+    protected object ResolveAnalysisModule(Type type)
+    {
+        if (_runInstances.TryGetValue(type, out var existing)) return existing;
+
+        var concrete = type;
+        if (!_moduleTypeIndex.ContainsKey(type))
+        {
+            Type? match = null;
+            foreach (var mt in _runModuleTypes)
+            {
+                if (!type.IsAssignableFrom(mt)) continue;
+                if (match != null)
+                    throw new InvalidOperationException($"Ambiguous module resolution: multiple registered modules are assignable to {type.Name}.");
+                match = mt;
+            }
+            if (match is null)
+                throw new InvalidOperationException($"No registered module is assignable to {type.Name}.");
+            concrete = match;
+            if (_runInstances.TryGetValue(concrete, out var existingConcrete))
+            {
+                _runInstances[type] = existingConcrete;
+                return existingConcrete;
+            }
+        }
+
+        var instance = CreateInstance(concrete)
+            ?? throw new InvalidOperationException($"No generated factory for {concrete.Name}. Override CreateInstance on the parser to construct it.");
+
+        _runInstances[concrete] = instance;
+        if (type != concrete) _runInstances[type] = instance;
+
+        if (instance is Module module)
+        {
+            module.Owner = this;
+            if (_moduleTypeIndex.TryGetValue(concrete, out var priority))
+                module.Priority = priority;
+        }
+        return instance;
+    }
 
     /// <summary>
     /// Returns the types of all modules to resolve from DI for this parser.
@@ -124,34 +185,40 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
 
     public async Task<HeroAnalysisResult> Analyze(IReadOnlyList<Event> events, int playerId, ReportFight fight)
     {
-        // Assign parse-time state up-front so ParseContext and IsModuleActive can read it.
         PlayerId = playerId;
         Fight = fight;
         CurrentTimestamp = (int)fight.StartTime;
 
-        // [ActiveWhen<>] gates are evaluated per-module in declaration order so that earlier
-        // modules can populate state (e.g. Combatants.Selected) that later predicates depend on.
         var allModuleTypes = GetModuleTypes();
         var normalizerTypes = GetNormalizerTypes();
-        var analysisServices = new AnalysisRunServiceProvider(provider, this, allModuleTypes, normalizerTypes);
 
-        EventEmitter = analysisServices.GetRequiredService<EventEmitter>();
+        _runInstances.Clear();
+        _moduleTypeIndex.Clear();
+        _runModuleTypes = allModuleTypes;
+        for (var i = 0; i < allModuleTypes.Length; i++)
+            _moduleTypeIndex[allModuleTypes[i]] = i;
+
         Events = [.. events];
+        CurrentParseContext = new ParseContext(playerId, fight, ActorNames, SelectedCombatant);
+
+        EventEmitter = new EventEmitter((ILogger<EventEmitter>)Provider.GetService(typeof(ILogger<EventEmitter>))!)
+        {
+            Owner = this,
+        };
+        _runInstances[typeof(EventEmitter)] = EventEmitter;
+
         _activeModules = [];
         foreach (var t in allModuleTypes)
         {
-            var parseContext = new ParseContext(playerId, fight, ActorNames, SelectedCombatant);
-            if (!IsModuleActive(t, parseContext)) continue;
-            var m = (Module)(analysisServices.GetService(t) ?? throw new InvalidOperationException($"Module {t.Name} not registered."));
+            if (!IsModuleActive(t, CurrentParseContext)) continue;
+            var m = (Module)ResolveAnalysisModule(t);
             m.Priority = _activeModules.Count;
-            m.Owner = this;
             if (m.Active)
                 _activeModules[m.GetType()] = m;
         }
 
-        var tracker = provider.GetService(typeof(ReportLoadingTracker)) as ReportLoadingTracker;
+        var tracker = Provider.GetService(typeof(ReportLoadingTracker)) as ReportLoadingTracker;
 
-        // Run normalizers
         if (tracker is not null)
         {
             tracker.NormalizeState = ReportLoadingTracker.StepState.Loading;
@@ -162,8 +229,8 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
 
         foreach (var normalizerType in normalizerTypes)
         {
-            var normalizer = (IEventNormalizer)(analysisServices.GetService(normalizerType)
-                ?? throw new InvalidOperationException($"Normalizer {normalizerType.Name} not registered."));
+            var normalizer = (IEventNormalizer)(CreateInstance(normalizerType)
+                ?? throw new InvalidOperationException($"No generated factory for normalizer {normalizerType.Name}."));
             Events = normalizer.Normalize(Events, playerId);
             if (tracker is not null) tracker.NormalizedCount++;
             await Task.Yield();
@@ -233,112 +300,5 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
     public bool ByPlayerPet(IHasSourceEvent e) => false; // TODO: implement when pet tracking is added
 
     public bool ToPlayerPet(IHasTargetEvent e) => false; // TODO: implement when pet tracking is added
-
-    private sealed class AnalysisRunServiceProvider(
-        IServiceProvider fallback,
-        CombatLogParser owner,
-        IReadOnlyList<Type> moduleTypes,
-        IReadOnlyList<Type> normalizerTypes) : IServiceProvider
-    {
-        private static readonly System.Reflection.MethodInfo CreateLazyMethod =
-            typeof(AnalysisRunServiceProvider).GetMethod(
-                nameof(CreateLazy),
-                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!;
-
-        private readonly Dictionary<Type, object> _instances = [];
-        private readonly Dictionary<Type, int> _modulePriorities = moduleTypes
-            .Select((type, index) => (type, index))
-            .ToDictionary(static x => x.type, static x => x.index);
-        private readonly HashSet<Type> _normalizerTypes = [.. normalizerTypes];
-
-        private Lazy<T> CreateLazy<T>() where T : class =>
-            new(() => (T)GetService(typeof(T))!);
-
-        public object? GetService(Type serviceType)
-        {
-            if (serviceType == typeof(IServiceProvider))
-            {
-                return this;
-            }
-
-            if (serviceType == typeof(EventEmitter))
-            {
-                return GetOrCreate(typeof(EventEmitter));
-            }
-
-            if (serviceType == typeof(ParseContext))
-            {
-                return new ParseContext(owner.PlayerId, owner.Fight, owner.ActorNames, owner.SelectedCombatant);
-            }
-
-            if (serviceType == typeof(IReadOnlyList<Event>))
-            {
-                return owner.Events;
-            }
-
-            // Lazy<TModule> defers resolution to break ctor cycles without giving up DI.
-            // Cycle analyzer FA0013 ignores Lazy<>-shaped edges.
-            if (serviceType.IsGenericType && serviceType.GetGenericTypeDefinition() == typeof(Lazy<>))
-            {
-                var inner = serviceType.GetGenericArguments()[0];
-                return CreateLazyMethod
-                    .MakeGenericMethod(inner)
-                    .Invoke(this, null);
-            }
-
-            if (TryGetModuleType(serviceType, out var moduleType))
-            {
-                return GetOrCreate(moduleType);
-            }
-
-            if (_normalizerTypes.Contains(serviceType))
-            {
-                return GetOrCreate(serviceType);
-            }
-
-            return fallback.GetService(serviceType);
-        }
-
-        private object GetOrCreate(Type implementationType)
-        {
-            if (_instances.TryGetValue(implementationType, out var existing))
-            {
-                return existing;
-            }
-
-            var instance = ActivatorUtilities.CreateInstance(this, implementationType);
-            _instances[implementationType] = instance;
-
-            if (instance is Module module)
-            {
-                module.Owner = owner;
-                if (_modulePriorities.TryGetValue(implementationType, out var priority))
-                {
-                    module.Priority = priority;
-                }
-            }
-
-            return instance;
-        }
-
-        private bool TryGetModuleType(Type serviceType, out Type moduleType)
-        {
-            if (_modulePriorities.ContainsKey(serviceType))
-            {
-                moduleType = serviceType;
-                return true;
-            }
-
-            var matches = moduleTypes.Where(serviceType.IsAssignableFrom).ToList();
-            if (matches.Count == 1)
-            {
-                moduleType = matches[0];
-                return true;
-            }
-
-            moduleType = null!;
-            return false;
-        }
-    }
 }
 
