@@ -1,42 +1,40 @@
 @namespace FellowshipAnalyzer.Heroes.Elarion.Statistics
 @using FellowshipAnalyzer.Components
+@using FellowshipAnalyzer.Core.Common.Spells
 @using FellowshipAnalyzer.Heroes.Elarion.Modules
 @inherits AnalyzerStatistic<StarfallVolleyDesyncAnalyzer>
 
-<StatCard Title="Volley Desync">
-    <CastOverview Title="Mark / Volley Spacing" Stats="@BuildOverviewStats()" />
-</StatCard>
+<Statistic TooltipTitle="Average time between the previous Lunarlight Mark and each Starfall Volley. Target spacing is 10–15 seconds.">
+    <SpellValueText Spell="Spells.StarfallVolley">
+        @if (Analyzer.VolleyCount == 0)
+        {
+            <span>—</span> <small>no volleys</small>
+        }
+        else
+        {
+            <span class="@AvgClass">@($"{Analyzer.AverageGapMs / 1000.0:F1}s")</span> <small>average gap from mark</small>
+            <div class="stat-sub">
+                <span class="@CloseClass">@Analyzer.CloseGapCount</span> <small>close-spaced · @Analyzer.VolleyCount volleys</small>
+            </div>
+        }
+    </SpellValueText>
+</Statistic>
 
 @code {
-    private IEnumerable<OverviewStat> BuildOverviewStats()
+    private string AvgClass
     {
-        var avg = Analyzer.AverageGapMs / 1000.0;
-        var avgTier = avg >= 10 && avg <= 15 ? PerformanceTier.Perfect
-            : avg >= 7 && avg < 20 ? PerformanceTier.Good
-            : avg >= 5 ? PerformanceTier.Ok
-            : PerformanceTier.Fail;
-
-        var closeTier = Analyzer.CloseGapCount == 0 ? PerformanceTier.Perfect
-            : Analyzer.CloseGapCount < 2 ? PerformanceTier.Good
-            : Analyzer.CloseGapCount < 4 ? PerformanceTier.Ok
-            : PerformanceTier.Fail;
-
-        return
-        [
-            new OverviewStat(
-                Analyzer.VolleyCount == 0 ? "—" : $"{avg:F1}s",
-                "Average Gap",
-                "Mean time between the previous Lunarlight Mark and each Starfall Volley cast. Target: 10-15s.",
-                Analyzer.VolleyCount == 0 ? null : avgTier),
-            new OverviewStat(
-                $"{Analyzer.CloseGapCount}",
-                "Close Casts",
-                "Volleys cast within 5s of a Lunarlight Mark — too tight to re-apply marks between volleys.",
-                closeTier),
-            new OverviewStat(
-                $"{Analyzer.VolleyCount}",
-                "Volleys",
-                "Total Starfall Volley casts."),
-        ];
+        get
+        {
+            var avg = Analyzer.AverageGapMs / 1000.0;
+            return avg >= 10 && avg <= 15 ? "perfect"
+                : avg >= 7 && avg < 20 ? "good"
+                : avg >= 5 ? "ok"
+                : "fail";
+        }
     }
+
+    private string CloseClass => Analyzer.CloseGapCount == 0 ? "perfect"
+        : Analyzer.CloseGapCount < 2 ? "good"
+        : Analyzer.CloseGapCount < 4 ? "ok"
+        : "fail";
 }

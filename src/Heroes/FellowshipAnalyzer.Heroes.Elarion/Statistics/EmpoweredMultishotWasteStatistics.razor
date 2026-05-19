@@ -1,35 +1,21 @@
 @namespace FellowshipAnalyzer.Heroes.Elarion.Statistics
 @using FellowshipAnalyzer.Components
+@using FellowshipAnalyzer.Core.Common.Spells
 @using FellowshipAnalyzer.Heroes.Elarion.Modules
 @inherits AnalyzerStatistic<EmpoweredMultishotWasteAnalyzer>
 
-<StatCard Title="Empowered Multishot">
-    <CastOverview Title="Empowered Usage" Stats="@BuildOverviewStats()" />
-</StatCard>
+<Statistic TooltipTitle="Empowered Multishot buffs should be consumed before they expire. Detection uses the buff name; spell ID may not be wired yet.">
+    <SpellValueText Spell="Spells.Multishot">
+        @Analyzer.EmpoweredConsumed <small>empowered consumed</small>
+        <div class="stat-sub">
+            <span class="@WasteClass">@Analyzer.WastedExpirations</span> <small>wasted · @Analyzer.RegularCasts regular casts</small>
+        </div>
+    </SpellValueText>
+</Statistic>
 
 @code {
-    private IEnumerable<OverviewStat> BuildOverviewStats()
-    {
-        var wasteTier = Analyzer.WastedExpirations == 0 ? PerformanceTier.Perfect
-            : Analyzer.WastedExpirations < 2 ? PerformanceTier.Good
-            : Analyzer.WastedExpirations < 4 ? PerformanceTier.Ok
-            : PerformanceTier.Fail;
-
-        return
-        [
-            new OverviewStat(
-                $"{Analyzer.EmpoweredConsumed}",
-                "Empowered",
-                "Multishot casts that consumed an Empowered Multishot buff."),
-            new OverviewStat(
-                $"{Analyzer.WastedExpirations}",
-                "Wasted",
-                "Empowered Multishot buffs that expired without being consumed.",
-                wasteTier),
-            new OverviewStat(
-                $"{Analyzer.RegularCasts}",
-                "Regular",
-                "Multishot casts with no Empowered Multishot buff active."),
-        ];
-    }
+    private string WasteClass => Analyzer.WastedExpirations == 0 ? "perfect"
+        : Analyzer.WastedExpirations < 2 ? "good"
+        : Analyzer.WastedExpirations < 4 ? "ok"
+        : "fail";
 }

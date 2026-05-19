@@ -1,56 +1,37 @@
 @namespace FellowshipAnalyzer.Heroes.Elarion.Statistics
 @using FellowshipAnalyzer.Components
+@using FellowshipAnalyzer.Core.Common.Spells
 @using FellowshipAnalyzer.Heroes.Elarion.Modules
 @inherits AnalyzerStatistic<ImpendingHeartseekerAnalyzer>
 
-<StatCard Title="Impending Heartseeker">
-    <CastOverview Title="Proc Lifecycle" Stats="@BuildOverviewStats()" />
-    <StackedBar Segments="@BuildStackedBar()" />
-</StatCard>
+<Statistic TooltipTitle="Impending Heartseeker procs from Focused Shot and lasts 15 seconds. Procs that expire unused are wasted.">
+    <SpellValueText Spell="Spells.ImpendingHeartseeker">
+        @{
+            var settled = Analyzer.Consumed + Analyzer.Expired;
+            var rate = settled == 0 ? 0 : Analyzer.Consumed * 100.0 / settled;
+        }
+        @if (settled == 0)
+        {
+            <span>—</span> <small>no procs</small>
+        }
+        else
+        {
+            <span class="@RateClass(rate)">@($"{rate:F0}%")</span> <small>consume rate · @Analyzer.Consumed/@settled</small>
+            <div class="stat-sub">
+                <span class="@ExpiredClass">@Analyzer.Expired</span> <small>expired · @Analyzer.Gains gained</small>
+            </div>
+        }
+    </SpellValueText>
+</Statistic>
 
 @code {
-    private IEnumerable<OverviewStat> BuildOverviewStats()
-    {
-        var settled = Analyzer.Consumed + Analyzer.Expired;
-        var consumeRate = settled == 0 ? 0 : Analyzer.Consumed * 100.0 / settled;
+    private string RateClass(double rate) => rate >= 95 ? "perfect"
+        : rate >= 80 ? "good"
+        : rate >= 60 ? "ok"
+        : "fail";
 
-        var rateTier = consumeRate >= 95 ? PerformanceTier.Perfect
-            : consumeRate >= 80 ? PerformanceTier.Good
-            : consumeRate >= 60 ? PerformanceTier.Ok
-            : PerformanceTier.Fail;
-
-        var expiredTier = Analyzer.Expired == 0 ? PerformanceTier.Perfect
-            : Analyzer.Expired < 2 ? PerformanceTier.Good
-            : Analyzer.Expired < 4 ? PerformanceTier.Ok
-            : PerformanceTier.Fail;
-
-        return
-        [
-            new OverviewStat(
-                settled == 0 ? "—" : $"{consumeRate:F0}%",
-                "Consume Rate",
-                "Of procs that resolved, the share that were consumed before expiring.",
-                settled == 0 ? null : rateTier),
-            new OverviewStat(
-                $"{Analyzer.Expired}",
-                "Expired",
-                "Procs that timed out (~15s) without being consumed.",
-                expiredTier),
-            new OverviewStat(
-                $"{Analyzer.Gains}",
-                "Gained",
-                "Total proc gains observed."),
-        ];
-    }
-
-    private IEnumerable<StackedBarSegment> BuildStackedBar()
-    {
-        return
-        [
-            new StackedBarSegment("Consumed", Analyzer.Consumed, PerformanceColors.Good,
-                $"{Analyzer.Consumed} procs consumed."),
-            new StackedBarSegment("Expired", Analyzer.Expired, PerformanceColors.Fail,
-                $"{Analyzer.Expired} procs expired unused."),
-        ];
-    }
+    private string ExpiredClass => Analyzer.Expired == 0 ? "perfect"
+        : Analyzer.Expired < 2 ? "good"
+        : Analyzer.Expired < 4 ? "ok"
+        : "fail";
 }

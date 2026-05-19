@@ -1,42 +1,33 @@
 @namespace FellowshipAnalyzer.Heroes.Elarion.Statistics
 @using FellowshipAnalyzer.Components
+@using FellowshipAnalyzer.Core.Common.Spells
 @using FellowshipAnalyzer.Heroes.Elarion.Modules
 @inherits AnalyzerStatistic<HighwindArrowCapAnalyzer>
 
-<StatCard Title="Highwind Arrow Cap">
-    <CastOverview Title="Charge Discipline" Stats="@BuildOverviewStats()" />
-</StatCard>
+<Statistic TooltipTitle="Time at the Highwind Arrow charge cap wastes recharge time.">
+    <SpellValueText Spell="Spells.HighwindArrow">
+        <span class="@CapClass">@($"{Analyzer.CapPercentage * 100:F0}%")</span> <small>time at cap</small>
+        <div class="stat-sub">
+            <span class="@CastClass">@Analyzer.CastsWhileCapped</span> <small>casts at cap · @Analyzer.TotalCasts total</small>
+        </div>
+    </SpellValueText>
+</Statistic>
 
 @code {
-    private IEnumerable<OverviewStat> BuildOverviewStats()
+    private string CapClass
     {
-        var capPct = Analyzer.CapPercentage * 100;
-        var capTier = capPct < 5 ? PerformanceTier.Perfect
-            : capPct < 15 ? PerformanceTier.Good
-            : capPct < 25 ? PerformanceTier.Ok
-            : PerformanceTier.Fail;
-
-        var castsTier = Analyzer.CastsWhileCapped == 0 ? PerformanceTier.Perfect
-            : Analyzer.CastsWhileCapped < 3 ? PerformanceTier.Good
-            : Analyzer.CastsWhileCapped < 6 ? PerformanceTier.Ok
-            : PerformanceTier.Fail;
-
-        return
-        [
-            new OverviewStat(
-                $"{capPct:F0}%",
-                "Time at Cap",
-                "Percentage of fight time spent sitting at the 3-charge cap.",
-                capTier),
-            new OverviewStat(
-                $"{Analyzer.CastsWhileCapped}",
-                "Casts at Cap",
-                "Casts that fired while charges were already capped (cooldown was wasted).",
-                castsTier),
-            new OverviewStat(
-                $"{Analyzer.TotalCasts}",
-                "Total Casts",
-                "Total Highwind Arrow casts during the fight."),
-        ];
+        get
+        {
+            var capPct = Analyzer.CapPercentage * 100;
+            return capPct < 5 ? "perfect"
+                : capPct < 15 ? "good"
+                : capPct < 25 ? "ok"
+                : "fail";
+        }
     }
+
+    private string CastClass => Analyzer.CastsWhileCapped == 0 ? "perfect"
+        : Analyzer.CastsWhileCapped < 3 ? "good"
+        : Analyzer.CastsWhileCapped < 6 ? "ok"
+        : "fail";
 }

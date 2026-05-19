@@ -1,0 +1,27 @@
+@* SpellValue — heavier stat block: large spell icon on the left, value + small label on the right. *@
+@using FellowshipAnalyzer.Core.Common.Spells
+@using OneOf
+
+<div class="spell-value">
+    <div class="spell-value-icon">
+        <SpellIcon Spell="Spell" Size="SpellIconSize.Large" />
+    </div>
+    <div class="spell-value-body">
+        <div class="spell-value-primary">@Value</div>
+        <small class="spell-value-label">@Label</small>
+        @Extra
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public OneOf<Spell, int, SpellbookAbility, Ability> Spell { get; set; }
+
+    [Parameter, EditorRequired]
+    public RenderFragment Value { get; set; } = null!;
+
+    [Parameter, EditorRequired]
+    public RenderFragment Label { get; set; } = null!;
+
+    [Parameter] public RenderFragment? Extra { get; set; }
+}

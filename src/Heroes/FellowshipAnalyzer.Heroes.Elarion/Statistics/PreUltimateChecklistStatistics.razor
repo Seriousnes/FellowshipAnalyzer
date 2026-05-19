@@ -1,34 +1,31 @@
 @namespace FellowshipAnalyzer.Heroes.Elarion.Statistics
 @using FellowshipAnalyzer.Components
+@using FellowshipAnalyzer.Core.Common.Spells
 @using FellowshipAnalyzer.Heroes.Elarion.Modules
 @inherits AnalyzerStatistic<PreUltimateChecklistAnalyzer>
 
-<StatCard Title="Pre-Ultimate Setup">
-    <CastOverview Title="Checklist Score" Stats="@BuildOverviewStats()" />
-</StatCard>
+<Statistic TooltipTitle="Each ultimate is scored against five pre-conditions: Supremacy, Voidbringer, Grace, Event Horizon, Barrage availability.">
+    <SpellValueText Spell="Spells.SpiritOfHeroism">
+        @{
+            var ults = Analyzer.Windows.Count;
+        }
+        @if (ults == 0)
+        {
+            <span>—</span> <small>no ultimates</small>
+        }
+        else
+        {
+            <span class="@ScoreClass">@($"{Analyzer.Score}%")</span> <small>setup score</small>
+            <div class="stat-sub">
+                @ults <small>ultimate@(ults == 1 ? "" : "s") · 5 pre-checks</small>
+            </div>
+        }
+    </SpellValueText>
+</Statistic>
 
 @code {
-    private IEnumerable<OverviewStat> BuildOverviewStats()
-    {
-        var ults = Analyzer.Windows.Count;
-        var score = Analyzer.Score;
-
-        var scoreTier = score >= 90 ? PerformanceTier.Perfect
-            : score >= 75 ? PerformanceTier.Good
-            : score >= 50 ? PerformanceTier.Ok
-            : PerformanceTier.Fail;
-
-        return
-        [
-            new OverviewStat(
-                ults == 0 ? "—" : $"{score}%",
-                "Setup Score",
-                "Average of pre-ult checks (Supremacy, Voidbringer, Grace, Event Horizon, Barrage availability) passed across all ultimate windows.",
-                ults == 0 ? null : scoreTier),
-            new OverviewStat(
-                $"{ults}",
-                "Ultimates",
-                "Spirit of Heroism windows detected."),
-        ];
-    }
+    private string ScoreClass => Analyzer.Score >= 90 ? "perfect"
+        : Analyzer.Score >= 75 ? "good"
+        : Analyzer.Score >= 50 ? "ok"
+        : "fail";
 }
