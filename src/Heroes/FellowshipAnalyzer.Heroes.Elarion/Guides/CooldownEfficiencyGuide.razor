@@ -1,0 +1,56 @@
+@namespace FellowshipAnalyzer.Heroes.Elarion.Guides
+@using FellowshipAnalyzer.Components
+@using FellowshipAnalyzer.Core.Common.Spells
+@using FellowshipAnalyzer.Heroes.Elarion.Analysis
+@inject ElarionCombatLogParser Parser
+
+<GuideSection Title="Skystrider's Grace + Event Horizon">
+    <Explanation>
+        <p>
+            Use <SpellLink Spell="Spells.SkystridersGrace" /> and <SpellLink Spell="Spells.EventHorizon" />
+            on cooldown as long as you'll get close to the full duration of the buff. Holding them
+            unnecessarily is a DPS loss.
+        </p>
+        <ol>
+            <li>Track the time each cooldown sat available after coming off cooldown.</li>
+            <li>Compare effective buff uptime against the fight length.</li>
+        </ol>
+    </Explanation>
+    <ChildContent>
+        <CastOverview Title="Skystrider's Grace" Stats="@BuildStats(Analyzer.SkystridersGrace, Spells.SkystridersGrace.Name)" />
+        <CastOverview Title="Event Horizon" Stats="@BuildStats(Analyzer.EventHorizon, Spells.EventHorizon.Name)" />
+    </ChildContent>
+</GuideSection>
+
+@code {
+    private CooldownEfficiencyAnalyzer Analyzer => Parser.CooldownEfficiency!;
+
+    private IEnumerable<OverviewStat> BuildStats(CooldownEfficiencyAnalyzer.CooldownTracking tracking, string displayName)
+    {
+        var fightLen = Analyzer.FightLengthMs;
+        var uptimePct = fightLen > 0
+            ? tracking.TotalBuffUptimeMs * 100.0 / fightLen
+            : 0;
+
+        var heldTier = fightLen <= 0
+            ? PerformanceTier.Ok
+            : ((double)tracking.TotalHeldMs / fightLen) switch
+            {
+                < 0.05 => PerformanceTier.Perfect,
+                < 0.15 => PerformanceTier.Good,
+                < 0.25 => PerformanceTier.Ok,
+                _ => PerformanceTier.Fail,
+            };
+
+        return
+        [
+            new OverviewStat($"{tracking.Casts}", "Casts",
+                $"Total {displayName} casts."),
+            new OverviewStat($"{tracking.TotalHeldMs / 1000.0:F1}s", "Held",
+                $"Time {displayName} sat off cooldown before being used.",
+                heldTier),
+            new OverviewStat($"{uptimePct:F0}%", "Buff Uptime",
+                $"Percentage of fight time the {displayName} buff was active."),
+        ];
+    }
+}

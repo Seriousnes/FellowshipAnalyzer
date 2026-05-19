@@ -1,0 +1,78 @@
+@namespace FellowshipAnalyzer.Heroes.Elarion.Guides
+@using FellowshipAnalyzer.Components
+@using FellowshipAnalyzer.Core.Common.Spells
+@using FellowshipAnalyzer.Heroes.Elarion.Analysis
+@inject ElarionCombatLogParser Parser
+
+<GuideSection Title="Lunarlight Mark Eruptions">
+    <Explanation>
+        <p>
+            <SpellLink Spell="Spells.HeartseekerBarrage" /> is the top AoE priority because it
+            erupts active <SpellLink Spell="Spells.LunarlightMark" /> debuffs. A Barrage cast with
+            no marks on targets wastes the eruption mechanic entirely.
+        </p>
+        <ol>
+            <li>Maintain marks on as many targets as possible before each Barrage.</li>
+            <li>Avoid letting marks expire — they're wasted potential damage.</li>
+        </ol>
+    </Explanation>
+    <ChildContent>
+        <CastOverview Title="Eruption Efficiency" Stats="@BuildOverviewStats()" />
+        <CastDetail Title="Barrage Casts"
+                    Description="Active mark count erupted by each Heartseeker Barrage."
+                    Casts="@BuildPerCastData()" />
+    </ChildContent>
+</GuideSection>
+
+@code {
+    private LunarlightMarkEruptionAnalyzer Analyzer => Parser.LunarlightMarkEruption!;
+
+    private IEnumerable<OverviewStat> BuildOverviewStats()
+    {
+        var totalBarrages = Analyzer.BarrageWithEruption + Analyzer.BarrageWithoutEruption;
+        var eruptionRate = totalBarrages == 0 ? 0 : Analyzer.BarrageWithEruption * 100.0 / totalBarrages;
+
+        var rateTier = eruptionRate >= 90 ? PerformanceTier.Perfect
+            : eruptionRate >= 75 ? PerformanceTier.Good
+            : eruptionRate >= 50 ? PerformanceTier.Ok
+            : PerformanceTier.Fail;
+
+        var expiredTier = Analyzer.MarksExpired == 0 ? PerformanceTier.Perfect
+            : Analyzer.MarksExpired < 3 ? PerformanceTier.Good
+            : Analyzer.MarksExpired < 6 ? PerformanceTier.Ok
+            : PerformanceTier.Fail;
+
+        return
+        [
+            new OverviewStat(totalBarrages == 0 ? "—" : $"{eruptionRate:F0}%", "Eruption Rate",
+                "Barrages that erupted at least one mark.",
+                totalBarrages == 0 ? null : rateTier),
+            new OverviewStat($"{Analyzer.MarksExpired}", "Expired Marks",
+                "Marks that fell off targets unerupted.", expiredTier),
+            new OverviewStat($"{Analyzer.TotalMarksApplied}", "Total Applied",
+                "All Lunarlight Mark applications."),
+        ];
+    }
+
+    private IEnumerable<PerCastData> BuildPerCastData()
+    {
+        return Analyzer.Barrages.Select(b =>
+        {
+            var tier = b.ErupedMarks >= 3 ? PerformanceTier.Perfect
+                : b.ErupedMarks >= 1 ? PerformanceTier.Good
+                : PerformanceTier.Fail;
+
+            return new PerCastData
+            {
+                Performance = tier,
+                Timestamp = Parser.FormatTimestamp(b.Timestamp),
+                Stats =
+                [
+                    new PerCastStat($"{b.ErupedMarks}", "Marks Erupted",
+                        "Active Lunarlight Marks at the moment of the cast.",
+                        tier),
+                ],
+            };
+        });
+    }
+}

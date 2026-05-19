@@ -1,0 +1,56 @@
+@namespace FellowshipAnalyzer.Heroes.Elarion.Statistics
+@using FellowshipAnalyzer.Components
+@using FellowshipAnalyzer.Heroes.Elarion.Modules
+@inherits AnalyzerStatistic<ImpendingHeartseekerAnalyzer>
+
+<StatCard Title="Impending Heartseeker">
+    <CastOverview Title="Proc Lifecycle" Stats="@BuildOverviewStats()" />
+    <StackedBar Segments="@BuildStackedBar()" />
+</StatCard>
+
+@code {
+    private IEnumerable<OverviewStat> BuildOverviewStats()
+    {
+        var settled = Analyzer.Consumed + Analyzer.Expired;
+        var consumeRate = settled == 0 ? 0 : Analyzer.Consumed * 100.0 / settled;
+
+        var rateTier = consumeRate >= 95 ? PerformanceTier.Perfect
+            : consumeRate >= 80 ? PerformanceTier.Good
+            : consumeRate >= 60 ? PerformanceTier.Ok
+            : PerformanceTier.Fail;
+
+        var expiredTier = Analyzer.Expired == 0 ? PerformanceTier.Perfect
+            : Analyzer.Expired < 2 ? PerformanceTier.Good
+            : Analyzer.Expired < 4 ? PerformanceTier.Ok
+            : PerformanceTier.Fail;
+
+        return
+        [
+            new OverviewStat(
+                settled == 0 ? "—" : $"{consumeRate:F0}%",
+                "Consume Rate",
+                "Of procs that resolved, the share that were consumed before expiring.",
+                settled == 0 ? null : rateTier),
+            new OverviewStat(
+                $"{Analyzer.Expired}",
+                "Expired",
+                "Procs that timed out (~15s) without being consumed.",
+                expiredTier),
+            new OverviewStat(
+                $"{Analyzer.Gains}",
+                "Gained",
+                "Total proc gains observed."),
+        ];
+    }
+
+    private IEnumerable<StackedBarSegment> BuildStackedBar()
+    {
+        return
+        [
+            new StackedBarSegment("Consumed", Analyzer.Consumed, PerformanceColors.Good,
+                $"{Analyzer.Consumed} procs consumed."),
+            new StackedBarSegment("Expired", Analyzer.Expired, PerformanceColors.Fail,
+                $"{Analyzer.Expired} procs expired unused."),
+        ];
+    }
+}

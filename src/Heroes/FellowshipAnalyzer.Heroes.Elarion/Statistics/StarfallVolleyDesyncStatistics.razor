@@ -1,0 +1,42 @@
+@namespace FellowshipAnalyzer.Heroes.Elarion.Statistics
+@using FellowshipAnalyzer.Components
+@using FellowshipAnalyzer.Heroes.Elarion.Modules
+@inherits AnalyzerStatistic<StarfallVolleyDesyncAnalyzer>
+
+<StatCard Title="Volley Desync">
+    <CastOverview Title="Mark / Volley Spacing" Stats="@BuildOverviewStats()" />
+</StatCard>
+
+@code {
+    private IEnumerable<OverviewStat> BuildOverviewStats()
+    {
+        var avg = Analyzer.AverageGapMs / 1000.0;
+        var avgTier = avg >= 10 && avg <= 15 ? PerformanceTier.Perfect
+            : avg >= 7 && avg < 20 ? PerformanceTier.Good
+            : avg >= 5 ? PerformanceTier.Ok
+            : PerformanceTier.Fail;
+
+        var closeTier = Analyzer.CloseGapCount == 0 ? PerformanceTier.Perfect
+            : Analyzer.CloseGapCount < 2 ? PerformanceTier.Good
+            : Analyzer.CloseGapCount < 4 ? PerformanceTier.Ok
+            : PerformanceTier.Fail;
+
+        return
+        [
+            new OverviewStat(
+                Analyzer.VolleyCount == 0 ? "—" : $"{avg:F1}s",
+                "Average Gap",
+                "Mean time between the previous Lunarlight Mark and each Starfall Volley cast. Target: 10-15s.",
+                Analyzer.VolleyCount == 0 ? null : avgTier),
+            new OverviewStat(
+                $"{Analyzer.CloseGapCount}",
+                "Close Casts",
+                "Volleys cast within 5s of a Lunarlight Mark — too tight to re-apply marks between volleys.",
+                closeTier),
+            new OverviewStat(
+                $"{Analyzer.VolleyCount}",
+                "Volleys",
+                "Total Starfall Volley casts."),
+        ];
+    }
+}

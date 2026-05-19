@@ -1,0 +1,31 @@
+@namespace FellowshipAnalyzer.Heroes.Elarion.Statistics
+@using FellowshipAnalyzer.Components
+@using FellowshipAnalyzer.Heroes.Elarion.Modules
+@inherits AnalyzerStatistic<VoidbringerTouchAnalyzer>
+
+<StatCard Title="Voidbringer's Touch">
+    <CastOverview Title="Usage Discipline" Stats="@BuildOverviewStats()" />
+</StatCard>
+
+@code {
+    private IEnumerable<OverviewStat> BuildOverviewStats()
+    {
+        var doubleTier = Analyzer.DoubleMarks == 0 ? PerformanceTier.Perfect
+            : Analyzer.DoubleMarks < 2 ? PerformanceTier.Good
+            : Analyzer.DoubleMarks < 4 ? PerformanceTier.Ok
+            : PerformanceTier.Fail;
+
+        return
+        [
+            new OverviewStat(
+                $"{Analyzer.TotalCasts}",
+                "Casts",
+                "Total Voidbringer's Touch casts."),
+            new OverviewStat(
+                $"{Analyzer.DoubleMarks}",
+                "Double Marks",
+                "Casts on the same target before the prior Voidbringer mark was consumed.",
+                doubleTier),
+        ];
+    }
+}

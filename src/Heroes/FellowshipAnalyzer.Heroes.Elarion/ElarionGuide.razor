@@ -2,7 +2,50 @@
 @using FellowshipAnalyzer.Heroes.Elarion.Analysis
 @inject ElarionCombatLogParser Parser
 
-<ResourceGraph 
-    Tracker="Parser.FocusTracker"
-    Resource="Core.Game.ResourceTypes.Primary"
-/>
+@if (Parser.FocusTracker is not null)
+{
+    <ResourceGraph
+        Tracker="Parser.FocusTracker"
+        Resource="Core.Game.ResourceTypes.Primary"
+    />
+}
+
+@if (Parser.LunarlightMarkEruption is not null)
+{
+    <LunarlightMarkEruptionGuide />
+}
+
+@if (Parser.EmpoweredMultishotWaste is not null)
+{
+    <EmpoweredMultishotWasteGuide />
+}
+
+@if (Parser.HighwindArrowCap is not null)
+{
+    <HighwindArrowCapGuide />
+}
+
+@if (Parser.CooldownEfficiency is not null)
+{
+    <CooldownEfficiencyGuide />
+}
+
+@if (Parser.PreUltimateChecklist is not null)
+{
+    <PreUltimateChecklistGuide />
+}
+
+@if (Parser.ImpendingHeartseeker is not null)
+{
+    <ImpendingHeartseekerGuide />
+}
+
+@if (Parser.StarfallVolleyDesync is not null)
+{
+    <StarfallVolleyDesyncGuide />
+}
+
+@if (Parser.VoidbringerTouch is not null)
+{
+    <VoidbringerTouchGuide />
+}

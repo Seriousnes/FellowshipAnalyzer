@@ -1,0 +1,85 @@
+@namespace FellowshipAnalyzer.Heroes.Elarion.Guides
+@using FellowshipAnalyzer.Components
+@using FellowshipAnalyzer.Core.Common.Spells
+@using FellowshipAnalyzer.Heroes.Elarion.Analysis
+@inject ElarionCombatLogParser Parser
+
+<GuideSection Title="Pre-Ultimate Checklist">
+    <Explanation>
+        <p>
+            Before pressing <SpellLink Spell="Spells.SpiritOfHeroism" />, set up the burst window:
+            <SpellLink Spell="Spells.SkystridersSupremacy" /> → <SpellLink Spell="Spells.VoidbringerTouch" />,
+            then <SpellLink Spell="Spells.SkystridersGrace" /> and <SpellLink Spell="Spells.EventHorizon" />.
+            Have a <SpellLink Spell="Spells.HeartseekerBarrage" /> ready to fire during the window.
+        </p>
+        <ol>
+            <li>Each ult window is scored against the five pre-conditions.</li>
+            <li>Missing a setup buff or cooldown is a major DPS loss.</li>
+        </ol>
+    </Explanation>
+    <ChildContent>
+        <CastOverview Title="Setup Score" Stats="@BuildOverviewStats()" />
+        <CastDetail Title="Ultimate Windows"
+                    Description="Which pre-conditions were met for each Spirit of Heroism."
+                    Casts="@BuildPerCastData()" />
+    </ChildContent>
+</GuideSection>
+
+@code {
+    private PreUltimateChecklistAnalyzer Analyzer => Parser.PreUltimateChecklist!;
+
+    private IEnumerable<OverviewStat> BuildOverviewStats()
+    {
+        var ults = Analyzer.Windows.Count;
+        var scoreTier = Analyzer.Score >= 90 ? PerformanceTier.Perfect
+            : Analyzer.Score >= 75 ? PerformanceTier.Good
+            : Analyzer.Score >= 50 ? PerformanceTier.Ok
+            : PerformanceTier.Fail;
+
+        return
+        [
+            new OverviewStat(ults == 0 ? "—" : $"{Analyzer.Score}%", "Setup Score",
+                "Average share of the 5 pre-conditions met across ultimates.",
+                ults == 0 ? null : scoreTier),
+            new OverviewStat($"{ults}", "Ultimates", "Spirit of Heroism windows detected."),
+        ];
+    }
+
+    private IEnumerable<PerCastData> BuildPerCastData()
+    {
+        return Analyzer.Windows.Select(window =>
+        {
+            var passed = window.ChecksPassed;
+            var tier = passed == 5 ? PerformanceTier.Perfect
+                : passed >= 4 ? PerformanceTier.Good
+                : passed >= 2 ? PerformanceTier.Ok
+                : PerformanceTier.Fail;
+
+            return new PerCastData
+            {
+                Performance = tier,
+                Timestamp = Parser.FormatTimestamp(window.UltTimestamp),
+                Stats =
+                [
+                    new PerCastStat(BoolGlyph(window.SupremacyCastBefore), "Supremacy",
+                        "Skystrider's Supremacy cast before the ultimate.",
+                        window.SupremacyCastBefore ? PerformanceTier.Good : PerformanceTier.Fail),
+                    new PerCastStat(BoolGlyph(window.VoidbringerCastBefore), "Voidbringer",
+                        "Voidbringer's Touch cast before the ultimate.",
+                        window.VoidbringerCastBefore ? PerformanceTier.Good : PerformanceTier.Fail),
+                    new PerCastStat(BoolGlyph(window.SkystridersGraceActive), "Grace",
+                        "Skystrider's Grace active when the ultimate started.",
+                        window.SkystridersGraceActive ? PerformanceTier.Good : PerformanceTier.Fail),
+                    new PerCastStat(BoolGlyph(window.EventHorizonActive), "Event Horizon",
+                        "Event Horizon active when the ultimate started.",
+                        window.EventHorizonActive ? PerformanceTier.Good : PerformanceTier.Fail),
+                    new PerCastStat(BoolGlyph(window.BarrageAvailable), "Barrage",
+                        "Heartseeker Barrage available to fire during the window.",
+                        window.BarrageAvailable ? PerformanceTier.Good : PerformanceTier.Fail),
+                ],
+            };
+        });
+    }
+
+    private static string BoolGlyph(bool value) => value ? "✓" : "✗";
+}

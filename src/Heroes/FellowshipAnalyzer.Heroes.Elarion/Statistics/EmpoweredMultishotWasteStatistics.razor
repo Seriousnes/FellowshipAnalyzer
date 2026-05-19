@@ -1,0 +1,35 @@
+@namespace FellowshipAnalyzer.Heroes.Elarion.Statistics
+@using FellowshipAnalyzer.Components
+@using FellowshipAnalyzer.Heroes.Elarion.Modules
+@inherits AnalyzerStatistic<EmpoweredMultishotWasteAnalyzer>
+
+<StatCard Title="Empowered Multishot">
+    <CastOverview Title="Empowered Usage" Stats="@BuildOverviewStats()" />
+</StatCard>
+
+@code {
+    private IEnumerable<OverviewStat> BuildOverviewStats()
+    {
+        var wasteTier = Analyzer.WastedExpirations == 0 ? PerformanceTier.Perfect
+            : Analyzer.WastedExpirations < 2 ? PerformanceTier.Good
+            : Analyzer.WastedExpirations < 4 ? PerformanceTier.Ok
+            : PerformanceTier.Fail;
+
+        return
+        [
+            new OverviewStat(
+                $"{Analyzer.EmpoweredConsumed}",
+                "Empowered",
+                "Multishot casts that consumed an Empowered Multishot buff."),
+            new OverviewStat(
+                $"{Analyzer.WastedExpirations}",
+                "Wasted",
+                "Empowered Multishot buffs that expired without being consumed.",
+                wasteTier),
+            new OverviewStat(
+                $"{Analyzer.RegularCasts}",
+                "Regular",
+                "Multishot casts with no Empowered Multishot buff active."),
+        ];
+    }
+}

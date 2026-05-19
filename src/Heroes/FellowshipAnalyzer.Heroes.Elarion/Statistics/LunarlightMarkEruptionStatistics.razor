@@ -1,0 +1,58 @@
+@namespace FellowshipAnalyzer.Heroes.Elarion.Statistics
+@using FellowshipAnalyzer.Components
+@using FellowshipAnalyzer.Heroes.Elarion.Modules
+@inherits AnalyzerStatistic<LunarlightMarkEruptionAnalyzer>
+
+<StatCard Title="Lunarlight Mark Eruptions">
+    <CastOverview Title="Eruption Efficiency" Stats="@BuildOverviewStats()" />
+    <StackedBar Segments="@BuildStackedBar()" />
+</StatCard>
+
+@code {
+    private IEnumerable<OverviewStat> BuildOverviewStats()
+    {
+        var totalBarrages = Analyzer.BarrageWithEruption + Analyzer.BarrageWithoutEruption;
+        var eruptionRate = totalBarrages == 0
+            ? 0
+            : Analyzer.BarrageWithEruption * 100.0 / totalBarrages;
+
+        var rateTier = eruptionRate >= 90 ? PerformanceTier.Perfect
+            : eruptionRate >= 75 ? PerformanceTier.Good
+            : eruptionRate >= 50 ? PerformanceTier.Ok
+            : PerformanceTier.Fail;
+
+        var expiredTier = Analyzer.MarksExpired == 0 ? PerformanceTier.Perfect
+            : Analyzer.MarksExpired < 3 ? PerformanceTier.Good
+            : Analyzer.MarksExpired < 6 ? PerformanceTier.Ok
+            : PerformanceTier.Fail;
+
+        return
+        [
+            new OverviewStat(
+                totalBarrages == 0 ? "—" : $"{eruptionRate:F0}%",
+                "Eruption Rate",
+                "Heartseeker Barrage casts that hit at least one Lunarlight Mark.",
+                totalBarrages == 0 ? null : rateTier),
+            new OverviewStat(
+                $"{Analyzer.MarksExpired}",
+                "Expired",
+                "Lunarlight Marks that fell off targets without being erupted by Barrage.",
+                expiredTier),
+            new OverviewStat(
+                $"{Analyzer.TotalMarksApplied}",
+                "Applied",
+                "Total Lunarlight Mark applications during the fight."),
+        ];
+    }
+
+    private IEnumerable<StackedBarSegment> BuildStackedBar()
+    {
+        return
+        [
+            new StackedBarSegment("Erupted", Analyzer.BarrageWithEruption, PerformanceColors.Good,
+                $"{Analyzer.BarrageWithEruption} Barrage casts erupted active marks."),
+            new StackedBarSegment("No Marks", Analyzer.BarrageWithoutEruption, PerformanceColors.Fail,
+                $"{Analyzer.BarrageWithoutEruption} Barrages landed without any active marks."),
+        ];
+    }
+}

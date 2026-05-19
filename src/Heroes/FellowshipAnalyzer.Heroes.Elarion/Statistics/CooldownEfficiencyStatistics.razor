@@ -1,0 +1,49 @@
+@namespace FellowshipAnalyzer.Heroes.Elarion.Statistics
+@using FellowshipAnalyzer.Components
+@using FellowshipAnalyzer.Heroes.Elarion.Modules
+@inherits AnalyzerStatistic<CooldownEfficiencyAnalyzer>
+
+<StatCard Title="Major Cooldowns">
+    <CastOverview Title="Held vs Uptime" Stats="@BuildOverviewStats()" />
+</StatCard>
+
+@code {
+    private IEnumerable<OverviewStat> BuildOverviewStats()
+    {
+        var fightLen = Analyzer.FightLengthMs;
+
+        return
+        [
+            new OverviewStat(
+                $"{Analyzer.SkystridersGrace.Casts}",
+                "Grace Casts",
+                "Number of Skystrider's Grace casts."),
+            new OverviewStat(
+                FormatSeconds(Analyzer.SkystridersGrace.TotalHeldMs),
+                "Grace Held",
+                "Total time Skystrider's Grace was off cooldown but not yet used.",
+                HeldTier(Analyzer.SkystridersGrace.TotalHeldMs, fightLen)),
+            new OverviewStat(
+                $"{Analyzer.EventHorizon.Casts}",
+                "EH Casts",
+                "Number of Event Horizon casts."),
+            new OverviewStat(
+                FormatSeconds(Analyzer.EventHorizon.TotalHeldMs),
+                "EH Held",
+                "Total time Event Horizon was off cooldown but not yet used.",
+                HeldTier(Analyzer.EventHorizon.TotalHeldMs, fightLen)),
+        ];
+    }
+
+    private static string FormatSeconds(int ms) => $"{ms / 1000.0:F1}s";
+
+    private static PerformanceTier HeldTier(int heldMs, int fightMs)
+    {
+        if (fightMs <= 0) return PerformanceTier.Ok;
+        var ratio = (double)heldMs / fightMs;
+        return ratio < 0.05 ? PerformanceTier.Perfect
+            : ratio < 0.15 ? PerformanceTier.Good
+            : ratio < 0.25 ? PerformanceTier.Ok
+            : PerformanceTier.Fail;
+    }
+}

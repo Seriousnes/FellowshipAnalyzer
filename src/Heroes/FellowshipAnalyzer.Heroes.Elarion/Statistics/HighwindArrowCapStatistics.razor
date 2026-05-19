@@ -1,0 +1,42 @@
+@namespace FellowshipAnalyzer.Heroes.Elarion.Statistics
+@using FellowshipAnalyzer.Components
+@using FellowshipAnalyzer.Heroes.Elarion.Modules
+@inherits AnalyzerStatistic<HighwindArrowCapAnalyzer>
+
+<StatCard Title="Highwind Arrow Cap">
+    <CastOverview Title="Charge Discipline" Stats="@BuildOverviewStats()" />
+</StatCard>
+
+@code {
+    private IEnumerable<OverviewStat> BuildOverviewStats()
+    {
+        var capPct = Analyzer.CapPercentage * 100;
+        var capTier = capPct < 5 ? PerformanceTier.Perfect
+            : capPct < 15 ? PerformanceTier.Good
+            : capPct < 25 ? PerformanceTier.Ok
+            : PerformanceTier.Fail;
+
+        var castsTier = Analyzer.CastsWhileCapped == 0 ? PerformanceTier.Perfect
+            : Analyzer.CastsWhileCapped < 3 ? PerformanceTier.Good
+            : Analyzer.CastsWhileCapped < 6 ? PerformanceTier.Ok
+            : PerformanceTier.Fail;
+
+        return
+        [
+            new OverviewStat(
+                $"{capPct:F0}%",
+                "Time at Cap",
+                "Percentage of fight time spent sitting at the 3-charge cap.",
+                capTier),
+            new OverviewStat(
+                $"{Analyzer.CastsWhileCapped}",
+                "Casts at Cap",
+                "Casts that fired while charges were already capped (cooldown was wasted).",
+                castsTier),
+            new OverviewStat(
+                $"{Analyzer.TotalCasts}",
+                "Total Casts",
+                "Total Highwind Arrow casts during the fight."),
+        ];
+    }
+}

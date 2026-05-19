@@ -1,0 +1,34 @@
+@namespace FellowshipAnalyzer.Heroes.Elarion.Statistics
+@using FellowshipAnalyzer.Components
+@using FellowshipAnalyzer.Heroes.Elarion.Modules
+@inherits AnalyzerStatistic<PreUltimateChecklistAnalyzer>
+
+<StatCard Title="Pre-Ultimate Setup">
+    <CastOverview Title="Checklist Score" Stats="@BuildOverviewStats()" />
+</StatCard>
+
+@code {
+    private IEnumerable<OverviewStat> BuildOverviewStats()
+    {
+        var ults = Analyzer.Windows.Count;
+        var score = Analyzer.Score;
+
+        var scoreTier = score >= 90 ? PerformanceTier.Perfect
+            : score >= 75 ? PerformanceTier.Good
+            : score >= 50 ? PerformanceTier.Ok
+            : PerformanceTier.Fail;
+
+        return
+        [
+            new OverviewStat(
+                ults == 0 ? "—" : $"{score}%",
+                "Setup Score",
+                "Average of pre-ult checks (Supremacy, Voidbringer, Grace, Event Horizon, Barrage availability) passed across all ultimate windows.",
+                ults == 0 ? null : scoreTier),
+            new OverviewStat(
+                $"{ults}",
+                "Ultimates",
+                "Spirit of Heroism windows detected."),
+        ];
+    }
+}

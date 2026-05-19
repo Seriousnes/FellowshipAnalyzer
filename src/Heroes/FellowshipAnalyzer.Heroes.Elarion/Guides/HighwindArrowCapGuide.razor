@@ -1,0 +1,72 @@
+@namespace FellowshipAnalyzer.Heroes.Elarion.Guides
+@using FellowshipAnalyzer.Components
+@using FellowshipAnalyzer.Core.Common.Spells
+@using FellowshipAnalyzer.Heroes.Elarion.Analysis
+@inject ElarionCombatLogParser Parser
+
+<GuideSection Title="Highwind Arrow Charges">
+    <Explanation>
+        <p>
+            <SpellLink Spell="Spells.HighwindArrow" /> has 3 charges. Sitting at 3 charges wastes
+            cooldown recovery time — every second at cap is a second the next charge could have been
+            recharging.
+        </p>
+        <ol>
+            <li>Cast Highwind Arrow before reaching the cap, especially during AoE priority.</li>
+            <li>Pool charges briefly only when prepping for a burst window.</li>
+        </ol>
+    </Explanation>
+    <ChildContent>
+        <CastOverview Title="Charge Discipline" Stats="@BuildOverviewStats()" />
+        <FindingsList Findings="@BuildFindings()" />
+    </ChildContent>
+</GuideSection>
+
+@code {
+    private HighwindArrowCapAnalyzer Analyzer => Parser.HighwindArrowCap!;
+
+    private IEnumerable<OverviewStat> BuildOverviewStats()
+    {
+        var capPct = Analyzer.CapPercentage * 100;
+        var capTier = capPct < 5 ? PerformanceTier.Perfect
+            : capPct < 15 ? PerformanceTier.Good
+            : capPct < 25 ? PerformanceTier.Ok
+            : PerformanceTier.Fail;
+
+        var castsTier = Analyzer.CastsWhileCapped == 0 ? PerformanceTier.Perfect
+            : Analyzer.CastsWhileCapped < 3 ? PerformanceTier.Good
+            : Analyzer.CastsWhileCapped < 6 ? PerformanceTier.Ok
+            : PerformanceTier.Fail;
+
+        return
+        [
+            new OverviewStat($"{capPct:F0}%", "Time at Cap",
+                "Percentage of fight time at 3/3 charges.", capTier),
+            new OverviewStat($"{Analyzer.CastsWhileCapped}", "Casts at Cap",
+                "Casts that fired with charges already capped.", castsTier),
+            new OverviewStat($"{Analyzer.TotalCasts}", "Total Casts",
+                "All Highwind Arrow casts."),
+        ];
+    }
+
+    private IEnumerable<Finding> BuildFindings()
+    {
+        if (Analyzer.TotalCasts == 0)
+        {
+            yield return new Finding("info", "No Highwind Arrow casts were detected.", null);
+            yield break;
+        }
+
+        if (Analyzer.CastsWhileCapped == 0 && Analyzer.CapPercentage < 0.05)
+        {
+            yield return new Finding("info", "Charge management was clean — minimal time at cap.", null);
+        }
+        else if (Analyzer.CastsWhileCapped > 0)
+        {
+            yield return new Finding(
+                "warning",
+                $"{Analyzer.CastsWhileCapped} cast{(Analyzer.CastsWhileCapped == 1 ? "" : "s")} fired with charges capped — that recharge time was wasted.",
+                null);
+        }
+    }
+}
