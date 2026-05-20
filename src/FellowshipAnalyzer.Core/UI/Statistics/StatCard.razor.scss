@@ -6,6 +6,21 @@
     background: var(--fa-bg-inset, rgba(10, 12, 24, 0.6));
     overflow: hidden;
     margin-bottom: 16px;
+    display: flex;
+    flex-direction: column;
+
+    &.stat-card-small    { min-height: 100px; }
+    &.stat-card-standard { min-height: 165px; }
+    &.stat-card-medium   { min-height: 140px; }
+    &.stat-card-large    { min-height: 360px; }
+    &.stat-card-flexible { height: auto; }
+
+    &.stat-card-wide      { grid-column: span 2; }
+    &.stat-card-ultrawide { grid-column: 1 / -1; }
+}
+
+@media (max-width: 599px) {
+    .stat-card.stat-card-wide { grid-column: 1 / -1; }
 }
 
 .stat-card-header {
@@ -25,4 +40,5 @@
 
 .stat-card-body {
     padding: 14px 16px;
+    flex: 1 1 auto;
 }

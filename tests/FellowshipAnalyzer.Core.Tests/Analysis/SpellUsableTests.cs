@@ -93,16 +93,121 @@ public sealed partial class SpellUsableTests
     }
 
     [Fact]
+    public async Task TwoCooldownAccelerationEffects_StackMultiplicatively()
+    {
+        // In-game model: two 50% cooldown acceleration effects (each making cooldowns elapse
+        // 2× faster, i.e. 50% wallclock reduction) compose by multiplication, not addition.
+        // (1-0.5)×(1-0.5) = 25% wallclock remaining = 75% total reduction → effective rate 4×.
+        var (_, spellUsable, _) = await Run([]);
+
+        spellUsable.ApplyCooldownRateChangeToAll(2.0, timestamp: 0);
+        spellUsable.ApplyCooldownRateChangeToAll(2.0, timestamp: 0);
+
+        Assert.Equal(4.0, spellUsable.EffectiveRate(SpellA), precision: 6);
+
+        spellUsable.BeginCooldown(SpellA, timestamp: 0);
+        // 10s base ÷ 4 = 2500ms effective.
+        Assert.Equal(2500, spellUsable.CooldownRemaining(SpellA, atTimestamp: 0));
+    }
+
+    [Fact]
+    public async Task GlobalAndPerSpellRateChanges_StackMultiplicatively()
+    {
+        // A 2× global rate composed with a 1.5× per-spell rate gives a 3× effective rate
+        // for the targeted spell; other spells see only the global rate.
+        var (_, spellUsable, _) = await Run([]);
+
+        spellUsable.ApplyCooldownRateChangeToAll(2.0, timestamp: 0);
+        spellUsable.ApplyCooldownRateChange(SpellA, 1.5, timestamp: 0);
+
+        Assert.Equal(3.0, spellUsable.EffectiveRate(SpellA), precision: 6);
+        Assert.Equal(2.0, spellUsable.EffectiveRate(SpellB), precision: 6);
+    }
+
+    [Fact]
+    public async Task StackedRateChanges_UnwindIndependentlyOfRemoveOrder()
+    {
+        // Two 2× effects stack to 4×; removing them in any order restores rate 1.0
+        // because each Remove inverts only its own factor.
+        var (_, spellUsable, _) = await Run([]);
+
+        spellUsable.ApplyCooldownRateChangeToAll(2.0, timestamp: 0);
+        spellUsable.ApplyCooldownRateChangeToAll(2.0, timestamp: 0);
+        Assert.Equal(4.0, spellUsable.EffectiveRate(SpellA), precision: 6);
+
+        spellUsable.RemoveCooldownRateChangeFromAll(2.0, timestamp: 0);
+        Assert.Equal(2.0, spellUsable.EffectiveRate(SpellA), precision: 6);
+
+        spellUsable.RemoveCooldownRateChangeFromAll(2.0, timestamp: 0);
+        Assert.Equal(1.0, spellUsable.EffectiveRate(SpellA), precision: 6);
+    }
+
+    [Fact]
+    public async Task RateActiveAtCast_RemovedMidCooldown_PreservesProportionalProgress()
+    {
+        // 100% CA active at cast → 10s base CD recovers in 5s. After 2.5s wallclock
+        // (50% recovered), CA drops to 0% → 50% of work remains, which at base rate
+        // takes 5s. Cooldown should expire at t=7500.
+        var (_, spellUsable, _) = await Run([]);
+
+        spellUsable.ApplyCooldownRateChangeToAll(2.0, timestamp: 0);
+        spellUsable.BeginCooldown(SpellA, timestamp: 0);
+
+        Assert.Equal(5000, spellUsable.CooldownRemaining(SpellA, atTimestamp: 0));
+        Assert.Equal(2500, spellUsable.CooldownRemaining(SpellA, atTimestamp: 2500));
+
+        spellUsable.RemoveCooldownRateChangeFromAll(2.0, timestamp: 2500);
+
+        Assert.Equal(5000, spellUsable.CooldownRemaining(SpellA, atTimestamp: 2500));
+        Assert.Equal(0, spellUsable.CooldownRemaining(SpellA, atTimestamp: 7500));
+        Assert.Equal(1.0, spellUsable.EffectiveRate(SpellA), precision: 6);
+    }
+
+    [Fact]
+    public async Task RateToggledMidCooldown_PreservesProportionalProgressBothWays()
+    {
+        // Cast at base rate (10s recharge). At t=2500 (25% of work done), apply 2× rate.
+        // 75% of work remains, scaled to 75% × 5000 = 3750ms wallclock.
+        // At t=4375 (50% of new remaining elapsed = 37.5% more work done), remove 2×.
+        // 37.5% of base work remains → 37.5% × 10000 = 3750ms wallclock.
+        var (_, spellUsable, _) = await Run([CreateCast(0, SpellA)]);
+
+        Assert.Equal(7500, spellUsable.CooldownRemaining(SpellA, atTimestamp: 2500));
+
+        spellUsable.ApplyCooldownRateChangeToAll(2.0, timestamp: 2500);
+        Assert.Equal(3750, spellUsable.CooldownRemaining(SpellA, atTimestamp: 2500));
+        Assert.Equal(1875, spellUsable.CooldownRemaining(SpellA, atTimestamp: 4375));
+
+        spellUsable.RemoveCooldownRateChangeFromAll(2.0, timestamp: 4375);
+        Assert.Equal(3750, spellUsable.CooldownRemaining(SpellA, atTimestamp: 4375));
+        Assert.Equal(1.0, spellUsable.EffectiveRate(SpellA), precision: 6);
+    }
+
+    [Fact]
     public async Task MultiChargeRateChange_PreservesOverallStart()
     {
         // Cast SpellB twice → both charges used; OverallStart should be the first cast.
-        var (_, spellUsable, probe) = await Run(
-        [
-            CreateCast(1000, SpellB),
-            CreateCast(1500, SpellB),
-        ]);
+        // The rate change must run during dispatch so the fabricated ChangeCooldownRate event
+        // is delivered to the probe; we trigger it from an in-stream ApplyBuffEvent.
+        const int TriggerId = 8888;
 
-        spellUsable.ApplyCooldownRateChangeToAll(2.0, timestamp: 2000);
+        var (_, _, probe) = await Run(
+            [
+                CreateCast(1000, SpellB),
+                CreateCast(1500, SpellB),
+                new ApplyBuffEvent
+                {
+                    Timestamp = 2000,
+                    SourceId = PlayerId,
+                    TargetId = PlayerId,
+                    Ability = new Ability { Guid = TriggerId, Name = "RateChangeTrigger" },
+                },
+            ],
+            onApplyBuff: (su, e) =>
+            {
+                if (e.Ability?.Guid == TriggerId)
+                    su.ApplyCooldownRateChangeToAll(2.0, e.Timestamp);
+            });
 
         var rateUpdate = probe.Updates
             .LastOrDefault(e => e.Ability.Guid == SpellB && e.UpdateType == UpdateSpellUsableType.ChangeCooldownRate);
@@ -153,7 +258,8 @@ public sealed partial class SpellUsableTests
     // -------------------------------------------------------------------------
 
     private static async Task<(TestCombatLogParser parser, SpellUsable spellUsable, UpdateProbeModule probe)> Run(
-        List<Event> events)
+        List<Event> events,
+        Action<SpellUsable, ApplyBuffEvent>? onApplyBuff = null)
     {
         var emitter = new EventEmitter(NullLogger<EventEmitter>.Instance);
         var provider = Substitute.For<IServiceProvider>();
@@ -170,7 +276,7 @@ public sealed partial class SpellUsableTests
             typeof(UpdateProbeModule),
         ];
 
-        var parser = new TestCombatLogParser(emitter, provider, moduleTypes);
+        var parser = new TestCombatLogParser(emitter, provider, moduleTypes) { OnApplyBuff = onApplyBuff };
         await parser.Analyze(events, PlayerId, fight: TestFight);
 
         return (parser, parser.GetModule<SpellUsable>()!, parser.GetModule<UpdateProbeModule>()!);
@@ -192,12 +298,14 @@ public sealed partial class SpellUsableTests
         Type[] moduleTypes)
         : CombatLogParser(emitter, provider)
     {
+        public Action<SpellUsable, ApplyBuffEvent>? OnApplyBuff { get; init; }
+
         protected override Type[] GetModuleTypes() => moduleTypes;
 
         protected override object? CreateInstance(Type type)
         {
             if (type == typeof(TestAbilities)) return new TestAbilities();
-            if (type == typeof(UpdateProbeModule)) return new UpdateProbeModule();
+            if (type == typeof(UpdateProbeModule)) return new UpdateProbeModule { OnApplyBuff = OnApplyBuff };
             return base.CreateInstance(type);
         }
     }
@@ -222,12 +330,20 @@ public sealed partial class SpellUsableTests
         ];
     }
 
-    /// <summary>Captures every <see cref="UpdateSpellUsableEvent"/> in dispatch order.</summary>
+    /// <summary>Captures every <see cref="UpdateSpellUsableEvent"/> in dispatch order. Also
+    /// forwards <see cref="ApplyBuffEvent"/>s to an optional callback so tests can drive
+    /// SpellUsable mutations during dispatch.</summary>
     internal sealed partial class UpdateProbeModule : Analyzer
     {
         public List<UpdateSpellUsableEvent> Updates { get; } = [];
 
+        public Action<SpellUsable, ApplyBuffEvent>? OnApplyBuff { get; init; }
+
         [On<UpdateSpellUsableEvent>]
         private void OnUpdate(UpdateSpellUsableEvent e) => Updates.Add(e);
+
+        [On<ApplyBuffEvent>(By = Actor.Player)]
+        private void OnBuff(ApplyBuffEvent e) =>
+            OnApplyBuff?.Invoke(Owner.GetModule<SpellUsable>()!, e);
     }
 }

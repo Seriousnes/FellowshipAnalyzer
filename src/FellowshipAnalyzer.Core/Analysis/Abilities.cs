@@ -58,7 +58,7 @@ public class Abilities : Module
     public double GetExpectedCooldown(int spellId, double haste = 1.0)
     {
         var ability = GetAbility(spellId);
-        return ability?.GetCooldown(haste) ?? 0;
+        return ability?.GetCooldown(Owner.SelectedCombatant, haste) ?? 0;
     }
 
     /// <summary>

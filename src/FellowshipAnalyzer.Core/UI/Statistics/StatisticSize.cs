@@ -5,5 +5,6 @@ public enum StatisticSize
     Small,
     Standard,
     Medium,
+    Large,
     Flexible,
 }

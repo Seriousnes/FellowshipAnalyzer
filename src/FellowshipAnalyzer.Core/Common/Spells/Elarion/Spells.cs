@@ -14,7 +14,7 @@ public partial class Spells : ISpellRegistry
     public static Spell Disrupt { get; } = new(1308, "Disrupt", "Bowguy_Interrupt.jpg");
     public static Spell PathfindersResillience { get; } = new(1302, "Pathfinder's Resilience", "Bowguy_Abilityicon_Defensive.jpg");
     public static Spell SkystridersGrace { get; } = new(1304, "Skystrider's Grace", "Bowguy_HasteBuff.jpg");
-    public static Spell EventHorizon { get; } = new(1584, "Event Horizon", "Bowguy_Spirit.jpg");
+    public static Spell EventHorizon { get; } = new(1584, "Event Horizon", "Bowguy_Spirit.jpg") { SpiritCost = 100 };
     public static Spell GrapplingArrow { get; } = new(125, "Grappling Arrow", "Bowguy_GrappleShot.jpg");
     public static Spell VoidbringerTouch { get; } = new(155, "Voidbringer's Touch", "T_Weapon_VoidTouch.jpg");
 

@@ -106,14 +106,15 @@ public class Abilities : CoreAbilities
         {
             PrimarySpell = Spells.EventHorizon,
             Category = SpellCategory.Cooldowns,
-            Gcd = StandardGcd,
+            Gcd = null,            
         },
         new()
         {
             PrimarySpell = Spells.GrapplingArrow,
             Category = SpellCategory.Utility,
             Gcd = null,
-            Cooldown = 90,
+            Cooldown = (Func<Combatant, double, double>)((combatant, haste) => combatant.HasTalent(Talents.TheWeightOfGravity.Id) ? 120 / (1 + haste) : 90),
+            Charges = (Func<Combatant, int>)(combatant => combatant.HasTalent(Talents.TheWeightOfGravity.Id) ? 2 : 1)
         },
     ];
 }

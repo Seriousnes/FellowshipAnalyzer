@@ -1,6 +1,6 @@
 @* StatCard — container card with title header and content slot, for statistics *@
 
-<div class="stat-card">
+<div class="stat-card @SizeClass @WidthClass">
     @if (!string.IsNullOrEmpty(Title))
     {
         <div class="stat-card-header">
@@ -15,4 +15,24 @@
 @code {
     [Parameter] public string Title { get; set; } = "";
     [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>Sizing variant controlling the card's vertical footprint.</summary>
+    [Parameter] public StatisticSize Size { get; set; } = StatisticSize.Standard;
+
+    /// <summary>When true, the card spans roughly half the statistics grid container. Ignored if <see cref="UltraWide"/> is set.</summary>
+    [Parameter] public bool Wide { get; set; }
+
+    /// <summary>When true, the card spans the full statistics grid container.</summary>
+    [Parameter] public bool UltraWide { get; set; }
+
+    private string SizeClass => Size switch
+    {
+        StatisticSize.Small    => "stat-card-small",        
+        StatisticSize.Medium   => "stat-card-medium",
+        StatisticSize.Large    => "stat-card-large",
+        StatisticSize.Flexible => "stat-card-flexible",
+        _ => "stat-card-standard",
+    };
+
+    private string WidthClass => UltraWide ? "stat-card-ultrawide" : Wide ? "stat-card-wide" : "";
 }

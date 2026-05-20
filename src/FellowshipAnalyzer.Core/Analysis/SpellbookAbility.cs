@@ -9,7 +9,7 @@ namespace FellowshipAnalyzer.Core.Analysis;
 /// player's haste multiplier (e.g. 1.2 for 20% haste) that returns seconds.
 /// </summary>
 [GenerateOneOf]
-public partial class CooldownValue : OneOfBase<double, Func<double, double>>;
+public partial class CooldownValue : OneOfBase<double, Func<double, double>, Func<Combatant, double, double>>;
 
 /// <summary>
 /// A GCD sub-value — either a fixed number of milliseconds, or a function of
@@ -118,15 +118,19 @@ public sealed record SpellbookAbility
     /// Gets the effective cooldown in seconds, resolving haste-scaling functions
     /// when present.
     /// </summary>
-    public double GetCooldown(double haste = 1.0) =>
-        Cooldown?.Match(value => value, withHaste => withHaste(haste)) ?? 0;
+    public double GetCooldown(Combatant combatant, double haste = 1.0) =>        
+        Cooldown?.Match(
+            cd => cd,
+            f => f(haste),
+            f => f(combatant, haste))
+        ?? 0;
 
     /// <summary>
     /// Gets the effective charge count, resolving combatant-dependent functions
     /// when present.
     /// </summary>
-    public int GetCharges(Combatant? combatant = null) =>
-        Charges.Match(value => value, func => combatant is not null ? func(combatant) : 1);
+    public int GetCharges(Combatant combatant) =>
+        Charges.Match(value => value, func => func(combatant));
 }
 
 /// <summary>
