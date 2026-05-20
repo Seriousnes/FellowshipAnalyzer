@@ -1,4 +1,5 @@
 using FellowshipAnalyzer.Core.Analysis;
+using FellowshipAnalyzer.Core.Events;
 using FellowshipAnalyzer.Core.FellowshipLogs;
 
 using Microsoft.Extensions.Logging.Abstractions;
@@ -23,11 +24,13 @@ public sealed class ModuleActivationTests
             StartTime: 0, EndTime: 0, Difficulty: null,
             FriendlyPlayers: null, FightPercentage: null);
 
+    private static readonly Combatant EmptyCombatant = new(new CombatantInfoEvent());
+
     [Fact]
     public void IsModuleActive_WhenPredicateFalse_ReturnsFalse()
     {
         var parser = CreateGatedParser();
-        var inactiveCtx = new ParseContext(PlayerId: 0, Fight: TestFight, ActorNames: new Dictionary<int, string>(), Substitute.For<Combatant>());
+        var inactiveCtx = new ParseContext(PlayerId: 0, Fight: TestFight, ActorNames: new Dictionary<int, string>(), EmptyCombatant);
 
         Assert.False(parser.InvokeIsModuleActive(typeof(GatedProbeModule), inactiveCtx));
     }
@@ -36,7 +39,7 @@ public sealed class ModuleActivationTests
     public void IsModuleActive_WhenPredicateTrue_ReturnsTrue()
     {
         var parser = CreateGatedParser();
-        var activeCtx = new ParseContext(PlayerId: 7, Fight: TestFight, ActorNames: new Dictionary<int, string>(), Substitute.For<Combatant>());
+        var activeCtx = new ParseContext(PlayerId: 7, Fight: TestFight, ActorNames: new Dictionary<int, string>(), EmptyCombatant);
 
         Assert.True(parser.InvokeIsModuleActive(typeof(GatedProbeModule), activeCtx));
     }
@@ -47,7 +50,7 @@ public sealed class ModuleActivationTests
         // Module without [ActiveWhen<>] falls through the generated switch to the base
         // implementation, which always returns true.
         var parser = CreateGatedParser();
-        var anyCtx = new ParseContext(PlayerId: 0, Fight: TestFight, ActorNames: new Dictionary<int, string>(), Substitute.For<Combatant>());
+        var anyCtx = new ParseContext(PlayerId: 0, Fight: TestFight, ActorNames: new Dictionary<int, string>(), EmptyCombatant);
 
         Assert.True(parser.InvokeIsModuleActive(typeof(OrderedModuleA), anyCtx));
     }

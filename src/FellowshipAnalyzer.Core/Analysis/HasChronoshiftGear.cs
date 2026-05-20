@@ -9,5 +9,5 @@ namespace FellowshipAnalyzer.Core.Analysis;
 public sealed class HasChronoshiftGear : IModuleActivePredicate
 {
     public static bool IsActive(ParseContext context) =>
-        context.SelectedCombatant?.HasGear(Items.AshasChronoshiftSpire.Id) ?? false;
+        context.SelectedCombatant.HasGear(Items.AshasChronoshiftSpire.Id);
 }

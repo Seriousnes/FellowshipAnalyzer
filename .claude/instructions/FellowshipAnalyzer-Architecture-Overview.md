@@ -117,7 +117,7 @@ Use this lifecycle:
 - Use `Lazy<TOther>` ctor injection for cross-module references; the generator emits a cached `_camelCaseName` accessor. `Lazy<>` edges are ignored by the FA0013 cycle analyzer.
 - Do not require `CombatLogParser` in module constructors; the parser sets `Owner` after DI resolution.
 
-Activation is two-tiered. Use the mutable `Active` flag for dynamic deactivation that must respect mid-fight state. Use `[ActiveWhen<TPredicate>]` (where `TPredicate : IModuleActivePredicate`) for compile-time gating evaluated at parser construction — predicates read `ParseContext`, including `SelectedCombatant` populated by the earlier `Combatants` module.
+Activation is two-tiered. Use the mutable `Active` flag for dynamic deactivation that must respect mid-fight state. Use `[ActiveWhen<TPredicate>]` (where `TPredicate : IModuleActivePredicate`) for compile-time gating evaluated at parser construction — predicates read `ParseContext`, including `SelectedCombatant`, which the parser builds from the player's `CombatantInfoEvent` before any module is constructed.
 
 `Analyzer` is a lightweight specialization of `EventSubscriber`:
 

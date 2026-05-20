@@ -354,7 +354,7 @@ public sealed partial class CombatLogParserTests
 
     private static void AssertSingleTrackedBuff(Combatants combatants, int abilityId)
     {
-        var buff = Assert.Single(combatants.Selected!.Buffs);
+        var buff = Assert.Single(combatants.Selected.Buffs);
         Assert.Equal(abilityId, buff.Ability.Guid);
         Assert.Equal(100, buff.Start);
         Assert.Equal(200, buff.End);

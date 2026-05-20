@@ -16,7 +16,7 @@ public interface IHeroAnalyzer
     /// </summary>
     Dictionary<int, string> ActorNames { get; set; }
     int PlayerId { get; set; }
-    Combatant? SelectedCombatant { get; }
+    Combatant SelectedCombatant { get; }
 
     /// <summary>
     /// The Razor component type to render for the Guide tab.

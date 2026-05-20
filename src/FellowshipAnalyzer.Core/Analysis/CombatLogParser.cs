@@ -62,11 +62,10 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
     public Dictionary<int, string> ActorNames { get; set; } = [];
 
     /// <summary>
-    /// The combatant representing the selected (analyzed) player.
-    /// Computed from the <see cref="Combatants"/> module — null until that module has populated
-    /// its own <c>Selected</c>.
+    /// The combatant representing the selected (analyzed) player. Populated by
+    /// <see cref="Analyze"/> before any module is constructed.
     /// </summary>
-    public Combatant? SelectedCombatant => GetModule<Combatants>()?.Selected;
+    public Combatant SelectedCombatant => CurrentParseContext.SelectedCombatant;
 
     /// <summary>
     /// The Razor component type to render for the Guide tab.

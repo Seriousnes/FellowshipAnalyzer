@@ -30,7 +30,6 @@ public sealed partial class StatTracker(Lazy<Combatants> combatants) : Analyzer
     private void OnFightStart(FightStartEvent _)
     {
         var combatant = _combatants.Selected;
-        if (combatant is null) return;
 
         _pullStats = new PlayerStats
         {
@@ -246,8 +245,8 @@ public sealed partial class StatTracker(Lazy<Combatants> combatants) : Analyzer
             {
                 Item? item = null;
                 if (buffObj.ItemId is int itemId)
-                    item = _combatants.Selected?.GetItem(itemId);
-                return func(_combatants.Selected!, item);
+                    item = _combatants.Selected.GetItem(itemId);
+                return func(_combatants.Selected, item);
             });
     }
 
