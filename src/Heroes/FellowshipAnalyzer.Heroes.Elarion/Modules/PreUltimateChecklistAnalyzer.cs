@@ -1,6 +1,6 @@
 using FellowshipAnalyzer.Core.Analysis;
+using FellowshipAnalyzer.Core.Common.Spells.Elarion;
 using FellowshipAnalyzer.Core.Events;
-using FellowshipAnalyzer.Heroes.Elarion.Statistics;
 
 namespace FellowshipAnalyzer.Heroes.Elarion.Modules;
 
@@ -26,30 +26,28 @@ public sealed partial class PreUltimateChecklistAnalyzer(Lazy<SpellUsable> spell
             ? 0
             : (int)Math.Round(_windows.Average(w => w.ChecksPassed * 100.0 / w.TotalChecks));
 
-    public override Type? StatisticsComponentType => typeof(PreUltimateChecklistStatistics);
-
-    [On<CastEvent>(By = Actor.Player, Spell = SpellIds.SkystridersSupremacy)]
+    [On<CastEvent>(By = Actor.Player, Spell = nameof(Spells.SkystridersSupremacy))]
     private void OnSupremacy(CastEvent e) => _supremacyCasts.Add(e.Timestamp);
 
-    [On<CastEvent>(By = Actor.Player, Spell = SpellIds.VoidbringerTouch)]
+    [On<CastEvent>(By = Actor.Player, Spell = nameof(Spells.VoidbringerTouch))]
     private void OnVoidbringer(CastEvent e) => _voidbringerCasts.Add(e.Timestamp);
 
-    [On<ApplyBuffEvent>(To = Actor.Player, Spell = SpellIds.SkystridersGraceBuff)]
+    [On<ApplyBuffEvent>(To = Actor.Player, Spell = nameof(Spells.SkystridersGraceBuff))]
     private void OnGraceApply(ApplyBuffEvent e) => _graceBuffActive = true;
 
-    [On<RemoveBuffEvent>(To = Actor.Player, Spell = SpellIds.SkystridersGraceBuff)]
+    [On<RemoveBuffEvent>(To = Actor.Player, Spell = nameof(Spells.SkystridersGraceBuff))]
     private void OnGraceRemove(RemoveBuffEvent e) => _graceBuffActive = false;
 
-    [On<ApplyBuffEvent>(To = Actor.Player, Spell = SpellIds.EventHorizonBuff)]
+    [On<ApplyBuffEvent>(To = Actor.Player, Spell = nameof(Spells.EventHorizonBuff))]
     private void OnEventHorizonApply(ApplyBuffEvent e) => _eventHorizonBuffActive = true;
 
-    [On<RemoveBuffEvent>(To = Actor.Player, Spell = SpellIds.EventHorizonBuff)]
+    [On<RemoveBuffEvent>(To = Actor.Player, Spell = nameof(Spells.EventHorizonBuff))]
     private void OnEventHorizonRemove(RemoveBuffEvent e) => _eventHorizonBuffActive = false;
 
-    [On<ApplyBuffEvent>(To = Actor.Player, Spell = SpellIds.SpiritOfHeroismBuff)]
+    [On<ApplyBuffEvent>(To = Actor.Player, Spell = nameof(Spells.SpiritOfHeroism))]
     private void OnUltBuffApply(ApplyBuffEvent e) => RecordWindow(e.Timestamp);
 
-    [On<ApplyDebuffEvent>(By = Actor.Player, Spell = SpellIds.SpiritOfHeroismBuff)]
+    [On<ApplyDebuffEvent>(By = Actor.Player, Spell = nameof(Spells.SpiritOfHeroism))]
     private void OnUltDebuffApply(ApplyDebuffEvent e) => RecordWindow(e.Timestamp);
 
     private void RecordWindow(int timestamp)
@@ -58,7 +56,7 @@ public sealed partial class PreUltimateChecklistAnalyzer(Lazy<SpellUsable> spell
 
         var supremacyRecent = _supremacyCasts.Any(t => timestamp - t is >= 0 and <= PreUltLookbackMs);
         var voidbringerRecent = _voidbringerCasts.Any(t => timestamp - t is >= 0 and <= PreUltLookbackMs);
-        var barrageAvailable = spellUsable.Value.IsAvailable(SpellIds.HeartseekerBarrage);
+        var barrageAvailable = spellUsable.Value.IsAvailable(Spells.HeartseekerBarrage.Guid);
 
         var window = new UltWindow(
             UltTimestamp: timestamp,

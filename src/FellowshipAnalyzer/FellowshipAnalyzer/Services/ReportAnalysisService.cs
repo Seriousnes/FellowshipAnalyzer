@@ -6,8 +6,6 @@ using FellowshipAnalyzer.Core.Events;
 using FellowshipAnalyzer.Core.FellowshipLogs;
 using FellowshipAnalyzer.Core.Serialization;
 
-using Microsoft.Extensions.Logging;
-
 
 
 namespace FellowshipAnalyzer.Services;

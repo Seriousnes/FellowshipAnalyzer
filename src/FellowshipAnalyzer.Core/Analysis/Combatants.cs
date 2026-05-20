@@ -12,7 +12,7 @@ public sealed partial class Combatants : Analyzer
     private readonly Dictionary<int, Combatant> _combatants = [];
 
     /// <summary>The combatant representing the selected (analyzed) player.</summary>
-    public Combatant? Selected { get; }
+    public Combatant Selected { get; }
 
     public IReadOnlyDictionary<int, Combatant> All => _combatants;
 
@@ -24,8 +24,8 @@ public sealed partial class Combatants : Analyzer
                 _combatants[info.SourceId] = new Combatant(info);
         }
 
-        if (_combatants.TryGetValue(parseContext.PlayerId, out var selected))
-            Selected = selected;
+        Selected = parseContext.SelectedCombatant;
+        _combatants[parseContext.PlayerId] = parseContext.SelectedCombatant;
 
         foreach (var (_, combatant) in _combatants)
         {

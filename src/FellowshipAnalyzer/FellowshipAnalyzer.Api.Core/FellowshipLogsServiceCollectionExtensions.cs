@@ -1,8 +1,6 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-using Azure.Storage.Blobs;
-
 using FellowshipAnalyzer.Api.Core.Caching;
 
 using Microsoft.Extensions.Configuration;

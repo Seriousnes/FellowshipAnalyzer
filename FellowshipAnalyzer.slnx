@@ -6,7 +6,6 @@
     <Project Path="src/FellowshipAnalyzer/FellowshipAnalyzer.DevApi/FellowshipAnalyzer.DevApi.csproj" />
   </Folder>
   <Folder Name="/App/">
-    <Project Path="src/FellowshipAnalyzer.Components/FellowshipAnalyzer.Components.csproj" />
     <Project Path="src/FellowshipAnalyzer/FellowshipAnalyzer/FellowshipAnalyzer.csproj" />
     <Project Path="src/FellowshipAnalyzer/FellowshipAnalyzer.DevHost/FellowshipAnalyzer.DevHost.csproj" />
   </Folder>
@@ -59,7 +58,6 @@
     <Project Path="tests/FellowshipAnalyzer.Heroes.Xavian.Tests/FellowshipAnalyzer.Heroes.Xavian.Tests.csproj" />
   </Folder>
   <Folder Name="/Tests/">
-    <Project Path="tests/FellowshipAnalyzer.Components.Tests/FellowshipAnalyzer.Components.Tests.csproj" />
     <Project Path="tests/FellowshipAnalyzer.Core.Tests/FellowshipAnalyzer.Core.Tests.csproj" />
     <Project Path="tests/FellowshipAnalyzer.Generators.Tests/FellowshipAnalyzer.Generators.Tests.csproj" />
   </Folder>

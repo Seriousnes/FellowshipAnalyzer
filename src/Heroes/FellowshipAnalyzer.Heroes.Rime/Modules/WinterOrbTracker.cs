@@ -1,8 +1,8 @@
-using FellowshipAnalyzer.Core.Analysis;
 using FellowshipAnalyzer.Core.Common.Spells;
 using FellowshipAnalyzer.Core.Common.Spells.Rime;
 using FellowshipAnalyzer.Core.Events;
 using FellowshipAnalyzer.Core.Game;
+using FellowshipAnalyzer.Core.Resources;
 using FellowshipAnalyzer.Heroes.Rime.Statistics;
 
 using Microsoft.Extensions.Logging;

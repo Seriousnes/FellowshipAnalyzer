@@ -1,6 +1,6 @@
 using FellowshipAnalyzer.Core.Analysis;
+using FellowshipAnalyzer.Core.Common.Spells.Elarion;
 using FellowshipAnalyzer.Core.Events;
-using FellowshipAnalyzer.Heroes.Elarion.Statistics;
 
 namespace FellowshipAnalyzer.Heroes.Elarion.Modules;
 
@@ -23,9 +23,7 @@ public sealed partial class ImpendingHeartseekerAnalyzer : Analyzer
     public int Consumed => _events.Count(p => p.Kind == ProcKind.Consumed);
     public int Expired => _events.Count(p => p.Kind == ProcKind.Expired);
 
-    public override Type? StatisticsComponentType => typeof(ImpendingHeartseekerStatistics);
-
-    [On<ApplyBuffEvent>(To = Actor.Player, Spell = SpellIds.ImpendingHeartseekerBuff)]
+    [On<ApplyBuffEvent>(To = Actor.Player, Spell = nameof(Spells.ImpendingHeartseeker))]
     private void OnApply(ApplyBuffEvent e)
     {
         _activeStartTimestamp = e.Timestamp;
@@ -33,7 +31,7 @@ public sealed partial class ImpendingHeartseekerAnalyzer : Analyzer
         _events.Add(new ProcEvent(e.Timestamp, ProcKind.Gain, _activeStacks));
     }
 
-    [On<ApplyBuffStackEvent>(To = Actor.Player, Spell = SpellIds.ImpendingHeartseekerBuff)]
+    [On<ApplyBuffStackEvent>(To = Actor.Player, Spell = nameof(Spells.ImpendingHeartseeker))]
     private void OnApplyStack(ApplyBuffStackEvent e)
     {
         _activeStartTimestamp = e.Timestamp;
@@ -41,14 +39,14 @@ public sealed partial class ImpendingHeartseekerAnalyzer : Analyzer
         _events.Add(new ProcEvent(e.Timestamp, ProcKind.Gain, _activeStacks));
     }
 
-    [On<RefreshBuffEvent>(To = Actor.Player, Spell = SpellIds.ImpendingHeartseekerBuff)]
+    [On<RefreshBuffEvent>(To = Actor.Player, Spell = nameof(Spells.ImpendingHeartseeker))]
     private void OnRefresh(RefreshBuffEvent e)
     {
         _activeStartTimestamp = e.Timestamp;
         _events.Add(new ProcEvent(e.Timestamp, ProcKind.Refresh, _activeStacks));
     }
 
-    [On<RemoveBuffStackEvent>(To = Actor.Player, Spell = SpellIds.ImpendingHeartseekerBuff)]
+    [On<RemoveBuffStackEvent>(To = Actor.Player, Spell = nameof(Spells.ImpendingHeartseeker))]
     private void OnRemoveStack(RemoveBuffStackEvent e)
     {
         _activeStacks = e.Stack;
@@ -56,7 +54,7 @@ public sealed partial class ImpendingHeartseekerAnalyzer : Analyzer
         _events.Add(new ProcEvent(e.Timestamp, kind, _activeStacks));
     }
 
-    [On<RemoveBuffEvent>(To = Actor.Player, Spell = SpellIds.ImpendingHeartseekerBuff)]
+    [On<RemoveBuffEvent>(To = Actor.Player, Spell = nameof(Spells.ImpendingHeartseeker))]
     private void OnRemove(RemoveBuffEvent e)
     {
         var kind = IsExpiry(e.Timestamp) ? ProcKind.Expired : ProcKind.Consumed;

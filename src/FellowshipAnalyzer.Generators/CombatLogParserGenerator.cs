@@ -300,7 +300,7 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
         }
 
         return new TypeInfo(moduleType.Name, ns, extendsAbilities, reportType, activePredicate,
-            beforeFqns.ToImmutableArray(), afterFqns.ToImmutableArray(), BuildCtorParams(moduleType));
+            [.. beforeFqns], [.. afterFqns], BuildCtorParams(moduleType));
     }
 
     private static TypeInfo BuildNormalizerTypeInfo(INamedTypeSymbol normalizerType)

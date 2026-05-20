@@ -1,7 +1,3 @@
-@namespace FellowshipAnalyzer.Heroes.Elarion.Guides
-@using FellowshipAnalyzer.Components
-@using FellowshipAnalyzer.Core.Common.Spells
-@using FellowshipAnalyzer.Heroes.Elarion.Analysis
 @inject ElarionCombatLogParser Parser
 
 <GuideSection Title="Skystrider's Grace + Event Horizon">
@@ -27,7 +23,7 @@
 
     private IEnumerable<OverviewStat> BuildStats(CooldownEfficiencyAnalyzer.CooldownTracking tracking, string displayName)
     {
-        var fightLen = Analyzer.FightLengthMs;
+        var fightLen = (int)Analyzer.Owner.Fight.Duration().TotalMilliseconds;
         var uptimePct = fightLen > 0
             ? tracking.TotalBuffUptimeMs * 100.0 / fightLen
             : 0;

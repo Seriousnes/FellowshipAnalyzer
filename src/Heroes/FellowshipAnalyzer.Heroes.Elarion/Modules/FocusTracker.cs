@@ -1,7 +1,7 @@
-﻿using FellowshipAnalyzer.Core.Analysis;
 using FellowshipAnalyzer.Core.Common.Spells;
 using FellowshipAnalyzer.Core.Events;
 using FellowshipAnalyzer.Core.Game;
+using FellowshipAnalyzer.Core.Resources;
 
 using Microsoft.Extensions.Logging;
 

@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 using ApexCharts;
 using FellowshipAnalyzer;
 using FellowshipAnalyzer.Services;
-using FellowshipAnalyzer.Components.Timeline;
+using FellowshipAnalyzer.Core.UI.Timeline;
 using FellowshipAnalyzer.Core;
 using FellowshipAnalyzer.Core.Analysis;
 using FellowshipAnalyzer.Core.FellowshipLogs;

@@ -101,7 +101,7 @@ public sealed class JsonDerivedTypeGenerator : IIncrementalGenerator
             ? symbol.ContainingNamespace.ToDisplayString()
             : string.Empty;
 
-        return new TriggerInfo(symbol.Name, triggerNs, derivedTypes.ToImmutableArray());
+        return new TriggerInfo(symbol.Name, triggerNs, [.. derivedTypes]);
     }
 
     private static IEnumerable<INamedTypeSymbol> GetAllNamedTypes(INamespaceSymbol ns)

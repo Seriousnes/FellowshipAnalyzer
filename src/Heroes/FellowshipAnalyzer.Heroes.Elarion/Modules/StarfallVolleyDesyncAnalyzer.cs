@@ -1,6 +1,6 @@
 using FellowshipAnalyzer.Core.Analysis;
+using FellowshipAnalyzer.Core.Common.Spells.Elarion;
 using FellowshipAnalyzer.Core.Events;
-using FellowshipAnalyzer.Heroes.Elarion.Statistics;
 
 namespace FellowshipAnalyzer.Heroes.Elarion.Modules;
 
@@ -24,15 +24,13 @@ public sealed partial class StarfallVolleyDesyncAnalyzer : Analyzer
         ? 0
         : _events.Average(e => e.GapMs);
 
-    public override Type? StatisticsComponentType => typeof(StarfallVolleyDesyncStatistics);
-
-    [On<CastEvent>(By = Actor.Player, Spell = SpellIds.LunarlightMark)]
+    [On<CastEvent>(By = Actor.Player, Spell = nameof(Spells.LunarlightMark))]
     private void OnLunarlightMark(CastEvent e)
     {
         _lastLunarlightMarkTimestamp = e.Timestamp;
     }
 
-    [On<CastEvent>(By = Actor.Player, Spell = SpellIds.StarfallVolley)]
+    [On<CastEvent>(By = Actor.Player, Spell = nameof(Spells.StarfallVolley))]
     private void OnStarfallVolley(CastEvent e)
     {
         if (_lastLunarlightMarkTimestamp is int last)

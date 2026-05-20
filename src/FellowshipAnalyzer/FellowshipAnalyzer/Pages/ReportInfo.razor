@@ -2,7 +2,7 @@
 @page "/report/{ReportCode}/{FightId:int}"
 @using FellowshipAnalyzer.Core.Analysis
 @using FellowshipAnalyzer.Core.FellowshipLogs
-@using FellowshipAnalyzer.Components
+@using FellowshipAnalyzer.Core.UI.Components
 @using CoreReportInfo = FellowshipAnalyzer.Core.FellowshipLogs.ReportInfo
 @using FellowshipAnalyzer.Services
 @inject FellowshipLogsApiClient FellowshipLogs
@@ -287,7 +287,7 @@
             _expandedFightId = fightId;
     }
 
-    private static string GetRoleBorderColor(HeroRole role) => HeroRoleStyles.GetAccentColorVar(role);
+    private static string GetRoleBorderColor(HeroRole role) => Core.UI.HeroRoleStyles.GetAccentColorVar(role);
 
     private static string FormatDuration(double milliseconds)
     {

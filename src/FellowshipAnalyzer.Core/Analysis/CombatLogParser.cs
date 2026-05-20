@@ -3,6 +3,8 @@ using System.Globalization;
 using FellowshipAnalyzer.Core.Analysis.Normalizers;
 using FellowshipAnalyzer.Core.Events;
 using FellowshipAnalyzer.Core.FellowshipLogs;
+using FellowshipAnalyzer.Core.Game;
+using FellowshipAnalyzer.Core.UI;
 
 using Microsoft.Extensions.Logging;
 
@@ -26,6 +28,7 @@ namespace FellowshipAnalyzer.Core.Analysis;
 [AddModule<GlobalCooldown>]
 [AddModule<SpellUsable>]
 [AddModule<ChronoshiftAnalyzer>]
+[AddModule<SpiritTracker>]
 public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServiceProvider provider) : IHeroAnalyzer
 {
     /// <summary>The outer DI container, passed through from the parser's primary constructor.
@@ -199,7 +202,10 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
             _moduleTypeIndex[allModuleTypes[i]] = i;
 
         Events = [.. events];
-        CurrentParseContext = new ParseContext(playerId, fight, ActorNames, SelectedCombatant);
+
+        var playerInfo = Events.OfType<CombatantInfoEvent>().FirstOrDefault(e => e.SourceId == playerId)
+            ?? new CombatantInfoEvent { SourceId = playerId };
+        CurrentParseContext = new ParseContext(playerId, fight, ActorNames, new Combatant(playerInfo));
 
         EventEmitter = new EventEmitter((ILogger<EventEmitter>)Provider.GetService(typeof(ILogger<EventEmitter>))!)
         {
@@ -262,10 +268,9 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
         return new HeroAnalysisResult
         {
             GuideComponentType = GuideComponent,
-            Statistics = _activeModules.Values
+            Statistics = [.. _activeModules.Values
                     .Where(m => m.StatisticsComponentType != null)
-                    .Select(m => (m, m.StatisticsComponentType!))
-                    .ToList(),
+                    .Select(m => new StatisticEntry(m, m.StatisticsComponentType!, m.StatisticCategory, m.StatisticOrder))],
             Modules = [.. _activeModules.Values],
             Events = Events,
             DebugAnnotations = GetModule<DebugAnnotations>(),

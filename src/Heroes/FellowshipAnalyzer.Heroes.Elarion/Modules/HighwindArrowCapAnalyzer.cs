@@ -1,6 +1,6 @@
 using FellowshipAnalyzer.Core.Analysis;
+using FellowshipAnalyzer.Core.Common.Spells.Elarion;
 using FellowshipAnalyzer.Core.Events;
-using FellowshipAnalyzer.Heroes.Elarion.Statistics;
 
 namespace FellowshipAnalyzer.Heroes.Elarion.Modules;
 
@@ -23,8 +23,6 @@ public sealed partial class HighwindArrowCapAnalyzer : Analyzer
     public int TotalTimeAtCapMs => _totalTimeAtCapMs;
     public int CastsWhileCapped => _castsWhileCapped;
     public int TotalCasts => _totalCasts;
-
-    public override Type? StatisticsComponentType => typeof(HighwindArrowCapStatistics);
 
     public double CapPercentage =>
         _fightEnd > _fightStart
@@ -50,7 +48,7 @@ public sealed partial class HighwindArrowCapAnalyzer : Analyzer
         }
     }
 
-    [On<CastEvent>(By = Actor.Player, Spell = SpellIds.HighwindArrow)]
+    [On<CastEvent>(By = Actor.Player, Spell = nameof(Spells.HighwindArrow))]
     private void OnCast(CastEvent e)
     {
         _totalCasts++;
@@ -60,7 +58,7 @@ public sealed partial class HighwindArrowCapAnalyzer : Analyzer
         }
     }
 
-    [On<UpdateSpellUsableEvent>(By = Actor.Player, Spell = SpellIds.HighwindArrow)]
+    [On<UpdateSpellUsableEvent>(By = Actor.Player, Spell = nameof(Spells.HighwindArrow))]
     private void OnUpdate(UpdateSpellUsableEvent e)
     {
         var nowCapped = e.ChargesAvailable >= MaxCharges;

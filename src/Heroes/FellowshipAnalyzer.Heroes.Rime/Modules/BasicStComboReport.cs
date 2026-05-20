@@ -1,5 +1,4 @@
 using FellowshipAnalyzer.Core.Analysis;
-using FellowshipAnalyzer.Heroes.Rime.Analysis;
 
 namespace FellowshipAnalyzer.Heroes.Rime.Modules;
 

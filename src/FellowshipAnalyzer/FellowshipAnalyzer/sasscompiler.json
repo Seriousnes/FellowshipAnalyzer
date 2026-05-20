@@ -5,6 +5,6 @@
   "ScopedCssFolders": [ "." ],
   "IncludePaths": [
     ".",
-    "../../FellowshipAnalyzer.Components/Styles"
+    "../../FellowshipAnalyzer.Core/Styles"
   ]
 }

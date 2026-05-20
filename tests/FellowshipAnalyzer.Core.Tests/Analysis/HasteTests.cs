@@ -9,8 +9,6 @@ using NSubstitute;
 
 using Xunit;
 
-using static FellowshipAnalyzer.Core.Analysis.Events;
-
 namespace FellowshipAnalyzer.Core.Tests.Analysis;
 
 public sealed partial class HasteTests

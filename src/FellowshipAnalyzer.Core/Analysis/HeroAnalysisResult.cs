@@ -1,4 +1,5 @@
 using FellowshipAnalyzer.Core.Events;
+using FellowshipAnalyzer.Core.UI;
 
 namespace FellowshipAnalyzer.Core.Analysis;
 
@@ -17,10 +18,11 @@ public sealed class HeroAnalysisResult
     public required Type? GuideComponentType { get; init; }
 
     /// <summary>
-    /// Active modules that have a statistics component, paired with their component type.
-    /// Rendered on the Statistics tab via CascadingValue + DynamicComponent.
+    /// Active modules that have a statistics component, paired with the metadata needed
+    /// to render them on the Statistics tab: which Razor component, which section to group
+    /// under, and the ordinal position within that section.
     /// </summary>
-    public required IReadOnlyList<(Module Module, Type ComponentType)> Statistics { get; init; }
+    public required IReadOnlyList<StatisticEntry> Statistics { get; init; }
 
     public required IReadOnlyList<Module> Modules { get; init; }
 

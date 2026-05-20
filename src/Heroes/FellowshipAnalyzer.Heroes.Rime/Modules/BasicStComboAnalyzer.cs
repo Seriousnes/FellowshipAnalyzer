@@ -39,7 +39,7 @@ public sealed partial class BasicStComboAnalyzer : Analyzer
 
     private StComboWindowEvaluation? _currentWindow;
 
-    [On<ApplyBuffEvent>(By = Actor.Player, Spell = SpellIds.WintersEmbrace)]
+    [On<ApplyBuffEvent>(By = Actor.Player, Spell = nameof(Spells.WintersEmbrace))]
     private void OnWintersEmbraceApplied(ApplyBuffEvent @event)
     {
         _currentWindow = new StComboWindowEvaluation()
@@ -49,7 +49,7 @@ public sealed partial class BasicStComboAnalyzer : Analyzer
         };
     }
 
-    [On<RemoveBuffEvent>(By = Actor.Player, Spell = SpellIds.WintersEmbrace)]
+    [On<RemoveBuffEvent>(By = Actor.Player, Spell = nameof(Spells.WintersEmbrace))]
     private void OnWintersEmbraceRemoved(RemoveBuffEvent @event)
     {
         _currentWindow!.EndTimestamp = @event.Timestamp;
@@ -89,7 +89,7 @@ public sealed partial class BasicStComboAnalyzer : Analyzer
             : (name, bonus);
     }
 
-    [On<DamageEvent>(By = Actor.Player, Spell = SpellIds.BurstingIceDamage)]
+    [On<DamageEvent>(By = Actor.Player, Spell = nameof(Spells.BurstingIceDamage))]
     private void OnBurstingIceDamage(DamageEvent damageEvent)
     {
         if (_currentWindow is null)

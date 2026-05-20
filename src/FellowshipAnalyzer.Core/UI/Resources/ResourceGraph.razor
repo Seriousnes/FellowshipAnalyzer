@@ -1,0 +1,98 @@
+@using ApexCharts
+@inherits ReportComponentBase
+
+<ApexChart TItem="GraphPoint"
+           Options="@_options"
+           Height="@Height">
+    <ApexPointSeries TItem="GraphPoint"
+                     Items="@_resourceData"
+                     Name="@Tracker.GetDisplayName(Resource)"
+                     SeriesType="SeriesType.Line"
+                     XValue="@(e => e.X)"
+                     YValue="@(e => (decimal)e.Y)" />
+    @if (IncludeWasted)
+    {
+        <ApexPointSeries TItem="GraphPoint"
+                         Items="@_wastedData"
+                         Name="@($"Wasted {Tracker.GetDisplayName(Resource)}")"
+                         SeriesType="SeriesType.Line"
+                         XValue="@(e => e.X)"
+                         YValue="@(e => (decimal)e.Y)" />
+    }
+</ApexChart>
+
+@code {
+    [Parameter, EditorRequired] public required ResourceTracker Tracker { get; set; }
+    [Parameter, EditorRequired] public required ResourceTypes Resource { get; set; }
+    [Parameter] public bool IncludeWasted { get; set; }
+    [Parameter] public int Height { get; set; } = 200;
+
+    private List<GraphPoint> _resourceData = [];
+    private List<GraphPoint> _wastedData = [];
+
+    private readonly ApexChartOptions<GraphPoint> _options = new()
+    {
+        Xaxis = new XAxis
+        {
+            Type = XAxisType.Numeric,
+            Labels = new XAxisLabels
+            {
+                Formatter = TimeFormatters.MmSsJs,
+            },
+        },
+        Yaxis = [new YAxis { Min = 0 }],
+        Stroke = new Stroke
+        {
+            Curve = [Curve.Straight, Curve.Stepline],
+            Width = 2,
+        },
+        Chart = new Chart
+        {
+            Toolbar = new Toolbar { Show = false },
+            Animations = new Animations { Enabled = false },
+        },
+        Tooltip = new Tooltip
+        {
+            Shared = false,
+            Intersect = true,
+            X = new TooltipX
+            {
+                Formatter = TimeFormatters.MmSsJs,
+            },
+            Y = new TooltipY
+            {
+                Formatter = TimeFormatters.IdentityJs,
+            },
+        },
+    };
+
+    protected override void OnParametersSet()
+    {
+        BuildGraphData();
+    }
+
+    private void BuildGraphData()
+    {
+        _resourceData = [];
+        _wastedData = [];
+
+        foreach (var e in Tracker.GetResourceEvents(Resource))
+        {
+            var x = e.Timestamp - FightStartTime;
+
+            // Insert the pre-event value at the same timestamp so linear interpolation
+            // renders a vertical step at the moment of the change.
+            var valueBefore = e.Kind == ResourceEventKind.Gain
+                ? e.CurrentAfter - e.Amount
+                : e.CurrentAfter + e.Amount;
+
+            _resourceData.Add(new GraphPoint(x, valueBefore));
+            _resourceData.Add(new GraphPoint(x, e.CurrentAfter));
+
+            if (IncludeWasted)
+                _wastedData.Add(new GraphPoint(x, e.Wasted));
+        }
+    }
+
+    private sealed record GraphPoint(int X, int Y);
+}

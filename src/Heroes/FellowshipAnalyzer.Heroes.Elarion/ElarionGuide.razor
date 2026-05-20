@@ -1,12 +1,12 @@
-@namespace FellowshipAnalyzer.Heroes.Elarion.Guides
 @using FellowshipAnalyzer.Heroes.Elarion.Analysis
+@using FellowshipAnalyzer.Core.Game
 @inject ElarionCombatLogParser Parser
 
 @if (Parser.FocusTracker is not null)
 {
     <ResourceGraph
         Tracker="Parser.FocusTracker"
-        Resource="Core.Game.ResourceTypes.Primary"
+        Resource="ResourceTypes.Primary"
     />
 }
 

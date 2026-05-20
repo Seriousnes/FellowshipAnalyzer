@@ -3,16 +3,15 @@ using FellowshipAnalyzer.Core.Analysis.Normalizers;
 using FellowshipAnalyzer.Core.Common.Spells;
 using FellowshipAnalyzer.Core.Events;
 using FellowshipAnalyzer.Core.FellowshipLogs;
-using FellowshipAnalyzer.Core.Game;
+using FellowshipAnalyzer.Core.Resources;
 
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
 using NSubstitute;
 
-using static FellowshipAnalyzer.Core.Analysis.Events;
-
 using Xunit;
+using FellowshipAnalyzer.Core.Game;
 
 namespace FellowshipAnalyzer.Core.Tests.Analysis;
 
@@ -406,11 +405,16 @@ public sealed partial class CombatLogParserTests
         public string Icon { get; set; } = string.Empty;
     }
 
+    private sealed class TestSpells : ISpellRegistry
+    {
+        public static Spell Spender { get; } = new(2);
+    }
+
     private sealed partial class SpellFilterProbeModule : Analyzer
     {
         public int MatchedCastCount { get; private set; }
 
-        [On<CastEvent>(By = Actor.Player, Spell = 2)]
+        [On<CastEvent>(By = Actor.Player, Spell = nameof(TestSpells.Spender))]
         private void OnSpender(CastEvent e)
         {
             MatchedCastCount += 1;

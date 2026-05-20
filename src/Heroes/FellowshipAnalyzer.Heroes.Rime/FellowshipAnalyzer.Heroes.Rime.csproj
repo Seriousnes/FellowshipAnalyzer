@@ -28,7 +28,6 @@
 	
 	<ItemGroup>
 		<ProjectReference Include="..\..\FellowshipAnalyzer.Core\FellowshipAnalyzer.Core.csproj" />
-		<ProjectReference Include="..\..\FellowshipAnalyzer.Components\FellowshipAnalyzer.Components.csproj" />
 		<ProjectReference Include="..\..\FellowshipAnalyzer.Generators\FellowshipAnalyzer.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
 	</ItemGroup>
 	

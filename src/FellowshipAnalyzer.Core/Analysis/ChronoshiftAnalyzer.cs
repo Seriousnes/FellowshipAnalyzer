@@ -1,3 +1,4 @@
+using FellowshipAnalyzer.Core.Common.Spells;
 using FellowshipAnalyzer.Core.Events;
 
 namespace FellowshipAnalyzer.Core.Analysis;
@@ -58,7 +59,7 @@ public sealed partial class ChronoshiftAnalyzer(Lazy<SpellUsable> spellUsable) :
         return new ChronoshiftReport(applied, wasted);
     }
 
-    [On<BeginChannelEvent>(By = Actor.Player, Spell = 1558)]
+    [On<BeginChannelEvent>(By = Actor.Player, Spell = nameof(Spells.Chronoshift))]
     private void OnBeginChannel(BeginChannelEvent e)
     {
         _windows.Add(new ChronoshiftWindow(e.Timestamp));
@@ -72,7 +73,7 @@ public sealed partial class ChronoshiftAnalyzer(Lazy<SpellUsable> spellUsable) :
         _spellUsable.ApplyCooldownRateChangeToAll(ChronoshiftRate, e.Timestamp);
     }
 
-    [On<EndChannelEvent>(By = Actor.Player, Spell = 1558)]
+    [On<EndChannelEvent>(By = Actor.Player, Spell = nameof(Spells.Chronoshift))]
     private void OnEndChannel(EndChannelEvent e)
     {
         if (_windows.Count == 0) return;

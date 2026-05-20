@@ -4,8 +4,6 @@ using System.Net.Http.Json;
 using FellowshipAnalyzer.Core.FellowshipLogs;
 using FellowshipAnalyzer.Core.Serialization;
 
-using Microsoft.Extensions.Logging;
-
 namespace FellowshipAnalyzer.Services;
 
 public sealed class FellowshipLogsApiClient(HttpClient http, FellowshipAnalyzerJsonContext jsonContext, ILogger<FellowshipLogsApiClient> logger)

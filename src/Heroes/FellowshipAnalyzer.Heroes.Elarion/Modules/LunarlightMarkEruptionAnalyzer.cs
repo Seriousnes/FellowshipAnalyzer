@@ -1,7 +1,6 @@
 using FellowshipAnalyzer.Core.Analysis;
 using FellowshipAnalyzer.Core.Common.Spells.Elarion;
 using FellowshipAnalyzer.Core.Events;
-using FellowshipAnalyzer.Heroes.Elarion.Statistics;
 
 namespace FellowshipAnalyzer.Heroes.Elarion.Modules;
 
@@ -26,8 +25,6 @@ public sealed partial class LunarlightMarkEruptionAnalyzer : Analyzer
     public int BarrageWithoutEruption => _barrages.Count(b => b.ErupedMarks == 0);
 
     public int ActiveMarkCount => _activeMarks.Count;
-
-    public override Type? StatisticsComponentType => typeof(LunarlightMarkEruptionStatistics);
 
     [On<ApplyDebuffEvent>(By = Actor.Player)]
     private void OnApplyMark(ApplyDebuffEvent e)
@@ -60,7 +57,7 @@ public sealed partial class LunarlightMarkEruptionAnalyzer : Analyzer
 
     private bool _recentlyErupted;
 
-    [On<CastEvent>(By = Actor.Player, Spell = SpellIds.HeartseekerBarrage)]
+    [On<CastEvent>(By = Actor.Player, Spell = nameof(Spells.HeartseekerBarrage))]
     private void OnBarrage(CastEvent e)
     {
         var erupted = _activeMarks.Count;
@@ -72,7 +69,7 @@ public sealed partial class LunarlightMarkEruptionAnalyzer : Analyzer
     [On<CastEvent>(By = Actor.Player)]
     private void OnAnyCast(CastEvent e)
     {
-        if (e.Ability.Id != SpellIds.HeartseekerBarrage)
+        if (e.Ability.Id != Spells.HeartseekerBarrage.Guid)
         {
             _recentlyErupted = false;
         }

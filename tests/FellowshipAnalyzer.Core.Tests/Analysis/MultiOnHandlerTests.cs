@@ -2,6 +2,7 @@ using FellowshipAnalyzer.Core.Analysis;
 using FellowshipAnalyzer.Core.Analysis.Normalizers;
 using FellowshipAnalyzer.Core.Events;
 using FellowshipAnalyzer.Core.FellowshipLogs;
+using FellowshipAnalyzer.Core.Resources;
 
 using Microsoft.Extensions.Logging.Abstractions;
 

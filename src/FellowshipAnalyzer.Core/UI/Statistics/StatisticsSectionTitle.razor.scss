@@ -1,0 +1,25 @@
+@use 'tokens' as t;
+@use 'mixins' as mx;
+
+.statistics-section-title {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    margin: 1.5rem 0 0.5rem;
+    padding-bottom: 0.4rem;
+    border-bottom: 1px solid var(--fa-border-card);
+
+    &:first-child { margin-top: 0; }
+}
+
+.statistics-section-title-text {
+    @include mx.eyebrow;
+    margin: 0;
+    font-size: 0.85rem;
+}
+
+.statistics-section-title-aside {
+    color: var(--fa-text-muted);
+    font-size: 0.8rem;
+}

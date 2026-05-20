@@ -11,7 +11,7 @@ public sealed record ParseContext(
     int PlayerId,
     ReportFight Fight,
     IReadOnlyDictionary<int, string> ActorNames,
-    Combatant? SelectedCombatant = null)
+    Combatant SelectedCombatant)
 {
     public int FightStartTime => (int)Fight.StartTime;
     public int FightEndTime => (int)Fight.EndTime;

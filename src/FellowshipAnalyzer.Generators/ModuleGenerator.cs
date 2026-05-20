@@ -2,9 +2,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Text;
 
 namespace FellowshipAnalyzer.Generators;
@@ -20,6 +18,34 @@ public sealed class ModuleGenerator : IIncrementalGenerator
 {
     private const string OnAttributeShortName = "On";
     private const string OnAttributeFullName = "OnAttribute";
+    private const string SpellsNamespace = "FellowshipAnalyzer.Core.Common.Spells";
+    private const string SpellRegistryInterfaceName = "ISpellRegistry";
+    private const string SpellTypeName = "Spell";
+    private const string EffectTypeName = "Effect";
+
+    private static readonly DiagnosticDescriptor SpellArgMustBeNameOfDescriptor = new(
+        id: "FA0002",
+        title: "OnAttribute spell argument must be nameof(Registry.Member)",
+        messageFormat: "OnAttribute '{0}' argument must be a `nameof(Registry.Member)` expression",
+        category: "Module",
+        defaultSeverity: DiagnosticSeverity.Error,
+        isEnabledByDefault: true);
+
+    private static readonly DiagnosticDescriptor SpellArgNotRegistryMemberDescriptor = new(
+        id: "FA0003",
+        title: "OnAttribute spell argument is not a registered spell",
+        messageFormat: "'{0}' is not a static Spell/Effect property on a type implementing ISpellRegistry",
+        category: "Module",
+        defaultSeverity: DiagnosticSeverity.Error,
+        isEnabledByDefault: true);
+
+    private static readonly DiagnosticDescriptor SpellArgInitializerUnresolvableDescriptor = new(
+        id: "FA0004",
+        title: "OnAttribute spell argument has no resolvable Id",
+        messageFormat: "Could not recover an int Id literal from the constructor of '{0}'",
+        category: "Module",
+        defaultSeverity: DiagnosticSeverity.Error,
+        isEnabledByDefault: true);
 
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
@@ -123,6 +149,7 @@ public sealed class ModuleGenerator : IIncrementalGenerator
         var inheritsEventSubscriber = InheritsFromEventSubscriber(symbol);
 
         var handlers = ImmutableArray.CreateBuilder<HandlerInfo>();
+        var diagnostics = ImmutableArray.CreateBuilder<PendingDiagnostic>();
         if (inheritsEventSubscriber)
         {
             foreach (var member in symbol.GetMembers())
@@ -135,7 +162,7 @@ public sealed class ModuleGenerator : IIncrementalGenerator
                     if (attrClass.TypeArguments.Length != 1) continue;
                     if (attrClass.TypeArguments[0] is not INamedTypeSymbol eventType) continue;
 
-                    var handler = BuildHandler(method, attrClass, eventType, attrData);
+                    var handler = BuildHandler(method, attrClass, eventType, attrData, ctx.SemanticModel, diagnostics, ct);
                     if (handler is not null)
                         handlers.Add(handler);
                 }
@@ -144,7 +171,7 @@ public sealed class ModuleGenerator : IIncrementalGenerator
 
         var lazyAccessors = CollectLazyAccessors(symbol);
 
-        if (handlers.Count == 0 && lazyAccessors.Length == 0)
+        if (handlers.Count == 0 && lazyAccessors.Length == 0 && diagnostics.Count == 0)
             return null;
 
         var hasEventSubscriberBaseWithAttributes = inheritsEventSubscriber && AnyBaseHasOnAttributes(symbol);
@@ -163,7 +190,8 @@ public sealed class ModuleGenerator : IIncrementalGenerator
             containingTypes.ToImmutable(),
             handlers.ToImmutable(),
             lazyAccessors,
-            hasEventSubscriberBaseWithAttributes);
+            hasEventSubscriberBaseWithAttributes,
+            diagnostics.ToImmutable());
     }
 
     private static ImmutableArray<LazyAccessorInfo> CollectLazyAccessors(INamedTypeSymbol symbol)
@@ -242,7 +270,10 @@ public sealed class ModuleGenerator : IIncrementalGenerator
         IMethodSymbol method,
         INamedTypeSymbol attrClass,
         INamedTypeSymbol eventType,
-        AttributeData attr)
+        AttributeData attr,
+        SemanticModel semanticModel,
+        ImmutableArray<PendingDiagnostic>.Builder diagnostics,
+        CancellationToken ct)
     {
         if (method.Parameters.Length != 1)
             return null;
@@ -265,10 +296,13 @@ public sealed class ModuleGenerator : IIncrementalGenerator
 
         var by = GetIntNamedArg(attr, "By");
         var to = GetIntNamedArg(attr, "To");
-        var spell = GetIntNamedArg(attr, "Spell");
-        var spells = GetIntArrayNamedArg(attr, "Spells");
-        var extraSpell = GetIntNamedArg(attr, "ExtraSpell");
-        var extraSpells = GetIntArrayNamedArg(attr, "ExtraSpells");
+
+        var attrSyntax = attr.ApplicationSyntaxReference?.GetSyntax(ct) as AttributeSyntax;
+
+        var spell = ResolveSpellNamedArg(attrSyntax, semanticModel, "Spell", diagnostics, ct);
+        var spells = ResolveSpellArrayNamedArg(attrSyntax, semanticModel, "Spells", diagnostics, ct);
+        var extraSpell = ResolveSpellNamedArg(attrSyntax, semanticModel, "ExtraSpell", diagnostics, ct);
+        var extraSpells = ResolveSpellArrayNamedArg(attrSyntax, semanticModel, "ExtraSpells", diagnostics, ct);
 
         var isAsync = IsTaskReturning(method);
         var implementsAbility = ImplementsInterface(eventType, "IAbilityEvent");
@@ -301,6 +335,240 @@ public sealed class ModuleGenerator : IIncrementalGenerator
             if (na.Key == name && na.Value.Value is int i) return i;
         }
         return 0;
+    }
+
+    private static AttributeArgumentSyntax? FindNamedArgSyntax(AttributeSyntax? attrSyntax, string name)
+    {
+        if (attrSyntax?.ArgumentList is null) return null;
+        foreach (var arg in attrSyntax.ArgumentList.Arguments)
+        {
+            if (arg.NameEquals is { } ne && ne.Name.Identifier.ValueText == name)
+                return arg;
+        }
+        return null;
+    }
+
+    private static int? ResolveSpellNamedArg(
+        AttributeSyntax? attrSyntax,
+        SemanticModel semanticModel,
+        string name,
+        ImmutableArray<PendingDiagnostic>.Builder diagnostics,
+        CancellationToken ct)
+    {
+        var argSyntax = FindNamedArgSyntax(attrSyntax, name);
+        if (argSyntax is null) return null;
+        return ResolveSpellExpression(argSyntax.Expression, semanticModel, name, diagnostics, ct);
+    }
+
+    private static ImmutableArray<int> ResolveSpellArrayNamedArg(
+        AttributeSyntax? attrSyntax,
+        SemanticModel semanticModel,
+        string name,
+        ImmutableArray<PendingDiagnostic>.Builder diagnostics,
+        CancellationToken ct)
+    {
+        var argSyntax = FindNamedArgSyntax(attrSyntax, name);
+        if (argSyntax is null) return ImmutableArray<int>.Empty;
+
+        IEnumerable<ExpressionSyntax>? elements = argSyntax.Expression switch
+        {
+            ArrayCreationExpressionSyntax ac => ac.Initializer?.Expressions,
+            ImplicitArrayCreationExpressionSyntax iac => iac.Initializer.Expressions,
+            CollectionExpressionSyntax ce => ce.Elements.OfType<ExpressionElementSyntax>().Select(e => e.Expression),
+            _ => null,
+        };
+
+        if (elements is null)
+        {
+            diagnostics.Add(new PendingDiagnostic(
+                SpellArgMustBeNameOfDescriptor,
+                argSyntax.Expression.GetLocation(),
+                ImmutableArray.Create<string>(name)));
+            return ImmutableArray<int>.Empty;
+        }
+
+        var builder = ImmutableArray.CreateBuilder<int>();
+        foreach (var expr in elements)
+        {
+            var resolved = ResolveSpellExpression(expr, semanticModel, name, diagnostics, ct);
+            if (resolved is int v) builder.Add(v);
+        }
+        return builder.ToImmutable();
+    }
+
+    /// <summary>
+    /// Resolves <c>nameof(Registry.Member)</c> to the registered spell's runtime Guid
+    /// (<see cref="FellowshipAnalyzer.Core.Common.Spells.Spell.Guid"/>). Emits FA0002/3/4 on failure.
+    /// </summary>
+    private static int? ResolveSpellExpression(
+        ExpressionSyntax expr,
+        SemanticModel semanticModel,
+        string argName,
+        ImmutableArray<PendingDiagnostic>.Builder diagnostics,
+        CancellationToken ct)
+    {
+        if (expr is not InvocationExpressionSyntax invocation ||
+            invocation.Expression is not IdentifierNameSyntax id ||
+            id.Identifier.ValueText != "nameof" ||
+            invocation.ArgumentList.Arguments.Count != 1 ||
+            invocation.ArgumentList.Arguments[0].Expression is not MemberAccessExpressionSyntax memberAccess)
+        {
+            diagnostics.Add(new PendingDiagnostic(
+                SpellArgMustBeNameOfDescriptor,
+                expr.GetLocation(),
+                ImmutableArray.Create<string>(argName)));
+            return null;
+        }
+
+        var symbol = semanticModel.GetSymbolInfo(memberAccess, ct).Symbol;
+        if (symbol is not IPropertySymbol property ||
+            !property.IsStatic ||
+            !IsSpellOrEffect(property.Type) ||
+            !ContainingTypeImplementsSpellRegistry(property))
+        {
+            diagnostics.Add(new PendingDiagnostic(
+                SpellArgNotRegistryMemberDescriptor,
+                memberAccess.GetLocation(),
+                ImmutableArray.Create<string>(memberAccess.ToString())));
+            return null;
+        }
+
+        if (!TryGetSpellGuid(property, ct, out var guid))
+        {
+            diagnostics.Add(new PendingDiagnostic(
+                SpellArgInitializerUnresolvableDescriptor,
+                memberAccess.GetLocation(),
+                ImmutableArray.Create<string>(memberAccess.ToString())));
+            return null;
+        }
+
+        return guid;
+    }
+
+    private static bool IsSpellOrEffect(ITypeSymbol type)
+    {
+        var current = type;
+        while (current is not null)
+        {
+            if ((current.Name == SpellTypeName || current.Name == EffectTypeName) &&
+                current.ContainingNamespace?.ToDisplayString() == SpellsNamespace)
+                return true;
+            current = current.BaseType;
+        }
+        return false;
+    }
+
+    /// <summary>
+    /// True when the property's containing type is a spell registry — either it implements
+    /// <c>ISpellRegistry</c> directly, or it is the static trigger class decorated with
+    /// <c>[GenerateRegistry&lt;ISpellRegistry&gt;]</c>. The trigger class can't implement the
+    /// interface itself (static classes can't have interfaces), but its own static
+    /// <see cref="FellowshipAnalyzer.Core.Common.Spells.Spell"/> entries are included in the
+    /// generated <c>All</c> dictionary.
+    /// </summary>
+    private static bool ContainingTypeImplementsSpellRegistry(IPropertySymbol property)
+    {
+        var owner = property.ContainingType;
+        if (owner is null) return false;
+        foreach (var iface in owner.AllInterfaces)
+        {
+            if (iface.Name == SpellRegistryInterfaceName &&
+                iface.ContainingNamespace?.ToDisplayString() == SpellsNamespace)
+                return true;
+        }
+        foreach (var attr in owner.GetAttributes())
+        {
+            var cls = attr.AttributeClass;
+            if (cls is null) continue;
+            if (cls.Name != "GenerateRegistryAttribute") continue;
+            if (!cls.IsGenericType || cls.TypeArguments.Length != 1) continue;
+            if (cls.TypeArguments[0] is INamedTypeSymbol arg &&
+                arg.Name == SpellRegistryInterfaceName &&
+                arg.ContainingNamespace?.ToDisplayString() == SpellsNamespace)
+                return true;
+        }
+        return false;
+    }
+
+    /// <summary>
+    /// Reads the spell's runtime Guid for a registry property. Two paths, in order:
+    /// <list type="bullet">
+    /// <item>Metadata path — look up the source-generated nested <c>Guids</c> class on the
+    ///   property's containing type and read the matching <c>const int</c> field. Works when
+    ///   the registry lives in a referenced assembly (the typical hero-analyzer scenario).</item>
+    /// <item>Syntax path — read the property initializer's first constructor argument as an
+    ///   int literal, then apply the <see cref="FellowshipAnalyzer.Core.Common.Spells.Effect"/>
+    ///   encoding rule (<c>1_000_000 + Id</c>) when the property type is an Effect. Required
+    ///   for same-assembly references because source generators do not see each other's
+    ///   output in the same compilation pass.</item>
+    /// </list>
+    /// </summary>
+    private static bool TryGetSpellGuid(IPropertySymbol property, CancellationToken ct, out int guid)
+    {
+        guid = 0;
+        var containing = property.ContainingType;
+        if (containing is null) return false;
+
+        foreach (var nested in containing.GetTypeMembers("Guids"))
+        {
+            foreach (var member in nested.GetMembers(property.Name))
+            {
+                if (member is IFieldSymbol field &&
+                    field.HasConstantValue &&
+                    field.ConstantValue is int v)
+                {
+                    guid = v;
+                    return true;
+                }
+            }
+        }
+
+        if (property.DeclaringSyntaxReferences.Length == 0) return false;
+        if (property.DeclaringSyntaxReferences[0].GetSyntax(ct) is not PropertyDeclarationSyntax pds) return false;
+        if (pds.Initializer is not { } initializer) return false;
+
+        ArgumentListSyntax? argList = initializer.Value switch
+        {
+            ObjectCreationExpressionSyntax oc => oc.ArgumentList,
+            ImplicitObjectCreationExpressionSyntax ioc => ioc.ArgumentList,
+            _ => null,
+        };
+        if (argList is null || argList.Arguments.Count == 0) return false;
+
+        if (!TryReadIntLiteral(argList.Arguments[0].Expression, out var id)) return false;
+        guid = InheritsFromEffect(property.Type) ? 1_000_000 + id : id;
+        return true;
+    }
+
+    private static bool TryReadIntLiteral(ExpressionSyntax expr, out int value)
+    {
+        if (expr is LiteralExpressionSyntax lit && lit.Token.Value is int li)
+        {
+            value = li;
+            return true;
+        }
+        if (expr is PrefixUnaryExpressionSyntax prefix &&
+            prefix.IsKind(SyntaxKind.UnaryMinusExpression) &&
+            prefix.Operand is LiteralExpressionSyntax pl && pl.Token.Value is int pli)
+        {
+            value = -pli;
+            return true;
+        }
+        value = 0;
+        return false;
+    }
+
+    private static bool InheritsFromEffect(ITypeSymbol type)
+    {
+        var current = type;
+        while (current is not null)
+        {
+            if (current.Name == EffectTypeName &&
+                current.ContainingNamespace?.ToDisplayString() == SpellsNamespace)
+                return true;
+            current = current.BaseType;
+        }
+        return false;
     }
 
     private static ImmutableArray<int> GetIntArrayNamedArg(AttributeData attr, string name)
@@ -358,6 +626,17 @@ public sealed class ModuleGenerator : IIncrementalGenerator
 
     private static void Emit(SourceProductionContext ctx, ModuleInfo info)
     {
+        foreach (var pending in info.Diagnostics)
+        {
+            ctx.ReportDiagnostic(Diagnostic.Create(
+                pending.Descriptor,
+                pending.Location,
+                pending.MessageArgs.ToArray()));
+        }
+
+        if (info.Handlers.Length == 0 && info.LazyAccessors.Length == 0)
+            return;
+
         var sb = new StringBuilder();
         sb.AppendLine("// <auto-generated/>");
         sb.AppendLine("#nullable enable");
@@ -461,15 +740,15 @@ public sealed class ModuleGenerator : IIncrementalGenerator
 
         if (h.EventImplementsAbility)
         {
-            if (h.Spell != 0)
-                conditions.Add(local + ".Ability.Id == " + h.Spell);
+            if (h.Spell is int s)
+                conditions.Add(local + ".Ability.Id == " + s);
             else if (h.Spells.Length > 0)
                 conditions.Add(BuildIdInList(local + ".Ability.Id", h.Spells));
         }
         if (h.EventImplementsExtraAbility)
         {
-            if (h.ExtraSpell != 0)
-                conditions.Add(local + ".ExtraAbility.Id == " + h.ExtraSpell);
+            if (h.ExtraSpell is int es)
+                conditions.Add(local + ".ExtraAbility.Id == " + es);
             else if (h.ExtraSpells.Length > 0)
                 conditions.Add(BuildIdInList(local + ".ExtraAbility.Id", h.ExtraSpells));
         }
@@ -516,7 +795,8 @@ public sealed class ModuleGenerator : IIncrementalGenerator
             ImmutableArray<string> containingTypes,
             ImmutableArray<HandlerInfo> handlers,
             ImmutableArray<LazyAccessorInfo> lazyAccessors,
-            bool baseHasAttributeHandlers)
+            bool baseHasAttributeHandlers,
+            ImmutableArray<PendingDiagnostic> diagnostics)
         {
             ClassName = className;
             Namespace = ns;
@@ -524,6 +804,7 @@ public sealed class ModuleGenerator : IIncrementalGenerator
             Handlers = handlers;
             LazyAccessors = lazyAccessors;
             BaseHasAttributeHandlers = baseHasAttributeHandlers;
+            Diagnostics = diagnostics;
         }
         public string ClassName { get; }
         public string Namespace { get; }
@@ -531,6 +812,7 @@ public sealed class ModuleGenerator : IIncrementalGenerator
         public ImmutableArray<HandlerInfo> Handlers { get; }
         public ImmutableArray<LazyAccessorInfo> LazyAccessors { get; }
         public bool BaseHasAttributeHandlers { get; }
+        public ImmutableArray<PendingDiagnostic> Diagnostics { get; }
     }
 
     private sealed class HandlerInfo
@@ -540,9 +822,9 @@ public sealed class ModuleGenerator : IIncrementalGenerator
             string eventTypeFullyQualified,
             int ByActor,
             int ToActor,
-            int Spell,
+            int? Spell,
             ImmutableArray<int> Spells,
-            int ExtraSpell,
+            int? ExtraSpell,
             ImmutableArray<int> ExtraSpells,
             bool IsAsync,
             bool EventImplementsAbility,
@@ -572,9 +854,9 @@ public sealed class ModuleGenerator : IIncrementalGenerator
         public string EventTypeFullyQualified { get; }
         public int ByActor { get; }
         public int ToActor { get; }
-        public int Spell { get; }
+        public int? Spell { get; }
         public ImmutableArray<int> Spells { get; }
-        public int ExtraSpell { get; }
+        public int? ExtraSpell { get; }
         public ImmutableArray<int> ExtraSpells { get; }
         public bool IsAsync { get; }
         public bool EventImplementsAbility { get; }
@@ -589,4 +871,9 @@ public sealed class ModuleGenerator : IIncrementalGenerator
         string ParameterName,
         string PropertyName,
         string InnerTypeFullyQualified);
+
+    private sealed record PendingDiagnostic(
+        DiagnosticDescriptor Descriptor,
+        Location? Location,
+        ImmutableArray<string> MessageArgs);
 }

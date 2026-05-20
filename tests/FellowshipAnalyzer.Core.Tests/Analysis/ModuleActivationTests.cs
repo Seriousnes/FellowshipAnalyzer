@@ -27,7 +27,7 @@ public sealed class ModuleActivationTests
     public void IsModuleActive_WhenPredicateFalse_ReturnsFalse()
     {
         var parser = CreateGatedParser();
-        var inactiveCtx = new ParseContext(PlayerId: 0, Fight: TestFight, ActorNames: new Dictionary<int, string>());
+        var inactiveCtx = new ParseContext(PlayerId: 0, Fight: TestFight, ActorNames: new Dictionary<int, string>(), Substitute.For<Combatant>());
 
         Assert.False(parser.InvokeIsModuleActive(typeof(GatedProbeModule), inactiveCtx));
     }
@@ -36,7 +36,7 @@ public sealed class ModuleActivationTests
     public void IsModuleActive_WhenPredicateTrue_ReturnsTrue()
     {
         var parser = CreateGatedParser();
-        var activeCtx = new ParseContext(PlayerId: 7, Fight: TestFight, ActorNames: new Dictionary<int, string>());
+        var activeCtx = new ParseContext(PlayerId: 7, Fight: TestFight, ActorNames: new Dictionary<int, string>(), Substitute.For<Combatant>());
 
         Assert.True(parser.InvokeIsModuleActive(typeof(GatedProbeModule), activeCtx));
     }
@@ -47,7 +47,7 @@ public sealed class ModuleActivationTests
         // Module without [ActiveWhen<>] falls through the generated switch to the base
         // implementation, which always returns true.
         var parser = CreateGatedParser();
-        var anyCtx = new ParseContext(PlayerId: 0, Fight: TestFight, ActorNames: new Dictionary<int, string>());
+        var anyCtx = new ParseContext(PlayerId: 0, Fight: TestFight, ActorNames: new Dictionary<int, string>(), Substitute.For<Combatant>());
 
         Assert.True(parser.InvokeIsModuleActive(typeof(OrderedModuleA), anyCtx));
     }

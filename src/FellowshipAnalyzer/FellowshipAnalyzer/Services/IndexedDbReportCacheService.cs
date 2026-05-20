@@ -47,7 +47,7 @@ internal sealed class IndexedDbReportCacheService(IJSRuntime js) : IReportCacheS
     {
         var module = await GetModuleAsync();
         var raw = await module.InvokeAsync<IndexedDbHistoryEntry[]>("getHistory");
-        return raw.Select(e => new ReportHistoryEntry(
+        return [.. raw.Select(e => new ReportHistoryEntry(
             e.ReportCode,
             e.FightId,
             e.PlayerId,
@@ -55,7 +55,7 @@ internal sealed class IndexedDbReportCacheService(IJSRuntime js) : IReportCacheS
             e.PlayerName,
             Hero.TryParse(e.HeroId, out var hero) ? hero.Name : null,
             DateTimeOffset.FromUnixTimeMilliseconds(e.CachedAt)
-        )).ToList();
+        ))];
     }
 
     public async ValueTask<string?> GetCachedMasterDataJsonAsync(string reportCode)

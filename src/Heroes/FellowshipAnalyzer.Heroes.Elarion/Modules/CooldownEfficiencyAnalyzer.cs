@@ -1,6 +1,6 @@
 using FellowshipAnalyzer.Core.Analysis;
+using FellowshipAnalyzer.Core.Common.Spells.Elarion;
 using FellowshipAnalyzer.Core.Events;
-using FellowshipAnalyzer.Heroes.Elarion.Statistics;
 
 namespace FellowshipAnalyzer.Heroes.Elarion.Modules;
 
@@ -11,8 +11,8 @@ namespace FellowshipAnalyzer.Heroes.Elarion.Modules;
 /// </summary>
 public sealed partial class CooldownEfficiencyAnalyzer : Analyzer
 {
-    private readonly CooldownTracking _grace = new(SpellIds.SkystridersGrace, SpellIds.SkystridersGraceBuff);
-    private readonly CooldownTracking _eventHorizon = new(SpellIds.EventHorizon, SpellIds.EventHorizonBuff);
+    private readonly CooldownTracking _grace = new(Spells.SkystridersGrace.Guid, Spells.SkystridersGraceBuff.Guid);
+    private readonly CooldownTracking _eventHorizon = new(Spells.EventHorizon.Guid, Spells.EventHorizonBuff.Guid);
     private int _fightStart;
     private int _fightEnd;
 
@@ -21,12 +21,10 @@ public sealed partial class CooldownEfficiencyAnalyzer : Analyzer
 
     public int FightLengthMs => Math.Max(0, _fightEnd - _fightStart);
 
-    public override Type? StatisticsComponentType => typeof(CooldownEfficiencyStatistics);
-
     [On<FightStartEvent>]
     private void OnFightStart(FightStartEvent e) => _fightStart = e.Timestamp;
 
-    [On<UpdateSpellUsableEvent>(By = Actor.Player, Spells = new[] { SpellIds.SkystridersGrace, SpellIds.EventHorizon })]
+    [On<UpdateSpellUsableEvent>(By = Actor.Player, Spells = [nameof(Spells.SkystridersGrace), nameof(Spells.EventHorizon)])]
     private void OnUpdate(UpdateSpellUsableEvent e)
     {
         var tracking = SelectTracking(e.Ability.Id);
@@ -43,7 +41,7 @@ public sealed partial class CooldownEfficiencyAnalyzer : Analyzer
         }
     }
 
-    [On<CastEvent>(By = Actor.Player, Spells = new[] { SpellIds.SkystridersGrace, SpellIds.EventHorizon })]
+    [On<CastEvent>(By = Actor.Player, Spells = [nameof(Spells.SkystridersGrace), nameof(Spells.EventHorizon)])]
     private void OnCast(CastEvent e)
     {
         var tracking = SelectTracking(e.Ability.Id);
@@ -52,7 +50,7 @@ public sealed partial class CooldownEfficiencyAnalyzer : Analyzer
         tracking.Casts++;
     }
 
-    [On<ApplyBuffEvent>(By = Actor.Player, Spells = new[] { SpellIds.SkystridersGraceBuff, SpellIds.EventHorizonBuff })]
+    [On<ApplyBuffEvent>(By = Actor.Player, Spells = [nameof(Spells.SkystridersGraceBuff), nameof(Spells.EventHorizonBuff)])]
     private void OnApplyBuff(ApplyBuffEvent e)
     {
         var tracking = SelectTrackingByBuff(e.Ability.Id);
@@ -61,7 +59,7 @@ public sealed partial class CooldownEfficiencyAnalyzer : Analyzer
         tracking.BuffStartTimestamp = e.Timestamp;
     }
 
-    [On<RemoveBuffEvent>(By = Actor.Player, Spells = new[] { SpellIds.SkystridersGraceBuff, SpellIds.EventHorizonBuff })]
+    [On<RemoveBuffEvent>(By = Actor.Player, Spells = [nameof(Spells.SkystridersGraceBuff), nameof(Spells.EventHorizonBuff)])]
     private void OnRemoveBuff(RemoveBuffEvent e)
     {
         var tracking = SelectTrackingByBuff(e.Ability.Id);
@@ -79,19 +77,19 @@ public sealed partial class CooldownEfficiencyAnalyzer : Analyzer
         CloseOpenWindows(_eventHorizon, e.Timestamp);
     }
 
-    private CooldownTracking? SelectTracking(int spellId) => spellId switch
+    private CooldownTracking? SelectTracking(int spellId)
     {
-        SpellIds.SkystridersGrace => _grace,
-        SpellIds.EventHorizon => _eventHorizon,
-        _ => null,
-    };
+        if (spellId == Spells.SkystridersGrace.Guid) return _grace;
+        if (spellId == Spells.EventHorizon.Guid) return _eventHorizon;
+        return null;
+    }
 
-    private CooldownTracking? SelectTrackingByBuff(int buffId) => buffId switch
+    private CooldownTracking? SelectTrackingByBuff(int buffId)
     {
-        SpellIds.SkystridersGraceBuff => _grace,
-        SpellIds.EventHorizonBuff => _eventHorizon,
-        _ => null,
-    };
+        if (buffId == Spells.SkystridersGraceBuff.Guid) return _grace;
+        if (buffId == Spells.EventHorizonBuff.Guid) return _eventHorizon;
+        return null;
+    }
 
     private static void CloseOpenWindows(CooldownTracking tracking, int fightEnd)
     {
