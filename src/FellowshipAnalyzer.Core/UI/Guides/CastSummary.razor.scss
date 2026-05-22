@@ -1,0 +1,26 @@
+@use 'tokens' as t;
+
+.cast-summary {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.cast-summary-title {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px;
+    font-family: var(--fa-font-heading);
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--fa-text);
+}
+
+.cast-summary-total {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--fa-text-muted);
+    text-transform: lowercase;
+    letter-spacing: 0.3px;
+}

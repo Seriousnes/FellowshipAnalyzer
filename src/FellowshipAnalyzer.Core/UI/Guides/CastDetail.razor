@@ -14,26 +14,17 @@
 
 <GuideDataWrapper Bare="true" Title="@Title" Subtitle="Cast Details">
     <Stats>
-        <div class="perf-badge-grid">
+        <PerfBadgeGrid>
             @foreach (var (tier, label) in _perfLevels)
             {
                 var count = _perfCounts.GetValueOrDefault(tier);
                 var disabled = count == 0;
-                var color = disabled ? "#c8c8c8" : PerformanceColors.ToColor(tier);
                 var active = !disabled && _performanceFilter.Contains(tier);
 
-                <button class="filter-badge @(active ? "active" : "") @(disabled ? "disabled" : "")"
-                        style="border-color: @(disabled ? "rgba(255,255,255,0.1)" : active ? color + "60" : "rgba(255,255,255,0.08)");
-                               background: @(disabled ? "rgba(255,255,255,0.04)" : active ? color + "08" : "rgba(0,0,0,0.2)");
-                               opacity: @(disabled || !active ? "0.4" : "1");"
-                        disabled="@disabled"
-                        @onclick="() => ToggleFilter(tier)">
-                    <span class="badge-count" style="color: @color;">@count</span>
-                    <span class="badge-divider" style="background: @(color)40;"></span>
-                    <span class="badge-label">@label</span>
-                </button>
+                <FilterBadge Performance="@tier" Count="@count" Label="@label"
+                             Active="@active" Disabled="@disabled" OnClick="ToggleFilter" />
             }
-        </div>
+        </PerfBadgeGrid>
     </Stats>
     <StatsHelperText>
         <span class="helper-text">Click a filter to show only those casts</span>
@@ -184,10 +175,8 @@
 
     private void ToggleFilter(PerformanceTier tier)
     {
-        if (_performanceFilter.Contains(tier))
+        if (!_performanceFilter.Add(tier))
             _performanceFilter.Remove(tier);
-        else
-            _performanceFilter.Add(tier);
 
         RebuildFilteredCasts();
         _currentIndex = 0;

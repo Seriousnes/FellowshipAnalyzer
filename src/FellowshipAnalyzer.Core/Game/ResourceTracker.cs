@@ -152,20 +152,7 @@ public partial class ResourceTracker(ILogger<ResourceTracker> logger) : Analyzer
         {
             var state = GetOrCreateState(resource.Type, resource.Max);
             var effectiveCost = resource.Cost ?? GetResourceCost(e, resource.Type);
-
-            if (effectiveCost is > 0 && effectiveCost.Value > state.Current)
-            {
-                _logger.LogError(
-                    "{Tracker} overspend: cast of {AbilityName} ({AbilityId}) at {Timestamp} spends {Cost} {ResourceType} but tracker has only {TrackerAvailable} (event amount: {EventAmount}.",
-                    GetType().Name,
-                    e.Ability.Name,
-                    e.Ability.Id,
-                    this.Owner.FormatTimestamp(e.Timestamp, 3),
-                    effectiveCost.Value,
-                    resource.Type,
-                    state.Current,
-                    resource.Amount);
-            }
+            var trackerBefore = state.Current;
 
             var implicitGain = resource.Amount - state.Current;
             if (implicitGain > 0)
@@ -182,6 +169,20 @@ public partial class ResourceTracker(ILogger<ResourceTracker> logger) : Analyzer
             else if (implicitGain < 0)
             {
                 state.Current = resource.Amount;
+            }
+
+            if (effectiveCost is > 0 && effectiveCost.Value > state.Current)
+            {
+                _logger.LogError(
+                    "{Tracker} overspend: cast of {AbilityName} ({AbilityId}) at {Timestamp} spends {Cost} {ResourceType} but player has only {Available} (tracker before reconcile: {TrackerBefore}).",
+                    GetType().Name,
+                    e.Ability.Name,
+                    e.Ability.Id,
+                    this.Owner.FormatTimestamp(e.Timestamp, 3),
+                    effectiveCost.Value,
+                    resource.Type,
+                    state.Current,
+                    trackerBefore);
             }
 
             if (effectiveCost is > 0)

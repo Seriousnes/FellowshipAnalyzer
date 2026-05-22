@@ -11,7 +11,6 @@ public sealed partial class SpellUsable(Lazy<Abilities> abilities, Lazy<DebugAnn
 {
     private readonly Dictionary<int, CooldownInfo> _cooldowns = [];
     private readonly List<TrackedAbilityCast> _casts = [];
-    private readonly Dictionary<(int, int), int> _pendingBeginCastTimestamps = [];
 
     private double _globalRateMultiplier = 1.0;
     private readonly Dictionary<int, double> _spellRateMultipliers = [];
@@ -64,10 +63,8 @@ public sealed partial class SpellUsable(Lazy<Abilities> abilities, Lazy<DebugAnn
             : 0;
     }
 
-    public void BeginCooldown(int spellId, int timestamp, int castStart = 0)
+    public void BeginCooldown(int spellId, int timestamp)
     {
-        if (castStart <= 0) castStart = timestamp;
-
         if (!_cooldowns.TryGetValue(spellId, out var cd))
         {
             var baseDurationMs = (int)(_abilities.GetExpectedCooldown(spellId) * 1000);
@@ -84,18 +81,18 @@ public sealed partial class SpellUsable(Lazy<Abilities> abilities, Lazy<DebugAnn
                 MaxCharges: maxCharges);
             _cooldowns[spellId] = cd;
 
-            FabricateUpdate(UpdateSpellUsableType.BeginCooldown, spellId, timestamp, cd, castStart);
+            FabricateUpdate(UpdateSpellUsableType.BeginCooldown, spellId, timestamp, cd);
         }
         else if (cd.ChargesAvailable > 0)
         {
             cd = cd with { ChargesAvailable = cd.ChargesAvailable - 1 };
             _cooldowns[spellId] = cd;
-            FabricateUpdate(UpdateSpellUsableType.UseCharge, spellId, timestamp, cd, castStart);
+            FabricateUpdate(UpdateSpellUsableType.UseCharge, spellId, timestamp, cd);
         }
         else
         {
             EndCooldown(spellId, timestamp);
-            BeginCooldown(spellId, timestamp, castStart);
+            BeginCooldown(spellId, timestamp);
         }
     }
 
@@ -122,13 +119,6 @@ public sealed partial class SpellUsable(Lazy<Abilities> abilities, Lazy<DebugAnn
         }
     }
 
-    [On<BeginCastEvent>(By = Actor.Player)]
-    private void OnBeginCast(BeginCastEvent e)
-    {
-        if (e.Ability is not null)
-            _pendingBeginCastTimestamps[(e.Ability.Id, e.SourceId)] = e.Timestamp;
-    }
-
     [On<CastEvent>(By = Actor.Player)]
     private void OnCast(CastEvent e)
     {
@@ -152,8 +142,7 @@ public sealed partial class SpellUsable(Lazy<Abilities> abilities, Lazy<DebugAnn
                 Priority: 10));
         }
 
-        _pendingBeginCastTimestamps.Remove((e.Ability.Id, e.SourceId), out var castStart);
-        BeginCooldown(e.Ability.Id, e.Timestamp, castStart);
+        BeginCooldown(e.Ability.Id, e.Timestamp);
     }
 
     [On<FilterCooldownInfoEvent>(By = Actor.Player)]
@@ -314,7 +303,7 @@ public sealed partial class SpellUsable(Lazy<Abilities> abilities, Lazy<DebugAnn
             RemoveCooldownRateChangeFromAll(rate, timestamp);
     }
 
-    private void FabricateUpdate(UpdateSpellUsableType updateType, int spellId, int timestamp, CooldownInfo cd, int castStart = 0)
+    private void FabricateUpdate(UpdateSpellUsableType updateType, int spellId, int timestamp, CooldownInfo cd)
     {
         var ability = _abilities.GetAbility(spellId);
 
@@ -329,7 +318,6 @@ public sealed partial class SpellUsable(Lazy<Abilities> abilities, Lazy<DebugAnn
             MaxCharges = cd.MaxCharges,
             OverallStartTimestamp = cd.OverallStart,
             ChargeStartTimestamp = cd.ChargeStart,
-            CastStartTimestamp = castStart > 0 ? castStart : timestamp,
             ExpectedRechargeTimestamp = cd.ExpectedEnd,
             ExpectedRechargeDuration = cd.RechargeDuration,
             SourceId = Owner.PlayerId,

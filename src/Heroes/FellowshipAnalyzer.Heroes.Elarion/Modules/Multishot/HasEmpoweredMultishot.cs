@@ -3,7 +3,7 @@ using FellowshipAnalyzer.Core.Common.Spells.Elarion;
 
 namespace FellowshipAnalyzer.Heroes.Elarion.Modules.Multishot;
 
-internal class HasEmpoweredMultishot : IModuleActivePredicate
+internal sealed class HasEmpoweredMultishot : IModuleActivePredicate
 {
     public static bool IsActive(ParseContext context) => context.SelectedCombatant.HasTalent(Talents.FocusedExpanse.Id);
 }

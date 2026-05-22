@@ -1,0 +1,40 @@
+@use 'tokens' as t;
+
+.perf-badge {
+    display: flex;
+    align-items: stretch;
+    border: 1px solid;
+    border-radius: 4px;
+    overflow: hidden;
+    min-height: 30px;
+    background: rgba(0, 0, 0, 0.2);
+}
+
+.perf-badge-count {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px 10px;
+    font-size: 1.4rem;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.perf-badge-divider {
+    width: 1px;
+    height: 55%;
+    align-self: center;
+    flex-shrink: 0;
+}
+
+.perf-badge-label {
+    display: flex;
+    align-items: center;
+    padding: 4px 8px;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--fa-text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    flex: 1;
+}

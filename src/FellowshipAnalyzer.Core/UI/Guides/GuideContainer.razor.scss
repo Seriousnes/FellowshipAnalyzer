@@ -1,0 +1,7 @@
+@use 'tokens' as t;
+
+.guide-container {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}

@@ -70,13 +70,11 @@
             switch (e.UpdateType)
             {
                 case UpdateSpellUsableType.BeginCooldown:
-                    _segments.Add(new(e.ChargeStartTimestamp, e.ExpectedRechargeTimestamp, e.CastStartTimestamp, ShowIcon: true));
+                    _segments.Add(new(e.ChargeStartTimestamp, e.ExpectedRechargeTimestamp, e.Timestamp, ShowIcon: true));
                     break;
 
                 case UpdateSpellUsableType.UseCharge:
-                    // A charge was consumed — show an icon at this timestamp but no new bar
-                    // (the existing bar from BeginCooldown is still running).
-                    _segments.Add(new(e.Timestamp, e.Timestamp, e.CastStartTimestamp, ShowIcon: true));
+                    _segments.Add(new(e.Timestamp, e.Timestamp, e.Timestamp, ShowIcon: true));
                     break;
 
                 case UpdateSpellUsableType.RestoreCharge:

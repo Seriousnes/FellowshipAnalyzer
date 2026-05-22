@@ -1,0 +1,9 @@
+@* SideBySidePanels — equal-sized horizontal layout. Collapses to a single column on narrow viewports. *@
+
+<div class="side-by-side-panels">
+    @ChildContent
+</div>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+}

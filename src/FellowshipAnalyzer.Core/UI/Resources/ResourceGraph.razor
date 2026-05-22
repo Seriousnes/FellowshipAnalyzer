@@ -1,25 +1,27 @@
 @using ApexCharts
 @inherits ReportComponentBase
 
-<ApexChart TItem="GraphPoint"
-           Options="@_options"
-           Height="@Height">
-    <ApexPointSeries TItem="GraphPoint"
-                     Items="@_resourceData"
-                     Name="@Tracker.GetDisplayName(Resource)"
-                     SeriesType="SeriesType.Line"
-                     XValue="@(e => e.X)"
-                     YValue="@(e => (decimal)e.Y)" />
-    @if (IncludeWasted)
-    {
+<div class="resource-graph">
+    <ApexChart TItem="GraphPoint"
+               Options="@_options"
+               Height="@Height">
         <ApexPointSeries TItem="GraphPoint"
-                         Items="@_wastedData"
-                         Name="@($"Wasted {Tracker.GetDisplayName(Resource)}")"
+                         Items="@_resourceData"
+                         Name="@Tracker.GetDisplayName(Resource)"
                          SeriesType="SeriesType.Line"
                          XValue="@(e => e.X)"
                          YValue="@(e => (decimal)e.Y)" />
-    }
-</ApexChart>
+        @if (IncludeWasted)
+        {
+            <ApexPointSeries TItem="GraphPoint"
+                             Items="@_wastedData"
+                             Name="@($"Wasted {Tracker.GetDisplayName(Resource)}")"
+                             SeriesType="SeriesType.Line"
+                             XValue="@(e => e.X)"
+                             YValue="@(e => (decimal)e.Y)" />
+        }
+    </ApexChart>
+</div>
 
 @code {
     [Parameter, EditorRequired] public required ResourceTracker Tracker { get; set; }
@@ -50,19 +52,20 @@
         {
             Toolbar = new Toolbar { Show = false },
             Animations = new Animations { Enabled = false },
+            Zoom = new Zoom { Enabled = false },
+            Selection = new Selection { Enabled = false },
         },
         Tooltip = new Tooltip
         {
             Shared = false,
-            Intersect = true,
-            X = new TooltipX
-            {
-                Formatter = TimeFormatters.MmSsJs,
-            },
-            Y = new TooltipY
-            {
-                Formatter = TimeFormatters.IdentityJs,
-            },
+            Intersect = false,
+            Custom = """
+                function({series, seriesIndex, dataPointIndex, w}) {
+                    var name = w.globals.seriesNames[seriesIndex];
+                    var value = series[seriesIndex][dataPointIndex];
+                    return '<div class="apexcharts-tooltip-custom">' + name + ': ' + value + '</div>';
+                }
+                """,
         },
     };
 

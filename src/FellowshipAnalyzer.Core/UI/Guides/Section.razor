@@ -1,0 +1,37 @@
+@* Section — top-level expandable region (yellow header, default expanded). *@
+
+<section class="guide-top-section">
+    <button type="button" class="guide-top-section-header" @onclick="Toggle"
+            aria-expanded="@_expanded.ToString().ToLowerInvariant()">
+        <span class="guide-top-section-title">@Title</span>
+        <span class="guide-top-section-chevron @(_expanded ? "expanded" : "")" aria-hidden="true">▼</span>
+    </button>
+    @if (_expanded)
+    {
+        <div class="guide-top-section-body">
+            @ChildContent
+        </div>
+    }
+</section>
+
+@code {
+    [Parameter, EditorRequired] public string Title { get; set; } = "";
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>Initial expanded state. Defaults to true.</summary>
+    [Parameter] public bool Expanded { get; set; } = true;
+
+    private bool _expanded;
+    private bool _initialized;
+
+    protected override void OnParametersSet()
+    {
+        if (!_initialized)
+        {
+            _expanded = Expanded;
+            _initialized = true;
+        }
+    }
+
+    private void Toggle() => _expanded = !_expanded;
+}

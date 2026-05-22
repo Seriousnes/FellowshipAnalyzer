@@ -242,6 +242,29 @@ public sealed partial class SpellUsableTests
     }
 
     [Fact]
+    public async Task CastTimeSpell_BeginCooldownEvent_TimestampIsCastEnd()
+    {
+        const int CastStart = 1000;
+        const int CastEnd = 2500;
+
+        var (_, _, probe) = await Run(
+        [
+            new BeginCastEvent
+            {
+                Timestamp = CastStart,
+                SourceId = PlayerId,
+                Ability = new Ability { Guid = SpellA, Name = "Spell A" },
+            },
+            CreateCast(CastEnd, SpellA),
+        ]);
+
+        var beginCd = probe.Updates.FirstOrDefault(u => u.UpdateType == UpdateSpellUsableType.BeginCooldown);
+        Assert.NotNull(beginCd);
+        Assert.Equal(CastEnd, beginCd!.Timestamp);
+        Assert.Equal(CastEnd, beginCd.ChargeStartTimestamp);
+    }
+
+    [Fact]
     public async Task ApplyHasteScaledRateChange_AtZeroHaste_LeavesRateUnchanged()
     {
         var (_, spellUsable, _) = await Run([]);

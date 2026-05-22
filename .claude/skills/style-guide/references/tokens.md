@@ -56,6 +56,9 @@ Used for `.perfect`, `.good`, `.ok`, `.fail` modifier classes and `PerformanceCo
 | `--fa-perf-good` | `t.$fa-perf-good` | `#90cc60` | Good |
 | `--fa-perf-ok` | `t.$fa-perf-ok` | `#d4a744` | Ok (same as gold) |
 | `--fa-perf-fail` | `t.$fa-perf-fail` | `#d4564a` | Fail |
+| `--fa-perf-very-bad` | `t.$fa-perf-very-bad` | `#661111` | Severe-loss chart accent |
+| `--fa-perf-mediocre` | `t.$fa-perf-mediocre` | `#dd5533` | Partial / mediocre chart accent |
+| `--fa-perf-available` | `t.$fa-perf-available` | `#696864` | Cooldown-ready / unused-capacity accent |
 
 **Note:** `PerformanceColors.cs` (C#) uses slightly different hardcoded hex values.
 The SCSS/CSS tokens are the authoritative design values going forward; if they need

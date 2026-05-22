@@ -1,0 +1,34 @@
+@* PerformanceTipBox — TipBox whose variant is derived from a PerformanceTier. *@
+
+<TipBox Variant="@_variant" Title="@Title" HideIcon="@HideIcon">
+    <Icon>
+        @if (Icon is not null)
+        {
+            @Icon
+        }
+        else if (!HideIcon)
+        {
+            <PerformanceMark Performance="@Performance" Size="14" />
+        }
+    </Icon>
+    <ChildContent>
+        @ChildContent
+    </ChildContent>
+</TipBox>
+
+@code {
+    [Parameter, EditorRequired] public PerformanceTier Performance { get; set; }
+    [Parameter] public string? Title { get; set; }
+    [Parameter] public RenderFragment? Icon { get; set; }
+    [Parameter] public bool HideIcon { get; set; }
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    private TipBoxVariant _variant => Performance switch
+    {
+        PerformanceTier.Perfect => TipBoxVariant.Info,
+        PerformanceTier.Good => TipBoxVariant.Success,
+        PerformanceTier.Ok => TipBoxVariant.Warning,
+        PerformanceTier.Fail => TipBoxVariant.Error,
+        _ => TipBoxVariant.Note,
+    };
+}

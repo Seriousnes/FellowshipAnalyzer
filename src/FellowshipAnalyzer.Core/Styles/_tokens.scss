@@ -32,6 +32,11 @@ $fa-perf-good:    #90cc60;
 $fa-perf-ok:      #d4a744;
 $fa-perf-fail:    #d4564a;
 
+// Chart accent tones — for severity / partial-mitigation / unused-capacity highlights.
+$fa-perf-very-bad:  #661111;
+$fa-perf-mediocre:  #dd5533;
+$fa-perf-available: #696864;
+
 // ── Hero role accents ────────────────────────────────────────────────────────
 $fa-role-tank:    #336699;
 $fa-role-healer:  #4ec04e;

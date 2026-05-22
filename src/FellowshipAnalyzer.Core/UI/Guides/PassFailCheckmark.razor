@@ -1,0 +1,35 @@
+@* PassFailCheckmark — binary green-check / red-cross glyph. *@
+
+@{
+    var color = Pass ? PerformanceColors.Good : PerformanceColors.Fail;
+    var label = Pass ? "Pass" : "Fail";
+    var px = Size;
+    var stroke = Math.Max(1.5, px / 8.0);
+    var strokeStr = stroke.ToString("F2", System.Globalization.CultureInfo.InvariantCulture);
+}
+
+<span class="perf-mark @(Pass ? "good" : "fail")" title="@(Title ?? label)" role="img" aria-label="@(Title ?? label)"
+      style="width: @(px)px; height: @(px)px;">
+    <svg width="@px" height="@px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        @if (Pass)
+        {
+            <path d="M5 13 L10 18 L19 7" stroke="@color" stroke-width="@strokeStr"
+                  stroke-linecap="round" stroke-linejoin="round" />
+        }
+        else
+        {
+            <path d="M6 6 L18 18 M18 6 L6 18" stroke="@color" stroke-width="@strokeStr"
+                  stroke-linecap="round" />
+        }
+    </svg>
+</span>
+
+@code {
+    [Parameter, EditorRequired] public bool Pass { get; set; }
+
+    /// <summary>Icon edge length in px. Defaults to 16.</summary>
+    [Parameter] public int Size { get; set; } = 16;
+
+    /// <summary>Override the tooltip / aria-label. Defaults to "Pass" / "Fail".</summary>
+    [Parameter] public string? Title { get; set; }
+}

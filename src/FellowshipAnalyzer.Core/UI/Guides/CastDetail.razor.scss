@@ -1,63 +1,5 @@
 @use 'tokens' as t;
 
-/* Performance badge filter grid */
-.perf-badge-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 4px;
-}
-
-.filter-badge {
-    display: flex;
-    align-items: stretch;
-    border: 1px solid;
-    border-radius: 4px;
-    overflow: hidden;
-    min-height: 30px;
-    cursor: pointer;
-    padding: 0;
-    transition: all 0.15s ease;
-    -webkit-tap-highlight-color: transparent;
-    font-family: inherit;
-    color: inherit;
-
-    &.disabled {
-        cursor: default;
-        pointer-events: none;
-    }
-
-    &:hover:not(.disabled) { opacity: 1 !important; }
-}
-
-.badge-count {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 4px 10px;
-    font-size: 1.4rem;
-    font-weight: 700;
-    flex-shrink: 0;
-}
-
-.badge-divider {
-    width: 1px;
-    height: 55%;
-    align-self: center;
-    flex-shrink: 0;
-}
-
-.badge-label {
-    display: flex;
-    align-items: center;
-    padding: 4px 8px;
-    font-size: 1rem;
-    font-weight: 700;
-    color: var(--fa-text-dim, #6b6558);
-    text-transform: uppercase;
-    letter-spacing: 0.4px;
-    flex: 1;
-}
-
 .helper-text {
     font-size: 1rem;
     color: var(--fa-text-dim, #6b6558);
@@ -97,7 +39,7 @@
 
 /* Timeline */
 .timeline-row {
-    display: flex;
+    display: block;
     align-items: center;
     gap: 4px;
     margin-bottom: 8px;

@@ -16,7 +16,7 @@ public sealed partial class WinterOrbTracker(ILogger<ResourceTracker> logger) : 
         var spell = SpellRegistry.MaybeGet(e.Ability.Guid) as IRimeSpell;
         return type switch
         {
-            ResourceTypes.WinterOrb => spell?.WinterOrbCost,
+            ResourceTypes.Tertiary => spell?.WinterOrbCost,
             ResourceTypes.Primary => spell?.AnimaCost,
             _ => base.GetResourceCost(e, type),
         };
@@ -24,13 +24,13 @@ public sealed partial class WinterOrbTracker(ILogger<ResourceTracker> logger) : 
 
     public override Type? StatisticsComponentType => typeof(WinterOrbStatistics);
 
-    public ResourceState? WinterOrbs => GetResourceState(ResourceTypes.WinterOrb);
+    public ResourceState? WinterOrbs => GetResourceState(ResourceTypes.Tertiary);
 
     /// <summary>Current Winter Orb count.</summary>
     public int CurrentOrbs => WinterOrbs?.Current ?? 0;
 
     /// <summary>Maximum Winter Orbs Rime can hold.</summary>
-    public int MaxOrbs => MaxOverrides[ResourceTypes.WinterOrb];
+    public int MaxOrbs => MaxOverrides[ResourceTypes.Tertiary];
 
     // Convenience accessors used by WinterOrbGuide.razor and WinterOrbStatistics.razor.
     public int Generated => WinterOrbs?.Generated ?? 0;
