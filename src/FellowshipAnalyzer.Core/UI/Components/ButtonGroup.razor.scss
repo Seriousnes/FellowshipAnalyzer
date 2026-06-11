@@ -1,0 +1,32 @@
+@use 'tokens' as t;
+
+.button-group {
+    display: inline-flex;
+    border: 1px solid var(--fa-border-card);
+    border-radius: var(--fa-radius-sm);
+    overflow: hidden;
+    width: fit-content;
+}
+
+.button-group-btn {
+    appearance: none;
+    background: transparent;
+    border: none;
+    color: var(--fa-text-muted);
+    cursor: pointer;
+    font-family: inherit;
+    font-weight: 600;
+    transition: background 0.15s, color 0.15s;
+
+    &:hover {
+        color: var(--fa-text);
+    }
+
+    &.active {
+        background: var(--fa-gold-dim);
+        color: var(--fa-gold-light);
+    }
+}
+
+.button-group--sm .button-group-btn { padding: 0.3rem 0.75rem; font-size: 0.78rem; }
+.button-group--md .button-group-btn { padding: 0.4rem 1rem; font-size: 0.85rem; }

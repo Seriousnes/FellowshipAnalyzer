@@ -1,0 +1,53 @@
+@* PageHeader — slot-based hero panel with breadcrumbs, portrait, title, badges, secondary block. *@
+
+<section class="page-header" @attributes="InputAttributes">
+    @if (Breadcrumbs is not null)
+    {
+        <div class="page-header-breadcrumbs">@Breadcrumbs</div>
+    }
+    <div class="page-header-body">
+        <div class="page-header-primary">
+            @if (Portrait is not null)
+            {
+                <div class="page-header-portrait">@Portrait</div>
+            }
+            <div class="page-header-text">
+                @if (Eyebrow is not null)
+                {
+                    <div class="page-header-eyebrow">@Eyebrow</div>
+                }
+                <h1 class="page-header-title">@Title</h1>
+                @if (Subtitle is not null)
+                {
+                    <div class="page-header-subtitle">@Subtitle</div>
+                }
+                @if (Badges is not null)
+                {
+                    <div class="page-header-badges">@Badges</div>
+                }
+            </div>
+        </div>
+        @if (Secondary is not null)
+        {
+            <div class="page-header-secondary">@Secondary</div>
+        }
+    </div>
+    @if (ChildContent is not null)
+    {
+        <div class="page-header-footer">@ChildContent</div>
+    }
+</section>
+
+@code {
+    [Parameter, EditorRequired] public string Title { get; set; } = "";
+    [Parameter] public RenderFragment? Breadcrumbs { get; set; }
+    [Parameter] public RenderFragment? Portrait { get; set; }
+    [Parameter] public RenderFragment? Eyebrow { get; set; }
+    [Parameter] public RenderFragment? Subtitle { get; set; }
+    [Parameter] public RenderFragment? Badges { get; set; }
+    [Parameter] public RenderFragment? Secondary { get; set; }
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object> InputAttributes { get; set; } = new();
+}

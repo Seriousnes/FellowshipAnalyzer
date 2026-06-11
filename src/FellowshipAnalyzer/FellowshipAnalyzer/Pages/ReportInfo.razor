@@ -12,13 +12,10 @@
 <PageTitle>@(!string.IsNullOrWhiteSpace(_report?.Title) ? _report.Title : "Fellowship Analyzer")</PageTitle>
 
 <div class="analysis-page">
-    <section class="hero-panel">
-        <div>
-            <p class="eyebrow">Combat Report</p>
-            <h1>@_report?.Title</h1>
-            <p class="lede">Select a fight and player to analyze.</p>
-        </div>
-    </section>
+    <PageHeader Title="@(_report?.Title ?? "")">
+        <Eyebrow>Combat Report</Eyebrow>
+        <Subtitle>Select a fight and player to analyze.</Subtitle>
+    </PageHeader>
 
     @if (_isLoading)
     {
@@ -31,12 +28,9 @@
     else if (_report is not null)
     {
         <section class="fights-section">
-            <div class="view-toggle">
-                <button class="view-toggle-btn @(!_byPlayer ? "active" : "")" @onclick="() => { _byPlayer = false; _expandedPlayerId = null; }">By Fight</button>
-                <button class="view-toggle-btn @(_byPlayer ? "active" : "")" @onclick="() => { _byPlayer = true; _expandedFightId = null; }">By Player</button>
-            </div>
+            <ButtonGroup TValue="bool" Options="_viewOptions" @bind-Value="ByPlayer" />
 
-            @if (!_byPlayer)
+            @if (!ByPlayer)
             {
                 @foreach (var group in GetFightGroups())
                 {
@@ -47,18 +41,10 @@
                                 var bossIcon = _bossIconByName.TryGetValue(group.Key, out var ic) ? ic : null;
                                 var firstLetter = group.Key.Length > 0 ? group.Key[0].ToString() : "?";
                             }
-                            @if (bossIcon is not null)
-                            {
-                                <img class="encounter-icon"
-                                     src="https://assets.rpglogs.com/img/fellowship/abilities/@bossIcon"
-                                     alt="@group.Key"
-                                     onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />
-                                <div class="encounter-icon-placeholder" style="display:none">@firstLetter</div>
-                            }
-                            else
-                            {
-                                <div class="encounter-icon-placeholder">@firstLetter</div>
-                            }
+                            <Avatar Size="AvatarSize.Md"
+                                    Src="@(bossIcon is not null ? $"https://assets.rpglogs.com/img/fellowship/abilities/{bossIcon}" : null)"
+                                    Alt="@group.Key"
+                                    FallbackText="@firstLetter" />
                             <h3 class="encounter-name">@group.Key</h3>
                         </div>
                         <div class="attempts-row">
@@ -68,11 +54,10 @@
                                 var isKill = fight.Kill == true;
                                 if (!isKill) wipeIndex++;
                                 var isExpanded = _expandedFightId == fight.Id;
-                                var pillClass = isKill ? "kill" : "wipe";
-                                var expandedClass = isExpanded ? " expanded" : "";
-                                <button class="attempt-pill @(pillClass + expandedClass)"
-                                    aria-pressed="@isExpanded"
-                                        @onclick="() => _expandedFightId = isExpanded ? null : fight.Id">
+                                var variant = isKill ? BadgeVariant.Success : BadgeVariant.Failure;
+                                var capturedFightId = fight.Id;
+                                var capturedIsExpanded = isExpanded;
+                                <Badge Variant="variant" Active="isExpanded" OnClick="@(() => _expandedFightId = capturedIsExpanded ? null : capturedFightId)">
                                     @if (isKill)
                                     {
                                         <span>✓</span>
@@ -88,7 +73,7 @@
                                         }
                                         <span>@FormatDuration(fight.EndTime - fight.StartTime)</span>
                                     }
-                                </button>
+                                </Badge>
                             }
                         </div>
                         @if (_expandedFightId is { } expandedId && group.Value.Any(f => f.Id == expandedId))
@@ -107,23 +92,17 @@
                                 @foreach (var player in players.OrderBy(p => GetRole(p.SubType)).ThenBy(p => p.Name))
                                 {
                                     var role = GetRole(player.SubType);
-                                    var borderColor = GetRoleBorderColor(role);
+                                    var borderColor = HeroRoleStyles.GetAccentColorVar(role);
                                     <a class="player-card"
                                        href="/report/@ReportCode/@expandedId/@player.Id"
                                        style="border-left-color: @borderColor">
-                                        @{
-                                            var initial = player.Name.Length > 0 ? player.Name[0].ToString() : "?";
-                                            var hasHero = Hero.TryParse(player.SubType, out var playerHero);
-                                        }
-                                        @if (hasHero)
+                                        @if (Hero.TryParse(player.SubType, out var playerHero))
                                         {
-                                            <HeroIcon Hero="playerHero"
-                                                      onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />
-                                            <div class="player-icon-placeholder" style="display:none">@initial</div>
+                                            <Avatar Size="AvatarSize.Sm" Src="@playerHero.IconUrl" Alt="@player.Name" FallbackText="@FirstLetter(player.Name)" />
                                         }
                                         else
                                         {
-                                            <div class="player-icon-placeholder">@initial</div>
+                                            <Avatar Size="AvatarSize.Sm" FallbackText="@FirstLetter(player.Name)" />
                                         }
                                         <div class="player-info">
                                             <span class="player-name">@player.Name</span>
@@ -138,50 +117,43 @@
             }
             else
             {
-                @foreach (var player in GetSortedPlayers())
-                {
-                    var role = GetRole(player.SubType);
-                    var borderColor = GetRoleBorderColor(role);
-                    var isExpanded = _expandedPlayerId == player.Id;
-                    <div class="player-accordion">
-                        <div class="player-accordion-header"
-                             style="border-left-color: @borderColor"
-                             @onclick="() => _expandedPlayerId = isExpanded ? null : player.Id">
-                            @{
-                                var initial = player.Name.Length > 0 ? player.Name[0].ToString() : "?";
-                                var hasHero = Hero.TryParse(player.SubType, out var playerHero);
-                            }
-                            @if (hasHero)
-                            {
-                                <HeroIcon Hero="playerHero"
-                                          onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />
-                                <div class="player-icon-placeholder" style="display:none">@initial</div>
-                            }
-                            else
-                            {
-                                <div class="player-icon-placeholder">@initial</div>
-                            }
-                            <div class="player-info">
-                                <span class="player-name">@player.Name</span>
-                                <span class="player-class">@(player.SubType ?? "Unknown")</span>
-                            </div>
-                        </div>
-                        @if (isExpanded)
-                        {
-                            var playerFights = _report.Fights.Where(f => f.FriendlyPlayers?.Contains(player.Id) == true).ToList();
-                            <div class="player-accordion-fights">
-                                @foreach (var fight in playerFights)
+                <Accordion @bind-ExpandedId="_expandedPlayerIdStr">
+                    @foreach (var player in GetSortedPlayers())
+                    {
+                        var role = GetRole(player.SubType);
+                        var borderColor = HeroRoleStyles.GetAccentColorVar(role);
+                        var hasHero = Hero.TryParse(player.SubType, out var playerHero);
+                        var playerFights = _report.Fights.Where(f => f.FriendlyPlayers?.Contains(player.Id) == true).ToList();
+                        <AccordionItem Id="@($"player-{player.Id}")" BorderAccentColorVar="@borderColor">
+                            <Header>
+                                @if (hasHero)
                                 {
-                                    var isKill = fight.Kill == true;
-                                    <a class="fight-pill @(isKill ? "kill" : "wipe")"
-                                       href="/report/@ReportCode/@fight.Id/@player.Id">
-                                        @(isKill ? "✓" : "✗") @fight.Name — @FormatDuration(fight.EndTime - fight.StartTime)
-                                    </a>
+                                    <Avatar Size="AvatarSize.Sm" Src="@playerHero.IconUrl" Alt="@player.Name" FallbackText="@FirstLetter(player.Name)" />
                                 }
-                            </div>
-                        }
-                    </div>
-                }
+                                else
+                                {
+                                    <Avatar Size="AvatarSize.Sm" FallbackText="@FirstLetter(player.Name)" />
+                                }
+                                <div class="player-info">
+                                    <span class="player-name">@player.Name</span>
+                                    <span class="player-class">@(player.SubType ?? "Unknown")</span>
+                                </div>
+                            </Header>
+                            <ChildContent>
+                                <div class="player-accordion-fights">
+                                    @foreach (var fight in playerFights)
+                                    {
+                                        var isKill = fight.Kill == true;
+                                        var variant = isKill ? BadgeVariant.Success : BadgeVariant.Failure;
+                                        <Badge Variant="variant" Size="BadgeSize.Sm" Href="@($"/report/{ReportCode}/{fight.Id}/{player.Id}")">
+                                            @(isKill ? "✓" : "✗") @fight.Name — @FormatDuration(fight.EndTime - fight.StartTime)
+                                        </Badge>
+                                    }
+                                </div>
+                            </ChildContent>
+                        </AccordionItem>
+                    }
+                </Accordion>
             }
         </section>
     }
@@ -196,8 +168,28 @@
     private string? _error;
     private Dictionary<string, string?> _bossIconByName = [];
     private int? _expandedFightId;
-    private int? _expandedPlayerId;
+    private string? _expandedPlayerIdStr;
     private bool _byPlayer = false;
+
+    private static readonly IReadOnlyList<ButtonGroupOption<bool>> _viewOptions =
+    [
+        new(false, "By Fight"),
+        new(true, "By Player"),
+    ];
+
+    private bool ByPlayer
+    {
+        get => _byPlayer;
+        set
+        {
+            if (_byPlayer == value) return;
+            _byPlayer = value;
+            if (value)
+                _expandedFightId = null;
+            else
+                _expandedPlayerIdStr = null;
+        }
+    }
 
     protected override void OnInitialized()
     {
@@ -287,8 +279,6 @@
             _expandedFightId = fightId;
     }
 
-    private static string GetRoleBorderColor(HeroRole role) => Core.UI.HeroRoleStyles.GetAccentColorVar(role);
-
     private static string FormatDuration(double milliseconds)
     {
         var ts = TimeSpan.FromMilliseconds(milliseconds);
@@ -296,4 +286,7 @@
             ? $"{(int)ts.TotalMinutes}:{ts.Seconds:D2}"
             : $"{ts.Seconds}s";
     }
+
+    private static string FirstLetter(string value) =>
+        value.Length > 0 ? value[0].ToString() : "?";
 }

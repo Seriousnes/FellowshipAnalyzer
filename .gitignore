@@ -368,3 +368,5 @@ FodyWeavers.xsd
 # Generated files
 **/*.css
 **/*.css.map
+
+docs/*

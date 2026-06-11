@@ -1,0 +1,80 @@
+@page "/badge"
+
+<PageTitle>Badge — Design System</PageTitle>
+
+<h1>Badge</h1>
+<p class="lede">Coloured pill rendered as <code>&lt;span&gt;</code>, <code>&lt;a&gt;</code>, or <code>&lt;button&gt;</code> depending on whether <code>Href</code> or <code>OnClick</code> are supplied.</p>
+
+<CodeExample Title="Variants" Code="@_variantsCode">
+    <Demo>
+        <div class="showcase-row">
+            <Badge Variant="BadgeVariant.Neutral">Neutral</Badge>
+            <Badge Variant="BadgeVariant.Success">✓ Kill</Badge>
+            <Badge Variant="BadgeVariant.Failure">✗ Wipe</Badge>
+            <Badge Variant="BadgeVariant.Tank">🛡 Tank</Badge>
+            <Badge Variant="BadgeVariant.Healer">💚 Healer</Badge>
+            <Badge Variant="BadgeVariant.Dps">⚔ DPS</Badge>
+            <Badge Variant="BadgeVariant.Gold">Gold</Badge>
+            <Badge Variant="BadgeVariant.Custom" CustomColorVar="var(--fa-ice)">Custom (ice)</Badge>
+        </div>
+    </Demo>
+</CodeExample>
+
+<CodeExample Title="Sizes" Code="@_sizesCode">
+    <Demo>
+        <div class="showcase-row">
+            <Badge Variant="BadgeVariant.Success" Size="BadgeSize.Sm">Small</Badge>
+            <Badge Variant="BadgeVariant.Success" Size="BadgeSize.Md">Medium</Badge>
+        </div>
+    </Demo>
+</CodeExample>
+
+<CodeExample Title="Clickable + toggle state"
+             Description="@($"Last clicked: {_lastClick}")"
+             Code="@_clickableCode">
+    <Demo>
+        <div class="showcase-row">
+            <Badge Variant="BadgeVariant.Success" OnClick="@(() => _lastClick = "success")">Click me</Badge>
+            <Badge Variant="BadgeVariant.Failure" OnClick="@(() => _lastClick = "failure")">Click me</Badge>
+            <Badge Variant="BadgeVariant.Success" Active="true" OnClick="@(() => _lastClick = "toggle")">Active toggle</Badge>
+        </div>
+    </Demo>
+</CodeExample>
+
+<CodeExample Title="As link" Code="@_linkCode">
+    <Demo>
+        <div class="showcase-row">
+            <Badge Variant="BadgeVariant.Gold" Href="/">Home link</Badge>
+        </div>
+    </Demo>
+</CodeExample>
+
+@code {
+    private string _lastClick = "(none)";
+
+    private const string _variantsCode = """
+<Badge Variant="BadgeVariant.Neutral">Neutral</Badge>
+<Badge Variant="BadgeVariant.Success">✓ Kill</Badge>
+<Badge Variant="BadgeVariant.Failure">✗ Wipe</Badge>
+<Badge Variant="BadgeVariant.Tank">🛡 Tank</Badge>
+<Badge Variant="BadgeVariant.Healer">💚 Healer</Badge>
+<Badge Variant="BadgeVariant.Dps">⚔ DPS</Badge>
+<Badge Variant="BadgeVariant.Gold">Gold</Badge>
+<Badge Variant="BadgeVariant.Custom" CustomColorVar="var(--fa-ice)">Custom (ice)</Badge>
+""";
+
+    private const string _sizesCode = """
+<Badge Variant="BadgeVariant.Success" Size="BadgeSize.Sm">Small</Badge>
+<Badge Variant="BadgeVariant.Success" Size="BadgeSize.Md">Medium</Badge>
+""";
+
+    private const string _clickableCode = """
+<Badge Variant="BadgeVariant.Success" OnClick="@(() => _lastClick = \"success\")">Click me</Badge>
+<Badge Variant="BadgeVariant.Failure" OnClick="@(() => _lastClick = \"failure\")">Click me</Badge>
+<Badge Variant="BadgeVariant.Success" Active="true" OnClick="@OnToggle">Active toggle</Badge>
+""";
+
+    private const string _linkCode = """
+<Badge Variant="BadgeVariant.Gold" Href="/">Home link</Badge>
+""";
+}

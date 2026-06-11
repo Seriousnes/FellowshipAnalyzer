@@ -63,6 +63,7 @@
   </Folder>
   <Project Path="src/FellowshipAnalyzer.Analyzers/FellowshipAnalyzer.Analyzers.csproj" />
   <Project Path="src/FellowshipAnalyzer.AppHost/FellowshipAnalyzer.AppHost.csproj" />
+  <Project Path="src/FellowshipAnalyzer.DesignSystem/FellowshipAnalyzer.DesignSystem.csproj" />
   <Project Path="src/FellowshipAnalyzer.Generators/FellowshipAnalyzer.Generators.csproj" />
   <Project Path="src/FellowshipAnalyzer.ServiceDefaults/FellowshipAnalyzer.ServiceDefaults.csproj" />
 </Solution>

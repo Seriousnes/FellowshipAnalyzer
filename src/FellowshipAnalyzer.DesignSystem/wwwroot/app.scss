@@ -1,0 +1,114 @@
+@use 'tokens' as t;
+
+:root {
+    --fa-bg-base:    #{t.$fa-bg-base};
+    --fa-bg-raised:  #{t.$fa-bg-raised};
+    --fa-bg-surface: #{t.$fa-bg-surface};
+    --fa-bg-card:    #{t.$fa-bg-card};
+    --fa-bg-inset:   #{t.$fa-bg-inset};
+
+    --fa-gold:       #{t.$fa-gold};
+    --fa-gold-light: #{t.$fa-gold-light};
+    --fa-gold-dim:   #{t.$fa-gold-dim};
+
+    --fa-text:       #{t.$fa-text};
+    --fa-text-muted: #{t.$fa-text-muted};
+    --fa-text-dim:   #{t.$fa-text-dim};
+
+    --fa-border:      #{t.$fa-border};
+    --fa-border-card: #{t.$fa-border-card};
+
+    --fa-perf-perfect:   #{t.$fa-perf-perfect};
+    --fa-perf-good:      #{t.$fa-perf-good};
+    --fa-perf-ok:        #{t.$fa-perf-ok};
+    --fa-perf-fail:      #{t.$fa-perf-fail};
+    --fa-perf-very-bad:  #{t.$fa-perf-very-bad};
+    --fa-perf-mediocre:  #{t.$fa-perf-mediocre};
+    --fa-perf-available: #{t.$fa-perf-available};
+
+    --fa-role-tank:    #{t.$fa-role-tank};
+    --fa-role-healer:  #{t.$fa-role-healer};
+    --fa-role-dps:     #{t.$fa-role-dps};
+    --fa-role-unknown: #{t.$fa-role-unknown};
+
+    --fa-ice: #{t.$fa-ice};
+
+    --fa-shadow-card: #{t.$fa-shadow-card};
+    --fa-shadow-lg:   #{t.$fa-shadow-lg};
+
+    --fa-radius-sm: #{t.$fa-radius-sm};
+    --fa-radius-md: #{t.$fa-radius-md};
+    --fa-radius-lg: #{t.$fa-radius-lg};
+    --fa-radius-xl: #{t.$fa-radius-xl};
+
+    --fa-font-body:    #{t.$fa-font-body};
+    --fa-font-heading: #{t.$fa-font-heading};
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html {
+    font-family: var(--fa-font-body);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+    margin: 0;
+    background: var(--fa-bg-base);
+    color: var(--fa-text);
+    line-height: 1.55;
+}
+
+h1, h2, h3, h4 {
+    font-family: var(--fa-font-heading);
+    font-weight: 700;
+    line-height: 1.15;
+    color: var(--fa-text);
+}
+
+a {
+    color: var(--fa-gold);
+    &:hover { color: var(--fa-gold-light); }
+}
+
+.showcase-section {
+    margin: 2rem 0 2.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--fa-border);
+}
+
+.showcase-section > h2 {
+    margin: 0 0 0.25rem;
+    font-size: 1.15rem;
+    color: var(--fa-gold-light);
+}
+
+.showcase-section > p {
+    margin: 0 0 1rem;
+    color: var(--fa-text-muted);
+    font-size: 0.92rem;
+}
+
+.showcase-demo {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1.25rem;
+    background: var(--fa-bg-card);
+    border: 1px solid var(--fa-border-card);
+    border-radius: var(--fa-radius-md);
+    box-shadow: var(--fa-shadow-card);
+}
+
+.showcase-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+.lede {
+    color: var(--fa-text-muted);
+    max-width: 42rem;
+}

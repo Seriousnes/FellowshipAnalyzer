@@ -1,0 +1,111 @@
+@page "/accordion"
+
+<PageTitle>Accordion — Design System</PageTitle>
+
+<h1>Accordion</h1>
+<p class="lede">Expandable list. Single-select by default; set <code>AllowMultiple</code> to allow concurrent expansion. Use <code>@@bind-ExpandedId</code> for deep-link control.</p>
+
+<CodeExample Title="Single-select (uncontrolled)" Code="@_singleCode">
+    <Demo>
+        <Accordion>
+            <AccordionItem Id="one">
+                <Header>The Mire — 3 attempts</Header>
+                <ChildContent>Players list, role counts, fight pills…</ChildContent>
+            </AccordionItem>
+            <AccordionItem Id="two">
+                <Header>The Vault — 1 kill</Header>
+                <ChildContent>Players list for The Vault.</ChildContent>
+            </AccordionItem>
+            <AccordionItem Id="three">
+                <Header>Sunken Shrine — 2 wipes</Header>
+                <ChildContent>Wipe analysis for Sunken Shrine.</ChildContent>
+            </AccordionItem>
+        </Accordion>
+    </Demo>
+</CodeExample>
+
+<CodeExample Title="Multi-select" Code="@_multiCode">
+    <Demo>
+        <Accordion AllowMultiple="true">
+            <AccordionItem Id="a"><Header>Section A</Header><ChildContent>A content.</ChildContent></AccordionItem>
+            <AccordionItem Id="b"><Header>Section B</Header><ChildContent>B content.</ChildContent></AccordionItem>
+            <AccordionItem Id="c"><Header>Section C</Header><ChildContent>C content.</ChildContent></AccordionItem>
+        </Accordion>
+    </Demo>
+</CodeExample>
+
+<CodeExample Title="Role-accent border"
+             Description="Use BorderAccentColorVar to colour the left edge."
+             Code="@_accentCode">
+    <Demo>
+        <Accordion>
+            <AccordionItem Id="tank" BorderAccentColorVar="var(--fa-role-tank)">
+                <Header>Tank player</Header>
+                <ChildContent>Tank fights list.</ChildContent>
+            </AccordionItem>
+            <AccordionItem Id="healer" BorderAccentColorVar="var(--fa-role-healer)">
+                <Header>Healer player</Header>
+                <ChildContent>Healer fights list.</ChildContent>
+            </AccordionItem>
+            <AccordionItem Id="dps" BorderAccentColorVar="var(--fa-role-dps)">
+                <Header>DPS player</Header>
+                <ChildContent>DPS fights list.</ChildContent>
+            </AccordionItem>
+        </Accordion>
+    </Demo>
+</CodeExample>
+
+<CodeExample Title="Controlled"
+             Description="@($"Bind via @@bind-ExpandedId — current: {_expandedId ?? "(none)"}")"
+             Code="@_controlledCode">
+    <Demo>
+        <Accordion @bind-ExpandedId="_expandedId">
+            <AccordionItem Id="alpha"><Header>Alpha</Header><ChildContent>Alpha body.</ChildContent></AccordionItem>
+            <AccordionItem Id="beta"><Header>Beta</Header><ChildContent>Beta body.</ChildContent></AccordionItem>
+        </Accordion>
+    </Demo>
+</CodeExample>
+
+@code {
+    private string? _expandedId = "alpha";
+
+    private const string _singleCode = """
+<Accordion>
+    <AccordionItem Id="one">
+        <Header>The Mire — 3 attempts</Header>
+        <ChildContent>Players list, role counts, fight pills…</ChildContent>
+    </AccordionItem>
+    <AccordionItem Id="two">
+        <Header>The Vault — 1 kill</Header>
+        <ChildContent>Players list for The Vault.</ChildContent>
+    </AccordionItem>
+</Accordion>
+""";
+
+    private const string _multiCode = """
+<Accordion AllowMultiple="true">
+    <AccordionItem Id="a"><Header>Section A</Header><ChildContent>A content.</ChildContent></AccordionItem>
+    <AccordionItem Id="b"><Header>Section B</Header><ChildContent>B content.</ChildContent></AccordionItem>
+</Accordion>
+""";
+
+    private const string _accentCode = """
+<Accordion>
+    <AccordionItem Id="tank" BorderAccentColorVar="var(--fa-role-tank)">
+        <Header>Tank player</Header>
+        <ChildContent>Tank fights list.</ChildContent>
+    </AccordionItem>
+</Accordion>
+""";
+
+    private const string _controlledCode = """
+<Accordion @bind-ExpandedId="_expandedId">
+    <AccordionItem Id="alpha"><Header>Alpha</Header><ChildContent>Alpha body.</ChildContent></AccordionItem>
+    <AccordionItem Id="beta"><Header>Beta</Header><ChildContent>Beta body.</ChildContent></AccordionItem>
+</Accordion>
+
+@code {
+    private string? _expandedId = "alpha";
+}
+""";
+}

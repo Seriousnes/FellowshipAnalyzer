@@ -1,0 +1,113 @@
+@page "/bars"
+
+<PageTitle>Bars — Design System</PageTitle>
+
+<h1>PassFailBar / GradiatedPerformanceBar / StackedBar / PerformanceBoxRow</h1>
+<p class="lede">Horizontal bar visualisations.</p>
+
+<CodeExample Title="PassFailBar — two-segment pass/fail" Code="@_passFailCode">
+    <Demo>
+        <div style="width: 320px;">
+            <PassFailBar Pass="8" Total="10" />
+        </div>
+        <div style="width: 320px; margin-top: 0.5rem;">
+            <PassFailBar Pass="3" Total="10" PassTooltip="On-time casts" FailTooltip="Late casts" />
+        </div>
+    </Demo>
+</CodeExample>
+
+<CodeExample Title="GradiatedPerformanceBar — 4-tier distribution" Code="@_gradiatedCode">
+    <Demo>
+        <div style="width: 400px;">
+            <GradiatedPerformanceBar Perfect="8" Good="4" Ok="2" Fail="1" />
+        </div>
+        <div style="width: 400px; margin-top: 0.5rem;">
+            <GradiatedPerformanceBar Perfect="20" Good="0" Ok="0" Fail="0" />
+        </div>
+        <div style="width: 400px; margin-top: 0.5rem;">
+            <GradiatedPerformanceBar Perfect="0" Good="0" Ok="0" Fail="10" />
+        </div>
+    </Demo>
+</CodeExample>
+
+<CodeExample Title="StackedBar — proportional with legend" Code="@_stackedCode">
+    <Demo>
+        <div style="width: 480px;">
+            <StackedBar Segments="@_segments" />
+        </div>
+    </Demo>
+</CodeExample>
+
+<CodeExample Title="StackedBar — without legend, taller" Code="@_stackedNoLegendCode">
+    <Demo>
+        <div style="width: 480px;">
+            <StackedBar Segments="@_segments" Height="50" HideLegend />
+        </div>
+    </Demo>
+</CodeExample>
+
+<CodeExample Title="PerformanceBoxRow — sparkline of per-event tiers"
+             Description="@($"Click any box to log: {_lastClicked}")"
+             Code="@_boxRowCode">
+    <Demo>
+        <PerformanceBoxRow Entries="@_boxEntries" OnClick="@OnBoxClick" />
+    </Demo>
+</CodeExample>
+
+@code {
+    private string _lastClicked = "(none)";
+    private void OnBoxClick(int index) => _lastClicked = $"index {index}";
+
+    private static readonly IReadOnlyList<StackedBarSegment> _segments =
+    [
+        new("Frost Bolt", 12, "#7dd3fc"),
+        new("Bursting Ice", 6, "#a78bfa"),
+        new("Glacial Blast", 4, "#facc15"),
+        new("Ice Comet", 2, "#fb923c"),
+    ];
+
+    private static readonly IReadOnlyList<PerformanceBoxEntry> _boxEntries =
+    [
+        new(PerformanceTier.Perfect, "0:02"),
+        new(PerformanceTier.Perfect, "0:08"),
+        new(PerformanceTier.Good, "0:15"),
+        new(PerformanceTier.Perfect, "0:23"),
+        new(PerformanceTier.Ok, "0:31"),
+        new(PerformanceTier.Good, "0:40"),
+        new(PerformanceTier.Perfect, "0:48"),
+        new(PerformanceTier.Fail, "0:55"),
+        new(PerformanceTier.Good, "1:03"),
+        new(PerformanceTier.Perfect, "1:11"),
+    ];
+
+    private const string _passFailCode = """
+<PassFailBar Pass="8" Total="10" />
+<PassFailBar Pass="3" Total="10" PassTooltip="On time" FailTooltip="Late" />
+""";
+
+    private const string _gradiatedCode = """
+<GradiatedPerformanceBar Perfect="8" Good="4" Ok="2" Fail="1" />
+""";
+
+    private const string _stackedCode = """
+<StackedBar Segments="@_segments" />
+
+@code {
+    private static readonly IReadOnlyList<StackedBarSegment> _segments =
+    [
+        new("Frost Bolt", 12, "#7dd3fc"),
+        new("Bursting Ice", 6, "#a78bfa"),
+        new("Glacial Blast", 4, "#facc15"),
+        new("Ice Comet", 2, "#fb923c"),
+    ];
+}
+""";
+
+    private const string _stackedNoLegendCode = """
+<StackedBar Segments="@_segments" Height="50" HideLegend />
+""";
+
+    private const string _boxRowCode = """
+<PerformanceBoxRow Entries="@_entries" OnClick="@OnClick" />
+""";
+}

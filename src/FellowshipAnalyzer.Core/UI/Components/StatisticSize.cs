@@ -1,4 +1,4 @@
-namespace FellowshipAnalyzer.Core.UI.Statistics;
+namespace FellowshipAnalyzer.Core.UI.Components;
 
 public enum StatisticSize
 {

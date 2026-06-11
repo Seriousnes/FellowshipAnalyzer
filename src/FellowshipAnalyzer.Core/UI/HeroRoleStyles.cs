@@ -1,4 +1,5 @@
 using FellowshipAnalyzer.Core.Analysis;
+using FellowshipAnalyzer.Core.UI.Components;
 
 namespace FellowshipAnalyzer.Core.UI;
 
@@ -19,4 +20,17 @@ public static class HeroRoleStyles
         HeroRole.Dps => "var(--fa-role-dps)",
         _ => "var(--fa-role-unknown)",
     };
+
+    /// <summary>Returns the <see cref="BadgeVariant"/> that mirrors a hero <see cref="HeroRole"/>.</summary>
+    public static BadgeVariant GetBadgeVariant(HeroRole role) => role switch
+    {
+        HeroRole.Tank => BadgeVariant.Tank,
+        HeroRole.Healer => BadgeVariant.Healer,
+        HeroRole.Dps => BadgeVariant.Dps,
+        _ => BadgeVariant.Neutral,
+    };
+
+    /// <summary>Returns the <see cref="BadgeVariant"/> appropriate for a kill/wipe outcome.</summary>
+    public static BadgeVariant GetOutcomeVariant(bool isKill) =>
+        isKill ? BadgeVariant.Success : BadgeVariant.Failure;
 }

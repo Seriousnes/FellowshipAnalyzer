@@ -1,0 +1,97 @@
+@page "/statistics"
+@using FellowshipAnalyzer.Core.Common.Spells.Rime
+
+<PageTitle>Statistics components — Design System</PageTitle>
+
+<h1>Statistic / StatCard / StatTile / StatisticsSectionTitle</h1>
+<p class="lede">Containers used on the Statistics tab. <code>Statistic</code> is the outer panel; <code>StatCard</code> is a titled card; <code>StatTile</code> is a colored single-metric cell.</p>
+
+<CodeExample Title="StatisticsSectionTitle" Code="@_titleCode">
+    <Demo>
+        <StatisticsSectionTitle Title="Damage" />
+        <StatisticsSectionTitle Title="Healing">
+            <Badge Variant="BadgeVariant.Neutral" Size="BadgeSize.Sm">aside</Badge>
+        </StatisticsSectionTitle>
+    </Demo>
+</CodeExample>
+
+<CodeExample Title="Statistic — outer card with optional tooltip"
+             Code="@_statisticCode">
+    <Demo>
+        <Statistic>
+            <ChildContent>
+                <SpellValueText Spell="Spells.IceComet">12 casts</SpellValueText>
+            </ChildContent>
+        </Statistic>
+        <Statistic TooltipTitle="Wasted orbs explanation">
+            <ChildContent>
+                <SpellValueText Spell="Spells.GlacialBlast">8 casts • 4 wasted Orbs</SpellValueText>
+            </ChildContent>
+            <Tooltip>
+                <strong>Wasted Orbs</strong> are generated while you're already at the cap of 5.
+            </Tooltip>
+        </Statistic>
+    </Demo>
+</CodeExample>
+
+<CodeExample Title="StatCard — titled section"
+             Description="UltraWide spans the full statistics-tab grid; Wide spans half."
+             Code="@_statCardCode">
+    <Demo>
+        <StatCard Title="Total casts">
+            <SpellValueText Spell="Spells.FrostBolt">12</SpellValueText>
+            <SpellValueText Spell="Spells.GlacialBlast">8</SpellValueText>
+            <SpellValueText Spell="Spells.IceComet">3</SpellValueText>
+        </StatCard>
+    </Demo>
+</CodeExample>
+
+<CodeExample Title="StatTile — colored single metric" Code="@_statTileCode">
+    <Demo>
+        <div class="showcase-row">
+            <StatTile Color="#7dd3fc" Value="12" Label="Casts" />
+            <StatTile Color="#facc15" Value="4.2k" Label="DPS" Tooltip="Damage per second" />
+            <StatTile Color="#f87171" Value="3" Label="Wipes" />
+        </div>
+    </Demo>
+</CodeExample>
+
+@code {
+    private const string _titleCode = """
+<StatisticsSectionTitle Title="Damage" />
+<StatisticsSectionTitle Title="Healing">
+    <Badge Variant="BadgeVariant.Neutral" Size="BadgeSize.Sm">aside</Badge>
+</StatisticsSectionTitle>
+""";
+
+    private const string _statisticCode = """
+<Statistic>
+    <SpellValueText Spell="Spells.IceComet">12 casts</SpellValueText>
+</Statistic>
+
+<Statistic>
+    <ChildContent>
+        <SpellValueText Spell="Spells.GlacialBlast">8 casts</SpellValueText>
+    </ChildContent>
+    <Tooltip>
+        <strong>Wasted Orbs</strong> are generated while you're at the cap.
+    </Tooltip>
+</Statistic>
+""";
+
+    private const string _statCardCode = """
+<StatCard Title="Total casts">
+    <SpellValueText Spell="Spells.FrostBolt">12</SpellValueText>
+    <SpellValueText Spell="Spells.GlacialBlast">8</SpellValueText>
+</StatCard>
+
+<StatCard Title="Wide card" Wide>...</StatCard>
+<StatCard Title="Ultra-wide card" UltraWide>...</StatCard>
+""";
+
+    private const string _statTileCode = """
+<StatTile Color="#7dd3fc" Value="12" Label="Casts" />
+<StatTile Color="#facc15" Value="4.2k" Label="DPS" Tooltip="Damage per second" />
+<StatTile Color="#f87171" Value="3" Label="Wipes" />
+""";
+}

@@ -1,0 +1,52 @@
+@* Badge — coloured pill rendered as <span>, <a>, or <button> depending on parameters. *@
+
+@{
+    var variantClass = Variant.ToString().ToLowerInvariant();
+    var sizeClass = Size.ToString().ToLowerInvariant();
+    var classes = $"badge badge--{variantClass} badge--{sizeClass}{(Active ? " active" : "")}";
+    var styleAttr = Variant == BadgeVariant.Custom && CustomColorVar is not null
+        ? $"--badge-color: {CustomColorVar};"
+        : null;
+}
+
+@if (Href is not null)
+{
+    <a class="@classes"
+       href="@Href"
+       style="@styleAttr"
+       @attributes="InputAttributes">
+        @ChildContent
+    </a>
+}
+else if (OnClick.HasDelegate)
+{
+    <button type="button"
+            class="@classes"
+            aria-pressed="@Active"
+            style="@styleAttr"
+            @onclick="OnClick"
+            @attributes="InputAttributes">
+        @ChildContent
+    </button>
+}
+else
+{
+    <span class="@classes"
+          style="@styleAttr"
+          @attributes="InputAttributes">
+        @ChildContent
+    </span>
+}
+
+@code {
+    [Parameter, EditorRequired] public RenderFragment ChildContent { get; set; } = default!;
+    [Parameter] public BadgeVariant Variant { get; set; } = BadgeVariant.Neutral;
+    [Parameter] public BadgeSize Size { get; set; } = BadgeSize.Md;
+    [Parameter] public string? Href { get; set; }
+    [Parameter] public EventCallback<MouseEventArgs> OnClick { get; set; }
+    [Parameter] public bool Active { get; set; }
+    [Parameter] public string? CustomColorVar { get; set; }
+
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object> InputAttributes { get; set; } = new();
+}

@@ -1,0 +1,29 @@
+@use 'tokens' as t;
+
+.breadcrumbs {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+    font-size: 0.82rem;
+    color: var(--fa-text-muted);
+}
+
+.breadcrumbs-link {
+    color: var(--fa-gold);
+    text-decoration: none;
+
+    &:hover {
+        color: var(--fa-gold-light);
+        text-decoration: underline;
+    }
+}
+
+.breadcrumbs-sep {
+    color: var(--fa-text-dim);
+    user-select: none;
+}
+
+.breadcrumbs-current {
+    color: var(--fa-text-muted);
+}

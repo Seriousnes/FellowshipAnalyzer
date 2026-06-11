@@ -1,0 +1,75 @@
+@* Accordion — expandable list with single- or multi-select, internal or controlled. *@
+
+<CascadingValue Value="this" IsFixed="true">
+    @ChildContent
+</CascadingValue>
+
+@code {
+    private readonly List<AccordionItem> _items = [];
+    private string? _internalExpandedId;
+    private HashSet<string> _internalExpandedIds = [];
+
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public bool AllowMultiple { get; set; }
+    [Parameter] public string? ExpandedId { get; set; }
+    [Parameter] public EventCallback<string?> ExpandedIdChanged { get; set; }
+    [Parameter] public IReadOnlyList<string>? ExpandedIds { get; set; }
+    [Parameter] public EventCallback<IReadOnlyList<string>> ExpandedIdsChanged { get; set; }
+
+    internal void Register(AccordionItem item)
+    {
+        if (!_items.Contains(item))
+            _items.Add(item);
+    }
+
+    internal void Unregister(AccordionItem item)
+    {
+        _items.Remove(item);
+    }
+
+    internal bool IsExpanded(string id)
+    {
+        if (AllowMultiple)
+        {
+            return ExpandedIdsChanged.HasDelegate
+                ? ExpandedIds?.Contains(id) == true
+                : _internalExpandedIds.Contains(id);
+        }
+        var current = ExpandedIdChanged.HasDelegate ? ExpandedId : _internalExpandedId;
+        return current == id;
+    }
+
+    internal async Task ToggleAsync(string id)
+    {
+        if (AllowMultiple)
+        {
+            var current = (ExpandedIdsChanged.HasDelegate ? ExpandedIds : (IReadOnlyList<string>?)_internalExpandedIds.ToList()) ?? [];
+            var next = current.Contains(id)
+                ? current.Where(x => x != id).ToList()
+                : current.Append(id).ToList();
+            if (ExpandedIdsChanged.HasDelegate)
+            {
+                await ExpandedIdsChanged.InvokeAsync(next);
+            }
+            else
+            {
+                _internalExpandedIds = [.. next];
+                StateHasChanged();
+            }
+        }
+        else
+        {
+            var current = ExpandedIdChanged.HasDelegate ? ExpandedId : _internalExpandedId;
+            var next = current == id ? null : id;
+            if (ExpandedIdChanged.HasDelegate)
+            {
+                await ExpandedIdChanged.InvokeAsync(next);
+            }
+            else
+            {
+                _internalExpandedId = next;
+                StateHasChanged();
+            }
+        }
+    }
+}

@@ -1,0 +1,55 @@
+@use 'tokens' as t;
+
+.avatar {
+    --avatar-size: 48px;
+    --avatar-radius: 50%;
+    --avatar-ring: transparent;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--avatar-size);
+    height: var(--avatar-size);
+    border-radius: var(--avatar-radius);
+    overflow: hidden;
+    flex-shrink: 0;
+    position: relative;
+}
+
+.avatar.has-ring {
+    box-shadow: 0 0 0 2px var(--avatar-ring);
+}
+
+.avatar--sm { --avatar-size: 36px; }
+.avatar--md { --avatar-size: 48px; }
+.avatar--lg { --avatar-size: 56px; }
+.avatar--xl { --avatar-size: 64px; }
+
+.avatar--circle  { --avatar-radius: 50%; }
+.avatar--rounded { --avatar-radius: var(--fa-radius-sm); }
+.avatar--square  { --avatar-radius: 0; }
+
+.avatar-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.avatar-fallback {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--fa-bg-raised);
+    border: 1px solid var(--fa-border-card);
+    color: var(--fa-text-muted);
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.avatar--sm .avatar-fallback { font-size: 0.75rem; }
+.avatar--md .avatar-fallback { font-size: 1rem; }
+.avatar--lg .avatar-fallback { font-size: 1.2rem; }
+.avatar--xl .avatar-fallback { font-size: 1.4rem; }

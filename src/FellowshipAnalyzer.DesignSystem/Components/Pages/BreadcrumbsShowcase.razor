@@ -1,0 +1,48 @@
+@page "/breadcrumbs"
+
+<PageTitle>Breadcrumbs — Design System</PageTitle>
+
+<h1>Breadcrumbs</h1>
+<p class="lede">List-driven breadcrumb trail. Items without an <code>Href</code> render as the current page.</p>
+
+<CodeExample Title="Linked + current" Code="@_basicCode">
+    <Demo><Breadcrumbs Items="_basicItems" /></Demo>
+</CodeExample>
+
+<CodeExample Title="Custom separator" Code="@_separatorCode">
+    <Demo><Breadcrumbs Items="_basicItems" Separator="/" /></Demo>
+</CodeExample>
+
+<CodeExample Title="Single current crumb" Code="@_singleCode">
+    <Demo><Breadcrumbs Items="_singleItem" /></Demo>
+</CodeExample>
+
+@code {
+    private static readonly IReadOnlyList<BreadcrumbItem> _basicItems =
+    [
+        new("Sample log title", "/report/abc123"),
+        new("The Mire"),
+    ];
+
+    private static readonly IReadOnlyList<BreadcrumbItem> _singleItem = [new("Home")];
+
+    private const string _basicCode = """
+<Breadcrumbs Items="@_items" />
+
+@code {
+    private static readonly IReadOnlyList<BreadcrumbItem> _items =
+    [
+        new("Sample log title", "/report/abc123"),
+        new("The Mire"),
+    ];
+}
+""";
+
+    private const string _separatorCode = """
+<Breadcrumbs Items="@_items" Separator="/" />
+""";
+
+    private const string _singleCode = """
+<Breadcrumbs Items="@(new BreadcrumbItem[] { new(\"Home\") })" />
+""";
+}

@@ -1,0 +1,74 @@
+@page "/guide-data-wrapper"
+
+<PageTitle>GuideDataWrapper — Design System</PageTitle>
+
+<h1>GuideDataWrapper</h1>
+<p class="lede">Dark section box with gold title, optional subtitle, and a right-aligned stats column. Used internally by <code>CastOverview</code> / <code>CastDetail</code> — wrap any custom data block in this for consistent guide section chrome.</p>
+
+<CodeExample Title="Title only" Code="@_titleCode">
+    <Demo>
+        <GuideDataWrapper Title="Damage breakdown">
+            <p>Body content goes here.</p>
+        </GuideDataWrapper>
+    </Demo>
+</CodeExample>
+
+<CodeExample Title="Title + subtitle + stats" Code="@_statsCode">
+    <Demo>
+        <GuideDataWrapper Title="Cast quality" Subtitle="Glacial Blast">
+            <Stats>
+                <PerfBadgeGrid>
+                    <PerfBadgeCount Performance="PerformanceTier.Perfect" Count="8" />
+                    <PerfBadgeCount Performance="PerformanceTier.Good" Count="3" />
+                    <PerfBadgeCount Performance="PerformanceTier.Ok" Count="2" />
+                    <PerfBadgeCount Performance="PerformanceTier.Fail" Count="1" />
+                </PerfBadgeGrid>
+            </Stats>
+            <ChildContent>
+                <p>Body content with stats in the right column.</p>
+            </ChildContent>
+        </GuideDataWrapper>
+    </Demo>
+</CodeExample>
+
+<CodeExample Title="Bare mode"
+             Description="Removes the outer dark frame — useful when nesting inside another container."
+             Code="@_bareCode">
+    <Demo>
+        <RoundedPanel>
+            <GuideDataWrapper Bare Title="Inside a RoundedPanel">
+                <p>No outer frame — blends with the parent.</p>
+            </GuideDataWrapper>
+        </RoundedPanel>
+    </Demo>
+</CodeExample>
+
+@code {
+    private const string _titleCode = """
+<GuideDataWrapper Title="Damage breakdown">
+    <p>Body content.</p>
+</GuideDataWrapper>
+""";
+
+    private const string _statsCode = """
+<GuideDataWrapper Title="Cast quality" Subtitle="Glacial Blast">
+    <Stats>
+        <PerfBadgeGrid>
+            <PerfBadgeCount Performance="PerformanceTier.Perfect" Count="8" />
+            ...
+        </PerfBadgeGrid>
+    </Stats>
+    <ChildContent>
+        <p>Body content.</p>
+    </ChildContent>
+</GuideDataWrapper>
+""";
+
+    private const string _bareCode = """
+<RoundedPanel>
+    <GuideDataWrapper Bare Title="Inside a RoundedPanel">
+        ...
+    </GuideDataWrapper>
+</RoundedPanel>
+""";
+}

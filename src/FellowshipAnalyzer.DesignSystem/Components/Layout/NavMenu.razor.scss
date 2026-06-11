@@ -1,0 +1,60 @@
+@use 'tokens' as t;
+
+.nav-menu {
+    background: var(--fa-bg-raised);
+    border-right: 1px solid var(--fa-border-card);
+    padding: 1.5rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+}
+
+.nav-brand {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+    line-height: 1.1;
+
+    strong { color: var(--fa-gold-light); font-size: 1rem; }
+    span   { color: var(--fa-text-muted); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.12em; }
+}
+
+h4 {
+    margin: 0.5rem 0 0.25rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    font-size: 0.7rem;
+    color: var(--fa-text-dim);
+}
+
+ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+}
+
+::deep a {
+    display: block;
+    padding: 0.4rem 0.7rem;
+    border-radius: var(--fa-radius-sm);
+    color: var(--fa-text-muted);
+    text-decoration: none;
+    font-size: 0.9rem;
+    transition: background 0.15s, color 0.15s;
+
+    &:hover {
+        color: var(--fa-text);
+        background: var(--fa-bg-surface);
+    }
+}
+
+::deep a.active {
+    color: var(--fa-gold-light);
+    background: var(--fa-gold-dim);
+}

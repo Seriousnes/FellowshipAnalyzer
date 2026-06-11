@@ -1,0 +1,118 @@
+@page "/guide-layout"
+
+<PageTitle>Guide layout — Design System</PageTitle>
+
+<h1>GuideContainer / Section / SubSection / GuideSection / SideBySidePanels</h1>
+<p class="lede">Top-level layout primitives that organize a hero's Guide tab. Compose these around your analysis data — never restyle them.</p>
+
+<CodeExample Title="GuideContainer"
+             Description="Root flex-column wrapper. Wrap every guide root in this."
+             Code="@_containerCode">
+    <Demo>
+        <GuideContainer>
+            <p>First child</p>
+            <p>Second child</p>
+            <p>Third child</p>
+        </GuideContainer>
+    </Demo>
+</CodeExample>
+
+<CodeExample Title="Section — collapsible top-level region"
+             Description="Yellow header, default expanded. Pass Expanded=false to start collapsed."
+             Code="@_sectionCode">
+    <Demo>
+        <Section Title="Damage rotation">
+            <p>Section body. Click the header to collapse.</p>
+        </Section>
+        <Section Title="Cooldown usage" Expanded="false">
+            <p>This one starts collapsed.</p>
+        </Section>
+    </Demo>
+</CodeExample>
+
+<CodeExample Title="SubSection — non-collapsible grouping inside Section" Code="@_subSectionCode">
+    <Demo>
+        <Section Title="Damage analysis">
+            <SubSection Title="Single-target rotation">
+                <p>Body for single-target.</p>
+            </SubSection>
+            <SubSection Title="AOE rotation">
+                <p>Body for AOE.</p>
+            </SubSection>
+        </Section>
+    </Demo>
+</CodeExample>
+
+<CodeExample Title="GuideSection — explanation + data 2-column layout"
+             Description="Left column explains the why, right column shows the data. ExplanationPercent controls split."
+             Code="@_guideSectionCode">
+    <Demo>
+        <GuideSection Title="Winter Orb Efficiency">
+            <Explanation>
+                <Explanation>
+                    <p>Winter Orbs are Rime's primary resource. Spending them on Ice Comet at full caps minimises overcap waste.</p>
+                </Explanation>
+            </Explanation>
+            <ChildContent>
+                <RoundedPanel>
+                    <p>Data panel content here.</p>
+                </RoundedPanel>
+            </ChildContent>
+        </GuideSection>
+    </Demo>
+</CodeExample>
+
+<CodeExample Title="SideBySidePanels — equal horizontal layout" Code="@_sbsCode">
+    <Demo>
+        <SideBySidePanels>
+            <RoundedPanel><p>Left panel</p></RoundedPanel>
+            <RoundedPanel><p>Right panel</p></RoundedPanel>
+        </SideBySidePanels>
+    </Demo>
+</CodeExample>
+
+@code {
+    private const string _containerCode = """
+<GuideContainer>
+    <Section Title="...">...</Section>
+    <Section Title="...">...</Section>
+</GuideContainer>
+""";
+
+    private const string _sectionCode = """
+<Section Title="Damage rotation">
+    ...
+</Section>
+
+<Section Title="Cooldown usage" Expanded="false">
+    ...
+</Section>
+""";
+
+    private const string _subSectionCode = """
+<Section Title="Damage analysis">
+    <SubSection Title="Single-target rotation">...</SubSection>
+    <SubSection Title="AOE rotation">...</SubSection>
+</Section>
+""";
+
+    private const string _guideSectionCode = """
+<GuideSection Title="Winter Orb Efficiency" ExplanationPercent="40">
+    <Explanation>
+        <Explanation>
+            <p>Winter Orbs are Rime's primary resource...</p>
+        </Explanation>
+    </Explanation>
+    <ChildContent>
+        <RoundedPanel>...</RoundedPanel>
+    </ChildContent>
+</GuideSection>
+""";
+
+    private const string _sbsCode = """
+<SideBySidePanels>
+    <RoundedPanel>...left...</RoundedPanel>
+    <RoundedPanel>...right...</RoundedPanel>
+</SideBySidePanels>
+""";
+}

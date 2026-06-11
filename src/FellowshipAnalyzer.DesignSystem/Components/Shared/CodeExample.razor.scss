@@ -1,0 +1,102 @@
+@use 'tokens' as t;
+
+.code-example {
+    margin: 2rem 0 2.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--fa-border);
+}
+
+.code-example-header {
+    margin: 0 0 0.75rem;
+}
+
+.code-example-header h3 {
+    margin: 0 0 0.25rem;
+    font-size: 1.05rem;
+    color: var(--fa-gold-light);
+}
+
+.code-example-header p,
+.code-example-lede {
+    margin: 0 0 1rem;
+    color: var(--fa-text-muted);
+    font-size: 0.92rem;
+}
+
+.code-example-demo {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1.25rem;
+    background: var(--fa-bg-card);
+    border: 1px solid var(--fa-border-card);
+    border-radius: var(--fa-radius-md) var(--fa-radius-md) 0 0;
+    box-shadow: var(--fa-shadow-card);
+}
+
+.code-example-source {
+    border: 1px solid var(--fa-border-card);
+    border-top: none;
+    border-radius: 0 0 var(--fa-radius-md) var(--fa-radius-md);
+    background: var(--fa-bg-inset);
+}
+
+.code-example-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.4rem 0.6rem;
+    border-bottom: 1px solid var(--fa-border);
+}
+
+.code-example-lang {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--fa-text-dim);
+}
+
+.code-example-actions {
+    display: flex;
+    gap: 0.4rem;
+}
+
+.code-example-btn {
+    border: 1px solid var(--fa-border);
+    background: var(--fa-bg-raised);
+    color: var(--fa-text);
+    padding: 0.25rem 0.65rem;
+    border-radius: var(--fa-radius-sm);
+    font: inherit;
+    font-size: 0.78rem;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+
+    &:hover:not(:disabled) {
+        background: var(--fa-bg-surface);
+        border-color: var(--fa-gold-dim);
+        color: var(--fa-gold-light);
+    }
+
+    &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+}
+
+.code-example-pre {
+    margin: 0;
+    padding: 1rem;
+    overflow-x: auto;
+    font-family: 'JetBrains Mono', Consolas, 'Cascadia Code', monospace;
+    font-size: 0.82rem;
+    line-height: 1.55;
+    color: var(--fa-text);
+    background: transparent;
+}
+
+.code-example-pre code {
+    font-family: inherit;
+    color: inherit;
+    background: transparent;
+}

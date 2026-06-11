@@ -1,6 +1,6 @@
 using FellowshipAnalyzer.Core.Resources;
 using FellowshipAnalyzer.Core.UI;
-using FellowshipAnalyzer.Core.UI.Resources;
+using FellowshipAnalyzer.Core.UI.Components;
 
 using Microsoft.Extensions.Logging;
 

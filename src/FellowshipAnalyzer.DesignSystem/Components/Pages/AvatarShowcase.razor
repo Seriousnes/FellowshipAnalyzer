@@ -1,0 +1,78 @@
+@page "/avatar"
+
+<PageTitle>Avatar — Design System</PageTitle>
+
+<h1>Avatar</h1>
+<p class="lede">Image with letter fallback. On <code>&lt;img&gt;</code> load failure, the fallback content renders automatically — no JS interop.</p>
+
+<CodeExample Title="Sizes" Code="@_sizesCode">
+    <Demo>
+        <div class="showcase-row">
+            <Avatar Size="AvatarSize.Sm" FallbackText="S" />
+            <Avatar Size="AvatarSize.Md" FallbackText="M" />
+            <Avatar Size="AvatarSize.Lg" FallbackText="L" />
+            <Avatar Size="AvatarSize.Xl" FallbackText="X" />
+        </div>
+    </Demo>
+</CodeExample>
+
+<CodeExample Title="Shapes" Code="@_shapesCode">
+    <Demo>
+        <div class="showcase-row">
+            <Avatar Size="AvatarSize.Lg" Shape="AvatarShape.Circle" FallbackText="C" />
+            <Avatar Size="AvatarSize.Lg" Shape="AvatarShape.Rounded" FallbackText="R" />
+            <Avatar Size="AvatarSize.Lg" Shape="AvatarShape.Square" FallbackText="S" />
+        </div>
+    </Demo>
+</CodeExample>
+
+<CodeExample Title="Image fallback on load error"
+             Description="Both avatars below specify a broken Src; the letter fallback renders after the load fails."
+             Code="@_fallbackCode">
+    <Demo>
+        <div class="showcase-row">
+            <Avatar Size="AvatarSize.Lg" Src="https://example.invalid/missing.png" FallbackText="A" Alt="Aeona" />
+            <Avatar Size="AvatarSize.Lg" Src="https://example.invalid/also-missing.png" FallbackText="B" />
+        </div>
+    </Demo>
+</CodeExample>
+
+<CodeExample Title="Role accent ring"
+             Description="Use AccentColorVar for role-coloured ring."
+             Code="@_accentCode">
+    <Demo>
+        <div class="showcase-row">
+            <Avatar Size="AvatarSize.Lg" FallbackText="T" AccentColorVar="var(--fa-role-tank)" />
+            <Avatar Size="AvatarSize.Lg" FallbackText="H" AccentColorVar="var(--fa-role-healer)" />
+            <Avatar Size="AvatarSize.Lg" FallbackText="D" AccentColorVar="var(--fa-role-dps)" />
+        </div>
+    </Demo>
+</CodeExample>
+
+@code {
+    private const string _sizesCode = """
+<Avatar Size="AvatarSize.Sm" FallbackText="S" />
+<Avatar Size="AvatarSize.Md" FallbackText="M" />
+<Avatar Size="AvatarSize.Lg" FallbackText="L" />
+<Avatar Size="AvatarSize.Xl" FallbackText="X" />
+""";
+
+    private const string _shapesCode = """
+<Avatar Size="AvatarSize.Lg" Shape="AvatarShape.Circle" FallbackText="C" />
+<Avatar Size="AvatarSize.Lg" Shape="AvatarShape.Rounded" FallbackText="R" />
+<Avatar Size="AvatarSize.Lg" Shape="AvatarShape.Square" FallbackText="S" />
+""";
+
+    private const string _fallbackCode = """
+<Avatar Size="AvatarSize.Lg"
+        Src="https://example.invalid/missing.png"
+        FallbackText="A"
+        Alt="Aeona" />
+""";
+
+    private const string _accentCode = """
+<Avatar Size="AvatarSize.Lg" FallbackText="T" AccentColorVar="var(--fa-role-tank)" />
+<Avatar Size="AvatarSize.Lg" FallbackText="H" AccentColorVar="var(--fa-role-healer)" />
+<Avatar Size="AvatarSize.Lg" FallbackText="D" AccentColorVar="var(--fa-role-dps)" />
+""";
+}

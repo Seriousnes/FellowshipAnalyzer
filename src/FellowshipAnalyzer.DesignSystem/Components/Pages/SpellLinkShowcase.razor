@@ -1,0 +1,34 @@
+@page "/spell-link"
+@using FellowshipAnalyzer.Core.Common.Spells.Rime
+
+<PageTitle>SpellLink — Design System</PageTitle>
+
+<h1>SpellLink</h1>
+<p class="lede">Inline link to a spell with optional icon. Opens fellows.gg in a new tab; surfaces the in-app tooltip on hover.</p>
+
+<CodeExample Title="With icon (default)" Code="@_iconCode">
+    <Demo>
+        <p>
+            Cast <SpellLink Spell="Spells.IceComet" /> when you have two Winter Orbs available, otherwise prefer
+            <SpellLink Spell="Spells.GlacialBlast" /> instead.
+        </p>
+    </Demo>
+</CodeExample>
+
+<CodeExample Title="Without icon" Code="@_noIconCode">
+    <Demo>
+        <p>
+            Cast <SpellLink Spell="Spells.IceComet" Icon="false" /> when you have two Winter Orbs available.
+        </p>
+    </Demo>
+</CodeExample>
+
+@code {
+    private const string _iconCode = """
+Cast <SpellLink Spell="Spells.IceComet" /> when you have two Winter Orbs.
+""";
+
+    private const string _noIconCode = """
+<SpellLink Spell="Spells.IceComet" Icon="false" />
+""";
+}

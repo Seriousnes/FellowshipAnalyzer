@@ -1,0 +1,71 @@
+@page "/infrastructure"
+@using FellowshipAnalyzer.Core.Analysis
+
+<PageTitle>Infrastructure components — Design System</PageTitle>
+
+<h1>ReportLoadingScreen, ResourceGraph, SpiritStatistics, SpellTooltipProvider</h1>
+<p class="lede">These components require runtime state (a tracker subscription, a loaded report, JS interop) and are not usefully demoed in isolation. They're documented here for reference.</p>
+
+<CodeExample Title="ReportLoadingScreen"
+             Description="Subscribes to a ReportLoadingTracker and renders the chunked loading bar with per-step status. Drop into a Report layout while loading."
+             Code="@_loadingCode">
+    <Demo>
+        <p style="color: var(--fa-text-muted);">No live demo — requires a real ReportLoadingTracker subscription.</p>
+    </Demo>
+</CodeExample>
+
+<CodeExample Title="ResourceGraph"
+             Description="ApexCharts line chart showing resource amount over fight time. Inherits ReportComponentBase so it can read FightStartTime from cascading context."
+             Code="@_resourceCode">
+    <Demo>
+        <p style="color: var(--fa-text-muted);">No live demo — requires a hero analyzer with a ResourceTracker (e.g. SpiritTracker, WinterOrbTracker).</p>
+    </Demo>
+</CodeExample>
+
+<CodeExample Title="SpiritStatistics"
+             Description="Drop-in statistics card showing the universal Spirit resource graph. Add [AddModule<SpiritTracker>] to any hero parser to surface it."
+             Code="@_spiritCode">
+    <Demo>
+        <p style="color: var(--fa-text-muted);">No live demo — auto-registered via the statistics collection.</p>
+    </Demo>
+</CodeExample>
+
+<CodeExample Title="SpellTooltipProvider"
+             Description="Root-level component that initialises the fellows.gg spell tooltip JS module. Mount it once in App.razor."
+             Code="@_tooltipCode">
+    <Demo>
+        <p style="color: var(--fa-text-muted);">No live demo — sets up JS interop on first render.</p>
+    </Demo>
+</CodeExample>
+
+@code {
+    private const string _loadingCode = """
+<ReportLoadingScreen Tracker="@_loadingTracker" />
+
+@code {
+    private readonly ReportLoadingTracker _loadingTracker = new();
+}
+""";
+
+    private const string _resourceCode = """
+<ResourceGraph Tracker="Analyzer.SpiritTracker"
+               Resource="ResourceTypes.Spirit"
+               IncludeWasted="true"
+               Height="200" />
+""";
+
+    private const string _spiritCode = """
+<SpiritStatistics />
+
+// In the hero parser:
+[HeroAnalyzer(HeroName.Rime)]
+[AddModule<SpiritTracker>]
+public sealed partial class RimeCombatLogParser : CombatLogParser { ... }
+""";
+
+    private const string _tooltipCode = """
+<!-- App.razor -->
+<SpellTooltipProvider />
+<Routes @rendermode="@(new InteractiveAutoRenderMode(prerender: false))" />
+""";
+}

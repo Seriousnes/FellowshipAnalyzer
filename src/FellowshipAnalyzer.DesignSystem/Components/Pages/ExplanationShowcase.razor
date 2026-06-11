@@ -1,0 +1,50 @@
+@page "/explanation"
+
+<PageTitle>Explanation + HelperText — Design System</PageTitle>
+
+<h1>Explanation / HelperText / WipGuide</h1>
+<p class="lede">Prose primitives used inside guides.</p>
+
+<CodeExample Title="Explanation"
+             Description="Styled prose container — use for the 'why this matters' copy inside a GuideSection."
+             Code="@_explanationCode">
+    <Demo>
+        <Explanation>
+            <p>Winter Orbs are Rime's primary spendable resource. You generate them from Frost Bolt and Bursting Ice, and consume them with Glacial Blast (2 Orbs) and Ice Comet (2 Orbs).</p>
+            <p>Capping at 5 wastes generation; this section flags casts that pushed you over the limit.</p>
+        </Explanation>
+    </Demo>
+</CodeExample>
+
+<CodeExample Title="HelperText"
+             Description="Inline italic muted micro-copy. Use under stats or visualisations."
+             Code="@_helperCode">
+    <Demo>
+        <p><HelperText>Click any bar segment to filter the cast list below.</HelperText></p>
+    </Demo>
+</CodeExample>
+
+<CodeExample Title="WipGuide"
+             Description="Placeholder when a hero's analysis isn't implemented yet."
+             Code="@_wipCode">
+    <Demo>
+        <WipGuide Hero="Ardeos" />
+    </Demo>
+</CodeExample>
+
+@code {
+    private const string _explanationCode = """
+<Explanation>
+    <p>Winter Orbs are Rime's primary spendable resource...</p>
+    <p>Capping at 5 wastes generation...</p>
+</Explanation>
+""";
+
+    private const string _helperCode = """
+<HelperText>Click any bar segment to filter the cast list below.</HelperText>
+""";
+
+    private const string _wipCode = """
+<WipGuide Hero="Ardeos" />
+""";
+}

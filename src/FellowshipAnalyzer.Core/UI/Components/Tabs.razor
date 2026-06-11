@@ -1,0 +1,88 @@
+@* Tabs — tabbed navigation with internal or controlled active-tab state. *@
+
+<CascadingValue Value="this" IsFixed="true">
+    @ChildContent
+</CascadingValue>
+
+@{
+    var variantClass = Variant.ToString().ToLowerInvariant();
+    var activeId = CurrentActiveId;
+    var activeItem = _items.FirstOrDefault(i => i.Id == activeId);
+}
+
+<div class="tabs tabs--@variantClass" @attributes="InputAttributes">
+    <nav class="tabs-list" role="tablist">
+        @foreach (var item in _items)
+        {
+            var isActive = item.Id == activeId;
+            <button type="button"
+                    role="tab"
+                    class="tabs-tab @(isActive ? "active" : "")"
+                    aria-selected="@isActive"
+                    disabled="@item.Disabled"
+                    @onclick="@(() => SetActiveAsync(item.Id))">
+                @if (item.LabelTemplate is not null)
+                {
+                    @item.LabelTemplate
+                }
+                else
+                {
+                    @item.Label
+                }
+            </button>
+        }
+    </nav>
+    @if (activeItem?.ChildContent is { } panel)
+    {
+        <div class="tabs-panel" role="tabpanel">@panel</div>
+    }
+</div>
+
+@code {
+    private readonly List<TabItem> _items = [];
+    private string? _internalActiveId;
+
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public TabsVariant Variant { get; set; } = TabsVariant.Underline;
+    [Parameter] public string? ActiveId { get; set; }
+    [Parameter] public EventCallback<string> ActiveIdChanged { get; set; }
+    [Parameter] public string? DefaultActiveId { get; set; }
+
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object> InputAttributes { get; set; } = new();
+
+    internal string? CurrentActiveId => ActiveIdChanged.HasDelegate ? ActiveId : _internalActiveId;
+
+    internal void Register(TabItem item)
+    {
+        if (_items.Contains(item)) return;
+        _items.Add(item);
+        if (_internalActiveId is null)
+        {
+            _internalActiveId = DefaultActiveId ?? item.Id;
+        }
+        StateHasChanged();
+    }
+
+    internal void Unregister(TabItem item)
+    {
+        if (_items.Remove(item))
+        {
+            if (_internalActiveId == item.Id)
+                _internalActiveId = _items.FirstOrDefault()?.Id;
+            StateHasChanged();
+        }
+    }
+
+    private async Task SetActiveAsync(string id)
+    {
+        if (ActiveIdChanged.HasDelegate)
+        {
+            await ActiveIdChanged.InvokeAsync(id);
+        }
+        else
+        {
+            _internalActiveId = id;
+        }
+    }
+}

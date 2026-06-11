@@ -1,0 +1,67 @@
+@* Avatar — image with letter fallback. Handles load errors via Blazor @onerror, no JS interop. *@
+
+@{
+    var sizeClass = Size.ToString().ToLowerInvariant();
+    var shapeClass = Shape.ToString().ToLowerInvariant();
+    var hasImage = !string.IsNullOrEmpty(Src) && !_imgFailed;
+    var ringStyle = AccentColorVar is not null
+        ? $"--avatar-ring: {AccentColorVar};"
+        : null;
+}
+
+<div class="avatar avatar--@sizeClass avatar--@shapeClass @(AccentColorVar is not null ? "has-ring" : "")"
+     style="@ringStyle"
+     @attributes="InputAttributes">
+    @if (hasImage)
+    {
+        <img class="avatar-img"
+             src="@Src"
+             alt="@(Alt ?? FallbackText)"
+             @onerror="HandleImageErrorAsync" />
+    }
+    else
+    {
+        <div class="avatar-fallback" aria-label="@(Alt ?? FallbackText)">
+            @if (FallbackContent is not null)
+            {
+                @FallbackContent
+            }
+            else
+            {
+                @FallbackText
+            }
+        </div>
+    }
+</div>
+
+@code {
+    private bool _imgFailed;
+    private string? _lastSrc;
+
+    [Parameter] public string? Src { get; set; }
+    [Parameter] public string? Alt { get; set; }
+    [Parameter, EditorRequired] public string FallbackText { get; set; } = "?";
+    [Parameter] public RenderFragment? FallbackContent { get; set; }
+    [Parameter] public AvatarSize Size { get; set; } = AvatarSize.Md;
+    [Parameter] public AvatarShape Shape { get; set; } = AvatarShape.Circle;
+    [Parameter] public string? AccentColorVar { get; set; }
+
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object> InputAttributes { get; set; } = new();
+
+    protected override void OnParametersSet()
+    {
+        if (!string.Equals(_lastSrc, Src, StringComparison.Ordinal))
+        {
+            _imgFailed = false;
+            _lastSrc = Src;
+        }
+    }
+
+    private Task HandleImageErrorAsync()
+    {
+        _imgFailed = true;
+        StateHasChanged();
+        return Task.CompletedTask;
+    }
+}
