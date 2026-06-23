@@ -84,6 +84,27 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
     private readonly Dictionary<Type, object> _runInstances = [];
     private readonly Dictionary<Type, int> _moduleTypeIndex = [];
     private Type[] _runModuleTypes = [];
+    private Type[] _runAnalyzerTypes = [];
+    private readonly Dictionary<Type, object> _pullInstances = [];
+    private readonly List<(Pull Pull, IResult Result)> _pullResults = [];
+
+    /// <summary>
+    /// The active parser for the analysis currently in progress, exposed to pipeline-internal
+    /// dispatch wiring. Set in a <c>try/finally</c> at the top of <see cref="Analyze"/>. Event
+    /// processing is sequential and synchronous, so a plain static suffices.
+    /// </summary>
+    public static CombatLogParser? Current { get; private set; }
+
+    /// <summary>
+    /// The pull currently being dispatched, or <c>null</c> outside any pull window (fight setup,
+    /// teardown, and gaps between pulls). Set by <see cref="BeginPull"/> / <see cref="EndPull"/>.
+    /// </summary>
+    public Pull? CurrentPull { get; private set; }
+
+    /// <summary>
+    /// Per-pull analyzer results captured at each <see cref="Events.PullEndEvent"/>, in pull order.
+    /// </summary>
+    public IReadOnlyList<(Pull Pull, IResult Result)> PullResults => _pullResults;
 
     /// <summary>
     /// The <see cref="ParseContext"/> for the analysis currently in progress. Populated at the
@@ -151,6 +172,57 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
     protected virtual Type[] GetNormalizerTypes() => [];
 
     /// <summary>
+    /// Returns the pull-lifetime <see cref="Analyzer"/> types. A fresh instance of each is
+    /// constructed for every pull in <see cref="BeginPull"/> and discarded in <see cref="EndPull"/>.
+    /// The default is empty; concrete parsers override it.
+    /// </summary>
+    protected virtual Type[] GetAnalyzerTypes() => [];
+
+    /// <summary>
+    /// Opens a pull: constructs a fresh instance of every <see cref="GetAnalyzerTypes"/> analyzer
+    /// into the per-pull cache and routes their subscriptions into the pull listener tier. Enforces
+    /// the single-open-pull invariant by closing any already-open pull first (close-before-open).
+    /// </summary>
+    public void BeginPull(Pull pull)
+    {
+        if (CurrentPull is not null) EndPull(CurrentPull);
+
+        CurrentPull = pull;
+        _pullInstances.Clear();
+
+        EventEmitter.BeginPullSubscriptions();
+        foreach (var analyzerType in _runAnalyzerTypes)
+        {
+            var instance = CreateInstance(analyzerType)
+                ?? throw new InvalidOperationException($"No generated factory for analyzer {analyzerType.Name}.");
+            _pullInstances[analyzerType] = instance;
+            if (instance is Module module) module.Owner = this;
+            if (instance is EventSubscriber subscriber) subscriber.RegisterSubscriptions();
+        }
+        EventEmitter.EndPullSubscriptions();
+    }
+
+    /// <summary>
+    /// Closes a pull: captures each analyzer's per-pull result, retires the pull listener tier, and
+    /// discards the per-pull instance cache. Ignores a <paramref name="pull"/> that is not the
+    /// currently-open one (a stale end left over from close-before-open).
+    /// </summary>
+    public void EndPull(Pull pull)
+    {
+        if (!ReferenceEquals(CurrentPull, pull)) return;
+
+        foreach (var instance in _pullInstances.Values)
+        {
+            if (instance is Analyzer analyzer && analyzer.CaptureResult() is { } result)
+                _pullResults.Add((pull, result));
+        }
+
+        EventEmitter.ClearPullListeners();
+        _pullInstances.Clear();
+        CurrentPull = null;
+    }
+
+    /// <summary>
     /// Builds the source-generated typed projection of this analysis run. The default returns
     /// <c>null</c>. Source-generated concrete parsers override this when at least one of their
     /// modules declares a <c>ToReport()</c> method, returning a hero-specific result record
@@ -188,12 +260,30 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
 
     public async Task<HeroAnalysisResult> Analyze(IReadOnlyList<Event> events, int playerId, ReportFight fight)
     {
+        Current = this;
+        try
+        {
+            return await RunAnalysisAsync(events, playerId, fight);
+        }
+        finally
+        {
+            Current = null;
+        }
+    }
+
+    private async Task<HeroAnalysisResult> RunAnalysisAsync(IReadOnlyList<Event> events, int playerId, ReportFight fight)
+    {
         PlayerId = playerId;
         Fight = fight;
         CurrentTimestamp = (int)fight.StartTime;
 
         var allModuleTypes = GetModuleTypes();
         var normalizerTypes = GetNormalizerTypes();
+
+        _runAnalyzerTypes = GetAnalyzerTypes();
+        _pullInstances.Clear();
+        _pullResults.Clear();
+        CurrentPull = null;
 
         _runInstances.Clear();
         _moduleTypeIndex.Clear();

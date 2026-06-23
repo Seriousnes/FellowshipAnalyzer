@@ -13,23 +13,47 @@ namespace FellowshipAnalyzer.Core.Analysis;
 /// </summary>
 public sealed class EventEmitter(ILogger<EventEmitter> logger) : Module
 {
-    private readonly List<RegisteredListener> _listeners = [];
+    private readonly List<RegisteredListener> _stateListeners = [];
+    private readonly List<RegisteredListener> _pullListeners = [];
+    private bool _subscribingToPull;
     private List<Event>? _events;
     private int _insertionIndex;
 
     public void Subscribe(EventSubscriber module, Func<Event, bool> filter, Action<Event> handler)
     {
-        _listeners.Add(new RegisteredListener(module, filter, handler));
+        (_subscribingToPull ? _pullListeners : _stateListeners).Add(new RegisteredListener(module, filter, handler));
     }
 
     public void Subscribe(EventSubscriber module, Func<Event, bool> filter, Func<Event, Task> handler)
     {
-        _listeners.Add(new RegisteredListener(module, filter, handler));
+        (_subscribingToPull ? _pullListeners : _stateListeners).Add(new RegisteredListener(module, filter, handler));
     }
 
     public void SortListeners()
     {
-        _listeners.Sort(static (a, b) => a.Module.Priority.CompareTo(b.Module.Priority));
+        _stateListeners.Sort(static (a, b) => a.Module.Priority.CompareTo(b.Module.Priority));
+    }
+
+    /// <summary>
+    /// Routes subscriptions registered while open into the per-pull listener tier. Called by the
+    /// parser when constructing a pull's analyzers; paired with <see cref="EndPullSubscriptions"/>.
+    /// </summary>
+    public void BeginPullSubscriptions()
+    {
+        _pullListeners.Clear();
+        _subscribingToPull = true;
+    }
+
+    public void EndPullSubscriptions()
+    {
+        _pullListeners.Sort(static (a, b) => a.Module.Priority.CompareTo(b.Module.Priority));
+        _subscribingToPull = false;
+    }
+
+    /// <summary>Retires the current pull's listeners at <see cref="Events.PullEndEvent"/>.</summary>
+    public void ClearPullListeners()
+    {
+        _pullListeners.Clear();
     }
 
     /// <summary>
@@ -44,8 +68,14 @@ public sealed class EventEmitter(ILogger<EventEmitter> logger) : Module
         for (var i = 0; i < events.Count; i++)
         {
             _insertionIndex = i;
-            Owner.CurrentTimestamp = events[i].Timestamp;
-            await TriggerEventAsync(events[i]);
+            var e = events[i];
+            Owner.CurrentTimestamp = e.Timestamp;
+
+            if (e is PullStartEvent pullStart) Owner.BeginPull(pullStart.Pull);
+
+            await TriggerEventAsync(e);
+
+            if (e is PullEndEvent pullEnd) Owner.EndPull(pullEnd.Pull);
 
             if (i % YieldInterval == YieldInterval - 1)
             {
@@ -76,7 +106,13 @@ public sealed class EventEmitter(ILogger<EventEmitter> logger) : Module
 
     private async Task TriggerEventAsync(Event e)
     {
-        foreach (var listener in _listeners)
+        await DispatchToListenersAsync(_stateListeners, e);
+        await DispatchToListenersAsync(_pullListeners, e);
+    }
+
+    private async Task DispatchToListenersAsync(List<RegisteredListener> listeners, Event e)
+    {
+        foreach (var listener in listeners)
         {
             if (listener.Module.Active && listener.Filter(e))
             {
