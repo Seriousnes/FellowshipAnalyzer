@@ -41,6 +41,9 @@ public sealed partial class PullLifecycleTests
         Assert.Equal(2, ((PullProbeResult)result0).Count);
         Assert.Equal(3, ((PullProbeResult)result1).Count);
 
+        Assert.Equal(2, ((PullProbeResult)result0).StateCount);
+        Assert.Equal(6, ((PullProbeResult)result1).StateCount);
+
         var state = parser.GetModule<WholeFightCounter>()!;
         Assert.Equal(6, state.Count);
     }
@@ -106,7 +109,9 @@ public sealed partial class PullLifecycleTests
         protected override object? CreateInstance(Type type)
         {
             if (type == typeof(WholeFightCounter)) return new WholeFightCounter();
-            if (type == typeof(PullProbeAnalyzer)) return new PullProbeAnalyzer();
+            if (type == typeof(PullProbeAnalyzer))
+                return new PullProbeAnalyzer(
+                    new Lazy<WholeFightCounter>(() => (WholeFightCounter)ResolveAnalysisModule(typeof(WholeFightCounter))));
             return base.CreateInstance(type);
         }
     }
@@ -119,18 +124,18 @@ public sealed partial class PullLifecycleTests
         private void OnBuff(ApplyBuffEvent e) => Count++;
     }
 
-    private sealed partial class PullProbeAnalyzer : Analyzer<PullProbeResult>
+    private sealed partial class PullProbeAnalyzer(Lazy<WholeFightCounter> state) : Analyzer<PullProbeResult>
     {
         private int _count;
 
         [On<ApplyBuffEvent>(By = Actor.Player)]
         private void OnBuff(ApplyBuffEvent e) => _count++;
 
-        public override PullProbeResult OnPullEnd() => new(_count);
+        public override PullProbeResult OnPullEnd() => new(_count, state.Value.Count);
     }
 
-    private sealed record PullProbeResult(int Count) : IResult
+    private sealed record PullProbeResult(int Count, int StateCount) : IResult
     {
-        public PullProbeResult() : this(0) { }
+        public PullProbeResult() : this(0, 0) { }
     }
 }
