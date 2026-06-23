@@ -15,4 +15,6 @@ public sealed record ParseContext(
 {
     public int FightStartTime => (int)Fight.StartTime;
     public int FightEndTime => (int)Fight.EndTime;
+
+    public IReadOnlyList<DungeonPull>? DungeonPulls => Fight.DungeonPulls;
 }
