@@ -10,7 +10,6 @@
         ? PerformanceColors.ToColor(currentCast.Performance)
         : "rgba(255,255,255,0.3)";
     var rectWidthPct = Math.Max(100.0 / Math.Max(filteredCount, 5), 100.0 / 30);
-    var hasGroups = filteredCasts.Any(c => !string.IsNullOrEmpty(c.Group));
 }
 
 <GuideDataWrapper Bare="true" Title="@Title" Subtitle="Cast Details">
@@ -47,33 +46,12 @@
         else
         {
             <div class="card-container" tabindex="0" @onkeydown="HandleKeyDown">
-                @* Timeline scrubber *@
+                @* Timeline scrubber — one continuous array of windows *@
                 <div class="timeline-row">
-                    <div class="timeline-rect-container @(hasGroups ? "grouped" : "")">
-                        @if (hasGroups)
+                    <div class="timeline-rect-container">
+                        @for (var i = 0; i < filteredCount; i++)
                         {
-                            @foreach (var (label, start, end) in BuildGroups(filteredCasts))
-                            {
-                                <div class="timeline-group">
-                                    @if (!string.IsNullOrEmpty(label))
-                                    {
-                                        <div class="timeline-group-label">@label</div>
-                                    }
-                                    <div class="timeline-group-rects">
-                                        @for (var j = start; j < end; j++)
-                                        {
-                                            @Rect(j, filteredCasts, validIndex, null)
-                                        }
-                                    </div>
-                                </div>
-                            }
-                        }
-                        else
-                        {
-                            @for (var i = 0; i < filteredCount; i++)
-                            {
-                                @Rect(i, filteredCasts, validIndex, $"width: calc({rectWidthPct.ToString("F1")}% - 3px);")
-                            }
+                            @Rect(i, filteredCasts, validIndex, $"width: calc({rectWidthPct.ToString("F1")}% - 3px);")
                         }
                     </div>
                 </div>
@@ -226,19 +204,6 @@
             }
             @content
         </div>;
-    }
-
-    /// <summary>Contiguous runs of casts sharing a <see cref="PerCastData.Group"/> label.</summary>
-    private static IEnumerable<(string? Label, int Start, int End)> BuildGroups(List<PerCastData> casts)
-    {
-        var i = 0;
-        while (i < casts.Count)
-        {
-            var label = casts[i].Group;
-            var start = i;
-            while (i < casts.Count && casts[i].Group == label) i++;
-            yield return (label, start, i);
-        }
     }
 
     private RenderFragment Rect(int idx, List<PerCastData> casts, int validIndex, string? widthStyle)

@@ -71,40 +71,6 @@
     &:hover { filter: brightness(1.3); }
 }
 
-/* Per-group (e.g. per-pull) segregation of the timeline */
-.timeline-rect-container.grouped {
-    flex-wrap: wrap;
-    align-items: stretch;
-    gap: 8px;
-}
-
-.timeline-group {
-    flex: 1 1 auto;
-    min-width: 120px;
-    padding: 6px 8px 8px;
-    border: 1px solid var(--fa-border, rgba(212, 167, 68, 0.12));
-    border-radius: 6px;
-    background: rgba(t.$fa-text, 0.02);
-}
-
-.timeline-group-label {
-    margin-bottom: 5px;
-    font-size: 1.1rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    color: var(--fa-text-muted, #9a9586);
-}
-
-.timeline-group-rects {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 3px;
-    align-items: center;
-
-    .timeline-rect { width: 16px; }
-}
-
 /* Pull/group label on the active cast card */
 .cast-group {
     padding: 2px 7px;
