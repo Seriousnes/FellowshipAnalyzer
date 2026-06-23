@@ -54,6 +54,8 @@ namespace FellowshipAnalyzer.Core.Serialization;
 [JsonSerializable(typeof(MaxChargesDecreasedEvent))]
 [JsonSerializable(typeof(MaxChargesIncreasedEvent))]
 [JsonSerializable(typeof(PhaseEvent))]
+[JsonSerializable(typeof(PullStartEvent))]
+[JsonSerializable(typeof(PullEndEvent))]
 [JsonSerializable(typeof(RefreshBuffEvent))]
 [JsonSerializable(typeof(RefreshDebuffEvent))]
 [JsonSerializable(typeof(RemoveBuffEvent))]

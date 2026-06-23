@@ -18,6 +18,7 @@ namespace FellowshipAnalyzer.Core.Analysis;
 /// internal analysis-run service cache so repeated analyses do not share module state.
 /// </summary>
 [AddNormalizer<FightBookendNormalizer>]
+[AddNormalizer<PullBookendNormalizer>]
 [AddNormalizer<AbilityMasterDataNormalizer>]
 [AddNormalizer<ResourceNormalizer>]
 [AddNormalizer<CastLinkNormalizer>]
