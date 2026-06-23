@@ -22,4 +22,11 @@ public sealed class PerCastData
     /// Optional spell sequence entries to display in a <see cref="SpellSequence"/> filmstrip.
     /// </summary>
     public SpellCastEntry[]? Sequence { get; init; }
+
+    /// <summary>
+    /// Optional grouping label (e.g. a pull name). When set, <see cref="CastDetail"/> segregates
+    /// the timeline into bordered, labelled groups of consecutive same-group casts and shows the
+    /// label on the cast card. Casts sharing a group must be contiguous in the supplied order.
+    /// </summary>
+    public string? Group { get; init; }
 }

@@ -10,6 +10,7 @@
         ? PerformanceColors.ToColor(currentCast.Performance)
         : "rgba(255,255,255,0.3)";
     var rectWidthPct = Math.Max(100.0 / Math.Max(filteredCount, 5), 100.0 / 30);
+    var hasGroups = filteredCasts.Any(c => !string.IsNullOrEmpty(c.Group));
 }
 
 <GuideDataWrapper Bare="true" Title="@Title" Subtitle="Cast Details">
@@ -48,22 +49,31 @@
             <div class="card-container" tabindex="0" @onkeydown="HandleKeyDown">
                 @* Timeline scrubber *@
                 <div class="timeline-row">
-                    <div class="timeline-rect-container">
-                        @for (var i = 0; i < filteredCount; i++)
+                    <div class="timeline-rect-container @(hasGroups ? "grouped" : "")">
+                        @if (hasGroups)
                         {
-                            var idx = i;
-                            var cast = filteredCasts[idx];
-                            var color = PerformanceColors.ToColor(cast.Performance);
-                            var isActive = idx == validIndex;
-
-                            <button class="timeline-rect @(isActive ? "active" : "")"
-                                    style="width: calc(@(rectWidthPct.ToString("F1"))% - 3px);
-                                           background: @(isActive ? color : color + "55");
-                                           border-color: @(isActive ? color : "transparent");
-                                           @(isActive ? $"outline: 2px solid rgba(255,255,255,0.6); outline-offset: 1px;" : "")"
-                                    title="Cast #@(_allCasts.IndexOf(cast) + 1) · @cast.Timestamp · @PerformanceColors.ToLabel(cast.Performance)"
-                                    @onclick="() => SetIndex(idx)">
-                            </button>
+                            @foreach (var (label, start, end) in BuildGroups(filteredCasts))
+                            {
+                                <div class="timeline-group">
+                                    @if (!string.IsNullOrEmpty(label))
+                                    {
+                                        <div class="timeline-group-label">@label</div>
+                                    }
+                                    <div class="timeline-group-rects">
+                                        @for (var j = start; j < end; j++)
+                                        {
+                                            @Rect(j, filteredCasts, validIndex, null)
+                                        }
+                                    </div>
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            @for (var i = 0; i < filteredCount; i++)
+                            {
+                                @Rect(i, filteredCasts, validIndex, $"width: calc({rectWidthPct.ToString("F1")}% - 3px);")
+                            }
                         }
                     </div>
                 </div>
@@ -80,6 +90,10 @@
                             <span class="perf-badge-inline" style="border-color: @(castColor)45; background: @(castColor)12; color: @castColor;">
                                 @PerformanceColors.ToLabel(currentCast!.Performance)
                             </span>
+                            @if (!string.IsNullOrEmpty(currentCast.Group))
+                            {
+                                <span class="cast-group">@currentCast.Group</span>
+                            }
                             <span class="cast-label">
                                 Cast @(originalIndex + 1) / @filteredCount · @currentCast.Timestamp
                             </span>
@@ -212,5 +226,33 @@
             }
             @content
         </div>;
+    }
+
+    /// <summary>Contiguous runs of casts sharing a <see cref="PerCastData.Group"/> label.</summary>
+    private static IEnumerable<(string? Label, int Start, int End)> BuildGroups(List<PerCastData> casts)
+    {
+        var i = 0;
+        while (i < casts.Count)
+        {
+            var label = casts[i].Group;
+            var start = i;
+            while (i < casts.Count && casts[i].Group == label) i++;
+            yield return (label, start, i);
+        }
+    }
+
+    private RenderFragment Rect(int idx, List<PerCastData> casts, int validIndex, string? widthStyle)
+    {
+        var cast = casts[idx];
+        var color = PerformanceColors.ToColor(cast.Performance);
+        var isActive = idx == validIndex;
+        return @<button class="timeline-rect @(isActive ? "active" : "")"
+                        style="@widthStyle
+                               background: @(isActive ? color : color + "55");
+                               border-color: @(isActive ? color : "transparent");
+                               @(isActive ? "outline: 2px solid rgba(255,255,255,0.6); outline-offset: 1px;" : "")"
+                        title="Cast #@(_allCasts.IndexOf(cast) + 1) · @cast.Timestamp · @PerformanceColors.ToLabel(cast.Performance)"
+                        @onclick="() => SetIndex(idx)">
+                </button>;
     }
 }
