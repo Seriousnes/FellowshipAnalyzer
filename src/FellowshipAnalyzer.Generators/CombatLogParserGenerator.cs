@@ -11,6 +11,10 @@ namespace FellowshipAnalyzer.Generators;
 public sealed class CombatLogParserGenerator : IIncrementalGenerator
 {
     private const string AddModuleAttributeShortName = "AddModuleAttribute";
+    private const string AddStateAttributeShortName = "AddStateAttribute";
+    private const string AddAnalyzerAttributeShortName = "AddAnalyzerAttribute";
+    private const string ForPullAttributeShortName = "ForPullAttribute";
+    private const string AnalyzerBaseShortName = "Analyzer";
     private const string AddNormalizerAttributeShortName = "AddNormalizerAttribute";
     private const string HeroAnalyzerAttributeShortName = "HeroAnalyzerAttribute";
     private const string ActiveWhenAttributeShortName = "ActiveWhenAttribute";
@@ -62,6 +66,7 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
             return null;
 
         var ownModules = new List<TypeInfo>();
+        var ownAnalyzers = new List<AnalyzerInfo>();
         var normalizerTypes = new List<TypeInfo>();
 
         foreach (var attrList in classDecl.AttributeLists)
@@ -80,14 +85,17 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
 
                 var ns = GetNamespace(typeArg);
 
-                if (containingType.Name == AddModuleAttributeShortName)
+                if (containingType.Name == AddModuleAttributeShortName
+                    || containingType.Name == AddStateAttributeShortName)
                     ownModules.Add(BuildModuleTypeInfo(typeArg));
+                else if (containingType.Name == AddAnalyzerAttributeShortName)
+                    ownAnalyzers.Add(BuildAnalyzerInfo(typeArg));
                 else if (containingType.Name == AddNormalizerAttributeShortName)
                     normalizerTypes.Add(BuildNormalizerTypeInfo(typeArg));
             }
         }
 
-        if (ownModules.Count == 0 && normalizerTypes.Count == 0)
+        if (ownModules.Count == 0 && ownAnalyzers.Count == 0 && normalizerTypes.Count == 0)
             return null;
 
         var parserNs = GetNamespace(symbol);
@@ -102,6 +110,8 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
                 [.. normalizerTypes],
                 [.. normalizerTypes],
                 null,
+                [.. ownAnalyzers],
+                [],
                 isAbstractBase: true);
         }
 
@@ -146,6 +156,15 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
             bnType = bnType.BaseType;
         }
 
+        var baseAnalyzers = new List<AnalyzerInfo>();
+        var baType = symbol.BaseType;
+        while (baType != null && baType.SpecialType != SpecialType.System_Object)
+        {
+            CollectAnalyzersFromSymbol(baType, baseAnalyzers);
+            if (baType.Name == CombatLogParserClassName) break;
+            baType = baType.BaseType;
+        }
+
         return new ParserInfo(
             symbol.Name,
             parserNs,
@@ -154,6 +173,8 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
             [.. baseNormalizers, .. normalizerTypes],
             [.. normalizerTypes],
             heroEnumMember,
+            [.. ownAnalyzers],
+            [.. baseAnalyzers],
             isAbstractBase: false);
     }
 
@@ -162,12 +183,27 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
         foreach (var attr in symbol.GetAttributes())
         {
             if (attr.AttributeClass == null) continue;
-            if (attr.AttributeClass.Name != AddModuleAttributeShortName) continue;
+            if (attr.AttributeClass.Name != AddModuleAttributeShortName
+                && attr.AttributeClass.Name != AddStateAttributeShortName) continue;
             if (!attr.AttributeClass.IsGenericType || attr.AttributeClass.TypeArguments.Length == 0) continue;
 
             if (attr.AttributeClass.TypeArguments[0] is not INamedTypeSymbol typeArg) continue;
 
             modules.Add(BuildModuleTypeInfo(typeArg));
+        }
+    }
+
+    private static void CollectAnalyzersFromSymbol(INamedTypeSymbol symbol, List<AnalyzerInfo> analyzers)
+    {
+        foreach (var attr in symbol.GetAttributes())
+        {
+            if (attr.AttributeClass == null) continue;
+            if (attr.AttributeClass.Name != AddAnalyzerAttributeShortName) continue;
+            if (!attr.AttributeClass.IsGenericType || attr.AttributeClass.TypeArguments.Length == 0) continue;
+
+            if (attr.AttributeClass.TypeArguments[0] is not INamedTypeSymbol typeArg) continue;
+
+            analyzers.Add(BuildAnalyzerInfo(typeArg));
         }
     }
 
@@ -248,22 +284,25 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
     private static void EmitCreateInstanceBody(StringBuilder sb, IEnumerable<TypeInfo> types, string indent, HashSet<string> moduleTypeFqns)
     {
         foreach (var t in types)
+            EmitCreateInstanceCase(sb, t.FullyQualifiedName, t.CtorParams, indent, moduleTypeFqns);
+    }
+
+    private static void EmitCreateInstanceCase(StringBuilder sb, string fqn, ImmutableArray<CtorParam> ctorParams, string indent, HashSet<string> moduleTypeFqns)
+    {
+        sb.Append(indent).Append("if (type == typeof(global::").Append(fqn).AppendLine("))");
+        if (ctorParams.Length == 0)
         {
-            sb.Append(indent).Append("if (type == typeof(global::").Append(t.FullyQualifiedName).AppendLine("))");
-            if (t.CtorParams.Length == 0)
+            sb.Append(indent).Append("    return new global::").Append(fqn).AppendLine("();");
+        }
+        else
+        {
+            sb.Append(indent).Append("    return new global::").Append(fqn).Append('(');
+            for (var i = 0; i < ctorParams.Length; i++)
             {
-                sb.Append(indent).Append("    return new global::").Append(t.FullyQualifiedName).AppendLine("();");
+                if (i > 0) sb.Append(", ");
+                sb.Append(EmitCtorArg(ctorParams[i], moduleTypeFqns));
             }
-            else
-            {
-                sb.Append(indent).Append("    return new global::").Append(t.FullyQualifiedName).Append('(');
-                for (var i = 0; i < t.CtorParams.Length; i++)
-                {
-                    if (i > 0) sb.Append(", ");
-                    sb.Append(EmitCtorArg(t.CtorParams[i], moduleTypeFqns));
-                }
-                sb.AppendLine(");");
-            }
+            sb.AppendLine(");");
         }
     }
 
@@ -309,6 +348,63 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
             normalizerType.Name,
             GetNamespace(normalizerType),
             ctorParams: BuildCtorParams(normalizerType));
+    }
+
+    /// <summary>
+    /// Builds an <see cref="AnalyzerInfo"/> for a pull-lifetime analyzer: its constructor
+    /// parameters (for <c>CreateInstance</c>), the typed result extracted from its
+    /// <c>Analyzer&lt;TResult&gt;</c> base, and the <c>[ForPull]</c> match filter that gates which
+    /// pulls it runs on.
+    /// </summary>
+    private static AnalyzerInfo BuildAnalyzerInfo(INamedTypeSymbol analyzerType)
+    {
+        var (resultFqn, resultSimpleName) = TryGetAnalyzerResultType(analyzerType);
+
+        var targets = 0;
+        var boss = 0;
+        foreach (var attr in analyzerType.GetAttributes())
+        {
+            if (attr.AttributeClass?.Name != ForPullAttributeShortName) continue;
+            if (attr.ConstructorArguments.Length == 1 && attr.ConstructorArguments[0].Value is int t)
+                targets = t;
+            foreach (var na in attr.NamedArguments)
+            {
+                if (na.Key == "Boss" && na.Value.Value is int b) boss = b;
+            }
+            break;
+        }
+
+        return new AnalyzerInfo(
+            analyzerType.Name,
+            GetNamespace(analyzerType),
+            BuildCtorParams(analyzerType),
+            resultFqn,
+            resultSimpleName,
+            targets,
+            boss);
+    }
+
+    /// <summary>
+    /// Extracts <c>TResult</c> from the analyzer's <c>Analyzer&lt;TResult&gt;</c> base. Returns
+    /// <c>(null, null)</c> for a side-effect-only analyzer that derives from the non-generic
+    /// <c>Analyzer</c> base.
+    /// </summary>
+    private static (string? Fqn, string? SimpleName) TryGetAnalyzerResultType(INamedTypeSymbol analyzerType)
+    {
+        var fmt = SymbolDisplayFormat.FullyQualifiedFormat;
+        var current = analyzerType.BaseType;
+        while (current != null && current.SpecialType != SpecialType.System_Object)
+        {
+            if (current.Name == AnalyzerBaseShortName
+                && current.IsGenericType
+                && current.TypeArguments.Length == 1
+                && current.TypeArguments[0] is INamedTypeSymbol resultType)
+            {
+                return (resultType.ToDisplayString(fmt), resultType.Name);
+            }
+            current = current.BaseType;
+        }
+        return (null, null);
     }
 
     private static string FullyQualifiedName(INamedTypeSymbol t)
@@ -563,16 +659,21 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
         foreach (var m in info.BaseModules) moduleTypeFqns.Add("global::" + m.FullyQualifiedName);
         foreach (var m in info.OwnModules) moduleTypeFqns.Add("global::" + m.FullyQualifiedName);
 
-        if (info.OwnModules.Length > 0 || info.OwnNormalizerTypes.Length > 0)
+        if (info.OwnModules.Length > 0 || info.OwnNormalizerTypes.Length > 0 || info.OwnAnalyzers.Length > 0)
         {
             sb.AppendLine();
             sb.AppendLine("    protected override object? CreateInstance(global::System.Type type)");
             sb.AppendLine("    {");
             EmitCreateInstanceBody(sb, info.OwnModules, "        ", moduleTypeFqns);
             EmitCreateInstanceBody(sb, info.OwnNormalizerTypes, "        ", moduleTypeFqns);
+            foreach (var a in info.OwnAnalyzers)
+                EmitCreateInstanceCase(sb, a.FullyQualifiedName, a.CtorParams, "        ", moduleTypeFqns);
             sb.AppendLine("        return base.CreateInstance(type);");
             sb.AppendLine("    }");
         }
+
+        var resultTypes = DistinctResultTypes(info.AllAnalyzers);
+        EmitAnalyzerSurface(sb, info, resultTypes);
 
         var reportContributors = new List<(TypeInfo Module, string PropertyName)>();
         foreach (var m in info.BaseModules)
@@ -586,17 +687,29 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
                 reportContributors.Add((m, ReportPropertyName(m)));
         }
         var parserBaseName = StripSuffix(info.ClassName, "CombatLogParser");
-        if (reportContributors.Count > 0)
+
+        var reportParams = new List<(string Type, string Name, string Value)>();
+        foreach (var c in reportContributors)
+            reportParams.Add((
+                "global::" + c.Module.ReportTypeFullyQualified + "?",
+                c.PropertyName,
+                "GetModule<global::" + c.Module.FullyQualifiedName + ">()?.ToReport()"));
+        foreach (var rt in resultTypes)
+            reportParams.Add((
+                "global::FellowshipAnalyzer.Core.Analysis.PullResultList<" + rt.Fqn + ">",
+                rt.SimpleName + "s",
+                ResultFieldName(rt.SimpleName)));
+
+        if (reportParams.Count > 0)
         {
             sb.AppendLine();
             sb.AppendLine("    protected override object? BuildTypedReport()");
             sb.AppendLine("    {");
             sb.Append("        return new ").Append(parserBaseName).Append("AnalysisResult(");
-            for (var i = 0; i < reportContributors.Count; i++)
+            for (var i = 0; i < reportParams.Count; i++)
             {
                 if (i > 0) sb.Append(", ");
-                var contrib = reportContributors[i];
-                sb.Append("GetModule<global::").Append(contrib.Module.FullyQualifiedName).Append(">()?.ToReport()");
+                sb.Append(reportParams[i].Value);
             }
             sb.AppendLine(");");
             sb.AppendLine("    }");
@@ -605,19 +718,19 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
         sb.AppendLine("}");
         sb.AppendLine();
 
-        if (reportContributors.Count > 0)
+        if (reportParams.Count > 0)
         {
             sb.Append("public sealed record ").Append(parserBaseName).Append("AnalysisResult(");
-            for (var i = 0; i < reportContributors.Count; i++)
+            for (var i = 0; i < reportParams.Count; i++)
             {
                 if (i > 0) sb.Append(", ");
-                var contrib = reportContributors[i];
-                sb.Append("global::").Append(contrib.Module.ReportTypeFullyQualified)
-                  .Append("? ").Append(contrib.PropertyName);
+                sb.Append(reportParams[i].Type).Append(' ').Append(reportParams[i].Name);
             }
             sb.AppendLine(");");
             sb.AppendLine();
         }
+
+        EmitPullReadPaths(sb, parserBaseName, resultTypes);
 
         sb.AppendLine("public static class " + parserBaseName + "ServiceCollectionExtensions");
         sb.AppendLine("{");
@@ -633,6 +746,124 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
         sb.AppendLine("}");
 
         ctx.AddSource(info.ClassName + ".g.cs", sb.ToString());
+    }
+
+    /// <summary>Distinct analyzer result types in declaration order; side-effect-only analyzers contribute none.</summary>
+    private static List<(string Fqn, string SimpleName)> DistinctResultTypes(IEnumerable<AnalyzerInfo> analyzers)
+    {
+        var result = new List<(string, string)>();
+        var seen = new HashSet<string>();
+        foreach (var a in analyzers)
+        {
+            if (a.ResultTypeFullyQualified is null || a.ResultTypeSimpleName is null) continue;
+            if (seen.Add(a.ResultTypeFullyQualified))
+                result.Add((a.ResultTypeFullyQualified, a.ResultTypeSimpleName));
+        }
+        return result;
+    }
+
+    private static string ResultFieldName(string simpleName) => "_" + LowerFirst(simpleName) + "s";
+
+    private static string LowerFirst(string s) =>
+        s.Length == 0 ? s : char.ToLowerInvariant(s[0]) + s.Substring(1);
+
+    /// <summary>
+    /// Emits the compile-time-constant <c>[ForPull]</c> match expression:
+    /// <c>(pull.Targets &amp; (mask)) != 0</c> with an optional boss clause.
+    /// </summary>
+    private static string EmitForPullGate(AnalyzerInfo a)
+    {
+        const string pk = "global::FellowshipAnalyzer.Core.Analysis.PullKind";
+        var flags = new List<string>();
+        if ((a.ForPullTargets & 1) != 0) flags.Add(pk + ".Single");
+        if ((a.ForPullTargets & 2) != 0) flags.Add(pk + ".Multi");
+        var mask = flags.Count > 0 ? string.Join(" | ", flags) : "(" + pk + ")0";
+        var gate = "(pull.Targets & (" + mask + ")) != 0";
+        if (a.ForPullBoss == 1) gate += " && pull.IsBoss";
+        else if (a.ForPullBoss == 2) gate += " && !pull.IsBoss";
+        return gate;
+    }
+
+    /// <summary>
+    /// Emits the in-class analyzer surface: the per-pull <c>GetAnalyzerTypes(Pull)</c> gate, the
+    /// typed per-result-type cross-pull index (backing list + read-only property), the
+    /// <c>IndexPullResult</c> router, and the <c>For(pull)</c> per-pull view accessor.
+    /// </summary>
+    private static void EmitAnalyzerSurface(StringBuilder sb, ParserInfo info, List<(string Fqn, string SimpleName)> resultTypes)
+    {
+        var analyzers = info.AllAnalyzers.ToList();
+        if (analyzers.Count == 0) return;
+
+        var parserBaseName = StripSuffix(info.ClassName, "CombatLogParser");
+        const string pull = "global::FellowshipAnalyzer.Core.Analysis.Pull";
+
+        sb.AppendLine();
+        sb.AppendLine("    protected override global::System.Type[] GetAnalyzerTypes(" + pull + " pull)");
+        sb.AppendLine("    {");
+        sb.AppendLine("        var __analyzers = new global::System.Collections.Generic.List<global::System.Type>();");
+        foreach (var a in analyzers)
+            sb.AppendLine("        if (" + EmitForPullGate(a) + ") __analyzers.Add(typeof(global::" + a.FullyQualifiedName + "));");
+        sb.AppendLine("        return [.. __analyzers];");
+        sb.AppendLine("    }");
+
+        if (resultTypes.Count == 0) return;
+
+        sb.AppendLine();
+        foreach (var rt in resultTypes)
+        {
+            var field = ResultFieldName(rt.SimpleName);
+            sb.AppendLine("    private readonly global::FellowshipAnalyzer.Core.Analysis.PullResultList<" + rt.Fqn + "> " + field + " = new();");
+            sb.AppendLine("    public global::System.Collections.Generic.IReadOnlyList<global::FellowshipAnalyzer.Core.Analysis.PullResult<" + rt.Fqn + ">> " + rt.SimpleName + "s => " + field + ";");
+        }
+
+        sb.AppendLine();
+        sb.AppendLine("    protected override void IndexPullResult(" + pull + " pull, global::FellowshipAnalyzer.Core.Analysis.IResult result)");
+        sb.AppendLine("    {");
+        sb.AppendLine("        switch (result)");
+        sb.AppendLine("        {");
+        var caseIndex = 0;
+        foreach (var rt in resultTypes)
+        {
+            var local = "__r" + caseIndex++;
+            sb.AppendLine("            case " + rt.Fqn + " " + local + ":");
+            sb.AppendLine("                " + ResultFieldName(rt.SimpleName) + ".Add(new global::FellowshipAnalyzer.Core.Analysis.PullResult<" + rt.Fqn + ">(pull, " + local + "));");
+            sb.AppendLine("                break;");
+        }
+        sb.AppendLine("        }");
+        sb.AppendLine("    }");
+
+        sb.AppendLine();
+        sb.AppendLine("    public " + parserBaseName + "PullView For(" + pull + " pull) => new(pull);");
+    }
+
+    /// <summary>
+    /// Emits the namespace-level per-pull read paths: a <c>{Parser}PullView</c> struct exposing
+    /// each result by declared type, and a <c>{Parser}PullExtensions</c> class adding the
+    /// <c>pull.{Result}</c> extension property over <see cref="FellowshipAnalyzer.Core.Analysis.Pull"/>.
+    /// </summary>
+    private static void EmitPullReadPaths(StringBuilder sb, string parserBaseName, List<(string Fqn, string SimpleName)> resultTypes)
+    {
+        if (resultTypes.Count == 0) return;
+        const string pull = "global::FellowshipAnalyzer.Core.Analysis.Pull";
+
+        sb.Append("public readonly struct ").Append(parserBaseName).Append("PullView(").Append(pull).AppendLine(" pull)");
+        sb.AppendLine("{");
+        foreach (var rt in resultTypes)
+            sb.Append("    public ").Append(rt.Fqn).Append("? ").Append(rt.SimpleName)
+              .Append(" => (").Append(rt.Fqn).Append("?)pull.GetResult(typeof(").Append(rt.Fqn).AppendLine("));");
+        sb.AppendLine("}");
+        sb.AppendLine();
+
+        sb.Append("public static class ").Append(parserBaseName).AppendLine("PullExtensions");
+        sb.AppendLine("{");
+        sb.Append("    extension(").Append(pull).AppendLine(" pull)");
+        sb.AppendLine("    {");
+        foreach (var rt in resultTypes)
+            sb.Append("        public ").Append(rt.Fqn).Append("? ").Append(rt.SimpleName)
+              .Append(" => (").Append(rt.Fqn).Append("?)pull.GetResult(typeof(").Append(rt.Fqn).AppendLine("));");
+        sb.AppendLine("    }");
+        sb.AppendLine("}");
+        sb.AppendLine();
     }
 
     /// <summary>
@@ -673,6 +904,8 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
         sb.AppendLine("    {");
         EmitCreateInstanceBody(sb, info.OwnModules, "        ", baseModuleTypeFqns);
         EmitCreateInstanceBody(sb, info.OwnNormalizerTypes, "        ", baseModuleTypeFqns);
+        foreach (var a in info.OwnAnalyzers)
+            EmitCreateInstanceCase(sb, a.FullyQualifiedName, a.CtorParams, "        ", baseModuleTypeFqns);
         sb.AppendLine("        return null;");
         sb.AppendLine("    }");
         sb.AppendLine("}");
@@ -756,6 +989,8 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
         ImmutableArray<TypeInfo> normalizerTypes,
         ImmutableArray<TypeInfo> ownNormalizerTypes,
         string? heroEnumMember,
+        ImmutableArray<AnalyzerInfo> ownAnalyzers,
+        ImmutableArray<AnalyzerInfo> baseAnalyzers,
         bool isAbstractBase = false)
     {
         public string ClassName { get; } = cn;
@@ -770,8 +1005,47 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
         public ImmutableArray<TypeInfo> OwnNormalizerTypes { get; } = ownNormalizerTypes;
         /// <summary>HeroName enum field name from [HeroAnalyzer] attribute (e.g. "Rime"), if present.</summary>
         public string? HeroEnumMember { get; } = heroEnumMember;
+        /// <summary>Pull-lifetime analyzers declared directly on this class via <c>[AddAnalyzer]</c>.</summary>
+        public ImmutableArray<AnalyzerInfo> OwnAnalyzers { get; } = ownAnalyzers;
+        /// <summary>Pull-lifetime analyzers inherited from the base class chain.</summary>
+        public ImmutableArray<AnalyzerInfo> BaseAnalyzers { get; } = baseAnalyzers;
+        /// <summary>All analyzers (base + own) in declaration order.</summary>
+        public IEnumerable<AnalyzerInfo> AllAnalyzers => BaseAnalyzers.Concat(OwnAnalyzers);
         /// <summary>True when this info was collected from the abstract CombatLogParser base class.</summary>
         public bool IsAbstractBase { get; } = isAbstractBase;
+    }
+
+    private sealed class AnalyzerInfo
+    {
+        public AnalyzerInfo(
+            string name,
+            string ns,
+            ImmutableArray<CtorParam> ctorParams,
+            string? resultTypeFullyQualified,
+            string? resultTypeSimpleName,
+            int forPullTargets,
+            int forPullBoss)
+        {
+            Name = name;
+            Namespace = ns;
+            CtorParams = ctorParams.IsDefault ? ImmutableArray<CtorParam>.Empty : ctorParams;
+            ResultTypeFullyQualified = resultTypeFullyQualified;
+            ResultTypeSimpleName = resultTypeSimpleName;
+            ForPullTargets = forPullTargets;
+            ForPullBoss = forPullBoss;
+        }
+        public string Name { get; }
+        public string Namespace { get; }
+        public ImmutableArray<CtorParam> CtorParams { get; }
+        /// <summary>Fully-qualified <c>TResult</c> of <c>Analyzer&lt;TResult&gt;</c>, or null for a side-effect-only analyzer.</summary>
+        public string? ResultTypeFullyQualified { get; }
+        /// <summary>Simple name of <c>TResult</c> (e.g. "ComboResult"), used to derive read-path member names.</summary>
+        public string? ResultTypeSimpleName { get; }
+        /// <summary>The <c>[ForPull]</c> target bitmask (<c>PullKind</c> as int).</summary>
+        public int ForPullTargets { get; }
+        /// <summary><c>[ForPull(Boss = …)]</c> as <c>PullBoss</c> int: 0 = Either, 1 = Boss, 2 = NonBoss.</summary>
+        public int ForPullBoss { get; }
+        public string FullyQualifiedName => string.IsNullOrEmpty(Namespace) ? Name : Namespace + "." + Name;
     }
 }
 

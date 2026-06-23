@@ -13,4 +13,16 @@ public sealed record Pull(
     PullKind Targets,
     bool IsBoss,
     bool Kill,
-    int TargetCount);
+    int TargetCount)
+{
+    private readonly Dictionary<Type, IResult> _results = [];
+
+    /// <summary>
+    /// The <see cref="Analyzer{TResult}"/> results captured on this pull, keyed by declared result
+    /// type. Populated by the parser as the pull ends.
+    /// </summary>
+    public IResult? GetResult(Type resultType) =>
+        _results.TryGetValue(resultType, out var result) ? result : null;
+
+    internal void SetResult(Type resultType, IResult result) => _results[resultType] = result;
+}

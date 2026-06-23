@@ -84,7 +84,6 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
     private readonly Dictionary<Type, object> _runInstances = [];
     private readonly Dictionary<Type, int> _moduleTypeIndex = [];
     private Type[] _runModuleTypes = [];
-    private Type[] _runAnalyzerTypes = [];
     private readonly Dictionary<Type, object> _pullInstances = [];
     private readonly List<(Pull Pull, IResult Result)> _pullResults = [];
 
@@ -172,11 +171,25 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
     protected virtual Type[] GetNormalizerTypes() => [];
 
     /// <summary>
-    /// Returns the pull-lifetime <see cref="Analyzer"/> types. A fresh instance of each is
-    /// constructed for every pull in <see cref="BeginPull"/> and discarded in <see cref="EndPull"/>.
-    /// The default is empty; concrete parsers override it.
+    /// Returns the pull-lifetime <see cref="Analyzer"/> types. The default is empty; concrete
+    /// parsers override it.
     /// </summary>
     protected virtual Type[] GetAnalyzerTypes() => [];
+
+    /// <summary>
+    /// Returns the <see cref="Analyzer"/> types whose <c>[ForPull]</c> filter matches
+    /// <paramref name="pull"/>. A fresh instance of each is constructed in <see cref="BeginPull"/>
+    /// and discarded in <see cref="EndPull"/>. The source generator overrides this with a static
+    /// bitmask gate; the default runs every analyzer on every pull.
+    /// </summary>
+    protected virtual Type[] GetAnalyzerTypes(Pull pull) => GetAnalyzerTypes();
+
+    /// <summary>
+    /// Routes a captured per-pull result into the parser's denormalized, result-typed cross-pull
+    /// index. The default is a no-op; the source generator overrides it for parsers that declare
+    /// <c>[AddAnalyzer]</c> analyzers, appending to the matching <see cref="PullResultList{TResult}"/>.
+    /// </summary>
+    protected virtual void IndexPullResult(Pull pull, IResult result) { }
 
     /// <summary>
     /// Opens a pull: constructs a fresh instance of every <see cref="GetAnalyzerTypes"/> analyzer
@@ -191,7 +204,7 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
         _pullInstances.Clear();
 
         EventEmitter.BeginPullSubscriptions();
-        foreach (var analyzerType in _runAnalyzerTypes)
+        foreach (var analyzerType in GetAnalyzerTypes(pull))
         {
             var instance = CreateInstance(analyzerType)
                 ?? throw new InvalidOperationException($"No generated factory for analyzer {analyzerType.Name}.");
@@ -213,8 +226,13 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
 
         foreach (var instance in _pullInstances.Values)
         {
-            if (instance is Analyzer analyzer && analyzer.CaptureResult() is { } result)
-                _pullResults.Add((pull, result));
+            if (instance is not Analyzer analyzer || analyzer.CaptureResult() is not { } result)
+                continue;
+
+            _pullResults.Add((pull, result));
+            if (analyzer.ResultType is { } resultType)
+                pull.SetResult(resultType, result);
+            IndexPullResult(pull, result);
         }
 
         EventEmitter.ClearPullListeners();
@@ -280,7 +298,6 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
         var allModuleTypes = GetModuleTypes();
         var normalizerTypes = GetNormalizerTypes();
 
-        _runAnalyzerTypes = GetAnalyzerTypes();
         _pullInstances.Clear();
         _pullResults.Clear();
         CurrentPull = null;
