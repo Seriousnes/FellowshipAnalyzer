@@ -51,6 +51,7 @@ public sealed class PullBookendNormalizer(ParseContext parseContext) : IEventNor
         var targetCount = CountTargets(pull.EnemyNpcs);
         return new Pull(
             Index: index,
+            Id: pull.Id,
             Name: pull.Name,
             StartTime: (int)pull.StartTime,
             EndTime: (int)pull.EndTime,
@@ -65,6 +66,7 @@ public sealed class PullBookendNormalizer(ParseContext parseContext) : IEventNor
         var targetCount = CountTargets(fight.EnemyNpcs);
         return new Pull(
             Index: 0,
+            Id: 0,
             Name: fight.Name,
             StartTime: (int)fight.StartTime,
             EndTime: (int)fight.EndTime,

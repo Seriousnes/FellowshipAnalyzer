@@ -8,7 +8,7 @@ namespace FellowshipAnalyzer.Core.Tests.Analysis;
 public sealed class EventDispatchOrderTests
 {
     private static Pull SamplePull => new(
-        Index: 0, Name: "P", StartTime: 100, EndTime: 5000,
+        Index: 0, Id: 0, Name: "P", StartTime: 100, EndTime: 5000,
         Targets: PullKind.Single, IsBoss: false, Kill: false, TargetCount: 1);
 
     [Fact]

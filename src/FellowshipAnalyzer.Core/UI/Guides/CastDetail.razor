@@ -80,7 +80,11 @@
                     </div>
 
                     @* Group (e.g. pull) identifier *@
-                    @if (!string.IsNullOrEmpty(currentCast.Group))
+                    @if (currentCast.GroupContent is not null)
+                    {
+                        @currentCast.GroupContent
+                    }
+                    else if (!string.IsNullOrEmpty(currentCast.Group))
                     {
                         <div class="cast-group-banner">@currentCast.Group</div>
                     }

@@ -34,13 +34,6 @@
 </GuideSection>
 
 @code {
-    private static string PullLabel(Pull pull)
-    {
-        var name = string.IsNullOrWhiteSpace(pull.Name) ? $"Pull {pull.Index + 1}" : pull.Name;
-        var kind = pull.IsBoss ? "Boss" : "Trash";
-        return pull.Kill ? $"{name} — {kind}" : $"{name} — {kind} · Wipe";
-    }
-
     private IEnumerable<OverviewStat> BuildOverviewStats()
     {
         var reports = Parser.BasicStComboReports.Select(entry => entry.Result).ToList();
@@ -80,13 +73,10 @@
     private IEnumerable<PerCastData> BuildPerCastData()
     {
         return Parser.BasicStComboReports.SelectMany(entry =>
-        {
-            var label = PullLabel(entry.Pull);
-            return entry.Result.Windows.Select(window => BuildWindowData(window, label));
-        });
+            entry.Result.Windows.Select(window => BuildWindowData(window, entry.Pull)));
     }
 
-    private PerCastData BuildWindowData(BasicStComboAnalyzer.StComboWindowEvaluation window, string pullLabel)
+    private PerCastData BuildWindowData(BasicStComboAnalyzer.StComboWindowEvaluation window, Pull pull)
     {
         var perf = window.Successful ? PerformanceTier.Perfect
             : window.Partial ? PerformanceTier.Ok
@@ -140,7 +130,8 @@
             Stats = stats,
             Timestamp = Parser.FormatTimestamp(window.StartTimestamp),
             Sequence = sequence,
-            Group = pullLabel,
+            Group = pull.Name,
+            GroupContent = @<PullBanner Pull="@pull" />,
             AdditionalContent = new AdditionalContent(
                 "Usage Notes",
                 @<div>@window.Outcome</div>),

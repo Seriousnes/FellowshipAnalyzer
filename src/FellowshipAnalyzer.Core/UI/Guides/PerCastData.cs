@@ -24,9 +24,14 @@ public sealed class PerCastData
     public SpellCastEntry[]? Sequence { get; init; }
 
     /// <summary>
-    /// Optional grouping label (e.g. a pull name). When set, <see cref="CastDetail"/> segregates
-    /// the timeline into bordered, labelled groups of consecutive same-group casts and shows the
-    /// label on the cast card. Casts sharing a group must be contiguous in the supplied order.
+    /// Optional grouping key/label (e.g. a pull name). Shown on the cast card when
+    /// <see cref="GroupContent"/> is not supplied.
     /// </summary>
     public string? Group { get; init; }
+
+    /// <summary>
+    /// Optional rich banner for this cast's group, rendered above the stat tiles (e.g. a pull
+    /// identifier). Takes precedence over <see cref="Group"/>.
+    /// </summary>
+    public RenderFragment? GroupContent { get; init; }
 }
