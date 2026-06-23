@@ -1,8 +1,10 @@
+@using FellowshipAnalyzer.Core.Analysis
 @using FellowshipAnalyzer.Core.UI.Components
 @using FellowshipAnalyzer.Core.UI.Diagnostics
 @using FellowshipAnalyzer.Core.UI.Guides
 @using FellowshipAnalyzer.Core.UI.Timeline
 @using FellowshipAnalyzer.Heroes.Rime.Analysis
+@using FellowshipAnalyzer.Heroes.Rime.Modules
 @using FellowshipAnalyzer.Core.Common.Spells
 @inject RimeCombatLogParser Parser
 
@@ -20,37 +22,45 @@
             <li>Build Winter Orbs to at least 3 before casting @bi</li>
             <li>Single-target windows expect @gb follow-up, with @cs or @ft added when the window can support it. @ft → @cs is also acceptable.</li>
             <li>AoE windows are identified by @bi hitting 2 or more unique targets and should contain @ic plus @cs in any order.</li>
-            <li>Each window below shows the spell sequence, compact metrics, and a short note explaining what matched or was missing.</li>
+            <li>Windows are grouped per pull below — each pull's success rate is measured over only that pull's windows.</li>
         </ol>
     </Explanation>
     <ChildContent>
-        <CastOverview Title="Window Overview" Stats="@BuildOverviewStats()" />
-        <CastDetail Title="Winter's Embrace Windows"
-                    Description="Each window shows what was cast during the 3s Winter's Embrace buff."
-                    Casts="@BuildPerCastData()" />
+        @foreach (var entry in Parser.BasicStComboReports)
+        {
+            <CastOverview Title="@PullLabel(entry.Pull)" Stats="@BuildOverviewStats(entry.Result)" />
+            <CastDetail Title="@($"{PullLabel(entry.Pull)} — Winter's Embrace Windows")"
+                        Description="Each window shows what was cast during the 3s Winter's Embrace buff."
+                        Casts="@BuildPerCastData(entry.Result)" />
+        }
     </ChildContent>
 </GuideSection>
 
 @code {
-    private BasicStComboAnalyzer Analyzer => Parser.BasicStCombo!;
-
-    private IEnumerable<OverviewStat> BuildOverviewStats()
+    private static string PullLabel(Pull pull)
     {
-        var total = Analyzer.EvaluatedWindows;
-        var successRate = total > 0 ? (int)Math.Round((double)Analyzer.SuccessfulWindows / total * 100) : 0;
-        var singleTargetWindows = Analyzer.Windows.Count(window => window.WindowType == BasicStComboAnalyzer.BurstingIceWindowType.SingleTarget);
-        var aoeWindows = Analyzer.Windows.Count(window => window.WindowType == BasicStComboAnalyzer.BurstingIceWindowType.Aoe);
+        var name = string.IsNullOrWhiteSpace(pull.Name) ? $"Pull {pull.Index + 1}" : pull.Name;
+        var kind = pull.IsBoss ? "Boss" : "Trash";
+        return pull.Kill ? $"{name} — {kind}" : $"{name} — {kind} · Wipe";
+    }
+
+    private IEnumerable<OverviewStat> BuildOverviewStats(BasicStComboReport report)
+    {
+        var total = report.EvaluatedWindows;
+        var successRate = total > 0 ? (int)Math.Round((double)report.SuccessfulWindows / total * 100) : 0;
+        var singleTargetWindows = report.Windows.Count(window => window.WindowType == BasicStComboAnalyzer.BurstingIceWindowType.SingleTarget);
+        var aoeWindows = report.Windows.Count(window => window.WindowType == BasicStComboAnalyzer.BurstingIceWindowType.Aoe);
 
         return
         [
             new OverviewStat(
-                $"{Analyzer.EvaluatedWindows}",
+                $"{report.EvaluatedWindows}",
                 "Windows",
-                "Total Bursting Ice Winter's Embrace windows evaluated."),
+                "Total Bursting Ice Winter's Embrace windows evaluated in this pull."),
             new OverviewStat(
                 $"{successRate}%",
                 "Success Rate",
-                $"{Analyzer.SuccessfulWindows} successful / {total} evaluated across single-target and AoE windows.",
+                $"{report.SuccessfulWindows} successful / {total} evaluated in this pull.",
                 successRate >= 75 ? PerformanceTier.Perfect
                     : successRate >= 50 ? PerformanceTier.Good
                     : successRate >= 25 ? PerformanceTier.Ok
@@ -68,9 +78,9 @@
         ];
     }
 
-    private IEnumerable<PerCastData> BuildPerCastData()
+    private IEnumerable<PerCastData> BuildPerCastData(BasicStComboReport report)
     {
-        return Analyzer.Windows.Select(window =>
+        return report.Windows.Select(window =>
         {
             var perf = window.Successful ? PerformanceTier.Perfect
                 : window.Partial ? PerformanceTier.Ok

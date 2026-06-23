@@ -12,7 +12,8 @@ namespace FellowshipAnalyzer.Heroes.Rime.Modules;
  *
  * Winter's Embrace does not affect Bursting Ice.
  */
-public sealed partial class BasicStComboAnalyzer : Analyzer
+[ForPull(PullKind.Single | PullKind.Multi)]
+public sealed partial class BasicStComboAnalyzer : Analyzer<BasicStComboReport>
 {
     private const int WintersEmbraceDurationMs = 3000;
     private const double WintersEmbraceIncrease = 0.20;
@@ -23,19 +24,6 @@ public sealed partial class BasicStComboAnalyzer : Analyzer
     private int _buffedDamageEventCount;
     private readonly Dictionary<int, (string Name, long Damage)> _bonusDamageBySpell = [];
     private readonly List<StComboWindowEvaluation> _windows = [];
-
-    /// <summary>Total effective damage attributable to the Winter's Embrace 20% buff.</summary>
-    public long TotalBonusDamage => _totalBonusDamage;
-    public int BuffedDamageEventCount => _buffedDamageEventCount;
-    public IReadOnlyDictionary<int, (string Name, long Damage)> BonusDamageBySpell => _bonusDamageBySpell;
-
-    public AnalyzerScoreCard ScoreCard => ToReport().ScoreCard;
-    public int EvaluatedWindows => ToReport().EvaluatedWindows;
-    public int SuccessfulWindows => ToReport().SuccessfulWindows;
-    public int PartialWindows => ToReport().PartialWindows;
-    public int IgnoredAoeWindows => ToReport().IgnoredAoeWindows;
-    public IReadOnlyList<StComboWindowEvaluation> Windows => ToReport().Windows;
-    public IReadOnlyList<RimeAnalyzerFinding> Findings => ToReport().Findings;
 
     private StComboWindowEvaluation? _currentWindow;
 
@@ -98,8 +86,8 @@ public sealed partial class BasicStComboAnalyzer : Analyzer
         _currentWindow.UniqueBurstingIceTargets.Add(damageEvent.TargetId);
     }
 
-    /// <summary>Typed-result projection of this module's accumulated state.</summary>
-    public BasicStComboReport ToReport()
+    /// <summary>Per-pull projection of this analyzer's accumulated state for the closing pull.</summary>
+    public override BasicStComboReport OnPullEnd()
     {
         var evaluations = new List<StComboWindowEvaluation>(_windows.Count);
         var findings = new List<RimeAnalyzerFinding>();

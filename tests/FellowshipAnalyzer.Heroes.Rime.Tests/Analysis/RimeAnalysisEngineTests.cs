@@ -21,7 +21,7 @@ public sealed class RimeAnalysisEngineTests
     [Fact]
     public async Task Analyze_ShouldIncludeWinterOrbTrackerModule()
     {
-        var result = await AnalyzeFixtureAsync();
+        var (_, result) = await AnalyzeFixtureAsync();
 
         var tracker = result.Modules.OfType<WinterOrbTracker>().Single();
         tracker.ShouldNotBeNull();
@@ -30,19 +30,20 @@ public sealed class RimeAnalysisEngineTests
     [Fact]
     public async Task Analyze_ShouldFindStComboWindows()
     {
-        var result = await AnalyzeFixtureAsync();
+        var (_, result) = await AnalyzeFixtureAsync();
 
-        var stCombo = result.Modules.OfType<BasicStComboAnalyzer>().Single();
-        stCombo.EvaluatedWindows.ShouldBeGreaterThan(0);
-        stCombo.PartialWindows.ShouldBeGreaterThan(0);
-        stCombo.IgnoredAoeWindows.ShouldBeGreaterThan(0);
-        stCombo.ScoreCard.Score.ShouldBeGreaterThanOrEqualTo(0);
+        var typed = result.TypedReport.ShouldBeOfType<RimeAnalysisResult>();
+        var report = typed.BasicStComboReports.ShouldHaveSingleItem().Result;
+        report.EvaluatedWindows.ShouldBeGreaterThan(0);
+        report.PartialWindows.ShouldBeGreaterThan(0);
+        report.IgnoredAoeWindows.ShouldBeGreaterThan(0);
+        report.ScoreCard.Score.ShouldBeGreaterThanOrEqualTo(0);
     }
 
     [Fact]
     public async Task Analyze_ShouldHaveStatisticsForWinterOrbs()
     {
-        var result = await AnalyzeFixtureAsync();
+        var (_, result) = await AnalyzeFixtureAsync();
 
         result.Statistics.ShouldContain(s => s.Module is WinterOrbTracker);
     }
@@ -50,22 +51,37 @@ public sealed class RimeAnalysisEngineTests
     [Fact]
     public async Task Analyze_ShouldProvideGuideComponentType()
     {
-        var result = await AnalyzeFixtureAsync();
+        var (_, result) = await AnalyzeFixtureAsync();
 
         result.GuideComponentType.ShouldNotBeNull();
     }
 
     [Fact]
-    public async Task Analyze_ShouldProduceTypedReportWithBasicStCombo()
+    public async Task Analyze_ShouldProduceTypedReportWithPerPullStCombo()
     {
-        var result = await AnalyzeFixtureAsync();
+        var (_, result) = await AnalyzeFixtureAsync();
 
         var typed = result.TypedReport.ShouldBeOfType<RimeAnalysisResult>();
-        typed.BasicStCombo.ShouldNotBeNull();
-        typed.BasicStCombo!.EvaluatedWindows.ShouldBeGreaterThan(0);
+        var report = typed.BasicStComboReports.ShouldHaveSingleItem().Result;
+        report.EvaluatedWindows.ShouldBeGreaterThan(0);
     }
 
-    private static async Task<HeroAnalysisResult> AnalyzeFixtureAsync()
+    [Fact]
+    public async Task Analyze_BasicStCombo_ExposesPerPullReadPaths()
+    {
+        var (parser, _) = await AnalyzeFixtureAsync();
+
+        var entry = parser.BasicStComboReports.ShouldHaveSingleItem();
+        var pull = entry.Pull;
+        pull.Index.ShouldBe(0);
+        entry.Result.EvaluatedWindows.ShouldBeGreaterThan(0);
+
+        // The three read paths agree: cross-pull index, pull.X extension, parser.For(pull).X.
+        pull.BasicStComboReport.ShouldBe(entry.Result);
+        parser.For(pull).BasicStComboReport.ShouldBe(entry.Result);
+    }
+
+    private static async Task<(RimeCombatLogParser Parser, HeroAnalysisResult Result)> AnalyzeFixtureAsync()
     {
         var services = new ServiceCollection();
         services.AddLogging();
@@ -75,7 +91,7 @@ public sealed class RimeAnalysisEngineTests
         using var provider = services.BuildServiceProvider();
         using var scope = provider.CreateScope();
 
-        var analyzer = scope.ServiceProvider.GetRequiredKeyedService<IHeroAnalyzer>(HeroName.Rime);
+        var parser = scope.ServiceProvider.GetRequiredService<RimeCombatLogParser>();
         var json = File.ReadAllText(GetFixturePath());
         using var doc = JsonDocument.Parse(json);
         var eventsEl = doc.RootElement
@@ -95,9 +111,11 @@ public sealed class RimeAnalysisEngineTests
         jsonOptions.Converters.Add(new JsonStringEnumConverter(allowIntegerValues: true));
         var jsonContext = new FellowshipAnalyzerJsonContext(jsonOptions);
         var events = JsonSerializer.Deserialize(eventsEl, jsonContext.ListEvent)!;
-        var fightStartTime = events.Count > 0 ? events[0].Timestamp : 0;
-        var fight = new ReportFight(0, "", 0, null, fightStartTime, 0, null, null, null);
-        return await analyzer.Analyze(events, playerId: 3, fight: fight);
+        var fightStartTime = events.Count > 0 ? events.Min(e => e.Timestamp) : 0;
+        var fightEndTime = events.Count > 0 ? events.Max(e => e.Timestamp) : 0;
+        var fight = new ReportFight(0, "", 0, null, fightStartTime, fightEndTime, null, null, null);
+        var result = await parser.Analyze(events, playerId: 3, fight: fight);
+        return (parser, result);
     }
 
     private static string GetFixturePath()
@@ -105,4 +123,3 @@ public sealed class RimeAnalysisEngineTests
         return Path.Combine(AppContext.BaseDirectory, "TestData", "events-with-ability-details.json");
     }
 }
-
