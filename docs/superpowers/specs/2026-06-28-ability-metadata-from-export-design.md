@@ -1,4 +1,4 @@
-# Accurate Ability Metadata from the Game-Data Export (Rime slice)
+# Accurate Ability Metadata from the Game-Data Export
 
 ## Context
 
@@ -14,13 +14,14 @@ keeps ownership of behaviour the export cannot describe.
 
 ## Goal
 
-Source Rime's ability scalars (cooldown, range, charges, cast duration, channel
-duration, channel tick interval) from `hero_data.json` via a Roslyn incremental
-generator, and compose the Rime spellbook from the generated facts using
-`with`. Simplify `SpellbookAbility` so the function-valued cooldown and charge
-forms are replaced by data-friendly scalars plus a single haste flag. Prove the
-extraction and wiring end-to-end on Rime, on a generator that is already general
-enough to extend to the remaining heroes.
+Source every hero's ability scalars (cooldown, range, charges, cast duration,
+channel duration, channel tick interval) from `hero_data.json` via a Roslyn
+incremental generator, and compose each hero's spellbook from the generated facts
+using `with`. Simplify `SpellbookAbility` so the function-valued cooldown and
+charge forms are replaced by data-friendly scalars plus a single haste flag. The
+generator emits an `AbilityFacts` class per hero **in that hero's own `Spells`
+namespace** (`FellowshipAnalyzer.Core.Common.Spells.{Hero}`), so the generated
+kits never collide.
 
 ## Source data model
 
@@ -109,7 +110,7 @@ public override IEnumerable<SpellbookAbility> Spellbook()
     return
     [
         // …other abilities…
-        ElarionAbilityFacts.GrapplingArrow with
+        AbilityFacts.GrapplingArrow with
         {
             Category = SpellCategory.Utility,
             Gcd = null,
@@ -121,11 +122,15 @@ public override IEnumerable<SpellbookAbility> Spellbook()
 }
 ```
 
-## Part B — Ability-facts source generator (Core, Rime slice)
+## Part B — Ability-facts source generator (Core, all heroes)
 
-A new Roslyn `IIncrementalGenerator` in `FellowshipAnalyzer.Generators` emits a
-static facts class per hero. It runs in the **Core** compilation, where the
-`Spells` registry classes exist as source.
+A new Roslyn `IIncrementalGenerator` in `FellowshipAnalyzer.Generators` emits an
+`AbilityFacts` class per hero, each in that hero's own
+`FellowshipAnalyzer.Core.Common.Spells.{Hero}` namespace so the generated kits
+never collide. It runs in the **Core** compilation, where the `Spells` registry
+classes exist as source. A hero is emitted when its `Spells` namespace has a
+matching key in `hero_data.json`; heroes without a registry yet (e.g. Gunde) are
+skipped.
 
 Inputs:
 
@@ -137,7 +142,9 @@ Inputs:
 For each kit ability the generator emits one `SpellbookAbility`:
 
 ```csharp
-public static class RimeAbilityFacts
+namespace FellowshipAnalyzer.Core.Common.Spells.Rime;
+
+public static class AbilityFacts
 {
     public static SpellbookAbility FreezingTorrent { get; } = new()
     {
@@ -172,8 +179,8 @@ and a kit FSLID with no matching `Spells` property.
 `RimeAbilityFacts`, applying behaviour via `with`:
 
 ```csharp
-RimeAbilityFacts.FreezingTorrent with { Category = SpellCategory.Rotational, Gcd = StandardGcd },
-RimeAbilityFacts.ColdSnap        with { Category = SpellCategory.Rotational, Gcd = StandardGcd, CooldownReducedByHaste = true },
+AbilityFacts.FreezingTorrent with { Category = SpellCategory.Rotational, Gcd = StandardGcd },
+AbilityFacts.ColdSnap        with { Category = SpellCategory.Rotational, Gcd = StandardGcd, CooldownReducedByHaste = true },
 ```
 
 Hidden, non-kit, or otherwise data-less abilities (e.g. `VoidbringerTouch`,
@@ -222,6 +229,7 @@ Tests:
 ## Build and rollout
 
 The whole solution builds with the new generator active in Core, and
-`dotnet test` passes including the Rime hero tests. The generator and
-normalization are hero-agnostic; the remaining heroes are wired in a follow-up by
-adding their `with` compositions, with the same validation tests per hero.
+`dotnet test` passes including the hero tests. The generator and normalization are
+hero-agnostic; every hero's `Abilities.cs` composes from its generated
+`AbilityFacts`, and each hero's generated scalars are cross-checked against its
+current hand-coded values before those values are removed.

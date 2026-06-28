@@ -15,6 +15,10 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<AdditionalFiles Include="..\..\external\fs_tc_uploads\s3\hero_data.json" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<PackageReference Include="AspNetCore.SassCompiler" />
 		<PackageReference Include="Blazor-ApexCharts" />
 		<PackageReference Include="Microsoft.AspNetCore.Components.Web" />

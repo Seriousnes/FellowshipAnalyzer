@@ -5,25 +5,11 @@ using OneOf;
 namespace FellowshipAnalyzer.Core.Analysis;
 
 /// <summary>
-/// A cooldown value — either a fixed number of seconds, or a function of the
-/// player's haste multiplier (e.g. 1.2 for 20% haste) that returns seconds.
-/// </summary>
-[GenerateOneOf]
-public partial class CooldownValue : OneOfBase<double, Func<double, double>, Func<Combatant, double, double>>;
-
-/// <summary>
 /// A GCD sub-value — either a fixed number of milliseconds, or a function of
 /// the player's <see cref="Combatant"/> that returns milliseconds.
 /// </summary>
 [GenerateOneOf]
 public partial class GcdValue : OneOfBase<double, Func<Combatant, double>>;
-
-/// <summary>
-/// A charges value — either a fixed count, or a function of the player's
-/// <see cref="Combatant"/> that returns the count.
-/// </summary>
-[GenerateOneOf]
-public partial class ChargesValue : OneOfBase<int, Func<Combatant, int>>;
 
 /// <summary>
 /// Defines a spell's gameplay metadata for the spellbook.
@@ -57,17 +43,37 @@ public sealed record SpellbookAbility
     public required SpellCategory Category { get; init; }
 
     /// <summary>
-    /// The cooldown in seconds. Can be a fixed value or a function of the
-    /// player's haste multiplier (e.g. 1.2 for 20% haste).
+    /// The base cooldown in seconds. Null means the ability has no cooldown.
+    /// When <see cref="CooldownReducedByHaste"/> is set, the effective cooldown is
+    /// <c>Cooldown / (1 + haste)</c>.
     /// </summary>
-    public CooldownValue? Cooldown { get; init; }
+    public double? Cooldown { get; init; }
+
+    /// <summary>
+    /// When true, the cooldown is reduced by haste using <c>Cooldown / (1 + haste)</c>.
+    /// </summary>
+    public bool CooldownReducedByHaste { get; init; }
 
     /// <summary>
     /// The number of charges the ability has. Defaults to 1 (no extra charges).
-    /// Only one charge recharges at a time. Can be a fixed value or a function
-    /// of the player's <see cref="Combatant"/>.
+    /// Only one charge recharges at a time.
     /// </summary>
-    public ChargesValue Charges { get; init; } = 1;
+    public int Charges { get; init; } = 1;
+
+    /// <summary>
+    /// The cast time in seconds for a casted ability. Null for instant abilities.
+    /// </summary>
+    public double? CastDuration { get; init; }
+
+    /// <summary>
+    /// The total channel time in seconds for a channeled ability.
+    /// </summary>
+    public double? ChannelDuration { get; init; }
+
+    /// <summary>
+    /// The interval in seconds between channel ticks for a channeled ability.
+    /// </summary>
+    public double? ChannelTickInterval { get; init; }
 
     /// <summary>
     /// GCD information. Null means the spell is off the GCD.
@@ -115,22 +121,11 @@ public sealed record SpellbookAbility
     public bool CastableWhileCasting { get; init; }
 
     /// <summary>
-    /// Gets the effective cooldown in seconds, resolving haste-scaling functions
-    /// when present.
+    /// Gets the effective cooldown in seconds, applying haste reduction when
+    /// <see cref="CooldownReducedByHaste"/> is set.
     /// </summary>
-    public double GetCooldown(Combatant combatant, double haste = 1.0) =>        
-        Cooldown?.Match(
-            cd => cd,
-            f => f(haste),
-            f => f(combatant, haste))
-        ?? 0;
-
-    /// <summary>
-    /// Gets the effective charge count, resolving combatant-dependent functions
-    /// when present.
-    /// </summary>
-    public int GetCharges(Combatant combatant) =>
-        Charges.Match(value => value, func => func(combatant));
+    public double GetCooldown(double haste = 1.0) =>
+        Cooldown is not { } cd ? 0 : CooldownReducedByHaste ? cd / (1 + haste) : cd;
 }
 
 /// <summary>
