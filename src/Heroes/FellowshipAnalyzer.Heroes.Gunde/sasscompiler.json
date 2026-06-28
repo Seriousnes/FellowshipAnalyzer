@@ -1,0 +1,10 @@
+{
+  "SourceFolder": ".",
+  "TargetFolder": ".",
+  "GenerateScopedCss": true,
+  "ScopedCssFolders": [ "." ],
+  "IncludePaths": [
+    ".",
+    "../../FellowshipAnalyzer.Core/Styles"
+  ]
+}

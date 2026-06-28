@@ -22,6 +22,7 @@
 		<ProjectReference Include="..\..\Heroes\FellowshipAnalyzer.Heroes.Aeona\FellowshipAnalyzer.Heroes.Aeona.csproj" />
 		<ProjectReference Include="..\..\Heroes\FellowshipAnalyzer.Heroes.Ardeos\FellowshipAnalyzer.Heroes.Ardeos.csproj" />
 		<ProjectReference Include="..\..\Heroes\FellowshipAnalyzer.Heroes.Elarion\FellowshipAnalyzer.Heroes.Elarion.csproj" />
+		<ProjectReference Include="..\..\Heroes\FellowshipAnalyzer.Heroes.Gunde\FellowshipAnalyzer.Heroes.Gunde.csproj" />
 		<ProjectReference Include="..\..\Heroes\FellowshipAnalyzer.Heroes.Helena\FellowshipAnalyzer.Heroes.Helena.csproj" />
 		<ProjectReference Include="..\..\Heroes\FellowshipAnalyzer.Heroes.Mara\FellowshipAnalyzer.Heroes.Mara.csproj" />
 		<ProjectReference Include="..\..\Heroes\FellowshipAnalyzer.Heroes.Meiko\FellowshipAnalyzer.Heroes.Meiko.csproj" />
