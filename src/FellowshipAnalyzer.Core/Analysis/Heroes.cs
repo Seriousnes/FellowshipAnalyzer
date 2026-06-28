@@ -60,7 +60,7 @@ public readonly record struct Hero(HeroName Name, HeroRole Role)
         HeroName.Aeona   => "https://assets.fellows.gg/static/heroes/hero_portrait_Lisa_default.webp?v=1",
         HeroName.Ardeos  => "https://assets.fellows.gg/static/heroes/hero_portrait_Firemage_default.webp?v=1",
         HeroName.Elarion => "https://assets.fellows.gg/static/heroes/hero_portrait_Bowguy_01.webp?v=1",
-        HeroName.Gunde   => "https://assets.fellows.gg/static/heroes/hero_portrait_Gunde_default.webp?v=1",
+        HeroName.Gunde   => "https://assets.fellows.gg/static/heroes/hero_potrtrait_Gunde_01.webp?v=1",
         HeroName.Helena  => "https://assets.fellows.gg/static/heroes/hero_portrait_warmaster_01.webp?v=1",
         HeroName.Mara    => "https://assets.fellows.gg/static/heroes/hero_portrait_Mara_01.webp?v=1",
         HeroName.Meiko   => "https://assets.fellows.gg/static/heroes/hero_portrait_meiko_default.webp?v=1",
