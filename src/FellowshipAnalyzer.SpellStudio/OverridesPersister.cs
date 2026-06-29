@@ -22,7 +22,15 @@ public static class OverridesPersister
             root[scope] = scopeObj;
         }
 
-        scopeObj[member] = BuildDeltaNode(delta);
+        if (!scopeObj.TryGetPropertyValue(member, out var memberNode) || memberNode is not JsonObject memberObj)
+        {
+            memberObj = new JsonObject();
+            scopeObj[member] = memberObj;
+        }
+
+        foreach (var (key, value) in BuildDeltaNode(delta))
+            memberObj[key] = value?.DeepClone();
+
         File.WriteAllText(path, root.ToJsonString(WriteOptions));
     }
 
