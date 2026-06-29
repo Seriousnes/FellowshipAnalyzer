@@ -127,6 +127,19 @@ public static class MergeEngine
                         new Dictionary<string, int>(), effectProv));
                 }
             }
+
+            var linkedEffectFslIds = new HashSet<int>(effectLinks.Select(l => l.EffectFslId));
+            var heroEffectPrefix = $"GE_{hero.DevKey}_";
+            foreach (var effect in inputs.Spells.Effects.Values)
+            {
+                if (!effect.DevName.StartsWith(heroEffectPrefix, StringComparison.Ordinal))
+                    continue;
+                if (effect.Name is null || effect.FslId == 0)
+                    continue;
+                if (linkedEffectFslIds.Contains(effect.FslId))
+                    continue;
+                gaps.Add(new Gap(scope, MemberNaming.Sanitize(effect.Name), GapKind.UnresolvedEffect));
+            }
         }
 
         foreach (var (scope, members) in inputs.Overrides.ByScopeAndMember)

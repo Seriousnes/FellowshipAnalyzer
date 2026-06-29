@@ -35,4 +35,8 @@ public class MergeEngineTests
     [Fact]
     public void LinkedEffect_IsNamedAbilityPlusRole() =>
         Run().Spells.ShouldContain(x => x.Scope == "rime" && x.Kind == SpellKind.Effect && x.Id == 1396);
+
+    [Fact]
+    public void Rime_NamedEffectsNotLinkedToAbility_AreEmittedAsGaps() =>
+        Run().Gaps.ShouldContain(g => g.Scope == "rime" && g.Kind == GapKind.UnresolvedEffect);
 }
