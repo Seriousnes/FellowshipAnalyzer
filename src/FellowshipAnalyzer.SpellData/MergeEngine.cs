@@ -30,8 +30,15 @@ public record MergeInputs(
 /// </summary>
 public static class MergeEngine
 {
+    /// <summary>The 11 hero display names that have shipped analyzers and registry entries.</summary>
+    public static readonly HashSet<string> ShippedHeroes = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "Aeona", "Ardeos", "Elarion", "Helena", "Mara",
+        "Meiko", "Rime", "Sylvie", "Tariq", "Vigour", "Xavian",
+    };
+
     /// <summary>
-    /// For each hero, selects their Kit abilities, resolves scalars from Constants entries,
+    /// For each shipped hero, selects their Kit abilities, resolves scalars from Constants entries,
     /// links and includes spawned effects, and enriches each entry with name/kind from
     /// <c>spell_data</c>, icon from <c>abilities.json</c>, and costs from the merged scalar bag.
     /// After auto-selection, applies overrides: patches existing members in place and adds
@@ -44,6 +51,8 @@ public static class MergeEngine
 
         foreach (var hero in inputs.Heroes.Heroes)
         {
+            if (!ShippedHeroes.Contains(hero.DisplayName))
+                continue;
             var scope = hero.DisplayName.ToLowerInvariant();
             var heroPrefix = $"GA_{hero.DevKey}_";
             var effectLinks = Linking.LinkEffects(hero, inputs.Spells);
@@ -149,6 +158,13 @@ public static class MergeEngine
         {
             foreach (var (member, delta) in members)
             {
+                if (delta.Id is int overrideId)
+                {
+                    var ovKind = delta.Kind ?? SpellKindRange.FromFslId(overrideId);
+                    var targetGuid = SpellKindRange.GuidFor(ovKind, SpellKindRange.NativeId(overrideId));
+                    spells.RemoveAll(s => s.Scope == scope && s.Member != member && s.Guid == targetGuid);
+                }
+
                 var idx = spells.FindIndex(s => s.Scope == scope && s.Member == member);
                 if (idx >= 0)
                 {

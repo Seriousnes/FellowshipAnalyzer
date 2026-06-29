@@ -39,4 +39,12 @@ public class MergeEngineTests
     [Fact]
     public void Rime_NamedEffectsNotLinkedToAbility_AreEmittedAsGaps() =>
         Run().Gaps.ShouldContain(g => g.Scope == "rime" && g.Kind == GapKind.UnresolvedEffect);
+
+    [Fact]
+    public void NonShippedHeroes_AreExcludedFromOutput()
+    {
+        var result = Run();
+        result.Spells.ShouldNotContain(s => s.Scope == "gunde");
+        result.Spells.ShouldContain(s => s.Scope == "rime");
+    }
 }

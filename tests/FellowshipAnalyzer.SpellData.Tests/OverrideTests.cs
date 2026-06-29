@@ -53,4 +53,19 @@ public class OverrideTests
         spell.Provenance.ChannelTickInterval.ShouldBe(ProvenanceSource.Override);
         spell.Provenance.Cooldown.ShouldBe(ProvenanceSource.HeroData);
     }
+
+    [Fact]
+    public void Override_WithId_SupersedesAutoSelectedMemberOfSameGuid()
+    {
+        var overrides = OverridesSource.FromInline("""
+            { "rime": { "RenamedBurst": { "id": 1031 } } }
+            """);
+        var result = MergeEngine.Run(MergeInputs.Load() with { Overrides = overrides });
+
+        var rimeWithGuid1031 = result.Spells.Where(s => s.Scope == "rime" && s.Guid == 1031).ToList();
+        rimeWithGuid1031.Count.ShouldBe(1);
+        rimeWithGuid1031[0].Member.ShouldBe("RenamedBurst");
+        result.Spells.ShouldNotContain(s => s.Scope == "rime" && s.Member == "BurstingIce");
+        result.Spells.ShouldContain(s => s.Scope == "rime" && s.Member == "FreezingTorrent");
+    }
 }
