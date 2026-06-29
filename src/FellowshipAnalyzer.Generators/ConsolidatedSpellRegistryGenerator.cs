@@ -627,7 +627,7 @@ public sealed class ConsolidatedSpellRegistryGenerator : IIncrementalGenerator
         private static JsonValue ParseObject(string s, ref int pos)
         {
             var result = new Dictionary<string, JsonValue>(StringComparer.Ordinal);
-            pos++; // {
+            pos++;
             SkipWhitespace(s, ref pos);
             if (s[pos] == '}') { pos++; return JsonValue.Obj(result); }
             while (true)
@@ -635,7 +635,7 @@ public sealed class ConsolidatedSpellRegistryGenerator : IIncrementalGenerator
                 SkipWhitespace(s, ref pos);
                 var key = ParseString(s, ref pos);
                 SkipWhitespace(s, ref pos);
-                pos++; // :
+                pos++;
                 var value = ParseValue(s, ref pos);
                 result[key] = value;
                 SkipWhitespace(s, ref pos);
@@ -649,7 +649,7 @@ public sealed class ConsolidatedSpellRegistryGenerator : IIncrementalGenerator
         private static JsonValue ParseArray(string s, ref int pos)
         {
             var result = new List<JsonValue>();
-            pos++; // [
+            pos++;
             SkipWhitespace(s, ref pos);
             if (s[pos] == ']') { pos++; return JsonValue.Arr(result); }
             while (true)
@@ -665,7 +665,7 @@ public sealed class ConsolidatedSpellRegistryGenerator : IIncrementalGenerator
 
         private static string ParseString(string s, ref int pos)
         {
-            pos++; // opening quote
+            pos++;
             var sb = new StringBuilder();
             while (true)
             {

@@ -33,7 +33,14 @@ public static class HandWrittenRegistrySnapshot
     {
         var typeName = $"FellowshipAnalyzer.Core.Common.Spells.{hero}.Spells";
         var type = CoreAssembly.GetType(typeName, throwOnError: false);
-        return type is null ? [] : Enumerate(type);
+        if (type is null)
+        {
+            if (!string.Equals(hero, "Ardeos", StringComparison.Ordinal))
+                throw new InvalidOperationException(
+                    $"Registry type '{typeName}' was not found in Core; every hero except Ardeos must have a generated Spells class.");
+            return [];
+        }
+        return Enumerate(type);
     }
 
     private static IReadOnlyList<SpellSnapshot> Enumerate(Type type)

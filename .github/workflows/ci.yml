@@ -54,6 +54,8 @@ jobs:
             project: tests/FellowshipAnalyzer.Generators.Tests/FellowshipAnalyzer.Generators.Tests.csproj
           - name: Heroes.Rime
             project: tests/FellowshipAnalyzer.Heroes.Rime.Tests/FellowshipAnalyzer.Heroes.Rime.Tests.csproj
+          - name: SpellData
+            project: tests/FellowshipAnalyzer.SpellData.Tests/FellowshipAnalyzer.SpellData.Tests.csproj
 
     steps:
       - name: Checkout

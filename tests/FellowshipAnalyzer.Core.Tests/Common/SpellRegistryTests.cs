@@ -75,6 +75,6 @@ public class SpellRegistryTests
     [InlineData(1_000_104)] // Kindling (central, hand-written)
     [InlineData(1881)]      // EpochBreak (generated from the aeona scope)
     [InlineData(1_002_613)] // EpochBreakBuff guid (generated from the aeona scope)
-    public void HandAuthoredCentralMembers_SurviveInAll(int guid) =>
+    public void RegisteredCoreSpells_PersistInAll(int guid) =>
         Assert.True(Spells.All.ContainsKey(guid));
 }
