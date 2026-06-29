@@ -16,5 +16,6 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\FellowshipAnalyzer.SpellData\FellowshipAnalyzer.SpellData.csproj" />
+    <ProjectReference Include="..\..\src\FellowshipAnalyzer.Core\FellowshipAnalyzer.Core.csproj" />
   </ItemGroup>
 </Project>
