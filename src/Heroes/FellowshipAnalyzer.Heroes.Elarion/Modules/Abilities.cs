@@ -12,89 +12,97 @@ public class Abilities : CoreAbilities
         var weightOfGravity = Owner.SelectedCombatant.HasTalent(Talents.TheWeightOfGravity.Id);
         return
         [
-            SpellDatabase.Multishot with
+            new()
             {
+                PrimarySpell = Spells.Multishot with { Range = 30 },
                 Category = SpellCategory.Rotational,
                 Gcd = StandardGcd,
-                Range = 30,
             },
-            SpellDatabase.HeartseekerBarrage with
+            new()
             {
+                PrimarySpell = Spells.HeartseekerBarrage with { Range = 30 },
                 Category = SpellCategory.Rotational,
                 Gcd = StandardGcd,
-                Range = 30,
             },
-            SpellDatabase.FocusedShot with
+            new()
             {
+                PrimarySpell = Spells.FocusedShot with { Range = 30 },
                 Category = SpellCategory.Rotational,
                 Gcd = StandardGcd,
-                Range = 30,
             },
-            SpellDatabase.HighwindArrow with
+            new()
             {
+                PrimarySpell = Spells.HighwindArrow with { Range = 30 },
                 Category = SpellCategory.Rotational,
                 Gcd = StandardGcd,
                 CooldownReducedByHaste = true,
-                Range = 30,
             },
-            SpellDatabase.CelestialShot with
+            new()
             {
+                PrimarySpell = Spells.CelestialShot with { Range = 30 },
                 Category = SpellCategory.Rotational,
                 Gcd = StandardGcd,
-                Range = 30,
             },
-            SpellDatabase.StarfallVolley with
+            new()
             {
+                PrimarySpell = Spells.StarfallVolley with { Range = 30 },
                 Category = SpellCategory.Cooldowns,
                 Gcd = StandardGcd,
-                Range = 30,
             },
-            SpellDatabase.SkystridersSupremacy with
+            new()
             {
+                PrimarySpell = Spells.SkystridersSupremacy,
                 Category = SpellCategory.Cooldowns,
                 Gcd = null,
             },
-            SpellDatabase.LunarlightMark with
+            new()
             {
+                PrimarySpell = Spells.LunarlightMark,
                 Category = SpellCategory.Rotational,
                 Gcd = null,
             },
-            SpellDatabase.Roll with
+            new()
             {
+                PrimarySpell = Spells.Roll with { Cooldown = 8 },
                 Category = SpellCategory.Utility,
                 Gcd = null,
-                Cooldown = 8,
                 CastableWhileCasting = true,
             },
-            SpellDatabase.Disrupt with
+            new()
             {
+                PrimarySpell = Spells.Disrupt with { Range = 30 },
                 Category = SpellCategory.Utility,
                 Gcd = null,
-                Range = 30,
             },
-            SpellDatabase.PathfindersResillience with
+            new()
             {
+                PrimarySpell = Spells.PathfindersResillience,
                 Category = SpellCategory.Defensive,
                 Gcd = null,
             },
-            SpellDatabase.SkystridersGrace with
+            new()
             {
+                PrimarySpell = Spells.SkystridersGrace,
                 Category = SpellCategory.Cooldowns,
                 Gcd = null,
                 CastableWhileCasting = true,
             },
-            SpellDatabase.EventHorizon with
+            new()
             {
+                PrimarySpell = Spells.EventHorizon,
                 Category = SpellCategory.Cooldowns,
                 Gcd = null,
             },
-            SpellDatabase.GrapplingArrow with
+            new()
             {
+                PrimarySpell = Spells.GrapplingArrow with
+                {
+                    Cooldown = weightOfGravity ? 120 : 90,
+                    Charges = weightOfGravity ? 2 : 1,
+                },
                 Category = SpellCategory.Utility,
                 Gcd = null,
-                Cooldown = weightOfGravity ? 120 : 90,
                 CooldownReducedByHaste = weightOfGravity,
-                Charges = weightOfGravity ? 2 : 1,
             },
         ];
     }

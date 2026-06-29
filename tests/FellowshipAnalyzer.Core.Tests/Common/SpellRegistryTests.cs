@@ -69,4 +69,12 @@ public class SpellRegistryTests
         Assert.Contains(Core.Common.Spells.Rime.Spells.GlacialBlast.Id, allIds);
         Assert.Contains(Core.Common.Spells.Rime.Spells.IceComet.Id, allIds);
     }
+
+    [Theory]
+    [InlineData(1558)]      // Chronoshift (central, hand-written)
+    [InlineData(1_000_104)] // Kindling (central, hand-written)
+    [InlineData(1881)]      // EpochBreak (generated from the aeona scope)
+    [InlineData(1_002_613)] // EpochBreakBuff guid (generated from the aeona scope)
+    public void HandAuthoredCentralMembers_SurviveInAll(int guid) =>
+        Assert.True(Spells.All.ContainsKey(guid));
 }

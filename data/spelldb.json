@@ -653,13 +653,6 @@
       "kind": "effect",
       "name": "Skylit Grace",
       "icon": "Tex_b_03.jpg"
-    },
-    "VoidbringerTouch": {
-      "id": 155,
-      "name": "Voidbringer\u0027s Touch",
-      "icon": "T_Weapon_VoidTouch.jpg",
-      "cooldown": 90,
-      "range": 30
     }
   },
   "helena": {

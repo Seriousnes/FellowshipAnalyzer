@@ -2,6 +2,8 @@ using FellowshipAnalyzer.Core.Analysis;
 using FellowshipAnalyzer.Core.Common.Spells.Elarion;
 using FellowshipAnalyzer.Core.Events;
 
+using Items = FellowshipAnalyzer.Core.Common.Spells.Items;
+
 namespace FellowshipAnalyzer.Heroes.Elarion.Modules;
 
 /// <summary>
@@ -29,7 +31,7 @@ public sealed partial class PreUltimateChecklistAnalyzer(Lazy<SpellUsable> spell
     [On<CastEvent>(By = Actor.Player, Spell = nameof(Spells.SkystridersSupremacy))]
     private void OnSupremacy(CastEvent e) => _supremacyCasts.Add(e.Timestamp);
 
-    [On<CastEvent>(By = Actor.Player, Spell = nameof(Spells.VoidbringerTouch))]
+    [On<CastEvent>(By = Actor.Player, Spell = nameof(Items.VoidbringerTouch))]
     private void OnVoidbringer(CastEvent e) => _voidbringerCasts.Add(e.Timestamp);
 
     [On<ApplyBuffEvent>(To = Actor.Player, Spell = nameof(Spells.SkystridersGraceBuff))]

@@ -32,8 +32,8 @@ public static class HandWrittenRegistrySnapshot
     public static IReadOnlyList<SpellSnapshot> For(string hero)
     {
         var typeName = $"FellowshipAnalyzer.Core.Common.Spells.{hero}.Spells";
-        var type = CoreAssembly.GetType(typeName, throwOnError: true)!;
-        return Enumerate(type);
+        var type = CoreAssembly.GetType(typeName, throwOnError: false);
+        return type is null ? [] : Enumerate(type);
     }
 
     private static IReadOnlyList<SpellSnapshot> Enumerate(Type type)

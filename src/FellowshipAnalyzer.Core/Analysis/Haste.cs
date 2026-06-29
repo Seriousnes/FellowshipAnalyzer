@@ -1,6 +1,9 @@
 using FellowshipAnalyzer.Core.Common.Spells;
 using FellowshipAnalyzer.Core.Events;
 
+using ElarionSpells = FellowshipAnalyzer.Core.Common.Spells.Elarion.Spells;
+using RimeSpells = FellowshipAnalyzer.Core.Common.Spells.Rime.Spells;
+
 namespace FellowshipAnalyzer.Core.Analysis;
 
 /// <summary>
@@ -29,9 +32,9 @@ public sealed partial class Haste(Lazy<StatTracker> statTracker) : Analyzer
 
     private readonly Dictionary<int, HasteBuff> _hasteBuffs = new()
     {
-        { Spells.EventHorizonBuff.Guid, new(Haste: 0.3) },
-        { Spells.SkystridersGraceBuff.Guid, new(Haste: 0.3) },
-        { Spells.WrathOfWinterBuff.Guid, new(Haste: 0.3)  },
+        { ElarionSpells.EventHorizonBuff.Guid, new(Haste: 0.3) },
+        { ElarionSpells.SkystridersGraceBuff.Guid, new(Haste: 0.3) },
+        { RimeSpells.WrathOfWinterBuff.Guid, new(Haste: 0.3)  },
     };
 
     [On<FightStartEvent>]

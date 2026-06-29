@@ -37,10 +37,6 @@
       "id": 1304,
       "note": "possessive-strip produces SkystriderGrace; supersede and re-add with possessive"
     },
-    "VoidbringerTouch": {
-      "id": 155,
-      "note": "gear weapon; present in Elarion hand-written registry until cutover; add to elarion scope to satisfy migration-diff"
-    },
     "EventHorizonBuff": {
       "id": 2312,
       "kind": "effect",

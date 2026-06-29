@@ -43,37 +43,29 @@ public sealed record SpellbookAbility
     public required SpellCategory Category { get; init; }
 
     /// <summary>
-    /// The base cooldown in seconds. Null means the ability has no cooldown.
-    /// When <see cref="CooldownReducedByHaste"/> is set, the effective cooldown is
-    /// <c>Cooldown / (1 + haste)</c>.
-    /// </summary>
-    public double? Cooldown { get; init; }
-
-    /// <summary>
     /// When true, the cooldown is reduced by haste using <c>Cooldown / (1 + haste)</c>.
     /// </summary>
     public bool CooldownReducedByHaste { get; init; }
 
     /// <summary>
-    /// The number of charges the ability has. Defaults to 1 (no extra charges).
-    /// Only one charge recharges at a time.
+    /// The number of charges the ability has, read from <see cref="PrimarySpell"/>.
     /// </summary>
-    public int Charges { get; init; } = 1;
+    public int Charges => PrimarySpell.Charges;
 
     /// <summary>
-    /// The cast time in seconds for a casted ability. Null for instant abilities.
+    /// The cast time in seconds for a casted ability, read from <see cref="PrimarySpell"/>.
     /// </summary>
-    public double? CastDuration { get; init; }
+    public double? CastDuration => PrimarySpell.CastDuration;
 
     /// <summary>
-    /// The total channel time in seconds for a channeled ability.
+    /// The total channel time in seconds for a channeled ability, read from <see cref="PrimarySpell"/>.
     /// </summary>
-    public double? ChannelDuration { get; init; }
+    public double? ChannelDuration => PrimarySpell.ChannelDuration;
 
     /// <summary>
-    /// The interval in seconds between channel ticks for a channeled ability.
+    /// The interval in seconds between channel ticks, read from <see cref="PrimarySpell"/>.
     /// </summary>
-    public double? ChannelTickInterval { get; init; }
+    public double? ChannelTickInterval => PrimarySpell.ChannelTickInterval;
 
     /// <summary>
     /// GCD information. Null means the spell is off the GCD.
@@ -92,9 +84,9 @@ public sealed record SpellbookAbility
     public bool Enabled { get; init; } = true;
 
     /// <summary>
-    /// The spell's range in yards/meters.
+    /// The spell's range in yards/meters, read from <see cref="PrimarySpell"/>.
     /// </summary>
-    public int? Range { get; init; }
+    public int? Range => PrimarySpell.Range;
 
     /// <summary>
     /// Whether the spell is a defensive ability.
@@ -121,11 +113,11 @@ public sealed record SpellbookAbility
     public bool CastableWhileCasting { get; init; }
 
     /// <summary>
-    /// Gets the effective cooldown in seconds, applying haste reduction when
-    /// <see cref="CooldownReducedByHaste"/> is set.
+    /// Gets the effective cooldown in seconds from <see cref="PrimarySpell"/>, applying haste
+    /// reduction when <see cref="CooldownReducedByHaste"/> is set.
     /// </summary>
     public double GetCooldown(double haste = 1.0) =>
-        Cooldown is not { } cd ? 0 : CooldownReducedByHaste ? cd / (1 + haste) : cd;
+        PrimarySpell.Cooldown is not { } cd ? 0 : CooldownReducedByHaste ? cd / (1 + haste) : cd;
 }
 
 /// <summary>

@@ -15,7 +15,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<AdditionalFiles Include="..\..\external\fs_tc_uploads\s3\hero_data.json" />
+		<AdditionalFiles Include="..\..\data\spelldb.json" />
 	</ItemGroup>
 
 	<ItemGroup>

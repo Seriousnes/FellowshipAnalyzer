@@ -2,6 +2,7 @@ using FellowshipAnalyzer.Core.Analysis;
 using FellowshipAnalyzer.Core.Common.Spells.Rime;
 
 using CoreAbilities = FellowshipAnalyzer.Core.Analysis.Abilities;
+using Items = FellowshipAnalyzer.Core.Common.Spells.Items;
 
 namespace FellowshipAnalyzer.Heroes.Rime.Modules;
 
@@ -9,89 +10,104 @@ public class Abilities : CoreAbilities
 {
     public override IEnumerable<SpellbookAbility> Spellbook() =>
     [
-        SpellDatabase.BrainFreeze with
+        new()
         {
+            PrimarySpell = Spells.BrainFreeze,
             Category = SpellCategory.Utility,
             Gcd = null,
             CastableWhileCasting = true,
         },
-        SpellDatabase.BurstingIce with
+        new()
         {
+            PrimarySpell = Spells.BurstingIce,
             AdditionalSpells = [Spells.BurstingIceDamage],
             Category = SpellCategory.Rotational,
             Gcd = StandardGcd,
         },
-        SpellDatabase.ColdSnap with
+        new()
         {
+            PrimarySpell = Spells.ColdSnap,
             Category = SpellCategory.Rotational,
             Gcd = StandardGcd,
             CooldownReducedByHaste = true,
         },
-        SpellDatabase.FlightOfTheNavir with
+        new()
         {
+            PrimarySpell = Spells.FlightOfTheNavir,
             Category = SpellCategory.Cooldowns,
             Gcd = StandardGcd,
         },
-        SpellDatabase.FreezingTorrent with
+        new()
         {
+            PrimarySpell = Spells.FreezingTorrent,
             Category = SpellCategory.Rotational,
             Gcd = StandardGcd,
         },
-        SpellDatabase.FrigidWinds with
+        new()
         {
+            PrimarySpell = Spells.FrigidWinds,
             Category = SpellCategory.Utility,
             Gcd = null,
         },
-        SpellDatabase.FrostBolt with
+        new()
         {
+            PrimarySpell = Spells.FrostBolt,
             Category = SpellCategory.Rotational,
             Gcd = StandardGcd,
         },
-        SpellDatabase.FrostWard with
+        new()
         {
+            PrimarySpell = Spells.FrostWard,
             Category = SpellCategory.Defensive,
             Gcd = null,
         },
-        SpellDatabase.GlacialBlast with
+        new()
         {
+            PrimarySpell = Spells.GlacialBlast,
             Category = SpellCategory.Rotational,
             Gcd = StandardGcd,
         },
-        SpellDatabase.IceBlitz with
+        new()
         {
+            PrimarySpell = Spells.IceBlitz,
             Category = SpellCategory.Cooldowns,
             Gcd = null,
             CastableWhileCasting = true,
         },
-        SpellDatabase.IceComet with
+        new()
         {
+            PrimarySpell = Spells.IceComet,
             Category = SpellCategory.Rotational,
             Gcd = StandardGcd,
         },
-        SpellDatabase.IceDash with
+        new()
         {
+            PrimarySpell = Spells.IceDash,
             Category = SpellCategory.Defensive,
             Gcd = null,
         },
-        SpellDatabase.WintersBlessing with
+        new()
         {
+            PrimarySpell = Spells.WintersBlessing,
             Category = SpellCategory.Cooldowns,
             Gcd = null,
         },
-        SpellDatabase.WrathOfWinter with
+        new()
         {
+            PrimarySpell = Spells.WrathOfWinter,
             Category = SpellCategory.Cooldowns,
             Gcd = StandardGcd,
         },
-        SpellDatabase.FrostSwallows with
+        new()
         {
+            PrimarySpell = Spells.FrostSwallows,
             AdditionalSpells = [Spells.FrostSwallowsDamage],
             Category = SpellCategory.Cooldowns,
             Gcd = StandardGcd,
         },
         new()
         {
-            PrimarySpell = Core.Common.Spells.Spells.VoidbringerTouch,
+            PrimarySpell = Items.VoidbringerTouch,
             Category = SpellCategory.Hidden,
         },
         new()

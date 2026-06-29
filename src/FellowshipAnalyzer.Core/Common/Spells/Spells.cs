@@ -9,8 +9,6 @@ namespace FellowshipAnalyzer.Core.Common.Spells;
 public static partial class Spells
 {
     public static Spell Chronoshift { get; } = new() { Id = 1558, Name = "Chronoshift", Icon = "T_Nhance_RPG_Icons_ArcaneLoad.jpg" };
-    public static Spell EpochBreak { get; } = new() { Id = 1881, Name = "Epoch Break" };
 
     public static Effect Kindling { get; } = new() { Id = 104, Name = "Kindling", Icon = "T_Nhance_RPG_Gold_10.jpg" };
-    public static Effect EpochBreakBuff { get; } = new() { Id = 2613, Name = "Epoch Break" };
 }

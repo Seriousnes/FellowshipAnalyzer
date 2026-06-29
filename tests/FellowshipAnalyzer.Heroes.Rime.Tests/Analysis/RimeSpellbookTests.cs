@@ -26,7 +26,7 @@ public sealed class RimeSpellbookTests
 
         Assert.Equal(SpellCategory.Rotational, entry.Category);
         Assert.NotNull(entry.Gcd);
-        Assert.Equal(15, entry.Cooldown);
+        Assert.Equal(15, entry.PrimarySpell.Cooldown);
         Assert.Equal(2.0, entry.ChannelDuration);
         Assert.Equal(0.4, entry.ChannelTickInterval);
     }
@@ -37,7 +37,7 @@ public sealed class RimeSpellbookTests
         var entry = new RimeAbilities().Spellbook()
             .Single(e => e.PrimarySpell.Id == RimeSpells.ColdSnap.Id);
 
-        Assert.Equal(12, entry.Cooldown);
+        Assert.Equal(12, entry.PrimarySpell.Cooldown);
         Assert.True(entry.CooldownReducedByHaste);
         Assert.Equal(6, entry.GetCooldown(haste: 1.0));
     }

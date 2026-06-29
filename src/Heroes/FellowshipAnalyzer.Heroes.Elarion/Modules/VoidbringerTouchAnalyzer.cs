@@ -1,6 +1,7 @@
 using FellowshipAnalyzer.Core.Analysis;
-using FellowshipAnalyzer.Core.Common.Spells.Elarion;
 using FellowshipAnalyzer.Core.Events;
+
+using Items = FellowshipAnalyzer.Core.Common.Spells.Items;
 
 namespace FellowshipAnalyzer.Heroes.Elarion.Modules;
 
@@ -19,7 +20,7 @@ public sealed partial class VoidbringerTouchAnalyzer : Analyzer
     public int TotalCasts => _casts.Count;
     public int DoubleMarks => _casts.Count(c => c.IsDoubleMark);
 
-    [On<CastEvent>(By = Actor.Player, Spell = nameof(Spells.VoidbringerTouch))]
+    [On<CastEvent>(By = Actor.Player, Spell = nameof(Items.VoidbringerTouch))]
     private void OnCast(CastEvent e)
     {
         var doubleMark = _casts.Any(prior =>
