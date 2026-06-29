@@ -12,28 +12,6 @@ public record EffectLink(int AbilityFslId, int EffectFslId, string Role);
 public static class Linking
 {
     /// <summary>
-    /// Splits a DevName into its core stem and optional trailing role.
-    /// For <c>GA_{Class}_{core}</c> abilities the role is <see langword="null"/>.
-    /// For <c>GE_{Class}_{core}_{Role}</c> effects the role is the last underscore-delimited segment.
-    /// </summary>
-    public static (string core, string? role) SplitDevName(string devName)
-    {
-        if (devName.StartsWith("GE_", StringComparison.Ordinal))
-        {
-            var body = devName["GE_".Length..];
-            var lastUnderscore = body.LastIndexOf('_');
-            return lastUnderscore >= 0
-                ? (body[..lastUnderscore], body[(lastUnderscore + 1)..])
-                : (body, null);
-        }
-
-        if (devName.StartsWith("GA_", StringComparison.Ordinal))
-            return (devName["GA_".Length..], null);
-
-        return (devName, null);
-    }
-
-    /// <summary>
     /// Returns every <see cref="ConstantsEntry"/> in <paramref name="hero"/> whose <c>DevName</c>
     /// exactly matches the Kit ability's <c>DevName</c>.
     /// </summary>
