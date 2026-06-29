@@ -61,8 +61,10 @@
     <Project Path="tests/FellowshipAnalyzer.Analyzers.Tests/FellowshipAnalyzer.Analyzers.Tests.csproj" />
     <Project Path="tests/FellowshipAnalyzer.Core.Tests/FellowshipAnalyzer.Core.Tests.csproj" />
     <Project Path="tests/FellowshipAnalyzer.Generators.Tests/FellowshipAnalyzer.Generators.Tests.csproj" />
+    <Project Path="tests/FellowshipAnalyzer.SpellData.Tests/FellowshipAnalyzer.SpellData.Tests.csproj" />
   </Folder>
   <Project Path="src/FellowshipAnalyzer.Analyzers/FellowshipAnalyzer.Analyzers.csproj" />
+  <Project Path="src/FellowshipAnalyzer.SpellData/FellowshipAnalyzer.SpellData.csproj" />
   <Project Path="src/FellowshipAnalyzer.AppHost/FellowshipAnalyzer.AppHost.csproj" />
   <Project Path="src/FellowshipAnalyzer.DesignSystem/FellowshipAnalyzer.DesignSystem.csproj" />
   <Project Path="src/FellowshipAnalyzer.Generators/FellowshipAnalyzer.Generators.csproj" />
