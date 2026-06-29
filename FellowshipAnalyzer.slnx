@@ -65,6 +65,7 @@
   </Folder>
   <Project Path="src/FellowshipAnalyzer.Analyzers/FellowshipAnalyzer.Analyzers.csproj" />
   <Project Path="src/FellowshipAnalyzer.SpellData/FellowshipAnalyzer.SpellData.csproj" />
+  <Project Path="src/FellowshipAnalyzer.SpellStudio/FellowshipAnalyzer.SpellStudio.csproj" />
   <Project Path="src/FellowshipAnalyzer.AppHost/FellowshipAnalyzer.AppHost.csproj" />
   <Project Path="src/FellowshipAnalyzer.DesignSystem/FellowshipAnalyzer.DesignSystem.csproj" />
   <Project Path="src/FellowshipAnalyzer.Generators/FellowshipAnalyzer.Generators.csproj" />

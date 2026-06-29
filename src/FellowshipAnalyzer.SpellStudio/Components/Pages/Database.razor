@@ -1,0 +1,45 @@
+@page "/"
+@rendermode @(new InteractiveServerRenderMode())
+@inject MergeService Merge
+
+<h1>Spell Database</h1>
+
+<table>
+    <thead>
+        <tr>
+            <th>Scope</th>
+            <th>Member</th>
+            <th>Id</th>
+            <th>Kind</th>
+            <th>Name</th>
+            <th>Icon</th>
+            <th>Cooldown</th>
+            <th>Range</th>
+            <th>Charges</th>
+            <th>Cast</th>
+            <th>Channel</th>
+            <th>Tick</th>
+            <th>Costs</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var spell in Merge.Result.Spells)
+        {
+            <tr>
+                <td>@spell.Scope</td>
+                <td>@spell.Member</td>
+                <td>@spell.Id</td>
+                <td>@spell.Kind</td>
+                <td>@spell.Name</td>
+                <td>@spell.Icon</td>
+                <td>@spell.Cooldown</td>
+                <td>@spell.Range</td>
+                <td>@spell.Charges</td>
+                <td>@spell.CastDuration</td>
+                <td>@spell.ChannelDuration</td>
+                <td>@spell.ChannelTickInterval</td>
+                <td>@string.Join(", ", spell.Costs.Select(c => $"{c.Key}:{c.Value}"))</td>
+            </tr>
+        }
+    </tbody>
+</table>
