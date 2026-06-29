@@ -655,6 +655,238 @@
       "icon": "Tex_b_03.jpg"
     }
   },
+  "gunde": {
+    "Attack": {
+      "id": 1249,
+      "name": "Attack",
+      "icon": ""
+    },
+    "AttackDamage": {
+      "id": 1796,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "AttackDamageOld": {
+      "id": 3172,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "BloodArc": {
+      "id": 2291,
+      "name": "Blood Arc",
+      "icon": "",
+      "cooldown": 9
+    },
+    "BloodArcDamage": {
+      "id": 3236,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "BloodboundSpirit": {
+      "id": 2296,
+      "name": "Bloodbound Spirit",
+      "icon": "",
+      "castDuration": 1
+    },
+    "BloodboundSpiritDamage": {
+      "id": 3243,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "BloodboundSpiritSelfBuff": {
+      "id": 3242,
+      "kind": "effect",
+      "name": "Bloodbound Spirit",
+      "icon": ""
+    },
+    "ButcherHook": {
+      "id": 2284,
+      "name": "Butcher\u0027s Hook",
+      "icon": "",
+      "cooldown": 30,
+      "range": 30
+    },
+    "ButcherHookDamage": {
+      "id": 3228,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "ButcherHookPull": {
+      "id": 3227,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "ButcherHookPullActivator": {
+      "id": 3226,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "DoubleStrike": {
+      "id": 2301,
+      "name": "Double Strike",
+      "icon": "",
+      "range": 30
+    },
+    "DoubleStrikeDamage": {
+      "id": 3248,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "GrimCarve": {
+      "id": 2262,
+      "name": "Grim Carve",
+      "icon": "",
+      "cooldown": 15,
+      "range": 30
+    },
+    "GrimCarveDamage": {
+      "id": 3205,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "HeartSplitter": {
+      "id": 2294,
+      "name": "Heart Splitter",
+      "icon": "",
+      "cooldown": 12
+    },
+    "HeartSplitterDamage": {
+      "id": 3240,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "HeartSplitterDotBonusDamage": {
+      "id": 3239,
+      "kind": "effect",
+      "name": "Heart Splitter: Exsanguinate",
+      "icon": ""
+    },
+    "HeartSplitterIncreasedCritChance": {
+      "id": 3215,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "Jawbreaker": {
+      "id": 1244,
+      "name": "Jawbreaker",
+      "icon": "",
+      "cooldown": 12,
+      "range": 5
+    },
+    "JawbreakerInterrupt": {
+      "id": 1786,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "JawbreakerLockout": {
+      "id": 1785,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "OwedInBlood": {
+      "id": 2298,
+      "name": "Owed in Blood",
+      "icon": "",
+      "range": 20
+    },
+    "OwedInBloodSelfBuff": {
+      "id": 3245,
+      "kind": "effect",
+      "name": "Owed in Blood",
+      "icon": ""
+    },
+    "OwedInBloodSelfBuffFromOrbs": {
+      "id": 3244,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "ReaverEdge": {
+      "id": 2290,
+      "name": "Reaver\u0027s Edge",
+      "icon": "",
+      "cooldown": 5
+    },
+    "ReaverEdgeDamage": {
+      "id": 3235,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "RecklessAbandon": {
+      "id": 2300,
+      "name": "Reckless Abandon",
+      "icon": "",
+      "cooldown": 30
+    },
+    "RecklessAbandonSelfBuff": {
+      "id": 3247,
+      "kind": "effect",
+      "name": "Reckless Abandon",
+      "icon": ""
+    },
+    "ReignInBlood": {
+      "id": 2295,
+      "name": "Reign in Blood",
+      "icon": "",
+      "cooldown": 90
+    },
+    "ReignInBloodSelfBuff": {
+      "id": 3241,
+      "kind": "effect",
+      "name": "Reign in Blood",
+      "icon": ""
+    },
+    "Rupture": {
+      "id": 2293,
+      "name": "Rupture",
+      "icon": "",
+      "cooldown": 60
+    },
+    "RuptureDamage": {
+      "id": 3238,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "Slaughter": {
+      "id": 2292,
+      "name": "Slaughter",
+      "icon": "",
+      "cooldown": 30
+    },
+    "SlaughterDot": {
+      "id": 3237,
+      "kind": "effect",
+      "name": "Slaughter",
+      "icon": ""
+    },
+    "Warbound": {
+      "id": 2299,
+      "name": "Warbound",
+      "icon": "",
+      "charges": 2
+    },
+    "WarboundDamage": {
+      "id": 3246,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    }
+  },
   "helena": {
     "Attack": {
       "id": 978,

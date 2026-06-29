@@ -1,0 +1,81 @@
+@use 'tokens' as t;
+
+:root {
+    --fa-bg-base:    #{t.$fa-bg-base};
+    --fa-bg-raised:  #{t.$fa-bg-raised};
+    --fa-bg-surface: #{t.$fa-bg-surface};
+    --fa-bg-card:    #{t.$fa-bg-card};
+    --fa-bg-inset:   #{t.$fa-bg-inset};
+
+    --fa-gold:       #{t.$fa-gold};
+    --fa-gold-light: #{t.$fa-gold-light};
+    --fa-gold-dim:   #{t.$fa-gold-dim};
+
+    --fa-text:       #{t.$fa-text};
+    --fa-text-muted: #{t.$fa-text-muted};
+    --fa-text-dim:   #{t.$fa-text-dim};
+
+    --fa-border:      #{t.$fa-border};
+    --fa-border-card: #{t.$fa-border-card};
+
+    --fa-perf-perfect:   #{t.$fa-perf-perfect};
+    --fa-perf-good:      #{t.$fa-perf-good};
+    --fa-perf-ok:        #{t.$fa-perf-ok};
+    --fa-perf-fail:      #{t.$fa-perf-fail};
+
+    --fa-ice: #{t.$fa-ice};
+
+    --fa-shadow-card: #{t.$fa-shadow-card};
+    --fa-shadow-lg:   #{t.$fa-shadow-lg};
+
+    --fa-radius-sm: #{t.$fa-radius-sm};
+    --fa-radius-md: #{t.$fa-radius-md};
+    --fa-radius-lg: #{t.$fa-radius-lg};
+
+    --fa-font-body:    #{t.$fa-font-body};
+    --fa-font-heading: #{t.$fa-font-heading};
+
+    --studio-mono: 'Cascadia Code', 'JetBrains Mono', ui-monospace, 'SFMono-Regular', Consolas, monospace;
+
+    --studio-src-spelldata: #6b7a9a;
+    --studio-src-herodata:  #6ec8e8;
+    --studio-src-geardata:  #b48ef0;
+    --studio-src-icons:     #5fd0b0;
+    --studio-src-override:  #d4a744;
+
+    --studio-warn: #e0b341;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html {
+    font-family: var(--fa-font-body);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+    margin: 0;
+    background: var(--fa-bg-base);
+    color: var(--fa-text);
+    line-height: 1.5;
+}
+
+h1, h2, h3, h4 {
+    font-family: var(--fa-font-heading);
+    font-weight: 700;
+    line-height: 1.15;
+    color: var(--fa-text);
+}
+
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+    border: 0;
+}

@@ -8,9 +8,9 @@ namespace FellowshipAnalyzer.SpellData;
 /// Declared as a record so Task 9 can produce patched variants via <c>with { … }</c>.
 /// </summary>
 public record MergeInputs(
-    SpellDataSource Spells,
-    GearDataSource Gear,
-    HeroDataSource Heroes,
+    SpellDataSource SpellData,
+    GearDataSource GearData,
+    HeroDataSource HeroData,
     IconSource Icons,
     OverridesSource Overrides,
     DevNameMappings Names)
@@ -30,15 +30,8 @@ public record MergeInputs(
 /// </summary>
 public static class MergeEngine
 {
-    /// <summary>The 11 hero display names that have shipped analyzers and registry entries.</summary>
-    public static readonly HashSet<string> ShippedHeroes = new(StringComparer.OrdinalIgnoreCase)
-    {
-        "Aeona", "Ardeos", "Elarion", "Helena", "Mara",
-        "Meiko", "Rime", "Sylvie", "Tariq", "Vigour", "Xavian",
-    };
-
     /// <summary>
-    /// For each shipped hero, selects their Kit abilities, resolves scalars from Constants entries,
+    /// For each hero present in <c>hero_data.json</c>, selects their Kit abilities, resolves scalars from Constants entries,
     /// links and includes spawned effects, and enriches each entry with name/kind from
     /// <c>spell_data</c>, icon from <c>abilities.json</c>, and costs from the merged scalar bag.
     /// After auto-selection, applies overrides: patches existing members in place and adds
@@ -49,13 +42,11 @@ public static class MergeEngine
         var spells = new List<MergedSpell>();
         var gaps = new List<Gap>();
 
-        foreach (var hero in inputs.Heroes.Heroes)
+        foreach (var hero in inputs.HeroData.Heroes)
         {
-            if (!ShippedHeroes.Contains(hero.DisplayName))
-                continue;
             var scope = hero.DisplayName.ToLowerInvariant();
             var heroPrefix = $"GA_{hero.DevKey}_";
-            var effectLinks = Linking.LinkEffects(hero, inputs.Spells);
+            var effectLinks = Linking.LinkEffects(hero, inputs.SpellData);
             var linksByAbilityFslId = effectLinks
                 .GroupBy(l => l.AbilityFslId)
                 .ToDictionary(g => g.Key, g => g.ToList());
@@ -72,7 +63,7 @@ public static class MergeEngine
                 var scalars = MergeScalars(constants);
 
                 string? spellDataName = null;
-                if (kind == SpellKind.Ability && inputs.Spells.Abilities.TryGetValue(nativeId, out var abilityEntry))
+                if (kind == SpellKind.Ability && inputs.SpellData.Abilities.TryGetValue(nativeId, out var abilityEntry))
                     spellDataName = abilityEntry.Name;
 
                 var name = spellDataName ?? kit.Name ?? string.Empty;
@@ -118,7 +109,7 @@ public static class MergeEngine
                 {
                     var effectKind = SpellKindRange.FromFslId(link.EffectFslId);
                     var effectId = SpellKindRange.NativeId(link.EffectFslId);
-                    var effectName = inputs.Spells.Effects.TryGetValue(effectId, out var effectEntry)
+                    var effectName = inputs.SpellData.Effects.TryGetValue(effectId, out var effectEntry)
                         ? effectEntry.Name ?? string.Empty
                         : string.Empty;
                     var effectMember = MemberNaming.EffectMember(member, link.Role);
@@ -142,7 +133,7 @@ public static class MergeEngine
 
             var linkedEffectFslIds = new HashSet<int>(effectLinks.Select(l => l.EffectFslId));
             var heroEffectPrefix = $"GE_{hero.DevKey}_";
-            foreach (var effect in inputs.Spells.Effects.Values)
+            foreach (var effect in inputs.SpellData.Effects.Values)
             {
                 if (!effect.DevName.StartsWith(heroEffectPrefix, StringComparison.Ordinal))
                     continue;
@@ -229,13 +220,13 @@ public static class MergeEngine
         var scalars = GatherScalarsById(id, inputs);
 
         string? nameFromSpellData = null;
-        if (kind == SpellKind.Ability && inputs.Spells.Abilities.TryGetValue(nativeId, out var abilityEntry))
+        if (kind == SpellKind.Ability && inputs.SpellData.Abilities.TryGetValue(nativeId, out var abilityEntry))
             nameFromSpellData = abilityEntry.Name;
-        else if (kind == SpellKind.Effect && inputs.Spells.Effects.TryGetValue(nativeId, out var effectEntry))
+        else if (kind == SpellKind.Effect && inputs.SpellData.Effects.TryGetValue(nativeId, out var effectEntry))
             nameFromSpellData = effectEntry.Name;
 
-        var gearWeapon = inputs.Gear.Weapons.FirstOrDefault(w => w.FslId == id)
-            ?? inputs.Gear.WeaponTraits.FirstOrDefault(w => w.FslId == id);
+        var gearWeapon = inputs.GearData.Weapons.FirstOrDefault(w => w.FslId == id)
+            ?? inputs.GearData.WeaponTraits.FirstOrDefault(w => w.FslId == id);
 
         var resolvedName = delta.Name ?? nameFromSpellData ?? gearWeapon?.DisplayName ?? string.Empty;
         var guid = SpellKindRange.GuidFor(kind, nativeId);
@@ -288,13 +279,13 @@ public static class MergeEngine
     {
         var result = new Dictionary<string, double>(StringComparer.Ordinal);
 
-        var gearWeapon = inputs.Gear.Weapons.FirstOrDefault(w => w.FslId == id)
-            ?? inputs.Gear.WeaponTraits.FirstOrDefault(w => w.FslId == id);
+        var gearWeapon = inputs.GearData.Weapons.FirstOrDefault(w => w.FslId == id)
+            ?? inputs.GearData.WeaponTraits.FirstOrDefault(w => w.FslId == id);
         if (gearWeapon is not null)
             foreach (var (k, v) in gearWeapon.Scalars)
                 result[k] = v;
 
-        foreach (var hero in inputs.Heroes.Heroes)
+        foreach (var hero in inputs.HeroData.Heroes)
         {
             var kit = hero.Kit.FirstOrDefault(k => k.FslId == id);
             if (kit is null)

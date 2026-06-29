@@ -11,4 +11,12 @@
     <ProjectReference Include="..\FellowshipAnalyzer.SpellData\FellowshipAnalyzer.SpellData.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Update="sasscompiler.json" CopyToPublishDirectory="Never" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AspNetCore.SassCompiler" />
+  </ItemGroup>
+
 </Project>

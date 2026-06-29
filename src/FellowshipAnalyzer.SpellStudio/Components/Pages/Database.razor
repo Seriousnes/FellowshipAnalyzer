@@ -6,179 +6,325 @@
 @using FellowshipAnalyzer.SpellData.Sources
 @inject MergeService Merge
 
-<h1>Spell Studio</h1>
-
-<div>
-    <button @onclick="RebuildDb">Rebuild spelldb.json</button>
-    @if (_status is not null)
-    {
-        <span>&nbsp;@_status</span>
-    }
-</div>
-
-@if (_selected is not null)
-{
-    <section>
-        <h2>Edit: @_selected.Scope / @_selected.Member</h2>
-        <div>
-            <SpellLink Spell="@(Spell.FromGuid(_selected.Guid, _selected.Name, _selected.Icon))" Icon="true" />
-        </div>
-        <table>
-            <tbody>
-                <tr>
-                    <td>Name</td>
-                    <td><input type="text" @bind="_eName" placeholder="@_selected.Name" /></td>
-                </tr>
-                <tr>
-                    <td>Icon</td>
-                    <td><input type="text" @bind="_eIcon" placeholder="@_selected.Icon" /></td>
-                </tr>
-                <tr>
-                    <td>Cooldown</td>
-                    <td><input type="text" @bind="_eCooldown" placeholder="@(_selected.Cooldown?.ToString() ?? "")" /></td>
-                </tr>
-                <tr>
-                    <td>Range</td>
-                    <td><input type="text" @bind="_eRange" placeholder="@(_selected.Range?.ToString() ?? "")" /></td>
-                </tr>
-                <tr>
-                    <td>Charges</td>
-                    <td><input type="text" @bind="_eCharges" placeholder="@_selected.Charges" /></td>
-                </tr>
-                <tr>
-                    <td>Cast Duration</td>
-                    <td><input type="text" @bind="_eCastDuration" placeholder="@(_selected.CastDuration?.ToString() ?? "")" /></td>
-                </tr>
-                <tr>
-                    <td>Channel Duration</td>
-                    <td><input type="text" @bind="_eChannelDuration" placeholder="@(_selected.ChannelDuration?.ToString() ?? "")" /></td>
-                </tr>
-                <tr>
-                    <td>Channel Tick</td>
-                    <td><input type="text" @bind="_eChannelTickInterval" placeholder="@(_selected.ChannelTickInterval?.ToString() ?? "")" /></td>
-                </tr>
-                <tr>
-                    <td>Note</td>
-                    <td><input type="text" @bind="_eNote" /></td>
-                </tr>
-            </tbody>
-        </table>
-        <button @onclick="SaveEdit">Save Override</button>
-        <button @onclick="CancelEdit">Cancel</button>
-    </section>
-}
-
-@if (_addGap is not null)
-{
-    <section>
-        <h2>Add: @_addGap.Scope / @_addGap.Member</h2>
-        <label>Id&nbsp;<input type="number" @bind="_addId" /></label>
-        &nbsp;
-        <label>Note&nbsp;<input type="text" @bind="_addNote" /></label>
-        &nbsp;
-        <button @onclick="SaveAdd">Add Override</button>
-        <button @onclick="CancelAdd">Cancel</button>
-    </section>
-}
-
 @{
-    var gapSet = Merge.Result.Gaps
-        .Select(g => (g.Scope, g.Member))
-        .ToHashSet();
-    var addCandidates = Merge.Result.Gaps
-        .Where(g => g.Kind == GapKind.UnresolvedEffect)
-        .ToList();
+    var byKey = new Dictionary<(string, string), MergedSpell>();
+    foreach (var s in Merge.Result.Spells) byKey[(s.Scope, s.Member)] = s;
+
+    var gapSet = Merge.Result.Gaps.Select(g => (g.Scope, g.Member)).ToHashSet();
+    var filtered = FilteredSpells();
 }
 
-@if (addCandidates.Count > 0)
-{
-    <section>
-        <h2>Add Candidates — @addCandidates.Count unresolved effect(s)</h2>
-        <ul>
-            @foreach (var gap in addCandidates)
+<div class="studio">
+    <header class="studio-bar">
+        <div class="studio-wordmark">
+            <svg class="studio-mark" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+                <path d="M12 1.5 L14.7 9.3 L22.5 12 L14.7 14.7 L12 22.5 L9.3 14.7 L1.5 12 L9.3 9.3 Z" fill="currentColor" />
+            </svg>
+            <span class="studio-name">
+                <strong>Spell Studio</strong>
+                <small>spell database curation</small>
+            </span>
+        </div>        
+
+        <div class="studio-actions">
+            @if (_status is not null)
             {
-                <li>
-                    @gap.Scope / @gap.Member
-                    &nbsp;<button @onclick="() => StartAdd(gap)">Add</button>
-                </li>
+                <span class="studio-status">@_status</span>
             }
-        </ul>
-    </section>
-}
+            <button class="btn-rebuild" @onclick="RebuildDb" disabled="@_rebuilding">
+                @(_rebuilding ? "Rebuilding…" : "Rebuild spelldb.json")
+            </button>
+        </div>
+    </header>
 
-@if (Merge.Result.Gaps.Count > 0)
-{
-    <section>
-        <h2>Gaps — @Merge.Result.Gaps.Count total</h2>
-        @foreach (var group in Merge.Result.Gaps.GroupBy(g => g.Kind))
-        {
-            <h3>@group.Key (@group.Count())</h3>
-            <ul>
-                @foreach (var gap in group)
-                {
-                    <li>@gap.Scope / @gap.Member</li>
-                }
-            </ul>
-        }
-    </section>
-}
+    <div class="studio-toolbar">
+        <label class="studio-search">
+            <svg class="search-icon" viewBox="0 0 24 24" width="15" height="15" fill="none"
+                 stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+                <circle cx="10.5" cy="10.5" r="6.5" />
+                <line x1="21" y1="21" x2="16" y2="16" />
+            </svg>
+            <input type="search" placeholder="Search name, member, scope, id…"
+                   @bind="_search" @bind:event="oninput" aria-label="Search spells" />
+        </label>
 
-<table>
-    <thead>
-        <tr>
-            <th>Icon</th>
-            <th>Scope</th>
-            <th>Member</th>
-            <th>Id</th>
-            <th>Kind</th>
-            <th>Name</th>
-            <th>Cooldown</th>
-            <th>Range</th>
-            <th>Charges</th>
-            <th>Cast</th>
-            <th>Channel</th>
-            <th>Tick</th>
-            <th>Costs</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var spell in Merge.Result.Spells)
-        {
-            var hasGap = gapSet.Contains((spell.Scope, spell.Member));
-            var isSelected = _selected is not null
-                && _selected.Scope == spell.Scope
-                && _selected.Member == spell.Member;
-            var coreSpell = Spell.FromGuid(spell.Guid, spell.Name, spell.Icon);
-            <tr class="@(hasGap ? "row--gap" : "") @(isSelected ? "row--selected" : "")"
-                title="@BuildProvenanceTooltip(spell)"
-                @onclick="() => SelectSpell(spell)"
-                style="cursor:pointer">
-                <td>
-                    <SpellIcon Spell="@coreSpell" Size="SpellIconSize.Small" NoTooltip="true" />
-                </td>
-                <td>@spell.Scope</td>
-                <td>@spell.Member</td>
-                <td>@spell.Id</td>
-                <td>@spell.Kind</td>
-                <td>
-                    <SpellLink Spell="@coreSpell" Icon="false" />
-                </td>
-                <td>@spell.Cooldown</td>
-                <td>@spell.Range</td>
-                <td>@spell.Charges</td>
-                <td>@spell.CastDuration</td>
-                <td>@spell.ChannelDuration</td>
-                <td>@spell.ChannelTickInterval</td>
-                <td>@string.Join(", ", spell.Costs.Select(c => $"{c.Key}:{c.Value}"))</td>
-            </tr>
-        }
-    </tbody>
-</table>
+        <div class="scope-chips" role="group" aria-label="Filter by scope">
+            <button class="scope-chip @(_scopeFilter is null ? "active" : "")"
+                    @onclick="() => _scopeFilter = null">all</button>
+            @foreach (var scope in Scopes)
+            {
+                <button class="scope-chip @(_scopeFilter == scope ? "active" : "")"
+                        @onclick="() => ToggleScope(scope)">@scope</button>
+            }
+        </div>
+
+        <div class="kind-seg" role="group" aria-label="Filter by kind">
+            <button class="kind-seg-item @(_kindFilter is null ? "active" : "")"
+                    @onclick="() => _kindFilter = null">All</button>
+            @foreach (var kind in KindOrder)
+            {
+                <button class="kind-seg-item @(_kindFilter == kind ? "active" : "")"
+                        @onclick="() => ToggleKind(kind)">@kind</button>
+            }
+        </div>
+
+        <div class="toolbar-toggles">
+            <button class="toggle-chip @(_gapsOnly ? "active" : "")"
+                    @onclick="() => _gapsOnly = !_gapsOnly">⚠ gaps</button>
+            <button class="toggle-chip @(_overridesOnly ? "active" : "")"
+                    @onclick="() => _overridesOnly = !_overridesOnly">✎ overridden</button>
+            <button class="toggle-chip @(_showProvenance ? "active" : "")"
+                    @onclick="() => _showProvenance = !_showProvenance">◆ provenance</button>
+        </div>
+
+        <div class="prov-legend" aria-label="Provenance sources">
+            <span class="prov-swatch src-spelldata">spell</span>
+            <span class="prov-swatch src-herodata">hero</span>
+            <span class="prov-swatch src-geardata">gear</span>
+            <span class="prov-swatch src-icons">icon</span>
+            <span class="prov-swatch src-override">override</span>
+        </div>
+    </div>
+
+    <div class="studio-body">
+        <div class="studio-grid-wrap">
+            <div class="grid-count">showing <b>@filtered.Count</b> of @Merge.Result.Spells.Count</div>
+            @if (filtered.Count == 0)
+            {
+                <div class="grid-empty">
+                    <p>No spells match these filters.</p>
+                    <button class="btn-ghost" @onclick="ClearFilters">Clear filters</button>
+                </div>
+            }
+            else
+            {
+                <table class="spell-grid @(_showProvenance ? "show-prov" : "")">
+                    <thead>
+                        <tr>
+                            <th class="col-icon"><span class="visually-hidden">Icon</span></th>
+                            <th>Scope · Member</th>
+                            <th>Kind</th>
+                            <th class="num">Id</th>
+                            <th>Name</th>
+                            <th class="num">CD</th>
+                            <th class="num">Rng</th>
+                            <th class="num">Chg</th>
+                            <th class="num">Cast</th>
+                            <th class="num">Chan</th>
+                            <th class="num">Tick</th>
+                            <th>Costs</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var spell in filtered)
+                        {
+                            var hasGap = gapSet.Contains((spell.Scope, spell.Member));
+                            var isSelected = _selected is not null
+                                && _selected.Scope == spell.Scope
+                                && _selected.Member == spell.Member;
+                            var coreSpell = Spell.FromGuid(spell.Guid, spell.Name, spell.Icon);
+                            var costs = string.Join("  ", spell.Costs.Select(c => $"{c.Key}:{c.Value}"));
+                            <tr class="spell-row @(hasGap ? "has-gap" : "") @(isSelected ? "selected" : "")"
+                                @onclick="() => SelectSpell(spell)">
+                                <td class="col-icon cell @SrcCellClass(spell.Provenance.Icon)">
+                                    @if (string.IsNullOrEmpty(spell.Icon))
+                                    {
+                                        <span class="icon-missing" title="No icon" aria-hidden="true"></span>
+                                    }
+                                    else
+                                    {
+                                        <SpellIcon Spell="@coreSpell" Size="SpellIconSize.Small" NoTooltip="true" />
+                                    }
+                                </td>
+                                <td class="col-member">
+                                    @if (hasGap)
+                                    {
+                                        <span class="gap-flag" title="Has gap" aria-hidden="true">⚠</span>
+                                    }
+                                    <span class="member-scope">@spell.Scope</span>
+                                    @if (string.IsNullOrEmpty(spell.Member))
+                                    {
+                                        <span class="member-name member-unnamed">#@spell.Id</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="member-name">@spell.Member</span>
+                                    }
+                                </td>
+                                <td class="cell @SrcCellClass(spell.Provenance.Kind)">
+                                    <span class="kind-tag">@KindTag(spell.Kind)</span>
+                                </td>
+                                <td class="num mono cell @SrcCellClass(spell.Provenance.Id)">@CellVal(spell.Id.ToString())</td>
+                                <td class="cell @SrcCellClass(spell.Provenance.Name)">
+                                    <SpellLink Spell="@coreSpell" Icon="false" />
+                                </td>
+                                <td class="num mono cell @SrcCellClass(spell.Provenance.Cooldown)">@CellVal(Fmt(spell.Cooldown))</td>
+                                <td class="num mono cell @SrcCellClass(spell.Provenance.Range)">@CellVal(spell.Range?.ToString())</td>
+                                <td class="num mono cell @SrcCellClass(spell.Provenance.Charges)">@CellVal(spell.Charges.ToString())</td>
+                                <td class="num mono cell @SrcCellClass(spell.Provenance.CastDuration)">@CellVal(Fmt(spell.CastDuration))</td>
+                                <td class="num mono cell @SrcCellClass(spell.Provenance.ChannelDuration)">@CellVal(Fmt(spell.ChannelDuration))</td>
+                                <td class="num mono cell @SrcCellClass(spell.Provenance.ChannelTickInterval)">@CellVal(Fmt(spell.ChannelTickInterval))</td>
+                                <td class="mono cell @SrcCellClass(spell.Provenance.Costs)">@CellVal(costs)</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+        </div>
+
+        <aside class="studio-inspector">
+            @if (_selected is not null)
+            {
+                var sel = _selected;
+                var selCore = Spell.FromGuid(sel.Guid, sel.Name, sel.Icon);
+                <div class="inspector-card">
+                    <div class="inspector-head">
+                        @if (string.IsNullOrEmpty(sel.Icon))
+                        {
+                            <span class="icon-missing icon-missing-lg" title="No icon" aria-hidden="true"></span>
+                        }
+                        else
+                        {
+                            <SpellIcon Spell="@selCore" Size="SpellIconSize.Medium" NoTooltip="true" />
+                        }
+                        <div class="inspector-title">
+                            <SpellLink Spell="@selCore" Icon="false" />
+                            <span class="inspector-meta">@sel.Scope / @sel.Member · @KindTag(sel.Kind) · #@sel.Id</span>
+                        </div>
+                    </div>
+
+                    <div class="field-list">
+                        <label class="field">
+                            <span class="field-key">Name @ProvChip(sel.Provenance.Name)</span>
+                            <input type="text" class="field-input" @bind="_eName" @bind:event="oninput" placeholder="@sel.Name" />
+                        </label>
+                        <label class="field">
+                            <span class="field-key">Icon @ProvChip(sel.Provenance.Icon)</span>
+                            <input type="text" class="field-input" @bind="_eIcon" @bind:event="oninput" placeholder="@sel.Icon" />
+                        </label>
+                        <label class="field">
+                            <span class="field-key">Cooldown @ProvChip(sel.Provenance.Cooldown)</span>
+                            <input type="text" class="field-input" @bind="_eCooldown" @bind:event="oninput" placeholder="@Fmt(sel.Cooldown)" />
+                        </label>
+                        <label class="field">
+                            <span class="field-key">Range @ProvChip(sel.Provenance.Range)</span>
+                            <input type="text" class="field-input" @bind="_eRange" @bind:event="oninput" placeholder="@(sel.Range?.ToString())" />
+                        </label>
+                        <label class="field">
+                            <span class="field-key">Charges @ProvChip(sel.Provenance.Charges)</span>
+                            <input type="text" class="field-input" @bind="_eCharges" @bind:event="oninput" placeholder="@sel.Charges" />
+                        </label>
+                        <label class="field">
+                            <span class="field-key">Cast Duration @ProvChip(sel.Provenance.CastDuration)</span>
+                            <input type="text" class="field-input" @bind="_eCastDuration" @bind:event="oninput" placeholder="@Fmt(sel.CastDuration)" />
+                        </label>
+                        <label class="field">
+                            <span class="field-key">Channel Duration @ProvChip(sel.Provenance.ChannelDuration)</span>
+                            <input type="text" class="field-input" @bind="_eChannelDuration" @bind:event="oninput" placeholder="@Fmt(sel.ChannelDuration)" />
+                        </label>
+                        <label class="field">
+                            <span class="field-key">Channel Tick @ProvChip(sel.Provenance.ChannelTickInterval)</span>
+                            <input type="text" class="field-input" @bind="_eChannelTickInterval" @bind:event="oninput" placeholder="@Fmt(sel.ChannelTickInterval)" />
+                        </label>
+                        <label class="field">
+                            <span class="field-key">Note</span>
+                            <input type="text" class="field-input" @bind="_eNote" @bind:event="oninput" placeholder="curation note" />
+                        </label>
+                    </div>
+
+                    <div class="inspector-actions">
+                        <button class="btn-primary" @onclick="SaveEdit">Save override</button>
+                        <button class="btn-ghost" @onclick="CancelEdit">Cancel</button>
+                    </div>
+                </div>
+            }
+            else if (_addGap is not null)
+            {
+                <div class="inspector-card">
+                    <div class="inspector-head">
+                        <div class="inspector-title">
+                            <strong class="inspector-add-title">Add effect</strong>
+                            <span class="inspector-meta">@_addGap.Scope / @_addGap.Member</span>
+                        </div>
+                    </div>
+                    <div class="field-list">
+                        <label class="field">
+                            <span class="field-key">Id</span>
+                            <input type="number" class="field-input" @bind="_addId" placeholder="native effect id" />
+                        </label>
+                        <label class="field">
+                            <span class="field-key">Note</span>
+                            <input type="text" class="field-input" @bind="_addNote" placeholder="why this id" />
+                        </label>
+                    </div>
+                    <div class="inspector-actions">
+                        <button class="btn-primary" @onclick="SaveAdd">Add override</button>
+                        <button class="btn-ghost" @onclick="CancelAdd">Cancel</button>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="inspector-default">
+                    <h2 class="inspector-section">Worklist</h2>
+                    @if (Merge.Result.Gaps.Count == 0)
+                    {
+                        <p class="worklist-clean">No gaps — every spell has a name and icon. ✓</p>
+                    }
+                    else
+                    {
+                        <p class="worklist-lede">@Merge.Result.Gaps.Count gap(s) across the database. Resolve each with an override.</p>
+                        @foreach (var group in Merge.Result.Gaps.GroupBy(g => g.Kind))
+                        {
+                            <div class="gap-group">
+                                <h3 class="gap-group-title">@GapLabel(group.Key) <span class="gap-count">@group.Count()</span></h3>
+                                <ul class="gap-list">
+                                    @foreach (var gap in group)
+                                    {
+                                        <li class="gap-item">
+                                            <span class="gap-item-name">
+                                                <span class="member-scope">@gap.Scope</span>
+                                                @if (string.IsNullOrEmpty(gap.Member))
+                                                {
+                                                    <span class="member-name member-unnamed">unnamed</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="member-name">@gap.Member</span>
+                                                }
+                                            </span>
+                                            @if (gap.Kind == GapKind.UnresolvedEffect)
+                                            {
+                                                <button class="gap-action" @onclick="() => StartAdd(gap)">add</button>
+                                            }
+                                            else if (byKey.TryGetValue((gap.Scope, gap.Member), out var gapSpell))
+                                            {
+                                                <button class="gap-action" @onclick="() => SelectSpell(gapSpell)">fix</button>
+                                            }
+                                        </li>
+                                    }
+                                </ul>
+                            </div>
+                        }
+                    }
+                </div>
+            }
+        </aside>
+    </div>
+</div>
 
 @code {
     private MergedSpell? _selected;
     private Gap? _addGap;
     private string? _status;
+    private bool _rebuilding;
+
+    private string _search = "";
+    private string? _scopeFilter;
+    private SpellKind? _kindFilter;
+    private bool _gapsOnly;
+    private bool _overridesOnly;
+    private bool _showProvenance;
 
     private string _eName = "";
     private string _eIcon = "";
@@ -192,6 +338,52 @@
 
     private string _addId = "";
     private string _addNote = "";
+
+    private static readonly SpellKind[] KindOrder =
+        [SpellKind.Ability, SpellKind.Effect, SpellKind.Talent, SpellKind.Weapon];
+
+    private IEnumerable<string> Scopes =>
+        Merge.Result.Spells.Select(s => s.Scope).Distinct()
+            .OrderBy(s => s == "items" ? 1 : 0).ThenBy(s => s, StringComparer.Ordinal);
+
+    private List<MergedSpell> FilteredSpells()
+    {
+        var gapSet = Merge.Result.Gaps.Select(g => (g.Scope, g.Member)).ToHashSet();
+        var term = _search.Trim();
+        return Merge.Result.Spells
+            .Where(s => _scopeFilter is null || s.Scope == _scopeFilter)
+            .Where(s => _kindFilter is null || s.Kind == _kindFilter)
+            .Where(s => !_gapsOnly || gapSet.Contains((s.Scope, s.Member)))
+            .Where(s => !_overridesOnly || HasOverride(s))
+            .Where(s => term.Length == 0 || Matches(s, term))
+            .OrderBy(s => s.Scope, StringComparer.Ordinal)
+            .ThenBy(s => s.Member, StringComparer.Ordinal)
+            .ToList();
+    }
+
+    private static bool Matches(MergedSpell s, string term) =>
+        s.Member.Contains(term, StringComparison.OrdinalIgnoreCase)
+        || s.Name.Contains(term, StringComparison.OrdinalIgnoreCase)
+        || s.Scope.Contains(term, StringComparison.OrdinalIgnoreCase)
+        || s.Id.ToString().Contains(term, StringComparison.OrdinalIgnoreCase);
+
+    private bool HasOverride(MergedSpell s) =>
+        Merge.Overrides.ByScopeAndMember.GetValueOrDefault(s.Scope)?.ContainsKey(s.Member) == true;
+
+    private void ToggleScope(string scope) =>
+        _scopeFilter = _scopeFilter == scope ? null : scope;
+
+    private void ToggleKind(SpellKind kind) =>
+        _kindFilter = _kindFilter == kind ? null : kind;
+
+    private void ClearFilters()
+    {
+        _search = "";
+        _scopeFilter = null;
+        _kindFilter = null;
+        _gapsOnly = false;
+        _overridesOnly = false;
+    }
 
     private void SelectSpell(MergedSpell spell)
     {
@@ -271,28 +463,86 @@
         _status = $"Added {scope}/{member}.";
     }
 
-    private void RebuildDb()
+    private async Task RebuildDb()
     {
-        var result = MergeEngine.Run(MergeInputs.Load());
-        File.WriteAllText(SourcePaths.SpellDb, SpellDbWriter.Serialize(result));
+        _rebuilding = true;
+        _status = null;
+        await Task.Run(() =>
+        {
+            var result = MergeEngine.Run(MergeInputs.Load());
+            File.WriteAllText(SourcePaths.SpellDb, SpellDbWriter.Serialize(result));
+        });
+        Merge.Reload();
+        _rebuilding = false;
         _status = "spelldb.json rebuilt.";
     }
 
-    private static string BuildProvenanceTooltip(MergedSpell spell)
+    private static RenderFragment? ProvChip(ProvenanceSource? source) => source is { } src
+        ? builder =>
+        {
+            builder.OpenElement(0, "span");
+            builder.AddAttribute(1, "class", $"src-chip {SrcCellClass(src)}");
+            builder.AddContent(2, SrcLabel(src));
+            builder.CloseElement();
+        }
+        : null;
+
+    private static RenderFragment CellVal(string? text) => builder =>
     {
-        var p = spell.Provenance;
-        var parts = new List<string>();
-        if (p.Id is not null) parts.Add($"Id:{p.Id}");
-        if (p.Kind is not null) parts.Add($"Kind:{p.Kind}");
-        if (p.Name is not null) parts.Add($"Name:{p.Name}");
-        if (p.Icon is not null) parts.Add($"Icon:{p.Icon}");
-        if (p.Cooldown is not null) parts.Add($"Cd:{p.Cooldown}");
-        if (p.Range is not null) parts.Add($"Rng:{p.Range}");
-        if (p.Charges is not null) parts.Add($"Ch:{p.Charges}");
-        if (p.CastDuration is not null) parts.Add($"Cast:{p.CastDuration}");
-        if (p.ChannelDuration is not null) parts.Add($"Chan:{p.ChannelDuration}");
-        if (p.ChannelTickInterval is not null) parts.Add($"Tick:{p.ChannelTickInterval}");
-        if (p.Costs is not null) parts.Add($"Costs:{p.Costs}");
-        return string.Join(" | ", parts);
-    }
+        if (string.IsNullOrEmpty(text))
+        {
+            builder.OpenElement(0, "span");
+            builder.AddAttribute(1, "class", "cell-nil");
+            builder.AddContent(2, "·");
+            builder.CloseElement();
+        }
+        else
+        {
+            builder.OpenElement(3, "span");
+            builder.AddAttribute(4, "class", "cell-val");
+            builder.AddContent(5, text);
+            builder.CloseElement();
+        }
+    };
+
+    private static string Fmt(double? v) =>
+        v?.ToString("0.###") ?? "";
+
+    private static string KindTag(SpellKind kind) => kind switch
+    {
+        SpellKind.Ability => "ABIL",
+        SpellKind.Effect => "EFCT",
+        SpellKind.Talent => "TALT",
+        SpellKind.Weapon => "WEAP",
+        _ => kind.ToString(),
+    };
+
+    private static string GapLabel(GapKind kind) => kind switch
+    {
+        GapKind.MissingName => "Missing name",
+        GapKind.MissingIcon => "Missing icon",
+        GapKind.MissingId => "Missing id",
+        GapKind.UnresolvedEffect => "Unresolved effect",
+        _ => kind.ToString(),
+    };
+
+    private static string SrcCellClass(ProvenanceSource? s) => s switch
+    {
+        ProvenanceSource.Override => "src-override",
+        ProvenanceSource.HeroData => "src-herodata",
+        ProvenanceSource.GearData => "src-geardata",
+        ProvenanceSource.Icons => "src-icons",
+        ProvenanceSource.SpellData => "src-spelldata",
+        _ => "",
+    };
+
+    private static string SrcLabel(ProvenanceSource s) => s switch
+    {
+        ProvenanceSource.Override => "override",
+        ProvenanceSource.HeroData => "hero",
+        ProvenanceSource.GearData => "gear",
+        ProvenanceSource.Icons => "icon",
+        ProvenanceSource.SpellData => "spell",
+        _ => "",
+    };
 }
