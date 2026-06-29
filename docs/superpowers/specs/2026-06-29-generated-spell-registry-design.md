@@ -32,9 +32,9 @@ data targets **S3**.
 ## Architecture
 
 ```
-fs_tc_uploads (hero_data.json) ┐
+fs_tc_uploads (hero_data.json)  ┐
 Fellowship Logs (abilities.json)├─► merge engine ─► spelldb.json (committed)
-overrides.json (hand deltas)   ┘        ▲                  │
+overrides.json (hand deltas)    ┘       ▲                  │
                                         │                  ├─► compile-time generator
                               studio app + rebuild script  │     → Spells.X full defs
                                                            │     → Guids, All, forwarding
@@ -60,32 +60,42 @@ self-contained JSON reader — no merging happens inside the generator.
 
 ## The normalized database (`spelldb.json`)
 
-A map keyed by combat-log guid (effects encoded as `1_000_000 + effectId`). Each
-entry carries identity, scope, the emitted C# member name, and the data scalars
-and costs:
+A two-level map: the top level is keyed by **scope** — a hero name, or `shared`
+for the central registry — and each scope is keyed by **member**, the C# property
+name emitted into that scope's `Spells` class. The entry body carries the
+combat-log id, identity, the data scalars, and costs:
 
 ```json
 {
-  "1027": {
-    "member": "FreezingTorrent",
-    "scope": "Rime",
-    "name": "Freezing Torrent",
-    "icon": "T_Rime_ChanneledBeam.jpg",
-    "cooldown": 15,
-    "range": 30,
-    "charges": 1,
-    "castDuration": null,
-    "channelDuration": 2.0,
-    "channelTickInterval": 0.4,
-    "costs": { "winterOrb": 0 }
+  "rime": {
+    "FreezingTorrent": {
+      "id": 1027,
+      "name": "Freezing Torrent",
+      "icon": "T_Rime_ChanneledBeam.jpg",
+      "cooldown": 15,
+      "range": 30,
+      "charges": 1,
+      "castDuration": null,
+      "channelDuration": 2.0,
+      "channelTickInterval": 0.4,
+      "costs": { "winterOrb": 0 }
+    }
+  },
+  "shared": {
+    "EpochBreakBuff": { "id": 2613, "effect": true, "name": "Epoch Break", "icon": "T_Elarion_EpochBreak.jpg" }
   }
 }
 ```
 
-- `member` — the C# property name emitted into the registry (PascalCase, sanitized
-  from `name`, overridable to resolve collisions).
-- `scope` — the hero whose `Spells` class receives the member, or `Shared` for the
-  central `Spells` class.
+- **scope key** — the hero whose `Spells` class receives the members, or `shared`
+  for the central `Spells`. The generator maps it to the registry
+  case-insensitively.
+- **member key** — the emitted C# property name (a valid identifier, PascalCase).
+  Being the key makes it authoritative and unique within its scope, so a name
+  collision is resolved by simply choosing a distinct key.
+- `id` — the combat-log id. `effect: true` marks an `Effect` (Guid `1_000_000 +
+  id`); omitted, the entry emits as a `Spell` (Guid `id`). Guids are unique across
+  the whole keyspace.
 - `costs` — keyed by resource (`spirit`, `winterOrb`, `anima`, `focus`); mapped to
   the matching typed `Spell` cost property.
 
@@ -95,28 +105,31 @@ not live in the committed file.
 
 ## Overrides (`overrides.json`)
 
-The single human-editable file, a per-guid delta carrying only changed or added
-fields, with an optional `note`. It supports four operations:
+The single human-editable file mirrors `spelldb.json`'s shape — keyed by scope,
+then member — and carries only the fields a contributor sets, plus an optional
+`note`. The merge applies one rule: **override the member if it already exists,
+add it if it does not.**
 
 ```json
 {
-  "1027": { "channelTickInterval": 0.4, "note": "export omits tick" },
-  "155": { "add": true, "member": "VoidbringerTouch", "scope": "Shared",
-           "name": "Voidbringer's Touch", "icon": "T_Weapon_VoidTouch.jpg" },
-  "1311": { "exclude": true, "note": "handled centrally" },
-  "1310": { "member": "LunarlightMark" }
+  "rime": {
+    "FreezingTorrent": { "channelTickInterval": 0.4, "note": "export omits tick" }
+  },
+  "shared": {
+    "VoidbringerTouch": {
+      "id": 155,
+      "name": "Voidbringer's Touch",
+      "icon": "T_Weapon_VoidTouch.jpg"
+    }
+  }
 }
 ```
 
-- **Field override** — supply or correct a scalar, cost, name, or icon the sources
-  lack or get wrong.
-- **Add** — declare an entry absent from the parsed sources (generated into the
-  registry per its `scope`).
-- **Exclude** — drop a parsed entry handled elsewhere.
-- **Rename** — set the explicit `member` identifier, resolving a collision.
-
-An override that matches no parsed ability and is not an `add` raises a build
-diagnostic so it does not rot across seasons.
+Patching an existing member supplies or corrects a scalar, cost, name, or icon
+the sources lack or get wrong. A member absent from the parsed sources is added
+from the override fields, and an added member must carry an `id` so the generator
+can form its Guid — the merge raises a build diagnostic for an addition without
+one.
 
 ## The merge engine
 
@@ -138,8 +151,8 @@ provenance and flags entries with missing `name` or `icon` for the studio.
 - **Costs** — the typed fields map to the matching cost (`SpiritCost` → spirit,
   `OrbCost` → winterOrb); the generic `Cost` resolves through the ability's
   `CostType` and the hero resource model.
-- **Selection** — kit entries with a non-`null` `Name`, minus `exclude` overrides,
-  plus `add` overrides.
+- **Selection** — kit entries with a non-`null` `Name`; overrides then add new
+  members or patch existing ones.
 
 Whole-number doubles emit as integral literals where the target field is integral
 (`Charges`); seconds-valued fields stay `double`.
@@ -160,18 +173,19 @@ registry, and emits:
 
 - Per hero, a `Spells.{Hero}.g.cs` partial with one full
   `public static Spell {member} { get; } = new Spell { Id = …, Name = …, Icon = …,
-  Cooldown = …, … };` per entry whose `scope` is that hero; `Shared`-scope entries
-  go into the central `Spells`.
+Cooldown = …, … };` per member under that hero's scope key; members under `shared`
+  go into the central `Spells`, and `effect: true` entries emit `new Effect { … }`.
 - The central `Spells.All` frozen dictionary keyed by `Guid`, typed at the lowest
   common ancestor of all entries.
 - The central `Spells.Guids` table and each registry's nested `Guids` const table
-  (guids from the entry's key, applying the `Effect → 1_000_000 + Id` rule).
+  (each guid from the entry's `id`, with `effect: true` applying the
+  `1_000_000 + id` rule).
 - The central forwarding properties.
 - **FA0001** duplicate `member`-name detection across the flattened central
-  surface (resolved by a `rename` override).
+  surface (resolved by choosing a distinct member key).
 
-Diagnostics: an entry whose `scope` names no known hero registry; an override that
-targets nothing.
+Diagnostics: a scope key that names no known hero registry; an added member
+without an `id`; a duplicate guid across the keyspace.
 
 ## Minimal hand-authored set (Core)
 
@@ -239,7 +253,7 @@ engine and presents the database for curation:
 ## Testing
 
 - **Merge-engine unit tests** — link-by-`DevName`, field selection, unit
-  conversion, cost mapping, override application (field/add/exclude/rename), and
+  conversion, cost mapping, override application (patch existing, add new), and
   provenance, against the real S3 sources.
 - **Reproducibility test** — the committed `spelldb.json` equals a fresh in-memory
   merge of the sources and overrides.
@@ -254,12 +268,7 @@ engine and presents the database for curation:
 
 Delivered on one branch, staged so each step is provable:
 
-1. Land the `Spell`/`SpellbookAbility` Core changes, the merge engine, the
-   compile-time generator, the `ModuleGenerator` reader update, `spelldb.json`,
-   `overrides.json`, and the rebuild script, with **Rime fully migrated** and its
-   cross-check green.
-2. Fan out to the other ten heroes, each cross-checked before its hand-typed
-   values are removed.
+1. Land the `Spell`/`SpellbookAbility` Core changes, the merge engine, the compile-time generator, the `ModuleGenerator` reader update, `spelldb.json`, `overrides.json`, and the rebuild script.
+2. Fan out to all heroes, each cross-checked before its hand-typed values are removed.
 3. Layer the studio on the working pipeline.
-4. The whole solution builds and `dotnet test` passes; the old per-hero
-   hand-typed registries and scalars are removed.
+4. The whole solution builds and `dotnet test` passes; the old per-hero hand-typed registries and scalars are removed.
