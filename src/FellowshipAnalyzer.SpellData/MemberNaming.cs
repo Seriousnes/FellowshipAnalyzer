@@ -30,4 +30,14 @@ public static class MemberNaming
     /// </summary>
     public static string EffectMember(string abilityMember, string role) =>
         abilityMember + Sanitize(role);
+
+    /// <summary>
+    /// Returns <see langword="true"/> when <paramref name="member"/> is non-empty and every
+    /// character satisfies C# identifier rules (first char: letter or underscore; remaining:
+    /// letter, digit, or underscore).
+    /// </summary>
+    public static bool IsValidIdentifier(string member) =>
+        member.Length > 0 &&
+        (char.IsLetter(member[0]) || member[0] == '_') &&
+        member.All(c => char.IsLetterOrDigit(c) || c == '_');
 }

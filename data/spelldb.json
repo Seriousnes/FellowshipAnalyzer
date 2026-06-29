@@ -1,0 +1,3324 @@
+{
+  "aeona": {
+    "AmendFate": {
+      "id": 1964,
+      "name": "Amend Fate",
+      "icon": "T_Lisa_Stagger.jpg"
+    },
+    "AmendFateCost": {
+      "id": 2741,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "AmendFateHeal": {
+      "id": 2740,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "AmendFateRemoveStagger": {
+      "id": 2826,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "EchoesOfRuin": {
+      "id": 1887,
+      "name": "Echoes of Ruin",
+      "icon": "T_Lisa_Burst.jpg"
+    },
+    "EchoesOfRuinCost": {
+      "id": 2618,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "EchoesOfRuinDamage": {
+      "id": 2617,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "EchoesOfRuinDot": {
+      "id": 2616,
+      "kind": "effect",
+      "name": "Echoes of Ruin",
+      "icon": "T_Lisa_Burst.jpg"
+    },
+    "EntropyClaim": {
+      "id": 1876,
+      "name": "Entropy\u0027s Claim",
+      "icon": "T_Lisa_Wither.jpg",
+      "cooldown": 20,
+      "castDuration": 1.5
+    },
+    "EntropyClaimCost": {
+      "id": 2604,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "EntropyClaimDot": {
+      "id": 2603,
+      "kind": "effect",
+      "name": "Entropy\u0027s Claim",
+      "icon": "T_Lisa_Wither.jpg"
+    },
+    "EpochBreak": {
+      "id": 1881,
+      "name": "Epoch Break",
+      "icon": "T_Lisa_Spirit.jpg"
+    },
+    "EpochBreakCost": {
+      "id": 2615,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "EpochBreakHeal": {
+      "id": 2614,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "EpochBreakHealthBuff": {
+      "id": 2613,
+      "kind": "effect",
+      "name": "Epoch Break",
+      "icon": "T_Nhance_RPG_Icons_ArcaneVision.jpg"
+    },
+    "EpochBreakSelfBuff": {
+      "id": 2612,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "FlashRevision": {
+      "id": 1927,
+      "name": "Flash Revision",
+      "icon": "T_Lisa_TimeMend.jpg",
+      "castDuration": 1.5
+    },
+    "FlashRevisionCost": {
+      "id": 2689,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "FlashRevisionHeal": {
+      "id": 2688,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "FleetingHour": {
+      "id": 1969,
+      "name": "Fleeting Hour",
+      "icon": "T_Lisa_TimeBuff.jpg",
+      "cooldown": 20
+    },
+    "FleetingHourCost": {
+      "id": 2745,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "FleetingHourSelfBuff": {
+      "id": 2744,
+      "kind": "effect",
+      "name": "Fleeting Hour",
+      "icon": "T_Lisa_TimeBuff.jpg"
+    },
+    "Intercession": {
+      "id": 1814,
+      "name": "Intercession",
+      "icon": "T_Lisa_AoESilence.jpg",
+      "cooldown": 300
+    },
+    "IntercessionBuff": {
+      "id": 2582,
+      "kind": "effect",
+      "name": "Chrono Bind",
+      "icon": "T_Lisa_AoESilence.jpg"
+    },
+    "IntercessionCost": {
+      "id": 2581,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "IntercessionInterrupt": {
+      "id": 2580,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "IntercessionLockout": {
+      "id": 2579,
+      "kind": "effect",
+      "name": "Interrupted",
+      "icon": "T_Nhance_RPG_Frost_01.jpg"
+    },
+    "Oblivion": {
+      "id": 1970,
+      "name": "Oblivion",
+      "icon": "T_Lisa_ChronaBlast.jpg"
+    },
+    "OblivionAbsorbAbsorb": {
+      "id": 2736,
+      "kind": "effect",
+      "name": "Chrono Barrier",
+      "icon": "T_Nhance_RPG_Icons_ArcaneLoad.jpg"
+    },
+    "OblivionCost": {
+      "id": 2747,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "OblivionDamage": {
+      "id": 2746,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "OblivionSelfBuffBuff": {
+      "id": 3153,
+      "kind": "effect",
+      "name": "Converging Timelines",
+      "icon": ""
+    },
+    "RestoreContinuity": {
+      "id": 1973,
+      "name": "Restore Continuity",
+      "icon": "T_Lisa_ChronaWave.jpg"
+    },
+    "RestoreContinuityCost": {
+      "id": 2750,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "RestoreContinuityHeal": {
+      "id": 2749,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "RestoreContinuityRemoveStagger": {
+      "id": 2827,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "RevertMagic": {
+      "id": 1879,
+      "name": "Revert Magic",
+      "icon": "T_Lisa_Dispel.jpg"
+    },
+    "RevertMagicDispel": {
+      "id": 2608,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "RevertMagicResourceCost": {
+      "id": 2607,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "TemporalBarrage": {
+      "id": 1926,
+      "name": "Temporal Barrage",
+      "icon": "T_Lisa_Barrage.jpg",
+      "cooldown": 15
+    },
+    "TemporalBarrageCost": {
+      "id": 2687,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "TemporalBarrageDamage": {
+      "id": 2686,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "TemporalBarrageHeal": {
+      "id": 2685,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "TimeShard": {
+      "id": 1889,
+      "name": "Time Shard",
+      "icon": "T_Lisa_FillerCast.jpg",
+      "castDuration": 1.5
+    },
+    "TimeShardCost": {
+      "id": 2623,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "TimeShardDamage": {
+      "id": 2622,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "TimeSkip": {
+      "id": 1864,
+      "name": "Time Skip",
+      "icon": "T_Lisa_Blink.jpg"
+    },
+    "TimeSkipMoveSpeedBuff": {
+      "id": 3151,
+      "kind": "effect",
+      "name": "Time Skip",
+      "icon": ""
+    },
+    "UnfoldingDoom": {
+      "id": 1890,
+      "name": "Unfolding Doom",
+      "icon": "T_Lisa_StrandsofTime.jpg",
+      "cooldown": 45,
+      "castDuration": 2
+    },
+    "UnfoldingDoomCost": {
+      "id": 2626,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "UnfoldingDoomDamage": {
+      "id": 2625,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "UnfoldingDoomDamageToAoeDamageDamage": {
+      "id": 2748,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "UnfoldingDoomDebuff": {
+      "id": 2624,
+      "kind": "effect",
+      "name": "Unfolding Doom",
+      "icon": "T_Lisa_StrandsofTime.jpg"
+    },
+    "UnfoldingDoomDebuffOwnerEffect": {
+      "id": 3155,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    }
+  },
+  "elarion": {
+    "CelestialShot": {
+      "id": 1301,
+      "name": "Celestial Shot",
+      "icon": "Bowguy_Shot.jpg"
+    },
+    "CelestialShotCost": {
+      "id": 1865,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "CelestialShotDamage": {
+      "id": 1864,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "CelestialVeil": {
+      "id": 1302,
+      "name": "Celestial Veil",
+      "icon": "Bowguy_Abilityicon_Defensive.jpg",
+      "cooldown": 30
+    },
+    "CelestialVeilSelfBuff": {
+      "id": 1866,
+      "kind": "effect",
+      "name": "Celestial Veil",
+      "icon": "Bowguy_Abilityicon_Defensive.jpg"
+    },
+    "Disrupt": {
+      "id": 1308,
+      "name": "Disrupt",
+      "icon": "Bowguy_Interrupt.jpg",
+      "cooldown": 20
+    },
+    "DisruptInterrupt": {
+      "id": 1875,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "DisruptLockout": {
+      "id": 1874,
+      "kind": "effect",
+      "name": "Interrupted",
+      "icon": "T_Nhance_RPG_Frost_01.jpg"
+    },
+    "EventHorizon": {
+      "id": 1584,
+      "name": "Event Horizon",
+      "icon": "Bowguy_Spirit.jpg",
+      "castDuration": 0.7
+    },
+    "EventHorizonCooldownRecoveryBuff": {
+      "id": 2314,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "EventHorizonCost": {
+      "id": 2313,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "EventHorizonSelfBuff": {
+      "id": 2312,
+      "kind": "effect",
+      "name": "Event Horizon",
+      "icon": "Bowguy_Spirit.jpg"
+    },
+    "EventHorizonVisual": {
+      "id": 2311,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "FocusedShot": {
+      "id": 1315,
+      "name": "Focused Shot",
+      "icon": "Bowguy_FocusShot.jpg"
+    },
+    "FocusedShotBuff": {
+      "id": 1892,
+      "kind": "effect",
+      "name": "Steady Hands",
+      "icon": "Tex_SpellBook08_85.jpg"
+    },
+    "FocusedShotDamage": {
+      "id": 1891,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "FocusedShotHeavyDamage": {
+      "id": 1888,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "GrapplingArrow": {
+      "id": 125,
+      "name": "Grappling Arrow",
+      "icon": "Bowguy_GrappleShot.jpg",
+      "cooldown": 120
+    },
+    "GrapplingArrowPull": {
+      "id": 2008,
+      "kind": "effect",
+      "name": "Grappling Arrow: Pull",
+      "icon": "Tex_SpellBook03_97.jpg"
+    },
+    "GrapplingArrowSlow": {
+      "id": 1861,
+      "kind": "effect",
+      "name": "Grappling Arrow",
+      "icon": "Tex_SpellBook03_97.jpg"
+    },
+    "HeartseekerBarrage": {
+      "id": 1312,
+      "name": "Heartseeker Barrage",
+      "icon": "Bowguy_Spray.jpg",
+      "cooldown": 20
+    },
+    "HeartseekerBarrageCost": {
+      "id": 1882,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "HeartseekerBarrageDamage": {
+      "id": 1881,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "HeartseekerBarrageDebuff": {
+      "id": 1880,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "HighwindArrow": {
+      "id": 1313,
+      "name": "Highwind Arrow",
+      "icon": "Bowguy_Ricochet.jpg",
+      "cooldown": 15,
+      "charges": 3
+    },
+    "HighwindArrowCharges": {
+      "id": 1887,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "HighwindArrowCost": {
+      "id": 1886,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "HighwindArrowDamage": {
+      "id": 1885,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "HighwindArrowProc": {
+      "id": 1884,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "LunarlightMark": {
+      "id": 1310,
+      "name": "Lunarlight Mark",
+      "icon": "Bowguy_Mark.jpg",
+      "cooldown": 40,
+      "range": 30
+    },
+    "LunarlightMarkAoeDamage": {
+      "id": 2832,
+      "kind": "effect",
+      "name": "Lunarlight Salvo: Erupt",
+      "icon": "Bowguy_Mark.jpg"
+    },
+    "LunarlightMarkDamage": {
+      "id": 1877,
+      "kind": "effect",
+      "name": "Lunarlight Salvo",
+      "icon": "Bowguy_Mark.jpg"
+    },
+    "LunarlightMarkDebuff": {
+      "id": 1876,
+      "kind": "effect",
+      "name": "Lunarlight Mark",
+      "icon": "Bowguy_Mark.jpg"
+    },
+    "LunarlightSalvo": {
+      "id": 1309,
+      "name": "Lunarlight Salvo",
+      "icon": "Bowguy_Mark.jpg"
+    },
+    "Multishot": {
+      "id": 1318,
+      "name": "Multishot",
+      "icon": "Bowguy_Multishot.jpg"
+    },
+    "MultishotCost": {
+      "id": 1900,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "MultishotDamage": {
+      "id": 1899,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "MultishotDamageMagical": {
+      "id": 2010,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "MultishotProc": {
+      "id": 1898,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "Roll": {
+      "id": 1311,
+      "name": "Roll",
+      "icon": "Bowguy_Abilityicon_Roll.jpg",
+      "charges": 3
+    },
+    "RollActive": {
+      "id": 1879,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "RollCharge": {
+      "id": 1878,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "Shoot": {
+      "id": 1303,
+      "name": "Shoot",
+      "icon": "Bowguy_FocusShot.jpg"
+    },
+    "ShootDamage": {
+      "id": 1868,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "ShootProc": {
+      "id": 1867,
+      "kind": "effect",
+      "name": "Celestial Impetus",
+      "icon": "T_Nhance_RPG_Arcane_37.jpg"
+    },
+    "SkystriderGrace": {
+      "id": 1304,
+      "name": "Skystrider\u0027s Grace",
+      "icon": "Bowguy_HasteBuff.jpg",
+      "cooldown": 120
+    },
+    "SkystriderGraceBuff": {
+      "id": 1869,
+      "kind": "effect",
+      "name": "Skystrider\u0027s Grace",
+      "icon": "T_Icon_Frost_125.jpg"
+    },
+    "SkystriderSupremacy": {
+      "id": 1398,
+      "name": "Skystrider\u0027s Supremacy",
+      "icon": "Bowguy_Supremacy.jpg",
+      "cooldown": 45
+    },
+    "SkystriderSupremacySelfBuff": {
+      "id": 2009,
+      "kind": "effect",
+      "name": "Skystrider\u0027s Supremacy",
+      "icon": "Bowguy_Supremacy.jpg"
+    },
+    "StarfallVolley": {
+      "id": 126,
+      "name": "Starfall Volley",
+      "icon": "Bowguy_Rain.jpg",
+      "cooldown": 40
+    },
+    "StarfallVolleyCost": {
+      "id": 1863,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "StarfallVolleyDamage": {
+      "id": 1862,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "StarfallVolleyTalentBuffWhileActive": {
+      "id": 2316,
+      "kind": "effect",
+      "name": "Skylit Grace",
+      "icon": "Tex_b_03.jpg"
+    }
+  },
+  "gunde": {
+    "Attack": {
+      "id": 1249,
+      "name": "Attack",
+      "icon": ""
+    },
+    "AttackDamage": {
+      "id": 1796,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "AttackDamageOld": {
+      "id": 3172,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "BloodArc": {
+      "id": 2291,
+      "name": "Blood Arc",
+      "icon": "",
+      "cooldown": 9
+    },
+    "BloodArcDamage": {
+      "id": 3236,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "BloodboundSpirit": {
+      "id": 2296,
+      "name": "Bloodbound Spirit",
+      "icon": "",
+      "castDuration": 1
+    },
+    "BloodboundSpiritDamage": {
+      "id": 3243,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "BloodboundSpiritSelfBuff": {
+      "id": 3242,
+      "kind": "effect",
+      "name": "Bloodbound Spirit",
+      "icon": ""
+    },
+    "ButcherHook": {
+      "id": 2284,
+      "name": "Butcher\u0027s Hook",
+      "icon": "",
+      "cooldown": 30,
+      "range": 30
+    },
+    "ButcherHookDamage": {
+      "id": 3228,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "ButcherHookPull": {
+      "id": 3227,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "ButcherHookPullActivator": {
+      "id": 3226,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "DoubleStrike": {
+      "id": 2301,
+      "name": "Double Strike",
+      "icon": "",
+      "range": 30
+    },
+    "DoubleStrikeDamage": {
+      "id": 3248,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "GrimCarve": {
+      "id": 2262,
+      "name": "Grim Carve",
+      "icon": "",
+      "cooldown": 15,
+      "range": 30
+    },
+    "GrimCarveDamage": {
+      "id": 3205,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "HeartSplitter": {
+      "id": 2294,
+      "name": "Heart Splitter",
+      "icon": "",
+      "cooldown": 12
+    },
+    "HeartSplitterDamage": {
+      "id": 3240,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "HeartSplitterDotBonusDamage": {
+      "id": 3239,
+      "kind": "effect",
+      "name": "Heart Splitter: Exsanguinate",
+      "icon": ""
+    },
+    "HeartSplitterIncreasedCritChance": {
+      "id": 3215,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "Jawbreaker": {
+      "id": 1244,
+      "name": "Jawbreaker",
+      "icon": "",
+      "cooldown": 12,
+      "range": 5
+    },
+    "JawbreakerInterrupt": {
+      "id": 1786,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "JawbreakerLockout": {
+      "id": 1785,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "OwedInBlood": {
+      "id": 2298,
+      "name": "Owed in Blood",
+      "icon": "",
+      "range": 20
+    },
+    "OwedInBloodSelfBuff": {
+      "id": 3245,
+      "kind": "effect",
+      "name": "Owed in Blood",
+      "icon": ""
+    },
+    "OwedInBloodSelfBuffFromOrbs": {
+      "id": 3244,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "ReaverEdge": {
+      "id": 2290,
+      "name": "Reaver\u0027s Edge",
+      "icon": "",
+      "cooldown": 5
+    },
+    "ReaverEdgeDamage": {
+      "id": 3235,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "RecklessAbandon": {
+      "id": 2300,
+      "name": "Reckless Abandon",
+      "icon": "",
+      "cooldown": 30
+    },
+    "RecklessAbandonSelfBuff": {
+      "id": 3247,
+      "kind": "effect",
+      "name": "Reckless Abandon",
+      "icon": ""
+    },
+    "ReignInBlood": {
+      "id": 2295,
+      "name": "Reign in Blood",
+      "icon": "",
+      "cooldown": 90
+    },
+    "ReignInBloodSelfBuff": {
+      "id": 3241,
+      "kind": "effect",
+      "name": "Reign in Blood",
+      "icon": ""
+    },
+    "Rupture": {
+      "id": 2293,
+      "name": "Rupture",
+      "icon": "",
+      "cooldown": 60
+    },
+    "RuptureDamage": {
+      "id": 3238,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "Slaughter": {
+      "id": 2292,
+      "name": "Slaughter",
+      "icon": "",
+      "cooldown": 30
+    },
+    "SlaughterDot": {
+      "id": 3237,
+      "kind": "effect",
+      "name": "Slaughter",
+      "icon": ""
+    },
+    "Warbound": {
+      "id": 2299,
+      "name": "Warbound",
+      "icon": "",
+      "charges": 2
+    },
+    "WarboundDamage": {
+      "id": 3246,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    }
+  },
+  "helena": {
+    "Attack": {
+      "id": 978,
+      "name": "Attack",
+      "icon": "Tex_swords_01_bg.jpg"
+    },
+    "AttackDamage": {
+      "id": 1267,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "Bash": {
+      "id": 976,
+      "name": "Bash",
+      "icon": "T_Warmaster_Interrupt.jpg",
+      "cooldown": 12
+    },
+    "BashInterrupt": {
+      "id": 1261,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "BashLockout": {
+      "id": 1260,
+      "kind": "effect",
+      "name": "Interrupted",
+      "icon": "Tex_yellow_17.jpg"
+    },
+    "Charge": {
+      "id": 974,
+      "name": "Charge",
+      "icon": "T_Warmaster_Charge.jpg",
+      "cooldown": 20,
+      "range": 30
+    },
+    "ChargeCharge": {
+      "id": 1257,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "ChargeDamage": {
+      "id": 1256,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "ChargeStun": {
+      "id": 1255,
+      "kind": "effect",
+      "name": "Stunned",
+      "icon": "effect_stunned_icon.jpg"
+    },
+    "GrandMelee": {
+      "id": 1465,
+      "name": "Grand Melee",
+      "icon": "T_WM_Incite.jpg",
+      "cooldown": 150
+    },
+    "GrandMeleeFriendlyAuraBuff": {
+      "id": 2205,
+      "kind": "effect",
+      "name": "Grand Melee",
+      "icon": "T_Nhance_RPG_Gold_03.jpg"
+    },
+    "GrandMeleeInciteTarget": {
+      "id": 2120,
+      "kind": "effect",
+      "name": "Grand Melee",
+      "icon": "T_Nhance_RPG_Gold_03.jpg"
+    },
+    "GrandMeleeSelfBuff": {
+      "id": 2119,
+      "kind": "effect",
+      "name": "Grand Melee",
+      "icon": "T_Nhance_RPG_Gold_03.jpg"
+    },
+    "HoldTheLine": {
+      "id": 975,
+      "name": "Hold the Line",
+      "icon": "T_WM_HoldTheLine.jpg",
+      "cooldown": 30,
+      "range": 40
+    },
+    "HoldTheLineAllyBuff": {
+      "id": 1259,
+      "kind": "effect",
+      "name": "Battle Command",
+      "icon": "T_Warnaster_Dash.jpg"
+    },
+    "HoldTheLineSelfBuff": {
+      "id": 1258,
+      "kind": "effect",
+      "name": "Battle Command",
+      "icon": "T_Warnaster_Dash.jpg"
+    },
+    "IronWall": {
+      "id": 973,
+      "name": "Iron Wall",
+      "icon": "T_Warmaster_IronWall.jpg",
+      "cooldown": 90
+    },
+    "IronWallBuff": {
+      "id": 1254,
+      "kind": "effect",
+      "name": "Iron Wall",
+      "icon": "T_Warmaster_IronWall.jpg"
+    },
+    "MeasuredStrike": {
+      "id": 980,
+      "name": "Measured Strike",
+      "icon": "T_Warmaster_BasicStrike.jpg",
+      "cooldown": 0
+    },
+    "MeasuredStrikeDamage": {
+      "id": 1273,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "PowerStrike": {
+      "id": 982,
+      "name": "Power Strike",
+      "icon": "T_Warmaster_FatalBlow.jpg",
+      "cooldown": 6
+    },
+    "PowerStrikeCleaveDamage": {
+      "id": 1278,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "PowerStrikeDamage": {
+      "id": 1277,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "ShieldSlam": {
+      "id": 977,
+      "name": "Shield Slam",
+      "icon": "T_Warmaster_ShieldSlam.jpg",
+      "cooldown": 7.5,
+      "charges": 2
+    },
+    "ShieldSlamAbsorb": {
+      "id": 2229,
+      "kind": "effect",
+      "name": "Empowered Shield Slam: Barrier",
+      "icon": "T_Nhance_RPG_Fire_08.jpg"
+    },
+    "ShieldSlamAbsorbBuffSelfBuff": {
+      "id": 2435,
+      "kind": "effect",
+      "name": "Empowered Shield Slam",
+      "icon": "T_Warmaster_ShieldSlam.jpg"
+    },
+    "ShieldSlamBuff": {
+      "id": 1266,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "ShieldSlamBuffTalent": {
+      "id": 1265,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "ShieldSlamCleaveDamage": {
+      "id": 1264,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "ShieldSlamDamage": {
+      "id": 1263,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "ShieldSlamReducedIncomingDamageFromTargetDebuff": {
+      "id": 2478,
+      "kind": "effect",
+      "name": "Lingering Concussion",
+      "icon": "T_Warmaster_ShieldSlam.jpg"
+    },
+    "ShieldSlamReducedIncomingDamageFromTargetDebuffStacker": {
+      "id": 2477,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "ShieldSlamReducedIncomingDamageFromTargetSelfBuff": {
+      "id": 2476,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "ShieldSlamResourceCost": {
+      "id": 1262,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "ShieldThrow": {
+      "id": 985,
+      "name": "Shield Throw",
+      "icon": "T_Warmaster_Shieldthrow.jpg",
+      "cooldown": 21,
+      "range": 30
+    },
+    "ShieldThrowDamage": {
+      "id": 1284,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "ShieldThrowSingleTargetBuff": {
+      "id": 1283,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "ShieldsUp": {
+      "id": 984,
+      "name": "Shields Up",
+      "icon": "T_Warmaster_Shieldsup.jpg",
+      "cooldown": 30,
+      "charges": 2
+    },
+    "ShieldsUpBuff": {
+      "id": 1282,
+      "kind": "effect",
+      "name": "Shields Up",
+      "icon": "T_Warmaster_Shieldsup.jpg"
+    },
+    "ShieldsUpCharge": {
+      "id": 1281,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "ShieldsUpTemporaryToughnessLossProtection": {
+      "id": 2475,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "Shockwave": {
+      "id": 979,
+      "name": "Shockwave",
+      "icon": "T_Warmaster_shockwave.jpg",
+      "cooldown": 30
+    },
+    "ShockwaveDamage": {
+      "id": 1272,
+      "kind": "effect",
+      "name": "Shockwave",
+      "icon": "T_Warmaster_shockwave.jpg"
+    },
+    "ShockwaveDebuff": {
+      "id": 1271,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "ShockwaveDebuffIcon": {
+      "id": 1270,
+      "kind": "effect",
+      "name": "Shockwave",
+      "icon": "T_Warmaster_shockwave.jpg"
+    },
+    "ShockwaveResourceCost": {
+      "id": 1269,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "ShockwaveStun": {
+      "id": 1268,
+      "kind": "effect",
+      "name": "Stunned",
+      "icon": "effect_stunned_icon.jpg"
+    },
+    "Siegebreaker": {
+      "id": 1515,
+      "name": "Siegebreaker",
+      "icon": "T_Warmaster_Ultimate.jpg"
+    },
+    "SiegebreakerBuff": {
+      "id": 2192,
+      "kind": "effect",
+      "name": "Siegebreaker",
+      "icon": "T_Warmaster_Ultimate.jpg"
+    },
+    "SiegebreakerDamageReductionBuff": {
+      "id": 2224,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "SiegebreakerSpiritCost": {
+      "id": 2191,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "SweepingStrike": {
+      "id": 981,
+      "name": "Sweeping Strike",
+      "icon": "T_Warmaster_BleedStrike.jpg",
+      "cooldown": 30
+    },
+    "SweepingStrikeBleedDebuff": {
+      "id": 1276,
+      "kind": "effect",
+      "name": "Sweeping Strike",
+      "icon": "T_Warmaster_BleedStrike.jpg"
+    },
+    "SweepingStrikeBleedDebuffEnfeeblingEffect": {
+      "id": 2485,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "SweepingStrikeCost": {
+      "id": 1275,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "SweepingStrikeDamage": {
+      "id": 1274,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "Taunt": {
+      "id": 966,
+      "name": "Taunt",
+      "icon": "T_warmaster_Taunt.jpg",
+      "cooldown": 8,
+      "range": 40,
+      "costs": {
+        "spirit": 100
+      }
+    },
+    "TauntDebuff": {
+      "id": 1241,
+      "kind": "effect",
+      "name": "Taunted",
+      "icon": "T_warmaster_Taunt.jpg"
+    }
+  },
+  "mara": {
+    "ArachnidAssault": {
+      "id": 1212,
+      "name": "Arachnid Assault",
+      "icon": "Mara_SpiderAOE.jpg",
+      "range": 8
+    },
+    "ArachnidAssaultDamage": {
+      "id": 1728,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "Attack": {
+      "id": 1209,
+      "name": "Attack",
+      "icon": "Tex_swords_05_bg.jpg"
+    },
+    "AttackDamage": {
+      "id": 1725,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "Backstab": {
+      "id": 1129,
+      "name": "Backstab",
+      "icon": "Mara_backstab.jpg"
+    },
+    "BackstabCost": {
+      "id": 1588,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "BackstabDamageStrong": {
+      "id": 1587,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "BackstabDamageWeak": {
+      "id": 1586,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "BackstabPoisonDamage": {
+      "id": 1585,
+      "kind": "effect",
+      "name": "Caustic Poison",
+      "icon": "Mara_backstab.jpg"
+    },
+    "BroodingShadows": {
+      "id": 1130,
+      "name": "Brooding Shadows",
+      "icon": "Mara_stealth.jpg"
+    },
+    "BroodingShadowsCharges": {
+      "id": 2066,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "BroodingShadowsPoisonBuff": {
+      "id": 1590,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "FinalStratagem": {
+      "id": 1468,
+      "name": "Final Stratagem",
+      "icon": "Mara_Strategem.jpg",
+      "cooldown": 180
+    },
+    "HemorrhagingStrike": {
+      "id": 1208,
+      "name": "Hemorrhaging Strike",
+      "icon": "Mara_Bleed.jpg",
+      "cooldown": 2
+    },
+    "HemorrhagingStrikeBleed": {
+      "id": 1724,
+      "kind": "effect",
+      "name": "Hemorrhage",
+      "icon": "Mara_Bleed.jpg"
+    },
+    "HemorrhagingStrikeBuff": {
+      "id": 1723,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "HemorrhagingStrikeCost": {
+      "id": 1722,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "HemorrhagingStrikeDamage": {
+      "id": 1721,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "Kick": {
+      "id": 1200,
+      "name": "Kick",
+      "icon": "Mara_Kick.jpg",
+      "cooldown": 16
+    },
+    "KickInterrupt": {
+      "id": 1704,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "KickLockout": {
+      "id": 1703,
+      "kind": "effect",
+      "name": "Tremble!",
+      "icon": "Tex_red_10.jpg"
+    },
+    "MaidenOfDeath": {
+      "id": 1206,
+      "name": "Maiden of Death",
+      "icon": "Mara_Maiden.jpg"
+    },
+    "MaidenOfDeathBuff": {
+      "id": 1714,
+      "kind": "effect",
+      "name": "",
+      "icon": "effects/T_Nhance_RPG_Shadow_48.jpg"
+    },
+    "MaidenOfDeathCharges": {
+      "id": 1713,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "MatriarchMacabre": {
+      "id": 1420,
+      "name": "Matriarch Macabre",
+      "icon": "Mara_Spirit.jpg"
+    },
+    "MatriarchMacabreCost": {
+      "id": 2040,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "MatriarchMacabreSelfBuff": {
+      "id": 2039,
+      "kind": "effect",
+      "name": "Matriarch Macabre",
+      "icon": "T_Icon_Shadow_140.jpg"
+    },
+    "QueenFang": {
+      "id": 1201,
+      "name": "Queen\u0027s Fang",
+      "icon": "Mara_SingleTargetFinisher.jpg"
+    },
+    "QueenFangCost": {
+      "id": 1706,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "QueenFangDamage": {
+      "id": 1705,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "ShadowWard": {
+      "id": 1133,
+      "name": "Shadow Ward",
+      "icon": "Mara_Defensive.jpg",
+      "cooldown": 30
+    },
+    "ShadowWardSelfBuff": {
+      "id": 1592,
+      "kind": "effect",
+      "name": "Shadow Ward",
+      "icon": "Mara_Defensive.jpg"
+    },
+    "SkitteringBlades": {
+      "id": 1213,
+      "name": "Skittering Blades",
+      "icon": "Mara_AOEBuilder.jpg"
+    },
+    "SkitteringBladesDamage": {
+      "id": 1732,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "SkitteringBladesPoison": {
+      "id": 1731,
+      "kind": "effect",
+      "name": "Volatile Poison",
+      "icon": "T_ArcaneCoils.jpg"
+    },
+    "SkitteringBladesPoisonAoeDamage": {
+      "id": 1730,
+      "kind": "effect",
+      "name": "Volatile Poison",
+      "icon": "T_ArcaneCoils.jpg"
+    },
+    "StalkerStep": {
+      "id": 1205,
+      "name": "Stalker Step",
+      "icon": "Mara_Stalkerstep.jpg",
+      "range": 30,
+      "charges": 2
+    },
+    "StalkerStepCharge": {
+      "id": 1712,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "StalkerStepIncreasedDamageOrMovementSpeedIncreasedMovementSpeed": {
+      "id": 2190,
+      "kind": "effect",
+      "name": "Stalker Step",
+      "icon": "Mara_Stalkerstep.jpg"
+    },
+    "WebCrack": {
+      "id": 1128,
+      "name": "Web Crack",
+      "icon": "Mara_Stun.jpg",
+      "cooldown": 30
+    },
+    "WebCrackCost": {
+      "id": 1584,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "WebCrackStun": {
+      "id": 1583,
+      "kind": "effect",
+      "name": "Cheap Shot",
+      "icon": "effect_stunned_icon.jpg"
+    },
+    "WidowBite": {
+      "id": 1207,
+      "name": "Widow\u0027s Bite",
+      "icon": "Mara_RegainEnergyHit.jpg"
+    },
+    "WidowBiteCharge": {
+      "id": 1720,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "WidowBiteCost": {
+      "id": 1719,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "WidowBiteDamageFirst": {
+      "id": 1718,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "WidowBiteDamageSecond": {
+      "id": 1717,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "WidowBitePoison": {
+      "id": 1716,
+      "kind": "effect",
+      "name": "Seething Poison",
+      "icon": "T_Nhance_RPG_Shadow_20.jpg"
+    },
+    "WidowBitePoisonBuff": {
+      "id": 1715,
+      "kind": "effect",
+      "name": "Predator\u0027s Rush",
+      "icon": "T_Nhance_RPG_Shadow_20.jpg"
+    }
+  },
+  "meiko": {
+    "Attack": {
+      "id": 1118,
+      "name": "Attack",
+      "icon": "T_Nhance_RPG_Icons_HolyHand.jpg"
+    },
+    "AttackDamage": {
+      "id": 1564,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "AttackMulltiHitSelfHeal": {
+      "id": 1563,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "AttackMultiHitDamage": {
+      "id": 1562,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "Cyclone": {
+      "id": 1125,
+      "name": "Cyclone",
+      "icon": "T_Meiko_Massgrip.jpg",
+      "cooldown": 60
+    },
+    "CycloneActivator": {
+      "id": 1576,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "EarthFist": {
+      "id": 1100,
+      "name": "Earth Fist",
+      "icon": "Meiko_AbilityIcon_03.jpg"
+    },
+    "EarthFistCost": {
+      "id": 1525,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "EarthFistDamage": {
+      "id": 1524,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "FightingTechniques": {
+      "id": 1099,
+      "name": "Fighting Techniques",
+      "icon": "Tex_SpellBook03_73.jpg"
+    },
+    "Gust": {
+      "id": 1123,
+      "name": "Gust",
+      "icon": "Meiko_AbilityIcon_10.jpg",
+      "charges": 2
+    },
+    "GustCharge": {
+      "id": 1575,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "Serenity": {
+      "id": 1119,
+      "name": "Serenity",
+      "icon": "T_Meiko_Selfheal.jpg"
+    },
+    "SerenityHealBonusTracker": {
+      "id": 1566,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "SerenitySelfHeal": {
+      "id": 1565,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "ShatterEarth": {
+      "id": 1115,
+      "name": "Shatter Earth",
+      "icon": "T_Meiko_SlamStun.jpg",
+      "cooldown": 60
+    },
+    "ShatterEarthCharge": {
+      "id": 1559,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "ShatterEarthCost": {
+      "id": 1558,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "ShatterEarthDamage": {
+      "id": 1557,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "ShatterEarthDot": {
+      "id": 1556,
+      "kind": "effect",
+      "name": "Shatter Earth",
+      "icon": "T_Meiko_SlamStun.jpg"
+    },
+    "SpiritPalm": {
+      "id": 1101,
+      "name": "Spirit Palm",
+      "icon": "Meiko_AbilityIcon_01.jpg"
+    },
+    "SpiritPalmCost": {
+      "id": 1527,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "SpiritPalmDamage": {
+      "id": 1526,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "Stagger": {
+      "id": 1116,
+      "name": "Stagger",
+      "icon": "T_Meiko_Interrupt.jpg",
+      "cooldown": 12
+    },
+    "StaggerInterrupt": {
+      "id": 1561,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "StaggerLockout": {
+      "id": 1560,
+      "kind": "effect",
+      "name": "Interrupted",
+      "icon": "T_Nhance_RPG_Shadow_46.jpg"
+    },
+    "StoneShield": {
+      "id": 1121,
+      "name": "Stone Shield",
+      "icon": "T_Meiko_StoneShield.jpg"
+    },
+    "StoneShield": {
+      "id": 1122,
+      "name": "Stone Shield",
+      "icon": "T_Meiko_StoneShield.jpg"
+    },
+    "StoneShieldActive": {
+      "id": 3141,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "StoneShieldBuff": {
+      "id": 1574,
+      "kind": "effect",
+      "name": "Stone Shield",
+      "icon": "T_Meiko_StoneShield.jpg"
+    },
+    "StoneShieldCharges": {
+      "id": 1573,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "StoneShieldDamage": {
+      "id": 1572,
+      "kind": "effect",
+      "name": "Stone Shield",
+      "icon": "T_Meiko_StoneShield.jpg"
+    },
+    "StoneShieldIncomingDamageMultiplier": {
+      "id": 1571,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "StoneShieldStoneInvinsibilityBuff": {
+      "id": 2449,
+      "kind": "effect",
+      "name": "Earthwell",
+      "icon": "T_Icon_Cosmic_01.jpg"
+    },
+    "StoneStomp": {
+      "id": 1107,
+      "name": "Stone Stomp",
+      "icon": "Meiko_AbilityIcon_11.jpg",
+      "cooldown": 120
+    },
+    "StoneStompCost": {
+      "id": 1543,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "StoneStompDamage": {
+      "id": 1542,
+      "kind": "effect",
+      "name": "Stone Stomp",
+      "icon": "Meiko_AbilityIcon_11.jpg"
+    },
+    "StoneStompDamageIncrease": {
+      "id": 1541,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "StoneStompProc": {
+      "id": 1540,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "StoneStompSlow": {
+      "id": 1539,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "StoneStompStun": {
+      "id": 1538,
+      "kind": "effect",
+      "name": "Stunned",
+      "icon": "effect_stunned_icon.jpg"
+    },
+    "Taunt": {
+      "id": 1095,
+      "name": "Taunt",
+      "icon": "T_Meiko_Taunt.jpg",
+      "cooldown": 8,
+      "range": 40
+    },
+    "TauntDebuff": {
+      "id": 1514,
+      "kind": "effect",
+      "name": "Taunted",
+      "icon": "T_Meiko_Taunt.jpg"
+    },
+    "TwinSoulsArmyOfOne": {
+      "id": 1110,
+      "name": "Twin Souls: Army of One",
+      "icon": "T_Meiko_SpiritUltimate.jpg"
+    },
+    "TwinSoulsBulwark": {
+      "id": 1082,
+      "name": "Twin Souls: Bulwark",
+      "icon": "T_Meiko_TauntTotem.jpg"
+    },
+    "TwinSoulsBulwarkSelfBuff": {
+      "id": 1491,
+      "kind": "effect",
+      "name": "Twin Souls: Bulwark",
+      "icon": "T_Meiko_TauntTotem.jpg"
+    },
+    "TwinSoulsBulwarkTaunt": {
+      "id": 2380,
+      "kind": "effect",
+      "name": "Taunted",
+      "icon": "T_Meiko_Taunt.jpg"
+    },
+    "WindKick": {
+      "id": 1102,
+      "name": "Wind Kick",
+      "icon": "Meiko_AbilityIcon_02.jpg"
+    },
+    "WindKickCost": {
+      "id": 1529,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "WindKickDamage": {
+      "id": 1528,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    }
+  },
+  "rime": {
+    "BrainFreeze": {
+      "id": 1019,
+      "name": "Brain Freeze",
+      "icon": "T_RimeIcon_Interrupt.jpg",
+      "cooldown": 20,
+      "range": 30
+    },
+    "BrainFreezeInterrupt": {
+      "id": 1383,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "BrainFreezeLockout": {
+      "id": 1382,
+      "kind": "effect",
+      "name": "Interrupted",
+      "icon": "T_Nhance_RPG_Frost_01.jpg"
+    },
+    "BurstingIce": {
+      "id": 1031,
+      "name": "Bursting Ice",
+      "icon": "T_Rime_CastedDebuffAOEdamage.jpg",
+      "cooldown": 10,
+      "range": 30,
+      "castDuration": 2
+    },
+    "BurstingIceDamage": {
+      "id": 1396,
+      "kind": "effect",
+      "name": "Bursting Ice",
+      "icon": "T_Rime_CastedDebuffAOEdamage.jpg"
+    },
+    "BurstingIceDebuff": {
+      "id": 1395,
+      "kind": "effect",
+      "name": "Bursting Ice",
+      "icon": "T_Rime_CastedDebuffAOEdamage.jpg"
+    },
+    "BurstingIceTalentBuffWhileActive": {
+      "id": 2303,
+      "kind": "effect",
+      "name": "Winter\u0027s Embrace",
+      "icon": "Cryomancer8.jpg"
+    },
+    "ColdSnap": {
+      "id": 1020,
+      "name": "Cold Snap",
+      "icon": "T_Rime_InstantHit.jpg",
+      "cooldown": 12,
+      "range": 30,
+      "charges": 2
+    },
+    "ColdSnapDamage": {
+      "id": 1384,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "ColdSnapTalentCooldownResetProc": {
+      "id": 1375,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "FlightOfTheNavir": {
+      "id": 1009,
+      "name": "Flight of the Navir",
+      "icon": "T_Rime_BirdCD.jpg",
+      "cooldown": 60,
+      "range": 30,
+      "costs": {
+        "winterOrb": 0
+      }
+    },
+    "FlightOfTheNavirAoeBuff": {
+      "id": 2446,
+      "kind": "effect",
+      "name": "Flight of the Navir",
+      "icon": "T_Rime_BirdCD.jpg"
+    },
+    "FlightOfTheNavirAoeDebuff": {
+      "id": 1367,
+      "kind": "effect",
+      "name": "",
+      "icon": "effects/T_Rime_BirdCD.jpg"
+    },
+    "FlightOfTheNavirCost": {
+      "id": 1366,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "FlightOfTheNavirDamage": {
+      "id": 1365,
+      "kind": "effect",
+      "name": "Frost Swallows",
+      "icon": "T_Rime_BirdCD.jpg"
+    },
+    "FreezingTorrent": {
+      "id": 1027,
+      "name": "Freezing Torrent",
+      "icon": "T_Rime_ChanneledBeam.jpg",
+      "cooldown": 15,
+      "range": 30,
+      "channelDuration": 2,
+      "channelTickInterval": 0.4
+    },
+    "FreezingTorrentAoeDamage": {
+      "id": 2300,
+      "kind": "effect",
+      "name": "Coalescing Frost",
+      "icon": "T_Nhance_RPG_Frost_31.jpg"
+    },
+    "FreezingTorrentChannelBuff": {
+      "id": 2315,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "FreezingTorrentTickDamage": {
+      "id": 1391,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "FrigidWinds": {
+      "id": 1021,
+      "name": "Frigid Winds",
+      "icon": "T_Rime_Knockback.jpg",
+      "cooldown": 60
+    },
+    "FrigidWindsDebuff": {
+      "id": 1385,
+      "kind": "effect",
+      "name": "Frigid Winds",
+      "icon": "T_Rime_Knockback.jpg"
+    },
+    "FrostBolt": {
+      "id": 1029,
+      "name": "Frost Bolt",
+      "icon": "T_Rime_SingleTargetBolt.jpg",
+      "range": 30,
+      "castDuration": 1.5
+    },
+    "FrostBoltDamage": {
+      "id": 1394,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "FrostSwallows": {
+      "id": 1033,
+      "name": "Frost Swallows",
+      "icon": "T_Rime_BirdCD.jpg"
+    },
+    "FrostWard": {
+      "id": 1015,
+      "name": "Frost Ward",
+      "icon": "T_Rime_SelfDefenceBuff.jpg",
+      "cooldown": 30
+    },
+    "FrostWardSelfBuff": {
+      "id": 1379,
+      "kind": "effect",
+      "name": "Frost Ward",
+      "icon": "T_Rime_SelfDefenceBuff.jpg"
+    },
+    "FrostWardTalentHeal": {
+      "id": 1374,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "GlacialBlast": {
+      "id": 1028,
+      "name": "Glacial Blast",
+      "icon": "T_Rime_AnimaBolt.jpg",
+      "range": 30,
+      "castDuration": 2,
+      "costs": {
+        "winterOrb": 2
+      }
+    },
+    "GlacialBlastCost": {
+      "id": 1393,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "GlacialBlastDamage": {
+      "id": 1392,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "GlacialBlastTalentInstantAndBonusDamageProcStacker": {
+      "id": 1377,
+      "kind": "effect",
+      "name": "Glacial Assault",
+      "icon": "T_Rime_AnimaBolt.jpg"
+    },
+    "GlacialBlastTalentInstantAndBonusDamageRealProc": {
+      "id": 1376,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "IceBlitz": {
+      "id": 1032,
+      "name": "Ice Blitz",
+      "icon": "T_Nhance_RPG_Icons_IcySpikes.jpg",
+      "cooldown": 120
+    },
+    "IceBlitzBuff": {
+      "id": 1397,
+      "kind": "effect",
+      "name": "Ice Blitz",
+      "icon": "T_Nhance_RPG_Icons_IcySpikes.jpg"
+    },
+    "IceComet": {
+      "id": 1018,
+      "name": "Ice Comet",
+      "icon": "T_Rime_OnTargetPulsatingAOE.jpg",
+      "range": 30,
+      "costs": {
+        "winterOrb": 2
+      }
+    },
+    "IceCometCost": {
+      "id": 1381,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "IceCometDamage": {
+      "id": 1380,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "IceDash": {
+      "id": 1024,
+      "name": "Ice Dash",
+      "icon": "T_Rime_Dash.jpg",
+      "cooldown": 25,
+      "charges": 2
+    },
+    "IceDashCharge": {
+      "id": 1388,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "TalonEdict": {
+      "id": 1555,
+      "name": "Talon\u0027s Edict",
+      "icon": "T_Icon_Elements_74.jpg"
+    },
+    "WinterBlessing": {
+      "id": 1026,
+      "name": "Winter\u0027s Blessing",
+      "icon": "T_Rime_HealingBuff.jpg",
+      "cooldown": 60
+    },
+    "WinterBlessingHeal": {
+      "id": 1390,
+      "kind": "effect",
+      "name": "Winter\u0027s Blessing",
+      "icon": "T_Rime_HealingBuff.jpg"
+    },
+    "WinterBlessingSelfBuff": {
+      "id": 1389,
+      "kind": "effect",
+      "name": "Winter\u0027s Blessing",
+      "icon": "T_Rime_HealingBuff.jpg"
+    },
+    "WinterBlessingSpiritBuff": {
+      "id": 2299,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "WrathOfWinter": {
+      "id": 1023,
+      "name": "Wrath of Winter",
+      "icon": "T_Rime_SpiritAbility.jpg"
+    },
+    "WrathOfWinterBuff": {
+      "id": 1387,
+      "kind": "effect",
+      "name": "Wrath of Winter",
+      "icon": "T_Rime_SpiritAbility.jpg"
+    },
+    "WrathOfWinterSpiritCost": {
+      "id": 1386,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "WrathOfWinterVisual": {
+      "id": 2092,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    }
+  },
+  "sylvie": {
+    "Buff": {
+      "id": 2731,
+      "kind": "effect",
+      "name": "Natural Selection",
+      "icon": "T_Nhance_RPG_Nature_02.jpg"
+    },
+    "CureAilment": {
+      "id": 1054,
+      "name": "Cure Ailment",
+      "icon": "T_Mosse_Dispel.jpg",
+      "cooldown": 6
+    },
+    "CureAilmentDispel": {
+      "id": 1435,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "CureAilmentManaCost": {
+      "id": 1434,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "EnfeeblingRootsap": {
+      "id": 1047,
+      "name": "Enfeebling Rootsap",
+      "icon": "T_Nhance_RPG_Nature_04.jpg",
+      "cooldown": 45,
+      "range": 30
+    },
+    "EnfeeblingRootsapAbsorbBuff": {
+      "id": 2198,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "EnfeeblingRootsapChannelHandler": {
+      "id": 2197,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "EnfeeblingRootsapDebuff": {
+      "id": 2232,
+      "kind": "effect",
+      "name": "Enfeebling Rootsap",
+      "icon": "T_Nhance_RPG_Nature_04.jpg"
+    },
+    "EnfeeblingRootsapHealBuff": {
+      "id": 1417,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "EnfeeblingRootsapManaCost": {
+      "id": 1433,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "EnfeeblingRootsapTurretCounter": {
+      "id": 2196,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "FluttercallHeal": {
+      "id": 1060,
+      "name": "Fluttercall: Heal",
+      "icon": "Sylvie_AbilityIcon_03.jpg"
+    },
+    "FluttercallHealHot": {
+      "id": 1445,
+      "kind": "effect",
+      "name": "Fluttercall: Heal",
+      "icon": "Sylvie_AbilityIcon_03.jpg"
+    },
+    "FluttercallHealManaCost": {
+      "id": 1444,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "FluttercallJubilee": {
+      "id": 1055,
+      "name": "Fluttercall: Jubilee",
+      "icon": "T_Mosse_Ultimate.jpg"
+    },
+    "FluttercallJubileeBuff": {
+      "id": 1439,
+      "kind": "effect",
+      "name": "Fluttercall: Jubilee",
+      "icon": "T_Mosse_Ultimate.jpg"
+    },
+    "FluttercallJubileeCost": {
+      "id": 1438,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "FluttercallJubileeHealthDistributer": {
+      "id": 1437,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "FluttercallJubileeHealthDistributerDamage": {
+      "id": 3136,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "FluttercallJubileeHealthDistributerHeal": {
+      "id": 3135,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "FluttercallJubileeHealthSyncBuff": {
+      "id": 1436,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "FluttercallProtect": {
+      "id": 1079,
+      "name": "Fluttercall: Protect",
+      "icon": "T_Mosse_BlueButterfly.jpg"
+    },
+    "FluttercallRestoreLife": {
+      "id": 1061,
+      "name": "Fluttercall: Restore Life",
+      "icon": "T_Nhance_RPG_Shadow_58.jpg"
+    },
+    "FluttercallRestoreLifeChargeup": {
+      "id": 1450,
+      "kind": "effect",
+      "name": "Fluttercall: Restore Life - Pollinating",
+      "icon": "T_Nhance_RPG_Shadow_24.jpg"
+    },
+    "FluttercallRestoreLifeFlashHeal": {
+      "id": 1449,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "FluttercallRestoreLifeHot": {
+      "id": 1448,
+      "kind": "effect",
+      "name": "Fluttercall: Restore Life",
+      "icon": "T_Nhance_RPG_Shadow_58.jpg"
+    },
+    "FluttercallRestoreLifeHotApplyTalentEffectToOwner": {
+      "id": 3137,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "FluttercallRestoreLifeManaCost": {
+      "id": 1447,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "HeartBloom": {
+      "id": 1075,
+      "name": "Heart Bloom",
+      "icon": "T_Mosse_Bigheal.jpg",
+      "cooldown": 45
+    },
+    "HeartBloomCharge": {
+      "id": 1478,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "HeartBloomHeal": {
+      "id": 1477,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "HeartBloomManaCost": {
+      "id": 1476,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "HeartBloomVisualEffect": {
+      "id": 1475,
+      "kind": "effect",
+      "name": "Heart Bloom",
+      "icon": "T_Mosse_Bigheal.jpg"
+    },
+    "HiddenTrail": {
+      "id": 1071,
+      "name": "Hidden Trail",
+      "icon": "T_Mosse_Hide.jpg",
+      "cooldown": 30
+    },
+    "HiddenTrailBuff": {
+      "id": 1470,
+      "kind": "effect",
+      "name": "Hidden Trail",
+      "icon": "T_Mosse_Hide.jpg"
+    },
+    "HiddenTrailManaCost": {
+      "id": 2201,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "HiddenTrailReduceThreat": {
+      "id": 1469,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "IronleafWard": {
+      "id": 116,
+      "name": "Ironleaf Ward",
+      "icon": "T_Mosse_DR.jpg",
+      "cooldown": 60
+    },
+    "LifePetal": {
+      "id": 1072,
+      "name": "Life Petal",
+      "icon": "T_Mosse_Lifepetal.jpg",
+      "cooldown": 60,
+      "charges": 2
+    },
+    "LifePetalHeal": {
+      "id": 1472,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "LifePetalManaCost": {
+      "id": 1471,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "Nettlebolt": {
+      "id": 1076,
+      "name": "Nettlebolt",
+      "icon": "Sylvie_AbilityIcon_02.jpg",
+      "range": 30,
+      "castDuration": 1.5
+    },
+    "NettleboltDamage": {
+      "id": 1480,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "NettleboltManaCost": {
+      "id": 1479,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "PricklyVine": {
+      "id": 1057,
+      "name": "Prickly Vine",
+      "icon": "T_Mosse_Vine.jpg",
+      "cooldown": 9,
+      "range": 40,
+      "charges": 2
+    },
+    "PricklyVineManaCost": {
+      "id": 1441,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "SafeHaven": {
+      "id": 1059,
+      "name": "Safe Haven",
+      "icon": "T_Mosse_LinkCD.jpg",
+      "cooldown": 120
+    },
+    "SafeHavenCost": {
+      "id": 1443,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "SafeHavenDamageReductionBuff": {
+      "id": 1442,
+      "kind": "effect",
+      "name": "",
+      "icon": "effects/T_Mosse_LinkCD.jpg"
+    },
+    "SafeHavenIncreasedHealingTakenBuff": {
+      "id": 2269,
+      "kind": "effect",
+      "name": "Safe Haven",
+      "icon": "T_Mosse_LinkCD.jpg"
+    },
+    "Shroomsplosion": {
+      "id": 1073,
+      "name": "Shroomsplosion",
+      "icon": "T_Mosse_Boomshroom.jpg"
+    },
+    "ShroomsplosionDamage": {
+      "id": 1474,
+      "kind": "effect",
+      "name": "Shroomsplosion",
+      "icon": "T_Mosse_Boomshroom.jpg"
+    },
+    "ShroomsplosionStacker": {
+      "id": 1473,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    }
+  },
+  "tariq": {
+    "Attack": {
+      "id": 1227,
+      "name": "Attack",
+      "icon": "Tex_bl_04_bg.jpg"
+    },
+    "AttackDamage": {
+      "id": 1760,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "ChainLightning": {
+      "id": 1237,
+      "name": "Chain Lightning",
+      "icon": "T_Ink_ChainLightning.jpg",
+      "cooldown": 8,
+      "range": 30
+    },
+    "ChainLightningCost": {
+      "id": 1775,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "ChainLightningDamage": {
+      "id": 1774,
+      "kind": "effect",
+      "name": "Chain Lightning",
+      "icon": "T_Ink_ChainLightning.jpg"
+    },
+    "ChainLightningSelfTargetEffect": {
+      "id": 1773,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "CullingStrike": {
+      "id": 1228,
+      "name": "Culling Strike",
+      "icon": "T_Ink_Cullingstrike.jpg",
+      "cooldown": 6
+    },
+    "CullingStrikeDamage": {
+      "id": 1762,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "CullingStrikeLightningBuff": {
+      "id": 1761,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "FaceBreaker": {
+      "id": 2239,
+      "name": "Face Breaker",
+      "icon": "",
+      "cooldown": 6
+    },
+    "FaceBreaker": {
+      "id": 2241,
+      "name": "Face Breaker",
+      "icon": ""
+    },
+    "FaceBreakerDamage": {
+      "id": 3161,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "FocusedWrath": {
+      "id": 1233,
+      "name": "Focused Wrath",
+      "icon": "T_Ink_FocusedWrath.jpg",
+      "cooldown": 90
+    },
+    "FocusedWrathSelfBuff": {
+      "id": 1769,
+      "kind": "effect",
+      "name": "Focused Wrath",
+      "icon": "T_Ink_FocusedWrath.jpg"
+    },
+    "HammerStorm": {
+      "id": 1242,
+      "name": "Hammer Storm",
+      "icon": "T_Ink_Hammerstorm.jpg",
+      "cooldown": 1.5
+    },
+    "HammerStormActivated": {
+      "id": 1750,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "HammerStormCost": {
+      "id": 1783,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "HammerStormDamage": {
+      "id": 1782,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "HammerStormLightningDamage": {
+      "id": 1781,
+      "kind": "effect",
+      "name": "Thunder Call: Hammer Storm",
+      "icon": ""
+    },
+    "HammerStormPassiveAoeDamageReductionIncrease": {
+      "id": 1749,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "HeavyStrike": {
+      "id": 1929,
+      "name": "Heavy Strike",
+      "icon": "T_Ink_TimerAbility.jpg"
+    },
+    "Intimidate": {
+      "id": 1241,
+      "name": "Intimidate",
+      "icon": "T_Ink_IntimidatingRoar.jpg",
+      "cooldown": 90
+    },
+    "IntimidateFear": {
+      "id": 1780,
+      "kind": "effect",
+      "name": "Intimidate",
+      "icon": "T_Ink_IntimidatingRoar.jpg"
+    },
+    "LeapSmash": {
+      "id": 1225,
+      "name": "Leap Smash",
+      "icon": "T_Ink_Leap.jpg",
+      "cooldown": 20
+    },
+    "LeapSmashDamage": {
+      "id": 1757,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "Pummel": {
+      "id": 1226,
+      "name": "Pummel",
+      "icon": "T_InkPummel.jpg",
+      "cooldown": 16
+    },
+    "PummelInterrupt": {
+      "id": 1759,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "PummelLockout": {
+      "id": 1758,
+      "kind": "effect",
+      "name": "Tremble!",
+      "icon": "Tex_red_10.jpg"
+    },
+    "RagingTempest": {
+      "id": 1231,
+      "name": "Raging Tempest",
+      "icon": "T_Ink_Spirit.jpg",
+      "costs": {
+        "spirit": 100
+      }
+    },
+    "RagingTempestAoeImpactDamage": {
+      "id": 2173,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "RagingTempestCost": {
+      "id": 1768,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "RagingTempestPulsatingSingleDamageDamage": {
+      "id": 1767,
+      "kind": "effect",
+      "name": "Raging Currents",
+      "icon": "T_Ink_Spirit.jpg"
+    },
+    "RagingTempestPulsatingSingleDamageSelfBuff": {
+      "id": 1766,
+      "kind": "effect",
+      "name": "Raging Tempest",
+      "icon": "T_Nhance_RPG_Energy_16.jpg"
+    },
+    "SkullCrusher": {
+      "id": 1229,
+      "name": "Skull Crusher",
+      "icon": "T_Ink_Skullcrusher.jpg",
+      "cooldown": 1
+    },
+    "SkullCrusherCost": {
+      "id": 1765,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "SkullCrusherDamage": {
+      "id": 1764,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "SkullCrusherLightningDamage": {
+      "id": 1763,
+      "kind": "effect",
+      "name": "Thunder Call: Skull Crusher",
+      "icon": ""
+    },
+    "ThunderCall": {
+      "id": 1235,
+      "name": "Thunder Call",
+      "icon": "T_Ink_Selfbuff.jpg",
+      "cooldown": 45
+    },
+    "ThunderCallBuff": {
+      "id": 1772,
+      "kind": "effect",
+      "name": "Thunder Call",
+      "icon": "T_Ink_Selfbuff.jpg"
+    },
+    "UnbreakableWill": {
+      "id": 1218,
+      "name": "Unbreakable Will",
+      "icon": "T_Ink_TankBuff.jpg",
+      "cooldown": 30
+    },
+    "UnbreakableWillSelfBuffFirst": {
+      "id": 1752,
+      "kind": "effect",
+      "name": "Unbreakable Will",
+      "icon": "T_Ink_TankBuff.jpg"
+    },
+    "UnbreakableWillSelfBuffSecond": {
+      "id": 1751,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "WildSwing": {
+      "id": 1234,
+      "name": "Wild Swing",
+      "icon": "T_Ink_Wildswing.jpg",
+      "cooldown": 1.5
+    },
+    "WildSwingCost": {
+      "id": 1771,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "WildSwingDamage": {
+      "id": 1770,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    }
+  },
+  "vigour": {
+    "AvatarOfLight": {
+      "id": 1000,
+      "name": "Avatar of Light",
+      "icon": "T_Vigor_Spirit.jpg",
+      "cooldown": 0,
+      "costs": {
+        "spirit": 100
+      }
+    },
+    "AvatarOfLightHeal": {
+      "id": 1332,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "AvatarOfLightResourceCost": {
+      "id": 1331,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "AvatarOfLightVisual": {
+      "id": 2156,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "CircleOfLight": {
+      "id": 110,
+      "name": "Circle of Light",
+      "icon": "T_Vigor_AoEHeal.jpg",
+      "cooldown": 15
+    },
+    "CircleOfLightCost": {
+      "id": 1340,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "CircleOfLightHeal": {
+      "id": 1339,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "DawnbreakerOrb": {
+      "id": 992,
+      "name": "Dawnbreaker Orb",
+      "icon": "T_Vigor_DawnSphere.jpg",
+      "cooldown": 10
+    },
+    "DawnbreakerOrbActiveProjectileProc": {
+      "id": 3105,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "DawnbreakerOrbDamage": {
+      "id": 1311,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "DawnbreakerOrbHeal": {
+      "id": 1310,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "DawnbreakerOrbResourceCost": {
+      "id": 1309,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "Dawnflare": {
+      "id": 1004,
+      "name": "Dawnflare",
+      "icon": "T_Vigor_Bolt.jpg",
+      "range": 30
+    },
+    "DawnflareDamage": {
+      "id": 1349,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "DawnflareResourceCost": {
+      "id": 1348,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "GreaterHeal": {
+      "id": 112,
+      "name": "Greater Heal",
+      "icon": "T_Vigor_Heal.jpg",
+      "range": 30
+    },
+    "GreaterHealHeal": {
+      "id": 1347,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "GreaterHealResourceCost": {
+      "id": 1346,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "Levitate": {
+      "id": 1003,
+      "name": "Levitate",
+      "icon": "T_Vigor_Levitate.jpg",
+      "cooldown": 60,
+      "charges": 2
+    },
+    "LevitateCharge": {
+      "id": 1345,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "LevitateCost": {
+      "id": 1344,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "LevitateSelfBuff": {
+      "id": 1343,
+      "kind": "effect",
+      "name": "Levitate",
+      "icon": "T_Vigor_Levitate.jpg"
+    },
+    "LightshaperWard": {
+      "id": 111,
+      "name": "Lightshaper\u0027s Ward",
+      "icon": "T_Vigor_Ward.jpg",
+      "cooldown": 60,
+      "range": 30
+    },
+    "LightshaperWardCastingCost": {
+      "id": 1341,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "LuminousBarrier": {
+      "id": 996,
+      "name": "Luminous Barrier",
+      "icon": "T_Vigor_Shield.jpg",
+      "cooldown": 15
+    },
+    "LuminousBarrierAbsorb": {
+      "id": 1321,
+      "kind": "effect",
+      "name": "Luminous Barrier",
+      "icon": "T_Vigor_Shield.jpg"
+    },
+    "LuminousBarrierCost": {
+      "id": 1320,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "LuminousBarrierUponRemovalBuff": {
+      "id": 2838,
+      "kind": "effect",
+      "name": "Residual Luminosity",
+      "icon": "Tex_SpellBook06_91.jpg"
+    },
+    "RadiantBlast": {
+      "id": 109,
+      "name": "Radiant Blast",
+      "icon": "T_Vigor_Cone.jpg",
+      "cooldown": 10
+    },
+    "RadiantBlastCost": {
+      "id": 1338,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "RadiantBlastDamage": {
+      "id": 1337,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "RadiantBlastHeal": {
+      "id": 1336,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "RadiantBlastPassiveSelfbuff": {
+      "id": 1326,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "RemoveMagic": {
+      "id": 997,
+      "name": "Remove Magic",
+      "icon": "T_Vigor_Dispel.jpg",
+      "cooldown": 6,
+      "range": 30
+    },
+    "RemoveMagicDispel": {
+      "id": 1323,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "RemoveMagicResourceCost": {
+      "id": 1322,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "RuneOfRenewal": {
+      "id": 995,
+      "name": "Rune of Renewal",
+      "icon": "T_Vigor_Rune.jpg"
+    },
+    "RuneOfRenewal": {
+      "id": 999,
+      "name": "Rune of Renewal",
+      "icon": ""
+    },
+    "RuneOfRenewalDirectHeal": {
+      "id": 1319,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "RuneOfRenewalHot": {
+      "id": 1318,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "RuneOfRenewalResourceCost": {
+      "id": 1317,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "RunicProliferation": {
+      "id": 1001,
+      "name": "Runic Proliferation",
+      "icon": "T_Vigor_HealRune.jpg",
+      "cooldown": 60
+    },
+    "RunicProliferationBuff": {
+      "id": 1334,
+      "kind": "effect",
+      "name": "Runic Proliferation",
+      "icon": "T_Vigor_HealRune.jpg"
+    },
+    "RunicProliferationManaCost": {
+      "id": 2200,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "Soulbrand": {
+      "id": 994,
+      "name": "Soulbrand",
+      "icon": "T_Vigor_Soulbrand.jpg"
+    },
+    "SoulbrandBuffActiveAdditionalDirectDamage": {
+      "id": 2432,
+      "kind": "effect",
+      "name": "Soulbrand",
+      "icon": "T_Vigor_Soulbrand.jpg"
+    },
+    "SoulbrandDot": {
+      "id": 1315,
+      "kind": "effect",
+      "name": "Soulbrand",
+      "icon": "T_Vigor_Soulbrand.jpg"
+    },
+    "SoulbrandResourceCost": {
+      "id": 1314,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "ThrowBook": {
+      "id": 993,
+      "name": "Throw Book",
+      "icon": "T_Vigor_Book.jpg",
+      "cooldown": 30
+    },
+    "ThrowBookResourceCost": {
+      "id": 1313,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "ThrowBookStun": {
+      "id": 1312,
+      "kind": "effect",
+      "name": "Stunned by a book",
+      "icon": "effect_stunned_icon.jpg"
+    }
+  },
+  "xavian": {
+    "Attack": {
+      "id": 1854,
+      "name": "Attack",
+      "icon": "Tex_swords_01_bg.jpg"
+    },
+    "AttackDamage": {
+      "id": 2562,
+      "kind": "effect",
+      "name": "Auto Attack",
+      "icon": ""
+    },
+    "AuraOfSolace": {
+      "id": 1917,
+      "name": "Aura of Solace",
+      "icon": "T_Sune_AuraOfSolace.jpg",
+      "cooldown": 3
+    },
+    "AuraOfSolaceAllyBuff": {
+      "id": 2670,
+      "kind": "effect",
+      "name": "Gift of Solace",
+      "icon": "T_Sune_AuraOfSolace.jpg"
+    },
+    "AuraOfSolaceAllyBuffStacker": {
+      "id": 2729,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "AuraOfSolaceDamage": {
+      "id": 2669,
+      "kind": "effect",
+      "name": "Aura of Solace",
+      "icon": "T_Sune_AuraOfSolace.jpg"
+    },
+    "AuraOfSolaceManaCost": {
+      "id": 2668,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "AuraOfSolaceSelfBuff": {
+      "id": 2667,
+      "kind": "effect",
+      "name": "Aura of Solace",
+      "icon": "T_Sune_AuraOfSolace.jpg"
+    },
+    "AuraOfSolaceTransferedDamage": {
+      "id": 2666,
+      "kind": "effect",
+      "name": "Aura of Solace",
+      "icon": ""
+    },
+    "BlindingSlash": {
+      "id": 1858,
+      "name": "Blinding Slash",
+      "icon": "T_Sune_Blindingslash.jpg",
+      "cooldown": 6
+    },
+    "BlindingSlashDamage": {
+      "id": 2568,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "BrilliantFlare": {
+      "id": 1860,
+      "name": "Brilliant Flare",
+      "icon": "T_Sune_BrilliantFlare.jpg",
+      "range": 30,
+      "castDuration": 1.5
+    },
+    "BrilliantFlareHeal": {
+      "id": 2573,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "BrilliantFlareManaCost": {
+      "id": 2572,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "DecreeOfTheSun": {
+      "id": 1853,
+      "name": "Decree of the Sun",
+      "icon": "T_Sune_Decree.jpg",
+      "costs": {
+        "spirit": 100
+      }
+    },
+    "DecreeOfTheSunAoeDamage": {
+      "id": 2561,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "DecreeOfTheSunAoeHeal": {
+      "id": 2560,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "DecreeOfTheSunSelfBuff": {
+      "id": 2559,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "DecreeOfTheSunSelfBuffDamageReduction": {
+      "id": 2558,
+      "kind": "effect",
+      "name": "Decree of the Sun",
+      "icon": "T_Sune_Decree.jpg"
+    },
+    "DecreeOfTheSunSelfBuffImmunity": {
+      "id": 2557,
+      "kind": "effect",
+      "name": "Decree of the Sun",
+      "icon": "T_Sune_Decree.jpg"
+    },
+    "DecreeOfTheSunSpiritPointCost": {
+      "id": 2556,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "Interrupt": {
+      "id": 1844,
+      "name": "Interrupt",
+      "icon": "T_Sune_Interrupt.jpg",
+      "cooldown": 12,
+      "range": 5
+    },
+    "InterruptInterrupt": {
+      "id": 2546,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "InterruptLockout": {
+      "id": 2545,
+      "kind": "effect",
+      "name": "Tremble!",
+      "icon": ""
+    },
+    "OmegaReprieval": {
+      "id": 1861,
+      "name": "Omega Reprieval",
+      "icon": "T_Sune_OmegaReprieval.jpg",
+      "cooldown": 60
+    },
+    "OmegaReprievalBuff": {
+      "id": 2574,
+      "kind": "effect",
+      "name": "Omega Reprieval",
+      "icon": "T_Sune_OmegaReprieval.jpg"
+    },
+    "Omnistrike": {
+      "id": 1863,
+      "name": "Omnistrike",
+      "icon": "T_Sune_Omnistrike.jpg",
+      "cooldown": 18
+    },
+    "OmnistrikeDamage": {
+      "id": 2577,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "RupturedDawn": {
+      "id": 1857,
+      "name": "Ruptured Dawn",
+      "icon": "T_Sune_RisingSun.jpg",
+      "cooldown": 60
+    },
+    "RupturedDawnDamage": {
+      "id": 2567,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "RupturedDawnStun": {
+      "id": 2566,
+      "kind": "effect",
+      "name": "Stunned",
+      "icon": "effect_stunned_icon.jpg"
+    },
+    "ShiningHalo": {
+      "id": 1859,
+      "name": "Shining Halo",
+      "icon": "T_Sune_ShiningHalo.jpg",
+      "cooldown": 30
+    },
+    "ShiningHaloDamage": {
+      "id": 2571,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "ShiningHaloManaCost": {
+      "id": 2570,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "ShiningHaloSelfBuff": {
+      "id": 2569,
+      "kind": "effect",
+      "name": "Shining Halo",
+      "icon": "T_Sune_ShiningHalo.jpg"
+    },
+    "SkyCrash": {
+      "id": 1841,
+      "name": "Sky Crash",
+      "icon": "T_Sune_Skycrash.jpg",
+      "cooldown": 60,
+      "charges": 2
+    },
+    "SkyCrashDamage": {
+      "id": 2540,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "SkyCrashSelfBuff": {
+      "id": 2539,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "SolarBlades": {
+      "id": 1862,
+      "name": "Solar Blades",
+      "icon": "T_Sune_SolarBlades.jpg",
+      "cooldown": 9,
+      "range": 30
+    },
+    "SolarBladesDamage": {
+      "id": 2576,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "SolarBladesManaCost": {
+      "id": 2575,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "SolarShield": {
+      "id": 1848,
+      "name": "Solar Shield",
+      "icon": "T_Sune_Solarshield.jpg",
+      "cooldown": 15,
+      "range": 30
+    },
+    "SolarShieldAbsorb": {
+      "id": 2551,
+      "kind": "effect",
+      "name": "Solar Shield",
+      "icon": "T_Sune_Solarshield.jpg"
+    },
+    "SolarShieldDamageReduction": {
+      "id": 2728,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "SolarShieldManaCost": {
+      "id": 2550,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "SunStrike": {
+      "id": 1845,
+      "name": "Sun Strike",
+      "icon": "T_Sune_Sunstrike.jpg"
+    },
+    "SunStrikeDamage": {
+      "id": 2547,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
+    "Taunt": {
+      "id": 1843,
+      "name": "Taunt",
+      "icon": "T_Sune_Taunt.jpg",
+      "cooldown": 8,
+      "range": 40
+    },
+    "TauntTaunt": {
+      "id": 2544,
+      "kind": "effect",
+      "name": "Taunted",
+      "icon": "T_Sune_Taunt.jpg"
+    }
+  }
+}

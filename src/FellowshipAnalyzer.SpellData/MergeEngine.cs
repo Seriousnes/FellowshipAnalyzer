@@ -97,7 +97,7 @@ public static class MergeEngine
                     cooldown, range, charges, castDuration, channelDuration, channelTickInterval,
                     costs, prov));
 
-                if (string.IsNullOrEmpty(name))
+                if (!MemberNaming.IsValidIdentifier(member))
                     gaps.Add(new Gap(scope, member, GapKind.MissingName));
                 if (string.IsNullOrEmpty(icon))
                     gaps.Add(new Gap(scope, member, GapKind.MissingIcon));
@@ -257,7 +257,7 @@ public static class MergeEngine
             costs, prov);
 
         var addedGaps = new List<Gap>();
-        if (string.IsNullOrEmpty(resolvedName))
+        if (!MemberNaming.IsValidIdentifier(member))
             addedGaps.Add(new Gap(scope, member, GapKind.MissingName));
         if (string.IsNullOrEmpty(icon))
             addedGaps.Add(new Gap(scope, member, GapKind.MissingIcon));

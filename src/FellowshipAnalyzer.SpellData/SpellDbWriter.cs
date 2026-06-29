@@ -44,7 +44,9 @@ public static class SpellDbWriter
             writer.WritePropertyName(scope);
             writer.WriteStartObject();
 
-            foreach (var spell in byScope[scope].OrderBy(s => s.Member, StringComparer.Ordinal))
+            foreach (var spell in byScope[scope]
+                .Where(s => MemberNaming.IsValidIdentifier(s.Member))
+                .OrderBy(s => s.Member, StringComparer.Ordinal))
             {
                 writer.WritePropertyName(spell.Member);
                 writer.WriteStartObject();
