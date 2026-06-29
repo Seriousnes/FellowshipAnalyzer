@@ -9,11 +9,11 @@ Each hero's spell registry and ability scalars are hand-typed across
 `Spells.cs` and `Modules/Abilities.cs`, and drift from the game. The upstream
 data we could draw on is spread across sources we do not control — the
 [AngryDK/fs_tc_uploads](https://github.com/AngryDK/fs_tc_uploads) export
-(`spell_data.json` global ability/effect identity, `gear_data.json` weapon
-scalars, `hero_data.json` hero kits/scalars/costs) and the Fellowship Logs
-`abilities.json` (icons) — and none is usable directly: identity, scalars,
-icons, and costs each live in a different file, names are often `null`, and the
-shapes differ per source.
+(`spell_data.json` global ability/effect identity, `gear_data.json` item scalars,
+`hero_data.json` hero kits/scalars/costs) and the Fellowship Logs `abilities.json`
+(icons) — and none is usable directly: identity, scalars, icons, and costs each
+live in a different file, names are often `null` or duplicated, and the shapes
+differ per source.
 
 We reconcile these once, offline, into a single normalized database that
 FellowshipAnalyzer owns, make that database the source for every spell, and give
@@ -23,23 +23,23 @@ developers a local app to browse it, see what is missing, and curate the gaps.
 
 A committed `spelldb.json` is the canonical, human-readable spell database. A
 compile-time generator reads it and emits full `Spell` definitions into a
-registry per scope — one `Spells` class per hero, plus dedicated `shared` and
-`weapon` registries — together with the cross-registry aggregation (`Spells.All`
-keyed by guid and the per-scope `Guids` const tables). A shared merge engine
-reconciles the upstream sources and the hand-authored overrides into
-`spelldb.json`; a no-argument script rebuilds it; and a developer-only studio app
-makes the whole database browsable and curatable. The data targets the live
-season (**s3**).
+registry per scope — one `Spells` class per hero, a central `Spells` for shared
+spells, and a separate `Items` registry — together with the cross-registry
+aggregation (`Spells.All` keyed by guid and the per-scope `Guids` const tables). A
+shared merge engine reconciles the upstream sources and the hand-authored
+overrides into `spelldb.json`; a no-argument script rebuilds it; and a
+developer-only studio app makes the whole database browsable and curatable. The
+data targets the live season (**s3**).
 
 ## Architecture
 
 ```
 spell_data.json (identity + kind)  ┐
-gear_data.json  (weapon scalars)   │
+gear_data.json  (item scalars)     │
 hero_data.json  (kits/scalars/cost)├─► merge engine ─► spelldb.json (committed)
 abilities.json  (icons)            │       ▲                  │
 overrides.json  (hand deltas)      ┘       │                  ├─► compile-time generator
-                                 studio app + rebuild script  │     → Spells.{scope} full defs
+                                 studio app + rebuild script  │     → Spells.{scope} / Items defs
                                                               │     → per-scope Guids, central All
                                                               └─► browsable in the repo
 ```
@@ -64,26 +64,27 @@ self-contained JSON reader — no merging happens inside the generator.
 ## The normalized database (`spelldb.json`)
 
 A two-level map: the top level is keyed by **scope** — a hero name, `shared`, or
-`weapon` — and each scope is keyed by **member**, the C# property name emitted
-into that scope's `Spells` class. The entry body carries the native id, identity,
-the data scalars, and costs:
+`items` — and each scope is keyed by **member**, the C# property name emitted into
+that scope's registry. The entry body carries the native id, identity, the data
+scalars, and costs:
 
 ```json
 {
   "rime": {
+    "BurstingIce": { "id": 1031, "name": "Bursting Ice", "icon": "T_Rime_CastedDebuffAOEdamage.jpg", "cooldown": 12 },
+    "BurstingIceDamage": { "id": 1396, "kind": "effect", "name": "Bursting Ice", "icon": "T_Rime_CastedDebuffAOEdamage.jpg" },
     "FreezingTorrent": {
       "id": 1027,
       "name": "Freezing Torrent",
       "icon": "T_Rime_ChanneledBeam.jpg",
       "cooldown": 15,
       "range": 30,
-      "charges": 1,
       "channelDuration": 2.0,
       "channelTickInterval": 0.4,
       "costs": { "winterOrb": 0 }
     }
   },
-  "weapon": {
+  "items": {
     "VoidbringerTouch": {
       "id": 155,
       "name": "Voidbringer's Touch",
@@ -95,16 +96,18 @@ the data scalars, and costs:
 }
 ```
 
-- **scope key** — names the registry that receives the members: a hero (`rime`),
-  `shared` for global spells, or `weapon` for weapon abilities and traits. The
-  generator maps it to the registry case-insensitively.
+- **scope key** — names the registry that receives the members: a hero (`rime`)
+  for that hero's `Spells`, `shared` for the central `Spells`, or `items` for the
+  `Items` registry (weapons and other gear with spell-like effects). Mapped to the
+  registry case-insensitively.
 - **member key** — the emitted C# property name (a valid identifier, PascalCase).
   Unique within its scope, but **not across scopes** — two heroes may each define
   `Roll`, as distinct spells with distinct ids. A within-scope collision is
   resolved by choosing a distinct key.
 - `id` / `kind` — `id` is the native game id. `kind` ∈ `ability` | `effect` |
   `talent` | `weapon` (default `ability`), set by the FSL range and **independent
-  of scope** — a `weapon`-scope spell is usually `ability` kind. Kind selects the
+  of scope** — an `items` spell is usually `ability` or `effect` kind, while
+  `weapon` kind is reserved for the passive weapon-trait range. Kind selects the
   emitted type and guid offset: `ability` → `Spell`, guid `id`; `effect` →
   `Effect`, guid `1_000_000 + id`; `talent` → guid `2_000_000 + id`; `weapon` →
   guid `3_000_000 + id`. The id + offset guid is unique across the whole keyspace
@@ -126,22 +129,21 @@ add it if it does not.**
 ```json
 {
   "rime": {
-    "FreezingTorrent": { "channelTickInterval": 0.4, "note": "export omits tick" }
+    "FreezingTorrent": { "channelTickInterval": 0.4, "note": "export omits tick" },
+    "FrostSwallowsDamage": { "id": 1365, "kind": "effect", "note": "the periodic-aoe damage, not the auto-projectile" }
   },
-  "weapon": {
+  "items": {
     "VoidbringerTouch": { "id": 155 }
-  },
-  "shared": {
-    "EpochBreakBuff": { "id": 2613, "kind": "effect" }
   }
 }
 ```
 
 Patching an existing member corrects a scalar, cost, name, icon, or kind the
-sources get wrong. A spell absent from the hero kits — a weapon, a shared spell,
-or an effect — is added by giving its scope, member key, and `id`; the merge
-engine then **enriches it from the sources by id**, so an add is usually just an
-id. An add must carry an `id` so the generator can form its guid — the merge
+sources get wrong. A spell the auto-selection misses — an item, a shared spell, or
+a hero effect the engine could not link — is added by giving its scope, member
+key, and `id`; the merge engine then **enriches it from the sources by id**, so an
+add is usually just an id (and a `kind` when the native id is ambiguous across
+ranges). An add must carry an `id` so the generator can form its guid — the merge
 raises a build diagnostic for one without.
 
 ## The merge engine
@@ -149,9 +151,9 @@ raises a build diagnostic for one without.
 ### Sources
 
 - **`spell_data.json`** — the global registry: an `Abilities` map and an
-  `Effects` map (native id → FSLID, DevName, Name). The identity and kind source
-  for every spell.
-- **`gear_data.json`** — weapon abilities and traits with the scalars
+  `Effects` map (native id → FSLID, DevName, Name). The identity, kind, and
+  ability↔effect linkage source for every spell.
+- **`gear_data.json`** — items (weapons and gear) with the scalars
   `hero_data.json` does not carry.
 - **`hero_data.json`** — each hero's `Kit` (which abilities the hero owns → its
   scope), the `Constants` scalars, and resource costs.
@@ -160,22 +162,29 @@ raises a build diagnostic for one without.
 
 ### Pipeline
 
-The engine selects each hero's named `Kit` abilities into that hero's scope, then
-layers `overrides.json`, which both patches entries and **names** the non-Kit
-spells to include — weapons, global spells, and effects — by scope, member, and
-id. Every selected entry, auto or added, is then **enriched by id** across all
-sources: name and kind from `spell_data.json`, scalars from
-`hero_data.json`/`gear_data.json`, icon from `abilities.json`, costs from
-`hero_data.json`. Hero `Constants` data is linked to its `Kit` ability by merging
-every `Constants` entry sharing the ability's `DevName`. The engine records
-per-field provenance and flags entries with missing `name` or `icon` for the
-studio.
+For each hero the engine auto-selects, into that hero's scope, the named `Kit`
+abilities **and the effects that link to them** by shared DevName core
+(`GA_{Hero}_{core}` ↔ `GE_{Hero}_{core}_{Role}`); the linked effect is named
+`{AbilityMember}{Role}` (`GE_Rime_CastedDebuffAoeDamage_Damage` →
+`BurstingIceDamage`). It then layers `overrides.json`, which patches entries and
+adds the rest — items, shared spells, and any hero effect with no parent-ability
+link (like the periodic-aoe `FrostSwallowsDamage`). Every selected entry, auto or
+added, is then **enriched by id** across all sources: name and kind from
+`spell_data.json`, scalars from `hero_data.json`/`gear_data.json`, icon from
+`abilities.json`, costs from `hero_data.json`. Hero `Constants` data is linked to
+its `Kit` ability by merging every `Constants` entry sharing the ability's
+`DevName`. The engine records per-field provenance and flags entries with missing
+`name` or `icon`, and named hero effects it did not auto-select, for the studio.
 
 ### Normalization rules
 
 - **Kind & id** — the FSL range of the source id sets `kind` (0–999,999 ability,
   1,000,000–1,999,999 effect, 2,000,000–2,999,999 talent, 3,000,000+ weapon
   trait); the native `id` is that value minus the range offset.
+- **Member name** — an ability's member is its sanitized `Name`; a linked effect's
+  is `{AbilityMember}{Role}`, the role taken from its DevName tail
+  (`_Damage`/`_Debuff`/`_Buff`/…). A residual within-scope collision is resolved by
+  an override key.
 - **Cooldown** — `Cooldown`, else `RechargeTime` (charge abilities).
 - **Range** — `MaxRange / 100` (game centimetres → yards).
 - **Charges** — `MaxCharges`, else `NumCharges`, else `1`.
@@ -186,8 +195,6 @@ studio.
 - **Costs** — the typed fields map to the matching cost (`SpiritCost` → spirit,
   `OrbCost` → winterOrb); the generic `Cost` resolves through the ability's
   `CostType` and the hero resource model.
-- **Selection** — named hero `Kit` abilities auto-select to their hero scope;
-  overrides name the remaining spells (weapons, shared, effects) into their scope.
 
 Whole-number doubles emit as integral literals where the target field is integral
 (`Charges`); seconds-valued fields stay `double`.
@@ -206,8 +213,8 @@ The consolidated `SpellDatabase` generator replaces both the previous
 reads `spelldb.json` (as `AdditionalFiles`) and the minimal hand-written
 registry, and emits:
 
-- Per scope, a `Spells.{Scope}.g.cs` partial — `Spells.Rime`, the central
-  `Spells` for `shared`, `Spells.Weapon` for weapons — with one
+- Per scope, a partial registry — `Spells.Rime`, the central `Spells` for
+  `shared`, the `Items` class for `items` — with one
   `public static {Type} {member} { get; } = new {Type} { Id = …, Name = …, Icon =
   …, Cooldown = …, … };` per member. The entry's `kind` selects `{Type}`:
   `ability` → `Spell`, `effect` → `Effect`, and `talent`/`weapon` → their derived
@@ -220,7 +227,7 @@ registry, and emits:
   references cross-assembly. The central `Spells.Guids` covers only the `shared`
   and hand-authored Core members, since member names are not unique across scopes.
 - No cross-scope forwarding: a spell referenced outside its owning hero is scoped
-  `shared` or `weapon` and resolves through that registry directly; per-hero
+  `shared` or `items` and resolves through that registry directly; per-hero
   members are reached only through their own `Spells.{Hero}`.
 - **FA0001** duplicate `member`-name detection *within a scope* — chiefly a
   generated member colliding with a hand-authored Core spell of the same name.
@@ -238,7 +245,7 @@ compilation and cannot see each other's output — so neither the generated
 property nor its generated `Guids` const is visible to `ModuleGenerator` there.
 These Core-internal cross-hero spells (e.g. `Chronoshift`) remain hand-written in
 the central `Spells.cs` in object-initializer form, and `ModuleGenerator` resolves
-them through the syntax path. Hero-, `weapon`-, and `shared`-assembly `[On<>]`
+them through the syntax path. Hero-, `items`-, and `shared`-assembly `[On<>]`
 references resolve through the cross-assembly metadata path (the generated `Guids`
 const tables), so those kits and effects generate normally.
 
@@ -261,10 +268,10 @@ every entry uses the object-initializer form. It gains the data scalars
 `ChannelTickInterval`); its cost properties (`SpiritCost`, `WinterOrbCost`,
 `AnimaCost`, `FocusCost`) become `init`-settable. `Guid` stays virtual; the base
 `Spell` is the `ability` kind (`Guid => Id`), and the FSL-range subtypes layer the
-offset onto `Guid` — `Effect` (`1_000_000 + Id`), with `Talent` (`2_000_000 + Id`)
-and `Weapon` (`3_000_000 + Id`) added when a `kind` first needs them. Each is
-written in object-initializer form, e.g. `new Effect { Id = …, … }`. `Spell` =
-identity + physical facts.
+offset onto `Guid` — `Effect` (`1_000_000 + Id`), `Talent` (`2_000_000 + Id`), and
+`Weapon` (`3_000_000 + Id`) added when a `kind` first needs them. Each is written
+in object-initializer form, e.g. `new Effect { Id = …, … }`. `Spell` = identity +
+physical facts.
 
 ## `SpellbookAbility` change (Core)
 
@@ -290,8 +297,8 @@ A developer-only local Blazor app (not shipped in the client) that runs the merg
 engine and presents the database for curation:
 
 - A browsable table of every spell with its merged fields and per-field
-  provenance, and the un-included spells from `spell_data.json`/`gear_data.json`
-  available to add.
+  provenance, alongside the named hero effects and `spell_data.json`/
+  `gear_data.json` entries not yet selected, ready to add with one click.
 - Gap highlighting for entries missing `name`, `icon`, or other expected fields.
 - A per-spell edit form that writes changes to `overrides.json` as deltas, then
   re-runs the merge so the effect is immediate in the studio.
@@ -300,17 +307,21 @@ engine and presents the database for curation:
 
 ## Testing
 
-- **Merge-engine unit tests** — link-by-`DevName`, field selection, unit
-  conversion, cost mapping, kind-from-range, enrichment-by-id (including a weapon
-  enriched from `gear_data.json`), override application (patch existing, add new),
-  and provenance, against the real s3 sources.
+- **Merge-engine unit tests** — link-by-`DevName` (ability↔effect and
+  `Constants`), field selection, unit conversion, cost mapping, kind-from-range,
+  effect member naming, enrichment-by-id (including an item enriched from
+  `gear_data.json`), override application (patch existing, add new), and
+  provenance, against the real s3 sources.
 - **Reproducibility test** — the committed `spelldb.json` equals a fresh in-memory
   merge of the sources and overrides.
 - **Generator test** — drives the generator over `spelldb.json` plus a sample
-  compilation, asserting emitted members across the `rime`, `shared`, and `weapon`
+  compilation, asserting emitted members across the `rime`, `shared`, and `items`
   scopes, including icon, cost, and the type selected by `kind`.
-- **Cross-check test** — every generated scalar and cost equals the current
-  hand-coded oracle value, per hero, run before any hand value is removed.
+- **Migration diff** — compares the generated registry against the current
+  hand-written one per hero and reports every difference (member, id, scalar,
+  cost); ability scalars match the old hand values where both exist, and identity
+  diffs — re-curated or newly linked effects — are resolved through overrides
+  before the old registry is removed.
 - **Category guard test** — no enabled spellbook entry is
   `SpellCategory.Uncategorized`.
 
@@ -319,6 +330,6 @@ engine and presents the database for curation:
 Delivered on one branch, staged so each step is provable:
 
 1. Land the `Spell`/`SpellbookAbility` Core changes, the merge engine, the compile-time generator, the `ModuleGenerator` reader update, `spelldb.json`, `overrides.json`, and the rebuild script.
-2. Fan out to all heroes, each cross-checked before its hand-typed values are removed.
+2. Fan out to all heroes, each diffed against its current registry before its hand-typed values are removed.
 3. Layer the studio on the working pipeline.
 4. The whole solution builds and `dotnet test` passes; the old per-hero hand-typed registries and scalars are removed.
