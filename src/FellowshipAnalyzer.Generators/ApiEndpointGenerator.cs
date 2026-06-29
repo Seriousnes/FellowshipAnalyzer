@@ -41,11 +41,11 @@ public sealed class ApiEndpointGenerator : IIncrementalGenerator
                 return;
             }
 
-            if (string.Equals(hostKind, "MinimalApi", System.StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(hostKind, "MinimalApi", StringComparison.OrdinalIgnoreCase))
             {
                 EmitMinimalApi(spc, endpoints);
             }
-            else if (string.Equals(hostKind, "Functions", System.StringComparison.OrdinalIgnoreCase))
+            else if (string.Equals(hostKind, "Functions", StringComparison.OrdinalIgnoreCase))
             {
                 EmitFunctions(spc, endpoints);
             }
@@ -60,7 +60,7 @@ public sealed class ApiEndpointGenerator : IIncrementalGenerator
             return ImmutableArray<EndpointInfo>.Empty;
         }
 
-        var visited = new HashSet<string>(System.StringComparer.Ordinal);
+        var visited = new HashSet<string>(StringComparer.Ordinal);
         var results = ImmutableArray.CreateBuilder<EndpointInfo>();
 
         ScanAssembly(compilation.Assembly, attributeSymbol, results, visited, ct);
@@ -226,7 +226,7 @@ public sealed class ApiEndpointGenerator : IIncrementalGenerator
         // Group endpoints by containing type so we can inject one handler per type.
         var byType = endpoints
             .GroupBy(e => e.ContainingTypeFullName)
-            .OrderBy(g => g.Key, System.StringComparer.Ordinal)
+            .OrderBy(g => g.Key, StringComparer.Ordinal)
             .ToList();
 
         // Constructor injects all distinct handler types.
@@ -247,7 +247,7 @@ public sealed class ApiEndpointGenerator : IIncrementalGenerator
 
         for (int i = 0; i < byType.Count; i++)
         {
-            foreach (var ep in byType[i].OrderBy(e => e.DisplayName, System.StringComparer.Ordinal))
+            foreach (var ep in byType[i].OrderBy(e => e.DisplayName, StringComparer.Ordinal))
             {
                 EmitFunctionsMethod(sb, ep, $"_handler{i}");
             }
@@ -290,7 +290,7 @@ public sealed class ApiEndpointGenerator : IIncrementalGenerator
 
     private static void EmitFunctionsMethod(StringBuilder sb, EndpointInfo ep, string handlerField)
     {
-        var routeTokens = new HashSet<string>(System.StringComparer.OrdinalIgnoreCase);
+        var routeTokens = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         foreach (Match m in RouteTokenRegex.Matches(ep.Route))
         {
             routeTokens.Add(m.Groups["name"].Value);
@@ -418,7 +418,7 @@ public sealed class ApiEndpointGenerator : IIncrementalGenerator
         }
 
         private static string TrimAsync(string name) =>
-            name.EndsWith("Async", System.StringComparison.Ordinal) && name.Length > "Async".Length
+            name.EndsWith("Async", StringComparison.Ordinal) && name.Length > "Async".Length
                 ? name.Substring(0, name.Length - "Async".Length)
                 : name;
 

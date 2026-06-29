@@ -142,7 +142,7 @@ public sealed class ModuleGenerator : IIncrementalGenerator
                     earliestPath = path;
             }
             var currentPath = classDecl.SyntaxTree.FilePath ?? string.Empty;
-            if (!string.Equals(currentPath, earliestPath, System.StringComparison.Ordinal))
+            if (!string.Equals(currentPath, earliestPath, StringComparison.Ordinal))
                 return null;
         }
 
@@ -216,7 +216,7 @@ public sealed class ModuleGenerator : IIncrementalGenerator
         if (primaryCtor is null) return ImmutableArray<LazyAccessorInfo>.Empty;
 
         var builder = ImmutableArray.CreateBuilder<LazyAccessorInfo>();
-        var existingMemberNames = new HashSet<string>(System.StringComparer.Ordinal);
+        var existingMemberNames = new HashSet<string>(StringComparer.Ordinal);
         foreach (var member in symbol.GetMembers())
             existingMemberNames.Add(member.Name);
 

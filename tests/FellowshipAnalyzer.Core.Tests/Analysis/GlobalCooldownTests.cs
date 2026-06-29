@@ -321,7 +321,7 @@ public sealed class GlobalCooldownTests
             {
                 PrimarySpell = new Spell(TestSpellId, "Test Spell"),
                 Category = SpellCategory.Rotational,
-                Gcd = Abilities.StandardGcd,
+                Gcd = StandardGcd,
             });
             configuration.Configure?.Invoke(this);
         }

@@ -12,83 +12,83 @@ public class Abilities : CoreAbilities
         var weightOfGravity = Owner.SelectedCombatant.HasTalent(Talents.TheWeightOfGravity.Id);
         return
         [
-            AbilityFacts.Multishot with
+            SpellDatabase.Multishot with
             {
                 Category = SpellCategory.Rotational,
                 Gcd = StandardGcd,
                 Range = 30,
             },
-            AbilityFacts.HeartseekerBarrage with
+            SpellDatabase.HeartseekerBarrage with
             {
                 Category = SpellCategory.Rotational,
                 Gcd = StandardGcd,
                 Range = 30,
             },
-            AbilityFacts.FocusedShot with
+            SpellDatabase.FocusedShot with
             {
                 Category = SpellCategory.Rotational,
                 Gcd = StandardGcd,
                 Range = 30,
             },
-            AbilityFacts.HighwindArrow with
+            SpellDatabase.HighwindArrow with
             {
                 Category = SpellCategory.Rotational,
                 Gcd = StandardGcd,
                 CooldownReducedByHaste = true,
                 Range = 30,
             },
-            AbilityFacts.CelestialShot with
+            SpellDatabase.CelestialShot with
             {
                 Category = SpellCategory.Rotational,
                 Gcd = StandardGcd,
                 Range = 30,
             },
-            AbilityFacts.StarfallVolley with
+            SpellDatabase.StarfallVolley with
             {
                 Category = SpellCategory.Cooldowns,
                 Gcd = StandardGcd,
                 Range = 30,
             },
-            AbilityFacts.SkystridersSupremacy with
+            SpellDatabase.SkystridersSupremacy with
             {
                 Category = SpellCategory.Cooldowns,
                 Gcd = null,
             },
-            AbilityFacts.LunarlightMark with
+            SpellDatabase.LunarlightMark with
             {
                 Category = SpellCategory.Rotational,
                 Gcd = null,
             },
-            AbilityFacts.Roll with
+            SpellDatabase.Roll with
             {
                 Category = SpellCategory.Utility,
                 Gcd = null,
                 Cooldown = 8,
                 CastableWhileCasting = true,
             },
-            AbilityFacts.Disrupt with
+            SpellDatabase.Disrupt with
             {
                 Category = SpellCategory.Utility,
                 Gcd = null,
                 Range = 30,
             },
-            AbilityFacts.PathfindersResillience with
+            SpellDatabase.PathfindersResillience with
             {
                 Category = SpellCategory.Defensive,
                 Gcd = null,
             },
-            AbilityFacts.SkystridersGrace with
+            SpellDatabase.SkystridersGrace with
             {
                 Category = SpellCategory.Cooldowns,
                 Gcd = null,
                 CastableWhileCasting = true,
             },
-            AbilityFacts.EventHorizon with
+            SpellDatabase.EventHorizon with
             {
                 Category = SpellCategory.Cooldowns,
                 Gcd = null,
             },
-            AbilityFacts.GrapplingArrow with
+            SpellDatabase.GrapplingArrow with
             {
                 Category = SpellCategory.Utility,
                 Gcd = null,

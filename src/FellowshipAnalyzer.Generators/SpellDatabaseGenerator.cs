@@ -9,7 +9,7 @@ using System.Text;
 namespace FellowshipAnalyzer.Generators;
 
 /// <summary>
-/// Emits an <c>AbilityFacts</c> class per hero from the fs_tc_uploads <c>s3/hero_data.json</c>
+/// Emits an <c>SpellDatabase</c> class per hero from the fs_tc_uploads <c>s3/hero_data.json</c>
 /// game-data export (referenced via the <c>external/fs_tc_uploads</c> submodule). Each class lives in that hero's own
 /// <c>FellowshipAnalyzer.Core.Common.Spells.{Hero}</c> namespace and exposes one
 /// <c>SpellbookAbility</c> per kit ability, pre-filled with the data-derived scalars
@@ -17,7 +17,7 @@ namespace FellowshipAnalyzer.Generators;
 /// haste flag, talent branches) are composed by the hand-authored spellbook via <c>with</c>.
 /// </summary>
 [Generator]
-public sealed class AbilityFactsGenerator : IIncrementalGenerator
+public sealed class SpellDatabaseGenerator : IIncrementalGenerator
 {
     private const string SpellsRoot = "FellowshipAnalyzer.Core.Common.Spells";
     private const string EffectTypeName = "Effect";
@@ -28,8 +28,8 @@ public sealed class AbilityFactsGenerator : IIncrementalGenerator
     private static readonly DiagnosticDescriptor ConflictDescriptor = new(
         id: "FA0100",
         title: "Conflicting ability-facts field",
-        messageFormat: "Hero '{0}' ability '{1}' field '{2}' has conflicting values ({3}) across merged Constants entries; using the first.",
-        category: "AbilityFacts",
+        messageFormat: "Hero '{0}' ability '{1}' field '{2}' has conflicting values ({3}) across merged Constants entries; using the first",
+        category: "SpellDatabase",
         defaultSeverity: DiagnosticSeverity.Warning,
         isEnabledByDefault: true);
 
@@ -44,7 +44,7 @@ public sealed class AbilityFactsGenerator : IIncrementalGenerator
             .Collect();
 
         var heroData = context.AdditionalTextsProvider
-            .Where(static f => f.Path.Replace('\\', '/').EndsWith(HeroDataRelativePath, System.StringComparison.OrdinalIgnoreCase))
+            .Where(static f => f.Path.Replace('\\', '/').EndsWith(HeroDataRelativePath, StringComparison.OrdinalIgnoreCase))
             .Select(static (f, ct) => f.GetText(ct)?.ToString())
             .Where(static s => !string.IsNullOrEmpty(s))
             .Select(static (s, _) => s!)
@@ -61,7 +61,7 @@ public sealed class AbilityFactsGenerator : IIncrementalGenerator
 
         var ns = symbol.ContainingNamespace?.ToDisplayString() ?? "";
         var prefix = SpellsRoot + ".";
-        if (!ns.StartsWith(prefix, System.StringComparison.Ordinal))
+        if (!ns.StartsWith(prefix, StringComparison.Ordinal))
             return null;
 
         var hero = ns.Substring(prefix.Length);
@@ -144,8 +144,8 @@ public sealed class AbilityFactsGenerator : IIncrementalGenerator
         if (root.Object is not { } heroes)
             return;
 
-        var byHero = new Dictionary<string, Dictionary<int, string>>(System.StringComparer.Ordinal);
-        var nsByHero = new Dictionary<string, string>(System.StringComparer.Ordinal);
+        var byHero = new Dictionary<string, Dictionary<int, string>>(StringComparer.Ordinal);
+        var nsByHero = new Dictionary<string, string>(StringComparer.Ordinal);
         foreach (var reg in registries)
         {
             if (!byHero.TryGetValue(reg.Hero, out var map))
@@ -176,7 +176,7 @@ public sealed class AbilityFactsGenerator : IIncrementalGenerator
         if (!heroObj.TryGetValue("Kit", out var kitNode) || kitNode.Object is not { } kit)
             return;
 
-        var byDevName = new Dictionary<string, List<Dictionary<string, JsonValue>>>(System.StringComparer.Ordinal);
+        var byDevName = new Dictionary<string, List<Dictionary<string, JsonValue>>>(StringComparer.Ordinal);
         if (heroObj.TryGetValue("Constants", out var cNode) && cNode.Object is { } constants)
         {
             foreach (var entry in constants.Values)
@@ -226,7 +226,7 @@ public sealed class AbilityFactsGenerator : IIncrementalGenerator
         sb.AppendLine("namespace " + ns + ";");
         sb.AppendLine();
         sb.AppendLine("/// <summary>Data-derived ability scalars generated from the fs_tc_uploads s3/hero_data.json export.</summary>");
-        sb.AppendLine("public static class AbilityFacts");
+        sb.AppendLine("public static class SpellDatabase");
         sb.AppendLine("{");
         bool first = true;
         foreach (var fact in facts)
@@ -248,7 +248,7 @@ public sealed class AbilityFactsGenerator : IIncrementalGenerator
         }
         sb.AppendLine("}");
 
-        spc.AddSource("AbilityFacts." + hero + ".g.cs", sb.ToString());
+        spc.AddSource("SpellDatabase." + hero + ".g.cs", sb.ToString());
     }
 
     private static FactScalars Normalize(SourceProductionContext spc, string hero, string prop, List<Dictionary<string, JsonValue>> entries)
@@ -275,7 +275,7 @@ public sealed class AbilityFactsGenerator : IIncrementalGenerator
                 continue;
             if (found is null)
                 found = n;
-            else if (System.Math.Abs(found.Value - n) > 1e-9)
+            else if (Math.Abs(found.Value - n) > 1e-9)
                 conflict = true;
             (values ??= new List<double>()).Add(n);
         }
@@ -290,7 +290,7 @@ public sealed class AbilityFactsGenerator : IIncrementalGenerator
     }
 
     private static string Fmt(double v) =>
-        v == System.Math.Floor(v) && !double.IsInfinity(v)
+        v == Math.Floor(v) && !double.IsInfinity(v)
             ? ((long)v).ToString(CultureInfo.InvariantCulture)
             : v.ToString("R", CultureInfo.InvariantCulture);
 
@@ -363,7 +363,7 @@ public sealed class AbilityFactsGenerator : IIncrementalGenerator
 
         private static JsonValue ParseObject(string s, ref int pos)
         {
-            var result = new Dictionary<string, JsonValue>(System.StringComparer.Ordinal);
+            var result = new Dictionary<string, JsonValue>(StringComparer.Ordinal);
             pos++; // {
             SkipWhitespace(s, ref pos);
             if (s[pos] == '}') { pos++; return JsonValue.Obj(result); }

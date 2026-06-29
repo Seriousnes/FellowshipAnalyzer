@@ -9,81 +9,81 @@ public class Abilities : CoreAbilities
 {
     public override IEnumerable<SpellbookAbility> Spellbook() =>
     [
-        AbilityFacts.BrainFreeze with
+        SpellDatabase.BrainFreeze with
         {
             Category = SpellCategory.Utility,
             Gcd = null,
             CastableWhileCasting = true,
         },
-        AbilityFacts.BurstingIce with
+        SpellDatabase.BurstingIce with
         {
             AdditionalSpells = [Spells.BurstingIceDamage],
             Category = SpellCategory.Rotational,
             Gcd = StandardGcd,
         },
-        AbilityFacts.ColdSnap with
+        SpellDatabase.ColdSnap with
         {
             Category = SpellCategory.Rotational,
             Gcd = StandardGcd,
             CooldownReducedByHaste = true,
         },
-        AbilityFacts.FlightOfTheNavir with
+        SpellDatabase.FlightOfTheNavir with
         {
             Category = SpellCategory.Cooldowns,
             Gcd = StandardGcd,
         },
-        AbilityFacts.FreezingTorrent with
+        SpellDatabase.FreezingTorrent with
         {
             Category = SpellCategory.Rotational,
             Gcd = StandardGcd,
         },
-        AbilityFacts.FrigidWinds with
+        SpellDatabase.FrigidWinds with
         {
             Category = SpellCategory.Utility,
             Gcd = null,
         },
-        AbilityFacts.FrostBolt with
+        SpellDatabase.FrostBolt with
         {
             Category = SpellCategory.Rotational,
             Gcd = StandardGcd,
         },
-        AbilityFacts.FrostWard with
+        SpellDatabase.FrostWard with
         {
             Category = SpellCategory.Defensive,
             Gcd = null,
         },
-        AbilityFacts.GlacialBlast with
+        SpellDatabase.GlacialBlast with
         {
             Category = SpellCategory.Rotational,
             Gcd = StandardGcd,
         },
-        AbilityFacts.IceBlitz with
+        SpellDatabase.IceBlitz with
         {
             Category = SpellCategory.Cooldowns,
             Gcd = null,
             CastableWhileCasting = true,
         },
-        AbilityFacts.IceComet with
+        SpellDatabase.IceComet with
         {
             Category = SpellCategory.Rotational,
             Gcd = StandardGcd,
         },
-        AbilityFacts.IceDash with
+        SpellDatabase.IceDash with
         {
             Category = SpellCategory.Defensive,
             Gcd = null,
         },
-        AbilityFacts.WintersBlessing with
+        SpellDatabase.WintersBlessing with
         {
             Category = SpellCategory.Cooldowns,
             Gcd = null,
         },
-        AbilityFacts.WrathOfWinter with
+        SpellDatabase.WrathOfWinter with
         {
             Category = SpellCategory.Cooldowns,
             Gcd = StandardGcd,
         },
-        AbilityFacts.FrostSwallows with
+        SpellDatabase.FrostSwallows with
         {
             AdditionalSpells = [Spells.FrostSwallowsDamage],
             Category = SpellCategory.Cooldowns,

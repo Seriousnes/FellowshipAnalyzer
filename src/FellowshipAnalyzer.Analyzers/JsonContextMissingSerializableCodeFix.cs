@@ -87,7 +87,7 @@ public sealed class JsonContextMissingSerializableCodeFix : CodeFixProvider
         for (int i = attrLists.Count - 1; i >= 0; i--)
         {
             var al = attrLists[i];
-            if (al.Attributes.Any(a => a.Name.ToString().EndsWith("JsonSerializable", System.StringComparison.Ordinal)))
+            if (al.Attributes.Any(a => a.Name.ToString().EndsWith("JsonSerializable", StringComparison.Ordinal)))
             {
                 insertIndex = i + 1;
                 break;
@@ -98,6 +98,6 @@ public sealed class JsonContextMissingSerializableCodeFix : CodeFixProvider
         var newClassDecl = classDecl.WithAttributeLists(newAttrLists);
         var newRoot = root.ReplaceNode(classDecl, newClassDecl);
 
-        return System.Threading.Tasks.Task.FromResult(document.WithSyntaxRoot(newRoot));
+        return Task.FromResult(document.WithSyntaxRoot(newRoot));
     }
 }

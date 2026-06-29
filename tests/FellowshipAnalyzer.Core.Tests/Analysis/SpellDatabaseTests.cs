@@ -1,17 +1,17 @@
 using Xunit;
 
-using RimeFacts = FellowshipAnalyzer.Core.Common.Spells.Rime.AbilityFacts;
-using ElarionFacts = FellowshipAnalyzer.Core.Common.Spells.Elarion.AbilityFacts;
+using RimeFacts = FellowshipAnalyzer.Core.Common.Spells.Rime.SpellDatabase;
+using ElarionFacts = FellowshipAnalyzer.Core.Common.Spells.Elarion.SpellDatabase;
 
 namespace FellowshipAnalyzer.Core.Tests.Analysis;
 
 /// <summary>
-/// Locks in the values the AbilityFactsGenerator extracts from s3/hero_data.json,
+/// Locks in the values the SpellDatabaseGenerator extracts from s3/hero_data.json,
 /// guarding against normalization regressions (DevName-merge, MaxRange/100,
 /// RechargeTime/NumCharges fallbacks, cast/channel/tick) and documenting the
 /// data-absent and data-vs-hand cases discovered during wiring.
 /// </summary>
-public sealed class AbilityFactsTests
+public sealed class SpellDatabaseTests
 {
     [Fact]
     public void Rime_SimpleCooldownAndRange_AreExtracted()
