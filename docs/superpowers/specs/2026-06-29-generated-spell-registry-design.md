@@ -1,240 +1,265 @@
-# Generated Spell Registry from the Game-Data Export
+# Spell Database: generated registry + curation studio
 
-> Status: draft for further refinement. Evolves
+> Status: draft for review. Evolves
 > [2026-06-28-ability-metadata-from-export-design.md](2026-06-28-ability-metadata-from-export-design.md).
 
 ## Context
 
-Each hero's spell registry (`FellowshipAnalyzer.Core.Common.Spells.{Hero}.Spells`)
-is hand-typed: one `Spell`/`Effect` per ability with identity (id, name, icon)
-and resource costs. Gameplay scalars (cooldown, range, charges, cast/channel
-timing) are hand-typed again in that hero's `Modules/Abilities.cs` `Spellbook()`.
-Both drift from the game and miss data the analyzer could use.
+Each hero's spell registry and ability scalars are hand-typed across
+`Spells.cs` and `Modules/Abilities.cs`, and drift from the game. The upstream
+data we could draw on is spread across sources we do not control — the
+[AngryDK/fs_tc_uploads](https://github.com/AngryDK/fs_tc_uploads) export
+(`hero_data.json` scalars/costs) and the Fellowship Logs `abilities.json`
+(names/icons) — and none of them is usable directly: fields are missing, names
+are `null`, and the shapes differ per source.
 
-The community data repo [AngryDK/fs_tc_uploads](https://github.com/AngryDK/fs_tc_uploads)
-publishes a per-season `hero_data.json` with the gameplay scalars and costs, and
-the Fellowship Logs API publishes `abilities.json` with icons keyed by ability
-id. Together these cover a hero's full kit. We make the export the source for the
-kit and generate each hero's `Spells` registry members directly from it at compile
-time. The hand-authored layer keeps ownership of what the export cannot describe:
-effects/buffs that are not kit abilities, shared/cross-hero spells, and a small
-overrides file for fields the export gets wrong.
+We reconcile these once, offline, into a single normalized database that
+FellowshipAnalyzer owns, make that database the source for every spell, and give
+developers a local app to browse it, see what is missing, and curate the gaps.
 
 ## Goal
 
-A single Roslyn incremental generator emits each hero's kit `Spell` members
-directly into that hero's `Spells` registry partial, sourced from the export
-(identity, icon, cooldown, range, charges, cast/channel timing, and costs). The
-generator also produces the registry aggregation it produces today (`Spells.All`,
-the `Guids` const tables, the central forwarding properties). `Spell` carries the
-data scalars; `SpellbookAbility` carries analysis behaviour and reads scalars
-through its `PrimarySpell`. Each hero's `Spellbook()` composes plainly from
-`Spells.X`. The data targets **S3**.
+A committed `spelldb.json` is the canonical, human-readable spell database. A
+compile-time generator reads it and emits each hero's full `Spell` definitions
+directly into that hero's `Spells` registry (identity, icon, cooldown, range,
+charges, cast/channel timing, costs), plus the registry aggregation
+(`Spells.All`, the `Guids` const tables, the central forwarding properties). A
+shared merge engine reconciles the upstream sources and the hand-authored
+overrides into `spelldb.json`; a no-argument script rebuilds it; and a
+developer-only studio app makes the whole database browsable and curatable. The
+data targets **S3**.
 
-## Source data model
+## Architecture
 
-Three committed inputs, all registered as `AdditionalFiles` in
-`FellowshipAnalyzer.Core`:
+```
+fs_tc_uploads (hero_data.json) ┐
+Fellowship Logs (abilities.json)├─► merge engine ─► spelldb.json (committed)
+overrides.json (hand deltas)   ┘        ▲                  │
+                                        │                  ├─► compile-time generator
+                              studio app + rebuild script  │     → Spells.X full defs
+                                                           │     → Guids, All, forwarding
+                                                           └─► browsable in the repo
+```
 
-- **`hero_data.json`** (`external/fs_tc_uploads/s3/`) — keyed by hero display
-  name. Each hero has:
-  - `Kit` — `{ "<FSLID>": { Name, FSLID, DevName } }`. Identity for each ability
-    the hero owns. `Name` is `null` for passives/internal handlers.
-  - `Constants` — `{ "<entry>": { DevName, ...gameplay fields..., Cost,
-    CostType, ... } }`. The rich per-ability data, linked back to the kit by
-    `DevName`. The field an ability needs can live in a dev-named sibling entry
-    that shares the same `DevName`; extraction merges every `Constants` entry
-    that shares the kit ability's `DevName` (e.g. Rime `Cold Snap`'s cooldown and
-    charges live in the `InstantSingleDamage` entry sharing
-    `GA_Rime_InstantSingleDamage`).
-  - A hero-level resource model naming each resource bar (`CostType` → resource
-    `Name`, e.g. `SpiritPoints` → "Spirit", `Resources` → "Winter Orbs").
-- **`abilities.json`** (repo root) — a flat `[{ Id, Name, Icon }]` array keyed by
-  FSLID. `Name` is frequently `null`; `Icon` is the authoritative icon source
-  (e.g. `1318 → "Bowguy_Multishot.jpg"`).
-- **`spell-overrides.json`** (committed) — hand corrections applied during
-  generation (see "Overrides file").
+- **Merge engine** — a plain .NET library (`FellowshipAnalyzer.SpellData` or
+  similar) that reads the upstream sources plus `overrides.json` and produces the
+  normalized model, with defined source precedence, per-field provenance, and gap
+  detection. Reused by the rebuild script, the studio, and tests.
+- **`spelldb.json`** — the committed normalized output. The merge engine's only
+  output artifact; never hand-edited (hand changes go through `overrides.json`).
+- **`overrides.json`** — the committed, human-editable deltas.
+- **Rebuild script** — a no-argument tool that runs the merge engine and writes
+  `spelldb.json`.
+- **Compile-time generator** — reads `spelldb.json` (and the minimal hand-written
+  registry) and emits the C# registry.
+- **Studio** — a local developer app over the merge engine.
 
-The scalars and costs we keep relate to **what happened in a log** (cooldown,
-range, charges, cast/channel timing, resource cost). Simulation-only fields
-(coefficients, spread, proc chance, PPM, damage scalers, talent magnitude
-subtrees) are not read.
+The merge engine runs offline (full .NET, `System.Text.Json`). The compile-time
+generator stays `netstandard2.0` and reads only the final `spelldb.json` with its
+self-contained JSON reader — no merging happens inside the generator.
 
-## Part A — `Spell` restructure (Core, repo-wide)
+## The normalized database (`spelldb.json`)
 
-`Spell` becomes a record with `init`-settable properties and no positional
-constructor. Every entry — generated and hand-written — uses the object-
-initializer form:
+A map keyed by combat-log guid (effects encoded as `1_000_000 + effectId`). Each
+entry carries identity, scope, the emitted C# member name, and the data scalars
+and costs:
 
-```csharp
-public static Spell FreezingTorrent { get; } = new Spell
+```json
 {
-    Id = 1027, Name = "Freezing Torrent", Icon = "T_Rime_ChanneledBeam.jpg",
-    Cooldown = 15, Range = 30, ChannelDuration = 2.0, ChannelTickInterval = 0.4,
-};
+  "1027": {
+    "member": "FreezingTorrent",
+    "scope": "Rime",
+    "name": "Freezing Torrent",
+    "icon": "T_Rime_ChanneledBeam.jpg",
+    "cooldown": 15,
+    "range": 30,
+    "charges": 1,
+    "castDuration": null,
+    "channelDuration": 2.0,
+    "channelTickInterval": 0.4,
+    "costs": { "winterOrb": 0 }
+  }
+}
 ```
 
-`Spell` gains the data scalars `Cooldown`, `Range`, `Charges`, `CastDuration`,
-`ChannelDuration`, `ChannelTickInterval`. Its cost properties (`SpiritCost`,
-`WinterOrbCost`, `AnimaCost`, `FocusCost`) become `init`-settable. `Guid` stays
-virtual; `Effect` keeps `Guid => 1_000_000 + Id` and is written
-`new Effect { Id = …, … }`. Conceptually `Spell` is **identity + physical
-facts**.
+- `member` — the C# property name emitted into the registry (PascalCase, sanitized
+  from `name`, overridable to resolve collisions).
+- `scope` — the hero whose `Spells` class receives the member, or `Shared` for the
+  central `Spells` class.
+- `costs` — keyed by resource (`spirit`, `winterOrb`, `anima`, `focus`); mapped to
+  the matching typed `Spell` cost property.
 
-## Part B — `SpellbookAbility` change (Core)
+`spelldb.json` is pure data. Provenance (which source supplied each field) is
+recomputed by the merge engine when it runs and surfaced in the studio; it does
+not live in the committed file.
 
-`SpellbookAbility` drops the data scalars (now on `Spell`) and keeps behaviour-
-only fields (`Category`, `Gcd`, `CooldownReducedByHaste`, `Enabled`,
-`IsDefensive`, `Timeline*`, `CastableWhileCasting`, `AdditionalSpells`, `Name`
-override, `CastEfficiency`). Its accessors read through `PrimarySpell`:
+## Overrides (`overrides.json`)
 
-- `GetCooldown(haste)` → `PrimarySpell.Cooldown` combined with
-  `CooldownReducedByHaste` (`cd / (1 + haste)` when set, else `cd`; `0` when no
-  cooldown).
-- `Charges` → `PrimarySpell.Charges`; cast/channel read from `PrimarySpell`.
+The single human-editable file, a per-guid delta carrying only changed or added
+fields, with an optional `note`. It supports four operations:
 
-`Spellbook()` composes plainly, with behaviour set inline and scalars inherited
-from the spell:
-
-```csharp
-public override IEnumerable<SpellbookAbility> Spellbook() =>
-[
-    new() { PrimarySpell = Spells.FreezingTorrent, Category = SpellCategory.Rotational, Gcd = StandardGcd },
-    new() { PrimarySpell = Spells.ColdSnap, Category = SpellCategory.Rotational, Gcd = StandardGcd, CooldownReducedByHaste = true },
-];
+```json
+{
+  "1027": { "channelTickInterval": 0.4, "note": "export omits tick" },
+  "155": { "add": true, "member": "VoidbringerTouch", "scope": "Shared",
+           "name": "Voidbringer's Touch", "icon": "T_Weapon_VoidTouch.jpg" },
+  "1311": { "exclude": true, "note": "handled centrally" },
+  "1310": { "member": "LunarlightMark" }
+}
 ```
 
-Talent-conditional values are expressed by overriding the spell before wrapping,
-e.g. `PrimarySpell = Spells.GrapplingArrow with { Cooldown = weightOfGravity ? 120 : 90 }`.
+- **Field override** — supply or correct a scalar, cost, name, or icon the sources
+  lack or get wrong.
+- **Add** — declare an entry absent from the parsed sources (generated into the
+  registry per its `scope`).
+- **Exclude** — drop a parsed entry handled elsewhere.
+- **Rename** — set the explicit `member` identifier, resolving a collision.
 
-`SpellCategory` keeps an `Uncategorized` member as the sentinel a guard test
-flags. `Category` stays `required`.
+An override that matches no parsed ability and is not an `add` raises a build
+diagnostic so it does not rot across seasons.
 
-## Part C — The evolved generator (Generators)
+## The merge engine
 
-`RegistryGenerator` absorbs the kit-data role. The separate
-`SpellDatabaseGenerator` and the `SpellDatabase`/`with` layer are removed, so the
-net generator count drops by one.
+For each ability the engine: links `hero_data.json` `Kit` entries to their
+`Constants` data by merging every `Constants` entry sharing the kit ability's
+`DevName`; pulls the icon from `abilities.json` by FSLID; applies the
+normalization rules below; then applies `overrides.json`. It records per-field
+provenance and flags entries with missing `name` or `icon` for the studio.
 
-### Emission
+### Normalization rules
 
-For each hero whose `Spells` namespace keys into `hero_data.json`, the generator
-emits a `Spells.{Hero}.g.cs` partial with one `public static Spell {Name} { get; }
-= new Spell { … }` per qualifying kit ability. A kit entry qualifies when its
-`Name` is non-`null` and it is not excluded by the overrides file. Members land in
-the per-hero `Spells` class so existing `Spells.X` references and
-`[On<nameof(Spells.X)>]` resolution continue to bind.
-
-### Preserved registry semantics
-
-The generator continues to produce everything `RegistryGenerator` produces today,
-now spanning both generated kit members and hand-written members:
-
-- The central `Spells.All` frozen dictionary keyed by `Guid`, typed at the lowest
-  common ancestor of all entries.
-- The central `Spells.Guids` table and each registry's nested `Guids` table of
-  `const int` guids. Kit guids come from the FSLID; hand-written guids come from
-  the `Id =` literal, applying the `Effect → 1_000_000 + Id` rule.
-- The central forwarding properties re-exposing each registry's members.
-- **FA0001** duplicate property-name detection across the flattened central
-  surface.
-
-### Diagnostics
-
-- A kit ability whose `DevName` matches no `Constants` entry.
-- Conflicting values for the same field across merged `Constants` entries.
-- An overrides entry that targets no ability present in the export.
-
-### Literal reader
-
-The guid reader switches from "first constructor argument" to "the `Id =`
-assignment in the object initializer", applying the `Effect` encoding rule.
-
-### Inputs
-
-`hero_data.json`, `abilities.json`, and `spell-overrides.json` are consumed via
-`AdditionalTextsProvider`. JSON is parsed by the self-contained reader already in
-the generator (netstandard2.0, `Microsoft.CodeAnalysis` only).
-
-## Part D — `ModuleGenerator` update (Generators)
-
-`ModuleGenerator` is unchanged except its same-assembly syntax-path guid reader
-also switches to the object-initializer `Id =` form, applying the `Effect`
-encoding rule. This covers Core's own `[On<nameof(Spells.Chronoshift)>]` usages
-(the central cross-hero spells). Hero-assembly `[On<>]` continues to resolve
-through the metadata path (the nested `Guids` const table), which the generator
-populates for kit members.
-
-## Part E — Hand-authored surface (Core)
-
-Each per-hero `Spells.cs` keeps the partial class declaration and only the members
-the export cannot generate: effects/buffs that are not kit abilities (e.g.
-`EventHorizonBuff`, `SkystridersGraceBuff`). These use the object-initializer
-form.
-
-Genuinely shared/global spells (e.g. `VoidbringerTouch`) live in the central
-hand-written `Spells` so they are referenced cross-hero through one canonical
-member; the overrides file excludes them from any hero kit that also lists them.
-Cross-hero spells (`Chronoshift`, `EpochBreak`, `Kindling`, `EpochBreakBuff`)
-stay in the central `Spells`, converted to the object-initializer form.
-
-## Part F — Overrides file
-
-`spell-overrides.json` is keyed by hero and ability (by `Name`, `DevName`, or
-FSLID) and supports three operations applied during generation:
-
-- **Field override** — supply or correct a scalar or cost the export lacks or
-  gets wrong. The emitted member reflects the override, so the generated source is
-  authoritative.
-- **Rename** — provide the explicit C# identifier for a member, resolving a
-  sanitized-name collision flagged by FA0001.
-- **Exclude** — skip a kit entry handled elsewhere (e.g. a shared spell declared
-  centrally, or a named entry that is not a real ability).
-
-An override that matches no export ability raises a diagnostic so it does not rot
-across seasons.
-
-## Normalization rules
-
-Applied per kit ability after merging its `Constants` entries by `DevName`:
-
-- **Cooldown** — `Cooldown` (seconds); for charge abilities exposing
-  `RechargeTime` instead (e.g. Ice Dash), `RechargeTime` is the cooldown.
-- **Range** — `MaxRange / 100` (game centimetres → yards). Only `MaxRange` is a
-  targeting range.
+- **Cooldown** — `Cooldown`, else `RechargeTime` (charge abilities).
+- **Range** — `MaxRange / 100` (game centimetres → yards).
 - **Charges** — `MaxCharges`, else `NumCharges`, else `1`.
 - **CastDuration** — `CastingDuration`, else `CastTime`.
 - **ChannelDuration** — `ChannelingDuration`.
 - **ChannelTickInterval** — `ChannelingTickInterval`.
-- **Icon** — `abilities.json` `Icon` for the kit FSLID, when non-empty.
-- **Costs** — the flat typed fields map to the matching `Spell` cost property
-  (`SpiritCost` → `SpiritCost`, `OrbCost` → `WinterOrbCost`); the generic `Cost`
-  resolves through the ability's `CostType` and the hero resource model to the
-  matching cost property. Costs the export does not expose are supplied via the
-  overrides file.
+- **Icon** — `abilities.json` `Icon` for the FSLID, when non-empty.
+- **Costs** — the typed fields map to the matching cost (`SpiritCost` → spirit,
+  `OrbCost` → winterOrb); the generic `Cost` resolves through the ability's
+  `CostType` and the hero resource model.
+- **Selection** — kit entries with a non-`null` `Name`, minus `exclude` overrides,
+  plus `add` overrides.
 
-Doubles read as whole numbers are emitted as integral literals where the target
-field is integral (`Charges`); seconds-valued fields stay `double`.
+Whole-number doubles emit as integral literals where the target field is integral
+(`Charges`); seconds-valued fields stay `double`.
+
+## The rebuild script
+
+A no-argument tool (`src/FellowshipAnalyzer.Tools/rebuild-spelldb.cs`, run via the
+run-tool skill) calls the merge engine and writes the committed `spelldb.json`. A
+test re-runs the engine in memory and asserts the committed file is reproducible
+from the sources and overrides, so `spelldb.json` never drifts from its inputs.
+
+## The compile-time generator
+
+The consolidated `SpellDatabase` generator replaces both the previous
+`RegistryGenerator` and `SpellDatabaseGenerator` — net one fewer generator. It
+reads `spelldb.json` (as `AdditionalFiles`) and the minimal hand-written
+registry, and emits:
+
+- Per hero, a `Spells.{Hero}.g.cs` partial with one full
+  `public static Spell {member} { get; } = new Spell { Id = …, Name = …, Icon = …,
+  Cooldown = …, … };` per entry whose `scope` is that hero; `Shared`-scope entries
+  go into the central `Spells`.
+- The central `Spells.All` frozen dictionary keyed by `Guid`, typed at the lowest
+  common ancestor of all entries.
+- The central `Spells.Guids` table and each registry's nested `Guids` const table
+  (guids from the entry's key, applying the `Effect → 1_000_000 + Id` rule).
+- The central forwarding properties.
+- **FA0001** duplicate `member`-name detection across the flattened central
+  surface (resolved by a `rename` override).
+
+Diagnostics: an entry whose `scope` names no known hero registry; an override that
+targets nothing.
+
+## Minimal hand-authored set (Core)
+
+A spell referenced by an `[On<nameof(Spells.X)>]` in **Core itself** must stay
+hand-authored, because `ModuleGenerator` and the spell generator share the Core
+compilation and cannot see each other's output — so neither the generated
+property nor its generated `Guids` const is visible to `ModuleGenerator` there.
+These Core-internal cross-hero spells (e.g. `Chronoshift`) remain hand-written in
+the central `Spells.cs` in object-initializer form, and `ModuleGenerator` resolves
+them through the syntax path. Hero-assembly `[On<>]` references resolve through the
+cross-assembly metadata path (the generated `Guids` const tables), so hero kits
+and effects generate normally.
+
+The generator includes the hand-written entries in `Spells.All`, the `Guids`
+tables, and the forwarding by scanning the registry syntax, exactly as the
+previous `RegistryGenerator` did.
+
+## `ModuleGenerator` update
+
+Unchanged except its same-assembly syntax-path guid reader switches from "first
+constructor argument" to "the `Id =` assignment in the object initializer",
+applying the `Effect` encoding rule. This covers the hand-authored Core set.
+
+## `Spell` restructure (Core)
+
+`Spell` becomes a record with `init` properties and no positional constructor;
+every entry uses the object-initializer form. It gains the data scalars
+(`Cooldown`, `Range`, `Charges`, `CastDuration`, `ChannelDuration`,
+`ChannelTickInterval`); its cost properties (`SpiritCost`, `WinterOrbCost`,
+`AnimaCost`, `FocusCost`) become `init`-settable. `Guid` stays virtual; `Effect`
+keeps `Guid => 1_000_000 + Id` and is written `new Effect { Id = …, … }`. `Spell`
+= identity + physical facts.
+
+## `SpellbookAbility` change (Core)
+
+`SpellbookAbility` drops the data scalars (now on `Spell`) and reads them through
+`PrimarySpell` (`GetCooldown`, `Charges`, cast/channel). It keeps behaviour-only
+fields (`Category`, `Gcd`, `CooldownReducedByHaste`, `Enabled`, `IsDefensive`,
+`Timeline*`, `CastableWhileCasting`, `AdditionalSpells`, `Name` override,
+`CastEfficiency`). `Spellbook()` composes plainly:
+
+```csharp
+new() { PrimarySpell = Spells.FreezingTorrent, Category = SpellCategory.Rotational, Gcd = StandardGcd },
+new() { PrimarySpell = Spells.ColdSnap, Category = SpellCategory.Rotational, Gcd = StandardGcd, CooldownReducedByHaste = true },
+```
+
+Talent-conditional values override the spell before wrapping, e.g.
+`PrimarySpell = Spells.GrapplingArrow with { Cooldown = weightOfGravity ? 120 : 90 }`.
+`SpellCategory` keeps `Uncategorized` as the guard sentinel; `Category` stays
+`required`.
+
+## The studio
+
+A developer-only local Blazor app (not shipped in the client) that runs the merge
+engine and presents the database for curation:
+
+- A browsable table of every spell with its merged fields and per-field
+  provenance.
+- Gap highlighting for entries missing `name`, `icon`, or other expected fields.
+- A per-spell edit form that writes changes to `overrides.json` as deltas, then
+  re-runs the merge so the effect is immediate in the studio.
+- A rebuild action that writes `spelldb.json` (the same path as the script).
+- Spell previews via the existing `SpellIcon`/`SpellLink` components.
 
 ## Testing
 
-- **Normalization unit tests** — merge-by-`DevName`, field selection, unit
-  conversion, cost mapping, and override application are pure methods tested
-  against the real S3 `hero_data.json` for a hero's full kit.
-- **Generator test** — drives the generator over the three inputs and a sample
-  compilation, asserting emitted Rime and Elarion members including icon and
-  cost.
+- **Merge-engine unit tests** — link-by-`DevName`, field selection, unit
+  conversion, cost mapping, override application (field/add/exclude/rename), and
+  provenance, against the real S3 sources.
+- **Reproducibility test** — the committed `spelldb.json` equals a fresh in-memory
+  merge of the sources and overrides.
+- **Generator test** — drives the generator over `spelldb.json` plus a sample
+  compilation, asserting emitted Rime and Elarion members including icon and cost.
 - **Cross-check test** — every generated scalar and cost equals the current
-  hand-coded oracle value, per hero. This runs before any hand value is removed.
+  hand-coded oracle value, per hero, run before any hand value is removed.
 - **Category guard test** — no enabled spellbook entry is
   `SpellCategory.Uncategorized`.
 
 ## Rollout
 
-1. Land the `Spell`/`SpellbookAbility` Core changes, the evolved generator, the
-   `ModuleGenerator` reader update, and the overrides file, with **Rime fully
-   migrated** and its cross-check green.
+Delivered on one branch, staged so each step is provable:
+
+1. Land the `Spell`/`SpellbookAbility` Core changes, the merge engine, the
+   compile-time generator, the `ModuleGenerator` reader update, `spelldb.json`,
+   `overrides.json`, and the rebuild script, with **Rime fully migrated** and its
+   cross-check green.
 2. Fan out to the other ten heroes, each cross-checked before its hand-typed
    values are removed.
-3. The whole solution builds and `dotnet test` passes; the `SpellDatabase`
-   layer and its usages are removed.
+3. Layer the studio on the working pipeline.
+4. The whole solution builds and `dotnet test` passes; the old per-hero
+   hand-typed registries and scalars are removed.
