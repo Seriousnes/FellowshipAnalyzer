@@ -506,42 +506,17 @@ public sealed class ConsolidatedSpellRegistryGenerator : IIncrementalGenerator
         if (property.DeclaringSyntaxReferences[0].GetSyntax(ct) is not PropertyDeclarationSyntax pds) return false;
         if (pds.Initializer is not { } initializer) return false;
 
-        if (initializer.Value is ObjectCreationExpressionSyntax or ImplicitObjectCreationExpressionSyntax)
+        var initExpr = initializer.Value switch
         {
-            var initExpr = initializer.Value switch
-            {
-                ObjectCreationExpressionSyntax o => o.Initializer,
-                ImplicitObjectCreationExpressionSyntax io => io.Initializer,
-                _ => null,
-            };
-            if (initExpr is not null)
-                foreach (var e in initExpr.Expressions)
-                    if (e is AssignmentExpressionSyntax { Left: IdentifierNameSyntax { Identifier.ValueText: "Id" } } a
-                        && a.Right is LiteralExpressionSyntax { Token.Value: int initId })
-                    { id = initId; return true; }
-        }
-
-        ArgumentListSyntax? argList = initializer.Value switch
-        {
-            ObjectCreationExpressionSyntax oc => oc.ArgumentList,
-            ImplicitObjectCreationExpressionSyntax ioc => ioc.ArgumentList,
+            ObjectCreationExpressionSyntax o => o.Initializer,
+            ImplicitObjectCreationExpressionSyntax io => io.Initializer,
             _ => null,
         };
-        if (argList is null || argList.Arguments.Count == 0) return false;
-
-        var firstExpr = argList.Arguments[0].Expression;
-        if (firstExpr is LiteralExpressionSyntax lit && lit.Token.Value is int li)
-        {
-            id = li;
-            return true;
-        }
-        if (firstExpr is PrefixUnaryExpressionSyntax prefix &&
-            prefix.IsKind(SyntaxKind.UnaryMinusExpression) &&
-            prefix.Operand is LiteralExpressionSyntax pl && pl.Token.Value is int pli)
-        {
-            id = -pli;
-            return true;
-        }
+        if (initExpr is null) return false;
+        foreach (var e in initExpr.Expressions)
+            if (e is AssignmentExpressionSyntax { Left: IdentifierNameSyntax { Identifier.ValueText: "Id" } } a
+                && a.Right is LiteralExpressionSyntax { Token.Value: int initId })
+            { id = initId; return true; }
         return false;
     }
 

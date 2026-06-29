@@ -202,7 +202,7 @@ public sealed class GlobalCooldownTests
             includeNormalizer: true,
             configureAbilities: a => a.AddSpell(new SpellbookAbility
             {
-                PrimarySpell = new Spell(BrainFreezeSpellId, "Brain Freeze"),
+                PrimarySpell = new Spell { Id = BrainFreezeSpellId, Name = "Brain Freeze" },
                 Category = SpellCategory.Utility,
                 Gcd = Abilities.StandardGcd,
             }));
@@ -250,7 +250,7 @@ public sealed class GlobalCooldownTests
         var (parser, _) = await RunWithGcd(events, configureAbilities: a =>
             a.AddSpell(new SpellbookAbility
             {
-                PrimarySpell = new Spell(staticSpellId, "Static Spell"),
+                PrimarySpell = new Spell { Id = staticSpellId, Name = "Static Spell" },
                 Category = SpellCategory.Rotational,
                 Gcd = new GcdInfo { Static = 1000.0 },
             }));
@@ -319,7 +319,7 @@ public sealed class GlobalCooldownTests
         {
             AddSpell(new SpellbookAbility
             {
-                PrimarySpell = new Spell(TestSpellId, "Test Spell"),
+                PrimarySpell = new Spell { Id = TestSpellId, Name = "Test Spell" },
                 Category = SpellCategory.Rotational,
                 Gcd = StandardGcd,
             });

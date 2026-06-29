@@ -496,11 +496,11 @@ public sealed class ModuleGenerator : IIncrementalGenerator
     /// <item>Metadata path — look up the source-generated nested <c>Guids</c> class on the
     ///   property's containing type and read the matching <c>const int</c> field. Works when
     ///   the registry lives in a referenced assembly (the typical hero-analyzer scenario).</item>
-    /// <item>Syntax path — read the property initializer's first constructor argument as an
-    ///   int literal, then apply the <see cref="FellowshipAnalyzer.Core.Common.Spells.Effect"/>
-    ///   encoding rule (<c>1_000_000 + Id</c>) when the property type is an Effect. Required
-    ///   for same-assembly references because source generators do not see each other's
-    ///   output in the same compilation pass.</item>
+    /// <item>Syntax path — read the <c>Id =</c> member initializer as an int literal, then
+    ///   apply the <see cref="FellowshipAnalyzer.Core.Common.Spells.Effect"/> encoding rule
+    ///   (<c>1_000_000 + Id</c>) when the property type is an Effect. Required for same-assembly
+    ///   references because source generators do not see each other's output in the same
+    ///   compilation pass.</item>
     /// </list>
     /// </summary>
     private static bool TryGetSpellGuid(IPropertySymbol property, CancellationToken ct, out int guid)
@@ -533,16 +533,7 @@ public sealed class ModuleGenerator : IIncrementalGenerator
             return true;
         }
 
-        ArgumentListSyntax? argList = initializer.Value switch
-        {
-            ObjectCreationExpressionSyntax oc => oc.ArgumentList,
-            ImplicitObjectCreationExpressionSyntax ioc => ioc.ArgumentList,
-            _ => null,
-        };
-        if (argList is null || argList.Arguments.Count == 0) return false;
-        if (!TryReadIntLiteral(argList.Arguments[0].Expression, out var id)) return false;
-        guid = ApplyRangeOffset(property.Type, id);
-        return true;
+        return false;
     }
 
     private static bool TryReadIntLiteral(ExpressionSyntax expr, out int value)

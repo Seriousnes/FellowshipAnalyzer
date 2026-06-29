@@ -8,16 +8,14 @@ namespace FellowshipAnalyzer.Core.Common.Spells;
 /// cast/channel timing), and resource costs. Behaviour metadata (GCD, category, haste
 /// scaling) lives on <see cref="Analysis.SpellbookAbility"/>.
 /// </summary>
-/// <remarks>
-/// During the registry migration the positional constructor is retained with every
-/// parameter optional so the hand-written <c>new(id, name, icon)</c> form and the
-/// generated <c>new { Id = …, Cooldown = … }</c> form compile simultaneously. The final
-/// cleanup task drops the positional constructor.
-/// </remarks>
-public record Spell(int Id = 0, string Name = "", string Icon = "") : IRimeSpell, IElarionSpell
+public record Spell : IRimeSpell, IElarionSpell
 {
     /// <summary>The combat-log <c>abilityGameID</c> used to match events. Base spells use <see cref="Id"/>; subtypes add their FSL range offset.</summary>
     public virtual int Guid => Id;
+
+    public int Id { get; init; }
+    public string Name { get; init; } = "";
+    public string Icon { get; init; } = "";
 
     public double? Cooldown { get; init; }
     public int? Range { get; init; }
@@ -52,27 +50,27 @@ public record Spell(int Id = 0, string Name = "", string Icon = "") : IRimeSpell
     /// </remarks>
     public static Spell FromGuid(int guid, string name = "", string icon = "") => guid switch
     {
-        >= 3_000_000 => new Weapon(guid - 3_000_000, name, icon),
-        >= 2_000_000 => new Talent(guid - 2_000_000, name, icon),
-        >= 1_000_000 => new Effect(guid - 1_000_000, name, icon),
-        _ => new Spell(guid, name, icon),
+        >= 3_000_000 => new Weapon { Id = guid - 3_000_000, Name = name, Icon = icon },
+        >= 2_000_000 => new Talent { Id = guid - 2_000_000, Name = name, Icon = icon },
+        >= 1_000_000 => new Effect { Id = guid - 1_000_000, Name = name, Icon = icon },
+        _ => new Spell { Id = guid, Name = name, Icon = icon },
     };
 }
 
 /// <summary>A spell effect (<c>GE_</c>): combat-log guid <c>1_000_000 + Id</c>.</summary>
-public record Effect(int Id = 0, string Name = "", string Icon = "") : Spell(Id, Name, Icon)
+public record Effect : Spell
 {
     public override int Guid => 1_000_000 + Id;
 }
 
 /// <summary>A talent (<c>CAATalent*</c>): combat-log guid <c>2_000_000 + Id</c>.</summary>
-public record Talent(int Id = 0, string Name = "", string Icon = "") : Spell(Id, Name, Icon)
+public record Talent : Spell
 {
     public override int Guid => 2_000_000 + Id;
 }
 
 /// <summary>A weapon trait: combat-log guid <c>3_000_000 + Id</c>.</summary>
-public record Weapon(int Id = 0, string Name = "", string Icon = "") : Spell(Id, Name, Icon)
+public record Weapon : Spell
 {
     public override int Guid => 3_000_000 + Id;
 }

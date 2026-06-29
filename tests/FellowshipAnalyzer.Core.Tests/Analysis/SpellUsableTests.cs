@@ -339,12 +339,12 @@ public sealed partial class SpellUsableTests
         [
             new SpellbookAbility
             {
-                PrimarySpell = new Spell(SpellA, "Spell A") { Cooldown = (double)CdSecondsA },
+                PrimarySpell = new Spell { Id = SpellA, Name = "Spell A", Cooldown = (double)CdSecondsA },
                 Category = SpellCategory.Rotational,
             },
             new SpellbookAbility
             {
-                PrimarySpell = new Spell(SpellB, "Spell B") { Cooldown = (double)CdSecondsB, Charges = 2 },
+                PrimarySpell = new Spell { Id = SpellB, Name = "Spell B", Cooldown = (double)CdSecondsB, Charges = 2 },
                 Category = SpellCategory.Rotational,
             },
         ];

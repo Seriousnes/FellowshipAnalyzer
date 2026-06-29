@@ -7,15 +7,6 @@ namespace FellowshipAnalyzer.Core.Tests.Common;
 public class SpellTypeTests
 {
     [Fact]
-    public void PositionalForm_StillCompilesAndCarriesIdentity()
-    {
-        var s = new Spell(1031, "Bursting Ice", "icon.jpg");
-        s.Id.ShouldBe(1031);
-        s.Guid.ShouldBe(1031);
-        s.Charges.ShouldBe(1);
-    }
-
-    [Fact]
     public void InitializerForm_CarriesScalarsAndCosts()
     {
         var s = new Spell { Id = 1027, Name = "Freezing Torrent", Cooldown = 15, Range = 30, ChannelDuration = 2.0, ChannelTickInterval = 0.4 };

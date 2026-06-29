@@ -407,7 +407,7 @@ public sealed partial class CombatLogParserTests
 
     private sealed class TestSpells : ISpellRegistry
     {
-        public static Spell Spender { get; } = new(2);
+        public static Spell Spender { get; } = new Spell { Id = 2 };
     }
 
     private sealed partial class SpellFilterProbeModule : Analyzer
