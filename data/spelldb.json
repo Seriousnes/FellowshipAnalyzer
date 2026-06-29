@@ -321,6 +321,12 @@
     }
   },
   "elarion": {
+    "CelestialImpetus": {
+      "id": 1867,
+      "kind": "effect",
+      "name": "Celestial Impetus",
+      "icon": "T_Nhance_RPG_Arcane_37.jpg"
+    },
     "CelestialShot": {
       "id": 1301,
       "name": "Celestial Shot",
@@ -337,12 +343,6 @@
       "kind": "effect",
       "name": "",
       "icon": ""
-    },
-    "CelestialVeil": {
-      "id": 1302,
-      "name": "Celestial Veil",
-      "icon": "Bowguy_Abilityicon_Defensive.jpg",
-      "cooldown": 30
     },
     "CelestialVeilSelfBuff": {
       "id": 1866,
@@ -368,11 +368,23 @@
       "name": "Interrupted",
       "icon": "T_Nhance_RPG_Frost_01.jpg"
     },
+    "EmpoweredMultishotBuff": {
+      "id": -1,
+      "kind": "effect",
+      "name": "",
+      "icon": ""
+    },
     "EventHorizon": {
       "id": 1584,
       "name": "Event Horizon",
       "icon": "Bowguy_Spirit.jpg",
       "castDuration": 0.7
+    },
+    "EventHorizonBuff": {
+      "id": 2312,
+      "kind": "effect",
+      "name": "Event Horizon",
+      "icon": "Bowguy_Spirit.jpg"
     },
     "EventHorizonCooldownRecoveryBuff": {
       "id": 2314,
@@ -385,12 +397,6 @@
       "kind": "effect",
       "name": "",
       "icon": ""
-    },
-    "EventHorizonSelfBuff": {
-      "id": 2312,
-      "kind": "effect",
-      "name": "Event Horizon",
-      "icon": "Bowguy_Spirit.jpg"
     },
     "EventHorizonVisual": {
       "id": 2311,
@@ -494,6 +500,12 @@
       "name": "",
       "icon": ""
     },
+    "ImpendingHeartseeker": {
+      "id": 2317,
+      "kind": "effect",
+      "name": "Impending Heartseeker",
+      "icon": "Bowguy_Spray.jpg"
+    },
     "LunarlightMark": {
       "id": 1310,
       "name": "Lunarlight Mark",
@@ -553,6 +565,12 @@
       "name": "",
       "icon": ""
     },
+    "PathfindersResillience": {
+      "id": 1302,
+      "name": "Celestial Veil",
+      "icon": "Bowguy_Abilityicon_Defensive.jpg",
+      "cooldown": 30
+    },
     "Roll": {
       "id": 1311,
       "name": "Roll",
@@ -582,35 +600,35 @@
       "name": "",
       "icon": ""
     },
-    "ShootProc": {
-      "id": 1867,
-      "kind": "effect",
-      "name": "Celestial Impetus",
-      "icon": "T_Nhance_RPG_Arcane_37.jpg"
-    },
-    "SkystriderGrace": {
-      "id": 1304,
-      "name": "Skystrider\u0027s Grace",
-      "icon": "Bowguy_HasteBuff.jpg",
-      "cooldown": 120
-    },
-    "SkystriderGraceBuff": {
-      "id": 1869,
-      "kind": "effect",
-      "name": "Skystrider\u0027s Grace",
-      "icon": "T_Icon_Frost_125.jpg"
-    },
-    "SkystriderSupremacy": {
-      "id": 1398,
-      "name": "Skystrider\u0027s Supremacy",
-      "icon": "Bowguy_Supremacy.jpg",
-      "cooldown": 45
-    },
     "SkystriderSupremacySelfBuff": {
       "id": 2009,
       "kind": "effect",
       "name": "Skystrider\u0027s Supremacy",
       "icon": "Bowguy_Supremacy.jpg"
+    },
+    "SkystridersGrace": {
+      "id": 1304,
+      "name": "Skystrider\u0027s Grace",
+      "icon": "Bowguy_HasteBuff.jpg",
+      "cooldown": 120
+    },
+    "SkystridersGraceBuff": {
+      "id": 1869,
+      "kind": "effect",
+      "name": "Skystrider\u0027s Grace",
+      "icon": "T_Icon_Frost_125.jpg"
+    },
+    "SkystridersSupremacy": {
+      "id": 1398,
+      "name": "Skystrider\u0027s Supremacy",
+      "icon": "Bowguy_Supremacy.jpg",
+      "cooldown": 45
+    },
+    "SpiritOfHeroism": {
+      "id": 2253,
+      "kind": "effect",
+      "name": "Spirit of Heroism",
+      "icon": "Tex_b_02.jpg"
     },
     "StarfallVolley": {
       "id": 126,
@@ -635,6 +653,13 @@
       "kind": "effect",
       "name": "Skylit Grace",
       "icon": "Tex_b_03.jpg"
+    },
+    "VoidbringerTouch": {
+      "id": 155,
+      "name": "Voidbringer\u0027s Touch",
+      "icon": "T_Weapon_VoidTouch.jpg",
+      "cooldown": 90,
+      "range": 30
     }
   },
   "helena": {
@@ -1440,16 +1465,16 @@
       "name": "Stone Shield",
       "icon": "T_Meiko_StoneShield.jpg"
     },
-    "StoneShield": {
-      "id": 1122,
-      "name": "Stone Shield",
-      "icon": "T_Meiko_StoneShield.jpg"
-    },
     "StoneShieldActive": {
       "id": 3141,
       "kind": "effect",
       "name": "",
       "icon": ""
+    },
+    "StoneShieldAlt": {
+      "id": 1122,
+      "name": "Stone Shield",
+      "icon": "T_Meiko_StoneShield.jpg"
     },
     "StoneShieldBuff": {
       "id": 1574,
@@ -1616,12 +1641,6 @@
       "name": "Bursting Ice",
       "icon": "T_Rime_CastedDebuffAOEdamage.jpg"
     },
-    "BurstingIceTalentBuffWhileActive": {
-      "id": 2303,
-      "kind": "effect",
-      "name": "Winter\u0027s Embrace",
-      "icon": "Cryomancer8.jpg"
-    },
     "ColdSnap": {
       "id": 1020,
       "name": "Cold Snap",
@@ -1664,17 +1683,16 @@
       "name": "",
       "icon": "effects/T_Rime_BirdCD.jpg"
     },
+    "FlightOfTheNavirBuff": {
+      "id": 2446,
+      "name": "",
+      "icon": ""
+    },
     "FlightOfTheNavirCost": {
       "id": 1366,
       "kind": "effect",
       "name": "",
       "icon": ""
-    },
-    "FlightOfTheNavirDamage": {
-      "id": 1365,
-      "kind": "effect",
-      "name": "Frost Swallows",
-      "icon": "T_Rime_BirdCD.jpg"
     },
     "FreezingTorrent": {
       "id": 1027,
@@ -1730,6 +1748,12 @@
     },
     "FrostSwallows": {
       "id": 1033,
+      "name": "Frost Swallows",
+      "icon": "T_Rime_BirdCD.jpg"
+    },
+    "FrostSwallowsDamage": {
+      "id": 1365,
+      "kind": "effect",
       "name": "Frost Swallows",
       "icon": "T_Rime_BirdCD.jpg"
     },
@@ -1836,12 +1860,6 @@
       "name": "Talon\u0027s Edict",
       "icon": "T_Icon_Elements_74.jpg"
     },
-    "WinterBlessing": {
-      "id": 1026,
-      "name": "Winter\u0027s Blessing",
-      "icon": "T_Rime_HealingBuff.jpg",
-      "cooldown": 60
-    },
     "WinterBlessingHeal": {
       "id": 1390,
       "kind": "effect",
@@ -1859,6 +1877,25 @@
       "kind": "effect",
       "name": "",
       "icon": ""
+    },
+    "WintersBlessing": {
+      "id": 1026,
+      "name": "Winter\u0027s Blessing",
+      "icon": "T_Rime_HealingBuff.jpg",
+      "cooldown": 60
+    },
+    "WintersBlessingBuff": {
+      "id": 1026,
+      "kind": "effect",
+      "name": "",
+      "icon": "",
+      "cooldown": 60
+    },
+    "WintersEmbrace": {
+      "id": 2303,
+      "kind": "effect",
+      "name": "Winter\u0027s Embrace",
+      "icon": "Cryomancer8.jpg"
     },
     "WrathOfWinter": {
       "id": 1023,
@@ -2265,7 +2302,7 @@
       "icon": "",
       "cooldown": 6
     },
-    "FaceBreaker": {
+    "FaceBreakerAlt": {
       "id": 2241,
       "name": "Face Breaker",
       "icon": ""
@@ -2704,7 +2741,7 @@
       "name": "Rune of Renewal",
       "icon": "T_Vigor_Rune.jpg"
     },
-    "RuneOfRenewal": {
+    "RuneOfRenewalAlt": {
       "id": 999,
       "name": "Rune of Renewal",
       "icon": ""
@@ -3087,6 +3124,15 @@
       "kind": "effect",
       "name": "Taunted",
       "icon": "T_Sune_Taunt.jpg"
+    }
+  },
+  "items": {
+    "VoidbringerTouch": {
+      "id": 155,
+      "name": "Voidbringer\u0027s Touch",
+      "icon": "T_Weapon_VoidTouch.jpg",
+      "cooldown": 90,
+      "range": 30
     }
   }
 }
