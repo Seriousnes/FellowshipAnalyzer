@@ -125,6 +125,9 @@ public static class MergeEngine
                         scope, effectMember, effectId, effectKind, effectName, effectIcon,
                         null, null, 1, null, null, null,
                         new Dictionary<string, int>(), effectProv));
+
+                    if (!MemberNaming.IsValidIdentifier(effectMember))
+                        gaps.Add(new Gap(scope, effectMember, GapKind.MissingName));
                 }
             }
 
