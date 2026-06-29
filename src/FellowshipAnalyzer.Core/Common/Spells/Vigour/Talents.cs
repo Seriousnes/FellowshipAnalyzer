@@ -1,4 +1,4 @@
-﻿namespace FellowshipAnalyzer.Core.Common.Spells.Vigour;
+namespace FellowshipAnalyzer.Core.Common.Spells.Vigour;
 
 public class Talents
 {

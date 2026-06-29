@@ -1,4 +1,4 @@
-﻿namespace FellowshipAnalyzer.Core.Common.Spells.Aeona;
+namespace FellowshipAnalyzer.Core.Common.Spells.Aeona;
 
 public class Talents
 {

@@ -16,8 +16,7 @@ namespace FellowshipAnalyzer.Generators;
 /// <c>talent</c>→<c>Talent</c>, <c>weapon</c>→<c>Weapon</c>).
 /// </summary>
 /// <remarks>
-/// Stays dormant when no <c>spelldb.json</c> <c>AdditionalFile</c> is present: it returns without emitting
-/// anything, so it coexists with the live <c>RegistryGenerator</c> on Core until the cutover wires the file in.
+/// Stays dormant when no <c>spelldb.json</c> <c>AdditionalFile</c> is present; it returns without emitting anything.
 /// </remarks>
 [Generator]
 public sealed class ConsolidatedSpellRegistryGenerator : IIncrementalGenerator

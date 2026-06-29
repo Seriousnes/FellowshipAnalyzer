@@ -1,4 +1,4 @@
-﻿namespace FellowshipAnalyzer.Core.Common.Spells.Elarion;
+namespace FellowshipAnalyzer.Core.Common.Spells.Elarion;
 
 public static class Talents
 {

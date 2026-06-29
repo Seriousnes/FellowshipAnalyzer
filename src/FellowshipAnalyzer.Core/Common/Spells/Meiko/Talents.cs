@@ -1,4 +1,4 @@
-﻿namespace FellowshipAnalyzer.Core.Common.Spells.Meiko;
+namespace FellowshipAnalyzer.Core.Common.Spells.Meiko;
 
 public class Talents
 {

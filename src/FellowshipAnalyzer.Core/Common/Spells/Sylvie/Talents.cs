@@ -1,4 +1,4 @@
-﻿namespace FellowshipAnalyzer.Core.Common.Spells.Sylvie;
+namespace FellowshipAnalyzer.Core.Common.Spells.Sylvie;
 
 public class Talents
 {

@@ -1,4 +1,4 @@
-﻿namespace FellowshipAnalyzer.Core.Common.Spells.Ardeos;
+namespace FellowshipAnalyzer.Core.Common.Spells.Ardeos;
 
 public class Talents
 {

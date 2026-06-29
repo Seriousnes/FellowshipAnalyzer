@@ -1,4 +1,4 @@
-﻿namespace FellowshipAnalyzer.Core.Common.Spells.Xavian;
+namespace FellowshipAnalyzer.Core.Common.Spells.Xavian;
 
 public class Talents
 {

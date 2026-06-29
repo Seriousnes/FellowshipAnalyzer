@@ -17,9 +17,10 @@ public record SpellSnapshot(
     int? FocusCost);
 
 /// <summary>
-/// Reflects over the hand-written <c>FellowshipAnalyzer.Core.Common.Spells.{Hero}.Spells</c>
+/// Reflects over the generated <c>FellowshipAnalyzer.Core.Common.Spells.{Hero}.Spells</c>
 /// registries and captures static <see cref="Spell"/>-typed properties as snapshots for
-/// migration-diff comparison.
+/// migration-diff cross-validation. The original hand-authored values were validated during override curation;
+/// <c>ReproducibilityTests</c> pins <c>spelldb.json</c>.
 /// </summary>
 public static class HandWrittenRegistrySnapshot
 {

@@ -1,4 +1,4 @@
-﻿namespace FellowshipAnalyzer.Core.Common.Spells.Tariq;
+namespace FellowshipAnalyzer.Core.Common.Spells.Tariq;
 
 public class Talents
 {

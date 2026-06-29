@@ -1,4 +1,4 @@
-﻿namespace FellowshipAnalyzer.Core.Common.Spells.Mara;
+namespace FellowshipAnalyzer.Core.Common.Spells.Mara;
 
 public class Talents
 {

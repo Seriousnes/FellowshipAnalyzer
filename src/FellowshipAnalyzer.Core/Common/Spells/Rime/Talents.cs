@@ -1,4 +1,4 @@
-﻿namespace FellowshipAnalyzer.Core.Common.Spells.Rime;
+namespace FellowshipAnalyzer.Core.Common.Spells.Rime;
 
 public class Talents
 {
