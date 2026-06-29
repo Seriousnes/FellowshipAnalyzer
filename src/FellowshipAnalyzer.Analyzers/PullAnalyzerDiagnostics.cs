@@ -169,17 +169,23 @@ public sealed class PullAnalyzerDiagnostics : DiagnosticAnalyzer
     /// parsers (the generator merges base + own at runtime); base-declared analyzers would need this
     /// to walk the base chain the same way before they could overlap with a derived parser's own.
     /// </summary>
-    private static List<INamedTypeSymbol> CollectDeclaredAnalyzers(INamedTypeSymbol parser)
+private static List<INamedTypeSymbol> CollectDeclaredAnalyzers(INamedTypeSymbol parser)
+{
+    var result = new List<INamedTypeSymbol>();
+    var current = parser;
+    while (current != null && current.SpecialType != SpecialType.System_Object)
     {
-        var result = new List<INamedTypeSymbol>();
-        foreach (var attr in parser.GetAttributes())
+        foreach (var attr in current.GetAttributes())
         {
             var ac = attr.AttributeClass;
             if (ac == null || ac.Name != "AddAnalyzerAttribute") continue;
             if (!ac.IsGenericType || ac.TypeArguments.Length == 0) continue;
             if (ac.TypeArguments[0] is INamedTypeSymbol arg) result.Add(arg);
         }
-        return result;
+        current = current.BaseType;
+    }
+    return result;
+}
     }
 
     private static AnalyzerModel BuildModel(INamedTypeSymbol analyzer)

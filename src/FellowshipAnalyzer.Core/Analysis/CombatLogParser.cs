@@ -276,18 +276,8 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
         return null;
     }
 
-    public async Task<HeroAnalysisResult> Analyze(IReadOnlyList<Event> events, int playerId, ReportFight fight)
-    {
-        Current = this;
-        try
-        {
-            return await RunAnalysisAsync(events, playerId, fight);
-        }
-        finally
-        {
-            Current = null;
-        }
-    }
+    public Task<HeroAnalysisResult> Analyze(IReadOnlyList<Event> events, int playerId, ReportFight fight)
+        => RunAnalysisAsync(events, playerId, fight);
 
     private async Task<HeroAnalysisResult> RunAnalysisAsync(IReadOnlyList<Event> events, int playerId, ReportFight fight)
     {

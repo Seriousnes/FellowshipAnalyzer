@@ -17,4 +17,4 @@ public sealed record ParseContext(
     public int FightEndTime => (int)Fight.EndTime;
 
     public IReadOnlyList<DungeonPull>? DungeonPulls => Fight.DungeonPulls;
-}
+    public IReadOnlyList<FightNpc>? EnemyNpcs => Fight.EnemyNpcs;
