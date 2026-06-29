@@ -7,6 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\FellowshipAnalyzer.Core\FellowshipAnalyzer.Core.csproj" />
     <ProjectReference Include="..\FellowshipAnalyzer.SpellData\FellowshipAnalyzer.SpellData.csproj" />
   </ItemGroup>
 

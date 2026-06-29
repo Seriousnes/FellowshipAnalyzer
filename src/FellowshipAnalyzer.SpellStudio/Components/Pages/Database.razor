@@ -1,18 +1,137 @@
 @page "/"
 @rendermode @(new InteractiveServerRenderMode())
+@using FellowshipAnalyzer.Core.Common.Spells
+@using FellowshipAnalyzer.Core.UI.Components
+@using FellowshipAnalyzer.SpellData
+@using FellowshipAnalyzer.SpellData.Sources
 @inject MergeService Merge
 
-<h1>Spell Database</h1>
+<h1>Spell Studio</h1>
+
+<div>
+    <button @onclick="RebuildDb">Rebuild spelldb.json</button>
+    @if (_status is not null)
+    {
+        <span>&nbsp;@_status</span>
+    }
+</div>
+
+@if (_selected is not null)
+{
+    <section>
+        <h2>Edit: @_selected.Scope / @_selected.Member</h2>
+        <div>
+            <SpellLink Spell="@(Spell.FromGuid(_selected.Guid, _selected.Name, _selected.Icon))" Icon="true" />
+        </div>
+        <table>
+            <tbody>
+                <tr>
+                    <td>Name</td>
+                    <td><input type="text" @bind="_eName" placeholder="@_selected.Name" /></td>
+                </tr>
+                <tr>
+                    <td>Icon</td>
+                    <td><input type="text" @bind="_eIcon" placeholder="@_selected.Icon" /></td>
+                </tr>
+                <tr>
+                    <td>Cooldown</td>
+                    <td><input type="text" @bind="_eCooldown" placeholder="@(_selected.Cooldown?.ToString() ?? "")" /></td>
+                </tr>
+                <tr>
+                    <td>Range</td>
+                    <td><input type="text" @bind="_eRange" placeholder="@(_selected.Range?.ToString() ?? "")" /></td>
+                </tr>
+                <tr>
+                    <td>Charges</td>
+                    <td><input type="text" @bind="_eCharges" placeholder="@_selected.Charges" /></td>
+                </tr>
+                <tr>
+                    <td>Cast Duration</td>
+                    <td><input type="text" @bind="_eCastDuration" placeholder="@(_selected.CastDuration?.ToString() ?? "")" /></td>
+                </tr>
+                <tr>
+                    <td>Channel Duration</td>
+                    <td><input type="text" @bind="_eChannelDuration" placeholder="@(_selected.ChannelDuration?.ToString() ?? "")" /></td>
+                </tr>
+                <tr>
+                    <td>Channel Tick</td>
+                    <td><input type="text" @bind="_eChannelTickInterval" placeholder="@(_selected.ChannelTickInterval?.ToString() ?? "")" /></td>
+                </tr>
+                <tr>
+                    <td>Note</td>
+                    <td><input type="text" @bind="_eNote" /></td>
+                </tr>
+            </tbody>
+        </table>
+        <button @onclick="SaveEdit">Save Override</button>
+        <button @onclick="CancelEdit">Cancel</button>
+    </section>
+}
+
+@if (_addGap is not null)
+{
+    <section>
+        <h2>Add: @_addGap.Scope / @_addGap.Member</h2>
+        <label>Id&nbsp;<input type="number" @bind="_addId" /></label>
+        &nbsp;
+        <label>Note&nbsp;<input type="text" @bind="_addNote" /></label>
+        &nbsp;
+        <button @onclick="SaveAdd">Add Override</button>
+        <button @onclick="CancelAdd">Cancel</button>
+    </section>
+}
+
+@{
+    var gapSet = Merge.Result.Gaps
+        .Select(g => (g.Scope, g.Member))
+        .ToHashSet();
+    var addCandidates = Merge.Result.Gaps
+        .Where(g => g.Kind == GapKind.UnresolvedEffect)
+        .ToList();
+}
+
+@if (addCandidates.Count > 0)
+{
+    <section>
+        <h2>Add Candidates — @addCandidates.Count unresolved effect(s)</h2>
+        <ul>
+            @foreach (var gap in addCandidates)
+            {
+                <li>
+                    @gap.Scope / @gap.Member
+                    &nbsp;<button @onclick="() => StartAdd(gap)">Add</button>
+                </li>
+            }
+        </ul>
+    </section>
+}
+
+@if (Merge.Result.Gaps.Count > 0)
+{
+    <section>
+        <h2>Gaps — @Merge.Result.Gaps.Count total</h2>
+        @foreach (var group in Merge.Result.Gaps.GroupBy(g => g.Kind))
+        {
+            <h3>@group.Key (@group.Count())</h3>
+            <ul>
+                @foreach (var gap in group)
+                {
+                    <li>@gap.Scope / @gap.Member</li>
+                }
+            </ul>
+        }
+    </section>
+}
 
 <table>
     <thead>
         <tr>
+            <th>Icon</th>
             <th>Scope</th>
             <th>Member</th>
             <th>Id</th>
             <th>Kind</th>
             <th>Name</th>
-            <th>Icon</th>
             <th>Cooldown</th>
             <th>Range</th>
             <th>Charges</th>
@@ -25,13 +144,25 @@
     <tbody>
         @foreach (var spell in Merge.Result.Spells)
         {
-            <tr>
+            var hasGap = gapSet.Contains((spell.Scope, spell.Member));
+            var isSelected = _selected is not null
+                && _selected.Scope == spell.Scope
+                && _selected.Member == spell.Member;
+            var coreSpell = Spell.FromGuid(spell.Guid, spell.Name, spell.Icon);
+            <tr class="@(hasGap ? "row--gap" : "") @(isSelected ? "row--selected" : "")"
+                title="@BuildProvenanceTooltip(spell)"
+                @onclick="() => SelectSpell(spell)"
+                style="cursor:pointer">
+                <td>
+                    <SpellIcon Spell="@coreSpell" Size="SpellIconSize.Small" NoTooltip="true" />
+                </td>
                 <td>@spell.Scope</td>
                 <td>@spell.Member</td>
                 <td>@spell.Id</td>
                 <td>@spell.Kind</td>
-                <td>@spell.Name</td>
-                <td>@spell.Icon</td>
+                <td>
+                    <SpellLink Spell="@coreSpell" Icon="false" />
+                </td>
                 <td>@spell.Cooldown</td>
                 <td>@spell.Range</td>
                 <td>@spell.Charges</td>
@@ -43,3 +174,125 @@
         }
     </tbody>
 </table>
+
+@code {
+    private MergedSpell? _selected;
+    private Gap? _addGap;
+    private string? _status;
+
+    private string _eName = "";
+    private string _eIcon = "";
+    private string _eCooldown = "";
+    private string _eRange = "";
+    private string _eCharges = "";
+    private string _eCastDuration = "";
+    private string _eChannelDuration = "";
+    private string _eChannelTickInterval = "";
+    private string _eNote = "";
+
+    private string _addId = "";
+    private string _addNote = "";
+
+    private void SelectSpell(MergedSpell spell)
+    {
+        _selected = spell;
+        _addGap = null;
+        _status = null;
+        var existing = Merge.Overrides.ByScopeAndMember
+            .GetValueOrDefault(spell.Scope)
+            ?.GetValueOrDefault(spell.Member);
+        _eName = existing?.Name ?? "";
+        _eIcon = existing?.Icon ?? "";
+        _eCooldown = existing?.Cooldown?.ToString() ?? "";
+        _eRange = existing?.Range?.ToString() ?? "";
+        _eCharges = existing?.Charges?.ToString() ?? "";
+        _eCastDuration = existing?.CastDuration?.ToString() ?? "";
+        _eChannelDuration = existing?.ChannelDuration?.ToString() ?? "";
+        _eChannelTickInterval = existing?.ChannelTickInterval?.ToString() ?? "";
+        _eNote = existing?.Note ?? "";
+    }
+
+    private void CancelEdit() => _selected = null;
+
+    private void SaveEdit()
+    {
+        if (_selected is null) return;
+        var delta = new OverrideEntry(
+            Id: null,
+            Kind: null,
+            Name: string.IsNullOrWhiteSpace(_eName) ? null : _eName.Trim(),
+            Icon: string.IsNullOrWhiteSpace(_eIcon) ? null : _eIcon.Trim(),
+            Cooldown: double.TryParse(_eCooldown, out var cd) ? cd : null,
+            Range: int.TryParse(_eRange, out var rng) ? rng : null,
+            Charges: int.TryParse(_eCharges, out var ch) ? ch : null,
+            CastDuration: double.TryParse(_eCastDuration, out var cast) ? cast : null,
+            ChannelDuration: double.TryParse(_eChannelDuration, out var chd) ? chd : null,
+            ChannelTickInterval: double.TryParse(_eChannelTickInterval, out var cti) ? cti : null,
+            Costs: new Dictionary<string, int>(),
+            Note: string.IsNullOrWhiteSpace(_eNote) ? null : _eNote.Trim());
+        OverridesPersister.Save(_selected.Scope, _selected.Member, delta);
+        Merge.Reload();
+        _selected = null;
+        _status = "Override saved.";
+    }
+
+    private void StartAdd(Gap gap)
+    {
+        _addGap = gap;
+        _selected = null;
+        _status = null;
+        _addId = "";
+        _addNote = "";
+    }
+
+    private void CancelAdd() => _addGap = null;
+
+    private void SaveAdd()
+    {
+        if (_addGap is null || !int.TryParse(_addId, out var id)) return;
+        var scope = _addGap.Scope;
+        var member = _addGap.Member;
+        var delta = new OverrideEntry(
+            Id: id,
+            Kind: SpellKind.Effect,
+            Name: null,
+            Icon: null,
+            Cooldown: null,
+            Range: null,
+            Charges: null,
+            CastDuration: null,
+            ChannelDuration: null,
+            ChannelTickInterval: null,
+            Costs: new Dictionary<string, int>(),
+            Note: string.IsNullOrWhiteSpace(_addNote) ? null : _addNote.Trim());
+        OverridesPersister.Save(scope, member, delta);
+        Merge.Reload();
+        _addGap = null;
+        _status = $"Added {scope}/{member}.";
+    }
+
+    private void RebuildDb()
+    {
+        var result = MergeEngine.Run(MergeInputs.Load());
+        File.WriteAllText(SourcePaths.SpellDb, SpellDbWriter.Serialize(result));
+        _status = "spelldb.json rebuilt.";
+    }
+
+    private static string BuildProvenanceTooltip(MergedSpell spell)
+    {
+        var p = spell.Provenance;
+        var parts = new List<string>();
+        if (p.Id is not null) parts.Add($"Id:{p.Id}");
+        if (p.Kind is not null) parts.Add($"Kind:{p.Kind}");
+        if (p.Name is not null) parts.Add($"Name:{p.Name}");
+        if (p.Icon is not null) parts.Add($"Icon:{p.Icon}");
+        if (p.Cooldown is not null) parts.Add($"Cd:{p.Cooldown}");
+        if (p.Range is not null) parts.Add($"Rng:{p.Range}");
+        if (p.Charges is not null) parts.Add($"Ch:{p.Charges}");
+        if (p.CastDuration is not null) parts.Add($"Cast:{p.CastDuration}");
+        if (p.ChannelDuration is not null) parts.Add($"Chan:{p.ChannelDuration}");
+        if (p.ChannelTickInterval is not null) parts.Add($"Tick:{p.ChannelTickInterval}");
+        if (p.Costs is not null) parts.Add($"Costs:{p.Costs}");
+        return string.Join(" | ", parts);
+    }
+}
