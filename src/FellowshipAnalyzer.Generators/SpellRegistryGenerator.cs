@@ -157,6 +157,21 @@ public sealed class RegistryGenerator : IIncrementalGenerator
         if (property.DeclaringSyntaxReferences[0].GetSyntax(ct) is not PropertyDeclarationSyntax pds) return false;
         if (pds.Initializer is not { } initializer) return false;
 
+        if (initializer.Value is ObjectCreationExpressionSyntax or ImplicitObjectCreationExpressionSyntax)
+        {
+            var initExpr = initializer.Value switch
+            {
+                ObjectCreationExpressionSyntax o => o.Initializer,
+                ImplicitObjectCreationExpressionSyntax io => io.Initializer,
+                _ => null,
+            };
+            if (initExpr is not null)
+                foreach (var e in initExpr.Expressions)
+                    if (e is AssignmentExpressionSyntax { Left: IdentifierNameSyntax { Identifier.ValueText: "Id" } } a
+                        && a.Right is LiteralExpressionSyntax { Token.Value: int initId })
+                    { id = initId; return true; }
+        }
+
         ArgumentListSyntax? argList = initializer.Value switch
         {
             ObjectCreationExpressionSyntax oc => oc.ArgumentList,

@@ -527,6 +527,12 @@ public sealed class ModuleGenerator : IIncrementalGenerator
         if (property.DeclaringSyntaxReferences[0].GetSyntax(ct) is not PropertyDeclarationSyntax pds) return false;
         if (pds.Initializer is not { } initializer) return false;
 
+        if (TryReadInitializerId(initializer.Value, out var initId))
+        {
+            guid = ApplyRangeOffset(property.Type, initId);
+            return true;
+        }
+
         ArgumentListSyntax? argList = initializer.Value switch
         {
             ObjectCreationExpressionSyntax oc => oc.ArgumentList,
@@ -534,9 +540,8 @@ public sealed class ModuleGenerator : IIncrementalGenerator
             _ => null,
         };
         if (argList is null || argList.Arguments.Count == 0) return false;
-
         if (!TryReadIntLiteral(argList.Arguments[0].Expression, out var id)) return false;
-        guid = InheritsFromEffect(property.Type) ? 1_000_000 + id : id;
+        guid = ApplyRangeOffset(property.Type, id);
         return true;
     }
 
@@ -558,17 +563,39 @@ public sealed class ModuleGenerator : IIncrementalGenerator
         return false;
     }
 
-    private static bool InheritsFromEffect(ITypeSymbol type)
+    private static bool TryReadInitializerId(ExpressionSyntax creation, out int id)
+    {
+        id = 0;
+        InitializerExpressionSyntax? init = creation switch
+        {
+            ObjectCreationExpressionSyntax oc => oc.Initializer,
+            ImplicitObjectCreationExpressionSyntax ioc => ioc.Initializer,
+            _ => null,
+        };
+        if (init is null) return false;
+        foreach (var expr in init.Expressions)
+        {
+            if (expr is AssignmentExpressionSyntax { Left: IdentifierNameSyntax { Identifier.ValueText: "Id" }, Right: { } rhs }
+                && TryReadIntLiteral(rhs, out id))
+                return true;
+        }
+        return false;
+    }
+
+    private static int ApplyRangeOffset(ITypeSymbol type, int id)
     {
         var current = type;
         while (current is not null)
         {
-            if (current.Name == EffectTypeName &&
-                current.ContainingNamespace?.ToDisplayString() == SpellsNamespace)
-                return true;
+            if (current.ContainingNamespace?.ToDisplayString() == SpellsNamespace)
+            {
+                if (current.Name == "Effect") return 1_000_000 + id;
+                if (current.Name == "Talent") return 2_000_000 + id;
+                if (current.Name == "Weapon") return 3_000_000 + id;
+            }
             current = current.BaseType;
         }
-        return false;
+        return id;
     }
 
     private static ImmutableArray<int> GetIntArrayNamedArg(AttributeData attr, string name)
