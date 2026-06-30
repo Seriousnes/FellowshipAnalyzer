@@ -16,6 +16,11 @@ internal static class SpellDatabaseGeneratorTestHarness
         [AttributeUsage(AttributeTargets.Class)]
         public sealed class GenerateRegistryAttribute<T> : Attribute where T : class { }
 
+        namespace FellowshipAnalyzer.Core.Game
+        {
+            public enum ResourceTypes { Mana = 1, Primary = 2, Secondary = 3, Spirit = 4, Tertiary = 5, Stagger = 7 }
+        }
+
         namespace FellowshipAnalyzer.Core.Common.Spells
         {
             public interface ISpellRegistry { }
@@ -29,10 +34,8 @@ internal static class SpellDatabaseGeneratorTestHarness
                 public double? CastDuration { get; init; }
                 public double? ChannelDuration { get; init; }
                 public double? ChannelTickInterval { get; init; }
-                public virtual int? SpiritCost { get; init; }
-                public virtual int? WinterOrbCost { get; init; }
-                public virtual int? AnimaCost { get; init; }
-                public int? FocusCost { get; init; }
+                public System.Collections.Generic.IReadOnlyDictionary<FellowshipAnalyzer.Core.Game.ResourceTypes, int> Costs { get; init; }
+                    = new System.Collections.Generic.Dictionary<FellowshipAnalyzer.Core.Game.ResourceTypes, int>();
             }
 
             public record Effect(int Id = 0, string Name = "", string Icon = "") : Spell(Id, Name, Icon)

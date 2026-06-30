@@ -68,6 +68,30 @@ public sealed class ConsolidatedSpellRegistryGenerator : IIncrementalGenerator
         defaultSeverity: DiagnosticSeverity.Warning,
         isEnabledByDefault: true);
 
+    private static readonly DiagnosticDescriptor UnknownPropertyKeyDescriptor = new(
+        id: "FA0009",
+        title: "Spell entry key matches no Spell property",
+        messageFormat: "Key '{0}' on member '{1}' in scope '{2}' matches no settable Spell property and was ignored",
+        category: "Registry",
+        defaultSeverity: DiagnosticSeverity.Warning,
+        isEnabledByDefault: true);
+
+    private static readonly DiagnosticDescriptor UnknownCostKeyDescriptor = new(
+        id: "FA0010",
+        title: "Cost key matches no ResourceTypes member",
+        messageFormat: "Cost key '{0}' on member '{1}' in scope '{2}' matches no ResourceTypes member and was ignored",
+        category: "Registry",
+        defaultSeverity: DiagnosticSeverity.Warning,
+        isEnabledByDefault: true);
+
+    private static readonly DiagnosticDescriptor ScopeNotHeroNameDescriptor = new(
+        id: "FA0011",
+        title: "Spell scope is not a known hero",
+        messageFormat: "Scope '{0}' is not 'shared', 'items', or a HeroName member",
+        category: "Registry",
+        defaultSeverity: DiagnosticSeverity.Warning,
+        isEnabledByDefault: true);
+
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
         var centralTriggers = context.SyntaxProvider
@@ -173,6 +197,9 @@ public sealed class ConsolidatedSpellRegistryGenerator : IIncrementalGenerator
             ["weapon"] = new KindInfo("Weapon", 3_000_000, compilation.GetTypeByMetadataName(SpellsNamespace + ".Weapon")),
         };
 
+        var schema = BuildSchema(compilation, spellType);
+        var heroNames = BuildHeroNameSet(compilation);
+
         var sharedMembers = new List<EmitMember>();
         var registries = new List<RegistryModel>();
 
@@ -206,6 +233,8 @@ public sealed class ConsolidatedSpellRegistryGenerator : IIncrementalGenerator
             else if (IsValidIdentifierSeed(scopeName))
             {
                 var hero = Pascal(scopeName);
+                if (heroNames is not null && !heroNames.Contains(hero))
+                    spc.ReportDiagnostic(Diagnostic.Create(ScopeNotHeroNameDescriptor, Location.None, scopeName));
                 var ns = SpellsNamespace + "." + hero;
                 target = new ScopeTarget(ns, "Spells", "global::" + ns + ".Spells", IsCentral: false);
             }
@@ -245,7 +274,7 @@ public sealed class ConsolidatedSpellRegistryGenerator : IIncrementalGenerator
                 }
 
                 var guid = kindInfo.Offset + id;
-                var initLines = BuildInitLines(id, entry);
+                var initLines = BuildInitLines(spc, scopeName, memberName, id, entry, schema);
                 members.Add(new EmitMember(kindInfo.TypeName, memberName, guid, initLines));
 
                 RecordEntry(spc, allEntries, guidOwners, lcaTypes, target.GlobalName, memberName, guid,
@@ -290,44 +319,120 @@ public sealed class ConsolidatedSpellRegistryGenerator : IIncrementalGenerator
             lcaTypes.Add(type);
     }
 
-    private static List<string> BuildInitLines(int id, Dictionary<string, JsonValue> entry)
+    private static List<string> BuildInitLines(
+        SourceProductionContext spc, string scopeName, string memberName,
+        int id, Dictionary<string, JsonValue> entry, SpellSchema schema)
     {
-        var parts = new List<string>
-        {
-            "Id = " + id.ToString(CultureInfo.InvariantCulture),
-            "Name = " + Literal(entry.TryGetValue("name", out var n) ? n.String ?? "" : ""),
-            "Icon = " + Literal(entry.TryGetValue("icon", out var ic) ? ic.String ?? "" : ""),
-        };
+        var parts = new List<string> { "Id = " + id.ToString(CultureInfo.InvariantCulture) };
 
-        AddDouble(parts, entry, "cooldown", "Cooldown");
-        AddInt(parts, entry, "range", "Range");
-        AddInt(parts, entry, "charges", "Charges");
-        AddDouble(parts, entry, "castDuration", "CastDuration");
-        AddDouble(parts, entry, "channelDuration", "ChannelDuration");
-        AddDouble(parts, entry, "channelTickInterval", "ChannelTickInterval");
+        foreach (var prop in schema.Scalars)
+        {
+            if (!entry.TryGetValue(prop.JsonKey, out var v))
+                continue;
+            switch (prop.Kind)
+            {
+                case ScalarKind.String:
+                    parts.Add(prop.Name + " = " + Literal(v.String ?? ""));
+                    break;
+                case ScalarKind.Int when v.Number is { } ni:
+                    parts.Add(prop.Name + " = " + ((int)Math.Round(ni)).ToString(CultureInfo.InvariantCulture));
+                    break;
+                case ScalarKind.Double when v.Number is { } nd:
+                    parts.Add(prop.Name + " = " + Fmt(nd));
+                    break;
+            }
+        }
+
+        foreach (var key in entry.Keys)
+        {
+            if (!schema.KnownJsonKeys.Contains(key))
+                spc.ReportDiagnostic(Diagnostic.Create(UnknownPropertyKeyDescriptor, Location.None, key, memberName, scopeName));
+        }
 
         if (entry.TryGetValue("costs", out var costsValue) && costsValue.Object is { } costs)
         {
-            AddInt(parts, costs, "spirit", "SpiritCost");
-            AddInt(parts, costs, "winterOrb", "WinterOrbCost");
-            AddInt(parts, costs, "anima", "AnimaCost");
-            AddInt(parts, costs, "focus", "FocusCost");
+            var costParts = new List<string>();
+            foreach (var costKey in costs.Keys)
+            {
+                if (costs[costKey].Number is not { } cv)
+                    continue;
+                if (schema.CostTokens.TryGetValue(costKey, out var memberAccess))
+                    costParts.Add("[" + memberAccess + "] = " + ((int)Math.Round(cv)).ToString(CultureInfo.InvariantCulture));
+                else
+                    spc.ReportDiagnostic(Diagnostic.Create(UnknownCostKeyDescriptor, Location.None, costKey, memberName, scopeName));
+            }
+            if (costParts.Count > 0)
+                parts.Add("Costs = new global::System.Collections.Generic.Dictionary<" +
+                          schema.ResourceTypesGlobalName + ", int> { " + string.Join(", ", costParts) + " }");
         }
 
         return parts;
     }
 
-    private static void AddDouble(List<string> parts, Dictionary<string, JsonValue> obj, string key, string prop)
+    private static SpellSchema BuildSchema(Compilation compilation, ITypeSymbol? spellType)
     {
-        if (obj.TryGetValue(key, out var v) && v.Number is { } n)
-            parts.Add(prop + " = " + Fmt(n));
+        var scalars = new List<ScalarProp>();
+        var knownKeys = new HashSet<string>(StringComparer.Ordinal) { "id", "kind", "costs" };
+        var costTokens = new Dictionary<string, string>(StringComparer.Ordinal);
+        var resourceTypesGlobal = "global::FellowshipAnalyzer.Core.Game.ResourceTypes";
+
+        if (spellType is not null)
+        {
+            foreach (var member in spellType.GetMembers())
+            {
+                if (member is not IPropertySymbol p || p.SetMethod is null)
+                    continue;
+                if (p.Name is "Id" or "Costs")
+                    continue;
+                var kind = ClassifyScalar(p.Type);
+                if (kind is null)
+                    continue;
+                var key = CamelCase(p.Name);
+                scalars.Add(new ScalarProp(p.Name, key, kind.Value));
+                knownKeys.Add(key);
+            }
+        }
+
+        var resourceTypes = compilation.GetTypeByMetadataName("FellowshipAnalyzer.Core.Game.ResourceTypes");
+        if (resourceTypes is not null)
+        {
+            resourceTypesGlobal = GlobalName(resourceTypes);
+            foreach (var member in resourceTypes.GetMembers())
+                if (member is IFieldSymbol { IsConst: true } f)
+                    costTokens[CamelCase(f.Name)] = resourceTypesGlobal + "." + f.Name;
+        }
+
+        return new SpellSchema(scalars, costTokens, knownKeys, resourceTypesGlobal);
     }
 
-    private static void AddInt(List<string> parts, Dictionary<string, JsonValue> obj, string key, string prop)
+    private static HashSet<string>? BuildHeroNameSet(Compilation compilation)
     {
-        if (obj.TryGetValue(key, out var v) && v.Number is { } n)
-            parts.Add(prop + " = " + ((int)Math.Round(n)).ToString(CultureInfo.InvariantCulture));
+        var heroName = compilation.GetTypeByMetadataName("FellowshipAnalyzer.Core.Analysis.HeroName");
+        if (heroName is null)
+            return null;
+        var set = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var member in heroName.GetMembers())
+            if (member is IFieldSymbol { IsConst: true } f)
+                set.Add(f.Name);
+        return set;
     }
+
+    private static ScalarKind? ClassifyScalar(ITypeSymbol type)
+    {
+        var t = type;
+        if (t is INamedTypeSymbol { OriginalDefinition.SpecialType: SpecialType.System_Nullable_T } nt)
+            t = nt.TypeArguments[0];
+        return t.SpecialType switch
+        {
+            SpecialType.System_Int32 => ScalarKind.Int,
+            SpecialType.System_Double => ScalarKind.Double,
+            SpecialType.System_String => ScalarKind.String,
+            _ => null,
+        };
+    }
+
+    private static string CamelCase(string name) =>
+        name.Length == 0 ? name : char.ToLowerInvariant(name[0]) + name.Substring(1);
 
     private static void EmitRegistry(SourceProductionContext spc, RegistryModel registry)
     {
@@ -572,6 +677,16 @@ public sealed class ConsolidatedSpellRegistryGenerator : IIncrementalGenerator
     private readonly record struct AllEntry(string ContainerGlobalName, string MemberName, int Guid);
 
     private readonly record struct GuidConst(string Name, int Guid);
+
+    private enum ScalarKind { Int, Double, String }
+
+    private readonly record struct ScalarProp(string Name, string JsonKey, ScalarKind Kind);
+
+    private sealed record SpellSchema(
+        IReadOnlyList<ScalarProp> Scalars,
+        IReadOnlyDictionary<string, string> CostTokens,
+        HashSet<string> KnownJsonKeys,
+        string ResourceTypesGlobalName);
 
     // --- Minimal JSON reader (netstandard2.0, dependency-free) ---
 
