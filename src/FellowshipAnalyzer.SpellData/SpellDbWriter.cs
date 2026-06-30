@@ -1,24 +1,22 @@
-using System.Text;
 using System.Text.Json;
+using System.Text.Json.Nodes;
+using FellowshipAnalyzer.Core.Common.Spells;
+using FellowshipAnalyzer.SpellData.Json;
 using FellowshipAnalyzer.SpellData.Model;
 
 namespace FellowshipAnalyzer.SpellData;
 
 /// <summary>
-/// Deterministic serializer for the committed <c>spelldb.json</c> file.
-/// Scopes are written heroes-first (alphabetical), then <c>shared</c>, then <c>items</c>.
-/// Members within each scope are sorted ordinally. Provenance and Gaps are not serialized.
+/// Deterministic System.Text.Json serializer for the committed <c>spelldb.json</c>.
+/// Each entry is a polymorphic <see cref="Spell"/> (discriminated by <c>kind</c>). Scopes are
+/// written heroes-first (ordinal), then <c>shared</c>, then <c>items</c>; members ordinal;
+/// cost keys ordered by <c>ResourceTypes</c> value. Default <c>charges</c> (1) and empty
+/// <c>costs</c> are pruned. Provenance and gaps are not serialized.
 /// </summary>
 public static class SpellDbWriter
 {
-    private static readonly JsonWriterOptions WriterOptions = new() { Indented = true };
+    private static readonly JsonSerializerOptions IndentOptions = new() { WriteIndented = true };
 
-    /// <summary>
-    /// Serializes <paramref name="result"/> to an indented JSON string.
-    /// <c>kind</c> is omitted when <see cref="SpellKind.Ability"/> (the default).
-    /// <c>charges</c> is omitted when 1 (the default). Absent scalars are omitted.
-    /// <c>costs</c> is omitted when empty. Cost keys are sorted ordinally.
-    /// </summary>
     public static string Serialize(MergeResult result)
     {
         var byScope = result.Spells
@@ -27,7 +25,7 @@ public static class SpellDbWriter
 
         var heroScopes = byScope.Keys
             .Where(k => k != "shared" && k != "items")
-            .Order(StringComparer.Ordinal);
+            .OrderBy(k => k, StringComparer.Ordinal);
 
         var orderedScopes = heroScopes.AsEnumerable();
         if (byScope.ContainsKey("shared"))
@@ -35,124 +33,71 @@ public static class SpellDbWriter
         if (byScope.ContainsKey("items"))
             orderedScopes = orderedScopes.Append("items");
 
-        using var ms = new MemoryStream();
-        using var writer = new Utf8JsonWriter(ms, WriterOptions);
-
-        writer.WriteStartObject();
+        var root = new JsonObject();
         foreach (var scope in orderedScopes)
         {
-            writer.WritePropertyName(scope);
-            writer.WriteStartObject();
-
-            foreach (var spell in byScope[scope]
+            var scopeObj = new JsonObject();
+            foreach (var curated in byScope[scope]
                 .Where(s => MemberNaming.IsValidIdentifier(s.Member))
                 .OrderBy(s => s.Member, StringComparer.Ordinal))
             {
-                writer.WritePropertyName(spell.Member);
-                writer.WriteStartObject();
-
-                writer.WriteNumber("id", spell.Id);
-
-                if (spell.Kind != SpellKind.Ability)
-                    writer.WriteString("kind", spell.Kind.ToString().ToLowerInvariant());
-
-                writer.WriteString("name", spell.Name);
-                writer.WriteString("icon", spell.Icon);
-
-                if (spell.Cooldown.HasValue)
-                    writer.WriteNumber("cooldown", spell.Cooldown.Value);
-                if (spell.Range.HasValue)
-                    writer.WriteNumber("range", spell.Range.Value);
-                if (spell.Charges != 1)
-                    writer.WriteNumber("charges", spell.Charges);
-                if (spell.CastDuration.HasValue)
-                    writer.WriteNumber("castDuration", spell.CastDuration.Value);
-                if (spell.ChannelDuration.HasValue)
-                    writer.WriteNumber("channelDuration", spell.ChannelDuration.Value);
-                if (spell.ChannelTickInterval.HasValue)
-                    writer.WriteNumber("channelTickInterval", spell.ChannelTickInterval.Value);
-
-                if (spell.Costs.Count > 0)
-                {
-                    writer.WritePropertyName("costs");
-                    writer.WriteStartObject();
-                    foreach (var (key, value) in spell.Costs.OrderBy(kv => kv.Key, StringComparer.Ordinal))
-                        writer.WriteNumber(key, value);
-                    writer.WriteEndObject();
-                }
-
-                writer.WriteEndObject();
+                scopeObj[curated.Member] = ToEntryNode(curated.Spell);
             }
-
-            writer.WriteEndObject();
+            root[scope] = scopeObj;
         }
 
-        writer.WriteEndObject();
-        writer.Flush();
-
-        return Encoding.UTF8.GetString(ms.ToArray());
+        return root.ToJsonString(IndentOptions);
     }
 
-    /// <summary>
-    /// Deserializes a <c>spelldb.json</c> string (as produced by <see cref="Serialize"/>) into a
-    /// <see cref="MergeResult"/>. Provenance is left empty; Gaps are not stored in the file and are
-    /// returned as an empty list.
-    /// </summary>
     public static MergeResult Deserialize(string json)
     {
-        using var doc = JsonDocument.Parse(json);
-        var spells = new List<MergedSpell>();
+        var root = JsonNode.Parse(json)!.AsObject();
+        var spells = new List<CuratedSpell>();
 
-        foreach (var scopeProp in doc.RootElement.EnumerateObject())
+        foreach (var (scope, scopeNode) in root)
         {
-            var scope = scopeProp.Name;
-            foreach (var memberProp in scopeProp.Value.EnumerateObject())
+            if (scopeNode is not JsonObject scopeObj)
+                continue;
+            foreach (var (member, memberNode) in scopeObj)
             {
-                var member = memberProp.Name;
-                var entry = memberProp.Value;
-
-                var id = entry.GetProperty("id").GetInt32();
-
-                var kind = SpellKind.Ability;
-                if (entry.TryGetProperty("kind", out var kindEl) && kindEl.ValueKind == JsonValueKind.String)
-                    Enum.TryParse(kindEl.GetString(), ignoreCase: true, out kind);
-
-                var name = entry.TryGetProperty("name", out var nameEl) ? nameEl.GetString() ?? string.Empty : string.Empty;
-                var icon = entry.TryGetProperty("icon", out var iconEl) ? iconEl.GetString() ?? string.Empty : string.Empty;
-
-                double? cooldown = TryGetDouble(entry, "cooldown");
-                int? range = TryGetInt(entry, "range");
-                int charges = TryGetInt(entry, "charges") ?? 1;
-                double? castDuration = TryGetDouble(entry, "castDuration");
-                double? channelDuration = TryGetDouble(entry, "channelDuration");
-                double? channelTickInterval = TryGetDouble(entry, "channelTickInterval");
-
-                var costs = new Dictionary<string, int>();
-                if (entry.TryGetProperty("costs", out var costsProp) && costsProp.ValueKind == JsonValueKind.Object)
-                    foreach (var costProp in costsProp.EnumerateObject())
-                        costs[costProp.Name] = costProp.Value.GetInt32();
-
-                spells.Add(new MergedSpell(
-                    scope, member, id, kind, name, icon,
-                    cooldown, range, charges, castDuration, channelDuration, channelTickInterval,
-                    costs, new Provenance()));
+                if (memberNode is not JsonObject entry)
+                    continue;
+                var spell = entry.Deserialize<Spell>(SpellDbJsonOptions.Default)!;
+                spells.Add(new CuratedSpell(scope, member, spell, Provenance.Empty));
             }
         }
 
         return new MergeResult(spells, []);
     }
 
-    private static double? TryGetDouble(JsonElement el, string key)
+    private static JsonNode ToEntryNode(Spell spell)
     {
-        if (el.TryGetProperty(key, out var prop) && prop.ValueKind == JsonValueKind.Number)
-            return prop.GetDouble();
-        return null;
+        var node = JsonSerializer.SerializeToNode(spell, SpellDbJsonOptions.Default)!.AsObject();
+
+        if (node.TryGetPropertyValue("charges", out var charges)
+            && charges is JsonValue chargesValue
+            && chargesValue.TryGetValue<int>(out var c) && c == 1)
+            node.Remove("charges");
+
+        if (node.TryGetPropertyValue("costs", out var costs) && costs is JsonObject costsObj)
+        {
+            if (costsObj.Count == 0)
+                node.Remove("costs");
+            else
+                node["costs"] = OrderCosts(costsObj);
+        }
+
+        return node;
     }
 
-    private static int? TryGetInt(JsonElement el, string key)
+    private static JsonObject OrderCosts(JsonObject costs)
     {
-        if (el.TryGetProperty(key, out var prop) && prop.ValueKind == JsonValueKind.Number)
-            return prop.GetInt32();
-        return null;
+        var ordered = new JsonObject();
+        foreach (var pair in costs.OrderBy(kv => CostOrder(kv.Key)))
+            ordered[pair.Key] = pair.Value!.DeepClone();
+        return ordered;
     }
+
+    private static int CostOrder(string token) =>
+        ResourceTypesAliases.TryResolve(token, out var slot) ? (int)slot : int.MaxValue;
 }

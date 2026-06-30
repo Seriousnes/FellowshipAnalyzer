@@ -1,3 +1,4 @@
+using FellowshipAnalyzer.Core.Game;
 using FellowshipAnalyzer.SpellData;
 using FellowshipAnalyzer.SpellData.Model;
 using FellowshipAnalyzer.SpellData.Sources;
@@ -43,8 +44,8 @@ public class SourceLoaderTests
         var rime = h.Heroes.Single(x => x.DisplayName == "Rime");
         rime.Kit.ShouldContain(k => k.FslId == 1027);
         rime.Constants.ShouldContain(c => c.DevName == "GA_Rime_ChanneledBeamSingleDamage");
-        rime.Resources.CostTypeToResource["SpiritPoints"].ShouldBe("spirit");
-        rime.Resources.CostTypeToResource["ResourcesTertiary"].ShouldBe("winterOrb");
+        rime.Resources.CostTypeToResource["SpiritPoints"].ShouldBe(ResourceTypes.Spirit);
+        rime.Resources.CostTypeToResource["ResourcesTertiary"].ShouldBe(ResourceTypes.Tertiary);
     }
 
     [Fact]

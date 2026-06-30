@@ -1,11 +1,13 @@
 using System.Text.Json;
+using FellowshipAnalyzer.Core.Game;
+using FellowshipAnalyzer.SpellData.Json;
 using FellowshipAnalyzer.SpellData.Model;
 
 namespace FellowshipAnalyzer.SpellData.Sources;
 
 /// <summary>
 /// A per-spell override delta: each nullable field overrides the corresponding normalized
-/// <see cref="MergedSpell"/> property when present.
+/// <see cref="CuratedSpell"/> property when present.
 /// </summary>
 public record OverrideEntry(
     int? Id,
@@ -18,7 +20,7 @@ public record OverrideEntry(
     double? CastDuration,
     double? ChannelDuration,
     double? ChannelTickInterval,
-    IReadOnlyDictionary<string, int> Costs,
+    IReadOnlyDictionary<ResourceTypes, int> Costs,
     string? Note);
 
 /// <summary>Override deltas indexed by scope → member name.</summary>
@@ -77,11 +79,12 @@ public sealed class OverridesSource
         double? channelTickInterval = TryGetDouble(val, "channelTickInterval");
         string? note = TryGetString(val, "note");
 
-        var costs = new Dictionary<string, int>();
+        var costs = new Dictionary<ResourceTypes, int>();
         if (val.TryGetProperty("costs", out var costsProp) && costsProp.ValueKind == JsonValueKind.Object)
             foreach (var p in costsProp.EnumerateObject())
-                if (p.Value.ValueKind == JsonValueKind.Number)
-                    costs[p.Name] = p.Value.GetInt32();
+                if (p.Value.ValueKind == JsonValueKind.Number
+                    && ResourceTypesAliases.TryResolve(p.Name, out var slot))
+                    costs[slot] = p.Value.GetInt32();
 
         return new OverrideEntry(id, kind, name, icon, cooldown, range, charges,
             castDuration, channelDuration, channelTickInterval, costs, note);

@@ -1,6 +1,8 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using FellowshipAnalyzer.Core.Game;
 using FellowshipAnalyzer.SpellData;
+using FellowshipAnalyzer.SpellData.Json;
 using FellowshipAnalyzer.SpellData.Sources;
 
 namespace FellowshipAnalyzer.SpellStudio;
@@ -50,8 +52,8 @@ public static class OverridesPersister
         if (delta.Costs.Count > 0)
         {
             var costsNode = new JsonObject();
-            foreach (var (k, v) in delta.Costs.OrderBy(x => x.Key, StringComparer.Ordinal))
-                costsNode[k] = v;
+            foreach (var (slot, v) in delta.Costs.OrderBy(x => (int)x.Key))
+                costsNode[ResourceTypesAliases.ToToken(slot)] = v;
             node["costs"] = costsNode;
         }
         if (delta.Note is not null) node["note"] = delta.Note;

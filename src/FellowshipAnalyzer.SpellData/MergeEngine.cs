@@ -1,3 +1,5 @@
+using FellowshipAnalyzer.Core.Common.Spells;
+using FellowshipAnalyzer.Core.Game;
 using FellowshipAnalyzer.SpellData.Model;
 using FellowshipAnalyzer.SpellData.Sources;
 
@@ -5,7 +7,7 @@ namespace FellowshipAnalyzer.SpellData;
 
 /// <summary>
 /// All upstream data sources loaded and ready for <see cref="MergeEngine.Run"/>.
-/// Declared as a record so Task 9 can produce patched variants via <c>with { … }</c>.
+/// Declared as a record so callers can produce patched variants via <c>with { … }</c>.
 /// </summary>
 public record MergeInputs(
     SpellDataSource SpellData,
@@ -26,20 +28,18 @@ public record MergeInputs(
 }
 
 /// <summary>
-/// Composes the loaded sources into a list of merged, enriched spells for every hero.
+/// Composes the loaded sources into a list of curated Core <see cref="Spell"/> instances for every hero.
 /// </summary>
 public static class MergeEngine
 {
     /// <summary>
-    /// For each hero present in <c>hero_data.json</c>, selects their Kit abilities, resolves scalars from Constants entries,
-    /// links and includes spawned effects, and enriches each entry with name/kind from
-    /// <c>spell_data</c>, icon from <c>abilities.json</c>, and costs from the merged scalar bag.
-    /// After auto-selection, applies overrides: patches existing members in place and adds
-    /// new members enriched by id. Emits gaps for missing names, icons, and id-less adds.
+    /// For each hero in <c>hero_data.json</c>, selects Kit abilities, resolves scalars from Constants,
+    /// links spawned effects, and enriches each entry with name/kind from <c>spell_data</c>, icon from
+    /// <c>abilities.json</c>, and costs from the merged scalar bag. After auto-selection, applies overrides.
     /// </summary>
     public static MergeResult Run(MergeInputs inputs)
     {
-        var spells = new List<MergedSpell>();
+        var spells = new List<CuratedSpell>();
         var gaps = new List<Gap>();
 
         foreach (var hero in inputs.HeroData.Heroes)
@@ -79,23 +79,23 @@ public static class MergeEngine
                 var channelDuration = Normalization.ChannelDuration(scalars);
                 var channelTickInterval = Normalization.ChannelTickInterval(scalars);
 
-                var prov = new Provenance(
-                    Id: ProvenanceSource.HeroData,
-                    Kind: ProvenanceSource.HeroData,
-                    Name: spellDataName is not null ? ProvenanceSource.SpellData : ProvenanceSource.HeroData,
-                    Icon: icon.Length > 0 ? ProvenanceSource.Icons : null,
-                    Cooldown: cooldown.HasValue ? ProvenanceSource.HeroData : null,
-                    Range: range.HasValue ? ProvenanceSource.HeroData : null,
-                    Charges: ProvenanceSource.HeroData,
-                    CastDuration: castDuration.HasValue ? ProvenanceSource.HeroData : null,
-                    ChannelDuration: channelDuration.HasValue ? ProvenanceSource.HeroData : null,
-                    ChannelTickInterval: channelTickInterval.HasValue ? ProvenanceSource.HeroData : null,
-                    Costs: costs.Count > 0 ? ProvenanceSource.HeroData : null);
+                var prov = new ProvenanceBuilder()
+                    .Set("id", ProvenanceSource.HeroData)
+                    .Set("kind", ProvenanceSource.HeroData)
+                    .Set("name", spellDataName is not null ? ProvenanceSource.SpellData : ProvenanceSource.HeroData)
+                    .SetIf("icon", icon.Length > 0, ProvenanceSource.Icons)
+                    .SetIf("cooldown", cooldown.HasValue, ProvenanceSource.HeroData)
+                    .SetIf("range", range.HasValue, ProvenanceSource.HeroData)
+                    .Set("charges", ProvenanceSource.HeroData)
+                    .SetIf("castDuration", castDuration.HasValue, ProvenanceSource.HeroData)
+                    .SetIf("channelDuration", channelDuration.HasValue, ProvenanceSource.HeroData)
+                    .SetIf("channelTickInterval", channelTickInterval.HasValue, ProvenanceSource.HeroData)
+                    .SetIf("costs", costs.Count > 0, ProvenanceSource.HeroData)
+                    .Build();
 
-                spells.Add(new MergedSpell(
-                    scope, member, nativeId, kind, name, icon,
-                    cooldown, range, charges, castDuration, channelDuration, channelTickInterval,
-                    costs, prov));
+                var spell = BuildSpell(kind, nativeId, name, icon, cooldown, range, charges,
+                    castDuration, channelDuration, channelTickInterval, costs);
+                spells.Add(new CuratedSpell(scope, member, spell, prov));
 
                 if (!MemberNaming.IsValidIdentifier(member))
                     gaps.Add(new Gap(scope, member, GapKind.MissingName));
@@ -114,17 +114,18 @@ public static class MergeEngine
                         : string.Empty;
                     var effectMember = MemberNaming.EffectMember(member, link.Role);
                     var effectIcon = inputs.Icons.IconFor(SpellKindRange.GuidFor(effectKind, effectId)) ?? string.Empty;
-                    var effectProv = new Provenance(
-                        Id: ProvenanceSource.HeroData,
-                        Kind: ProvenanceSource.SpellData,
-                        Name: effectEntry?.Name is not null ? ProvenanceSource.SpellData : null,
-                        Icon: effectIcon.Length > 0 ? ProvenanceSource.Icons : null,
-                        Charges: ProvenanceSource.HeroData);
 
-                    spells.Add(new MergedSpell(
-                        scope, effectMember, effectId, effectKind, effectName, effectIcon,
-                        null, null, 1, null, null, null,
-                        new Dictionary<string, int>(), effectProv));
+                    var effectProv = new ProvenanceBuilder()
+                        .Set("id", ProvenanceSource.HeroData)
+                        .Set("kind", ProvenanceSource.SpellData)
+                        .SetIf("name", effectEntry?.Name is not null, ProvenanceSource.SpellData)
+                        .SetIf("icon", effectIcon.Length > 0, ProvenanceSource.Icons)
+                        .Set("charges", ProvenanceSource.HeroData)
+                        .Build();
+
+                    var effectSpell = BuildSpell(effectKind, effectId, effectName, effectIcon,
+                        null, null, 1, null, null, null, EmptyCosts);
+                    spells.Add(new CuratedSpell(scope, effectMember, effectSpell, effectProv));
 
                     if (!MemberNaming.IsValidIdentifier(effectMember))
                         gaps.Add(new Gap(scope, effectMember, GapKind.MissingName));
@@ -177,41 +178,65 @@ public static class MergeEngine
         return new MergeResult(spells, gaps);
     }
 
-    private static MergedSpell ApplyPatch(MergedSpell spell, OverrideEntry delta)
-    {
-        var prov = spell.Provenance with
+    private static readonly IReadOnlyDictionary<ResourceTypes, int> EmptyCosts =
+        new Dictionary<ResourceTypes, int>();
+
+    private static Spell BuildSpell(
+        SpellKind kind, int nativeId, string name, string icon,
+        double? cooldown, int? range, int charges, double? castDuration,
+        double? channelDuration, double? channelTickInterval, IReadOnlyDictionary<ResourceTypes, int> costs) =>
+        Spell.FromGuid(SpellKindRange.GuidFor(kind, nativeId), name, icon) with
         {
-            Id = delta.Id.HasValue ? ProvenanceSource.Override : spell.Provenance.Id,
-            Kind = delta.Kind.HasValue ? ProvenanceSource.Override : spell.Provenance.Kind,
-            Name = delta.Name is not null ? ProvenanceSource.Override : spell.Provenance.Name,
-            Icon = delta.Icon is not null ? ProvenanceSource.Override : spell.Provenance.Icon,
-            Cooldown = delta.Cooldown.HasValue ? ProvenanceSource.Override : spell.Provenance.Cooldown,
-            Range = delta.Range.HasValue ? ProvenanceSource.Override : spell.Provenance.Range,
-            Charges = delta.Charges.HasValue ? ProvenanceSource.Override : spell.Provenance.Charges,
-            CastDuration = delta.CastDuration.HasValue ? ProvenanceSource.Override : spell.Provenance.CastDuration,
-            ChannelDuration = delta.ChannelDuration.HasValue ? ProvenanceSource.Override : spell.Provenance.ChannelDuration,
-            ChannelTickInterval = delta.ChannelTickInterval.HasValue ? ProvenanceSource.Override : spell.Provenance.ChannelTickInterval,
-            Costs = delta.Costs.Count > 0 ? ProvenanceSource.Override : spell.Provenance.Costs,
+            Cooldown = cooldown,
+            Range = range,
+            Charges = charges,
+            CastDuration = castDuration,
+            ChannelDuration = channelDuration,
+            ChannelTickInterval = channelTickInterval,
+            Costs = costs,
         };
 
-        return spell with
-        {
-            Id = delta.Id ?? spell.Id,
-            Kind = delta.Kind ?? spell.Kind,
-            Name = delta.Name ?? spell.Name,
-            Icon = delta.Icon ?? spell.Icon,
-            Cooldown = delta.Cooldown ?? spell.Cooldown,
-            Range = delta.Range ?? spell.Range,
-            Charges = delta.Charges ?? spell.Charges,
-            CastDuration = delta.CastDuration ?? spell.CastDuration,
-            ChannelDuration = delta.ChannelDuration ?? spell.ChannelDuration,
-            ChannelTickInterval = delta.ChannelTickInterval ?? spell.ChannelTickInterval,
-            Costs = delta.Costs.Count > 0 ? delta.Costs : spell.Costs,
-            Provenance = prov,
-        };
+    private static CuratedSpell ApplyPatch(CuratedSpell curated, OverrideEntry delta)
+    {
+        var s = curated.Spell;
+        var newKind = delta.Kind ?? curated.Kind;
+        var newId = delta.Id ?? s.Id;
+        var costs = delta.Costs.Count > 0 ? delta.Costs : s.Costs;
+
+        var spell = BuildSpell(newKind, newId,
+            delta.Name ?? s.Name,
+            delta.Icon ?? s.Icon,
+            delta.Cooldown ?? s.Cooldown,
+            delta.Range ?? s.Range,
+            delta.Charges ?? s.Charges,
+            delta.CastDuration ?? s.CastDuration,
+            delta.ChannelDuration ?? s.ChannelDuration,
+            delta.ChannelTickInterval ?? s.ChannelTickInterval,
+            costs);
+
+        var prov = new Dictionary<string, ProvenanceSource>(curated.Provenance.ByField, StringComparer.Ordinal);
+        MarkOverride(prov, "id", delta.Id.HasValue);
+        MarkOverride(prov, "kind", delta.Kind.HasValue);
+        MarkOverride(prov, "name", delta.Name is not null);
+        MarkOverride(prov, "icon", delta.Icon is not null);
+        MarkOverride(prov, "cooldown", delta.Cooldown.HasValue);
+        MarkOverride(prov, "range", delta.Range.HasValue);
+        MarkOverride(prov, "charges", delta.Charges.HasValue);
+        MarkOverride(prov, "castDuration", delta.CastDuration.HasValue);
+        MarkOverride(prov, "channelDuration", delta.ChannelDuration.HasValue);
+        MarkOverride(prov, "channelTickInterval", delta.ChannelTickInterval.HasValue);
+        MarkOverride(prov, "costs", delta.Costs.Count > 0);
+
+        return curated with { Spell = spell, Provenance = new Provenance(prov) };
     }
 
-    private static (MergedSpell Spell, IEnumerable<Gap> Gaps) EnrichById(
+    private static void MarkOverride(Dictionary<string, ProvenanceSource> prov, string field, bool present)
+    {
+        if (present)
+            prov[field] = ProvenanceSource.Override;
+    }
+
+    private static (CuratedSpell Spell, IEnumerable<Gap> Gaps) EnrichById(
         string scope, string member, OverrideEntry delta, MergeInputs inputs)
     {
         var id = delta.Id!.Value;
@@ -241,30 +266,29 @@ public static class MergeEngine
 
         var costs = delta.Costs.Count > 0
             ? delta.Costs
-            : Costs.Map(scalars, new ResourceModel(new Dictionary<string, string>()));
+            : Costs.Map(scalars, new ResourceModel(new Dictionary<string, ResourceTypes>()));
 
         var nameSource = delta.Name is not null ? ProvenanceSource.Override
             : nameFromSpellData is not null ? ProvenanceSource.SpellData
             : gearWeapon is not null ? ProvenanceSource.GearData
             : (ProvenanceSource?)null;
 
-        var prov = new Provenance(
-            Id: ProvenanceSource.Override,
-            Kind: delta.Kind.HasValue ? ProvenanceSource.Override : ProvenanceSource.SpellData,
-            Name: nameSource,
-            Icon: delta.Icon is not null ? ProvenanceSource.Override : (icon.Length > 0 ? ProvenanceSource.Icons : null),
-            Cooldown: delta.Cooldown.HasValue ? ProvenanceSource.Override : (cooldown.HasValue ? ProvenanceSource.GearData : null),
-            Range: delta.Range.HasValue ? ProvenanceSource.Override : (range.HasValue ? ProvenanceSource.GearData : null),
-            Charges: delta.Charges.HasValue ? ProvenanceSource.Override : ProvenanceSource.GearData,
-            CastDuration: delta.CastDuration.HasValue ? ProvenanceSource.Override : (castDuration.HasValue ? ProvenanceSource.GearData : null),
-            ChannelDuration: delta.ChannelDuration.HasValue ? ProvenanceSource.Override : (channelDuration.HasValue ? ProvenanceSource.GearData : null),
-            ChannelTickInterval: delta.ChannelTickInterval.HasValue ? ProvenanceSource.Override : (channelTickInterval.HasValue ? ProvenanceSource.GearData : null),
-            Costs: delta.Costs.Count > 0 ? ProvenanceSource.Override : (costs.Count > 0 ? ProvenanceSource.GearData : null));
+        var prov = new ProvenanceBuilder()
+            .Set("id", ProvenanceSource.Override)
+            .Set("kind", delta.Kind.HasValue ? ProvenanceSource.Override : ProvenanceSource.SpellData);
+        if (nameSource is { } ns) prov.Set("name", ns);
+        prov.Set("icon", delta.Icon is not null ? ProvenanceSource.Override : ProvenanceSource.Icons);
+        prov.SetIf("cooldown", cooldown.HasValue, delta.Cooldown.HasValue ? ProvenanceSource.Override : ProvenanceSource.GearData);
+        prov.SetIf("range", range.HasValue, delta.Range.HasValue ? ProvenanceSource.Override : ProvenanceSource.GearData);
+        prov.Set("charges", delta.Charges.HasValue ? ProvenanceSource.Override : ProvenanceSource.GearData);
+        prov.SetIf("castDuration", castDuration.HasValue, delta.CastDuration.HasValue ? ProvenanceSource.Override : ProvenanceSource.GearData);
+        prov.SetIf("channelDuration", channelDuration.HasValue, delta.ChannelDuration.HasValue ? ProvenanceSource.Override : ProvenanceSource.GearData);
+        prov.SetIf("channelTickInterval", channelTickInterval.HasValue, delta.ChannelTickInterval.HasValue ? ProvenanceSource.Override : ProvenanceSource.GearData);
+        prov.SetIf("costs", costs.Count > 0, delta.Costs.Count > 0 ? ProvenanceSource.Override : ProvenanceSource.GearData);
 
-        var spell = new MergedSpell(
-            scope, member, nativeId, kind, resolvedName, icon,
-            cooldown, range, charges, castDuration, channelDuration, channelTickInterval,
-            costs, prov);
+        var spell = BuildSpell(kind, nativeId, resolvedName, icon, cooldown, range, charges,
+            castDuration, channelDuration, channelTickInterval, costs);
+        var curated = new CuratedSpell(scope, member, spell, prov.Build());
 
         var addedGaps = new List<Gap>();
         if (!MemberNaming.IsValidIdentifier(member))
@@ -272,7 +296,7 @@ public static class MergeEngine
         if (string.IsNullOrEmpty(icon))
             addedGaps.Add(new Gap(scope, member, GapKind.MissingIcon));
 
-        return (spell, addedGaps);
+        return (curated, addedGaps);
     }
 
     private static Dictionary<string, double> GatherScalarsById(int id, MergeInputs inputs)

@@ -1,3 +1,4 @@
+using FellowshipAnalyzer.Core.Game;
 using FellowshipAnalyzer.SpellData;
 using FellowshipAnalyzer.SpellData.Model;
 using Shouldly;
@@ -13,28 +14,28 @@ public class MergeEngineTests
     public void Rime_BurstingIce_IsSelectedAsAbility()
     {
         var s = Run().Spells.Single(x => x.Scope == "rime" && x.Member == "BurstingIce");
-        s.Id.ShouldBe(1031);
+        s.Spell.Id.ShouldBe(1031);
         s.Kind.ShouldBe(SpellKind.Ability);
-        s.Name.ShouldBe("Bursting Ice");
+        s.Spell.Name.ShouldBe("Bursting Ice");
     }
 
     [Fact]
     public void Rime_FreezingTorrent_CarriesNormalizedScalars()
     {
         var s = Run().Spells.Single(x => x.Scope == "rime" && x.Member == "FreezingTorrent");
-        s.Cooldown.ShouldBe(15);
-        s.Range.ShouldBe(30);
-        s.ChannelDuration.ShouldBe(2.0);
-        s.ChannelTickInterval.ShouldBe(0.4);
+        s.Spell.Cooldown.ShouldBe(15);
+        s.Spell.Range.ShouldBe(30);
+        s.Spell.ChannelDuration.ShouldBe(2.0);
+        s.Spell.ChannelTickInterval.ShouldBe(0.4);
     }
 
     [Fact]
-    public void Rime_GlacialBlast_HasWinterOrbCost() =>
-        Run().Spells.Single(x => x.Scope == "rime" && x.Member == "GlacialBlast").Costs["winterOrb"].ShouldBe(2);
+    public void Rime_GlacialBlast_HasTertiaryCost() =>
+        Run().Spells.Single(x => x.Scope == "rime" && x.Member == "GlacialBlast").Spell.Costs[ResourceTypes.Tertiary].ShouldBe(2);
 
     [Fact]
     public void LinkedEffect_IsNamedAbilityPlusRole() =>
-        Run().Spells.ShouldContain(x => x.Scope == "rime" && x.Kind == SpellKind.Effect && x.Id == 1396);
+        Run().Spells.ShouldContain(x => x.Scope == "rime" && x.Kind == SpellKind.Effect && x.Spell.Id == 1396);
 
     [Fact]
     public void Rime_NamedEffectsNotLinkedToAbility_AreEmittedAsGaps() =>

@@ -16,9 +16,9 @@ public class OverrideTests
             """);
         var result = MergeEngine.Run(MergeInputs.Load() with { Overrides = overrides });
         var v = result.Spells.Single(x => x.Scope == "items" && x.Member == "VoidbringerTouch");
-        v.Id.ShouldBe(155);
-        v.Cooldown.ShouldBe(90);
-        v.Range.ShouldBe(30);
+        v.Spell.Id.ShouldBe(155);
+        v.Spell.Cooldown.ShouldBe(90);
+        v.Spell.Range.ShouldBe(30);
     }
 
     [Fact]
@@ -29,7 +29,7 @@ public class OverrideTests
             """);
         var result = MergeEngine.Run(MergeInputs.Load() with { Overrides = overrides });
         result.Spells.Single(x => x.Scope == "rime" && x.Member == "FreezingTorrent")
-              .ChannelTickInterval.ShouldBe(0.5);
+              .Spell.ChannelTickInterval.ShouldBe(0.5);
     }
 
     [Fact]
@@ -50,8 +50,8 @@ public class OverrideTests
             """);
         var result = MergeEngine.Run(MergeInputs.Load() with { Overrides = overrides });
         var spell = result.Spells.Single(x => x.Scope == "rime" && x.Member == "FreezingTorrent");
-        spell.Provenance.ChannelTickInterval.ShouldBe(ProvenanceSource.Override);
-        spell.Provenance.Cooldown.ShouldBe(ProvenanceSource.HeroData);
+        spell.Provenance.For("channelTickInterval").ShouldBe(ProvenanceSource.Override);
+        spell.Provenance.For("cooldown").ShouldBe(ProvenanceSource.HeroData);
     }
 
     [Fact]

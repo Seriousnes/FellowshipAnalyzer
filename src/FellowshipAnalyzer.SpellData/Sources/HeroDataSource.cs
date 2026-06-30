@@ -1,4 +1,6 @@
 using System.Text.Json;
+using FellowshipAnalyzer.Core.Game;
+using FellowshipAnalyzer.SpellData.Json;
 
 namespace FellowshipAnalyzer.SpellData.Sources;
 
@@ -8,8 +10,8 @@ public record KitAbility(int FslId, string? Name, string DevName);
 /// <summary>A named constants block from a hero's Constants section.</summary>
 public record ConstantsEntry(string Key, string DevName, IReadOnlyDictionary<string, double> Scalars);
 
-/// <summary>Maps each hero resource's <c>CostType</c> to a normalized resource key.</summary>
-public record ResourceModel(IReadOnlyDictionary<string, string> CostTypeToResource);
+/// <summary>Maps each hero resource's <c>CostType</c> to its <see cref="ResourceTypes"/> slot.</summary>
+public record ResourceModel(IReadOnlyDictionary<string, ResourceTypes> CostTypeToResource);
 
 /// <summary>A single hero's data record from <c>hero_data.json</c>.</summary>
 public record HeroRecord(
@@ -95,27 +97,9 @@ public sealed class HeroDataSource
         return result;
     }
 
-    private static readonly Dictionary<string, string> ResourceNameToKey = new(StringComparer.OrdinalIgnoreCase)
-    {
-        ["Spirit"] = "spirit",
-        ["Mana"] = "mana",
-        ["Anima"] = "anima",
-        ["Focus"] = "focus",
-        ["Chrona"] = "chrona",
-        ["Cinders"] = "cinders",
-        ["Energy"] = "energy",
-        ["Fury"] = "fury",
-        ["Winter Orbs"] = "winterOrb",
-        ["Radiant Runes"] = "radiantRunes",
-        ["Combo Points"] = "comboPoints",
-        ["Toughness"] = "toughness",
-        ["Blood Feathers"] = "bloodFeathers",
-        ["Pink Butterflies"] = "pinkButterflies",
-    };
-
     private static ResourceModel ReadResources(JsonElement hero)
     {
-        var mapping = new Dictionary<string, string>(StringComparer.Ordinal);
+        var mapping = new Dictionary<string, ResourceTypes>(StringComparer.Ordinal);
         if (!hero.TryGetProperty("HeroResources", out var heroRes))
             return new ResourceModel(mapping);
         if (!heroRes.TryGetProperty("Resources", out var resList) || resList.ValueKind != JsonValueKind.Array)
@@ -133,8 +117,8 @@ public sealed class HeroDataSource
             if (res.TryGetProperty("Name", out var nameProp) && nameProp.ValueKind == JsonValueKind.String)
                 name = nameProp.GetString();
 
-            if (name is not null && ResourceNameToKey.TryGetValue(name, out var key))
-                mapping[costType] = key;
+            if (ResourceTypesAliases.TryResolve(name, out var slot))
+                mapping[costType] = slot;
         }
         return new ResourceModel(mapping);
     }

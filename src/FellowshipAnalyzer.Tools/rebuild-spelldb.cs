@@ -22,7 +22,7 @@ if (collisions.Count > 0)
 {
     Console.WriteLine($"  COLLISION ({collisions.Count} duplicate scope.member pairs — two abilities share a sanitized name; needs Task 13 overrides):");
     foreach (var g in collisions.OrderBy(g => g.Key.Scope).ThenBy(g => g.Key.Member))
-        Console.WriteLine($"    [{g.Key.Scope}.{g.Key.Member}] ids: {string.Join(", ", g.Select(s => s.Id))}");
+        Console.WriteLine($"    [{g.Key.Scope}.{g.Key.Member}] ids: {string.Join(", ", g.Select(s => s.Spell.Id))}");
 }
 
 foreach (var gap in result.Gaps.OrderBy(g => g.Scope).ThenBy(g => g.Member).ThenBy(g => g.Kind))

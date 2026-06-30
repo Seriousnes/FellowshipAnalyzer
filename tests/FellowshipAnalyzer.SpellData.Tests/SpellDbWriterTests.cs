@@ -1,4 +1,5 @@
 using System.Text.Json;
+using FellowshipAnalyzer.Core.Common.Spells;
 using FellowshipAnalyzer.SpellData;
 using FellowshipAnalyzer.SpellData.Model;
 using Shouldly;
@@ -22,11 +23,10 @@ public class SpellDbWriterTests
     [Fact]
     public void Serialize_SkipsEmptyAndInvalidMembers()
     {
-        var prov = new Provenance();
         var result = new MergeResult([
-            new MergedSpell("hero", "", 1, SpellKind.Ability, "", "", null, null, 1, null, null, null, new Dictionary<string, int>(), prov),
-            new MergedSpell("hero", "123Invalid", 2, SpellKind.Ability, "name", "icon", null, null, 1, null, null, null, new Dictionary<string, int>(), prov),
-            new MergedSpell("hero", "Valid", 3, SpellKind.Ability, "name", "icon", null, null, 1, null, null, null, new Dictionary<string, int>(), prov),
+            new CuratedSpell("hero", "", new Spell { Id = 1, Name = "", Icon = "" }, Provenance.Empty),
+            new CuratedSpell("hero", "123Invalid", new Spell { Id = 2, Name = "name", Icon = "icon" }, Provenance.Empty),
+            new CuratedSpell("hero", "Valid", new Spell { Id = 3, Name = "name", Icon = "icon" }, Provenance.Empty),
         ], []);
 
         var json = SpellDbWriter.Serialize(result);
