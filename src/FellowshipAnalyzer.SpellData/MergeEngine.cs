@@ -1,5 +1,6 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using FellowshipAnalyzer.Core.Analysis;
 using FellowshipAnalyzer.Core.Common.Spells;
 using FellowshipAnalyzer.Core.Game;
 using FellowshipAnalyzer.SpellData.Json;
@@ -48,6 +49,10 @@ public static class MergeEngine
         foreach (var hero in inputs.HeroData.Heroes)
         {
             var scope = hero.DisplayName.ToLowerInvariant();
+            if (!HeroNames.Contains(scope))
+                gaps.Add(new Gap(scope, scope, GapKind.UnknownScope));
+            foreach (var unknownResource in hero.Resources.UnknownResourceNames)
+                gaps.Add(new Gap(scope, unknownResource, GapKind.UnknownResource));
             var heroPrefix = $"GA_{hero.DevKey}_";
             var effectLinks = Linking.LinkEffects(hero, inputs.SpellData);
             var linksByAbilityFslId = effectLinks
@@ -182,6 +187,9 @@ public static class MergeEngine
         return new MergeResult(spells, gaps);
     }
 
+    private static readonly HashSet<string> HeroNames =
+        new(Enum.GetNames<HeroName>(), StringComparer.OrdinalIgnoreCase);
+
     private static readonly IReadOnlyDictionary<ResourceTypes, int> EmptyCosts =
         new Dictionary<ResourceTypes, int>();
 
@@ -246,7 +254,7 @@ public static class MergeEngine
         var resolvedName = nameFromSpellData ?? gearWeapon?.DisplayName ?? string.Empty;
         var guid = SpellKindRange.GuidFor(kind, nativeId);
         var icon = inputs.Icons.IconFor(guid) ?? string.Empty;
-        var costs = Costs.Map(scalars, new ResourceModel(new Dictionary<string, ResourceTypes>()));
+        var costs = Costs.Map(scalars, new ResourceModel(new Dictionary<string, ResourceTypes>(), []));
 
         var cooldown = Normalization.Cooldown(scalars);
         var range = Normalization.Range(scalars);

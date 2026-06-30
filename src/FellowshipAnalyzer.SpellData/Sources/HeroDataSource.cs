@@ -10,8 +10,10 @@ public record KitAbility(int FslId, string? Name, string DevName);
 /// <summary>A named constants block from a hero's Constants section.</summary>
 public record ConstantsEntry(string Key, string DevName, IReadOnlyDictionary<string, double> Scalars);
 
-/// <summary>Maps each hero resource's <c>CostType</c> to its <see cref="ResourceTypes"/> slot.</summary>
-public record ResourceModel(IReadOnlyDictionary<string, ResourceTypes> CostTypeToResource);
+/// <summary>Maps each hero resource's <c>CostType</c> to its <see cref="ResourceTypes"/> slot, plus any unresolved names.</summary>
+public record ResourceModel(
+    IReadOnlyDictionary<string, ResourceTypes> CostTypeToResource,
+    IReadOnlyList<string> UnknownResourceNames);
 
 /// <summary>A single hero's data record from <c>hero_data.json</c>.</summary>
 public record HeroRecord(
@@ -100,10 +102,11 @@ public sealed class HeroDataSource
     private static ResourceModel ReadResources(JsonElement hero)
     {
         var mapping = new Dictionary<string, ResourceTypes>(StringComparer.Ordinal);
+        var unknown = new List<string>();
         if (!hero.TryGetProperty("HeroResources", out var heroRes))
-            return new ResourceModel(mapping);
+            return new ResourceModel(mapping, unknown);
         if (!heroRes.TryGetProperty("Resources", out var resList) || resList.ValueKind != JsonValueKind.Array)
-            return new ResourceModel(mapping);
+            return new ResourceModel(mapping, unknown);
 
         foreach (var res in resList.EnumerateArray())
         {
@@ -119,7 +122,9 @@ public sealed class HeroDataSource
 
             if (ResourceTypesAliases.TryResolve(name, out var slot))
                 mapping[costType] = slot;
+            else if (name is not null)
+                unknown.Add(name);
         }
-        return new ResourceModel(mapping);
+        return new ResourceModel(mapping, unknown);
     }
 }

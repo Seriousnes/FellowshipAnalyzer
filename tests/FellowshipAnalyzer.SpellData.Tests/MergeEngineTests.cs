@@ -48,4 +48,8 @@ public class MergeEngineTests
         result.Spells.ShouldContain(s => s.Scope == "gunde");
         result.Spells.ShouldContain(s => s.Scope == "rime");
     }
+
+    [Fact]
+    public void UnknownScope_IsFlaggedForNonHeroNameScope() =>
+        Run().Gaps.ShouldContain(g => g.Scope == "gunde" && g.Kind == GapKind.UnknownScope);
 }

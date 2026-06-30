@@ -13,7 +13,7 @@ public class CostMappingTests
         ["SpiritPoints"] = ResourceTypes.Spirit,
         ["ResourcesTertiary"] = ResourceTypes.Tertiary,
         ["Resources"] = ResourceTypes.Primary,
-    });
+    }, []);
 
     [Fact]
     public void GlacialBlast_OrbCostMapsToTertiary() =>

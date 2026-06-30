@@ -186,7 +186,8 @@
                                 else
                                 {
                                     var gap = row.Candidate!;
-                                    <tr class="spell-row candidate" @onclick="() => StartAdd(gap)">
+                                    var addable = gap.Kind == GapKind.UnresolvedEffect;
+                                    <tr class="spell-row candidate" @onclick="@(addable ? (() => StartAdd(gap)) : NoOp)">
                                         <td class="col-icon"><span class="icon-missing" aria-hidden="true"></span></td>
                                         <td class="col-member">
                                             <div class="member-cell" title="@gap.Member">
@@ -202,9 +203,9 @@
                                                 </span>
                                             </div>
                                         </td>
-                                        <td class="col-kind"><span class="kind-tag">EFCT</span></td>
+                                        <td class="col-kind"><span class="kind-tag">@(addable ? "EFCT" : "DRIFT")</span></td>
                                         <td class="col-id num mono cell-nil">·</td>
-                                        <td class="col-name"><span class="candidate-tag">add effect by id</span></td>
+                                        <td class="col-name"><span class="candidate-tag">@(addable ? "add effect by id" : GapTitle(gap.Kind))</span></td>
                                         <td class="col-num num mono cell-nil">·</td>
                                         <td class="col-num num mono cell-nil">·</td>
                                         <td class="col-num num mono cell-nil">·</td>
@@ -374,7 +375,11 @@
         [SpellKind.Ability, SpellKind.Effect, SpellKind.Talent, SpellKind.Weapon];
 
     private static readonly GapKind[] GapOrder =
-        [GapKind.MissingName, GapKind.MissingIcon, GapKind.MissingId, GapKind.UnresolvedEffect];
+        [GapKind.MissingName, GapKind.MissingIcon, GapKind.MissingId,
+         GapKind.UnresolvedEffect, GapKind.UnknownResource, GapKind.UnknownScope];
+
+    private static readonly GapKind[] DriftKinds =
+        [GapKind.UnresolvedEffect, GapKind.UnknownResource, GapKind.UnknownScope];
 
     private static readonly ResourceTypes[] CostSlots = Enum.GetValues<ResourceTypes>();
 
@@ -394,7 +399,7 @@
         var term = _search.Trim();
 
         var spellGaps = Merge.Result.Gaps
-            .Where(g => g.Kind != GapKind.UnresolvedEffect)
+            .Where(g => !DriftKinds.Contains(g.Kind))
             .GroupBy(g => (g.Scope, g.Member))
             .ToDictionary(
                 g => g.Key,
@@ -412,14 +417,14 @@
         var candidateRows = !_incompleteOnly
             ? Enumerable.Empty<Row>()
             : Merge.Result.Gaps
-                .Where(g => g.Kind == GapKind.UnresolvedEffect)
+                .Where(g => DriftKinds.Contains(g.Kind))
                 .Where(g => _scopeFilter is null || g.Scope == _scopeFilter)
-                .Where(g => _kindFilter is null || _kindFilter == SpellKind.Effect)
+                .Where(g => _kindFilter is null || (_kindFilter == SpellKind.Effect && g.Kind == GapKind.UnresolvedEffect))
                 .Where(g => !_overridesOnly)
                 .Where(g => term.Length == 0
                     || g.Member.Contains(term, StringComparison.OrdinalIgnoreCase)
                     || g.Scope.Contains(term, StringComparison.OrdinalIgnoreCase))
-                .Select(g => new Row(null, g, g.Scope, g.Member, new[] { GapKind.UnresolvedEffect }));
+                .Select(g => new Row(null, g, g.Scope, g.Member, new[] { g.Kind }));
 
         return spellRows.Concat(candidateRows)
             .OrderBy(r => r.Scope, StringComparer.Ordinal)
@@ -430,11 +435,11 @@
     private int IncompleteCount()
     {
         var spellGapKeys = Merge.Result.Gaps
-            .Where(g => g.Kind != GapKind.UnresolvedEffect)
+            .Where(g => !DriftKinds.Contains(g.Kind))
             .Select(g => (g.Scope, g.Member)).ToHashSet();
         var spells = Merge.Result.Spells.Count(s => spellGapKeys.Contains((s.Scope, s.Member)));
-        var unlinked = Merge.Result.Gaps.Count(g => g.Kind == GapKind.UnresolvedEffect);
-        return spells + unlinked;
+        var drift = Merge.Result.Gaps.Count(g => DriftKinds.Contains(g.Kind));
+        return spells + drift;
     }
 
     private static bool Matches(CuratedSpell s, string term) =>
@@ -615,6 +620,8 @@
         GapKind.MissingIcon => "C",
         GapKind.MissingId => "I",
         GapKind.UnresolvedEffect => "I",
+        GapKind.UnknownResource => "R",
+        GapKind.UnknownScope => "S",
         _ => "?",
     };
 
@@ -629,6 +636,8 @@
     {
         GapKind.MissingName => "no name",
         GapKind.MissingIcon => "no icon",
+        GapKind.UnknownResource => "unknown resource",
+        GapKind.UnknownScope => "unknown scope",
         _ => "no id",
     };
 
