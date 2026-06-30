@@ -8,21 +8,18 @@
     },
     "AmendFateCost": {
       "kind": "effect",
-      "guid": 1002741,
       "id": 2741,
       "name": "",
       "icon": ""
     },
     "AmendFateHeal": {
       "kind": "effect",
-      "guid": 1002740,
       "id": 2740,
       "name": "",
       "icon": ""
     },
     "AmendFateRemoveStagger": {
       "kind": "effect",
-      "guid": 1002826,
       "id": 2826,
       "name": "",
       "icon": ""
@@ -35,21 +32,18 @@
     },
     "EchoesOfRuinCost": {
       "kind": "effect",
-      "guid": 1002618,
       "id": 2618,
       "name": "",
       "icon": ""
     },
     "EchoesOfRuinDamage": {
       "kind": "effect",
-      "guid": 1002617,
       "id": 2617,
       "name": "",
       "icon": ""
     },
     "EchoesOfRuinDot": {
       "kind": "effect",
-      "guid": 1002616,
       "id": 2616,
       "name": "Echoes of Ruin",
       "icon": "T_Lisa_Burst.jpg"
@@ -64,14 +58,12 @@
     },
     "EntropyClaimCost": {
       "kind": "effect",
-      "guid": 1002604,
       "id": 2604,
       "name": "",
       "icon": ""
     },
     "EntropyClaimDot": {
       "kind": "effect",
-      "guid": 1002603,
       "id": 2603,
       "name": "Entropy\u0027s Claim",
       "icon": "T_Lisa_Wither.jpg"
@@ -84,28 +76,24 @@
     },
     "EpochBreakCost": {
       "kind": "effect",
-      "guid": 1002615,
       "id": 2615,
       "name": "",
       "icon": ""
     },
     "EpochBreakHeal": {
       "kind": "effect",
-      "guid": 1002614,
       "id": 2614,
       "name": "",
       "icon": ""
     },
     "EpochBreakHealthBuff": {
       "kind": "effect",
-      "guid": 1002613,
       "id": 2613,
       "name": "Epoch Break",
       "icon": "T_Nhance_RPG_Icons_ArcaneVision.jpg"
     },
     "EpochBreakSelfBuff": {
       "kind": "effect",
-      "guid": 1002612,
       "id": 2612,
       "name": "",
       "icon": ""
@@ -119,14 +107,12 @@
     },
     "FlashRevisionCost": {
       "kind": "effect",
-      "guid": 1002689,
       "id": 2689,
       "name": "",
       "icon": ""
     },
     "FlashRevisionHeal": {
       "kind": "effect",
-      "guid": 1002688,
       "id": 2688,
       "name": "",
       "icon": ""
@@ -140,14 +126,12 @@
     },
     "FleetingHourCost": {
       "kind": "effect",
-      "guid": 1002745,
       "id": 2745,
       "name": "",
       "icon": ""
     },
     "FleetingHourSelfBuff": {
       "kind": "effect",
-      "guid": 1002744,
       "id": 2744,
       "name": "Fleeting Hour",
       "icon": "T_Lisa_TimeBuff.jpg"
@@ -161,28 +145,24 @@
     },
     "IntercessionBuff": {
       "kind": "effect",
-      "guid": 1002582,
       "id": 2582,
       "name": "Chrono Bind",
       "icon": "T_Lisa_AoESilence.jpg"
     },
     "IntercessionCost": {
       "kind": "effect",
-      "guid": 1002581,
       "id": 2581,
       "name": "",
       "icon": ""
     },
     "IntercessionInterrupt": {
       "kind": "effect",
-      "guid": 1002580,
       "id": 2580,
       "name": "",
       "icon": ""
     },
     "IntercessionLockout": {
       "kind": "effect",
-      "guid": 1002579,
       "id": 2579,
       "name": "Interrupted",
       "icon": "T_Nhance_RPG_Frost_01.jpg"
@@ -195,28 +175,24 @@
     },
     "OblivionAbsorbAbsorb": {
       "kind": "effect",
-      "guid": 1002736,
       "id": 2736,
       "name": "Chrono Barrier",
       "icon": "T_Nhance_RPG_Icons_ArcaneLoad.jpg"
     },
     "OblivionCost": {
       "kind": "effect",
-      "guid": 1002747,
       "id": 2747,
       "name": "",
       "icon": ""
     },
     "OblivionDamage": {
       "kind": "effect",
-      "guid": 1002746,
       "id": 2746,
       "name": "",
       "icon": ""
     },
     "OblivionSelfBuffBuff": {
       "kind": "effect",
-      "guid": 1003153,
       "id": 3153,
       "name": "Converging Timelines",
       "icon": ""
@@ -229,21 +205,18 @@
     },
     "RestoreContinuityCost": {
       "kind": "effect",
-      "guid": 1002750,
       "id": 2750,
       "name": "",
       "icon": ""
     },
     "RestoreContinuityHeal": {
       "kind": "effect",
-      "guid": 1002749,
       "id": 2749,
       "name": "",
       "icon": ""
     },
     "RestoreContinuityRemoveStagger": {
       "kind": "effect",
-      "guid": 1002827,
       "id": 2827,
       "name": "",
       "icon": ""
@@ -256,14 +229,12 @@
     },
     "RevertMagicDispel": {
       "kind": "effect",
-      "guid": 1002608,
       "id": 2608,
       "name": "",
       "icon": ""
     },
     "RevertMagicResourceCost": {
       "kind": "effect",
-      "guid": 1002607,
       "id": 2607,
       "name": "",
       "icon": ""
@@ -277,21 +248,18 @@
     },
     "TemporalBarrageCost": {
       "kind": "effect",
-      "guid": 1002687,
       "id": 2687,
       "name": "",
       "icon": ""
     },
     "TemporalBarrageDamage": {
       "kind": "effect",
-      "guid": 1002686,
       "id": 2686,
       "name": "",
       "icon": ""
     },
     "TemporalBarrageHeal": {
       "kind": "effect",
-      "guid": 1002685,
       "id": 2685,
       "name": "",
       "icon": ""
@@ -305,14 +273,12 @@
     },
     "TimeShardCost": {
       "kind": "effect",
-      "guid": 1002623,
       "id": 2623,
       "name": "",
       "icon": ""
     },
     "TimeShardDamage": {
       "kind": "effect",
-      "guid": 1002622,
       "id": 2622,
       "name": "",
       "icon": ""
@@ -325,7 +291,6 @@
     },
     "TimeSkipMoveSpeedBuff": {
       "kind": "effect",
-      "guid": 1003151,
       "id": 3151,
       "name": "Time Skip",
       "icon": ""
@@ -340,35 +305,30 @@
     },
     "UnfoldingDoomCost": {
       "kind": "effect",
-      "guid": 1002626,
       "id": 2626,
       "name": "",
       "icon": ""
     },
     "UnfoldingDoomDamage": {
       "kind": "effect",
-      "guid": 1002625,
       "id": 2625,
       "name": "",
       "icon": ""
     },
     "UnfoldingDoomDamageToAoeDamageDamage": {
       "kind": "effect",
-      "guid": 1002748,
       "id": 2748,
       "name": "",
       "icon": ""
     },
     "UnfoldingDoomDebuff": {
       "kind": "effect",
-      "guid": 1002624,
       "id": 2624,
       "name": "Unfolding Doom",
       "icon": "T_Lisa_StrandsofTime.jpg"
     },
     "UnfoldingDoomDebuffOwnerEffect": {
       "kind": "effect",
-      "guid": 1003155,
       "id": 3155,
       "name": "",
       "icon": ""
@@ -377,7 +337,6 @@
   "elarion": {
     "CelestialImpetus": {
       "kind": "effect",
-      "guid": 1001867,
       "id": 1867,
       "name": "Celestial Impetus",
       "icon": "T_Nhance_RPG_Arcane_37.jpg"
@@ -390,21 +349,18 @@
     },
     "CelestialShotCost": {
       "kind": "effect",
-      "guid": 1001865,
       "id": 1865,
       "name": "",
       "icon": ""
     },
     "CelestialShotDamage": {
       "kind": "effect",
-      "guid": 1001864,
       "id": 1864,
       "name": "",
       "icon": ""
     },
     "CelestialVeilSelfBuff": {
       "kind": "effect",
-      "guid": 1001866,
       "id": 1866,
       "name": "Celestial Veil",
       "icon": "Bowguy_Abilityicon_Defensive.jpg"
@@ -418,14 +374,12 @@
     },
     "DisruptInterrupt": {
       "kind": "effect",
-      "guid": 1001875,
       "id": 1875,
       "name": "",
       "icon": ""
     },
     "DisruptLockout": {
       "kind": "effect",
-      "guid": 1001874,
       "id": 1874,
       "name": "Interrupted",
       "icon": "T_Nhance_RPG_Frost_01.jpg"
@@ -445,28 +399,24 @@
     },
     "EventHorizonBuff": {
       "kind": "effect",
-      "guid": 1002312,
       "id": 2312,
       "name": "Event Horizon",
       "icon": "Bowguy_Spirit.jpg"
     },
     "EventHorizonCooldownRecoveryBuff": {
       "kind": "effect",
-      "guid": 1002314,
       "id": 2314,
       "name": "",
       "icon": ""
     },
     "EventHorizonCost": {
       "kind": "effect",
-      "guid": 1002313,
       "id": 2313,
       "name": "",
       "icon": ""
     },
     "EventHorizonVisual": {
       "kind": "effect",
-      "guid": 1002311,
       "id": 2311,
       "name": "",
       "icon": ""
@@ -479,21 +429,18 @@
     },
     "FocusedShotBuff": {
       "kind": "effect",
-      "guid": 1001892,
       "id": 1892,
       "name": "Steady Hands",
       "icon": "Tex_SpellBook08_85.jpg"
     },
     "FocusedShotDamage": {
       "kind": "effect",
-      "guid": 1001891,
       "id": 1891,
       "name": "",
       "icon": ""
     },
     "FocusedShotHeavyDamage": {
       "kind": "effect",
-      "guid": 1001888,
       "id": 1888,
       "name": "",
       "icon": ""
@@ -507,14 +454,12 @@
     },
     "GrapplingArrowPull": {
       "kind": "effect",
-      "guid": 1002008,
       "id": 2008,
       "name": "Grappling Arrow: Pull",
       "icon": "Tex_SpellBook03_97.jpg"
     },
     "GrapplingArrowSlow": {
       "kind": "effect",
-      "guid": 1001861,
       "id": 1861,
       "name": "Grappling Arrow",
       "icon": "Tex_SpellBook03_97.jpg"
@@ -528,21 +473,18 @@
     },
     "HeartseekerBarrageCost": {
       "kind": "effect",
-      "guid": 1001882,
       "id": 1882,
       "name": "",
       "icon": ""
     },
     "HeartseekerBarrageDamage": {
       "kind": "effect",
-      "guid": 1001881,
       "id": 1881,
       "name": "",
       "icon": ""
     },
     "HeartseekerBarrageDebuff": {
       "kind": "effect",
-      "guid": 1001880,
       "id": 1880,
       "name": "",
       "icon": ""
@@ -557,35 +499,30 @@
     },
     "HighwindArrowCharges": {
       "kind": "effect",
-      "guid": 1001887,
       "id": 1887,
       "name": "",
       "icon": ""
     },
     "HighwindArrowCost": {
       "kind": "effect",
-      "guid": 1001886,
       "id": 1886,
       "name": "",
       "icon": ""
     },
     "HighwindArrowDamage": {
       "kind": "effect",
-      "guid": 1001885,
       "id": 1885,
       "name": "",
       "icon": ""
     },
     "HighwindArrowProc": {
       "kind": "effect",
-      "guid": 1001884,
       "id": 1884,
       "name": "",
       "icon": ""
     },
     "ImpendingHeartseeker": {
       "kind": "effect",
-      "guid": 1002317,
       "id": 2317,
       "name": "Impending Heartseeker",
       "icon": "Bowguy_Spray.jpg"
@@ -600,21 +537,18 @@
     },
     "LunarlightMarkAoeDamage": {
       "kind": "effect",
-      "guid": 1002832,
       "id": 2832,
       "name": "Lunarlight Salvo: Erupt",
       "icon": "Bowguy_Mark.jpg"
     },
     "LunarlightMarkDamage": {
       "kind": "effect",
-      "guid": 1001877,
       "id": 1877,
       "name": "Lunarlight Salvo",
       "icon": "Bowguy_Mark.jpg"
     },
     "LunarlightMarkDebuff": {
       "kind": "effect",
-      "guid": 1001876,
       "id": 1876,
       "name": "Lunarlight Mark",
       "icon": "Bowguy_Mark.jpg"
@@ -633,28 +567,24 @@
     },
     "MultishotCost": {
       "kind": "effect",
-      "guid": 1001900,
       "id": 1900,
       "name": "",
       "icon": ""
     },
     "MultishotDamage": {
       "kind": "effect",
-      "guid": 1001899,
       "id": 1899,
       "name": "",
       "icon": ""
     },
     "MultishotDamageMagical": {
       "kind": "effect",
-      "guid": 1002010,
       "id": 2010,
       "name": "",
       "icon": ""
     },
     "MultishotProc": {
       "kind": "effect",
-      "guid": 1001898,
       "id": 1898,
       "name": "",
       "icon": ""
@@ -675,14 +605,12 @@
     },
     "RollActive": {
       "kind": "effect",
-      "guid": 1001879,
       "id": 1879,
       "name": "",
       "icon": ""
     },
     "RollCharge": {
       "kind": "effect",
-      "guid": 1001878,
       "id": 1878,
       "name": "",
       "icon": ""
@@ -695,14 +623,12 @@
     },
     "ShootDamage": {
       "kind": "effect",
-      "guid": 1001868,
       "id": 1868,
       "name": "",
       "icon": ""
     },
     "SkystriderSupremacySelfBuff": {
       "kind": "effect",
-      "guid": 1002009,
       "id": 2009,
       "name": "Skystrider\u0027s Supremacy",
       "icon": "Bowguy_Supremacy.jpg"
@@ -716,7 +642,6 @@
     },
     "SkystridersGraceBuff": {
       "kind": "effect",
-      "guid": 1001869,
       "id": 1869,
       "name": "Skystrider\u0027s Grace",
       "icon": "T_Icon_Frost_125.jpg"
@@ -730,7 +655,6 @@
     },
     "SpiritOfHeroism": {
       "kind": "effect",
-      "guid": 1002253,
       "id": 2253,
       "name": "Spirit of Heroism",
       "icon": "Tex_b_02.jpg"
@@ -744,21 +668,18 @@
     },
     "StarfallVolleyCost": {
       "kind": "effect",
-      "guid": 1001863,
       "id": 1863,
       "name": "",
       "icon": ""
     },
     "StarfallVolleyDamage": {
       "kind": "effect",
-      "guid": 1001862,
       "id": 1862,
       "name": "",
       "icon": ""
     },
     "StarfallVolleyTalentBuffWhileActive": {
       "kind": "effect",
-      "guid": 1002316,
       "id": 2316,
       "name": "Skylit Grace",
       "icon": "Tex_b_03.jpg"
@@ -773,14 +694,12 @@
     },
     "AttackDamage": {
       "kind": "effect",
-      "guid": 1001796,
       "id": 1796,
       "name": "",
       "icon": ""
     },
     "AttackDamageOld": {
       "kind": "effect",
-      "guid": 1003172,
       "id": 3172,
       "name": "",
       "icon": ""
@@ -794,7 +713,6 @@
     },
     "BloodArcDamage": {
       "kind": "effect",
-      "guid": 1003236,
       "id": 3236,
       "name": "",
       "icon": ""
@@ -808,14 +726,12 @@
     },
     "BloodboundSpiritDamage": {
       "kind": "effect",
-      "guid": 1003243,
       "id": 3243,
       "name": "",
       "icon": ""
     },
     "BloodboundSpiritSelfBuff": {
       "kind": "effect",
-      "guid": 1003242,
       "id": 3242,
       "name": "Bloodbound Spirit",
       "icon": ""
@@ -830,21 +746,18 @@
     },
     "ButcherHookDamage": {
       "kind": "effect",
-      "guid": 1003228,
       "id": 3228,
       "name": "",
       "icon": ""
     },
     "ButcherHookPull": {
       "kind": "effect",
-      "guid": 1003227,
       "id": 3227,
       "name": "",
       "icon": ""
     },
     "ButcherHookPullActivator": {
       "kind": "effect",
-      "guid": 1003226,
       "id": 3226,
       "name": "",
       "icon": ""
@@ -858,7 +771,6 @@
     },
     "DoubleStrikeDamage": {
       "kind": "effect",
-      "guid": 1003248,
       "id": 3248,
       "name": "",
       "icon": ""
@@ -873,7 +785,6 @@
     },
     "GrimCarveDamage": {
       "kind": "effect",
-      "guid": 1003205,
       "id": 3205,
       "name": "",
       "icon": ""
@@ -887,21 +798,18 @@
     },
     "HeartSplitterDamage": {
       "kind": "effect",
-      "guid": 1003240,
       "id": 3240,
       "name": "",
       "icon": ""
     },
     "HeartSplitterDotBonusDamage": {
       "kind": "effect",
-      "guid": 1003239,
       "id": 3239,
       "name": "Heart Splitter: Exsanguinate",
       "icon": ""
     },
     "HeartSplitterIncreasedCritChance": {
       "kind": "effect",
-      "guid": 1003215,
       "id": 3215,
       "name": "",
       "icon": ""
@@ -916,14 +824,12 @@
     },
     "JawbreakerInterrupt": {
       "kind": "effect",
-      "guid": 1001786,
       "id": 1786,
       "name": "",
       "icon": ""
     },
     "JawbreakerLockout": {
       "kind": "effect",
-      "guid": 1001785,
       "id": 1785,
       "name": "",
       "icon": ""
@@ -937,14 +843,12 @@
     },
     "OwedInBloodSelfBuff": {
       "kind": "effect",
-      "guid": 1003245,
       "id": 3245,
       "name": "Owed in Blood",
       "icon": ""
     },
     "OwedInBloodSelfBuffFromOrbs": {
       "kind": "effect",
-      "guid": 1003244,
       "id": 3244,
       "name": "",
       "icon": ""
@@ -958,7 +862,6 @@
     },
     "ReaverEdgeDamage": {
       "kind": "effect",
-      "guid": 1003235,
       "id": 3235,
       "name": "",
       "icon": ""
@@ -972,7 +875,6 @@
     },
     "RecklessAbandonSelfBuff": {
       "kind": "effect",
-      "guid": 1003247,
       "id": 3247,
       "name": "Reckless Abandon",
       "icon": ""
@@ -986,7 +888,6 @@
     },
     "ReignInBloodSelfBuff": {
       "kind": "effect",
-      "guid": 1003241,
       "id": 3241,
       "name": "Reign in Blood",
       "icon": ""
@@ -1000,7 +901,6 @@
     },
     "RuptureDamage": {
       "kind": "effect",
-      "guid": 1003238,
       "id": 3238,
       "name": "",
       "icon": ""
@@ -1014,7 +914,6 @@
     },
     "SlaughterDot": {
       "kind": "effect",
-      "guid": 1003237,
       "id": 3237,
       "name": "Slaughter",
       "icon": ""
@@ -1028,7 +927,6 @@
     },
     "WarboundDamage": {
       "kind": "effect",
-      "guid": 1003246,
       "id": 3246,
       "name": "",
       "icon": ""
@@ -1043,7 +941,6 @@
     },
     "AttackDamage": {
       "kind": "effect",
-      "guid": 1001267,
       "id": 1267,
       "name": "",
       "icon": ""
@@ -1057,14 +954,12 @@
     },
     "BashInterrupt": {
       "kind": "effect",
-      "guid": 1001261,
       "id": 1261,
       "name": "",
       "icon": ""
     },
     "BashLockout": {
       "kind": "effect",
-      "guid": 1001260,
       "id": 1260,
       "name": "Interrupted",
       "icon": "Tex_yellow_17.jpg"
@@ -1079,21 +974,18 @@
     },
     "ChargeCharge": {
       "kind": "effect",
-      "guid": 1001257,
       "id": 1257,
       "name": "",
       "icon": ""
     },
     "ChargeDamage": {
       "kind": "effect",
-      "guid": 1001256,
       "id": 1256,
       "name": "",
       "icon": ""
     },
     "ChargeStun": {
       "kind": "effect",
-      "guid": 1001255,
       "id": 1255,
       "name": "Stunned",
       "icon": "effect_stunned_icon.jpg"
@@ -1107,21 +999,18 @@
     },
     "GrandMeleeFriendlyAuraBuff": {
       "kind": "effect",
-      "guid": 1002205,
       "id": 2205,
       "name": "Grand Melee",
       "icon": "T_Nhance_RPG_Gold_03.jpg"
     },
     "GrandMeleeInciteTarget": {
       "kind": "effect",
-      "guid": 1002120,
       "id": 2120,
       "name": "Grand Melee",
       "icon": "T_Nhance_RPG_Gold_03.jpg"
     },
     "GrandMeleeSelfBuff": {
       "kind": "effect",
-      "guid": 1002119,
       "id": 2119,
       "name": "Grand Melee",
       "icon": "T_Nhance_RPG_Gold_03.jpg"
@@ -1136,14 +1025,12 @@
     },
     "HoldTheLineAllyBuff": {
       "kind": "effect",
-      "guid": 1001259,
       "id": 1259,
       "name": "Battle Command",
       "icon": "T_Warnaster_Dash.jpg"
     },
     "HoldTheLineSelfBuff": {
       "kind": "effect",
-      "guid": 1001258,
       "id": 1258,
       "name": "Battle Command",
       "icon": "T_Warnaster_Dash.jpg"
@@ -1157,7 +1044,6 @@
     },
     "IronWallBuff": {
       "kind": "effect",
-      "guid": 1001254,
       "id": 1254,
       "name": "Iron Wall",
       "icon": "T_Warmaster_IronWall.jpg"
@@ -1171,7 +1057,6 @@
     },
     "MeasuredStrikeDamage": {
       "kind": "effect",
-      "guid": 1001273,
       "id": 1273,
       "name": "",
       "icon": ""
@@ -1185,14 +1070,12 @@
     },
     "PowerStrikeCleaveDamage": {
       "kind": "effect",
-      "guid": 1001278,
       "id": 1278,
       "name": "",
       "icon": ""
     },
     "PowerStrikeDamage": {
       "kind": "effect",
-      "guid": 1001277,
       "id": 1277,
       "name": "",
       "icon": ""
@@ -1207,70 +1090,60 @@
     },
     "ShieldSlamAbsorb": {
       "kind": "effect",
-      "guid": 1002229,
       "id": 2229,
       "name": "Empowered Shield Slam: Barrier",
       "icon": "T_Nhance_RPG_Fire_08.jpg"
     },
     "ShieldSlamAbsorbBuffSelfBuff": {
       "kind": "effect",
-      "guid": 1002435,
       "id": 2435,
       "name": "Empowered Shield Slam",
       "icon": "T_Warmaster_ShieldSlam.jpg"
     },
     "ShieldSlamBuff": {
       "kind": "effect",
-      "guid": 1001266,
       "id": 1266,
       "name": "",
       "icon": ""
     },
     "ShieldSlamBuffTalent": {
       "kind": "effect",
-      "guid": 1001265,
       "id": 1265,
       "name": "",
       "icon": ""
     },
     "ShieldSlamCleaveDamage": {
       "kind": "effect",
-      "guid": 1001264,
       "id": 1264,
       "name": "",
       "icon": ""
     },
     "ShieldSlamDamage": {
       "kind": "effect",
-      "guid": 1001263,
       "id": 1263,
       "name": "",
       "icon": ""
     },
     "ShieldSlamReducedIncomingDamageFromTargetDebuff": {
       "kind": "effect",
-      "guid": 1002478,
       "id": 2478,
       "name": "Lingering Concussion",
       "icon": "T_Warmaster_ShieldSlam.jpg"
     },
     "ShieldSlamReducedIncomingDamageFromTargetDebuffStacker": {
       "kind": "effect",
-      "guid": 1002477,
       "id": 2477,
       "name": "",
       "icon": ""
     },
     "ShieldSlamReducedIncomingDamageFromTargetSelfBuff": {
       "kind": "effect",
-      "guid": 1002476,
       "id": 2476,
       "name": "",
       "icon": ""
     },
     "ShieldSlamResourceCost": {
       "kind": "effect",
-      "guid": 1001262,
       "id": 1262,
       "name": "",
       "icon": ""
@@ -1285,14 +1158,12 @@
     },
     "ShieldThrowDamage": {
       "kind": "effect",
-      "guid": 1001284,
       "id": 1284,
       "name": "",
       "icon": ""
     },
     "ShieldThrowSingleTargetBuff": {
       "kind": "effect",
-      "guid": 1001283,
       "id": 1283,
       "name": "",
       "icon": ""
@@ -1307,21 +1178,18 @@
     },
     "ShieldsUpBuff": {
       "kind": "effect",
-      "guid": 1001282,
       "id": 1282,
       "name": "Shields Up",
       "icon": "T_Warmaster_Shieldsup.jpg"
     },
     "ShieldsUpCharge": {
       "kind": "effect",
-      "guid": 1001281,
       "id": 1281,
       "name": "",
       "icon": ""
     },
     "ShieldsUpTemporaryToughnessLossProtection": {
       "kind": "effect",
-      "guid": 1002475,
       "id": 2475,
       "name": "",
       "icon": ""
@@ -1335,35 +1203,30 @@
     },
     "ShockwaveDamage": {
       "kind": "effect",
-      "guid": 1001272,
       "id": 1272,
       "name": "Shockwave",
       "icon": "T_Warmaster_shockwave.jpg"
     },
     "ShockwaveDebuff": {
       "kind": "effect",
-      "guid": 1001271,
       "id": 1271,
       "name": "",
       "icon": ""
     },
     "ShockwaveDebuffIcon": {
       "kind": "effect",
-      "guid": 1001270,
       "id": 1270,
       "name": "Shockwave",
       "icon": "T_Warmaster_shockwave.jpg"
     },
     "ShockwaveResourceCost": {
       "kind": "effect",
-      "guid": 1001269,
       "id": 1269,
       "name": "",
       "icon": ""
     },
     "ShockwaveStun": {
       "kind": "effect",
-      "guid": 1001268,
       "id": 1268,
       "name": "Stunned",
       "icon": "effect_stunned_icon.jpg"
@@ -1376,21 +1239,18 @@
     },
     "SiegebreakerBuff": {
       "kind": "effect",
-      "guid": 1002192,
       "id": 2192,
       "name": "Siegebreaker",
       "icon": "T_Warmaster_Ultimate.jpg"
     },
     "SiegebreakerDamageReductionBuff": {
       "kind": "effect",
-      "guid": 1002224,
       "id": 2224,
       "name": "",
       "icon": ""
     },
     "SiegebreakerSpiritCost": {
       "kind": "effect",
-      "guid": 1002191,
       "id": 2191,
       "name": "",
       "icon": ""
@@ -1404,28 +1264,24 @@
     },
     "SweepingStrikeBleedDebuff": {
       "kind": "effect",
-      "guid": 1001276,
       "id": 1276,
       "name": "Sweeping Strike",
       "icon": "T_Warmaster_BleedStrike.jpg"
     },
     "SweepingStrikeBleedDebuffEnfeeblingEffect": {
       "kind": "effect",
-      "guid": 1002485,
       "id": 2485,
       "name": "",
       "icon": ""
     },
     "SweepingStrikeCost": {
       "kind": "effect",
-      "guid": 1001275,
       "id": 1275,
       "name": "",
       "icon": ""
     },
     "SweepingStrikeDamage": {
       "kind": "effect",
-      "guid": 1001274,
       "id": 1274,
       "name": "",
       "icon": ""
@@ -1443,7 +1299,6 @@
     },
     "TauntDebuff": {
       "kind": "effect",
-      "guid": 1001241,
       "id": 1241,
       "name": "Taunted",
       "icon": "T_warmaster_Taunt.jpg"
@@ -1459,7 +1314,6 @@
     },
     "ArachnidAssaultDamage": {
       "kind": "effect",
-      "guid": 1001728,
       "id": 1728,
       "name": "",
       "icon": ""
@@ -1472,7 +1326,6 @@
     },
     "AttackDamage": {
       "kind": "effect",
-      "guid": 1001725,
       "id": 1725,
       "name": "",
       "icon": ""
@@ -1485,28 +1338,24 @@
     },
     "BackstabCost": {
       "kind": "effect",
-      "guid": 1001588,
       "id": 1588,
       "name": "",
       "icon": ""
     },
     "BackstabDamageStrong": {
       "kind": "effect",
-      "guid": 1001587,
       "id": 1587,
       "name": "",
       "icon": ""
     },
     "BackstabDamageWeak": {
       "kind": "effect",
-      "guid": 1001586,
       "id": 1586,
       "name": "",
       "icon": ""
     },
     "BackstabPoisonDamage": {
       "kind": "effect",
-      "guid": 1001585,
       "id": 1585,
       "name": "Caustic Poison",
       "icon": "Mara_backstab.jpg"
@@ -1519,14 +1368,12 @@
     },
     "BroodingShadowsCharges": {
       "kind": "effect",
-      "guid": 1002066,
       "id": 2066,
       "name": "",
       "icon": ""
     },
     "BroodingShadowsPoisonBuff": {
       "kind": "effect",
-      "guid": 1001590,
       "id": 1590,
       "name": "",
       "icon": ""
@@ -1547,28 +1394,24 @@
     },
     "HemorrhagingStrikeBleed": {
       "kind": "effect",
-      "guid": 1001724,
       "id": 1724,
       "name": "Hemorrhage",
       "icon": "Mara_Bleed.jpg"
     },
     "HemorrhagingStrikeBuff": {
       "kind": "effect",
-      "guid": 1001723,
       "id": 1723,
       "name": "",
       "icon": ""
     },
     "HemorrhagingStrikeCost": {
       "kind": "effect",
-      "guid": 1001722,
       "id": 1722,
       "name": "",
       "icon": ""
     },
     "HemorrhagingStrikeDamage": {
       "kind": "effect",
-      "guid": 1001721,
       "id": 1721,
       "name": "",
       "icon": ""
@@ -1582,14 +1425,12 @@
     },
     "KickInterrupt": {
       "kind": "effect",
-      "guid": 1001704,
       "id": 1704,
       "name": "",
       "icon": ""
     },
     "KickLockout": {
       "kind": "effect",
-      "guid": 1001703,
       "id": 1703,
       "name": "Tremble!",
       "icon": "Tex_red_10.jpg"
@@ -1602,14 +1443,12 @@
     },
     "MaidenOfDeathBuff": {
       "kind": "effect",
-      "guid": 1001714,
       "id": 1714,
       "name": "",
       "icon": "effects/T_Nhance_RPG_Shadow_48.jpg"
     },
     "MaidenOfDeathCharges": {
       "kind": "effect",
-      "guid": 1001713,
       "id": 1713,
       "name": "",
       "icon": ""
@@ -1622,14 +1461,12 @@
     },
     "MatriarchMacabreCost": {
       "kind": "effect",
-      "guid": 1002040,
       "id": 2040,
       "name": "",
       "icon": ""
     },
     "MatriarchMacabreSelfBuff": {
       "kind": "effect",
-      "guid": 1002039,
       "id": 2039,
       "name": "Matriarch Macabre",
       "icon": "T_Icon_Shadow_140.jpg"
@@ -1642,14 +1479,12 @@
     },
     "QueenFangCost": {
       "kind": "effect",
-      "guid": 1001706,
       "id": 1706,
       "name": "",
       "icon": ""
     },
     "QueenFangDamage": {
       "kind": "effect",
-      "guid": 1001705,
       "id": 1705,
       "name": "",
       "icon": ""
@@ -1663,7 +1498,6 @@
     },
     "ShadowWardSelfBuff": {
       "kind": "effect",
-      "guid": 1001592,
       "id": 1592,
       "name": "Shadow Ward",
       "icon": "Mara_Defensive.jpg"
@@ -1676,21 +1510,18 @@
     },
     "SkitteringBladesDamage": {
       "kind": "effect",
-      "guid": 1001732,
       "id": 1732,
       "name": "",
       "icon": ""
     },
     "SkitteringBladesPoison": {
       "kind": "effect",
-      "guid": 1001731,
       "id": 1731,
       "name": "Volatile Poison",
       "icon": "T_ArcaneCoils.jpg"
     },
     "SkitteringBladesPoisonAoeDamage": {
       "kind": "effect",
-      "guid": 1001730,
       "id": 1730,
       "name": "Volatile Poison",
       "icon": "T_ArcaneCoils.jpg"
@@ -1705,14 +1536,12 @@
     },
     "StalkerStepCharge": {
       "kind": "effect",
-      "guid": 1001712,
       "id": 1712,
       "name": "",
       "icon": ""
     },
     "StalkerStepIncreasedDamageOrMovementSpeedIncreasedMovementSpeed": {
       "kind": "effect",
-      "guid": 1002190,
       "id": 2190,
       "name": "Stalker Step",
       "icon": "Mara_Stalkerstep.jpg"
@@ -1726,14 +1555,12 @@
     },
     "WebCrackCost": {
       "kind": "effect",
-      "guid": 1001584,
       "id": 1584,
       "name": "",
       "icon": ""
     },
     "WebCrackStun": {
       "kind": "effect",
-      "guid": 1001583,
       "id": 1583,
       "name": "Cheap Shot",
       "icon": "effect_stunned_icon.jpg"
@@ -1746,42 +1573,36 @@
     },
     "WidowBiteCharge": {
       "kind": "effect",
-      "guid": 1001720,
       "id": 1720,
       "name": "",
       "icon": ""
     },
     "WidowBiteCost": {
       "kind": "effect",
-      "guid": 1001719,
       "id": 1719,
       "name": "",
       "icon": ""
     },
     "WidowBiteDamageFirst": {
       "kind": "effect",
-      "guid": 1001718,
       "id": 1718,
       "name": "",
       "icon": ""
     },
     "WidowBiteDamageSecond": {
       "kind": "effect",
-      "guid": 1001717,
       "id": 1717,
       "name": "",
       "icon": ""
     },
     "WidowBitePoison": {
       "kind": "effect",
-      "guid": 1001716,
       "id": 1716,
       "name": "Seething Poison",
       "icon": "T_Nhance_RPG_Shadow_20.jpg"
     },
     "WidowBitePoisonBuff": {
       "kind": "effect",
-      "guid": 1001715,
       "id": 1715,
       "name": "Predator\u0027s Rush",
       "icon": "T_Nhance_RPG_Shadow_20.jpg"
@@ -1796,21 +1617,18 @@
     },
     "AttackDamage": {
       "kind": "effect",
-      "guid": 1001564,
       "id": 1564,
       "name": "",
       "icon": ""
     },
     "AttackMulltiHitSelfHeal": {
       "kind": "effect",
-      "guid": 1001563,
       "id": 1563,
       "name": "",
       "icon": ""
     },
     "AttackMultiHitDamage": {
       "kind": "effect",
-      "guid": 1001562,
       "id": 1562,
       "name": "",
       "icon": ""
@@ -1824,7 +1642,6 @@
     },
     "CycloneActivator": {
       "kind": "effect",
-      "guid": 1001576,
       "id": 1576,
       "name": "",
       "icon": ""
@@ -1837,14 +1654,12 @@
     },
     "EarthFistCost": {
       "kind": "effect",
-      "guid": 1001525,
       "id": 1525,
       "name": "",
       "icon": ""
     },
     "EarthFistDamage": {
       "kind": "effect",
-      "guid": 1001524,
       "id": 1524,
       "name": "",
       "icon": ""
@@ -1864,7 +1679,6 @@
     },
     "GustCharge": {
       "kind": "effect",
-      "guid": 1001575,
       "id": 1575,
       "name": "",
       "icon": ""
@@ -1877,14 +1691,12 @@
     },
     "SerenityHealBonusTracker": {
       "kind": "effect",
-      "guid": 1001566,
       "id": 1566,
       "name": "",
       "icon": ""
     },
     "SerenitySelfHeal": {
       "kind": "effect",
-      "guid": 1001565,
       "id": 1565,
       "name": "",
       "icon": ""
@@ -1898,28 +1710,24 @@
     },
     "ShatterEarthCharge": {
       "kind": "effect",
-      "guid": 1001559,
       "id": 1559,
       "name": "",
       "icon": ""
     },
     "ShatterEarthCost": {
       "kind": "effect",
-      "guid": 1001558,
       "id": 1558,
       "name": "",
       "icon": ""
     },
     "ShatterEarthDamage": {
       "kind": "effect",
-      "guid": 1001557,
       "id": 1557,
       "name": "",
       "icon": ""
     },
     "ShatterEarthDot": {
       "kind": "effect",
-      "guid": 1001556,
       "id": 1556,
       "name": "Shatter Earth",
       "icon": "T_Meiko_SlamStun.jpg"
@@ -1932,14 +1740,12 @@
     },
     "SpiritPalmCost": {
       "kind": "effect",
-      "guid": 1001527,
       "id": 1527,
       "name": "",
       "icon": ""
     },
     "SpiritPalmDamage": {
       "kind": "effect",
-      "guid": 1001526,
       "id": 1526,
       "name": "",
       "icon": ""
@@ -1953,14 +1759,12 @@
     },
     "StaggerInterrupt": {
       "kind": "effect",
-      "guid": 1001561,
       "id": 1561,
       "name": "",
       "icon": ""
     },
     "StaggerLockout": {
       "kind": "effect",
-      "guid": 1001560,
       "id": 1560,
       "name": "Interrupted",
       "icon": "T_Nhance_RPG_Shadow_46.jpg"
@@ -1973,7 +1777,6 @@
     },
     "StoneShieldActive": {
       "kind": "effect",
-      "guid": 1003141,
       "id": 3141,
       "name": "",
       "icon": ""
@@ -1986,35 +1789,30 @@
     },
     "StoneShieldBuff": {
       "kind": "effect",
-      "guid": 1001574,
       "id": 1574,
       "name": "Stone Shield",
       "icon": "T_Meiko_StoneShield.jpg"
     },
     "StoneShieldCharges": {
       "kind": "effect",
-      "guid": 1001573,
       "id": 1573,
       "name": "",
       "icon": ""
     },
     "StoneShieldDamage": {
       "kind": "effect",
-      "guid": 1001572,
       "id": 1572,
       "name": "Stone Shield",
       "icon": "T_Meiko_StoneShield.jpg"
     },
     "StoneShieldIncomingDamageMultiplier": {
       "kind": "effect",
-      "guid": 1001571,
       "id": 1571,
       "name": "",
       "icon": ""
     },
     "StoneShieldStoneInvinsibilityBuff": {
       "kind": "effect",
-      "guid": 1002449,
       "id": 2449,
       "name": "Earthwell",
       "icon": "T_Icon_Cosmic_01.jpg"
@@ -2028,42 +1826,36 @@
     },
     "StoneStompCost": {
       "kind": "effect",
-      "guid": 1001543,
       "id": 1543,
       "name": "",
       "icon": ""
     },
     "StoneStompDamage": {
       "kind": "effect",
-      "guid": 1001542,
       "id": 1542,
       "name": "Stone Stomp",
       "icon": "Meiko_AbilityIcon_11.jpg"
     },
     "StoneStompDamageIncrease": {
       "kind": "effect",
-      "guid": 1001541,
       "id": 1541,
       "name": "",
       "icon": ""
     },
     "StoneStompProc": {
       "kind": "effect",
-      "guid": 1001540,
       "id": 1540,
       "name": "",
       "icon": ""
     },
     "StoneStompSlow": {
       "kind": "effect",
-      "guid": 1001539,
       "id": 1539,
       "name": "",
       "icon": ""
     },
     "StoneStompStun": {
       "kind": "effect",
-      "guid": 1001538,
       "id": 1538,
       "name": "Stunned",
       "icon": "effect_stunned_icon.jpg"
@@ -2078,7 +1870,6 @@
     },
     "TauntDebuff": {
       "kind": "effect",
-      "guid": 1001514,
       "id": 1514,
       "name": "Taunted",
       "icon": "T_Meiko_Taunt.jpg"
@@ -2097,14 +1888,12 @@
     },
     "TwinSoulsBulwarkSelfBuff": {
       "kind": "effect",
-      "guid": 1001491,
       "id": 1491,
       "name": "Twin Souls: Bulwark",
       "icon": "T_Meiko_TauntTotem.jpg"
     },
     "TwinSoulsBulwarkTaunt": {
       "kind": "effect",
-      "guid": 1002380,
       "id": 2380,
       "name": "Taunted",
       "icon": "T_Meiko_Taunt.jpg"
@@ -2117,14 +1906,12 @@
     },
     "WindKickCost": {
       "kind": "effect",
-      "guid": 1001529,
       "id": 1529,
       "name": "",
       "icon": ""
     },
     "WindKickDamage": {
       "kind": "effect",
-      "guid": 1001528,
       "id": 1528,
       "name": "",
       "icon": ""
@@ -2141,14 +1928,12 @@
     },
     "BrainFreezeInterrupt": {
       "kind": "effect",
-      "guid": 1001383,
       "id": 1383,
       "name": "",
       "icon": ""
     },
     "BrainFreezeLockout": {
       "kind": "effect",
-      "guid": 1001382,
       "id": 1382,
       "name": "Interrupted",
       "icon": "T_Nhance_RPG_Frost_01.jpg"
@@ -2164,14 +1949,12 @@
     },
     "BurstingIceDamage": {
       "kind": "effect",
-      "guid": 1001396,
       "id": 1396,
       "name": "Bursting Ice",
       "icon": "T_Rime_CastedDebuffAOEdamage.jpg"
     },
     "BurstingIceDebuff": {
       "kind": "effect",
-      "guid": 1001395,
       "id": 1395,
       "name": "Bursting Ice",
       "icon": "T_Rime_CastedDebuffAOEdamage.jpg"
@@ -2187,14 +1970,12 @@
     },
     "ColdSnapDamage": {
       "kind": "effect",
-      "guid": 1001384,
       "id": 1384,
       "name": "",
       "icon": ""
     },
     "ColdSnapTalentCooldownResetProc": {
       "kind": "effect",
-      "guid": 1001375,
       "id": 1375,
       "name": "",
       "icon": ""
@@ -2212,14 +1993,12 @@
     },
     "FlightOfTheNavirAoeBuff": {
       "kind": "effect",
-      "guid": 1002446,
       "id": 2446,
       "name": "Flight of the Navir",
       "icon": "T_Rime_BirdCD.jpg"
     },
     "FlightOfTheNavirAoeDebuff": {
       "kind": "effect",
-      "guid": 1001367,
       "id": 1367,
       "name": "",
       "icon": "effects/T_Rime_BirdCD.jpg"
@@ -2232,7 +2011,6 @@
     },
     "FlightOfTheNavirCost": {
       "kind": "effect",
-      "guid": 1001366,
       "id": 1366,
       "name": "",
       "icon": ""
@@ -2249,21 +2027,18 @@
     },
     "FreezingTorrentAoeDamage": {
       "kind": "effect",
-      "guid": 1002300,
       "id": 2300,
       "name": "Coalescing Frost",
       "icon": "T_Nhance_RPG_Frost_31.jpg"
     },
     "FreezingTorrentChannelBuff": {
       "kind": "effect",
-      "guid": 1002315,
       "id": 2315,
       "name": "",
       "icon": ""
     },
     "FreezingTorrentTickDamage": {
       "kind": "effect",
-      "guid": 1001391,
       "id": 1391,
       "name": "",
       "icon": ""
@@ -2277,7 +2052,6 @@
     },
     "FrigidWindsDebuff": {
       "kind": "effect",
-      "guid": 1001385,
       "id": 1385,
       "name": "Frigid Winds",
       "icon": "T_Rime_Knockback.jpg"
@@ -2292,7 +2066,6 @@
     },
     "FrostBoltDamage": {
       "kind": "effect",
-      "guid": 1001394,
       "id": 1394,
       "name": "",
       "icon": ""
@@ -2305,7 +2078,6 @@
     },
     "FrostSwallowsDamage": {
       "kind": "effect",
-      "guid": 1001365,
       "id": 1365,
       "name": "Frost Swallows",
       "icon": "T_Rime_BirdCD.jpg"
@@ -2319,14 +2091,12 @@
     },
     "FrostWardSelfBuff": {
       "kind": "effect",
-      "guid": 1001379,
       "id": 1379,
       "name": "Frost Ward",
       "icon": "T_Rime_SelfDefenceBuff.jpg"
     },
     "FrostWardTalentHeal": {
       "kind": "effect",
-      "guid": 1001374,
       "id": 1374,
       "name": "",
       "icon": ""
@@ -2344,28 +2114,24 @@
     },
     "GlacialBlastCost": {
       "kind": "effect",
-      "guid": 1001393,
       "id": 1393,
       "name": "",
       "icon": ""
     },
     "GlacialBlastDamage": {
       "kind": "effect",
-      "guid": 1001392,
       "id": 1392,
       "name": "",
       "icon": ""
     },
     "GlacialBlastTalentInstantAndBonusDamageProcStacker": {
       "kind": "effect",
-      "guid": 1001377,
       "id": 1377,
       "name": "Glacial Assault",
       "icon": "T_Rime_AnimaBolt.jpg"
     },
     "GlacialBlastTalentInstantAndBonusDamageRealProc": {
       "kind": "effect",
-      "guid": 1001376,
       "id": 1376,
       "name": "",
       "icon": ""
@@ -2379,7 +2145,6 @@
     },
     "IceBlitzBuff": {
       "kind": "effect",
-      "guid": 1001397,
       "id": 1397,
       "name": "Ice Blitz",
       "icon": "T_Nhance_RPG_Icons_IcySpikes.jpg"
@@ -2396,14 +2161,12 @@
     },
     "IceCometCost": {
       "kind": "effect",
-      "guid": 1001381,
       "id": 1381,
       "name": "",
       "icon": ""
     },
     "IceCometDamage": {
       "kind": "effect",
-      "guid": 1001380,
       "id": 1380,
       "name": "",
       "icon": ""
@@ -2418,7 +2181,6 @@
     },
     "IceDashCharge": {
       "kind": "effect",
-      "guid": 1001388,
       "id": 1388,
       "name": "",
       "icon": ""
@@ -2431,21 +2193,18 @@
     },
     "WinterBlessingHeal": {
       "kind": "effect",
-      "guid": 1001390,
       "id": 1390,
       "name": "Winter\u0027s Blessing",
       "icon": "T_Rime_HealingBuff.jpg"
     },
     "WinterBlessingSelfBuff": {
       "kind": "effect",
-      "guid": 1001389,
       "id": 1389,
       "name": "Winter\u0027s Blessing",
       "icon": "T_Rime_HealingBuff.jpg"
     },
     "WinterBlessingSpiritBuff": {
       "kind": "effect",
-      "guid": 1002299,
       "id": 2299,
       "name": "",
       "icon": ""
@@ -2459,7 +2218,6 @@
     },
     "WintersBlessingBuff": {
       "kind": "effect",
-      "guid": 1001026,
       "id": 1026,
       "name": "",
       "icon": "",
@@ -2467,7 +2225,6 @@
     },
     "WintersEmbrace": {
       "kind": "effect",
-      "guid": 1002303,
       "id": 2303,
       "name": "Winter\u0027s Embrace",
       "icon": "Cryomancer8.jpg"
@@ -2480,21 +2237,18 @@
     },
     "WrathOfWinterBuff": {
       "kind": "effect",
-      "guid": 1001387,
       "id": 1387,
       "name": "Wrath of Winter",
       "icon": "T_Rime_SpiritAbility.jpg"
     },
     "WrathOfWinterSpiritCost": {
       "kind": "effect",
-      "guid": 1001386,
       "id": 1386,
       "name": "",
       "icon": ""
     },
     "WrathOfWinterVisual": {
       "kind": "effect",
-      "guid": 1002092,
       "id": 2092,
       "name": "",
       "icon": ""
@@ -2503,7 +2257,6 @@
   "sylvie": {
     "Buff": {
       "kind": "effect",
-      "guid": 1002731,
       "id": 2731,
       "name": "Natural Selection",
       "icon": "T_Nhance_RPG_Nature_02.jpg"
@@ -2517,14 +2270,12 @@
     },
     "CureAilmentDispel": {
       "kind": "effect",
-      "guid": 1001435,
       "id": 1435,
       "name": "",
       "icon": ""
     },
     "CureAilmentManaCost": {
       "kind": "effect",
-      "guid": 1001434,
       "id": 1434,
       "name": "",
       "icon": ""
@@ -2539,42 +2290,36 @@
     },
     "EnfeeblingRootsapAbsorbBuff": {
       "kind": "effect",
-      "guid": 1002198,
       "id": 2198,
       "name": "",
       "icon": ""
     },
     "EnfeeblingRootsapChannelHandler": {
       "kind": "effect",
-      "guid": 1002197,
       "id": 2197,
       "name": "",
       "icon": ""
     },
     "EnfeeblingRootsapDebuff": {
       "kind": "effect",
-      "guid": 1002232,
       "id": 2232,
       "name": "Enfeebling Rootsap",
       "icon": "T_Nhance_RPG_Nature_04.jpg"
     },
     "EnfeeblingRootsapHealBuff": {
       "kind": "effect",
-      "guid": 1001417,
       "id": 1417,
       "name": "",
       "icon": ""
     },
     "EnfeeblingRootsapManaCost": {
       "kind": "effect",
-      "guid": 1001433,
       "id": 1433,
       "name": "",
       "icon": ""
     },
     "EnfeeblingRootsapTurretCounter": {
       "kind": "effect",
-      "guid": 1002196,
       "id": 2196,
       "name": "",
       "icon": ""
@@ -2587,14 +2332,12 @@
     },
     "FluttercallHealHot": {
       "kind": "effect",
-      "guid": 1001445,
       "id": 1445,
       "name": "Fluttercall: Heal",
       "icon": "Sylvie_AbilityIcon_03.jpg"
     },
     "FluttercallHealManaCost": {
       "kind": "effect",
-      "guid": 1001444,
       "id": 1444,
       "name": "",
       "icon": ""
@@ -2607,42 +2350,36 @@
     },
     "FluttercallJubileeBuff": {
       "kind": "effect",
-      "guid": 1001439,
       "id": 1439,
       "name": "Fluttercall: Jubilee",
       "icon": "T_Mosse_Ultimate.jpg"
     },
     "FluttercallJubileeCost": {
       "kind": "effect",
-      "guid": 1001438,
       "id": 1438,
       "name": "",
       "icon": ""
     },
     "FluttercallJubileeHealthDistributer": {
       "kind": "effect",
-      "guid": 1001437,
       "id": 1437,
       "name": "",
       "icon": ""
     },
     "FluttercallJubileeHealthDistributerDamage": {
       "kind": "effect",
-      "guid": 1003136,
       "id": 3136,
       "name": "",
       "icon": ""
     },
     "FluttercallJubileeHealthDistributerHeal": {
       "kind": "effect",
-      "guid": 1003135,
       "id": 3135,
       "name": "",
       "icon": ""
     },
     "FluttercallJubileeHealthSyncBuff": {
       "kind": "effect",
-      "guid": 1001436,
       "id": 1436,
       "name": "",
       "icon": ""
@@ -2661,35 +2398,30 @@
     },
     "FluttercallRestoreLifeChargeup": {
       "kind": "effect",
-      "guid": 1001450,
       "id": 1450,
       "name": "Fluttercall: Restore Life - Pollinating",
       "icon": "T_Nhance_RPG_Shadow_24.jpg"
     },
     "FluttercallRestoreLifeFlashHeal": {
       "kind": "effect",
-      "guid": 1001449,
       "id": 1449,
       "name": "",
       "icon": ""
     },
     "FluttercallRestoreLifeHot": {
       "kind": "effect",
-      "guid": 1001448,
       "id": 1448,
       "name": "Fluttercall: Restore Life",
       "icon": "T_Nhance_RPG_Shadow_58.jpg"
     },
     "FluttercallRestoreLifeHotApplyTalentEffectToOwner": {
       "kind": "effect",
-      "guid": 1003137,
       "id": 3137,
       "name": "",
       "icon": ""
     },
     "FluttercallRestoreLifeManaCost": {
       "kind": "effect",
-      "guid": 1001447,
       "id": 1447,
       "name": "",
       "icon": ""
@@ -2703,28 +2435,24 @@
     },
     "HeartBloomCharge": {
       "kind": "effect",
-      "guid": 1001478,
       "id": 1478,
       "name": "",
       "icon": ""
     },
     "HeartBloomHeal": {
       "kind": "effect",
-      "guid": 1001477,
       "id": 1477,
       "name": "",
       "icon": ""
     },
     "HeartBloomManaCost": {
       "kind": "effect",
-      "guid": 1001476,
       "id": 1476,
       "name": "",
       "icon": ""
     },
     "HeartBloomVisualEffect": {
       "kind": "effect",
-      "guid": 1001475,
       "id": 1475,
       "name": "Heart Bloom",
       "icon": "T_Mosse_Bigheal.jpg"
@@ -2738,21 +2466,18 @@
     },
     "HiddenTrailBuff": {
       "kind": "effect",
-      "guid": 1001470,
       "id": 1470,
       "name": "Hidden Trail",
       "icon": "T_Mosse_Hide.jpg"
     },
     "HiddenTrailManaCost": {
       "kind": "effect",
-      "guid": 1002201,
       "id": 2201,
       "name": "",
       "icon": ""
     },
     "HiddenTrailReduceThreat": {
       "kind": "effect",
-      "guid": 1001469,
       "id": 1469,
       "name": "",
       "icon": ""
@@ -2774,14 +2499,12 @@
     },
     "LifePetalHeal": {
       "kind": "effect",
-      "guid": 1001472,
       "id": 1472,
       "name": "",
       "icon": ""
     },
     "LifePetalManaCost": {
       "kind": "effect",
-      "guid": 1001471,
       "id": 1471,
       "name": "",
       "icon": ""
@@ -2796,14 +2519,12 @@
     },
     "NettleboltDamage": {
       "kind": "effect",
-      "guid": 1001480,
       "id": 1480,
       "name": "",
       "icon": ""
     },
     "NettleboltManaCost": {
       "kind": "effect",
-      "guid": 1001479,
       "id": 1479,
       "name": "",
       "icon": ""
@@ -2819,7 +2540,6 @@
     },
     "PricklyVineManaCost": {
       "kind": "effect",
-      "guid": 1001441,
       "id": 1441,
       "name": "",
       "icon": ""
@@ -2833,21 +2553,18 @@
     },
     "SafeHavenCost": {
       "kind": "effect",
-      "guid": 1001443,
       "id": 1443,
       "name": "",
       "icon": ""
     },
     "SafeHavenDamageReductionBuff": {
       "kind": "effect",
-      "guid": 1001442,
       "id": 1442,
       "name": "",
       "icon": "effects/T_Mosse_LinkCD.jpg"
     },
     "SafeHavenIncreasedHealingTakenBuff": {
       "kind": "effect",
-      "guid": 1002269,
       "id": 2269,
       "name": "Safe Haven",
       "icon": "T_Mosse_LinkCD.jpg"
@@ -2860,14 +2577,12 @@
     },
     "ShroomsplosionDamage": {
       "kind": "effect",
-      "guid": 1001474,
       "id": 1474,
       "name": "Shroomsplosion",
       "icon": "T_Mosse_Boomshroom.jpg"
     },
     "ShroomsplosionStacker": {
       "kind": "effect",
-      "guid": 1001473,
       "id": 1473,
       "name": "",
       "icon": ""
@@ -2882,7 +2597,6 @@
     },
     "AttackDamage": {
       "kind": "effect",
-      "guid": 1001760,
       "id": 1760,
       "name": "",
       "icon": ""
@@ -2897,21 +2611,18 @@
     },
     "ChainLightningCost": {
       "kind": "effect",
-      "guid": 1001775,
       "id": 1775,
       "name": "",
       "icon": ""
     },
     "ChainLightningDamage": {
       "kind": "effect",
-      "guid": 1001774,
       "id": 1774,
       "name": "Chain Lightning",
       "icon": "T_Ink_ChainLightning.jpg"
     },
     "ChainLightningSelfTargetEffect": {
       "kind": "effect",
-      "guid": 1001773,
       "id": 1773,
       "name": "",
       "icon": ""
@@ -2925,14 +2636,12 @@
     },
     "CullingStrikeDamage": {
       "kind": "effect",
-      "guid": 1001762,
       "id": 1762,
       "name": "",
       "icon": ""
     },
     "CullingStrikeLightningBuff": {
       "kind": "effect",
-      "guid": 1001761,
       "id": 1761,
       "name": "",
       "icon": ""
@@ -2952,7 +2661,6 @@
     },
     "FaceBreakerDamage": {
       "kind": "effect",
-      "guid": 1003161,
       "id": 3161,
       "name": "",
       "icon": ""
@@ -2966,7 +2674,6 @@
     },
     "FocusedWrathSelfBuff": {
       "kind": "effect",
-      "guid": 1001769,
       "id": 1769,
       "name": "Focused Wrath",
       "icon": "T_Ink_FocusedWrath.jpg"
@@ -2980,35 +2687,30 @@
     },
     "HammerStormActivated": {
       "kind": "effect",
-      "guid": 1001750,
       "id": 1750,
       "name": "",
       "icon": ""
     },
     "HammerStormCost": {
       "kind": "effect",
-      "guid": 1001783,
       "id": 1783,
       "name": "",
       "icon": ""
     },
     "HammerStormDamage": {
       "kind": "effect",
-      "guid": 1001782,
       "id": 1782,
       "name": "",
       "icon": ""
     },
     "HammerStormLightningDamage": {
       "kind": "effect",
-      "guid": 1001781,
       "id": 1781,
       "name": "Thunder Call: Hammer Storm",
       "icon": ""
     },
     "HammerStormPassiveAoeDamageReductionIncrease": {
       "kind": "effect",
-      "guid": 1001749,
       "id": 1749,
       "name": "",
       "icon": ""
@@ -3028,7 +2730,6 @@
     },
     "IntimidateFear": {
       "kind": "effect",
-      "guid": 1001780,
       "id": 1780,
       "name": "Intimidate",
       "icon": "T_Ink_IntimidatingRoar.jpg"
@@ -3042,7 +2743,6 @@
     },
     "LeapSmashDamage": {
       "kind": "effect",
-      "guid": 1001757,
       "id": 1757,
       "name": "",
       "icon": ""
@@ -3056,14 +2756,12 @@
     },
     "PummelInterrupt": {
       "kind": "effect",
-      "guid": 1001759,
       "id": 1759,
       "name": "",
       "icon": ""
     },
     "PummelLockout": {
       "kind": "effect",
-      "guid": 1001758,
       "id": 1758,
       "name": "Tremble!",
       "icon": "Tex_red_10.jpg"
@@ -3079,28 +2777,24 @@
     },
     "RagingTempestAoeImpactDamage": {
       "kind": "effect",
-      "guid": 1002173,
       "id": 2173,
       "name": "",
       "icon": ""
     },
     "RagingTempestCost": {
       "kind": "effect",
-      "guid": 1001768,
       "id": 1768,
       "name": "",
       "icon": ""
     },
     "RagingTempestPulsatingSingleDamageDamage": {
       "kind": "effect",
-      "guid": 1001767,
       "id": 1767,
       "name": "Raging Currents",
       "icon": "T_Ink_Spirit.jpg"
     },
     "RagingTempestPulsatingSingleDamageSelfBuff": {
       "kind": "effect",
-      "guid": 1001766,
       "id": 1766,
       "name": "Raging Tempest",
       "icon": "T_Nhance_RPG_Energy_16.jpg"
@@ -3114,21 +2808,18 @@
     },
     "SkullCrusherCost": {
       "kind": "effect",
-      "guid": 1001765,
       "id": 1765,
       "name": "",
       "icon": ""
     },
     "SkullCrusherDamage": {
       "kind": "effect",
-      "guid": 1001764,
       "id": 1764,
       "name": "",
       "icon": ""
     },
     "SkullCrusherLightningDamage": {
       "kind": "effect",
-      "guid": 1001763,
       "id": 1763,
       "name": "Thunder Call: Skull Crusher",
       "icon": ""
@@ -3142,7 +2833,6 @@
     },
     "ThunderCallBuff": {
       "kind": "effect",
-      "guid": 1001772,
       "id": 1772,
       "name": "Thunder Call",
       "icon": "T_Ink_Selfbuff.jpg"
@@ -3156,14 +2846,12 @@
     },
     "UnbreakableWillSelfBuffFirst": {
       "kind": "effect",
-      "guid": 1001752,
       "id": 1752,
       "name": "Unbreakable Will",
       "icon": "T_Ink_TankBuff.jpg"
     },
     "UnbreakableWillSelfBuffSecond": {
       "kind": "effect",
-      "guid": 1001751,
       "id": 1751,
       "name": "",
       "icon": ""
@@ -3177,14 +2865,12 @@
     },
     "WildSwingCost": {
       "kind": "effect",
-      "guid": 1001771,
       "id": 1771,
       "name": "",
       "icon": ""
     },
     "WildSwingDamage": {
       "kind": "effect",
-      "guid": 1001770,
       "id": 1770,
       "name": "",
       "icon": ""
@@ -3203,21 +2889,18 @@
     },
     "AvatarOfLightHeal": {
       "kind": "effect",
-      "guid": 1001332,
       "id": 1332,
       "name": "",
       "icon": ""
     },
     "AvatarOfLightResourceCost": {
       "kind": "effect",
-      "guid": 1001331,
       "id": 1331,
       "name": "",
       "icon": ""
     },
     "AvatarOfLightVisual": {
       "kind": "effect",
-      "guid": 1002156,
       "id": 2156,
       "name": "",
       "icon": ""
@@ -3231,14 +2914,12 @@
     },
     "CircleOfLightCost": {
       "kind": "effect",
-      "guid": 1001340,
       "id": 1340,
       "name": "",
       "icon": ""
     },
     "CircleOfLightHeal": {
       "kind": "effect",
-      "guid": 1001339,
       "id": 1339,
       "name": "",
       "icon": ""
@@ -3252,28 +2933,24 @@
     },
     "DawnbreakerOrbActiveProjectileProc": {
       "kind": "effect",
-      "guid": 1003105,
       "id": 3105,
       "name": "",
       "icon": ""
     },
     "DawnbreakerOrbDamage": {
       "kind": "effect",
-      "guid": 1001311,
       "id": 1311,
       "name": "",
       "icon": ""
     },
     "DawnbreakerOrbHeal": {
       "kind": "effect",
-      "guid": 1001310,
       "id": 1310,
       "name": "",
       "icon": ""
     },
     "DawnbreakerOrbResourceCost": {
       "kind": "effect",
-      "guid": 1001309,
       "id": 1309,
       "name": "",
       "icon": ""
@@ -3287,14 +2964,12 @@
     },
     "DawnflareDamage": {
       "kind": "effect",
-      "guid": 1001349,
       "id": 1349,
       "name": "",
       "icon": ""
     },
     "DawnflareResourceCost": {
       "kind": "effect",
-      "guid": 1001348,
       "id": 1348,
       "name": "",
       "icon": ""
@@ -3308,14 +2983,12 @@
     },
     "GreaterHealHeal": {
       "kind": "effect",
-      "guid": 1001347,
       "id": 1347,
       "name": "",
       "icon": ""
     },
     "GreaterHealResourceCost": {
       "kind": "effect",
-      "guid": 1001346,
       "id": 1346,
       "name": "",
       "icon": ""
@@ -3330,21 +3003,18 @@
     },
     "LevitateCharge": {
       "kind": "effect",
-      "guid": 1001345,
       "id": 1345,
       "name": "",
       "icon": ""
     },
     "LevitateCost": {
       "kind": "effect",
-      "guid": 1001344,
       "id": 1344,
       "name": "",
       "icon": ""
     },
     "LevitateSelfBuff": {
       "kind": "effect",
-      "guid": 1001343,
       "id": 1343,
       "name": "Levitate",
       "icon": "T_Vigor_Levitate.jpg"
@@ -3359,7 +3029,6 @@
     },
     "LightshaperWardCastingCost": {
       "kind": "effect",
-      "guid": 1001341,
       "id": 1341,
       "name": "",
       "icon": ""
@@ -3373,21 +3042,18 @@
     },
     "LuminousBarrierAbsorb": {
       "kind": "effect",
-      "guid": 1001321,
       "id": 1321,
       "name": "Luminous Barrier",
       "icon": "T_Vigor_Shield.jpg"
     },
     "LuminousBarrierCost": {
       "kind": "effect",
-      "guid": 1001320,
       "id": 1320,
       "name": "",
       "icon": ""
     },
     "LuminousBarrierUponRemovalBuff": {
       "kind": "effect",
-      "guid": 1002838,
       "id": 2838,
       "name": "Residual Luminosity",
       "icon": "Tex_SpellBook06_91.jpg"
@@ -3401,28 +3067,24 @@
     },
     "RadiantBlastCost": {
       "kind": "effect",
-      "guid": 1001338,
       "id": 1338,
       "name": "",
       "icon": ""
     },
     "RadiantBlastDamage": {
       "kind": "effect",
-      "guid": 1001337,
       "id": 1337,
       "name": "",
       "icon": ""
     },
     "RadiantBlastHeal": {
       "kind": "effect",
-      "guid": 1001336,
       "id": 1336,
       "name": "",
       "icon": ""
     },
     "RadiantBlastPassiveSelfbuff": {
       "kind": "effect",
-      "guid": 1001326,
       "id": 1326,
       "name": "",
       "icon": ""
@@ -3437,14 +3099,12 @@
     },
     "RemoveMagicDispel": {
       "kind": "effect",
-      "guid": 1001323,
       "id": 1323,
       "name": "",
       "icon": ""
     },
     "RemoveMagicResourceCost": {
       "kind": "effect",
-      "guid": 1001322,
       "id": 1322,
       "name": "",
       "icon": ""
@@ -3463,21 +3123,18 @@
     },
     "RuneOfRenewalDirectHeal": {
       "kind": "effect",
-      "guid": 1001319,
       "id": 1319,
       "name": "",
       "icon": ""
     },
     "RuneOfRenewalHot": {
       "kind": "effect",
-      "guid": 1001318,
       "id": 1318,
       "name": "",
       "icon": ""
     },
     "RuneOfRenewalResourceCost": {
       "kind": "effect",
-      "guid": 1001317,
       "id": 1317,
       "name": "",
       "icon": ""
@@ -3491,14 +3148,12 @@
     },
     "RunicProliferationBuff": {
       "kind": "effect",
-      "guid": 1001334,
       "id": 1334,
       "name": "Runic Proliferation",
       "icon": "T_Vigor_HealRune.jpg"
     },
     "RunicProliferationManaCost": {
       "kind": "effect",
-      "guid": 1002200,
       "id": 2200,
       "name": "",
       "icon": ""
@@ -3511,21 +3166,18 @@
     },
     "SoulbrandBuffActiveAdditionalDirectDamage": {
       "kind": "effect",
-      "guid": 1002432,
       "id": 2432,
       "name": "Soulbrand",
       "icon": "T_Vigor_Soulbrand.jpg"
     },
     "SoulbrandDot": {
       "kind": "effect",
-      "guid": 1001315,
       "id": 1315,
       "name": "Soulbrand",
       "icon": "T_Vigor_Soulbrand.jpg"
     },
     "SoulbrandResourceCost": {
       "kind": "effect",
-      "guid": 1001314,
       "id": 1314,
       "name": "",
       "icon": ""
@@ -3539,14 +3191,12 @@
     },
     "ThrowBookResourceCost": {
       "kind": "effect",
-      "guid": 1001313,
       "id": 1313,
       "name": "",
       "icon": ""
     },
     "ThrowBookStun": {
       "kind": "effect",
-      "guid": 1001312,
       "id": 1312,
       "name": "Stunned by a book",
       "icon": "effect_stunned_icon.jpg"
@@ -3561,7 +3211,6 @@
     },
     "AttackDamage": {
       "kind": "effect",
-      "guid": 1002562,
       "id": 2562,
       "name": "Auto Attack",
       "icon": ""
@@ -3575,42 +3224,36 @@
     },
     "AuraOfSolaceAllyBuff": {
       "kind": "effect",
-      "guid": 1002670,
       "id": 2670,
       "name": "Gift of Solace",
       "icon": "T_Sune_AuraOfSolace.jpg"
     },
     "AuraOfSolaceAllyBuffStacker": {
       "kind": "effect",
-      "guid": 1002729,
       "id": 2729,
       "name": "",
       "icon": ""
     },
     "AuraOfSolaceDamage": {
       "kind": "effect",
-      "guid": 1002669,
       "id": 2669,
       "name": "Aura of Solace",
       "icon": "T_Sune_AuraOfSolace.jpg"
     },
     "AuraOfSolaceManaCost": {
       "kind": "effect",
-      "guid": 1002668,
       "id": 2668,
       "name": "",
       "icon": ""
     },
     "AuraOfSolaceSelfBuff": {
       "kind": "effect",
-      "guid": 1002667,
       "id": 2667,
       "name": "Aura of Solace",
       "icon": "T_Sune_AuraOfSolace.jpg"
     },
     "AuraOfSolaceTransferedDamage": {
       "kind": "effect",
-      "guid": 1002666,
       "id": 2666,
       "name": "Aura of Solace",
       "icon": ""
@@ -3624,7 +3267,6 @@
     },
     "BlindingSlashDamage": {
       "kind": "effect",
-      "guid": 1002568,
       "id": 2568,
       "name": "",
       "icon": ""
@@ -3639,14 +3281,12 @@
     },
     "BrilliantFlareHeal": {
       "kind": "effect",
-      "guid": 1002573,
       "id": 2573,
       "name": "",
       "icon": ""
     },
     "BrilliantFlareManaCost": {
       "kind": "effect",
-      "guid": 1002572,
       "id": 2572,
       "name": "",
       "icon": ""
@@ -3662,42 +3302,36 @@
     },
     "DecreeOfTheSunAoeDamage": {
       "kind": "effect",
-      "guid": 1002561,
       "id": 2561,
       "name": "",
       "icon": ""
     },
     "DecreeOfTheSunAoeHeal": {
       "kind": "effect",
-      "guid": 1002560,
       "id": 2560,
       "name": "",
       "icon": ""
     },
     "DecreeOfTheSunSelfBuff": {
       "kind": "effect",
-      "guid": 1002559,
       "id": 2559,
       "name": "",
       "icon": ""
     },
     "DecreeOfTheSunSelfBuffDamageReduction": {
       "kind": "effect",
-      "guid": 1002558,
       "id": 2558,
       "name": "Decree of the Sun",
       "icon": "T_Sune_Decree.jpg"
     },
     "DecreeOfTheSunSelfBuffImmunity": {
       "kind": "effect",
-      "guid": 1002557,
       "id": 2557,
       "name": "Decree of the Sun",
       "icon": "T_Sune_Decree.jpg"
     },
     "DecreeOfTheSunSpiritPointCost": {
       "kind": "effect",
-      "guid": 1002556,
       "id": 2556,
       "name": "",
       "icon": ""
@@ -3712,14 +3346,12 @@
     },
     "InterruptInterrupt": {
       "kind": "effect",
-      "guid": 1002546,
       "id": 2546,
       "name": "",
       "icon": ""
     },
     "InterruptLockout": {
       "kind": "effect",
-      "guid": 1002545,
       "id": 2545,
       "name": "Tremble!",
       "icon": ""
@@ -3733,7 +3365,6 @@
     },
     "OmegaReprievalBuff": {
       "kind": "effect",
-      "guid": 1002574,
       "id": 2574,
       "name": "Omega Reprieval",
       "icon": "T_Sune_OmegaReprieval.jpg"
@@ -3747,7 +3378,6 @@
     },
     "OmnistrikeDamage": {
       "kind": "effect",
-      "guid": 1002577,
       "id": 2577,
       "name": "",
       "icon": ""
@@ -3761,14 +3391,12 @@
     },
     "RupturedDawnDamage": {
       "kind": "effect",
-      "guid": 1002567,
       "id": 2567,
       "name": "",
       "icon": ""
     },
     "RupturedDawnStun": {
       "kind": "effect",
-      "guid": 1002566,
       "id": 2566,
       "name": "Stunned",
       "icon": "effect_stunned_icon.jpg"
@@ -3782,21 +3410,18 @@
     },
     "ShiningHaloDamage": {
       "kind": "effect",
-      "guid": 1002571,
       "id": 2571,
       "name": "",
       "icon": ""
     },
     "ShiningHaloManaCost": {
       "kind": "effect",
-      "guid": 1002570,
       "id": 2570,
       "name": "",
       "icon": ""
     },
     "ShiningHaloSelfBuff": {
       "kind": "effect",
-      "guid": 1002569,
       "id": 2569,
       "name": "Shining Halo",
       "icon": "T_Sune_ShiningHalo.jpg"
@@ -3811,14 +3436,12 @@
     },
     "SkyCrashDamage": {
       "kind": "effect",
-      "guid": 1002540,
       "id": 2540,
       "name": "",
       "icon": ""
     },
     "SkyCrashSelfBuff": {
       "kind": "effect",
-      "guid": 1002539,
       "id": 2539,
       "name": "",
       "icon": ""
@@ -3833,14 +3456,12 @@
     },
     "SolarBladesDamage": {
       "kind": "effect",
-      "guid": 1002576,
       "id": 2576,
       "name": "",
       "icon": ""
     },
     "SolarBladesManaCost": {
       "kind": "effect",
-      "guid": 1002575,
       "id": 2575,
       "name": "",
       "icon": ""
@@ -3855,21 +3476,18 @@
     },
     "SolarShieldAbsorb": {
       "kind": "effect",
-      "guid": 1002551,
       "id": 2551,
       "name": "Solar Shield",
       "icon": "T_Sune_Solarshield.jpg"
     },
     "SolarShieldDamageReduction": {
       "kind": "effect",
-      "guid": 1002728,
       "id": 2728,
       "name": "",
       "icon": ""
     },
     "SolarShieldManaCost": {
       "kind": "effect",
-      "guid": 1002550,
       "id": 2550,
       "name": "",
       "icon": ""
@@ -3882,7 +3500,6 @@
     },
     "SunStrikeDamage": {
       "kind": "effect",
-      "guid": 1002547,
       "id": 2547,
       "name": "",
       "icon": ""
@@ -3897,7 +3514,6 @@
     },
     "TauntTaunt": {
       "kind": "effect",
-      "guid": 1002544,
       "id": 2544,
       "name": "Taunted",
       "icon": "T_Sune_Taunt.jpg"

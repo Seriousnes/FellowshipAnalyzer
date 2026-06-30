@@ -75,17 +75,20 @@ public record Spell : IRimeSpell, IElarionSpell
 /// <summary>A spell effect (<c>GE_</c>): combat-log guid <c>1_000_000 + Id</c>.</summary>
 public record Effect : Spell
 {
+    [JsonIgnore]
     public override int Guid => 1_000_000 + Id;
 }
 
 /// <summary>A talent (<c>CAATalent*</c>): combat-log guid <c>2_000_000 + Id</c>.</summary>
 public record Talent : Spell
 {
+    [JsonIgnore]
     public override int Guid => 2_000_000 + Id;
 }
 
 /// <summary>A weapon trait: combat-log guid <c>3_000_000 + Id</c>.</summary>
 public record Weapon : Spell
 {
+    [JsonIgnore]
     public override int Guid => 3_000_000 + Id;
 }
