@@ -1,5 +1,7 @@
+using System.Text.Json.Serialization;
 using FellowshipAnalyzer.Core.Common.Spells.Elarion;
 using FellowshipAnalyzer.Core.Common.Spells.Rime;
+using FellowshipAnalyzer.Core.Game;
 
 namespace FellowshipAnalyzer.Core.Common.Spells;
 
@@ -8,9 +10,15 @@ namespace FellowshipAnalyzer.Core.Common.Spells;
 /// cast/channel timing), and resource costs. Behaviour metadata (GCD, category, haste
 /// scaling) lives on <see cref="Analysis.SpellbookAbility"/>.
 /// </summary>
+[JsonPolymorphic(TypeDiscriminatorPropertyName = "kind")]
+[JsonDerivedType(typeof(Spell), "ability")]
+[JsonDerivedType(typeof(Effect), "effect")]
+[JsonDerivedType(typeof(Talent), "talent")]
+[JsonDerivedType(typeof(Weapon), "weapon")]
 public record Spell : IRimeSpell, IElarionSpell
 {
     /// <summary>The combat-log <c>abilityGameID</c> used to match events. Base spells use <see cref="Id"/>; subtypes add their FSL range offset.</summary>
+    [JsonIgnore]
     public virtual int Guid => Id;
 
     public int Id { get; init; }
@@ -24,10 +32,17 @@ public record Spell : IRimeSpell, IElarionSpell
     public double? ChannelDuration { get; init; }
     public double? ChannelTickInterval { get; init; }
 
-    public virtual int? SpiritCost { get; init; }
-    public virtual int? WinterOrbCost { get; init; }
-    public virtual int? AnimaCost { get; init; }
-    public int? FocusCost { get; init; }
+    [JsonIgnore] public virtual int? SpiritCost { get; init; }
+    [JsonIgnore] public virtual int? WinterOrbCost { get; init; }
+    [JsonIgnore] public virtual int? AnimaCost { get; init; }
+    [JsonIgnore] public int? FocusCost { get; init; }
+
+    /// <summary>Resource costs keyed by abstract <see cref="ResourceTypes"/> slot; empty when the spell spends nothing.</summary>
+    public IReadOnlyDictionary<ResourceTypes, int> Costs { get; init; } =
+        System.Collections.Frozen.FrozenDictionary<ResourceTypes, int>.Empty;
+
+    /// <summary>The cost in the given resource slot, or <c>null</c> when the spell does not spend it.</summary>
+    public int? Cost(ResourceTypes type) => Costs.TryGetValue(type, out var value) ? value : null;
 
     /// <summary>
     /// Creates the typed spell for a combat-log <c>abilityGameID</c>, decoding the FSL range:

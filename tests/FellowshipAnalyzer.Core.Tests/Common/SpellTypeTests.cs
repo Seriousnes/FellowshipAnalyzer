@@ -1,4 +1,5 @@
 using FellowshipAnalyzer.Core.Common.Spells;
+using FellowshipAnalyzer.Core.Game;
 using Shouldly;
 using Xunit;
 
@@ -17,6 +18,18 @@ public class SpellTypeTests
 
         var g = new Spell { Id = 1028, WinterOrbCost = 2 };
         g.WinterOrbCost.ShouldBe(2);
+    }
+
+    [Fact]
+    public void Costs_DictionaryExposesSlotValues()
+    {
+        var s = new Spell
+        {
+            Id = 1028,
+            Costs = new Dictionary<ResourceTypes, int> { [ResourceTypes.Tertiary] = 2 },
+        };
+        s.Cost(ResourceTypes.Tertiary).ShouldBe(2);
+        s.Cost(ResourceTypes.Primary).ShouldBeNull();
     }
 
     [Theory]
