@@ -20,8 +20,10 @@ public class ResourceNameAttributeTests
         names.ShouldContain("Anima");
         names.ShouldContain("Energy");
         names.ShouldContain("Fury");
+        names.ShouldContain("Chrona");
         names.ShouldContain("Cinders");
         names.ShouldContain("Focus");
+        names.ShouldContain("Radiant Runes");
     }
 
     [Fact]

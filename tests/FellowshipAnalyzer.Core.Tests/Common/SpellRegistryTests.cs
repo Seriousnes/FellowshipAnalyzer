@@ -1,5 +1,7 @@
 using FellowshipAnalyzer.Core.Common.Spells;
+using FellowshipAnalyzer.Core.Game;
 
+using Shouldly;
 using Xunit;
 
 namespace FellowshipAnalyzer.Core.Tests.Common;
@@ -68,6 +70,14 @@ public class SpellRegistryTests
         Assert.Contains(Core.Common.Spells.Rime.Spells.BurstingIce.Id, allIds);
         Assert.Contains(Core.Common.Spells.Rime.Spells.GlacialBlast.Id, allIds);
         Assert.Contains(Core.Common.Spells.Rime.Spells.IceComet.Id, allIds);
+    }
+
+    [Fact]
+    public void GeneratedRegistry_GlacialBlast_ExposesWinterOrbCostFromCosts()
+    {
+        var spell = Core.Common.Spells.Rime.Spells.GlacialBlast;
+        spell.Cost(ResourceTypes.Tertiary).ShouldBe(2);
+        spell.WinterOrbCost.ShouldBe(2);
     }
 
     [Theory]
