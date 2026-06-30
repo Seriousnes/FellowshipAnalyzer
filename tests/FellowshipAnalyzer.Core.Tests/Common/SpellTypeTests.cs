@@ -16,7 +16,11 @@ public class SpellTypeTests
         s.ChannelDuration.ShouldBe(2.0);
         s.ChannelTickInterval.ShouldBe(0.4);
 
-        var g = new Spell { Id = 1028, WinterOrbCost = 2 };
+        var g = new Spell
+        {
+            Id = 1028,
+            Costs = new Dictionary<ResourceTypes, int> { [ResourceTypes.Tertiary] = 2 },
+        };
         g.WinterOrbCost.ShouldBe(2);
     }
 

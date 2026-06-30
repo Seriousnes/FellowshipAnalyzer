@@ -32,10 +32,10 @@ public record Spell : IRimeSpell, IElarionSpell
     public double? ChannelDuration { get; init; }
     public double? ChannelTickInterval { get; init; }
 
-    [JsonIgnore] public virtual int? SpiritCost { get; init; }
-    [JsonIgnore] public virtual int? WinterOrbCost { get; init; }
-    [JsonIgnore] public virtual int? AnimaCost { get; init; }
-    [JsonIgnore] public int? FocusCost { get; init; }
+    [JsonIgnore] public int? SpiritCost => Cost(ResourceTypes.Spirit);
+    [JsonIgnore] public int? WinterOrbCost => Cost(ResourceTypes.Tertiary);
+    [JsonIgnore] public int? AnimaCost => Cost(ResourceTypes.Primary);
+    [JsonIgnore] public int? FocusCost => Cost(ResourceTypes.Primary);
 
     /// <summary>Resource costs keyed by abstract <see cref="ResourceTypes"/> slot; empty when the spell spends nothing.</summary>
     public IReadOnlyDictionary<ResourceTypes, int> Costs { get; init; } =
