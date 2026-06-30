@@ -385,8 +385,8 @@
       "icon": "T_Nhance_RPG_Frost_01.jpg"
     },
     "EmpoweredMultishotBuff": {
-      "kind": "ability",
-      "id": 999999,
+      "kind": "effect",
+      "id": -1,
       "name": "",
       "icon": ""
     },

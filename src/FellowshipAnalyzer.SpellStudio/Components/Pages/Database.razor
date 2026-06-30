@@ -3,6 +3,7 @@
 @using FellowshipAnalyzer.Core.Common.Spells
 @using FellowshipAnalyzer.Core.UI.Components
 @using FellowshipAnalyzer.Core.Game
+@using System.Text.Json.Nodes
 @using FellowshipAnalyzer.SpellData
 @using FellowshipAnalyzer.SpellData.Json
 @using FellowshipAnalyzer.SpellData.Sources
@@ -467,17 +468,25 @@
         var existing = Merge.Overrides.ByScopeAndMember
             .GetValueOrDefault(spell.Scope)
             ?.GetValueOrDefault(spell.Member);
-        _eName = existing?.Name ?? "";
-        _eIcon = existing?.Icon ?? "";
-        _eCooldown = existing?.Cooldown?.ToString() ?? "";
-        _eRange = existing?.Range?.ToString() ?? "";
-        _eCharges = existing?.Charges?.ToString() ?? "";
-        _eCastDuration = existing?.CastDuration?.ToString() ?? "";
-        _eChannelDuration = existing?.ChannelDuration?.ToString() ?? "";
-        _eChannelTickInterval = existing?.ChannelTickInterval?.ToString() ?? "";
-        _eNote = existing?.Note ?? "";
+        _eName = StringField(existing, "name");
+        _eIcon = StringField(existing, "icon");
+        _eCooldown = NumberField(existing, "cooldown");
+        _eRange = NumberField(existing, "range");
+        _eCharges = NumberField(existing, "charges");
+        _eCastDuration = NumberField(existing, "castDuration");
+        _eChannelDuration = NumberField(existing, "channelDuration");
+        _eChannelTickInterval = NumberField(existing, "channelTickInterval");
+        _eNote = StringField(existing, "note");
         _eCosts = CostRowKeys(spell).ToDictionary(k => k, _ => "");
     }
+
+    private static string StringField(JsonObject? o, string key) =>
+        o is not null && o.TryGetPropertyValue(key, out var v) && v is JsonValue jv && jv.TryGetValue<string>(out var s)
+            ? s : "";
+
+    private static string NumberField(JsonObject? o, string key) =>
+        o is not null && o.TryGetPropertyValue(key, out var v) && v is JsonValue jv && jv.TryGetValue<double>(out var d)
+            ? d.ToString() : "";
 
     private void CancelEdit() => _selected = null;
 
@@ -494,19 +503,24 @@
         }
         var costs = DictEqual(merged, _selected.Spell.Costs) ? new Dictionary<ResourceTypes, int>() : merged;
 
-        var delta = new OverrideEntry(
-            Id: null,
-            Kind: null,
-            Name: string.IsNullOrWhiteSpace(_eName) ? null : _eName.Trim(),
-            Icon: string.IsNullOrWhiteSpace(_eIcon) ? null : _eIcon.Trim(),
-            Cooldown: double.TryParse(_eCooldown, out var cd) ? cd : null,
-            Range: int.TryParse(_eRange, out var rng) ? rng : null,
-            Charges: int.TryParse(_eCharges, out var ch) ? ch : null,
-            CastDuration: double.TryParse(_eCastDuration, out var cast) ? cast : null,
-            ChannelDuration: double.TryParse(_eChannelDuration, out var chd) ? chd : null,
-            ChannelTickInterval: double.TryParse(_eChannelTickInterval, out var cti) ? cti : null,
-            Costs: costs,
-            Note: string.IsNullOrWhiteSpace(_eNote) ? null : _eNote.Trim());
+        var delta = new JsonObject();
+        if (!string.IsNullOrWhiteSpace(_eName)) delta["name"] = _eName.Trim();
+        if (!string.IsNullOrWhiteSpace(_eIcon)) delta["icon"] = _eIcon.Trim();
+        if (double.TryParse(_eCooldown, out var cd)) delta["cooldown"] = cd;
+        if (int.TryParse(_eRange, out var rng)) delta["range"] = rng;
+        if (int.TryParse(_eCharges, out var ch)) delta["charges"] = ch;
+        if (double.TryParse(_eCastDuration, out var cast)) delta["castDuration"] = cast;
+        if (double.TryParse(_eChannelDuration, out var chd)) delta["channelDuration"] = chd;
+        if (double.TryParse(_eChannelTickInterval, out var cti)) delta["channelTickInterval"] = cti;
+        if (costs.Count > 0)
+        {
+            var costsNode = new JsonObject();
+            foreach (var (slot, v) in costs.OrderBy(x => (int)x.Key))
+                costsNode[ResourceTypesAliases.ToToken(slot)] = v;
+            delta["costs"] = costsNode;
+        }
+        if (!string.IsNullOrWhiteSpace(_eNote)) delta["note"] = _eNote.Trim();
+
         OverridesPersister.Save(_selected.Scope, _selected.Member, delta);
         Merge.Reload();
         _status = $"Saved {_selected.Scope}/{_selected.Member}.";
@@ -529,19 +543,8 @@
         if (_addGap is null || !int.TryParse(_addId, out var id)) return;
         var scope = _addGap.Scope;
         var member = _addGap.Member;
-        var delta = new OverrideEntry(
-            Id: id,
-            Kind: SpellKind.Effect,
-            Name: null,
-            Icon: null,
-            Cooldown: null,
-            Range: null,
-            Charges: null,
-            CastDuration: null,
-            ChannelDuration: null,
-            ChannelTickInterval: null,
-            Costs: new Dictionary<ResourceTypes, int>(),
-            Note: string.IsNullOrWhiteSpace(_addNote) ? null : _addNote.Trim());
+        var delta = new JsonObject { ["id"] = id, ["kind"] = "effect" };
+        if (!string.IsNullOrWhiteSpace(_addNote)) delta["note"] = _addNote.Trim();
         OverridesPersister.Save(scope, member, delta);
         Merge.Reload();
         _addGap = null;

@@ -1,5 +1,8 @@
+using System.Text.Json;
+using System.Text.Json.Nodes;
 using FellowshipAnalyzer.Core.Common.Spells;
 using FellowshipAnalyzer.Core.Game;
+using FellowshipAnalyzer.SpellData.Json;
 using FellowshipAnalyzer.SpellData.Model;
 using FellowshipAnalyzer.SpellData.Sources;
 
@@ -150,10 +153,11 @@ public static class MergeEngine
         {
             foreach (var (member, delta) in members)
             {
-                if (delta.Id is int overrideId)
+                var overrideId = DeltaId(delta);
+                if (overrideId is int oid)
                 {
-                    var ovKind = delta.Kind ?? SpellKindRange.FromFslId(overrideId);
-                    var targetGuid = SpellKindRange.GuidFor(ovKind, SpellKindRange.NativeId(overrideId));
+                    var ovKind = DeltaKind(delta) ?? SpellKindRange.FromFslId(oid);
+                    var targetGuid = SpellKindRange.GuidFor(ovKind, SpellKindRange.NativeId(oid));
                     spells.RemoveAll(s => s.Scope == scope && s.Member != member && s.Guid == targetGuid);
                 }
 
@@ -162,7 +166,7 @@ public static class MergeEngine
                 {
                     spells[idx] = ApplyPatch(spells[idx], delta);
                 }
-                else if (delta.Id is null)
+                else if (overrideId is null)
                 {
                     gaps.Add(new Gap(scope, member, GapKind.MissingId));
                 }
@@ -196,51 +200,37 @@ public static class MergeEngine
             Costs = costs,
         };
 
-    private static CuratedSpell ApplyPatch(CuratedSpell curated, OverrideEntry delta)
+    private static CuratedSpell ApplyPatch(CuratedSpell curated, JsonObject delta)
     {
-        var s = curated.Spell;
-        var newKind = delta.Kind ?? curated.Kind;
-        var newId = delta.Id ?? s.Id;
-        var costs = delta.Costs.Count > 0 ? delta.Costs : s.Costs;
-
-        var spell = BuildSpell(newKind, newId,
-            delta.Name ?? s.Name,
-            delta.Icon ?? s.Icon,
-            delta.Cooldown ?? s.Cooldown,
-            delta.Range ?? s.Range,
-            delta.Charges ?? s.Charges,
-            delta.CastDuration ?? s.CastDuration,
-            delta.ChannelDuration ?? s.ChannelDuration,
-            delta.ChannelTickInterval ?? s.ChannelTickInterval,
-            costs);
+        var node = JsonSerializer.SerializeToNode(curated.Spell, SpellDbJsonOptions.Default)!.AsObject();
+        foreach (var (key, value) in delta)
+        {
+            if (key == "note")
+                continue;
+            node[key] = value?.DeepClone();
+        }
+        var spell = node.Deserialize<Spell>(SpellDbJsonOptions.Default)!;
 
         var prov = new Dictionary<string, ProvenanceSource>(curated.Provenance.ByField, StringComparer.Ordinal);
-        MarkOverride(prov, "id", delta.Id.HasValue);
-        MarkOverride(prov, "kind", delta.Kind.HasValue);
-        MarkOverride(prov, "name", delta.Name is not null);
-        MarkOverride(prov, "icon", delta.Icon is not null);
-        MarkOverride(prov, "cooldown", delta.Cooldown.HasValue);
-        MarkOverride(prov, "range", delta.Range.HasValue);
-        MarkOverride(prov, "charges", delta.Charges.HasValue);
-        MarkOverride(prov, "castDuration", delta.CastDuration.HasValue);
-        MarkOverride(prov, "channelDuration", delta.ChannelDuration.HasValue);
-        MarkOverride(prov, "channelTickInterval", delta.ChannelTickInterval.HasValue);
-        MarkOverride(prov, "costs", delta.Costs.Count > 0);
+        foreach (var (key, _) in delta)
+            if (key != "note")
+                prov[key] = ProvenanceSource.Override;
 
         return curated with { Spell = spell, Provenance = new Provenance(prov) };
     }
 
-    private static void MarkOverride(Dictionary<string, ProvenanceSource> prov, string field, bool present)
-    {
-        if (present)
-            prov[field] = ProvenanceSource.Override;
-    }
+    private static int? DeltaId(JsonObject delta) =>
+        delta.TryGetPropertyValue("id", out var v) && v is JsonValue jv && jv.TryGetValue<int>(out var id) ? id : null;
+
+    private static SpellKind? DeltaKind(JsonObject delta) =>
+        delta.TryGetPropertyValue("kind", out var v) && v is JsonValue jv && jv.TryGetValue<string>(out var s)
+            && Enum.TryParse<SpellKind>(s, ignoreCase: true, out var kind) ? kind : null;
 
     private static (CuratedSpell Spell, IEnumerable<Gap> Gaps) EnrichById(
-        string scope, string member, OverrideEntry delta, MergeInputs inputs)
+        string scope, string member, JsonObject delta, MergeInputs inputs)
     {
-        var id = delta.Id!.Value;
-        var kind = delta.Kind ?? SpellKindRange.FromFslId(id);
+        var id = DeltaId(delta)!.Value;
+        var kind = DeltaKind(delta) ?? SpellKindRange.FromFslId(id);
         var nativeId = SpellKindRange.NativeId(id);
         var scalars = GatherScalarsById(id, inputs);
 
@@ -253,48 +243,44 @@ public static class MergeEngine
         var gearWeapon = inputs.GearData.Weapons.FirstOrDefault(w => w.FslId == id)
             ?? inputs.GearData.WeaponTraits.FirstOrDefault(w => w.FslId == id);
 
-        var resolvedName = delta.Name ?? nameFromSpellData ?? gearWeapon?.DisplayName ?? string.Empty;
+        var resolvedName = nameFromSpellData ?? gearWeapon?.DisplayName ?? string.Empty;
         var guid = SpellKindRange.GuidFor(kind, nativeId);
-        var icon = delta.Icon ?? inputs.Icons.IconFor(guid) ?? string.Empty;
+        var icon = inputs.Icons.IconFor(guid) ?? string.Empty;
+        var costs = Costs.Map(scalars, new ResourceModel(new Dictionary<string, ResourceTypes>()));
 
-        var cooldown = delta.Cooldown ?? Normalization.Cooldown(scalars);
-        var range = delta.Range ?? Normalization.Range(scalars);
-        var charges = delta.Charges ?? Normalization.Charges(scalars);
-        var castDuration = delta.CastDuration ?? Normalization.CastDuration(scalars);
-        var channelDuration = delta.ChannelDuration ?? Normalization.ChannelDuration(scalars);
-        var channelTickInterval = delta.ChannelTickInterval ?? Normalization.ChannelTickInterval(scalars);
+        var cooldown = Normalization.Cooldown(scalars);
+        var range = Normalization.Range(scalars);
+        var charges = Normalization.Charges(scalars);
+        var castDuration = Normalization.CastDuration(scalars);
+        var channelDuration = Normalization.ChannelDuration(scalars);
+        var channelTickInterval = Normalization.ChannelTickInterval(scalars);
 
-        var costs = delta.Costs.Count > 0
-            ? delta.Costs
-            : Costs.Map(scalars, new ResourceModel(new Dictionary<string, ResourceTypes>()));
-
-        var nameSource = delta.Name is not null ? ProvenanceSource.Override
-            : nameFromSpellData is not null ? ProvenanceSource.SpellData
+        var nameSource = nameFromSpellData is not null ? ProvenanceSource.SpellData
             : gearWeapon is not null ? ProvenanceSource.GearData
             : (ProvenanceSource?)null;
 
         var prov = new ProvenanceBuilder()
-            .Set("id", ProvenanceSource.Override)
-            .Set("kind", delta.Kind.HasValue ? ProvenanceSource.Override : ProvenanceSource.SpellData);
+            .Set("id", ProvenanceSource.SpellData)
+            .Set("kind", ProvenanceSource.SpellData);
         if (nameSource is { } ns) prov.Set("name", ns);
-        prov.Set("icon", delta.Icon is not null ? ProvenanceSource.Override : ProvenanceSource.Icons);
-        prov.SetIf("cooldown", cooldown.HasValue, delta.Cooldown.HasValue ? ProvenanceSource.Override : ProvenanceSource.GearData);
-        prov.SetIf("range", range.HasValue, delta.Range.HasValue ? ProvenanceSource.Override : ProvenanceSource.GearData);
-        prov.Set("charges", delta.Charges.HasValue ? ProvenanceSource.Override : ProvenanceSource.GearData);
-        prov.SetIf("castDuration", castDuration.HasValue, delta.CastDuration.HasValue ? ProvenanceSource.Override : ProvenanceSource.GearData);
-        prov.SetIf("channelDuration", channelDuration.HasValue, delta.ChannelDuration.HasValue ? ProvenanceSource.Override : ProvenanceSource.GearData);
-        prov.SetIf("channelTickInterval", channelTickInterval.HasValue, delta.ChannelTickInterval.HasValue ? ProvenanceSource.Override : ProvenanceSource.GearData);
-        prov.SetIf("costs", costs.Count > 0, delta.Costs.Count > 0 ? ProvenanceSource.Override : ProvenanceSource.GearData);
+        prov.SetIf("icon", icon.Length > 0, ProvenanceSource.Icons);
+        prov.SetIf("cooldown", cooldown.HasValue, ProvenanceSource.GearData);
+        prov.SetIf("range", range.HasValue, ProvenanceSource.GearData);
+        prov.Set("charges", ProvenanceSource.GearData);
+        prov.SetIf("castDuration", castDuration.HasValue, ProvenanceSource.GearData);
+        prov.SetIf("channelDuration", channelDuration.HasValue, ProvenanceSource.GearData);
+        prov.SetIf("channelTickInterval", channelTickInterval.HasValue, ProvenanceSource.GearData);
+        prov.SetIf("costs", costs.Count > 0, ProvenanceSource.GearData);
 
-        var spell = BuildSpell(kind, nativeId, resolvedName, icon, cooldown, range, charges,
+        var baseSpell = BuildSpell(kind, nativeId, resolvedName, icon, cooldown, range, charges,
             castDuration, channelDuration, channelTickInterval, costs);
-        var curated = new CuratedSpell(scope, member, spell, prov.Build());
+        var curated = ApplyPatch(new CuratedSpell(scope, member, baseSpell, prov.Build()), delta);
 
         var addedGaps = new List<Gap>();
-        if (!MemberNaming.IsValidIdentifier(member))
-            addedGaps.Add(new Gap(scope, member, GapKind.MissingName));
-        if (string.IsNullOrEmpty(icon))
-            addedGaps.Add(new Gap(scope, member, GapKind.MissingIcon));
+        if (!MemberNaming.IsValidIdentifier(curated.Member))
+            addedGaps.Add(new Gap(scope, curated.Member, GapKind.MissingName));
+        if (string.IsNullOrEmpty(curated.Spell.Icon))
+            addedGaps.Add(new Gap(scope, curated.Member, GapKind.MissingIcon));
 
         return (curated, addedGaps);
     }
