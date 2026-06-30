@@ -115,5 +115,19 @@ public class Abilities : CoreAbilities
             PrimarySpell = Core.Common.Spells.Spells.Kindling,
             Category = SpellCategory.Hidden,
         },
+
+        // S3
+        new()
+        {
+            PrimarySpell = Spells.RisingTalons,
+            Category = SpellCategory.RotationalAoe,
+            Gcd = StandardGcd,
+        },
+        new()
+        {
+            PrimarySpell = Spells.TalonStrike,
+            Category = SpellCategory.Rotational,
+            Gcd = StandardGcd,
+        },
     ];
 }

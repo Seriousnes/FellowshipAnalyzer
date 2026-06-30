@@ -195,7 +195,7 @@
       "kind": "effect",
       "id": 3153,
       "name": "Converging Timelines",
-      "icon": ""
+      "icon": "T_Nhance_RPG_Shadow_40.jpg"
     },
     "RestoreContinuity": {
       "kind": "ability",
@@ -293,7 +293,7 @@
       "kind": "effect",
       "id": 3151,
       "name": "Time Skip",
-      "icon": ""
+      "icon": "T_Lisa_Blink.jpg"
     },
     "UnfoldingDoom": {
       "kind": "ability",
@@ -690,7 +690,7 @@
       "kind": "ability",
       "id": 1249,
       "name": "Attack",
-      "icon": ""
+      "icon": "Gunde_AOESwing_01.jpg"
     },
     "AttackDamage": {
       "kind": "effect",
@@ -708,7 +708,7 @@
       "kind": "ability",
       "id": 2291,
       "name": "Blood Arc",
-      "icon": "",
+      "icon": "Gunde_Frontal.jpg",
       "cooldown": 9
     },
     "BloodArcDamage": {
@@ -721,7 +721,7 @@
       "kind": "ability",
       "id": 2296,
       "name": "Bloodbound Spirit",
-      "icon": "",
+      "icon": "T_Gunde_Spirit.jpg",
       "castDuration": 1
     },
     "BloodboundSpiritDamage": {
@@ -734,13 +734,13 @@
       "kind": "effect",
       "id": 3242,
       "name": "Bloodbound Spirit",
-      "icon": ""
+      "icon": "T_Gunde_Spirit.jpg"
     },
     "ButcherHook": {
       "kind": "ability",
       "id": 2284,
       "name": "Butcher\u0027s Hook",
-      "icon": "",
+      "icon": "T_Gunde_Grip.jpg",
       "cooldown": 30,
       "range": 30
     },
@@ -766,7 +766,7 @@
       "kind": "ability",
       "id": 2301,
       "name": "Double Strike",
-      "icon": "",
+      "icon": "T_Gunde_DoubleStrike.jpg",
       "range": 30
     },
     "DoubleStrikeDamage": {
@@ -779,7 +779,7 @@
       "kind": "ability",
       "id": 2262,
       "name": "Grim Carve",
-      "icon": "",
+      "icon": "T_Gunde_Sawblade.jpg",
       "cooldown": 15,
       "range": 30
     },
@@ -793,7 +793,7 @@
       "kind": "ability",
       "id": 2294,
       "name": "Heart Splitter",
-      "icon": "",
+      "icon": "T_Gunde_Cleave.jpg",
       "cooldown": 12
     },
     "HeartSplitterDamage": {
@@ -818,7 +818,7 @@
       "kind": "ability",
       "id": 1244,
       "name": "Jawbreaker",
-      "icon": "",
+      "icon": "t_gunde_Interrupt.jpg",
       "cooldown": 12,
       "range": 5
     },
@@ -838,14 +838,14 @@
       "kind": "ability",
       "id": 2298,
       "name": "Owed in Blood",
-      "icon": "",
+      "icon": "T_Gunde_SanguineFeast.jpg",
       "range": 20
     },
     "OwedInBloodSelfBuff": {
       "kind": "effect",
       "id": 3245,
       "name": "Owed in Blood",
-      "icon": ""
+      "icon": "T_Gunde_SanguineFeast.jpg"
     },
     "OwedInBloodSelfBuffFromOrbs": {
       "kind": "effect",
@@ -857,7 +857,7 @@
       "kind": "ability",
       "id": 2290,
       "name": "Reaver\u0027s Edge",
-      "icon": "",
+      "icon": "Gunde_AOESwing_01.jpg",
       "cooldown": 5
     },
     "ReaverEdgeDamage": {
@@ -870,33 +870,33 @@
       "kind": "ability",
       "id": 2300,
       "name": "Reckless Abandon",
-      "icon": "",
+      "icon": "T_Gunde_Defensive.jpg",
       "cooldown": 30
     },
     "RecklessAbandonSelfBuff": {
       "kind": "effect",
       "id": 3247,
       "name": "Reckless Abandon",
-      "icon": ""
+      "icon": "T_Gunde_Defensive.jpg"
     },
     "ReignInBlood": {
       "kind": "ability",
       "id": 2295,
       "name": "Reign in Blood",
-      "icon": "",
+      "icon": "T_Gunde_HPDrain.jpg",
       "cooldown": 90
     },
     "ReignInBloodSelfBuff": {
       "kind": "effect",
       "id": 3241,
       "name": "Reign in Blood",
-      "icon": ""
+      "icon": "T_Gunde_HPDrain.jpg"
     },
     "Rupture": {
       "kind": "ability",
       "id": 2293,
       "name": "Rupture",
-      "icon": "",
+      "icon": "T_Gunde_Rupture.jpg",
       "cooldown": 60
     },
     "RuptureDamage": {
@@ -909,20 +909,20 @@
       "kind": "ability",
       "id": 2292,
       "name": "Slaughter",
-      "icon": "",
+      "icon": "T_Gunde_Slaughter.jpg",
       "cooldown": 30
     },
     "SlaughterDot": {
       "kind": "effect",
       "id": 3237,
       "name": "Slaughter",
-      "icon": ""
+      "icon": "T_Gunde_Slaughter.jpg"
     },
     "Warbound": {
       "kind": "ability",
       "id": 2299,
       "name": "Warbound",
-      "icon": "",
+      "icon": "T_Gunde_Charge.jpg",
       "charges": 2
     },
     "WarboundDamage": {
@@ -1435,6 +1435,12 @@
       "name": "Tremble!",
       "icon": "Tex_red_10.jpg"
     },
+    "MacabreStrategem": {
+      "kind": "ability",
+      "id": 2233,
+      "name": "Macabre Strategem",
+      "icon": "T_Nhance_RPG_Shadow_16.jpg"
+    },
     "MaidenOfDeath": {
       "kind": "ability",
       "id": 1206,
@@ -1469,7 +1475,7 @@
       "kind": "effect",
       "id": 2039,
       "name": "Matriarch Macabre",
-      "icon": "T_Icon_Shadow_140.jpg"
+      "icon": "Mara_Spirit.jpg"
     },
     "QueenFang": {
       "kind": "ability",
@@ -2185,11 +2191,23 @@
       "name": "",
       "icon": ""
     },
+    "RisingTalons": {
+      "kind": "ability",
+      "id": 2224,
+      "name": "Rising Talons",
+      "icon": "T_Rime_AOE_Spender.jpg"
+    },
     "TalonEdict": {
       "kind": "ability",
       "id": 1555,
       "name": "Talon\u0027s Edict",
       "icon": "T_Icon_Elements_74.jpg"
+    },
+    "TalonStrike": {
+      "kind": "ability",
+      "id": 2223,
+      "name": "Talon Strike",
+      "icon": "T_Rime_Singletarget_spender_.jpg"
     },
     "WinterBlessingHeal": {
       "kind": "effect",
@@ -2650,14 +2668,14 @@
       "kind": "ability",
       "id": 2239,
       "name": "Face Breaker",
-      "icon": "",
+      "icon": "T_Ink_Facebreaker.jpg",
       "cooldown": 6
     },
     "FaceBreakerAlt": {
       "kind": "ability",
       "id": 2241,
       "name": "Face Breaker",
-      "icon": ""
+      "icon": "T_Ink_Facebreaker.jpg"
     },
     "FaceBreakerDamage": {
       "kind": "effect",
@@ -3354,7 +3372,7 @@
       "kind": "effect",
       "id": 2545,
       "name": "Tremble!",
-      "icon": ""
+      "icon": "Tex_red_10.jpg"
     },
     "OmegaReprieval": {
       "kind": "ability",

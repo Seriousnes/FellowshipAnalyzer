@@ -1,5 +1,4 @@
 #:package Microsoft.Extensions.Configuration.UserSecrets@10.0.0
-#:property UserSecretsId=YOUR-USER-SECRETS-ID-HERE
 #:property PublishAot=false
 
 using System.Net.Http.Headers;
@@ -20,11 +19,12 @@ if (!refresh && File.Exists(outputPath))
     return 0;
 }
 
+var userSecretId = LoadUserSecretId(repoRoot);
+if (userSecretId is null)
+    return 1;
+
 var configuration = new ConfigurationBuilder()
-    // Replace YOUR-USER-SECRETS-ID-HERE with your own UserSecretsId.
-    // Run `dotnet user-secrets init` in the FellowshipAnalyzer project to generate one,
-    // then set FellowshipLogs:ClientId and FellowshipLogs:ClientSecret via `dotnet user-secrets set`.
-    .AddUserSecrets("fellowshipanalyzer-devapi")
+    .AddUserSecrets(userSecretId)
     .Build();
 
 var clientId = configuration["FellowshipLogs:ClientId"] ?? configuration["ClientId"];
@@ -141,6 +141,40 @@ static string FindRepoRoot()
 
     throw new InvalidOperationException(
         "Could not find repository root (no .slnx file found in parent directories).");
+}
+
+static string? LoadUserSecretId(string repoRoot)
+{
+    var envPath = Path.Combine(repoRoot, ".env.local");
+    if (!File.Exists(envPath))
+    {
+        Console.Error.WriteLine(
+            $"No .env.local file found at {envPath}. " +
+            "Create one with: USER_SECRET_ID=<your-user-secrets-id>");
+        return null;
+    }
+
+    foreach (var raw in File.ReadAllLines(envPath))
+    {
+        var line = raw.Trim();
+        if (line.Length == 0 || line.StartsWith('#'))
+            continue;
+
+        var separator = line.IndexOf('=');
+        if (separator <= 0)
+            continue;
+
+        if (!line[..separator].Trim().Equals("USER_SECRET_ID", StringComparison.OrdinalIgnoreCase))
+            continue;
+
+        var value = line[(separator + 1)..].Trim().Trim('"');
+        if (value.Length > 0)
+            return value;
+    }
+
+    Console.Error.WriteLine(
+        $"USER_SECRET_ID not set in {envPath}. Add a line: USER_SECRET_ID=<your-user-secrets-id>");
+    return null;
 }
 
 // --- Response models ---
