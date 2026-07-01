@@ -6,6 +6,7 @@ using FellowshipAnalyzer.Core.Game;
 using FellowshipAnalyzer.SpellData.Json;
 using FellowshipAnalyzer.SpellData.Model;
 using FellowshipAnalyzer.SpellData.Sources;
+using SpellKind = FellowshipAnalyzer.SpellData.Model.SpellKind;
 
 namespace FellowshipAnalyzer.SpellData;
 
