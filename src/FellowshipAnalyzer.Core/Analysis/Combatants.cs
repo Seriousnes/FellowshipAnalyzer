@@ -34,7 +34,7 @@ public sealed partial class Combatants : Analyzer
                 var prepullBuff = new TrackedBuffEvent
                 {
                     Timestamp = combatant.Info.Timestamp,
-                    Ability = new Ability { Guid = aura.Ability, Name = aura.Name, Icon = aura.Icon },
+                    Ability = new Ability { FSLID = aura.Ability, Name = aura.Name, Icon = aura.Icon },
                     SourceId = aura.Source,
                     TargetId = combatant.Id,
                     Start = combatant.Info.Timestamp,

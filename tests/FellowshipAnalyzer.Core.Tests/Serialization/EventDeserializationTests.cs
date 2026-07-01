@@ -50,7 +50,7 @@ public sealed class EventDeserializationTests
 
         var casts = events.OfType<CastEvent>()
             .Where(e => e.SourceId == 3)
-            .GroupBy(e => e.Ability.Guid)
+            .GroupBy(e => e.Ability.FSLID)
             .ToDictionary(g => g.Key, g => g.Count());
 
         casts[1018].ShouldBe(254, "Ice Comet casts");
@@ -101,7 +101,7 @@ public sealed class EventDeserializationTests
 
         var damageByAbility = events.OfType<DamageEvent>()
             .Where(e => e.SourceId == 3 && e.TargetId != 3)
-            .GroupBy(e => e.Ability.Guid)
+            .GroupBy(e => e.Ability.FSLID)
             .ToDictionary(g => g.Key, g => (Damage: g.Sum(e => e.Amount), Hits: g.Count()));
 
         damageByAbility[1018].Damage.ShouldBe(125_361_701);
@@ -127,7 +127,7 @@ public sealed class EventDeserializationTests
         foreach (var cast in casts)
         {
             cast.Ability.ShouldNotBeNull($"CastEvent at timestamp {cast.Timestamp} has null Ability");
-            cast.Ability.Guid.ShouldBeGreaterThan(0, $"CastEvent at timestamp {cast.Timestamp} has Ability.Guid == 0");
+            cast.Ability.FSLID.Value.ShouldBeGreaterThan(0, $"CastEvent at timestamp {cast.Timestamp} has Ability.FSLID == 0");
             cast.Ability.Name.ShouldNotBeNullOrEmpty($"CastEvent at timestamp {cast.Timestamp} has empty Ability.Name");
         }
     }
@@ -164,7 +164,7 @@ public sealed class EventDeserializationTests
         foreach (var cast in casts)
         {
             cast.Ability.ShouldNotBeNull($"CastEvent at timestamp {cast.Timestamp} has null Ability");
-            cast.Ability.Guid.ShouldBeGreaterThan(0);
+            cast.Ability.FSLID.Value.ShouldBeGreaterThan(0);
             cast.Ability.Name.ShouldNotBeNullOrEmpty();
         }
 

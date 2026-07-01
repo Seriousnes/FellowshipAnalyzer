@@ -43,7 +43,7 @@
 
         // Build the available-options lists for the settings modal (full pool, before filtering).
         var availableAuraOptions = allPlayerAuras
-            .GroupBy(b => b.Ability.Guid)
+            .GroupBy(b => b.Ability.FSLID)
             .Select(g =>
             {
                 var first = g.First();

@@ -1,10 +1,12 @@
-﻿namespace FellowshipAnalyzer.Core.Events;
+﻿using FellowshipAnalyzer.Core.Common.Spells;
+
+namespace FellowshipAnalyzer.Core.Events;
 
 [Fabricated]
 public class GlobalCooldownEvent : Event, IAbilityEvent
 {
     public virtual Ability Ability { get; set; }
-    public virtual int AbilityGameId { get; set; }
+    public virtual FSLID AbilityGameId { get; set; }
     public virtual int Duration { get; set; }
     public virtual int SourceId { get; set; }
     public virtual int TargetId { get; set; }

@@ -1,9 +1,11 @@
-﻿namespace FellowshipAnalyzer.Core.Events;
+﻿using FellowshipAnalyzer.Core.Common.Spells;
+
+namespace FellowshipAnalyzer.Core.Events;
 
 public abstract class BuffEvent : Event, IAbilityEvent, IHasTargetWithInstanceEvent, IHasSourceWithInstanceEvent
 {
     public virtual Ability Ability { get; set; } = new();
-    public virtual int AbilityGameId { get; set; }
+    public virtual FSLID AbilityGameId { get; set; }
     public virtual int? TargetInstance { get; set; }
     public virtual int TargetId { get; set; }
     public virtual int? SourceInstance { get; set; }

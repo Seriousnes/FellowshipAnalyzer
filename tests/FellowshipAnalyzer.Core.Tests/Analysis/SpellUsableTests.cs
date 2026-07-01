@@ -200,17 +200,17 @@ public sealed partial class SpellUsableTests
                     Timestamp = 2000,
                     SourceId = PlayerId,
                     TargetId = PlayerId,
-                    Ability = new Ability { Guid = TriggerId, Name = "RateChangeTrigger" },
+                    Ability = new Ability { FSLID = TriggerId, Name = "RateChangeTrigger" },
                 },
             ],
             onApplyBuff: (su, e) =>
             {
-                if (e.Ability?.Guid == TriggerId)
+                if (e.Ability?.FSLID.Value == TriggerId)
                     su.ApplyCooldownRateChangeToAll(2.0, e.Timestamp);
             });
 
         var rateUpdate = probe.Updates
-            .LastOrDefault(e => e.Ability.Guid == SpellB && e.UpdateType == UpdateSpellUsableType.ChangeCooldownRate);
+            .LastOrDefault(e => e.Ability.FSLID == SpellB && e.UpdateType == UpdateSpellUsableType.ChangeCooldownRate);
         Assert.NotNull(rateUpdate);
         Assert.Equal(1000, rateUpdate!.OverallStartTimestamp);
     }
@@ -229,7 +229,7 @@ public sealed partial class SpellUsableTests
                 Timestamp = 21000,
                 SourceId = PlayerId,
                 TargetId = PlayerId,
-                Ability = new Ability { Guid = 9999, Name = "Filler" },
+                Ability = new Ability { FSLID = 9999, Name = "Filler" },
             },
         ]);
 
@@ -237,8 +237,8 @@ public sealed partial class SpellUsableTests
             .Where(e => e.UpdateType == UpdateSpellUsableType.EndCooldown)
             .ToList();
         Assert.Equal(2, endCooldowns.Count);
-        Assert.Equal(SpellA, endCooldowns[0].Ability.Guid);
-        Assert.Equal(SpellB, endCooldowns[1].Ability.Guid);
+        Assert.Equal(SpellA, endCooldowns[0].Ability.FSLID.Value);
+        Assert.Equal(SpellB, endCooldowns[1].Ability.FSLID.Value);
     }
 
     [Fact]
@@ -253,7 +253,7 @@ public sealed partial class SpellUsableTests
             {
                 Timestamp = CastStart,
                 SourceId = PlayerId,
-                Ability = new Ability { Guid = SpellA, Name = "Spell A" },
+                Ability = new Ability { FSLID = SpellA, Name = "Spell A" },
             },
             CreateCast(CastEnd, SpellA),
         ]);
@@ -310,7 +310,7 @@ public sealed partial class SpellUsableTests
         Timestamp = timestamp,
         SourceId = PlayerId,
         TargetId = 11,
-        Ability = new Ability { Guid = spellId, Name = $"Spell {spellId}" },
+        Ability = new Ability { FSLID = spellId, Name = $"Spell {spellId}" },
         Target = null,
         Channel = new EndChannelEvent(),
     };

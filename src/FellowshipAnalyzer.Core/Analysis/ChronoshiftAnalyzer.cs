@@ -112,7 +112,7 @@ public sealed partial class ChronoshiftAnalyzer(Lazy<SpellUsable> spellUsable) :
     {
         if (!_windowActive) return;
 
-        var spellId = e.Ability.Guid;
+        var spellId = e.Ability.FSLID;
         switch (e.UpdateType)
         {
             case UpdateSpellUsableType.ChangeCooldownRate:

@@ -1,10 +1,12 @@
-﻿namespace FellowshipAnalyzer.Core.Events;
+﻿using FellowshipAnalyzer.Core.Common.Spells;
+
+namespace FellowshipAnalyzer.Core.Events;
 
 [Fabricated]
 public class AutoAttackCooldownEvent : Event, IAbilityEvent
 {
     public virtual Ability Ability { get; set; }
-    public virtual int AbilityGameId { get; set; }
+    public virtual FSLID AbilityGameId { get; set; }
     public virtual double Duration { get; set; }
     public virtual double Haste { get; set; }
     public virtual double AttackSpeed { get; set; }

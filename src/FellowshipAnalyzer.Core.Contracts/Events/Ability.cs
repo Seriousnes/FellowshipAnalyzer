@@ -1,22 +1,24 @@
 using System.Diagnostics;
 using System.Text.Json.Serialization;
 
+using FellowshipAnalyzer.Core.Common.Spells;
+
 namespace FellowshipAnalyzer.Core.Events;
 
 public interface ISpell
 {
     int Id { get; }
-    int Guid { get; }
+    FSLID FSLID { get; }
 }
 
-[DebuggerDisplay("{Name,nq} - SpellId: {Guid}")]
+[DebuggerDisplay("{Name,nq} - FSLID: {FSLID}")]
 public class Ability : ISpell
 {
     [JsonIgnore]
-    public virtual int Id { get => Guid; set => Guid = value; }
+    public virtual int Id { get => FSLID; set => FSLID = value; }
 
     [JsonPropertyName("guid")]
-    public virtual int Guid { get; set; }
+    public virtual FSLID FSLID { get; set; }
 
     public virtual string Name { get; set; } = string.Empty;
 

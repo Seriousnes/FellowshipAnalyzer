@@ -70,7 +70,7 @@ else if (_icon is { Length: > 0 })
             a => { var s = a.PrimarySpell; _id = s.Id; _name = a.Name ?? s.Name; _icon = s.Icon; _isEffect = s is Effect; },
             a =>
             {
-                var normalized = NormalizeGuid(a.Guid);
+                var normalized = NormalizeGuid(a.FSLID);
                 _id = normalized.ShortId; _name = a.Name; _icon = a.Icon; _isEffect = normalized.IsEffect;
             }
         );

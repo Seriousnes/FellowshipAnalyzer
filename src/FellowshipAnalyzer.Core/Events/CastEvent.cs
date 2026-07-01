@@ -1,9 +1,11 @@
-﻿namespace FellowshipAnalyzer.Core.Events;
+﻿using FellowshipAnalyzer.Core.Common.Spells;
+
+namespace FellowshipAnalyzer.Core.Events;
 
 public abstract class BaseCastEvent : Event, IAbilityEvent, IHasSourceWithInstanceEvent, IHasTargetWithInstanceEvent
 {
     public virtual Ability Ability { get; set; }
-    public int AbilityGameId { get; set; }
+    public FSLID AbilityGameId { get; set; }
     public virtual int? Absorb { get; set; }
     public virtual EndChannelEvent? Channel { get; set; }
     public virtual int SourceId { get; set; }

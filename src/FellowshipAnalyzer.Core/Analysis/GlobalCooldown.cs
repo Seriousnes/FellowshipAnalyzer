@@ -86,7 +86,7 @@ public sealed partial class GlobalCooldown(Lazy<Abilities> abilities, Lazy<Debug
             TargetIsFriendly = true,
             Ability = new Ability
             {
-                Guid = spellId,
+                FSLID = spellId,
                 Name = ability?.Name ?? string.Empty,
             },
         });

@@ -1,4 +1,6 @@
-﻿namespace FellowshipAnalyzer.Core.Events;
+﻿using FellowshipAnalyzer.Core.Common.Spells;
+
+namespace FellowshipAnalyzer.Core.Events;
 
 public class DispelEvent : Event, IAbilityEvent, IExtraAbilityEvent, IHasSourceEvent, IHasTargetWithInstanceEvent
 {
@@ -6,12 +8,12 @@ public class DispelEvent : Event, IAbilityEvent, IExtraAbilityEvent, IHasSourceE
     /// The ability used to dispel <see cref="ExtraAbility"/>
     /// </summary>
     public virtual Ability Ability { get; set; }
-    public virtual int AbilityGameId { get; set; }
+    public virtual FSLID AbilityGameId { get; set; }
     /// <summary>
     /// The ability dispelled by <see cref="Ability"/>
     /// </summary>
     public virtual Ability ExtraAbility { get; set; }
-    public virtual int ExtraAbilityGameId { get; set; }
+    public virtual FSLID ExtraAbilityGameId { get; set; }
     public virtual bool IsBuff { get; set; }
     public virtual int SourceId { get; set; }
     public virtual bool? SourceIsFriendly { get; set; }

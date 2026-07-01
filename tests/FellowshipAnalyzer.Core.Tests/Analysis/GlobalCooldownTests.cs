@@ -86,7 +86,7 @@ public sealed class GlobalCooldownTests
                 SourceId = PlayerId,
                 TargetId = EnemyId,
                 Activation = true,
-                Ability = new Ability { Guid = TestSpellId, Name = "Test Spell" },
+                Ability = new Ability { FSLID = TestSpellId, Name = "Test Spell" },
             },
         };
 
@@ -111,7 +111,7 @@ public sealed class GlobalCooldownTests
                 SourceId = PlayerId,
                 TargetId = EnemyId,
                 Activation = true,
-                Ability = new Ability { Guid = TestSpellId, Name = "Test Spell" },
+                Ability = new Ability { FSLID = TestSpellId, Name = "Test Spell" },
             },
             new CastEvent
             {
@@ -119,7 +119,7 @@ public sealed class GlobalCooldownTests
                 SourceId = PlayerId,
                 TargetId = EnemyId,
                 Activation = false,
-                Ability = new Ability { Guid = TestSpellId, Name = "Test Spell" },
+                Ability = new Ability { FSLID = TestSpellId, Name = "Test Spell" },
             },
         };
 
@@ -145,13 +145,13 @@ public sealed class GlobalCooldownTests
                 TargetId = EnemyId,
                 Activation = true,
                 Fake = true,
-                Ability = new Ability { Guid = TestSpellId, Name = "Test Spell" },
+                Ability = new Ability { FSLID = TestSpellId, Name = "Test Spell" },
             },
             new BeginCastEvent
             {
                 Timestamp = 1000,
                 SourceId = PlayerId,
-                Ability = new Ability { Guid = TestSpellId, Name = "Test Spell" },
+                Ability = new Ability { FSLID = TestSpellId, Name = "Test Spell" },
             },
         };
 
@@ -178,22 +178,22 @@ public sealed class GlobalCooldownTests
                 SourceId = PlayerId,
                 TargetId = EnemyId,
                 Activation = true,
-                Ability = new Ability { Guid = BrainFreezeSpellId, Name = "Brain Freeze" },
+                Ability = new Ability { FSLID = BrainFreezeSpellId, Name = "Brain Freeze" },
             },
             new RemoveDebuffEvent
             {
                 Timestamp = 1623565,
                 SourceId = PlayerId,
                 TargetId = PlayerId,
-                Ability = new Ability { Guid = 1000001, Name = "Mounted" },
+                Ability = new Ability { FSLID = 1000001, Name = "Mounted" },
             },
             new InterruptEvent
             {
                 Timestamp = 1623565,
                 SourceId = PlayerId,
                 TargetId = EnemyId,
-                Ability = new Ability { Guid = BrainFreezeSpellId, Name = "Brain Freeze" },
-                ExtraAbility = new Ability { Guid = 734, Name = "Shattering Barrier" },
+                Ability = new Ability { FSLID = BrainFreezeSpellId, Name = "Brain Freeze" },
+                ExtraAbility = new Ability { FSLID = 734, Name = "Shattering Barrier" },
             },
         };
 
@@ -339,7 +339,7 @@ public sealed class GlobalCooldownTests
         Timestamp = timestamp,
         SourceId = PlayerId,
         TargetId = EnemyId,
-        Ability = new Ability { Guid = spellId, Name = $"Spell {spellId}" },
+        Ability = new Ability { FSLID = spellId, Name = $"Spell {spellId}" },
         Activation = activation,
     };
 
@@ -347,6 +347,6 @@ public sealed class GlobalCooldownTests
     {
         Timestamp = timestamp,
         SourceId = PlayerId,
-        Ability = new Ability { Guid = spellId, Name = $"Spell {spellId}" },
+        Ability = new Ability { FSLID = spellId, Name = $"Spell {spellId}" },
     };
 }

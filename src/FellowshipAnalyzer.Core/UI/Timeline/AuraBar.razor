@@ -90,17 +90,17 @@
     {
         if (VisibleAuraIds is not null)
         {
-            return Auras.Where(b => VisibleAuraIds.Contains(b.Ability.Guid));
+            return Auras.Where(b => VisibleAuraIds.Contains(b.Ability.FSLID));
         }
         if (HighlightedSpellIds is not null)
         {
-            return Auras.Where(b => HighlightedSpellIds.Contains(b.Ability.Guid));
+            return Auras.Where(b => HighlightedSpellIds.Contains(b.Ability.FSLID));
         }
         return Auras;
     }
 
     private int PriorityOf(TrackedBuffEvent buff) =>
-        AuraPriorities is not null && AuraPriorities.TryGetValue(buff.Ability.Guid, out var p) ? p : 0;
+        AuraPriorities is not null && AuraPriorities.TryGetValue(buff.Ability.FSLID, out var p) ? p : 0;
 
     protected override void OnParametersSet()
     {
@@ -136,7 +136,7 @@
             _maxLevel = Math.Max(_maxLevel, level);
 
             _auras.Add(new AuraSegment(
-                Spell: Spell.FromFSLID(buff.Ability.Guid, buff.Ability.Name, buff.Ability.Icon),
+                Spell: Spell.FromFSLID(buff.Ability.FSLID, buff.Ability.Name, buff.Ability.Icon),
                 Name: buff.Ability.Name,
                 ClippedStart: clippedStart,
                 ClippedEnd: clippedEnd,

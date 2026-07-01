@@ -1,4 +1,6 @@
-﻿namespace FellowshipAnalyzer.Core.Events;
+﻿using FellowshipAnalyzer.Core.Common.Spells;
+
+namespace FellowshipAnalyzer.Core.Events;
 
 [Fabricated]
 public class SpendResourceEvent : Event, IAbilityEvent
@@ -7,6 +9,6 @@ public class SpendResourceEvent : Event, IAbilityEvent
     public int ResourceChange { get; set; }
     public int ResourceChangeType { get; set; }
     public Ability Ability { get; set; }
-    public virtual int AbilityGameId { get; set; }
+    public virtual FSLID AbilityGameId { get; set; }
     public override bool? Fabricated => true;
 }

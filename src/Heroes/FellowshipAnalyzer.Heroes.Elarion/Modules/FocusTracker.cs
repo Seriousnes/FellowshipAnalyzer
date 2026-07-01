@@ -16,7 +16,7 @@ public class FocusTracker : ResourceTracker
 
     protected override int? GetResourceCost(CastEvent e, ResourceTypes type)
     {
-        var spell = SpellRegistry.MaybeGet(e.Ability.Guid);
+        var spell = SpellRegistry.MaybeGet(e.Ability.FSLID);
         return type switch
         {
             ResourceTypes.Primary => spell?.FocusCost,

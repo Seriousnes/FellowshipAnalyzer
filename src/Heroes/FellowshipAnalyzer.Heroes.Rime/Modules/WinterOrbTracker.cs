@@ -13,7 +13,7 @@ public sealed partial class WinterOrbTracker(ILogger<ResourceTracker> logger) : 
 {
     protected override int? GetResourceCost(CastEvent e, ResourceTypes type)
     {
-        var spell = SpellRegistry.MaybeGet(e.Ability.Guid) as IRimeSpell;
+        var spell = SpellRegistry.MaybeGet(e.Ability.FSLID) as IRimeSpell;
         return type switch
         {
             ResourceTypes.Tertiary => spell?.WinterOrbCost,

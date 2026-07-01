@@ -49,7 +49,7 @@
             a => { var s = a.PrimarySpell; _id = s.Id; _isEffect = s is Effect; _name = a.Name ?? s.Name; _icon = s.Icon; },
             a =>
             {
-                var normalized = NormalizeGuid(a.Guid);
+                var normalized = NormalizeGuid(a.FSLID);
                 _id = normalized.ShortId; _isEffect = normalized.IsEffect; _name = a.Name ?? ""; _icon = a.Icon ?? "";
             }
         );

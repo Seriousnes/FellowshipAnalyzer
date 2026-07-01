@@ -502,7 +502,7 @@ public sealed partial class HasteTests
         Timestamp = timestamp,
         SourceId = PlayerId,
         TargetId = PlayerId,
-        Ability = new Ability { Guid = spellId, Name = $"Spell {spellId}" },
+        Ability = new Ability { FSLID = spellId, Name = $"Spell {spellId}" },
     };
 
     private static RemoveBuffEvent CreateRemoveBuff(int timestamp, int spellId) => new()
@@ -510,7 +510,7 @@ public sealed partial class HasteTests
         Timestamp = timestamp,
         SourceId = PlayerId,
         TargetId = PlayerId,
-        Ability = new Ability { Guid = spellId, Name = $"Spell {spellId}" },
+        Ability = new Ability { FSLID = spellId, Name = $"Spell {spellId}" },
     };
 
     private static ApplyDebuffEvent CreateApplyDebuff(int timestamp, int spellId) => new()
@@ -518,7 +518,7 @@ public sealed partial class HasteTests
         Timestamp = timestamp,
         SourceId = PlayerId,
         TargetId = PlayerId,
-        Ability = new Ability { Guid = spellId, Name = $"Spell {spellId}" },
+        Ability = new Ability { FSLID = spellId, Name = $"Spell {spellId}" },
     };
 
     private static RemoveDebuffEvent CreateRemoveDebuff(int timestamp, int spellId) => new()
@@ -526,7 +526,7 @@ public sealed partial class HasteTests
         Timestamp = timestamp,
         SourceId = PlayerId,
         TargetId = PlayerId,
-        Ability = new Ability { Guid = spellId, Name = $"Spell {spellId}" },
+        Ability = new Ability { FSLID = spellId, Name = $"Spell {spellId}" },
     };
 
     private static ApplyBuffStackEvent CreateApplyBuffStack(int timestamp, int spellId, int stack) => new()
@@ -534,7 +534,7 @@ public sealed partial class HasteTests
         Timestamp = timestamp,
         SourceId = PlayerId,
         TargetId = PlayerId,
-        Ability = new Ability { Guid = spellId, Name = $"Spell {spellId}" },
+        Ability = new Ability { FSLID = spellId, Name = $"Spell {spellId}" },
         Stack = stack,
     };
 
@@ -543,7 +543,7 @@ public sealed partial class HasteTests
         Timestamp = timestamp,
         SourceId = PlayerId,
         TargetId = PlayerId,
-        Ability = new Ability { Guid = spellId, Name = $"Spell {spellId}" },
+        Ability = new Ability { FSLID = spellId, Name = $"Spell {spellId}" },
         Stack = stack,
     };
 
@@ -552,7 +552,7 @@ public sealed partial class HasteTests
         Timestamp = timestamp,
         SourceId = PlayerId,
         TargetId = PlayerId,
-        Ability = new Ability { Guid = spellId, Name = $"Spell {spellId}" },
+        Ability = new Ability { FSLID = spellId, Name = $"Spell {spellId}" },
         Stack = stack,
     };
 
@@ -561,7 +561,7 @@ public sealed partial class HasteTests
         Timestamp = timestamp,
         SourceId = PlayerId,
         TargetId = PlayerId,
-        Ability = new Ability { Guid = spellId, Name = $"Spell {spellId}" },
+        Ability = new Ability { FSLID = spellId, Name = $"Spell {spellId}" },
         Stack = stack,
     };
 }
