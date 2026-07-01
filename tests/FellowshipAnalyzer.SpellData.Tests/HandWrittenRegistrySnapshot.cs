@@ -8,7 +8,7 @@ namespace FellowshipAnalyzer.SpellData.Tests;
 /// </summary>
 public record SpellSnapshot(
     string Member,
-    int Guid,
+    int FSLID,
     string Name,
     string Icon,
     int? SpiritCost,

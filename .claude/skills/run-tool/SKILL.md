@@ -50,7 +50,7 @@ The standard input is `abilities.json` at the repo root — a cached copy of all
 
 The tool also accepts combat-log export JSON (objects with `guid`, `name`, `abilityIcon` properties) as an alternative input.
 
-**Spell vs Effect matching**: The tool detects `Effect` vs `Spell` from the C# declaration on each line. For `abilities.json`, the same ability entry is checked against both lookups; the C# file determines which applies. For combat-log format, `guid >= 1_000_000` identifies effects (stored by `guid - 1_000_000` to match the base ID in the constructor).
+**Spell vs Effect/Talent/Weapon matching**: The tool detects `Effect`/`Talent`/`Weapon` vs `Spell` from the C# declaration on each line. For `abilities.json`, the same ability entry is checked against both lookups; the C# file determines which applies. For combat-log format, `guid` is an FSLID: `guid >= 1_000_000` identifies effects (stored by `guid - 1_000_000` to match the base ID in the constructor), with talents at `>= 2_000_000` and weapon traits at `>= 3_000_000` using the matching offset.
 
 ### fetch-abilities
 

@@ -59,7 +59,7 @@ public sealed class ConsolidatedSpellRegistryGenerator : IIncrementalGenerator
         defaultSeverity: DiagnosticSeverity.Warning,
         isEnabledByDefault: true);
 
-    private static readonly DiagnosticDescriptor DuplicateGuidDescriptor = new(
+    private static readonly DiagnosticDescriptor DuplicateFSLIDDescriptor = new(
         id: "FA0008",
         title: "Duplicate spell FSLID",
         messageFormat: "FSLID {0} is produced by both '{1}' and '{2}'; keeping the first",
@@ -210,7 +210,7 @@ public sealed class ConsolidatedSpellRegistryGenerator : IIncrementalGenerator
         {
             foreach (var hand in central.Members)
             {
-                RecordEntry(spc, allEntries, fslidOwners, lcaTypes, centralGlobalName, hand.Name, hand.Guid,
+                RecordEntry(spc, allEntries, fslidOwners, lcaTypes, centralGlobalName, hand.Name, hand.FSLID,
                     ResolveType(compilation, hand.GlobalTypeName), centralGlobalName + "." + hand.Name);
             }
         }
@@ -308,7 +308,7 @@ public sealed class ConsolidatedSpellRegistryGenerator : IIncrementalGenerator
     {
         if (fslidOwners.TryGetValue(guid, out var existing))
         {
-            spc.ReportDiagnostic(Diagnostic.Create(DuplicateGuidDescriptor, Location.None, guid, existing, memberAccess));
+            spc.ReportDiagnostic(Diagnostic.Create(DuplicateFSLIDDescriptor, Location.None, guid, existing, memberAccess));
             return;
         }
 
@@ -496,7 +496,7 @@ public sealed class ConsolidatedSpellRegistryGenerator : IIncrementalGenerator
         foreach (var member in members)
         {
             sb.AppendLine("    [global::" + SpellsNamespace + ".SpellId(" +
-                          member.Guid.ToString(CultureInfo.InvariantCulture) + ")]");
+                          member.FSLID.ToString(CultureInfo.InvariantCulture) + ")]");
             sb.AppendLine("    public static " + member.TypeName + " " + member.Name + " { get; } = new " +
                           member.TypeName + " { " + string.Join(", ", member.InitLines) + " };");
         }
@@ -642,7 +642,7 @@ public sealed class ConsolidatedSpellRegistryGenerator : IIncrementalGenerator
 
     private sealed record CentralTriggerInfo(string ClassName, string Namespace, ImmutableArray<CentralMember> Members);
 
-    private readonly record struct CentralMember(string Name, string GlobalTypeName, int Guid);
+    private readonly record struct CentralMember(string Name, string GlobalTypeName, int FSLID);
 
     private readonly record struct KindInfo(string TypeName, int Offset, ITypeSymbol? Type);
 
@@ -650,9 +650,9 @@ public sealed class ConsolidatedSpellRegistryGenerator : IIncrementalGenerator
 
     private sealed record RegistryModel(string Namespace, string ClassName, List<EmitMember> Members);
 
-    private readonly record struct EmitMember(string TypeName, string Name, int Guid, List<string> InitLines);
+    private readonly record struct EmitMember(string TypeName, string Name, int FSLID, List<string> InitLines);
 
-    private readonly record struct AllEntry(string ContainerGlobalName, string MemberName, int Guid);
+    private readonly record struct AllEntry(string ContainerGlobalName, string MemberName, int FSLID);
 
     private enum ScalarKind { Int, Double, String }
 

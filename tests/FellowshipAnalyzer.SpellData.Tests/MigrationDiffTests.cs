@@ -28,8 +28,8 @@ public class MigrationDiffTests
         var pairs = merged.Select(s => (s.Member, s.FSLID.Value)).ToHashSet();
 
         var missing = handWritten
-            .Where(m => !pairs.Contains((m.Member, m.Guid)))
-            .Select(m => $"{m.Member} (guid {m.Guid})")
+            .Where(m => !pairs.Contains((m.Member, m.FSLID)))
+            .Select(m => $"{m.Member} (guid {m.FSLID})")
             .ToList();
 
         missing.ShouldBeEmpty($"{hero}: unreproduced members — add overrides:\n  {string.Join("\n  ", missing)}");

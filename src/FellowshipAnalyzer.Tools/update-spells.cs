@@ -24,21 +24,24 @@ if (!File.Exists(csPath))
     return 1;
 }
 
-// Parse JSON and extract unique abilities by guid.
-// Effects have combat-log guids >= 1_000_000 (encoded as 1_000_000 + effectId);
-// they are stored here by their base effectId to match the C# constructor argument.
+// Parse JSON and extract unique abilities by native id, bucketed by FSLID kind.
+// Effect/Talent/Weapon guids carry a "million" range offset over their native id
+// (Effect +1_000_000, Talent +2_000_000, Weapon +3_000_000); they are stored here by
+// their native id to match the C# constructor argument.
 using var json = JsonDocument.Parse(await File.ReadAllTextAsync(jsonPath));
 var spells = new Dictionary<int, (string? Name, string? Icon)>();
 var effects = new Dictionary<int, (string? Name, string? Icon)>();
-ExtractAbilities(json.RootElement, spells, effects);
+var talents = new Dictionary<int, (string? Name, string? Icon)>();
+var weapons = new Dictionary<int, (string? Name, string? Icon)>();
+ExtractAbilities(json.RootElement, spells, effects, talents, weapons);
 
-if (spells.Count == 0 && effects.Count == 0)
+if (spells.Count == 0 && effects.Count == 0 && talents.Count == 0 && weapons.Count == 0)
 {
     Console.WriteLine("No abilities found in JSON.");
     return 0;
 }
 
-Console.WriteLine($"Found {spells.Count} spell(s) and {effects.Count} effect(s) in JSON.");
+Console.WriteLine($"Found {spells.Count} spell(s), {effects.Count} effect(s), {talents.Count} talent(s), and {weapons.Count} weapon trait(s) in JSON.");
 
 // Read C# file and update spell definitions
 var lines = await File.ReadAllLinesAsync(csPath);
@@ -46,8 +49,12 @@ var spellPattern = new Regex(@"new\((\d+)(?:,\s*""([^""]*?)""(?:,\s*""([^""]*)""
 
 var matchedSpellIds = new HashSet<int>();
 var matchedEffectIds = new HashSet<int>();
+var matchedTalentIds = new HashSet<int>();
+var matchedWeaponIds = new HashSet<int>();
 var allCsSpellIds = new HashSet<int>();
 var allCsEffectIds = new HashSet<int>();
+var allCsTalentIds = new HashSet<int>();
+var allCsWeaponIds = new HashSet<int>();
 int updated = 0;
 
 for (int i = 0; i < lines.Length; i++)
@@ -57,19 +64,21 @@ for (int i = 0; i < lines.Length; i++)
 
     var id = int.Parse(match.Groups[1].Value);
 
-    // Detect whether this line declares an Effect or a plain Spell by inspecting
-    // the type name before the assignment — Effect guids are 1_000_000 + id.
+    // Detect the declared spell kind by inspecting the type name before the assignment —
+    // Effect/Talent/Weapon declarations carry the matching FSLID range offset over their native id.
     var beforeAssign = lines[i].Split('=')[0];
-    bool isEffect = beforeAssign.Contains("Effect ");
-    var lookup = isEffect ? effects : spells;
-    var matchedIds = isEffect ? matchedEffectIds : matchedSpellIds;
-    (isEffect ? allCsEffectIds : allCsSpellIds).Add(id);
+    bool isWeapon = beforeAssign.Contains("Weapon ");
+    bool isTalent = !isWeapon && beforeAssign.Contains("Talent ");
+    bool isEffect = !isWeapon && !isTalent && beforeAssign.Contains("Effect ");
+    var lookup = isWeapon ? weapons : isTalent ? talents : isEffect ? effects : spells;
+    var matchedIds = isWeapon ? matchedWeaponIds : isTalent ? matchedTalentIds : isEffect ? matchedEffectIds : matchedSpellIds;
+    (isWeapon ? allCsWeaponIds : isTalent ? allCsTalentIds : isEffect ? allCsEffectIds : allCsSpellIds).Add(id);
 
     if (!lookup.TryGetValue(id, out var ability))
     {
-        // abilities.json stores everything under spells; fall back for Effect declarations
-        if (isEffect && spells.TryGetValue(id, out ability))
-            matchedEffectIds.Add(id);
+        // abilities.json stores everything under spells; fall back for Effect/Talent/Weapon declarations
+        if ((isWeapon || isTalent || isEffect) && spells.TryGetValue(id, out ability))
+            matchedIds.Add(id);
         else
             continue;
     }
@@ -103,6 +112,8 @@ for (int i = 0; i < lines.Length; i++)
 // Report .cs IDs that had no match in the JSON (likely wrong/stale IDs)
 var unmatchedSpells = allCsSpellIds.Except(matchedSpellIds).Order().ToList();
 var unmatchedEffects = allCsEffectIds.Except(matchedEffectIds).Order().ToList();
+var unmatchedTalents = allCsTalentIds.Except(matchedTalentIds).Order().ToList();
+var unmatchedWeapons = allCsWeaponIds.Except(matchedWeaponIds).Order().ToList();
 if (unmatchedSpells.Count > 0)
 {
     Console.WriteLine($"\n{unmatchedSpells.Count} Spell ID(s) in {Path.GetFileName(csPath)} not found in JSON (verify these IDs are correct):");
@@ -111,19 +122,31 @@ if (unmatchedSpells.Count > 0)
 }
 if (unmatchedEffects.Count > 0)
 {
-    Console.WriteLine($"\n{unmatchedEffects.Count} Effect ID(s) in {Path.GetFileName(csPath)} not found in JSON (may not be in abilities.json \u2014 effects are not listed in the game API):");
+    Console.WriteLine($"\n{unmatchedEffects.Count} Effect ID(s) in {Path.GetFileName(csPath)} not found in JSON (may not be in abilities.json — effects are not listed in the game API):");
     foreach (var id in unmatchedEffects)
         Console.WriteLine($"  Effect ID {id}");
+}
+if (unmatchedTalents.Count > 0)
+{
+    Console.WriteLine($"\n{unmatchedTalents.Count} Talent ID(s) in {Path.GetFileName(csPath)} not found in JSON (may not be in abilities.json — talents are not listed in the game API):");
+    foreach (var id in unmatchedTalents)
+        Console.WriteLine($"  Talent ID {id}");
+}
+if (unmatchedWeapons.Count > 0)
+{
+    Console.WriteLine($"\n{unmatchedWeapons.Count} Weapon trait ID(s) in {Path.GetFileName(csPath)} not found in JSON (may not be in abilities.json — weapon traits are not listed in the game API):");
+    foreach (var id in unmatchedWeapons)
+        Console.WriteLine($"  Weapon trait ID {id}");
 }
 
 if (updated > 0)
 {
     await File.WriteAllLinesAsync(csPath, lines);
-    Console.WriteLine($"\nUpdated {updated} spell(s)/effect(s) in {Path.GetFileName(csPath)}.");
+    Console.WriteLine($"\nUpdated {updated} spell(s)/effect(s)/talent(s)/weapon trait(s) in {Path.GetFileName(csPath)}.");
 }
 else
 {
-    Console.WriteLine($"\nMatched {matchedSpellIds.Count} spell(s) and {matchedEffectIds.Count} effect(s), no changes needed.");
+    Console.WriteLine($"\nMatched {matchedSpellIds.Count} spell(s), {matchedEffectIds.Count} effect(s), {matchedTalentIds.Count} talent(s), and {matchedWeaponIds.Count} weapon trait(s), no changes needed.");
 }
 
 return 0;
@@ -133,15 +156,17 @@ return 0;
 static void ExtractAbilities(
     JsonElement element,
     Dictionary<int, (string? Name, string? Icon)> spells,
-    Dictionary<int, (string? Name, string? Icon)> effects)
+    Dictionary<int, (string? Name, string? Icon)> effects,
+    Dictionary<int, (string? Name, string? Icon)> talents,
+    Dictionary<int, (string? Name, string? Icon)> weapons)
 {
     switch (element.ValueKind)
     {
         case JsonValueKind.Object:
             // API format (abilities.json): { "Id": 1318, "Name": "Multishot" | null, "Icon": "..." }
-            // Name may be null; Icon is always populated. Stored in spells only — effect declarations
-            // fall back to spells when their ID isn't in the effects dict (which is only populated
-            // by the combat-log format path below).
+            // Name may be null; Icon is always populated. Stored in spells only — Effect/Talent/Weapon
+            // declarations fall back to spells when their ID isn't in their own dict (which is only
+            // populated by the combat-log format path below).
             if (element.TryGetProperty("Id", out var idProp) &&
                 element.TryGetProperty("Icon", out var apiIconProp) &&
                 idProp.ValueKind == JsonValueKind.Number &&
@@ -156,8 +181,9 @@ static void ExtractAbilities(
                 spells[id] = (name, icon);
             }
             // Combat-log export format: { "guid": 1318, "name": "Multishot", "abilityIcon": "..." }
-            // Effects have guids >= 1_000_000; store by the base effectId so it
-            // aligns with the constructor argument in the C# file (e.g. new(2312, ...)).
+            // guid is an FSL id: Ability 0–999,999, Effect 1,000,000–1,999,999,
+            // Talent 2,000,000–2,999,999, Weapon 3,000,000+. Store by the native id (offset
+            // stripped) so it aligns with the constructor argument in the C# file (e.g. new(2312, ...)).
             else if (element.TryGetProperty("guid", out var guidProp) &&
                 element.TryGetProperty("name", out var nameProp) &&
                 guidProp.ValueKind == JsonValueKind.Number &&
@@ -170,7 +196,11 @@ static void ExtractAbilities(
                     ? iconProp.GetString()
                     : null;
 
-                if (guid >= 1_000_000)
+                if (guid >= 3_000_000)
+                    weapons[guid - 3_000_000] = (name, icon);
+                else if (guid >= 2_000_000)
+                    talents[guid - 2_000_000] = (name, icon);
+                else if (guid >= 1_000_000)
                     effects[guid - 1_000_000] = (name, icon);
                 else
                     spells[guid] = (name, icon);
@@ -178,13 +208,13 @@ static void ExtractAbilities(
             else
             {
                 foreach (var prop in element.EnumerateObject())
-                    ExtractAbilities(prop.Value, spells, effects);
+                    ExtractAbilities(prop.Value, spells, effects, talents, weapons);
             }
             break;
 
         case JsonValueKind.Array:
             foreach (var item in element.EnumerateArray())
-                ExtractAbilities(item, spells, effects);
+                ExtractAbilities(item, spells, effects, talents, weapons);
             break;
     }
 }

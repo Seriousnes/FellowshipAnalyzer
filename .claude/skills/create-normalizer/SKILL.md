@@ -84,11 +84,11 @@ public List<Event> Normalize(List<Event> events, int playerId)
 {
     var castsByTimestamp = events
         .OfType<CastEvent>()
-        .ToLookup(castEvent => (castEvent.Timestamp, castEvent.SourceId, castEvent.Ability.Guid));
+        .ToLookup(castEvent => (castEvent.Timestamp, castEvent.SourceId, castEvent.Ability.FSLID));
 
     foreach (var damageEvent in events.OfType<DamageEvent>())
     {
-        var matchingCast = castsByTimestamp[(damageEvent.Timestamp, damageEvent.SourceId, damageEvent.Ability.Guid)]
+        var matchingCast = castsByTimestamp[(damageEvent.Timestamp, damageEvent.SourceId, damageEvent.Ability.FSLID)]
             .FirstOrDefault();
         if (matchingCast is not null)
         {

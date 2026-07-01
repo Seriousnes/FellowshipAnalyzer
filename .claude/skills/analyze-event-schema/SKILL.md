@@ -48,7 +48,7 @@ dotnet run src/FellowshipAnalyzer.Tools/event-schema.cs src/FellowshipAnalyzer.F
 - Concrete events inherit from `Event`, for example `CastEvent`, `DamageEvent`, `HealEvent`, `ApplyBuffEvent`, and `DeathEvent`.
 - Capability interfaces such as `IAbilityEvent`, `IExtraAbilityEvent`, `IHasSourceEvent`, and `IHasTargetEvent` expose common properties for filters and analyzers.
 - `ActorResources` models nested `sourceResources` and `targetResources`, including hit points, max hit points, absorb, position, facing, and `resources`.
-- `Ability` maps nested JSON ability objects. `guid` maps to `Ability.Guid`; `Ability.Id` is an ignored alias.
+- `Ability` maps nested JSON ability objects. `guid` maps to `Ability.FSLID`; `Ability.Id` is an ignored alias.
 - `FSLJsonConverter<Event>` dispatches to concrete event classes based on the `type` discriminator.
 
 ## Mapping Procedure
