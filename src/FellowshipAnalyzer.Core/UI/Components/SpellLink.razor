@@ -26,13 +26,7 @@
     private string? _name;
     private string? _icon;
 
-    private string LinkUri => _kind switch
-    {
-        SpellKind.Effect => $"effect/{_spellId}",
-        SpellKind.Talent => $"talent/{_spellId}",
-        SpellKind.Weapon => $"weapon/{_spellId}",
-        _ => $"ability/{_spellId}",
-    };
+    private string LinkUri => $"{_kind.ToUrlSegment()}/{_spellId}";
 
     private string AbilityUrl => $"https://fellows.gg/{LinkUri}";
 

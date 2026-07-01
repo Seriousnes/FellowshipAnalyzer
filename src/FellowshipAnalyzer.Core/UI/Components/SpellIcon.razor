@@ -34,13 +34,7 @@ else if (_icon is { Length: > 0 })
 
     private string IconUrl => $"https://assets.rpglogs.com/img/fellowship/abilities/{_icon}";
 
-    private string LinkUri => _kind switch
-    {
-        SpellKind.Effect => $"effect/{_id}",
-        SpellKind.Talent => $"talent/{_id}",
-        SpellKind.Weapon => $"weapon/{_id}",
-        _ => $"ability/{_id}",
-    };
+    private string LinkUri => $"{_kind.ToUrlSegment()}/{_id}";
 
     private string AbilityUrl => $"https://fellows.gg/{LinkUri}";
 
