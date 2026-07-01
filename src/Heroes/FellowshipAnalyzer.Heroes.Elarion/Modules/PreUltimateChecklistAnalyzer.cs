@@ -58,7 +58,7 @@ public sealed partial class PreUltimateChecklistAnalyzer(Lazy<SpellUsable> spell
 
         var supremacyRecent = _supremacyCasts.Any(t => timestamp - t is >= 0 and <= PreUltLookbackMs);
         var voidbringerRecent = _voidbringerCasts.Any(t => timestamp - t is >= 0 and <= PreUltLookbackMs);
-        var barrageAvailable = spellUsable.Value.IsAvailable(Spells.HeartseekerBarrage.Guid);
+        var barrageAvailable = spellUsable.Value.IsAvailable(Spells.HeartseekerBarrage.FSLID);
 
         var window = new UltWindow(
             UltTimestamp: timestamp,

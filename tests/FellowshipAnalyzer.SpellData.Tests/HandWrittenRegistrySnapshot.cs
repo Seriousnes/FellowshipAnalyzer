@@ -55,7 +55,7 @@ public static class HandWrittenRegistrySnapshot
                 var spell = (Spell)p.GetValue(null)!;
                 return new SpellSnapshot(
                     p.Name,
-                    spell.Guid,
+                    spell.FSLID.Value,
                     spell.Name,
                     spell.Icon,
                     spell.SpiritCost,

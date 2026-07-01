@@ -69,14 +69,14 @@ public sealed partial class LunarlightMarkEruptionAnalyzer : Analyzer
     [On<CastEvent>(By = Actor.Player)]
     private void OnAnyCast(CastEvent e)
     {
-        if (e.Ability.Id != Spells.HeartseekerBarrage.Guid)
+        if (e.Ability.Id != Spells.HeartseekerBarrage.FSLID)
         {
             _recentlyErupted = false;
         }
     }
 
     private static bool IsLunarlightMark(Ability ability) =>
-        ability.Id == Spells.LunarlightMark.Guid ||
+        ability.Id == Spells.LunarlightMark.FSLID ||
         string.Equals(ability.Name, LunarlightMarkName, StringComparison.Ordinal);
 
     public readonly record struct BarrageEvent(int Timestamp, int ErupedMarks);

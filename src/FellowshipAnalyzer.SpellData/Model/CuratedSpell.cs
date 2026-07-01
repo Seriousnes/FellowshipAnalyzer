@@ -8,15 +8,9 @@ namespace FellowshipAnalyzer.SpellData.Model;
 /// </summary>
 public record CuratedSpell(string Scope, string Member, Spell Spell, Provenance Provenance)
 {
-    /// <summary>The full FSL guid of the wrapped spell.</summary>
-    public int Guid => Spell.Guid;
+    /// <summary>The full FSL id of the wrapped spell.</summary>
+    public FSLID FSLID => Spell.FSLID;
 
     /// <summary>The FSL id-range category of the wrapped spell.</summary>
-    public SpellKind Kind => Spell switch
-    {
-        Effect => SpellKind.Effect,
-        Talent => SpellKind.Talent,
-        Weapon => SpellKind.Weapon,
-        _ => SpellKind.Ability,
-    };
+    public SpellKind Kind => Spell.FSLID.Kind;
 }

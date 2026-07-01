@@ -1,6 +1,6 @@
+using FellowshipAnalyzer.Core.Common.Spells;
 using FellowshipAnalyzer.Core.Game;
 using FellowshipAnalyzer.SpellData;
-using FellowshipAnalyzer.SpellData.Model;
 using FellowshipAnalyzer.SpellData.Sources;
 using Shouldly;
 using Xunit;
@@ -10,14 +10,15 @@ namespace FellowshipAnalyzer.SpellData.Tests;
 public class SourceLoaderTests
 {
     [Theory]
-    [InlineData(1031, SpellKind.Ability, 1031)]
-    [InlineData(1_001_396, SpellKind.Effect, 1396)]
-    [InlineData(2_002_303, SpellKind.Talent, 2303)]
-    [InlineData(3_000_155, SpellKind.Weapon, 155)]
+    [InlineData(155, SpellKind.Ability, 155)]
+    [InlineData(1_001_396, SpellKind.Effect, 1_396)]
+    [InlineData(2_000_042, SpellKind.Talent, 42)]
+    [InlineData(3_000_007, SpellKind.Weapon, 7)]
     public void KindRange_DecodesFslId(int fslId, SpellKind kind, int nativeId)
     {
-        SpellKindRange.FromFslId(fslId).ShouldBe(kind);
-        SpellKindRange.NativeId(fslId).ShouldBe(nativeId);
+        var fslid = new FSLID(fslId);
+        fslid.Kind.ShouldBe(kind);
+        fslid.NativeId.ShouldBe(nativeId);
     }
 
     [Fact]

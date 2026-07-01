@@ -25,7 +25,7 @@ public class MigrationDiffTests
             .Where(s => string.Equals(s.Scope, hero, StringComparison.OrdinalIgnoreCase))
             .ToList();
 
-        var pairs = merged.Select(s => (s.Member, s.Guid)).ToHashSet();
+        var pairs = merged.Select(s => (s.Member, s.FSLID.Value)).ToHashSet();
 
         var missing = handWritten
             .Where(m => !pairs.Contains((m.Member, m.Guid)))
@@ -40,5 +40,5 @@ public class MigrationDiffTests
     public void CrossHeroMove_IsReproducedByGuid(string scope, string member, int guid) =>
         MergeEngine.Run(MergeInputs.Load()).Spells
             .ShouldContain(s => string.Equals(s.Scope, scope, StringComparison.OrdinalIgnoreCase)
-                                && s.Member == member && s.Guid == guid);
+                                && s.Member == member && s.FSLID.Value == guid);
 }

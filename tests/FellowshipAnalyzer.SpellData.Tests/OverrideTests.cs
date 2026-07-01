@@ -62,7 +62,7 @@ public class OverrideTests
             """);
         var result = MergeEngine.Run(MergeInputs.Load() with { Overrides = overrides });
 
-        var rimeWithGuid1031 = result.Spells.Where(s => s.Scope == "rime" && s.Guid == 1031).ToList();
+        var rimeWithGuid1031 = result.Spells.Where(s => s.Scope == "rime" && s.FSLID.Value == 1031).ToList();
         rimeWithGuid1031.Count.ShouldBe(1);
         rimeWithGuid1031[0].Member.ShouldBe("RenamedBurst");
         result.Spells.ShouldNotContain(s => s.Scope == "rime" && s.Member == "BurstingIce");

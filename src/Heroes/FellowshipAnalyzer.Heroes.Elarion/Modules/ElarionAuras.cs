@@ -10,22 +10,22 @@ public sealed class ElarionAuras : Auras
         return [
             new()
             {
-                SpellId = Spells.EventHorizonBuff.Guid,
+                SpellId = Spells.EventHorizonBuff.FSLID,
                 TimelineHighlight = true,
             },
             new()
             {
-                SpellId = Spells.SkystridersGraceBuff.Guid,
+                SpellId = Spells.SkystridersGraceBuff.FSLID,
                 TimelineHighlight = true,
             },
             new()
             {
-                SpellId = Spells.CelestialImpetus.Guid,
+                SpellId = Spells.CelestialImpetus.FSLID,
                 TimelineHighlight = true,
             },
             new()
             {
-                SpellId = Spells.ImpendingHeartseeker.Guid,
+                SpellId = Spells.ImpendingHeartseeker.FSLID,
                 TimelineHighlight = true,
             },
         ];

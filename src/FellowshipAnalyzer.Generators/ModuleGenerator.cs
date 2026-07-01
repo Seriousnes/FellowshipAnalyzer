@@ -397,8 +397,8 @@ public sealed class ModuleGenerator : IIncrementalGenerator
     }
 
     /// <summary>
-    /// Resolves <c>nameof(Registry.Member)</c> to the registered spell's runtime Guid
-    /// (<see cref="FellowshipAnalyzer.Core.Common.Spells.Spell.Guid"/>). Emits FA0002/3/4 on failure.
+    /// Resolves <c>nameof(Registry.Member)</c> to the registered spell's runtime FSLID
+    /// (<see cref="FellowshipAnalyzer.Core.Common.Spells.Spell.FSLID"/>). Emits FA0002/3/4 on failure.
     /// </summary>
     private static int? ResolveSpellExpression(
         ExpressionSyntax expr,
@@ -433,7 +433,7 @@ public sealed class ModuleGenerator : IIncrementalGenerator
             return null;
         }
 
-        if (!TryGetSpellGuid(property, ct, out var guid))
+        if (!TryGetSpellFslid(property, ct, out var guid))
         {
             diagnostics.Add(new PendingDiagnostic(
                 SpellArgInitializerUnresolvableDescriptor,
@@ -491,35 +491,29 @@ public sealed class ModuleGenerator : IIncrementalGenerator
     }
 
     /// <summary>
-    /// Reads the spell's runtime Guid for a registry property. Two paths, in order:
+    /// Reads the spell's runtime FSLID for a registry property. Two paths, in order:
     /// <list type="bullet">
-    /// <item>Metadata path — look up the source-generated nested <c>Guids</c> class on the
-    ///   property's containing type and read the matching <c>const int</c> field. Works when
-    ///   the registry lives in a referenced assembly (the typical hero-analyzer scenario).</item>
-    /// <item>Syntax path — read the <c>Id =</c> member initializer as an int literal, then
-    ///   apply the <see cref="FellowshipAnalyzer.Core.Common.Spells.Effect"/> encoding rule
-    ///   (<c>1_000_000 + Id</c>) when the property type is an Effect. Required for same-assembly
-    ///   references because source generators do not see each other's output in the same
-    ///   compilation pass.</item>
+    /// <item>Metadata path — read the source-generated <c>[SpellId(&lt;fslid&gt;)]</c> attribute
+    ///   stamped on the property. Works when the registry lives in a referenced assembly (the
+    ///   typical hero-analyzer scenario).</item>
+    /// <item>Syntax path — read the <c>Id =</c> member initializer as an int literal, then apply
+    ///   the subtype range offset (<see cref="FellowshipAnalyzer.Core.Common.Spells.Effect"/> /
+    ///   <c>Talent</c> / <c>Weapon</c>) by property type. Required for same-assembly references
+    ///   because source generators do not see each other's output in the same compilation pass.</item>
     /// </list>
     /// </summary>
-    private static bool TryGetSpellGuid(IPropertySymbol property, CancellationToken ct, out int guid)
+    private static bool TryGetSpellFslid(IPropertySymbol property, CancellationToken ct, out int fslid)
     {
-        guid = 0;
-        var containing = property.ContainingType;
-        if (containing is null) return false;
+        fslid = 0;
 
-        foreach (var nested in containing.GetTypeMembers("Guids"))
+        foreach (var attr in property.GetAttributes())
         {
-            foreach (var member in nested.GetMembers(property.Name))
+            if (attr.AttributeClass?.Name == "SpellIdAttribute" &&
+                attr.ConstructorArguments.Length == 1 &&
+                attr.ConstructorArguments[0].Value is int value)
             {
-                if (member is IFieldSymbol field &&
-                    field.HasConstantValue &&
-                    field.ConstantValue is int v)
-                {
-                    guid = v;
-                    return true;
-                }
+                fslid = value;
+                return true;
             }
         }
 
@@ -529,7 +523,7 @@ public sealed class ModuleGenerator : IIncrementalGenerator
 
         if (TryReadInitializerId(initializer.Value, out var initId))
         {
-            guid = ApplyRangeOffset(property.Type, initId);
+            fslid = ApplyRangeOffset(property.Type, initId);
             return true;
         }
 

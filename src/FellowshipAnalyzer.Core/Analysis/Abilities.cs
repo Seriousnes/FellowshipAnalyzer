@@ -24,11 +24,11 @@ public class Abilities : Module
             foreach (var entry in Spellbook())
             {
                 if (!entry.Enabled) continue;
-                _abilities[entry.PrimarySpell.Guid] = entry;
+                _abilities[entry.PrimarySpell.FSLID] = entry;
                 if (entry.AdditionalSpells is not null)
                 {
                     foreach (var extra in entry.AdditionalSpells)
-                        _abilities[extra.Guid] = entry;
+                        _abilities[extra.FSLID] = entry;
                 }
             }
             return _abilities;

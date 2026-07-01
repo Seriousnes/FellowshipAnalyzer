@@ -32,9 +32,9 @@ public sealed partial class Haste(Lazy<StatTracker> statTracker) : Analyzer
 
     private readonly Dictionary<int, HasteBuff> _hasteBuffs = new()
     {
-        { ElarionSpells.EventHorizonBuff.Guid, new(Haste: 0.3) },
-        { ElarionSpells.SkystridersGraceBuff.Guid, new(Haste: 0.3) },
-        { RimeSpells.WrathOfWinterBuff.Guid, new(Haste: 0.3)  },
+        { ElarionSpells.EventHorizonBuff.FSLID, new(Haste: 0.3) },
+        { ElarionSpells.SkystridersGraceBuff.FSLID, new(Haste: 0.3) },
+        { RimeSpells.WrathOfWinterBuff.FSLID, new(Haste: 0.3)  },
     };
 
     [On<FightStartEvent>]

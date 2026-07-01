@@ -25,9 +25,33 @@ internal static class SpellDatabaseGeneratorTestHarness
         {
             public interface ISpellRegistry { }
 
+            public enum SpellKind { Ability, Effect, Talent, Weapon }
+
+            public readonly struct FSLID
+            {
+                public int Value { get; }
+                public FSLID(int value) => Value = value;
+                public static FSLID FromNative(SpellKind kind, int nativeId) => kind switch
+                {
+                    SpellKind.Effect => new FSLID(nativeId + 1_000_000),
+                    SpellKind.Talent => new FSLID(nativeId + 2_000_000),
+                    SpellKind.Weapon => new FSLID(nativeId + 3_000_000),
+                    _ => new FSLID(nativeId),
+                };
+                public static implicit operator int(FSLID id) => id.Value;
+                public static implicit operator FSLID(int value) => new FSLID(value);
+            }
+
+            [System.AttributeUsage(System.AttributeTargets.Property)]
+            public sealed class SpellIdAttribute : System.Attribute
+            {
+                public SpellIdAttribute(int fslid) => Fslid = fslid;
+                public int Fslid { get; }
+            }
+
             public record Spell(int Id = 0, string Name = "", string Icon = "")
             {
-                public virtual int Guid => Id;
+                public virtual FSLID FSLID => new FSLID(Id);
                 public double? Cooldown { get; init; }
                 public int? Range { get; init; }
                 public int Charges { get; init; } = 1;
@@ -40,17 +64,17 @@ internal static class SpellDatabaseGeneratorTestHarness
 
             public record Effect(int Id = 0, string Name = "", string Icon = "") : Spell(Id, Name, Icon)
             {
-                public override int Guid => 1_000_000 + Id;
+                public override FSLID FSLID => FSLID.FromNative(SpellKind.Effect, Id);
             }
 
             public record Talent(int Id = 0, string Name = "", string Icon = "") : Spell(Id, Name, Icon)
             {
-                public override int Guid => 2_000_000 + Id;
+                public override FSLID FSLID => FSLID.FromNative(SpellKind.Talent, Id);
             }
 
             public record Weapon(int Id = 0, string Name = "", string Icon = "") : Spell(Id, Name, Icon)
             {
-                public override int Guid => 3_000_000 + Id;
+                public override FSLID FSLID => FSLID.FromNative(SpellKind.Weapon, Id);
             }
 
             [GenerateRegistry<ISpellRegistry>]

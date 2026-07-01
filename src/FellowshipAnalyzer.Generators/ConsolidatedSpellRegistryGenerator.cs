@@ -10,7 +10,7 @@ namespace FellowshipAnalyzer.Generators;
 
 /// <summary>
 /// Emits every spell registry from the committed <c>data/spelldb.json</c> (scope → member → entry):
-/// the central <c>Spells</c> trigger class (<c>shared</c> scope members + aggregate <c>All</c>/<c>Guids</c>),
+/// the central <c>Spells</c> trigger class (<c>shared</c> scope members + aggregate <c>All</c>),
 /// the <c>Items</c> registry (<c>items</c> scope), and one <c>Spells</c> registry per hero scope. Each member is
 /// typed by its <c>kind</c> (<c>ability</c>→<see cref="object"/> <c>Spell</c>, <c>effect</c>→<c>Effect</c>,
 /// <c>talent</c>→<c>Talent</c>, <c>weapon</c>→<c>Weapon</c>).
@@ -23,7 +23,6 @@ public sealed class ConsolidatedSpellRegistryGenerator : IIncrementalGenerator
 {
     private const string SpellsNamespace = "FellowshipAnalyzer.Core.Common.Spells";
     private const string AttributeName = "GenerateRegistryAttribute";
-    private const string EffectTypeName = "Effect";
     private const string SpellDbFileName = "spelldb.json";
     private const string SharedScope = "shared";
     private const string ItemsScope = "items";
@@ -62,8 +61,8 @@ public sealed class ConsolidatedSpellRegistryGenerator : IIncrementalGenerator
 
     private static readonly DiagnosticDescriptor DuplicateGuidDescriptor = new(
         id: "FA0008",
-        title: "Duplicate spell guid",
-        messageFormat: "Guid {0} is produced by both '{1}' and '{2}'; keeping the first",
+        title: "Duplicate spell FSLID",
+        messageFormat: "FSLID {0} is produced by both '{1}' and '{2}'; keeping the first",
         category: "Registry",
         defaultSeverity: DiagnosticSeverity.Warning,
         isEnabledByDefault: true);
@@ -157,9 +156,9 @@ public sealed class ConsolidatedSpellRegistryGenerator : IIncrementalGenerator
         {
             if (member is not IPropertySymbol prop || !prop.IsStatic || prop.GetMethod is null)
                 continue;
-            if (!HasGuidProperty(prop.Type))
+            if (!HasFslidProperty(prop.Type))
                 continue;
-            if (!TryComputeGuid(prop, ct, out var guid))
+            if (!TryComputeFslid(prop, ct, out var guid))
                 continue;
 
             members.Add(new CentralMember(prop.Name, GlobalName(prop.Type), guid));
@@ -204,14 +203,14 @@ public sealed class ConsolidatedSpellRegistryGenerator : IIncrementalGenerator
         var registries = new List<RegistryModel>();
 
         var allEntries = new List<AllEntry>();
-        var guidOwners = new Dictionary<int, string>();
+        var fslidOwners = new Dictionary<int, string>();
         var lcaTypes = new List<ITypeSymbol>();
 
         if (central is not null)
         {
             foreach (var hand in central.Members)
             {
-                RecordEntry(spc, allEntries, guidOwners, lcaTypes, centralGlobalName, hand.Name, hand.Guid,
+                RecordEntry(spc, allEntries, fslidOwners, lcaTypes, centralGlobalName, hand.Name, hand.Guid,
                     ResolveType(compilation, hand.GlobalTypeName), centralGlobalName + "." + hand.Name);
             }
         }
@@ -277,7 +276,7 @@ public sealed class ConsolidatedSpellRegistryGenerator : IIncrementalGenerator
                 var initLines = BuildInitLines(spc, scopeName, memberName, id, entry, schema);
                 members.Add(new EmitMember(kindInfo.TypeName, memberName, guid, initLines));
 
-                RecordEntry(spc, allEntries, guidOwners, lcaTypes, target.GlobalName, memberName, guid,
+                RecordEntry(spc, allEntries, fslidOwners, lcaTypes, target.GlobalName, memberName, guid,
                     kindInfo.Type, target.GlobalName + "." + memberName);
             }
 
@@ -299,7 +298,7 @@ public sealed class ConsolidatedSpellRegistryGenerator : IIncrementalGenerator
     private static void RecordEntry(
         SourceProductionContext spc,
         List<AllEntry> allEntries,
-        Dictionary<int, string> guidOwners,
+        Dictionary<int, string> fslidOwners,
         List<ITypeSymbol> lcaTypes,
         string containerGlobalName,
         string memberName,
@@ -307,13 +306,13 @@ public sealed class ConsolidatedSpellRegistryGenerator : IIncrementalGenerator
         ITypeSymbol? type,
         string memberAccess)
     {
-        if (guidOwners.TryGetValue(guid, out var existing))
+        if (fslidOwners.TryGetValue(guid, out var existing))
         {
             spc.ReportDiagnostic(Diagnostic.Create(DuplicateGuidDescriptor, Location.None, guid, existing, memberAccess));
             return;
         }
 
-        guidOwners[guid] = memberAccess;
+        fslidOwners[guid] = memberAccess;
         allEntries.Add(new AllEntry(containerGlobalName, memberName, guid));
         if (type is not null)
             lcaTypes.Add(type);
@@ -445,8 +444,6 @@ public sealed class ConsolidatedSpellRegistryGenerator : IIncrementalGenerator
         sb.AppendLine("public partial class " + registry.ClassName + " : global::" + SpellsNamespace + ".ISpellRegistry");
         sb.AppendLine("{");
         AppendMembers(sb, registry.Members);
-        sb.AppendLine();
-        AppendGuids(sb, registry.Members.Select(static m => new GuidConst(m.Name, m.Guid)));
         sb.AppendLine("}");
 
         spc.AddSource(HintName(registry.Namespace, registry.ClassName), sb.ToString());
@@ -479,30 +476,16 @@ public sealed class ConsolidatedSpellRegistryGenerator : IIncrementalGenerator
             sb.AppendLine();
         }
 
-        sb.AppendLine("    /// <summary>All registered entries keyed by <c>Guid</c>.</summary>");
+        sb.AppendLine("    /// <summary>All registered entries keyed by their <c>FSLID</c> value.</summary>");
         sb.AppendLine("    public static FrozenDictionary<int, " + lcaGlobalName + "> All { get; } =");
         sb.AppendLine("        new Dictionary<int, " + lcaGlobalName + ">");
         sb.AppendLine("        {");
         foreach (var entry in allEntries)
         {
-            sb.AppendLine("            [" + entry.ContainerGlobalName + "." + entry.MemberName + ".Guid] = " +
+            sb.AppendLine("            [" + entry.ContainerGlobalName + "." + entry.MemberName + ".FSLID.Value] = " +
                           entry.ContainerGlobalName + "." + entry.MemberName + ",");
         }
         sb.AppendLine("        }.ToFrozenDictionary();");
-        sb.AppendLine();
-
-        var centralGuids = new List<GuidConst>();
-        var guidNames = new HashSet<string>(StringComparer.Ordinal);
-        foreach (var member in sharedMembers)
-            if (guidNames.Add(member.Name))
-                centralGuids.Add(new GuidConst(member.Name, member.Guid));
-        if (central is not null)
-            foreach (var hand in central.Members)
-                if (guidNames.Add(hand.Name))
-                    centralGuids.Add(new GuidConst(hand.Name, hand.Guid));
-
-        sb.AppendLine("    /// <summary>Compile-time int Guid constants for the central registry's entries.</summary>");
-        AppendGuids(sb, centralGuids);
         sb.AppendLine("}");
 
         spc.AddSource(HintName(ns, className), sb.ToString());
@@ -512,18 +495,11 @@ public sealed class ConsolidatedSpellRegistryGenerator : IIncrementalGenerator
     {
         foreach (var member in members)
         {
+            sb.AppendLine("    [global::" + SpellsNamespace + ".SpellId(" +
+                          member.Guid.ToString(CultureInfo.InvariantCulture) + ")]");
             sb.AppendLine("    public static " + member.TypeName + " " + member.Name + " { get; } = new " +
                           member.TypeName + " { " + string.Join(", ", member.InitLines) + " };");
         }
-    }
-
-    private static void AppendGuids(StringBuilder sb, IEnumerable<GuidConst> guids)
-    {
-        sb.AppendLine("    public static class Guids");
-        sb.AppendLine("    {");
-        foreach (var g in guids)
-            sb.AppendLine("        public const int " + g.Name + " = " + g.Guid.ToString(CultureInfo.InvariantCulture) + ";");
-        sb.AppendLine("    }");
     }
 
     private static string HintName(string ns, string className) =>
@@ -595,12 +571,31 @@ public sealed class ConsolidatedSpellRegistryGenerator : IIncrementalGenerator
         return a;
     }
 
-    private static bool TryComputeGuid(IPropertySymbol property, CancellationToken ct, out int guid)
+    private static bool TryComputeFslid(IPropertySymbol property, CancellationToken ct, out int fslid)
     {
-        guid = 0;
+        fslid = 0;
         if (!TryReadCtorInt(property, ct, out var id)) return false;
-        guid = InheritsFromEffect(property.Type) ? 1_000_000 + id : id;
+        fslid = RangeOffsetForType(property.Type) + id;
         return true;
+    }
+
+    private static int RangeOffsetForType(ITypeSymbol type)
+    {
+        var current = type;
+        while (current is not null)
+        {
+            if (current.ContainingNamespace?.ToDisplayString() == SpellsNamespace)
+            {
+                switch (current.Name)
+                {
+                    case "Weapon": return 3_000_000;
+                    case "Talent": return 2_000_000;
+                    case "Effect": return 1_000_000;
+                }
+            }
+            current = current.BaseType;
+        }
+        return 0;
     }
 
     private static bool TryReadCtorInt(IPropertySymbol property, CancellationToken ct, out int id)
@@ -624,31 +619,14 @@ public sealed class ConsolidatedSpellRegistryGenerator : IIncrementalGenerator
         return false;
     }
 
-    private static bool InheritsFromEffect(ITypeSymbol type)
-    {
-        var current = type;
-        while (current is not null)
-        {
-            if (current.Name == EffectTypeName &&
-                current.ContainingNamespace?.ToDisplayString() == SpellsNamespace)
-                return true;
-            current = current.BaseType;
-        }
-        return false;
-    }
-
-    private static bool HasGuidProperty(ITypeSymbol type)
+    private static bool HasFslidProperty(ITypeSymbol type)
     {
         var current = type;
         while (current != null)
         {
-            foreach (var member in current.GetMembers("Guid"))
-            {
-                if (member is IPropertySymbol prop &&
-                    prop.Type.SpecialType == SpecialType.System_Int32 &&
-                    prop.GetMethod != null)
+            foreach (var member in current.GetMembers("FSLID"))
+                if (member is IPropertySymbol { GetMethod: not null })
                     return true;
-            }
             current = (current as INamedTypeSymbol)?.BaseType;
         }
         return false;
@@ -675,8 +653,6 @@ public sealed class ConsolidatedSpellRegistryGenerator : IIncrementalGenerator
     private readonly record struct EmitMember(string TypeName, string Name, int Guid, List<string> InitLines);
 
     private readonly record struct AllEntry(string ContainerGlobalName, string MemberName, int Guid);
-
-    private readonly record struct GuidConst(string Name, int Guid);
 
     private enum ScalarKind { Int, Double, String }
 

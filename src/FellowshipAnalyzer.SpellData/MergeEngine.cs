@@ -6,7 +6,6 @@ using FellowshipAnalyzer.Core.Game;
 using FellowshipAnalyzer.SpellData.Json;
 using FellowshipAnalyzer.SpellData.Model;
 using FellowshipAnalyzer.SpellData.Sources;
-using SpellKind = FellowshipAnalyzer.SpellData.Model.SpellKind;
 
 namespace FellowshipAnalyzer.SpellData;
 
@@ -65,8 +64,8 @@ public static class MergeEngine
                 if (!kit.DevName.StartsWith(heroPrefix, StringComparison.Ordinal))
                     continue;
 
-                var kind = SpellKindRange.FromFslId(kit.FslId);
-                var nativeId = SpellKindRange.NativeId(kit.FslId);
+                var kind = new FSLID(kit.FslId).Kind;
+                var nativeId = new FSLID(kit.FslId).NativeId;
 
                 var constants = Linking.ConstantsFor(kit, hero);
                 var scalars = MergeScalars(constants);
@@ -77,7 +76,7 @@ public static class MergeEngine
 
                 var name = spellDataName ?? kit.Name ?? string.Empty;
                 var member = MemberNaming.Sanitize(name);
-                var guid = SpellKindRange.GuidFor(kind, nativeId);
+                var guid = FSLID.FromNative(kind, nativeId);
                 var icon = inputs.Icons.IconFor(guid) ?? string.Empty;
                 var costs = Costs.Map(scalars, hero.Resources);
 
@@ -116,13 +115,13 @@ public static class MergeEngine
 
                 foreach (var link in links)
                 {
-                    var effectKind = SpellKindRange.FromFslId(link.EffectFslId);
-                    var effectId = SpellKindRange.NativeId(link.EffectFslId);
+                    var effectKind = new FSLID(link.EffectFslId).Kind;
+                    var effectId = new FSLID(link.EffectFslId).NativeId;
                     var effectName = inputs.SpellData.Effects.TryGetValue(effectId, out var effectEntry)
                         ? effectEntry.Name ?? string.Empty
                         : string.Empty;
                     var effectMember = MemberNaming.EffectMember(member, link.Role);
-                    var effectIcon = inputs.Icons.IconFor(SpellKindRange.GuidFor(effectKind, effectId)) ?? string.Empty;
+                    var effectIcon = inputs.Icons.IconFor(FSLID.FromNative(effectKind, effectId)) ?? string.Empty;
 
                     var effectProv = new ProvenanceBuilder()
                         .Set("id", ProvenanceSource.HeroData)
@@ -162,9 +161,9 @@ public static class MergeEngine
                 var overrideId = DeltaId(delta);
                 if (overrideId is int oid)
                 {
-                    var ovKind = DeltaKind(delta) ?? SpellKindRange.FromFslId(oid);
-                    var targetGuid = SpellKindRange.GuidFor(ovKind, SpellKindRange.NativeId(oid));
-                    spells.RemoveAll(s => s.Scope == scope && s.Member != member && s.Guid == targetGuid);
+                    var ovKind = DeltaKind(delta) ?? new FSLID(oid).Kind;
+                    var targetGuid = FSLID.FromNative(ovKind, new FSLID(oid).NativeId);
+                    spells.RemoveAll(s => s.Scope == scope && s.Member != member && s.FSLID.Value == targetGuid.Value);
                 }
 
                 var idx = spells.FindIndex(s => s.Scope == scope && s.Member == member);
@@ -198,7 +197,7 @@ public static class MergeEngine
         SpellKind kind, int nativeId, string name, string icon,
         double? cooldown, int? range, int charges, double? castDuration,
         double? channelDuration, double? channelTickInterval, IReadOnlyDictionary<ResourceTypes, int> costs) =>
-        Spell.FromGuid(SpellKindRange.GuidFor(kind, nativeId), name, icon) with
+        Spell.FromFSLID(FSLID.FromNative(kind, nativeId), name, icon) with
         {
             Cooldown = cooldown,
             Range = range,
@@ -239,8 +238,8 @@ public static class MergeEngine
         string scope, string member, JsonObject delta, MergeInputs inputs)
     {
         var id = DeltaId(delta)!.Value;
-        var kind = DeltaKind(delta) ?? SpellKindRange.FromFslId(id);
-        var nativeId = SpellKindRange.NativeId(id);
+        var kind = DeltaKind(delta) ?? new FSLID(id).Kind;
+        var nativeId = new FSLID(id).NativeId;
         var scalars = GatherScalarsById(id, inputs);
 
         string? nameFromSpellData = null;
@@ -253,7 +252,7 @@ public static class MergeEngine
             ?? inputs.GearData.WeaponTraits.FirstOrDefault(w => w.FslId == id);
 
         var resolvedName = nameFromSpellData ?? gearWeapon?.DisplayName ?? string.Empty;
-        var guid = SpellKindRange.GuidFor(kind, nativeId);
+        var guid = FSLID.FromNative(kind, nativeId);
         var icon = inputs.Icons.IconFor(guid) ?? string.Empty;
         var costs = Costs.Map(scalars, new ResourceModel(new Dictionary<string, ResourceTypes>(), []));
 

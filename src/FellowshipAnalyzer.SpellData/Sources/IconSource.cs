@@ -2,15 +2,15 @@ using System.Text.Json;
 
 namespace FellowshipAnalyzer.SpellData.Sources;
 
-/// <summary>Icon lookups by FSL guid, sourced from <c>abilities.json</c>.</summary>
+/// <summary>Icon lookups by FSL id, sourced from <c>abilities.json</c>.</summary>
 public sealed class IconSource
 {
     private readonly Dictionary<int, string> _icons;
 
     private IconSource(Dictionary<int, string> icons) => _icons = icons;
 
-    /// <summary>Returns the icon filename for the given FSL guid, or <c>null</c> if not found.</summary>
-    public string? IconFor(int fslGuid) => _icons.TryGetValue(fslGuid, out var icon) ? icon : null;
+    /// <summary>Returns the icon filename for the given FSL id, or <c>null</c> if not found.</summary>
+    public string? IconFor(int fslId) => _icons.TryGetValue(fslId, out var icon) ? icon : null;
 
     public static IconSource Load(string path)
     {

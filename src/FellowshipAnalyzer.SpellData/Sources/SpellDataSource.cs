@@ -1,5 +1,5 @@
 using System.Text.Json;
-using FellowshipAnalyzer.SpellData.Model;
+using FellowshipAnalyzer.Core.Common.Spells;
 
 namespace FellowshipAnalyzer.SpellData.Sources;
 

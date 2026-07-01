@@ -15,12 +15,10 @@ public class ModuleGeneratorObjectInitializerTests
             public interface ISpellRegistry { }
             public record Spell(int Id = 0, string Name = "", string Icon = "")
             {
-                public virtual int Guid => Id;
                 public int? Cooldown { get; init; }
             }
             public record Effect(int Id = 0, string Name = "", string Icon = "") : Spell(Id, Name, Icon)
             {
-                public override int Guid => 1_000_000 + Id;
             }
             public partial class Rime : ISpellRegistry
             {

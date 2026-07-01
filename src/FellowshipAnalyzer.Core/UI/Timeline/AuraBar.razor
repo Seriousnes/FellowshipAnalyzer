@@ -136,7 +136,7 @@
             _maxLevel = Math.Max(_maxLevel, level);
 
             _auras.Add(new AuraSegment(
-                Spell: Spell.FromGuid(buff.Ability.Guid, buff.Ability.Name, buff.Ability.Icon),
+                Spell: Spell.FromFSLID(buff.Ability.Guid, buff.Ability.Name, buff.Ability.Icon),
                 Name: buff.Ability.Name,
                 ClippedStart: clippedStart,
                 ClippedEnd: clippedEnd,

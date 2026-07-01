@@ -33,16 +33,17 @@ public class SpellDatabaseGeneratorTests
         gen.ShouldContain("ResourceTypes.Tertiary] = 2");
         gen.ShouldContain("new Effect"); // BurstingIceDamage typed by kind
         gen.ShouldContain("class Items");
-        gen.ShouldContain("public const int FreezingTorrent = 1027;");
-        gen.ShouldContain("public const int BurstingIceDamage = 1001396;");
-        gen.ShouldContain("public const int VoidbringerTouch = 155;");
+        gen.ShouldContain("[global::FellowshipAnalyzer.Core.Common.Spells.SpellId(1027)]");
+        gen.ShouldContain("[global::FellowshipAnalyzer.Core.Common.Spells.SpellId(1001396)]");
+        gen.ShouldContain("[global::FellowshipAnalyzer.Core.Common.Spells.SpellId(155)]");
+        gen.ShouldNotContain("class Guids");
     }
 
     [Fact]
-    public void Aggregates_All_ByGuid()
+    public void Aggregates_All_ByFslid()
     {
         var gen = SpellDatabaseGeneratorTestHarness.Run(SpellDb).ConcatenatedGenerated;
         gen.ShouldContain("FrozenDictionary");
-        gen.ShouldContain(".Guid");
+        gen.ShouldContain(".FSLID.Value] =");
     }
 }

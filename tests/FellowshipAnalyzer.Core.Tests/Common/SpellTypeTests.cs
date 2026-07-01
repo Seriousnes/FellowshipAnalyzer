@@ -39,27 +39,27 @@ public class SpellTypeTests
     [Theory]
     [InlineData(1396, 1_001_396)]
     public void Effect_AppliesGuidOffset(int id, int expectedGuid) =>
-        new Effect { Id = id }.Guid.ShouldBe(expectedGuid);
+        new Effect { Id = id }.FSLID.Value.ShouldBe(expectedGuid);
 
     [Theory]
     [InlineData(2303, 2_002_303)]
     public void Talent_AppliesGuidOffset(int id, int expectedGuid) =>
-        new Talent { Id = id }.Guid.ShouldBe(expectedGuid);
+        new Talent { Id = id }.FSLID.Value.ShouldBe(expectedGuid);
 
     [Theory]
     [InlineData(155, 3_000_155)]
     public void Weapon_AppliesGuidOffset(int id, int expectedGuid) =>
-        new Weapon { Id = id }.Guid.ShouldBe(expectedGuid);
+        new Weapon { Id = id }.FSLID.Value.ShouldBe(expectedGuid);
 
     [Theory]
     [InlineData(1027, typeof(Spell), 1027)]
     [InlineData(1_001_396, typeof(Effect), 1_001_396)]
     [InlineData(2_002_303, typeof(Talent), 2_002_303)]
     [InlineData(3_000_155, typeof(Weapon), 3_000_155)]
-    public void FromGuid_DecodesEveryRange(int guid, System.Type type, int expectedGuid)
+    public void FromFSLID_DecodesEveryRange(int guid, System.Type type, int expectedGuid)
     {
-        var s = Spell.FromGuid(guid);
+        var s = Spell.FromFSLID(guid);
         s.ShouldBeOfType(type);
-        s.Guid.ShouldBe(expectedGuid);
+        s.FSLID.Value.ShouldBe(expectedGuid);
     }
 }
