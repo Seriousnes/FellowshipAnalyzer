@@ -1,5 +1,6 @@
 @using FellowshipAnalyzer.Core.Common.Spells.Tariq
 @using Spells = FellowshipAnalyzer.Core.Common.Spells.Tariq.Spells
+@inject TariqCombatLogParser Parser
 
 <GuideContainer>
     <Section Title="Overview">
@@ -12,6 +13,11 @@
             </p>
         </Explanation>
     </Section>
+
+    @if (Parser.FuryEconomyReports.Count > 0)
+    {
+        <FuryEconomyGuide />
+    }
 
     <Section Title="Core Mechanic — Fury">
         <Explanation>
