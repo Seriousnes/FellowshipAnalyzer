@@ -16,25 +16,31 @@
     <ChildContent>
         <CastOverview Title="Setup Score" Stats="@BuildOverviewStats()" />
         <CastDetail Title="Ultimate Windows"
-                    Description="Which pre-conditions were met for each Spirit of Heroism."
+                    Description="Which pre-conditions were met for each Spirit of Heroism, grouped by pull."
                     Casts="@BuildPerCastData()" />
     </ChildContent>
 </GuideSection>
 
 @code {
-    private PreUltimateChecklistAnalyzer Analyzer => Parser.PreUltimateChecklist!;
+    private IReadOnlyList<PullResult<PreUltimateChecklistReport>> Reports => Parser.PreUltimateChecklistReports;
+
+    private IEnumerable<PreUltimateChecklistAnalyzer.UltWindow> AllWindows =>
+        Reports.SelectMany(r => r.Result.Windows);
 
     private IEnumerable<OverviewStat> BuildOverviewStats()
     {
-        var ults = Analyzer.Windows.Count;
-        var scoreTier = Analyzer.Score >= 90 ? PerformanceTier.Perfect
-            : Analyzer.Score >= 75 ? PerformanceTier.Good
-            : Analyzer.Score >= 50 ? PerformanceTier.Ok
+        var windows = AllWindows.ToList();
+        var ults = windows.Count;
+        var score = ults == 0 ? 0 : (int)Math.Round(windows.Average(w => w.ChecksPassed * 100.0 / w.TotalChecks));
+
+        var scoreTier = score >= 90 ? PerformanceTier.Perfect
+            : score >= 75 ? PerformanceTier.Good
+            : score >= 50 ? PerformanceTier.Ok
             : PerformanceTier.Fail;
 
         return
         [
-            new OverviewStat(ults == 0 ? "—" : $"{Analyzer.Score}%", "Setup Score",
+            new OverviewStat(ults == 0 ? "—" : $"{score}%", "Setup Score",
                 "Average share of the 5 pre-conditions met across ultimates.",
                 ults == 0 ? null : scoreTier),
             new OverviewStat($"{ults}", "Ultimates", "Spirit of Heroism windows detected."),
@@ -43,38 +49,43 @@
 
     private IEnumerable<PerCastData> BuildPerCastData()
     {
-        return Analyzer.Windows.Select(window =>
-        {
-            var passed = window.ChecksPassed;
-            var tier = passed == 5 ? PerformanceTier.Perfect
-                : passed >= 4 ? PerformanceTier.Good
-                : passed >= 2 ? PerformanceTier.Ok
-                : PerformanceTier.Fail;
+        return Reports.SelectMany(entry =>
+            entry.Result.Windows.Select(window => BuildWindowData(window, entry.Pull)));
+    }
 
-            return new PerCastData
-            {
-                Performance = tier,
-                Timestamp = Parser.FormatTimestamp(window.UltTimestamp),
-                Stats =
-                [
-                    new PerCastStat(BoolGlyph(window.SupremacyCastBefore), "Supremacy",
-                        "Skystrider's Supremacy cast before the ultimate.",
-                        window.SupremacyCastBefore ? PerformanceTier.Good : PerformanceTier.Fail),
-                    new PerCastStat(BoolGlyph(window.VoidbringerCastBefore), "Voidbringer",
-                        "Voidbringer's Touch cast before the ultimate.",
-                        window.VoidbringerCastBefore ? PerformanceTier.Good : PerformanceTier.Fail),
-                    new PerCastStat(BoolGlyph(window.SkystridersGraceActive), "Grace",
-                        "Skystrider's Grace active when the ultimate started.",
-                        window.SkystridersGraceActive ? PerformanceTier.Good : PerformanceTier.Fail),
-                    new PerCastStat(BoolGlyph(window.EventHorizonActive), "Event Horizon",
-                        "Event Horizon active when the ultimate started.",
-                        window.EventHorizonActive ? PerformanceTier.Good : PerformanceTier.Fail),
-                    new PerCastStat(BoolGlyph(window.BarrageAvailable), "Barrage",
-                        "Heartseeker Barrage available to fire during the window.",
-                        window.BarrageAvailable ? PerformanceTier.Good : PerformanceTier.Fail),
-                ],
-            };
-        });
+    private PerCastData BuildWindowData(PreUltimateChecklistAnalyzer.UltWindow window, Pull pull)
+    {
+        var passed = window.ChecksPassed;
+        var tier = passed == 5 ? PerformanceTier.Perfect
+            : passed >= 4 ? PerformanceTier.Good
+            : passed >= 2 ? PerformanceTier.Ok
+            : PerformanceTier.Fail;
+
+        return new PerCastData
+        {
+            Performance = tier,
+            Timestamp = Parser.FormatTimestamp(window.UltTimestamp),
+            Group = pull.Name,
+            GroupContent = @<PullBanner Pull="@pull" />,
+            Stats =
+            [
+                new PerCastStat(BoolGlyph(window.SupremacyCastBefore), "Supremacy",
+                    "Skystrider's Supremacy cast before the ultimate.",
+                    window.SupremacyCastBefore ? PerformanceTier.Good : PerformanceTier.Fail),
+                new PerCastStat(BoolGlyph(window.VoidbringerCastBefore), "Voidbringer",
+                    "Voidbringer's Touch cast before the ultimate.",
+                    window.VoidbringerCastBefore ? PerformanceTier.Good : PerformanceTier.Fail),
+                new PerCastStat(BoolGlyph(window.SkystridersGraceActive), "Grace",
+                    "Skystrider's Grace active when the ultimate started.",
+                    window.SkystridersGraceActive ? PerformanceTier.Good : PerformanceTier.Fail),
+                new PerCastStat(BoolGlyph(window.EventHorizonActive), "Event Horizon",
+                    "Event Horizon active when the ultimate started.",
+                    window.EventHorizonActive ? PerformanceTier.Good : PerformanceTier.Fail),
+                new PerCastStat(BoolGlyph(window.BarrageAvailable), "Barrage",
+                    "Heartseeker Barrage available to fire during the window.",
+                    window.BarrageAvailable ? PerformanceTier.Good : PerformanceTier.Fail),
+            ],
+        };
     }
 
     private static string BoolGlyph(bool value) => value ? "✓" : "✗";

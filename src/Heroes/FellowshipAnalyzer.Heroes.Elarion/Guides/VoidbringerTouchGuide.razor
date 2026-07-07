@@ -15,48 +15,56 @@
     <ChildContent>
         <CastOverview Title="Cast Discipline" Stats="@BuildOverviewStats()" />
         <CastDetail Title="Voidbringer Casts"
-                    Description="Cast targets and whether they re-marked an unconsumed target."
+                    Description="Cast targets and whether they re-marked an unconsumed target, grouped by pull."
                     Casts="@BuildPerCastData()" />
     </ChildContent>
 </GuideSection>
 
 @code {
-    private VoidbringerTouchAnalyzer Analyzer => Parser.VoidbringerTouch!;
+    private IReadOnlyList<PullResult<VoidbringerTouchReport>> Reports => Parser.VoidbringerTouchReports;
+
+    private int TotalCasts => Reports.Sum(r => r.Result.TotalCasts);
+    private int DoubleMarks => Reports.Sum(r => r.Result.DoubleMarks);
 
     private IEnumerable<OverviewStat> BuildOverviewStats()
     {
-        var doubleTier = Analyzer.DoubleMarks == 0 ? PerformanceTier.Perfect
-            : Analyzer.DoubleMarks < 2 ? PerformanceTier.Good
-            : Analyzer.DoubleMarks < 4 ? PerformanceTier.Ok
+        var doubleTier = DoubleMarks == 0 ? PerformanceTier.Perfect
+            : DoubleMarks < 2 ? PerformanceTier.Good
+            : DoubleMarks < 4 ? PerformanceTier.Ok
             : PerformanceTier.Fail;
 
         return
         [
-            new OverviewStat($"{Analyzer.TotalCasts}", "Casts",
+            new OverviewStat($"{TotalCasts}", "Casts",
                 "Total Voidbringer's Touch casts."),
-            new OverviewStat($"{Analyzer.DoubleMarks}", "Double Marks",
+            new OverviewStat($"{DoubleMarks}", "Double Marks",
                 "Casts on the same target before the prior mark was consumed.", doubleTier),
         ];
     }
 
     private IEnumerable<PerCastData> BuildPerCastData()
     {
-        return Analyzer.Casts.Select(cast => new PerCastData
-        {
-            Performance = cast.IsDoubleMark ? PerformanceTier.Fail : PerformanceTier.Good,
-            Timestamp = Parser.FormatTimestamp(cast.Timestamp),
-            Stats =
-            [
-                new PerCastStat(
-                    Parser.ActorNames.TryGetValue(cast.TargetId, out var name) ? name : $"#{cast.TargetId}",
-                    "Target",
-                    "Target of the Voidbringer's Touch cast."),
-                new PerCastStat(
-                    cast.IsDoubleMark ? "Yes" : "No",
-                    "Double Mark",
-                    "Whether the target was already marked when this cast landed.",
-                    cast.IsDoubleMark ? PerformanceTier.Fail : PerformanceTier.Good),
-            ],
-        });
+        return Reports.SelectMany(entry =>
+            entry.Result.Casts.Select(cast => BuildCastData(cast, entry.Pull)));
     }
+
+    private PerCastData BuildCastData(VoidbringerTouchAnalyzer.VoidbringerCast cast, Pull pull) => new()
+    {
+        Performance = cast.IsDoubleMark ? PerformanceTier.Fail : PerformanceTier.Good,
+        Timestamp = Parser.FormatTimestamp(cast.Timestamp),
+        Group = pull.Name,
+        GroupContent = @<PullBanner Pull="@pull" />,
+        Stats =
+        [
+            new PerCastStat(
+                Parser.ActorNames.TryGetValue(cast.TargetId, out var name) ? name : $"#{cast.TargetId}",
+                "Target",
+                "Target of the Voidbringer's Touch cast."),
+            new PerCastStat(
+                cast.IsDoubleMark ? "Yes" : "No",
+                "Double Mark",
+                "Whether the target was already marked when this cast landed.",
+                cast.IsDoubleMark ? PerformanceTier.Fail : PerformanceTier.Good),
+        ],
+    };
 }

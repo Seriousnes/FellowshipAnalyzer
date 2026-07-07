@@ -5,24 +5,21 @@ using FellowshipAnalyzer.Core.Events;
 namespace FellowshipAnalyzer.Heroes.Elarion.Modules;
 
 /// <summary>
-/// Tracks how well Skystrider's Grace and Event Horizon are used "on CD". Records how long
-/// each ability sat off-cooldown before the player used it, and the effective buff uptime
-/// for each ability versus the maximum duration.
+/// Tracks how well Skystrider's Grace and Event Horizon are used "on CD" within a pull. Records how
+/// long each ability sat off-cooldown before the player used it, and the effective buff uptime for
+/// each ability versus the pull duration. Cooldown discipline is shape-agnostic, so it runs on every
+/// pull shape.
 /// </summary>
-public sealed partial class CooldownEfficiencyAnalyzer : Analyzer
+[ForPull(PullKind.Single | PullKind.Multi)]
+public sealed partial class CooldownEfficiencyAnalyzer : Analyzer<CooldownEfficiencyReport>
 {
     private readonly CooldownTracking _grace = new(Spells.SkystridersGrace.FSLID, Spells.SkystridersGraceBuff.FSLID);
     private readonly CooldownTracking _eventHorizon = new(Spells.EventHorizon.FSLID, Spells.EventHorizonBuff.FSLID);
-    private int _fightStart;
-    private int _fightEnd;
+    private int _pullStart;
+    private int _pullEnd;
 
-    public CooldownTracking SkystridersGrace => _grace;
-    public CooldownTracking EventHorizon => _eventHorizon;
-
-    public int FightLengthMs => Math.Max(0, _fightEnd - _fightStart);
-
-    [On<FightStartEvent>]
-    private void OnFightStart(FightStartEvent e) => _fightStart = e.Timestamp;
+    [On<PullStartEvent>]
+    private void OnPullStart(PullStartEvent e) => _pullStart = e.Timestamp;
 
     [On<UpdateSpellUsableEvent>(By = Actor.Player, Spells = [nameof(Spells.SkystridersGrace), nameof(Spells.EventHorizon)])]
     private void OnUpdate(UpdateSpellUsableEvent e)
@@ -69,13 +66,19 @@ public sealed partial class CooldownEfficiencyAnalyzer : Analyzer
         tracking.BuffStartTimestamp = null;
     }
 
-    [On<FightEndEvent>]
-    private void OnFightEnd(FightEndEvent e)
+    [On<PullEndEvent>]
+    private void OnPullEndEvent(PullEndEvent e)
     {
-        _fightEnd = e.Timestamp;
+        _pullEnd = e.Timestamp;
         CloseOpenWindows(_grace, e.Timestamp);
         CloseOpenWindows(_eventHorizon, e.Timestamp);
     }
+
+    public override CooldownEfficiencyReport OnPullEnd() =>
+        new(
+            new CooldownSnapshot(_grace.Casts, _grace.TotalHeldMs, _grace.TotalBuffUptimeMs),
+            new CooldownSnapshot(_eventHorizon.Casts, _eventHorizon.TotalHeldMs, _eventHorizon.TotalBuffUptimeMs),
+            Math.Max(0, _pullEnd - _pullStart));
 
     private CooldownTracking? SelectTracking(int spellId)
     {
@@ -91,34 +94,28 @@ public sealed partial class CooldownEfficiencyAnalyzer : Analyzer
         return null;
     }
 
-    private static void CloseOpenWindows(CooldownTracking tracking, int fightEnd)
+    private static void CloseOpenWindows(CooldownTracking tracking, int pullEnd)
     {
         if (tracking.OffCooldownTimestamp is int offCd)
         {
-            tracking.TotalHeldMs += Math.Max(0, fightEnd - offCd);
+            tracking.TotalHeldMs += Math.Max(0, pullEnd - offCd);
             tracking.OffCooldownTimestamp = null;
         }
         if (tracking.BuffStartTimestamp is int buffStart)
         {
-            tracking.TotalBuffUptimeMs += Math.Max(0, fightEnd - buffStart);
+            tracking.TotalBuffUptimeMs += Math.Max(0, pullEnd - buffStart);
             tracking.BuffStartTimestamp = null;
         }
     }
 
-    public sealed class CooldownTracking
+    private sealed class CooldownTracking(int spellId, int buffId)
     {
-        public CooldownTracking(int spellId, int buffId)
-        {
-            SpellId = spellId;
-            BuffId = buffId;
-        }
-
-        public int SpellId { get; }
-        public int BuffId { get; }
-        public int Casts { get; internal set; }
-        public int TotalHeldMs { get; internal set; }
-        public int TotalBuffUptimeMs { get; internal set; }
-        internal int? OffCooldownTimestamp { get; set; }
-        internal int? BuffStartTimestamp { get; set; }
+        public int SpellId { get; } = spellId;
+        public int BuffId { get; } = buffId;
+        public int Casts { get; set; }
+        public int TotalHeldMs { get; set; }
+        public int TotalBuffUptimeMs { get; set; }
+        public int? OffCooldownTimestamp { get; set; }
+        public int? BuffStartTimestamp { get; set; }
     }
 }

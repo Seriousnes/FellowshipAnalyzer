@@ -15,27 +15,31 @@
     <ChildContent>
         <CastOverview Title="Eruption Efficiency" Stats="@BuildOverviewStats()" />
         <CastDetail Title="Barrage Casts"
-                    Description="Active mark count erupted by each Heartseeker Barrage."
+                    Description="Active mark count erupted by each Heartseeker Barrage, grouped by pull."
                     Casts="@BuildPerCastData()" />
     </ChildContent>
 </GuideSection>
 
 @code {
-    private LunarlightMarkEruptionAnalyzer Analyzer => Parser.LunarlightMarkEruption!;
+    private IReadOnlyList<PullResult<LunarlightMarkEruptionReport>> Reports => Parser.LunarlightMarkEruptionReports;
 
     private IEnumerable<OverviewStat> BuildOverviewStats()
     {
-        var totalBarrages = Analyzer.BarrageWithEruption + Analyzer.BarrageWithoutEruption;
-        var eruptionRate = totalBarrages == 0 ? 0 : Analyzer.BarrageWithEruption * 100.0 / totalBarrages;
+        var withEruption = Reports.Sum(r => r.Result.BarrageWithEruption);
+        var withoutEruption = Reports.Sum(r => r.Result.BarrageWithoutEruption);
+        var marksExpired = Reports.Sum(r => r.Result.MarksExpired);
+        var totalApplied = Reports.Sum(r => r.Result.TotalMarksApplied);
+        var totalBarrages = withEruption + withoutEruption;
+        var eruptionRate = totalBarrages == 0 ? 0 : withEruption * 100.0 / totalBarrages;
 
         var rateTier = eruptionRate >= 90 ? PerformanceTier.Perfect
             : eruptionRate >= 75 ? PerformanceTier.Good
             : eruptionRate >= 50 ? PerformanceTier.Ok
             : PerformanceTier.Fail;
 
-        var expiredTier = Analyzer.MarksExpired == 0 ? PerformanceTier.Perfect
-            : Analyzer.MarksExpired < 3 ? PerformanceTier.Good
-            : Analyzer.MarksExpired < 6 ? PerformanceTier.Ok
+        var expiredTier = marksExpired == 0 ? PerformanceTier.Perfect
+            : marksExpired < 3 ? PerformanceTier.Good
+            : marksExpired < 6 ? PerformanceTier.Ok
             : PerformanceTier.Fail;
 
         return
@@ -43,32 +47,37 @@
             new OverviewStat(totalBarrages == 0 ? "—" : $"{eruptionRate:F0}%", "Eruption Rate",
                 "Barrages that erupted at least one mark.",
                 totalBarrages == 0 ? null : rateTier),
-            new OverviewStat($"{Analyzer.MarksExpired}", "Expired Marks",
+            new OverviewStat($"{marksExpired}", "Expired Marks",
                 "Marks that fell off targets unerupted.", expiredTier),
-            new OverviewStat($"{Analyzer.TotalMarksApplied}", "Total Applied",
+            new OverviewStat($"{totalApplied}", "Total Applied",
                 "All Lunarlight Mark applications."),
         ];
     }
 
     private IEnumerable<PerCastData> BuildPerCastData()
     {
-        return Analyzer.Barrages.Select(b =>
-        {
-            var tier = b.ErupedMarks >= 3 ? PerformanceTier.Perfect
-                : b.ErupedMarks >= 1 ? PerformanceTier.Good
-                : PerformanceTier.Fail;
+        return Reports.SelectMany(entry =>
+            entry.Result.Barrages.Select(b => BuildBarrageData(b, entry.Pull)));
+    }
 
-            return new PerCastData
-            {
-                Performance = tier,
-                Timestamp = Parser.FormatTimestamp(b.Timestamp),
-                Stats =
-                [
-                    new PerCastStat($"{b.ErupedMarks}", "Marks Erupted",
-                        "Active Lunarlight Marks at the moment of the cast.",
-                        tier),
-                ],
-            };
-        });
+    private PerCastData BuildBarrageData(LunarlightMarkEruptionAnalyzer.BarrageEvent b, Pull pull)
+    {
+        var tier = b.ErupedMarks >= 3 ? PerformanceTier.Perfect
+            : b.ErupedMarks >= 1 ? PerformanceTier.Good
+            : PerformanceTier.Fail;
+
+        return new PerCastData
+        {
+            Performance = tier,
+            Timestamp = Parser.FormatTimestamp(b.Timestamp),
+            Group = pull.Name,
+            GroupContent = @<PullBanner Pull="@pull" />,
+            Stats =
+            [
+                new PerCastStat($"{b.ErupedMarks}", "Marks Erupted",
+                    "Active Lunarlight Marks at the moment of the cast.",
+                    tier),
+            ],
+        };
     }
 }

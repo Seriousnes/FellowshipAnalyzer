@@ -5,10 +5,12 @@ using FellowshipAnalyzer.Core.Events;
 namespace FellowshipAnalyzer.Heroes.Elarion.Modules;
 
 /// <summary>
-/// Tracks Impending Heartseeker proc lifecycle: gains, refreshes, consumptions, and expirations.
-/// Procs last 15s; a second proc resets the first timer. Expired procs are wasted procs.
+/// Tracks Impending Heartseeker proc lifecycle within a pull: gains, refreshes, consumptions, and
+/// expirations. Procs last 15s; a second proc resets the first timer. Expired procs are wasted
+/// procs. Proc management is shape-agnostic, so this runs on every pull shape.
 /// </summary>
-public sealed partial class ImpendingHeartseekerAnalyzer : Analyzer
+[ForPull(PullKind.Single | PullKind.Multi)]
+public sealed partial class ImpendingHeartseekerAnalyzer : Analyzer<ImpendingHeartseekerReport>
 {
     private const int ProcDurationMs = 15_000;
     private const int ExpiryToleranceMs = 250;
@@ -16,12 +18,6 @@ public sealed partial class ImpendingHeartseekerAnalyzer : Analyzer
     private readonly List<ProcEvent> _events = [];
     private int? _activeStartTimestamp;
     private int _activeStacks;
-
-    public IReadOnlyList<ProcEvent> Procs => _events;
-    public int Gains => _events.Count(p => p.Kind == ProcKind.Gain);
-    public int Refreshes => _events.Count(p => p.Kind == ProcKind.Refresh);
-    public int Consumed => _events.Count(p => p.Kind == ProcKind.Consumed);
-    public int Expired => _events.Count(p => p.Kind == ProcKind.Expired);
 
     [On<ApplyBuffEvent>(To = Actor.Player, Spell = nameof(Spells.ImpendingHeartseeker))]
     private void OnApply(ApplyBuffEvent e)
@@ -62,6 +58,14 @@ public sealed partial class ImpendingHeartseekerAnalyzer : Analyzer
         _activeStartTimestamp = null;
         _activeStacks = 0;
     }
+
+    public override ImpendingHeartseekerReport OnPullEnd() =>
+        new(
+            _events,
+            _events.Count(p => p.Kind == ProcKind.Gain),
+            _events.Count(p => p.Kind == ProcKind.Refresh),
+            _events.Count(p => p.Kind == ProcKind.Consumed),
+            _events.Count(p => p.Kind == ProcKind.Expired));
 
     private bool IsExpiry(int now)
     {

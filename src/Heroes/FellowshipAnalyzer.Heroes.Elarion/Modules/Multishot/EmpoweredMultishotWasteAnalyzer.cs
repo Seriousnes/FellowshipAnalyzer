@@ -1,33 +1,29 @@
 using FellowshipAnalyzer.Core.Analysis;
 using FellowshipAnalyzer.Core.Common.Spells.Elarion;
 using FellowshipAnalyzer.Core.Events;
-using FellowshipAnalyzer.Heroes.Elarion.Modules.Multishot;
 
 namespace FellowshipAnalyzer.Heroes.Elarion.Modules;
 
 /// <summary>
-/// Tracks Multishot casts and how many of them were "regular" while an Empowered Multishot
-/// charge was available. Empowered Multishot should always be consumed before regular casts.
+/// Tracks Multishot casts and how many of them were "regular" while an Empowered Multishot charge
+/// was available. Empowered Multishot should always be consumed before regular casts. Multishot is
+/// the AoE filler, so this is scored on multi-target (trash) pulls. Empowered Multishot comes from
+/// the Focused Expanse talent; <see cref="EmpoweredMultishotWasteReport.BuildActive"/> records
+/// whether the analysed player runs that build.
 /// </summary>
-[ActiveWhen<HasEmpoweredMultishot>]
-public sealed partial class EmpoweredMultishotWasteAnalyzer : Analyzer
+[ForPull(PullKind.Multi)]
+public sealed partial class EmpoweredMultishotWasteAnalyzer : Analyzer<EmpoweredMultishotWasteReport>
 {
     private bool _empoweredAvailable;
-    private int? _empoweredAvailableSinceTimestamp;
 
     private int _regularCasts;
     private int _empoweredConsumed;
     private int _wastedExpirations;
 
-    public int RegularCasts => _regularCasts;
-    public int EmpoweredConsumed => _empoweredConsumed;
-    public int WastedExpirations => _wastedExpirations;
-
     [On<ApplyBuffEvent>(To = Actor.Player, Spell = nameof(Spells.EmpoweredMultishotBuff))]
     private void OnApplyBuff(ApplyBuffEvent e)
     {
         _empoweredAvailable = true;
-        _empoweredAvailableSinceTimestamp = e.Timestamp;
     }
 
     [On<RemoveBuffEvent>(To = Actor.Player, Spell = nameof(Spells.EmpoweredMultishotBuff))]
@@ -39,7 +35,6 @@ public sealed partial class EmpoweredMultishotWasteAnalyzer : Analyzer
         }
 
         _empoweredAvailable = false;
-        _empoweredAvailableSinceTimestamp = null;
     }
 
     [On<CastEvent>(By = Actor.Player, Spell = nameof(Spells.Multishot))]
@@ -49,11 +44,17 @@ public sealed partial class EmpoweredMultishotWasteAnalyzer : Analyzer
         {
             _empoweredConsumed++;
             _empoweredAvailable = false;
-            _empoweredAvailableSinceTimestamp = null;
         }
         else
         {
             _regularCasts++;
         }
     }
+
+    public override EmpoweredMultishotWasteReport OnPullEnd() =>
+        new(
+            _regularCasts,
+            _empoweredConsumed,
+            _wastedExpirations,
+            Owner.SelectedCombatant.HasTalent(Talents.FocusedExpanse.Id));
 }

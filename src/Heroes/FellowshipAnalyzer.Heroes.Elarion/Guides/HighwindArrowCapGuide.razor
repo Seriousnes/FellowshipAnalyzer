@@ -5,10 +5,10 @@
         <p>
             <SpellLink Spell="Spells.HighwindArrow" /> has 3 charges. Sitting at 3 charges wastes
             cooldown recovery time — every second at cap is a second the next charge could have been
-            recharging.
+            recharging. This is scored on single-target pulls, where Highwind Arrow is your builder.
         </p>
         <ol>
-            <li>Cast Highwind Arrow before reaching the cap, especially during AoE priority.</li>
+            <li>Cast Highwind Arrow before reaching the cap on single-target.</li>
             <li>Pool charges briefly only when prepping for a burst window.</li>
         </ol>
     </Explanation>
@@ -19,49 +19,55 @@
 </GuideSection>
 
 @code {
-    private HighwindArrowCapAnalyzer Analyzer => Parser.HighwindArrowCap!;
+    private IReadOnlyList<PullResult<HighwindArrowCapReport>> Reports => Parser.HighwindArrowCapReports;
+
+    private int TotalTimeAtCapMs => Reports.Sum(r => r.Result.TotalTimeAtCapMs);
+    private int TotalPullDurationMs => Reports.Sum(r => r.Result.PullDurationMs);
+    private int CastsWhileCapped => Reports.Sum(r => r.Result.CastsWhileCapped);
+    private int TotalCasts => Reports.Sum(r => r.Result.TotalCasts);
+    private double CapPercentage => TotalPullDurationMs > 0 ? (double)TotalTimeAtCapMs / TotalPullDurationMs : 0;
 
     private IEnumerable<OverviewStat> BuildOverviewStats()
     {
-        var capPct = Analyzer.CapPercentage * 100;
+        var capPct = CapPercentage * 100;
         var capTier = capPct < 5 ? PerformanceTier.Perfect
             : capPct < 15 ? PerformanceTier.Good
             : capPct < 25 ? PerformanceTier.Ok
             : PerformanceTier.Fail;
 
-        var castsTier = Analyzer.CastsWhileCapped == 0 ? PerformanceTier.Perfect
-            : Analyzer.CastsWhileCapped < 3 ? PerformanceTier.Good
-            : Analyzer.CastsWhileCapped < 6 ? PerformanceTier.Ok
+        var castsTier = CastsWhileCapped == 0 ? PerformanceTier.Perfect
+            : CastsWhileCapped < 3 ? PerformanceTier.Good
+            : CastsWhileCapped < 6 ? PerformanceTier.Ok
             : PerformanceTier.Fail;
 
         return
         [
             new OverviewStat($"{capPct:F0}%", "Time at Cap",
-                "Percentage of fight time at 3/3 charges.", capTier),
-            new OverviewStat($"{Analyzer.CastsWhileCapped}", "Casts at Cap",
+                "Percentage of single-target pull time at 3/3 charges.", capTier),
+            new OverviewStat($"{CastsWhileCapped}", "Casts at Cap",
                 "Casts that fired with charges already capped.", castsTier),
-            new OverviewStat($"{Analyzer.TotalCasts}", "Total Casts",
-                "All Highwind Arrow casts."),
+            new OverviewStat($"{TotalCasts}", "Total Casts",
+                "All Highwind Arrow casts on single-target pulls."),
         ];
     }
 
     private IEnumerable<Finding> BuildFindings()
     {
-        if (Analyzer.TotalCasts == 0)
+        if (TotalCasts == 0)
         {
-            yield return new Finding("info", "No Highwind Arrow casts were detected.", null);
+            yield return new Finding("info", "No Highwind Arrow casts were detected on single-target pulls.", null);
             yield break;
         }
 
-        if (Analyzer.CastsWhileCapped == 0 && Analyzer.CapPercentage < 0.05)
+        if (CastsWhileCapped == 0 && CapPercentage < 0.05)
         {
             yield return new Finding("info", "Charge management was clean — minimal time at cap.", null);
         }
-        else if (Analyzer.CastsWhileCapped > 0)
+        else if (CastsWhileCapped > 0)
         {
             yield return new Finding(
                 "warning",
-                $"{Analyzer.CastsWhileCapped} cast{(Analyzer.CastsWhileCapped == 1 ? "" : "s")} fired with charges capped — that recharge time was wasted.",
+                $"{CastsWhileCapped} cast{(CastsWhileCapped == 1 ? "" : "s")} fired with charges capped — that recharge time was wasted.",
                 null);
         }
     }
