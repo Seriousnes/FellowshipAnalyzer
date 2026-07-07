@@ -105,6 +105,10 @@
                 "CP Overcap",
                 "Generator casts at maximum combo points, wasting the generation.",
                 Performance: report.GeneratorOvercapCasts == 0 ? PerformanceTier.Perfect : PerformanceTier.Ok),
+            new PerCastStat(
+                $"{report.MaintenanceFinisherCasts}",
+                "Hemorrhaging Strike",
+                "Hemorrhaging Strike casts, pressed to maintain bleeds and Hemotoxin — tracked for context, not scored against the finisher threshold."),
         };
 
         return new PerCastData
