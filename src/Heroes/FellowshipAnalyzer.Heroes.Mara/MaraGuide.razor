@@ -1,5 +1,8 @@
 @using FellowshipAnalyzer.Core.Common.Spells.Mara
+@using FellowshipAnalyzer.Heroes.Mara.Analysis
+@using FellowshipAnalyzer.Heroes.Mara.Guides
 @using Spells = FellowshipAnalyzer.Core.Common.Spells.Mara.Spells
+@inject MaraCombatLogParser Parser
 
 <GuideContainer>
     <Section Title="Overview">
@@ -12,6 +15,11 @@
             </p>
         </Explanation>
     </Section>
+
+    @if (Parser.MaraResourceReports.Count > 0)
+    {
+        <MaraResourceDisciplineGuide />
+    }
 
     <Section Title="Core Mechanic — Energy & Combo Points">
         <Explanation>

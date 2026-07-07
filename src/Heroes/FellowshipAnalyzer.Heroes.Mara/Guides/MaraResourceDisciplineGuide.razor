@@ -1,0 +1,140 @@
+@using FellowshipAnalyzer.Core.Analysis
+@using FellowshipAnalyzer.Core.UI.Components
+@using FellowshipAnalyzer.Core.UI.Diagnostics
+@using FellowshipAnalyzer.Core.UI.Guides
+@using FellowshipAnalyzer.Core.UI.Timeline
+@using FellowshipAnalyzer.Heroes.Mara.Analysis
+@using FellowshipAnalyzer.Heroes.Mara.Modules
+@using FellowshipAnalyzer.Core.Common.Spells
+@using Spells = FellowshipAnalyzer.Core.Common.Spells.Mara.Spells
+@inject MaraCombatLogParser Parser
+
+<GuideSection Title="Resource Discipline">
+    <Explanation>
+        <ol>
+            <li>Dump combo points with a spending finisher once you reach the pull's threshold — <SpellLink Spell="Spells.QueenFang" /> at <strong>5+</strong> on single target, <SpellLink Spell="Spells.ArachnidAssault" /> at <strong>4+</strong> in AoE.</li>
+            <li>Keep Energy flowing. Every cast made while Energy is capped wastes the Energy that regenerated while you were parked at the cap.</li>
+            <li>Do not build past 6 combo points — generating with <SpellLink Spell="Spells.Backstab" />, <SpellLink Spell="Spells.WidowBite" /> or <SpellLink Spell="Spells.SkitteringBlades" /> at cap throws away the generation.</li>
+            <li><SpellLink Spell="Spells.HemorrhagingStrike" /> is tracked separately: it is pressed to maintain bleeds and Hemotoxin, so it is not scored against the finisher threshold.</li>
+            <li>The breakdown below is grouped per pull and scored against that pull's shape (boss pulls single-target, trash pulls AoE).</li>
+        </ol>
+    </Explanation>
+    <ChildContent>
+        <CastOverview Title="Resource Overview" Stats="@BuildOverviewStats()" />
+        <CastDetail Title="Per-Pull Breakdown"
+                    Description="Each card summarises one pull's finisher discipline and resource overcap, scored against the priority that pull's shape calls for."
+                    Casts="@BuildPerCastData()" />
+    </ChildContent>
+</GuideSection>
+
+@code {
+    private IReadOnlyList<MaraResourceReport> Reports =>
+        [.. Parser.MaraResourceReports.Select(entry => entry.Result)];
+
+    private IEnumerable<OverviewStat> BuildOverviewStats()
+    {
+        var reports = Reports;
+        var withData = reports.Sum(r => r.FinishersWithData);
+        var atThreshold = reports.Sum(r => r.FinishersAtThreshold);
+        var finisherRate = withData > 0 ? (int)Math.Round((double)atThreshold / withData * 100) : 0;
+
+        var energySampled = reports.Sum(r => r.EnergyCastsSampled);
+        var energyCapped = reports.Sum(r => r.EnergyCappedCasts);
+        var energyRate = energySampled > 0 ? (int)Math.Round((double)energyCapped / energySampled * 100) : 0;
+
+        var generatorOvercap = reports.Sum(r => r.GeneratorOvercapCasts);
+
+        return
+        [
+            new OverviewStat(
+                $"{finisherRate}%",
+                "Finishers on Threshold",
+                $"{atThreshold} of {withData} Queen's Fang / Arachnid Assault casts met the pull's combo-point threshold.",
+                FinisherTier(finisherRate)),
+            new OverviewStat(
+                $"{withData}",
+                "Finishers Evaluated",
+                "Queen's Fang and Arachnid Assault casts that carried a combo-point snapshot."),
+            new OverviewStat(
+                $"{energyCapped}",
+                "Casts at Capped Energy",
+                $"{energyCapped} of {energySampled} sampled casts ({energyRate}%) happened at full Energy; the Energy that regenerated while capped was wasted.",
+                EnergyTier(energyRate)),
+            new OverviewStat(
+                $"{generatorOvercap}",
+                "Combo Points Overcapped",
+                "Generator casts made while already at maximum combo points, wasting the generation.",
+                generatorOvercap == 0 ? PerformanceTier.Perfect : PerformanceTier.Ok),
+        ];
+    }
+
+    private IEnumerable<PerCastData> BuildPerCastData() =>
+        Parser.MaraResourceReports.Select(entry => BuildPullData(entry.Result, entry.Pull));
+
+    private PerCastData BuildPullData(MaraResourceReport report, Pull pull)
+    {
+        var perf = ScoreTier(report.ScoreCard.Score);
+        var isAoe = report.Shape == MaraPullShape.Aoe;
+        var finisherRate = report.FinishersWithData > 0
+            ? (int)Math.Round((double)report.FinishersAtThreshold / report.FinishersWithData * 100)
+            : 0;
+        var energyRate = report.EnergyCastsSampled > 0
+            ? (int)Math.Round((double)report.EnergyCappedCasts / report.EnergyCastsSampled * 100)
+            : 0;
+
+        var stats = new[]
+        {
+            new PerCastStat(
+                isAoe ? "AoE" : "ST",
+                "Shape",
+                isAoe
+                    ? "Trash pull — scored against the AoE priority (spend at 4+ combo points)."
+                    : "Boss pull — scored against the single-target priority (spend at 5+ combo points)."),
+            new PerCastStat(
+                $"{report.FinishersAtThreshold}/{report.FinishersWithData}",
+                $"Finishers ≥{report.FinisherCpThreshold} CP",
+                "Queen's Fang / Arachnid Assault casts that met the combo-point threshold for this pull's shape.",
+                Performance: FinisherTier(finisherRate)),
+            new PerCastStat(
+                $"{report.EnergyCappedCasts}/{report.EnergyCastsSampled}",
+                "Energy Capped",
+                $"Casts made at full Energy ({energyRate}%). The Energy regenerated while capped is wasted.",
+                Performance: EnergyTier(energyRate)),
+            new PerCastStat(
+                $"{report.GeneratorOvercapCasts}",
+                "CP Overcap",
+                "Generator casts at maximum combo points, wasting the generation.",
+                Performance: report.GeneratorOvercapCasts == 0 ? PerformanceTier.Perfect : PerformanceTier.Ok),
+        };
+
+        return new PerCastData
+        {
+            Performance = perf,
+            Stats = stats,
+            Timestamp = Parser.FormatTimestamp(pull.StartTime),
+            Group = pull.Name,
+            GroupContent = @<PullBanner Pull="@pull" />,
+            AdditionalContent = new AdditionalContent(
+                "Findings",
+                @<FindingsList Findings="@report.Findings" />),
+        };
+    }
+
+    private static PerformanceTier FinisherTier(int rate) =>
+        rate >= 95 ? PerformanceTier.Perfect
+        : rate >= 85 ? PerformanceTier.Good
+        : rate >= 70 ? PerformanceTier.Ok
+        : PerformanceTier.Fail;
+
+    private static PerformanceTier EnergyTier(int cappedRate) =>
+        cappedRate <= 3 ? PerformanceTier.Perfect
+        : cappedRate <= 8 ? PerformanceTier.Good
+        : cappedRate <= 15 ? PerformanceTier.Ok
+        : PerformanceTier.Fail;
+
+    private static PerformanceTier ScoreTier(int score) =>
+        score >= 90 ? PerformanceTier.Perfect
+        : score >= 75 ? PerformanceTier.Good
+        : score >= 50 ? PerformanceTier.Ok
+        : PerformanceTier.Fail;
+}
