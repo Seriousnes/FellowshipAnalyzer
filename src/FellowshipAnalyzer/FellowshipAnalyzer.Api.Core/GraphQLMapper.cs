@@ -36,6 +36,14 @@ public sealed partial class GraphQLMapper
             .Where(x => x.HasValue)
             .Select(x => x!.Value)
             .ToList();
+        var enemyNpcs = source.EnemyNPCs?
+            .Where(n => n is not null)
+            .Select(n => MapFightNpc(n!))
+            .ToList();
+        var dungeonPulls = source.DungeonPulls?
+            .Where(p => p is not null)
+            .Select(p => MapDungeonPull(p!))
+            .ToList();
         return new ReportFight(
             source.Id,
             source.Name,
@@ -46,8 +54,40 @@ public sealed partial class GraphQLMapper
             source.Difficulty,
             fp,
             source.FightPercentage,
-            source.InProgress ?? false);
+            source.InProgress ?? false,
+            dungeonPulls,
+            enemyNpcs);
     }
+
+    public FightNpc MapFightNpc(IGetReportMasterData_ReportData_Report_Fights_EnemyNPCs source)
+        => new(source.Id, source.GameID, source.InstanceCount, source.GroupCount, source.PetOwner);
+
+    // --- DungeonPull ---
+
+    public DungeonPull MapDungeonPull(IGetReportMasterData_ReportData_Report_Fights_DungeonPulls source)
+    {
+        var enemyNpcs = source.EnemyNPCs?
+            .Where(n => n is not null)
+            .Select(n => MapDungeonPullNpc(n!))
+            .ToList();
+        return new DungeonPull(
+            source.Id,
+            source.EncounterID,
+            source.Kill,
+            source.StartTime,
+            source.EndTime,
+            source.Name,
+            enemyNpcs);
+    }
+
+    public DungeonPullNpc MapDungeonPullNpc(IGetReportMasterData_ReportData_Report_Fights_DungeonPulls_EnemyNPCs source)
+        => new(
+            source.Id,
+            source.GameID,
+            source.MinimumInstanceID,
+            source.MaximumInstanceID,
+            source.MinimumInstanceGroupID,
+            source.MaximumInstanceGroupID);
 
     // --- AnalysisPreload ---
 

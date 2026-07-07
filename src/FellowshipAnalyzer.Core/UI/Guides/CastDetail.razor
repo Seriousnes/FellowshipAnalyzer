@@ -46,24 +46,12 @@
         else
         {
             <div class="card-container" tabindex="0" @onkeydown="HandleKeyDown">
-                @* Timeline scrubber *@
+                @* Timeline scrubber — one continuous array of windows *@
                 <div class="timeline-row">
                     <div class="timeline-rect-container">
                         @for (var i = 0; i < filteredCount; i++)
                         {
-                            var idx = i;
-                            var cast = filteredCasts[idx];
-                            var color = PerformanceColors.ToColor(cast.Performance);
-                            var isActive = idx == validIndex;
-
-                            <button class="timeline-rect @(isActive ? "active" : "")"
-                                    style="width: calc(@(rectWidthPct.ToString("F1"))% - 3px);
-                                           background: @(isActive ? color : color + "55");
-                                           border-color: @(isActive ? color : "transparent");
-                                           @(isActive ? $"outline: 2px solid rgba(255,255,255,0.6); outline-offset: 1px;" : "")"
-                                    title="Cast #@(_allCasts.IndexOf(cast) + 1) · @cast.Timestamp · @PerformanceColors.ToLabel(cast.Performance)"
-                                    @onclick="() => SetIndex(idx)">
-                            </button>
+                            @Rect(i, filteredCasts, validIndex, $"width: calc({rectWidthPct.ToString("F1")}% - 3px);")
                         }
                     </div>
                 </div>
@@ -90,6 +78,16 @@
                             <span class="nav-chevron">&#8250;</span>
                         </button>
                     </div>
+
+                    @* Group (e.g. pull) identifier *@
+                    @if (currentCast.GroupContent is not null)
+                    {
+                        @currentCast.GroupContent
+                    }
+                    else if (!string.IsNullOrEmpty(currentCast.Group))
+                    {
+                        <div class="cast-group-banner">@currentCast.Group</div>
+                    }
 
                     @* Stats grid *@
                     <div class="stats-grid" style="margin-bottom: 10px;">
@@ -212,5 +210,20 @@
             }
             @content
         </div>;
+    }
+
+    private RenderFragment Rect(int idx, List<PerCastData> casts, int validIndex, string? widthStyle)
+    {
+        var cast = casts[idx];
+        var color = PerformanceColors.ToColor(cast.Performance);
+        var isActive = idx == validIndex;
+        return @<button class="timeline-rect @(isActive ? "active" : "")"
+                        style="@widthStyle
+                               background: @(isActive ? color : color + "55");
+                               border-color: @(isActive ? color : "transparent");
+                               @(isActive ? "outline: 2px solid rgba(255,255,255,0.6); outline-offset: 1px;" : "")"
+                        title="Cast #@(_allCasts.IndexOf(cast) + 1) · @cast.Timestamp · @PerformanceColors.ToLabel(cast.Performance)"
+                        @onclick="() => SetIndex(idx)">
+                </button>;
     }
 }

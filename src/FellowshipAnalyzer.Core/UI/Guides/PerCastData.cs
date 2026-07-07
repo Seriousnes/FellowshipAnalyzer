@@ -22,4 +22,16 @@ public sealed class PerCastData
     /// Optional spell sequence entries to display in a <see cref="SpellSequence"/> filmstrip.
     /// </summary>
     public SpellCastEntry[]? Sequence { get; init; }
+
+    /// <summary>
+    /// Optional grouping key/label (e.g. a pull name). Shown on the cast card when
+    /// <see cref="GroupContent"/> is not supplied.
+    /// </summary>
+    public string? Group { get; init; }
+
+    /// <summary>
+    /// Optional rich banner for this cast's group, rendered above the stat tiles (e.g. a pull
+    /// identifier). Takes precedence over <see cref="Group"/>.
+    /// </summary>
+    public RenderFragment? GroupContent { get; init; }
 }

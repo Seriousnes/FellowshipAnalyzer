@@ -15,11 +15,28 @@ query GetReport($code: String!) {
         friendlyPlayers
         inProgress
         fightPercentage
+        enemyNPCs {
+          id
+          gameID
+          instanceCount
+          groupCount
+          petOwner
+        }
         dungeonPulls {
+          id
           encounterID
+          kill
           startTime
           endTime
           name
+          enemyNPCs {
+            id
+            gameID
+            minimumInstanceID
+            maximumInstanceID
+            minimumInstanceGroupID
+            maximumInstanceGroupID
+          }
         }
       }
       masterData {

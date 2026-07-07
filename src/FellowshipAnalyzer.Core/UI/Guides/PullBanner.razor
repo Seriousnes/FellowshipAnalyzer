@@ -1,0 +1,35 @@
+@using FellowshipAnalyzer.Core.Analysis
+
+@* Identifies the pull a per-pull result belongs to: a boss/trash icon + colour, the Fellowship
+   Logs pull id (for correlation), and the pull name. *@
+
+<div class="pull-banner @(Pull.IsBoss ? "boss" : "trash")" title="@(Pull.IsBoss ? "Boss" : "Trash") pull">
+    <span class="pull-banner-icon" aria-label="@(Pull.IsBoss ? "Boss" : "Trash")">
+        @if (Pull.IsBoss)
+        {
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true">
+                <path d="M2 7l4.5 4L12 3l5.5 8L22 7l-1.6 11.4a1 1 0 0 1-1 .85H4.6a1 1 0 0 1-1-.85L2 7z" />
+            </svg>
+        }
+        else
+        {
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true">
+                <circle cx="6" cy="15" r="3.2" />
+                <circle cx="12" cy="9" r="3.2" />
+                <circle cx="18" cy="15" r="3.2" />
+            </svg>
+        }
+    </span>
+    @if (Pull.Id != 0)
+    {
+        <span class="pull-banner-id">#@Pull.Id</span>
+    }
+    <span class="pull-banner-name">@DisplayName</span>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public Pull Pull { get; set; } = default!;
+
+    private string DisplayName =>
+        string.IsNullOrWhiteSpace(Pull.Name) ? $"Pull {Pull.Index + 1}" : Pull.Name;
+}

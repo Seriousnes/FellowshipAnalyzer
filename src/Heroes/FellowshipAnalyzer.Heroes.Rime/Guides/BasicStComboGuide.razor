@@ -1,8 +1,10 @@
+@using FellowshipAnalyzer.Core.Analysis
 @using FellowshipAnalyzer.Core.UI.Components
 @using FellowshipAnalyzer.Core.UI.Diagnostics
 @using FellowshipAnalyzer.Core.UI.Guides
 @using FellowshipAnalyzer.Core.UI.Timeline
 @using FellowshipAnalyzer.Heroes.Rime.Analysis
+@using FellowshipAnalyzer.Heroes.Rime.Modules
 @using FellowshipAnalyzer.Core.Common.Spells
 @inject RimeCombatLogParser Parser
 
@@ -20,37 +22,39 @@
             <li>Build Winter Orbs to at least 3 before casting @bi</li>
             <li>Single-target windows expect @gb follow-up, with @cs or @ft added when the window can support it. @ft → @cs is also acceptable.</li>
             <li>AoE windows are identified by @bi hitting 2 or more unique targets and should contain @ic plus @cs in any order.</li>
-            <li>Each window below shows the spell sequence, compact metrics, and a short note explaining what matched or was missing.</li>
+            <li>The window timeline below is grouped per pull — each pull's windows are evaluated against the priorities that pull's type calls for.</li>
         </ol>
     </Explanation>
     <ChildContent>
         <CastOverview Title="Window Overview" Stats="@BuildOverviewStats()" />
         <CastDetail Title="Winter's Embrace Windows"
-                    Description="Each window shows what was cast during the 3s Winter's Embrace buff."
+                    Description="Each window shows what was cast during the 3s Winter's Embrace buff, grouped by the pull it occurred in."
                     Casts="@BuildPerCastData()" />
     </ChildContent>
 </GuideSection>
 
 @code {
-    private BasicStComboAnalyzer Analyzer => Parser.BasicStCombo!;
-
     private IEnumerable<OverviewStat> BuildOverviewStats()
     {
-        var total = Analyzer.EvaluatedWindows;
-        var successRate = total > 0 ? (int)Math.Round((double)Analyzer.SuccessfulWindows / total * 100) : 0;
-        var singleTargetWindows = Analyzer.Windows.Count(window => window.WindowType == BasicStComboAnalyzer.BurstingIceWindowType.SingleTarget);
-        var aoeWindows = Analyzer.Windows.Count(window => window.WindowType == BasicStComboAnalyzer.BurstingIceWindowType.Aoe);
+        var reports = Parser.BasicStComboReports.Select(entry => entry.Result).ToList();
+        var total = reports.Sum(report => report.EvaluatedWindows);
+        var successful = reports.Sum(report => report.SuccessfulWindows);
+        var successRate = total > 0 ? (int)Math.Round((double)successful / total * 100) : 0;
+        var singleTargetWindows = reports.Sum(report =>
+            report.Windows.Count(window => window.WindowType == BasicStComboAnalyzer.BurstingIceWindowType.SingleTarget));
+        var aoeWindows = reports.Sum(report =>
+            report.Windows.Count(window => window.WindowType == BasicStComboAnalyzer.BurstingIceWindowType.Aoe));
 
         return
         [
             new OverviewStat(
-                $"{Analyzer.EvaluatedWindows}",
+                $"{total}",
                 "Windows",
-                "Total Bursting Ice Winter's Embrace windows evaluated."),
+                "Total Bursting Ice Winter's Embrace windows evaluated across every pull."),
             new OverviewStat(
                 $"{successRate}%",
                 "Success Rate",
-                $"{Analyzer.SuccessfulWindows} successful / {total} evaluated across single-target and AoE windows.",
+                $"{successful} successful / {total} evaluated across single-target and AoE windows.",
                 successRate >= 75 ? PerformanceTier.Perfect
                     : successRate >= 50 ? PerformanceTier.Good
                     : successRate >= 25 ? PerformanceTier.Ok
@@ -58,85 +62,79 @@
             new OverviewStat(
                 $"{singleTargetWindows}",
                 "Single Target",
-                "Windows where Bursting Ice only hit one target.",
-                singleTargetWindows > 0 ? PerformanceTier.Good : PerformanceTier.Ok),
+                "Windows where Bursting Ice only hit one target."),
             new OverviewStat(
                 $"{aoeWindows}",
                 "AoE",
-                "Windows where Bursting Ice hit 2 or more unique targets.",
-                aoeWindows > 0 ? PerformanceTier.Good : PerformanceTier.Ok),
+                "Windows where Bursting Ice hit 2 or more unique targets."),
         ];
     }
 
     private IEnumerable<PerCastData> BuildPerCastData()
     {
-        return Analyzer.Windows.Select(window =>
+        return Parser.BasicStComboReports.SelectMany(entry =>
+            entry.Result.Windows.Select(window => BuildWindowData(window, entry.Pull)));
+    }
+
+    private PerCastData BuildWindowData(BasicStComboAnalyzer.StComboWindowEvaluation window, Pull pull)
+    {
+        var perf = window.Successful ? PerformanceTier.Perfect
+            : window.Partial ? PerformanceTier.Ok
+            : PerformanceTier.Fail;
+
+        var isAoe = window.WindowType == BasicStComboAnalyzer.BurstingIceWindowType.Aoe;
+        var windowTypeLabel = isAoe ? "AoE" : "ST";
+        var primaryUsage = isAoe ? $"{window.IceCometCount}/2" : $"{window.GlacialBlastCount}/{window.ExpectedGlacialBlastCount}";
+        var primaryUsageLabel = isAoe ? "Ice Comet" : "Glacial Blast";
+        var finisherValue = isAoe ? $"{window.ColdSnapCount}/1" : $"{window.ColdSnapCount + window.FreezingTorrentCount}";
+        var finisherLabel = isAoe ? "Cold Snap" : "Finishers";
+        var finisherTooltip = isAoe
+            ? "AoE windows want one Cold Snap in any order with two Ice Comets."
+            : window.ExpectsFinisher
+                ? "Single-target windows with enough room should include Cold Snap or Freezing Torrent as a finisher."
+                : "No extra finisher was required for this single-target window under the current baseline timing.";
+
+        var stats = new[]
         {
-            var perf = window.Successful ? PerformanceTier.Perfect
-                : window.Partial ? PerformanceTier.Ok
-                : PerformanceTier.Fail;
+            new PerCastStat(
+                windowTypeLabel,
+                "Type",
+                isAoe
+                    ? "Bursting Ice hit 2 or more unique targets in this window."
+                    : "Bursting Ice hit exactly one target in this window."),
+            new PerCastStat(
+                $"{window.TargetCount}",
+                "Targets",
+                "Unique targets hit by Bursting Ice damage during this Winter's Embrace window."),
+            new PerCastStat(
+                primaryUsage,
+                primaryUsageLabel,
+                isAoe
+                    ? "AoE windows want two Ice Comets during Winter's Embrace."
+                    : "Single-target windows currently use baseline timing to estimate how many Glacial Blasts should fit.",
+                Performance: perf),
+            new PerCastStat(
+                finisherValue,
+                finisherLabel,
+                finisherTooltip,
+                Performance: perf),
+        };
 
-            var windowTypeLabel = window.WindowType == BasicStComboAnalyzer.BurstingIceWindowType.Aoe
-                ? "AoE"
-                : "ST";
-            var primaryUsage = window.WindowType == BasicStComboAnalyzer.BurstingIceWindowType.Aoe
-                ? $"{window.IceCometCount}/2"
-                : $"{window.GlacialBlastCount}/{window.ExpectedGlacialBlastCount}";
-            var primaryUsageLabel = window.WindowType == BasicStComboAnalyzer.BurstingIceWindowType.Aoe
-                ? "Ice Comet"
-                : "Glacial Blast";
-            var finisherValue = window.WindowType == BasicStComboAnalyzer.BurstingIceWindowType.Aoe
-                ? $"{window.ColdSnapCount}/1"
-                : $"{window.ColdSnapCount + window.FreezingTorrentCount}";
-            var finisherLabel = window.WindowType == BasicStComboAnalyzer.BurstingIceWindowType.Aoe
-                ? "Cold Snap"
-                : "Finishers";
-            var finisherTooltip = window.WindowType == BasicStComboAnalyzer.BurstingIceWindowType.Aoe
-                ? "AoE windows want one Cold Snap in any order with two Ice Comets."
-                : window.ExpectsFinisher
-                    ? "Single-target windows with enough room should include Cold Snap or Freezing Torrent as a finisher."
-                    : "No extra finisher was required for this single-target window under the current baseline timing.";
+        var sequence = window.CastsInWindow
+            .Select(c => new SpellCastEntry(c.Ability.Id))
+            .ToArray();
 
-            var stats = new[]
-            {
-                new PerCastStat(
-                    windowTypeLabel,
-                    "Type",
-                    window.WindowType == BasicStComboAnalyzer.BurstingIceWindowType.Aoe
-                        ? "Bursting Ice hit 2 or more unique targets in this window."
-                        : "Bursting Ice hit exactly one target in this window."),
-                new PerCastStat(
-                    $"{window.TargetCount}",
-                    "Targets",
-                    "Unique targets hit by Bursting Ice damage during this Winter's Embrace window."),
-                new PerCastStat(
-                    primaryUsage,
-                    primaryUsageLabel,
-                    window.WindowType == BasicStComboAnalyzer.BurstingIceWindowType.Aoe
-                        ? "AoE windows want two Ice Comets during Winter's Embrace."
-                        : "Single-target windows currently use baseline timing to estimate how many Glacial Blasts should fit.",
-                    Performance: perf),
-                new PerCastStat(
-                    finisherValue,
-                    finisherLabel,
-                    finisherTooltip,
-                    Performance: perf),
-            };
-
-            var sequence = window.CastsInWindow
-                .Select(c => new SpellCastEntry(c.Ability.Id))
-                .ToArray();
-
-            return new PerCastData
-            {
-                Performance = perf,
-                Stats = stats,
-                Timestamp = Parser.FormatTimestamp(window.StartTimestamp),
-                Sequence = sequence,
-                AdditionalContent = new AdditionalContent(
-                    "Usage Notes",
-                    @<div>@window.Outcome</div>),
-            };
-        });
+        return new PerCastData
+        {
+            Performance = perf,
+            Stats = stats,
+            Timestamp = Parser.FormatTimestamp(window.StartTimestamp),
+            Sequence = sequence,
+            Group = pull.Name,
+            GroupContent = @<PullBanner Pull="@pull" />,
+            AdditionalContent = new AdditionalContent(
+                "Usage Notes",
+                @<div>@window.Outcome</div>),
+        };
     }
 }

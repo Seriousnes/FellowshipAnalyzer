@@ -13,5 +13,7 @@ public sealed record ReportFight(
     int? Difficulty,
     IReadOnlyList<int>? FriendlyPlayers,
     double? FightPercentage,
-    bool InProgress = false
+    bool InProgress = false,
+    IReadOnlyList<DungeonPull>? DungeonPulls = null,
+    IReadOnlyList<FightNpc>? EnemyNpcs = null
 );

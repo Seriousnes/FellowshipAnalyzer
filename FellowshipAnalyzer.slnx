@@ -58,6 +58,7 @@
     <Project Path="tests/FellowshipAnalyzer.Heroes.Xavian.Tests/FellowshipAnalyzer.Heroes.Xavian.Tests.csproj" />
   </Folder>
   <Folder Name="/Tests/">
+    <Project Path="tests/FellowshipAnalyzer.Analyzers.Tests/FellowshipAnalyzer.Analyzers.Tests.csproj" />
     <Project Path="tests/FellowshipAnalyzer.Core.Tests/FellowshipAnalyzer.Core.Tests.csproj" />
     <Project Path="tests/FellowshipAnalyzer.Generators.Tests/FellowshipAnalyzer.Generators.Tests.csproj" />
   </Folder>
