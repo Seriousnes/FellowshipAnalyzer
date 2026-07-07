@@ -70,29 +70,44 @@ static AnalysisResult Analyze(JsonElement eventArray)
         if (!item.TryGetProperty("sourceResources", out var sourceResources) ||
             sourceResources.ValueKind != JsonValueKind.Object ||
             !sourceResources.TryGetProperty("resources", out var resources) ||
-            resources.ValueKind != JsonValueKind.Object ||
-            !resources.TryGetProperty("type", out var typeProperty) ||
-            typeProperty.ValueKind != JsonValueKind.Number)
+            resources.ValueKind != JsonValueKind.Array)
         {
             continue;
-        }
-
-        resourceEventCount++;
-
-        var type = typeProperty.GetInt32();
-        if (!summaries.TryGetValue(type, out var summary))
-        {
-            summary = new ResourceSummary(type);
-            summaries[type] = summary;
         }
 
         var sourceId = TryGetInt(item, "sourceID");
         var eventType = TryGetString(item, "type") ?? "<missing>";
         var abilityName = TryGetAbilityName(item);
-        var amount = TryGetInt(resources, "amount");
-        var max = TryGetInt(resources, "max");
 
-        summary.Observe(sourceId, eventType, abilityName, amount, max);
+        var observedResource = false;
+        foreach (var resource in resources.EnumerateArray())
+        {
+            if (resource.ValueKind != JsonValueKind.Object ||
+                !resource.TryGetProperty("type", out var typeProperty) ||
+                typeProperty.ValueKind != JsonValueKind.Number)
+            {
+                continue;
+            }
+
+            observedResource = true;
+
+            var type = typeProperty.GetInt32();
+            if (!summaries.TryGetValue(type, out var summary))
+            {
+                summary = new ResourceSummary(type);
+                summaries[type] = summary;
+            }
+
+            var amount = TryGetInt(resource, "amount");
+            var max = TryGetInt(resource, "max");
+
+            summary.Observe(sourceId, eventType, abilityName, amount, max);
+        }
+
+        if (observedResource)
+        {
+            resourceEventCount++;
+        }
     }
 
     return new AnalysisResult(totalEvents, resourceEventCount, summaries.Values.OrderBy(summary => summary.Type).ToList());
@@ -219,8 +234,7 @@ static bool LooksLikeEventArray(JsonElement element)
         if (item.TryGetProperty("sourceResources", out var sourceResources) &&
             sourceResources.ValueKind == JsonValueKind.Object &&
             sourceResources.TryGetProperty("resources", out var resources) &&
-            resources.ValueKind == JsonValueKind.Object &&
-            resources.TryGetProperty("type", out _))
+            resources.ValueKind == JsonValueKind.Array)
         {
             resourceLike++;
         }
@@ -273,6 +287,11 @@ static string TryGetAbilityName(JsonElement item)
         nameProperty.ValueKind == JsonValueKind.String)
     {
         return nameProperty.GetString() ?? "<missing>";
+    }
+
+    if (item.TryGetProperty("abilityGameID", out var gameId) && gameId.ValueKind == JsonValueKind.Number)
+    {
+        return gameId.GetInt32().ToString();
     }
 
     return "<missing>";

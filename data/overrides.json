@@ -65,7 +65,7 @@
     "EmpoweredMultishotBuff": {
       "id": -1,
       "kind": "effect",
-      "note": "placeholder; hand-written Effect(-1) produces guid 999999; no real FSL entry exists — real id TBD"
+      "note": "placeholder; hand-written Effect(-1) produces guid 999999; no real FSL entry exists \u2014 real id TBD"
     }
   },
   "items": {
