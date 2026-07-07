@@ -334,6 +334,128 @@
       "icon": ""
     }
   },
+  "ardeos": {
+    "Apocalypse": {
+      "kind": "ability",
+      "id": 1273,
+      "name": "Apocalypse",
+      "icon": "Firemage_Apocalypse.jpg"
+    },
+    "ApocalypseDot": {
+      "kind": "effect",
+      "id": 3175,
+      "name": "Apocalypse: Explosivo",
+      "icon": "Firemage_Apocalypse.jpg"
+    },
+    "Detonate": {
+      "kind": "ability",
+      "id": 1275,
+      "name": "Detonate",
+      "icon": "Firemage_detonate.jpg"
+    },
+    "EngulfingFlames": {
+      "kind": "ability",
+      "id": 1586,
+      "name": "Engulfing Flames",
+      "icon": "Firemage_Dot_01.jpg"
+    },
+    "EngulfingFlamesDot": {
+      "kind": "effect",
+      "id": 2325,
+      "name": "Engulfing Flames",
+      "icon": "Firemage_Dot_01.jpg"
+    },
+    "FireBall": {
+      "kind": "ability",
+      "id": 1260,
+      "name": "Fire Ball",
+      "icon": "Firemage_Inferno.jpg"
+    },
+    "FireBallDot": {
+      "kind": "effect",
+      "id": 2293,
+      "name": "Fire Ball",
+      "icon": "T_Nhance_RPG_Fire_36.jpg"
+    },
+    "FireFrogs": {
+      "kind": "ability",
+      "id": 1268,
+      "name": "Fire Frogs",
+      "icon": "Firemage_Firefrog.jpg"
+    },
+    "FireFrogsDot": {
+      "kind": "effect",
+      "id": 1826,
+      "name": "Fire Frogs",
+      "icon": "T_Nhance_RPG_Icons_HypnoToad.jpg"
+    },
+    "Fireflash": {
+      "kind": "ability",
+      "id": 1265,
+      "name": "Fireflash",
+      "icon": "Firemage_Disorient.jpg"
+    },
+    "FlameWard": {
+      "kind": "ability",
+      "id": 1258,
+      "name": "Flame Ward",
+      "icon": "Firemage_FlameShield.jpg"
+    },
+    "Flickerstep": {
+      "kind": "ability",
+      "id": 1269,
+      "name": "Flickerstep",
+      "icon": "Firemage_Blink.jpg"
+    },
+    "Incinerate": {
+      "kind": "ability",
+      "id": 1270,
+      "name": "Incinerate",
+      "icon": "Firemage_Spirit.jpg"
+    },
+    "IncinerateDot": {
+      "kind": "effect",
+      "id": 1829,
+      "name": "Incinerate",
+      "icon": "Tex_SpellBook03_64.jpg"
+    },
+    "InfernalWave": {
+      "kind": "ability",
+      "id": 1276,
+      "name": "Infernal Wave",
+      "icon": "Firemage_Bolt.jpg"
+    },
+    "Pyromania": {
+      "kind": "ability",
+      "id": 1623,
+      "name": "Pyromania",
+      "icon": "Firemage_Pyromania.jpg"
+    },
+    "Scorch": {
+      "kind": "ability",
+      "id": 1263,
+      "name": "Scorch",
+      "icon": "Firemage_interrupt.jpg"
+    },
+    "SearingBlaze": {
+      "kind": "ability",
+      "id": 1587,
+      "name": "Searing Blaze",
+      "icon": "Firemage_Dot_02.jpg"
+    },
+    "SearingBlazeDot": {
+      "kind": "effect",
+      "id": 1820,
+      "name": "Searing Blaze",
+      "icon": "Firemage_Dot_02.jpg"
+    },
+    "Wildfire": {
+      "kind": "ability",
+      "id": 1267,
+      "name": "Wildfire",
+      "icon": "Firemage_Wildfire.jpg"
+    }
+  },
   "elarion": {
     "CelestialImpetus": {
       "kind": "effect",

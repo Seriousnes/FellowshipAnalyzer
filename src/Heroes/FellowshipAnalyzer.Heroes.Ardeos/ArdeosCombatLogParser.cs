@@ -4,6 +4,7 @@ namespace FellowshipAnalyzer.Heroes.Ardeos.Analysis;
 
 [HeroAnalyzer(HeroName.Ardeos)]
 [AddModule<Modules.Abilities>]
+[AddAnalyzer<Modules.DetonateDotCoverageAnalyzer>]
 public sealed partial class ArdeosCombatLogParser : CombatLogParser
 {
     public override Type? GuideComponent => typeof(ArdeosGuide);

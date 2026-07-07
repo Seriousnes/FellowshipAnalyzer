@@ -1,3 +1,8 @@
+@using FellowshipAnalyzer.Core.Common.Spells.Ardeos
+@using Spells = FellowshipAnalyzer.Core.Common.Spells.Ardeos.Spells
+@using Talents = FellowshipAnalyzer.Core.Common.Spells.Ardeos.Talents
+@using CoreSpells = FellowshipAnalyzer.Core.Common.Spells.Spells
+
 <GuideContainer>
     <Section Title="Overview">
         <Explanation>
@@ -6,7 +11,7 @@
                 damage-over-time. The core of the kit is layering as many burning
                 effects on your targets as possible, then converting that pressure
                 into burst by managing <strong>Cinders</strong> and
-                <strong>Embers</strong> to fuel <strong>Detonate</strong>.
+                <strong>Embers</strong> to fuel <SpellLink Spell="Spells.Detonate" />.
             </p>
         </Explanation>
         <TipBox Variant="TipBoxVariant.Note" Title="ABC — Always Be Casting">
@@ -21,38 +26,41 @@
             <p>
                 Your damage-over-time effects generate <strong>Cinders</strong>. At
                 100 Cinders you gain an <strong>Ember</strong>, which is spent on
-                <strong>Detonate</strong>. Detonate's damage scales with the
+                <SpellLink Spell="Spells.Detonate" />. Detonate's damage scales with the
                 <em>number</em> of active DoTs on the target (not their remaining
                 duration), and it does <em>not</em> consume those DoTs — so the more
                 burns you have running when you Detonate, the harder it hits.
             </p>
             <p>
-                Cinders come from <strong>Searing Blaze</strong>,
-                <strong>Engulfing Flames</strong>, and <strong>Fire Ball</strong>
-                DoTs, as well as <strong>Infernal Wave</strong> casts.
-                <strong>Fire Ball</strong> generates Cinders per tick, which makes it
-                a key AoE generator, while <strong>Infernal Wave</strong> is your
+                Cinders come from <SpellLink Spell="Spells.SearingBlaze" />,
+                <SpellLink Spell="Spells.EngulfingFlames" />, and
+                <SpellLink Spell="Spells.FireBall" /> DoTs, as well as
+                <SpellLink Spell="Spells.InfernalWave" /> casts.
+                <SpellLink Spell="Spells.FireBall" /> generates Cinders per tick, which makes it
+                a key AoE generator, while <SpellLink Spell="Spells.InfernalWave" /> is your
                 primary spammable Cinder generator between burn windows.
             </p>
         </Explanation>
         <TipBox Variant="TipBoxVariant.Note" Title="Don't overcap">
-            Cast <strong>Detonate</strong> as you approach the Ember cap. Sitting at
+            Cast <SpellLink Spell="Spells.Detonate" /> as you approach the Ember cap. Sitting at
             cap wastes the Cinders you keep generating, so spend before you overflow.
         </TipBox>
     </Section>
 
+    <DetonateDotCoverageGuide />
+
     <Section Title="Rotation">
         <SubSection Title="Single-Target Burn Window">
             <Explanation>
-                <p>Build the burn window before you spam <strong>Detonate</strong>:</p>
+                <p>Build the burn window before you spam <SpellLink Spell="Spells.Detonate" />:</p>
                 <ol>
-                    <li><strong>Fire Frogs</strong></li>
-                    <li><strong>Apocalypse</strong></li>
-                    <li><strong>Fire Ball</strong></li>
-                    <li><strong>Engulfing Flames</strong> x2</li>
-                    <li><strong>Pyromania</strong></li>
-                    <li><strong>Wildfire</strong></li>
-                    <li><strong>Detonate</strong> spam</li>
+                    <li><SpellLink Spell="Spells.FireFrogs" /></li>
+                    <li><SpellLink Spell="Spells.Apocalypse" /></li>
+                    <li><SpellLink Spell="Spells.FireBall" /></li>
+                    <li><SpellLink Spell="Spells.EngulfingFlames" /> x2</li>
+                    <li><SpellLink Spell="Spells.Pyromania" /></li>
+                    <li><SpellLink Spell="Spells.Wildfire" /></li>
+                    <li><SpellLink Spell="Spells.Detonate" /> spam</li>
                 </ol>
             </Explanation>
         </SubSection>
@@ -61,17 +69,17 @@
             <Explanation>
                 <p>
                     Run the same burn-window spine, swapping the opener for a
-                    wide <strong>Searing Blaze</strong> application when
-                    <strong>Apocalypse</strong> is unavailable:
+                    wide <SpellLink Spell="Spells.SearingBlaze" /> application when
+                    <SpellLink Spell="Spells.Apocalypse" /> is unavailable:
                 </p>
                 <ol>
-                    <li><strong>Fire Frogs</strong></li>
-                    <li><strong>Searing Blaze</strong> — spread to as many targets as possible in place of <strong>Apocalypse</strong></li>
-                    <li><strong>Fire Ball</strong> — per-tick Cinders make this your key AoE generator</li>
-                    <li><strong>Engulfing Flames</strong> x2 — cast frequently with <strong>Rolling Flames</strong></li>
-                    <li><strong>Pyromania</strong></li>
-                    <li><strong>Wildfire</strong></li>
-                    <li><strong>Detonate</strong> spam</li>
+                    <li><SpellLink Spell="Spells.FireFrogs" /></li>
+                    <li><SpellLink Spell="Spells.SearingBlaze" /> — spread to as many targets as possible in place of <SpellLink Spell="Spells.Apocalypse" /></li>
+                    <li><SpellLink Spell="Spells.FireBall" /> — per-tick Cinders make this your key AoE generator</li>
+                    <li><SpellLink Spell="Spells.EngulfingFlames" /> x2 — cast frequently with <SpellLink Spell="Talents.RollingFlames" /></li>
+                    <li><SpellLink Spell="Spells.Pyromania" /></li>
+                    <li><SpellLink Spell="Spells.Wildfire" /></li>
+                    <li><SpellLink Spell="Spells.Detonate" /> spam</li>
                 </ol>
             </Explanation>
         </SubSection>
@@ -79,9 +87,9 @@
         <SubSection Title="Maintenance (Between Burns)">
             <Explanation>
                 <ul>
-                    <li>Refresh <strong>Searing Blaze</strong> as it expires.</li>
-                    <li>Spam <strong>Infernal Wave</strong> to build Cinders.</li>
-                    <li>Cast <strong>Detonate</strong> when approaching the Ember cap to avoid waste.</li>
+                    <li>Refresh <SpellLink Spell="Spells.SearingBlaze" /> as it expires.</li>
+                    <li>Spam <SpellLink Spell="Spells.InfernalWave" /> to build Cinders.</li>
+                    <li>Cast <SpellLink Spell="Spells.Detonate" /> when approaching the Ember cap to avoid waste.</li>
                 </ul>
             </Explanation>
         </SubSection>
@@ -89,10 +97,10 @@
         <SubSection Title="Ultimate Combo — Incinerate Burst">
             <Explanation>
                 <p>
-                    Deploy <strong>Incinerate</strong> just before
-                    <strong>Wildfire</strong>, after your DoTs are applied. It extends
-                    all current DoTs ahead of <strong>Wildfire</strong> and
-                    <strong>Detonate</strong> for maximum burst.
+                    Deploy <SpellLink Spell="Spells.Incinerate" /> just before
+                    <SpellLink Spell="Spells.Wildfire" />, after your DoTs are applied. It extends
+                    all current DoTs ahead of <SpellLink Spell="Spells.Wildfire" /> and
+                    <SpellLink Spell="Spells.Detonate" /> for maximum burst.
                 </p>
             </Explanation>
         </SubSection>
@@ -105,21 +113,21 @@
                     back-to-back:
                 </p>
                 <ol>
-                    <li><strong>Fire Frogs</strong></li>
-                    <li><strong>Apocalypse</strong></li>
-                    <li><strong>Fire Ball</strong></li>
-                    <li><strong>Engulfing Flames</strong> x2</li>
-                    <li><strong>Pyromania</strong></li>
-                    <li><strong>Wildfire</strong></li>
-                    <li><strong>Chronoshift</strong></li>
-                    <li><strong>Engulfing Flames</strong> (x2 if possible)</li>
-                    <li><strong>Fire Ball</strong></li>
-                    <li><strong>Incinerate</strong></li>
-                    <li><strong>Chronoshift</strong></li>
-                    <li><strong>Apocalypse</strong></li>
-                    <li><strong>Engulfing Flames</strong> (x2 if possible)</li>
-                    <li><strong>Wildfire</strong></li>
-                    <li><strong>Detonate</strong> spam</li>
+                    <li><SpellLink Spell="Spells.FireFrogs" /></li>
+                    <li><SpellLink Spell="Spells.Apocalypse" /></li>
+                    <li><SpellLink Spell="Spells.FireBall" /></li>
+                    <li><SpellLink Spell="Spells.EngulfingFlames" /> x2</li>
+                    <li><SpellLink Spell="Spells.Pyromania" /></li>
+                    <li><SpellLink Spell="Spells.Wildfire" /></li>
+                    <li><SpellLink Spell="CoreSpells.Chronoshift" /></li>
+                    <li><SpellLink Spell="Spells.EngulfingFlames" /> (x2 if possible)</li>
+                    <li><SpellLink Spell="Spells.FireBall" /></li>
+                    <li><SpellLink Spell="Spells.Incinerate" /></li>
+                    <li><SpellLink Spell="CoreSpells.Chronoshift" /></li>
+                    <li><SpellLink Spell="Spells.Apocalypse" /></li>
+                    <li><SpellLink Spell="Spells.EngulfingFlames" /> (x2 if possible)</li>
+                    <li><SpellLink Spell="Spells.Wildfire" /></li>
+                    <li><SpellLink Spell="Spells.Detonate" /> spam</li>
                 </ol>
             </Explanation>
         </SubSection>
@@ -127,23 +135,23 @@
 
     <Section Title="Cooldowns &amp; Utility">
         <ul>
-            <li><strong>Flame Ward</strong> — 40% damage reduction on a 30s cooldown.</li>
-            <li><strong>Fireflash</strong> — single-target disorient to stop dangerous mob casts.</li>
+            <li><SpellLink Spell="Spells.FlameWard" /> — 40% damage reduction on a 30s cooldown.</li>
+            <li><SpellLink Spell="Spells.Fireflash" /> — single-target disorient to stop dangerous mob casts.</li>
         </ul>
     </Section>
 
     <Section Title="Talents &amp; Builds">
         <Explanation>
             <p>
-                <strong>Reign Of Fire</strong> grants <strong>Fire Ball</strong>
+                <SpellLink Spell="Talents.ReignOfFire" /> grants <SpellLink Spell="Spells.FireBall" />
                 charges with enhanced casts — use the effect as soon as it triggers to
                 avoid overcapping charges.
             </p>
             <p>
-                <strong>Rolling Flames</strong> reduces the cooldown of
-                <strong>Engulfing Flames</strong>. In AoE, cast it frequently without
+                <SpellLink Spell="Talents.RollingFlames" /> reduces the cooldown of
+                <SpellLink Spell="Spells.EngulfingFlames" />. In AoE, cast it frequently without
                 waiting to reach 2 charges; in single-target it enables smaller burn
-                windows between <strong>Wildfire</strong> phases.
+                windows between <SpellLink Spell="Spells.Wildfire" /> phases.
             </p>
         </Explanation>
     </Section>
