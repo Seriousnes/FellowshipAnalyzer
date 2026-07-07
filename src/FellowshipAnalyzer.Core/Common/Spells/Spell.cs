@@ -1,52 +1,76 @@
+using System.Text.Json.Serialization;
 using FellowshipAnalyzer.Core.Common.Spells.Elarion;
 using FellowshipAnalyzer.Core.Common.Spells.Rime;
+using FellowshipAnalyzer.Core.Game;
 
 namespace FellowshipAnalyzer.Core.Common.Spells;
 
 /// <summary>
-/// A static spell definition used in spell registries.
-/// Contains identity and display metadata. Gameplay metadata (cooldowns, GCD, etc.) lives in
-/// <see cref="Analysis.SpellbookAbility"/>.
-/// Resource costs (e.g. <see cref="IRimeSpell.WinterOrbCost"/>) are set via <c>init</c>
-/// properties and used by hero-specific resource trackers.
+/// A static spell definition: identity, physical facts (cooldown, range, charges,
+/// cast/channel timing), and resource costs. Behaviour metadata (GCD, category, haste
+/// scaling) lives on <see cref="Analysis.SpellbookAbility"/>.
 /// </summary>
-public record Spell(int Id, string Name = "", string Icon = "") : IRimeSpell, IElarionSpell
+[JsonPolymorphic(TypeDiscriminatorPropertyName = "kind")]
+[JsonDerivedType(typeof(Spell), "ability")]
+[JsonDerivedType(typeof(Effect), "effect")]
+[JsonDerivedType(typeof(Talent), "talent")]
+[JsonDerivedType(typeof(Weapon), "weapon")]
+public record Spell : IRimeSpell, IElarionSpell
 {
-    /// <summary>
-    /// The combat-log <c>abilityGameID</c> used to match events.
-    /// For <see cref="Effect"/> this is <c>1_000_000 + Id</c>; for plain spells it equals <see cref="Id"/>.
-    /// </summary>
-    public virtual int Guid => Id;
-    public virtual int? SpiritCost { get; init; }
+    /// <summary>The FellowshipLogs id (combat-log <c>abilityGameID</c>). Base spells use <see cref="Id"/>; subtypes add their range offset.</summary>
+    [JsonIgnore]
+    public virtual FSLID FSLID => new FSLID(Id);
 
-    /// <summary>
-    /// Creates a <see cref="Spell"/> or <see cref="Effect"/> from a combat-log <c>abilityGameID</c>.
-    /// IDs &ge; 1,000,000 are effects; below that are plain spells.
-    /// </summary>
-    public static Spell FromGuid(int guid, string name = "", string icon = "") =>
-        guid >= 1_000_000
-            ? new Effect(guid - 1_000_000, name, icon)
-            : new Spell(guid, name, icon);
+    public int Id { get; init; }
+    public string Name { get; init; } = "";
+    public string Icon { get; init; } = "";
 
-    #region Rime-specific properties
-    /// <inheritdoc cref="IRimeSpell.WinterOrbCost"/>
-    public virtual int? WinterOrbCost { get; init; }
-    /// <inheritdoc cref="IRimeSpell.AnimaCost"/>
-    public virtual int? AnimaCost { get; init; }
-    #endregion
+    public double? Cooldown { get; init; }
+    public int? Range { get; init; }
+    public int Charges { get; init; } = 1;
+    public double? CastDuration { get; init; }
+    public double? ChannelDuration { get; init; }
+    public double? ChannelTickInterval { get; init; }
 
-    #region Elarion-specific properties
-    /// <inheritdoc cref="IElarionSpell.FocusCost"/>
-    public int? FocusCost { get; }
-    #endregion
+    [JsonIgnore] public int? SpiritCost => Cost(ResourceTypes.Spirit);
+    [JsonIgnore] public int? WinterOrbCost => Cost(ResourceTypes.Tertiary);
+    [JsonIgnore] public int? AnimaCost => Cost(ResourceTypes.Primary);
+    [JsonIgnore] public int? FocusCost => Cost(ResourceTypes.Primary);
+
+    /// <summary>Resource costs keyed by abstract <see cref="ResourceTypes"/> slot; empty when the spell spends nothing.</summary>
+    public IReadOnlyDictionary<ResourceTypes, int> Costs { get; init; } =
+        System.Collections.Frozen.FrozenDictionary<ResourceTypes, int>.Empty;
+
+    /// <summary>The cost in the given resource slot, or <c>null</c> when the spell does not spend it.</summary>
+    public int? Cost(ResourceTypes type) => Costs.TryGetValue(type, out var value) ? value : null;
+
+    /// <summary>Creates the typed spell for a combat-log <c>abilityGameID</c>, decoding the FSL range via <see cref="FSLID"/>.</summary>
+    public static Spell FromFSLID(FSLID fslid, string name = "", string icon = "") => fslid.Kind switch
+    {
+        SpellKind.Weapon => new Weapon { Id = fslid.NativeId, Name = name, Icon = icon },
+        SpellKind.Talent => new Talent { Id = fslid.NativeId, Name = name, Icon = icon },
+        SpellKind.Effect => new Effect { Id = fslid.NativeId, Name = name, Icon = icon },
+        _ => new Spell { Id = fslid.NativeId, Name = name, Icon = icon },
+    };
 }
 
-/// <summary>
-/// A spell effect — a secondary spell whose combat-log <c>abilityGameID</c> is encoded as
-/// <c>1_000_000 + effectId</c>.
-/// </summary>
-public record Effect(int Id, string Name = "", string Icon = "") : Spell(Id, Name, Icon)
+/// <summary>A spell effect (<c>GE_</c>): namespaced id <c>1_000_000 + Id</c>.</summary>
+public record Effect : Spell
 {
-    /// <summary>The combat-log <c>abilityGameID</c> (<c>1_000_000 + Id</c>).</summary>
-    public override int Guid => 1_000_000 + Id;
+    [JsonIgnore]
+    public override FSLID FSLID => FSLID.FromNative(SpellKind.Effect, Id);
+}
+
+/// <summary>A talent (<c>CAATalent*</c>): namespaced id <c>2_000_000 + Id</c>.</summary>
+public record Talent : Spell
+{
+    [JsonIgnore]
+    public override FSLID FSLID => FSLID.FromNative(SpellKind.Talent, Id);
+}
+
+/// <summary>A weapon trait: namespaced id <c>3_000_000 + Id</c>.</summary>
+public record Weapon : Spell
+{
+    [JsonIgnore]
+    public override FSLID FSLID => FSLID.FromNative(SpellKind.Weapon, Id);
 }

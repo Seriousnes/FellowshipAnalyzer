@@ -1,9 +1,11 @@
-﻿namespace FellowshipAnalyzer.Core.Events;
+﻿using FellowshipAnalyzer.Core.Common.Spells;
+
+namespace FellowshipAnalyzer.Core.Events;
 
 public class ResurrectEvent : Event, IAbilityEvent, IHasSourceEvent, IHasTargetEvent
 {
     public virtual Ability Ability { get; set; }
-    public virtual int AbilityGameId { get; set; }
+    public virtual FSLID AbilityGameId { get; set; }
     public virtual int SourceId { get; set; }
     public virtual bool? SourceIsFriendly { get; set; }
     public virtual int TargetId { get; set; }

@@ -1,4 +1,6 @@
-﻿namespace FellowshipAnalyzer.Core.Events;
+﻿using FellowshipAnalyzer.Core.Common.Spells;
+
+namespace FellowshipAnalyzer.Core.Events;
 
 public class HealEvent : Event, IAbilityEvent, IHasSourceWithInstanceEvent, IHasTargetWithInstanceEvent, IAmountEvent
 {
@@ -24,7 +26,7 @@ public class HealEvent : Event, IAbilityEvent, IHasSourceWithInstanceEvent, IHas
     /// The ability that is healing the target
     /// </summary>
     public virtual Ability Ability { get; set; }
-    public virtual int AbilityGameId { get; set; }
+    public virtual FSLID AbilityGameId { get; set; }
     /// <summary>
     /// This describes if the spell Hit/Missed/Crit/etc. Look at <see cref="HitTypeEnum"/> all types of hits
     /// </summary>

@@ -98,7 +98,7 @@ public sealed class JsonContextMissingSerializableAnalyzer : DiagnosticAnalyzer
             if (syntaxRef.GetSyntax() is ClassDeclarationSyntax classDecl &&
                 classDecl.AttributeLists.Any(al =>
                     al.Attributes.Any(a =>
-                        a.Name.ToString().EndsWith("JsonSourceGenerationOptions", System.StringComparison.Ordinal))))
+                        a.Name.ToString().EndsWith("JsonSourceGenerationOptions", StringComparison.Ordinal))))
             {
                 return classDecl.GetLocation();
             }

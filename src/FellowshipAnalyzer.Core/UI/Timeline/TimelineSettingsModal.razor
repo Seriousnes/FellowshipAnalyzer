@@ -61,7 +61,7 @@
                                                @onchange="e => UpdateAuraVisibility(capturedId, (bool)e.Value!)" />
                                     </label>
                                     <span class="timeline-settings-icon">
-                                        <SpellIcon Spell="@(new Ability { Guid = spellId, Name = name, Icon = icon ?? string.Empty })"
+                                        <SpellIcon Spell="@(new Ability { FSLID = spellId, Name = name, Icon = icon ?? string.Empty })"
                                                    Size="SpellIconSize.Small" />
                                     </span>
                                     <span class="timeline-settings-name">@name</span>
@@ -104,7 +104,7 @@
                                     var capturedId = opt.SpellId;
                                     <li class="timeline-settings-search-result" @key="opt.SpellId">
                                         <span class="timeline-settings-icon">
-                                            <SpellIcon Spell="@(new Ability { Guid = opt.SpellId, Name = opt.Name, Icon = opt.IconUrl ?? string.Empty })"
+                                            <SpellIcon Spell="@(new Ability { FSLID = opt.SpellId, Name = opt.Name, Icon = opt.IconUrl ?? string.Empty })"
                                                        Size="SpellIconSize.Small" />
                                         </span>
                                         <span class="timeline-settings-name">@opt.Name</span>
@@ -143,7 +143,7 @@
                                                @onchange="e => UpdateAuraVisibility(capturedId, (bool)e.Value!)" />
                                     </label>
                                     <span class="timeline-settings-icon">
-                                        <SpellIcon Spell="@(new Ability { Guid = spellId, Name = name, Icon = icon ?? string.Empty })"
+                                        <SpellIcon Spell="@(new Ability { FSLID = spellId, Name = name, Icon = icon ?? string.Empty })"
                                                    Size="SpellIconSize.Small" />
                                     </span>
                                     <span class="timeline-settings-name">@name</span>
@@ -197,7 +197,7 @@
                                            @onchange="e => UpdateCooldownVisibility(capturedId, (bool)e.Value!)" />
                                 </label>
                                 <span class="timeline-settings-icon">
-                                    <SpellIcon Spell="@(new Ability { Guid = capturedId, Name = name, Icon = icon ?? string.Empty })"
+                                    <SpellIcon Spell="@(new Ability { FSLID = capturedId, Name = name, Icon = icon ?? string.Empty })"
                                                Size="SpellIconSize.Small" />
                                 </span>
                                 <span class="timeline-settings-name">@name</span>

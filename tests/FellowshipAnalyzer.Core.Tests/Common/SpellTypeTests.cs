@@ -1,0 +1,65 @@
+using FellowshipAnalyzer.Core.Common.Spells;
+using FellowshipAnalyzer.Core.Game;
+using Shouldly;
+using Xunit;
+
+namespace FellowshipAnalyzer.Core.Tests.Common;
+
+public class SpellTypeTests
+{
+    [Fact]
+    public void InitializerForm_CarriesScalarsAndCosts()
+    {
+        var s = new Spell { Id = 1027, Name = "Freezing Torrent", Cooldown = 15, Range = 30, ChannelDuration = 2.0, ChannelTickInterval = 0.4 };
+        s.Cooldown.ShouldBe(15);
+        s.Range.ShouldBe(30);
+        s.ChannelDuration.ShouldBe(2.0);
+        s.ChannelTickInterval.ShouldBe(0.4);
+
+        var g = new Spell
+        {
+            Id = 1028,
+            Costs = new Dictionary<ResourceTypes, int> { [ResourceTypes.Tertiary] = 2 },
+        };
+        g.WinterOrbCost.ShouldBe(2);
+    }
+
+    [Fact]
+    public void Costs_DictionaryExposesSlotValues()
+    {
+        var s = new Spell
+        {
+            Id = 1028,
+            Costs = new Dictionary<ResourceTypes, int> { [ResourceTypes.Tertiary] = 2 },
+        };
+        s.Cost(ResourceTypes.Tertiary).ShouldBe(2);
+        s.Cost(ResourceTypes.Primary).ShouldBeNull();
+    }
+
+    [Theory]
+    [InlineData(1396, 1_001_396)]
+    public void Effect_AppliesGuidOffset(int id, int expectedGuid) =>
+        new Effect { Id = id }.FSLID.Value.ShouldBe(expectedGuid);
+
+    [Theory]
+    [InlineData(2303, 2_002_303)]
+    public void Talent_AppliesGuidOffset(int id, int expectedGuid) =>
+        new Talent { Id = id }.FSLID.Value.ShouldBe(expectedGuid);
+
+    [Theory]
+    [InlineData(155, 3_000_155)]
+    public void Weapon_AppliesGuidOffset(int id, int expectedGuid) =>
+        new Weapon { Id = id }.FSLID.Value.ShouldBe(expectedGuid);
+
+    [Theory]
+    [InlineData(1027, typeof(Spell), 1027)]
+    [InlineData(1_001_396, typeof(Effect), 1_001_396)]
+    [InlineData(2_002_303, typeof(Talent), 2_002_303)]
+    [InlineData(3_000_155, typeof(Weapon), 3_000_155)]
+    public void FromFSLID_DecodesEveryRange(int guid, System.Type type, int expectedGuid)
+    {
+        var s = Spell.FromFSLID(guid);
+        s.ShouldBeOfType(type);
+        s.FSLID.Value.ShouldBe(expectedGuid);
+    }
+}

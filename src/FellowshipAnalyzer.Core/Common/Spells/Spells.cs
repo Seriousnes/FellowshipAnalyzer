@@ -8,11 +8,7 @@ namespace FellowshipAnalyzer.Core.Common.Spells;
 [GenerateRegistry<ISpellRegistry>]
 public static partial class Spells
 {
-    public static Spell Chronoshift { get; } = new(1558, "Chronoshift", "T_Nhance_RPG_Icons_ArcaneLoad.jpg");
-    public static Spell EpochBreak { get; } = new(1881, "Epoch Break", "");
+    public static Spell Chronoshift { get; } = new() { Id = 1558, Name = "Chronoshift", Icon = "T_Nhance_RPG_Icons_ArcaneLoad.jpg" };
 
-
-
-    public static Effect Kindling { get; } = new(104, "Kindling", "T_Nhance_RPG_Gold_10.jpg");
-    public static Effect EpochBreakBuff { get; } = new(2613, "Epoch Break", "");
+    public static Effect Kindling { get; } = new() { Id = 104, Name = "Kindling", Icon = "T_Nhance_RPG_Gold_10.jpg" };
 }

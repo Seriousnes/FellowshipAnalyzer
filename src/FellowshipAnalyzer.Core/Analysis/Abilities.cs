@@ -24,11 +24,11 @@ public class Abilities : Module
             foreach (var entry in Spellbook())
             {
                 if (!entry.Enabled) continue;
-                _abilities[entry.PrimarySpell.Guid] = entry;
+                _abilities[entry.PrimarySpell.FSLID] = entry;
                 if (entry.AdditionalSpells is not null)
                 {
                     foreach (var extra in entry.AdditionalSpells)
-                        _abilities[extra.Guid] = entry;
+                        _abilities[extra.FSLID] = entry;
                 }
             }
             return _abilities;
@@ -58,7 +58,7 @@ public class Abilities : Module
     public double GetExpectedCooldown(int spellId, double haste = 1.0)
     {
         var ability = GetAbility(spellId);
-        return ability?.GetCooldown(Owner.SelectedCombatant, haste) ?? 0;
+        return ability?.GetCooldown(haste) ?? 0;
     }
 
     /// <summary>
@@ -67,6 +67,6 @@ public class Abilities : Module
     public int GetMaxCharges(int spellId)
     {
         var ability = GetAbility(spellId);
-        return ability?.GetCharges(Owner.SelectedCombatant) ?? 1;
+        return ability?.Charges ?? 1;
     }
 }

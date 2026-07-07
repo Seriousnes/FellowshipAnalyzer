@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\FellowshipAnalyzer.Core\FellowshipAnalyzer.Core.csproj" />
+    <ProjectReference Include="..\FellowshipAnalyzer.SpellData\FellowshipAnalyzer.SpellData.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Update="sasscompiler.json" CopyToPublishDirectory="Never" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AspNetCore.SassCompiler" />
+  </ItemGroup>
+
+</Project>

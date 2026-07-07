@@ -1,6 +1,9 @@
 using FellowshipAnalyzer.Core.Common.Spells;
 using FellowshipAnalyzer.Core.Events;
 
+using ElarionSpells = FellowshipAnalyzer.Core.Common.Spells.Elarion.Spells;
+using RimeSpells = FellowshipAnalyzer.Core.Common.Spells.Rime.Spells;
+
 namespace FellowshipAnalyzer.Core.Analysis;
 
 /// <summary>
@@ -29,9 +32,9 @@ public sealed partial class Haste(Lazy<StatTracker> statTracker) : Analyzer
 
     private readonly Dictionary<int, HasteBuff> _hasteBuffs = new()
     {
-        { Spells.EventHorizonBuff.Guid, new(Haste: 0.3) },
-        { Spells.SkystridersGraceBuff.Guid, new(Haste: 0.3) },
-        { Spells.WrathOfWinterBuff.Guid, new(Haste: 0.3)  },
+        { ElarionSpells.EventHorizonBuff.FSLID, new(Haste: 0.3) },
+        { ElarionSpells.SkystridersGraceBuff.FSLID, new(Haste: 0.3) },
+        { RimeSpells.WrathOfWinterBuff.FSLID, new(Haste: 0.3)  },
     };
 
     [On<FightStartEvent>]
@@ -91,28 +94,28 @@ public sealed partial class Haste(Lazy<StatTracker> statTracker) : Analyzer
         (int)(baseDurationMs * 100.0 / (100.0 + Current * 100.0));
 
     [On<ApplyBuffEvent>(To = Actor.Player)]
-    private void OnApplyBuff(ApplyBuffEvent e) => ApplyActiveBuff(e.Ability.Guid, e);
+    private void OnApplyBuff(ApplyBuffEvent e) => ApplyActiveBuff(e.Ability.FSLID, e);
 
     [On<RemoveBuffEvent>(To = Actor.Player)]
-    private void OnRemoveBuff(RemoveBuffEvent e) => RemoveActiveBuff(e.Ability.Guid, e);
+    private void OnRemoveBuff(RemoveBuffEvent e) => RemoveActiveBuff(e.Ability.FSLID, e);
 
     [On<ApplyDebuffEvent>(To = Actor.Player)]
-    private void OnApplyDebuff(ApplyDebuffEvent e) => ApplyActiveBuff(e.Ability.Guid, e);
+    private void OnApplyDebuff(ApplyDebuffEvent e) => ApplyActiveBuff(e.Ability.FSLID, e);
 
     [On<RemoveDebuffEvent>(To = Actor.Player)]
-    private void OnRemoveDebuff(RemoveDebuffEvent e) => RemoveActiveBuff(e.Ability.Guid, e);
+    private void OnRemoveDebuff(RemoveDebuffEvent e) => RemoveActiveBuff(e.Ability.FSLID, e);
 
     [On<ApplyBuffStackEvent>(To = Actor.Player)]
-    private void OnApplyBuffStack(ApplyBuffStackEvent e) => ChangeStack(e.Ability.Guid, +1, e);
+    private void OnApplyBuffStack(ApplyBuffStackEvent e) => ChangeStack(e.Ability.FSLID, +1, e);
 
     [On<RemoveBuffStackEvent>(To = Actor.Player)]
-    private void OnRemoveBuffStack(RemoveBuffStackEvent e) => ChangeStack(e.Ability.Guid, -1, e);
+    private void OnRemoveBuffStack(RemoveBuffStackEvent e) => ChangeStack(e.Ability.FSLID, -1, e);
 
     [On<ApplyDebuffStackEvent>(To = Actor.Player)]
-    private void OnApplyDebuffStack(ApplyDebuffStackEvent e) => ChangeStack(e.Ability.Guid, +1, e);
+    private void OnApplyDebuffStack(ApplyDebuffStackEvent e) => ChangeStack(e.Ability.FSLID, +1, e);
 
     [On<RemoveDebuffStackEvent>(To = Actor.Player)]
-    private void OnRemoveDebuffStack(RemoveDebuffStackEvent e) => ChangeStack(e.Ability.Guid, -1, e);
+    private void OnRemoveDebuffStack(RemoveDebuffStackEvent e) => ChangeStack(e.Ability.FSLID, -1, e);
 
     private void ApplyActiveBuff(int spellId, Event trigger)
     {

@@ -1,5 +1,7 @@
 using FellowshipAnalyzer.Core.Common.Spells;
+using FellowshipAnalyzer.Core.Game;
 
+using Shouldly;
 using Xunit;
 
 namespace FellowshipAnalyzer.Core.Tests.Common;
@@ -69,4 +71,20 @@ public class SpellRegistryTests
         Assert.Contains(Core.Common.Spells.Rime.Spells.GlacialBlast.Id, allIds);
         Assert.Contains(Core.Common.Spells.Rime.Spells.IceComet.Id, allIds);
     }
+
+    [Fact]
+    public void GeneratedRegistry_GlacialBlast_ExposesWinterOrbCostFromCosts()
+    {
+        var spell = Core.Common.Spells.Rime.Spells.GlacialBlast;
+        spell.Cost(ResourceTypes.Tertiary).ShouldBe(2);
+        spell.WinterOrbCost.ShouldBe(2);
+    }
+
+    [Theory]
+    [InlineData(1558)]      // Chronoshift (central, hand-written)
+    [InlineData(1_000_104)] // Kindling (central, hand-written)
+    [InlineData(1881)]      // EpochBreak (generated from the aeona scope)
+    [InlineData(1_002_613)] // EpochBreakBuff guid (generated from the aeona scope)
+    public void RegisteredCoreSpells_PersistInAll(int guid) =>
+        Assert.True(Spells.All.ContainsKey(guid));
 }

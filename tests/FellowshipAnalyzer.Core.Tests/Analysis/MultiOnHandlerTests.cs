@@ -92,7 +92,7 @@ public sealed partial class MultiOnHandlerTests
         Timestamp = timestamp,
         SourceId = PlayerId,
         TargetId = 11,
-        Ability = new Ability { Guid = abilityId, Name = $"Spell {abilityId}" },
+        Ability = new Ability { FSLID = abilityId, Name = $"Spell {abilityId}" },
         Target = new CastTarget(),
         Channel = new EndChannelEvent(),
     };
@@ -102,7 +102,7 @@ public sealed partial class MultiOnHandlerTests
         Timestamp = timestamp,
         SourceId = PlayerId,
         TargetId = 11,
-        Ability = new Ability { Guid = abilityId, Name = $"Heal {abilityId}" },
+        Ability = new Ability { FSLID = abilityId, Name = $"Heal {abilityId}" },
         Amount = 10,
     };
 

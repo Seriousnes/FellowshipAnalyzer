@@ -12,7 +12,7 @@ namespace FellowshipAnalyzer.Core.Analysis;
 /// (or <see cref="Common.Spells.Effect"/>) property on a type implementing
 /// <see cref="Common.Spells.ISpellRegistry"/>. The generator resolves the member at codegen time
 /// and emits an <c>Ability.Id == &lt;guid&gt;</c> predicate against the resolved
-/// <see cref="Common.Spells.Spell.Guid"/>.
+/// <see cref="Common.Spells.Spell.FSLID"/>.
 /// </para>
 /// </summary>
 [AttributeUsage(AttributeTargets.Method, AllowMultiple = true)]
@@ -27,7 +27,7 @@ public sealed class OnAttribute<TEvent> : Attribute
 
     /// <summary>
     /// Restrict to a single <see cref="IAbilityEvent"/>. Pass <c>nameof(Registry.Member)</c>;
-    /// the generator resolves the member's <see cref="Common.Spells.Spell.Guid"/>.
+    /// the generator resolves the member's <see cref="Common.Spells.Spell.FSLID"/>.
     /// </summary>
     public string? Spell { get; set; }
 
@@ -39,7 +39,7 @@ public sealed class OnAttribute<TEvent> : Attribute
 
     /// <summary>
     /// Restrict to a single <see cref="IExtraAbilityEvent"/>. Pass <c>nameof(Registry.Member)</c>;
-    /// the generator resolves the member's <see cref="Common.Spells.Spell.Guid"/>.
+    /// the generator resolves the member's <see cref="Common.Spells.Spell.FSLID"/>.
     /// </summary>
     public string? ExtraSpell { get; set; }
 

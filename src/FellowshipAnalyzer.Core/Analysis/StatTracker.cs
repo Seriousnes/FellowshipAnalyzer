@@ -125,28 +125,28 @@ public sealed partial class StatTracker(Lazy<Combatants> combatants) : Analyzer
     }
 
     [On<ApplyBuffEvent>(To = Actor.Player)]
-    private void OnApplyBuff(ApplyBuffEvent e) => HandleBuffGain(e.Ability.Guid, e.Prepull.GetValueOrDefault(), e);
+    private void OnApplyBuff(ApplyBuffEvent e) => HandleBuffGain(e.Ability.FSLID, e.Prepull.GetValueOrDefault(), e);
 
     [On<RemoveBuffEvent>(To = Actor.Player)]
-    private void OnRemoveBuff(RemoveBuffEvent e) => HandleBuffLoss(e.Ability.Guid, e);
+    private void OnRemoveBuff(RemoveBuffEvent e) => HandleBuffLoss(e.Ability.FSLID, e);
 
     [On<ApplyBuffStackEvent>(To = Actor.Player)]
-    private void OnApplyBuffStack(ApplyBuffStackEvent e) => HandleBuffGain(e.Ability.Guid, isPrepull: false, e);
+    private void OnApplyBuffStack(ApplyBuffStackEvent e) => HandleBuffGain(e.Ability.FSLID, isPrepull: false, e);
 
     [On<RemoveBuffStackEvent>(To = Actor.Player)]
-    private void OnRemoveBuffStack(RemoveBuffStackEvent e) => HandleBuffLoss(e.Ability.Guid, e);
+    private void OnRemoveBuffStack(RemoveBuffStackEvent e) => HandleBuffLoss(e.Ability.FSLID, e);
 
     [On<ApplyDebuffEvent>(To = Actor.Player)]
-    private void OnApplyDebuff(ApplyDebuffEvent e) => HandleBuffGain(e.Ability.Guid, e.Prepull.GetValueOrDefault(), e);
+    private void OnApplyDebuff(ApplyDebuffEvent e) => HandleBuffGain(e.Ability.FSLID, e.Prepull.GetValueOrDefault(), e);
 
     [On<RemoveDebuffEvent>(To = Actor.Player)]
-    private void OnRemoveDebuff(RemoveDebuffEvent e) => HandleBuffLoss(e.Ability.Guid, e);
+    private void OnRemoveDebuff(RemoveDebuffEvent e) => HandleBuffLoss(e.Ability.FSLID, e);
 
     [On<ApplyDebuffStackEvent>(To = Actor.Player)]
-    private void OnApplyDebuffStack(ApplyDebuffStackEvent e) => HandleBuffGain(e.Ability.Guid, isPrepull: false, e);
+    private void OnApplyDebuffStack(ApplyDebuffStackEvent e) => HandleBuffGain(e.Ability.FSLID, isPrepull: false, e);
 
     [On<RemoveDebuffStackEvent>(To = Actor.Player)]
-    private void OnRemoveDebuffStack(RemoveDebuffStackEvent e) => HandleBuffLoss(e.Ability.Guid, e);
+    private void OnRemoveDebuffStack(RemoveDebuffStackEvent e) => HandleBuffLoss(e.Ability.FSLID, e);
 
     private void HandleBuffGain(int spellId, bool isPrepull, Event trigger)
     {

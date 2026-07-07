@@ -30,10 +30,12 @@ else if (_icon is { Length: > 0 })
     private string _name = "";
     private string _icon = "";
     private int _id;
-    private bool _isEffect;
+    private SpellKind _kind;
 
     private string IconUrl => $"https://assets.rpglogs.com/img/fellowship/abilities/{_icon}";
-    private string LinkUri => _isEffect ? $"effect/{_id}" : $"ability/{_id}";
+
+    private string LinkUri => $"{_kind.ToUrlSegment()}/{_id}";
+
     private string AbilityUrl => $"https://fellows.gg/{LinkUri}";
 
     private string SizeClass => Size switch
@@ -45,34 +47,25 @@ else if (_icon is { Length: > 0 })
 
     private string? TooltipSpellId => _id > 0 ? LinkUri : null;
 
-    private static (int ShortId, bool IsEffect) NormalizeGuid(int guid) =>
-        guid >= 1_000_000
-            ? (guid - 1_000_000, true)
-            : (guid, false);
-
     protected override void OnParametersSet()
     {
         Spell.Switch(
-            s => { _id = s.Id; _name = s.Name; _icon = s.Icon; _isEffect = s is Effect; },
+            s => { _id = s.Id; _name = s.Name; _icon = s.Icon; _kind = s.FSLID.Kind; },
             id =>
             {
                 var s = SpellRegistry.MaybeGet(id);
                 if (s is not null)
                 {
-                    _id = s.Id; _name = s.Name; _icon = s.Icon; _isEffect = s is Effect;
+                    _id = s.Id; _name = s.Name; _icon = s.Icon; _kind = s.FSLID.Kind;
                 }
                 else
                 {
-                    var normalized = NormalizeGuid(id);
-                    _id = normalized.ShortId; _name = ""; _icon = ""; _isEffect = normalized.IsEffect;
+                    FSLID fslid = id;
+                    _id = fslid.NativeId; _name = ""; _icon = ""; _kind = fslid.Kind;
                 }
             },
-            a => { var s = a.PrimarySpell; _id = s.Id; _name = a.Name ?? s.Name; _icon = s.Icon; _isEffect = s is Effect; },
-            a =>
-            {
-                var normalized = NormalizeGuid(a.Guid);
-                _id = normalized.ShortId; _name = a.Name; _icon = a.Icon; _isEffect = normalized.IsEffect;
-            }
+            a => { var s = a.PrimarySpell; _id = s.Id; _name = a.Name ?? s.Name; _icon = s.Icon; _kind = s.FSLID.Kind; },
+            a => { _id = a.FSLID.NativeId; _name = a.Name; _icon = a.Icon; _kind = a.FSLID.Kind; }
         );
     }
 }

@@ -17,41 +17,32 @@
     [Parameter] public string Label { get; set; } = "(copy definition)";
 
     private int _id;
-    private bool _isEffect;
+    private SpellKind _kind;
     private string _name = "";
     private string _icon = "";
 
     private string? _status;
     private bool _failed;
 
-    private static (int ShortId, bool IsEffect) NormalizeGuid(int guid) =>
-        guid >= 1_000_000
-            ? (guid - 1_000_000, true)
-            : (guid, false);
-
     protected override void OnParametersSet()
     {
         Spell.Switch(
-            s => { _id = s.Id; _isEffect = s is Effect; _name = s.Name; _icon = s.Icon; },
+            s => { _id = s.Id; _kind = s.FSLID.Kind; _name = s.Name; _icon = s.Icon; },
             id =>
             {
                 var s = SpellRegistry.MaybeGet(id);
                 if (s is not null)
                 {
-                    _id = s.Id; _isEffect = s is Effect; _name = s.Name; _icon = s.Icon;
+                    _id = s.Id; _kind = s.FSLID.Kind; _name = s.Name; _icon = s.Icon;
                 }
                 else
                 {
-                    var normalized = NormalizeGuid(id);
-                    _id = normalized.ShortId; _isEffect = normalized.IsEffect; _name = ""; _icon = "";
+                    FSLID fslid = id;
+                    _id = fslid.NativeId; _kind = fslid.Kind; _name = ""; _icon = "";
                 }
             },
-            a => { var s = a.PrimarySpell; _id = s.Id; _isEffect = s is Effect; _name = a.Name ?? s.Name; _icon = s.Icon; },
-            a =>
-            {
-                var normalized = NormalizeGuid(a.Guid);
-                _id = normalized.ShortId; _isEffect = normalized.IsEffect; _name = a.Name ?? ""; _icon = a.Icon ?? "";
-            }
+            a => { var s = a.PrimarySpell; _id = s.Id; _kind = s.FSLID.Kind; _name = a.Name ?? s.Name; _icon = s.Icon; },
+            a => { _id = a.FSLID.NativeId; _kind = a.FSLID.Kind; _name = a.Name ?? ""; _icon = a.Icon ?? ""; }
         );
 
         // Reset status when the spell parameter changes.
@@ -61,7 +52,7 @@
 
     private async Task Copy()
     {
-        var text = BuildText(_id, _isEffect, _name, _icon);
+        var text = BuildText(_id, _kind, _name, _icon);
         try
         {
             await JS.InvokeVoidAsync("navigator.clipboard.writeText", text);
@@ -75,9 +66,17 @@
         }
     }
 
-    internal static string BuildText(int id, bool isEffect, string name, string icon)
+    private static string TypeName(SpellKind kind) => kind switch
     {
-        var typeKeyword = isEffect ? "Effect" : "Spell";
+        SpellKind.Effect => "Effect",
+        SpellKind.Talent => "Talent",
+        SpellKind.Weapon => "Weapon",
+        _ => "Spell",
+    };
+
+    internal static string BuildText(int id, SpellKind kind, string name, string icon)
+    {
+        var typeKeyword = TypeName(kind);
         var identifier = ToPascalIdentifier(name, id);
         return $"public static {typeKeyword} {identifier} {{ get; }} = new({id}, \"{EscapeForString(name)}\", \"{EscapeForString(icon)}\");";
     }

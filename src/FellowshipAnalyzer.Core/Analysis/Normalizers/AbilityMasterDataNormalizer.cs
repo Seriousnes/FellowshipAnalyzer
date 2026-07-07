@@ -8,7 +8,7 @@ namespace FellowshipAnalyzer.Core.Analysis.Normalizers;
 /// on events from report master data.
 /// <para>
 /// Runs at <see cref="Priority"/> -100, before <see cref="CastLinkNormalizer"/> (priority 0),
-/// because that normalizer reads <c>Ability.Guid</c> for cast matching.
+/// because that normalizer reads <c>Ability.FSLID</c> for cast matching.
 /// </para>
 /// </summary>
 public sealed class AbilityMasterDataNormalizer(ReportMasterDataService masterData) : IEventNormalizer
@@ -19,10 +19,10 @@ public sealed class AbilityMasterDataNormalizer(ReportMasterDataService masterDa
     {
         foreach (var e in events)
         {
-            if (e is IAbilityEvent abilityEvent && abilityEvent.AbilityGameId != 0 && abilityEvent.Ability is null or { Guid: 0 })
+            if (e is IAbilityEvent abilityEvent && abilityEvent.AbilityGameId != 0 && abilityEvent.Ability is null or { FSLID.Value: 0 })
                 abilityEvent.Ability = masterData.GetAbility(abilityEvent.AbilityGameId);
 
-            if (e is IExtraAbilityEvent extraAbilityEvent && extraAbilityEvent.ExtraAbilityGameId != 0 && extraAbilityEvent.ExtraAbility is null or { Guid: 0 })
+            if (e is IExtraAbilityEvent extraAbilityEvent && extraAbilityEvent.ExtraAbilityGameId != 0 && extraAbilityEvent.ExtraAbility is null or { FSLID.Value: 0 })
                 extraAbilityEvent.ExtraAbility = masterData.GetAbility(extraAbilityEvent.ExtraAbilityGameId);
         }
 

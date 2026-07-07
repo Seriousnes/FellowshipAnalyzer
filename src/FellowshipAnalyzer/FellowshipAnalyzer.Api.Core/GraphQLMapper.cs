@@ -16,7 +16,7 @@ public sealed partial class GraphQLMapper
         if (!int.TryParse(source.Type, out var typeInt)) typeInt = 0;
         return new Ability
         {
-            Guid = (int)(source.GameID ?? 0),
+            FSLID = (int)(source.GameID ?? 0),
             Name = source.Name,
             Icon = source.Icon,
             Type = (MagicSchool)typeInt

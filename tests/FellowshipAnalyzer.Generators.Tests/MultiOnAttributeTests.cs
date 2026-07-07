@@ -235,7 +235,7 @@ public class MultiOnAttributeTests
         var count = 0;
         var index = 0;
         const string needle = "__emitter.Subscribe(this,";
-        while ((index = src.IndexOf(needle, index, System.StringComparison.Ordinal)) >= 0)
+        while ((index = src.IndexOf(needle, index, StringComparison.Ordinal)) >= 0)
         {
             count++;
             index += needle.Length;

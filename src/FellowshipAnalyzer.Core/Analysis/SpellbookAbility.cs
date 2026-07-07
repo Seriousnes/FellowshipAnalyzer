@@ -5,25 +5,11 @@ using OneOf;
 namespace FellowshipAnalyzer.Core.Analysis;
 
 /// <summary>
-/// A cooldown value — either a fixed number of seconds, or a function of the
-/// player's haste multiplier (e.g. 1.2 for 20% haste) that returns seconds.
-/// </summary>
-[GenerateOneOf]
-public partial class CooldownValue : OneOfBase<double, Func<double, double>, Func<Combatant, double, double>>;
-
-/// <summary>
 /// A GCD sub-value — either a fixed number of milliseconds, or a function of
 /// the player's <see cref="Combatant"/> that returns milliseconds.
 /// </summary>
 [GenerateOneOf]
 public partial class GcdValue : OneOfBase<double, Func<Combatant, double>>;
-
-/// <summary>
-/// A charges value — either a fixed count, or a function of the player's
-/// <see cref="Combatant"/> that returns the count.
-/// </summary>
-[GenerateOneOf]
-public partial class ChargesValue : OneOfBase<int, Func<Combatant, int>>;
 
 /// <summary>
 /// Defines a spell's gameplay metadata for the spellbook.
@@ -57,17 +43,29 @@ public sealed record SpellbookAbility
     public required SpellCategory Category { get; init; }
 
     /// <summary>
-    /// The cooldown in seconds. Can be a fixed value or a function of the
-    /// player's haste multiplier (e.g. 1.2 for 20% haste).
+    /// When true, the cooldown is reduced by haste using <c>Cooldown / (1 + haste)</c>.
     /// </summary>
-    public CooldownValue? Cooldown { get; init; }
+    public bool CooldownReducedByHaste { get; init; }
 
     /// <summary>
-    /// The number of charges the ability has. Defaults to 1 (no extra charges).
-    /// Only one charge recharges at a time. Can be a fixed value or a function
-    /// of the player's <see cref="Combatant"/>.
+    /// The number of charges the ability has, read from <see cref="PrimarySpell"/>.
     /// </summary>
-    public ChargesValue Charges { get; init; } = 1;
+    public int Charges => PrimarySpell.Charges;
+
+    /// <summary>
+    /// The cast time in seconds for a casted ability, read from <see cref="PrimarySpell"/>.
+    /// </summary>
+    public double? CastDuration => PrimarySpell.CastDuration;
+
+    /// <summary>
+    /// The total channel time in seconds for a channeled ability, read from <see cref="PrimarySpell"/>.
+    /// </summary>
+    public double? ChannelDuration => PrimarySpell.ChannelDuration;
+
+    /// <summary>
+    /// The interval in seconds between channel ticks, read from <see cref="PrimarySpell"/>.
+    /// </summary>
+    public double? ChannelTickInterval => PrimarySpell.ChannelTickInterval;
 
     /// <summary>
     /// GCD information. Null means the spell is off the GCD.
@@ -86,9 +84,9 @@ public sealed record SpellbookAbility
     public bool Enabled { get; init; } = true;
 
     /// <summary>
-    /// The spell's range in yards/meters.
+    /// The spell's range in yards/meters, read from <see cref="PrimarySpell"/>.
     /// </summary>
-    public int? Range { get; init; }
+    public int? Range => PrimarySpell.Range;
 
     /// <summary>
     /// Whether the spell is a defensive ability.
@@ -115,22 +113,11 @@ public sealed record SpellbookAbility
     public bool CastableWhileCasting { get; init; }
 
     /// <summary>
-    /// Gets the effective cooldown in seconds, resolving haste-scaling functions
-    /// when present.
+    /// Gets the effective cooldown in seconds from <see cref="PrimarySpell"/>, applying haste
+    /// reduction when <see cref="CooldownReducedByHaste"/> is set.
     /// </summary>
-    public double GetCooldown(Combatant combatant, double haste = 1.0) =>        
-        Cooldown?.Match(
-            cd => cd,
-            f => f(haste),
-            f => f(combatant, haste))
-        ?? 0;
-
-    /// <summary>
-    /// Gets the effective charge count, resolving combatant-dependent functions
-    /// when present.
-    /// </summary>
-    public int GetCharges(Combatant combatant) =>
-        Charges.Match(value => value, func => func(combatant));
+    public double GetCooldown(double haste = 1.0) =>
+        PrimarySpell.Cooldown is not { } cd ? 0 : CooldownReducedByHaste ? cd / (1 + haste) : cd;
 }
 
 /// <summary>

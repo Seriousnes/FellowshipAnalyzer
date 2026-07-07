@@ -308,7 +308,7 @@ public sealed partial class CombatLogParserTests
             TargetId = 11,
             Ability = new Ability
             {
-                Guid = abilityId,
+                FSLID = abilityId,
                 Name = $"Spell {abilityId}",
             },
             Target = new CastTarget(),
@@ -327,7 +327,7 @@ public sealed partial class CombatLogParserTests
             ResourceChangeType = resourceType,
             ResourceChange = resourceChange,
             Waste = waste,
-            Ability = new Ability { Guid = abilityId, Name = $"Spell {abilityId}" },
+            Ability = new Ability { FSLID = abilityId, Name = $"Spell {abilityId}" },
         };
     }
 
@@ -341,7 +341,7 @@ public sealed partial class CombatLogParserTests
         Timestamp = timestamp,
         SourceId = sourceId,
         TargetId = targetId,
-        Ability = new Ability { Guid = abilityId, Name = $"Buff {abilityId}" },
+        Ability = new Ability { FSLID = abilityId, Name = $"Buff {abilityId}" },
     };
 
     private static RemoveBuffEvent CreateRemoveBuff(int timestamp, int abilityId, int sourceId = 7, int targetId = 7) => new()
@@ -349,13 +349,13 @@ public sealed partial class CombatLogParserTests
         Timestamp = timestamp,
         SourceId = sourceId,
         TargetId = targetId,
-        Ability = new Ability { Guid = abilityId, Name = $"Buff {abilityId}" },
+        Ability = new Ability { FSLID = abilityId, Name = $"Buff {abilityId}" },
     };
 
     private static void AssertSingleTrackedBuff(Combatants combatants, int abilityId)
     {
         var buff = Assert.Single(combatants.Selected.Buffs);
-        Assert.Equal(abilityId, buff.Ability.Guid);
+        Assert.Equal(abilityId, buff.Ability.FSLID.Value);
         Assert.Equal(100, buff.Start);
         Assert.Equal(200, buff.End);
     }
@@ -407,7 +407,7 @@ public sealed partial class CombatLogParserTests
 
     private sealed class TestSpells : ISpellRegistry
     {
-        public static Spell Spender { get; } = new(2);
+        public static Spell Spender { get; } = new Spell { Id = 2 };
     }
 
     private sealed partial class SpellFilterProbeModule : Analyzer
@@ -442,7 +442,7 @@ public sealed partial class CombatLogParserTests
                     Timestamp = e.Timestamp + 50,
                     SourceId = 7,
                     TargetId = 11,
-                    Ability = new Ability { Guid = 99, Name = "Fabricated" },
+                    Ability = new Ability { FSLID = 99, Name = "Fabricated" },
                     Target = new CastTarget(),
                     Channel = new EndChannelEvent(),
                 });

@@ -1,0 +1,95 @@
+{
+  "rime": {
+    "WintersBlessing": {
+      "id": 1026,
+      "note": "possessive-strip produces WinterBlessing; supersede and re-add as WintersBlessing"
+    },
+    "WintersBlessingBuff": {
+      "id": 1026,
+      "kind": "effect",
+      "note": "effect at guid 1001026 is absent from auto-merge (linked effects are 1001389/1001390/1002299); add directly"
+    },
+    "FlightOfTheNavirBuff": {
+      "id": 2446,
+      "note": "hand-written as Spell(2446) guid=2446; auto-merge only produces FlightOfTheNavirAoeBuff as Effect guid=1002446; add as ability"
+    },
+    "WintersEmbrace": {
+      "id": 2303,
+      "kind": "effect",
+      "note": "auto-merge names this BurstingIceTalentBuffWhileActive at guid 1002303; rename to WintersEmbrace"
+    },
+    "FrostSwallowsDamage": {
+      "id": 1365,
+      "kind": "effect",
+      "note": "effect 1001365 is auto-linked to FlightOfTheNavir (as FlightOfTheNavirDamage); rename to FrostSwallowsDamage"
+    }
+  },
+  "elarion": {
+    "SkystridersSupremacy": {
+      "id": 1398,
+      "note": "possessive-strip produces SkystriderSupremacy; supersede and re-add with possessive"
+    },
+    "PathfindersResillience": {
+      "id": 1302,
+      "note": "spell_data names id 1302 CelestialVeil; hand-written registry assigns this id to PathfindersResillience; supersede CelestialVeil and register under the hand-written name (double-l typo preserved to match existing nameof references)"
+    },
+    "SkystridersGrace": {
+      "id": 1304,
+      "note": "possessive-strip produces SkystriderGrace; supersede and re-add with possessive"
+    },
+    "EventHorizonBuff": {
+      "id": 2312,
+      "kind": "effect",
+      "note": "auto-merge names this EventHorizonSelfBuff (role SelfBuff) at guid 1002312; rename to EventHorizonBuff"
+    },
+    "SkystridersGraceBuff": {
+      "id": 1869,
+      "kind": "effect",
+      "note": "possessive-strip on parent produces SkystriderGraceBuff at guid 1001869; rename to SkystridersGraceBuff"
+    },
+    "CelestialImpetus": {
+      "id": 1867,
+      "kind": "effect",
+      "note": "effect 1001867 is auto-linked to Shoot ability (as ShootProc); rename to CelestialImpetus"
+    },
+    "ImpendingHeartseeker": {
+      "id": 2317,
+      "kind": "effect",
+      "note": "no auto-merge entry at guid 1002317; add directly"
+    },
+    "SpiritOfHeroism": {
+      "id": 2253,
+      "kind": "effect",
+      "note": "no auto-merge entry at guid 1002253; add directly"
+    },
+    "EmpoweredMultishotBuff": {
+      "id": -1,
+      "kind": "effect",
+      "note": "placeholder; hand-written Effect(-1) produces guid 999999; no real FSL entry exists — real id TBD"
+    }
+  },
+  "items": {
+    "VoidbringerTouch": {
+      "id": 155,
+      "note": "gear weapon moved from Elarion hand-written registry to items scope"
+    }
+  },
+  "meiko": {
+    "StoneShieldAlt": {
+      "id": 1122,
+      "note": "both id 1121 and id 1122 sanitize to StoneShield; supersede id 1122 under distinct name StoneShieldAlt to eliminate collision"
+    }
+  },
+  "tariq": {
+    "FaceBreakerAlt": {
+      "id": 2241,
+      "note": "both id 2239 and id 2241 sanitize to FaceBreaker; supersede id 2241 under distinct name FaceBreakerAlt to eliminate collision"
+    }
+  },
+  "vigour": {
+    "RuneOfRenewalAlt": {
+      "id": 999,
+      "note": "both id 995 and id 999 sanitize to RuneOfRenewal; supersede id 999 under distinct name RuneOfRenewalAlt to eliminate collision"
+    }
+  }
+}

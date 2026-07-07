@@ -1,10 +1,12 @@
-﻿namespace FellowshipAnalyzer.Core.Events;
+﻿using FellowshipAnalyzer.Core.Common.Spells;
+
+namespace FellowshipAnalyzer.Core.Events;
 
 [Fabricated]
 public class UpdateSpellUsableEvent : Event, IAbilityEvent, IHasSourceEvent, IHasTargetEvent
 {
     public virtual Ability Ability { get; set; }
-    public virtual int AbilityGameId { get; set; }
+    public virtual FSLID AbilityGameId { get; set; }
     /// <summary>
     /// The kind of update to spell usability this represents.
     /// </summary>

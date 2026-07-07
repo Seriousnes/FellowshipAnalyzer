@@ -11,8 +11,8 @@ namespace FellowshipAnalyzer.Heroes.Elarion.Modules;
 /// </summary>
 public sealed partial class CooldownEfficiencyAnalyzer : Analyzer
 {
-    private readonly CooldownTracking _grace = new(Spells.SkystridersGrace.Guid, Spells.SkystridersGraceBuff.Guid);
-    private readonly CooldownTracking _eventHorizon = new(Spells.EventHorizon.Guid, Spells.EventHorizonBuff.Guid);
+    private readonly CooldownTracking _grace = new(Spells.SkystridersGrace.FSLID, Spells.SkystridersGraceBuff.FSLID);
+    private readonly CooldownTracking _eventHorizon = new(Spells.EventHorizon.FSLID, Spells.EventHorizonBuff.FSLID);
     private int _fightStart;
     private int _fightEnd;
 
@@ -79,15 +79,15 @@ public sealed partial class CooldownEfficiencyAnalyzer : Analyzer
 
     private CooldownTracking? SelectTracking(int spellId)
     {
-        if (spellId == Spells.SkystridersGrace.Guid) return _grace;
-        if (spellId == Spells.EventHorizon.Guid) return _eventHorizon;
+        if (spellId == Spells.SkystridersGrace.FSLID) return _grace;
+        if (spellId == Spells.EventHorizon.FSLID) return _eventHorizon;
         return null;
     }
 
     private CooldownTracking? SelectTrackingByBuff(int buffId)
     {
-        if (buffId == Spells.SkystridersGraceBuff.Guid) return _grace;
-        if (buffId == Spells.EventHorizonBuff.Guid) return _eventHorizon;
+        if (buffId == Spells.SkystridersGraceBuff.FSLID) return _grace;
+        if (buffId == Spells.EventHorizonBuff.FSLID) return _eventHorizon;
         return null;
     }
 

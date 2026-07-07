@@ -370,3 +370,6 @@ FodyWeavers.xsd
 **/*.css.map
 
 docs/*
+
+# Local tool secrets (points at the user-secrets store; see .env.example)
+.env.*

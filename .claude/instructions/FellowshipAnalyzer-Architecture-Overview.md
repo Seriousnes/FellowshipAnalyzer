@@ -31,7 +31,7 @@ Combat events are mutable classes, not structs.
 - The base type is `FellowshipAnalyzer.Core.Events.Event`, an abstract partial class decorated for JSON polymorphism.
 - Concrete event classes such as `CastEvent`, `DamageEvent`, `ApplyBuffEvent`, and `DeathEvent` inherit from `Event`.
 - Event capability interfaces such as `IAbilityEvent`, `IHasSourceEvent`, and `IHasTargetEvent` describe common properties used by filters and analyzers.
-- `Ability` models the nested log ability object and maps JSON `guid` to `Ability.Guid`; `Ability.Id` is an ignored alias for `Guid`.
+- `Ability` models the nested log ability object and maps JSON `guid` to `Ability.FSLID`; `Ability.Id` is an ignored alias for `FSLID`.
 - `ActorResources` models `sourceResources` and `targetResources`, including health, position, facing, and resource snapshots.
 - `ResourceNormalizer` scales log resource values before analyzers see them.
 

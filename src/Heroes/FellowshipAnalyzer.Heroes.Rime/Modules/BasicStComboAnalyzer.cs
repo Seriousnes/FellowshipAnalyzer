@@ -49,7 +49,7 @@ public sealed partial class BasicStComboAnalyzer : Analyzer<BasicStComboReport>
     private void OnCast(CastEvent castEvent)
     {
         if (_currentWindow is not null &&
-            castEvent.Ability.Id != Spells.BurstingIce.Guid &&
+            castEvent.Ability.Id != Spells.BurstingIce.FSLID &&
             castEvent.GlobalCooldown is not null)
         {
             _currentWindow.CastsInWindow.Add(castEvent);
@@ -62,8 +62,8 @@ public sealed partial class BasicStComboAnalyzer : Analyzer<BasicStComboReport>
         if (_currentWindow is null)
             return;
 
-        if (damageEvent.Ability.Id == Spells.BurstingIce.Guid ||
-            damageEvent.Ability.Id == Spells.BurstingIceDamage.Guid)
+        if (damageEvent.Ability.Id == Spells.BurstingIce.FSLID ||
+            damageEvent.Ability.Id == Spells.BurstingIceDamage.FSLID)
             return;
 
         var bonus = CombatMath.CalculateEffectiveDamage(damageEvent, WintersEmbraceIncrease);

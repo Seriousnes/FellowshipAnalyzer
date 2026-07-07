@@ -1,0 +1,663 @@
+@page "/"
+@rendermode @(new InteractiveServerRenderMode())
+@using FellowshipAnalyzer.Core.Common.Spells
+@using FellowshipAnalyzer.Core.UI.Components
+@using FellowshipAnalyzer.Core.Game
+@using System.Text.Json.Nodes
+@using FellowshipAnalyzer.SpellData
+@using FellowshipAnalyzer.SpellData.Json
+@using FellowshipAnalyzer.SpellData.Sources
+@inject MergeService Merge
+
+@{
+    var rows = Rows();
+    var incompleteCount = IncompleteCount();
+}
+
+<div class="studio">
+    <header class="studio-bar">
+        <div class="studio-wordmark">
+            <svg class="studio-mark" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+                <path d="M12 1.5 L14.7 9.3 L22.5 12 L14.7 14.7 L12 22.5 L9.3 14.7 L1.5 12 L9.3 9.3 Z" fill="currentColor" />
+            </svg>
+            <span class="studio-name">
+                <strong>Spell Studio</strong>
+                <small>spell database curation</small>
+            </span>
+        </div>
+
+        <div class="studio-actions">
+            @if (_status is not null)
+            {
+                <span class="studio-status">@_status</span>
+            }
+            <button class="btn-rebuild" @onclick="RebuildDb" disabled="@_rebuilding">
+                @(_rebuilding ? "Rebuilding…" : "Rebuild spelldb.json")
+            </button>
+        </div>
+    </header>
+
+    <div class="studio-toolbar">
+        <label class="studio-search">
+            <svg class="search-icon" viewBox="0 0 24 24" width="15" height="15" fill="none"
+                 stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+                <circle cx="10.5" cy="10.5" r="6.5" />
+                <line x1="21" y1="21" x2="16" y2="16" />
+            </svg>
+            <input type="search" placeholder="Search name, member, scope, id…"
+                   @bind="_search" @bind:event="oninput" aria-label="Search spells" />
+        </label>
+
+        <div class="scope-chips" role="group" aria-label="Filter by scope">
+            <button class="scope-chip @(_scopeFilter is null ? "active" : "")"
+                    @onclick="() => _scopeFilter = null">all</button>
+            @foreach (var scope in Scopes)
+            {
+                <button class="scope-chip @(_scopeFilter == scope ? "active" : "")"
+                        @onclick="() => ToggleScope(scope)">@scope</button>
+            }
+        </div>
+
+        <div class="kind-seg" role="group" aria-label="Filter by kind">
+            <button class="kind-seg-item @(_kindFilter is null ? "active" : "")"
+                    @onclick="() => _kindFilter = null">ALL</button>
+            @foreach (var kind in KindOrder)
+            {
+                <button class="kind-seg-item @(_kindFilter == kind ? "active" : "")"
+                        @onclick="() => ToggleKind(kind)">@KindTag(kind)</button>
+            }
+        </div>
+
+        <div class="filter-toggles" role="group" aria-label="Filters">
+            <button class="toggle-chip @(_incompleteOnly ? "active" : "")"
+                    @onclick="() => _incompleteOnly = !_incompleteOnly">
+                incomplete <span class="toggle-chip-count">@incompleteCount</span>
+            </button>
+            <button class="toggle-chip @(_overridesOnly ? "active" : "")"
+                    @onclick="() => _overridesOnly = !_overridesOnly">✎ overridden</button>
+            <button class="toggle-chip @(_showProvenance ? "active" : "")"
+                    @onclick="() => _showProvenance = !_showProvenance">◆ provenance</button>
+        </div>
+
+        <div class="prov-legend" aria-label="Provenance sources">
+            <span class="prov-swatch src-spelldata">spell</span>
+            <span class="prov-swatch src-herodata">hero</span>
+            <span class="prov-swatch src-geardata">gear</span>
+            <span class="prov-swatch src-icons">icon</span>
+            <span class="prov-swatch src-override">override</span>
+        </div>
+    </div>
+
+    <div class="studio-main">
+        <div class="grid-region">
+            <div class="grid-region-head">
+                <span class="grid-count">showing <b>@rows.Count</b> of @Merge.Result.Spells.Count</span>
+                @if (HasActiveFilter)
+                {
+                    <button class="btn-link" @onclick="ClearFilters">clear filters</button>
+                }
+            </div>
+            <div class="grid-scroll">
+                @if (rows.Count == 0)
+                {
+                    <div class="grid-empty">
+                        <p>No spells match these filters.</p>
+                        <button class="btn-ghost" @onclick="ClearFilters">Clear filters</button>
+                    </div>
+                }
+                else
+                {
+                    <table class="spell-grid @(_showProvenance ? "show-prov" : "")">
+                        <thead>
+                            <tr>
+                                <th class="col-icon"><span class="visually-hidden">Icon</span></th>
+                                <th class="col-member">Scope · Member</th>
+                                <th class="col-kind">Kind</th>
+                                <th class="col-id num">Id</th>
+                                <th class="col-name">Name</th>
+                                <th class="col-num num">CD</th>
+                                <th class="col-num num">Rng</th>
+                                <th class="col-num num">Chg</th>
+                                <th class="col-num num">Cast</th>
+                                <th class="col-num num">Chan</th>
+                                <th class="col-num num">Tick</th>
+                                <th class="col-costs">Costs</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var row in rows)
+                            {
+                                if (row.Spell is { } spell)
+                                {
+                                    var coreSpell = spell.Spell;
+                                    var costs = string.Join("  ", spell.Spell.Costs.Select(c => $"{ResourceTypesAliases.ToToken(c.Key)}:{c.Value}"));
+                                    var hasGap = row.Gaps.Count > 0;
+                                    <tr class="spell-row @(hasGap ? "has-gap" : "")" @onclick="() => SelectSpell(spell)">
+                                        <td class="col-icon cell @SrcCellClass(spell.Provenance.For("icon"))">
+                                            @if (string.IsNullOrEmpty(spell.Spell.Icon))
+                                            {
+                                                <span class="icon-missing" title="No icon" aria-hidden="true"></span>
+                                            }
+                                            else
+                                            {
+                                                <SpellIcon Spell="@coreSpell" Size="SpellIconSize.Small" NoTooltip="true" />
+                                            }
+                                        </td>
+                                        <td class="col-member">
+                                            <div class="member-cell" title="@spell.Member">
+                                                <span class="member-id">
+                                                    <span class="member-scope">@spell.Scope</span>
+                                                    @if (string.IsNullOrEmpty(spell.Member))
+                                                    {
+                                                        <span class="member-name member-unnamed">#@spell.Spell.Id</span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="member-name">@spell.Member</span>
+                                                    }
+                                                </span>
+                                                @if (hasGap)
+                                                {
+                                                    <span class="member-gaps">
+                                                        @foreach (var g in row.Gaps)
+                                                        {
+                                                            <span class="row-gap-chip @GapChipClass(g)" title="@GapTitle(g)">@GapChipLetter(g)</span>
+                                                        }
+                                                    </span>
+                                                }
+                                            </div>
+                                        </td>
+                                        <td class="col-kind cell @SrcCellClass(spell.Provenance.For("kind"))">
+                                            <span class="kind-tag">@KindTag(spell.Kind)</span>
+                                        </td>
+                                        <td class="col-id num mono cell @SrcCellClass(spell.Provenance.For("id"))">@CellVal(spell.Spell.Id.ToString())</td>
+                                        <td class="col-name cell @SrcCellClass(spell.Provenance.For("name"))">
+                                            <SpellLink Spell="@coreSpell" Icon="false" />
+                                        </td>
+                                        <td class="col-num num mono cell @SrcCellClass(spell.Provenance.For("cooldown"))">@CellVal(Fmt(spell.Spell.Cooldown))</td>
+                                        <td class="col-num num mono cell @SrcCellClass(spell.Provenance.For("range"))">@CellVal(spell.Spell.Range?.ToString())</td>
+                                        <td class="col-num num mono cell @SrcCellClass(spell.Provenance.For("charges"))">@CellVal(spell.Spell.Charges.ToString())</td>
+                                        <td class="col-num num mono cell @SrcCellClass(spell.Provenance.For("castDuration"))">@CellVal(Fmt(spell.Spell.CastDuration))</td>
+                                        <td class="col-num num mono cell @SrcCellClass(spell.Provenance.For("channelDuration"))">@CellVal(Fmt(spell.Spell.ChannelDuration))</td>
+                                        <td class="col-num num mono cell @SrcCellClass(spell.Provenance.For("channelTickInterval"))">@CellVal(Fmt(spell.Spell.ChannelTickInterval))</td>
+                                        <td class="col-costs mono cell @SrcCellClass(spell.Provenance.For("costs"))">@CellVal(costs)</td>
+                                    </tr>
+                                }
+                                else
+                                {
+                                    var gap = row.Candidate!;
+                                    var addable = gap.Kind == GapKind.UnresolvedEffect;
+                                    <tr class="spell-row candidate" @onclick="@(addable ? (() => StartAdd(gap)) : NoOp)">
+                                        <td class="col-icon"><span class="icon-missing" aria-hidden="true"></span></td>
+                                        <td class="col-member">
+                                            <div class="member-cell" title="@gap.Member">
+                                                <span class="member-id">
+                                                    <span class="member-scope">@gap.Scope</span>
+                                                    <span class="member-name">@gap.Member</span>
+                                                </span>
+                                                <span class="member-gaps">
+                                                    @foreach (var g in row.Gaps)
+                                                    {
+                                                        <span class="row-gap-chip @GapChipClass(g)" title="@GapTitle(g)">@GapChipLetter(g)</span>
+                                                    }
+                                                </span>
+                                            </div>
+                                        </td>
+                                        <td class="col-kind"><span class="kind-tag">@(addable ? "EFCT" : "DRIFT")</span></td>
+                                        <td class="col-id num mono cell-nil">·</td>
+                                        <td class="col-name"><span class="candidate-tag">@(addable ? "add effect by id" : GapTitle(gap.Kind))</span></td>
+                                        <td class="col-num num mono cell-nil">·</td>
+                                        <td class="col-num num mono cell-nil">·</td>
+                                        <td class="col-num num mono cell-nil">·</td>
+                                        <td class="col-num num mono cell-nil">·</td>
+                                        <td class="col-num num mono cell-nil">·</td>
+                                        <td class="col-num num mono cell-nil">·</td>
+                                        <td class="col-costs mono cell-nil">·</td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (_selected is not null)
+{
+    var sel = _selected;
+    var selCore = sel.Spell;
+    <div class="modal-backdrop" @onclick="CancelEdit">
+        <div class="modal" @onclick="NoOp" @onclick:stopPropagation="true">
+            <div class="modal-head">
+                @if (string.IsNullOrEmpty(sel.Spell.Icon))
+                {
+                    <span class="icon-missing icon-missing-lg" aria-hidden="true"></span>
+                }
+                else
+                {
+                    <SpellIcon Spell="@selCore" Size="SpellIconSize.Medium" NoTooltip="true" />
+                }
+                <div class="modal-title">
+                    <SpellLink Spell="@selCore" Icon="false" />
+                    <span class="modal-meta">@sel.Scope / @sel.Member · @KindTag(sel.Kind) · #@sel.Spell.Id</span>
+                </div>
+                <button class="modal-close" @onclick="CancelEdit" aria-label="Close">✕</button>
+            </div>
+
+            <div class="modal-body">
+                <div class="field-list">
+                    <label class="field">
+                        <span class="field-key">Name @ProvChip(sel.Provenance.For("name"))</span>
+                        <input type="text" class="field-input" @bind="_eName" @bind:event="oninput" placeholder="@sel.Spell.Name" />
+                    </label>
+                    <label class="field">
+                        <span class="field-key">Icon @ProvChip(sel.Provenance.For("icon"))</span>
+                        <input type="text" class="field-input" @bind="_eIcon" @bind:event="oninput" placeholder="@sel.Spell.Icon" />
+                    </label>
+                    <label class="field">
+                        <span class="field-key">Cooldown @ProvChip(sel.Provenance.For("cooldown"))</span>
+                        <input type="text" class="field-input" @bind="_eCooldown" @bind:event="oninput" placeholder="@Fmt(sel.Spell.Cooldown)" />
+                    </label>
+                    <label class="field">
+                        <span class="field-key">Range @ProvChip(sel.Provenance.For("range"))</span>
+                        <input type="text" class="field-input" @bind="_eRange" @bind:event="oninput" placeholder="@(sel.Spell.Range?.ToString())" />
+                    </label>
+                    <label class="field">
+                        <span class="field-key">Charges @ProvChip(sel.Provenance.For("charges"))</span>
+                        <input type="text" class="field-input" @bind="_eCharges" @bind:event="oninput" placeholder="@sel.Spell.Charges" />
+                    </label>
+                    <label class="field">
+                        <span class="field-key">Cast Duration @ProvChip(sel.Provenance.For("castDuration"))</span>
+                        <input type="text" class="field-input" @bind="_eCastDuration" @bind:event="oninput" placeholder="@Fmt(sel.Spell.CastDuration)" />
+                    </label>
+                    <label class="field">
+                        <span class="field-key">Channel Duration @ProvChip(sel.Provenance.For("channelDuration"))</span>
+                        <input type="text" class="field-input" @bind="_eChannelDuration" @bind:event="oninput" placeholder="@Fmt(sel.Spell.ChannelDuration)" />
+                    </label>
+                    <label class="field">
+                        <span class="field-key">Channel Tick @ProvChip(sel.Provenance.For("channelTickInterval"))</span>
+                        <input type="text" class="field-input" @bind="_eChannelTickInterval" @bind:event="oninput" placeholder="@Fmt(sel.Spell.ChannelTickInterval)" />
+                    </label>
+                </div>
+
+                <div class="cost-section">
+                    <div class="cost-section-head">Costs @ProvChip(sel.Provenance.For("costs"))</div>
+                    <div class="cost-grid">
+                        @foreach (var slot in CostRowKeys(sel))
+                        {
+                            var costSlot = slot;
+                            var current = _eCosts.GetValueOrDefault(costSlot, string.Empty);
+                            var inherited = sel.Spell.Costs.TryGetValue(costSlot, out var cv) ? cv.ToString() : string.Empty;
+                            <label class="cost-field">
+                                <span class="cost-key">@CostLabel(costSlot)</span>
+                                <input type="number" class="field-input cost-input"
+                                       value="@current"
+                                       @oninput="e => _eCosts[costSlot] = e.Value?.ToString() ?? string.Empty"
+                                       placeholder="@inherited" />
+                            </label>
+                        }
+                    </div>
+                </div>
+
+                <label class="field field-wide">
+                    <span class="field-key">Note</span>
+                    <input type="text" class="field-input" @bind="_eNote" @bind:event="oninput" placeholder="curation note" />
+                </label>
+            </div>
+
+            <div class="modal-actions">
+                <button class="btn-primary" @onclick="SaveEdit">Save override</button>
+                <button class="btn-ghost" @onclick="CancelEdit">Cancel</button>
+            </div>
+        </div>
+    </div>
+}
+
+@if (_addGap is not null)
+{
+    <div class="modal-backdrop" @onclick="CancelAdd">
+        <div class="modal modal-narrow" @onclick="NoOp" @onclick:stopPropagation="true">
+            <div class="modal-head">
+                <div class="modal-title">
+                    <strong class="modal-add-title">Add effect</strong>
+                    <span class="modal-meta">@_addGap.Scope / @_addGap.Member</span>
+                </div>
+                <button class="modal-close" @onclick="CancelAdd" aria-label="Close">✕</button>
+            </div>
+            <div class="modal-body">
+                <label class="field field-wide">
+                    <span class="field-key">Id</span>
+                    <input type="number" class="field-input" @bind="_addId" placeholder="native effect id" />
+                </label>
+                <label class="field field-wide">
+                    <span class="field-key">Note</span>
+                    <input type="text" class="field-input" @bind="_addNote" placeholder="why this id" />
+                </label>
+            </div>
+            <div class="modal-actions">
+                <button class="btn-primary" @onclick="SaveAdd">Add override</button>
+                <button class="btn-ghost" @onclick="CancelAdd">Cancel</button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private CuratedSpell? _selected;
+    private Gap? _addGap;
+    private string? _status;
+    private bool _rebuilding;
+
+    private string _search = "";
+    private string? _scopeFilter;
+    private SpellKind? _kindFilter;
+    private bool _incompleteOnly;
+    private bool _overridesOnly;
+    private bool _showProvenance;
+
+    private string _eName = "";
+    private string _eIcon = "";
+    private string _eCooldown = "";
+    private string _eRange = "";
+    private string _eCharges = "";
+    private string _eCastDuration = "";
+    private string _eChannelDuration = "";
+    private string _eChannelTickInterval = "";
+    private string _eNote = "";
+    private Dictionary<ResourceTypes, string> _eCosts = new();
+
+    private string _addId = "";
+    private string _addNote = "";
+
+    private static readonly SpellKind[] KindOrder =
+        [SpellKind.Ability, SpellKind.Effect, SpellKind.Talent, SpellKind.Weapon];
+
+    private static readonly GapKind[] GapOrder =
+        [GapKind.MissingName, GapKind.MissingIcon, GapKind.MissingId,
+         GapKind.UnresolvedEffect, GapKind.UnknownResource, GapKind.UnknownScope];
+
+    private static readonly GapKind[] DriftKinds =
+        [GapKind.UnresolvedEffect, GapKind.UnknownResource, GapKind.UnknownScope];
+
+    private static readonly ResourceTypes[] CostSlots = Enum.GetValues<ResourceTypes>();
+
+    private sealed record Row(
+        CuratedSpell? Spell, Gap? Candidate, string Scope, string Member, IReadOnlyList<GapKind> Gaps);
+
+    private bool HasActiveFilter =>
+        _search.Length > 0 || _scopeFilter is not null || _kindFilter is not null
+        || _incompleteOnly || _overridesOnly;
+
+    private IEnumerable<string> Scopes =>
+        Merge.Result.Spells.Select(s => s.Scope).Distinct()
+            .OrderBy(s => s == "items" ? 1 : 0).ThenBy(s => s, StringComparer.Ordinal);
+
+    private List<Row> Rows()
+    {
+        var term = _search.Trim();
+
+        var spellGaps = Merge.Result.Gaps
+            .Where(g => !DriftKinds.Contains(g.Kind))
+            .GroupBy(g => (g.Scope, g.Member))
+            .ToDictionary(
+                g => g.Key,
+                g => (IReadOnlyList<GapKind>)GapOrder.Where(k => g.Any(x => x.Kind == k)).ToList());
+
+        var spellRows = Merge.Result.Spells
+            .Where(s => _scopeFilter is null || s.Scope == _scopeFilter)
+            .Where(s => _kindFilter is null || s.Kind == _kindFilter)
+            .Where(s => !_overridesOnly || HasOverride(s))
+            .Where(s => term.Length == 0 || Matches(s, term))
+            .Select(s => new Row(s, null, s.Scope, s.Member,
+                spellGaps.GetValueOrDefault((s.Scope, s.Member)) ?? Array.Empty<GapKind>()))
+            .Where(r => !_incompleteOnly || r.Gaps.Count > 0);
+
+        var candidateRows = !_incompleteOnly
+            ? Enumerable.Empty<Row>()
+            : Merge.Result.Gaps
+                .Where(g => DriftKinds.Contains(g.Kind))
+                .Where(g => _scopeFilter is null || g.Scope == _scopeFilter)
+                .Where(g => _kindFilter is null || (_kindFilter == SpellKind.Effect && g.Kind == GapKind.UnresolvedEffect))
+                .Where(g => !_overridesOnly)
+                .Where(g => term.Length == 0
+                    || g.Member.Contains(term, StringComparison.OrdinalIgnoreCase)
+                    || g.Scope.Contains(term, StringComparison.OrdinalIgnoreCase))
+                .Select(g => new Row(null, g, g.Scope, g.Member, new[] { g.Kind }));
+
+        return spellRows.Concat(candidateRows)
+            .OrderBy(r => r.Scope, StringComparer.Ordinal)
+            .ThenBy(r => r.Member, StringComparer.Ordinal)
+            .ToList();
+    }
+
+    private int IncompleteCount()
+    {
+        var spellGapKeys = Merge.Result.Gaps
+            .Where(g => !DriftKinds.Contains(g.Kind))
+            .Select(g => (g.Scope, g.Member)).ToHashSet();
+        var spells = Merge.Result.Spells.Count(s => spellGapKeys.Contains((s.Scope, s.Member)));
+        var drift = Merge.Result.Gaps.Count(g => DriftKinds.Contains(g.Kind));
+        return spells + drift;
+    }
+
+    private static bool Matches(CuratedSpell s, string term) =>
+        s.Member.Contains(term, StringComparison.OrdinalIgnoreCase)
+        || s.Spell.Name.Contains(term, StringComparison.OrdinalIgnoreCase)
+        || s.Scope.Contains(term, StringComparison.OrdinalIgnoreCase)
+        || s.Spell.Id.ToString().Contains(term, StringComparison.OrdinalIgnoreCase);
+
+    private bool HasOverride(CuratedSpell s) =>
+        Merge.Overrides.ByScopeAndMember.GetValueOrDefault(s.Scope)?.ContainsKey(s.Member) == true;
+
+    private static IEnumerable<ResourceTypes> CostRowKeys(CuratedSpell s) => CostSlots;
+
+    private void ToggleScope(string scope) => _scopeFilter = _scopeFilter == scope ? null : scope;
+    private void ToggleKind(SpellKind kind) => _kindFilter = _kindFilter == kind ? null : kind;
+
+    private void ClearFilters()
+    {
+        _search = "";
+        _scopeFilter = null;
+        _kindFilter = null;
+        _incompleteOnly = false;
+        _overridesOnly = false;
+    }
+
+    private void SelectSpell(CuratedSpell spell)
+    {
+        _selected = spell;
+        _addGap = null;
+        _status = null;
+        var existing = Merge.Overrides.ByScopeAndMember
+            .GetValueOrDefault(spell.Scope)
+            ?.GetValueOrDefault(spell.Member);
+        _eName = StringField(existing, "name");
+        _eIcon = StringField(existing, "icon");
+        _eCooldown = NumberField(existing, "cooldown");
+        _eRange = NumberField(existing, "range");
+        _eCharges = NumberField(existing, "charges");
+        _eCastDuration = NumberField(existing, "castDuration");
+        _eChannelDuration = NumberField(existing, "channelDuration");
+        _eChannelTickInterval = NumberField(existing, "channelTickInterval");
+        _eNote = StringField(existing, "note");
+        _eCosts = CostRowKeys(spell).ToDictionary(k => k, _ => "");
+    }
+
+    private static string StringField(JsonObject? o, string key) =>
+        o is not null && o.TryGetPropertyValue(key, out var v) && v is JsonValue jv && jv.TryGetValue<string>(out var s)
+            ? s : "";
+
+    private static string NumberField(JsonObject? o, string key) =>
+        o is not null && o.TryGetPropertyValue(key, out var v) && v is JsonValue jv && jv.TryGetValue<double>(out var d)
+            ? d.ToString() : "";
+
+    private void CancelEdit() => _selected = null;
+
+    private static void NoOp() { }
+
+    private void SaveEdit()
+    {
+        if (_selected is null) return;
+        var merged = new Dictionary<ResourceTypes, int>(_selected.Spell.Costs);
+        foreach (var (k, raw) in _eCosts)
+        {
+            if (string.IsNullOrWhiteSpace(raw)) continue;
+            if (int.TryParse(raw, out var n)) merged[k] = n;
+        }
+        var costs = DictEqual(merged, _selected.Spell.Costs) ? new Dictionary<ResourceTypes, int>() : merged;
+
+        var delta = new JsonObject();
+        if (!string.IsNullOrWhiteSpace(_eName)) delta["name"] = _eName.Trim();
+        if (!string.IsNullOrWhiteSpace(_eIcon)) delta["icon"] = _eIcon.Trim();
+        if (double.TryParse(_eCooldown, out var cd)) delta["cooldown"] = cd;
+        if (int.TryParse(_eRange, out var rng)) delta["range"] = rng;
+        if (int.TryParse(_eCharges, out var ch)) delta["charges"] = ch;
+        if (double.TryParse(_eCastDuration, out var cast)) delta["castDuration"] = cast;
+        if (double.TryParse(_eChannelDuration, out var chd)) delta["channelDuration"] = chd;
+        if (double.TryParse(_eChannelTickInterval, out var cti)) delta["channelTickInterval"] = cti;
+        if (costs.Count > 0)
+        {
+            var costsNode = new JsonObject();
+            foreach (var (slot, v) in costs.OrderBy(x => (int)x.Key))
+                costsNode[ResourceTypesAliases.ToToken(slot)] = v;
+            delta["costs"] = costsNode;
+        }
+        if (!string.IsNullOrWhiteSpace(_eNote)) delta["note"] = _eNote.Trim();
+
+        OverridesPersister.Save(_selected.Scope, _selected.Member, delta);
+        Merge.Reload();
+        _status = $"Saved {_selected.Scope}/{_selected.Member}.";
+        _selected = null;
+    }
+
+    private void StartAdd(Gap gap)
+    {
+        _addGap = gap;
+        _selected = null;
+        _status = null;
+        _addId = "";
+        _addNote = "";
+    }
+
+    private void CancelAdd() => _addGap = null;
+
+    private void SaveAdd()
+    {
+        if (_addGap is null || !int.TryParse(_addId, out var id)) return;
+        var scope = _addGap.Scope;
+        var member = _addGap.Member;
+        var delta = new JsonObject { ["id"] = id, ["kind"] = "effect" };
+        if (!string.IsNullOrWhiteSpace(_addNote)) delta["note"] = _addNote.Trim();
+        OverridesPersister.Save(scope, member, delta);
+        Merge.Reload();
+        _addGap = null;
+        _status = $"Added {scope}/{member}.";
+    }
+
+    private async Task RebuildDb()
+    {
+        _rebuilding = true;
+        _status = null;
+        await Task.Run(() =>
+        {
+            var result = MergeEngine.Run(MergeInputs.Load());
+            File.WriteAllText(SourcePaths.SpellDb, SpellDbWriter.Serialize(result));
+        });
+        Merge.Reload();
+        _rebuilding = false;
+        _status = "spelldb.json rebuilt.";
+    }
+
+    private static bool DictEqual(IReadOnlyDictionary<ResourceTypes, int> a, IReadOnlyDictionary<ResourceTypes, int> b) =>
+        a.Count == b.Count && a.All(kv => b.TryGetValue(kv.Key, out var v) && v == kv.Value);
+
+    private static RenderFragment? ProvChip(ProvenanceSource? source) => source is { } src
+        ? builder =>
+        {
+            builder.OpenElement(0, "span");
+            builder.AddAttribute(1, "class", $"src-chip {SrcCellClass(src)}");
+            builder.AddContent(2, SrcLabel(src));
+            builder.CloseElement();
+        }
+        : null;
+
+    private static RenderFragment CellVal(string? text) => builder =>
+    {
+        if (string.IsNullOrEmpty(text))
+        {
+            builder.OpenElement(0, "span");
+            builder.AddAttribute(1, "class", "cell-nil");
+            builder.AddContent(2, "·");
+            builder.CloseElement();
+        }
+        else
+        {
+            builder.OpenElement(3, "span");
+            builder.AddAttribute(4, "class", "cell-val");
+            builder.AddContent(5, text);
+            builder.CloseElement();
+        }
+    };
+
+    private static string Fmt(double? v) => v?.ToString("0.###") ?? "";
+
+    private static string CostLabel(ResourceTypes key) => key.ToString();
+
+    private static string KindTag(SpellKind kind) => kind switch
+    {
+        SpellKind.Ability => "ABIL",
+        SpellKind.Effect => "EFCT",
+        SpellKind.Talent => "TALT",
+        SpellKind.Weapon => "WEAP",
+        _ => kind.ToString(),
+    };
+
+    private static string GapChipLetter(GapKind kind) => kind switch
+    {
+        GapKind.MissingName => "N",
+        GapKind.MissingIcon => "C",
+        GapKind.MissingId => "I",
+        GapKind.UnresolvedEffect => "I",
+        GapKind.UnknownResource => "R",
+        GapKind.UnknownScope => "S",
+        _ => "?",
+    };
+
+    private static string GapChipClass(GapKind kind) => kind switch
+    {
+        GapKind.MissingName => "gap-name",
+        GapKind.MissingIcon => "gap-icon",
+        _ => "gap-id",
+    };
+
+    private static string GapTitle(GapKind kind) => kind switch
+    {
+        GapKind.MissingName => "no name",
+        GapKind.MissingIcon => "no icon",
+        GapKind.UnknownResource => "unknown resource",
+        GapKind.UnknownScope => "unknown scope",
+        _ => "no id",
+    };
+
+    private static string SrcCellClass(ProvenanceSource? s) => s switch
+    {
+        ProvenanceSource.Override => "src-override",
+        ProvenanceSource.HeroData => "src-herodata",
+        ProvenanceSource.GearData => "src-geardata",
+        ProvenanceSource.Icons => "src-icons",
+        ProvenanceSource.SpellData => "src-spelldata",
+        _ => "",
+    };
+
+    private static string SrcLabel(ProvenanceSource s) => s switch
+    {
+        ProvenanceSource.Override => "override",
+        ProvenanceSource.HeroData => "hero",
+        ProvenanceSource.GearData => "gear",
+        ProvenanceSource.Icons => "icon",
+        ProvenanceSource.SpellData => "spell",
+        _ => "",
+    };
+}

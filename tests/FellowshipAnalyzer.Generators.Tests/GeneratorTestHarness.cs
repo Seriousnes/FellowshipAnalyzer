@@ -16,10 +16,10 @@ internal static class GeneratorTestHarness
             {
                 public int By { get; set; }
                 public int To { get; set; }
-                public int Spell { get; set; }
-                public int[]? Spells { get; set; }
-                public int ExtraSpell { get; set; }
-                public int[]? ExtraSpells { get; set; }
+                public string? Spell { get; set; }
+                public string[]? Spells { get; set; }
+                public string? ExtraSpell { get; set; }
+                public string[]? ExtraSpells { get; set; }
             }
 
             public class Module

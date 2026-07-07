@@ -14,11 +14,26 @@ Execute a .NET 10 file-based app from `src/FellowshipAnalyzer.Tools/`.
 |--------|---------|-------|
 | `fetch-abilities.cs` | Fetches all abilities from the FellowshipLogs API and writes `abilities.json` at the repo root. Uses the cached file if it exists; pass `--refresh` to re-fetch. | `dotnet run src/FellowshipAnalyzer.Tools/fetch-abilities.cs [--refresh]` |
 | `event-schema.cs` | Scans a log JSON events array and prints every unique event type with all properties each type can have, their frequency, and JSON value kinds. Use for C# model comparison and deserialization audits. | `dotnet run src/FellowshipAnalyzer.Tools/event-schema.cs <log-json>` |
-| `refresh-schema.cs` | Converts `docs/schema.json` (GraphQL introspection result) to SDL and writes it to `src/FellowshipAnalyzer/FellowshipAnalyzer.Api.GraphQL/schema.graphql`. Pass `--no-fetch` to skip the network call and convert from the existing local file. Requires `FellowshipLogs:ClientId` and `FellowshipLogs:ClientSecret` in user secrets when fetching. | `dotnet run src/FellowshipAnalyzer.Tools/refresh-schema.cs [--no-fetch]` |
+| `refresh-schema.cs` | Converts `docs/schema.json` (GraphQL introspection result) to SDL and writes it to `src/FellowshipAnalyzer/FellowshipAnalyzer.Api.GraphQL/schema.graphql`. Pass `--no-fetch` to skip the network call and convert from the existing local file. Requires the `.env` + user-secrets setup (see Credentials) when fetching. | `dotnet run src/FellowshipAnalyzer.Tools/refresh-schema.cs [--no-fetch]` |
 | `resource-analysis.cs` | Analyzes `sourceResources.resources` across a log JSON and prints a Markdown summary of unique resource types, change patterns, and common event/ability pairings | `dotnet run src/FellowshipAnalyzer.Tools/resource-analysis.cs <log-json>` |
 | `update-spells.cs` | Reads ability data from a JSON file and updates a hero spell registry `.cs` file. JSON is authoritative for name and icon. Supports both `abilities.json` (API format) and combat-log export format. | `dotnet run src/FellowshipAnalyzer.Tools/update-spells.cs <abilities-json> <target-cs>` |
 
 ## Procedure
+
+### Credentials (fetch-abilities, refresh-schema)
+
+The API tools read the user-secrets store id from a non-committed `.env` file at the repo root:
+
+```
+USER_SECRET_ID=fellowshipanalyzer-devapi
+```
+
+Copy `.env.example` to `.env` to get started. The store keyed by `USER_SECRET_ID` must hold `FellowshipLogs:ClientId` and `FellowshipLogs:ClientSecret`:
+
+```
+dotnet user-secrets set "FellowshipLogs:ClientId" "..."     --id fellowshipanalyzer-devapi
+dotnet user-secrets set "FellowshipLogs:ClientSecret" "..." --id fellowshipanalyzer-devapi
+```
 
 ### update-spells
 
@@ -35,11 +50,11 @@ The standard input is `abilities.json` at the repo root — a cached copy of all
 
 The tool also accepts combat-log export JSON (objects with `guid`, `name`, `abilityIcon` properties) as an alternative input.
 
-**Spell vs Effect matching**: The tool detects `Effect` vs `Spell` from the C# declaration on each line. For `abilities.json`, the same ability entry is checked against both lookups; the C# file determines which applies. For combat-log format, `guid >= 1_000_000` identifies effects (stored by `guid - 1_000_000` to match the base ID in the constructor).
+**Spell vs Effect/Talent/Weapon matching**: The tool detects `Effect`/`Talent`/`Weapon` vs `Spell` from the C# declaration on each line. For `abilities.json`, the same ability entry is checked against both lookups; the C# file determines which applies. For combat-log format, `guid` is an FSLID: `guid >= 1_000_000` identifies effects (stored by `guid - 1_000_000` to match the base ID in the constructor), with talents at `>= 2_000_000` and weapon traits at `>= 3_000_000` using the matching offset.
 
 ### fetch-abilities
 
-Requires `FellowshipLogs:ClientId` and `FellowshipLogs:ClientSecret` in user secrets.
+Requires the `.env` + user-secrets setup above.
 
 1. Run from the repo root:
    ```

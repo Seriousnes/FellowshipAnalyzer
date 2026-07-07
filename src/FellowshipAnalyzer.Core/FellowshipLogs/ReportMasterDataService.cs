@@ -22,7 +22,7 @@ public sealed class ReportMasterDataService
 
         var dict = new Dictionary<int, Ability>(masterData.Abilities.Count);
         foreach (var ability in masterData.Abilities)
-            dict[ability.Guid] = ability;
+            dict[ability.FSLID] = ability;
 
         _abilitiesByGameId = dict;
     }
@@ -36,7 +36,7 @@ public sealed class ReportMasterDataService
             return ability;
 
         // Return a minimal stub so downstream code can still use the ID.
-        return new Ability { Guid = gameId };
+        return new Ability { FSLID = gameId };
     }
 
     /// <summary>

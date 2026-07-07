@@ -310,7 +310,7 @@ public sealed partial class SpellUsable(Lazy<Abilities> abilities, Lazy<DebugAnn
         Owner.EventEmitter.FabricateEvent(new UpdateSpellUsableEvent
         {
             Timestamp = timestamp,
-            Ability = new Ability { Guid = spellId, Name = ability?.Name ?? string.Empty },
+            Ability = new Ability { FSLID = spellId, Name = ability?.Name ?? string.Empty },
             UpdateType = updateType,
             IsOnCooldown = cd.ChargesAvailable < cd.MaxCharges,
             IsAvailable = cd.ChargesAvailable > 0,

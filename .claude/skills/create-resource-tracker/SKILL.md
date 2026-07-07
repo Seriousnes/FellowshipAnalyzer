@@ -49,7 +49,7 @@ public sealed partial class {Resource}Tracker : ResourceTracker
             return null;
         }
 
-        var spell = SpellRegistry.MaybeGet(castEvent.Ability.Guid) as I{Hero}Spell;
+        var spell = SpellRegistry.MaybeGet(castEvent.Ability.FSLID) as I{Hero}Spell;
         return spell?.{Resource}Cost;
     }
 

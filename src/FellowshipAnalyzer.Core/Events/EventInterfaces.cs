@@ -1,15 +1,17 @@
-﻿namespace FellowshipAnalyzer.Core.Events;
+﻿using FellowshipAnalyzer.Core.Common.Spells;
+
+namespace FellowshipAnalyzer.Core.Events;
 
 public interface IAbilityEvent
 {
     Ability Ability { get; set; }
-    int AbilityGameId { get; set; }
+    FSLID AbilityGameId { get; set; }
 }
 
 public interface IExtraAbilityEvent
 {
     Ability ExtraAbility { get; set; }
-    int ExtraAbilityGameId { get; set; }
+    FSLID ExtraAbilityGameId { get; set; }
 }
 
 public interface IAmountEvent

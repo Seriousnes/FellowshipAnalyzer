@@ -10,17 +10,17 @@ public sealed class RimeAuras : Auras
         return [
             new()
             {
-                SpellId = Spells.WintersEmbrace.Guid,
+                SpellId = Spells.WintersEmbrace.FSLID,
                 TimelineHighlight = true,
             },
             new()
             {
-                SpellId = Spells.FlightOfTheNavirBuff.Guid,
+                SpellId = Spells.FlightOfTheNavirBuff.FSLID,
                 TimelineHighlight = true
             },
             new()
             {
-                SpellId = Spells.WrathOfWinterBuff.Guid,              
+                SpellId = Spells.WrathOfWinterBuff.FSLID,              
                 TimelineHighlight = true
             },
         ];
