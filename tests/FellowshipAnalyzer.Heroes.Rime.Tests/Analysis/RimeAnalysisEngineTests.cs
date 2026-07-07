@@ -35,9 +35,8 @@ public sealed class RimeAnalysisEngineTests
         var typed = result.TypedReport.ShouldBeOfType<RimeAnalysisResult>();
         var report = typed.BasicStComboReports.ShouldHaveSingleItem().Result;
         report.EvaluatedWindows.ShouldBeGreaterThan(0);
-        report.PartialWindows.ShouldBeGreaterThan(0);
-        report.IgnoredAoeWindows.ShouldBeGreaterThan(0);
-        report.ScoreCard.Score.ShouldBeGreaterThanOrEqualTo(0);
+        report.Windows.ShouldAllBe(window => window.WindowType == BasicStComboAnalyzer.BurstingIceWindowType.SingleTarget);
+        report.ScoreCard.Score.ShouldBeInRange(0, 100);
     }
 
     [Fact]
@@ -113,7 +112,7 @@ public sealed class RimeAnalysisEngineTests
         var events = JsonSerializer.Deserialize(eventsEl, jsonContext.ListEvent)!;
         var fightStartTime = events.Count > 0 ? events.Min(e => e.Timestamp) : 0;
         var fightEndTime = events.Count > 0 ? events.Max(e => e.Timestamp) : 0;
-        var fight = new ReportFight(0, "", 0, null, fightStartTime, fightEndTime, null, null, null);
+        var fight = new ReportFight(0, "", 1, null, fightStartTime, fightEndTime, null, null, null);
         var result = await parser.Analyze(events, playerId: 3, fight: fight);
         return (parser, result);
     }

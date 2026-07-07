@@ -6,4 +6,5 @@ namespace FellowshipAnalyzer.Heroes.Ardeos.Analysis;
 [AddModule<Modules.Abilities>]
 public sealed partial class ArdeosCombatLogParser : CombatLogParser
 {
+    public override Type? GuideComponent => typeof(ArdeosGuide);
 }

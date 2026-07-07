@@ -6,7 +6,8 @@ namespace FellowshipAnalyzer.Heroes.Rime.Analysis;
 
 [HeroAnalyzer(HeroName.Rime)]
 [AddState<WinterOrbTracker>]
-[AddAnalyzer<BasicStComboAnalyzer>]
+[AddAnalyzer<SingleTargetRimeCombo>]
+[AddAnalyzer<AoERimeCombo>]
 [AddModule<Modules.Abilities>]
 [AddModule<RimeAuras>]
 public sealed partial class RimeCombatLogParser : CombatLogParser

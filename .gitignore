@@ -373,3 +373,6 @@ docs/*
 
 # Local tool secrets (points at the user-secrets store; see .env.example)
 .env.*
+
+# Fetched raw report JSON (large, contains player data) — see src/FellowshipAnalyzer.Tools/fetch-report.cs
+raw-reports/

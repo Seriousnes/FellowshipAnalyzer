@@ -6,4 +6,5 @@ namespace FellowshipAnalyzer.Heroes.Mara.Analysis;
 [AddModule<Modules.Abilities>]
 public sealed partial class MaraCombatLogParser : CombatLogParser
 {
+    public override Type? GuideComponent => typeof(MaraGuide);
 }

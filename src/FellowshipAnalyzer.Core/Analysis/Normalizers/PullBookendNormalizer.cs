@@ -12,8 +12,6 @@ namespace FellowshipAnalyzer.Core.Analysis.Normalizers;
 /// </summary>
 public sealed class PullBookendNormalizer(ParseContext parseContext) : IEventNormalizer
 {
-    private const int SingleTargetThreshold = 1;
-
     public int Priority => -999;
 
     public List<Event> Normalize(List<Event> events, int playerId)
@@ -49,14 +47,15 @@ public sealed class PullBookendNormalizer(ParseContext parseContext) : IEventNor
     private static Pull FromDungeonPull(int index, DungeonPull pull)
     {
         var targetCount = CountTargets(pull.EnemyNpcs);
+        var isBoss = pull.EncounterId != 0;
         return new Pull(
             Index: index,
             Id: pull.Id,
             Name: pull.Name,
             StartTime: (int)pull.StartTime,
             EndTime: (int)pull.EndTime,
-            Targets: ShapeFor(targetCount),
-            IsBoss: pull.EncounterId != 0,
+            Targets: ShapeFor(isBoss),
+            IsBoss: isBoss,
             Kill: pull.Kill ?? false,
             TargetCount: targetCount);
     }
@@ -64,20 +63,25 @@ public sealed class PullBookendNormalizer(ParseContext parseContext) : IEventNor
     private static Pull FromFight(ReportFight fight)
     {
         var targetCount = CountTargets(fight.EnemyNpcs);
+        var isBoss = fight.EncounterId != 0;
         return new Pull(
             Index: 0,
             Id: 0,
             Name: fight.Name,
             StartTime: (int)fight.StartTime,
             EndTime: (int)fight.EndTime,
-            Targets: ShapeFor(targetCount),
-            IsBoss: fight.EncounterId != 0,
+            Targets: ShapeFor(isBoss),
+            IsBoss: isBoss,
             Kill: fight.Kill ?? false,
             TargetCount: targetCount);
     }
 
-    private static PullKind ShapeFor(int targetCount)
-        => targetCount > SingleTargetThreshold ? PullKind.Multi : PullKind.Single;
+    /// <summary>
+    /// Boss pulls are single-target (focus the boss); trash pulls are AoE. Target shape follows the
+    /// encounter, not the raw NPC count — a boss with transient adds is still played single-target.
+    /// </summary>
+    private static PullKind ShapeFor(bool isBoss)
+        => isBoss ? PullKind.Single : PullKind.Multi;
 
     private static int CountTargets(IReadOnlyList<DungeonPullNpc>? npcs)
     {

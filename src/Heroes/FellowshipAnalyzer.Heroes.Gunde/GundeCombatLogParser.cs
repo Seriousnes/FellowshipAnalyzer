@@ -6,4 +6,5 @@ namespace FellowshipAnalyzer.Heroes.Gunde.Analysis;
 [AddModule<Modules.Abilities>]
 public sealed partial class GundeCombatLogParser : CombatLogParser
 {
+    public override Type? GuideComponent => typeof(GundeGuide);
 }
