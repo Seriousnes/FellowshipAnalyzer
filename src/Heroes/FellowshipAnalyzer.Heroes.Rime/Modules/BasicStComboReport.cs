@@ -10,6 +10,7 @@ namespace FellowshipAnalyzer.Heroes.Rime.Modules;
 /// </summary>
 public sealed record BasicStComboReport(
     AnalyzerScoreCard ScoreCard,
+    RimeBuild Build,
     int EvaluatedWindows,
     int SuccessfulWindows,
     int PartialWindows,
@@ -21,7 +22,7 @@ public sealed record BasicStComboReport(
 {
     public BasicStComboReport() : this(
         new AnalyzerScoreCard("Bursting Ice Usage", 0, "No Bursting Ice windows detected.", "ember"),
-        0, 0, 0, 0, 0L, 0, [], [])
+        RimeBuild.Default, 0, 0, 0, 0, 0L, 0, [], [])
     {
     }
 }
