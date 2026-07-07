@@ -14,7 +14,7 @@ namespace FellowshipAnalyzer.Heroes.Tariq.Tests.Analysis;
 public sealed class TariqAnalysisEngineTests
 {
     [Fact]
-    public async Task Analyze_ShouldNotProvideGuideComponentType_ForWipHero()
+    public async Task Analyze_ShouldProvideGuideComponentType()
     {
         var services = new ServiceCollection();
         services.AddLogging();
@@ -27,6 +27,6 @@ public sealed class TariqAnalysisEngineTests
         var analyzer = scope.ServiceProvider.GetRequiredKeyedService<IHeroAnalyzer>(HeroName.Tariq);
         var result = await analyzer.Analyze([], playerId: 1, fight: new ReportFight(0, "", 0, null, 0, 0, null, null, null));
 
-        result.GuideComponentType.ShouldBeNull();
+        result.GuideComponentType.ShouldNotBeNull();
     }
 }

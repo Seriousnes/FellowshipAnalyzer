@@ -12,8 +12,7 @@ namespace FellowshipAnalyzer.Heroes.Rime.Modules;
  *
  * Winter's Embrace does not affect Bursting Ice.
  */
-[ForPull(PullKind.Single | PullKind.Multi)]
-public sealed partial class BasicStComboAnalyzer : Analyzer<BasicStComboReport>
+public abstract partial class BasicStComboAnalyzer : Analyzer<BasicStComboReport>
 {
     private const int WintersEmbraceDurationMs = 3000;
     private const double WintersEmbraceIncrease = 0.20;
@@ -139,29 +138,18 @@ public sealed partial class BasicStComboAnalyzer : Analyzer<BasicStComboReport>
             findings);
     }
 
-    private StComboWindowEvaluation EvaluateWindow(StComboWindowEvaluation window)
-    {
-        var castsInWindow = GetWindowCasts(window);
-        var relevantCasts = GetRelevantCasts(castsInWindow);
-        var windowType = ClassifyWindow(window);
+    /// <summary>Evaluates one Winter's Embrace window against the follow-up this analyzer's pull shape expects.</summary>
+    protected abstract StComboWindowEvaluation EvaluateWindow(StComboWindowEvaluation window);
 
-        return windowType == BurstingIceWindowType.Aoe
-            ? EvaluateAoeWindow(window, castsInWindow, relevantCasts)
-            : EvaluateSingleTargetWindow(window, castsInWindow, relevantCasts);
-    }
-
-    private static List<CastEvent> GetWindowCasts(StComboWindowEvaluation window) =>
+    protected static List<CastEvent> GetWindowCasts(StComboWindowEvaluation window) =>
         [.. window.CastsInWindow.Where(c => c.Timestamp > window.StartTimestamp && c.Timestamp <= window.EndTimestamp)];
 
-    private static List<CastEvent> GetRelevantCasts(IEnumerable<CastEvent> casts) =>
+    protected static List<CastEvent> GetRelevantCasts(IEnumerable<CastEvent> casts) =>
         [.. casts.Where(c =>
                 c.Ability.Id == Spells.GlacialBlast.Id ||
                 c.Ability.Id == Spells.ColdSnap.Id ||
                 c.Ability.Id == Spells.FreezingTorrent.Id ||
                 c.Ability.Id == Spells.IceComet.Id)];
-
-    private static BurstingIceWindowType ClassifyWindow(StComboWindowEvaluation window) =>
-        window.UniqueBurstingIceTargets.Count >= 2 ? BurstingIceWindowType.Aoe : BurstingIceWindowType.SingleTarget;
 
     private static bool IsGlacialBlast(CastEvent cast) => cast.Ability.Id == Spells.GlacialBlast.Id;
     private static bool IsIceComet(CastEvent cast) => cast.Ability.Id == Spells.IceComet.Id;
@@ -169,7 +157,7 @@ public sealed partial class BasicStComboAnalyzer : Analyzer<BasicStComboReport>
     private static bool IsFreezingTorrent(CastEvent cast) => cast.Ability.Id == Spells.FreezingTorrent.Id;
     private static bool IsFinisher(CastEvent cast) => IsColdSnap(cast) || IsFreezingTorrent(cast);
 
-    private StComboWindowEvaluation EvaluateSingleTargetWindow(
+    protected StComboWindowEvaluation EvaluateSingleTargetWindow(
         StComboWindowEvaluation window,
         List<CastEvent> castsInWindow,
         List<CastEvent> relevantCasts)
@@ -213,7 +201,7 @@ public sealed partial class BasicStComboAnalyzer : Analyzer<BasicStComboReport>
         return result;
     }
 
-    private StComboWindowEvaluation EvaluateAoeWindow(
+    protected StComboWindowEvaluation EvaluateAoeWindow(
         StComboWindowEvaluation window,
         List<CastEvent> castsInWindow,
         List<CastEvent> relevantCasts)
@@ -389,5 +377,33 @@ public sealed partial class BasicStComboAnalyzer : Analyzer<BasicStComboReport>
     {
         SingleTarget,
         Aoe,
+    }
+}
+
+/// <summary>
+/// Winter's Embrace analyzer for single-target pulls: every window is scored against the
+/// single-target follow-up (Glacial Blast, plus a Cold Snap or Freezing Torrent finisher).
+/// </summary>
+[ForPull(PullKind.Single)]
+public sealed class SingleTargetRimeCombo : BasicStComboAnalyzer
+{
+    protected override StComboWindowEvaluation EvaluateWindow(StComboWindowEvaluation window)
+    {
+        var castsInWindow = GetWindowCasts(window);
+        return EvaluateSingleTargetWindow(window, castsInWindow, GetRelevantCasts(castsInWindow));
+    }
+}
+
+/// <summary>
+/// Winter's Embrace analyzer for multi-target pulls: every window is scored against the AoE
+/// follow-up (two Ice Comets and a Cold Snap in any order).
+/// </summary>
+[ForPull(PullKind.Multi)]
+public sealed class AoERimeCombo : BasicStComboAnalyzer
+{
+    protected override StComboWindowEvaluation EvaluateWindow(StComboWindowEvaluation window)
+    {
+        var castsInWindow = GetWindowCasts(window);
+        return EvaluateAoeWindow(window, castsInWindow, GetRelevantCasts(castsInWindow));
     }
 }

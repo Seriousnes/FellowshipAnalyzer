@@ -1,0 +1,137 @@
+@using FellowshipAnalyzer.Core.Common.Spells.Gunde
+@using Spells = FellowshipAnalyzer.Core.Common.Spells.Gunde.Spells
+
+<GuideContainer>
+    <Section Title="Overview">
+        <Explanation>
+            <p>
+                Gunde is a cooldown-based melee DPS who deals roughly half of his damage directly
+                with abilities and the other half through <strong>Rend</strong>, a bleed damage-over-time
+                effect that acts as both a resource and a damage multiplier.
+            </p>
+        </Explanation>
+    </Section>
+
+    <Section Title="Core Mechanic — Rend">
+        <Explanation>
+            <p>
+                <strong>Rend</strong> is applied by your abilities; stacks accumulate and decay gradually.
+                Rend feeds two multipliers:
+            </p>
+            <ul>
+                <li>
+                    <SpellLink Spell="Spells.Slaughter" /> — an AoE slam that consumes all Rend, converting
+                    it into a 3s damage-over-time effect at 160% of total Rend damage.
+                </li>
+                <li>
+                    <SpellLink Spell="Spells.HeartSplitter" /> — a single-target strike that applies
+                    <strong>exsanguinate</strong> for 30% of total Rend damage <strong>without</strong>
+                    consuming stacks.
+                </li>
+            </ul>
+            <p>
+                <SpellLink Spell="Spells.OwedInBlood" /> is a passive: Rend ticks drop <strong>blood feathers</strong>
+                (higher chance at lower target counts), and picking them up grants stacks (cap 150) that can be
+                consumed to apply equivalent Rend to enemies.
+            </p>
+        </Explanation>
+        <TipBox Variant="TipBoxVariant.Note" Title="Spend Rend deliberately">
+            <SpellLink Spell="Spells.Slaughter" /> should be used only after your main rotational
+            cooldowns are spent — especially <SpellLink Spell="Spells.HeartSplitter" /> — so the Rend
+            it consumes is as large as possible.
+        </TipBox>
+    </Section>
+
+    <Section Title="Rotation">
+        <SubSection Title="Single-Target Opener">
+            <ol>
+                <li><SpellLink Spell="Spells.BloodArc" /></li>
+                <li><SpellLink Spell="Spells.BloodboundSpirit" /></li>
+                <li><SpellLink Spell="Spells.ReignInBlood" /></li>
+                <li><SpellLink Spell="Spells.Rupture" /></li>
+                <li><SpellLink Spell="Spells.OwedInBlood" /> + <SpellLink Spell="Spells.HeartSplitter" /></li>
+                <li><SpellLink Spell="Spells.GrimCarve" /></li>
+                <li><strong>Weapon Ability</strong></li>
+            </ol>
+        </SubSection>
+
+        <SubSection Title="Multi-Target Opener">
+            <ol>
+                <li><SpellLink Spell="Spells.Rupture" /></li>
+                <li><SpellLink Spell="Spells.BloodArc" /></li>
+                <li><SpellLink Spell="Spells.BloodboundSpirit" /></li>
+                <li><SpellLink Spell="Spells.ReignInBlood" /></li>
+                <li><strong>Weapon Ability</strong></li>
+                <li><SpellLink Spell="Spells.OwedInBlood" /></li>
+                <li><SpellLink Spell="Spells.HeartSplitter" /></li>
+                <li><SpellLink Spell="Spells.Slaughter" /></li>
+            </ol>
+        </SubSection>
+
+        <SubSection Title="Single-Target Priority">
+            <ol>
+                <li><SpellLink Spell="Spells.Rupture" /> — use when <SpellLink Spell="Spells.Slaughter" /> will follow within 18s.</li>
+                <li><SpellLink Spell="Spells.BloodArc" /> — applies the serrated edge buff; hold up to one GCD for <SpellLink Spell="Spells.Rupture" />, <SpellLink Spell="Spells.GrimCarve" />, or <SpellLink Spell="Spells.HeartSplitter" /> next.</li>
+                <li><SpellLink Spell="Spells.HeartSplitter" /> — exsanguinates Rend on the target.</li>
+                <li><SpellLink Spell="Spells.GrimCarve" /></li>
+                <li><SpellLink Spell="Spells.ReaverEdge" /> — filler.</li>
+                <li><SpellLink Spell="Spells.DoubleStrike" /></li>
+            </ol>
+            <HelperText>
+                <SpellLink Spell="Spells.Slaughter" /> should be used after all main rotational cooldowns
+                are spent, especially <SpellLink Spell="Spells.HeartSplitter" />.
+            </HelperText>
+        </SubSection>
+
+        <SubSection Title="AoE Priority (3+ targets)">
+            <ol>
+                <li><SpellLink Spell="Spells.Rupture" /></li>
+                <li><SpellLink Spell="Spells.BloodArc" /></li>
+                <li><SpellLink Spell="Spells.GrimCarve" /> — takes priority over <SpellLink Spell="Spells.HeartSplitter" /> at 3+ targets.</li>
+                <li><SpellLink Spell="Spells.ReaverEdge" /></li>
+                <li><SpellLink Spell="Spells.HeartSplitter" /></li>
+                <li><SpellLink Spell="Spells.DoubleStrike" /></li>
+            </ol>
+        </SubSection>
+    </Section>
+
+    <Section Title="Cooldowns & Utility">
+        <ul>
+            <li><SpellLink Spell="Spells.ReignInBlood" /> — major; makes direct damage apply 50% additional Rend.</li>
+            <li><SpellLink Spell="Spells.Rupture" /> — major; massive damage plus Rend, and applies <strong>Open Wounds</strong> so the next <SpellLink Spell="Spells.Slaughter" /> deals 20% more for 18s.</li>
+            <li><SpellLink Spell="Spells.BloodboundSpirit" /> — spirit; four ticks of raven damage plus Rend, and buffs <SpellLink Spell="Spells.GrimCarve" /> and <SpellLink Spell="Spells.HeartSplitter" /> by 15%.</li>
+            <li><strong>Fated Strike</strong> (weapon ability) — grants cooldown acceleration for 6s; during the window focus <SpellLink Spell="Spells.GrimCarve" />, <SpellLink Spell="Spells.BloodArc" />, and <SpellLink Spell="Spells.HeartSplitter" />.</li>
+            <li><SpellLink Spell="Spells.Warbound" /> — a 2-charge leap for positioning and uptime.</li>
+            <li><SpellLink Spell="Spells.RecklessAbandon" /> — 40% damage reduction for 4s on a 30s cooldown.</li>
+            <li><SpellLink Spell="Spells.ButcherHook" /> — an instant pull with an interrupt on a 30s cooldown; it has no effect on CC-immune enemies.</li>
+        </ul>
+    </Section>
+
+    <Section Title="Talents & Builds">
+        <Explanation>
+            <ul>
+                <li>
+                    <strong>Carnage</strong> — keep <SpellLink Spell="Spells.HeartSplitter" /> on cooldown at
+                    1-2 targets and <SpellLink Spell="Spells.BloodArc" /> on cooldown at 3+ targets to maximize
+                    cooldown reduction.
+                </li>
+                <li>
+                    <strong>Heart Splitter build</strong> — avoid <SpellLink Spell="Spells.Slaughter" /> except
+                    when targets die or you are swapping, and keep Rend on the main target for the exsanguinate
+                    from <SpellLink Spell="Spells.HeartSplitter" />.
+                </li>
+                <li>
+                    <strong>Bloodcraze build</strong> — uses <strong>Death's Arc</strong> procs from
+                    <SpellLink Spell="Spells.BloodArc" /> inside <strong>Harvester's Toll</strong> windows
+                    (from <SpellLink Spell="Spells.Rupture" />) for burst.
+                </li>
+            </ul>
+        </Explanation>
+    </Section>
+
+    <TipBox Variant="TipBoxVariant.Info" Title="Source">
+        Adapted from the community
+        <a href="https://www.method.gg/fellowship/heroes/gunde/playstyle-and-rotation"
+           target="_blank" rel="noopener noreferrer">method.gg Gunde guide</a>.
+    </TipBox>
+</GuideContainer>
