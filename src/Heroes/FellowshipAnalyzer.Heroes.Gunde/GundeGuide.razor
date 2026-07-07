@@ -1,7 +1,15 @@
 @using FellowshipAnalyzer.Core.Common.Spells.Gunde
+@using FellowshipAnalyzer.Heroes.Gunde.Analysis
+@using FellowshipAnalyzer.Heroes.Gunde.Guides
 @using Spells = FellowshipAnalyzer.Core.Common.Spells.Gunde.Spells
+@inject GundeCombatLogParser Parser
 
 <GuideContainer>
+    @if (Parser.SlaughterUsageReports.Count > 0)
+    {
+        <SlaughterUsageGuide />
+    }
+
     <Section Title="Overview">
         <Explanation>
             <p>
