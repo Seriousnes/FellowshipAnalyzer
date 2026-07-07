@@ -25,6 +25,10 @@
     <Project Path="src/Heroes/FellowshipAnalyzer.Heroes.Elarion/FellowshipAnalyzer.Heroes.Elarion.csproj" />
     <Project Path="tests/FellowshipAnalyzer.Heroes.Elarion.Tests/FellowshipAnalyzer.Heroes.Elarion.Tests.csproj" />
   </Folder>
+  <Folder Name="/App/Heroes/Gunde/">
+    <Project Path="src/Heroes/FellowshipAnalyzer.Heroes.Gunde/FellowshipAnalyzer.Heroes.Gunde.csproj" />
+    <Project Path="tests/FellowshipAnalyzer.Heroes.Gunde.Tests/FellowshipAnalyzer.Heroes.Gunde.Tests.csproj" />
+  </Folder>
   <Folder Name="/App/Heroes/Helena/">
     <Project Path="src/Heroes/FellowshipAnalyzer.Heroes.Helena/FellowshipAnalyzer.Heroes.Helena.csproj" />
     <Project Path="tests/FellowshipAnalyzer.Heroes.Helena.Tests/FellowshipAnalyzer.Heroes.Helena.Tests.csproj" />

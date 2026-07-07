@@ -18,6 +18,7 @@ public enum HeroName
     Aeona,
     Ardeos,
     Elarion,
+    Gunde,
     Helena,
     Mara,
     Meiko,
@@ -35,6 +36,7 @@ public static class HeroNameExtensions
         HeroName.Aeona => "aeona",
         HeroName.Ardeos => "ardeos",
         HeroName.Elarion => "elarion",
+        HeroName.Gunde => "gunde",
         HeroName.Helena => "helena",
         HeroName.Mara => "mara",
         HeroName.Meiko => "meiko",
@@ -58,6 +60,7 @@ public readonly record struct Hero(HeroName Name, HeroRole Role)
         HeroName.Aeona   => "https://assets.fellows.gg/static/heroes/hero_portrait_Lisa_default.webp?v=1",
         HeroName.Ardeos  => "https://assets.fellows.gg/static/heroes/hero_portrait_Firemage_default.webp?v=1",
         HeroName.Elarion => "https://assets.fellows.gg/static/heroes/hero_portrait_Bowguy_01.webp?v=1",
+        HeroName.Gunde   => "https://assets.fellows.gg/static/heroes/hero_potrtrait_Gunde_01.webp?v=1",
         HeroName.Helena  => "https://assets.fellows.gg/static/heroes/hero_portrait_warmaster_01.webp?v=1",
         HeroName.Mara    => "https://assets.fellows.gg/static/heroes/hero_portrait_Mara_01.webp?v=1",
         HeroName.Meiko   => "https://assets.fellows.gg/static/heroes/hero_portrait_meiko_default.webp?v=1",
@@ -80,6 +83,7 @@ public readonly record struct Hero(HeroName Name, HeroRole Role)
     public static readonly Hero Vigour = new(HeroName.Vigour, HeroRole.Healer);
 
     /* Melee DPS */
+    public static readonly Hero Gunde = new(HeroName.Gunde, HeroRole.Dps);
     public static readonly Hero Mara = new(HeroName.Mara, HeroRole.Dps);
     public static readonly Hero Tariq = new(HeroName.Tariq, HeroRole.Dps);
 
@@ -92,7 +96,7 @@ public readonly record struct Hero(HeroName Name, HeroRole Role)
     /// <summary>All defined heroes, in <see cref="HeroName"/> order.</summary>
     public static IReadOnlyList<Hero> All { get; } =
     [
-        Aeona, Ardeos, Elarion, Helena, Mara, Meiko, Rime, Sylvie, Tariq, Vigour, Xavian,
+        Aeona, Ardeos, Elarion, Gunde, Helena, Mara, Meiko, Rime, Sylvie, Tariq, Vigour, Xavian,
     ];
 
     private static readonly FrozenDictionary<HeroName, Hero> ByName = All.ToDictionary(h => h.Name).ToFrozenDictionary();
