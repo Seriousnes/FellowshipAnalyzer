@@ -1,6 +1,6 @@
 ﻿namespace FellowshipAnalyzer.Core.Events;
 
-public class EndChannelEvent : Event, IAbilityEvent
+public class EndChannelEvent : Event, IAbilityEvent, IHasSourceEvent
 {
     public virtual Ability Ability { get; set; }
     public virtual int AbilityGameId { get; set; }

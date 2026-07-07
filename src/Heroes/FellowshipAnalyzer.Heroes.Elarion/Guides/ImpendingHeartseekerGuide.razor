@@ -1,0 +1,53 @@
+@inject ElarionCombatLogParser Parser
+
+<GuideSection Title="Impending Heartseeker Procs">
+    <Explanation>
+        <p>
+            <SpellLink Spell="Spells.ImpendingHeartseeker" /> procs from <SpellLink Spell="Spells.FocusedShot" />
+            and last 15 seconds. Procs stack twice; a second proc resets the first timer. Letting
+            procs expire without use is wasted bad-luck protection.
+        </p>
+        <ol>
+            <li>Spend procs as soon as they're available unless saving for a burst window.</li>
+            <li>Refreshes (resets) keep both charges fresh — they're good when you're holding.</li>
+        </ol>
+    </Explanation>
+    <ChildContent>
+        <CastOverview Title="Proc Lifecycle" Stats="@BuildOverviewStats()" />
+    </ChildContent>
+</GuideSection>
+
+@code {
+    private ImpendingHeartseekerAnalyzer Analyzer => Parser.ImpendingHeartseeker!;
+
+    private IEnumerable<OverviewStat> BuildOverviewStats()
+    {
+        var settled = Analyzer.Consumed + Analyzer.Expired;
+        var consumeRate = settled == 0 ? 0 : Analyzer.Consumed * 100.0 / settled;
+
+        var rateTier = consumeRate >= 95 ? PerformanceTier.Perfect
+            : consumeRate >= 80 ? PerformanceTier.Good
+            : consumeRate >= 60 ? PerformanceTier.Ok
+            : PerformanceTier.Fail;
+
+        var expiredTier = Analyzer.Expired == 0 ? PerformanceTier.Perfect
+            : Analyzer.Expired < 2 ? PerformanceTier.Good
+            : Analyzer.Expired < 4 ? PerformanceTier.Ok
+            : PerformanceTier.Fail;
+
+        return
+        [
+            new OverviewStat($"{Analyzer.Gains}", "Gained", "Total proc gains.")
+            ,
+            new OverviewStat($"{Analyzer.Refreshes}", "Refreshes",
+                "Procs that refreshed an existing stack."),
+            new OverviewStat($"{Analyzer.Consumed}", "Consumed",
+                "Procs consumed by a cast.", Analyzer.Consumed > 0 ? PerformanceTier.Good : PerformanceTier.Ok),
+            new OverviewStat($"{Analyzer.Expired}", "Expired",
+                "Procs that timed out without being consumed.", expiredTier),
+            new OverviewStat(settled == 0 ? "—" : $"{consumeRate:F0}%", "Consume Rate",
+                "Share of resolved procs that were consumed.",
+                settled == 0 ? null : rateTier),
+        ];
+    }
+}

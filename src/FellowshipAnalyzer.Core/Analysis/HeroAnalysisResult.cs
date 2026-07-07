@@ -1,4 +1,5 @@
 using FellowshipAnalyzer.Core.Events;
+using FellowshipAnalyzer.Core.UI;
 
 namespace FellowshipAnalyzer.Core.Analysis;
 
@@ -17,10 +18,11 @@ public sealed class HeroAnalysisResult
     public required Type? GuideComponentType { get; init; }
 
     /// <summary>
-    /// Active modules that have a statistics component, paired with their component type.
-    /// Rendered on the Statistics tab via CascadingValue + DynamicComponent.
+    /// Active modules that have a statistics component, paired with the metadata needed
+    /// to render them on the Statistics tab: which Razor component, which section to group
+    /// under, and the ordinal position within that section.
     /// </summary>
-    public required IReadOnlyList<(Module Module, Type ComponentType)> Statistics { get; init; }
+    public required IReadOnlyList<StatisticEntry> Statistics { get; init; }
 
     public required IReadOnlyList<Module> Modules { get; init; }
 
@@ -35,4 +37,12 @@ public sealed class HeroAnalysisResult
     /// Exposed for the Debug tab in the UI.
     /// </summary>
     public DebugAnnotations? DebugAnnotations { get; init; }
+
+    /// <summary>
+    /// Source-generated typed projection of this analysis run. Each contributing module exposes
+    /// a <c>ToReport()</c> method returning a record; the parser generator emits a hero-specific
+    /// result record (e.g. <c>RimeAnalysisResult</c>) and populates this slot. <c>null</c> when
+    /// no modules on the parser declare <c>ToReport()</c>.
+    /// </summary>
+    public object? TypedReport { get; init; }
 }

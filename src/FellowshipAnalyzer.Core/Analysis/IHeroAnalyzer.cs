@@ -1,4 +1,5 @@
 using FellowshipAnalyzer.Core.Events;
+using FellowshipAnalyzer.Core.FellowshipLogs;
 
 namespace FellowshipAnalyzer.Core.Analysis;
 
@@ -15,7 +16,7 @@ public interface IHeroAnalyzer
     /// </summary>
     Dictionary<int, string> ActorNames { get; set; }
     int PlayerId { get; set; }
-    Combatant? SelectedCombatant { get; set; }
+    Combatant SelectedCombatant { get; }
 
     /// <summary>
     /// The Razor component type to render for the Guide tab.
@@ -25,5 +26,5 @@ public interface IHeroAnalyzer
     /// </summary>
     Type? GuideComponent { get; }
 
-    Task<HeroAnalysisResult> Analyze(IReadOnlyList<Event> events, int playerId, int fightStartTime);
+    Task<HeroAnalysisResult> Analyze(IReadOnlyList<Event> events, int playerId, ReportFight fight);
 }

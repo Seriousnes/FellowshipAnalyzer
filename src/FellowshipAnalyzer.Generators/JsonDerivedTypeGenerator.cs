@@ -46,8 +46,7 @@ public sealed class JsonDerivedTypeGenerator : IIncrementalGenerator
     private static TriggerInfo? GetTriggerInfo(GeneratorSyntaxContext ctx, CancellationToken ct)
     {
         var classDecl = (ClassDeclarationSyntax)ctx.Node;
-        var symbol = ctx.SemanticModel.GetDeclaredSymbol(classDecl, ct) as INamedTypeSymbol;
-        if (symbol == null)
+        if (ctx.SemanticModel.GetDeclaredSymbol(classDecl, ct) is not INamedTypeSymbol symbol)
             return null;
 
         // Must have [JsonPolymorphic] attribute
@@ -102,7 +101,7 @@ public sealed class JsonDerivedTypeGenerator : IIncrementalGenerator
             ? symbol.ContainingNamespace.ToDisplayString()
             : string.Empty;
 
-        return new TriggerInfo(symbol.Name, triggerNs, derivedTypes.ToImmutableArray());
+        return new TriggerInfo(symbol.Name, triggerNs, [.. derivedTypes]);
     }
 
     private static IEnumerable<INamedTypeSymbol> GetAllNamedTypes(INamespaceSymbol ns)

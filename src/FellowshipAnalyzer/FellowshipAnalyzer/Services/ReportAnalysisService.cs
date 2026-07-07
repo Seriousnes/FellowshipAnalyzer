@@ -1,11 +1,10 @@
+using System.Diagnostics;
 using System.Text.Json;
 
 using FellowshipAnalyzer.Core.Analysis;
 using FellowshipAnalyzer.Core.Events;
 using FellowshipAnalyzer.Core.FellowshipLogs;
 using FellowshipAnalyzer.Core.Serialization;
-
-using Microsoft.Extensions.DependencyInjection;
 
 
 
@@ -42,7 +41,6 @@ public sealed record ReportAnalysisContext(
 /// <summary>
 /// Orchestrates the full analysis pipeline for a single fight:
 /// concurrent API fetch, master-data loading, hero resolution, analysis, and caching.
-/// Extracted from Report.razor to keep the component a thin view layer.
 /// </summary>
 public sealed class ReportAnalysisService(
     FellowshipLogsApiClient fellowshipLogs,
@@ -51,7 +49,8 @@ public sealed class ReportAnalysisService(
     IServiceProvider serviceProvider,
     IReportCacheService reportCache,
     FellowshipAnalyzerJsonContext jsonContext,
-    ReportNavigationState navState)
+    ReportNavigationState navState,
+    ILogger<ReportAnalysisService> logger)
 {
     private const int DeserializeProgressBatchSize = 250;
 
@@ -113,10 +112,37 @@ public sealed class ReportAnalysisService(
         // Local cache check is fast (IndexedDB); on a miss, fetch raw UTF-8 JSON bytes only —
         // defer deserialization to its own step so we can measure network I/O vs JSON parsing
         // separately, and cache the network bytes verbatim.
+        var sw = Stopwatch.StartNew();
+        logger.LogInformation(
+            "RunAsync events fetch starting reportCode={ReportCode} fightId={FightId} playerId={PlayerId}",
+            reportCode, fightId, playerId);
+
+        logger.LogInformation("RunAsync IndexedDB cache lookup starting t={ElapsedMs}ms", sw.ElapsedMilliseconds);
         var cachedEventsBytes = await reportCache.GetCachedEventsBytesAsync(reportCode, fightId, playerId);
-        byte[] eventsResultJsonBytes = cachedEventsBytes
-            ?? await fellowshipLogs.GetRawEventsAsync(reportCode, playerId, fightId);
-        bool isFreshFromNetwork = cachedEventsBytes is null;
+        logger.LogInformation(
+            "RunAsync IndexedDB cache lookup result hit={Hit} bytes={Bytes} t={ElapsedMs}ms",
+            cachedEventsBytes is not null, cachedEventsBytes?.Length, sw.ElapsedMilliseconds);
+
+        byte[] eventsResultJsonBytes;
+        DateTimeOffset? eventsExpiresAt = null;
+        bool isFreshFromNetwork;
+
+        if (cachedEventsBytes is not null)
+        {
+            eventsResultJsonBytes = cachedEventsBytes;
+            isFreshFromNetwork = false;
+        }
+        else
+        {
+            logger.LogInformation("RunAsync network fetch starting t={ElapsedMs}ms", sw.ElapsedMilliseconds);
+            var networkResponse = await fellowshipLogs.GetRawEventsAsync(reportCode, playerId, fightId);
+            logger.LogInformation(
+                "RunAsync network fetch returned bytes={Bytes} t={ElapsedMs}ms",
+                networkResponse.Bytes.Length, sw.ElapsedMilliseconds);
+            eventsResultJsonBytes = networkResponse.Bytes;
+            eventsExpiresAt = networkResponse.ExpiresAt;
+            isFreshFromNetwork = true;
+        }
 
         loadingTracker.FetchEventsState = ReportLoadingTracker.StepState.Ok;
         loadingTracker.DeserializeState = ReportLoadingTracker.StepState.Loading;
@@ -129,7 +155,7 @@ public sealed class ReportAnalysisService(
         await Task.Yield();
 
         analyzer.ActorNames = reportInfo.Actors.ToDictionary(a => a.Id, a => a.Name);
-        var result = await analyzer.Analyze(events, playerId, fightStartTime);
+        var result = await analyzer.Analyze(events, playerId, fight);
 
         loadingTracker.PrepareDisplayState = ReportLoadingTracker.StepState.Loading;
         await Task.Yield();
@@ -142,7 +168,7 @@ public sealed class ReportAnalysisService(
                 reportCode, fightId, playerId,
                 fight.Name, player.Name, hero.Name,
                 DateTimeOffset.UtcNow);
-            await reportCache.CacheAsync(entry, eventsResultJsonBytes);
+            await reportCache.CacheAsync(entry, eventsResultJsonBytes, eventsExpiresAt);
         }
 
         loadingTracker.PrepareDisplayState = ReportLoadingTracker.StepState.Ok;

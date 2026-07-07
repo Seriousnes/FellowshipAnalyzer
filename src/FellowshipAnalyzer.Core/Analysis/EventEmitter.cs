@@ -44,6 +44,7 @@ public sealed class EventEmitter(ILogger<EventEmitter> logger) : Module
         for (var i = 0; i < events.Count; i++)
         {
             _insertionIndex = i;
+            Owner.CurrentTimestamp = events[i].Timestamp;
             await TriggerEventAsync(events[i]);
 
             if (i % YieldInterval == YieldInterval - 1)

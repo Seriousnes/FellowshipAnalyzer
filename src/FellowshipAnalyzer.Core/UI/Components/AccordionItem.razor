@@ -1,0 +1,45 @@
+@* AccordionItem — one expandable row inside an Accordion. *@
+
+@implements IDisposable
+
+@{
+    var isExpanded = Parent?.IsExpanded(Id) == true;
+    var borderStyle = BorderAccentColorVar is not null
+        ? $"border-left-color: {BorderAccentColorVar}; border-left-width: 4px;"
+        : null;
+}
+
+<div class="accordion-item @(isExpanded ? "expanded" : "")">
+    <button type="button"
+            class="accordion-item-header"
+            style="@borderStyle"
+            aria-expanded="@isExpanded"
+            @onclick="ToggleAsync">
+        @Header
+    </button>
+    @if (isExpanded && ChildContent is not null)
+    {
+        <div class="accordion-item-body">
+            @ChildContent
+        </div>
+    }
+</div>
+
+@code {
+    [CascadingParameter] public Accordion? Parent { get; set; }
+    [Parameter, EditorRequired] public string Id { get; set; } = "";
+    [Parameter] public RenderFragment? Header { get; set; }
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string? BorderAccentColorVar { get; set; }
+
+    protected override void OnInitialized()
+    {
+        if (Parent is null)
+            throw new InvalidOperationException($"{nameof(AccordionItem)} must be nested inside an {nameof(Accordion)} component.");
+        Parent.Register(this);
+    }
+
+    private Task ToggleAsync() => Parent!.ToggleAsync(Id);
+
+    public void Dispose() => Parent?.Unregister(this);
+}

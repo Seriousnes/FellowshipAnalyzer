@@ -1,0 +1,12 @@
+<h2 class="statistics-section-title">
+    <span class="statistics-section-title-text">@Title</span>
+    @if (ChildContent is not null)
+    {
+        <span class="statistics-section-title-aside">@ChildContent</span>
+    }
+</h2>
+
+@code {
+    [Parameter, EditorRequired] public string Title { get; set; } = string.Empty;
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+}

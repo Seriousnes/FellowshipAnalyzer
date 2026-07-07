@@ -2,6 +2,7 @@ using FellowshipAnalyzer.Core.Analysis;
 using FellowshipAnalyzer.Core.Analysis.Normalizers;
 using FellowshipAnalyzer.Core.Common.Spells;
 using FellowshipAnalyzer.Core.Events;
+using FellowshipAnalyzer.Core.FellowshipLogs;
 
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -272,7 +273,7 @@ public sealed class GlobalCooldownTests
         Type[] normalizerTypes = includeNormalizer ? [typeof(CastLinkNormalizer)] : [];
 
         var parser = CreateCombatLogParser(moduleTypes, normalizerTypes, configureAbilities);
-        await parser.Analyze(events ?? [], PlayerId, fightStartTime: 0);
+        await parser.Analyze(events ?? [], PlayerId, fight: new ReportFight(0, "", 0, null, 0, 0, null, null, null));
 
         var gcd = parser.GetModule<GlobalCooldown>()!;
         return (parser, gcd);
@@ -299,15 +300,22 @@ public sealed class GlobalCooldownTests
     {
         protected override Type[] GetModuleTypes() => moduleTypes;
         protected override Type[] GetNormalizerTypes() => normalizerTypes;
+
+        protected override object? CreateInstance(Type type)
+        {
+            if (type == typeof(TestAbilities))
+                return new TestAbilities((TestAbilityConfiguration)Provider.GetService(typeof(TestAbilityConfiguration))!);
+            return base.CreateInstance(type);
+        }
     }
 
     internal sealed record TestAbilityConfiguration(Action<TestAbilities>? Configure);
 
-    internal class TestAbilities(TestAbilityConfiguration configuration) : Abilities
+    internal class TestAbilities : Abilities
     {
         private readonly List<SpellbookAbility> _spells = [];
 
-        public override void Initialize()
+        public TestAbilities(TestAbilityConfiguration configuration)
         {
             AddSpell(new SpellbookAbility
             {
@@ -316,7 +324,6 @@ public sealed class GlobalCooldownTests
                 Gcd = Abilities.StandardGcd,
             });
             configuration.Configure?.Invoke(this);
-            base.Initialize();
         }
 
         public void AddSpell(SpellbookAbility spell) => _spells.Add(spell);

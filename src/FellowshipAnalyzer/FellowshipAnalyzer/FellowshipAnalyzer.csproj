@@ -18,7 +18,6 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\..\FellowshipAnalyzer.Components\FellowshipAnalyzer.Components.csproj" />
 		<ProjectReference Include="..\..\FellowshipAnalyzer.Core\FellowshipAnalyzer.Core.csproj" />
 		<ProjectReference Include="..\..\Heroes\FellowshipAnalyzer.Heroes.Aeona\FellowshipAnalyzer.Heroes.Aeona.csproj" />
 		<ProjectReference Include="..\..\Heroes\FellowshipAnalyzer.Heroes.Ardeos\FellowshipAnalyzer.Heroes.Ardeos.csproj" />

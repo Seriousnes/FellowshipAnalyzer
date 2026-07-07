@@ -1,0 +1,9 @@
+@* PerfBadgeGrid — 4-column grid for performance-distribution badges (one slot per tier). *@
+
+<div class="perf-badge-grid">
+    @ChildContent
+</div>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+}

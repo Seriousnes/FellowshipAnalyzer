@@ -1,0 +1,56 @@
+@page "/diagnostics"
+@using FellowshipAnalyzer.Core.Common.Spells.Rime
+
+<PageTitle>Diagnostics — Design System</PageTitle>
+
+<h1>CopySpellDefinition / DebugAnnotationsView / EventsView</h1>
+<p class="lede">Author/debug tools. Surface these inside the Report's About tab to inspect raw analysis output.</p>
+
+<CodeExample Title="CopySpellDefinition"
+             Description="Copies a C# Spell declaration to the clipboard — useful when bootstrapping a new hero's spell file from an unknown spell observed in a log."
+             Code="@_copyCode">
+    <Demo>
+        <p>
+            Click to copy a definition for <SpellLink Spell="Spells.IceComet" Icon="false" />:
+            <CopySpellDefinition Spell="Spells.IceComet" />
+        </p>
+        <p>
+            Custom label:
+            <CopySpellDefinition Spell="Spells.GlacialBlast" Label="📋 Glacial Blast" />
+        </p>
+        <p style="color: var(--fa-text-muted); font-size: 0.85rem;">
+            Generated text format: <code>public static Spell Name { get; } = new(id, "Name", "icon.jpg");</code>
+        </p>
+    </Demo>
+</CodeExample>
+
+<CodeExample Title="DebugAnnotationsView"
+             Description="Renders all annotations a module attached to events via DebugAnnotations.Annotate(). One column per module, dot per annotated event grouped by minute, click for details."
+             Code="@_annotationsCode">
+    <Demo>
+        <p style="color: var(--fa-text-muted);">No live demo — needs an analyzed report with DebugAnnotations populated.</p>
+    </Demo>
+</CodeExample>
+
+<CodeExample Title="EventsView"
+             Description="Virtualised event log with type-filter sidebar, search, and JSON-on-click. Use during hero development to inspect what the analyzer actually sees."
+             Code="@_eventsCode">
+    <Demo>
+        <p style="color: var(--fa-text-muted);">No live demo — needs a loaded event stream and ReportComponentBase cascade.</p>
+    </Demo>
+</CodeExample>
+
+@code {
+    private const string _copyCode = """
+<CopySpellDefinition Spell="Spells.IceComet" />
+<CopySpellDefinition Spell="@unknownAbility" Label="📋 Copy" />
+""";
+
+    private const string _annotationsCode = """
+<DebugAnnotationsView DebugAnnotations="@Result.DebugAnnotations" />
+""";
+
+    private const string _eventsCode = """
+<EventsView Events="@Result.Events" />
+""";
+}

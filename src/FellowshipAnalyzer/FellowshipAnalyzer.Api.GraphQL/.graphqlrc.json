@@ -1,0 +1,13 @@
+{
+  "schema": "schema.graphql",
+  "documents": "**/*.graphql",
+  "extensions": {
+    "strawberryShake": {
+      "name": "FellowshipLogsApiClient",
+      "namespace": "FellowshipAnalyzer.Api.GraphQL",
+      "url": "https://www.fellowshiplogs.com/api/v2/client",
+      "accessModifier": "public",
+      "dependencyInjection": true
+    }
+  }
+}

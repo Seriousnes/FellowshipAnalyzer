@@ -11,6 +11,8 @@ namespace FellowshipAnalyzer.Generators;
 public sealed class RegistryGenerator : IIncrementalGenerator
 {
     private const string AttributeName = "GenerateRegistryAttribute";
+    private const string SpellsNamespace = "FellowshipAnalyzer.Core.Common.Spells";
+    private const string EffectTypeName = "Effect";
 
     private static readonly DiagnosticDescriptor DuplicateEntryDescriptor = new(
         id: "FA0001",
@@ -54,11 +56,9 @@ public sealed class RegistryGenerator : IIncrementalGenerator
     private static TriggerInfo? GetTriggerInfo(GeneratorSyntaxContext ctx, CancellationToken ct)
     {
         var classDecl = (ClassDeclarationSyntax)ctx.Node;
-        var symbol = ctx.SemanticModel.GetDeclaredSymbol(classDecl, ct) as INamedTypeSymbol;
-        if (symbol == null)
+        if (ctx.SemanticModel.GetDeclaredSymbol(classDecl, ct) is not INamedTypeSymbol symbol)
             return null;
 
-        // Find [GenerateRegistry<T>] and extract the registry interface symbol T.
         INamedTypeSymbol? registryInterface = null;
         foreach (var attr in symbol.GetAttributes())
         {
@@ -74,7 +74,6 @@ public sealed class RegistryGenerator : IIncrementalGenerator
         if (registryInterface == null)
             return null;
 
-        // Scan the compilation for all concrete types implementing the registry interface.
         var registries = new List<RegistryInfo>();
         ITypeSymbol? lcaType = null;
 
@@ -98,22 +97,21 @@ public sealed class RegistryGenerator : IIncrementalGenerator
                 if (!HasGuidProperty(prop.Type))
                     continue;
 
-                entries.Add(new EntryProperty(prop.Name, GlobalName(prop.Type)));
+                if (!TryComputeGuid(prop, ct, out var guid))
+                    continue;
+
+                entries.Add(new EntryProperty(prop.Name, GlobalName(prop.Type), guid));
                 lcaType = lcaType == null ? prop.Type : ComputeLca(lcaType, prop.Type);
             }
 
             if (entries.Count == 0)
                 continue;
 
-            registries.Add(new RegistryInfo(type.Name, NamespaceOf(type), entries.ToImmutableArray()));
+            registries.Add(new RegistryInfo(type.Name, NamespaceOf(type), [.. entries]));
         }
 
-        // Sort for deterministic output.
         registries.Sort(static (a, b) => string.Compare(a.TypeName, b.TypeName, StringComparison.Ordinal));
 
-        // Scan the trigger class's own hand-written entry properties.
-        // These don't get forwarding properties (they're already on the partial class), but are
-        // included in the All dictionary.
         var ownEntries = new List<EntryProperty>();
         foreach (var member in symbol.GetMembers())
         {
@@ -123,8 +121,10 @@ public sealed class RegistryGenerator : IIncrementalGenerator
                 continue;
             if (!HasGuidProperty(prop.Type))
                 continue;
+            if (!TryComputeGuid(prop, ct, out var guid))
+                continue;
 
-            ownEntries.Add(new EntryProperty(prop.Name, GlobalName(prop.Type)));
+            ownEntries.Add(new EntryProperty(prop.Name, GlobalName(prop.Type), guid));
             lcaType = lcaType == null ? prop.Type : ComputeLca(lcaType, prop.Type);
         }
 
@@ -133,9 +133,65 @@ public sealed class RegistryGenerator : IIncrementalGenerator
         return new TriggerInfo(
             symbol.Name,
             NamespaceOf(symbol),
-            registries.ToImmutableArray(),
-            ownEntries.ToImmutableArray(),
+            [.. registries],
+            [.. ownEntries],
             lcaGlobalName);
+    }
+
+    /// <summary>
+    /// Reads the int from the property initializer's constructor (e.g. <c>new(1318, ...)</c>),
+    /// then applies the Effect encoding rule when the property type derives from <c>Effect</c>.
+    /// </summary>
+    private static bool TryComputeGuid(IPropertySymbol property, CancellationToken ct, out int guid)
+    {
+        guid = 0;
+        if (!TryReadCtorInt(property, ct, out var id)) return false;
+        guid = InheritsFromEffect(property.Type) ? 1_000_000 + id : id;
+        return true;
+    }
+
+    private static bool TryReadCtorInt(IPropertySymbol property, CancellationToken ct, out int id)
+    {
+        id = 0;
+        if (property.DeclaringSyntaxReferences.Length == 0) return false;
+        if (property.DeclaringSyntaxReferences[0].GetSyntax(ct) is not PropertyDeclarationSyntax pds) return false;
+        if (pds.Initializer is not { } initializer) return false;
+
+        ArgumentListSyntax? argList = initializer.Value switch
+        {
+            ObjectCreationExpressionSyntax oc => oc.ArgumentList,
+            ImplicitObjectCreationExpressionSyntax ioc => ioc.ArgumentList,
+            _ => null,
+        };
+        if (argList is null || argList.Arguments.Count == 0) return false;
+
+        var firstExpr = argList.Arguments[0].Expression;
+        if (firstExpr is LiteralExpressionSyntax lit && lit.Token.Value is int li)
+        {
+            id = li;
+            return true;
+        }
+        if (firstExpr is PrefixUnaryExpressionSyntax prefix &&
+            prefix.IsKind(SyntaxKind.UnaryMinusExpression) &&
+            prefix.Operand is LiteralExpressionSyntax pl && pl.Token.Value is int pli)
+        {
+            id = -pli;
+            return true;
+        }
+        return false;
+    }
+
+    private static bool InheritsFromEffect(ITypeSymbol type)
+    {
+        var current = type;
+        while (current is not null)
+        {
+            if (current.Name == EffectTypeName &&
+                current.ContainingNamespace?.ToDisplayString() == SpellsNamespace)
+                return true;
+            current = current.BaseType;
+        }
+        return false;
     }
 
     private static void Execute(SourceProductionContext ctx, TriggerInfo trigger)
@@ -143,7 +199,6 @@ public sealed class RegistryGenerator : IIncrementalGenerator
         if (trigger.Registries.IsEmpty && trigger.OwnEntries.IsEmpty)
             return;
 
-        // Check for duplicate property names across all registries.
         var seen = new Dictionary<string, string>(StringComparer.Ordinal);
         bool hasError = false;
         foreach (var registry in trigger.Registries)
@@ -186,8 +241,6 @@ public sealed class RegistryGenerator : IIncrementalGenerator
         sb.AppendLine("public static partial class " + trigger.ClassName);
         sb.AppendLine("{");
 
-        // Forwarding properties, grouped by source registry.
-        // The trigger class itself is skipped — its properties are hand-written on the partial class.
         bool firstBlock = true;
         foreach (var registry in trigger.Registries)
         {
@@ -205,7 +258,6 @@ public sealed class RegistryGenerator : IIncrementalGenerator
             }
         }
 
-        // All dictionary — value type is the LCA of all entry types.
         if (trigger.LcaGlobalName != null)
         {
             sb.AppendLine();
@@ -229,9 +281,72 @@ public sealed class RegistryGenerator : IIncrementalGenerator
             sb.AppendLine("        }.ToFrozenDictionary();");
         }
 
+        sb.AppendLine();
+        sb.AppendLine("    /// <summary>");
+        sb.AppendLine("    /// Compile-time int Guid constants for every registered spell. Used by the");
+        sb.AppendLine("    /// <c>ModuleGenerator</c> to resolve <c>nameof(Registry.Member)</c> in");
+        sb.AppendLine("    /// <c>[On&lt;...&gt;]</c> attribute arguments into <c>Ability.Id == &lt;guid&gt;</c>");
+        sb.AppendLine("    /// predicates at codegen time. Includes entries from every discovered");
+        sb.AppendLine("    /// <c>ISpellRegistry</c> implementor plus this trigger class's own entries.");
+        sb.AppendLine("    /// </summary>");
+        sb.AppendLine("    public static class Guids");
+        sb.AppendLine("    {");
+        foreach (var entry in trigger.OwnEntries)
+            sb.AppendLine("        public const int " + entry.PropertyName + " = " + entry.Guid + ";");
+        foreach (var registry in trigger.Registries)
+        {
+            foreach (var entry in registry.Entries)
+                sb.AppendLine("        public const int " + entry.PropertyName + " = " + entry.Guid + ";");
+        }
+        sb.AppendLine("    }");
+
         sb.AppendLine("}");
 
         ctx.AddSource(trigger.ClassName + ".g.cs", sb.ToString());
+
+        EmitPerRegistryGuids(ctx, trigger.Registries, triggerGlobalName);
+    }
+
+    /// <summary>
+    /// Emits a partial extension for each ISpellRegistry-implementing class with a nested
+    /// static <c>Guids</c> class. Cross-assembly consumers (hero analyzers in separate projects)
+    /// can read these via metadata since <c>const int</c> values are preserved in compiled assemblies.
+    /// </summary>
+    private static void EmitPerRegistryGuids(SourceProductionContext ctx, ImmutableArray<RegistryInfo> registries, string triggerGlobalName)
+    {
+        foreach (var registry in registries)
+        {
+            if (registry.GlobalName == triggerGlobalName)
+                continue;
+
+            var sb = new StringBuilder();
+            sb.AppendLine("// <auto-generated />");
+            sb.AppendLine("#nullable enable");
+            sb.AppendLine();
+            if (!string.IsNullOrEmpty(registry.Namespace))
+            {
+                sb.AppendLine("namespace " + registry.Namespace + ";");
+                sb.AppendLine();
+            }
+            sb.AppendLine("public partial class " + registry.TypeName);
+            sb.AppendLine("{");
+            sb.AppendLine("    /// <summary>");
+            sb.AppendLine("    /// Compile-time int Guid constants for this registry's entries. Consumed by");
+            sb.AppendLine("    /// <c>ModuleGenerator</c> when resolving <c>nameof(" + registry.TypeName + ".Member)</c>");
+            sb.AppendLine("    /// in <c>[On&lt;...&gt;]</c> attributes.");
+            sb.AppendLine("    /// </summary>");
+            sb.AppendLine("    public static class Guids");
+            sb.AppendLine("    {");
+            foreach (var entry in registry.Entries)
+                sb.AppendLine("        public const int " + entry.PropertyName + " = " + entry.Guid + ";");
+            sb.AppendLine("    }");
+            sb.AppendLine("}");
+
+            var fileName = (string.IsNullOrEmpty(registry.Namespace)
+                ? registry.TypeName
+                : registry.Namespace.Replace('.', '_') + "_" + registry.TypeName) + ".Guids.g.cs";
+            ctx.AddSource(fileName, sb.ToString());
+        }
     }
 
     /// <summary>Returns true when <paramref name="type"/> directly or transitively implements <paramref name="targetInterface"/>.</summary>
@@ -282,7 +397,7 @@ public sealed class RegistryGenerator : IIncrementalGenerator
             curr = (curr as INamedTypeSymbol)?.BaseType;
         }
 
-        return a; // fallback — should not be reached for well-typed registries
+        return a;
     }
 
     private static string GlobalName(ITypeSymbol type) =>
@@ -360,13 +475,15 @@ public sealed class RegistryGenerator : IIncrementalGenerator
 
     private sealed class EntryProperty
     {
-        public EntryProperty(string propertyName, string globalTypeName)
+        public EntryProperty(string propertyName, string globalTypeName, int guid)
         {
             PropertyName = propertyName;
             GlobalTypeName = globalTypeName;
+            Guid = guid;
         }
 
         public string PropertyName { get; }
         public string GlobalTypeName { get; }
+        public int Guid { get; }
     }
 }

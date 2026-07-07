@@ -1,0 +1,65 @@
+@* CastSummary — distribution view: perf-badge counts + gradiated bar + optional box-row drill-down. *@
+
+@{
+    var list = Casts.ToList();
+    var counts = new Dictionary<PerformanceTier, int>
+    {
+        [PerformanceTier.Perfect] = list.Count(c => c.Performance == PerformanceTier.Perfect),
+        [PerformanceTier.Good] = list.Count(c => c.Performance == PerformanceTier.Good),
+        [PerformanceTier.Ok] = list.Count(c => c.Performance == PerformanceTier.Ok),
+        [PerformanceTier.Fail] = list.Count(c => c.Performance == PerformanceTier.Fail),
+    };
+    var unitLabel = UsesInsteadOfCasts ? "uses" : "casts";
+}
+
+<div class="cast-summary">
+    @if (!string.IsNullOrEmpty(Title))
+    {
+        <div class="cast-summary-title">
+            <span>@Title</span>
+            <span class="cast-summary-total">@list.Count @unitLabel</span>
+        </div>
+    }
+
+    <PerfBadgeGrid>
+        @foreach (var tier in _tiers)
+        {
+            <PerfBadgeCount Performance="@tier" Count="@counts[tier]" />
+        }
+    </PerfBadgeGrid>
+
+    <GradiatedPerformanceBar Perfect="@counts[PerformanceTier.Perfect]"
+                             Good="@counts[PerformanceTier.Good]"
+                             Ok="@counts[PerformanceTier.Ok]"
+                             Fail="@counts[PerformanceTier.Fail]" />
+
+    @if (ShowBreakdown && list.Count > 0)
+    {
+        <PerformanceBoxRow Entries="@BuildBoxEntries(list)" />
+    }
+</div>
+
+@code {
+    [Parameter] public string? Title { get; set; }
+    [Parameter, EditorRequired] public IEnumerable<CastEvaluation> Casts { get; set; } = [];
+
+    /// <summary>When true, render a PerformanceBoxRow drill-down beneath the bar.</summary>
+    [Parameter] public bool ShowBreakdown { get; set; }
+
+    /// <summary>When true, the summary speaks of "uses" instead of "casts".</summary>
+    [Parameter] public bool UsesInsteadOfCasts { get; set; }
+
+    private static readonly PerformanceTier[] _tiers =
+    [
+        PerformanceTier.Perfect,
+        PerformanceTier.Good,
+        PerformanceTier.Ok,
+        PerformanceTier.Fail,
+    ];
+
+    private static IEnumerable<PerformanceBoxEntry> BuildBoxEntries(IEnumerable<CastEvaluation> casts) =>
+        casts.Select(c => new PerformanceBoxEntry(
+            c.Performance,
+            c.Timestamp is not null && c.Reason is not null ? $"{c.Timestamp} — {c.Reason}"
+                : c.Timestamp ?? c.Reason));
+}

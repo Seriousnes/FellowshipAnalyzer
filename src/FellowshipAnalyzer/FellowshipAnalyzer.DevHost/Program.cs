@@ -58,9 +58,9 @@ static async Task ProxyApiRequestAsync(HttpContext context, IHttpClientFactory h
             continue;
         }
 
-        if (!requestMessage.Headers.TryAddWithoutValidation(header.Key, header.Value.ToArray()))
+        if (!requestMessage.Headers.TryAddWithoutValidation(header.Key, [.. header.Value]))
         {
-            requestMessage.Content?.Headers.TryAddWithoutValidation(header.Key, header.Value.ToArray());
+            requestMessage.Content?.Headers.TryAddWithoutValidation(header.Key, [.. header.Value]);
         }
     }
 

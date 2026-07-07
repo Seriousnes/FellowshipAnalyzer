@@ -2,8 +2,11 @@ using System.Globalization;
 
 using FellowshipAnalyzer.Core.Analysis.Normalizers;
 using FellowshipAnalyzer.Core.Events;
+using FellowshipAnalyzer.Core.FellowshipLogs;
+using FellowshipAnalyzer.Core.Game;
+using FellowshipAnalyzer.Core.UI;
 
-using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace FellowshipAnalyzer.Core.Analysis;
 
@@ -14,6 +17,7 @@ namespace FellowshipAnalyzer.Core.Analysis;
 /// Registered as a scoped DI service; each <see cref="Analyze"/> call creates an
 /// internal analysis-run service cache so repeated analyses do not share module state.
 /// </summary>
+[AddNormalizer<FightBookendNormalizer>]
 [AddNormalizer<AbilityMasterDataNormalizer>]
 [AddNormalizer<ResourceNormalizer>]
 [AddNormalizer<CastLinkNormalizer>]
@@ -24,13 +28,32 @@ namespace FellowshipAnalyzer.Core.Analysis;
 [AddModule<GlobalCooldown>]
 [AddModule<SpellUsable>]
 [AddModule<ChronoshiftAnalyzer>]
+[AddModule<SpiritTracker>]
 public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServiceProvider provider) : IHeroAnalyzer
 {
+    /// <summary>The outer DI container, passed through from the parser's primary constructor.
+    /// Generated <c>CreateInstance</c> emits read from this to obtain framework-supplied
+    /// dependencies such as <c>ILogger&lt;T&gt;</c> and <see cref="ReportMasterDataService"/>.</summary>
+    protected IServiceProvider Provider { get; } = provider;
+
     public EventEmitter EventEmitter { get; private set; } = eventEmitter;
 
     public List<Event> Events { get; set; } = [];
     public int PlayerId { get; set; }
-    public int FightStartTime { get; set; }
+
+    /// <summary>
+    /// The fight currently being analyzed. Set at the start of every <see cref="Analyze"/> call.
+    /// </summary>
+    public ReportFight Fight { get; private set; } = null!;
+
+    /// <summary>
+    /// The timestamp of the event currently being dispatched. Updated by <see cref="EventEmitter"/>
+    /// before each listener invocation. Initialized to <see cref="Fight"/>.StartTime when <see cref="Analyze"/> begins.
+    /// </summary>
+    public int CurrentTimestamp { get; internal set; }
+
+    public int FightStartTime => (int)Fight.StartTime;
+    public int FightEndTime => (int)Fight.EndTime;
 
     /// <summary>
     /// Report-level actor name lookup, keyed by actor ID.
@@ -39,10 +62,10 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
     public Dictionary<int, string> ActorNames { get; set; } = [];
 
     /// <summary>
-    /// The combatant representing the selected (analyzed) player.
-    /// Set by the <see cref="Combatants"/> module before event dispatch.
+    /// The combatant representing the selected (analyzed) player. Populated by
+    /// <see cref="Analyze"/> before any module is constructed.
     /// </summary>
-    public Combatant? SelectedCombatant { get; set; }
+    public Combatant SelectedCombatant => CurrentParseContext.SelectedCombatant;
 
     /// <summary>
     /// The Razor component type to render for the Guide tab.
@@ -57,6 +80,62 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
     public virtual Hero? Hero => null;
 
     private Dictionary<Type, Module> _activeModules = [];
+    private readonly Dictionary<Type, object> _runInstances = [];
+    private readonly Dictionary<Type, int> _moduleTypeIndex = [];
+    private Type[] _runModuleTypes = [];
+
+    /// <summary>
+    /// The <see cref="ParseContext"/> for the analysis currently in progress. Populated at the
+    /// start of <see cref="Analyze"/> and read by generator-emitted <see cref="CreateInstance"/>
+    /// to inject context into modules and normalizers that need it.
+    /// </summary>
+    protected ParseContext CurrentParseContext { get; private set; } = null!;
+
+    /// <summary>
+    /// Resolves a module by type for the current analysis run. Supports polymorphic resolution
+    /// (e.g. <c>typeof(Abilities)</c> resolves to a hero's <c>Abilities</c> subclass when one is
+    /// registered). Constructs via <see cref="CreateInstance"/> on first request, caches the
+    /// result for the rest of the run, and assigns <see cref="Module.Owner"/> on construction.
+    /// </summary>
+    protected object ResolveAnalysisModule(Type type)
+    {
+        if (_runInstances.TryGetValue(type, out var existing)) return existing;
+
+        var concrete = type;
+        if (!_moduleTypeIndex.ContainsKey(type))
+        {
+            Type? match = null;
+            foreach (var mt in _runModuleTypes)
+            {
+                if (!type.IsAssignableFrom(mt)) continue;
+                if (match != null)
+                    throw new InvalidOperationException($"Ambiguous module resolution: multiple registered modules are assignable to {type.Name}.");
+                match = mt;
+            }
+            if (match is null)
+                throw new InvalidOperationException($"No registered module is assignable to {type.Name}.");
+            concrete = match;
+            if (_runInstances.TryGetValue(concrete, out var existingConcrete))
+            {
+                _runInstances[type] = existingConcrete;
+                return existingConcrete;
+            }
+        }
+
+        var instance = CreateInstance(concrete)
+            ?? throw new InvalidOperationException($"No generated factory for {concrete.Name}. Override CreateInstance on the parser to construct it.");
+
+        _runInstances[concrete] = instance;
+        if (type != concrete) _runInstances[type] = instance;
+
+        if (instance is Module module)
+        {
+            module.Owner = this;
+            if (_moduleTypeIndex.TryGetValue(concrete, out var priority))
+                module.Priority = priority;
+        }
+        return instance;
+    }
 
     /// <summary>
     /// Returns the types of all modules to resolve from DI for this parser.
@@ -69,6 +148,23 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
     /// Source-generated when the parser has <see cref="AddNormalizerAttribute{T}"/> attributes.
     /// </summary>
     protected virtual Type[] GetNormalizerTypes() => [];
+
+    /// <summary>
+    /// Builds the source-generated typed projection of this analysis run. The default returns
+    /// <c>null</c>. Source-generated concrete parsers override this when at least one of their
+    /// modules declares a <c>ToReport()</c> method, returning a hero-specific result record
+    /// (e.g. <c>RimeAnalysisResult</c>).
+    /// </summary>
+    protected virtual object? BuildTypedReport() => null;
+
+    /// <summary>
+    /// Consulted before constructing each module declared in <see cref="GetModuleTypes"/>.
+    /// The default returns <c>true</c> for every module. The source generator overrides this
+    /// on concrete parsers that have at least one module decorated with
+    /// <see cref="ActiveWhenAttribute{TPredicate}"/>, switching on the module type and
+    /// invoking the predicate's static <c>IsActive</c> method.
+    /// </summary>
+    protected virtual bool IsModuleActive(Type moduleType, ParseContext context) => true;
 
     /// <summary>
     /// Looks up an active module by type. Returns null if the module is
@@ -89,31 +185,45 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
         return null;
     }
 
-    public async Task<HeroAnalysisResult> Analyze(IReadOnlyList<Event> events, int playerId, int fightStartTime)
+    public async Task<HeroAnalysisResult> Analyze(IReadOnlyList<Event> events, int playerId, ReportFight fight)
     {
-        var moduleTypes = GetModuleTypes();
-        var normalizerTypes = GetNormalizerTypes();
-        var analysisServices = new AnalysisRunServiceProvider(provider, this, moduleTypes, normalizerTypes);
-
-        EventEmitter = analysisServices.GetRequiredService<EventEmitter>();
-        Events = [.. events];
         PlayerId = playerId;
-        FightStartTime = fightStartTime;
-        SelectedCombatant = null;
-        _activeModules = moduleTypes
-            .Select((t, i) =>
-            {
-                var m = (Module)(analysisServices.GetService(t) ?? throw new InvalidOperationException($"Module {t.Name} not registered."));
-                m.Priority = i;
-                m.Owner = this;
-                return m;
-            })
-            .Where(m => m.Active)
-            .ToDictionary(m => m.GetType(), m => m);
+        Fight = fight;
+        CurrentTimestamp = (int)fight.StartTime;
 
-        var tracker = provider.GetService(typeof(ReportLoadingTracker)) as ReportLoadingTracker;
+        var allModuleTypes = GetModuleTypes();
+        var normalizerTypes = GetNormalizerTypes();
 
-        // Run normalizers
+        _runInstances.Clear();
+        _moduleTypeIndex.Clear();
+        _runModuleTypes = allModuleTypes;
+        for (var i = 0; i < allModuleTypes.Length; i++)
+            _moduleTypeIndex[allModuleTypes[i]] = i;
+
+        Events = [.. events];
+
+        var playerInfo = Events.OfType<CombatantInfoEvent>().FirstOrDefault(e => e.SourceId == playerId)
+            ?? new CombatantInfoEvent { SourceId = playerId };
+        CurrentParseContext = new ParseContext(playerId, fight, ActorNames, new Combatant(playerInfo));
+
+        EventEmitter = new EventEmitter((ILogger<EventEmitter>)Provider.GetService(typeof(ILogger<EventEmitter>))!)
+        {
+            Owner = this,
+        };
+        _runInstances[typeof(EventEmitter)] = EventEmitter;
+
+        _activeModules = [];
+        foreach (var t in allModuleTypes)
+        {
+            if (!IsModuleActive(t, CurrentParseContext)) continue;
+            var m = (Module)ResolveAnalysisModule(t);
+            m.Priority = _activeModules.Count;
+            if (m.Active)
+                _activeModules[m.GetType()] = m;
+        }
+
+        var tracker = Provider.GetService(typeof(ReportLoadingTracker)) as ReportLoadingTracker;
+
         if (tracker is not null)
         {
             tracker.NormalizeState = ReportLoadingTracker.StepState.Loading;
@@ -124,8 +234,8 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
 
         foreach (var normalizerType in normalizerTypes)
         {
-            var normalizer = (IEventNormalizer)(analysisServices.GetService(normalizerType)
-                ?? throw new InvalidOperationException($"Normalizer {normalizerType.Name} not registered."));
+            var normalizer = (IEventNormalizer)(CreateInstance(normalizerType)
+                ?? throw new InvalidOperationException($"No generated factory for normalizer {normalizerType.Name}."));
             Events = normalizer.Normalize(Events, playerId);
             if (tracker is not null) tracker.NormalizedCount++;
             await Task.Yield();
@@ -133,7 +243,7 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
 
         foreach (var m in _activeModules.Values)
         {
-            m.Initialize();
+            if (m is EventSubscriber es) es.RegisterSubscriptions();
         }
 
         EventEmitter.SortListeners();
@@ -154,21 +264,16 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
         }
         await Task.Yield();
 
-        foreach (var m in _activeModules.Values)
-        {
-            m.Complete();
-        }
-
         return new HeroAnalysisResult
         {
             GuideComponentType = GuideComponent,
-            Statistics = _activeModules.Values
+            Statistics = [.. _activeModules.Values
                     .Where(m => m.StatisticsComponentType != null)
-                    .Select(m => (m, m.StatisticsComponentType!))
-                    .ToList(),
+                    .Select(m => new StatisticEntry(m, m.StatisticsComponentType!, m.StatisticCategory, m.StatisticOrder))],
             Modules = [.. _activeModules.Values],
             Events = Events,
             DebugAnnotations = GetModule<DebugAnnotations>(),
+            TypedReport = BuildTypedReport(),
         };
     }
 
@@ -199,84 +304,5 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
     public bool ByPlayerPet(IHasSourceEvent e) => false; // TODO: implement when pet tracking is added
 
     public bool ToPlayerPet(IHasTargetEvent e) => false; // TODO: implement when pet tracking is added
-
-    private sealed class AnalysisRunServiceProvider(
-        IServiceProvider fallback,
-        CombatLogParser owner,
-        IReadOnlyList<Type> moduleTypes,
-        IReadOnlyList<Type> normalizerTypes) : IServiceProvider
-    {
-        private readonly Dictionary<Type, object> _instances = [];
-        private readonly Dictionary<Type, int> _modulePriorities = moduleTypes
-            .Select((type, index) => (type, index))
-            .ToDictionary(static x => x.type, static x => x.index);
-        private readonly HashSet<Type> _normalizerTypes = [.. normalizerTypes];
-
-        public object? GetService(Type serviceType)
-        {
-            if (serviceType == typeof(IServiceProvider))
-            {
-                return this;
-            }
-
-            if (serviceType == typeof(EventEmitter))
-            {
-                return GetOrCreate(typeof(EventEmitter));
-            }
-
-            if (TryGetModuleType(serviceType, out var moduleType))
-            {
-                return GetOrCreate(moduleType);
-            }
-
-            if (_normalizerTypes.Contains(serviceType))
-            {
-                return GetOrCreate(serviceType);
-            }
-
-            return fallback.GetService(serviceType);
-        }
-
-        private object GetOrCreate(Type implementationType)
-        {
-            if (_instances.TryGetValue(implementationType, out var existing))
-            {
-                return existing;
-            }
-
-            var instance = ActivatorUtilities.CreateInstance(this, implementationType);
-            _instances[implementationType] = instance;
-
-            if (instance is Module module)
-            {
-                module.Owner = owner;
-                if (_modulePriorities.TryGetValue(implementationType, out var priority))
-                {
-                    module.Priority = priority;
-                }
-            }
-
-            return instance;
-        }
-
-        private bool TryGetModuleType(Type serviceType, out Type moduleType)
-        {
-            if (_modulePriorities.ContainsKey(serviceType))
-            {
-                moduleType = serviceType;
-                return true;
-            }
-
-            var matches = moduleTypes.Where(serviceType.IsAssignableFrom).ToList();
-            if (matches.Count == 1)
-            {
-                moduleType = matches[0];
-                return true;
-            }
-
-            moduleType = null!;
-            return false;
-        }
-    }
 }
 

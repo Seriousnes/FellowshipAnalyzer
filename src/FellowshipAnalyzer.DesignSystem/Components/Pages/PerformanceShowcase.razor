@@ -1,0 +1,86 @@
+@page "/performance"
+
+<PageTitle>Performance marks + badges — Design System</PageTitle>
+
+<h1>PerformanceMark / PassFailCheckmark / PerfBadgeCount / PerfBadgeGrid</h1>
+<p class="lede">Glyphs and tally badges keyed to <code>PerformanceTier</code>.</p>
+
+<CodeExample Title="PerformanceMark — tier-keyed glyph"
+             Description="One glyph per tier. Size param controls edge length in px."
+             Code="@_markCode">
+    <Demo>
+        <div class="showcase-row" style="align-items: center;">
+            <PerformanceMark Performance="PerformanceTier.Perfect" Size="32" />
+            <PerformanceMark Performance="PerformanceTier.Good" Size="32" />
+            <PerformanceMark Performance="PerformanceTier.Ok" Size="32" />
+            <PerformanceMark Performance="PerformanceTier.Fail" Size="32" />
+        </div>
+        <div class="showcase-row" style="align-items: center; margin-top: 0.5rem;">
+            <PerformanceMark Performance="PerformanceTier.Perfect" />
+            <PerformanceMark Performance="PerformanceTier.Good" />
+            <PerformanceMark Performance="PerformanceTier.Ok" />
+            <PerformanceMark Performance="PerformanceTier.Fail" />
+            <span style="color: var(--fa-text-muted); font-size: 0.85rem;">(default 16px)</span>
+        </div>
+    </Demo>
+</CodeExample>
+
+<CodeExample Title="PassFailCheckmark — binary check/cross" Code="@_passFailCode">
+    <Demo>
+        <div class="showcase-row" style="align-items: center;">
+            <PassFailCheckmark Pass="true" Size="24" />
+            <PassFailCheckmark Pass="false" Size="24" />
+            <PassFailCheckmark Pass="true" Size="16" />
+            <PassFailCheckmark Pass="false" Size="16" />
+        </div>
+    </Demo>
+</CodeExample>
+
+<CodeExample Title="PerfBadgeCount + PerfBadgeGrid — tally row" Code="@_badgeCountCode">
+    <Demo>
+        <PerfBadgeGrid>
+            <PerfBadgeCount Performance="PerformanceTier.Perfect" Count="12" />
+            <PerfBadgeCount Performance="PerformanceTier.Good" Count="6" />
+            <PerfBadgeCount Performance="PerformanceTier.Ok" Count="2" />
+            <PerfBadgeCount Performance="PerformanceTier.Fail" Count="1" />
+        </PerfBadgeGrid>
+    </Demo>
+</CodeExample>
+
+<CodeExample Title="PerfBadgeCount — custom label" Code="@_badgeLabelCode">
+    <Demo>
+        <PerfBadgeGrid>
+            <PerfBadgeCount Performance="PerformanceTier.Perfect" Count="4" Label="On time" />
+            <PerfBadgeCount Performance="PerformanceTier.Good" Count="2" Label="Slightly late" />
+            <PerfBadgeCount Performance="PerformanceTier.Ok" Count="1" Label="Late" />
+            <PerfBadgeCount Performance="PerformanceTier.Fail" Count="0" Label="Missed" />
+        </PerfBadgeGrid>
+    </Demo>
+</CodeExample>
+
+@code {
+    private const string _markCode = """
+<PerformanceMark Performance="PerformanceTier.Perfect" Size="32" />
+<PerformanceMark Performance="PerformanceTier.Good" Size="32" />
+<PerformanceMark Performance="PerformanceTier.Ok" Size="32" />
+<PerformanceMark Performance="PerformanceTier.Fail" Size="32" />
+""";
+
+    private const string _passFailCode = """
+<PassFailCheckmark Pass="true" Size="24" />
+<PassFailCheckmark Pass="false" Size="24" />
+""";
+
+    private const string _badgeCountCode = """
+<PerfBadgeGrid>
+    <PerfBadgeCount Performance="PerformanceTier.Perfect" Count="12" />
+    <PerfBadgeCount Performance="PerformanceTier.Good" Count="6" />
+    <PerfBadgeCount Performance="PerformanceTier.Ok" Count="2" />
+    <PerfBadgeCount Performance="PerformanceTier.Fail" Count="1" />
+</PerfBadgeGrid>
+""";
+
+    private const string _badgeLabelCode = """
+<PerfBadgeCount Performance="PerformanceTier.Perfect" Count="4" Label="On time" />
+""";
+}

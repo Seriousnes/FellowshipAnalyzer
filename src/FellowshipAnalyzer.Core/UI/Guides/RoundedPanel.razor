@@ -1,0 +1,12 @@
+@* RoundedPanel — dark rounded data container. Default content area for visualizations. *@
+
+<div class="rounded-panel @(StartAligned ? "start-aligned" : "")">
+    @ChildContent
+</div>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>When true, content is top-aligned instead of stretching.</summary>
+    [Parameter] public bool StartAligned { get; set; }
+}

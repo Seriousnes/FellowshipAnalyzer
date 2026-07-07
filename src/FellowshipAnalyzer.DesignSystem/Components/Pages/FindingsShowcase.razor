@@ -1,0 +1,46 @@
+@page "/findings"
+
+<PageTitle>FindingsList — Design System</PageTitle>
+
+<h1>FindingsList</h1>
+<p class="lede">Severity-coloured list of analyzer findings. Pass any <code>IEnumerable&lt;Finding&gt;</code> with severity, message, and optional timestamp.</p>
+
+<CodeExample Title="Mixed severities" Code="@_findingsCode">
+    <Demo>
+        <FindingsList Findings="@_findings" />
+    </Demo>
+</CodeExample>
+
+<CodeExample Title="Empty list — renders nothing" Code="@_emptyCode">
+    <Demo>
+        <FindingsList Findings="@(Array.Empty<Finding>())" />
+        <p style="color: var(--fa-text-muted); font-size: 0.85rem;">(component renders no markup when the list is empty)</p>
+    </Demo>
+</CodeExample>
+
+@code {
+    private static readonly IReadOnlyList<Finding> _findings =
+    [
+        new("info", "Used Wrath of Winter at 100 Spirit — optimal cast time."),
+        new("warning", "Capped Winter Orbs at 0:14.", "0:14"),
+        new("warning", "Brain Freeze fell off without consumption at 1:23.", "1:23"),
+        new("error", "Ice Comet cast at 0 Winter Orbs.", "2:05"),
+    ];
+
+    private const string _findingsCode = """
+<FindingsList Findings="@_findings" />
+
+@code {
+    private static readonly IReadOnlyList<Finding> _findings =
+    [
+        new("info", "Used Wrath of Winter at 100 Spirit."),
+        new("warning", "Capped Winter Orbs at 0:14.", "0:14"),
+        new("error", "Ice Comet cast at 0 Winter Orbs.", "2:05"),
+    ];
+}
+""";
+
+    private const string _emptyCode = """
+<FindingsList Findings="@(Array.Empty<Finding>())" />
+""";
+}

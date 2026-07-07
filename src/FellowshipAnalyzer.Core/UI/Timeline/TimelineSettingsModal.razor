@@ -1,0 +1,392 @@
+@using System.Threading
+@using FellowshipAnalyzer.Core.Common.Spells
+@using FellowshipAnalyzer.Core.Events
+
+@if (IsOpen)
+{
+    <div class="timeline-settings-backdrop" @onclick="OnClose"></div>
+    <div class="timeline-settings-modal" role="dialog" aria-modal="true" aria-label="Timeline settings"
+         @onclick:stopPropagation="true">
+        <header class="timeline-settings-header">
+            <h2 class="timeline-settings-title">Timeline settings</h2>
+            <button type="button" class="timeline-settings-close" @onclick="OnClose" aria-label="Close">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </button>
+        </header>
+
+        <nav class="timeline-settings-tabs" role="tablist">
+            <button type="button"
+                    role="tab"
+                    aria-selected="@(_activeTab == Tab.Auras ? "true" : "false")"
+                    class="timeline-settings-tab @(_activeTab == Tab.Auras ? "timeline-settings-tab--active" : "")"
+                    @onclick="() => _activeTab = Tab.Auras">
+                Auras
+            </button>
+            <button type="button"
+                    role="tab"
+                    aria-selected="@(_activeTab == Tab.Cooldowns ? "true" : "false")"
+                    class="timeline-settings-tab @(_activeTab == Tab.Cooldowns ? "timeline-settings-tab--active" : "")"
+                    @onclick="() => _activeTab = Tab.Cooldowns">
+                Cooldowns
+            </button>
+        </nav>
+
+        <div class="timeline-settings-body">
+            @if (_activeTab == Tab.Auras)
+            {
+                <section class="timeline-settings-section">
+                    <h3 class="timeline-settings-section-title">Pre-configured</h3>
+                    @if (!PreconfiguredAuraIds.Any())
+                    {
+                        <p class="timeline-settings-empty">This hero has no pre-configured auras.</p>
+                    }
+                    else
+                    {
+                        <ul class="timeline-settings-list">
+                            @foreach (var spellId in PreconfiguredOrderedIds())
+                            {
+                                var (name, icon) = ResolveAuraMeta(spellId);
+                                var entry = AuraEntry(spellId);
+                                var absent = !IsInCurrentLog(spellId);
+                                var capturedId = spellId;
+                                <li class="timeline-settings-row @(absent ? "timeline-settings-row--absent" : "")"
+                                    @key="spellId">
+                                    <label class="timeline-settings-visibility">
+                                        <input type="checkbox"
+                                               checked="@entry.Visible"
+                                               @onchange="e => UpdateAuraVisibility(capturedId, (bool)e.Value!)" />
+                                    </label>
+                                    <span class="timeline-settings-icon">
+                                        <SpellIcon Spell="@(new Ability { Guid = spellId, Name = name, Icon = icon ?? string.Empty })"
+                                                   Size="SpellIconSize.Small" />
+                                    </span>
+                                    <span class="timeline-settings-name">@name</span>
+                                    <label class="timeline-settings-numeric">
+                                        <span class="timeline-settings-numeric-label">Priority</span>
+                                        <input type="number"
+                                               value="@entry.Priority"
+                                               @onchange="e => UpdateAuraPriority(capturedId, ParseInt(e.Value, 0))" />
+                                    </label>
+                                </li>
+                            }
+                        </ul>
+                    }
+                </section>
+
+                <hr class="timeline-settings-section-divider" />
+
+                <section class="timeline-settings-section">
+                    <h3 class="timeline-settings-section-title">Custom</h3>
+
+                    <div class="timeline-settings-search">
+                        <input type="text"
+                               placeholder="Search in-log auras by name or spell ID…"
+                               value="@_searchInput"
+                               @oninput="OnSearchInput" />
+                    </div>
+
+                    @if (!string.IsNullOrWhiteSpace(_appliedSearch))
+                    {
+                        var results = SearchResults().ToList();
+                        @if (results.Count == 0)
+                        {
+                            <p class="timeline-settings-empty">No matching in-log auras.</p>
+                        }
+                        else
+                        {
+                            <ul class="timeline-settings-search-results">
+                                @foreach (var opt in results)
+                                {
+                                    var capturedId = opt.SpellId;
+                                    <li class="timeline-settings-search-result" @key="opt.SpellId">
+                                        <span class="timeline-settings-icon">
+                                            <SpellIcon Spell="@(new Ability { Guid = opt.SpellId, Name = opt.Name, Icon = opt.IconUrl ?? string.Empty })"
+                                                       Size="SpellIconSize.Small" />
+                                        </span>
+                                        <span class="timeline-settings-name">@opt.Name</span>
+                                        <button type="button"
+                                                class="timeline-settings-add"
+                                                @onclick="() => AddCustomAura(capturedId)"
+                                                aria-label="Add aura">+ Add</button>
+                                    </li>
+                                }
+                            </ul>
+                        }
+                    }
+
+                    @{
+                        var customs = CustomAurasOrdered().ToList();
+                    }
+                    @if (customs.Count == 0)
+                    {
+                        <p class="timeline-settings-empty">No custom auras. Use search above to add one.</p>
+                    }
+                    else
+                    {
+                        <ul class="timeline-settings-list">
+                            @foreach (var customEntry in customs)
+                            {
+                                var spellId = customEntry.SpellId;
+                                var (name, icon) = ResolveAuraMeta(spellId);
+                                var absent = !IsInCurrentLog(spellId);
+                                var capturedId = spellId;
+                                <li class="timeline-settings-row @(absent ? "timeline-settings-row--absent" : "")"
+                                    @key="spellId">
+                                    <label class="timeline-settings-visibility">
+                                        <input type="checkbox"
+                                               checked="@customEntry.Visible"
+                                               disabled="@absent"
+                                               @onchange="e => UpdateAuraVisibility(capturedId, (bool)e.Value!)" />
+                                    </label>
+                                    <span class="timeline-settings-icon">
+                                        <SpellIcon Spell="@(new Ability { Guid = spellId, Name = name, Icon = icon ?? string.Empty })"
+                                                   Size="SpellIconSize.Small" />
+                                    </span>
+                                    <span class="timeline-settings-name">@name</span>
+                                    <label class="timeline-settings-numeric">
+                                        <span class="timeline-settings-numeric-label">Priority</span>
+                                        <input type="number"
+                                               value="@customEntry.Priority"
+                                               disabled="@absent"
+                                               @onchange="e => UpdateAuraPriority(capturedId, ParseInt(e.Value, 0))" />
+                                    </label>
+                                    <button type="button"
+                                            class="timeline-settings-delete"
+                                            @onclick="() => DeleteAuraEntry(capturedId)"
+                                            aria-label="Remove aura"
+                                            title="Remove aura">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
+                                             fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                             stroke-linejoin="round" aria-hidden="true">
+                                            <polyline points="3 6 5 6 21 6"></polyline>
+                                            <path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"></path>
+                                            <path d="M10 11v6M14 11v6"></path>
+                                            <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path>
+                                        </svg>
+                                    </button>
+                                </li>
+                            }
+                        </ul>
+                    }
+                </section>
+            }
+            else
+            {
+                @if (AvailableCooldowns.Count == 0)
+                {
+                    <p class="timeline-settings-empty">No cooldowns detected in this fight.</p>
+                }
+                else
+                {
+                    <ul class="timeline-settings-list">
+                        @foreach (var option in SortedCooldowns())
+                        {
+                            var spellId = option.SpellId;
+                            var name = option.Name;
+                            var icon = option.IconUrl;
+                            var entry = CooldownEntry(spellId);
+                            var capturedId = spellId;
+                            <li class="timeline-settings-row" @key="spellId">
+                                <label class="timeline-settings-visibility">
+                                    <input type="checkbox"
+                                           checked="@entry.Visible"
+                                           @onchange="e => UpdateCooldownVisibility(capturedId, (bool)e.Value!)" />
+                                </label>
+                                <span class="timeline-settings-icon">
+                                    <SpellIcon Spell="@(new Ability { Guid = capturedId, Name = name, Icon = icon ?? string.Empty })"
+                                               Size="SpellIconSize.Small" />
+                                </span>
+                                <span class="timeline-settings-name">@name</span>
+                                <label class="timeline-settings-numeric">
+                                    <span class="timeline-settings-numeric-label">Order</span>
+                                    <input type="number"
+                                           value="@entry.SortOrder"
+                                           @onchange="e => UpdateCooldownOrder(capturedId, ParseInt(e.Value, int.MaxValue))" />
+                                </label>
+                            </li>
+                        }
+                    </ul>
+                }
+            }
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter, EditorRequired] public bool IsOpen { get; set; }
+    [Parameter, EditorRequired] public EventCallback OnClose { get; set; }
+    [Parameter, EditorRequired] public TimelineConfig Config { get; set; } = new();
+    [Parameter, EditorRequired] public EventCallback<TimelineConfig> OnConfigChanged { get; set; }
+    [Parameter, EditorRequired] public IReadOnlyList<TimelineSpellOption> AvailableAuras { get; set; } = [];
+    [Parameter, EditorRequired] public IReadOnlyList<TimelineSpellOption> AvailableCooldowns { get; set; } = [];
+    [Parameter, EditorRequired] public IReadOnlySet<int> PreconfiguredAuraIds { get; set; } = new HashSet<int>();
+
+    private enum Tab { Auras, Cooldowns }
+    private Tab _activeTab = Tab.Auras;
+
+    private string _searchInput = "";
+    private string _appliedSearch = "";
+    private CancellationTokenSource? _searchDebounceCts;
+
+    private AuraConfigEntry AuraEntry(int spellId) =>
+        Config.Auras.FirstOrDefault(a => a.SpellId == spellId)
+        ?? new AuraConfigEntry(spellId, false, 0);
+
+    private CooldownConfigEntry CooldownEntry(int spellId) =>
+        Config.Cooldowns.FirstOrDefault(c => c.SpellId == spellId)
+        ?? new CooldownConfigEntry(spellId, false, int.MaxValue);
+
+    private (string Name, string? Icon) ResolveAuraMeta(int spellId)
+    {
+        var fromLog = AvailableAuras.FirstOrDefault(o => o.SpellId == spellId);
+        if (fromLog is not null) return (fromLog.Name, fromLog.IconUrl);
+
+        var fromRegistry = SpellRegistry.MaybeGet(spellId);
+        if (fromRegistry is not null) return (fromRegistry.Name, fromRegistry.Icon);
+
+        return ($"Unknown (ID: {spellId})", null);
+    }
+
+    private bool IsInCurrentLog(int spellId) =>
+        AvailableAuras.Any(o => o.SpellId == spellId);
+
+    private IEnumerable<int> PreconfiguredOrderedIds() =>
+        PreconfiguredAuraIds
+            .OrderBy(id => AuraEntry(id).Priority)
+            .ThenBy(id => ResolveAuraMeta(id).Name, StringComparer.OrdinalIgnoreCase);
+
+    private IEnumerable<AuraConfigEntry> CustomAurasOrdered() =>
+        Config.Auras
+            .Where(a => !PreconfiguredAuraIds.Contains(a.SpellId))
+            .OrderBy(a => a.Priority)
+            .ThenBy(a => ResolveAuraMeta(a.SpellId).Name, StringComparer.OrdinalIgnoreCase);
+
+    private IEnumerable<TimelineSpellOption> SearchResults()
+    {
+        var q = _appliedSearch?.Trim();
+        if (string.IsNullOrEmpty(q)) yield break;
+
+        var excluded = new HashSet<int>(PreconfiguredAuraIds);
+        foreach (var a in Config.Auras) excluded.Add(a.SpellId);
+
+        var isNumeric = int.TryParse(q, out var idQuery);
+
+        foreach (var opt in AvailableAuras)
+        {
+            if (excluded.Contains(opt.SpellId)) continue;
+
+            var matches =
+                (isNumeric && opt.SpellId == idQuery)
+                || opt.Name.Contains(q, StringComparison.OrdinalIgnoreCase);
+
+            if (matches) yield return opt;
+        }
+    }
+
+    private async Task OnSearchInput(ChangeEventArgs e)
+    {
+        _searchInput = e.Value?.ToString() ?? "";
+        _searchDebounceCts?.Cancel();
+        _searchDebounceCts = new CancellationTokenSource();
+        var token = _searchDebounceCts.Token;
+        try
+        {
+            await Task.Delay(250, token);
+            _appliedSearch = _searchInput;
+            StateHasChanged();
+        }
+        catch (TaskCanceledException) { }
+    }
+
+    private IEnumerable<TimelineSpellOption> SortedCooldowns() =>
+        AvailableCooldowns
+            .OrderBy(o => Config.Cooldowns.Any(c => c.SpellId == o.SpellId))
+            .ThenBy(o => CooldownEntry(o.SpellId).SortOrder)
+            .ThenBy(o => o.Name, StringComparer.OrdinalIgnoreCase);
+
+    private static int ParseInt(object? raw, int fallback) =>
+        int.TryParse(raw?.ToString(), out var v) ? v : fallback;
+
+    private Task UpdateAuraVisibility(int spellId, bool visible)
+    {
+        var entry = AuraEntry(spellId);
+        return EmitConfig(new TimelineConfig
+        {
+            Auras = ReplaceOrAdd(Config.Auras, a => a.SpellId == spellId, entry with { Visible = visible }),
+            Cooldowns = [.. Config.Cooldowns],
+        });
+    }
+
+    private Task UpdateAuraPriority(int spellId, int priority)
+    {
+        var entry = AuraEntry(spellId);
+        return EmitConfig(new TimelineConfig
+        {
+            Auras = ReplaceOrAdd(Config.Auras, a => a.SpellId == spellId, entry with { Priority = priority }),
+            Cooldowns = [.. Config.Cooldowns],
+        });
+    }
+
+    private Task AddCustomAura(int spellId)
+    {
+        if (Config.Auras.Any(a => a.SpellId == spellId)) return Task.CompletedTask;
+        return EmitConfig(new TimelineConfig
+        {
+            Auras = [.. Config.Auras, new AuraConfigEntry(spellId, true, 0)],
+            Cooldowns = [.. Config.Cooldowns],
+        });
+    }
+
+    private Task DeleteAuraEntry(int spellId) =>
+        EmitConfig(new TimelineConfig
+        {
+            Auras = Config.Auras.Where(a => a.SpellId != spellId).ToList(),
+            Cooldowns = [.. Config.Cooldowns],
+        });
+
+    private Task UpdateCooldownVisibility(int spellId, bool visible)
+    {
+        var entry = CooldownEntry(spellId);
+        return EmitConfig(new TimelineConfig
+        {
+            Auras = [.. Config.Auras],
+            Cooldowns = ReplaceOrAdd(Config.Cooldowns, c => c.SpellId == spellId, entry with { Visible = visible }),
+        });
+    }
+
+    private Task UpdateCooldownOrder(int spellId, int sortOrder)
+    {
+        var entry = CooldownEntry(spellId);
+        return EmitConfig(new TimelineConfig
+        {
+            Auras = [.. Config.Auras],
+            Cooldowns = ReplaceOrAdd(Config.Cooldowns, c => c.SpellId == spellId, entry with { SortOrder = sortOrder }),
+        });
+    }
+
+    private static List<T> ReplaceOrAdd<T>(IEnumerable<T> source, Func<T, bool> predicate, T replacement)
+    {
+        var result = new List<T>();
+        var replaced = false;
+        foreach (var item in source)
+        {
+            if (!replaced && predicate(item))
+            {
+                result.Add(replacement);
+                replaced = true;
+            }
+            else
+            {
+                result.Add(item);
+            }
+        }
+        if (!replaced) result.Add(replacement);
+        return result;
+    }
+
+    private Task EmitConfig(TimelineConfig next) => OnConfigChanged.InvokeAsync(next);
+}

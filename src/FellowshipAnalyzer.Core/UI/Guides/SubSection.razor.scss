@@ -1,0 +1,22 @@
+@use 'tokens' as t;
+
+.guide-sub-section {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.guide-sub-section-title {
+    margin: 0;
+    font-family: var(--fa-font-heading);
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--fa-text);
+    letter-spacing: 0.2px;
+}
+
+.guide-sub-section-body {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}

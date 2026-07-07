@@ -1,0 +1,13 @@
+@use 'tokens' as t;
+
+.rounded-panel {
+    background: var(--fa-bg-inset);
+    border: 1px solid var(--fa-border);
+    border-radius: t.$fa-radius-sm;
+    padding: 12px;
+    display: grid;
+    gap: 10px;
+    min-width: 0;
+
+    &.start-aligned { align-items: start; }
+}

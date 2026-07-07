@@ -1,0 +1,61 @@
+@use 'tokens' as t;
+
+.badge {
+    --badge-color: var(--fa-text-muted);
+    --badge-bg: transparent;
+    --badge-border: transparent;
+
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    border-radius: 999px;
+    border: 1px solid var(--badge-border);
+    background: var(--badge-bg);
+    color: var(--badge-color);
+    font-weight: 600;
+    font-family: inherit;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: background 0.15s, color 0.15s, box-shadow 0.15s;
+}
+
+button.badge,
+a.badge {
+    cursor: pointer;
+    appearance: none;
+}
+
+button.badge:hover,
+a.badge:hover {
+    background: color-mix(in srgb, var(--badge-color) 16%, transparent);
+}
+
+.badge.active {
+    box-shadow:
+        0 0 0 2px color-mix(in srgb, var(--badge-color) 28%, transparent),
+        inset 0 0 0 1px color-mix(in srgb, var(--badge-color) 45%, transparent);
+}
+
+.badge--sm {
+    padding: 0.15rem 0.55rem;
+    font-size: 0.75rem;
+}
+
+.badge--md {
+    padding: 0.3rem 0.75rem;
+    font-size: 0.82rem;
+}
+
+.badge--neutral { --badge-color: var(--fa-text-muted); --badge-border: var(--fa-border); }
+.badge--success { --badge-color: var(--fa-perf-perfect); --badge-border: rgba(86, 214, 123, 0.35); }
+.badge--failure { --badge-color: var(--fa-perf-fail); --badge-border: rgba(212, 86, 74, 0.35); }
+.badge--tank    { --badge-color: var(--fa-role-tank); --badge-border: color-mix(in srgb, var(--fa-role-tank) 35%, transparent); }
+.badge--healer  { --badge-color: var(--fa-role-healer); --badge-border: color-mix(in srgb, var(--fa-role-healer) 35%, transparent); }
+.badge--dps     { --badge-color: var(--fa-role-dps); --badge-border: color-mix(in srgb, var(--fa-role-dps) 35%, transparent); }
+.badge--gold    { --badge-color: var(--fa-gold-light); --badge-border: var(--fa-gold-dim); }
+
+.badge--success.active,
+button.badge--success:hover { background: rgba(86, 214, 123, 0.16); }
+.badge--failure.active,
+button.badge--failure:hover { background: rgba(212, 86, 74, 0.16); }
+.badge--gold.active         { background: var(--fa-gold-dim); }

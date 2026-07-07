@@ -25,7 +25,7 @@ internal sealed class IndexedDbReportCacheService(IJSRuntime js) : IReportCacheS
         return await module.InvokeAsync<byte[]?>("getCachedEventsBytes", reportCode, fightId, playerId);
     }
 
-    public async ValueTask CacheAsync(ReportHistoryEntry entry, byte[] eventsJsonBytes)
+    public async ValueTask CacheAsync(ReportHistoryEntry entry, byte[] eventsJsonBytes, DateTimeOffset? expiresAt = null)
     {
         var module = await GetModuleAsync();
         await module.InvokeVoidAsync(
@@ -38,14 +38,16 @@ internal sealed class IndexedDbReportCacheService(IJSRuntime js) : IReportCacheS
             entry.PlayerName,
             // Stored as the lowercase hero id string in IndexedDB so the JS layer
             // can treat it as opaque metadata; converted back via Hero.TryParse on read.
-            entry.Hero?.ToHeroId());
+            entry.Hero?.ToHeroId(),
+            // Server-provided expiry in epoch milliseconds, or null for no expiry.
+            expiresAt.HasValue ? (long?)expiresAt.Value.ToUnixTimeMilliseconds() : null);
     }
 
     public async ValueTask<IReadOnlyList<ReportHistoryEntry>> GetHistoryAsync()
     {
         var module = await GetModuleAsync();
         var raw = await module.InvokeAsync<IndexedDbHistoryEntry[]>("getHistory");
-        return raw.Select(e => new ReportHistoryEntry(
+        return [.. raw.Select(e => new ReportHistoryEntry(
             e.ReportCode,
             e.FightId,
             e.PlayerId,
@@ -53,7 +55,7 @@ internal sealed class IndexedDbReportCacheService(IJSRuntime js) : IReportCacheS
             e.PlayerName,
             Hero.TryParse(e.HeroId, out var hero) ? hero.Name : null,
             DateTimeOffset.FromUnixTimeMilliseconds(e.CachedAt)
-        )).ToList();
+        ))];
     }
 
     public async ValueTask<string?> GetCachedMasterDataJsonAsync(string reportCode)

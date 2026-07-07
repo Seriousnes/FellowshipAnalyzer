@@ -1,5 +1,4 @@
 using FellowshipAnalyzer.Core.Analysis;
-using FellowshipAnalyzer.Heroes.Vigour.Modules;
 
 namespace FellowshipAnalyzer.Heroes.Vigour.Analysis;
 

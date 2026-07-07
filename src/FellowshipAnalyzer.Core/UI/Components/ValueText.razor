@@ -1,0 +1,17 @@
+@* ValueText — compact stat row with a plain text label above the value. Use when a stat isn't tied to a single spell. *@
+
+<div class="spell-value-text">
+    <label class="spell-value-text-label">
+        @Label
+    </label>
+    <div class="spell-value-text-value">
+        @ChildContent
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public RenderFragment Label { get; set; } = null!;
+
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+}

@@ -13,9 +13,9 @@ public enum ResourceTypes
     Secondary = 3,
     Spirit = 4,
     /// <summary>
-    /// Rime's secondary resource
+    /// Tertiary Resources,e.g. Rime's Winter Orb, etc
     /// </summary>
-    WinterOrb = 5,
+    Tertiary = 5,
     /// <summary>
     /// Delayed HP damage resource when Aeona is in the party
     /// </summary>

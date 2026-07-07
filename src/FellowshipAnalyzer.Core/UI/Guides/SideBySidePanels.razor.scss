@@ -1,0 +1,11 @@
+@use 'tokens' as t;
+@use 'mixins' as mx;
+
+.side-by-side-panels {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
+    gap: 12px;
+    align-items: stretch;
+
+    @include mx.mobile { grid-template-columns: 1fr; }
+}

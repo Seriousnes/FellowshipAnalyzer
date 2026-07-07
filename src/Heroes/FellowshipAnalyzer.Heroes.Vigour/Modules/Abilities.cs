@@ -1,6 +1,4 @@
 using FellowshipAnalyzer.Core.Analysis;
-using FellowshipAnalyzer.Core.Common.Spells;
-using FellowshipAnalyzer.Core.Common.Spells.Vigour;
 
 using CoreAbilities = FellowshipAnalyzer.Core.Analysis.Abilities;
 

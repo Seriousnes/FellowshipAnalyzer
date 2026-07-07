@@ -1,0 +1,80 @@
+@inject ElarionCombatLogParser Parser
+
+<GuideSection Title="Starfall Volley Desync">
+    <Explanation>
+        <p>
+            Stagger <SpellLink Spell="Spells.LunarlightMark" /> and <SpellLink Spell="Spells.StarfallVolley" />
+            by 10–15 seconds. Casting them together wastes the window where marks could be reapplied and
+            erupted between Volley casts.
+        </p>
+        <ol>
+            <li>Average gap below 5 seconds means the two cooldowns are stacked too tightly.</li>
+            <li>Each Volley row shows the gap from the previous Lunarlight Mark cast.</li>
+        </ol>
+    </Explanation>
+    <ChildContent>
+        <CastOverview Title="Spacing Overview" Stats="@BuildOverviewStats()" />
+        <CastDetail Title="Volley Casts"
+                    Description="Each Volley's gap from the previous Lunarlight Mark."
+                    Casts="@BuildPerCastData()" />
+    </ChildContent>
+</GuideSection>
+
+@code {
+    private StarfallVolleyDesyncAnalyzer Analyzer => Parser.StarfallVolleyDesync!;
+
+    private IEnumerable<OverviewStat> BuildOverviewStats()
+    {
+        var avg = Analyzer.AverageGapMs / 1000.0;
+        var avgTier = avg >= 10 && avg <= 15 ? PerformanceTier.Perfect
+            : avg >= 7 && avg < 20 ? PerformanceTier.Good
+            : avg >= 5 ? PerformanceTier.Ok
+            : PerformanceTier.Fail;
+
+        var closeTier = Analyzer.CloseGapCount == 0 ? PerformanceTier.Perfect
+            : Analyzer.CloseGapCount < 2 ? PerformanceTier.Good
+            : Analyzer.CloseGapCount < 4 ? PerformanceTier.Ok
+            : PerformanceTier.Fail;
+
+        return
+        [
+            new OverviewStat(
+                Analyzer.VolleyCount == 0 ? "—" : $"{avg:F1}s",
+                "Average Gap",
+                "Mean time between previous Mark and each Volley.",
+                Analyzer.VolleyCount == 0 ? null : avgTier),
+            new OverviewStat($"{Analyzer.CloseGapCount}", "Close Casts",
+                "Volleys cast within 5s of a Mark.", closeTier),
+            new OverviewStat($"{Analyzer.VolleyCount}", "Volleys", "Total Volley casts."),
+        ];
+    }
+
+    private IEnumerable<PerCastData> BuildPerCastData()
+    {
+        return Analyzer.Events.Select(ev =>
+        {
+            var gapSeconds = ev.GapMs == int.MaxValue ? -1 : ev.GapMs / 1000.0;
+
+            var tier = ev.GapMs == int.MaxValue
+                ? PerformanceTier.Ok
+                : gapSeconds >= 10 && gapSeconds <= 15 ? PerformanceTier.Perfect
+                : gapSeconds >= 7 ? PerformanceTier.Good
+                : gapSeconds >= 5 ? PerformanceTier.Ok
+                : PerformanceTier.Fail;
+
+            return new PerCastData
+            {
+                Performance = tier,
+                Timestamp = Parser.FormatTimestamp(ev.VolleyTimestamp),
+                Stats =
+                [
+                    new PerCastStat(
+                        ev.GapMs == int.MaxValue ? "—" : $"{gapSeconds:F1}s",
+                        "Gap from Mark",
+                        "Time since the previous Lunarlight Mark cast.",
+                        ev.GapMs == int.MaxValue ? null : tier),
+                ],
+            };
+        });
+    }
+}

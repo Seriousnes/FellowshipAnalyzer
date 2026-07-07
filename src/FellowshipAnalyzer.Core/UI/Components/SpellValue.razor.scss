@@ -1,0 +1,42 @@
+@use 'tokens' as t;
+
+.spell-value {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+}
+
+.spell-value-icon {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 14px 16px;
+    background: rgba(0, 0, 0, 0.18);
+    border-right: 1px solid t.$fa-border;
+}
+
+.spell-value-body {
+    flex: 1 1 auto;
+    padding: 10px 14px;
+    line-height: 1.15;
+    min-width: 0;
+}
+
+.spell-value-primary {
+    font-size: 1.6rem;
+    font-weight: 600;
+    color: t.$fa-text;
+    margin: 0 0 4px;
+
+    .perfect { color: t.$fa-perf-perfect; }
+    .good    { color: t.$fa-perf-good; }
+    .ok      { color: t.$fa-perf-ok; }
+    .fail    { color: t.$fa-perf-fail; }
+}
+
+.spell-value-label {
+    display: block;
+    font-size: 0.78rem;
+    color: t.$fa-text-muted;
+}

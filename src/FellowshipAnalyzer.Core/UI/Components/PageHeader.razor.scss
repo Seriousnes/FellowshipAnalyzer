@@ -1,0 +1,82 @@
+@use 'tokens' as t;
+
+.page-header {
+    border: 1px solid var(--fa-border-card);
+    background: var(--fa-bg-card);
+    box-shadow: var(--fa-shadow-card);
+    border-radius: var(--fa-radius-lg);
+    padding: 1.5rem 1.75rem 1.25rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.page-header-body {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.page-header-primary {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    min-width: 0;
+}
+
+.page-header-text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    min-width: 0;
+}
+
+.page-header-eyebrow {
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--fa-gold);
+}
+
+.page-header-title {
+    margin: 0;
+    font-size: clamp(1.4rem, 3vw, 2rem);
+    line-height: 1.1;
+}
+
+.page-header-subtitle {
+    color: var(--fa-text-muted);
+    font-size: 0.95rem;
+}
+
+.page-header-badges {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.page-header-secondary {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.page-header-footer {
+    margin-top: 0.25rem;
+}
+
+@media (max-width: 720px) {
+    .page-header {
+        padding: 1rem 1.1rem;
+    }
+
+    .page-header-body {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}

@@ -1,0 +1,77 @@
+@page "/page-header"
+
+<PageTitle>PageHeader — Design System</PageTitle>
+
+<h1>PageHeader</h1>
+<p class="lede">Slot-based hero panel. All sections optional; compose breadcrumbs, portrait, eyebrow, title, subtitle, badges, secondary, footer.</p>
+
+<CodeExample Title="Full composition" Code="@_fullCode">
+    <Demo>
+        <PageHeader Title="The Mire">
+            <Breadcrumbs><Breadcrumbs Items="_crumbs" /></Breadcrumbs>
+            <Portrait><Avatar Size="AvatarSize.Xl" FallbackText="M" /></Portrait>
+            <Badges>
+                <Badge Variant="BadgeVariant.Success" Size="BadgeSize.Sm">✓ Kill</Badge>
+                <span style="color: var(--fa-text-dim); font-size: 0.85rem; font-variant-numeric: tabular-nums;">4:23</span>
+            </Badges>
+            <Secondary>
+                <Avatar Size="AvatarSize.Lg" FallbackText="P" AccentColorVar="var(--fa-role-dps)" />
+                <div style="display:flex; flex-direction:column;">
+                    <strong style="font-size: 1.2rem;">Playername</strong>
+                    <span style="font-size: 0.85rem; color: var(--fa-text-muted);">Rime</span>
+                </div>
+            </Secondary>
+        </PageHeader>
+    </Demo>
+</CodeExample>
+
+<CodeExample Title="Minimal — title only" Code="@_minimalCode">
+    <Demo><PageHeader Title="Sample Report" /></Demo>
+</CodeExample>
+
+<CodeExample Title="Eyebrow + subtitle" Code="@_eyebrowCode">
+    <Demo>
+        <PageHeader Title="Combat Log Summary">
+            <Eyebrow>Combat Report</Eyebrow>
+            <Subtitle>Select a fight and player to analyze.</Subtitle>
+        </PageHeader>
+    </Demo>
+</CodeExample>
+
+@code {
+    private static readonly IReadOnlyList<BreadcrumbItem> _crumbs =
+    [
+        new("Sample report", "/"),
+        new("The Mire"),
+        new("Playername"),
+    ];
+
+    private const string _fullCode = """
+<PageHeader Title="The Mire">
+    <Breadcrumbs><Breadcrumbs Items="_crumbs" /></Breadcrumbs>
+    <Portrait><Avatar Size="AvatarSize.Xl" FallbackText="M" /></Portrait>
+    <Badges>
+        <Badge Variant="BadgeVariant.Success" Size="BadgeSize.Sm">✓ Kill</Badge>
+        <span>4:23</span>
+    </Badges>
+    <Secondary>
+        <Avatar Size="AvatarSize.Lg" FallbackText="P" AccentColorVar="var(--fa-role-dps)" />
+        <div>
+            <strong>Playername</strong>
+            <span>Rime</span>
+        </div>
+    </Secondary>
+</PageHeader>
+""";
+
+    private const string _minimalCode = """
+<PageHeader Title="Sample Report" />
+""";
+
+    private const string _eyebrowCode = """
+<PageHeader Title="Combat Log Summary">
+    <Eyebrow>Combat Report</Eyebrow>
+    <Subtitle>Select a fight and player to analyze.</Subtitle>
+</PageHeader>
+""";
+}

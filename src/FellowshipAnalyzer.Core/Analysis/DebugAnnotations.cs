@@ -36,7 +36,7 @@ public sealed class DebugAnnotations : Module
     public ModuleAnnotations GetModuleAnnotations(Module module)
     {
         var annotatedEvents = _annotations.TryGetValue(module, out var eventMap)
-            ? eventMap.Select(kvp => new AnnotatedEvent(kvp.Key, kvp.Value)).ToList()
+            ? [.. eventMap.Select(kvp => new AnnotatedEvent(kvp.Key, kvp.Value))]
             : (IReadOnlyList<AnnotatedEvent>)[];
 
         return new ModuleAnnotations(module, annotatedEvents);

@@ -1,17 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-using FellowshipAnalyzer.Core.Analysis;
 using FellowshipAnalyzer.Core.Common.Spells;
 using FellowshipAnalyzer.Core.Events;
 using FellowshipAnalyzer.Core.Game;
+using FellowshipAnalyzer.Core.Resources;
+
+using Microsoft.Extensions.Logging;
 
 namespace FellowshipAnalyzer.Heroes.Elarion.Modules;
 
 public class FocusTracker : ResourceTracker
 {
-    public FocusTracker()
+    public FocusTracker(ILogger<ResourceTracker> logger) : base(logger)
     {
         DisplayNameOverrides[ResourceTypes.Primary] = "Focus";
     }

@@ -1,9 +1,6 @@
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
@@ -110,8 +107,7 @@ public sealed class ApiEndpointGenerator : IIncrementalGenerator
                 }
 
                 var httpMethod = attr.ConstructorArguments[0].Value as string;
-                var route = attr.ConstructorArguments[1].Value as string;
-                if (string.IsNullOrWhiteSpace(httpMethod) || route is null)
+                if (string.IsNullOrWhiteSpace(httpMethod) || attr.ConstructorArguments[1].Value is not string route)
                 {
                     continue;
                 }

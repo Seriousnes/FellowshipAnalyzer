@@ -1,0 +1,20 @@
+@* PerfBadgeCount — static performance-distribution badge (count + label, colored by tier). *@
+
+@{
+    var color = PerformanceColors.ToColor(Performance);
+    var label = Label ?? PerformanceColors.ToLabel(Performance);
+}
+
+<div class="perf-badge" style="border-color: @(color)60;">
+    <span class="perf-badge-count" style="color: @color;">@Count</span>
+    <span class="perf-badge-divider" style="background: @(color)40;"></span>
+    <span class="perf-badge-label">@label</span>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public PerformanceTier Performance { get; set; }
+    [Parameter, EditorRequired] public int Count { get; set; }
+
+    /// <summary>Override the label text. Defaults to the tier name.</summary>
+    [Parameter] public string? Label { get; set; }
+}

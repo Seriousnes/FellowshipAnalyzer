@@ -1,0 +1,9 @@
+@* Explanation — styled prose container for the "why this matters" copy in a SubSection. *@
+
+<div class="explanation">
+    @ChildContent
+</div>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+}

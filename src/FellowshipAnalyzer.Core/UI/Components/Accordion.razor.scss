@@ -1,0 +1,40 @@
+@use 'tokens' as t;
+
+.accordion-item {
+    margin-bottom: 0.5rem;
+}
+
+.accordion-item-header {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    width: 100%;
+    padding: 0.6rem 0.85rem;
+    border: 1px solid var(--fa-border);
+    border-radius: var(--fa-radius-sm);
+    background: var(--fa-bg-raised);
+    color: var(--fa-text);
+    cursor: pointer;
+    font-family: inherit;
+    text-align: left;
+    appearance: none;
+    transition: background 0.15s;
+
+    &:hover {
+        background: var(--fa-bg-surface);
+    }
+}
+
+.accordion-item.expanded > .accordion-item-header {
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    border-bottom-color: transparent;
+}
+
+.accordion-item-body {
+    border: 1px solid var(--fa-border);
+    border-top: none;
+    border-radius: 0 0 var(--fa-radius-sm) var(--fa-radius-sm);
+    background: var(--fa-bg-inset);
+    padding: 0.5rem 0.85rem 0.75rem;
+}

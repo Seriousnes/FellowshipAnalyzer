@@ -1,5 +1,6 @@
 using FellowshipAnalyzer.Core;
 using FellowshipAnalyzer.Core.Analysis;
+using FellowshipAnalyzer.Core.FellowshipLogs;
 using FellowshipAnalyzer.Heroes.Sylvie.Analysis;
 
 using Microsoft.Extensions.DependencyInjection;
@@ -24,7 +25,7 @@ public sealed class SylvieAnalysisEngineTests
         using var scope = provider.CreateScope();
 
         var analyzer = scope.ServiceProvider.GetRequiredKeyedService<IHeroAnalyzer>(HeroName.Sylvie);
-        var result = await analyzer.Analyze([], playerId: 1, fightStartTime: 0);
+        var result = await analyzer.Analyze([], playerId: 1, fight: new ReportFight(0, "", 0, null, 0, 0, null, null, null));
 
         result.GuideComponentType.ShouldBeNull();
     }

@@ -5,10 +5,13 @@ using FellowshipAnalyzer.ServiceDefaults;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.AddServiceDefaults();
+builder.AddAzureBlobServiceClient("blobs");
 
 builder.Services.AddFellowshipLogsApi(
     builder.Configuration,
     allowDevelopmentLoopbackOrigins: builder.Environment.IsDevelopment());
+
+builder.Services.AddBlobPersistentCache();
 
 builder.Services.AddOpenApi();
 builder.Services.AddEndpointsApiExplorer();

@@ -1,5 +1,4 @@
 using FellowshipAnalyzer.Core.Analysis;
-using FellowshipAnalyzer.Heroes.Mara.Modules;
 
 namespace FellowshipAnalyzer.Heroes.Mara.Analysis;
 

@@ -1,0 +1,62 @@
+@inject ElarionCombatLogParser Parser
+
+<GuideSection Title="Voidbringer's Touch">
+    <Explanation>
+        <p>
+            Send <SpellLink Spell="Spells.VoidbringerTouch" /> ASAP, then save the next so the cadence
+            becomes void → ult → void. Casting on the same target before the first mark is consumed
+            (double-mark) wastes spirit generation.
+        </p>
+        <ol>
+            <li>Use the first cast off cooldown unconditionally.</li>
+            <li>Hold the next cast until after your ultimate window.</li>
+        </ol>
+    </Explanation>
+    <ChildContent>
+        <CastOverview Title="Cast Discipline" Stats="@BuildOverviewStats()" />
+        <CastDetail Title="Voidbringer Casts"
+                    Description="Cast targets and whether they re-marked an unconsumed target."
+                    Casts="@BuildPerCastData()" />
+    </ChildContent>
+</GuideSection>
+
+@code {
+    private VoidbringerTouchAnalyzer Analyzer => Parser.VoidbringerTouch!;
+
+    private IEnumerable<OverviewStat> BuildOverviewStats()
+    {
+        var doubleTier = Analyzer.DoubleMarks == 0 ? PerformanceTier.Perfect
+            : Analyzer.DoubleMarks < 2 ? PerformanceTier.Good
+            : Analyzer.DoubleMarks < 4 ? PerformanceTier.Ok
+            : PerformanceTier.Fail;
+
+        return
+        [
+            new OverviewStat($"{Analyzer.TotalCasts}", "Casts",
+                "Total Voidbringer's Touch casts."),
+            new OverviewStat($"{Analyzer.DoubleMarks}", "Double Marks",
+                "Casts on the same target before the prior mark was consumed.", doubleTier),
+        ];
+    }
+
+    private IEnumerable<PerCastData> BuildPerCastData()
+    {
+        return Analyzer.Casts.Select(cast => new PerCastData
+        {
+            Performance = cast.IsDoubleMark ? PerformanceTier.Fail : PerformanceTier.Good,
+            Timestamp = Parser.FormatTimestamp(cast.Timestamp),
+            Stats =
+            [
+                new PerCastStat(
+                    Parser.ActorNames.TryGetValue(cast.TargetId, out var name) ? name : $"#{cast.TargetId}",
+                    "Target",
+                    "Target of the Voidbringer's Touch cast."),
+                new PerCastStat(
+                    cast.IsDoubleMark ? "Yes" : "No",
+                    "Double Mark",
+                    "Whether the target was already marked when this cast landed.",
+                    cast.IsDoubleMark ? PerformanceTier.Fail : PerformanceTier.Good),
+            ],
+        });
+    }
+}

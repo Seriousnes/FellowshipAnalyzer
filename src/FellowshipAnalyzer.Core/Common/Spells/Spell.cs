@@ -19,7 +19,7 @@ public record Spell(int Id, string Name = "", string Icon = "") : IRimeSpell, IE
     public virtual int Guid => Id;
     public virtual int? SpiritCost { get; init; }
 
-/// <summary>
+    /// <summary>
     /// Creates a <see cref="Spell"/> or <see cref="Effect"/> from a combat-log <c>abilityGameID</c>.
     /// IDs &ge; 1,000,000 are effects; below that are plain spells.
     /// </summary>

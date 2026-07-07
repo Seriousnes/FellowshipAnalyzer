@@ -1,0 +1,15 @@
+@* PerformanceRoundedPanel — RoundedPanel with an inset left shadow tinted by performance tier. *@
+
+@{
+    var color = PerformanceColors.ToColor(Performance);
+}
+
+<div class="perf-rounded-panel"
+     style="--perf-color: @color;">
+    @ChildContent
+</div>
+
+@code {
+    [Parameter, EditorRequired] public PerformanceTier Performance { get; set; }
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+}

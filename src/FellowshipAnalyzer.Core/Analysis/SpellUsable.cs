@@ -7,25 +7,16 @@ namespace FellowshipAnalyzer.Core.Analysis;
 /// <see cref="UpdateSpellUsableEvent"/> events when spells go on/off cooldown.
 /// Also tracks all player casts (replacing the former TrackedStateModule).
 /// </summary>
-public sealed class SpellUsable : Analyzer
+public sealed partial class SpellUsable(Lazy<Abilities> abilities, Lazy<DebugAnnotations> debugAnnotations, Lazy<Haste> haste) : Analyzer
 {
     private readonly Dictionary<int, CooldownInfo> _cooldowns = [];
     private readonly List<TrackedAbilityCast> _casts = [];
-    private readonly Dictionary<(int, int), int> _pendingBeginCastTimestamps = [];
 
-    private Abilities _abilities = null!;
-    private DebugAnnotations _debugAnnotations = null!;
+    private double _globalRateMultiplier = 1.0;
+    private readonly Dictionary<int, double> _spellRateMultipliers = [];
 
-    public override void Initialize()
-    {
-        _abilities = Owner.GetModule<Abilities>()!;
-        _debugAnnotations = Owner.GetModule<DebugAnnotations>()!;
-
-        AddEventListener(Events.BeginCast.By(SELECTED_PLAYER), OnBeginCast);
-        AddEventListener(Events.Cast.By(SELECTED_PLAYER), OnCast);
-        AddEventListener(Events.PrefilterCD.By(SELECTED_PLAYER), OnFilterCooldown);
-        AddEventListener(Events.Any, OnAnyEvent);
-    }
+    private int _nextLeaseId = 1;
+    private readonly Dictionary<int, HasteScaledLease> _hasteScaledLeases = [];
 
     public IReadOnlyList<TrackedAbilityCast> Casts => _casts;
 
@@ -51,8 +42,6 @@ public sealed class SpellUsable : Analyzer
             return milliseconds;
         }
 
-        // CDR meets or exceeds this charge's remaining time — restore the charge and recurse
-        // into the next charge's cooldown with any leftover CDR.
         EndCooldown(spellId, timestamp);
         return remaining + ReduceCooldown(spellId, milliseconds - remaining, timestamp);
     }
@@ -68,20 +57,19 @@ public sealed class SpellUsable : Analyzer
 
     public int CooldownRemaining(int spellId, int? atTimestamp = null)
     {
-        var ts = atTimestamp ?? _currentTimestamp;
+        var ts = atTimestamp ?? this.Owner.CurrentTimestamp;
         return _cooldowns.TryGetValue(spellId, out var cd)
             ? Math.Max(0, cd.ExpectedEnd - ts)
             : 0;
     }
 
-    public void BeginCooldown(int spellId, int timestamp, int castStart = 0)
+    public void BeginCooldown(int spellId, int timestamp)
     {
-        if (castStart <= 0) castStart = timestamp;
-
         if (!_cooldowns.TryGetValue(spellId, out var cd))
         {
-            var cdDuration = (int)(_abilities.GetExpectedCooldown(spellId) * 1000);
-            if (cdDuration <= 0) return;
+            var baseDurationMs = (int)(_abilities.GetExpectedCooldown(spellId) * 1000);
+            if (baseDurationMs <= 0) return;
+            var cdDuration = (int)(baseDurationMs / EffectiveRate(spellId));
 
             var maxCharges = _abilities.GetMaxCharges(spellId);
             cd = new CooldownInfo(
@@ -93,18 +81,18 @@ public sealed class SpellUsable : Analyzer
                 MaxCharges: maxCharges);
             _cooldowns[spellId] = cd;
 
-            FabricateUpdate(UpdateSpellUsableType.BeginCooldown, spellId, timestamp, cd, castStart);
+            FabricateUpdate(UpdateSpellUsableType.BeginCooldown, spellId, timestamp, cd);
         }
         else if (cd.ChargesAvailable > 0)
         {
             cd = cd with { ChargesAvailable = cd.ChargesAvailable - 1 };
             _cooldowns[spellId] = cd;
-            FabricateUpdate(UpdateSpellUsableType.UseCharge, spellId, timestamp, cd, castStart);
+            FabricateUpdate(UpdateSpellUsableType.UseCharge, spellId, timestamp, cd);
         }
         else
         {
             EndCooldown(spellId, timestamp);
-            BeginCooldown(spellId, timestamp, castStart);
+            BeginCooldown(spellId, timestamp);
         }
     }
 
@@ -131,12 +119,7 @@ public sealed class SpellUsable : Analyzer
         }
     }
 
-    private void OnBeginCast(BeginCastEvent e)
-    {
-        if (e.Ability is not null)
-            _pendingBeginCastTimestamps[(e.Ability.Id, e.SourceId)] = e.Timestamp;
-    }
-
+    [On<CastEvent>(By = Actor.Player)]
     private void OnCast(CastEvent e)
     {
         _casts.Add(new TrackedAbilityCast(e.Timestamp, e.Ability.Id, e.TargetId));
@@ -159,24 +142,19 @@ public sealed class SpellUsable : Analyzer
                 Priority: 10));
         }
 
-        _pendingBeginCastTimestamps.Remove((e.Ability.Id, e.SourceId), out var castStart);
-        BeginCooldown(e.Ability.Id, e.Timestamp, castStart);
+        BeginCooldown(e.Ability.Id, e.Timestamp);
     }
 
+    [On<FilterCooldownInfoEvent>(By = Actor.Player)]
     private void OnFilterCooldown(FilterCooldownInfoEvent e) =>
         BeginCooldown(e.Ability.Id, e.Timestamp);
 
-    private int _currentTimestamp;
-
-    private void OnAnyEvent(Event e)
-    {
-        _currentTimestamp = e.Timestamp;
-        AdvanceCooldowns(e.Timestamp);
-    }
+    [On<Event>]
+    private void OnAnyEvent(Event e) => AdvanceCooldowns(e.Timestamp);
 
     /// <summary>
     /// Checks whether any in-flight cooldowns have naturally expired and fires
-    /// <see cref="UpdateSpellUsableEvent"/> for each one.
+    /// <see cref="UpdateSpellUsableEvent"/> for each one, in chronological order.
     /// </summary>
     private void AdvanceCooldowns(int timestamp)
     {
@@ -192,11 +170,140 @@ public sealed class SpellUsable : Analyzer
 
         if (expired is null) return;
 
+        expired.Sort((a, b) => _cooldowns[a].ExpectedEnd.CompareTo(_cooldowns[b].ExpectedEnd));
+
         foreach (var spellId in expired)
             EndCooldown(spellId, _cooldowns[spellId].ExpectedEnd);
     }
 
-    private void FabricateUpdate(UpdateSpellUsableType updateType, int spellId, int timestamp, CooldownInfo cd, int castStart = 0)
+    /// <summary>
+    /// Returns the current effective cooldown-rate multiplier for the given spell:
+    /// the product of the global rate and any spell-specific rate. A value of 2.0
+    /// means cooldowns elapse twice as fast.
+    /// </summary>
+    public double EffectiveRate(int spellId) =>
+        _globalRateMultiplier * (_spellRateMultipliers.TryGetValue(spellId, out var r) ? r : 1.0);
+
+    /// <summary>
+    /// Multiplies the cooldown rate of <paramref name="spellId"/> by <paramref name="rateMultiplier"/>.
+    /// Existing in-flight cooldowns for that spell are rescaled in place; future cooldowns
+    /// start <paramref name="rateMultiplier"/>× shorter.
+    /// </summary>
+    public void ApplyCooldownRateChange(int spellId, double rateMultiplier, int? timestamp = null)
+    {
+        if (rateMultiplier <= 0 || rateMultiplier == 1.0) return;
+        var ts = timestamp ?? Owner.CurrentTimestamp;
+        AdvanceCooldowns(ts);
+
+        _spellRateMultipliers[spellId] =
+            (_spellRateMultipliers.TryGetValue(spellId, out var r) ? r : 1.0) * rateMultiplier;
+
+        if (_cooldowns.ContainsKey(spellId))
+            HandleChangeRate(spellId, rateMultiplier, ts);
+    }
+
+    /// <summary>
+    /// Multiplies the cooldown rate of every spell by <paramref name="rateMultiplier"/>.
+    /// </summary>
+    public void ApplyCooldownRateChangeToAll(double rateMultiplier, int? timestamp = null)
+    {
+        if (rateMultiplier <= 0 || rateMultiplier == 1.0) return;
+        var ts = timestamp ?? Owner.CurrentTimestamp;
+        AdvanceCooldowns(ts);
+
+        _globalRateMultiplier *= rateMultiplier;
+
+        foreach (var spellId in _cooldowns.Keys.ToList())
+            HandleChangeRate(spellId, rateMultiplier, ts);
+    }
+
+    /// <summary>Inverse of <see cref="ApplyCooldownRateChange"/>; pair with the same multiplier.</summary>
+    public void RemoveCooldownRateChange(int spellId, double rateMultiplier, int? timestamp = null)
+    {
+        if (rateMultiplier <= 0 || rateMultiplier == 1.0) return;
+        ApplyCooldownRateChange(spellId, 1.0 / rateMultiplier, timestamp);
+    }
+
+    /// <summary>Inverse of <see cref="ApplyCooldownRateChangeToAll"/>; pair with the same multiplier.</summary>
+    public void RemoveCooldownRateChangeFromAll(double rateMultiplier, int? timestamp = null)
+    {
+        if (rateMultiplier <= 0 || rateMultiplier == 1.0) return;
+        ApplyCooldownRateChangeToAll(1.0 / rateMultiplier, timestamp);
+    }
+
+    /// <summary>
+    /// Rescales the in-flight cooldown for <paramref name="spellId"/>: remaining time is
+    /// divided by <paramref name="rateChange"/>, total RechargeDuration is divided likewise.
+    /// OverallStart and ChargeStart are preserved.
+    /// </summary>
+    private void HandleChangeRate(int spellId, double rateChange, int timestamp)
+    {
+        var cd = _cooldowns[spellId];
+        var remaining = Math.Max(0, cd.ExpectedEnd - timestamp);
+        var percentRemaining = cd.RechargeDuration == 0 ? 0 : (double)remaining / cd.RechargeDuration;
+        var newRecharge = (int)Math.Round(cd.RechargeDuration / rateChange);
+        var newRemaining = (int)Math.Round(newRecharge * percentRemaining);
+        cd = cd with { RechargeDuration = newRecharge, ExpectedEnd = timestamp + newRemaining };
+        _cooldowns[spellId] = cd;
+        FabricateUpdate(UpdateSpellUsableType.ChangeCooldownRate, spellId, timestamp, cd);
+    }
+
+    /// <summary>
+    /// Applies a cooldown-rate change scaled to the player's current haste:
+    /// <c>rate = 1.0 + Haste.Current</c>. The lease automatically re-balances on every
+    /// <see cref="ChangeHasteEvent"/> until released via <see cref="RemoveHasteScaledRateChange"/>.
+    /// </summary>
+    /// <param name="spellId">When non-null, scopes the rate change to a single spell; otherwise applies to all.</param>
+    public CooldownRateLease ApplyHasteScaledRateChange(int? spellId = null, int? timestamp = null)
+    {
+        var rate = 1.0 + _haste.Current;
+        var ts = timestamp ?? Owner.CurrentTimestamp;
+        ApplyForLease(spellId, rate, ts);
+        var lease = new CooldownRateLease(_nextLeaseId++);
+        _hasteScaledLeases[lease.Id] = new HasteScaledLease(spellId, rate);
+        return lease;
+    }
+
+    /// <summary>Releases a haste-scaled lease, inverting whatever rate was last applied.</summary>
+    public void RemoveHasteScaledRateChange(CooldownRateLease lease, int? timestamp = null)
+    {
+        if (!_hasteScaledLeases.Remove(lease.Id, out var info)) return;
+        var ts = timestamp ?? Owner.CurrentTimestamp;
+        RemoveForLease(info.SpellId, info.LastAppliedRate, ts);
+    }
+
+    [On<ChangeHasteEvent>]
+    private void OnChangeHaste(ChangeHasteEvent e)
+    {
+        if (_hasteScaledLeases.Count == 0) return;
+        var newRate = 1.0 + (e.NewHaste ?? 0.0);
+        foreach (var leaseId in _hasteScaledLeases.Keys.ToList())
+        {
+            var info = _hasteScaledLeases[leaseId];
+            if (info.LastAppliedRate == newRate) continue;
+            var diff = newRate / info.LastAppliedRate;
+            ApplyForLease(info.SpellId, diff, e.Timestamp);
+            _hasteScaledLeases[leaseId] = info with { LastAppliedRate = newRate };
+        }
+    }
+
+    private void ApplyForLease(int? spellId, double rate, int timestamp)
+    {
+        if (spellId is int id)
+            ApplyCooldownRateChange(id, rate, timestamp);
+        else
+            ApplyCooldownRateChangeToAll(rate, timestamp);
+    }
+
+    private void RemoveForLease(int? spellId, double rate, int timestamp)
+    {
+        if (spellId is int id)
+            RemoveCooldownRateChange(id, rate, timestamp);
+        else
+            RemoveCooldownRateChangeFromAll(rate, timestamp);
+    }
+
+    private void FabricateUpdate(UpdateSpellUsableType updateType, int spellId, int timestamp, CooldownInfo cd)
     {
         var ability = _abilities.GetAbility(spellId);
 
@@ -211,7 +318,6 @@ public sealed class SpellUsable : Analyzer
             MaxCharges = cd.MaxCharges,
             OverallStartTimestamp = cd.OverallStart,
             ChargeStartTimestamp = cd.ChargeStart,
-            CastStartTimestamp = castStart > 0 ? castStart : timestamp,
             ExpectedRechargeTimestamp = cd.ExpectedEnd,
             ExpectedRechargeDuration = cd.RechargeDuration,
             SourceId = Owner.PlayerId,
@@ -228,7 +334,15 @@ public sealed class SpellUsable : Analyzer
         int RechargeDuration,
         int ChargesAvailable,
         int MaxCharges);
+
+    private readonly record struct HasteScaledLease(int? SpellId, double LastAppliedRate);
 }
+
+/// <summary>
+/// Opaque handle returned by <see cref="SpellUsable.ApplyHasteScaledRateChange"/>.
+/// Pass back to <see cref="SpellUsable.RemoveHasteScaledRateChange"/> to release.
+/// </summary>
+public readonly record struct CooldownRateLease(int Id);
 
 /// <summary>
 /// A point-in-time record of a single player cast.

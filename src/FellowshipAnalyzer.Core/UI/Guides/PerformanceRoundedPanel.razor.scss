@@ -1,0 +1,14 @@
+@use 'tokens' as t;
+
+.perf-rounded-panel {
+    background: var(--fa-bg-inset);
+    border: 1px solid var(--fa-border);
+    border-radius: t.$fa-radius-sm;
+    padding: 12px;
+    display: grid;
+    gap: 10px;
+    min-width: 0;
+    align-items: start;
+    box-shadow: inset 4px 0 0 0 var(--perf-color, transparent),
+                inset 14px 0 22px -10px color-mix(in srgb, var(--perf-color, transparent) 35%, transparent);
+}

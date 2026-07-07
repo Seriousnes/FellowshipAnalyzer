@@ -1,0 +1,59 @@
+@page "/spell-icon"
+@using FellowshipAnalyzer.Core.Common.Spells.Rime
+
+<PageTitle>SpellIcon — Design System</PageTitle>
+
+<h1>SpellIcon</h1>
+<p class="lede">A square spell icon with tooltip link. Accepts a <code>Spell</code>, a raw int <code>SpellId</code>, a <code>SpellbookAbility</code>, or an <code>Ability</code> via the <code>OneOf</code> parameter.</p>
+
+<CodeExample Title="Sizes" Code="@_sizesCode">
+    <Demo>
+        <div class="showcase-row">
+            <SpellIcon Spell="Spells.FrostBolt" Size="SpellIconSize.Small" />
+            <SpellIcon Spell="Spells.FrostBolt" Size="SpellIconSize.Medium" />
+            <SpellIcon Spell="Spells.FrostBolt" Size="SpellIconSize.Large" />
+        </div>
+    </Demo>
+</CodeExample>
+
+<CodeExample Title="From a Spell instance"
+             Description="Hover for tooltip; click opens the ability page on fellows.gg."
+             Code="@_spellCode">
+    <Demo>
+        <div class="showcase-row">
+            <SpellIcon Spell="Spells.IceComet" Size="SpellIconSize.Medium" />
+            <SpellIcon Spell="Spells.GlacialBlast" Size="SpellIconSize.Medium" />
+            <SpellIcon Spell="Spells.FreezingTorrent" Size="SpellIconSize.Medium" />
+            <SpellIcon Spell="Spells.FlightOfTheNavir" Size="SpellIconSize.Medium" />
+        </div>
+    </Demo>
+</CodeExample>
+
+<CodeExample Title="No tooltip"
+             Description="Pass NoTooltip when the icon is nested inside a parent that already provides tooltip behavior (e.g. SpellLink)."
+             Code="@_noTooltipCode">
+    <Demo>
+        <div class="showcase-row">
+            <SpellIcon Spell="Spells.IceBlitz" Size="SpellIconSize.Large" NoTooltip />
+        </div>
+    </Demo>
+</CodeExample>
+
+@code {
+    private const string _sizesCode = """
+<SpellIcon Spell="Spells.FrostBolt" Size="SpellIconSize.Small" />
+<SpellIcon Spell="Spells.FrostBolt" Size="SpellIconSize.Medium" />
+<SpellIcon Spell="Spells.FrostBolt" Size="SpellIconSize.Large" />
+""";
+
+    private const string _spellCode = """
+<SpellIcon Spell="Spells.IceComet" />
+<SpellIcon Spell="Spells.GlacialBlast" />
+<SpellIcon Spell="@damageEvent.Ability" />
+<SpellIcon Spell="1029" />
+""";
+
+    private const string _noTooltipCode = """
+<SpellIcon Spell="Spells.IceBlitz" Size="SpellIconSize.Large" NoTooltip />
+""";
+}

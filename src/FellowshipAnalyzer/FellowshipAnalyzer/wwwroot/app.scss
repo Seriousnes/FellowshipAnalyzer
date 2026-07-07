@@ -31,10 +31,13 @@
     --fa-border-card: #{t.$fa-border-card};
 
     // Performance accents
-    --fa-perf-perfect: #{t.$fa-perf-perfect};
-    --fa-perf-good:    #{t.$fa-perf-good};
-    --fa-perf-ok:      #{t.$fa-perf-ok};
-    --fa-perf-fail:    #{t.$fa-perf-fail};
+    --fa-perf-perfect:   #{t.$fa-perf-perfect};
+    --fa-perf-good:      #{t.$fa-perf-good};
+    --fa-perf-ok:        #{t.$fa-perf-ok};
+    --fa-perf-fail:      #{t.$fa-perf-fail};
+    --fa-perf-very-bad:  #{t.$fa-perf-very-bad};
+    --fa-perf-mediocre:  #{t.$fa-perf-mediocre};
+    --fa-perf-available: #{t.$fa-perf-available};
 
     // Hero role accents
     --fa-role-tank:    #{t.$fa-role-tank};

@@ -41,6 +41,7 @@ namespace FellowshipAnalyzer.Core.Serialization;
 [JsonSerializable(typeof(ExtraAttacksEvent))]
 [JsonSerializable(typeof(FeedHealEvent))]
 [JsonSerializable(typeof(FightEndEvent))]
+[JsonSerializable(typeof(FightStartEvent))]
 [JsonSerializable(typeof(FilterBuffInfoEvent))]
 [JsonSerializable(typeof(FilterCooldownInfoEvent))]
 [JsonSerializable(typeof(FreeCastEvent))]

@@ -1,0 +1,54 @@
+@use 'tokens' as t;
+
+.spell-value-text {
+    padding: 4px 0;
+
+    & + & {
+        margin-top: 14px;
+        padding-top: 14px;
+        border-top: 1px solid t.$fa-border;
+    }
+}
+
+.spell-value-text-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 8px;
+    color: t.$fa-text-muted;
+    font-size: 0.85rem;
+    font-weight: 600;
+    letter-spacing: 0.4px;
+}
+
+.spell-value-text-value {
+    font-size: 1.6rem;
+    font-weight: 600;
+    line-height: 1.2;
+    color: t.$fa-text;
+
+    small {
+        font-size: 0.75rem;
+        font-weight: 400;
+        color: t.$fa-text-muted;
+        margin-left: 4px;
+    }
+
+    .stat-sub {
+        display: block;
+        font-size: 1rem;
+        font-weight: 500;
+        color: t.$fa-text;
+        margin-top: 2px;
+
+        small {
+            font-size: 0.7rem;
+            margin-left: 4px;
+        }
+    }
+
+    .perfect { color: t.$fa-perf-perfect; }
+    .good    { color: t.$fa-perf-good; }
+    .ok      { color: t.$fa-perf-ok; }
+    .fail    { color: t.$fa-perf-fail; }
+}

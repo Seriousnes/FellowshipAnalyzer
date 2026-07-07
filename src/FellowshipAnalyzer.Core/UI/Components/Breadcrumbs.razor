@@ -1,0 +1,35 @@
+@* Breadcrumbs — list-driven breadcrumb trail with separator and current-item styling. *@
+
+<nav class="breadcrumbs" aria-label="Breadcrumb" @attributes="InputAttributes">
+    @for (var i = 0; i < Items.Count; i++)
+    {
+        var item = Items[i];
+        var isLast = i == Items.Count - 1;
+        if (item.Href is not null && !isLast)
+        {
+            <a class="breadcrumbs-link" href="@item.Href">@item.Label</a>
+        }
+        else if (isLast)
+        {
+            <span class="breadcrumbs-current" aria-current="page">@item.Label</span>
+        }
+        else
+        {
+            <span class="breadcrumbs-current">@item.Label</span>
+        }
+        if (!isLast)
+        {
+            <span class="breadcrumbs-sep" aria-hidden="true">@Separator</span>
+        }
+    }
+    @ChildContent
+</nav>
+
+@code {
+    [Parameter] public IReadOnlyList<BreadcrumbItem> Items { get; set; } = [];
+    [Parameter] public string Separator { get; set; } = "›";
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object> InputAttributes { get; set; } = new();
+}

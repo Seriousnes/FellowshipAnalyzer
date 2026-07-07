@@ -1,0 +1,39 @@
+@* Statistic — outer panel for a statistics-tab card. Optional info tooltip surfaces as an "i" icon in the corner. *@
+
+<div class="statistic @SizeClass @(string.IsNullOrEmpty(Class) ? "" : Class)">
+    <div class="statistic-body">
+        @ChildContent
+    </div>
+    @if (Tooltip is not null)
+    {
+        <div class="statistic-info" title="@TooltipTitle">
+            <span class="statistic-info-glyph">i</span>
+            <div class="statistic-info-content">@Tooltip</div>
+        </div>
+    }
+</div>
+
+@code {
+    /// <summary>Card content — usually one or more <c>SpellValueText</c> / <c>ValueText</c> rows.</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>Hover tooltip rendered when present; surfaces an info glyph in the corner.</summary>
+    [Parameter] public RenderFragment? Tooltip { get; set; }
+
+    /// <summary>Plain-text title set on the corner glyph for native browser tooltips.</summary>
+    [Parameter] public string? TooltipTitle { get; set; }
+
+    /// <summary>Sizing variant: <c>small</c>, <c>standard</c>, <c>medium</c>, <c>flexible</c> (default).</summary>
+    [Parameter] public StatisticSize Size { get; set; } = StatisticSize.Flexible;
+
+    /// <summary>Extra CSS class applied to the outer panel.</summary>
+    [Parameter] public string? Class { get; set; }
+
+    private string SizeClass => Size switch
+    {
+        StatisticSize.Small => "small",
+        StatisticSize.Standard => "standard",
+        StatisticSize.Medium => "medium",
+        _ => "flexible",
+    };
+}

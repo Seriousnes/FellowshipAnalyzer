@@ -29,7 +29,13 @@ public interface IReportCacheService
     /// Caches the raw UTF-8 events JSON bytes for a completed fight and records it in history.
     /// Must only be called when <c>inProgress = false</c>.
     /// </summary>
-    ValueTask CacheAsync(ReportHistoryEntry entry, byte[] eventsJsonBytes);
+    /// <param name="entry">History metadata for the fight.</param>
+    /// <param name="eventsJsonBytes">Raw UTF-8 JSON bytes of the events response.</param>
+    /// <param name="expiresAt">
+    /// Optional UTC expiry from the server's <c>X-FellowshipAnalyzer-ExpiresAt</c> response header.
+    /// When provided, the cache entry will be considered stale after this time and re-fetched.
+    /// </param>
+    ValueTask CacheAsync(ReportHistoryEntry entry, byte[] eventsJsonBytes, DateTimeOffset? expiresAt = null);
 
     /// <summary>
     /// Returns all history entries, newest first.

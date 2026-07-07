@@ -1,0 +1,70 @@
+@page "/spell-sequence"
+@using FellowshipAnalyzer.Core.Common.Spells.Rime
+
+<PageTitle>SpellSequence — Design System</PageTitle>
+
+<h1>SpellSequence</h1>
+<p class="lede">Horizontal filmstrip of spell icons, each colour-keyed to a performance tier. Used inside cast inspectors to show what came before/after.</p>
+
+<CodeExample Title="Mixed performance" Code="@_mixedCode">
+    <Demo>
+        <SpellSequence Casts="@_mixed" />
+    </Demo>
+</CodeExample>
+
+<CodeExample Title="Sizes" Code="@_sizesCode">
+    <Demo>
+        <SpellSequence Casts="@_mixed" Size="SpellBadgeSize.Small" />
+        <SpellSequence Casts="@_mixed" Size="SpellBadgeSize.Medium" />
+        <SpellSequence Casts="@_mixed" Size="SpellBadgeSize.Large" />
+    </Demo>
+</CodeExample>
+
+<CodeExample Title="Without performance colouring" Code="@_neutralCode">
+    <Demo>
+        <SpellSequence Casts="@_neutral" />
+    </Demo>
+</CodeExample>
+
+@code {
+    private static readonly IReadOnlyList<SpellCastEntry> _mixed =
+    [
+        new(Spells.FrostBolt.Id, PerformanceTier.Good),
+        new(Spells.FrostBolt.Id, PerformanceTier.Good),
+        new(Spells.BurstingIce.Id, PerformanceTier.Perfect),
+        new(Spells.GlacialBlast.Id, PerformanceTier.Perfect),
+        new(Spells.IceComet.Id, PerformanceTier.Ok),
+        new(Spells.FrostBolt.Id, PerformanceTier.Fail),
+    ];
+
+    private static readonly IReadOnlyList<SpellCastEntry> _neutral =
+    [
+        new(Spells.FrostBolt.Id),
+        new(Spells.BurstingIce.Id),
+        new(Spells.GlacialBlast.Id),
+        new(Spells.IceComet.Id),
+    ];
+
+    private const string _mixedCode = """
+<SpellSequence Casts="@_casts" />
+
+@code {
+    private static readonly IReadOnlyList<SpellCastEntry> _casts =
+    [
+        new(Spells.FrostBolt.Id, PerformanceTier.Good),
+        new(Spells.BurstingIce.Id, PerformanceTier.Perfect),
+        new(Spells.IceComet.Id, PerformanceTier.Ok),
+    ];
+}
+""";
+
+    private const string _sizesCode = """
+<SpellSequence Casts="@_casts" Size="SpellBadgeSize.Small" />
+<SpellSequence Casts="@_casts" Size="SpellBadgeSize.Medium" />
+<SpellSequence Casts="@_casts" Size="SpellBadgeSize.Large" />
+""";
+
+    private const string _neutralCode = """
+<SpellSequence Casts="@(new[] { new SpellCastEntry(Spells.FrostBolt.Id) })" />
+""";
+}

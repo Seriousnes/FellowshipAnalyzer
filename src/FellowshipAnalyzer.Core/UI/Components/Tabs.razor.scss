@@ -1,0 +1,114 @@
+@use 'tokens' as t;
+
+.tabs {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.tabs-list {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.tabs-tab {
+    appearance: none;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: var(--fa-text-muted);
+    font-family: inherit;
+    font-weight: 600;
+    transition: color 0.15s, border-color 0.15s, background 0.15s;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+
+    &:disabled {
+        cursor: not-allowed;
+        opacity: 0.5;
+    }
+
+    &:hover:not(:disabled) {
+        color: var(--fa-text);
+    }
+}
+
+.tabs-panel {
+    min-width: 0;
+}
+
+.tabs--underline {
+    .tabs-list {
+        border-bottom: 1px solid var(--fa-border-card);
+        gap: 0;
+    }
+
+    .tabs-tab {
+        border-bottom: 3px solid transparent;
+        padding: 0.65rem 1.1rem;
+        font-size: 0.9rem;
+        margin-bottom: -1px;
+
+        &:hover:not(:disabled) {
+            border-bottom-color: rgba(212, 167, 68, 0.35);
+        }
+
+        &.active {
+            color: var(--fa-gold-light);
+            border-bottom-color: var(--fa-gold);
+        }
+    }
+}
+
+.tabs--pill {
+    .tabs-list {
+        gap: 0.25rem;
+        border-bottom: 1px solid var(--fa-border-card);
+        padding-bottom: 0.5rem;
+    }
+
+    .tabs-tab {
+        border: 1px solid transparent;
+        border-radius: var(--fa-radius-sm);
+        padding: 0.35rem 0.85rem;
+        font-size: 0.85rem;
+
+        &:hover:not(:disabled) {
+            border-color: var(--fa-border-card);
+        }
+
+        &.active {
+            color: var(--fa-gold-light);
+            border-color: var(--fa-gold-dim);
+            background: var(--fa-gold-dim);
+        }
+    }
+}
+
+.tabs--segmented {
+    .tabs-list {
+        gap: 0;
+        border: 1px solid var(--fa-border-card);
+        border-radius: var(--fa-radius-sm);
+        overflow: hidden;
+        width: fit-content;
+    }
+
+    .tabs-tab {
+        padding: 0.4rem 1rem;
+        font-size: 0.85rem;
+
+        &.active {
+            background: var(--fa-gold-dim);
+            color: var(--fa-gold-light);
+        }
+    }
+}
+
+@media (max-width: 720px) {
+    .tabs--underline .tabs-tab {
+        padding: 0.55rem 0.7rem;
+        font-size: 0.82rem;
+    }
+}

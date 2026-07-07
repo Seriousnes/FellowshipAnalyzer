@@ -1,0 +1,105 @@
+@page "/timeline"
+
+<PageTitle>Timeline — Design System</PageTitle>
+
+<h1>Timeline / CastBar / AuraBar / CooldownLane / TimeIndicators / TimelineSettingsModal</h1>
+<p class="lede">The Timeline tab. All sub-components inherit <code>ReportComponentBase</code> and read fight bounds from cascading context — they're only meaningful inside a loaded report. Documented here for reference.</p>
+
+<CodeExample Title="Timeline — top-level shell"
+             Description="The Timeline component composes CastBar (with overlaid AuraBar) plus one CooldownLane per visible spell. Wire it into a hero's Guide tab and the source-generator-emitted module accessors do the rest."
+             Code="@_timelineCode">
+    <Demo>
+        <p style="color: var(--fa-text-muted);">No live demo — needs cascading <code>FightTimeContext</code>, <code>HeroAnalysisResult</code>, and <code>IHeroAnalyzer</code>.</p>
+    </Demo>
+</CodeExample>
+
+<CodeExample Title="CastBar"
+             Description="Renders all the player's casts, channels, and cancelled casts along a horizontal timeline. Lower casts (no GCD) stack vertically below the main track."
+             Code="@_castBarCode">
+    <Demo>
+        <p style="color: var(--fa-text-muted);">No live demo — needs the player's full Event list, FightStartTime, FightEndTime.</p>
+    </Demo>
+</CodeExample>
+
+<CodeExample Title="AuraBar"
+             Description="Overlays buff duration strips on top of the CastBar. Each aura gets a vertical level assigned greedily so concurrent buffs don't overlap; lower priority means closer to the cast bar."
+             Code="@_auraBarCode">
+    <Demo>
+        <p style="color: var(--fa-text-muted);">No live demo — needs TrackedBuffEvent data from the Auras module.</p>
+    </Demo>
+</CodeExample>
+
+<CodeExample Title="CooldownLane"
+             Description="Single-row timeline showing a spell's cooldown windows (gray bars) with the spell icon at each begin point and orange tick marks for charge restores."
+             Code="@_cooldownCode">
+    <Demo>
+        <p style="color: var(--fa-text-muted);">No live demo — needs UpdateSpellUsableEvent stream and a SpellbookAbility.</p>
+    </Demo>
+</CodeExample>
+
+<CodeExample Title="TimeIndicators"
+             Description="Standalone timestamp ruler — shown above the cast bar when the timeline is not used as a single composed view. Fight duration in ms; output a tick per second labelled with the elapsed time."
+             Code="@_timeCode">
+    <Demo>
+        <p style="color: var(--fa-text-muted);">Renders inline — but you'd usually use the parent Timeline rather than mounting this directly.</p>
+    </Demo>
+</CodeExample>
+
+<CodeExample Title="TimelineSettingsModal"
+             Description="Per-hero settings modal opened from the gear button on Timeline. Manages visible cooldowns and tracked auras, and persists choices via TimelineConfigService (localStorage)."
+             Code="@_settingsCode">
+    <Demo>
+        <p style="color: var(--fa-text-muted);">No live demo — opened internally by Timeline.</p>
+    </Demo>
+</CodeExample>
+
+@code {
+    private const string _timelineCode = """
+@* In a hero's GuideX.razor *@
+<Timeline />
+
+@* Or with custom horizontal scale *@
+<Timeline PixelsPerSecond="80.0" />
+""";
+
+    private const string _castBarCode = """
+<CastBar Events="@playerEvents"
+         PlayerId="@PlayerId"
+         FightStartTime="@FightStartTime"
+         FightEndTime="@FightEndTime"
+         PixelsPerSecond="60.0"
+         Abilities="@abilities" />
+""";
+
+    private const string _auraBarCode = """
+<AuraBar Auras="@playerAuras"
+         FightStartTime="@FightStartTime"
+         FightEndTime="@FightEndTime"
+         PixelsPerSecond="60.0"
+         VisibleAuraIds="@configuredVisible"
+         AuraPriorities="@priorityByAura" />
+""";
+
+    private const string _cooldownCode = """
+<CooldownLane Ability="@spellbookAbility"
+              CooldownEvents="@updateSpellUsableEvents"
+              FightStartTime="@FightStartTime"
+              FightEndTime="@FightEndTime"
+              PixelsPerSecond="60.0" />
+""";
+
+    private const string _timeCode = """
+<TimeIndicators FightDurationMs="@(FightEndTime - FightStartTime)"
+                PixelsPerSecond="60.0" />
+""";
+
+    private const string _settingsCode = """
+<TimelineSettingsModal IsOpen="@_open"
+                       OnClose="() => _open = false"
+                       Config="@_config"
+                       OnConfigChanged="@OnConfigChanged"
+                       AvailableAuras="@auraOptions"
+                       AvailableCooldowns="@cdOptions"
+                       PreconfiguredAuraIds="@preconfiguredIds" />
+""";
+}

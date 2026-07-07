@@ -1,0 +1,136 @@
+@page "/tabs"
+
+<PageTitle>Tabs — Design System</PageTitle>
+
+<h1>Tabs</h1>
+<p class="lede">Tabbed navigation with internal active-tab state, or controlled via <code>@@bind-ActiveId</code>.</p>
+
+<CodeExample Title="Underline (default)"
+             Description="Used by the main report top navigation."
+             Code="@_underlineCode">
+    <Demo>
+        <Tabs Variant="TabsVariant.Underline">
+            <TabItem Id="guide" Label="Guide">Guide panel content.</TabItem>
+            <TabItem Id="stats" Label="Statistics">Statistics panel content.</TabItem>
+            <TabItem Id="timeline" Label="Timeline">Timeline panel content.</TabItem>
+            <TabItem Id="about" Label="About" Disabled>About panel content.</TabItem>
+        </Tabs>
+    </Demo>
+</CodeExample>
+
+<CodeExample Title="Pill"
+             Description="Sub-navigation within tab panels (e.g. About → Overview / Events / Debug)."
+             Code="@_pillCode">
+    <Demo>
+        <Tabs Variant="TabsVariant.Pill">
+            <TabItem Id="overview" Label="Overview">Overview panel.</TabItem>
+            <TabItem Id="events" Label="Events">Events panel.</TabItem>
+            <TabItem Id="debug" Label="Debug Annotations">Debug panel.</TabItem>
+        </Tabs>
+    </Demo>
+</CodeExample>
+
+<CodeExample Title="Segmented"
+             Description="Compact bordered switcher."
+             Code="@_segmentedCode">
+    <Demo>
+        <Tabs Variant="TabsVariant.Segmented">
+            <TabItem Id="left" Label="Left">Left panel.</TabItem>
+            <TabItem Id="right" Label="Right">Right panel.</TabItem>
+        </Tabs>
+    </Demo>
+</CodeExample>
+
+<CodeExample Title="Custom label template (SVG icons)"
+             Description="Use LabelTemplate to inject icons or rich markup alongside the label."
+             Code="@_labelTemplateCode">
+    <Demo>
+        <Tabs Variant="TabsVariant.Underline">
+            <TabItem Id="list">
+                <LabelTemplate>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="8" y1="6" x2="21" y2="6" /><line x1="8" y1="12" x2="21" y2="12" /><line x1="8" y1="18" x2="21" y2="18" /><line x1="3" y1="6" x2="3.01" y2="6" /><line x1="3" y1="12" x2="3.01" y2="12" /><line x1="3" y1="18" x2="3.01" y2="18" /></svg>
+                    Guide
+                </LabelTemplate>
+                <ChildContent>Guide content.</ChildContent>
+            </TabItem>
+            <TabItem Id="bars">
+                <LabelTemplate>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="20" x2="18" y2="10" /><line x1="12" y1="20" x2="12" y2="4" /><line x1="6" y1="20" x2="6" y2="14" /></svg>
+                    Statistics
+                </LabelTemplate>
+                <ChildContent>Stats content.</ChildContent>
+            </TabItem>
+        </Tabs>
+    </Demo>
+</CodeExample>
+
+<CodeExample Title="Controlled mode"
+             Description="@($"Bind via @@bind-ActiveId — current: {_activeId}")"
+             Code="@_controlledCode">
+    <Demo>
+        <Tabs Variant="TabsVariant.Underline" @bind-ActiveId="_activeId">
+            <TabItem Id="alpha" Label="Alpha">Alpha.</TabItem>
+            <TabItem Id="beta" Label="Beta">Beta.</TabItem>
+            <TabItem Id="gamma" Label="Gamma">Gamma.</TabItem>
+        </Tabs>
+    </Demo>
+</CodeExample>
+
+@code {
+    private string _activeId = "beta";
+
+    private const string _underlineCode = """
+<Tabs Variant="TabsVariant.Underline">
+    <TabItem Id="guide" Label="Guide">Guide panel content.</TabItem>
+    <TabItem Id="stats" Label="Statistics">Statistics panel content.</TabItem>
+    <TabItem Id="timeline" Label="Timeline">Timeline panel content.</TabItem>
+    <TabItem Id="about" Label="About" Disabled>About panel content.</TabItem>
+</Tabs>
+""";
+
+    private const string _pillCode = """
+<Tabs Variant="TabsVariant.Pill">
+    <TabItem Id="overview" Label="Overview">Overview panel.</TabItem>
+    <TabItem Id="events" Label="Events">Events panel.</TabItem>
+    <TabItem Id="debug" Label="Debug Annotations">Debug panel.</TabItem>
+</Tabs>
+""";
+
+    private const string _segmentedCode = """
+<Tabs Variant="TabsVariant.Segmented">
+    <TabItem Id="left" Label="Left">Left panel.</TabItem>
+    <TabItem Id="right" Label="Right">Right panel.</TabItem>
+</Tabs>
+""";
+
+    private const string _labelTemplateCode = """
+<Tabs Variant="TabsVariant.Underline">
+    <TabItem Id="list">
+        <LabelTemplate>
+            <svg ...>...</svg>
+            Guide
+        </LabelTemplate>
+        <ChildContent>Guide content.</ChildContent>
+    </TabItem>
+    <TabItem Id="bars">
+        <LabelTemplate>
+            <svg ...>...</svg>
+            Statistics
+        </LabelTemplate>
+        <ChildContent>Stats content.</ChildContent>
+    </TabItem>
+</Tabs>
+""";
+
+    private const string _controlledCode = """
+<Tabs Variant="TabsVariant.Underline" @bind-ActiveId="_activeId">
+    <TabItem Id="alpha" Label="Alpha">Alpha.</TabItem>
+    <TabItem Id="beta" Label="Beta">Beta.</TabItem>
+    <TabItem Id="gamma" Label="Gamma">Gamma.</TabItem>
+</Tabs>
+
+@code {
+    private string _activeId = "beta";
+}
+""";
+}

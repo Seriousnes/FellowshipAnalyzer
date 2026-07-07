@@ -1,0 +1,32 @@
+@* ButtonGroup — segmented single-select control over a typed value set. *@
+
+@typeparam T
+
+@{
+    var sizeClass = Size.ToString().ToLowerInvariant();
+}
+
+<div class="button-group button-group--@sizeClass" role="group" @attributes="InputAttributes">
+    @foreach (var option in Options)
+    {
+        var isActive = EqualityComparer<T>.Default.Equals(option.Value, Value);
+        <button type="button"
+                class="button-group-btn @(isActive ? "active" : "")"
+                aria-pressed="@isActive"
+                @onclick="@(() => SelectAsync(option.Value))">
+            @option.Label
+        </button>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired] public IReadOnlyList<ButtonGroupOption<T>> Options { get; set; } = [];
+    [Parameter] public T? Value { get; set; }
+    [Parameter] public EventCallback<T> ValueChanged { get; set; }
+    [Parameter] public ButtonGroupSize Size { get; set; } = ButtonGroupSize.Md;
+
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object> InputAttributes { get; set; } = new();
+
+    private Task SelectAsync(T value) => ValueChanged.InvokeAsync(value);
+}

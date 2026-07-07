@@ -1,0 +1,11 @@
+@use 'tokens' as t;
+
+.perf-mark {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    vertical-align: middle;
+    line-height: 0;
+
+    svg { display: block; }
+}

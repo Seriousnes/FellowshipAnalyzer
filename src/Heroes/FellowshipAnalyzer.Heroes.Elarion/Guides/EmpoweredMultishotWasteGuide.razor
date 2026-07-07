@@ -1,0 +1,64 @@
+@inject ElarionCombatLogParser Parser
+
+<GuideSection Title="Empowered Multishot">
+    <Explanation>
+        <p>
+            Empowered <SpellLink Spell="Spells.Multishot" /> charges replace your next regular
+            Multishot. Don't let them expire — using a regular Multishot while empowered is
+            available wastes the proc.
+        </p>
+        <ol>
+            <li>Track empowered Multishot consumption versus regular casts.</li>
+            <li>Expired empowered buffs are a clear-cut waste.</li>
+        </ol>
+    </Explanation>
+    <ChildContent>
+        <CastOverview Title="Empowered Usage" Stats="@BuildOverviewStats()" />
+        <FindingsList Findings="@BuildFindings()" />
+    </ChildContent>
+</GuideSection>
+
+@code {
+    private EmpoweredMultishotWasteAnalyzer Analyzer => Parser.EmpoweredMultishotWaste!;
+
+    private IEnumerable<OverviewStat> BuildOverviewStats()
+    {
+        var wasteTier = Analyzer.WastedExpirations == 0 ? PerformanceTier.Perfect
+            : Analyzer.WastedExpirations < 2 ? PerformanceTier.Good
+            : Analyzer.WastedExpirations < 4 ? PerformanceTier.Ok
+            : PerformanceTier.Fail;
+
+        return
+        [
+            new OverviewStat($"{Analyzer.EmpoweredConsumed}", "Empowered",
+                "Multishot casts that consumed an Empowered Multishot buff.",
+                Analyzer.EmpoweredConsumed > 0 ? PerformanceTier.Good : PerformanceTier.Ok),
+            new OverviewStat($"{Analyzer.WastedExpirations}", "Wasted",
+                "Empowered buffs that expired without being consumed.", wasteTier),
+            new OverviewStat($"{Analyzer.RegularCasts}", "Regular",
+                "Multishot casts with no Empowered Multishot buff active."),
+        ];
+    }
+
+    private IEnumerable<Finding> BuildFindings()
+    {
+        if (Analyzer.EmpoweredConsumed == 0 && Analyzer.WastedExpirations == 0)
+        {
+            yield return new Finding("info",
+                "No Empowered Multishot buffs were detected. Spell ID for the empowered buff may not be wired up yet.",
+                null);
+            yield break;
+        }
+
+        if (Analyzer.WastedExpirations == 0)
+        {
+            yield return new Finding("info", "All Empowered Multishot procs were consumed.", null);
+        }
+        else
+        {
+            yield return new Finding("warning",
+                $"{Analyzer.WastedExpirations} Empowered Multishot proc{(Analyzer.WastedExpirations == 1 ? "" : "s")} expired unused.",
+                null);
+        }
+    }
+}

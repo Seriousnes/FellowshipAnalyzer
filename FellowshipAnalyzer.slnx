@@ -1,16 +1,17 @@
 <Solution>
   <Folder Name="/API/">
     <Project Path="src/FellowshipAnalyzer/FellowshipAnalyzer.Api.Core/FellowshipAnalyzer.Api.Core.csproj" />
+    <Project Path="src/FellowshipAnalyzer/FellowshipAnalyzer.Api.GraphQL/FellowshipAnalyzer.Api.GraphQL.csproj" />
     <Project Path="src/FellowshipAnalyzer/FellowshipAnalyzer.Api/FellowshipAnalyzer.Api.csproj" />
     <Project Path="src/FellowshipAnalyzer/FellowshipAnalyzer.DevApi/FellowshipAnalyzer.DevApi.csproj" />
   </Folder>
   <Folder Name="/App/">
-    <Project Path="src/FellowshipAnalyzer.Components/FellowshipAnalyzer.Components.csproj" />
     <Project Path="src/FellowshipAnalyzer/FellowshipAnalyzer/FellowshipAnalyzer.csproj" />
     <Project Path="src/FellowshipAnalyzer/FellowshipAnalyzer.DevHost/FellowshipAnalyzer.DevHost.csproj" />
   </Folder>
   <Folder Name="/App/Heroes/">
     <Project Path="src/FellowshipAnalyzer.Core/FellowshipAnalyzer.Core.csproj" />
+    <Project Path="src/FellowshipAnalyzer.Core.Contracts/FellowshipAnalyzer.Core.Contracts.csproj" />
   </Folder>
   <Folder Name="/App/Heroes/Aeona/">
     <Project Path="src/Heroes/FellowshipAnalyzer.Heroes.Aeona/FellowshipAnalyzer.Heroes.Aeona.csproj" />
@@ -62,6 +63,7 @@
   </Folder>
   <Project Path="src/FellowshipAnalyzer.Analyzers/FellowshipAnalyzer.Analyzers.csproj" />
   <Project Path="src/FellowshipAnalyzer.AppHost/FellowshipAnalyzer.AppHost.csproj" />
+  <Project Path="src/FellowshipAnalyzer.DesignSystem/FellowshipAnalyzer.DesignSystem.csproj" />
   <Project Path="src/FellowshipAnalyzer.Generators/FellowshipAnalyzer.Generators.csproj" />
   <Project Path="src/FellowshipAnalyzer.ServiceDefaults/FellowshipAnalyzer.ServiceDefaults.csproj" />
 </Solution>

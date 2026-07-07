@@ -1,8 +1,19 @@
-@using Microsoft.AspNetCore.Components
-@using Microsoft.AspNetCore.Components.Web
-@using FellowshipAnalyzer.Components
 @using FellowshipAnalyzer.Core.Analysis
+@using FellowshipAnalyzer.Core.Common.Spells.Rime
+@using FellowshipAnalyzer.Core.Game 
+@using FellowshipAnalyzer.Core.UI
+@using FellowshipAnalyzer.Core.UI.Components
+@using FellowshipAnalyzer.Core.UI.Diagnostics
+@using FellowshipAnalyzer.Core.UI.Guides
+@using FellowshipAnalyzer.Core.UI.Timeline
 @using FellowshipAnalyzer.Heroes.Rime.Analysis
 @using FellowshipAnalyzer.Heroes.Rime.Guides
 @using FellowshipAnalyzer.Heroes.Rime.Modules
 @using FellowshipAnalyzer.Heroes.Rime.Statistics
+@using Microsoft.AspNetCore.Components
+@using Microsoft.AspNetCore.Components.Web
+
+@* Aliases *@
+@using RimeSpells = FellowshipAnalyzer.Core.Common.Spells.Rime.Spells
+@using Spells = FellowshipAnalyzer.Core.Common.Spells.Spells
+

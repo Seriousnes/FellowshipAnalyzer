@@ -1,0 +1,27 @@
+@page "/brand-icon"
+
+<PageTitle>BrandIcon — Design System</PageTitle>
+
+<h1>BrandIcon</h1>
+<p class="lede">The FellowshipAnalyzer brand mark — rendered as inline SVG so it scales without rasterization.</p>
+
+<CodeExample Title="Sizes" Code="@_sizesCode">
+    <Demo>
+        <div class="showcase-row" style="align-items: end; gap: 0.75rem;">
+            <BrandIcon Size="20" />
+            <BrandIcon Size="32" />
+            <BrandIcon Size="48" />
+            <BrandIcon Size="64" />
+            <BrandIcon Size="96" />
+        </div>
+    </Demo>
+</CodeExample>
+
+@code {
+    private const string _sizesCode = """
+<BrandIcon Size="20" />
+<BrandIcon Size="32" />
+<BrandIcon Size="48" />
+<BrandIcon Size="64" />
+""";
+}

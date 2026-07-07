@@ -1,5 +1,4 @@
 using FellowshipAnalyzer.Core.Analysis;
-using FellowshipAnalyzer.Heroes.Aeona.Modules;
 
 namespace FellowshipAnalyzer.Heroes.Aeona.Analysis;
 

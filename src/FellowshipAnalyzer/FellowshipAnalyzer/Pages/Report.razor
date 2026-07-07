@@ -4,7 +4,7 @@
 @using CoreReportActor = FellowshipAnalyzer.Core.FellowshipLogs.ReportActor
 @using CoreReportFight = FellowshipAnalyzer.Core.FellowshipLogs.ReportFight
 @using CoreReportInfo = FellowshipAnalyzer.Core.FellowshipLogs.ReportInfo
-@using FellowshipAnalyzer.Components.Timeline
+@using FellowshipAnalyzer.Core.UI.Timeline
 @using FellowshipAnalyzer.Services
 @inject ReportAnalysisService AnalysisService
 @inject ReportLoadingTracker LoadingTracker
@@ -15,82 +15,55 @@
 <div class="analysis-page">
     @if (Header is { } header)
     {
-        <section class="hero-panel">
-            <nav class="breadcrumbs" aria-label="breadcrumb">
-                @if (!string.IsNullOrWhiteSpace(header.ReportInfo.Title))
+        <PageHeader Title="@header.Fight.Name">
+            <Breadcrumbs>
+                <FellowshipAnalyzer.Core.UI.Components.Breadcrumbs Items="@BuildBreadcrumbs(header)" />
+            </Breadcrumbs>
+            <Portrait>
+                <Avatar Size="AvatarSize.Xl"
+                        Src="@BossIconUrl(header.BossIcon)"
+                        Alt="@header.Fight.Name"
+                        FallbackText="@FirstCharacter(header.Fight.Name)" />
+            </Portrait>
+            <Badges>
+                @if (header.Fight.Kill == true)
                 {
-                    <a href="/report/@ReportCode">@header.ReportInfo.Title</a>
-                    <span class="breadcrumb-sep">›</span>
+                    <Badge Variant="BadgeVariant.Success" Size="BadgeSize.Sm">✓ Kill</Badge>
                 }
-                <span class="breadcrumb-current">@header.Fight.Name</span>
-                <span class="breadcrumb-sep">›</span>
-                <span class="breadcrumb-current">@header.Player.Name</span>
-            </nav>
-            <div class="hero-panel-body">
-                <div class="encounter-block">
-                    @if (header.BossIcon is not null)
+                else if (header.Fight.Kill == false)
+                {
+                    <Badge Variant="BadgeVariant.Failure" Size="BadgeSize.Sm">✗ Wipe</Badge>
+                }
+                <span class="fight-duration">@header.FightDuration</span>
+            </Badges>
+            <Secondary>
+                @if (Hero.TryParse(header.Player.SubType, out var headerHero))
+                {
+                    <Avatar Size="AvatarSize.Lg"
+                            Src="@headerHero.IconUrl"
+                            Alt="@header.Player.Name"
+                            FallbackText="@FirstCharacter(header.Player.Name)"
+                            AccentColorVar="@HeroRoleStyles.GetAccentColorVar(headerHero.Role)" />
+                }
+                else
+                {
+                    <Avatar Size="AvatarSize.Lg" FallbackText="@FirstCharacter(header.Player.Name)" />
+                }
+                <div class="player-text">
+                    <h2 class="player-title">@header.Player.Name</h2>
+                    @if (header.Player.SubType is not null)
                     {
-                        <img class="encounter-portrait"
-                             src="https://assets.rpglogs.com/img/fellowship/abilities/@header.BossIcon"
-                             alt="@header.Fight.Name"
-                             onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />
-                        <div class="encounter-portrait-placeholder" style="display:none">
-                            @FirstCharacter(header.Fight.Name)
-                        </div>
+                        <span class="player-class-label">@header.Player.SubType</span>
                     }
-                    else
-                    {
-                        <div class="encounter-portrait-placeholder">
-                            @FirstCharacter(header.Fight.Name)
-                        </div>
-                    }
-                    <div class="encounter-text">
-                        <h1 class="encounter-title">@header.Fight.Name</h1>
-                        @if (header.Fight.Kill == true)
-                        {
-                            <span class="fight-badge kill">✓ Kill</span>
-                        }
-                        else if (header.Fight.Kill == false)
-                        {
-                            <span class="fight-badge wipe">✗ Wipe</span>
-                        }
-                        <span class="fight-duration">@header.FightDuration</span>
-                    </div>
                 </div>
-                <div class="player-block">
-                    @if (Hero.TryParse(header.Player.SubType, out var headerHero))
-                    {
-                        <HeroIcon Hero="headerHero" style="width:56px;height:56px;"
-                                  onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />
-                        <div class="player-portrait-placeholder" style="display:none">
-                            @FirstCharacter(header.Player.Name)
-                        </div>
-                    }
-                    else
-                    {
-                        <div class="player-portrait-placeholder">
-                            @FirstCharacter(header.Player.Name)
-                        </div>
-                    }
-                    <div class="player-text">
-                        <h2 class="player-title">@header.Player.Name</h2>
-                        @if (header.Player.SubType is not null)
-                        {
-                            <span class="player-class-label">@header.Player.SubType</span>
-                        }
-                    </div>
-                </div>
-            </div>
-        </section>
+            </Secondary>
+        </PageHeader>
     }
     else
     {
-        <section class="hero-panel" aria-busy="true">
-            <div>
-                <p class="eyebrow">Combat Report</p>
-                <h1>Loading report details...</h1>
-            </div>
-        </section>
+        <PageHeader Title="Loading report details..." aria-busy="true">
+            <Eyebrow>Combat Report</Eyebrow>
+        </PageHeader>
     }
 
     @if (_isLoading)
@@ -103,138 +76,133 @@
     }
     else if (_context is { IsWip: true })
     {
-        @* WIP hero — no analysis was run, no events were fetched. Show only the WipGuide. *@
         <WipGuide Hero="@_context.Player.SubType" />
     }
     else if (_context is { Analysis: { } analysis })
     {
-        <ReportValuesProvider Context="_context">        
-            <nav class="report-tabs">
-                <button class="report-tab @(_activeTab == ReportTab.Guide ? "active" : "")" @onclick="() => _activeTab = ReportTab.Guide">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                        <line x1="8" y1="6" x2="21" y2="6" />
-                        <line x1="8" y1="12" x2="21" y2="12" />
-                        <line x1="8" y1="18" x2="21" y2="18" />
-                        <line x1="3" y1="6" x2="3.01" y2="6" />
-                        <line x1="3" y1="12" x2="3.01" y2="12" />
-                        <line x1="3" y1="18" x2="3.01" y2="18" />
-                    </svg>
-                    Guide
-                </button>
-                <button class="report-tab @(_activeTab == ReportTab.Statistics ? "active" : "")" @onclick="() => _activeTab = ReportTab.Statistics">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                        <line x1="18" y1="20" x2="18" y2="10" />
-                        <line x1="12" y1="20" x2="12" y2="4" />
-                        <line x1="6" y1="20" x2="6" y2="14" />
-                    </svg>
-                    Statistics
-                </button>
-                <button class="report-tab @(_activeTab == ReportTab.Timeline ? "active" : "")" @onclick="() => _activeTab = ReportTab.Timeline">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                        <line x1="3" y1="6" x2="21" y2="6" />
-                        <line x1="3" y1="12" x2="15" y2="12" />
-                        <line x1="3" y1="18" x2="18" y2="18" />
-                    </svg>
-                    Timeline
-                </button>
-                <button class="report-tab @(_activeTab == ReportTab.About ? "active" : "")" @onclick="() => _activeTab = ReportTab.About">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                        <circle cx="12" cy="12" r="10" />
-                        <line x1="12" y1="8" x2="12" y2="12" />
-                        <line x1="12" y1="16" x2="12.01" y2="16" />
-                    </svg>
-                    About
-                </button>
-            </nav>
-
-            @if (_activeTab == ReportTab.Guide)
-            {
-                @* Guide tab — render the hero's Guide.razor via DynamicComponent,
-                   or a WIP fallback when no guide component has been registered. *@
-                <section class="guide-panel">
-                    @if (_context.Analysis.GuideComponentType is { } guideType)
-                    {
-                        <DynamicComponent Type="@guideType" />
-                    }
-                    else
-                    {
-                        <WipGuide Hero="@_context.Player.SubType" />
-                    }
-                </section>
-            }
-            else if (_activeTab == ReportTab.Statistics)
-            {
-                @* Statistics tab — auto-collected from modules with StatisticsComponentType set *@
-                @if (_context.Analysis.Statistics.Count > 0)
-                {
-                    <section class="statistics-panel">
-                        @foreach (var (module, componentType) in _context.Analysis.Statistics)
+        <ReportValuesProvider Context="_context">
+            <Tabs Variant="TabsVariant.Underline" DefaultActiveId="guide">
+                <TabItem Id="guide">
+                    <LabelTemplate>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <line x1="8" y1="6" x2="21" y2="6" />
+                            <line x1="8" y1="12" x2="21" y2="12" />
+                            <line x1="8" y1="18" x2="21" y2="18" />
+                            <line x1="3" y1="6" x2="3.01" y2="6" />
+                            <line x1="3" y1="12" x2="3.01" y2="12" />
+                            <line x1="3" y1="18" x2="3.01" y2="18" />
+                        </svg>
+                        Guide
+                    </LabelTemplate>
+                    <ChildContent>
+                        <section class="guide-panel">
+                            @if (_context.Analysis.GuideComponentType is { } guideType)
+                            {
+                                <DynamicComponent Type="@guideType" />
+                            }
+                            else
+                            {
+                                <WipGuide Hero="@_context.Player.SubType" />
+                            }
+                        </section>
+                    </ChildContent>
+                </TabItem>
+                <TabItem Id="statistics">
+                    <LabelTemplate>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <line x1="18" y1="20" x2="18" y2="10" />
+                            <line x1="12" y1="20" x2="12" y2="4" />
+                            <line x1="6" y1="20" x2="6" y2="14" />
+                        </svg>
+                        Statistics
+                    </LabelTemplate>
+                    <ChildContent>
+                        @if (_context.Analysis.Statistics.Count > 0)
                         {
-                            <CascadingValue Value="@module">
-                                <DynamicComponent Type="@componentType" />
-                            </CascadingValue>
+                            <section class="statistics-tab">
+                                @foreach (var section in _context.Analysis.Statistics
+                                                            .GroupBy(entry => entry.Category)
+                                                            .OrderBy(group => group.Key))
+                                {
+                                    <StatisticsSectionTitle Title="@section.Key.ToString()" />
+                                    <div class="statistics-panel">
+                                        @foreach (var entry in section.OrderBy(item => item.Order))
+                                        {
+                                            <CascadingValue Value="@entry.Module">
+                                                <DynamicComponent Type="@entry.ComponentType" />
+                                            </CascadingValue>
+                                        }
+                                    </div>
+                                }
+                            </section>
                         }
-                    </section>
-                }
-                else
-                {
-                    <section class="status-panel">No statistics available.</section>
-                }
-            }
-            else if (_activeTab == ReportTab.Timeline)
-            {
-                <section class="timeline-panel">
-                    <Timeline />
-                </section>
-            }
-            else if (_activeTab == ReportTab.About)
-            {
-                <section class="about-panel">
-                    <nav class="about-subnav">
-                        <button class="about-subtab @(_aboutSubView == AboutSubView.Overview ? "active" : "")" @onclick="() => _aboutSubView = AboutSubView.Overview">Overview</button>
-                        <button class="about-subtab @(_aboutSubView == AboutSubView.Events ? "active" : "")" @onclick="() => _aboutSubView = AboutSubView.Events">Events</button>
-                        <button class="about-subtab @(_aboutSubView == AboutSubView.Debug ? "active" : "")" @onclick="() => _aboutSubView = AboutSubView.Debug">Debug Annotations</button>
-                    </nav>
-
-                    @if (_aboutSubView == AboutSubView.Overview)
-                    {
-                        <div class="about-overview">
-                            <dl class="about-meta">
-                                <dt>Report</dt>
-                                <dd>@ReportCode</dd>
-                                <dt>Fight</dt>
-                                <dd>@FightId</dd>
-                                <dt>Player</dt>
-                                <dd>@PlayerId</dd>
-                                <dt>Events</dt>
-                                <dd>@_context.Analysis.Events.Count total</dd>
-                                <dt>Fight Duration</dt>
-                                <dd>@FormatDuration(_context.Fight.EndTime - _context.Fight.StartTime)</dd>
-                            </dl>
-                            <div class="about-overview-links">
-                                <button class="about-subtab" @onclick="() => _aboutSubView = AboutSubView.Events">View Events List →</button>
-                                <button class="about-subtab" @onclick="() => _aboutSubView = AboutSubView.Debug">View Debug Annotations →</button>
-                            </div>
-                        </div>
-                    }
-                    else if (_aboutSubView == AboutSubView.Events)
-                    {
-                        <EventsView Events="@_context.Analysis.Events" />
-                    }
-                    else if (_aboutSubView == AboutSubView.Debug)
-                    {
-                        <DebugAnnotationsView DebugAnnotations="@_context.Analysis.DebugAnnotations" />
-                    }
-                </section>
-            }
+                        else
+                        {
+                            <section class="status-panel">No statistics available.</section>
+                        }
+                    </ChildContent>
+                </TabItem>
+                <TabItem Id="timeline">
+                    <LabelTemplate>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <line x1="3" y1="6" x2="21" y2="6" />
+                            <line x1="3" y1="12" x2="15" y2="12" />
+                            <line x1="3" y1="18" x2="18" y2="18" />
+                        </svg>
+                        Timeline
+                    </LabelTemplate>
+                    <ChildContent>
+                        <section class="timeline-panel">
+                            <Timeline />
+                        </section>
+                    </ChildContent>
+                </TabItem>
+                <TabItem Id="about">
+                    <LabelTemplate>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <circle cx="12" cy="12" r="10" />
+                            <line x1="12" y1="8" x2="12" y2="12" />
+                            <line x1="12" y1="16" x2="12.01" y2="16" />
+                        </svg>
+                        About
+                    </LabelTemplate>
+                    <ChildContent>
+                        <Tabs Variant="TabsVariant.Pill" @bind-ActiveId="_aboutSubViewId">
+                            <TabItem Id="overview" Label="Overview">
+                                <div class="about-overview">
+                                    <dl class="about-meta">
+                                        <dt>Report</dt>
+                                        <dd>@ReportCode</dd>
+                                        <dt>Fight</dt>
+                                        <dd>@FightId</dd>
+                                        <dt>Player</dt>
+                                        <dd>@PlayerId</dd>
+                                        <dt>Events</dt>
+                                        <dd>@_context.Analysis.Events.Count total</dd>
+                                        <dt>Fight Duration</dt>
+                                        <dd>@FormatDuration(_context.Fight.EndTime - _context.Fight.StartTime)</dd>
+                                    </dl>
+                                    <div class="about-overview-links">
+                                        <Badge Variant="BadgeVariant.Gold" OnClick="@(() => _aboutSubViewId = "events")">View Events List →</Badge>
+                                        <Badge Variant="BadgeVariant.Gold" OnClick="@(() => _aboutSubViewId = "debug")">View Debug Annotations →</Badge>
+                                    </div>
+                                </div>
+                            </TabItem>
+                            <TabItem Id="events" Label="Events">
+                                <EventsView Events="@_context.Analysis.Events" />
+                            </TabItem>
+                            <TabItem Id="debug" Label="Debug Annotations">
+                                <DebugAnnotationsView DebugAnnotations="@_context.Analysis.DebugAnnotations" />
+                            </TabItem>
+                        </Tabs>
+                    </ChildContent>
+                </TabItem>
+            </Tabs>
         </ReportValuesProvider>
     }
 </div>
 
 @code {
-    private enum ReportTab { Guide, Statistics, Timeline, About }
-    private enum AboutSubView { Overview, Events, Debug }
-
     [Parameter] public string ReportCode { get; set; } = "";
     [Parameter] public int FightId { get; set; }
     [Parameter] public int PlayerId { get; set; }
@@ -243,8 +211,7 @@
     private CoreReportInfo? _reportInfo;
     private bool _isLoading = true;
     private string? _error;
-    private ReportTab _activeTab = ReportTab.Guide;
-    private AboutSubView _aboutSubView = AboutSubView.Overview;
+    private string _aboutSubViewId = "overview";
 
     private ReportHeader? Header
     {
@@ -307,6 +274,19 @@
             !string.Equals(a.Type, "Player", StringComparison.OrdinalIgnoreCase)
             && string.Equals(a.Name, fight.Name, StringComparison.OrdinalIgnoreCase)
             && !string.IsNullOrEmpty(a.Icon))?.Icon;
+
+    private static string? BossIconUrl(string? bossIcon) =>
+        bossIcon is null ? null : $"https://assets.rpglogs.com/img/fellowship/abilities/{bossIcon}";
+
+    private IReadOnlyList<BreadcrumbItem> BuildBreadcrumbs(ReportHeader header)
+    {
+        var items = new List<BreadcrumbItem>();
+        if (!string.IsNullOrWhiteSpace(header.ReportInfo.Title))
+            items.Add(new(header.ReportInfo.Title, $"/report/{ReportCode}"));
+        items.Add(new(header.Fight.Name));
+        items.Add(new(header.Player.Name));
+        return items;
+    }
 
     private static string FormatDuration(double milliseconds)
     {

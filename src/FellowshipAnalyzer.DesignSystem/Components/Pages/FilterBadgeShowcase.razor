@@ -1,0 +1,48 @@
+@page "/filter-badge"
+
+<PageTitle>FilterBadge — Design System</PageTitle>
+
+<h1>FilterBadge</h1>
+<p class="lede">Clickable performance-distribution badge with <code>Active</code> and <code>Disabled</code> states. Used by CastDetail's filter row.</p>
+
+<CodeExample Title="Active / inactive / disabled"
+             Description="@($"Last clicked: {_lastClicked}")"
+             Code="@_basicCode">
+    <Demo>
+        <PerfBadgeGrid>
+            <FilterBadge Performance="PerformanceTier.Perfect" Count="6" Active OnClick="@OnClick" />
+            <FilterBadge Performance="PerformanceTier.Good" Count="4" OnClick="@OnClick" />
+            <FilterBadge Performance="PerformanceTier.Ok" Count="2" OnClick="@OnClick" />
+            <FilterBadge Performance="PerformanceTier.Fail" Count="0" Disabled />
+        </PerfBadgeGrid>
+    </Demo>
+</CodeExample>
+
+<CodeExample Title="With custom labels" Code="@_labelsCode">
+    <Demo>
+        <PerfBadgeGrid>
+            <FilterBadge Performance="PerformanceTier.Perfect" Count="3" Label="On time" />
+            <FilterBadge Performance="PerformanceTier.Good" Count="2" Label="Slightly late" />
+            <FilterBadge Performance="PerformanceTier.Ok" Count="1" Label="Late" />
+            <FilterBadge Performance="PerformanceTier.Fail" Count="0" Label="Missed" Disabled />
+        </PerfBadgeGrid>
+    </Demo>
+</CodeExample>
+
+@code {
+    private string _lastClicked = "(none)";
+    private void OnClick(PerformanceTier tier) => _lastClicked = tier.ToString();
+
+    private const string _basicCode = """
+<PerfBadgeGrid>
+    <FilterBadge Performance="PerformanceTier.Perfect" Count="6" Active OnClick="@OnClick" />
+    <FilterBadge Performance="PerformanceTier.Good" Count="4" OnClick="@OnClick" />
+    <FilterBadge Performance="PerformanceTier.Ok" Count="2" OnClick="@OnClick" />
+    <FilterBadge Performance="PerformanceTier.Fail" Count="0" Disabled />
+</PerfBadgeGrid>
+""";
+
+    private const string _labelsCode = """
+<FilterBadge Performance="PerformanceTier.Perfect" Count="3" Label="On time" />
+""";
+}

@@ -1,5 +1,4 @@
 using FellowshipAnalyzer.Core.Analysis;
-using FellowshipAnalyzer.Heroes.Helena.Modules;
 
 namespace FellowshipAnalyzer.Heroes.Helena.Analysis;
 

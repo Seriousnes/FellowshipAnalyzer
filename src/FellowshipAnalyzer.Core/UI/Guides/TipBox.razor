@@ -1,0 +1,50 @@
+@* TipBox — bordered callout (info / note / success / warning / error). *@
+
+@{
+    var variantClass = Variant.ToString().ToLowerInvariant();
+    var role = Variant is TipBoxVariant.Warning or TipBoxVariant.Error ? "alert" : "note";
+    var glyph = Icon is null && !HideIcon ? DefaultGlyph(Variant) : null;
+}
+
+<div class="tip-box @variantClass" role="@role">
+    @if (!HideIcon)
+    {
+        <span class="tip-box-icon" aria-hidden="true">
+            @if (Icon is not null)
+            {
+                @Icon
+            }
+            else
+            {
+                @glyph
+            }
+        </span>
+    }
+    <div class="tip-box-body">
+        @if (!string.IsNullOrEmpty(Title))
+        {
+            <div class="tip-box-title">@Title</div>
+        }
+        <div class="tip-box-content">
+            @ChildContent
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public RenderFragment? Icon { get; set; }
+    [Parameter] public string? Title { get; set; }
+    [Parameter] public TipBoxVariant Variant { get; set; } = TipBoxVariant.Info;
+    [Parameter] public bool HideIcon { get; set; }
+
+    private static string DefaultGlyph(TipBoxVariant v) => v switch
+    {
+        TipBoxVariant.Info => "i",
+        TipBoxVariant.Note => "✎",
+        TipBoxVariant.Success => "✓",
+        TipBoxVariant.Warning => "!",
+        TipBoxVariant.Error => "✕",
+        _ => "i",
+    };
+}

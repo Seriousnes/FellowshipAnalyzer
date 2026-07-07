@@ -1,4 +1,4 @@
-<Project Sdk="Aspire.AppHost.Sdk/13.2.4">
+<Project Sdk="Aspire.AppHost.Sdk/13.3.0">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -10,6 +10,10 @@
   <ItemGroup>
     <ProjectReference Include="..\FellowshipAnalyzer\FellowshipAnalyzer.DevHost\FellowshipAnalyzer.DevHost.csproj" />
     <ProjectReference Include="..\FellowshipAnalyzer\FellowshipAnalyzer.DevApi\FellowshipAnalyzer.DevApi.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Aspire.Hosting.Azure.Storage" />
   </ItemGroup>
 
 </Project>

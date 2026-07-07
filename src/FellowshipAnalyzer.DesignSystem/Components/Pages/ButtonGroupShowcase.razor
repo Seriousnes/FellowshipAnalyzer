@@ -1,0 +1,78 @@
+@page "/button-group"
+
+<PageTitle>ButtonGroup — Design System</PageTitle>
+
+<h1>ButtonGroup</h1>
+<p class="lede">Generic single-select segmented control. Use <code>@@bind-Value</code> to bind to any value type.</p>
+
+<CodeExample Title="String options" Description="@($"Current: {_view}")" Code="@_stringCode">
+    <Demo>
+        <ButtonGroup TValue="string" Options="@_stringOptions" @bind-Value="_view" />
+    </Demo>
+</CodeExample>
+
+<CodeExample Title="Enum options" Description="@($"Current: {_mode}")" Code="@_enumCode">
+    <Demo>
+        <ButtonGroup TValue="SortMode" Options="@_enumOptions" @bind-Value="_mode" />
+    </Demo>
+</CodeExample>
+
+<CodeExample Title="Small size" Code="@_smallCode">
+    <Demo>
+        <ButtonGroup TValue="string" Options="@_stringOptions" @bind-Value="_view" Size="ButtonGroupSize.Sm" />
+    </Demo>
+</CodeExample>
+
+@code {
+    private enum SortMode { Name, Role, Damage }
+
+    private string _view = "fight";
+    private SortMode _mode = SortMode.Role;
+
+    private static readonly IReadOnlyList<ButtonGroupOption<string>> _stringOptions =
+    [
+        new("fight", "By Fight"),
+        new("player", "By Player"),
+    ];
+
+    private static readonly IReadOnlyList<ButtonGroupOption<SortMode>> _enumOptions =
+    [
+        new(SortMode.Name, "Name"),
+        new(SortMode.Role, "Role"),
+        new(SortMode.Damage, "Damage"),
+    ];
+
+    private const string _stringCode = """
+<ButtonGroup TValue="string" Options="@_options" @bind-Value="_view" />
+
+@code {
+    private string _view = "fight";
+
+    private static readonly IReadOnlyList<ButtonGroupOption<string>> _options =
+    [
+        new("fight", "By Fight"),
+        new("player", "By Player"),
+    ];
+}
+""";
+
+    private const string _enumCode = """
+<ButtonGroup TValue="SortMode" Options="@_options" @bind-Value="_mode" />
+
+@code {
+    private enum SortMode { Name, Role, Damage }
+    private SortMode _mode = SortMode.Role;
+
+    private static readonly IReadOnlyList<ButtonGroupOption<SortMode>> _options =
+    [
+        new(SortMode.Name, "Name"),
+        new(SortMode.Role, "Role"),
+        new(SortMode.Damage, "Damage"),
+    ];
+}
+""";
+
+    private const string _smallCode = """
+<ButtonGroup TValue="string" Options="@_options" @bind-Value="_view" Size="ButtonGroupSize.Sm" />
+""";
+}

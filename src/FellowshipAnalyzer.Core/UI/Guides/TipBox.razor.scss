@@ -1,0 +1,60 @@
+@use 'tokens' as t;
+
+.tip-box {
+    --tip-color: #{t.$fa-gold};
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 10px;
+    align-items: start;
+    padding: 10px 12px;
+    background: var(--fa-bg-inset);
+    border: 1px solid var(--fa-border);
+    border-left: 4px solid var(--tip-color);
+    border-radius: 6px;
+
+    &.info    { --tip-color: #4aa3d9; }
+    &.note    { --tip-color: #9a7bff; }
+    &.success { --tip-color: var(--fa-perf-good); }
+    &.warning { --tip-color: var(--fa-perf-ok); }
+    &.error   { --tip-color: var(--fa-perf-fail); }
+}
+
+.tip-box-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: color-mix(in srgb, var(--tip-color) 22%, transparent);
+    color: var(--tip-color);
+    font-weight: 800;
+    font-size: 0.95rem;
+    line-height: 1;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.tip-box-body {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+}
+
+.tip-box-title {
+    font-weight: 700;
+    color: var(--fa-text);
+    font-size: 1rem;
+    letter-spacing: 0.2px;
+}
+
+.tip-box-content {
+    color: var(--fa-text-muted);
+    font-size: 0.95rem;
+    line-height: 1.5;
+
+    p { margin: 0.25em 0; }
+    p:first-child { margin-top: 0; }
+    p:last-child { margin-bottom: 0; }
+}

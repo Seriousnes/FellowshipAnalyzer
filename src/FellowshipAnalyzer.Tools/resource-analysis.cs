@@ -1,3 +1,5 @@
+#:property PublishAot=false
+
 using System.Text.Json;
 
 if (args.Length < 1)
