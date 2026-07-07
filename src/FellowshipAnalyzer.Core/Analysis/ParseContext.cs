@@ -18,3 +18,4 @@ public sealed record ParseContext(
 
     public IReadOnlyList<DungeonPull>? DungeonPulls => Fight.DungeonPulls;
     public IReadOnlyList<FightNpc>? EnemyNpcs => Fight.EnemyNpcs;
+}
