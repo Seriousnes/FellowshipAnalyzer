@@ -84,12 +84,12 @@
 
         var isAoe = window.WindowType == BasicStComboAnalyzer.BurstingIceWindowType.Aoe;
         var windowTypeLabel = isAoe ? "AoE" : "ST";
-        var primaryUsage = isAoe ? $"{window.IceCometCount}/2" : $"{window.GlacialBlastCount}/{window.ExpectedGlacialBlastCount}";
-        var primaryUsageLabel = isAoe ? "Ice Comet" : "Glacial Blast";
+        var primaryUsage = isAoe ? $"{window.AoeSpenderCount}/2" : $"{window.StSpenderCount}/{window.ExpectedStSpenderCount}";
+        var primaryUsageLabel = isAoe ? window.AoeSpenderName : window.StSpenderName;
         var finisherValue = isAoe ? $"{window.ColdSnapCount}/1" : $"{window.ColdSnapCount + window.FreezingTorrentCount}";
         var finisherLabel = isAoe ? "Cold Snap" : "Finishers";
         var finisherTooltip = isAoe
-            ? "AoE windows want one Cold Snap in any order with two Ice Comets."
+            ? $"AoE windows want one Cold Snap in any order with two {window.AoeSpenderName} casts."
             : window.ExpectsFinisher
                 ? "Single-target windows with enough room should include Cold Snap or Freezing Torrent as a finisher."
                 : "No extra finisher was required for this single-target window under the current baseline timing.";
@@ -110,8 +110,8 @@
                 primaryUsage,
                 primaryUsageLabel,
                 isAoe
-                    ? "AoE windows want two Ice Comets during Winter's Embrace."
-                    : "Single-target windows currently use baseline timing to estimate how many Glacial Blasts should fit.",
+                    ? $"AoE windows want two {window.AoeSpenderName} casts during Winter's Embrace."
+                    : $"Single-target windows currently use baseline timing to estimate how many {window.StSpenderName} casts should fit.",
                 Performance: perf),
             new PerCastStat(
                 finisherValue,

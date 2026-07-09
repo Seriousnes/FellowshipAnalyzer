@@ -17,14 +17,21 @@ public abstract partial class BasicStComboAnalyzer : Analyzer<BasicStComboReport
     private const int WintersEmbraceDurationMs = 3000;
     private const double WintersEmbraceIncrease = 0.20;
     private const int BaselineGlobalCooldownMs = 1500;
-    private const int BaselineGlacialBlastCastTimeMs = 1500;
+    private const int BaselineSpenderCastTimeMs = 1500;
 
     private long _totalBonusDamage;
     private int _buffedDamageEventCount;
     private readonly Dictionary<int, (string Name, long Damage)> _bonusDamageBySpell = [];
     private readonly List<StComboWindowEvaluation> _windows = [];
+    private readonly Dictionary<int, int> _spenderCastCounts = [];
 
     private StComboWindowEvaluation? _currentWindow;
+
+    private RimeBuild _build;
+    private int _stSpenderId;
+    private int _aoeSpenderId;
+    private string _stSpenderName = "Glacial Blast";
+    private string _aoeSpenderName = "Ice Comet";
 
     [On<ApplyBuffEvent>(By = Actor.Player, Spell = nameof(Spells.WintersEmbrace))]
     private void OnWintersEmbraceApplied(ApplyBuffEvent @event)
@@ -47,6 +54,8 @@ public abstract partial class BasicStComboAnalyzer : Analyzer<BasicStComboReport
     [On<CastEvent>(By = Actor.Player)]
     private void OnCast(CastEvent castEvent)
     {
+        TallySpender(castEvent.Ability.Id);
+
         if (_currentWindow is not null &&
             castEvent.Ability.Id != Spells.BurstingIce.FSLID &&
             castEvent.GlobalCooldown is not null)
@@ -85,9 +94,40 @@ public abstract partial class BasicStComboAnalyzer : Analyzer<BasicStComboReport
         _currentWindow.UniqueBurstingIceTargets.Add(damageEvent.TargetId);
     }
 
+    private void TallySpender(int abilityId)
+    {
+        if (abilityId == Spells.GlacialBlast.Id ||
+            abilityId == Spells.IceComet.Id ||
+            abilityId == Spells.TalonStrike.Id ||
+            abilityId == Spells.RisingTalons.Id)
+        {
+            _spenderCastCounts[abilityId] = _spenderCastCounts.GetValueOrDefault(abilityId) + 1;
+        }
+    }
+
+    /// <summary>
+    /// Detects which Winter Orb spender loadout the player is running by comparing how often they
+    /// cast the Icy Talons spenders against the default spenders across this pull.
+    /// </summary>
+    private RimeBuild DetectBuild()
+    {
+        var talons = _spenderCastCounts.GetValueOrDefault(Spells.TalonStrike.Id)
+            + _spenderCastCounts.GetValueOrDefault(Spells.RisingTalons.Id);
+        var frostfire = _spenderCastCounts.GetValueOrDefault(Spells.GlacialBlast.Id)
+            + _spenderCastCounts.GetValueOrDefault(Spells.IceComet.Id);
+
+        return talons > frostfire ? RimeBuild.IcyTalons : RimeBuild.Default;
+    }
+
     /// <summary>Per-pull projection of this analyzer's accumulated state for the closing pull.</summary>
     public override BasicStComboReport OnPullEnd()
     {
+        _build = DetectBuild();
+        _stSpenderId = _build == RimeBuild.IcyTalons ? Spells.TalonStrike.Id : Spells.GlacialBlast.Id;
+        _aoeSpenderId = _build == RimeBuild.IcyTalons ? Spells.RisingTalons.Id : Spells.IceComet.Id;
+        _stSpenderName = _build == RimeBuild.IcyTalons ? Spells.TalonStrike.Name : Spells.GlacialBlast.Name;
+        _aoeSpenderName = _build == RimeBuild.IcyTalons ? Spells.RisingTalons.Name : Spells.IceComet.Name;
+
         var evaluations = new List<StComboWindowEvaluation>(_windows.Count);
         var findings = new List<RimeAnalyzerFinding>();
         foreach (var window in _windows)
@@ -101,6 +141,8 @@ public abstract partial class BasicStComboAnalyzer : Analyzer<BasicStComboReport
             ? 0
             : (int)Math.Round(((successfulWindows + (partialWindows * 0.5)) / evaluatedWindows) * 100);
 
+        var buildLabel = _build == RimeBuild.IcyTalons ? "Icy Talons" : "default";
+
         if (evaluatedWindows == 0)
         {
             findings.Add(new RimeAnalyzerFinding("info", "No Bursting Ice windows were detected in the sample."));
@@ -108,7 +150,8 @@ public abstract partial class BasicStComboAnalyzer : Analyzer<BasicStComboReport
         else
         {
             findings.Add(new RimeAnalyzerFinding("info",
-                $"{successfulWindows} of {evaluatedWindows} evaluated Bursting Ice windows matched the expected usage pattern."));
+                $"Scored against the {buildLabel} build ({_stSpenderName} / {_aoeSpenderName} spenders). "
+                + $"{successfulWindows} of {evaluatedWindows} evaluated Bursting Ice windows matched the expected usage pattern."));
 
             foreach (var failedWindow in evaluations.Where(w => !w.Successful).Take(5))
             {
@@ -128,6 +171,7 @@ public abstract partial class BasicStComboAnalyzer : Analyzer<BasicStComboReport
 
         return new BasicStComboReport(
             scoreCard,
+            _build,
             evaluatedWindows,
             successfulWindows,
             partialWindows,
@@ -144,59 +188,61 @@ public abstract partial class BasicStComboAnalyzer : Analyzer<BasicStComboReport
     protected static List<CastEvent> GetWindowCasts(StComboWindowEvaluation window) =>
         [.. window.CastsInWindow.Where(c => c.Timestamp > window.StartTimestamp && c.Timestamp <= window.EndTimestamp)];
 
-    protected static List<CastEvent> GetRelevantCasts(IEnumerable<CastEvent> casts) =>
+    protected List<CastEvent> GetRelevantCasts(IEnumerable<CastEvent> casts) =>
         [.. casts.Where(c =>
-                c.Ability.Id == Spells.GlacialBlast.Id ||
+                c.Ability.Id == _stSpenderId ||
+                c.Ability.Id == _aoeSpenderId ||
                 c.Ability.Id == Spells.ColdSnap.Id ||
-                c.Ability.Id == Spells.FreezingTorrent.Id ||
-                c.Ability.Id == Spells.IceComet.Id)];
+                c.Ability.Id == Spells.FreezingTorrent.Id)];
 
-    private static bool IsGlacialBlast(CastEvent cast) => cast.Ability.Id == Spells.GlacialBlast.Id;
-    private static bool IsIceComet(CastEvent cast) => cast.Ability.Id == Spells.IceComet.Id;
+    private bool IsStSpender(CastEvent cast) => cast.Ability.Id == _stSpenderId;
+    private bool IsAoeSpender(CastEvent cast) => cast.Ability.Id == _aoeSpenderId;
     private static bool IsColdSnap(CastEvent cast) => cast.Ability.Id == Spells.ColdSnap.Id;
     private static bool IsFreezingTorrent(CastEvent cast) => cast.Ability.Id == Spells.FreezingTorrent.Id;
-    private static bool IsFinisher(CastEvent cast) => IsColdSnap(cast) || IsFreezingTorrent(cast);
 
     protected StComboWindowEvaluation EvaluateSingleTargetWindow(
         StComboWindowEvaluation window,
         List<CastEvent> castsInWindow,
         List<CastEvent> relevantCasts)
     {
-        var glacialBlasts = relevantCasts.Count(IsGlacialBlast);
+        var stSpenders = relevantCasts.Count(IsStSpender);
         var coldSnaps = relevantCasts.Count(IsColdSnap);
         var freezingTorrents = relevantCasts.Count(IsFreezingTorrent);
         var firstRelevantCast = relevantCasts.FirstOrDefault();
         var timeBudget = Math.Max(window.EndTimestamp - window.StartTimestamp, 0);
-        var expectedGlacialBlasts = GetExpectedSingleTargetGlacialBlasts(timeBudget);
-        var finisherExpected = ShouldExpectSingleTargetFinisher(timeBudget, expectedGlacialBlasts);
-        var missingGlacialBlasts = Math.Max(expectedGlacialBlasts - glacialBlasts, 0);
+        var expectedStSpenders = GetExpectedSingleTargetSpenders(timeBudget);
+        var finisherExpected = ShouldExpectSingleTargetFinisher(timeBudget, expectedStSpenders);
+        var missingStSpenders = Math.Max(expectedStSpenders - stSpenders, 0);
         var hasValidFinisher = coldSnaps > 0 || freezingTorrents > 0;
         var usedFreezingTorrentCombo = freezingTorrents > 0 && coldSnaps > 0;
-        var openedWithGlacialBlast = firstRelevantCast is not null && IsGlacialBlast(firstRelevantCast);
+        var openedWithStSpender = firstRelevantCast is not null && IsStSpender(firstRelevantCast);
 
         var result = new StComboWindowEvaluation
         {
             StartTimestamp = window.StartTimestamp,
             EndTimestamp = window.EndTimestamp,
             WindowType = BurstingIceWindowType.SingleTarget,
+            Build = _build,
+            StSpenderName = _stSpenderName,
+            AoeSpenderName = _aoeSpenderName,
             TargetCount = window.UniqueBurstingIceTargets.Count,
             CastsInWindow = castsInWindow,
-            GlacialBlastCount = glacialBlasts,
-            IceCometCount = relevantCasts.Count(IsIceComet),
+            StSpenderCount = stSpenders,
+            AoeSpenderCount = relevantCasts.Count(IsAoeSpender),
             ColdSnapCount = coldSnaps,
             FreezingTorrentCount = freezingTorrents,
-            ExpectedGlacialBlastCount = expectedGlacialBlasts,
+            ExpectedStSpenderCount = expectedStSpenders,
             ExpectsFinisher = finisherExpected,
         };
         foreach (var target in window.UniqueBurstingIceTargets)
             result.UniqueBurstingIceTargets.Add(target);
 
-        result.Successful = usedFreezingTorrentCombo || (openedWithGlacialBlast && missingGlacialBlasts == 0 && (!finisherExpected || hasValidFinisher));
+        result.Successful = usedFreezingTorrentCombo || (openedWithStSpender && missingStSpenders == 0 && (!finisherExpected || hasValidFinisher));
         result.Partial = !result.Successful && (
-            (glacialBlasts > 0 && !finisherExpected) ||
-            (glacialBlasts > 0 && hasValidFinisher) ||
+            (stSpenders > 0 && !finisherExpected) ||
+            (stSpenders > 0 && hasValidFinisher) ||
             (freezingTorrents > 0 && coldSnaps > 0));
-        result.Outcome = BuildSingleTargetOutcome(result, firstRelevantCast, missingGlacialBlasts, hasValidFinisher, finisherExpected, usedFreezingTorrentCombo);
+        result.Outcome = BuildSingleTargetOutcome(result, firstRelevantCast, missingStSpenders, hasValidFinisher, finisherExpected, usedFreezingTorrentCombo);
 
         return result;
     }
@@ -206,7 +252,7 @@ public abstract partial class BasicStComboAnalyzer : Analyzer<BasicStComboReport
         List<CastEvent> castsInWindow,
         List<CastEvent> relevantCasts)
     {
-        var iceComets = relevantCasts.Count(IsIceComet);
+        var aoeSpenders = relevantCasts.Count(IsAoeSpender);
         var coldSnaps = relevantCasts.Count(IsColdSnap);
         var freezingTorrents = relevantCasts.Count(IsFreezingTorrent);
 
@@ -215,49 +261,52 @@ public abstract partial class BasicStComboAnalyzer : Analyzer<BasicStComboReport
             StartTimestamp = window.StartTimestamp,
             EndTimestamp = window.EndTimestamp,
             WindowType = BurstingIceWindowType.Aoe,
+            Build = _build,
+            StSpenderName = _stSpenderName,
+            AoeSpenderName = _aoeSpenderName,
             TargetCount = window.UniqueBurstingIceTargets.Count,
             CastsInWindow = castsInWindow,
-            GlacialBlastCount = relevantCasts.Count(IsGlacialBlast),
-            IceCometCount = iceComets,
+            StSpenderCount = relevantCasts.Count(IsStSpender),
+            AoeSpenderCount = aoeSpenders,
             ColdSnapCount = coldSnaps,
             FreezingTorrentCount = freezingTorrents,
-            ExpectedGlacialBlastCount = 0,
+            ExpectedStSpenderCount = 0,
             ExpectsFinisher = true,
         };
         foreach (var target in window.UniqueBurstingIceTargets)
             result.UniqueBurstingIceTargets.Add(target);
 
-        var hasRequiredIceComets = iceComets >= 2;
+        var hasRequiredAoeSpenders = aoeSpenders >= 2;
         var hasRequiredColdSnap = coldSnaps >= 1;
 
-        result.Successful = hasRequiredIceComets && hasRequiredColdSnap;
-        result.Partial = !result.Successful && (iceComets > 0 || coldSnaps > 0 || freezingTorrents > 0);
-        result.Outcome = BuildAoeOutcome(result, hasRequiredIceComets, hasRequiredColdSnap);
+        result.Successful = hasRequiredAoeSpenders && hasRequiredColdSnap;
+        result.Partial = !result.Successful && (aoeSpenders > 0 || coldSnaps > 0 || freezingTorrents > 0);
+        result.Outcome = BuildAoeOutcome(result, hasRequiredAoeSpenders, hasRequiredColdSnap);
 
         return result;
     }
 
-    private static int GetExpectedSingleTargetGlacialBlasts(int timeBudgetMs)
+    private static int GetExpectedSingleTargetSpenders(int timeBudgetMs)
     {
-        if (timeBudgetMs >= (BaselineGlacialBlastCastTimeMs * 2) + BaselineGlobalCooldownMs)
+        if (timeBudgetMs >= (BaselineSpenderCastTimeMs * 2) + BaselineGlobalCooldownMs)
             return 2;
 
-        return timeBudgetMs >= BaselineGlacialBlastCastTimeMs ? 1 : 0;
+        return timeBudgetMs >= BaselineSpenderCastTimeMs ? 1 : 0;
     }
 
-    private static bool ShouldExpectSingleTargetFinisher(int timeBudgetMs, int expectedGlacialBlasts)
+    private static bool ShouldExpectSingleTargetFinisher(int timeBudgetMs, int expectedSpenders)
     {
-        if (expectedGlacialBlasts <= 0)
+        if (expectedSpenders <= 0)
             return false;
 
-        var requiredTime = (expectedGlacialBlasts * BaselineGlacialBlastCastTimeMs) + BaselineGlobalCooldownMs;
+        var requiredTime = (expectedSpenders * BaselineSpenderCastTimeMs) + BaselineGlobalCooldownMs;
         return timeBudgetMs >= requiredTime;
     }
 
-    private static string BuildSingleTargetOutcome(
+    private string BuildSingleTargetOutcome(
         StComboWindowEvaluation window,
         CastEvent? firstRelevantCast,
-        int missingGlacialBlasts,
+        int missingStSpenders,
         bool hasValidFinisher,
         bool finisherExpected,
         bool usedFreezingTorrentCombo)
@@ -270,8 +319,8 @@ public abstract partial class BasicStComboAnalyzer : Analyzer<BasicStComboReport
             }
 
             return finisherExpected
-                ? "Used the Winter's Embrace window well for single-target damage, fitting the expected Glacial Blasts and a finisher."
-                : "Used the Winter's Embrace window well for single-target damage, fitting the expected Glacial Blast usage.";
+                ? $"Used the Winter's Embrace window well for single-target damage, fitting the expected {_stSpenderName} casts and a finisher."
+                : $"Used the Winter's Embrace window well for single-target damage, fitting the expected {_stSpenderName} usage.";
         }
 
         var reasons = new List<string>();
@@ -280,16 +329,16 @@ public abstract partial class BasicStComboAnalyzer : Analyzer<BasicStComboReport
         {
             reasons.Add("No single-target follow-up spell was cast during Winter's Embrace");
         }
-        else if (!(IsGlacialBlast(firstRelevantCast) || IsFreezingTorrent(firstRelevantCast)))
+        else if (!(IsStSpender(firstRelevantCast) || IsFreezingTorrent(firstRelevantCast)))
         {
-            reasons.Add($"Opened with {firstRelevantCast.Ability.Name} instead of starting with Glacial Blast or Freezing Torrent");
+            reasons.Add($"Opened with {firstRelevantCast.Ability.Name} instead of starting with {_stSpenderName} or Freezing Torrent");
         }
 
-        if (missingGlacialBlasts > 0)
+        if (missingStSpenders > 0)
         {
-            reasons.Add(missingGlacialBlasts == 1
-                ? "one expected Glacial Blast was missed"
-                : $"{missingGlacialBlasts} expected Glacial Blasts were missed");
+            reasons.Add(missingStSpenders == 1
+                ? $"one expected {_stSpenderName} was missed"
+                : $"{missingStSpenders} expected {_stSpenderName} casts were missed");
         }
 
         if (finisherExpected && !hasValidFinisher)
@@ -305,20 +354,20 @@ public abstract partial class BasicStComboAnalyzer : Analyzer<BasicStComboReport
         return JoinReasons(reasons);
     }
 
-    private static string BuildAoeOutcome(StComboWindowEvaluation window, bool hasRequiredIceComets, bool hasRequiredColdSnap)
+    private string BuildAoeOutcome(StComboWindowEvaluation window, bool hasRequiredAoeSpenders, bool hasRequiredColdSnap)
     {
         if (window.Successful)
         {
-            return "Used the AoE Winter's Embrace window well, fitting two Ice Comets and one Cold Snap in any order.";
+            return $"Used the AoE Winter's Embrace window well, fitting two {_aoeSpenderName} casts and one Cold Snap in any order.";
         }
 
         var reasons = new List<string>();
 
-        if (!hasRequiredIceComets)
+        if (!hasRequiredAoeSpenders)
         {
-            reasons.Add(window.IceCometCount == 0
-                ? "no Ice Comets were used"
-                : "the window did not include the expected second Ice Comet");
+            reasons.Add(window.AoeSpenderCount == 0
+                ? $"no {_aoeSpenderName} casts were used"
+                : $"the window did not include the expected second {_aoeSpenderName}");
         }
 
         if (!hasRequiredColdSnap)
@@ -360,14 +409,17 @@ public abstract partial class BasicStComboAnalyzer : Analyzer<BasicStComboReport
         public int EndTimestamp { get; set; }
         public string Outcome { get; set; } = string.Empty;
         public BurstingIceWindowType WindowType { get; set; }
+        public RimeBuild Build { get; set; }
+        public string StSpenderName { get; set; } = "Glacial Blast";
+        public string AoeSpenderName { get; set; } = "Ice Comet";
         public int TargetCount { get; set; }
         public bool Successful { get; set; }
         public bool Partial { get; set; }
-        public int GlacialBlastCount { get; set; }
-        public int IceCometCount { get; set; }
+        public int StSpenderCount { get; set; }
+        public int AoeSpenderCount { get; set; }
         public int ColdSnapCount { get; set; }
         public int FreezingTorrentCount { get; set; }
-        public int ExpectedGlacialBlastCount { get; set; }
+        public int ExpectedStSpenderCount { get; set; }
         public bool ExpectsFinisher { get; set; }
         public List<CastEvent> CastsInWindow { get; set; } = [];
         public HashSet<int> UniqueBurstingIceTargets { get; } = [];
@@ -382,7 +434,7 @@ public abstract partial class BasicStComboAnalyzer : Analyzer<BasicStComboReport
 
 /// <summary>
 /// Winter's Embrace analyzer for single-target pulls: every window is scored against the
-/// single-target follow-up (Glacial Blast, plus a Cold Snap or Freezing Torrent finisher).
+/// single-target follow-up (the detected build's spender, plus a Cold Snap or Freezing Torrent finisher).
 /// </summary>
 [ForPull(PullKind.Single)]
 public sealed class SingleTargetRimeCombo : BasicStComboAnalyzer
@@ -396,7 +448,7 @@ public sealed class SingleTargetRimeCombo : BasicStComboAnalyzer
 
 /// <summary>
 /// Winter's Embrace analyzer for multi-target pulls: every window is scored against the AoE
-/// follow-up (two Ice Comets and a Cold Snap in any order).
+/// follow-up (two of the detected build's AoE spenders and a Cold Snap in any order).
 /// </summary>
 [ForPull(PullKind.Multi)]
 public sealed class AoERimeCombo : BasicStComboAnalyzer

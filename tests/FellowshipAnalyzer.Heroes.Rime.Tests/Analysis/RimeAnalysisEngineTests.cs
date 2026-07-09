@@ -40,6 +40,27 @@ public sealed class RimeAnalysisEngineTests
     }
 
     [Fact]
+    public async Task Analyze_WinterOrbAccounting_BalancesGeneratedAgainstSpentWastedAndCurrent()
+    {
+        var (parser, _) = await AnalyzeFixtureAsync();
+
+        var tracker = parser.WinterOrbTracker!;
+        tracker.Current.ShouldBeInRange(0, tracker.MaxOrbs);
+        tracker.Generated.ShouldBe(tracker.Spent + tracker.Wasted + tracker.Current);
+    }
+
+    [Fact]
+    public async Task Analyze_BasicStCombo_ExposesDetectedBuild()
+    {
+        var (_, result) = await AnalyzeFixtureAsync();
+
+        var typed = result.TypedReport.ShouldBeOfType<RimeAnalysisResult>();
+        var report = typed.BasicStComboReports.ShouldHaveSingleItem().Result;
+        report.Build.ShouldBeOneOf(RimeBuild.Default, RimeBuild.IcyTalons);
+        report.Windows.ShouldAllBe(window => window.Build == report.Build);
+    }
+
+    [Fact]
     public async Task Analyze_ShouldHaveStatisticsForWinterOrbs()
     {
         var (_, result) = await AnalyzeFixtureAsync();

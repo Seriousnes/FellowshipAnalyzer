@@ -8,8 +8,8 @@
 @code {
     private IEnumerable<OverviewStat> BuildOverviewStats()
     {
-        var overcapRate = (Analyzer.Generated + Analyzer.Wasted) > 0
-            ? (double)Analyzer.Wasted / (Analyzer.Generated + Analyzer.Wasted) * 100
+        var overcapRate = Analyzer.Generated > 0
+            ? (double)Analyzer.Wasted / Analyzer.Generated * 100
             : 0;
 
         return
