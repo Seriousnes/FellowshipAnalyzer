@@ -1,0 +1,118 @@
+@using FellowshipAnalyzer.Core.Analysis
+@using FellowshipAnalyzer.Core.UI.Guides
+@using FellowshipAnalyzer.Heroes.Gunde.Analysis
+@using FellowshipAnalyzer.Heroes.Gunde.Modules
+@using FellowshipAnalyzer.Core.Common.Spells.Gunde
+@using Spells = FellowshipAnalyzer.Core.Common.Spells.Gunde.Spells
+@inject GundeCombatLogParser Parser
+
+@{
+    RenderFragment slaughter = @<SpellLink Spell="Spells.Slaughter" />;
+    RenderFragment rupture = @<SpellLink Spell="Spells.Rupture" />;
+    RenderFragment heartSplitter = @<SpellLink Spell="Spells.HeartSplitter" />;
+}
+
+<GuideSection Title="Slaughter Efficiency">
+    <Explanation>
+        <ol>
+            <li>@slaughter dumps every stack of Rend into a short 160% bleed, so its value scales with how much Rend is on the target when it lands.</li>
+            <li>@rupture leaves <strong>Open Wounds</strong> on the target for 18s, buffing the next @slaughter — cast @slaughter inside that window.</li>
+            <li>On bosses, rebuild Rend with @heartSplitter between Slaughters. On trash, land @slaughter into the pack so its bleed spreads wide.</li>
+            <li>Each pull is scored against the priority its shape calls for — single-target on boss pulls, AoE on trash.</li>
+        </ol>
+    </Explanation>
+    <ChildContent>
+        <CastOverview Title="Slaughter Overview" Stats="@BuildOverviewStats()" />
+        <CastDetail Title="Slaughters"
+                    Description="Each Slaughter shows whether it landed inside an Open Wounds window and met the priority for its pull's shape."
+                    Casts="@BuildPerCastData()" />
+    </ChildContent>
+</GuideSection>
+
+@code {
+    private List<SlaughterUsageReport> Reports =>
+        Parser.SlaughterUsageReports.Select(entry => entry.Result).ToList();
+
+    private IEnumerable<OverviewStat> BuildOverviewStats()
+    {
+        var reports = Reports;
+        var casts = reports.Sum(r => r.SlaughterCasts);
+        var well = reports.Sum(r => r.WellExecuted);
+        var openWounds = reports.Sum(r => r.OpenWoundsTimed);
+        var wellRate = casts > 0 ? (int)Math.Round((double)well / casts * 100) : 0;
+        var openWoundsRate = casts > 0 ? (int)Math.Round((double)openWounds / casts * 100) : 0;
+
+        return
+        [
+            new OverviewStat(
+                $"{casts}",
+                "Slaughters",
+                "Total Slaughter casts evaluated across every pull."),
+            new OverviewStat(
+                $"{wellRate}%",
+                "Well Set Up",
+                $"{well} of {casts} Slaughters met the priority for their pull shape.",
+                Tier(wellRate)),
+            new OverviewStat(
+                $"{openWoundsRate}%",
+                "Inside Open Wounds",
+                $"{openWounds} of {casts} Slaughters landed inside a Rupture Open Wounds window.",
+                Tier(openWoundsRate)),
+        ];
+    }
+
+    private IEnumerable<PerCastData> BuildPerCastData() =>
+        Parser.SlaughterUsageReports.SelectMany(entry =>
+            entry.Result.Slaughters.Select(slaughter => BuildSlaughterData(slaughter, entry.Result.Shape, entry.Pull)));
+
+    private PerCastData BuildSlaughterData(SlaughterEvaluation slaughter, GundePullShape shape, Pull pull)
+    {
+        var perf = slaughter.WellExecuted ? PerformanceTier.Perfect : PerformanceTier.Fail;
+        var isAoe = shape == GundePullShape.Aoe;
+
+        var stats = new List<PerCastStat>
+        {
+            new(
+                slaughter.OpenWoundsActive ? "Yes" : "No",
+                "Open Wounds",
+                "Whether a Rupture Open Wounds window was active when this Slaughter was cast.",
+                slaughter.OpenWoundsActive ? PerformanceTier.Perfect : PerformanceTier.Fail),
+        };
+
+        if (isAoe)
+        {
+            stats.Add(new PerCastStat(
+                $"{slaughter.TargetsHit}",
+                "Targets",
+                "Enemies the Slaughter bleed spread to.",
+                slaughter.TargetsHit >= 2 ? PerformanceTier.Perfect : PerformanceTier.Fail));
+        }
+        else
+        {
+            stats.Add(new PerCastStat(
+                slaughter.HeartSplitterPrimed ? "Yes" : "No",
+                "Rend Rebuilt",
+                "Whether Heart Splitter was used to rebuild Rend since the previous Slaughter.",
+                slaughter.HeartSplitterPrimed ? PerformanceTier.Perfect : PerformanceTier.Fail));
+        }
+
+        return new PerCastData
+        {
+            Performance = perf,
+            Stats = [.. stats],
+            Timestamp = Parser.FormatTimestamp(slaughter.Timestamp),
+            Sequence = [new SpellCastEntry(Spells.Slaughter.FSLID.Value, perf)],
+            Group = pull.Name,
+            GroupContent = @<PullBanner Pull="@pull" />,
+            AdditionalContent = new AdditionalContent(
+                "Usage Notes",
+                @<div>@slaughter.Outcome</div>),
+        };
+    }
+
+    private static PerformanceTier Tier(int rate) =>
+        rate >= 75 ? PerformanceTier.Perfect
+        : rate >= 50 ? PerformanceTier.Good
+        : rate >= 25 ? PerformanceTier.Ok
+        : PerformanceTier.Fail;
+}
