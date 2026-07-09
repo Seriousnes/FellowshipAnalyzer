@@ -5,11 +5,14 @@ using FellowshipAnalyzer.Core.Events;
 namespace FellowshipAnalyzer.Heroes.Elarion.Modules;
 
 /// <summary>
-/// Tracks Lunarlight Mark application and eruption. Heartseeker Barrage is the primary mark
-/// eruption tool; if it lands without any active marks, the eruption is wasted. Marks that
-/// expire before a Barrage is cast are also wasted opportunities.
+/// Tracks Lunarlight Mark application and eruption within a pull. Heartseeker Barrage is the primary
+/// mark eruption tool; if it lands without any active marks, the eruption is wasted. Marks that
+/// expire before a Barrage is cast are also wasted opportunities. Both builds open with Lunarlight
+/// Mark, so this runs on every pull shape; a pull with no Barrage casts indicates the player is on
+/// the Highwind Arrow build.
 /// </summary>
-public sealed partial class LunarlightMarkEruptionAnalyzer : Analyzer
+[ForPull(PullKind.Single | PullKind.Multi)]
+public sealed partial class LunarlightMarkEruptionAnalyzer : Analyzer<LunarlightMarkEruptionReport>
 {
     private const string LunarlightMarkName = "Lunarlight Mark";
 
@@ -17,14 +20,7 @@ public sealed partial class LunarlightMarkEruptionAnalyzer : Analyzer
     private readonly List<BarrageEvent> _barrages = [];
     private int _totalMarksApplied;
     private int _marksExpired;
-
-    public IReadOnlyList<BarrageEvent> Barrages => _barrages;
-    public int TotalMarksApplied => _totalMarksApplied;
-    public int MarksExpired => _marksExpired;
-    public int BarrageWithEruption => _barrages.Count(b => b.ErupedMarks > 0);
-    public int BarrageWithoutEruption => _barrages.Count(b => b.ErupedMarks == 0);
-
-    public int ActiveMarkCount => _activeMarks.Count;
+    private bool _recentlyErupted;
 
     [On<ApplyDebuffEvent>(By = Actor.Player)]
     private void OnApplyMark(ApplyDebuffEvent e)
@@ -55,8 +51,6 @@ public sealed partial class LunarlightMarkEruptionAnalyzer : Analyzer
         }
     }
 
-    private bool _recentlyErupted;
-
     [On<CastEvent>(By = Actor.Player, Spell = nameof(Spells.HeartseekerBarrage))]
     private void OnBarrage(CastEvent e)
     {
@@ -73,6 +67,14 @@ public sealed partial class LunarlightMarkEruptionAnalyzer : Analyzer
         {
             _recentlyErupted = false;
         }
+    }
+
+    public override LunarlightMarkEruptionReport OnPullEnd()
+    {
+        var withEruption = _barrages.Count(b => b.ErupedMarks > 0);
+        var withoutEruption = _barrages.Count(b => b.ErupedMarks == 0);
+        return new LunarlightMarkEruptionReport(
+            _barrages, _totalMarksApplied, _marksExpired, withEruption, withoutEruption);
     }
 
     private static bool IsLunarlightMark(Ability ability) =>

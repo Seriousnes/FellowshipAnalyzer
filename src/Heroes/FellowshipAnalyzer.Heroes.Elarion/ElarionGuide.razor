@@ -2,8 +2,6 @@
 @using FellowshipAnalyzer.Core.Game
 @inject ElarionCombatLogParser Parser
 
-<RotationGuide />
-
 @if (Parser.FocusTracker is not null)
 {
     <ResourceGraph
@@ -12,42 +10,42 @@
     />
 }
 
-@if (Parser.LunarlightMarkEruption is not null)
+@if (Parser.LunarlightMarkEruptionReports.Count > 0)
 {
     <LunarlightMarkEruptionGuide />
 }
 
-@if (Parser.EmpoweredMultishotWaste is not null)
+@if (Parser.EmpoweredMultishotWasteReports.Any(e => e.Result.BuildActive))
 {
     <EmpoweredMultishotWasteGuide />
 }
 
-@if (Parser.HighwindArrowCap is not null)
+@if (Parser.HighwindArrowCapReports.Count > 0)
 {
     <HighwindArrowCapGuide />
 }
 
-@if (Parser.CooldownEfficiency is not null)
+@if (Parser.CooldownEfficiencyReports.Count > 0)
 {
     <CooldownEfficiencyGuide />
 }
 
-@if (Parser.PreUltimateChecklist is not null)
+@if (Parser.PreUltimateChecklistReports.Count > 0)
 {
     <PreUltimateChecklistGuide />
 }
 
-@if (Parser.ImpendingHeartseeker is not null)
+@if (Parser.ImpendingHeartseekerReports.Count > 0)
 {
     <ImpendingHeartseekerGuide />
 }
 
-@if (Parser.StarfallVolleyDesync is not null)
+@if (Parser.StarfallVolleyDesyncReports.Count > 0)
 {
     <StarfallVolleyDesyncGuide />
 }
 
-@if (Parser.VoidbringerTouch is not null)
+@if (Parser.VoidbringerTouchReports.Any(e => e.Result.TotalCasts > 0))
 {
     <VoidbringerTouchGuide />
 }

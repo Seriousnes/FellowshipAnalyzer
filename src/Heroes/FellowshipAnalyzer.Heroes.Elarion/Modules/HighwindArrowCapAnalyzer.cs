@@ -5,42 +5,36 @@ using FellowshipAnalyzer.Core.Events;
 namespace FellowshipAnalyzer.Heroes.Elarion.Modules;
 
 /// <summary>
-/// Tracks time spent at the Highwind Arrow charge cap and casts that occurred while already
-/// capped. Highwind Arrow has 3 charges; time at cap means wasted recharge time.
+/// Tracks time spent at the Highwind Arrow charge cap and casts that occurred while already capped.
+/// Highwind Arrow has 3 charges; time at cap means wasted recharge time. Highwind Arrow is the
+/// single-target builder — AoE deprioritises it in favour of Multishot and Heartseeker Barrage — so
+/// cap discipline is only scored on single-target (boss) pulls.
 /// </summary>
-public sealed partial class HighwindArrowCapAnalyzer : Analyzer
+[ForPull(PullKind.Single)]
+public sealed partial class HighwindArrowCapAnalyzer : Analyzer<HighwindArrowCapReport>
 {
     private const int MaxCharges = 3;
 
     private bool _atCap = true;
     private int _capStartTimestamp;
-    private int _fightStart;
-    private int _fightEnd;
+    private int _pullStart;
+    private int _pullEnd;
     private int _totalTimeAtCapMs;
     private int _castsWhileCapped;
     private int _totalCasts;
 
-    public int TotalTimeAtCapMs => _totalTimeAtCapMs;
-    public int CastsWhileCapped => _castsWhileCapped;
-    public int TotalCasts => _totalCasts;
-
-    public double CapPercentage =>
-        _fightEnd > _fightStart
-            ? (double)_totalTimeAtCapMs / (_fightEnd - _fightStart)
-            : 0;
-
-    [On<FightStartEvent>]
-    private void OnFightStart(FightStartEvent e)
+    [On<PullStartEvent>]
+    private void OnPullStart(PullStartEvent e)
     {
-        _fightStart = e.Timestamp;
+        _pullStart = e.Timestamp;
         _capStartTimestamp = e.Timestamp;
         _atCap = true;
     }
 
-    [On<FightEndEvent>]
-    private void OnFightEnd(FightEndEvent e)
+    [On<PullEndEvent>]
+    private void OnPullEndEvent(PullEndEvent e)
     {
-        _fightEnd = e.Timestamp;
+        _pullEnd = e.Timestamp;
         if (_atCap)
         {
             _totalTimeAtCapMs += e.Timestamp - _capStartTimestamp;
@@ -74,4 +68,7 @@ public sealed partial class HighwindArrowCapAnalyzer : Analyzer
             _atCap = false;
         }
     }
+
+    public override HighwindArrowCapReport OnPullEnd() =>
+        new(_totalTimeAtCapMs, _castsWhileCapped, _totalCasts, Math.Max(0, _pullEnd - _pullStart));
 }

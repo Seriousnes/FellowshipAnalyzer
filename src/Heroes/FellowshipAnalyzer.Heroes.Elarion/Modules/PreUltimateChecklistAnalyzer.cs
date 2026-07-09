@@ -9,9 +9,11 @@ namespace FellowshipAnalyzer.Heroes.Elarion.Modules;
 /// <summary>
 /// Scores each Spirit of Heroism (ultimate) window against the pre-ult checklist: Skystrider's
 /// Supremacy, Voidbringer's Touch, Skystrider's Grace buff, Event Horizon buff, and a Heartseeker
-/// Barrage available to fire during the window.
+/// Barrage available to fire during the window. Ultimate setup is shape-agnostic, so this runs on
+/// every pull shape.
 /// </summary>
-public sealed partial class PreUltimateChecklistAnalyzer(Lazy<SpellUsable> spellUsable) : Analyzer
+[ForPull(PullKind.Single | PullKind.Multi)]
+public sealed partial class PreUltimateChecklistAnalyzer(Lazy<SpellUsable> spellUsable) : Analyzer<PreUltimateChecklistReport>
 {
     private const int PreUltLookbackMs = 6000;
 
@@ -21,12 +23,6 @@ public sealed partial class PreUltimateChecklistAnalyzer(Lazy<SpellUsable> spell
     private bool _eventHorizonBuffActive;
 
     private readonly List<UltWindow> _windows = [];
-
-    public IReadOnlyList<UltWindow> Windows => _windows;
-    public int Score =>
-        _windows.Count == 0
-            ? 0
-            : (int)Math.Round(_windows.Average(w => w.ChecksPassed * 100.0 / w.TotalChecks));
 
     [On<CastEvent>(By = Actor.Player, Spell = nameof(Spells.SkystridersSupremacy))]
     private void OnSupremacy(CastEvent e) => _supremacyCasts.Add(e.Timestamp);
@@ -52,9 +48,17 @@ public sealed partial class PreUltimateChecklistAnalyzer(Lazy<SpellUsable> spell
     [On<ApplyDebuffEvent>(By = Actor.Player, Spell = nameof(Spells.SpiritOfHeroism))]
     private void OnUltDebuffApply(ApplyDebuffEvent e) => RecordWindow(e.Timestamp);
 
+    public override PreUltimateChecklistReport OnPullEnd()
+    {
+        var score = _windows.Count == 0
+            ? 0
+            : (int)Math.Round(_windows.Average(w => w.ChecksPassed * 100.0 / w.TotalChecks));
+        return new PreUltimateChecklistReport(_windows, score);
+    }
+
     private void RecordWindow(int timestamp)
     {
-        if (_windows.LastOrDefault().UltTimestamp == timestamp) return;
+        if (_windows.Count > 0 && _windows[^1].UltTimestamp == timestamp) return;
 
         var supremacyRecent = _supremacyCasts.Any(t => timestamp - t is >= 0 and <= PreUltLookbackMs);
         var voidbringerRecent = _voidbringerCasts.Any(t => timestamp - t is >= 0 and <= PreUltLookbackMs);

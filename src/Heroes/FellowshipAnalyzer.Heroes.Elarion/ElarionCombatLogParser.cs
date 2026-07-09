@@ -5,17 +5,17 @@ using FellowshipAnalyzer.Heroes.Elarion.Modules;
 namespace FellowshipAnalyzer.Heroes.Elarion.Analysis;
 
 [HeroAnalyzer(HeroName.Elarion)]
-[AddModule<Modules.Abilities>]
-[AddModule<ElarionAuras>]
-[AddModule<FocusTracker>]
-[AddModule<EmpoweredMultishotWasteAnalyzer>]
-[AddModule<HighwindArrowCapAnalyzer>]
-[AddModule<LunarlightMarkEruptionAnalyzer>]
-[AddModule<CooldownEfficiencyAnalyzer>]
-[AddModule<ImpendingHeartseekerAnalyzer>]
-[AddModule<StarfallVolleyDesyncAnalyzer>]
-[AddModule<VoidbringerTouchAnalyzer>]
-[AddModule<PreUltimateChecklistAnalyzer>]
+[AddState<Modules.Abilities>]
+[AddState<ElarionAuras>]
+[AddState<FocusTracker>]
+[AddAnalyzer<EmpoweredMultishotWasteAnalyzer>]
+[AddAnalyzer<HighwindArrowCapAnalyzer>]
+[AddAnalyzer<LunarlightMarkEruptionAnalyzer>]
+[AddAnalyzer<CooldownEfficiencyAnalyzer>]
+[AddAnalyzer<ImpendingHeartseekerAnalyzer>]
+[AddAnalyzer<StarfallVolleyDesyncAnalyzer>]
+[AddAnalyzer<VoidbringerTouchAnalyzer>]
+[AddAnalyzer<PreUltimateChecklistAnalyzer>]
 public sealed partial class ElarionCombatLogParser : CombatLogParser
 {
     public override Type? GuideComponent => typeof(ElarionGuide);

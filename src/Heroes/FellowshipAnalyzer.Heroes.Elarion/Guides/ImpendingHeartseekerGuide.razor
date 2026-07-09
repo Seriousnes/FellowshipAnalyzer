@@ -18,32 +18,36 @@
 </GuideSection>
 
 @code {
-    private ImpendingHeartseekerAnalyzer Analyzer => Parser.ImpendingHeartseeker!;
+    private IReadOnlyList<PullResult<ImpendingHeartseekerReport>> Reports => Parser.ImpendingHeartseekerReports;
+
+    private int Gains => Reports.Sum(r => r.Result.Gains);
+    private int Refreshes => Reports.Sum(r => r.Result.Refreshes);
+    private int Consumed => Reports.Sum(r => r.Result.Consumed);
+    private int Expired => Reports.Sum(r => r.Result.Expired);
 
     private IEnumerable<OverviewStat> BuildOverviewStats()
     {
-        var settled = Analyzer.Consumed + Analyzer.Expired;
-        var consumeRate = settled == 0 ? 0 : Analyzer.Consumed * 100.0 / settled;
+        var settled = Consumed + Expired;
+        var consumeRate = settled == 0 ? 0 : Consumed * 100.0 / settled;
 
         var rateTier = consumeRate >= 95 ? PerformanceTier.Perfect
             : consumeRate >= 80 ? PerformanceTier.Good
             : consumeRate >= 60 ? PerformanceTier.Ok
             : PerformanceTier.Fail;
 
-        var expiredTier = Analyzer.Expired == 0 ? PerformanceTier.Perfect
-            : Analyzer.Expired < 2 ? PerformanceTier.Good
-            : Analyzer.Expired < 4 ? PerformanceTier.Ok
+        var expiredTier = Expired == 0 ? PerformanceTier.Perfect
+            : Expired < 2 ? PerformanceTier.Good
+            : Expired < 4 ? PerformanceTier.Ok
             : PerformanceTier.Fail;
 
         return
         [
-            new OverviewStat($"{Analyzer.Gains}", "Gained", "Total proc gains.")
-            ,
-            new OverviewStat($"{Analyzer.Refreshes}", "Refreshes",
+            new OverviewStat($"{Gains}", "Gained", "Total proc gains."),
+            new OverviewStat($"{Refreshes}", "Refreshes",
                 "Procs that refreshed an existing stack."),
-            new OverviewStat($"{Analyzer.Consumed}", "Consumed",
-                "Procs consumed by a cast.", Analyzer.Consumed > 0 ? PerformanceTier.Good : PerformanceTier.Ok),
-            new OverviewStat($"{Analyzer.Expired}", "Expired",
+            new OverviewStat($"{Consumed}", "Consumed",
+                "Procs consumed by a cast.", Consumed > 0 ? PerformanceTier.Good : PerformanceTier.Ok),
+            new OverviewStat($"{Expired}", "Expired",
                 "Procs that timed out without being consumed.", expiredTier),
             new OverviewStat(settled == 0 ? "—" : $"{consumeRate:F0}%", "Consume Rate",
                 "Share of resolved procs that were consumed.",
