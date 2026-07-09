@@ -29,12 +29,12 @@ public sealed partial class SpellUsable(Lazy<Abilities> abilities, Lazy<DebugAnn
     /// into the next, without requiring a workaround for skipping multiple charges at once.
     /// </summary>
     /// <returns>The actual amount of CDR applied in milliseconds.</returns>
-    public int ReduceCooldown(int spellId, int milliseconds, int timestamp)
+    public int ReduceCooldown(int spellId, int milliseconds, int? timestamp = 0)
     {
         if (!_cooldowns.TryGetValue(spellId, out var cd) || milliseconds <= 0)
             return 0;
 
-        var remaining = Math.Max(0, cd.ExpectedEnd - timestamp);
+        var remaining = Math.Max(0, cd.ExpectedEnd - (timestamp ?? Owner.CurrentTimestamp));
 
         if (milliseconds < remaining)
         {
@@ -42,7 +42,7 @@ public sealed partial class SpellUsable(Lazy<Abilities> abilities, Lazy<DebugAnn
             return milliseconds;
         }
 
-        EndCooldown(spellId, timestamp);
+        EndCooldown(spellId, timestamp ?? Owner.CurrentTimestamp);
         return remaining + ReduceCooldown(spellId, milliseconds - remaining, timestamp);
     }
 
@@ -57,14 +57,15 @@ public sealed partial class SpellUsable(Lazy<Abilities> abilities, Lazy<DebugAnn
 
     public int CooldownRemaining(int spellId, int? atTimestamp = null)
     {
-        var ts = atTimestamp ?? this.Owner.CurrentTimestamp;
+        var ts = atTimestamp ?? Owner.CurrentTimestamp;
         return _cooldowns.TryGetValue(spellId, out var cd)
             ? Math.Max(0, cd.ExpectedEnd - ts)
             : 0;
     }
 
-    public void BeginCooldown(int spellId, int timestamp)
+    public void BeginCooldown(int spellId, int? timestamp = null)
     {
+        var ts = timestamp ?? Owner.CurrentTimestamp;
         if (!_cooldowns.TryGetValue(spellId, out var cd))
         {
             var baseDurationMs = (int)(_abilities.GetExpectedCooldown(spellId) * 1000);
@@ -73,49 +74,50 @@ public sealed partial class SpellUsable(Lazy<Abilities> abilities, Lazy<DebugAnn
 
             var maxCharges = _abilities.GetMaxCharges(spellId);
             cd = new CooldownInfo(
-                OverallStart: timestamp,
-                ChargeStart: timestamp,
-                ExpectedEnd: timestamp + cdDuration,
+                OverallStart: ts,
+                ChargeStart: ts,
+                ExpectedEnd: ts + cdDuration,
                 RechargeDuration: cdDuration,
                 ChargesAvailable: maxCharges - 1,
                 MaxCharges: maxCharges);
             _cooldowns[spellId] = cd;
 
-            FabricateUpdate(UpdateSpellUsableType.BeginCooldown, spellId, timestamp, cd);
+            FabricateUpdate(UpdateSpellUsableType.BeginCooldown, spellId, ts, cd);
         }
         else if (cd.ChargesAvailable > 0)
         {
             cd = cd with { ChargesAvailable = cd.ChargesAvailable - 1 };
             _cooldowns[spellId] = cd;
-            FabricateUpdate(UpdateSpellUsableType.UseCharge, spellId, timestamp, cd);
+            FabricateUpdate(UpdateSpellUsableType.UseCharge, spellId, ts, cd);
         }
         else
         {
-            EndCooldown(spellId, timestamp);
-            BeginCooldown(spellId, timestamp);
+            EndCooldown(spellId, ts);
+            BeginCooldown(spellId, ts);
         }
     }
 
-    public void EndCooldown(int spellId, int timestamp, bool restoreAllCharges = false)
+    public void EndCooldown(int spellId, int? timestamp = null, bool restoreAllCharges = false)
     {
+        var ts = timestamp ?? Owner.CurrentTimestamp;
         if (!_cooldowns.TryGetValue(spellId, out var cd)) return;
 
         cd = restoreAllCharges
-            ? cd with { ChargesAvailable = cd.MaxCharges, ExpectedEnd = timestamp }
+            ? cd with { ChargesAvailable = cd.MaxCharges, ExpectedEnd = ts }
             : cd with { ChargesAvailable = cd.ChargesAvailable + 1 };
 
         if (cd.ChargesAvailable >= cd.MaxCharges)
         {
-            cd = cd with { ExpectedEnd = timestamp };
-            FabricateUpdate(UpdateSpellUsableType.EndCooldown, spellId, timestamp, cd);
+            cd = cd with { ExpectedEnd = ts };
+            FabricateUpdate(UpdateSpellUsableType.EndCooldown, spellId, ts, cd);
             _cooldowns.Remove(spellId);
         }
         else
         {
-            var nextEnd = timestamp + cd.RechargeDuration;
-            cd = cd with { ChargeStart = timestamp, ExpectedEnd = nextEnd };
+            var nextEnd = ts + cd.RechargeDuration;
+            cd = cd with { ChargeStart = ts, ExpectedEnd = nextEnd };
             _cooldowns[spellId] = cd;
-            FabricateUpdate(UpdateSpellUsableType.RestoreCharge, spellId, timestamp, cd);
+            FabricateUpdate(UpdateSpellUsableType.RestoreCharge, spellId, ts, cd);
         }
     }
 

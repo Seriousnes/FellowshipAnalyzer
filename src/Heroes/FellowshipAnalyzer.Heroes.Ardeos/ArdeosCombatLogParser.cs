@@ -8,7 +8,9 @@ namespace FellowshipAnalyzer.Heroes.Ardeos.Analysis;
 [HeroAnalyzer(HeroName.Ardeos)]
 [AddModule<Abilities>]
 [AddModule<CinderEmberTracker>]
+[AddModule<RollingFlamesAnalyzer>]
 [AddAnalyzer<WildfireComboAnalyzer>]
+[AddAnalyzer<SearingBlazeSpreadAnalyzer>]
 public sealed partial class ArdeosCombatLogParser : CombatLogParser
 {
     public override Type? GuideComponent => typeof(ArdeosGuide);

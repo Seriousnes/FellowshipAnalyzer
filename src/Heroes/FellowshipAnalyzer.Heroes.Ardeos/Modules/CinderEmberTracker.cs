@@ -1,5 +1,6 @@
 using FellowshipAnalyzer.Core.Game;
 using FellowshipAnalyzer.Core.Resources;
+using FellowshipAnalyzer.Heroes.Ardeos.Statistics;
 
 using Microsoft.Extensions.Logging;
 
@@ -24,6 +25,8 @@ public sealed partial class CinderEmberTracker : ResourceTracker
 
         Active = true;
     }
+
+    public override Type? StatisticsComponentType => typeof(CinderEmberStatistics);
 
     /// <summary>Whole burning Embers held for a given Cinder total.</summary>
     public static int EmbersFromCinders(int totalCinders) => totalCinders / CindersPerEmber;

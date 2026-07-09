@@ -1,0 +1,38 @@
+@inherits AnalyzerStatistic<RollingFlamesAnalyzer>
+
+<StatCard Title="Rolling Flames Cooldown Reduction">
+    @foreach (var cdr in Analyzer.CooldownReductions)
+    {
+        <CastOverview Title="@cdr.Spell.Name" Stats="@BuildSpellStats(cdr)" />
+    }
+</StatCard>
+
+@code {
+    private IEnumerable<OverviewStat> BuildSpellStats(RollingFlamesCdr cdr)
+    {
+        var used = cdr.GeneratedMs > 0;
+        var wastedRate = used ? (double)cdr.WastedMs / cdr.GeneratedMs : 0d;
+
+        return
+        [
+            new OverviewStat(
+                Seconds(cdr.GeneratedMs),
+                "Generated",
+                $"Total cooldown reduction {cdr.Spell.Name} generated this encounter."),
+            new OverviewStat(
+                Seconds(cdr.WastedMs),
+                "Wasted",
+                "Cooldown reduction generated while the spell was already off cooldown.",
+                cdr.WastedMs == 0 ? PerformanceTier.Perfect
+                    : wastedRate < 0.10 ? PerformanceTier.Good
+                    : wastedRate < 0.20 ? PerformanceTier.Ok
+                    : PerformanceTier.Fail),
+            new OverviewStat(
+                used ? $"{cdr.Efficiency * 100:F0}%" : "—",
+                "Efficiency",
+                "Share of the generated reduction that actually shortened the cooldown."),
+        ];
+    }
+
+    private static string Seconds(int milliseconds) => $"{milliseconds / 1000d:0.0}s";
+}
