@@ -1,4 +1,14 @@
 {
+  "ardeos": {
+    "FireBallMonitor": { "id": 1565, "note": "passive PlacedProjectileAoeDamageMonitor also named Fire Ball; supersede to free the FireBall name for id 1260. Relies on the real ability (1260) preceding this monitor in kit order." },
+    "FireBall": { "charges": 2, "note": "source cooldown 30 is correct; NumCharges 2 is nested under Constants.Talent so the source yields 1 charge" },
+    "FireFrogsMonitor": { "id": 1532, "note": "passive FrogDamageMonitor also named Fire Frogs; supersede to free the FireFrogs name for id 1268. Relies on the real ability (1268) preceding this monitor in kit order." },
+    "FireBallDot": { "id": 2293, "kind": "effect", "name": "Fire Ball", "note": "source produces blank FireBallDot(1816) and FireBallDirectDamageBasedDot(2293); reconcile 2293 to FireBallDot" },
+    "FireFrogsDot": { "id": 1826, "kind": "effect", "note": "GE_Firemage_FireFrog_Dot not auto-linked (stem FireFrogs vs FireFrog); add directly" },
+    "ApocalypseDot": { "id": 3175, "kind": "effect", "note": "GE_Firemage_Talent_CastedPlacedAoe_DamageBasedDot_Dot unresolved; add directly" },
+    "SearingBlazeDot": { "id": 1820, "kind": "effect", "note": "GE_Firemage_InstantSingleTargetDot_Dot unresolved; add directly" },
+    "ReignOfFireBuff": { "id": 2301, "kind": "effect", "note": "GE_Firemage_Talent_PlacedProjectileAoe_ResetCooldownDamageBuff unresolved; add directly" }
+  },
   "rime": {
     "WintersBlessing": {
       "id": 1026,

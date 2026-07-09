@@ -30,7 +30,7 @@ public static class Linking
 
         foreach (var kit in hero.Kit)
         {
-            if (!kit.DevName.StartsWith(prefix, StringComparison.Ordinal))
+            if (!kit.DevName.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
                 continue;
 
             var stem = "GE_" + kit.DevName["GA_".Length..];

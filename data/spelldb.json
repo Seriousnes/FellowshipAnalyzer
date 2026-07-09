@@ -339,7 +339,16 @@
       "kind": "ability",
       "id": 1273,
       "name": "Apocalypse",
-      "icon": "Firemage_Apocalypse.jpg"
+      "icon": "Firemage_Apocalypse.jpg",
+      "cooldown": 45,
+      "range": 30,
+      "castDuration": 3
+    },
+    "ApocalypseDamage": {
+      "kind": "effect",
+      "id": 1833,
+      "name": "",
+      "icon": ""
     },
     "ApocalypseDot": {
       "kind": "effect",
@@ -351,19 +360,59 @@
       "kind": "ability",
       "id": 1275,
       "name": "Detonate",
-      "icon": "Firemage_detonate.jpg"
+      "icon": "Firemage_detonate.jpg",
+      "castDuration": 1.5
+    },
+    "DetonateCustomGlobalCooldown": {
+      "kind": "effect",
+      "id": 1836,
+      "name": "",
+      "icon": ""
+    },
+    "DetonateDamage": {
+      "kind": "effect",
+      "id": 1835,
+      "name": "",
+      "icon": ""
+    },
+    "DetonateDetonationDebuff": {
+      "kind": "effect",
+      "id": 1834,
+      "name": "",
+      "icon": ""
+    },
+    "DetonateTalentInstantCastedSingleDotProc": {
+      "kind": "effect",
+      "id": 1809,
+      "name": "",
+      "icon": ""
     },
     "EngulfingFlames": {
       "kind": "ability",
       "id": 1586,
       "name": "Engulfing Flames",
-      "icon": "Firemage_Dot_01.jpg"
+      "icon": "Firemage_Dot_01.jpg",
+      "cooldown": 20,
+      "range": 30,
+      "castDuration": 1.5
     },
     "EngulfingFlamesDot": {
       "kind": "effect",
       "id": 2325,
       "name": "Engulfing Flames",
       "icon": "Firemage_Dot_01.jpg"
+    },
+    "EngulfingFlamesTalentBoostsIncomingDamageDebuff": {
+      "kind": "effect",
+      "id": 2756,
+      "name": "",
+      "icon": ""
+    },
+    "EngulfingFlamesTalentBoostsIncomingDamageDebuffOwnerEffect": {
+      "kind": "effect",
+      "id": 3174,
+      "name": "",
+      "icon": ""
     },
     "FireBall": {
       "kind": "ability",
@@ -373,11 +422,35 @@
       "cooldown": 30,
       "charges": 2
     },
+    "FireBallCharge": {
+      "kind": "effect",
+      "id": 1818,
+      "name": "",
+      "icon": ""
+    },
+    "FireBallDamage": {
+      "kind": "effect",
+      "id": 1817,
+      "name": "",
+      "icon": ""
+    },
     "FireBallDot": {
       "kind": "effect",
       "id": 2293,
       "name": "Fire Ball",
-      "icon": "T_Nhance_RPG_Fire_36.jpg"
+      "icon": "effects/T_Nhance_RPG_Fire_36.jpg"
+    },
+    "FireBallMonitor": {
+      "kind": "ability",
+      "id": 1565,
+      "name": "Fire Ball",
+      "icon": "Firemage_Inferno.jpg"
+    },
+    "FireBallTalentCastedDotBoostProjectileBonusBuff": {
+      "kind": "effect",
+      "id": 1808,
+      "name": "Infernal Doom",
+      "icon": "T_Nhance_RPG_Icons_FireRune_2.jpg"
     },
     "FireFrogs": {
       "kind": "ability",
@@ -391,15 +464,42 @@
       "name": "Fire Frogs",
       "icon": "T_Nhance_RPG_Icons_HypnoToad.jpg"
     },
+    "FireFrogsMonitor": {
+      "kind": "ability",
+      "id": 1532,
+      "name": "Fire Frogs",
+      "icon": "Firemage_Firefrog.jpg"
+    },
     "Fireflash": {
       "kind": "ability",
       "id": 1265,
       "name": "Fireflash",
-      "icon": "Firemage_Disorient.jpg"
+      "icon": "Firemage_Disorient.jpg",
+      "cooldown": 24,
+      "range": 30
+    },
+    "FireflashDamage": {
+      "kind": "effect",
+      "id": 1824,
+      "name": "",
+      "icon": ""
+    },
+    "FireflashDebuff": {
+      "kind": "effect",
+      "id": 1823,
+      "name": "Scorched",
+      "icon": "T_Nhance_RPG_Fire_38.jpg"
     },
     "FlameWard": {
       "kind": "ability",
       "id": 1258,
+      "name": "Flame Ward",
+      "icon": "Firemage_FlameShield.jpg",
+      "cooldown": 30
+    },
+    "FlameWardSelfBuff": {
+      "kind": "effect",
+      "id": 1815,
       "name": "Flame Ward",
       "icon": "Firemage_FlameShield.jpg"
     },
@@ -407,49 +507,109 @@
       "kind": "ability",
       "id": 1269,
       "name": "Flickerstep",
-      "icon": "Firemage_Blink.jpg"
+      "icon": "Firemage_Blink.jpg",
+      "cooldown": 25,
+      "charges": 2
+    },
+    "FlickerstepCharge": {
+      "kind": "effect",
+      "id": 1828,
+      "name": "",
+      "icon": ""
     },
     "Incinerate": {
       "kind": "ability",
       "id": 1270,
       "name": "Incinerate",
-      "icon": "Firemage_Spirit.jpg"
+      "icon": "Firemage_Spirit.jpg",
+      "castDuration": 1.5
+    },
+    "IncinerateCost": {
+      "kind": "effect",
+      "id": 1831,
+      "name": "",
+      "icon": ""
+    },
+    "IncinerateDamage": {
+      "kind": "effect",
+      "id": 1830,
+      "name": "",
+      "icon": ""
     },
     "IncinerateDot": {
       "kind": "effect",
       "id": 1829,
-      "name": "Incinerate",
+      "name": "Incenerate",
       "icon": "Tex_SpellBook03_64.jpg"
+    },
+    "IncinerateVisual": {
+      "kind": "effect",
+      "id": 2007,
+      "name": "",
+      "icon": ""
     },
     "InfernalWave": {
       "kind": "ability",
       "id": 1276,
       "name": "Infernal Wave",
-      "icon": "Firemage_Bolt.jpg"
+      "icon": "Firemage_Bolt.jpg",
+      "range": 30,
+      "castDuration": 1.5
+    },
+    "InfernalWaveDamageAndDotBoost": {
+      "kind": "effect",
+      "id": 1837,
+      "name": "",
+      "icon": ""
+    },
+    "InfernalWaveTalentDamageSpreadToCastedSingleDotDamage": {
+      "kind": "effect",
+      "id": 1810,
+      "name": "Flare Up",
+      "icon": "Firemage_Dot_02.jpg"
     },
     "Pyromania": {
       "kind": "ability",
       "id": 1623,
       "name": "Pyromania",
-      "icon": "Firemage_Pyromania.jpg"
+      "icon": "Firemage_Pyromania.jpg",
+      "cooldown": 90,
+      "range": 30
     },
     "ReignOfFireBuff": {
       "kind": "effect",
       "id": 2301,
       "name": "Reign of Fire",
-      "icon": "Firemage_Inferno.jpg"
+      "icon": "Firemage_Inferno.jpg",
+      "range": 30
     },
     "Scorch": {
       "kind": "ability",
       "id": 1263,
       "name": "Scorch",
-      "icon": "Firemage_interrupt.jpg"
+      "icon": "Firemage_interrupt.jpg",
+      "cooldown": 20,
+      "range": 30
+    },
+    "ScorchInterrupt": {
+      "kind": "effect",
+      "id": 1822,
+      "name": "",
+      "icon": ""
+    },
+    "ScorchLockout": {
+      "kind": "effect",
+      "id": 1821,
+      "name": "Interrupted",
+      "icon": "T_Nhance_RPG_Fire_06.jpg"
     },
     "SearingBlaze": {
       "kind": "ability",
       "id": 1587,
       "name": "Searing Blaze",
-      "icon": "Firemage_Dot_02.jpg"
+      "icon": "Firemage_Dot_02.jpg",
+      "range": 30,
+      "castDuration": 1.5
     },
     "SearingBlazeDot": {
       "kind": "effect",
@@ -460,6 +620,14 @@
     "Wildfire": {
       "kind": "ability",
       "id": 1267,
+      "name": "Wildfire",
+      "icon": "Firemage_Wildfire.jpg",
+      "cooldown": 45,
+      "range": 60
+    },
+    "WildfireDotBonusBuff": {
+      "kind": "effect",
+      "id": 1825,
       "name": "Wildfire",
       "icon": "Firemage_Wildfire.jpg"
     }
