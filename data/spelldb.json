@@ -369,7 +369,9 @@
       "kind": "ability",
       "id": 1260,
       "name": "Fire Ball",
-      "icon": "Firemage_Inferno.jpg"
+      "icon": "Firemage_Inferno.jpg",
+      "cooldown": 30,
+      "charges": 2
     },
     "FireBallDot": {
       "kind": "effect",
@@ -430,6 +432,12 @@
       "id": 1623,
       "name": "Pyromania",
       "icon": "Firemage_Pyromania.jpg"
+    },
+    "ReignOfFireBuff": {
+      "kind": "effect",
+      "id": 2301,
+      "name": "Reign of Fire",
+      "icon": "Firemage_Inferno.jpg"
     },
     "Scorch": {
       "kind": "ability",

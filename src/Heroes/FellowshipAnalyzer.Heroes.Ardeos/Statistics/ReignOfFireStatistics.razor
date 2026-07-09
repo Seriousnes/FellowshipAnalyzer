@@ -1,0 +1,38 @@
+@inherits AnalyzerStatistic<ReignOfFireAnalyzer>
+
+<StatCard Title="Reign of Fire">
+    <CastOverview Title="Fire Ball Empowerment" Stats="@BuildStats()" />
+</StatCard>
+
+@code {
+    private IEnumerable<OverviewStat> BuildStats()
+    {
+        var report = Analyzer.ToReport();
+        var chargeRate = report.Procs > 0 ? (double)report.ChargesWasted / report.Procs : 0d;
+        var empowerRate = report.Procs > 0 ? (double)report.EmpowermentsWasted / report.Procs : 0d;
+
+        return
+        [
+            new OverviewStat(
+                $"{report.Procs}",
+                "Procs",
+                "Reign of Fire procs granted by Detonate this encounter."),
+            new OverviewStat(
+                $"{report.ChargesWasted}",
+                "Charges Wasted",
+                "Procs gained while Fire Ball was already at 2 charges — the restored charge overcapped.",
+                Tier(report.ChargesWasted, chargeRate)),
+            new OverviewStat(
+                $"{report.EmpowermentsWasted}",
+                "Empowerments Wasted",
+                "Empowered Fire Ball buffs that expired without a Fire Ball cast.",
+                Tier(report.EmpowermentsWasted, empowerRate)),
+        ];
+    }
+
+    private static PerformanceTier Tier(int wasted, double rate) =>
+        wasted == 0 ? PerformanceTier.Perfect
+            : rate < 0.10 ? PerformanceTier.Good
+            : rate < 0.20 ? PerformanceTier.Ok
+            : PerformanceTier.Fail;
+}

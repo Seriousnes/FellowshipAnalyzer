@@ -55,7 +55,7 @@ public class Abilities : Module
     /// Gets the expected cooldown for a spell at the given haste level (in seconds).
     /// Returns 0 if the spell has no cooldown or is not in the spellbook.
     /// </summary>
-    public double GetExpectedCooldown(int spellId, double haste = 1.0)
+    public double GetExpectedCooldown(int spellId, double haste = 0.0)
     {
         var ability = GetAbility(spellId);
         return ability?.GetCooldown(haste) ?? 0;

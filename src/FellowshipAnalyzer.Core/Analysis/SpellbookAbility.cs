@@ -116,7 +116,8 @@ public sealed record SpellbookAbility
     /// Gets the effective cooldown in seconds from <see cref="PrimarySpell"/>, applying haste
     /// reduction when <see cref="CooldownReducedByHaste"/> is set.
     /// </summary>
-    public double GetCooldown(double haste = 1.0) =>
+    /// <param name="haste">Player haste as a fraction (0 = none, 1.0 = 100%). At 0 there is no reduction.</param>
+    public double GetCooldown(double haste = 0.0) =>
         PrimarySpell.Cooldown is not { } cd ? 0 : CooldownReducedByHaste ? cd / (1 + haste) : cd;
 }
 
