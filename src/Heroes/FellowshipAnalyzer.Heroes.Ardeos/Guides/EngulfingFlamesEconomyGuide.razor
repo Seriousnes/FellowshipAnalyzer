@@ -1,0 +1,114 @@
+@using FellowshipAnalyzer.Core.Common.Spells.Ardeos
+@using Spells = FellowshipAnalyzer.Core.Common.Spells.Ardeos.Spells
+@inject ArdeosCombatLogParser Parser
+
+<GuideSection Title="Engulfing Flames Economy">
+    <Explanation>
+        <p>
+            <SpellLink Spell="Spells.EngulfingFlames" /> is a two-charge, twenty-second-recharge
+            spell. Holding both charges into each <SpellLink Spell="Spells.Wildfire" /> burn window
+            lets it be cast twice inside the burst, so each window is scored on how many charges were
+            ready the moment Wildfire was cast — two is ready.
+        </p>
+        <p>
+            Overcap tracks the recharge wasted while Engulfing Flames sits at maximum charges. Briefly
+            holding both charges for an imminent window costs nothing; sitting capped across a full
+            recharge cycle wastes a charge that could have been spent and recovered.
+        </p>
+    </Explanation>
+    <ChildContent>
+        <CastOverview Title="Economy Overview" Stats="@BuildOverviewStats()" />
+        <CastDetail Title="Wildfire Windows"
+                    Description="Each window shows how many Engulfing Flames charges were ready when Wildfire was cast, grouped by the pull it occurred in."
+                    Casts="@BuildPerCastData()" />
+    </ChildContent>
+</GuideSection>
+
+@code {
+    private IEnumerable<OverviewStat> BuildOverviewStats()
+    {
+        var reports = Parser.EngulfingFlamesEconomyReports.Select(entry => entry.Result).ToList();
+        var evaluated = reports.Sum(report => report.WindowsEvaluated);
+        var ready = reports.Sum(report => report.WindowsReady);
+        var readyRate = evaluated > 0 ? (int)Math.Round((double)ready / evaluated * 100) : 0;
+        var wasted = reports.Sum(report => report.WastedCharges);
+        var overcapSeconds = reports.Sum(report => report.CappedSeconds);
+
+        return
+        [
+            new OverviewStat(
+                $"{evaluated}",
+                "Windows",
+                "Total Wildfire burn windows evaluated across every pull."),
+            new OverviewStat(
+                $"{readyRate}%",
+                "Charges Ready",
+                $"{ready} of {evaluated} windows opened with both Engulfing Flames charges ready.",
+                PercentTier(readyRate)),
+            new OverviewStat(
+                $"{wasted}",
+                "Wasted Charges",
+                "Engulfing Flames recharge periods spent sitting at maximum charges across every pull.",
+                wasted == 0 ? PerformanceTier.Perfect : wasted <= 2 ? PerformanceTier.Ok : PerformanceTier.Fail),
+            new OverviewStat(
+                $"{overcapSeconds:0.#}s",
+                "Time at Max",
+                "Total time Engulfing Flames spent capped at both charges across every pull."),
+        ];
+    }
+
+    private IEnumerable<PerCastData> BuildPerCastData()
+    {
+        return Parser.EngulfingFlamesEconomyReports.SelectMany(entry =>
+            entry.Result.Windows.Select(window => BuildWindowData(window, entry.Pull)));
+    }
+
+    private PerCastData BuildWindowData(EngulfingFlamesEconomyAnalyzer.WindowReadiness window, Pull pull)
+    {
+        var perf = window.Ready ? PerformanceTier.Perfect
+            : window.ChargesAvailable >= 1 ? PerformanceTier.Ok
+            : PerformanceTier.Fail;
+
+        var stats = new[]
+        {
+            new PerCastStat(
+                $"{window.ChargesAvailable}/{Spells.EngulfingFlames.Charges}",
+                "Charges Ready",
+                "How many Engulfing Flames charges were available when Wildfire was cast (two is a ready window).",
+                Performance: perf),
+            new PerCastStat(
+                window.Ready ? "Yes" : "No",
+                "Double-Cast Ready",
+                "Whether both Engulfing Flames charges were available to cast twice inside this burst."),
+        };
+
+        var sequence = new List<SpellCastEntry> { new(Spells.Wildfire.Id) };
+        for (var i = 0; i < window.ChargesAvailable; i++)
+            sequence.Add(new SpellCastEntry(Spells.EngulfingFlames.Id, PerformanceTier.Perfect));
+
+        var note = window.Ready
+            ? "Both Engulfing Flames charges were ready for the burst."
+            : $"Only {window.ChargesAvailable} of {Spells.EngulfingFlames.Charges} Engulfing Flames charges were ready — hold both charges for the burst so it can be double-cast.";
+
+        return new PerCastData
+        {
+            Performance = perf,
+            Stats = stats,
+            Timestamp = Parser.FormatTimestamp(window.Timestamp),
+            Sequence = sequence.ToArray(),
+            Group = pull.Name,
+            GroupContent = @<PullBanner Pull="@pull" />,
+            AdditionalContent = new AdditionalContent(
+                "Usage Notes",
+                @<div>@note</div>),
+        };
+    }
+
+    private static PerformanceTier PercentTier(int percent) => percent switch
+    {
+        >= 75 => PerformanceTier.Perfect,
+        >= 50 => PerformanceTier.Good,
+        >= 25 => PerformanceTier.Ok,
+        _ => PerformanceTier.Fail,
+    };
+}

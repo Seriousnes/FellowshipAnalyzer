@@ -11,6 +11,7 @@ namespace FellowshipAnalyzer.Heroes.Ardeos.Analysis;
 [AddModule<RollingFlamesAnalyzer>]
 [AddModule<ReignOfFireAnalyzer>]
 [AddAnalyzer<WildfireComboAnalyzer>]
+[AddAnalyzer<EngulfingFlamesEconomyAnalyzer>]
 [AddAnalyzer<SearingBlazeSpreadAnalyzer>]
 public sealed partial class ArdeosCombatLogParser : CombatLogParser
 {

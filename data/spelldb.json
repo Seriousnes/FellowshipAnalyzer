@@ -394,6 +394,7 @@
       "icon": "Firemage_Dot_01.jpg",
       "cooldown": 20,
       "range": 30,
+      "charges": 2,
       "castDuration": 1.5
     },
     "EngulfingFlamesDot": {
