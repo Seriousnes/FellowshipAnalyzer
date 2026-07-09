@@ -117,6 +117,10 @@ public sealed class BlobPersistentCache : IPersistentCache
         {
             await UploadAsync(blob, stream, options, ct);
         }
+
+        _logger.LogInformation(
+            "Blob SET partition={Partition} key={Key} bytes={Bytes} committed",
+            partition, key, bytes.Length);
     }
 
     /// <inheritdoc />
@@ -129,6 +133,10 @@ public sealed class BlobPersistentCache : IPersistentCache
         var container = await GetContainerAsync(partition);
         var blob = container.GetBlobClient(key);
         await UploadAsync(blob, payload, options, ct);
+
+        _logger.LogInformation(
+            "Blob SET partition={Partition} key={Key} committed (stream)",
+            partition, key);
     }
 
     /// <inheritdoc />

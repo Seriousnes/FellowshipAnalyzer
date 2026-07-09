@@ -10,6 +10,7 @@ using FellowshipAnalyzer.Core.FellowshipLogs;
 
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.IO;
 
@@ -28,6 +29,7 @@ public sealed class FellowshipLogsApiHandler(
     JsonSerializerOptions jsonOptions,
     IPersistentCache persistentCache,
     RecyclableMemoryStreamManager streamManager,
+    IHostApplicationLifetime appLifetime,
     ILogger<FellowshipLogsApiHandler> logger)
 {
     [ApiEndpoint("GET", "events")]
@@ -111,14 +113,19 @@ public sealed class FellowshipLogsApiHandler(
                 "GetEventsAsync compressed for blob raw={Raw} gzip={Gzip} t={ElapsedMs}ms",
                 result.JsonBytes.Length, gzipBytes.Length, sw.ElapsedMilliseconds);
 
-            _ = persistentCache.SetAsync(
-                CachePartition.Events, blobKey,
-                gzipBytes,
-                new PersistentCacheWriteOptions(
-                    ExpiresAt: expiresAt,
-                    ContentType: "application/json",
-                    ContentEncoding: "gzip"),
-                cancellationToken);
+            // Fire-and-forget write-through must outlive the request, so it is scoped to the
+            // application lifetime rather than the request's CancellationToken (which is cancelled
+            // during response teardown and would silently abort the upload).
+            WriteThroughInBackground(
+                persistentCache.SetAsync(
+                    CachePartition.Events, blobKey,
+                    gzipBytes,
+                    new PersistentCacheWriteOptions(
+                        ExpiresAt: expiresAt,
+                        ContentType: "application/json",
+                        ContentEncoding: "gzip"),
+                    appLifetime.ApplicationStopping),
+                CachePartition.Events, blobKey);
 
             ApplyCompletedEventsCacheHeaders(context.Response, expiresAt, hit: false);
             logger.LogInformation("GetEventsAsync returning MISS bytes (completed) at t={ElapsedMs}ms", sw.ElapsedMilliseconds);
@@ -181,16 +188,19 @@ public sealed class FellowshipLogsApiHandler(
 
         cache.Set(cacheKey, preload, CreateAnalysisPreloadCacheEntryOptions(preload, cacheOptions));
 
-        // Write-through to L2 (fire-and-forget)
+        // Write-through to L2 (fire-and-forget). Scoped to the application lifetime, not the
+        // request token, so the upload is not aborted when the response completes.
         var preloadBytes = JsonSerializer.SerializeToUtf8Bytes(preload, jsonOptions);
-        _ = persistentCache.SetAsync(
-            CachePartition.Metadata, blobKey,
-            preloadBytes,
-            new PersistentCacheWriteOptions(
-                ExpiresAt: analysisExpiresAt,
-                ContentType: "application/json",
-                ContentEncoding: null),
-            cancellationToken);
+        WriteThroughInBackground(
+            persistentCache.SetAsync(
+                CachePartition.Metadata, blobKey,
+                preloadBytes,
+                new PersistentCacheWriteOptions(
+                    ExpiresAt: analysisExpiresAt,
+                    ContentType: "application/json",
+                    ContentEncoding: null),
+                appLifetime.ApplicationStopping),
+            CachePartition.Metadata, blobKey);
 
         ApplyAnalysisPreloadCacheHeaders(context.Response, preload, hit: false);
         return Json(preload);
@@ -290,6 +300,31 @@ public sealed class FellowshipLogsApiHandler(
 
     private static IResult BadRequest(string message) =>
         Results.Json(new { error = message }, statusCode: 400);
+
+    /// <summary>
+    /// Observes an already-started persistent-cache write-through without blocking the response.
+    /// Failures are logged rather than silently discarded; the write itself is scoped to the
+    /// application lifetime by the caller so it survives request teardown.
+    /// </summary>
+    private void WriteThroughInBackground(ValueTask writeOperation, CachePartition partition, string key)
+    {
+        _ = ObserveWriteThroughAsync(writeOperation, partition, key);
+    }
+
+    private async Task ObserveWriteThroughAsync(ValueTask writeOperation, CachePartition partition, string key)
+    {
+        try
+        {
+            await writeOperation;
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(
+                ex,
+                "Persistent cache write-through failed partition={Partition} key={Key}.",
+                partition, key);
+        }
+    }
 
     private void ApplyAnalysisPreloadCacheHeaders(HttpResponse response, AnalysisPreload preload, bool hit)
     {
@@ -414,7 +449,7 @@ public sealed class FellowshipLogsApiHandler(
                 gzip.Write(input, 0, input.Length);
             }
         }
-        return output.GetBuffer();
+        return output.ToArray();
     }
 }
 
