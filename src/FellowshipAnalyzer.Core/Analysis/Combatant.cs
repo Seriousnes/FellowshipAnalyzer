@@ -1,4 +1,5 @@
 using FellowshipAnalyzer.Core.Common;
+using FellowshipAnalyzer.Core.Common.Spells;
 using FellowshipAnalyzer.Core.Events;
 
 namespace FellowshipAnalyzer.Core.Analysis;
@@ -72,7 +73,12 @@ public sealed class Combatant : Entity
 
     // Talent queries
     public IReadOnlyList<TalentInfo> Talents => Info.Talents;
-    public bool HasTalent(int talentId) => Info.Talents.Any(t => t.Id == talentId);
+
+    /// <summary>
+    /// True when the player has the talent with the given native id. Combat logs store talent ids in
+    /// the FSL Talent namespace (<c>2,000,000 + native</c>), so the stored id is decoded before comparison.
+    /// </summary>
+    public bool HasTalent(int talentId) => Info.Talents.Any(t => new FSLID(t.Id).NativeId == talentId);
 
     // Auras (prepull buffs)
     public IReadOnlyList<Aura> Auras => Info.Auras;

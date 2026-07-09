@@ -61,7 +61,7 @@ public static class MergeEngine
 
             foreach (var kit in hero.Kit)
             {
-                if (!kit.DevName.StartsWith(heroPrefix, StringComparison.Ordinal))
+                if (!kit.DevName.StartsWith(heroPrefix, StringComparison.OrdinalIgnoreCase))
                     continue;
 
                 var kind = new FSLID(kit.FslId).Kind;
@@ -144,7 +144,7 @@ public static class MergeEngine
             var heroEffectPrefix = $"GE_{hero.DevKey}_";
             foreach (var effect in inputs.SpellData.Effects.Values)
             {
-                if (!effect.DevName.StartsWith(heroEffectPrefix, StringComparison.Ordinal))
+                if (!effect.DevName.StartsWith(heroEffectPrefix, StringComparison.OrdinalIgnoreCase))
                     continue;
                 if (effect.Name is null || effect.FslId == 0)
                     continue;

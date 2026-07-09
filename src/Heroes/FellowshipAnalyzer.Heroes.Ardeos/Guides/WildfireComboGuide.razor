@@ -1,0 +1,131 @@
+@using FellowshipAnalyzer.Core.Common.Spells.Ardeos
+@using Spells = FellowshipAnalyzer.Core.Common.Spells.Ardeos.Spells
+@inject ArdeosCombatLogParser Parser
+
+<GuideSection Title="Wildfire Burn Windows">
+    <Explanation>
+        <p>
+            Ardeos's burst is a burn window anchored on <SpellLink Spell="Spells.Wildfire" />. The
+            standard window lays the DoTs first — <SpellLink Spell="Spells.FireFrogs" />,
+            <SpellLink Spell="Spells.Apocalypse" />, <SpellLink Spell="Spells.FireBall" /> and
+            <SpellLink Spell="Spells.EngulfingFlames" /> twice — then
+            <SpellLink Spell="Spells.Pyromania" /> into <SpellLink Spell="Spells.Wildfire" />, followed
+            by <SpellLink Spell="Spells.Detonate" /> spam. <SpellLink Spell="Spells.Incinerate" />
+            extends the DoTs into the burn when it is available.
+        </p>
+        <p>
+            Each window below is scored on the setup cast before Wildfire and the Detonate spam after
+            it. <SpellLink Spell="Spells.Pyromania" /> and <SpellLink Spell="Spells.Incinerate" /> are
+            cooldown-limited relative to Wildfire, so they are surfaced as bonus alignment rather than
+            required for a clean window.
+        </p>
+    </Explanation>
+    <ChildContent>
+        <CastOverview Title="Window Overview" Stats="@BuildOverviewStats()" />
+        <CastDetail Title="Wildfire Windows"
+                    Description="Each window shows the setup casts before Wildfire and the Detonate spam after it, grouped by the pull it occurred in."
+                    Casts="@BuildPerCastData()" />
+    </ChildContent>
+</GuideSection>
+
+@code {
+    private IEnumerable<OverviewStat> BuildOverviewStats()
+    {
+        var reports = Parser.WildfireComboReports.Select(entry => entry.Result).ToList();
+        var total = reports.Sum(report => report.EvaluatedWindows);
+        var successful = reports.Sum(report => report.SuccessfulWindows);
+        var successRate = total > 0 ? (int)Math.Round((double)successful / total * 100) : 0;
+        var withPyromania = reports.Sum(report => report.WindowsWithPyromania);
+        var totalDetonate = reports.Sum(report => report.AverageDetonateCasts * report.EvaluatedWindows);
+        var averageDetonate = total > 0 ? totalDetonate / total : 0d;
+
+        return
+        [
+            new OverviewStat(
+                $"{total}",
+                "Windows",
+                "Total Wildfire burn windows evaluated across every pull."),
+            new OverviewStat(
+                $"{successRate}%",
+                "Success Rate",
+                $"{successful} clean / {total} evaluated — setup complete and Detonate spam followed.",
+                PercentTier(successRate)),
+            new OverviewStat(
+                $"{withPyromania}",
+                "With Pyromania",
+                "Windows where Pyromania aligned in the setup before Wildfire."),
+            new OverviewStat(
+                $"{averageDetonate:0.0}",
+                "Avg Detonate Casts",
+                "Average Detonate casts spammed in the six seconds after Wildfire."),
+        ];
+    }
+
+    private IEnumerable<PerCastData> BuildPerCastData()
+    {
+        return Parser.WildfireComboReports.SelectMany(entry =>
+            entry.Result.Windows.Select(window => BuildWindowData(window, entry.Pull)));
+    }
+
+    private PerCastData BuildWindowData(WildfireComboAnalyzer.WildfireWindowEvaluation window, Pull pull)
+    {
+        var perf = window.Successful ? PerformanceTier.Perfect
+            : window.Partial ? PerformanceTier.Ok
+            : PerformanceTier.Fail;
+
+        var setupPerf = window.CoreSetupCount >= 3 ? PerformanceTier.Perfect
+            : window.CoreSetupCount >= 2 ? PerformanceTier.Ok
+            : PerformanceTier.Fail;
+
+        var detonatePerf = window.DetonateCasts >= 3 ? PerformanceTier.Perfect
+            : window.DetonateCasts >= 1 ? PerformanceTier.Ok
+            : PerformanceTier.Fail;
+
+        var stats = new[]
+        {
+            new PerCastStat(
+                $"{window.CoreSetupCount}/4",
+                "Core Setup",
+                "How many of Fire Frogs, Apocalypse, Fire Ball and Engulfing Flames were cast in the six seconds before Wildfire.",
+                Performance: setupPerf),
+            new PerCastStat(
+                $"{window.DetonateCasts}",
+                "Detonate",
+                "Detonate casts spammed in the six seconds after Wildfire (3 or more is a clean follow-up).",
+                Performance: detonatePerf),
+            new PerCastStat(
+                window.HasPyromania ? "Yes" : "No",
+                "Pyromania",
+                "Whether Pyromania aligned in the setup before Wildfire. Bonus alignment — not required for a clean window."),
+            new PerCastStat(
+                window.HasIncinerate ? "Yes" : "No",
+                "Incinerate",
+                "Whether Incinerate extended the DoTs into this window. Bonus alignment — not required for a clean window."),
+        };
+
+        var sequence = window.CastsInWindow
+            .Select(c => new SpellCastEntry(c.Ability.Id))
+            .ToArray();
+
+        return new PerCastData
+        {
+            Performance = perf,
+            Stats = stats,
+            Timestamp = Parser.FormatTimestamp(window.StartTimestamp),
+            Sequence = sequence,
+            Group = pull.Name,
+            GroupContent = @<PullBanner Pull="@pull" />,
+            AdditionalContent = new AdditionalContent(
+                "Usage Notes",
+                @<div>@window.Outcome</div>),
+        };
+    }
+
+    private static PerformanceTier PercentTier(int percent) => percent switch
+    {
+        >= 75 => PerformanceTier.Perfect,
+        >= 50 => PerformanceTier.Good,
+        >= 25 => PerformanceTier.Ok,
+        _ => PerformanceTier.Fail,
+    };
+}
