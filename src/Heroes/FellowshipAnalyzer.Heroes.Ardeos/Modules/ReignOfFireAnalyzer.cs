@@ -3,6 +3,8 @@ using FellowshipAnalyzer.Core.Common.Spells.Ardeos;
 using FellowshipAnalyzer.Core.Events;
 using FellowshipAnalyzer.Heroes.Ardeos.Statistics;
 
+using ArdeosTalents = FellowshipAnalyzer.Core.Common.Spells.ArdeosTalents;
+
 namespace FellowshipAnalyzer.Heroes.Ardeos.Modules;
 
 /// <summary>
@@ -12,7 +14,7 @@ namespace FellowshipAnalyzer.Heroes.Ardeos.Modules;
 /// Fire Ball is already at max charges (the restored charge overcaps) or an empowered buff that is
 /// removed without a Fire Ball cast (it expired unused).
 /// </summary>
-[ActiveWhen<ReignOfFireActive>]
+[RequiresTalent(ArdeosTalents.ReignOfFire)]
 public sealed partial class ReignOfFireAnalyzer : Analyzer
 {
     /// <summary>
@@ -70,8 +72,3 @@ public sealed partial class ReignOfFireAnalyzer : Analyzer
 /// <param name="ChargesWasted">Procs gained while Fire Ball was already at max charges (the restored charge overcapped).</param>
 /// <param name="EmpowermentsWasted">Empowered Fire Ball buffs removed without a Fire Ball cast (expired unused).</param>
 public sealed record ReignOfFireReport(int Procs, int ChargesWasted, int EmpowermentsWasted);
-
-internal sealed class ReignOfFireActive : IModuleActivePredicate
-{
-    public static bool IsActive(ParseContext context) => context.SelectedCombatant.HasTalent(talentId: 157);
-}

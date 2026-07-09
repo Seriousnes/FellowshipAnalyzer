@@ -3,6 +3,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using System.Collections.Immutable;
+using System.Globalization;
 using System.Text;
 
 namespace FellowshipAnalyzer.Generators;
@@ -18,6 +19,7 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
     private const string AddNormalizerAttributeShortName = "AddNormalizerAttribute";
     private const string HeroAnalyzerAttributeShortName = "HeroAnalyzerAttribute";
     private const string ActiveWhenAttributeShortName = "ActiveWhenAttribute";
+    private const string RequiresTalentAttributeShortName = "RequiresTalentAttribute";
     private const string BeforeAttributeShortName = "BeforeAttribute";
     private const string AfterAttributeShortName = "AfterAttribute";
     private const string CombatLogParserClassName = "CombatLogParser";
@@ -309,7 +311,8 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
     /// <summary>
     /// Builds a <see cref="TypeInfo"/> for a module type, capturing all module-level metadata
     /// (Abilities inheritance, <c>ToReport()</c> result type, <c>[ActiveWhen&lt;T&gt;]</c>
-    /// predicate, and <c>[Before&lt;T&gt;]</c> / <c>[After&lt;T&gt;]</c> ordering constraints).
+    /// predicate, <c>[RequiresTalent(id)]</c> gates, and <c>[Before&lt;T&gt;]</c> /
+    /// <c>[After&lt;T&gt;]</c> ordering constraints).
     /// </summary>
     private static TypeInfo BuildModuleTypeInfo(INamedTypeSymbol moduleType)
     {
@@ -320,11 +323,21 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
         string? activePredicate = null;
         var beforeFqns = new List<string>();
         var afterFqns = new List<string>();
+        var requiredTalentIds = new List<int>();
 
         foreach (var attr in moduleType.GetAttributes())
         {
             var ac = attr.AttributeClass;
-            if (ac == null || !ac.IsGenericType || ac.TypeArguments.Length == 0) continue;
+            if (ac == null) continue;
+
+            if (ac.Name == RequiresTalentAttributeShortName && !ac.IsGenericType)
+            {
+                if (attr.ConstructorArguments.Length == 1 && attr.ConstructorArguments[0].Value is int talentId)
+                    requiredTalentIds.Add(talentId);
+                continue;
+            }
+
+            if (!ac.IsGenericType || ac.TypeArguments.Length == 0) continue;
 
             if (ac.TypeArguments[0] is not INamedTypeSymbol arg) continue;
 
@@ -339,7 +352,7 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
         }
 
         return new TypeInfo(moduleType.Name, ns, extendsAbilities, reportType, activePredicate,
-            [.. beforeFqns], [.. afterFqns], BuildCtorParams(moduleType));
+            [.. beforeFqns], [.. afterFqns], BuildCtorParams(moduleType), [.. requiredTalentIds]);
     }
 
     private static TypeInfo BuildNormalizerTypeInfo(INamedTypeSymbol normalizerType)
@@ -580,13 +593,16 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
     }
 
     /// <summary>
-    /// Emits an <c>IsModuleActive</c> override that switches on the module Type and invokes
-    /// the static <c>IsActive(ParseContext)</c> method of the attribute's predicate. Only emitted
-    /// when at least one module in <paramref name="orderedModules"/> declared <c>[ActiveWhen]</c>.
+    /// Emits an <c>IsModuleActive</c> override that switches on the module Type and returns its
+    /// activation expression: the static <c>IsActive(ParseContext)</c> call of an
+    /// <c>[ActiveWhen&lt;T&gt;]</c> predicate and/or a <c>HasTalent</c> check per
+    /// <c>[RequiresTalent(id)]</c>, combined with <c>&amp;&amp;</c>. Only emitted when at least one
+    /// module in <paramref name="orderedModules"/> declared one of those attributes. A module with
+    /// only <c>[ActiveWhen&lt;T&gt;]</c> emits the same single-call expression as before.
     /// </summary>
     private static void EmitIsModuleActive(StringBuilder sb, List<TypeInfo> orderedModules)
     {
-        var gated = orderedModules.FindAll(m => m.ActivePredicateFullyQualified != null);
+        var gated = orderedModules.FindAll(m => m.ActivePredicateFullyQualified != null || m.RequiredTalentIds.Length > 0);
         if (gated.Count == 0) return;
 
         sb.AppendLine();
@@ -595,10 +611,26 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
         foreach (var m in gated)
         {
             sb.AppendLine("        if (moduleType == typeof(global::" + m.FullyQualifiedName + "))");
-            sb.AppendLine("            return global::" + m.ActivePredicateFullyQualified + ".IsActive(context);");
+            sb.AppendLine("            return " + BuildActivationExpression(m) + ";");
         }
         sb.AppendLine("        return true;");
         sb.AppendLine("    }");
+    }
+
+    /// <summary>
+    /// Builds the boolean activation expression for a gated module: the <c>[ActiveWhen&lt;T&gt;]</c>
+    /// predicate call (if any) followed by one <c>context.SelectedCombatant.HasTalent(id)</c> term
+    /// per <c>[RequiresTalent(id)]</c>, joined with <c>&amp;&amp;</c>. With only a predicate this
+    /// returns the bare <c>IsActive</c> call — byte-identical to the pre-<c>[RequiresTalent]</c> output.
+    /// </summary>
+    private static string BuildActivationExpression(TypeInfo m)
+    {
+        var parts = new List<string>();
+        if (m.ActivePredicateFullyQualified != null)
+            parts.Add("global::" + m.ActivePredicateFullyQualified + ".IsActive(context)");
+        foreach (var id in m.RequiredTalentIds)
+            parts.Add("context.SelectedCombatant.HasTalent(" + id.ToString(CultureInfo.InvariantCulture) + ")");
+        return string.Join(" && ", parts);
     }
 
     /// <summary>
@@ -938,7 +970,8 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
             string? activePredicateFullyQualified = null,
             ImmutableArray<string> beforeModules = default,
             ImmutableArray<string> afterModules = default,
-            ImmutableArray<CtorParam> ctorParams = default)
+            ImmutableArray<CtorParam> ctorParams = default,
+            ImmutableArray<int> requiredTalentIds = default)
         {
             Name = name;
             Namespace = ns;
@@ -948,6 +981,7 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
             BeforeModules = beforeModules.IsDefault ? ImmutableArray<string>.Empty : beforeModules;
             AfterModules = afterModules.IsDefault ? ImmutableArray<string>.Empty : afterModules;
             CtorParams = ctorParams.IsDefault ? ImmutableArray<CtorParam>.Empty : ctorParams;
+            RequiredTalentIds = requiredTalentIds.IsDefault ? ImmutableArray<int>.Empty : requiredTalentIds;
         }
         public string Name { get; }
         public string Namespace { get; }
@@ -961,6 +995,8 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
         public ImmutableArray<string> BeforeModules { get; }
         /// <summary>Fully-qualified module names this module must come after (from <c>[After&lt;T&gt;]</c>).</summary>
         public ImmutableArray<string> AfterModules { get; }
+        /// <summary>Native talent ids the selected combatant must have (from <c>[RequiresTalent(id)]</c>), in declaration order.</summary>
+        public ImmutableArray<int> RequiredTalentIds { get; }
         /// <summary>Parameters of the public constructor selected for generator-emitted construction.</summary>
         public ImmutableArray<CtorParam> CtorParams { get; }
         public string FullyQualifiedName => string.IsNullOrEmpty(Namespace) ? Name : Namespace + "." + Name;

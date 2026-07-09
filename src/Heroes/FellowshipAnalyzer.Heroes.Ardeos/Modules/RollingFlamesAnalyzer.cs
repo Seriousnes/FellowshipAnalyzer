@@ -3,11 +3,12 @@ using FellowshipAnalyzer.Core.Common.Spells.Ardeos;
 using FellowshipAnalyzer.Core.Events;
 using FellowshipAnalyzer.Heroes.Ardeos.Statistics;
 
+using ArdeosTalents = FellowshipAnalyzer.Core.Common.Spells.ArdeosTalents;
 using Spell = FellowshipAnalyzer.Core.Common.Spells.Spell;
 
 namespace FellowshipAnalyzer.Heroes.Ardeos.Modules;
 
-[ActiveWhen<RollingFlamesActive>]
+[RequiresTalent(ArdeosTalents.RollingFlames)]
 public sealed partial class RollingFlamesAnalyzer : Analyzer
 {
     private const int SEARING_BLAZE_CDR = 250;
@@ -73,9 +74,4 @@ internal record SpellCdrEffectiveness
 {
     public int Total { get; set; }
     public int Applied { get; set; }
-}
-
-internal class RollingFlamesActive : IModuleActivePredicate
-{
-    public static bool IsActive(ParseContext context) => context.SelectedCombatant.HasTalent(talentId: 226);
 }
