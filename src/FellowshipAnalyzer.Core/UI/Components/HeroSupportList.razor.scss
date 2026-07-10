@@ -1,0 +1,31 @@
+@use 'tokens' as t;
+@use 'mixins' as mx;
+
+.hero-support {
+    width: 100%;
+}
+
+.hero-support-group {
+    margin-top: 1.25rem;
+
+    &:first-child {
+        margin-top: 0.5rem;
+    }
+}
+
+.hero-support-group-title {
+    @include mx.eyebrow;
+    margin: 0 0 0.6rem;
+    font-size: 0.82rem;
+}
+
+.hero-support-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.75rem;
+    margin-top: 0.5rem;
+
+    @include mx.mobile {
+        grid-template-columns: 1fr;
+    }
+}

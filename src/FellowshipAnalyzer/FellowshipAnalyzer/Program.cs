@@ -4,6 +4,7 @@ using ApexCharts;
 using FellowshipAnalyzer;
 using FellowshipAnalyzer.Services;
 using FellowshipAnalyzer.Core.UI.Timeline;
+using FellowshipAnalyzer.Core.UI.Components;
 using FellowshipAnalyzer.Core;
 using FellowshipAnalyzer.Core.Analysis;
 using FellowshipAnalyzer.Core.FellowshipLogs;
@@ -38,6 +39,8 @@ builder.Services.AddApexCharts();
 builder.Services.AddCoreAnalysisServices();
 builder.Services.AddCoreAnalysis();
 builder.Services.AddFellowshipHeroAnalysis();
+builder.Services.AddSingleton<IHeroConfigCatalog, HeroConfigCatalog>();
+builder.Services.AddScoped<ContributorModalService>();
 
 builder.Services.AddScoped<ReportLoadingTracker>();
 builder.Services.AddScoped<ReportNavigationState>();

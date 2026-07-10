@@ -1,0 +1,154 @@
+@* ContributorProfileModal — single app-level host for the contributor profile + contributions.
+   Rendered once at the layout root so its position: fixed stays anchored to the viewport. *@
+@using FellowshipAnalyzer.Core.Analysis
+@implements IDisposable
+@inject IHeroConfigCatalog Catalog
+@inject ContributorModalService Modal
+
+@if (Modal.Current is { } contributor)
+{
+    <div class="contributor-backdrop" @onclick="Modal.Close"></div>
+    <div class="contributor-modal" role="dialog" aria-modal="true"
+         aria-label="@($"{contributor.Nickname} profile")" @onclick:stopPropagation="true">
+        <button type="button" class="contributor-close" @onclick="Modal.Close" aria-label="Close">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+        </button>
+
+        <div class="contributor-profile">
+            <aside class="contributor-side">
+                <Avatar Src="@contributor.AvatarUrl" FallbackText="@_initial" Alt="@contributor.Nickname"
+                        Size="AvatarSize.Xl" AccentColorVar="var(--fa-gold)" />
+                <h2 class="contributor-name">@contributor.Nickname</h2>
+                @if (!string.IsNullOrEmpty(contributor.About))
+                {
+                    <p class="contributor-about">@contributor.About</p>
+                }
+
+                <dl class="contributor-meta">
+                    <div class="contributor-meta-row">
+                        <dt>GitHub</dt>
+                        <dd><a href="@contributor.GithubUrl" target="_blank" rel="noopener noreferrer">@contributor.Github</a></dd>
+                    </div>
+                    @if (!string.IsNullOrEmpty(contributor.Discord))
+                    {
+                        <div class="contributor-meta-row">
+                            <dt>Discord</dt>
+                            <dd>@contributor.Discord</dd>
+                        </div>
+                    }
+                </dl>
+
+                @if (_maintained.Count > 0)
+                {
+                    <div class="contributor-heroes">
+                        <span class="contributor-heroes-label">Maintainer</span>
+                        <div class="contributor-heroes-icons">
+                            @foreach (var hero in _maintained)
+                            {
+                                <span class="contributor-hero" title="@hero.ToString()"><HeroIcon Hero="Hero.For(hero)" /></span>
+                            }
+                        </div>
+                    </div>
+                }
+
+                @if (contributor.Mains is { Count: > 0 } mains)
+                {
+                    <div class="contributor-heroes">
+                        <span class="contributor-heroes-label">Mains</span>
+                        <div class="contributor-heroes-icons">
+                            @foreach (var hero in mains)
+                            {
+                                <span class="contributor-hero" title="@hero.ToString()"><HeroIcon Hero="Hero.For(hero)" /></span>
+                            }
+                        </div>
+                    </div>
+                }
+            </aside>
+
+            <section class="contributor-main">
+                <h3 class="contributions-title">Contributions This Season</h3>
+                @if (_contributions.Count == 0)
+                {
+                    <p class="contributions-empty">No recorded contributions yet.</p>
+                }
+                else
+                {
+                    <Accordion AllowMultiple ExpandedIds="_expandedIds" ExpandedIdsChanged="OnExpandedChanged">
+                        @foreach (var group in _contributions)
+                        {
+                            <AccordionItem Id="@GroupId(group)" BorderAccentColorVar="@GroupAccent(group)">
+                                <Header>
+                                    <span class="contribution-head">
+                                        @if (group.IsCore)
+                                        {
+                                            <span class="contribution-core-icon"><BrandIcon Size="24" /></span>
+                                            <span class="contribution-head-name">Core</span>
+                                        }
+                                        else
+                                        {
+                                            <HeroIcon Hero="Hero.For(group.Hero!.Value)" />
+                                            <span class="contribution-head-name" style="color: @Hero.For(group.Hero!.Value).Color;">@group.Hero</span>
+                                        }
+                                        <span class="contribution-count">@group.Entries.Count @(group.Entries.Count == 1 ? "change" : "changes")</span>
+                                    </span>
+                                </Header>
+                                <ChildContent>
+                                    <ul class="changelog-list">
+                                        @foreach (var entry in group.Entries)
+                                        {
+                                            <li class="changelog-entry">
+                                                <span class="changelog-date">@entry.Date.ToString("d MMM yyyy")</span>
+                                                <span class="changelog-text">@entry.Changes</span>
+                                            </li>
+                                        }
+                                    </ul>
+                                </ChildContent>
+                            </AccordionItem>
+                        }
+                    </Accordion>
+                }
+            </section>
+        </div>
+    </div>
+}
+
+@code {
+    private Contributor? _shown;
+    private string _initial = "?";
+    private IReadOnlyList<HeroName> _maintained = [];
+    private IReadOnlyList<ContributionGroup> _contributions = [];
+    private IReadOnlyList<string> _expandedIds = [];
+
+    protected override void OnInitialized() => Modal.Changed += HandleChanged;
+
+    private void HandleChanged()
+    {
+        var current = Modal.Current;
+        if (current is not null)
+        {
+            if (!ReferenceEquals(current, _shown))
+            {
+                _shown = current;
+                _initial = current.Nickname.Length > 0 ? current.Nickname[..1].ToUpperInvariant() : "?";
+                _maintained = Contributions.MaintainedBy(current, Catalog.Heroes);
+                _contributions = Contributions.ForContributor(current, Catalog.Heroes, CoreChangelog.Entries);
+            }
+            _expandedIds = [];
+        }
+        StateHasChanged();
+    }
+
+    private void OnExpandedChanged(IReadOnlyList<string> ids) => _expandedIds = ids;
+
+    private static string GroupId(ContributionGroup group) =>
+        group.IsCore ? "core" : group.Hero!.Value.ToString();
+
+    private static string GroupAccent(ContributionGroup group) =>
+        group.IsCore ? "var(--fa-gold)" : Hero.For(group.Hero!.Value).Color;
+
+    public void Dispose() => Modal.Changed -= HandleChanged;
+}

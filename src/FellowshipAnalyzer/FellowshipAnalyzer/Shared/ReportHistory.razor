@@ -1,28 +1,39 @@
+@using FellowshipAnalyzer.Core.Analysis
 @using FellowshipAnalyzer.Core.FellowshipLogs
 @inject IReportCacheService ReportCache
 
-@if (_history.Count > 0)
-{
-    <div class="report-history">
-        <h3 class="report-history__title">Recently Viewed</h3>
-        <ul class="report-history__list">
+<div class="report-history">
+    <h3 class="report-history-title">Recently Viewed</h3>
+    @if (_history.Count > 0)
+    {
+        <ul class="report-history-list">
             @foreach (var entry in _history)
             {
-                <li class="report-history__item">
+                <li class="report-history-item">
                     <a href="/report/@entry.ReportCode/@entry.FightId/@entry.PlayerId"
-                       class="report-history__link">
-                        <span class="report-history__player">@entry.PlayerName</span>
-                        <span class="report-history__fight">@entry.FightName</span>
-                        <span class="report-history__age">@FormatAge(entry.CachedAt)</span>
+                       class="report-history-link">
+                        <span class="report-history-player" style="@(entry.Hero is { } hero ? $"color: {Hero.For(hero).Color}" : null)">@entry.PlayerName</span>
+                        <span class="report-history-fight">@entry.FightName</span>
+                        <span class="report-history-age">@FormatAge(entry.CachedAt)</span>
                     </a>
                 </li>
             }
         </ul>
-    </div>
-}
+    }
+    else
+    {
+        <div class="report-history-empty">
+            @if (_loaded)
+            {
+                <span>Reports you analyse will appear here.</span>
+            }
+        </div>
+    }
+</div>
 
 @code {
     private IReadOnlyList<ReportHistoryEntry> _history = [];
+    private bool _loaded;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -33,6 +44,7 @@
             .Where(entry => !string.IsNullOrWhiteSpace(entry.PlayerName)
                 && !string.IsNullOrWhiteSpace(entry.FightName))
             .ToList();
+        _loaded = true;
         StateHasChanged();
     }
 

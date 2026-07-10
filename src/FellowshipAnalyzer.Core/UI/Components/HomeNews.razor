@@ -1,0 +1,55 @@
+@* HomeNews — reverse-chronological feed of every hero and Core changelog entry. *@
+@inject IHeroConfigCatalog Catalog
+
+<div class="home-news">
+    @if (_feed.Count == 0)
+    {
+        <p class="home-news-empty">No changes recorded yet.</p>
+    }
+    else
+    {
+        <ul class="home-news-list">
+            @foreach (var item in _feed)
+            {
+                <li class="home-news-entry">
+                    <div class="home-news-head">
+                        <span class="home-news-tag">
+                            @if (item.IsCore)
+                            {
+                                <span class="home-news-icon"><BrandIcon Size="24" /></span>
+                                <span class="home-news-name home-news-name-core">Core</span>
+                            }
+                            else
+                            {
+                                var hero = Hero.For(item.Hero!.Value);
+                                <span class="home-news-icon"><HeroIcon Hero="hero" /></span>
+                                <span class="home-news-name" style="color: @hero.Color;">@item.Hero</span>
+                            }
+                        </span>
+                        <time class="home-news-date">@item.Entry.Date.ToString("d MMM yyyy")</time>
+                    </div>
+
+                    <div class="home-news-text">@item.Entry.Changes</div>
+
+                    @if (item.Entry.Contributors.Count > 0)
+                    {
+                        <div class="home-news-by">
+                            <span class="home-news-by-label">by</span>
+                            @foreach (var contributor in item.Entry.Contributors)
+                            {
+                                <ContributorLink Contributor="contributor" />
+                            }
+                        </div>
+                    }
+                </li>
+            }
+        </ul>
+    }
+</div>
+
+@code {
+    private IReadOnlyList<ChangelogFeedItem> _feed = [];
+
+    protected override void OnInitialized() =>
+        _feed = Changelog.All(Catalog.Heroes, CoreChangelog.Entries);
+}
