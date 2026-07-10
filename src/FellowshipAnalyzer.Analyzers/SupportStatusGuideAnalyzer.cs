@@ -9,8 +9,9 @@ namespace FellowshipAnalyzer.Analyzers;
 
 /// <summary>
 /// FA0017: a hero whose <c>HeroConfig.Support</c> is <c>Partial</c> or <c>Full</c> must override
-/// <c>GuideComponent</c>. A maintained status advertises analysis, so it must have analysis UI
-/// behind it — otherwise the declared status and the hero's actual capability disagree.
+/// <c>GuideComponent</c>. A Partial or Full support level advertises analysis, so the hero must
+/// have analysis UI behind it — otherwise the declared support level and the hero's actual
+/// capability disagree.
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public sealed class SupportStatusGuideAnalyzer : DiagnosticAnalyzer
@@ -19,12 +20,12 @@ public sealed class SupportStatusGuideAnalyzer : DiagnosticAnalyzer
 
     private static readonly DiagnosticDescriptor Rule = new(
         id: DiagnosticId,
-        title: "Maintained hero must have a guide",
-        messageFormat: "Hero '{0}' declares Support = {1} but does not override GuideComponent; a maintained status requires a guide",
+        title: "Partial or Full support requires a guide",
+        messageFormat: "Hero '{0}' declares Support = {1} but does not override GuideComponent; a Partial or Full support level requires a guide",
         category: "Analysis",
         defaultSeverity: DiagnosticSeverity.Warning,
         isEnabledByDefault: true,
-        description: "A hero config's Support level of Partial or Full advertises maintained analysis. Without a GuideComponent override the hero has no analysis UI, so declared status and actual capability disagree.");
+        description: "A hero config's Support level of Partial or Full advertises analysis. Without a GuideComponent override the hero has no analysis UI, so the declared support level and the hero's actual capability disagree.");
 
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [Rule];
 
@@ -42,11 +43,11 @@ public sealed class SupportStatusGuideAnalyzer : DiagnosticAnalyzer
         if (!type.GetAttributes().Any(a => a.AttributeClass?.Name == "HeroAnalyzerAttribute"))
             return;
 
-        var configMember = type.GetMembers("HeroConfig").FirstOrDefault(m => m.IsStatic);
+        var configMember = type.GetMembers("HeroConfig").FirstOrDefault(IsHeroConfigMember);
         if (configMember is null)
             return;
 
-        var (level, location) = ReadMaintainedSupport(configMember, context.CancellationToken);
+        var (level, location) = ReadSupportLevel(configMember, context.CancellationToken);
         if (level is null)
             return; // Unmaintained, unset, or not statically readable — nothing to check.
 
@@ -57,6 +58,27 @@ public sealed class SupportStatusGuideAnalyzer : DiagnosticAnalyzer
             Rule, location ?? type.Locations[0], type.Name, level));
     }
 
+    /// <summary>
+    /// Matches the parser's config member the same way <c>HeroManifestGenerator</c> does: a public
+    /// static member whose type is <c>FellowshipAnalyzer.Core.Analysis.HeroConfig</c>. Keeping the
+    /// two selectors in step avoids flagging a member the generator would ignore.
+    /// </summary>
+    private static bool IsHeroConfigMember(ISymbol member)
+    {
+        if (!member.IsStatic || member.DeclaredAccessibility != Accessibility.Public)
+            return false;
+
+        var memberType = member switch
+        {
+            IPropertySymbol p => p.Type,
+            IFieldSymbol f => f.Type,
+            _ => null,
+        };
+
+        return memberType is { Name: "HeroConfig" } &&
+            memberType.ContainingNamespace?.ToDisplayString() == "FellowshipAnalyzer.Core.Analysis";
+    }
+
     private static bool OverridesGuideComponent(INamedTypeSymbol type) =>
         type.GetMembers("GuideComponent").OfType<IPropertySymbol>().Any(p => p.IsOverride);
 
@@ -64,7 +86,7 @@ public sealed class SupportStatusGuideAnalyzer : DiagnosticAnalyzer
     /// Reads the <c>Support = SupportLevel.X</c> assignment from the config's object initializer.
     /// Returns the level name only when it is <c>Partial</c> or <c>Full</c>; otherwise null.
     /// </summary>
-    private static (string? Level, Location? Location) ReadMaintainedSupport(ISymbol configMember, CancellationToken ct)
+    private static (string? Level, Location? Location) ReadSupportLevel(ISymbol configMember, CancellationToken ct)
     {
         foreach (var syntaxRef in configMember.DeclaringSyntaxReferences)
         {
