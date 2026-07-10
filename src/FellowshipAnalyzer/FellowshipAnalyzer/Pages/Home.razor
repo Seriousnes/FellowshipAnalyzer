@@ -3,14 +3,30 @@
 
 <PageTitle>Fellowship Analyzer</PageTitle>
 
-<section class="home-shell">
-	<div class="home-card">
-		<p class="eyebrow">Combat Analysis</p>
-		<h1>Fellowship Analyzer</h1>
-		<p>
-			Paste a Fellowship Logs report URL, report code, or character profile URL below to get started.
-		</p>
-		<ReportSelector />
-		<ReportHistory />
-	</div>
-</section>
+<div class="home">
+    <section class="home-hero">
+        <div class="home-intro">
+            <p class="eyebrow">Combat Analysis</p>
+            <h1 class="home-title">Fellowship Analyzer</h1>
+            <p class="home-tagline">
+                Paste a Fellowship Logs report URL, report code, or character profile URL below to get started.
+            </p>
+            <ReportSelector />
+        </div>
+        <div class="home-recent"><ReportHistory /></div>
+    </section>
+
+    <section class="home-tabs">
+        <Tabs Variant="TabsVariant.Underline" DefaultActiveId="heroes">
+            <TabItem Id="heroes" Label="Heroes">
+                <HeroSupportList />
+            </TabItem>
+            <TabItem Id="news" Label="News">
+                <HomeNews />
+            </TabItem>
+            <TabItem Id="about" Label="About">
+                <HomeAbout />
+            </TabItem>
+        </Tabs>
+    </section>
+</div>

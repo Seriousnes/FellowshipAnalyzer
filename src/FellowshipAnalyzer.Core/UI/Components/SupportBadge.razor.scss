@@ -1,0 +1,37 @@
+@use 'tokens' as t;
+
+.support-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    white-space: nowrap;
+    border: 1px solid var(--support-border, var(--fa-border));
+    color: var(--support-color, var(--fa-text-muted));
+    background: color-mix(in srgb, var(--support-color, var(--fa-text-muted)) 12%, transparent);
+}
+
+.support-badge-dot {
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 50%;
+    background: var(--support-color, var(--fa-text-muted));
+}
+
+.support-badge--full {
+    --support-color: var(--fa-perf-perfect);
+    --support-border: color-mix(in srgb, var(--fa-perf-perfect) 35%, transparent);
+}
+
+.support-badge--partial {
+    --support-color: var(--fa-gold);
+    --support-border: var(--fa-gold-dim);
+}
+
+.support-badge--unmaintained {
+    --support-color: var(--fa-text-dim);
+    --support-border: var(--fa-border);
+}

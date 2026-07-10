@@ -37,23 +37,27 @@
                 <span class="fight-duration">@header.FightDuration</span>
             </Badges>
             <Secondary>
-                @if (Hero.TryParse(header.Player.SubType, out var headerHero))
+                @{
+                    var hasHeaderHero = Hero.TryParse(header.Player.SubType, out var headerHero);
+                    var headerHeroColor = hasHeaderHero ? headerHero.Color : null;
+                }
+                @if (hasHeaderHero)
                 {
                     <Avatar Size="AvatarSize.Lg"
                             Src="@headerHero.IconUrl"
                             Alt="@header.Player.Name"
                             FallbackText="@FirstCharacter(header.Player.Name)"
-                            AccentColorVar="@HeroRoleStyles.GetAccentColorVar(headerHero.Role)" />
+                            AccentColorVar="@headerHero.Color" />
                 }
                 else
                 {
                     <Avatar Size="AvatarSize.Lg" FallbackText="@FirstCharacter(header.Player.Name)" />
                 }
                 <div class="player-text">
-                    <h2 class="player-title">@header.Player.Name</h2>
+                    <h2 class="player-title" style="@(headerHeroColor is not null ? $"color: {headerHeroColor}" : null)">@header.Player.Name</h2>
                     @if (header.Player.SubType is not null)
                     {
-                        <span class="player-class-label">@header.Player.SubType</span>
+                        <span class="player-class-label" style="@(headerHeroColor is not null ? $"color: {headerHeroColor}" : null)">@header.Player.SubType</span>
                     }
                 </div>
             </Secondary>

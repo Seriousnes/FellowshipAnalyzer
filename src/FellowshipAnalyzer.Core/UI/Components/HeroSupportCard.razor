@@ -1,0 +1,51 @@
+@* HeroSupportCard — one hero's support status and maintainers; links to its example report. *@
+@using FellowshipAnalyzer.Core.Analysis
+
+@{
+    var hero = Hero.For(Entry.Hero);
+    var config = Entry.Config;
+    var reportHref = string.IsNullOrEmpty(config.ExampleReport) ? null : $"/report/{config.ExampleReport}";
+    var showSeason = !string.IsNullOrEmpty(config.SeasonLabel) && config.Support != SupportLevel.Unmaintained;
+}
+
+<div class="hero-support-card@(reportHref is null ? "" : " linkable")"
+     style="--hero-accent: @hero.Color;">
+    @if (reportHref is not null)
+    {
+        <a class="hero-support-card-link" href="@reportHref"
+           aria-label="@($"Open example {Entry.Hero} report")"></a>
+    }
+
+    <span class="hero-support-card-icon"><HeroIcon Hero="hero" /></span>
+
+    <div class="hero-support-card-body">
+        <div class="hero-support-card-head">
+            <span class="hero-support-card-name" style="color: @hero.Color;">@Entry.Hero</span>
+            <SupportBadge Support="config.Support" />
+        </div>
+
+        <div class="hero-support-card-maintainers">
+            @if (config.Maintainers.Count > 0)
+            {
+                <span class="hero-support-card-by">Maintained by</span>
+                @foreach (var maintainer in config.Maintainers)
+                {
+                    <ContributorLink Contributor="maintainer" />
+                }
+            }
+            else
+            {
+                <span class="hero-support-card-by">No dedicated maintainer</span>
+            }
+        </div>
+
+        @if (showSeason)
+        {
+            <div class="hero-support-card-season">Accurate for @config.SeasonLabel</div>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public HeroConfigEntry Entry { get; set; }
+}

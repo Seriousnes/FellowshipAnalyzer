@@ -72,6 +72,23 @@ public readonly record struct Hero(HeroName Name, HeroRole Role)
         _                => "",
     };
 
+    public string Color => Name switch
+    {
+        HeroName.Aeona   => "#fc9fec",
+        HeroName.Ardeos  => "#eb6328",
+        HeroName.Elarion => "#935dff",
+        HeroName.Gunde   => "#943738",
+        HeroName.Helena  => "#b46831",
+        HeroName.Mara    => "#965a90",
+        HeroName.Meiko   => "#28e05c",
+        HeroName.Rime    => "#1ea3ee",
+        HeroName.Sylvie  => "#ea4f84",
+        HeroName.Tariq   => "#527af5",
+        HeroName.Vigour  => "#dddbc5",
+        HeroName.Xavian  => "#077365",
+        _                => "#9a9586",
+    };
+
     /* Tanks */
     public static readonly Hero Helena = new(HeroName.Helena, HeroRole.Tank);
     public static readonly Hero Meiko = new(HeroName.Meiko, HeroRole.Tank);

@@ -91,21 +91,21 @@
                                 </div>
                                 @foreach (var player in players.OrderBy(p => GetRole(p.SubType)).ThenBy(p => p.Name))
                                 {
-                                    var role = GetRole(player.SubType);
-                                    var borderColor = HeroRoleStyles.GetAccentColorVar(role);
+                                    var hasHero = Hero.TryParse(player.SubType, out var playerHero);
+                                    var accent = hasHero ? playerHero.Color : HeroRoleStyles.GetAccentColorVar(GetRole(player.SubType));
                                     <a class="player-card"
                                        href="/report/@ReportCode/@expandedId/@player.Id"
-                                       style="border-left-color: @borderColor">
-                                        @if (Hero.TryParse(player.SubType, out var playerHero))
+                                       style="border-left-color: @accent">
+                                        @if (hasHero)
                                         {
-                                            <Avatar Size="AvatarSize.Sm" Src="@playerHero.IconUrl" Alt="@player.Name" FallbackText="@FirstLetter(player.Name)" />
+                                            <Avatar Size="AvatarSize.Sm" Src="@playerHero.IconUrl" Alt="@player.Name" FallbackText="@FirstLetter(player.Name)" AccentColorVar="@playerHero.Color" />
                                         }
                                         else
                                         {
                                             <Avatar Size="AvatarSize.Sm" FallbackText="@FirstLetter(player.Name)" />
                                         }
                                         <div class="player-info">
-                                            <span class="player-name">@player.Name</span>
+                                            <span class="player-name" style="@(hasHero ? $"color: {playerHero.Color}" : null)">@player.Name</span>
                                             <span class="player-class">@(player.SubType ?? "Unknown")</span>
                                         </div>
                                     </a>
@@ -120,22 +120,21 @@
                 <Accordion @bind-ExpandedId="_expandedPlayerIdStr">
                     @foreach (var player in GetSortedPlayers())
                     {
-                        var role = GetRole(player.SubType);
-                        var borderColor = HeroRoleStyles.GetAccentColorVar(role);
                         var hasHero = Hero.TryParse(player.SubType, out var playerHero);
+                        var accent = hasHero ? playerHero.Color : HeroRoleStyles.GetAccentColorVar(GetRole(player.SubType));
                         var playerFights = _report.Fights.Where(f => f.FriendlyPlayers?.Contains(player.Id) == true).ToList();
-                        <AccordionItem Id="@($"player-{player.Id}")" BorderAccentColorVar="@borderColor">
+                        <AccordionItem Id="@($"player-{player.Id}")" BorderAccentColorVar="@accent">
                             <Header>
                                 @if (hasHero)
                                 {
-                                    <Avatar Size="AvatarSize.Sm" Src="@playerHero.IconUrl" Alt="@player.Name" FallbackText="@FirstLetter(player.Name)" />
+                                    <Avatar Size="AvatarSize.Sm" Src="@playerHero.IconUrl" Alt="@player.Name" FallbackText="@FirstLetter(player.Name)" AccentColorVar="@playerHero.Color" />
                                 }
                                 else
                                 {
                                     <Avatar Size="AvatarSize.Sm" FallbackText="@FirstLetter(player.Name)" />
                                 }
                                 <div class="player-info">
-                                    <span class="player-name">@player.Name</span>
+                                    <span class="player-name" style="@(hasHero ? $"color: {playerHero.Color}" : null)">@player.Name</span>
                                     <span class="player-class">@(player.SubType ?? "Unknown")</span>
                                 </div>
                             </Header>
