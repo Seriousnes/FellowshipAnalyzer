@@ -103,11 +103,8 @@
 
     private static string? ExtractReportCode(string input)
     {
-        // Matches:
-        //   - bare 16-char alphanumeric code
-        //   - full URL with /reports/ prefix
         var match = Regex.Match(input.Trim(),
-            @"^(?:.*reports\/)?([a-zA-Z0-9]{16})(?:[\/\?#].*)?$");
+            @"^(?:.*reports\/)?((?:a:)?[a-zA-Z0-9]{16})(?:[\/\?#].*)?$");
         return match.Success ? match.Groups[1].Value : null;
     }
 

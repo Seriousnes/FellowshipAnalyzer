@@ -1,0 +1,52 @@
+@* HeroSupportList — every hero's support status, grouped by role. *@
+@using FellowshipAnalyzer.Core.Analysis
+@inject IHeroConfigCatalog Catalog
+
+<div class="hero-support">
+    @foreach (var role in RoleOrder)
+    {
+        var heroes = _byRole[role];
+        @if (heroes.Count > 0)
+        {
+            <div class="hero-support-group">
+                <h3 class="hero-support-group-title">@RoleLabel(role)</h3>
+                <div class="hero-support-grid">
+                    @foreach (var entry in heroes)
+                    {
+                        <HeroSupportCard Entry="entry" />
+                    }
+                </div>
+            </div>
+        }
+    }
+</div>
+
+@code {
+    private static readonly HeroRole[] RoleOrder = [HeroRole.Tank, HeroRole.Healer, HeroRole.Dps];
+
+    private Dictionary<HeroRole, IReadOnlyList<HeroConfigEntry>> _byRole = new();
+
+    protected override void OnInitialized() =>
+        _byRole = RoleOrder.ToDictionary(
+            role => role,
+            role => (IReadOnlyList<HeroConfigEntry>)
+                [.. Catalog.Heroes
+                    .Where(e => Hero.For(e.Hero).Role == role)
+                    .OrderByDescending(e => Rank(e.Config.Support))
+                    .ThenBy(e => e.Hero.ToString(), StringComparer.Ordinal)]);
+
+    private static int Rank(SupportLevel support) => support switch
+    {
+        SupportLevel.Full => 2,
+        SupportLevel.Partial => 1,
+        _ => 0,
+    };
+
+    private static string RoleLabel(HeroRole role) => role switch
+    {
+        HeroRole.Tank => "Tanks",
+        HeroRole.Healer => "Healers",
+        HeroRole.Dps => "DPS",
+        _ => "Other",
+    };
+}

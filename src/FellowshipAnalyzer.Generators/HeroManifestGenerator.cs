@@ -94,7 +94,7 @@ public sealed class HeroManifestGenerator : IIncrementalGenerator
             sb.AppendLine();
         }
 
-        sb.AppendLine("public sealed record HeroManifestEntry(global::FellowshipAnalyzer.Core.Analysis.HeroName Hero, string AssemblyName, Type ParserType);");
+        sb.AppendLine("public sealed record HeroManifestEntry(global::FellowshipAnalyzer.Core.Analysis.HeroName Hero, string AssemblyName, Type ParserType, global::FellowshipAnalyzer.Core.Analysis.HeroConfig Config);");
         sb.AppendLine();
 
         sb.AppendLine("public static class HeroManifest");
@@ -105,7 +105,7 @@ public sealed class HeroManifestGenerator : IIncrementalGenerator
         {
             sb.Append("        new HeroManifestEntry(global::FellowshipAnalyzer.Core.Analysis.HeroName.")
               .Append(entry.HeroEnumMember).Append(", \"").Append(entry.AssemblyName).Append("\", typeof(global::")
-              .Append(entry.ParserTypeFullyQualified).AppendLine(")),");
+              .Append(entry.ParserTypeFullyQualified).Append("), ").Append(entry.ConfigAccessorFullyQualified).AppendLine("),");
         }
         sb.AppendLine("    ];");
         sb.AppendLine("}");
@@ -166,11 +166,33 @@ public sealed class HeroManifestGenerator : IIncrementalGenerator
             var ext = string.IsNullOrEmpty(ns) ? parserBaseName + "ServiceCollectionExtensions"
                 : ns + "." + parserBaseName + "ServiceCollectionExtensions";
 
+            // A hero optionally declares its config as a `public static HeroConfig HeroConfig`
+            // member on the parser; reference it by symbol. Heroes with none fall back to the
+            // shared Unmaintained default. The value itself is never parsed here.
+            var configAccessor = "global::FellowshipAnalyzer.Core.Analysis.HeroConfig.Unmaintained";
+            foreach (var member in type.GetMembers("HeroConfig"))
+            {
+                if (!member.IsStatic || member.DeclaredAccessibility != Accessibility.Public) continue;
+                var memberType = member switch
+                {
+                    IPropertySymbol p => p.Type,
+                    IFieldSymbol f => f.Type,
+                    _ => null,
+                };
+                if (memberType is { Name: "HeroConfig" } &&
+                    memberType.ContainingNamespace?.ToDisplayString() == "FellowshipAnalyzer.Core.Analysis")
+                {
+                    configAccessor = "global::" + parserTypeFq + ".HeroConfig";
+                    break;
+                }
+            }
+
             entries.Add(new HeroEntry(
                 HeroEnumMember: heroEnumMember,
                 AssemblyName: assembly.Name,
                 ParserTypeFullyQualified: parserTypeFq,
-                ServiceCollectionExtensionFullyQualified: ext));
+                ServiceCollectionExtensionFullyQualified: ext,
+                ConfigAccessorFullyQualified: configAccessor));
         }
     }
 
@@ -210,16 +232,18 @@ public sealed class HeroManifestGenerator : IIncrementalGenerator
 
     private sealed class HeroEntry
     {
-        public HeroEntry(string HeroEnumMember, string AssemblyName, string ParserTypeFullyQualified, string ServiceCollectionExtensionFullyQualified)
+        public HeroEntry(string HeroEnumMember, string AssemblyName, string ParserTypeFullyQualified, string ServiceCollectionExtensionFullyQualified, string ConfigAccessorFullyQualified)
         {
             this.HeroEnumMember = HeroEnumMember;
             this.AssemblyName = AssemblyName;
             this.ParserTypeFullyQualified = ParserTypeFullyQualified;
             this.ServiceCollectionExtensionFullyQualified = ServiceCollectionExtensionFullyQualified;
+            this.ConfigAccessorFullyQualified = ConfigAccessorFullyQualified;
         }
         public string HeroEnumMember { get; }
         public string AssemblyName { get; }
         public string ParserTypeFullyQualified { get; }
         public string ServiceCollectionExtensionFullyQualified { get; }
+        public string ConfigAccessorFullyQualified { get; }
     }
 }

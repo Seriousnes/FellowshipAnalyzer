@@ -21,7 +21,10 @@ internal static class AnalyzerTestHarness
         typeof(CombatLogParser).Assembly.Location,
     ];
 
-    public static ImmutableArray<Diagnostic> Run(string userSource)
+    public static ImmutableArray<Diagnostic> Run(string userSource) =>
+        Run(userSource, new PullAnalyzerDiagnostics());
+
+    public static ImmutableArray<Diagnostic> Run(string userSource, DiagnosticAnalyzer analyzer)
     {
         var parseOptions = new CSharpParseOptions(LanguageVersion.Latest);
         var tree = CSharpSyntaxTree.ParseText(userSource, parseOptions);
@@ -44,7 +47,7 @@ internal static class AnalyzerTestHarness
             references: refList,
             options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, nullableContextOptions: NullableContextOptions.Enable));
 
-        var withAnalyzers = compilation.WithAnalyzers([new PullAnalyzerDiagnostics()]);
+        var withAnalyzers = compilation.WithAnalyzers([analyzer]);
         return withAnalyzers.GetAnalyzerDiagnosticsAsync().GetAwaiter().GetResult();
     }
 }

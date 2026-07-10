@@ -1,0 +1,73 @@
+@use 'tokens' as t;
+@use 'mixins' as mx;
+
+.report-history {
+    width: 100%;
+}
+
+.report-history-title {
+    @include mx.eyebrow;
+    margin: 0 0 0.6rem;
+    font-size: 0.82rem;
+}
+
+.report-history-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.report-history-empty {
+    display: flex;
+    align-items: center;
+    min-height: 4.5rem;
+    padding: 0.85rem 1rem;
+    border: 1px dashed var(--fa-border-card);
+    border-radius: t.$fa-radius-md;
+    color: var(--fa-text-dim);
+    font-size: 0.85rem;
+    line-height: 1.45;
+}
+
+.report-history-link {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: baseline;
+    column-gap: 0.6rem;
+    padding: 0.5rem 0.65rem;
+    border-radius: t.$fa-radius-sm;
+    text-decoration: none;
+    transition: background 0.15s;
+
+    &:hover {
+        background: var(--fa-gold-dim);
+    }
+}
+
+.report-history-player {
+    grid-column: 1;
+    font-weight: 700;
+    color: var(--fa-text);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.report-history-age {
+    grid-column: 2;
+    font-size: 0.78rem;
+    color: var(--fa-text-dim);
+    white-space: nowrap;
+}
+
+.report-history-fight {
+    grid-column: 1 / -1;
+    font-size: 0.82rem;
+    color: var(--fa-text-muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}

@@ -1,0 +1,9 @@
+@* ContributorLink — a contributor's name that opens their profile in the shared app-level modal. *@
+@using FellowshipAnalyzer.Core.Analysis
+@inject ContributorModalService Modal
+
+<button type="button" class="contributor-link" @onclick="() => Modal.Show(Contributor)">@Contributor.Nickname</button>
+
+@code {
+    [Parameter, EditorRequired] public Contributor Contributor { get; set; } = default!;
+}

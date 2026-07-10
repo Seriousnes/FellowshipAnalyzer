@@ -1,0 +1,42 @@
+@* HomeAbout — short factual description of the tool and how its hero support levels work. *@
+
+<div class="home-about">
+    <p class="home-about-lead">
+        Fellowship Analyzer reads the combat logs you upload to
+        <a href="https://www.fellowshiplogs.com" target="_blank" rel="noopener noreferrer">Fellowship Logs</a>
+        and runs hero-specific analysis over them, turning raw events into actionable suggestions and statistics.
+    </p>
+    <p class="home-about-body">
+        Paste a report or character link above to analyse a fight. Each report is analysed per hero, so the
+        feedback and statistics you see are tailored to the hero you played.
+    </p>
+
+    <div class="home-about-section">
+        <h3 class="home-about-heading">Support levels</h3>
+        <p class="home-about-body">
+            The Heroes tab marks how complete each hero's analysis is:
+        </p>
+        <dl class="home-about-legend">
+            <div class="home-about-legend-row">
+                <dt><SupportBadge Support="SupportLevel.Full" /></dt>
+                <dd>This hero's analysis is largely complete.</dd>
+            </div>
+            <div class="home-about-legend-row">
+                <dt><SupportBadge Support="SupportLevel.Partial" /></dt>
+                <dd>This hero's analysis is still being built out.</dd>
+            </div>
+            <div class="home-about-legend-row">
+                <dt><SupportBadge Support="SupportLevel.Unmaintained" /></dt>
+                <dd>This hero's analysis is absent or incomplete.</dd>
+            </div>
+        </dl>
+    </div>
+
+    <div class="home-about-section">
+        <h3 class="home-about-heading">Contribute</h3>
+        <p class="home-about-body">
+            Fellowship Analyzer is open source. Adding a hero, improving analysis, or fixing a bug is welcome on
+            <a href="https://github.com/Seriousnes/FellowshipAnalyzer" target="_blank" rel="noopener noreferrer">GitHub</a>.
+        </p>
+    </div>
+</div>
