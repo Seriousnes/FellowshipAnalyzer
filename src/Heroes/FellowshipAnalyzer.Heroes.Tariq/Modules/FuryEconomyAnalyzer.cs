@@ -15,7 +15,10 @@ namespace FellowshipAnalyzer.Heroes.Tariq.Modules;
 /// <para>
 /// Two further build-robust facts are reported without being scored: the share of Fury spenders
 /// landing inside a Thunder Call empowerment window (read against that window's uptime as a neutral
-/// baseline), and how many Culling Strikes landed in execute range (target below 30% health).
+/// baseline), and how many Culling Strikes landed in execute range (target below 30% health). Because
+/// Culling Strike is only usable above 30% health while Executioner's Grin (the legendary item proc)
+/// is active, Culling Strikes that land above execute range are counted separately as item-enabled
+/// rather than misread as normal execute usage.
 /// </para>
 /// </summary>
 [ForPull(PullKind.Single | PullKind.Multi)]
@@ -33,6 +36,7 @@ public sealed partial class FuryEconomyAnalyzer : Analyzer<FuryEconomyReport>
 
     private int _cullingStrikeHits;
     private int _executeCullingStrikes;
+    private int _grinEnabledCullingStrikes;
 
     private int _thunderCallWindows;
     private int _windowTimeMs;
@@ -111,6 +115,8 @@ public sealed partial class FuryEconomyAnalyzer : Analyzer<FuryEconomyReport>
         _cullingStrikeHits++;
         if ((double)target.HitPoints / target.MaxHitPoints < ExecuteHealthThreshold)
             _executeCullingStrikes++;
+        else
+            _grinEnabledCullingStrikes++;
     }
 
     /// <summary>Per-pull projection of the accumulated Fury economy for the closing pull.</summary>
@@ -152,7 +158,8 @@ public sealed partial class FuryEconomyAnalyzer : Analyzer<FuryEconomyReport>
             _executeCullingStrikes,
             _skullCrusherCasts,
             _hammerStormCasts,
-            findings);
+            findings,
+            _grinEnabledCullingStrikes);
     }
 
     private List<TariqFinding> BuildFindings(int spenderCasts, int activeSpan)
@@ -189,8 +196,11 @@ public sealed partial class FuryEconomyAnalyzer : Analyzer<FuryEconomyReport>
         }
 
         if (_cullingStrikeHits > 0)
-            findings.Add(new TariqFinding("info",
-                $"{_executeCullingStrikes} of {_cullingStrikeHits} Culling Strikes hit a target in execute range (below {(int)(ExecuteHealthThreshold * 100)}% health)."));
+            findings.Add(_grinEnabledCullingStrikes > 0
+                ? new TariqFinding("info",
+                    $"Of {_cullingStrikeHits} Culling Strikes, {_executeCullingStrikes} hit an execute-range target (below {(int)(ExecuteHealthThreshold * 100)}% health) and {_grinEnabledCullingStrikes} landed above execute range (only possible with Executioner's Grin).")
+                : new TariqFinding("info",
+                    $"{_executeCullingStrikes} of {_cullingStrikeHits} Culling Strikes hit a target in execute range (below {(int)(ExecuteHealthThreshold * 100)}% health)."));
 
         return findings;
     }

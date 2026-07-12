@@ -42,6 +42,24 @@ public sealed class FuryEconomyAnalyzerTests
     }
 
     [Fact]
+    public async Task Analyze_FuryEconomy_CountsAboveExecuteCullingStrikesAsGrinEnabled()
+    {
+        var (parser, _) = await AnalyzeAsync(
+        [
+            Cast(200, TariqSpells.CullingStrike.FSLID, fury: 30, maxFury: 100),
+            CullingStrikeHit(250, targetHp: 60, targetMaxHp: 100),
+            Cast(400, TariqSpells.CullingStrike.FSLID, fury: 20, maxFury: 100),
+            CullingStrikeHit(450, targetHp: 10, targetMaxHp: 100),
+        ]);
+
+        var report = parser.FuryEconomyReports.ShouldHaveSingleItem().Result;
+
+        report.CullingStrikeCasts.ShouldBe(2);
+        report.ExecuteCullingStrikes.ShouldBe(1);
+        report.GrinEnabledCullingStrikes.ShouldBe(1);
+    }
+
+    [Fact]
     public async Task Analyze_FuryEconomy_ExposesPerPullReadPaths()
     {
         var (parser, _) = await AnalyzeAsync(BuildScenario());

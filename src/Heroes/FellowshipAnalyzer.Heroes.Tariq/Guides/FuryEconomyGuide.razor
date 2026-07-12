@@ -41,6 +41,7 @@
 
         var cullingCasts = reports.Sum(report => report.CullingStrikeCasts);
         var executes = reports.Sum(report => report.ExecuteCullingStrikes);
+        var grinEnabled = reports.Sum(report => report.GrinEnabledCullingStrikes);
 
         return
         [
@@ -63,7 +64,9 @@
             new OverviewStat(
                 $"{executes}/{cullingCasts}",
                 "Execute Culling",
-                "Culling Strikes that hit a target below 30% health."),
+                grinEnabled > 0
+                    ? $"Culling Strikes that hit a target below 30% health. A further {grinEnabled} landed above execute range, only possible with Executioner's Grin (item proc)."
+                    : "Culling Strikes that hit a target below 30% health."),
         ];
     }
 
@@ -94,7 +97,9 @@
             new PerCastStat(
                 $"{report.ExecuteCullingStrikes}/{report.CullingStrikeCasts}",
                 "Execute <30%",
-                "Culling Strikes that hit a target in execute range."),
+                report.GrinEnabledCullingStrikes > 0
+                    ? $"Culling Strikes that hit a target in execute range. A further {report.GrinEnabledCullingStrikes} landed above execute range, only possible with Executioner's Grin."
+                    : "Culling Strikes that hit a target in execute range."),
             new PerCastStat(
                 $"{report.SkullCrusherCasts} / {report.HammerStormCasts}",
                 "Skull / Hammer",

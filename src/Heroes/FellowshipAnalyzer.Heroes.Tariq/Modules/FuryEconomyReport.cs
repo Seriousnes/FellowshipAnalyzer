@@ -24,11 +24,12 @@ public sealed record FuryEconomyReport(
     int ExecuteCullingStrikes,
     int SkullCrusherCasts,
     int HammerStormCasts,
-    IReadOnlyList<TariqFinding> Findings) : IResult
+    IReadOnlyList<TariqFinding> Findings,
+    int GrinEnabledCullingStrikes) : IResult
 {
     public FuryEconomyReport() : this(
         new AnalyzerScoreCard("Fury Economy", 0, "No Fury activity detected.", "ember"),
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, [])
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, [], 0)
     {
     }
 
