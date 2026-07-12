@@ -176,7 +176,7 @@
     "OblivionAbsorbAbsorb": {
       "kind": "effect",
       "id": 2736,
-      "name": "Chrono Barrier",
+      "name": "Oblivion\u0027s Embrace",
       "icon": "T_Nhance_RPG_Icons_ArcaneLoad.jpg"
     },
     "OblivionCost": {
@@ -341,7 +341,6 @@
       "name": "Apocalypse",
       "icon": "Firemage_Apocalypse.jpg",
       "cooldown": 45,
-      "range": 30,
       "castDuration": 3
     },
     "ApocalypseDamage": {
@@ -609,8 +608,7 @@
       "id": 1587,
       "name": "Searing Blaze",
       "icon": "Firemage_Dot_02.jpg",
-      "range": 30,
-      "castDuration": 1.5
+      "range": 30
     },
     "SearingBlazeDot": {
       "kind": "effect",
@@ -977,6 +975,12 @@
       "name": "",
       "icon": ""
     },
+    "StarfallVolleyMainTargetBuff": {
+      "kind": "effect",
+      "id": 3260,
+      "name": "",
+      "icon": ""
+    },
     "StarfallVolleyTalentBuffWhileActive": {
       "kind": "effect",
       "id": 2316,
@@ -1118,7 +1122,7 @@
       "id": 1244,
       "name": "Jawbreaker",
       "icon": "t_gunde_Interrupt.jpg",
-      "cooldown": 12,
+      "cooldown": 16,
       "range": 5
     },
     "JawbreakerInterrupt": {
@@ -1734,10 +1738,10 @@
       "name": "Tremble!",
       "icon": "Tex_red_10.jpg"
     },
-    "MacabreStrategem": {
+    "MacabreStratagem": {
       "kind": "ability",
       "id": 2233,
-      "name": "Macabre Strategem",
+      "name": "Macabre Stratagem",
       "icon": "T_Nhance_RPG_Shadow_16.jpg"
     },
     "MaidenOfDeath": {
@@ -1856,7 +1860,7 @@
       "id": 1128,
       "name": "Web Crack",
       "icon": "Mara_Stun.jpg",
-      "cooldown": 30
+      "cooldown": 24
     },
     "WebCrackCost": {
       "kind": "effect",
@@ -1867,7 +1871,7 @@
     "WebCrackStun": {
       "kind": "effect",
       "id": 1583,
-      "name": "Cheap Shot",
+      "name": "Web Crack",
       "icon": "effect_stunned_icon.jpg"
     },
     "WidowBite": {
@@ -2446,7 +2450,7 @@
       "id": 1032,
       "name": "Ice Blitz",
       "icon": "T_Nhance_RPG_Icons_IcySpikes.jpg",
-      "cooldown": 120
+      "cooldown": 60
     },
     "IceBlitzBuff": {
       "kind": "effect",
@@ -2963,6 +2967,12 @@
       "name": "",
       "icon": ""
     },
+    "ExecutionersGrin": {
+      "kind": "effect",
+      "id": 2267,
+      "name": "Executioner\u0027s Grin",
+      "icon": "T_Nhance_RPG_BloodCombat_17.jpg"
+    },
     "FaceBreaker": {
       "kind": "ability",
       "id": 2239,
@@ -3355,7 +3365,7 @@
       "id": 996,
       "name": "Luminous Barrier",
       "icon": "T_Vigor_Shield.jpg",
-      "cooldown": 15
+      "cooldown": 20
     },
     "LuminousBarrierAbsorb": {
       "kind": "effect",

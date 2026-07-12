@@ -95,6 +95,12 @@
     "FaceBreakerAlt": {
       "id": 2241,
       "note": "both id 2239 and id 2241 sanitize to FaceBreaker; supersede id 2241 under distinct name FaceBreakerAlt to eliminate collision"
+    },
+    "ExecutionersGrin": {
+      "id": 2267,
+      "kind": "effect",
+      "name": "Executioner's Grin",
+      "note": "item-granted proc from the legendary Executioner's Unsanitary Bands (item 5225); DevName GE_Ink_Talent_LowHealthSingleTargetResourceDamage_ChanceActiveOnCommit_Proc. While active it lets Culling Strike be cast regardless of target health. Not in Tariq's Kit; add directly."
     }
   },
   "vigour": {
