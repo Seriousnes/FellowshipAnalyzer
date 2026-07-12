@@ -10,42 +10,42 @@
     />
 }
 
-@if (Parser.LunarlightMarkEruptionReports.Count > 0)
+@if (Parser.LunarlightMarkEruptionAnalyzers.Count > 0)
 {
     <LunarlightMarkEruptionGuide />
 }
 
-@if (Parser.EmpoweredMultishotWasteReports.Any(e => e.Result.BuildActive))
+@if (Parser.EmpoweredMultishotWasteAnalyzers.Any(e => e.Analyzer.BuildActive))
 {
     <EmpoweredMultishotWasteGuide />
 }
 
-@if (Parser.HighwindArrowCapReports.Count > 0)
+@if (Parser.HighwindArrowCapAnalyzers.Count > 0)
 {
     <HighwindArrowCapGuide />
 }
 
-@if (Parser.CooldownEfficiencyReports.Count > 0)
+@if (Parser.CooldownEfficiencyAnalyzers.Count > 0)
 {
     <CooldownEfficiencyGuide />
 }
 
-@if (Parser.PreUltimateChecklistReports.Count > 0)
+@if (Parser.PreUltimateChecklistAnalyzers.Count > 0)
 {
     <PreUltimateChecklistGuide />
 }
 
-@if (Parser.ImpendingHeartseekerReports.Count > 0)
+@if (Parser.ImpendingHeartseekerAnalyzers.Count > 0)
 {
     <ImpendingHeartseekerGuide />
 }
 
-@if (Parser.StarfallVolleyDesyncReports.Count > 0)
+@if (Parser.StarfallVolleyDesyncAnalyzers.Count > 0)
 {
     <StarfallVolleyDesyncGuide />
 }
 
-@if (Parser.VoidbringerTouchReports.Any(e => e.Result.TotalCasts > 0))
+@if (Parser.VoidbringerTouchAnalyzers.Any(e => e.Analyzer.TotalCasts > 0))
 {
     <VoidbringerTouchGuide />
 }

@@ -14,7 +14,7 @@ namespace FellowshipAnalyzer.Heroes.Elarion.Modules;
 /// </summary>
 [ForPull(PullKind.Single | PullKind.Multi)]
 [Uses<SpellUsable>]
-public sealed partial class PreUltimateChecklistAnalyzer : Analyzer<PreUltimateChecklistReport>
+public sealed partial class PreUltimateChecklistAnalyzer : Analyzer
 {
     private const int PreUltLookbackMs = 6000;
 
@@ -24,6 +24,11 @@ public sealed partial class PreUltimateChecklistAnalyzer : Analyzer<PreUltimateC
     private bool _eventHorizonBuffActive;
 
     private readonly List<UltWindow> _windows = [];
+
+    public IReadOnlyList<UltWindow> Windows => _windows;
+
+    /// <summary>Average share (0-100) of the five pre-conditions met across all ult windows.</summary>
+    public int Score { get; private set; }
 
     [On<CastEvent>(By = Actor.Player, Spell = nameof(Spells.SkystridersSupremacy))]
     private void OnSupremacy(CastEvent e) => _supremacyCasts.Add(e.Timestamp);
@@ -49,12 +54,11 @@ public sealed partial class PreUltimateChecklistAnalyzer : Analyzer<PreUltimateC
     [On<ApplyDebuffEvent>(By = Actor.Player, Spell = nameof(Spells.SpiritOfHeroism))]
     private void OnUltDebuffApply(ApplyDebuffEvent e) => RecordWindow(e.Timestamp);
 
-    public override PreUltimateChecklistReport OnPullEnd()
+    public override void OnPullEnd()
     {
-        var score = _windows.Count == 0
+        Score = _windows.Count == 0
             ? 0
             : (int)Math.Round(_windows.Average(w => w.ChecksPassed * 100.0 / w.TotalChecks));
-        return new PreUltimateChecklistReport(_windows, score);
     }
 
     private void RecordWindow(int timestamp)

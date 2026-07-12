@@ -5,14 +5,12 @@
     <Explanation>
         <p>
             Tariq generates <strong>Fury</strong> with Basic and Core abilities and spends it on Power
-            abilities. Generating Fury while already at cap throws that generation away, so this section
-            scores <strong>overcap</strong> first, then reports two build-robust habits alongside it:
-            how much of your Fury spending lands inside a <SpellLink Spell="Spells.ThunderCall" />
-            empowerment window, and how often <SpellLink Spell="Spells.CullingStrike" /> is used as an
-            execute (target below 30% health).
+            abilities. Generating Fury while already at cap throws that generation away, so
+            <strong>overcap</strong> is the headline number here, read alongside how much of your Fury
+            spending lands inside a <SpellLink Spell="Spells.ThunderCall" /> empowerment window.
         </p>
         <p>
-            Spender choice is not penalised — <SpellLink Spell="Spells.SkullCrusher" /> and
+            Spender choice is not penalised - <SpellLink Spell="Spells.SkullCrusher" /> and
             <SpellLink Spell="Spells.HammerStorm" /> are both valid Fury dumps, and the
             <strong>Schism</strong> talent deliberately favours Skull Crusher.
         </p>
@@ -20,28 +18,22 @@
     <ChildContent>
         <CastOverview Title="Fury Overview" Stats="@BuildOverviewStats()" />
         <CastDetail Title="Per-Pull Fury Economy"
-                    Description="Each card is one pull. Overcap drives the score; empowered spend and execute usage are reported for context."
+                    Description="Each card is one pull. Overcap drives the rating; empowered spend is reported for context."
                     Casts="@BuildPerPullData()" />
     </ChildContent>
 </GuideSection>
 
 @code {
-    private IReadOnlyList<FuryEconomyReport> Reports => [.. Parser.FuryEconomyReports.Select(entry => entry.Result)];
-
     private IEnumerable<OverviewStat> BuildOverviewStats()
     {
-        var reports = Reports;
-        var generators = reports.Sum(report => report.GeneratorCasts);
-        var overcap = reports.Sum(report => report.OvercapCasts);
+        var analyzers = Parser.FuryEconomyAnalyzers.Select(entry => entry.Analyzer).ToList();
+        var generators = analyzers.Sum(analyzer => analyzer.GeneratorCasts);
+        var overcap = analyzers.Sum(analyzer => analyzer.OvercapCasts);
         var furyScore = generators == 0 ? 100 : (int)Math.Round((1 - (double)overcap / generators) * 100);
 
-        var spenders = reports.Sum(report => report.SpenderCasts);
-        var empowered = reports.Sum(report => report.EmpoweredSpenderCasts);
+        var spenders = analyzers.Sum(analyzer => analyzer.SpenderCasts);
+        var empowered = analyzers.Sum(analyzer => analyzer.EmpoweredSpenderCasts);
         var empoweredPct = spenders == 0 ? 0 : (int)Math.Round((double)empowered / spenders * 100);
-
-        var cullingCasts = reports.Sum(report => report.CullingStrikeCasts);
-        var executes = reports.Sum(report => report.ExecuteCullingStrikes);
-        var grinEnabled = reports.Sum(report => report.GrinEnabledCullingStrikes);
 
         return
         [
@@ -56,37 +48,31 @@
             new OverviewStat(
                 $"{overcap}",
                 "Overcap Casts",
-                "Generator casts made while Fury was already at cap — that generation was wasted."),
+                "Generator casts made while Fury was already at cap - that generation was wasted."),
             new OverviewStat(
                 $"{empoweredPct}%",
                 "Empowered Spend",
                 $"{empowered} of {spenders} Fury spenders landed inside a Thunder Call window."),
-            new OverviewStat(
-                $"{executes}/{cullingCasts}",
-                "Execute Culling",
-                grinEnabled > 0
-                    ? $"Culling Strikes that hit a target below 30% health. A further {grinEnabled} landed above execute range, only possible with Executioner's Grin (item proc)."
-                    : "Culling Strikes that hit a target below 30% health."),
         ];
     }
 
     private IEnumerable<PerCastData> BuildPerPullData() =>
-        Parser.FuryEconomyReports.Select(entry => BuildPullData(entry.Result, entry.Pull));
+        Parser.FuryEconomyAnalyzers.Select(entry => BuildPullData(entry.Analyzer, entry.Pull));
 
-    private PerCastData BuildPullData(FuryEconomyReport report, Pull pull)
+    private PerCastData BuildPullData(FuryEconomyAnalyzer analyzer, Pull pull)
     {
-        var score = report.ScoreCard.Score;
+        var score = (int)Math.Round((1 - analyzer.OvercapRate) * 100);
         var perf = score >= 90 ? PerformanceTier.Perfect
             : score >= 75 ? PerformanceTier.Good
             : score >= 50 ? PerformanceTier.Ok
             : PerformanceTier.Fail;
-        var empoweredPct = (int)Math.Round(report.EmpoweredSpendShare * 100);
-        var uptimePct = (int)Math.Round(report.WindowUptimeShare * 100);
+        var empoweredPct = (int)Math.Round(analyzer.EmpoweredSpendShare * 100);
+        var uptimePct = (int)Math.Round(analyzer.WindowUptimeShare * 100);
 
         var stats = new[]
         {
             new PerCastStat(
-                $"{report.OvercapCasts}/{report.GeneratorCasts}",
+                $"{analyzer.OvercapCasts}/{analyzer.GeneratorCasts}",
                 "Overcap",
                 "Generator casts made at full Fury (wasted generation).",
                 Performance: perf),
@@ -95,15 +81,9 @@
                 "Empowered Spend",
                 $"Share of Fury spenders inside a Thunder Call window (up {uptimePct}% of this pull)."),
             new PerCastStat(
-                $"{report.ExecuteCullingStrikes}/{report.CullingStrikeCasts}",
-                "Execute <30%",
-                report.GrinEnabledCullingStrikes > 0
-                    ? $"Culling Strikes that hit a target in execute range. A further {report.GrinEnabledCullingStrikes} landed above execute range, only possible with Executioner's Grin."
-                    : "Culling Strikes that hit a target in execute range."),
-            new PerCastStat(
-                $"{report.SkullCrusherCasts} / {report.HammerStormCasts}",
+                $"{analyzer.SkullCrusherCasts} / {analyzer.HammerStormCasts}",
                 "Skull / Hammer",
-                "Skull Crusher vs Hammer Storm casts — Schism favours Skull Crusher; both are valid Fury dumps."),
+                "Skull Crusher vs Hammer Storm casts - Schism favours Skull Crusher; both are valid Fury dumps."),
         };
 
         return new PerCastData
@@ -113,11 +93,6 @@
             Timestamp = Parser.FormatTimestamp(pull.StartTime),
             Group = pull.Name,
             GroupContent = @<PullBanner Pull="@pull" />,
-            AdditionalContent = report.Findings.Count > 0
-                ? new AdditionalContent(
-                    "Findings",
-                    @<FindingsList Findings="@report.Findings.Select(finding => new Finding(finding.Severity, finding.Message))" />)
-                : null,
         };
     }
 }

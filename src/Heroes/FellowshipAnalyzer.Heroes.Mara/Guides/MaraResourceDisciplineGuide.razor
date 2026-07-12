@@ -12,9 +12,9 @@
 <GuideSection Title="Resource Discipline">
     <Explanation>
         <ol>
-            <li>Dump combo points with a spending finisher once you reach the pull's threshold — <SpellLink Spell="Spells.QueenFang" /> at <strong>5+</strong> on single target, <SpellLink Spell="Spells.ArachnidAssault" /> at <strong>4+</strong> in AoE.</li>
+            <li>Dump combo points with a spending finisher once you reach the pull's threshold: <SpellLink Spell="Spells.QueenFang" /> at <strong>5+</strong> on single target, <SpellLink Spell="Spells.ArachnidAssault" /> at <strong>4+</strong> in AoE.</li>
             <li>Keep Energy flowing. Every cast made while Energy is capped wastes the Energy that regenerated while you were parked at the cap.</li>
-            <li>Do not build past 6 combo points — generating with <SpellLink Spell="Spells.Backstab" />, <SpellLink Spell="Spells.WidowBite" /> or <SpellLink Spell="Spells.SkitteringBlades" /> at cap throws away the generation.</li>
+            <li>Do not build past 6 combo points; generating with <SpellLink Spell="Spells.Backstab" />, <SpellLink Spell="Spells.WidowBite" /> or <SpellLink Spell="Spells.SkitteringBlades" /> at cap throws away the generation.</li>
             <li><SpellLink Spell="Spells.HemorrhagingStrike" /> is tracked separately: it is pressed to maintain bleeds and Hemotoxin, so it is not scored against the finisher threshold.</li>
             <li>The breakdown below is grouped per pull and scored against that pull's shape (boss pulls single-target, trash pulls AoE).</li>
         </ol>
@@ -28,21 +28,22 @@
 </GuideSection>
 
 @code {
-    private IReadOnlyList<MaraResourceReport> Reports =>
-        [.. Parser.MaraResourceReports.Select(entry => entry.Result)];
+    private const double FinisherWeight = 0.6;
+    private const double EnergyWeight = 0.4;
+    private const double EnergyOvercapFloor = 0.4;
 
     private IEnumerable<OverviewStat> BuildOverviewStats()
     {
-        var reports = Reports;
-        var withData = reports.Sum(r => r.FinishersWithData);
-        var atThreshold = reports.Sum(r => r.FinishersAtThreshold);
+        var analyzers = Parser.MaraResourceDisciplineAnalyzers.Select(entry => entry.Analyzer).ToList();
+        var withData = analyzers.Sum(a => a.Finishers.Count);
+        var atThreshold = analyzers.Sum(a => a.FinishersAtThreshold);
         var finisherRate = withData > 0 ? (int)Math.Round((double)atThreshold / withData * 100) : 0;
 
-        var energySampled = reports.Sum(r => r.EnergyCastsSampled);
-        var energyCapped = reports.Sum(r => r.EnergyCappedCasts);
+        var energySampled = analyzers.Sum(a => a.EnergyCastsSampled);
+        var energyCapped = analyzers.Sum(a => a.EnergyCappedCasts);
         var energyRate = energySampled > 0 ? (int)Math.Round((double)energyCapped / energySampled * 100) : 0;
 
-        var generatorOvercap = reports.Sum(r => r.GeneratorOvercapCasts);
+        var generatorOvercap = analyzers.Sum(a => a.GeneratorOvercapCasts);
 
         return
         [
@@ -69,18 +70,15 @@
     }
 
     private IEnumerable<PerCastData> BuildPerCastData() =>
-        Parser.MaraResourceReports.Select(entry => BuildPullData(entry.Result, entry.Pull));
+        Parser.MaraResourceDisciplineAnalyzers.Select(entry => BuildPullData(entry.Analyzer, entry.Pull));
 
-    private PerCastData BuildPullData(MaraResourceReport report, Pull pull)
+    private PerCastData BuildPullData(MaraResourceDisciplineAnalyzer analyzer, Pull pull)
     {
-        var perf = ScoreTier(report.ScoreCard.Score);
-        var isAoe = report.Shape == MaraPullShape.Aoe;
-        var finisherRate = report.FinishersWithData > 0
-            ? (int)Math.Round((double)report.FinishersAtThreshold / report.FinishersWithData * 100)
-            : 0;
-        var energyRate = report.EnergyCastsSampled > 0
-            ? (int)Math.Round((double)report.EnergyCappedCasts / report.EnergyCastsSampled * 100)
-            : 0;
+        var perf = ScoreTier(PullScore(analyzer));
+        var isAoe = analyzer.Shape == MaraPullShape.Aoe;
+        var finisherRate = (int)Math.Round(analyzer.FinisherThresholdRate * 100);
+        var energyRate = (int)Math.Round(analyzer.EnergyCapRate * 100);
+        var missedFinishers = analyzer.Finishers.Where(f => !f.MeetsThreshold).Take(5).ToList();
 
         var stats = new[]
         {
@@ -88,27 +86,27 @@
                 isAoe ? "AoE" : "ST",
                 "Shape",
                 isAoe
-                    ? "Trash pull — scored against the AoE priority (spend at 4+ combo points)."
-                    : "Boss pull — scored against the single-target priority (spend at 5+ combo points)."),
+                    ? "Trash pull, scored against the AoE priority (spend at 4+ combo points)."
+                    : "Boss pull, scored against the single-target priority (spend at 5+ combo points)."),
             new PerCastStat(
-                $"{report.FinishersAtThreshold}/{report.FinishersWithData}",
-                $"Finishers ≥{report.FinisherCpThreshold} CP",
+                $"{analyzer.FinishersAtThreshold}/{analyzer.Finishers.Count}",
+                $"Finishers ≥{analyzer.FinisherCpThreshold} CP",
                 "Queen's Fang / Arachnid Assault casts that met the combo-point threshold for this pull's shape.",
                 Performance: FinisherTier(finisherRate)),
             new PerCastStat(
-                $"{report.EnergyCappedCasts}/{report.EnergyCastsSampled}",
+                $"{analyzer.EnergyCappedCasts}/{analyzer.EnergyCastsSampled}",
                 "Energy Capped",
                 $"Casts made at full Energy ({energyRate}%). The Energy regenerated while capped is wasted.",
                 Performance: EnergyTier(energyRate)),
             new PerCastStat(
-                $"{report.GeneratorOvercapCasts}",
+                $"{analyzer.GeneratorOvercapCasts}",
                 "CP Overcap",
                 "Generator casts at maximum combo points, wasting the generation.",
-                Performance: report.GeneratorOvercapCasts == 0 ? PerformanceTier.Perfect : PerformanceTier.Ok),
+                Performance: analyzer.GeneratorOvercapCasts == 0 ? PerformanceTier.Perfect : PerformanceTier.Ok),
             new PerCastStat(
-                $"{report.MaintenanceFinisherCasts}",
+                $"{analyzer.MaintenanceFinisherCasts}",
                 "Hemorrhaging Strike",
-                "Hemorrhaging Strike casts, pressed to maintain bleeds and Hemotoxin — tracked for context, not scored against the finisher threshold."),
+                "Hemorrhaging Strike casts, pressed to maintain bleeds and Hemotoxin; tracked for context, not scored against the finisher threshold."),
         };
 
         return new PerCastData
@@ -118,11 +116,30 @@
             Timestamp = Parser.FormatTimestamp(pull.StartTime),
             Group = pull.Name,
             GroupContent = @<PullBanner Pull="@pull" />,
-            AdditionalContent = new AdditionalContent(
-                "Findings",
-                @<FindingsList Findings="@report.Findings" />),
+            AdditionalContent = missedFinishers.Count == 0 ? null : new AdditionalContent(
+                "Low Combo-Point Finishers",
+                @<ul>
+                    @foreach (var finisher in missedFinishers)
+                    {
+                        <li>@FinisherName(finisher.AbilityId) cast at @finisher.ComboPoints combo points at @Parser.FormatTimestamp(finisher.Timestamp), below the @(analyzer.FinisherCpThreshold)+ target for @(isAoe ? "AoE" : "single target"). Build to the threshold before spending.</li>
+                    }
+                </ul>),
         };
     }
+
+    private static int PullScore(MaraResourceDisciplineAnalyzer analyzer)
+    {
+        if (analyzer.Finishers.Count == 0 && analyzer.EnergyCastsSampled == 0)
+            return 0;
+
+        var energyDiscipline = 1.0 - Math.Min(1.0, analyzer.EnergyCapRate / EnergyOvercapFloor);
+        return (int)Math.Round(100 * ((FinisherWeight * analyzer.FinisherThresholdRate) + (EnergyWeight * energyDiscipline)));
+    }
+
+    private static string FinisherName(int abilityId) =>
+        abilityId == Spells.QueenFang.Id ? Spells.QueenFang.Name
+        : abilityId == Spells.ArachnidAssault.Id ? Spells.ArachnidAssault.Name
+        : "Finisher";
 
     private static PerformanceTier FinisherTier(int rate) =>
         rate >= 95 ? PerformanceTier.Perfect

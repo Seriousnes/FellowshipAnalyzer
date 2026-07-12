@@ -4,7 +4,7 @@
     <Explanation>
         <p>
             <SpellLink Spell="Spells.HighwindArrow" /> has 3 charges. Sitting at 3 charges wastes
-            cooldown recovery time — every second at cap is a second the next charge could have been
+            cooldown recovery time - every second at cap is a second the next charge could have been
             recharging. This is scored on single-target pulls, where Highwind Arrow is your builder.
         </p>
         <ol>
@@ -14,17 +14,34 @@
     </Explanation>
     <ChildContent>
         <CastOverview Title="Charge Discipline" Stats="@BuildOverviewStats()" />
-        <FindingsList Findings="@BuildFindings()" />
+        @if (TotalCasts == 0)
+        {
+            <TipBox Variant="TipBoxVariant.Info">
+                No Highwind Arrow casts were detected on single-target pulls.
+            </TipBox>
+        }
+        else if (CastsWhileCapped == 0 && CapPercentage < 0.05)
+        {
+            <TipBox Variant="TipBoxVariant.Success">
+                Charge management was clean - minimal time at cap.
+            </TipBox>
+        }
+        else if (CastsWhileCapped > 0)
+        {
+            <TipBox Variant="TipBoxVariant.Warning">
+                @CastsWhileCapped @(CastsWhileCapped == 1 ? "cast" : "casts") fired with charges capped - that recharge time was wasted.
+            </TipBox>
+        }
     </ChildContent>
 </GuideSection>
 
 @code {
-    private IReadOnlyList<PullResult<HighwindArrowCapReport>> Reports => Parser.HighwindArrowCapReports;
+    private IReadOnlyList<PullAnalyzer<HighwindArrowCapAnalyzer>> Analyzers => Parser.HighwindArrowCapAnalyzers;
 
-    private int TotalTimeAtCapMs => Reports.Sum(r => r.Result.TotalTimeAtCapMs);
-    private int TotalPullDurationMs => Reports.Sum(r => r.Result.PullDurationMs);
-    private int CastsWhileCapped => Reports.Sum(r => r.Result.CastsWhileCapped);
-    private int TotalCasts => Reports.Sum(r => r.Result.TotalCasts);
+    private int TotalTimeAtCapMs => Analyzers.Sum(entry => entry.Analyzer.TotalTimeAtCapMs);
+    private int TotalPullDurationMs => Analyzers.Sum(entry => entry.Analyzer.PullDurationMs);
+    private int CastsWhileCapped => Analyzers.Sum(entry => entry.Analyzer.CastsWhileCapped);
+    private int TotalCasts => Analyzers.Sum(entry => entry.Analyzer.TotalCasts);
     private double CapPercentage => TotalPullDurationMs > 0 ? (double)TotalTimeAtCapMs / TotalPullDurationMs : 0;
 
     private IEnumerable<OverviewStat> BuildOverviewStats()
@@ -49,26 +66,5 @@
             new OverviewStat($"{TotalCasts}", "Total Casts",
                 "All Highwind Arrow casts on single-target pulls."),
         ];
-    }
-
-    private IEnumerable<Finding> BuildFindings()
-    {
-        if (TotalCasts == 0)
-        {
-            yield return new Finding("info", "No Highwind Arrow casts were detected on single-target pulls.", null);
-            yield break;
-        }
-
-        if (CastsWhileCapped == 0 && CapPercentage < 0.05)
-        {
-            yield return new Finding("info", "Charge management was clean — minimal time at cap.", null);
-        }
-        else if (CastsWhileCapped > 0)
-        {
-            yield return new Finding(
-                "warning",
-                $"{CastsWhileCapped} cast{(CastsWhileCapped == 1 ? "" : "s")} fired with charges capped — that recharge time was wasted.",
-                null);
-        }
     }
 }

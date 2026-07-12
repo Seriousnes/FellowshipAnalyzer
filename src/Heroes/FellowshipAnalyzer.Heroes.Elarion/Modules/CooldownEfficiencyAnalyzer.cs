@@ -4,6 +4,9 @@ using FellowshipAnalyzer.Core.Events;
 
 namespace FellowshipAnalyzer.Heroes.Elarion.Modules;
 
+/// <summary>Per-ability cooldown-usage snapshot for one pull.</summary>
+public readonly record struct CooldownSnapshot(int Casts, int HeldMs, int BuffUptimeMs);
+
 /// <summary>
 /// Tracks how well Skystrider's Grace and Event Horizon are used "on CD" within a pull. Records how
 /// long each ability sat off-cooldown before the player used it, and the effective buff uptime for
@@ -11,12 +14,16 @@ namespace FellowshipAnalyzer.Heroes.Elarion.Modules;
 /// pull shape.
 /// </summary>
 [ForPull(PullKind.Single | PullKind.Multi)]
-public sealed partial class CooldownEfficiencyAnalyzer : Analyzer<CooldownEfficiencyReport>
+public sealed partial class CooldownEfficiencyAnalyzer : Analyzer
 {
     private readonly CooldownTracking _grace = new(Spells.SkystridersGrace.FSLID, Spells.SkystridersGraceBuff.FSLID);
     private readonly CooldownTracking _eventHorizon = new(Spells.EventHorizon.FSLID, Spells.EventHorizonBuff.FSLID);
     private int _pullStart;
     private int _pullEnd;
+
+    public CooldownSnapshot Grace { get; private set; }
+    public CooldownSnapshot EventHorizon { get; private set; }
+    public int PullDurationMs { get; private set; }
 
     [On<PullStartEvent>]
     private void OnPullStart(PullStartEvent e) => _pullStart = e.Timestamp;
@@ -74,11 +81,12 @@ public sealed partial class CooldownEfficiencyAnalyzer : Analyzer<CooldownEffici
         CloseOpenWindows(_eventHorizon, e.Timestamp);
     }
 
-    public override CooldownEfficiencyReport OnPullEnd() =>
-        new(
-            new CooldownSnapshot(_grace.Casts, _grace.TotalHeldMs, _grace.TotalBuffUptimeMs),
-            new CooldownSnapshot(_eventHorizon.Casts, _eventHorizon.TotalHeldMs, _eventHorizon.TotalBuffUptimeMs),
-            Math.Max(0, _pullEnd - _pullStart));
+    public override void OnPullEnd()
+    {
+        Grace = new CooldownSnapshot(_grace.Casts, _grace.TotalHeldMs, _grace.TotalBuffUptimeMs);
+        EventHorizon = new CooldownSnapshot(_eventHorizon.Casts, _eventHorizon.TotalHeldMs, _eventHorizon.TotalBuffUptimeMs);
+        PullDurationMs = Math.Max(0, _pullEnd - _pullStart);
+    }
 
     private CooldownTracking? SelectTracking(int spellId)
     {

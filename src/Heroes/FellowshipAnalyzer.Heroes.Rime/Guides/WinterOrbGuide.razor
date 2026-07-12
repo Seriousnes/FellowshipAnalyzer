@@ -17,7 +17,7 @@
         <CastOverview Title="Orb Overview" Stats="@BuildOverviewStats()" />
         <StackedBar Segments="@BuildStackedBar()" />
         <div style="margin-top: 12px;">
-            <FindingsList Findings="@BuildFindings()" />
+            <p>@OvercapSummary</p>
         </div>
     </ChildContent>
 </GuideSection>
@@ -65,13 +65,7 @@
         ];
     }
 
-    private IEnumerable<Finding> BuildFindings()
-    {
-        yield return new Finding(
-            Tracker.Wasted == 0 ? "info" : "warning",
-            Tracker.Wasted == 0
-                ? "No Winter Orb gains were lost to overcap."
-                : $"{Tracker.Wasted} Winter Orb gains were lost to overcap.",
-            null);
-    }
+    private string OvercapSummary => Tracker.Wasted == 0
+        ? "No Winter Orb gains were lost to overcap."
+        : $"{Tracker.Wasted} Winter Orb gains were lost to overcap.";
 }

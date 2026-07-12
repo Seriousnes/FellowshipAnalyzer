@@ -10,7 +10,7 @@ namespace FellowshipAnalyzer.Heroes.Elarion.Modules;
 /// procs. Proc management is shape-agnostic, so this runs on every pull shape.
 /// </summary>
 [ForPull(PullKind.Single | PullKind.Multi)]
-public sealed partial class ImpendingHeartseekerAnalyzer : Analyzer<ImpendingHeartseekerReport>
+public sealed partial class ImpendingHeartseekerAnalyzer : Analyzer
 {
     private const int ProcDurationMs = 15_000;
     private const int ExpiryToleranceMs = 250;
@@ -18,6 +18,12 @@ public sealed partial class ImpendingHeartseekerAnalyzer : Analyzer<ImpendingHea
     private readonly List<ProcEvent> _events = [];
     private int? _activeStartTimestamp;
     private int _activeStacks;
+
+    public IReadOnlyList<ProcEvent> Procs => _events;
+    public int Gains { get; private set; }
+    public int Refreshes { get; private set; }
+    public int Consumed { get; private set; }
+    public int Expired { get; private set; }
 
     [On<ApplyBuffEvent>(To = Actor.Player, Spell = nameof(Spells.ImpendingHeartseeker))]
     private void OnApply(ApplyBuffEvent e)
@@ -59,13 +65,13 @@ public sealed partial class ImpendingHeartseekerAnalyzer : Analyzer<ImpendingHea
         _activeStacks = 0;
     }
 
-    public override ImpendingHeartseekerReport OnPullEnd() =>
-        new(
-            _events,
-            _events.Count(p => p.Kind == ProcKind.Gain),
-            _events.Count(p => p.Kind == ProcKind.Refresh),
-            _events.Count(p => p.Kind == ProcKind.Consumed),
-            _events.Count(p => p.Kind == ProcKind.Expired));
+    public override void OnPullEnd()
+    {
+        Gains = _events.Count(p => p.Kind == ProcKind.Gain);
+        Refreshes = _events.Count(p => p.Kind == ProcKind.Refresh);
+        Consumed = _events.Count(p => p.Kind == ProcKind.Consumed);
+        Expired = _events.Count(p => p.Kind == ProcKind.Expired);
+    }
 
     private bool IsExpiry(int now)
     {

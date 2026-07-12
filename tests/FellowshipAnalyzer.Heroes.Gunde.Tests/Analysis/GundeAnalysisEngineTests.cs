@@ -35,19 +35,18 @@ public sealed class GundeAnalysisEngineTests
     {
         var (parser, _) = await AnalyzeAsync(TrashEvents(), boss: false);
 
-        var report = parser.SlaughterUsageReports.ShouldHaveSingleItem().Result;
-        report.SlaughterCasts.ShouldBe(2);
-        report.Shape.ShouldBe(GundePullShape.Aoe);
-        report.OpenWoundsTimed.ShouldBe(1);
-        report.WellExecuted.ShouldBe(1);
-        report.ScoreCard.Score.ShouldBe(50);
+        var analyzer = parser.SlaughterUsageAnalyzers.ShouldHaveSingleItem().Analyzer;
+        analyzer.SlaughterCasts.ShouldBe(2);
+        analyzer.Shape.ShouldBe(GundePullShape.Aoe);
+        analyzer.OpenWoundsTimed.ShouldBe(1);
+        analyzer.WellExecuted.ShouldBe(1);
 
-        report.Slaughters[0].OpenWoundsActive.ShouldBeTrue();
-        report.Slaughters[0].TargetsHit.ShouldBe(2);
-        report.Slaughters[0].WellExecuted.ShouldBeTrue();
+        analyzer.Slaughters[0].OpenWoundsActive.ShouldBeTrue();
+        analyzer.Slaughters[0].TargetsHit.ShouldBe(2);
+        analyzer.Slaughters[0].WellExecuted.ShouldBeTrue();
 
-        report.Slaughters[1].OpenWoundsActive.ShouldBeFalse();
-        report.Slaughters[1].WellExecuted.ShouldBeFalse();
+        analyzer.Slaughters[1].OpenWoundsActive.ShouldBeFalse();
+        analyzer.Slaughters[1].WellExecuted.ShouldBeFalse();
     }
 
     [Fact]
@@ -55,19 +54,18 @@ public sealed class GundeAnalysisEngineTests
     {
         var (parser, _) = await AnalyzeAsync(BossEvents(), boss: true);
 
-        var report = parser.SlaughterUsageReports.ShouldHaveSingleItem().Result;
-        report.SlaughterCasts.ShouldBe(2);
-        report.Shape.ShouldBe(GundePullShape.Boss);
-        report.OpenWoundsTimed.ShouldBe(2);
-        report.HeartSplitterPrimed.ShouldBe(1);
-        report.WellExecuted.ShouldBe(1);
-        report.ScoreCard.Score.ShouldBe(50);
+        var analyzer = parser.SlaughterUsageAnalyzers.ShouldHaveSingleItem().Analyzer;
+        analyzer.SlaughterCasts.ShouldBe(2);
+        analyzer.Shape.ShouldBe(GundePullShape.Boss);
+        analyzer.OpenWoundsTimed.ShouldBe(2);
+        analyzer.HeartSplitterPrimed.ShouldBe(1);
+        analyzer.WellExecuted.ShouldBe(1);
 
-        report.Slaughters[0].WellExecuted.ShouldBeTrue();
+        analyzer.Slaughters[0].WellExecuted.ShouldBeTrue();
 
-        report.Slaughters[1].OpenWoundsActive.ShouldBeTrue();
-        report.Slaughters[1].HeartSplitterPrimed.ShouldBeFalse();
-        report.Slaughters[1].WellExecuted.ShouldBeFalse();
+        analyzer.Slaughters[1].OpenWoundsActive.ShouldBeTrue();
+        analyzer.Slaughters[1].HeartSplitterPrimed.ShouldBeFalse();
+        analyzer.Slaughters[1].WellExecuted.ShouldBeFalse();
     }
 
     [Fact]
@@ -75,13 +73,13 @@ public sealed class GundeAnalysisEngineTests
     {
         var (parser, _) = await AnalyzeAsync(TrashEvents(), boss: false);
 
-        var entry = parser.SlaughterUsageReports.ShouldHaveSingleItem();
+        var entry = parser.SlaughterUsageAnalyzers.ShouldHaveSingleItem();
         var pull = entry.Pull;
         pull.Index.ShouldBe(0);
-        entry.Result.SlaughterCasts.ShouldBeGreaterThan(0);
+        entry.Analyzer.SlaughterCasts.ShouldBeGreaterThan(0);
 
-        pull.SlaughterUsageReport.ShouldBe(entry.Result);
-        parser.For(pull).SlaughterUsageReport.ShouldBe(entry.Result);
+        pull.SlaughterUsageAnalyzer.ShouldBeSameAs(entry.Analyzer);
+        parser.For(pull).SlaughterUsageAnalyzer.ShouldBeSameAs(entry.Analyzer);
     }
 
     private static async Task<(GundeCombatLogParser Parser, HeroAnalysisResult Result)> AnalyzeAsync(

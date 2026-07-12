@@ -30,13 +30,12 @@ public sealed class RimeAnalysisEngineTests
     [Fact]
     public async Task Analyze_ShouldFindStComboWindows()
     {
-        var (_, result) = await AnalyzeFixtureAsync();
+        var (parser, _) = await AnalyzeFixtureAsync();
 
-        var typed = result.TypedReport.ShouldBeOfType<RimeAnalysisResult>();
-        var report = typed.BasicStComboReports.ShouldHaveSingleItem().Result;
-        report.EvaluatedWindows.ShouldBeGreaterThan(0);
-        report.Windows.ShouldAllBe(window => window.WindowType == BasicStComboAnalyzer.BurstingIceWindowType.SingleTarget);
-        report.ScoreCard.Score.ShouldBeInRange(0, 100);
+        var analyzer = parser.BasicStComboAnalyzers.ShouldHaveSingleItem().Analyzer;
+        analyzer.EvaluatedWindows.ShouldBeGreaterThan(0);
+        analyzer.Windows.Count.ShouldBe(analyzer.EvaluatedWindows);
+        analyzer.Windows.ShouldAllBe(window => window.WindowType == BasicStComboAnalyzer.BurstingIceWindowType.SingleTarget);
     }
 
     [Fact]
@@ -52,12 +51,11 @@ public sealed class RimeAnalysisEngineTests
     [Fact]
     public async Task Analyze_BasicStCombo_ExposesDetectedBuild()
     {
-        var (_, result) = await AnalyzeFixtureAsync();
+        var (parser, _) = await AnalyzeFixtureAsync();
 
-        var typed = result.TypedReport.ShouldBeOfType<RimeAnalysisResult>();
-        var report = typed.BasicStComboReports.ShouldHaveSingleItem().Result;
-        report.Build.ShouldBeOneOf(RimeBuild.Default, RimeBuild.IcyTalons);
-        report.Windows.ShouldAllBe(window => window.Build == report.Build);
+        var analyzer = parser.BasicStComboAnalyzers.ShouldHaveSingleItem().Analyzer;
+        analyzer.Build.ShouldBeOneOf(RimeBuild.Default, RimeBuild.IcyTalons);
+        analyzer.Windows.ShouldAllBe(window => window.Build == analyzer.Build);
     }
 
     [Fact]
@@ -77,13 +75,14 @@ public sealed class RimeAnalysisEngineTests
     }
 
     [Fact]
-    public async Task Analyze_ShouldProduceTypedReportWithPerPullStCombo()
+    public async Task Analyze_BasicStCombo_WindowCountsAreConsistent()
     {
-        var (_, result) = await AnalyzeFixtureAsync();
+        var (parser, _) = await AnalyzeFixtureAsync();
 
-        var typed = result.TypedReport.ShouldBeOfType<RimeAnalysisResult>();
-        var report = typed.BasicStComboReports.ShouldHaveSingleItem().Result;
-        report.EvaluatedWindows.ShouldBeGreaterThan(0);
+        var analyzer = parser.BasicStComboAnalyzers.ShouldHaveSingleItem().Analyzer;
+        analyzer.SuccessfulWindows.ShouldBe(analyzer.Windows.Count(window => window.Successful));
+        analyzer.PartialWindows.ShouldBe(analyzer.Windows.Count(window => window.Partial));
+        analyzer.IgnoredAoeWindows.ShouldBe(0);
     }
 
     [Fact]
@@ -91,14 +90,13 @@ public sealed class RimeAnalysisEngineTests
     {
         var (parser, _) = await AnalyzeFixtureAsync();
 
-        var entry = parser.BasicStComboReports.ShouldHaveSingleItem();
+        var entry = parser.BasicStComboAnalyzers.ShouldHaveSingleItem();
         var pull = entry.Pull;
         pull.Index.ShouldBe(0);
-        entry.Result.EvaluatedWindows.ShouldBeGreaterThan(0);
+        entry.Analyzer.EvaluatedWindows.ShouldBeGreaterThan(0);
 
-        // The three read paths agree: cross-pull index, pull.X extension, parser.For(pull).X.
-        pull.BasicStComboReport.ShouldBe(entry.Result);
-        parser.For(pull).BasicStComboReport.ShouldBe(entry.Result);
+        pull.BasicStComboAnalyzer.ShouldBeSameAs(entry.Analyzer);
+        parser.For(pull).BasicStComboAnalyzer.ShouldBeSameAs(entry.Analyzer);
     }
 
     private static async Task<(RimeCombatLogParser Parser, HeroAnalysisResult Result)> AnalyzeFixtureAsync()

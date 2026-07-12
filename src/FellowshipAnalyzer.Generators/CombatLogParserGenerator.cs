@@ -353,15 +353,13 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
 
     /// <summary>
     /// Builds a <see cref="TypeInfo"/> for a module type, capturing all module-level metadata
-    /// (Abilities inheritance, <c>ToReport()</c> result type, <c>[ActiveWhen&lt;T&gt;]</c>
-    /// predicate, <c>[RequiresTalent(id)]</c> gates, and <c>[Before&lt;T&gt;]</c> /
-    /// <c>[After&lt;T&gt;]</c> ordering constraints).
+    /// (Abilities inheritance, <c>[ActiveWhen&lt;T&gt;]</c> predicate, <c>[RequiresTalent(id)]</c>
+    /// gates, and <c>[Before&lt;T&gt;]</c> / <c>[After&lt;T&gt;]</c> ordering constraints).
     /// </summary>
     private static TypeInfo BuildModuleTypeInfo(INamedTypeSymbol moduleType)
     {
         var ns = GetNamespace(moduleType);
         var extendsAbilities = InheritsFromAbilities(moduleType);
-        var reportType = TryGetReportType(moduleType);
 
         string? activePredicate = null;
         var beforeFqns = new List<string>();
@@ -394,7 +392,7 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
                 afterFqns.Add(argFqn);
         }
 
-        return new TypeInfo(moduleType.Name, ns, extendsAbilities, reportType, activePredicate,
+        return new TypeInfo(moduleType.Name, ns, extendsAbilities, activePredicate,
             [.. beforeFqns], [.. afterFqns], BuildCtorParams(moduleType), [.. requiredTalentIds]);
     }
 
@@ -408,13 +406,12 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
 
     /// <summary>
     /// Builds an <see cref="AnalyzerInfo"/> for a pull-lifetime analyzer: its constructor
-    /// parameters (for <c>CreateInstance</c>), the typed result extracted from its
-    /// <c>Analyzer&lt;TResult&gt;</c> base, and the <c>[ForPull]</c> match filter that gates which
-    /// pulls it runs on.
+    /// parameters (for <c>CreateInstance</c>), the surface type it is exposed under on pull read
+    /// paths, and the <c>[ForPull]</c> match filter that gates which pulls it runs on.
     /// </summary>
     private static AnalyzerInfo BuildAnalyzerInfo(INamedTypeSymbol analyzerType)
     {
-        var (resultFqn, resultSimpleName) = TryGetAnalyzerResultType(analyzerType);
+        var (surfaceFqn, surfaceSimpleName) = GetAnalyzerSurfaceType(analyzerType);
 
         var targets = 0;
         var boss = 0;
@@ -434,60 +431,34 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
             analyzerType.Name,
             GetNamespace(analyzerType),
             BuildCtorParams(analyzerType),
-            resultFqn,
-            resultSimpleName,
+            surfaceFqn,
+            surfaceSimpleName,
             targets,
             boss);
     }
 
     /// <summary>
-    /// Extracts <c>TResult</c> from the analyzer's <c>Analyzer&lt;TResult&gt;</c> base. Returns
-    /// <c>(null, null)</c> for a side-effect-only analyzer that derives from the non-generic
-    /// <c>Analyzer</c> base.
+    /// Resolves the analyzer's surface type: the topmost ancestor deriving directly from the
+    /// <c>Analyzer</c> base. Shape-specialized subclasses of one abstract analyzer resolve to
+    /// that shared base; an analyzer deriving from <c>Analyzer</c> directly is its own surface.
     /// </summary>
-    private static (string? Fqn, string? SimpleName) TryGetAnalyzerResultType(INamedTypeSymbol analyzerType)
+    private static (string Fqn, string SimpleName) GetAnalyzerSurfaceType(INamedTypeSymbol analyzerType)
     {
         var fmt = SymbolDisplayFormat.FullyQualifiedFormat;
-        var current = analyzerType.BaseType;
-        while (current != null && current.SpecialType != SpecialType.System_Object)
+        var current = analyzerType;
+        while (current.BaseType is { } baseType
+            && baseType.SpecialType != SpecialType.System_Object
+            && baseType.Name != AnalyzerBaseShortName)
         {
-            if (current.Name == AnalyzerBaseShortName
-                && current.IsGenericType
-                && current.TypeArguments.Length == 1
-                && current.TypeArguments[0] is INamedTypeSymbol resultType)
-            {
-                return (resultType.ToDisplayString(fmt), resultType.Name);
-            }
-            current = current.BaseType;
+            current = baseType;
         }
-        return (null, null);
+        return (current.ToDisplayString(fmt), current.Name);
     }
 
     private static string FullyQualifiedName(INamedTypeSymbol t)
     {
         var ns = GetNamespace(t);
         return string.IsNullOrEmpty(ns) ? t.Name : ns + "." + t.Name;
-    }
-
-    /// <summary>
-    /// A module participates in the typed result projection by exposing a public instance
-    /// <c>ToReport()</c> method that takes no parameters. The return type is the report record.
-    /// </summary>
-    private static string? TryGetReportType(INamedTypeSymbol moduleType)
-    {
-        foreach (var member in moduleType.GetMembers("ToReport"))
-        {
-            if (member is not IMethodSymbol method) continue;
-            if (method.IsStatic) continue;
-            if (method.DeclaredAccessibility != Accessibility.Public) continue;
-            if (method.Parameters.Length != 0) continue;
-            if (method.ReturnsVoid) continue;
-            if (method.ReturnType is not INamedTypeSymbol rt) continue;
-
-            var rtNs = GetNamespace(rt);
-            return string.IsNullOrEmpty(rtNs) ? rt.Name : rtNs + "." + rt.Name;
-        }
-        return null;
     }
 
     private static void CollectNormalizersFromSymbol(INamedTypeSymbol symbol, List<TypeInfo> normalizers)
@@ -537,19 +508,6 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
     {
         if (name.Length > suffix.Length && name.EndsWith(suffix))
             return name.Substring(0, name.Length - suffix.Length);
-        return name;
-    }
-
-    /// <summary>
-    /// Friendly property name for the result record — strips "Analyzer" / "Tracker" / "Module"
-    /// suffixes (BasicStComboAnalyzer → BasicStCombo, WinterOrbTracker → WinterOrb).
-    /// </summary>
-    private static string ReportPropertyName(TypeInfo module)
-    {
-        var name = module.Name;
-        name = StripSuffix(name, "Analyzer");
-        name = StripSuffix(name, "Tracker");
-        name = StripSuffix(name, "Module");
         return name;
     }
 
@@ -747,65 +705,15 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
             sb.AppendLine("    }");
         }
 
-        var resultTypes = DistinctResultTypes(info.AllAnalyzers);
-        EmitAnalyzerSurface(sb, info, resultTypes);
+        var surfaceTypes = DistinctSurfaceTypes(info.AllAnalyzers);
+        EmitAnalyzerSurface(sb, info, surfaceTypes);
 
-        var reportContributors = new List<(TypeInfo Module, string PropertyName)>();
-        foreach (var m in info.BaseModules)
-        {
-            if (m.ReportTypeFullyQualified != null)
-                reportContributors.Add((m, ReportPropertyName(m)));
-        }
-        foreach (var m in info.OwnModules)
-        {
-            if (m.ReportTypeFullyQualified != null)
-                reportContributors.Add((m, ReportPropertyName(m)));
-        }
         var parserBaseName = StripSuffix(info.ClassName, "CombatLogParser");
-
-        var reportParams = new List<(string Type, string Name, string Value)>();
-        foreach (var c in reportContributors)
-            reportParams.Add((
-                "global::" + c.Module.ReportTypeFullyQualified + "?",
-                c.PropertyName,
-                "GetModule<global::" + c.Module.FullyQualifiedName + ">()?.ToReport()"));
-        foreach (var rt in resultTypes)
-            reportParams.Add((
-                "global::FellowshipAnalyzer.Core.Analysis.PullResultList<" + rt.Fqn + ">",
-                rt.SimpleName + "s",
-                ResultFieldName(rt.SimpleName)));
-
-        if (reportParams.Count > 0)
-        {
-            sb.AppendLine();
-            sb.AppendLine("    protected override object? BuildTypedReport()");
-            sb.AppendLine("    {");
-            sb.Append("        return new ").Append(parserBaseName).Append("AnalysisResult(");
-            for (var i = 0; i < reportParams.Count; i++)
-            {
-                if (i > 0) sb.Append(", ");
-                sb.Append(reportParams[i].Value);
-            }
-            sb.AppendLine(");");
-            sb.AppendLine("    }");
-        }
 
         sb.AppendLine("}");
         sb.AppendLine();
 
-        if (reportParams.Count > 0)
-        {
-            sb.Append("public sealed record ").Append(parserBaseName).Append("AnalysisResult(");
-            for (var i = 0; i < reportParams.Count; i++)
-            {
-                if (i > 0) sb.Append(", ");
-                sb.Append(reportParams[i].Type).Append(' ').Append(reportParams[i].Name);
-            }
-            sb.AppendLine(");");
-            sb.AppendLine();
-        }
-
-        EmitPullReadPaths(sb, parserBaseName, resultTypes);
+        EmitPullReadPaths(sb, parserBaseName, surfaceTypes);
 
         sb.AppendLine("public static class " + parserBaseName + "ServiceCollectionExtensions");
         sb.AppendLine("{");
@@ -823,21 +731,20 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
         ctx.AddSource(info.ClassName + ".g.cs", sb.ToString());
     }
 
-    /// <summary>Distinct analyzer result types in declaration order; side-effect-only analyzers contribute none.</summary>
-    private static List<(string Fqn, string SimpleName)> DistinctResultTypes(IEnumerable<AnalyzerInfo> analyzers)
+    /// <summary>Distinct analyzer surface types in declaration order.</summary>
+    private static List<(string Fqn, string SimpleName)> DistinctSurfaceTypes(IEnumerable<AnalyzerInfo> analyzers)
     {
         var result = new List<(string, string)>();
         var seen = new HashSet<string>();
         foreach (var a in analyzers)
         {
-            if (a.ResultTypeFullyQualified is null || a.ResultTypeSimpleName is null) continue;
-            if (seen.Add(a.ResultTypeFullyQualified))
-                result.Add((a.ResultTypeFullyQualified, a.ResultTypeSimpleName));
+            if (seen.Add(a.SurfaceTypeFullyQualified))
+                result.Add((a.SurfaceTypeFullyQualified, a.SurfaceTypeSimpleName));
         }
         return result;
     }
 
-    private static string ResultFieldName(string simpleName) => "_" + LowerFirst(simpleName) + "s";
+    private static string AnalyzerListFieldName(string simpleName) => "_" + LowerFirst(simpleName) + "s";
 
     private static string LowerFirst(string s) =>
         s.Length == 0 ? s : char.ToLowerInvariant(s[0]) + s.Substring(1);
@@ -861,10 +768,10 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
 
     /// <summary>
     /// Emits the in-class analyzer surface: the per-pull <c>GetAnalyzerTypes(Pull)</c> gate, the
-    /// typed per-result-type cross-pull index (backing list + read-only property), the
-    /// <c>IndexPullResult</c> router, and the <c>For(pull)</c> per-pull view accessor.
+    /// typed per-surface cross-pull index (backing list + read-only property), the
+    /// <c>IndexPullAnalyzer</c> router, and the <c>For(pull)</c> per-pull view accessor.
     /// </summary>
-    private static void EmitAnalyzerSurface(StringBuilder sb, ParserInfo info, List<(string Fqn, string SimpleName)> resultTypes)
+    private static void EmitAnalyzerSurface(StringBuilder sb, ParserInfo info, List<(string Fqn, string SimpleName)> surfaceTypes)
     {
         var analyzers = info.AllAnalyzers.ToList();
         if (analyzers.Count == 0) return;
@@ -881,27 +788,27 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
         sb.AppendLine("        return [.. __analyzers];");
         sb.AppendLine("    }");
 
-        if (resultTypes.Count == 0) return;
+        if (surfaceTypes.Count == 0) return;
 
         sb.AppendLine();
-        foreach (var rt in resultTypes)
+        foreach (var st in surfaceTypes)
         {
-            var field = ResultFieldName(rt.SimpleName);
-            sb.AppendLine("    private readonly global::FellowshipAnalyzer.Core.Analysis.PullResultList<" + rt.Fqn + "> " + field + " = new();");
-            sb.AppendLine("    public global::System.Collections.Generic.IReadOnlyList<global::FellowshipAnalyzer.Core.Analysis.PullResult<" + rt.Fqn + ">> " + rt.SimpleName + "s => " + field + ";");
+            var field = AnalyzerListFieldName(st.SimpleName);
+            sb.AppendLine("    private readonly global::FellowshipAnalyzer.Core.Analysis.PullAnalyzerList<" + st.Fqn + "> " + field + " = new();");
+            sb.AppendLine("    public global::System.Collections.Generic.IReadOnlyList<global::FellowshipAnalyzer.Core.Analysis.PullAnalyzer<" + st.Fqn + ">> " + st.SimpleName + "s => " + field + ";");
         }
 
         sb.AppendLine();
-        sb.AppendLine("    protected override void IndexPullResult(" + pull + " pull, global::FellowshipAnalyzer.Core.Analysis.IResult result)");
+        sb.AppendLine("    protected override void IndexPullAnalyzer(" + pull + " pull, global::FellowshipAnalyzer.Core.Analysis.Analyzer analyzer)");
         sb.AppendLine("    {");
-        sb.AppendLine("        switch (result)");
+        sb.AppendLine("        switch (analyzer)");
         sb.AppendLine("        {");
         var caseIndex = 0;
-        foreach (var rt in resultTypes)
+        foreach (var st in surfaceTypes)
         {
-            var local = "__r" + caseIndex++;
-            sb.AppendLine("            case " + rt.Fqn + " " + local + ":");
-            sb.AppendLine("                " + ResultFieldName(rt.SimpleName) + ".Add(new global::FellowshipAnalyzer.Core.Analysis.PullResult<" + rt.Fqn + ">(pull, " + local + "));");
+            var local = "__a" + caseIndex++;
+            sb.AppendLine("            case " + st.Fqn + " " + local + ":");
+            sb.AppendLine("                " + AnalyzerListFieldName(st.SimpleName) + ".Add(new global::FellowshipAnalyzer.Core.Analysis.PullAnalyzer<" + st.Fqn + ">(pull, " + local + "));");
             sb.AppendLine("                break;");
         }
         sb.AppendLine("        }");
@@ -913,19 +820,19 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
 
     /// <summary>
     /// Emits the namespace-level per-pull read paths: a <c>{Parser}PullView</c> struct exposing
-    /// each result by declared type, and a <c>{Parser}PullExtensions</c> class adding the
-    /// <c>pull.{Result}</c> extension property over <see cref="FellowshipAnalyzer.Core.Analysis.Pull"/>.
+    /// each retained analyzer by surface type, and a <c>{Parser}PullExtensions</c> class adding the
+    /// <c>pull.{Analyzer}</c> extension property over <see cref="FellowshipAnalyzer.Core.Analysis.Pull"/>.
     /// </summary>
-    private static void EmitPullReadPaths(StringBuilder sb, string parserBaseName, List<(string Fqn, string SimpleName)> resultTypes)
+    private static void EmitPullReadPaths(StringBuilder sb, string parserBaseName, List<(string Fqn, string SimpleName)> surfaceTypes)
     {
-        if (resultTypes.Count == 0) return;
+        if (surfaceTypes.Count == 0) return;
         const string pull = "global::FellowshipAnalyzer.Core.Analysis.Pull";
 
         sb.Append("public readonly struct ").Append(parserBaseName).Append("PullView(").Append(pull).AppendLine(" pull)");
         sb.AppendLine("{");
-        foreach (var rt in resultTypes)
-            sb.Append("    public ").Append(rt.Fqn).Append("? ").Append(rt.SimpleName)
-              .Append(" => (").Append(rt.Fqn).Append("?)pull.GetResult(typeof(").Append(rt.Fqn).AppendLine("));");
+        foreach (var st in surfaceTypes)
+            sb.Append("    public ").Append(st.Fqn).Append("? ").Append(st.SimpleName)
+              .Append(" => (").Append(st.Fqn).Append("?)pull.GetAnalyzer(typeof(").Append(st.Fqn).AppendLine("));");
         sb.AppendLine("}");
         sb.AppendLine();
 
@@ -933,9 +840,9 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
         sb.AppendLine("{");
         sb.Append("    extension(").Append(pull).AppendLine(" pull)");
         sb.AppendLine("    {");
-        foreach (var rt in resultTypes)
-            sb.Append("        public ").Append(rt.Fqn).Append("? ").Append(rt.SimpleName)
-              .Append(" => (").Append(rt.Fqn).Append("?)pull.GetResult(typeof(").Append(rt.Fqn).AppendLine("));");
+        foreach (var st in surfaceTypes)
+            sb.Append("        public ").Append(st.Fqn).Append("? ").Append(st.SimpleName)
+              .Append(" => (").Append(st.Fqn).Append("?)pull.GetAnalyzer(typeof(").Append(st.Fqn).AppendLine("));");
         sb.AppendLine("    }");
         sb.AppendLine("}");
         sb.AppendLine();
@@ -1009,7 +916,6 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
             string name,
             string ns,
             bool extendsAbilities = false,
-            string? reportTypeFullyQualified = null,
             string? activePredicateFullyQualified = null,
             ImmutableArray<string> beforeModules = default,
             ImmutableArray<string> afterModules = default,
@@ -1019,7 +925,6 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
             Name = name;
             Namespace = ns;
             ExtendsAbilities = extendsAbilities;
-            ReportTypeFullyQualified = reportTypeFullyQualified;
             ActivePredicateFullyQualified = activePredicateFullyQualified;
             BeforeModules = beforeModules.IsDefault ? ImmutableArray<string>.Empty : beforeModules;
             AfterModules = afterModules.IsDefault ? ImmutableArray<string>.Empty : afterModules;
@@ -1030,8 +935,6 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
         public string Namespace { get; }
         /// <summary>True when this module extends FellowshipAnalyzer.Core.Analysis.Abilities.</summary>
         public bool ExtendsAbilities { get; }
-        /// <summary>Fully-qualified report record type if this module declares <c>ToReport()</c>; otherwise null.</summary>
-        public string? ReportTypeFullyQualified { get; }
         /// <summary>Fully-qualified predicate type from <c>[ActiveWhen&lt;T&gt;]</c>; otherwise null.</summary>
         public string? ActivePredicateFullyQualified { get; }
         /// <summary>Fully-qualified module names this module must come before (from <c>[Before&lt;T&gt;]</c>).</summary>
@@ -1100,26 +1003,26 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
             string name,
             string ns,
             ImmutableArray<CtorParam> ctorParams,
-            string? resultTypeFullyQualified,
-            string? resultTypeSimpleName,
+            string surfaceTypeFullyQualified,
+            string surfaceTypeSimpleName,
             int forPullTargets,
             int forPullBoss)
         {
             Name = name;
             Namespace = ns;
             CtorParams = ctorParams.IsDefault ? ImmutableArray<CtorParam>.Empty : ctorParams;
-            ResultTypeFullyQualified = resultTypeFullyQualified;
-            ResultTypeSimpleName = resultTypeSimpleName;
+            SurfaceTypeFullyQualified = surfaceTypeFullyQualified;
+            SurfaceTypeSimpleName = surfaceTypeSimpleName;
             ForPullTargets = forPullTargets;
             ForPullBoss = forPullBoss;
         }
         public string Name { get; }
         public string Namespace { get; }
         public ImmutableArray<CtorParam> CtorParams { get; }
-        /// <summary>Fully-qualified <c>TResult</c> of <c>Analyzer&lt;TResult&gt;</c>, or null for a side-effect-only analyzer.</summary>
-        public string? ResultTypeFullyQualified { get; }
-        /// <summary>Simple name of <c>TResult</c> (e.g. "ComboResult"), used to derive read-path member names.</summary>
-        public string? ResultTypeSimpleName { get; }
+        /// <summary>Fully-qualified surface type: the topmost ancestor deriving directly from <c>Analyzer</c>.</summary>
+        public string SurfaceTypeFullyQualified { get; }
+        /// <summary>Simple name of the surface type (e.g. "BasicStComboAnalyzer"), used to derive read-path member names.</summary>
+        public string SurfaceTypeSimpleName { get; }
         /// <summary>The <c>[ForPull]</c> target bitmask (<c>PullKind</c> as int).</summary>
         public int ForPullTargets { get; }
         /// <summary><c>[ForPull(Boss = …)]</c> as <c>PullBoss</c> int: 0 = Either, 1 = Boss, 2 = NonBoss.</summary>

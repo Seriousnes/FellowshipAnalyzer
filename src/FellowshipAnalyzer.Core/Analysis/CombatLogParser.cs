@@ -85,7 +85,7 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
     private readonly Dictionary<Type, int> _moduleTypeIndex = [];
     private Type[] _runModuleTypes = [];
     private readonly Dictionary<Type, object> _pullInstances = [];
-    private readonly List<(Pull Pull, IResult Result)> _pullResults = [];
+    private readonly List<(Pull Pull, Analyzer Analyzer)> _pullAnalyzers = [];
 
     /// <summary>
     /// The active parser for the analysis currently in progress, exposed to pipeline-internal
@@ -101,9 +101,9 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
     public Pull? CurrentPull { get; private set; }
 
     /// <summary>
-    /// Per-pull analyzer results captured at each <see cref="Events.PullEndEvent"/>, in pull order.
+    /// Analyzer instances retained at each <see cref="Events.PullEndEvent"/>, in pull order.
     /// </summary>
-    public IReadOnlyList<(Pull Pull, IResult Result)> PullResults => _pullResults;
+    public IReadOnlyList<(Pull Pull, Analyzer Analyzer)> PullAnalyzers => _pullAnalyzers;
 
     /// <summary>
     /// The <see cref="ParseContext"/> for the analysis currently in progress. Populated at the
@@ -185,11 +185,11 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
     protected virtual Type[] GetAnalyzerTypes(Pull pull) => GetAnalyzerTypes();
 
     /// <summary>
-    /// Routes a captured per-pull result into the parser's denormalized, result-typed cross-pull
+    /// Routes a retained analyzer into the parser's denormalized, surface-typed cross-pull
     /// index. The default is a no-op; the source generator overrides it for parsers that declare
-    /// <c>[AddAnalyzer]</c> analyzers, appending to the matching <see cref="PullResultList{TResult}"/>.
+    /// <c>[AddAnalyzer]</c> analyzers, appending to the matching <see cref="PullAnalyzerList{T}"/>.
     /// </summary>
-    protected virtual void IndexPullResult(Pull pull, IResult result) { }
+    protected virtual void IndexPullAnalyzer(Pull pull, Analyzer analyzer) { }
 
     /// <summary>
     /// Opens a pull: constructs a fresh instance of every <see cref="GetAnalyzerTypes"/> analyzer
@@ -216,9 +216,10 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
     }
 
     /// <summary>
-    /// Closes a pull: captures each analyzer's per-pull result, retires the pull listener tier, and
-    /// discards the per-pull instance cache. Ignores a <paramref name="pull"/> that is not the
-    /// currently-open one (a stale end left over from close-before-open).
+    /// Closes a pull: finalizes each analyzer via <see cref="Analyzer.OnPullEnd"/>, retains the
+    /// instance on the pull read surfaces, retires the pull listener tier, and discards the
+    /// per-pull instance cache. Ignores a <paramref name="pull"/> that is not the currently-open
+    /// one (a stale end left over from close-before-open).
     /// </summary>
     public void EndPull(Pull pull)
     {
@@ -226,27 +227,18 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
 
         foreach (var instance in _pullInstances.Values)
         {
-            if (instance is not Analyzer analyzer || analyzer.CaptureResult() is not { } result)
-                continue;
+            if (instance is not Analyzer analyzer) continue;
 
-            _pullResults.Add((pull, result));
-            if (analyzer.ResultType is { } resultType)
-                pull.SetResult(resultType, result);
-            IndexPullResult(pull, result);
+            analyzer.OnPullEnd();
+            _pullAnalyzers.Add((pull, analyzer));
+            pull.SetAnalyzer(Analyzer.GetSurfaceType(analyzer.GetType()), analyzer);
+            IndexPullAnalyzer(pull, analyzer);
         }
 
         EventEmitter.ClearPullListeners();
         _pullInstances.Clear();
         CurrentPull = null;
     }
-
-    /// <summary>
-    /// Builds the source-generated typed projection of this analysis run. The default returns
-    /// <c>null</c>. Source-generated concrete parsers override this when at least one of their
-    /// modules declares a <c>ToReport()</c> method, returning a hero-specific result record
-    /// (e.g. <c>RimeAnalysisResult</c>).
-    /// </summary>
-    protected virtual object? BuildTypedReport() => null;
 
     /// <summary>
     /// Consulted before constructing each module declared in <see cref="GetModuleTypes"/>.
@@ -289,7 +281,7 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
         var normalizerTypes = GetNormalizerTypes();
 
         _pullInstances.Clear();
-        _pullResults.Clear();
+        _pullAnalyzers.Clear();
         CurrentPull = null;
 
         _runInstances.Clear();
@@ -371,7 +363,6 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
             Modules = [.. _activeModules.Values],
             Events = Events,
             DebugAnnotations = GetModule<DebugAnnotations>(),
-            TypedReport = BuildTypedReport(),
         };
     }
 

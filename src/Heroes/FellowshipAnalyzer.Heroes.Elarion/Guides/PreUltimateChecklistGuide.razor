@@ -4,7 +4,7 @@
     <Explanation>
         <p>
             Before pressing <SpellLink Spell="Spells.SpiritOfHeroism" />, set up the burst window:
-            <SpellLink Spell="Spells.SkystridersSupremacy" /> → <SpellLink Spell="Items.VoidbringerTouch" />,
+            <SpellLink Spell="Spells.SkystridersSupremacy" /> then <SpellLink Spell="Items.VoidbringerTouch" />,
             then <SpellLink Spell="Spells.SkystridersGrace" /> and <SpellLink Spell="Spells.EventHorizon" />.
             Have a <SpellLink Spell="Spells.HeartseekerBarrage" /> ready to fire during the window.
         </p>
@@ -22,10 +22,10 @@
 </GuideSection>
 
 @code {
-    private IReadOnlyList<PullResult<PreUltimateChecklistReport>> Reports => Parser.PreUltimateChecklistReports;
+    private IReadOnlyList<PullAnalyzer<PreUltimateChecklistAnalyzer>> Analyzers => Parser.PreUltimateChecklistAnalyzers;
 
     private IEnumerable<PreUltimateChecklistAnalyzer.UltWindow> AllWindows =>
-        Reports.SelectMany(r => r.Result.Windows);
+        Analyzers.SelectMany(entry => entry.Analyzer.Windows);
 
     private IEnumerable<OverviewStat> BuildOverviewStats()
     {
@@ -40,7 +40,7 @@
 
         return
         [
-            new OverviewStat(ults == 0 ? "—" : $"{score}%", "Setup Score",
+            new OverviewStat(ults == 0 ? "-" : $"{score}%", "Setup Score",
                 "Average share of the 5 pre-conditions met across ultimates.",
                 ults == 0 ? null : scoreTier),
             new OverviewStat($"{ults}", "Ultimates", "Spirit of Heroism windows detected."),
@@ -49,8 +49,8 @@
 
     private IEnumerable<PerCastData> BuildPerCastData()
     {
-        return Reports.SelectMany(entry =>
-            entry.Result.Windows.Select(window => BuildWindowData(window, entry.Pull)));
+        return Analyzers.SelectMany(entry =>
+            entry.Analyzer.Windows.Select(window => BuildWindowData(window, entry.Pull)));
     }
 
     private PerCastData BuildWindowData(PreUltimateChecklistAnalyzer.UltWindow window, Pull pull)

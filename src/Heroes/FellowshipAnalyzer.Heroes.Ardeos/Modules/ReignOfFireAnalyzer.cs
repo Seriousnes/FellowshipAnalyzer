@@ -26,8 +26,16 @@ public sealed partial class ReignOfFireAnalyzer : Analyzer
 
     private readonly List<int> _fireBallCasts = [];
     private readonly List<int> _procRemovals = [];
-    private int _procs;
-    private int _chargesWasted;
+
+    /// <summary>Reign of Fire procs granted this encounter.</summary>
+    public int Procs { get; private set; }
+
+    /// <summary>Procs gained while Fire Ball was already at max charges (the restored charge overcapped).</summary>
+    public int ChargesWasted { get; private set; }
+
+    /// <summary>Empowered Fire Ball buffs removed without a Fire Ball cast (expired unused).</summary>
+    public int EmpowermentsWasted => _procRemovals.Count(removal =>
+        !_fireBallCasts.Any(cast => Math.Abs(cast - removal) <= ConsumeWindowMs));
 
     public override Type? StatisticsComponentType => typeof(ReignOfFireStatistics);
 
@@ -48,27 +56,11 @@ public sealed partial class ReignOfFireAnalyzer : Analyzer
 
     private void HandleProc(int timestamp)
     {
-        _procs++;
+        Procs++;
         var spellUsable = Owner.SpellUsable!;
         if (spellUsable.ChargesAvailable(Spells.FireBall.Id) >= Spells.FireBall.Charges)
-            _chargesWasted++;
+            ChargesWasted++;
         else
             spellUsable.EndCooldown(Spells.FireBall.Id, timestamp);
     }
-
-    /// <summary>Projects the encounter's Reign of Fire waste.</summary>
-    public ReignOfFireReport ToReport()
-    {
-        var empowermentsWasted = _procRemovals.Count(removal =>
-            !_fireBallCasts.Any(cast => Math.Abs(cast - removal) <= ConsumeWindowMs));
-        return new ReignOfFireReport(_procs, _chargesWasted, empowermentsWasted);
-    }
 }
-
-/// <summary>
-/// Projection of <see cref="ReignOfFireAnalyzer"/> waste over the encounter.
-/// </summary>
-/// <param name="Procs">Reign of Fire procs granted.</param>
-/// <param name="ChargesWasted">Procs gained while Fire Ball was already at max charges (the restored charge overcapped).</param>
-/// <param name="EmpowermentsWasted">Empowered Fire Ball buffs removed without a Fire Ball cast (expired unused).</param>
-public sealed record ReignOfFireReport(int Procs, int ChargesWasted, int EmpowermentsWasted);

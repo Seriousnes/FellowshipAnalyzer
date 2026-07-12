@@ -36,14 +36,14 @@
 @code {
     private IEnumerable<OverviewStat> BuildOverviewStats()
     {
-        var reports = Parser.BasicStComboReports.Select(entry => entry.Result).ToList();
-        var total = reports.Sum(report => report.EvaluatedWindows);
-        var successful = reports.Sum(report => report.SuccessfulWindows);
+        var analyzers = Parser.BasicStComboAnalyzers.Select(entry => entry.Analyzer).ToList();
+        var total = analyzers.Sum(analyzer => analyzer.EvaluatedWindows);
+        var successful = analyzers.Sum(analyzer => analyzer.SuccessfulWindows);
         var successRate = total > 0 ? (int)Math.Round((double)successful / total * 100) : 0;
-        var singleTargetWindows = reports.Sum(report =>
-            report.Windows.Count(window => window.WindowType == BasicStComboAnalyzer.BurstingIceWindowType.SingleTarget));
-        var aoeWindows = reports.Sum(report =>
-            report.Windows.Count(window => window.WindowType == BasicStComboAnalyzer.BurstingIceWindowType.Aoe));
+        var singleTargetWindows = analyzers.Sum(analyzer =>
+            analyzer.Windows.Count(window => window.WindowType == BasicStComboAnalyzer.BurstingIceWindowType.SingleTarget));
+        var aoeWindows = analyzers.Sum(analyzer =>
+            analyzer.Windows.Count(window => window.WindowType == BasicStComboAnalyzer.BurstingIceWindowType.Aoe));
 
         return
         [
@@ -72,8 +72,8 @@
 
     private IEnumerable<PerCastData> BuildPerCastData()
     {
-        return Parser.BasicStComboReports.SelectMany(entry =>
-            entry.Result.Windows.Select(window => BuildWindowData(window, entry.Pull)));
+        return Parser.BasicStComboAnalyzers.SelectMany(entry =>
+            entry.Analyzer.Windows.Select(window => BuildWindowData(window, entry.Pull)));
     }
 
     private PerCastData BuildWindowData(BasicStComboAnalyzer.StComboWindowEvaluation window, Pull pull)
@@ -123,6 +123,7 @@
         var sequence = window.CastsInWindow
             .Select(c => new SpellCastEntry(c.Ability.Id))
             .ToArray();
+        var outcome = BuildOutcome(window);
 
         return new PerCastData
         {
@@ -134,7 +135,106 @@
             GroupContent = @<PullBanner Pull="@pull" />,
             AdditionalContent = new AdditionalContent(
                 "Usage Notes",
-                @<div>@window.Outcome</div>),
+                @<div>@outcome</div>),
         };
+    }
+
+    private static string BuildOutcome(BasicStComboAnalyzer.StComboWindowEvaluation window) =>
+        window.WindowType == BasicStComboAnalyzer.BurstingIceWindowType.Aoe
+            ? BuildAoeOutcome(window)
+            : BuildSingleTargetOutcome(window);
+
+    private static string BuildSingleTargetOutcome(BasicStComboAnalyzer.StComboWindowEvaluation window)
+    {
+        if (window.Successful)
+        {
+            if (window.UsedFreezingTorrentCombo)
+            {
+                return "Used the Winter's Embrace window well for single-target damage with the Freezing Torrent plus Cold Snap variant.";
+            }
+
+            return window.ExpectsFinisher
+                ? $"Used the Winter's Embrace window well for single-target damage, fitting the expected {window.StSpenderName} casts and a finisher."
+                : $"Used the Winter's Embrace window well for single-target damage, fitting the expected {window.StSpenderName} usage.";
+        }
+
+        var reasons = new List<string>();
+
+        if (window.FirstRelevantCastName is null)
+        {
+            reasons.Add("No single-target follow-up spell was cast during Winter's Embrace");
+        }
+        else if (!window.OpenedWithExpectedCast)
+        {
+            reasons.Add($"Opened with {window.FirstRelevantCastName} instead of starting with {window.StSpenderName} or Freezing Torrent");
+        }
+
+        if (window.MissingStSpenderCount > 0)
+        {
+            reasons.Add(window.MissingStSpenderCount == 1
+                ? $"one expected {window.StSpenderName} was missed"
+                : $"{window.MissingStSpenderCount} expected {window.StSpenderName} casts were missed");
+        }
+
+        if (window.ExpectsFinisher && !window.HasValidFinisher)
+        {
+            reasons.Add("there was enough time for a finisher, but neither Cold Snap nor Freezing Torrent was used to finish the window");
+        }
+
+        if (reasons.Count == 0)
+        {
+            reasons.Add("The window only partially matched the expected single-target follow-up");
+        }
+
+        return JoinReasons(reasons);
+    }
+
+    private static string BuildAoeOutcome(BasicStComboAnalyzer.StComboWindowEvaluation window)
+    {
+        if (window.Successful)
+        {
+            return $"Used the AoE Winter's Embrace window well, fitting two {window.AoeSpenderName} casts and one Cold Snap in any order.";
+        }
+
+        var reasons = new List<string>();
+
+        if (!window.HasRequiredAoeSpenders)
+        {
+            reasons.Add(window.AoeSpenderCount == 0
+                ? $"no {window.AoeSpenderName} casts were used"
+                : $"the window did not include the expected second {window.AoeSpenderName}");
+        }
+
+        if (!window.HasRequiredColdSnap)
+        {
+            reasons.Add("Cold Snap was missing from the AoE window");
+        }
+
+        if (reasons.Count == 0)
+        {
+            reasons.Add("The AoE window only partially matched the expected follow-up");
+        }
+
+        return JoinReasons(reasons);
+    }
+
+    private static string JoinReasons(List<string> reasons)
+    {
+        if (reasons.Count == 1)
+            return reasons[0] + ".";
+
+        var builder = new System.Text.StringBuilder();
+        for (var i = 0; i < reasons.Count; i++)
+        {
+            if (i > 0)
+            {
+                builder.Append(i == reasons.Count - 1 ? ", and " : ", ");
+            }
+
+            builder.Append(reasons[i]);
+        }
+
+        builder.Append('.');
+        return builder.ToString();
     }
 }

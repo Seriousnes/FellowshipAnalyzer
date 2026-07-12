@@ -21,10 +21,10 @@
 @code {
     private IEnumerable<OverviewStat> BuildOverviewStats()
     {
-        var reports = Parser.SearingBlazeSpreadReports.Select(entry => entry.Result).ToList();
-        var pulls = reports.Count;
-        var averageScore = pulls > 0 ? (int)Math.Round(reports.Average(report => report.ScoreCard.Score)) : 0;
-        var totalTargets = reports.Sum(report => report.DistinctTargets);
+        var analyzers = Parser.SearingBlazeSpreadAnalyzers.Select(entry => entry.Analyzer).ToList();
+        var pulls = analyzers.Count;
+        var averageScore = pulls > 0 ? (int)Math.Round(analyzers.Average(analyzer => (double)CoverageScore(analyzer))) : 0;
+        var totalTargets = analyzers.Sum(analyzer => analyzer.DistinctTargets);
 
         return
         [
@@ -46,15 +46,16 @@
 
     private IEnumerable<PerCastData> BuildPerCastData()
     {
-        return Parser.SearingBlazeSpreadReports.Select(entry => BuildPullData(entry.Result, entry.Pull));
+        return Parser.SearingBlazeSpreadAnalyzers.Select(entry => BuildPullData(entry.Analyzer, entry.Pull));
     }
 
-    private PerCastData BuildPullData(SearingBlazeSpreadReport report, Pull pull)
+    private PerCastData BuildPullData(SearingBlazeSpreadAnalyzer analyzer, Pull pull)
     {
-        var perf = PercentTier(report.ScoreCard.Score);
-        var coverageLabel = report.TargetCount > 0
-            ? $"{report.DistinctTargets}/{report.TargetCount}"
-            : $"{report.DistinctTargets}";
+        var score = CoverageScore(analyzer);
+        var perf = PercentTier(score);
+        var coverageLabel = analyzer.TargetCount > 0
+            ? $"{analyzer.DistinctTargets}/{analyzer.TargetCount}"
+            : $"{analyzer.DistinctTargets}";
 
         var stats = new[]
         {
@@ -64,7 +65,7 @@
                 "Distinct enemies that took Searing Blaze, against the pull's enemy count.",
                 Performance: perf),
             new PerCastStat(
-                $"{report.TotalApplications}",
+                $"{analyzer.TotalApplications}",
                 "Applications",
                 "Total Searing Blaze applications during the pull."),
         };
@@ -77,10 +78,25 @@
             Sequence = [],
             Group = pull.Name,
             GroupContent = @<PullBanner Pull="@pull" />,
-            AdditionalContent = report.Findings.Count > 0
-                ? new AdditionalContent("Notes", @<div>@report.Findings[0].Message</div>)
-                : null,
+            AdditionalContent = new AdditionalContent("Notes", @<div>@BuildNote(analyzer, score)</div>),
         };
+    }
+
+    private static int CoverageScore(SearingBlazeSpreadAnalyzer analyzer) =>
+        analyzer.DistinctTargets == 0 ? 0 : (int)Math.Round(analyzer.Coverage * 100);
+
+    private static string BuildNote(SearingBlazeSpreadAnalyzer analyzer, int score)
+    {
+        if (analyzer.DistinctTargets == 0)
+            return "No Searing Blaze applications were detected on this AoE pull.";
+
+        if (analyzer.TargetCount <= 0)
+            return $"Searing Blaze reached {analyzer.DistinctTargets} enemies (the enemy roster was not reported, so coverage is estimated).";
+
+        if (score >= 75)
+            return $"Searing Blaze covered {analyzer.DistinctTargets} of {analyzer.TargetCount} enemies on this pull.";
+
+        return $"Searing Blaze reached only {analyzer.DistinctTargets} of {analyzer.TargetCount} enemies - keep the DoT spread across the pack.";
     }
 
     private static PerformanceTier PercentTier(int percent) => percent switch

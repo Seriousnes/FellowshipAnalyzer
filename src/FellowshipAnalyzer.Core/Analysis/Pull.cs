@@ -18,14 +18,15 @@ public sealed record Pull(
     bool Kill,
     int TargetCount)
 {
-    private readonly Dictionary<Type, IResult> _results = [];
+    private readonly Dictionary<Type, Analyzer> _analyzers = [];
 
     /// <summary>
-    /// The <see cref="Analyzer{TResult}"/> results captured on this pull, keyed by declared result
-    /// type. Populated by the parser as the pull ends.
+    /// The <see cref="Analyzer"/> instances retained on this pull, keyed by surface type (the
+    /// topmost ancestor deriving directly from <see cref="Analyzer"/>). Populated by the parser
+    /// as the pull ends.
     /// </summary>
-    public IResult? GetResult(Type resultType) =>
-        _results.TryGetValue(resultType, out var result) ? result : null;
+    public Analyzer? GetAnalyzer(Type surfaceType) =>
+        _analyzers.TryGetValue(surfaceType, out var analyzer) ? analyzer : null;
 
-    internal void SetResult(Type resultType, IResult result) => _results[resultType] = result;
+    internal void SetAnalyzer(Type surfaceType, Analyzer analyzer) => _analyzers[surfaceType] = analyzer;
 }

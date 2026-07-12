@@ -1,10 +1,5 @@
 namespace FellowshipAnalyzer.Heroes.Rime.Modules;
 
-public sealed record RimeAnalyzerFinding(
-    string Severity,
-    string Message,
-    int? Timestamp = null);
-
 /// <summary>
 /// The Winter Orb spender loadout a Rime player is running, detected from which spenders they
 /// actually cast. <see cref="Default"/> spends orbs on Glacial Blast (single target) and Ice Comet

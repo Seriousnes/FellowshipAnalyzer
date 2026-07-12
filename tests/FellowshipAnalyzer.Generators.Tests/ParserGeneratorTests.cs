@@ -59,61 +59,47 @@ public class ParserGeneratorTests
     }
 
     [Fact]
-    public void AnalyzerResult_EmitsTypedIndex_AndThreeReadPaths()
+    public void AnalyzerSurface_EmitsTypedIndex_AndThreeReadPaths()
     {
         var result = ParserGeneratorTestHarness.Run(OneAnalyzer("[ForPull(PullKind.Single)]"));
         var gen = result.ConcatenatedGenerated;
 
-        gen.ShouldContain("private readonly global::FellowshipAnalyzer.Core.Analysis.PullResultList<global::Test.ComboResult> _comboResults = new();");
-        gen.ShouldContain("public global::System.Collections.Generic.IReadOnlyList<global::FellowshipAnalyzer.Core.Analysis.PullResult<global::Test.ComboResult>> ComboResults => _comboResults;");
+        gen.ShouldContain("private readonly global::FellowshipAnalyzer.Core.Analysis.PullAnalyzerList<global::Test.ComboAnalyzer> _comboAnalyzers = new();");
+        gen.ShouldContain("public global::System.Collections.Generic.IReadOnlyList<global::FellowshipAnalyzer.Core.Analysis.PullAnalyzer<global::Test.ComboAnalyzer>> ComboAnalyzers => _comboAnalyzers;");
 
-        gen.ShouldContain($"protected override void IndexPullResult({PullFqn} pull, global::FellowshipAnalyzer.Core.Analysis.IResult result)");
-        gen.ShouldContain("case global::Test.ComboResult");
-        gen.ShouldContain("_comboResults.Add(new global::FellowshipAnalyzer.Core.Analysis.PullResult<global::Test.ComboResult>(pull,");
+        gen.ShouldContain($"protected override void IndexPullAnalyzer({PullFqn} pull, global::FellowshipAnalyzer.Core.Analysis.Analyzer analyzer)");
+        gen.ShouldContain("case global::Test.ComboAnalyzer");
+        gen.ShouldContain("_comboAnalyzers.Add(new global::FellowshipAnalyzer.Core.Analysis.PullAnalyzer<global::Test.ComboAnalyzer>(pull,");
 
         gen.ShouldContain($"public ComboPullView For({PullFqn} pull) => new(pull);");
         gen.ShouldContain($"public readonly struct ComboPullView({PullFqn} pull)");
         gen.ShouldContain($"extension({PullFqn} pull)");
-        gen.ShouldContain("public global::Test.ComboResult? ComboResult => (global::Test.ComboResult?)pull.GetResult(typeof(global::Test.ComboResult));");
+        gen.ShouldContain("public global::Test.ComboAnalyzer? ComboAnalyzer => (global::Test.ComboAnalyzer?)pull.GetAnalyzer(typeof(global::Test.ComboAnalyzer));");
         AssertNoErrors(result);
     }
 
     [Fact]
-    public void AnalysisResult_CarriesStateReport_AndAnalyzerResultList()
+    public void TwoAnalyzers_SharedAbstractBase_ShareOneSurfaceStream()
     {
-        var result = ParserGeneratorTestHarness.Run(StateWithReportAndAnalyzer());
+        var result = ParserGeneratorTestHarness.Run(TwoAnalyzersSharedBase());
         var gen = result.ConcatenatedGenerated;
 
-        gen.ShouldContain("public sealed record ComboAnalysisResult(");
-        gen.ShouldContain("global::Test.ComboStateReport? ComboState");
-        gen.ShouldContain("global::FellowshipAnalyzer.Core.Analysis.PullResultList<global::Test.ComboResult> ComboResults");
-        gen.ShouldContain("GetModule<global::Test.ComboState>()?.ToReport()");
-        AssertNoErrors(result);
-    }
-
-    [Fact]
-    public void TwoAnalyzers_SameResult_ShareOneStream()
-    {
-        var result = ParserGeneratorTestHarness.Run(TwoAnalyzersSameResult());
-        var gen = result.ConcatenatedGenerated;
-
-        OccurrenceCount(gen, "_comboResults = new();").ShouldBe(1);
-        OccurrenceCount(gen, "case global::Test.ComboResult").ShouldBe(1);
+        OccurrenceCount(gen, "_comboAnalyzers = new();").ShouldBe(1);
+        OccurrenceCount(gen, "case global::Test.ComboAnalyzer").ShouldBe(1);
         gen.ShouldContain("__analyzers.Add(typeof(global::Test.StAnalyzer));");
         gen.ShouldContain("__analyzers.Add(typeof(global::Test.AoeAnalyzer));");
         AssertNoErrors(result);
     }
 
     [Fact]
-    public void SideEffectOnlyAnalyzer_GatedButNoResultSurface()
+    public void SideEffectOnlyAnalyzer_IsGated_AndIsItsOwnSurface()
     {
         var result = ParserGeneratorTestHarness.Run(SideEffectOnlyAnalyzer());
         var gen = result.ConcatenatedGenerated;
 
         gen.ShouldContain("__analyzers.Add(typeof(global::Test.SideAnalyzer));");
-        gen.ShouldNotContain("PullResultList");
-        gen.ShouldNotContain("IndexPullResult");
-        gen.ShouldNotContain("PullView");
+        gen.ShouldContain("global::FellowshipAnalyzer.Core.Analysis.PullAnalyzerList<global::Test.SideAnalyzer>");
+        gen.ShouldContain("public global::Test.SideAnalyzer? SideAnalyzer => (global::Test.SideAnalyzer?)pull.GetAnalyzer(typeof(global::Test.SideAnalyzer));");
         AssertNoErrors(result);
     }
 
@@ -132,43 +118,16 @@ public class ParserGeneratorTests
         }
 
         {{forPull}}
-        public sealed partial class ComboAnalyzer : Analyzer<ComboResult>
+        public sealed partial class ComboAnalyzer : Analyzer
         {
-            [On<ApplyBuffEvent>]
-            private void OnBuff(ApplyBuffEvent e) { }
-            public override ComboResult OnPullEnd() => new();
-        }
+            public int Count { get; private set; }
 
-        public sealed record ComboResult(int X) : IResult { public ComboResult() : this(0) { } }
+            [On<ApplyBuffEvent>]
+            private void OnBuff(ApplyBuffEvent e) => Count++;
+        }
         """;
 
-    private static string StateWithReportAndAnalyzer() => Usings + """
-
-        namespace Test;
-
-        [AddState<ComboState>]
-        [AddAnalyzer<ComboAnalyzer>]
-        public sealed partial class ComboCombatLogParser : CombatLogParser { }
-
-        public sealed partial class ComboState : EventSubscriber
-        {
-            [On<ApplyBuffEvent>]
-            private void OnBuff(ApplyBuffEvent e) { }
-            public ComboStateReport ToReport() => new(0);
-        }
-
-        public sealed record ComboStateReport(int Y);
-
-        [ForPull(PullKind.Single)]
-        public sealed partial class ComboAnalyzer : Analyzer<ComboResult>
-        {
-            public override ComboResult OnPullEnd() => new();
-        }
-
-        public sealed record ComboResult(int X) : IResult { public ComboResult() : this(0) { } }
-        """;
-
-    private static string TwoAnalyzersSameResult() => Usings + """
+    private static string TwoAnalyzersSharedBase() => Usings + """
 
         namespace Test;
 
@@ -176,19 +135,19 @@ public class ParserGeneratorTests
         [AddAnalyzer<AoeAnalyzer>]
         public sealed partial class ComboCombatLogParser : CombatLogParser { }
 
-        [ForPull(PullKind.Single)]
-        public sealed partial class StAnalyzer : Analyzer<ComboResult>
+        public abstract partial class ComboAnalyzer : Analyzer
         {
-            public override ComboResult OnPullEnd() => new();
+            public int Count { get; private set; }
+
+            [On<ApplyBuffEvent>]
+            private void OnBuff(ApplyBuffEvent e) => Count++;
         }
+
+        [ForPull(PullKind.Single)]
+        public sealed partial class StAnalyzer : ComboAnalyzer { }
 
         [ForPull(PullKind.Multi)]
-        public sealed partial class AoeAnalyzer : Analyzer<ComboResult>
-        {
-            public override ComboResult OnPullEnd() => new();
-        }
-
-        public sealed record ComboResult(int X) : IResult { public ComboResult() : this(0) { } }
+        public sealed partial class AoeAnalyzer : ComboAnalyzer { }
         """;
 
     private static string SideEffectOnlyAnalyzer() => Usings + """

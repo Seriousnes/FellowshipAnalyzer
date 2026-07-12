@@ -103,13 +103,13 @@ Inject the tracker via `Lazy<{Resource}Tracker>` on the consuming module and rea
 ```csharp
 public sealed partial class SpenderAnalyzer(Lazy<{Resource}Tracker> tracker) : Analyzer
 {
-    public double Efficiency => ToReport().Efficiency;
-
-    public EfficiencyReport ToReport()
+    public double Efficiency
     {
-        var totalPotential = _tracker.Generated + _tracker.Wasted;
-        var efficiency = totalPotential == 0 ? 1 : 1.0 - (double)_tracker.Wasted / totalPotential;
-        return new EfficiencyReport(efficiency);
+        get
+        {
+            var totalPotential = _tracker.Generated + _tracker.Wasted;
+            return totalPotential == 0 ? 1 : 1.0 - (double)_tracker.Wasted / totalPotential;
+        }
     }
 }
 ```

@@ -6,45 +6,55 @@ using FellowshipAnalyzer.Core.Game;
 namespace FellowshipAnalyzer.Heroes.Tariq.Modules;
 
 /// <summary>
-/// Scores Tariq's Fury economy on every pull, regardless of shape. Fury is a build-and-spend
+/// Measures Tariq's Fury economy on every pull, regardless of shape. Fury is a build-and-spend
 /// resource (<see cref="ResourceTypes.Primary"/>): Basic/Core abilities generate it and Power
-/// abilities spend it. The scored axis is overcap — a generator cast made while Fury is already
-/// at cap throws away that generation. Whichever build the player runs, the generator and spender
-/// sets are the same, so overcap avoidance holds across builds (Schism only changes the split
-/// between Skull Crusher and Hammer Storm, both of which remain Fury spenders).
+/// abilities spend it. The central measure is overcap - a generator cast made while Fury is
+/// already at cap throws away that generation. Whichever build the player runs, the generator and
+/// spender sets are the same, so overcap avoidance holds across builds (Schism only changes the
+/// split between Skull Crusher and Hammer Storm, both of which remain Fury spenders).
 /// <para>
-/// Two further build-robust facts are reported without being scored: the share of Fury spenders
-/// landing inside a Thunder Call empowerment window (read against that window's uptime as a neutral
-/// baseline), and how many Culling Strikes landed in execute range (target below 30% health). Because
-/// Culling Strike is only usable above 30% health while Executioner's Grin (the legendary item proc)
-/// is active, Culling Strikes that land above execute range are counted separately as item-enabled
-/// rather than misread as normal execute usage.
+/// Thunder Call windows are tracked alongside: the share of Fury spenders landing inside an
+/// empowerment window (<see cref="EmpoweredSpendShare"/>) is read against that window's uptime
+/// (<see cref="WindowUptimeShare"/>) as a neutral baseline - a share above uptime means spending
+/// was concentrated into the empowered window.
 /// </para>
 /// </summary>
 [ForPull(PullKind.Single | PullKind.Multi)]
-public sealed partial class FuryEconomyAnalyzer : Analyzer<FuryEconomyReport>
+public sealed partial class FuryEconomyAnalyzer : Analyzer
 {
-    private const double ExecuteHealthThreshold = 0.30;
-    private const double ConcentrationTolerance = 0.10;
+    public int GeneratorCasts { get; private set; }
+    public int OvercapCasts { get; private set; }
+    public int SkullCrusherCasts { get; private set; }
+    public int HammerStormCasts { get; private set; }
+    public int CullingStrikeCasts { get; private set; }
+    public int EmpoweredSpenderCasts { get; private set; }
+    public int ThunderCallWindows { get; private set; }
 
-    private int _generatorCasts;
-    private int _overcapCasts;
-    private int _skullCrusherCasts;
-    private int _hammerStormCasts;
-    private int _cullingStrikeCasts;
-    private int _empoweredSpenderCasts;
+    /// <summary>Total milliseconds a Thunder Call window was open during the pull.</summary>
+    public int WindowTimeMs { get; private set; }
 
-    private int _cullingStrikeHits;
-    private int _executeCullingStrikes;
-    private int _grinEnabledCullingStrikes;
-
-    private int _thunderCallWindows;
-    private int _windowTimeMs;
     private bool _windowOpen;
     private int _windowOpenedAt;
 
     private int _activeStart = int.MaxValue;
     private int _activeEnd = int.MinValue;
+
+    public int SpenderCasts => SkullCrusherCasts + HammerStormCasts + CullingStrikeCasts;
+
+    /// <summary>Milliseconds between the first and last event this analyzer observed in the pull.</summary>
+    public int ActiveSpanMs => _activeEnd > _activeStart ? _activeEnd - _activeStart : 0;
+
+    /// <summary>Fraction of generator casts wasted by generating at Fury cap.</summary>
+    public double OvercapRate => GeneratorCasts == 0 ? 0 : (double)OvercapCasts / GeneratorCasts;
+
+    /// <summary>Fraction of Fury spenders cast inside a Thunder Call empowerment window.</summary>
+    public double EmpoweredSpendShare => SpenderCasts == 0 ? 0 : (double)EmpoweredSpenderCasts / SpenderCasts;
+
+    /// <summary>
+    /// Fraction of the active pull span the Thunder Call window was up - the neutral baseline the
+    /// empowered-spend share is read against (share above uptime means spenders were concentrated).
+    /// </summary>
+    public double WindowUptimeShare => ActiveSpanMs <= 0 ? 0 : Math.Min(1.0, (double)WindowTimeMs / ActiveSpanMs);
 
     [On<ApplyBuffEvent>(To = Actor.Player, Spell = nameof(Spells.ThunderCallBuff))]
     private void OnThunderCallOpen(ApplyBuffEvent @event)
@@ -55,7 +65,7 @@ public sealed partial class FuryEconomyAnalyzer : Analyzer<FuryEconomyReport>
 
         _windowOpen = true;
         _windowOpenedAt = @event.Timestamp;
-        _thunderCallWindows++;
+        ThunderCallWindows++;
     }
 
     [On<RemoveBuffEvent>(To = Actor.Player, Spell = nameof(Spells.ThunderCallBuff))]
@@ -65,7 +75,7 @@ public sealed partial class FuryEconomyAnalyzer : Analyzer<FuryEconomyReport>
         if (!_windowOpen)
             return;
 
-        _windowTimeMs += Math.Max(0, @event.Timestamp - _windowOpenedAt);
+        WindowTimeMs += Math.Max(0, @event.Timestamp - _windowOpenedAt);
         _windowOpen = false;
     }
 
@@ -80,9 +90,9 @@ public sealed partial class FuryEconomyAnalyzer : Analyzer<FuryEconomyReport>
     private void OnGeneratorCast(CastEvent @event)
     {
         Track(@event.Timestamp);
-        _generatorCasts++;
+        GeneratorCasts++;
         if (IsFuryCapped(@event))
-            _overcapCasts++;
+            OvercapCasts++;
     }
 
     [On<CastEvent>(By = Actor.Player, Spells = new[]
@@ -95,114 +105,21 @@ public sealed partial class FuryEconomyAnalyzer : Analyzer<FuryEconomyReport>
     {
         Track(@event.Timestamp);
         if (@event.Ability.Id == Spells.SkullCrusher.FSLID)
-            _skullCrusherCasts++;
+            SkullCrusherCasts++;
         else if (@event.Ability.Id == Spells.HammerStorm.FSLID)
-            _hammerStormCasts++;
+            HammerStormCasts++;
         else
-            _cullingStrikeCasts++;
+            CullingStrikeCasts++;
 
         if (_windowOpen)
-            _empoweredSpenderCasts++;
+            EmpoweredSpenderCasts++;
     }
 
-    [On<DamageEvent>(By = Actor.Player, Spell = nameof(Spells.CullingStrike))]
-    private void OnCullingStrikeDamage(DamageEvent @event)
-    {
-        var target = @event.TargetResources;
-        if (target is null || target.MaxHitPoints <= 0)
-            return;
-
-        _cullingStrikeHits++;
-        if ((double)target.HitPoints / target.MaxHitPoints < ExecuteHealthThreshold)
-            _executeCullingStrikes++;
-        else
-            _grinEnabledCullingStrikes++;
-    }
-
-    /// <summary>Per-pull projection of the accumulated Fury economy for the closing pull.</summary>
-    public override FuryEconomyReport OnPullEnd()
+    public override void OnPullEnd()
     {
         if (_windowOpen && _activeEnd > _windowOpenedAt)
-            _windowTimeMs += _activeEnd - _windowOpenedAt;
-
-        var spenderCasts = _skullCrusherCasts + _hammerStormCasts + _cullingStrikeCasts;
-        var activeSpan = _activeEnd > _activeStart ? _activeEnd - _activeStart : 0;
-
-        var score = _generatorCasts == 0
-            ? 100
-            : (int)Math.Round((1 - (double)_overcapCasts / _generatorCasts) * 100);
-
-        var findings = BuildFindings(spenderCasts, activeSpan);
-        var summary = _generatorCasts == 0
-            ? "No Fury generation detected in this pull."
-            : _overcapCasts == 0
-                ? $"No Fury wasted to overcap across {_generatorCasts} generator casts."
-                : $"{_overcapCasts} of {_generatorCasts} generator casts wasted Fury at cap.";
-
-        var scoreCard = new AnalyzerScoreCard(
-            "Fury Economy",
-            score,
-            summary,
-            score >= 75 ? "amber" : "ember");
-
-        return new FuryEconomyReport(
-            scoreCard,
-            _generatorCasts,
-            _overcapCasts,
-            spenderCasts,
-            _empoweredSpenderCasts,
-            _thunderCallWindows,
-            _windowTimeMs,
-            activeSpan,
-            _cullingStrikeCasts,
-            _executeCullingStrikes,
-            _skullCrusherCasts,
-            _hammerStormCasts,
-            findings,
-            _grinEnabledCullingStrikes);
-    }
-
-    private List<TariqFinding> BuildFindings(int spenderCasts, int activeSpan)
-    {
-        var findings = new List<TariqFinding>();
-
-        if (_generatorCasts == 0)
-        {
-            findings.Add(new TariqFinding("info", "No Fury generators were cast in this pull."));
-            return findings;
-        }
-
-        findings.Add(_overcapCasts == 0
-            ? new TariqFinding("info", $"No Fury was wasted to overcap across {_generatorCasts} generator casts.")
-            : new TariqFinding("warning",
-                $"{_overcapCasts} generator cast{(_overcapCasts == 1 ? " was" : "s were")} made at full Fury — that generation was wasted."));
-
-        if (spenderCasts > 0 && _windowTimeMs > 0 && activeSpan > 0)
-        {
-            var empoweredShare = (double)_empoweredSpenderCasts / spenderCasts;
-            var uptimeShare = Math.Min(1.0, (double)_windowTimeMs / activeSpan);
-            var sharePct = (int)Math.Round(empoweredShare * 100);
-            var uptimePct = (int)Math.Round(uptimeShare * 100);
-
-            if (empoweredShare < uptimeShare - ConcentrationTolerance)
-                findings.Add(new TariqFinding("warning",
-                    $"Only {sharePct}% of Fury spenders landed inside a Thunder Call window (up {uptimePct}% of the pull) — pool Fury and dump it in the empowered window."));
-            else if (empoweredShare > uptimeShare + ConcentrationTolerance)
-                findings.Add(new TariqFinding("info",
-                    $"{sharePct}% of Fury spenders landed inside a Thunder Call window (up {uptimePct}% of the pull) — Fury was well concentrated in the empowered window."));
-            else
-                findings.Add(new TariqFinding("info",
-                    $"{sharePct}% of Fury spenders landed inside a Thunder Call window (up {uptimePct}% of the pull)."));
-        }
-
-        if (_cullingStrikeHits > 0)
-            findings.Add(_grinEnabledCullingStrikes > 0
-                ? new TariqFinding("info",
-                    $"Of {_cullingStrikeHits} Culling Strikes, {_executeCullingStrikes} hit an execute-range target (below {(int)(ExecuteHealthThreshold * 100)}% health) and {_grinEnabledCullingStrikes} landed above execute range (only possible with Executioner's Grin).")
-                : new TariqFinding("info",
-                    $"{_executeCullingStrikes} of {_cullingStrikeHits} Culling Strikes hit a target in execute range (below {(int)(ExecuteHealthThreshold * 100)}% health)."));
-
-        return findings;
+            WindowTimeMs += _activeEnd - _windowOpenedAt;
+        _windowOpen = false;
     }
 
     private void Track(int timestamp)

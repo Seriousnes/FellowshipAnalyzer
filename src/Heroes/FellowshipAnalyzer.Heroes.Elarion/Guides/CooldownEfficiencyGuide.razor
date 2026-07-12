@@ -13,21 +13,21 @@
         </ol>
     </Explanation>
     <ChildContent>
-        <CastOverview Title="Skystrider's Grace" Stats="@BuildStats(r => r.Grace, Spells.SkystridersGrace.Name)" />
-        <CastOverview Title="Event Horizon" Stats="@BuildStats(r => r.EventHorizon, Spells.EventHorizon.Name)" />
+        <CastOverview Title="Skystrider's Grace" Stats="@BuildStats(a => a.Grace, Spells.SkystridersGrace.Name)" />
+        <CastOverview Title="Event Horizon" Stats="@BuildStats(a => a.EventHorizon, Spells.EventHorizon.Name)" />
     </ChildContent>
 </GuideSection>
 
 @code {
-    private IReadOnlyList<PullResult<CooldownEfficiencyReport>> Reports => Parser.CooldownEfficiencyReports;
+    private IReadOnlyList<PullAnalyzer<CooldownEfficiencyAnalyzer>> Analyzers => Parser.CooldownEfficiencyAnalyzers;
 
-    private int TotalPullDurationMs => Reports.Sum(r => r.Result.PullDurationMs);
+    private int TotalPullDurationMs => Analyzers.Sum(entry => entry.Analyzer.PullDurationMs);
 
-    private IEnumerable<OverviewStat> BuildStats(Func<CooldownEfficiencyReport, CooldownSnapshot> select, string displayName)
+    private IEnumerable<OverviewStat> BuildStats(Func<CooldownEfficiencyAnalyzer, CooldownSnapshot> select, string displayName)
     {
-        var casts = Reports.Sum(r => select(r.Result).Casts);
-        var heldMs = Reports.Sum(r => select(r.Result).HeldMs);
-        var uptimeMs = Reports.Sum(r => select(r.Result).BuffUptimeMs);
+        var casts = Analyzers.Sum(entry => select(entry.Analyzer).Casts);
+        var heldMs = Analyzers.Sum(entry => select(entry.Analyzer).HeldMs);
+        var uptimeMs = Analyzers.Sum(entry => select(entry.Analyzer).BuffUptimeMs);
         var fightLen = TotalPullDurationMs;
 
         var uptimePct = fightLen > 0 ? uptimeMs * 100.0 / fightLen : 0;

@@ -4,7 +4,7 @@
     <Explanation>
         <p>
             Send <SpellLink Spell="Items.VoidbringerTouch" /> ASAP, then save the next so the cadence
-            becomes void → ult → void. Casting on the same target before the first mark is consumed
+            becomes void, ult, void. Casting on the same target before the first mark is consumed
             (double-mark) wastes spirit generation.
         </p>
         <ol>
@@ -21,10 +21,10 @@
 </GuideSection>
 
 @code {
-    private IReadOnlyList<PullResult<VoidbringerTouchReport>> Reports => Parser.VoidbringerTouchReports;
+    private IReadOnlyList<PullAnalyzer<VoidbringerTouchAnalyzer>> Analyzers => Parser.VoidbringerTouchAnalyzers;
 
-    private int TotalCasts => Reports.Sum(r => r.Result.TotalCasts);
-    private int DoubleMarks => Reports.Sum(r => r.Result.DoubleMarks);
+    private int TotalCasts => Analyzers.Sum(entry => entry.Analyzer.TotalCasts);
+    private int DoubleMarks => Analyzers.Sum(entry => entry.Analyzer.DoubleMarks);
 
     private IEnumerable<OverviewStat> BuildOverviewStats()
     {
@@ -44,8 +44,8 @@
 
     private IEnumerable<PerCastData> BuildPerCastData()
     {
-        return Reports.SelectMany(entry =>
-            entry.Result.Casts.Select(cast => BuildCastData(cast, entry.Pull)));
+        return Analyzers.SelectMany(entry =>
+            entry.Analyzer.Casts.Select(cast => BuildCastData(cast, entry.Pull)));
     }
 
     private PerCastData BuildCastData(VoidbringerTouchAnalyzer.VoidbringerCast cast, Pull pull) => new()

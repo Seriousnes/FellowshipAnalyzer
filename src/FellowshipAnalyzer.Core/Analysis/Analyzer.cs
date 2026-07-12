@@ -1,35 +1,34 @@
 namespace FellowshipAnalyzer.Core.Analysis;
 
+/// <summary>
+/// A pull-lifetime analysis module. A fresh instance is constructed for every pull its
+/// <c>[ForPull]</c> filter matches, accumulates state from that pull's events, and is retained on
+/// the pull read surfaces when the pull ends. Guide and statistics components read the analyzer's
+/// public properties and methods directly; there is no intermediate result projection.
+/// </summary>
 public class Analyzer : EventSubscriber
 {
     public const int SELECTED_PLAYER = 1;
     public const int SELECTED_PLAYER_PET = 2;
 
     /// <summary>
-    /// Produces this analyzer's per-pull result when its pull ends, or <c>null</c> for a
-    /// side-effect-only analyzer. Overridden by <see cref="Analyzer{TResult}"/>.
+    /// Called once when this analyzer's pull ends, before the instance is exposed on the pull
+    /// read surfaces. Override to finalize accumulated state (close still-open windows, compute
+    /// derived aggregates); everything public must be readable after this returns.
     /// </summary>
-    internal virtual IResult? CaptureResult() => null;
+    public virtual void OnPullEnd() { }
 
     /// <summary>
-    /// The declared result type (<c>TResult</c> of <see cref="Analyzer{TResult}"/>), or <c>null</c>
-    /// for a side-effect-only analyzer. Used to key the per-pull result store by the declared type
-    /// rather than the runtime type, so a non-sealed result record stays readable via the typed
-    /// read paths.
+    /// The type under which <paramref name="analyzerType"/> is exposed on pull read surfaces:
+    /// the topmost ancestor deriving directly from <see cref="Analyzer"/>. Shape-specialized
+    /// subclasses of one abstract analyzer (disjoint <c>[ForPull]</c> filters) thereby share a
+    /// single surface and feed one cross-pull stream.
     /// </summary>
-    internal virtual Type? ResultType => null;
-}
-
-/// <summary>
-/// An <see cref="Analyzer"/> that produces a typed <typeparamref name="TResult"/> for each pull it
-/// runs on. A fresh instance is constructed per pull, so <see cref="OnPullEnd"/> sees only that
-/// pull's accumulated state.
-/// </summary>
-public abstract class Analyzer<TResult> : Analyzer where TResult : IResult, new()
-{
-    public virtual TResult OnPullEnd() => new();
-
-    internal override IResult CaptureResult() => OnPullEnd();
-
-    internal override Type ResultType => typeof(TResult);
+    internal static Type GetSurfaceType(Type analyzerType)
+    {
+        var type = analyzerType;
+        while (type.BaseType is { } baseType && baseType != typeof(Analyzer))
+            type = baseType;
+        return type;
+    }
 }

@@ -8,7 +8,7 @@
             <SpellLink Spell="Spells.EngulfingFlames" /> is a two-charge, twenty-second-recharge
             spell. Holding both charges into each <SpellLink Spell="Spells.Wildfire" /> burn window
             lets it be cast twice inside the burst, so each window is scored on how many charges were
-            ready the moment Wildfire was cast — two is ready.
+            ready the moment Wildfire was cast, two being ready.
         </p>
         <p>
             Overcap tracks the recharge wasted while Engulfing Flames sits at maximum charges. Briefly
@@ -27,12 +27,12 @@
 @code {
     private IEnumerable<OverviewStat> BuildOverviewStats()
     {
-        var reports = Parser.EngulfingFlamesEconomyReports.Select(entry => entry.Result).ToList();
-        var evaluated = reports.Sum(report => report.WindowsEvaluated);
-        var ready = reports.Sum(report => report.WindowsReady);
+        var analyzers = Parser.EngulfingFlamesEconomyAnalyzers.Select(entry => entry.Analyzer).ToList();
+        var evaluated = analyzers.Sum(analyzer => analyzer.WindowsEvaluated);
+        var ready = analyzers.Sum(analyzer => analyzer.WindowsReady);
         var readyRate = evaluated > 0 ? (int)Math.Round((double)ready / evaluated * 100) : 0;
-        var wasted = reports.Sum(report => report.WastedCharges);
-        var overcapSeconds = reports.Sum(report => report.CappedSeconds);
+        var wasted = analyzers.Sum(analyzer => analyzer.WastedCharges);
+        var overcapSeconds = analyzers.Sum(analyzer => analyzer.CappedSeconds);
 
         return
         [
@@ -59,8 +59,8 @@
 
     private IEnumerable<PerCastData> BuildPerCastData()
     {
-        return Parser.EngulfingFlamesEconomyReports.SelectMany(entry =>
-            entry.Result.Windows.Select(window => BuildWindowData(window, entry.Pull)));
+        return Parser.EngulfingFlamesEconomyAnalyzers.SelectMany(entry =>
+            entry.Analyzer.Windows.Select(window => BuildWindowData(window, entry.Pull)));
     }
 
     private PerCastData BuildWindowData(EngulfingFlamesEconomyAnalyzer.WindowReadiness window, Pull pull)
@@ -88,7 +88,7 @@
 
         var note = window.Ready
             ? "Both Engulfing Flames charges were ready for the burst."
-            : $"Only {window.ChargesAvailable} of {Spells.EngulfingFlames.Charges} Engulfing Flames charges were ready — hold both charges for the burst so it can be double-cast.";
+            : $"Only {window.ChargesAvailable} of {Spells.EngulfingFlames.Charges} Engulfing Flames charges were ready - hold both charges for the burst so it can be double-cast.";
 
         return new PerCastData
         {

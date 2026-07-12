@@ -1,3 +1,4 @@
+@using System.Text
 @using FellowshipAnalyzer.Core.Common.Spells.Ardeos
 @using Spells = FellowshipAnalyzer.Core.Common.Spells.Ardeos.Spells
 @inject ArdeosCombatLogParser Parser
@@ -6,9 +7,9 @@
     <Explanation>
         <p>
             Ardeos's burst is a burn window anchored on <SpellLink Spell="Spells.Wildfire" />. The
-            standard window lays the DoTs first — <SpellLink Spell="Spells.FireFrogs" />,
+            standard window lays the DoTs first with <SpellLink Spell="Spells.FireFrogs" />,
             <SpellLink Spell="Spells.Apocalypse" />, <SpellLink Spell="Spells.FireBall" /> and
-            <SpellLink Spell="Spells.EngulfingFlames" /> twice — then
+            <SpellLink Spell="Spells.EngulfingFlames" /> twice, then
             <SpellLink Spell="Spells.Pyromania" /> into <SpellLink Spell="Spells.Wildfire" />, followed
             by <SpellLink Spell="Spells.Detonate" /> spam. <SpellLink Spell="Spells.Incinerate" />
             extends the DoTs into the burn when it is available.
@@ -31,13 +32,14 @@
 @code {
     private IEnumerable<OverviewStat> BuildOverviewStats()
     {
-        var reports = Parser.WildfireComboReports.Select(entry => entry.Result).ToList();
-        var total = reports.Sum(report => report.EvaluatedWindows);
-        var successful = reports.Sum(report => report.SuccessfulWindows);
+        var analyzers = Parser.WildfireComboAnalyzers.Select(entry => entry.Analyzer).ToList();
+        var total = analyzers.Sum(analyzer => analyzer.EvaluatedWindows);
+        var successful = analyzers.Sum(analyzer => analyzer.SuccessfulWindows);
         var successRate = total > 0 ? (int)Math.Round((double)successful / total * 100) : 0;
-        var withPyromania = reports.Sum(report => report.WindowsWithPyromania);
-        var totalDetonate = reports.Sum(report => report.AverageDetonateCasts * report.EvaluatedWindows);
-        var averageDetonate = total > 0 ? totalDetonate / total : 0d;
+        var withPyromania = analyzers.Sum(analyzer => analyzer.WindowsWithPyromania);
+        var averageDetonate = total > 0
+            ? analyzers.SelectMany(analyzer => analyzer.Windows).Average(window => window.DetonateCasts)
+            : 0d;
 
         return
         [
@@ -48,7 +50,7 @@
             new OverviewStat(
                 $"{successRate}%",
                 "Success Rate",
-                $"{successful} clean / {total} evaluated — setup complete and Detonate spam followed.",
+                $"{successful} clean / {total} evaluated: setup complete and Detonate spam followed.",
                 PercentTier(successRate)),
             new OverviewStat(
                 $"{withPyromania}",
@@ -63,8 +65,8 @@
 
     private IEnumerable<PerCastData> BuildPerCastData()
     {
-        return Parser.WildfireComboReports.SelectMany(entry =>
-            entry.Result.Windows.Select(window => BuildWindowData(window, entry.Pull)));
+        return Parser.WildfireComboAnalyzers.SelectMany(entry =>
+            entry.Analyzer.Windows.Select(window => BuildWindowData(window, entry.Pull)));
     }
 
     private PerCastData BuildWindowData(WildfireComboAnalyzer.WildfireWindowEvaluation window, Pull pull)
@@ -73,11 +75,11 @@
             : window.Partial ? PerformanceTier.Ok
             : PerformanceTier.Fail;
 
-        var setupPerf = window.CoreSetupCount >= 3 ? PerformanceTier.Perfect
+        var setupPerf = window.CoreSetupCount >= WildfireComboAnalyzer.CoreSetupSuccessThreshold ? PerformanceTier.Perfect
             : window.CoreSetupCount >= 2 ? PerformanceTier.Ok
             : PerformanceTier.Fail;
 
-        var detonatePerf = window.DetonateCasts >= 3 ? PerformanceTier.Perfect
+        var detonatePerf = window.DetonateCasts >= WildfireComboAnalyzer.DetonateSpamThreshold ? PerformanceTier.Perfect
             : window.DetonateCasts >= 1 ? PerformanceTier.Ok
             : PerformanceTier.Fail;
 
@@ -96,11 +98,11 @@
             new PerCastStat(
                 window.HasPyromania ? "Yes" : "No",
                 "Pyromania",
-                "Whether Pyromania aligned in the setup before Wildfire. Bonus alignment — not required for a clean window."),
+                "Whether Pyromania aligned in the setup before Wildfire. Bonus alignment, not required for a clean window."),
             new PerCastStat(
                 window.HasIncinerate ? "Yes" : "No",
                 "Incinerate",
-                "Whether Incinerate extended the DoTs into this window. Bonus alignment — not required for a clean window."),
+                "Whether Incinerate extended the DoTs into this window. Bonus alignment, not required for a clean window."),
         };
 
         var sequence = window.CastsInWindow
@@ -117,9 +119,90 @@
             GroupContent = @<PullBanner Pull="@pull" />,
             AdditionalContent = new AdditionalContent(
                 "Usage Notes",
-                @<div>@window.Outcome</div>),
+                @<div>@BuildOutcome(window)</div>),
         };
     }
+
+    private static string BuildOutcome(WildfireComboAnalyzer.WildfireWindowEvaluation window)
+    {
+        if (window.Successful)
+        {
+            var note = window is { HasPyromania: true, HasIncinerate: true }
+                ? " Pyromania and Incinerate both aligned to extend the burn."
+                : window.HasPyromania
+                    ? " Pyromania aligned with this window."
+                    : window.HasIncinerate
+                        ? " Incinerate extended the DoTs into this window."
+                        : string.Empty;
+            return "Opened Wildfire with the setup rotation in place and followed with Detonate spam." + note;
+        }
+
+        var reasons = new List<string>();
+
+        var missing = new List<string>();
+        if (!window.HasFireFrogs)
+            missing.Add("Fire Frogs");
+        if (!window.HasApocalypse)
+            missing.Add("Apocalypse");
+        if (!window.HasFireBall)
+            missing.Add("Fire Ball");
+        if (!window.HasEngulfingFlames)
+            missing.Add("Engulfing Flames");
+
+        if (window.CoreSetupCount == 0)
+            reasons.Add("no setup abilities were cast before Wildfire");
+        else if (window.CoreSetupCount < WildfireComboAnalyzer.CoreSetupSuccessThreshold && missing.Count > 0)
+            reasons.Add($"the setup was incomplete before Wildfire (missing {JoinNames(missing)})");
+
+        if (window.DetonateCasts == 0)
+            reasons.Add("Detonate was not spammed after Wildfire");
+        else if (window.DetonateCasts < WildfireComboAnalyzer.DetonateSpamThreshold)
+            reasons.Add($"only {window.DetonateCasts} Detonate cast{(window.DetonateCasts == 1 ? " " : "s ")}followed Wildfire");
+
+        if (window is { HasEngulfingFlames: true, EngulfingFlamesCount: < WildfireComboAnalyzer.StandardEngulfingFlamesCasts })
+            reasons.Add("Engulfing Flames was cast only once (the standard window uses it twice)");
+
+        if (reasons.Count == 0)
+            reasons.Add("the window only partially matched the expected burn setup");
+
+        return JoinReasons(reasons);
+    }
+
+    private static string JoinNames(List<string> names)
+    {
+        if (names.Count == 1)
+            return names[0];
+
+        var builder = new StringBuilder();
+        for (var i = 0; i < names.Count; i++)
+        {
+            if (i > 0)
+                builder.Append(i == names.Count - 1 ? " and " : ", ");
+            builder.Append(names[i]);
+        }
+
+        return builder.ToString();
+    }
+
+    private static string JoinReasons(List<string> reasons)
+    {
+        if (reasons.Count == 1)
+            return Capitalise(reasons[0]) + ".";
+
+        var builder = new StringBuilder();
+        for (var i = 0; i < reasons.Count; i++)
+        {
+            if (i > 0)
+                builder.Append(i == reasons.Count - 1 ? ", and " : ", ");
+            builder.Append(i == 0 ? Capitalise(reasons[i]) : reasons[i]);
+        }
+
+        builder.Append('.');
+        return builder.ToString();
+    }
+
+    private static string Capitalise(string value) =>
+        value.Length == 0 ? value : char.ToUpperInvariant(value[0]) + value[1..];
 
     private static PerformanceTier PercentTier(int percent) => percent switch
     {

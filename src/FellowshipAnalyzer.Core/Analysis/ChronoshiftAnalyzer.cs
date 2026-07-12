@@ -37,26 +37,20 @@ public sealed partial class ChronoshiftAnalyzer(Lazy<SpellUsable> spellUsable) :
     public IReadOnlyList<ChronoshiftWindow> Windows => _windows;
 
     /// <summary>Aggregate CDR applied per spell ID across all Chronoshift windows.</summary>
-    public IReadOnlyDictionary<int, int> TotalAppliedBySpell => ToReport().TotalAppliedBySpell;
+    public IReadOnlyDictionary<int, int> TotalAppliedBySpell => AggregateBySpell(static record => record.Applied);
 
     /// <summary>Aggregate CDR wasted per spell ID across all Chronoshift windows.</summary>
-    public IReadOnlyDictionary<int, int> TotalWastedBySpell => ToReport().TotalWastedBySpell;
+    public IReadOnlyDictionary<int, int> TotalWastedBySpell => AggregateBySpell(static record => record.Wasted);
 
-    public ChronoshiftReport ToReport()
+    private Dictionary<int, int> AggregateBySpell(Func<SpellCdrRecord, int> amount)
     {
-        var applied = new Dictionary<int, int>();
-        var wasted = new Dictionary<int, int>();
-
+        var totals = new Dictionary<int, int>();
         foreach (var window in _windows)
         {
             foreach (var (spellId, record) in window.CdrBySpell)
-            {
-                applied[spellId] = applied.GetValueOrDefault(spellId) + record.Applied;
-                wasted[spellId] = wasted.GetValueOrDefault(spellId) + record.Wasted;
-            }
+                totals[spellId] = totals.GetValueOrDefault(spellId) + amount(record);
         }
-
-        return new ChronoshiftReport(applied, wasted);
+        return totals;
     }
 
     [On<BeginChannelEvent>(By = Actor.Player, Spell = nameof(Spells.Chronoshift))]

@@ -12,8 +12,8 @@ FellowshipLogs API JSON
   -> normalizers (FightBookendNormalizer prepends FightStartEvent, appends FightEndEvent)
   -> RegisterSubscriptions on every EventSubscriber
   -> EventEmitter dispatch (FightStartEvent first, FightEndEvent last)
-  -> HeroAnalysisResult (modules expose state via ToReport() projections)
-  -> Blazor guide/statistics components
+  -> HeroAnalysisResult
+  -> Blazor guide/statistics components read module and analyzer state directly
 ```
 
 Important projects:
@@ -93,7 +93,7 @@ builder.Services.AddRimeAnalysis();
 
 ## Module Lifecycle
 
-Modules are scoped DI services resolved by `CombatLogParser.Analyze`. The parser assigns `Owner` and `Priority` after resolving each module. There is no `Initialize` or `Complete` virtual — setup runs in the constructor and finalization lives in a `ToReport()` projection.
+Modules are scoped DI services resolved by `CombatLogParser.Analyze`. The parser assigns `Owner` and `Priority` after resolving each module. There is no `Initialize` or `Complete` virtual — setup runs in the constructor, and finalized metrics are exposed as public properties (computed on read, or set from an `[On<FightEndEvent>]` handler).
 
 ```csharp
 public abstract class Module
@@ -113,21 +113,18 @@ Use this lifecycle:
 - Do setup work that needs the selected player or the raw event list in the constructor — inject `ParseContext` and/or `IReadOnlyList<Event>`.
 - Subscribe to events declaratively with `[On<TEvent>]` attributes on instance methods. The `ModuleGenerator` emits the corresponding `RegisterSubscriptions` plumbing.
 - Hook fight-boundary setup via `[On<FightStartEvent>]` and finalization via `[On<FightEndEvent>]` (the `FightBookendNormalizer` fabricates both).
-- Expose finalized metrics through a `public TReport ToReport()` method. The parser source generator picks it up and includes it in the hero's typed `…AnalysisResult` record. `ToReport()` must be idempotent.
+- Expose state as public read-only properties and typed entry records; guide and statistics components read them directly. Keep prose, severity wording, and `PerformanceTier` judgments in the Razor components - modules hold typed data only.
 - Use `Lazy<TOther>` ctor injection for cross-module references; the generator emits a cached `_camelCaseName` accessor. `Lazy<>` edges are ignored by the FA0013 cycle analyzer.
 - Do not require `CombatLogParser` in module constructors; the parser sets `Owner` after DI resolution.
 
 Activation is two-tiered. Use the mutable `Active` flag for dynamic deactivation that must respect mid-fight state. Use `[ActiveWhen<TPredicate>]` (where `TPredicate : IModuleActivePredicate`) for compile-time gating evaluated at parser construction — predicates read `ParseContext`, including `SelectedCombatant`, which the parser builds from the player's `CombatantInfoEvent` before any module is constructed.
 
-`Analyzer` is a lightweight specialization of `EventSubscriber`:
+`Analyzer` is the pull-lifetime specialization of `EventSubscriber`. Declare analyzers with `[AddAnalyzer<T>]` on the parser and `[ForPull(PullKind…, Boss = …)]` on the analyzer. A fresh instance is constructed for every matching pull, accumulates that pull's events into public properties, finalizes in `public override void OnPullEnd()`, and the instance is retained on the pull read surfaces:
 
-```csharp
-public class Analyzer : EventSubscriber
-{
-    public const int SELECTED_PLAYER = 1;
-    public const int SELECTED_PLAYER_PET = 2;
-}
-```
+- `parser.{Surface}s` - the cross-pull stream, an `IReadOnlyList<PullAnalyzer<T>>` of `(Pull, Analyzer)` pairs.
+- `parser.For(pull).{Surface}` and the `pull.{Surface}` extension - the retained instance for one pull.
+
+The surface type is the topmost ancestor deriving directly from `Analyzer`, so shape-specialized subclasses (disjoint `[ForPull]` filters over a shared abstract base) feed one stream. Analyzers may depend on `[AddState]` modules (fight-lifetime `EventSubscriber`s) but never on other analyzers (FA0014).
 
 ## Event Subscriptions
 
