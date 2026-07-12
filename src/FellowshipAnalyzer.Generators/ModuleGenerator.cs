@@ -18,6 +18,9 @@ public sealed class ModuleGenerator : IIncrementalGenerator
 {
     private const string OnAttributeShortName = "On";
     private const string OnAttributeFullName = "OnAttribute";
+    private const string UsesAttributeShortName = "Uses";
+    private const string UsesAttributeFullName = "UsesAttribute";
+    private const string AnalysisNamespace = "FellowshipAnalyzer.Core.Analysis";
     private const string SpellsNamespace = "FellowshipAnalyzer.Core.Common.Spells";
     private const string SpellRegistryInterfaceName = "ISpellRegistry";
     private const string SpellTypeName = "Spell";
@@ -45,6 +48,14 @@ public sealed class ModuleGenerator : IIncrementalGenerator
         messageFormat: "Could not recover an int Id literal from the constructor of '{0}'",
         category: "Module",
         defaultSeverity: DiagnosticSeverity.Error,
+        isEnabledByDefault: true);
+
+    private static readonly DiagnosticDescriptor UsesIgnoredDescriptor = new(
+        id: "FA0018",
+        title: "[Uses<T>] dependency ignored",
+        messageFormat: "[Uses<{0}>] on '{1}' was ignored ({2})",
+        category: "Module",
+        defaultSeverity: DiagnosticSeverity.Warning,
         isEnabledByDefault: true);
 
     public void Initialize(IncrementalGeneratorInitializationContext context)
@@ -75,8 +86,17 @@ public sealed class ModuleGenerator : IIncrementalGenerator
         }
         if (!isPartial) return false;
 
-        // Candidate if the class either declares an [On<>] handler OR has any
-        // primary-ctor parameter (we'll filter by Lazy<T> later in the semantic pass).
+        // Candidate if the class carries a [Uses<>] dependency attribute, declares an [On<>]
+        // handler, OR has any primary-ctor parameter (filtered by Lazy<T> in the semantic pass).
+        foreach (var attrList in classDecl.AttributeLists)
+        {
+            foreach (var attr in attrList.Attributes)
+            {
+                if (GetAttributeShortName(attr) is UsesAttributeShortName or UsesAttributeFullName)
+                    return true;
+            }
+        }
+
         foreach (var member in classDecl.Members)
         {
             if (member is not MethodDeclarationSyntax method) continue;
@@ -170,8 +190,11 @@ public sealed class ModuleGenerator : IIncrementalGenerator
         }
 
         var lazyAccessors = CollectLazyAccessors(symbol);
+        var (usesDeps, usesDiagnostics) = CollectUsesDependencies(symbol);
+        foreach (var d in usesDiagnostics)
+            diagnostics.Add(d);
 
-        if (handlers.Count == 0 && lazyAccessors.Length == 0 && diagnostics.Count == 0)
+        if (handlers.Count == 0 && lazyAccessors.Length == 0 && usesDeps.Length == 0 && diagnostics.Count == 0)
             return null;
 
         var hasEventSubscriberBaseWithAttributes = inheritsEventSubscriber && AnyBaseHasOnAttributes(symbol);
@@ -190,6 +213,7 @@ public sealed class ModuleGenerator : IIncrementalGenerator
             containingTypes.ToImmutable(),
             handlers.ToImmutable(),
             lazyAccessors,
+            usesDeps,
             hasEventSubscriberBaseWithAttributes,
             diagnostics.ToImmutable());
     }
@@ -240,6 +264,83 @@ public sealed class ModuleGenerator : IIncrementalGenerator
         }
 
         return builder.ToImmutable();
+    }
+
+    /// <summary>
+    /// Reads <c>[Uses&lt;TDependency&gt;]</c> attributes into the primary-constructor dependencies
+    /// the generator will emit. Dependencies are de-duplicated and ordered by fully-qualified name
+    /// so the emitted parameter list matches the argument order the parser generator produces from
+    /// the same attributes (the two generators cannot see each other's output).
+    /// <para>
+    /// Any explicitly-declared constructor takes precedence: <c>[Uses&lt;&gt;]</c> is dropped with an
+    /// FA0018 warning rather than emitting a second constructor. A dependency whose accessor name
+    /// would collide with an existing member is likewise skipped.
+    /// </para>
+    /// </summary>
+    private static (ImmutableArray<UsesDepInfo> Deps, ImmutableArray<PendingDiagnostic> Diagnostics) CollectUsesDependencies(INamedTypeSymbol symbol)
+    {
+        var depTypes = new List<INamedTypeSymbol>();
+        foreach (var attr in symbol.GetAttributes())
+        {
+            if (!IsUsesAttribute(attr.AttributeClass)) continue;
+            if (attr.AttributeClass!.TypeArguments.Length != 1) continue;
+            if (attr.AttributeClass.TypeArguments[0] is INamedTypeSymbol dep) depTypes.Add(dep);
+        }
+
+        if (depTypes.Count == 0)
+            return (ImmutableArray<UsesDepInfo>.Empty, ImmutableArray<PendingDiagnostic>.Empty);
+
+        var location = symbol.Locations.Length > 0 ? symbol.Locations[0] : Location.None;
+        var diagnostics = ImmutableArray.CreateBuilder<PendingDiagnostic>();
+
+        var hasExplicitCtor = false;
+        foreach (var ctor in symbol.InstanceConstructors)
+        {
+            if (!ctor.IsImplicitlyDeclared) { hasExplicitCtor = true; break; }
+        }
+
+        if (hasExplicitCtor)
+        {
+            foreach (var dep in depTypes)
+                diagnostics.Add(new PendingDiagnostic(UsesIgnoredDescriptor, location,
+                    ImmutableArray.Create(dep.Name, symbol.Name, "a constructor is declared")));
+            return (ImmutableArray<UsesDepInfo>.Empty, diagnostics.ToImmutable());
+        }
+
+        var usedNames = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var member in symbol.GetMembers())
+            usedNames.Add(member.Name);
+
+        var deps = ImmutableArray.CreateBuilder<UsesDepInfo>();
+        var seenTypes = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var dep in depTypes.OrderBy(ToFullyQualified, StringComparer.Ordinal))
+        {
+            var innerFq = ToFullyQualified(dep);
+            if (!seenTypes.Add(innerFq)) continue;
+
+            var propName = dep.Name;
+            if (!usedNames.Add(propName))
+            {
+                diagnostics.Add(new PendingDiagnostic(UsesIgnoredDescriptor, location,
+                    ImmutableArray.Create(dep.Name, symbol.Name, $"a member named '{propName}' already exists")));
+                continue;
+            }
+
+            deps.Add(new UsesDepInfo(innerFq, ToParameterName(dep.Name), propName));
+        }
+
+        return (deps.ToImmutable(), diagnostics.ToImmutable());
+    }
+
+    private static bool IsUsesAttribute(INamedTypeSymbol? attrClass) =>
+        attrClass is { IsGenericType: true }
+        && attrClass.Name == UsesAttributeFullName
+        && attrClass.ContainingNamespace?.ToDisplayString() == AnalysisNamespace;
+
+    private static string ToParameterName(string typeName)
+    {
+        var camel = char.ToLowerInvariant(typeName[0]) + typeName.Substring(1);
+        return SyntaxFacts.GetKeywordKind(camel) == SyntaxKind.None ? camel : "@" + camel;
     }
 
     private static bool AnyBaseHasOnAttributes(INamedTypeSymbol symbol)
@@ -646,7 +747,7 @@ public sealed class ModuleGenerator : IIncrementalGenerator
                 pending.MessageArgs.ToArray()));
         }
 
-        if (info.Handlers.Length == 0 && info.LazyAccessors.Length == 0)
+        if (info.Handlers.Length == 0 && info.LazyAccessors.Length == 0 && info.UsesDeps.Length == 0)
             return;
 
         var sb = new StringBuilder();
@@ -669,7 +770,19 @@ public sealed class ModuleGenerator : IIncrementalGenerator
             indent += "    ";
         }
 
-        sb.Append(indent).Append("partial class ").AppendLine(info.ClassName);
+        sb.Append(indent).Append("partial class ").Append(info.ClassName);
+        if (info.UsesDeps.Length > 0)
+        {
+            sb.Append('(');
+            for (var i = 0; i < info.UsesDeps.Length; i++)
+            {
+                if (i > 0) sb.Append(", ");
+                sb.Append("global::System.Lazy<").Append(info.UsesDeps[i].InnerTypeFullyQualified)
+                  .Append("> ").Append(info.UsesDeps[i].ParameterName);
+            }
+            sb.Append(')');
+        }
+        sb.AppendLine();
         sb.Append(indent).AppendLine("{");
 
         var bodyIndent = indent + "    ";
@@ -679,7 +792,13 @@ public sealed class ModuleGenerator : IIncrementalGenerator
               .Append(' ').Append(accessor.PropertyName)
               .Append(" => field ??= ").Append(accessor.ParameterName).AppendLine(".Value;");
         }
-        if (info.LazyAccessors.Length > 0 && info.Handlers.Length > 0)
+        foreach (var dep in info.UsesDeps)
+        {
+            sb.Append(bodyIndent).Append("private ").Append(dep.InnerTypeFullyQualified)
+              .Append(' ').Append(dep.PropertyName)
+              .Append(" => field ??= ").Append(dep.ParameterName).AppendLine(".Value;");
+        }
+        if ((info.LazyAccessors.Length > 0 || info.UsesDeps.Length > 0) && info.Handlers.Length > 0)
             sb.AppendLine();
 
         if (info.Handlers.Length > 0)
@@ -807,6 +926,7 @@ public sealed class ModuleGenerator : IIncrementalGenerator
             ImmutableArray<string> containingTypes,
             ImmutableArray<HandlerInfo> handlers,
             ImmutableArray<LazyAccessorInfo> lazyAccessors,
+            ImmutableArray<UsesDepInfo> usesDeps,
             bool baseHasAttributeHandlers,
             ImmutableArray<PendingDiagnostic> diagnostics)
         {
@@ -815,6 +935,7 @@ public sealed class ModuleGenerator : IIncrementalGenerator
             ContainingTypes = containingTypes;
             Handlers = handlers;
             LazyAccessors = lazyAccessors;
+            UsesDeps = usesDeps;
             BaseHasAttributeHandlers = baseHasAttributeHandlers;
             Diagnostics = diagnostics;
         }
@@ -823,6 +944,7 @@ public sealed class ModuleGenerator : IIncrementalGenerator
         public ImmutableArray<string> ContainingTypes { get; }
         public ImmutableArray<HandlerInfo> Handlers { get; }
         public ImmutableArray<LazyAccessorInfo> LazyAccessors { get; }
+        public ImmutableArray<UsesDepInfo> UsesDeps { get; }
         public bool BaseHasAttributeHandlers { get; }
         public ImmutableArray<PendingDiagnostic> Diagnostics { get; }
     }
@@ -883,6 +1005,11 @@ public sealed class ModuleGenerator : IIncrementalGenerator
         string ParameterName,
         string PropertyName,
         string InnerTypeFullyQualified);
+
+    private sealed record UsesDepInfo(
+        string InnerTypeFullyQualified,
+        string ParameterName,
+        string PropertyName);
 
     private sealed record PendingDiagnostic(
         DiagnosticDescriptor Descriptor,

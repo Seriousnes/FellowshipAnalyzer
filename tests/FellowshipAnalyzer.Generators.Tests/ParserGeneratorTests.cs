@@ -206,6 +206,141 @@ public class ParserGeneratorTests
         }
         """;
 
+    [Fact]
+    public void Uses_GeneratesPrimaryCtorAndPascalCaseAccessor()
+    {
+        var result = ParserGeneratorTestHarness.Run(UsesConsumer());
+        var gen = result.ConcatenatedGenerated;
+
+        gen.ShouldContain("partial class ConsumerAnalyzer(global::System.Lazy<global::Test.DepModule> depModule)");
+        gen.ShouldContain("private global::Test.DepModule DepModule => field ??= depModule.Value;");
+        gen.ShouldContain(
+            "new global::Test.ConsumerAnalyzer(new global::System.Lazy<global::Test.DepModule>(() => (global::Test.DepModule)ResolveAnalysisModule(typeof(global::Test.DepModule))))");
+        AssertNoErrors(result);
+    }
+
+    [Fact]
+    public void Uses_WithHandWrittenConstructor_WarnsFa0018AndDefersToConstructor()
+    {
+        var result = ParserGeneratorTestHarness.Run(UsesConflict());
+        var gen = result.ConcatenatedGenerated;
+
+        result.DriverDiagnostics.ShouldContain(d => d.Id == "FA0018");
+        gen.ShouldContain("private global::Test.OtherDep _other => field ??= other.Value;");
+        gen.ShouldNotContain("DepModule DepModule =>");
+        gen.ShouldContain("new global::Test.ConflictAnalyzer(new global::System.Lazy<global::Test.OtherDep>");
+        AssertNoErrors(result);
+    }
+
+    [Fact]
+    public void Uses_MultipleDependencies_OrderedConsistentlyAcrossBothGenerators()
+    {
+        var result = ParserGeneratorTestHarness.Run(UsesMultiple());
+        var gen = result.ConcatenatedGenerated;
+
+        gen.ShouldContain(
+            "partial class MultiAnalyzer(global::System.Lazy<global::Test.DepModule> depModule, global::System.Lazy<global::Test.OtherDep> otherDep)");
+        AssertNoErrors(result);
+    }
+
+    private static string UsesConsumer() => Usings + """
+
+        namespace Test;
+
+        [AddModule<DepModule>]
+        [AddAnalyzer<ConsumerAnalyzer>]
+        public sealed partial class ComboCombatLogParser : CombatLogParser { }
+
+        public sealed partial class DepModule : EventSubscriber
+        {
+            [On<ApplyBuffEvent>]
+            private void OnBuff(ApplyBuffEvent e) { }
+            public int Ping() => 1;
+            public static int Beep() => 2;
+        }
+
+        [ForPull(PullKind.Single)]
+        [Uses<DepModule>]
+        public sealed partial class ConsumerAnalyzer : Analyzer<ComboResult>
+        {
+            [On<ApplyBuffEvent>]
+            private void OnBuff(ApplyBuffEvent e) { _ = DepModule.Ping() + DepModule.Beep(); }
+            public override ComboResult OnPullEnd() => new();
+        }
+
+        public sealed record ComboResult(int X) : IResult { public ComboResult() : this(0) { } }
+        """;
+
+    private static string UsesConflict() => Usings + """
+
+        namespace Test;
+
+        [AddModule<DepModule>]
+        [AddModule<OtherDep>]
+        [AddAnalyzer<ConflictAnalyzer>]
+        public sealed partial class ComboCombatLogParser : CombatLogParser { }
+
+        public sealed partial class DepModule : EventSubscriber
+        {
+            [On<ApplyBuffEvent>]
+            private void OnBuff(ApplyBuffEvent e) { }
+        }
+
+        public sealed partial class OtherDep : EventSubscriber
+        {
+            [On<ApplyBuffEvent>]
+            private void OnBuff(ApplyBuffEvent e) { }
+            public int Ping() => 1;
+        }
+
+        [ForPull(PullKind.Single)]
+        [Uses<DepModule>]
+        public sealed partial class ConflictAnalyzer(Lazy<OtherDep> other) : Analyzer<ComboResult>
+        {
+            [On<ApplyBuffEvent>]
+            private void OnBuff(ApplyBuffEvent e) { _ = _other.Ping(); }
+            public override ComboResult OnPullEnd() => new();
+        }
+
+        public sealed record ComboResult(int X) : IResult { public ComboResult() : this(0) { } }
+        """;
+
+    private static string UsesMultiple() => Usings + """
+
+        namespace Test;
+
+        [AddModule<DepModule>]
+        [AddModule<OtherDep>]
+        [AddAnalyzer<MultiAnalyzer>]
+        public sealed partial class ComboCombatLogParser : CombatLogParser { }
+
+        public sealed partial class DepModule : EventSubscriber
+        {
+            [On<ApplyBuffEvent>]
+            private void OnBuff(ApplyBuffEvent e) { }
+            public int Ping() => 1;
+        }
+
+        public sealed partial class OtherDep : EventSubscriber
+        {
+            [On<ApplyBuffEvent>]
+            private void OnBuff(ApplyBuffEvent e) { }
+            public int Pong() => 2;
+        }
+
+        [ForPull(PullKind.Single)]
+        [Uses<OtherDep>]
+        [Uses<DepModule>]
+        public sealed partial class MultiAnalyzer : Analyzer<ComboResult>
+        {
+            [On<ApplyBuffEvent>]
+            private void OnBuff(ApplyBuffEvent e) { _ = DepModule.Ping() + OtherDep.Pong(); }
+            public override ComboResult OnPullEnd() => new();
+        }
+
+        public sealed record ComboResult(int X) : IResult { public ComboResult() : this(0) { } }
+        """;
+
     private static int OccurrenceCount(string haystack, string needle)
     {
         var count = 0;

@@ -220,11 +220,14 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
     {
         var fmt = SymbolDisplayFormat.FullyQualifiedFormat;
         var ctor = type.InstanceConstructors
-            .Where(c => c.DeclaredAccessibility == Accessibility.Public)
+            .Where(c => c.DeclaredAccessibility == Accessibility.Public && !c.IsImplicitlyDeclared)
             .OrderByDescending(c => c.Parameters.Length)
             .FirstOrDefault();
 
-        if (ctor is null || ctor.Parameters.Length == 0)
+        if (ctor is null)
+            return BuildUsesCtorParams(type, fmt);
+
+        if (ctor.Parameters.Length == 0)
             return ImmutableArray<CtorParam>.Empty;
 
         var builder = ImmutableArray.CreateBuilder<CtorParam>(ctor.Parameters.Length);
@@ -246,6 +249,46 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
                 builder.Add(new CtorParam(p.Type.ToDisplayString(fmt), null, nullable));
             }
         }
+        return builder.ToImmutable();
+    }
+
+    /// <summary>
+    /// Constructor parameters synthesized from <c>[Uses&lt;T&gt;]</c> attributes when a type declares
+    /// no constructor of its own. Mirrors <c>ModuleGenerator.CollectUsesDependencies</c> exactly —
+    /// same fully-qualified ordering, de-duplication, and accessor-name collision skipping — so the
+    /// argument list emitted here lines up with the primary constructor that generator produces. The
+    /// two generators never see each other's output, so both derive the list from the same attributes.
+    /// </summary>
+    private static ImmutableArray<CtorParam> BuildUsesCtorParams(INamedTypeSymbol type, SymbolDisplayFormat fmt)
+    {
+        var depTypes = new List<INamedTypeSymbol>();
+        foreach (var attr in type.GetAttributes())
+        {
+            var ac = attr.AttributeClass;
+            if (ac is not { IsGenericType: true }) continue;
+            if (ac.Name != "UsesAttribute") continue;
+            if (ac.ContainingNamespace?.ToDisplayString() != "FellowshipAnalyzer.Core.Analysis") continue;
+            if (ac.TypeArguments.Length == 1 && ac.TypeArguments[0] is INamedTypeSymbol dep) depTypes.Add(dep);
+        }
+
+        if (depTypes.Count == 0)
+            return ImmutableArray<CtorParam>.Empty;
+
+        var usedNames = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var member in type.GetMembers())
+            usedNames.Add(member.Name);
+
+        var builder = ImmutableArray.CreateBuilder<CtorParam>();
+        var seenTypes = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var dep in depTypes.OrderBy(d => d.ToDisplayString(fmt), StringComparer.Ordinal))
+        {
+            var innerFq = dep.ToDisplayString(fmt);
+            if (!seenTypes.Add(innerFq)) continue;
+            if (!usedNames.Add(dep.Name)) continue;
+
+            builder.Add(new CtorParam("global::System.Lazy<" + innerFq + ">", innerFq, nullable: false));
+        }
+
         return builder.ToImmutable();
     }
 
