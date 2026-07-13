@@ -56,6 +56,27 @@ For a fight-lifetime module, read the generated nullable parser property (`Parse
 
 `_Imports.razor` should include the hero `Modules` namespace, as Rime does, so analyzer types are available to guides.
 
+### Merging analyzers across pull shapes
+
+When independent analyzers answer different questions for different pull shapes (e.g. boss DoT uptime vs trash DoT spread), render them as one section by walking `Parser.Pulls` (every ended pull, in order) and probing each pull's generated nullable accessors:
+
+```csharp
+private IEnumerable<PerCastData> BuildPerCastData()
+{
+    foreach (var pull in Parser.Pulls)
+    {
+        if (pull.SearingBlazeUptimeAnalyzer is { } uptime)
+            yield return BuildBossRow(pull, uptime);
+        else if (pull.SearingBlazeSpreadAnalyzer is { } spread)
+            yield return BuildTrashRow(pull, spread);
+    }
+}
+```
+
+`PerCastData` is the union vocabulary; each per-shape builder fills it from its own analyzer's members, and overview stats read each surface list independently. Gate the section in the root guide on any of the streams being non-empty. Reference: `SearingBlazeGuide.razor` in Ardeos.
+
+For a shared-surface family (one abstract base, shape-specialized subclasses; see create-analyzer), read the single merged stream and pattern-match the evaluation subtypes per row instead. Reference: `BasicStComboGuide.razor` in Rime.
+
 ### 2. Add To The Hero Root Guide
 
 Each hero has a root guide component at `src/Heroes/FellowshipAnalyzer.Heroes.{Hero}/{Hero}Guide.razor`.

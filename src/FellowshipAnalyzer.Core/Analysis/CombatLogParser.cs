@@ -86,6 +86,7 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
     private Type[] _runModuleTypes = [];
     private readonly Dictionary<Type, object> _pullInstances = [];
     private readonly List<(Pull Pull, Analyzer Analyzer)> _pullAnalyzers = [];
+    private readonly List<Pull> _pulls = [];
 
     /// <summary>
     /// The active parser for the analysis currently in progress, exposed to pipeline-internal
@@ -104,6 +105,13 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
     /// Analyzer instances retained at each <see cref="Events.PullEndEvent"/>, in pull order.
     /// </summary>
     public IReadOnlyList<(Pull Pull, Analyzer Analyzer)> PullAnalyzers => _pullAnalyzers;
+
+    /// <summary>
+    /// Every ended pull in encounter order, whether or not any analyzer matched it. Guides walk
+    /// this to compose sections from more than one analyzer surface, probing each pull's
+    /// generated nullable accessors for the shape that ran.
+    /// </summary>
+    public IReadOnlyList<Pull> Pulls => _pulls;
 
     /// <summary>
     /// The <see cref="ParseContext"/> for the analysis currently in progress. Populated at the
@@ -225,6 +233,7 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
     {
         if (!ReferenceEquals(CurrentPull, pull)) return;
 
+        _pulls.Add(pull);
         foreach (var instance in _pullInstances.Values)
         {
             if (instance is not Analyzer analyzer) continue;
@@ -282,6 +291,7 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
 
         _pullInstances.Clear();
         _pullAnalyzers.Clear();
+        _pulls.Clear();
         CurrentPull = null;
 
         _runInstances.Clear();

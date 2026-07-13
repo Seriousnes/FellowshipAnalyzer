@@ -6,6 +6,8 @@
 @using FellowshipAnalyzer.Heroes.Rime.Analysis
 @using FellowshipAnalyzer.Heroes.Rime.Modules
 @using FellowshipAnalyzer.Core.Common.Spells
+@using StWindow = FellowshipAnalyzer.Heroes.Rime.Modules.SingleTargetRimeCombo.SingleTargetWindowEvaluation
+@using AoeWindow = FellowshipAnalyzer.Heroes.Rime.Modules.AoERimeCombo.AoeWindowEvaluation
 @inject RimeCombatLogParser Parser
 
 @{
@@ -22,7 +24,7 @@
             <li>Build Winter Orbs to at least 3 before casting @bi</li>
             <li>Single-target windows expect @gb follow-up, with @cs or @ft added when the window can support it. @ft → @cs is also acceptable.</li>
             <li>AoE windows are identified by @bi hitting 2 or more unique targets and should contain @ic plus @cs in any order.</li>
-            <li>The window timeline below is grouped per pull — each pull's windows are evaluated against the priorities that pull's type calls for.</li>
+            <li>The window timeline below is grouped per pull; each pull's windows are evaluated against the priorities that pull's type calls for.</li>
         </ol>
     </Explanation>
     <ChildContent>
@@ -40,10 +42,8 @@
         var total = analyzers.Sum(analyzer => analyzer.EvaluatedWindows);
         var successful = analyzers.Sum(analyzer => analyzer.SuccessfulWindows);
         var successRate = total > 0 ? (int)Math.Round((double)successful / total * 100) : 0;
-        var singleTargetWindows = analyzers.Sum(analyzer =>
-            analyzer.Windows.Count(window => window.WindowType == BasicStComboAnalyzer.BurstingIceWindowType.SingleTarget));
-        var aoeWindows = analyzers.Sum(analyzer =>
-            analyzer.Windows.Count(window => window.WindowType == BasicStComboAnalyzer.BurstingIceWindowType.Aoe));
+        var singleTargetWindows = analyzers.Sum(analyzer => analyzer.Windows.Count(window => window is StWindow));
+        var aoeWindows = analyzers.Sum(analyzer => analyzer.Windows.Count(window => window is AoeWindow));
 
         return
         [
@@ -62,11 +62,11 @@
             new OverviewStat(
                 $"{singleTargetWindows}",
                 "Single Target",
-                "Windows where Bursting Ice only hit one target."),
+                "Windows evaluated against the single-target follow-up."),
             new OverviewStat(
                 $"{aoeWindows}",
                 "AoE",
-                "Windows where Bursting Ice hit 2 or more unique targets."),
+                "Windows evaluated against the AoE follow-up."),
         ];
     }
 
@@ -76,54 +76,82 @@
             entry.Analyzer.Windows.Select(window => BuildWindowData(window, entry.Pull)));
     }
 
-    private PerCastData BuildWindowData(BasicStComboAnalyzer.StComboWindowEvaluation window, Pull pull)
+    private PerCastData BuildWindowData(BasicStComboAnalyzer.StComboWindowEvaluation window, Pull pull) =>
+        window switch
+        {
+            StWindow st => BuildSingleTargetRow(st, pull),
+            AoeWindow aoe => BuildAoeRow(aoe, pull),
+            _ => throw new System.Diagnostics.UnreachableException($"Unknown window evaluation type {window.GetType().Name}."),
+        };
+
+    private PerCastData BuildSingleTargetRow(StWindow window, Pull pull)
     {
-        var perf = window.Successful ? PerformanceTier.Perfect
-            : window.Partial ? PerformanceTier.Ok
-            : PerformanceTier.Fail;
-
-        var isAoe = window.WindowType == BasicStComboAnalyzer.BurstingIceWindowType.Aoe;
-        var windowTypeLabel = isAoe ? "AoE" : "ST";
-        var primaryUsage = isAoe ? $"{window.AoeSpenderCount}/2" : $"{window.StSpenderCount}/{window.ExpectedStSpenderCount}";
-        var primaryUsageLabel = isAoe ? window.AoeSpenderName : window.StSpenderName;
-        var finisherValue = isAoe ? $"{window.ColdSnapCount}/1" : $"{window.ColdSnapCount + window.FreezingTorrentCount}";
-        var finisherLabel = isAoe ? "Cold Snap" : "Finishers";
-        var finisherTooltip = isAoe
-            ? $"AoE windows want one Cold Snap in any order with two {window.AoeSpenderName} casts."
-            : window.ExpectsFinisher
-                ? "Single-target windows with enough room should include Cold Snap or Freezing Torrent as a finisher."
-                : "No extra finisher was required for this single-target window under the current baseline timing.";
-
+        var perf = WindowTier(window);
         var stats = new[]
         {
             new PerCastStat(
-                windowTypeLabel,
+                "ST",
                 "Type",
-                isAoe
-                    ? "Bursting Ice hit 2 or more unique targets in this window."
-                    : "Bursting Ice hit exactly one target in this window."),
+                "This window was evaluated against the single-target follow-up."),
             new PerCastStat(
                 $"{window.TargetCount}",
                 "Targets",
                 "Unique targets hit by Bursting Ice damage during this Winter's Embrace window."),
             new PerCastStat(
-                primaryUsage,
-                primaryUsageLabel,
-                isAoe
-                    ? $"AoE windows want two {window.AoeSpenderName} casts during Winter's Embrace."
-                    : $"Single-target windows currently use baseline timing to estimate how many {window.StSpenderName} casts should fit.",
+                $"{window.StSpenderCount}/{window.ExpectedStSpenderCount}",
+                window.StSpenderName,
+                $"Single-target windows currently use baseline timing to estimate how many {window.StSpenderName} casts should fit.",
                 Performance: perf),
             new PerCastStat(
-                finisherValue,
-                finisherLabel,
-                finisherTooltip,
+                $"{window.ColdSnapCount + window.FreezingTorrentCount}",
+                "Finishers",
+                window.ExpectsFinisher
+                    ? "Single-target windows with enough room should include Cold Snap or Freezing Torrent as a finisher."
+                    : "No extra finisher was required for this single-target window under the current baseline timing.",
                 Performance: perf),
         };
 
+        return BuildRow(window, pull, perf, stats, BuildSingleTargetOutcome(window));
+    }
+
+    private PerCastData BuildAoeRow(AoeWindow window, Pull pull)
+    {
+        var perf = WindowTier(window);
+        var stats = new[]
+        {
+            new PerCastStat(
+                "AoE",
+                "Type",
+                "This window was evaluated against the AoE follow-up."),
+            new PerCastStat(
+                $"{window.TargetCount}",
+                "Targets",
+                "Unique targets hit by Bursting Ice damage during this Winter's Embrace window."),
+            new PerCastStat(
+                $"{window.AoeSpenderCount}/2",
+                window.AoeSpenderName,
+                $"AoE windows want two {window.AoeSpenderName} casts during Winter's Embrace.",
+                Performance: perf),
+            new PerCastStat(
+                $"{window.ColdSnapCount}/1",
+                "Cold Snap",
+                $"AoE windows want one Cold Snap in any order with two {window.AoeSpenderName} casts.",
+                Performance: perf),
+        };
+
+        return BuildRow(window, pull, perf, stats, BuildAoeOutcome(window));
+    }
+
+    private PerCastData BuildRow(
+        BasicStComboAnalyzer.StComboWindowEvaluation window,
+        Pull pull,
+        PerformanceTier perf,
+        PerCastStat[] stats,
+        string outcome)
+    {
         var sequence = window.CastsInWindow
             .Select(c => new SpellCastEntry(c.Ability.Id))
             .ToArray();
-        var outcome = BuildOutcome(window);
 
         return new PerCastData
         {
@@ -139,12 +167,12 @@
         };
     }
 
-    private static string BuildOutcome(BasicStComboAnalyzer.StComboWindowEvaluation window) =>
-        window.WindowType == BasicStComboAnalyzer.BurstingIceWindowType.Aoe
-            ? BuildAoeOutcome(window)
-            : BuildSingleTargetOutcome(window);
+    private static PerformanceTier WindowTier(BasicStComboAnalyzer.StComboWindowEvaluation window) =>
+        window.Successful ? PerformanceTier.Perfect
+            : window.Partial ? PerformanceTier.Ok
+            : PerformanceTier.Fail;
 
-    private static string BuildSingleTargetOutcome(BasicStComboAnalyzer.StComboWindowEvaluation window)
+    private static string BuildSingleTargetOutcome(StWindow window)
     {
         if (window.Successful)
         {
@@ -189,7 +217,7 @@
         return JoinReasons(reasons);
     }
 
-    private static string BuildAoeOutcome(BasicStComboAnalyzer.StComboWindowEvaluation window)
+    private static string BuildAoeOutcome(AoeWindow window)
     {
         if (window.Successful)
         {

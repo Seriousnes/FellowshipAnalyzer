@@ -1,0 +1,185 @@
+using FellowshipAnalyzer.Core;
+using FellowshipAnalyzer.Core.Analysis;
+using FellowshipAnalyzer.Core.Common.Spells.Ardeos;
+using FellowshipAnalyzer.Core.Events;
+using FellowshipAnalyzer.Core.FellowshipLogs;
+using FellowshipAnalyzer.Heroes.Ardeos.Analysis;
+
+using Microsoft.Extensions.DependencyInjection;
+
+using Shouldly;
+
+using Xunit;
+
+namespace FellowshipAnalyzer.Heroes.Ardeos.Tests.Analysis;
+
+public sealed class SearingBlazeUptimeAnalyzerTests
+{
+    private const int PlayerId = 7;
+    private const int BossId = 99;
+    private const int AddId = 50;
+
+    [Fact]
+    public async Task Analyze_ReapplyAfterDrop_MeasuresUptimeAndGap()
+    {
+        var events = new List<Event>
+        {
+            Apply(BossId, 1000),
+            Remove(BossId, 5000),
+            Apply(BossId, 8000),
+        };
+
+        var (parser, _) = await AnalyzeAsync(events);
+
+        var entry = parser.SearingBlazeUptimeAnalyzers.ShouldHaveSingleItem();
+        var analyzer = entry.Analyzer;
+        analyzer.Windows.Count.ShouldBe(2);
+        analyzer.Uptime.ShouldBe(0.8, 0.0001);
+        analyzer.GapCount.ShouldBe(1);
+        analyzer.TotalGapMs.ShouldBe(3000);
+
+        var pull = entry.Pull;
+        pull.SearingBlazeUptimeAnalyzer.ShouldBeSameAs(analyzer);
+        parser.For(pull).SearingBlazeUptimeAnalyzer.ShouldBeSameAs(analyzer);
+    }
+
+    [Fact]
+    public async Task Analyze_OpenWindow_ClosesAtPullEnd()
+    {
+        var events = new List<Event> { Apply(BossId, 1000) };
+
+        var (parser, _) = await AnalyzeAsync(events);
+
+        var analyzer = parser.SearingBlazeUptimeAnalyzers.ShouldHaveSingleItem().Analyzer;
+        var window = analyzer.Windows.ShouldHaveSingleItem();
+        window.End.ShouldBe(20000);
+        analyzer.Uptime.ShouldBe(0.95, 0.0001);
+        analyzer.GapCount.ShouldBe(0);
+        analyzer.TotalGapMs.ShouldBe(0);
+    }
+
+    [Fact]
+    public async Task Analyze_RefreshInsideWindow_ExtendsWithoutGap()
+    {
+        var events = new List<Event>
+        {
+            Apply(BossId, 1000),
+            Refresh(BossId, 3000),
+            Remove(BossId, 5000),
+        };
+
+        var (parser, _) = await AnalyzeAsync(events);
+
+        var analyzer = parser.SearingBlazeUptimeAnalyzers.ShouldHaveSingleItem().Analyzer;
+        var window = analyzer.Windows.ShouldHaveSingleItem();
+        window.Start.ShouldBe(1000);
+        window.End.ShouldBe(5000);
+        analyzer.GapCount.ShouldBe(0);
+        analyzer.Uptime.ShouldBe(0.2, 0.0001);
+    }
+
+    [Fact]
+    public async Task Analyze_RefreshWithoutPriorApply_OpensWindow()
+    {
+        var events = new List<Event>
+        {
+            Refresh(BossId, 2000),
+            Remove(BossId, 6000),
+        };
+
+        var (parser, _) = await AnalyzeAsync(events);
+
+        var analyzer = parser.SearingBlazeUptimeAnalyzers.ShouldHaveSingleItem().Analyzer;
+        var window = analyzer.Windows.ShouldHaveSingleItem();
+        window.Start.ShouldBe(2000);
+        window.End.ShouldBe(6000);
+    }
+
+    [Fact]
+    public async Task Analyze_AddsCarryingDot_DoNotDiluteBossUptime()
+    {
+        var events = new List<Event>
+        {
+            Apply(BossId, 1000),
+            Apply(AddId, 3000),
+            Remove(AddId, 5000),
+            Remove(BossId, 11000),
+        };
+
+        var (parser, _) = await AnalyzeAsync(events);
+
+        var analyzer = parser.SearingBlazeUptimeAnalyzers.ShouldHaveSingleItem().Analyzer;
+        var window = analyzer.Windows.ShouldHaveSingleItem();
+        window.Start.ShouldBe(1000);
+        window.End.ShouldBe(11000);
+        analyzer.Uptime.ShouldBe(0.5, 0.0001);
+    }
+
+    [Fact]
+    public async Task Analyze_NoApplications_ReportsZero()
+    {
+        var (parser, _) = await AnalyzeAsync([]);
+
+        var analyzer = parser.SearingBlazeUptimeAnalyzers.ShouldHaveSingleItem().Analyzer;
+        analyzer.Windows.ShouldBeEmpty();
+        analyzer.Uptime.ShouldBe(0d, 0.0001);
+        analyzer.GapCount.ShouldBe(0);
+        analyzer.TotalGapMs.ShouldBe(0);
+    }
+
+    [Fact]
+    public async Task Analyze_TrashPull_IsNotEvaluated()
+    {
+        var events = new List<Event> { Apply(BossId, 1000) };
+
+        var (parser, _) = await AnalyzeAsync(events, TrashFight());
+
+        parser.SearingBlazeUptimeAnalyzers.ShouldBeEmpty();
+    }
+
+    private static ApplyDebuffEvent Apply(int targetId, int timestamp) => new()
+    {
+        Timestamp = timestamp,
+        SourceId = PlayerId,
+        TargetId = targetId,
+        Ability = new Ability { Id = Spells.SearingBlazeDot.FSLID },
+    };
+
+    private static RefreshDebuffEvent Refresh(int targetId, int timestamp) => new()
+    {
+        Timestamp = timestamp,
+        SourceId = PlayerId,
+        TargetId = targetId,
+        Ability = new Ability { Id = Spells.SearingBlazeDot.FSLID },
+    };
+
+    private static RemoveDebuffEvent Remove(int targetId, int timestamp) => new()
+    {
+        Timestamp = timestamp,
+        SourceId = PlayerId,
+        TargetId = targetId,
+        Ability = new Ability { Id = Spells.SearingBlazeDot.FSLID },
+    };
+
+    private static ReportFight BossFight() =>
+        new(0, "", 1, null, 0, 20000, null, null, null);
+
+    private static ReportFight TrashFight() =>
+        new(0, "", 0, null, 0, 20000, null, null, null, EnemyNpcs: [new FightNpc(1, 100, 4, null, null)]);
+
+    private static async Task<(ArdeosCombatLogParser Parser, HeroAnalysisResult Result)> AnalyzeAsync(
+        List<Event> events, ReportFight? fight = null)
+    {
+        var services = new ServiceCollection();
+        services.AddLogging();
+        services.AddCoreAnalysisServices();
+        services.AddCoreAnalysis();
+        services.AddArdeosAnalysis();
+        using var provider = services.BuildServiceProvider();
+        using var scope = provider.CreateScope();
+
+        var parser = scope.ServiceProvider.GetRequiredService<ArdeosCombatLogParser>();
+        var result = await parser.Analyze(events, PlayerId, fight ?? BossFight());
+        return (parser, result);
+    }
+}

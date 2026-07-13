@@ -80,8 +80,9 @@ FellowshipLogs API JSON
 
 ```csharp
 [HeroAnalyzer(HeroName.Rime)]
-[AddModule<WinterOrbTracker>]
-[AddModule<BasicStComboAnalyzer>]
+[AddState<WinterOrbTracker>]
+[AddAnalyzer<SingleTargetRimeCombo>]
+[AddAnalyzer<AoERimeCombo>]
 [AddModule<Modules.Abilities>]
 public sealed partial class RimeCombatLogParser : CombatLogParser
 {

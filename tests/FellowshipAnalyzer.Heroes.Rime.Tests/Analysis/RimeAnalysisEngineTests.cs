@@ -35,7 +35,7 @@ public sealed class RimeAnalysisEngineTests
         var analyzer = parser.BasicStComboAnalyzers.ShouldHaveSingleItem().Analyzer;
         analyzer.EvaluatedWindows.ShouldBeGreaterThan(0);
         analyzer.Windows.Count.ShouldBe(analyzer.EvaluatedWindows);
-        analyzer.Windows.ShouldAllBe(window => window.WindowType == BasicStComboAnalyzer.BurstingIceWindowType.SingleTarget);
+        analyzer.Windows.ShouldAllBe(window => window is SingleTargetRimeCombo.SingleTargetWindowEvaluation);
     }
 
     [Fact]
@@ -82,7 +82,7 @@ public sealed class RimeAnalysisEngineTests
         var analyzer = parser.BasicStComboAnalyzers.ShouldHaveSingleItem().Analyzer;
         analyzer.SuccessfulWindows.ShouldBe(analyzer.Windows.Count(window => window.Successful));
         analyzer.PartialWindows.ShouldBe(analyzer.Windows.Count(window => window.Partial));
-        analyzer.IgnoredAoeWindows.ShouldBe(0);
+        analyzer.Windows.OfType<AoERimeCombo.AoeWindowEvaluation>().ShouldBeEmpty();
     }
 
     [Fact]

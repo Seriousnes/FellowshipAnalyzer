@@ -1,0 +1,187 @@
+@using FellowshipAnalyzer.Core.Common.Spells.Ardeos
+@using Spells = FellowshipAnalyzer.Core.Common.Spells.Ardeos.Spells
+@inject ArdeosCombatLogParser Parser
+
+<GuideSection Title="Searing Blaze">
+    <Explanation>
+        <p>
+            Keep <SpellLink Spell="Spells.SearingBlaze" /> working on every pull. On bosses the DoT
+            should stay rolling for the whole fight; each boss pull is scored on uptime and the gaps
+            between applications. On multi-target pulls the DoT should reach every enemy; each pull
+            is scored on how many enemies took it against the size of the pack.
+        </p>
+    </Explanation>
+    <ChildContent>
+        <CastOverview Title="DoT Overview" Stats="@BuildOverviewStats()" />
+        <CastDetail Title="Searing Blaze by Pull"
+                    Description="Each row is one pull. Boss rows show DoT uptime and gaps; AoE rows show how many enemies Searing Blaze reached."
+                    Casts="@BuildPerCastData()" />
+    </ChildContent>
+</GuideSection>
+
+@code {
+    private IEnumerable<OverviewStat> BuildOverviewStats()
+    {
+        var stats = new List<OverviewStat>();
+
+        var bossAnalyzers = Parser.SearingBlazeUptimeAnalyzers.Select(entry => entry.Analyzer).ToList();
+        if (bossAnalyzers.Count > 0)
+        {
+            var averageUptime = (int)Math.Round(bossAnalyzers.Average(analyzer => analyzer.Uptime * 100));
+            var totalGaps = bossAnalyzers.Sum(analyzer => analyzer.GapCount);
+            stats.Add(new OverviewStat(
+                $"{averageUptime}%",
+                "Boss Uptime",
+                "Average Searing Blaze uptime across every boss pull.",
+                UptimeTier(averageUptime)));
+            stats.Add(new OverviewStat(
+                $"{totalGaps}",
+                "Boss Gaps",
+                "Times the DoT dropped off a boss before being reapplied."));
+        }
+
+        var spreadAnalyzers = Parser.SearingBlazeSpreadAnalyzers.Select(entry => entry.Analyzer).ToList();
+        if (spreadAnalyzers.Count > 0)
+        {
+            var averageSpread = (int)Math.Round(spreadAnalyzers.Average(analyzer => (double)CoverageScore(analyzer)));
+            var totalTargets = spreadAnalyzers.Sum(analyzer => analyzer.DistinctTargets);
+            stats.Add(new OverviewStat(
+                $"{averageSpread}%",
+                "Avg Spread",
+                "Average Searing Blaze coverage across every AoE pull.",
+                PercentTier(averageSpread)));
+            stats.Add(new OverviewStat(
+                $"{totalTargets}",
+                "Targets Hit",
+                "Total distinct enemies that took Searing Blaze across all AoE pulls."));
+        }
+
+        return stats;
+    }
+
+    private IEnumerable<PerCastData> BuildPerCastData()
+    {
+        foreach (var pull in Parser.Pulls)
+        {
+            if (pull.SearingBlazeUptimeAnalyzer is { } uptime)
+                yield return BuildBossRow(pull, uptime);
+            else if (pull.SearingBlazeSpreadAnalyzer is { } spread)
+                yield return BuildTrashRow(pull, spread);
+        }
+    }
+
+    private PerCastData BuildBossRow(Pull pull, SearingBlazeUptimeAnalyzer analyzer)
+    {
+        var uptimePercent = (int)Math.Round(analyzer.Uptime * 100);
+        var perf = UptimeTier(uptimePercent);
+
+        var stats = new[]
+        {
+            new PerCastStat(
+                $"{uptimePercent}%",
+                "Uptime",
+                "Share of the pull the boss spent carrying Searing Blaze.",
+                Performance: perf),
+            new PerCastStat(
+                $"{analyzer.GapCount}",
+                "Gaps",
+                "Times Searing Blaze dropped off before being reapplied."),
+            new PerCastStat(
+                FormatSeconds(analyzer.TotalGapMs),
+                "Downtime",
+                "Total time Searing Blaze was down between applications."),
+        };
+
+        return new PerCastData
+        {
+            Performance = perf,
+            Stats = stats,
+            Timestamp = Parser.FormatTimestamp(pull.StartTime),
+            Sequence = [],
+            Group = pull.Name,
+            GroupContent = @<PullBanner Pull="@pull" />,
+            AdditionalContent = new AdditionalContent("Notes", @<div>@BuildBossNote(analyzer, uptimePercent)</div>),
+        };
+    }
+
+    private PerCastData BuildTrashRow(Pull pull, SearingBlazeSpreadAnalyzer analyzer)
+    {
+        var score = CoverageScore(analyzer);
+        var perf = PercentTier(score);
+        var coverageLabel = analyzer.TargetCount > 0
+            ? $"{analyzer.DistinctTargets}/{analyzer.TargetCount}"
+            : $"{analyzer.DistinctTargets}";
+
+        var stats = new[]
+        {
+            new PerCastStat(
+                coverageLabel,
+                "Enemies Hit",
+                "Distinct enemies that took Searing Blaze, against the pull's enemy count.",
+                Performance: perf),
+            new PerCastStat(
+                $"{analyzer.TotalApplications}",
+                "Applications",
+                "Total Searing Blaze applications during the pull."),
+        };
+
+        return new PerCastData
+        {
+            Performance = perf,
+            Stats = stats,
+            Timestamp = Parser.FormatTimestamp(pull.StartTime),
+            Sequence = [],
+            Group = pull.Name,
+            GroupContent = @<PullBanner Pull="@pull" />,
+            AdditionalContent = new AdditionalContent("Notes", @<div>@BuildTrashNote(analyzer, score)</div>),
+        };
+    }
+
+    private static string BuildBossNote(SearingBlazeUptimeAnalyzer analyzer, int uptimePercent)
+    {
+        if (analyzer.Windows.Count == 0)
+            return "No Searing Blaze applications were detected on this boss pull.";
+
+        if (analyzer.GapCount == 0)
+            return $"Searing Blaze held {uptimePercent}% uptime with no gaps once applied.";
+
+        var gapLabel = analyzer.GapCount == 1 ? "1 gap" : $"{analyzer.GapCount} gaps";
+        return $"Searing Blaze held {uptimePercent}% uptime with {gapLabel} totalling {FormatSeconds(analyzer.TotalGapMs)} - reapply before the DoT falls off.";
+    }
+
+    private static string BuildTrashNote(SearingBlazeSpreadAnalyzer analyzer, int score)
+    {
+        if (analyzer.DistinctTargets == 0)
+            return "No Searing Blaze applications were detected on this AoE pull.";
+
+        if (analyzer.TargetCount <= 0)
+            return $"Searing Blaze reached {analyzer.DistinctTargets} enemies (the enemy roster was not reported, so coverage is estimated).";
+
+        if (score >= 75)
+            return $"Searing Blaze covered {analyzer.DistinctTargets} of {analyzer.TargetCount} enemies on this pull.";
+
+        return $"Searing Blaze reached only {analyzer.DistinctTargets} of {analyzer.TargetCount} enemies - keep the DoT spread across the pack.";
+    }
+
+    private static int CoverageScore(SearingBlazeSpreadAnalyzer analyzer) =>
+        analyzer.DistinctTargets == 0 ? 0 : (int)Math.Round(analyzer.Coverage * 100);
+
+    private static string FormatSeconds(int milliseconds) =>
+        $"{milliseconds / 1000d:0.#}s";
+
+    private static PerformanceTier UptimeTier(int percent) => percent switch
+    {
+        >= 95 => PerformanceTier.Perfect,
+        >= 85 => PerformanceTier.Good,
+        >= 70 => PerformanceTier.Ok,
+        _ => PerformanceTier.Fail,
+    };
+
+    private static PerformanceTier PercentTier(int percent) => percent switch
+    {
+        >= 75 => PerformanceTier.Perfect,
+        >= 50 => PerformanceTier.Good,
+        >= 25 => PerformanceTier.Ok,
+        _ => PerformanceTier.Fail,
+    };
+}

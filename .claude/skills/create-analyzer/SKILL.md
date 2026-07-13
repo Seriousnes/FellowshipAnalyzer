@@ -77,7 +77,12 @@ For each `[AddAnalyzer]` surface type the source generator produces three read p
 - `parser.{Name}Analyzers` - the cross-pull stream, `IReadOnlyList<PullAnalyzer<{Name}Analyzer>>` of `(Pull, Analyzer)` pairs in pull order.
 - `parser.For(pull).{Name}Analyzer` and the `pull.{Name}Analyzer` extension - the retained instance for one pull (nullable).
 
-The surface type is the topmost ancestor deriving directly from `Analyzer`. To specialize per pull shape, put shared accumulation on an abstract base and give each concrete subclass a disjoint `[ForPull]` filter (see `BasicStComboAnalyzer` in Rime); the base is the single surface all read paths use. FA0016 enforces disjoint filters per surface.
+The surface type is the topmost ancestor deriving directly from `Analyzer`. Two composition patterns cover pull-shape variation:
+
+- **Different questions per shape (the default):** keep each analyzer flat and independent with its own `[ForPull]` filter (e.g. `SearingBlazeUptimeAnalyzer` on boss pulls and `SearingBlazeSpreadAnalyzer` on trash pulls in Ardeos). Each class is its own surface; one guide section composes them by walking `parser.Pulls` and probing each pull's nullable accessors (see create-guide).
+- **One question, shape-specific scoring:** when the shapes share subscriptions and accumulated state and differ only in finalization, put the shared machinery on an abstract base and give each concrete subclass a disjoint `[ForPull]` filter plus its own scoring strategy and output subtype (see `BasicStComboAnalyzer` with `SingleTargetRimeCombo` / `AoERimeCombo` in Rime); the base is the single surface all read paths use. FA0016 enforces disjoint filters per surface.
+
+Inheritance is earned when the base owns real machinery and each subclass owns its strategy and outputs. A base that implements every strategy itself while subclasses one-line-dispatch into it wants the flat pattern instead.
 
 For `[AddModule]` modules the generator emits a typed nullable parser property (`{Name}Analyzer` becomes `{Name}` - the `Analyzer` suffix is stripped).
 

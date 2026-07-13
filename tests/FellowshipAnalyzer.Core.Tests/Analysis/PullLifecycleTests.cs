@@ -82,6 +82,35 @@ public sealed partial class PullLifecycleTests
         Assert.Equal(4, state.Count);
     }
 
+    [Fact]
+    public async Task Analyze_PopulatesPulls_InOrder_IncludingAnalyzerlessPulls_AndResetsBetweenRuns()
+    {
+        var pulls = new List<DungeonPull>
+        {
+            new(Id: 1, EncounterId: 0, Kill: null, StartTime: 100, EndTime: 300, Name: "P0", EnemyNpcs: null),
+            new(Id: 2, EncounterId: 42, Kill: true, StartTime: 500, EndTime: 700, Name: "P1", EnemyNpcs: null),
+        };
+        var events = new List<Event> { Buff(150), Buff(550) };
+
+        var emitter = new EventEmitter(NullLogger<EventEmitter>.Instance);
+        var provider = Substitute.For<IServiceProvider>();
+        provider.GetService(typeof(ILogger<EventEmitter>)).Returns(NullLogger<EventEmitter>.Instance);
+        var parser = new FirstPullOnlyParser(emitter, provider);
+
+        await parser.Analyze(events, playerId: 7, fight: Fight(pulls));
+
+        Assert.Equal(2, parser.Pulls.Count);
+        Assert.Equal("P0", parser.Pulls[0].Name);
+        Assert.Equal("P1", parser.Pulls[1].Name);
+        Assert.Single(parser.PullAnalyzers);
+        Assert.NotNull(parser.Pulls[0].GetAnalyzer(typeof(PullProbeAnalyzer)));
+        Assert.Null(parser.Pulls[1].GetAnalyzer(typeof(PullProbeAnalyzer)));
+
+        await parser.Analyze(events, playerId: 7, fight: Fight(pulls));
+
+        Assert.Equal(2, parser.Pulls.Count);
+    }
+
     private static PullTestParser CreateParser()
     {
         var emitter = new EventEmitter(NullLogger<EventEmitter>.Instance);
@@ -108,6 +137,27 @@ public sealed partial class PullLifecycleTests
             [typeof(FightBookendNormalizer), typeof(PullBookendNormalizer)];
 
         protected override Type[] GetAnalyzerTypes() => [typeof(PullProbeAnalyzer)];
+
+        protected override object? CreateInstance(Type type)
+        {
+            if (type == typeof(WholeFightCounter)) return new WholeFightCounter();
+            if (type == typeof(PullProbeAnalyzer))
+                return new PullProbeAnalyzer(
+                    new Lazy<WholeFightCounter>(() => (WholeFightCounter)ResolveAnalysisModule(typeof(WholeFightCounter))));
+            return base.CreateInstance(type);
+        }
+    }
+
+    private sealed class FirstPullOnlyParser(EventEmitter emitter, IServiceProvider provider)
+        : CombatLogParser(emitter, provider)
+    {
+        protected override Type[] GetModuleTypes() => [typeof(WholeFightCounter)];
+
+        protected override Type[] GetNormalizerTypes() =>
+            [typeof(FightBookendNormalizer), typeof(PullBookendNormalizer)];
+
+        protected override Type[] GetAnalyzerTypes(Pull pull) =>
+            pull.Index == 0 ? [typeof(PullProbeAnalyzer)] : [];
 
         protected override object? CreateInstance(Type type)
         {
