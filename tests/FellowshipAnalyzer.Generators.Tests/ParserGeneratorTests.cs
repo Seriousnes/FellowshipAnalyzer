@@ -260,14 +260,11 @@ public class ParserGeneratorTests
 
         [ForPull(PullKind.Single)]
         [Uses<DepModule>]
-        public sealed partial class ConsumerAnalyzer : Analyzer<ComboResult>
+        public sealed partial class ConsumerAnalyzer : Analyzer
         {
             [On<ApplyBuffEvent>]
             private void OnBuff(ApplyBuffEvent e) { _ = DepModule.Ping() + DepModule.Beep(); }
-            public override ComboResult OnPullEnd() => new();
         }
-
-        public sealed record ComboResult(int X) : IResult { public ComboResult() : this(0) { } }
         """;
 
     private static string UsesConflict() => Usings + """
@@ -294,14 +291,11 @@ public class ParserGeneratorTests
 
         [ForPull(PullKind.Single)]
         [Uses<DepModule>]
-        public sealed partial class ConflictAnalyzer(Lazy<OtherDep> other) : Analyzer<ComboResult>
+        public sealed partial class ConflictAnalyzer(Lazy<OtherDep> other) : Analyzer
         {
             [On<ApplyBuffEvent>]
             private void OnBuff(ApplyBuffEvent e) { _ = _other.Ping(); }
-            public override ComboResult OnPullEnd() => new();
         }
-
-        public sealed record ComboResult(int X) : IResult { public ComboResult() : this(0) { } }
         """;
 
     private static string UsesMultiple() => Usings + """
@@ -330,14 +324,11 @@ public class ParserGeneratorTests
         [ForPull(PullKind.Single)]
         [Uses<OtherDep>]
         [Uses<DepModule>]
-        public sealed partial class MultiAnalyzer : Analyzer<ComboResult>
+        public sealed partial class MultiAnalyzer : Analyzer
         {
             [On<ApplyBuffEvent>]
             private void OnBuff(ApplyBuffEvent e) { _ = DepModule.Ping() + OtherDep.Pong(); }
-            public override ComboResult OnPullEnd() => new();
         }
-
-        public sealed record ComboResult(int X) : IResult { public ComboResult() : this(0) { } }
         """;
 
     private static int OccurrenceCount(string haystack, string needle)
