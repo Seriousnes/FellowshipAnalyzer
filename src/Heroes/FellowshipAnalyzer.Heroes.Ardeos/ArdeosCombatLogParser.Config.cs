@@ -6,9 +6,9 @@ public sealed partial class ArdeosCombatLogParser
 {
     public static HeroConfig HeroConfig { get; } = new()
     {
-        Support = SupportLevel.Partial,
+        Support = SupportLevel.WIP,
         Maintainers = [Contributors.Seriousnes],
-        SeasonLabel = Seasons.Current,
+        SeasonLabel = Seasons.Season3,
         Changelog = Changelog.Entries,
         ExampleReport = "a:RaMDvgzWXBCnF4QT/16/25",
     };

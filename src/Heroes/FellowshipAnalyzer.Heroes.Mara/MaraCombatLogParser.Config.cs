@@ -6,9 +6,9 @@ public sealed partial class MaraCombatLogParser
 {
     public static HeroConfig HeroConfig { get; } = new()
     {
-        Support = SupportLevel.Partial,
+        Support = SupportLevel.WIP,
         Maintainers = [Contributors.Seriousnes],
-        SeasonLabel = Seasons.Current,
+        SeasonLabel = Seasons.Season3,
         Changelog = Changelog.Entries,
         ExampleReport = "a:6g3jkMGFqrZn1wmW/408/4",
     };

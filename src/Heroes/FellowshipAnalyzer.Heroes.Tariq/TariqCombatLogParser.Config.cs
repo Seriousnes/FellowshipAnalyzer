@@ -6,9 +6,9 @@ public sealed partial class TariqCombatLogParser
 {
     public static HeroConfig HeroConfig { get; } = new()
     {
-        Support = SupportLevel.Partial,
+        Support = SupportLevel.WIP,
         Maintainers = [Contributors.Seriousnes],
-        SeasonLabel = Seasons.Current,
+        SeasonLabel = Seasons.Season3,
         Changelog = Changelog.Entries,
         ExampleReport = "a:NcqHDKzamL7n6YFv/18/5",
     };
