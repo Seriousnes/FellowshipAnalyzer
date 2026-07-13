@@ -8,15 +8,20 @@ namespace FellowshipAnalyzer.Heroes.Elarion.Modules;
 /// Tracks the time gap between Lunarlight Mark and Starfall Volley casts within a pull. Casting them
 /// too close together (within ~5s) wastes the window where marks could be re-applied and erupted
 /// between Volley casts. The guide recommends staggering by 10-15 seconds. Both builds open with
-/// Lunarlight Mark → Starfall Volley, so this runs on every pull shape.
+/// Lunarlight Mark into Starfall Volley, so this runs on every pull shape.
 /// </summary>
 [ForPull(PullKind.Single | PullKind.Multi)]
-public sealed partial class StarfallVolleyDesyncAnalyzer : Analyzer<StarfallVolleyDesyncReport>
+public sealed partial class StarfallVolleyDesyncAnalyzer : Analyzer
 {
     private const int CloseGapThresholdMs = 5000;
 
     private int? _lastLunarlightMarkTimestamp;
-    private readonly List<DesyncEvent> _events = [];
+    private readonly List<DesyncEvent> _volleys = [];
+
+    public IReadOnlyList<DesyncEvent> Volleys => _volleys;
+    public int CloseGapCount { get; private set; }
+    public int VolleyCount => _volleys.Count;
+    public double AverageGapMs { get; private set; }
 
     [On<CastEvent>(By = Actor.Player, Spell = nameof(Spells.LunarlightMark))]
     private void OnLunarlightMark(CastEvent e)
@@ -29,20 +34,19 @@ public sealed partial class StarfallVolleyDesyncAnalyzer : Analyzer<StarfallVoll
     {
         if (_lastLunarlightMarkTimestamp is int last)
         {
-            _events.Add(new DesyncEvent(e.Timestamp, e.Timestamp - last));
+            _volleys.Add(new DesyncEvent(e.Timestamp, e.Timestamp - last));
         }
         else
         {
-            _events.Add(new DesyncEvent(e.Timestamp, GapMs: int.MaxValue));
+            _volleys.Add(new DesyncEvent(e.Timestamp, GapMs: int.MaxValue));
         }
     }
 
-    public override StarfallVolleyDesyncReport OnPullEnd()
+    public override void OnPullEnd()
     {
-        var closeGaps = _events.Count(e => e.GapMs < CloseGapThresholdMs);
-        var measuredGaps = _events.Where(e => e.GapMs != int.MaxValue).Select(e => e.GapMs).ToList();
-        var averageGapMs = measuredGaps.Count == 0 ? 0 : measuredGaps.Average();
-        return new StarfallVolleyDesyncReport(_events, closeGaps, _events.Count, averageGapMs);
+        CloseGapCount = _volleys.Count(e => e.GapMs < CloseGapThresholdMs);
+        var measuredGaps = _volleys.Where(e => e.GapMs != int.MaxValue).Select(e => e.GapMs).ToList();
+        AverageGapMs = measuredGaps.Count == 0 ? 0 : measuredGaps.Average();
     }
 
     public readonly record struct DesyncEvent(int VolleyTimestamp, int GapMs);

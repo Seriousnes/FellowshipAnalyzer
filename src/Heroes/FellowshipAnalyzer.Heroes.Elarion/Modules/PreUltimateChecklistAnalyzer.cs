@@ -14,7 +14,7 @@ namespace FellowshipAnalyzer.Heroes.Elarion.Modules;
 /// </summary>
 [ForPull(PullKind.Single | PullKind.Multi)]
 [Uses<SpellUsable>]
-public sealed partial class PreUltimateChecklistAnalyzer : Analyzer<PreUltimateChecklistReport>
+public sealed partial class PreUltimateChecklistAnalyzer : Analyzer
 {
     private const int PreUltLookbackMs = 6000;
 
@@ -25,36 +25,41 @@ public sealed partial class PreUltimateChecklistAnalyzer : Analyzer<PreUltimateC
 
     private readonly List<UltWindow> _windows = [];
 
+    public IReadOnlyList<UltWindow> Windows => _windows;
+
+    /// <summary>Average share (0-100) of the five pre-conditions met across all ult windows.</summary>
+    public int Score { get; private set; }
+
     [On<CastEvent>(By = Actor.Player, Spell = nameof(Spells.SkystridersSupremacy))]
-    private void OnSupremacy(CastEvent e) => _supremacyCasts.Add(e.Timestamp);
+    private void OnSupremacy(CastEvent castEvent) => _supremacyCasts.Add(castEvent.Timestamp);
 
     [On<CastEvent>(By = Actor.Player, Spell = nameof(Items.VoidbringerTouch))]
-    private void OnVoidbringer(CastEvent e) => _voidbringerCasts.Add(e.Timestamp);
+    private void OnVoidbringer(CastEvent castEvent) => _voidbringerCasts.Add(castEvent.Timestamp);
 
     [On<ApplyBuffEvent>(To = Actor.Player, Spell = nameof(Spells.SkystridersGraceBuff))]
-    private void OnGraceApply(ApplyBuffEvent e) => _graceBuffActive = true;
+    private void OnGraceApply(ApplyBuffEvent _) => _graceBuffActive = true;
 
     [On<RemoveBuffEvent>(To = Actor.Player, Spell = nameof(Spells.SkystridersGraceBuff))]
-    private void OnGraceRemove(RemoveBuffEvent e) => _graceBuffActive = false;
+    private void OnGraceRemove(RemoveBuffEvent _) => _graceBuffActive = false;
 
     [On<ApplyBuffEvent>(To = Actor.Player, Spell = nameof(Spells.EventHorizonBuff))]
-    private void OnEventHorizonApply(ApplyBuffEvent e) => _eventHorizonBuffActive = true;
+    private void OnEventHorizonApply(ApplyBuffEvent _) => _eventHorizonBuffActive = true;
 
     [On<RemoveBuffEvent>(To = Actor.Player, Spell = nameof(Spells.EventHorizonBuff))]
-    private void OnEventHorizonRemove(RemoveBuffEvent e) => _eventHorizonBuffActive = false;
+    private void OnEventHorizonRemove(RemoveBuffEvent _) => _eventHorizonBuffActive = false;
 
     [On<ApplyBuffEvent>(To = Actor.Player, Spell = nameof(Spells.SpiritOfHeroism))]
-    private void OnUltBuffApply(ApplyBuffEvent e) => RecordWindow(e.Timestamp);
+    private void OnUltBuffApply(ApplyBuffEvent applyBuffEvent) => RecordWindow(applyBuffEvent.Timestamp);
 
     [On<ApplyDebuffEvent>(By = Actor.Player, Spell = nameof(Spells.SpiritOfHeroism))]
-    private void OnUltDebuffApply(ApplyDebuffEvent e) => RecordWindow(e.Timestamp);
+    private void OnUltDebuffApply(ApplyDebuffEvent applyDebuffEvent) => RecordWindow(applyDebuffEvent.Timestamp);
 
-    public override PreUltimateChecklistReport OnPullEnd()
+    [On<PullEndEvent>]
+    public void OnPullEnd(PullEndEvent _)
     {
-        var score = _windows.Count == 0
+        Score = _windows.Count == 0
             ? 0
             : (int)Math.Round(_windows.Average(w => w.ChecksPassed * 100.0 / w.TotalChecks));
-        return new PreUltimateChecklistReport(_windows, score);
     }
 
     private void RecordWindow(int timestamp)

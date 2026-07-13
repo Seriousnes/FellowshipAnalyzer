@@ -26,7 +26,7 @@ public sealed class ArdeosAnalysisEngineTests
     }
 
     [Fact]
-    public async Task Analyze_CleanWildfireWindow_IsScoredSuccessful()
+    public async Task Analyze_CleanWildfireWindow_IsSuccessful()
     {
         const int anchor = 10000;
         var events = new List<Event>
@@ -45,24 +45,22 @@ public sealed class ArdeosAnalysisEngineTests
 
         var (parser, _) = await AnalyzeAsync(events, SpanningFight(0, 20000));
 
-        var entry = parser.WildfireComboReports.ShouldHaveSingleItem();
-        var report = entry.Result;
-        report.EvaluatedWindows.ShouldBe(1);
-        report.SuccessfulWindows.ShouldBe(1);
-        report.PartialWindows.ShouldBe(0);
-        report.WindowsWithPyromania.ShouldBe(1);
-        report.ScoreCard.Score.ShouldBeInRange(0, 100);
-        report.ScoreCard.Score.ShouldBe(100);
+        var entry = parser.WildfireComboAnalyzers.ShouldHaveSingleItem();
+        var analyzer = entry.Analyzer;
+        analyzer.EvaluatedWindows.ShouldBe(1);
+        analyzer.SuccessfulWindows.ShouldBe(1);
+        analyzer.PartialWindows.ShouldBe(0);
+        analyzer.WindowsWithPyromania.ShouldBe(1);
 
-        var window = report.Windows.ShouldHaveSingleItem();
+        var window = analyzer.Windows.ShouldHaveSingleItem();
         window.CoreSetupCount.ShouldBe(4);
         window.DetonateCasts.ShouldBe(3);
         window.HasPyromania.ShouldBeTrue();
         window.Successful.ShouldBeTrue();
 
         var pull = entry.Pull;
-        pull.WildfireComboReport.ShouldBe(report);
-        parser.For(pull).WildfireComboReport.ShouldBe(report);
+        pull.WildfireComboAnalyzer.ShouldBeSameAs(analyzer);
+        parser.For(pull).WildfireComboAnalyzer.ShouldBeSameAs(analyzer);
     }
 
     [Fact]
@@ -81,14 +79,12 @@ public sealed class ArdeosAnalysisEngineTests
 
         var (parser, _) = await AnalyzeAsync(events, SpanningFight(0, 20000));
 
-        var report = parser.WildfireComboReports.ShouldHaveSingleItem().Result;
-        report.EvaluatedWindows.ShouldBe(1);
-        report.SuccessfulWindows.ShouldBe(0);
-        report.PartialWindows.ShouldBe(0);
-        report.ScoreCard.Score.ShouldBe(0);
-        report.ScoreCard.Accent.ShouldBe("ember");
+        var analyzer = parser.WildfireComboAnalyzers.ShouldHaveSingleItem().Analyzer;
+        analyzer.EvaluatedWindows.ShouldBe(1);
+        analyzer.SuccessfulWindows.ShouldBe(0);
+        analyzer.PartialWindows.ShouldBe(0);
 
-        var window = report.Windows.ShouldHaveSingleItem();
+        var window = analyzer.Windows.ShouldHaveSingleItem();
         window.CoreSetupCount.ShouldBe(4);
         window.DetonateCasts.ShouldBe(1);
         window.Successful.ShouldBeFalse();
@@ -110,14 +106,12 @@ public sealed class ArdeosAnalysisEngineTests
 
         var (parser, _) = await AnalyzeAsync(events, SpanningFight(0, 20000));
 
-        var report = parser.WildfireComboReports.ShouldHaveSingleItem().Result;
-        report.EvaluatedWindows.ShouldBe(1);
-        report.SuccessfulWindows.ShouldBe(0);
-        report.PartialWindows.ShouldBe(1);
-        report.ScoreCard.Score.ShouldBe(50);
-        report.ScoreCard.Accent.ShouldBe("amber");
+        var analyzer = parser.WildfireComboAnalyzers.ShouldHaveSingleItem().Analyzer;
+        analyzer.EvaluatedWindows.ShouldBe(1);
+        analyzer.SuccessfulWindows.ShouldBe(0);
+        analyzer.PartialWindows.ShouldBe(1);
 
-        var window = report.Windows.ShouldHaveSingleItem();
+        var window = analyzer.Windows.ShouldHaveSingleItem();
         window.CoreSetupCount.ShouldBe(1);
         window.DetonateCasts.ShouldBe(3);
         window.Partial.ShouldBeTrue();
@@ -133,13 +127,11 @@ public sealed class ArdeosAnalysisEngineTests
 
         var (parser, _) = await AnalyzeAsync(events, SpanningFight(0, 80000));
 
-        var report = parser.WildfireComboReports.ShouldHaveSingleItem().Result;
-        report.EvaluatedWindows.ShouldBe(2);
-        report.SuccessfulWindows.ShouldBe(1);
-        report.PartialWindows.ShouldBe(0);
-        report.ScoreCard.Score.ShouldBe(50);
-        report.ScoreCard.Accent.ShouldBe("amber");
-        report.Windows.Count.ShouldBe(2);
+        var analyzer = parser.WildfireComboAnalyzers.ShouldHaveSingleItem().Analyzer;
+        analyzer.EvaluatedWindows.ShouldBe(2);
+        analyzer.SuccessfulWindows.ShouldBe(1);
+        analyzer.PartialWindows.ShouldBe(0);
+        analyzer.Windows.Count.ShouldBe(2);
     }
 
     private static void AppendCleanWindow(List<Event> events, int anchor)

@@ -1,9 +1,12 @@
+using System.Linq;
+
 using FellowshipAnalyzer.Core;
 using FellowshipAnalyzer.Core.Analysis;
 using FellowshipAnalyzer.Core.Common.Spells.Ardeos;
 using FellowshipAnalyzer.Core.Events;
 using FellowshipAnalyzer.Core.FellowshipLogs;
 using FellowshipAnalyzer.Heroes.Ardeos.Analysis;
+using FellowshipAnalyzer.Heroes.Ardeos.Modules;
 
 using Microsoft.Extensions.DependencyInjection;
 
@@ -19,7 +22,7 @@ public sealed class SearingBlazeSpreadAnalyzerTests
     private const int EnemyId = 99;
 
     [Fact]
-    public async Task Analyze_SpreadAcrossPartialPack_ScoresCoverage()
+    public async Task Analyze_SpreadAcrossPartialPack_MeasuresCoverage()
     {
         var events = new List<Event>
         {
@@ -30,19 +33,16 @@ public sealed class SearingBlazeSpreadAnalyzerTests
 
         var (parser, _) = await AnalyzeAsync(events, TrashFight(5));
 
-        var entry = parser.SearingBlazeSpreadReports.ShouldHaveSingleItem();
-        var report = entry.Result;
-        report.DistinctTargets.ShouldBe(3);
-        report.TargetCount.ShouldBe(5);
-        report.Coverage.ShouldBe(0.6, 0.0001);
-        report.TotalApplications.ShouldBe(3);
-        report.ScoreCard.Score.ShouldBe(60);
-        report.ScoreCard.Accent.ShouldBe("amber");
-        report.Findings[0].Severity.ShouldBe("warning");
+        var entry = parser.SearingBlazeAnalyzers.ShouldHaveSingleItem();
+        var analyzer = entry.Analyzer.ShouldBeOfType<SearingBlazeSpreadAnalyzer>();
+        analyzer.DistinctTargets.ShouldBe(3);
+        analyzer.TargetCount.ShouldBe(5);
+        analyzer.Coverage.ShouldBe(0.6, 0.0001);
+        analyzer.TotalApplications.ShouldBe(3);
 
         var pull = entry.Pull;
-        pull.SearingBlazeSpreadReport.ShouldBe(report);
-        parser.For(pull).SearingBlazeSpreadReport.ShouldBe(report);
+        pull.SearingBlazeAnalyzer.ShouldBeSameAs(analyzer);
+        parser.For(pull).SearingBlazeAnalyzer.ShouldBeSameAs(analyzer);
     }
 
     [Fact]
@@ -58,15 +58,14 @@ public sealed class SearingBlazeSpreadAnalyzerTests
 
         var (parser, _) = await AnalyzeAsync(events, TrashFight(4));
 
-        var report = parser.SearingBlazeSpreadReports.ShouldHaveSingleItem().Result;
-        report.DistinctTargets.ShouldBe(2);
-        report.TotalApplications.ShouldBe(2);
-        report.ScoreCard.Score.ShouldBe(50);
-        report.ScoreCard.Accent.ShouldBe("amber");
+        var analyzer = SingleSpreadAnalyzer(parser);
+        analyzer.DistinctTargets.ShouldBe(2);
+        analyzer.TotalApplications.ShouldBe(2);
+        analyzer.Coverage.ShouldBe(0.5, 0.0001);
     }
 
     [Fact]
-    public async Task Analyze_FullCoverage_ScoresIce()
+    public async Task Analyze_FullCoverage_ReachesEveryEnemy()
     {
         var events = new List<Event>
         {
@@ -77,24 +76,20 @@ public sealed class SearingBlazeSpreadAnalyzerTests
 
         var (parser, _) = await AnalyzeAsync(events, TrashFight(3));
 
-        var report = parser.SearingBlazeSpreadReports.ShouldHaveSingleItem().Result;
-        report.DistinctTargets.ShouldBe(3);
-        report.Coverage.ShouldBe(1.0, 0.0001);
-        report.ScoreCard.Score.ShouldBe(100);
-        report.ScoreCard.Accent.ShouldBe("ice");
+        var analyzer = SingleSpreadAnalyzer(parser);
+        analyzer.DistinctTargets.ShouldBe(3);
+        analyzer.Coverage.ShouldBe(1.0, 0.0001);
     }
 
     [Fact]
-    public async Task Analyze_NoSearingBlaze_InfoFindingZeroScore()
+    public async Task Analyze_NoSearingBlaze_ReportsZeroCoverage()
     {
         var (parser, _) = await AnalyzeAsync([], TrashFight(5));
 
-        var report = parser.SearingBlazeSpreadReports.ShouldHaveSingleItem().Result;
-        report.DistinctTargets.ShouldBe(0);
-        report.ScoreCard.Score.ShouldBe(0);
-        report.ScoreCard.Accent.ShouldBe("ember");
-        report.Findings.ShouldNotBeEmpty();
-        report.Findings[0].Severity.ShouldBe("info");
+        var analyzer = SingleSpreadAnalyzer(parser);
+        analyzer.DistinctTargets.ShouldBe(0);
+        analyzer.Coverage.ShouldBe(0d, 0.0001);
+        analyzer.TotalApplications.ShouldBe(0);
     }
 
     [Fact]
@@ -108,11 +103,10 @@ public sealed class SearingBlazeSpreadAnalyzerTests
 
         var (parser, _) = await AnalyzeAsync(events, SpanningFight());
 
-        var report = parser.SearingBlazeSpreadReports.ShouldHaveSingleItem().Result;
-        report.TargetCount.ShouldBe(0);
-        report.DistinctTargets.ShouldBe(2);
-        report.ScoreCard.Score.ShouldBe(67);
-        report.ScoreCard.Accent.ShouldBe("amber");
+        var analyzer = SingleSpreadAnalyzer(parser);
+        analyzer.TargetCount.ShouldBe(0);
+        analyzer.DistinctTargets.ShouldBe(2);
+        analyzer.Coverage.ShouldBe(2d / 3, 0.0001);
     }
 
     [Fact]
@@ -127,7 +121,7 @@ public sealed class SearingBlazeSpreadAnalyzerTests
 
         var (parser, _) = await AnalyzeAsync(events, BossFight());
 
-        parser.SearingBlazeSpreadReports.ShouldBeEmpty();
+        parser.SearingBlazeAnalyzers.Select(e => e.Analyzer).OfType<SearingBlazeSpreadAnalyzer>().ShouldBeEmpty();
     }
 
     [Fact]
@@ -141,8 +135,8 @@ public sealed class SearingBlazeSpreadAnalyzerTests
 
         var (parser, _) = await AnalyzeAsync(events, TrashFight(3));
 
-        var report = parser.SearingBlazeSpreadReports.ShouldHaveSingleItem().Result;
-        report.DistinctTargets.ShouldBe(2);
+        var analyzer = SingleSpreadAnalyzer(parser);
+        analyzer.DistinctTargets.ShouldBe(2);
     }
 
     [Fact]
@@ -159,9 +153,9 @@ public sealed class SearingBlazeSpreadAnalyzerTests
 
         var (parser, _) = await AnalyzeAsync(events, TrashFight(5));
 
-        var report = parser.SearingBlazeSpreadReports.ShouldHaveSingleItem().Result;
-        report.DistinctTargets.ShouldBe(1);
-        report.TotalApplications.ShouldBe(1);
+        var analyzer = SingleSpreadAnalyzer(parser);
+        analyzer.DistinctTargets.ShouldBe(1);
+        analyzer.TotalApplications.ShouldBe(1);
     }
 
     [Fact]
@@ -175,13 +169,13 @@ public sealed class SearingBlazeSpreadAnalyzerTests
 
         var (parser, _) = await AnalyzeAsync(events, TrashFight(4));
 
-        var report = parser.SearingBlazeSpreadReports.ShouldHaveSingleItem().Result;
-        report.DistinctTargets.ShouldBe(2);
-        report.TotalApplications.ShouldBe(1);
+        var analyzer = SingleSpreadAnalyzer(parser);
+        analyzer.DistinctTargets.ShouldBe(2);
+        analyzer.TotalApplications.ShouldBe(1);
     }
 
     [Fact]
-    public async Task Analyze_LowCoverage_MajorFindingEmberAccent()
+    public async Task Analyze_LowCoverage_ReportsLowShare()
     {
         var events = new List<Event>
         {
@@ -190,12 +184,13 @@ public sealed class SearingBlazeSpreadAnalyzerTests
 
         var (parser, _) = await AnalyzeAsync(events, TrashFight(10));
 
-        var report = parser.SearingBlazeSpreadReports.ShouldHaveSingleItem().Result;
-        report.DistinctTargets.ShouldBe(1);
-        report.ScoreCard.Score.ShouldBe(10);
-        report.ScoreCard.Accent.ShouldBe("ember");
-        report.Findings[0].Severity.ShouldBe("major");
+        var analyzer = SingleSpreadAnalyzer(parser);
+        analyzer.DistinctTargets.ShouldBe(1);
+        analyzer.Coverage.ShouldBe(0.1, 0.0001);
     }
+
+    private static SearingBlazeSpreadAnalyzer SingleSpreadAnalyzer(ArdeosCombatLogParser parser) =>
+        parser.SearingBlazeAnalyzers.ShouldHaveSingleItem().Analyzer.ShouldBeOfType<SearingBlazeSpreadAnalyzer>();
 
     private static ApplyDebuffEvent Apply(int targetId, int? targetInstance, int timestamp) => new()
     {

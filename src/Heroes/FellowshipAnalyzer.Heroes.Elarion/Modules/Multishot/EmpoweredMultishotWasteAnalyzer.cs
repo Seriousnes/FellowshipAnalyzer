@@ -8,17 +8,21 @@ namespace FellowshipAnalyzer.Heroes.Elarion.Modules;
 /// Tracks Multishot casts and how many of them were "regular" while an Empowered Multishot charge
 /// was available. Empowered Multishot should always be consumed before regular casts. Multishot is
 /// the AoE filler, so this is scored on multi-target (trash) pulls. Empowered Multishot comes from
-/// the Focused Expanse talent; <see cref="EmpoweredMultishotWasteReport.BuildActive"/> records
-/// whether the analysed player runs that build.
+/// the Focused Expanse talent; <see cref="BuildActive"/> records whether the analysed player runs
+/// that build.
 /// </summary>
 [ForPull(PullKind.Multi)]
-public sealed partial class EmpoweredMultishotWasteAnalyzer : Analyzer<EmpoweredMultishotWasteReport>
+public sealed partial class EmpoweredMultishotWasteAnalyzer : Analyzer
 {
     private bool _empoweredAvailable;
 
-    private int _regularCasts;
-    private int _empoweredConsumed;
-    private int _wastedExpirations;
+    public int RegularCasts { get; private set; }
+    public int EmpoweredConsumed { get; private set; }
+    public int WastedExpirations { get; private set; }
+
+    /// <summary>True when the player runs the Focused Expanse (Empowered Multishot) build; guides
+    /// use it to hide the section for other builds.</summary>
+    public bool BuildActive { get; private set; }
 
     [On<ApplyBuffEvent>(To = Actor.Player, Spell = nameof(Spells.EmpoweredMultishotBuff))]
     private void OnApplyBuff(ApplyBuffEvent e)
@@ -31,7 +35,7 @@ public sealed partial class EmpoweredMultishotWasteAnalyzer : Analyzer<Empowered
     {
         if (_empoweredAvailable)
         {
-            _wastedExpirations++;
+            WastedExpirations++;
         }
 
         _empoweredAvailable = false;
@@ -42,19 +46,17 @@ public sealed partial class EmpoweredMultishotWasteAnalyzer : Analyzer<Empowered
     {
         if (_empoweredAvailable)
         {
-            _empoweredConsumed++;
+            EmpoweredConsumed++;
             _empoweredAvailable = false;
         }
         else
         {
-            _regularCasts++;
+            RegularCasts++;
         }
     }
 
-    public override EmpoweredMultishotWasteReport OnPullEnd() =>
-        new(
-            _regularCasts,
-            _empoweredConsumed,
-            _wastedExpirations,
-            Owner.SelectedCombatant.HasTalent(Talents.FocusedExpanse.Id));
+    public override void OnPullEnd()
+    {
+        BuildActive = Owner.SelectedCombatant.HasTalent(Talents.FocusedExpanse.Id);
+    }
 }

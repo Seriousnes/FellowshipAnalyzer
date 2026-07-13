@@ -5,7 +5,7 @@ using FellowshipAnalyzer.Core.Events;
 namespace FellowshipAnalyzer.Heroes.Ardeos.Modules;
 
 /// <summary>
-/// Scores Ardeos's Engulfing Flames charge economy. Engulfing Flames is a flat two-charge,
+/// Measures Ardeos's Engulfing Flames charge economy. Engulfing Flames is a flat two-charge,
 /// twenty-second-recharge spell; the goal is to enter each Wildfire burn window holding both charges
 /// so it can be double-cast inside the burst. Two waste signals are surfaced: window readiness (how
 /// many Engulfing Flames charges were available at each Wildfire cast, two being ready) and overcap
@@ -14,20 +14,32 @@ namespace FellowshipAnalyzer.Heroes.Ardeos.Modules;
 /// <remarks>
 /// Readiness is sampled live from <see cref="SpellUsable"/> at each Wildfire cast. Overcap is
 /// reconstructed from the charge count over time: <see cref="SpellUsable"/> fabricates an
-/// <see cref="UpdateSpellUsableEvent"/> whenever Engulfing Flames spends or restores a charge, and the
-/// intervals it spends at max charges — assuming it starts the pull at max — are summed and divided by
-/// the recharge period, so brief holds before an imminent window cost nothing while sitting capped
+/// <see cref="UpdateSpellUsableEvent"/> whenever Engulfing Flames spends or restores a charge, and
+/// the intervals it spends at max charges, assuming it starts the pull at max, are summed and divided
+/// by the recharge period, so brief holds before an imminent window cost nothing while sitting capped
 /// across recharge cycles is charged as waste. One analyzer serves single-target and AoE pulls, since
 /// the burn window is identical for both.
 /// </remarks>
 [ForPull(PullKind.Single | PullKind.Multi)]
-public sealed partial class EngulfingFlamesEconomyAnalyzer : Analyzer<EngulfingFlamesEconomyReport>
+public sealed partial class EngulfingFlamesEconomyAnalyzer : Analyzer
 {
-    private const int WastePenaltyPerCharge = 10;
     private const int FallbackRechargeMs = 20_000;
 
     private readonly List<WindowReadiness> _windows = [];
     private readonly List<(int Timestamp, int Charges)> _chargeSamples = [];
+
+    /// <summary>Per-Wildfire-cast snapshots of Engulfing Flames charge availability.</summary>
+    public IReadOnlyList<WindowReadiness> Windows => _windows;
+
+    public int WindowsEvaluated => _windows.Count;
+    public int WindowsReady { get; private set; }
+    public int WindowsShort => WindowsEvaluated - WindowsReady;
+
+    /// <summary>Full Engulfing Flames recharge periods wasted sitting at maximum charges.</summary>
+    public int WastedCharges { get; private set; }
+
+    /// <summary>Total seconds Engulfing Flames spent at maximum charges during the pull.</summary>
+    public double CappedSeconds { get; private set; }
 
     [On<CastEvent>(By = Actor.Player, Spell = nameof(Spells.Wildfire))]
     private void OnWildfireCast(CastEvent e)
@@ -50,8 +62,8 @@ public sealed partial class EngulfingFlamesEconomyAnalyzer : Analyzer<EngulfingF
         _chargeSamples.Add((e.Timestamp, e.ChargesAvailable));
     }
 
-    /// <summary>Projects the pull's window readiness and Engulfing Flames overcap.</summary>
-    public override EngulfingFlamesEconomyReport OnPullEnd()
+    /// <summary>Finalizes the pull's window readiness and Engulfing Flames overcap.</summary>
+    public override void OnPullEnd()
     {
         var maxCharges = Spells.EngulfingFlames.Charges;
         var rechargeMs = Spells.EngulfingFlames.Cooldown is { } cooldown and > 0
@@ -59,41 +71,9 @@ public sealed partial class EngulfingFlamesEconomyAnalyzer : Analyzer<EngulfingF
             : FallbackRechargeMs;
 
         var cappedMs = ComputeCappedMilliseconds(maxCharges);
-        var wastedCharges = rechargeMs > 0 ? (int)(cappedMs / rechargeMs) : 0;
-        var cappedSeconds = Math.Round(cappedMs / 1000d, 1);
-
-        var windowsEvaluated = _windows.Count;
-        var windowsReady = _windows.Count(w => w.Ready);
-        var windowsShort = windowsEvaluated - windowsReady;
-
-        var score = windowsEvaluated == 0
-            ? 0
-            : Math.Clamp(
-                (int)Math.Round((double)windowsReady / windowsEvaluated * 100) - (wastedCharges * WastePenaltyPerCharge),
-                0,
-                100);
-
-        var summary = windowsEvaluated == 0
-            ? "No Wildfire windows detected in this pull."
-            : $"{windowsReady}/{windowsEvaluated} Wildfire windows opened with both Engulfing Flames charges ready.";
-
-        var scoreCard = new AnalyzerScoreCard(
-            "Engulfing Flames Economy",
-            score,
-            summary,
-            score >= 75 ? "ice" : score >= 50 ? "amber" : "ember");
-
-        var findings = BuildFindings(windowsEvaluated, windowsReady, windowsShort, wastedCharges, cappedSeconds);
-
-        return new EngulfingFlamesEconomyReport(
-            scoreCard,
-            windowsEvaluated,
-            windowsReady,
-            windowsShort,
-            wastedCharges,
-            cappedSeconds,
-            _windows,
-            findings);
+        WastedCharges = rechargeMs > 0 ? (int)(cappedMs / rechargeMs) : 0;
+        CappedSeconds = Math.Round(cappedMs / 1000d, 1);
+        WindowsReady = _windows.Count(w => w.Ready);
     }
 
     private long ComputeCappedMilliseconds(int maxCharges)
@@ -125,49 +105,13 @@ public sealed partial class EngulfingFlamesEconomyAnalyzer : Analyzer<EngulfingF
         return cappedMs;
     }
 
-    private static List<ArdeosFinding> BuildFindings(
-        int windowsEvaluated,
-        int windowsReady,
-        int windowsShort,
-        int wastedCharges,
-        double cappedSeconds)
-    {
-        var findings = new List<ArdeosFinding>();
-
-        if (windowsEvaluated == 0)
-        {
-            findings.Add(new ArdeosFinding("info", "No Wildfire windows were detected in this pull."));
-        }
-        else if (windowsShort == 0)
-        {
-            findings.Add(new ArdeosFinding("info",
-                $"Both Engulfing Flames charges were ready for all {windowsEvaluated} Wildfire windows."));
-        }
-        else
-        {
-            findings.Add(new ArdeosFinding(
-                windowsReady > 0 ? "warning" : "major",
-                $"{windowsShort} of {windowsEvaluated} Wildfire windows opened without both Engulfing Flames charges ready — hold both charges for the burst so it can be double-cast."));
-        }
-
-        if (wastedCharges > 0)
-        {
-            findings.Add(new ArdeosFinding("warning",
-                $"Engulfing Flames sat at maximum charges for {cappedSeconds:0.#}s, wasting about {wastedCharges} charge{(wastedCharges == 1 ? string.Empty : "s")} of recharge."));
-        }
-
-        return findings;
-    }
-
     /// <summary>
-    /// Per-window snapshot of Engulfing Flames charge availability at a Wildfire cast. Exposed as
-    /// settable properties so the source-generated <c>JsonSerializerContext</c> can round-trip it
-    /// across worker boundaries.
+    /// Snapshot of Engulfing Flames charge availability at a single Wildfire cast.
     /// </summary>
-    public sealed class WindowReadiness
+    public sealed record WindowReadiness
     {
-        public int Timestamp { get; set; }
-        public int ChargesAvailable { get; set; }
-        public bool Ready { get; set; }
+        public int Timestamp { get; init; }
+        public int ChargesAvailable { get; init; }
+        public bool Ready { get; init; }
     }
 }

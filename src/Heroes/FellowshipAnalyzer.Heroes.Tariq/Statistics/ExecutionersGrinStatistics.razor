@@ -1,0 +1,36 @@
+@inherits AnalyzerStatistic<ExecutionersGrinTracker>
+
+<StatCard Title="Executioner's Grin">
+    <CastOverview Title="Culling Strike Opportunities" Stats="@BuildStats()" />
+</StatCard>
+
+@code {
+    private IEnumerable<OverviewStat> BuildStats()
+    {
+        var stats = new List<OverviewStat>();
+
+        if (Analyzer.Procs > 0)
+        {
+            var wasteRate = (double)Analyzer.WastedProcs / Analyzer.Procs;
+            stats.Add(new OverviewStat(
+                $"{Analyzer.Procs}",
+                "Procs",
+                "Executioner's Grin procs from Executioner's Unsanitary Bands this encounter."));
+            stats.Add(new OverviewStat(
+                $"{Analyzer.WastedProcs}",
+                "Wasted Opportunities",
+                "Procs that expired without a Culling Strike above the 30% execute threshold.",
+                Analyzer.WastedProcs == 0 ? PerformanceTier.Perfect
+                    : wasteRate < 0.25 ? PerformanceTier.Good
+                    : wasteRate < 0.5 ? PerformanceTier.Ok
+                    : PerformanceTier.Fail));
+        }
+
+        stats.Add(new OverviewStat(
+            $"{Analyzer.AboveExecuteCullingStrikes}",
+            "Above-Execute Hits",
+            "Culling Strikes that landed on a target above 30% health - only possible while Executioner's Grin is active."));
+
+        return stats;
+    }
+}

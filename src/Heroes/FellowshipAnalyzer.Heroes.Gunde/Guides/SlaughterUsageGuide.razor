@@ -1,8 +1,3 @@
-@using FellowshipAnalyzer.Core.Analysis
-@using FellowshipAnalyzer.Core.UI.Guides
-@using FellowshipAnalyzer.Heroes.Gunde.Analysis
-@using FellowshipAnalyzer.Heroes.Gunde.Modules
-@using FellowshipAnalyzer.Core.Common.Spells.Gunde
 @using Spells = FellowshipAnalyzer.Core.Common.Spells.Gunde.Spells
 @inject GundeCombatLogParser Parser
 
@@ -16,29 +11,36 @@
     <Explanation>
         <ol>
             <li>@slaughter dumps every stack of Rend into a short 160% bleed, so its value scales with how much Rend is on the target when it lands.</li>
-            <li>@rupture leaves <strong>Open Wounds</strong> on the target for 18s, buffing the next @slaughter — cast @slaughter inside that window.</li>
+            <li>@rupture leaves <strong>Open Wounds</strong> on the target for 18s, buffing the next @slaughter - cast @slaughter inside that window.</li>
             <li>On bosses, rebuild Rend with @heartSplitter between Slaughters. On trash, land @slaughter into the pack so its bleed spreads wide.</li>
-            <li>Each pull is scored against the priority its shape calls for — single-target on boss pulls, AoE on trash.</li>
+            <li>Each pull is scored against the priority its shape calls for - single-target on boss pulls, AoE on trash.</li>
         </ol>
     </Explanation>
     <ChildContent>
-        <CastOverview Title="Slaughter Overview" Stats="@BuildOverviewStats()" />
-        <CastDetail Title="Slaughters"
-                    Description="Each Slaughter shows whether it landed inside an Open Wounds window and met the priority for its pull's shape."
-                    Casts="@BuildPerCastData()" />
+        @if (TotalCasts == 0)
+        {
+            <p>No Slaughter was cast on any pull. This is consistent with a Heart Splitter build that keeps Rend on the target instead of consuming it.</p>
+        }
+        else
+        {
+            <CastOverview Title="Slaughter Overview" Stats="@BuildOverviewStats()" />
+            <CastDetail Title="Slaughters"
+                        Description="Each Slaughter shows whether it landed inside an Open Wounds window and met the priority for its pull's shape."
+                        Casts="@BuildPerCastData()" />
+        }
     </ChildContent>
 </GuideSection>
 
 @code {
-    private List<SlaughterUsageReport> Reports =>
-        Parser.SlaughterUsageReports.Select(entry => entry.Result).ToList();
+    private int TotalCasts =>
+        Parser.SlaughterUsageAnalyzers.Sum(entry => entry.Analyzer.SlaughterCasts);
 
     private IEnumerable<OverviewStat> BuildOverviewStats()
     {
-        var reports = Reports;
-        var casts = reports.Sum(r => r.SlaughterCasts);
-        var well = reports.Sum(r => r.WellExecuted);
-        var openWounds = reports.Sum(r => r.OpenWoundsTimed);
+        var analyzers = Parser.SlaughterUsageAnalyzers.Select(entry => entry.Analyzer).ToList();
+        var casts = analyzers.Sum(analyzer => analyzer.SlaughterCasts);
+        var well = analyzers.Sum(analyzer => analyzer.WellExecuted);
+        var openWounds = analyzers.Sum(analyzer => analyzer.OpenWoundsTimed);
         var wellRate = casts > 0 ? (int)Math.Round((double)well / casts * 100) : 0;
         var openWoundsRate = casts > 0 ? (int)Math.Round((double)openWounds / casts * 100) : 0;
 
@@ -62,13 +64,14 @@
     }
 
     private IEnumerable<PerCastData> BuildPerCastData() =>
-        Parser.SlaughterUsageReports.SelectMany(entry =>
-            entry.Result.Slaughters.Select(slaughter => BuildSlaughterData(slaughter, entry.Result.Shape, entry.Pull)));
+        Parser.SlaughterUsageAnalyzers.SelectMany(entry =>
+            entry.Analyzer.Slaughters.Select(slaughter => BuildSlaughterData(slaughter, entry.Analyzer.Shape, entry.Pull)));
 
     private PerCastData BuildSlaughterData(SlaughterEvaluation slaughter, GundePullShape shape, Pull pull)
     {
         var perf = slaughter.WellExecuted ? PerformanceTier.Perfect : PerformanceTier.Fail;
         var isAoe = shape == GundePullShape.Aoe;
+        var outcome = DescribeOutcome(slaughter, isAoe);
 
         var stats = new List<PerCastStat>
         {
@@ -85,7 +88,7 @@
                 $"{slaughter.TargetsHit}",
                 "Targets",
                 "Enemies the Slaughter bleed spread to.",
-                slaughter.TargetsHit >= 2 ? PerformanceTier.Perfect : PerformanceTier.Fail));
+                slaughter.TargetsHit >= TrashSlaughterUsage.PackThreshold ? PerformanceTier.Perfect : PerformanceTier.Fail));
         }
         else
         {
@@ -106,9 +109,43 @@
             GroupContent = @<PullBanner Pull="@pull" />,
             AdditionalContent = new AdditionalContent(
                 "Usage Notes",
-                @<div>@slaughter.Outcome</div>),
+                @<div>@outcome</div>),
         };
     }
+
+    private static string DescribeOutcome(SlaughterEvaluation slaughter, bool isAoe)
+    {
+        if (slaughter.WellExecuted)
+        {
+            return isAoe
+                ? $"Cast inside Open Wounds, spreading the bleed to {slaughter.TargetsHit} enemies."
+                : "Cast inside Open Wounds with Rend rebuilt by Heart Splitter.";
+        }
+
+        var reasons = new List<string>();
+        if (!slaughter.OpenWoundsActive)
+            reasons.Add("no Open Wounds window was active, so it missed Rupture's bonus");
+
+        if (isAoe)
+        {
+            if (slaughter.TargetsHit < TrashSlaughterUsage.PackThreshold)
+                reasons.Add(slaughter.TargetsHit <= 1
+                    ? "it hit a single target, wasting the AoE bleed"
+                    : $"it only reached {slaughter.TargetsHit} enemies");
+        }
+        else if (!slaughter.HeartSplitterPrimed)
+        {
+            reasons.Add("Heart Splitter was not used since the previous Slaughter, so Rend was not rebuilt");
+        }
+
+        return JoinReasons(reasons);
+    }
+
+    private static string JoinReasons(List<string> reasons) =>
+        reasons.Count == 0
+            ? "Only partially set up."
+            : char.ToUpperInvariant(reasons[0][0]) + reasons[0][1..] +
+                (reasons.Count > 1 ? ", and " + reasons[1] : string.Empty) + ".";
 
     private static PerformanceTier Tier(int rate) =>
         rate >= 75 ? PerformanceTier.Perfect

@@ -40,33 +40,29 @@ public sealed class PullAnalyzerSurfaceTests
             Buff(550), Buff(600), Buff(650),    // pull 1
         };
 
-        var result = await parser.Analyze(events, playerId: 7, fight: Fight(pulls));
+        await parser.Analyze(events, playerId: 7, fight: Fight(pulls));
 
-        // Cross-pull index: parser.{Result}s
-        Assert.Equal(2, parser.PullBuffResults.Count);
-        var (pull0, r0) = (parser.PullBuffResults[0].Pull, parser.PullBuffResults[0].Result);
-        var (pull1, r1) = (parser.PullBuffResults[1].Pull, parser.PullBuffResults[1].Result);
+        // Cross-pull index: parser.{Analyzer}s
+        Assert.Equal(2, parser.PullBuffAnalyzers.Count);
+        var (pull0, a0) = (parser.PullBuffAnalyzers[0].Pull, parser.PullBuffAnalyzers[0].Analyzer);
+        var (pull1, a1) = (parser.PullBuffAnalyzers[1].Pull, parser.PullBuffAnalyzers[1].Analyzer);
         Assert.Equal(0, pull0.Index);
         Assert.Equal(1, pull1.Index);
-        Assert.Equal(2, r0.PullCount);
-        Assert.Equal(3, r1.PullCount);
-        Assert.Equal(2, r0.FightCountAtEnd);
-        Assert.Equal(6, r1.FightCountAtEnd);
+        Assert.Equal(2, a0.PullCount);
+        Assert.Equal(3, a1.PullCount);
+        Assert.Equal(2, a0.FightCountAtEnd);
+        Assert.Equal(6, a1.FightCountAtEnd);
 
-        // Per-pull extension property: pull.{Result}
-        Assert.Equal(2, pull0.PullBuffResult!.PullCount);
-        Assert.Equal(3, pull1.PullBuffResult!.PullCount);
+        // Per-pull extension property: pull.{Analyzer}
+        Assert.Same(a0, pull0.PullBuffAnalyzer);
+        Assert.Same(a1, pull1.PullBuffAnalyzer);
 
-        // Per-pull view: parser.For(pull).{Result}
-        Assert.Equal(2, parser.For(pull0).PullBuffResult!.PullCount);
-        Assert.Equal(3, parser.For(pull1).PullBuffResult!.PullCount);
+        // Per-pull view: parser.For(pull).{Analyzer}
+        Assert.Same(a0, parser.For(pull0).PullBuffAnalyzer);
+        Assert.Same(a1, parser.For(pull1).PullBuffAnalyzer);
 
         // Untyped base list still populated.
-        Assert.Equal(2, parser.PullResults.Count);
-
-        // Typed report carries the analyzer result list.
-        var typed = Assert.IsType<PullSurfaceAnalysisResult>(result.TypedReport);
-        Assert.Equal(2, typed.PullBuffResults.Count);
+        Assert.Equal(2, parser.PullAnalyzers.Count);
     }
 
     private static ReportFight Fight(IReadOnlyList<DungeonPull> pulls)
@@ -92,17 +88,13 @@ public sealed partial class FightBuffCounter : EventSubscriber
 }
 
 [ForPull(PullKind.Single | PullKind.Multi)]
-public sealed partial class PullBuffAnalyzer(Lazy<FightBuffCounter> state) : Analyzer<PullBuffResult>
+public sealed partial class PullBuffAnalyzer(Lazy<FightBuffCounter> state) : Analyzer
 {
-    private int _count;
+    public int PullCount { get; private set; }
+    public int FightCountAtEnd { get; private set; }
 
     [On<ApplyBuffEvent>(By = Actor.Player)]
-    private void OnBuff(ApplyBuffEvent e) => _count++;
+    private void OnBuff(ApplyBuffEvent e) => PullCount++;
 
-    public override PullBuffResult OnPullEnd() => new(_count, state.Value.Count);
-}
-
-public sealed record PullBuffResult(int PullCount, int FightCountAtEnd) : IResult
-{
-    public PullBuffResult() : this(0, 0) { }
+    public override void OnPullEnd() => FightCountAtEnd = state.Value.Count;
 }

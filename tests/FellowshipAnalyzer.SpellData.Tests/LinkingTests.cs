@@ -10,11 +10,13 @@ public class LinkingTests
     [Fact]
     public void ConstantsFor_MergesEverySharedDevName()
     {
-        var hero = HeroDataSource.Load(SourcePaths.HeroData).Heroes.Single(h => h.DisplayName == "Rime");
-        var coldSnap = hero.Kit.Single(k => k.DevName == "GA_Rime_InstantSingleDamage");
-        var merged = Linking.ConstantsFor(coldSnap, hero);
-        merged.ShouldContain(c => c.Scalars.ContainsKey("OrbReward"));
-        merged.ShouldContain(c => c.Scalars.ContainsKey("OrbGain"));
+        var hero = HeroDataSource.Load(SourcePaths.HeroData).Heroes.Single(h => h.DisplayName == "Ardeos");
+        var engulfingFlames = hero.Kit.Single(k => k.DevName == "GA_Firemage_CastedSingleHeavyDot");
+        var merged = Linking.ConstantsFor(engulfingFlames, hero);
+
+        merged.Select(c => c.Key).ShouldBe(["Engulfing Flames", "CastedSingleHeavyDot"], ignoreOrder: true);
+        merged.ShouldContain(c => c.Key == "Engulfing Flames" && c.Scalars.ContainsKey("Duration"));
+        merged.ShouldContain(c => c.Key == "CastedSingleHeavyDot" && c.Scalars.ContainsKey("Cooldown"));
     }
 
     [Fact]

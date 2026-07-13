@@ -4,7 +4,7 @@
     <Explanation>
         <p>
             Stagger <SpellLink Spell="Spells.LunarlightMark" /> and <SpellLink Spell="Spells.StarfallVolley" />
-            by 10–15 seconds. Casting them together wastes the window where marks could be reapplied and
+            by 10-15 seconds. Casting them together wastes the window where marks could be reapplied and
             erupted between Volley casts.
         </p>
         <ol>
@@ -21,13 +21,13 @@
 </GuideSection>
 
 @code {
-    private IReadOnlyList<PullResult<StarfallVolleyDesyncReport>> Reports => Parser.StarfallVolleyDesyncReports;
+    private IReadOnlyList<PullAnalyzer<StarfallVolleyDesyncAnalyzer>> Analyzers => Parser.StarfallVolleyDesyncAnalyzers;
 
     private IEnumerable<OverviewStat> BuildOverviewStats()
     {
-        var volleys = Reports.SelectMany(r => r.Result.Events).ToList();
+        var volleys = Analyzers.SelectMany(entry => entry.Analyzer.Volleys).ToList();
         var volleyCount = volleys.Count;
-        var closeGapCount = Reports.Sum(r => r.Result.CloseGapCount);
+        var closeGapCount = Analyzers.Sum(entry => entry.Analyzer.CloseGapCount);
         var measuredGaps = volleys.Where(e => e.GapMs != int.MaxValue).Select(e => e.GapMs).ToList();
         var avg = measuredGaps.Count == 0 ? 0 : measuredGaps.Average() / 1000.0;
 
@@ -44,7 +44,7 @@
         return
         [
             new OverviewStat(
-                measuredGaps.Count == 0 ? "—" : $"{avg:F1}s",
+                measuredGaps.Count == 0 ? "-" : $"{avg:F1}s",
                 "Average Gap",
                 "Mean time between previous Mark and each Volley across all pulls.",
                 measuredGaps.Count == 0 ? null : avgTier),
@@ -56,8 +56,8 @@
 
     private IEnumerable<PerCastData> BuildPerCastData()
     {
-        return Reports.SelectMany(entry =>
-            entry.Result.Events.Select(ev => BuildVolleyData(ev, entry.Pull)));
+        return Analyzers.SelectMany(entry =>
+            entry.Analyzer.Volleys.Select(ev => BuildVolleyData(ev, entry.Pull)));
     }
 
     private PerCastData BuildVolleyData(StarfallVolleyDesyncAnalyzer.DesyncEvent ev, Pull pull)
@@ -80,7 +80,7 @@
             Stats =
             [
                 new PerCastStat(
-                    ev.GapMs == int.MaxValue ? "—" : $"{gapSeconds:F1}s",
+                    ev.GapMs == int.MaxValue ? "-" : $"{gapSeconds:F1}s",
                     "Gap from Mark",
                     "Time since the previous Lunarlight Mark cast.",
                     ev.GapMs == int.MaxValue ? null : tier),

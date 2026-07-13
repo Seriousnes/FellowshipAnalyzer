@@ -9,7 +9,7 @@
         </p>
         <ol>
             <li>Spend procs as soon as they're available unless saving for a burst window.</li>
-            <li>Refreshes (resets) keep both charges fresh — they're good when you're holding.</li>
+            <li>Refreshes (resets) keep both charges fresh - they're good when you're holding.</li>
         </ol>
     </Explanation>
     <ChildContent>
@@ -18,12 +18,12 @@
 </GuideSection>
 
 @code {
-    private IReadOnlyList<PullResult<ImpendingHeartseekerReport>> Reports => Parser.ImpendingHeartseekerReports;
+    private IReadOnlyList<PullAnalyzer<ImpendingHeartseekerAnalyzer>> Analyzers => Parser.ImpendingHeartseekerAnalyzers;
 
-    private int Gains => Reports.Sum(r => r.Result.Gains);
-    private int Refreshes => Reports.Sum(r => r.Result.Refreshes);
-    private int Consumed => Reports.Sum(r => r.Result.Consumed);
-    private int Expired => Reports.Sum(r => r.Result.Expired);
+    private int Gains => Analyzers.Sum(entry => entry.Analyzer.Gains);
+    private int Refreshes => Analyzers.Sum(entry => entry.Analyzer.Refreshes);
+    private int Consumed => Analyzers.Sum(entry => entry.Analyzer.Consumed);
+    private int Expired => Analyzers.Sum(entry => entry.Analyzer.Expired);
 
     private IEnumerable<OverviewStat> BuildOverviewStats()
     {
@@ -49,7 +49,7 @@
                 "Procs consumed by a cast.", Consumed > 0 ? PerformanceTier.Good : PerformanceTier.Ok),
             new OverviewStat($"{Expired}", "Expired",
                 "Procs that timed out without being consumed.", expiredTier),
-            new OverviewStat(settled == 0 ? "—" : $"{consumeRate:F0}%", "Consume Rate",
+            new OverviewStat(settled == 0 ? "-" : $"{consumeRate:F0}%", "Consume Rate",
                 "Share of resolved procs that were consumed.",
                 settled == 0 ? null : rateTier),
         ];

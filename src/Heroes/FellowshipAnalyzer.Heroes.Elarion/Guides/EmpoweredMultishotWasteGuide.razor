@@ -4,8 +4,8 @@
     <Explanation>
         <p>
             Empowered <SpellLink Spell="Spells.Multishot" /> charges replace your next regular
-            Multishot. Don't let them expire — using a regular Multishot while empowered is
-            available wastes the proc.
+            Multishot. Don't let them expire, and don't cast a regular Multishot while empowered is
+            available, that wastes the proc.
         </p>
         <ol>
             <li>Track empowered Multishot consumption versus regular casts across AoE pulls.</li>
@@ -14,16 +14,33 @@
     </Explanation>
     <ChildContent>
         <CastOverview Title="Empowered Usage" Stats="@BuildOverviewStats()" />
-        <FindingsList Findings="@BuildFindings()" />
+        @if (EmpoweredConsumed == 0 && WastedExpirations == 0)
+        {
+            <TipBox Variant="TipBoxVariant.Info">
+                No Empowered Multishot buffs were detected on AoE pulls.
+            </TipBox>
+        }
+        else if (WastedExpirations == 0)
+        {
+            <TipBox Variant="TipBoxVariant.Success">
+                All Empowered Multishot procs were consumed.
+            </TipBox>
+        }
+        else
+        {
+            <TipBox Variant="TipBoxVariant.Warning">
+                @WastedExpirations Empowered Multishot @(WastedExpirations == 1 ? "proc" : "procs") expired unused.
+            </TipBox>
+        }
     </ChildContent>
 </GuideSection>
 
 @code {
-    private IReadOnlyList<PullResult<EmpoweredMultishotWasteReport>> Reports => Parser.EmpoweredMultishotWasteReports;
+    private IReadOnlyList<PullAnalyzer<EmpoweredMultishotWasteAnalyzer>> Analyzers => Parser.EmpoweredMultishotWasteAnalyzers;
 
-    private int EmpoweredConsumed => Reports.Sum(r => r.Result.EmpoweredConsumed);
-    private int WastedExpirations => Reports.Sum(r => r.Result.WastedExpirations);
-    private int RegularCasts => Reports.Sum(r => r.Result.RegularCasts);
+    private int EmpoweredConsumed => Analyzers.Sum(entry => entry.Analyzer.EmpoweredConsumed);
+    private int WastedExpirations => Analyzers.Sum(entry => entry.Analyzer.WastedExpirations);
+    private int RegularCasts => Analyzers.Sum(entry => entry.Analyzer.RegularCasts);
 
     private IEnumerable<OverviewStat> BuildOverviewStats()
     {
@@ -42,27 +59,5 @@
             new OverviewStat($"{RegularCasts}", "Regular",
                 "Multishot casts with no Empowered Multishot buff active."),
         ];
-    }
-
-    private IEnumerable<Finding> BuildFindings()
-    {
-        if (EmpoweredConsumed == 0 && WastedExpirations == 0)
-        {
-            yield return new Finding("info",
-                "No Empowered Multishot buffs were detected on AoE pulls.",
-                null);
-            yield break;
-        }
-
-        if (WastedExpirations == 0)
-        {
-            yield return new Finding("info", "All Empowered Multishot procs were consumed.", null);
-        }
-        else
-        {
-            yield return new Finding("warning",
-                $"{WastedExpirations} Empowered Multishot proc{(WastedExpirations == 1 ? "" : "s")} expired unused.",
-                null);
-        }
     }
 }

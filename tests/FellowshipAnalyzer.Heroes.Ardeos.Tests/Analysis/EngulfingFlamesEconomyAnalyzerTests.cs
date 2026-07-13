@@ -32,22 +32,20 @@ public sealed class EngulfingFlamesEconomyAnalyzerTests
 
         var (parser, _) = await AnalyzeAsync(events, SpanningFight(0, 15000));
 
-        var entry = parser.EngulfingFlamesEconomyReports.ShouldHaveSingleItem();
-        var report = entry.Result;
-        report.WindowsEvaluated.ShouldBe(1);
-        report.WindowsReady.ShouldBe(1);
-        report.WindowsShort.ShouldBe(0);
-        report.WastedCharges.ShouldBe(0);
-        report.ScoreCard.Score.ShouldBe(100);
-        report.ScoreCard.Accent.ShouldBe("ice");
+        var entry = parser.EngulfingFlamesEconomyAnalyzers.ShouldHaveSingleItem();
+        var analyzer = entry.Analyzer;
+        analyzer.WindowsEvaluated.ShouldBe(1);
+        analyzer.WindowsReady.ShouldBe(1);
+        analyzer.WindowsShort.ShouldBe(0);
+        analyzer.WastedCharges.ShouldBe(0);
 
-        var window = report.Windows.ShouldHaveSingleItem();
+        var window = analyzer.Windows.ShouldHaveSingleItem();
         window.ChargesAvailable.ShouldBe(2);
         window.Ready.ShouldBeTrue();
 
         var pull = entry.Pull;
-        pull.EngulfingFlamesEconomyReport.ShouldBe(report);
-        parser.For(pull).EngulfingFlamesEconomyReport.ShouldBe(report);
+        pull.EngulfingFlamesEconomyAnalyzer.ShouldBeSameAs(analyzer);
+        parser.For(pull).EngulfingFlamesEconomyAnalyzer.ShouldBeSameAs(analyzer);
     }
 
     [Fact]
@@ -62,14 +60,12 @@ public sealed class EngulfingFlamesEconomyAnalyzerTests
 
         var (parser, _) = await AnalyzeAsync(events, SpanningFight(0, 15000));
 
-        var report = parser.EngulfingFlamesEconomyReports.ShouldHaveSingleItem().Result;
-        report.WindowsEvaluated.ShouldBe(1);
-        report.WindowsReady.ShouldBe(0);
-        report.WindowsShort.ShouldBe(1);
-        report.ScoreCard.Score.ShouldBe(0);
-        report.ScoreCard.Accent.ShouldBe("ember");
+        var analyzer = parser.EngulfingFlamesEconomyAnalyzers.ShouldHaveSingleItem().Analyzer;
+        analyzer.WindowsEvaluated.ShouldBe(1);
+        analyzer.WindowsReady.ShouldBe(0);
+        analyzer.WindowsShort.ShouldBe(1);
 
-        var window = report.Windows.ShouldHaveSingleItem();
+        var window = analyzer.Windows.ShouldHaveSingleItem();
         window.ChargesAvailable.ShouldBe(0);
         window.Ready.ShouldBeFalse();
     }
@@ -85,12 +81,11 @@ public sealed class EngulfingFlamesEconomyAnalyzerTests
 
         var (parser, _) = await AnalyzeAsync(events, SpanningFight(0, 15000));
 
-        var report = parser.EngulfingFlamesEconomyReports.ShouldHaveSingleItem().Result;
-        report.WindowsReady.ShouldBe(0);
-        report.WindowsShort.ShouldBe(1);
-        report.ScoreCard.Score.ShouldBe(0);
+        var analyzer = parser.EngulfingFlamesEconomyAnalyzers.ShouldHaveSingleItem().Analyzer;
+        analyzer.WindowsReady.ShouldBe(0);
+        analyzer.WindowsShort.ShouldBe(1);
 
-        report.Windows.ShouldHaveSingleItem().ChargesAvailable.ShouldBe(1);
+        analyzer.Windows.ShouldHaveSingleItem().ChargesAvailable.ShouldBe(1);
     }
 
     [Fact]
@@ -98,12 +93,10 @@ public sealed class EngulfingFlamesEconomyAnalyzerTests
     {
         var (parser, _) = await AnalyzeAsync([], SpanningFight(0, 100000));
 
-        var report = parser.EngulfingFlamesEconomyReports.ShouldHaveSingleItem().Result;
-        report.WindowsEvaluated.ShouldBe(0);
-        report.CappedSeconds.ShouldBe(100d);
-        report.WastedCharges.ShouldBe(5);
-        report.ScoreCard.Score.ShouldBe(0);
-        report.Findings[0].Severity.ShouldBe("info");
+        var analyzer = parser.EngulfingFlamesEconomyAnalyzers.ShouldHaveSingleItem().Analyzer;
+        analyzer.WindowsEvaluated.ShouldBe(0);
+        analyzer.CappedSeconds.ShouldBe(100d);
+        analyzer.WastedCharges.ShouldBe(5);
     }
 
     [Fact]
@@ -118,9 +111,9 @@ public sealed class EngulfingFlamesEconomyAnalyzerTests
 
         var (parser, _) = await AnalyzeAsync(events, SpanningFight(0, 100000));
 
-        var report = parser.EngulfingFlamesEconomyReports.ShouldHaveSingleItem().Result;
-        report.WastedCharges.ShouldBe(3);
-        report.CappedSeconds.ShouldBe(60d);
+        var analyzer = parser.EngulfingFlamesEconomyAnalyzers.ShouldHaveSingleItem().Analyzer;
+        analyzer.WastedCharges.ShouldBe(3);
+        analyzer.CappedSeconds.ShouldBe(60d);
     }
 
     [Fact]
@@ -134,9 +127,9 @@ public sealed class EngulfingFlamesEconomyAnalyzerTests
 
         var (parser, _) = await AnalyzeAsync(events, SpanningFight(0, 15000));
 
-        var report = parser.EngulfingFlamesEconomyReports.ShouldHaveSingleItem().Result;
-        report.WastedCharges.ShouldBe(0);
-        report.CappedSeconds.ShouldBe(0d);
+        var analyzer = parser.EngulfingFlamesEconomyAnalyzers.ShouldHaveSingleItem().Analyzer;
+        analyzer.WastedCharges.ShouldBe(0);
+        analyzer.CappedSeconds.ShouldBe(0d);
     }
 
     [Fact]
@@ -154,36 +147,32 @@ public sealed class EngulfingFlamesEconomyAnalyzerTests
 
         var (parser, _) = await AnalyzeAsync(events, SpanningFight(0, 80000));
 
-        var report = parser.EngulfingFlamesEconomyReports.ShouldHaveSingleItem().Result;
-        report.WastedCharges.ShouldBe(0);
-        report.CappedSeconds.ShouldBe(0d);
+        var analyzer = parser.EngulfingFlamesEconomyAnalyzers.ShouldHaveSingleItem().Analyzer;
+        analyzer.WastedCharges.ShouldBe(0);
+        analyzer.CappedSeconds.ShouldBe(0d);
     }
 
     [Fact]
-    public async Task Score_ReadyWindowWithOvercap_IsPenalised()
+    public async Task ReadyWindowWithOvercap_SurfacesBothSignals()
     {
         var events = new List<Event> { Cast(Spells.Wildfire.FSLID, 1000) };
 
         var (parser, _) = await AnalyzeAsync(events, SpanningFight(0, 100000));
 
-        var report = parser.EngulfingFlamesEconomyReports.ShouldHaveSingleItem().Result;
-        report.WindowsReady.ShouldBe(1);
-        report.WastedCharges.ShouldBe(5);
-        report.ScoreCard.Score.ShouldBe(50);
-        report.ScoreCard.Accent.ShouldBe("amber");
+        var analyzer = parser.EngulfingFlamesEconomyAnalyzers.ShouldHaveSingleItem().Analyzer;
+        analyzer.WindowsReady.ShouldBe(1);
+        analyzer.WastedCharges.ShouldBe(5);
     }
 
     [Fact]
-    public async Task NoWildfireWindows_ScoresZeroWithInfoFinding()
+    public async Task NoWildfireWindows_EvaluatesNothing()
     {
         var (parser, _) = await AnalyzeAsync([], SpanningFight(0, 15000));
 
-        var report = parser.EngulfingFlamesEconomyReports.ShouldHaveSingleItem().Result;
-        report.WindowsEvaluated.ShouldBe(0);
-        report.ScoreCard.Score.ShouldBe(0);
-        report.ScoreCard.Accent.ShouldBe("ember");
-        report.Findings.ShouldNotBeEmpty();
-        report.Findings[0].Severity.ShouldBe("info");
+        var analyzer = parser.EngulfingFlamesEconomyAnalyzers.ShouldHaveSingleItem().Analyzer;
+        analyzer.WindowsEvaluated.ShouldBe(0);
+        analyzer.WindowsShort.ShouldBe(0);
+        analyzer.Windows.ShouldBeEmpty();
     }
 
     private static CastEvent Cast(int abilityId, int timestamp) => new()

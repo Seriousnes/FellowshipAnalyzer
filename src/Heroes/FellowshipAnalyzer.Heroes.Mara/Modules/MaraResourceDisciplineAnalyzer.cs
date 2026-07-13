@@ -2,12 +2,32 @@ using FellowshipAnalyzer.Core.Analysis;
 using FellowshipAnalyzer.Core.Common.Spells.Mara;
 using FellowshipAnalyzer.Core.Events;
 using FellowshipAnalyzer.Core.Game;
-using FellowshipAnalyzer.Core.UI.Guides;
 
 namespace FellowshipAnalyzer.Heroes.Mara.Modules;
 
 /// <summary>
-/// Scores Mara's resource discipline for a pull: how consistently combo-point-spending finishers
+/// The target shape a <see cref="MaraResourceDisciplineAnalyzer"/> leaf scores against, mirroring
+/// the pull's <see cref="PullKind"/>. Used by the guide to label single-target vs AoE pulls.
+/// </summary>
+public enum MaraPullShape
+{
+    SingleTarget,
+    Aoe,
+}
+
+/// <summary>
+/// One combo-point-spending finisher cast (Queen's Fang or Arachnid Assault) with the combo points
+/// available when it was pressed and whether that met the pull shape's spend threshold.
+/// <see cref="MeetsThreshold"/> is stamped when the pull ends.
+/// </summary>
+public sealed record MaraFinisherCast(
+    int Timestamp,
+    int AbilityId,
+    int ComboPoints,
+    bool MeetsThreshold);
+
+/// <summary>
+/// Tracks Mara's resource discipline for a pull: how consistently combo-point-spending finishers
 /// (Queen's Fang, Arachnid Assault) are dumped at or above the pull shape's combo-point threshold,
 /// and how often Energy or combo points overcap (wasted generation).
 /// <para>
@@ -19,15 +39,10 @@ namespace FellowshipAnalyzer.Heroes.Mara.Modules;
 /// resolves (a finisher pressed at 6 combo points reports 6, then the next event reports 0).
 /// </para>
 /// Hemorrhaging Strike is a finisher too, but it is pressed to maintain bleeds and Hemotoxin rather
-/// than purely to dump combo points, so it is counted separately and excluded from the threshold score.
+/// than purely to dump combo points, so it is counted separately and excluded from the threshold rate.
 /// </summary>
-public abstract partial class MaraResourceDisciplineAnalyzer : Analyzer<MaraResourceReport>
+public abstract partial class MaraResourceDisciplineAnalyzer : Analyzer
 {
-    private const double FinisherWeight = 0.6;
-    private const double EnergyWeight = 0.4;
-    private const double EnergyOvercapFloor = 0.4;
-    private const int EnergyOvercapMajorThresholdPercent = 15;
-
     private static readonly int[] Generators =
         [Spells.Backstab.Id, Spells.WidowBite.Id, Spells.SkitteringBlades.Id];
 
@@ -35,17 +50,38 @@ public abstract partial class MaraResourceDisciplineAnalyzer : Analyzer<MaraReso
         [Spells.QueenFang.Id, Spells.ArachnidAssault.Id];
 
     private readonly List<MaraFinisherCast> _finishers = [];
-    private int _maintenanceFinisherCasts;
-    private int _generatorCasts;
-    private int _generatorOvercapCasts;
-    private int _energyCastsSampled;
-    private int _energyCappedCasts;
 
     /// <summary>The combo-point count at or above which a spending finisher is well-timed for this pull shape.</summary>
-    protected abstract int FinisherCpThreshold { get; }
+    public abstract int FinisherCpThreshold { get; }
 
-    /// <summary>The pull shape this leaf scores, recorded on the produced report.</summary>
-    protected abstract MaraPullShape Shape { get; }
+    /// <summary>The pull shape this leaf scores against.</summary>
+    public abstract MaraPullShape Shape { get; }
+
+    /// <summary>Queen's Fang and Arachnid Assault casts that carried a combo-point snapshot, in encounter order.</summary>
+    public IReadOnlyList<MaraFinisherCast> Finishers => _finishers;
+
+    /// <summary>Spending finishers cast at or above <see cref="FinisherCpThreshold"/> combo points.</summary>
+    public int FinishersAtThreshold { get; private set; }
+
+    /// <summary>Hemorrhaging Strike casts, pressed for bleed and Hemotoxin upkeep rather than to dump combo points.</summary>
+    public int MaintenanceFinisherCasts { get; private set; }
+
+    public int GeneratorCasts { get; private set; }
+
+    /// <summary>Generator casts made while already at maximum combo points (wasted generation).</summary>
+    public int GeneratorOvercapCasts { get; private set; }
+
+    /// <summary>Casts that carried an Energy snapshot with a known maximum.</summary>
+    public int EnergyCastsSampled { get; private set; }
+
+    /// <summary>Sampled casts made while Energy was at cap (Energy regenerated while capped is wasted).</summary>
+    public int EnergyCappedCasts { get; private set; }
+
+    /// <summary>Fraction of evaluated spending finishers cast at or above the threshold.</summary>
+    public double FinisherThresholdRate => _finishers.Count == 0 ? 0 : (double)FinishersAtThreshold / _finishers.Count;
+
+    /// <summary>Fraction of sampled casts made at capped Energy.</summary>
+    public double EnergyCapRate => EnergyCastsSampled == 0 ? 0 : (double)EnergyCappedCasts / EnergyCastsSampled;
 
     [On<CastEvent>(By = Actor.Player)]
     private void OnCast(CastEvent castEvent)
@@ -57,9 +93,9 @@ public abstract partial class MaraResourceDisciplineAnalyzer : Analyzer<MaraReso
         var energy = FindResource(resources, ResourceTypes.Primary);
         if (energy is { Max: > 0 })
         {
-            _energyCastsSampled++;
+            EnergyCastsSampled++;
             if (energy.Amount >= energy.Max)
-                _energyCappedCasts++;
+                EnergyCappedCasts++;
         }
 
         var comboPoints = FindResource(resources, ResourceTypes.Secondary);
@@ -67,15 +103,15 @@ public abstract partial class MaraResourceDisciplineAnalyzer : Analyzer<MaraReso
 
         if (Array.IndexOf(Generators, abilityId) >= 0)
         {
-            _generatorCasts++;
+            GeneratorCasts++;
             if (comboPoints is { Max: > 0 } && comboPoints.Amount >= comboPoints.Max)
-                _generatorOvercapCasts++;
+                GeneratorOvercapCasts++;
             return;
         }
 
         if (abilityId == Spells.HemorrhagingStrike.Id)
         {
-            _maintenanceFinisherCasts++;
+            MaintenanceFinisherCasts++;
             return;
         }
 
@@ -84,98 +120,14 @@ public abstract partial class MaraResourceDisciplineAnalyzer : Analyzer<MaraReso
                 castEvent.Timestamp, abilityId, comboPoints.Amount, MeetsThreshold: false));
     }
 
-    /// <summary>Per-pull projection of resource discipline for the closing pull.</summary>
-    public override MaraResourceReport OnPullEnd()
+    public override void OnPullEnd()
     {
         var threshold = FinisherCpThreshold;
-        var finishers = new List<MaraFinisherCast>(_finishers.Count);
-        foreach (var finisher in _finishers)
-            finishers.Add(finisher with { MeetsThreshold = finisher.ComboPoints >= threshold });
+        for (var i = 0; i < _finishers.Count; i++)
+            _finishers[i] = _finishers[i] with { MeetsThreshold = _finishers[i].ComboPoints >= threshold };
 
-        var withData = finishers.Count;
-        var atThreshold = finishers.Count(f => f.MeetsThreshold);
-        var finisherQuality = withData == 0 ? 0.0 : (double)atThreshold / withData;
-        var energyCapRate = _energyCastsSampled == 0 ? 0.0 : (double)_energyCappedCasts / _energyCastsSampled;
-        var energyDiscipline = 1.0 - Math.Min(1.0, energyCapRate / EnergyOvercapFloor);
-
-        var hasData = withData > 0 || _energyCastsSampled > 0;
-        var score = hasData
-            ? (int)Math.Round(100 * ((FinisherWeight * finisherQuality) + (EnergyWeight * energyDiscipline)))
-            : 0;
-
-        var findings = BuildFindings(finishers, withData, atThreshold, threshold, energyCapRate);
-        var summary = BuildSummary(withData, atThreshold, threshold, energyCapRate);
-        var scoreCard = new AnalyzerScoreCard(
-            "Resource Discipline", score, summary,
-            score >= 75 ? "ice" : score >= 50 ? "amber" : "ember");
-
-        return new MaraResourceReport(
-            scoreCard,
-            Shape,
-            threshold,
-            withData,
-            atThreshold,
-            _maintenanceFinisherCasts,
-            _generatorCasts,
-            _generatorOvercapCasts,
-            _energyCastsSampled,
-            _energyCappedCasts,
-            finishers,
-            findings);
+        FinishersAtThreshold = _finishers.Count(f => f.MeetsThreshold);
     }
-
-    private List<Finding> BuildFindings(
-        IReadOnlyList<MaraFinisherCast> finishers, int withData, int atThreshold, int threshold, double energyCapRate)
-    {
-        var findings = new List<Finding>();
-        var shapeLabel = Shape == MaraPullShape.SingleTarget ? "single-target" : "AoE";
-
-        if (withData == 0)
-            findings.Add(new Finding("info", "No Queen's Fang or Arachnid Assault finishers were recorded for this pull."));
-        else
-        {
-            findings.Add(new Finding("info",
-                $"{atThreshold} of {withData} spending finishers were cast at {threshold}+ combo points."));
-
-            foreach (var finisher in finishers.Where(f => !f.MeetsThreshold).Take(5))
-                findings.Add(new Finding("warning",
-                    $"{FinisherName(finisher.AbilityId)} cast at {finisher.ComboPoints} combo points (below the {threshold}+ target for {shapeLabel}).",
-                    Owner.FormatTimestamp(finisher.Timestamp)));
-        }
-
-        if (_energyCappedCasts > 0)
-        {
-            var pct = (int)Math.Round(energyCapRate * 100);
-            findings.Add(new Finding(
-                pct >= EnergyOvercapMajorThresholdPercent ? "major" : "warning",
-                $"Energy was capped on {_energyCappedCasts} of {_energyCastsSampled} sampled casts ({pct}%); Energy regenerated while capped is wasted. Spend more often to keep Energy flowing."));
-        }
-
-        if (_generatorOvercapCasts > 0)
-            findings.Add(new Finding("warning",
-                $"A combo-point generator was cast {_generatorOvercapCasts} time(s) while already at maximum combo points; that generation was wasted. Spend a finisher before rebuilding."));
-
-        return findings;
-    }
-
-    private string BuildSummary(int withData, int atThreshold, int threshold, double energyCapRate)
-    {
-        if (withData == 0 && _energyCastsSampled == 0)
-            return "No resource activity detected in this pull.";
-
-        var finisherPart = withData == 0
-            ? "no spending finishers recorded"
-            : $"{atThreshold}/{withData} finishers at {threshold}+ combo points";
-        var energyPart = _energyCastsSampled == 0
-            ? "no Energy samples"
-            : $"{(int)Math.Round(energyCapRate * 100)}% of casts at capped Energy";
-        return $"{finisherPart}; {energyPart}.";
-    }
-
-    private static string FinisherName(int abilityId) =>
-        abilityId == Spells.QueenFang.Id ? Spells.QueenFang.Name
-        : abilityId == Spells.ArachnidAssault.Id ? Spells.ArachnidAssault.Name
-        : "Finisher";
 
     private static ClassResource? FindResource(List<ClassResource> resources, ResourceTypes type)
     {
@@ -193,8 +145,8 @@ public abstract partial class MaraResourceDisciplineAnalyzer : Analyzer<MaraReso
 [ForPull(PullKind.Single)]
 public sealed class SingleTargetMaraResourceDiscipline : MaraResourceDisciplineAnalyzer
 {
-    protected override int FinisherCpThreshold => 5;
-    protected override MaraPullShape Shape => MaraPullShape.SingleTarget;
+    public override int FinisherCpThreshold => 5;
+    public override MaraPullShape Shape => MaraPullShape.SingleTarget;
 }
 
 /// <summary>
@@ -204,6 +156,6 @@ public sealed class SingleTargetMaraResourceDiscipline : MaraResourceDisciplineA
 [ForPull(PullKind.Multi)]
 public sealed class AoEMaraResourceDiscipline : MaraResourceDisciplineAnalyzer
 {
-    protected override int FinisherCpThreshold => 4;
-    protected override MaraPullShape Shape => MaraPullShape.Aoe;
+    public override int FinisherCpThreshold => 4;
+    public override MaraPullShape Shape => MaraPullShape.Aoe;
 }

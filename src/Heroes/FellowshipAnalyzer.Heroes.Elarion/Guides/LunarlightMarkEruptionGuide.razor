@@ -9,7 +9,7 @@
         </p>
         <ol>
             <li>Maintain marks on as many targets as possible before each Barrage.</li>
-            <li>Avoid letting marks expire — they're wasted potential damage.</li>
+            <li>Avoid letting marks expire - they're wasted potential damage.</li>
         </ol>
     </Explanation>
     <ChildContent>
@@ -21,14 +21,14 @@
 </GuideSection>
 
 @code {
-    private IReadOnlyList<PullResult<LunarlightMarkEruptionReport>> Reports => Parser.LunarlightMarkEruptionReports;
+    private IReadOnlyList<PullAnalyzer<LunarlightMarkEruptionAnalyzer>> Analyzers => Parser.LunarlightMarkEruptionAnalyzers;
 
     private IEnumerable<OverviewStat> BuildOverviewStats()
     {
-        var withEruption = Reports.Sum(r => r.Result.BarrageWithEruption);
-        var withoutEruption = Reports.Sum(r => r.Result.BarrageWithoutEruption);
-        var marksExpired = Reports.Sum(r => r.Result.MarksExpired);
-        var totalApplied = Reports.Sum(r => r.Result.TotalMarksApplied);
+        var withEruption = Analyzers.Sum(entry => entry.Analyzer.BarrageWithEruption);
+        var withoutEruption = Analyzers.Sum(entry => entry.Analyzer.BarrageWithoutEruption);
+        var marksExpired = Analyzers.Sum(entry => entry.Analyzer.MarksExpired);
+        var totalApplied = Analyzers.Sum(entry => entry.Analyzer.TotalMarksApplied);
         var totalBarrages = withEruption + withoutEruption;
         var eruptionRate = totalBarrages == 0 ? 0 : withEruption * 100.0 / totalBarrages;
 
@@ -44,7 +44,7 @@
 
         return
         [
-            new OverviewStat(totalBarrages == 0 ? "—" : $"{eruptionRate:F0}%", "Eruption Rate",
+            new OverviewStat(totalBarrages == 0 ? "-" : $"{eruptionRate:F0}%", "Eruption Rate",
                 "Barrages that erupted at least one mark.",
                 totalBarrages == 0 ? null : rateTier),
             new OverviewStat($"{marksExpired}", "Expired Marks",
@@ -56,8 +56,8 @@
 
     private IEnumerable<PerCastData> BuildPerCastData()
     {
-        return Reports.SelectMany(entry =>
-            entry.Result.Barrages.Select(b => BuildBarrageData(b, entry.Pull)));
+        return Analyzers.SelectMany(entry =>
+            entry.Analyzer.Barrages.Select(b => BuildBarrageData(b, entry.Pull)));
     }
 
     private PerCastData BuildBarrageData(LunarlightMarkEruptionAnalyzer.BarrageEvent b, Pull pull)

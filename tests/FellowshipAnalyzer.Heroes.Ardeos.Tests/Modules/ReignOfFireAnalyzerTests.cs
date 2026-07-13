@@ -57,9 +57,9 @@ public sealed class ReignOfFireAnalyzerTests
         parser.GetModule<SpellUsable>().ShouldNotBeNull()
             .ChargesAvailable(Spells.FireBall.Id).ShouldBe(2);
 
-        var report = parser.GetModule<ReignOfFireAnalyzer>().ShouldNotBeNull().ToReport();
-        report.Procs.ShouldBe(1);
-        report.ChargesWasted.ShouldBe(0);
+        var analyzer = parser.GetModule<ReignOfFireAnalyzer>().ShouldNotBeNull();
+        analyzer.Procs.ShouldBe(1);
+        analyzer.ChargesWasted.ShouldBe(0);
     }
 
     [Fact]
@@ -71,9 +71,9 @@ public sealed class ReignOfFireAnalyzerTests
             ReignOfFireProc(0),
         ]);
 
-        var report = parser.GetModule<ReignOfFireAnalyzer>().ShouldNotBeNull().ToReport();
-        report.Procs.ShouldBe(1);
-        report.ChargesWasted.ShouldBe(1);
+        var analyzer = parser.GetModule<ReignOfFireAnalyzer>().ShouldNotBeNull();
+        analyzer.Procs.ShouldBe(1);
+        analyzer.ChargesWasted.ShouldBe(1);
     }
 
     [Fact]
@@ -87,7 +87,7 @@ public sealed class ReignOfFireAnalyzerTests
             ReignOfFireRemoved(5000),
         ]);
 
-        parser.GetModule<ReignOfFireAnalyzer>().ShouldNotBeNull().ToReport()
+        parser.GetModule<ReignOfFireAnalyzer>().ShouldNotBeNull()
             .EmpowermentsWasted.ShouldBe(1);
     }
 
@@ -103,9 +103,9 @@ public sealed class ReignOfFireAnalyzerTests
             ReignOfFireRemoved(1000),
         ]);
 
-        var report = parser.GetModule<ReignOfFireAnalyzer>().ShouldNotBeNull().ToReport();
-        report.EmpowermentsWasted.ShouldBe(0);
-        report.ChargesWasted.ShouldBe(0);
+        var analyzer = parser.GetModule<ReignOfFireAnalyzer>().ShouldNotBeNull();
+        analyzer.EmpowermentsWasted.ShouldBe(0);
+        analyzer.ChargesWasted.ShouldBe(0);
     }
 
     [Fact]

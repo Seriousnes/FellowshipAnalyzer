@@ -11,7 +11,8 @@ namespace FellowshipAnalyzer.Analyzers;
 /// <list type="bullet">
 /// <item>FA0014 — an Analyzer constructor (or <c>Lazy&lt;&gt;</c>) depends on another Analyzer.</item>
 /// <item>FA0015 — an Analyzer is missing <c>[ForPull]</c> or declares no targets.</item>
-/// <item>FA0016 — two Analyzers producing the same result have overlapping <c>[ForPull]</c> filters.</item>
+/// <item>FA0016 — two Analyzers sharing a surface have overlapping <c>[ForPull]</c> filters.</item>
+/// <item>FA0017 — an Analyzer implements more than one surface marker interface.</item>
 /// </list>
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
@@ -37,15 +38,24 @@ public sealed class PullAnalyzerDiagnostics : DiagnosticAnalyzer
 
     private static readonly DiagnosticDescriptor OverlappingForPull = new(
         id: "FA0016",
-        title: "Analyzers producing the same result must have disjoint [ForPull] filters",
-        messageFormat: "Analyzers '{0}' and '{1}' both produce '{2}' and their [ForPull] filters overlap on a realizable pull",
+        title: "Analyzers sharing a surface must have disjoint [ForPull] filters",
+        messageFormat: "Analyzers '{0}' and '{1}' share the surface '{2}' and their [ForPull] filters overlap on a realizable pull",
         category: "Analysis",
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true,
-        description: "Two Analyzers producing the same result type feed one cross-pull stream. Their [ForPull] match sets must not overlap on any realizable pull (single/multi × boss/non-boss), or a pull would yield two results into one stream.");
+        description: "Two Analyzers sharing one surface (a surface marker interface, or else the topmost ancestor directly below Analyzer) feed one cross-pull stream. Their [ForPull] match sets must not overlap on any realizable pull (single/multi × boss/non-boss), or a pull would retain two analyzers on one surface.");
+
+    private static readonly DiagnosticDescriptor MultipleSurfaceInterfaces = new(
+        id: "FA0017",
+        title: "Analyzer must implement at most one surface interface",
+        messageFormat: "Analyzer '{0}' implements multiple surface interfaces ({1}); an analyzer's surface must be unambiguous",
+        category: "Analysis",
+        defaultSeverity: DiagnosticSeverity.Error,
+        isEnabledByDefault: true,
+        description: "An analyzer's surface (the type its cross-pull stream and per-pull accessor are keyed on) must be unique. Implementing more than one IAnalyzerSurface marker interface leaves the surface ambiguous.");
 
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
-        [DependsOnAnalyzer, MissingForPull, OverlappingForPull];
+        [DependsOnAnalyzer, MissingForPull, OverlappingForPull, MultipleSurfaceInterfaces];
 
     public override void Initialize(AnalysisContext context)
     {
@@ -75,6 +85,7 @@ public sealed class PullAnalyzerDiagnostics : DiagnosticAnalyzer
 
         var reportedFa14 = new HashSet<ISymbol>(SymbolEqualityComparer.Default);
         var reportedFa15 = new HashSet<ISymbol>(SymbolEqualityComparer.Default);
+        var reportedFa17 = new HashSet<ISymbol>(SymbolEqualityComparer.Default);
 
         foreach (var (_, models) in parsers)
         {
@@ -82,6 +93,7 @@ public sealed class PullAnalyzerDiagnostics : DiagnosticAnalyzer
             {
                 if (reportedFa14.Add(model.Type)) CheckDependencies(context, model, allAnalyzers);
                 if (reportedFa15.Add(model.Type)) CheckForPull(context, model);
+                if (reportedFa17.Add(model.Type)) CheckSurfaceInterfaces(context, model.Type);
             }
 
             CheckOverlaps(context, models);
@@ -119,23 +131,33 @@ public sealed class PullAnalyzerDiagnostics : DiagnosticAnalyzer
         }
     }
 
+    private static void CheckSurfaceInterfaces(CompilationAnalysisContext context, INamedTypeSymbol analyzer)
+    {
+        var surfaces = GetSurfaceInterfaces(analyzer);
+        if (surfaces.Count <= 1) return;
+
+        var names = new List<string>(surfaces.Count);
+        foreach (var s in surfaces) names.Add(s.Name);
+
+        var location = analyzer.Locations.Length > 0 ? analyzer.Locations[0] : Location.None;
+        context.ReportDiagnostic(Diagnostic.Create(MultipleSurfaceInterfaces, location, analyzer.Name, string.Join(", ", names)));
+    }
+
     private static void CheckOverlaps(CompilationAnalysisContext context, List<AnalyzerModel> models)
     {
         for (var i = 0; i < models.Count; i++)
         {
             var a = models[i];
-            if (a.ResultType is null) continue;
 
             for (var j = i + 1; j < models.Count; j++)
             {
                 var b = models[j];
-                if (b.ResultType is null) continue;
-                if (!SymbolEqualityComparer.Default.Equals(a.ResultType, b.ResultType)) continue;
+                if (!SymbolEqualityComparer.Default.Equals(a.SurfaceType, b.SurfaceType)) continue;
                 if (!FiltersOverlap(a, b)) continue;
 
                 var location = b.Type.Locations.Length > 0 ? b.Type.Locations[0] : Location.None;
                 context.ReportDiagnostic(Diagnostic.Create(
-                    OverlappingForPull, location, a.Type.Name, b.Type.Name, a.ResultType.Name));
+                    OverlappingForPull, location, a.Type.Name, b.Type.Name, a.SurfaceType.Name));
             }
         }
     }
@@ -203,20 +225,47 @@ public sealed class PullAnalyzerDiagnostics : DiagnosticAnalyzer
             break;
         }
 
-        INamedTypeSymbol? resultType = null;
-        var current = analyzer.BaseType;
-        while (current != null && current.SpecialType != SpecialType.System_Object)
+        var surfaces = GetSurfaceInterfaces(analyzer);
+        INamedTypeSymbol surfaceType;
+        if (surfaces.Count > 0)
         {
-            if (current.Name == "Analyzer" && current.IsGenericType && current.TypeArguments.Length == 1
-                && current.TypeArguments[0] is INamedTypeSymbol r)
+            surfaceType = surfaces[0];
+        }
+        else
+        {
+            surfaceType = analyzer;
+            while (surfaceType.BaseType is { } baseType
+                && baseType.SpecialType != SpecialType.System_Object
+                && baseType.Name != "Analyzer")
             {
-                resultType = r;
-                break;
+                surfaceType = baseType;
             }
-            current = current.BaseType;
         }
 
-        return new AnalyzerModel(analyzer, hasForPull, targets, boss, resultType);
+        return new AnalyzerModel(analyzer, hasForPull, targets, boss, surfaceType);
+    }
+
+    /// <summary>
+    /// The surface marker interfaces <paramref name="analyzer"/> implements: interfaces (other than
+    /// <c>IAnalyzerSurface</c> itself) that implement <c>IAnalyzerSurface</c>. Mirrors the generator
+    /// and runtime surface resolution; at most one is valid (FA0017).
+    /// </summary>
+    private static List<INamedTypeSymbol> GetSurfaceInterfaces(INamedTypeSymbol analyzer)
+    {
+        var result = new List<INamedTypeSymbol>();
+        foreach (var iface in analyzer.AllInterfaces)
+        {
+            if (iface.Name == "IAnalyzerSurface") continue;
+            foreach (var baseIface in iface.AllInterfaces)
+            {
+                if (baseIface.Name == "IAnalyzerSurface")
+                {
+                    result.Add(iface);
+                    break;
+                }
+            }
+        }
+        return result;
     }
 
     private static IEnumerable<INamedTypeSymbol> GetAllNamedTypes(INamespaceSymbol ns)
@@ -241,12 +290,12 @@ public sealed class PullAnalyzerDiagnostics : DiagnosticAnalyzer
     }
 
     private sealed class AnalyzerModel(
-        INamedTypeSymbol type, bool hasForPull, int targets, int boss, INamedTypeSymbol? resultType)
+        INamedTypeSymbol type, bool hasForPull, int targets, int boss, INamedTypeSymbol surfaceType)
     {
         public INamedTypeSymbol Type { get; } = type;
         public bool HasForPull { get; } = hasForPull;
         public int Targets { get; } = targets;
         public int Boss { get; } = boss;
-        public INamedTypeSymbol? ResultType { get; } = resultType;
+        public INamedTypeSymbol SurfaceType { get; } = surfaceType;
     }
 }

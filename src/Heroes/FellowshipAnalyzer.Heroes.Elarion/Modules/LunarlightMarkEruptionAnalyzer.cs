@@ -12,15 +12,19 @@ namespace FellowshipAnalyzer.Heroes.Elarion.Modules;
 /// the Highwind Arrow build.
 /// </summary>
 [ForPull(PullKind.Single | PullKind.Multi)]
-public sealed partial class LunarlightMarkEruptionAnalyzer : Analyzer<LunarlightMarkEruptionReport>
+public sealed partial class LunarlightMarkEruptionAnalyzer : Analyzer
 {
     private const string LunarlightMarkName = "Lunarlight Mark";
 
     private readonly HashSet<(int TargetId, int? Instance)> _activeMarks = [];
     private readonly List<BarrageEvent> _barrages = [];
-    private int _totalMarksApplied;
-    private int _marksExpired;
     private bool _recentlyErupted;
+
+    public IReadOnlyList<BarrageEvent> Barrages => _barrages;
+    public int TotalMarksApplied { get; private set; }
+    public int MarksExpired { get; private set; }
+    public int BarrageWithEruption { get; private set; }
+    public int BarrageWithoutEruption { get; private set; }
 
     [On<ApplyDebuffEvent>(By = Actor.Player)]
     private void OnApplyMark(ApplyDebuffEvent e)
@@ -28,7 +32,7 @@ public sealed partial class LunarlightMarkEruptionAnalyzer : Analyzer<Lunarlight
         if (!IsLunarlightMark(e.Ability)) return;
 
         _activeMarks.Add((e.TargetId, e.TargetInstance));
-        _totalMarksApplied++;
+        TotalMarksApplied++;
     }
 
     [On<RefreshDebuffEvent>(By = Actor.Player)]
@@ -37,7 +41,7 @@ public sealed partial class LunarlightMarkEruptionAnalyzer : Analyzer<Lunarlight
         if (!IsLunarlightMark(e.Ability)) return;
 
         _activeMarks.Add((e.TargetId, e.TargetInstance));
-        _totalMarksApplied++;
+        TotalMarksApplied++;
     }
 
     [On<RemoveDebuffEvent>(By = Actor.Player)]
@@ -47,7 +51,7 @@ public sealed partial class LunarlightMarkEruptionAnalyzer : Analyzer<Lunarlight
 
         if (_activeMarks.Remove((e.TargetId, e.TargetInstance)) && !_recentlyErupted)
         {
-            _marksExpired++;
+            MarksExpired++;
         }
     }
 
@@ -69,12 +73,10 @@ public sealed partial class LunarlightMarkEruptionAnalyzer : Analyzer<Lunarlight
         }
     }
 
-    public override LunarlightMarkEruptionReport OnPullEnd()
+    public override void OnPullEnd()
     {
-        var withEruption = _barrages.Count(b => b.ErupedMarks > 0);
-        var withoutEruption = _barrages.Count(b => b.ErupedMarks == 0);
-        return new LunarlightMarkEruptionReport(
-            _barrages, _totalMarksApplied, _marksExpired, withEruption, withoutEruption);
+        BarrageWithEruption = _barrages.Count(b => b.ErupedMarks > 0);
+        BarrageWithoutEruption = _barrages.Count(b => b.ErupedMarks == 0);
     }
 
     private static bool IsLunarlightMark(Ability ability) =>

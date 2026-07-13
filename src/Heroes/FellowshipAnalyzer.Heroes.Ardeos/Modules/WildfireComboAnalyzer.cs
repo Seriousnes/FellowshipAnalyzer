@@ -2,12 +2,10 @@ using FellowshipAnalyzer.Core.Analysis;
 using FellowshipAnalyzer.Core.Common.Spells.Ardeos;
 using FellowshipAnalyzer.Core.Events;
 
-using System.Text;
-
 namespace FellowshipAnalyzer.Heroes.Ardeos.Modules;
 
 /// <summary>
-/// Scores Ardeos's Wildfire burn windows. Each window is anchored on a Wildfire cast: the setup
+/// Evaluates Ardeos's Wildfire burn windows. Each window is anchored on a Wildfire cast: the setup
 /// rotation should land in the seconds before it (Fire Frogs, Apocalypse, Fire Ball and Engulfing
 /// Flames lay the DoTs Detonate scales on) and Detonate spam should follow immediately after.
 /// </summary>
@@ -16,20 +14,37 @@ namespace FellowshipAnalyzer.Heroes.Ardeos.Modules;
 /// accumulated during dispatch and sliced around each Wildfire anchor in <see cref="OnPullEnd"/>;
 /// no per-target debuff tracking is reconstructed, because targets that die carrying a DoT never
 /// log a remove and drift that state. Pyromania and Incinerate are cooldown-limited relative to
-/// Wildfire and cannot always be aligned, so they are reported as bonus signals and never gate a
+/// Wildfire and cannot always be aligned, so they are surfaced as bonus signals and never gate a
 /// window's classification. One analyzer serves single-target and AoE pulls, since the standard
 /// burn window is identical for both.
 /// </remarks>
 [ForPull(PullKind.Single | PullKind.Multi)]
-public sealed partial class WildfireComboAnalyzer : Analyzer<WildfireComboReport>
+public sealed partial class WildfireComboAnalyzer : Analyzer
 {
+    /// <summary>How many of the four core setup abilities make a window's setup complete.</summary>
+    public const int CoreSetupSuccessThreshold = 3;
+
+    /// <summary>Detonate casts after Wildfire that count as a clean follow-up.</summary>
+    public const int DetonateSpamThreshold = 3;
+
+    /// <summary>Engulfing Flames casts the standard window fits before Wildfire.</summary>
+    public const int StandardEngulfingFlamesCasts = 2;
+
     private const int PreWindowMs = 6000;
     private const int PostWindowMs = 6000;
-    private const int CoreSetupSuccessThreshold = 3;
-    private const int DetonateSpamThreshold = 3;
-    private const int StandardEngulfingFlamesCasts = 2;
 
     private readonly List<CastEvent> _casts = [];
+    private readonly List<WildfireWindowEvaluation> _windows = [];
+
+    /// <summary>Per-window evaluations, one per Wildfire cast in the pull.</summary>
+    public IReadOnlyList<WildfireWindowEvaluation> Windows => _windows;
+
+    public int EvaluatedWindows => _windows.Count;
+    public int SuccessfulWindows { get; private set; }
+    public int PartialWindows { get; private set; }
+    public int WindowsWithPyromania { get; private set; }
+    public int WindowsWithIncinerate { get; private set; }
+    public double AverageDetonateCasts { get; private set; }
 
     [On<CastEvent>(By = Actor.Player)]
     private void OnCast(CastEvent castEvent)
@@ -41,49 +56,17 @@ public sealed partial class WildfireComboAnalyzer : Analyzer<WildfireComboReport
             _casts.Add(castEvent);
     }
 
-    /// <summary>Slices the accumulated casts around each Wildfire anchor and projects the pull.</summary>
-    public override WildfireComboReport OnPullEnd()
+    /// <summary>Slices the accumulated casts around each Wildfire anchor and finalizes the aggregates.</summary>
+    public override void OnPullEnd()
     {
-        var anchors = _casts.Where(c => c.Ability.Id == Spells.Wildfire.FSLID).ToList();
-        var windows = new List<WildfireWindowEvaluation>(anchors.Count);
-        foreach (var anchor in anchors)
-            windows.Add(EvaluateWindow(anchor.Timestamp));
+        foreach (var anchor in _casts.Where(c => c.Ability.Id == Spells.Wildfire.FSLID).ToList())
+            _windows.Add(EvaluateWindow(anchor.Timestamp));
 
-        var evaluatedWindows = windows.Count;
-        var successfulWindows = windows.Count(w => w.Successful);
-        var partialWindows = windows.Count(w => w.Partial);
-        var windowsWithPyromania = windows.Count(w => w.HasPyromania);
-        var windowsWithIncinerate = windows.Count(w => w.HasIncinerate);
-        var averageDetonateCasts = evaluatedWindows == 0
-            ? 0d
-            : windows.Average(w => w.DetonateCasts);
-
-        var score = evaluatedWindows == 0
-            ? 0
-            : (int)Math.Round(((successfulWindows + (partialWindows * 0.5)) / evaluatedWindows) * 100);
-
-        var summary = evaluatedWindows == 0
-            ? "No Wildfire windows detected in this pull."
-            : $"{successfulWindows}/{evaluatedWindows} Wildfire windows opened with the setup rotation and were followed by Detonate spam.";
-
-        var scoreCard = new AnalyzerScoreCard(
-            "Wildfire Burn Windows",
-            score,
-            summary,
-            score >= 75 ? "ice" : score >= 50 ? "amber" : "ember");
-
-        var findings = BuildFindings(windows, successfulWindows, windowsWithPyromania, windowsWithIncinerate);
-
-        return new WildfireComboReport(
-            scoreCard,
-            evaluatedWindows,
-            successfulWindows,
-            partialWindows,
-            windowsWithPyromania,
-            windowsWithIncinerate,
-            averageDetonateCasts,
-            windows,
-            findings);
+        SuccessfulWindows = _windows.Count(w => w.Successful);
+        PartialWindows = _windows.Count(w => w.Partial);
+        WindowsWithPyromania = _windows.Count(w => w.HasPyromania);
+        WindowsWithIncinerate = _windows.Count(w => w.HasIncinerate);
+        AverageDetonateCasts = _windows.Count == 0 ? 0d : _windows.Average(w => w.DetonateCasts);
     }
 
     private WildfireWindowEvaluation EvaluateWindow(int anchor)
@@ -144,7 +127,7 @@ public sealed partial class WildfireComboAnalyzer : Analyzer<WildfireComboReport
         var successful = coreSetupCount >= CoreSetupSuccessThreshold && detonateSpamFollowed;
         var partial = !successful && detonateSpamFollowed && coreSetupCount >= 1;
 
-        var window = new WildfireWindowEvaluation
+        return new WildfireWindowEvaluation
         {
             StartTimestamp = anchor,
             PreWindowStart = preStart,
@@ -162,53 +145,6 @@ public sealed partial class WildfireComboAnalyzer : Analyzer<WildfireComboReport
             DetonateCasts = detonateCasts,
             CastsInWindow = castsInWindow,
         };
-        window.Outcome = BuildOutcome(window);
-        return window;
-    }
-
-    private static string BuildOutcome(WildfireWindowEvaluation window)
-    {
-        if (window.Successful)
-        {
-            var note = window is { HasPyromania: true, HasIncinerate: true }
-                ? " Pyromania and Incinerate both aligned to extend the burn."
-                : window.HasPyromania
-                    ? " Pyromania aligned with this window."
-                    : window.HasIncinerate
-                        ? " Incinerate extended the DoTs into this window."
-                        : string.Empty;
-            return "Opened Wildfire with the setup rotation in place and followed with Detonate spam." + note;
-        }
-
-        var reasons = new List<string>();
-
-        var missing = new List<string>();
-        if (!window.HasFireFrogs)
-            missing.Add("Fire Frogs");
-        if (!window.HasApocalypse)
-            missing.Add("Apocalypse");
-        if (!window.HasFireBall)
-            missing.Add("Fire Ball");
-        if (!window.HasEngulfingFlames)
-            missing.Add("Engulfing Flames");
-
-        if (window.CoreSetupCount == 0)
-            reasons.Add("no setup abilities were cast before Wildfire");
-        else if (window.CoreSetupCount < CoreSetupSuccessThreshold && missing.Count > 0)
-            reasons.Add($"the setup was incomplete before Wildfire (missing {JoinNames(missing)})");
-
-        if (window.DetonateCasts == 0)
-            reasons.Add("Detonate was not spammed after Wildfire");
-        else if (window.DetonateCasts < DetonateSpamThreshold)
-            reasons.Add($"only {window.DetonateCasts} Detonate cast{(window.DetonateCasts == 1 ? " " : "s ")}followed Wildfire");
-
-        if (window is { HasEngulfingFlames: true, EngulfingFlamesCount: < StandardEngulfingFlamesCasts })
-            reasons.Add("Engulfing Flames was cast only once (the standard window uses it twice)");
-
-        if (reasons.Count == 0)
-            reasons.Add("the window only partially matched the expected burn setup");
-
-        return JoinReasons(reasons);
     }
 
     private static bool IsRelevant(int id) =>
@@ -221,93 +157,26 @@ public sealed partial class WildfireComboAnalyzer : Analyzer<WildfireComboReport
         id == Spells.Pyromania.FSLID ||
         id == Spells.Incinerate.FSLID;
 
-    private List<ArdeosFinding> BuildFindings(
-        IReadOnlyList<WildfireWindowEvaluation> windows,
-        int successfulWindows,
-        int windowsWithPyromania,
-        int windowsWithIncinerate)
-    {
-        var findings = new List<ArdeosFinding>();
-        if (windows.Count == 0)
-        {
-            findings.Add(new ArdeosFinding("info", "No Wildfire windows were detected in this pull."));
-            return findings;
-        }
-
-        findings.Add(new ArdeosFinding("info",
-            $"{successfulWindows} of {windows.Count} Wildfire windows were clean burns (setup complete and Detonate spam followed)."));
-
-        foreach (var window in windows.Where(w => !w.Successful).Take(5))
-        {
-            findings.Add(new ArdeosFinding(
-                window.Partial ? "warning" : "major",
-                window.Outcome,
-                window.StartTimestamp));
-        }
-
-        findings.Add(new ArdeosFinding("info",
-            $"Pyromania aligned with {windowsWithPyromania} of {windows.Count} windows; Incinerate extended DoTs into {windowsWithIncinerate}."));
-
-        return findings;
-    }
-
-    private static string JoinNames(List<string> names)
-    {
-        if (names.Count == 1)
-            return names[0];
-
-        var builder = new StringBuilder();
-        for (var i = 0; i < names.Count; i++)
-        {
-            if (i > 0)
-                builder.Append(i == names.Count - 1 ? " and " : ", ");
-            builder.Append(names[i]);
-        }
-
-        return builder.ToString();
-    }
-
-    private static string JoinReasons(List<string> reasons)
-    {
-        if (reasons.Count == 1)
-            return Capitalise(reasons[0]) + ".";
-
-        var builder = new StringBuilder();
-        for (var i = 0; i < reasons.Count; i++)
-        {
-            if (i > 0)
-                builder.Append(i == reasons.Count - 1 ? ", and " : ", ");
-            builder.Append(i == 0 ? Capitalise(reasons[i]) : reasons[i]);
-        }
-
-        builder.Append('.');
-        return builder.ToString();
-    }
-
-    private static string Capitalise(string value) =>
-        value.Length == 0 ? value : char.ToUpperInvariant(value[0]) + value[1..];
-
     /// <summary>
-    /// Per-window evaluation of a single Wildfire burn. Exposed as settable properties so the
-    /// source-generated <c>JsonSerializerContext</c> can round-trip it across worker boundaries.
+    /// Typed evaluation of a single Wildfire burn window: which setup abilities landed before the
+    /// anchor, the Detonate spam that followed, and the classification derived from both.
     /// </summary>
-    public sealed class WildfireWindowEvaluation
+    public sealed record WildfireWindowEvaluation
     {
-        public int StartTimestamp { get; set; }
-        public int PreWindowStart { get; set; }
-        public int PostWindowEnd { get; set; }
-        public bool Successful { get; set; }
-        public bool Partial { get; set; }
-        public string Outcome { get; set; } = string.Empty;
-        public int CoreSetupCount { get; set; }
-        public bool HasFireFrogs { get; set; }
-        public bool HasApocalypse { get; set; }
-        public bool HasFireBall { get; set; }
-        public bool HasEngulfingFlames { get; set; }
-        public int EngulfingFlamesCount { get; set; }
-        public bool HasPyromania { get; set; }
-        public bool HasIncinerate { get; set; }
-        public int DetonateCasts { get; set; }
-        public List<CastEvent> CastsInWindow { get; set; } = [];
+        public int StartTimestamp { get; init; }
+        public int PreWindowStart { get; init; }
+        public int PostWindowEnd { get; init; }
+        public bool Successful { get; init; }
+        public bool Partial { get; init; }
+        public int CoreSetupCount { get; init; }
+        public bool HasFireFrogs { get; init; }
+        public bool HasApocalypse { get; init; }
+        public bool HasFireBall { get; init; }
+        public bool HasEngulfingFlames { get; init; }
+        public int EngulfingFlamesCount { get; init; }
+        public bool HasPyromania { get; init; }
+        public bool HasIncinerate { get; init; }
+        public int DetonateCasts { get; init; }
+        public IReadOnlyList<CastEvent> CastsInWindow { get; init; } = [];
     }
 }

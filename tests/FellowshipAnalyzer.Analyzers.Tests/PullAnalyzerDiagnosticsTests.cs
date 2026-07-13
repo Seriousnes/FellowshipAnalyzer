@@ -25,19 +25,10 @@ public class PullAnalyzerDiagnosticsTests
             public abstract class Host { }
 
             [ForPull(PullKind.Single)]
-            public sealed class DepAnalyzer : Analyzer<DepResult>
-            {
-                public override DepResult OnPullEnd() => new();
-            }
+            public sealed class DepAnalyzer : Analyzer { }
 
             [ForPull(PullKind.Single)]
-            public sealed class MyAnalyzer(DepAnalyzer dep) : Analyzer<MyResult>
-            {
-                public override MyResult OnPullEnd() => new();
-            }
-
-            public sealed record DepResult : IResult;
-            public sealed record MyResult : IResult;
+            public sealed class MyAnalyzer(DepAnalyzer dep) : Analyzer { }
             """);
 
         Ids(diagnostics).ShouldContain("FA0014");
@@ -55,19 +46,10 @@ public class PullAnalyzerDiagnosticsTests
             public abstract class Host { }
 
             [ForPull(PullKind.Single)]
-            public sealed class DepAnalyzer : Analyzer<DepResult>
-            {
-                public override DepResult OnPullEnd() => new();
-            }
+            public sealed class DepAnalyzer : Analyzer { }
 
             [ForPull(PullKind.Single)]
-            public sealed class MyAnalyzer(Lazy<DepAnalyzer> dep) : Analyzer<MyResult>
-            {
-                public override MyResult OnPullEnd() => new();
-            }
-
-            public sealed record DepResult : IResult;
-            public sealed record MyResult : IResult;
+            public sealed class MyAnalyzer(Lazy<DepAnalyzer> dep) : Analyzer { }
             """);
 
         Ids(diagnostics).ShouldContain("FA0014");
@@ -87,12 +69,7 @@ public class PullAnalyzerDiagnosticsTests
             public sealed class MyState : EventSubscriber { }
 
             [ForPull(PullKind.Single)]
-            public sealed class MyAnalyzer(MyState state) : Analyzer<MyResult>
-            {
-                public override MyResult OnPullEnd() => new();
-            }
-
-            public sealed record MyResult : IResult;
+            public sealed class MyAnalyzer(MyState state) : Analyzer { }
             """);
 
         Ids(diagnostics).ShouldNotContain("FA0014");
@@ -108,12 +85,7 @@ public class PullAnalyzerDiagnosticsTests
             [AddAnalyzer<NoFilterAnalyzer>]
             public abstract class Host { }
 
-            public sealed class NoFilterAnalyzer : Analyzer<MyResult>
-            {
-                public override MyResult OnPullEnd() => new();
-            }
-
-            public sealed record MyResult : IResult;
+            public sealed class NoFilterAnalyzer : Analyzer { }
             """);
 
         Ids(diagnostics).ShouldContain("FA0015");
@@ -130,19 +102,14 @@ public class PullAnalyzerDiagnosticsTests
             public abstract class Host { }
 
             [ForPull(PullKind.Single)]
-            public sealed class MyAnalyzer : Analyzer<MyResult>
-            {
-                public override MyResult OnPullEnd() => new();
-            }
-
-            public sealed record MyResult : IResult;
+            public sealed class MyAnalyzer : Analyzer { }
             """);
 
         Ids(diagnostics).ShouldNotContain("FA0015");
     }
 
     [Fact]
-    public void FA0016_OverlappingFilters_SameResult_Reports()
+    public void FA0016_OverlappingFilters_SharedSurface_Reports()
     {
         var diagnostics = AnalyzerTestHarness.Run(Usings + """
 
@@ -152,26 +119,20 @@ public class PullAnalyzerDiagnosticsTests
             [AddAnalyzer<StAnalyzer>]
             public abstract class Host { }
 
+            public abstract class ComboAnalyzer : Analyzer { }
+
             [ForPull(PullKind.Single | PullKind.Multi)]
-            public sealed class WideAnalyzer : Analyzer<ComboResult>
-            {
-                public override ComboResult OnPullEnd() => new();
-            }
+            public sealed class WideAnalyzer : ComboAnalyzer { }
 
             [ForPull(PullKind.Single)]
-            public sealed class StAnalyzer : Analyzer<ComboResult>
-            {
-                public override ComboResult OnPullEnd() => new();
-            }
-
-            public sealed record ComboResult : IResult;
+            public sealed class StAnalyzer : ComboAnalyzer { }
             """);
 
         Ids(diagnostics).ShouldContain("FA0016");
     }
 
     [Fact]
-    public void FA0016_DisjointTargets_SameResult_Silent()
+    public void FA0016_DisjointTargets_SharedSurface_Silent()
     {
         var diagnostics = AnalyzerTestHarness.Run(Usings + """
 
@@ -181,26 +142,20 @@ public class PullAnalyzerDiagnosticsTests
             [AddAnalyzer<AoeAnalyzer>]
             public abstract class Host { }
 
+            public abstract class ComboAnalyzer : Analyzer { }
+
             [ForPull(PullKind.Single)]
-            public sealed class StAnalyzer : Analyzer<ComboResult>
-            {
-                public override ComboResult OnPullEnd() => new();
-            }
+            public sealed class StAnalyzer : ComboAnalyzer { }
 
             [ForPull(PullKind.Multi)]
-            public sealed class AoeAnalyzer : Analyzer<ComboResult>
-            {
-                public override ComboResult OnPullEnd() => new();
-            }
-
-            public sealed record ComboResult : IResult;
+            public sealed class AoeAnalyzer : ComboAnalyzer { }
             """);
 
         Ids(diagnostics).ShouldNotContain("FA0016");
     }
 
     [Fact]
-    public void FA0016_DisjointBoss_SameResult_Silent()
+    public void FA0016_DisjointBoss_SharedSurface_Silent()
     {
         var diagnostics = AnalyzerTestHarness.Run(Usings + """
 
@@ -210,26 +165,20 @@ public class PullAnalyzerDiagnosticsTests
             [AddAnalyzer<TrashAnalyzer>]
             public abstract class Host { }
 
+            public abstract class ComboAnalyzer : Analyzer { }
+
             [ForPull(PullKind.Single, Boss = PullBoss.Boss)]
-            public sealed class BossAnalyzer : Analyzer<ComboResult>
-            {
-                public override ComboResult OnPullEnd() => new();
-            }
+            public sealed class BossAnalyzer : ComboAnalyzer { }
 
             [ForPull(PullKind.Single, Boss = PullBoss.NonBoss)]
-            public sealed class TrashAnalyzer : Analyzer<ComboResult>
-            {
-                public override ComboResult OnPullEnd() => new();
-            }
-
-            public sealed record ComboResult : IResult;
+            public sealed class TrashAnalyzer : ComboAnalyzer { }
             """);
 
         Ids(diagnostics).ShouldNotContain("FA0016");
     }
 
     [Fact]
-    public void FA0016_DifferentResults_OverlappingFilters_Silent()
+    public void FA0016_DistinctSurfaces_OverlappingFilters_Silent()
     {
         var diagnostics = AnalyzerTestHarness.Run(Usings + """
 
@@ -240,22 +189,98 @@ public class PullAnalyzerDiagnosticsTests
             public abstract class Host { }
 
             [ForPull(PullKind.Single)]
-            public sealed class A1 : Analyzer<ResultOne>
-            {
-                public override ResultOne OnPullEnd() => new();
-            }
+            public sealed class A1 : Analyzer { }
 
             [ForPull(PullKind.Single)]
-            public sealed class A2 : Analyzer<ResultTwo>
-            {
-                public override ResultTwo OnPullEnd() => new();
-            }
-
-            public sealed record ResultOne : IResult;
-            public sealed record ResultTwo : IResult;
+            public sealed class A2 : Analyzer { }
             """);
 
         Ids(diagnostics).ShouldNotContain("FA0016");
+    }
+
+    [Fact]
+    public void FA0016_OverlappingFilters_SharedInterface_Reports()
+    {
+        var diagnostics = AnalyzerTestHarness.Run(Usings + """
+
+            namespace Test;
+
+            [AddAnalyzer<WideAnalyzer>]
+            [AddAnalyzer<StAnalyzer>]
+            public abstract class Host { }
+
+            public interface IComboAnalyzer : IAnalyzerSurface;
+
+            [ForPull(PullKind.Single | PullKind.Multi)]
+            public sealed class WideAnalyzer : Analyzer, IComboAnalyzer { }
+
+            [ForPull(PullKind.Single)]
+            public sealed class StAnalyzer : Analyzer, IComboAnalyzer { }
+            """);
+
+        Ids(diagnostics).ShouldContain("FA0016");
+    }
+
+    [Fact]
+    public void FA0016_DisjointTargets_SharedInterface_Silent()
+    {
+        var diagnostics = AnalyzerTestHarness.Run(Usings + """
+
+            namespace Test;
+
+            [AddAnalyzer<StAnalyzer>]
+            [AddAnalyzer<AoeAnalyzer>]
+            public abstract class Host { }
+
+            public interface IComboAnalyzer : IAnalyzerSurface;
+
+            [ForPull(PullKind.Single)]
+            public sealed class StAnalyzer : Analyzer, IComboAnalyzer { }
+
+            [ForPull(PullKind.Multi)]
+            public sealed class AoeAnalyzer : Analyzer, IComboAnalyzer { }
+            """);
+
+        Ids(diagnostics).ShouldNotContain("FA0016");
+    }
+
+    [Fact]
+    public void FA0017_MultipleSurfaceInterfaces_Reports()
+    {
+        var diagnostics = AnalyzerTestHarness.Run(Usings + """
+
+            namespace Test;
+
+            [AddAnalyzer<BadAnalyzer>]
+            public abstract class Host { }
+
+            public interface IFooAnalyzer : IAnalyzerSurface;
+            public interface IBarAnalyzer : IAnalyzerSurface;
+
+            [ForPull(PullKind.Single)]
+            public sealed class BadAnalyzer : Analyzer, IFooAnalyzer, IBarAnalyzer { }
+            """);
+
+        Ids(diagnostics).ShouldContain("FA0017");
+    }
+
+    [Fact]
+    public void FA0017_SingleSurfaceInterface_Silent()
+    {
+        var diagnostics = AnalyzerTestHarness.Run(Usings + """
+
+            namespace Test;
+
+            [AddAnalyzer<MyAnalyzer>]
+            public abstract class Host { }
+
+            public interface IComboAnalyzer : IAnalyzerSurface;
+
+            [ForPull(PullKind.Single)]
+            public sealed class MyAnalyzer : Analyzer, IComboAnalyzer { }
+            """);
+
+        Ids(diagnostics).ShouldNotContain("FA0017");
     }
 
     private static IEnumerable<string> Ids(IEnumerable<Diagnostic> diagnostics) =>

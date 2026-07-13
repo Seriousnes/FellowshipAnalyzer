@@ -21,24 +21,22 @@ public sealed class FuryEconomyAnalyzerTests
     private const int EnemyId = 11;
 
     [Fact]
-    public async Task Analyze_FuryEconomy_MeasuresOvercapSpendersAndExecute()
+    public async Task Analyze_FuryEconomy_MeasuresOvercapAndSpenders()
     {
         var (parser, _) = await AnalyzeAsync(BuildScenario());
 
-        var entry = parser.FuryEconomyReports.ShouldHaveSingleItem();
-        var report = entry.Result;
+        var analyzer = parser.FuryEconomyAnalyzers.ShouldHaveSingleItem().Analyzer;
 
-        report.GeneratorCasts.ShouldBe(3);
-        report.OvercapCasts.ShouldBe(1);
-        report.SpenderCasts.ShouldBe(4);
-        report.SkullCrusherCasts.ShouldBe(2);
-        report.HammerStormCasts.ShouldBe(1);
-        report.CullingStrikeCasts.ShouldBe(1);
-        report.EmpoweredSpenderCasts.ShouldBe(3);
-        report.ThunderCallWindows.ShouldBe(1);
-        report.ExecuteCullingStrikes.ShouldBe(1);
-        report.ScoreCard.Score.ShouldBe(67);
-        report.Findings.ShouldContain(finding => finding.Severity == "warning");
+        analyzer.GeneratorCasts.ShouldBe(3);
+        analyzer.OvercapCasts.ShouldBe(1);
+        analyzer.SpenderCasts.ShouldBe(4);
+        analyzer.SkullCrusherCasts.ShouldBe(2);
+        analyzer.HammerStormCasts.ShouldBe(1);
+        analyzer.CullingStrikeCasts.ShouldBe(1);
+        analyzer.EmpoweredSpenderCasts.ShouldBe(3);
+        analyzer.ThunderCallWindows.ShouldBe(1);
+        analyzer.OvercapRate.ShouldBe(1d / 3, tolerance: 0.001);
+        analyzer.EmpoweredSpendShare.ShouldBe(0.75, tolerance: 0.001);
     }
 
     [Fact]
@@ -46,15 +44,15 @@ public sealed class FuryEconomyAnalyzerTests
     {
         var (parser, _) = await AnalyzeAsync(BuildScenario());
 
-        var entry = parser.FuryEconomyReports.ShouldHaveSingleItem();
+        var entry = parser.FuryEconomyAnalyzers.ShouldHaveSingleItem();
         var pull = entry.Pull;
         pull.Index.ShouldBe(0);
 
-        pull.FuryEconomyReport.ShouldBe(entry.Result);
-        parser.For(pull).FuryEconomyReport.ShouldBe(entry.Result);
+        pull.FuryEconomyAnalyzer.ShouldBeSameAs(entry.Analyzer);
+        parser.For(pull).FuryEconomyAnalyzer.ShouldBeSameAs(entry.Analyzer);
     }
 
-    private static async Task<(TariqCombatLogParser Parser, HeroAnalysisResult Result)> AnalyzeAsync(List<Event> events)
+    internal static async Task<(TariqCombatLogParser Parser, HeroAnalysisResult Result)> AnalyzeAsync(List<Event> events)
     {
         var services = new ServiceCollection();
         services.AddLogging();
@@ -78,13 +76,12 @@ public sealed class FuryEconomyAnalyzerTests
         Cast(400, TariqSpells.SkullCrusher.FSLID, fury: 60, maxFury: 100),
         Cast(500, TariqSpells.HammerStorm.FSLID, fury: 40, maxFury: 100),
         Cast(600, TariqSpells.CullingStrike.FSLID, fury: 30, maxFury: 100),
-        CullingStrikeHit(650, targetHp: 10, targetMaxHp: 100),
         Buff<RemoveBuffEvent>(800, TariqSpells.ThunderCallBuff.FSLID),
         Cast(900, TariqSpells.SkullCrusher.FSLID, fury: 55, maxFury: 100),
         Cast(1000, TariqSpells.ChainLightning.FSLID, fury: 30, maxFury: 100),
     ];
 
-    private static CastEvent Cast(int timestamp, int abilityId, int fury, int maxFury) => new()
+    internal static CastEvent Cast(int timestamp, int abilityId, int fury, int maxFury) => new()
     {
         Timestamp = timestamp,
         SourceId = PlayerId,
@@ -98,7 +95,7 @@ public sealed class FuryEconomyAnalyzerTests
         },
     };
 
-    private static DamageEvent CullingStrikeHit(int timestamp, int targetHp, int targetMaxHp) => new()
+    internal static DamageEvent CullingStrikeHit(int timestamp, int targetHp, int targetMaxHp) => new()
     {
         Timestamp = timestamp,
         SourceId = PlayerId,
@@ -107,7 +104,7 @@ public sealed class FuryEconomyAnalyzerTests
         TargetResources = new ActorResources { HitPoints = targetHp, MaxHitPoints = targetMaxHp },
     };
 
-    private static TEvent Buff<TEvent>(int timestamp, int abilityId) where TEvent : BuffEvent, new() => new()
+    internal static TEvent Buff<TEvent>(int timestamp, int abilityId) where TEvent : BuffEvent, new() => new()
     {
         Timestamp = timestamp,
         SourceId = PlayerId,

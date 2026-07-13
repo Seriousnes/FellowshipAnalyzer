@@ -5,9 +5,9 @@ using FellowshipAnalyzer.Core.Events;
 namespace FellowshipAnalyzer.Heroes.Gunde.Modules;
 
 /// <summary>
-/// Scores how well each Slaughter is set up. Slaughter consumes all of Gunde's Rend into a short
+/// Evaluates how well each Slaughter is set up. Slaughter consumes all of Gunde's Rend into a short
 /// 160% bleed, so its value is maximised when it is cast (a) inside the Open Wounds window that
-/// Rupture leaves behind — the next Slaughter deals more for 18s — and (b) after Heart Splitter has
+/// Rupture leaves behind, buffing the next Slaughter for 18s, and (b) after Heart Splitter has
 /// been used to build Rend since the previous Slaughter. The shape-specialised leaves add the extra
 /// success criterion their rotation calls for.
 /// </summary>
@@ -16,7 +16,7 @@ namespace FellowshipAnalyzer.Heroes.Gunde.Modules;
 /// <c>FSLID</c> (effect range offset + native id 3233). The analyzer keys on the actual debuff rather
 /// than inferring the window from Rupture casts, so it holds across builds and Open Wounds sources.
 /// </remarks>
-public abstract partial class SlaughterUsageAnalyzer : Analyzer<SlaughterUsageReport>
+public abstract partial class SlaughterUsageAnalyzer : Analyzer
 {
     private const int OpenWoundsEffectFslid = 1_000_000 + 3233;
     private const int OpenWoundsDurationMs = 18_000;
@@ -29,6 +29,23 @@ public abstract partial class SlaughterUsageAnalyzer : Analyzer<SlaughterUsageRe
     private int _lastHeartSplitterTimestamp = int.MinValue;
     private int _previousSlaughterTimestamp = int.MinValue;
     private SlaughterEvaluation? _pendingSlaughter;
+
+    /// <summary>The pull shape this leaf scores against.</summary>
+    public abstract GundePullShape Shape { get; }
+
+    /// <summary>Every Slaughter cast on the pull, in cast order, with its per-cast evaluation.</summary>
+    public IReadOnlyList<SlaughterEvaluation> Slaughters => _slaughters;
+
+    public int SlaughterCasts => _slaughters.Count;
+
+    /// <summary>Slaughters cast while a Rupture Open Wounds window was active.</summary>
+    public int OpenWoundsTimed { get; private set; }
+
+    /// <summary>Slaughters preceded by a Heart Splitter since the previous Slaughter.</summary>
+    public int HeartSplitterPrimed { get; private set; }
+
+    /// <summary>Slaughters that met the success bar for this pull shape.</summary>
+    public int WellExecuted { get; private set; }
 
     [On<ApplyDebuffEvent>(By = Actor.Player)]
     private void OnDebuffApplied(ApplyDebuffEvent @event)
@@ -78,65 +95,20 @@ public abstract partial class SlaughterUsageAnalyzer : Analyzer<SlaughterUsageRe
         _previousSlaughterTimestamp = @event.Timestamp;
     }
 
-    /// <summary>Per-pull projection of this analyzer's accumulated state for the closing pull.</summary>
-    public override SlaughterUsageReport OnPullEnd()
+    public override void OnPullEnd()
     {
         FinalizePendingSlaughter();
 
-        var casts = _slaughters.Count;
-        if (casts == 0)
-        {
-            var idleCard = new AnalyzerScoreCard(ScoreTitle, 0,
-                "No Slaughter casts detected — consistent with a Heart Splitter build that keeps Rend on the target.",
-                "amber");
-            return new SlaughterUsageReport(idleCard, Shape, 0, 0, 0, 0, [],
-                [new GundeFinding("info", "No Slaughter was cast on this pull; nothing to score for a build that avoids it.")]);
-        }
-
         foreach (var slaughter in _slaughters)
-        {
             slaughter.WellExecuted = IsWellExecuted(slaughter);
-            slaughter.Outcome = DescribeOutcome(slaughter);
-        }
 
-        var openWoundsTimed = _slaughters.Count(s => s.OpenWoundsActive);
-        var heartSplitterPrimed = _slaughters.Count(s => s.HeartSplitterPrimed);
-        var wellExecuted = _slaughters.Count(s => s.WellExecuted);
-        var score = (int)Math.Round((double)wellExecuted / casts * 100);
-
-        var findings = new List<GundeFinding>
-        {
-            new("info", $"{wellExecuted} of {casts} Slaughters were set up well; {openWoundsTimed} landed inside an Open Wounds window."),
-        };
-        foreach (var missed in _slaughters.Where(s => !s.WellExecuted).Take(5))
-            findings.Add(new GundeFinding("warning", missed.Outcome, missed.Timestamp));
-
-        var accent = score >= 75 ? "ice" : score >= 50 ? "amber" : "ember";
-        var card = new AnalyzerScoreCard(ScoreTitle, score,
-            $"{wellExecuted}/{casts} Slaughters cast on cue ({openWoundsTimed} inside Open Wounds).", accent);
-
-        return new SlaughterUsageReport(card, Shape, casts, openWoundsTimed, heartSplitterPrimed, wellExecuted,
-            [.. _slaughters], findings);
+        OpenWoundsTimed = _slaughters.Count(s => s.OpenWoundsActive);
+        HeartSplitterPrimed = _slaughters.Count(s => s.HeartSplitterPrimed);
+        WellExecuted = _slaughters.Count(s => s.WellExecuted);
     }
-
-    /// <summary>The pull shape this leaf scores, stamped onto the shared report.</summary>
-    protected abstract GundePullShape Shape { get; }
-
-    /// <summary>Title for this leaf's score card.</summary>
-    protected abstract string ScoreTitle { get; }
 
     /// <summary>Whether a Slaughter met the success bar for this pull shape.</summary>
     protected abstract bool IsWellExecuted(SlaughterEvaluation slaughter);
-
-    /// <summary>Human-readable outcome for a single Slaughter under this pull shape.</summary>
-    protected abstract string DescribeOutcome(SlaughterEvaluation slaughter);
-
-    /// <summary>Joins one or two failure reasons into a sentence, capitalising the first.</summary>
-    protected static string JoinReasons(List<string> reasons) =>
-        reasons.Count == 0
-            ? "Only partially set up."
-            : char.ToUpperInvariant(reasons[0][0]) + reasons[0][1..] +
-                (reasons.Count > 1 ? ", and " + reasons[1] : string.Empty) + ".";
 
     private void FinalizePendingSlaughter()
     {
@@ -166,25 +138,10 @@ public abstract partial class SlaughterUsageAnalyzer : Analyzer<SlaughterUsageRe
 [ForPull(PullKind.Single)]
 public sealed class BossSlaughterUsage : SlaughterUsageAnalyzer
 {
-    protected override GundePullShape Shape => GundePullShape.Boss;
-
-    protected override string ScoreTitle => "Slaughter Setup (Boss)";
+    public override GundePullShape Shape => GundePullShape.Boss;
 
     protected override bool IsWellExecuted(SlaughterEvaluation slaughter) =>
         slaughter.OpenWoundsActive && slaughter.HeartSplitterPrimed;
-
-    protected override string DescribeOutcome(SlaughterEvaluation slaughter)
-    {
-        if (slaughter.WellExecuted)
-            return "Cast inside Open Wounds with Rend rebuilt by Heart Splitter.";
-
-        var reasons = new List<string>();
-        if (!slaughter.OpenWoundsActive)
-            reasons.Add("no Open Wounds window was active, so it missed Rupture's bonus");
-        if (!slaughter.HeartSplitterPrimed)
-            reasons.Add("Heart Splitter was not used since the previous Slaughter, so Rend was not rebuilt");
-        return JoinReasons(reasons);
-    }
 }
 
 /// <summary>
@@ -194,27 +151,11 @@ public sealed class BossSlaughterUsage : SlaughterUsageAnalyzer
 [ForPull(PullKind.Multi)]
 public sealed class TrashSlaughterUsage : SlaughterUsageAnalyzer
 {
-    private const int PackThreshold = 2;
+    /// <summary>Minimum enemies a Slaughter bleed must reach to count as spread across the pack.</summary>
+    public const int PackThreshold = 2;
 
-    protected override GundePullShape Shape => GundePullShape.Aoe;
-
-    protected override string ScoreTitle => "Slaughter Setup (AoE)";
+    public override GundePullShape Shape => GundePullShape.Aoe;
 
     protected override bool IsWellExecuted(SlaughterEvaluation slaughter) =>
         slaughter.OpenWoundsActive && slaughter.TargetsHit >= PackThreshold;
-
-    protected override string DescribeOutcome(SlaughterEvaluation slaughter)
-    {
-        if (slaughter.WellExecuted)
-            return $"Cast inside Open Wounds, spreading the bleed to {slaughter.TargetsHit} enemies.";
-
-        var reasons = new List<string>();
-        if (!slaughter.OpenWoundsActive)
-            reasons.Add("no Open Wounds window was active, so it missed Rupture's bonus");
-        if (slaughter.TargetsHit < PackThreshold)
-            reasons.Add(slaughter.TargetsHit <= 1
-                ? "it hit a single target, wasting the AoE bleed"
-                : $"it only reached {slaughter.TargetsHit} enemies");
-        return JoinReasons(reasons);
-    }
 }

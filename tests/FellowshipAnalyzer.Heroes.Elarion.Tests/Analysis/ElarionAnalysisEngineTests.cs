@@ -41,15 +41,15 @@ public sealed class ElarionAnalysisEngineTests
 
         var (parser, _) = await AnalyzeAsync(events, fight);
 
-        var entry = parser.StarfallVolleyDesyncReports.ShouldHaveSingleItem();
+        var entry = parser.StarfallVolleyDesyncAnalyzers.ShouldHaveSingleItem();
         var pull = entry.Pull;
         pull.Index.ShouldBe(0);
         pull.Targets.ShouldBe(PullKind.Single);
-        entry.Result.VolleyCount.ShouldBe(1);
-        entry.Result.CloseGapCount.ShouldBe(0);
+        entry.Analyzer.VolleyCount.ShouldBe(1);
+        entry.Analyzer.CloseGapCount.ShouldBe(0);
 
-        pull.StarfallVolleyDesyncReport.ShouldBe(entry.Result);
-        parser.For(pull).StarfallVolleyDesyncReport.ShouldBe(entry.Result);
+        pull.StarfallVolleyDesyncAnalyzer.ShouldBeSameAs(entry.Analyzer);
+        parser.For(pull).StarfallVolleyDesyncAnalyzer.ShouldBeSameAs(entry.Analyzer);
     }
 
     [Fact]
@@ -65,8 +65,8 @@ public sealed class ElarionAnalysisEngineTests
 
         var (parser, _) = await AnalyzeAsync(events, fight);
 
-        parser.HighwindArrowCapReports.ShouldHaveSingleItem().Result.TotalCasts.ShouldBe(2);
-        parser.EmpoweredMultishotWasteReports.ShouldBeEmpty();
+        parser.HighwindArrowCapAnalyzers.ShouldHaveSingleItem().Analyzer.TotalCasts.ShouldBe(2);
+        parser.EmpoweredMultishotWasteAnalyzers.ShouldBeEmpty();
     }
 
     [Fact]
@@ -82,12 +82,12 @@ public sealed class ElarionAnalysisEngineTests
 
         var (parser, _) = await AnalyzeAsync(events, fight);
 
-        var entry = parser.EmpoweredMultishotWasteReports.ShouldHaveSingleItem();
+        var entry = parser.EmpoweredMultishotWasteAnalyzers.ShouldHaveSingleItem();
         entry.Pull.Targets.ShouldBe(PullKind.Multi);
-        entry.Result.RegularCasts.ShouldBe(2);
+        entry.Analyzer.RegularCasts.ShouldBe(2);
 
-        parser.HighwindArrowCapReports.ShouldBeEmpty();
-        parser.StarfallVolleyDesyncReports.ShouldHaveSingleItem();
+        parser.HighwindArrowCapAnalyzers.ShouldBeEmpty();
+        parser.StarfallVolleyDesyncAnalyzers.ShouldHaveSingleItem();
     }
 
     private static CastEvent Cast(int abilityId, int timestamp) => new()
