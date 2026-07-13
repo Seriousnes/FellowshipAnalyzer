@@ -63,13 +63,10 @@
         ];
     }
 
-    private IEnumerable<PerCastData> BuildPerCastData()
-    {
-        return Parser.WildfireComboAnalyzers.SelectMany(entry =>
-            entry.Analyzer.Windows.Select(window => BuildWindowData(window, entry.Pull)));
-    }
+    private IEnumerable<PerCastData> BuildPerCastData() =>
+        Parser.WildfireComboAnalyzers.ToItemRows(Parser, analyzer => analyzer.Windows, (window, pull) => BuildWindowRow(window));
 
-    private PerCastData BuildWindowData(WildfireComboAnalyzer.WildfireWindowEvaluation window, Pull pull)
+    private PerCastRow BuildWindowRow(WildfireComboAnalyzer.WildfireWindowEvaluation window)
     {
         var perf = window.Successful ? PerformanceTier.Perfect
             : window.Partial ? PerformanceTier.Ok
@@ -109,14 +106,12 @@
             .Select(c => new SpellCastEntry(c.Ability.Id))
             .ToArray();
 
-        return new PerCastData
+        return new PerCastRow
         {
             Performance = perf,
             Stats = stats,
-            Timestamp = Parser.FormatTimestamp(window.StartTimestamp),
+            Timestamp = window.StartTimestamp,
             Sequence = sequence,
-            Group = pull.Name,
-            GroupContent = @<PullBanner Pull="@pull" />,
             AdditionalContent = new AdditionalContent(
                 "Usage Notes",
                 @<div>@BuildOutcome(window)</div>),
@@ -204,11 +199,5 @@
     private static string Capitalise(string value) =>
         value.Length == 0 ? value : char.ToUpperInvariant(value[0]) + value[1..];
 
-    private static PerformanceTier PercentTier(int percent) => percent switch
-    {
-        >= 75 => PerformanceTier.Perfect,
-        >= 50 => PerformanceTier.Good,
-        >= 25 => PerformanceTier.Ok,
-        _ => PerformanceTier.Fail,
-    };
+    private static PerformanceTier PercentTier(int percent) => PerformanceTiers.FromThresholds(percent, 75, 50, 25);
 }

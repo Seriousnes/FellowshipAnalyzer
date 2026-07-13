@@ -13,7 +13,7 @@ namespace FellowshipAnalyzer.Heroes.Ardeos.Modules;
 /// not drift the metric.
 /// </summary>
 [ForPull(PullKind.Multi)]
-public sealed partial class SearingBlazeSpreadAnalyzer : Analyzer
+public sealed partial class SearingBlazeSpreadAnalyzer : Analyzer, ISearingBlazeAnalyzer
 {
     private const int UnknownRosterReference = 3;
 

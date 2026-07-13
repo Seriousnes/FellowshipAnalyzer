@@ -13,7 +13,7 @@ namespace FellowshipAnalyzer.Heroes.Ardeos.Modules;
 /// lead-in before the first application lowers uptime without counting as a gap.
 /// </summary>
 [ForPull(PullKind.Single, Boss = PullBoss.Boss)]
-public sealed partial class SearingBlazeUptimeAnalyzer : Analyzer
+public sealed partial class SearingBlazeUptimeAnalyzer : Analyzer, ISearingBlazeAnalyzer
 {
     private readonly Dictionary<(int TargetId, int TargetInstance), List<DotWindow>> _windowsByTarget = [];
     private readonly Dictionary<(int TargetId, int TargetInstance), int> _openWindowStarts = [];

@@ -24,7 +24,8 @@
     {
         var stats = new List<OverviewStat>();
 
-        var bossAnalyzers = Parser.SearingBlazeUptimeAnalyzers.Select(entry => entry.Analyzer).ToList();
+        var bossAnalyzers = Parser.SearingBlazeAnalyzers
+            .Select(entry => entry.Analyzer).OfType<SearingBlazeUptimeAnalyzer>().ToList();
         if (bossAnalyzers.Count > 0)
         {
             var averageUptime = (int)Math.Round(bossAnalyzers.Average(analyzer => analyzer.Uptime * 100));
@@ -40,7 +41,8 @@
                 "Times the DoT dropped off a boss before being reapplied."));
         }
 
-        var spreadAnalyzers = Parser.SearingBlazeSpreadAnalyzers.Select(entry => entry.Analyzer).ToList();
+        var spreadAnalyzers = Parser.SearingBlazeAnalyzers
+            .Select(entry => entry.Analyzer).OfType<SearingBlazeSpreadAnalyzer>().ToList();
         if (spreadAnalyzers.Count > 0)
         {
             var averageSpread = (int)Math.Round(spreadAnalyzers.Average(analyzer => (double)CoverageScore(analyzer)));
@@ -59,18 +61,15 @@
         return stats;
     }
 
-    private IEnumerable<PerCastData> BuildPerCastData()
-    {
-        foreach (var pull in Parser.Pulls)
+    private IEnumerable<PerCastData> BuildPerCastData() =>
+        Parser.SearingBlazeAnalyzers.ToPullRows(Parser, (analyzer, pull) => analyzer switch
         {
-            if (pull.SearingBlazeUptimeAnalyzer is { } uptime)
-                yield return BuildBossRow(pull, uptime);
-            else if (pull.SearingBlazeSpreadAnalyzer is { } spread)
-                yield return BuildTrashRow(pull, spread);
-        }
-    }
+            SearingBlazeUptimeAnalyzer uptime => BuildBossRow(uptime),
+            SearingBlazeSpreadAnalyzer spread => BuildTrashRow(spread),
+            _ => throw new InvalidOperationException($"Unexpected Searing Blaze analyzer {analyzer.GetType().Name}"),
+        });
 
-    private PerCastData BuildBossRow(Pull pull, SearingBlazeUptimeAnalyzer analyzer)
+    private PerCastRow BuildBossRow(SearingBlazeUptimeAnalyzer analyzer)
     {
         var uptimePercent = (int)Math.Round(analyzer.Uptime * 100);
         var perf = UptimeTier(uptimePercent);
@@ -92,19 +91,15 @@
                 "Total time Searing Blaze was down between applications."),
         };
 
-        return new PerCastData
+        return new PerCastRow
         {
             Performance = perf,
             Stats = stats,
-            Timestamp = Parser.FormatTimestamp(pull.StartTime),
-            Sequence = [],
-            Group = pull.Name,
-            GroupContent = @<PullBanner Pull="@pull" />,
             AdditionalContent = new AdditionalContent("Notes", @<div>@BuildBossNote(analyzer, uptimePercent)</div>),
         };
     }
 
-    private PerCastData BuildTrashRow(Pull pull, SearingBlazeSpreadAnalyzer analyzer)
+    private PerCastRow BuildTrashRow(SearingBlazeSpreadAnalyzer analyzer)
     {
         var score = CoverageScore(analyzer);
         var perf = PercentTier(score);
@@ -125,14 +120,10 @@
                 "Total Searing Blaze applications during the pull."),
         };
 
-        return new PerCastData
+        return new PerCastRow
         {
             Performance = perf,
             Stats = stats,
-            Timestamp = Parser.FormatTimestamp(pull.StartTime),
-            Sequence = [],
-            Group = pull.Name,
-            GroupContent = @<PullBanner Pull="@pull" />,
             AdditionalContent = new AdditionalContent("Notes", @<div>@BuildTrashNote(analyzer, score)</div>),
         };
     }
@@ -169,19 +160,7 @@
     private static string FormatSeconds(int milliseconds) =>
         $"{milliseconds / 1000d:0.#}s";
 
-    private static PerformanceTier UptimeTier(int percent) => percent switch
-    {
-        >= 95 => PerformanceTier.Perfect,
-        >= 85 => PerformanceTier.Good,
-        >= 70 => PerformanceTier.Ok,
-        _ => PerformanceTier.Fail,
-    };
+    private static PerformanceTier UptimeTier(int percent) => PerformanceTiers.FromThresholds(percent, 95, 85, 70);
 
-    private static PerformanceTier PercentTier(int percent) => percent switch
-    {
-        >= 75 => PerformanceTier.Perfect,
-        >= 50 => PerformanceTier.Good,
-        >= 25 => PerformanceTier.Ok,
-        _ => PerformanceTier.Fail,
-    };
+    private static PerformanceTier PercentTier(int percent) => PerformanceTiers.FromThresholds(percent, 75, 50, 25);
 }

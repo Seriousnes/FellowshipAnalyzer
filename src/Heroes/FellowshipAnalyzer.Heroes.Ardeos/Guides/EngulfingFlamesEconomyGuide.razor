@@ -57,13 +57,10 @@
         ];
     }
 
-    private IEnumerable<PerCastData> BuildPerCastData()
-    {
-        return Parser.EngulfingFlamesEconomyAnalyzers.SelectMany(entry =>
-            entry.Analyzer.Windows.Select(window => BuildWindowData(window, entry.Pull)));
-    }
+    private IEnumerable<PerCastData> BuildPerCastData() =>
+        Parser.EngulfingFlamesEconomyAnalyzers.ToItemRows(Parser, analyzer => analyzer.Windows, (window, pull) => BuildWindowRow(window));
 
-    private PerCastData BuildWindowData(EngulfingFlamesEconomyAnalyzer.WindowReadiness window, Pull pull)
+    private PerCastRow BuildWindowRow(EngulfingFlamesEconomyAnalyzer.WindowReadiness window)
     {
         var perf = window.Ready ? PerformanceTier.Perfect
             : window.ChargesAvailable >= 1 ? PerformanceTier.Ok
@@ -90,25 +87,17 @@
             ? "Both Engulfing Flames charges were ready for the burst."
             : $"Only {window.ChargesAvailable} of {Spells.EngulfingFlames.Charges} Engulfing Flames charges were ready - hold both charges for the burst so it can be double-cast.";
 
-        return new PerCastData
+        return new PerCastRow
         {
             Performance = perf,
             Stats = stats,
-            Timestamp = Parser.FormatTimestamp(window.Timestamp),
+            Timestamp = window.Timestamp,
             Sequence = sequence.ToArray(),
-            Group = pull.Name,
-            GroupContent = @<PullBanner Pull="@pull" />,
             AdditionalContent = new AdditionalContent(
                 "Usage Notes",
                 @<div>@note</div>),
         };
     }
 
-    private static PerformanceTier PercentTier(int percent) => percent switch
-    {
-        >= 75 => PerformanceTier.Perfect,
-        >= 50 => PerformanceTier.Good,
-        >= 25 => PerformanceTier.Ok,
-        _ => PerformanceTier.Fail,
-    };
+    private static PerformanceTier PercentTier(int percent) => PerformanceTiers.FromThresholds(percent, 75, 50, 25);
 }

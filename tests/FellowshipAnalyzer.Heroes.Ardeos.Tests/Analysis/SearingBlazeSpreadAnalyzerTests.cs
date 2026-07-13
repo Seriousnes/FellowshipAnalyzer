@@ -1,9 +1,12 @@
+using System.Linq;
+
 using FellowshipAnalyzer.Core;
 using FellowshipAnalyzer.Core.Analysis;
 using FellowshipAnalyzer.Core.Common.Spells.Ardeos;
 using FellowshipAnalyzer.Core.Events;
 using FellowshipAnalyzer.Core.FellowshipLogs;
 using FellowshipAnalyzer.Heroes.Ardeos.Analysis;
+using FellowshipAnalyzer.Heroes.Ardeos.Modules;
 
 using Microsoft.Extensions.DependencyInjection;
 
@@ -30,16 +33,16 @@ public sealed class SearingBlazeSpreadAnalyzerTests
 
         var (parser, _) = await AnalyzeAsync(events, TrashFight(5));
 
-        var entry = parser.SearingBlazeSpreadAnalyzers.ShouldHaveSingleItem();
-        var analyzer = entry.Analyzer;
+        var entry = parser.SearingBlazeAnalyzers.ShouldHaveSingleItem();
+        var analyzer = entry.Analyzer.ShouldBeOfType<SearingBlazeSpreadAnalyzer>();
         analyzer.DistinctTargets.ShouldBe(3);
         analyzer.TargetCount.ShouldBe(5);
         analyzer.Coverage.ShouldBe(0.6, 0.0001);
         analyzer.TotalApplications.ShouldBe(3);
 
         var pull = entry.Pull;
-        pull.SearingBlazeSpreadAnalyzer.ShouldBeSameAs(analyzer);
-        parser.For(pull).SearingBlazeSpreadAnalyzer.ShouldBeSameAs(analyzer);
+        pull.SearingBlazeAnalyzer.ShouldBeSameAs(analyzer);
+        parser.For(pull).SearingBlazeAnalyzer.ShouldBeSameAs(analyzer);
     }
 
     [Fact]
@@ -55,7 +58,7 @@ public sealed class SearingBlazeSpreadAnalyzerTests
 
         var (parser, _) = await AnalyzeAsync(events, TrashFight(4));
 
-        var analyzer = parser.SearingBlazeSpreadAnalyzers.ShouldHaveSingleItem().Analyzer;
+        var analyzer = SingleSpreadAnalyzer(parser);
         analyzer.DistinctTargets.ShouldBe(2);
         analyzer.TotalApplications.ShouldBe(2);
         analyzer.Coverage.ShouldBe(0.5, 0.0001);
@@ -73,7 +76,7 @@ public sealed class SearingBlazeSpreadAnalyzerTests
 
         var (parser, _) = await AnalyzeAsync(events, TrashFight(3));
 
-        var analyzer = parser.SearingBlazeSpreadAnalyzers.ShouldHaveSingleItem().Analyzer;
+        var analyzer = SingleSpreadAnalyzer(parser);
         analyzer.DistinctTargets.ShouldBe(3);
         analyzer.Coverage.ShouldBe(1.0, 0.0001);
     }
@@ -83,7 +86,7 @@ public sealed class SearingBlazeSpreadAnalyzerTests
     {
         var (parser, _) = await AnalyzeAsync([], TrashFight(5));
 
-        var analyzer = parser.SearingBlazeSpreadAnalyzers.ShouldHaveSingleItem().Analyzer;
+        var analyzer = SingleSpreadAnalyzer(parser);
         analyzer.DistinctTargets.ShouldBe(0);
         analyzer.Coverage.ShouldBe(0d, 0.0001);
         analyzer.TotalApplications.ShouldBe(0);
@@ -100,7 +103,7 @@ public sealed class SearingBlazeSpreadAnalyzerTests
 
         var (parser, _) = await AnalyzeAsync(events, SpanningFight());
 
-        var analyzer = parser.SearingBlazeSpreadAnalyzers.ShouldHaveSingleItem().Analyzer;
+        var analyzer = SingleSpreadAnalyzer(parser);
         analyzer.TargetCount.ShouldBe(0);
         analyzer.DistinctTargets.ShouldBe(2);
         analyzer.Coverage.ShouldBe(2d / 3, 0.0001);
@@ -118,7 +121,7 @@ public sealed class SearingBlazeSpreadAnalyzerTests
 
         var (parser, _) = await AnalyzeAsync(events, BossFight());
 
-        parser.SearingBlazeSpreadAnalyzers.ShouldBeEmpty();
+        parser.SearingBlazeAnalyzers.Select(e => e.Analyzer).OfType<SearingBlazeSpreadAnalyzer>().ShouldBeEmpty();
     }
 
     [Fact]
@@ -132,7 +135,7 @@ public sealed class SearingBlazeSpreadAnalyzerTests
 
         var (parser, _) = await AnalyzeAsync(events, TrashFight(3));
 
-        var analyzer = parser.SearingBlazeSpreadAnalyzers.ShouldHaveSingleItem().Analyzer;
+        var analyzer = SingleSpreadAnalyzer(parser);
         analyzer.DistinctTargets.ShouldBe(2);
     }
 
@@ -150,7 +153,7 @@ public sealed class SearingBlazeSpreadAnalyzerTests
 
         var (parser, _) = await AnalyzeAsync(events, TrashFight(5));
 
-        var analyzer = parser.SearingBlazeSpreadAnalyzers.ShouldHaveSingleItem().Analyzer;
+        var analyzer = SingleSpreadAnalyzer(parser);
         analyzer.DistinctTargets.ShouldBe(1);
         analyzer.TotalApplications.ShouldBe(1);
     }
@@ -166,7 +169,7 @@ public sealed class SearingBlazeSpreadAnalyzerTests
 
         var (parser, _) = await AnalyzeAsync(events, TrashFight(4));
 
-        var analyzer = parser.SearingBlazeSpreadAnalyzers.ShouldHaveSingleItem().Analyzer;
+        var analyzer = SingleSpreadAnalyzer(parser);
         analyzer.DistinctTargets.ShouldBe(2);
         analyzer.TotalApplications.ShouldBe(1);
     }
@@ -181,10 +184,13 @@ public sealed class SearingBlazeSpreadAnalyzerTests
 
         var (parser, _) = await AnalyzeAsync(events, TrashFight(10));
 
-        var analyzer = parser.SearingBlazeSpreadAnalyzers.ShouldHaveSingleItem().Analyzer;
+        var analyzer = SingleSpreadAnalyzer(parser);
         analyzer.DistinctTargets.ShouldBe(1);
         analyzer.Coverage.ShouldBe(0.1, 0.0001);
     }
+
+    private static SearingBlazeSpreadAnalyzer SingleSpreadAnalyzer(ArdeosCombatLogParser parser) =>
+        parser.SearingBlazeAnalyzers.ShouldHaveSingleItem().Analyzer.ShouldBeOfType<SearingBlazeSpreadAnalyzer>();
 
     private static ApplyDebuffEvent Apply(int targetId, int? targetInstance, int timestamp) => new()
     {

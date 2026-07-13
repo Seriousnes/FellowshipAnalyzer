@@ -43,14 +43,15 @@ For a pull-lifetime analyzer (registered with `[AddAnalyzer<T>]`), read the cros
     }
 
     private IEnumerable<PerCastData> BuildPerPullData() =>
-        Parser.{Name}Analyzers.Select(entry => new PerCastData
+        Parser.{Name}Analyzers.ToPullRows(Parser, (analyzer, pull) => new PerCastRow
         {
-            Timestamp = Parser.FormatTimestamp(entry.Pull.StartTime),
-            Group = entry.Pull.Name,
-            Performance = entry.Analyzer.GoodShare >= 0.75 ? PerformanceTier.Good : PerformanceTier.Fail,
+            Performance = PerformanceTiers.FromThresholds(analyzer.GoodSharePercent, 75, 50, 25),
+            Stats = [new PerCastStat($"{analyzer.GoodCount}", "Good", "Successful usages this pull.")],
         });
 }
 ```
+
+Project rows with the `ToPullRows` / `ToItemRows` extensions (in `FellowshipAnalyzer.Core.UI.Guides`) rather than hand-building each `PerCastData`. The row builder returns a `PerCastRow` with only the varying fields (`Performance`, `Stats`, and optionally `Sequence` / `AdditionalContent` / `Details` / `Tooltip`); the extension fills the pull-derived grouping (the `FormatTimestamp` label, `Group` name, and `PullBanner`) for you. Use `ToPullRows` for one row per analyzer (a per-pull aggregate); use `ToItemRows(Parser, a => a.Windows, (window, pull) => ...)` to flatten an inner collection into one row per item. When a row's timestamp is not the pull start (e.g. a window start), set `PerCastRow.Timestamp`. Map thresholds to a `PerformanceTier` with `PerformanceTiers.FromThresholds(value, perfect, good, ok)` instead of hand-writing the ladder.
 
 For a fight-lifetime module, read the generated nullable parser property (`Parser.WinterOrbTracker` style) and null-check it.
 
@@ -58,24 +59,33 @@ For a fight-lifetime module, read the generated nullable parser property (`Parse
 
 ### Merging analyzers across pull shapes
 
-When independent analyzers answer different questions for different pull shapes (e.g. boss DoT uptime vs trash DoT spread), render them as one section by walking `Parser.Pulls` (every ended pull, in order) and probing each pull's generated nullable accessors:
+When independent analyzers answer different questions for different pull shapes (e.g. boss DoT uptime vs trash DoT spread), expose them under one surface so the guide reads a single stream. Give both analyzers a shared **surface marker interface** (no shared base class or behaviour):
 
 ```csharp
-private IEnumerable<PerCastData> BuildPerCastData()
-{
-    foreach (var pull in Parser.Pulls)
-    {
-        if (pull.SearingBlazeUptimeAnalyzer is { } uptime)
-            yield return BuildBossRow(pull, uptime);
-        else if (pull.SearingBlazeSpreadAnalyzer is { } spread)
-            yield return BuildTrashRow(pull, spread);
-    }
-}
+public interface ISearingBlazeAnalyzer : IAnalyzerSurface;
+
+[ForPull(PullKind.Single, Boss = PullBoss.Boss)]
+public sealed partial class SearingBlazeUptimeAnalyzer : Analyzer, ISearingBlazeAnalyzer { /* ... */ }
+
+[ForPull(PullKind.Multi)]
+public sealed partial class SearingBlazeSpreadAnalyzer : Analyzer, ISearingBlazeAnalyzer { /* ... */ }
 ```
 
-`PerCastData` is the union vocabulary; each per-shape builder fills it from its own analyzer's members, and overview stats read each surface list independently. Gate the section in the root guide on any of the streams being non-empty. Reference: `SearingBlazeGuide.razor` in Ardeos.
+Both register with their own `[AddAnalyzer<T>]` on the parser and keep their own `[ForPull]` (which must be disjoint - FA0016 enforces it). The generator then emits one `Parser.SearingBlazeAnalyzers` stream and one `pull.SearingBlazeAnalyzer` accessor, both typed as the interface. The guide reads the single stream and switches on the concrete type per row:
 
-For a shared-surface family (one abstract base, shape-specialized subclasses; see create-analyzer), read the single merged stream and pattern-match the evaluation subtypes per row instead. Reference: `BasicStComboGuide.razor` in Rime.
+```csharp
+private IEnumerable<PerCastData> BuildPerCastData() =>
+    Parser.SearingBlazeAnalyzers.ToPullRows(Parser, (analyzer, pull) => analyzer switch
+    {
+        SearingBlazeUptimeAnalyzer uptime => BuildBossRow(uptime),
+        SearingBlazeSpreadAnalyzer spread => BuildTrashRow(spread),
+        _ => throw new InvalidOperationException($"Unexpected {analyzer.GetType().Name}"),
+    });
+```
+
+Each per-shape builder returns a `PerCastRow` from its own analyzer's members; overview stats partition the one stream by concrete type (`.OfType<SearingBlazeUptimeAnalyzer>()`). Gate the section in the root guide on the single stream being non-empty. Reference: `SearingBlazeGuide.razor` in Ardeos.
+
+For a shared-surface family that *does* share machinery (one abstract base, shape-specialized subclasses; see create-analyzer), read the single merged stream and pattern-match the evaluation subtypes per row instead. Reference: `BasicStComboGuide.razor` in Rime.
 
 ### 2. Add To The Hero Root Guide
 
@@ -104,7 +114,7 @@ public override Type? GuideComponent => typeof({Hero}Guide);
 
 ## Available UI Widgets
 
-From `FellowshipAnalyzer.Components`:
+From `FellowshipAnalyzer.Core.UI.Guides`:
 
 | Component | Purpose |
 |-----------|---------|
@@ -125,7 +135,8 @@ From `FellowshipAnalyzer.Components`:
 - Inject the hero parser with `@inject`.
 - Read pull analyzers via `Parser.{Name}Analyzers` / `Parser.For(pull).{Name}` and fight-lifetime modules via generated properties such as `Parser.WinterOrbTracker`.
 - Keep event-derived state in modules; keep prose, severity wording, and `PerformanceTier` mapping here.
-- Use shared components from `FellowshipAnalyzer.Components` when possible.
+- Project per-pull rows with the `ToPullRows` / `ToItemRows` extensions returning `PerCastRow`; use `PerformanceTiers.FromThresholds` for tier ladders.
+- Use shared components from `FellowshipAnalyzer.Core.UI.Guides` when possible.
 - Use the `style-guide` skill before adding or changing component styles.
 
 ## Checklist

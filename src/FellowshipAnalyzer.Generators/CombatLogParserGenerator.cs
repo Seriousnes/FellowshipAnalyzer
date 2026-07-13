@@ -16,6 +16,7 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
     private const string AddAnalyzerAttributeShortName = "AddAnalyzerAttribute";
     private const string ForPullAttributeShortName = "ForPullAttribute";
     private const string AnalyzerBaseShortName = "Analyzer";
+    private const string AnalyzerSurfaceInterfaceShortName = "IAnalyzerSurface";
     private const string AddNormalizerAttributeShortName = "AddNormalizerAttribute";
     private const string HeroAnalyzerAttributeShortName = "HeroAnalyzerAttribute";
     private const string ActiveWhenAttributeShortName = "ActiveWhenAttribute";
@@ -411,7 +412,7 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
     /// </summary>
     private static AnalyzerInfo BuildAnalyzerInfo(INamedTypeSymbol analyzerType)
     {
-        var (surfaceFqn, surfaceSimpleName) = GetAnalyzerSurfaceType(analyzerType);
+        var (surfaceFqn, surfaceMemberName) = GetAnalyzerSurfaceType(analyzerType);
 
         var targets = 0;
         var boss = 0;
@@ -432,19 +433,26 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
             GetNamespace(analyzerType),
             BuildCtorParams(analyzerType),
             surfaceFqn,
-            surfaceSimpleName,
+            surfaceMemberName,
             targets,
             boss);
     }
 
     /// <summary>
-    /// Resolves the analyzer's surface type: the topmost ancestor deriving directly from the
-    /// <c>Analyzer</c> base. Shape-specialized subclasses of one abstract analyzer resolve to
-    /// that shared base; an analyzer deriving from <c>Analyzer</c> directly is its own surface.
+    /// Resolves the analyzer's surface as <c>(fully-qualified type, member base name)</c>. The type
+    /// is the analyzer's <c>IAnalyzerSurface</c> marker interface if it implements one, otherwise the
+    /// topmost ancestor deriving directly from <c>Analyzer</c>. The member base name drives the
+    /// generated read-path identifiers: the surface class's simple name, or an interface's simple name
+    /// with a leading <c>I</c> stripped (<c>ISearingBlazeAnalyzer</c> -&gt; <c>SearingBlazeAnalyzer</c>).
+    /// Mirrors the runtime <c>Analyzer.GetSurfaceType</c>.
     /// </summary>
-    private static (string Fqn, string SimpleName) GetAnalyzerSurfaceType(INamedTypeSymbol analyzerType)
+    private static (string Fqn, string MemberName) GetAnalyzerSurfaceType(INamedTypeSymbol analyzerType)
     {
         var fmt = SymbolDisplayFormat.FullyQualifiedFormat;
+
+        if (FindSurfaceInterface(analyzerType) is { } surfaceInterface)
+            return (surfaceInterface.ToDisplayString(fmt), StripLeadingI(surfaceInterface.Name));
+
         var current = analyzerType;
         while (current.BaseType is { } baseType
             && baseType.SpecialType != SpecialType.System_Object
@@ -454,6 +462,28 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
         }
         return (current.ToDisplayString(fmt), current.Name);
     }
+
+    /// <summary>
+    /// The single surface marker interface <paramref name="analyzerType"/> implements, or null. A
+    /// surface interface is any interface, other than <c>IAnalyzerSurface</c> itself, that implements
+    /// <c>IAnalyzerSurface</c>. FA0017 enforces at most one, so the first match is unambiguous.
+    /// </summary>
+    private static INamedTypeSymbol? FindSurfaceInterface(INamedTypeSymbol analyzerType)
+    {
+        foreach (var iface in analyzerType.AllInterfaces)
+        {
+            if (iface.Name == AnalyzerSurfaceInterfaceShortName) continue;
+            foreach (var baseIface in iface.AllInterfaces)
+            {
+                if (baseIface.Name == AnalyzerSurfaceInterfaceShortName)
+                    return iface;
+            }
+        }
+        return null;
+    }
+
+    private static string StripLeadingI(string name) =>
+        name.Length >= 2 && name[0] == 'I' && char.IsUpper(name[1]) ? name.Substring(1) : name;
 
     private static string FullyQualifiedName(INamedTypeSymbol t)
     {
@@ -731,15 +761,15 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
         ctx.AddSource(info.ClassName + ".g.cs", sb.ToString());
     }
 
-    /// <summary>Distinct analyzer surface types in declaration order.</summary>
-    private static List<(string Fqn, string SimpleName)> DistinctSurfaceTypes(IEnumerable<AnalyzerInfo> analyzers)
+    /// <summary>Distinct analyzer surface types in declaration order, deduped by fully-qualified type.</summary>
+    private static List<(string Fqn, string MemberName)> DistinctSurfaceTypes(IEnumerable<AnalyzerInfo> analyzers)
     {
         var result = new List<(string, string)>();
         var seen = new HashSet<string>();
         foreach (var a in analyzers)
         {
             if (seen.Add(a.SurfaceTypeFullyQualified))
-                result.Add((a.SurfaceTypeFullyQualified, a.SurfaceTypeSimpleName));
+                result.Add((a.SurfaceTypeFullyQualified, a.SurfaceTypeMemberName));
         }
         return result;
     }
@@ -771,7 +801,7 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
     /// typed per-surface cross-pull index (backing list + read-only property), the
     /// <c>IndexPullAnalyzer</c> router, and the <c>For(pull)</c> per-pull view accessor.
     /// </summary>
-    private static void EmitAnalyzerSurface(StringBuilder sb, ParserInfo info, List<(string Fqn, string SimpleName)> surfaceTypes)
+    private static void EmitAnalyzerSurface(StringBuilder sb, ParserInfo info, List<(string Fqn, string MemberName)> surfaceTypes)
     {
         var analyzers = info.AllAnalyzers.ToList();
         if (analyzers.Count == 0) return;
@@ -793,9 +823,9 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
         sb.AppendLine();
         foreach (var st in surfaceTypes)
         {
-            var field = AnalyzerListFieldName(st.SimpleName);
+            var field = AnalyzerListFieldName(st.MemberName);
             sb.AppendLine("    private readonly global::FellowshipAnalyzer.Core.Analysis.PullAnalyzerList<" + st.Fqn + "> " + field + " = new();");
-            sb.AppendLine("    public global::System.Collections.Generic.IReadOnlyList<global::FellowshipAnalyzer.Core.Analysis.PullAnalyzer<" + st.Fqn + ">> " + st.SimpleName + "s => " + field + ";");
+            sb.AppendLine("    public global::System.Collections.Generic.IReadOnlyList<global::FellowshipAnalyzer.Core.Analysis.PullAnalyzer<" + st.Fqn + ">> " + st.MemberName + "s => " + field + ";");
         }
 
         sb.AppendLine();
@@ -808,7 +838,7 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
         {
             var local = "__a" + caseIndex++;
             sb.AppendLine("            case " + st.Fqn + " " + local + ":");
-            sb.AppendLine("                " + AnalyzerListFieldName(st.SimpleName) + ".Add(new global::FellowshipAnalyzer.Core.Analysis.PullAnalyzer<" + st.Fqn + ">(pull, " + local + "));");
+            sb.AppendLine("                " + AnalyzerListFieldName(st.MemberName) + ".Add(new global::FellowshipAnalyzer.Core.Analysis.PullAnalyzer<" + st.Fqn + ">(pull, " + local + "));");
             sb.AppendLine("                break;");
         }
         sb.AppendLine("        }");
@@ -823,7 +853,7 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
     /// each retained analyzer by surface type, and a <c>{Parser}PullExtensions</c> class adding the
     /// <c>pull.{Analyzer}</c> extension property over <see cref="FellowshipAnalyzer.Core.Analysis.Pull"/>.
     /// </summary>
-    private static void EmitPullReadPaths(StringBuilder sb, string parserBaseName, List<(string Fqn, string SimpleName)> surfaceTypes)
+    private static void EmitPullReadPaths(StringBuilder sb, string parserBaseName, List<(string Fqn, string MemberName)> surfaceTypes)
     {
         if (surfaceTypes.Count == 0) return;
         const string pull = "global::FellowshipAnalyzer.Core.Analysis.Pull";
@@ -831,7 +861,7 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
         sb.Append("public readonly struct ").Append(parserBaseName).Append("PullView(").Append(pull).AppendLine(" pull)");
         sb.AppendLine("{");
         foreach (var st in surfaceTypes)
-            sb.Append("    public ").Append(st.Fqn).Append("? ").Append(st.SimpleName)
+            sb.Append("    public ").Append(st.Fqn).Append("? ").Append(st.MemberName)
               .Append(" => (").Append(st.Fqn).Append("?)pull.GetAnalyzer(typeof(").Append(st.Fqn).AppendLine("));");
         sb.AppendLine("}");
         sb.AppendLine();
@@ -841,7 +871,7 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
         sb.Append("    extension(").Append(pull).AppendLine(" pull)");
         sb.AppendLine("    {");
         foreach (var st in surfaceTypes)
-            sb.Append("        public ").Append(st.Fqn).Append("? ").Append(st.SimpleName)
+            sb.Append("        public ").Append(st.Fqn).Append("? ").Append(st.MemberName)
               .Append(" => (").Append(st.Fqn).Append("?)pull.GetAnalyzer(typeof(").Append(st.Fqn).AppendLine("));");
         sb.AppendLine("    }");
         sb.AppendLine("}");
@@ -1004,7 +1034,7 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
             string ns,
             ImmutableArray<CtorParam> ctorParams,
             string surfaceTypeFullyQualified,
-            string surfaceTypeSimpleName,
+            string surfaceTypeMemberName,
             int forPullTargets,
             int forPullBoss)
         {
@@ -1012,17 +1042,17 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
             Namespace = ns;
             CtorParams = ctorParams.IsDefault ? ImmutableArray<CtorParam>.Empty : ctorParams;
             SurfaceTypeFullyQualified = surfaceTypeFullyQualified;
-            SurfaceTypeSimpleName = surfaceTypeSimpleName;
+            SurfaceTypeMemberName = surfaceTypeMemberName;
             ForPullTargets = forPullTargets;
             ForPullBoss = forPullBoss;
         }
         public string Name { get; }
         public string Namespace { get; }
         public ImmutableArray<CtorParam> CtorParams { get; }
-        /// <summary>Fully-qualified surface type: the topmost ancestor deriving directly from <c>Analyzer</c>.</summary>
+        /// <summary>Fully-qualified surface type: the surface marker interface, or the topmost ancestor deriving directly from <c>Analyzer</c>.</summary>
         public string SurfaceTypeFullyQualified { get; }
-        /// <summary>Simple name of the surface type (e.g. "BasicStComboAnalyzer"), used to derive read-path member names.</summary>
-        public string SurfaceTypeSimpleName { get; }
+        /// <summary>Member base name for the surface's read paths (e.g. "BasicStComboAnalyzer"): the surface class's simple name, or an interface's name with a leading <c>I</c> stripped.</summary>
+        public string SurfaceTypeMemberName { get; }
         /// <summary>The <c>[ForPull]</c> target bitmask (<c>PullKind</c> as int).</summary>
         public int ForPullTargets { get; }
         /// <summary><c>[ForPull(Boss = …)]</c> as <c>PullBoss</c> int: 0 = Either, 1 = Boss, 2 = NonBoss.</summary>

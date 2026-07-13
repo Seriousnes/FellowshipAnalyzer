@@ -1,9 +1,12 @@
+using System.Linq;
+
 using FellowshipAnalyzer.Core;
 using FellowshipAnalyzer.Core.Analysis;
 using FellowshipAnalyzer.Core.Common.Spells.Ardeos;
 using FellowshipAnalyzer.Core.Events;
 using FellowshipAnalyzer.Core.FellowshipLogs;
 using FellowshipAnalyzer.Heroes.Ardeos.Analysis;
+using FellowshipAnalyzer.Heroes.Ardeos.Modules;
 
 using Microsoft.Extensions.DependencyInjection;
 
@@ -31,16 +34,16 @@ public sealed class SearingBlazeUptimeAnalyzerTests
 
         var (parser, _) = await AnalyzeAsync(events);
 
-        var entry = parser.SearingBlazeUptimeAnalyzers.ShouldHaveSingleItem();
-        var analyzer = entry.Analyzer;
+        var entry = parser.SearingBlazeAnalyzers.ShouldHaveSingleItem();
+        var analyzer = entry.Analyzer.ShouldBeOfType<SearingBlazeUptimeAnalyzer>();
         analyzer.Windows.Count.ShouldBe(2);
         analyzer.Uptime.ShouldBe(0.8, 0.0001);
         analyzer.GapCount.ShouldBe(1);
         analyzer.TotalGapMs.ShouldBe(3000);
 
         var pull = entry.Pull;
-        pull.SearingBlazeUptimeAnalyzer.ShouldBeSameAs(analyzer);
-        parser.For(pull).SearingBlazeUptimeAnalyzer.ShouldBeSameAs(analyzer);
+        pull.SearingBlazeAnalyzer.ShouldBeSameAs(analyzer);
+        parser.For(pull).SearingBlazeAnalyzer.ShouldBeSameAs(analyzer);
     }
 
     [Fact]
@@ -50,7 +53,7 @@ public sealed class SearingBlazeUptimeAnalyzerTests
 
         var (parser, _) = await AnalyzeAsync(events);
 
-        var analyzer = parser.SearingBlazeUptimeAnalyzers.ShouldHaveSingleItem().Analyzer;
+        var analyzer = SingleUptimeAnalyzer(parser);
         var window = analyzer.Windows.ShouldHaveSingleItem();
         window.End.ShouldBe(20000);
         analyzer.Uptime.ShouldBe(0.95, 0.0001);
@@ -70,7 +73,7 @@ public sealed class SearingBlazeUptimeAnalyzerTests
 
         var (parser, _) = await AnalyzeAsync(events);
 
-        var analyzer = parser.SearingBlazeUptimeAnalyzers.ShouldHaveSingleItem().Analyzer;
+        var analyzer = SingleUptimeAnalyzer(parser);
         var window = analyzer.Windows.ShouldHaveSingleItem();
         window.Start.ShouldBe(1000);
         window.End.ShouldBe(5000);
@@ -89,7 +92,7 @@ public sealed class SearingBlazeUptimeAnalyzerTests
 
         var (parser, _) = await AnalyzeAsync(events);
 
-        var analyzer = parser.SearingBlazeUptimeAnalyzers.ShouldHaveSingleItem().Analyzer;
+        var analyzer = SingleUptimeAnalyzer(parser);
         var window = analyzer.Windows.ShouldHaveSingleItem();
         window.Start.ShouldBe(2000);
         window.End.ShouldBe(6000);
@@ -108,7 +111,7 @@ public sealed class SearingBlazeUptimeAnalyzerTests
 
         var (parser, _) = await AnalyzeAsync(events);
 
-        var analyzer = parser.SearingBlazeUptimeAnalyzers.ShouldHaveSingleItem().Analyzer;
+        var analyzer = SingleUptimeAnalyzer(parser);
         var window = analyzer.Windows.ShouldHaveSingleItem();
         window.Start.ShouldBe(1000);
         window.End.ShouldBe(11000);
@@ -120,7 +123,7 @@ public sealed class SearingBlazeUptimeAnalyzerTests
     {
         var (parser, _) = await AnalyzeAsync([]);
 
-        var analyzer = parser.SearingBlazeUptimeAnalyzers.ShouldHaveSingleItem().Analyzer;
+        var analyzer = SingleUptimeAnalyzer(parser);
         analyzer.Windows.ShouldBeEmpty();
         analyzer.Uptime.ShouldBe(0d, 0.0001);
         analyzer.GapCount.ShouldBe(0);
@@ -134,8 +137,11 @@ public sealed class SearingBlazeUptimeAnalyzerTests
 
         var (parser, _) = await AnalyzeAsync(events, TrashFight());
 
-        parser.SearingBlazeUptimeAnalyzers.ShouldBeEmpty();
+        parser.SearingBlazeAnalyzers.Select(e => e.Analyzer).OfType<SearingBlazeUptimeAnalyzer>().ShouldBeEmpty();
     }
+
+    private static SearingBlazeUptimeAnalyzer SingleUptimeAnalyzer(ArdeosCombatLogParser parser) =>
+        parser.SearingBlazeAnalyzers.ShouldHaveSingleItem().Analyzer.ShouldBeOfType<SearingBlazeUptimeAnalyzer>();
 
     private static ApplyDebuffEvent Apply(int targetId, int timestamp) => new()
     {

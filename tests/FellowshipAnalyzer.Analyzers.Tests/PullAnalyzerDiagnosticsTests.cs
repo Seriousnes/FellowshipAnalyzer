@@ -198,6 +198,91 @@ public class PullAnalyzerDiagnosticsTests
         Ids(diagnostics).ShouldNotContain("FA0016");
     }
 
+    [Fact]
+    public void FA0016_OverlappingFilters_SharedInterface_Reports()
+    {
+        var diagnostics = AnalyzerTestHarness.Run(Usings + """
+
+            namespace Test;
+
+            [AddAnalyzer<WideAnalyzer>]
+            [AddAnalyzer<StAnalyzer>]
+            public abstract class Host { }
+
+            public interface IComboAnalyzer : IAnalyzerSurface;
+
+            [ForPull(PullKind.Single | PullKind.Multi)]
+            public sealed class WideAnalyzer : Analyzer, IComboAnalyzer { }
+
+            [ForPull(PullKind.Single)]
+            public sealed class StAnalyzer : Analyzer, IComboAnalyzer { }
+            """);
+
+        Ids(diagnostics).ShouldContain("FA0016");
+    }
+
+    [Fact]
+    public void FA0016_DisjointTargets_SharedInterface_Silent()
+    {
+        var diagnostics = AnalyzerTestHarness.Run(Usings + """
+
+            namespace Test;
+
+            [AddAnalyzer<StAnalyzer>]
+            [AddAnalyzer<AoeAnalyzer>]
+            public abstract class Host { }
+
+            public interface IComboAnalyzer : IAnalyzerSurface;
+
+            [ForPull(PullKind.Single)]
+            public sealed class StAnalyzer : Analyzer, IComboAnalyzer { }
+
+            [ForPull(PullKind.Multi)]
+            public sealed class AoeAnalyzer : Analyzer, IComboAnalyzer { }
+            """);
+
+        Ids(diagnostics).ShouldNotContain("FA0016");
+    }
+
+    [Fact]
+    public void FA0017_MultipleSurfaceInterfaces_Reports()
+    {
+        var diagnostics = AnalyzerTestHarness.Run(Usings + """
+
+            namespace Test;
+
+            [AddAnalyzer<BadAnalyzer>]
+            public abstract class Host { }
+
+            public interface IFooAnalyzer : IAnalyzerSurface;
+            public interface IBarAnalyzer : IAnalyzerSurface;
+
+            [ForPull(PullKind.Single)]
+            public sealed class BadAnalyzer : Analyzer, IFooAnalyzer, IBarAnalyzer { }
+            """);
+
+        Ids(diagnostics).ShouldContain("FA0017");
+    }
+
+    [Fact]
+    public void FA0017_SingleSurfaceInterface_Silent()
+    {
+        var diagnostics = AnalyzerTestHarness.Run(Usings + """
+
+            namespace Test;
+
+            [AddAnalyzer<MyAnalyzer>]
+            public abstract class Host { }
+
+            public interface IComboAnalyzer : IAnalyzerSurface;
+
+            [ForPull(PullKind.Single)]
+            public sealed class MyAnalyzer : Analyzer, IComboAnalyzer { }
+            """);
+
+        Ids(diagnostics).ShouldNotContain("FA0017");
+    }
+
     private static IEnumerable<string> Ids(IEnumerable<Diagnostic> diagnostics) =>
         diagnostics.Select(d => d.Id);
 }

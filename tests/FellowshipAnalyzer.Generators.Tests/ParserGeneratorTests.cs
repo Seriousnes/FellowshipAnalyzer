@@ -92,6 +92,21 @@ public class ParserGeneratorTests
     }
 
     [Fact]
+    public void TwoAnalyzers_SharedSurfaceInterface_ShareOneSurfaceStream()
+    {
+        var result = ParserGeneratorTestHarness.Run(TwoAnalyzersSharedInterface());
+        var gen = result.ConcatenatedGenerated;
+
+        OccurrenceCount(gen, "_comboAnalyzers = new();").ShouldBe(1);
+        OccurrenceCount(gen, "case global::Test.IComboAnalyzer").ShouldBe(1);
+        gen.ShouldContain("public global::System.Collections.Generic.IReadOnlyList<global::FellowshipAnalyzer.Core.Analysis.PullAnalyzer<global::Test.IComboAnalyzer>> ComboAnalyzers => _comboAnalyzers;");
+        gen.ShouldContain("public global::Test.IComboAnalyzer? ComboAnalyzer => (global::Test.IComboAnalyzer?)pull.GetAnalyzer(typeof(global::Test.IComboAnalyzer));");
+        gen.ShouldContain("__analyzers.Add(typeof(global::Test.StAnalyzer));");
+        gen.ShouldContain("__analyzers.Add(typeof(global::Test.AoeAnalyzer));");
+        AssertNoErrors(result);
+    }
+
+    [Fact]
     public void SideEffectOnlyAnalyzer_IsGated_AndIsItsOwnSurface()
     {
         var result = ParserGeneratorTestHarness.Run(SideEffectOnlyAnalyzer());
@@ -148,6 +163,31 @@ public class ParserGeneratorTests
 
         [ForPull(PullKind.Multi)]
         public sealed partial class AoeAnalyzer : ComboAnalyzer { }
+        """;
+
+    private static string TwoAnalyzersSharedInterface() => Usings + """
+
+        namespace Test;
+
+        [AddAnalyzer<StAnalyzer>]
+        [AddAnalyzer<AoeAnalyzer>]
+        public sealed partial class ComboCombatLogParser : CombatLogParser { }
+
+        public interface IComboAnalyzer : IAnalyzerSurface;
+
+        [ForPull(PullKind.Single)]
+        public sealed partial class StAnalyzer : Analyzer, IComboAnalyzer
+        {
+            [On<ApplyBuffEvent>]
+            private void OnBuff(ApplyBuffEvent e) { }
+        }
+
+        [ForPull(PullKind.Multi)]
+        public sealed partial class AoeAnalyzer : Analyzer, IComboAnalyzer
+        {
+            [On<ApplyBuffEvent>]
+            private void OnBuff(ApplyBuffEvent e) { }
+        }
         """;
 
     private static string SideEffectOnlyAnalyzer() => Usings + """
