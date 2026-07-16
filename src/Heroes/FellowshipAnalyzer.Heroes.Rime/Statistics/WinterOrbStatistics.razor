@@ -26,10 +26,10 @@
                 $"{Analyzer.Wasted}",
                 "Overcapped",
                 $"Orbs lost to overcap ({overcapRate:F0}% of potential).",
-                Analyzer.Wasted == 0 ? PerformanceTier.Perfect
-                    : overcapRate < 10 ? PerformanceTier.Good
-                    : overcapRate < 20 ? PerformanceTier.Ok
-                    : PerformanceTier.Fail),
+                Analyzer.Wasted == 0 ? QualitativePerformance.Perfect
+                    : overcapRate < 10 ? QualitativePerformance.Good
+                    : overcapRate < 20 ? QualitativePerformance.Ok
+                    : QualitativePerformance.Fail),
         ];
     }
 

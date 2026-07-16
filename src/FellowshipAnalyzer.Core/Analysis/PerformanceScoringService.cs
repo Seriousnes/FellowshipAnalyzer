@@ -61,12 +61,12 @@ internal sealed class PerformanceScoringService : IPerformanceScoringService
         return Math.Clamp(weightedSum / totalWeight, 0, 1);
     }
 
-    public PerformanceTier ScoreToTier(double score, PerformanceScoreThresholds? thresholds = null)
+    public QualitativePerformance ScoreToTier(double score, PerformanceScoreThresholds? thresholds = null)
     {
         var t = thresholds ?? PerformanceScoreThresholds.Default;
-        if (score >= t.Perfect) return PerformanceTier.Perfect;
-        if (score >= t.Good) return PerformanceTier.Good;
-        if (score >= t.Ok) return PerformanceTier.Ok;
-        return PerformanceTier.Fail;
+        if (score >= t.Perfect) return QualitativePerformance.Perfect;
+        if (score >= t.Good) return QualitativePerformance.Good;
+        if (score >= t.Ok) return QualitativePerformance.Ok;
+        return QualitativePerformance.Fail;
     }
 }

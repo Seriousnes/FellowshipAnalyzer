@@ -10,10 +10,10 @@
              Code="@_basicCode">
     <Demo>
         <PerfBadgeGrid>
-            <FilterBadge Performance="PerformanceTier.Perfect" Count="6" Active OnClick="@OnClick" />
-            <FilterBadge Performance="PerformanceTier.Good" Count="4" OnClick="@OnClick" />
-            <FilterBadge Performance="PerformanceTier.Ok" Count="2" OnClick="@OnClick" />
-            <FilterBadge Performance="PerformanceTier.Fail" Count="0" Disabled />
+            <FilterBadge Performance="QualitativePerformance.Perfect" Count="6" Active OnClick="@OnClick" />
+            <FilterBadge Performance="QualitativePerformance.Good" Count="4" OnClick="@OnClick" />
+            <FilterBadge Performance="QualitativePerformance.Ok" Count="2" OnClick="@OnClick" />
+            <FilterBadge Performance="QualitativePerformance.Fail" Count="0" Disabled />
         </PerfBadgeGrid>
     </Demo>
 </CodeExample>
@@ -21,28 +21,28 @@
 <CodeExample Title="With custom labels" Code="@_labelsCode">
     <Demo>
         <PerfBadgeGrid>
-            <FilterBadge Performance="PerformanceTier.Perfect" Count="3" Label="On time" />
-            <FilterBadge Performance="PerformanceTier.Good" Count="2" Label="Slightly late" />
-            <FilterBadge Performance="PerformanceTier.Ok" Count="1" Label="Late" />
-            <FilterBadge Performance="PerformanceTier.Fail" Count="0" Label="Missed" Disabled />
+            <FilterBadge Performance="QualitativePerformance.Perfect" Count="3" Label="On time" />
+            <FilterBadge Performance="QualitativePerformance.Good" Count="2" Label="Slightly late" />
+            <FilterBadge Performance="QualitativePerformance.Ok" Count="1" Label="Late" />
+            <FilterBadge Performance="QualitativePerformance.Fail" Count="0" Label="Missed" Disabled />
         </PerfBadgeGrid>
     </Demo>
 </CodeExample>
 
 @code {
     private string _lastClicked = "(none)";
-    private void OnClick(PerformanceTier tier) => _lastClicked = tier.ToString();
+    private void OnClick(QualitativePerformance tier) => _lastClicked = tier.ToString();
 
     private const string _basicCode = """
 <PerfBadgeGrid>
-    <FilterBadge Performance="PerformanceTier.Perfect" Count="6" Active OnClick="@OnClick" />
-    <FilterBadge Performance="PerformanceTier.Good" Count="4" OnClick="@OnClick" />
-    <FilterBadge Performance="PerformanceTier.Ok" Count="2" OnClick="@OnClick" />
-    <FilterBadge Performance="PerformanceTier.Fail" Count="0" Disabled />
+    <FilterBadge Performance="QualitativePerformance.Perfect" Count="6" Active OnClick="@OnClick" />
+    <FilterBadge Performance="QualitativePerformance.Good" Count="4" OnClick="@OnClick" />
+    <FilterBadge Performance="QualitativePerformance.Ok" Count="2" OnClick="@OnClick" />
+    <FilterBadge Performance="QualitativePerformance.Fail" Count="0" Disabled />
 </PerfBadgeGrid>
 """;
 
     private const string _labelsCode = """
-<FilterBadge Performance="PerformanceTier.Perfect" Count="3" Label="On time" />
+<FilterBadge Performance="QualitativePerformance.Perfect" Count="3" Label="On time" />
 """;
 }

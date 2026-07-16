@@ -55,10 +55,10 @@
                 $"{successRate}%",
                 "Success Rate",
                 $"{successful} successful / {total} evaluated across single-target and AoE windows.",
-                successRate >= 75 ? PerformanceTier.Perfect
-                    : successRate >= 50 ? PerformanceTier.Good
-                    : successRate >= 25 ? PerformanceTier.Ok
-                    : PerformanceTier.Fail),
+                successRate >= 75 ? QualitativePerformance.Perfect
+                    : successRate >= 50 ? QualitativePerformance.Good
+                    : successRate >= 25 ? QualitativePerformance.Ok
+                    : QualitativePerformance.Fail),
             new OverviewStat(
                 $"{singleTargetWindows}",
                 "Single Target",
@@ -145,7 +145,7 @@
     private PerCastData BuildRow(
         BasicStComboAnalyzer.StComboWindowEvaluation window,
         Pull pull,
-        PerformanceTier perf,
+        QualitativePerformance perf,
         PerCastStat[] stats,
         string outcome)
     {
@@ -167,10 +167,10 @@
         };
     }
 
-    private static PerformanceTier WindowTier(BasicStComboAnalyzer.StComboWindowEvaluation window) =>
-        window.Successful ? PerformanceTier.Perfect
-            : window.Partial ? PerformanceTier.Ok
-            : PerformanceTier.Fail;
+    private static QualitativePerformance WindowTier(BasicStComboAnalyzer.StComboWindowEvaluation window) =>
+        window.Successful ? QualitativePerformance.Perfect
+            : window.Partial ? QualitativePerformance.Ok
+            : QualitativePerformance.Fail;
 
     private static string BuildSingleTargetOutcome(StWindow window)
     {

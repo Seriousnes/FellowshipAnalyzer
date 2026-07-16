@@ -69,7 +69,7 @@
 
     private PerCastData BuildSlaughterData(SlaughterEvaluation slaughter, GundePullShape shape, Pull pull)
     {
-        var perf = slaughter.WellExecuted ? PerformanceTier.Perfect : PerformanceTier.Fail;
+        var perf = slaughter.WellExecuted ? QualitativePerformance.Perfect : QualitativePerformance.Fail;
         var isAoe = shape == GundePullShape.Aoe;
         var outcome = DescribeOutcome(slaughter, isAoe);
 
@@ -79,7 +79,7 @@
                 slaughter.OpenWoundsActive ? "Yes" : "No",
                 "Open Wounds",
                 "Whether a Rupture Open Wounds window was active when this Slaughter was cast.",
-                slaughter.OpenWoundsActive ? PerformanceTier.Perfect : PerformanceTier.Fail),
+                slaughter.OpenWoundsActive ? QualitativePerformance.Perfect : QualitativePerformance.Fail),
         };
 
         if (isAoe)
@@ -88,7 +88,7 @@
                 $"{slaughter.TargetsHit}",
                 "Targets",
                 "Enemies the Slaughter bleed spread to.",
-                slaughter.TargetsHit >= TrashSlaughterUsage.PackThreshold ? PerformanceTier.Perfect : PerformanceTier.Fail));
+                slaughter.TargetsHit >= TrashSlaughterUsage.PackThreshold ? QualitativePerformance.Perfect : QualitativePerformance.Fail));
         }
         else
         {
@@ -96,7 +96,7 @@
                 slaughter.HeartSplitterPrimed ? "Yes" : "No",
                 "Rend Rebuilt",
                 "Whether Heart Splitter was used to rebuild Rend since the previous Slaughter.",
-                slaughter.HeartSplitterPrimed ? PerformanceTier.Perfect : PerformanceTier.Fail));
+                slaughter.HeartSplitterPrimed ? QualitativePerformance.Perfect : QualitativePerformance.Fail));
         }
 
         return new PerCastData
@@ -147,9 +147,9 @@
             : char.ToUpperInvariant(reasons[0][0]) + reasons[0][1..] +
                 (reasons.Count > 1 ? ", and " + reasons[1] : string.Empty) + ".";
 
-    private static PerformanceTier Tier(int rate) =>
-        rate >= 75 ? PerformanceTier.Perfect
-        : rate >= 50 ? PerformanceTier.Good
-        : rate >= 25 ? PerformanceTier.Ok
-        : PerformanceTier.Fail;
+    private static QualitativePerformance Tier(int rate) =>
+        rate >= 75 ? QualitativePerformance.Perfect
+        : rate >= 50 ? QualitativePerformance.Good
+        : rate >= 25 ? QualitativePerformance.Ok
+        : QualitativePerformance.Fail;
 }

@@ -31,15 +31,15 @@
         var measuredGaps = volleys.Where(e => e.GapMs != int.MaxValue).Select(e => e.GapMs).ToList();
         var avg = measuredGaps.Count == 0 ? 0 : measuredGaps.Average() / 1000.0;
 
-        var avgTier = avg >= 10 && avg <= 15 ? PerformanceTier.Perfect
-            : avg >= 7 && avg < 20 ? PerformanceTier.Good
-            : avg >= 5 ? PerformanceTier.Ok
-            : PerformanceTier.Fail;
+        var avgTier = avg >= 10 && avg <= 15 ? QualitativePerformance.Perfect
+            : avg >= 7 && avg < 20 ? QualitativePerformance.Good
+            : avg >= 5 ? QualitativePerformance.Ok
+            : QualitativePerformance.Fail;
 
-        var closeTier = closeGapCount == 0 ? PerformanceTier.Perfect
-            : closeGapCount < 2 ? PerformanceTier.Good
-            : closeGapCount < 4 ? PerformanceTier.Ok
-            : PerformanceTier.Fail;
+        var closeTier = closeGapCount == 0 ? QualitativePerformance.Perfect
+            : closeGapCount < 2 ? QualitativePerformance.Good
+            : closeGapCount < 4 ? QualitativePerformance.Ok
+            : QualitativePerformance.Fail;
 
         return
         [
@@ -65,11 +65,11 @@
         var gapSeconds = ev.GapMs == int.MaxValue ? -1 : ev.GapMs / 1000.0;
 
         var tier = ev.GapMs == int.MaxValue
-            ? PerformanceTier.Ok
-            : gapSeconds >= 10 && gapSeconds <= 15 ? PerformanceTier.Perfect
-            : gapSeconds >= 7 ? PerformanceTier.Good
-            : gapSeconds >= 5 ? PerformanceTier.Ok
-            : PerformanceTier.Fail;
+            ? QualitativePerformance.Ok
+            : gapSeconds >= 10 && gapSeconds <= 15 ? QualitativePerformance.Perfect
+            : gapSeconds >= 7 ? QualitativePerformance.Good
+            : gapSeconds >= 5 ? QualitativePerformance.Ok
+            : QualitativePerformance.Fail;
 
         return new PerCastData
         {

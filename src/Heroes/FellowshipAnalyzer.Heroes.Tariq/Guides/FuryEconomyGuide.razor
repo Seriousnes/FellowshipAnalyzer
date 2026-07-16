@@ -41,10 +41,10 @@
                 $"{furyScore}%",
                 "Fury Discipline",
                 $"{overcap} of {generators} generator casts wasted Fury at cap.",
-                furyScore >= 90 ? PerformanceTier.Perfect
-                    : furyScore >= 75 ? PerformanceTier.Good
-                    : furyScore >= 50 ? PerformanceTier.Ok
-                    : PerformanceTier.Fail),
+                furyScore >= 90 ? QualitativePerformance.Perfect
+                    : furyScore >= 75 ? QualitativePerformance.Good
+                    : furyScore >= 50 ? QualitativePerformance.Ok
+                    : QualitativePerformance.Fail),
             new OverviewStat(
                 $"{overcap}",
                 "Overcap Casts",
@@ -62,10 +62,10 @@
     private PerCastData BuildPullData(FuryEconomyAnalyzer analyzer, Pull pull)
     {
         var score = (int)Math.Round((1 - analyzer.OvercapRate) * 100);
-        var perf = score >= 90 ? PerformanceTier.Perfect
-            : score >= 75 ? PerformanceTier.Good
-            : score >= 50 ? PerformanceTier.Ok
-            : PerformanceTier.Fail;
+        var perf = score >= 90 ? QualitativePerformance.Perfect
+            : score >= 75 ? QualitativePerformance.Good
+            : score >= 50 ? QualitativePerformance.Ok
+            : QualitativePerformance.Fail;
         var empoweredPct = (int)Math.Round(analyzer.EmpoweredSpendShare * 100);
         var uptimePct = (int)Math.Round(analyzer.WindowUptimeShare * 100);
 

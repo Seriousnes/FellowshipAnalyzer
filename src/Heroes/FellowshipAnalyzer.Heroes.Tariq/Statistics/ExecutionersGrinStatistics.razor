@@ -20,10 +20,10 @@
                 $"{Analyzer.WastedProcs}",
                 "Wasted Opportunities",
                 "Procs that expired without a Culling Strike above the 30% execute threshold.",
-                Analyzer.WastedProcs == 0 ? PerformanceTier.Perfect
-                    : wasteRate < 0.25 ? PerformanceTier.Good
-                    : wasteRate < 0.5 ? PerformanceTier.Ok
-                    : PerformanceTier.Fail));
+                Analyzer.WastedProcs == 0 ? QualitativePerformance.Perfect
+                    : wasteRate < 0.25 ? QualitativePerformance.Good
+                    : wasteRate < 0.5 ? QualitativePerformance.Ok
+                    : QualitativePerformance.Fail));
         }
 
         stats.Add(new OverviewStat(

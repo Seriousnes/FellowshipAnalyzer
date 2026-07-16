@@ -47,15 +47,15 @@
     private IEnumerable<OverviewStat> BuildOverviewStats()
     {
         var capPct = CapPercentage * 100;
-        var capTier = capPct < 5 ? PerformanceTier.Perfect
-            : capPct < 15 ? PerformanceTier.Good
-            : capPct < 25 ? PerformanceTier.Ok
-            : PerformanceTier.Fail;
+        var capTier = capPct < 5 ? QualitativePerformance.Perfect
+            : capPct < 15 ? QualitativePerformance.Good
+            : capPct < 25 ? QualitativePerformance.Ok
+            : QualitativePerformance.Fail;
 
-        var castsTier = CastsWhileCapped == 0 ? PerformanceTier.Perfect
-            : CastsWhileCapped < 3 ? PerformanceTier.Good
-            : CastsWhileCapped < 6 ? PerformanceTier.Ok
-            : PerformanceTier.Fail;
+        var castsTier = CastsWhileCapped == 0 ? QualitativePerformance.Perfect
+            : CastsWhileCapped < 3 ? QualitativePerformance.Good
+            : CastsWhileCapped < 6 ? QualitativePerformance.Ok
+            : QualitativePerformance.Fail;
 
         return
         [

@@ -65,7 +65,7 @@
                 $"{generatorOvercap}",
                 "Combo Points Overcapped",
                 "Generator casts made while already at maximum combo points, wasting the generation.",
-                generatorOvercap == 0 ? PerformanceTier.Perfect : PerformanceTier.Ok),
+                generatorOvercap == 0 ? QualitativePerformance.Perfect : QualitativePerformance.Ok),
         ];
     }
 
@@ -102,7 +102,7 @@
                 $"{analyzer.GeneratorOvercapCasts}",
                 "CP Overcap",
                 "Generator casts at maximum combo points, wasting the generation.",
-                Performance: analyzer.GeneratorOvercapCasts == 0 ? PerformanceTier.Perfect : PerformanceTier.Ok),
+                Performance: analyzer.GeneratorOvercapCasts == 0 ? QualitativePerformance.Perfect : QualitativePerformance.Ok),
             new PerCastStat(
                 $"{analyzer.MaintenanceFinisherCasts}",
                 "Hemorrhaging Strike",
@@ -141,21 +141,21 @@
         : abilityId == Spells.ArachnidAssault.Id ? Spells.ArachnidAssault.Name
         : "Finisher";
 
-    private static PerformanceTier FinisherTier(int rate) =>
-        rate >= 95 ? PerformanceTier.Perfect
-        : rate >= 85 ? PerformanceTier.Good
-        : rate >= 70 ? PerformanceTier.Ok
-        : PerformanceTier.Fail;
+    private static QualitativePerformance FinisherTier(int rate) =>
+        rate >= 95 ? QualitativePerformance.Perfect
+        : rate >= 85 ? QualitativePerformance.Good
+        : rate >= 70 ? QualitativePerformance.Ok
+        : QualitativePerformance.Fail;
 
-    private static PerformanceTier EnergyTier(int cappedRate) =>
-        cappedRate <= 3 ? PerformanceTier.Perfect
-        : cappedRate <= 8 ? PerformanceTier.Good
-        : cappedRate <= 15 ? PerformanceTier.Ok
-        : PerformanceTier.Fail;
+    private static QualitativePerformance EnergyTier(int cappedRate) =>
+        cappedRate <= 3 ? QualitativePerformance.Perfect
+        : cappedRate <= 8 ? QualitativePerformance.Good
+        : cappedRate <= 15 ? QualitativePerformance.Ok
+        : QualitativePerformance.Fail;
 
-    private static PerformanceTier ScoreTier(int score) =>
-        score >= 90 ? PerformanceTier.Perfect
-        : score >= 75 ? PerformanceTier.Good
-        : score >= 50 ? PerformanceTier.Ok
-        : PerformanceTier.Fail;
+    private static QualitativePerformance ScoreTier(int score) =>
+        score >= 90 ? QualitativePerformance.Perfect
+        : score >= 75 ? QualitativePerformance.Good
+        : score >= 50 ? QualitativePerformance.Ok
+        : QualitativePerformance.Fail;
 }

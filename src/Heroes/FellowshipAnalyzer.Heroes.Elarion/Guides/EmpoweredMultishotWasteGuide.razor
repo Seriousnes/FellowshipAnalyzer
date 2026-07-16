@@ -44,16 +44,16 @@
 
     private IEnumerable<OverviewStat> BuildOverviewStats()
     {
-        var wasteTier = WastedExpirations == 0 ? PerformanceTier.Perfect
-            : WastedExpirations < 2 ? PerformanceTier.Good
-            : WastedExpirations < 4 ? PerformanceTier.Ok
-            : PerformanceTier.Fail;
+        var wasteTier = WastedExpirations == 0 ? QualitativePerformance.Perfect
+            : WastedExpirations < 2 ? QualitativePerformance.Good
+            : WastedExpirations < 4 ? QualitativePerformance.Ok
+            : QualitativePerformance.Fail;
 
         return
         [
             new OverviewStat($"{EmpoweredConsumed}", "Empowered",
                 "Multishot casts that consumed an Empowered Multishot buff.",
-                EmpoweredConsumed > 0 ? PerformanceTier.Good : PerformanceTier.Ok),
+                EmpoweredConsumed > 0 ? QualitativePerformance.Good : QualitativePerformance.Ok),
             new OverviewStat($"{WastedExpirations}", "Wasted",
                 "Empowered buffs that expired without being consumed.", wasteTier),
             new OverviewStat($"{RegularCasts}", "Regular",

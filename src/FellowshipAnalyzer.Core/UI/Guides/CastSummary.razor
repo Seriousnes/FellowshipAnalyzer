@@ -2,12 +2,12 @@
 
 @{
     var list = Casts.ToList();
-    var counts = new Dictionary<PerformanceTier, int>
+    var counts = new Dictionary<QualitativePerformance, int>
     {
-        [PerformanceTier.Perfect] = list.Count(c => c.Performance == PerformanceTier.Perfect),
-        [PerformanceTier.Good] = list.Count(c => c.Performance == PerformanceTier.Good),
-        [PerformanceTier.Ok] = list.Count(c => c.Performance == PerformanceTier.Ok),
-        [PerformanceTier.Fail] = list.Count(c => c.Performance == PerformanceTier.Fail),
+        [QualitativePerformance.Perfect] = list.Count(c => c.Performance == QualitativePerformance.Perfect),
+        [QualitativePerformance.Good] = list.Count(c => c.Performance == QualitativePerformance.Good),
+        [QualitativePerformance.Ok] = list.Count(c => c.Performance == QualitativePerformance.Ok),
+        [QualitativePerformance.Fail] = list.Count(c => c.Performance == QualitativePerformance.Fail),
     };
     var unitLabel = UsesInsteadOfCasts ? "uses" : "casts";
 }
@@ -28,10 +28,10 @@
         }
     </PerfBadgeGrid>
 
-    <GradiatedPerformanceBar Perfect="@counts[PerformanceTier.Perfect]"
-                             Good="@counts[PerformanceTier.Good]"
-                             Ok="@counts[PerformanceTier.Ok]"
-                             Fail="@counts[PerformanceTier.Fail]" />
+    <GradiatedPerformanceBar Perfect="@counts[QualitativePerformance.Perfect]"
+                             Good="@counts[QualitativePerformance.Good]"
+                             Ok="@counts[QualitativePerformance.Ok]"
+                             Fail="@counts[QualitativePerformance.Fail]" />
 
     @if (ShowBreakdown && list.Count > 0)
     {
@@ -49,12 +49,12 @@
     /// <summary>When true, the summary speaks of "uses" instead of "casts".</summary>
     [Parameter] public bool UsesInsteadOfCasts { get; set; }
 
-    private static readonly PerformanceTier[] _tiers =
+    private static readonly QualitativePerformance[] _tiers =
     [
-        PerformanceTier.Perfect,
-        PerformanceTier.Good,
-        PerformanceTier.Ok,
-        PerformanceTier.Fail,
+        QualitativePerformance.Perfect,
+        QualitativePerformance.Good,
+        QualitativePerformance.Ok,
+        QualitativePerformance.Fail,
     ];
 
     private static IEnumerable<PerformanceBoxEntry> BuildBoxEntries(IEnumerable<CastEvaluation> casts) =>

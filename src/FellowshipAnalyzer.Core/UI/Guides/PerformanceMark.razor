@@ -13,16 +13,16 @@
     <svg width="@px" height="@px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
         @switch (Performance)
         {
-            case PerformanceTier.Perfect:
+            case QualitativePerformance.Perfect:
                 <circle cx="12" cy="12" r="10" stroke="@color" stroke-width="@strokeStr" />
                 <path d="M7 12.5 L10.5 16 L17 9" stroke="@color" stroke-width="@strokeStr"
                       stroke-linecap="round" stroke-linejoin="round" />
                 break;
-            case PerformanceTier.Good:
+            case QualitativePerformance.Good:
                 <path d="M5 13 L10 18 L19 7" stroke="@color" stroke-width="@strokeStr"
                       stroke-linecap="round" stroke-linejoin="round" />
                 break;
-            case PerformanceTier.Ok:
+            case QualitativePerformance.Ok:
                 @* 6-point asterisk drawn as 3 crossed strokes (avoids the Razor <text> directive collision) *@
                 <g stroke="@color" stroke-width="@strokeStr" stroke-linecap="round">
                     <line x1="12" y1="4" x2="12" y2="20" />
@@ -30,7 +30,7 @@
                     <line x1="5.07" y1="16" x2="18.93" y2="8" />
                 </g>
                 break;
-            case PerformanceTier.Fail:
+            case QualitativePerformance.Fail:
                 <path d="M6 6 L18 18 M18 6 L6 18" stroke="@color" stroke-width="@strokeStr"
                       stroke-linecap="round" />
                 break;
@@ -39,7 +39,7 @@
 </span>
 
 @code {
-    [Parameter, EditorRequired] public PerformanceTier Performance { get; set; }
+    [Parameter, EditorRequired] public QualitativePerformance Performance { get; set; }
 
     /// <summary>Icon edge length in px. Defaults to 16.</summary>
     [Parameter] public int Size { get; set; } = 16;
@@ -49,10 +49,10 @@
 
     private string PerfClass => Performance switch
     {
-        PerformanceTier.Perfect => "perfect",
-        PerformanceTier.Good => "good",
-        PerformanceTier.Ok => "ok",
-        PerformanceTier.Fail => "fail",
+        QualitativePerformance.Perfect => "perfect",
+        QualitativePerformance.Good => "good",
+        QualitativePerformance.Ok => "ok",
+        QualitativePerformance.Fail => "fail",
         _ => "",
     };
 }
