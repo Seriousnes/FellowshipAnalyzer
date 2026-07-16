@@ -49,7 +49,7 @@
                 $"{wasted}",
                 "Wasted Charges",
                 "Engulfing Flames recharge periods spent sitting at maximum charges across every pull.",
-                wasted == 0 ? PerformanceTier.Perfect : wasted <= 2 ? PerformanceTier.Ok : PerformanceTier.Fail),
+                wasted == 0 ? QualitativePerformance.Perfect : wasted <= 2 ? QualitativePerformance.Ok : QualitativePerformance.Fail),
             new OverviewStat(
                 $"{overcapSeconds:0.#}s",
                 "Time at Max",
@@ -62,9 +62,9 @@
 
     private PerCastRow BuildWindowRow(EngulfingFlamesEconomyAnalyzer.WindowReadiness window)
     {
-        var perf = window.Ready ? PerformanceTier.Perfect
-            : window.ChargesAvailable >= 1 ? PerformanceTier.Ok
-            : PerformanceTier.Fail;
+        var perf = window.Ready ? QualitativePerformance.Perfect
+            : window.ChargesAvailable >= 1 ? QualitativePerformance.Ok
+            : QualitativePerformance.Fail;
 
         var stats = new[]
         {
@@ -81,7 +81,7 @@
 
         var sequence = new List<SpellCastEntry> { new(Spells.Wildfire.Id) };
         for (var i = 0; i < window.ChargesAvailable; i++)
-            sequence.Add(new SpellCastEntry(Spells.EngulfingFlames.Id, PerformanceTier.Perfect));
+            sequence.Add(new SpellCastEntry(Spells.EngulfingFlames.Id, QualitativePerformance.Perfect));
 
         var note = window.Ready
             ? "Both Engulfing Flames charges were ready for the burst."
@@ -99,5 +99,5 @@
         };
     }
 
-    private static PerformanceTier PercentTier(int percent) => PerformanceTiers.FromThresholds(percent, 75, 50, 25);
+    private static QualitativePerformance PercentTier(int percent) => PerformanceTiers.FromThresholds(percent, 75, 50, 25);
 }

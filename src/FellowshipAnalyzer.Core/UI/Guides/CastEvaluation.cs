@@ -6,6 +6,6 @@ namespace FellowshipAnalyzer.Core.UI.Guides;
 /// A graded cast entry, used by <see cref="CastSummary"/> for distribution + drill-down views.
 /// </summary>
 public sealed record CastEvaluation(
-    PerformanceTier Performance,
+    QualitativePerformance Performance,
     string? Reason = null,
     string? Timestamp = null);

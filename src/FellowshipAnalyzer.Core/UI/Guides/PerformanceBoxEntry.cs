@@ -6,5 +6,5 @@ namespace FellowshipAnalyzer.Core.UI.Guides;
 /// An entry in a <see cref="PerformanceBoxRow"/>.
 /// </summary>
 public sealed record PerformanceBoxEntry(
-    PerformanceTier Performance,
+    QualitativePerformance Performance,
     string? Tooltip = null);

@@ -68,17 +68,17 @@
 
     private PerCastRow BuildWindowRow(WildfireComboAnalyzer.WildfireWindowEvaluation window)
     {
-        var perf = window.Successful ? PerformanceTier.Perfect
-            : window.Partial ? PerformanceTier.Ok
-            : PerformanceTier.Fail;
+        var perf = window.Successful ? QualitativePerformance.Perfect
+            : window.Partial ? QualitativePerformance.Ok
+            : QualitativePerformance.Fail;
 
-        var setupPerf = window.CoreSetupCount >= WildfireComboAnalyzer.CoreSetupSuccessThreshold ? PerformanceTier.Perfect
-            : window.CoreSetupCount >= 2 ? PerformanceTier.Ok
-            : PerformanceTier.Fail;
+        var setupPerf = window.CoreSetupCount >= WildfireComboAnalyzer.CoreSetupSuccessThreshold ? QualitativePerformance.Perfect
+            : window.CoreSetupCount >= 2 ? QualitativePerformance.Ok
+            : QualitativePerformance.Fail;
 
-        var detonatePerf = window.DetonateCasts >= WildfireComboAnalyzer.DetonateSpamThreshold ? PerformanceTier.Perfect
-            : window.DetonateCasts >= 1 ? PerformanceTier.Ok
-            : PerformanceTier.Fail;
+        var detonatePerf = window.DetonateCasts >= WildfireComboAnalyzer.DetonateSpamThreshold ? QualitativePerformance.Perfect
+            : window.DetonateCasts >= 1 ? QualitativePerformance.Ok
+            : QualitativePerformance.Fail;
 
         var stats = new[]
         {
@@ -199,5 +199,5 @@
     private static string Capitalise(string value) =>
         value.Length == 0 ? value : char.ToUpperInvariant(value[0]) + value[1..];
 
-    private static PerformanceTier PercentTier(int percent) => PerformanceTiers.FromThresholds(percent, 75, 50, 25);
+    private static QualitativePerformance PercentTier(int percent) => PerformanceTiers.FromThresholds(percent, 75, 50, 25);
 }

@@ -11,7 +11,7 @@ namespace FellowshipAnalyzer.Core.UI.Guides;
 /// </summary>
 public sealed record PerCastRow
 {
-    public required PerformanceTier Performance { get; init; }
+    public required QualitativePerformance Performance { get; init; }
     public required PerCastStat[] Stats { get; init; }
 
     /// <summary>Absolute event timestamp (ms) for this row; defaults to the pull's start time.</summary>

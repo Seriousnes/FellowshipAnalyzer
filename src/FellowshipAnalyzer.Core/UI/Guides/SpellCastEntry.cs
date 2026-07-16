@@ -7,5 +7,5 @@ namespace FellowshipAnalyzer.Core.UI.Guides;
 /// </summary>
 public sealed record SpellCastEntry(
     int Id,
-    PerformanceTier? Performance = null,
+    QualitativePerformance? Performance = null,
     string? Tooltip = null);

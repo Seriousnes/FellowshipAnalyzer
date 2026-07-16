@@ -36,8 +36,8 @@
     private static readonly IReadOnlyList<OverviewStat> _overviewStats =
     [
         new("47", "Orbs generated"),
-        new("12", "Orbs wasted", Performance: PerformanceTier.Fail),
-        new("74%", "Efficiency", Performance: PerformanceTier.Good),
+        new("12", "Orbs wasted", Performance: QualitativePerformance.Fail),
+        new("74%", "Efficiency", Performance: QualitativePerformance.Good),
     ];
 
     private static readonly IReadOnlyList<CastEvaluation> _evaluations = BuildEvaluations();
@@ -45,10 +45,10 @@
     private static IReadOnlyList<CastEvaluation> BuildEvaluations()
     {
         var list = new List<CastEvaluation>();
-        for (var i = 0; i < 8; i++) list.Add(new(PerformanceTier.Perfect, "Full Orbs", $"0:{12 + i * 9}"));
-        for (var i = 0; i < 3; i++) list.Add(new(PerformanceTier.Good, "Near-full Orbs", $"1:{5 + i * 7}"));
-        for (var i = 0; i < 2; i++) list.Add(new(PerformanceTier.Ok, "Mid Orbs", $"1:{30 + i * 8}"));
-        list.Add(new(PerformanceTier.Fail, "0 Orbs", "2:02"));
+        for (var i = 0; i < 8; i++) list.Add(new(QualitativePerformance.Perfect, "Full Orbs", $"0:{12 + i * 9}"));
+        for (var i = 0; i < 3; i++) list.Add(new(QualitativePerformance.Good, "Near-full Orbs", $"1:{5 + i * 7}"));
+        for (var i = 0; i < 2; i++) list.Add(new(QualitativePerformance.Ok, "Mid Orbs", $"1:{30 + i * 8}"));
+        list.Add(new(QualitativePerformance.Fail, "0 Orbs", "2:02"));
         return list;
     }
 
@@ -56,7 +56,7 @@
     [
         new()
         {
-            Performance = PerformanceTier.Perfect,
+            Performance = QualitativePerformance.Perfect,
             Timestamp = "0:12",
             Stats =
             [
@@ -67,7 +67,7 @@
         },
         new()
         {
-            Performance = PerformanceTier.Good,
+            Performance = QualitativePerformance.Good,
             Timestamp = "0:24",
             Stats =
             [
@@ -78,22 +78,22 @@
         },
         new()
         {
-            Performance = PerformanceTier.Ok,
+            Performance = QualitativePerformance.Ok,
             Timestamp = "0:48",
             Stats =
             [
-                new("11k", "Damage", Performance: PerformanceTier.Ok),
+                new("11k", "Damage", Performance: QualitativePerformance.Ok),
                 new("1", "Orb spent"),
                 new("1", "Target"),
             ],
         },
         new()
         {
-            Performance = PerformanceTier.Fail,
+            Performance = QualitativePerformance.Fail,
             Timestamp = "1:15",
             Stats =
             [
-                new("0", "Damage", Performance: PerformanceTier.Fail),
+                new("0", "Damage", Performance: QualitativePerformance.Fail),
                 new("0", "Orbs spent"),
                 new("0", "Targets"),
             ],
@@ -107,8 +107,8 @@
     private static readonly IReadOnlyList<OverviewStat> _stats =
     [
         new("47", "Orbs generated"),
-        new("12", "Orbs wasted", Performance: PerformanceTier.Fail),
-        new("74%", "Efficiency", Performance: PerformanceTier.Good),
+        new("12", "Orbs wasted", Performance: QualitativePerformance.Fail),
+        new("74%", "Efficiency", Performance: QualitativePerformance.Good),
     ];
 }
 """;

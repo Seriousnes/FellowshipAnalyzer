@@ -32,15 +32,15 @@
         var totalBarrages = withEruption + withoutEruption;
         var eruptionRate = totalBarrages == 0 ? 0 : withEruption * 100.0 / totalBarrages;
 
-        var rateTier = eruptionRate >= 90 ? PerformanceTier.Perfect
-            : eruptionRate >= 75 ? PerformanceTier.Good
-            : eruptionRate >= 50 ? PerformanceTier.Ok
-            : PerformanceTier.Fail;
+        var rateTier = eruptionRate >= 90 ? QualitativePerformance.Perfect
+            : eruptionRate >= 75 ? QualitativePerformance.Good
+            : eruptionRate >= 50 ? QualitativePerformance.Ok
+            : QualitativePerformance.Fail;
 
-        var expiredTier = marksExpired == 0 ? PerformanceTier.Perfect
-            : marksExpired < 3 ? PerformanceTier.Good
-            : marksExpired < 6 ? PerformanceTier.Ok
-            : PerformanceTier.Fail;
+        var expiredTier = marksExpired == 0 ? QualitativePerformance.Perfect
+            : marksExpired < 3 ? QualitativePerformance.Good
+            : marksExpired < 6 ? QualitativePerformance.Ok
+            : QualitativePerformance.Fail;
 
         return
         [
@@ -62,9 +62,9 @@
 
     private PerCastData BuildBarrageData(LunarlightMarkEruptionAnalyzer.BarrageEvent b, Pull pull)
     {
-        var tier = b.ErupedMarks >= 3 ? PerformanceTier.Perfect
-            : b.ErupedMarks >= 1 ? PerformanceTier.Good
-            : PerformanceTier.Fail;
+        var tier = b.ErupedMarks >= 3 ? QualitativePerformance.Perfect
+            : b.ErupedMarks >= 1 ? QualitativePerformance.Good
+            : QualitativePerformance.Fail;
 
         return new PerCastData
         {

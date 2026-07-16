@@ -13,21 +13,21 @@ public static class PerformanceColors
     public const string Mediocre = "#dd5533";
     public const string Available = "#696864";
 
-    public static string ToColor(PerformanceTier tier) => tier switch
+    public static string ToColor(QualitativePerformance tier) => tier switch
     {
-        PerformanceTier.Perfect => Perfect,
-        PerformanceTier.Good => Good,
-        PerformanceTier.Ok => Ok,
-        PerformanceTier.Fail => Fail,
+        QualitativePerformance.Perfect => Perfect,
+        QualitativePerformance.Good => Good,
+        QualitativePerformance.Ok => Ok,
+        QualitativePerformance.Fail => Fail,
         _ => "#ffffff",
     };
 
-    public static string ToLabel(PerformanceTier tier) => tier switch
+    public static string ToLabel(QualitativePerformance tier) => tier switch
     {
-        PerformanceTier.Perfect => "Perfect",
-        PerformanceTier.Good => "Good",
-        PerformanceTier.Ok => "Ok",
-        PerformanceTier.Fail => "Bad",
+        QualitativePerformance.Perfect => "Perfect",
+        QualitativePerformance.Good => "Good",
+        QualitativePerformance.Ok => "Ok",
+        QualitativePerformance.Fail => "Bad",
         _ => "Unknown",
     };
 }

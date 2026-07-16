@@ -29,12 +29,12 @@
 @code {
     private static readonly IReadOnlyList<SpellCastEntry> _mixed =
     [
-        new(Spells.FrostBolt.Id, PerformanceTier.Good),
-        new(Spells.FrostBolt.Id, PerformanceTier.Good),
-        new(Spells.BurstingIce.Id, PerformanceTier.Perfect),
-        new(Spells.GlacialBlast.Id, PerformanceTier.Perfect),
-        new(Spells.IceComet.Id, PerformanceTier.Ok),
-        new(Spells.FrostBolt.Id, PerformanceTier.Fail),
+        new(Spells.FrostBolt.Id, QualitativePerformance.Good),
+        new(Spells.FrostBolt.Id, QualitativePerformance.Good),
+        new(Spells.BurstingIce.Id, QualitativePerformance.Perfect),
+        new(Spells.GlacialBlast.Id, QualitativePerformance.Perfect),
+        new(Spells.IceComet.Id, QualitativePerformance.Ok),
+        new(Spells.FrostBolt.Id, QualitativePerformance.Fail),
     ];
 
     private static readonly IReadOnlyList<SpellCastEntry> _neutral =
@@ -51,9 +51,9 @@
 @code {
     private static readonly IReadOnlyList<SpellCastEntry> _casts =
     [
-        new(Spells.FrostBolt.Id, PerformanceTier.Good),
-        new(Spells.BurstingIce.Id, PerformanceTier.Perfect),
-        new(Spells.IceComet.Id, PerformanceTier.Ok),
+        new(Spells.FrostBolt.Id, QualitativePerformance.Good),
+        new(Spells.BurstingIce.Id, QualitativePerformance.Perfect),
+        new(Spells.IceComet.Id, QualitativePerformance.Ok),
     ];
 }
 """;

@@ -3,7 +3,7 @@
 <PageTitle>TipBox — Design System</PageTitle>
 
 <h1>TipBox / PerformanceTipBox</h1>
-<p class="lede">Bordered callouts. <code>TipBox</code> takes one of five variants directly; <code>PerformanceTipBox</code> picks the variant from a <code>PerformanceTier</code>.</p>
+<p class="lede">Bordered callouts. <code>TipBox</code> takes one of five variants directly; <code>PerformanceTipBox</code> picks the variant from a <code>QualitativePerformance</code>.</p>
 
 <CodeExample Title="Variants" Code="@_variantsCode">
     <Demo>
@@ -40,16 +40,16 @@
 
 <CodeExample Title="PerformanceTipBox" Code="@_perfTipCode">
     <Demo>
-        <PerformanceTipBox Performance="PerformanceTier.Perfect" Title="Perfect cast">
+        <PerformanceTipBox Performance="QualitativePerformance.Perfect" Title="Perfect cast">
             You hit it at 2 Orbs — maximum value.
         </PerformanceTipBox>
-        <PerformanceTipBox Performance="PerformanceTier.Good" Title="Good cast">
+        <PerformanceTipBox Performance="QualitativePerformance.Good" Title="Good cast">
             Solid timing.
         </PerformanceTipBox>
-        <PerformanceTipBox Performance="PerformanceTier.Ok" Title="Okay cast">
+        <PerformanceTipBox Performance="QualitativePerformance.Ok" Title="Okay cast">
             You could have waited a moment longer.
         </PerformanceTipBox>
-        <PerformanceTipBox Performance="PerformanceTier.Fail" Title="Misplay">
+        <PerformanceTipBox Performance="QualitativePerformance.Fail" Title="Misplay">
             Cast at 0 Orbs — full waste.
         </PerformanceTipBox>
     </Demo>
@@ -80,7 +80,7 @@
 """;
 
     private const string _perfTipCode = """
-<PerformanceTipBox Performance="PerformanceTier.Perfect" Title="Perfect cast">
+<PerformanceTipBox Performance="QualitativePerformance.Perfect" Title="Perfect cast">
     You hit it at 2 Orbs — maximum value.
 </PerformanceTipBox>
 """;

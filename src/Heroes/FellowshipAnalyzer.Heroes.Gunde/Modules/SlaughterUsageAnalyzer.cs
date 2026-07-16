@@ -29,23 +29,24 @@ public abstract partial class SlaughterUsageAnalyzer : Analyzer
     private int _lastHeartSplitterTimestamp = int.MinValue;
     private int _previousSlaughterTimestamp = int.MinValue;
     private SlaughterEvaluation? _pendingSlaughter;
+    private bool _materialized;
 
     /// <summary>The pull shape this leaf scores against.</summary>
     public abstract GundePullShape Shape { get; }
 
     /// <summary>Every Slaughter cast on the pull, in cast order, with its per-cast evaluation.</summary>
-    public IReadOnlyList<SlaughterEvaluation> Slaughters => _slaughters;
+    public IReadOnlyList<SlaughterEvaluation> Slaughters { get { EnsureMaterialized(); return _slaughters; } }
 
     public int SlaughterCasts => _slaughters.Count;
 
     /// <summary>Slaughters cast while a Rupture Open Wounds window was active.</summary>
-    public int OpenWoundsTimed { get; private set; }
+    public int OpenWoundsTimed => _slaughters.Count(s => s.OpenWoundsActive);
 
     /// <summary>Slaughters preceded by a Heart Splitter since the previous Slaughter.</summary>
-    public int HeartSplitterPrimed { get; private set; }
+    public int HeartSplitterPrimed => _slaughters.Count(s => s.HeartSplitterPrimed);
 
     /// <summary>Slaughters that met the success bar for this pull shape.</summary>
-    public int WellExecuted { get; private set; }
+    public int WellExecuted { get { EnsureMaterialized(); return _slaughters.Count(s => s.WellExecuted); } }
 
     [On<ApplyDebuffEvent>(By = Actor.Player)]
     private void OnDebuffApplied(ApplyDebuffEvent @event)
@@ -95,16 +96,14 @@ public abstract partial class SlaughterUsageAnalyzer : Analyzer
         _previousSlaughterTimestamp = @event.Timestamp;
     }
 
-    public override void OnPullEnd()
+    private void EnsureMaterialized()
     {
-        FinalizePendingSlaughter();
+        if (_materialized) return;
+        _materialized = true;
 
+        FinalizePendingSlaughter();
         foreach (var slaughter in _slaughters)
             slaughter.WellExecuted = IsWellExecuted(slaughter);
-
-        OpenWoundsTimed = _slaughters.Count(s => s.OpenWoundsActive);
-        HeartSplitterPrimed = _slaughters.Count(s => s.HeartSplitterPrimed);
-        WellExecuted = _slaughters.Count(s => s.WellExecuted);
     }
 
     /// <summary>Whether a Slaughter met the success bar for this pull shape.</summary>

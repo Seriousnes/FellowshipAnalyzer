@@ -33,13 +33,13 @@
         var uptimePct = fightLen > 0 ? uptimeMs * 100.0 / fightLen : 0;
 
         var heldTier = fightLen <= 0
-            ? PerformanceTier.Ok
+            ? QualitativePerformance.Ok
             : ((double)heldMs / fightLen) switch
             {
-                < 0.05 => PerformanceTier.Perfect,
-                < 0.15 => PerformanceTier.Good,
-                < 0.25 => PerformanceTier.Ok,
-                _ => PerformanceTier.Fail,
+                < 0.05 => QualitativePerformance.Perfect,
+                < 0.15 => QualitativePerformance.Good,
+                < 0.25 => QualitativePerformance.Ok,
+                _ => QualitativePerformance.Fail,
             };
 
         return

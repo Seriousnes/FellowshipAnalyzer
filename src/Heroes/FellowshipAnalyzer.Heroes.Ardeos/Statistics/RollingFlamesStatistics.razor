@@ -23,10 +23,10 @@
                 Seconds(cdr.WastedMs),
                 "Wasted",
                 "Cooldown reduction generated while the spell was already off cooldown.",
-                cdr.WastedMs == 0 ? PerformanceTier.Perfect
-                    : wastedRate < 0.10 ? PerformanceTier.Good
-                    : wastedRate < 0.20 ? PerformanceTier.Ok
-                    : PerformanceTier.Fail),
+                cdr.WastedMs == 0 ? QualitativePerformance.Perfect
+                    : wastedRate < 0.10 ? QualitativePerformance.Good
+                    : wastedRate < 0.20 ? QualitativePerformance.Ok
+                    : QualitativePerformance.Fail),
             new OverviewStat(
                 used ? $"{cdr.Efficiency * 100:F0}%" : "—",
                 "Efficiency",

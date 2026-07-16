@@ -9,4 +9,4 @@ public sealed record OverviewStat(
     string Value,
     string Label,
     string? Tooltip = null,
-    PerformanceTier? Performance = null);
+    QualitativePerformance? Performance = null);

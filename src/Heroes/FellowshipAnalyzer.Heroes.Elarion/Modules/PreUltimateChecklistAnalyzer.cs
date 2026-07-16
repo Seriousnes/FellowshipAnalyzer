@@ -28,7 +28,9 @@ public sealed partial class PreUltimateChecklistAnalyzer : Analyzer
     public IReadOnlyList<UltWindow> Windows => _windows;
 
     /// <summary>Average share (0-100) of the five pre-conditions met across all ult windows.</summary>
-    public int Score { get; private set; }
+    public int Score => _windows.Count == 0
+        ? 0
+        : (int)Math.Round(_windows.Average(w => w.ChecksPassed * 100.0 / w.TotalChecks));
 
     [On<CastEvent>(By = Actor.Player, Spell = nameof(Spells.SkystridersSupremacy))]
     private void OnSupremacy(CastEvent castEvent) => _supremacyCasts.Add(castEvent.Timestamp);
@@ -53,14 +55,6 @@ public sealed partial class PreUltimateChecklistAnalyzer : Analyzer
 
     [On<ApplyDebuffEvent>(By = Actor.Player, Spell = nameof(Spells.SpiritOfHeroism))]
     private void OnUltDebuffApply(ApplyDebuffEvent applyDebuffEvent) => RecordWindow(applyDebuffEvent.Timestamp);
-
-    [On<PullEndEvent>]
-    public void OnPullEnd(PullEndEvent _)
-    {
-        Score = _windows.Count == 0
-            ? 0
-            : (int)Math.Round(_windows.Average(w => w.ChecksPassed * 100.0 / w.TotalChecks));
-    }
 
     private void RecordWindow(int timestamp)
     {

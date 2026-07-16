@@ -31,15 +31,27 @@ public sealed partial class EngulfingFlamesEconomyAnalyzer : Analyzer
     /// <summary>Per-Wildfire-cast snapshots of Engulfing Flames charge availability.</summary>
     public IReadOnlyList<WindowReadiness> Windows => _windows;
 
+    private long? _cappedMs;
+    private long CappedMs => _cappedMs ??= ComputeCappedMilliseconds(Spells.EngulfingFlames.Charges);
+
     public int WindowsEvaluated => _windows.Count;
-    public int WindowsReady { get; private set; }
+    public int WindowsReady => _windows.Count(w => w.Ready);
     public int WindowsShort => WindowsEvaluated - WindowsReady;
 
     /// <summary>Full Engulfing Flames recharge periods wasted sitting at maximum charges.</summary>
-    public int WastedCharges { get; private set; }
+    public int WastedCharges
+    {
+        get
+        {
+            var rechargeMs = Spells.EngulfingFlames.Cooldown is { } cooldown and > 0
+                ? (int)(cooldown * 1000)
+                : FallbackRechargeMs;
+            return rechargeMs > 0 ? (int)(CappedMs / rechargeMs) : 0;
+        }
+    }
 
     /// <summary>Total seconds Engulfing Flames spent at maximum charges during the pull.</summary>
-    public double CappedSeconds { get; private set; }
+    public double CappedSeconds => Math.Round(CappedMs / 1000d, 1);
 
     [On<CastEvent>(By = Actor.Player, Spell = nameof(Spells.Wildfire))]
     private void OnWildfireCast(CastEvent e)
@@ -62,27 +74,10 @@ public sealed partial class EngulfingFlamesEconomyAnalyzer : Analyzer
         _chargeSamples.Add((e.Timestamp, e.ChargesAvailable));
     }
 
-    /// <summary>Finalizes the pull's window readiness and Engulfing Flames overcap.</summary>
-    public override void OnPullEnd()
-    {
-        var maxCharges = Spells.EngulfingFlames.Charges;
-        var rechargeMs = Spells.EngulfingFlames.Cooldown is { } cooldown and > 0
-            ? (int)(cooldown * 1000)
-            : FallbackRechargeMs;
-
-        var cappedMs = ComputeCappedMilliseconds(maxCharges);
-        WastedCharges = rechargeMs > 0 ? (int)(cappedMs / rechargeMs) : 0;
-        CappedSeconds = Math.Round(cappedMs / 1000d, 1);
-        WindowsReady = _windows.Count(w => w.Ready);
-    }
-
     private long ComputeCappedMilliseconds(int maxCharges)
     {
-        if (Owner.CurrentPull is not { } pull)
-            return 0;
-
-        var startTime = pull.StartTime;
-        var endTime = pull.EndTime;
+        var startTime = Pull.StartTime;
+        var endTime = Pull.EndTime;
         if (endTime <= startTime)
             return 0;
 

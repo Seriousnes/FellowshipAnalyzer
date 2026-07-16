@@ -28,10 +28,10 @@
 
     private IEnumerable<OverviewStat> BuildOverviewStats()
     {
-        var doubleTier = DoubleMarks == 0 ? PerformanceTier.Perfect
-            : DoubleMarks < 2 ? PerformanceTier.Good
-            : DoubleMarks < 4 ? PerformanceTier.Ok
-            : PerformanceTier.Fail;
+        var doubleTier = DoubleMarks == 0 ? QualitativePerformance.Perfect
+            : DoubleMarks < 2 ? QualitativePerformance.Good
+            : DoubleMarks < 4 ? QualitativePerformance.Ok
+            : QualitativePerformance.Fail;
 
         return
         [
@@ -50,7 +50,7 @@
 
     private PerCastData BuildCastData(VoidbringerTouchAnalyzer.VoidbringerCast cast, Pull pull) => new()
     {
-        Performance = cast.IsDoubleMark ? PerformanceTier.Fail : PerformanceTier.Good,
+        Performance = cast.IsDoubleMark ? QualitativePerformance.Fail : QualitativePerformance.Good,
         Timestamp = Parser.FormatTimestamp(cast.Timestamp),
         Group = pull.Name,
         GroupContent = @<PullBanner Pull="@pull" />,
@@ -64,7 +64,7 @@
                 cast.IsDoubleMark ? "Yes" : "No",
                 "Double Mark",
                 "Whether the target was already marked when this cast landed.",
-                cast.IsDoubleMark ? PerformanceTier.Fail : PerformanceTier.Good),
+                cast.IsDoubleMark ? QualitativePerformance.Fail : QualitativePerformance.Good),
         ],
     };
 }

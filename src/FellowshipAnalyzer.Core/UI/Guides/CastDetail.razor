@@ -136,32 +136,32 @@
     private int _currentIndex;
     private List<PerCastData> _allCasts = [];
     private List<PerCastData> _filteredCasts = [];
-    private Dictionary<PerformanceTier, int> _perfCounts = [];
-    private readonly HashSet<PerformanceTier> _performanceFilter =
+    private Dictionary<QualitativePerformance, int> _perfCounts = [];
+    private readonly HashSet<QualitativePerformance> _performanceFilter =
     [
-        PerformanceTier.Perfect,
-        PerformanceTier.Good,
-        PerformanceTier.Ok,
-        PerformanceTier.Fail,
+        QualitativePerformance.Perfect,
+        QualitativePerformance.Good,
+        QualitativePerformance.Ok,
+        QualitativePerformance.Fail,
     ];
 
-    private static readonly (PerformanceTier Tier, string Label)[] _perfLevels =
+    private static readonly (QualitativePerformance Tier, string Label)[] _perfLevels =
     [
-        (PerformanceTier.Perfect, "Perfect"),
-        (PerformanceTier.Good, "Good"),
-        (PerformanceTier.Ok, "Ok"),
-        (PerformanceTier.Fail, "Bad"),
+        (QualitativePerformance.Perfect, "Perfect"),
+        (QualitativePerformance.Good, "Good"),
+        (QualitativePerformance.Ok, "Ok"),
+        (QualitativePerformance.Fail, "Bad"),
     ];
 
     protected override void OnParametersSet()
     {
         _allCasts = Casts.ToList();
-        _perfCounts = new Dictionary<PerformanceTier, int>
+        _perfCounts = new Dictionary<QualitativePerformance, int>
         {
-            [PerformanceTier.Perfect] = _allCasts.Count(c => c.Performance == PerformanceTier.Perfect),
-            [PerformanceTier.Good] = _allCasts.Count(c => c.Performance == PerformanceTier.Good),
-            [PerformanceTier.Ok] = _allCasts.Count(c => c.Performance == PerformanceTier.Ok),
-            [PerformanceTier.Fail] = _allCasts.Count(c => c.Performance == PerformanceTier.Fail),
+            [QualitativePerformance.Perfect] = _allCasts.Count(c => c.Performance == QualitativePerformance.Perfect),
+            [QualitativePerformance.Good] = _allCasts.Count(c => c.Performance == QualitativePerformance.Good),
+            [QualitativePerformance.Ok] = _allCasts.Count(c => c.Performance == QualitativePerformance.Ok),
+            [QualitativePerformance.Fail] = _allCasts.Count(c => c.Performance == QualitativePerformance.Fail),
         };
         RebuildFilteredCasts();
     }
@@ -171,7 +171,7 @@
         _filteredCasts = _allCasts.Where(c => _performanceFilter.Contains(c.Performance)).ToList();
     }
 
-    private void ToggleFilter(PerformanceTier tier)
+    private void ToggleFilter(QualitativePerformance tier)
     {
         if (!_performanceFilter.Add(tier))
             _performanceFilter.Remove(tier);

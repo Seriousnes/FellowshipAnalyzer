@@ -23,8 +23,8 @@ public sealed partial class LunarlightMarkEruptionAnalyzer : Analyzer
     public IReadOnlyList<BarrageEvent> Barrages => _barrages;
     public int TotalMarksApplied { get; private set; }
     public int MarksExpired { get; private set; }
-    public int BarrageWithEruption { get; private set; }
-    public int BarrageWithoutEruption { get; private set; }
+    public int BarrageWithEruption => _barrages.Count(b => b.ErupedMarks > 0);
+    public int BarrageWithoutEruption => _barrages.Count(b => b.ErupedMarks == 0);
 
     [On<ApplyDebuffEvent>(By = Actor.Player)]
     private void OnApplyMark(ApplyDebuffEvent e)
@@ -71,12 +71,6 @@ public sealed partial class LunarlightMarkEruptionAnalyzer : Analyzer
         {
             _recentlyErupted = false;
         }
-    }
-
-    public override void OnPullEnd()
-    {
-        BarrageWithEruption = _barrages.Count(b => b.ErupedMarks > 0);
-        BarrageWithoutEruption = _barrages.Count(b => b.ErupedMarks == 0);
     }
 
     private static bool IsLunarlightMark(Ability ability) =>

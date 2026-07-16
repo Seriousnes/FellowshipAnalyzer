@@ -160,7 +160,7 @@
     private static string FormatSeconds(int milliseconds) =>
         $"{milliseconds / 1000d:0.#}s";
 
-    private static PerformanceTier UptimeTier(int percent) => PerformanceTiers.FromThresholds(percent, 95, 85, 70);
+    private static QualitativePerformance UptimeTier(int percent) => PerformanceTiers.FromThresholds(percent, 95, 85, 70);
 
-    private static PerformanceTier PercentTier(int percent) => PerformanceTiers.FromThresholds(percent, 75, 50, 25);
+    private static QualitativePerformance PercentTier(int percent) => PerformanceTiers.FromThresholds(percent, 75, 50, 25);
 }

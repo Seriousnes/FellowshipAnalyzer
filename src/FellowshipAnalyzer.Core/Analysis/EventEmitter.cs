@@ -73,9 +73,10 @@ public sealed class EventEmitter(ILogger<EventEmitter> logger) : Module
 
             if (e is PullStartEvent pullStart) Owner.BeginPull(pullStart.Pull);
 
-            await TriggerEventAsync(e);
-
-            if (e is PullEndEvent pullEnd) Owner.EndPull(pullEnd.Pull);
+            if (e is PullEndEvent pullEnd)
+                Owner.EndPull(pullEnd.Pull);
+            else
+                await TriggerEventAsync(e);
 
             if (i % YieldInterval == YieldInterval - 1)
             {
@@ -108,6 +109,40 @@ public sealed class EventEmitter(ILogger<EventEmitter> logger) : Module
     {
         await DispatchToListenersAsync(_stateListeners, e);
         await DispatchToListenersAsync(_pullListeners, e);
+    }
+
+    /// <summary>
+    /// Dispatches <paramref name="e"/> synchronously to the state and current pull listener tiers.
+    /// Used by <see cref="CombatLogParser.EndPull"/> to deliver a pull's <see cref="Events.PullEndEvent"/>
+    /// to that pull's own listeners at the moment it closes, before the pull tier is retired — the one
+    /// point that fires reliably for every pull, including a force-close by <see cref="CombatLogParser.BeginPull"/>.
+    /// Pull-end handlers are synchronous.
+    /// </summary>
+    public void Emit(Event e)
+    {
+        DispatchToListeners(_stateListeners, e);
+        DispatchToListeners(_pullListeners, e);
+    }
+
+    private void DispatchToListeners(List<RegisteredListener> listeners, Event e)
+    {
+        foreach (var listener in listeners)
+        {
+            if (listener.Module.Active && listener.Filter(e))
+            {
+                listener.Module.NumExecutions++;
+                try
+                {
+                    listener.Invoke(e);
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex,
+                        "Event handler in {Module} threw while processing {EventType} (Timestamp={Timestamp})",
+                        listener.Module.GetType().Name, e.GetType().Name, e.Timestamp);
+                }
+            }
+        }
     }
 
     private async Task DispatchToListenersAsync(List<RegisteredListener> listeners, Event e)
@@ -177,5 +212,16 @@ public readonly struct RegisteredListener
 
         _syncHandler!(e);
         return Task.CompletedTask;
+    }
+
+    public void Invoke(Event e)
+    {
+        if (_syncHandler != null)
+        {
+            _syncHandler(e);
+            return;
+        }
+
+        _asyncHandler!(e).GetAwaiter().GetResult();
     }
 }

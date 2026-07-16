@@ -19,9 +19,17 @@ public sealed partial class StarfallVolleyDesyncAnalyzer : Analyzer
     private readonly List<DesyncEvent> _volleys = [];
 
     public IReadOnlyList<DesyncEvent> Volleys => _volleys;
-    public int CloseGapCount { get; private set; }
+    public int CloseGapCount => _volleys.Count(e => e.GapMs < CloseGapThresholdMs);
     public int VolleyCount => _volleys.Count;
-    public double AverageGapMs { get; private set; }
+
+    public double AverageGapMs
+    {
+        get
+        {
+            var measuredGaps = _volleys.Where(e => e.GapMs != int.MaxValue).Select(e => e.GapMs).ToList();
+            return measuredGaps.Count == 0 ? 0 : measuredGaps.Average();
+        }
+    }
 
     [On<CastEvent>(By = Actor.Player, Spell = nameof(Spells.LunarlightMark))]
     private void OnLunarlightMark(CastEvent e)
@@ -40,13 +48,6 @@ public sealed partial class StarfallVolleyDesyncAnalyzer : Analyzer
         {
             _volleys.Add(new DesyncEvent(e.Timestamp, GapMs: int.MaxValue));
         }
-    }
-
-    public override void OnPullEnd()
-    {
-        CloseGapCount = _volleys.Count(e => e.GapMs < CloseGapThresholdMs);
-        var measuredGaps = _volleys.Where(e => e.GapMs != int.MaxValue).Select(e => e.GapMs).ToList();
-        AverageGapMs = measuredGaps.Count == 0 ? 0 : measuredGaps.Average();
     }
 
     public readonly record struct DesyncEvent(int VolleyTimestamp, int GapMs);

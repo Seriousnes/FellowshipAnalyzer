@@ -11,7 +11,7 @@ public sealed record AdditionalContent(string? Title, RenderFragment Content);
 /// </summary>
 public sealed class PerCastData
 {
-    public required PerformanceTier Performance { get; init; }
+    public required QualitativePerformance Performance { get; init; }
     public required PerCastStat[] Stats { get; init; }
     public required string Timestamp { get; init; }
     public string? Tooltip { get; init; }

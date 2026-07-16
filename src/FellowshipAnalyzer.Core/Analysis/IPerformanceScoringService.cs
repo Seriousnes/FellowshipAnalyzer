@@ -20,7 +20,7 @@ public record ScoreBreakpoint(double Value, double Score);
 public record ScoredCheck(double Score, double Weight, double? MinScore = null);
 
 /// <summary>
-/// Configurable thresholds for mapping a 0.0–1.0 score to a <see cref="PerformanceTier"/>.
+/// Configurable thresholds for mapping a 0.0–1.0 score to a <see cref="QualitativePerformance"/>.
 /// </summary>
 public record PerformanceScoreThresholds(
     double Perfect = 0.95,
@@ -60,8 +60,8 @@ public interface IPerformanceScoringService
     double GetAggregatedScore(IReadOnlyList<ScoredCheck> checks);
 
     /// <summary>
-    /// Maps a 0.0–1.0 score to a <see cref="PerformanceTier"/> using configurable thresholds.
+    /// Maps a 0.0–1.0 score to a <see cref="QualitativePerformance"/> using configurable thresholds.
     /// Falls back to <see cref="PerformanceScoreThresholds.Default"/> when not specified.
     /// </summary>
-    PerformanceTier ScoreToTier(double score, PerformanceScoreThresholds? thresholds = null);
+    QualitativePerformance ScoreToTier(double score, PerformanceScoreThresholds? thresholds = null);
 }

@@ -30,15 +30,15 @@
         var settled = Consumed + Expired;
         var consumeRate = settled == 0 ? 0 : Consumed * 100.0 / settled;
 
-        var rateTier = consumeRate >= 95 ? PerformanceTier.Perfect
-            : consumeRate >= 80 ? PerformanceTier.Good
-            : consumeRate >= 60 ? PerformanceTier.Ok
-            : PerformanceTier.Fail;
+        var rateTier = consumeRate >= 95 ? QualitativePerformance.Perfect
+            : consumeRate >= 80 ? QualitativePerformance.Good
+            : consumeRate >= 60 ? QualitativePerformance.Ok
+            : QualitativePerformance.Fail;
 
-        var expiredTier = Expired == 0 ? PerformanceTier.Perfect
-            : Expired < 2 ? PerformanceTier.Good
-            : Expired < 4 ? PerformanceTier.Ok
-            : PerformanceTier.Fail;
+        var expiredTier = Expired == 0 ? QualitativePerformance.Perfect
+            : Expired < 2 ? QualitativePerformance.Good
+            : Expired < 4 ? QualitativePerformance.Ok
+            : QualitativePerformance.Fail;
 
         return
         [
@@ -46,7 +46,7 @@
             new OverviewStat($"{Refreshes}", "Refreshes",
                 "Procs that refreshed an existing stack."),
             new OverviewStat($"{Consumed}", "Consumed",
-                "Procs consumed by a cast.", Consumed > 0 ? PerformanceTier.Good : PerformanceTier.Ok),
+                "Procs consumed by a cast.", Consumed > 0 ? QualitativePerformance.Good : QualitativePerformance.Ok),
             new OverviewStat($"{Expired}", "Expired",
                 "Procs that timed out without being consumed.", expiredTier),
             new OverviewStat(settled == 0 ? "-" : $"{consumeRate:F0}%", "Consume Rate",

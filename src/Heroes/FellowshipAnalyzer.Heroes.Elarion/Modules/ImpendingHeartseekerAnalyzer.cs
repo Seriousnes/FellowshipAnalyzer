@@ -20,10 +20,10 @@ public sealed partial class ImpendingHeartseekerAnalyzer : Analyzer
     private int _activeStacks;
 
     public IReadOnlyList<ProcEvent> Procs => _events;
-    public int Gains { get; private set; }
-    public int Refreshes { get; private set; }
-    public int Consumed { get; private set; }
-    public int Expired { get; private set; }
+    public int Gains => _events.Count(p => p.Kind == ProcKind.Gain);
+    public int Refreshes => _events.Count(p => p.Kind == ProcKind.Refresh);
+    public int Consumed => _events.Count(p => p.Kind == ProcKind.Consumed);
+    public int Expired => _events.Count(p => p.Kind == ProcKind.Expired);
 
     [On<ApplyBuffEvent>(To = Actor.Player, Spell = nameof(Spells.ImpendingHeartseeker))]
     private void OnApply(ApplyBuffEvent e)
@@ -63,14 +63,6 @@ public sealed partial class ImpendingHeartseekerAnalyzer : Analyzer
         _events.Add(new ProcEvent(e.Timestamp, kind, 0));
         _activeStartTimestamp = null;
         _activeStacks = 0;
-    }
-
-    public override void OnPullEnd()
-    {
-        Gains = _events.Count(p => p.Kind == ProcKind.Gain);
-        Refreshes = _events.Count(p => p.Kind == ProcKind.Refresh);
-        Consumed = _events.Count(p => p.Kind == ProcKind.Consumed);
-        Expired = _events.Count(p => p.Kind == ProcKind.Expired);
     }
 
     private bool IsExpiry(int now)

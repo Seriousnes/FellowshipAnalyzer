@@ -32,9 +32,9 @@
         ];
     }
 
-    private static PerformanceTier Tier(int wasted, double rate) =>
-        wasted == 0 ? PerformanceTier.Perfect
-            : rate < 0.10 ? PerformanceTier.Good
-            : rate < 0.20 ? PerformanceTier.Ok
-            : PerformanceTier.Fail;
+    private static QualitativePerformance Tier(int wasted, double rate) =>
+        wasted == 0 ? QualitativePerformance.Perfect
+            : rate < 0.10 ? QualitativePerformance.Good
+            : rate < 0.20 ? QualitativePerformance.Ok
+            : QualitativePerformance.Fail;
 }

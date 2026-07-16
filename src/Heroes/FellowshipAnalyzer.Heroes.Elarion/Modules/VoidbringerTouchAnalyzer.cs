@@ -20,7 +20,7 @@ public sealed partial class VoidbringerTouchAnalyzer : Analyzer
 
     public IReadOnlyList<VoidbringerCast> Casts => _casts;
     public int TotalCasts => _casts.Count;
-    public int DoubleMarks { get; private set; }
+    public int DoubleMarks => _casts.Count(c => c.IsDoubleMark);
 
     [On<CastEvent>(By = Actor.Player, Spell = nameof(Items.VoidbringerTouch))]
     private void OnCast(CastEvent e)
@@ -30,11 +30,6 @@ public sealed partial class VoidbringerTouchAnalyzer : Analyzer
             e.Timestamp - prior.Timestamp < DoubleMarkWindowMs);
 
         _casts.Add(new VoidbringerCast(e.Timestamp, e.TargetId, doubleMark));
-    }
-
-    public override void OnPullEnd()
-    {
-        DoubleMarks = _casts.Count(c => c.IsDoubleMark);
     }
 
     public readonly record struct VoidbringerCast(int Timestamp, int TargetId, bool IsDoubleMark);

@@ -1,4 +1,4 @@
-@* PerformanceTipBox — TipBox whose variant is derived from a PerformanceTier. *@
+@* PerformanceTipBox — TipBox whose variant is derived from a QualitativePerformance. *@
 
 <TipBox Variant="@_variant" Title="@Title" HideIcon="@HideIcon">
     <Icon>
@@ -17,7 +17,7 @@
 </TipBox>
 
 @code {
-    [Parameter, EditorRequired] public PerformanceTier Performance { get; set; }
+    [Parameter, EditorRequired] public QualitativePerformance Performance { get; set; }
     [Parameter] public string? Title { get; set; }
     [Parameter] public RenderFragment? Icon { get; set; }
     [Parameter] public bool HideIcon { get; set; }
@@ -25,10 +25,10 @@
 
     private TipBoxVariant _variant => Performance switch
     {
-        PerformanceTier.Perfect => TipBoxVariant.Info,
-        PerformanceTier.Good => TipBoxVariant.Success,
-        PerformanceTier.Ok => TipBoxVariant.Warning,
-        PerformanceTier.Fail => TipBoxVariant.Error,
+        QualitativePerformance.Perfect => TipBoxVariant.Info,
+        QualitativePerformance.Good => TipBoxVariant.Success,
+        QualitativePerformance.Ok => TipBoxVariant.Warning,
+        QualitativePerformance.Fail => TipBoxVariant.Error,
         _ => TipBoxVariant.Note,
     };
 }
