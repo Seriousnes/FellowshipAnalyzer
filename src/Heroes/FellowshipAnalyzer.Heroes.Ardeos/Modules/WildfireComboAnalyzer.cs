@@ -11,7 +11,7 @@ namespace FellowshipAnalyzer.Heroes.Ardeos.Modules;
 /// </summary>
 /// <remarks>
 /// Detection is cast-based, never DoT-state based. A flat list of the relevant player casts is
-/// accumulated during dispatch and sliced around each Wildfire anchor in <see cref="OnPullEnd"/>;
+/// accumulated during dispatch and sliced around each Wildfire anchor on first read of the windows;
 /// no per-target debuff tracking is reconstructed, because targets that die carrying a DoT never
 /// log a remove and drift that state. Pyromania and Incinerate are cooldown-limited relative to
 /// Wildfire and cannot always be aligned, so they are surfaced as bonus signals and never gate a
@@ -34,17 +34,19 @@ public sealed partial class WildfireComboAnalyzer : Analyzer
     private const int PostWindowMs = 6000;
 
     private readonly List<CastEvent> _casts = [];
-    private readonly List<WildfireWindowEvaluation> _windows = [];
+
+    private List<WildfireWindowEvaluation>? _evaluated;
+    private List<WildfireWindowEvaluation> Evaluated => _evaluated ??= BuildWindows();
 
     /// <summary>Per-window evaluations, one per Wildfire cast in the pull.</summary>
-    public IReadOnlyList<WildfireWindowEvaluation> Windows => _windows;
+    public IReadOnlyList<WildfireWindowEvaluation> Windows => Evaluated;
 
-    public int EvaluatedWindows => _windows.Count;
-    public int SuccessfulWindows { get; private set; }
-    public int PartialWindows { get; private set; }
-    public int WindowsWithPyromania { get; private set; }
-    public int WindowsWithIncinerate { get; private set; }
-    public double AverageDetonateCasts { get; private set; }
+    public int EvaluatedWindows => Evaluated.Count;
+    public int SuccessfulWindows => Evaluated.Count(w => w.Successful);
+    public int PartialWindows => Evaluated.Count(w => w.Partial);
+    public int WindowsWithPyromania => Evaluated.Count(w => w.HasPyromania);
+    public int WindowsWithIncinerate => Evaluated.Count(w => w.HasIncinerate);
+    public double AverageDetonateCasts => Evaluated.Count == 0 ? 0d : Evaluated.Average(w => w.DetonateCasts);
 
     [On<CastEvent>(By = Actor.Player)]
     private void OnCast(CastEvent castEvent)
@@ -56,17 +58,13 @@ public sealed partial class WildfireComboAnalyzer : Analyzer
             _casts.Add(castEvent);
     }
 
-    /// <summary>Slices the accumulated casts around each Wildfire anchor and finalizes the aggregates.</summary>
-    public override void OnPullEnd()
+    /// <summary>Slices the accumulated casts around each Wildfire anchor, once on first read.</summary>
+    private List<WildfireWindowEvaluation> BuildWindows()
     {
-        foreach (var anchor in _casts.Where(c => c.Ability.Id == Spells.Wildfire.FSLID).ToList())
-            _windows.Add(EvaluateWindow(anchor.Timestamp));
-
-        SuccessfulWindows = _windows.Count(w => w.Successful);
-        PartialWindows = _windows.Count(w => w.Partial);
-        WindowsWithPyromania = _windows.Count(w => w.HasPyromania);
-        WindowsWithIncinerate = _windows.Count(w => w.HasIncinerate);
-        AverageDetonateCasts = _windows.Count == 0 ? 0d : _windows.Average(w => w.DetonateCasts);
+        var windows = new List<WildfireWindowEvaluation>();
+        foreach (var anchor in _casts.Where(c => c.Ability.Id == Spells.Wildfire.FSLID))
+            windows.Add(EvaluateWindow(anchor.Timestamp));
+        return windows;
     }
 
     private WildfireWindowEvaluation EvaluateWindow(int anchor)

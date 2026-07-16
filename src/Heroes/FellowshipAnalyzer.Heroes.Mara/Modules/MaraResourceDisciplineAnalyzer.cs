@@ -51,6 +51,9 @@ public abstract partial class MaraResourceDisciplineAnalyzer : Analyzer
 
     private readonly List<MaraFinisherCast> _finishers = [];
 
+    private List<MaraFinisherCast>? _scored;
+    private List<MaraFinisherCast> Scored => _scored ??= StampThresholds();
+
     /// <summary>The combo-point count at or above which a spending finisher is well-timed for this pull shape.</summary>
     public abstract int FinisherCpThreshold { get; }
 
@@ -58,10 +61,10 @@ public abstract partial class MaraResourceDisciplineAnalyzer : Analyzer
     public abstract MaraPullShape Shape { get; }
 
     /// <summary>Queen's Fang and Arachnid Assault casts that carried a combo-point snapshot, in encounter order.</summary>
-    public IReadOnlyList<MaraFinisherCast> Finishers => _finishers;
+    public IReadOnlyList<MaraFinisherCast> Finishers => Scored;
 
     /// <summary>Spending finishers cast at or above <see cref="FinisherCpThreshold"/> combo points.</summary>
-    public int FinishersAtThreshold { get; private set; }
+    public int FinishersAtThreshold => Scored.Count(f => f.MeetsThreshold);
 
     /// <summary>Hemorrhaging Strike casts, pressed for bleed and Hemotoxin upkeep rather than to dump combo points.</summary>
     public int MaintenanceFinisherCasts { get; private set; }
@@ -120,13 +123,10 @@ public abstract partial class MaraResourceDisciplineAnalyzer : Analyzer
                 castEvent.Timestamp, abilityId, comboPoints.Amount, MeetsThreshold: false));
     }
 
-    public override void OnPullEnd()
+    private List<MaraFinisherCast> StampThresholds()
     {
         var threshold = FinisherCpThreshold;
-        for (var i = 0; i < _finishers.Count; i++)
-            _finishers[i] = _finishers[i] with { MeetsThreshold = _finishers[i].ComboPoints >= threshold };
-
-        FinishersAtThreshold = _finishers.Count(f => f.MeetsThreshold);
+        return [.. _finishers.Select(f => f with { MeetsThreshold = f.ComboPoints >= threshold })];
     }
 
     private static ClassResource? FindResource(List<ClassResource> resources, ResourceTypes type)

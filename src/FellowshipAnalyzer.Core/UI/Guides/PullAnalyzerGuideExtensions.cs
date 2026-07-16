@@ -53,7 +53,7 @@ public static class PullAnalyzerGuideExtensions
     private static RenderFragment PullBannerFragment(Pull pull) => builder =>
     {
         builder.OpenComponent<PullBanner>(0);
-        builder.AddComponentParameter(1, nameof(PullBanner.Pull), pull);
+        builder.AddAttribute(1, nameof(PullBanner.Pull), pull);
         builder.CloseComponent();
     };
 }

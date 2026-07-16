@@ -23,13 +23,20 @@ public sealed partial class SearingBlazeSpreadAnalyzer : Analyzer, ISearingBlaze
     public int DistinctTargets => _debuffedTargets.Count;
 
     /// <summary>The pull's reported enemy roster size; zero when the roster was not reported.</summary>
-    public int TargetCount { get; private set; }
+    public int TargetCount => Pull.TargetCount;
 
     /// <summary>
     /// Share of the roster covered (0-1). When the roster is unknown, coverage is estimated against
     /// a reference pack size, so it stays comparable across pulls.
     /// </summary>
-    public double Coverage { get; private set; }
+    public double Coverage
+    {
+        get
+        {
+            var denominator = TargetCount > 0 ? TargetCount : Math.Max(DistinctTargets, UnknownRosterReference);
+            return denominator == 0 ? 0d : Math.Min(1d, DistinctTargets / (double)denominator);
+        }
+    }
 
     /// <summary>Fresh Searing Blaze applications during the pull (refreshes excluded).</summary>
     public int TotalApplications { get; private set; }
@@ -44,13 +51,4 @@ public sealed partial class SearingBlazeSpreadAnalyzer : Analyzer, ISearingBlaze
     [On<RefreshDebuffEvent>(By = Actor.Player, Spell = nameof(Spells.SearingBlazeDot))]
     private void OnRefreshed(RefreshDebuffEvent e)
         => _debuffedTargets.Add((e.TargetId, e.TargetInstance ?? 0));
-
-    /// <summary>Finalizes the distinct-target coverage accumulated across the closing pull.</summary>
-    public override void OnPullEnd()
-    {
-        var distinct = _debuffedTargets.Count;
-        TargetCount = Owner.CurrentPull?.TargetCount ?? 0;
-        var denominator = TargetCount > 0 ? TargetCount : Math.Max(distinct, UnknownRosterReference);
-        Coverage = denominator == 0 ? 0d : Math.Min(1d, distinct / (double)denominator);
-    }
 }

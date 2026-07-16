@@ -35,8 +35,8 @@ public sealed partial class {Name}Analyzer : Analyzer
     private readonly List<SomeWindow> _windows = [];
 
     public IReadOnlyList<SomeWindow> Windows => _windows;
-    public int GoodCount { get; private set; }
-    public double GoodShare => Windows.Count == 0 ? 0 : (double)GoodCount / Windows.Count;
+    public int GoodCount => _windows.Count(window => window.IsGood);
+    public double GoodShare => _windows.Count == 0 ? 0 : (double)GoodCount / _windows.Count;
 
     [On<ApplyBuffEvent>(By = Actor.Player, Spell = nameof(Spells.SomeBuff))]
     private void OnBuffApply(ApplyBuffEvent applyBuffEvent)
@@ -49,17 +49,12 @@ public sealed partial class {Name}Analyzer : Analyzer
     {
         _windows.LastOrDefault(window => window.EndTimestamp is null)?.Casts.Add(castEvent);
     }
-
-    public override void OnPullEnd()
-    {
-        GoodCount = _windows.Count(window => window.IsGood);
-    }
 }
 ```
 
 Mark the class `partial` so the `ModuleGenerator` can emit its event-subscription override and any lazy-module accessors. Use simple helper records/classes in the same file unless they are large or shared.
 
-`OnPullEnd()` runs once when the analyzer's pull closes, before the instance is exposed on the read surfaces. Use it to close still-open windows and compute derived aggregates; everything public must be readable after it returns.
+An analyzer finalizes nothing at pull end - it exposes its metrics as **get-style** properties (or methods) evaluated when a guide reads them. An analyzer's own state is frozen once its pull ends (its listeners are cleared), so a getter always sees the final state. Aggregates over completed data are plain get-style properties. When a metric depends on an interval still open at pull end (a buff still up, a resource still capped, a DoT with no logged remove), read the boundary from the analyzer's `Pull` property inside the getter - `Pull.EndTime` is the close time. For a heavy multi-output computation, run it once behind a private nullable field (`_result ??= Compute()`) so repeated reads do not recompute. Subscribe to `[On<PullEndEvent>]` only to react to the pull ending as an event: the one thing get-style cannot do is snapshot another (fight-lifetime) module's live state at the instant this pull closes.
 
 ### 2. Register On The CombatLogParser
 
@@ -120,7 +115,7 @@ Supported attribute arguments:
 | `Spells = new[] { … }` | any of several abilities |
 | `ExtraSpell = …` / `ExtraSpells = new[] { … }` | filter `IExtraAbilityEvent.ExtraAbility.Id` |
 
-Use `[On<Event>]` for an unfiltered "any event" subscription. Use `[On<FightStartEvent>]` / `[On<FightEndEvent>]` to hook the fabricated fight-boundary events for fight-lifetime setup/finalization - the `FightBookendNormalizer` prepends/appends those events to every analysis run. Pull boundaries need no handler: pull analyzers finalize in `OnPullEnd()`.
+Use `[On<Event>]` for an unfiltered "any event" subscription. Use `[On<FightStartEvent>]` / `[On<FightEndEvent>]` to hook the fabricated fight-boundary events for fight-lifetime setup/finalization - the `FightBookendNormalizer` prepends/appends those events to every analysis run. `[On<PullStartEvent>]` anchors a pull-scoped starting timestamp when you need one; pull metrics are otherwise get-style (see step 1), not computed in a handler. The `PullBookendNormalizer` fabricates a start/end pair around each pull, and the parser re-emits `PullEndEvent` to the pull's own analyzers as it closes (once per pull, even a force-close) - subscribe to it only to react to the pull ending as an event, e.g. to snapshot a fight-lifetime module's live value at that instant.
 
 ## Dependencies
 
@@ -149,8 +144,8 @@ A pull-lifetime analyzer may depend on `[AddState]` fight-lifetime modules for p
 - Mark the class `partial`.
 - Declare event subscriptions with `[On<TEvent>]` attributes, never in the constructor.
 - Use `Lazy<TOther>` ctor injection to break dependency cycles. Do not take `CombatLogParser` in the constructor.
-- Finalize per-pull aggregates in `OnPullEnd()`; expose everything as public read-only properties and typed entry records.
-- Typed data only: no prose sentences, severity strings, score cards, or `PerformanceTier` decisions inside the module - those live in the consuming Razor component.
+- Expose per-pull metrics as get-style properties (or methods) over the accumulated state; do not finalize at pull end. For an interval still open at pull end, read `Pull.EndTime` inside the getter; memoize heavy multi-output computations once behind a private field.
+- Typed data only: no prose sentences, severity strings, score cards, or `QualitativePerformance` decisions inside the module - those live in the consuming Razor component.
 - Keep the module pure C#: no Razor, `RenderFragment`, or Blazor component dependencies.
 - Place the file in `Modules/`.
 
@@ -160,7 +155,7 @@ A pull-lifetime analyzer may depend on `[AddState]` fight-lifetime modules for p
 - [ ] Class is `partial`, extends `Analyzer`, and declares `[ForPull]` (or is a fight-lifetime `EventSubscriber` registered with `[AddModule]`).
 - [ ] Event handlers are decorated with `[On<TEvent>]` attributes.
 - [ ] Cross-module reads use `Lazy<TOther>` ctor injection (or `Owner.GetModule<T>()`), never another analyzer.
-- [ ] Per-pull finalization lives in `OnPullEnd()`; state is exposed as typed public properties.
+- [ ] Per-pull metrics are get-style properties over accumulated state (reading `Pull.EndTime` for still-open intervals), not finalized at pull end.
 - [ ] No prose or severity strings in the module.
 - [ ] `[AddAnalyzer<T>]` / `[AddModule<T>]` is added to the hero parser.
 - [ ] `StatisticsComponentType` is set if a statistics component exists.

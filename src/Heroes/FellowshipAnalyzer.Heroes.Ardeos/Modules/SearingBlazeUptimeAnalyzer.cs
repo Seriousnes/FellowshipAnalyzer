@@ -18,19 +18,20 @@ public sealed partial class SearingBlazeUptimeAnalyzer : Analyzer, ISearingBlaze
     private readonly Dictionary<(int TargetId, int TargetInstance), List<DotWindow>> _windowsByTarget = [];
     private readonly Dictionary<(int TargetId, int TargetInstance), int> _openWindowStarts = [];
 
-    private IReadOnlyList<DotWindow> _windows = [];
+    private Computed? _computed;
+    private Computed Result => _computed ??= Compute();
 
     /// <summary>Share of the pull (0-1) the primary target spent carrying the DoT.</summary>
-    public double Uptime { get; private set; }
+    public double Uptime => Result.Uptime;
 
     /// <summary>Uncovered stretches between the primary target's windows.</summary>
-    public int GapCount { get; private set; }
+    public int GapCount => Result.GapCount;
 
     /// <summary>Total milliseconds the DoT was down between the primary target's windows.</summary>
-    public int TotalGapMs { get; private set; }
+    public int TotalGapMs => Result.TotalGapMs;
 
     /// <summary>The primary target's DoT windows, in encounter order.</summary>
-    public IReadOnlyList<DotWindow> Windows => _windows;
+    public IReadOnlyList<DotWindow> Windows => Result.Windows;
 
     [On<ApplyDebuffEvent>(By = Actor.Player, Spell = nameof(Spells.SearingBlazeDot))]
     private void OnApplied(ApplyDebuffEvent e) => OpenWindow(e);
@@ -64,19 +65,26 @@ public sealed partial class SearingBlazeUptimeAnalyzer : Analyzer, ISearingBlaze
         return windows;
     }
 
-    /// <summary>Closes still-open windows at pull end and finalizes the primary target's uptime and gaps.</summary>
-    public override void OnPullEnd()
+    /// <summary>
+    /// Closes still-open windows at the pull boundary and picks the primary target's uptime and gaps.
+    /// A window still open at pull end is a target that died without a logged Remove; the boss (the
+    /// max-coverage target) dies at the pull's end time. Computed once, on first read.
+    /// </summary>
+    private Computed Compute()
     {
-        var pull = Owner.CurrentPull;
-        if (pull is null) return;
-
+        var windowsByTarget = new Dictionary<(int TargetId, int TargetInstance), List<DotWindow>>();
+        foreach (var (key, windows) in _windowsByTarget)
+            windowsByTarget[key] = [.. windows];
         foreach (var (key, start) in _openWindowStarts)
-            GetTargetWindows(key).Add(new DotWindow(start, pull.EndTime));
-        _openWindowStarts.Clear();
+        {
+            if (!windowsByTarget.TryGetValue(key, out var list))
+                windowsByTarget[key] = list = [];
+            list.Add(new DotWindow(start, Pull.EndTime));
+        }
 
         List<DotWindow>? primary = null;
         var primaryCovered = 0;
-        foreach (var windows in _windowsByTarget.Values)
+        foreach (var windows in windowsByTarget.Values)
         {
             var covered = windows.Sum(w => w.End - w.Start);
             if (covered <= primaryCovered) continue;
@@ -85,21 +93,25 @@ public sealed partial class SearingBlazeUptimeAnalyzer : Analyzer, ISearingBlaze
             primaryCovered = covered;
         }
 
-        if (primary is null) return;
+        if (primary is null) return new Computed(0d, 0, 0, []);
 
-        _windows = primary;
+        var gapCount = 0;
+        var totalGapMs = 0;
         for (var i = 1; i < primary.Count; i++)
         {
             var gap = primary[i].Start - primary[i - 1].End;
             if (gap <= 0) continue;
 
-            GapCount++;
-            TotalGapMs += gap;
+            gapCount++;
+            totalGapMs += gap;
         }
 
-        var duration = pull.EndTime - pull.StartTime;
-        Uptime = duration > 0 ? Math.Min(1d, primaryCovered / (double)duration) : 0d;
+        var duration = Pull.EndTime - Pull.StartTime;
+        var uptime = duration > 0 ? Math.Min(1d, primaryCovered / (double)duration) : 0d;
+        return new Computed(uptime, gapCount, totalGapMs, primary);
     }
+
+    private readonly record struct Computed(double Uptime, int GapCount, int TotalGapMs, IReadOnlyList<DotWindow> Windows);
 
     /// <summary>One continuous stretch of the DoT on a target, in absolute timestamps.</summary>
     public sealed record DotWindow(int Start, int End);

@@ -22,7 +22,7 @@ public sealed partial class EmpoweredMultishotWasteAnalyzer : Analyzer
 
     /// <summary>True when the player runs the Focused Expanse (Empowered Multishot) build; guides
     /// use it to hide the section for other builds.</summary>
-    public bool BuildActive { get; private set; }
+    public bool BuildActive => Owner.SelectedCombatant.HasTalent(Talents.FocusedExpanse.Id);
 
     [On<ApplyBuffEvent>(To = Actor.Player, Spell = nameof(Spells.EmpoweredMultishotBuff))]
     private void OnApplyBuff(ApplyBuffEvent e)
@@ -53,10 +53,5 @@ public sealed partial class EmpoweredMultishotWasteAnalyzer : Analyzer
         {
             RegularCasts++;
         }
-    }
-
-    public override void OnPullEnd()
-    {
-        BuildActive = Owner.SelectedCombatant.HasTalent(Talents.FocusedExpanse.Id);
     }
 }

@@ -18,15 +18,10 @@ public sealed partial class CooldownEfficiencyAnalyzer : Analyzer
 {
     private readonly CooldownTracking _grace = new(Spells.SkystridersGrace.FSLID, Spells.SkystridersGraceBuff.FSLID);
     private readonly CooldownTracking _eventHorizon = new(Spells.EventHorizon.FSLID, Spells.EventHorizonBuff.FSLID);
-    private int _pullStart;
-    private int _pullEnd;
 
-    public CooldownSnapshot Grace { get; private set; }
-    public CooldownSnapshot EventHorizon { get; private set; }
-    public int PullDurationMs { get; private set; }
-
-    [On<PullStartEvent>]
-    private void OnPullStart(PullStartEvent e) => _pullStart = e.Timestamp;
+    public CooldownSnapshot Grace => Snapshot(_grace);
+    public CooldownSnapshot EventHorizon => Snapshot(_eventHorizon);
+    public int PullDurationMs => Math.Max(0, Pull.EndTime - Pull.StartTime);
 
     [On<UpdateSpellUsableEvent>(By = Actor.Player, Spells = [nameof(Spells.SkystridersGrace), nameof(Spells.EventHorizon)])]
     private void OnUpdate(UpdateSpellUsableEvent e)
@@ -73,19 +68,15 @@ public sealed partial class CooldownEfficiencyAnalyzer : Analyzer
         tracking.BuffStartTimestamp = null;
     }
 
-    [On<PullEndEvent>]
-    private void OnPullEndEvent(PullEndEvent e)
+    /// <summary>
+    /// Snapshots a tracking, adding any window still open at the pull boundary: a cooldown held
+    /// off-CD or a buff still up when the pull ends runs to <see cref="Pull.EndTime"/>.
+    /// </summary>
+    private CooldownSnapshot Snapshot(CooldownTracking t)
     {
-        _pullEnd = e.Timestamp;
-        CloseOpenWindows(_grace, e.Timestamp);
-        CloseOpenWindows(_eventHorizon, e.Timestamp);
-    }
-
-    public override void OnPullEnd()
-    {
-        Grace = new CooldownSnapshot(_grace.Casts, _grace.TotalHeldMs, _grace.TotalBuffUptimeMs);
-        EventHorizon = new CooldownSnapshot(_eventHorizon.Casts, _eventHorizon.TotalHeldMs, _eventHorizon.TotalBuffUptimeMs);
-        PullDurationMs = Math.Max(0, _pullEnd - _pullStart);
+        var heldMs = t.TotalHeldMs + (t.OffCooldownTimestamp is int offCd ? Math.Max(0, Pull.EndTime - offCd) : 0);
+        var buffUptimeMs = t.TotalBuffUptimeMs + (t.BuffStartTimestamp is int buffStart ? Math.Max(0, Pull.EndTime - buffStart) : 0);
+        return new CooldownSnapshot(t.Casts, heldMs, buffUptimeMs);
     }
 
     private CooldownTracking? SelectTracking(int spellId)
@@ -100,20 +91,6 @@ public sealed partial class CooldownEfficiencyAnalyzer : Analyzer
         if (buffId == Spells.SkystridersGraceBuff.FSLID) return _grace;
         if (buffId == Spells.EventHorizonBuff.FSLID) return _eventHorizon;
         return null;
-    }
-
-    private static void CloseOpenWindows(CooldownTracking tracking, int pullEnd)
-    {
-        if (tracking.OffCooldownTimestamp is int offCd)
-        {
-            tracking.TotalHeldMs += Math.Max(0, pullEnd - offCd);
-            tracking.OffCooldownTimestamp = null;
-        }
-        if (tracking.BuffStartTimestamp is int buffStart)
-        {
-            tracking.TotalBuffUptimeMs += Math.Max(0, pullEnd - buffStart);
-            tracking.BuffStartTimestamp = null;
-        }
     }
 
     private sealed class CooldownTracking(int spellId, int buffId)

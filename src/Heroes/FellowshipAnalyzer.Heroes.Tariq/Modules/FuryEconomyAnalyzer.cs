@@ -31,8 +31,9 @@ public sealed partial class FuryEconomyAnalyzer : Analyzer
     public int ThunderCallWindows { get; private set; }
 
     /// <summary>Total milliseconds a Thunder Call window was open during the pull.</summary>
-    public int WindowTimeMs { get; private set; }
+    public int WindowTimeMs => _closedWindowMs + (_windowOpen && _activeEnd > _windowOpenedAt ? _activeEnd - _windowOpenedAt : 0);
 
+    private int _closedWindowMs;
     private bool _windowOpen;
     private int _windowOpenedAt;
 
@@ -75,7 +76,7 @@ public sealed partial class FuryEconomyAnalyzer : Analyzer
         if (!_windowOpen)
             return;
 
-        WindowTimeMs += Math.Max(0, @event.Timestamp - _windowOpenedAt);
+        _closedWindowMs += Math.Max(0, @event.Timestamp - _windowOpenedAt);
         _windowOpen = false;
     }
 
@@ -113,13 +114,6 @@ public sealed partial class FuryEconomyAnalyzer : Analyzer
 
         if (_windowOpen)
             EmpoweredSpenderCasts++;
-    }
-
-    public override void OnPullEnd()
-    {
-        if (_windowOpen && _activeEnd > _windowOpenedAt)
-            WindowTimeMs += _activeEnd - _windowOpenedAt;
-        _windowOpen = false;
     }
 
     private void Track(int timestamp)

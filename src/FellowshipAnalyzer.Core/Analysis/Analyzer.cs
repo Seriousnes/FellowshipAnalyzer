@@ -12,11 +12,12 @@ public class Analyzer : EventSubscriber, IAnalyzerSurface
     public const int SELECTED_PLAYER_PET = 2;
 
     /// <summary>
-    /// Called once when this analyzer's pull ends, before the instance is exposed on the pull
-    /// read surfaces. Override to finalize accumulated state (close still-open windows, compute
-    /// derived aggregates); everything public must be readable after this returns.
+    /// The pull this analyzer instance was constructed for. Assigned by the parser in
+    /// <see cref="CombatLogParser.BeginPull"/>, so get-style accessors can reference pull-boundary
+    /// values (e.g. <see cref="Pull.EndTime"/>) to close an interval still open when the pull ends,
+    /// without a pull-end finalization pass.
     /// </summary>
-    public virtual void OnPullEnd() { }
+    public Pull Pull { get; internal set; } = null!;
 
     /// <summary>
     /// The type under which <paramref name="analyzerType"/> is exposed on pull read surfaces: its
@@ -36,9 +37,15 @@ public class Analyzer : EventSubscriber, IAnalyzerSurface
 
     private static Type? FindSurfaceInterface(Type analyzerType)
     {
+        Type? found = null;
         foreach (var i in analyzerType.GetInterfaces())
-            if (i != typeof(IAnalyzerSurface) && typeof(IAnalyzerSurface).IsAssignableFrom(i))
-                return i;
-        return null;
+        {
+            if (i == typeof(IAnalyzerSurface) || !typeof(IAnalyzerSurface).IsAssignableFrom(i)) continue;
+            if (found is not null)
+                throw new InvalidOperationException(
+                    $"Analyzer '{analyzerType.Name}' implements multiple surface interfaces ('{found.Name}' and '{i.Name}'); an analyzer's surface must be unambiguous (see diagnostic FA0017).");
+            found = i;
+        }
+        return found;
     }
 }

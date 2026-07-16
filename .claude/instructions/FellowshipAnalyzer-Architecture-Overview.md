@@ -120,7 +120,7 @@ Use this lifecycle:
 
 Activation is two-tiered. Use the mutable `Active` flag for dynamic deactivation that must respect mid-fight state. Use `[ActiveWhen<TPredicate>]` (where `TPredicate : IModuleActivePredicate`) for compile-time gating evaluated at parser construction — predicates read `ParseContext`, including `SelectedCombatant`, which the parser builds from the player's `CombatantInfoEvent` before any module is constructed.
 
-`Analyzer` is the pull-lifetime specialization of `EventSubscriber`. Declare analyzers with `[AddAnalyzer<T>]` on the parser and `[ForPull(PullKind…, Boss = …)]` on the analyzer. A fresh instance is constructed for every matching pull, accumulates that pull's events into public properties, finalizes in `public override void OnPullEnd()`, and the instance is retained on the pull read surfaces:
+`Analyzer` is the pull-lifetime specialization of `EventSubscriber`. Declare analyzers with `[AddAnalyzer<T>]` on the parser and `[ForPull(PullKind…, Boss = …)]` on the analyzer. A fresh instance is constructed for every matching pull, accumulates that pull's events into private state, and is retained on the pull read surfaces; it exposes its metrics as get-style properties (reading its assigned `Pull` for boundary values such as `Pull.EndTime`) rather than finalizing at pull end. The parser still emits a `PullEndEvent` to the pull's own analyzers as it closes (once per pull, even a force-close) for anything that must react to the pull ending as an event, such as snapshotting a fight-lifetime module's live state:
 
 - `parser.{Surface}s` - the cross-pull stream, an `IReadOnlyList<PullAnalyzer<T>>` of `(Pull, Analyzer)` pairs.
 - `parser.For(pull).{Surface}` and the `pull.{Surface}` extension - the retained instance for one pull.

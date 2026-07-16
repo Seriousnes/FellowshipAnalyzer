@@ -78,8 +78,29 @@ public sealed partial class PullLifecycleTests
         Assert.Equal(2, ((PullProbeAnalyzer)analyzerA).Count);
         Assert.Equal(2, ((PullProbeAnalyzer)analyzerB).Count);
 
+        Assert.Equal(2, ((PullProbeAnalyzer)analyzerA).StateCountAtEnd);
+        Assert.Equal(4, ((PullProbeAnalyzer)analyzerB).StateCountAtEnd);
+
         var state = parser.GetModule<WholeFightCounter>()!;
         Assert.Equal(4, state.Count);
+    }
+
+    [Fact]
+    public async Task Analyze_AnalyzerImplementingTwoSurfaceInterfaces_Throws()
+    {
+        var emitter = new EventEmitter(NullLogger<EventEmitter>.Instance);
+        var provider = Substitute.For<IServiceProvider>();
+        provider.GetService(typeof(ILogger<EventEmitter>)).Returns(NullLogger<EventEmitter>.Instance);
+        var parser = new TwoSurfaceParser(emitter, provider);
+
+        var pulls = new List<DungeonPull>
+        {
+            new(Id: 1, EncounterId: 0, Kill: null, StartTime: 100, EndTime: 300, Name: "P0", EnemyNpcs: null),
+        };
+
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => parser.Analyze([Buff(150)], playerId: 7, fight: Fight(pulls)));
+        Assert.Contains("multiple surface interfaces", ex.Message);
     }
 
     [Fact]
@@ -185,6 +206,34 @@ public sealed partial class PullLifecycleTests
         [On<ApplyBuffEvent>(By = Actor.Player)]
         private void OnBuff(ApplyBuffEvent e) => Count++;
 
-        public override void OnPullEnd() => StateCountAtEnd = state.Value.Count;
+        [On<PullEndEvent>]
+        private void OnPullEnd(PullEndEvent _) => StateCountAtEnd = state.Value.Count;
+    }
+
+    private interface ISurfaceMarkerA : IAnalyzerSurface;
+
+    private interface ISurfaceMarkerB : IAnalyzerSurface;
+
+    private sealed partial class TwoSurfaceProbe : Analyzer, ISurfaceMarkerA, ISurfaceMarkerB
+    {
+        [On<ApplyBuffEvent>(By = Actor.Player)]
+        private void OnBuff(ApplyBuffEvent e) { }
+    }
+
+    private sealed class TwoSurfaceParser(EventEmitter emitter, IServiceProvider provider)
+        : CombatLogParser(emitter, provider)
+    {
+        protected override Type[] GetModuleTypes() => [];
+
+        protected override Type[] GetNormalizerTypes() =>
+            [typeof(FightBookendNormalizer), typeof(PullBookendNormalizer)];
+
+        protected override Type[] GetAnalyzerTypes() => [typeof(TwoSurfaceProbe)];
+
+        protected override object? CreateInstance(Type type)
+        {
+            if (type == typeof(TwoSurfaceProbe)) return new TwoSurfaceProbe();
+            return base.CreateInstance(type);
+        }
     }
 }

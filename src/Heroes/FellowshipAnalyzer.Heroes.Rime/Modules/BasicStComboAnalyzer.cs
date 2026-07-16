@@ -33,20 +33,23 @@ public abstract partial class BasicStComboAnalyzer : Analyzer
     private int _stSpenderId;
     private int _aoeSpenderId;
 
+    private bool _materialized;
+    private RimeBuild _build;
+
     /// <summary>The Winter Orb spender loadout detected for this pull.</summary>
-    public RimeBuild Build { get; private set; }
+    public RimeBuild Build { get { EnsureMaterialized(); return _build; } }
 
     /// <summary>Every Winter's Embrace window evaluated for this pull, in encounter order.</summary>
-    public IReadOnlyList<StComboWindowEvaluation> Windows => _evaluations;
+    public IReadOnlyList<StComboWindowEvaluation> Windows { get { EnsureMaterialized(); return _evaluations; } }
 
     /// <summary>Total Winter's Embrace windows evaluated for this pull.</summary>
-    public int EvaluatedWindows => _evaluations.Count;
+    public int EvaluatedWindows { get { EnsureMaterialized(); return _evaluations.Count; } }
 
     /// <summary>Windows that fully matched the expected follow-up for this pull's shape.</summary>
-    public int SuccessfulWindows { get; private set; }
+    public int SuccessfulWindows { get { EnsureMaterialized(); return _evaluations.Count(w => w.Successful); } }
 
     /// <summary>Windows that only partially matched the expected follow-up.</summary>
-    public int PartialWindows { get; private set; }
+    public int PartialWindows { get { EnsureMaterialized(); return _evaluations.Count(w => w.Partial); } }
 
     /// <summary>Total extra damage attributable to the Winter's Embrace 20% amplifier.</summary>
     public long TotalBonusDamage { get; private set; }
@@ -146,20 +149,20 @@ public abstract partial class BasicStComboAnalyzer : Analyzer
         return talons > frostfire ? RimeBuild.IcyTalons : RimeBuild.Default;
     }
 
-    /// <summary>Detects the build, scores every captured window via <see cref="EvaluateWindow"/>, and finalizes the counters.</summary>
-    public sealed override void OnPullEnd()
+    /// <summary>Detects the build and scores every captured window via <see cref="EvaluateWindow"/>, once on first read.</summary>
+    private void EnsureMaterialized()
     {
-        Build = DetectBuild();
-        _stSpenderId = Build == RimeBuild.IcyTalons ? Spells.TalonStrike.Id : Spells.GlacialBlast.Id;
-        _aoeSpenderId = Build == RimeBuild.IcyTalons ? Spells.RisingTalons.Id : Spells.IceComet.Id;
-        StSpenderName = Build == RimeBuild.IcyTalons ? Spells.TalonStrike.Name : Spells.GlacialBlast.Name;
-        AoeSpenderName = Build == RimeBuild.IcyTalons ? Spells.RisingTalons.Name : Spells.IceComet.Name;
+        if (_materialized) return;
+        _materialized = true;
+
+        _build = DetectBuild();
+        _stSpenderId = _build == RimeBuild.IcyTalons ? Spells.TalonStrike.Id : Spells.GlacialBlast.Id;
+        _aoeSpenderId = _build == RimeBuild.IcyTalons ? Spells.RisingTalons.Id : Spells.IceComet.Id;
+        StSpenderName = _build == RimeBuild.IcyTalons ? Spells.TalonStrike.Name : Spells.GlacialBlast.Name;
+        AoeSpenderName = _build == RimeBuild.IcyTalons ? Spells.RisingTalons.Name : Spells.IceComet.Name;
 
         foreach (var window in _windows)
             _evaluations.Add(EvaluateWindow(window));
-
-        SuccessfulWindows = _evaluations.Count(w => w.Successful);
-        PartialWindows = _evaluations.Count(w => w.Partial);
     }
 
     /// <summary>Scores one captured Winter's Embrace window against the follow-up this analyzer's pull shape expects.</summary>

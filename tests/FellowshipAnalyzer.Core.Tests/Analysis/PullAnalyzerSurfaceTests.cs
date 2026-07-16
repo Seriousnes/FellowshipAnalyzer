@@ -96,5 +96,6 @@ public sealed partial class PullBuffAnalyzer(Lazy<FightBuffCounter> state) : Ana
     [On<ApplyBuffEvent>(By = Actor.Player)]
     private void OnBuff(ApplyBuffEvent e) => PullCount++;
 
-    public override void OnPullEnd() => FightCountAtEnd = state.Value.Count;
+    [On<PullEndEvent>]
+    private void OnPullEnd(PullEndEvent _) => FightCountAtEnd = state.Value.Count;
 }

@@ -218,27 +218,35 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
                 ?? throw new InvalidOperationException($"No generated factory for analyzer {analyzerType.Name}.");
             _pullInstances[analyzerType] = instance;
             if (instance is Module module) module.Owner = this;
+            if (instance is Analyzer analyzer) analyzer.Pull = pull;
             if (instance is EventSubscriber subscriber) subscriber.RegisterSubscriptions();
         }
         EventEmitter.EndPullSubscriptions();
     }
 
     /// <summary>
-    /// Closes a pull: finalizes each analyzer via <see cref="Analyzer.OnPullEnd"/>, retains the
-    /// instance on the pull read surfaces, retires the pull listener tier, and discards the
-    /// per-pull instance cache. Ignores a <paramref name="pull"/> that is not the currently-open
-    /// one (a stale end left over from close-before-open).
+    /// Closes a pull, in order: emits a <see cref="Events.PullEndEvent"/> to the pull's own listeners
+    /// while they are still live (so a subscriber can snapshot fight-lifetime state at the instant the
+    /// pull ends), then retains each analyzer on the pull read surfaces, then retires the pull listener
+    /// tier and discards the per-pull instance cache. Emitting here (rather than relying on the
+    /// fabricated event's dispatch) is what makes the event fire exactly once for every pull, including
+    /// a force-close triggered by <see cref="BeginPull"/>. Analyzers derive their own per-pull metrics
+    /// from retained state via get-style accessors, so this does not run a finalization pass. Ignores a
+    /// <paramref name="pull"/> that is not the currently-open one (a stale end left over from
+    /// close-before-open).
     /// </summary>
     public void EndPull(Pull pull)
     {
         if (!ReferenceEquals(CurrentPull, pull)) return;
 
         _pulls.Add(pull);
+
+        EventEmitter.Emit(new PullEndEvent { Timestamp = CurrentTimestamp, Pull = pull });
+
         foreach (var instance in _pullInstances.Values)
         {
             if (instance is not Analyzer analyzer) continue;
 
-            analyzer.OnPullEnd();
             _pullAnalyzers.Add((pull, analyzer));
             pull.SetAnalyzer(Analyzer.GetSurfaceType(analyzer.GetType()), analyzer);
             IndexPullAnalyzer(pull, analyzer);

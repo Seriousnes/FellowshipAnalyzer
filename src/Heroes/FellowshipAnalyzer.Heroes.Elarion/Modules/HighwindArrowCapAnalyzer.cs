@@ -17,33 +17,20 @@ public sealed partial class HighwindArrowCapAnalyzer : Analyzer
 
     private bool _atCap = true;
     private int _capStartTimestamp;
-    private int _pullStart;
-    private int _pullEnd;
+    private int _closedAtCapMs;
 
-    public int TotalTimeAtCapMs { get; private set; }
+    public int TotalTimeAtCapMs => _closedAtCapMs + (_atCap ? Math.Max(0, Pull.EndTime - _capStartTimestamp) : 0);
     public int CastsWhileCapped { get; private set; }
     public int TotalCasts { get; private set; }
-    public int PullDurationMs { get; private set; }
+    public int PullDurationMs => Math.Max(0, Pull.EndTime - Pull.StartTime);
 
     public double CapPercentage => PullDurationMs > 0 ? (double)TotalTimeAtCapMs / PullDurationMs : 0;
 
     [On<PullStartEvent>]
     private void OnPullStart(PullStartEvent e)
     {
-        _pullStart = e.Timestamp;
         _capStartTimestamp = e.Timestamp;
         _atCap = true;
-    }
-
-    [On<PullEndEvent>]
-    private void OnPullEndEvent(PullEndEvent e)
-    {
-        _pullEnd = e.Timestamp;
-        if (_atCap)
-        {
-            TotalTimeAtCapMs += e.Timestamp - _capStartTimestamp;
-            _atCap = false;
-        }
     }
 
     [On<CastEvent>(By = Actor.Player, Spell = nameof(Spells.HighwindArrow))]
@@ -68,13 +55,8 @@ public sealed partial class HighwindArrowCapAnalyzer : Analyzer
         }
         else if (!nowCapped && _atCap)
         {
-            TotalTimeAtCapMs += e.Timestamp - _capStartTimestamp;
+            _closedAtCapMs += e.Timestamp - _capStartTimestamp;
             _atCap = false;
         }
-    }
-
-    public override void OnPullEnd()
-    {
-        PullDurationMs = Math.Max(0, _pullEnd - _pullStart);
     }
 }
