@@ -124,13 +124,13 @@
                         @if (_context.Analysis.Statistics.Count > 0)
                         {
                             <section class="statistics-tab">
-                                @foreach (var section in _context.Analysis.Statistics
+                                @foreach (var categoryGroup in _context.Analysis.Statistics
                                                             .GroupBy(entry => entry.Category)
                                                             .OrderBy(group => group.Key))
                                 {
-                                    <StatisticsSectionTitle Title="@section.Key.ToString()" />
+                                    <StatisticsSectionTitle Title="@categoryGroup.Key.ToString()" />
                                     <div class="statistics-panel">
-                                        @foreach (var entry in section.OrderBy(item => item.Order))
+                                        @foreach (var entry in categoryGroup.OrderBy(item => item.Order))
                                         {
                                             <CascadingValue Value="@entry.Module">
                                                 <DynamicComponent Type="@entry.ComponentType" />
