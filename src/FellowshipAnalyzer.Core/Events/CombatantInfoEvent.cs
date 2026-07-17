@@ -4,7 +4,6 @@ namespace FellowshipAnalyzer.Core.Events;
 
 public class CombatantInfoEvent : Event
 {
-    public int Fight { get; set; }
     public int SourceId { get; set; }
     public List<Item> Gear { get; set; } = [];
     public List<Aura> Auras { get; set; } = [];

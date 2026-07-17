@@ -10,7 +10,7 @@ public interface IAbilityEvent
 
 public interface IExtraAbilityEvent
 {
-    Ability ExtraAbility { get; set; }
+    Ability? ExtraAbility { get; set; }
     FSLID ExtraAbilityGameId { get; set; }
 }
 
