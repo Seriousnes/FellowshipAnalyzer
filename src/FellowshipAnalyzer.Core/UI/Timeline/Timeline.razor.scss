@@ -2,7 +2,7 @@
 @use 'sass:color';
 
 .timeline {
-    background: rgba(0, 0, 0, 0.15);
+    background: t.$fa-black-a15;
     border-radius: 6px;
     padding: 44px 0 8px;
     position: relative;
@@ -30,9 +30,9 @@
 }
 
 .timeline-settings-button {
-    background: rgba(0, 0, 0, 0.35);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    color: rgba(255, 255, 255, 0.7);
+    background: t.$fa-black-a35;
+    border: 1px solid t.$fa-white-a10;
+    color: t.$fa-white-a70;
     width: 28px;
     height: 28px;
     border-radius: 4px;
@@ -44,9 +44,9 @@
     user-select: none;
 
     &:hover {
-        color: var(--fa-gold, #d4b870);
-        border-color: rgba(255, 255, 255, 0.25);
-        background: rgba(0, 0, 0, 0.55);
+        color: var(--fa-gold, t.$fa-gold-sand);
+        border-color: t.$fa-white-a25;
+        background: t.$fa-black-a55;
     }
 }
 
@@ -59,7 +59,7 @@
 .timeline-row {
     display: block;
     align-items: center;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    border-bottom: 1px solid t.$fa-white-a05;
 
     &:last-child {
         border-bottom: none;
@@ -93,17 +93,17 @@
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    color: rgba(255, 255, 255, 0.45);
+    color: t.$fa-white-a45;
 }
 
 .timeline-section-divider {
     height: 0;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    border-top: 1px solid t.$fa-white-a10;
     margin: 16px 0 0;
 }
 
 .timeline-empty {
-    color: rgba(255, 255, 255, 0.4);
+    color: t.$fa-white-a40;
     padding: 24px;
     text-align: center;
     font-size: 14px;

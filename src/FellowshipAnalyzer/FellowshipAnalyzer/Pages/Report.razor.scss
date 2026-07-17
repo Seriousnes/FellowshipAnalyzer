@@ -12,8 +12,8 @@
     padding: 1.25rem;
 
     &.error {
-        color: #f5b8a8;
-        border-color: rgba(212, 86, 74, 0.35);
+        color: t.$fa-perf-fail-soft;
+        border-color: t.$fa-perf-fail-a35;
     }
 }
 

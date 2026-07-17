@@ -58,7 +58,7 @@ $sources: (
 .studio-mark {
     display: block;
     color: var(--fa-gold);
-    filter: drop-shadow(0 0 6px rgba(t.$fa-gold, 0.4));
+    filter: drop-shadow(0 0 6px t.$fa-gold-a40);
 }
 
 .studio-name {
@@ -454,7 +454,7 @@ $sources: (
     align-items: flex-start;
     justify-content: center;
     padding: 4rem 1rem 2rem;
-    background: rgba(4, 6, 12, 0.66);
+    background: t.$fa-bg-void;
 }
 
 .modal {

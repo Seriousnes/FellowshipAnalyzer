@@ -6,10 +6,10 @@
     gap: 9px;
     margin-bottom: 10px;
     padding: 7px 12px;
-    border: 1px solid var(--fa-border, rgba(212, 167, 68, 0.12));
+    border: 1px solid var(--fa-border, t.$fa-gold-a12);
     border-left-width: 3px;
     border-radius: 6px;
-    background: rgba(t.$fa-text, 0.04);
+    background: t.$fa-text-a04;
     color: var(--fa-text);
     font-size: 1.6rem;
     font-weight: 700;
@@ -36,7 +36,7 @@
 .pull-banner-id {
     padding: 1px 7px;
     border-radius: 4px;
-    background: rgba(t.$fa-text, 0.08);
+    background: t.$fa-text-a08;
     color: var(--fa-text-muted);
     font-size: 1.2rem;
     font-weight: 700;

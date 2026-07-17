@@ -15,7 +15,7 @@
 .cast-bar-time-line-sec {
     display: inline-block;
     height: 100%;
-    border-left: 1px solid rgba(255, 255, 255, 0.3);
+    border-left: 1px solid t.$fa-white-a30;
     padding-left: 3px;
     line-height: 1;
     font-size: 14px;
@@ -29,7 +29,7 @@
         left: 0;
         bottom: -16px;
         transform: translateX(-50%);
-        color: rgba(200, 200, 200, 0.8);
+        color: t.$fa-grey-tick;
         font-size: 13px;
         white-space: nowrap;
     }
@@ -38,7 +38,7 @@
     &::after {
         content: '';
         width: 1px;
-        background: rgba(255, 255, 255, 0.2);
+        background: t.$fa-white-a20;
         position: absolute;
         bottom: 3px;
         height: 7px;
@@ -58,7 +58,7 @@
     position: relative;
     width: 100%;
     height: calc(24px + var(--has-levels, 0) * 34px + var(--levels, 0) * 27px);
-    box-shadow: 0 0 3px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 0 3px t.$fa-black-a30;
     box-sizing: content-box;
 
     /* Subtle background strip behind the 24px main row */
@@ -136,7 +136,7 @@
     transform: translateX(-50%);
     height: calc(15px + var(--level, 0) * 27px);
     width: 1px;
-    background: #ecb000;
+    background: t.$fa-amber-deep;
 
     /* Arrow pointing up from time-indicator */
     &::before {
@@ -145,7 +145,7 @@
         height: 0;
         border-left: 5px solid transparent;
         border-right: 5px solid transparent;
-        border-bottom: 5px solid #ecb000;
+        border-bottom: 5px solid t.$fa-amber-deep;
         position: absolute;
         top: 0;
         left: 50%;
@@ -157,9 +157,9 @@
 .cast-bar-gcd {
     height: 8px;
     top: 8px;
-    background: #f8b700;
+    background: t.$fa-amber-warm;
     border-radius: 2px;
-    border: 1px solid #ffffff;
+    border: 1px solid t.$fa-white;
     z-index: 1;
 }
 
@@ -170,12 +170,12 @@
     top: 7px;
     background: repeating-linear-gradient(
         135deg,
-        #f8b700 0px,
-        #f8b700 5px,
-        #ffffff 5px,
-        #ffffff 10px
+        t.$fa-amber-warm 0px,
+        t.$fa-amber-warm 5px,
+        t.$fa-white 5px,
+        t.$fa-white 10px
     );
     border-radius: 2px;
-    border: 1px solid #ffffff;
+    border: 1px solid t.$fa-white;
     z-index: 2;
 }

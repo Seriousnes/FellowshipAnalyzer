@@ -12,8 +12,8 @@
     border-left: 4px solid var(--tip-color);
     border-radius: 6px;
 
-    &.info    { --tip-color: #4aa3d9; }
-    &.note    { --tip-color: #9a7bff; }
+    &.info    { --tip-color: #{t.$fa-steel-soft}; }
+    &.note    { --tip-color: #{t.$fa-arcane}; }
     &.success { --tip-color: var(--fa-perf-good); }
     &.warning { --tip-color: var(--fa-perf-ok); }
     &.error   { --tip-color: var(--fa-perf-fail); }

@@ -47,15 +47,15 @@ a.badge:hover {
 }
 
 .badge--neutral { --badge-color: var(--fa-text-muted); --badge-border: var(--fa-border); }
-.badge--success { --badge-color: var(--fa-perf-perfect); --badge-border: rgba(86, 214, 123, 0.35); }
-.badge--failure { --badge-color: var(--fa-perf-fail); --badge-border: rgba(212, 86, 74, 0.35); }
+.badge--success { --badge-color: var(--fa-perf-perfect); --badge-border: #{t.$fa-perf-perfect-a35}; }
+.badge--failure { --badge-color: var(--fa-perf-fail); --badge-border: #{t.$fa-perf-fail-a35}; }
 .badge--tank    { --badge-color: var(--fa-role-tank); --badge-border: color-mix(in srgb, var(--fa-role-tank) 35%, transparent); }
 .badge--healer  { --badge-color: var(--fa-role-healer); --badge-border: color-mix(in srgb, var(--fa-role-healer) 35%, transparent); }
 .badge--dps     { --badge-color: var(--fa-role-dps); --badge-border: color-mix(in srgb, var(--fa-role-dps) 35%, transparent); }
 .badge--gold    { --badge-color: var(--fa-gold-light); --badge-border: var(--fa-gold-dim); }
 
 .badge--success.active,
-button.badge--success:hover { background: rgba(86, 214, 123, 0.16); }
+button.badge--success:hover { background: t.$fa-perf-perfect-a16; }
 .badge--failure.active,
-button.badge--failure:hover { background: rgba(212, 86, 74, 0.16); }
+button.badge--failure:hover { background: t.$fa-perf-fail-a16; }
 .badge--gold.active         { background: var(--fa-gold-dim); }

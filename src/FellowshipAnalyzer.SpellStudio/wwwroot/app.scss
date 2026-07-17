@@ -37,17 +37,17 @@
 
     --studio-mono: 'Cascadia Code', 'JetBrains Mono', ui-monospace, 'SFMono-Regular', Consolas, monospace;
 
-    --studio-src-spelldata: #6b7a9a;
-    --studio-src-herodata:  #6ec8e8;
-    --studio-src-geardata:  #b48ef0;
-    --studio-src-icons:     #5fd0b0;
-    --studio-src-override:  #d4a744;
+    --studio-src-spelldata: #{t.$fa-slate};
+    --studio-src-herodata:  #{t.$fa-ice};
+    --studio-src-geardata:  #{t.$fa-arcane-soft};
+    --studio-src-icons:     #{t.$fa-nature};
+    --studio-src-override:  #{t.$fa-gold};
 
-    --studio-warn: #e0b341;
+    --studio-warn: #{t.$fa-gold-deep};
 
-    --studio-gap-name: #e0b341;
-    --studio-gap-icon: #5ec8e0;
-    --studio-gap-id:   #e0856b;
+    --studio-gap-name: #{t.$fa-gold-deep};
+    --studio-gap-icon: #{t.$fa-ice-deep};
+    --studio-gap-id:   #{t.$fa-perf-fail-warm};
 }
 
 *, *::before, *::after { box-sizing: border-box; }

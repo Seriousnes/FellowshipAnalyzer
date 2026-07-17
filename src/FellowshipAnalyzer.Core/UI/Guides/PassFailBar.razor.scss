@@ -5,17 +5,17 @@
     height: 10px;
     border-radius: 5px;
     overflow: hidden;
-    background: var(--fa-bg-inset, rgba(10, 12, 24, 0.6));
+    background: var(--fa-bg-inset, t.$fa-bg-inset);
 }
 
 .pass-segment {
     height: 100%;
-    background: var(--fa-perf-good, #90cc60);
+    background: var(--fa-perf-good, t.$fa-perf-good);
     transition: width 0.3s ease;
 }
 
 .fail-segment {
     height: 100%;
-    background: var(--fa-perf-fail, #d4564a);
+    background: var(--fa-perf-fail, t.$fa-perf-fail);
     transition: width 0.3s ease;
 }

@@ -1,8 +1,8 @@
 @use 'tokens' as t;
 
 .section-container {
-    background: var(--fa-bg-inset, rgba(10, 12, 24, 0.6));
-    border: 1px solid var(--fa-border, rgba(212, 167, 68, 0.12));
+    background: var(--fa-bg-inset, t.$fa-bg-inset);
+    border: 1px solid var(--fa-border, t.$fa-gold-a12);
     border-radius: 8px;
     padding: 10px 12px;
     margin-bottom: 10px;
@@ -18,7 +18,7 @@
     gap: 8px;
     margin-bottom: 10px;
     padding-bottom: 8px;
-    border-bottom: 1px solid var(--fa-border, rgba(212, 167, 68, 0.12));
+    border-bottom: 1px solid var(--fa-border, t.$fa-gold-a12);
 }
 
 .title-column {
@@ -33,14 +33,14 @@
     margin: 0;
     font-size: 1.3rem;
     font-weight: 700;
-    color: var(--fa-gold, #d4a744);
+    color: var(--fa-gold, t.$fa-gold);
     white-space: nowrap;
 }
 
 .section-label {
     font-size: 0.85rem;
     font-weight: 600;
-    color: var(--fa-text-dim, #6b6558);
+    color: var(--fa-text-dim, t.$fa-text-dim);
     text-transform: uppercase;
     letter-spacing: 0.8px;
     white-space: nowrap;
@@ -61,7 +61,7 @@
 
 .helper-text {
     font-size: 1rem;
-    color: rgba(255, 255, 255, 0.4);
+    color: t.$fa-white-a40;
     margin-top: 4px;
     font-style: italic;
 }

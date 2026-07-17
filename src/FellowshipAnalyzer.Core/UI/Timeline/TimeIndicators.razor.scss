@@ -11,13 +11,13 @@
     position: absolute;
     top: 0;
     bottom: 0;
-    border-left: 1px solid rgba(255, 255, 255, 0.2);
+    border-left: 1px solid t.$fa-white-a20;
     box-sizing: border-box;
 }
 
 .time-second-label {
     font-size: 11px;
-    color: rgba(255, 255, 255, 0.5);
+    color: t.$fa-white-a50;
     white-space: nowrap;
     line-height: 1;
     padding-top: 4px;
@@ -31,5 +31,5 @@
     top: 0;
     bottom: 0;
     width: 1px;
-    background: rgba(255, 255, 255, 0.08);
+    background: t.$fa-white-a08;
 }

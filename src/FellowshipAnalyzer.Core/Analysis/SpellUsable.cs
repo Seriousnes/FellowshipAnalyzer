@@ -14,11 +14,7 @@ public sealed partial class SpellUsable(Lazy<Abilities> abilities, Lazy<DebugAnn
     private readonly Dictionary<int, CooldownInfo> _cooldowns = [];
     private readonly List<TrackedAbilityCast> _casts = [];
 
-    private double _globalRateMultiplier = 1.0;
-    private readonly Dictionary<int, double> _spellRateMultipliers = [];
-
-    private int _nextLeaseId = 1;
-    private readonly Dictionary<int, HasteScaledLease> _hasteScaledLeases = [];
+    private double _recoveryRate = 1.0;
 
     public IReadOnlyList<TrackedAbilityCast> Casts => _casts;
 
@@ -31,7 +27,7 @@ public sealed partial class SpellUsable(Lazy<Abilities> abilities, Lazy<DebugAnn
     /// into the next, without requiring a workaround for skipping multiple charges at once.
     /// </summary>
     /// <returns>The actual amount of CDR applied in milliseconds.</returns>
-    public int ReduceCooldown(int spellId, int milliseconds, int? timestamp = 0)
+    public int ReduceCooldown(int spellId, int milliseconds, int? timestamp = null)
     {
         if (!_cooldowns.TryGetValue(spellId, out var cd) || milliseconds <= 0)
             return 0;
@@ -197,58 +193,60 @@ public sealed partial class SpellUsable(Lazy<Abilities> abilities, Lazy<DebugAnn
     }
 
     /// <summary>
-    /// Returns the current effective cooldown-rate multiplier for the given spell:
-    /// the product of the global rate and any spell-specific rate. A value of 2.0
-    /// means cooldowns elapse twice as fast.
+    /// The combined cooldown-speed multiplier for <paramref name="spellId"/>: the product of the
+    /// haste-driven <b>acceleration</b> modifier and the global <b>recovery</b> modifier. A value of
+    /// 9.0 means the spell's cooldown elapses 9× faster. Static reductions are folded into the
+    /// ability's base cooldown; dynamic reductions (<see cref="ReduceCooldown"/>) apply afterwards
+    /// to the remaining time.
     /// </summary>
-    public double EffectiveRate(int spellId) =>
-        _globalRateMultiplier * (_spellRateMultipliers.TryGetValue(spellId, out var r) ? r : 1.0);
+    public double EffectiveRate(int spellId) => AccelerationRate(spellId) * _recoveryRate;
 
     /// <summary>
-    /// Multiplies the cooldown rate of <paramref name="spellId"/> by <paramref name="rateMultiplier"/>.
-    /// Existing in-flight cooldowns for that spell are rescaled in place; future cooldowns
-    /// start <paramref name="rateMultiplier"/>× shorter.
+    /// The haste-driven cooldown-<b>acceleration</b> modifier for <paramref name="spellId"/>:
+    /// <c>1 + haste</c> when the ability's cooldown is reduced by haste, otherwise 1.
     /// </summary>
-    public void ApplyCooldownRateChange(int spellId, double rateMultiplier, int? timestamp = null)
+    private double AccelerationRate(int spellId) =>
+        _abilities.GetAbility(spellId)?.CooldownReducedByHaste == true ? 1.0 + _haste.Current : 1.0;
+
+    /// <summary>
+    /// Sets the global cooldown-<b>recovery</b> modifier (a pool separate from haste-driven
+    /// acceleration). A value of 9.0 means cooldowns recover 9× faster while it is active. In-flight
+    /// cooldowns are rescaled by the change as of <paramref name="timestamp"/>. The modifier is
+    /// <i>set</i>, not accumulated, so a source (re)applied without a matching removal cannot
+    /// compound the rate.
+    /// </summary>
+    public void SetCooldownRecoveryRate(double rate, int? timestamp = null)
     {
-        if (rateMultiplier <= 0 || rateMultiplier == 1.0) return;
+        if (rate <= 0 || rate == _recoveryRate) return;
         var ts = timestamp ?? Owner.CurrentTimestamp;
         AdvanceCooldowns(ts);
 
-        _spellRateMultipliers[spellId] =
-            (_spellRateMultipliers.TryGetValue(spellId, out var r) ? r : 1.0) * rateMultiplier;
-
-        if (_cooldowns.ContainsKey(spellId))
-            HandleChangeRate(spellId, rateMultiplier, ts);
-    }
-
-    /// <summary>
-    /// Multiplies the cooldown rate of every spell by <paramref name="rateMultiplier"/>.
-    /// </summary>
-    public void ApplyCooldownRateChangeToAll(double rateMultiplier, int? timestamp = null)
-    {
-        if (rateMultiplier <= 0 || rateMultiplier == 1.0) return;
-        var ts = timestamp ?? Owner.CurrentTimestamp;
-        AdvanceCooldowns(ts);
-
-        _globalRateMultiplier *= rateMultiplier;
+        var change = rate / _recoveryRate;
+        _recoveryRate = rate;
 
         foreach (var spellId in _cooldowns.Keys.ToList())
-            HandleChangeRate(spellId, rateMultiplier, ts);
+            HandleChangeRate(spellId, change, ts);
     }
 
-    /// <summary>Inverse of <see cref="ApplyCooldownRateChange"/>; pair with the same multiplier.</summary>
-    public void RemoveCooldownRateChange(int spellId, double rateMultiplier, int? timestamp = null)
+    /// <summary>
+    /// Rescales in-flight haste-accelerated cooldowns when the player's haste changes, so their
+    /// remaining time reflects the new <c>1 + haste</c> acceleration for the rest of the cooldown.
+    /// </summary>
+    [On<ChangeHasteEvent>]
+    private void OnChangeHaste(ChangeHasteEvent e)
     {
-        if (rateMultiplier <= 0 || rateMultiplier == 1.0) return;
-        ApplyCooldownRateChange(spellId, 1.0 / rateMultiplier, timestamp);
-    }
+        var oldAcceleration = 1.0 + (e.OldHaste ?? 0.0);
+        var newAcceleration = 1.0 + (e.NewHaste ?? 0.0);
+        if (oldAcceleration <= 0 || oldAcceleration == newAcceleration) return;
 
-    /// <summary>Inverse of <see cref="ApplyCooldownRateChangeToAll"/>; pair with the same multiplier.</summary>
-    public void RemoveCooldownRateChangeFromAll(double rateMultiplier, int? timestamp = null)
-    {
-        if (rateMultiplier <= 0 || rateMultiplier == 1.0) return;
-        ApplyCooldownRateChangeToAll(1.0 / rateMultiplier, timestamp);
+        var change = newAcceleration / oldAcceleration;
+        AdvanceCooldowns(e.Timestamp);
+
+        foreach (var spellId in _cooldowns.Keys.ToList())
+        {
+            if (_abilities.GetAbility(spellId)?.CooldownReducedByHaste == true)
+                HandleChangeRate(spellId, change, e.Timestamp);
+        }
     }
 
     /// <summary>
@@ -266,61 +264,6 @@ public sealed partial class SpellUsable(Lazy<Abilities> abilities, Lazy<DebugAnn
         cd = cd with { RechargeDuration = newRecharge, ExpectedEnd = timestamp + newRemaining };
         _cooldowns[spellId] = cd;
         FabricateUpdate(UpdateSpellUsableType.ChangeCooldownRate, spellId, timestamp, cd);
-    }
-
-    /// <summary>
-    /// Applies a cooldown-rate change scaled to the player's current haste:
-    /// <c>rate = 1.0 + Haste.Current</c>. The lease automatically re-balances on every
-    /// <see cref="ChangeHasteEvent"/> until released via <see cref="RemoveHasteScaledRateChange"/>.
-    /// </summary>
-    /// <param name="spellId">When non-null, scopes the rate change to a single spell; otherwise applies to all.</param>
-    public CooldownRateLease ApplyHasteScaledRateChange(int? spellId = null, int? timestamp = null)
-    {
-        var rate = 1.0 + _haste.Current;
-        var ts = timestamp ?? Owner.CurrentTimestamp;
-        ApplyForLease(spellId, rate, ts);
-        var lease = new CooldownRateLease(_nextLeaseId++);
-        _hasteScaledLeases[lease.Id] = new HasteScaledLease(spellId, rate);
-        return lease;
-    }
-
-    /// <summary>Releases a haste-scaled lease, inverting whatever rate was last applied.</summary>
-    public void RemoveHasteScaledRateChange(CooldownRateLease lease, int? timestamp = null)
-    {
-        if (!_hasteScaledLeases.Remove(lease.Id, out var info)) return;
-        var ts = timestamp ?? Owner.CurrentTimestamp;
-        RemoveForLease(info.SpellId, info.LastAppliedRate, ts);
-    }
-
-    [On<ChangeHasteEvent>]
-    private void OnChangeHaste(ChangeHasteEvent e)
-    {
-        if (_hasteScaledLeases.Count == 0) return;
-        var newRate = 1.0 + (e.NewHaste ?? 0.0);
-        foreach (var leaseId in _hasteScaledLeases.Keys.ToList())
-        {
-            var info = _hasteScaledLeases[leaseId];
-            if (info.LastAppliedRate == newRate) continue;
-            var diff = newRate / info.LastAppliedRate;
-            ApplyForLease(info.SpellId, diff, e.Timestamp);
-            _hasteScaledLeases[leaseId] = info with { LastAppliedRate = newRate };
-        }
-    }
-
-    private void ApplyForLease(int? spellId, double rate, int timestamp)
-    {
-        if (spellId is int id)
-            ApplyCooldownRateChange(id, rate, timestamp);
-        else
-            ApplyCooldownRateChangeToAll(rate, timestamp);
-    }
-
-    private void RemoveForLease(int? spellId, double rate, int timestamp)
-    {
-        if (spellId is int id)
-            RemoveCooldownRateChange(id, rate, timestamp);
-        else
-            RemoveCooldownRateChangeFromAll(rate, timestamp);
     }
 
     private void FabricateUpdate(UpdateSpellUsableType updateType, int spellId, int timestamp, CooldownInfo cd)
@@ -354,15 +297,7 @@ public sealed partial class SpellUsable(Lazy<Abilities> abilities, Lazy<DebugAnn
         int RechargeDuration,
         int ChargesAvailable,
         int MaxCharges);
-
-    private readonly record struct HasteScaledLease(int? SpellId, double LastAppliedRate);
 }
-
-/// <summary>
-/// Opaque handle returned by <see cref="SpellUsable.ApplyHasteScaledRateChange"/>.
-/// Pass back to <see cref="SpellUsable.RemoveHasteScaledRateChange"/> to release.
-/// </summary>
-public readonly record struct CooldownRateLease(int Id);
 
 /// <summary>
 /// A point-in-time record of a single player cast.

@@ -12,7 +12,7 @@
     align-items: center;
     border: 1px solid;
     border-radius: 4px;
-    background: var(--fa-bg-inset, rgba(10, 12, 24, 0.6));
+    background: var(--fa-bg-inset, t.$fa-bg-inset);
     font-weight: 600;
     white-space: nowrap;
     letter-spacing: 0.3px;

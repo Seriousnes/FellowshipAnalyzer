@@ -37,8 +37,8 @@
 
 .cooldown-lane-bar {
     height: 16px;
-    background: rgba(120, 120, 120, 0.55);
-    border: 1px solid rgba(80, 80, 80, 0.4);
+    background: t.$fa-grey-bar;
+    border: 1px solid t.$fa-grey-edge;
     border-radius: 2px;
 }
 
@@ -47,7 +47,7 @@
     top: 0;
     width: 3px;
     height: 24px;
-    background: rgba(255, 255, 255, 0.75);
+    background: t.$fa-white-a75;
     transform: translateX(-50%);
     border-radius: 1px;
     z-index: 2;

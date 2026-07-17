@@ -10,7 +10,7 @@
     max-width: 44rem;
     transition: border-color 0.2s;
 
-    &:focus-within { border-color: rgba(212, 167, 68, 0.4); }
+    &:focus-within { border-color: t.$fa-gold-a40; }
 }
 
 .input-wrapper {
@@ -47,7 +47,7 @@
     font-size: 0.82rem;
 
     &:hover {
-        background: rgba(212, 167, 68, 0.26);
+        background: t.$fa-gold-a26;
         color: var(--fa-gold-light);
     }
 
@@ -79,6 +79,6 @@
 
 .selector-error {
     margin: 0.5rem 0 0;
-    color: var(--fa-danger, #e05555);
+    color: var(--fa-danger, t.$fa-perf-fail-bright);
     font-size: 0.875rem;
 }

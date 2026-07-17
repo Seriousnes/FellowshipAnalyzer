@@ -25,8 +25,8 @@
         }
     }
 
-    &.perfect { background: var(--fa-perf-perfect, #56d67b); }
-    &.good    { background: var(--fa-perf-good, #90cc60); }
-    &.ok      { background: var(--fa-perf-ok, #d4a744); }
-    &.fail    { background: var(--fa-perf-fail, #d4564a); }
+    &.perfect { background: var(--fa-perf-perfect, t.$fa-perf-perfect); }
+    &.good    { background: var(--fa-perf-good, t.$fa-perf-good); }
+    &.ok      { background: var(--fa-perf-ok, t.$fa-gold); }
+    &.fail    { background: var(--fa-perf-fail, t.$fa-perf-fail); }
 }

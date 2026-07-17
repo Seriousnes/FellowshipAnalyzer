@@ -2,29 +2,119 @@
 // SCSS compile-time mirrors of the CSS custom properties in app.scss.
 // Use these for SCSS functions (color.adjust, darken, etc.) or interpolation.
 // The canonical runtime values are the --fa-* CSS variables; keep both in sync.
+//
+// This file is the only place a colour literal may appear. Every other .scss
+// references these tokens by name — no rgb()/rgba() and no bare hex elsewhere.
+// Alpha shades are named $fa-{base}-a{alpha×100} and derived with color.change,
+// so changing a base tint updates every shade derived from it.
 
 @use 'sass:color';
+
+// ── Raw palette ──────────────────────────────────────────────────────────────
+$fa-white: #ffffff;
+$fa-black: #000000;
 
 // ── Surface palette — deep twilight ─────────────────────────────────────────
 $fa-bg-base:    #0c0e18;
 $fa-bg-raised:  #12152a;
 $fa-bg-surface: #181c35;
-$fa-bg-card:    rgba(22, 26, 52, 0.82);
-$fa-bg-inset:   rgba(10, 12, 24, 0.6);
+$fa-bg-card:    color.change(#161a34, $alpha: 0.82);
+$fa-bg-inset:   color.change(#0a0c18, $alpha: 0.6);
+
+$fa-bg-base-a92: color.change($fa-bg-base, $alpha: 0.92);
+$fa-bg-void:     color.change(#04060c, $alpha: 0.66);
+$fa-bg-slate:    color.change(#282d4b, $alpha: 0.7);
+$fa-bg-panel:    #0f1224;
+$fa-bg-well:     #1c1f24;
 
 // ── Accent gold — warm, heroic ───────────────────────────────────────────────
 $fa-gold:       #d4a744;
 $fa-gold-light: #f0d078;
-$fa-gold-dim:   rgba(212, 167, 68, 0.14);
+$fa-gold-deep:  #e0b341;
+$fa-gold-sand:  #d4b870;
+
+$fa-gold-a04: color.change($fa-gold, $alpha: 0.04);
+$fa-gold-a06: color.change($fa-gold, $alpha: 0.06);
+$fa-gold-a10: color.change($fa-gold, $alpha: 0.1);
+$fa-gold-a12: color.change($fa-gold, $alpha: 0.12);
+$fa-gold-a14: color.change($fa-gold, $alpha: 0.14);
+$fa-gold-a16: color.change($fa-gold, $alpha: 0.16);
+$fa-gold-a18: color.change($fa-gold, $alpha: 0.18);
+$fa-gold-a20: color.change($fa-gold, $alpha: 0.2);
+$fa-gold-a25: color.change($fa-gold, $alpha: 0.25);
+$fa-gold-a26: color.change($fa-gold, $alpha: 0.26);
+$fa-gold-a30: color.change($fa-gold, $alpha: 0.3);
+$fa-gold-a35: color.change($fa-gold, $alpha: 0.35);
+$fa-gold-a40: color.change($fa-gold, $alpha: 0.4);
+
+$fa-gold-dim: $fa-gold-a14;
+
+$fa-gold-sand-a12: color.change($fa-gold-sand, $alpha: 0.12);
+$fa-gold-sand-a40: color.change($fa-gold-sand, $alpha: 0.4);
+
+// ── Amber — cast highlights ──────────────────────────────────────────────────
+$fa-amber:       #fab700;
+$fa-amber-warm:  #f8b700;
+$fa-amber-deep:  #ecb000;
+
+$fa-amber-a10: color.change($fa-amber, $alpha: 0.1);
+$fa-amber-a16: color.change($fa-amber, $alpha: 0.16);
+$fa-amber-a25: color.change($fa-amber, $alpha: 0.25);
+$fa-amber-a30: color.change($fa-amber, $alpha: 0.3);
+$fa-amber-a40: color.change($fa-amber, $alpha: 0.4);
+$fa-amber-a50: color.change($fa-amber, $alpha: 0.5);
 
 // ── Text ─────────────────────────────────────────────────────────────────────
 $fa-text:       #e2dfd8;
+$fa-text-bright: #e8e6e1;
 $fa-text-muted: #9a9586;
 $fa-text-dim:   #6b6558;
 
+$fa-text-a04: color.change($fa-text, $alpha: 0.04);
+$fa-text-a08: color.change($fa-text, $alpha: 0.08);
+
+// ── Neutral overlays ─────────────────────────────────────────────────────────
+$fa-white-a02: color.change($fa-white, $alpha: 0.02);
+$fa-white-a04: color.change($fa-white, $alpha: 0.04);
+$fa-white-a05: color.change($fa-white, $alpha: 0.05);
+$fa-white-a06: color.change($fa-white, $alpha: 0.06);
+$fa-white-a07: color.change($fa-white, $alpha: 0.07);
+$fa-white-a08: color.change($fa-white, $alpha: 0.08);
+$fa-white-a10: color.change($fa-white, $alpha: 0.1);
+$fa-white-a12: color.change($fa-white, $alpha: 0.12);
+$fa-white-a20: color.change($fa-white, $alpha: 0.2);
+$fa-white-a25: color.change($fa-white, $alpha: 0.25);
+$fa-white-a27: color.change($fa-white, $alpha: 0.27);
+$fa-white-a30: color.change($fa-white, $alpha: 0.3);
+$fa-white-a35: color.change($fa-white, $alpha: 0.35);
+$fa-white-a40: color.change($fa-white, $alpha: 0.4);
+$fa-white-a45: color.change($fa-white, $alpha: 0.45);
+$fa-white-a50: color.change($fa-white, $alpha: 0.5);
+$fa-white-a55: color.change($fa-white, $alpha: 0.55);
+$fa-white-a60: color.change($fa-white, $alpha: 0.6);
+$fa-white-a70: color.change($fa-white, $alpha: 0.7);
+$fa-white-a75: color.change($fa-white, $alpha: 0.75);
+
+$fa-black-a15: color.change($fa-black, $alpha: 0.15);
+$fa-black-a18: color.change($fa-black, $alpha: 0.18);
+$fa-black-a20: color.change($fa-black, $alpha: 0.2);
+$fa-black-a25: color.change($fa-black, $alpha: 0.25);
+$fa-black-a30: color.change($fa-black, $alpha: 0.3);
+$fa-black-a35: color.change($fa-black, $alpha: 0.35);
+$fa-black-a40: color.change($fa-black, $alpha: 0.4);
+$fa-black-a45: color.change($fa-black, $alpha: 0.45);
+$fa-black-a55: color.change($fa-black, $alpha: 0.55);
+$fa-black-a60: color.change($fa-black, $alpha: 0.6);
+
+// Neutral greys — timeline bars and rules.
+$fa-grey-bar:   #787878;
+$fa-grey-edge:  color.change(#505050, $alpha: 0.4);
+$fa-grey-tick:  color.change(#c8c8c8, $alpha: 0.8);
+$fa-grey-muted: #929292;
+
 // ── Borders & dividers ───────────────────────────────────────────────────────
-$fa-border:      rgba(212, 167, 68, 0.12);
-$fa-border-card: rgba(212, 167, 68, 0.18);
+$fa-border:      $fa-gold-a12;
+$fa-border-card: $fa-gold-a18;
 
 // ── Performance accents ──────────────────────────────────────────────────────
 $fa-perf-perfect: #56d67b;
@@ -32,10 +122,24 @@ $fa-perf-good:    #90cc60;
 $fa-perf-ok:      #d4a744;
 $fa-perf-fail:    #d4564a;
 
+$fa-perf-perfect-a16: color.change($fa-perf-perfect, $alpha: 0.16);
+$fa-perf-perfect-a35: color.change($fa-perf-perfect, $alpha: 0.35);
+$fa-perf-fail-a16:    color.change($fa-perf-fail, $alpha: 0.16);
+$fa-perf-fail-a35:    color.change($fa-perf-fail, $alpha: 0.35);
+
 // Chart accent tones — for severity / partial-mitigation / unused-capacity highlights.
 $fa-perf-very-bad:  #661111;
 $fa-perf-mediocre:  #dd5533;
 $fa-perf-available: #696864;
+
+// Performance tints — pass/fail surfaces and text.
+$fa-perf-perfect-soft: #a8d8a8;
+$fa-perf-fail-soft:    #f5b8a8;
+$fa-perf-fail-warm:    #e0856b;
+$fa-perf-fail-bright:  #e05555;
+$fa-perf-fail-deep:    #d35454;
+$fa-perf-fail-dark:    #b32121;
+$fa-perf-fail-muted:   #dd6666;
 
 // ── Hero role accents ────────────────────────────────────────────────────────
 $fa-role-tank:    #336699;
@@ -45,10 +149,44 @@ $fa-role-unknown: $fa-border;
 
 // ── Hero / element accents ───────────────────────────────────────────────────
 $fa-ice: #6ec8e8;   // Rime hero (frost / ice)
+$fa-ice-soft: #7ec8e3;
+$fa-ice-deep: #5ec8e0;
+$fa-arcane:   #9a7bff;
+$fa-arcane-soft: #b48ef0;
+$fa-nature:   #5fd0b0;
+$fa-link:     #0087ff;
+$fa-steel:    #6b9ed2;
+$fa-steel-deep: #3b6ea2;
+$fa-steel-soft: #4aa3d9;
+$fa-slate:    #6b7a9a;
+
+// ── Diagnostics — event-type colour coding (EventsView) ──────────────────────
+$fa-ev-modified:   #e67e22;
+$fa-ev-fabricated: #2ecc71;
+$fa-ev-reordered:  #3498db;
+$fa-ev-cast:       $fa-ice-soft;
+$fa-ev-damage:     #e74c3c;
+$fa-ev-heal:       $fa-ev-fabricated;
+$fa-ev-buff:       #9b59b6;
+$fa-ev-buff-fade:  #8e44ad;
+$fa-ev-debuff:     $fa-ev-modified;
+$fa-ev-death:      #c0392b;
+$fa-ev-resource:   #f1c40f;
+$fa-ev-system:     #95a5a6;
+
+$fa-ev-modified-a10:   color.change($fa-ev-modified, $alpha: 0.1);
+$fa-ev-modified-a18:   color.change($fa-ev-modified, $alpha: 0.18);
+$fa-ev-modified-a40:   color.change($fa-ev-modified, $alpha: 0.4);
+$fa-ev-fabricated-a08: color.change($fa-ev-fabricated, $alpha: 0.08);
+$fa-ev-fabricated-a15: color.change($fa-ev-fabricated, $alpha: 0.15);
+$fa-ev-fabricated-a30: color.change($fa-ev-fabricated, $alpha: 0.3);
+$fa-ev-reordered-a10:  color.change($fa-ev-reordered, $alpha: 0.1);
+$fa-ev-reordered-a18:  color.change($fa-ev-reordered, $alpha: 0.18);
+$fa-ev-reordered-a35:  color.change($fa-ev-reordered, $alpha: 0.35);
 
 // ── Shadows ──────────────────────────────────────────────────────────────────
-$fa-shadow-card: (0 8px 32px rgba(0, 0, 0, 0.45));
-$fa-shadow-lg:   (0 16px 48px rgba(0, 0, 0, 0.55));
+$fa-shadow-card: (0 8px 32px $fa-black-a45);
+$fa-shadow-lg:   (0 16px 48px $fa-black-a55);
 
 // ── Radii ────────────────────────────────────────────────────────────────────
 $fa-radius-sm: 8px;

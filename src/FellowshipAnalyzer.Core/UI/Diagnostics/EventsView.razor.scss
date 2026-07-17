@@ -115,9 +115,9 @@
     flex-shrink: 0;
 }
 
-.legend-modified .legend-swatch    { background: rgba(230, 126, 34, 0.4); }
-.legend-fabricated .legend-swatch  { background: rgba(46, 204, 113, 0.3); }
-.legend-reordered .legend-swatch   { background: rgba(52, 152, 219, 0.35); }
+.legend-modified .legend-swatch    { background: t.$fa-ev-modified-a40; }
+.legend-fabricated .legend-swatch  { background: t.$fa-ev-fabricated-a30; }
+.legend-reordered .legend-swatch   { background: t.$fa-ev-reordered-a35; }
 
 /* ── Main event list ────────────────────────────────────────────────────── */
 
@@ -184,26 +184,26 @@
 }
 
 /* Row state colors */
-.ev-row-fabricated .ev-col      { background: rgba(46, 204, 113, 0.08); }
-.ev-row-fabricated:hover .ev-col { background: rgba(46, 204, 113, 0.15); }
+.ev-row-fabricated .ev-col      { background: t.$fa-ev-fabricated-a08; }
+.ev-row-fabricated:hover .ev-col { background: t.$fa-ev-fabricated-a15; }
 
-.ev-row-modified .ev-col        { background: rgba(230, 126, 34, 0.1); }
-.ev-row-modified:hover .ev-col  { background: rgba(230, 126, 34, 0.18); }
+.ev-row-modified .ev-col        { background: t.$fa-ev-modified-a10; }
+.ev-row-modified:hover .ev-col  { background: t.$fa-ev-modified-a18; }
 
-.ev-row-reordered .ev-col       { background: rgba(52, 152, 219, 0.1); }
-.ev-row-reordered:hover .ev-col { background: rgba(52, 152, 219, 0.18); }
+.ev-row-reordered .ev-col       { background: t.$fa-ev-reordered-a10; }
+.ev-row-reordered:hover .ev-col { background: t.$fa-ev-reordered-a18; }
 
 /* Event type color coding */
-.ev-cast                                    { color: #7ec8e3; }
-.ev-damage                                  { color: #e74c3c; }
-.ev-heal                                    { color: #2ecc71; }
-.ev-applybuff, .ev-refreshbuff              { color: #9b59b6; }
-.ev-removebuff                              { color: #8e44ad; opacity: 0.7; }
-.ev-applydebuff, .ev-refreshdebuff         { color: #e67e22; }
-.ev-removedebuff                            { color: #e67e22; opacity: 0.7; }
-.ev-death                                   { color: #c0392b; }
-.ev-resourcechange                          { color: #f1c40f; }
-.ev-globalcooldown, .ev-updatespellusable   { color: #95a5a6; }
+.ev-cast                                    { color: t.$fa-ice-soft; }
+.ev-damage                                  { color: t.$fa-ev-damage; }
+.ev-heal                                    { color: t.$fa-ev-fabricated; }
+.ev-applybuff, .ev-refreshbuff              { color: t.$fa-ev-buff; }
+.ev-removebuff                              { color: t.$fa-ev-buff-fade; opacity: 0.7; }
+.ev-applydebuff, .ev-refreshdebuff         { color: t.$fa-ev-modified; }
+.ev-removedebuff                            { color: t.$fa-ev-modified; opacity: 0.7; }
+.ev-death                                   { color: t.$fa-ev-death; }
+.ev-resourcechange                          { color: t.$fa-ev-resource; }
+.ev-globalcooldown, .ev-updatespellusable   { color: t.$fa-ev-system; }
 
 /* Footer count */
 .events-count {

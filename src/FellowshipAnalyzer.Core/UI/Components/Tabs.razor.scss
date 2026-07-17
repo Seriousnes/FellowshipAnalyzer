@@ -51,7 +51,7 @@
         margin-bottom: -1px;
 
         &:hover:not(:disabled) {
-            border-bottom-color: rgba(212, 167, 68, 0.35);
+            border-bottom-color: t.$fa-gold-a35;
         }
 
         &.active {

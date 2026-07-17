@@ -59,7 +59,7 @@
     @if $tier == 'good'    { @return t.$fa-perf-good; }
     @if $tier == 'ok'      { @return t.$fa-perf-ok; }
     @if $tier == 'fail'    { @return t.$fa-perf-fail; }
-    @return #ffffff;
+    @return t.$fa-white;
 }
 
 /// Outputs background-color for each performance tier class.

@@ -15,7 +15,7 @@
     border-top-left-radius: 2px;
     border-top-right-radius: 5px;
     background: hsla(41, 10%, 68%, 0.2);
-    box-shadow: 0 0 3px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 0 3px t.$fa-black-a40;
     z-index: calc(1 + var(--level));
     box-sizing: border-box;
     pointer-events: none;
@@ -28,7 +28,7 @@
     bottom: 0;
     width: 1px;
     height: calc(4px + var(--level) * 30px);
-    background: #f8b700;
+    background: t.$fa-amber-warm;
     z-index: calc(20 + var(--level));
     pointer-events: none;
 }
@@ -56,8 +56,8 @@
 
     /* Gold border on the spell icon */
     ::deep .spell-icon {
-        border: 1px solid #f8b700;
+        border: 1px solid t.$fa-amber-warm;
         border-radius: 2px;
-        box-shadow: 0 0 3px rgba(0, 0, 0, 0.6);
+        box-shadow: 0 0 3px t.$fa-black-a60;
     }
 }

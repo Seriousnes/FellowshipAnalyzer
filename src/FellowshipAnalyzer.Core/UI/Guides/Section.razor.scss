@@ -15,7 +15,7 @@
     gap: 12px;
     width: 100%;
     padding: 10px 14px;
-    background: linear-gradient(180deg, rgba(212, 167, 68, 0.10), rgba(212, 167, 68, 0.04));
+    background: linear-gradient(180deg, t.$fa-gold-a10, t.$fa-gold-a04);
     border: 0;
     border-bottom: 1px solid var(--fa-border);
     cursor: pointer;
@@ -24,7 +24,7 @@
     text-align: left;
     -webkit-tap-highlight-color: transparent;
 
-    &:hover { background: linear-gradient(180deg, rgba(212, 167, 68, 0.16), rgba(212, 167, 68, 0.06)); }
+    &:hover { background: linear-gradient(180deg, t.$fa-gold-a16, t.$fa-gold-a06); }
     &:focus-visible { outline: 2px solid var(--fa-gold); outline-offset: -2px; }
 }
 

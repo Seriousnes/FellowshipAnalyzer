@@ -22,8 +22,8 @@ Design tokens live in `_tokens.scss` and are mirrored to CSS custom properties a
 | Concern | File | Location |
 |---|---|---|
 | Global tokens → CSS vars | `app.scss` | `FellowshipAnalyzer/wwwroot/` |
-| SCSS token variables | `_tokens.scss` | `FellowshipAnalyzer.Components/Styles/` |
-| SCSS mixins & helpers | `_mixins.scss` | `FellowshipAnalyzer.Components/Styles/` |
+| SCSS token variables | `_tokens.scss` | `FellowshipAnalyzer.Core/Styles/` |
+| SCSS mixins & helpers | `_mixins.scss` | `FellowshipAnalyzer.Core/Styles/` |
 | Component styles | `ComponentName.razor.scss` | Beside its `.razor` file |
 | Hero component styles | `ComponentName.razor.scss` | Beside its `.razor` in the hero project |
 
@@ -42,7 +42,7 @@ Design tokens live in `_tokens.scss` and are mirrored to CSS custom properties a
 ## 2. Importing Tokens and Mixins
 
 All projects have `includePaths` configured in `sasscompiler.json` pointing to
-`FellowshipAnalyzer.Components/Styles/`, so you can import without a path prefix:
+`FellowshipAnalyzer.Core/Styles/`, so you can import without a path prefix:
 
 ```scss
 // In any .razor.scss or app.scss
@@ -111,6 +111,39 @@ Do **not** use `:global()` or `::deep` unless absolutely necessary for third-par
 ## 5. Using Tokens
 
 See [./references/tokens.md](./references/tokens.md) for the full token reference.
+
+> **Rule: `_tokens.scss` is the only file that may contain a colour literal.**
+> No `rgb()`, no `rgba()`, no bare hex in any other `.scss`. Every colour is a token reference.
+
+Alpha shades are tokens too, named `$fa-{base}-a{alpha×100}` and derived from their base tint
+with `color.change` **in `_tokens.scss`**:
+
+```scss
+// _tokens.scss — the only place literals and color.change appear
+$fa-white:     #ffffff;
+$fa-gold:      #d4a744;
+$fa-white-a08: color.change($fa-white, $alpha: 0.08);
+$fa-gold-a12:  color.change($fa-gold,  $alpha: 0.12);
+
+// Any component — token references only
+.thing {
+    background: t.$fa-white-a08;   // ✓
+    border: 1px solid t.$fa-gold-a12;
+
+    background: rgba(255, 255, 255, 0.08);            // ✗ banned
+    border: 1px solid color.change(t.$fa-gold, $alpha: 0.12);  // ✗ belongs in _tokens.scss
+}
+```
+
+Need a shade with no token? Add it to `_tokens.scss`, then reference it. Never inline it "just once".
+
+**Custom properties need interpolation** — Sass does not evaluate `--*` values, so a bare token is
+emitted as literal text and yields invalid CSS:
+
+```scss
+--badge-border: t.$fa-gold-a12;      // ✗ emits the string "t.$fa-gold-a12"
+--badge-border: #{t.$fa-gold-a12};   // ✓
+```
 
 Quick cheatsheet:
 
@@ -235,7 +268,9 @@ Do not use hero-specific tokens in shared `FellowshipAnalyzer.Components` styles
 - **Editing compiled output** — never edit `Component.razor.css` when `Component.razor.scss` exists. The `.razor.css` is generated on build and will overwrite your changes. Edit the `.razor.scss` instead.
 - **Creating `.razor.css` files** — always create `.razor.scss`. Never create a new `.razor.css` — the compiler generates that file.
 - **Hardcoded colors** — always use `var(--fa-*)` or `t.$fa-*`. Never `#d4a744` inline.
-- **Hardcoded `rgba(255,255,255,x)` in component files** — use `rgba(t.$fa-text, x)` or a token.
+- **`rgb()` / `rgba()` anywhere outside `_tokens.scss`** — banned. Use the matching alpha token (`t.$fa-white-a08`, `t.$fa-gold-a12`, `t.$fa-black-a45`). If the shade you need has no token, add one to `_tokens.scss` — do not inline it.
+- **`color.change()` at a call site** — that belongs on the token definition in `_tokens.scss`, not in a component. A component references a token by name and nothing else.
+- **A token in a CSS custom property without interpolation** — `--x: t.$fa-gold;` emits the literal text `t.$fa-gold` and produces invalid CSS, because Sass does not evaluate custom-property values. Write `--x: #{t.$fa-gold};`.
 - **Inline `style` for presentation** — only use inline `style` for dynamic values (e.g. performance bar widths from C# variables). Static colors/sizes belong in SCSS.
 - **Adding to app.scss for one component** — keep it in the component's `.razor.scss`.
 - **Duplicating token values** — never copy-paste hex colors; import the token.

@@ -28,6 +28,6 @@
     }
 
     &.failed {
-        color: var(--fa-perf-fail, #d66);
+        color: var(--fa-perf-fail, t.$fa-perf-fail-muted);
     }
 }

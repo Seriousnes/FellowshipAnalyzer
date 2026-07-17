@@ -4,7 +4,7 @@
     display: flex;
     border-radius: 4px;
     overflow: hidden;
-    background: var(--fa-bg-inset, rgba(10, 12, 24, 0.6));
+    background: var(--fa-bg-inset, t.$fa-bg-inset);
 }
 
 .stacked-segment {
@@ -29,7 +29,7 @@
     align-items: center;
     gap: 4px;
     font-size: 0.85rem;
-    color: var(--fa-text-muted, #9a9586);
+    color: var(--fa-text-muted, t.$fa-text-muted);
 }
 
 .legend-swatch {
@@ -44,5 +44,5 @@
 }
 
 .legend-value {
-    color: rgba(255, 255, 255, 0.4);
+    color: t.$fa-white-a40;
 }
