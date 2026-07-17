@@ -24,9 +24,7 @@ public sealed partial class CinderEmberTracker : ResourceTracker
         DisplayNameOverrides[ResourceTypes.Primary] = "Cinders";
 
         Active = true;
-    }
-
-    public override Type? StatisticsComponentType => typeof(CinderEmberStatistics);
+    }    
 
     /// <summary>Whole burning Embers held for a given Cinder total.</summary>
     public static int EmbersFromCinders(int totalCinders) => totalCinders / CindersPerEmber;
