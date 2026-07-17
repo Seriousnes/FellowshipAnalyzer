@@ -308,7 +308,7 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
         for (var i = 0; i < allModuleTypes.Length; i++)
             _moduleTypeIndex[allModuleTypes[i]] = i;
 
-        Events = [.. events];
+        Events = [.. events.Where(e => e is not CastEvent { Fake: true })];
 
         var playerInfo = Events.OfType<CombatantInfoEvent>().FirstOrDefault(e => e.SourceId == playerId)
             ?? new CombatantInfoEvent { SourceId = playerId };

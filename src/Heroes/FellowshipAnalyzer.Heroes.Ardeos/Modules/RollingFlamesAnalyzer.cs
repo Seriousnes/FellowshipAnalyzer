@@ -20,18 +20,18 @@ public sealed partial class RollingFlamesAnalyzer : Analyzer
         { Spells.InfernalWave.Id, new() },
     };
 
-    [On<DamageEvent>(By = Actor.Player, Spell = nameof(Spells.SearingBlaze))]
-    public void OnSearingBlazeTick(DamageEvent _)
+    [On<DamageEvent>(By = Actor.Player, Spell = nameof(Spells.SearingBlazeDot))]
+    public void OnSearingBlazeDamage(DamageEvent _)
     {
-        var appliedCdr = Owner.SpellUsable!.ReduceCooldown(Spells.SearingBlaze.Id, SEARING_BLAZE_CDR);
+        var appliedCdr = Owner.SpellUsable!.ReduceCooldown(Spells.EngulfingFlames.Id, SEARING_BLAZE_CDR);
         spellCdr[Spells.SearingBlaze.Id].Total += SEARING_BLAZE_CDR;
         spellCdr[Spells.SearingBlaze.Id].Applied += appliedCdr;
     }
 
-    [On<DamageEvent>(By = Actor.Player, Spell = nameof(Spells.InfernalWave))]
-    public void OnInfernalWaveTick(DamageEvent _)
+    [On<CastEvent>(By = Actor.Player, Spell = nameof(Spells.InfernalWave))]
+    public void OnInfernalWaveCast(CastEvent _)
     {
-        var appliedCdr = Owner.SpellUsable!.ReduceCooldown(Spells.InfernalWave.Id, INFERNAL_WAVE_CDR);
+        var appliedCdr = Owner.SpellUsable!.ReduceCooldown(Spells.EngulfingFlames.Id, INFERNAL_WAVE_CDR);
         spellCdr[Spells.InfernalWave.Id].Total += INFERNAL_WAVE_CDR;
         spellCdr[Spells.InfernalWave.Id].Applied += appliedCdr;
     }
@@ -39,8 +39,9 @@ public sealed partial class RollingFlamesAnalyzer : Analyzer
     public override Type? StatisticsComponentType => typeof(RollingFlamesStatistics);
 
     /// <summary>
-    /// Per-spell cooldown reduction Rolling Flames drove over the encounter: the total CDR each
-    /// source spell's damage generated and the portion that actually shortened a running cooldown.
+    /// Per-source Engulfing Flames cooldown reduction Rolling Flames drove over the encounter:
+    /// the total CDR that Searing Blaze damage and Infernal Wave casts generated, and the portion
+    /// that actually shortened Engulfing Flames' running cooldown.
     /// </summary>
     public IReadOnlyList<RollingFlamesCdr> CooldownReductions =>
     [

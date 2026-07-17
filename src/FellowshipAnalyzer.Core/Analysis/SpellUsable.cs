@@ -9,6 +9,8 @@ namespace FellowshipAnalyzer.Core.Analysis;
 /// </summary>
 public sealed partial class SpellUsable(Lazy<Abilities> abilities, Lazy<DebugAnnotations> debugAnnotations, Lazy<Haste> haste) : Analyzer
 {
+    private const int CooldownLagMargin = 150;
+
     private readonly Dictionary<int, CooldownInfo> _cooldowns = [];
     private readonly List<TrackedAbilityCast> _casts = [];
 
@@ -125,8 +127,35 @@ public sealed partial class SpellUsable(Lazy<Abilities> abilities, Lazy<DebugAnn
     private void OnCast(CastEvent e)
     {
         _casts.Add(new TrackedAbilityCast(e.Timestamp, e.Ability.Id, e.TargetId));
+        RecordCooldownDebugInfo(e);
+        BeginCooldown(e.Ability.Id, e.Timestamp);
+    }
 
-        if (_abilities.GetAbility(e.Ability.Id) is null)
+    /// <summary>
+    /// Records a debug annotation describing the cooldown state at a player cast, mirroring
+    /// WoWAnalyzer's SpellUsable.recordCooldownDebugInfo. A cast that lands while the tracker
+    /// believes the spell holds no charges and whose next recharge is still more than
+    /// <see cref="CooldownLagMargin"/> ms away is flagged (casting with no charges is impossible
+    /// in-game, so its configured cooldown or charge count is likely too slow); otherwise a spell
+    /// that is not in the hero's spellbook is flagged.
+    /// </summary>
+    private void RecordCooldownDebugInfo(CastEvent e)
+    {
+        var ability = _abilities.GetAbility(e.Ability.Id);
+
+        if (_cooldowns.TryGetValue(e.Ability.Id, out var cd)
+            && cd.ChargesAvailable == 0
+            && cd.ExpectedEnd - e.Timestamp > CooldownLagMargin)
+        {
+            _debugAnnotations.AddAnnotation(this, e, new DebugAnnotation(
+                Color: "#e74c3c",
+                Summary: $"Used with no charges available: {e.Ability.Name}  (ID: {e.Ability.Id})",
+                Details: $"Tracker believed {e.Ability.Name} held 0/{cd.MaxCharges} charges with " +
+                         $"{cd.ExpectedEnd - e.Timestamp}ms until the next recharge. Casting with no charges " +
+                         $"is impossible in-game, so its configured cooldown or charge count is likely too slow.",
+                Priority: 10));
+        }
+        else if (ability is null)
         {
             _debugAnnotations.AddAnnotation(this, e, new DebugAnnotation(
                 Color: "#e67e22",
@@ -134,17 +163,6 @@ public sealed partial class SpellUsable(Lazy<Abilities> abilities, Lazy<DebugAnn
                 Details: "This spell was cast by the player but is not in the hero's spellbook. " +
                          "Consider adding it to the Abilities module."));
         }
-
-        if (!IsAvailable(e.Ability.Id))
-        {
-            _debugAnnotations.AddAnnotation(this, e, new DebugAnnotation(
-                Color: "#e74c3c",
-                Summary: $"Cast while on cooldown: {e.Ability.Name}  (ID: {e.Ability.Id})",
-                Details: $"{CooldownRemaining(e.Ability.Id, e.Timestamp)}ms remaining at time of cast.",
-                Priority: 10));
-        }
-
-        BeginCooldown(e.Ability.Id, e.Timestamp);
     }
 
     [On<FilterCooldownInfoEvent>(By = Actor.Player)]

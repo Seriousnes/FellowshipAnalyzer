@@ -36,6 +36,8 @@ public sealed class RollingFlamesAnalyzerTests
     [Fact]
     public async Task RollingFlames_WithTalent_AccumulatesGeneratedFromTicks()
     {
+        // Searing Blaze damage generates Engulfing Flames CDR; with EF never cast (never on cooldown)
+        // all of it is wasted.
         var events = new List<Event>
         {
             CombatantWithRollingFlames(),
@@ -51,6 +53,26 @@ public sealed class RollingFlamesAnalyzerTests
         searingBlaze.GeneratedMs.ShouldBe(750);
         searingBlaze.EffectiveMs.ShouldBe(0);
         searingBlaze.WastedMs.ShouldBe(750);
+    }
+
+    [Fact]
+    public async Task RollingFlames_ReducesEngulfingFlamesCooldown_FromBothSources()
+    {
+        // Cast EF to put it on cooldown, then drive CDR from Searing Blaze damage and Infernal Wave
+        // casts. Both must shorten Engulfing Flames' running cooldown.
+        var events = new List<Event>
+        {
+            CombatantWithRollingFlames(),
+            Cast(Spells.EngulfingFlames.FSLID, 1000),
+            SearingBlazeTick(2000),
+            InfernalWaveCast(2100),
+        };
+
+        var analyzer = await AnalyzeAndGetAnalyzer(events);
+
+        analyzer.ShouldNotBeNull();
+        analyzer.CooldownReductions.First(c => c.Spell.Id == Spells.SearingBlaze.Id).EffectiveMs.ShouldBe(250);
+        analyzer.CooldownReductions.First(c => c.Spell.Id == Spells.InfernalWave.Id).EffectiveMs.ShouldBe(1000);
     }
 
     [Fact]
@@ -73,7 +95,21 @@ public sealed class RollingFlamesAnalyzerTests
     {
         Timestamp = timestamp,
         SourceId = PlayerId,
-        Ability = new Ability { Id = Spells.SearingBlaze.FSLID },
+        Ability = new Ability { Id = Spells.SearingBlazeDot.FSLID },
+    };
+
+    private static CastEvent InfernalWaveCast(int timestamp) => new()
+    {
+        Timestamp = timestamp,
+        SourceId = PlayerId,
+        Ability = new Ability { Id = Spells.InfernalWave.FSLID },
+    };
+
+    private static CastEvent Cast(int abilityId, int timestamp) => new()
+    {
+        Timestamp = timestamp,
+        SourceId = PlayerId,
+        Ability = new Ability { Id = abilityId },
     };
 
     private static async Task<RollingFlamesAnalyzer?> AnalyzeAndGetAnalyzer(List<Event> events)

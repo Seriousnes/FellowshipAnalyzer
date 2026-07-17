@@ -3,11 +3,11 @@ using FellowshipAnalyzer.Core.Common.Items;
 namespace FellowshipAnalyzer.Core.Analysis;
 
 /// <summary>
-/// Activation predicate for <see cref="ChronoshiftAnalyzer"/>: enables the module only when
-/// the selected combatant has Asha's Chronoshift Spire equipped.
+/// Activation predicate for <see cref="ChronoshiftAnalyzer"/>: enables the module when the
+/// selected combatant has any weapon that grants the Chronoshift ability equipped.
 /// </summary>
 public sealed class HasChronoshiftGear : IModuleActivePredicate
 {
     public static bool IsActive(ParseContext context) =>
-        context.SelectedCombatant.HasGear(Items.AshasChronoshiftSpire.Id);
+        Items.ChronoshiftGrantingItemIds.Any(context.SelectedCombatant.HasGear);
 }
