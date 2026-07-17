@@ -1,38 +1,34 @@
 @inherits AnalyzerStatistic<RollingFlamesAnalyzer>
+@using ArdeosSpells = FellowshipAnalyzer.Core.Common.Spells.Ardeos
 
-<StatCard Title="Rolling Flames Cooldown Reduction">
-    @foreach (var cdr in Analyzer.CooldownReductions)
-    {
-        <CastOverview Title="@cdr.Spell.Name" Stats="@BuildSpellStats(cdr)" />
-    }
+<StatCard>
+    <Header>
+        <SpellLink Spell="ArdeosSpells.Talents.RollingFlames" />
+    </Header>
+    <Info>
+        <p>Rolling Flames reduces Engulfing Flames' cooldown from Searing Blaze damage and Infernal Wave casts.</p>
+        <ul>
+            @foreach (var cdr in Analyzer.CooldownReductions)
+            {
+                <li>
+                    <SpellLink Spell="cdr.Spell" /> generated @Seconds(cdr.GeneratedMs)
+                    (@Pct(cdr.Efficiency) effective, @Seconds(cdr.WastedMs) wasted).
+                </li>
+            }
+        </ul>
+    </Info>
+    <ChildContent>
+        @foreach (var cdr in Analyzer.CooldownReductions)
+        {
+            <StatRow Value="@Seconds(cdr.EffectiveMs)"
+                     Tooltip="@($"{Seconds(cdr.GeneratedMs)} generated, {Seconds(cdr.WastedMs)} wasted")">
+                <SpellLink Spell="cdr.Spell" /> reduction, @Pct(cdr.Efficiency) of @Seconds(cdr.GeneratedMs) generated
+            </StatRow>
+        }
+    </ChildContent>
 </StatCard>
 
 @code {
-    private IEnumerable<OverviewStat> BuildSpellStats(RollingFlamesCdr cdr)
-    {
-        var used = cdr.GeneratedMs > 0;
-        var wastedRate = used ? (double)cdr.WastedMs / cdr.GeneratedMs : 0d;
-
-        return
-        [
-            new OverviewStat(
-                Seconds(cdr.GeneratedMs),
-                "Generated",
-                $"Total cooldown reduction {cdr.Spell.Name} generated this encounter."),
-            new OverviewStat(
-                Seconds(cdr.WastedMs),
-                "Wasted",
-                "Cooldown reduction generated while the spell was already off cooldown.",
-                cdr.WastedMs == 0 ? QualitativePerformance.Perfect
-                    : wastedRate < 0.10 ? QualitativePerformance.Good
-                    : wastedRate < 0.20 ? QualitativePerformance.Ok
-                    : QualitativePerformance.Fail),
-            new OverviewStat(
-                used ? $"{cdr.Efficiency * 100:F0}%" : "—",
-                "Efficiency",
-                "Share of the generated reduction that actually shortened the cooldown."),
-        ];
-    }
-
     private static string Seconds(int milliseconds) => $"{milliseconds / 1000d:0.0}s";
+    private static string Pct(double ratio) => $"{ratio * 100:F0}%";
 }

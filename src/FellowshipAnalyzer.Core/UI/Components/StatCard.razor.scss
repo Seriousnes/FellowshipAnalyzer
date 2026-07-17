@@ -1,10 +1,9 @@
 @use 'tokens' as t;
+@use 'mixins' as mx;
 
 .stat-card {
-    border: 1px solid var(--fa-border, rgba(255, 255, 255, 0.1));
-    border-radius: 8px;
-    background: var(--fa-bg-inset, rgba(10, 12, 24, 0.6));
-    overflow: hidden;
+    @include mx.card-surface;
+    overflow: visible;
     margin-bottom: 16px;
     display: flex;
     flex-direction: column;
@@ -17,28 +16,56 @@
 
     &.stat-card-wide      { grid-column: span 2; }
     &.stat-card-ultrawide { grid-column: 1 / -1; }
-}
 
-@media (max-width: 599px) {
-    .stat-card.stat-card-wide { grid-column: 1 / -1; }
+    @include mx.mobile-sm {
+        &.stat-card-wide { grid-column: 1 / -1; }
+    }
 }
 
 .stat-card-header {
-    padding: 10px 16px;
-    border-bottom: 1px solid var(--fa-border, rgba(255, 255, 255, 0.1));
-    background: rgba(255, 255, 255, 0.03);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 9px 14px;
+    border-bottom: 1px solid var(--fa-border);
+    border-radius: t.$fa-radius-md t.$fa-radius-md 0 0;
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.stat-card-heading {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    font-family: var(--fa-font-heading);
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--fa-gold);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .stat-card-title {
     margin: 0;
     font-size: 1rem;
     font-weight: 700;
-    color: var(--fa-gold, #c8a96e);
+    color: var(--fa-gold);
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
 
+.stat-card-meta {
+    flex-shrink: 0;
+    color: var(--fa-text-dim);
+    font-size: 0.82rem;
+    font-weight: 600;
+    text-decoration: underline dotted;
+    text-underline-offset: 3px;
+}
+
 .stat-card-body {
-    padding: 14px 16px;
+    padding: 4px 14px 12px;
     flex: 1 1 auto;
 }

@@ -1,36 +1,33 @@
 @inherits AnalyzerStatistic<ReignOfFireAnalyzer>
+@using FellowshipAnalyzer.Core.UI
+@using ArdeosSpells = FellowshipAnalyzer.Core.Common.Spells.Ardeos
 
-<StatCard Title="Reign of Fire">
-    <CastOverview Title="Fire Ball Empowerment" Stats="@BuildStats()" />
+<StatCard>
+    <Header>
+        <SpellLink Spell="ArdeosSpells.Talents.ReignOfFire" />
+    </Header>
+    <Info>
+        <p>Detonate procs Reign of Fire, restoring a <SpellLink Spell="ArdeosSpells.Spells.FireBall" /> charge and empowering the next Fire Ball. A proc at 2 charges overcaps the restored charge, and an empowerment that expires without a Fire Ball cast is lost.</p>
+    </Info>
+    <ChildContent>
+        <StatRow Value="@Analyzer.Procs.ToString()">
+            procs granted by Detonate
+        </StatRow>
+        <StatRow Value="@Analyzer.ChargesWasted.ToString()"
+                 Color="@PerformanceColors.ToColor(Tier(Analyzer.ChargesWasted, ChargeRate))"
+                 Tooltip="Procs gained while Fire Ball was already at 2 charges.">
+            <SpellLink Spell="ArdeosSpells.Spells.FireBall" /> charges wasted (proc at 2 charges)
+        </StatRow>
+        <StatRow Value="@Analyzer.EmpowermentsWasted.ToString()"
+                 Color="@PerformanceColors.ToColor(Tier(Analyzer.EmpowermentsWasted, EmpowerRate))">
+            empowerments wasted (buff expired unused)
+        </StatRow>
+    </ChildContent>
 </StatCard>
 
 @code {
-    private IEnumerable<OverviewStat> BuildStats()
-    {
-        var procs = Analyzer.Procs;
-        var chargesWasted = Analyzer.ChargesWasted;
-        var empowermentsWasted = Analyzer.EmpowermentsWasted;
-        var chargeRate = procs > 0 ? (double)chargesWasted / procs : 0d;
-        var empowerRate = procs > 0 ? (double)empowermentsWasted / procs : 0d;
-
-        return
-        [
-            new OverviewStat(
-                $"{procs}",
-                "Procs",
-                "Reign of Fire procs granted by Detonate this encounter."),
-            new OverviewStat(
-                $"{chargesWasted}",
-                "Charges Wasted",
-                "Procs gained while Fire Ball was already at 2 charges - the restored charge overcapped.",
-                Tier(chargesWasted, chargeRate)),
-            new OverviewStat(
-                $"{empowermentsWasted}",
-                "Empowerments Wasted",
-                "Empowered Fire Ball buffs that expired without a Fire Ball cast.",
-                Tier(empowermentsWasted, empowerRate)),
-        ];
-    }
+    private double ChargeRate => Analyzer.Procs > 0 ? (double)Analyzer.ChargesWasted / Analyzer.Procs : 0d;
+    private double EmpowerRate => Analyzer.Procs > 0 ? (double)Analyzer.EmpowermentsWasted / Analyzer.Procs : 0d;
 
     private static QualitativePerformance Tier(int wasted, double rate) =>
         wasted == 0 ? QualitativePerformance.Perfect

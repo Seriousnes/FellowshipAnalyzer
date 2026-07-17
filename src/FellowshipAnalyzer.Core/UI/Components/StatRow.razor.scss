@@ -1,0 +1,32 @@
+@use 'tokens' as t;
+
+.stat-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 7px 2px;
+    border-top: 1px solid var(--fa-border);
+
+    &:first-child { border-top: none; }
+}
+
+.stat-row-value {
+    flex: 0 0 auto;
+    min-width: 5ch;
+    text-align: right;
+    font-family: var(--fa-font-heading);
+    font-size: 1.65rem;
+    font-weight: 800;
+    line-height: 1.1;
+    color: var(--fa-text);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.stat-row-label {
+    flex: 1 1 auto;
+    min-width: 0;
+    color: var(--fa-text-muted);
+    font-size: 0.9rem;
+    line-height: 1.4;
+}

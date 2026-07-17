@@ -1,0 +1,12 @@
+@* InfoTooltip — an "i" affordance in a card header that reveals detail on hover/focus. *@
+
+<span class="info-tooltip" tabindex="0" role="button" aria-label="More detail">
+    <span class="info-tooltip-badge">i</span>
+    <span class="info-tooltip-popover" role="tooltip">
+        @ChildContent
+    </span>
+</span>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+}

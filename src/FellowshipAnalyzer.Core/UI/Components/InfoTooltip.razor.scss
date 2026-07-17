@@ -1,0 +1,89 @@
+@use 'tokens' as t;
+
+.info-tooltip {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    cursor: help;
+    outline: none;
+}
+
+.info-tooltip-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 1px solid var(--fa-border-card);
+    color: var(--fa-text-dim);
+    font-family: var(--fa-font-heading);
+    font-size: 0.72rem;
+    font-weight: 800;
+    font-style: italic;
+    line-height: 1;
+    transition: color 0.12s ease, border-color 0.12s ease;
+}
+
+.info-tooltip:hover .info-tooltip-badge,
+.info-tooltip:focus-visible .info-tooltip-badge {
+    color: var(--fa-gold);
+    border-color: var(--fa-gold);
+}
+
+.info-tooltip-popover {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    z-index: 40;
+    width: max-content;
+    min-width: 260px;
+    max-width: min(360px, calc(100vw - 24px));
+    padding: 10px 12px;
+    background: var(--fa-bg-surface);
+    border: 1px solid var(--fa-border-card);
+    border-radius: t.$fa-radius-sm;
+    box-shadow: var(--fa-shadow-card);
+    color: var(--fa-text-muted);
+    font-family: var(--fa-font-body);
+    font-size: 0.85rem;
+    font-weight: 400;
+    font-style: normal;
+    line-height: 1.5;
+    text-align: left;
+    text-transform: none;
+    letter-spacing: normal;
+    white-space: normal;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-4px);
+    transition: opacity 0.12s ease, transform 0.12s ease, visibility 0.12s;
+    pointer-events: none;
+}
+
+.info-tooltip:hover .info-tooltip-popover,
+.info-tooltip:focus-within .info-tooltip-popover {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+
+.info-tooltip-popover ul {
+    margin: 0;
+    padding-left: 1.15em;
+}
+
+.info-tooltip-popover li {
+    margin-bottom: 0.35em;
+
+    &:last-child { margin-bottom: 0; }
+}
+
+.info-tooltip-popover p {
+    margin: 0 0 0.5em;
+
+    &:last-child { margin-bottom: 0; }
+}

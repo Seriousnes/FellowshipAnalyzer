@@ -1,0 +1,20 @@
+@* StatRow — one statistic line: a large value with a descriptive label (may contain SpellLinks). *@
+
+<div class="stat-row" title="@Tooltip">
+    <span class="stat-row-value" style="@ValueStyle">@Value</span>
+    <span class="stat-row-label">@ChildContent</span>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public string Value { get; set; } = "";
+
+    /// <summary>The label describing the value; may contain <c>SpellLink</c>s and markup.</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>Optional CSS color for the value (e.g. a performance accent). Defaults to body text.</summary>
+    [Parameter] public string? Color { get; set; }
+
+    [Parameter] public string? Tooltip { get; set; }
+
+    private string? ValueStyle => Color is null ? null : $"color: {Color};";
+}

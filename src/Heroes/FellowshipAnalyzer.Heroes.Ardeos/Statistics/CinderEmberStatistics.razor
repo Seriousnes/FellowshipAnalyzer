@@ -1,22 +1,15 @@
 @inherits AnalyzerStatistic<CinderEmberTracker>
 
 <StatCard Title="Cinders & Embers">
-    <CastOverview Title="Current Resource" Stats="@BuildOverviewStats()" />
+    <Info>
+        <p>Cinders build toward Embers (100 Cinders make 1 Ember, up to 4 Embers). These are the amounts held at the end of the encounter.</p>
+    </Info>
+    <ChildContent>
+        <StatRow Value="@($"{Analyzer.CurrentEmbers} / {CinderEmberTracker.MaxEmbers}")">
+            Embers held at encounter end
+        </StatRow>
+        <StatRow Value="@($"{Analyzer.CurrentCinders} / {CinderEmberTracker.CindersPerEmber}")">
+            Cinders toward the next Ember
+        </StatRow>
+    </ChildContent>
 </StatCard>
-
-@code {
-    private IEnumerable<OverviewStat> BuildOverviewStats()
-    {
-        return
-        [
-            new OverviewStat(
-                $"{Analyzer.CurrentEmbers} / {CinderEmberTracker.MaxEmbers}",
-                "Embers",
-                "Whole burning Embers held at encounter end (max 4)."),
-            new OverviewStat(
-                $"{Analyzer.CurrentCinders} / {CinderEmberTracker.CindersPerEmber}",
-                "Cinders",
-                "Cinder progress toward the next Ember at encounter end (0-99)."),
-        ];
-    }
-}

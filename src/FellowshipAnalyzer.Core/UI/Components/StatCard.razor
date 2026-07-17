@@ -1,10 +1,27 @@
-@* StatCard — container card with title header and content slot, for statistics *@
+@* StatCard — statistic card: a spell/title header with an optional info tooltip, and a stat body. *@
 
 <div class="stat-card @SizeClass @WidthClass">
-    @if (!string.IsNullOrEmpty(Title))
+    @if (Header is not null || !string.IsNullOrEmpty(Title) || Info is not null)
     {
         <div class="stat-card-header">
-            <h3 class="stat-card-title">@Title</h3>
+            <div class="stat-card-heading">
+                @if (Header is not null)
+                {
+                    @Header
+                }
+                else if (!string.IsNullOrEmpty(Title))
+                {
+                    <h3 class="stat-card-title">@Title</h3>
+                }
+                @if (!string.IsNullOrEmpty(Meta))
+                {
+                    <span class="stat-card-meta">@Meta</span>
+                }
+            </div>
+            @if (Info is not null)
+            {
+                <InfoTooltip>@Info</InfoTooltip>
+            }
         </div>
     }
     <div class="stat-card-body">
@@ -13,7 +30,18 @@
 </div>
 
 @code {
+    /// <summary>Header content, typically a <c>SpellLink</c>. Takes precedence over <see cref="Title"/>.</summary>
+    [Parameter] public RenderFragment? Header { get; set; }
+
+    /// <summary>Plain-text header, used when <see cref="Header"/> is not supplied.</summary>
     [Parameter] public string Title { get; set; } = "";
+
+    /// <summary>Small dimmed suffix beside the heading (e.g. talent rank "2/2").</summary>
+    [Parameter] public string? Meta { get; set; }
+
+    /// <summary>Detail revealed by the header "i" affordance on hover/focus.</summary>
+    [Parameter] public RenderFragment? Info { get; set; }
+
     [Parameter] public RenderFragment? ChildContent { get; set; }
 
     /// <summary>Sizing variant controlling the card's vertical footprint.</summary>
@@ -27,7 +55,7 @@
 
     private string SizeClass => Size switch
     {
-        StatisticSize.Small    => "stat-card-small",        
+        StatisticSize.Small    => "stat-card-small",
         StatisticSize.Medium   => "stat-card-medium",
         StatisticSize.Large    => "stat-card-large",
         StatisticSize.Flexible => "stat-card-flexible",
