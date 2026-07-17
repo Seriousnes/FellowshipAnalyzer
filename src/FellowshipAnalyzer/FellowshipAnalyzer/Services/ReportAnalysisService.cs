@@ -162,7 +162,7 @@ public sealed class ReportAnalysisService(
 
         // Cache only fresh, completed network responses — never overwrite from a cache-hit path,
         // and never cache an in-progress fight (which may still be receiving events).
-        if (isFreshFromNetwork && !eventsResult.InProgress)
+        if (isFreshFromNetwork && !eventsResult.InProgress && events.Count > 0)
         {
             var entry = new ReportHistoryEntry(
                 reportCode, fightId, playerId,

@@ -1,7 +1,7 @@
 var builder = DistributedApplication.CreateBuilder(args);
 
 var storage = builder.AddAzureStorage("storage")
-    .RunAsEmulator(emulator => emulator.WithDataVolume());
+    .RunAsEmulator(emulator => emulator.WithDataVolume("fellowshipanalyzer-storage-data"));
 
 var blobs = storage.AddBlobs("blobs");
 

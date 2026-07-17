@@ -102,7 +102,7 @@ public sealed class FellowshipLogsApiHandler(
             "GetEventsAsync L3 upstream returned bytes={Bytes} inProgress={InProgress} t={ElapsedMs}ms",
             result.JsonBytes.Length, result.InProgress, sw.ElapsedMilliseconds);
 
-        if (!result.InProgress)
+        if (!result.InProgress && result.HasEvents)
         {
             var duration = PositiveDuration(cacheOptions.CompletedEventsCacheDuration, TimeSpan.FromDays(30));
             var expiresAt = DateTimeOffset.UtcNow.Add(duration);
@@ -134,7 +134,9 @@ public sealed class FellowshipLogsApiHandler(
         else
         {
             ApplyNoStoreCacheHeaders(context.Response, hit: false);
-            logger.LogInformation("GetEventsAsync returning MISS bytes (in-progress) at t={ElapsedMs}ms", sw.ElapsedMilliseconds);
+            logger.LogInformation(
+                "GetEventsAsync returning MISS bytes (not cached: inProgress={InProgress} hasEvents={HasEvents}) at t={ElapsedMs}ms",
+                result.InProgress, result.HasEvents, sw.ElapsedMilliseconds);
             return Results.Bytes(result.JsonBytes, "application/json");
         }
     }

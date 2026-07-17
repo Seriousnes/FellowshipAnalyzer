@@ -9,7 +9,7 @@ using StrawberryShake;
 
 namespace FellowshipAnalyzer.Api.Core;
 
-internal sealed record RawEventsResult(byte[] JsonBytes, bool InProgress);
+internal sealed record RawEventsResult(byte[] JsonBytes, bool InProgress, bool HasEvents);
 
 public sealed class FellowshipLogsService(IFellowshipLogsApiClient client, GraphQLMapper mapper, RecyclableMemoryStreamManager streamManager)
 {
@@ -33,6 +33,7 @@ public sealed class FellowshipLogsService(IFellowshipLogsApiClient client, Graph
 
         var inProgress = report.Fights?.FirstOrDefault(f => f is not null)?.InProgress ?? false;
         var data = report.Events?.Data;
+        var hasEvents = false;
 
         using var stream = streamManager.GetStream("fellowship-events");
         using (var writer = new Utf8JsonWriter((Stream)stream))
@@ -43,6 +44,7 @@ public sealed class FellowshipLogsService(IFellowshipLogsApiClient client, Graph
 
             if (data is { ValueKind: JsonValueKind.Array } d)
             {
+                hasEvents = d.GetArrayLength() > 0;
                 d.WriteTo(writer);
             }
             else if (data is null)
@@ -58,7 +60,7 @@ public sealed class FellowshipLogsService(IFellowshipLogsApiClient client, Graph
             writer.WriteEndObject();
         }
 
-        return new RawEventsResult(stream.ToArray(), inProgress);
+        return new RawEventsResult(stream.ToArray(), inProgress, hasEvents);
     }
 
     public async Task<AnalysisPreload> GetReportMasterDataAsync(

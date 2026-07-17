@@ -17,11 +17,11 @@ internal static class CacheKeys
     // Blob names must be URL-safe; using lowercase and hyphens only.
 
     public static string BlobAnalysis(string reportCode)
-        => $"analysis/{reportCode.Trim().ToLowerInvariant()}";
+        => $"analysis/{reportCode.Trim()}";
 
     public static string BlobCharacter(int characterId)
         => $"character/{characterId}";
 
     public static string BlobEvents(string reportCode, int playerId, int fightId)
-        => $"events/{reportCode.Trim().ToLowerInvariant()}/{fightId}/{playerId}";
+        => $"events/{reportCode.Trim()}/{fightId}/{playerId}";
 }
