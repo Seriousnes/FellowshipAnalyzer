@@ -12,7 +12,7 @@
     border-left: 4px solid var(--tip-color);
     border-radius: 6px;
 
-    &.info    { --tip-color: #{t.$fa-steel-soft}; }
+    &.info    { --tip-color: #{t.$fa-steel}; }
     &.note    { --tip-color: #{t.$fa-arcane}; }
     &.success { --tip-color: var(--fa-perf-good); }
     &.warning { --tip-color: var(--fa-perf-ok); }

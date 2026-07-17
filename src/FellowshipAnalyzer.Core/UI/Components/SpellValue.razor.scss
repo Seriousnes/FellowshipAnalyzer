@@ -12,7 +12,7 @@
     align-items: center;
     justify-content: center;
     padding: 14px 16px;
-    background: t.$fa-black-a18;
+    background: t.tint(t.$fa-black, t.$fa-tint-soft);
     border-right: 1px solid t.$fa-border;
 }
 

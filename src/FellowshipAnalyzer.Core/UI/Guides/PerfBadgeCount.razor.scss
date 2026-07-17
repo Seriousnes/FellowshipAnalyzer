@@ -7,7 +7,7 @@
     border-radius: 4px;
     overflow: hidden;
     min-height: 30px;
-    background: t.$fa-black-a20;
+    background: t.tint(t.$fa-black, t.$fa-tint-soft);
 }
 
 .perf-badge-count {

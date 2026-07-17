@@ -3,7 +3,7 @@
 .timeline-settings-backdrop {
     position: fixed;
     inset: 0;
-    background: t.$fa-black-a55;
+    background: t.tint(t.$fa-black, t.$fa-tint-strong);
     z-index: 1000;
 }
 
@@ -16,11 +16,11 @@
     max-height: 80vh;
     display: flex;
     flex-direction: column;
-    background: t.$fa-bg-well;
-    border: 1px solid var(--fa-border-card, t.$fa-white-a12);
+    background: t.$fa-bg-surface;
+    border: 1px solid var(--fa-border-card, t.tint(t.$fa-white, t.$fa-tint-subtle));
     border-radius: t.$fa-radius-md;
-    box-shadow: 0 24px 60px t.$fa-black-a55;
-    color: var(--fa-text, t.$fa-text-bright);
+    box-shadow: 0 24px 60px t.tint(t.$fa-black, t.$fa-tint-strong);
+    color: var(--fa-text, t.$fa-text);
     z-index: 1001;
     overflow: hidden;
 }
@@ -30,7 +30,7 @@
     align-items: center;
     justify-content: space-between;
     padding: 14px 18px;
-    border-bottom: 1px solid t.$fa-white-a08;
+    border-bottom: 1px solid t.tint(t.$fa-white, t.$fa-tint-faint);
 }
 
 .timeline-settings-title {
@@ -43,27 +43,27 @@
 .timeline-settings-close {
     background: transparent;
     border: none;
-    color: var(--fa-text-muted, t.$fa-white-a60);
+    color: var(--fa-text-muted, t.tint(t.$fa-white, t.$fa-tint-strong));
     cursor: pointer;
     padding: 4px;
     border-radius: 4px;
 
     &:hover {
         color: var(--fa-text, t.$fa-white);
-        background: t.$fa-white-a06;
+        background: t.tint(t.$fa-white, t.$fa-tint-faint);
     }
 }
 
 .timeline-settings-tabs {
     display: flex;
-    border-bottom: 1px solid t.$fa-white-a08;
+    border-bottom: 1px solid t.tint(t.$fa-white, t.$fa-tint-faint);
     padding: 0 12px;
 }
 
 .timeline-settings-tab {
     background: transparent;
     border: none;
-    color: var(--fa-text-muted, t.$fa-white-a55);
+    color: var(--fa-text-muted, t.tint(t.$fa-white, t.$fa-tint-strong));
     cursor: pointer;
     padding: 10px 14px;
     font-size: 13px;
@@ -75,8 +75,8 @@
     }
 
     &--active {
-        color: var(--fa-gold, t.$fa-gold-sand);
-        border-bottom-color: var(--fa-gold, t.$fa-gold-sand);
+        color: var(--fa-gold, t.$fa-gold);
+        border-bottom-color: var(--fa-gold, t.$fa-gold);
     }
 }
 
@@ -88,7 +88,7 @@
 
 .timeline-settings-empty {
     text-align: center;
-    color: var(--fa-text-muted, t.$fa-white-a50);
+    color: var(--fa-text-muted, t.tint(t.$fa-white, t.$fa-tint-strong));
     padding: 24px 8px;
     font-size: 13px;
 }
@@ -108,7 +108,7 @@
     margin: 2px 0;
 
     &:hover {
-        background: t.$fa-white-a04;
+        background: t.tint(t.$fa-white, t.$fa-tint-faint);
     }
 
     &.draggable {
@@ -123,7 +123,7 @@
 .timeline-settings-drag-handle {
     display: inline-flex;
     align-items: center;
-    color: var(--fa-text-muted, t.$fa-white-a40);
+    color: var(--fa-text-muted, t.tint(t.$fa-white, t.$fa-tint-medium));
     cursor: grab;
 }
 
@@ -159,8 +159,8 @@
     input[type='number'] {
         width: 60px;
         padding: 4px 6px;
-        background: t.$fa-white-a06;
-        border: 1px solid t.$fa-white-a12;
+        background: t.tint(t.$fa-white, t.$fa-tint-faint);
+        border: 1px solid t.tint(t.$fa-white, t.$fa-tint-subtle);
         border-radius: 4px;
         color: inherit;
         font-size: 12px;
@@ -170,7 +170,7 @@
         font-size: 11px;
         text-transform: uppercase;
         letter-spacing: 0.04em;
-        color: var(--fa-text-muted, t.$fa-white-a50);
+        color: var(--fa-text-muted, t.tint(t.$fa-white, t.$fa-tint-strong));
     }
 }
 
@@ -188,12 +188,12 @@
     font-weight: 600;
     letter-spacing: 0.06em;
     text-transform: uppercase;
-    color: var(--fa-gold, t.$fa-gold-sand);
+    color: var(--fa-gold, t.$fa-gold);
 }
 
 .timeline-settings-section-divider {
     border: 0;
-    border-top: 1px solid t.$fa-white-a08;
+    border-top: 1px solid t.tint(t.$fa-white, t.$fa-tint-faint);
     margin: 12px 0;
 }
 
@@ -203,19 +203,19 @@
     input[type='text'] {
         width: 100%;
         padding: 6px 8px;
-        background: t.$fa-white-a06;
-        border: 1px solid t.$fa-white-a12;
+        background: t.tint(t.$fa-white, t.$fa-tint-faint);
+        border: 1px solid t.tint(t.$fa-white, t.$fa-tint-subtle);
         border-radius: 4px;
         color: inherit;
         font-size: 13px;
 
         &::placeholder {
-            color: var(--fa-text-muted, t.$fa-white-a40);
+            color: var(--fa-text-muted, t.tint(t.$fa-white, t.$fa-tint-medium));
         }
 
         &:focus {
             outline: none;
-            border-color: var(--fa-gold, t.$fa-gold-sand);
+            border-color: var(--fa-gold, t.$fa-gold);
         }
     }
 }
@@ -224,11 +224,11 @@
     list-style: none;
     margin: 0 0 8px;
     padding: 4px 0;
-    border: 1px solid t.$fa-white-a08;
+    border: 1px solid t.tint(t.$fa-white, t.$fa-tint-faint);
     border-radius: 6px;
     max-height: 220px;
     overflow-y: auto;
-    background: t.$fa-white-a02;
+    background: t.tint(t.$fa-white, t.$fa-tint-faint);
 }
 
 .timeline-settings-search-result {
@@ -238,29 +238,29 @@
     padding: 6px 8px;
 
     &:hover {
-        background: t.$fa-white-a04;
+        background: t.tint(t.$fa-white, t.$fa-tint-faint);
     }
 }
 
 .timeline-settings-add {
     background: transparent;
-    border: 1px solid t.$fa-gold-sand-a40;
-    color: var(--fa-gold, t.$fa-gold-sand);
+    border: 1px solid t.tint(t.$fa-gold, t.$fa-tint-medium);
+    color: var(--fa-gold, t.$fa-gold);
     padding: 3px 10px;
     border-radius: 4px;
     cursor: pointer;
     font-size: 12px;
 
     &:hover {
-        background: t.$fa-gold-sand-a12;
-        border-color: var(--fa-gold, t.$fa-gold-sand);
+        background: t.tint(t.$fa-gold, t.$fa-tint-subtle);
+        border-color: var(--fa-gold, t.$fa-gold);
     }
 }
 
 .timeline-settings-delete {
     background: transparent;
     border: none;
-    color: var(--fa-text-muted, t.$fa-white-a50);
+    color: var(--fa-text-muted, t.tint(t.$fa-white, t.$fa-tint-strong));
     padding: 4px;
     border-radius: 4px;
     cursor: pointer;
@@ -268,8 +268,8 @@
     align-items: center;
 
     &:hover {
-        color: var(--fa-danger, t.$fa-perf-fail-deep);
-        background: t.$fa-white-a06;
+        color: var(--fa-danger, t.$fa-perf-fail);
+        background: t.tint(t.$fa-white, t.$fa-tint-faint);
     }
 }
 

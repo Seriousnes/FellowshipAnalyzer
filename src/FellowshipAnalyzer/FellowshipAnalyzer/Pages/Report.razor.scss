@@ -12,8 +12,8 @@
     padding: 1.25rem;
 
     &.error {
-        color: t.$fa-perf-fail-soft;
-        border-color: t.$fa-perf-fail-a35;
+        color: t.$fa-perf-fail;
+        border-color: t.tint(t.$fa-perf-fail, t.$fa-tint-medium);
     }
 }
 

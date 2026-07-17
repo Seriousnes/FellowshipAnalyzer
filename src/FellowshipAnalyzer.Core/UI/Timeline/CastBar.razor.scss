@@ -15,7 +15,7 @@
 .cast-bar-time-line-sec {
     display: inline-block;
     height: 100%;
-    border-left: 1px solid t.$fa-white-a30;
+    border-left: 1px solid t.tint(t.$fa-white, t.$fa-tint-muted);
     padding-left: 3px;
     line-height: 1;
     font-size: 14px;
@@ -29,7 +29,7 @@
         left: 0;
         bottom: -16px;
         transform: translateX(-50%);
-        color: t.$fa-grey-tick;
+        color: t.tint(t.$fa-white, t.$fa-tint-veil);
         font-size: 13px;
         white-space: nowrap;
     }
@@ -38,7 +38,7 @@
     &::after {
         content: '';
         width: 1px;
-        background: t.$fa-white-a20;
+        background: t.tint(t.$fa-white, t.$fa-tint-soft);
         position: absolute;
         bottom: 3px;
         height: 7px;
@@ -58,7 +58,7 @@
     position: relative;
     width: 100%;
     height: calc(24px + var(--has-levels, 0) * 34px + var(--levels, 0) * 27px);
-    box-shadow: 0 0 3px t.$fa-black-a30;
+    box-shadow: 0 0 3px t.tint(t.$fa-black, t.$fa-tint-muted);
     box-sizing: content-box;
 
     /* Subtle background strip behind the 24px main row */
@@ -136,7 +136,7 @@
     transform: translateX(-50%);
     height: calc(15px + var(--level, 0) * 27px);
     width: 1px;
-    background: t.$fa-amber-deep;
+    background: t.$fa-amber;
 
     /* Arrow pointing up from time-indicator */
     &::before {
@@ -145,7 +145,7 @@
         height: 0;
         border-left: 5px solid transparent;
         border-right: 5px solid transparent;
-        border-bottom: 5px solid t.$fa-amber-deep;
+        border-bottom: 5px solid t.$fa-amber;
         position: absolute;
         top: 0;
         left: 50%;
@@ -157,7 +157,7 @@
 .cast-bar-gcd {
     height: 8px;
     top: 8px;
-    background: t.$fa-amber-warm;
+    background: t.$fa-amber;
     border-radius: 2px;
     border: 1px solid t.$fa-white;
     z-index: 1;
@@ -170,8 +170,8 @@
     top: 7px;
     background: repeating-linear-gradient(
         135deg,
-        t.$fa-amber-warm 0px,
-        t.$fa-amber-warm 5px,
+        t.$fa-amber 0px,
+        t.$fa-amber 5px,
         t.$fa-white 5px,
         t.$fa-white 10px
     );

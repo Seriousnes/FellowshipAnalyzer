@@ -2,7 +2,7 @@
 @use 'sass:color';
 
 .timeline {
-    background: t.$fa-black-a15;
+    background: t.tint(t.$fa-black, t.$fa-tint-subtle);
     border-radius: 6px;
     padding: 44px 0 8px;
     position: relative;
@@ -30,9 +30,9 @@
 }
 
 .timeline-settings-button {
-    background: t.$fa-black-a35;
-    border: 1px solid t.$fa-white-a10;
-    color: t.$fa-white-a70;
+    background: t.tint(t.$fa-black, t.$fa-tint-medium);
+    border: 1px solid t.tint(t.$fa-white, t.$fa-tint-subtle);
+    color: t.tint(t.$fa-white, t.$fa-tint-veil);
     width: 28px;
     height: 28px;
     border-radius: 4px;
@@ -44,9 +44,9 @@
     user-select: none;
 
     &:hover {
-        color: var(--fa-gold, t.$fa-gold-sand);
-        border-color: t.$fa-white-a25;
-        background: t.$fa-black-a55;
+        color: var(--fa-gold, t.$fa-gold);
+        border-color: t.tint(t.$fa-white, t.$fa-tint-muted);
+        background: t.tint(t.$fa-black, t.$fa-tint-strong);
     }
 }
 
@@ -59,7 +59,7 @@
 .timeline-row {
     display: block;
     align-items: center;
-    border-bottom: 1px solid t.$fa-white-a05;
+    border-bottom: 1px solid t.tint(t.$fa-white, t.$fa-tint-faint);
 
     &:last-child {
         border-bottom: none;
@@ -93,17 +93,17 @@
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    color: t.$fa-white-a45;
+    color: t.tint(t.$fa-white, t.$fa-tint-medium);
 }
 
 .timeline-section-divider {
     height: 0;
-    border-top: 1px solid t.$fa-white-a10;
+    border-top: 1px solid t.tint(t.$fa-white, t.$fa-tint-subtle);
     margin: 16px 0 0;
 }
 
 .timeline-empty {
-    color: t.$fa-white-a40;
+    color: t.tint(t.$fa-white, t.$fa-tint-medium);
     padding: 24px;
     text-align: center;
     font-size: 14px;

@@ -16,7 +16,7 @@
     padding: 2rem;
     border: 0;
     border-radius: 0.5rem;
-    box-shadow: 0 3px 6px 2px t.$fa-black-a30;
+    box-shadow: 0 3px 6px 2px t.tint(t.$fa-black, t.$fa-tint-muted);
     opacity: 0;
     transition: display 0.5s allow-discrete, overlay 0.5s allow-discrete;
     animation: components-reconnect-modal-fadeOutOpacity 0.5s both;
@@ -41,7 +41,7 @@
     }
 
     &::backdrop {
-        background-color: t.$fa-black-a40;
+        background-color: t.tint(t.$fa-black, t.$fa-tint-medium);
         animation: components-reconnect-modal-fadeInOpacity 0.5s ease-in-out;
         opacity: 1;
     }
@@ -55,7 +55,7 @@
         padding: 4px 24px;
         border-radius: 4px;
 
-        &:hover  { background-color: t.$fa-steel-deep; }
+        &:hover  { background-color: t.$fa-steel; }
         &:active { background-color: t.$fa-steel; }
     }
 }

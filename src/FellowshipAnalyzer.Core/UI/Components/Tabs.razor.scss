@@ -51,7 +51,7 @@
         margin-bottom: -1px;
 
         &:hover:not(:disabled) {
-            border-bottom-color: t.$fa-gold-a35;
+            border-bottom-color: t.tint(t.$fa-gold, t.$fa-tint-medium);
         }
 
         &.active {

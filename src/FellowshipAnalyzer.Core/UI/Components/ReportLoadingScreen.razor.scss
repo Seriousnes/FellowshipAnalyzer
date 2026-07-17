@@ -22,7 +22,7 @@
 .loading-bar {
     display: flex;
     height: 12px;
-    background: t.$fa-black-a40;
+    background: t.tint(t.$fa-black, t.$fa-tint-medium);
     border-radius: 3px;
     overflow: hidden;
     margin-bottom: 1.5rem;
@@ -30,8 +30,8 @@
 
 .loading-bar-chunk {
     flex: 1;
-    border: 1px solid t.$fa-black-a25;
-    background: t.$fa-bg-slate;
+    border: 1px solid t.tint(t.$fa-black, t.$fa-tint-muted);
+    background: t.tint(t.$fa-bg-surface, t.$fa-tint-strong);
     position: relative;
 }
 
@@ -77,7 +77,7 @@
 .loading-sub-bar {
     display: flex;
     height: 6px;
-    background: t.$fa-black-a30;
+    background: t.tint(t.$fa-black, t.$fa-tint-muted);
     border-radius: 2px;
     overflow: hidden;
 }

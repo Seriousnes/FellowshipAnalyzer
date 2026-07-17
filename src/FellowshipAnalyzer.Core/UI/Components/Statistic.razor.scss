@@ -23,7 +23,7 @@
     right: 0;
     width: 0;
     height: 0;
-    border-right: 26px solid t.$fa-text-a08;
+    border-right: 26px solid t.tint(t.$fa-text, t.$fa-tint-faint);
     border-bottom: 26px solid transparent;
     cursor: help;
     z-index: 1;

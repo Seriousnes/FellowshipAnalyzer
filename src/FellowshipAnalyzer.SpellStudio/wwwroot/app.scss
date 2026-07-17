@@ -37,17 +37,17 @@
 
     --studio-mono: 'Cascadia Code', 'JetBrains Mono', ui-monospace, 'SFMono-Regular', Consolas, monospace;
 
-    --studio-src-spelldata: #{t.$fa-slate};
+    --studio-src-spelldata: #{t.$fa-steel};
     --studio-src-herodata:  #{t.$fa-ice};
-    --studio-src-geardata:  #{t.$fa-arcane-soft};
+    --studio-src-geardata:  #{t.$fa-arcane};
     --studio-src-icons:     #{t.$fa-nature};
     --studio-src-override:  #{t.$fa-gold};
 
-    --studio-warn: #{t.$fa-gold-deep};
+    --studio-warn: #{t.$fa-gold};
 
-    --studio-gap-name: #{t.$fa-gold-deep};
-    --studio-gap-icon: #{t.$fa-ice-deep};
-    --studio-gap-id:   #{t.$fa-perf-fail-warm};
+    --studio-gap-name: #{t.$fa-gold};
+    --studio-gap-icon: #{t.$fa-ice};
+    --studio-gap-id:   #{t.$fa-perf-fail};
 }
 
 *, *::before, *::after { box-sizing: border-box; }

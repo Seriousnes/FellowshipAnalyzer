@@ -2,7 +2,7 @@
 
 .section-container {
     background: var(--fa-bg-inset, t.$fa-bg-inset);
-    border: 1px solid var(--fa-border, t.$fa-gold-a12);
+    border: 1px solid var(--fa-border, t.tint(t.$fa-gold, t.$fa-tint-subtle));
     border-radius: 8px;
     padding: 10px 12px;
     margin-bottom: 10px;
@@ -18,7 +18,7 @@
     gap: 8px;
     margin-bottom: 10px;
     padding-bottom: 8px;
-    border-bottom: 1px solid var(--fa-border, t.$fa-gold-a12);
+    border-bottom: 1px solid var(--fa-border, t.tint(t.$fa-gold, t.$fa-tint-subtle));
 }
 
 .title-column {
@@ -61,7 +61,7 @@
 
 .helper-text {
     font-size: 1rem;
-    color: t.$fa-white-a40;
+    color: t.tint(t.$fa-white, t.$fa-tint-medium);
     margin-top: 4px;
     font-style: italic;
 }

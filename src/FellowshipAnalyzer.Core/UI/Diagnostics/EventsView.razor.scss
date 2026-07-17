@@ -115,9 +115,9 @@
     flex-shrink: 0;
 }
 
-.legend-modified .legend-swatch    { background: t.$fa-ev-modified-a40; }
-.legend-fabricated .legend-swatch  { background: t.$fa-ev-fabricated-a30; }
-.legend-reordered .legend-swatch   { background: t.$fa-ev-reordered-a35; }
+.legend-modified .legend-swatch    { background: t.tint(t.$fa-amber, t.$fa-tint-medium); }
+.legend-fabricated .legend-swatch  { background: t.tint(t.$fa-perf-perfect, t.$fa-tint-muted); }
+.legend-reordered .legend-swatch   { background: t.tint(t.$fa-steel, t.$fa-tint-medium); }
 
 /* ── Main event list ────────────────────────────────────────────────────── */
 
@@ -184,17 +184,17 @@
 }
 
 /* Row state colors */
-.ev-row-fabricated .ev-col      { background: t.$fa-ev-fabricated-a08; }
-.ev-row-fabricated:hover .ev-col { background: t.$fa-ev-fabricated-a15; }
+.ev-row-fabricated .ev-col      { background: t.tint(t.$fa-perf-perfect, t.$fa-tint-faint); }
+.ev-row-fabricated:hover .ev-col { background: t.tint(t.$fa-perf-perfect, t.$fa-tint-subtle); }
 
-.ev-row-modified .ev-col        { background: t.$fa-ev-modified-a10; }
-.ev-row-modified:hover .ev-col  { background: t.$fa-ev-modified-a18; }
+.ev-row-modified .ev-col        { background: t.tint(t.$fa-amber, t.$fa-tint-subtle); }
+.ev-row-modified:hover .ev-col  { background: t.tint(t.$fa-amber, t.$fa-tint-soft); }
 
-.ev-row-reordered .ev-col       { background: t.$fa-ev-reordered-a10; }
-.ev-row-reordered:hover .ev-col { background: t.$fa-ev-reordered-a18; }
+.ev-row-reordered .ev-col       { background: t.tint(t.$fa-steel, t.$fa-tint-subtle); }
+.ev-row-reordered:hover .ev-col { background: t.tint(t.$fa-steel, t.$fa-tint-soft); }
 
 /* Event type color coding */
-.ev-cast                                    { color: t.$fa-ice-soft; }
+.ev-cast                                    { color: t.$fa-ice; }
 .ev-damage                                  { color: t.$fa-ev-damage; }
 .ev-heal                                    { color: t.$fa-ev-fabricated; }
 .ev-applybuff, .ev-refreshbuff              { color: t.$fa-ev-buff; }
