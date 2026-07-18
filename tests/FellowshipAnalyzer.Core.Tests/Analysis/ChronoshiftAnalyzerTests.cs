@@ -130,6 +130,7 @@ public sealed class ChronoshiftAnalyzerTests
             typeof(Haste),
             typeof(GemPowers),
             typeof(CooldownReduction),
+            typeof(GearCooldownRecovery),
             typeof(SpellUsable),
             typeof(ChronoshiftAnalyzer),
         ];

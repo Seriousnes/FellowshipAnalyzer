@@ -38,14 +38,21 @@ public sealed partial class EngulfingFlamesEconomyAnalyzer : Analyzer
     public int WindowsReady => _windows.Count(w => w.Ready);
     public int WindowsShort => WindowsEvaluated - WindowsReady;
 
-    /// <summary>Full Engulfing Flames recharge periods wasted sitting at maximum charges.</summary>
+    /// <summary>
+    /// Full Engulfing Flames recharge periods wasted sitting at maximum charges. Measured against the
+    /// spell's <i>effective</i> recharge period (base cooldown accelerated by haste, gear, and cooldown
+    /// recovery) rather than the raw curated 20 seconds, so a legendary's cooldown acceleration counts a
+    /// capped window as more wasted charges, matching how fast the game would actually have refilled them.
+    /// </summary>
     public int WastedCharges
     {
         get
         {
-            var rechargeMs = Spells.EngulfingFlames.Cooldown is { } cooldown and > 0
-                ? (int)(cooldown * 1000)
-                : FallbackRechargeMs;
+            var rechargeMs = Owner.SpellUsable!.RechargeDuration(Spells.EngulfingFlames.Id);
+            if (rechargeMs <= 0)
+                rechargeMs = Spells.EngulfingFlames.Cooldown is { } cooldown and > 0
+                    ? (int)(cooldown * 1000)
+                    : FallbackRechargeMs;
             return rechargeMs > 0 ? (int)(CappedMs / rechargeMs) : 0;
         }
     }

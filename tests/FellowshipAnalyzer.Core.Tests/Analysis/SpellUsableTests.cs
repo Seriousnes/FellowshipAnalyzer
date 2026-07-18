@@ -365,6 +365,7 @@ public sealed partial class SpellUsableTests
             typeof(Haste),
             typeof(GemPowers),
             typeof(CooldownReduction),
+            typeof(GearCooldownRecovery),
             typeof(SpellUsable),
             typeof(UpdateProbeModule),
         ];

@@ -11,7 +11,8 @@ public sealed partial class SpellUsable(
     Lazy<Abilities> abilities,
     Lazy<DebugAnnotations> debugAnnotations,
     Lazy<Haste> haste,
-    Lazy<CooldownReduction> cooldownReduction) : Analyzer
+    Lazy<CooldownReduction> cooldownReduction,
+    Lazy<GearCooldownRecovery> gearRecovery) : Analyzer
 {
     private const int CooldownLagMargin = 150;
 
@@ -70,6 +71,19 @@ public sealed partial class SpellUsable(
         return _cooldowns.TryGetValue(spellId, out var cd)
             ? Math.Max(0, cd.ExpectedEnd - ts)
             : 0;
+    }
+
+    /// <summary>
+    /// The full recharge duration one charge of <paramref name="spellId"/> currently takes: its base
+    /// cooldown after Ability Cooldown Reduction, divided by the current <see cref="EffectiveRate"/>.
+    /// This is the value <see cref="BeginCooldown"/> assigns a fresh recharge, exposed for metrics that
+    /// need the effective (haste/gear/recovery-accelerated) period rather than the raw curated cooldown.
+    /// Returns 0 for a spell with no configured cooldown.
+    /// </summary>
+    public int RechargeDuration(int spellId)
+    {
+        var baseDurationMs = (int)(_abilities.GetExpectedCooldown(spellId) * 1000);
+        return baseDurationMs <= 0 ? 0 : (int)(_cooldownReduction.Scale(baseDurationMs) / EffectiveRate(spellId));
     }
 
     public void BeginCooldown(int spellId, int? timestamp = null)
@@ -217,14 +231,16 @@ public sealed partial class SpellUsable(
     }
 
     /// <summary>
-    /// The cooldown-speed multiplier for <paramref name="spellId"/>: <c>1 + haste + added recovery</c>.
-    /// Cooldown recovery and cooldown acceleration are one mechanic fed by a single additive pool, so
-    /// haste and effects like Chronoshift contribute terms rather than independent factors; a value of
-    /// 9.0 means the spell's cooldown elapses 9× faster. Static reductions are folded into the
-    /// ability's base cooldown; dynamic reductions (<see cref="ReduceCooldown"/>) apply afterwards
-    /// to the remaining time.
+    /// The cooldown-speed multiplier for <paramref name="spellId"/>:
+    /// <c>1 + haste + gear acceleration + added recovery</c>. Cooldown recovery and cooldown
+    /// acceleration are one mechanic fed by a single additive pool, so haste, a legendary's Strand of
+    /// Eternity (<see cref="GearCooldownRecovery"/>), and effects like Chronoshift contribute terms
+    /// rather than independent factors; a value of 9.0 means the spell's cooldown elapses 9× faster.
+    /// Static reductions are folded into the ability's base cooldown; dynamic reductions
+    /// (<see cref="ReduceCooldown"/>) apply afterwards to the remaining time.
     /// </summary>
-    public double EffectiveRate(int spellId) => 1.0 + HasteRecovery(spellId) + _addedRecovery;
+    public double EffectiveRate(int spellId) =>
+        1.0 + HasteRecovery(spellId) + _gearRecovery.Current + _addedRecovery;
 
     /// <summary>
     /// Haste's contribution to <paramref name="spellId"/>'s recovery pool: the player's current haste
@@ -264,8 +280,8 @@ public sealed partial class SpellUsable(
     [On<ChangeHasteEvent>]
     private void OnChangeHaste(ChangeHasteEvent e)
     {
-        var oldRate = 1.0 + (e.OldHaste ?? 0.0) + _addedRecovery;
-        var newRate = 1.0 + (e.NewHaste ?? 0.0) + _addedRecovery;
+        var oldRate = 1.0 + (e.OldHaste ?? 0.0) + _gearRecovery.Current + _addedRecovery;
+        var newRate = 1.0 + (e.NewHaste ?? 0.0) + _gearRecovery.Current + _addedRecovery;
         if (oldRate <= 0 || oldRate == newRate) return;
 
         var change = newRate / oldRate;

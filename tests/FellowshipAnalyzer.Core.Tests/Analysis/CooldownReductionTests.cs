@@ -218,6 +218,7 @@ public sealed class CooldownReductionTests
             typeof(Haste),
             typeof(GemPowers),
             typeof(CooldownReduction),
+            typeof(GearCooldownRecovery),
             typeof(SpellUsable),
         ];
 

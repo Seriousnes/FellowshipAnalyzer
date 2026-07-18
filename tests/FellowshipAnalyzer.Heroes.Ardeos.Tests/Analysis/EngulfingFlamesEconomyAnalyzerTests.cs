@@ -153,6 +153,20 @@ public sealed class EngulfingFlamesEconomyAnalyzerTests
     }
 
     [Fact]
+    public async Task Overcap_WithLegendary_CountsAgainstAcceleratedRecharge()
+    {
+        // A legendary's Strand of Eternity accelerates the 20s recharge to ~18.2s, so a 200s pull spent
+        // entirely at max charges wastes 11 recharge periods, one more than the raw curated 20s reports.
+        var events = new List<Event> { CombatantWithLegendary() };
+
+        var (parser, _) = await AnalyzeAsync(events, SpanningFight(0, 200_000));
+
+        var analyzer = parser.EngulfingFlamesEconomyAnalyzers.ShouldHaveSingleItem().Analyzer;
+        analyzer.CappedSeconds.ShouldBe(200d);
+        analyzer.WastedCharges.ShouldBe(11);
+    }
+
+    [Fact]
     public async Task ReadyWindowWithOvercap_SurfacesBothSignals()
     {
         var events = new List<Event> { Cast(Spells.Wildfire.FSLID, 1000) };
@@ -237,6 +251,16 @@ public sealed class EngulfingFlamesEconomyAnalyzerTests
     {
         SourceId = PlayerId,
         Emerald = power,
+    };
+
+    /// <summary>
+    /// A combatant wearing a legendary item (quality tier 6), whose Strand of Eternity grants +10%
+    /// cooldown acceleration via <see cref="Core.Analysis.GearCooldownRecovery"/>.
+    /// </summary>
+    private static CombatantInfoEvent CombatantWithLegendary() => new()
+    {
+        SourceId = PlayerId,
+        Gear = [new Item { Id = 5222, Quality = 6 }],
     };
 
     private static IEnumerable<Event> Fillers(int start, int end, int interval)
