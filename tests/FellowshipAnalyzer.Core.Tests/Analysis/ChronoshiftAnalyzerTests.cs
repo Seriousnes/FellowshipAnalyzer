@@ -13,9 +13,9 @@ using Xunit;
 namespace FellowshipAnalyzer.Core.Tests.Analysis;
 
 /// <summary>
-/// Tests for <see cref="ChronoshiftAnalyzer"/>: the 9× recovery window is opened on the Chronoshift
-/// channel, bounded to 3 seconds (or an early <see cref="EndChannelEvent"/>), and the bonus cooldown
-/// recovery it grants is attributed per ability.
+/// Tests for <see cref="ChronoshiftAnalyzer"/>: the +800% recovery window (9× for an ability with no
+/// haste contribution) is opened on the Chronoshift channel, bounded to 3 seconds (or an early
+/// <see cref="EndChannelEvent"/>), and the bonus cooldown recovery it grants is attributed per ability.
 /// </summary>
 public sealed class ChronoshiftAnalyzerTests
 {
@@ -32,8 +32,8 @@ public sealed class ChronoshiftAnalyzerTests
     public async Task FullChannel_AttributesBonusRecoveryToOnCooldownAbility()
     {
         // BigCd cast at 1000 → 30000ms remaining. Chronoshift channels [5000, 8000): at open the
-        // spell has 26000ms left, which at 9× finishes after 26000/9 ≈ 2888ms (inside the window).
-        // Bonus recovery = 8 × 2888 ≈ 23111ms.
+        // spell has 26000ms left, which at 9× needs ~2889ms, so it comes off cooldown just inside the
+        // window. Bonus recovery = 8 × 2889 ≈ 23112ms.
         var analyzer = await Analyze(
         [
             Cast(1000, BigCdId),
@@ -48,9 +48,26 @@ public sealed class ChronoshiftAnalyzerTests
     }
 
     [Fact]
+    public async Task AbilityComingOffCooldownMidChannel_OnlyCreditsTimeSpentOnCooldown()
+    {
+        // BigCd cast at 1000 → ends at 31000. Chronoshift channels [27000, 30000): at open the spell
+        // has 4000ms left, which at 9× needs only ~444ms. Recovery past that point is not Chronoshift's
+        // to claim, so the bonus is 8 × 444 ≈ 3552ms, not 8 × the full 3000ms window.
+        var analyzer = await Analyze(
+        [
+            Cast(1000, BigCdId),
+            BeginChannel(27_000),
+            Filler(31_000),
+        ]);
+
+        var recovery = Assert.Single(analyzer.RecoveryByAbility);
+        Assert.InRange(recovery.RecoveredMs, 3_200, 3_800);
+    }
+
+    [Fact]
     public async Task EndChannel_CancelsWindowEarly_GrantsLessRecovery()
     {
-        // Same setup, but the channel is cancelled at 6000 (1000ms in): bonus recovery is
+        // Same setup as the full channel, but cancelled at 6000 (1000ms in): bonus recovery is
         // 8 × 1000 = 8000ms, far less than a full 3-second channel would grant.
         var analyzer = await Analyze(
         [
@@ -67,8 +84,8 @@ public sealed class ChronoshiftAnalyzerTests
     [Fact]
     public async Task RepeatedBeginChannels_DoNotCompound()
     {
-        // Two overlapping begins without ends must not stack the recovery rate (the 9^10 bug):
-        // each window still only grants its own bounded bonus.
+        // Two overlapping begins without ends must not stack the added recovery (the 9^10 bug):
+        // the pair still grants exactly one window's bonus, 8 × 2889 ≈ 23112ms.
         var analyzer = await Analyze(
         [
             Cast(1000, BigCdId),
@@ -77,7 +94,8 @@ public sealed class ChronoshiftAnalyzerTests
             Filler(20_000),
         ]);
 
-        Assert.All(analyzer.RecoveryByAbility, r => Assert.InRange(r.RecoveredMs, 0, 30_000));
+        var recovery = Assert.Single(analyzer.RecoveryByAbility);
+        Assert.InRange(recovery.RecoveredMs, 22_500, 23_500);
     }
 
     [Fact]
@@ -110,6 +128,8 @@ public sealed class ChronoshiftAnalyzerTests
             typeof(StatTracker),
             typeof(Combatants),
             typeof(Haste),
+            typeof(GemPowers),
+            typeof(CooldownReduction),
             typeof(SpellUsable),
             typeof(ChronoshiftAnalyzer),
         ];

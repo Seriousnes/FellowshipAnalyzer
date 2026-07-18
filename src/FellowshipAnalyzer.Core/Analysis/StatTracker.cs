@@ -70,28 +70,24 @@ public sealed partial class StatTracker(Lazy<Combatants> combatants) : Analyzer
     public double StartingIntellect => _pullStats.Intellect;
 
     /// <summary>
-    /// Converts a stat rating to a percentage using Fellowship's piecewise
-    /// diminishing-returns formula. Returns a decimal fraction (0.30 = 30%).
-    /// Source: CombatMechanics.md / FellowBIS stats guide.
+    /// Converts a stat rating to a percentage using Fellowship's Season 3 diminishing-returns
+    /// formula. The raw percentage is <c>rating × 0.16</c>; diminishing returns then apply a
+    /// per-band multiplier to each 5-point band of that raw percentage (no reduction below 10%,
+    /// then ×0.98, ×0.96, ×0.94, and ×0.92 for everything past 25%). Returns a decimal fraction
+    /// (0.30 = 30%). Flat percentage bonuses from static effects (e.g. +5% haste) are additive
+    /// after this and are not modelled here.
     /// </summary>
     public static double RatingToPercentage(double rating)
     {
         if (rating <= 0) return 0;
 
-        const double t1 = 589, t2 = 898, t3 = 1242, t4 = 1647;
-        const double r1 = 0.017, r2 = 0.01615, r3 = 0.014535, r4 = 0.01235475, r5 = 0.009901;
-
-        double pct;
-        if (rating <= t1)
-            pct = rating * r1;
-        else if (rating <= t2)
-            pct = t1 * r1 + (rating - t1) * r2;
-        else if (rating <= t3)
-            pct = t1 * r1 + (t2 - t1) * r2 + (rating - t2) * r3;
-        else if (rating <= t4)
-            pct = t1 * r1 + (t2 - t1) * r2 + (t3 - t2) * r3 + (rating - t3) * r4;
-        else
-            pct = t1 * r1 + (t2 - t1) * r2 + (t3 - t2) * r3 + (t4 - t3) * r4 + (rating - t4) * r5;
+        var raw = rating * 0.16;
+        var pct =
+            Math.Min(raw, 10.0)
+            + Math.Clamp(raw - 10.0, 0.0, 5.0) * 0.98
+            + Math.Clamp(raw - 15.0, 0.0, 5.0) * 0.96
+            + Math.Clamp(raw - 20.0, 0.0, 5.0) * 0.94
+            + Math.Max(raw - 25.0, 0.0) * 0.92;
 
         return pct / 100.0;
     }

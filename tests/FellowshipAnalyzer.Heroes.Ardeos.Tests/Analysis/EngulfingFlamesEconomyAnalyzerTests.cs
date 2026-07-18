@@ -164,6 +164,52 @@ public sealed class EngulfingFlamesEconomyAnalyzerTests
         analyzer.WastedCharges.ShouldBe(5);
     }
 
+    // -------------------------------------------------------------------------
+    // Ability Cooldown Reduction (Emerald "Blessing of the Commander")
+    // -------------------------------------------------------------------------
+
+    [Fact]
+    public async Task WithoutGemPower_EngulfingFlamesRechargesAtFullTwentySeconds()
+    {
+        // Both charges spent at the pull; at 36s the second is still recharging (0.5s + 20s + 20s =
+        // 40.5s), so Wildfire finds only one charge.
+        var events = new List<Event>
+        {
+            CombatantWithEmerald(0),
+            Cast(Spells.EngulfingFlames.FSLID, 500),
+            Cast(Spells.EngulfingFlames.FSLID, 600),
+            Cast(Spells.Wildfire.FSLID, 36_000),
+        };
+
+        var (parser, _) = await AnalyzeAsync(events, SpanningFight(0, 45_000));
+
+        var analyzer = parser.EngulfingFlamesEconomyAnalyzers.ShouldHaveSingleItem().Analyzer;
+        analyzer.Windows.ShouldHaveSingleItem().ChargesAvailable.ShouldBe(1);
+        analyzer.WindowsShort.ShouldBe(1);
+    }
+
+    [Fact]
+    public async Task EmeraldAtCap_RechargesEngulfingFlamesFastEnoughToArmTheWindow()
+    {
+        // Identical timings, but 12% ACR shortens each recharge to 17.6s, so both charges are back by
+        // 35.7s and the same Wildfire window is armed. This is the whole point of modelling ACR: it
+        // moves windows from short to ready.
+        var events = new List<Event>
+        {
+            CombatantWithEmerald(1500),
+            Cast(Spells.EngulfingFlames.FSLID, 500),
+            Cast(Spells.EngulfingFlames.FSLID, 600),
+            Cast(Spells.Wildfire.FSLID, 36_000),
+        };
+
+        var (parser, _) = await AnalyzeAsync(events, SpanningFight(0, 45_000));
+
+        var analyzer = parser.EngulfingFlamesEconomyAnalyzers.ShouldHaveSingleItem().Analyzer;
+        analyzer.Windows.ShouldHaveSingleItem().ChargesAvailable.ShouldBe(2);
+        analyzer.WindowsReady.ShouldBe(1);
+        analyzer.WindowsShort.ShouldBe(0);
+    }
+
     [Fact]
     public async Task NoWildfireWindows_EvaluatesNothing()
     {
@@ -180,6 +226,17 @@ public sealed class EngulfingFlamesEconomyAnalyzerTests
         Timestamp = timestamp,
         SourceId = PlayerId,
         Ability = new Ability { Id = abilityId },
+    };
+
+    /// <summary>
+    /// Emerald power drives Ability Cooldown Reduction via <see cref="GemPowers"/>: 450 unlocks 4% and
+    /// 1500 (the gem power cap) unlocks 12%. Tests without a combatant info event get 0 power, so they
+    /// see full-length cooldowns.
+    /// </summary>
+    private static CombatantInfoEvent CombatantWithEmerald(int power) => new()
+    {
+        SourceId = PlayerId,
+        Emerald = power,
     };
 
     private static IEnumerable<Event> Fillers(int start, int end, int interval)

@@ -23,17 +23,17 @@ public sealed partial class RollingFlamesAnalyzer : Analyzer
     [On<DamageEvent>(By = Actor.Player, Spell = nameof(Spells.SearingBlazeDot))]
     public void OnSearingBlazeDamage(DamageEvent _)
     {
-        var appliedCdr = Owner.SpellUsable!.ReduceCooldown(Spells.EngulfingFlames.Id, SEARING_BLAZE_CDR);
-        spellCdr[Spells.SearingBlaze.Id].Total += SEARING_BLAZE_CDR;
-        spellCdr[Spells.SearingBlaze.Id].Applied += appliedCdr;
+        var cdr = Owner.SpellUsable!.ReduceCooldown(Spells.EngulfingFlames.Id, SEARING_BLAZE_CDR);
+        spellCdr[Spells.SearingBlaze.Id].Total += cdr.GeneratedMs;
+        spellCdr[Spells.SearingBlaze.Id].Applied += cdr.AppliedMs;
     }
 
     [On<CastEvent>(By = Actor.Player, Spell = nameof(Spells.InfernalWave))]
     public void OnInfernalWaveCast(CastEvent _)
     {
-        var appliedCdr = Owner.SpellUsable!.ReduceCooldown(Spells.EngulfingFlames.Id, INFERNAL_WAVE_CDR);
-        spellCdr[Spells.InfernalWave.Id].Total += INFERNAL_WAVE_CDR;
-        spellCdr[Spells.InfernalWave.Id].Applied += appliedCdr;
+        var cdr = Owner.SpellUsable!.ReduceCooldown(Spells.EngulfingFlames.Id, INFERNAL_WAVE_CDR);
+        spellCdr[Spells.InfernalWave.Id].Total += cdr.GeneratedMs;
+        spellCdr[Spells.InfernalWave.Id].Applied += cdr.AppliedMs;
     }
 
     public override Type? StatisticsComponentType => typeof(RollingFlamesStatistics);

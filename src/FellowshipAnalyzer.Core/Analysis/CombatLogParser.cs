@@ -26,6 +26,8 @@ namespace FellowshipAnalyzer.Core.Analysis;
 [AddModule<Combatants>]
 [AddModule<StatTracker>]
 [AddModule<Haste>]
+[AddModule<GemPowers>]
+[AddModule<CooldownReduction>]
 [AddModule<GlobalCooldown>]
 [AddModule<SpellUsable>]
 [AddModule<ChronoshiftAnalyzer>]

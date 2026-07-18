@@ -15,10 +15,10 @@ using RimeSpells = FellowshipAnalyzer.Core.Common.Spells.Rime.Spells;
 namespace FellowshipAnalyzer.Core.Tests.Analysis;
 
 /// <summary>
-/// Tests for <see cref="SpellUsable"/>'s two cooldown-speed pools: the haste-driven
-/// <b>acceleration</b> modifier (per haste-flagged ability) and the global <b>recovery</b> modifier
-/// (set, not stacked, e.g. Chronoshift). Covers in-flight rescaling, idempotent recovery,
-/// proportional progress across rate changes, and chronological flush.
+/// Tests for <see cref="SpellUsable"/>'s single additive cooldown recovery pool: <c>1 + haste + added
+/// recovery</c>, where haste contributes only for haste-flagged abilities and added recovery (set, not
+/// stacked, e.g. Chronoshift) applies to every ability. Covers in-flight rescaling, idempotent added
+/// recovery, proportional progress across rate changes, and chronological flush.
 /// </summary>
 public sealed partial class SpellUsableTests
 {
@@ -39,7 +39,7 @@ public sealed partial class SpellUsableTests
             FriendlyPlayers: null, FightPercentage: null);
 
     // -------------------------------------------------------------------------
-    // Cooldown recovery (global, set-not-stacked pool)
+    // Added cooldown recovery (applies to every ability, set not stacked)
     // -------------------------------------------------------------------------
 
     [Fact]
@@ -48,8 +48,8 @@ public sealed partial class SpellUsableTests
         var (_, spellUsable, _) = await Run([CreateCast(1000, SpellA)]);
 
         // SpellA cast at t=1000 with base CD=10000ms → ExpectedEnd t=11000.
-        // Recovery 2× at t=2000: remaining was 9000, new remaining = 9000/2 = 4500.
-        spellUsable.SetCooldownRecoveryRate(2.0, timestamp: 2000);
+        // Added recovery 1.0 at t=2000 → rate 2×: remaining was 9000, new remaining = 9000/2 = 4500.
+        spellUsable.SetAddedCooldownRecovery(1.0, timestamp: 2000);
 
         Assert.Equal(4500, spellUsable.CooldownRemaining(SpellA, atTimestamp: 2000));
     }
@@ -59,8 +59,8 @@ public sealed partial class SpellUsableTests
     {
         var (_, spellUsable, _) = await Run([CreateCast(1000, SpellA)]);
 
-        spellUsable.SetCooldownRecoveryRate(2.0, timestamp: 2000);
-        spellUsable.SetCooldownRecoveryRate(1.0, timestamp: 2000);
+        spellUsable.SetAddedCooldownRecovery(1.0, timestamp: 2000);
+        spellUsable.SetAddedCooldownRecovery(0.0, timestamp: 2000);
 
         var remaining = spellUsable.CooldownRemaining(SpellA, atTimestamp: 2000);
         Assert.InRange(remaining, 8999, 9001);
@@ -71,16 +71,16 @@ public sealed partial class SpellUsableTests
     public async Task SetRecovery_IsIdempotent_NeverCompounds()
     {
         // Regression guard: a recovery source (re)applied without a matching removal must not
-        // compound. Setting 9× three times leaves the rate at 9×, not 9³; resetting once restores 1×.
-        // (This is the Chronoshift begin/end imbalance that previously drove the rate to 9^10.)
+        // compound. Adding Chronoshift's 8.0 three times leaves the rate at 9×, not 9³; resetting
+        // once restores 1×. (This is the Chronoshift begin/end imbalance that drove the rate to 9^10.)
         var (_, spellUsable, _) = await Run([]);
 
-        spellUsable.SetCooldownRecoveryRate(9.0, timestamp: 1000);
-        spellUsable.SetCooldownRecoveryRate(9.0, timestamp: 1000);
-        spellUsable.SetCooldownRecoveryRate(9.0, timestamp: 1000);
+        spellUsable.SetAddedCooldownRecovery(8.0, timestamp: 1000);
+        spellUsable.SetAddedCooldownRecovery(8.0, timestamp: 1000);
+        spellUsable.SetAddedCooldownRecovery(8.0, timestamp: 1000);
         Assert.Equal(9.0, spellUsable.EffectiveRate(SpellA), precision: 6);
 
-        spellUsable.SetCooldownRecoveryRate(1.0, timestamp: 1000);
+        spellUsable.SetAddedCooldownRecovery(0.0, timestamp: 1000);
         Assert.Equal(1.0, spellUsable.EffectiveRate(SpellA), precision: 6);
     }
 
@@ -89,7 +89,7 @@ public sealed partial class SpellUsableTests
     {
         var (_, spellUsable, _) = await Run([]);
 
-        spellUsable.SetCooldownRecoveryRate(9.0, timestamp: 1000);
+        spellUsable.SetAddedCooldownRecovery(8.0, timestamp: 1000);
         spellUsable.BeginCooldown(SpellA, timestamp: 1000);
 
         // Base 10s ÷ 9 = ~1111ms initial duration.
@@ -105,13 +105,13 @@ public sealed partial class SpellUsableTests
         // takes 5s. Cooldown should expire at t=7500.
         var (_, spellUsable, _) = await Run([]);
 
-        spellUsable.SetCooldownRecoveryRate(2.0, timestamp: 0);
+        spellUsable.SetAddedCooldownRecovery(1.0, timestamp: 0);
         spellUsable.BeginCooldown(SpellA, timestamp: 0);
 
         Assert.Equal(5000, spellUsable.CooldownRemaining(SpellA, atTimestamp: 0));
         Assert.Equal(2500, spellUsable.CooldownRemaining(SpellA, atTimestamp: 2500));
 
-        spellUsable.SetCooldownRecoveryRate(1.0, timestamp: 2500);
+        spellUsable.SetAddedCooldownRecovery(0.0, timestamp: 2500);
 
         Assert.Equal(5000, spellUsable.CooldownRemaining(SpellA, atTimestamp: 2500));
         Assert.Equal(0, spellUsable.CooldownRemaining(SpellA, atTimestamp: 7500));
@@ -141,7 +141,7 @@ public sealed partial class SpellUsableTests
             onApplyBuff: (su, e) =>
             {
                 if (e.Ability?.FSLID.Value == TriggerId)
-                    su.SetCooldownRecoveryRate(2.0, e.Timestamp);
+                    su.SetAddedCooldownRecovery(1.0, e.Timestamp);
             });
 
         var rateUpdate = probe.Updates
@@ -151,8 +151,33 @@ public sealed partial class SpellUsableTests
     }
 
     // -------------------------------------------------------------------------
-    // Cooldown acceleration (haste-driven, per haste-flagged ability)
+    // Haste's contribution to the pool (per haste-flagged ability)
     // -------------------------------------------------------------------------
+
+    [Fact]
+    public async Task HasteAndAddedRecovery_CombineAdditively_NotMultiplicatively()
+    {
+        // Recovery and acceleration are one mechanic sharing one pool, so Chronoshift's 8.0 adds to
+        // haste rather than multiplying it: a haste-flagged spell recovers at 1 + haste + 8, not
+        // (1 + haste) × 9. Only the overlap of the two is affected; SpellA has no haste contribution.
+        var (parser, spellUsable, _) = await Run([CreateHasteBuff(500)]);
+
+        var haste = parser.GetModule<Haste>()!.Current;
+        Assert.True(haste >= BuffHaste, $"expected the haste buff to apply, got {haste}");
+
+        spellUsable.SetAddedCooldownRecovery(8.0, timestamp: 1000);
+
+        Assert.Equal(1.0 + haste + 8.0, spellUsable.EffectiveRate(SpellC), precision: 6);
+        Assert.Equal(9.0, spellUsable.EffectiveRate(SpellA), precision: 6);
+        Assert.True(
+            spellUsable.EffectiveRate(SpellC) < (1.0 + haste) * 9.0,
+            "an additive pool must recover slower than a multiplicative one would");
+
+        spellUsable.BeginCooldown(SpellC, timestamp: 1000);
+        Assert.Equal(
+            (int)(CdSecondsC * 1000 / (1.0 + haste + 8.0)),
+            spellUsable.CooldownRemaining(SpellC, atTimestamp: 1000));
+    }
 
     [Fact]
     public async Task HasteAcceleratedSpell_CooldownShortenedByHaste()
@@ -257,6 +282,69 @@ public sealed partial class SpellUsableTests
     }
 
     // -------------------------------------------------------------------------
+    // Multi-charge cooldown reduction across the charge-restore boundary
+    // -------------------------------------------------------------------------
+
+    [Fact]
+    public async Task ReduceCooldown_AcrossChargeBoundary_RestoresChargeAndCarriesRemainderToNext()
+    {
+        // SpellB has 2 charges on a 20s recharge. Spend both, then advance to 0.5s before the recharging
+        // charge would restore. A 1.0s reduction spends 0.5s ending that charge and carries the remaining
+        // 0.5s onto the next charge, wasting nothing.
+        var (_, spellUsable, _) = await Run([]);
+
+        spellUsable.BeginCooldown(SpellB, timestamp: 0);   // 1 charge left, recharge ends 20000
+        spellUsable.BeginCooldown(SpellB, timestamp: 0);   // 0 charges left, same recharge in flight
+
+        Assert.Equal(0, spellUsable.ChargesAvailable(SpellB));
+        Assert.Equal(500, spellUsable.CooldownRemaining(SpellB, atTimestamp: 19500));
+
+        var cdr = spellUsable.ReduceCooldown(SpellB, 1000, timestamp: 19500);
+
+        Assert.Equal(1000, cdr.GeneratedMs);
+        Assert.Equal(1000, cdr.AppliedMs);
+        Assert.Equal(0, cdr.WastedMs);
+
+        // One charge restored; the next charge's fresh 20s recharge is 0.5s shorter (ends at 39000).
+        Assert.Equal(1, spellUsable.ChargesAvailable(SpellB));
+        Assert.Equal(19500, spellUsable.CooldownRemaining(SpellB, atTimestamp: 19500));
+    }
+
+    [Fact]
+    public async Task ReduceCooldown_ExactlyEndingCurrentCharge_LeavesNextChargeAtFullRecharge()
+    {
+        var (_, spellUsable, _) = await Run([]);
+        spellUsable.BeginCooldown(SpellB, timestamp: 0);
+        spellUsable.BeginCooldown(SpellB, timestamp: 0);
+
+        // Reduction exactly equal to the 500ms remaining: ends the charge with nothing to carry over.
+        var cdr = spellUsable.ReduceCooldown(SpellB, 500, timestamp: 19500);
+
+        Assert.Equal(500, cdr.AppliedMs);
+        Assert.Equal(0, cdr.WastedMs);
+        Assert.Equal(1, spellUsable.ChargesAvailable(SpellB));
+        Assert.Equal(20000, spellUsable.CooldownRemaining(SpellB, atTimestamp: 19500));
+    }
+
+    [Fact]
+    public async Task ReduceCooldown_OverflowingPastMaxCharges_WastesTheExcess()
+    {
+        var (_, spellUsable, _) = await Run([]);
+        spellUsable.BeginCooldown(SpellB, timestamp: 0);
+        spellUsable.BeginCooldown(SpellB, timestamp: 0);
+
+        // At 19500, charge 1 has 0.5s left and charge 2 needs a further 20s. A 25s reduction restores
+        // both (0.5s + 20s = 20.5s applied); the final 4.5s has no running cooldown left and is wasted.
+        var cdr = spellUsable.ReduceCooldown(SpellB, 25000, timestamp: 19500);
+
+        Assert.Equal(25000, cdr.GeneratedMs);
+        Assert.Equal(20500, cdr.AppliedMs);
+        Assert.Equal(4500, cdr.WastedMs);
+        Assert.Equal(2, spellUsable.ChargesAvailable(SpellB));
+        Assert.False(spellUsable.IsOnCooldown(SpellB));
+    }
+
+    // -------------------------------------------------------------------------
     // Test infrastructure
     // -------------------------------------------------------------------------
 
@@ -275,6 +363,8 @@ public sealed partial class SpellUsableTests
             typeof(StatTracker),
             typeof(Combatants),
             typeof(Haste),
+            typeof(GemPowers),
+            typeof(CooldownReduction),
             typeof(SpellUsable),
             typeof(UpdateProbeModule),
         ];

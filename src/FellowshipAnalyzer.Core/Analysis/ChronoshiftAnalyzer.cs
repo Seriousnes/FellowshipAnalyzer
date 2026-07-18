@@ -5,27 +5,33 @@ using FellowshipAnalyzer.Core.UI.Components;
 namespace FellowshipAnalyzer.Core.Analysis;
 
 /// <summary>
-/// Models Chronoshift's Cooldown Recovery effect. While the player channels Chronoshift, every
-/// cooldown recovers 9× faster (800% increased recovery). The channel lasts a fixed 3 seconds
-/// (haste-independent) unless an <see cref="EndChannelEvent"/> cancels it early. The recovery
-/// modifier is set on <see cref="SpellUsable"/> for the channel window and cleared when it ends;
-/// because it is <i>set</i> rather than stacked, an unmatched begin/end (Fellowship logs the
-/// channel end for only a minority of channels) cannot compound the modifier.
+/// Models Chronoshift's cooldown recovery effect. While the player channels Chronoshift it adds 700%
+/// cooldown recovery to <see cref="SpellUsable"/>'s shared recovery pool, taking an ability with no
+/// haste contribution to 8× recovery. The channel lasts a fixed 3 seconds (haste-independent) unless
+/// an <see cref="EndChannelEvent"/> cancels it early. The added recovery is set for the channel window
+/// and cleared when it ends; because it is <i>set</i> rather than stacked, an unmatched begin/end
+/// (Fellowship logs the channel end for only a minority of channels) cannot compound it.
 /// </summary>
 [ActiveWhen<HasChronoshiftGear>]
 public sealed partial class ChronoshiftAnalyzer(Lazy<SpellUsable> spellUsable) : Analyzer
 {
-    /// <summary>800% increased cooldown recovery = 9× total recovery rate.</summary>
-    private const double RecoveryRate = 9.0;
-
-    /// <summary>Bonus recovery beyond the natural 1× rate: 9× total − 1× natural = 8× bonus.</summary>
-    private const double BonusRate = RecoveryRate - 1.0;
+    /// <summary>
+    /// 800% added cooldown recovery per the spell description, a term on the shared pool rather than a
+    /// standalone multiplier, taking an ability with no haste contribution to 9× recovery. Matches
+    /// <c>Channel.WhileActiveAddedCooldownRecovery</c> in the <c>gear_data.json</c> export.
+    /// </summary>
+    private const double AddedRecovery = 8.0;
 
     /// <summary>Chronoshift channels a fixed 3 seconds unless an EndChannel cancels it early.</summary>
     private const int ChannelDurationMs = 3000;
 
     private readonly List<ChronoshiftWindow> _windows = [];
     private readonly Dictionary<int, int> _recoveryBySpell = [];
+
+    /// <summary>
+    /// Cooldown remaining per spell at the open of the current window, captured <i>after</i> the added
+    /// recovery is applied, so it is already the boosted-rate wallclock time each spell needs to finish.
+    /// </summary>
     private readonly Dictionary<int, int> _snapshot = [];
     private int? _scheduledEnd;
     private int _openTimestamp;
@@ -35,8 +41,9 @@ public sealed partial class ChronoshiftAnalyzer(Lazy<SpellUsable> spellUsable) :
 
     /// <summary>
     /// Bonus cooldown recovery Chronoshift granted to each ability over the encounter, in
-    /// milliseconds, ordered by amount descending. This is the extra recovery from the 9× rate
-    /// beyond what the spell's natural cooldown would have progressed over the same window.
+    /// milliseconds, ordered by amount descending. This is the extra cooldown progress the added 700%
+    /// bought beyond what the spell would have made over the same window without it. Because the pool
+    /// is additive, that extra is 7× the time on cooldown whatever the ability's haste contribution.
     /// </summary>
     public IReadOnlyList<AbilityRecovery> RecoveryByAbility =>
         [.. _recoveryBySpell
@@ -52,12 +59,12 @@ public sealed partial class ChronoshiftAnalyzer(Lazy<SpellUsable> spellUsable) :
     {
         CloseWindow(e.Timestamp);
 
-        _snapshot.Clear();
+        _openTimestamp = e.Timestamp;
+        _spellUsable.SetAddedCooldownRecovery(AddedRecovery, e.Timestamp);
+
         foreach (var spellId in _spellUsable.GetSpellsOnCooldown())
             _snapshot[spellId] = _spellUsable.CooldownRemaining(spellId, e.Timestamp);
 
-        _openTimestamp = e.Timestamp;
-        _spellUsable.SetCooldownRecoveryRate(RecoveryRate, e.Timestamp);
         _scheduledEnd = e.Timestamp + ChannelDurationMs;
         _windows.Add(new ChronoshiftWindow(e.Timestamp, _scheduledEnd.Value));
     }
@@ -74,21 +81,21 @@ public sealed partial class ChronoshiftAnalyzer(Lazy<SpellUsable> spellUsable) :
 
     /// <summary>
     /// Closes the active recovery window at the earlier of <paramref name="timestamp"/> and the
-    /// scheduled 3-second end, clearing the recovery modifier and attributing the bonus recovery
-    /// each on-cooldown ability received to it. A no-op when no window is open, so a stray or
-    /// duplicate close cannot drive the recovery rate below 1.
+    /// scheduled 3-second end, clearing the added recovery and attributing the bonus recovery each
+    /// on-cooldown ability received to it. A no-op when no window is open, so a stray or duplicate
+    /// close cannot drive the pool negative.
     /// </summary>
     private void CloseWindow(int timestamp)
     {
         if (_scheduledEnd is not int scheduledEnd) return;
         var closeAt = Math.Min(timestamp, scheduledEnd);
-        _spellUsable.SetCooldownRecoveryRate(1.0, closeAt);
+        _spellUsable.SetAddedCooldownRecovery(0.0, closeAt);
 
         var wallclock = closeAt - _openTimestamp;
         foreach (var (spellId, remainingAtOpen) in _snapshot)
         {
-            var onCooldown = Math.Min(wallclock, remainingAtOpen / RecoveryRate);
-            var bonus = (int)(BonusRate * onCooldown);
+            var onCooldown = Math.Min(wallclock, remainingAtOpen);
+            var bonus = (int)(AddedRecovery * onCooldown);
             if (bonus > 0)
                 _recoveryBySpell[spellId] = _recoveryBySpell.GetValueOrDefault(spellId) + bonus;
         }
