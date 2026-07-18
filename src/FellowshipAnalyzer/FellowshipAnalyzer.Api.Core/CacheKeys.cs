@@ -24,4 +24,7 @@ internal static class CacheKeys
 
     public static string BlobEvents(string reportCode, int playerId, int fightId)
         => $"events/{reportCode.Trim()}/{fightId}/{playerId}";
+
+    public static string BlobDeaths(string reportCode, int fightId)
+        => $"deaths/{reportCode.Trim()}/{fightId}";
 }

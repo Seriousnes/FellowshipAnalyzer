@@ -16,10 +16,12 @@
  * Version 5: clears events/history; earlier broken server iterations returned
  *   double-encoded payloads that were cached as if they were plain JSON. Those
  *   entries hang on decompress and must be evicted.
+ * Version 6: clears events/history; entries now hold the merged player-events + fight-scoped
+ *   death stream. Earlier entries carry only the player's own kills, an incomplete death set.
  */
 
 const DB_NAME = 'fellowship-analyzer';
-const DB_VERSION = 5;
+const DB_VERSION = 6;
 const EVENTS_STORE = 'events';
 const HISTORY_STORE = 'history';
 const MASTERDATA_STORE = 'masterdata';
@@ -60,7 +62,8 @@ function openDb() {
 
             // Version 5: evict events/history that may contain double-gzipped payloads
             // produced by earlier broken server iterations.
-            if (event.oldVersion > 0 && event.oldVersion < 5) {
+            // Version 6: evict player-only event streams cached before deaths were merged in.
+            if (event.oldVersion > 0 && event.oldVersion < 6) {
                 if (db.objectStoreNames.contains(EVENTS_STORE)) {
                     event.target.transaction.objectStore(EVENTS_STORE).clear();
                 }

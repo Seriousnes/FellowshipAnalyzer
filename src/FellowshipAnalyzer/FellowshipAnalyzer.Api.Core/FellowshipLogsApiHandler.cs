@@ -141,6 +141,72 @@ public sealed class FellowshipLogsApiHandler(
         }
     }
 
+    [ApiEndpoint("GET", "deaths")]
+    public async Task<IResult> GetDeathsAsync(
+        HttpContext context,
+        string? reportCode,
+        int? fightId,
+        CancellationToken cancellationToken)
+    {
+        if (await TryApplyRateLimitAsync(context, cancellationToken) is { } limited)
+        {
+            return limited;
+        }
+
+        if (string.IsNullOrWhiteSpace(reportCode))
+        {
+            return BadRequest("Missing required query parameter 'reportCode'.");
+        }
+        if (fightId is null)
+        {
+            return BadRequest("Missing required query parameter 'fightId'.");
+        }
+
+        var trimmedReportCode = reportCode.Trim();
+
+        // Fight-scoped (no player filter) — shared by every combatant in the fight.
+        var blobKey = CacheKeys.BlobDeaths(trimmedReportCode, fightId.Value);
+        var blobEntry = await persistentCache.GetAsync(CachePartition.Events, blobKey, cancellationToken);
+
+        if (blobEntry is not null)
+        {
+            ApplyCompletedEventsCacheHeaders(context.Response, blobEntry.ExpiresAt, hit: true);
+            Stream payload = blobEntry.Content;
+            if (string.Equals(blobEntry.ContentEncoding, "gzip", StringComparison.OrdinalIgnoreCase))
+            {
+                payload = new GZipStream(blobEntry.Content, CompressionMode.Decompress, leaveOpen: false);
+            }
+            return Results.Stream(payload, "application/json");
+        }
+
+        var result = await fellowshipLogsService.GetRawDeathsAsync(
+            trimmedReportCode, fightId.Value, cancellationToken);
+
+        if (!result.InProgress && result.HasEvents)
+        {
+            var duration = PositiveDuration(cacheOptions.CompletedEventsCacheDuration, TimeSpan.FromDays(30));
+            var expiresAt = DateTimeOffset.UtcNow.Add(duration);
+            var gzipBytes = CompressGzip(result.JsonBytes, streamManager);
+
+            WriteThroughInBackground(
+                persistentCache.SetAsync(
+                    CachePartition.Events, blobKey,
+                    gzipBytes,
+                    new PersistentCacheWriteOptions(
+                        ExpiresAt: expiresAt,
+                        ContentType: "application/json",
+                        ContentEncoding: "gzip"),
+                    appLifetime.ApplicationStopping),
+                CachePartition.Events, blobKey);
+
+            ApplyCompletedEventsCacheHeaders(context.Response, expiresAt, hit: false);
+            return Results.Bytes(result.JsonBytes, "application/json");
+        }
+
+        ApplyNoStoreCacheHeaders(context.Response, hit: false);
+        return Results.Bytes(result.JsonBytes, "application/json");
+    }
+
     [ApiEndpoint("GET", "analysis/{reportCode}")]
     public async Task<IResult> GetAnalysisAsync(
         HttpContext context,

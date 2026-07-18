@@ -1,0 +1,15 @@
+query GetDeaths($code: String!, $fightIDs: [Int]) {
+  reportData {
+    report(code: $code) {
+      fights(fightIDs: $fightIDs) {
+        inProgress
+      }
+      enemyDeaths: events(fightIDs: $fightIDs, dataType: Deaths, hostilityType: Enemies) {
+        data
+      }
+      friendlyDeaths: events(fightIDs: $fightIDs, dataType: Deaths, hostilityType: Friendlies) {
+        data
+      }
+    }
+  }
+}
