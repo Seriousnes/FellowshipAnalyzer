@@ -50,6 +50,25 @@ public abstract class Entity
         => GetBuffHistory(spellId, sourceId)
             .Sum(b => (b.End ?? b.Start) - b.Start);
 
+    /// <summary>
+    /// Counts the concurrently-open aura windows for an effect active at <paramref name="timestamp"/>
+    /// (closed interval: <c>Start &lt;= timestamp &lt;= End</c>, an unclosed window counting as active),
+    /// optionally restricted to auras applied by <paramref name="sourceId"/>. Multi-instance auras open
+    /// one window per application, so this returns how many stack independently on the unit.
+    /// </summary>
+    public int GetAuraInstanceCount(int effectId, long timestamp, int? sourceId = null)
+    {
+        var count = 0;
+        foreach (var b in Buffs)
+        {
+            if (b.Ability.Id != effectId) continue;
+            if (sourceId is not null && b.SourceId != sourceId) continue;
+            if (b.Start <= timestamp && ((long?)b.End ?? long.MaxValue) >= timestamp)
+                count++;
+        }
+        return count;
+    }
+
     internal void ApplyBuff(TrackedBuffEvent buff) => Buffs.Add(buff);
 
     protected Func<TrackedBuffEvent, bool> SpellIdFilter(int spellId)
