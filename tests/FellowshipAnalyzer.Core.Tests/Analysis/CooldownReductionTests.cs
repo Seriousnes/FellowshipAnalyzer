@@ -29,10 +29,7 @@ public sealed class CooldownReductionTests
     private const int SpellB = 102;
     private const int CdSecondsB = 20;
 
-    /// <summary>Emerald/Diamond rank 5 ("Blessing of the ..."), per s3 gear_data.json.</summary>
-    private const int Rank5Power = 450;
-
-    /// <summary>Emerald/Diamond rank 10 ("... - II"), which is also Gems.Economy.Cap.</summary>
+    /// <summary>Emerald rank 10 ("Blessing of the Commander - II"), which is also Gems.Economy.Cap.</summary>
     private const int Rank10Power = 1500;
 
     private static readonly ReportFight TestFight =
@@ -54,7 +51,7 @@ public sealed class CooldownReductionTests
     {
         var combatant = new Combatant(new CombatantInfoEvent { SourceId = PlayerId, Emerald = emerald });
 
-        Assert.Equal(expected, combatant.Stats.AbilityCooldownReduction, precision: 6);
+        Assert.Equal(expected, combatant.Stats.AbilityCooldownReduction.Total(null), precision: 6);
     }
 
     [Fact]
@@ -62,29 +59,88 @@ public sealed class CooldownReductionTests
     {
         var combatant = new Combatant(new CombatantInfoEvent { SourceId = PlayerId, Emerald = Rank10Power });
 
-        Assert.Equal(0.12, combatant.Stats.AbilityCooldownReduction, precision: 6);
-        Assert.NotEqual(0.16, combatant.Stats.AbilityCooldownReduction, precision: 6);
+        Assert.Equal(0.12, combatant.Stats.AbilityCooldownReduction.Total(null), precision: 6);
+        Assert.NotEqual(0.16, combatant.Stats.AbilityCooldownReduction.Total(null), precision: 6);
+    }
+
+    // -------------------------------------------------------------------------
+    // CooldownModifierSet / CooldownScope: scope semantics
+    // -------------------------------------------------------------------------
+
+    [Fact]
+    public void SpellScopedModifier_AppliesOnlyToAMatchingAbility()
+    {
+        var matching = new SpellbookAbility
+        {
+            PrimarySpell = new Spell { Id = SpellA, Name = "Spell A" },
+            Category = SpellCategory.Rotational,
+        };
+        var other = new SpellbookAbility
+        {
+            PrimarySpell = new Spell { Id = SpellB, Name = "Spell B" },
+            Category = SpellCategory.Rotational,
+        };
+
+        var set = new CooldownModifierSet(
+            new CooldownModifier(0.10, new Spell[] { new() { Id = SpellA } }));
+
+        Assert.Equal(0.10, set.Total(matching), precision: 6);
+        Assert.Equal(0.0, set.Total(other), precision: 6);
     }
 
     [Fact]
-    public void DiamondPower_GrantsRelicReduction_AndNotAbilityReduction()
+    public void CategoryScopedModifier_AppliesOnMatch_NeverWhenCategoryIsNull()
     {
-        var combatant = new Combatant(new CombatantInfoEvent { SourceId = PlayerId, Diamond = Rank10Power });
+        var major = new SpellbookAbility
+        {
+            PrimarySpell = new Spell { Id = SpellA, Name = "Spell A" },
+            Category = SpellCategory.Rotational,
+            AbilityCategory = AbilityCategory.Major,
+        };
+        var unclassified = new SpellbookAbility
+        {
+            PrimarySpell = new Spell { Id = SpellB, Name = "Spell B" },
+            Category = SpellCategory.Rotational,
+        };
 
-        Assert.Equal(0.24, combatant.Stats.RelicCooldownReduction, precision: 6);
-        Assert.Equal(0.0, combatant.Stats.AbilityCooldownReduction, precision: 6);
+        var set = new CooldownModifierSet(
+            new CooldownModifier(0.10, new[] { AbilityCategory.Major }));
+
+        Assert.Equal(0.10, set.Total(major), precision: 6);
+        Assert.Equal(0.0, set.Total(unclassified), precision: 6);
     }
 
-    /// <summary>
-    /// Blessing of the Artisan is scoped to relic cooldowns, a slot the ability pool does not model, so the
-    /// diamond seed must never leak into <see cref="CooldownReduction.Current"/>.
-    /// </summary>
     [Fact]
-    public async Task DiamondPower_DoesNotLeakIntoAbilityCooldownPool()
+    public void FuncScopedModifier_AppliesWhenThePredicateMatches()
     {
-        var (acr, _) = await Run(diamond: Rank10Power);
+        var enabled = new SpellbookAbility
+        {
+            PrimarySpell = new Spell { Id = SpellA, Name = "Spell A" },
+            Category = SpellCategory.Rotational,
+            Enabled = true,
+        };
+        var disabled = new SpellbookAbility
+        {
+            PrimarySpell = new Spell { Id = SpellB, Name = "Spell B" },
+            Category = SpellCategory.Rotational,
+            Enabled = false,
+        };
 
-        Assert.Equal(0.0, acr.Current, precision: 6);
+        var set = new CooldownModifierSet(
+            new CooldownModifier(0.10, (Func<SpellbookAbility, bool>)(a => a.Enabled)));
+
+        Assert.Equal(0.10, set.Total(enabled), precision: 6);
+        Assert.Equal(0.0, set.Total(disabled), precision: 6);
+    }
+
+    [Fact]
+    public void TotalForNullAbility_IncludesOnlyUnscopedEntries()
+    {
+        var set = new CooldownModifierSet(
+            new CooldownModifier(0.05),
+            new CooldownModifier(0.10, new[] { AbilityCategory.Major }));
+
+        Assert.Equal(0.05, set.Total(null), precision: 6);
     }
 
     // -------------------------------------------------------------------------
@@ -95,18 +151,18 @@ public sealed class CooldownReductionTests
     public async Task Sources_CombineAdditively()
     {
         var (acr, _) = await Run(emerald: Rank10Power);
-        acr.Add(0.10);
+        acr.Add(new CooldownModifier(0.10));
 
-        Assert.Equal(0.22, acr.Current, precision: 6);
+        Assert.Equal(0.22, acr.Current(null), precision: 6);
     }
 
     [Fact]
     public async Task TotalReduction_IsCappedAtOneHundredPercent()
     {
         var (acr, spellUsable) = await Run(emerald: Rank10Power);
-        acr.Add(2.0);
+        acr.Add(new CooldownModifier(2.0));
 
-        Assert.Equal(1.0, acr.Current, precision: 6);
+        Assert.Equal(1.0, acr.Current(null), precision: 6);
 
         spellUsable.BeginCooldown(SpellA, timestamp: 1000);
         Assert.Equal(0, spellUsable.CooldownRemaining(SpellA, atTimestamp: 1000));
@@ -228,7 +284,7 @@ public sealed class CooldownReductionTests
     // Test infrastructure
     // -------------------------------------------------------------------------
 
-    private static async Task<(CooldownReduction acr, SpellUsable spellUsable)> Run(int emerald = 0, int diamond = 0)
+    private static async Task<(CooldownReduction acr, SpellUsable spellUsable)> Run(int emerald = 0)
     {
         var emitter = new EventEmitter(NullLogger<EventEmitter>.Instance);
         var provider = Substitute.For<IServiceProvider>();
@@ -247,7 +303,7 @@ public sealed class CooldownReductionTests
 
         List<Event> events =
         [
-            new CombatantInfoEvent { Timestamp = 0, SourceId = PlayerId, Emerald = emerald, Diamond = diamond },
+            new CombatantInfoEvent { Timestamp = 0, SourceId = PlayerId, Emerald = emerald },
         ];
 
         var parser = new TestParser(emitter, provider, moduleTypes);

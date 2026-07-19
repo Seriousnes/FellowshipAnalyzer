@@ -51,7 +51,7 @@ public sealed class GearCooldownAccelerationTests
         var combatant = new Combatant(new CombatantInfoEvent { Gear = [new Item { Id = 999, Quality = LegendaryQuality }] });
 
         Assert.True(combatant.HasLegendary);
-        Assert.Equal(0.10, combatant.Stats.CooldownAcceleration, precision: 6);
+        Assert.Equal(0.10, combatant.Stats.CooldownAcceleration.Total(null), precision: 6);
     }
 
     [Fact]
@@ -60,7 +60,7 @@ public sealed class GearCooldownAccelerationTests
         var combatant = new Combatant(new CombatantInfoEvent { Gear = [new Item { Id = 999, Quality = EpicQuality }] });
 
         Assert.False(combatant.HasLegendary);
-        Assert.Equal(0.0, combatant.Stats.CooldownAcceleration, precision: 6);
+        Assert.Equal(0.0, combatant.Stats.CooldownAcceleration.Total(null), precision: 6);
     }
 
     // -------------------------------------------------------------------------
@@ -153,9 +153,57 @@ public sealed class GearCooldownAccelerationTests
         Assert.Equal(0, cdr.WastedMs);
     }
 
+    /// <summary>
+    /// A category-scoped acceleration term only divides the cooldowns of abilities in that category. SpellA is
+    /// <see cref="AbilityCategory.Major"/> and gets 10000ms / (1 + 1.0) = 5000ms; SpellB is unclassified and is
+    /// left at its full base cooldown.
+    /// </summary>
+    [Fact]
+    public async Task CategoryScopedAcceleration_SpeedsUpOnlyTheMatchingSpell()
+    {
+        var acceleration = new CooldownModifierSet(
+            new CooldownModifier(1.0, new[] { AbilityCategory.Major }));
+
+        var spellUsable = await RunWithScopedAcceleration(acceleration);
+
+        spellUsable.BeginCooldown(SpellA, timestamp: 1000);
+        spellUsable.BeginCooldown(SpellB, timestamp: 1000);
+
+        Assert.Equal((int)(BaseCdMsA / 2.0), spellUsable.CooldownRemaining(SpellA, atTimestamp: 1000));
+        Assert.Equal(BaseCdMsB, spellUsable.CooldownRemaining(SpellB, atTimestamp: 1000));
+    }
+
     // -------------------------------------------------------------------------
     // Test infrastructure
     // -------------------------------------------------------------------------
+
+    private static async Task<SpellUsable> RunWithScopedAcceleration(CooldownModifierSet acceleration)
+    {
+        var emitter = new EventEmitter(NullLogger<EventEmitter>.Instance);
+        var provider = Substitute.For<IServiceProvider>();
+        provider.GetService(typeof(ILogger<EventEmitter>)).Returns(NullLogger<EventEmitter>.Instance);
+
+        Type[] moduleTypes =
+        [
+            typeof(TestAbilities),
+            typeof(DebugAnnotations),
+            typeof(StatTracker),
+            typeof(Combatants),
+            typeof(Haste),
+            typeof(CooldownReduction),
+            typeof(SpellUsable),
+        ];
+
+        List<Event> events =
+        [
+            new CombatantInfoEvent { Timestamp = 0, SourceId = PlayerId },
+        ];
+
+        var parser = new TestParser(emitter, provider, moduleTypes, acceleration);
+        await parser.Analyze(events, PlayerId, fight: TestFight);
+
+        return parser.GetModule<SpellUsable>()!;
+    }
 
     private static async Task<SpellUsable> Run(int itemQuality, int emerald = 0)
     {
@@ -191,12 +239,21 @@ public sealed class GearCooldownAccelerationTests
         return parser.GetModule<SpellUsable>()!;
     }
 
-    private sealed class TestParser(EventEmitter emitter, IServiceProvider provider, Type[] moduleTypes)
+    private sealed class TestParser(
+        EventEmitter emitter,
+        IServiceProvider provider,
+        Type[] moduleTypes,
+        CooldownModifierSet? acceleration = null)
         : CombatLogParser(emitter, provider)
     {
         protected override Type[] GetModuleTypes() => moduleTypes;
 
         protected override Type[] GetNormalizerTypes() => [typeof(FightBookendNormalizer)];
+
+        protected override Combatant CreateSelectedCombatant(CombatantInfoEvent info) =>
+            acceleration is null
+                ? base.CreateSelectedCombatant(info)
+                : new Combatant(info) { Stats = new CombatantStats { CooldownAcceleration = acceleration } };
 
         protected override object? CreateInstance(Type type)
         {
@@ -214,6 +271,7 @@ public sealed class GearCooldownAccelerationTests
             {
                 PrimarySpell = new Spell { Id = SpellA, Name = "Spell A", Cooldown = (double)CdSecondsA },
                 Category = SpellCategory.Rotational,
+                AbilityCategory = AbilityCategory.Major,
             },
             new SpellbookAbility
             {

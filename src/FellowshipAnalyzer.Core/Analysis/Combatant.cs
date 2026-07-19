@@ -22,13 +22,6 @@ public sealed class Combatant : Entity
         new(RequiredGemPower: 1500, Magnitude: 0.12),
     ];
 
-    /// <summary>Diamond "Blessing of the Artisan": Relic Cooldown Reduction ranks.</summary>
-    private static readonly GemRank[] BlessingOfTheArtisan =
-    [
-        new(RequiredGemPower: 450, Magnitude: 0.08),
-        new(RequiredGemPower: 1500, Magnitude: 0.24),
-    ];
-
     /// <summary>Quality tier of a legendary item; the top rarity, of which only one may be equipped.</summary>
     private const int LegendaryQuality = 6;
 
@@ -53,7 +46,7 @@ public sealed class Combatant : Entity
     public CombatantInfoEvent Info { get; }
 
     /// <summary>Frozen snapshot of the player's stat ratings and derived cooldown values, built once from the combatantinfo.</summary>
-    public CombatantStats Stats { get; }
+    public CombatantStats Stats { get; init; }
 
     public decimal ItemLevel => Info.ComputedItemLevel;
 
@@ -126,9 +119,11 @@ public sealed class Combatant : Entity
         Haste = info.Haste,
         Expertise = info.Expertise,
         Spirit = info.Spirit,
-        AbilityCooldownReduction = HighestUnlocked(BlessingOfTheCommander, info.Emerald),
-        RelicCooldownReduction = HighestUnlocked(BlessingOfTheArtisan, info.Diamond),
-        CooldownAcceleration = HasLegendary ? StrandOfEternityAcceleration : 0.0,
+        AbilityCooldownReduction =
+            new CooldownModifierSet(new CooldownModifier(HighestUnlocked(BlessingOfTheCommander, info.Emerald))),
+        CooldownAcceleration = HasLegendary
+            ? new CooldownModifierSet(new CooldownModifier(StrandOfEternityAcceleration))
+            : CooldownModifierSet.Empty,
     };
 
     /// <summary>
@@ -176,35 +171,29 @@ public sealed record CombatantStats
     public int Spirit { get; init; }
 
     /// <summary>
-    /// Ability Cooldown Reduction unlocked by Emerald gem power through "Blessing of the Commander", as a
-    /// fraction (0.12 = 12%): <c>effective = base * (1 - acr)</c>. Consumed by <see cref="CooldownReduction"/>
-    /// as the gear-derived seed of its additive pool.
+    /// Ability Cooldown Reduction modifiers, each a fraction (0.12 = 12%): <c>effective = base * (1 - acr)</c>.
+    /// Seeded with a single unscoped entry from the Emerald "Blessing of the Commander" rank the combatant's
+    /// gem power unlocks. Consumed by <see cref="CooldownReduction"/> as the gear-derived seed of its additive
+    /// pool.
     /// </summary>
     /// <remarks>
-    /// Thresholds and magnitudes are transcribed from <c>external/fs_tc_uploads/s3/gear_data.json</c> -&gt;
-    /// <c>Gems</c>, which the spelldb pipeline does not read. A higher rank <i>replaces</i> the one it
-    /// upgrades rather than stacking with it, so only the highest unlocked rank applies.
+    /// Emerald thresholds and magnitudes are transcribed from <c>external/fs_tc_uploads/s3/gear_data.json</c>
+    /// -&gt; <c>Gems</c>, which the spelldb pipeline does not read. A higher rank <i>replaces</i> the one it
+    /// upgrades rather than stacking with it, so only the highest unlocked rank seeds the entry. Relic Cooldown
+    /// Reduction (Diamond "Blessing of the Artisan") will return here as a scoped entry once relic abilities
+    /// are modelled.
     /// </remarks>
-    public double AbilityCooldownReduction { get; init; }
+    public CooldownModifierSet AbilityCooldownReduction { get; init; } = CooldownModifierSet.Empty;
 
     /// <summary>
-    /// Relic Cooldown Reduction unlocked by Diamond gem power through "Blessing of the Artisan", as a
-    /// fraction (0.24 = 24%). Relics are an equipment slot whose abilities the pipeline does not model yet,
-    /// so nothing consumes this. Same source data and replaces-not-sums resolution as
-    /// <see cref="AbilityCooldownReduction"/>.
-    /// </summary>
-    public double RelicCooldownReduction { get; init; }
-
-    /// <summary>
-    /// Permanent Cooldown Acceleration from equipped gear, as a fraction (0.10 = +10%): a term on the shared
-    /// recovery pool <see cref="SpellUsable.EffectiveRate"/> divides by. Every legendary carries the
-    /// "Strand of Eternity" property and only one legendary may be equipped, so this is a flat +10% whenever
-    /// the combatant <see cref="Combatant.HasLegendary"/>, else 0.
+    /// Cooldown Acceleration modifiers, each a fraction (0.10 = +10%): terms on the shared recovery pool
+    /// <see cref="SpellUsable.EffectiveRate"/> divides by. Seeded with a single unscoped entry for the
+    /// legendary "Strand of Eternity" whenever the combatant <see cref="Combatant.HasLegendary"/>, else empty.
     /// </summary>
     /// <remarks>
     /// The 0.10 magnitude and the legendary-quality gate are external game knowledge, not present anywhere in
-    /// the s3 source data; item effects are not in the generated gear pipeline, so the value is recognised
-    /// by the legendary quality tier.
+    /// the s3 source data; item effects are not in the generated gear pipeline, so the value is recognised by
+    /// the legendary quality tier. Only one legendary may be equipped, so the seed is at most a single entry.
     /// </remarks>
-    public double CooldownAcceleration { get; init; }
+    public CooldownModifierSet CooldownAcceleration { get; init; } = CooldownModifierSet.Empty;
 }
