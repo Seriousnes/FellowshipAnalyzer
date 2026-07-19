@@ -27,4 +27,12 @@ public class NormalizationTests
         Normalization.Charges(new Dictionary<string, double> { ["MaxCharges"] = 3 }).ShouldBe(3);
         Normalization.Charges(new Dictionary<string, double> { ["NumCharges"] = 2 }).ShouldBe(2);
     }
+
+    [Fact]
+    public void CooldownReductionOnTargetDeath_ReadsSecondsScalar()
+    {
+        Normalization.CooldownReductionOnTargetDeath(
+            new Dictionary<string, double> { ["CooldownReductionInSecondsOnTargetDeath"] = 10.0 }).ShouldBe(10.0);
+        Normalization.CooldownReductionOnTargetDeath(new Dictionary<string, double>()).ShouldBeNull();
+    }
 }

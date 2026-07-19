@@ -15,7 +15,7 @@ namespace FellowshipAnalyzer.Core.Analysis;
 /// which the spelldb pipeline does not read, so they are transcribed here. Only the cooldown ranks are
 /// modelled; the remaining ranks (stat bonuses, absorbs, procs) belong here as they are needed.
 /// </remarks>
-public sealed partial class GemPowers(Lazy<Combatants> combatants) : Analyzer
+public sealed partial class GemPowers : Analyzer
 {
     /// <summary>Emerald "Blessing of the Commander": Ability Cooldown Reduction.</summary>
     private static readonly GemRank[] BlessingOfTheCommander =
@@ -46,7 +46,7 @@ public sealed partial class GemPowers(Lazy<Combatants> combatants) : Analyzer
     [On<FightStartEvent>]
     private void OnFightStart(FightStartEvent _)
     {
-        var combatant = _combatants.Selected;
+        var combatant = Owner.SelectedCombatant;
         AbilityCooldownReduction = Unlocked(BlessingOfTheCommander, combatant.Emerald);
         RelicCooldownReduction = Unlocked(BlessingOfTheArtisan, combatant.Diamond);
     }

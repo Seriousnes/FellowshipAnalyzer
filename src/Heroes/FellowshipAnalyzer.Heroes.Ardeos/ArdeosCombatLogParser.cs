@@ -10,6 +10,7 @@ namespace FellowshipAnalyzer.Heroes.Ardeos.Analysis;
 [AddModule<CinderEmberTracker>]
 [AddModule<RollingFlamesAnalyzer>]
 [AddModule<ReignOfFireAnalyzer>]
+[AddModule<RekindlingFlamesAnalyzer>]
 [AddAnalyzer<WildfireComboAnalyzer>]
 [AddAnalyzer<EngulfingFlamesEconomyAnalyzer>]
 [AddAnalyzer<SearingBlazeSpreadAnalyzer>]
