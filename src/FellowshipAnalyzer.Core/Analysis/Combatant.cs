@@ -5,13 +5,35 @@ using FellowshipAnalyzer.Core.Events;
 namespace FellowshipAnalyzer.Core.Analysis;
 
 /// <summary>
-/// Represents a player entity with gear, stats, talents, and buff history.
-/// Populated from a <see cref="CombatantInfoEvent"/> at the start of analysis.
+/// Represents a player entity with gear, talents, and buff history. Populated from a
+/// <see cref="CombatantInfoEvent"/> at the start of analysis. The player's stat ratings and derived
+/// cooldown values are exposed as a frozen <see cref="CombatantStats"/> snapshot on <see cref="Stats"/>,
+/// built once from the combatantinfo.
 /// </summary>
 public sealed class Combatant : Entity
 {
     private readonly Dictionary<GearSlot, Item> _gear;
     private readonly Dictionary<int, Item> _itemById;
+
+    /// <summary>Emerald "Blessing of the Commander": Ability Cooldown Reduction ranks.</summary>
+    private static readonly GemRank[] BlessingOfTheCommander =
+    [
+        new(RequiredGemPower: 450, Magnitude: 0.04),
+        new(RequiredGemPower: 1500, Magnitude: 0.12),
+    ];
+
+    /// <summary>Diamond "Blessing of the Artisan": Relic Cooldown Reduction ranks.</summary>
+    private static readonly GemRank[] BlessingOfTheArtisan =
+    [
+        new(RequiredGemPower: 450, Magnitude: 0.08),
+        new(RequiredGemPower: 1500, Magnitude: 0.24),
+    ];
+
+    /// <summary>Quality tier of a legendary item; the top rarity, of which only one may be equipped.</summary>
+    private const int LegendaryQuality = 6;
+
+    /// <summary>The cooldown acceleration a legendary's Strand of Eternity grants, as a fraction (0.10 = +10%).</summary>
+    private const double StrandOfEternityAcceleration = 0.10;
 
     public Combatant(CombatantInfoEvent info)
     {
@@ -22,24 +44,18 @@ public sealed class Combatant : Entity
             .ToDictionary(x => x.slot, x => x.item);
 
         _itemById = _gear.Values.ToDictionary(i => i.Id);
+
+        HasLegendary = info.Gear.Any(item => item.Quality >= LegendaryQuality);
+        Stats = BuildStats(info);
     }
 
     public int Id => Info.SourceId;
     public CombatantInfoEvent Info { get; }
 
-    // Stats
+    /// <summary>Frozen snapshot of the player's stat ratings and derived cooldown values, built once from the combatantinfo.</summary>
+    public CombatantStats Stats { get; }
+
     public decimal ItemLevel => Info.ComputedItemLevel;
-    public int Health => Info.Health;
-    public int Mana => Info.Mana;
-    public int Strength => Info.Strength;
-    public int Agility => Info.Agility;
-    public int Intellect => Info.Intellect;
-    public int Stamina => Info.Stamina;
-    public int Armor => Info.Armor;
-    public int Crit => Info.Crit;
-    public int Haste => Info.Haste;
-    public int Expertise => Info.Expertise;
-    public int Spirit => Info.Spirit;
 
     // Gem powers
     public int Amethyst => Info.Amethyst;
@@ -48,6 +64,9 @@ public sealed class Combatant : Entity
     public int Ruby => Info.Ruby;
     public int Sapphire => Info.Sapphire;
     public int Emerald => Info.Emerald;
+
+    /// <summary>True when any equipped item is legendary quality (the top rarity, of which only one may be equipped).</summary>
+    public bool HasLegendary { get; }
 
     // Gear slot accessors
     public Item? Head => GetSlot(GearSlot.Head);
@@ -87,4 +106,105 @@ public sealed class Combatant : Entity
     public IReadOnlyList<WeaponTrait> WeaponTraits => Info.WeaponTraits;
 
     private Item? GetSlot(GearSlot slot) => _gear.GetValueOrDefault(slot);
+
+    /// <summary>
+    /// Builds the frozen <see cref="CombatantStats"/> snapshot from the combatantinfo: the raw stat ratings
+    /// are copied straight across, and the derived cooldown values are computed from gem-power rank unlocks
+    /// and the legendary acceleration. Resolved here at combatantinfo parse, before any module exists, so
+    /// nothing depends on module ordering.
+    /// </summary>
+    private CombatantStats BuildStats(CombatantInfoEvent info) => new()
+    {
+        Health = info.Health,
+        Mana = info.Mana,
+        Strength = info.Strength,
+        Agility = info.Agility,
+        Intellect = info.Intellect,
+        Stamina = info.Stamina,
+        Armor = info.Armor,
+        Crit = info.Crit,
+        Haste = info.Haste,
+        Expertise = info.Expertise,
+        Spirit = info.Spirit,
+        AbilityCooldownReduction = HighestUnlocked(BlessingOfTheCommander, info.Emerald),
+        RelicCooldownReduction = HighestUnlocked(BlessingOfTheArtisan, info.Diamond),
+        CooldownAcceleration = HasLegendary ? StrandOfEternityAcceleration : 0.0,
+    };
+
+    /// <summary>
+    /// The magnitude of the highest-threshold rank that <paramref name="gemPower"/> unlocks, or 0 when it
+    /// unlocks none. Magnitudes are never summed, because a higher rank replaces the one it upgrades.
+    /// </summary>
+    private static double HighestUnlocked(GemRank[] ranks, int gemPower)
+    {
+        var threshold = 0;
+        var magnitude = 0.0;
+
+        foreach (var rank in ranks)
+        {
+            if (gemPower >= rank.RequiredGemPower && rank.RequiredGemPower >= threshold)
+                (threshold, magnitude) = (rank.RequiredGemPower, rank.Magnitude);
+        }
+
+        return magnitude;
+    }
+
+    /// <summary>One rank of a gem power.</summary>
+    /// <param name="RequiredGemPower">Gem power at which the rank unlocks.</param>
+    /// <param name="Magnitude">The rank's effect size, as a fraction where it is a percentage.</param>
+    private readonly record struct GemRank(int RequiredGemPower, double Magnitude);
+}
+
+/// <summary>
+/// Frozen snapshot of a <see cref="Combatant"/>'s stat ratings and derived cooldown values, built once from
+/// the <see cref="CombatantInfoEvent"/> when the combatant is constructed. The rating fields are copied
+/// straight from the combatantinfo; the cooldown fields are computed from gem-power rank unlocks and equipped
+/// gear.
+/// </summary>
+public sealed record CombatantStats
+{
+    public int Health { get; init; }
+    public int Mana { get; init; }
+    public int Strength { get; init; }
+    public int Agility { get; init; }
+    public int Intellect { get; init; }
+    public int Stamina { get; init; }
+    public int Armor { get; init; }
+    public int Crit { get; init; }
+    public int Haste { get; init; }
+    public int Expertise { get; init; }
+    public int Spirit { get; init; }
+
+    /// <summary>
+    /// Ability Cooldown Reduction unlocked by Emerald gem power through "Blessing of the Commander", as a
+    /// fraction (0.12 = 12%): <c>effective = base * (1 - acr)</c>. Consumed by <see cref="CooldownReduction"/>
+    /// as the gear-derived seed of its additive pool.
+    /// </summary>
+    /// <remarks>
+    /// Thresholds and magnitudes are transcribed from <c>external/fs_tc_uploads/s3/gear_data.json</c> -&gt;
+    /// <c>Gems</c>, which the spelldb pipeline does not read. A higher rank <i>replaces</i> the one it
+    /// upgrades rather than stacking with it, so only the highest unlocked rank applies.
+    /// </remarks>
+    public double AbilityCooldownReduction { get; init; }
+
+    /// <summary>
+    /// Relic Cooldown Reduction unlocked by Diamond gem power through "Blessing of the Artisan", as a
+    /// fraction (0.24 = 24%). Relics are an equipment slot whose abilities the pipeline does not model yet,
+    /// so nothing consumes this. Same source data and replaces-not-sums resolution as
+    /// <see cref="AbilityCooldownReduction"/>.
+    /// </summary>
+    public double RelicCooldownReduction { get; init; }
+
+    /// <summary>
+    /// Permanent Cooldown Acceleration from equipped gear, as a fraction (0.10 = +10%): a term on the shared
+    /// recovery pool <see cref="SpellUsable.EffectiveRate"/> divides by. Every legendary carries the
+    /// "Strand of Eternity" property and only one legendary may be equipped, so this is a flat +10% whenever
+    /// the combatant <see cref="Combatant.HasLegendary"/>, else 0.
+    /// </summary>
+    /// <remarks>
+    /// The 0.10 magnitude and the legendary-quality gate are external game knowledge, not present anywhere in
+    /// the s3 source data; item effects are not in the generated gear pipeline, so the value is recognised
+    /// by the legendary quality tier.
+    /// </remarks>
+    public double CooldownAcceleration { get; init; }
 }

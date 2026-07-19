@@ -243,8 +243,8 @@ public sealed class EngulfingFlamesEconomyAnalyzerTests
     };
 
     /// <summary>
-    /// Emerald power drives Ability Cooldown Reduction via <see cref="GemPowers"/>: 450 unlocks 4% and
-    /// 1500 (the gem power cap) unlocks 12%. Tests without a combatant info event get 0 power, so they
+    /// Emerald power drives Ability Cooldown Reduction resolved on the <see cref="Combatant"/>: 450 unlocks
+    /// 4% and 1500 (the gem power cap) unlocks 12%. Tests without a combatant info event get 0 power, so they
     /// see full-length cooldowns.
     /// </summary>
     private static CombatantInfoEvent CombatantWithEmerald(int power) => new()
@@ -255,7 +255,7 @@ public sealed class EngulfingFlamesEconomyAnalyzerTests
 
     /// <summary>
     /// A combatant wearing a legendary item (quality tier 6), whose Strand of Eternity grants +10%
-    /// cooldown acceleration via <see cref="Core.Analysis.GearCooldownRecovery"/>.
+    /// cooldown acceleration via <see cref="CombatantStats.CooldownAcceleration"/>.
     /// </summary>
     private static CombatantInfoEvent CombatantWithLegendary() => new()
     {

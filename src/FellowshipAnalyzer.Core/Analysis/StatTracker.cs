@@ -29,17 +29,17 @@ public sealed partial class StatTracker(Lazy<Combatants> combatants) : Analyzer
     [On<FightStartEvent>]
     private void OnFightStart(FightStartEvent _)
     {
-        var combatant = _combatants.Selected;
+        var stats = _combatants.Selected.Stats;
 
         _pullStats = new PlayerStats
         {
-            Intellect = combatant.Intellect,
-            Stamina = combatant.Stamina,
-            Armor = combatant.Armor,
-            Crit = combatant.Crit,
-            Haste = combatant.Haste,
-            Expertise = combatant.Expertise,
-            Spirit = combatant.Spirit,
+            Intellect = stats.Intellect,
+            Stamina = stats.Stamina,
+            Armor = stats.Armor,
+            Crit = stats.Crit,
+            Haste = stats.Haste,
+            Expertise = stats.Expertise,
+            Spirit = stats.Spirit,
         };
         _currentStats = _pullStats.Clone();
     }

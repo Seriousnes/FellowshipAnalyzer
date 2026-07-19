@@ -24,14 +24,17 @@ public sealed partial class RekindlingFlamesAnalyzer : Analyzer
     /// <summary>Enemy deaths that carried at least one open Engulfing Flames DoT window.</summary>
     public int QualifyingDeaths { get; private set; }
 
-    /// <summary>Total Engulfing Flames cooldown reduction the qualifying deaths requested, in milliseconds.</summary>
-    public int TotalRequestedReductionMs { get; private set; }
+    /// <summary>
+    /// Total Engulfing Flames cooldown reduction the qualifying deaths generated, in milliseconds, after
+    /// Ability Cooldown Reduction has scaled the flat per-window request.
+    /// </summary>
+    public int TotalGeneratedReductionMs { get; private set; }
 
-    /// <summary>Requested reduction that shortened a running cooldown or returned a charge, in milliseconds.</summary>
+    /// <summary>Generated reduction that shortened a running cooldown or returned a charge, in milliseconds.</summary>
     public int EffectiveReductionMs { get; private set; }
 
-    /// <summary>Requested reduction that overflowed the charge cap and shortened nothing, in milliseconds.</summary>
-    public int WastedReductionMs => TotalRequestedReductionMs - EffectiveReductionMs;
+    /// <summary>Generated reduction that overflowed the charge cap and shortened nothing, in milliseconds.</summary>
+    public int WastedReductionMs => TotalGeneratedReductionMs - EffectiveReductionMs;
 
     [On<DeathEvent>]
     private void OnDeath(DeathEvent e)
@@ -45,7 +48,7 @@ public sealed partial class RekindlingFlamesAnalyzer : Analyzer
         var reduction = Owner.SpellUsable!.ReduceCooldown(Spells.EngulfingFlames.Id, requestedMs, e.Timestamp);
 
         QualifyingDeaths++;
-        TotalRequestedReductionMs += reduction.GeneratedMs;
+        TotalGeneratedReductionMs += reduction.GeneratedMs;
         EffectiveReductionMs += reduction.AppliedMs;
     }
 }

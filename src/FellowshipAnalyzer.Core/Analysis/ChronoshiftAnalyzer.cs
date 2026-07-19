@@ -5,9 +5,9 @@ using FellowshipAnalyzer.Core.UI.Components;
 namespace FellowshipAnalyzer.Core.Analysis;
 
 /// <summary>
-/// Models Chronoshift's cooldown recovery effect. While the player channels Chronoshift it adds 700%
+/// Models Chronoshift's cooldown recovery effect. While the player channels Chronoshift it adds 800%
 /// cooldown recovery to <see cref="SpellUsable"/>'s shared recovery pool, taking an ability with no
-/// haste contribution to 8× recovery. The channel lasts a fixed 3 seconds (haste-independent) unless
+/// haste contribution to 9× recovery. The channel lasts a fixed 3 seconds (haste-independent) unless
 /// an <see cref="EndChannelEvent"/> cancels it early. The added recovery is set for the channel window
 /// and cleared when it ends; because it is <i>set</i> rather than stacked, an unmatched begin/end
 /// (Fellowship logs the channel end for only a minority of channels) cannot compound it.
@@ -41,9 +41,9 @@ public sealed partial class ChronoshiftAnalyzer(Lazy<SpellUsable> spellUsable) :
 
     /// <summary>
     /// Bonus cooldown recovery Chronoshift granted to each ability over the encounter, in
-    /// milliseconds, ordered by amount descending. This is the extra cooldown progress the added 700%
+    /// milliseconds, ordered by amount descending. This is the extra cooldown progress the added 800%
     /// bought beyond what the spell would have made over the same window without it. Because the pool
-    /// is additive, that extra is 7× the time on cooldown whatever the ability's haste contribution.
+    /// is additive, that extra is 8× the time on cooldown whatever the ability's haste contribution.
     /// </summary>
     public IReadOnlyList<AbilityRecovery> RecoveryByAbility =>
         [.. _recoveryBySpell

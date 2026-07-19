@@ -35,7 +35,7 @@ public sealed class RekindlingFlamesAnalyzerTests
             Death(2000, EnemyId, EnemyInstance));
 
         analyzer.QualifyingDeaths.ShouldBe(0);
-        analyzer.TotalRequestedReductionMs.ShouldBe(0);
+        analyzer.TotalGeneratedReductionMs.ShouldBe(0);
         analyzer.EffectiveReductionMs.ShouldBe(0);
         analyzer.WastedReductionMs.ShouldBe(0);
     }
@@ -52,7 +52,7 @@ public sealed class RekindlingFlamesAnalyzerTests
             Death(3000, EnemyId, EnemyInstance));
 
         analyzer.QualifyingDeaths.ShouldBe(1);
-        analyzer.TotalRequestedReductionMs.ShouldBe(10_000);
+        analyzer.TotalGeneratedReductionMs.ShouldBe(10_000);
         analyzer.EffectiveReductionMs.ShouldBe(10_000);
         analyzer.WastedReductionMs.ShouldBe(0);
     }
@@ -76,7 +76,7 @@ public sealed class RekindlingFlamesAnalyzerTests
             Death(11_000, EnemyId, EnemyInstance));
 
         analyzer.QualifyingDeaths.ShouldBe(1);
-        analyzer.TotalRequestedReductionMs.ShouldBe(60_000);
+        analyzer.TotalGeneratedReductionMs.ShouldBe(60_000);
         analyzer.EffectiveReductionMs.ShouldBe(30_000);
         analyzer.WastedReductionMs.ShouldBe(30_000);
     }
