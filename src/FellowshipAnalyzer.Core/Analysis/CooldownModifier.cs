@@ -27,6 +27,17 @@ public partial class CooldownScope : OneOfBase<Spell[], AbilityCategory[], Func<
 }
 
 /// <summary>
+/// The two cooldown stat pools <see cref="StatTracker"/> tracks: Ability Cooldown Reduction
+/// (<c>effective = base * (1 - acr)</c>, snapshot semantics) and Cooldown Acceleration (terms on the
+/// shared recovery pool <see cref="SpellUsable.EffectiveRate"/> divides by, dynamic semantics).
+/// </summary>
+public enum CooldownPool
+{
+    AbilityCooldownReduction,
+    CooldownAcceleration,
+}
+
+/// <summary>
 /// A single cooldown modifier: a fractional <paramref name="Value"/> applied within an optional
 /// <paramref name="Scope"/>.
 /// </summary>
@@ -41,23 +52,22 @@ public sealed record CooldownModifier(double Value, CooldownScope? Scope = null)
 /// An immutable collection of <see cref="CooldownModifier"/> entries whose <see cref="Total"/> resolves the
 /// combined fraction that applies to a given ability.
 /// </summary>
-public sealed class CooldownModifierSet(params IReadOnlyList<CooldownModifier> entries)
+public sealed class CooldownModifierSet : List<CooldownModifier>
 {
     /// <summary>An empty set that contributes nothing to any ability.</summary>
-    public static CooldownModifierSet Empty { get; } = new();
-
-    /// <summary>The modifiers in this set.</summary>
-    public IReadOnlyList<CooldownModifier> Entries => entries;
+    public static CooldownModifierSet Empty => [];
 
     /// <summary>
     /// The summed fraction that applies to <paramref name="ability"/>: every unscoped entry plus every entry
-    /// whose scope <see cref="CooldownScope.Matches"/> the ability. A <c>null</c> ability accrues only the
-    /// unscoped entries.
+    /// whose scope <see cref="CooldownScope.Matches"/> the ability.
     /// </summary>
+    /// <remarks>
+    /// A <c>null</c> ability accrues only the unscoped entries.
+    /// </remarks>
     public double Total(SpellbookAbility? ability)
     {
         var total = 0.0;
-        foreach (var entry in entries)
+        foreach (var entry in this)
         {
             if (entry.Scope is null || (ability is not null && entry.Scope.Matches(ability)))
                 total += entry.Value;

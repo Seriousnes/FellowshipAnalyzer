@@ -128,7 +128,6 @@ public sealed class ChronoshiftAnalyzerTests
             typeof(StatTracker),
             typeof(Combatants),
             typeof(Haste),
-            typeof(CooldownReduction),
             typeof(SpellUsable),
             typeof(ChronoshiftAnalyzer),
         ];

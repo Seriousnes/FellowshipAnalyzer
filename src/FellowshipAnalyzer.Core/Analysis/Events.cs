@@ -16,6 +16,7 @@ public static class Events
     public static EventFilter<CastEvent> Cast => new();
     public static EventFilter<ChangeBuffStackEvent> ChangeBuffStack => new();
     public static EventFilter<ChangeDebuffStackEvent> ChangeDebuffStack => new();
+    public static EventFilter<ChangeCooldownModifierEvent> ChangeCooldownModifier => new();
     public static EventFilter<ChangeHasteEvent> ChangeHaste => new();
     public static EventFilter<ChangeStatsEvent> ChangeStats => new();
     public static EventFilter<DamageEvent> Damage => new();

@@ -7,6 +7,9 @@ namespace FellowshipAnalyzer.Core.Analysis;
 /// Tracks the selected player's stat ratings over the course of a fight.
 /// Monitors buff/debuff stack changes to keep rating totals up to date and
 /// fabricates <see cref="ChangeStatsEvent"/> whenever stats change.
+/// Also tracks the two cooldown stat pools, Ability Cooldown Reduction and Cooldown Acceleration:
+/// each starts from the gear-derived seed frozen on <see cref="CombatantStats"/> and accrues runtime
+/// <see cref="CooldownModifier"/>s, fabricating <see cref="ChangeCooldownModifierEvent"/> on every change.
 /// </summary>
 /// <remarks>
 /// Rating → percentage conversion uses Fellowship's piecewise diminishing-returns
@@ -22,6 +25,12 @@ public sealed partial class StatTracker(Lazy<Combatants> combatants) : Analyzer
     private readonly Dictionary<int, StatBuff> _statBuffs = [];
 
     private readonly Dictionary<int, StatMultiplierBuff> _statMultiplierBuffs = [];
+
+    private readonly Dictionary<int, CooldownBuff> _cooldownBuffs = [];
+
+    private readonly List<CooldownModifier> _abilityCooldownReduction = [];
+
+    private readonly List<CooldownModifier> _cooldownAcceleration = [];
 
     /// <summary>5% base critical strike chance, added after diminishing returns.</summary>
     public const double BaseCritChance = 0.05;
@@ -54,6 +63,110 @@ public sealed partial class StatTracker(Lazy<Combatants> combatants) : Analyzer
     /// </summary>
     public void AddMultiplier(int spellId, StatMultiplierBuff multiplier) =>
         _statMultiplierBuffs[spellId] = multiplier;
+
+    /// <summary>
+    /// Registers a cooldown stat buff: while the buff is active on the player its modifiers join the
+    /// tracked pools, and they leave when the buff drops. Unlike rating buffs, prepull applications
+    /// still take effect because the gear-derived seed contains no temporary buff contributions.
+    /// </summary>
+    public void AddCooldownBuff(int spellId, CooldownBuff buff) => _cooldownBuffs[spellId] = buff;
+
+    /// <summary>
+    /// Total Ability Cooldown Reduction for <paramref name="ability"/> as a fraction (0.12 = 12%), summing
+    /// the gear-derived seed frozen on <see cref="CombatantStats"/> and every tracked runtime modifier that
+    /// applies to it, capped at 1.0 so a cooldown can be erased but never driven below zero. A <c>null</c>
+    /// ability accrues only unscoped modifiers. ACR is snapshot semantics: <see cref="SpellUsable"/> reads
+    /// this when a cooldown starts and never rescales one in flight.
+    /// </summary>
+    public double CurrentAbilityCooldownReduction(SpellbookAbility? ability) =>
+        Math.Min(1.0, Owner.SelectedCombatant.Stats.AbilityCooldownReduction.Total(ability)
+            + TotalOf(_abilityCooldownReduction, ability));
+
+    /// <summary>
+    /// Total Cooldown Acceleration for <paramref name="ability"/> as a fraction (0.10 = +10%), summing the
+    /// gear-derived seed frozen on <see cref="CombatantStats"/> and every tracked runtime modifier that
+    /// applies to it. Uncapped: each value is a term on the shared recovery pool
+    /// <see cref="SpellUsable.EffectiveRate"/> divides by. A <c>null</c> ability accrues only unscoped
+    /// modifiers.
+    /// </summary>
+    public double CurrentCooldownAcceleration(SpellbookAbility? ability) =>
+        Owner.SelectedCombatant.Stats.CooldownAcceleration.Total(ability)
+            + TotalOf(_cooldownAcceleration, ability);
+
+    /// <summary>
+    /// Ability Cooldown Reduction for <paramref name="ability"/> from the gear-derived seed alone, capped
+    /// at 1.0: the value in force at the pull before any runtime modifier was tracked.
+    /// </summary>
+    public double StartingAbilityCooldownReduction(SpellbookAbility? ability) =>
+        Math.Min(1.0, Owner.SelectedCombatant.Stats.AbilityCooldownReduction.Total(ability));
+
+    /// <summary>
+    /// Cooldown Acceleration for <paramref name="ability"/> from the gear-derived seed alone: the value in
+    /// force at the pull before any runtime modifier was tracked.
+    /// </summary>
+    public double StartingCooldownAcceleration(SpellbookAbility? ability) =>
+        Owner.SelectedCombatant.Stats.CooldownAcceleration.Total(ability);
+
+    /// <summary>
+    /// Scales a cooldown duration by <paramref name="ability"/>'s current Ability Cooldown Reduction: at
+    /// 10% ACR a 30s cooldown becomes 27s. This applies to both base cooldowns at cast and flat cooldown
+    /// reductions, so at 10% ACR a 1000ms Rolling Flames reduction generates 900ms.
+    /// </summary>
+    public int ScaleByCooldownReduction(SpellbookAbility? ability, int milliseconds) =>
+        (int)(milliseconds * (1.0 - CurrentAbilityCooldownReduction(ability)));
+
+    /// <summary>
+    /// Adds a runtime modifier to the given cooldown stat pool and fabricates a
+    /// <see cref="ChangeCooldownModifierEvent"/> describing the change. The pool is mutated before the
+    /// event is fabricated so subscribers observe the new totals. Pools are additive: each modifier
+    /// contributes its value rather than multiplying with the others.
+    /// </summary>
+    public void AddCooldownModifier(CooldownPool pool, CooldownModifier modifier, Event? trigger = null, int? timestamp = null)
+    {
+        PoolOf(pool).Add(modifier);
+        FabricateChangeCooldownModifier(pool, modifier, added: true, trigger, timestamp);
+    }
+
+    /// <summary>
+    /// Removes one occurrence of a previously added runtime modifier from the given cooldown stat pool and
+    /// fabricates a <see cref="ChangeCooldownModifierEvent"/> describing the change. A modifier that is not
+    /// present is a no-op and fabricates nothing, so a stray or duplicate removal cannot drive a pool
+    /// negative.
+    /// </summary>
+    public void RemoveCooldownModifier(CooldownPool pool, CooldownModifier modifier, Event? trigger = null, int? timestamp = null)
+    {
+        if (!PoolOf(pool).Remove(modifier)) return;
+        FabricateChangeCooldownModifier(pool, modifier, added: false, trigger, timestamp);
+    }
+
+    private List<CooldownModifier> PoolOf(CooldownPool pool) => pool switch
+    {
+        CooldownPool.AbilityCooldownReduction => _abilityCooldownReduction,
+        CooldownPool.CooldownAcceleration => _cooldownAcceleration,
+        _ => throw new ArgumentOutOfRangeException(nameof(pool), pool, null),
+    };
+
+    private static double TotalOf(List<CooldownModifier> modifiers, SpellbookAbility? ability)
+    {
+        var total = 0.0;
+        foreach (var modifier in modifiers)
+        {
+            if (modifier.Scope is null || (ability is not null && modifier.Scope.Matches(ability)))
+                total += modifier.Value;
+        }
+        return total;
+    }
+
+    private void FabricateChangeCooldownModifier(CooldownPool pool, CooldownModifier modifier, bool added, Event? trigger, int? timestamp) =>
+        Owner.EventEmitter.FabricateEvent(new ChangeCooldownModifierEvent
+        {
+            Timestamp = timestamp ?? trigger?.Timestamp ?? 0,
+            SourceId = Owner.PlayerId,
+            TargetId = Owner.PlayerId,
+            Pool = pool,
+            Modifier = modifier,
+            Added = added,
+        }, trigger);
 
     public double CurrentIntellect => _currentStats.Intellect;
     public double CurrentStamina => _currentStats.Stamina;
@@ -146,10 +259,8 @@ public sealed partial class StatTracker(Lazy<Combatants> combatants) : Analyzer
 
     private void HandleBuffGain(int spellId, bool isPrepull, Event trigger)
     {
-        if (_statBuffs.TryGetValue(spellId, out var ratingBuff))
+        if (!isPrepull && _statBuffs.TryGetValue(spellId, out var ratingBuff))
         {
-            if (isPrepull) return;
-
             var before = _currentStats.ToStats();
             ApplyRatingBuff(ratingBuff, 1.0);
             var after = _currentStats.ToStats();
@@ -161,9 +272,19 @@ public sealed partial class StatTracker(Lazy<Combatants> combatants) : Analyzer
             if (isPrepull)
             {
                 UpdateMultiplierState(multBuff, isGaining: true);
-                return;
             }
-            ApplyMultiplierBuff(multBuff, isGaining: true, trigger);
+            else
+            {
+                ApplyMultiplierBuff(multBuff, isGaining: true, trigger);
+            }
+        }
+
+        if (_cooldownBuffs.TryGetValue(spellId, out var cooldownBuff))
+        {
+            if (cooldownBuff.AbilityCooldownReduction is { } acr)
+                AddCooldownModifier(CooldownPool.AbilityCooldownReduction, acr, trigger);
+            if (cooldownBuff.CooldownAcceleration is { } cda)
+                AddCooldownModifier(CooldownPool.CooldownAcceleration, cda, trigger);
         }
     }
 
@@ -180,6 +301,14 @@ public sealed partial class StatTracker(Lazy<Combatants> combatants) : Analyzer
         if (_statMultiplierBuffs.TryGetValue(spellId, out var multBuff))
         {
             ApplyMultiplierBuff(multBuff, isGaining: false, trigger);
+        }
+
+        if (_cooldownBuffs.TryGetValue(spellId, out var cooldownBuff))
+        {
+            if (cooldownBuff.AbilityCooldownReduction is { } acr)
+                RemoveCooldownModifier(CooldownPool.AbilityCooldownReduction, acr, trigger);
+            if (cooldownBuff.CooldownAcceleration is { } cda)
+                RemoveCooldownModifier(CooldownPool.CooldownAcceleration, cda, trigger);
         }
     }
 
@@ -286,6 +415,16 @@ public sealed class StatBuff
     /// <summary>Item ID to pass to function-based <see cref="BuffVal"/> callbacks.</summary>
     public int? ItemId { get; init; }
 }
+
+/// <summary>
+/// Describes a cooldown stat buff: modifiers that join the tracked pools while the buff is active on
+/// the player and leave when it drops. Unset pools are not modified.
+/// </summary>
+/// <param name="AbilityCooldownReduction">Modifier added to the Ability Cooldown Reduction pool.</param>
+/// <param name="CooldownAcceleration">Modifier added to the Cooldown Acceleration pool.</param>
+public sealed record CooldownBuff(
+    CooldownModifier? AbilityCooldownReduction = null,
+    CooldownModifier? CooldownAcceleration = null);
 
 /// <summary>
 /// Describes a multiplicative stat buff (e.g., 1.05 = +5%).

@@ -15,10 +15,11 @@ using RimeSpells = FellowshipAnalyzer.Core.Common.Spells.Rime.Spells;
 namespace FellowshipAnalyzer.Core.Tests.Analysis;
 
 /// <summary>
-/// Tests for <see cref="SpellUsable"/>'s single additive cooldown recovery pool: <c>1 + haste + added
-/// recovery</c>, where haste contributes only for haste-flagged abilities and added recovery (set, not
-/// stacked, e.g. Chronoshift) applies to every ability. Covers in-flight rescaling, idempotent added
-/// recovery, proportional progress across rate changes, and chronological flush.
+/// Tests for <see cref="SpellUsable"/>'s single additive cooldown recovery pool: <c>1 + haste + the
+/// Cooldown Acceleration pool <see cref="StatTracker"/> tracks</c>, where haste contributes only for
+/// haste-flagged abilities and tracked modifiers (e.g. Chronoshift) apply within their scope. Covers
+/// in-flight rescaling on pool changes, proportional progress across rate changes, and chronological
+/// flush.
 /// </summary>
 public sealed partial class SpellUsableTests
 {
@@ -33,115 +34,145 @@ public sealed partial class SpellUsableTests
     /// <summary>WrathOfWinterBuff is a registered 30% haste buff on the <see cref="Haste"/> module.</summary>
     private const double BuffHaste = 0.30;
 
+    /// <summary>Ability id of the in-stream buff that triggers a modifier addition via the probe callback.</summary>
+    private const int TriggerId = 8888;
+
+    /// <summary>Ability id of the in-stream buff that triggers a modifier removal via the probe callback.</summary>
+    private const int RemoveTriggerId = 8887;
+
     private static readonly ReportFight TestFight =
         new(Id: 0, Name: "", EncounterId: 0, Kill: null,
             StartTime: 0, EndTime: 60_000, Difficulty: null,
             FriendlyPlayers: null, FightPercentage: null);
 
     // -------------------------------------------------------------------------
-    // Added cooldown recovery (applies to every ability, set not stacked)
+    // Tracked Cooldown Acceleration modifiers (added and removed via StatTracker)
     // -------------------------------------------------------------------------
 
+    /// <summary>
+    /// SpellA cast at t=1000 with base CD=10000ms recharges to t=11000. A 1.0 acceleration modifier
+    /// added at t=2000 takes the rate to 2×: remaining was 9000, new remaining = 9000/2 = 4500.
+    /// </summary>
     [Fact]
-    public async Task SetRecovery_RescalesInFlightCooldown()
+    public async Task AddedAcceleration_RescalesInFlightCooldown()
     {
-        var (_, spellUsable, _) = await Run([CreateCast(1000, SpellA)]);
-
-        // SpellA cast at t=1000 with base CD=10000ms → ExpectedEnd t=11000.
-        // Added recovery 1.0 at t=2000 → rate 2×: remaining was 9000, new remaining = 9000/2 = 4500.
-        spellUsable.SetAddedCooldownRecovery(1.0, timestamp: 2000);
+        var (_, spellUsable, _) = await Run(
+            [CreateCast(1000, SpellA), CreateTrigger(2000)],
+            onApplyBuff: (owner, e) =>
+            {
+                if (e.Ability?.FSLID.Value == TriggerId)
+                    owner.GetModule<StatTracker>()!.AddCooldownModifier(
+                        CooldownPool.CooldownAcceleration, new CooldownModifier(1.0), e);
+            });
 
         Assert.Equal(4500, spellUsable.CooldownRemaining(SpellA, atTimestamp: 2000));
     }
 
+    /// <summary>
+    /// Adding then removing the same acceleration modifier at the same timestamp round-trips the
+    /// in-flight cooldown back to its original remaining time and rate.
+    /// </summary>
     [Fact]
-    public async Task SetRecovery_ThenReset_RoundTripsCooldown()
+    public async Task AddedAcceleration_ThenRemoved_RoundTripsCooldown()
     {
-        var (_, spellUsable, _) = await Run([CreateCast(1000, SpellA)]);
+        var modifier = new CooldownModifier(1.0);
 
-        spellUsable.SetAddedCooldownRecovery(1.0, timestamp: 2000);
-        spellUsable.SetAddedCooldownRecovery(0.0, timestamp: 2000);
+        var (_, spellUsable, _) = await Run(
+            [CreateCast(1000, SpellA), CreateTrigger(2000)],
+            onApplyBuff: (owner, e) =>
+            {
+                if (e.Ability?.FSLID.Value != TriggerId) return;
+                var statTracker = owner.GetModule<StatTracker>()!;
+                statTracker.AddCooldownModifier(CooldownPool.CooldownAcceleration, modifier, e);
+                statTracker.RemoveCooldownModifier(CooldownPool.CooldownAcceleration, modifier, e);
+            });
 
         var remaining = spellUsable.CooldownRemaining(SpellA, atTimestamp: 2000);
         Assert.InRange(remaining, 8999, 9001);
         Assert.Equal(1.0, spellUsable.EffectiveRate(SpellA), precision: 6);
     }
 
+    /// <summary>
+    /// A category-scoped acceleration modifier added mid-flight rescales only the in-flight cooldowns
+    /// whose ability it covers: SpellA (Major) has its remaining 9000ms halved to 4500, while SpellB
+    /// (unclassified) keeps its full 19000ms remaining.
+    /// </summary>
     [Fact]
-    public async Task SetRecovery_IsIdempotent_NeverCompounds()
+    public async Task ScopedAcceleration_RescalesOnlyMatchingInFlightCooldowns()
     {
-        // Regression guard: a recovery source (re)applied without a matching removal must not
-        // compound. Adding Chronoshift's 8.0 three times leaves the rate at 9×, not 9³; resetting
-        // once restores 1×. (This is the Chronoshift begin/end imbalance that drove the rate to 9^10.)
-        var (_, spellUsable, _) = await Run([]);
+        var (_, spellUsable, _) = await Run(
+            [CreateCast(1000, SpellA), CreateCast(1000, SpellB), CreateTrigger(2000)],
+            onApplyBuff: (owner, e) =>
+            {
+                if (e.Ability?.FSLID.Value == TriggerId)
+                    owner.GetModule<StatTracker>()!.AddCooldownModifier(
+                        CooldownPool.CooldownAcceleration,
+                        new CooldownModifier(1.0, new[] { AbilityCategory.Major }), e);
+            });
 
-        spellUsable.SetAddedCooldownRecovery(8.0, timestamp: 1000);
-        spellUsable.SetAddedCooldownRecovery(8.0, timestamp: 1000);
-        spellUsable.SetAddedCooldownRecovery(8.0, timestamp: 1000);
-        Assert.Equal(9.0, spellUsable.EffectiveRate(SpellA), precision: 6);
-
-        spellUsable.SetAddedCooldownRecovery(0.0, timestamp: 1000);
-        Assert.Equal(1.0, spellUsable.EffectiveRate(SpellA), precision: 6);
+        Assert.Equal(4500, spellUsable.CooldownRemaining(SpellA, atTimestamp: 2000));
+        Assert.Equal(19_000, spellUsable.CooldownRemaining(SpellB, atTimestamp: 2000));
     }
 
+    /// <summary>Base 10s at rate 9 (1 + Chronoshift's 8.0) starts at ~1111ms.</summary>
     [Fact]
-    public async Task BeginCooldown_DuringRecovery_StartsShorter()
+    public async Task BeginCooldown_DuringAcceleration_StartsShorter()
     {
-        var (_, spellUsable, _) = await Run([]);
+        var (parser, spellUsable, _) = await Run([]);
 
-        spellUsable.SetAddedCooldownRecovery(8.0, timestamp: 1000);
+        parser.GetModule<StatTracker>()!.AddCooldownModifier(
+            CooldownPool.CooldownAcceleration, new CooldownModifier(8.0), timestamp: 1000);
         spellUsable.BeginCooldown(SpellA, timestamp: 1000);
 
-        // Base 10s ÷ 9 = ~1111ms initial duration.
         var remaining = spellUsable.CooldownRemaining(SpellA, atTimestamp: 1000);
         Assert.InRange(remaining, 1100, 1115);
     }
 
+    /// <summary>
+    /// 2× rate active at cast (t=100) recovers the 10s base CD in 5s, ending at t=5100. At t=2600
+    /// (50% recovered, 2500ms remaining) the modifier is removed: 50% of the work remains, which at
+    /// base rate takes 5s, so the cooldown expires at t=7600.
+    /// </summary>
     [Fact]
-    public async Task RecoveryActiveAtCast_RemovedMidCooldown_PreservesProportionalProgress()
+    public async Task AccelerationActiveAtCast_RemovedMidCooldown_PreservesProportionalProgress()
     {
-        // 2× recovery active at cast → 10s base CD recovers in 5s. After 2.5s wallclock
-        // (50% recovered), recovery drops to 1× → 50% of work remains, which at base rate
-        // takes 5s. Cooldown should expire at t=7500.
-        var (_, spellUsable, _) = await Run([]);
+        var modifier = new CooldownModifier(1.0);
 
-        spellUsable.SetAddedCooldownRecovery(1.0, timestamp: 0);
-        spellUsable.BeginCooldown(SpellA, timestamp: 0);
+        var (_, spellUsable, _) = await Run(
+            [CreateTrigger(0), CreateCast(100, SpellA), CreateTrigger(2600, RemoveTriggerId)],
+            onApplyBuff: (owner, e) =>
+            {
+                var statTracker = owner.GetModule<StatTracker>()!;
+                if (e.Ability?.FSLID.Value == TriggerId)
+                    statTracker.AddCooldownModifier(CooldownPool.CooldownAcceleration, modifier, e);
+                if (e.Ability?.FSLID.Value == RemoveTriggerId)
+                    statTracker.RemoveCooldownModifier(CooldownPool.CooldownAcceleration, modifier, e);
+            });
 
-        Assert.Equal(5000, spellUsable.CooldownRemaining(SpellA, atTimestamp: 0));
-        Assert.Equal(2500, spellUsable.CooldownRemaining(SpellA, atTimestamp: 2500));
-
-        spellUsable.SetAddedCooldownRecovery(0.0, timestamp: 2500);
-
-        Assert.Equal(5000, spellUsable.CooldownRemaining(SpellA, atTimestamp: 2500));
-        Assert.Equal(0, spellUsable.CooldownRemaining(SpellA, atTimestamp: 7500));
+        Assert.Equal(5000, spellUsable.CooldownRemaining(SpellA, atTimestamp: 2600));
+        Assert.Equal(0, spellUsable.CooldownRemaining(SpellA, atTimestamp: 7600));
         Assert.Equal(1.0, spellUsable.EffectiveRate(SpellA), precision: 6);
     }
 
+    /// <summary>
+    /// Cast SpellB twice so both charges are spent; OverallStart must remain the first cast across the
+    /// mid-flight rate change. The acceleration change runs during dispatch (triggered from an in-stream
+    /// ApplyBuffEvent) so the fabricated ChangeCooldownRate event is delivered to the probe.
+    /// </summary>
     [Fact]
-    public async Task MultiChargeRecovery_PreservesOverallStart()
+    public async Task MultiChargeAcceleration_PreservesOverallStart()
     {
-        // Cast SpellB twice → both charges used; OverallStart should be the first cast.
-        // The recovery change must run during dispatch so the fabricated ChangeCooldownRate event
-        // is delivered to the probe; we trigger it from an in-stream ApplyBuffEvent.
-        const int TriggerId = 8888;
-
         var (_, _, probe) = await Run(
             [
                 CreateCast(1000, SpellB),
                 CreateCast(1500, SpellB),
-                new ApplyBuffEvent
-                {
-                    Timestamp = 2000,
-                    SourceId = PlayerId,
-                    TargetId = PlayerId,
-                    Ability = new Ability { FSLID = TriggerId, Name = "RecoveryTrigger" },
-                },
+                CreateTrigger(2000),
             ],
-            onApplyBuff: (su, e) =>
+            onApplyBuff: (owner, e) =>
             {
                 if (e.Ability?.FSLID.Value == TriggerId)
-                    su.SetAddedCooldownRecovery(1.0, e.Timestamp);
+                    owner.GetModule<StatTracker>()!.AddCooldownModifier(
+                        CooldownPool.CooldownAcceleration, new CooldownModifier(1.0), e);
             });
 
         var rateUpdate = probe.Updates
@@ -154,18 +185,21 @@ public sealed partial class SpellUsableTests
     // Haste's contribution to the pool (per haste-flagged ability)
     // -------------------------------------------------------------------------
 
+    /// <summary>
+    /// Recovery and acceleration are one mechanic sharing one pool, so Chronoshift's 8.0 adds to
+    /// haste rather than multiplying it: a haste-flagged spell recovers at 1 + haste + 8, not
+    /// (1 + haste) × 9. Only the overlap of the two is affected; SpellA has no haste contribution.
+    /// </summary>
     [Fact]
     public async Task HasteAndAddedRecovery_CombineAdditively_NotMultiplicatively()
     {
-        // Recovery and acceleration are one mechanic sharing one pool, so Chronoshift's 8.0 adds to
-        // haste rather than multiplying it: a haste-flagged spell recovers at 1 + haste + 8, not
-        // (1 + haste) × 9. Only the overlap of the two is affected; SpellA has no haste contribution.
         var (parser, spellUsable, _) = await Run([CreateHasteBuff(500)]);
 
         var haste = parser.GetModule<Haste>()!.Current;
         Assert.True(haste >= BuffHaste, $"expected the haste buff to apply, got {haste}");
 
-        spellUsable.SetAddedCooldownRecovery(8.0, timestamp: 1000);
+        parser.GetModule<StatTracker>()!.AddCooldownModifier(
+            CooldownPool.CooldownAcceleration, new CooldownModifier(8.0), timestamp: 1000);
 
         Assert.Equal(1.0 + haste + 8.0, spellUsable.EffectiveRate(SpellC), precision: 6);
         Assert.Equal(9.0, spellUsable.EffectiveRate(SpellA), precision: 6);
@@ -350,7 +384,7 @@ public sealed partial class SpellUsableTests
 
     private static async Task<(TestCombatLogParser parser, SpellUsable spellUsable, UpdateProbeModule probe)> Run(
         List<Event> events,
-        Action<SpellUsable, ApplyBuffEvent>? onApplyBuff = null)
+        Action<CombatLogParser, ApplyBuffEvent>? onApplyBuff = null)
     {
         var emitter = new EventEmitter(NullLogger<EventEmitter>.Instance);
         var provider = Substitute.For<IServiceProvider>();
@@ -363,7 +397,6 @@ public sealed partial class SpellUsableTests
             typeof(StatTracker),
             typeof(Combatants),
             typeof(Haste),
-            typeof(CooldownReduction),
             typeof(SpellUsable),
             typeof(UpdateProbeModule),
         ];
@@ -392,13 +425,21 @@ public sealed partial class SpellUsableTests
         Ability = new Ability { FSLID = RimeSpells.WrathOfWinterBuff.FSLID, Name = "Wrath of Winter" },
     };
 
+    private static ApplyBuffEvent CreateTrigger(int timestamp, int triggerId = TriggerId) => new()
+    {
+        Timestamp = timestamp,
+        SourceId = PlayerId,
+        TargetId = PlayerId,
+        Ability = new Ability { FSLID = triggerId, Name = "ModifierTrigger" },
+    };
+
     internal sealed class TestCombatLogParser(
         EventEmitter emitter,
         IServiceProvider provider,
         Type[] moduleTypes)
         : CombatLogParser(emitter, provider)
     {
-        public Action<SpellUsable, ApplyBuffEvent>? OnApplyBuff { get; init; }
+        public Action<CombatLogParser, ApplyBuffEvent>? OnApplyBuff { get; init; }
 
         protected override Type[] GetModuleTypes() => moduleTypes;
 
@@ -418,6 +459,7 @@ public sealed partial class SpellUsableTests
             {
                 PrimarySpell = new Spell { Id = SpellA, Name = "Spell A", Cooldown = (double)CdSecondsA },
                 Category = SpellCategory.Rotational,
+                AbilityCategory = AbilityCategory.Major,
             },
             new SpellbookAbility
             {
@@ -440,13 +482,13 @@ public sealed partial class SpellUsableTests
     {
         public List<UpdateSpellUsableEvent> Updates { get; } = [];
 
-        public Action<SpellUsable, ApplyBuffEvent>? OnApplyBuff { get; init; }
+        public Action<CombatLogParser, ApplyBuffEvent>? OnApplyBuff { get; init; }
 
         [On<UpdateSpellUsableEvent>]
         private void OnUpdate(UpdateSpellUsableEvent e) => Updates.Add(e);
 
         [On<ApplyBuffEvent>(By = Actor.Player)]
         private void OnBuff(ApplyBuffEvent e) =>
-            OnApplyBuff?.Invoke(Owner.GetModule<SpellUsable>()!, e);
+            OnApplyBuff?.Invoke(Owner, e);
     }
 }

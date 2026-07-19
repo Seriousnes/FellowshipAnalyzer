@@ -95,9 +95,9 @@ public sealed class GearCooldownAccelerationTests
     [Fact]
     public async Task Legendary_ComposesAdditivelyWithChronoshift()
     {
-        var spellUsable = await Run(LegendaryQuality);
+        var (spellUsable, statTracker) = await RunWithStatTracker(LegendaryQuality);
 
-        spellUsable.SetAddedCooldownRecovery(8.0, timestamp: 1000);
+        statTracker.AddCooldownModifier(CooldownPool.CooldownAcceleration, new CooldownModifier(8.0), timestamp: 1000);
         Assert.Equal(9.10, spellUsable.EffectiveRate(SpellA), precision: 6);
 
         spellUsable.BeginCooldown(SpellA, timestamp: 1000);
@@ -161,8 +161,8 @@ public sealed class GearCooldownAccelerationTests
     [Fact]
     public async Task CategoryScopedAcceleration_SpeedsUpOnlyTheMatchingSpell()
     {
-        var acceleration = new CooldownModifierSet(
-            new CooldownModifier(1.0, new[] { AbilityCategory.Major }));
+        CooldownModifierSet acceleration =
+            [new CooldownModifier(1.0, new[] { AbilityCategory.Major })];
 
         var spellUsable = await RunWithScopedAcceleration(acceleration);
 
@@ -190,7 +190,6 @@ public sealed class GearCooldownAccelerationTests
             typeof(StatTracker),
             typeof(Combatants),
             typeof(Haste),
-            typeof(CooldownReduction),
             typeof(SpellUsable),
         ];
 
@@ -203,6 +202,12 @@ public sealed class GearCooldownAccelerationTests
         await parser.Analyze(events, PlayerId, fight: TestFight);
 
         return parser.GetModule<SpellUsable>()!;
+    }
+
+    private static async Task<(SpellUsable spellUsable, StatTracker statTracker)> RunWithStatTracker(int itemQuality, int emerald = 0)
+    {
+        var spellUsable = await Run(itemQuality, emerald);
+        return (spellUsable, spellUsable.Owner.GetModule<StatTracker>()!);
     }
 
     private static async Task<SpellUsable> Run(int itemQuality, int emerald = 0)
@@ -218,7 +223,6 @@ public sealed class GearCooldownAccelerationTests
             typeof(StatTracker),
             typeof(Combatants),
             typeof(Haste),
-            typeof(CooldownReduction),
             typeof(SpellUsable),
         ];
 

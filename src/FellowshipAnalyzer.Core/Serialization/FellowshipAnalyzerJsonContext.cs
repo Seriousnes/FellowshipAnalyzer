@@ -30,6 +30,7 @@ namespace FellowshipAnalyzer.Core.Serialization;
 [JsonSerializable(typeof(BeginChannelEvent))]
 [JsonSerializable(typeof(CastEvent))]
 [JsonSerializable(typeof(ChangeBuffStackEvent))]
+[JsonSerializable(typeof(ChangeCooldownModifierEvent))]
 [JsonSerializable(typeof(ChangeDebuffStackEvent))]
 [JsonSerializable(typeof(ChangeHasteEvent))]
 [JsonSerializable(typeof(ChangeStatsEvent))]
