@@ -1,0 +1,167 @@
+@using FellowshipAnalyzer.Core.Common.Spells.Ardeos
+@using Spells = FellowshipAnalyzer.Core.Common.Spells.Ardeos.Spells
+@inject ArdeosCombatLogParser Parser
+
+<GuideSection Title="Detonate Efficiency">
+    <Explanation>
+        <p>
+            <SpellLink Spell="Spells.Detonate" /> re-triggers every active damage-over-time window on
+            every enemy the moment it is cast, so a Detonate is only worth the DoTs standing when it
+            lands. Each cast is scored on the instances layered across
+            <SpellLink Spell="Spells.SearingBlaze" />, <SpellLink Spell="Spells.EngulfingFlames" />,
+            <SpellLink Spell="Spells.FireBall" />, <SpellLink Spell="Spells.FireFrogs" />,
+            <SpellLink Spell="Spells.Incinerate" /> and <SpellLink Spell="Spells.Apocalypse" /> - three
+            or more instances per target is a well-layered Detonate.
+        </p>
+        @if (Talented)
+        {
+            <p>
+                <SpellLink Spell="Spells.Apocalypse" /> grants Apocalyptic Surge stacks that each make a
+                Detonate free. Free casts should be spent inside a well-layered window; a Surge stack
+                left to expire is a free Detonate thrown away.
+            </p>
+        }
+    </Explanation>
+    <ChildContent>
+        <CastOverview Title="Detonate Overview" Stats="@BuildOverviewStats()" />
+        <CastDetail Title="Detonate by Pull"
+                    Description="Each row is one pull, rated on the average DoT instances each Detonate re-triggered per target."
+                    Casts="@BuildPerPullData()" />
+    </ChildContent>
+</GuideSection>
+
+@code {
+    private bool Talented => Parser.DetonateEfficiencyAnalyzers
+        .Select(entry => entry.Analyzer)
+        .Any(analyzer => analyzer.ApocalypticSurgeTalented);
+
+    private IEnumerable<OverviewStat> BuildOverviewStats()
+    {
+        var casts = Parser.DetonateEfficiencyAnalyzers.SelectMany(entry => entry.Analyzer.Casts).ToList();
+        var totalCasts = casts.Count;
+        var averageInstances = totalCasts == 0 ? 0 : casts.Average(cast => cast.AverageInstances);
+        var wellLayered = casts.Count(cast => cast.AverageInstances >= DetonateEfficiencyAnalyzer.WellLayeredAverage);
+        var wellLayeredPct = totalCasts == 0 ? 0 : (int)Math.Round((double)wellLayered / totalCasts * 100);
+
+        var stats = new List<OverviewStat>
+        {
+            new(
+                $"{totalCasts}",
+                "Detonate Casts",
+                "Total Detonate casts across every pull."),
+            new(
+                $"{averageInstances:0.0}",
+                "Avg Instances / Target",
+                "Average active DoT instances each Detonate re-triggered per target.",
+                AverageTier(averageInstances)),
+            new(
+                $"{wellLayeredPct}%",
+                "Well-Layered",
+                $"{wellLayered} of {totalCasts} Detonates re-triggered three or more instances per target.",
+                PercentTier(wellLayeredPct)),
+        };
+
+        if (Talented)
+        {
+            var analyzers = Parser.DetonateEfficiencyAnalyzers.Select(entry => entry.Analyzer).ToList();
+            var freeCasts = analyzers.Sum(analyzer => analyzer.FreeCasts);
+            var wastedStacks = analyzers.Sum(analyzer => analyzer.SurgeStacksWasted);
+
+            stats.Add(new OverviewStat(
+                $"{freeCasts}",
+                "Free Casts",
+                "Detonates made free by an Apocalyptic Surge stack."));
+            stats.Add(new OverviewStat(
+                $"{wastedStacks}",
+                "Wasted Surge Stacks",
+                "Apocalyptic Surge stacks lost to expiry instead of a free Detonate.",
+                wastedStacks == 0 ? QualitativePerformance.Perfect
+                    : wastedStacks <= 2 ? QualitativePerformance.Ok
+                    : QualitativePerformance.Fail));
+        }
+
+        return stats;
+    }
+
+    private IEnumerable<PerCastData> BuildPerPullData() =>
+        Parser.DetonateEfficiencyAnalyzers.ToPullRows(Parser, (analyzer, pull) => BuildPullRow(analyzer));
+
+    private PerCastRow BuildPullRow(DetonateEfficiencyAnalyzer analyzer)
+    {
+        var perf = AverageTier(analyzer.AverageInstancesPerTarget);
+        var wellLayeredPct = analyzer.TotalCasts == 0 ? 0 : (int)Math.Round(analyzer.WellLayeredShare * 100);
+
+        var stats = new List<PerCastStat>
+        {
+            new(
+                $"{analyzer.AverageInstancesPerTarget:0.0}",
+                "Avg Instances",
+                "Average active DoT instances re-triggered per target on this pull.",
+                Performance: perf),
+            new(
+                $"{analyzer.TotalCasts}",
+                "Casts",
+                "Detonate casts made on this pull."),
+            new(
+                $"{analyzer.WellLayeredCasts}/{analyzer.TotalCasts}",
+                "Well-Layered",
+                "Detonates that re-triggered three or more instances per target.",
+                Performance: PercentTier(wellLayeredPct)),
+            new(
+                $"{analyzer.UnderLayeredCasts}",
+                "Under-Layered",
+                "Detonates that re-triggered one or fewer instances per target."),
+        };
+
+        if (analyzer.ApocalypticSurgeTalented)
+        {
+            stats.Add(new PerCastStat(
+                $"{analyzer.FreeCasts}",
+                "Free Casts",
+                "Detonates made free by an Apocalyptic Surge stack on this pull."));
+        }
+
+        return new PerCastRow
+        {
+            Performance = perf,
+            Stats = stats.ToArray(),
+            Details = BuildDistribution(analyzer),
+            AdditionalContent = new AdditionalContent("Notes", @<div>@BuildNote(analyzer)</div>),
+        };
+    }
+
+    private RenderFragment BuildDistribution(DetonateEfficiencyAnalyzer analyzer) =>
+        @<div>
+            <div>Instances per target, by cast:</div>
+            <ul>
+                @foreach (var (instances, count) in analyzer.InstanceDistribution)
+                {
+                    <li>@instances instance@(instances == 1 ? "" : "s"): @count cast@(count == 1 ? "" : "s")</li>
+                }
+            </ul>
+        </div>;
+
+    private string BuildNote(DetonateEfficiencyAnalyzer analyzer)
+    {
+        if (analyzer.TotalCasts == 0)
+            return "No Detonate casts were recorded on this pull.";
+
+        var average = analyzer.AverageInstancesPerTarget;
+        if (analyzer.UnderLayeredCasts == 0)
+            return $"Every Detonate landed with DoTs layered, averaging {average:0.0} instances per target across {analyzer.TotalCasts} casts (peak {analyzer.MaxInstances} on a target).";
+
+        var worst = analyzer.Casts
+            .Where(cast => cast.AverageInstances <= DetonateEfficiencyAnalyzer.UnderLayeredAverage)
+            .OrderBy(cast => cast.AverageInstances)
+            .Take(3)
+            .Select(cast => Parser.FormatTimestamp(cast.Timestamp))
+            .ToList();
+
+        var worstLabel = worst.Count > 0 ? $" Worst at {string.Join(", ", worst)}." : string.Empty;
+        return $"{analyzer.UnderLayeredCasts} of {analyzer.TotalCasts} Detonates were under-layered (one or fewer instances per target) - lay the DoTs before spending Detonate.{worstLabel}";
+    }
+
+    private static QualitativePerformance AverageTier(double average) => PerformanceTiers.FromThresholds(average, 4, 3, 2);
+
+    private static QualitativePerformance PercentTier(int percent) => PerformanceTiers.FromThresholds(percent, 75, 50, 25);
+}
