@@ -63,7 +63,11 @@ public sealed class EventEmitter(ILogger<EventEmitter> logger) : Module
     public async Task DispatchEventsAsync(List<Event> events, ReportLoadingTracker? tracker = null)
     {
         _events = events;
-        events.Sort(CompareForDispatch);
+        events.Sort((a, b) =>
+        {
+            var byTimestamp = a.Timestamp.CompareTo(b.Timestamp);
+            return byTimestamp != 0 ? byTimestamp : a.DispatchOrder.CompareTo(b.DispatchOrder);
+        });
 
         for (var i = 0; i < events.Count; i++)
         {
@@ -93,17 +97,6 @@ public sealed class EventEmitter(ILogger<EventEmitter> logger) : Module
     }
 
     private const int YieldInterval = 250;
-
-    /// <summary>
-    /// Dispatch ordering: primarily ascending <see cref="Event.Timestamp"/>, breaking ties by
-    /// <see cref="Event.DispatchOrder"/> so fight/pull boundary events nest deterministically.
-    /// Gameplay events that share both keys retain no defined relative order.
-    /// </summary>
-    public static int CompareForDispatch(Event a, Event b)
-    {
-        var byTimestamp = a.Timestamp.CompareTo(b.Timestamp);
-        return byTimestamp != 0 ? byTimestamp : a.DispatchOrder.CompareTo(b.DispatchOrder);
-    }
 
     private async Task TriggerEventAsync(Event e)
     {
