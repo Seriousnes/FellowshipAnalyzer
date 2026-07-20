@@ -52,6 +52,35 @@ public sealed class FellowshipLogsApiClient(HttpClient http, FellowshipAnalyzerJ
             bytes.Length, sw.ElapsedMilliseconds);
         return new RawEventsResponse(bytes, expiresAt);
     }
+
+    /// <summary>
+    /// Fetches all death events for a fight regardless of hostility or killer. Fight-scoped
+    /// (no player filter), so the same payload is shared by every combatant in the fight.
+    /// </summary>
+    public async Task<RawEventsResponse> GetRawDeathsAsync(
+        string reportCode, int fightId, CancellationToken ct = default)
+    {
+        var url = $"api/deaths?reportCode={Uri.EscapeDataString(reportCode)}&fightId={fightId}";
+        logger.LogInformation("GetRawDeathsAsync sending GET {Url}", url);
+
+        using var response = await http.GetAsync(url, HttpCompletionOption.ResponseHeadersRead, ct);
+        response.EnsureSuccessStatusCode();
+
+        DateTimeOffset? expiresAt = null;
+        if (response.Headers.TryGetValues("X-FellowshipAnalyzer-ExpiresAt", out var values))
+        {
+            var raw = values.FirstOrDefault();
+            if (!string.IsNullOrEmpty(raw)
+                && DateTimeOffset.TryParseExact(raw, "O", null, System.Globalization.DateTimeStyles.RoundtripKind, out var parsed))
+            {
+                expiresAt = parsed;
+            }
+        }
+
+        var bytes = await response.Content.ReadAsByteArrayAsync(ct);
+        logger.LogInformation("GetRawDeathsAsync body read bytes={Bytes}", bytes.Length);
+        return new RawEventsResponse(bytes, expiresAt);
+    }
 }
 
 /// <summary>

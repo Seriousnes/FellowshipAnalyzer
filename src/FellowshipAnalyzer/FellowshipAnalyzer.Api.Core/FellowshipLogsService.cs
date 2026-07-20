@@ -63,6 +63,64 @@ public sealed class FellowshipLogsService(IFellowshipLogsApiClient client, Graph
         return new RawEventsResult(stream.ToArray(), inProgress, hasEvents);
     }
 
+    /// <summary>
+    /// Fetches all death events for a fight regardless of who landed the kill or which side died.
+    /// The Fellowship Logs <c>events(dataType: Deaths)</c> stream is split by <c>hostilityType</c>:
+    /// the enemy view returns enemy deaths, the friendly view returns player deaths. Neither value
+    /// returns both, so both are fetched and concatenated into a single <c>events</c> array. This is
+    /// fight-scoped (no player filter), so it is shared by every combatant in the fight.
+    /// </summary>
+    internal async Task<RawEventsResult> GetRawDeathsAsync(
+        string reportCode, int fightId,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(reportCode))
+            throw new ArgumentException("Report code is required.", nameof(reportCode));
+        if (fightId <= 0)
+            throw new ArgumentOutOfRangeException(nameof(fightId), "Fight ID must be greater than zero.");
+
+        var result = await client.GetDeaths.ExecuteAsync(
+            reportCode, new int?[] { fightId }, cancellationToken);
+        ThrowIfErrors(result);
+
+        var report = result.Data!.ReportData?.Report
+            ?? throw new InvalidOperationException("GraphQL response did not contain expected death data.");
+
+        var inProgress = report.Fights?.FirstOrDefault(f => f is not null)?.InProgress ?? false;
+        var deathCount = 0;
+
+        using var stream = streamManager.GetStream("fellowship-deaths");
+        using (var writer = new Utf8JsonWriter((Stream)stream))
+        {
+            writer.WriteStartObject();
+            writer.WriteBoolean("inProgress", inProgress);
+            writer.WritePropertyName("events");
+            writer.WriteStartArray();
+            deathCount += WriteDeaths(writer, report.EnemyDeaths?.Data);
+            deathCount += WriteDeaths(writer, report.FriendlyDeaths?.Data);
+            writer.WriteEndArray();
+            writer.WriteEndObject();
+        }
+
+        return new RawEventsResult(stream.ToArray(), inProgress, deathCount > 0);
+
+        static int WriteDeaths(Utf8JsonWriter writer, JsonElement? data)
+        {
+            if (data is not { ValueKind: JsonValueKind.Array } array)
+            {
+                return 0;
+            }
+
+            var count = 0;
+            foreach (var element in array.EnumerateArray())
+            {
+                element.WriteTo(writer);
+                count++;
+            }
+            return count;
+        }
+    }
+
     public async Task<AnalysisPreload> GetReportMasterDataAsync(
         string reportCode, CancellationToken cancellationToken = default)
     {

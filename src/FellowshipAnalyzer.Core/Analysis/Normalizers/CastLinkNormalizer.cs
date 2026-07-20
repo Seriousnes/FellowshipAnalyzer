@@ -162,8 +162,7 @@ public sealed class CastLinkNormalizer(Abilities? abilities) : IEventNormalizer
                             && beginChannel.Timestamp - castInfo.Timestamp <= MaxChannelCastWindowMs)
                         {
                             // BeginCastEvent.Channel → BeginChannelEvent
-                            if (castInfo.BeginCast is not null)
-                                castInfo.BeginCast.Channel = beginChannel;
+                            castInfo.BeginCast?.Channel = beginChannel;
 
                             // Remember the cast so we can set CastEvent.Channel when endchannel arrives.
                             pendingCastForEndChannel[channelKey] = castInfo.Cast;

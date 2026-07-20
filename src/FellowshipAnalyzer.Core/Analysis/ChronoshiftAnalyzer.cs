@@ -5,15 +5,19 @@ using FellowshipAnalyzer.Core.UI.Components;
 namespace FellowshipAnalyzer.Core.Analysis;
 
 /// <summary>
-/// Models Chronoshift's cooldown recovery effect. While the player channels Chronoshift it adds 700%
-/// cooldown recovery to <see cref="SpellUsable"/>'s shared recovery pool, taking an ability with no
-/// haste contribution to 8× recovery. The channel lasts a fixed 3 seconds (haste-independent) unless
-/// an <see cref="EndChannelEvent"/> cancels it early. The added recovery is set for the channel window
-/// and cleared when it ends; because it is <i>set</i> rather than stacked, an unmatched begin/end
-/// (Fellowship logs the channel end for only a minority of channels) cannot compound it.
+/// Models Chronoshift's cooldown recovery effect. While the player channels Chronoshift it adds a
+/// Cooldown Acceleration modifier of 800% to the pool <see cref="StatTracker"/> tracks, taking an
+/// ability with no haste contribution to 9× recovery. The channel lasts a fixed 3 seconds
+/// (haste-independent) unless an <see cref="EndChannelEvent"/> cancels it early. The modifier is added
+/// for the channel window and removed when it ends; an unmatched begin/end (Fellowship logs the channel
+/// end for only a minority of channels) cannot compound it because <see cref="CloseWindow"/> only
+/// removes while a window is open and a removal of an absent modifier is a no-op.
 /// </summary>
 [ActiveWhen<HasChronoshiftGear>]
-public sealed partial class ChronoshiftAnalyzer(Lazy<SpellUsable> spellUsable) : Analyzer
+[After<SpellUsable>]
+public sealed partial class ChronoshiftAnalyzer(
+    Lazy<SpellUsable> spellUsable,
+    Lazy<StatTracker> statTracker) : Analyzer
 {
     /// <summary>
     /// 800% added cooldown recovery per the spell description, a term on the shared pool rather than a
@@ -21,6 +25,9 @@ public sealed partial class ChronoshiftAnalyzer(Lazy<SpellUsable> spellUsable) :
     /// <c>Channel.WhileActiveAddedCooldownRecovery</c> in the <c>gear_data.json</c> export.
     /// </summary>
     private const double AddedRecovery = 8.0;
+
+    /// <summary>The single modifier instance added for each channel window, so removal matches by equality.</summary>
+    private static readonly CooldownModifier AddedRecoveryModifier = new(AddedRecovery);
 
     /// <summary>Chronoshift channels a fixed 3 seconds unless an EndChannel cancels it early.</summary>
     private const int ChannelDurationMs = 3000;
@@ -41,9 +48,9 @@ public sealed partial class ChronoshiftAnalyzer(Lazy<SpellUsable> spellUsable) :
 
     /// <summary>
     /// Bonus cooldown recovery Chronoshift granted to each ability over the encounter, in
-    /// milliseconds, ordered by amount descending. This is the extra cooldown progress the added 700%
+    /// milliseconds, ordered by amount descending. This is the extra cooldown progress the added 800%
     /// bought beyond what the spell would have made over the same window without it. Because the pool
-    /// is additive, that extra is 7× the time on cooldown whatever the ability's haste contribution.
+    /// is additive, that extra is 8× the time on cooldown whatever the ability's haste contribution.
     /// </summary>
     public IReadOnlyList<AbilityRecovery> RecoveryByAbility =>
         [.. _recoveryBySpell
@@ -57,39 +64,53 @@ public sealed partial class ChronoshiftAnalyzer(Lazy<SpellUsable> spellUsable) :
     [On<BeginChannelEvent>(By = Actor.Player, Spell = nameof(Spells.Chronoshift))]
     private void OnBeginChannel(BeginChannelEvent e)
     {
-        CloseWindow(e.Timestamp);
+        CloseWindow(e.Timestamp, e);
 
         _openTimestamp = e.Timestamp;
-        _spellUsable.SetAddedCooldownRecovery(AddedRecovery, e.Timestamp);
+        _scheduledEnd = e.Timestamp + ChannelDurationMs;
+        _windows.Add(new ChronoshiftWindow(e.Timestamp, _scheduledEnd.Value));
+
+        _statTracker.AddCooldownModifier(CooldownPool.CooldownAcceleration, AddedRecoveryModifier, e);
+    }
+
+    /// <summary>
+    /// Captures the per-spell cooldown snapshot for the window just opened. This runs on the fabricated
+    /// change event rather than inside <see cref="OnBeginChannel"/> because <see cref="SpellUsable"/>
+    /// rescales in-flight cooldowns when that event is dispatched, and the snapshot must hold the
+    /// boosted-rate remaining times; the <c>[After&lt;SpellUsable&gt;]</c> ordering guarantees the
+    /// rescale has happened. Matching by reference keeps another source's equal-valued modifier from
+    /// re-arming the snapshot.
+    /// </summary>
+    [On<ChangeCooldownModifierEvent>]
+    private void OnChangeCooldownModifier(ChangeCooldownModifierEvent e)
+    {
+        if (!e.Added || !ReferenceEquals(e.Modifier, AddedRecoveryModifier) || _scheduledEnd is null) return;
 
         foreach (var spellId in _spellUsable.GetSpellsOnCooldown())
             _snapshot[spellId] = _spellUsable.CooldownRemaining(spellId, e.Timestamp);
-
-        _scheduledEnd = e.Timestamp + ChannelDurationMs;
-        _windows.Add(new ChronoshiftWindow(e.Timestamp, _scheduledEnd.Value));
     }
 
     [On<EndChannelEvent>(By = Actor.Player, Spell = nameof(Spells.Chronoshift))]
-    private void OnEndChannel(EndChannelEvent e) => CloseWindow(e.Timestamp);
+    private void OnEndChannel(EndChannelEvent e) => CloseWindow(e.Timestamp, e);
 
     [On<Event>]
     private void OnAnyEvent(Event e)
     {
         if (_scheduledEnd is int end && e.Timestamp >= end)
-            CloseWindow(end);
+            CloseWindow(end, e);
     }
 
     /// <summary>
     /// Closes the active recovery window at the earlier of <paramref name="timestamp"/> and the
-    /// scheduled 3-second end, clearing the added recovery and attributing the bonus recovery each
-    /// on-cooldown ability received to it. A no-op when no window is open, so a stray or duplicate
+    /// scheduled 3-second end, removing the acceleration modifier and attributing the bonus recovery
+    /// each on-cooldown ability received to it. A no-op when no window is open, so a stray or duplicate
     /// close cannot drive the pool negative.
     /// </summary>
-    private void CloseWindow(int timestamp)
+    private void CloseWindow(int timestamp, Event? trigger)
     {
         if (_scheduledEnd is not int scheduledEnd) return;
         var closeAt = Math.Min(timestamp, scheduledEnd);
-        _spellUsable.SetAddedCooldownRecovery(0.0, closeAt);
+        _statTracker.RemoveCooldownModifier(CooldownPool.CooldownAcceleration, AddedRecoveryModifier, trigger, closeAt);
 
         var wallclock = closeAt - _openTimestamp;
         foreach (var (spellId, remainingAtOpen) in _snapshot)

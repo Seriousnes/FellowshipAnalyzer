@@ -20,7 +20,7 @@ public sealed partial class CombatLogParserTests
     [Fact]
     public async Task Analyze_ShouldTrackCastsAndNotify()
     {
-        var owner = CreateCombatLogParser([typeof(GemPowers), typeof(CooldownReduction), typeof(GearCooldownRecovery), typeof(SpellUsable), typeof(ProbeModule)]);
+        var owner = CreateCombatLogParser([typeof(StatTracker), typeof(SpellUsable), typeof(ProbeModule)]);
 
         await owner.Analyze(CreateEvents(), playerId: 7, fight: TestFight);
 
@@ -112,7 +112,7 @@ public sealed partial class CombatLogParserTests
     [Fact]
     public async Task Analyze_ShouldShareInjectedModuleWithinAnalysisRun()
     {
-        var owner = CreateCombatLogParser([typeof(GemPowers), typeof(CooldownReduction), typeof(GearCooldownRecovery), typeof(SpellUsable), typeof(ProbeModule)]);
+        var owner = CreateCombatLogParser([typeof(StatTracker), typeof(SpellUsable), typeof(ProbeModule)]);
 
         await owner.Analyze(CreateEvents(), playerId: 7, fight: TestFight);
         var spellUsable = owner.GetModule<SpellUsable>()!;
@@ -175,7 +175,7 @@ public sealed partial class CombatLogParserTests
     [Fact]
     public async Task Listener_ShouldFilterBySpellId()
     {
-        var owner = CreateCombatLogParser([typeof(GemPowers), typeof(CooldownReduction), typeof(GearCooldownRecovery), typeof(SpellUsable), typeof(SpellFilterProbeModule)]);
+        var owner = CreateCombatLogParser([typeof(StatTracker), typeof(SpellUsable), typeof(SpellFilterProbeModule)]);
 
         await owner.Analyze(CreateEvents(), playerId: 7, fight: TestFight);
 
@@ -193,7 +193,7 @@ public sealed partial class CombatLogParserTests
             CreateCast(timestamp: 300, abilityId: 1),
         };
 
-        var owner = CreateCombatLogParser([typeof(GemPowers), typeof(CooldownReduction), typeof(GearCooldownRecovery), typeof(SpellUsable), typeof(ProbeModule)]);
+        var owner = CreateCombatLogParser([typeof(StatTracker), typeof(SpellUsable), typeof(ProbeModule)]);
 
         await owner.Analyze(events, playerId: 7, fight: TestFight);
 
@@ -204,7 +204,7 @@ public sealed partial class CombatLogParserTests
     [Fact]
     public async Task FabricateEvent_ShouldMarkAsFabricated()
     {
-        var owner = CreateCombatLogParser([typeof(GemPowers), typeof(CooldownReduction), typeof(GearCooldownRecovery), typeof(SpellUsable), typeof(ProbeModule)]);
+        var owner = CreateCombatLogParser([typeof(StatTracker), typeof(SpellUsable), typeof(ProbeModule)]);
 
         await owner.Analyze(new List<Event>(), playerId: 7, fight: TestFight);
 

@@ -18,6 +18,16 @@ public static class Normalization
     }
 
     /// <summary>
+    /// Extracts the per-target-death cooldown reduction (in seconds) from scalars.
+    /// </summary>
+    public static double? CooldownReductionOnTargetDeath(IReadOnlyDictionary<string, double> scalars)
+    {
+        if (scalars.TryGetValue("CooldownReductionInSecondsOnTargetDeath", out var reduction))
+            return reduction;
+        return null;
+    }
+
+    /// <summary>
     /// Extracts range from scalars. Returns MaxRange / 100 rounded to int, or null if not present.
     /// </summary>
     public static int? Range(IReadOnlyDictionary<string, double> scalars)

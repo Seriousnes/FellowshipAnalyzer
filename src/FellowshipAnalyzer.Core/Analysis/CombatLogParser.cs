@@ -26,9 +26,6 @@ namespace FellowshipAnalyzer.Core.Analysis;
 [AddModule<Combatants>]
 [AddModule<StatTracker>]
 [AddModule<Haste>]
-[AddModule<GemPowers>]
-[AddModule<CooldownReduction>]
-[AddModule<GearCooldownRecovery>]
 [AddModule<GlobalCooldown>]
 [AddModule<SpellUsable>]
 [AddModule<ChronoshiftAnalyzer>]
@@ -70,6 +67,13 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
     /// <see cref="Analyze"/> before any module is constructed.
     /// </summary>
     public Combatant SelectedCombatant => CurrentParseContext.SelectedCombatant;
+
+    /// <summary>
+    /// Builds the selected player's <see cref="Combatant"/> from the resolved combatantinfo. Overridable so
+    /// tests can supply a combatant with hand-built <see cref="CombatantStats"/> (e.g. scoped cooldown
+    /// modifiers that no combatantinfo field yet produces).
+    /// </summary>
+    protected virtual Combatant CreateSelectedCombatant(CombatantInfoEvent info) => new(info);
 
     /// <summary>
     /// The Razor component type to render for the Guide tab.
@@ -315,7 +319,7 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
 
         var playerInfo = Events.OfType<CombatantInfoEvent>().FirstOrDefault(e => e.SourceId == playerId)
             ?? new CombatantInfoEvent { SourceId = playerId };
-        CurrentParseContext = new ParseContext(playerId, fight, ActorNames, new Combatant(playerInfo));
+        CurrentParseContext = new ParseContext(playerId, fight, ActorNames, CreateSelectedCombatant(playerInfo));
 
         EventEmitter = new EventEmitter((ILogger<EventEmitter>)Provider.GetService(typeof(ILogger<EventEmitter>))!)
         {
@@ -369,10 +373,7 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
 
         await EventEmitter.DispatchEventsAsync(Events, tracker);
 
-        if (tracker is not null)
-        {
-            tracker.AnalyzeState = ReportLoadingTracker.StepState.Ok;
-        }
+        tracker?.AnalyzeState = ReportLoadingTracker.StepState.Ok;
         await Task.Yield();
 
         return new HeroAnalysisResult

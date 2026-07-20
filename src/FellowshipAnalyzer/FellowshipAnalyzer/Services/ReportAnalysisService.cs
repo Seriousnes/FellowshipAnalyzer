@@ -129,18 +129,31 @@ public sealed class ReportAnalysisService(
 
         if (cachedEventsBytes is not null)
         {
+            // Cached entries already hold the merged player-events + deaths stream.
             eventsResultJsonBytes = cachedEventsBytes;
             isFreshFromNetwork = false;
         }
         else
         {
+            // Player-scoped events and the fight-scoped death stream are fetched concurrently, then
+            // merged into a single stream (deaths query is the single source of truth for deaths).
             logger.LogInformation("RunAsync network fetch starting t={ElapsedMs}ms", sw.ElapsedMilliseconds);
-            var networkResponse = await fellowshipLogs.GetRawEventsAsync(reportCode, playerId, fightId);
+            var eventsFetch = fellowshipLogs.GetRawEventsAsync(reportCode, playerId, fightId);
+            var deathsFetch = fellowshipLogs.GetRawDeathsAsync(reportCode, fightId);
+            await Task.WhenAll(eventsFetch, deathsFetch);
+            var eventsResponse = await eventsFetch;
+            var deathsResponse = await deathsFetch;
             logger.LogInformation(
-                "RunAsync network fetch returned bytes={Bytes} t={ElapsedMs}ms",
-                networkResponse.Bytes.Length, sw.ElapsedMilliseconds);
-            eventsResultJsonBytes = networkResponse.Bytes;
-            eventsExpiresAt = networkResponse.ExpiresAt;
+                "RunAsync network fetch returned eventBytes={EventBytes} deathBytes={DeathBytes} t={ElapsedMs}ms",
+                eventsResponse.Bytes.Length, deathsResponse.Bytes.Length, sw.ElapsedMilliseconds);
+
+            eventsResultJsonBytes = EventStreamMerger.Merge(eventsResponse.Bytes, deathsResponse.Bytes);
+            eventsExpiresAt = (eventsResponse.ExpiresAt, deathsResponse.ExpiresAt) switch
+            {
+                ({ } eventsExpiry, { } deathsExpiry) => eventsExpiry <= deathsExpiry ? eventsExpiry : deathsExpiry,
+                ({ } eventsExpiry, null) => eventsExpiry,
+                (null, var deathsExpiry) => deathsExpiry,
+            };
             isFreshFromNetwork = true;
         }
 

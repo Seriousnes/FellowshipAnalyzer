@@ -392,6 +392,7 @@
       "name": "Engulfing Flames",
       "icon": "Firemage_Dot_01.jpg",
       "cooldown": 20,
+      "cooldownReductionOnTargetDeath": 10,
       "range": 30,
       "charges": 2,
       "castDuration": 1.5

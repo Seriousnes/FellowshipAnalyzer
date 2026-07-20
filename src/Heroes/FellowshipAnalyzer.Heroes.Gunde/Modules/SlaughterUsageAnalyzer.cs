@@ -111,8 +111,7 @@ public abstract partial class SlaughterUsageAnalyzer : Analyzer
 
     private void FinalizePendingSlaughter()
     {
-        if (_pendingSlaughter is not null)
-            _pendingSlaughter.TargetsHit = _pendingTargets.Count;
+        _pendingSlaughter?.TargetsHit = _pendingTargets.Count;
         _pendingSlaughter = null;
     }
 

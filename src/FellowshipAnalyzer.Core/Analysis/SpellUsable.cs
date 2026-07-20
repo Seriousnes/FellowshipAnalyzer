@@ -11,15 +11,12 @@ public sealed partial class SpellUsable(
     Lazy<Abilities> abilities,
     Lazy<DebugAnnotations> debugAnnotations,
     Lazy<Haste> haste,
-    Lazy<CooldownReduction> cooldownReduction,
-    Lazy<GearCooldownRecovery> gearRecovery) : Analyzer
+    Lazy<StatTracker> statTracker) : Analyzer
 {
     private const int CooldownLagMargin = 150;
 
     private readonly Dictionary<int, CooldownInfo> _cooldowns = [];
     private readonly List<TrackedAbilityCast> _casts = [];
-
-    private double _addedRecovery;
 
     public IReadOnlyList<TrackedAbilityCast> Casts => _casts;
 
@@ -27,17 +24,22 @@ public sealed partial class SpellUsable(
     public IReadOnlyCollection<int> GetSpellsOnCooldown() => _cooldowns.Keys;
 
     /// <summary>
-    /// Reduces the remaining cooldown of a spell by up to <paramref name="milliseconds"/>. Flat reductions
-    /// (e.g. Rolling Flames) apply in full and are deliberately not scaled by Ability Cooldown Reduction;
-    /// ACR shortens base cooldowns only. For multi-charge spells each charge is restored in sequence as the
-    /// reduction overflows into the next.
+    /// Reduces the remaining cooldown of a spell by up to <paramref name="milliseconds"/>. The requested flat
+    /// reduction (e.g. Rolling Flames) is scaled by that spell's Ability Cooldown Reduction before it is
+    /// applied, so at 10% ACR a 1000ms request generates 900ms; it is not divided by the cooldown-recovery
+    /// pool. For
+    /// multi-charge spells each charge is restored in sequence as the reduction overflows into the next.
     /// </summary>
     /// <returns>
-    /// How much reduction the request generated, and how much of that shortened a running cooldown. The two
-    /// differ when the spell was already available, or had fewer milliseconds left than were requested.
+    /// How much reduction the request generated (after ACR scaling), and how much of that shortened a running
+    /// cooldown. The two differ when the spell was already available, or had fewer milliseconds left than the
+    /// generated reduction.
     /// </returns>
-    public CooldownReductionResult ReduceCooldown(int spellId, int milliseconds, int? timestamp = null) =>
-        new(milliseconds, ApplyReduction(spellId, milliseconds, timestamp));
+    public CooldownReductionResult ReduceCooldown(int spellId, int milliseconds, int? timestamp = null)
+    {
+        var generated = _statTracker.ScaleByCooldownReduction(_abilities.GetAbility(spellId), milliseconds);
+        return new(generated, ApplyReduction(spellId, generated, timestamp));
+    }
 
     private int ApplyReduction(int spellId, int milliseconds, int? timestamp)
     {
@@ -82,8 +84,9 @@ public sealed partial class SpellUsable(
     /// </summary>
     public int RechargeDuration(int spellId)
     {
+        var ability = _abilities.GetAbility(spellId);
         var baseDurationMs = (int)(_abilities.GetExpectedCooldown(spellId) * 1000);
-        return baseDurationMs <= 0 ? 0 : (int)(_cooldownReduction.Scale(baseDurationMs) / EffectiveRate(spellId));
+        return baseDurationMs <= 0 ? 0 : (int)(_statTracker.ScaleByCooldownReduction(ability, baseDurationMs) / EffectiveRate(spellId));
     }
 
     public void BeginCooldown(int spellId, int? timestamp = null)
@@ -91,9 +94,11 @@ public sealed partial class SpellUsable(
         var ts = timestamp ?? Owner.CurrentTimestamp;
         if (!_cooldowns.TryGetValue(spellId, out var cd))
         {
+            var ability = _abilities.GetAbility(spellId);
             var baseDurationMs = (int)(_abilities.GetExpectedCooldown(spellId) * 1000);
             if (baseDurationMs <= 0) return;
-            var cdDuration = (int)(_cooldownReduction.Scale(baseDurationMs) / EffectiveRate(spellId));
+            var rate = EffectiveRate(spellId);
+            var cdDuration = (int)(_statTracker.ScaleByCooldownReduction(ability, baseDurationMs) / rate);
 
             var maxCharges = _abilities.GetMaxCharges(spellId);
             cd = new CooldownInfo(
@@ -102,7 +107,8 @@ public sealed partial class SpellUsable(
                 ExpectedEnd: ts + cdDuration,
                 RechargeDuration: cdDuration,
                 ChargesAvailable: maxCharges - 1,
-                MaxCharges: maxCharges);
+                MaxCharges: maxCharges,
+                Rate: rate);
             _cooldowns[spellId] = cd;
 
             FabricateUpdate(UpdateSpellUsableType.BeginCooldown, spellId, ts, cd);
@@ -231,16 +237,19 @@ public sealed partial class SpellUsable(
     }
 
     /// <summary>
-    /// The cooldown-speed multiplier for <paramref name="spellId"/>:
-    /// <c>1 + haste + gear acceleration + added recovery</c>. Cooldown recovery and cooldown
-    /// acceleration are one mechanic fed by a single additive pool, so haste, a legendary's Strand of
-    /// Eternity (<see cref="GearCooldownRecovery"/>), and effects like Chronoshift contribute terms
-    /// rather than independent factors; a value of 9.0 means the spell's cooldown elapses 9× faster.
-    /// Static reductions are folded into the ability's base cooldown; dynamic reductions
-    /// (<see cref="ReduceCooldown"/>) apply afterwards to the remaining time.
+    /// The cooldown-speed multiplier for <paramref name="spellId"/>: <c>1 + CDA</c>, where the Cooldown
+    /// Acceleration pool sums the haste term (the player's haste when the ability is flagged
+    /// <c>CooldownReducedByHaste</c>, else 0) and the pool <see cref="StatTracker"/> tracks for this ability:
+    /// the gear-derived seed (today a legendary's unscoped Strand of Eternity) plus tracked runtime modifiers
+    /// such as Chronoshift, with scoped entries contributing only to the abilities they match. Recovery and
+    /// acceleration are one mechanic fed by a single additive pool, so each source contributes a term rather
+    /// than an independent factor; a value of 9.0 means the spell's cooldown elapses 9× faster. Unlike
+    /// Ability Cooldown Reduction, which <see cref="ReduceCooldown"/> and <see cref="BeginCooldown"/>
+    /// snapshot at cast, CDA is dynamic: a change to any term rescales the affected in-flight cooldowns.
     /// </summary>
     public double EffectiveRate(int spellId) =>
-        1.0 + HasteRecovery(spellId) + _gearRecovery.Current + _addedRecovery;
+        1.0 + HasteRecovery(spellId)
+            + _statTracker.CurrentCooldownAcceleration(_abilities.GetAbility(spellId));
 
     /// <summary>
     /// Haste's contribution to <paramref name="spellId"/>'s recovery pool: the player's current haste
@@ -250,63 +259,64 @@ public sealed partial class SpellUsable(
         _abilities.GetAbility(spellId)?.CooldownReducedByHaste == true ? _haste.Current : 0.0;
 
     /// <summary>
-    /// Sets the cooldown recovery contributed by sources other than haste, as an added term on the
-    /// shared pool (Chronoshift adds 8.0 while channeling, taking a non-hasted ability to 9× recovery).
-    /// In-flight cooldowns are rescaled by their own change in <see cref="EffectiveRate"/> as of
-    /// <paramref name="timestamp"/>, which differs per spell because haste is in the same pool. The
-    /// value is <i>set</i>, not accumulated, so a source (re)applied without a matching removal cannot
-    /// compound it.
+    /// Rescales in-flight cooldowns when the tracked Cooldown Acceleration pool changes, the CDA
+    /// counterpart of <see cref="OnChangeHaste"/>. Each in-flight cooldown is compared against its own
+    /// current <see cref="EffectiveRate"/>, which differs per spell because haste and scoped modifiers
+    /// share the pool; a cooldown whose ability the change does not cover keeps its rate and is left
+    /// alone. Comparing against the rate stored on the cooldown makes several pool mutations batched
+    /// under one event converge on the final rate rather than compounding. Ability Cooldown Reduction
+    /// changes are ignored: ACR is snapshot semantics and never rescales a cooldown in flight.
     /// </summary>
-    public void SetAddedCooldownRecovery(double added, int? timestamp = null)
+    [On<ChangeCooldownModifierEvent>]
+    private void OnChangeCooldownModifier(ChangeCooldownModifierEvent e)
     {
-        if (added < 0 || added == _addedRecovery) return;
-        var ts = timestamp ?? Owner.CurrentTimestamp;
-        AdvanceCooldowns(ts);
-
-        var previousRates = _cooldowns.Keys.ToDictionary(id => id, EffectiveRate);
-        _addedRecovery = added;
-
-        foreach (var (spellId, previousRate) in previousRates)
-        {
-            if (_cooldowns.ContainsKey(spellId))
-                HandleChangeRate(spellId, EffectiveRate(spellId) / previousRate, ts);
-        }
+        if (e.Pool != CooldownPool.CooldownAcceleration) return;
+        RescaleChangedCooldowns(e.Timestamp);
     }
 
     /// <summary>
     /// Rescales in-flight haste-reduced cooldowns when the player's haste changes, so their remaining
-    /// time reflects the new recovery rate for the rest of the cooldown.
+    /// time reflects the new recovery rate for the rest of the cooldown. Haste is a term on the same
+    /// pool the tracked acceleration modifiers feed, so this shares the rate-comparison sweep with
+    /// <see cref="OnChangeCooldownModifier"/>: only cooldowns whose <see cref="EffectiveRate"/> actually
+    /// moved (haste-flagged abilities, for a haste change) are touched.
     /// </summary>
     [On<ChangeHasteEvent>]
-    private void OnChangeHaste(ChangeHasteEvent e)
-    {
-        var oldRate = 1.0 + (e.OldHaste ?? 0.0) + _gearRecovery.Current + _addedRecovery;
-        var newRate = 1.0 + (e.NewHaste ?? 0.0) + _gearRecovery.Current + _addedRecovery;
-        if (oldRate <= 0 || oldRate == newRate) return;
+    private void OnChangeHaste(ChangeHasteEvent e) => RescaleChangedCooldowns(e.Timestamp);
 
-        var change = newRate / oldRate;
-        AdvanceCooldowns(e.Timestamp);
+    /// <summary>
+    /// Sweeps every in-flight cooldown and rescales those whose current <see cref="EffectiveRate"/>
+    /// differs from the rate the cooldown was last scaled at.
+    /// </summary>
+    private void RescaleChangedCooldowns(int timestamp)
+    {
+        AdvanceCooldowns(timestamp);
 
         foreach (var spellId in _cooldowns.Keys.ToList())
         {
-            if (_abilities.GetAbility(spellId)?.CooldownReducedByHaste == true)
-                HandleChangeRate(spellId, change, e.Timestamp);
+            if (!_cooldowns.TryGetValue(spellId, out var cd)) continue;
+
+            var newRate = EffectiveRate(spellId);
+            if (newRate <= 0 || newRate == cd.Rate) continue;
+
+            HandleChangeRate(spellId, newRate, timestamp);
         }
     }
 
     /// <summary>
-    /// Rescales the in-flight cooldown for <paramref name="spellId"/>: remaining time is
-    /// divided by <paramref name="rateChange"/>, total RechargeDuration is divided likewise.
-    /// OverallStart and ChargeStart are preserved.
+    /// Rescales the in-flight cooldown for <paramref name="spellId"/> to <paramref name="newRate"/>:
+    /// remaining time and total RechargeDuration are divided by the change relative to the rate the
+    /// cooldown was last scaled at. OverallStart and ChargeStart are preserved.
     /// </summary>
-    private void HandleChangeRate(int spellId, double rateChange, int timestamp)
+    private void HandleChangeRate(int spellId, double newRate, int timestamp)
     {
         var cd = _cooldowns[spellId];
+        var rateChange = newRate / cd.Rate;
         var remaining = Math.Max(0, cd.ExpectedEnd - timestamp);
         var percentRemaining = cd.RechargeDuration == 0 ? 0 : (double)remaining / cd.RechargeDuration;
         var newRecharge = (int)Math.Round(cd.RechargeDuration / rateChange);
         var newRemaining = (int)Math.Round(newRecharge * percentRemaining);
-        cd = cd with { RechargeDuration = newRecharge, ExpectedEnd = timestamp + newRemaining };
+        cd = cd with { RechargeDuration = newRecharge, ExpectedEnd = timestamp + newRemaining, Rate = newRate };
         _cooldowns[spellId] = cd;
         FabricateUpdate(UpdateSpellUsableType.ChangeCooldownRate, spellId, timestamp, cd);
     }
@@ -335,21 +345,24 @@ public sealed partial class SpellUsable(
         });
     }
 
+    /// <param name="Rate">The <see cref="EffectiveRate"/> the cooldown was last scaled at, so a pool
+    /// change can be applied as the ratio between the new rate and this one.</param>
     private record struct CooldownInfo(
         int OverallStart,
         int ChargeStart,
         int ExpectedEnd,
         int RechargeDuration,
         int ChargesAvailable,
-        int MaxCharges);
+        int MaxCharges,
+        double Rate);
 }
 
 /// <summary>
 /// The outcome of a <see cref="SpellUsable.ReduceCooldown"/> request.
 /// </summary>
 /// <param name="GeneratedMs">
-/// Reduction the request generated, in milliseconds. This is the full requested amount: flat reductions
-/// are not scaled by Ability Cooldown Reduction.
+/// Reduction the request generated, in milliseconds. This is the requested amount after Ability Cooldown
+/// Reduction scaling: flat reductions are shortened by ACR but are not divided by the cooldown-recovery pool.
 /// </param>
 /// <param name="AppliedMs">How much of <paramref name="GeneratedMs"/> shortened a running cooldown.</param>
 public readonly record struct CooldownReductionResult(int GeneratedMs, int AppliedMs)

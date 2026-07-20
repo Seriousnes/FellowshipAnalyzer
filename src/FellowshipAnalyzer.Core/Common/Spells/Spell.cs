@@ -26,6 +26,10 @@ public record Spell : IRimeSpell, IElarionSpell
     public string Icon { get; init; } = "";
 
     public double? Cooldown { get; init; }
+
+    /// <summary>Seconds removed from this ability's remaining cooldown when a target it has debuffed dies, per qualifying window.</summary>
+    public double? CooldownReductionOnTargetDeath { get; init; }
+
     public int? Range { get; init; }
     public int Charges { get; init; } = 1;
     public double? CastDuration { get; init; }

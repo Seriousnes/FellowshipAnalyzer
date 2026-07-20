@@ -81,6 +81,7 @@ public static class MergeEngine
                 var costs = Costs.Map(scalars, hero.Resources);
 
                 var cooldown = Normalization.Cooldown(scalars);
+                var cooldownReductionOnTargetDeath = Normalization.CooldownReductionOnTargetDeath(scalars);
                 var range = Normalization.Range(scalars);
                 var charges = Normalization.Charges(scalars);
                 var castDuration = Normalization.CastDuration(scalars);
@@ -93,6 +94,7 @@ public static class MergeEngine
                     .Set("name", spellDataName is not null ? ProvenanceSource.SpellData : ProvenanceSource.HeroData)
                     .SetIf("icon", icon.Length > 0, ProvenanceSource.Icons)
                     .SetIf("cooldown", cooldown.HasValue, ProvenanceSource.HeroData)
+                    .SetIf("cooldownReductionOnTargetDeath", cooldownReductionOnTargetDeath.HasValue, ProvenanceSource.HeroData)
                     .SetIf("range", range.HasValue, ProvenanceSource.HeroData)
                     .Set("charges", ProvenanceSource.HeroData)
                     .SetIf("castDuration", castDuration.HasValue, ProvenanceSource.HeroData)
@@ -101,8 +103,8 @@ public static class MergeEngine
                     .SetIf("costs", costs.Count > 0, ProvenanceSource.HeroData)
                     .Build();
 
-                var spell = BuildSpell(kind, nativeId, name, icon, cooldown, range, charges,
-                    castDuration, channelDuration, channelTickInterval, costs);
+                var spell = BuildSpell(kind, nativeId, name, icon, cooldown, cooldownReductionOnTargetDeath,
+                    range, charges, castDuration, channelDuration, channelTickInterval, costs);
                 spells.Add(new CuratedSpell(scope, member, spell, prov));
 
                 if (!MemberNaming.IsValidIdentifier(member))
@@ -132,7 +134,7 @@ public static class MergeEngine
                         .Build();
 
                     var effectSpell = BuildSpell(effectKind, effectId, effectName, effectIcon,
-                        null, null, 1, null, null, null, EmptyCosts);
+                        null, null, null, 1, null, null, null, EmptyCosts);
                     spells.Add(new CuratedSpell(scope, effectMember, effectSpell, effectProv));
 
                     if (!MemberNaming.IsValidIdentifier(effectMember))
@@ -195,11 +197,12 @@ public static class MergeEngine
 
     private static Spell BuildSpell(
         SpellKind kind, int nativeId, string name, string icon,
-        double? cooldown, int? range, int charges, double? castDuration,
+        double? cooldown, double? cooldownReductionOnTargetDeath, int? range, int charges, double? castDuration,
         double? channelDuration, double? channelTickInterval, IReadOnlyDictionary<ResourceTypes, int> costs) =>
         Spell.FromFSLID(FSLID.FromNative(kind, nativeId), name, icon) with
         {
             Cooldown = cooldown,
+            CooldownReductionOnTargetDeath = cooldownReductionOnTargetDeath,
             Range = range,
             Charges = charges,
             CastDuration = castDuration,
@@ -257,6 +260,7 @@ public static class MergeEngine
         var costs = Costs.Map(scalars, new ResourceModel(new Dictionary<string, ResourceTypes>(), []));
 
         var cooldown = Normalization.Cooldown(scalars);
+        var cooldownReductionOnTargetDeath = Normalization.CooldownReductionOnTargetDeath(scalars);
         var range = Normalization.Range(scalars);
         var charges = Normalization.Charges(scalars);
         var castDuration = Normalization.CastDuration(scalars);
@@ -273,6 +277,7 @@ public static class MergeEngine
         if (nameSource is { } ns) prov.Set("name", ns);
         prov.SetIf("icon", icon.Length > 0, ProvenanceSource.Icons);
         prov.SetIf("cooldown", cooldown.HasValue, ProvenanceSource.GearData);
+        prov.SetIf("cooldownReductionOnTargetDeath", cooldownReductionOnTargetDeath.HasValue, ProvenanceSource.GearData);
         prov.SetIf("range", range.HasValue, ProvenanceSource.GearData);
         prov.Set("charges", ProvenanceSource.GearData);
         prov.SetIf("castDuration", castDuration.HasValue, ProvenanceSource.GearData);
@@ -280,8 +285,8 @@ public static class MergeEngine
         prov.SetIf("channelTickInterval", channelTickInterval.HasValue, ProvenanceSource.GearData);
         prov.SetIf("costs", costs.Count > 0, ProvenanceSource.GearData);
 
-        var baseSpell = BuildSpell(kind, nativeId, resolvedName, icon, cooldown, range, charges,
-            castDuration, channelDuration, channelTickInterval, costs);
+        var baseSpell = BuildSpell(kind, nativeId, resolvedName, icon, cooldown, cooldownReductionOnTargetDeath,
+            range, charges, castDuration, channelDuration, channelTickInterval, costs);
         var curated = ApplyPatch(new CuratedSpell(scope, member, baseSpell, prov.Build()), delta);
 
         var addedGaps = new List<Gap>();
