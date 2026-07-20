@@ -8,7 +8,8 @@
     "FireFrogsDot": { "id": 1826, "kind": "effect", "note": "GE_Firemage_FireFrog_Dot not auto-linked (stem FireFrogs vs FireFrog); add directly" },
     "ApocalypseDot": { "id": 3175, "kind": "effect", "note": "GE_Firemage_Talent_CastedPlacedAoe_DamageBasedDot_Dot unresolved; add directly" },
     "SearingBlazeDot": { "id": 1820, "kind": "effect", "note": "GE_Firemage_InstantSingleTargetDot_Dot unresolved; add directly" },
-    "ReignOfFireBuff": { "id": 2301, "kind": "effect", "note": "GE_Firemage_Talent_PlacedProjectileAoe_ResetCooldownDamageBuff unresolved; add directly" }
+    "ReignOfFireBuff": { "id": 2301, "kind": "effect", "note": "GE_Firemage_Talent_PlacedProjectileAoe_ResetCooldownDamageBuff unresolved; add directly" },
+    "ApocalypticSurge": { "id": 3176, "kind": "effect", "name": "Apocalyptic Surge", "note": "GE_Firemage_Talent_CastedDotDetonate_FreeProc unresolved (free-Detonate stacking buff); add directly" }
   },
   "rime": {
     "WintersBlessing": {
