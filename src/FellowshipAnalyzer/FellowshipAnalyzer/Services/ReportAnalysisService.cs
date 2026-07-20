@@ -148,7 +148,12 @@ public sealed class ReportAnalysisService(
                 eventsResponse.Bytes.Length, deathsResponse.Bytes.Length, sw.ElapsedMilliseconds);
 
             eventsResultJsonBytes = EventStreamMerger.Merge(eventsResponse.Bytes, deathsResponse.Bytes);
-            eventsExpiresAt = eventsResponse.ExpiresAt;
+            eventsExpiresAt = (eventsResponse.ExpiresAt, deathsResponse.ExpiresAt) switch
+            {
+                ({ } eventsExpiry, { } deathsExpiry) => eventsExpiry <= deathsExpiry ? eventsExpiry : deathsExpiry,
+                ({ } eventsExpiry, null) => eventsExpiry,
+                (null, var deathsExpiry) => deathsExpiry,
+            };
             isFreshFromNetwork = true;
         }
 

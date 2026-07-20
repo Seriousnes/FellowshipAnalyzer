@@ -19,7 +19,10 @@ public static class EventStreamMerger
     /// Combines a player-scoped <c>{ inProgress, events }</c> payload and a fight-scoped death
     /// payload into a single timestamp-ordered <c>{ inProgress, events }</c> payload. Death events
     /// present in <paramref name="playerEventsJson"/> are dropped in favour of
-    /// <paramref name="deathStreamJson"/>. Event objects are copied verbatim.
+    /// <paramref name="deathStreamJson"/>. Event objects are copied verbatim. The sort is in place
+    /// with fully deterministic tie-breaks (timestamp, then player stream before death stream, then
+    /// position within the source document), since this runs on every cache miss in the browser and
+    /// a stable LINQ ordering would allocate an intermediate projection per event.
     /// </summary>
     public static byte[] Merge(byte[] playerEventsJson, byte[] deathStreamJson)
     {
@@ -27,11 +30,13 @@ public static class EventStreamMerger
         var inProgress = ReadEntries(playerEventsJson, excludeDeaths: true, entries);
         ReadEntries(deathStreamJson, excludeDeaths: false, entries);
 
-        var ordered = entries
-            .Select(static (e, i) => (Entry: e, Index: i))
-            .OrderBy(static x => x.Entry.Timestamp)
-            .ThenBy(static x => x.Index)
-            .Select(static x => x.Entry);
+        entries.Sort((a, b) =>
+        {
+            var byTimestamp = a.Timestamp.CompareTo(b.Timestamp);
+            if (byTimestamp != 0) return byTimestamp;
+            if (!ReferenceEquals(a.Source, b.Source)) return ReferenceEquals(a.Source, playerEventsJson) ? -1 : 1;
+            return a.Start.CompareTo(b.Start);
+        });
 
         using var buffer = new MemoryStream(playerEventsJson.Length + deathStreamJson.Length);
         using (var writer = new Utf8JsonWriter(buffer))
@@ -40,7 +45,7 @@ public static class EventStreamMerger
             writer.WriteBoolean("inProgress", inProgress);
             writer.WritePropertyName("events");
             writer.WriteStartArray();
-            foreach (var e in ordered)
+            foreach (var e in entries)
             {
                 writer.WriteRawValue(e.Source.AsSpan(e.Start, e.Length), skipInputValidation: true);
             }
