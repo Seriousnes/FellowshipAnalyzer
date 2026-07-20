@@ -76,10 +76,6 @@ public sealed class PullBookendNormalizer(ParseContext parseContext) : IEventNor
             TargetCount: targetCount);
     }
 
-    /// <summary>
-    /// Boss pulls are single-target (focus the boss); trash pulls are AoE. Target shape follows the
-    /// encounter, not the raw NPC count — a boss with transient adds is still played single-target.
-    /// </summary>
     private static PullKind ShapeFor(bool isBoss)
         => isBoss ? PullKind.Single : PullKind.Multi;
 
