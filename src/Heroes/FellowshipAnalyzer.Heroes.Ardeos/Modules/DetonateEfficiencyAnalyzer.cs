@@ -24,12 +24,12 @@ namespace FellowshipAnalyzer.Heroes.Ardeos.Modules;
 /// denominator.
 /// <para>
 /// Apocalyptic Surge grants stacking charges of a free Detonate: casting Apocalypse applies the buff and
-/// each free Detonate consumes a stack, logged as a Surge stack removal about a millisecond after the
-/// cast. A removal within <see cref="SurgeCorrelationWindowMs"/> of a Detonate marks that cast free (no
-/// Ember spent); any other removal is the buff expiring with stacks unspent and is charged as waste. The
-/// buff is never refreshed and its eighteen-second window is shorter than Apocalypse's cooldown, so a
-/// fresh apply while stacks remain does not occur in practice; that overwrite path is still accounted as
-/// waste defensively. Surge metrics are meaningful only for a talented player, surfaced through
+/// every Detonate cast while it stands is free, spending a charge rather than an Ember. A cast is marked
+/// free when the player carries the Surge buff at the moment it lands, read straight from the tracked
+/// player aura; <see cref="SurgeBufferMs"/> keeps the final charge's Detonate free even when its stack
+/// removal is logged a hair before the cast. Every charge gained that no Detonate cashes in is charged as
+/// waste, so <see cref="SurgeStacksWasted"/> is simply the charges gained less the free casts and needs no
+/// per-removal correlation. Surge metrics are meaningful only for a talented player, surfaced through
 /// <see cref="ApocalypticSurgeTalented"/> so the guide can hide them otherwise.
 /// </para>
 /// </remarks>
@@ -43,8 +43,8 @@ public sealed partial class DetonateEfficiencyAnalyzer : Analyzer
     /// <summary>Per-cast average instances per target at or below which a Detonate is under layered.</summary>
     public const int UnderLayeredAverage = 1;
 
-    /// <summary>Maximum gap after a Detonate cast within which a Surge stack removal marks that cast free.</summary>
-    public const int SurgeCorrelationWindowMs = 100;
+    /// <summary>Tolerance by which the Surge buff still counts as active at a Detonate cast, absorbing a final-charge stack removal logged just before it.</summary>
+    public const int SurgeBufferMs = 100;
 
     private static readonly int[] DotEffectIds =
     [
@@ -59,8 +59,6 @@ public sealed partial class DetonateEfficiencyAnalyzer : Analyzer
     private readonly List<DetonateCast> _casts = [];
 
     private int _surgeStacks;
-    private DetonateCast? _pendingDetonate;
-    private int _pendingDetonateTimestamp;
 
     /// <summary>Every player Detonate cast in the pull with its DoT-layering snapshot, in cast order.</summary>
     public IReadOnlyList<DetonateCast> Casts => _casts;
@@ -117,8 +115,8 @@ public sealed partial class DetonateEfficiencyAnalyzer : Analyzer
     /// <summary>Total Apocalyptic Surge stacks gained across the pull.</summary>
     public int SurgeStacksGained { get; private set; }
 
-    /// <summary>Apocalyptic Surge stacks lost to expiry or overwrite rather than a free Detonate.</summary>
-    public int SurgeStacksWasted { get; private set; }
+    /// <summary>Apocalyptic Surge charges gained that no free Detonate cashed in.</summary>
+    public int SurgeStacksWasted => Math.Max(0, SurgeStacksGained - FreeCasts);
 
     [On<CastEvent>(By = Actor.Player, Spell = nameof(Spells.Detonate))]
     private void OnDetonate(CastEvent e)
@@ -140,23 +138,19 @@ public sealed partial class DetonateEfficiencyAnalyzer : Analyzer
                 maxTargetInstances = perTarget;
         }
 
-        var cast = new DetonateCast
+        _casts.Add(new DetonateCast
         {
             Timestamp = e.Timestamp,
             TargetsWithDoTs = targets.Count,
             TotalInstances = totalInstances,
             MaxTargetInstances = maxTargetInstances,
-        };
-        _casts.Add(cast);
-        _pendingDetonate = cast;
-        _pendingDetonateTimestamp = e.Timestamp;
+            Free = Owner.SelectedCombatant.HasBuff(Spells.ApocalypticSurge.FSLID, e.Timestamp, bufferTime: SurgeBufferMs),
+        });
     }
 
     [On<ApplyBuffEvent>(To = Actor.Player, Spell = nameof(Spells.ApocalypticSurge))]
     private void OnSurgeApply(ApplyBuffEvent e)
     {
-        if (_surgeStacks > 0)
-            SurgeStacksWasted += _surgeStacks;
         _surgeStacks = 1;
         SurgeStacksGained += 1;
     }
@@ -170,36 +164,10 @@ public sealed partial class DetonateEfficiencyAnalyzer : Analyzer
     }
 
     [On<RemoveBuffStackEvent>(To = Actor.Player, Spell = nameof(Spells.ApocalypticSurge))]
-    private void OnSurgeRemoveStack(RemoveBuffStackEvent e)
-    {
-        var removed = Math.Max(0, _surgeStacks - e.Stack);
-        _surgeStacks = e.Stack;
-        AccountForSurgeRemoval(e.Timestamp, removed);
-    }
+    private void OnSurgeRemoveStack(RemoveBuffStackEvent e) => _surgeStacks = e.Stack;
 
     [On<RemoveBuffEvent>(To = Actor.Player, Spell = nameof(Spells.ApocalypticSurge))]
-    private void OnSurgeRemove(RemoveBuffEvent e)
-    {
-        var removed = _surgeStacks;
-        _surgeStacks = 0;
-        AccountForSurgeRemoval(e.Timestamp, removed);
-    }
-
-    private void AccountForSurgeRemoval(int timestamp, int removed)
-    {
-        if (removed <= 0)
-            return;
-
-        if (_pendingDetonate is { Free: false } pending
-            && timestamp - _pendingDetonateTimestamp <= SurgeCorrelationWindowMs)
-        {
-            pending.Free = true;
-            _pendingDetonate = null;
-            removed -= 1;
-        }
-
-        SurgeStacksWasted += removed;
-    }
+    private void OnSurgeRemove(RemoveBuffEvent e) => _surgeStacks = 0;
 
     /// <summary>A single Detonate cast and the DoT layering standing on its targets when it landed.</summary>
     public sealed class DetonateCast
@@ -218,7 +186,7 @@ public sealed partial class DetonateEfficiencyAnalyzer : Analyzer
         /// <summary>Average active DoT instances per DoT-carrying target, or zero when none carried a DoT.</summary>
         public double AverageInstances => TargetsWithDoTs == 0 ? 0 : (double)TotalInstances / TargetsWithDoTs;
 
-        /// <summary>True when this cast consumed an Apocalyptic Surge stack and spent no Ember.</summary>
-        public bool Free { get; internal set; }
+        /// <summary>True when the player carried an Apocalyptic Surge charge as this cast landed, spending no Ember.</summary>
+        public required bool Free { get; init; }
     }
 }

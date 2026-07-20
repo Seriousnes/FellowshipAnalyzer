@@ -170,19 +170,34 @@ public sealed class DetonateEfficiencyAnalyzerTests
     }
 
     [Fact]
-    public async Task ApocalypticSurge_ExpiryWithoutDetonate_IsWasted()
+    public async Task ApocalypticSurge_ExpiryWithNoCastUnderBuff_IsWasted()
     {
         var analyzer = await Analyze(
             Combatant(talented: true),
             ApplyBuff(0, Spells.ApocalypticSurge.FSLID),
             ApplyBuffStack(0, Spells.ApocalypticSurge.FSLID, stack: 2),
-            Detonate(1000),
-            RemoveBuff(5000, Spells.ApocalypticSurge.FSLID));
+            RemoveBuff(5000, Spells.ApocalypticSurge.FSLID),
+            Detonate(6000));
 
         analyzer.FreeCasts.ShouldBe(0);
         analyzer.PaidCasts.ShouldBe(1);
         analyzer.SurgeStacksGained.ShouldBe(2);
         analyzer.SurgeStacksWasted.ShouldBe(2);
+    }
+
+    [Fact]
+    public async Task ApocalypticSurge_FinalChargeRemovalLoggedBeforeCast_IsStillFree()
+    {
+        var analyzer = await Analyze(
+            Combatant(talented: true),
+            ApplyBuff(0, Spells.ApocalypticSurge.FSLID),
+            RemoveBuff(999, Spells.ApocalypticSurge.FSLID),
+            Detonate(1000));
+
+        analyzer.FreeCasts.ShouldBe(1);
+        analyzer.PaidCasts.ShouldBe(0);
+        analyzer.SurgeStacksGained.ShouldBe(1);
+        analyzer.SurgeStacksWasted.ShouldBe(0);
     }
 
     [Fact]
