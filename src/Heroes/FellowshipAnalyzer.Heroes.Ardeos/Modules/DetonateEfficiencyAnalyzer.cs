@@ -152,7 +152,7 @@ public sealed partial class DetonateEfficiencyAnalyzer : Analyzer
         _pendingDetonateTimestamp = e.Timestamp;
     }
 
-    [On<ApplyBuffEvent>(Spell = nameof(Spells.ApocalypticSurge))]
+    [On<ApplyBuffEvent>(To = Actor.Player, Spell = nameof(Spells.ApocalypticSurge))]
     private void OnSurgeApply(ApplyBuffEvent e)
     {
         if (_surgeStacks > 0)
@@ -161,7 +161,7 @@ public sealed partial class DetonateEfficiencyAnalyzer : Analyzer
         SurgeStacksGained += 1;
     }
 
-    [On<ApplyBuffStackEvent>(Spell = nameof(Spells.ApocalypticSurge))]
+    [On<ApplyBuffStackEvent>(To = Actor.Player, Spell = nameof(Spells.ApocalypticSurge))]
     private void OnSurgeApplyStack(ApplyBuffStackEvent e)
     {
         if (e.Stack > _surgeStacks)
@@ -169,7 +169,7 @@ public sealed partial class DetonateEfficiencyAnalyzer : Analyzer
         _surgeStacks = e.Stack;
     }
 
-    [On<RemoveBuffStackEvent>(Spell = nameof(Spells.ApocalypticSurge))]
+    [On<RemoveBuffStackEvent>(To = Actor.Player, Spell = nameof(Spells.ApocalypticSurge))]
     private void OnSurgeRemoveStack(RemoveBuffStackEvent e)
     {
         var removed = Math.Max(0, _surgeStacks - e.Stack);
@@ -177,7 +177,7 @@ public sealed partial class DetonateEfficiencyAnalyzer : Analyzer
         AccountForSurgeRemoval(e.Timestamp, removed);
     }
 
-    [On<RemoveBuffEvent>(Spell = nameof(Spells.ApocalypticSurge))]
+    [On<RemoveBuffEvent>(To = Actor.Player, Spell = nameof(Spells.ApocalypticSurge))]
     private void OnSurgeRemove(RemoveBuffEvent e)
     {
         var removed = _surgeStacks;
