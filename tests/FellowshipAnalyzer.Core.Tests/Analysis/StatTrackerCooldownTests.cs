@@ -239,7 +239,7 @@ public sealed partial class StatTrackerCooldownTests
     [Fact]
     public async Task AcrModifierMidFlight_LeavesInFlightCooldown_ButShortensTheNext()
     {
-        var (_, spellUsable, _) = await Run(
+        var (_, spellUsable, parser) = await Run(
             events: [CreateCast(1000, SpellA), CreateTrigger(2000)],
             onApplyBuff: (owner, e) =>
             {
@@ -248,7 +248,11 @@ public sealed partial class StatTrackerCooldownTests
                         CooldownPool.AbilityCooldownReduction, new CooldownModifier(0.5), e);
             });
 
-        Assert.Equal(9000, spellUsable.CooldownRemaining(SpellA, atTimestamp: 2000));
+        var updates = parser.GetModule<ChangeProbeModule>()!.Updates;
+        Assert.Equal(11_000, updates.Last(e => e.Ability.FSLID == SpellA
+            && e.UpdateType == UpdateSpellUsableType.BeginCooldown).ExpectedRechargeTimestamp);
+        Assert.DoesNotContain(updates, e => e.Ability.FSLID == SpellA
+            && e.UpdateType == UpdateSpellUsableType.ChangeCooldownRate);
 
         spellUsable.BeginCooldown(SpellB, timestamp: 3000);
         Assert.Equal(10_000, spellUsable.CooldownRemaining(SpellB, atTimestamp: 3000));
@@ -521,10 +525,15 @@ public sealed partial class StatTrackerCooldownTests
     {
         public List<ChangeCooldownModifierEvent> Changes { get; } = [];
 
+        public List<UpdateSpellUsableEvent> Updates { get; } = [];
+
         public Action<CombatLogParser, ApplyBuffEvent>? OnApplyBuff { get; init; }
 
         [On<ChangeCooldownModifierEvent>]
         private void OnChange(ChangeCooldownModifierEvent e) => Changes.Add(e);
+
+        [On<UpdateSpellUsableEvent>]
+        private void OnUpdate(UpdateSpellUsableEvent e) => Updates.Add(e);
 
         [On<ApplyBuffEvent>(By = Actor.Player)]
         private void OnBuff(ApplyBuffEvent e) => OnApplyBuff?.Invoke(Owner, e);

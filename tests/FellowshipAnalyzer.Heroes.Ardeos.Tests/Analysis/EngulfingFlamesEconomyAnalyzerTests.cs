@@ -4,6 +4,7 @@ using FellowshipAnalyzer.Core.Common.Spells.Ardeos;
 using FellowshipAnalyzer.Core.Events;
 using FellowshipAnalyzer.Core.FellowshipLogs;
 using FellowshipAnalyzer.Heroes.Ardeos.Analysis;
+using FellowshipAnalyzer.Heroes.Ardeos.Modules;
 
 using Microsoft.Extensions.DependencyInjection;
 
@@ -18,6 +19,10 @@ public sealed class EngulfingFlamesEconomyAnalyzerTests
     private const int PlayerId = 7;
     private const int EnemyId = 99;
 
+    // -------------------------------------------------------------------------
+    // Spell curation guards
+    // -------------------------------------------------------------------------
+
     [Fact]
     public void EngulfingFlames_IsCuratedAsTwoChargeTwentySecondSpell()
     {
@@ -26,31 +31,22 @@ public sealed class EngulfingFlamesEconomyAnalyzerTests
     }
 
     [Fact]
-    public async Task WildfireWindow_WithBothCharges_IsReady()
+    public void Wildfire_IsCuratedAsSingleChargeFortyFiveSecondSpell()
     {
-        var events = new List<Event> { Cast(Spells.Wildfire.FSLID, 1000) };
-
-        var (parser, _) = await AnalyzeAsync(events, SpanningFight(0, 15000));
-
-        var entry = parser.EngulfingFlamesEconomyAnalyzers.ShouldHaveSingleItem();
-        var analyzer = entry.Analyzer;
-        analyzer.WindowsEvaluated.ShouldBe(1);
-        analyzer.WindowsReady.ShouldBe(1);
-        analyzer.WindowsShort.ShouldBe(0);
-        analyzer.WastedCharges.ShouldBe(0);
-
-        var window = analyzer.Windows.ShouldHaveSingleItem();
-        window.ChargesAvailable.ShouldBe(2);
-        window.Ready.ShouldBeTrue();
-
-        var pull = entry.Pull;
-        pull.EngulfingFlamesEconomyAnalyzer.ShouldBeSameAs(analyzer);
-        parser.For(pull).EngulfingFlamesEconomyAnalyzer.ShouldBeSameAs(analyzer);
+        Spells.Wildfire.Cooldown.ShouldBe(45d);
+        Spells.Wildfire.Charges.ShouldBe(1);
+        ((int)Spells.EngulfingFlamesDot.FSLID).ShouldBe(1002325);
     }
 
+    // -------------------------------------------------------------------------
+    // Readiness windows re-anchored on Wildfire availability
+    // -------------------------------------------------------------------------
+
     [Fact]
-    public async Task WildfireWindow_WithBothChargesSpent_IsShort()
+    public async Task FirstWindow_AnchoredAtPullStart_BothEngulfingFlamesCastsSucceed()
     {
+        // Wildfire opens the pull available, so the first window's ready-time is pull start. Both Engulfing
+        // Flames land in the setup before Wildfire, which is exactly the target the new model rewards.
         var events = new List<Event>
         {
             Cast(Spells.EngulfingFlames.FSLID, 500),
@@ -60,18 +56,81 @@ public sealed class EngulfingFlamesEconomyAnalyzerTests
 
         var (parser, _) = await AnalyzeAsync(events, SpanningFight(0, 15000));
 
-        var analyzer = parser.EngulfingFlamesEconomyAnalyzers.ShouldHaveSingleItem().Analyzer;
+        var entry = parser.EngulfingFlamesEconomyAnalyzers.ShouldHaveSingleItem();
+        var analyzer = entry.Analyzer;
         analyzer.WindowsEvaluated.ShouldBe(1);
-        analyzer.WindowsReady.ShouldBe(0);
-        analyzer.WindowsShort.ShouldBe(1);
+        analyzer.DoubleAppliedWindows.ShouldBe(1);
+        analyzer.MissedWindows.ShouldBe(0);
 
         var window = analyzer.Windows.ShouldHaveSingleItem();
-        window.ChargesAvailable.ShouldBe(0);
-        window.Ready.ShouldBeFalse();
+        window.ReadyTimestamp.ShouldBe(0);
+        window.WindowStart.ShouldBe(0);
+        window.EngulfingFlamesCastCount.ShouldBe(2);
+        window.DoubleApplied.ShouldBeTrue();
+        window.ChargesAtReady.ShouldBe(2);
+        window.HeldMs.ShouldBe(1000);
+
+        var pull = entry.Pull;
+        pull.EngulfingFlamesEconomyAnalyzer.ShouldBeSameAs(analyzer);
+        parser.For(pull).EngulfingFlamesEconomyAnalyzer.ShouldBeSameAs(analyzer);
     }
 
     [Fact]
-    public async Task WildfireWindow_WithOneCharge_IsShort()
+    public async Task SecondWindow_EngulfingFlamesJustBeforeReady_CountsAndSucceeds()
+    {
+        // Wildfire recharges to a mid-fight ready-time of 46000; one Engulfing Flames lands 2s before that
+        // instant (inside ReadyLeadMs) and one just after, so the setup succeeds even though the first
+        // application preceded Wildfire coming off cooldown.
+        var events = new List<Event>
+        {
+            Cast(Spells.Wildfire.FSLID, 1000),
+            Cast(Spells.EngulfingFlames.FSLID, 44000),
+            Cast(Spells.EngulfingFlames.FSLID, 45000),
+            Cast(Spells.Wildfire.FSLID, 48000),
+        };
+
+        var (parser, _) = await AnalyzeAsync(events, SpanningFight(0, 50000));
+
+        var analyzer = parser.EngulfingFlamesEconomyAnalyzers.ShouldHaveSingleItem().Analyzer;
+        analyzer.WindowsEvaluated.ShouldBe(2);
+        analyzer.Windows[0].EngulfingFlamesCastCount.ShouldBe(0);
+
+        var second = analyzer.Windows[1];
+        second.ReadyTimestamp.ShouldBe(46000);
+        second.WindowStart.ShouldBe(40000);
+        second.EngulfingFlamesCastCount.ShouldBe(2);
+        second.DoubleApplied.ShouldBeTrue();
+        second.EngulfingFlamesCasts.ShouldContain(44000);
+        second.HeldMs.ShouldBe(2000);
+    }
+
+    [Fact]
+    public async Task WildfireHeldLongAfterReady_LateDoubleCast_StillSucceeds()
+    {
+        // Wildfire is ready at 46000 but held until 80000 (a 34s hold for mechanics). The two Engulfing
+        // Flames casts land late in the hold; holding never fails the window, and the late double-cast wins.
+        var events = new List<Event>
+        {
+            Cast(Spells.Wildfire.FSLID, 1000),
+            Cast(Spells.EngulfingFlames.FSLID, 78000),
+            Cast(Spells.EngulfingFlames.FSLID, 79000),
+            Cast(Spells.Wildfire.FSLID, 80000),
+        };
+
+        var (parser, _) = await AnalyzeAsync(events, SpanningFight(0, 85000));
+
+        var analyzer = parser.EngulfingFlamesEconomyAnalyzers.ShouldHaveSingleItem().Analyzer;
+        analyzer.DoubleAppliedWindows.ShouldBe(1);
+
+        var second = analyzer.Windows[1];
+        second.ReadyTimestamp.ShouldBe(46000);
+        second.HeldMs.ShouldBe(34000);
+        second.EngulfingFlamesCastCount.ShouldBe(2);
+        second.DoubleApplied.ShouldBeTrue();
+    }
+
+    [Fact]
+    public async Task Window_WithSingleEngulfingFlamesCast_IsNotSuccessful()
     {
         var events = new List<Event>
         {
@@ -82,11 +141,91 @@ public sealed class EngulfingFlamesEconomyAnalyzerTests
         var (parser, _) = await AnalyzeAsync(events, SpanningFight(0, 15000));
 
         var analyzer = parser.EngulfingFlamesEconomyAnalyzers.ShouldHaveSingleItem().Analyzer;
-        analyzer.WindowsReady.ShouldBe(0);
-        analyzer.WindowsShort.ShouldBe(1);
+        analyzer.DoubleAppliedWindows.ShouldBe(0);
+        analyzer.SingleApplicationWindows.ShouldBe(1);
 
-        analyzer.Windows.ShouldHaveSingleItem().ChargesAvailable.ShouldBe(1);
+        var window = analyzer.Windows.ShouldHaveSingleItem();
+        window.EngulfingFlamesCastCount.ShouldBe(1);
+        window.DoubleApplied.ShouldBeFalse();
+        window.ChargesAtReady.ShouldBe(2);
     }
+
+    [Fact]
+    public async Task Window_WithNoEngulfingFlamesCast_IsMissed()
+    {
+        var events = new List<Event> { Cast(Spells.Wildfire.FSLID, 1000) };
+
+        var (parser, _) = await AnalyzeAsync(events, SpanningFight(0, 15000));
+
+        var analyzer = parser.EngulfingFlamesEconomyAnalyzers.ShouldHaveSingleItem().Analyzer;
+        analyzer.MissedWindows.ShouldBe(1);
+        analyzer.DoubleAppliedWindows.ShouldBe(0);
+
+        var window = analyzer.Windows.ShouldHaveSingleItem();
+        window.EngulfingFlamesCastCount.ShouldBe(0);
+        window.ChargesAtReady.ShouldBe(2);
+    }
+
+    [Fact]
+    public async Task ChargesAtReady_ReflectsEngulfingFlamesRechargeState()
+    {
+        // Charges at ready are read from the SpellUsable simulation at the ready instant, not hardcoded to
+        // max. Both charges are spent at 20000/20100; by the second window's ready-time of 45500 only one has
+        // recharged, so the context stat reads 1 while the first window (pull start) reads the full 2.
+        var events = new List<Event>
+        {
+            Cast(Spells.Wildfire.FSLID, 500),
+            Cast(Spells.EngulfingFlames.FSLID, 20000),
+            Cast(Spells.EngulfingFlames.FSLID, 20100),
+            Cast(Spells.Wildfire.FSLID, 45600),
+        };
+
+        var (parser, _) = await AnalyzeAsync(events, SpanningFight(0, 50000));
+
+        var analyzer = parser.EngulfingFlamesEconomyAnalyzers.ShouldHaveSingleItem().Analyzer;
+        analyzer.Windows[0].ChargesAtReady.ShouldBe(2);
+
+        var second = analyzer.Windows[1];
+        second.ReadyTimestamp.ShouldBe(45500);
+        second.ChargesAtReady.ShouldBe(1);
+    }
+
+    [Fact]
+    public async Task ReadyTime_ReflectsAcrAcceleratedWildfireCooldown()
+    {
+        // Emerald at cap (12% ACR) shortens Wildfire's 45s cooldown to 39.6s, so the second window's ready
+        // instant moves from 46000 (unaided) to 40100. The ready-time model reads the gear-adjusted cooldown.
+        var events = new List<Event>
+        {
+            CombatantWithEmerald(1500),
+            Cast(Spells.Wildfire.FSLID, 500),
+            Cast(Spells.Wildfire.FSLID, 41000),
+        };
+
+        var (parser, _) = await AnalyzeAsync(events, SpanningFight(0, 45000));
+
+        var analyzer = parser.EngulfingFlamesEconomyAnalyzers.ShouldHaveSingleItem().Analyzer;
+        analyzer.WindowsEvaluated.ShouldBe(2);
+
+        var second = analyzer.Windows[1];
+        second.ReadyTimestamp.ShouldBe(40100);
+        second.HeldMs.ShouldBe(900);
+    }
+
+    [Fact]
+    public async Task NoWildfireWindows_EvaluatesNothing()
+    {
+        var (parser, _) = await AnalyzeAsync([], SpanningFight(0, 15000));
+
+        var analyzer = parser.EngulfingFlamesEconomyAnalyzers.ShouldHaveSingleItem().Analyzer;
+        analyzer.WindowsEvaluated.ShouldBe(0);
+        analyzer.MissedWindows.ShouldBe(0);
+        analyzer.Windows.ShouldBeEmpty();
+    }
+
+    // -------------------------------------------------------------------------
+    // Overcap metrics (preserved)
+    // -------------------------------------------------------------------------
 
     [Fact]
     public async Task Overcap_NeverCast_WastesEntirePull()
@@ -167,79 +306,116 @@ public sealed class EngulfingFlamesEconomyAnalyzerTests
     }
 
     [Fact]
-    public async Task ReadyWindowWithOvercap_SurfacesBothSignals()
+    public async Task MissedWindowWithOvercap_SurfacesBothSignals()
     {
         var events = new List<Event> { Cast(Spells.Wildfire.FSLID, 1000) };
 
         var (parser, _) = await AnalyzeAsync(events, SpanningFight(0, 100000));
 
         var analyzer = parser.EngulfingFlamesEconomyAnalyzers.ShouldHaveSingleItem().Analyzer;
-        analyzer.WindowsReady.ShouldBe(1);
+        analyzer.WindowsEvaluated.ShouldBe(1);
+        analyzer.MissedWindows.ShouldBe(1);
         analyzer.WastedCharges.ShouldBe(5);
     }
 
     // -------------------------------------------------------------------------
-    // Ability Cooldown Reduction (Emerald "Blessing of the Commander")
+    // Devouring Flame legendary sub-metric (item 5225)
     // -------------------------------------------------------------------------
 
     [Fact]
-    public async Task WithoutGemPower_EngulfingFlamesRechargesAtFullTwentySeconds()
+    public async Task DevouringFlame_NotEquipped_ReportsFalseAndNoMetrics()
     {
-        // Both charges spent at the pull; at 36s the second is still recharging (0.5s + 20s + 20s =
-        // 40.5s), so Wildfire finds only one charge.
         var events = new List<Event>
         {
-            CombatantWithEmerald(0),
-            Cast(Spells.EngulfingFlames.FSLID, 500),
-            Cast(Spells.EngulfingFlames.FSLID, 600),
-            Cast(Spells.Wildfire.FSLID, 36_000),
+            ApplyDebuff(1000, EnemyId, Spells.EngulfingFlamesDot.FSLID),
+            RemoveDebuff(5000, EnemyId, Spells.EngulfingFlamesDot.FSLID),
         };
 
-        var (parser, _) = await AnalyzeAsync(events, SpanningFight(0, 45_000));
+        var (parser, _) = await AnalyzeAsync(events, SpanningFight(0, 10000));
 
         var analyzer = parser.EngulfingFlamesEconomyAnalyzers.ShouldHaveSingleItem().Analyzer;
-        analyzer.Windows.ShouldHaveSingleItem().ChargesAvailable.ShouldBe(1);
-        analyzer.WindowsShort.ShouldBe(1);
+        analyzer.DevouringFlameEquipped.ShouldBeFalse();
+        analyzer.DevouringFlameAnyUptime.ShouldBe(0d);
+        analyzer.DevouringFlameDoubleUptime.ShouldBe(0d);
+        analyzer.DevouringFlameModeledBonusPercent.ShouldBe(0d);
     }
 
     [Fact]
-    public async Task EmeraldAtCap_RechargesEngulfingFlamesFastEnoughToArmTheWindow()
+    public async Task DevouringFlame_OverlappingEngulfingFlames_ProducesSubMetrics()
     {
-        // Identical timings, but 12% ACR shortens each recharge to 17.6s, so both charges are back by
-        // 35.7s and the same Wildfire window is armed. This is the whole point of modelling ACR: it
-        // moves windows from short to ready.
+        // Two Engulfing Flames instances overlap on one enemy: A spans [1000, 7000], B spans [3000, 5000].
+        // Any-instance uptime is their union (6000ms), double-instance uptime is the overlap (2000ms), and
+        // the primary target's instance-seconds sum to 8000ms over the 10s pull (0.8 average instances).
         var events = new List<Event>
         {
-            CombatantWithEmerald(1500),
-            Cast(Spells.EngulfingFlames.FSLID, 500),
-            Cast(Spells.EngulfingFlames.FSLID, 600),
-            Cast(Spells.Wildfire.FSLID, 36_000),
+            CombatantWithDevouringBracers(),
+            ApplyDebuff(1000, EnemyId, Spells.EngulfingFlamesDot.FSLID),
+            ApplyDebuff(3000, EnemyId, Spells.EngulfingFlamesDot.FSLID),
+            RemoveDebuff(5000, EnemyId, Spells.EngulfingFlamesDot.FSLID),
+            RemoveDebuff(7000, EnemyId, Spells.EngulfingFlamesDot.FSLID),
         };
 
-        var (parser, _) = await AnalyzeAsync(events, SpanningFight(0, 45_000));
+        var (parser, _) = await AnalyzeAsync(events, SpanningFight(0, 10000));
 
         var analyzer = parser.EngulfingFlamesEconomyAnalyzers.ShouldHaveSingleItem().Analyzer;
-        analyzer.Windows.ShouldHaveSingleItem().ChargesAvailable.ShouldBe(2);
-        analyzer.WindowsReady.ShouldBe(1);
-        analyzer.WindowsShort.ShouldBe(0);
+        analyzer.DevouringFlameEquipped.ShouldBeTrue();
+        analyzer.DevouringFlameAnyUptime.ShouldBe(0.6, 0.0001);
+        analyzer.DevouringFlameDoubleUptime.ShouldBe(0.2, 0.0001);
+        analyzer.DevouringFlamePrimaryAverageInstances.ShouldBe(0.8, 0.0001);
+        analyzer.DevouringFlameModeledBonusPercent.ShouldBe(4.8, 0.0001);
     }
 
     [Fact]
-    public async Task NoWildfireWindows_EvaluatesNothing()
+    public async Task DevouringFlame_EnemyDeathClosesWindow_FeedsUptime()
     {
-        var (parser, _) = await AnalyzeAsync([], SpanningFight(0, 15000));
+        // The enemy dies carrying an open Engulfing Flames window; the death closes it at 4000, so uptime is
+        // measured to the death rather than to the pull's end at 10000.
+        var events = new List<Event>
+        {
+            CombatantWithDevouringBracers(),
+            ApplyDebuff(1000, EnemyId, Spells.EngulfingFlamesDot.FSLID),
+            Death(4000, EnemyId),
+        };
+
+        var (parser, _) = await AnalyzeAsync(events, SpanningFight(0, 10000));
 
         var analyzer = parser.EngulfingFlamesEconomyAnalyzers.ShouldHaveSingleItem().Analyzer;
-        analyzer.WindowsEvaluated.ShouldBe(0);
-        analyzer.WindowsShort.ShouldBe(0);
-        analyzer.Windows.ShouldBeEmpty();
+        analyzer.DevouringFlameEquipped.ShouldBeTrue();
+        analyzer.DevouringFlameAnyUptime.ShouldBe(0.3, 0.0001);
+        analyzer.DevouringFlameDoubleUptime.ShouldBe(0d);
     }
+
+    // -------------------------------------------------------------------------
+    // Fixtures
+    // -------------------------------------------------------------------------
 
     private static CastEvent Cast(int abilityId, int timestamp) => new()
     {
         Timestamp = timestamp,
         SourceId = PlayerId,
         Ability = new Ability { Id = abilityId },
+    };
+
+    private static ApplyDebuffEvent ApplyDebuff(int timestamp, int targetId, int effectId) => new()
+    {
+        Timestamp = timestamp,
+        SourceId = PlayerId,
+        TargetId = targetId,
+        Ability = new Ability { FSLID = effectId, Name = $"Effect {effectId}" },
+    };
+
+    private static RemoveDebuffEvent RemoveDebuff(int timestamp, int targetId, int effectId) => new()
+    {
+        Timestamp = timestamp,
+        SourceId = PlayerId,
+        TargetId = targetId,
+        Ability = new Ability { FSLID = effectId, Name = $"Effect {effectId}" },
+    };
+
+    private static DeathEvent Death(int timestamp, int targetId) => new()
+    {
+        Timestamp = timestamp,
+        TargetId = targetId,
     };
 
     /// <summary>
@@ -261,6 +437,16 @@ public sealed class EngulfingFlamesEconomyAnalyzerTests
     {
         SourceId = PlayerId,
         Gear = [new Item { Id = 5222, Quality = 6 }],
+    };
+
+    /// <summary>
+    /// A combatant wearing the legendary Draconic Bracers of the Devouring Flame (item 5225), which enable
+    /// the Devouring Flame sub-metric.
+    /// </summary>
+    private static CombatantInfoEvent CombatantWithDevouringBracers() => new()
+    {
+        SourceId = PlayerId,
+        Gear = [new Item { Id = EngulfingFlamesEconomyAnalyzer.DevouringFlameBracersItemId, Quality = 6 }],
     };
 
     private static IEnumerable<Event> Fillers(int start, int end, int interval)

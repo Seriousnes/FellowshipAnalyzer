@@ -17,8 +17,8 @@ namespace FellowshipAnalyzer.Core.Analysis;
 /// Registered as a scoped DI service; each <see cref="Analyze"/> call creates an
 /// internal analysis-run service cache so repeated analyses do not share module state.
 /// </summary>
-[AddNormalizer<FightBookendNormalizer>]
 [AddNormalizer<PullBookendNormalizer>]
+[AddNormalizer<FightBookendNormalizer>]
 [AddNormalizer<AbilityMasterDataNormalizer>]
 [AddNormalizer<ResourceNormalizer>]
 [AddNormalizer<CastLinkNormalizer>]

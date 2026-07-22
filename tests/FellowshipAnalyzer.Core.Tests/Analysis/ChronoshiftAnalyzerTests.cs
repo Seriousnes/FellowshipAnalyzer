@@ -111,11 +111,62 @@ public sealed class ChronoshiftAnalyzerTests
         Assert.Equal(0, analyzer.TotalRecoveredMs);
     }
 
+    [Fact]
+    public async Task FullyChannelled_ClosesWindowAtScheduledEnd_ViaFabricatedEndChannel()
+    {
+        // The channel opens at 5000 and the log records no end, so the analyzer fabricates an
+        // EndChannelEvent at the scheduled 3-second mark (8000) and closes the window there - not lazily
+        // on the next observed event (9000). The modifier-removal event rides the fabricated end's
+        // timestamp (8000), the current dispatch time when it fires, so it is not back-dated.
+        var parser = await AnalyzeParser(
+        [
+            Cast(1000, BigCdId),
+            BeginChannel(5000),
+            Filler(9000),
+        ]);
+
+        var fabricatedEnd = parser.Events.OfType<EndChannelEvent>().Single(e => e.Fabricated == true);
+        Assert.Equal(8000, fabricatedEnd.Timestamp);
+
+        var removal = parser.Events.OfType<ChangeCooldownModifierEvent>().Single(e => !e.Added);
+        Assert.Equal(8000, removal.Timestamp);
+    }
+
+    /// <summary>
+    /// Pins the accelerated cooldown's fast-rate expiry to the exact instant the Chronoshift modifier is
+    /// removed. BigCd cast at 0 (30s) is boosted to 9x when the channel opens at 3000, which schedules its
+    /// end at 6000; the fabricated channel end at 6000 removes the modifier at that same tick. Because the
+    /// scheduled end only materializes for a stream event with a strictly greater timestamp, the
+    /// modifier-removal reaches SpellUsable first and rescales the cooldown back to the base rate, so the
+    /// EndCooldown carries the slow ~30s recharge duration rather than the stale ~3.3s fast one. A
+    /// less-than-or-equal drain would fire the end at the fast rate before the removal and this fails.
+    /// </summary>
+    [Fact]
+    public async Task ModifierRemovalCoincidingWithFastExpiry_EndsAtSlowRate()
+    {
+        var parser = await AnalyzeParser(
+        [
+            Cast(0, BigCdId),
+            BeginChannel(3000),
+            Filler(9000),
+        ]);
+
+        var endCooldown = parser.Events
+            .OfType<UpdateSpellUsableEvent>()
+            .Single(e => e.Ability.FSLID.Value == BigCdId && e.UpdateType == UpdateSpellUsableType.EndCooldown);
+
+        Assert.Equal(6000, endCooldown.Timestamp);
+        Assert.InRange(endCooldown.ExpectedRechargeDuration, 25_000, 31_000);
+    }
+
     // -------------------------------------------------------------------------
     // Test infrastructure
     // -------------------------------------------------------------------------
 
-    private static async Task<ChronoshiftAnalyzer> Analyze(List<Event> events)
+    private static async Task<ChronoshiftAnalyzer> Analyze(List<Event> events) =>
+        (await AnalyzeParser(events)).GetModule<ChronoshiftAnalyzer>()!;
+
+    private static async Task<TestParser> AnalyzeParser(List<Event> events)
     {
         var emitter = new EventEmitter(NullLogger<EventEmitter>.Instance);
         var provider = Substitute.For<IServiceProvider>();
@@ -134,7 +185,7 @@ public sealed class ChronoshiftAnalyzerTests
 
         var parser = new TestParser(emitter, provider, moduleTypes);
         await parser.Analyze(events, PlayerId, fight: TestFight);
-        return parser.GetModule<ChronoshiftAnalyzer>()!;
+        return parser;
     }
 
     private static CastEvent Cast(int timestamp, int spellId) => new()
