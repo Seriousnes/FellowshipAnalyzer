@@ -15,6 +15,7 @@ public sealed class EventEmitter(ILogger<EventEmitter> logger) : Module
 {
     private readonly List<RegisteredListener> _stateListeners = [];
     private readonly List<RegisteredListener> _pullListeners = [];
+    private readonly List<Event> _scheduled = [];
     private bool _subscribingToPull;
     private List<Event>? _events;
     private int _insertionIndex;
@@ -63,14 +64,19 @@ public sealed class EventEmitter(ILogger<EventEmitter> logger) : Module
     public async Task DispatchEventsAsync(List<Event> events, ReportLoadingTracker? tracker = null)
     {
         _events = events;
-        events.Sort((a, b) =>
-        {
-            var byTimestamp = a.Timestamp.CompareTo(b.Timestamp);
-            return byTimestamp != 0 ? byTimestamp : a.DispatchOrder.CompareTo(b.DispatchOrder);
-        });
+        _scheduled.Clear();
+        var ordered = events.OrderBy(static e => e.Timestamp).ToArray();
+        for (var i = 0; i < ordered.Length; i++)
+            events[i] = ordered[i];
 
         for (var i = 0; i < events.Count; i++)
         {
+            if (_scheduled.Count > 0 && _scheduled[0].Timestamp < events[i].Timestamp)
+            {
+                events.Insert(i, _scheduled[0]);
+                _scheduled.RemoveAt(0);
+            }
+
             _insertionIndex = i;
             var e = events[i];
             Owner.CurrentTimestamp = e.Timestamp;
@@ -94,6 +100,7 @@ public sealed class EventEmitter(ILogger<EventEmitter> logger) : Module
         }
 
         _events = null;
+        _scheduled.Clear();
     }
 
     private const int YieldInterval = 250;
@@ -160,17 +167,87 @@ public sealed class EventEmitter(ILogger<EventEmitter> logger) : Module
     }
 
     /// <summary>
-    /// Inserts a fabricated event into the event list immediately after the current event,
-    /// so it will be the very next event processed.
+    /// Inserts a fabricated event into the event list at its timestamp position within the remaining
+    /// stream, so dispatch is never driven out of order. An event at the current timestamp is spliced in
+    /// immediately after the current event (and after any earlier fabrications from it), so it is the next
+    /// event processed; a later event is placed after every queued event at or before its timestamp. A
+    /// fabricated event is never dispatched earlier than the current one: a timestamp below the current
+    /// dispatch time is clamped up to it.
     /// </summary>
     public T FabricateEvent<T>(T e, Event? trigger = null) where T : Event
     {
         e.Fabricated = true;
         e.Trigger = trigger;
 
-        _events?.Insert(++_insertionIndex, e);
+        if (_events is not null)
+        {
+            var currentTimestamp = Owner.CurrentTimestamp;
+            if (e.Timestamp < currentTimestamp)
+                e.Timestamp = currentTimestamp;
+
+            var index = e.Timestamp == currentTimestamp
+                ? ++_insertionIndex
+                : FutureInsertionIndex(e.Timestamp);
+            _events.Insert(index, e);
+        }
 
         return e;
+    }
+
+    private int FutureInsertionIndex(int timestamp)
+    {
+        var lo = _insertionIndex + 1;
+        var hi = _events!.Count;
+        while (lo < hi)
+        {
+            var mid = lo + ((hi - lo) / 2);
+            if (_events[mid].Timestamp <= timestamp) lo = mid + 1;
+            else hi = mid;
+        }
+        return lo;
+    }
+
+    /// <summary>
+    /// Places <paramref name="e"/> on the private schedule queue, kept in ascending timestamp order. A scheduled
+    /// event is invisible to anything scanning the main event list and is materialized into that list only
+    /// when the drain in <see cref="DispatchEventsAsync"/> reaches an unscheduled event with a strictly
+    /// greater timestamp. Used for a natural cooldown expiry whose true instant may fall in a gap between
+    /// logged events. A scheduled end that never precedes a later event - one past the final event, such as a
+    /// cooldown still recharging at fight end - is left unfired when the stream ends rather than dispatched in
+    /// post-combat dead time.
+    /// </summary>
+    public void Schedule(Event e, Event? trigger = null)
+    {
+        e.Fabricated = true;
+        if (trigger is not null) e.Trigger = trigger;
+        InsertScheduled(e);
+    }
+
+    /// <summary>
+    /// Repositions an already-scheduled event after its <see cref="Event.Timestamp"/> was mutated in place,
+    /// so the queue stays ascending. A no-op if the event is not currently scheduled.
+    /// </summary>
+    public void Reschedule(Event e)
+    {
+        if (_scheduled.Remove(e))
+            InsertScheduled(e);
+    }
+
+    /// <summary>Removes an event from the schedule queue before it materializes. A no-op if it is not scheduled.</summary>
+    public void Cancel(Event e) => _scheduled.Remove(e);
+
+    private void InsertScheduled(Event e)
+    {
+        var index = _scheduled.Count;
+        for (var i = 0; i < _scheduled.Count; i++)
+        {
+            if (_scheduled[i].Timestamp > e.Timestamp)
+            {
+                index = i;
+                break;
+            }
+        }
+        _scheduled.Insert(index, e);
     }
 }
 

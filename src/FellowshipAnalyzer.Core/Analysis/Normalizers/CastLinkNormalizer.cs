@@ -36,14 +36,11 @@ public sealed class CastLinkNormalizer(Abilities? abilities) : IEventNormalizer
 
     public List<Event> Normalize(List<Event> events, int playerId)
     {
-        // Build a set of spell IDs that can be cast while another cast is in-progress
-        // (e.g. off-GCD instants). These do NOT cancel a pending cast.
         var castableWhileCasting = abilities?.Spellbook()
             .Where(a => a.CastableWhileCasting)
             .Select(a => a.PrimarySpell.FSLID)
             .ToHashSet() ?? [];
 
-        // Additional spell IDs from AdditionalSpells
         if (abilities is not null)
         {
             foreach (var a in abilities.Spellbook())
@@ -57,20 +54,11 @@ public sealed class CastLinkNormalizer(Abilities? abilities) : IEventNormalizer
         var pendingCasts = new Dictionary<(int abilityId, int sourceId), BeginCastEvent>();
         var pendingChannels = new Dictionary<(int abilityId, int sourceId), BeginChannelEvent>();
 
-        // Per-source tracking for cancel detection.
         var lastBeginCast = new Dictionary<int, BeginCastEvent>();
 
-        // Cast-to-channel linking state:
-        // Tracks casts that may transition into a channel (keyed by abilityGuid + sourceId).
-        // Entry is cleared when a BeginChannelEvent matches within MaxChannelCastWindowMs, or
-        // naturally overwritten when the same spell is cast again.
         var pendingChannelCasts = new Dictionary<(int abilityId, int sourceId), (CastEvent Cast, BeginCastEvent? BeginCast, int Timestamp)>();
-        // Tracks the cast that has been linked to a pending channel, waiting for EndChannelEvent.
         var pendingCastForEndChannel = new Dictionary<(int abilityId, int sourceId), CastEvent>();
 
-        // Pre-pass: identify activation CastEvents that have a matching non-activation
-        // CastEvent at the same timestamp (instant casts with duplicate events).
-        // These duplicates must be dropped to avoid double-cast icons.
         var duplicateActivations = new HashSet<(int timestamp, int abilityGuid, int sourceId)>();
         foreach (var e in events)
         {
@@ -82,25 +70,14 @@ public sealed class CastLinkNormalizer(Abilities? abilities) : IEventNormalizer
 
         foreach (var e in events)
         {
-            // ── Activation cast events ────────────────────────────────────────────
-            // FellowshipLogs emits cast events with activation=true to mark cast-starts:
-            //   Pattern A: cast(fake=true, activation=true) + begincast  → drop the fake cast, keep begincast
-            //   Pattern B: cast(activation=true) only — this IS the complete cast for instant spells.
-            //              If a matching non-activation success event exists at the same timestamp,
-            //              drop this event to avoid a double-cast icon. Otherwise, keep it as
-            //              a regular CastEvent so SpellUsable and the timeline see it.
             if (e is CastEvent { Activation: true } activationCast)
             {
                 if (activationCast.Fake)
-                    continue; // Pattern A — redundant, the real begincast follows
+                    continue;
 
-                // Pattern B — check for a duplicate success event at the same timestamp
                 if (activationCast.Ability is not null &&
                     duplicateActivations.Contains((activationCast.Timestamp, activationCast.Ability.FSLID, activationCast.SourceId)))
-                    continue; // Duplicate — the non-activation CastEvent is the real one
-
-                // No matching success event: this IS the complete cast (instant).
-                // Fall through to normal CastEvent processing.
+                    continue;
             }
 
             fixedEvents.Add(e);
@@ -120,12 +97,9 @@ public sealed class CastLinkNormalizer(Abilities? abilities) : IEventNormalizer
                     {
                         var castKey = (cast.Ability.FSLID, cast.SourceId);
 
-                        // Check whether this cast cancels a pending begincast for a different spell
                         if (lastBeginCast.TryGetValue(cast.SourceId, out var pending)
                             && pending.Ability?.FSLID != cast.Ability.FSLID)
                         {
-                            // This cast is for a different ability. If the new ability is
-                            // castable-while-casting, don't cancel the pending begincast.
                             if (!castableWhileCasting.Contains(cast.Ability.FSLID))
                             {
                                 pending.IsCancelled = true;
@@ -133,7 +107,6 @@ public sealed class CastLinkNormalizer(Abilities? abilities) : IEventNormalizer
                                 lastBeginCast.Remove(cast.SourceId);
                                 pendingCasts.Remove((pending.Ability!.FSLID, pending.SourceId));
                             }
-                            // else: castable-while-casting — don't disturb the pending begincast
                         }
 
                         BeginCastEvent? linkedBeginCast = null;
@@ -144,9 +117,6 @@ public sealed class CastLinkNormalizer(Abilities? abilities) : IEventNormalizer
                             pendingCasts.Remove(castKey);
                             lastBeginCast.Remove(cast.SourceId);
                         }
-
-                        // Store as a potential channel cast. If a BeginChannelEvent for the same
-                        // spell/source arrives within MaxChannelCastWindowMs, these will be linked.
                         pendingChannelCasts[castKey] = (cast, linkedBeginCast, cast.Timestamp);
                         break;
                     }
@@ -156,15 +126,11 @@ public sealed class CastLinkNormalizer(Abilities? abilities) : IEventNormalizer
                         var channelKey = (beginChannel.Ability.FSLID, beginChannel.SourceId);
                         pendingChannels[channelKey] = beginChannel;
 
-                        // If a cast for this spell/source just fired within the window, treat
-                        // the pair as a single cast-to-channel sequence and establish links.
                         if (pendingChannelCasts.TryGetValue(channelKey, out var castInfo)
                             && beginChannel.Timestamp - castInfo.Timestamp <= MaxChannelCastWindowMs)
                         {
-                            // BeginCastEvent.Channel → BeginChannelEvent
                             castInfo.BeginCast?.Channel = beginChannel;
 
-                            // Remember the cast so we can set CastEvent.Channel when endchannel arrives.
                             pendingCastForEndChannel[channelKey] = castInfo.Cast;
                             pendingChannelCasts.Remove(channelKey);
                         }
@@ -176,9 +142,9 @@ public sealed class CastLinkNormalizer(Abilities? abilities) : IEventNormalizer
                     if (pendingChannels.TryGetValue(ecKey, out var beginChannel2))
                     {
                         ec.BeginChannel = beginChannel2;
+                        beginChannel2.EndChannel = ec;
                         pendingChannels.Remove(ecKey);
                     }
-                    // CastEvent.Channel → EndChannelEvent (completing the contract)
                     if (pendingCastForEndChannel.TryGetValue(ecKey, out var channelCast))
                     {
                         channelCast.Channel = ec;
@@ -188,7 +154,6 @@ public sealed class CastLinkNormalizer(Abilities? abilities) : IEventNormalizer
             }
         }
 
-        // Any remaining pending beginCasts were never completed → cancelled
         foreach (var bc in lastBeginCast.Values)
         {
             bc.IsCancelled = true;
@@ -198,10 +163,6 @@ public sealed class CastLinkNormalizer(Abilities? abilities) : IEventNormalizer
         return fixedEvents;
     }
 
-    /// <summary>
-    /// Cancels any existing pending begincast for <paramref name="sourceId"/> when a new
-    /// begincast for a different ability arrives.
-    /// </summary>
     private static void CancelPending(
         Dictionary<int, BeginCastEvent> lastBeginCast,
         int sourceId,
@@ -213,7 +174,7 @@ public sealed class CastLinkNormalizer(Abilities? abilities) : IEventNormalizer
 
         var existingKey = (existing.Ability!.FSLID, existing.SourceId);
         if (existingKey == newKey)
-            return; // Same spell re-cast; will overwrite naturally
+            return;
 
         existing.IsCancelled = true;
         existing.CastEvent = null;

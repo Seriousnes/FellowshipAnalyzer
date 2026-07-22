@@ -12,7 +12,6 @@ namespace FellowshipAnalyzer.Core.Events;
 public sealed class PullEndEvent : Event
 {
     public override bool? Fabricated => true;
-    public override int DispatchOrder => EventDispatchOrder.PullEnd;
 
     [JsonIgnore]
     public Pull Pull { get; init; } = null!;

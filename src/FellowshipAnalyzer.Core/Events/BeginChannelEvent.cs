@@ -12,4 +12,5 @@ public class BeginChannelEvent : Event, IAbilityEvent, IHasSourceEvent
     public virtual int? TargetInstance { get; set; }
     public virtual object? Meta { get; set; }
     public virtual GlobalCooldownEvent? GlobalCooldown { get; set; }
+    public virtual EndChannelEvent? EndChannel { get; set; }
 }

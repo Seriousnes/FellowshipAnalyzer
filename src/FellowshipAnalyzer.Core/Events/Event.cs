@@ -50,11 +50,4 @@ public abstract partial class Event : IEventFilter
     /// An analyzer has reordered this event.
     /// </summary>
     public virtual bool? Reordered { get; set; }
-    /// <summary>
-    /// Secondary sort key applied at equal <see cref="Timestamp"/> values. Defaults to
-    /// <see cref="EventDispatchOrder.Default"/>; fight/pull boundary events override it so they
-    /// nest deterministically. See <see cref="EventDispatchOrder"/>.
-    /// </summary>
-    [JsonIgnore]
-    public virtual int DispatchOrder => EventDispatchOrder.Default;
 }
