@@ -77,12 +77,12 @@
                 </div>
             </Virtualize>
         </div>
-        <div class="events-count">Showing @_filteredEvents.Count of @Events.Count events</div>
+        <div class="events-count">Showing @_filteredEvents.Count of @_totalEvents events</div>
     </div>
 </div>
 
 @code {
-    [Parameter, EditorRequired] public IReadOnlyList<Event> Events { get; set; } = [];    
+    [Parameter, EditorRequired] public IReadOnlyList<Event> Events { get; set; } = [];
 
     // ── Filter state ──────────────────────────────────────────────────────────
 
@@ -91,6 +91,7 @@
     private bool _showFabricated = false;
     private bool _rawNames = false;
     private List<Event> _filteredEvents = [];
+    private int _totalEvents;
     private CancellationTokenSource? _debounceCts;
 
     private static readonly JsonSerializerOptions _jsonOptions = new() { WriteIndented = true };
@@ -158,7 +159,13 @@
     {
         var terms = ParseSearchTerms(_appliedSearch);
 
-        _filteredEvents = Events.Where(e =>
+        var pull = SelectedPull;
+        var scopedEvents = pull is null
+            ? Events
+            : Events.Where(e => e.Timestamp >= pull.StartTime && e.Timestamp <= pull.EndTime).ToList();
+        _totalEvents = scopedEvents.Count;
+
+        _filteredEvents = scopedEvents.Where(e =>
         {
             if (!_showFabricated && e.Fabricated == true) return false;
 
