@@ -109,9 +109,21 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
     public Pull? CurrentPull { get; private set; }
 
     /// <summary>
-    /// Analyzer instances retained at each <see cref="Events.PullEndEvent"/>, in pull order.
+    /// When set, generated analyzer surface streams (<c>{Surface}s</c>) and <see cref="PullAnalyzers"/>
+    /// are clamped to this pull, so a report view can crop to a single encounter. Reset to <c>null</c>
+    /// at the start of every <see cref="Analyze"/> run, and only ever assigned afterwards by the host.
+    /// <see cref="Pulls"/> stays unclamped.
     /// </summary>
-    public IReadOnlyList<(Pull Pull, Analyzer Analyzer)> PullAnalyzers => _pullAnalyzers;
+    public Pull? SelectedPull { get; set; }
+
+    /// <summary>
+    /// Analyzer instances retained at each <see cref="Events.PullEndEvent"/>, in pull order.
+    /// Clamped to <see cref="SelectedPull"/> when one is set.
+    /// </summary>
+    public IReadOnlyList<(Pull Pull, Analyzer Analyzer)> PullAnalyzers =>
+        SelectedPull is null
+            ? _pullAnalyzers
+            : [.. _pullAnalyzers.Where(entry => ReferenceEquals(entry.Pull, SelectedPull))];
 
     /// <summary>
     /// Every ended pull in encounter order, whether or not any analyzer matched it. Guides walk
@@ -119,6 +131,19 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
     /// generated nullable accessors for the shape that ran.
     /// </summary>
     public IReadOnlyList<Pull> Pulls => _pulls;
+
+    /// <summary>
+    /// Filters a generated per-surface analyzer stream to <see cref="SelectedPull"/>. Returns the
+    /// backing list unchanged when no pull is selected; otherwise the single entry whose
+    /// <see cref="PullAnalyzer{T}.Pull"/> is reference-equal to the selection (diagnostic FA0016
+    /// guarantees at most one analyzer per surface per pull). Called by generated surface getters.
+    /// </summary>
+    protected IReadOnlyList<PullAnalyzer<T>> ClampToSelectedPull<T>(PullAnalyzerList<T> analyzers)
+        where T : IAnalyzerSurface
+    {
+        if (SelectedPull is null) return analyzers;
+        return [.. analyzers.Where(entry => ReferenceEquals(entry.Pull, SelectedPull))];
+    }
 
     /// <summary>
     /// The <see cref="ParseContext"/> for the analysis currently in progress. Populated at the
@@ -308,6 +333,7 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
         _pullAnalyzers.Clear();
         _pulls.Clear();
         CurrentPull = null;
+        SelectedPull = null;
 
         _runInstances.Clear();
         _moduleTypeIndex.Clear();

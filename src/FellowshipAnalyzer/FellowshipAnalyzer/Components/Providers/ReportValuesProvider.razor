@@ -1,10 +1,13 @@
+@using FellowshipAnalyzer.Core.Analysis
 @using FellowshipAnalyzer.Core.UI
 @using FellowshipAnalyzer.Services
 
 <CascadingValue Value="@Context.Analyzer" IsFixed="true">
     <CascadingValue Value="@(new FightTimeContext(Context.FightStartTime, Context.FightEndTime))" IsFixed="true">
         <CascadingValue Value="@Context.Analysis">
-            @ChildContent
+            <CascadingValue Value="@SelectedPull" Name="SelectedPull">
+                @ChildContent
+            </CascadingValue>
         </CascadingValue>
     </CascadingValue>
 </CascadingValue>
@@ -12,6 +15,9 @@
 @code {
     [Parameter, EditorRequired]
     public ReportAnalysisContext Context { get; set; } = null!;
+
+    [Parameter]
+    public Pull? SelectedPull { get; set; }
 
     [Parameter]
     public RenderFragment ChildContent { get; set; } = null!;
