@@ -1,30 +1,36 @@
 @using System.Text
 @using FellowshipAnalyzer.Core.Common.Spells.Ardeos
 @using Spells = FellowshipAnalyzer.Core.Common.Spells.Ardeos.Spells
+@using WildfireDot = FellowshipAnalyzer.Heroes.Ardeos.Modules.WildfireComboAnalyzer.WildfireDot
 @inject ArdeosCombatLogParser Parser
 
 <GuideSection Title="Wildfire Burn Windows">
     <Explanation>
         <p>
-            Ardeos's burst is a burn window anchored on <SpellLink Spell="Spells.Wildfire" />. The
-            standard window lays the DoTs first with <SpellLink Spell="Spells.FireFrogs" />,
+            Ardeos's burst is a burn window anchored on <SpellLink Spell="Spells.Wildfire" />. The setup
+            rotation lays the fire damage-over-time effects on the target first with
+            <SpellLink Spell="Spells.SearingBlaze" />, <SpellLink Spell="Spells.FireFrogs" />,
             <SpellLink Spell="Spells.Apocalypse" />, <SpellLink Spell="Spells.FireBall" /> and
-            <SpellLink Spell="Spells.EngulfingFlames" /> twice, then
-            <SpellLink Spell="Spells.Pyromania" /> into <SpellLink Spell="Spells.Wildfire" />, followed
-            by <SpellLink Spell="Spells.Detonate" /> spam. <SpellLink Spell="Spells.Incinerate" />
-            extends the DoTs into the burn when it is available.
+            <SpellLink Spell="Spells.EngulfingFlames" /> twice, so all six are ticking when
+            <SpellLink Spell="Spells.Wildfire" /> lands and <SpellLink Spell="Spells.Detonate" /> spam
+            follows while the Wildfire buff is up.
         </p>
         <p>
-            Each window below is scored on the setup cast before Wildfire and the Detonate spam after
-            it. <SpellLink Spell="Spells.Pyromania" /> and <SpellLink Spell="Spells.Incinerate" /> are
-            cooldown-limited relative to Wildfire, so they are surfaced as bonus alignment rather than
-            required for a clean window.
+            Each window below is scored on the damage-over-time state of the enemy Wildfire is aimed at, read
+            at the exact instant of the cast: how many of the six DoTs are ticking and how many
+            <SpellLink Spell="Spells.EngulfingFlames" /> instances are stacked. Setup is complete with at
+            least @WildfireComboAnalyzer.DistinctDotSuccessThreshold of the @WildfireComboAnalyzer.TotalDots
+            DoTs ticking and @WildfireComboAnalyzer.EngulfingInstanceThreshold Engulfing Flames instances,
+            and a clean window follows with at least @WildfireComboAnalyzer.DetonateSpamThreshold Detonate
+            casts inside the buff. <SpellLink Spell="Spells.Pyromania" /> and
+            <SpellLink Spell="Spells.Incinerate" /> are cooldown-limited relative to Wildfire, so they are
+            surfaced as bonus alignment rather than required for a clean window.
         </p>
     </Explanation>
     <ChildContent>
         <CastOverview Title="Window Overview" Stats="@BuildOverviewStats()" />
         <CastDetail Title="Wildfire Windows"
-                    Description="Each window shows the setup casts before Wildfire and the Detonate spam after it, grouped by the pull it occurred in."
+                    Description="Each window shows the DoTs ticking on the target when Wildfire landed and the Detonate spam inside the buff, grouped by the pull it occurred in."
                     Casts="@BuildPerCastData()" />
     </ChildContent>
 </GuideSection>
@@ -36,10 +42,9 @@
         var total = analyzers.Sum(analyzer => analyzer.EvaluatedWindows);
         var successful = analyzers.Sum(analyzer => analyzer.SuccessfulWindows);
         var successRate = total > 0 ? (int)Math.Round((double)successful / total * 100) : 0;
-        var withPyromania = analyzers.Sum(analyzer => analyzer.WindowsWithPyromania);
-        var averageDetonate = total > 0
-            ? analyzers.SelectMany(analyzer => analyzer.Windows).Average(window => window.DetonateCasts)
-            : 0d;
+        var windows = analyzers.SelectMany(analyzer => analyzer.Windows).ToList();
+        var averageDots = windows.Count > 0 ? windows.Average(window => window.DistinctDots) : 0d;
+        var averageDetonate = windows.Count > 0 ? windows.Average(window => window.DetonateCasts) : 0d;
 
         return
         [
@@ -50,16 +55,16 @@
             new OverviewStat(
                 $"{successRate}%",
                 "Success Rate",
-                $"{successful} clean / {total} evaluated: setup complete and Detonate spam followed.",
+                $"{successful} clean / {total} evaluated: setup DoTs in place and Detonate spam followed.",
                 PercentTier(successRate)),
             new OverviewStat(
-                $"{withPyromania}",
-                "With Pyromania",
-                "Windows where Pyromania aligned in the setup before Wildfire."),
+                $"{averageDots:0.0}/{WildfireComboAnalyzer.TotalDots}",
+                "Avg DoTs at Cast",
+                "Average distinct fire DoTs ticking on the target when Wildfire landed."),
             new OverviewStat(
                 $"{averageDetonate:0.0}",
                 "Avg Detonate Casts",
-                "Average Detonate casts spammed in the six seconds after Wildfire."),
+                "Average Detonate casts spammed inside the Wildfire buff."),
         ];
     }
 
@@ -72,8 +77,12 @@
             : window.Partial ? QualitativePerformance.Ok
             : QualitativePerformance.Fail;
 
-        var setupPerf = window.CoreSetupCount >= WildfireComboAnalyzer.CoreSetupSuccessThreshold ? QualitativePerformance.Perfect
-            : window.CoreSetupCount >= 2 ? QualitativePerformance.Ok
+        var dotsPerf = window.DistinctDots >= WildfireComboAnalyzer.DistinctDotSuccessThreshold ? QualitativePerformance.Perfect
+            : window.DistinctDots >= WildfireComboAnalyzer.PartialSetupFloor ? QualitativePerformance.Ok
+            : QualitativePerformance.Fail;
+
+        var engulfingPerf = window.EngulfingInstances >= WildfireComboAnalyzer.EngulfingInstanceThreshold ? QualitativePerformance.Perfect
+            : window.EngulfingInstances >= 1 ? QualitativePerformance.Ok
             : QualitativePerformance.Fail;
 
         var detonatePerf = window.DetonateCasts >= WildfireComboAnalyzer.DetonateSpamThreshold ? QualitativePerformance.Perfect
@@ -83,14 +92,19 @@
         var stats = new[]
         {
             new PerCastStat(
-                $"{window.CoreSetupCount}/4",
-                "Core Setup",
-                "How many of Fire Frogs, Apocalypse, Fire Ball and Engulfing Flames were cast in the six seconds before Wildfire.",
-                Performance: setupPerf),
+                $"{window.DistinctDots}/{WildfireComboAnalyzer.TotalDots}",
+                "DoTs Ticking",
+                "Distinct fire DoTs ticking on the target when Wildfire landed (4 or more is a complete setup).",
+                Performance: dotsPerf),
+            new PerCastStat(
+                $"{window.EngulfingInstances}/{WildfireComboAnalyzer.EngulfingInstanceThreshold}",
+                "EF Instances",
+                "Concurrent Engulfing Flames instances on the target at the cast (the standard window stacks it twice).",
+                Performance: engulfingPerf),
             new PerCastStat(
                 $"{window.DetonateCasts}",
-                "Detonate",
-                "Detonate casts spammed in the six seconds after Wildfire (3 or more is a clean follow-up).",
+                "Detonate in Window",
+                "Detonate casts spammed inside the Wildfire buff (3 or more is a clean follow-up).",
                 Performance: detonatePerf),
             new PerCastStat(
                 window.HasPyromania ? "Yes" : "No",
@@ -129,39 +143,62 @@
                     : window.HasIncinerate
                         ? " Incinerate extended the DoTs into this window."
                         : string.Empty;
-            return "Opened Wildfire with the setup rotation in place and followed with Detonate spam." + note;
+            return $"Wildfire landed with {window.DistinctDots} of {WildfireComboAnalyzer.TotalDots} DoTs ticking and {window.EngulfingInstances} Engulfing Flames instances, then Detonate was spammed {window.DetonateCasts} times inside the buff." + note;
         }
 
         var reasons = new List<string>();
 
-        var missing = new List<string>();
-        if (!window.HasFireFrogs)
-            missing.Add("Fire Frogs");
-        if (!window.HasApocalypse)
-            missing.Add("Apocalypse");
-        if (!window.HasFireBall)
-            missing.Add("Fire Ball");
-        if (!window.HasEngulfingFlames)
-            missing.Add("Engulfing Flames");
+        if (window.DistinctDots == 0)
+        {
+            reasons.Add("no fire DoTs were ticking on the target when Wildfire landed");
+        }
+        else if (window.DistinctDots < WildfireComboAnalyzer.DistinctDotSuccessThreshold)
+        {
+            var missing = MissingDots(window);
+            reasons.Add(missing.Count > 0
+                ? $"the setup was incomplete (missing {JoinNames(missing)})"
+                : "the setup was incomplete before Wildfire");
+        }
 
-        if (window.CoreSetupCount == 0)
-            reasons.Add("no setup abilities were cast before Wildfire");
-        else if (window.CoreSetupCount < WildfireComboAnalyzer.CoreSetupSuccessThreshold && missing.Count > 0)
-            reasons.Add($"the setup was incomplete before Wildfire (missing {JoinNames(missing)})");
+        if (window is { DistinctDots: > 0, EngulfingInstances: < WildfireComboAnalyzer.EngulfingInstanceThreshold })
+        {
+            reasons.Add(window.EngulfingInstances == 0
+                ? "Engulfing Flames was not ticking on the target"
+                : $"Engulfing Flames held only {window.EngulfingInstances} instance (the standard window stacks it twice)");
+        }
 
         if (window.DetonateCasts == 0)
-            reasons.Add("Detonate was not spammed after Wildfire");
+            reasons.Add("Detonate was not spammed inside the Wildfire buff");
         else if (window.DetonateCasts < WildfireComboAnalyzer.DetonateSpamThreshold)
-            reasons.Add($"only {window.DetonateCasts} Detonate cast{(window.DetonateCasts == 1 ? " " : "s ")}followed Wildfire");
-
-        if (window is { HasEngulfingFlames: true, EngulfingFlamesCount: < WildfireComboAnalyzer.StandardEngulfingFlamesCasts })
-            reasons.Add("Engulfing Flames was cast only once (the standard window uses it twice)");
+            reasons.Add($"only {window.DetonateCasts} Detonate cast{(window.DetonateCasts == 1 ? " " : "s ")}landed inside the Wildfire buff");
 
         if (reasons.Count == 0)
             reasons.Add("the window only partially matched the expected burn setup");
 
         return JoinReasons(reasons);
     }
+
+    private static List<string> MissingDots(WildfireComboAnalyzer.WildfireWindowEvaluation window)
+    {
+        var names = new List<string>();
+        foreach (var dot in Enum.GetValues<WildfireDot>())
+        {
+            if (!window.ActiveDots.Contains(dot))
+                names.Add(DotName(dot));
+        }
+        return names;
+    }
+
+    private static string DotName(WildfireDot dot) => dot switch
+    {
+        WildfireDot.SearingBlaze => "Searing Blaze",
+        WildfireDot.EngulfingFlames => "Engulfing Flames",
+        WildfireDot.FireBall => "Fire Ball",
+        WildfireDot.FireFrogs => "Fire Frogs",
+        WildfireDot.Incinerate => "Incinerate",
+        WildfireDot.Apocalypse => "Apocalypse",
+        _ => dot.ToString(),
+    };
 
     private static string JoinNames(List<string> names)
     {
