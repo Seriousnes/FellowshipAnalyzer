@@ -26,8 +26,16 @@
 
 @code {
     [Parameter, EditorRequired] public IReadOnlyList<TrackedBuffEvent> Auras { get; set; } = [];
+
+    /// <summary>True fight start, used as the origin for tooltip timestamps so they stay fight-relative.</summary>
     [Parameter, EditorRequired] public int FightStartTime { get; set; }
-    [Parameter, EditorRequired] public int FightEndTime { get; set; }
+
+    /// <summary>Render-window start (selected pull start, or fight start). Geometry and clip origin.</summary>
+    [Parameter, EditorRequired] public int WindowStart { get; set; }
+
+    /// <summary>Render-window end (selected pull end, or fight end). Geometry and clip extent.</summary>
+    [Parameter, EditorRequired] public int WindowEnd { get; set; }
+
     [Parameter] public double PixelsPerSecond { get; set; } = 60.0;
 
     /// <summary>
@@ -59,13 +67,13 @@
     private List<AuraSegment> _auras = [];
     private int _maxLevel;
 
-    private double TrackWidthPx => (FightEndTime - FightStartTime) / 1000.0 * PixelsPerSecond;
+    private double TrackWidthPx => (WindowEnd - WindowStart) / 1000.0 * PixelsPerSecond;
 
     // 4px gap + 24px icon + 30px per additional level above 0
     private double BarHeightPx => 4.0 + 24.0 + _maxLevel * 30.0;
 
     private string F(double v) => v.ToString("F1", CultureInfo.InvariantCulture);
-    private string OffsetPx(int ts) => F((ts - FightStartTime) / 1000.0 * PixelsPerSecond) + "px";
+    private string OffsetPx(int ts) => F((ts - WindowStart) / 1000.0 * PixelsPerSecond) + "px";
     private string DurPx(int ms) => F(ms / 1000.0 * PixelsPerSecond) + "px";
 
     private string FormatTimestamp(int ts)
@@ -112,15 +120,15 @@
         var levelEnds = new List<int>();
 
         var visible = AurasToRender()
-            .Where(b => b.Start < FightEndTime && (b.End ?? FightEndTime) > FightStartTime)
+            .Where(b => b.Start < WindowEnd && (b.End ?? WindowEnd) > WindowStart)
             .OrderBy(PriorityOf)
             .ThenBy(b => b.Start);
 
         foreach (var buff in visible)
         {
-            var clippedStart = Math.Max(buff.Start, FightStartTime);
-            var clippedEnd = Math.Min(buff.End ?? FightEndTime, FightEndTime);
-            var iconAt = Math.Max(buff.Start, FightStartTime);
+            var clippedStart = Math.Max(buff.Start, WindowStart);
+            var clippedEnd = Math.Min(buff.End ?? WindowEnd, WindowEnd);
+            var iconAt = Math.Max(buff.Start, WindowStart);
 
             // Find the lowest level that is free at this aura's start time
             int level = 0;

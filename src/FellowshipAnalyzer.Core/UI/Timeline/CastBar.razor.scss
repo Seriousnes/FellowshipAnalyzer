@@ -45,12 +45,20 @@
         left: 50%;
     }
 
-    /* Hide border & label on first tick (0:00) */
-    &:first-child {
+    /* Leading partial cell: pads the window start up to the first whole fight-second, so it carries no tick of its own */
+    &.leading-partial {
         border-left: none;
 
         &::before { display: none; }
+        &::after { display: none; }
     }
+}
+
+/* Hide border & label on the first tick (0:00) only when the window starts at fight start */
+.cast-bar-time-line.at-fight-start .cast-bar-time-line-sec:first-child {
+    border-left: none;
+
+    &::before { display: none; }
 }
 
 /* ===== Casts row — icons, bars ===== */

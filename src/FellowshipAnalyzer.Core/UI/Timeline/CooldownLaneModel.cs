@@ -6,22 +6,28 @@ namespace FellowshipAnalyzer.Core.UI.Timeline;
 public readonly record struct CooldownSegment(int Start, int End, int IconAt, bool ShowIcon);
 
 /// <summary>
-/// Turns a spell's <see cref="UpdateSpellUsableEvent"/> stream into cooldown-lane geometry.
+/// Turns a spell's <see cref="UpdateSpellUsableEvent"/> stream into cooldown-lane geometry, clipped
+/// to a render window <c>[windowStart, windowEnd]</c> (the whole fight, or a single selected pull).
 /// </summary>
 /// <remarks>
-/// A recharge bar spans from when a charge began recharging to when it <b>actually</b> came back —
+/// A recharge bar spans from when a charge began recharging to when it <b>actually</b> came back:
 /// the timestamp of the next <see cref="UpdateSpellUsableType.RestoreCharge"/> or
 /// <see cref="UpdateSpellUsableType.EndCooldown"/>. The bar end is never taken from
 /// <see cref="UpdateSpellUsableEvent.ExpectedRechargeTimestamp"/>, because dynamic cooldown
 /// reductions (e.g. Rolling Flames) shorten the real recharge without restating that field, so a
 /// spell that recharges in 5s would otherwise render a stale 20s bar with a restore landing mid-bar.
+/// <para>
+/// Every emitted element is then clipped to <c>[windowStart, windowEnd]</c>: a segment straddling an
+/// edge is trimmed to it, a segment wholly outside the window is dropped, a cast icon whose timestamp
+/// falls outside the window is suppressed, and charge-restore markers outside the window are removed.
+/// </para>
 /// </remarks>
 public static class CooldownLaneModel
 {
     public static (IReadOnlyList<CooldownSegment> Segments, IReadOnlyList<int> ChargeRestores) Build(
-        IReadOnlyList<UpdateSpellUsableEvent> events, int fightEndTime)
+        IReadOnlyList<UpdateSpellUsableEvent> events, int windowStart, int windowEnd)
     {
-        var segments = new List<CooldownSegment>();
+        var raw = new List<CooldownSegment>();
         var chargeRestores = new List<int>();
 
         int? rechargeStart = null;
@@ -32,26 +38,26 @@ public static class CooldownLaneModel
             switch (e.UpdateType)
             {
                 case UpdateSpellUsableType.BeginCooldown:
-                    segments.Add(new CooldownSegment(e.Timestamp, e.Timestamp, e.Timestamp, ShowIcon: true));
+                    raw.Add(new CooldownSegment(e.Timestamp, e.Timestamp, e.Timestamp, ShowIcon: true));
                     rechargeStart = e.ChargeStartTimestamp;
                     rechargeExpectedEnd = e.ExpectedRechargeTimestamp;
                     break;
 
                 case UpdateSpellUsableType.UseCharge:
-                    segments.Add(new CooldownSegment(e.Timestamp, e.Timestamp, e.Timestamp, ShowIcon: true));
+                    raw.Add(new CooldownSegment(e.Timestamp, e.Timestamp, e.Timestamp, ShowIcon: true));
                     break;
 
                 case UpdateSpellUsableType.RestoreCharge:
                     chargeRestores.Add(e.Timestamp);
                     if (rechargeStart is int restoreStart)
-                        segments.Add(new CooldownSegment(restoreStart, e.Timestamp, restoreStart, ShowIcon: false));
+                        raw.Add(new CooldownSegment(restoreStart, e.Timestamp, restoreStart, ShowIcon: false));
                     rechargeStart = e.IsOnCooldown ? e.Timestamp : null;
                     rechargeExpectedEnd = e.ExpectedRechargeTimestamp;
                     break;
 
                 case UpdateSpellUsableType.EndCooldown:
                     if (rechargeStart is int endStart)
-                        segments.Add(new CooldownSegment(endStart, e.Timestamp, endStart, ShowIcon: false));
+                        raw.Add(new CooldownSegment(endStart, e.Timestamp, endStart, ShowIcon: false));
                     rechargeStart = null;
                     break;
 
@@ -62,11 +68,25 @@ public static class CooldownLaneModel
             }
         }
 
-        // A recharge still open at the end of the fight closes at its expected completion, clamped to
-        // the fight end so a cooldown that would finish in a post-combat gap doesn't render full-length.
         if (rechargeStart is int openStart)
-            segments.Add(new CooldownSegment(openStart, Math.Min(fightEndTime, rechargeExpectedEnd), openStart, ShowIcon: false));
+            raw.Add(new CooldownSegment(openStart, Math.Min(windowEnd, rechargeExpectedEnd), openStart, ShowIcon: false));
 
-        return (segments, chargeRestores);
+        var segments = new List<CooldownSegment>(raw.Count);
+        foreach (var seg in raw)
+        {
+            var showIcon = seg.ShowIcon && seg.IconAt >= windowStart && seg.IconAt <= windowEnd;
+            var start = Math.Max(seg.Start, windowStart);
+            var end = Math.Min(seg.End, windowEnd);
+            if (end < start || (end == start && !showIcon))
+                continue;
+            segments.Add(new CooldownSegment(start, end, seg.IconAt, showIcon));
+        }
+
+        var restores = new List<int>(chargeRestores.Count);
+        foreach (var ts in chargeRestores)
+            if (ts >= windowStart && ts <= windowEnd)
+                restores.Add(ts);
+
+        return (segments, restores);
     }
 }

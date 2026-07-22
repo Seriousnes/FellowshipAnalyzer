@@ -39,7 +39,12 @@
     }
     else
     {
-        var fightDurationMs = FightEndTime - FightStartTime;
+        var windowStart = SelectedPull?.StartTime ?? FightStartTime;
+        var windowEnd = SelectedPull?.EndTime ?? FightEndTime;
+
+        IReadOnlyList<Event> castBarEvents = SelectedPull is null
+            ? allEvents
+            : allEvents.Where(e => e.Timestamp >= windowStart && e.Timestamp <= windowEnd).ToList();
 
         // Build the available-options lists for the settings modal (full pool, before filtering).
         var availableAuraOptions = allPlayerAuras
@@ -103,15 +108,17 @@
                     {
                         <AuraBar Auras="@allPlayerAuras"
                                  FightStartTime="@FightStartTime"
-                                 FightEndTime="@FightEndTime"
+                                 WindowStart="@windowStart"
+                                 WindowEnd="@windowEnd"
                                  PixelsPerSecond="@PixelsPerSecond"
                                  VisibleAuraIds="@visibleAuraIds"
                                  AuraPriorities="@auraPriorities" />
                     }
-                    <CastBar Events="@allEvents"
+                    <CastBar Events="@castBarEvents"
                              PlayerId="@PlayerId"
                              FightStartTime="@FightStartTime"
-                             FightEndTime="@FightEndTime"
+                             WindowStart="@windowStart"
+                             WindowEnd="@windowEnd"
                              PixelsPerSecond="@PixelsPerSecond"
                              Abilities="@abilities" />
                 </div>
@@ -131,7 +138,8 @@
                         <CooldownLane Ability="@ability"
                                       CooldownEvents="@cdEvents"
                                       FightStartTime="@FightStartTime"
-                                      FightEndTime="@FightEndTime"
+                                      WindowStart="@windowStart"
+                                      WindowEnd="@windowEnd"
                                       PixelsPerSecond="@PixelsPerSecond" />
                     </div>
                 }
