@@ -9,13 +9,14 @@
 @inject ReportAnalysisService AnalysisService
 @inject ReportLoadingTracker LoadingTracker
 @inject ReportNavigationState NavState
+@inject NavigationManager NavigationManager
 
 <PageTitle>@PageTitleText</PageTitle>
 
 <div class="analysis-page">
     @if (Header is { } header)
     {
-        <PageHeader Title="@header.Fight.Name">
+        <PageHeader Title="@header.Fight.Name" ChildContent="@RenderFilterRow()">
             <Breadcrumbs>
                 <FellowshipAnalyzer.Core.UI.Components.Breadcrumbs Items="@BuildBreadcrumbs(header)" />
             </Breadcrumbs>
@@ -84,7 +85,7 @@
     }
     else if (_context is { Analysis: { } analysis })
     {
-        <ReportValuesProvider Context="_context">
+        <ReportValuesProvider Context="_context" SelectedPull="@_selectedPull">
             <Tabs Variant="TabsVariant.Underline" DefaultActiveId="guide">
                 <TabItem Id="guide">
                     <LabelTemplate>
@@ -182,7 +183,16 @@
                                         <dt>Player</dt>
                                         <dd>@PlayerId</dd>
                                         <dt>Events</dt>
-                                        <dd>@_context.Analysis.Events.Count total</dd>
+                                        <dd>
+                                            @if (_selectedPull is { } selectedPull)
+                                            {
+                                                @($"{CountEventsInPull(selectedPull):N0} in selected pull ({_context.Analysis.Events.Count:N0} total)")
+                                            }
+                                            else
+                                            {
+                                                @($"{_context.Analysis.Events.Count} total")
+                                            }
+                                        </dd>
                                         <dt>Fight Duration</dt>
                                         <dd>@FormatDuration(_context.Fight.EndTime - _context.Fight.StartTime)</dd>
                                     </dl>
@@ -211,11 +221,15 @@
     [Parameter] public int FightId { get; set; }
     [Parameter] public int PlayerId { get; set; }
 
+    [Parameter, SupplyParameterFromQuery(Name = "pull")]
+    public int? PullQuery { get; set; }
+
     private ReportAnalysisContext? _context;
     private CoreReportInfo? _reportInfo;
     private bool _isLoading = true;
     private string? _error;
     private string _aboutSubViewId = "overview";
+    private Pull? _selectedPull;
 
     private ReportHeader? Header
     {
@@ -266,12 +280,65 @@
         }
     }
 
+    protected override void OnParametersSet() => ApplyPullQuery();
+
     private Task UpdateReportInfoAsync(CoreReportInfo reportInfo) =>
         InvokeAsync(() =>
         {
             _reportInfo = reportInfo;
             StateHasChanged();
         });
+
+    private void ApplyPullQuery()
+    {
+        if (_context is not { Analysis: not null } context)
+            return;
+
+        var resolved = PullQuery is { } index
+            ? context.Analyzer.Pulls.FirstOrDefault(p => p.Index == index)
+            : null;
+
+        if (ReferenceEquals(resolved, _selectedPull))
+            return;
+
+        _selectedPull = resolved;
+        context.Analyzer.SelectedPull = resolved;
+    }
+
+    private void OnSelectedPullChanged(Pull? pull)
+    {
+        if (ReferenceEquals(pull, _selectedPull))
+            return;
+
+        _selectedPull = pull;
+        if (_context is { } context)
+            context.Analyzer.SelectedPull = pull;
+
+        var uri = NavigationManager.GetUriWithQueryParameter("pull", (int?)pull?.Index);
+        NavigationManager.NavigateTo(uri, replace: true);
+    }
+
+    private RenderFragment? RenderFilterRow()
+    {
+        if (_context is not { Analysis: not null } context)
+            return null;
+
+        var dungeonPulls = context.Analyzer.Pulls.Where(p => p.Id != 0).ToList();
+        if (dungeonPulls.Count == 0)
+            return null;
+
+        return @<div class="report-filter-row">
+            <PullSelect Pulls="dungeonPulls"
+                        Value="_selectedPull"
+                        ValueChanged="OnSelectedPullChanged"
+                        FightStartTime="context.FightStartTime" />
+        </div>;
+    }
+
+    private int CountEventsInPull(Pull pull) =>
+        _context?.Analysis is { } analysis
+            ? analysis.Events.Count(e => e.Timestamp >= pull.StartTime && e.Timestamp <= pull.EndTime)
+            : 0;
 
     private static string? GetBossIcon(CoreReportInfo reportInfo, CoreReportFight fight) =>
         reportInfo.Actors.FirstOrDefault(a =>

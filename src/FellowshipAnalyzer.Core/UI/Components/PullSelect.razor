@@ -1,0 +1,242 @@
+@* PullSelect: styled single-select over a report's pulls, flanked by prev/next steppers.
+   A null Value maps to "Entire Dungeon" (no clamp). Two-way bindable via @bind-Value. *@
+
+<div class="pull-select" @onfocusout="OnFocusOut" @attributes="InputAttributes">
+    <button type="button"
+            class="pull-select-nav"
+            disabled="@(!CanStepPrev)"
+            aria-label="Previous pull"
+            @onclick="StepPrev">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polyline points="15 18 9 12 15 6" />
+        </svg>
+    </button>
+
+    <div class="pull-select-trigger @(_open ? "open" : "")"
+         role="button"
+         tabindex="0"
+         aria-haspopup="listbox"
+         aria-expanded="@(_open ? "true" : "false")"
+         aria-controls="@_listboxId"
+         aria-activedescendant="@(_open ? OptionId(_highlightedRow) : null)"
+         @onclick="Toggle"
+         @onkeydown="OnTriggerKeyDown">
+        <span class="pull-select-trigger-label">@TriggerLabel</span>
+        <svg class="pull-select-chevron" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polyline points="6 9 12 15 18 9" />
+        </svg>
+    </div>
+
+    <button type="button"
+            class="pull-select-nav"
+            disabled="@(!CanStepNext)"
+            aria-label="Next pull"
+            @onclick="StepNext">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polyline points="9 18 15 12 9 6" />
+        </svg>
+    </button>
+
+    @if (_open)
+    {
+        <div class="pull-select-panel" id="@_listboxId" role="listbox" aria-label="Filter by pull">
+            <div class="pull-select-option @OptionStateClass(0, Value is null)"
+                 id="@OptionId(0)"
+                 role="option"
+                 aria-selected="@(Value is null ? "true" : "false")"
+                 @onmousedown:preventDefault="true"
+                 @onclick="@(() => Select(null))">
+                <span class="pull-select-option-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="4" width="18" height="4" rx="1" />
+                        <rect x="3" y="10" width="18" height="4" rx="1" />
+                        <rect x="3" y="16" width="18" height="4" rx="1" />
+                    </svg>
+                </span>
+                <span class="pull-select-option-name">Entire Dungeon</span>
+            </div>
+
+            @for (var i = 0; i < Pulls.Count; i++)
+            {
+                var row = i + 1;
+                var pull = Pulls[i];
+                var isSelected = ReferenceEquals(pull, Value);
+                <div class="pull-select-option @OptionStateClass(row, isSelected)"
+                     id="@OptionId(row)"
+                     role="option"
+                     aria-selected="@(isSelected ? "true" : "false")"
+                     @onmousedown:preventDefault="true"
+                     @onclick="@(() => Select(pull))">
+                    <span class="pull-select-option-icon @(pull.IsBoss ? "boss" : "trash")" aria-hidden="true">
+                        @if (pull.IsBoss)
+                        {
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                                <path d="M2 7l4.5 4L12 3l5.5 8L22 7l-1.6 11.4a1 1 0 0 1-1 .85H4.6a1 1 0 0 1-1-.85L2 7z" />
+                            </svg>
+                        }
+                        else
+                        {
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                                <circle cx="6" cy="15" r="3.2" />
+                                <circle cx="12" cy="9" r="3.2" />
+                                <circle cx="18" cy="15" r="3.2" />
+                            </svg>
+                        }
+                    </span>
+                    <span class="pull-select-option-name">@DisplayName(pull)</span>
+                    @if (pull.Id != 0)
+                    {
+                        <span class="pull-select-option-id">#@pull.Id</span>
+                    }
+                    <span class="pull-select-option-range">@FormatRange(pull)</span>
+                    @if (pull.IsBoss)
+                    {
+                        <span class="pull-select-option-result @(pull.Kill ? "kill" : "wipe")">@(pull.Kill ? "Kill" : "Wipe")</span>
+                    }
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    /// <summary>The pulls offered as filter targets, in encounter order.</summary>
+    [Parameter, EditorRequired] public IReadOnlyList<Pull> Pulls { get; set; } = [];
+
+    /// <summary>The selected pull, or <c>null</c> for "Entire Dungeon" (no clamp).</summary>
+    [Parameter] public Pull? Value { get; set; }
+
+    /// <summary>Raised when the selection changes; supports <c>@@bind-Value</c>.</summary>
+    [Parameter] public EventCallback<Pull?> ValueChanged { get; set; }
+
+    /// <summary>Fight start time in milliseconds, used to render fight-relative pull ranges.</summary>
+    [Parameter, EditorRequired] public int FightStartTime { get; set; }
+
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object> InputAttributes { get; set; } = new();
+
+    private readonly string _listboxId = $"pull-select-{Guid.NewGuid():N}";
+    private bool _open;
+    private int _highlightedRow;
+
+    private string OptionId(int row) => $"{_listboxId}-opt-{row}";
+
+    private int SelectedPullIndex
+    {
+        get
+        {
+            if (Value is null)
+                return -1;
+            for (var i = 0; i < Pulls.Count; i++)
+                if (ReferenceEquals(Pulls[i], Value))
+                    return i;
+            return -1;
+        }
+    }
+
+    private int SelectedRow => SelectedPullIndex < 0 ? 0 : SelectedPullIndex + 1;
+
+    private bool CanStepPrev => SelectedPullIndex > 0;
+
+    private bool CanStepNext =>
+        Value is null ? Pulls.Count > 0 : SelectedPullIndex >= 0 && SelectedPullIndex < Pulls.Count - 1;
+
+    private string TriggerLabel => Value is null ? "Entire Dungeon" : DisplayName(Value);
+
+    private static string DisplayName(Pull pull) =>
+        string.IsNullOrWhiteSpace(pull.Name) ? $"Pull {pull.Index + 1}" : pull.Name;
+
+    private string OptionStateClass(int row, bool isSelected)
+    {
+        var state = "";
+        if (isSelected)
+            state += " active";
+        if (row == _highlightedRow)
+            state += " highlighted";
+        return state.Trim();
+    }
+
+    private string FormatRange(Pull pull) =>
+        $"({FormatClock(pull.StartTime - FightStartTime)} - {FormatClock(pull.EndTime - FightStartTime)})";
+
+    private static string FormatClock(int milliseconds)
+    {
+        var totalSeconds = Math.Max(0, milliseconds) / 1000;
+        return $"{totalSeconds / 60}:{totalSeconds % 60:D2}";
+    }
+
+    private void Toggle()
+    {
+        if (_open)
+            _open = false;
+        else
+            Open();
+    }
+
+    private void Open()
+    {
+        _open = true;
+        _highlightedRow = SelectedRow;
+    }
+
+    private void OnFocusOut() => _open = false;
+
+    private async Task Select(Pull? pull)
+    {
+        _open = false;
+        if (!ReferenceEquals(pull, Value))
+            await ValueChanged.InvokeAsync(pull);
+    }
+
+    private Task SelectHighlighted() =>
+        Select(_highlightedRow == 0 ? null : Pulls[_highlightedRow - 1]);
+
+    private Task StepPrev() =>
+        CanStepPrev ? Select(Pulls[SelectedPullIndex - 1]) : Task.CompletedTask;
+
+    private Task StepNext()
+    {
+        if (!CanStepNext)
+            return Task.CompletedTask;
+        return Select(Value is null ? Pulls[0] : Pulls[SelectedPullIndex + 1]);
+    }
+
+    private void MoveHighlight(int delta) =>
+        _highlightedRow = Math.Clamp(_highlightedRow + delta, 0, Pulls.Count);
+
+    private async Task OnTriggerKeyDown(KeyboardEventArgs args)
+    {
+        switch (args.Key)
+        {
+            case "Enter":
+            case " ":
+            case "Spacebar":
+                if (_open)
+                    await SelectHighlighted();
+                else
+                    Open();
+                break;
+            case "ArrowDown":
+                if (_open)
+                    MoveHighlight(1);
+                else
+                    Open();
+                break;
+            case "ArrowUp":
+                if (_open)
+                    MoveHighlight(-1);
+                break;
+            case "Home":
+                if (_open)
+                    _highlightedRow = 0;
+                break;
+            case "End":
+                if (_open)
+                    _highlightedRow = Pulls.Count;
+                break;
+            case "Escape":
+                _open = false;
+                break;
+        }
+    }
+}
