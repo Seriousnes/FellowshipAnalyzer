@@ -31,8 +31,10 @@ public sealed class ReignOfFireAnalyzerTests
     {
         var parser = await AnalyzeAsync([FireBallCast(0), FireBallCast(100)]);
 
-        parser.GetModule<SpellUsable>().ShouldNotBeNull()
-            .ChargesAvailable(Spells.FireBall.Id).ShouldBe(0);
+        var updates = parser.Events.OfType<UpdateSpellUsableEvent>()
+            .Where(e => e.Ability.Id == Spells.FireBall.Id)
+            .ToList();
+        updates.ShouldContain(e => e.UpdateType == UpdateSpellUsableType.UseCharge && e.ChargesAvailable == 0);
     }
 
     [Fact]
@@ -40,8 +42,9 @@ public sealed class ReignOfFireAnalyzerTests
     {
         var parser = await AnalyzeAsync([FireBallCast(0)]);
 
-        parser.GetModule<SpellUsable>().ShouldNotBeNull()
-            .CooldownRemaining(Spells.FireBall.Id, atTimestamp: 0).ShouldBe(30000);
+        var begin = parser.Events.OfType<UpdateSpellUsableEvent>()
+            .First(e => e.Ability.Id == Spells.FireBall.Id && e.UpdateType == UpdateSpellUsableType.BeginCooldown);
+        begin.ExpectedRechargeDuration.ShouldBe(30000);
     }
 
     [Fact]

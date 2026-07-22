@@ -51,6 +51,7 @@ public sealed partial class SpellUsable(
         if (milliseconds < remaining)
         {
             _cooldowns[spellId] = cd with { ExpectedEnd = cd.ExpectedEnd - milliseconds };
+            RefreshPendingEnd(spellId);
             return milliseconds;
         }
 
@@ -108,16 +109,19 @@ public sealed partial class SpellUsable(
                 RechargeDuration: cdDuration,
                 ChargesAvailable: maxCharges - 1,
                 MaxCharges: maxCharges,
-                Rate: rate);
+                Rate: rate,
+                PendingEnd: null);
             _cooldowns[spellId] = cd;
 
             FabricateUpdate(UpdateSpellUsableType.BeginCooldown, spellId, ts, cd);
+            RefreshPendingEnd(spellId);
         }
         else if (cd.ChargesAvailable > 0)
         {
             cd = cd with { ChargesAvailable = cd.ChargesAvailable - 1 };
             _cooldowns[spellId] = cd;
             FabricateUpdate(UpdateSpellUsableType.UseCharge, spellId, ts, cd);
+            RefreshPendingEnd(spellId);
         }
         else
         {
@@ -126,10 +130,26 @@ public sealed partial class SpellUsable(
         }
     }
 
+    /// <summary>
+    /// Forces a charge (or, with <paramref name="restoreAllCharges"/>, all charges) back onto
+    /// <paramref name="spellId"/> synchronously, e.g. from a reduction that completes a running recharge or
+    /// a reset effect. The restore is applied to <see cref="_cooldowns"/> and its notification fabricated at
+    /// the current dispatch time rather than scheduled, since it happens now rather than at a future natural
+    /// expiry. Any pending natural-expiry end is cancelled; when charges remain on cooldown a fresh pending
+    /// end is scheduled for the next charge.
+    /// </summary>
     public void EndCooldown(int spellId, int? timestamp = null, bool restoreAllCharges = false)
     {
         var ts = timestamp ?? Owner.CurrentTimestamp;
         if (!_cooldowns.TryGetValue(spellId, out var cd)) return;
+
+        var eventTs = Owner.CurrentTimestamp;
+
+        if (cd.PendingEnd is not null)
+        {
+            Owner.EventEmitter.Cancel(cd.PendingEnd);
+            cd = cd with { PendingEnd = null };
+        }
 
         cd = restoreAllCharges
             ? cd with { ChargesAvailable = cd.MaxCharges, ExpectedEnd = ts }
@@ -138,7 +158,7 @@ public sealed partial class SpellUsable(
         if (cd.ChargesAvailable >= cd.MaxCharges)
         {
             cd = cd with { ExpectedEnd = ts };
-            FabricateUpdate(UpdateSpellUsableType.EndCooldown, spellId, ts, cd);
+            FabricateUpdate(UpdateSpellUsableType.EndCooldown, spellId, eventTs, cd);
             _cooldowns.Remove(spellId);
         }
         else
@@ -146,7 +166,8 @@ public sealed partial class SpellUsable(
             var nextEnd = ts + cd.RechargeDuration;
             cd = cd with { ChargeStart = ts, ExpectedEnd = nextEnd };
             _cooldowns[spellId] = cd;
-            FabricateUpdate(UpdateSpellUsableType.RestoreCharge, spellId, ts, cd);
+            FabricateUpdate(UpdateSpellUsableType.RestoreCharge, spellId, eventTs, cd);
+            RefreshPendingEnd(spellId);
         }
     }
 
@@ -196,43 +217,107 @@ public sealed partial class SpellUsable(
     private void OnFilterCooldown(FilterCooldownInfoEvent e) =>
         BeginCooldown(e.Ability.Id, e.Timestamp);
 
-    [On<Event>]
-    private void OnAnyEvent(Event e) => AdvanceCooldowns(e.Timestamp);
+    /// <summary>
+    /// Applies the state transition for a natural-expiry end at the instant it is dispatched, and only for
+    /// the event object currently held as this spell's pending end. Every other
+    /// <see cref="UpdateSpellUsableEvent"/> (this module's own immediate notifications, other spells) is
+    /// ignored, so the module never loops on its own output. The last charge coming back removes the
+    /// cooldown; an earlier charge restores one and schedules a fresh pending end for the next charge's
+    /// recharge. The just-dispatched end is now a frozen historical event and is never reused.
+    /// </summary>
+    [On<UpdateSpellUsableEvent>]
+    private void OnUpdateSpellUsable(UpdateSpellUsableEvent e)
+    {
+        var spellId = e.Ability.Id;
+        if (!_cooldowns.TryGetValue(spellId, out var cd) || !ReferenceEquals(cd.PendingEnd, e))
+            return;
+
+        if (e.UpdateType == UpdateSpellUsableType.EndCooldown)
+        {
+            _cooldowns.Remove(spellId);
+            return;
+        }
+
+        var restoreTs = e.Timestamp;
+        _cooldowns[spellId] = cd with
+        {
+            ChargesAvailable = cd.ChargesAvailable + 1,
+            ChargeStart = restoreTs,
+            ExpectedEnd = restoreTs + cd.RechargeDuration,
+            PendingEnd = null,
+        };
+        RefreshPendingEnd(spellId);
+    }
 
     /// <summary>
-    /// Checks whether any in-flight cooldowns have naturally expired and fires
-    /// <see cref="UpdateSpellUsableEvent"/> for each one, in chronological order.
+    /// Brings this spell's pending natural-expiry end into line with its current <see cref="CooldownInfo"/>.
+    /// A spell with no pending end (a fresh recharge, or one whose end was just dispatched) gets a new event
+    /// created and scheduled; one already pending is mutated in place and repositioned, never discarded, so a
+    /// held reference stays valid across rescales and reductions.
     /// </summary>
-    /// <remarks>
-    /// Restoring a charge on a multi-charge spell starts the next charge's recharge, which may itself
-    /// already be due by <paramref name="timestamp"/>, so this sweeps repeatedly until nothing is left
-    /// due. A single pass would restore at most one charge per event and strand the rest, making a spell
-    /// look unavailable long after the game had given the charges back. Each pass restores at least one
-    /// charge and charges are capped, so the loop always drains.
-    /// </remarks>
-    private void AdvanceCooldowns(int timestamp)
+    private void RefreshPendingEnd(int spellId)
     {
-        while (true)
+        var cd = _cooldowns[spellId];
+        if (cd.PendingEnd is null)
         {
-            List<int>? expired = null;
-            foreach (var (spellId, cd) in _cooldowns)
-            {
-                if (timestamp >= cd.ExpectedEnd)
-                {
-                    expired ??= [];
-                    expired.Add(spellId);
-                }
-            }
+            var pending = CreatePendingEnd(spellId, cd);
+            _cooldowns[spellId] = cd with { PendingEnd = pending };
+            Owner.EventEmitter.Schedule(pending);
+        }
+        else
+        {
+            ApplyPendingEndState(cd.PendingEnd, cd);
+            Owner.EventEmitter.Reschedule(cd.PendingEnd);
+        }
+    }
 
-            if (expired is null) return;
+    private UpdateSpellUsableEvent CreatePendingEnd(int spellId, CooldownInfo cd)
+    {
+        var ability = _abilities.GetAbility(spellId);
+        var e = new UpdateSpellUsableEvent
+        {
+            Ability = new Ability { FSLID = spellId, Name = ability?.Name ?? string.Empty },
+            SourceId = Owner.PlayerId,
+            TargetId = Owner.PlayerId,
+            SourceIsFriendly = true,
+            TargetIsFriendly = true,
+        };
+        ApplyPendingEndState(e, cd);
+        return e;
+    }
 
-            expired.Sort((a, b) => _cooldowns[a].ExpectedEnd.CompareTo(_cooldowns[b].ExpectedEnd));
+    /// <summary>
+    /// Writes the payload for the moment <paramref name="cd"/>'s in-flight recharge completes onto
+    /// <paramref name="e"/>: an <see cref="UpdateSpellUsableType.EndCooldown"/> when the restored charge is
+    /// the last one, otherwise a <see cref="UpdateSpellUsableType.RestoreCharge"/> whose charge-start and
+    /// expected-recharge describe the next charge's window. The event timestamp is the true expiry instant.
+    /// </summary>
+    private static void ApplyPendingEndState(UpdateSpellUsableEvent e, CooldownInfo cd)
+    {
+        var endTs = cd.ExpectedEnd;
+        var chargesAfter = cd.ChargesAvailable + 1;
 
-            foreach (var spellId in expired)
-            {
-                if (_cooldowns.TryGetValue(spellId, out var cd))
-                    EndCooldown(spellId, cd.ExpectedEnd);
-            }
+        e.Timestamp = endTs;
+        e.OverallStartTimestamp = cd.OverallStart;
+        e.ExpectedRechargeDuration = cd.RechargeDuration;
+        e.MaxCharges = cd.MaxCharges;
+        e.ChargesAvailable = chargesAfter;
+
+        if (chargesAfter >= cd.MaxCharges)
+        {
+            e.UpdateType = UpdateSpellUsableType.EndCooldown;
+            e.IsOnCooldown = false;
+            e.IsAvailable = true;
+            e.ChargeStartTimestamp = cd.ChargeStart;
+            e.ExpectedRechargeTimestamp = endTs;
+        }
+        else
+        {
+            e.UpdateType = UpdateSpellUsableType.RestoreCharge;
+            e.IsOnCooldown = true;
+            e.IsAvailable = true;
+            e.ChargeStartTimestamp = endTs;
+            e.ExpectedRechargeTimestamp = endTs + cd.RechargeDuration;
         }
     }
 
@@ -286,12 +371,12 @@ public sealed partial class SpellUsable(
 
     /// <summary>
     /// Sweeps every in-flight cooldown and rescales those whose current <see cref="EffectiveRate"/>
-    /// differs from the rate the cooldown was last scaled at.
+    /// differs from the rate the cooldown was last scaled at. Any cooldown that had genuinely expired
+    /// already fired its earlier-scheduled end and left <see cref="_cooldowns"/>, so those still present
+    /// are all in flight.
     /// </summary>
     private void RescaleChangedCooldowns(int timestamp)
     {
-        AdvanceCooldowns(timestamp);
-
         foreach (var spellId in _cooldowns.Keys.ToList())
         {
             if (!_cooldowns.TryGetValue(spellId, out var cd)) continue;
@@ -319,6 +404,7 @@ public sealed partial class SpellUsable(
         cd = cd with { RechargeDuration = newRecharge, ExpectedEnd = timestamp + newRemaining, Rate = newRate };
         _cooldowns[spellId] = cd;
         FabricateUpdate(UpdateSpellUsableType.ChangeCooldownRate, spellId, timestamp, cd);
+        RefreshPendingEnd(spellId);
     }
 
     private void FabricateUpdate(UpdateSpellUsableType updateType, int spellId, int timestamp, CooldownInfo cd)
@@ -347,6 +433,10 @@ public sealed partial class SpellUsable(
 
     /// <param name="Rate">The <see cref="EffectiveRate"/> the cooldown was last scaled at, so a pool
     /// change can be applied as the ratio between the new rate and this one.</param>
+    /// <param name="PendingEnd">The scheduled natural-expiry event for the in-flight recharge, held so a
+    /// rescale or reduction can mutate and reposition it while it is still in the future, and so its
+    /// dispatch can be recognised by reference. Null between constructing a fresh cooldown and scheduling
+    /// its end.</param>
     private record struct CooldownInfo(
         int OverallStart,
         int ChargeStart,
@@ -354,7 +444,8 @@ public sealed partial class SpellUsable(
         int RechargeDuration,
         int ChargesAvailable,
         int MaxCharges,
-        double Rate);
+        double Rate,
+        UpdateSpellUsableEvent? PendingEnd);
 }
 
 /// <summary>

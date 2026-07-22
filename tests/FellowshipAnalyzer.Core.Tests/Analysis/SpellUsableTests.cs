@@ -51,12 +51,13 @@ public sealed partial class SpellUsableTests
 
     /// <summary>
     /// SpellA cast at t=1000 with base CD=10000ms recharges to t=11000. A 1.0 acceleration modifier
-    /// added at t=2000 takes the rate to 2×: remaining was 9000, new remaining = 9000/2 = 4500.
+    /// added at t=2000 takes the rate to 2×: remaining was 9000, new remaining = 9000/2 = 4500, so the
+    /// rescaled expiry moves to t=6500.
     /// </summary>
     [Fact]
     public async Task AddedAcceleration_RescalesInFlightCooldown()
     {
-        var (_, spellUsable, _) = await Run(
+        var (_, _, probe) = await Run(
             [CreateCast(1000, SpellA), CreateTrigger(2000)],
             onApplyBuff: (owner, e) =>
             {
@@ -65,7 +66,7 @@ public sealed partial class SpellUsableTests
                         CooldownPool.CooldownAcceleration, new CooldownModifier(1.0), e);
             });
 
-        Assert.Equal(4500, spellUsable.CooldownRemaining(SpellA, atTimestamp: 2000));
+        Assert.Equal(6500, LastUpdate(probe, SpellA, UpdateSpellUsableType.ChangeCooldownRate).ExpectedRechargeTimestamp);
     }
 
     /// <summary>
@@ -77,7 +78,7 @@ public sealed partial class SpellUsableTests
     {
         var modifier = new CooldownModifier(1.0);
 
-        var (_, spellUsable, _) = await Run(
+        var (_, spellUsable, probe) = await Run(
             [CreateCast(1000, SpellA), CreateTrigger(2000)],
             onApplyBuff: (owner, e) =>
             {
@@ -87,20 +88,21 @@ public sealed partial class SpellUsableTests
                 statTracker.RemoveCooldownModifier(CooldownPool.CooldownAcceleration, modifier, e);
             });
 
-        var remaining = spellUsable.CooldownRemaining(SpellA, atTimestamp: 2000);
-        Assert.InRange(remaining, 8999, 9001);
+        Assert.Equal(11_000, LastUpdate(probe, SpellA, UpdateSpellUsableType.BeginCooldown).ExpectedRechargeTimestamp);
+        Assert.DoesNotContain(probe.Updates, e => e.Ability.FSLID == SpellA
+            && e.UpdateType == UpdateSpellUsableType.ChangeCooldownRate);
         Assert.Equal(1.0, spellUsable.EffectiveRate(SpellA), precision: 6);
     }
 
     /// <summary>
     /// A category-scoped acceleration modifier added mid-flight rescales only the in-flight cooldowns
-    /// whose ability it covers: SpellA (Major) has its remaining 9000ms halved to 4500, while SpellB
-    /// (unclassified) keeps its full 19000ms remaining.
+    /// whose ability it covers: SpellA (Major) has its remaining 9000ms halved to 4500 (expiry moves to
+    /// t=6500), while SpellB (unclassified) is never rescaled and keeps its original t=21000 expiry.
     /// </summary>
     [Fact]
     public async Task ScopedAcceleration_RescalesOnlyMatchingInFlightCooldowns()
     {
-        var (_, spellUsable, _) = await Run(
+        var (_, _, probe) = await Run(
             [CreateCast(1000, SpellA), CreateCast(1000, SpellB), CreateTrigger(2000)],
             onApplyBuff: (owner, e) =>
             {
@@ -110,8 +112,10 @@ public sealed partial class SpellUsableTests
                         new CooldownModifier(1.0, new[] { AbilityCategory.Major }), e);
             });
 
-        Assert.Equal(4500, spellUsable.CooldownRemaining(SpellA, atTimestamp: 2000));
-        Assert.Equal(19_000, spellUsable.CooldownRemaining(SpellB, atTimestamp: 2000));
+        Assert.Equal(6500, LastUpdate(probe, SpellA, UpdateSpellUsableType.ChangeCooldownRate).ExpectedRechargeTimestamp);
+        Assert.DoesNotContain(probe.Updates, e => e.Ability.FSLID == SpellB
+            && e.UpdateType == UpdateSpellUsableType.ChangeCooldownRate);
+        Assert.Equal(21_000, LastUpdate(probe, SpellB, UpdateSpellUsableType.BeginCooldown).ExpectedRechargeTimestamp);
     }
 
     /// <summary>Base 10s at rate 9 (1 + Chronoshift's 8.0) starts at ~1111ms.</summary>
@@ -138,7 +142,7 @@ public sealed partial class SpellUsableTests
     {
         var modifier = new CooldownModifier(1.0);
 
-        var (_, spellUsable, _) = await Run(
+        var (_, spellUsable, probe) = await Run(
             [CreateTrigger(0), CreateCast(100, SpellA), CreateTrigger(2600, RemoveTriggerId)],
             onApplyBuff: (owner, e) =>
             {
@@ -149,8 +153,7 @@ public sealed partial class SpellUsableTests
                     statTracker.RemoveCooldownModifier(CooldownPool.CooldownAcceleration, modifier, e);
             });
 
-        Assert.Equal(5000, spellUsable.CooldownRemaining(SpellA, atTimestamp: 2600));
-        Assert.Equal(0, spellUsable.CooldownRemaining(SpellA, atTimestamp: 7600));
+        Assert.Equal(7600, LastUpdate(probe, SpellA, UpdateSpellUsableType.ChangeCooldownRate).ExpectedRechargeTimestamp);
         Assert.Equal(1.0, spellUsable.EffectiveRate(SpellA), precision: 6);
     }
 
@@ -217,8 +220,8 @@ public sealed partial class SpellUsableTests
     public async Task HasteAcceleratedSpell_CooldownShortenedByHaste()
     {
         // The buff applies haste before the cast; SpellC is flagged CooldownReducedByHaste, so its
-        // 10s base cooldown starts as 10000 / (1 + haste).
-        var (parser, spellUsable, _) = await Run(
+        // 10s base cooldown starts as 10000 / (1 + haste), expiring at 1000 + that.
+        var (parser, _, probe) = await Run(
         [
             CreateHasteBuff(500),
             CreateCast(1000, SpellC),
@@ -227,21 +230,21 @@ public sealed partial class SpellUsableTests
         var haste = parser.GetModule<Haste>()!.Current;
         Assert.True(haste >= BuffHaste, $"expected the haste buff to apply, got {haste}");
         Assert.Equal(
-            (int)(CdSecondsC * 1000 / (1 + haste)),
-            spellUsable.CooldownRemaining(SpellC, atTimestamp: 1000));
+            1000 + (int)(CdSecondsC * 1000 / (1 + haste)),
+            LastUpdate(probe, SpellC, UpdateSpellUsableType.BeginCooldown).ExpectedRechargeTimestamp);
     }
 
     [Fact]
     public async Task NonHasteSpell_CooldownUnaffectedByHaste()
     {
         // SpellA is not flagged CooldownReducedByHaste, so haste does not shorten its cooldown.
-        var (_, spellUsable, _) = await Run(
+        var (_, _, probe) = await Run(
         [
             CreateHasteBuff(500),
             CreateCast(1000, SpellA),
         ]);
 
-        Assert.Equal(10000, spellUsable.CooldownRemaining(SpellA, atTimestamp: 1000));
+        Assert.Equal(11000, LastUpdate(probe, SpellA, UpdateSpellUsableType.BeginCooldown).ExpectedRechargeTimestamp);
     }
 
     [Fact]
@@ -253,24 +256,27 @@ public sealed partial class SpellUsableTests
         var baseline = await Run([CreateCast(1000, SpellC), CreateCast(1000, SpellA)]);
 
         Assert.True(
-            hasted.spellUsable.CooldownRemaining(SpellC, atTimestamp: 5000)
-            < baseline.spellUsable.CooldownRemaining(SpellC, atTimestamp: 5000),
+            hasted.probe.Updates.Last(e => e.Ability.FSLID == SpellC).ExpectedRechargeTimestamp
+            < baseline.probe.Updates.Last(e => e.Ability.FSLID == SpellC).ExpectedRechargeTimestamp,
             "the haste increase should shorten the accelerated spell's remaining cooldown");
 
         Assert.Equal(
-            baseline.spellUsable.CooldownRemaining(SpellA, atTimestamp: 5000),
-            hasted.spellUsable.CooldownRemaining(SpellA, atTimestamp: 5000));
+            baseline.probe.Updates.Last(e => e.Ability.FSLID == SpellA).ExpectedRechargeTimestamp,
+            hasted.probe.Updates.Last(e => e.Ability.FSLID == SpellA).ExpectedRechargeTimestamp);
     }
 
     // -------------------------------------------------------------------------
     // Chronological flush and cast-time bookkeeping
     // -------------------------------------------------------------------------
 
+    /// <summary>
+    /// SpellA cast at t=0 ends at 10000; SpellB cast at t=100 ends at 20100. Both natural expiries fall
+    /// before the filler at t=21000, so they materialize in ascending expiry order: EndCooldown for SpellA
+    /// before SpellB.
+    /// </summary>
     [Fact]
-    public async Task AdvanceCooldowns_FlushesInChronologicalOrder()
+    public async Task NaturalExpiry_FiresEndCooldownsInChronologicalOrder()
     {
-        // SpellA at t=0 ends at 10000; SpellB at t=100 ends at 20100. A flush event at t=21000
-        // must emit EndCooldown for SpellA before SpellB.
         var (_, _, probe) = await Run(
         [
             CreateCast(0, SpellA),
@@ -290,6 +296,69 @@ public sealed partial class SpellUsableTests
         Assert.Equal(2, endCooldowns.Count);
         Assert.Equal(SpellA, endCooldowns[0].Ability.FSLID.Value);
         Assert.Equal(SpellB, endCooldowns[1].Ability.FSLID.Value);
+    }
+
+    /// <summary>
+    /// SpellA cast at 0 ends at 10000, and nothing else is logged until a filler at 21000. The EndCooldown
+    /// fires at the true expiry (10000), not at the next observed event - the natural end is scheduled at
+    /// its real instant rather than discovered late.
+    /// </summary>
+    [Fact]
+    public async Task NaturalExpiry_EndCooldownEvent_FiresAtTrueExpiry()
+    {
+        var (_, _, probe) = await Run(
+        [
+            CreateCast(0, SpellA),
+            new ApplyBuffEvent
+            {
+                Timestamp = 21000,
+                SourceId = PlayerId,
+                TargetId = PlayerId,
+                Ability = new Ability { FSLID = 9999, Name = "Filler" },
+            },
+        ]);
+
+        var endCooldown = probe.Updates.Single(e => e.UpdateType == UpdateSpellUsableType.EndCooldown);
+        Assert.Equal(10000, endCooldown.Timestamp);
+    }
+
+    /// <summary>
+    /// A cooldown whose true end falls in a wide gap between two logged events fires its EndCooldown at that
+    /// true end (10000), never deferred to the far-away next event (50000).
+    /// </summary>
+    [Fact]
+    public async Task NaturalExpiry_InGapBetweenEvents_FiresAtTrueExpiry()
+    {
+        var (_, _, probe) = await Run(
+        [
+            CreateCast(0, SpellA),
+            new ApplyBuffEvent
+            {
+                Timestamp = 50000,
+                SourceId = PlayerId,
+                TargetId = PlayerId,
+                Ability = new Ability { FSLID = 9999, Name = "Filler" },
+            },
+        ]);
+
+        var endCooldown = probe.Updates.Single(e => e.UpdateType == UpdateSpellUsableType.EndCooldown);
+        Assert.Equal(10000, endCooldown.Timestamp);
+    }
+
+    /// <summary>
+    /// A cooldown whose true expiry falls past the final logged event is deliberately not fired: an end with
+    /// no later event to precede is dead time after the fight and is dropped rather than dispatched in
+    /// post-combat time. In a real report the appended fight-end bookend is the final event, so every in-fight
+    /// expiry still fires via the in-stream drain; only genuinely post-fight ends are left unfired, and the
+    /// cooldown stays in flight in the tracker rather than being force-completed.
+    /// </summary>
+    [Fact]
+    public async Task NaturalExpiry_PastFinalLoggedEvent_IsNotFired_AndCooldownLingers()
+    {
+        var (_, spellUsable, probe) = await Run([CreateCast(0, SpellA)]);
+
+        Assert.DoesNotContain(probe.Updates, e => e.UpdateType == UpdateSpellUsableType.EndCooldown);
+        Assert.True(spellUsable.IsOnCooldown(SpellA));
     }
 
     [Fact]
@@ -406,6 +475,9 @@ public sealed partial class SpellUsableTests
 
         return (parser, parser.GetModule<SpellUsable>()!, parser.GetModule<UpdateProbeModule>()!);
     }
+
+    private static UpdateSpellUsableEvent LastUpdate(UpdateProbeModule probe, int spellId, UpdateSpellUsableType updateType) =>
+        probe.Updates.Last(e => e.Ability.FSLID == spellId && e.UpdateType == updateType);
 
     private static CastEvent CreateCast(int timestamp, int spellId) => new()
     {

@@ -4,6 +4,7 @@ using FellowshipAnalyzer.Core.Common.Spells.Ardeos;
 using FellowshipAnalyzer.Core.Events;
 using FellowshipAnalyzer.Core.FellowshipLogs;
 using FellowshipAnalyzer.Heroes.Ardeos.Analysis;
+using FellowshipAnalyzer.Heroes.Ardeos.Modules;
 
 using Microsoft.Extensions.DependencyInjection;
 
@@ -11,11 +12,17 @@ using Shouldly;
 
 using Xunit;
 
+using WildfireDot = FellowshipAnalyzer.Heroes.Ardeos.Modules.WildfireComboAnalyzer.WildfireDot;
+
 namespace FellowshipAnalyzer.Heroes.Ardeos.Tests.Analysis;
 
 public sealed class ArdeosAnalysisEngineTests
 {
     private const int PlayerId = 7;
+    private const int TargetId = 27;
+    private const int TargetInstance = 2;
+    private const int OtherId = 28;
+    private const int OtherInstance = 1;
 
     [Fact]
     public async Task Analyze_ShouldProvideGuideComponentType()
@@ -26,36 +33,33 @@ public sealed class ArdeosAnalysisEngineTests
     }
 
     [Fact]
-    public async Task Analyze_CleanWildfireWindow_IsSuccessful()
+    public async Task CleanWindow_FourDotsTwoEngulfingAndDetonateSpam_IsSuccessful()
     {
         const int anchor = 10000;
-        var events = new List<Event>
-        {
-            Cast(Spells.FireFrogs.FSLID, anchor - 5000),
-            Cast(Spells.Apocalypse.FSLID, anchor - 4000),
-            Cast(Spells.FireBall.FSLID, anchor - 3000),
-            Cast(Spells.EngulfingFlames.FSLID, anchor - 2000),
-            Cast(Spells.EngulfingFlames.FSLID, anchor - 1500),
-            Cast(Spells.Pyromania.FSLID, anchor - 1000),
-            Cast(Spells.Wildfire.FSLID, anchor),
-            Cast(Spells.Detonate.FSLID, anchor + 500),
-            Cast(Spells.Detonate.FSLID, anchor + 1000),
-            Cast(Spells.Detonate.FSLID, anchor + 1500),
-        };
+        var events = new List<Event>();
+        events.AddRange(FullSetup(anchor, TargetId, TargetInstance));
+        events.Add(ApplyBuff(anchor, Spells.WildfireDotBonusBuff.FSLID));
+        events.Add(WildfireCast(anchor, TargetId, TargetInstance));
+        events.Add(Cast(Spells.Detonate.FSLID, anchor + 500));
+        events.Add(Cast(Spells.Detonate.FSLID, anchor + 1000));
+        events.Add(Cast(Spells.Detonate.FSLID, anchor + 1500));
+        events.Add(RemoveBuff(anchor + 9000, Spells.WildfireDotBonusBuff.FSLID));
 
-        var (parser, _) = await AnalyzeAsync(events, SpanningFight(0, 20000));
+        var (parser, _) = await AnalyzeAsync(events, SpanningFight(0, 25000));
 
         var entry = parser.WildfireComboAnalyzers.ShouldHaveSingleItem();
         var analyzer = entry.Analyzer;
         analyzer.EvaluatedWindows.ShouldBe(1);
         analyzer.SuccessfulWindows.ShouldBe(1);
         analyzer.PartialWindows.ShouldBe(0);
-        analyzer.WindowsWithPyromania.ShouldBe(1);
 
         var window = analyzer.Windows.ShouldHaveSingleItem();
-        window.CoreSetupCount.ShouldBe(4);
+        window.TargetId.ShouldBe(TargetId);
+        window.TargetInstance.ShouldBe(TargetInstance);
+        window.DistinctDots.ShouldBe(4);
+        window.EngulfingInstances.ShouldBe(2);
         window.DetonateCasts.ShouldBe(3);
-        window.HasPyromania.ShouldBeTrue();
+        window.SetupSuccessful.ShouldBeTrue();
         window.Successful.ShouldBeTrue();
 
         var pull = entry.Pull;
@@ -64,93 +68,302 @@ public sealed class ArdeosAnalysisEngineTests
     }
 
     [Fact]
-    public async Task Analyze_WindowWithoutDetonateFollowUp_IsNotSuccessful()
+    public async Task EngulfingFlames_AppliedTwiceConcurrently_CountsAsTwoInstances()
     {
         const int anchor = 10000;
         var events = new List<Event>
         {
-            Cast(Spells.FireFrogs.FSLID, anchor - 5000),
-            Cast(Spells.Apocalypse.FSLID, anchor - 4000),
-            Cast(Spells.FireBall.FSLID, anchor - 3000),
-            Cast(Spells.EngulfingFlames.FSLID, anchor - 2000),
-            Cast(Spells.Wildfire.FSLID, anchor),
-            Cast(Spells.Detonate.FSLID, anchor + 500),
+            ApplyDebuff(anchor - 2000, TargetId, TargetInstance, Spells.EngulfingFlamesDot.FSLID),
+            ApplyDebuff(anchor - 1900, TargetId, TargetInstance, Spells.EngulfingFlamesDot.FSLID),
+            WildfireCast(anchor, TargetId, TargetInstance),
         };
 
         var (parser, _) = await AnalyzeAsync(events, SpanningFight(0, 20000));
 
-        var analyzer = parser.WildfireComboAnalyzers.ShouldHaveSingleItem().Analyzer;
-        analyzer.EvaluatedWindows.ShouldBe(1);
-        analyzer.SuccessfulWindows.ShouldBe(0);
-        analyzer.PartialWindows.ShouldBe(0);
-
-        var window = analyzer.Windows.ShouldHaveSingleItem();
-        window.CoreSetupCount.ShouldBe(4);
-        window.DetonateCasts.ShouldBe(1);
-        window.Successful.ShouldBeFalse();
-        window.Partial.ShouldBeFalse();
+        var window = parser.WildfireComboAnalyzers.ShouldHaveSingleItem().Analyzer.Windows.ShouldHaveSingleItem();
+        window.EngulfingInstances.ShouldBe(2);
+        window.DistinctDots.ShouldBe(1);
+        window.ActiveDots.ShouldContain(WildfireDot.EngulfingFlames);
     }
 
     [Fact]
-    public async Task Analyze_WindowMissingSetupButDetonateSpam_IsPartial()
+    public async Task IncompleteSetup_WithDetonateSpam_IsPartial()
     {
         const int anchor = 10000;
         var events = new List<Event>
         {
-            Cast(Spells.FireFrogs.FSLID, anchor - 5000),
-            Cast(Spells.Wildfire.FSLID, anchor),
+            ApplyDebuff(anchor - 3000, TargetId, TargetInstance, Spells.SearingBlazeDot.FSLID),
+            ApplyDebuff(anchor - 3000, TargetId, TargetInstance, Spells.FireBallDot.FSLID),
+            ApplyBuff(anchor, Spells.WildfireDotBonusBuff.FSLID),
+            WildfireCast(anchor, TargetId, TargetInstance),
             Cast(Spells.Detonate.FSLID, anchor + 500),
             Cast(Spells.Detonate.FSLID, anchor + 1000),
             Cast(Spells.Detonate.FSLID, anchor + 1500),
+            RemoveBuff(anchor + 9000, Spells.WildfireDotBonusBuff.FSLID),
         };
 
-        var (parser, _) = await AnalyzeAsync(events, SpanningFight(0, 20000));
+        var (parser, _) = await AnalyzeAsync(events, SpanningFight(0, 25000));
 
         var analyzer = parser.WildfireComboAnalyzers.ShouldHaveSingleItem().Analyzer;
-        analyzer.EvaluatedWindows.ShouldBe(1);
         analyzer.SuccessfulWindows.ShouldBe(0);
         analyzer.PartialWindows.ShouldBe(1);
 
         var window = analyzer.Windows.ShouldHaveSingleItem();
-        window.CoreSetupCount.ShouldBe(1);
+        window.DistinctDots.ShouldBe(2);
         window.DetonateCasts.ShouldBe(3);
+        window.SetupSuccessful.ShouldBeFalse();
         window.Partial.ShouldBeTrue();
+        window.Successful.ShouldBeFalse();
     }
 
     [Fact]
-    public async Task Analyze_MultipleWildfireAnchors_AreEvaluatedIndependently()
+    public async Task IncompleteSetup_WithoutDetonateSpam_IsFail()
+    {
+        const int anchor = 10000;
+        var events = new List<Event>
+        {
+            ApplyDebuff(anchor - 3000, TargetId, TargetInstance, Spells.SearingBlazeDot.FSLID),
+            ApplyDebuff(anchor - 3000, TargetId, TargetInstance, Spells.FireBallDot.FSLID),
+            ApplyBuff(anchor, Spells.WildfireDotBonusBuff.FSLID),
+            WildfireCast(anchor, TargetId, TargetInstance),
+            Cast(Spells.Detonate.FSLID, anchor + 500),
+            RemoveBuff(anchor + 9000, Spells.WildfireDotBonusBuff.FSLID),
+        };
+
+        var (parser, _) = await AnalyzeAsync(events, SpanningFight(0, 25000));
+
+        var analyzer = parser.WildfireComboAnalyzers.ShouldHaveSingleItem().Analyzer;
+        analyzer.SuccessfulWindows.ShouldBe(0);
+        analyzer.PartialWindows.ShouldBe(0);
+
+        var window = analyzer.Windows.ShouldHaveSingleItem();
+        window.DistinctDots.ShouldBe(2);
+        window.DetonateCasts.ShouldBe(1);
+        window.Partial.ShouldBeFalse();
+        window.Successful.ShouldBeFalse();
+    }
+
+    [Fact]
+    public async Task ExpiredDot_RemovedBeforeCast_DoesNotCount()
+    {
+        const int anchor = 10000;
+        var events = new List<Event>
+        {
+            ApplyDebuff(anchor - 3000, TargetId, TargetInstance, Spells.SearingBlazeDot.FSLID),
+            ApplyDebuff(anchor - 3000, TargetId, TargetInstance, Spells.FireBallDot.FSLID),
+            ApplyDebuff(anchor - 3000, TargetId, TargetInstance, Spells.ApocalypseDot.FSLID),
+            ApplyDebuff(anchor - 3000, TargetId, TargetInstance, Spells.FireFrogsDot.FSLID),
+            RemoveDebuff(anchor - 1000, TargetId, TargetInstance, Spells.SearingBlazeDot.FSLID),
+            WildfireCast(anchor, TargetId, TargetInstance),
+        };
+
+        var (parser, _) = await AnalyzeAsync(events, SpanningFight(0, 20000));
+
+        var window = parser.WildfireComboAnalyzers.ShouldHaveSingleItem().Analyzer.Windows.ShouldHaveSingleItem();
+        window.DistinctDots.ShouldBe(3);
+        window.ActiveDots.ShouldNotContain(WildfireDot.SearingBlaze);
+    }
+
+    [Fact]
+    public async Task DotOnDifferentEnemy_DoesNotCount()
+    {
+        const int anchor = 10000;
+        var events = new List<Event>
+        {
+            ApplyDebuff(anchor - 3000, OtherId, OtherInstance, Spells.SearingBlazeDot.FSLID),
+            ApplyDebuff(anchor - 3000, OtherId, OtherInstance, Spells.FireBallDot.FSLID),
+            ApplyDebuff(anchor - 3000, OtherId, OtherInstance, Spells.ApocalypseDot.FSLID),
+            ApplyDebuff(anchor - 3000, OtherId, OtherInstance, Spells.FireFrogsDot.FSLID),
+            WildfireCast(anchor, TargetId, TargetInstance),
+        };
+
+        var (parser, _) = await AnalyzeAsync(events, SpanningFight(0, 20000));
+
+        var window = parser.WildfireComboAnalyzers.ShouldHaveSingleItem().Analyzer.Windows.ShouldHaveSingleItem();
+        window.DistinctDots.ShouldBe(0);
+        window.EngulfingInstances.ShouldBe(0);
+    }
+
+    [Fact]
+    public async Task DeadEnemyBeforeCast_DotsDoNotCount_ForCastAimedElsewhere()
+    {
+        const int anchor = 10000;
+        var events = new List<Event>
+        {
+            ApplyDebuff(anchor - 4000, OtherId, OtherInstance, Spells.SearingBlazeDot.FSLID),
+            ApplyDebuff(anchor - 4000, OtherId, OtherInstance, Spells.FireBallDot.FSLID),
+            ApplyDebuff(anchor - 4000, OtherId, OtherInstance, Spells.ApocalypseDot.FSLID),
+            ApplyDebuff(anchor - 4000, OtherId, OtherInstance, Spells.FireFrogsDot.FSLID),
+            Death(anchor - 2000, OtherId, OtherInstance),
+            ApplyDebuff(anchor - 3000, TargetId, TargetInstance, Spells.SearingBlazeDot.FSLID),
+            ApplyDebuff(anchor - 3000, TargetId, TargetInstance, Spells.FireBallDot.FSLID),
+            WildfireCast(anchor, TargetId, TargetInstance),
+        };
+
+        var (parser, _) = await AnalyzeAsync(events, SpanningFight(0, 20000));
+
+        var window = parser.WildfireComboAnalyzers.ShouldHaveSingleItem().Analyzer.Windows.ShouldHaveSingleItem();
+        window.TargetId.ShouldBe(TargetId);
+        window.DistinctDots.ShouldBe(2);
+    }
+
+    [Fact]
+    public async Task NoUsableTarget_FallsBackToEnemyCarryingMostDots()
+    {
+        const int anchor = 10000;
+        var events = new List<Event>
+        {
+            ApplyDebuff(anchor - 3000, OtherId, OtherInstance, Spells.SearingBlazeDot.FSLID),
+            ApplyDebuff(anchor - 3000, OtherId, OtherInstance, Spells.FireBallDot.FSLID),
+        };
+        events.AddRange(FullSetup(anchor, TargetId, TargetInstance));
+        events.Add(WildfireCast(anchor, targetId: -1, targetInstance: null));
+
+        var (parser, _) = await AnalyzeAsync(events, SpanningFight(0, 20000));
+
+        var window = parser.WildfireComboAnalyzers.ShouldHaveSingleItem().Analyzer.Windows.ShouldHaveSingleItem();
+        window.TargetId.ShouldBe(TargetId);
+        window.TargetInstance.ShouldBe(TargetInstance);
+        window.DistinctDots.ShouldBe(4);
+        window.EngulfingInstances.ShouldBe(2);
+    }
+
+    [Fact]
+    public async Task NoUsableTarget_DeadEnemyIsNotChosen_OverLiveEnemy()
+    {
+        const int anchor = 10000;
+        var events = new List<Event>
+        {
+            ApplyDebuff(anchor - 4000, OtherId, OtherInstance, Spells.SearingBlazeDot.FSLID),
+            ApplyDebuff(anchor - 4000, OtherId, OtherInstance, Spells.FireBallDot.FSLID),
+            ApplyDebuff(anchor - 4000, OtherId, OtherInstance, Spells.ApocalypseDot.FSLID),
+            ApplyDebuff(anchor - 4000, OtherId, OtherInstance, Spells.FireFrogsDot.FSLID),
+            Death(anchor - 2000, OtherId, OtherInstance),
+            ApplyDebuff(anchor - 3000, TargetId, TargetInstance, Spells.SearingBlazeDot.FSLID),
+            ApplyDebuff(anchor - 3000, TargetId, TargetInstance, Spells.FireBallDot.FSLID),
+            WildfireCast(anchor, targetId: -1, targetInstance: null),
+        };
+
+        var (parser, _) = await AnalyzeAsync(events, SpanningFight(0, 20000));
+
+        var window = parser.WildfireComboAnalyzers.ShouldHaveSingleItem().Analyzer.Windows.ShouldHaveSingleItem();
+        window.TargetId.ShouldBe(TargetId);
+        window.DistinctDots.ShouldBe(2);
+    }
+
+    [Fact]
+    public async Task DetonatesOutsideBuffWindow_DoNotCountTowardSpam()
+    {
+        const int anchor = 10000;
+        var events = new List<Event>();
+        events.AddRange(FullSetup(anchor, TargetId, TargetInstance));
+        events.Add(ApplyBuff(anchor, Spells.WildfireDotBonusBuff.FSLID));
+        events.Add(WildfireCast(anchor, TargetId, TargetInstance));
+        events.Add(Cast(Spells.Detonate.FSLID, anchor + 500));
+        events.Add(Cast(Spells.Detonate.FSLID, anchor + 1000));
+        events.Add(Cast(Spells.Detonate.FSLID, anchor + 1500));
+        events.Add(RemoveBuff(anchor + 3000, Spells.WildfireDotBonusBuff.FSLID));
+        events.Add(Cast(Spells.Detonate.FSLID, anchor + 5000));
+        events.Add(Cast(Spells.Detonate.FSLID, anchor + 8000));
+
+        var (parser, _) = await AnalyzeAsync(events, SpanningFight(0, 25000));
+
+        var window = parser.WildfireComboAnalyzers.ShouldHaveSingleItem().Analyzer.Windows.ShouldHaveSingleItem();
+        window.BuffWindowEnd.ShouldBe(anchor + 3000);
+        window.DetonateCasts.ShouldBe(3);
+        window.Successful.ShouldBeTrue();
+    }
+
+    [Fact]
+    public async Task MultipleWildfireAnchors_AreEvaluatedIndependently()
     {
         var events = new List<Event>();
-        AppendCleanWindow(events, 10000);
-        events.Add(Cast(Spells.FireFrogs.FSLID, 60000 - 5000));
-        events.Add(Cast(Spells.Wildfire.FSLID, 60000));
+        events.AddRange(FullSetup(10000, TargetId, TargetInstance));
+        events.Add(ApplyBuff(10000, Spells.WildfireDotBonusBuff.FSLID));
+        events.Add(WildfireCast(10000, TargetId, TargetInstance));
+        events.Add(Cast(Spells.Detonate.FSLID, 10500));
+        events.Add(Cast(Spells.Detonate.FSLID, 11000));
+        events.Add(Cast(Spells.Detonate.FSLID, 11500));
+        events.Add(RemoveBuff(19000, Spells.WildfireDotBonusBuff.FSLID));
+
+        events.Add(ApplyDebuff(59000, OtherId, OtherInstance, Spells.SearingBlazeDot.FSLID));
+        events.Add(WildfireCast(60000, OtherId, OtherInstance));
 
         var (parser, _) = await AnalyzeAsync(events, SpanningFight(0, 80000));
 
         var analyzer = parser.WildfireComboAnalyzers.ShouldHaveSingleItem().Analyzer;
         analyzer.EvaluatedWindows.ShouldBe(2);
         analyzer.SuccessfulWindows.ShouldBe(1);
-        analyzer.PartialWindows.ShouldBe(0);
         analyzer.Windows.Count.ShouldBe(2);
+        analyzer.Windows[0].Successful.ShouldBeTrue();
+        analyzer.Windows[1].DistinctDots.ShouldBe(1);
+        analyzer.Windows[1].Successful.ShouldBeFalse();
     }
 
-    private static void AppendCleanWindow(List<Event> events, int anchor)
-    {
-        events.Add(Cast(Spells.FireFrogs.FSLID, anchor - 5000));
-        events.Add(Cast(Spells.Apocalypse.FSLID, anchor - 4000));
-        events.Add(Cast(Spells.FireBall.FSLID, anchor - 3000));
-        events.Add(Cast(Spells.EngulfingFlames.FSLID, anchor - 2000));
-        events.Add(Cast(Spells.Wildfire.FSLID, anchor));
-        events.Add(Cast(Spells.Detonate.FSLID, anchor + 500));
-        events.Add(Cast(Spells.Detonate.FSLID, anchor + 1000));
-        events.Add(Cast(Spells.Detonate.FSLID, anchor + 1500));
-    }
+    private static IEnumerable<Event> FullSetup(int anchor, int targetId, int targetInstance) =>
+    [
+        ApplyDebuff(anchor - 3000, targetId, targetInstance, Spells.SearingBlazeDot.FSLID),
+        ApplyDebuff(anchor - 3000, targetId, targetInstance, Spells.FireBallDot.FSLID),
+        ApplyDebuff(anchor - 3000, targetId, targetInstance, Spells.ApocalypseDot.FSLID),
+        ApplyDebuff(anchor - 2000, targetId, targetInstance, Spells.EngulfingFlamesDot.FSLID),
+        ApplyDebuff(anchor - 1900, targetId, targetInstance, Spells.EngulfingFlamesDot.FSLID),
+    ];
 
     private static CastEvent Cast(int abilityId, int timestamp) => new()
     {
         Timestamp = timestamp,
         SourceId = PlayerId,
         Ability = new Ability { Id = abilityId },
+    };
+
+    private static CastEvent WildfireCast(int timestamp, int targetId, int? targetInstance) => new()
+    {
+        Timestamp = timestamp,
+        SourceId = PlayerId,
+        TargetId = targetId,
+        TargetInstance = targetInstance,
+        Ability = new Ability { Id = Spells.Wildfire.FSLID },
+    };
+
+    private static ApplyDebuffEvent ApplyDebuff(int timestamp, int targetId, int? targetInstance, int effectId) => new()
+    {
+        Timestamp = timestamp,
+        SourceId = PlayerId,
+        TargetId = targetId,
+        TargetInstance = targetInstance,
+        Ability = new Ability { FSLID = effectId, Name = $"Effect {effectId}" },
+    };
+
+    private static RemoveDebuffEvent RemoveDebuff(int timestamp, int targetId, int? targetInstance, int effectId) => new()
+    {
+        Timestamp = timestamp,
+        SourceId = PlayerId,
+        TargetId = targetId,
+        TargetInstance = targetInstance,
+        Ability = new Ability { FSLID = effectId, Name = $"Effect {effectId}" },
+    };
+
+    private static ApplyBuffEvent ApplyBuff(int timestamp, int effectId) => new()
+    {
+        Timestamp = timestamp,
+        SourceId = PlayerId,
+        TargetId = PlayerId,
+        Ability = new Ability { FSLID = effectId, Name = $"Effect {effectId}" },
+    };
+
+    private static RemoveBuffEvent RemoveBuff(int timestamp, int effectId) => new()
+    {
+        Timestamp = timestamp,
+        SourceId = PlayerId,
+        TargetId = PlayerId,
+        Ability = new Ability { FSLID = effectId, Name = $"Effect {effectId}" },
+    };
+
+    private static DeathEvent Death(int timestamp, int targetId, int? targetInstance) => new()
+    {
+        Timestamp = timestamp,
+        TargetId = targetId,
+        TargetInstance = targetInstance,
     };
 
     private static ReportFight SpanningFight(double startTime, double endTime) =>

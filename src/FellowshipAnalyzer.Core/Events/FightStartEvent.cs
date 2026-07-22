@@ -4,5 +4,4 @@ namespace FellowshipAnalyzer.Core.Events;
 public class FightStartEvent : Event
 {
     public override bool? Fabricated => true;
-    public override int DispatchOrder => EventDispatchOrder.FightStart;
 }

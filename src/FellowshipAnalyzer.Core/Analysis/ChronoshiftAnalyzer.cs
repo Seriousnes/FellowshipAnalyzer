@@ -8,10 +8,16 @@ namespace FellowshipAnalyzer.Core.Analysis;
 /// Models Chronoshift's cooldown recovery effect. While the player channels Chronoshift it adds a
 /// Cooldown Acceleration modifier of 800% to the pool <see cref="StatTracker"/> tracks, taking an
 /// ability with no haste contribution to 9× recovery. The channel lasts a fixed 3 seconds
-/// (haste-independent) unless an <see cref="EndChannelEvent"/> cancels it early. The modifier is added
-/// for the channel window and removed when it ends; an unmatched begin/end (Fellowship logs the channel
-/// end for only a minority of channels) cannot compound it because <see cref="CloseWindow"/> only
-/// removes while a window is open and a removal of an absent modifier is a no-op.
+/// (haste-independent) unless an <see cref="EndChannelEvent"/> cancels it early.
+/// <para>
+/// The window is driven by channel events. <see cref="OnBeginChannel"/> adds the modifier; when the log
+/// recorded no channel end (a fully channelled cast leaves <see cref="BeginChannelEvent.EndChannel"/>
+/// null) it fabricates an <see cref="EndChannelEvent"/> at the scheduled 3-second end so the close rides
+/// a real, in-order event rather than a lazy per-event poll. <see cref="OnEndChannel"/> removes the
+/// modifier for both the logged and the fabricated end. An unmatched or repeated begin cannot compound
+/// the modifier because <see cref="CloseWindow"/> only removes while a window is open and a removal of an
+/// absent modifier is a no-op.
+/// </para>
 /// </summary>
 [ActiveWhen<HasChronoshiftGear>]
 [After<SpellUsable>]
@@ -71,6 +77,29 @@ public sealed partial class ChronoshiftAnalyzer(
         _windows.Add(new ChronoshiftWindow(e.Timestamp, _scheduledEnd.Value));
 
         _statTracker.AddCooldownModifier(CooldownPool.CooldownAcceleration, AddedRecoveryModifier, e);
+
+        if (e.EndChannel is null)
+            FabricateChannelEnd(e);
+    }
+
+    /// <summary>
+    /// Fabricates the channel's end at the scheduled 3-second mark for a fully channelled cast the log
+    /// left without an <see cref="EndChannelEvent"/>, completing the begin/end contract so
+    /// <see cref="OnEndChannel"/> closes the window on a real, in-order event. The fabricated end reuses
+    /// the begin's <see cref="BeginChannelEvent.Ability"/> and <see cref="BeginChannelEvent.SourceId"/>,
+    /// so it satisfies the same <c>By = Player, Spell = Chronoshift</c> filter the begin already matched.
+    /// </summary>
+    private void FabricateChannelEnd(BeginChannelEvent begin)
+    {
+        begin.EndChannel = Owner.EventEmitter.FabricateEvent(new EndChannelEvent
+        {
+            Timestamp = _scheduledEnd!.Value,
+            SourceId = begin.SourceId,
+            Ability = begin.Ability,
+            Start = begin.Timestamp,
+            Duration = ChannelDurationMs,
+            BeginChannel = begin,
+        }, begin);
     }
 
     /// <summary>
@@ -93,13 +122,6 @@ public sealed partial class ChronoshiftAnalyzer(
     [On<EndChannelEvent>(By = Actor.Player, Spell = nameof(Spells.Chronoshift))]
     private void OnEndChannel(EndChannelEvent e) => CloseWindow(e.Timestamp, e);
 
-    [On<Event>]
-    private void OnAnyEvent(Event e)
-    {
-        if (_scheduledEnd is int end && e.Timestamp >= end)
-            CloseWindow(end, e);
-    }
-
     /// <summary>
     /// Closes the active recovery window at the earlier of <paramref name="timestamp"/> and the
     /// scheduled 3-second end, removing the acceleration modifier and attributing the bonus recovery
@@ -110,7 +132,7 @@ public sealed partial class ChronoshiftAnalyzer(
     {
         if (_scheduledEnd is not int scheduledEnd) return;
         var closeAt = Math.Min(timestamp, scheduledEnd);
-        _statTracker.RemoveCooldownModifier(CooldownPool.CooldownAcceleration, AddedRecoveryModifier, trigger, closeAt);
+        _statTracker.RemoveCooldownModifier(CooldownPool.CooldownAcceleration, AddedRecoveryModifier, trigger);
 
         var wallclock = closeAt - _openTimestamp;
         foreach (var (spellId, remainingAtOpen) in _snapshot)

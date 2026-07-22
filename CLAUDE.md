@@ -133,3 +133,5 @@ When adding CSS/SCSS to any component, creating a new Razor component with style
 ## Reference / Inspiration
 
 The project is loosely based on [WoWAnalyzer](https://github.com/WoWAnalyzer/WoWAnalyzer) (TypeScript/React). Some principles and patterns are followed, but the architecture is designed to take advantage of modern C# features. Always consider using the latest C# features when adapting patterns from WoWAnalyzer, and feel free to deviate from their architecture when it makes sense in the context of C# and Blazor. See [NOTICE.md](NOTICE.md) for credits.
+
+**[WoWAnalyzer port-priority audit](https://claude.ai/code/artifact/ec122b55-fb51-4bd6-bf4d-9f1068cb9a41)** - owner-reviewed 0-10 port priorities for every WoWAnalyzer shared module, parser UI, and guide component, with per-item rationales, verified already-have equivalents in this codebase, shippable feature bundles, and a dependency-ordered build roadmap. Consult it when planning shared-infrastructure or hero-analyzer work, and keep it updated as modules land.

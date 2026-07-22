@@ -136,6 +136,7 @@ public sealed class CastLinkNormalizer(Abilities? abilities) : IEventNormalizer
                     if (pendingChannels.TryGetValue(ecKey, out var beginChannel2))
                     {
                         ec.BeginChannel = beginChannel2;
+                        beginChannel2.EndChannel = ec;
                         pendingChannels.Remove(ecKey);
                     }
                     

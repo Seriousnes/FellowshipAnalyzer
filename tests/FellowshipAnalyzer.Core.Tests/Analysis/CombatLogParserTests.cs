@@ -246,6 +246,43 @@ public sealed partial class CombatLogParserTests
         Assert.True(fabricator.FabricatedEventWasDeferred);
     }
 
+    [Fact]
+    public async Task FabricateEvent_WithFutureTimestamp_InsertsInTimestampOrder()
+    {
+        var events = new List<Event>
+        {
+            CreateCast(timestamp: 100, abilityId: 1),
+            CreateCast(timestamp: 200, abilityId: 1),
+        };
+
+        var owner = CreateCombatLogParser([typeof(FutureFabricatingProbeModule)]);
+
+        await owner.Analyze(events, playerId: 7, fight: TestFight);
+
+        var stream = owner.Events;
+        var fabricatedIndex = stream.FindIndex(e =>
+            e is CastEvent c && c.Ability.Id == FutureFabricatingProbeModule.FabricatedAbilityId);
+        var laterCastIndex = stream.FindIndex(e =>
+            e is CastEvent c && c.Ability.Id == 1 && c.Timestamp == 200);
+
+        Assert.True(fabricatedIndex > laterCastIndex,
+            "a fabricated future event must be inserted in timestamp order, after the later real cast");
+    }
+
+    [Fact]
+    public async Task FabricateEvent_WithEarlierTimestamp_ClampsToCurrentTimestamp()
+    {
+        var events = new List<Event> { CreateCast(timestamp: 200, abilityId: 1) };
+
+        var owner = CreateCombatLogParser([typeof(EarlierFabricatingProbeModule)]);
+
+        await owner.Analyze(events, playerId: 7, fight: TestFight);
+
+        var probe = owner.GetModule<EarlierFabricatingProbeModule>()!;
+        Assert.NotNull(probe.Fabricated);
+        Assert.Equal(200, probe.Fabricated!.Timestamp);
+    }
+
     private static readonly ReportFight TestFight =
         new(Id: 0, Name: "", EncounterId: 0, Kill: null,
             StartTime: 0, EndTime: 60_000, Difficulty: null,
@@ -280,6 +317,10 @@ public sealed partial class CombatLogParserTests
                 return new SpellFilterProbeModule();
             if (type == typeof(FabricatingProbeModule))
                 return new FabricatingProbeModule();
+            if (type == typeof(FutureFabricatingProbeModule))
+                return new FutureFabricatingProbeModule();
+            if (type == typeof(EarlierFabricatingProbeModule))
+                return new EarlierFabricatingProbeModule();
             if (type == typeof(TestResourceTracker))
                 return new TestResourceTracker(NullLogger<ResourceTracker>.Instance);
             return base.CreateInstance(type);
@@ -389,6 +430,51 @@ public sealed partial class CombatLogParserTests
         private void OnFightEnd(FightEndEvent e)
         {
             SeenCastCount = State.Casts.Count;
+        }
+    }
+
+    private sealed partial class FutureFabricatingProbeModule : Analyzer
+    {
+        public const int FabricatedAbilityId = 99;
+        private bool _fabricated;
+
+        [On<CastEvent>(By = Actor.Player)]
+        private void OnCast(CastEvent e)
+        {
+            if (_fabricated || e.Ability.Id == FabricatedAbilityId) return;
+            _fabricated = true;
+            Owner.EventEmitter.FabricateEvent(new CastEvent
+            {
+                Timestamp = 1000,
+                SourceId = 7,
+                TargetId = 11,
+                Ability = new Ability { FSLID = FabricatedAbilityId, Name = "Future" },
+                Target = new CastTarget(),
+                Channel = new EndChannelEvent(),
+            });
+        }
+    }
+
+    private sealed partial class EarlierFabricatingProbeModule : Analyzer
+    {
+        public const int FabricatedAbilityId = 98;
+        public CastEvent? Fabricated { get; private set; }
+        private bool _fabricated;
+
+        [On<CastEvent>(By = Actor.Player)]
+        private void OnCast(CastEvent e)
+        {
+            if (_fabricated || e.Ability.Id == FabricatedAbilityId) return;
+            _fabricated = true;
+            Fabricated = Owner.EventEmitter.FabricateEvent(new CastEvent
+            {
+                Timestamp = 50,
+                SourceId = 7,
+                TargetId = 11,
+                Ability = new Ability { FSLID = FabricatedAbilityId, Name = "Earlier" },
+                Target = new CastTarget(),
+                Channel = new EndChannelEvent(),
+            });
         }
     }
 

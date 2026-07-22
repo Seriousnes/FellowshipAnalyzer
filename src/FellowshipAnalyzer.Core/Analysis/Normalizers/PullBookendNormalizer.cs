@@ -7,25 +7,27 @@ namespace FellowshipAnalyzer.Core.Analysis.Normalizers;
 /// Fabricates a <see cref="PullStartEvent"/> / <see cref="PullEndEvent"/> pair for each Fellowship
 /// Logs dungeon pull on the fight, classifying it from the pull's <c>encounterID</c>, <c>kill</c>,
 /// and <c>enemyNPCs</c>. A fight that exposes no dungeon pulls (raids and other non-dungeon content)
-/// gets one implicit pull spanning the whole fight, classified from the fight's own fields. The
-/// dispatch sort (see <see cref="EventDispatchOrder"/>) nests these inside the fight bookends.
+/// gets one implicit pull spanning the whole fight, classified from the fight's own fields. Pull opens
+/// are placed ahead of the stream and closes after it so the stable dispatch sort seats each boundary
+/// against same-timestamp gameplay (opens before, closes after); running before
+/// <see cref="FightBookendNormalizer"/> lets the fight bookends wrap the pull bookends.
 /// </summary>
 public sealed class PullBookendNormalizer(ParseContext parseContext) : IEventNormalizer
 {
-    public int Priority => -999;
+    public int Priority => -1000;
 
     public List<Event> Normalize(List<Event> events, int playerId)
     {
         var pulls = BuildPulls();
 
         var result = new List<Event>(events.Count + (pulls.Count * 2));
+        foreach (var pull in pulls)
+            result.Add(new PullStartEvent { Timestamp = pull.StartTime, Pull = pull });
+
         result.AddRange(events);
 
         foreach (var pull in pulls)
-        {
-            result.Add(new PullStartEvent { Timestamp = pull.StartTime, Pull = pull });
             result.Add(new PullEndEvent { Timestamp = pull.EndTime, Pull = pull });
-        }
 
         return result;
     }

@@ -9,7 +9,7 @@ namespace FellowshipAnalyzer.Core.Analysis.Normalizers;
 /// </summary>
 public sealed class FightBookendNormalizer(ParseContext parseContext) : IEventNormalizer
 {
-    public int Priority => -1000;
+    public int Priority => -999;
 
     public List<Event> Normalize(List<Event> events, int playerId)
     {
