@@ -20,4 +20,5 @@ public class Talents
     public static Talent IntensifyingInferno { get; } = new Talent { Id = 151, Name = "Intensifying Inferno", Icon = "Firemage_Bolt.jpg" };
     public static Talent SpiritedFortitude { get; } = new Talent { Id = 156, Name = "Spirited Fortitude", Icon = "Barbarian3.jpg" };
     public static Talent SpontaneousCombustion { get; } = new Talent { Id = 153, Name = "Spontaneous Combustion", Icon = "Tex_r_02.jpg" };
+    public static Talent ApocalypticSurge { get; } = new Talent { Id = 678, Name = "Apocalyptic Surge", Icon = "Firemage_Apocalypse.jpg" };
 }

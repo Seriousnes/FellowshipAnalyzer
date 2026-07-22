@@ -355,6 +355,12 @@
       "name": "Apocalypse: Explosivo",
       "icon": "Firemage_Apocalypse.jpg"
     },
+    "ApocalypticSurge": {
+      "kind": "effect",
+      "id": 3176,
+      "name": "Apocalyptic Surge",
+      "icon": "Firemage_detonate.jpg"
+    },
     "Detonate": {
       "kind": "ability",
       "id": 1275,
