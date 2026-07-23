@@ -8,7 +8,7 @@ public class SpellDatabaseGeneratorTests
     private const string SpellDb = """
         {
           "rime": {
-            "FreezingTorrent": { "id": 1027, "name": "Freezing Torrent", "icon": "T_Rime_ChanneledBeam.jpg", "cooldown": 15, "range": 30, "channelDuration": 2.0, "channelTickInterval": 0.4 },
+            "FreezingTorrent": { "id": 1027, "name": "Freezing Torrent", "icon": "T_Rime_ChanneledBeam.jpg", "abilityCategory": "Core", "cooldown": 15, "range": 30, "channelDuration": 2.0, "channelTickInterval": 0.4 },
             "GlacialBlast": { "id": 1028, "name": "Glacial Blast", "icon": "T_Rime_AnimaBolt.jpg", "costs": { "tertiary": 2 } },
             "BurstingIceDamage": { "id": 1396, "kind": "effect", "name": "Bursting Ice", "icon": "T_Rime_CastedDebuffAOEdamage.jpg" }
           },
@@ -28,6 +28,7 @@ public class SpellDatabaseGeneratorTests
         gen.ShouldContain("class Spells"); // namespace ...Spells.Rime
         gen.ShouldContain("FreezingTorrent");
         gen.ShouldContain("Cooldown = 15");
+        gen.ShouldContain("AbilityCategory = global::FellowshipAnalyzer.Core.Common.Spells.AbilityCategory.Core");
         gen.ShouldContain("ChannelTickInterval = 0.4");
         gen.ShouldContain("Costs = new");
         gen.ShouldContain("ResourceTypes.Tertiary] = 2");

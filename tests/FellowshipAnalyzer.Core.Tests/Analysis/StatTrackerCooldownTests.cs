@@ -100,9 +100,8 @@ public sealed partial class StatTrackerCooldownTests
     {
         var major = new SpellbookAbility
         {
-            PrimarySpell = new Spell { Id = SpellA, Name = "Spell A" },
+            PrimarySpell = new Spell { Id = SpellA, Name = "Spell A", AbilityCategory = AbilityCategory.Major },
             Category = SpellCategory.Rotational,
-            AbilityCategory = AbilityCategory.Major,
         };
         var unclassified = new SpellbookAbility
         {

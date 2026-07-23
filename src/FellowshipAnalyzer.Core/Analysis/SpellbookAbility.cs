@@ -43,12 +43,12 @@ public sealed record SpellbookAbility
     public required SpellCategory Category { get; init; }
 
     /// <summary>
-    /// The game's Season 3 ability-category classification for this ability (from <c>hero_data.json</c>).
-    /// Distinct from <see cref="Category"/>, which is the tool's internal analysis grouping. Hero spellbooks
-    /// assign this over time; <c>null</c> means unclassified, which matches no <see cref="CooldownScope"/>
-    /// category scope.
+    /// The game's Season 3 ability-category classification for this ability, read from
+    /// <see cref="PrimarySpell"/> (sourced from <c>hero_data.json</c>). Distinct from <see cref="Category"/>,
+    /// which is the tool's internal analysis grouping. <c>null</c> means unclassified, which matches no
+    /// <see cref="CooldownScope"/> category scope.
     /// </summary>
-    public AbilityCategory? AbilityCategory { get; init; }
+    public AbilityCategory? AbilityCategory => PrimarySpell.AbilityCategory;
 
     /// <summary>
     /// When true, the cooldown is reduced by haste using <c>Cooldown / (1 + haste)</c>.

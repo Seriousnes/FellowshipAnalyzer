@@ -8,9 +8,9 @@ using FellowshipAnalyzer.Core.Game;
 namespace FellowshipAnalyzer.Core.Common.Spells;
 
 /// <summary>
-/// A static spell definition: identity, physical facts (cooldown, range, charges,
-/// cast/channel timing), and resource costs. Behaviour metadata (GCD, category, haste
-/// scaling) lives on <see cref="Analysis.SpellbookAbility"/>.
+/// A static spell definition: identity, the game's ability category, physical facts (cooldown,
+/// range, charges, cast/channel timing), and resource costs. Behaviour metadata (GCD, the tool's
+/// analysis grouping, haste scaling) lives on <see cref="Analysis.SpellbookAbility"/>.
 /// </summary>
 [JsonPolymorphic(TypeDiscriminatorPropertyName = "kind")]
 [JsonDerivedType(typeof(Spell), "ability")]
@@ -26,6 +26,13 @@ public record Spell : IRimeSpell, IElarionSpell, IArdeosSpell
     public int Id { get; init; }
     public string Name { get; init; } = "";
     public string Icon { get; init; } = "";
+
+    /// <summary>
+    /// The game's Season 3 ability-category classification from <c>hero_data.json</c> (Basic, Core,
+    /// Major, Defensive, and so on). Distinct from the tool's internal <see cref="Analysis.SpellCategory"/>
+    /// analysis grouping. <c>null</c> when the source data does not classify the ability.
+    /// </summary>
+    public AbilityCategory? AbilityCategory { get; init; }
 
     public double? Cooldown { get; init; }
 

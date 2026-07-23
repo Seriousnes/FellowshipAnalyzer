@@ -27,6 +27,8 @@ internal static class SpellDatabaseGeneratorTestHarness
 
             public enum SpellKind { Ability, Effect, Talent, Weapon }
 
+            public enum AbilityCategory { Basic, Core, Major }
+
             public readonly struct FSLID
             {
                 public int Value { get; }
@@ -52,6 +54,7 @@ internal static class SpellDatabaseGeneratorTestHarness
             public record Spell(int Id = 0, string Name = "", string Icon = "")
             {
                 public virtual FSLID FSLID => new FSLID(Id);
+                public AbilityCategory? AbilityCategory { get; init; }
                 public double? Cooldown { get; init; }
                 public int? Range { get; init; }
                 public int Charges { get; init; } = 1;

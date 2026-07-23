@@ -1,3 +1,5 @@
+using FellowshipAnalyzer.Core.Common.Spells;
+
 using Xunit;
 
 using RimeSpells = FellowshipAnalyzer.Core.Common.Spells.Rime.Spells;
@@ -15,5 +17,11 @@ public sealed class SpellDatabaseTests
     {
         Assert.Equal(15, RimeSpells.FreezingTorrent.Cooldown);
         Assert.Equal(0.4, RimeSpells.FreezingTorrent.ChannelTickInterval);
+    }
+
+    [Fact]
+    public void FreezingTorrent_CarriesGeneratedAbilityCategory()
+    {
+        Assert.Equal(AbilityCategory.Core, RimeSpells.FreezingTorrent.AbilityCategory);
     }
 }
