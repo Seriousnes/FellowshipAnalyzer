@@ -69,6 +69,7 @@
   </Folder>
   <Folder Name="/Tests/">
     <Project Path="tests/FellowshipAnalyzer.Analyzers.Tests/FellowshipAnalyzer.Analyzers.Tests.csproj" />
+    <Project Path="tests/FellowshipAnalyzer.Api.Core.Tests/FellowshipAnalyzer.Api.Core.Tests.csproj" />
     <Project Path="tests/FellowshipAnalyzer.Core.Tests/FellowshipAnalyzer.Core.Tests.csproj" />
     <Project Path="tests/FellowshipAnalyzer.Generators.Tests/FellowshipAnalyzer.Generators.Tests.csproj" />
     <Project Path="tests/FellowshipAnalyzer.SpellData.Tests/FellowshipAnalyzer.SpellData.Tests.csproj" />

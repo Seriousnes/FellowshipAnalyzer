@@ -1,34 +1,37 @@
-using System.Collections.Concurrent;
 using System.Threading.RateLimiting;
 
 namespace FellowshipAnalyzer.Api.Core;
 
-public sealed class FellowshipLogsRateLimiter(FellowshipLogsRateLimitOptions options) : IDisposable
+/// <summary>
+/// Per-client fixed-window rate limiter. Backed by <see cref="PartitionedRateLimiter"/> so idle
+/// partitions are garbage-collected automatically; a hand-rolled dictionary would retain one
+/// limiter per distinct partition key for the lifetime of the process.
+/// </summary>
+public sealed class FellowshipLogsRateLimiter : IDisposable
 {
-    private readonly ConcurrentDictionary<string, FixedWindowRateLimiter> _limiters = [];
+    private readonly PartitionedRateLimiter<string> _limiter;
+
+    public FellowshipLogsRateLimiter(FellowshipLogsRateLimitOptions options)
+    {
+        var permitLimit = Math.Max(1, options.PermitLimit);
+        var queueLimit = Math.Max(0, options.QueueLimit);
+        var window = options.Window > TimeSpan.Zero ? options.Window : TimeSpan.FromMinutes(1);
+
+        _limiter = PartitionedRateLimiter.Create<string, string>(partitionKey =>
+            RateLimitPartition.GetFixedWindowLimiter(
+                partitionKey,
+                _ => new FixedWindowRateLimiterOptions
+                {
+                    AutoReplenishment = true,
+                    PermitLimit = permitLimit,
+                    QueueLimit = queueLimit,
+                    QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                    Window = window,
+                }));
+    }
 
     public ValueTask<RateLimitLease> AcquireAsync(string partitionKey, CancellationToken cancellationToken)
-    {
-        var limiter = _limiters.GetOrAdd(partitionKey, _ => new FixedWindowRateLimiter(
-            new FixedWindowRateLimiterOptions
-            {
-                AutoReplenishment = true,
-                PermitLimit = Math.Max(1, options.PermitLimit),
-                QueueLimit = Math.Max(0, options.QueueLimit),
-                QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
-                Window = options.Window > TimeSpan.Zero
-                    ? options.Window
-                    : TimeSpan.FromMinutes(1)
-            }));
+        => _limiter.AcquireAsync(partitionKey, permitCount: 1, cancellationToken);
 
-        return limiter.AcquireAsync(permitCount: 1, cancellationToken);
-    }
-
-    public void Dispose()
-    {
-        foreach (var limiter in _limiters.Values)
-        {
-            limiter.Dispose();
-        }
-    }
+    public void Dispose() => _limiter.Dispose();
 }
