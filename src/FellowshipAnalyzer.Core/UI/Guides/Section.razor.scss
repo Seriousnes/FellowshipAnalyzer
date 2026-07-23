@@ -14,7 +14,7 @@
     justify-content: space-between;
     gap: 12px;
     width: 100%;
-    padding: 10px 14px;
+    padding: 8px 12px;
     background: linear-gradient(180deg, t.tint(t.$fa-gold, t.$fa-tint-subtle), t.tint(t.$fa-gold, t.$fa-tint-faint));
     border: 0;
     border-bottom: 1px solid var(--fa-border);
@@ -32,7 +32,7 @@
     flex: 1;
     margin: 0;
     font-family: var(--fa-font-heading);
-    font-size: 1.4rem;
+    font-size: t.$fa-fs-lg;
     font-weight: 700;
     color: var(--fa-gold);
     letter-spacing: 0.3px;
@@ -49,8 +49,8 @@
 }
 
 .guide-top-section-body {
-    padding: 14px;
+    padding: 12px;
     display: flex;
     flex-direction: column;
-    gap: 14px;
+    gap: 12px;
 }

@@ -7,15 +7,15 @@
     border-radius: 6px;
     background: var(--fa-bg-inset, t.$fa-bg-inset);
     overflow: hidden;
-    min-height: 44px;
+    min-height: 32px;
 }
 
 .stat-tile-value {
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 6px 12px;
-    font-size: 2rem;
+    padding: 4px 9px;
+    font-size: t.$fa-fs-lg;
     font-weight: 700;
 }
 
@@ -29,8 +29,8 @@
 .stat-tile-label {
     display: flex;
     align-items: center;
-    padding: 6px 10px;
-    font-size: 1rem;
+    padding: 4px 8px;
+    font-size: t.$fa-fs-label;
     font-weight: 700;
     color: var(--fa-text-dim, t.$fa-text-dim);
     text-transform: uppercase;

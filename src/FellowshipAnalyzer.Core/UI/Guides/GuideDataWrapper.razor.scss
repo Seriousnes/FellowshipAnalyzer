@@ -4,7 +4,7 @@
     background: var(--fa-bg-inset, t.$fa-bg-inset);
     border: 1px solid var(--fa-border, t.tint(t.$fa-gold, t.$fa-tint-subtle));
     border-radius: 8px;
-    padding: 10px 12px;
+    padding: 8px 10px;
     margin-bottom: 10px;
 }
 
@@ -16,8 +16,8 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    margin-bottom: 10px;
-    padding-bottom: 8px;
+    margin-bottom: 8px;
+    padding-bottom: 6px;
     border-bottom: 1px solid var(--fa-border, t.tint(t.$fa-gold, t.$fa-tint-subtle));
 }
 
@@ -31,14 +31,14 @@
 
 .section-title {
     margin: 0;
-    font-size: 1.3rem;
+    font-size: t.$fa-fs-title;
     font-weight: 700;
     color: var(--fa-gold, t.$fa-gold);
     white-space: nowrap;
 }
 
 .section-label {
-    font-size: 0.85rem;
+    font-size: t.$fa-fs-label;
     font-weight: 600;
     color: var(--fa-text-dim, t.$fa-text-dim);
     text-transform: uppercase;
@@ -60,7 +60,7 @@
 }
 
 .helper-text {
-    font-size: 1rem;
+    font-size: t.$fa-fs-body;
     color: t.tint(t.$fa-white, t.$fa-tint-medium);
     margin-top: 4px;
     font-style: italic;

@@ -93,3 +93,13 @@ $fa-radius-xl: 28px;
 // Typography
 $fa-font-body:    'Noto Sans', system-ui, -apple-system, sans-serif;
 $fa-font-heading: 'Nunito', system-ui, -apple-system, sans-serif;
+
+// Guide type scale — compile-time only. A tight, shared scale that keeps guide
+// chrome (section titles, stat tiles, badges, cast inspectors) compact and
+// consistent. Use these instead of ad-hoc rem values in guide components.
+$fa-fs-label: 0.66rem;  // all-caps micro labels: tile/badge labels, subtitles
+$fa-fs-meta:  0.78rem;  // metadata rows, inline badges, nav labels, pull id
+$fa-fs-body:  0.9rem;   // helper text, secondary body copy
+$fa-fs-value: 1rem;     // distribution counts (filter / perf badges)
+$fa-fs-title: 1.05rem;  // panel and inner section titles
+$fa-fs-lg:    1.2rem;   // headline stat numbers, top-level section headings

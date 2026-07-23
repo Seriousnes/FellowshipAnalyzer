@@ -1,28 +1,28 @@
 @use 'tokens' as t;
 
 .helper-text {
-    font-size: 1rem;
+    font-size: t.$fa-fs-body;
     color: var(--fa-text-dim, t.$fa-text-dim);
     font-style: italic;
 }
 
 /* No results */
 .no-results {
-    padding: 16px 12px;
+    padding: 14px 12px;
     text-align: center;
     border-radius: 4px;
     border: 1px dashed var(--fa-border, t.tint(t.$fa-gold, t.$fa-tint-subtle));
 }
 
 .no-results-title {
-    font-size: 1.2rem;
+    font-size: t.$fa-fs-title;
     margin-bottom: 3px;
     font-weight: 600;
     color: var(--fa-text-muted, t.$fa-text-muted);
 }
 
 .no-results-hint {
-    font-size: 1rem;
+    font-size: t.$fa-fs-body;
     color: t.tint(t.$fa-white, t.$fa-tint-muted);
 }
 
@@ -73,14 +73,14 @@
 
 /* Group (e.g. pull) identifier banner, above the cast stat tiles */
 .cast-group-banner {
-    margin-bottom: 10px;
-    padding: 7px 12px;
+    margin-bottom: 8px;
+    padding: 6px 10px;
     border-radius: 6px;
     border: 1px solid t.tint(t.$fa-gold, t.$fa-tint-soft);
     border-left: 3px solid var(--fa-gold);
     background: t.tint(t.$fa-gold, t.$fa-tint-faint);
     color: var(--fa-gold);
-    font-size: 1.6rem;
+    font-size: t.$fa-fs-title;
     font-weight: 700;
     letter-spacing: 0.5px;
 }
@@ -91,7 +91,7 @@
     background: t.tint(t.$fa-black, t.$fa-tint-soft);
     border: 1px solid t.tint(t.$fa-white, t.$fa-tint-faint);
     border-radius: 8px;
-    padding: 12px 14px 14px;
+    padding: 10px 12px 12px;
     overflow: hidden;
     animation: castFadeIn 0.18s ease;
 }
@@ -105,16 +105,16 @@
     display: grid;
     grid-template-columns: auto 1fr auto;
     align-items: center;
-    gap: 8px;
-    margin-bottom: 10px;
-    padding-bottom: 8px;
+    gap: 6px;
+    margin-bottom: 8px;
+    padding-bottom: 6px;
     border-bottom: 1px solid t.tint(t.$fa-white, t.$fa-tint-faint);
 }
 
 .nav-btn {
     display: flex;
     align-items: center;
-    height: 30px;
+    height: 24px;
     border: 1px solid t.tint(t.$fa-amber, t.$fa-tint-muted);
     border-radius: 4px;
     background: t.tint(t.$fa-black, t.$fa-tint-soft);
@@ -140,24 +140,23 @@
 }
 
 .nav-chevron {
-    padding: 0 8px;
-    font-size: 2.4rem;
+    padding: 0 7px;
+    font-size: 1.3rem;
     font-weight: 700;
     color: t.$fa-amber;
-    line-height: 0;
-    transform: translateY(-2px);
+    line-height: 1;
 }
 
 .nav-divider-v {
     width: 1px;
-    height: 16px;
+    height: 13px;
     background: t.tint(t.$fa-amber, t.$fa-tint-muted);
     flex-shrink: 0;
 }
 
 .nav-label {
-    padding: 0 8px;
-    font-size: 1.2rem;
+    padding: 0 7px;
+    font-size: t.$fa-fs-label;
     font-weight: 700;
     color: t.tint(t.$fa-white, t.$fa-tint-strong);
     text-transform: uppercase;
@@ -169,22 +168,22 @@
     align-items: center;
     justify-content: center;
     gap: 6px;
-    font-size: 1.6rem;
+    font-size: t.$fa-fs-meta;
     color: t.tint(t.$fa-white, t.$fa-tint-medium);
 }
 
 .perf-badge-inline {
-    padding: 2px 7px;
+    padding: 2px 6px;
     border-radius: 4px;
     border: 1px solid;
-    font-size: 1.4rem;
+    font-size: t.$fa-fs-meta;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.6px;
 }
 
 .cast-label {
-    font-size: 1.4rem;
+    font-size: t.$fa-fs-meta;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.5px;
@@ -205,14 +204,16 @@
 /* Additional content */
 .additional-content-container {
     margin-top: 8px;
-    padding: 8px 10px;
+    padding: 7px 9px;
     background: t.tint(t.$fa-black, t.$fa-tint-soft);
     border-radius: 4px;
     border: 1px solid t.tint(t.$fa-white, t.$fa-tint-faint);
+    font-size: t.$fa-fs-body;
+    line-height: 1.45;
 }
 
 .additional-content-heading {
-    font-size: 1.1rem;
+    font-size: t.$fa-fs-label;
     font-weight: 600;
     color: t.tint(t.$fa-white, t.$fa-tint-medium);
     margin-bottom: 6px;
@@ -223,11 +224,11 @@
 /* Details box */
 .details-box {
     margin-top: 8px;
-    padding: 8px 10px;
+    padding: 7px 9px;
     background: t.tint(t.$fa-black, t.$fa-tint-subtle);
     border-radius: 4px;
     border: 1px solid t.tint(t.$fa-white, t.$fa-tint-faint);
-    font-size: 0.9rem;
+    font-size: t.$fa-fs-body;
     color: t.tint(t.$fa-white, t.$fa-tint-strong);
 }
 
@@ -237,5 +238,5 @@
     bottom: 0;
     left: 0;
     right: 0;
-    height: 3px;
+    height: 2px;
 }

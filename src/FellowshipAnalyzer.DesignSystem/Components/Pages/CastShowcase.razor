@@ -38,6 +38,7 @@
         new("47", "Orbs generated"),
         new("12", "Orbs wasted", Performance: QualitativePerformance.Fail),
         new("74%", "Efficiency", Performance: QualitativePerformance.Good),
+        new("5.2", "Avg orbs at cast"),
     ];
 
     private static readonly IReadOnlyList<CastEvaluation> _evaluations = BuildEvaluations();
@@ -52,18 +53,27 @@
         return list;
     }
 
-    private static readonly IReadOnlyList<PerCastData> _perCast =
+    private IReadOnlyList<PerCastData> _perCast = [];
+
+    protected override void OnInitialized() => _perCast = BuildPerCast();
+
+    private IReadOnlyList<PerCastData> BuildPerCast() =>
     [
         new()
         {
             Performance = QualitativePerformance.Perfect,
             Timestamp = "0:12",
+            GroupContent = DeceitfulScholarBanner,
             Stats =
             [
                 new("23k", "Damage"),
                 new("2", "Orbs spent"),
                 new("3", "Targets"),
+                new("No", "Pyromania"),
+                new("No", "Incinerate"),
             ],
+            Sequence = _sequence,
+            AdditionalContent = new AdditionalContent("Usage Notes", UsageNotes),
         },
         new()
         {
@@ -98,6 +108,20 @@
                 new("0", "Targets"),
             ],
         },
+    ];
+
+    private static readonly Pull _pull =
+        new(5, 6, "Deceitful Scholar", 0, 0, PullKind.Single, IsBoss: true, Kill: true, TargetCount: 1);
+
+    private RenderFragment DeceitfulScholarBanner => @<PullBanner Pull="_pull" />;
+
+    private RenderFragment UsageNotes =>
+        @<div>Engulfing Flames held only 1 instance (the standard window stacks it twice).</div>;
+
+    private static readonly SpellCastEntry[] _sequence =
+    [
+        new(Spells.FrostBolt.Id), new(Spells.BurstingIce.Id), new(Spells.GlacialBlast.Id),
+        new(Spells.IceComet.Id), new(Spells.FrostBolt.Id), new(Spells.BurstingIce.Id),
     ];
 
     private const string _overviewCode = """

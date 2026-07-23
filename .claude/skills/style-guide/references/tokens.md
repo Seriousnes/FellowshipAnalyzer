@@ -103,6 +103,22 @@ Future heroes add their own accent here. Do not use hero-specific tokens in shar
 | `--fa-font-body` | `t.$fa-font-body` | `'Noto Sans', system-ui, -apple-system, sans-serif` |
 | `--fa-font-heading` | `t.$fa-font-heading` | `'Nunito', system-ui, -apple-system, sans-serif` |
 
+### Guide type scale
+
+Compile-time SCSS only (no CSS-var emission). A tight, shared scale that keeps guide
+chrome — section titles, stat tiles, badges, cast inspectors — compact and consistent.
+Use these in guide components instead of ad-hoc `rem` values; reach for the nearest role,
+not a new size.
+
+| SCSS var | Value | Role |
+|---|---|---|
+| `t.$fa-fs-label` | `0.66rem` | All-caps micro labels: tile/badge labels, subtitles, section eyebrows |
+| `t.$fa-fs-meta` | `0.78rem` | Metadata rows, inline badges, nav labels, pull id |
+| `t.$fa-fs-body` | `0.9rem` | Helper text, secondary body copy |
+| `t.$fa-fs-value` | `1rem` | Distribution counts (filter / perf badges) |
+| `t.$fa-fs-title` | `1.05rem` | Panel and inner section titles |
+| `t.$fa-fs-lg` | `1.2rem` | Headline stat numbers, top-level section headings |
+
 ---
 
 ## Adding a New Token

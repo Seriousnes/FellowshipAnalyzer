@@ -3,15 +3,15 @@
 .pull-banner {
     display: flex;
     align-items: center;
-    gap: 9px;
-    margin-bottom: 10px;
-    padding: 7px 12px;
+    gap: 8px;
+    margin-bottom: 8px;
+    padding: 6px 10px;
     border: 1px solid var(--fa-border, t.tint(t.$fa-gold, t.$fa-tint-subtle));
     border-left-width: 3px;
     border-radius: 6px;
     background: t.tint(t.$fa-text, t.$fa-tint-faint);
     color: var(--fa-text);
-    font-size: 1.6rem;
+    font-size: t.$fa-fs-title;
     font-weight: 700;
     letter-spacing: 0.4px;
 
@@ -34,11 +34,11 @@
 }
 
 .pull-banner-id {
-    padding: 1px 7px;
+    padding: 1px 6px;
     border-radius: 4px;
     background: t.tint(t.$fa-text, t.$fa-tint-faint);
     color: var(--fa-text-muted);
-    font-size: 1.2rem;
+    font-size: t.$fa-fs-meta;
     font-weight: 700;
     letter-spacing: 0.5px;
 }

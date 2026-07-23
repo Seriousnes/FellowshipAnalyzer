@@ -3,7 +3,7 @@
 .spell-sequence {
     display: flex;
     flex-wrap: wrap;
-    gap: 4px;
+    gap: 3px;
     align-items: center;
 }
 
@@ -18,17 +18,17 @@
     letter-spacing: 0.3px;
 
     &.badge-sm {
-        padding: 2px 6px;
+        padding: 1px 2px;
         font-size: 0.75rem;
     }
 
     &.badge-md {
-        padding: 4px 8px;
+        padding: 2px 3px;
         font-size: 0.85rem;
     }
 
     &.badge-lg {
-        padding: 6px 12px;
+        padding: 4px 6px;
         font-size: 1rem;
     }
 }
