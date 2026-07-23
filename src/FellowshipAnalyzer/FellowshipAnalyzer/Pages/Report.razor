@@ -103,7 +103,7 @@
                         <section class="guide-panel">
                             @if (_context.Analysis.GuideComponentType is { } guideType)
                             {
-                                <DynamicComponent Type="@guideType" />
+                                <DynamicComponent Type="@guideType" @key="@_selectedPull" />
                             }
                             else
                             {
