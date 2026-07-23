@@ -89,10 +89,6 @@
                         }
                     </span>
                     <span class="pull-select-option-name">@DisplayName(pull)</span>
-                    @if (pull.Id != 0)
-                    {
-                        <span class="pull-select-option-id">#@pull.Id</span>
-                    }
                     <span class="pull-select-option-range">@FormatRange(pull)</span>
                     @if (pull.IsBoss)
                     {
@@ -155,7 +151,9 @@
     private string TriggerLabel => Value is null ? "Entire Dungeon" : DisplayName(Value);
 
     private static string DisplayName(Pull pull) =>
-        string.IsNullOrWhiteSpace(pull.Name) ? $"Pull {pull.Index + 1}" : pull.Name;
+        string.IsNullOrWhiteSpace(pull.Name)
+            ? $"Pull #{pull.Index + 1}"
+            : $"Pull #{pull.Index + 1} - {pull.Name}";
 
     private string OptionStateClass(int row, bool isSelected)
     {

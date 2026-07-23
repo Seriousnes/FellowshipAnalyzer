@@ -41,7 +41,7 @@
     private static string Describe(Pull? pull) =>
         pull is null
             ? "Selected: Entire Dungeon"
-            : $"Selected: {(string.IsNullOrWhiteSpace(pull.Name) ? $"Pull {pull.Index + 1}" : pull.Name)}";
+            : $"Selected: Pull #{pull.Index + 1}{(string.IsNullOrWhiteSpace(pull.Name) ? "" : $" - {pull.Name}")}";
 
     private const string _basicCode = """
 <PullSelect Pulls="_pulls" FightStartTime="_fightStart" @bind-Value="_selected" />

@@ -294,8 +294,8 @@
         if (_context is not { Analysis: not null } context)
             return;
 
-        var resolved = PullQuery is { } index
-            ? context.Analyzer.Pulls.FirstOrDefault(p => p.Index == index)
+        var resolved = PullQuery is { } number
+            ? context.Analyzer.Pulls.FirstOrDefault(p => p.Index == number - 1)
             : null;
 
         if (ReferenceEquals(resolved, _selectedPull))
@@ -314,7 +314,7 @@
         if (_context is { } context)
             context.Analyzer.SelectedPull = pull;
 
-        var uri = NavigationManager.GetUriWithQueryParameter("pull", (int?)pull?.Index);
+        var uri = NavigationManager.GetUriWithQueryParameter("pull", pull?.Index + 1);
         NavigationManager.NavigateTo(uri, replace: true);
     }
 

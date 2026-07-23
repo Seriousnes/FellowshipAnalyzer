@@ -157,17 +157,6 @@
     font-weight: 600;
 }
 
-.pull-select-option-id {
-    flex-shrink: 0;
-    padding: 0.05rem 0.35rem;
-    border-radius: 4px;
-    background: t.tint(t.$fa-text, t.$fa-tint-faint);
-    color: var(--fa-text-muted);
-    font-size: 0.72rem;
-    font-weight: 700;
-    letter-spacing: 0.03em;
-}
-
 .pull-select-option-range {
     flex-shrink: 0;
     color: var(--fa-text-dim);
