@@ -16,7 +16,7 @@
 <div class="analysis-page">
     @if (Header is { } header)
     {
-        <PageHeader Title="@header.Fight.Name" ChildContent="@RenderFilterRow()">
+        <PageHeader Title="@header.Fight.Name">
             <Breadcrumbs>
                 <FellowshipAnalyzer.Core.UI.Components.Breadcrumbs Items="@BuildBreadcrumbs(header)" />
             </Breadcrumbs>
@@ -86,7 +86,7 @@
     else if (_context is { Analysis: { } analysis })
     {
         <ReportValuesProvider Context="_context" SelectedPull="@_selectedPull">
-            <Tabs Variant="TabsVariant.Underline" DefaultActiveId="guide">
+            <Tabs Variant="TabsVariant.Underline" DefaultActiveId="guide" Actions="@RenderPullFilter()">
                 <TabItem Id="guide">
                     <LabelTemplate>
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -318,7 +318,7 @@
         NavigationManager.NavigateTo(uri, replace: true);
     }
 
-    private RenderFragment? RenderFilterRow()
+    private RenderFragment? RenderPullFilter()
     {
         if (_context is not { Analysis: not null } context)
             return null;
@@ -327,12 +327,10 @@
         if (dungeonPulls.Count == 0)
             return null;
 
-        return @<div class="report-filter-row">
-            <PullSelect Pulls="dungeonPulls"
-                        Value="_selectedPull"
-                        ValueChanged="OnSelectedPullChanged"
-                        FightStartTime="context.FightStartTime" />
-        </div>;
+        return @<PullSelect Pulls="dungeonPulls"
+                            Value="_selectedPull"
+                            ValueChanged="OnSelectedPullChanged"
+                            FightStartTime="context.FightStartTime" />;
     }
 
     private int CountEventsInPull(Pull pull) =>
