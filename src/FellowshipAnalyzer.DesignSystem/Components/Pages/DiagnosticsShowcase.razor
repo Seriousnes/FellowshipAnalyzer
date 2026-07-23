@@ -16,7 +16,7 @@
         </p>
         <p>
             Custom label:
-            <CopySpellDefinition Spell="Spells.GlacialBlast" Label="📋 Glacial Blast" />
+            <CopySpellDefinition Spell="Spells.GlacialBlast" Label="Glacial Blast" />
         </p>
         <p style="color: var(--fa-text-muted); font-size: 0.85rem;">
             Generated text format: <code>public static Spell Name { get; } = new(id, "Name", "icon.jpg");</code>
@@ -43,7 +43,7 @@
 @code {
     private const string _copyCode = """
 <CopySpellDefinition Spell="Spells.IceComet" />
-<CopySpellDefinition Spell="@unknownAbility" Label="📋 Copy" />
+<CopySpellDefinition Spell="@unknownAbility" Label="Copy" />
 """;
 
     private const string _annotationsCode = """

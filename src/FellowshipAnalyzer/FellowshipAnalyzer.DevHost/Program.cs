@@ -9,6 +9,8 @@ builder.Services.AddHttpClient("DevApi", client =>
     client.BaseAddress = new Uri("https+http://fellowshipanalyzerapi/");
 });
 
+builder.Services.AddSassCompiler();
+
 var app = builder.Build();
 
 app.MapDefaultEndpoints();

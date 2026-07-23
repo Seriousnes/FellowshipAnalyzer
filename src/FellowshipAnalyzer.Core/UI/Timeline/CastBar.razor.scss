@@ -15,7 +15,7 @@
 .cast-bar-time-line-sec {
     display: inline-block;
     height: 100%;
-    border-left: 1px solid t.tint(t.$fa-white, t.$fa-tint-muted);
+    border-left: var(--fa-border-width) solid t.tint(t.$fa-white, t.$fa-tint-muted);
     padding-left: 3px;
     line-height: 1;
     font-size: 14px;
@@ -166,7 +166,7 @@
     height: 8px;
     top: 8px;
     background: t.$fa-amber;
-    border-radius: 2px;
+    border-radius: var(--fa-radius-xs);
     border: 1px solid t.$fa-white;
     z-index: 1;
 }
@@ -183,7 +183,7 @@
         t.$fa-white 5px,
         t.$fa-white 10px
     );
-    border-radius: 2px;
+    border-radius: var(--fa-radius-xs);
     border: 1px solid t.$fa-white;
     z-index: 2;
 }

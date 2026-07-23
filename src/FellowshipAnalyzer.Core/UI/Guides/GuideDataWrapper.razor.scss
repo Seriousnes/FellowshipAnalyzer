@@ -3,7 +3,7 @@
 .section-container {
     background: var(--fa-bg-inset, t.$fa-bg-inset);
     border: 1px solid var(--fa-border, t.tint(t.$fa-gold, t.$fa-tint-subtle));
-    border-radius: 8px;
+    border-radius: var(--fa-radius-sm);
     padding: 8px 10px;
     margin-bottom: 10px;
 }

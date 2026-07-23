@@ -4,6 +4,7 @@ namespace FellowshipAnalyzer.Core.UI;
 
 public static class PerformanceColors
 {
+    // Mirror the SCSS $fa-perf-* / --fa-perf-* tokens (the authoritative palette).
     public const string Perfect = "#2090c0";
     public const string Good = "#4ec04e";
     public const string Ok = "#ffc84a";

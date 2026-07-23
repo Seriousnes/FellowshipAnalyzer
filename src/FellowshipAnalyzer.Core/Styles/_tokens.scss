@@ -50,11 +50,13 @@ $fa-text-dim:   #6b6558;
 $fa-border:      tint($fa-gold, $fa-tint-subtle);
 $fa-border-card: tint($fa-gold, $fa-tint-soft);
 
-// Performance
-$fa-perf-perfect: #56d67b;
-$fa-perf-good:    #90cc60;
-$fa-perf-ok:      $fa-gold;
-$fa-perf-fail:    #d4564a;
+// Performance — four clearly-distinct tiers (also separable for the common
+// colour-vision deficiencies): blue / green / amber / red. PerformanceColors.cs
+// mirrors these exact values.
+$fa-perf-perfect: #2090c0;
+$fa-perf-good:    #4ec04e;
+$fa-perf-ok:      #ffc84a;
+$fa-perf-fail:    #ac1f39;
 
 $fa-perf-very-bad:  #661111;
 $fa-perf-mediocre:  #dd5533;
@@ -69,7 +71,7 @@ $fa-role-unknown: $fa-border;
 // Event-type coding (EventsView)
 $fa-ev-cast:       $fa-ice;
 $fa-ev-damage:     $fa-perf-fail;
-$fa-ev-heal:       $fa-perf-perfect;
+$fa-ev-heal:       $fa-perf-good;
 $fa-ev-buff:       $fa-arcane;
 $fa-ev-buff-fade:  $fa-arcane;
 $fa-ev-debuff:     $fa-amber;
@@ -77,18 +79,27 @@ $fa-ev-death:      $fa-perf-very-bad;
 $fa-ev-resource:   $fa-gold;
 $fa-ev-system:     $fa-text-dim;
 $fa-ev-modified:   $fa-amber;
-$fa-ev-fabricated: $fa-perf-perfect;
+$fa-ev-fabricated: $fa-perf-good;
 $fa-ev-reordered:  $fa-steel;
 
 // Shadows
 $fa-shadow-card: (0 8px 32px tint($fa-black, $fa-tint-medium));
 $fa-shadow-lg:   (0 16px 48px tint($fa-black, $fa-tint-strong));
 
+// Border widths — one hairline default for structural edges and dividers, a
+// heavier stripe for coloured left-accents, and a ring width for box-shadow
+// emphasis (focus / selected / identity rings).
+$fa-border-width: 1px;
+$fa-accent-width: 3px;
+$fa-ring-width:   2px;
+
 // Radii
-$fa-radius-sm: 8px;
-$fa-radius-md: 14px;
-$fa-radius-lg: 20px;
-$fa-radius-xl: 28px;
+$fa-radius-xs:   4px;
+$fa-radius-sm:   8px;
+$fa-radius-md:   14px;
+$fa-radius-lg:   20px;
+$fa-radius-xl:   28px;
+$fa-radius-pill: 999px;
 
 // Typography
 $fa-font-body:    'Noto Sans', system-ui, -apple-system, sans-serif;

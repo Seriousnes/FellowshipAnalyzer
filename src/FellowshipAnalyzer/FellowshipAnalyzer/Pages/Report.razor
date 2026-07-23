@@ -22,18 +22,19 @@
             </Breadcrumbs>
             <Portrait>
                 <Avatar Size="AvatarSize.Xl"
-                        Src="@BossIconUrl(header.BossIcon)"
+                        Src="@(BossIconUrl(header.BossIcon) ?? header.Fight.DungeonIconUrl)"
                         Alt="@header.Fight.Name"
-                        FallbackText="@FirstCharacter(header.Fight.Name)" />
+                        FallbackText="@FirstCharacter(header.Fight.Name)"
+                        AccentColorVar="var(--fa-gold)" />
             </Portrait>
             <Badges>
                 @if (header.Fight.Kill == true)
                 {
-                    <Badge Variant="BadgeVariant.Success" Size="BadgeSize.Sm">✓ Kill</Badge>
+                    <Badge Variant="BadgeVariant.Success" Size="BadgeSize.Sm"><Glyph Name="check" /> Kill</Badge>
                 }
                 else if (header.Fight.Kill == false)
                 {
-                    <Badge Variant="BadgeVariant.Failure" Size="BadgeSize.Sm">✗ Wipe</Badge>
+                    <Badge Variant="BadgeVariant.Failure" Size="BadgeSize.Sm"><Glyph Name="skull" /> Wipe</Badge>
                 }
                 <span class="fight-duration">@header.FightDuration</span>
             </Badges>

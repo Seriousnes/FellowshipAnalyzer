@@ -4,29 +4,23 @@ $spell-icon-size: 36px;
 $spell-icon-size-sm: 24px;
 $spell-icon-size-lg: 48px;
 
-$spell-icon-radius: 4px;
-$spell-icon-radius-sm: 3px;
-$spell-icon-radius-lg: 5px;
-
 .spell-icon {
     display: inline-block;
     width: $spell-icon-size;
     height: $spell-icon-size;
-    border-radius: $spell-icon-radius;
-    border: 1px solid var(--fa-border-card, #{t.$fa-border-card});
+    border-radius: var(--fa-radius-xs);
+    border: var(--spell-icon-border-width, var(--fa-border-width)) solid var(--spell-icon-border, var(--fa-border-card, #{t.$fa-border-card}));
     object-fit: cover;
     vertical-align: middle;
 
     &--sm {
         width: $spell-icon-size-sm;
         height: $spell-icon-size-sm;
-        border-radius: $spell-icon-radius-sm;
     }
 
     &--lg {
         width: $spell-icon-size-lg;
         height: $spell-icon-size-lg;
-        border-radius: $spell-icon-radius-lg;
     }
 
     &-link {

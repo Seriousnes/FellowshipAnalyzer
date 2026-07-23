@@ -5,11 +5,11 @@
     {
         var color = cast.Performance.HasValue
             ? PerformanceColors.ToColor(cast.Performance.Value)
-            : "rgba(255, 255, 255, 0.6)";
+            : "var(--fa-border-card)";
 
-        <span class="spell-badge @SizeClass" style="border-color: @(color)60; color: @color;"
+        <span class="spell-badge @SizeClass" style="--spell-icon-border: @color;"
               title="@cast.Tooltip">
-              <SpellIcon Spell="cast.Id" />
+              <SpellIcon Spell="cast.Id" Size="@IconSize" />
         </span>
     }
 </div>
@@ -23,5 +23,12 @@
         SpellBadgeSize.Small => "badge-sm",
         SpellBadgeSize.Large => "badge-lg",
         _ => "badge-md",
+    };
+
+    private SpellIconSize IconSize => Size switch
+    {
+        SpellBadgeSize.Small => SpellIconSize.Small,
+        SpellBadgeSize.Large => SpellIconSize.Large,
+        _ => SpellIconSize.Medium,
     };
 }

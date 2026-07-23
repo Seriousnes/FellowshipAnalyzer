@@ -3,7 +3,7 @@
 .pass-fail-bar {
     display: flex;
     height: 10px;
-    border-radius: 5px;
+    border-radius: var(--fa-radius-xs);
     overflow: hidden;
     background: var(--fa-bg-inset, t.$fa-bg-inset);
 }

@@ -2,7 +2,7 @@
 
 .button-group {
     display: inline-flex;
-    border: 1px solid var(--fa-border-card);
+    border: var(--fa-border-width) solid var(--fa-border-card);
     border-radius: var(--fa-radius-sm);
     overflow: hidden;
     width: fit-content;
@@ -18,7 +18,11 @@
     font-weight: 600;
     transition: background 0.15s, color 0.15s;
 
-    &:hover {
+    & + & {
+        border-left: var(--fa-border-width) solid var(--fa-border-card);
+    }
+
+    &:hover:not(.active) {
         color: var(--fa-text);
     }
 

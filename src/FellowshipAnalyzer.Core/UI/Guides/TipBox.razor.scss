@@ -9,8 +9,8 @@
     padding: 10px 12px;
     background: var(--fa-bg-inset);
     border: 1px solid var(--fa-border);
-    border-left: 4px solid var(--tip-color);
-    border-radius: 6px;
+    border-left: var(--fa-accent-width) solid var(--tip-color);
+    border-radius: var(--fa-radius-sm);
 
     &.info    { --tip-color: #{t.$fa-steel}; }
     &.note    { --tip-color: #{t.$fa-arcane}; }

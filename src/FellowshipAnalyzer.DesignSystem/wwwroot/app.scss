@@ -36,10 +36,16 @@
     --fa-shadow-card: #{t.$fa-shadow-card};
     --fa-shadow-lg:   #{t.$fa-shadow-lg};
 
-    --fa-radius-sm: #{t.$fa-radius-sm};
-    --fa-radius-md: #{t.$fa-radius-md};
-    --fa-radius-lg: #{t.$fa-radius-lg};
-    --fa-radius-xl: #{t.$fa-radius-xl};
+    --fa-border-width: #{t.$fa-border-width};
+    --fa-accent-width: #{t.$fa-accent-width};
+    --fa-ring-width:   #{t.$fa-ring-width};
+
+    --fa-radius-xs:   #{t.$fa-radius-xs};
+    --fa-radius-sm:   #{t.$fa-radius-sm};
+    --fa-radius-md:   #{t.$fa-radius-md};
+    --fa-radius-lg:   #{t.$fa-radius-lg};
+    --fa-radius-xl:   #{t.$fa-radius-xl};
+    --fa-radius-pill: #{t.$fa-radius-pill};
 
     --fa-font-body:    #{t.$fa-font-body};
     --fa-font-heading: #{t.$fa-font-heading};

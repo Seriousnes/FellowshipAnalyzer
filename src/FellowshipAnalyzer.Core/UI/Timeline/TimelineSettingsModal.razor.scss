@@ -30,7 +30,7 @@
     align-items: center;
     justify-content: space-between;
     padding: 14px 18px;
-    border-bottom: 1px solid t.tint(t.$fa-white, t.$fa-tint-faint);
+    border-bottom: var(--fa-border-width) solid t.tint(t.$fa-white, t.$fa-tint-faint);
 }
 
 .timeline-settings-title {
@@ -46,7 +46,7 @@
     color: var(--fa-text-muted, t.tint(t.$fa-white, t.$fa-tint-strong));
     cursor: pointer;
     padding: 4px;
-    border-radius: 4px;
+    border-radius: var(--fa-radius-xs);
 
     &:hover {
         color: var(--fa-text, t.$fa-white);
@@ -56,7 +56,7 @@
 
 .timeline-settings-tabs {
     display: flex;
-    border-bottom: 1px solid t.tint(t.$fa-white, t.$fa-tint-faint);
+    border-bottom: var(--fa-border-width) solid t.tint(t.$fa-white, t.$fa-tint-faint);
     padding: 0 12px;
 }
 
@@ -104,7 +104,7 @@
     align-items: center;
     gap: 10px;
     padding: 6px 8px;
-    border-radius: 6px;
+    border-radius: var(--fa-radius-sm);
     margin: 2px 0;
 
     &:hover {
@@ -160,8 +160,8 @@
         width: 60px;
         padding: 4px 6px;
         background: t.tint(t.$fa-white, t.$fa-tint-faint);
-        border: 1px solid t.tint(t.$fa-white, t.$fa-tint-subtle);
-        border-radius: 4px;
+        border: var(--fa-border-width) solid t.tint(t.$fa-white, t.$fa-tint-subtle);
+        border-radius: var(--fa-radius-xs);
         color: inherit;
         font-size: 12px;
     }
@@ -193,7 +193,7 @@
 
 .timeline-settings-section-divider {
     border: 0;
-    border-top: 1px solid t.tint(t.$fa-white, t.$fa-tint-faint);
+    border-top: var(--fa-border-width) solid t.tint(t.$fa-white, t.$fa-tint-faint);
     margin: 12px 0;
 }
 
@@ -204,8 +204,8 @@
         width: 100%;
         padding: 6px 8px;
         background: t.tint(t.$fa-white, t.$fa-tint-faint);
-        border: 1px solid t.tint(t.$fa-white, t.$fa-tint-subtle);
-        border-radius: 4px;
+        border: var(--fa-border-width) solid t.tint(t.$fa-white, t.$fa-tint-subtle);
+        border-radius: var(--fa-radius-xs);
         color: inherit;
         font-size: 13px;
 
@@ -224,8 +224,8 @@
     list-style: none;
     margin: 0 0 8px;
     padding: 4px 0;
-    border: 1px solid t.tint(t.$fa-white, t.$fa-tint-faint);
-    border-radius: 6px;
+    border: var(--fa-border-width) solid t.tint(t.$fa-white, t.$fa-tint-faint);
+    border-radius: var(--fa-radius-sm);
     max-height: 220px;
     overflow-y: auto;
     background: t.tint(t.$fa-white, t.$fa-tint-faint);
@@ -247,7 +247,7 @@
     border: 1px solid t.tint(t.$fa-gold, t.$fa-tint-medium);
     color: var(--fa-gold, t.$fa-gold);
     padding: 3px 10px;
-    border-radius: 4px;
+    border-radius: var(--fa-radius-xs);
     cursor: pointer;
     font-size: 12px;
 
@@ -262,7 +262,7 @@
     border: none;
     color: var(--fa-text-muted, t.tint(t.$fa-white, t.$fa-tint-strong));
     padding: 4px;
-    border-radius: 4px;
+    border-radius: var(--fa-radius-xs);
     cursor: pointer;
     display: inline-flex;
     align-items: center;

@@ -3,7 +3,6 @@
 @{
     var variantClass = Variant.ToString().ToLowerInvariant();
     var role = Variant is TipBoxVariant.Warning or TipBoxVariant.Error ? "alert" : "note";
-    var glyph = Icon is null && !HideIcon ? DefaultGlyph(Variant) : null;
 }
 
 <div class="tip-box @variantClass" role="@role">
@@ -16,7 +15,7 @@
             }
             else
             {
-                @glyph
+                <Glyph Name="@DefaultGlyph(Variant)" />
             }
         </span>
     }
@@ -40,11 +39,11 @@
 
     private static string DefaultGlyph(TipBoxVariant v) => v switch
     {
-        TipBoxVariant.Info => "i",
-        TipBoxVariant.Note => "✎",
-        TipBoxVariant.Success => "✓",
-        TipBoxVariant.Warning => "!",
-        TipBoxVariant.Error => "✕",
-        _ => "i",
+        TipBoxVariant.Info => "info-circle",
+        TipBoxVariant.Note => "edit",
+        TipBoxVariant.Success => "check",
+        TipBoxVariant.Warning => "alert-triangle",
+        TipBoxVariant.Error => "alert-circle",
+        _ => "info-circle",
     };
 }

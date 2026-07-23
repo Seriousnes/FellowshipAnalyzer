@@ -80,7 +80,7 @@ h1 {
 }
 
 .character-report-row {
-    border-bottom: 1px solid var(--fa-border-subtle);
+    border-bottom: var(--fa-border-width) solid var(--fa-border-subtle);
 
     &:last-child {
         border-bottom: none;

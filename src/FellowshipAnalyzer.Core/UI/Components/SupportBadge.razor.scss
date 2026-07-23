@@ -5,7 +5,7 @@
     align-items: center;
     gap: 0.4rem;
     padding: 0.2rem 0.6rem;
-    border-radius: 999px;
+    border-radius: var(--fa-radius-pill);
     font-size: 0.78rem;
     font-weight: 600;
     white-space: nowrap;
@@ -14,16 +14,9 @@
     background: color-mix(in srgb, var(--support-color, var(--fa-text-muted)) 12%, transparent);
 }
 
-.support-badge-dot {
-    width: 0.5rem;
-    height: 0.5rem;
-    border-radius: 50%;
-    background: var(--support-color, var(--fa-text-muted));
-}
-
 .support-badge--full {
-    --support-color: var(--fa-perf-perfect);
-    --support-border: color-mix(in srgb, var(--fa-perf-perfect) 35%, transparent);
+    --support-color: var(--fa-perf-good);
+    --support-border: color-mix(in srgb, var(--fa-perf-good) 35%, transparent);
 }
 
 .support-badge--partial {

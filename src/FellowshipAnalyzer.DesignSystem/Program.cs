@@ -5,6 +5,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
+builder.Services.AddSassCompiler();
+
 var app = builder.Build();
 
 if (!app.Environment.IsDevelopment())

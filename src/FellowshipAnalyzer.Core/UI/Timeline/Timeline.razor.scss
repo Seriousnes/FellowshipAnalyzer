@@ -3,7 +3,7 @@
 
 .timeline {
     background: t.tint(t.$fa-black, t.$fa-tint-subtle);
-    border-radius: 6px;
+    border-radius: var(--fa-radius-sm);
     padding: 44px 0 8px;
     position: relative;
     overflow: hidden;
@@ -31,11 +31,11 @@
 
 .timeline-settings-button {
     background: t.tint(t.$fa-black, t.$fa-tint-medium);
-    border: 1px solid t.tint(t.$fa-white, t.$fa-tint-subtle);
+    border: var(--fa-border-width) solid t.tint(t.$fa-white, t.$fa-tint-subtle);
     color: t.tint(t.$fa-white, t.$fa-tint-veil);
     width: 28px;
     height: 28px;
-    border-radius: 4px;
+    border-radius: var(--fa-radius-xs);
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -59,7 +59,7 @@
 .timeline-row {
     display: block;
     align-items: center;
-    border-bottom: 1px solid t.tint(t.$fa-white, t.$fa-tint-faint);
+    border-bottom: var(--fa-border-width) solid t.tint(t.$fa-white, t.$fa-tint-faint);
 
     &:last-child {
         border-bottom: none;
@@ -98,7 +98,7 @@
 
 .timeline-section-divider {
     height: 0;
-    border-top: 1px solid t.tint(t.$fa-white, t.$fa-tint-subtle);
+    border-top: var(--fa-border-width) solid t.tint(t.$fa-white, t.$fa-tint-subtle);
     margin: 16px 0 0;
 }
 

@@ -32,7 +32,7 @@
     margin: 1rem 0 1.5rem;
 
     &.selected {
-        border-left: 3px solid var(--fa-gold);
+        border-left: var(--fa-accent-width) solid var(--fa-gold);
         padding-left: 0.65rem;
     }
 }
@@ -83,8 +83,8 @@
     gap: 0.6rem;
     padding: 0.55rem 0.75rem;
     border: 1px solid var(--fa-border);
-    border-radius: 6px;
-    border-left-width: 4px;
+    border-radius: var(--fa-radius-sm);
+    border-left-width: var(--fa-accent-width);
     background: var(--fa-bg-raised);
     color: var(--fa-text);
     text-decoration: none;

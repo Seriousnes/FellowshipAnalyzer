@@ -3,32 +3,14 @@
 .spell-sequence {
     display: flex;
     flex-wrap: wrap;
-    gap: 3px;
+    gap: 4px;
     align-items: center;
 }
 
+// The performance tier recolours and thickens the SpellIcon's OWN border
+// (WoWAnalyzer-style) — a single ring, not a badge wrapped around an icon.
+// The tier colour is injected as --spell-icon-border on each wrapper in markup.
 .spell-badge {
+    --spell-icon-border-width: var(--fa-ring-width);
     display: inline-flex;
-    align-items: center;
-    border: 1px solid;
-    border-radius: 4px;
-    background: var(--fa-bg-inset, t.$fa-bg-inset);
-    font-weight: 600;
-    white-space: nowrap;
-    letter-spacing: 0.3px;
-
-    &.badge-sm {
-        padding: 1px 2px;
-        font-size: 0.75rem;
-    }
-
-    &.badge-md {
-        padding: 2px 3px;
-        font-size: 0.85rem;
-    }
-
-    &.badge-lg {
-        padding: 4px 6px;
-        font-size: 1rem;
-    }
 }

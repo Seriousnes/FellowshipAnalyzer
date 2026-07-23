@@ -60,34 +60,36 @@
                 <div class="cast-card" style="--accent-color: @castColor;">
                     <div class="card-header">
                         <button class="nav-btn" disabled="@(validIndex == 0)" @onclick="HandlePrevious">
-                            <span class="nav-chevron">&#8249;</span>
+                            <svg class="nav-chevron" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <polyline points="15 6 9 12 15 18" />
+                            </svg>
                             <span class="nav-divider-v"></span>
                             <span class="nav-label">Prev</span>
                         </button>
+
                         <div class="cast-meta">
-                            <span class="perf-badge-inline" style="border-color: @(castColor)45; background: @(castColor)12; color: @castColor;">
-                                @PerformanceColors.ToLabel(currentCast!.Performance)
-                            </span>
-                            <span class="cast-label">
-                                Cast @(originalIndex + 1) / @filteredCount · @currentCast.Timestamp
-                            </span>
+                            @* Group (e.g. pull) identifier, inline; omitted when there is no pull *@
+                            @if (currentCast!.GroupContent is not null)
+                            {
+                                <div class="cast-group">@currentCast.GroupContent</div>
+                                <span class="cast-header-divider"></span>
+                            }
+                            else if (!string.IsNullOrEmpty(currentCast.Group))
+                            {
+                                <span class="cast-group-banner">@currentCast.Group</span>
+                                <span class="cast-header-divider"></span>
+                            }
+                            <span class="cast-label">Cast @(originalIndex + 1) / @filteredCount · @currentCast.Timestamp</span>
                         </div>
+
                         <button class="nav-btn" disabled="@(validIndex == filteredCount - 1)" @onclick="HandleNext">
                             <span class="nav-label">Next</span>
                             <span class="nav-divider-v"></span>
-                            <span class="nav-chevron">&#8250;</span>
+                            <svg class="nav-chevron" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <polyline points="9 6 15 12 9 18" />
+                            </svg>
                         </button>
                     </div>
-
-                    @* Group (e.g. pull) identifier *@
-                    @if (currentCast.GroupContent is not null)
-                    {
-                        @currentCast.GroupContent
-                    }
-                    else if (!string.IsNullOrEmpty(currentCast.Group))
-                    {
-                        <div class="cast-group-banner">@currentCast.Group</div>
-                    }
 
                     @* Stats grid *@
                     <div class="stats-grid" style="margin-bottom: 10px;">
@@ -219,9 +221,9 @@
         var isActive = idx == validIndex;
         return @<button class="timeline-rect @(isActive ? "active" : "")"
                         style="@widthStyle
-                               background: @(isActive ? color : color + "55");
+                               background: @(isActive ? color : $"color-mix(in srgb, {color} 55%, transparent)");
                                border-color: @(isActive ? color : "transparent");
-                               @(isActive ? "outline: 2px solid rgba(255,255,255,0.6); outline-offset: 1px;" : "")"
+                               @(isActive ? "outline: var(--fa-ring-width) solid var(--fa-text); outline-offset: 1px;" : "")"
                         title="Cast #@(_allCasts.IndexOf(cast) + 1) · @cast.Timestamp · @PerformanceColors.ToLabel(cast.Performance)"
                         @onclick="() => SetIndex(idx)">
                 </button>;
