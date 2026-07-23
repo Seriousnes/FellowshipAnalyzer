@@ -17,7 +17,7 @@
              Description="Renders all the player's casts, channels, and cancelled casts along a horizontal timeline. Lower casts (no GCD) stack vertically below the main track."
              Code="@_castBarCode">
     <Demo>
-        <p style="color: var(--fa-text-muted);">No live demo — needs the player's full Event list, FightStartTime, FightEndTime.</p>
+        <p style="color: var(--fa-text-muted);">No live demo — needs the player's full Event list, FightStartTime, WindowStart, WindowEnd.</p>
     </Demo>
 </CodeExample>
 
@@ -66,7 +66,8 @@
 <CastBar Events="@playerEvents"
          PlayerId="@PlayerId"
          FightStartTime="@FightStartTime"
-         FightEndTime="@FightEndTime"
+         WindowStart="@windowStart"
+         WindowEnd="@windowEnd"
          PixelsPerSecond="60.0"
          Abilities="@abilities" />
 """;
@@ -74,7 +75,8 @@
     private const string _auraBarCode = """
 <AuraBar Auras="@playerAuras"
          FightStartTime="@FightStartTime"
-         FightEndTime="@FightEndTime"
+         WindowStart="@windowStart"
+         WindowEnd="@windowEnd"
          PixelsPerSecond="60.0"
          VisibleAuraIds="@configuredVisible"
          AuraPriorities="@priorityByAura" />
@@ -84,7 +86,8 @@
 <CooldownLane Ability="@spellbookAbility"
               CooldownEvents="@updateSpellUsableEvents"
               FightStartTime="@FightStartTime"
-              FightEndTime="@FightEndTime"
+              WindowStart="@windowStart"
+              WindowEnd="@windowEnd"
               PixelsPerSecond="60.0" />
 """;
 

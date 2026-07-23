@@ -8,99 +8,124 @@
 }
 else
 {
-    <div class="da-view">
-        @foreach (var moduleAnnotations in DebugAnnotations.GetAll())
-        {
-            <div class="da-module">
-                <div class="da-module-header">
-                    <h3 class="da-module-title">@moduleAnnotations.Module.GetType().Name</h3>
-                    <span class="da-module-count">@moduleAnnotations.AnnotatedEvents.Count events annotated</span>
-                </div>
+    var scopedModules = DebugAnnotations.GetAll()
+        .Select(annotations => (Annotations: annotations, Events: FilterToSelectedPull(annotations.AnnotatedEvents)))
+        .Where(entry => entry.Events.Count > 0)
+        .ToList();
 
-                <div class="da-dot-container">
-                    @foreach (var row in GroupByMinute(moduleAnnotations.AnnotatedEvents))
+    if (scopedModules.Count == 0)
+    {
+        <div class="da-empty">
+            @(SelectedPull is null
+                ? "No debug annotations were recorded during this analysis."
+                : "No debug annotations were recorded for the selected pull.")
+        </div>
+    }
+    else
+    {
+    <div class="da-view">
+        @foreach (var (moduleAnnotations, scopedEvents) in scopedModules)
+        {
+                <div class="da-module">
+                    <div class="da-module-header">
+                        <h3 class="da-module-title">@moduleAnnotations.Module.GetType().Name</h3>
+                        <span class="da-module-count">@scopedEvents.Count events annotated</span>
+                    </div>
+
+                    <div class="da-dot-container">
+                        @foreach (var row in GroupByMinute(scopedEvents))
+                        {
+                            <div class="da-row">
+                                <span class="da-row-label">@FormatMinute(row.MinuteIndex)</span>
+                                <div class="da-row-dots">
+                                    @foreach (var annotatedEvent in row.Events)
+                                    {
+                                        var topAnnotation = GetTopAnnotation(annotatedEvent.Annotations);
+                                        var isSelected = _selectedEvent == annotatedEvent;
+                                        <button class="da-dot @(isSelected ? "selected" : "")"
+                                                style="background-color: @topAnnotation.Color; border-color: @(isSelected ? "white" : topAnnotation.Color)"
+                                                title="@(FormatTime(annotatedEvent.Event.Timestamp)) - @topAnnotation.Summary"
+                                                @onclick="() => SelectEvent(annotatedEvent)">
+                                        </button>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </div>
+
+                    @if (_selectedEvent is not null && scopedEvents.Contains(_selectedEvent))
                     {
-                        <div class="da-row">
-                            <span class="da-row-label">@FormatMinute(row.MinuteIndex)</span>
-                            <div class="da-row-dots">
-                                @foreach (var annotatedEvent in row.Events)
-                                {
-                                    var topAnnotation = GetTopAnnotation(annotatedEvent.Annotations);
-                                    var isSelected = _selectedEvent == annotatedEvent;
-                                    <button class="da-dot @(isSelected ? "selected" : "")"
-                                            style="background-color: @topAnnotation.Color; border-color: @(isSelected ? "white" : topAnnotation.Color)"
-                                            title="@(FormatTime(annotatedEvent.Event.Timestamp)) — @topAnnotation.Summary"
-                                            @onclick="() => SelectEvent(annotatedEvent)">
-                                    </button>
-                                }
+                        <div class="da-detail">
+                            <div class="da-detail-header">
+                                <h4>Event Details</h4>
+                                <button class="da-clear-btn" @onclick="ClearSelection">Clear selection</button>
+                            </div>
+                            <div class="da-detail-columns">
+                                <div class="da-detail-meta">
+                                    <dl>
+                                        <dt>Time</dt>
+                                        <dd>@FormatTime(_selectedEvent.Event.Timestamp)</dd>
+                                        <dt>Type</dt>
+                                        <dd class="da-type">@GetTypeName(_selectedEvent.Event)</dd>
+                                        @if (_selectedEvent.Event is IAbilityEvent ae)
+                                        {
+                                            <dt>Ability</dt>
+                                            <dd>
+                                                @ae.Ability?.Name <small>(@ae.Ability?.Id)</small>
+                                                @if (ae.Ability is not null)
+                                                {
+                                                    <CopySpellDefinition Spell="ae.Ability" />
+                                                }
+                                            </dd>
+                                        }
+                                        @if (_selectedEvent.Event is IHasSourceEvent src)
+                                        {
+                                            <dt>Source</dt>
+                                            <dd>@src.SourceId</dd>
+                                        }
+                                        @if (_selectedEvent.Event is IHasTargetEvent tgt)
+                                        {
+                                            <dt>Target</dt>
+                                            <dd>@tgt.TargetId</dd>
+                                        }
+                                    </dl>
+
+                                    @foreach (var annotation in _selectedEvent.Annotations)
+                                    {
+                                        <div class="da-annotation" style="border-left-color: @annotation.Color">
+                                            <div class="da-annotation-summary" style="color: @annotation.Color">
+                                                @annotation.Summary
+                                            </div>
+                                            @if (annotation.Details is not null)
+                                            {
+                                                <div class="da-annotation-details">@annotation.Details</div>
+                                            }
+                                        </div>
+                                    }
+                                </div>
+                                <pre class="da-json">@GetEventJson(_selectedEvent.Event)</pre>
                             </div>
                         </div>
                     }
                 </div>
-
-                @if (_selectedEvent is not null && moduleAnnotations.AnnotatedEvents.Contains(_selectedEvent))
-                {
-                    <div class="da-detail">
-                        <div class="da-detail-header">
-                            <h4>Event Details</h4>
-                            <button class="da-clear-btn" @onclick="ClearSelection">Clear selection</button>
-                        </div>
-                        <div class="da-detail-columns">
-                            <div class="da-detail-meta">
-                                <dl>
-                                    <dt>Time</dt>
-                                    <dd>@FormatTime(_selectedEvent.Event.Timestamp)</dd>
-                                    <dt>Type</dt>
-                                    <dd class="da-type">@GetTypeName(_selectedEvent.Event)</dd>
-                                    @if (_selectedEvent.Event is IAbilityEvent ae)
-                                    {
-                                        <dt>Ability</dt>
-                                        <dd>
-                                            @ae.Ability?.Name <small>(@ae.Ability?.Id)</small>
-                                            @if (ae.Ability is not null)
-                                            {
-                                                <CopySpellDefinition Spell="ae.Ability" />
-                                            }
-                                        </dd>
-                                    }
-                                    @if (_selectedEvent.Event is IHasSourceEvent src)
-                                    {
-                                        <dt>Source</dt>
-                                        <dd>@src.SourceId</dd>
-                                    }
-                                    @if (_selectedEvent.Event is IHasTargetEvent tgt)
-                                    {
-                                        <dt>Target</dt>
-                                        <dd>@tgt.TargetId</dd>
-                                    }
-                                </dl>
-
-                                @foreach (var annotation in _selectedEvent.Annotations)
-                                {
-                                    <div class="da-annotation" style="border-left-color: @annotation.Color">
-                                        <div class="da-annotation-summary" style="color: @annotation.Color">
-                                            @annotation.Summary
-                                        </div>
-                                        @if (annotation.Details is not null)
-                                        {
-                                            <div class="da-annotation-details">@annotation.Details</div>
-                                        }
-                                    </div>
-                                }
-                            </div>
-                            <pre class="da-json">@GetEventJson(_selectedEvent.Event)</pre>
-                        </div>
-                    </div>
-                }
-            </div>
         }
     </div>
+    }
 }
 
 @code {
     [Parameter, EditorRequired] public DebugAnnotations? DebugAnnotations { get; set; }
 
     private AnnotatedEvent? _selectedEvent;
+
+    protected override void OnParametersSet()
+    {
+        if (_selectedEvent is not null && SelectedPull is not null &&
+            (_selectedEvent.Event.Timestamp < SelectedPull.StartTime || _selectedEvent.Event.Timestamp > SelectedPull.EndTime))
+        {
+            _selectedEvent = null;
+        }
+    }
 
     private void SelectEvent(AnnotatedEvent annotatedEvent)
     {
@@ -110,6 +135,14 @@ else
     private void ClearSelection() => _selectedEvent = null;
 
     // ── Helpers ───────────────────────────────────────────────────────────────
+
+    private IReadOnlyList<AnnotatedEvent> FilterToSelectedPull(IReadOnlyList<AnnotatedEvent> events)
+    {
+        var pull = SelectedPull;
+        return pull is null
+            ? events
+            : events.Where(ae => ae.Event.Timestamp >= pull.StartTime && ae.Event.Timestamp <= pull.EndTime).ToList();
+    }
 
     private string FormatTime(int timestamp)
     {

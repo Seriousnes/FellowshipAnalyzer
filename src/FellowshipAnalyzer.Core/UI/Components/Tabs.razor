@@ -31,6 +31,10 @@
                 }
             </button>
         }
+        @if (Actions is not null)
+        {
+            <div class="tabs-actions">@Actions</div>
+        }
     </nav>
     @if (activeItem?.ChildContent is { } panel)
     {
@@ -43,6 +47,10 @@
     private string? _internalActiveId;
 
     [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>Optional content rendered at the trailing end of the tab bar, on the same line as the tabs.</summary>
+    [Parameter] public RenderFragment? Actions { get; set; }
+
     [Parameter] public TabsVariant Variant { get; set; } = TabsVariant.Underline;
     [Parameter] public string? ActiveId { get; set; }
     [Parameter] public EventCallback<string> ActiveIdChanged { get; set; }

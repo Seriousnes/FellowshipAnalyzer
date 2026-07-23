@@ -1,7 +1,7 @@
 @using FellowshipAnalyzer.Core.Analysis
 
-@* Identifies the pull a per-pull result belongs to: a boss/trash icon + colour, the Fellowship
-   Logs pull id (for correlation), and the pull name. *@
+@* Identifies the pull a per-pull result belongs to: a boss/trash icon + colour, the 1-based
+   pull number, and the pull name. *@
 
 <div class="pull-banner @(Pull.IsBoss ? "boss" : "trash")" title="@(Pull.IsBoss ? "Boss" : "Trash") pull">
     <span class="pull-banner-icon" aria-label="@(Pull.IsBoss ? "Boss" : "Trash")">
@@ -22,7 +22,7 @@
     </span>
     @if (Pull.Id != 0)
     {
-        <span class="pull-banner-id">#@Pull.Id</span>
+        <span class="pull-banner-id">#@(Pull.Index + 1)</span>
     }
     <span class="pull-banner-name">@DisplayName</span>
 </div>

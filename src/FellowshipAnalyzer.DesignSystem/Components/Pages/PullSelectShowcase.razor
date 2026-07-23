@@ -1,0 +1,77 @@
+@page "/pull-select"
+
+<PageTitle>PullSelect - Design System</PageTitle>
+
+<h1>PullSelect</h1>
+<p class="lede">Single-select pull filter with prev/next steppers. A <code>null</code> value maps to "Entire Dungeon" (no clamp). Bind with <code>@@bind-Value</code>. Open the panel and use arrow keys, Home/End, Enter/Space, and Escape.</p>
+
+<CodeExample Title="Default (Entire Dungeon)" Description="@Describe(_selected)" Code="@_basicCode">
+    <Demo>
+        <PullSelect Pulls="_pulls" FightStartTime="_fightStart" @bind-Value="_selected" />
+    </Demo>
+</CodeExample>
+
+<CodeExample Title="Boss pull preselected" Description="@Describe(_bossSelected)" Code="@_presetCode">
+    <Demo>
+        <PullSelect Pulls="_pulls" FightStartTime="_fightStart" @bind-Value="_bossSelected" />
+    </Demo>
+</CodeExample>
+
+<CodeExample Title="Steppers" Description="Prev/next walk the pull list; next from Entire Dungeon jumps to the first pull." Code="@_stepperCode">
+    <Demo>
+        <PullSelect Pulls="_pulls" FightStartTime="_fightStart" @bind-Value="_stepped" />
+    </Demo>
+</CodeExample>
+
+@code {
+    private const int _fightStart = 600_000;
+
+    private static readonly IReadOnlyList<Pull> _pulls =
+    [
+        new(0, 101, "Gnarled Sentinels", 630_000, 685_000, PullKind.Multi, IsBoss: false, Kill: true, TargetCount: 5),
+        new(1, 102, "Fungal Brood", 690_000, 742_000, PullKind.Multi, IsBoss: false, Kill: true, TargetCount: 7),
+        new(2, 103, "Rotmaw", 760_000, 845_000, PullKind.Single, IsBoss: true, Kill: false, TargetCount: 1),
+        new(3, 104, "Rotmaw", 860_000, 928_000, PullKind.Single, IsBoss: true, Kill: true, TargetCount: 1),
+    ];
+
+    private Pull? _selected;
+    private Pull? _bossSelected = _pulls[2];
+    private Pull? _stepped;
+
+    private static string Describe(Pull? pull) =>
+        pull is null
+            ? "Selected: Entire Dungeon"
+            : $"Selected: Pull #{pull.Index + 1}{(string.IsNullOrWhiteSpace(pull.Name) ? "" : $" - {pull.Name}")}";
+
+    private const string _basicCode = """
+<PullSelect Pulls="_pulls" FightStartTime="_fightStart" @bind-Value="_selected" />
+
+@code {
+    private const int _fightStart = 600_000;
+
+    private static readonly IReadOnlyList<Pull> _pulls =
+    [
+        new(0, 101, "Gnarled Sentinels", 630_000, 685_000, PullKind.Multi, IsBoss: false, Kill: true, TargetCount: 5),
+        new(2, 103, "Rotmaw", 760_000, 845_000, PullKind.Single, IsBoss: true, Kill: false, TargetCount: 1),
+    ];
+
+    private Pull? _selected;
+}
+""";
+
+    private const string _presetCode = """
+<PullSelect Pulls="_pulls" FightStartTime="_fightStart" @bind-Value="_bossSelected" />
+
+@code {
+    private Pull? _bossSelected = _pulls[2];
+}
+""";
+
+    private const string _stepperCode = """
+<PullSelect Pulls="_pulls" FightStartTime="_fightStart" @bind-Value="_stepped" />
+
+@code {
+    private Pull? _stepped;
+}
+""";
+}

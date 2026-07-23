@@ -65,6 +65,93 @@ public sealed class PullAnalyzerSurfaceTests
         Assert.Equal(2, parser.PullAnalyzers.Count);
     }
 
+    [Fact]
+    public async Task SelectedPull_ClampsGeneratedSurfaceStream_AndLeavesPullsUnclamped()
+    {
+        var services = new ServiceCollection();
+        services.AddLogging();
+        services.AddCoreAnalysisServices();
+        services.AddCoreAnalysis();
+        services.AddPullSurfaceAnalysis();
+        using var provider = services.BuildServiceProvider();
+        using var scope = provider.CreateScope();
+
+        var parser = scope.ServiceProvider.GetRequiredService<PullSurfaceCombatLogParser>();
+
+        var pulls = new List<DungeonPull>
+        {
+            new(Id: 1, EncounterId: 0, Kill: null, StartTime: 100, EndTime: 300, Name: "P0", EnemyNpcs: null),
+            new(Id: 2, EncounterId: 42, Kill: true, StartTime: 500, EndTime: 700, Name: "P1", EnemyNpcs: null),
+        };
+        var events = new List<Event>
+        {
+            Buff(150), Buff(250),
+            Buff(550), Buff(600), Buff(650),
+        };
+
+        await parser.Analyze(events, playerId: 7, fight: Fight(pulls));
+
+        Assert.Null(parser.SelectedPull);
+        Assert.Equal(2, parser.PullBuffAnalyzers.Count);
+        Assert.Equal(2, parser.PullAnalyzers.Count);
+
+        var second = parser.Pulls[1];
+        parser.SelectedPull = second;
+
+        var clamped = parser.PullBuffAnalyzers;
+        Assert.Single(clamped);
+        Assert.Same(second, clamped[0].Pull);
+        Assert.Single(parser.PullAnalyzers);
+        Assert.Same(second, parser.PullAnalyzers[0].Pull);
+
+        Assert.Equal(2, parser.Pulls.Count);
+
+        parser.SelectedPull = null;
+        Assert.Equal(2, parser.PullBuffAnalyzers.Count);
+        Assert.Equal(2, parser.PullAnalyzers.Count);
+    }
+
+    [Fact]
+    public async Task SelectedPull_OnSkippedKind_ReturnsEmptySurface()
+    {
+        var services = new ServiceCollection();
+        services.AddLogging();
+        services.AddCoreAnalysisServices();
+        services.AddCoreAnalysis();
+        services.AddPullClampAnalysis();
+        using var provider = services.BuildServiceProvider();
+        using var scope = provider.CreateScope();
+
+        var parser = scope.ServiceProvider.GetRequiredService<PullClampCombatLogParser>();
+
+        var pulls = new List<DungeonPull>
+        {
+            new(Id: 1, EncounterId: 0, Kill: null, StartTime: 100, EndTime: 300, Name: "Trash", EnemyNpcs: null),
+            new(Id: 2, EncounterId: 42, Kill: true, StartTime: 500, EndTime: 700, Name: "Boss", EnemyNpcs: null),
+        };
+        var events = new List<Event>
+        {
+            Buff(150),
+            Buff(550), Buff(600),
+        };
+
+        await parser.Analyze(events, playerId: 7, fight: Fight(pulls));
+
+        Assert.Single(parser.SingleOnlyAnalyzers);
+        var bossPull = parser.SingleOnlyAnalyzers[0].Pull;
+        Assert.True(bossPull.IsBoss);
+
+        var trashPull = parser.Pulls[0];
+        Assert.False(trashPull.IsBoss);
+
+        parser.SelectedPull = trashPull;
+        Assert.Empty(parser.SingleOnlyAnalyzers);
+
+        parser.SelectedPull = bossPull;
+        Assert.Single(parser.SingleOnlyAnalyzers);
+        Assert.Same(bossPull, parser.SingleOnlyAnalyzers[0].Pull);
+    }
+
     private static ReportFight Fight(IReadOnlyList<DungeonPull> pulls)
         => new(Id: 0, Name: "Fight", EncounterId: 0, Kill: null,
             StartTime: 0, EndTime: 1000, Difficulty: null,
@@ -98,4 +185,16 @@ public sealed partial class PullBuffAnalyzer(Lazy<FightBuffCounter> state) : Ana
 
     [On<PullEndEvent>]
     private void OnPullEnd(PullEndEvent _) => FightCountAtEnd = state.Value.Count;
+}
+
+[AddAnalyzer<SingleOnlyAnalyzer>]
+public sealed partial class PullClampCombatLogParser : CombatLogParser { }
+
+[ForPull(PullKind.Single)]
+public sealed partial class SingleOnlyAnalyzer : Analyzer
+{
+    public int PullCount { get; private set; }
+
+    [On<ApplyBuffEvent>(By = Actor.Player)]
+    private void OnBuff(ApplyBuffEvent e) => PullCount++;
 }

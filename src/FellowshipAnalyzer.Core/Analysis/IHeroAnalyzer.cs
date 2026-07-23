@@ -26,5 +26,16 @@ public interface IHeroAnalyzer
     /// </summary>
     Type? GuideComponent { get; }
 
+    /// <summary>
+    /// Every ended pull in encounter order. Enumerated by the report header's pull-filter select.
+    /// </summary>
+    IReadOnlyList<Pull> Pulls { get; }
+
+    /// <summary>
+    /// When set, generated analyzer surface streams are clamped to this pull so a report view can
+    /// crop to a single encounter. <c>null</c> leaves the whole fight in view.
+    /// </summary>
+    Pull? SelectedPull { get; set; }
+
     Task<HeroAnalysisResult> Analyze(IReadOnlyList<Event> events, int playerId, ReportFight fight);
 }

@@ -18,6 +18,22 @@
     </Demo>
 </CodeExample>
 
+<CodeExample Title="Trailing actions"
+             Description="Actions renders right-aligned on the tab bar line (e.g. the report's pull filter)."
+             Code="@_actionsCode">
+    <Demo>
+        <Tabs Variant="TabsVariant.Underline">
+            <ChildContent>
+                <TabItem Id="guide" Label="Guide">Guide panel content.</TabItem>
+                <TabItem Id="stats" Label="Statistics">Statistics panel content.</TabItem>
+            </ChildContent>
+            <Actions>
+                <Badge Variant="BadgeVariant.Gold" Size="BadgeSize.Sm">Entire Dungeon</Badge>
+            </Actions>
+        </Tabs>
+    </Demo>
+</CodeExample>
+
 <CodeExample Title="Pill"
              Description="Sub-navigation within tab panels (e.g. About → Overview / Events / Debug)."
              Code="@_pillCode">
@@ -85,6 +101,24 @@
     <TabItem Id="stats" Label="Statistics">Statistics panel content.</TabItem>
     <TabItem Id="timeline" Label="Timeline">Timeline panel content.</TabItem>
     <TabItem Id="about" Label="About" Disabled>About panel content.</TabItem>
+</Tabs>
+""";
+
+    private const string _actionsCode = """
+<Tabs Variant="TabsVariant.Underline" Actions="@RenderFilter()">
+    <TabItem Id="guide" Label="Guide">Guide panel content.</TabItem>
+    <TabItem Id="stats" Label="Statistics">Statistics panel content.</TabItem>
+</Tabs>
+
+Or with explicit elements (ChildContent must then be explicit too):
+
+<Tabs Variant="TabsVariant.Underline">
+    <ChildContent>
+        <TabItem Id="guide" Label="Guide">Guide panel content.</TabItem>
+    </ChildContent>
+    <Actions>
+        <PullSelect ... />
+    </Actions>
 </Tabs>
 """;
 

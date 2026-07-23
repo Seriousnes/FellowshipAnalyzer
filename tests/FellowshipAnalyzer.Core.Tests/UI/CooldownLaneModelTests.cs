@@ -7,23 +7,21 @@ namespace FellowshipAnalyzer.Core.Tests.UI;
 
 /// <summary>
 /// Tests for <see cref="CooldownLaneModel"/>: recharge bars end at the actual charge-restore
-/// timestamp, not the (possibly stale) expected recharge, so dynamic cooldown reductions render
-/// correctly instead of drawing full-length bars with a restore landing mid-bar.
+/// timestamp, not the (possibly stale) expected recharge, and every emitted element is clipped to
+/// the render window <c>[windowStart, windowEnd]</c> so a single-pull view crops correctly.
 /// </summary>
 public sealed class CooldownLaneModelTests
 {
     [Fact]
     public void RestoreBeforeExpectedRecharge_BarEndsAtActualRestore()
     {
-        // Cast at 1000 with a nominal 20s recharge, but the charge is restored at 6000 (a dynamic
-        // reduction shortened it). The bar must end at 6000, not the stale 21000.
         var events = new List<UpdateSpellUsableEvent>
         {
             Update(UpdateSpellUsableType.BeginCooldown, ts: 1000, chargeStart: 1000, expEnd: 21000, onCd: true),
             Update(UpdateSpellUsableType.RestoreCharge, ts: 6000, chargeStart: 6000, expEnd: 26000, onCd: false),
         };
 
-        var (segments, restores) = CooldownLaneModel.Build(events, fightEndTime: 60_000);
+        var (segments, restores) = CooldownLaneModel.Build(events, windowStart: 0, windowEnd: 60_000);
 
         var bar = Assert.Single(segments, s => s.End > s.Start);
         Assert.Equal(1000, bar.Start);
@@ -34,8 +32,6 @@ public sealed class CooldownLaneModelTests
     [Fact]
     public void TwoChargeSpam_ProducesSequentialNonOverlappingBars()
     {
-        // Both charges used, then restored one at a time. Each recharge bar spans from its start to
-        // the next restore/end, so the bars are sequential and never overlap.
         var events = new List<UpdateSpellUsableEvent>
         {
             Update(UpdateSpellUsableType.BeginCooldown, ts: 1000, chargeStart: 1000, expEnd: 21000, onCd: true),
@@ -44,7 +40,7 @@ public sealed class CooldownLaneModelTests
             Update(UpdateSpellUsableType.EndCooldown, ts: 9000, chargeStart: 6000, expEnd: 26000, onCd: false),
         };
 
-        var (segments, _) = CooldownLaneModel.Build(events, fightEndTime: 60_000);
+        var (segments, _) = CooldownLaneModel.Build(events, windowStart: 0, windowEnd: 60_000);
 
         var bars = segments.Where(s => s.End > s.Start).ToList();
         Assert.Equal(2, bars.Count);
@@ -62,31 +58,114 @@ public sealed class CooldownLaneModelTests
             Update(UpdateSpellUsableType.UseCharge, ts: 2000, chargeStart: 1000, expEnd: 21000, onCd: true),
         };
 
-        var (segments, _) = CooldownLaneModel.Build(events, fightEndTime: 60_000);
+        var (segments, _) = CooldownLaneModel.Build(events, windowStart: 0, windowEnd: 60_000);
 
         var icons = segments.Where(s => s.ShowIcon).Select(s => s.IconAt).ToList();
         Assert.Equal([1000, 2000], icons);
     }
 
     [Fact]
-    public void RechargeOpenAtFightEnd_ClampsToExpectedRechargeThenFightEnd()
+    public void RechargeOpenAtFightEnd_ClampsToExpectedRechargeThenWindowEnd()
     {
-        // Recharge whose expected completion is before fight end closes at the expected time
-        // (a post-combat completion should not render as an open bar to the fight end).
         var beforeEnd = new List<UpdateSpellUsableEvent>
         {
             Update(UpdateSpellUsableType.BeginCooldown, ts: 1000, chargeStart: 1000, expEnd: 5000, onCd: true),
         };
-        var (segmentsBefore, _) = CooldownLaneModel.Build(beforeEnd, fightEndTime: 60_000);
+        var (segmentsBefore, _) = CooldownLaneModel.Build(beforeEnd, windowStart: 0, windowEnd: 60_000);
         Assert.Equal(5000, Assert.Single(segmentsBefore, s => s.End > s.Start).End);
 
-        // Recharge still in progress at fight end clamps to the fight end.
         var pastEnd = new List<UpdateSpellUsableEvent>
         {
             Update(UpdateSpellUsableType.BeginCooldown, ts: 1000, chargeStart: 1000, expEnd: 21000, onCd: true),
         };
-        var (segmentsPast, _) = CooldownLaneModel.Build(pastEnd, fightEndTime: 10_000);
+        var (segmentsPast, _) = CooldownLaneModel.Build(pastEnd, windowStart: 0, windowEnd: 10_000);
         Assert.Equal(10_000, Assert.Single(segmentsPast, s => s.End > s.Start).End);
+    }
+
+    [Fact]
+    public void SegmentStraddlingWindowStart_ClipsToWindowStart()
+    {
+        var events = new List<UpdateSpellUsableEvent>
+        {
+            Update(UpdateSpellUsableType.BeginCooldown, ts: 500, chargeStart: 500, expEnd: 20500, onCd: true),
+            Update(UpdateSpellUsableType.RestoreCharge, ts: 8000, chargeStart: 8000, expEnd: 28000, onCd: false),
+        };
+
+        var (segments, restores) = CooldownLaneModel.Build(events, windowStart: 2000, windowEnd: 60_000);
+
+        var bar = Assert.Single(segments, s => s.End > s.Start);
+        Assert.Equal(2000, bar.Start);
+        Assert.Equal(8000, bar.End);
+        Assert.DoesNotContain(segments, s => s.ShowIcon);
+        Assert.Equal([8000], restores);
+    }
+
+    [Fact]
+    public void SegmentStraddlingWindowEnd_ClipsToWindowEndAndDropsLateRestore()
+    {
+        var events = new List<UpdateSpellUsableEvent>
+        {
+            Update(UpdateSpellUsableType.BeginCooldown, ts: 1000, chargeStart: 1000, expEnd: 21000, onCd: true),
+            Update(UpdateSpellUsableType.RestoreCharge, ts: 8000, chargeStart: 8000, expEnd: 28000, onCd: false),
+        };
+
+        var (segments, restores) = CooldownLaneModel.Build(events, windowStart: 0, windowEnd: 5000);
+
+        var bar = Assert.Single(segments, s => s.End > s.Start);
+        Assert.Equal(1000, bar.Start);
+        Assert.Equal(5000, bar.End);
+        Assert.Empty(restores);
+    }
+
+    [Fact]
+    public void SegmentsFullyOutsideWindow_Dropped()
+    {
+        var beforeWindow = new List<UpdateSpellUsableEvent>
+        {
+            Update(UpdateSpellUsableType.BeginCooldown, ts: 1000, chargeStart: 1000, expEnd: 5000, onCd: true),
+            Update(UpdateSpellUsableType.EndCooldown, ts: 5000, chargeStart: 1000, expEnd: 5000, onCd: false),
+        };
+        var (segmentsBefore, restoresBefore) = CooldownLaneModel.Build(beforeWindow, windowStart: 10_000, windowEnd: 20_000);
+        Assert.Empty(segmentsBefore);
+        Assert.Empty(restoresBefore);
+
+        var afterWindow = new List<UpdateSpellUsableEvent>
+        {
+            Update(UpdateSpellUsableType.BeginCooldown, ts: 25_000, chargeStart: 25_000, expEnd: 45_000, onCd: true),
+        };
+        var (segmentsAfter, _) = CooldownLaneModel.Build(afterWindow, windowStart: 10_000, windowEnd: 20_000);
+        Assert.Empty(segmentsAfter);
+    }
+
+    [Fact]
+    public void IconBeforeWindowStart_Suppressed()
+    {
+        var events = new List<UpdateSpellUsableEvent>
+        {
+            Update(UpdateSpellUsableType.BeginCooldown, ts: 1000, chargeStart: 1000, expEnd: 41000, onCd: true),
+            Update(UpdateSpellUsableType.UseCharge, ts: 5000, chargeStart: 1000, expEnd: 41000, onCd: true),
+        };
+
+        var (segments, _) = CooldownLaneModel.Build(events, windowStart: 3000, windowEnd: 60_000);
+
+        var icon = Assert.Single(segments, s => s.ShowIcon);
+        Assert.Equal(5000, icon.IconAt);
+    }
+
+    [Fact]
+    public void ChargeRestores_FilteredToWindow()
+    {
+        var events = new List<UpdateSpellUsableEvent>
+        {
+            Update(UpdateSpellUsableType.BeginCooldown, ts: 1000, chargeStart: 1000, expEnd: 21000, onCd: true),
+            Update(UpdateSpellUsableType.RestoreCharge, ts: 1500, chargeStart: 1500, expEnd: 21500, onCd: true),
+            Update(UpdateSpellUsableType.RestoreCharge, ts: 6000, chargeStart: 6000, expEnd: 26000, onCd: true),
+            Update(UpdateSpellUsableType.RestoreCharge, ts: 12000, chargeStart: 12000, expEnd: 32000, onCd: false),
+        };
+
+        var (_, restores) = CooldownLaneModel.Build(events, windowStart: 2000, windowEnd: 10_000);
+
+        Assert.Equal([6000], restores);
     }
 
     private static UpdateSpellUsableEvent Update(

@@ -23,8 +23,16 @@ public abstract class ReportComponentBase : ComponentBase
     [CascadingParameter]
     protected HeroAnalysisResult Result {get; set; } = null!;
 
-    [CascadingParameter] 
+    [CascadingParameter]
     public IHeroAnalyzer Owner { get; set; } = null!;
+
+    /// <summary>
+    /// The pull the report is currently clamped to, or <c>null</c> for the whole fight ("Entire
+    /// Dungeon"). Supplied by the report shell as a named cascade so every report-scoped component
+    /// crops its view to the same pull window.
+    /// </summary>
+    [CascadingParameter(Name = "SelectedPull")]
+    protected Pull? SelectedPull { get; set; }
 
     /// <summary>Absolute fight start timestamp in milliseconds.</summary>
     protected int FightStartTime => FightTime.StartTime;

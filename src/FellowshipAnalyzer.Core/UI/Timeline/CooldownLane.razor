@@ -29,17 +29,25 @@
 @code {
     [Parameter, EditorRequired] public SpellbookAbility Ability { get; set; } = null!;
     [Parameter, EditorRequired] public IReadOnlyList<UpdateSpellUsableEvent> CooldownEvents { get; set; } = [];
+
+    /// <summary>True fight start, used as the origin for tooltip timestamps so they stay fight-relative.</summary>
     [Parameter, EditorRequired] public int FightStartTime { get; set; }
-    [Parameter, EditorRequired] public int FightEndTime { get; set; }
+
+    /// <summary>Render-window start (selected pull start, or fight start). Geometry origin.</summary>
+    [Parameter, EditorRequired] public int WindowStart { get; set; }
+
+    /// <summary>Render-window end (selected pull end, or fight end). Geometry extent.</summary>
+    [Parameter, EditorRequired] public int WindowEnd { get; set; }
+
     [Parameter] public double PixelsPerSecond { get; set; } = 60.0;
 
     private IReadOnlyList<CooldownSegment> _segments = [];
     private IReadOnlyList<int> _chargeRestoreTimestamps = [];
 
-    private double TrackWidthPx => ((FightEndTime - FightStartTime) / 1000.0) * PixelsPerSecond;
+    private double TrackWidthPx => ((WindowEnd - WindowStart) / 1000.0) * PixelsPerSecond;
 
     private string Px(int timestamp) =>
-        ((timestamp - FightStartTime) / 1000.0 * PixelsPerSecond).ToString("F1", CultureInfo.InvariantCulture) + "px";
+        ((timestamp - WindowStart) / 1000.0 * PixelsPerSecond).ToString("F1", CultureInfo.InvariantCulture) + "px";
 
     private string DurPx(int durationMs) =>
         (durationMs / 1000.0 * PixelsPerSecond).ToString("F1", CultureInfo.InvariantCulture) + "px";
@@ -59,5 +67,5 @@
     }
 
     protected override void OnParametersSet() =>
-        (_segments, _chargeRestoreTimestamps) = CooldownLaneModel.Build(CooldownEvents, FightEndTime);
+        (_segments, _chargeRestoreTimestamps) = CooldownLaneModel.Build(CooldownEvents, WindowStart, WindowEnd);
 }

@@ -825,7 +825,7 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
         {
             var field = AnalyzerListFieldName(st.MemberName);
             sb.AppendLine("    private readonly global::FellowshipAnalyzer.Core.Analysis.PullAnalyzerList<" + st.Fqn + "> " + field + " = new();");
-            sb.AppendLine("    public global::System.Collections.Generic.IReadOnlyList<global::FellowshipAnalyzer.Core.Analysis.PullAnalyzer<" + st.Fqn + ">> " + st.MemberName + "s => " + field + ";");
+            sb.AppendLine("    public global::System.Collections.Generic.IReadOnlyList<global::FellowshipAnalyzer.Core.Analysis.PullAnalyzer<" + st.Fqn + ">> " + st.MemberName + "s => ClampToSelectedPull(" + field + ");");
         }
 
         sb.AppendLine();
