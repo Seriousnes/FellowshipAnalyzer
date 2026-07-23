@@ -5,7 +5,7 @@
 @* PullSelect: styled single-select over a report's pulls, flanked by prev/next steppers.
    A null Value maps to "Entire Dungeon" (no clamp). Two-way bindable via @bind-Value. *@
 
-<div class="pull-select" @onfocusout="OnFocusOut" @attributes="InputAttributes">
+<div class="pull-select" @ref="_rootElement" @onfocusout="OnFocusOut" @attributes="InputAttributes">
     <button type="button"
             class="pull-select-nav"
             disabled="@(!CanStepPrev)"
@@ -124,8 +124,11 @@
     private bool _open;
     private int _highlightedRow;
     private ElementReference _triggerElement;
+    private ElementReference _rootElement;
     private IJSObjectReference? _keysModule;
     private IJSObjectReference? _keysHandle;
+    private DotNetObjectReference<PullSelect>? _selfReference;
+    private bool _syncedOpen;
 
     private string OptionId(int row) => $"{_listboxId}-opt-{row}";
 
@@ -248,15 +251,34 @@
         }
     }
 
+    /// <summary>Closes the open panel when the JS module observes a pointer press outside the component.</summary>
+    [JSInvokable]
+    public Task CloseFromOutsideAsync() =>
+        InvokeAsync(() =>
+        {
+            if (!_open)
+                return;
+            _open = false;
+            StateHasChanged();
+        });
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (!firstRender)
-            return;
+        if (firstRender)
+        {
+            _selfReference = DotNetObjectReference.Create(this);
+            _keysModule = await JS.InvokeAsync<IJSObjectReference>(
+                "import",
+                "./_content/FellowshipAnalyzer.Core/pull-select-keys.js");
+            _keysHandle = await _keysModule.InvokeAsync<IJSObjectReference>(
+                "attach", _triggerElement, _rootElement, _selfReference);
+        }
 
-        _keysModule = await JS.InvokeAsync<IJSObjectReference>(
-            "import",
-            "./_content/FellowshipAnalyzer.Core/pull-select-keys.js");
-        _keysHandle = await _keysModule.InvokeAsync<IJSObjectReference>("attach", _triggerElement);
+        if (_keysHandle is not null && _syncedOpen != _open)
+        {
+            _syncedOpen = _open;
+            await _keysHandle.InvokeVoidAsync("setOpen", _open);
+        }
     }
 
     public async ValueTask DisposeAsync()
@@ -270,5 +292,7 @@
         {
             await _keysModule.DisposeAsync();
         }
+
+        _selfReference?.Dispose();
     }
 }
