@@ -95,7 +95,9 @@
     top: calc(100% + 0.35rem);
     right: 0;
     z-index: 30;
+    width: max-content;
     min-width: 20rem;
+    max-width: min(90vw, 32rem);
     max-height: 320px;
     overflow-y: auto;
     display: flex;
@@ -151,15 +153,20 @@
 .pull-select-option-name {
     flex: 1;
     min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
     font-weight: 600;
 }
 
+.pull-select-option-label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
 .pull-select-option-result {
-    display: inline-block;
-    margin-left: 0.35rem;
+    flex-shrink: 0;
     padding: 0.05rem 0.4rem;
     border-radius: 4px;
     font-size: 0.7rem;

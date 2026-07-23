@@ -58,7 +58,9 @@
                         <rect x="3" y="16" width="18" height="4" rx="1" />
                     </svg>
                 </span>
-                <span class="pull-select-option-name">Entire Dungeon</span>
+                <span class="pull-select-option-name">
+                    <span class="pull-select-option-label">Entire Dungeon</span>
+                </span>
             </div>
 
             @for (var i = 0; i < Pulls.Count; i++)
@@ -89,7 +91,7 @@
                         }
                     </span>
                     <span class="pull-select-option-name">
-                        @DisplayName(pull)
+                        <span class="pull-select-option-label">@DisplayName(pull)</span>
                         @if (pull.IsBoss)
                         {
                             <span class="pull-select-option-result @(pull.Kill ? "kill" : "wipe")">@(pull.Kill ? "Kill" : "Wipe")</span>
