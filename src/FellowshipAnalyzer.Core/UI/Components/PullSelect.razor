@@ -1,3 +1,7 @@
+@using Microsoft.JSInterop
+@implements IAsyncDisposable
+@inject IJSRuntime JS
+
 @* PullSelect: styled single-select over a report's pulls, flanked by prev/next steppers.
    A null Value maps to "Entire Dungeon" (no clamp). Two-way bindable via @bind-Value. *@
 
@@ -13,6 +17,7 @@
     </button>
 
     <div class="pull-select-trigger @(_open ? "open" : "")"
+         @ref="_triggerElement"
          role="button"
          tabindex="0"
          aria-haspopup="listbox"
@@ -118,6 +123,9 @@
     private readonly string _listboxId = $"pull-select-{Guid.NewGuid():N}";
     private bool _open;
     private int _highlightedRow;
+    private ElementReference _triggerElement;
+    private IJSObjectReference? _keysModule;
+    private IJSObjectReference? _keysHandle;
 
     private string OptionId(int row) => $"{_listboxId}-opt-{row}";
 
@@ -237,6 +245,30 @@
             case "Escape":
                 _open = false;
                 break;
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+            return;
+
+        _keysModule = await JS.InvokeAsync<IJSObjectReference>(
+            "import",
+            "./_content/FellowshipAnalyzer.Core/pull-select-keys.js");
+        _keysHandle = await _keysModule.InvokeAsync<IJSObjectReference>("attach", _triggerElement);
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_keysHandle is not null)
+        {
+            await _keysHandle.InvokeVoidAsync("dispose");
+        }
+
+        if (_keysModule is not null)
+        {
+            await _keysModule.DisposeAsync();
         }
     }
 }

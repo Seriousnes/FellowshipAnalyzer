@@ -18,7 +18,7 @@
 
         @* Icon left-aligned to apply timestamp *@
         <div class="aura-bar-icon" style="left: @OffsetPx(aura.IconAt); --level: @aura.Level;"
-             title="@aura.Name applied at @FormatTimestamp(aura.IconAt)">
+             title="@aura.Name applied at @FormatTimestamp(aura.AppliedAt)">
             <SpellIcon Spell="@aura.Spell" Size="SpellIconSize.Small" />
         </div>
     }
@@ -62,6 +62,7 @@
         int ClippedStart,
         int ClippedEnd,
         int IconAt,
+        int AppliedAt,
         int Level);
 
     private List<AuraSegment> _auras = [];
@@ -149,6 +150,7 @@
                 ClippedStart: clippedStart,
                 ClippedEnd: clippedEnd,
                 IconAt: iconAt,
+                AppliedAt: buff.Start,
                 Level: level));
         }
     }

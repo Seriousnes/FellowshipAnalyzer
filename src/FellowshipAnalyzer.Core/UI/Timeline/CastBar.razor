@@ -210,6 +210,9 @@
                 case CastEvent cast when cast.SourceId == PlayerId && cast.Channel is null:
                 {
                     beginCastByCast.TryGetValue(cast, out var beginCast);
+                    var castStart = beginCast?.Timestamp ?? cast.Timestamp;
+                    if (cast.Timestamp < WindowStart || castStart > WindowEnd)
+                        break;
                     var isLower = cast.GlobalCooldown is null;
                     var level = 0;
                     if (isLower)
@@ -240,6 +243,9 @@
 
                 case BeginChannelEvent bc when bc.SourceId == PlayerId:
                     endChannelByBegin.TryGetValue(bc, out var endChannel);
+                    var channelEnd = endChannel?.Timestamp ?? WindowEnd;
+                    if (bc.Timestamp > WindowEnd || channelEnd < WindowStart)
+                        break;
                     _items.Add(new ChannelItem(
                         bc,
                         endChannel,
@@ -248,6 +254,8 @@
                     break;
 
                 case BeginCastEvent cancelledBc when cancelledBc.SourceId == PlayerId && cancelledBc.IsCancelled:
+                    if (cancelledBc.Timestamp < WindowStart || cancelledBc.Timestamp > WindowEnd)
+                        break;
                     _items.Add(new CancelledCastItem(
                         cancelledBc,
                         Abilities?.GetAbility(cancelledBc.Ability.Id)));

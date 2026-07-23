@@ -8,12 +8,24 @@
 }
 else
 {
+    var scopedModules = DebugAnnotations.GetAll()
+        .Select(annotations => (Annotations: annotations, Events: FilterToSelectedPull(annotations.AnnotatedEvents)))
+        .Where(entry => entry.Events.Count > 0)
+        .ToList();
+
+    if (scopedModules.Count == 0)
+    {
+        <div class="da-empty">
+            @(SelectedPull is null
+                ? "No debug annotations were recorded during this analysis."
+                : "No debug annotations were recorded for the selected pull.")
+        </div>
+    }
+    else
+    {
     <div class="da-view">
-        @foreach (var moduleAnnotations in DebugAnnotations.GetAll())
+        @foreach (var (moduleAnnotations, scopedEvents) in scopedModules)
         {
-            var scopedEvents = FilterToSelectedPull(moduleAnnotations.AnnotatedEvents);
-            if (scopedEvents.Count > 0)
-            {
                 <div class="da-module">
                     <div class="da-module-header">
                         <h3 class="da-module-title">@moduleAnnotations.Module.GetType().Name</h3>
@@ -96,9 +108,9 @@ else
                         </div>
                     }
                 </div>
-            }
         }
     </div>
+    }
 }
 
 @code {
