@@ -2,10 +2,16 @@
 .spell-link {
     color: var(--fa-gold);
     text-decoration: none;
-}
+    white-space: nowrap;
 
-.spell-link:hover {
-    color: var(--fa-gold-light);
+    &:hover {
+        color: var(--fa-gold-light);
+        text-decoration: underline;
+    }
+
+    & > img {
+        margin-right: 3px;
+    }
 }
 
 .spell-link__icon {
@@ -15,8 +21,4 @@
     vertical-align: middle;
     border-radius: 2px;
     object-fit: cover;
-}
-
-.spell-link:hover {
-    text-decoration: underline;
 }

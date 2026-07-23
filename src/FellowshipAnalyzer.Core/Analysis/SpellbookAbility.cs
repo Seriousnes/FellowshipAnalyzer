@@ -48,7 +48,7 @@ public sealed record SpellbookAbility
     /// assign this over time; <c>null</c> means unclassified, which matches no <see cref="CooldownScope"/>
     /// category scope.
     /// </summary>
-    public Common.Spells.AbilityCategory? AbilityCategory { get; init; }
+    public AbilityCategory? AbilityCategory { get; init; }
 
     /// <summary>
     /// When true, the cooldown is reduced by haste using <c>Cooldown / (1 + haste)</c>.
