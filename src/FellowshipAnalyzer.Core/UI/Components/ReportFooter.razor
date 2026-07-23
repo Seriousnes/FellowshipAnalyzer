@@ -1,0 +1,36 @@
+@using FellowshipAnalyzer.Core.Analysis
+
+<footer class="report-footer">
+    <div class="report-footer-external">
+        <span class="report-footer-label">View on</span>
+        <a class="report-footer-link"
+           href="@ReportUrl"
+           target="_blank"
+           rel="noopener noreferrer">
+            <img class="report-footer-link-icon"
+                 src="https://assets.rpglogs.com/img/fellowship/favicon.png?v=4"
+                 alt="" />
+            Fellowship Logs
+        </a>
+    </div>
+</footer>
+
+@code {
+    [Parameter, EditorRequired]
+    public string ReportCode { get; set; } = "";
+
+    [Parameter, EditorRequired]
+    public int FightId { get; set; }
+
+    [Parameter, EditorRequired]
+    public int SourceId { get; set; }
+
+    /// <summary>Player's combat role; selects the FellowshipLogs view type (healers view healing, everyone else damage done).</summary>
+    [Parameter, EditorRequired]
+    public HeroRole Role { get; set; }
+
+    private string ViewType => Role == HeroRole.Healer ? "healing" : "damage-done";
+
+    private string ReportUrl =>
+        $"https://www.fellowshiplogs.com/reports/{ReportCode}?fight={FightId}&source={SourceId}&type={ViewType}";
+}

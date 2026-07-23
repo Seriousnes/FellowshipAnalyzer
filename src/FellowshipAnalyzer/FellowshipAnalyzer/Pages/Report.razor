@@ -203,6 +203,12 @@
                 </TabItem>
             </Tabs>
         </ReportValuesProvider>
+
+        var footerRole = Hero.TryParse(_context.Player.SubType, out var footerHero) ? footerHero.Role : HeroRole.Unknown;
+        <ReportFooter ReportCode="@ReportCode"
+                      FightId="@FightId"
+                      SourceId="@PlayerId"
+                      Role="@footerRole" />
     }
 </div>
 

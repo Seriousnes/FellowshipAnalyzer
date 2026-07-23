@@ -1,0 +1,39 @@
+@use 'tokens' as t;
+
+.report-footer {
+    margin-top: 2.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--fa-border);
+}
+
+.report-footer-external {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+}
+
+.report-footer-label {
+    color: var(--fa-text-muted);
+}
+
+.report-footer-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: var(--fa-gold);
+    font-weight: 600;
+    text-decoration: none;
+
+    &:hover {
+        color: var(--fa-gold-light);
+        text-decoration: underline;
+    }
+}
+
+.report-footer-link-icon {
+    height: 1.2em;
+    width: 1.2em;
+    border-radius: 2px;
+    object-fit: contain;
+}

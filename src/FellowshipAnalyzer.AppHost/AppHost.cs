@@ -29,7 +29,7 @@ var api = builder
     .WaitFor(blobs)
     .WithExternalHttpEndpoints();
 
-builder.AddProject<Projects.FellowshipAnalyzer_DevHost>("fellowshipanalyzer-devhost")
+builder.AddProject<Projects.FellowshipAnalyzer_DevHost>("fellowshipanalyzer-devhost", launchProfileName: "http")
     .WithReference(api)
     .WaitFor(api);
 
