@@ -88,12 +88,14 @@
                             </svg>
                         }
                     </span>
-                    <span class="pull-select-option-name">@DisplayName(pull)</span>
+                    <span class="pull-select-option-name">
+                        @DisplayName(pull)
+                        @if (pull.IsBoss)
+                        {
+                            <span class="pull-select-option-result @(pull.Kill ? "kill" : "wipe")">@(pull.Kill ? "Kill" : "Wipe")</span>
+                        }
+                    </span>
                     <span class="pull-select-option-range">@FormatRange(pull)</span>
-                    @if (pull.IsBoss)
-                    {
-                        <span class="pull-select-option-result @(pull.Kill ? "kill" : "wipe")">@(pull.Kill ? "Kill" : "Wipe")</span>
-                    }
                 </div>
             }
         </div>

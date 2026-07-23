@@ -157,15 +157,9 @@
     font-weight: 600;
 }
 
-.pull-select-option-range {
-    flex-shrink: 0;
-    color: var(--fa-text-dim);
-    font-size: 0.75rem;
-    font-variant-numeric: tabular-nums;
-}
-
 .pull-select-option-result {
-    flex-shrink: 0;
+    display: inline-block;
+    margin-left: 0.35rem;
     padding: 0.05rem 0.4rem;
     border-radius: 4px;
     font-size: 0.7rem;
@@ -183,3 +177,11 @@
         color: var(--fa-perf-fail);
     }
 }
+
+.pull-select-option-range {
+    flex-shrink: 0;
+    color: var(--fa-text-dim);
+    font-size: 0.75rem;
+    font-variant-numeric: tabular-nums;
+}
+
