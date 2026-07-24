@@ -120,6 +120,46 @@ When contributing:
 - Be careful moving code into `FellowshipAnalyzer.Core`; core code is shared by every analyzer.
 - Treat the per-hero project boundary as a future-friendly point for lazy loading or packaging improvements.
 
+## Codebase Knowledge Graph
+
+`graphify-out/` holds a [graphify](https://github.com/Graphify-Labs/graphify) knowledge graph of this repository: what the code and docs contain, how the pieces relate, named communities, and a rendered report. It is committed so contributors and coding assistants share one graph instead of each paying to build their own.
+
+Tracked: `graph.json`, `GRAPH_REPORT.md`, `manifest.json`, `.graphify_labels.json`.
+
+Ignored, because they are per-person, per-machine, or pure rebuild churn:
+
+- `graphify-out/cost.json`, which records your own API spend.
+- `graphify-out/cache/`, which is large and rebuildable.
+- `graphify-out/<YYYY-MM-DD>/`, the snapshot of the previous graph that every rebuild leaves behind. Each one is roughly 9 MB, so tracking them would grow the repo by that much per rebuild.
+- `.graphify_python` and `.graphify_root`, which record paths from whichever machine ran the build.
+
+This repo is past graphify's 5000-node limit for the interactive `graph.html` viz, so rebuilds skip it and it is not tracked. Read `GRAPH_REPORT.md`, or raise `GRAPHIFY_VIZ_NODE_LIMIT` locally if you want the HTML.
+
+After cloning, install the CLI and run the hook installer once:
+
+```powershell
+uv tool install graphifyy
+graphify hook install
+```
+
+Git hooks live in `.git/hooks` and are not versioned, so every contributor runs `graphify hook install` in their own clone. It sets up three things:
+
+- A `post-commit` hook that re-extracts the files the commit touched and rebuilds `graph.json` and `GRAPH_REPORT.md`. This is AST parsing only, so it needs no API key and costs nothing. The rebuild runs detached and logs to `~/.cache/graphify-rebuild.log`, so `git commit` returns immediately.
+- A `post-checkout` hook that rebuilds after a branch switch.
+- A merge driver registered in local git config. [.gitattributes](.gitattributes) carries the matching `graphify-out/graph.json merge=graphify` line, so two branches that both rebuilt the graph union-merge instead of leaving conflict markers in a multi-megabyte JSON file.
+
+Both hooks skip linked worktrees, no-op during rebase, merge, and cherry-pick, and skip commits that only touch `graphify-out/`. Set `GRAPHIFY_SKIP_HOOK=1` to suppress them for a single command.
+
+On Windows, `graphify hook install` registers the merge driver as a backslash path to the Python interpreter. Git runs merge drivers through `sh`, which eats the backslashes, so the driver silently fails and the merge falls back to a conflicted multi-megabyte `graph.json`. Re-register it through the launcher instead:
+
+```powershell
+git config merge.graphify.driver "graphify merge-driver %O %A %B"
+```
+
+`graphify hook status` only reports that a driver is configured, not that it runs, so it says "registered" either way. Confirm the command itself with `git config --get merge.graphify.driver`.
+
+Doc and image changes are outside the commit hook's scope. Rebuild the whole graph with `graphify extract .`, or `/graphify .` from Claude Code. That path does run an LLM backend and does cost tokens.
+
 ## Useful Commands
 
 ```powershell
