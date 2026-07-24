@@ -16,4 +16,17 @@ public sealed record ReportFight(
     bool InProgress = false,
     IReadOnlyList<DungeonPull>? DungeonPulls = null,
     IReadOnlyList<FightNpc>? EnemyNpcs = null
-);
+)
+{
+    private const int ZoneEncounterOffset = 100_000;
+
+    /// <summary>
+    /// Icon URL for the dungeon/zone this fight took place in, served from the RPGLogs CDN, or
+    /// <see langword="null"/> when the fight has no zone. Some reports offset the zone id by
+    /// <c>100000</c>, so <see cref="EncounterId"/> is reduced modulo that offset before use.
+    /// </summary>
+    public string? DungeonIconUrl =>
+        EncounterId % ZoneEncounterOffset is int zoneId and > 0
+            ? $"https://assets.rpglogs.com/img/fellowship/bosses/{zoneId}-icon.jpg"
+            : null;
+}

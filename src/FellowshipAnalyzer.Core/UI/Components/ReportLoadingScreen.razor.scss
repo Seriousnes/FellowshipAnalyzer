@@ -22,15 +22,15 @@
 .loading-bar {
     display: flex;
     height: 12px;
-    background: t.tint(t.$fa-black, t.$fa-tint-medium);
-    border-radius: 3px;
+    background: var(--fa-recess-deep, t.tint(t.$fa-black, t.$fa-tint-medium));
+    border-radius: var(--fa-radius-xs);
     overflow: hidden;
     margin-bottom: 1.5rem;
 }
 
 .loading-bar-chunk {
     flex: 1;
-    border: 1px solid t.tint(t.$fa-black, t.$fa-tint-muted);
+    border: var(--fa-border-width) solid var(--fa-edge, t.tint(t.$fa-black, t.$fa-tint-muted));
     background: t.tint(t.$fa-bg-surface, t.$fa-tint-strong);
     position: relative;
 }
@@ -77,8 +77,8 @@
 .loading-sub-bar {
     display: flex;
     height: 6px;
-    background: t.tint(t.$fa-black, t.$fa-tint-muted);
-    border-radius: 2px;
+    background: var(--fa-recess-deep, t.tint(t.$fa-black, t.$fa-tint-muted));
+    border-radius: var(--fa-radius-xs);
     overflow: hidden;
 }
 
@@ -91,7 +91,7 @@
     flex-shrink: 0;
     min-width: 6rem;
     padding: 0.3rem 0.85rem;
-    border-radius: 999px;
+    border-radius: var(--fa-radius-pill);
     font-size: 0.78rem;
     font-weight: 600;
     letter-spacing: 0.04em;

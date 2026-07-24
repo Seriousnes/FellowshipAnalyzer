@@ -23,7 +23,8 @@ and emitted as CSS custom properties in `src/FellowshipAnalyzer/wwwroot/app.scss
 |---|---|---|---|
 | `--fa-gold` | `t.$fa-gold` | `#d4a744` | Primary accent, headings, borders |
 | `--fa-gold-light` | `t.$fa-gold-light` | `#f0d078` | Hover states, gradient endpoints |
-| `--fa-gold-dim` | `t.$fa-gold-dim` | `rgba(212,167,68,0.14)` | Subtle gold tints, hover fills |
+| `--fa-gold-dim` | `t.$fa-gold-dim` | `tint($fa-gold, 12%)` | Subtle gold tints, **hover** fills (not selected/active fills) |
+| `--fa-bg-selected` | `t.$fa-bg-selected` | `mix($fa-gold, $fa-bg-raised, 20%)` | **Opaque** selected/active control surface (ButtonGroup / Tabs / chips) — deterministic on any parent |
 
 ---
 
@@ -41,8 +42,12 @@ and emitted as CSS custom properties in `src/FellowshipAnalyzer/wwwroot/app.scss
 
 | CSS var | SCSS var | Value | Usage |
 |---|---|---|---|
-| `--fa-border` | `t.$fa-border` | `rgba(212,167,68,0.12)` | Subtle dividers, low-contrast borders |
-| `--fa-border-card` | `t.$fa-border-card` | `rgba(212,167,68,0.18)` | Card borders (more visible) |
+| `--fa-border` | `t.$fa-border` | `mix($fa-gold, $fa-bg-surface, 22%)` | Subtle dividers / hairlines. **Opaque** (pre-composited) so it renders the same colour on any surface and stays crisp at 1px |
+| `--fa-border-card` | `t.$fa-border-card` | `mix($fa-gold, $fa-bg-surface, 38%)` | Component boundary (cards, panels, controls, icons). **Opaque**, meets ~3:1 |
+
+Both border tokens are opaque. Prefer them for any structural edge or divider; do not
+hand-roll a translucent `t.tint($fa-white/…)` border. Reserve translucent tints for hover
+hints and elements that genuinely overlay imagery.
 
 ---
 
@@ -52,10 +57,15 @@ Used for `.perfect`, `.good`, `.ok`, `.fail` modifier classes and `PerformanceCo
 
 | CSS var | SCSS var | Value | Tier |
 |---|---|---|---|
-| `--fa-perf-perfect` | `t.$fa-perf-perfect` | `#56d67b` | Perfect |
-| `--fa-perf-good` | `t.$fa-perf-good` | `#90cc60` | Good |
-| `--fa-perf-ok` | `t.$fa-perf-ok` | `#d4a744` | Ok (same as gold) |
-| `--fa-perf-fail` | `t.$fa-perf-fail` | `#d4564a` | Fail |
+| `--fa-perf-perfect` | `t.$fa-perf-perfect` | `#2090c0` | Perfect (blue) |
+| `--fa-perf-good` | `t.$fa-perf-good` | `#4ec04e` | Good (green) |
+| `--fa-perf-ok` | `t.$fa-perf-ok` | `#ffc84a` | Ok (amber) |
+| `--fa-perf-fail` | `t.$fa-perf-fail` | `#ac1f39` | Fail (red) |
+
+The four tiers stay distinct (and separable for common colour-vision deficiencies):
+blue / green / amber / red. `PerformanceColors.cs` mirrors these exact values — keep the
+two in sync. These are performance-tier colours only; for a generic positive/success
+green (kill badge, heal event, full-support) reference `--fa-perf-good`, not `--fa-perf-perfect`.
 | `--fa-perf-very-bad` | `t.$fa-perf-very-bad` | `#661111` | Severe-loss chart accent |
 | `--fa-perf-mediocre` | `t.$fa-perf-mediocre` | `#dd5533` | Partial / mediocre chart accent |
 | `--fa-perf-available` | `t.$fa-perf-available` | `#696864` | Cooldown-ready / unused-capacity accent |
@@ -89,10 +99,24 @@ Future heroes add their own accent here. Do not use hero-specific tokens in shar
 
 | CSS var | SCSS var | Value | Usage |
 |---|---|---|---|
-| `--fa-radius-sm` | `t.$fa-radius-sm` | `8px` | Small elements, inset regions |
-| `--fa-radius-md` | `t.$fa-radius-md` | `14px` | Cards, panels |
-| `--fa-radius-lg` | `t.$fa-radius-lg` | `20px` | Home card, large panels |
+| `--fa-radius-xs` | `t.$fa-radius-xs` | `4px` | Icons, small chips/badges, timeline bars |
+| `--fa-radius-sm` | `t.$fa-radius-sm` | `8px` | Small cards/tiles, inputs, inset regions |
+| `--fa-radius-md` | `t.$fa-radius-md` | `14px` | Cards, content panels |
+| `--fa-radius-lg` | `t.$fa-radius-lg` | `20px` | Home card, page-level / modal containers |
 | `--fa-radius-xl` | `t.$fa-radius-xl` | `28px` | Hero-scale elements |
+| `--fa-radius-pill` | `t.$fa-radius-pill` | `999px` | Pills (Badge, SupportBadge, chips) |
+
+Use `50%` (not a token) for true circles (HeroIcon portrait, InfoTooltip dot).
+
+---
+
+## Border Widths
+
+| CSS var | SCSS var | Value | Usage |
+|---|---|---|---|
+| `--fa-border-width` | `t.$fa-border-width` | `1px` | Structural hairline default + dividers |
+| `--fa-accent-width` | `t.$fa-accent-width` | `3px` | Coloured left-edge accent stripe |
+| `--fa-ring-width` | `t.$fa-ring-width` | `2px` | Box-shadow / emphasis rings (focus, selected, identity) |
 
 ---
 

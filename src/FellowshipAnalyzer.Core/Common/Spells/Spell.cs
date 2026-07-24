@@ -1,4 +1,6 @@
 using System.Text.Json.Serialization;
+
+using FellowshipAnalyzer.Core.Common.Spells.Ardeos;
 using FellowshipAnalyzer.Core.Common.Spells.Elarion;
 using FellowshipAnalyzer.Core.Common.Spells.Rime;
 using FellowshipAnalyzer.Core.Game;
@@ -6,16 +8,16 @@ using FellowshipAnalyzer.Core.Game;
 namespace FellowshipAnalyzer.Core.Common.Spells;
 
 /// <summary>
-/// A static spell definition: identity, physical facts (cooldown, range, charges,
-/// cast/channel timing), and resource costs. Behaviour metadata (GCD, category, haste
-/// scaling) lives on <see cref="Analysis.SpellbookAbility"/>.
+/// A static spell definition: identity, the game's ability category, physical facts (cooldown,
+/// range, charges, cast/channel timing), and resource costs. Behaviour metadata (GCD, the tool's
+/// analysis grouping, haste scaling) lives on <see cref="Analysis.SpellbookAbility"/>.
 /// </summary>
 [JsonPolymorphic(TypeDiscriminatorPropertyName = "kind")]
 [JsonDerivedType(typeof(Spell), "ability")]
 [JsonDerivedType(typeof(Effect), "effect")]
 [JsonDerivedType(typeof(Talent), "talent")]
 [JsonDerivedType(typeof(Weapon), "weapon")]
-public record Spell : IRimeSpell, IElarionSpell
+public record Spell : IRimeSpell, IElarionSpell, IArdeosSpell
 {
     /// <summary>The FellowshipLogs id (combat-log <c>abilityGameID</c>). Base spells use <see cref="Id"/>; subtypes add their range offset.</summary>
     [JsonIgnore]
@@ -24,6 +26,13 @@ public record Spell : IRimeSpell, IElarionSpell
     public int Id { get; init; }
     public string Name { get; init; } = "";
     public string Icon { get; init; } = "";
+
+    /// <summary>
+    /// The game's Season 3 ability-category classification from <c>hero_data.json</c> (Basic, Core,
+    /// Major, Defensive, and so on). Distinct from the tool's internal <see cref="Analysis.SpellCategory"/>
+    /// analysis grouping. <c>null</c> when the source data does not classify the ability.
+    /// </summary>
+    public AbilityCategory? AbilityCategory { get; init; }
 
     public double? Cooldown { get; init; }
 
@@ -36,10 +45,16 @@ public record Spell : IRimeSpell, IElarionSpell
     public double? ChannelDuration { get; init; }
     public double? ChannelTickInterval { get; init; }
 
-    [JsonIgnore] public int? SpiritCost => Cost(ResourceTypes.Spirit);
-    [JsonIgnore] public int? WinterOrbCost => Cost(ResourceTypes.Tertiary);
-    [JsonIgnore] public int? AnimaCost => Cost(ResourceTypes.Primary);
-    [JsonIgnore] public int? FocusCost => Cost(ResourceTypes.Primary);
+    [JsonIgnore] 
+    public int? SpiritCost => Cost(ResourceTypes.Spirit);
+    [JsonIgnore] 
+    public int? WinterOrbCost => Cost(ResourceTypes.Tertiary);
+    [JsonIgnore] 
+    public int? AnimaCost => Cost(ResourceTypes.Primary);
+    [JsonIgnore] 
+    public int? FocusCost => Cost(ResourceTypes.Primary);
+    [JsonIgnore] 
+    public int? EmberCost => Cost(ResourceTypes.Primary);
 
     /// <summary>Resource costs keyed by abstract <see cref="ResourceTypes"/> slot; empty when the spell spends nothing.</summary>
     public IReadOnlyDictionary<ResourceTypes, int> Costs { get; init; } =

@@ -2,7 +2,7 @@
 
 .rounded-panel {
     background: var(--fa-bg-inset);
-    border: 1px solid var(--fa-border);
+    border: var(--fa-border-width) solid var(--fa-panel-border, transparent);
     border-radius: t.$fa-radius-sm;
     padding: 12px;
     display: grid;

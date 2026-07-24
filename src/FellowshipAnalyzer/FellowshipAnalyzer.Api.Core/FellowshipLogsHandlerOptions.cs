@@ -19,6 +19,21 @@ public sealed class FellowshipLogsRateLimitOptions
     public TimeSpan Window { get; set; } = TimeSpan.FromMinutes(1);
 }
 
+/// <summary>
+/// Global (not per-client) cap on upstream Fellowship Logs GraphQL calls. Applied only on the
+/// cache-miss path, so cached responses are unaffected. Because it is keyed on a single shared
+/// partition rather than caller identity, it bounds FellowshipLogs quota, compute, and blob-write
+/// cost regardless of how many clients or spoofed source addresses drive the requests.
+/// </summary>
+public sealed class FellowshipLogsUpstreamRateLimitOptions
+{
+    public const string SectionName = "FellowshipLogs:UpstreamRateLimit";
+
+    public int PermitLimit { get; set; } = 120;
+    public int QueueLimit { get; set; }
+    public TimeSpan Window { get; set; } = TimeSpan.FromMinutes(1);
+}
+
 public sealed class FellowshipLogsCorsOptions(string[] allowedOrigins, bool allowDevelopmentLoopbackOrigins)
 {
     private readonly HashSet<string> _allowedOrigins = allowedOrigins.ToHashSet(StringComparer.OrdinalIgnoreCase);

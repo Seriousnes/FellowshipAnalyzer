@@ -3,11 +3,11 @@
 .perf-badge {
     display: flex;
     align-items: stretch;
-    border: 1px solid;
-    border-radius: 4px;
+    border: var(--fa-border-width) solid;
+    border-radius: var(--fa-radius-xs);
     overflow: hidden;
     min-height: 24px;
-    background: t.tint(t.$fa-black, t.$fa-tint-soft);
+    background: var(--fa-recess, t.tint(t.$fa-black, t.$fa-tint-soft));
 }
 
 .perf-badge-count {

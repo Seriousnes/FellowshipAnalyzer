@@ -1,0 +1,12 @@
+<i class="@GetClass()" aria-hidden="true"></i>
+
+@code {
+    /// <summary>Tabler icon name without the <c>ti-</c> prefix, e.g. "shield".</summary>
+    [Parameter, EditorRequired] 
+    public string Name { get; set; } = default!;
+
+    [Parameter] 
+    public string? Class { get; set; }
+
+    private string GetClass() => $"ti ti-{Name}{(string.IsNullOrEmpty(Class) ? null : $" {Class}")}";
+}

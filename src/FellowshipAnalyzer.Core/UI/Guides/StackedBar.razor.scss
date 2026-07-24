@@ -2,7 +2,7 @@
 
 .stacked-bar {
     display: flex;
-    border-radius: 4px;
+    border-radius: var(--fa-radius-xs);
     overflow: hidden;
     background: var(--fa-bg-inset, t.$fa-bg-inset);
 }
@@ -12,9 +12,9 @@
     transition: width 0.3s ease;
     cursor: default;
 
-    &:first-child { border-radius: 4px 0 0 4px; }
-    &:last-child  { border-radius: 0 4px 4px 0; }
-    &:only-child  { border-radius: 4px; }
+    &:first-child { border-radius: var(--fa-radius-xs) 0 0 var(--fa-radius-xs); }
+    &:last-child  { border-radius: 0 var(--fa-radius-xs) var(--fa-radius-xs) 0; }
+    &:only-child  { border-radius: var(--fa-radius-xs); }
 }
 
 .stacked-legend {
@@ -35,7 +35,7 @@
 .legend-swatch {
     width: 10px;
     height: 10px;
-    border-radius: 2px;
+    border-radius: var(--fa-radius-xs);
     flex-shrink: 0;
 }
 
@@ -44,5 +44,5 @@
 }
 
 .legend-value {
-    color: t.tint(t.$fa-white, t.$fa-tint-medium);
+    color: var(--fa-fg-muted, t.tint(t.$fa-white, t.$fa-tint-medium));
 }

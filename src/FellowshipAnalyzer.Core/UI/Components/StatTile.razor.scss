@@ -3,8 +3,8 @@
 .stat-tile {
     display: flex;
     align-items: stretch;
-    border: 1px solid;
-    border-radius: 6px;
+    border: var(--fa-border-width) solid;
+    border-radius: var(--fa-radius-xs);
     background: var(--fa-bg-inset, t.$fa-bg-inset);
     overflow: hidden;
     min-height: 32px;

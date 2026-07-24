@@ -93,6 +93,7 @@ public static class MergeEngine
                     .Set("kind", ProvenanceSource.HeroData)
                     .Set("name", spellDataName is not null ? ProvenanceSource.SpellData : ProvenanceSource.HeroData)
                     .SetIf("icon", icon.Length > 0, ProvenanceSource.Icons)
+                    .SetIf("abilityCategory", kit.AbilityCategory.HasValue, ProvenanceSource.HeroData)
                     .SetIf("cooldown", cooldown.HasValue, ProvenanceSource.HeroData)
                     .SetIf("cooldownReductionOnTargetDeath", cooldownReductionOnTargetDeath.HasValue, ProvenanceSource.HeroData)
                     .SetIf("range", range.HasValue, ProvenanceSource.HeroData)
@@ -104,7 +105,7 @@ public static class MergeEngine
                     .Build();
 
                 var spell = BuildSpell(kind, nativeId, name, icon, cooldown, cooldownReductionOnTargetDeath,
-                    range, charges, castDuration, channelDuration, channelTickInterval, costs);
+                    range, charges, castDuration, channelDuration, channelTickInterval, costs, kit.AbilityCategory);
                 spells.Add(new CuratedSpell(scope, member, spell, prov));
 
                 if (!MemberNaming.IsValidIdentifier(member))
@@ -198,9 +199,11 @@ public static class MergeEngine
     private static Spell BuildSpell(
         SpellKind kind, int nativeId, string name, string icon,
         double? cooldown, double? cooldownReductionOnTargetDeath, int? range, int charges, double? castDuration,
-        double? channelDuration, double? channelTickInterval, IReadOnlyDictionary<ResourceTypes, int> costs) =>
+        double? channelDuration, double? channelTickInterval, IReadOnlyDictionary<ResourceTypes, int> costs,
+        AbilityCategory? abilityCategory = null) =>
         Spell.FromFSLID(FSLID.FromNative(kind, nativeId), name, icon) with
         {
+            AbilityCategory = abilityCategory,
             Cooldown = cooldown,
             CooldownReductionOnTargetDeath = cooldownReductionOnTargetDeath,
             Range = range,

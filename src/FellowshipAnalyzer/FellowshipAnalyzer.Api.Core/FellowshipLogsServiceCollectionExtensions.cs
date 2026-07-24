@@ -71,6 +71,12 @@ public static class FellowshipLogsServiceCollectionExtensions
                 .Get<FellowshipLogsRateLimitOptions>()
             ?? new FellowshipLogsRateLimitOptions());
 
+        services.AddSingleton(
+            configuration
+                .GetSection(FellowshipLogsUpstreamRateLimitOptions.SectionName)
+                .Get<FellowshipLogsUpstreamRateLimitOptions>()
+            ?? new FellowshipLogsUpstreamRateLimitOptions());
+
         var corsOptions = new FellowshipLogsCorsOptions(
             configuration
                 .GetSection("Cors:AllowedOrigins")
@@ -97,6 +103,7 @@ public static class FellowshipLogsServiceCollectionExtensions
 
         services.AddSingleton(new RecyclableMemoryStreamManager());
         services.AddSingleton<FellowshipLogsRateLimiter>();
+        services.AddSingleton<FellowshipLogsUpstreamRateLimiter>();
         services.AddScoped<FellowshipLogsApiHandler>();
         services.AddSingleton<Microsoft.AspNetCore.Hosting.IStartupFilter, FellowshipLogsApiStartupFilter>();
 

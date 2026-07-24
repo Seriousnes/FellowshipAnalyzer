@@ -529,9 +529,8 @@ public sealed partial class SpellUsableTests
         [
             new SpellbookAbility
             {
-                PrimarySpell = new Spell { Id = SpellA, Name = "Spell A", Cooldown = (double)CdSecondsA },
+                PrimarySpell = new Spell { Id = SpellA, Name = "Spell A", Cooldown = (double)CdSecondsA, AbilityCategory = AbilityCategory.Major },
                 Category = SpellCategory.Rotational,
-                AbilityCategory = AbilityCategory.Major,
             },
             new SpellbookAbility
             {

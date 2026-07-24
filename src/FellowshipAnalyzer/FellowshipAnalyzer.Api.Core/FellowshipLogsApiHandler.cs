@@ -26,12 +26,14 @@ public sealed class FellowshipLogsApiHandler(
     IMemoryCache cache,
     FellowshipLogsCacheOptions cacheOptions,
     FellowshipLogsRateLimiter rateLimiter,
+    FellowshipLogsUpstreamRateLimiter upstreamRateLimiter,
     JsonSerializerOptions jsonOptions,
     IPersistentCache persistentCache,
     RecyclableMemoryStreamManager streamManager,
     IHostApplicationLifetime appLifetime,
     ILogger<FellowshipLogsApiHandler> logger)
 {
+
     [ApiEndpoint("GET", "events")]
     public async Task<IResult> GetEventsAsync(
         HttpContext context,
@@ -95,6 +97,12 @@ public sealed class FellowshipLogsApiHandler(
         }
 
         // L3: Upstream
+        if (TryAcquireUpstream(context) is { } upstreamLimited)
+        {
+            logger.LogWarning("GetEventsAsync upstream-rate-limited at {ElapsedMs}ms", sw.ElapsedMilliseconds);
+            return upstreamLimited;
+        }
+
         logger.LogInformation("GetEventsAsync L3 upstream call starting t={ElapsedMs}ms", sw.ElapsedMilliseconds);
         var result = await fellowshipLogsService.GetRawEventsAsync(
             trimmedReportCode, playerId.Value, fightId.Value, cancellationToken);
@@ -179,6 +187,11 @@ public sealed class FellowshipLogsApiHandler(
             return Results.Stream(payload, "application/json");
         }
 
+        if (TryAcquireUpstream(context) is { } upstreamLimited)
+        {
+            return upstreamLimited;
+        }
+
         var result = await fellowshipLogsService.GetRawDeathsAsync(
             trimmedReportCode, fightId.Value, cancellationToken);
 
@@ -250,6 +263,11 @@ public sealed class FellowshipLogsApiHandler(
         }
 
         // L3: Upstream
+        if (TryAcquireUpstream(context) is { } upstreamLimited)
+        {
+            return upstreamLimited;
+        }
+
         var preload = await fellowshipLogsService.GetReportMasterDataAsync(reportCode, cancellationToken);
         var analysisDuration = GetAnalysisPreloadCacheDuration(preload, cacheOptions);
         var analysisExpiresAt = DateTimeOffset.UtcNow.Add(analysisDuration);
@@ -323,6 +341,11 @@ public sealed class FellowshipLogsApiHandler(
         }
 
         // L3: Upstream
+        if (TryAcquireUpstream(context) is { } upstreamLimited)
+        {
+            return upstreamLimited;
+        }
+
         var result = await fellowshipLogsService.GetCharacterReportsAsync(id, cancellationToken);
         var charDuration = PositiveDuration(
             cacheOptions.RecentReportMetadataCacheDuration,
@@ -362,6 +385,28 @@ public sealed class FellowshipLogsApiHandler(
         }
 
         return Results.Json(new { error = "Rate limit exceeded." }, jsonOptions, statusCode: 429);
+    }
+
+    /// <summary>
+    /// Global upstream cap. Checked only on the cache-miss path, immediately before a FellowshipLogs
+    /// GraphQL call. Fails fast: returns a 429 result when upstream capacity is exhausted so the
+    /// caller short-circuits before spending quota, compute, and a blob write; returns null to
+    /// proceed. The fixed-window permit is consumed for the window regardless of lease disposal.
+    /// </summary>
+    private IResult? TryAcquireUpstream(HttpContext context)
+    {
+        using var lease = upstreamRateLimiter.AttemptAcquire();
+        if (lease.IsAcquired)
+        {
+            return null;
+        }
+
+        if (lease.TryGetMetadata(MetadataName.RetryAfter, out var retryAfter))
+        {
+            context.Response.Headers.RetryAfter = ((int)retryAfter.TotalSeconds).ToString(CultureInfo.InvariantCulture);
+        }
+
+        return Results.Json(new { error = "Upstream capacity limit reached. Please retry shortly." }, jsonOptions, statusCode: 429);
     }
 
     private IResult Json<T>(T value) => Results.Json(value, jsonOptions);

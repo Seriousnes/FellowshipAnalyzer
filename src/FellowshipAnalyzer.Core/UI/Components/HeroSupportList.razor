@@ -11,9 +11,9 @@
             <div class="hero-support-group">
                 <h3 class="hero-support-group-title">@RoleLabel(role)</h3>
                 <div class="hero-support-grid">
-                    @foreach (var entry in heroes)
+                    @foreach (var hero in heroes)
                     {
-                        <HeroSupportCard Entry="entry" />
+                        <HeroSupportCard Entry="hero" />
                     }
                 </div>
             </div>

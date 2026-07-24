@@ -34,6 +34,6 @@
 .report-footer-link-icon {
     height: 1.2em;
     width: 1.2em;
-    border-radius: 2px;
+    border-radius: var(--fa-radius-xs);
     object-fit: contain;
 }

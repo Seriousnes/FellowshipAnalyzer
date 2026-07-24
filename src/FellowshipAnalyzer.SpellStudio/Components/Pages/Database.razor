@@ -74,7 +74,7 @@
                 incomplete <span class="toggle-chip-count">@incompleteCount</span>
             </button>
             <button class="toggle-chip @(_overridesOnly ? "active" : "")"
-                    @onclick="() => _overridesOnly = !_overridesOnly">✎ overridden</button>
+                    @onclick="() => _overridesOnly = !_overridesOnly"><i class="ti ti-edit" aria-hidden="true"></i> overridden</button>
             <button class="toggle-chip @(_showProvenance ? "active" : "")"
                     @onclick="() => _showProvenance = !_showProvenance">◆ provenance</button>
         </div>
@@ -243,7 +243,7 @@
                     <SpellLink Spell="@selCore" Icon="false" />
                     <span class="modal-meta">@sel.Scope / @sel.Member · @KindTag(sel.Kind) · #@sel.Spell.Id</span>
                 </div>
-                <button class="modal-close" @onclick="CancelEdit" aria-label="Close">✕</button>
+                <button class="modal-close" @onclick="CancelEdit" aria-label="Close"><i class="ti ti-x" aria-hidden="true"></i></button>
             </div>
 
             <div class="modal-body">
@@ -324,7 +324,7 @@
                     <strong class="modal-add-title">Add effect</strong>
                     <span class="modal-meta">@_addGap.Scope / @_addGap.Member</span>
                 </div>
-                <button class="modal-close" @onclick="CancelAdd" aria-label="Close">✕</button>
+                <button class="modal-close" @onclick="CancelAdd" aria-label="Close"><i class="ti ti-x" aria-hidden="true"></i></button>
             </div>
             <div class="modal-body">
                 <label class="field field-wide">

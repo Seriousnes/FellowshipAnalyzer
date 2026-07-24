@@ -2,21 +2,44 @@
 
 .badge {
     --badge-color: var(--fa-text-muted);
-    --badge-bg: transparent;
+    --badge-fill: transparent;
     --badge-border: transparent;
+    --badge-text: var(--fa-text);
 
     display: inline-flex;
     align-items: center;
     gap: 0.3rem;
-    border-radius: 999px;
-    border: 1px solid var(--badge-border);
-    background: var(--badge-bg);
-    color: var(--badge-color);
+    border-radius: t.$fa-radius-sm;
+    border: var(--fa-border-width) solid var(--badge-border);
+    background: var(--badge-fill);
+    color: var(--badge-text);
     font-weight: 600;
     font-family: inherit;
     text-decoration: none;
     white-space: nowrap;
     transition: background 0.15s, color 0.15s, box-shadow 0.15s;
+}
+
+// Solid (default): the full, vivid variant colour as the fill. Bright fills take
+// a dark ink; the darker preserved colours (the reds, tank blue) take a light
+// label so the text clears AA on every variant.
+.badge--solid {
+    --badge-fill: var(--badge-color);
+    --badge-text: var(--fa-bg-base);
+    --badge-border: transparent;
+}
+
+.badge--solid.badge--failure,
+.badge--solid.badge--dps,
+.badge--solid.badge--tank {
+    --badge-text: var(--fa-text);
+}
+
+// Outline: the variant colour carried by the label and a hairline edge.
+.badge--outline {
+    --badge-fill: transparent;
+    --badge-text: var(--badge-color);
+    --badge-border: color-mix(in srgb, var(--badge-color) 42%, transparent);
 }
 
 button.badge,
@@ -25,15 +48,18 @@ a.badge {
     appearance: none;
 }
 
-button.badge:hover,
-a.badge:hover {
-    background: color-mix(in srgb, var(--badge-color) 16%, transparent);
+button.badge--solid:hover,
+a.badge--solid:hover {
+    --badge-fill: color-mix(in srgb, var(--badge-color) 86%, var(--fa-text));
+}
+
+button.badge--outline:hover,
+a.badge--outline:hover {
+    --badge-fill: color-mix(in srgb, var(--badge-color) 16%, transparent);
 }
 
 .badge.active {
-    box-shadow:
-        0 0 0 2px color-mix(in srgb, var(--badge-color) 28%, transparent),
-        inset 0 0 0 1px color-mix(in srgb, var(--badge-color) 45%, transparent);
+    box-shadow: 0 0 0 var(--fa-ring-width) color-mix(in srgb, var(--badge-color) 45%, transparent);
 }
 
 .badge--sm {
@@ -42,20 +68,14 @@ a.badge:hover {
 }
 
 .badge--md {
-    padding: 0.3rem 0.75rem;
+    padding: 0.28rem 0.7rem;
     font-size: 0.82rem;
 }
 
-.badge--neutral { --badge-color: var(--fa-text-muted); --badge-border: var(--fa-border); }
-.badge--success { --badge-color: var(--fa-perf-perfect); --badge-border: #{t.tint(t.$fa-perf-perfect, t.$fa-tint-medium)}; }
-.badge--failure { --badge-color: var(--fa-perf-fail); --badge-border: #{t.tint(t.$fa-perf-fail, t.$fa-tint-medium)}; }
-.badge--tank    { --badge-color: var(--fa-role-tank); --badge-border: color-mix(in srgb, var(--fa-role-tank) 35%, transparent); }
-.badge--healer  { --badge-color: var(--fa-role-healer); --badge-border: color-mix(in srgb, var(--fa-role-healer) 35%, transparent); }
-.badge--dps     { --badge-color: var(--fa-role-dps); --badge-border: color-mix(in srgb, var(--fa-role-dps) 35%, transparent); }
-.badge--gold    { --badge-color: var(--fa-gold-light); --badge-border: var(--fa-gold-dim); }
-
-.badge--success.active,
-button.badge--success:hover { background: t.tint(t.$fa-perf-perfect, t.$fa-tint-soft); }
-.badge--failure.active,
-button.badge--failure:hover { background: t.tint(t.$fa-perf-fail, t.$fa-tint-soft); }
-.badge--gold.active         { background: var(--fa-gold-dim); }
+.badge--neutral { --badge-color: var(--fa-text-muted); }
+.badge--success { --badge-color: var(--fa-perf-good); }
+.badge--failure { --badge-color: var(--fa-perf-fail); }
+.badge--tank    { --badge-color: var(--fa-role-tank); }
+.badge--healer  { --badge-color: var(--fa-role-healer); }
+.badge--dps     { --badge-color: var(--fa-role-dps); }
+.badge--gold    { --badge-color: var(--fa-gold-light); }

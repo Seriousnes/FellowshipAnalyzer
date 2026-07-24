@@ -39,12 +39,15 @@
                         <div class="encounter-header">
                             @{
                                 var bossIcon = _bossIconByName.TryGetValue(group.Key, out var ic) ? ic : null;
+                                var bossIconUrl = bossIcon is not null ? $"https://assets.rpglogs.com/img/fellowship/abilities/{bossIcon}" : null;
+                                var dungeonIconUrl = group.Value.Count > 0 ? group.Value[0].DungeonIconUrl : null;
                                 var firstLetter = group.Key.Length > 0 ? group.Key[0].ToString() : "?";
                             }
                             <Avatar Size="AvatarSize.Md"
-                                    Src="@(bossIcon is not null ? $"https://assets.rpglogs.com/img/fellowship/abilities/{bossIcon}" : null)"
+                                    Src="@(bossIconUrl ?? dungeonIconUrl)"
                                     Alt="@group.Key"
-                                    FallbackText="@firstLetter" />
+                                    FallbackText="@firstLetter"
+                                    AccentColorVar="var(--fa-gold)" />
                             <h3 class="encounter-name">@group.Key</h3>
                         </div>
                         <div class="attempts-row">
@@ -60,12 +63,12 @@
                                 <Badge Variant="variant" Active="isExpanded" OnClick="@(() => _expandedFightId = capturedIsExpanded ? null : capturedFightId)">
                                     @if (isKill)
                                     {
-                                        <span>✓</span>
+                                        <Glyph Name="check" />
                                         <span>@FormatDuration(fight.EndTime - fight.StartTime)</span>
                                     }
                                     else
                                     {
-                                        <span>✗</span>
+                                        <Glyph Name="skull" />
                                         <span>Wipe @wipeIndex</span>
                                         @if (fight.FightPercentage is { } pct)
                                         {
@@ -85,9 +88,9 @@
                             var dpsCount = players.Count(p => GetRole(p.SubType) == HeroRole.Dps);
                             <div class="player-grid">
                                 <div class="role-counts">
-                                    🛡 @tankCount Tank&nbsp;&nbsp;
-                                    💚 @healCount Healer&nbsp;&nbsp;
-                                    ⚔ @dpsCount DPS
+                                    <Glyph Name="shield" /> @tankCount Tank&nbsp;&nbsp;
+                                    <Glyph Name="heart" /> @healCount Healer&nbsp;&nbsp;
+                                    <Glyph Name="bolt" /> @dpsCount DPS
                                 </div>
                                 @foreach (var player in players.OrderBy(p => GetRole(p.SubType)).ThenBy(p => p.Name))
                                 {
@@ -145,7 +148,15 @@
                                         var isKill = fight.Kill == true;
                                         var variant = isKill ? BadgeVariant.Success : BadgeVariant.Failure;
                                         <Badge Variant="variant" Size="BadgeSize.Sm" Href="@($"/report/{ReportCode}/{fight.Id}/{player.Id}")">
-                                            @(isKill ? "✓" : "✗") @fight.Name — @FormatDuration(fight.EndTime - fight.StartTime)
+                                            @if (isKill)
+                                            {
+                                                <Glyph Name="check" />
+                                            }
+                                            else
+                                            {
+                                                <Glyph Name="skull" />
+                                            }
+                                            @fight.Name — @FormatDuration(fight.EndTime - fight.StartTime)
                                         </Badge>
                                     }
                                 </div>

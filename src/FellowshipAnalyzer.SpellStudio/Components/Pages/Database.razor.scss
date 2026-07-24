@@ -17,7 +17,7 @@ $sources: (
     font-size: 0.78rem;
     cursor: pointer;
     padding: 0.28rem 0.62rem;
-    border-radius: 999px;
+    border-radius: var(--fa-radius-pill);
     border: 1px solid var(--fa-border-card);
     background: transparent;
     color: var(--fa-text-muted);
@@ -87,7 +87,7 @@ $sources: (
     margin-left: auto;
 }
 
-.studio-status { font-size: 0.78rem; color: var(--fa-perf-perfect); }
+.studio-status { font-size: 0.78rem; color: var(--fa-perf-good); }
 
 .btn-rebuild {
     font: inherit;
@@ -164,7 +164,7 @@ $sources: (
     cursor: pointer;
     padding: 0.24rem 0.55rem;
     border: 0;
-    border-radius: 6px;
+    border-radius: var(--fa-radius-sm);
     background: transparent;
     color: var(--fa-text-muted);
     transition: color 0.12s, background 0.12s;
@@ -187,7 +187,7 @@ $sources: (
     padding: 0 0.32rem;
     font-size: 0.62rem;
     font-variant-numeric: tabular-nums;
-    border-radius: 999px;
+    border-radius: var(--fa-radius-pill);
     background: var(--fa-bg-inset);
     color: var(--fa-text-muted);
 }
@@ -212,7 +212,7 @@ $sources: (
         content: "";
         width: 0.62rem;
         height: 0.62rem;
-        border-radius: 2px;
+        border-radius: var(--fa-radius-xs);
         background: var(--src);
     }
 }
@@ -392,7 +392,7 @@ $sources: (
     font-size: 0.66rem;
     font-weight: 700;
     line-height: 1;
-    border-radius: 3px;
+    border-radius: var(--fa-radius-xs);
     color: var(--gap-color);
     background: var(--fa-bg-inset);
     border: 1px solid var(--gap-color);
@@ -411,7 +411,7 @@ $sources: (
     color: var(--fa-text-muted);
     background: var(--fa-bg-inset);
     border: 1px solid var(--fa-border);
-    border-radius: 4px;
+    border-radius: var(--fa-radius-xs);
     padding: 0.08rem 0.32rem;
 }
 
@@ -421,12 +421,12 @@ $sources: (
     display: inline-block;
     width: 24px;
     height: 24px;
-    border-radius: 3px;
+    border-radius: var(--fa-radius-xs);
     border: 1px dashed var(--fa-border-card);
     background: var(--fa-bg-inset);
 }
 
-.icon-missing-lg { width: 36px; height: 36px; border-radius: 4px; }
+.icon-missing-lg { width: 36px; height: 36px; border-radius: var(--fa-radius-xs); }
 
 // Provenance heatmap — Override always glows; other sources reveal under the toggle.
 .spell-grid {
@@ -507,7 +507,7 @@ $sources: (
     cursor: pointer;
     padding: 0.2rem 0.45rem;
     border: 0;
-    border-radius: 6px;
+    border-radius: var(--fa-radius-sm);
     background: transparent;
     color: var(--fa-text-dim);
 
@@ -561,7 +561,7 @@ $sources: (
     color: var(--fa-text);
     background: var(--fa-bg-inset);
     border: 1px solid var(--fa-border-card);
-    border-radius: 6px;
+    border-radius: var(--fa-radius-sm);
 
     &::placeholder { color: var(--fa-text-dim); }
     &:focus { outline: none; border-color: var(--fa-gold); }
@@ -572,7 +572,7 @@ $sources: (
     text-transform: uppercase;
     letter-spacing: 0.04em;
     padding: 0 0.26rem;
-    border-radius: 3px;
+    border-radius: var(--fa-radius-xs);
     color: var(--src);
     border: 1px solid var(--src);
 }

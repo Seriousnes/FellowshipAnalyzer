@@ -3,17 +3,28 @@
 <PageTitle>Badge — Design System</PageTitle>
 
 <h1>Badge</h1>
-<p class="lede">Coloured pill rendered as <code>&lt;span&gt;</code>, <code>&lt;a&gt;</code>, or <code>&lt;button&gt;</code> depending on whether <code>Href</code> or <code>OnClick</code> are supplied.</p>
+<p class="lede">Coloured chip rendered as <code>&lt;span&gt;</code>, <code>&lt;a&gt;</code>, or <code>&lt;button&gt;</code> depending on whether <code>Href</code> or <code>OnClick</code> are supplied. Solid fill by default; pass <code>Type="BadgeType.Outline"</code> for the outlined form.</p>
+
+<CodeExample Title="Fill types" Code="@_fillCode">
+    <Demo>
+        <div class="showcase-row">
+            <Badge Variant="BadgeVariant.Success" Type="BadgeType.Solid"><Glyph Name="check" /> Solid</Badge>
+            <Badge Variant="BadgeVariant.Success" Type="BadgeType.Outline"><Glyph Name="check" /> Outline</Badge>
+            <Badge Variant="BadgeVariant.Gold" Type="BadgeType.Solid">Solid</Badge>
+            <Badge Variant="BadgeVariant.Gold" Type="BadgeType.Outline">Outline</Badge>
+        </div>
+    </Demo>
+</CodeExample>
 
 <CodeExample Title="Variants" Code="@_variantsCode">
     <Demo>
         <div class="showcase-row">
             <Badge Variant="BadgeVariant.Neutral">Neutral</Badge>
-            <Badge Variant="BadgeVariant.Success">✓ Kill</Badge>
-            <Badge Variant="BadgeVariant.Failure">✗ Wipe</Badge>
-            <Badge Variant="BadgeVariant.Tank">🛡 Tank</Badge>
-            <Badge Variant="BadgeVariant.Healer">💚 Healer</Badge>
-            <Badge Variant="BadgeVariant.Dps">⚔ DPS</Badge>
+            <Badge Variant="BadgeVariant.Success"><Glyph Name="check" /> Kill</Badge>
+            <Badge Variant="BadgeVariant.Failure"><Glyph Name="skull" /> Wipe</Badge>
+            <Badge Variant="BadgeVariant.Tank"><Glyph Name="shield" /> Tank</Badge>
+            <Badge Variant="BadgeVariant.Healer"><Glyph Name="heart" /> Healer</Badge>
+            <Badge Variant="BadgeVariant.Dps"><Glyph Name="bolt" /> DPS</Badge>
             <Badge Variant="BadgeVariant.Gold">Gold</Badge>
             <Badge Variant="BadgeVariant.Custom" CustomColorVar="var(--fa-ice)">Custom (ice)</Badge>
         </div>
@@ -52,13 +63,18 @@
 @code {
     private string _lastClick = "(none)";
 
+    private const string _fillCode = """
+<Badge Variant="BadgeVariant.Success" Type="BadgeType.Solid">Solid</Badge>
+<Badge Variant="BadgeVariant.Success" Type="BadgeType.Outline">Outline</Badge>
+""";
+
     private const string _variantsCode = """
 <Badge Variant="BadgeVariant.Neutral">Neutral</Badge>
-<Badge Variant="BadgeVariant.Success">✓ Kill</Badge>
-<Badge Variant="BadgeVariant.Failure">✗ Wipe</Badge>
-<Badge Variant="BadgeVariant.Tank">🛡 Tank</Badge>
-<Badge Variant="BadgeVariant.Healer">💚 Healer</Badge>
-<Badge Variant="BadgeVariant.Dps">⚔ DPS</Badge>
+<Badge Variant="BadgeVariant.Success"><Glyph Name="check" /> Kill</Badge>
+<Badge Variant="BadgeVariant.Failure"><Glyph Name="skull" /> Wipe</Badge>
+<Badge Variant="BadgeVariant.Tank"><Glyph Name="shield" /> Tank</Badge>
+<Badge Variant="BadgeVariant.Healer"><Glyph Name="heart" /> Healer</Badge>
+<Badge Variant="BadgeVariant.Dps"><Glyph Name="bolt" /> DPS</Badge>
 <Badge Variant="BadgeVariant.Gold">Gold</Badge>
 <Badge Variant="BadgeVariant.Custom" CustomColorVar="var(--fa-ice)">Custom (ice)</Badge>
 """;

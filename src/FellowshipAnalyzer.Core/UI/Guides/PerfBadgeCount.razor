@@ -5,9 +5,9 @@
     var label = Label ?? PerformanceColors.ToLabel(Performance);
 }
 
-<div class="perf-badge" style="border-color: @(color)60;">
+<div class="perf-badge" style="border-color: color-mix(in srgb, @color 38%, transparent);">
     <span class="perf-badge-count" style="color: @color;">@Count</span>
-    <span class="perf-badge-divider" style="background: @(color)40;"></span>
+    <span class="perf-badge-divider" style="background: color-mix(in srgb, @color 25%, transparent);"></span>
     <span class="perf-badge-label">@label</span>
 </div>
 

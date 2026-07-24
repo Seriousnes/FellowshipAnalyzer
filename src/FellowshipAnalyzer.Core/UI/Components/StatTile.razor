@@ -1,13 +1,13 @@
 @* StatTile — single colored stat tile: value | divider | label *@
 
-<div class="stat-tile" style="border-color: @(Color)45;" title="@Tooltip">
+<div class="stat-tile" style="border-color: color-mix(in srgb, @Color 27%, transparent);" title="@Tooltip">
     <div class="stat-tile-value" style="color: @Color;">@Value</div>
-    <div class="stat-tile-divider" style="background: @(Color)35;"></div>
+    <div class="stat-tile-divider" style="background: color-mix(in srgb, @Color 21%, transparent);"></div>
     <div class="stat-tile-label">@Label</div>
 </div>
 
 @code {
-    [Parameter] public string Color { get; set; } = "#ffffff";
+    [Parameter] public string Color { get; set; } = PerformanceColors.Neutral;
     [Parameter] public string Value { get; set; } = "";
     [Parameter] public string Label { get; set; } = "";
     [Parameter] public string? Tooltip { get; set; }

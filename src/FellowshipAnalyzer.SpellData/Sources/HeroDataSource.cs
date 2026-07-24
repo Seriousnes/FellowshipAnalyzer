@@ -1,11 +1,12 @@
 using System.Text.Json;
+using FellowshipAnalyzer.Core.Common.Spells;
 using FellowshipAnalyzer.Core.Game;
 using FellowshipAnalyzer.SpellData.Json;
 
 namespace FellowshipAnalyzer.SpellData.Sources;
 
 /// <summary>An ability entry from a hero's Kit.</summary>
-public record KitAbility(int FslId, string? Name, string DevName);
+public record KitAbility(int FslId, string? Name, string DevName, AbilityCategory? AbilityCategory);
 
 /// <summary>A named constants block from a hero's Constants section.</summary>
 public record ConstantsEntry(string Key, string DevName, IReadOnlyDictionary<string, double> Scalars);
@@ -68,10 +69,18 @@ public sealed class HeroDataSource
             if (val.TryGetProperty("Name", out var nameProp) && nameProp.ValueKind == JsonValueKind.String)
                 name = nameProp.GetString();
             var devName = val.TryGetProperty("DevName", out var devProp) ? devProp.GetString() ?? string.Empty : string.Empty;
-            result.Add(new KitAbility(fslId, name, devName));
+            var abilityCategory = ReadAbilityCategory(val);
+            result.Add(new KitAbility(fslId, name, devName, abilityCategory));
         }
         return result;
     }
+
+    private static AbilityCategory? ReadAbilityCategory(JsonElement ability) =>
+        ability.TryGetProperty("AbilityCategory", out var prop)
+            && prop.ValueKind == JsonValueKind.String
+            && Enum.TryParse<AbilityCategory>(prop.GetString(), ignoreCase: true, out var category)
+                ? category
+                : null;
 
     private static List<ConstantsEntry> ReadConstants(JsonElement hero)
     {

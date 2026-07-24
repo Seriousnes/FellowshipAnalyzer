@@ -21,7 +21,7 @@ A bordered inset surface. Use for statistics, data sections, standalone info blo
 .my-card-header {
     padding: 10px 16px;
     border-bottom: 1px solid var(--fa-border);
-    background: rgba(255, 255, 255, 0.03);
+    background: var(--fa-raise, t.tint(t.$fa-white, t.$fa-tint-faint));
 }
 
 .my-card-title {
@@ -161,10 +161,12 @@ Real example: `SpellSequence.razor.scss`
 Horizontal scrolling layout with a sticky left label column.
 
 ```scss
+@use 'tokens' as t;
+
 .timeline {
     overflow-x: auto;
     overflow-y: visible;
-    background: rgba(0, 0, 0, 0.15);
+    background: var(--fa-recess, t.tint(t.$fa-black, t.$fa-tint-subtle));
     border-radius: 6px;
     padding: 8px 0;
 }
@@ -172,7 +174,7 @@ Horizontal scrolling layout with a sticky left label column.
 .timeline-row {
     display: flex;
     align-items: center;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    border-bottom: 1px solid var(--fa-edge, t.tint(t.$fa-white, t.$fa-tint-faint));
 
     &:last-child { border-bottom: none; }
 }
@@ -199,7 +201,7 @@ Horizontal scrolling layout with a sticky left label column.
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    color: rgba(255, 255, 255, 0.45);
+    color: var(--fa-fg-muted, t.tint(t.$fa-white, t.$fa-tint-medium));
 }
 ```
 

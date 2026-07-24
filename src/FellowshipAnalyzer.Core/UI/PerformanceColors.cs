@@ -4,6 +4,7 @@ namespace FellowshipAnalyzer.Core.UI;
 
 public static class PerformanceColors
 {
+    // Mirror the SCSS $fa-perf-* / --fa-perf-* tokens (the authoritative palette).
     public const string Perfect = "#2090c0";
     public const string Good = "#4ec04e";
     public const string Ok = "#ffc84a";
@@ -13,13 +14,17 @@ public static class PerformanceColors
     public const string Mediocre = "#dd5533";
     public const string Available = "#696864";
 
+    /// <summary>Value colour for a stat with no performance tier. Routed through a custom
+    /// property so a theme can override it; resolves to white wherever none is defined.</summary>
+    public const string Neutral = "var(--fa-fg-neutral, #ffffff)";
+
     public static string ToColor(QualitativePerformance tier) => tier switch
     {
         QualitativePerformance.Perfect => Perfect,
         QualitativePerformance.Good => Good,
         QualitativePerformance.Ok => Ok,
         QualitativePerformance.Fail => Fail,
-        _ => "#ffffff",
+        _ => Neutral,
     };
 
     public static string ToLabel(QualitativePerformance tier) => tier switch

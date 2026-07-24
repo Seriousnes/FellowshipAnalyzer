@@ -1,9 +1,10 @@
-@* Badge — coloured pill rendered as <span>, <a>, or <button> depending on parameters. *@
+@* Badge — coloured chip rendered as <span>, <a>, or <button> depending on parameters. *@
 
 @{
     var variantClass = Variant.ToString().ToLowerInvariant();
+    var typeClass = Type.ToString().ToLowerInvariant();
     var sizeClass = Size.ToString().ToLowerInvariant();
-    var classes = $"badge badge--{variantClass} badge--{sizeClass}{(Active ? " active" : "")}";
+    var classes = $"badge badge--{variantClass} badge--{typeClass} badge--{sizeClass}{(Active ? " active" : "")}";
     var styleAttr = Variant == BadgeVariant.Custom && CustomColorVar is not null
         ? $"--badge-color: {CustomColorVar};"
         : null;
@@ -41,6 +42,7 @@ else
 @code {
     [Parameter, EditorRequired] public RenderFragment ChildContent { get; set; } = default!;
     [Parameter] public BadgeVariant Variant { get; set; } = BadgeVariant.Neutral;
+    [Parameter] public BadgeType Type { get; set; } = BadgeType.Solid;
     [Parameter] public BadgeSize Size { get; set; } = BadgeSize.Md;
     [Parameter] public string? Href { get; set; }
     [Parameter] public EventCallback<MouseEventArgs> OnClick { get; set; }

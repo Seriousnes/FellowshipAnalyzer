@@ -39,8 +39,8 @@
 .cooldown-lane-bar {
     height: 16px;
     background: t.$fa-grey;
-    border: 1px solid t.tint(t.$fa-grey, t.$fa-tint-medium);
-    border-radius: 2px;
+    border: var(--fa-border-width) solid t.tint(t.$fa-grey, t.$fa-tint-medium);
+    border-radius: var(--fa-radius-xs);
 }
 
 .cooldown-lane-restore {

@@ -15,7 +15,7 @@
 .cast-bar-time-line-sec {
     display: inline-block;
     height: 100%;
-    border-left: 1px solid t.tint(t.$fa-white, t.$fa-tint-muted);
+    border-left: var(--fa-border-width) solid var(--fa-edge, t.tint(t.$fa-white, t.$fa-tint-muted));
     padding-left: 3px;
     line-height: 1;
     font-size: 14px;
@@ -29,7 +29,7 @@
         left: 0;
         bottom: -16px;
         transform: translateX(-50%);
-        color: t.tint(t.$fa-white, t.$fa-tint-veil);
+        color: var(--fa-fg, t.tint(t.$fa-white, t.$fa-tint-veil));
         font-size: 13px;
         white-space: nowrap;
     }
@@ -38,7 +38,7 @@
     &::after {
         content: '';
         width: 1px;
-        background: t.tint(t.$fa-white, t.$fa-tint-soft);
+        background: var(--fa-raise, t.tint(t.$fa-white, t.$fa-tint-soft));
         position: absolute;
         bottom: 3px;
         height: 7px;
@@ -166,7 +166,7 @@
     height: 8px;
     top: 8px;
     background: t.$fa-amber;
-    border-radius: 2px;
+    border-radius: var(--fa-radius-xs);
     border: 1px solid t.$fa-white;
     z-index: 1;
 }
@@ -183,7 +183,7 @@
         t.$fa-white 5px,
         t.$fa-white 10px
     );
-    border-radius: 2px;
+    border-radius: var(--fa-radius-xs);
     border: 1px solid t.$fa-white;
     z-index: 2;
 }

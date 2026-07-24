@@ -1,11 +1,17 @@
 @use 'tokens' as t;
 .spell-link {
-    color: var(--fa-gold);
-    text-decoration: none;
-}
-
-.spell-link:hover {
     color: var(--fa-gold-light);
+    text-decoration: none;
+    white-space: nowrap;
+
+    &:hover {
+        color: var(--fa-text);
+        text-decoration: underline;
+    }
+
+    & > img {
+        margin-right: 3px;
+    }
 }
 
 .spell-link__icon {
@@ -13,10 +19,6 @@
     width: 1.3em;
     margin-top: -0.3em;
     vertical-align: middle;
-    border-radius: 2px;
+    border-radius: var(--fa-radius-xs);
     object-fit: cover;
-}
-
-.spell-link:hover {
-    text-decoration: underline;
 }

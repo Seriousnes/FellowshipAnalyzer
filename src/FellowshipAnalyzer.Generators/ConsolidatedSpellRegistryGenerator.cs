@@ -339,6 +339,9 @@ public sealed class ConsolidatedSpellRegistryGenerator : IIncrementalGenerator
                 case ScalarKind.Double when v.Number is { } nd:
                     parts.Add(prop.Name + " = " + Fmt(nd));
                     break;
+                case ScalarKind.Enum when v.String is { } es && prop.EnumMembers is { } members && members.Contains(es):
+                    parts.Add(prop.Name + " = " + prop.EnumGlobalName + "." + es);
+                    break;
             }
         }
 
@@ -383,12 +386,17 @@ public sealed class ConsolidatedSpellRegistryGenerator : IIncrementalGenerator
                     continue;
                 if (p.Name is "Id" or "Costs")
                     continue;
-                var kind = ClassifyScalar(p.Type);
-                if (kind is null)
-                    continue;
                 var key = CamelCase(p.Name);
-                scalars.Add(new ScalarProp(p.Name, key, kind.Value));
-                knownKeys.Add(key);
+                if (ClassifyScalar(p.Type) is { } kind)
+                {
+                    scalars.Add(new ScalarProp(p.Name, key, kind));
+                    knownKeys.Add(key);
+                }
+                else if (TryClassifyEnum(p.Type, out var enumGlobal, out var enumMembers))
+                {
+                    scalars.Add(new ScalarProp(p.Name, key, ScalarKind.Enum, enumGlobal, enumMembers));
+                    knownKeys.Add(key);
+                }
             }
         }
 
@@ -428,6 +436,22 @@ public sealed class ConsolidatedSpellRegistryGenerator : IIncrementalGenerator
             SpecialType.System_String => ScalarKind.String,
             _ => null,
         };
+    }
+
+    private static bool TryClassifyEnum(ITypeSymbol type, out string enumGlobalName, out HashSet<string> members)
+    {
+        enumGlobalName = "";
+        members = new HashSet<string>(StringComparer.Ordinal);
+        var t = type;
+        if (t is INamedTypeSymbol { OriginalDefinition.SpecialType: SpecialType.System_Nullable_T } nt)
+            t = nt.TypeArguments[0];
+        if (t.TypeKind != TypeKind.Enum)
+            return false;
+        enumGlobalName = GlobalName(t);
+        foreach (var member in t.GetMembers())
+            if (member is IFieldSymbol { IsConst: true } f)
+                members.Add(f.Name);
+        return true;
     }
 
     private static string CamelCase(string name) =>
@@ -654,9 +678,11 @@ public sealed class ConsolidatedSpellRegistryGenerator : IIncrementalGenerator
 
     private readonly record struct AllEntry(string ContainerGlobalName, string MemberName, int FSLID);
 
-    private enum ScalarKind { Int, Double, String }
+    private enum ScalarKind { Int, Double, String, Enum }
 
-    private readonly record struct ScalarProp(string Name, string JsonKey, ScalarKind Kind);
+    private readonly record struct ScalarProp(
+        string Name, string JsonKey, ScalarKind Kind,
+        string? EnumGlobalName = null, HashSet<string>? EnumMembers = null);
 
     private sealed record SpellSchema(
         IReadOnlyList<ScalarProp> Scalars,

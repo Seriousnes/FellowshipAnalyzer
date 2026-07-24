@@ -15,7 +15,7 @@
     margin: 20vh auto;
     padding: 2rem;
     border: 0;
-    border-radius: 0.5rem;
+    border-radius: var(--fa-radius-sm);
     box-shadow: 0 3px 6px 2px t.tint(t.$fa-black, t.$fa-tint-muted);
     opacity: 0;
     transition: display 0.5s allow-discrete, overlay 0.5s allow-discrete;
@@ -53,7 +53,7 @@
         background-color: t.$fa-steel;
         color: white;
         padding: 4px 24px;
-        border-radius: 4px;
+        border-radius: var(--fa-radius-xs);
 
         &:hover  { background-color: t.$fa-steel; }
         &:active { background-color: t.$fa-steel; }

@@ -1,23 +1,12 @@
 @use 'tokens' as t;
+@use 'themes' as th;
+
+:root,
+:root[data-theme='original'] { @include th.original; }
+:root[data-theme='dark']     { @include th.dark; }
+:root[data-theme='light']    { @include th.light; }
 
 :root {
-    --fa-bg-base:    #{t.$fa-bg-base};
-    --fa-bg-raised:  #{t.$fa-bg-raised};
-    --fa-bg-surface: #{t.$fa-bg-surface};
-    --fa-bg-card:    #{t.$fa-bg-card};
-    --fa-bg-inset:   #{t.$fa-bg-inset};
-
-    --fa-gold:       #{t.$fa-gold};
-    --fa-gold-light: #{t.$fa-gold-light};
-    --fa-gold-dim:   #{t.$fa-gold-dim};
-
-    --fa-text:       #{t.$fa-text};
-    --fa-text-muted: #{t.$fa-text-muted};
-    --fa-text-dim:   #{t.$fa-text-dim};
-
-    --fa-border:      #{t.$fa-border};
-    --fa-border-card: #{t.$fa-border-card};
-
     --fa-perf-perfect:   #{t.$fa-perf-perfect};
     --fa-perf-good:      #{t.$fa-perf-good};
     --fa-perf-ok:        #{t.$fa-perf-ok};
@@ -29,17 +18,19 @@
     --fa-role-tank:    #{t.$fa-role-tank};
     --fa-role-healer:  #{t.$fa-role-healer};
     --fa-role-dps:     #{t.$fa-role-dps};
-    --fa-role-unknown: #{t.$fa-role-unknown};
 
     --fa-ice: #{t.$fa-ice};
 
-    --fa-shadow-card: #{t.$fa-shadow-card};
-    --fa-shadow-lg:   #{t.$fa-shadow-lg};
+    --fa-border-width: #{t.$fa-border-width};
+    --fa-accent-width: #{t.$fa-accent-width};
+    --fa-ring-width:   #{t.$fa-ring-width};
 
-    --fa-radius-sm: #{t.$fa-radius-sm};
-    --fa-radius-md: #{t.$fa-radius-md};
-    --fa-radius-lg: #{t.$fa-radius-lg};
-    --fa-radius-xl: #{t.$fa-radius-xl};
+    --fa-radius-xs:   #{t.$fa-radius-xs};
+    --fa-radius-sm:   #{t.$fa-radius-sm};
+    --fa-radius-md:   #{t.$fa-radius-md};
+    --fa-radius-lg:   #{t.$fa-radius-lg};
+    --fa-radius-xl:   #{t.$fa-radius-xl};
+    --fa-radius-pill: #{t.$fa-radius-pill};
 
     --fa-font-body:    #{t.$fa-font-body};
     --fa-font-heading: #{t.$fa-font-heading};
@@ -68,8 +59,8 @@ h1, h2, h3, h4 {
 }
 
 a {
-    color: var(--fa-gold);
-    &:hover { color: var(--fa-gold-light); }
+    color: var(--fa-gold-light);
+    &:hover { color: var(--fa-text); }
 }
 
 .showcase-section {
@@ -81,7 +72,7 @@ a {
 .showcase-section > h2 {
     margin: 0 0 0.25rem;
     font-size: 1.15rem;
-    color: var(--fa-gold-light);
+    color: var(--fa-gold-pale);
 }
 
 .showcase-section > p {
@@ -111,4 +102,60 @@ a {
 .lede {
     color: var(--fa-text-muted);
     max-width: 42rem;
+}
+
+.theme-picker {
+    position: fixed;
+    top: 0.85rem;
+    right: 0.85rem;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.35rem 0.5rem;
+    background: var(--fa-bg-card);
+    border: var(--fa-border-width) solid var(--fa-border-card);
+    border-radius: var(--fa-radius-pill);
+    box-shadow: var(--fa-shadow-card);
+    backdrop-filter: blur(6px);
+}
+
+.theme-picker-label {
+    padding-left: 0.4rem;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    font-size: 0.62rem;
+    font-weight: 600;
+    color: var(--fa-text-dim);
+}
+
+.theme-picker-options {
+    display: inline-flex;
+    border: var(--fa-border-width) solid var(--fa-border-card);
+    border-radius: var(--fa-radius-pill);
+    overflow: hidden;
+}
+
+.theme-picker-option {
+    appearance: none;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 0.78rem;
+    font-weight: 600;
+    padding: 0.3rem 0.8rem;
+    color: var(--fa-text-muted);
+    transition: background 0.15s, color 0.15s;
+
+    & + & {
+        border-left: var(--fa-border-width) solid var(--fa-border-card);
+    }
+
+    &:hover:not(.active) { color: var(--fa-text); }
+
+    &.active {
+        background: var(--fa-gold-dim);
+        color: var(--fa-gold-light);
+    }
 }

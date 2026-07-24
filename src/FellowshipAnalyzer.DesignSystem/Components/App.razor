@@ -5,6 +5,17 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <base href="/" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Source+Sans+3:wght@400;500;600;700&display=swap" />
+    <script>
+        (function () {
+            var stored;
+            try { stored = localStorage.getItem('fa-theme'); } catch (e) { stored = null; }
+            document.documentElement.dataset.theme = stored || 'original';
+        })();
+    </script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@@tabler/icons-webfont@@3.45.0/dist/tabler-icons.min.css" />
     <link rel="stylesheet" href="app.css" />
     <link rel="stylesheet" href="@Assets["FellowshipAnalyzer.DesignSystem.styles.css"]" />
     <HeadOutlet @rendermode="InteractiveServer" />
@@ -12,8 +23,41 @@
 </head>
 
 <body>
+    <div class="theme-picker">
+        <span class="theme-picker-label">Theme</span>
+        <div class="theme-picker-options" role="group" aria-label="Theme">
+            <button type="button" class="theme-picker-option" data-theme-option="original">Original</button>
+            <button type="button" class="theme-picker-option" data-theme-option="light">Light</button>
+            <button type="button" class="theme-picker-option" data-theme-option="dark">Dark</button>
+        </div>
+    </div>
+
     <Routes @rendermode="InteractiveServer" />
     <script src="_framework/blazor.web.js"></script>
+    <script>
+        (function () {
+            var root = document.documentElement;
+            var options = Array.prototype.slice.call(document.querySelectorAll('[data-theme-option]'));
+
+            function sync() {
+                options.forEach(function (option) {
+                    var on = option.dataset.themeOption === root.dataset.theme;
+                    option.classList.toggle('active', on);
+                    option.setAttribute('aria-pressed', on ? 'true' : 'false');
+                });
+            }
+
+            options.forEach(function (option) {
+                option.addEventListener('click', function () {
+                    root.dataset.theme = option.dataset.themeOption;
+                    try { localStorage.setItem('fa-theme', option.dataset.themeOption); } catch (e) { }
+                    sync();
+                });
+            });
+
+            sync();
+        })();
+    </script>
 </body>
 
 </html>

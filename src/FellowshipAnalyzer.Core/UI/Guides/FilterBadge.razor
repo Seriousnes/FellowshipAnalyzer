@@ -1,15 +1,15 @@
 @* FilterBadge — clickable performance-distribution badge with active/disabled state. *@
 
 @{
-    var color = Disabled ? "#c8c8c8" : PerformanceColors.ToColor(Performance);
+    var color = Disabled ? "var(--fa-text-dim)" : PerformanceColors.ToColor(Performance);
     var label = Label ?? PerformanceColors.ToLabel(Performance);
-    var borderColor = Disabled ? "rgba(255,255,255,0.1)"
-        : Active ? color + "60"
-        : "rgba(255,255,255,0.08)";
-    var bg = Disabled ? "rgba(255,255,255,0.04)"
-        : Active ? color + "08"
-        : "rgba(0,0,0,0.2)";
-    var opacity = Disabled || !Active ? "0.4" : "1";
+    var borderColor = Disabled ? "var(--fa-border)"
+        : Active ? color
+        : "var(--fa-border-card)";
+    var bg = Disabled ? "var(--fa-bg-inset)"
+        : Active ? $"color-mix(in srgb, {color} 14%, transparent)"
+        : "var(--fa-bg-inset)";
+    var opacity = Disabled ? "0.4" : "1";
 }
 
 <button type="button"
@@ -18,7 +18,7 @@
         disabled="@Disabled"
         @onclick="HandleClick">
     <span class="filter-badge-count" style="color: @color;">@Count</span>
-    <span class="filter-badge-divider" style="background: @(color)40;"></span>
+    <span class="filter-badge-divider" style="background: color-mix(in srgb, @color 40%, transparent);"></span>
     <span class="filter-badge-label">@label</span>
 </button>
 

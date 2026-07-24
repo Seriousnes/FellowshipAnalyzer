@@ -10,7 +10,7 @@
 .perf-box {
     width: 16px;
     height: 16px;
-    border-radius: 2px;
+    border-radius: var(--fa-radius-xs);
     border: none;
     padding: 0;
     cursor: default;

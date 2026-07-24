@@ -3,7 +3,7 @@
 .section-container {
     background: var(--fa-bg-inset, t.$fa-bg-inset);
     border: 1px solid var(--fa-border, t.tint(t.$fa-gold, t.$fa-tint-subtle));
-    border-radius: 8px;
+    border-radius: var(--fa-radius-sm);
     padding: 8px 10px;
     margin-bottom: 10px;
 }
@@ -61,7 +61,7 @@
 
 .helper-text {
     font-size: t.$fa-fs-body;
-    color: t.tint(t.$fa-white, t.$fa-tint-medium);
+    color: var(--fa-fg-muted, t.tint(t.$fa-white, t.$fa-tint-medium));
     margin-top: 4px;
     font-style: italic;
 }
@@ -70,5 +70,5 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    margin-top: 4px;
+    margin: 8px 0px;
 }

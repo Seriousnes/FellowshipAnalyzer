@@ -7,8 +7,8 @@
     margin-bottom: 8px;
     padding: 6px 10px;
     border: 1px solid var(--fa-border, t.tint(t.$fa-gold, t.$fa-tint-subtle));
-    border-left-width: 3px;
-    border-radius: 6px;
+    border-left-width: var(--fa-accent-width);
+    border-radius: var(--fa-radius-sm);
     background: t.tint(t.$fa-text, t.$fa-tint-faint);
     color: var(--fa-text);
     font-size: t.$fa-fs-title;
@@ -16,15 +16,15 @@
     letter-spacing: 0.4px;
 
     &.boss {
-        border-left-color: t.$fa-gold;
+        border-left-color: var(--fa-gold, #{t.$fa-gold});
 
-        .pull-banner-icon { color: t.$fa-gold; }
+        .pull-banner-icon { color: var(--fa-gold, #{t.$fa-gold}); }
     }
 
     &.trash {
-        border-left-color: t.$fa-text-muted;
+        border-left-color: var(--fa-text-muted, #{t.$fa-text-muted});
 
-        .pull-banner-icon { color: t.$fa-text-muted; }
+        .pull-banner-icon { color: var(--fa-text-muted, #{t.$fa-text-muted}); }
     }
 }
 
@@ -35,7 +35,7 @@
 
 .pull-banner-id {
     padding: 1px 6px;
-    border-radius: 4px;
+    border-radius: var(--fa-radius-xs);
     background: t.tint(t.$fa-text, t.$fa-tint-faint);
     color: var(--fa-text-muted);
     font-size: t.$fa-fs-meta;

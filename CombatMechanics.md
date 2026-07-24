@@ -1,5 +1,10 @@
 # Fellowship Combat Mechanics for Log Analysis (Ratings, Haste, and Diminishing Returns)
 
+> **Season scope.** Every stat formula in the body of this document describes **Season 3, "Rise of the Heskyr"**, live since 2026-06-22. [^22]
+> Season 3 shipped a full progression reset and a stat squish, and it replaced the Season 2 diminishing-returns curve, so Season 2 rating values and Season 3 rating values are not interchangeable. [^22]
+> `StatTracker.RatingToPercentage` is the analyzer's implementation of the Season 3 curve and is the authority for what this codebase actually computes. [^23]
+> The superseded Season 2 model is preserved under [Season 2 (historical)](#season-2-historical) for anyone reading a Season 2 log, since the repo still ships `s2` data.
+
 ## Executive Overview
 
 Fellowship uses a World of Warcraft–style stat system built around ratings that convert into percentages with tiered diminishing returns and a unified "Haste" stat that speeds up most time-based mechanics (GCD, casts, ticks, and many cooldowns). [^1][^2] These mechanics can be modeled deterministically for a combat-log analysis app by combining published rating→percentage formulas with empirically verified haste scaling on cooldowns and global cooldown. [^2][^3][^4]
@@ -13,66 +18,114 @@ These secondary stats modify core combat behavior: Critical Strike increases cri
 
 Secondary stats are always sourced as ratings from gear, gems, and some effects, while some talents, set bonuses, and gem effects add flat percentages that stack after the rating-to-percentage and diminishing-returns steps. [^2][^1]
 
+## Season 3 Stat Squish and Base Scaling
+
+Season 3 squished the absolute magnitude of every stat. The `CT_CharacterBaseAttributes` Default row moved base main stat from 1700 to 120 and base health from 28560 to 2856, roughly a 14x squish on main stat and a 10x squish on health. [^22]
+
+Health and damage scaling share the same shape, with those base values substituted in: [^22]
+
+- Health: `ROUND(ROUND(base_health × BaseHealthMultiplier) × DifficultyScaleMultiplier)`
+- Damage: `ROUND(ROUND(base_main_stat × Spell_CoEfficient) × DifficultyScaleMultiplier)`
+
+Season 3 uses `base_main_stat = 120`, `base_health = 2856`; Season 2 used `base_main_stat = 1700`, `base_health = 28560`. [^22]
+Read those constants from the data file rather than hardcoding them: the current `s3/dungeon_data.json` reads `Default.BasicAttributeSet.Strength / Agility / Intellect: 120.0`, which agrees, but `Default.BasicAttributeSet.BaseHealth: 2999.0`, which is higher than the 2856 in the data dump README. [^22]
+
+The practical consequence for a log analyzer is that **every absolute number changed scale between seasons**: ratings, health pools, and damage amounts from a Season 2 log are roughly an order of magnitude larger than their Season 3 equivalents, so any threshold, breakpoint, or sanity check expressed as an absolute value must be season-aware. [^22]
+
 ## Rating to Percentage Conversion
 
 ### Base conversion factor
 
-All secondary stats share a single base conversion rate of 0.017 percentage points per 1 rating before diminishing returns. [^2][^1]
-This means that 100 rating = 1.7%, 500 rating = 8.5%, and 1000 rating = 17% in the absence of any DR, and this base factor is the starting point for the DR tier system described below. [^2]
+All secondary stats share a single base conversion rate of 0.16 percentage points per 1 rating before diminishing returns. [^22][^23]
+This means that 100 rating = 16%, 50 rating = 8%, and 200 rating = 32% as a raw percentage in the absence of any DR, and this base factor is the starting point for the DR band system described below. [^22][^23]
+
+The Season 2 factor was 0.017 per rating, so Season 3 ratings are about 9.4x smaller for the same percentage. Gear item budgets were squished to match, and a real Season 3 secondary rating total is in the low hundreds where a Season 2 total was in the thousands. [^22]
 
 ### Critical Strike base value
 
-Critical Strike has an additional 5% base crit chance that is explicitly exempt from diminishing returns and is added after DR on rating. [^2][^7]
-In practice, the computation for crit is "post‑DR percentage from rating" plus 5% base plus any flat crit percentage bonuses from gems, talents, or set bonuses. [^2][^7]
+Critical Strike has an additional 5% base crit chance that is exempt from diminishing returns and is added after DR on rating. [^22][^7]
+The Season 3 data dump confirms this directly: each hero's base attribute block carries `CritChance: 0.05` alongside `CritMultiplier: 2.0`. [^22]
+In practice, the computation for crit is "post-DR percentage from rating" plus 5% base plus any flat crit percentage bonuses from gems, talents, or set bonuses. [^22][^7]
+`StatTracker.BaseCritChance` encodes the 5%, and `CritPercentage(rating, withBase: true)` performs the addition. [^23]
 
 ## Diminishing Returns on Secondary Stats
 
 ### Conceptual behavior
 
-Fellowship applies soft diminishing returns to all secondary stats: below 10% there is no DR, between 10–25% the efficiency of new rating gradually falls, and beyond 25% efficiency stabilizes at a reduced level. [^2][^1][^7]
-The intent is to make low stats feel strong for early characters and to discourage extreme stacking of a single secondary stat in favor of balanced distributions. [^8][^2]
+Fellowship applies soft diminishing returns to all secondary stats: below 10% there is no DR, between 10% and 25% the efficiency of new rating steps down band by band, and beyond 25% efficiency stabilizes at a reduced level. [^22][^1][^7]
+The intent is to make low stats feel strong for early characters and to discourage extreme stacking of a single secondary stat in favor of balanced distributions. [^8][^22]
 
-### Tiered DR structure
+Season 3 DR is mild compared with Season 2: the worst band still returns 92% of base value, where Season 2 fell to about 58%. [^22]
 
-The best-documented formula from community reverse‑engineering splits rating into tiers with different effective percentages per rating, derived from multiplicative penalties applied to the base 0.017% per rating. [^2]
-For any given rating value R (for Crit, Haste, Expertise, or Spirit), the post‑DR percentage from rating (excluding flat bonuses and crit base 5%) can be computed piecewise as follows: [^2]
+### Banded DR structure
 
-- 0 ≤ R ≤ 589 (0–10%): full efficiency, 0.017% per rating.
-- 589 < R ≤ 898 (≈10–15%): 95% efficiency, 0.01615% per rating for this segment.
-- 898 < R ≤ 1242 (≈15–20%): 85.5% efficiency, 0.014535% per rating for this segment.
-- 1242 < R ≤ 1647 (≈20–25%): 72.675% efficiency, 0.01235475% per rating for this segment.
-- R > 1647 (25%+): 58.2% efficiency, 0.009901% per rating for all rating above 1647. [^2]
+**The DR bands are measured on the raw percentage, `raw = rating × 0.16`, not on the post-DR percentage.** [^23]
+Each 5-point band of `raw` is multiplied by a flat per-band factor. The factors do **not** compound: band 3 uses 0.96, not 0.98 × 0.96. [^22][^23]
 
-These efficiency factors correspond to the multiplicative penalties of 95%, 90%, 85%, and 80% applied progressively to the base 0.017% per rating, with compounding up to 25% and then a flat efficiency afterwards. [^2]
+| Band of `raw` | Band multiplier | Effective % per rating in the band | Post-DR % accrued in the band |
+| --- | --- | --- | --- |
+| 0% to 10% | 1.00 | 0.16 | 10.0 |
+| 10% to 15% | 0.98 | 0.1568 | 4.9 |
+| 15% to 20% | 0.96 | 0.1536 | 4.8 |
+| 20% to 25% | 0.94 | 0.1504 | 4.7 |
+| above 25% | 0.92 | 0.1472 | unbounded |
+
+Because the bands are cut on `raw`, the rating values at which they change are: [^23]
+
+- `raw` = 10% at **62.5** rating
+- `raw` = 15% at **93.75** rating
+- `raw` = 20% at **125** rating
+- `raw` = 25% at **156.25** rating
+
+A consequence worth remembering: at those boundaries the stat **displays** 10%, 14.9%, 19.7%, and 24.4%, not 10/15/20/25%. Only the first boundary is the same number in both raw and post-DR terms. This is a structural change from Season 2, where each band contributed a clean 5 post-DR points and the boundaries were defined on the post-DR percentage.
 
 ### Explicit piecewise formula
 
-The FellowBIS stats guide gives a concrete closed-form piecewise function for the post‑DR percentage from rating, P(R), excluding flat bonuses and crit base 5%: [^2]
+For any rating R (Crit, Haste, Expertise, or Spirit), the post-DR percentage from rating P(R), excluding flat bonuses and the crit base 5%, is: [^23]
 
-- If R ≤ 589:  
-  P(R) = R × 0.017
-- If 589 < R ≤ 898:  
-  P(R) = 10 + (R − 589) × 0.01615
-- If 898 < R ≤ 1242:  
-  P(R) = 15 + (R − 898) × 0.014535
-- If 1242 < R ≤ 1647:  
-  P(R) = 20 + (R − 1242) × 0.01235475
-- If R > 1647:  
-  P(R) = 25 + (R − 1647) × 0.009901
+- If R ≤ 62.5:  
+  P(R) = R × 0.16
+- If 62.5 < R ≤ 93.75:  
+  P(R) = 10 + (R − 62.5) × 0.1568
+- If 93.75 < R ≤ 125:  
+  P(R) = 14.9 + (R − 93.75) × 0.1536
+- If 125 < R ≤ 156.25:  
+  P(R) = 19.7 + (R − 125) × 0.1504
+- If R > 156.25:  
+  P(R) = 24.4 + (R − 156.25) × 0.1472
 
-The final percentage is then rounded up to 2 decimal places to match the in‑game display. [^2]
+`StatTracker.RatingToPercentage` expresses the same function in clamp form over `raw = rating × 0.16`, which avoids the boundary table entirely and returns a decimal fraction (0.3084 for 30.84%): [^23]
+
+```
+pct = min(raw, 10)
+    + clamp(raw − 10, 0, 5) × 0.98
+    + clamp(raw − 15, 0, 5) × 0.96
+    + clamp(raw − 20, 0, 5) × 0.94
+    + max(raw − 25, 0)      × 0.92
+```
+
+The in-game client displays the result to 2 decimal places. The analyzer does not round: `RatingToPercentage` returns the full-precision fraction, so any rounding is a presentation concern for the UI layer. [^23]
 
 ### Worked example
 
-For 2200 Haste rating, the theoretical base percentage without DR would be 2200 × 0.017 = 37.4%. [^2]
-Applying the tiered DR, the guide shows the first 589 rating giving 10%, the next tiers each contributing about 5%, and the final 553 rating (2200 − 1647) yielding about 5.48% at the reduced efficiency, for a final post‑DR Haste of roughly 30.48%. [^2]
+Take **200 Haste rating**, a plausible haste-focused Season 3 total. For scale, a Season 2 log in this repo's test data shows a total Haste rating of 1304, which at the 9.4x rating-scale change maps to roughly 139 in Season 3 terms, so 200 represents a build that is deliberately stacking the stat.
 
-This example shows a loss of about 6.9 percentage points relative to the non‑DR 37.4%, highlighting how punishing stacking beyond 25% can be. [^2]
+1. Raw percentage: 200 × 0.16 = **32%**.
+2. First 10 raw points, no DR: 10 × 1.00 = **10.00**
+3. Raw 10 to 15: 5 × 0.98 = **4.90**
+4. Raw 15 to 20: 5 × 0.96 = **4.80**
+5. Raw 20 to 25: 5 × 0.94 = **4.70**
+6. Raw above 25, which is 32 − 25 = 7 points: 7 × 0.92 = **6.44**
+7. Sum: 10.00 + 4.90 + 4.80 + 4.70 + 6.44 = **30.84%** post-DR Haste.
+
+`StatTracker.RatingToPercentage(200)` returns `0.3084`. [^23]
+The loss relative to the undiminished 32% is 1.16 percentage points, about 3.6% of the raw value.
 
 ### Practical gearing implications
 
-Because efficiency falls from 100% at 0–10% to about 58% at and beyond 25%, most optimization guides recommend keeping individual secondary stats around 15–25% and then investing rating into other secondaries rather than pushing well past 25%. [^2][^1][^7]
-Flat percentage bonuses from gems, sets, or talents bypass DR, so they are particularly powerful for pushing a priority stat above 25% without suffering further efficiency loss. [^2][^1]
+Because the worst band still returns 92% of base value, Season 3 DR is a gentle tax rather than a wall. Overall efficiency, meaning post-DR percentage divided by raw percentage, is 96.4% at 32% raw (200 rating), 95.5% at 40% raw (250 rating), and still 94.9% at 48% raw (300 rating). [^23]
+Pushing a single secondary well past 25% is a real but small loss, so stat priority in Season 3 is driven mainly by which secondary the hero scales with rather than by DR avoidance. [^22]
+Flat percentage bonuses from gems, sets, or talents bypass DR entirely, so they are particularly useful for pushing a priority stat past 25% without suffering any efficiency loss. [^22][^1]
 
 ## Haste Mechanics and Cooldown Scaling
 
@@ -83,8 +136,8 @@ Community discussion and class guides further emphasize that Haste reduces the g
 
 ### Haste percentage from rating
 
-The Haste percentage used for combat calculations is obtained by applying the same rating→percentage with DR formula described above to Haste rating, then adding any flat Haste percentage bonuses (for example from gems, set bonuses, or temporary buffs such as "heroism"-style effects). [^2][^1][^4]
-As with other secondaries, DR applies only to rating-based Haste; flat Haste percentage bonuses are added on top after DR and are not diminished. [^2][^1]
+The Haste percentage used for combat calculations is obtained by applying the same rating to percentage with DR formula described above to Haste rating, then adding any flat Haste percentage bonuses (for example from gems, set bonuses, or temporary buffs such as "heroism"-style effects). [^22][^23][^4]
+As with other secondaries, DR applies only to rating-based Haste; flat Haste percentage bonuses are added on top after DR and are not diminished. [^22][^1]
 
 ### Empirical cooldown scaling formula
 
@@ -122,14 +175,14 @@ For an analyzer, the general approach is to compute a generic Haste-adjusted coo
 
 For each secondary stat S with rating R, the analyzer should:
 
-1. Partition R into the DR tiers of 0–589, 589–898, 898–1242, 1242–1647, and 1647+. [^2]
-2. For each tier segment, multiply the tier's rating portion by the tier's effective percent-per-rating factor (0.017; 0.01615; 0.014535; 0.01235475; 0.009901). [^2]
-3. Sum the tier contributions to obtain P_R, the post-DR percentage from rating. [^2]
-4. Add any flat percentage bonuses associated with S (gems, sets, talents), which are not subject to DR. [^2][^1]
-5. If S is Critical Strike, add an extra 5% base crit. [^2][^7]
-6. Round to 2 decimal places to approximate the client display. [^2]
+1. Compute the raw percentage: `raw = R × 0.16`. [^22][^23]
+2. Partition `raw` into the bands 0-10, 10-15, 15-20, 20-25, and 25+. The bands are cut on the raw percentage, not on the post-DR percentage, and not on rating. [^23]
+3. Multiply each band's portion of `raw` by its flat multiplier (1.00; 0.98; 0.96; 0.94; 0.92). The multipliers do not compound. [^22][^23]
+4. Sum the band contributions to obtain P_R, the post-DR percentage from rating. [^23]
+5. Add any flat percentage bonuses associated with S (gems, sets, talents), which are not subject to DR. [^22][^1]
+6. If S is Critical Strike, add an extra 5% base crit. [^22][^7]
 
-These steps replicate the FellowBIS formula and the behavior described in multiple community resources. [^2][^1][^7]
+Steps 1 to 4 are exactly `StatTracker.RatingToPercentage`, which returns a decimal fraction and applies no rounding; step 5 is not modelled there and step 6 is `CritPercentage(rating, withBase: true)`. [^23]
 
 ### Haste-adjusted time scaling
 
@@ -243,7 +296,7 @@ With correct modeling of ratings, Haste, DR, and cooldown scaling, the app can c
 - Cooldown alignment: how often major cooldowns could have been used versus when they were actually cast.
 - Drift and desync: how far key cooldowns were delayed, especially around encounter mechanics.
 - GCD utilization: percentage of time spent GCD-locked versus idle, excluding forced downtime.
-- Stat utilization: how much value is obtained from current secondary distribution relative to recommended bands (e.g., staying inside 10–25% before DR becomes severe). [^2][^1][^19]
+- Stat utilization: how much value is obtained from the current secondary distribution, expressed as post-DR percentage against raw percentage so a player can see exactly how many points DR is costing them at their rating. [^22][^1][^19]
 - Buff and debuff uptime: adjusted for Haste‑affected durations and tick schedules.
 
 By surfacing these as per-pull and per-ability metrics, the analyzer can give actionable feedback that goes beyond raw DPS/HPS numbers.
@@ -255,10 +308,42 @@ External guides from Icy Veins, Method, and other sites provide stat priority an
 
 ## Limitations and Open Questions
 
-Fellowship does not publish official developer documentation for the exact rating, DR, and cooldown formulas; current understanding relies on community reverse-engineering and tools like FellowBIS and third-party guides. [^2][^1][^7]
-Some details remain uncertain, including exact snapshot rules for Haste on periodic effects, hero‑specific base GCD values, and whether certain cooldown recovery effects stack additively or multiplicatively with Haste in edge cases. [^4][^5]
+Fellowship does not publish official developer documentation for the exact rating, DR, and cooldown formulas. The Season 3 stat numbers here come from the game-table data dump in `external/fs_tc_uploads`, which is the closest thing to a primary source; the surrounding narrative comes from community reverse-engineering and third-party guides. [^22][^1][^7]
+The data dump's Season 3 DR note reads "the default mod starts at .16 but each step the new value gets reduced by the next tier", which could be read as compounding the per-band multipliers. The dump's own numeric list (0.98 / 0.96 / 0.94 / 0.92) is flat, and `StatTracker.RatingToPercentage` implements it flat. This document follows the flat reading. [^22][^23]
+The dump also writes the bands as "From 10-15% you get 0.98 value" without saying whether that 10-15% is the raw percentage or the displayed post-DR percentage. The code cuts the bands on the raw percentage, and this document follows the code. [^22][^23]
+The data dump README states the Season 3 base health as 2856 while the live `s3/dungeon_data.json` reads 2999, so the base-health constant should be read from the data file. [^22]
+Some details remain uncertain, including exact snapshot rules for Haste on periodic effects, hero-specific base GCD values, and whether certain cooldown recovery effects stack additively or multiplicatively with Haste in edge cases. [^4][^5]
 
 For a production-grade analyzer, these uncertainties should be handled via configuration, sanity-checked against logs from high-end players, and revisited as new theorycrafting emerges or patches change the underlying math. [^6][^21]
+
+## Season 2 (historical)
+
+This section records the Season 2 stat model. It applies only to logs recorded before Season 3 went live on 2026-06-22, and the analyzer does not implement it. It is kept because the repo still ships `s2` game data and Season 2 logs remain readable. [^22]
+
+**Base values.** Base main stat was 1700 and base health 28560, feeding the same scaling shape used today: `ROUND(ROUND(28560 × BaseHealthMultiplier) × DifficultyScaleMultiplier)` for health and `ROUND(ROUND(1700 × Spell_CoEfficient) × DifficultyScaleMultiplier)` for damage. [^22]
+
+**Base conversion factor.** 0.017 percentage points per 1 rating before DR, so 100 rating = 1.7% and 1000 rating = 17% raw. [^2]
+
+**Compounding tiers.** Unlike Season 3, Season 2 compounded its penalties: the 95%, 90%, 85%, and 80% tier penalties were applied progressively to the running per-rating factor rather than each being a flat multiplier on a band. [^2]
+The tiers were also cut on the **post-DR** percentage, so each tier contributed exactly 5 post-DR points and the boundaries landed at clean 10 / 15 / 20 / 25 displayed percentages: [^2]
+
+- 0 ≤ R ≤ 589 (0 to 10%): full efficiency, 0.017% per rating.
+- 589 < R ≤ 898 (10 to 15%): 95% efficiency, 0.01615% per rating for this segment.
+- 898 < R ≤ 1242 (15 to 20%): 85.5% efficiency, 0.014535% per rating for this segment.
+- 1242 < R ≤ 1647 (20 to 25%): 72.675% efficiency, 0.01235475% per rating for this segment.
+- R > 1647 (25%+): 58.2% efficiency, 0.009901% per rating for all rating above 1647. [^2]
+
+**Piecewise formula.** [^2]
+
+- If R ≤ 589: P(R) = R × 0.017
+- If 589 < R ≤ 898: P(R) = 10 + (R − 589) × 0.01615
+- If 898 < R ≤ 1242: P(R) = 15 + (R − 898) × 0.014535
+- If 1242 < R ≤ 1647: P(R) = 20 + (R − 1242) × 0.01235475
+- If R > 1647: P(R) = 25 + (R − 1647) × 0.009901
+
+**Worked example.** For 2200 Haste rating the raw percentage was 2200 × 0.017 = 37.4%. The first 589 rating gave 10%, each of the next three tiers about 5%, and the final 553 rating (2200 − 1647) about 5.48% at 58.2% efficiency, for roughly 30.48% post-DR Haste: a loss of about 6.9 percentage points. [^2]
+
+**Why the numbers do not transfer.** Season 2 lost 6.9 points at 37.4% raw; Season 3 loses 1.16 points at 32% raw. Season 2 DR punished stacking hard enough that gearing advice was built around it, which is why older guides recommend holding secondaries inside the 10% to 25% band. That advice does not apply to Season 3. [^22]
 
 ---
 
@@ -266,7 +351,7 @@ For a production-grade analyzer, these uncertainties should be handled via confi
 
 1. [Fellowship Beginner Guide – Everything You Need to Know - Icy Veins](https://www.icy-veins.com/fellowship/news/fellowship-beginner-guide-everything-you-need-to-know/) - This Fellowship Beginner Guide will introduce you to all the unique mechanics and core systems that ...
 
-2. [Fellowship Stats Guide: How Stats Are Calculated - FellowBIS](https://fellowbis.com/stats-guide) - Learn how secondary stats work in Fellowship and how rating values convert to percentages with dimin...
+2. [Fellowship Stats Guide: How Stats Are Calculated - FellowBIS](https://fellowbis.com/stats-guide) - Learn how secondary stats work in Fellowship and how rating values convert to percentages with dimin... **Documents the Season 2 model.** Cited here only for the [Season 2 (historical)](#season-2-historical) section and for stat descriptions that did not change between seasons; see [^22] and [^23] for the live Season 3 numbers.
 
 3. [How much does haste reduce the recharge time of abilities ... - Reddit](https://www.reddit.com/r/fellowshipgame/comments/1rlmuqj/how_much_does_haste_reduce_the_recharge_time_of/) - The formula is x / (x + 100). 50 haste will reduce cds by 50/150, thus 33 ... I don't think haste re...
 
@@ -305,4 +390,8 @@ For a production-grade analyzer, these uncertainties should be handled via confi
 20. [Stats, Traits & Gems Ardeos Fellowship Hero Guide - Method](https://www.method.gg/fellowship/heroes/ardeos/stats-traits-and-gems) - Method's Fellowship Ardeos Hero Guide includes best Talents, BIS gear, BIS legendary, rotation, inte...
 
 21. [Fellowship - News - Public Playtest Patch Notes - March 1 | eprison.de](https://www.eprison.de/spiele/fellowship/steam-news/1792751526079157/8138/89808.html)
+
+22. [Ângry's Fellowship API-ish Dump - `external/fs_tc_uploads`](https://fs-theorycrafting.com) - Season-first dump of the game's own data tables, vendored into this repo as a submodule. Season 3 "Rise of the Heskyr" DR bands, the 0.16 base conversion factor, the stat squish (base main stat 1700 to 120, base health 28560 to 2856), and the health/damage scaling formulas come from `external/fs_tc_uploads/README.md`; base attribute values are read from `external/fs_tc_uploads/s3/dungeon_data.json` and per-hero base crit from `external/fs_tc_uploads/s3/hero_data.json`.
+
+23. `src/FellowshipAnalyzer.Core/Analysis/StatTracker.cs` - `RatingToPercentage` is this codebase's implementation of the Season 3 rating to percentage conversion and is the authority for what the analyzer computes. `BaseCritChance` holds the 5% base crit and `CritPercentage(rating, withBase: true)` adds it.
 

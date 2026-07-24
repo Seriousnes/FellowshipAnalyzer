@@ -11,13 +11,13 @@
     position: absolute;
     top: 0;
     bottom: 0;
-    border-left: 1px solid t.tint(t.$fa-white, t.$fa-tint-soft);
+    border-left: var(--fa-border-width) solid var(--fa-edge, t.tint(t.$fa-white, t.$fa-tint-soft));
     box-sizing: border-box;
 }
 
 .time-second-label {
     font-size: 11px;
-    color: t.tint(t.$fa-white, t.$fa-tint-strong);
+    color: var(--fa-fg, t.tint(t.$fa-white, t.$fa-tint-strong));
     white-space: nowrap;
     line-height: 1;
     padding-top: 4px;
@@ -31,5 +31,5 @@
     top: 0;
     bottom: 0;
     width: 1px;
-    background: t.tint(t.$fa-white, t.$fa-tint-faint);
+    background: var(--fa-raise, t.tint(t.$fa-white, t.$fa-tint-faint));
 }
