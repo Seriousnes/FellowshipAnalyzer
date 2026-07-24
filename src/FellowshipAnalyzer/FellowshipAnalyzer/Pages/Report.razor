@@ -131,14 +131,14 @@
                                                             .OrderBy(group => group.Key))
                                 {
                                     <StatisticsSectionTitle Title="@categoryGroup.Key.ToString()" />
-                                    <div class="statistics-panel">
+                                    <StatisticsPanel>
                                         @foreach (var entry in categoryGroup.OrderBy(item => item.Order))
                                         {
                                             <CascadingValue Value="@entry.Module">
                                                 <DynamicComponent Type="@entry.ComponentType" />
                                             </CascadingValue>
                                         }
-                                    </div>
+                                    </StatisticsPanel>
                                 }
                             </section>
                         }

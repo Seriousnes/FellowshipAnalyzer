@@ -46,6 +46,45 @@
     </Demo>
 </CodeExample>
 
+<CodeExample Title="StatisticsPanel — masonry layout"
+             Description="Cards pack vertically like WoWAnalyzer: short cards rise under taller neighbours. Wide spans two columns, UltraWide spans the row. Falls back to a plain content-height grid without JS."
+             Code="@_panelCode">
+    <Demo>
+        <StatisticsPanel>
+            <StatCard Title="Chronoshift">
+                <StatRow Value="270.3s"><SpellLink Spell="Spells.IceComet" /> cooldown recovered</StatRow>
+                <StatRow Value="267.2s"><SpellLink Spell="Spells.GlacialBlast" /> cooldown recovered</StatRow>
+                <StatRow Value="244.4s"><SpellLink Spell="Spells.FrostBolt" /> cooldown recovered</StatRow>
+                <StatRow Value="111.3s"><SpellLink Spell="Spells.IceComet" /> cooldown recovered</StatRow>
+                <StatRow Value="34.9s"><SpellLink Spell="Spells.GlacialBlast" /> cooldown recovered</StatRow>
+                <StatRow Value="23.5s"><SpellLink Spell="Spells.FrostBolt" /> cooldown recovered</StatRow>
+            </StatCard>
+            <StatCard Title="Rolling Flames">
+                <StatRow Value="1835.4s">Searing Blaze reduction, 83% of 2199.8s generated</StatRow>
+                <StatRow Value="417.7s">Infernal Wave reduction, 93% of 451.0s generated</StatRow>
+            </StatCard>
+            <StatCard Title="Reign of Fire">
+                <StatRow Value="74">procs granted by Detonate</StatRow>
+                <StatRow Value="0">Fire Ball charges wasted (proc at 2 charges)</StatRow>
+                <StatRow Value="4">empowerments wasted (buff expired unused)</StatRow>
+            </StatCard>
+            <StatCard Title="Ashen Catalyst">
+                <StatRow Value="276s">cooldown reduction</StatRow>
+            </StatCard>
+            <StatCard Title="Elemental Assault" Wide>
+                <StatRow Value="43.2%"><SpellLink Spell="Spells.FrostBolt" /> Stormstrike</StatRow>
+                <StatRow Value="45.4%"><SpellLink Spell="Spells.GlacialBlast" /> Lava Lash</StatRow>
+            </StatCard>
+            <StatCard Title="Thorim's Invocation">
+                <StatRow Value="22">spells cast</StatRow>
+            </StatCard>
+            <StatCard Title="Spirit" UltraWide>
+                <StatRow Value="3,031">damage per second, 1.1% of total</StatRow>
+            </StatCard>
+        </StatisticsPanel>
+    </Demo>
+</CodeExample>
+
 <CodeExample Title="StatTile — colored single metric" Code="@_statTileCode">
     <Demo>
         <div class="showcase-row">
@@ -87,6 +126,20 @@
 
 <StatCard Title="Wide card" Wide>...</StatCard>
 <StatCard Title="Ultra-wide card" UltraWide>...</StatCard>
+""";
+
+    private const string _panelCode = """
+<StatisticsPanel>
+    <StatCard Title="Chronoshift">
+        <StatRow Value="270.3s"><SpellLink Spell="Spells.IceComet" /> cooldown recovered</StatRow>
+        @* ...more rows... *@
+    </StatCard>
+    <StatCard Title="Rolling Flames">
+        <StatRow Value="1835.4s">Searing Blaze reduction, 83% of 2199.8s generated</StatRow>
+    </StatCard>
+    <StatCard Title="Elemental Assault" Wide>...</StatCard>
+    <StatCard Title="Spirit" UltraWide>...</StatCard>
+</StatisticsPanel>
 """;
 
     private const string _statTileCode = """
