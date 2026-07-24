@@ -40,13 +40,6 @@
     color: var(--fa-text-muted);
 }
 
-.statistics-panel {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-    gap: 12px;
-    align-items: stretch;
-}
-
 .about-overview {
     display: flex;
     flex-direction: column;

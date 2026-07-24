@@ -94,9 +94,11 @@ h1, h2, h3, h4 {
 }
 
 a {
-    color: var(--fa-gold);
+    // goldLight, not gold: interactive text must clear AA on the lightest card
+    // surface, where the resting gold emphasis colour only reaches ~3.5:1.
+    color: var(--fa-gold-light);
 
-    &:hover { color: var(--fa-gold-light); }
+    &:hover { color: var(--fa-text); }
 }
 
 // ── Global Utilities ──────────────────────────────────────────────────────────

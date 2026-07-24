@@ -88,11 +88,10 @@
     background: var(--fa-bg-raised);
     color: var(--fa-text);
     text-decoration: none;
-    transition: background 0.15s, transform 0.1s;
+    transition: background 0.15s;
 
     &:hover {
         background: var(--fa-bg-surface);
-        transform: translateY(-1px);
     }
 }
 

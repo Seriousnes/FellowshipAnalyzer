@@ -1,11 +1,11 @@
 @use 'tokens' as t;
 .spell-link {
-    color: var(--fa-gold);
+    color: var(--fa-gold-light);
     text-decoration: none;
     white-space: nowrap;
 
     &:hover {
-        color: var(--fa-gold-light);
+        color: var(--fa-text);
         text-decoration: underline;
     }
 

@@ -12,7 +12,7 @@
     border-left: 4px solid var(--hero-accent, var(--fa-border-card));
     background: var(--fa-bg-surface);
     box-shadow: var(--fa-shadow-card);
-    transition: box-shadow 0.15s, transform 0.15s;
+    transition: box-shadow 0.15s;
 
     &.linkable {
         cursor: pointer;
@@ -20,7 +20,6 @@
 
     &.linkable:hover {
         box-shadow: var(--fa-shadow-lg);
-        transform: translateY(-1px);
     }
 }
 

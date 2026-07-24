@@ -1,0 +1,14 @@
+### White Gold palette
+#FFFAF1
+#EDDDB8
+#DCC080
+#CAA347
+#B8860E
+
+### Blue / Grey Steel palette
+#7AB3D0
+#3383B1
+#2A4677
+#989A9F
+#B3B6BB
+#CDCDCC

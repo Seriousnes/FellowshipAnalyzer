@@ -8,11 +8,9 @@
     display: flex;
     flex-direction: column;
 
-    &.stat-card-small    { min-height: 100px; }
-    &.stat-card-standard { min-height: 165px; }
-    &.stat-card-medium   { min-height: 140px; }
-    &.stat-card-large    { min-height: 360px; }
-    &.stat-card-flexible { height: auto; }
+    &.stat-card-small  { min-height: 100px; }
+    &.stat-card-medium { min-height: 140px; }
+    &.stat-card-large  { min-height: 360px; }
 
     &.stat-card-wide      { grid-column: span 2; }
     &.stat-card-ultrawide { grid-column: 1 / -1; }

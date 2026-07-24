@@ -62,9 +62,14 @@ $bs-pearl:  #cdcdcc;
     --fa-text-muted: #{$bs-grey};
     --fa-text-dim:   #{step($bs-grey, 41%)};
 
-    --fa-border:      #{t.tint($wg-deep, t.$fa-tint-soft)};
-    --fa-border-card: #{t.tint($wg-deep, t.$fa-tint-muted)};
-    --fa-role-unknown: #{t.tint($wg-deep, t.$fa-tint-soft)};
+    // Structure is steel, not gold. Gold is reserved for emphasis, the way the
+    // game uses it for a primary button against a steel secondary.
+    --fa-border:      #{t.tint($bs-grey, t.$fa-tint-soft)};
+    --fa-border-card: #{t.tint($bs-grey, t.$fa-tint-muted)};
+    --fa-role-unknown: #{t.tint($bs-grey, t.$fa-tint-soft)};
+
+    --fa-section-header:       linear-gradient(180deg, transparent, #{t.tint($bs-grey, t.$fa-tint-subtle)});
+    --fa-section-header-hover: linear-gradient(180deg, transparent, #{t.tint($bs-grey, t.$fa-tint-soft)});
 
     --fa-shadow-card: #{t.$fa-shadow-card};
     --fa-shadow-lg:   #{t.$fa-shadow-lg};
@@ -88,9 +93,18 @@ $bs-pearl:  #cdcdcc;
     --fa-text-muted: #{step($bs-grey, 42%)};
     --fa-text-dim:   #{step($bs-grey, 55%)};
 
-    --fa-border:      #{t.tint($wg-deep, t.$fa-tint-medium)};
-    --fa-border-card: #{t.tint($wg-deep, t.$fa-tint-strong)};
-    --fa-role-unknown: #{t.tint($wg-deep, t.$fa-tint-medium)};
+    // Steel carries the structure here too. Gold on cream reads as brass and
+    // becomes overbearing when every edge in the page is wearing it.
+    --fa-border:      #{t.tint($bs-navy, t.$fa-tint-soft)};
+    --fa-border-card: #{t.tint($bs-navy, t.$fa-tint-muted)};
+    --fa-role-unknown: #{t.tint($bs-navy, t.$fa-tint-soft)};
+
+    --fa-section-header:       linear-gradient(180deg, transparent, #{t.tint($bs-navy, t.$fa-tint-subtle)});
+    --fa-section-header-hover: linear-gradient(180deg, transparent, #{t.tint($bs-navy, t.$fa-tint-soft)});
+
+    // The cream grounds are flat, so a panel edge is the only thing separating a
+    // panel from its container. Only this theme asks for one.
+    --fa-panel-border: #{t.tint($bs-navy, t.$fa-tint-soft)};
 
     --fa-shadow-card: 0 8px 32px #{t.tint(t.$fa-black, t.$fa-tint-subtle)};
     --fa-shadow-lg:   0 16px 48px #{t.tint(t.$fa-black, t.$fa-tint-soft)};
@@ -101,7 +115,7 @@ $bs-pearl:  #cdcdcc;
     --fa-recess:      #{step($wg-cream, 95%)};
     --fa-recess-deep: #{step($wg-cream, 91%)};
     --fa-raise:       #{step($wg-cream, 99%)};
-    --fa-edge:        #{t.tint($wg-deep, t.$fa-tint-soft)};
+    --fa-edge:        #{t.tint($bs-navy, t.$fa-tint-subtle)};
 
     --fa-fg:         #{$bs-navy};
     --fa-fg-muted:   #{step($bs-grey, 42%)};

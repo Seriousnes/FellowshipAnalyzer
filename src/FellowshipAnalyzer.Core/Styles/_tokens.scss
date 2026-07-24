@@ -4,6 +4,7 @@
 
 @use 'sass:color';
 @use 'sass:math';
+@use 'sass:string';
 
 // Tint scale
 $fa-tint-faint:  6%;
@@ -23,16 +24,19 @@ $fa-white: #ffffff;
 $fa-black: #000000;
 $fa-grey:  #787878;
 
-// Surfaces
-$fa-bg-base:    #0c0e18;
-$fa-bg-raised:  #12152a;
-$fa-bg-surface: #181c35;
-$fa-bg-card:    tint(#161a34, $fa-tint-veil);
-$fa-bg-inset:   tint(#0a0c18, $fa-tint-strong);
+// Surfaces — sampled from the Fellowship in-game UI. #182028 is the universal
+// ground under every screen; panels step up one cool-navy ramp, inset recedes.
+$fa-bg-base:    #182028;
+$fa-bg-raised:  #283038;
+$fa-bg-surface: #313a45;
+$fa-bg-card:    #3a4452;
+$fa-bg-inset:   #0e151d;
 
-// Accents
-$fa-gold:       #d4a744;
-$fa-gold-light: #f0d078;
+// Accents — resting tan-gold sampled from Fellowship section titles, frame
+// accents and slider fills. Gold is the emphasis colour (titles, links,
+// eyebrows); the neon orange-gold button gradient is a separate treatment.
+$fa-gold:       #b8965c;
+$fa-gold-light: #d9b887;
 $fa-gold-dim:   tint($fa-gold, $fa-tint-subtle);
 $fa-amber:      #fab700;
 $fa-ice:        #6ec8e8;
@@ -41,14 +45,20 @@ $fa-arcane:     #9a7bff;
 $fa-nature:     #5fd0b0;
 $fa-link:       #0087ff;
 
-// Text
-$fa-text:       #e2dfd8;
-$fa-text-muted: #9a9586;
-$fa-text-dim:   #6b6558;
+// Text — cream-white primary sampled from the HUD, cool-steel secondary and
+// tertiary (brightened to clear AA text on the lightest card surface).
+$fa-text:       #e8e0d8;
+$fa-text-muted: #abb3bc;
+$fa-text-dim:   #949ba5;
 
-// Borders
-$fa-border:      tint($fa-gold, $fa-tint-subtle);
-$fa-border-card: tint($fa-gold, $fa-tint-soft);
+// Structure — desaturated steel frame sampled from the game's panel borders.
+// Near-neutral so a low-alpha edge never reads as a semantic blue.
+$fa-frame: #63696f;
+
+// Borders — a quiet tint of the steel frame. Structure is steel and gold is
+// only emphasis; prefer spacing and fill for separation, these are the fallback.
+$fa-border:      tint($fa-frame, $fa-tint-soft);
+$fa-border-card: tint($fa-frame, $fa-tint-muted);
 
 // Performance — four clearly-distinct tiers (also separable for the common
 // colour-vision deficiencies): blue / green / amber / red. PerformanceColors.cs
@@ -93,17 +103,22 @@ $fa-border-width: 1px;
 $fa-accent-width: 3px;
 $fa-ring-width:   2px;
 
-// Radii
-$fa-radius-xs:   4px;
-$fa-radius-sm:   8px;
-$fa-radius-md:   14px;
-$fa-radius-lg:   20px;
-$fa-radius-xl:   28px;
+// Radii — the game's frames are close to square with only a soft easing of the
+// corner. Kept tight so panels read as crisp plates, not pills.
+$fa-radius-xs:   3px;
+$fa-radius-sm:   5px;
+$fa-radius-md:   8px;
+$fa-radius-lg:   12px;
+$fa-radius-xl:   16px;
 $fa-radius-pill: 999px;
 
-// Typography
-$fa-font-body:    'Noto Sans', system-ui, -apple-system, sans-serif;
-$fa-font-heading: 'Nunito', system-ui, -apple-system, sans-serif;
+// Typography — headings are an engraved Roman serif echoing the FELLOWSHIP
+// wordmark; body stays a clean humanist sans for dense data readability.
+// Pre-quoted via string.unquote so interpolation into CSS custom properties
+// keeps the quotes: "Source Sans 3" is invalid unquoted because a bare trailing
+// digit is not a valid CSS identifier, which would void the whole declaration.
+$fa-font-body:    string.unquote('"Source Sans 3", system-ui, -apple-system, sans-serif');
+$fa-font-heading: string.unquote('"Cinzel", "Trajan Pro", Georgia, serif');
 
 // Guide type scale — compile-time only. A tight, shared scale that keeps guide
 // chrome (section titles, stat tiles, badges, cast inspectors) compact and

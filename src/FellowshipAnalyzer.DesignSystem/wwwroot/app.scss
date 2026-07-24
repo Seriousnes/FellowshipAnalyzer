@@ -59,8 +59,8 @@ h1, h2, h3, h4 {
 }
 
 a {
-    color: var(--fa-gold);
-    &:hover { color: var(--fa-gold-light); }
+    color: var(--fa-gold-light);
+    &:hover { color: var(--fa-text); }
 }
 
 .showcase-section {
