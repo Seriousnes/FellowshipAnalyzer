@@ -16,7 +16,7 @@
     max-height: 80vh;
     display: flex;
     flex-direction: column;
-    background: t.$fa-bg-surface;
+    background: var(--fa-bg-surface, #{t.$fa-bg-surface});
     border: 1px solid var(--fa-border-card, t.tint(t.$fa-white, t.$fa-tint-subtle));
     border-radius: t.$fa-radius-md;
     box-shadow: 0 24px 60px t.tint(t.$fa-black, t.$fa-tint-strong);
@@ -30,7 +30,7 @@
     align-items: center;
     justify-content: space-between;
     padding: 14px 18px;
-    border-bottom: var(--fa-border-width) solid t.tint(t.$fa-white, t.$fa-tint-faint);
+    border-bottom: var(--fa-border-width) solid var(--fa-edge, t.tint(t.$fa-white, t.$fa-tint-faint));
 }
 
 .timeline-settings-title {
@@ -50,13 +50,13 @@
 
     &:hover {
         color: var(--fa-text, t.$fa-white);
-        background: t.tint(t.$fa-white, t.$fa-tint-faint);
+        background: var(--fa-raise, t.tint(t.$fa-white, t.$fa-tint-faint));
     }
 }
 
 .timeline-settings-tabs {
     display: flex;
-    border-bottom: var(--fa-border-width) solid t.tint(t.$fa-white, t.$fa-tint-faint);
+    border-bottom: var(--fa-border-width) solid var(--fa-edge, t.tint(t.$fa-white, t.$fa-tint-faint));
     padding: 0 12px;
 }
 
@@ -108,7 +108,7 @@
     margin: 2px 0;
 
     &:hover {
-        background: t.tint(t.$fa-white, t.$fa-tint-faint);
+        background: var(--fa-raise, t.tint(t.$fa-white, t.$fa-tint-faint));
     }
 
     &.draggable {
@@ -159,8 +159,8 @@
     input[type='number'] {
         width: 60px;
         padding: 4px 6px;
-        background: t.tint(t.$fa-white, t.$fa-tint-faint);
-        border: var(--fa-border-width) solid t.tint(t.$fa-white, t.$fa-tint-subtle);
+        background: var(--fa-raise, t.tint(t.$fa-white, t.$fa-tint-faint));
+        border: var(--fa-border-width) solid var(--fa-edge, t.tint(t.$fa-white, t.$fa-tint-subtle));
         border-radius: var(--fa-radius-xs);
         color: inherit;
         font-size: 12px;
@@ -193,7 +193,7 @@
 
 .timeline-settings-section-divider {
     border: 0;
-    border-top: var(--fa-border-width) solid t.tint(t.$fa-white, t.$fa-tint-faint);
+    border-top: var(--fa-border-width) solid var(--fa-edge, t.tint(t.$fa-white, t.$fa-tint-faint));
     margin: 12px 0;
 }
 
@@ -203,8 +203,8 @@
     input[type='text'] {
         width: 100%;
         padding: 6px 8px;
-        background: t.tint(t.$fa-white, t.$fa-tint-faint);
-        border: var(--fa-border-width) solid t.tint(t.$fa-white, t.$fa-tint-subtle);
+        background: var(--fa-raise, t.tint(t.$fa-white, t.$fa-tint-faint));
+        border: var(--fa-border-width) solid var(--fa-edge, t.tint(t.$fa-white, t.$fa-tint-subtle));
         border-radius: var(--fa-radius-xs);
         color: inherit;
         font-size: 13px;
@@ -224,11 +224,11 @@
     list-style: none;
     margin: 0 0 8px;
     padding: 4px 0;
-    border: var(--fa-border-width) solid t.tint(t.$fa-white, t.$fa-tint-faint);
+    border: var(--fa-border-width) solid var(--fa-edge, t.tint(t.$fa-white, t.$fa-tint-faint));
     border-radius: var(--fa-radius-sm);
     max-height: 220px;
     overflow-y: auto;
-    background: t.tint(t.$fa-white, t.$fa-tint-faint);
+    background: var(--fa-raise, t.tint(t.$fa-white, t.$fa-tint-faint));
 }
 
 .timeline-settings-search-result {
@@ -238,7 +238,7 @@
     padding: 6px 8px;
 
     &:hover {
-        background: t.tint(t.$fa-white, t.$fa-tint-faint);
+        background: var(--fa-raise, t.tint(t.$fa-white, t.$fa-tint-faint));
     }
 }
 
@@ -269,7 +269,7 @@
 
     &:hover {
         color: var(--fa-danger, t.$fa-perf-fail);
-        background: t.tint(t.$fa-white, t.$fa-tint-faint);
+        background: var(--fa-raise, t.tint(t.$fa-white, t.$fa-tint-faint));
     }
 }
 

@@ -44,5 +44,5 @@
 }
 
 .legend-value {
-    color: t.tint(t.$fa-white, t.$fa-tint-medium);
+    color: var(--fa-fg-muted, t.tint(t.$fa-white, t.$fa-tint-medium));
 }

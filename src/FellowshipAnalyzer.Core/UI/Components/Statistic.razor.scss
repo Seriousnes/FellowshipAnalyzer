@@ -35,7 +35,7 @@
     right: -22px;
     font-size: 0.72rem;
     font-weight: 700;
-    color: t.$fa-text-muted;
+    color: var(--fa-text-muted, #{t.$fa-text-muted});
     font-family: t.$fa-font-heading;
     line-height: 1;
 }
@@ -47,11 +47,11 @@
     min-width: 200px;
     max-width: 320px;
     padding: 8px 10px;
-    background: t.$fa-bg-surface;
-    border: 1px solid t.$fa-border-card;
+    background: var(--fa-bg-surface, #{t.$fa-bg-surface});
+    border: 1px solid var(--fa-border-card, #{t.$fa-border-card});
     border-radius: t.$fa-radius-sm;
-    box-shadow: t.$fa-shadow-card;
-    color: t.$fa-text;
+    box-shadow: var(--fa-shadow-card, #{t.$fa-shadow-card});
+    color: var(--fa-text, #{t.$fa-text});
     font-size: 0.8rem;
     line-height: 1.4;
     visibility: hidden;

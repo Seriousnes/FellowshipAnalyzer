@@ -16,15 +16,15 @@
     letter-spacing: 0.4px;
 
     &.boss {
-        border-left-color: t.$fa-gold;
+        border-left-color: var(--fa-gold, #{t.$fa-gold});
 
-        .pull-banner-icon { color: t.$fa-gold; }
+        .pull-banner-icon { color: var(--fa-gold, #{t.$fa-gold}); }
     }
 
     &.trash {
-        border-left-color: t.$fa-text-muted;
+        border-left-color: var(--fa-text-muted, #{t.$fa-text-muted});
 
-        .pull-banner-icon { color: t.$fa-text-muted; }
+        .pull-banner-icon { color: var(--fa-text-muted, #{t.$fa-text-muted}); }
     }
 }
 

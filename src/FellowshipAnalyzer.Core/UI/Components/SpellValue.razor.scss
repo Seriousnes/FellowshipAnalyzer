@@ -12,8 +12,8 @@
     align-items: center;
     justify-content: center;
     padding: 14px 16px;
-    background: t.tint(t.$fa-black, t.$fa-tint-soft);
-    border-right: 1px solid t.$fa-border;
+    background: var(--fa-recess, t.tint(t.$fa-black, t.$fa-tint-soft));
+    border-right: 1px solid var(--fa-border, #{t.$fa-border});
 }
 
 .spell-value-body {
@@ -26,7 +26,7 @@
 .spell-value-primary {
     font-size: 1.6rem;
     font-weight: 600;
-    color: t.$fa-text;
+    color: var(--fa-text, #{t.$fa-text});
     margin: 0 0 4px;
 
     .perfect { color: t.$fa-perf-perfect; }
@@ -38,5 +38,5 @@
 .spell-value-label {
     display: block;
     font-size: 0.78rem;
-    color: t.$fa-text-muted;
+    color: var(--fa-text-muted, #{t.$fa-text-muted});
 }

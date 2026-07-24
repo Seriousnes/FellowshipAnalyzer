@@ -61,7 +61,7 @@
 
 .helper-text {
     font-size: t.$fa-fs-body;
-    color: t.tint(t.$fa-white, t.$fa-tint-medium);
+    color: var(--fa-fg-muted, t.tint(t.$fa-white, t.$fa-tint-medium));
     margin-top: 4px;
     font-style: italic;
 }

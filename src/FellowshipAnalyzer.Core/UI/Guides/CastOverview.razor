@@ -7,7 +7,7 @@
             {
                 var color = stat.Performance.HasValue
                     ? PerformanceColors.ToColor(stat.Performance.Value)
-                    : "#ffffff";
+                    : PerformanceColors.Neutral;
 
                 <StatTile Color="@color" Value="@stat.Value" Label="@stat.Label" Tooltip="@stat.Tooltip" />
             }

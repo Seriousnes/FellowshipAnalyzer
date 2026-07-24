@@ -1,7 +1,7 @@
 @use 'tokens' as t;
 
 .tip-box {
-    --tip-color: #{t.$fa-gold};
+    --tip-color: var(--fa-gold, #{t.$fa-gold});
     display: grid;
     grid-template-columns: auto 1fr;
     gap: 10px;

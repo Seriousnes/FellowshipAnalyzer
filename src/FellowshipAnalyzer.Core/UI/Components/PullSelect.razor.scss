@@ -142,7 +142,7 @@
     color: var(--fa-text-muted);
 
     &.boss {
-        color: t.$fa-gold;
+        color: var(--fa-gold, #{t.$fa-gold});
     }
 
     &.trash {
