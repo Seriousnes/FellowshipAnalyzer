@@ -1,5 +1,3 @@
-@use 'tokens' as t;
-
 .perf-badge {
     display: flex;
     align-items: stretch;
@@ -7,7 +5,7 @@
     border-radius: var(--fa-radius-xs);
     overflow: hidden;
     min-height: 24px;
-    background: var(--fa-recess, t.tint(t.$fa-black, t.$fa-tint-soft));
+    background: var(--fa-recess);
 }
 
 .perf-badge-count {
@@ -15,7 +13,7 @@
     align-items: center;
     justify-content: center;
     padding: 3px 8px;
-    font-size: t.$fa-fs-value;
+    font-size: var(--fa-fs-value);
     font-weight: 700;
     flex-shrink: 0;
 }
@@ -31,7 +29,7 @@
     display: flex;
     align-items: center;
     padding: 3px 7px;
-    font-size: t.$fa-fs-label;
+    font-size: var(--fa-fs-label);
     font-weight: 700;
     color: var(--fa-text-dim);
     text-transform: uppercase;

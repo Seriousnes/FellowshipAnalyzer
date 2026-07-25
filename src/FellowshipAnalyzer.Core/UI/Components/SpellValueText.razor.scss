@@ -6,7 +6,7 @@
     & + & {
         margin-top: 14px;
         padding-top: 14px;
-        border-top: 1px solid var(--fa-border, #{t.$fa-border});
+        border-top: 1px solid var(--fa-border);
     }
 }
 
@@ -15,7 +15,7 @@
     align-items: center;
     gap: 8px;
     margin: 0 0 8px;
-    color: var(--fa-text-muted, #{t.$fa-text-muted});
+    color: var(--fa-text-muted);
     font-size: 0.85rem;
     font-weight: 600;
     letter-spacing: 0.4px;
@@ -25,12 +25,12 @@
     font-size: 1.6rem;
     font-weight: 600;
     line-height: 1.2;
-    color: var(--fa-text, #{t.$fa-text});
+    color: var(--fa-text);
 
     small {
         font-size: 0.75rem;
         font-weight: 400;
-        color: var(--fa-text-muted, #{t.$fa-text-muted});
+        color: var(--fa-text-muted);
         margin-left: 4px;
     }
 
@@ -38,7 +38,7 @@
         display: block;
         font-size: 1rem;
         font-weight: 500;
-        color: var(--fa-text, #{t.$fa-text});
+        color: var(--fa-text);
         margin-top: 2px;
 
         small {
@@ -47,8 +47,8 @@
         }
     }
 
-    .perfect { color: t.$fa-perf-perfect; }
-    .good    { color: t.$fa-perf-good; }
-    .ok      { color: t.$fa-perf-ok; }
-    .fail    { color: t.$fa-perf-fail; }
+    .perfect { color: var(--fa-perf-perfect); }
+    .good    { color: var(--fa-perf-good); }
+    .ok      { color: var(--fa-perf-ok); }
+    .fail    { color: var(--fa-perf-fail); }
 }

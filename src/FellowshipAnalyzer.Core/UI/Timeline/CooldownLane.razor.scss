@@ -38,8 +38,8 @@
 
 .cooldown-lane-bar {
     height: 16px;
-    background: t.$fa-grey;
-    border: var(--fa-border-width) solid t.tint(t.$fa-grey, t.$fa-tint-medium);
+    background: var(--fa-grey);
+    border: var(--fa-border-width) solid t.tint(var(--fa-grey), t.$fa-tint-medium);
     border-radius: var(--fa-radius-xs);
 }
 
@@ -48,7 +48,7 @@
     top: 0;
     width: 3px;
     height: 24px;
-    background: t.tint(t.$fa-white, t.$fa-tint-veil);
+    background: t.tint(var(--fa-white), t.$fa-tint-veil);
     transform: translateX(-50%);
     border-radius: 1px;
     z-index: 2;

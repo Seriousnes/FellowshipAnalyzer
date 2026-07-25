@@ -1,16 +1,28 @@
-@use 'tokens' as t;
-
+// The neutral ring for a cast with no performance tier. A tiered badge overrides it
+// with the semantic tier class it carries, which sets `color` on the badge itself.
 .spell-sequence {
     display: flex;
     flex-wrap: wrap;
     gap: 4px;
     align-items: center;
+    color: var(--fa-border-card);
 }
 
 // The performance tier recolours and thickens the SpellIcon's OWN border
-// (WoWAnalyzer-style) — a single ring, not a badge wrapped around an icon.
-// The tier colour is injected as --spell-icon-border on each wrapper in markup.
+// (WoWAnalyzer-style): a single ring, not a badge wrapped around an icon. The
+// icon belongs to a child component, so ::deep is the only route to its border,
+// and currentColor carries the badge's tier colour across that boundary.
 .spell-badge {
-    --spell-icon-border-width: var(--fa-ring-width);
     display: inline-flex;
+
+    // SpellIcon wraps its image in an anchor, and the global `a` rule would
+    // otherwise claim the colour the ring reads, hover included.
+    ::deep .spell-icon-link {
+        color: inherit;
+    }
+
+    ::deep .spell-icon {
+        border-width: var(--fa-ring-width);
+        border-color: currentColor;
+    }
 }

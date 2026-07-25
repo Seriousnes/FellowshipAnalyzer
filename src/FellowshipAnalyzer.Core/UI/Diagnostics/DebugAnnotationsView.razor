@@ -43,7 +43,7 @@ else
                                         var topAnnotation = GetTopAnnotation(annotatedEvent.Annotations);
                                         var isSelected = _selectedEvent == annotatedEvent;
                                         <button class="da-dot @(isSelected ? "selected" : "")"
-                                                style="background-color: @topAnnotation.Color; border-color: @(isSelected ? "white" : topAnnotation.Color)"
+                                                style="background-color: @topAnnotation.Color; border-color: @(isSelected ? SelectedRing : topAnnotation.Color)"
                                                 title="@(FormatTime(annotatedEvent.Event.Timestamp)) - @topAnnotation.Summary"
                                                 @onclick="() => SelectEvent(annotatedEvent)">
                                         </button>
@@ -114,6 +114,9 @@ else
 }
 
 @code {
+    /// <summary>Token reference the selected dot's border wears, so no colour literal reaches markup.</summary>
+    private static readonly string SelectedRing = FaVar.White;
+
     [Parameter, EditorRequired] public DebugAnnotations? DebugAnnotations { get; set; }
 
     private AnnotatedEvent? _selectedEvent;

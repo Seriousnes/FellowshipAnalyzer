@@ -58,7 +58,7 @@ $sources: (
 .studio-mark {
     display: block;
     color: var(--fa-gold);
-    filter: drop-shadow(0 0 6px t.tint(t.$fa-gold, t.$fa-tint-medium));
+    filter: drop-shadow(0 0 6px t.tint(var(--fa-gold), t.$fa-tint-medium));
 }
 
 .studio-name {
@@ -158,7 +158,7 @@ $sources: (
 
 .kind-seg-item {
     font: inherit;
-    font-family: var(--studio-mono);
+    font-family: var(--fa-font-mono);
     font-size: 0.72rem;
     letter-spacing: 0.04em;
     cursor: pointer;
@@ -304,7 +304,7 @@ $sources: (
         &.num { text-align: right; }
 
         &.mono {
-            font-family: var(--studio-mono);
+            font-family: var(--fa-font-mono);
             font-variant-numeric: tabular-nums;
             font-size: 0.76rem;
             color: var(--fa-text-muted);
@@ -368,7 +368,7 @@ $sources: (
 }
 
 .member-unnamed {
-    font-family: var(--studio-mono);
+    font-family: var(--fa-font-mono);
     font-weight: 400 !important;
     font-style: italic;
     color: var(--fa-text-dim) !important;
@@ -388,7 +388,7 @@ $sources: (
     min-width: 1.15rem;
     height: 1.15rem;
     padding: 0 0.18rem;
-    font-family: var(--studio-mono);
+    font-family: var(--fa-font-mono);
     font-size: 0.66rem;
     font-weight: 700;
     line-height: 1;
@@ -405,7 +405,7 @@ $sources: (
 .candidate-tag { font-size: 0.72rem; font-style: italic; color: var(--fa-text-dim); }
 
 .kind-tag {
-    font-family: var(--studio-mono);
+    font-family: var(--fa-font-mono);
     font-size: 0.62rem;
     letter-spacing: 0.08em;
     color: var(--fa-text-muted);
@@ -454,7 +454,7 @@ $sources: (
     align-items: flex-start;
     justify-content: center;
     padding: 4rem 1rem 2rem;
-    background: t.tint(t.$fa-black, t.$fa-tint-strong);
+    background: t.tint(var(--fa-black), t.$fa-tint-strong);
 }
 
 .modal {
@@ -488,7 +488,7 @@ $sources: (
 }
 
 .modal-meta {
-    font-family: var(--studio-mono);
+    font-family: var(--fa-font-mono);
     font-size: 0.7rem;
     color: var(--fa-text-dim);
 }

@@ -1,7 +1,7 @@
 @* SupportBadge — coloured pill showing a hero's support level. *@
 @using FellowshipAnalyzer.Core.Analysis
 
-<span class="support-badge support-badge--@_class" title="@_title">
+<span class="support-badge support-badge--@_class @_semanticClass" title="@_title">
     @_label
 </span>
 
@@ -9,14 +9,15 @@
     [Parameter, EditorRequired] public SupportLevel Support { get; set; }
 
     private string _class = "unmaintained";
+    private string _semanticClass = "";
     private string _label = "Unmaintained";
     private string _title = "";
 
     protected override void OnParametersSet() =>
-        (_class, _label, _title) = Support switch
+        (_class, _semanticClass, _label, _title) = Support switch
         {
-            SupportLevel.Full => ("full", "Full support", "Analysis is largely complete."),
-            SupportLevel.Partial => ("partial", "Partial support", "Analysis is still being built out."),
-            _ => ("unmaintained", "Unmaintained", "Analysis is absent or incomplete."),
+            SupportLevel.Full => ("full", "good", "Full support", "Analysis is largely complete."),
+            SupportLevel.Partial => ("partial", "", "Partial support", "Analysis is still being built out."),
+            _ => ("unmaintained", "", "Unmaintained", "Analysis is absent or incomplete."),
         };
 }

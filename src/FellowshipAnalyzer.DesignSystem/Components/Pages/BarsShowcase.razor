@@ -60,10 +60,10 @@
 
     private static readonly IReadOnlyList<StackedBarSegment> _segments =
     [
-        new("Frost Bolt", 12, "#7dd3fc"),
-        new("Bursting Ice", 6, "#a78bfa"),
-        new("Glacial Blast", 4, "#facc15"),
-        new("Ice Comet", 2, "#fb923c"),
+        new("Frost Bolt", 12, FaVar.Ice),
+        new("Bursting Ice", 6, FaVar.Arcane),
+        new("Glacial Blast", 4, FaVar.Amber),
+        new("Ice Comet", 2, FaVar.Rust),
     ];
 
     private static readonly IReadOnlyList<PerformanceBoxEntry> _boxEntries =
@@ -95,10 +95,10 @@
 @code {
     private static readonly IReadOnlyList<StackedBarSegment> _segments =
     [
-        new("Frost Bolt", 12, "#7dd3fc"),
-        new("Bursting Ice", 6, "#a78bfa"),
-        new("Glacial Blast", 4, "#facc15"),
-        new("Ice Comet", 2, "#fb923c"),
+        new("Frost Bolt", 12, FaVar.Ice),
+        new("Bursting Ice", 6, FaVar.Arcane),
+        new("Glacial Blast", 4, FaVar.Amber),
+        new("Ice Comet", 2, FaVar.Rust),
     ];
 }
 """;

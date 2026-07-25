@@ -10,13 +10,13 @@
 }
 
 #components-reconnect-modal {
-    background-color: white;
+    background-color: var(--fa-white);
     width: 20rem;
     margin: 20vh auto;
     padding: 2rem;
     border: 0;
     border-radius: var(--fa-radius-sm);
-    box-shadow: 0 3px 6px 2px t.tint(t.$fa-black, t.$fa-tint-muted);
+    box-shadow: 0 3px 6px 2px t.tint(var(--fa-black), t.$fa-tint-muted);
     opacity: 0;
     transition: display 0.5s allow-discrete, overlay 0.5s allow-discrete;
     animation: components-reconnect-modal-fadeOutOpacity 0.5s both;
@@ -41,7 +41,7 @@
     }
 
     &::backdrop {
-        background-color: t.tint(t.$fa-black, t.$fa-tint-medium);
+        background-color: t.tint(var(--fa-black), t.$fa-tint-medium);
         animation: components-reconnect-modal-fadeInOpacity 0.5s ease-in-out;
         opacity: 1;
     }
@@ -50,13 +50,13 @@
 
     button {
         border: 0;
-        background-color: t.$fa-steel;
-        color: white;
+        background-color: var(--fa-steel);
+        color: var(--fa-white);
         padding: 4px 24px;
         border-radius: var(--fa-radius-xs);
 
-        &:hover  { background-color: t.$fa-steel; }
-        &:active { background-color: t.$fa-steel; }
+        &:hover  { background-color: var(--fa-steel); }
+        &:active { background-color: var(--fa-steel); }
     }
 }
 
@@ -89,7 +89,7 @@
 
     div {
         position: absolute;
-        border: 3px solid t.$fa-link;
+        border: 3px solid var(--fa-link);
         opacity: 1;
         border-radius: 50%;
         animation: components-rejoining-animation 1.5s cubic-bezier(0, 0.2, 0.8, 1) infinite;

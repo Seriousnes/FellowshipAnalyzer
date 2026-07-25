@@ -1,9 +1,11 @@
 @use 'tokens' as t;
 
+// `--avatar-size` and `--avatar-radius` are geometry, so they stay component-private. The ring
+// colour rides the design system's `--fa-supplied-accent` channel, set by the caller as a token.
+
 .avatar {
     --avatar-size: 48px;
     --avatar-radius: 50%;
-    --avatar-ring: transparent;
 
     display: inline-flex;
     align-items: center;
@@ -17,7 +19,7 @@
 }
 
 .avatar.has-ring {
-    box-shadow: 0 0 0 2px var(--avatar-ring);
+    box-shadow: 0 0 0 2px var(--fa-supplied-accent);
 }
 
 .avatar--sm { --avatar-size: 36px; }

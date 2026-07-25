@@ -44,7 +44,7 @@
     padding: 10px 12px;
     background: var(--fa-bg-surface);
     border: 1px solid var(--fa-border-card);
-    border-radius: t.$fa-radius-sm;
+    border-radius: var(--fa-radius-sm);
     box-shadow: var(--fa-shadow-card);
     color: var(--fa-text-muted);
     font-family: var(--fa-font-body);

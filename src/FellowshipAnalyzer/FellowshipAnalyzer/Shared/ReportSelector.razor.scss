@@ -10,7 +10,7 @@
     max-width: 44rem;
     transition: border-color 0.2s;
 
-    &:focus-within { border-color: t.tint(t.$fa-gold, t.$fa-tint-medium); }
+    &:focus-within { border-color: t.tint(var(--fa-gold), t.$fa-tint-medium); }
 }
 
 .input-wrapper {
@@ -47,7 +47,7 @@
     font-size: 0.82rem;
 
     &:hover {
-        background: t.tint(t.$fa-gold, t.$fa-tint-muted);
+        background: t.tint(var(--fa-gold), t.$fa-tint-muted);
         color: var(--fa-gold-light);
     }
 
@@ -79,6 +79,6 @@
 
 .selector-error {
     margin: 0.5rem 0 0;
-    color: var(--fa-danger, t.$fa-perf-fail);
+    color: var(--fa-danger);
     font-size: 0.875rem;
 }

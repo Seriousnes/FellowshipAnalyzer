@@ -1,18 +1,20 @@
 @use 'tokens' as t;
 
+// `--fa-supplied-accent` is the design system's one caller-facing colour channel. A badge needs its
+// variant colour as a mixable value in five places (solid fill, solid hover, outline label, edge,
+// outline hover) plus the active ring on both fill types, so the colour cannot come from a semantic
+// class: a class only ever sets one of `color`, `border-color` or `background`, at full strength.
+
 .badge {
-    --badge-color: var(--fa-text-muted);
-    --badge-fill: transparent;
-    --badge-border: transparent;
-    --badge-text: var(--fa-text);
+    --fa-supplied-accent: var(--fa-text-muted);
 
     display: inline-flex;
     align-items: center;
     gap: 0.3rem;
-    border-radius: t.$fa-radius-sm;
-    border: var(--fa-border-width) solid var(--badge-border);
-    background: var(--badge-fill);
-    color: var(--badge-text);
+    border-radius: var(--fa-radius-sm);
+    border: var(--fa-border-width) solid transparent;
+    background: transparent;
+    color: var(--fa-text);
     font-weight: 600;
     font-family: inherit;
     text-decoration: none;
@@ -24,22 +26,22 @@
 // a dark ink; the darker preserved colours (the reds, tank blue) take a light
 // label so the text clears AA on every variant.
 .badge--solid {
-    --badge-fill: var(--badge-color);
-    --badge-text: var(--fa-bg-base);
-    --badge-border: transparent;
+    background: var(--fa-supplied-accent);
+    border-color: transparent;
+    color: var(--fa-bg-base);
 }
 
 .badge--solid.badge--failure,
 .badge--solid.badge--dps,
 .badge--solid.badge--tank {
-    --badge-text: var(--fa-text);
+    color: var(--fa-text);
 }
 
 // Outline: the variant colour carried by the label and a hairline edge.
 .badge--outline {
-    --badge-fill: transparent;
-    --badge-text: var(--badge-color);
-    --badge-border: color-mix(in srgb, var(--badge-color) 42%, transparent);
+    background: transparent;
+    border-color: color-mix(in srgb, var(--fa-supplied-accent) 42%, transparent);
+    color: var(--fa-supplied-accent);
 }
 
 button.badge,
@@ -50,16 +52,16 @@ a.badge {
 
 button.badge--solid:hover,
 a.badge--solid:hover {
-    --badge-fill: color-mix(in srgb, var(--badge-color) 86%, var(--fa-text));
+    background: color-mix(in srgb, var(--fa-supplied-accent) 86%, var(--fa-text));
 }
 
 button.badge--outline:hover,
 a.badge--outline:hover {
-    --badge-fill: color-mix(in srgb, var(--badge-color) 16%, transparent);
+    background: color-mix(in srgb, var(--fa-supplied-accent) 16%, transparent);
 }
 
 .badge.active {
-    box-shadow: 0 0 0 var(--fa-ring-width) color-mix(in srgb, var(--badge-color) 45%, transparent);
+    box-shadow: 0 0 0 var(--fa-ring-width) color-mix(in srgb, var(--fa-supplied-accent) 45%, transparent);
 }
 
 .badge--sm {
@@ -72,10 +74,10 @@ a.badge--outline:hover {
     font-size: 0.82rem;
 }
 
-.badge--neutral { --badge-color: var(--fa-text-muted); }
-.badge--success { --badge-color: var(--fa-perf-good); }
-.badge--failure { --badge-color: var(--fa-perf-fail); }
-.badge--tank    { --badge-color: var(--fa-role-tank); }
-.badge--healer  { --badge-color: var(--fa-role-healer); }
-.badge--dps     { --badge-color: var(--fa-role-dps); }
-.badge--gold    { --badge-color: var(--fa-gold-light); }
+.badge--neutral { --fa-supplied-accent: var(--fa-text-muted); }
+.badge--success { --fa-supplied-accent: var(--fa-perf-good); }
+.badge--failure { --fa-supplied-accent: var(--fa-perf-fail); }
+.badge--tank    { --fa-supplied-accent: var(--fa-role-tank); }
+.badge--healer  { --fa-supplied-accent: var(--fa-role-healer); }
+.badge--dps     { --fa-supplied-accent: var(--fa-role-dps); }
+.badge--gold    { --fa-supplied-accent: var(--fa-gold-light); }

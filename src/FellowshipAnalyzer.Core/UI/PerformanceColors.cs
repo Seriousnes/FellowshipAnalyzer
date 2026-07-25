@@ -1,22 +1,29 @@
 using FellowshipAnalyzer.Core.Analysis;
+using FellowshipAnalyzer.Core.Contracts.Design;
 
 namespace FellowshipAnalyzer.Core.UI;
 
+/// <summary>
+/// The four <see cref="QualitativePerformance"/> tiers and the neutral a stat wears when it carries
+/// no rating, each as the CSS reference to the token that colours it. Nothing here holds a value,
+/// so C# and the stylesheet cannot disagree.
+/// </summary>
 public static class PerformanceColors
 {
-    // Mirror the SCSS $fa-perf-* / --fa-perf-* tokens (the authoritative palette).
-    public const string Perfect = "#2090c0";
-    public const string Good = "#4ec04e";
-    public const string Ok = "#ffc84a";
-    public const string Fail = "#ac1f39";
+    /// <summary>Perfect tier.</summary>
+    public static readonly string Perfect = FaVar.PerfPerfect;
 
-    public const string VeryBad = "#661111";
-    public const string Mediocre = "#dd5533";
-    public const string Available = "#696864";
+    /// <summary>Good tier.</summary>
+    public static readonly string Good = FaVar.PerfGood;
 
-    /// <summary>Value colour for a stat with no performance tier. Routed through a custom
-    /// property so a theme can override it; resolves to white wherever none is defined.</summary>
-    public const string Neutral = "var(--fa-fg-neutral, #ffffff)";
+    /// <summary>Ok tier.</summary>
+    public static readonly string Ok = FaVar.PerfOk;
+
+    /// <summary>Fail tier.</summary>
+    public static readonly string Fail = FaVar.PerfFail;
+
+    /// <summary>Value colour for a stat with no performance tier.</summary>
+    public static readonly string Neutral = FaVar.FgNeutral;
 
     public static string ToColor(QualitativePerformance tier) => tier switch
     {

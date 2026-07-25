@@ -23,7 +23,7 @@
 .home-news-entry {
     padding: 0.9rem 1.1rem;
     border: 1px solid var(--fa-border);
-    border-radius: t.$fa-radius-md;
+    border-radius: var(--fa-radius-md);
     background: var(--fa-bg-surface);
     display: flex;
     flex-direction: column;

@@ -14,8 +14,8 @@
     height: calc(24px + var(--level) * 30px);
     border-top-left-radius: var(--fa-radius-xs);
     border-top-right-radius: var(--fa-radius-xs);
-    background: hsla(41, 10%, 68%, 0.2);
-    box-shadow: 0 0 3px t.tint(t.$fa-black, t.$fa-tint-medium);
+    background: t.tint(var(--fa-text-muted), t.$fa-tint-soft);
+    box-shadow: 0 0 3px t.tint(var(--fa-black), t.$fa-tint-medium);
     z-index: calc(1 + var(--level));
     box-sizing: border-box;
     pointer-events: none;
@@ -28,7 +28,7 @@
     bottom: 0;
     width: 1px;
     height: calc(4px + var(--level) * 30px);
-    background: t.$fa-amber;
+    background: var(--fa-amber);
     z-index: calc(20 + var(--level));
     pointer-events: none;
 }
@@ -56,8 +56,8 @@
 
     /* Gold border on the spell icon */
     ::deep .spell-icon {
-        border: 1px solid t.$fa-amber;
+        border: 1px solid var(--fa-amber);
         border-radius: var(--fa-radius-xs);
-        box-shadow: 0 0 3px t.tint(t.$fa-black, t.$fa-tint-strong);
+        box-shadow: 0 0 3px t.tint(var(--fa-black), t.$fa-tint-strong);
     }
 }

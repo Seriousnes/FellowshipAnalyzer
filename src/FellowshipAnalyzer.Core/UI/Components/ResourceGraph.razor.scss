@@ -4,8 +4,8 @@
     ::deep .apexcharts-tooltip {
         background: var(--fa-bg-raised);
         border: 1px solid var(--fa-border-card);
-        border-radius: t.$fa-radius-sm;
-        box-shadow: t.$fa-shadow-card;
+        border-radius: var(--fa-radius-sm);
+        box-shadow: var(--fa-shadow-card);
         color: var(--fa-text);
         overflow: hidden;
     }

@@ -9,7 +9,7 @@
 }
 
 <div class="hero-support-card@(reportHref is null ? "" : " linkable")"
-     style="--hero-accent: @hero.Color;">
+     style="--fa-supplied-accent: @hero.Color;">
     @if (reportHref is not null)
     {
         <a class="hero-support-card-link" href="@reportHref"
@@ -20,7 +20,7 @@
 
     <div class="hero-support-card-body">
         <div class="hero-support-card-head">
-            <span class="hero-support-card-name" style="color: @hero.Color;">@Entry.Hero</span>
+            <span class="hero-support-card-name">@Entry.Hero</span>
             <SupportBadge Support="config.Support" />
         </div>
 

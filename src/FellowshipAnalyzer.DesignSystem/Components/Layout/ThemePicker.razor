@@ -1,0 +1,36 @@
+@* ThemePicker — theme selection, backed by ThemeService so this control and the token editor read one source of truth. *@
+@using FellowshipAnalyzer.Core.UI.Theming
+@implements IDisposable
+@inject ThemeService ThemeService
+
+<div class="theme-picker">
+    <span class="theme-picker-label">Theme</span>
+    <div class="theme-picker-options" role="group" aria-label="Theme">
+        @foreach (var theme in FaTheme.All)
+        {
+            var active = theme.Name == ThemeService.Theme.Name;
+            <button type="button"
+                    class="theme-picker-option @(active ? "active" : null)"
+                    aria-pressed="@(active ? "true" : "false")"
+                    @onclick="() => ThemeService.SetThemeAsync(theme)">
+                @theme.Name
+            </button>
+        }
+    </div>
+</div>
+
+@code {
+    protected override void OnInitialized() => ThemeService.Changed += OnThemeChanged;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await ThemeService.RestoreAsync();
+        }
+    }
+
+    private void OnThemeChanged() => InvokeAsync(StateHasChanged);
+
+    public void Dispose() => ThemeService.Changed -= OnThemeChanged;
+}

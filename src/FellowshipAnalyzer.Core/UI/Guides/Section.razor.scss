@@ -1,9 +1,7 @@
-@use 'tokens' as t;
-
 .guide-top-section {
     background: var(--fa-bg-raised);
     border: 1px solid var(--fa-border-card);
-    border-radius: t.$fa-radius-sm;
+    border-radius: var(--fa-radius-sm);
     overflow: hidden;
     margin-bottom: 14px;
 }
@@ -15,7 +13,7 @@
     gap: 12px;
     width: 100%;
     padding: 8px 12px;
-    background: var(--fa-section-header, linear-gradient(180deg, t.tint(t.$fa-gold, t.$fa-tint-subtle), t.tint(t.$fa-gold, t.$fa-tint-faint)));
+    background: var(--fa-section-header);
     border: 0;
     border-bottom: 1px solid var(--fa-border);
     cursor: pointer;
@@ -24,7 +22,7 @@
     text-align: left;
     -webkit-tap-highlight-color: transparent;
 
-    &:hover { background: var(--fa-section-header-hover, linear-gradient(180deg, t.tint(t.$fa-gold, t.$fa-tint-soft), t.tint(t.$fa-gold, t.$fa-tint-faint))); }
+    &:hover { background: var(--fa-section-header-hover); }
     &:focus-visible { outline: 2px solid var(--fa-gold); outline-offset: -2px; }
 }
 
@@ -32,7 +30,7 @@
     flex: 1;
     margin: 0;
     font-family: var(--fa-font-heading);
-    font-size: t.$fa-fs-lg;
+    font-size: var(--fa-fs-lg);
     font-weight: 700;
     color: var(--fa-gold);
     letter-spacing: 0.3px;

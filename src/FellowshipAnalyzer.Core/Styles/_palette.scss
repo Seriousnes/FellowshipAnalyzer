@@ -1,0 +1,335 @@
+// Generated file. Do not edit.
+//
+// Written by src/FellowshipAnalyzer.Tools/emit-palette.cs from
+// FellowshipAnalyzer.Core.Contracts.Design.FaTheme, which owns every value below.
+// Change a design value there and rebuild FellowshipAnalyzer.Core.
+
+// Original
+:root {
+    --fa-white: #ffffff;
+    --fa-black: #000000;
+    --fa-grey: #787878;
+    --fa-amber: #fab700;
+    --fa-steel: #6b9ed2;
+    --fa-arcane: #9a7bff;
+    --fa-nature: #5fd0b0;
+    --fa-link: #0087ff;
+    --fa-frame: #63696f;
+    --fa-blood: #661111;
+    --fa-rust: #dd5533;
+    --fa-stone: #696864;
+    --fa-brand-cream: #f4e9d0;
+    --fa-brand-gold: #d4a744;
+    --fa-bg-base: #182028;
+    --fa-bg-raised: #283038;
+    --fa-bg-surface: #313a45;
+    --fa-bg-card: #3a4452;
+    --fa-bg-inset: #0e151d;
+    --fa-bg-hover: rgba(255, 255, 255, 0.06);
+    --fa-raise: rgba(255, 255, 255, 0.06);
+    --fa-recess: rgba(0, 0, 0, 0.2);
+    --fa-recess-deep: rgba(0, 0, 0, 0.4);
+    --fa-section-header: linear-gradient(180deg, rgba(184, 150, 92, 0.12), rgba(184, 150, 92, 0.06));
+    --fa-section-header-hover: linear-gradient(180deg, rgba(184, 150, 92, 0.2), rgba(184, 150, 92, 0.06));
+    --fa-text: #e8e0d8;
+    --fa-text-muted: #abb3bc;
+    --fa-text-dim: #949ba5;
+    --fa-fg: rgba(255, 255, 255, 0.6);
+    --fa-fg-muted: rgba(255, 255, 255, 0.4);
+    --fa-fg-dim: rgba(255, 255, 255, 0.3);
+    --fa-fg-neutral: #ffffff;
+    --fa-gold: #b8965c;
+    --fa-gold-light: #d9b887;
+    --fa-gold-pale: #d9b887;
+    --fa-gold-dim: rgba(184, 150, 92, 0.12);
+    --fa-ice: #6ec8e8;
+    --fa-danger: #ac1f39;
+    --fa-border: rgba(99, 105, 111, 0.2);
+    --fa-border-card: rgba(99, 105, 111, 0.3);
+    --fa-border-subtle: rgba(99, 105, 111, 0.12);
+    --fa-edge: rgba(255, 255, 255, 0.06);
+    --fa-panel-border: rgba(99, 105, 111, 0);
+    --fa-perf-perfect: #2090c0;
+    --fa-perf-good: #4ec04e;
+    --fa-perf-ok: #ffc84a;
+    --fa-perf-fail: #ac1f39;
+    --fa-role-tank: #336699;
+    --fa-role-healer: #4ec04e;
+    --fa-role-dps: #ac1f39;
+    --fa-role-unknown: rgba(99, 105, 111, 0.2);
+    --fa-hero-aeona: #fc9fec;
+    --fa-hero-ardeos: #eb6328;
+    --fa-hero-elarion: #935dff;
+    --fa-hero-gunde: #943738;
+    --fa-hero-helena: #b46831;
+    --fa-hero-mara: #965a90;
+    --fa-hero-meiko: #28e05c;
+    --fa-hero-rime: #1ea3ee;
+    --fa-hero-sylvie: #ea4f84;
+    --fa-hero-tariq: #527af5;
+    --fa-hero-vigour: #dddbc5;
+    --fa-hero-xavian: #077365;
+    --fa-hero-unknown: #9a9586;
+    --fa-ev-cast: #6ec8e8;
+    --fa-ev-damage: #ac1f39;
+    --fa-ev-heal: #4ec04e;
+    --fa-ev-buff: #9a7bff;
+    --fa-ev-buff-fade: #9a7bff;
+    --fa-ev-debuff: #fab700;
+    --fa-ev-death: #661111;
+    --fa-ev-resource: #b8965c;
+    --fa-ev-system: #949ba5;
+    --fa-ev-modified: #fab700;
+    --fa-ev-fabricated: #4ec04e;
+    --fa-ev-reordered: #6b9ed2;
+    --fa-shadow-card: 0 8px 32px rgba(0, 0, 0, 0.4);
+    --fa-shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.6);
+    --fa-border-width: 1px;
+    --fa-accent-width: 3px;
+    --fa-ring-width: 2px;
+    --fa-radius-xs: 3px;
+    --fa-radius-sm: 5px;
+    --fa-radius-md: 8px;
+    --fa-radius-lg: 12px;
+    --fa-radius-xl: 16px;
+    --fa-radius-pill: 999px;
+    --fa-font-body: "Source Sans 3", system-ui, -apple-system, sans-serif;
+    --fa-font-heading: "Cinzel", "Trajan Pro", Georgia, serif;
+    --fa-font-mono: "Cascadia Code", "JetBrains Mono", ui-monospace, "SFMono-Regular", Consolas, monospace;
+    --fa-fs-label: 0.66rem;
+    --fa-fs-meta: 0.78rem;
+    --fa-fs-body: 0.9rem;
+    --fa-fs-value: 1rem;
+    --fa-fs-title: 1.05rem;
+    --fa-fs-lg: 1.2rem;
+}
+
+// Dark
+:root[data-theme='dark'] {
+    --fa-white: #ffffff;
+    --fa-black: #000000;
+    --fa-grey: #787878;
+    --fa-amber: #fab700;
+    --fa-steel: #6b9ed2;
+    --fa-arcane: #9a7bff;
+    --fa-nature: #5fd0b0;
+    --fa-link: #0087ff;
+    --fa-frame: #63696f;
+    --fa-blood: #661111;
+    --fa-rust: #dd5533;
+    --fa-stone: #696864;
+    --fa-brand-cream: #f4e9d0;
+    --fa-brand-gold: #d4a744;
+    --fa-bg-base: #09101a;
+    --fa-bg-raised: #0f1829;
+    --fa-bg-surface: #142139;
+    --fa-bg-card: rgba(19, 31, 53, 0.8);
+    --fa-bg-inset: rgba(8, 13, 23, 0.6);
+    --fa-bg-hover: rgba(255, 255, 255, 0.06);
+    --fa-raise: rgba(255, 255, 255, 0.06);
+    --fa-recess: rgba(0, 0, 0, 0.2);
+    --fa-recess-deep: rgba(0, 0, 0, 0.4);
+    --fa-section-header: linear-gradient(180deg, transparent, rgba(152, 154, 159, 0.12));
+    --fa-section-header-hover: linear-gradient(180deg, transparent, rgba(152, 154, 159, 0.2));
+    --fa-text: #cdcdcc;
+    --fa-text-muted: #989a9f;
+    --fa-text-dim: #65676c;
+    --fa-fg: rgba(255, 255, 255, 0.6);
+    --fa-fg-muted: rgba(255, 255, 255, 0.4);
+    --fa-fg-dim: rgba(255, 255, 255, 0.3);
+    --fa-fg-neutral: #ffffff;
+    --fa-gold: #caa347;
+    --fa-gold-light: #dcc080;
+    --fa-gold-pale: #edddb8;
+    --fa-gold-dim: rgba(202, 163, 71, 0.12);
+    --fa-ice: #6ec8e8;
+    --fa-danger: #ac1f39;
+    --fa-border: rgba(152, 154, 159, 0.2);
+    --fa-border-card: rgba(152, 154, 159, 0.3);
+    --fa-border-subtle: rgba(152, 154, 159, 0.12);
+    --fa-edge: rgba(255, 255, 255, 0.06);
+    --fa-panel-border: rgba(99, 105, 111, 0);
+    --fa-perf-perfect: #2090c0;
+    --fa-perf-good: #4ec04e;
+    --fa-perf-ok: #ffc84a;
+    --fa-perf-fail: #ac1f39;
+    --fa-role-tank: #336699;
+    --fa-role-healer: #4ec04e;
+    --fa-role-dps: #ac1f39;
+    --fa-role-unknown: rgba(152, 154, 159, 0.2);
+    --fa-hero-aeona: #fc9fec;
+    --fa-hero-ardeos: #eb6328;
+    --fa-hero-elarion: #935dff;
+    --fa-hero-gunde: #943738;
+    --fa-hero-helena: #b46831;
+    --fa-hero-mara: #965a90;
+    --fa-hero-meiko: #28e05c;
+    --fa-hero-rime: #1ea3ee;
+    --fa-hero-sylvie: #ea4f84;
+    --fa-hero-tariq: #527af5;
+    --fa-hero-vigour: #dddbc5;
+    --fa-hero-xavian: #077365;
+    --fa-hero-unknown: #9a9586;
+    --fa-ev-cast: #6ec8e8;
+    --fa-ev-damage: #ac1f39;
+    --fa-ev-heal: #4ec04e;
+    --fa-ev-buff: #9a7bff;
+    --fa-ev-buff-fade: #9a7bff;
+    --fa-ev-debuff: #fab700;
+    --fa-ev-death: #661111;
+    --fa-ev-resource: #b8965c;
+    --fa-ev-system: #949ba5;
+    --fa-ev-modified: #fab700;
+    --fa-ev-fabricated: #4ec04e;
+    --fa-ev-reordered: #6b9ed2;
+    --fa-shadow-card: 0 8px 32px rgba(0, 0, 0, 0.4);
+    --fa-shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.6);
+    --fa-border-width: 1px;
+    --fa-accent-width: 3px;
+    --fa-ring-width: 2px;
+    --fa-radius-xs: 3px;
+    --fa-radius-sm: 5px;
+    --fa-radius-md: 8px;
+    --fa-radius-lg: 12px;
+    --fa-radius-xl: 16px;
+    --fa-radius-pill: 999px;
+    --fa-font-body: "Source Sans 3", system-ui, -apple-system, sans-serif;
+    --fa-font-heading: "Cinzel", "Trajan Pro", Georgia, serif;
+    --fa-font-mono: "Cascadia Code", "JetBrains Mono", ui-monospace, "SFMono-Regular", Consolas, monospace;
+    --fa-fs-label: 0.66rem;
+    --fa-fs-meta: 0.78rem;
+    --fa-fs-body: 0.9rem;
+    --fa-fs-value: 1rem;
+    --fa-fs-title: 1.05rem;
+    --fa-fs-lg: 1.2rem;
+}
+
+// Light
+:root[data-theme='light'] {
+    --fa-white: #ffffff;
+    --fa-black: #000000;
+    --fa-grey: #787878;
+    --fa-amber: #fab700;
+    --fa-steel: #6b9ed2;
+    --fa-arcane: #9a7bff;
+    --fa-nature: #5fd0b0;
+    --fa-link: #0087ff;
+    --fa-frame: #63696f;
+    --fa-blood: #661111;
+    --fa-rust: #dd5533;
+    --fa-stone: #696864;
+    --fa-brand-cream: #f4e9d0;
+    --fa-brand-gold: #d4a744;
+    --fa-bg-base: #fffaf1;
+    --fa-bg-raised: #fffaf1;
+    --fa-bg-surface: #fffaf1;
+    --fa-bg-card: #fffaf1;
+    --fa-bg-inset: #fffaf1;
+    --fa-bg-hover: rgba(42, 70, 119, 0.06);
+    --fa-raise: #fffdfa;
+    --fa-recess: #fff6e5;
+    --fa-recess-deep: #ffefd1;
+    --fa-section-header: linear-gradient(180deg, transparent, rgba(42, 70, 119, 0.12));
+    --fa-section-header-hover: linear-gradient(180deg, transparent, rgba(42, 70, 119, 0.2));
+    --fa-text: #2a4677;
+    --fa-text-muted: #67696f;
+    --fa-text-dim: #888b90;
+    --fa-fg: #2a4677;
+    --fa-fg-muted: #67696f;
+    --fa-fg-dim: #888b90;
+    --fa-fg-neutral: #2a4677;
+    --fa-gold: #b8860e;
+    --fa-gold-light: #8e680b;
+    --fa-gold-pale: #7b5a09;
+    --fa-gold-dim: rgba(220, 192, 128, 0.4);
+    --fa-ice: #6ec8e8;
+    --fa-danger: #ac1f39;
+    --fa-border: rgba(42, 70, 119, 0.2);
+    --fa-border-card: rgba(42, 70, 119, 0.3);
+    --fa-border-subtle: rgba(42, 70, 119, 0.12);
+    --fa-edge: rgba(42, 70, 119, 0.12);
+    --fa-panel-border: rgba(42, 70, 119, 0.2);
+    --fa-perf-perfect: #2090c0;
+    --fa-perf-good: #4ec04e;
+    --fa-perf-ok: #ffc84a;
+    --fa-perf-fail: #ac1f39;
+    --fa-role-tank: #336699;
+    --fa-role-healer: #4ec04e;
+    --fa-role-dps: #ac1f39;
+    --fa-role-unknown: rgba(42, 70, 119, 0.2);
+    --fa-hero-aeona: #fc9fec;
+    --fa-hero-ardeos: #eb6328;
+    --fa-hero-elarion: #935dff;
+    --fa-hero-gunde: #943738;
+    --fa-hero-helena: #b46831;
+    --fa-hero-mara: #965a90;
+    --fa-hero-meiko: #28e05c;
+    --fa-hero-rime: #1ea3ee;
+    --fa-hero-sylvie: #ea4f84;
+    --fa-hero-tariq: #527af5;
+    --fa-hero-vigour: #dddbc5;
+    --fa-hero-xavian: #077365;
+    --fa-hero-unknown: #9a9586;
+    --fa-ev-cast: #6ec8e8;
+    --fa-ev-damage: #ac1f39;
+    --fa-ev-heal: #4ec04e;
+    --fa-ev-buff: #9a7bff;
+    --fa-ev-buff-fade: #9a7bff;
+    --fa-ev-debuff: #fab700;
+    --fa-ev-death: #661111;
+    --fa-ev-resource: #b8965c;
+    --fa-ev-system: #949ba5;
+    --fa-ev-modified: #fab700;
+    --fa-ev-fabricated: #4ec04e;
+    --fa-ev-reordered: #6b9ed2;
+    --fa-shadow-card: 0 8px 32px rgba(0, 0, 0, 0.12);
+    --fa-shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.2);
+    --fa-border-width: 1px;
+    --fa-accent-width: 3px;
+    --fa-ring-width: 2px;
+    --fa-radius-xs: 3px;
+    --fa-radius-sm: 5px;
+    --fa-radius-md: 8px;
+    --fa-radius-lg: 12px;
+    --fa-radius-xl: 16px;
+    --fa-radius-pill: 999px;
+    --fa-font-body: "Source Sans 3", system-ui, -apple-system, sans-serif;
+    --fa-font-heading: "Cinzel", "Trajan Pro", Georgia, serif;
+    --fa-font-mono: "Cascadia Code", "JetBrains Mono", ui-monospace, "SFMono-Regular", Consolas, monospace;
+    --fa-fs-label: 0.66rem;
+    --fa-fs-meta: 0.78rem;
+    --fa-fs-body: 0.9rem;
+    --fa-fs-value: 1rem;
+    --fa-fs-title: 1.05rem;
+    --fa-fs-lg: 1.2rem;
+}
+
+// Semantic class name to the token that colours it. A single loop mints
+// .#{$class}, .#{$class}-bordered and .#{$class}-filled from this map.
+$fa-semantic: (
+    perfect: perf-perfect,
+    good: perf-good,
+    ok: perf-ok,
+    fail: perf-fail,
+    tank: role-tank,
+    healer: role-healer,
+    dps: role-dps,
+    cast: ev-cast,
+    damage: ev-damage,
+    heal: ev-heal,
+    buff: ev-buff,
+    buff-fade: ev-buff-fade,
+    debuff: ev-debuff,
+    death: ev-death,
+    resource: ev-resource,
+    system: ev-system,
+    modified: ev-modified,
+    fabricated: ev-fabricated,
+    reordered: ev-reordered,
+);
+
+@each $class, $token in $fa-semantic {
+    .#{$class}          { color: var(--fa-#{$token}); }
+    .#{$class}-bordered { border-color: var(--fa-#{$token}); }
+    .#{$class}-filled   { background: var(--fa-#{$token}); }
+}

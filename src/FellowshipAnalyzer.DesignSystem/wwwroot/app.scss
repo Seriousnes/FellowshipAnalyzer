@@ -1,40 +1,8 @@
-@use 'tokens' as t;
-@use 'themes' as th;
+// Every --fa-* custom property, and the data-theme selector for each of the
+// three themes, comes from _palette.scss, which
+// FellowshipAnalyzer.Core.Contracts.Design.FaTheme generates.
 
-:root,
-:root[data-theme='original'] { @include th.original; }
-:root[data-theme='dark']     { @include th.dark; }
-:root[data-theme='light']    { @include th.light; }
-
-:root {
-    --fa-perf-perfect:   #{t.$fa-perf-perfect};
-    --fa-perf-good:      #{t.$fa-perf-good};
-    --fa-perf-ok:        #{t.$fa-perf-ok};
-    --fa-perf-fail:      #{t.$fa-perf-fail};
-    --fa-perf-very-bad:  #{t.$fa-perf-very-bad};
-    --fa-perf-mediocre:  #{t.$fa-perf-mediocre};
-    --fa-perf-available: #{t.$fa-perf-available};
-
-    --fa-role-tank:    #{t.$fa-role-tank};
-    --fa-role-healer:  #{t.$fa-role-healer};
-    --fa-role-dps:     #{t.$fa-role-dps};
-
-    --fa-ice: #{t.$fa-ice};
-
-    --fa-border-width: #{t.$fa-border-width};
-    --fa-accent-width: #{t.$fa-accent-width};
-    --fa-ring-width:   #{t.$fa-ring-width};
-
-    --fa-radius-xs:   #{t.$fa-radius-xs};
-    --fa-radius-sm:   #{t.$fa-radius-sm};
-    --fa-radius-md:   #{t.$fa-radius-md};
-    --fa-radius-lg:   #{t.$fa-radius-lg};
-    --fa-radius-xl:   #{t.$fa-radius-xl};
-    --fa-radius-pill: #{t.$fa-radius-pill};
-
-    --fa-font-body:    #{t.$fa-font-body};
-    --fa-font-heading: #{t.$fa-font-heading};
-}
+@use 'palette';
 
 *, *::before, *::after { box-sizing: border-box; }
 

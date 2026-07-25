@@ -1,7 +1,7 @@
-@use 'tokens' as t;
-
+// The variant sets `color` on the box and the accent border, icon fill and icon
+// glyph all read it through currentColor, so the callout carries one colour with
+// no private custom property of its own.
 .tip-box {
-    --tip-color: var(--fa-gold, #{t.$fa-gold});
     display: grid;
     grid-template-columns: auto 1fr;
     gap: 10px;
@@ -9,14 +9,15 @@
     padding: 10px 12px;
     background: var(--fa-bg-inset);
     border: 1px solid var(--fa-border);
-    border-left: var(--fa-accent-width) solid var(--tip-color);
+    border-left: var(--fa-accent-width) solid currentColor;
     border-radius: var(--fa-radius-sm);
+    color: var(--fa-gold);
 
-    &.info    { --tip-color: #{t.$fa-steel}; }
-    &.note    { --tip-color: #{t.$fa-arcane}; }
-    &.success { --tip-color: var(--fa-perf-good); }
-    &.warning { --tip-color: var(--fa-perf-ok); }
-    &.error   { --tip-color: var(--fa-perf-fail); }
+    &.info    { color: var(--fa-steel); }
+    &.note    { color: var(--fa-arcane); }
+    &.success { color: var(--fa-perf-good); }
+    &.warning { color: var(--fa-perf-ok); }
+    &.error   { color: var(--fa-perf-fail); }
 }
 
 .tip-box-icon {
@@ -26,8 +27,7 @@
     min-width: 22px;
     height: 22px;
     border-radius: 50%;
-    background: color-mix(in srgb, var(--tip-color) 22%, transparent);
-    color: var(--tip-color);
+    background: color-mix(in srgb, currentColor 22%, transparent);
     font-weight: 800;
     font-size: 0.95rem;
     line-height: 1;

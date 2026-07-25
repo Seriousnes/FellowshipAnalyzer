@@ -1,0 +1,271 @@
+@page "/tokens"
+@using System.Text
+@using System.Text.Json
+@using FellowshipAnalyzer.Core.UI.Theming
+@implements IAsyncDisposable
+@inject ThemeService ThemeService
+@inject IJSRuntime JS
+
+<PageTitle>Design tokens — Design System</PageTitle>
+
+<h1>Design tokens</h1>
+<p class="lede">
+    Every <code>--fa-*</code> token, read off <code>FaTheme</code> in the groups the theme itself
+    declares, so this catalog cannot drift from the C# that generates <code>_palette.scss</code>.
+    An edit writes one declaration into the root element's style attribute, which outranks the
+    generated <code>:root</code> block, so every page in this catalog restyles live &mdash;
+    including surfaces whose colour comes from <code>color-mix()</code>.
+</p>
+
+<div class="tokens-toolbar">
+    <span class="tokens-summary">
+        <strong>@TokenCount</strong> tokens,
+        <strong>@ThemeService.Overrides.Count</strong> edited, on
+        <strong>@ThemeService.Theme.Name</strong>
+    </span>
+    <div class="tokens-actions">
+        <button type="button" class="tokens-button" @onclick="CopyCSharpAsync">
+            @(_copied == "csharp" ? "Copied!" : "Copy C#")
+        </button>
+        <button type="button" class="tokens-button" @onclick="CopyJsonAsync">
+            @(_copied == "json" ? "Copied!" : "Copy JSON")
+        </button>
+        <button type="button"
+                class="tokens-button"
+                disabled="@(ThemeService.Overrides.Count == 0)"
+                @onclick="ResetAllAsync">
+            Reset all
+        </button>
+    </div>
+</div>
+
+@foreach (var group in ThemeService.Theme.Groups)
+{
+    <section class="token-group" @key="group.Name">
+        <header class="token-group-header">
+            <h2>@group.Name</h2>
+            <span class="token-group-source">@group.Source</span>
+        </header>
+
+        <div class="token-list">
+            @foreach (var token in group.Tokens)
+            {
+                var value = ThemeService.ValueOf(token);
+                var edited = ThemeService.IsOverridden(token);
+                var preview = Preview(group.Source, token);
+
+                <div class="token-row @(edited ? "edited" : null)" @key="token.Name">
+                    <span class="token-preview @preview.Kind">
+                        <span class="token-preview-fill" style="@preview.Style">@preview.Text</span>
+                    </span>
+
+                    <code class="token-name">@token.CustomProperty</code>
+
+                    @if (IsHex(value))
+                    {
+                        <input class="token-color"
+                               type="color"
+                               aria-label="@($"{token.Name} colour")"
+                               value="@value"
+                               @onchange="args => ApplyAsync(token, args)" />
+                    }
+                    else
+                    {
+                        <span class="token-color-gap"></span>
+                    }
+
+                    <input class="token-value"
+                           type="text"
+                           spellcheck="false"
+                           autocomplete="off"
+                           aria-label="@($"{token.Name} value")"
+                           value="@value"
+                           @onchange="args => ApplyAsync(token, args)" />
+
+                    <button type="button"
+                            class="token-reset"
+                            title="@($"Reset to the {ThemeService.Theme.Name} value")"
+                            disabled="@(!edited)"
+                            @onclick="() => ThemeService.ClearTokenAsync(token.Name)">
+                        Reset
+                    </button>
+                </div>
+            }
+        </div>
+    </section>
+}
+
+@code {
+    private static readonly JsonSerializerOptions ExportOptions = new() { WriteIndented = true };
+
+    private IJSObjectReference? _clipboard;
+    private string? _copied;
+
+    private int TokenCount => ThemeService.Theme.Groups.Sum(group => group.Tokens.Count);
+
+    protected override void OnInitialized() => ThemeService.Changed += OnThemeChanged;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await ThemeService.RestoreAsync();
+        }
+    }
+
+    private void OnThemeChanged() => InvokeAsync(StateHasChanged);
+
+    private async Task ApplyAsync(FaToken token, ChangeEventArgs args)
+    {
+        var value = args.Value?.ToString()?.Trim();
+        _copied = null;
+
+        if (string.IsNullOrEmpty(value))
+        {
+            return;
+        }
+
+        if (value == token.Value)
+        {
+            await ThemeService.ClearTokenAsync(token.Name);
+            return;
+        }
+
+        await ThemeService.SetTokenAsync(token.Name, value);
+    }
+
+    private async Task ResetAllAsync()
+    {
+        _copied = null;
+        await ThemeService.ClearOverridesAsync();
+    }
+
+    private Task CopyCSharpAsync() => CopyAsync("csharp", BuildCSharp());
+
+    private Task CopyJsonAsync() => CopyAsync("json", BuildJson());
+
+    private async Task CopyAsync(string key, string text)
+    {
+        try
+        {
+            _clipboard ??= await JS.InvokeAsync<IJSObjectReference>("import", "./clipboard.js");
+            _copied = await _clipboard.InvokeAsync<bool>("copyText", text) ? key : null;
+        }
+        catch
+        {
+            _copied = null;
+        }
+    }
+
+    private string BuildCSharp()
+    {
+        var builder = new StringBuilder();
+        string? source = null;
+        var firstInRecord = true;
+
+        foreach (var group in ThemeService.Theme.Groups)
+        {
+            if (group.Source != source)
+            {
+                if (source is not null)
+                {
+                    builder.AppendLine("};").AppendLine();
+                }
+
+                builder.AppendLine($"new {group.Source}").AppendLine("{");
+                source = group.Source;
+                firstInRecord = true;
+            }
+
+            if (!firstInRecord)
+            {
+                builder.AppendLine();
+            }
+
+            firstInRecord = false;
+
+            foreach (var token in group.Tokens)
+            {
+                builder.AppendLine($"    {PropertyName(token.Name)} = \"{Literal(ThemeService.ValueOf(token))}\",");
+            }
+        }
+
+        if (source is not null)
+        {
+            builder.AppendLine("};");
+        }
+
+        return builder.ToString();
+    }
+
+    private string BuildJson()
+    {
+        var values = new Dictionary<string, string>(StringComparer.Ordinal);
+
+        foreach (var token in ThemeService.Theme.Tokens)
+        {
+            values[token.CustomProperty] = ThemeService.ValueOf(token);
+        }
+
+        return JsonSerializer.Serialize(values, ExportOptions);
+    }
+
+    private static (string Kind, string Style, string Text) Preview(string source, FaToken token)
+    {
+        var reference = token.Reference;
+
+        if (source == nameof(FaElevation))
+        {
+            return ("shadow", $"box-shadow: {reference}", string.Empty);
+        }
+
+        if (source == nameof(FaMetrics))
+        {
+            if (token.Name.EndsWith("-width", StringComparison.Ordinal))
+            {
+                return ("width", $"border-left-width: {reference}", string.Empty);
+            }
+
+            return ("radius", $"border-radius: {reference}", string.Empty);
+        }
+
+        if (source == nameof(FaTypography))
+        {
+            if (token.Name.StartsWith("font-", StringComparison.Ordinal))
+            {
+                return ("type", $"font-family: {reference}", "Aa");
+            }
+
+            return ("type", $"font-size: {reference}", "Aa");
+        }
+
+        return ("fill", $"background: {reference}", string.Empty);
+    }
+
+    private static bool IsHex(string value) => value.Length == 7 && value[0] == '#';
+
+    private static string PropertyName(string tokenName)
+    {
+        var builder = new StringBuilder(tokenName.Length);
+
+        foreach (var segment in tokenName.Split('-'))
+        {
+            builder.Append(char.ToUpperInvariant(segment[0])).Append(segment.AsSpan(1));
+        }
+
+        return builder.ToString();
+    }
+
+    private static string Literal(string value) => value.Replace("\\", "\\\\").Replace("\"", "\\\"");
+
+    public async ValueTask DisposeAsync()
+    {
+        ThemeService.Changed -= OnThemeChanged;
+
+        if (_clipboard is not null)
+        {
+            try { await _clipboard.DisposeAsync(); }
+            catch (JSDisconnectedException) { }
+        }
+    }
+}

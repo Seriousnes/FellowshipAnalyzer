@@ -9,7 +9,7 @@ $spell-icon-size-lg: 48px;
     width: $spell-icon-size;
     height: $spell-icon-size;
     border-radius: var(--fa-radius-xs);
-    border: var(--spell-icon-border-width, var(--fa-border-width)) solid var(--spell-icon-border, var(--fa-border-card, #{t.$fa-border-card}));
+    border: var(--spell-icon-border-width, var(--fa-border-width)) solid var(--spell-icon-border, var(--fa-border-card));
     object-fit: cover;
     vertical-align: middle;
 

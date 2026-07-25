@@ -1,5 +1,3 @@
-@use 'tokens' as t;
-
 .stats-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -15,9 +13,9 @@
     margin-top: 10px;
 
     &-heading {
-        font-size: t.$fa-fs-label;
+        font-size: var(--fa-fs-label);
         font-weight: 600;
-        color: var(--fa-text-dim, #{t.$fa-text-dim});
+        color: var(--fa-text-dim);
         margin-bottom: 6px;
         text-transform: uppercase;
         letter-spacing: 0.8px;

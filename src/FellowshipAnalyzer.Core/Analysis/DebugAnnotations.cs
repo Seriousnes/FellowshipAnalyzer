@@ -52,7 +52,8 @@ public sealed class DebugAnnotations : Module
 /// <summary>
 /// A debug annotation that can be attached to a specific event.
 /// </summary>
-/// <param name="Color">CSS color string for the indicator dot (e.g. "#e74c3c", "orange").</param>
+/// <param name="Color">CSS colour for the indicator dot, a design token reference such as
+/// <c>FaVar.Danger</c>.</param>
 /// <param name="Summary">Short text description shown in the tooltip.</param>
 /// <param name="Details">Optional longer description with additional context.</param>
 /// <param name="Priority">

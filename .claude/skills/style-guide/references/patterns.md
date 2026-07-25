@@ -10,23 +10,22 @@ Each shows the SCSS, the resulting HTML usage, and what component it comes from.
 A bordered inset surface. Use for statistics, data sections, standalone info blocks.
 
 ```scss
-@use 'tokens' as t;
 @use 'mixins' as mx;
 
 .my-card {
-    @include mx.card-surface;          // bg-card, gold border, radius-md, shadow-card
+    @include mx.card-surface;          // bg-card, steel border, radius-md, shadow-card
     overflow: hidden;
 }
 
 .my-card-header {
     padding: 10px 16px;
-    border-bottom: 1px solid var(--fa-border);
-    background: var(--fa-raise, t.tint(t.$fa-white, t.$fa-tint-faint));
+    border-bottom: var(--fa-border-width) solid var(--fa-border);
+    background: var(--fa-raise);
 }
 
 .my-card-title {
     margin: 0;
-    font-size: 1rem;
+    font-size: var(--fa-fs-value);
     font-weight: 700;
     color: var(--fa-gold);
     text-transform: uppercase;
@@ -38,7 +37,7 @@ A bordered inset surface. Use for statistics, data sections, standalone info blo
 }
 ```
 
-Real example: `StatCard.razor.css`
+Real example: `StatCard.razor.scss`
 
 ---
 
@@ -47,16 +46,16 @@ Real example: `StatCard.razor.css`
 Left explanation text + right data panel. Width split is controlled by a CSS variable.
 
 ```scss
-@use 'tokens' as t;
+@use 'mixins' as mx;
 
 .guide-section { margin-bottom: 18px; }
 
 .guide-section-header h3 {
     margin: 0 0 10px;
-    font-size: 1.3rem;
+    font-size: var(--fa-fs-lg);
     font-weight: 700;
     color: var(--fa-gold);
-    border-bottom: 1px solid var(--fa-border);
+    border-bottom: var(--fa-border-width) solid var(--fa-border);
     padding-bottom: 8px;
 }
 
@@ -69,9 +68,7 @@ Left explanation text + right data panel. Width split is controlled by a CSS var
 }
 
 .guide-section-data {
-    background: var(--fa-bg-inset);
-    border: 1px solid var(--fa-border);
-    border-radius: t.$fa-radius-sm;
+    @include mx.inset-surface;
     padding: 12px;
 }
 ```
@@ -87,11 +84,10 @@ Real example: `GuideSection.razor.scss`
 
 ## Performance Box Row
 
-Small colored squares representing per-cast performance.
+Small colored squares representing per-cast performance. The tier colour comes from the generated
+`*-filled` semantic class, so the SCSS declares no `background` of its own.
 
 ```scss
-@use 'mixins' as mx;
-
 .perf-box-row {
     display: flex;
     flex-wrap: wrap;
@@ -102,7 +98,7 @@ Small colored squares representing per-cast performance.
 .perf-box {
     width: 16px;
     height: 16px;
-    border-radius: 2px;
+    border-radius: var(--fa-radius-xs);
     border: none;
     padding: 0;
     cursor: default;
@@ -116,18 +112,34 @@ Small colored squares representing per-cast performance.
             transform: scale(1.15);
         }
     }
-
-    @include mx.perf-tier-colors;
 }
 ```
 
-Real example: `PerformanceBoxRow.razor.scss`
+In Razor, map the tier to its class. An untiered entry gets no class and keeps the base styling:
+```razor
+<button class="perf-box @FillClass(entry.Performance)" title="@entry.Tooltip"></button>
+
+@code {
+    private static string FillClass(QualitativePerformance tier) => tier switch
+    {
+        QualitativePerformance.Perfect => "perfect-filled",
+        QualitativePerformance.Good => "good-filled",
+        QualitativePerformance.Ok => "ok-filled",
+        QualitativePerformance.Fail => "fail-filled",
+        _ => "",
+    };
+}
+```
+
+Real example: `PerformanceBoxRow.razor` and `PerformanceBoxRow.razor.scss`
 
 ---
 
-## Spell Badge (Horizontal Filmstrip)
+## Spell Sequence (Horizontal Filmstrip)
 
-Inline badges with colored borders indicating performance.
+A row of spell icons whose ring carries the cast's performance tier. The badge wears the bare
+semantic class, which sets `color`, and `currentColor` carries that colour into the child
+component's border. The container holds the neutral ring an untiered cast falls back to.
 
 ```scss
 .spell-sequence {
@@ -135,24 +147,31 @@ Inline badges with colored borders indicating performance.
     flex-wrap: wrap;
     gap: 4px;
     align-items: center;
+    color: var(--fa-border-card);
 }
 
 .spell-badge {
     display: inline-flex;
-    align-items: center;
-    border: 1px solid;      // color set via inline style from C#
-    border-radius: 4px;
-    background: var(--fa-bg-inset);
-    font-weight: 600;
-    white-space: nowrap;
 
-    &.badge-sm { padding: 2px 6px;  font-size: 0.75rem; }
-    &.badge-md { padding: 4px 8px;  font-size: 0.85rem; }
-    &.badge-lg { padding: 6px 12px; font-size: 1rem; }
+    ::deep .spell-icon-link { color: inherit; }
+
+    ::deep .spell-icon {
+        border-width: var(--fa-ring-width);
+        border-color: currentColor;
+    }
 }
 ```
 
-Real example: `SpellSequence.razor.scss`
+```razor
+<span class="spell-badge @SizeClass @TierClass(cast.Performance)" title="@cast.Tooltip">
+    <SpellIcon Spell="cast.Id" Size="@IconSize" />
+</span>
+```
+
+`::deep` is warranted here because the border belongs to a child component, which is the one case
+section 4 of the skill allows it.
+
+Real example: `SpellSequence.razor` and `SpellSequence.razor.scss`
 
 ---
 
@@ -161,20 +180,18 @@ Real example: `SpellSequence.razor.scss`
 Horizontal scrolling layout with a sticky left label column.
 
 ```scss
-@use 'tokens' as t;
-
 .timeline {
     overflow-x: auto;
     overflow-y: visible;
-    background: var(--fa-recess, t.tint(t.$fa-black, t.$fa-tint-subtle));
-    border-radius: 6px;
+    background: var(--fa-recess);
+    border-radius: var(--fa-radius-sm);
     padding: 8px 0;
 }
 
 .timeline-row {
     display: flex;
     align-items: center;
-    border-bottom: 1px solid var(--fa-edge, t.tint(t.$fa-white, t.$fa-tint-faint));
+    border-bottom: var(--fa-border-width) solid var(--fa-edge);
 
     &:last-child { border-bottom: none; }
 }
@@ -197,11 +214,11 @@ Horizontal scrolling layout with a sticky left label column.
 }
 
 .timeline-label-name-section {
-    font-size: 11px;
+    font-size: var(--fa-fs-label);
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    color: var(--fa-fg-muted, t.tint(t.$fa-white, t.$fa-tint-medium));
+    color: var(--fa-fg-muted);
 }
 ```
 

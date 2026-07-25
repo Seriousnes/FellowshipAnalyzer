@@ -1,3 +1,4 @@
+using FellowshipAnalyzer.Core.Contracts.Design;
 using FellowshipAnalyzer.Core.Events;
 
 namespace FellowshipAnalyzer.Core.Analysis;
@@ -23,7 +24,7 @@ public sealed partial class GlobalCooldown(Lazy<Abilities> abilities, Lazy<Debug
         {
             var overlapMs = _lastGcdEnd - e.Timestamp;
             _debugAnnotations.AddAnnotation(this, e, new DebugAnnotation(
-                Color: "#f1c40f",
+                Color: FaVar.Amber,
                 Summary: $"Cast during active GCD ({overlapMs}ms overlap)",
                 Details: $"The GCD was still active for {overlapMs}ms when this cast was registered. " +
                          "This may indicate a log timing issue or a spell that bypasses the GCD."));
@@ -44,7 +45,7 @@ public sealed partial class GlobalCooldown(Lazy<Abilities> abilities, Lazy<Debug
         {
             var overlapMs = _lastGcdEnd - e.Timestamp;
             _debugAnnotations.AddAnnotation(this, e, new DebugAnnotation(
-                Color: "#f1c40f",
+                Color: FaVar.Amber,
                 Summary: $"Channel start during active GCD ({overlapMs}ms overlap)",
                 Details: $"The GCD was still active for {overlapMs}ms when this channel start was registered."));
         }

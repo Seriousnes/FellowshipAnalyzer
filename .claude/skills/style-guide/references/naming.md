@@ -44,12 +44,6 @@ Blazor `.razor.scss` scoping means atoms and molecules can share short names wit
 .perf-box.active { }
 .perf-box.clickable { }
 
-// Performance tier modifiers (conventional short names)
-.perf-box.perfect { }
-.perf-box.good { }
-.perf-box.ok { }
-.perf-box.fail { }
-
 // Organism — flat named parts, no nesting in class names
 .guide-section { }
 .guide-section-header { }
@@ -109,8 +103,9 @@ Blazor `.razor.scss` scoping means atoms and molecules can share short names wit
 
 ## Scoped vs Global
 
-- Component classes (`.stat-card`, `.guide-section`) live in `.razor.scss` and are **automatically scoped** by Blazor — no collision risk between components.
-- Utility classes (`.eyebrow`) live in `app.scss` and are **global** — keep them minimal and universal.
+- Component classes (`.stat-card`, `.guide-section`) live in `.razor.scss` and are **automatically scoped** by Blazor, so there is no collision risk between components.
+- Semantic classes (`.good`, `.dps-bordered`, `.cast-filled`) are **global**, generated into `_palette.scss` from `FaSemantic`. Apply them from markup; never redeclare one.
+- Utility classes (`.eyebrow`) live in `app.scss` and are **global**, so keep them minimal and universal.
 - Do not add component-specific classes to `app.scss`.
 
 ---
@@ -132,16 +127,30 @@ The size class is applied alongside the component root class:
 
 ---
 
-## Performance Tier Classes
+## Semantic Classes
 
-The five performance tier modifier classes are a shared convention used across all components:
+`_palette.scss` mints a global class per semantic name, in three forms: the bare class sets
+`color`, `-bordered` sets `border-color`, `-filled` sets `background`.
 
-| Class | Color | C# Enum |
+The four performance tiers:
+
+| Class | Token | C# enum |
 |---|---|---|
-| `.perfect` | `--fa-perf-perfect` (#56d67b) | `PerformanceTier.Perfect` |
-| `.good` | `--fa-perf-good` (#90cc60) | `PerformanceTier.Good` |
-| `.ok` | `--fa-perf-ok` (#d4a744) | `PerformanceTier.Ok` |
-| `.fail` | `--fa-perf-fail` (#d4564a) | `PerformanceTier.Fail` |
+| `.perfect` | `--fa-perf-perfect` | `QualitativePerformance.Perfect` |
+| `.good` | `--fa-perf-good` | `QualitativePerformance.Good` |
+| `.ok` | `--fa-perf-ok` | `QualitativePerformance.Ok` |
+| `.fail` | `--fa-perf-fail` | `QualitativePerformance.Fail` |
 
-These are always applied as modifiers alongside a base class, never standalone.
-Use `@include mx.perf-tier-colors` inside the base class selector to emit all four at once.
+The four hero roles are `.tank`, `.healer`, `.dps` and `.unknown`; the twelve event types are
+`.cast`, `.damage`, `.heal`, `.buff`, `.buff-fade`, `.debuff`, `.death`, `.resource`, `.system`,
+`.modified`, `.fabricated` and `.reordered`.
+
+These are always applied as modifiers alongside a base class, never standalone:
+
+```html
+<div class="bar-segment perfect-filled"></div>
+<span class="support-badge support-badge--full good">Full support</span>
+```
+
+The component's own SCSS leaves the class's property alone. A scoped rule carries the Blazor scope
+attribute and so outranks the global class, which turns the tier into decoration.
