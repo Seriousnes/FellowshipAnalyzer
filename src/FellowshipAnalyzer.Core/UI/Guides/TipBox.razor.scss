@@ -8,7 +8,7 @@
     align-items: start;
     padding: 10px 12px;
     background: var(--fa-bg-inset);
-    border: 1px solid var(--fa-border);
+    border: var(--fa-border-width) solid var(--fa-border);
     border-left: var(--fa-accent-width) solid currentColor;
     border-radius: var(--fa-radius-sm);
     color: var(--fa-gold);

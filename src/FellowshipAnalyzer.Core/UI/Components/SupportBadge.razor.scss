@@ -13,7 +13,7 @@
     font-size: 0.78rem;
     font-weight: 600;
     white-space: nowrap;
-    border: 1px solid var(--fa-border);
+    border: var(--fa-border-width) solid var(--fa-border);
     background: color-mix(in srgb, currentColor 12%, transparent);
 }
 
