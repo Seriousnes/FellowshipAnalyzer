@@ -1,15 +1,20 @@
 @* PerformanceRoundedPanel — RoundedPanel with an inset left shadow tinted by performance tier. *@
 
-@{
-    var color = PerformanceColors.ToColor(Performance);
-}
-
-<div class="perf-rounded-panel"
-     style="--perf-color: @color;">
+<div class="perf-rounded-panel">
+    <span class="perf-rounded-panel-accent @TierClass" aria-hidden="true"></span>
     @ChildContent
 </div>
 
 @code {
     [Parameter, EditorRequired] public QualitativePerformance Performance { get; set; }
     [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    private string TierClass => Performance switch
+    {
+        QualitativePerformance.Perfect => "perfect",
+        QualitativePerformance.Good => "good",
+        QualitativePerformance.Ok => "ok",
+        QualitativePerformance.Fail => "fail",
+        _ => "",
+    };
 }

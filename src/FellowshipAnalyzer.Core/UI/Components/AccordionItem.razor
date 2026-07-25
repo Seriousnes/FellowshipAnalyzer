@@ -4,15 +4,14 @@
 
 @{
     var isExpanded = Parent?.IsExpanded(Id) == true;
-    var borderStyle = BorderAccentColorVar is not null
-        ? $"border-left-color: {BorderAccentColorVar}; border-left-width: 4px;"
-        : null;
+    var hasAccent = BorderAccentColorVar is not null;
+    var accentStyle = hasAccent ? $"--fa-supplied-accent: {BorderAccentColorVar};" : null;
 }
 
 <div class="accordion-item @(isExpanded ? "expanded" : "")">
     <button type="button"
-            class="accordion-item-header"
-            style="@borderStyle"
+            class="accordion-item-header @(hasAccent ? "has-accent" : "")"
+            style="@accentStyle"
             aria-expanded="@isExpanded"
             @onclick="ToggleAsync">
         @Header
@@ -36,6 +35,11 @@
     [Parameter, EditorRequired] public string Id { get; set; } = "";
     [Parameter] public RenderFragment? Header { get; set; }
     [Parameter] public RenderFragment? ChildContent { get; set; }
+    /// <summary>
+    /// Design token reference for the left accent edge, for example a hero's <c>Hero.Color</c> or
+    /// <c>HeroRoleStyles.GetAccentColorVar</c>. It feeds the design system's <c>--fa-supplied-accent</c>
+    /// channel; hero identity has no semantic class, and the caller picks the token either way.
+    /// </summary>
     [Parameter] public string? BorderAccentColorVar { get; set; }
 
     protected override void OnInitialized()

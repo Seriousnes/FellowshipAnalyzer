@@ -29,6 +29,13 @@
     }
 }
 
+// The accent colour arrives on the design system's `--fa-supplied-accent` channel, so the header
+// styles the edge itself instead of the caller pushing `border-left-color` through an inline style.
+.accordion-item-header.has-accent {
+    border-left-color: var(--fa-supplied-accent);
+    border-left-width: 4px;
+}
+
 .accordion-item.expanded > .accordion-item-header {
     border-bottom-left-radius: 0;
     border-bottom-right-radius: 0;

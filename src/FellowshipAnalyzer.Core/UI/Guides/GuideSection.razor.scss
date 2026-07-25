@@ -1,15 +1,13 @@
-@use 'tokens' as t;
-
 .guide-section {
     margin-bottom: 14px;
 }
 
 .guide-section-header h3 {
     margin: 0 0 8px;
-    font-size: t.$fa-fs-lg;
+    font-size: var(--fa-fs-lg);
     font-weight: 700;
-    color: var(--fa-gold, #{t.$fa-gold});
-    border-bottom: 1px solid var(--fa-border, #{t.$fa-border});
+    color: var(--fa-gold);
+    border-bottom: 1px solid var(--fa-border);
     padding-bottom: 6px;
 }
 
@@ -23,7 +21,7 @@
 .guide-section-explanation {
     font-size: 0.95rem;
     line-height: 1.6;
-    color: var(--fa-text-muted, #{t.$fa-text-muted});
+    color: var(--fa-text-muted);
 
     ol, ul {
         margin: 0.5em 0;
@@ -36,8 +34,8 @@
 }
 
 .guide-section-data {
-    background: var(--fa-bg-inset, #{t.$fa-bg-inset});
-    border: 1px solid var(--fa-border, #{t.$fa-border});
+    background: var(--fa-bg-inset);
+    border: 1px solid var(--fa-border);
     border-radius: var(--fa-radius-sm);
     padding: 12px;
     min-width: 0;

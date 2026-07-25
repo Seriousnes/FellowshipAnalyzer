@@ -26,7 +26,7 @@
     min-height: 4.5rem;
     padding: 0.85rem 1rem;
     border: 1px dashed var(--fa-border-card);
-    border-radius: t.$fa-radius-md;
+    border-radius: var(--fa-radius-md);
     color: var(--fa-text-dim);
     font-size: 0.85rem;
     line-height: 1.45;
@@ -38,7 +38,7 @@
     align-items: baseline;
     column-gap: 0.6rem;
     padding: 0.5rem 0.65rem;
-    border-radius: t.$fa-radius-sm;
+    border-radius: var(--fa-radius-sm);
     text-decoration: none;
     transition: background 0.15s;
 

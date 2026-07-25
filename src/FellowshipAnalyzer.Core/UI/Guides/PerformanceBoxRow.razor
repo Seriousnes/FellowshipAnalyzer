@@ -5,7 +5,7 @@
     @foreach (var entry in Entries)
     {
         var idx = index;
-        var tierClass = entry.Performance.ToString().ToLowerInvariant();
+        var tierClass = FillClass(entry.Performance);
         var clickable = OnClick.HasDelegate;
 
         <button class="perf-box @tierClass @(clickable ? "clickable" : "")"
@@ -21,6 +21,15 @@
 @code {
     [Parameter] public IEnumerable<PerformanceBoxEntry> Entries { get; set; } = [];
     [Parameter] public EventCallback<int> OnClick { get; set; }
+
+    private static string FillClass(QualitativePerformance tier) => tier switch
+    {
+        QualitativePerformance.Perfect => "perfect-filled",
+        QualitativePerformance.Good => "good-filled",
+        QualitativePerformance.Ok => "ok-filled",
+        QualitativePerformance.Fail => "fail-filled",
+        _ => "",
+    };
 
     private async Task HandleClick(int index)
     {

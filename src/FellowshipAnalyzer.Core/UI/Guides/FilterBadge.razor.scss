@@ -1,5 +1,3 @@
-@use 'tokens' as t;
-
 .filter-badge {
     display: flex;
     align-items: stretch;
@@ -27,7 +25,7 @@
     align-items: center;
     justify-content: center;
     padding: 3px 8px;
-    font-size: t.$fa-fs-value;
+    font-size: var(--fa-fs-value);
     font-weight: 700;
     flex-shrink: 0;
 }
@@ -43,7 +41,7 @@
     display: flex;
     align-items: center;
     padding: 3px 7px;
-    font-size: t.$fa-fs-label;
+    font-size: var(--fa-fs-label);
     font-weight: 700;
     color: var(--fa-text-dim);
     text-transform: uppercase;

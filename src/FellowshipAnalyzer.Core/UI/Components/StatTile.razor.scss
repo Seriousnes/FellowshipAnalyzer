@@ -5,7 +5,7 @@
     align-items: stretch;
     border: var(--fa-border-width) solid;
     border-radius: var(--fa-radius-xs);
-    background: var(--fa-bg-inset, t.$fa-bg-inset);
+    background: var(--fa-bg-inset);
     overflow: hidden;
     min-height: 32px;
 }
@@ -15,7 +15,7 @@
     align-items: center;
     justify-content: center;
     padding: 4px 9px;
-    font-size: t.$fa-fs-lg;
+    font-size: var(--fa-fs-lg);
     font-weight: 700;
 }
 
@@ -30,9 +30,9 @@
     display: flex;
     align-items: center;
     padding: 4px 8px;
-    font-size: t.$fa-fs-label;
+    font-size: var(--fa-fs-label);
     font-weight: 700;
-    color: var(--fa-text-dim, t.$fa-text-dim);
+    color: var(--fa-text-dim);
     text-transform: uppercase;
     letter-spacing: 0.4px;
     line-height: 1.2;

@@ -62,3 +62,12 @@
 #*.rtf   diff=astextplain
 #*.RTF   diff=astextplain
 graphify-out/graph.json merge=graphify
+
+###############################################################################
+# Generated design-token stylesheet
+#
+# emit-palette.cs writes LF and compares content before rewriting. Pinning the
+# checkout to LF keeps Windows and Linux agreeing, so the file is not rewritten
+# on every build and never shows as spuriously modified.
+###############################################################################
+src/FellowshipAnalyzer.Core/Styles/_palette.scss eol=lf

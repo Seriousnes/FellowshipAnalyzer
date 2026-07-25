@@ -11,18 +11,18 @@
     background: var(--fa-bg-card);
     border: 1px solid var(--fa-border-card);
     border-radius: var(--fa-radius-lg);
-    box-shadow: t.$fa-shadow-card;
+    box-shadow: var(--fa-shadow-card);
 }
 
 .wip-guide-icon {
     font-size: 2.4rem;
     line-height: 1;
     color: var(--fa-gold);
-    filter: drop-shadow(0 2px 6px t.tint(t.$fa-gold, t.$fa-tint-muted));
+    filter: drop-shadow(0 2px 6px t.tint(var(--fa-gold), t.$fa-tint-muted));
 }
 
 .wip-guide-title {
-    font-family: t.$fa-font-heading;
+    font-family: var(--fa-font-heading);
     font-size: 1.35rem;
     font-weight: 700;
     margin: 0;

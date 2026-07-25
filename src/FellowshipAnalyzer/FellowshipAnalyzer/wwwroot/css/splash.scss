@@ -1,12 +1,10 @@
+// The splash screen is a separate render-blocking stylesheet, linked before
+// app.css. It reads the same custom properties app.css declares: var() resolves
+// at computed-value time, so a :root block in the later sheet still feeds this
+// one, and a theme change at runtime reaches the splash.
+
 @use 'tokens' as t;
 
-$fa-splash-bg:     t.$fa-bg-base;
-$fa-splash-text:   t.$fa-text;
-$fa-splash-muted:  t.$fa-text-muted;
-$fa-splash-dim:    t.$fa-text-dim;
-$fa-splash-accent: t.$fa-gold;
-$fa-splash-accent-light: t.$fa-gold-light;
-$fa-splash-accent-dim:   t.$fa-gold-dim;
 $fa-splash-fade-ms: 150ms;
 
 .fa-splash {
@@ -17,9 +15,9 @@ $fa-splash-fade-ms: 150ms;
     align-items: center;
     justify-content: center;
     gap: 1.5rem;
-    background: $fa-splash-bg;
-    color: $fa-splash-text;
-    font-family: t.$fa-font-heading;
+    background: var(--fa-bg-base);
+    color: var(--fa-text);
+    font-family: var(--fa-font-heading);
     z-index: 9999;
     transition: opacity $fa-splash-fade-ms ease-out;
 
@@ -34,23 +32,23 @@ $fa-splash-fade-ms: 150ms;
     font-size: clamp(1.75rem, 4vw, 2.75rem);
     font-weight: 700;
     letter-spacing: 0.02em;
-    color: $fa-splash-accent-light;
-    text-shadow: 0 0 24px t.tint(t.$fa-gold, t.$fa-tint-muted);
+    color: var(--fa-gold-light);
+    text-shadow: 0 0 24px t.tint(var(--fa-gold), t.$fa-tint-muted);
 }
 
 .fa-splash-tagline {
     margin: -0.75rem 0 0;
-    font-family: t.$fa-font-body;
+    font-family: var(--fa-font-body);
     font-size: 0.95rem;
-    color: $fa-splash-muted;
+    color: var(--fa-text-muted);
 }
 
 .fa-splash-bar {
     position: relative;
     width: min(360px, 70vw);
     height: 6px;
-    border-radius: 999px;
-    background: $fa-splash-accent-dim;
+    border-radius: var(--fa-radius-pill);
+    background: var(--fa-gold-dim);
     overflow: hidden;
 }
 
@@ -58,15 +56,15 @@ $fa-splash-fade-ms: 150ms;
     position: absolute;
     inset: 0;
     width: var(--fa-splash-progress, 0%);
-    border-radius: 999px;
-    background: linear-gradient(90deg, $fa-splash-accent, $fa-splash-accent-light);
+    border-radius: var(--fa-radius-pill);
+    background: linear-gradient(90deg, var(--fa-gold), var(--fa-gold-light));
     transition: width 180ms ease-out;
 }
 
 .fa-splash-status {
     min-height: 1em;
-    font-family: t.$fa-font-body;
+    font-family: var(--fa-font-body);
     font-size: 0.8rem;
-    color: $fa-splash-dim;
+    color: var(--fa-text-dim);
     letter-spacing: 0.04em;
 }

@@ -1,9 +1,7 @@
-@use 'tokens' as t;
-
 .rounded-panel {
     background: var(--fa-bg-inset);
-    border: var(--fa-border-width) solid var(--fa-panel-border, transparent);
-    border-radius: t.$fa-radius-sm;
+    border: var(--fa-border-width) solid var(--fa-panel-border);
+    border-radius: var(--fa-radius-sm);
     padding: 12px;
     display: grid;
     gap: 10px;

@@ -1,32 +1,32 @@
 // ── FellowshipAnalyzer Mixins ────────────────────────────────────────────────
 // Import: @use 'mixins' as mx;  then call @include mx.card-surface;
 //
-// Requires _tokens.scss to be available via includePaths.
+// Every value here is a design token. Token values live in C#
+// (FellowshipAnalyzer.Core.Contracts/Design) and reach CSS through _palette.scss.
 
 @use 'tokens' as t;
-@use 'sass:color';
 
 // ── Surfaces ─────────────────────────────────────────────────────────────────
 
 /// Standard card / panel surface: card bg, gold-tinted border, shadow.
-@mixin card-surface($radius: t.$fa-radius-md) {
-    background: var(--fa-bg-card, #{t.$fa-bg-card});
-    border: 1px solid var(--fa-border-card, #{t.$fa-border-card});
+@mixin card-surface($radius: var(--fa-radius-md)) {
+    background: var(--fa-bg-card);
+    border: var(--fa-border-width) solid var(--fa-border-card);
     border-radius: $radius;
-    box-shadow: var(--fa-shadow-card, #{t.$fa-shadow-card});
+    box-shadow: var(--fa-shadow-card);
 }
 
 /// Slightly raised panel (less prominent than a card).
-@mixin panel-surface($radius: t.$fa-radius-sm) {
-    background: var(--fa-bg-raised, #{t.$fa-bg-raised});
-    border: 1px solid var(--fa-border, #{t.$fa-border});
+@mixin panel-surface($radius: var(--fa-radius-sm)) {
+    background: var(--fa-bg-raised);
+    border: var(--fa-border-width) solid var(--fa-border);
     border-radius: $radius;
 }
 
 /// Inset / recessed region inside a card.
-@mixin inset-surface($radius: t.$fa-radius-sm) {
-    background: var(--fa-bg-inset, #{t.$fa-bg-inset});
-    border: 1px solid var(--fa-border, #{t.$fa-border});
+@mixin inset-surface($radius: var(--fa-radius-sm)) {
+    background: var(--fa-bg-inset);
+    border: var(--fa-border-width) solid var(--fa-border);
     border-radius: $radius;
 }
 
@@ -39,36 +39,15 @@
     letter-spacing: 0.16em;
     font-size: 0.72rem;
     font-weight: 600;
-    color: var(--fa-gold, #{t.$fa-gold});
+    color: var(--fa-gold);
 }
 
 /// Heading that uses the gold gradient text fill.
 @mixin gradient-heading {
-    background: linear-gradient(135deg, var(--fa-text, #{t.$fa-text}), var(--fa-gold-light, #{t.$fa-gold-light}));
+    background: linear-gradient(135deg, var(--fa-text), var(--fa-gold-light));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
-}
-
-// ── Performance ───────────────────────────────────────────────────────────────
-
-/// Returns the performance accent color for a string tier.
-/// Usage: color: perf-color('perfect');
-@function perf-color($tier) {
-    @if $tier == 'perfect' { @return t.$fa-perf-perfect; }
-    @if $tier == 'good'    { @return t.$fa-perf-good; }
-    @if $tier == 'ok'      { @return t.$fa-perf-ok; }
-    @if $tier == 'fail'    { @return t.$fa-perf-fail; }
-    @return t.$fa-white;
-}
-
-/// Outputs background-color for each performance tier class.
-/// Place inside a selector that will be combined with tier suffixes.
-@mixin perf-tier-colors {
-    &.perfect { background: t.$fa-perf-perfect; }
-    &.good    { background: t.$fa-perf-good; }
-    &.ok      { background: t.$fa-perf-ok; }
-    &.fail    { background: t.$fa-perf-fail; }
 }
 
 // ── Responsive ───────────────────────────────────────────────────────────────

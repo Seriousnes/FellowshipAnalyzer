@@ -1,12 +1,15 @@
-// One token per colour, no shade or alpha variants. Transparency comes only
-// from the tint scale, via tint($colour, $step). Literals belong in this file
-// and nowhere else.
+// Design values live in C#, in FellowshipAnalyzer.Core.Contracts/Design. The
+// emitter renders them into _palette.scss, which declares every token as a CSS
+// custom property. This file holds only the compile-time scale that has no
+// runtime representation, plus the function that spans the two worlds.
 
 @use 'sass:color';
 @use 'sass:math';
+@use 'sass:meta';
 @use 'sass:string';
 
-// Tint scale
+// Tint scale — the only alpha steps a style may use. Off-scale values are not
+// permitted, so a faded colour is always one of these seven.
 $fa-tint-faint:  6%;
 $fa-tint-subtle: 12%;
 $fa-tint-soft:   20%;
@@ -15,117 +18,13 @@ $fa-tint-medium: 40%;
 $fa-tint-strong: 60%;
 $fa-tint-veil:   80%;
 
+/// Fades a colour to a tint step. A literal colour resolves at compile time; a
+/// `var(--fa-*)` reference resolves in the browser via `color-mix`, so a runtime
+/// theme change still reaches the tint.
 @function tint($color, $step) {
-    @return color.change($color, $alpha: math.div($step, 100%));
+    @if meta.type-of($color) == color {
+        @return color.change($color, $alpha: math.div($step, 100%));
+    }
+
+    @return string.unquote("color-mix(in srgb, #{$color} #{$step}, transparent)");
 }
-
-// Neutrals
-$fa-white: #ffffff;
-$fa-black: #000000;
-$fa-grey:  #787878;
-
-// Surfaces — sampled from the Fellowship in-game UI. #182028 is the universal
-// ground under every screen; panels step up one cool-navy ramp, inset recedes.
-$fa-bg-base:    #182028;
-$fa-bg-raised:  #283038;
-$fa-bg-surface: #313a45;
-$fa-bg-card:    #3a4452;
-$fa-bg-inset:   #0e151d;
-
-// Accents — resting tan-gold sampled from Fellowship section titles, frame
-// accents and slider fills. Gold is the emphasis colour (titles, links,
-// eyebrows); the neon orange-gold button gradient is a separate treatment.
-$fa-gold:       #b8965c;
-$fa-gold-light: #d9b887;
-$fa-gold-dim:   tint($fa-gold, $fa-tint-subtle);
-$fa-amber:      #fab700;
-$fa-ice:        #6ec8e8;
-$fa-steel:      #6b9ed2;
-$fa-arcane:     #9a7bff;
-$fa-nature:     #5fd0b0;
-$fa-link:       #0087ff;
-
-// Text — cream-white primary sampled from the HUD, cool-steel secondary and
-// tertiary (brightened to clear AA text on the lightest card surface).
-$fa-text:       #e8e0d8;
-$fa-text-muted: #abb3bc;
-$fa-text-dim:   #949ba5;
-
-// Structure — desaturated steel frame sampled from the game's panel borders.
-// Near-neutral so a low-alpha edge never reads as a semantic blue.
-$fa-frame: #63696f;
-
-// Borders — a quiet tint of the steel frame. Structure is steel and gold is
-// only emphasis; prefer spacing and fill for separation, these are the fallback.
-$fa-border:      tint($fa-frame, $fa-tint-soft);
-$fa-border-card: tint($fa-frame, $fa-tint-muted);
-
-// Performance — four clearly-distinct tiers (also separable for the common
-// colour-vision deficiencies): blue / green / amber / red. PerformanceColors.cs
-// mirrors these exact values.
-$fa-perf-perfect: #2090c0;
-$fa-perf-good:    #4ec04e;
-$fa-perf-ok:      #ffc84a;
-$fa-perf-fail:    #ac1f39;
-
-$fa-perf-very-bad:  #661111;
-$fa-perf-mediocre:  #dd5533;
-$fa-perf-available: #696864;
-
-// Hero roles
-$fa-role-tank:    #336699;
-$fa-role-healer:  #4ec04e;
-$fa-role-dps:     #ac1f39;
-$fa-role-unknown: $fa-border;
-
-// Event-type coding (EventsView)
-$fa-ev-cast:       $fa-ice;
-$fa-ev-damage:     $fa-perf-fail;
-$fa-ev-heal:       $fa-perf-good;
-$fa-ev-buff:       $fa-arcane;
-$fa-ev-buff-fade:  $fa-arcane;
-$fa-ev-debuff:     $fa-amber;
-$fa-ev-death:      $fa-perf-very-bad;
-$fa-ev-resource:   $fa-gold;
-$fa-ev-system:     $fa-text-dim;
-$fa-ev-modified:   $fa-amber;
-$fa-ev-fabricated: $fa-perf-good;
-$fa-ev-reordered:  $fa-steel;
-
-// Shadows
-$fa-shadow-card: (0 8px 32px tint($fa-black, $fa-tint-medium));
-$fa-shadow-lg:   (0 16px 48px tint($fa-black, $fa-tint-strong));
-
-// Border widths — one hairline default for structural edges and dividers, a
-// heavier stripe for coloured left-accents, and a ring width for box-shadow
-// emphasis (focus / selected / identity rings).
-$fa-border-width: 1px;
-$fa-accent-width: 3px;
-$fa-ring-width:   2px;
-
-// Radii — the game's frames are close to square with only a soft easing of the
-// corner. Kept tight so panels read as crisp plates, not pills.
-$fa-radius-xs:   3px;
-$fa-radius-sm:   5px;
-$fa-radius-md:   8px;
-$fa-radius-lg:   12px;
-$fa-radius-xl:   16px;
-$fa-radius-pill: 999px;
-
-// Typography — headings are an engraved Roman serif echoing the FELLOWSHIP
-// wordmark; body stays a clean humanist sans for dense data readability.
-// Pre-quoted via string.unquote so interpolation into CSS custom properties
-// keeps the quotes: "Source Sans 3" is invalid unquoted because a bare trailing
-// digit is not a valid CSS identifier, which would void the whole declaration.
-$fa-font-body:    string.unquote('"Source Sans 3", system-ui, -apple-system, sans-serif');
-$fa-font-heading: string.unquote('"Cinzel", "Trajan Pro", Georgia, serif');
-
-// Guide type scale — compile-time only. A tight, shared scale that keeps guide
-// chrome (section titles, stat tiles, badges, cast inspectors) compact and
-// consistent. Use these instead of ad-hoc rem values in guide components.
-$fa-fs-label: 0.66rem;  // all-caps micro labels: tile/badge labels, subtitles
-$fa-fs-meta:  0.78rem;  // metadata rows, inline badges, nav labels, pull id
-$fa-fs-body:  0.9rem;   // helper text, secondary body copy
-$fa-fs-value: 1rem;     // distribution counts (filter / perf badges)
-$fa-fs-title: 1.05rem;  // panel and inner section titles
-$fa-fs-lg:    1.2rem;   // headline stat numbers, top-level section headings

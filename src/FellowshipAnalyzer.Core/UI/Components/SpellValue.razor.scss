@@ -12,8 +12,8 @@
     align-items: center;
     justify-content: center;
     padding: 14px 16px;
-    background: var(--fa-recess, t.tint(t.$fa-black, t.$fa-tint-soft));
-    border-right: 1px solid var(--fa-border, #{t.$fa-border});
+    background: var(--fa-recess);
+    border-right: 1px solid var(--fa-border);
 }
 
 .spell-value-body {
@@ -26,17 +26,12 @@
 .spell-value-primary {
     font-size: 1.6rem;
     font-weight: 600;
-    color: var(--fa-text, #{t.$fa-text});
+    color: var(--fa-text);
     margin: 0 0 4px;
-
-    .perfect { color: t.$fa-perf-perfect; }
-    .good    { color: t.$fa-perf-good; }
-    .ok      { color: t.$fa-perf-ok; }
-    .fail    { color: t.$fa-perf-fail; }
 }
 
 .spell-value-label {
     display: block;
     font-size: 0.78rem;
-    color: var(--fa-text-muted, #{t.$fa-text-muted});
+    color: var(--fa-text-muted);
 }

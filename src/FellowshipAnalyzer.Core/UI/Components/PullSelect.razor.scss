@@ -13,7 +13,7 @@
     justify-content: center;
     padding: 0 0.5rem;
     border: 1px solid var(--fa-border-card);
-    border-radius: t.$fa-radius-sm;
+    border-radius: var(--fa-radius-sm);
     background: var(--fa-bg-inset);
     color: var(--fa-text-muted);
     cursor: pointer;
@@ -21,11 +21,11 @@
 
     &:hover {
         color: var(--fa-text);
-        border-color: t.tint(t.$fa-gold, t.$fa-tint-medium);
+        border-color: t.tint(var(--fa-gold), t.$fa-tint-medium);
     }
 
     &:focus-visible {
-        outline: 2px solid t.tint(t.$fa-gold, t.$fa-tint-medium);
+        outline: 2px solid t.tint(var(--fa-gold), t.$fa-tint-medium);
         outline-offset: 2px;
     }
 
@@ -48,7 +48,7 @@
     min-width: 12rem;
     padding: 0.4rem 0.75rem;
     border: 1px solid var(--fa-border-card);
-    border-radius: t.$fa-radius-sm;
+    border-radius: var(--fa-radius-sm);
     background: var(--fa-bg-inset);
     color: var(--fa-text);
     cursor: pointer;
@@ -59,17 +59,17 @@
     transition: border-color 0.15s;
 
     &:hover {
-        border-color: t.tint(t.$fa-gold, t.$fa-tint-medium);
+        border-color: t.tint(var(--fa-gold), t.$fa-tint-medium);
     }
 
     &:focus-visible {
-        outline: 2px solid t.tint(t.$fa-gold, t.$fa-tint-medium);
+        outline: 2px solid t.tint(var(--fa-gold), t.$fa-tint-medium);
         outline-offset: 2px;
-        border-color: t.tint(t.$fa-gold, t.$fa-tint-medium);
+        border-color: t.tint(var(--fa-gold), t.$fa-tint-medium);
     }
 
     &.open {
-        border-color: t.tint(t.$fa-gold, t.$fa-tint-medium);
+        border-color: t.tint(var(--fa-gold), t.$fa-tint-medium);
     }
 }
 
@@ -105,7 +105,7 @@
     gap: 0.15rem;
     padding: 0.35rem;
     border: 1px solid var(--fa-border-card);
-    border-radius: t.$fa-radius-sm;
+    border-radius: var(--fa-radius-sm);
     background: var(--fa-bg-raised);
     box-shadow: var(--fa-shadow-lg);
 }
@@ -115,18 +115,18 @@
     align-items: center;
     gap: 0.5rem;
     padding: 0.4rem 0.55rem;
-    border-radius: t.$fa-radius-sm;
+    border-radius: var(--fa-radius-sm);
     color: var(--fa-text);
     cursor: pointer;
     font-size: 0.85rem;
     line-height: 1.2;
 
     &:hover {
-        background: t.tint(t.$fa-text, t.$fa-tint-faint);
+        background: t.tint(var(--fa-text), t.$fa-tint-faint);
     }
 
     &.highlighted {
-        box-shadow: inset 0 0 0 1px t.tint(t.$fa-gold, t.$fa-tint-medium);
+        box-shadow: inset 0 0 0 1px t.tint(var(--fa-gold), t.$fa-tint-medium);
     }
 
     &.active {
@@ -142,7 +142,7 @@
     color: var(--fa-text-muted);
 
     &.boss {
-        color: var(--fa-gold, #{t.$fa-gold});
+        color: var(--fa-gold);
     }
 
     &.trash {
@@ -176,12 +176,12 @@
     text-transform: uppercase;
 
     &.kill {
-        background: t.tint(t.$fa-perf-good, t.$fa-tint-subtle);
+        background: t.tint(var(--fa-perf-good), t.$fa-tint-subtle);
         color: var(--fa-perf-good);
     }
 
     &.wipe {
-        background: t.tint(t.$fa-perf-fail, t.$fa-tint-subtle);
+        background: t.tint(var(--fa-perf-fail), t.$fa-tint-subtle);
         color: var(--fa-perf-fail);
     }
 }

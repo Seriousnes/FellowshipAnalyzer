@@ -1,4 +1,5 @@
 using System.Collections.Frozen;
+using FellowshipAnalyzer.Core.Contracts.Design;
 
 namespace FellowshipAnalyzer.Core.Analysis;
 
@@ -72,21 +73,22 @@ public readonly record struct Hero(HeroName Name, HeroRole Role)
         _                => "",
     };
 
+    /// <summary>CSS reference to the hero's identity token, for example <c>var(--fa-hero-rime)</c>.</summary>
     public string Color => Name switch
     {
-        HeroName.Aeona   => "#fc9fec",
-        HeroName.Ardeos  => "#eb6328",
-        HeroName.Elarion => "#935dff",
-        HeroName.Gunde   => "#943738",
-        HeroName.Helena  => "#b46831",
-        HeroName.Mara    => "#965a90",
-        HeroName.Meiko   => "#28e05c",
-        HeroName.Rime    => "#1ea3ee",
-        HeroName.Sylvie  => "#ea4f84",
-        HeroName.Tariq   => "#527af5",
-        HeroName.Vigour  => "#dddbc5",
-        HeroName.Xavian  => "#077365",
-        _                => "#9a9586",
+        HeroName.Aeona   => FaVar.HeroAeona,
+        HeroName.Ardeos  => FaVar.HeroArdeos,
+        HeroName.Elarion => FaVar.HeroElarion,
+        HeroName.Gunde   => FaVar.HeroGunde,
+        HeroName.Helena  => FaVar.HeroHelena,
+        HeroName.Mara    => FaVar.HeroMara,
+        HeroName.Meiko   => FaVar.HeroMeiko,
+        HeroName.Rime    => FaVar.HeroRime,
+        HeroName.Sylvie  => FaVar.HeroSylvie,
+        HeroName.Tariq   => FaVar.HeroTariq,
+        HeroName.Vigour  => FaVar.HeroVigour,
+        HeroName.Xavian  => FaVar.HeroXavian,
+        _                => FaVar.HeroUnknown,
     };
 
     /* Tanks */

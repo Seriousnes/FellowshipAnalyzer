@@ -6,25 +6,25 @@
     gap: 8px;
     margin-bottom: 8px;
     padding: 6px 10px;
-    border: 1px solid var(--fa-border, t.tint(t.$fa-gold, t.$fa-tint-subtle));
+    border: 1px solid var(--fa-border);
     border-left-width: var(--fa-accent-width);
     border-radius: var(--fa-radius-sm);
-    background: t.tint(t.$fa-text, t.$fa-tint-faint);
+    background: t.tint(var(--fa-text), t.$fa-tint-faint);
     color: var(--fa-text);
-    font-size: t.$fa-fs-title;
+    font-size: var(--fa-fs-title);
     font-weight: 700;
     letter-spacing: 0.4px;
 
     &.boss {
-        border-left-color: var(--fa-gold, #{t.$fa-gold});
+        border-left-color: var(--fa-gold);
 
-        .pull-banner-icon { color: var(--fa-gold, #{t.$fa-gold}); }
+        .pull-banner-icon { color: var(--fa-gold); }
     }
 
     &.trash {
-        border-left-color: var(--fa-text-muted, #{t.$fa-text-muted});
+        border-left-color: var(--fa-text-muted);
 
-        .pull-banner-icon { color: var(--fa-text-muted, #{t.$fa-text-muted}); }
+        .pull-banner-icon { color: var(--fa-text-muted); }
     }
 }
 
@@ -36,9 +36,9 @@
 .pull-banner-id {
     padding: 1px 6px;
     border-radius: var(--fa-radius-xs);
-    background: t.tint(t.$fa-text, t.$fa-tint-faint);
+    background: t.tint(var(--fa-text), t.$fa-tint-faint);
     color: var(--fa-text-muted);
-    font-size: t.$fa-fs-meta;
+    font-size: var(--fa-fs-meta);
     font-weight: 700;
     letter-spacing: 0.5px;
 }

@@ -88,9 +88,9 @@
 <CodeExample Title="StatTile — colored single metric" Code="@_statTileCode">
     <Demo>
         <div class="showcase-row">
-            <StatTile Color="#7dd3fc" Value="12" Label="Casts" />
-            <StatTile Color="#facc15" Value="4.2k" Label="DPS" Tooltip="Damage per second" />
-            <StatTile Color="#f87171" Value="3" Label="Wipes" />
+            <StatTile Color="@FaVar.Ice" Value="12" Label="Casts" />
+            <StatTile Color="@FaVar.Amber" Value="4.2k" Label="DPS" Tooltip="Damage per second" />
+            <StatTile Color="@FaVar.PerfFail" Value="3" Label="Wipes" />
         </div>
     </Demo>
 </CodeExample>
@@ -143,8 +143,8 @@
 """;
 
     private const string _statTileCode = """
-<StatTile Color="#7dd3fc" Value="12" Label="Casts" />
-<StatTile Color="#facc15" Value="4.2k" Label="DPS" Tooltip="Damage per second" />
-<StatTile Color="#f87171" Value="3" Label="Wipes" />
+<StatTile Color="@FaVar.Ice" Value="12" Label="Casts" />
+<StatTile Color="@FaVar.Amber" Value="4.2k" Label="DPS" Tooltip="Damage per second" />
+<StatTile Color="@FaVar.PerfFail" Value="3" Label="Wipes" />
 """;
 }

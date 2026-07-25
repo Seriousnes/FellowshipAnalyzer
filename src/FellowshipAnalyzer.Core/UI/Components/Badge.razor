@@ -6,7 +6,7 @@
     var sizeClass = Size.ToString().ToLowerInvariant();
     var classes = $"badge badge--{variantClass} badge--{typeClass} badge--{sizeClass}{(Active ? " active" : "")}";
     var styleAttr = Variant == BadgeVariant.Custom && CustomColorVar is not null
-        ? $"--badge-color: {CustomColorVar};"
+        ? $"--fa-supplied-accent: {CustomColorVar};"
         : null;
 }
 
@@ -47,6 +47,11 @@ else
     [Parameter] public string? Href { get; set; }
     [Parameter] public EventCallback<MouseEventArgs> OnClick { get; set; }
     [Parameter] public bool Active { get; set; }
+    /// <summary>
+    /// Design token reference for a <see cref="BadgeVariant.Custom"/> badge, for example
+    /// <c>FaVar.Ice</c>. It feeds the design system's <c>--fa-supplied-accent</c> channel, which is the one
+    /// case a semantic class cannot express because the caller, not a tier, chooses the colour.
+    /// </summary>
     [Parameter] public string? CustomColorVar { get; set; }
 
     [Parameter(CaptureUnmatchedValues = true)]

@@ -27,8 +27,8 @@
     gap: 8px;
     padding: 9px 14px;
     border-bottom: 1px solid var(--fa-border);
-    border-radius: t.$fa-radius-md t.$fa-radius-md 0 0;
-    background: var(--fa-raise, t.tint(t.$fa-white, t.$fa-tint-faint));
+    border-radius: var(--fa-radius-md) var(--fa-radius-md) 0 0;
+    background: var(--fa-raise);
 }
 
 .stat-card-heading {

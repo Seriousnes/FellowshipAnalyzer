@@ -1,15 +1,19 @@
 @use 'tokens' as t;
 @use 'mixins' as mx;
 
+// The card carries its hero's identity token on the design system's `--fa-supplied-accent`
+// channel. Hero identity is data, not a design tier, so it has no semantic class; one inherited
+// channel colours both the accent edge and the hero name below.
+
 .hero-support-card {
     position: relative;
     display: flex;
     align-items: flex-start;
     gap: 0.9rem;
     padding: 0.95rem 1.05rem;
-    border-radius: t.$fa-radius-md;
+    border-radius: var(--fa-radius-md);
     border: 1px solid var(--fa-border-card);
-    border-left: 4px solid var(--hero-accent, var(--fa-border-card));
+    border-left: 4px solid var(--fa-supplied-accent);
     background: var(--fa-bg-surface);
     box-shadow: var(--fa-shadow-card);
     transition: box-shadow 0.15s;
@@ -54,7 +58,7 @@
     font-family: var(--fa-font-heading);
     font-weight: 700;
     font-size: 1.05rem;
-    color: var(--fa-text);
+    color: var(--fa-supplied-accent);
 }
 
 .hero-support-card-maintainers {

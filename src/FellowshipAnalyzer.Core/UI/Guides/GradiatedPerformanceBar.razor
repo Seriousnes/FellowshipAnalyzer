@@ -10,28 +10,28 @@
         @if (Perfect.HasValue && Perfect.Value > 0)
         {
             var pct = (double)Perfect.Value / total * 100;
-            <div class="bar-segment perfect" style="width: @(pct.ToString("F1"))%;"
+            <div class="bar-segment perfect-filled" style="width: @(pct.ToString("F1"))%;"
                  title="Perfect: @Perfect.Value">
             </div>
         }
         @if (Good.HasValue && Good.Value > 0)
         {
             var pct = (double)Good.Value / total * 100;
-            <div class="bar-segment good" style="width: @(pct.ToString("F1"))%;"
+            <div class="bar-segment good-filled" style="width: @(pct.ToString("F1"))%;"
                  title="Good: @Good.Value">
             </div>
         }
         @if (Ok.HasValue && Ok.Value > 0)
         {
             var pct = (double)Ok.Value / total * 100;
-            <div class="bar-segment ok" style="width: @(pct.ToString("F1"))%;"
+            <div class="bar-segment ok-filled" style="width: @(pct.ToString("F1"))%;"
                  title="Ok: @Ok.Value">
             </div>
         }
         @if (Fail.HasValue && Fail.Value > 0)
         {
             var pct = (double)Fail.Value / total * 100;
-            <div class="bar-segment fail" style="width: @(pct.ToString("F1"))%;"
+            <div class="bar-segment fail-filled" style="width: @(pct.ToString("F1"))%;"
                  title="Bad: @Fail.Value">
             </div>
         }

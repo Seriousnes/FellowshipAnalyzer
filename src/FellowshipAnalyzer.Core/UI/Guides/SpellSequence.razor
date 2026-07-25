@@ -3,12 +3,7 @@
 <div class="spell-sequence">
     @foreach (var cast in Casts)
     {
-        var color = cast.Performance.HasValue
-            ? PerformanceColors.ToColor(cast.Performance.Value)
-            : "var(--fa-border-card)";
-
-        <span class="spell-badge @SizeClass" style="--spell-icon-border: @color;"
-              title="@cast.Tooltip">
+        <span class="spell-badge @SizeClass @TierClass(cast.Performance)" title="@cast.Tooltip">
               <SpellIcon Spell="cast.Id" Size="@IconSize" />
         </span>
     }
@@ -17,6 +12,16 @@
 @code {
     [Parameter] public IEnumerable<SpellCastEntry> Casts { get; set; } = [];
     [Parameter] public SpellBadgeSize Size { get; set; } = SpellBadgeSize.Medium;
+
+    /// <summary>Empty when the cast has no tier, so the sequence's neutral ring colour stands.</summary>
+    private static string TierClass(QualitativePerformance? tier) => tier switch
+    {
+        QualitativePerformance.Perfect => "perfect",
+        QualitativePerformance.Good => "good",
+        QualitativePerformance.Ok => "ok",
+        QualitativePerformance.Fail => "fail",
+        _ => "",
+    };
 
     private string SizeClass => Size switch
     {

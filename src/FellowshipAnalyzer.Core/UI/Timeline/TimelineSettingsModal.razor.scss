@@ -3,7 +3,7 @@
 .timeline-settings-backdrop {
     position: fixed;
     inset: 0;
-    background: t.tint(t.$fa-black, t.$fa-tint-strong);
+    background: t.tint(var(--fa-black), t.$fa-tint-strong);
     z-index: 1000;
 }
 
@@ -16,11 +16,11 @@
     max-height: 80vh;
     display: flex;
     flex-direction: column;
-    background: var(--fa-bg-surface, #{t.$fa-bg-surface});
-    border: 1px solid var(--fa-border-card, t.tint(t.$fa-white, t.$fa-tint-subtle));
-    border-radius: t.$fa-radius-md;
-    box-shadow: 0 24px 60px t.tint(t.$fa-black, t.$fa-tint-strong);
-    color: var(--fa-text, t.$fa-text);
+    background: var(--fa-bg-surface);
+    border: 1px solid var(--fa-border-card);
+    border-radius: var(--fa-radius-md);
+    box-shadow: 0 24px 60px t.tint(var(--fa-black), t.$fa-tint-strong);
+    color: var(--fa-text);
     z-index: 1001;
     overflow: hidden;
 }
@@ -30,7 +30,7 @@
     align-items: center;
     justify-content: space-between;
     padding: 14px 18px;
-    border-bottom: var(--fa-border-width) solid var(--fa-edge, t.tint(t.$fa-white, t.$fa-tint-faint));
+    border-bottom: var(--fa-border-width) solid var(--fa-edge);
 }
 
 .timeline-settings-title {
@@ -43,27 +43,27 @@
 .timeline-settings-close {
     background: transparent;
     border: none;
-    color: var(--fa-text-muted, t.tint(t.$fa-white, t.$fa-tint-strong));
+    color: var(--fa-text-muted);
     cursor: pointer;
     padding: 4px;
     border-radius: var(--fa-radius-xs);
 
     &:hover {
-        color: var(--fa-text, t.$fa-white);
-        background: var(--fa-raise, t.tint(t.$fa-white, t.$fa-tint-faint));
+        color: var(--fa-text);
+        background: var(--fa-raise);
     }
 }
 
 .timeline-settings-tabs {
     display: flex;
-    border-bottom: var(--fa-border-width) solid var(--fa-edge, t.tint(t.$fa-white, t.$fa-tint-faint));
+    border-bottom: var(--fa-border-width) solid var(--fa-edge);
     padding: 0 12px;
 }
 
 .timeline-settings-tab {
     background: transparent;
     border: none;
-    color: var(--fa-text-muted, t.tint(t.$fa-white, t.$fa-tint-strong));
+    color: var(--fa-text-muted);
     cursor: pointer;
     padding: 10px 14px;
     font-size: 13px;
@@ -71,12 +71,12 @@
     border-bottom: 2px solid transparent;
 
     &:hover {
-        color: var(--fa-text, t.$fa-white);
+        color: var(--fa-text);
     }
 
     &--active {
-        color: var(--fa-gold, t.$fa-gold);
-        border-bottom-color: var(--fa-gold, t.$fa-gold);
+        color: var(--fa-gold);
+        border-bottom-color: var(--fa-gold);
     }
 }
 
@@ -88,7 +88,7 @@
 
 .timeline-settings-empty {
     text-align: center;
-    color: var(--fa-text-muted, t.tint(t.$fa-white, t.$fa-tint-strong));
+    color: var(--fa-text-muted);
     padding: 24px 8px;
     font-size: 13px;
 }
@@ -108,7 +108,7 @@
     margin: 2px 0;
 
     &:hover {
-        background: var(--fa-raise, t.tint(t.$fa-white, t.$fa-tint-faint));
+        background: var(--fa-raise);
     }
 
     &.draggable {
@@ -123,7 +123,7 @@
 .timeline-settings-drag-handle {
     display: inline-flex;
     align-items: center;
-    color: var(--fa-text-muted, t.tint(t.$fa-white, t.$fa-tint-medium));
+    color: var(--fa-text-muted);
     cursor: grab;
 }
 
@@ -159,8 +159,8 @@
     input[type='number'] {
         width: 60px;
         padding: 4px 6px;
-        background: var(--fa-raise, t.tint(t.$fa-white, t.$fa-tint-faint));
-        border: var(--fa-border-width) solid var(--fa-edge, t.tint(t.$fa-white, t.$fa-tint-subtle));
+        background: var(--fa-raise);
+        border: var(--fa-border-width) solid var(--fa-border);
         border-radius: var(--fa-radius-xs);
         color: inherit;
         font-size: 12px;
@@ -170,7 +170,7 @@
         font-size: 11px;
         text-transform: uppercase;
         letter-spacing: 0.04em;
-        color: var(--fa-text-muted, t.tint(t.$fa-white, t.$fa-tint-strong));
+        color: var(--fa-text-muted);
     }
 }
 
@@ -188,12 +188,12 @@
     font-weight: 600;
     letter-spacing: 0.06em;
     text-transform: uppercase;
-    color: var(--fa-gold, t.$fa-gold);
+    color: var(--fa-gold);
 }
 
 .timeline-settings-section-divider {
     border: 0;
-    border-top: var(--fa-border-width) solid var(--fa-edge, t.tint(t.$fa-white, t.$fa-tint-faint));
+    border-top: var(--fa-border-width) solid var(--fa-edge);
     margin: 12px 0;
 }
 
@@ -203,19 +203,19 @@
     input[type='text'] {
         width: 100%;
         padding: 6px 8px;
-        background: var(--fa-raise, t.tint(t.$fa-white, t.$fa-tint-faint));
-        border: var(--fa-border-width) solid var(--fa-edge, t.tint(t.$fa-white, t.$fa-tint-subtle));
+        background: var(--fa-raise);
+        border: var(--fa-border-width) solid var(--fa-border);
         border-radius: var(--fa-radius-xs);
         color: inherit;
         font-size: 13px;
 
         &::placeholder {
-            color: var(--fa-text-muted, t.tint(t.$fa-white, t.$fa-tint-medium));
+            color: var(--fa-text-muted);
         }
 
         &:focus {
             outline: none;
-            border-color: var(--fa-gold, t.$fa-gold);
+            border-color: var(--fa-gold);
         }
     }
 }
@@ -224,11 +224,11 @@
     list-style: none;
     margin: 0 0 8px;
     padding: 4px 0;
-    border: var(--fa-border-width) solid var(--fa-edge, t.tint(t.$fa-white, t.$fa-tint-faint));
+    border: var(--fa-border-width) solid var(--fa-edge);
     border-radius: var(--fa-radius-sm);
     max-height: 220px;
     overflow-y: auto;
-    background: var(--fa-raise, t.tint(t.$fa-white, t.$fa-tint-faint));
+    background: var(--fa-raise);
 }
 
 .timeline-settings-search-result {
@@ -238,29 +238,29 @@
     padding: 6px 8px;
 
     &:hover {
-        background: var(--fa-raise, t.tint(t.$fa-white, t.$fa-tint-faint));
+        background: var(--fa-raise);
     }
 }
 
 .timeline-settings-add {
     background: transparent;
-    border: 1px solid t.tint(t.$fa-gold, t.$fa-tint-medium);
-    color: var(--fa-gold, t.$fa-gold);
+    border: 1px solid t.tint(var(--fa-gold), t.$fa-tint-medium);
+    color: var(--fa-gold);
     padding: 3px 10px;
     border-radius: var(--fa-radius-xs);
     cursor: pointer;
     font-size: 12px;
 
     &:hover {
-        background: t.tint(t.$fa-gold, t.$fa-tint-subtle);
-        border-color: var(--fa-gold, t.$fa-gold);
+        background: t.tint(var(--fa-gold), t.$fa-tint-subtle);
+        border-color: var(--fa-gold);
     }
 }
 
 .timeline-settings-delete {
     background: transparent;
     border: none;
-    color: var(--fa-text-muted, t.tint(t.$fa-white, t.$fa-tint-strong));
+    color: var(--fa-text-muted);
     padding: 4px;
     border-radius: var(--fa-radius-xs);
     cursor: pointer;
@@ -268,8 +268,8 @@
     align-items: center;
 
     &:hover {
-        color: var(--fa-danger, t.$fa-perf-fail);
-        background: var(--fa-raise, t.tint(t.$fa-white, t.$fa-tint-faint));
+        color: var(--fa-danger);
+        background: var(--fa-raise);
     }
 }
 

@@ -1,3 +1,4 @@
+using FellowshipAnalyzer.Core.Contracts.Design;
 using FellowshipAnalyzer.Core.Events;
 
 namespace FellowshipAnalyzer.Core.Analysis;
@@ -196,7 +197,7 @@ public sealed partial class SpellUsable(
             && cd.ExpectedEnd - e.Timestamp > CooldownLagMargin)
         {
             _debugAnnotations.AddAnnotation(this, e, new DebugAnnotation(
-                Color: "#e74c3c",
+                Color: FaVar.Danger,
                 Summary: $"Used with no charges available: {e.Ability.Name}  (ID: {e.Ability.Id})",
                 Details: $"Tracker believed {e.Ability.Name} held 0/{cd.MaxCharges} charges with " +
                          $"{cd.ExpectedEnd - e.Timestamp}ms until the next recharge. Casting with no charges " +
@@ -206,7 +207,7 @@ public sealed partial class SpellUsable(
         else if (ability is null)
         {
             _debugAnnotations.AddAnnotation(this, e, new DebugAnnotation(
-                Color: "#e67e22",
+                Color: FaVar.Rust,
                 Summary: $"Unconfigured spell: {e.Ability.Name}  (ID: {e.Ability.Id})",
                 Details: "This spell was cast by the player but is not in the hero's spellbook. " +
                          "Consider adding it to the Abilities module."));

@@ -5,7 +5,7 @@
     var shapeClass = Shape.ToString().ToLowerInvariant();
     var hasImage = !string.IsNullOrEmpty(Src) && !_imgFailed;
     var ringStyle = AccentColorVar is not null
-        ? $"--avatar-ring: {AccentColorVar};"
+        ? $"--fa-supplied-accent: {AccentColorVar};"
         : null;
 }
 
@@ -44,6 +44,11 @@
     [Parameter] public RenderFragment? FallbackContent { get; set; }
     [Parameter] public AvatarSize Size { get; set; } = AvatarSize.Md;
     [Parameter] public AvatarShape Shape { get; set; } = AvatarShape.Circle;
+    /// <summary>
+    /// Design token reference for the identity ring, for example <c>FaVar.RoleTank</c> or a hero's
+    /// <c>Hero.Color</c>. It feeds the design system's <c>--fa-supplied-accent</c> channel; the caller picks
+    /// the token, so no fixed semantic class can express it.
+    /// </summary>
     [Parameter] public string? AccentColorVar { get; set; }
 
     [Parameter(CaptureUnmatchedValues = true)]

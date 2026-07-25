@@ -1,10 +1,8 @@
-@use 'tokens' as t;
-
 .stacked-bar {
     display: flex;
     border-radius: var(--fa-radius-xs);
     overflow: hidden;
-    background: var(--fa-bg-inset, t.$fa-bg-inset);
+    background: var(--fa-bg-inset);
 }
 
 .stacked-segment {
@@ -29,7 +27,7 @@
     align-items: center;
     gap: 4px;
     font-size: 0.85rem;
-    color: var(--fa-text-muted, t.$fa-text-muted);
+    color: var(--fa-text-muted);
 }
 
 .legend-swatch {
@@ -44,5 +42,5 @@
 }
 
 .legend-value {
-    color: var(--fa-fg-muted, t.tint(t.$fa-white, t.$fa-tint-medium));
+    color: var(--fa-fg-muted);
 }

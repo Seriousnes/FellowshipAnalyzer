@@ -31,7 +31,7 @@
     padding: 0.3rem 0.5rem;
     border: 1px solid var(--fa-border-card);
     border-radius: var(--fa-radius-sm);
-    background: hsl(0 0% 10%);
+    background: var(--fa-bg-inset);
     color: inherit;
     font-size: 0.75rem;
 
@@ -57,7 +57,7 @@
     user-select: none;
     line-height: 1.3;
 
-    &:hover { background: hsl(0 0% 15%); }
+    &:hover { background: var(--fa-bg-hover); }
 
     input[type="checkbox"] {
         flex-shrink: 0;
@@ -115,9 +115,9 @@
     flex-shrink: 0;
 }
 
-.legend-modified .legend-swatch    { background: t.tint(t.$fa-amber, t.$fa-tint-medium); }
-.legend-fabricated .legend-swatch  { background: t.tint(t.$fa-perf-good, t.$fa-tint-muted); }
-.legend-reordered .legend-swatch   { background: t.tint(t.$fa-steel, t.$fa-tint-medium); }
+.legend-modified .legend-swatch    { background: t.tint(var(--fa-ev-modified), t.$fa-tint-medium); }
+.legend-fabricated .legend-swatch  { background: t.tint(var(--fa-ev-fabricated), t.$fa-tint-muted); }
+.legend-reordered .legend-swatch   { background: t.tint(var(--fa-ev-reordered), t.$fa-tint-medium); }
 
 /* ── Main event list ────────────────────────────────────────────────────── */
 
@@ -131,7 +131,7 @@
 
 .events-header {
     display: flex;
-    background: hsl(0 0% 12%);
+    background: var(--fa-bg-base);
     border-bottom: 1px solid var(--fa-border-card);
     font-weight: 600;
     font-size: 0.72rem;
@@ -153,10 +153,10 @@
     display: flex;
     font-size: 0.78rem;
     font-family: monospace, Courier;
-    border-bottom: 1px solid hsl(0 0% 14%);
+    border-bottom: 1px solid var(--fa-border);
     cursor: pointer;
 
-    &:hover .ev-col { background: hsl(0 0% 16%); }
+    &:hover .ev-col { background: var(--fa-bg-hover); }
 }
 
 .ev-col {
@@ -184,26 +184,26 @@
 }
 
 /* Row state colors */
-.ev-row-fabricated .ev-col      { background: t.tint(t.$fa-perf-good, t.$fa-tint-faint); }
-.ev-row-fabricated:hover .ev-col { background: t.tint(t.$fa-perf-good, t.$fa-tint-subtle); }
+.ev-row-fabricated .ev-col      { background: t.tint(var(--fa-ev-fabricated), t.$fa-tint-faint); }
+.ev-row-fabricated:hover .ev-col { background: t.tint(var(--fa-ev-fabricated), t.$fa-tint-subtle); }
 
-.ev-row-modified .ev-col        { background: t.tint(t.$fa-amber, t.$fa-tint-subtle); }
-.ev-row-modified:hover .ev-col  { background: t.tint(t.$fa-amber, t.$fa-tint-soft); }
+.ev-row-modified .ev-col        { background: t.tint(var(--fa-ev-modified), t.$fa-tint-subtle); }
+.ev-row-modified:hover .ev-col  { background: t.tint(var(--fa-ev-modified), t.$fa-tint-soft); }
 
-.ev-row-reordered .ev-col       { background: t.tint(t.$fa-steel, t.$fa-tint-subtle); }
-.ev-row-reordered:hover .ev-col { background: t.tint(t.$fa-steel, t.$fa-tint-soft); }
+.ev-row-reordered .ev-col       { background: t.tint(var(--fa-ev-reordered), t.$fa-tint-subtle); }
+.ev-row-reordered:hover .ev-col { background: t.tint(var(--fa-ev-reordered), t.$fa-tint-soft); }
 
 /* Event type color coding */
-.ev-cast                                    { color: t.$fa-ice; }
-.ev-damage                                  { color: t.$fa-ev-damage; }
-.ev-heal                                    { color: t.$fa-ev-fabricated; }
-.ev-applybuff, .ev-refreshbuff              { color: t.$fa-ev-buff; }
-.ev-removebuff                              { color: t.$fa-ev-buff-fade; opacity: 0.7; }
-.ev-applydebuff, .ev-refreshdebuff         { color: t.$fa-ev-modified; }
-.ev-removedebuff                            { color: t.$fa-ev-modified; opacity: 0.7; }
-.ev-death                                   { color: t.$fa-ev-death; }
-.ev-resourcechange                          { color: t.$fa-ev-resource; }
-.ev-globalcooldown, .ev-updatespellusable   { color: t.$fa-ev-system; }
+.ev-cast                                    { color: var(--fa-ev-cast); }
+.ev-damage                                  { color: var(--fa-ev-damage); }
+.ev-heal                                    { color: var(--fa-ev-heal); }
+.ev-applybuff, .ev-refreshbuff              { color: var(--fa-ev-buff); }
+.ev-removebuff                              { color: var(--fa-ev-buff-fade); opacity: 0.7; }
+.ev-applydebuff, .ev-refreshdebuff         { color: var(--fa-ev-debuff); }
+.ev-removedebuff                            { color: var(--fa-ev-debuff); opacity: 0.7; }
+.ev-death                                   { color: var(--fa-ev-death); }
+.ev-resourcechange                          { color: var(--fa-ev-resource); }
+.ev-globalcooldown, .ev-updatespellusable   { color: var(--fa-ev-system); }
 
 /* Footer count */
 .events-count {
@@ -211,6 +211,6 @@
     font-size: 0.72rem;
     color: var(--fa-text-muted);
     border-top: 1px solid var(--fa-border-card);
-    background: hsl(0 0% 10%);
+    background: var(--fa-bg-inset);
     flex-shrink: 0;
 }

@@ -1,59 +1,21 @@
-@use 'tokens' as t;
+// Every --fa-* custom property comes from _palette.scss, which
+// FellowshipAnalyzer.Core.Contracts.Design.FaTheme generates. The --studio-*
+// properties below name a studio concept and alias the token that colours it.
+
+@use 'palette';
 
 :root {
-    --fa-bg-base:    #{t.$fa-bg-base};
-    --fa-bg-raised:  #{t.$fa-bg-raised};
-    --fa-bg-surface: #{t.$fa-bg-surface};
-    --fa-bg-card:    #{t.$fa-bg-card};
-    --fa-bg-inset:   #{t.$fa-bg-inset};
+    --studio-src-spelldata: var(--fa-steel);
+    --studio-src-herodata:  var(--fa-ice);
+    --studio-src-geardata:  var(--fa-arcane);
+    --studio-src-icons:     var(--fa-nature);
+    --studio-src-override:  var(--fa-gold);
 
-    --fa-gold:       #{t.$fa-gold};
-    --fa-gold-light: #{t.$fa-gold-light};
-    --fa-gold-dim:   #{t.$fa-gold-dim};
+    --studio-warn: var(--fa-gold);
 
-    --fa-text:       #{t.$fa-text};
-    --fa-text-muted: #{t.$fa-text-muted};
-    --fa-text-dim:   #{t.$fa-text-dim};
-
-    --fa-border:      #{t.$fa-border};
-    --fa-border-card: #{t.$fa-border-card};
-
-    --fa-perf-perfect:   #{t.$fa-perf-perfect};
-    --fa-perf-good:      #{t.$fa-perf-good};
-    --fa-perf-ok:        #{t.$fa-perf-ok};
-    --fa-perf-fail:      #{t.$fa-perf-fail};
-
-    --fa-ice: #{t.$fa-ice};
-
-    --fa-shadow-card: #{t.$fa-shadow-card};
-    --fa-shadow-lg:   #{t.$fa-shadow-lg};
-
-    --fa-border-width: #{t.$fa-border-width};
-    --fa-accent-width: #{t.$fa-accent-width};
-    --fa-ring-width:   #{t.$fa-ring-width};
-
-    --fa-radius-xs:   #{t.$fa-radius-xs};
-    --fa-radius-sm:   #{t.$fa-radius-sm};
-    --fa-radius-md:   #{t.$fa-radius-md};
-    --fa-radius-lg:   #{t.$fa-radius-lg};
-    --fa-radius-pill: #{t.$fa-radius-pill};
-
-    --fa-font-body:    #{t.$fa-font-body};
-    --fa-font-heading: #{t.$fa-font-heading};
-
-    --studio-mono: 'Cascadia Code', 'JetBrains Mono', ui-monospace, 'SFMono-Regular', Consolas, monospace;
-
-    --studio-src-spelldata: #{t.$fa-steel};
-    --studio-src-herodata:  #{t.$fa-ice};
-    --studio-src-geardata:  #{t.$fa-arcane};
-    --studio-src-icons:     #{t.$fa-nature};
-    --studio-src-override:  #{t.$fa-gold};
-
-    --studio-warn: #{t.$fa-gold};
-
-    --studio-gap-name: #{t.$fa-gold};
-    --studio-gap-icon: #{t.$fa-ice};
-    --studio-gap-id:   #{t.$fa-perf-fail};
+    --studio-gap-name: var(--fa-gold);
+    --studio-gap-icon: var(--fa-ice);
+    --studio-gap-id:   var(--fa-perf-fail);
 }
 
 *, *::before, *::after { box-sizing: border-box; }

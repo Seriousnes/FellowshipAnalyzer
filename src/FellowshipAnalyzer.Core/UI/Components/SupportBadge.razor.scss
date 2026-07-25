@@ -1,5 +1,9 @@
 @use 'tokens' as t;
 
+// The support level carries the badge's colour on `color`, so the tinted fill and edge derive from
+// `currentColor` instead of a second channel. Full also wears the design system's `.good` class;
+// partial and unmaintained cannot, because gold and dim text are not semantic tiers.
+
 .support-badge {
     display: inline-flex;
     align-items: center;
@@ -9,22 +13,20 @@
     font-size: 0.78rem;
     font-weight: 600;
     white-space: nowrap;
-    border: 1px solid var(--support-border, var(--fa-border));
-    color: var(--support-color, var(--fa-text-muted));
-    background: color-mix(in srgb, var(--support-color, var(--fa-text-muted)) 12%, transparent);
+    border: var(--fa-border-width) solid var(--fa-border);
+    background: color-mix(in srgb, currentColor 12%, transparent);
 }
 
 .support-badge--full {
-    --support-color: var(--fa-perf-good);
-    --support-border: color-mix(in srgb, var(--fa-perf-good) 35%, transparent);
+    border-color: color-mix(in srgb, currentColor 35%, transparent);
 }
 
 .support-badge--partial {
-    --support-color: var(--fa-gold);
-    --support-border: var(--fa-gold-dim);
+    color: var(--fa-gold);
+    border-color: var(--fa-gold-dim);
 }
 
 .support-badge--unmaintained {
-    --support-color: var(--fa-text-dim);
-    --support-border: var(--fa-border);
+    color: var(--fa-text-dim);
+    border-color: var(--fa-border);
 }
