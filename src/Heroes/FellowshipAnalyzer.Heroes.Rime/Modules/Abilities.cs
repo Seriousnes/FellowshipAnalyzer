@@ -29,7 +29,6 @@ public class Abilities : CoreAbilities
             PrimarySpell = Spells.ColdSnap,
             Category = SpellCategory.Rotational,
             Gcd = StandardGcd,
-            CooldownReducedByHaste = true,
         },
         new()
         {
@@ -115,8 +114,6 @@ public class Abilities : CoreAbilities
             PrimarySpell = Core.Common.Spells.Spells.Kindling,
             Category = SpellCategory.Hidden,
         },
-
-        // S3
         new()
         {
             PrimarySpell = Spells.RisingTalons,

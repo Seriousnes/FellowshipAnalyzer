@@ -2644,6 +2644,12 @@
       "name": "",
       "icon": ""
     },
+    "FrostweaversWrathBuff": {
+      "kind": "effect",
+      "id": 2305,
+      "name": "Frostweaver\u0027s Wrath",
+      "icon": "T_Icon_Frost_115.jpg"
+    },
     "GlacialBlast": {
       "kind": "ability",
       "id": 1028,
