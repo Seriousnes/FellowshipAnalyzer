@@ -7,6 +7,7 @@ namespace FellowshipAnalyzer.Heroes.Mara.Analysis;
 [AddState<EnergyComboPointTracker>]
 [AddModule<Modules.Abilities>]
 [AddModule<MaraAuras>]
+[AddModule<DeadlySchemeTracker>]
 [AddAnalyzer<SingleTargetMaraResourceDiscipline>]
 [AddAnalyzer<AoEMaraResourceDiscipline>]
 [AddAnalyzer<MaraDotUptimeAnalyzer>]
