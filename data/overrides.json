@@ -80,10 +80,50 @@
       "note": "placeholder; hand-written Effect(-1) produces guid 999999; no real FSL entry exists \u2014 real id TBD"
     }
   },
+  "gunde": {
+    "Rend": {
+      "id": 3231,
+      "kind": "effect",
+      "name": "Rend",
+      "note": "GE_Gunde_PerTargetAccumulatedBleed, the per-target accumulated bleed Slaughter consumes; not linked to any Kit ability so the source-derived scope omits it. Add directly."
+    },
+    "SerratedEdge": {
+      "id": 3232,
+      "kind": "effect",
+      "name": "Serrated Edge",
+      "note": "GE_Gunde_ExtraDotDamageGain_SelfBuff; unresolved effect, add directly."
+    },
+    "OpenWounds": {
+      "id": 3233,
+      "kind": "effect",
+      "name": "Open Wounds",
+      "note": "GE_Gunde_BoostedDotDamage_TargetDebuff, the Rupture window that buffs the next Slaughter; unresolved effect, add directly."
+    },
+    "OwedInBlood": {
+      "cooldown": 3,
+      "note": "source Constants 'Owed in Blood'.Target.Cooldown = 3 is nested under Target so the merge yields no cooldown"
+    },
+    "Warbound": {
+      "cooldown": 8,
+      "note": "source Constants Warbound.CooldownDuration = 8 is not a recognised cooldown key so the merge yields charges 2 but no cooldown"
+    }
+  },
   "items": {
     "VoidbringerTouch": {
       "id": 155,
       "note": "gear weapon moved from Elarion hand-written registry to items scope"
+    },
+    "FatedStrike": {
+      "id": 160,
+      "kind": "ability",
+      "name": "Fated Strike",
+      "note": "GA_Weapon_CleaveDamageBuffCooldownReduction, the Fateful Arms weapon ability; gear weapon, add directly."
+    },
+    "GloriousPurpose": {
+      "id": 80,
+      "kind": "effect",
+      "name": "Glorious Purpose",
+      "note": "GE_Weapon_CleaveDamageBuffCooldownReduction_Buff, the Fated Strike proc window; not in any hero Kit, add directly."
     }
   },
   "meiko": {

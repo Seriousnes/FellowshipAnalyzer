@@ -1190,12 +1190,19 @@
       "name": "",
       "icon": ""
     },
+    "OpenWounds": {
+      "kind": "effect",
+      "id": 3233,
+      "name": "Open Wounds",
+      "icon": "T_Gunde_Rupture.jpg"
+    },
     "OwedInBlood": {
       "kind": "ability",
       "id": 2298,
       "name": "Owed in Blood",
       "icon": "T_Gunde_SanguineFeast.jpg",
       "abilityCategory": "Utility",
+      "cooldown": 3,
       "range": 20
     },
     "OwedInBloodSelfBuff": {
@@ -1252,6 +1259,12 @@
       "name": "Reign in Blood",
       "icon": "T_Gunde_HPDrain.jpg"
     },
+    "Rend": {
+      "kind": "effect",
+      "id": 3231,
+      "name": "Rend",
+      "icon": "T_Status_Bleed.jpg"
+    },
     "Rupture": {
       "kind": "ability",
       "id": 2293,
@@ -1265,6 +1278,12 @@
       "id": 3238,
       "name": "",
       "icon": ""
+    },
+    "SerratedEdge": {
+      "kind": "effect",
+      "id": 3232,
+      "name": "Serrated Edge",
+      "icon": "Gunde_Frontal.jpg"
     },
     "Slaughter": {
       "kind": "ability",
@@ -1286,6 +1305,7 @@
       "name": "Warbound",
       "icon": "T_Gunde_Charge.jpg",
       "abilityCategory": "Movement",
+      "cooldown": 8,
       "charges": 2
     },
     "WarboundDamage": {
@@ -4018,6 +4038,19 @@
     }
   },
   "items": {
+    "FatedStrike": {
+      "kind": "ability",
+      "id": 160,
+      "name": "Fated Strike",
+      "icon": "T_Weapon_CDstrike.jpg",
+      "cooldown": 60
+    },
+    "GloriousPurpose": {
+      "kind": "effect",
+      "id": 80,
+      "name": "Glorious Purpose",
+      "icon": "T_Weapon_CDstrike.jpg"
+    },
     "VoidbringerTouch": {
       "kind": "ability",
       "id": 155,
