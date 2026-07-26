@@ -408,7 +408,8 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
     /// <summary>
     /// Builds an <see cref="AnalyzerInfo"/> for a pull-lifetime analyzer: its constructor
     /// parameters (for <c>CreateInstance</c>), the surface type it is exposed under on pull read
-    /// paths, and the <c>[ForPull]</c> match filter that gates which pulls it runs on.
+    /// paths, the <c>[ForPull]</c> match filter that gates which pulls it runs on, and any
+    /// <c>[RequiresTalent(id)]</c> gates.
     /// </summary>
     private static AnalyzerInfo BuildAnalyzerInfo(INamedTypeSymbol analyzerType)
     {
@@ -416,16 +417,29 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
 
         var targets = 0;
         var boss = 0;
+        var seenForPull = false;
+        var requiredTalentIds = new List<int>();
         foreach (var attr in analyzerType.GetAttributes())
         {
-            if (attr.AttributeClass?.Name != ForPullAttributeShortName) continue;
+            var ac = attr.AttributeClass;
+            if (ac == null) continue;
+
+            if (ac.Name == RequiresTalentAttributeShortName && !ac.IsGenericType)
+            {
+                if (attr.ConstructorArguments.Length == 1 && attr.ConstructorArguments[0].Value is int talentId)
+                    requiredTalentIds.Add(talentId);
+                continue;
+            }
+
+            if (ac.Name != ForPullAttributeShortName || seenForPull) continue;
+
+            seenForPull = true;
             if (attr.ConstructorArguments.Length == 1 && attr.ConstructorArguments[0].Value is int t)
                 targets = t;
             foreach (var na in attr.NamedArguments)
             {
                 if (na.Key == "Boss" && na.Value.Value is int b) boss = b;
             }
-            break;
         }
 
         return new AnalyzerInfo(
@@ -435,7 +449,8 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
             surfaceFqn,
             surfaceMemberName,
             targets,
-            boss);
+            boss,
+            [.. requiredTalentIds]);
     }
 
     /// <summary>
@@ -780,8 +795,12 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
         s.Length == 0 ? s : char.ToLowerInvariant(s[0]) + s.Substring(1);
 
     /// <summary>
-    /// Emits the compile-time-constant <c>[ForPull]</c> match expression:
-    /// <c>(pull.Targets &amp; (mask)) != 0</c> with an optional boss clause.
+    /// Emits the <c>[ForPull]</c> match expression: the compile-time-constant
+    /// <c>(pull.Targets &amp; (mask)) != 0</c> with an optional boss clause, followed by one
+    /// <c>SelectedCombatant.HasTalent(id)</c> term per <c>[RequiresTalent(id)]</c> on the analyzer.
+    /// An analyzer with no talent gate emits output byte-identical to the pre-<c>[RequiresTalent]</c>
+    /// form. The talent terms read the parse context populated before any pull opens, so a build
+    /// without the talent never constructs the analyzer and its read paths stay empty.
     /// </summary>
     private static string EmitForPullGate(AnalyzerInfo a)
     {
@@ -793,6 +812,8 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
         var gate = "(pull.Targets & (" + mask + ")) != 0";
         if (a.ForPullBoss == 1) gate += " && pull.IsBoss";
         else if (a.ForPullBoss == 2) gate += " && !pull.IsBoss";
+        foreach (var id in a.RequiredTalentIds)
+            gate += " && SelectedCombatant.HasTalent(" + id.ToString(CultureInfo.InvariantCulture) + ")";
         return gate;
     }
 
@@ -1036,7 +1057,8 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
             string surfaceTypeFullyQualified,
             string surfaceTypeMemberName,
             int forPullTargets,
-            int forPullBoss)
+            int forPullBoss,
+            ImmutableArray<int> requiredTalentIds)
         {
             Name = name;
             Namespace = ns;
@@ -1045,6 +1067,7 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
             SurfaceTypeMemberName = surfaceTypeMemberName;
             ForPullTargets = forPullTargets;
             ForPullBoss = forPullBoss;
+            RequiredTalentIds = requiredTalentIds.IsDefault ? ImmutableArray<int>.Empty : requiredTalentIds;
         }
         public string Name { get; }
         public string Namespace { get; }
@@ -1057,6 +1080,8 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
         public int ForPullTargets { get; }
         /// <summary><c>[ForPull(Boss = …)]</c> as <c>PullBoss</c> int: 0 = Either, 1 = Boss, 2 = NonBoss.</summary>
         public int ForPullBoss { get; }
+        /// <summary>Native talent ids the selected combatant must have (from <c>[RequiresTalent(id)]</c>), in declaration order.</summary>
+        public ImmutableArray<int> RequiredTalentIds { get; }
         public string FullyQualifiedName => string.IsNullOrEmpty(Namespace) ? Name : Namespace + "." + Name;
     }
 }
