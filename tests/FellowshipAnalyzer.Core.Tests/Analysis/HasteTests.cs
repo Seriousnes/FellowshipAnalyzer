@@ -379,8 +379,8 @@ public sealed partial class HasteTests
 
         var probe = parser.GetModule<ChangeHasteProbe>()!;
 
-        // The initial ChangeHasteEvent fires during Initialize() before the probe
-        // registers, so we only see the buff application event.
+        // The initial ChangeHasteEvent fires from Haste.OnFightStart (on FightStartEvent) before
+        // the probe's own subscriptions are registered, so we only see the buff application event.
         Assert.Single(probe.ReceivedEvents);
         var buffEvent = probe.ReceivedEvents[0];
         Assert.Equal(0.0, buffEvent.OldHaste);

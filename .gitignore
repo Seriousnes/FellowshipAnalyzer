@@ -371,7 +371,7 @@ FodyWeavers.xsd
 
 docs/*
 
-# Local tool secrets (points at the user-secrets store; see .env.example)
+# Machine-local env variants; the tracked .env is the template and holds only the non-secret USER_SECRET_ID
 .env.*
 
 # Fetched raw report JSON (large, contains player data) — see src/FellowshipAnalyzer.Tools/fetch-report.cs

@@ -7,8 +7,9 @@ namespace FellowshipAnalyzer.Core.Analysis;
 /// <summary>
 /// Central pub/sub event dispatcher. Manages listener registration, event triggering,
 /// and fabricated (synthetic) event injection.
-/// Fabricated events are inserted into the main event queue immediately after the
-/// current event, so they are processed as the very next event.
+/// A fabricated event at the current dispatch timestamp is spliced in immediately after the
+/// current event and processed next; one with a future timestamp is inserted after every
+/// already-queued event at or before its timestamp. See <see cref="FabricateEvent"/>.
 /// Resolved through the parser's per-analysis service cache so each analysis run has its own listener set.
 /// </summary>
 public sealed class EventEmitter(ILogger<EventEmitter> logger) : Module

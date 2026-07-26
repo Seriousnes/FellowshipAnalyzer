@@ -18,7 +18,7 @@ namespace FellowshipAnalyzer.Core.Analysis;
 /// <para>
 /// When the predicate returns <c>false</c>, the source generator's parser switch skips
 /// resolution entirely; no constructor runs, no <c>[On&lt;T&gt;]</c> handlers subscribe,
-/// and the generated <c>BuildTypedReport()</c> contributes <c>null</c> for that module.
+/// and the module's generated nullable accessor property on the parser returns <c>null</c>.
 /// </para>
 /// </remarks>
 [AttributeUsage(AttributeTargets.Class, Inherited = false)]

@@ -13,7 +13,7 @@ public class ResourceChangeEvent : Event, IAbilityEvent, IHasSourceEvent, IHasTa
     public virtual int TargetId { get; set; }
     public virtual bool? TargetIsFriendly { get; set; }
     /// <summary>
-    /// The id for the resource. See the <see cref="Resource"/> file for all available resource types.
+    /// The id for the resource. See the <see cref="ResourceTypes"/> enum for all available resource types.
     /// </summary>
     public virtual ResourceTypes ResourceChangeType { get; set; }
     /// <summary>

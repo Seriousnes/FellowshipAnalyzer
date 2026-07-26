@@ -11,7 +11,7 @@ namespace FellowshipAnalyzer.Core.Analysis;
 /// take <c>nameof(Registry.Member)</c> expressions referencing a static <see cref="Common.Spells.Spell"/>
 /// (or <see cref="Common.Spells.Effect"/>) property on a type implementing
 /// <see cref="Common.Spells.ISpellRegistry"/>. The generator resolves the member at codegen time
-/// and emits an <c>Ability.Id == &lt;guid&gt;</c> predicate against the resolved
+/// and emits an <c>Ability.Id == &lt;fslid&gt;</c> predicate against the resolved
 /// <see cref="Common.Spells.Spell.FSLID"/>.
 /// </para>
 /// </summary>

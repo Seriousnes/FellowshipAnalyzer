@@ -205,11 +205,11 @@ static string FindRepoRoot()
 
 static string? LoadUserSecretId(string repoRoot)
 {
-    var envPath = Path.Combine(repoRoot, ".env.local");
+    var envPath = Path.Combine(repoRoot, ".env");
     if (!File.Exists(envPath))
     {
         Console.Error.WriteLine(
-            $"No .env.local file found at {envPath}. " +
+            $"No .env file found at {envPath}. " +
             "Create one with: USER_SECRET_ID=<your-user-secrets-id>");
         return null;
     }

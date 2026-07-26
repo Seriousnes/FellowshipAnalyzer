@@ -4,7 +4,9 @@ namespace FellowshipAnalyzer.Core.Analysis;
 
 /// <summary>
 /// Pre-processes a list of combat log events before they are dispatched to modules.
-/// Normalizers run in <see cref="Priority"/> order before any module sees the events.
+/// Normalizers run in the order declared via <c>[AddNormalizer&lt;T&gt;]</c> on the parser class,
+/// by convention ascending by <see cref="Priority"/>; the declaration order, not the
+/// <see cref="Priority"/> value, is what the parser executes.
 /// They can reorder, link, fabricate, or drop events.
 /// </summary>
 public interface IEventNormalizer

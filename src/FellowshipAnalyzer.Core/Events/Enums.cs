@@ -13,8 +13,6 @@ public enum HitTypeEnum
     Immune = 10
 }
 
-public enum MapIdEnum { }
-
 public enum UnitTypeEnum
 {
     Player,
