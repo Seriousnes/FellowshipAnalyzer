@@ -1,0 +1,131 @@
+@inject ElarionCombatLogParser Parser
+
+<GuideSection Title="Lunarlight Mark">
+    <Explanation>
+        <p>
+            <SpellLink Spell="Spells.LunarlightMark" /> lasts 15 seconds and comes back every 40, so the
+            cast on its own can never hold the mark up. The secondary paths carry the rest of it: a
+            <SpellLink Spell="Spells.CelestialShot" /> spending <SpellLink Spell="Spells.CelestialImpetus" />
+            reapplies the mark, and spirit refund procs add applications of their own.
+        </p>
+        <p>
+            Every hit into a marked enemy can trigger <SpellLink Spell="Spells.LunarlightMarkDamage" /> as
+            bonus damage, so time spent marked converts directly into damage.
+            <SpellLink Spell="Spells.HeartseekerBarrage" /> puts 10 channel ticks into 2 seconds, making it
+            the densest Salvo trigger available, so channel it into a marked target.
+        </p>
+    </Explanation>
+    <ChildContent>
+        <CastOverview Title="Mark Overview" Stats="@BuildOverviewStats()" />
+        <CastDetail Title="Per-Pull Mark Coverage"
+                    Description="One card per pull, rated on the share of the pull an enemy carried the mark, with where the applications came from and how Heartseeker Barrage was paired alongside."
+                    Casts="@BuildPerPullData()" />
+    </ChildContent>
+</GuideSection>
+
+@code {
+    private List<LunarlightMarkAnalyzer> Analyzers() =>
+        Parser.LunarlightMarkAnalyzers.Select(entry => entry.Analyzer).ToList();
+
+    private IEnumerable<OverviewStat> BuildOverviewStats()
+    {
+        var analyzers = Analyzers();
+
+        var duration = analyzers.Sum(analyzer => (long)analyzer.PullDurationMs);
+        var marked = analyzers.Sum(analyzer => (long)analyzer.MarkedUptimeMs);
+        var uptime = duration == 0 ? 0 : Math.Min(100d, marked / (double)duration * 100);
+
+        var applications = analyzers.Sum(analyzer => analyzer.TotalApplications);
+        var secondary = analyzers.Sum(analyzer => analyzer.SecondaryApplications);
+        var fromCast = applications - secondary;
+        var secondaryShare = applications == 0 ? 0 : (double)secondary / applications * 100;
+
+        var barrages = analyzers.Sum(analyzer => analyzer.BarrageCasts);
+        var barragesOnMarked = analyzers.Sum(analyzer => analyzer.BarrageCastsOnMarkedTarget);
+        var barrageShare = barrages == 0 ? 0 : (double)barragesOnMarked / barrages * 100;
+
+        var salvo = analyzers.Sum(analyzer => analyzer.SalvoHits);
+        var erupt = analyzers.Sum(analyzer => analyzer.EruptHits);
+
+        return
+        [
+            new OverviewStat(
+                $"{uptime:0.#}%",
+                "Marked Uptime",
+                "Share of the combined pull time with at least one enemy carrying the mark. Overlapping marks count once.",
+                PerformanceTiers.FromThresholds(uptime, 80, 60, 40)),
+            new OverviewStat(
+                $"{secondaryShare:0.#}%",
+                "Secondary Applications",
+                $"{secondary} of {applications} applications came from a path other than the Lunarlight Mark cast, which supplied {fromCast}. The 40 second cooldown means the secondary paths have to do most of the work."),
+            new OverviewStat(
+                $"{barrageShare:0.#}%",
+                "Barrage on Marked",
+                $"{barragesOnMarked} of {barrages} Heartseeker Barrage casts were channelled into a marked target, where all 10 ticks can trigger Salvo.",
+                PerformanceTiers.FromThresholds(barrageShare, 90, 75, 50)),
+            new OverviewStat(
+                $"{salvo + erupt}",
+                "Salvo Hits",
+                $"{salvo} Lunarlight Salvo and {erupt} Lunarlight Salvo: Erupt hits across every pull, the damage the mark paid out."),
+        ];
+    }
+
+    private IEnumerable<PerCastData> BuildPerPullData() =>
+        Parser.LunarlightMarkAnalyzers.ToPullRows(Parser, BuildPullRow);
+
+    private PerCastRow BuildPullRow(LunarlightMarkAnalyzer analyzer, Pull pull)
+    {
+        var uptime = analyzer.MarkedUptimePercentage;
+        var performance = PerformanceTiers.FromThresholds(uptime, 80, 60, 40);
+
+        var stats = new[]
+        {
+            new PerCastStat(
+                $"{uptime:0.#}%",
+                "Marked Uptime",
+                "Share of this pull with at least one enemy carrying the mark. Every hit into a marked enemy can trigger Lunarlight Salvo.",
+                Performance: performance),
+            new PerCastStat(
+                $"{analyzer.MarkCastApplications} + {analyzer.SecondaryApplications}",
+                "Cast + Secondary",
+                $"{analyzer.MarkCastApplications} applications from the {analyzer.MarkCasts} Lunarlight Mark casts, {analyzer.SecondaryApplications} from Celestial Impetus spends and spirit procs."),
+            new PerCastStat(
+                $"{analyzer.BarrageCastsOnMarkedTarget}/{analyzer.BarrageCasts}",
+                "Barrage on Marked",
+                "Heartseeker Barrage casts channelled into a marked target out of every Barrage cast this pull.",
+                Performance: analyzer.BarrageCasts == 0
+                    ? null
+                    : PerformanceTiers.FromThresholds(analyzer.BarrageOnMarkedPercentage, 90, 75, 50)),
+        };
+
+        return new PerCastRow
+        {
+            Performance = performance,
+            Stats = stats,
+            AdditionalContent = new AdditionalContent(
+                "Usage Notes",
+                @<div>@BuildNote(analyzer, pull)</div>),
+        };
+    }
+
+    private static string BuildNote(LunarlightMarkAnalyzer analyzer, Pull pull)
+    {
+        var subject = pull.Targets == PullKind.Single
+            ? "the boss"
+            : $"the pack ({analyzer.DistinctMarkedTargets} of {Math.Max(analyzer.DistinctMarkedTargets, pull.TargetCount)} enemies were marked)";
+
+        if (analyzer.TotalApplications == 0)
+            return $"The mark never landed on {subject}, so no hit this pull could trigger Lunarlight Salvo.";
+
+        if (analyzer.BarrageCasts > 0 && analyzer.BarrageCastsOnMarkedTarget == 0)
+            return $"The mark was up for {analyzer.MarkedUptimePercentage:0.#}% of the pull on {subject}, but no Heartseeker Barrage went into a marked target - its 10 ticks are the densest Salvo trigger available.";
+
+        if (analyzer.MarkedUptimePercentage >= 80)
+            return $"The mark stayed on {subject} for {analyzer.MarkedUptimePercentage:0.#}% of the pull, so nearly every hit had a chance to trigger Salvo.";
+
+        if (analyzer.MarkedUptimePercentage >= 60)
+            return $"Solid coverage on {subject} at {analyzer.MarkedUptimePercentage:0.#}%. The gaps are Lunarlight Mark's cooldown showing through - reapply with Celestial Impetus spends to close them.";
+
+        return $"The mark covered only {analyzer.MarkedUptimePercentage:0.#}% of the pull on {subject}. With a 40 second cooldown against a 15 second debuff, the secondary applications have to carry the uptime.";
+    }
+}

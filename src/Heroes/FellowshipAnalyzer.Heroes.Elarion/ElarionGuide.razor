@@ -1,11 +1,26 @@
-@using FellowshipAnalyzer.Heroes.Elarion.Analysis
-@using FellowshipAnalyzer.Core.Game
 @inject ElarionCombatLogParser Parser
 
-@if (Parser.FocusTracker is not null)
+@if (Parser.CooldownPairingAnalyzers.Count > 0)
 {
-    <ResourceGraph
-        Tracker="Parser.FocusTracker"
-        Resource="ResourceTypes.Primary"
-    />
+    <CooldownPairingGuide />
+}
+
+@if (Parser.FocusEconomyAnalyzers.Count > 0)
+{
+    <FocusEconomyGuide />
+}
+
+@if (Parser.LunarlightMarkAnalyzers.Count > 0)
+{
+    <LunarlightMarkGuide />
+}
+
+@if (Parser.CelestialImpetusAnalyzers.Count > 0)
+{
+    <CelestialImpetusGuide />
+}
+
+@if (Parser.SupremacyWindowAnalyzers.Count > 0)
+{
+    <SupremacyWindowsGuide />
 }
