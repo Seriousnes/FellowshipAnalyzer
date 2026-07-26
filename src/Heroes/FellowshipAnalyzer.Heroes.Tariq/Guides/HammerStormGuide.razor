@@ -1,0 +1,271 @@
+@using FellowshipAnalyzer.Core.Common.Spells
+@using Spells = FellowshipAnalyzer.Core.Common.Spells.Tariq.Spells
+@inject TariqCombatLogParser Parser
+
+@{
+    var analyzers = Parser.HammerStormAnalyzers.Select(entry => entry.Analyzer).ToList();
+    var casts = analyzers.SelectMany(analyzer => analyzer.Casts).ToList();
+    var talented = analyzers.Any(analyzer => analyzer.SchismTalented);
+}
+
+@if (casts.Count > 0)
+{
+    <GuideSection Title="Hammer Storm">
+        <Explanation>
+            <p>
+                <SpellLink Spell="Spells.HammerStorm" /> spends the same 50 Fury as
+                <SpellLink Spell="Spells.SkullCrusher" /> but pays it out over a three-spin channel whose
+                spins escalate, so it only wins from @HammerStormAnalyzer.AoeTargetThreshold targets up.
+                Below that it is the wrong button unless a <SpellLink Spell="Spells.SchismHammerStorm" />
+                proc is being held, which is exactly what a Schism build is farming. Every channel below
+                is judged on the targets its first spin caught and on whether a proc was there to justify
+                it.
+            </p>
+            <p>
+                The channel's last spin is its biggest, so anything that ends it early throws away the
+                part that mattered. <SpellLink Spell="Spells.CullingStrike" /> and
+                <SpellLink Spell="Spells.LeapSmash" /> are off the global cooldown and will cancel a
+                channel mid-spin if they are pressed during one. A channel with spins missing and no cast
+                of yours inside it was ended by the pack dying or the pull closing rather than by you.
+            </p>
+        </Explanation>
+        <ChildContent>
+            <CastOverview Title="Hammer Storm Overview" Stats="@BuildOverviewStats(analyzers, casts, talented)" />
+
+            <CastDetail Title="Hammer Storm Channels"
+                        Description="Each card is one Hammer Storm channel, rated on the targets its first spin hit, whether a Schism proc backed it, and how many of its three spins landed."
+                        Casts="@BuildCastRows(talented)" />
+        </ChildContent>
+    </GuideSection>
+}
+
+@code {
+    private IEnumerable<OverviewStat> BuildOverviewStats(
+        List<HammerStormAnalyzer> analyzers,
+        List<HammerStormCast> casts,
+        bool talented)
+    {
+        var connected = casts.Count(cast => cast.TargetsHit > 0);
+        var whiffed = casts.Count - connected;
+        var lowTarget = analyzers.Sum(analyzer => analyzer.LowTargetCasts);
+        var empowered = analyzers.Sum(analyzer => analyzer.SchismEmpoweredCasts);
+        var truncated = analyzers.Sum(analyzer => analyzer.TruncatedChannels);
+        var averageTargets = connected == 0
+            ? 0d
+            : casts.Where(cast => cast.TargetsHit > 0).Average(cast => cast.TargetsHit);
+
+        var stats = new List<OverviewStat>
+        {
+            new(
+                $"{casts.Count}",
+                "Channels",
+                $"Hammer Storm casts across every pull, {empowered} of them empowered by a Schism proc."
+                + (whiffed > 0 ? $" {whiffed} produced no damage at all." : string.Empty)),
+            new(
+                $"{lowTarget}",
+                "Unjustified Casts",
+                $"Channels that caught fewer than {HammerStormAnalyzer.AoeTargetThreshold} targets with no Schism proc held, so Skull Crusher would have hit harder for the same Fury. "
+                + $"Rated as a share of the {connected} channels that connected: none is perfect, up to a tenth is good, up to a quarter is passable.",
+                CleanShareTier(connected, lowTarget, 100, 90, 75)),
+            new(
+                $"{truncated}",
+                "Truncated Channels",
+                $"Channels that landed damage but stopped before their third spin, forfeiting the strongest one. "
+                + $"Rated as a share of the {connected} channels that connected: none is perfect, up to a twentieth is good, up to a seventh is passable.",
+                CleanShareTier(connected, truncated, 100, 95, 86)),
+            new(
+                $"{averageTargets:0.0}",
+                "Avg Targets Hit",
+                $"Mean first-spin targets over the {connected} channels that connected. The first spin is the one the spender choice was taken against; later spins only show how the pack moved.",
+                connected == 0 ? null : PerformanceTiers.FromThresholds(averageTargets, HammerStormAnalyzer.AoeTargetThreshold, 2, 1)),
+        };
+
+        if (talented)
+            stats.Add(SchismStat(analyzers));
+
+        return stats;
+    }
+
+    private static OverviewStat SchismStat(List<HammerStormAnalyzer> analyzers)
+    {
+        var skullCrusher = Sum(analyzers.Select(analyzer => analyzer.SkullCrusherProcs));
+        var hammerStorm = Sum(analyzers.Select(analyzer => analyzer.HammerStormProcs));
+        var gained = skullCrusher.Gained + hammerStorm.Gained;
+        var consumed = skullCrusher.Consumed + hammerStorm.Consumed;
+        var expired = skullCrusher.Expired + hammerStorm.Expired;
+        var overwritten = skullCrusher.Overwritten + hammerStorm.Overwritten;
+
+        if (gained == 0)
+        {
+            return new OverviewStat(
+                "-",
+                "Schism Procs Used",
+                "Schism is talented but no proc was logged, so there is nothing to rate yet.");
+        }
+
+        var used = (int)Math.Round(consumed * 100d / gained);
+
+        return new OverviewStat(
+            $"{used}%",
+            "Schism Procs Used",
+            $"{consumed} of {gained} procs were spent by the spender they empower; {expired} fell off unused"
+            + (overwritten > 0 ? $" and {overwritten} rolls landed on a proc already held, adding nothing" : string.Empty)
+            + $". Skull Crusher procs (rolled by Hammer Storm): {skullCrusher.Consumed} of {skullCrusher.Gained} used, {skullCrusher.Expired} expired. "
+            + $"Hammer Storm procs (rolled by Skull Crusher): {hammerStorm.Consumed} of {hammerStorm.Gained} used, {hammerStorm.Expired} expired.",
+            PerformanceTiers.FromThresholds(used, 90, 75, 60));
+    }
+
+    private IEnumerable<PerCastData> BuildCastRows(bool talented) =>
+        Parser.HammerStormAnalyzers.ToItemRows(Parser, analyzer => analyzer.Casts, (cast, pull) => BuildCastRow(cast, talented));
+
+    private PerCastRow BuildCastRow(HammerStormCast cast, bool talented)
+    {
+        var performance = CastTier(cast);
+
+        var stats = new List<PerCastStat>
+        {
+            new(
+                $"{cast.TargetsHit}",
+                "Targets Hit",
+                cast.TargetsHit == 0
+                    ? "The channel connected with nothing, so no target count can be read from it."
+                    : $"Distinct units the first spin caught. {HammerStormAnalyzer.AoeTargetThreshold} or more makes Hammer Storm the correct spender on its own; below that only a Schism proc justifies it.",
+                TargetTier(cast)),
+            new(
+                $"{cast.SpinsCompleted}/{HammerStormAnalyzer.ExpectedSpins}",
+                "Spins Landed",
+                cast.Truncated
+                    ? "The channel was cut off before its third and strongest spin."
+                    : $"Damage bursts observed for this channel, out of the {HammerStormAnalyzer.ExpectedSpins} a full channel lands.",
+                SpinTier(cast)),
+        };
+
+        if (talented)
+        {
+            stats.Add(new PerCastStat(
+                cast.SchismEmpowered ? "Yes" : "No",
+                "Schism Proc",
+                cast.SchismEmpowered
+                    ? "A Schism proc empowered this channel, so it beat Skull Crusher regardless of target count."
+                    : "No Schism proc was held when this channel went off, so it had to win on target count alone."));
+        }
+
+        if (cast.TruncatingAbilityId is { } culpritId)
+        {
+            var name = SpellRegistry.MaybeGet(culpritId)?.Name ?? "Unknown";
+
+            stats.Add(new PerCastStat(
+                name,
+                "Cut Short By",
+                CancelsChannels(culpritId)
+                    ? $"{name} is off the global cooldown and cancels a channel it lands inside, and it was cast at or after this channel's last spin."
+                    : $"The first ability you cast at or after this channel's last spin. {name} does not cancel a channel by itself, so the channel had most likely already ended when it went out.",
+                CancelsChannels(culpritId) ? QualitativePerformance.Fail : null));
+        }
+
+        return new PerCastRow
+        {
+            Performance = performance,
+            Stats = [.. stats],
+            Timestamp = cast.Timestamp,
+            Details = BuildDetails(cast),
+        };
+    }
+
+    private RenderFragment BuildDetails(HammerStormCast cast) =>
+    @<div>
+        @Outcome(cast)
+        @if (cast.TruncatingAbilityId is { } culpritId && SpellRegistry.MaybeGet(culpritId) is { } culprit)
+        {
+            <span>
+                @(CancelsChannels(culpritId) ? "Cut short by " : "The next thing you cast was ")<SpellLink Spell="culprit" />.
+            </span>
+        }
+    </div>;
+
+    private static string Outcome(HammerStormCast cast)
+    {
+        if (cast.TargetsHit == 0)
+            return "This channel produced no damage at all, so the 50 Fury bought nothing.";
+
+        var targets = cast.TargetsHit == 1 ? "1 target" : $"{cast.TargetsHit} targets";
+
+        if (cast.Truncated)
+        {
+            return cast.TruncatingAbilityId is null
+                ? $"Only {cast.SpinsCompleted} of {HammerStormAnalyzer.ExpectedSpins} spins landed, on {targets}. No cast of yours followed the last spin, so the pack dying or the pull ending is the likely cause."
+                : $"Only {cast.SpinsCompleted} of {HammerStormAnalyzer.ExpectedSpins} spins landed, on {targets}, forfeiting the strongest spin of the three.";
+        }
+
+        if (cast.MetAoeThreshold)
+            return $"The full channel landed across {targets}, where Hammer Storm out-damages Skull Crusher on its own.";
+
+        return cast.SchismEmpowered
+            ? $"The full channel landed on {targets}. A Schism proc was empowering it, which is what makes Hammer Storm the right spender at this target count."
+            : $"The full channel landed but only on {targets}, with no Schism proc held. Skull Crusher would have converted the same Fury into more damage.";
+    }
+
+    /// <summary>
+    /// Whether an ability is one of the two that are off the global cooldown far enough to cancel a
+    /// Hammer Storm channel they land inside. Anything else in the window is a coincidence of timing.
+    /// </summary>
+    private static bool CancelsChannels(int abilityId) =>
+        abilityId == Spells.CullingStrike.FSLID || abilityId == Spells.LeapSmash.FSLID;
+
+    private static SchismProcEconomy Sum(IEnumerable<SchismProcEconomy> economies)
+    {
+        var gained = 0;
+        var consumed = 0;
+        var overwritten = 0;
+        var expired = 0;
+
+        foreach (var economy in economies)
+        {
+            gained += economy.Gained;
+            consumed += economy.Consumed;
+            overwritten += economy.Overwritten;
+            expired += economy.Expired;
+        }
+
+        return new SchismProcEconomy(gained, consumed, overwritten, expired);
+    }
+
+    private static QualitativePerformance? CleanShareTier(int connected, int offenders, double perfect, double good, double ok) =>
+        connected == 0
+            ? null
+            : PerformanceTiers.FromThresholds((connected - offenders) * 100d / connected, perfect, good, ok);
+
+    private static QualitativePerformance TargetTier(HammerStormCast cast)
+    {
+        if (cast.TargetsHit == 0)
+            return QualitativePerformance.Ok;
+
+        if (cast.MetAoeThreshold || cast.SchismEmpowered)
+            return QualitativePerformance.Perfect;
+
+        return QualitativePerformance.Fail;
+    }
+
+    private static QualitativePerformance SpinTier(HammerStormCast cast)
+    {
+        if (cast.Truncated)
+            return QualitativePerformance.Fail;
+
+        return cast.SpinsCompleted >= HammerStormAnalyzer.ExpectedSpins
+            ? QualitativePerformance.Perfect
+            : QualitativePerformance.Ok;
+    }
+
+    private static QualitativePerformance CastTier(HammerStormCast cast)
+    {
+        if (cast.Truncated)
+            return QualitativePerformance.Fail;
+
+        if (cast.TargetsHit == 0)
+            return QualitativePerformance.Ok;
+
+        return cast.MetAoeThreshold || cast.SchismEmpowered
+            ? QualitativePerformance.Perfect
+            : QualitativePerformance.Fail;
+    }
+}
