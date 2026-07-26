@@ -34,6 +34,11 @@
       "id": 1365,
       "kind": "effect",
       "note": "effect 1001365 is auto-linked to FlightOfTheNavir (as FlightOfTheNavirDamage); rename to FrostSwallowsDamage"
+    },
+    "FrostweaversWrathBuff": {
+      "id": 2305,
+      "kind": "effect",
+      "note": "talent-proc effect GE_Rime_Talent_ChanceOnOrbGain_NextSpenderCritIncrease_Buff has no GA parent so auto-merge skips it; add directly"
     }
   },
   "elarion": {
