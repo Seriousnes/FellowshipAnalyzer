@@ -26,7 +26,10 @@ public sealed record SlaughterEvaluation
     /// <summary>Whether Heart Splitter rebuilt Rend between the previous Slaughter and this one.</summary>
     public required bool HeartSplitterPrimed { get; init; }
 
-    /// <summary>Distinct enemies the Slaughter bleed reached.</summary>
+    /// <summary>
+    /// Distinct enemy units the Slaughter bleed reached, counted per (TargetId, TargetInstance) so
+    /// that a pack of identical enemies counts once per enemy rather than once per npc type.
+    /// </summary>
     public required int TargetsHit { get; init; }
 
     /// <summary>

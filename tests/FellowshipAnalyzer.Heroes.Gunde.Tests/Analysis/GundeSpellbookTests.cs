@@ -54,8 +54,12 @@ public sealed class GundeSpellbookTests
         var grimCarve = Entry(Spells.GrimCarve.FSLID);
         var slaughter = Entry(Spells.Slaughter.FSLID);
 
-        grimCarve.GetCooldown(haste: 0.5).ShouldBeLessThan(grimCarve.GetCooldown());
-        slaughter.GetCooldown(haste: 0.5).ShouldBe(slaughter.GetCooldown());
+        grimCarve.GetCooldown().ShouldBe(15d);
+        grimCarve.GetCooldown(haste: 0.5).ShouldBe(10d, 0.0001);
+        grimCarve.GetCooldown(haste: 0.25).ShouldBe(12d, 0.0001);
+
+        slaughter.GetCooldown().ShouldBe(30d);
+        slaughter.GetCooldown(haste: 0.5).ShouldBe(30d);
     }
 
     [Fact]

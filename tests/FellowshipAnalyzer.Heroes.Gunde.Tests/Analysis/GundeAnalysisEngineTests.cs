@@ -2,7 +2,6 @@ using FellowshipAnalyzer.Core;
 using FellowshipAnalyzer.Core.Analysis;
 using FellowshipAnalyzer.Core.Events;
 using FellowshipAnalyzer.Core.FellowshipLogs;
-using FellowshipAnalyzer.Core.Game;
 using FellowshipAnalyzer.Heroes.Gunde.Analysis;
 using FellowshipAnalyzer.Heroes.Gunde.Modules;
 
@@ -106,18 +105,167 @@ public sealed class GundeAnalysisEngineTests
         {
             Debuff<ApplyDebuffEvent>(1_000, OpenWoundsFslid, Enemy),
             Cast(2_000, Spells.Slaughter.FSLID),
-            Debuff<RemoveDebuffEvent>(3_000, OpenWoundsFslid, Enemy),
-            Debuff<ApplyDebuffEvent>(5_000, OpenWoundsFslid, OtherEnemy),
-            Debuff<ApplyDebuffEvent>(35_000, OpenWoundsFslid, ThirdEnemy),
+            Debuff<RemoveDebuffEvent>(2_001, OpenWoundsFslid, Enemy),
+            Debuff<ApplyDebuffEvent>(35_000, OpenWoundsFslid, OtherEnemy),
+            Debuff<ApplyDebuffEvent>(70_000, OpenWoundsFslid, ThirdEnemy),
+        };
+
+        var (parser, _) = await AnalyzeAsync(events, boss: true, fightEnd: 75_000);
+
+        var entry = parser.SlaughterUsageAnalyzers.ShouldHaveSingleItem();
+        entry.Pull.EndTime.ShouldBe(75_000);
+
+        entry.Analyzer.TotalOpenWoundsWindows.ShouldBe(2);
+        entry.Analyzer.WastedOpenWoundsWindows.ShouldBe(1);
+    }
+
+    [Fact]
+    public async Task Analyze_SlaughterConsumingOpenWoundsOnTheSameMillisecond_StillCountsAsInsideTheWindow()
+    {
+        var events = new List<Event>
+        {
+            Debuff<ApplyDebuffEvent>(1_000, OpenWoundsFslid, Enemy),
+            Cast(5_000, Spells.Slaughter.FSLID),
+            Debuff<RemoveDebuffEvent>(5_000, OpenWoundsFslid, Enemy),
         };
 
         var (parser, _) = await AnalyzeAsync(events, boss: true, fightEnd: 40_000);
 
-        var entry = parser.SlaughterUsageAnalyzers.ShouldHaveSingleItem();
-        entry.Pull.EndTime.ShouldBe(40_000);
+        var analyzer = SingleAnalyzer(parser);
+        analyzer.Slaughters.ShouldHaveSingleItem().OpenWoundsActive.ShouldBeTrue();
+        analyzer.OpenWoundsTimed.ShouldBe(1);
+        analyzer.TotalOpenWoundsWindows.ShouldBe(1);
+        analyzer.WastedOpenWoundsWindows.ShouldBe(0);
+    }
 
-        entry.Analyzer.TotalOpenWoundsWindows.ShouldBe(2);
-        entry.Analyzer.WastedOpenWoundsWindows.ShouldBe(1);
+    [Fact]
+    public async Task Analyze_ReapplyingOpenWoundsOnTheSameEnemy_ClosesTheStaleWindowAtTheNewApply()
+    {
+        var events = new List<Event>
+        {
+            Debuff<ApplyDebuffEvent>(1_000, OpenWoundsFslid, Enemy),
+            Debuff<ApplyDebuffEvent>(10_000, OpenWoundsFslid, Enemy),
+            Cast(10_001, Spells.Slaughter.FSLID),
+        };
+
+        var (parser, _) = await AnalyzeAsync(events, boss: true, fightEnd: 40_000);
+
+        var analyzer = SingleAnalyzer(parser);
+        analyzer.Slaughters.ShouldHaveSingleItem().OpenWoundsActive.ShouldBeTrue();
+        analyzer.TotalOpenWoundsWindows.ShouldBe(2);
+        analyzer.WastedOpenWoundsWindows.ShouldBe(1);
+    }
+
+    [Fact]
+    public async Task Analyze_SlaughterOnTheMillisecondOfTheReapply_CashesInTheStaleWindowToo()
+    {
+        var events = new List<Event>
+        {
+            Debuff<ApplyDebuffEvent>(1_000, OpenWoundsFslid, Enemy),
+            Debuff<ApplyDebuffEvent>(10_000, OpenWoundsFslid, Enemy),
+            Cast(10_000, Spells.Slaughter.FSLID),
+        };
+
+        var (parser, _) = await AnalyzeAsync(events, boss: true, fightEnd: 40_000);
+
+        var analyzer = SingleAnalyzer(parser);
+        analyzer.TotalOpenWoundsWindows.ShouldBe(2);
+        analyzer.WastedOpenWoundsWindows.ShouldBe(0);
+    }
+
+    [Fact]
+    public async Task Analyze_OpenWoundsOnTwoInstancesOfTheSameEnemy_KeepsBothWindowsCashedIn()
+    {
+        var events = new List<Event>
+        {
+            Debuff<ApplyDebuffEvent>(1_000, OpenWoundsFslid, Enemy, targetInstance: 0),
+            Debuff<ApplyDebuffEvent>(1_000, OpenWoundsFslid, Enemy, targetInstance: 1),
+            Cast(2_000, Spells.Slaughter.FSLID),
+        };
+
+        var (parser, _) = await AnalyzeAsync(events, boss: true, fightEnd: 40_000);
+
+        var analyzer = SingleAnalyzer(parser);
+        analyzer.TotalOpenWoundsWindows.ShouldBe(2);
+        analyzer.WastedOpenWoundsWindows.ShouldBe(0);
+    }
+
+    [Fact]
+    public async Task Analyze_TrashPull_BleedOnTwoInstancesOfTheSameEnemy_CountsBoth()
+    {
+        var events = new List<Event>
+        {
+            Debuff<ApplyDebuffEvent>(1_000, OpenWoundsFslid, Enemy),
+            Cast(2_000, Spells.Slaughter.FSLID),
+            Debuff<ApplyDebuffEvent>(2_050, Spells.SlaughterDot.FSLID, Enemy, targetInstance: 0),
+            Debuff<ApplyDebuffEvent>(2_060, Spells.SlaughterDot.FSLID, Enemy, targetInstance: 1),
+        };
+
+        var (parser, _) = await AnalyzeAsync(events, boss: false);
+
+        var slaughter = SingleAnalyzer(parser).Slaughters.ShouldHaveSingleItem();
+        slaughter.TargetsHit.ShouldBe(2);
+        slaughter.WellExecuted.ShouldBeTrue();
+    }
+
+    [Fact]
+    public async Task Analyze_TrashPull_OpenWoundsButASingleTarget_IsNotWellExecuted()
+    {
+        var events = new List<Event>
+        {
+            Debuff<ApplyDebuffEvent>(1_000, OpenWoundsFslid, Enemy),
+            Cast(2_000, Spells.Slaughter.FSLID),
+            Debuff<ApplyDebuffEvent>(2_050, Spells.SlaughterDot.FSLID, Enemy),
+        };
+
+        var (parser, _) = await AnalyzeAsync(events, boss: false);
+
+        var analyzer = SingleAnalyzer(parser);
+        var slaughter = analyzer.Slaughters.ShouldHaveSingleItem();
+        slaughter.OpenWoundsActive.ShouldBeTrue();
+        slaughter.TargetsHit.ShouldBe(1);
+        slaughter.WellExecuted.ShouldBeFalse();
+        analyzer.WellExecuted.ShouldBe(0);
+    }
+
+    [Fact]
+    public async Task Analyze_TrashPull_PackHitWithoutOpenWounds_IsNotWellExecuted()
+    {
+        var events = new List<Event>
+        {
+            Cast(2_000, Spells.Slaughter.FSLID),
+            Debuff<ApplyDebuffEvent>(2_050, Spells.SlaughterDot.FSLID, Enemy),
+            Debuff<ApplyDebuffEvent>(2_060, Spells.SlaughterDot.FSLID, OtherEnemy),
+        };
+
+        var (parser, _) = await AnalyzeAsync(events, boss: false);
+
+        var analyzer = SingleAnalyzer(parser);
+        var slaughter = analyzer.Slaughters.ShouldHaveSingleItem();
+        slaughter.OpenWoundsActive.ShouldBeFalse();
+        slaughter.TargetsHit.ShouldBe(2);
+        slaughter.WellExecuted.ShouldBeFalse();
+        analyzer.WellExecuted.ShouldBe(0);
+    }
+
+    [Fact]
+    public async Task Analyze_BossPull_HeartSplitterPrimedWithoutOpenWounds_IsNotWellExecuted()
+    {
+        var events = new List<Event>
+        {
+            Cast(1_500, Spells.HeartSplitter.FSLID),
+            Cast(2_000, Spells.Slaughter.FSLID),
+            Debuff<ApplyDebuffEvent>(2_050, Spells.SlaughterDot.FSLID, Enemy),
+        };
+
+        var (parser, _) = await AnalyzeAsync(events, boss: true);
+
+        var analyzer = SingleAnalyzer(parser);
+        var slaughter = analyzer.Slaughters.ShouldHaveSingleItem();
+        slaughter.OpenWoundsActive.ShouldBeFalse();
+        slaughter.HeartSplitterPrimed.ShouldBeTrue();
+        slaughter.WellExecuted.ShouldBeFalse();
+        analyzer.WellExecuted.ShouldBe(0);
     }
 
     [Fact]
@@ -153,6 +301,45 @@ public sealed class GundeAnalysisEngineTests
     }
 
     [Fact]
+    public async Task Analyze_DungeonPulls_ScoreEachPullOnItsOwnShapeAndReadBackPerPull()
+    {
+        var events = new List<Event>
+        {
+            Debuff<ApplyDebuffEvent>(1_000, OpenWoundsFslid, Enemy),
+            Cast(2_000, Spells.Slaughter.FSLID),
+            Debuff<ApplyDebuffEvent>(2_050, Spells.SlaughterDot.FSLID, Enemy),
+            Debuff<ApplyDebuffEvent>(2_060, Spells.SlaughterDot.FSLID, OtherEnemy),
+            Debuff<ApplyDebuffEvent>(31_000, OpenWoundsFslid, Enemy),
+            Cast(31_500, Spells.HeartSplitter.FSLID),
+            Cast(32_000, Spells.Slaughter.FSLID),
+            Debuff<ApplyDebuffEvent>(32_050, Spells.SlaughterDot.FSLID, Enemy),
+        };
+
+        var (parser, _) = await AnalyzeAsync(events, DungeonFight());
+
+        parser.SlaughterUsageAnalyzers.Count.ShouldBe(2);
+        var trash = parser.SlaughterUsageAnalyzers[0];
+        var boss = parser.SlaughterUsageAnalyzers[1];
+
+        trash.Pull.Index.ShouldBe(0);
+        trash.Analyzer.Shape.ShouldBe(GundePullShape.Aoe);
+        var trashSlaughter = trash.Analyzer.Slaughters.ShouldHaveSingleItem();
+        trashSlaughter.TargetsHit.ShouldBe(2);
+        trashSlaughter.WellExecuted.ShouldBeTrue();
+
+        boss.Pull.Index.ShouldBe(1);
+        boss.Analyzer.Shape.ShouldBe(GundePullShape.Boss);
+        var bossSlaughter = boss.Analyzer.Slaughters.ShouldHaveSingleItem();
+        bossSlaughter.HeartSplitterPrimed.ShouldBeTrue();
+        bossSlaughter.WellExecuted.ShouldBeTrue();
+
+        trash.Pull.SlaughterUsageAnalyzer.ShouldBeSameAs(trash.Analyzer);
+        parser.For(trash.Pull).SlaughterUsageAnalyzer.ShouldBeSameAs(trash.Analyzer);
+        boss.Pull.SlaughterUsageAnalyzer.ShouldBeSameAs(boss.Analyzer);
+        parser.For(boss.Pull).SlaughterUsageAnalyzer.ShouldBeSameAs(boss.Analyzer);
+    }
+
+    [Fact]
     public async Task Analyze_ExposesBloodFeatherTrackerAndAuras()
     {
         var (parser, _) = await AnalyzeAsync(BloodFeatherEvents(), boss: true);
@@ -161,35 +348,55 @@ public sealed class GundeAnalysisEngineTests
         parser.GundeAuras.TimelineHighlightedIds.ShouldContain(Spells.ReignInBloodSelfBuff.FSLID.Value);
 
         var tracker = parser.BloodFeatherTracker.ShouldNotBeNull();
-        tracker.GetDisplayName(ResourceTypes.Tertiary).ShouldBe("Blood Feathers");
-
-        var feathers = tracker.BloodFeathers.ShouldNotBeNull();
-        feathers.Max.ShouldBe(BloodFeatherTracker.MaxBloodFeathers);
-        feathers.Current.ShouldBe(42);
+        tracker.Generated.ShouldBe(42);
+        tracker.Spent.ShouldBe(42);
+        tracker.Decayed.ShouldBe(0);
+        tracker.Current.ShouldBe(0);
+        tracker.CappedMs.ShouldBe(0);
+        tracker.Generated.ShouldBe(tracker.Spent + tracker.Decayed + tracker.Current);
     }
 
     private static List<Event> BloodFeatherEvents() =>
     [
-        CastWithFeathers(1_000, Spells.HeartSplitter.FSLID, rawAmount: 4_200),
+        FeatherBuff<ApplyBuffEvent>(1_000),
+        FeatherStack(2_000, 42),
+        Cast(5_000, Spells.OwedInBlood.FSLID),
+        FeatherBuff<RemoveBuffEvent>(5_100),
     ];
 
-    private static CastEvent CastWithFeathers(int timestamp, int abilityFslid, int rawAmount)
+    private static TEvent FeatherBuff<TEvent>(int timestamp) where TEvent : BuffEvent, new() => new()
     {
-        var cast = Cast(timestamp, abilityFslid);
-        cast.SourceResources = new ActorResources
-        {
-            HitPoints = 1_000,
-            MaxHitPoints = 1_000,
-            Resources =
+        Timestamp = timestamp,
+        SourceId = Player,
+        TargetId = Player,
+        Ability = new Ability { FSLID = Spells.OwedInBloodSelfBuff.FSLID },
+    };
+
+    private static ApplyBuffStackEvent FeatherStack(int timestamp, int stacks) => new()
+    {
+        Timestamp = timestamp,
+        SourceId = Player,
+        TargetId = Player,
+        Stack = stacks,
+        Ability = new Ability { FSLID = Spells.OwedInBloodSelfBuff.FSLID },
+    };
+
+    private static SlaughterUsageAnalyzer SingleAnalyzer(GundeCombatLogParser parser) =>
+        parser.SlaughterUsageAnalyzers.ShouldHaveSingleItem().Analyzer;
+
+    private static ReportFight DungeonFight() =>
+        new(0, "Dungeon", 0, true, 0, 60_000, null, null, null, false,
             [
-                new ClassResource { Type = ResourceTypes.Tertiary, Amount = rawAmount, Max = 15_000 },
-            ],
-        };
-        return cast;
-    }
+                new DungeonPull(1, 0, null, 0, 20_000, "Trash", null),
+                new DungeonPull(2, 42, true, 30_000, 60_000, "Boss", null),
+            ]);
+
+    private static Task<(GundeCombatLogParser Parser, HeroAnalysisResult Result)> AnalyzeAsync(
+        List<Event> events, bool boss, int fightEnd = 10_000) =>
+        AnalyzeAsync(events, new ReportFight(0, "Test", boss ? 1 : 0, true, 0, fightEnd, null, null, null));
 
     private static async Task<(GundeCombatLogParser Parser, HeroAnalysisResult Result)> AnalyzeAsync(
-        List<Event> events, bool boss, int fightEnd = 10_000)
+        List<Event> events, ReportFight fight)
     {
         var services = new ServiceCollection();
         services.AddLogging();
@@ -200,7 +407,6 @@ public sealed class GundeAnalysisEngineTests
         using var scope = provider.CreateScope();
 
         var parser = scope.ServiceProvider.GetRequiredService<GundeCombatLogParser>();
-        var fight = new ReportFight(0, "Test", boss ? 1 : 0, true, 0, fightEnd, null, null, null);
         var result = await parser.Analyze(events, Player, fight);
         return (parser, result);
     }
@@ -248,12 +454,13 @@ public sealed class GundeAnalysisEngineTests
         Ability = new Ability { FSLID = Spells.SlaughterDot.FSLID },
     };
 
-    private static TEvent Debuff<TEvent>(int timestamp, int abilityFslid, int targetId)
+    private static TEvent Debuff<TEvent>(int timestamp, int abilityFslid, int targetId, int? targetInstance = null)
         where TEvent : BuffEvent, new() => new()
     {
         Timestamp = timestamp,
         SourceId = Player,
         TargetId = targetId,
+        TargetInstance = targetInstance,
         Ability = new Ability { FSLID = abilityFslid },
     };
 
