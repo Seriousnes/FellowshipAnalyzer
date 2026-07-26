@@ -118,7 +118,8 @@ Rules:
 - Append meaningful part names with hyphens: `-header`, `-body`, `-title`, `-row`, `-icon`
 - State via compound class alongside root: `.perf-box.active`, `.spell-badge.disabled`
 - Use the semantic class names as tier modifiers: `.perfect`, `.good`, `.ok`, `.fail`
-- Keep names lowercase and hyphenated, no camelCase, no underscores, no BEM `__` or `--`
+- Keep names lowercase and hyphenated, no camelCase, no underscores, no BEM `__` element syntax
+- A single `--variant` suffix survives on the existing `Badge`, `Avatar`, and `SupportBadge` primitives (`.support-badge--full`, `.badge--solid`); tolerate it there, but name new components and their parts with flat hyphenated classes
 
 ---
 
@@ -223,10 +224,14 @@ Use it for inline `style` attributes that carry a dynamic colour (`PerformanceCo
 
 ## 6. Semantic Classes
 
-`_palette.scss` mints three global classes for each of the twenty semantic names: the four
-performance tiers (`perfect`, `good`, `ok`, `fail`), the four hero roles (`tank`, `healer`, `dps`,
-`unknown`) and the twelve event types (`cast`, `damage`, `heal`, `buff`, `buff-fade`, `debuff`,
+`_palette.scss` mints three global classes for each of the nineteen semantic names: the four
+performance tiers (`perfect`, `good`, `ok`, `fail`), the three hero roles (`tank`, `healer`, `dps`)
+and the twelve event types (`cast`, `damage`, `heal`, `buff`, `buff-fade`, `debuff`,
 `death`, `resource`, `system`, `modified`, `fabricated`, `reordered`).
+
+`--fa-role-unknown` is a token but has no semantic class: it is a low-alpha structural grey that
+would render text near-invisible, so use it as an accent edge via `var(--fa-role-unknown)` rather
+than expecting an `.unknown` class.
 
 | Form | Declares | Use for |
 |---|---|---|

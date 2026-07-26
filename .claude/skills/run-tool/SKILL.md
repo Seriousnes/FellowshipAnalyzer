@@ -1,7 +1,7 @@
 ---
 name: run-tool
-description: "Run a .NET file-based tool from src/FellowshipAnalyzer.Tools/. Use when: updating spell lists from JSON, fetching abilities from the FellowshipLogs API, or executing any file-based dotnet tool script."
-argument-hint: "Name of the tool to run (e.g. update-spells, fetch-abilities)"
+description: "Run a .NET file-based tool from src/FellowshipAnalyzer.Tools/. Use when: rebuilding spelldb.json, regenerating the palette, fetching reports or abilities from the FellowshipLogs API, or executing any file-based dotnet tool script."
+argument-hint: "Name of the tool to run (e.g. rebuild-spelldb, fetch-report)"
 ---
 
 # Run Tool
@@ -12,107 +12,97 @@ Execute a .NET 10 file-based app from `src/FellowshipAnalyzer.Tools/`.
 
 | Script | Purpose | Usage |
 |--------|---------|-------|
-| `fetch-abilities.cs` | Fetches all abilities from the FellowshipLogs API and writes `abilities.json` at the repo root. Uses the cached file if it exists; pass `--refresh` to re-fetch. | `dotnet run src/FellowshipAnalyzer.Tools/fetch-abilities.cs [--refresh]` |
+| `rebuild-spelldb.cs` | Regenerates `data/spelldb.json` from the SpellData merge engine; the source of every generated per-hero `Spells` registry. Hand corrections go in `data/overrides.json`, never in the output. | `dotnet run --no-cache src/FellowshipAnalyzer.Tools/rebuild-spelldb.cs` |
+| `emit-palette.cs` | Renders `src/FellowshipAnalyzer.Core/Styles/_palette.scss` from the C# design tokens. `PaletteScssDriftTests.Committed_Palette_Matches_The_Theme` fails the build if the committed file is stale. | from `src/FellowshipAnalyzer.Tools`: `dotnet run --no-cache emit-palette.cs "../FellowshipAnalyzer.Core/Styles/_palette.scss"` |
+| `fetch-report.cs` | Fetches one player's event stream for a fight and writes it to the gitignored `raw-reports/{code}-f{fight}-s{source}.json`. Requires credentials. | `dotnet run src/FellowshipAnalyzer.Tools/fetch-report.cs <code> <fightId> <sourceId> [outputPath]` |
+| `fetch-abilities.cs` | Fetches all abilities from the FellowshipLogs API and writes `abilities.json` at the repo root. Uses the cached file if it exists; pass `--refresh` to re-fetch. Requires credentials. | `dotnet run src/FellowshipAnalyzer.Tools/fetch-abilities.cs [--refresh]` |
+| `refresh-schema.cs` | Fetches a fresh GraphQL introspection result from the FellowshipLogs API and writes SDL to `src/FellowshipAnalyzer/FellowshipAnalyzer.Api.GraphQL/schema.graphql`. Takes no arguments and always hits the network, so it requires credentials. | `dotnet run src/FellowshipAnalyzer.Tools/refresh-schema.cs` |
+| `probe-deaths.cs` | Probes the Deaths GraphQL query semantics (defaults to the RaMDvgzWXBCnF4QT/16/25 example report; has a `--scan` mode). Requires credentials. | `dotnet run src/FellowshipAnalyzer.Tools/probe-deaths.cs` |
 | `event-schema.cs` | Scans a log JSON events array and prints every unique event type with all properties each type can have, their frequency, and JSON value kinds. Use for C# model comparison and deserialization audits. | `dotnet run src/FellowshipAnalyzer.Tools/event-schema.cs <log-json>` |
-| `refresh-schema.cs` | Converts `docs/schema.json` (GraphQL introspection result) to SDL and writes it to `src/FellowshipAnalyzer/FellowshipAnalyzer.Api.GraphQL/schema.graphql`. Pass `--no-fetch` to skip the network call and convert from the existing local file. Requires the `.env` + user-secrets setup (see Credentials) when fetching. | `dotnet run src/FellowshipAnalyzer.Tools/refresh-schema.cs [--no-fetch]` |
-| `resource-analysis.cs` | Analyzes `sourceResources.resources` across a log JSON and prints a Markdown summary of unique resource types, change patterns, and common event/ability pairings | `dotnet run src/FellowshipAnalyzer.Tools/resource-analysis.cs <log-json>` |
-| `update-spells.cs` | Reads ability data from a JSON file and updates a hero spell registry `.cs` file. JSON is authoritative for name and icon. Supports both `abilities.json` (API format) and combat-log export format. | `dotnet run src/FellowshipAnalyzer.Tools/update-spells.cs <abilities-json> <target-cs>` |
+| `resource-analysis.cs` | Analyzes `sourceResources.resources` across a log JSON and prints a Markdown summary of unique resource types, change patterns, and common event/ability pairings. | `dotnet run src/FellowshipAnalyzer.Tools/resource-analysis.cs <log-json>` |
+| `update-spells.cs` | Rewrites name/icon literals in a hand-written `Spell` declaration file. Per-hero `Spells` registries are generated from `data/spelldb.json`, so this tool no longer applies to them; use `rebuild-spelldb.cs` and `data/overrides.json` instead. Reach for it only when a genuinely hand-written declaration file needs refreshing, such as `src/FellowshipAnalyzer.Core/Common/Spells/{Hero}/Talents.cs`. | `dotnet run src/FellowshipAnalyzer.Tools/update-spells.cs <events-json> <target-cs>` |
 
 ## Procedure
 
-### Credentials (fetch-abilities, refresh-schema)
+### Credentials (fetch-report, fetch-abilities, refresh-schema, probe-deaths)
 
-The API tools read the user-secrets store id from a non-committed `.env` file at the repo root:
-
-```
-USER_SECRET_ID=fellowshipanalyzer-devapi
-```
-
-Copy `.env.example` to `.env` to get started. The store keyed by `USER_SECRET_ID` must hold `FellowshipLogs:ClientId` and `FellowshipLogs:ClientSecret`:
+The API tools read the user-secrets store id from the `.env` file at the repo root. That file is git-tracked and already holds the non-secret `USER_SECRET_ID=fellowshipanalyzer-devapi`; no copying is needed. Populate the user-secrets store it names with the credentials:
 
 ```
 dotnet user-secrets set "FellowshipLogs:ClientId" "..."     --id fellowshipanalyzer-devapi
 dotnet user-secrets set "FellowshipLogs:ClientSecret" "..." --id fellowshipanalyzer-devapi
 ```
 
-### update-spells
+### rebuild-spelldb
 
-The standard input is `abilities.json` at the repo root — a cached copy of all game abilities from the FellowshipLogs API. All entries have fully populated `Id`, `Name`, and `Icon` fields.
-
-1. Run from the repo root:
+1. Make curation edits in `data/overrides.json` (sparse `Spell` overlays by scope and member). Never hand-edit `data/spelldb.json`.
+2. Run from the repo root with `--no-cache` (see Notes):
    ```
-   dotnet run src/FellowshipAnalyzer.Tools/update-spells.cs abilities.json src/Heroes/<Hero>/Spells.cs
+   dotnet run --no-cache src/FellowshipAnalyzer.Tools/rebuild-spelldb.cs
    ```
-2. Review the output:
-   - **Updated** lines show what changed (name/icon diffs).
-   - **Not found** lines list spell/effect IDs in the `.cs` file that have no match in the JSON — verify the ID is correct.
-   - Unmatched abilities (in JSON but not in `.cs`) are also listed — these may need new entries added manually.
+3. Verify with the SpellData reproducibility tests: `dotnet test tests/FellowshipAnalyzer.SpellData.Tests/... ` (needs the `external/fs_tc_uploads` submodule initialized).
 
-The tool also accepts combat-log export JSON (objects with `guid`, `name`, `abilityIcon` properties) as an alternative input.
+### emit-palette
 
-**Spell vs Effect/Talent/Weapon matching**: The tool detects `Effect`/`Talent`/`Weapon` vs `Spell` from the C# declaration on each line. For `abilities.json`, the same ability entry is checked against both lookups; the C# file determines which applies. For combat-log format, `guid` is an FSLID: `guid >= 1_000_000` identifies effects (stored by `guid - 1_000_000` to match the base ID in the constructor), with talents at `>= 2_000_000` and weapon traits at `>= 3_000_000` using the matching offset.
+Run after any change to `FaPalette`/`FaTheme`/`FaTypography`/`FaMetrics`/`FaElevation` in `FellowshipAnalyzer.Core.Contracts/Design`:
+
+```
+cd src/FellowshipAnalyzer.Tools
+dotnet run --no-cache emit-palette.cs "../FellowshipAnalyzer.Core/Styles/_palette.scss"
+```
+
+The drift test catches a forgotten run, so a stale committed `_palette.scss` fails the build rather than shipping.
+
+### fetch-report
+
+1. Run from the repo root with the report code (anonymous reports keep their `a:` prefix), fight id, and source (player) id:
+   ```
+   dotnet run src/FellowshipAnalyzer.Tools/fetch-report.cs 6fgrXtW1b2aTZcD3 347 4
+   ```
+2. Output lands in the gitignored `raw-reports/` folder as `{code}-f{fight}-s{source}.json`. Analyze it with the `analyze-event-schema` or `analyze-log-resources` skill.
 
 ### fetch-abilities
-
-Requires the `.env` + user-secrets setup above.
 
 1. Run from the repo root:
    ```
    dotnet run src/FellowshipAnalyzer.Tools/fetch-abilities.cs
    ```
-2. If `abilities.json` already exists, the tool exits immediately with a message — no network call is made.
-3. To force a re-fetch (e.g. after a game patch adds new abilities):
-   ```
-   dotnet run src/FellowshipAnalyzer.Tools/fetch-abilities.cs --refresh
-   ```
-4. Output is written to `abilities.json` at the repo root.
+2. If `abilities.json` already exists, the tool exits immediately; pass `--refresh` to force a re-fetch after a game patch.
+3. Output is written to `abilities.json` at the repo root, which the SpellData merge reads for icons.
 
 ### refresh-schema
 
-Updates `src/FellowshipAnalyzer/FellowshipAnalyzer.Api.GraphQL/schema.graphql` from the FellowshipLogs API introspection. Run this whenever the GraphQL API schema changes before regenerating StrawberryShake client code.
+Updates `src/FellowshipAnalyzer/FellowshipAnalyzer.Api.GraphQL/schema.graphql` from the live FellowshipLogs API introspection. Run whenever the GraphQL API schema changes, before regenerating StrawberryShake client code.
 
-1. To convert from the existing cached `docs/schema.json` (no network call):
-   ```
-   dotnet run src/FellowshipAnalyzer.Tools/refresh-schema.cs --no-fetch
-   ```
-2. To fetch a fresh introspection result from the live API (requires credentials):
-   ```
+1. ```
    dotnet run src/FellowshipAnalyzer.Tools/refresh-schema.cs
    ```
-   This saves the introspection JSON to `docs/schema.json` and then converts it to SDL.
-3. After regenerating `schema.graphql`, rebuild the solution to trigger StrawberryShake's source generator:
+2. Rebuild the solution to trigger StrawberryShake's source generator:
    ```
    dotnet build FellowshipAnalyzer.slnx
    ```
-4. If the schema adds new fields used in queries, update the relevant `.graphql` files in `src/FellowshipAnalyzer/FellowshipAnalyzer.Api.GraphQL/GraphQL/` and add corresponding mapper logic in `FellowshipAnalyzer.Api.Core/GraphQLMapper.cs`.
+3. If the schema adds new fields used in queries, update the relevant `.graphql` files in `src/FellowshipAnalyzer/FellowshipAnalyzer.Api.GraphQL/GraphQL/` and add corresponding mapper logic in `FellowshipAnalyzer.Api.Core/GraphQLMapper.cs`.
 
 ### event-schema
 
-1. Identify the log JSON file to analyze. Works with `raw-report.json` or any JSON containing an events array.
+1. Identify the log JSON to analyze; real logs live in the gitignored `raw-reports/` folder.
 2. Run from the repo root:
    ```
-   dotnet run src/FellowshipAnalyzer.Tools/event-schema.cs <log-json>
+   dotnet run src/FellowshipAnalyzer.Tools/event-schema.cs raw-reports/RaMDvgzWXBCnF4QT-f16-s25.json
    ```
-3. Review the Markdown output:
-   - The summary table lists every unique event type with count and property count.
-   - Each type section lists all observed properties with frequency, JSON type(s), and child property names for nested objects.
-4. To compare the output against C# event classes and find deserialization mismatches, load the **analyze-event-schema** skill.
+3. To compare the output against C# event classes and find deserialization mismatches, load the **analyze-event-schema** skill.
 
 ### resource-analysis
 
-1. Identify the log JSON file to analyze. This works with `raw-report.json`, a top-level event array, or similar JSON that contains event objects with `sourceResources.resources`.
-2. Run from the repo root:
+1. Run from the repo root:
    ```
-   dotnet run src/FellowshipAnalyzer.Tools/resource-analysis.cs <log-json>
+   dotnet run src/FellowshipAnalyzer.Tools/resource-analysis.cs raw-reports/RaMDvgzWXBCnF4QT-f16-s25.json
    ```
-3. Review the Markdown output:
-   - The top table summarizes each unique resource type.
-   - Each type section shows amount/max ranges, event and ability pairings, and change patterns.
-   - If no matching resource objects are found, the tool reports that explicitly.
+2. Review the Markdown output: the top table summarizes each unique resource type; each type section shows amount/max ranges, event and ability pairings, and change patterns. If no matching resource objects are found, the tool reports that explicitly.
 
 ## Notes
 
-- All tools are file-based apps (no `.csproj`). Dependencies are declared via `#:package` directives at the top of each `.cs` file.
-- Run from the repository root (`G:\source\FellowshipAnalyzer`) so relative paths resolve correctly.
-- The `update-spells` tool matches spells by numeric ID. It does not add new entries — only updates existing ones.
-- `abilities.json` data is always fully populated (`Id`, `Name`, `Icon` are never null or missing).
+- All tools are file-based apps (no `.csproj`). Dependencies and build settings are declared via `#:package`, `#:project` and `#:property` directives at the top of each `.cs` file.
+- A tool with a `#:project` reference (`rebuild-spelldb.cs`, `emit-palette.cs`) must be run with `dotnet run --no-cache`, or a stale cached build of the referenced project is used and the output is silently wrong.
+- Run from the repository root (`G:\source\FellowshipAnalyzer`) unless the usage above says otherwise, so relative paths resolve correctly.
+- The `update-spells` tool matches spells by numeric ID and only updates existing entries; it never adds new ones.

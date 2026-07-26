@@ -5,7 +5,9 @@ description: "Create an auto-collected statistics Razor component for a Fellowsh
 
 # Create Statistics Component
 
-A statistics component is a Razor file in `Statistics/` that renders a summary card on the Statistics tab. It receives its module through a cascading value and is auto-collected from active modules with a non-null `StatisticsComponentType`.
+A statistics component is a Razor file in `Statistics/` that renders a summary card on the Statistics tab. It receives its module through a cascading value and is auto-collected from active fight-lifetime modules with a non-null `StatisticsComponentType`.
+
+Statistics surface optional, interesting information the Guide tab does not already show: fight-level resource totals, top contributors, item-proc counts, aggregate health. Before adding one, ask whether the Guide already covers it; if it does, do not add it. Per-cast scoring, rotation checklists and "did the player play this right" content belong on the Guide tab. Typed data stays in the module; prose and `QualitativePerformance` mapping live here in the component.
 
 ## Procedure
 
@@ -14,12 +16,13 @@ A statistics component is a Razor file in `Statistics/` that renders a summary c
 Place at `src/Heroes/FellowshipAnalyzer.Heroes.{Hero}/Statistics/{Name}Statistics.razor`.
 
 ```razor
-@namespace FellowshipAnalyzer.Heroes.{Hero}.Statistics
-@using FellowshipAnalyzer.Components
-@inherits AnalyzerStatistic<{Name}Analyzer>
+@inherits AnalyzerStatistic<{Name}Tracker>
 
 <StatCard Title="{Feature Name}">
-    <CastOverview Title="Overview" Stats="@BuildOverviewStats()" />
+    <Info>What this card measures, revealed by the info affordance.</Info>
+    <ChildContent>
+        <CastOverview Title="Overview" Stats="@BuildOverviewStats()" />
+    </ChildContent>
 </StatCard>
 
 @code {
@@ -36,7 +39,9 @@ Place at `src/Heroes/FellowshipAnalyzer.Heroes.{Hero}/Statistics/{Name}Statistic
 }
 ```
 
-`AnalyzerStatistic<T>` provides a typed `Analyzer` property from the cascading module value:
+No `@using` lines are needed: the hero `_Imports.razor` already imports `FellowshipAnalyzer.Core.UI.Components`, `.UI.Guides` and the hero's own `Statistics` namespace (see Rime's `_Imports.razor`; `WinterOrbStatistics.razor` opens straight with `@inherits`).
+
+`AnalyzerStatistic<T>` lives in `FellowshipAnalyzer.Core.Game` (`src/FellowshipAnalyzer.Core/Game/AnalyzerStatistic.cs`); `T` is constrained to `Module`, so any `Module`, `EventSubscriber`, `Analyzer` or `ResourceTracker` subclass works. It provides a typed `Analyzer` property from the cascading module value:
 
 ```csharp
 public abstract class AnalyzerStatistic<T> : ComponentBase where T : Module
@@ -46,33 +51,38 @@ public abstract class AnalyzerStatistic<T> : ComponentBase where T : Module
 }
 ```
 
+`StatCard` takes a `Header` fragment (typically a `SpellLink`, taking precedence over `Title`) or a plain `Title`, an optional `Meta` suffix, an `Info` tooltip fragment, `Size`, and `Wide`/`UltraWide` span controls. See `RollingFlamesStatistics.razor` (Ardeos) for the `Header`/`Info`/`ChildContent` form.
+
 ### 2. Link From The Module
 
-In the analyzer or tracker class, set `StatisticsComponentType`:
+In the module class, set `StatisticsComponentType`, and place the card with `StatisticCategory` and `StatisticOrder`:
 
 ```csharp
-public sealed class {Name}Analyzer : Analyzer
+public sealed partial class {Name}Tracker : Analyzer
 {
     public override Type? StatisticsComponentType => typeof({Name}Statistics);
+    public override StatisticCategory StatisticCategory => StatisticCategory.General;
+    public override StatisticOrder StatisticOrder => StatisticOrder.Default;
 }
 ```
 
-The framework auto-collects statistics from active modules and renders them with `DynamicComponent`:
+The module must be marked `partial` (so the generator can wire its `[On<>]` handlers) and registered with `[AddModule<T>]` or `[AddState<T>]`. Statistics are collected only from the parser's active-module set, which comes from the `[AddModule]`/`[AddState]` list; a pull-lifetime `[AddAnalyzer<T>]` class is never in that set, so its `StatisticsComponentType` is never read. Surface per-pull work through a guide instead.
+
+`Report.razor` groups the collected `StatisticEntry(Module, ComponentType, StatisticCategory, StatisticOrder)` entries by category, orders each group by `StatisticOrder`, renders a `StatisticsSectionTitle` and wraps the group in `StatisticsPanel` (which runs the masonry pass in `_content/FellowshipAnalyzer.Core/js/statistics-masonry.js`), then renders each entry as:
 
 ```razor
-@foreach (var (module, componentType) in _result.Statistics)
-{
-    <CascadingValue Value="@module">
-        <DynamicComponent Type="@componentType" />
-    </CascadingValue>
-}
+<CascadingValue Value="@entry.Module">
+    <DynamicComponent Type="@entry.ComponentType" />
+</CascadingValue>
 ```
+
+Do not assume a fixed card width: the panel packs cards, and `StatCard` exposes `Wide` / `UltraWide` for cards that need to span.
 
 ## Available UI Widgets
 
 | Component | Purpose |
 |-----------|---------|
-| `StatCard` | Card with title and content slot. |
+| `StatCard` | Card with `Header` fragment or `Title`, optional `Meta`, `Info` tooltip, `Size`, `Wide`/`UltraWide` spans. |
 | `CastOverview` | Summary stat group. |
 | `GradiatedPerformanceBar` | Color-graded performance bar. |
 | `PassFailBar` | Binary pass/fail bar. |
@@ -84,13 +94,15 @@ The framework auto-collects statistics from active modules and renders them with
 - Inherit `AnalyzerStatistic<T>` where `T` is the module type.
 - Access module data through the `Analyzer` property.
 - Do not inject the parser; the module comes from the cascading value.
-- Keep statistics components summary-focused. Detailed per-cast analysis belongs in guide components.
-- The module must set `StatisticsComponentType` for auto-collection to work.
+- Statistics are optional, interesting information the Guide tab does not show. Never duplicate a guide section as a statistic.
+- The module must be a fight-lifetime `[AddModule]`/`[AddState]` registration with `StatisticsComponentType` set for auto-collection to work.
 - Use the `style-guide` skill before adding or changing component styles.
 
 ## Checklist
 
 - [ ] File is at `Statistics/{Name}Statistics.razor`.
-- [ ] Component inherits `AnalyzerStatistic<{Name}Analyzer>` or the matching tracker/module type.
+- [ ] Component inherits `AnalyzerStatistic<{Name}Tracker>` or the matching module type.
 - [ ] Component uses `Analyzer` to access state.
-- [ ] Module `StatisticsComponentType` returns `typeof({Name}Statistics)`.
+- [ ] The module is `partial`, registered `[AddModule]`/`[AddState]`, and returns `typeof({Name}Statistics)` from `StatisticsComponentType`.
+- [ ] `StatisticCategory` and `StatisticOrder` place the card sensibly.
+- [ ] The card does not duplicate Guide tab content.

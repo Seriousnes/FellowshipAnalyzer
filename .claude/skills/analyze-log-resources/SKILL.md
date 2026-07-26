@@ -23,12 +23,13 @@ Run from the repository root:
 dotnet run src/FellowshipAnalyzer.Tools/resource-analysis.cs <log-json>
 ```
 
-Examples:
+Example:
 
 ```powershell
-dotnet run src/FellowshipAnalyzer.Tools/resource-analysis.cs src/FellowshipAnalyzer.FellowshipLogs/raw-report.json
-dotnet run src/FellowshipAnalyzer.Tools/resource-analysis.cs G:\logs\some-report.json
+dotnet run src/FellowshipAnalyzer.Tools/resource-analysis.cs raw-reports/RaMDvgzWXBCnF4QT-f16-s25.json
 ```
+
+Report JSON lives in the gitignored `raw-reports/` folder at the repo root, named `{code}-f{fightId}-s{sourceId}.json`; fetch a new one with `fetch-report.cs` (run-tool skill).
 
 ## Input Shapes Supported
 
@@ -56,5 +57,7 @@ The tool prints Markdown with:
 
 - Prefer returning the tool's Markdown directly when the user asked for analysis.
 - If the output is long, keep the top table and the most relevant type sections, then summarize the rest.
+- Map an observed numeric `type` against `ResourceTypes` in `src/FellowshipAnalyzer.Core/Game/ResourceTypes.cs` and its `[ResourceName]` attributes before inferring meaning; that is the source of truth for which slot a hero's resource occupies.
+- The tool reports raw JSON values. `ResourceNormalizer` divides amount, max and cost by 100 before dispatch, so a raw `500` is `5` to an analyzer, and a raw `max: -100` is the no-maximum sentinel that becomes -1.
 - If the user asks what a type likely means, make it clear when the conclusion is inferred from patterns rather than confirmed by source code.
 - If the tool reports no `sourceResources.resources`, tell the user the file does not include that structure instead of guessing.

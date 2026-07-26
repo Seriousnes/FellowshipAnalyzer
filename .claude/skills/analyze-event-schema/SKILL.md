@@ -27,8 +27,10 @@ dotnet run src/FellowshipAnalyzer.Tools/event-schema.cs <log-json>
 Example:
 
 ```powershell
-dotnet run src/FellowshipAnalyzer.Tools/event-schema.cs src/FellowshipAnalyzer.FellowshipLogs/raw-report.json
+dotnet run src/FellowshipAnalyzer.Tools/event-schema.cs raw-reports/RaMDvgzWXBCnF4QT-f16-s25.json
 ```
+
+Raw report JSON lives in the gitignored `raw-reports/` folder at the repo root, named `{code}-f{fightId}-s{sourceId}.json`. Fetch a new one with `dotnet run src/FellowshipAnalyzer.Tools/fetch-report.cs <code> <fightId> <sourceId>`.
 
 ## Input Shapes Supported
 
@@ -49,16 +51,14 @@ dotnet run src/FellowshipAnalyzer.Tools/event-schema.cs src/FellowshipAnalyzer.F
 - Capability interfaces such as `IAbilityEvent`, `IExtraAbilityEvent`, `IHasSourceEvent`, and `IHasTargetEvent` expose common properties for filters and analyzers.
 - `ActorResources` models nested `sourceResources` and `targetResources`, including hit points, max hit points, absorb, position, facing, and `resources`.
 - `Ability` maps nested JSON ability objects. `guid` maps to `Ability.FSLID`; `Ability.Id` is an ignored alias.
-- `FSLJsonConverter<Event>` dispatches to concrete event classes based on the `type` discriminator.
+- `Event` is `[JsonPolymorphic(TypeDiscriminatorPropertyName = "type")]` with `UnknownDerivedTypeHandling.FailSerialization`. `JsonDerivedTypeGenerator` emits the `[JsonDerivedType]` list: every non-abstract subclass whose name ends in `Event` maps to that name minus the `Event` suffix, lowercased (`DeathEvent` to `death`). Subclasses marked `[Fabricated]` anywhere in their base chain are excluded; they are parser-created and never appear in log JSON.
 
 ## Mapping Procedure
 
 For each event type in the tool output:
 
 1. Find the matching C# class in `src/FellowshipAnalyzer.Core/Events/`.
-2. Confirm how the event type maps to the class:
-   - `[FSLEventDiscriminator("type")]` on the class, or
-   - class name stripped of `Event` and lowercased, for example `DeathEvent` maps to `death`.
+2. Confirm how the event type maps to the class: the class name stripped of `Event` and lowercased, for example `DeathEvent` maps to `death` (there is no per-class discriminator attribute). If the C# class carries `[Fabricated]`, it is not in the discriminator map at all and no JSON event will ever produce it.
 3. List inherited and declared C# properties.
 4. Apply JSON naming rules:
    - `JsonNamingPolicy.CamelCase` maps `SourceId` to `sourceId`.
@@ -84,7 +84,7 @@ For each event type in the tool output:
 - `fight`, `sourceResources`, and `targetResources` are modeled on the base `Event` class.
 - Advanced actor details such as health, absorb, position, facing, and resources belong under `ActorResources`.
 - Ability master data may be hydrated by `AbilityMasterDataNormalizer` from report master data when events only contain IDs.
-- `ResourceNormalizer` scales resource snapshots before analyzers consume them.
+- `ResourceNormalizer` divides every resource snapshot's `amount`, `max` and `cost` by 100 before analyzers see them, so a raw-JSON value is 100x the analyzer-visible one. HitPoints and MaxHitPoints stay unscaled, and the `max: -100` no-maximum sentinel becomes -1.
 - Synthetic fields such as `GlobalCooldown`, `Channel`, `LinkedEvents`, `Trigger`, and `Fabricated` may be set by normalizers or the parser rather than deserialized directly.
 
 ## Response Guidance

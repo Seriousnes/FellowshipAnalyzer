@@ -1,6 +1,6 @@
 # FellowshipAnalyzer Architecture Overview
 
-This is the current implementation reference for FellowshipAnalyzer. Keep it concise and factual; task-specific workflows live in `.github/skills/`.
+This is the current implementation reference for FellowshipAnalyzer. Keep it concise and factual; task-specific workflows live in `.claude/skills/`.
 
 ## Runtime Flow
 
@@ -18,11 +18,10 @@ FellowshipLogs API JSON
 
 Important projects:
 
-- `FellowshipAnalyzer.Core` contains events, parser infrastructure, modules, normalizers, spell definitions, and core services.
-- `FellowshipAnalyzer.Generators` generates parser constructors, module accessors, module/normalizer type lists, and DI registration extensions.
-- `FellowshipAnalyzer.Components` contains shared Razor components and SCSS tokens/mixins.
-- `FellowshipAnalyzer.Heroes.Rime` is the current hero implementation and the best source for concrete patterns.
-- `FellowshipAnalyzer.FellowshipLogs` contains Fellowship Logs API integration.
+- `FellowshipAnalyzer.Core` contains events, parser infrastructure, modules, normalizers, spell registries, core services, shared Razor UI under `UI/`, SCSS tokens/mixins under `Styles/`, and the Fellowship Logs client under `FellowshipLogs/`.
+- `FellowshipAnalyzer.Generators` generates parser constructors, module accessors, pull-analyzer surfaces, module/normalizer type lists, spell registries, talent constants, and DI registration extensions.
+- `src/Heroes/` holds one project per hero. `FellowshipAnalyzer.Heroes.Rime` is the compact reference; `FellowshipAnalyzer.Heroes.Ardeos` is the most built-out; `FellowshipAnalyzer.Heroes.Gunde` is the newest scaffold.
+- `FellowshipAnalyzer.Api` / `Api.Core` / `Api.GraphQL` cover Fellowship Logs API access on the server side.
 
 ## Event Model
 
@@ -84,17 +83,19 @@ The generator emits:
 - `Add{Hero}Analysis()` DI extension methods and keyed `IHeroAnalyzer` registration.
 - `AddCoreAnalysis()` for shared analysis services, base modules, and base normalizers.
 
-Application startup should register shared analysis services first, then hero analysis services:
+Application startup registers shared analysis services first, then every referenced hero at once through the generated manifest:
 
 ```csharp
 builder.Services.AddCoreAnalysisServices();
 builder.Services.AddCoreAnalysis();
-builder.Services.AddRimeAnalysis();
+builder.Services.AddFellowshipHeroAnalysis();
 ```
+
+`AddFellowshipHeroAnalysis()` is emitted by `HeroManifestGenerator` from the `[GenerateHeroManifest]` marker; it scans referenced assemblies for `[HeroAnalyzer]` parsers at compile time and calls each hero's `Add{Hero}Analysis()`, so adding a hero project reference is the whole wiring step.
 
 ## Module Lifecycle
 
-Modules are scoped DI services resolved by `CombatLogParser.Analyze`. The parser assigns `Owner` and `Priority` after resolving each module. There is no `Initialize` or `Complete` virtual — setup runs in the constructor, and finalized metrics are exposed as public properties (computed on read, or set from an `[On<FightEndEvent>]` handler).
+Modules are constructed per analysis run by a generator-emitted factory; sibling-module constructor parameters resolve through the parser's own module cache and any other parameter type falls back to the service provider. The parser assigns `Owner` and `Priority` after constructing each module. There is no `Initialize` or `Complete` virtual - setup runs in the constructor, and finalized metrics are exposed as public properties (computed on read, or set from an `[On<FightEndEvent>]` handler).
 
 ```csharp
 public abstract class Module
@@ -111,14 +112,14 @@ public abstract class Module
 Use this lifecycle:
 
 - Declare modules with `[AddModule<T>]` on the parser. Declaration order becomes module priority; `[Before<T>]` / `[After<T>]` refine it.
-- Do setup work that needs the selected player or the raw event list in the constructor — inject `ParseContext` and/or `IReadOnlyList<Event>`.
+- Do setup work that needs the selected player or the raw event list in the constructor - inject `ParseContext` and/or `IReadOnlyList<Event>`.
 - Subscribe to events declaratively with `[On<TEvent>]` attributes on instance methods. The `ModuleGenerator` emits the corresponding `RegisterSubscriptions` plumbing.
 - Hook fight-boundary setup via `[On<FightStartEvent>]` and finalization via `[On<FightEndEvent>]` (the `FightBookendNormalizer` fabricates both).
 - Expose state as public read-only properties and typed entry records; guide and statistics components read them directly. Keep prose, severity wording, and `PerformanceTier` judgments in the Razor components - modules hold typed data only.
-- Use `Lazy<TOther>` ctor injection for cross-module references; the generator emits a cached `_camelCaseName` accessor. `Lazy<>` edges are ignored by the FA0013 cycle analyzer.
+- Declare cross-module references with `[Uses<TOther>]` on the class; the generator emits the `Lazy<TOther>` primary-constructor parameter and a cached PascalCase accessor named after the type. `Lazy<>` edges are ignored by the FA0013 cycle analyzer. A class that also needs an outer service (such as `ILogger`) keeps a hand-written constructor instead.
 - Do not require `CombatLogParser` in module constructors; the parser sets `Owner` after DI resolution.
 
-Activation is two-tiered. Use the mutable `Active` flag for dynamic deactivation that must respect mid-fight state. Use `[ActiveWhen<TPredicate>]` (where `TPredicate : IModuleActivePredicate`) for compile-time gating evaluated at parser construction — predicates read `ParseContext`, including `SelectedCombatant`, which the parser builds from the player's `CombatantInfoEvent` before any module is constructed.
+Activation is two-tiered. Use the mutable `Active` flag for dynamic deactivation that must respect mid-fight state. Use `[ActiveWhen<TPredicate>]` (where `TPredicate : IModuleActivePredicate`) for compile-time gating evaluated at parser construction - predicates read `ParseContext`, including `SelectedCombatant`, which the parser builds from the player's `CombatantInfoEvent` before any module is constructed.
 
 `Analyzer` is the pull-lifetime specialization of `EventSubscriber`. Declare analyzers with `[AddAnalyzer<T>]` on the parser and `[ForPull(PullKind…, Boss = …)]` on the analyzer. A fresh instance is constructed for every matching pull, accumulates that pull's events into private state, and is retained on the pull read surfaces; it exposes its metrics as get-style properties (reading its assigned `Pull` for boundary values such as `Pull.EndTime`) rather than finalizing at pull end. The parser still emits a `PullEndEvent` to the pull's own analyzers as it closes (once per pull, even a force-close) for anything that must react to the pull ending as an event, such as snapshotting a fight-lifetime module's live state:
 

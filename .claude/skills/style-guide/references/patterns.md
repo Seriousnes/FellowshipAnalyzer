@@ -234,7 +234,7 @@ Small all-caps section label. Available everywhere as a global class.
 <p class="eyebrow">Statistics</p>
 ```
 
-Defined in `app.scss` — **do not redefine in components**.
+Defined in `app.scss` - **do not redefine in components**.
 
 ---
 

@@ -20,10 +20,12 @@ Place at `src/Heroes/FellowshipAnalyzer.Heroes.{Hero}/Guides/{Name}Guide.razor`.
 For a pull-lifetime analyzer (registered with `[AddAnalyzer<T>]`), read the cross-pull stream `Parser.{Name}Analyzers` - a list of `(Pull, Analyzer)` pairs:
 
 ```razor
-@namespace FellowshipAnalyzer.Heroes.{Hero}.Guides
 @inject {Hero}CombatLogParser Parser
 
 <GuideSection Title="{Feature Name}">
+    <Explanation>
+        <p>What this section measures and why it matters. Prose belongs here, in the guide layer.</p>
+    </Explanation>
     <ChildContent>
         <CastOverview Title="Overview" Stats="@BuildOverviewStats()" />
         <CastDetail Title="Per-Pull {Feature Name}" Casts="@BuildPerPullData()" />
@@ -92,7 +94,6 @@ For a shared-surface family that *does* share machinery (one abstract base, shap
 Each hero has a root guide component at `src/Heroes/FellowshipAnalyzer.Heroes.{Hero}/{Hero}Guide.razor`.
 
 ```razor
-@namespace FellowshipAnalyzer.Heroes.{Hero}.Guides
 @using FellowshipAnalyzer.Heroes.{Hero}.Analysis
 @inject {Hero}CombatLogParser Parser
 
@@ -118,7 +119,7 @@ From `FellowshipAnalyzer.Core.UI.Guides`:
 
 | Component | Purpose |
 |-----------|---------|
-| `GuideSection` | Titled collapsible guide section wrapper. |
+| `GuideSection` | Titled two-column guide section: `Explanation` prose on the left, `ChildContent` data on the right, split by `ExplanationPercent` (default 40). |
 | `CastOverview` | Summary stats across all occurrences. |
 | `CastDetail` | Per-cast breakdown with performance boxes and optional sequence/details. |
 | `GradiatedPerformanceBar` | Color-graded performance bar. |
@@ -126,14 +127,15 @@ From `FellowshipAnalyzer.Core.UI.Guides`:
 | `PerformanceBoxRow` | Row of colored performance boxes. |
 | `SpellSequence` | Filmstrip of spell casts. |
 | `StackedBar` | Stacked horizontal bar chart. |
-| `StatCard` | Statistics card container; normally used by statistics components. |
+
+`StatCard` (statistics card container, normally used by statistics components) lives in `FellowshipAnalyzer.Core.UI.Components`, not in `.UI.Guides`.
 
 ## Key Rules
 
 - Guide components go in `Guides/`.
 - The hero root guide lives at the hero project root as `{Hero}Guide.razor`.
 - Inject the hero parser with `@inject`.
-- Read pull analyzers via `Parser.{Name}Analyzers` / `Parser.For(pull).{Name}` and fight-lifetime modules via generated properties such as `Parser.WinterOrbTracker`.
+- Read pull analyzers via `Parser.{Name}Analyzers`, `Parser.For(pull).{Name}Analyzer` or the `pull.{Name}Analyzer` extension (the member is named after the surface type, with a leading `I` stripped for a marker interface). Read fight-lifetime modules via generated properties such as `Parser.WinterOrbTracker`, where the `Analyzer` suffix is stripped.
 - Keep event-derived state in modules; keep prose, severity wording, and `PerformanceTier` mapping here.
 - Project per-pull rows with the `ToPullRows` / `ToItemRows` extensions returning `PerCastRow`; use `PerformanceTiers.FromThresholds` for tier ladders.
 - Use shared components from `FellowshipAnalyzer.Core.UI.Guides` when possible.

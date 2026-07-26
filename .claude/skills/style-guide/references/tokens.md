@@ -13,8 +13,9 @@ Token values live in C#, under `src/FellowshipAnalyzer.Core.Contracts/Design/`:
 | `FaVar` | The `var(--fa-*)` reference C# hands to markup, one per token named from code |
 
 `src/FellowshipAnalyzer.Tools/emit-palette.cs` renders `FaTheme` into
-`src/FellowshipAnalyzer.Core/Styles/_palette.scss`, which declares all 96 tokens under `:root`,
+`src/FellowshipAnalyzer.Core/Styles/_palette.scss`, which declares every token under `:root`,
 `:root[data-theme='dark']` and `:root[data-theme='light']`, then mints the semantic classes.
+The emitter prints the live token count on each run, and the drift test enforces completeness.
 A drift test fails the build if the committed partial does not match the C# theme.
 
 Every token resolves in every theme, so stylesheets write `var(--fa-*)` with no fallback.
@@ -163,7 +164,7 @@ chart's failing marker wears on top of it.
 There is no design-system series palette, and adding one would paint every hero's chart the same.
 A chart's series colours belong to the caller: Ardeos reads in the fire ramp, a frost hero would
 read in cold steps. Declare the token names your chart uses, in slot order, next to that hero's
-guides, and never reassign a slot when a series is empty — a colour follows the thing it names, so
+guides, and never reassign a slot when a series is empty - a colour follows the thing it names, so
 a filter that drops a series must not repaint the survivors.
 
 Adjacent slots are the pairs a stacked chart puts side by side, so a substituted or reordered step
@@ -318,7 +319,7 @@ The step is baked at compile time, the colour is not, so a runtime theme change 
 
 ## Semantic classes
 
-`_palette.scss` mints three classes for each of the twenty names in `FaSemantic`:
+`_palette.scss` mints three classes for each of the nineteen names in `FaSemantic`:
 
 | Form | Declares |
 |---|---|
@@ -329,8 +330,10 @@ The step is baked at compile time, the colour is not, so a runtime theme change 
 | Group | Names |
 |---|---|
 | Performance tiers | `perfect`, `good`, `ok`, `fail` |
-| Hero roles | `tank`, `healer`, `dps`, `unknown` |
+| Hero roles | `tank`, `healer`, `dps` |
 | Event types | `cast`, `damage`, `heal`, `buff`, `buff-fade`, `debuff`, `death`, `resource`, `system`, `modified`, `fabricated`, `reordered` |
+
+`--fa-role-unknown` is a token with no semantic class, by design: a low-alpha structural grey that would render text near-invisible, meant for accent edges via `var(--fa-role-unknown)`.
 
 A component applies the class rather than restating the token.
 

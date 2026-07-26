@@ -3,12 +3,12 @@
 ## Convention: Atomic Design + Flat Hyphenated
 
 FellowshipAnalyzer uses **Atomic Design** to organize components by complexity.
-Class names are **lowercase** and **hyphenated** — always flat, never BEM.
+Class names are **lowercase** and **hyphenated** - always flat, never BEM.
 
 ```
-{atom}               — smallest self-contained element
-{molecule}-{part}    — group of atoms, sub-parts named descriptively
-{organism}-{part}    — group of molecules, larger layout sections
+{atom}               - smallest self-contained element
+{molecule}-{part}    - group of atoms, sub-parts named descriptively
+{organism}-{part}    - group of molecules, larger layout sections
 ```
 
 ---
@@ -20,7 +20,7 @@ Class names are **lowercase** and **hyphenated** — always flat, never BEM.
 | **Atom** | Smallest, indivisible UI unit | `.spell-icon`, `.perf-dot`, `.stat-value`, `.eyebrow` |
 | **Molecule** | Composed of atoms, a distinct UI concept | `.stat-card`, `.spell-badge`, `.perf-box`, `.cast-row` |
 | **Organism** | Composed of molecules, a major UI region | `.guide-section`, `.cast-overview`, `.timeline` |
-| **Global** | Layout / page-level | `app.scss` only — resets, typography, Blazor defaults |
+| **Global** | Layout / page-level | `app.scss` only - resets, typography, Blazor defaults |
 
 Blazor `.razor.scss` scoping means atoms and molecules can share short names without collision. Use the atomic level to guide *how* you name, not as a CSS class prefix.
 
@@ -29,29 +29,29 @@ Blazor `.razor.scss` scoping means atoms and molecules can share short names wit
 ## Good Examples
 
 ```scss
-// Atom — single element, no sub-parts needed
+// Atom - single element, no sub-parts needed
 .spell-icon { }
 .perf-dot { }
 
-// Molecule — root + flat named parts
+// Molecule - root + flat named parts
 .stat-card { }
 .stat-card-header { }
 .stat-card-title { }
 .stat-card-body { }
 
-// State modifiers — compound class, always alongside root
+// State modifiers - compound class, always alongside root
 .perf-box { }
 .perf-box.active { }
 .perf-box.clickable { }
 
-// Organism — flat named parts, no nesting in class names
+// Organism - flat named parts, no nesting in class names
 .guide-section { }
 .guide-section-header { }
 .guide-section-body { }
 .guide-section-explanation { }
 .guide-section-data { }
 
-// Timeline atom parts — stay flat, no BEM
+// Timeline atom parts - stay flat, no BEM
 .timeline-label { }
 .timeline-label-name { }      // ✓  (not .timeline-label__name)
 .timeline-label-name-section { }  // ✓  (not .timeline-label__name--section)
@@ -64,7 +64,8 @@ Blazor `.razor.scss` scoping means atoms and molecules can share short names wit
 | Rule | Example |
 |---|---|
 | Always flat hyphenated | `.guide-section-header` ✓ not `.guide-section__header` ✗ |
-| No BEM (`__` or `--`) ever | `.timeline-label-name` ✓ not `.timeline-label__name` ✗ |
+| No BEM `__` element syntax | `.timeline-label-name` ✓ not `.timeline-label__name` ✗ |
+| `--variant` suffix only on the existing `Badge`/`Avatar`/`SupportBadge` primitives | `.support-badge--full` tolerated there; new components use flat names |
 | Start with the atom/molecule/organism name | `.guide-section`, `.cast-overview` |
 | Append meaningful part names | `.guide-section-header`, `.guide-section-body` |
 | State via compound class (no dash) | `.spell-badge.disabled`, `.cast-card.expanded` |
@@ -141,7 +142,7 @@ The four performance tiers:
 | `.ok` | `--fa-perf-ok` | `QualitativePerformance.Ok` |
 | `.fail` | `--fa-perf-fail` | `QualitativePerformance.Fail` |
 
-The four hero roles are `.tank`, `.healer`, `.dps` and `.unknown`; the twelve event types are
+The three hero roles are `.tank`, `.healer` and `.dps` (`--fa-role-unknown` is a token with no class, by design); the twelve event types are
 `.cast`, `.damage`, `.heal`, `.buff`, `.buff-fade`, `.debuff`, `.death`, `.resource`, `.system`,
 `.modified`, `.fabricated` and `.reordered`.
 

@@ -14,7 +14,7 @@ Reference implementation: `src/Heroes/FellowshipAnalyzer.Heroes.Tariq/Modules/Fu
 ## Two lifetimes
 
 - **Pull-lifetime analyzer** (the default for gameplay analysis): derives from `Analyzer`, is declared with `[AddAnalyzer<T>]` on the parser, and carries `[ForPull(PullKind…, Boss = …)]`. A fresh instance is constructed for every matching pull, so its state is per-pull by construction.
-- **Fight-lifetime module**: derives from `EventSubscriber`, is declared with `[AddModule<T>]` (or `[AddState<T>]` when pull analyzers depend on it), and observes the whole fight. Use for cross-pull state, statistics sources, and infrastructure.
+- **Fight-lifetime module**: declared with `[AddModule<T>]` (or `[AddState<T>]` when pull analyzers read it), observes the whole fight, and is constructed once per run. The registration attribute, not the base class, decides the lifetime: a class deriving from `Analyzer` but registered `[AddModule]` runs fight-lifetime and its `Pull` property is never assigned. Use for cross-pull state, statistics sources, and infrastructure.
 
 ## Procedure
 
@@ -90,6 +90,8 @@ If this module has a statistics component, expose it (a dynamic expression is fi
 public override Type? StatisticsComponentType => Procs > 0 ? typeof({Name}Statistics) : null;
 ```
 
+Statistics are collected only from fight-lifetime modules: the parser builds the statistics list from its active-module set, which comes from the `[AddModule]`/`[AddState]` list, so a pull-lifetime `[AddAnalyzer<T>]` class never has its `StatisticsComponentType` read. Also override `StatisticCategory` and `StatisticOrder` to place the card.
+
 ## Event Subscription API
 
 Declare each handler with a `[On<TEvent>]` attribute on a private (or internal) instance method. The `ModuleGenerator` translates the attributes into a `RegisterAttributeSubscriptions` override with inlined predicates.
@@ -119,31 +121,36 @@ Use `[On<Event>]` for an unfiltered "any event" subscription. Use `[On<FightStar
 
 ## Dependencies
 
-Modules are resolved from DI, then the parser assigns `Owner`. Do not require `CombatLogParser` in an analyzer constructor.
+Modules are constructed per analysis run by a generator-emitted factory, not resolved from the DI container; the parser then assigns `Owner`. Sibling-module constructor parameters resolve through the parser's own module cache, and any other parameter type falls back to the service provider. Do not require `CombatLogParser` in a constructor.
 
-For module-to-module access, prefer `Lazy<TOther>` constructor injection. The `ModuleGenerator` emits a cached `_camelCaseName` private accessor for every primary-ctor parameter of type `Lazy<TModule>`:
+Declare a sibling-module dependency with `[Uses<TOther>]` on the class. The generator emits the `Lazy<TOther>` primary-constructor parameter and a cached PascalCase accessor named after the type, so the body reads naturally:
 
 ```csharp
-public sealed partial class FreezingTorrentAnalyzer(Lazy<SpellUsable> spellUsable) : Analyzer
+[Uses<SpellUsable>]
+public sealed partial class FreezingTorrentAnalyzer : Analyzer
 {
     [On<CastEvent>(By = Actor.Player)]
     private void OnCast(CastEvent e)
     {
-        if (_spellUsable.IsAvailable(e.Ability.Id)) { … }
+        if (SpellUsable.IsAvailable(e.Ability.Id)) { … }
     }
 }
 ```
 
-`Lazy<T>` defers resolution to dispatch time, so two modules that reference each other can ctor-inject through `Lazy<>` without hitting the FA0013 cycle diagnostic. Plain (non-Lazy) module-to-module ctor injection is fine for acyclic dependencies. For ad-hoc lookups, use `Owner.GetModule<T>()`.
+`Lazy<T>` resolution is deferred to dispatch time, so two modules that reference each other can both declare `[Uses<T>]` without hitting the FA0013 cycle diagnostic. A class that also needs an outer service (for example `ILogger`, as `ResourceTracker` does) keeps a hand-written constructor instead; declaring both forms reports FA0018 and the attribute is ignored. For ad-hoc lookups, use `Owner.GetModule<T>()`.
 
 A pull-lifetime analyzer may depend on `[AddState]` fight-lifetime modules for point-in-time snapshots, but never on another analyzer (FA0014).
+
+## Gating On A Talent
+
+Gate a module on a talent with `[RequiresTalent({Hero}Talents.Name)]`, using a `using ArdeosTalents = FellowshipAnalyzer.Core.Common.Spells.ArdeosTalents;` alias (importing the whole `Core.Common.Spells` namespace collides with the `Spells` registry class). The `{Hero}Talents` constants are generated from the hand-written `Core/Common/Spells/{Hero}/Talents.cs` and carry native ids. Repeat the attribute for AND-ed talents. Do not gate an analyzer whose job is to report whether the optimal talent is taken: gating makes its build-active readout trivially true. Leave that one ungated and record `Combatants.Selected.HasTalent(...)` into a property instead.
 
 ## Key Rules
 
 - Pull-scoped gameplay analysis extends `Analyzer` with `[ForPull]` and registers via `[AddAnalyzer<T>]`. For resources, use `ResourceTracker` through the `create-resource-tracker` skill.
 - Mark the class `partial`.
 - Declare event subscriptions with `[On<TEvent>]` attributes, never in the constructor.
-- Use `Lazy<TOther>` ctor injection to break dependency cycles. Do not take `CombatLogParser` in the constructor.
+- Declare sibling-module dependencies with `[Uses<TOther>]` (or `Owner.GetModule<T>()` for ad-hoc reads). Do not take `CombatLogParser` in the constructor.
 - Expose per-pull metrics as get-style properties (or methods) over the accumulated state; do not finalize at pull end. For an interval still open at pull end, read `Pull.EndTime` inside the getter; memoize heavy multi-output computations once behind a private field.
 - Typed data only: no prose sentences, severity strings, score cards, or `QualitativePerformance` decisions inside the module - those live in the consuming Razor component.
 - Keep the module pure C#: no Razor, `RenderFragment`, or Blazor component dependencies.
@@ -154,7 +161,7 @@ A pull-lifetime analyzer may depend on `[AddState]` fight-lifetime modules for p
 - [ ] File is at `Modules/{Name}Analyzer.cs`.
 - [ ] Class is `partial`, extends `Analyzer`, and declares `[ForPull]` (or is a fight-lifetime `EventSubscriber` registered with `[AddModule]`).
 - [ ] Event handlers are decorated with `[On<TEvent>]` attributes.
-- [ ] Cross-module reads use `Lazy<TOther>` ctor injection (or `Owner.GetModule<T>()`), never another analyzer.
+- [ ] Cross-module reads use `[Uses<TOther>]` (or `Owner.GetModule<T>()`), never another analyzer.
 - [ ] Per-pull metrics are get-style properties over accumulated state (reading `Pull.EndTime` for still-open intervals), not finalized at pull end.
 - [ ] No prose or severity strings in the module.
 - [ ] `[AddAnalyzer<T>]` / `[AddModule<T>]` is added to the hero parser.

@@ -5,7 +5,7 @@ description: "Scaffold a complete new hero analysis module for FellowshipAnalyze
 
 # Create Hero
 
-Scaffold a complete hero analysis project using the current source-generated parser model. Use `src/FellowshipAnalyzer.Heroes.Rime/` as the reference implementation.
+Scaffold a complete hero analysis project using the current source-generated parser model. Use `src/Heroes/FellowshipAnalyzer.Heroes.Rime/` for the cleanest minimal shape and `src/Heroes/FellowshipAnalyzer.Heroes.Gunde/` for the most recently scaffolded hero (it shows the current file set, including `GundeCombatLogParser.Config.cs` and `Changelog.razor`). `src/Heroes/FellowshipAnalyzer.Heroes.Ardeos/` is the most built-out hero.
 
 ## Procedure
 
@@ -22,25 +22,28 @@ Create a Razor Class Library at `src/Heroes/FellowshipAnalyzer.Heroes.{Hero}/`:
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="AspNetCore.SassCompiler" Version="1.77.8" />
-    <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="10.0.7" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.7" />
+    <PackageReference Include="AspNetCore.SassCompiler" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.Web" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
     <SupportedPlatform Include="browser" />
-    <ProjectReference Include="..\FellowshipAnalyzer.Core\FellowshipAnalyzer.Core.csproj" />
-    <ProjectReference Include="..\FellowshipAnalyzer.Components\FellowshipAnalyzer.Components.csproj" />
-    <ProjectReference Include="..\FellowshipAnalyzer.Generators\FellowshipAnalyzer.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\..\FellowshipAnalyzer.Core\FellowshipAnalyzer.Core.csproj" />
+    <ProjectReference Include="..\..\FellowshipAnalyzer.Generators\FellowshipAnalyzer.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
   </ItemGroup>
 </Project>
 ```
 
-Add the project to `FellowshipAnalyzer.slnx` and reference it from the Client project.
+Do not add a `Version` attribute to any `PackageReference`; central package management resolves versions from `src/Heroes/Directory.Packages.props`. Hero projects sit two levels below `src/`, so project references use the `..\..\` prefix.
+
+Add the project to `FellowshipAnalyzer.slnx` and as a `ProjectReference` in `src/FellowshipAnalyzer/FellowshipAnalyzer/FellowshipAnalyzer.csproj`.
 
 ### 2. Create Folder Structure
 
 ```text
 src/Heroes/FellowshipAnalyzer.Heroes.{Hero}/
   {Hero}CombatLogParser.cs
+  {Hero}CombatLogParser.Config.cs
   {Hero}Guide.razor
+  Changelog.razor
   _Imports.razor
   sasscompiler.json
   Modules/
@@ -52,32 +55,36 @@ src/Heroes/FellowshipAnalyzer.Heroes.{Hero}/
 
 Use `Modules/` for analyzers, resource trackers, auras, and the hero `Abilities` module.
 
-### 3. Define Spell Identity Data
+### 3. Spell Identity Data
 
-Shared spell identity data lives in Core. Add a hero spell registry under `src/FellowshipAnalyzer.Core/Common/Spells/{Hero}/Spells.cs`:
+Hero spell registries are generated. Add the hero's scope to `data/spelldb.json` by running `dotnet run --no-cache src/FellowshipAnalyzer.Tools/rebuild-spelldb.cs`, which reconciles the source data through the `FellowshipAnalyzer.SpellData` merge engine; hand corrections go in `data/overrides.json`, never in a generated `Spells.cs`. `ConsolidatedSpellRegistryGenerator` then emits `FellowshipAnalyzer.Core.Common.Spells.{Hero}.Spells : ISpellRegistry` with one `public static Spell` member per entry.
 
-```csharp
-namespace FellowshipAnalyzer.Core.Common.Spells.{Hero};
+If the generated partial needs a hand-written companion, add an empty `public partial class Spells : ISpellRegistry { }` stub at `src/FellowshipAnalyzer.Core/Common/Spells/{Hero}/Spells.cs`, as Gunde does.
 
-public class Spells : ISpellRegistry
-{
-    public static Spell BasicAttack { get; } = new(1001, "Basic Attack", "basic.jpg");
-    public static Spell SpecialAbility { get; } = new(1002, "Special Ability", "special.jpg");
-}
+Talents stay hand-written at `src/FellowshipAnalyzer.Core/Common/Spells/{Hero}/Talents.cs`; `TalentIdConstantsGenerator` emits the `{Hero}Talents` constants from them. Costs are `ResourceTypes`-keyed on `Spell.Costs` and read with `Cost(ResourceTypes)`.
+
+### 4. Register The Hero In Core
+
+In `src/FellowshipAnalyzer.Core/Analysis/Heroes.cs`:
+
+1. Add `{Hero}` to the `HeroName` enum (alphabetical).
+2. Add a `Hero.{Hero}` static field with its `HeroRole` and include it in `Hero.All`.
+3. Add the `HeroNameExtensions.ToHeroId` arm, the `Hero.IconUrl` arm (a fellows.gg portrait URL), and the `Hero.Color` arm returning `FaVar.Hero{Name}`.
+
+The colour token: add `--fa-hero-{name}` to `FaPalette`, give it a value in all three `FaTheme` themes, add the `FaVar.Hero{Name}` member, then regenerate the stylesheet from `src/FellowshipAnalyzer.Tools`:
+
+```powershell
+dotnet run --no-cache emit-palette.cs "../FellowshipAnalyzer.Core/Styles/_palette.scss"
 ```
 
-Use the `run-tool` skill for `update-spells` when refreshing names/icons from JSON. Gameplay metadata such as cooldowns, GCD, categories, and costs belongs in the hero `Abilities` module or spell init properties, not in analyzer logic.
+`PaletteScssDriftTests.Committed_Palette_Matches_The_Theme` fails the build if the committed `_palette.scss` does not match the C# theme.
 
-### 4. Create The CombatLogParser
-
-Add `{Hero}` to the `HeroName` enum in `src/FellowshipAnalyzer.Core/Analysis/Heroes.cs` (alphabetical),
-add a matching `Hero.{Hero}` static field with the appropriate `HeroRole`, and include it in `Hero.All`.
+### 5. Create The CombatLogParser
 
 `{Hero}CombatLogParser.cs`:
 
 ```csharp
 using FellowshipAnalyzer.Core.Analysis;
-using FellowshipAnalyzer.Heroes.{Hero}.Guides;
 using FellowshipAnalyzer.Heroes.{Hero}.Modules;
 
 namespace FellowshipAnalyzer.Heroes.{Hero}.Analysis;
@@ -90,91 +97,76 @@ public sealed partial class {Hero}CombatLogParser : CombatLogParser
 }
 ```
 
-Do not write a constructor or override `Analyze`; the source generator and base `CombatLogParser` provide the current pipeline.
+Do not write a constructor or override `Analyze`; the source generator and base `CombatLogParser` provide the pipeline.
 
-### 5. Create The Abilities Module
+`{Hero}CombatLogParser.Config.cs` holds the `HeroConfig` (`Support`, `Maintainers`, `SeasonLabel`, `Changelog`, `ExampleReport`); copy the shape from Gunde. Add a `Changelog.razor` beside it, and a matching `tests/FellowshipAnalyzer.Heroes.{Hero}.Tests` project.
 
-`Modules/Abilities.cs`:
+### 6. Create The Abilities Module
 
-```csharp
-using FellowshipAnalyzer.Core.Analysis;
-using FellowshipAnalyzer.Core.Common.Spells;
-using FellowshipAnalyzer.Core.Common.Spells.{Hero};
+`Modules/Abilities.cs` follows the current spellbook shape; copy a live entry from `src/Heroes/FellowshipAnalyzer.Heroes.Ardeos/Modules/Abilities.cs` or Rime's. Scalars such as cooldown and charges flow from the generated registry `Spell` via `PrimarySpell`; the spellbook adds analysis-facing settings (`SpellCategory`, `AbilityCategory`, GCD, `CooldownReducedByHaste`).
 
-using CoreAbilities = FellowshipAnalyzer.Core.Analysis.Abilities;
+The source generator registers this module as a scoped service and aliases it to the core `Abilities` type so core normalizers can inject it.
 
-namespace FellowshipAnalyzer.Heroes.{Hero}.Modules;
+### 7. Create Imports
 
-public sealed class Abilities : CoreAbilities
-{
-    public override IEnumerable<SpellbookAbility> Spellbook() =>
-    [
-        new()
-        {
-            PrimarySpell = Spells.BasicAttack,
-            Category = SpellCategory.Rotational,
-            Gcd = StandardGcd,
-        },
-        new()
-        {
-            PrimarySpell = Spells.SpecialAbility,
-            Category = SpellCategory.Cooldowns,
-            Cooldown = 60,
-            Gcd = StandardGcd,
-        },
-    ];
-}
-```
-
-The source generator registers this as a scoped service and aliases it to the core `Abilities` type so core normalizers can inject it.
-
-### 6. Create Imports
-
-`_Imports.razor`:
+`_Imports.razor`, matching Rime's live set:
 
 ```razor
 @using Microsoft.AspNetCore.Components
 @using Microsoft.AspNetCore.Components.Web
-@using FellowshipAnalyzer.Components
 @using FellowshipAnalyzer.Core.Analysis
+@using FellowshipAnalyzer.Core.Contracts.Design
+@using FellowshipAnalyzer.Core.Game
+@using FellowshipAnalyzer.Core.UI
+@using FellowshipAnalyzer.Core.UI.Components
+@using FellowshipAnalyzer.Core.UI.Diagnostics
+@using FellowshipAnalyzer.Core.UI.Guides
+@using FellowshipAnalyzer.Core.UI.Timeline
 @using FellowshipAnalyzer.Heroes.{Hero}.Analysis
 @using FellowshipAnalyzer.Heroes.{Hero}.Guides
 @using FellowshipAnalyzer.Heroes.{Hero}.Modules
 @using FellowshipAnalyzer.Heroes.{Hero}.Statistics
+@using Spells = FellowshipAnalyzer.Core.Common.Spells.{Hero}.Spells
 ```
 
-### 7. Create The Root Guide
+### 8. Create The Root Guide
 
-`{Hero}Guide.razor`:
+`{Hero}Guide.razor` at the project root, with no `@namespace` directive (live root guides keep the project root namespace):
 
 ```razor
-@namespace FellowshipAnalyzer.Heroes.{Hero}.Guides
-@using FellowshipAnalyzer.Heroes.{Hero}.Analysis
 @inject {Hero}CombatLogParser Parser
 
-@if (Parser.SomeAnalyzer is not null)
+@if (Parser.{Name}Analyzers.Count > 0)
 {
-    <SomeGuide />
+    <{Name}Guide />
+}
+@if (Parser.{Name}Tracker is not null)
+{
+    <{Tracker}Guide />
 }
 ```
 
-The root guide starts empty until feature guide components exist. Add feature guides with the `create-guide` skill.
+Gate pull analyzers on a non-empty surface stream and fight-lifetime modules on a null check, exactly as `RimeGuide.razor` does for both. The root guide renders only analysis-driven guide components; no static rotation, overview, or how-to-play prose belongs in it. Add feature guides with the `create-guide` skill.
 
-### 8. Configure SCSS
+### 9. Configure SCSS
 
-Copy the `sasscompiler.json` shape from Rime and use `.razor.scss` files for any component styles. Load the `style-guide` skill before creating or changing styles.
+`sasscompiler.json`:
 
-### 9. Register DI
-
-In the Client startup, register core analysis services before hero-specific analysis:
-
-```csharp
-builder.Services.AddCoreAnalysisServices();
-builder.Services.AddCoreAnalysis();
-builder.Services.Add{Hero}Analysis();
+```json
+{
+  "SourceFolder": ".",
+  "TargetFolder": ".",
+  "GenerateScopedCss": true,
+  "ScopedCssFolders": [ "." ],
+  "IncludePaths": [ ".", "../../FellowshipAnalyzer.Core/Styles" ]
+}
 ```
 
-`Add{Hero}Analysis()` is generated from `[HeroAnalyzer]`, `[AddModule]`, and `[AddNormalizer]` attributes.
+The `../../FellowshipAnalyzer.Core/Styles` include path is what lets a hero `.razor.scss` write `@use 'tokens' as t;` and `@use 'mixins' as mx;` with no path prefix. Load the `style-guide` skill before creating or changing styles.
+
+### 10. Wiring
+
+Adding the hero project as a `ProjectReference` in `src/FellowshipAnalyzer/FellowshipAnalyzer/FellowshipAnalyzer.csproj` is the whole wiring step. `Program.cs` already calls `AddCoreAnalysisServices()`, `AddCoreAnalysis()` and `AddFellowshipHeroAnalysis()`; the last is generated by `HeroManifestGenerator` from the `[GenerateHeroManifest]` marker and picks up the new hero's `[HeroAnalyzer]` parser automatically. Do not edit `Program.cs`.
 
 ## Adding Hero Features
 
@@ -189,12 +181,15 @@ Once the scaffold is in place, use the individual skills:
 
 ## Checklist
 
-- [ ] Project references Core, Components, and Generators.
-- [ ] Project is added to the solution and Client project references.
+- [ ] Project references Core and Generators (versionless PackageReferences, `..\..\` paths).
+- [ ] Hero project is referenced from `FellowshipAnalyzer.csproj` and added to `FellowshipAnalyzer.slnx`.
 - [ ] Folder structure uses `Modules/`, `Guides/`, `Statistics/`, and `Normalizers/`.
-- [ ] Spell identity data is defined under `Core/Common/Spells/{Hero}/`.
+- [ ] Hero scope exists in `data/spelldb.json` (via rebuild-spelldb + overrides.json); `Talents.cs` is hand-written.
+- [ ] `Heroes.cs` has the `HeroName` member, `Hero.{Hero}` field in `Hero.All`, and `ToHeroId`/`IconUrl`/`Color` arms.
+- [ ] `--fa-hero-{name}` exists in `FaPalette`, every `FaTheme` theme, and `FaVar`; `_palette.scss` regenerated.
 - [ ] `{Hero}CombatLogParser` is `partial`, has `[HeroAnalyzer(HeroName.{Hero})]`, and overrides `GuideComponent`.
+- [ ] `{Hero}CombatLogParser.Config.cs` and `Changelog.razor` exist.
 - [ ] `Modules/Abilities.cs` exists and is registered with `[AddModule<Modules.Abilities>]`.
-- [ ] `_Imports.razor` includes hero Analysis, Guides, Modules, and Statistics namespaces.
-- [ ] `{Hero}Guide.razor` exists.
-- [ ] `Add{Hero}Analysis()` is called in Client startup.
+- [ ] `_Imports.razor` matches the live set including the `Spells` alias.
+- [ ] `{Hero}Guide.razor` exists at the project root with analysis-gated children only.
+- [ ] `tests/FellowshipAnalyzer.Heroes.{Hero}.Tests` exists.
