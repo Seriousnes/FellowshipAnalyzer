@@ -30,6 +30,8 @@ public sealed class SearingBlazeUptimeAnalyzerTests
             Apply(BossId, 1000),
             Remove(BossId, 5000),
             Apply(BossId, 8000),
+            Tick(BossId, 14000),
+            Tick(BossId, 20000),
         };
 
         var (parser, _) = await AnalyzeAsync(events);
@@ -49,7 +51,12 @@ public sealed class SearingBlazeUptimeAnalyzerTests
     [Fact]
     public async Task Analyze_OpenWindow_ClosesAtPullEnd()
     {
-        var events = new List<Event> { Apply(BossId, 1000) };
+        var events = new List<Event>
+        {
+            Apply(BossId, 1000),
+            Tick(BossId, 10000),
+            Tick(BossId, 20000),
+        };
 
         var (parser, _) = await AnalyzeAsync(events);
 
@@ -59,6 +66,51 @@ public sealed class SearingBlazeUptimeAnalyzerTests
         analyzer.Uptime.ShouldBe(0.95, 0.0001);
         analyzer.GapCount.ShouldBe(0);
         analyzer.TotalGapMs.ShouldBe(0);
+    }
+
+    [Fact]
+    public async Task Analyze_OpenWindowStopsTicking_ClosesAtLastTick()
+    {
+        var events = new List<Event>
+        {
+            Apply(BossId, 1000),
+            Tick(BossId, 6000),
+        };
+
+        var (parser, _) = await AnalyzeAsync(events);
+
+        var analyzer = SingleUptimeAnalyzer(parser);
+        var window = analyzer.Windows.ShouldHaveSingleItem();
+        window.End.ShouldBe(6000);
+        analyzer.Uptime.ShouldBe(0.25, 0.0001);
+        analyzer.GapCount.ShouldBe(0);
+    }
+
+    [Fact]
+    public async Task Analyze_AddStopsTickingWithoutRemove_DoesNotOutrankBoss()
+    {
+        var events = new List<Event>
+        {
+            Apply(BossId, 1000),
+            Apply(AddId, 2000),
+            Tick(AddId, 3000),
+            Remove(BossId, 9000),
+            Apply(BossId, 12000),
+            Tick(BossId, 16000),
+            Tick(BossId, 20000),
+        };
+
+        var (parser, _) = await AnalyzeAsync(events);
+
+        var analyzer = SingleUptimeAnalyzer(parser);
+        analyzer.Windows.Count.ShouldBe(2);
+        analyzer.Windows[0].Start.ShouldBe(1000);
+        analyzer.Windows[0].End.ShouldBe(9000);
+        analyzer.Windows[1].Start.ShouldBe(12000);
+        analyzer.Windows[1].End.ShouldBe(20000);
+        analyzer.Uptime.ShouldBe(0.8, 0.0001);
+        analyzer.GapCount.ShouldBe(1);
+        analyzer.TotalGapMs.ShouldBe(3000);
     }
 
     [Fact]
@@ -164,6 +216,15 @@ public sealed class SearingBlazeUptimeAnalyzerTests
         Timestamp = timestamp,
         SourceId = PlayerId,
         TargetId = targetId,
+        Ability = new Ability { Id = Spells.SearingBlazeDot.FSLID },
+    };
+
+    private static DamageEvent Tick(int targetId, int timestamp) => new()
+    {
+        Timestamp = timestamp,
+        SourceId = PlayerId,
+        TargetId = targetId,
+        Amount = 1000,
         Ability = new Ability { Id = Spells.SearingBlazeDot.FSLID },
     };
 
