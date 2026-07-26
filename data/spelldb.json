@@ -1205,6 +1205,12 @@
       "cooldown": 3,
       "range": 20
     },
+    "OwedInBloodAoe": {
+      "kind": "ability",
+      "id": 2280,
+      "name": "Owed in Blood",
+      "icon": "T_Gunde_SanguineFeast.jpg"
+    },
     "OwedInBloodSelfBuff": {
       "kind": "effect",
       "id": 3245,
@@ -1264,6 +1270,18 @@
       "id": 3231,
       "name": "Rend",
       "icon": "T_Status_Bleed.jpg"
+    },
+    "RendDamage": {
+      "kind": "effect",
+      "id": 3229,
+      "name": "Rend",
+      "icon": ""
+    },
+    "RendManager": {
+      "kind": "ability",
+      "id": 2286,
+      "name": "Rend",
+      "icon": "T_Gunde_BloodBuff.jpg"
     },
     "Rupture": {
       "kind": "ability",

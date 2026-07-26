@@ -2,7 +2,6 @@ using FellowshipAnalyzer.Core;
 using FellowshipAnalyzer.Core.Analysis;
 using FellowshipAnalyzer.Core.Events;
 using FellowshipAnalyzer.Core.FellowshipLogs;
-using FellowshipAnalyzer.Core.Game;
 using FellowshipAnalyzer.Heroes.Gunde.Analysis;
 using FellowshipAnalyzer.Heroes.Gunde.Modules;
 using FellowshipAnalyzer.Heroes.Gunde.Statistics;
@@ -213,14 +212,232 @@ public sealed class OwedInBloodEconomyTests
     }
 
     [Fact]
-    public async Task Analyze_CastWithNoBankedStacks_RecordsAnEmptyConversion()
+    public async Task Analyze_CastWithNoBuffEventsAtAll_RecordsAnUnobservedConversion()
     {
         var analyzer = await AnalyzeAsync([Cast(Spells.OwedInBlood.FSLID, 10_000)]);
 
-        analyzer.Conversions.ShouldHaveSingleItem().StacksConverted.ShouldBe(0);
+        var conversion = analyzer.Conversions.ShouldHaveSingleItem();
+        conversion.StacksConverted.ShouldBe(0);
+        conversion.BankObserved.ShouldBeFalse();
+
         analyzer.TotalStacksConverted.ShouldBe(0);
         analyzer.BestConversion.ShouldBe(0);
         analyzer.DecayedStacks.ShouldBe(0);
+    }
+
+    [Fact]
+    public async Task Analyze_CastAfterAnInPullStackEvent_RecordsAnObservedConversion()
+    {
+        var events = new List<Event>
+        {
+            BuffApplied(1_000),
+            StackApplied(2_000, 18),
+            Cast(Spells.OwedInBlood.FSLID, 10_000),
+            BuffRemoved(10_100),
+        };
+
+        var analyzer = await AnalyzeAsync(events);
+
+        var conversion = analyzer.Conversions.ShouldHaveSingleItem();
+        conversion.StacksConverted.ShouldBe(18);
+        conversion.BankObserved.ShouldBeTrue();
+    }
+
+    [Fact]
+    public async Task Analyze_EmptyPressAfterTheBankWasSeen_StaysAProvenEmptyPress()
+    {
+        var events = new List<Event>
+        {
+            BuffApplied(1_000),
+            StackApplied(2_000, 12),
+            Cast(Spells.OwedInBlood.FSLID, 5_000),
+            BuffRemoved(5_100),
+            Cast(Spells.OwedInBlood.FSLID, 20_000),
+        };
+
+        var analyzer = await AnalyzeAsync(events);
+
+        analyzer.Conversions.Count.ShouldBe(2);
+        analyzer.Conversions[1].StacksConverted.ShouldBe(0);
+        analyzer.Conversions[1].BankObserved.ShouldBeTrue();
+    }
+
+    [Fact]
+    public async Task Analyze_PullOpeningWithACarriedBank_FlagsTheConversionUnobserved()
+    {
+        var events = new List<Event>
+        {
+            BuffApplied(1_000),
+            StackApplied(2_000, 30),
+            Cast(Spells.OwedInBlood.FSLID, 35_000),
+            BuffRemoved(35_100),
+        };
+
+        var (parser, _) = await RunAsync(events, DungeonFight());
+
+        parser.OwedInBloodEconomyAnalyzers.Count.ShouldBe(2);
+        var second = parser.OwedInBloodEconomyAnalyzers[1].Analyzer;
+
+        var conversion = second.Conversions.ShouldHaveSingleItem();
+        conversion.StacksConverted.ShouldBe(0);
+        conversion.BankObserved.ShouldBeFalse();
+    }
+
+    [Fact]
+    public async Task Analyze_PullThatBuildsItsOwnBank_FlagsTheConversionObserved()
+    {
+        var events = new List<Event>
+        {
+            BuffApplied(1_000),
+            StackApplied(2_000, 30),
+            StackApplied(31_000, 45),
+            Cast(Spells.OwedInBlood.FSLID, 35_000),
+            BuffRemoved(35_100),
+        };
+
+        var (parser, _) = await RunAsync(events, DungeonFight());
+
+        var second = parser.OwedInBloodEconomyAnalyzers[1].Analyzer;
+
+        var conversion = second.Conversions.ShouldHaveSingleItem();
+        conversion.StacksConverted.ShouldBe(45);
+        conversion.BankObserved.ShouldBeTrue();
+    }
+
+    [Fact]
+    public async Task Analyze_TalentedAoeCast_IsAlsoAConversion()
+    {
+        var events = new List<Event>
+        {
+            BuffApplied(1_000),
+            StackApplied(2_000, 22),
+            Cast(Spells.OwedInBloodAoe.FSLID, 10_000),
+            BuffRemoved(10_100),
+        };
+
+        var analyzer = await AnalyzeAsync(events);
+
+        var conversion = analyzer.Conversions.ShouldHaveSingleItem();
+        conversion.StacksConverted.ShouldBe(22);
+        conversion.AbilityId.ShouldBe(Spells.OwedInBloodAoe.FSLID.Value);
+        analyzer.DecayedStacks.ShouldBe(0);
+
+        FellowshipAnalyzer.Core.Common.Spells.SpellRegistry
+            .MaybeGet(conversion.AbilityId).ShouldNotBeNull();
+    }
+
+    [Fact]
+    public async Task Analyze_SecondCastAfterAReclassifiedDrop_DoesNotClaimTheSameStacksAgain()
+    {
+        var events = new List<Event>
+        {
+            BuffApplied(1_000),
+            StackApplied(5_000, 25),
+            BuffRemoved(10_000),
+            Cast(Spells.OwedInBlood.FSLID, 10_000),
+            Cast(Spells.OwedInBlood.FSLID, 10_500),
+        };
+
+        var analyzer = await AnalyzeAsync(events);
+
+        analyzer.Conversions.Count.ShouldBe(2);
+        analyzer.Conversions[0].StacksConverted.ShouldBe(25);
+        analyzer.Conversions[1].StacksConverted.ShouldBe(0);
+        analyzer.TotalStacksConverted.ShouldBe(25);
+        analyzer.DecayedStacks.ShouldBe(0);
+    }
+
+    [Fact]
+    public async Task Analyze_TrackerSecondCastAfterAReclassifiedDrop_DoesNotDoubleCount()
+    {
+        var events = new List<Event>
+        {
+            BuffApplied(1_000),
+            StackApplied(5_000, 25),
+            BuffRemoved(10_000),
+            Cast(Spells.OwedInBlood.FSLID, 10_000),
+            Cast(Spells.OwedInBlood.FSLID, 10_500),
+        };
+
+        var tracker = await TrackAsync(events);
+
+        tracker.Generated.ShouldBe(25);
+        tracker.Spent.ShouldBe(25);
+        tracker.Decayed.ShouldBe(0);
+        tracker.Current.ShouldBe(0);
+        tracker.Generated.ShouldBe(tracker.Spent + tracker.Decayed + tracker.Current);
+    }
+
+    [Fact]
+    public async Task Analyze_RemovalOrderedBeforeItsCastAtTheSameMillisecond_IsTheConversionNotDecay()
+    {
+        var events = new List<Event>
+        {
+            BuffApplied(1_000),
+            StackApplied(5_000, 25),
+            BuffRemoved(10_000),
+            Cast(Spells.OwedInBlood.FSLID, 10_000),
+        };
+
+        var analyzer = await AnalyzeAsync(events);
+
+        var conversion = analyzer.Conversions.ShouldHaveSingleItem();
+        conversion.StacksConverted.ShouldBe(25);
+        conversion.BankObserved.ShouldBeTrue();
+        analyzer.DecayedStacks.ShouldBe(0);
+        analyzer.TotalStacksConverted.ShouldBe(25);
+    }
+
+    [Fact]
+    public async Task Analyze_RemovalExactlyAtTheGraceBoundaryBeforeTheCast_IsTheConversion()
+    {
+        var events = new List<Event>
+        {
+            BuffApplied(1_000),
+            StackApplied(5_000, 25),
+            BuffRemoved(10_000),
+            Cast(Spells.OwedInBlood.FSLID, 10_000 + OwedInBloodEconomyAnalyzer.ConversionGraceMs),
+        };
+
+        var analyzer = await AnalyzeAsync(events);
+
+        analyzer.Conversions.ShouldHaveSingleItem().StacksConverted.ShouldBe(25);
+        analyzer.DecayedStacks.ShouldBe(0);
+    }
+
+    [Fact]
+    public async Task Analyze_RemovalOneMillisecondPastTheGraceBoundary_StaysDecay()
+    {
+        var events = new List<Event>
+        {
+            BuffApplied(1_000),
+            StackApplied(5_000, 25),
+            BuffRemoved(10_000),
+            Cast(Spells.OwedInBlood.FSLID, 10_001 + OwedInBloodEconomyAnalyzer.ConversionGraceMs),
+        };
+
+        var analyzer = await AnalyzeAsync(events);
+
+        analyzer.Conversions.ShouldHaveSingleItem().StacksConverted.ShouldBe(0);
+        analyzer.DecayedStacks.ShouldBe(25);
+    }
+
+    [Fact]
+    public async Task Analyze_PartialDropBeforeACast_IsNotReclassified()
+    {
+        var events = new List<Event>
+        {
+            BuffApplied(1_000),
+            StackApplied(5_000, 25),
+            StackRemoved(10_000, 10),
+            Cast(Spells.OwedInBlood.FSLID, 10_000),
+            BuffRemoved(10_100),
+        };
+
+        var analyzer = await AnalyzeAsync(events);
+
+        analyzer.Conversions.ShouldHaveSingleItem().StacksConverted.ShouldBe(10);
+        analyzer.DecayedStacks.ShouldBe(15);
     }
 
     [Fact]
@@ -252,9 +469,172 @@ public sealed class OwedInBloodEconomyTests
     }
 
     [Fact]
-    public async Task Analyze_WithBloodFeatherResourceData_ContributesTheStatisticsCard()
+    public async Task Analyze_TrackerBankBuiltThenCashedIn_ReconstructsTheFightLifetimeTotals()
     {
-        var (parser, result) = await RunAsync([CastWithFeathers(1_000, rawAmount: 4_200)], BossFight(PullEnd));
+        var events = new List<Event>
+        {
+            BuffApplied(1_000),
+            StackApplied(2_000, 10),
+            StackApplied(3_000, 40),
+            Cast(Spells.OwedInBlood.FSLID, 10_000),
+            BuffRemoved(10_100),
+        };
+
+        var tracker = await TrackAsync(events);
+
+        tracker.Generated.ShouldBe(40);
+        tracker.Spent.ShouldBe(40);
+        tracker.Decayed.ShouldBe(0);
+        tracker.Current.ShouldBe(0);
+        tracker.CappedMs.ShouldBe(0);
+        tracker.Generated.ShouldBe(tracker.Spent + tracker.Decayed + tracker.Current);
+    }
+
+    [Fact]
+    public async Task Analyze_TrackerBuffExpiringWithNoCast_BooksTheBankAsDecayed()
+    {
+        var events = new List<Event>
+        {
+            BuffApplied(1_000),
+            StackApplied(5_000, 25),
+            BuffRemoved(50_000),
+        };
+
+        var tracker = await TrackAsync(events);
+
+        tracker.Generated.ShouldBe(25);
+        tracker.Spent.ShouldBe(0);
+        tracker.Decayed.ShouldBe(25);
+        tracker.Current.ShouldBe(0);
+        tracker.Generated.ShouldBe(tracker.Spent + tracker.Decayed + tracker.Current);
+    }
+
+    [Fact]
+    public async Task Analyze_TrackerHoldingABankAtTheEnd_LeavesItAsHeld()
+    {
+        var events = new List<Event>
+        {
+            BuffApplied(1_000),
+            StackApplied(5_000, 30),
+        };
+
+        var tracker = await TrackAsync(events);
+
+        tracker.Generated.ShouldBe(30);
+        tracker.Spent.ShouldBe(0);
+        tracker.Decayed.ShouldBe(0);
+        tracker.Current.ShouldBe(30);
+        tracker.Generated.ShouldBe(tracker.Spent + tracker.Decayed + tracker.Current);
+    }
+
+    [Fact]
+    public async Task Analyze_TrackerBankPinnedAtTheCap_LatchesTheSpanAndClosesItAtTheFightEnd()
+    {
+        var events = new List<Event>
+        {
+            BuffApplied(1_000),
+            StackApplied(120_000, BloodFeatherTracker.MaxBloodFeathers),
+            StackApplied(130_000, BloodFeatherTracker.MaxBloodFeathers),
+        };
+
+        var tracker = await TrackAsync(events);
+
+        tracker.CappedMs.ShouldBe(PullEnd - 120_000);
+        tracker.Current.ShouldBe(BloodFeatherTracker.MaxBloodFeathers);
+    }
+
+    [Fact]
+    public async Task Analyze_TrackerRemovalOrderedBeforeItsCast_CreditsTheConversion()
+    {
+        var events = new List<Event>
+        {
+            BuffApplied(1_000),
+            StackApplied(5_000, 25),
+            BuffRemoved(10_000),
+            Cast(Spells.OwedInBlood.FSLID, 10_000),
+        };
+
+        var tracker = await TrackAsync(events);
+
+        tracker.Generated.ShouldBe(25);
+        tracker.Spent.ShouldBe(25);
+        tracker.Decayed.ShouldBe(0);
+        tracker.Current.ShouldBe(0);
+        tracker.Generated.ShouldBe(tracker.Spent + tracker.Decayed + tracker.Current);
+    }
+
+    [Fact]
+    public async Task Analyze_TrackerRemovalExactlyAtTheGraceBoundaryBeforeTheCast_CreditsTheConversion()
+    {
+        var events = new List<Event>
+        {
+            BuffApplied(1_000),
+            StackApplied(5_000, 25),
+            BuffRemoved(10_000),
+            Cast(Spells.OwedInBlood.FSLID, 10_000 + BloodFeatherTracker.ConversionGraceMs),
+        };
+
+        var tracker = await TrackAsync(events);
+
+        tracker.Spent.ShouldBe(25);
+        tracker.Decayed.ShouldBe(0);
+        tracker.Generated.ShouldBe(tracker.Spent + tracker.Decayed + tracker.Current);
+    }
+
+    [Fact]
+    public async Task Analyze_TrackerRemovalOneMillisecondPastTheGraceBoundary_StaysDecay()
+    {
+        var events = new List<Event>
+        {
+            BuffApplied(1_000),
+            StackApplied(5_000, 25),
+            BuffRemoved(10_000),
+            Cast(Spells.OwedInBlood.FSLID, 10_001 + BloodFeatherTracker.ConversionGraceMs),
+        };
+
+        var tracker = await TrackAsync(events);
+
+        tracker.Spent.ShouldBe(0);
+        tracker.Decayed.ShouldBe(25);
+        tracker.Generated.ShouldBe(tracker.Spent + tracker.Decayed + tracker.Current);
+    }
+
+    [Fact]
+    public async Task Analyze_TrackerSpansEveryPullOfTheFight()
+    {
+        var events = new List<Event>
+        {
+            BuffApplied(1_000),
+            StackApplied(2_000, 30),
+            Cast(Spells.OwedInBlood.FSLID, 5_000),
+            BuffRemoved(5_100),
+            BuffApplied(31_000),
+            StackApplied(32_000, 20),
+            Cast(Spells.OwedInBlood.FSLID, 35_000),
+            BuffRemoved(35_100),
+        };
+
+        var (parser, _) = await RunAsync(events, DungeonFight());
+
+        var tracker = parser.BloodFeatherTracker.ShouldNotBeNull();
+        tracker.Generated.ShouldBe(50);
+        tracker.Spent.ShouldBe(50);
+        tracker.Decayed.ShouldBe(0);
+        tracker.Current.ShouldBe(0);
+    }
+
+    [Fact]
+    public async Task Analyze_WithFeatherActivity_ContributesTheStatisticsCard()
+    {
+        var events = new List<Event>
+        {
+            BuffApplied(1_000),
+            StackApplied(2_000, 8),
+            Cast(Spells.OwedInBlood.FSLID, 5_000),
+            BuffRemoved(5_100),
+        };
+
+        var (parser, result) = await RunAsync(events, BossFight(PullEnd));
 
         var tracker = parser.BloodFeatherTracker.ShouldNotBeNull();
         tracker.StatisticsComponentType.ShouldBe(typeof(BloodFeatherStatistics));
@@ -262,12 +642,13 @@ public sealed class OwedInBloodEconomyTests
     }
 
     [Fact]
-    public async Task Analyze_WithNoBloodFeatherResourceData_ContributesNoStatisticsCard()
+    public async Task Analyze_WithNoFeatherActivity_ContributesNoStatisticsCard()
     {
         var (parser, result) = await RunAsync([Cast(Spells.HeartSplitter.FSLID, 1_000)], BossFight(PullEnd));
 
         var tracker = parser.BloodFeatherTracker.ShouldNotBeNull();
-        tracker.BloodFeathers.ShouldBeNull();
+        tracker.Generated.ShouldBe(0);
+        tracker.Spent.ShouldBe(0);
         tracker.StatisticsComponentType.ShouldBeNull();
         result.Statistics.ShouldNotContain(entry => entry.ComponentType == typeof(BloodFeatherStatistics));
     }
@@ -315,31 +696,29 @@ public sealed class OwedInBloodEconomyTests
         Target = new CastTarget(),
     };
 
-    private static CastEvent CastWithFeathers(int timestamp, int rawAmount)
-    {
-        var cast = Cast(Spells.HeartSplitter.FSLID, timestamp);
-        cast.SourceResources = new ActorResources
-        {
-            HitPoints = 1_000,
-            MaxHitPoints = 1_000,
-            Resources =
-            [
-                new ClassResource { Type = ResourceTypes.Tertiary, Amount = rawAmount, Max = 15_000 },
-            ],
-        };
-        return cast;
-    }
-
     private static ReportFight BossFight(int endTime) =>
         new(0, "Boss", 1, null, 0, endTime, null, null, null);
 
     private static ReportFight TrashFight(int endTime) =>
         new(0, "Trash", 0, null, 0, endTime, null, null, null, EnemyNpcs: [new FightNpc(1, 100, 4, null, null)]);
 
+    private static ReportFight DungeonFight() =>
+        new(0, "Dungeon", 0, true, 0, PullEnd, null, null, null, false,
+            [
+                new DungeonPull(1, 0, null, 0, 20_000, "Trash", null),
+                new DungeonPull(2, 42, true, 30_000, PullEnd, "Boss", null),
+            ]);
+
     private static async Task<OwedInBloodEconomyAnalyzer> AnalyzeAsync(List<Event> events, ReportFight? fight = null)
     {
         var (parser, _) = await RunAsync(events, fight ?? BossFight(PullEnd));
         return parser.OwedInBloodEconomyAnalyzers.ShouldHaveSingleItem().Analyzer;
+    }
+
+    private static async Task<BloodFeatherTracker> TrackAsync(List<Event> events)
+    {
+        var (parser, _) = await RunAsync(events, BossFight(PullEnd));
+        return parser.BloodFeatherTracker.ShouldNotBeNull();
     }
 
     private static async Task<(GundeCombatLogParser Parser, HeroAnalysisResult Result)> RunAsync(

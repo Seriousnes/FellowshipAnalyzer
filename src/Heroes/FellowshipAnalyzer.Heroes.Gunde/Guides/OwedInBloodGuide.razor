@@ -36,6 +36,10 @@
             }
             else
             {
+                @if (UnmeasuredConversions > 0)
+                {
+                    <p>@UnmeasuredSummary</p>
+                }
                 <CastDetail Title="Conversions"
                             Description="Each card is one Owed in Blood cast, rated on the bank it cashed in relative to the best conversion of that pull."
                             Casts="@BuildPerCastData()" />
@@ -58,6 +62,20 @@
 
     private int TotalConversions => Analyzers.Sum(analyzer => analyzer.Conversions.Count);
 
+    /// <summary>
+    /// Conversions whose bank the pull actually saw being built. A conversion of a bank carried in
+    /// from the previous pull reads zero stacks with nothing measured behind it, so it is left out of
+    /// every average and every verdict.
+    /// </summary>
+    private int MeasuredConversions =>
+        Analyzers.Sum(analyzer => analyzer.Conversions.Count(conversion => conversion.BankObserved));
+
+    private int UnmeasuredConversions => TotalConversions - MeasuredConversions;
+
+    private string UnmeasuredSummary => UnmeasuredConversions == 1
+        ? "One conversion cashed in a bank built before its pull started. Its size could not be measured, so it is shown without a verdict."
+        : $"{UnmeasuredConversions} conversions cashed in banks built before their pull started. Their sizes could not be measured, so they are shown without a verdict.";
+
     private int TotalConverted => Analyzers.Sum(analyzer => analyzer.TotalStacksConverted);
 
     private int TotalDecayed => Analyzers.Sum(analyzer => analyzer.DecayedStacks);
@@ -79,11 +97,13 @@
     private IEnumerable<OverviewStat> BuildOverviewStats()
     {
         var conversions = TotalConversions;
+        var measured = MeasuredConversions;
+        var unmeasured = UnmeasuredConversions;
         var converted = TotalConverted;
         var decayed = TotalDecayed;
         var accounted = AccountedStacks;
         var cappedMs = TotalCappedMs;
-        var average = conversions > 0 ? (double)converted / conversions : 0d;
+        var average = measured > 0 ? (double)converted / measured : 0d;
 
         return
         [
@@ -94,13 +114,15 @@
             new OverviewStat(
                 $"{conversions}",
                 "Conversions",
-                "Owed in Blood casts evaluated across every pull."),
+                unmeasured > 0
+                    ? $"Owed in Blood casts across every pull. {unmeasured} of them cashed in a bank built before their pull started, so only {measured} could be measured."
+                    : "Owed in Blood casts evaluated across every pull."),
             new OverviewStat(
-                conversions > 0 ? $"{average:0.#}" : "-",
+                measured > 0 ? $"{average:0.#}" : "-",
                 "Avg Bank",
-                conversions > 0
-                    ? $"Average stacks held per conversion. Bigger piles place more Rend per cast, so the cast is worth saving for."
-                    : "No Owed in Blood cast was made, so there is no bank size to average."),
+                measured > 0
+                    ? "Average stacks held per measured conversion. Bigger piles place more Rend per cast, so the cast is worth saving for."
+                    : "No Owed in Blood cast had a measurable bank behind it, so there is no bank size to average."),
             new OverviewStat(
                 $"{decayed}",
                 "Stacks Decayed",
@@ -131,26 +153,30 @@
     {
         var conversions = analyzer.Conversions;
         var best = analyzer.BestConversion;
-        return conversions.Select(conversion => new ConversionRow(conversion, best, conversions.Count));
+        var measured = conversions.Count(conversion => conversion.BankObserved);
+        return conversions.Select(conversion => new ConversionRow(conversion, best, measured));
     }
 
     private PerCastRow BuildConversionRow(ConversionRow row)
     {
+        var measured = row.Conversion.BankObserved;
         var relative = row.RelativeSize;
         var sizeTier = relative is int percent ? RelativeTier(percent) : (QualitativePerformance?)null;
-        var perf = row.Conversion.StacksConverted == 0
-            ? QualitativePerformance.Fail
+        var perf = !measured ? QualitativePerformance.Ok
+            : row.Conversion.StacksConverted == 0 ? QualitativePerformance.Fail
             : sizeTier ?? QualitativePerformance.Good;
 
         var stats = new[]
         {
             new PerCastStat(
-                $"{row.Conversion.StacksConverted}",
+                measured ? $"{row.Conversion.StacksConverted}" : "-",
                 "Stacks Converted",
-                relative is int share
-                    ? $"Blood Feather stacks this cast placed as Rend - {share}% of the best conversion on this pull."
-                    : "Blood Feather stacks this cast placed as Rend.",
-                sizeTier),
+                !measured
+                    ? "The bank this cast converted was built before the pull started, so its size could not be measured."
+                    : relative is int share
+                        ? $"Blood Feather stacks this cast placed as Rend - {share}% of the best conversion on this pull."
+                        : "Blood Feather stacks this cast placed as Rend.",
+                measured ? sizeTier : null),
         };
 
         return new PerCastRow
@@ -158,19 +184,22 @@
             Performance = perf,
             Stats = stats,
             Timestamp = row.Conversion.Timestamp,
-            Sequence = [new SpellCastEntry(Spells.OwedInBlood.FSLID.Value, perf)],
+            Sequence = [new SpellCastEntry(row.Conversion.AbilityId, measured ? perf : null)],
             AdditionalContent = new AdditionalContent("Conversion Notes", @<div>@BuildNote(row)</div>),
         };
     }
 
     private static string BuildNote(ConversionRow row)
     {
+        if (!row.Conversion.BankObserved)
+            return "The bank this cast converted was built before the pull started, so its size could not be measured. It is shown here without a verdict.";
+
         var stacks = row.Conversion.StacksConverted;
         if (stacks == 0)
             return "No Blood Feather stacks were banked when this was pressed, so the conversion placed no Rend at all.";
 
         if (row.RelativeSize is not int percent)
-            return $"Converted {stacks} stacks; with a single conversion on this pull there is nothing to compare it against.";
+            return $"Converted {stacks} stacks; with a single measured conversion on this pull there is nothing to compare it against.";
 
         if (percent >= RelativePerfect)
             return $"Converted {stacks} stacks, {percent}% of this pull's biggest bank - a full-sized deployment.";
@@ -202,14 +231,15 @@
     private sealed record ConversionRow(
         OwedInBloodEconomyAnalyzer.OwedInBloodConversion Conversion,
         int BestConversion,
-        int PullConversions)
+        int MeasuredConversions)
     {
         /// <summary>
         /// This conversion's bank as a percentage of the pull's biggest, or null when the comparison
-        /// would be meaningless: the pull held a single conversion, or none of them banked anything.
+        /// would be meaningless: this conversion's bank was never measured, the pull held a single
+        /// measured conversion, or none of them banked anything.
         /// </summary>
         public int? RelativeSize =>
-            BestConversion > 0 && PullConversions > 1
+            Conversion.BankObserved && BestConversion > 0 && MeasuredConversions > 1
                 ? (int)Math.Round((double)Conversion.StacksConverted / BestConversion * 100)
                 : null;
     }

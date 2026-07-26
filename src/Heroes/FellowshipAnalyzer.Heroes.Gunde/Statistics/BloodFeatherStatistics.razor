@@ -2,8 +2,9 @@
 
 <StatCard Title="Blood Feathers">
     <Info>
-        The Blood Feather pool as the log's own resource snapshots recorded it. Feathers drop from
-        bleeding enemies and are picked up off the ground, so generation is partly a movement stat.
+        The Blood Feather bank across the whole run, reconstructed from the Owed in Blood self-buff
+        because Gunde logs carry no resource snapshots. Feathers drop from bleeding enemies and are
+        picked up off the ground, so what reaches the bank is partly a movement stat.
     </Info>
     <ChildContent>
         <CastOverview Title="Feather Pool" Stats="@BuildOverviewStats()" />
@@ -15,12 +16,12 @@
 </StatCard>
 
 @code {
-    private int Total => Analyzer.Spent + Analyzer.Wasted + Analyzer.Current;
+    private int Total => Analyzer.Spent + Analyzer.Decayed + Analyzer.Current;
 
     private IEnumerable<OverviewStat> BuildOverviewStats()
     {
-        var overcapRate = Analyzer.Generated > 0
-            ? (double)Analyzer.Wasted / Analyzer.Generated * 100
+        var decayRate = Analyzer.Generated > 0
+            ? (double)Analyzer.Decayed / Analyzer.Generated * 100
             : 0;
 
         return
@@ -28,29 +29,37 @@
             new OverviewStat(
                 $"{Analyzer.Generated}",
                 "Picked Up",
-                "Blood Feathers gained over the run, counting feathers that landed on a full pool."),
+                "Blood Feathers observed arriving in the bank over the run."),
             new OverviewStat(
                 $"{Analyzer.Spent}",
-                "Spent",
-                "Blood Feathers consumed, converted into Rend by Owed in Blood."),
+                "Converted",
+                "Blood Feathers Owed in Blood turned into Rend."),
             new OverviewStat(
-                $"{Analyzer.Wasted}",
-                "Overcapped",
-                $"Feathers that arrived at the {BloodFeatherTracker.MaxBloodFeathers} cap and added nothing ({overcapRate:F0}% of everything picked up)."),
+                $"{Analyzer.Decayed}",
+                "Decayed",
+                Analyzer.Generated > 0
+                    ? $"Blood Feathers the buff shed with no Owed in Blood cast to account for them, {decayRate:F0}% of observed pickups."
+                    : "Blood Feathers the buff shed with no Owed in Blood cast to account for them."),
             new OverviewStat(
                 $"{Analyzer.Current}",
                 "Held at End",
-                $"Blood Feathers still banked when the log ended, out of a maximum of {BloodFeatherTracker.MaxBloodFeathers}."),
+                $"Blood Feathers still banked when the run ended, out of a maximum of {BloodFeatherTracker.MaxBloodFeathers}."),
+            new OverviewStat(
+                FormatSeconds(Analyzer.CappedMs),
+                "Time at Cap",
+                $"Time the bank sat at {BloodFeatherTracker.MaxBloodFeathers}. A feather landing on a full pool produces no event at all, so it can never be counted; time at the cap is the honest measure of what was thrown away."),
         ];
     }
 
     private IEnumerable<StackedBarSegment> BuildStackedBar() =>
     [
-        new StackedBarSegment("Spent", Analyzer.Spent, PerformanceColors.Good,
-            $"Spent: {Analyzer.Spent} feathers converted into Rend"),
-        new StackedBarSegment("Overcapped", Analyzer.Wasted, PerformanceColors.Fail,
-            $"Overcapped: {Analyzer.Wasted} feathers arrived at the cap"),
+        new StackedBarSegment("Converted", Analyzer.Spent, PerformanceColors.Good,
+            $"Converted: {Analyzer.Spent} feathers turned into Rend"),
+        new StackedBarSegment("Decayed", Analyzer.Decayed, PerformanceColors.Fail,
+            $"Decayed: {Analyzer.Decayed} feathers shed with no cast to account for them"),
         new StackedBarSegment("Held", Analyzer.Current, PerformanceColors.Neutral,
             $"Held: {Analyzer.Current} feathers banked at the end"),
     ];
+
+    private static string FormatSeconds(int milliseconds) => $"{milliseconds / 1000d:0.#}s";
 }

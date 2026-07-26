@@ -14,37 +14,48 @@ namespace FellowshipAnalyzer.Heroes.Gunde.Modules;
 /// </summary>
 /// <remarks>
 /// <para>
-/// The stack count is read from the buff event stream rather than from resource snapshots, because
-/// buff stacks are the standard Fellowship Logs mechanism and <see cref="ApplyBuffStackEvent.Stack"/>
-/// carries an absolute count. <see cref="BloodFeatherTracker"/>'s Tertiary resource covers the
-/// snapshot view independently. Only the <c>Spells.OwedInBloodSelfBuff</c> effect is tracked;
-/// <c>Spells.OwedInBloodSelfBuffFromOrbs</c> is the unnamed pickup-side applicator and its logged
-/// behaviour is unverified, so it is deliberately left alone rather than guessed at.
+/// The stack count is read from the buff event stream, which is the only feather signal a Gunde log
+/// carries: player events have no resource snapshots at all, and Blood Feathers never appear as a
+/// snapshotted resource. <see cref="ApplyBuffStackEvent.Stack"/> carries an absolute count. Only the
+/// <c>Spells.OwedInBloodSelfBuff</c> effect is tracked; <c>Spells.OwedInBloodSelfBuffFromOrbs</c> has
+/// never been observed in live data, so it is deliberately left alone rather than guessed at.
 /// </para>
 /// <para>
-/// Decay is detected purely from events - a drop in the stack count with no Owed in Blood cast within
-/// <see cref="ConversionGraceMs"/> before it - so no buff duration is assumed anywhere. Stacks still
+/// Both the base cast and <c>Spells.OwedInBloodAoe</c>, the talented variant that replaces it, count
+/// as conversions.
+/// </para>
+/// <para>
+/// Decay is detected purely from events - a drop in the stack count that no Owed in Blood cast within
+/// <see cref="ConversionGraceMs"/> explains - so no buff duration is assumed anywhere. Stacks still
 /// held when the pull ends count as neither converted nor decayed, since holding a bank into the next
 /// pull is not waste.
 /// </para>
 /// <para>
 /// Feathers and the self-buff survive across pull boundaries while an analyzer does not, so a pull
-/// whose first Owed in Blood converts a bank built on the previous pull records that conversion at
-/// zero stacks. That reads the same as pressing the button empty and is recorded honestly as such.
+/// whose first Owed in Blood converts a bank built on the previous pull reads zero stacks without the
+/// bank ever having been measured. <see cref="OwedInBloodConversion.BankObserved"/> marks that case so
+/// it is never mistaken for an empty press.
+/// </para>
+/// <para>
+/// <see cref="BloodFeatherTracker"/> reconstructs the same stream over the whole fight rather than per
+/// pull. The two deliberately keep separate state at their own lifetimes, but share the absolute-stack
+/// handling and the <see cref="ConversionGraceMs"/> policy.
 /// </para>
 /// </remarks>
 [ForPull(PullKind.Single | PullKind.Multi)]
 public sealed partial class OwedInBloodEconomyAnalyzer : Analyzer
 {
     /// <summary>
-    /// Blood Feather stacks Gunde can hold. Mirrors the game data cap and the Tertiary resource
-    /// override on <see cref="BloodFeatherTracker"/>; there is no generated registry constant for it.
+    /// Blood Feather stacks Gunde can hold, shared with <see cref="BloodFeatherTracker"/>; there is no
+    /// generated registry constant for it.
     /// </summary>
     public const int MaxStacks = BloodFeatherTracker.MaxBloodFeathers;
 
     /// <summary>
-    /// Window after an Owed in Blood cast in which a falling stack count is the cast consuming the
-    /// bank rather than the bank expiring.
+    /// Window either side of an Owed in Blood cast in which a falling stack count is the cast
+    /// consuming the bank rather than the bank expiring. Every conversion observed in live data
+    /// shares a millisecond with the removal it caused, so this is a safety envelope around log
+    /// ordering rather than a measured gap.
     /// </summary>
     public const int ConversionGraceMs = 1_000;
 
@@ -55,6 +66,8 @@ public sealed partial class OwedInBloodEconomyAnalyzer : Analyzer
     private int _cappedMs;
     private int? _cappedSince;
     private int? _lastConversion;
+    private bool _bankObserved;
+    private PendingDecay? _pendingDecay;
 
     private Computed? _computed;
     private Computed Result => _computed ??= Compute();
@@ -92,11 +105,15 @@ public sealed partial class OwedInBloodEconomyAnalyzer : Analyzer
     [On<RemoveBuffEvent>(To = Actor.Player, Spell = nameof(Spells.OwedInBloodSelfBuff))]
     private void OnBuffRemoved(RemoveBuffEvent @event) => SetStacks(@event.Timestamp, 0);
 
-    [On<CastEvent>(By = Actor.Player, Spell = nameof(Spells.OwedInBlood))]
+    [On<CastEvent>(By = Actor.Player, Spells = [
+        nameof(Spells.OwedInBlood),
+        nameof(Spells.OwedInBloodAoe)])]
     private void OnConverted(CastEvent @event)
     {
+        var reclaimed = ReclaimPendingDecay(@event.Timestamp);
         _lastConversion = @event.Timestamp;
-        _conversions.Add(new OwedInBloodConversion(@event.Timestamp, _stacks));
+        _conversions.Add(new OwedInBloodConversion(
+            @event.Timestamp, reclaimed + _stacks, _bankObserved, @event.Ability.Id));
     }
 
     /// <summary>
@@ -107,9 +124,16 @@ public sealed partial class OwedInBloodEconomyAnalyzer : Analyzer
     /// </summary>
     private void SetStacks(int timestamp, int stacks)
     {
+        _bankObserved = true;
+        _pendingDecay = null;
+
         var lost = _stacks - stacks;
         if (lost > 0 && !IsConverting(timestamp))
+        {
             _decayedStacks += lost;
+            if (stacks == 0)
+                _pendingDecay = new PendingDecay(lost, timestamp);
+        }
 
         UpdateCapWindow(timestamp, stacks);
         _stacks = stacks;
@@ -117,6 +141,20 @@ public sealed partial class OwedInBloodEconomyAnalyzer : Analyzer
 
     private bool IsConverting(int timestamp) =>
         _lastConversion is { } cast && timestamp - cast is >= 0 and <= ConversionGraceMs;
+
+    /// <summary>
+    /// Takes back a bank emptying that was booked as decay because it reached the stream ahead of the
+    /// Owed in Blood cast that caused it, and hands the stacks to that conversion instead.
+    /// </summary>
+    private int ReclaimPendingDecay(int timestamp)
+    {
+        if (_pendingDecay is not { } pending || timestamp - pending.Timestamp is < 0 or > ConversionGraceMs)
+            return 0;
+
+        _pendingDecay = null;
+        _decayedStacks -= pending.Amount;
+        return pending.Amount;
+    }
 
     /// <summary>
     /// Opens a capped span on the first observation at the cap and closes it when the bank drops back
@@ -161,6 +199,18 @@ public sealed partial class OwedInBloodEconomyAnalyzer : Analyzer
 
     private readonly record struct Computed(int TotalStacksConverted, int BestConversion, double AverageConversion, int CappedMs);
 
+    private readonly record struct PendingDecay(int Amount, int Timestamp);
+
     /// <summary>One Owed in Blood cast and the Blood Feather bank it converted into Rend.</summary>
-    public sealed record OwedInBloodConversion(int Timestamp, int StacksConverted);
+    /// <param name="Timestamp">Encounter time of the cast.</param>
+    /// <param name="StacksConverted">Stacks the cast placed as Rend, as measured on this pull.</param>
+    /// <param name="BankObserved">
+    /// Whether any Owed in Blood self-buff event reached this pull before the cast. When false the
+    /// bank was built before the pull started and its size could not be measured, so
+    /// <paramref name="StacksConverted"/> reads zero without the cast having been an empty press.
+    /// </param>
+    /// <param name="AbilityId">
+    /// The ability actually cast, either the base Owed in Blood or the talented AoE variant.
+    /// </param>
+    public sealed record OwedInBloodConversion(int Timestamp, int StacksConverted, bool BankObserved, int AbilityId);
 }

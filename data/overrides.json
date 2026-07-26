@@ -97,7 +97,25 @@
       "id": 3233,
       "kind": "effect",
       "name": "Open Wounds",
-      "note": "GE_Gunde_BoostedDotDamage_TargetDebuff, the Rupture window that buffs the next Slaughter; unresolved effect, add directly."
+      "note": "GE_Gunde_BoostedDotDamage_TargetDebuff, applied by Rupture and consumed by the next Slaughter on that enemy, verified against live log data; unresolved effect, add directly."
+    },
+    "OwedInBloodAoe": {
+      "id": 2280,
+      "kind": "ability",
+      "name": "Owed in Blood",
+      "note": "GA_Gunde_Talent_DotTransfer_Aoe, the talented AoE conversion that replaces the base Owed in Blood cast (2298) when the talent is taken; EnabledInGame but outside the Kit, so the source-derived scope omits it. Add directly under a distinct member name because it shares the base cast's name."
+    },
+    "RendManager": {
+      "id": 2286,
+      "kind": "ability",
+      "name": "Rend",
+      "note": "GA_Gunde_Passive_PerTargetAccumulatedBleed_DotManager, the passive manager behind the per-target accumulated bleed; not a player-castable ability, curated so the id resolves. Distinct member name because effect 3231 already holds Rend."
+    },
+    "RendDamage": {
+      "id": 3229,
+      "kind": "effect",
+      "name": "Rend",
+      "note": "GE_Gunde_PerTargetAccumulatedBleed_Damage, the damage effect of the accumulated bleed; never observed dealing logged damage in live data and unnamed in spell_data, curated for completeness."
     },
     "OwedInBlood": {
       "cooldown": 3,
