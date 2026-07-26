@@ -41,9 +41,10 @@
       "id": 1398,
       "note": "possessive-strip produces SkystriderSupremacy; supersede and re-add with possessive"
     },
-    "PathfindersResillience": {
-      "id": 1302,
-      "note": "spell_data names id 1302 CelestialVeil; hand-written registry assigns this id to PathfindersResillience; supersede CelestialVeil and register under the hand-written name (double-l typo preserved to match existing nameof references)"
+    "SkystridersSupremacyBuff": {
+      "id": 2009,
+      "kind": "effect",
+      "note": "possessive-strip on parent produces SkystriderSupremacySelfBuff; rename with possessive"
     },
     "SkystridersGrace": {
       "id": 1304,
@@ -74,10 +75,48 @@
       "kind": "effect",
       "note": "no auto-merge entry at guid 1002253; add directly"
     },
-    "EmpoweredMultishotBuff": {
-      "id": -1,
+    "ResurgentWindsBuff": {
+      "id": 2074,
       "kind": "effect",
-      "note": "placeholder; hand-written Effect(-1) produces guid 999999; no real FSL entry exists \u2014 real id TBD"
+      "note": "Resurgent Winds talent proc buff, log-verified"
+    },
+    "FinalCrescendoBuff": {
+      "id": 2222,
+      "kind": "effect",
+      "name": "Final Crescendo",
+      "note": "Final Crescendo stack buff, log-verified; spell_data spells it Cresendo"
+    },
+    "CelestialShot": {
+      "costs": { "primary": 15 },
+      "note": "Focus cost is not exposed as a mappable scalar; set from S3 kit data"
+    },
+    "Multishot": {
+      "costs": { "primary": 20 },
+      "note": "Focus cost is not exposed as a mappable scalar; set from S3 kit data"
+    },
+    "HeartseekerBarrage": {
+      "costs": { "primary": 30 },
+      "note": "Focus cost is not exposed as a mappable scalar; set from S3 kit data"
+    },
+    "HighwindArrow": {
+      "costs": { "primary": 30 },
+      "note": "Focus cost is not exposed as a mappable scalar; set from S3 kit data"
+    },
+    "StarfallVolley": {
+      "costs": { "primary": 30 },
+      "note": "Focus cost is not exposed as a mappable scalar; set from S3 kit data"
+    },
+    "LunarlightMark": {
+      "costs": { "primary": 20 },
+      "note": "Focus cost is not exposed as a mappable scalar; set from S3 kit data"
+    },
+    "EventHorizon": {
+      "costs": { "spirit": 100 },
+      "note": "Spirit cost is not exposed as a mappable scalar; set from S3 kit data"
+    },
+    "GrapplingArrow": {
+      "charges": 2,
+      "note": "S3 baseline 2 charges per launch patch notes; hero_data constants still carry the retired charge talent block"
     }
   },
   "items": {

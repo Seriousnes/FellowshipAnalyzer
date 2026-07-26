@@ -678,7 +678,10 @@
       "id": 1301,
       "name": "Celestial Shot",
       "icon": "Bowguy_Shot.jpg",
-      "abilityCategory": "Basic"
+      "abilityCategory": "Basic",
+      "costs": {
+        "primary": 15
+      }
     },
     "CelestialShotCost": {
       "kind": "effect",
@@ -691,6 +694,14 @@
       "id": 1864,
       "name": "",
       "icon": ""
+    },
+    "CelestialVeil": {
+      "kind": "ability",
+      "id": 1302,
+      "name": "Celestial Veil",
+      "icon": "Bowguy_Abilityicon_Defensive.jpg",
+      "abilityCategory": "Defensive",
+      "cooldown": 30
     },
     "CelestialVeilSelfBuff": {
       "kind": "effect",
@@ -718,19 +729,16 @@
       "name": "Interrupted",
       "icon": "T_Nhance_RPG_Frost_01.jpg"
     },
-    "EmpoweredMultishotBuff": {
-      "kind": "effect",
-      "id": -1,
-      "name": "",
-      "icon": ""
-    },
     "EventHorizon": {
       "kind": "ability",
       "id": 1584,
       "name": "Event Horizon",
       "icon": "Bowguy_Spirit.jpg",
       "abilityCategory": "Spirit",
-      "castDuration": 0.7
+      "castDuration": 0.7,
+      "costs": {
+        "spirit": 100
+      }
     },
     "EventHorizonBuff": {
       "kind": "effect",
@@ -755,6 +763,12 @@
       "id": 2311,
       "name": "",
       "icon": ""
+    },
+    "FinalCrescendoBuff": {
+      "kind": "effect",
+      "id": 2222,
+      "name": "Final Crescendo",
+      "icon": "Bowguy_Ricochet.jpg"
     },
     "FocusedShot": {
       "kind": "ability",
@@ -787,7 +801,8 @@
       "name": "Grappling Arrow",
       "icon": "Bowguy_GrappleShot.jpg",
       "abilityCategory": "Control",
-      "cooldown": 120
+      "cooldown": 120,
+      "charges": 2
     },
     "GrapplingArrowPull": {
       "kind": "effect",
@@ -807,7 +822,10 @@
       "name": "Heartseeker Barrage",
       "icon": "Bowguy_Spray.jpg",
       "abilityCategory": "Power",
-      "cooldown": 20
+      "cooldown": 20,
+      "costs": {
+        "primary": 30
+      }
     },
     "HeartseekerBarrageCost": {
       "kind": "effect",
@@ -834,7 +852,10 @@
       "icon": "Bowguy_Ricochet.jpg",
       "abilityCategory": "Power",
       "cooldown": 15,
-      "charges": 3
+      "charges": 3,
+      "costs": {
+        "primary": 30
+      }
     },
     "HighwindArrowCharges": {
       "kind": "effect",
@@ -873,7 +894,10 @@
       "icon": "Bowguy_Mark.jpg",
       "abilityCategory": "Major",
       "cooldown": 40,
-      "range": 30
+      "range": 30,
+      "costs": {
+        "primary": 20
+      }
     },
     "LunarlightMarkAoeDamage": {
       "kind": "effect",
@@ -904,7 +928,10 @@
       "id": 1318,
       "name": "Multishot",
       "icon": "Bowguy_Multishot.jpg",
-      "abilityCategory": "Core"
+      "abilityCategory": "Core",
+      "costs": {
+        "primary": 20
+      }
     },
     "MultishotCost": {
       "kind": "effect",
@@ -930,12 +957,11 @@
       "name": "",
       "icon": ""
     },
-    "PathfindersResillience": {
-      "kind": "ability",
-      "id": 1302,
-      "name": "Celestial Veil",
-      "icon": "Bowguy_Abilityicon_Defensive.jpg",
-      "cooldown": 30
+    "ResurgentWindsBuff": {
+      "kind": "effect",
+      "id": 2074,
+      "name": "Resurgent Winds",
+      "icon": "T_Icon_Tech_40.jpg"
     },
     "Roll": {
       "kind": "ability",
@@ -969,12 +995,6 @@
       "name": "",
       "icon": ""
     },
-    "SkystriderSupremacySelfBuff": {
-      "kind": "effect",
-      "id": 2009,
-      "name": "Skystrider\u0027s Supremacy",
-      "icon": "Bowguy_Supremacy.jpg"
-    },
     "SkystridersGrace": {
       "kind": "ability",
       "id": 1304,
@@ -995,6 +1015,12 @@
       "icon": "Bowguy_Supremacy.jpg",
       "cooldown": 45
     },
+    "SkystridersSupremacyBuff": {
+      "kind": "effect",
+      "id": 2009,
+      "name": "Skystrider\u0027s Supremacy",
+      "icon": "Bowguy_Supremacy.jpg"
+    },
     "SpiritOfHeroism": {
       "kind": "effect",
       "id": 2253,
@@ -1007,7 +1033,10 @@
       "name": "Starfall Volley",
       "icon": "Bowguy_Rain.jpg",
       "abilityCategory": "Power",
-      "cooldown": 40
+      "cooldown": 40,
+      "costs": {
+        "primary": 30
+      }
     },
     "StarfallVolleyCost": {
       "kind": "effect",
