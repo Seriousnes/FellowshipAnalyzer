@@ -1,0 +1,238 @@
+@using Spells = FellowshipAnalyzer.Core.Common.Spells.Tariq.Spells
+@inject TariqCombatLogParser Parser
+
+@{
+    var windows = AllWindows();
+    var wrathCasts = AllWrathCasts();
+}
+
+@if (windows.Count > 0 || wrathCasts.Count > 0)
+{
+    <GuideSection Title="Major Cooldowns">
+        <Explanation>
+            <p>
+                <SpellLink Spell="Spells.ThunderCall" /> and <SpellLink Spell="Spells.RagingTempest" />
+                each open an empowerment window: <SpellLink Spell="Spells.ChainLightning" /> is only
+                castable inside one and the spenders hit harder, so the Fury to fill the window should
+                already be banked when it opens and be gone by the time it closes. A window the pull ends
+                inside was pressed too late to pay for itself, and running both cooldowns at once wastes
+                the empowerment of whichever was already up.
+            </p>
+            <p>
+                <SpellLink Spell="Spells.FocusedWrath" /> roughly halves the Fury cost of the next
+                spenders and adds damage on top, so the spender that follows it is what captures it. It is
+                measured from the cast, because the Mouth for War talent reapplies the same buff on its
+                own and only a cast is a cooldown you can mistime.
+            </p>
+        </Explanation>
+        <ChildContent>
+            <CastOverview Title="Cooldown Overview" Stats="@BuildOverviewStats(windows, wrathCasts)" />
+
+            @if (windows.Count > 0)
+            {
+                <CastDetail Title="Empowerment Windows"
+                            Description="Each card is one Thunder Call or Raging Tempest window, rated on the Fury banked as it opened and whether the window was spent cleanly."
+                            Casts="@BuildWindowRows()" />
+            }
+
+            @if (wrathCasts.Count > 0)
+            {
+                <SubSection Title="Focused Wrath">
+                    <HelperText>
+                        Every Focused Wrath cast and how long it waited for the spender that captured it.
+                    </HelperText>
+                    <CastDetail Title="Focused Wrath Casts"
+                                Description="Each card is one Focused Wrath cast, rated on the delay before the first spender inside the buff."
+                                Casts="@BuildWrathRows()" />
+                </SubSection>
+            }
+        </ChildContent>
+    </GuideSection>
+}
+
+@code {
+    private List<ThunderCallWindow> AllWindows() =>
+        Parser.ThunderCallWindowAnalyzers.SelectMany(entry => entry.Analyzer.Windows).ToList();
+
+    private List<FocusedWrathCast> AllWrathCasts() =>
+        Parser.FocusedWrathAnalyzers.SelectMany(entry => entry.Analyzer.Casts).ToList();
+
+    private IEnumerable<OverviewStat> BuildOverviewStats(
+        List<ThunderCallWindow> windows,
+        List<FocusedWrathCast> wrathCasts)
+    {
+        var stats = new List<OverviewStat>();
+
+        if (windows.Count > 0)
+        {
+            var clipped = windows.Count(window => window.ClippedByPullEnd);
+            var overlapping = windows.Count(window => window.OverlapsOtherWindow);
+            var thunderCall = windows.Count(window => window.Source == ThunderCallWindowSource.ThunderCall);
+            var readings = windows.Where(window => window.FuryAtOpen is not null).ToList();
+            var spenders = windows.Sum(window => window.SpenderCasts);
+            var chainLightning = windows.Sum(window => window.ChainLightningCasts);
+
+            stats.Add(new OverviewStat(
+                $"{windows.Count}",
+                "Windows",
+                $"{thunderCall} Thunder Call and {windows.Count - thunderCall} Raging Tempest windows. "
+                + (clipped > 0 ? $"{clipped} ended with the pull, cutting the empowerment short. " : "None were cut short by the pull ending. ")
+                + (overlapping > 0 ? $"{overlapping} ran alongside a window of the other kind." : "None overlapped each other.")));
+
+            stats.Add(readings.Count > 0
+                ? new OverviewStat(
+                    $"{readings.Average(window => window.FuryAtOpen!.Value):0}%",
+                    "Avg Fury at Open",
+                    $"Fury banked as a window opened, averaged over the {readings.Count} windows with a reading. The window is where Fury converts to damage, so it should be full going in.",
+                    FuryTier(readings.Average(window => window.FuryAtOpen!.Value)))
+                : new OverviewStat("-", "Avg Fury at Open", "No cast carried a Fury snapshot before a window opened."));
+
+            stats.Add(new OverviewStat(
+                $"{(double)spenders / windows.Count:0.0}",
+                "Avg Spenders per Window",
+                $"{spenders} Skull Crusher, Hammer Storm and Culling Strike casts landed inside a window, across {windows.Count} windows."));
+
+            stats.Add(new OverviewStat(
+                $"{chainLightning}",
+                "Chain Lightning",
+                "Chain Lightning casts inside an empowerment window. Chain Lightning is not castable anywhere else, so every one is window time converted to damage."));
+        }
+
+        if (wrathCasts.Count > 0)
+        {
+            var paired = wrathCasts.Where(cast => cast.LatencyToSpenderMs is not null).ToList();
+            var unpaired = wrathCasts.Count - paired.Count;
+
+            stats.Add(paired.Count > 0
+                ? new OverviewStat(
+                    $"{paired.Average(cast => cast.LatencyToSpenderMs!.Value) / 1000d:0.0}s",
+                    "Focused Wrath Pairing",
+                    $"Average delay from a Focused Wrath cast to the spender that captured it, over {paired.Count} of {wrathCasts.Count} casts."
+                    + (unpaired > 0 ? $" {unpaired} cast{(unpaired == 1 ? "" : "s")} had no spender inside the buff at all." : string.Empty),
+                    LatencyTier(paired.Average(cast => cast.LatencyToSpenderMs!.Value), unpaired > 0))
+                : new OverviewStat(
+                    "None",
+                    "Focused Wrath Pairing",
+                    $"None of the {wrathCasts.Count} Focused Wrath casts were followed by a spender inside the buff.",
+                    QualitativePerformance.Fail));
+        }
+
+        return stats;
+    }
+
+    private IEnumerable<PerCastData> BuildWindowRows() =>
+        Parser.ThunderCallWindowAnalyzers.ToItemRows(Parser, analyzer => analyzer.Windows, (window, pull) => BuildWindowRow(window));
+
+    private PerCastRow BuildWindowRow(ThunderCallWindow window)
+    {
+        var stats = new List<PerCastStat>
+        {
+            new(
+                SourceName(window.Source),
+                "Cooldown",
+                $"The buff that opened this window, up for {window.DurationMs / 1000d:0.0}s of the expected {ThunderCallWindowAnalyzer.ExpectedWindowDurationMs / 1000}s."),
+            new(
+                window.FuryAtOpen is { } fury ? $"{fury}%" : "-",
+                "Fury at Open",
+                window.FuryAtOpen is { } banked
+                    ? $"Fury held at the last cast before the window opened. {banked}% of the bar was available to spend inside it."
+                    : "No cast carried a Fury snapshot before this window opened.",
+                window.FuryAtOpen is { } reading ? FuryTier(reading) : null),
+            new(
+                $"{window.SkullCrusherCasts} / {window.HammerStormCasts} / {window.CullingStrikeCasts}",
+                "Skull / Hammer / Culling",
+                $"The {window.SpenderCasts} empowered spender casts inside this window.",
+                window.SpenderCasts == 0 ? QualitativePerformance.Fail : null),
+            new(
+                $"{window.ChainLightningCasts}",
+                "Chain Lightning",
+                "Chain Lightning casts inside this window, the only place it is castable."),
+        };
+
+        if (window.ClippedByPullEnd)
+        {
+            stats.Add(new PerCastStat(
+                "Yes",
+                "Cut Short",
+                "The pull ended with the buff still up, so the rest of the window was never spent.",
+                QualitativePerformance.Fail));
+        }
+
+        if (window.OverlapsOtherWindow)
+        {
+            stats.Add(new PerCastStat(
+                "Yes",
+                "Overlapped",
+                "A window of the other kind was running at the same time, so one cooldown's empowerment was spent on time the other already covered.",
+                QualitativePerformance.Fail));
+        }
+
+        return new PerCastRow
+        {
+            Performance = WindowTier(window),
+            Stats = [.. stats],
+            Timestamp = window.OpenedAt,
+            Sequence = [.. window.CastsInWindow.Select(cast => new SpellCastEntry(cast.Ability.Id))],
+        };
+    }
+
+    private IEnumerable<PerCastData> BuildWrathRows() =>
+        Parser.FocusedWrathAnalyzers.ToItemRows(Parser, analyzer => analyzer.Casts, (cast, pull) => BuildWrathRow(cast));
+
+    private PerCastRow BuildWrathRow(FocusedWrathCast cast)
+    {
+        var performance = cast.LatencyToSpenderMs is { } measured
+            ? LatencyTier(measured, anyUnpaired: false)
+            : QualitativePerformance.Fail;
+
+        var stats = new[]
+        {
+            new PerCastStat(
+                cast.LatencyToSpenderMs is { } latency ? $"{latency / 1000d:0.00}s" : "None",
+                "Time to Spender",
+                cast.LatencyToSpenderMs is { } delay
+                    ? $"The first spender landed {delay}ms after the cast, inside the {FocusedWrathAnalyzer.BuffDurationMs / 1000}s buff."
+                    : $"No spender followed inside the {FocusedWrathAnalyzer.BuffDurationMs / 1000}s buff, so the discount and the damage bonus both expired unused.",
+                performance),
+            new PerCastStat(
+                $"{cast.SpendersInBuff}",
+                "Spenders in Buff",
+                "Skull Crusher, Hammer Storm and Culling Strike casts within the buff's duration of this cast."),
+        };
+
+        return new PerCastRow
+        {
+            Performance = performance,
+            Stats = stats,
+            Timestamp = cast.Timestamp,
+        };
+    }
+
+    private static string SourceName(ThunderCallWindowSource source) =>
+        source == ThunderCallWindowSource.ThunderCall ? "Thunder Call" : "Raging Tempest";
+
+    private static QualitativePerformance FuryTier(double furyPercent) =>
+        PerformanceTiers.FromThresholds(furyPercent, 60, 45, 30);
+
+    private static QualitativePerformance LatencyTier(double latencyMs, bool anyUnpaired)
+    {
+        var tier = latencyMs < 1500 ? QualitativePerformance.Perfect
+            : latencyMs < 3000 ? QualitativePerformance.Good
+            : latencyMs < 6000 ? QualitativePerformance.Ok
+            : QualitativePerformance.Fail;
+
+        return anyUnpaired && tier > QualitativePerformance.Ok ? QualitativePerformance.Ok : tier;
+    }
+
+    private static QualitativePerformance WindowTier(ThunderCallWindow window)
+    {
+        if (window.SpenderCasts == 0)
+            return QualitativePerformance.Fail;
+
+        var tier = window.FuryAtOpen is { } fury ? FuryTier(fury) : QualitativePerformance.Ok;
+
+        return (window.ClippedByPullEnd || window.OverlapsOtherWindow) && tier > QualitativePerformance.Ok
+            ? QualitativePerformance.Ok
+            : tier;
+    }
+}

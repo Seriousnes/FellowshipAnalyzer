@@ -1,0 +1,35 @@
+@inherits AnalyzerStatistic<RisingSpiritTracker>
+
+<StatCard Title="Rising Spirit">
+    <Info>
+        Rising Spirit stacks up from Spirit refund procs and falls off whole when they dry up, so its
+        uptime tracks the pace the rotation sustained rather than any single cast. Strong logs sit near
+        70% of the fight with the buff up.
+    </Info>
+    <ChildContent>
+        <CastOverview Title="Buff Uptime" Stats="@BuildStats()" />
+    </ChildContent>
+</StatCard>
+
+@code {
+    private IEnumerable<OverviewStat> BuildStats() =>
+    [
+        new OverviewStat(
+            $"{Analyzer.UptimeShare * 100:0}%",
+            "Uptime",
+            $"Share of the fight Rising Spirit was up, over {Analyzer.TotalActiveMs / 1000d:0.0}s of the {Analyzer.FightDurationMs / 1000d:0.0}s fight. Strong logs hold it near 70%.",
+            PerformanceTiers.FromThresholds(Analyzer.UptimeShare * 100, 70, 55, 40)),
+        new OverviewStat(
+            $"{Analyzer.MaxStacks}/{RisingSpiritTracker.StackCap}",
+            "Peak Stacks",
+            $"The deepest the buff stacked, out of the {RisingSpiritTracker.StackCap} it holds at most."),
+        new OverviewStat(
+            $"{Analyzer.AverageStacks:0.0}",
+            "Avg Stacks Held",
+            "Mean stacks while the buff was up, weighted by the time spent at each depth."),
+        new OverviewStat(
+            $"{Analyzer.Applications}",
+            "Applications",
+            "Times the buff went up from nothing, each one a refund proc landing while it was down."),
+    ];
+}
