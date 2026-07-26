@@ -1,0 +1,147 @@
+@inject ElarionCombatLogParser Parser
+
+<GuideSection Title="Cooldown Pairing">
+    <Explanation>
+        <p>
+            <SpellLink Spell="Spells.EventHorizon" /> and <SpellLink Spell="Spells.SkystridersGrace" /> are
+            strongest stacked into one double window: the ultimate's damage bonus lands on casts the haste
+            buff is already accelerating, so pressing Grace alongside every Event Horizon is worth more than
+            spreading the two apart.
+        </p>
+        <p>
+            <SpellLink Spell="Spells.LunarlightMark" /> and <SpellLink Spell="Spells.StarfallVolley" /> share
+            a 40 second cooldown, so they come back together. Casting them together keeps the volley falling
+            on freshly marked targets instead of on enemies whose mark has already run out.
+        </p>
+        <p>
+            Grace has no other use, so time it spends sitting off cooldown is lost haste uptime. Event
+            Horizon is gated on Spirit rather than a cooldown, so the pairing is always the player's choice.
+        </p>
+    </Explanation>
+    <ChildContent>
+        <CastOverview Title="Pairing Overview" Stats="@BuildOverviewStats()" />
+        <CastDetail Title="Ultimate Windows"
+                    Description="One card per Event Horizon cast, rated on how close Skystrider's Grace landed to it."
+                    Casts="@BuildUltimateRows()" />
+    </ChildContent>
+</GuideSection>
+
+@code {
+    private const int PairedWithinMs = 3_000;
+
+    private List<CooldownPairingAnalyzer> Analyzers() =>
+        Parser.CooldownPairingAnalyzers.Select(entry => entry.Analyzer).ToList();
+
+    private IEnumerable<OverviewStat> BuildOverviewStats()
+    {
+        var analyzers = Analyzers();
+
+        var pairings = analyzers.SelectMany(analyzer => analyzer.EventHorizonPairings).ToList();
+        var paired = pairings.Count(pairing => pairing.NearestGraceDeltaMs is { } delta && delta <= PairedWithinMs);
+        var pairedShare = pairings.Count == 0 ? 0 : (double)paired / pairings.Count * 100;
+
+        var markDeltas = analyzers
+            .SelectMany(analyzer => analyzer.MarkVolleyPairings)
+            .Select(pairing => pairing.NearestVolleyDeltaMs)
+            .OfType<int>()
+            .ToList();
+        var averageMarkDelta = markDeltas.Count == 0 ? 0 : markDeltas.Average() / 1000d;
+
+        var heldSeconds = analyzers.Sum(analyzer => (long)analyzer.GraceHeldMs) / 1000d;
+        var graceCasts = analyzers.Sum(analyzer => analyzer.GraceCasts);
+
+        var marks = analyzers.Sum(analyzer => analyzer.MarkCasts);
+        var volleys = analyzers.Sum(analyzer => analyzer.VolleyCasts);
+        var achievable = analyzers.Sum(analyzer => analyzer.AchievableFortySecondCasts);
+
+        return
+        [
+            new OverviewStat(
+                $"{pairedShare:0.#}%",
+                "Ultimates Paired",
+                $"{paired} of {pairings.Count} Event Horizon casts had a Skystrider's Grace cast within {PairedWithinMs / 1000} seconds, stacking the haste buff into the ultimate's damage window.",
+                pairings.Count == 0 ? null : PerformanceTiers.FromThresholds(pairedShare, 90, 75, 50)),
+            new OverviewStat(
+                markDeltas.Count == 0 ? "-" : $"{averageMarkDelta:0.#}s",
+                "Mark to Volley",
+                $"Average gap between a Lunarlight Mark cast and the nearest Starfall Volley across {markDeltas.Count} marks. Both recharge in 40 seconds, so the volley should be landing on a fresh mark.",
+                markDeltas.Count == 0 ? null : PairingTier(averageMarkDelta)),
+            new OverviewStat(
+                $"{heldSeconds:0.#}s",
+                "Grace Held",
+                $"Time Skystrider's Grace spent available and uncast across every pull, against {graceCasts} casts. Nothing else in the kit uses the button, so every second here is haste uptime the run never received."),
+            new OverviewStat(
+                $"{marks} + {volleys}",
+                "Mark and Volley Casts",
+                $"{marks} Lunarlight Mark and {volleys} Starfall Volley casts against the {achievable} each that a bare 40 second recharge allows over the pulls analysed. Both routinely go past that ceiling: the mark has secondary application paths and the volley's recharge is compressed by Event Horizon and Repeating Stars."),
+        ];
+    }
+
+    private IEnumerable<PerCastData> BuildUltimateRows() =>
+        Parser.CooldownPairingAnalyzers.ToItemRows(
+            Parser,
+            analyzer => analyzer.EventHorizonPairings,
+            (pairing, pull) => BuildUltimateRow(pairing));
+
+    private PerCastRow BuildUltimateRow(CooldownPairingAnalyzer.EventHorizonPairing pairing)
+    {
+        var seconds = pairing.NearestGraceDeltaMs / 1000d;
+        var performance = seconds is { } delta ? RowTier(delta) : QualitativePerformance.Fail;
+
+        var stats = new[]
+        {
+            new PerCastStat(
+                seconds is { } value ? $"{value:0.##}s" : "-",
+                "Grace Delta",
+                "How far the nearest Skystrider's Grace cast sat from this Event Horizon. The two buffs both run 20 seconds, so pressing them together gives the longest overlap.",
+                Performance: performance),
+            new PerCastStat(
+                WindowLabel(pairing.NearestGraceDeltaMs, performance),
+                "Double Window",
+                "Whether this ultimate ran with the haste buff stacked on top of it."),
+        };
+
+        return new PerCastRow
+        {
+            Performance = performance,
+            Stats = stats,
+            Timestamp = pairing.Timestamp,
+            AdditionalContent = new AdditionalContent(
+                "Usage Notes",
+                @<div>@BuildNote(pairing)</div>),
+        };
+    }
+
+    private static string BuildNote(CooldownPairingAnalyzer.EventHorizonPairing pairing)
+    {
+        if (pairing.NearestGraceDeltaMs is not { } deltaMs)
+            return "No Grace cast this pull, so this ultimate ran on its own damage bonus with no haste behind it.";
+
+        var seconds = deltaMs / 1000d;
+
+        if (seconds <= 3)
+            return $"Grace landed {seconds:0.##}s away, so the haste buff and the ultimate ran as one double window.";
+
+        if (seconds <= 10)
+            return $"Grace landed {seconds:0.#}s away, so the two windows only partly overlapped. Press Grace straight after Event Horizon to stack them fully.";
+
+        return $"Grace was {seconds:0.#}s away from this ultimate, so the two ran as separate windows. Grace has a 120 second cooldown against a Spirit-gated ultimate, so it can always be saved for the next one.";
+    }
+
+    private static string WindowLabel(int? deltaMs, QualitativePerformance performance) =>
+        deltaMs is null ? "None"
+        : performance == QualitativePerformance.Perfect ? "Stacked"
+        : performance == QualitativePerformance.Fail ? "Split"
+        : "Partial";
+
+    private static QualitativePerformance PairingTier(double seconds) =>
+        seconds <= 3 ? QualitativePerformance.Perfect
+        : seconds <= 6 ? QualitativePerformance.Good
+        : seconds <= 10 ? QualitativePerformance.Ok
+        : QualitativePerformance.Fail;
+
+    private static QualitativePerformance RowTier(double seconds) =>
+        seconds <= 3 ? QualitativePerformance.Perfect
+        : seconds <= 10 ? QualitativePerformance.Ok
+        : QualitativePerformance.Fail;
+}

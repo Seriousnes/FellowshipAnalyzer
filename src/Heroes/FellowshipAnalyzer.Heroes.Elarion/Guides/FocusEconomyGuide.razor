@@ -1,0 +1,124 @@
+@using FellowshipAnalyzer.Core.Game
+@inject ElarionCombatLogParser Parser
+
+<GuideSection Title="Focus Economy">
+    <Explanation>
+        <p>
+            Focus regenerates on its own and caps at 100, so every stretch spent sitting at the cap is
+            regeneration thrown away. A <SpellLink Spell="Spells.FocusedShot" /> started near the cap
+            wastes most of the 20 Focus it grants for the same reason.
+        </p>
+        <p>
+            <SpellLink Spell="Spells.EventHorizon" /> halves every Focus cost for 20 seconds, so the bank
+            carried into it decides how much that window can convert. Each cast below is scored on the
+            Focus it started from, with the spending that followed inside the window as context.
+        </p>
+    </Explanation>
+    <ChildContent>
+        @if (Parser.FocusTracker is not null)
+        {
+            <ResourceGraph
+                Tracker="Parser.FocusTracker"
+                Resource="ResourceTypes.Primary"
+            />
+        }
+        <CastOverview Title="Focus Overview" Stats="@BuildOverviewStats()" />
+        <CastDetail Title="Event Horizon Windows"
+                    Description="Each card is one Event Horizon cast, rated on the Focus banked going in, with the spenders and approximate Focus spent under the halved costs alongside."
+                    Casts="@BuildWindowRows()" />
+    </ChildContent>
+</GuideSection>
+
+@code {
+    private List<FocusEconomyAnalyzer> Analyzers() =>
+        Parser.FocusEconomyAnalyzers.Select(entry => entry.Analyzer).ToList();
+
+    private IEnumerable<OverviewStat> BuildOverviewStats()
+    {
+        var analyzers = Analyzers();
+
+        var focusedShots = analyzers.Sum(analyzer => analyzer.FocusedShotCasts);
+        var nearCap = analyzers.Sum(analyzer => analyzer.FocusedShotCastsNearCap);
+        var nearCapPercent = focusedShots == 0 ? 0 : (double)nearCap / focusedShots * 100;
+
+        var sampled = analyzers.Sum(analyzer => analyzer.SampledEvents);
+        var atCap = analyzers.Sum(analyzer => analyzer.SampledAtCap);
+        var atCapPercent = sampled == 0 ? 0 : (double)atCap / sampled * 100;
+
+        var windows = analyzers.Sum(analyzer => analyzer.EventHorizonCasts.Count);
+
+        return
+        [
+            new OverviewStat(
+                $"{nearCapPercent:0.#}%",
+                "Focused Shot Near Cap",
+                $"{nearCap} of {focusedShots} Focused Shot casts started at {FocusEconomyAnalyzer.NearCapFocus} Focus or more, where most of the 20 Focus generated cannot fit under the cap.",
+                PerformanceTiers.FromThresholds(100 - nearCapPercent, 95, 85, 70)),
+            new OverviewStat(
+                $"{atCapPercent:0.#}%",
+                "Casts at Full Focus",
+                $"{atCap} of {sampled} casts carrying a Focus reading were already at the cap, so the regeneration during those stretches was wasted."),
+            new OverviewStat(
+                $"{windows}",
+                "Event Horizon Casts",
+                "Event Horizon casts across every pull, each opening 20 seconds of halved Focus costs."),
+        ];
+    }
+
+    private IEnumerable<PerCastData> BuildWindowRows() =>
+        Parser.FocusEconomyAnalyzers.ToItemRows(
+            Parser,
+            analyzer => analyzer.EventHorizonCasts,
+            (window, pull) => BuildWindowRow(window));
+
+    private PerCastRow BuildWindowRow(FocusEconomyAnalyzer.EventHorizonWindow window)
+    {
+        var performance = window.FocusAtCast is { } focus
+            ? PerformanceTiers.FromThresholds(focus, 90, 70, 50)
+            : QualitativePerformance.Ok;
+
+        var stats = new[]
+        {
+            new PerCastStat(
+                window.FocusAtCast is { } banked ? $"{banked}" : "-",
+                "Focus Banked",
+                "Focus held when Event Horizon was cast. The window halves every Focus cost, so a full bank buys the most casts.",
+                Performance: window.FocusAtCast is null ? null : performance),
+            new PerCastStat(
+                $"{window.SpendersInWindow}",
+                "Spenders",
+                "Focus spenders cast while the Event Horizon buff was up."),
+            new PerCastStat(
+                $"{window.FocusSpentInWindow}",
+                "Focus Spent",
+                "Approximate Focus spent inside the window, counting each spender at its halved cost."),
+        };
+
+        return new PerCastRow
+        {
+            Performance = performance,
+            Stats = stats,
+            Timestamp = window.Timestamp,
+            AdditionalContent = new AdditionalContent(
+                "Usage Notes",
+                @<div>@BuildNote(window)</div>),
+        };
+    }
+
+    private static string BuildNote(FocusEconomyAnalyzer.EventHorizonWindow window)
+    {
+        if (window.FocusAtCast is not { } focus)
+            return "No Focus reading on this cast, so the bank going in is unknown - the spending inside the window is still counted.";
+
+        if (focus >= 90)
+            return "Banked to near full before pressing Event Horizon, so the halved costs had the most to convert.";
+
+        if (focus >= 70)
+            return "A healthy bank going in - a little more pooling beforehand would have fitted another spender under the halved costs.";
+
+        if (focus >= 50)
+            return "Entered on a half bank; hold Event Horizon until Focus is high so the halved costs apply to a full pool.";
+
+        return "Entered Event Horizon on a low bank, so the halved costs had little to work with - pool Focus before pressing it.";
+    }
+}

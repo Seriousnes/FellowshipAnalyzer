@@ -1,0 +1,165 @@
+@inject ElarionCombatLogParser Parser
+
+<GuideSection Title="Celestial Impetus">
+    <Explanation>
+        <p>
+            <SpellLink Spell="Spells.CelestialImpetus" /> banks up to two stacks, and spending one with
+            <SpellLink Spell="Spells.CelestialShot" /> applies <SpellLink Spell="Spells.LunarlightMark" />
+            free of the mark's own cooldown. That is what makes Celestial Shot worth holding: with a proc
+            up it is a mark application, and the mark is what every hit pays out through
+            <SpellLink Spell="Spells.LunarlightMarkDamage" />.
+        </p>
+        <p>
+            Both failure modes cost the same thing. A proc left to expire is a mark application thrown
+            away, and a Celestial Shot fired with nothing banked spends Focus on the weakest hit in the
+            kit while the next proc has nowhere better to go.
+        </p>
+        @if (HasImpendingHeartseeker)
+        {
+            <p>
+                <SpellLink Spell="Spells.ImpendingHeartseeker" /> rides on the same spend: consuming a proc
+                resets <SpellLink Spell="Spells.HeartseekerBarrage" /> and empowers every arrow of the next
+                one, so the buff is a free Barrage waiting to be fired before it falls off.
+            </p>
+        }
+    </Explanation>
+    <ChildContent>
+        <CastOverview Title="Impetus Overview" Stats="@BuildOverviewStats()" />
+        @if (HasImpendingHeartseeker)
+        {
+            <CastOverview Title="Impending Heartseeker" Stats="@BuildHeartseekerStats()" />
+        }
+        <CastDetail Title="Per-Pull Impetus Spending"
+                    Description="One card per pull, rated on the share of Celestial Shot casts that had a proc to spend, with the procs that fell off unspent alongside."
+                    Casts="@BuildPerPullData()" />
+    </ChildContent>
+</GuideSection>
+
+@code {
+    private bool HasImpendingHeartseeker => Parser.ImpendingHeartseekerAnalyzers.Count > 0;
+
+    private List<CelestialImpetusAnalyzer> Analyzers() =>
+        Parser.CelestialImpetusAnalyzers.Select(entry => entry.Analyzer).ToList();
+
+    private IEnumerable<OverviewStat> BuildOverviewStats()
+    {
+        var analyzers = Analyzers();
+
+        var casts = analyzers.Sum(analyzer => analyzer.CelestialShotCasts);
+        var withImpetus = analyzers.Sum(analyzer => analyzer.CelestialShotCastsWithImpetus);
+        var withShare = casts == 0 ? 0 : (double)withImpetus / casts * 100;
+
+        var gained = analyzers.Sum(analyzer => analyzer.ProcsGained);
+        var consumed = analyzers.Sum(analyzer => analyzer.ProcsConsumed);
+        var consumedShare = gained == 0 ? 0 : (double)consumed / gained * 100;
+
+        var expired = analyzers.Sum(analyzer => analyzer.ProcsExpired);
+
+        return
+        [
+            new OverviewStat(
+                $"{withShare:0.#}%",
+                "Shot with a Proc",
+                $"{withImpetus} of {casts} Celestial Shot casts had a Celestial Impetus stack banked. The other {casts - withImpetus} spent Focus without applying the mark.",
+                PerformanceTiers.FromThresholds(withShare, 90, 70, 50)),
+            new OverviewStat(
+                $"{consumedShare:0.#}%",
+                "Procs Consumed",
+                $"{consumed} of {gained} Celestial Impetus stacks were spent through Celestial Shot rather than left to fall off.",
+                PerformanceTiers.FromThresholds(consumedShare, 90, 75, 50)),
+            new OverviewStat(
+                $"{expired}",
+                "Procs Expired",
+                "Celestial Impetus stacks that fell off unspent across every pull, each one a Lunarlight Mark application thrown away.",
+                ExpiryTier(expired)),
+        ];
+    }
+
+    private IEnumerable<OverviewStat> BuildHeartseekerStats()
+    {
+        var analyzers = Parser.ImpendingHeartseekerAnalyzers.Select(entry => entry.Analyzer).ToList();
+
+        var gained = analyzers.Sum(analyzer => analyzer.ProcsGained);
+        var consumed = analyzers.Sum(analyzer => analyzer.ProcsConsumed);
+        var consumedShare = gained == 0 ? 0 : (double)consumed / gained * 100;
+        var expired = analyzers.Sum(analyzer => analyzer.ProcsExpired);
+
+        return
+        [
+            new OverviewStat(
+                $"{gained}",
+                "Buffs Gained",
+                "Impending Heartseeker buffs granted across every pull, one per Celestial Impetus stack spent through Celestial Shot."),
+            new OverviewStat(
+                $"{consumedShare:0.#}%",
+                "Buffs Consumed",
+                $"{consumed} of {gained} Impending Heartseeker buffs were spent on a Heartseeker Barrage, where the empowerment applies to every arrow.",
+                PerformanceTiers.FromThresholds(consumedShare, 90, 75, 50)),
+            new OverviewStat(
+                $"{expired}",
+                "Buffs Expired",
+                "Impending Heartseeker buffs that fell off before a Heartseeker Barrage was fired, each one a wasted cooldown reset.",
+                ExpiryTier(expired)),
+        ];
+    }
+
+    private IEnumerable<PerCastData> BuildPerPullData() =>
+        Parser.CelestialImpetusAnalyzers.ToPullRows(Parser, BuildPullRow);
+
+    private PerCastRow BuildPullRow(CelestialImpetusAnalyzer analyzer, Pull pull)
+    {
+        var withShare = analyzer.CelestialShotWithImpetusPercentage;
+        var performance = analyzer.CelestialShotCasts == 0
+            ? QualitativePerformance.Ok
+            : PerformanceTiers.FromThresholds(withShare, 90, 70, 50);
+
+        var stats = new[]
+        {
+            new PerCastStat(
+                $"{analyzer.CelestialShotCastsWithImpetus}/{analyzer.CelestialShotCasts}",
+                "Shot with a Proc",
+                "Celestial Shot casts that spent a Celestial Impetus stack out of every Celestial Shot cast this pull.",
+                Performance: analyzer.CelestialShotCasts == 0 ? null : performance),
+            new PerCastStat(
+                $"{analyzer.CelestialShotCastsWithoutImpetus}",
+                "Shot with Nothing",
+                "Celestial Shot casts fired with no stack banked, spending Focus on the weakest hit in the kit."),
+            new PerCastStat(
+                $"{analyzer.ProcsExpired}/{analyzer.ProcsGained}",
+                "Procs Expired",
+                "Celestial Impetus stacks that fell off unspent out of every stack granted this pull.",
+                Performance: ExpiryTier(analyzer.ProcsExpired)),
+        };
+
+        return new PerCastRow
+        {
+            Performance = performance,
+            Stats = stats,
+            AdditionalContent = new AdditionalContent(
+                "Usage Notes",
+                @<div>@BuildNote(analyzer)</div>),
+        };
+    }
+
+    private static string BuildNote(CelestialImpetusAnalyzer analyzer)
+    {
+        if (analyzer.CelestialShotCasts == 0)
+            return "No Celestial Shot went out this pull, so no Celestial Impetus stack could be turned into a Lunarlight Mark application.";
+
+        if (analyzer.ProcsGained == 0)
+            return $"Celestial Impetus never procced this pull, so all {analyzer.CelestialShotCasts} Celestial Shot casts were bare.";
+
+        if (analyzer.CelestialShotWithImpetusPercentage >= 90)
+            return $"Nearly every Celestial Shot spent a proc, at {analyzer.CelestialShotWithImpetusPercentage:0.#}%, so the mark kept coming back off its own cooldown.";
+
+        if (analyzer.ProcsExpired > analyzer.ProcsConsumed)
+            return $"{analyzer.ProcsExpired} of {analyzer.ProcsGained} stacks fell off unspent, more than were spent. Each one was a free Lunarlight Mark application - fire Celestial Shot as soon as a proc lands.";
+
+        return $"{analyzer.CelestialShotCastsWithoutImpetus} of {analyzer.CelestialShotCasts} Celestial Shot casts had nothing to spend. Hold Celestial Shot for an active proc and the same Focus buys a mark application instead of the kit's weakest hit.";
+    }
+
+    private static QualitativePerformance ExpiryTier(int expired) =>
+        expired == 0 ? QualitativePerformance.Perfect
+        : expired <= 2 ? QualitativePerformance.Ok
+        : QualitativePerformance.Fail;
+}

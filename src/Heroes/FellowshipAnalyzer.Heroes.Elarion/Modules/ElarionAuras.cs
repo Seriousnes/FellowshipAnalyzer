@@ -20,6 +20,11 @@ public sealed class ElarionAuras : Auras
             },
             new()
             {
+                SpellId = Spells.SkystridersSupremacyBuff.FSLID,
+                TimelineHighlight = true,
+            },
+            new()
+            {
                 SpellId = Spells.CelestialImpetus.FSLID,
                 TimelineHighlight = true,
             },

@@ -1,0 +1,41 @@
+@inherits AnalyzerStatistic<SalvoTracker>
+
+<StatCard>
+    <Header>
+        <SpellLink Spell="Spells.LunarlightMarkDamage" />
+    </Header>
+    <Info>
+        <p>
+            While a target carries <SpellLink Spell="Spells.LunarlightMark" />, the player's ability hits can
+            trigger Lunarlight Salvo as bonus damage, with Lunarlight Salvo: Erupt as the area variant.
+            This card shows what the mark actually paid out over the fight.
+        </p>
+    </Info>
+    <ChildContent>
+        <StatRow Value="@Analyzer.SalvoHits.ToString("N0")"
+                 Tooltip="Lunarlight Salvo procs that landed on a marked target.">
+            <SpellLink Spell="Spells.LunarlightMarkDamage" /> hits
+        </StatRow>
+        <StatRow Value="@Analyzer.EruptHits.ToString("N0")"
+                 Tooltip="Lunarlight Salvo: Erupt procs, the area variant of the same payoff.">
+            <SpellLink Spell="Spells.LunarlightMarkAoeDamage" /> hits
+        </StatRow>
+        <StatRow Value="@Compact(Analyzer.TotalMarkDamage)"
+                 Tooltip="Salvo and Erupt damage added together.">
+            damage from the mark
+        </StatRow>
+        <StatRow Value="@($"{Analyzer.DamageShare * 100:0.#}%")"
+                 Tooltip="@($"{Compact(Analyzer.TotalMarkDamage)} of {Compact(Analyzer.TotalPlayerDamage)} total damage dealt.")">
+            of all damage dealt
+        </StatRow>
+    </ChildContent>
+</StatCard>
+
+@code {
+    private static string Compact(long amount) => amount switch
+    {
+        >= 1_000_000 => $"{amount / 1_000_000d:0.##}M",
+        >= 1_000 => $"{amount / 1_000d:0.#}k",
+        _ => amount.ToString("N0"),
+    };
+}
