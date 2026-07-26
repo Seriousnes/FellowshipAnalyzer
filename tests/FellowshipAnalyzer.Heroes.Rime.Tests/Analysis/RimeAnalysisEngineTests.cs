@@ -8,6 +8,7 @@ using FellowshipAnalyzer.Core.Game;
 using FellowshipAnalyzer.Core.Serialization;
 using FellowshipAnalyzer.Heroes.Rime.Analysis;
 using FellowshipAnalyzer.Heroes.Rime.Modules;
+using FellowshipAnalyzer.Heroes.Rime.Statistics;
 
 using Microsoft.Extensions.DependencyInjection;
 
@@ -194,6 +195,59 @@ public sealed class RimeAnalysisEngineTests
         var entry = parser.DowntimeAnalyzers.ShouldHaveSingleItem();
         entry.Pull.DowntimeAnalyzer.ShouldBeSameAs(entry.Analyzer);
         parser.For(entry.Pull).DowntimeAnalyzer.ShouldBeSameAs(entry.Analyzer);
+    }
+
+    [Fact]
+    public async Task Analyze_WintersEmbraceUplift_AccountsTheAmplifierAcrossEveryWindow()
+    {
+        var (parser, _) = await AnalyzeFixtureAsync();
+
+        var tracker = parser.GetModule<WintersEmbraceUpliftTracker>().ShouldNotBeNull();
+        tracker.TotalBonusDamage.ShouldBe(11_804_763);
+        tracker.AmplifiedEventCount.ShouldBe(1_740);
+        tracker.TotalDamage.ShouldBe(244_068_746);
+        tracker.UpliftShare.ShouldBe(0.048, 0.001);
+    }
+
+    [Fact]
+    public async Task Analyze_WintersEmbraceUplift_SplitsTheBonusAcrossTheSpellsThatEarnedIt()
+    {
+        var (parser, _) = await AnalyzeFixtureAsync();
+
+        var tracker = parser.GetModule<WintersEmbraceUpliftTracker>().ShouldNotBeNull();
+        tracker.BySpell.Sum(uplift => uplift.BonusDamage).ShouldBe(tracker.TotalBonusDamage);
+        tracker.BySpell.Select(uplift => uplift.BonusDamage).ShouldBeInOrder(SortDirection.Descending);
+        tracker.BySpell.ShouldAllBe(uplift => uplift.Name.Length > 0);
+        tracker.BySpell.ShouldNotContain(uplift => uplift.AbilityId == Spells.BurstingIce.FSLID.Value);
+        tracker.BySpell.ShouldNotContain(uplift => uplift.AbilityId == Spells.BurstingIceDamage.FSLID.Value);
+        tracker.BySpell[0].Name.ShouldBe(Spells.IceComet.Name);
+    }
+
+    [Fact]
+    public async Task Analyze_FrostweaverWrath_IsActiveForTheFixturePlayerAndBalancesEveryProc()
+    {
+        var (parser, _) = await AnalyzeFixtureAsync();
+
+        var analyzer = parser.GetModule<FrostweaverWrathAnalyzer>().ShouldNotBeNull();
+        analyzer.ProcsGained.ShouldBe(111);
+        analyzer.ProcsConsumed.ShouldBe(109);
+        analyzer.ProcsExpired.ShouldBe(2);
+        analyzer.ProcsOverwritten.ShouldBe(0);
+        (analyzer.ProcsConsumed + analyzer.ProcsExpired + analyzer.ProcsOverwritten)
+            .ShouldBe(analyzer.ProcsGained);
+        analyzer.UtilisationShare.ShouldBe(0.982, 0.001);
+    }
+
+    [Fact]
+    public async Task Analyze_ShouldCollectStatisticsForTheUpliftAndProcModules()
+    {
+        var (_, result) = await AnalyzeFixtureAsync();
+
+        var componentTypes = result.Statistics.Select(entry => entry.ComponentType).ToList();
+        componentTypes.ShouldContain(typeof(WintersEmbraceStatistics));
+        componentTypes.ShouldContain(typeof(FrostweaversWrathStatistics));
+        result.Statistics.ShouldContain(entry => entry.Module is WintersEmbraceUpliftTracker);
+        result.Statistics.ShouldContain(entry => entry.Module is FrostweaverWrathAnalyzer);
     }
 
     [Fact]
