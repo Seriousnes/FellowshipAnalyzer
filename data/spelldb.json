@@ -3181,7 +3181,26 @@
       "id": 1929,
       "name": "Heavy Strike",
       "icon": "T_Ink_TimerAbility.jpg",
-      "abilityCategory": "Core"
+      "abilityCategory": "Core",
+      "cooldown": 8
+    },
+    "HeavyStrikeAoeDamage": {
+      "kind": "effect",
+      "id": 1779,
+      "name": "Heavy Strike",
+      "icon": "T_Ink_TimerAbility.jpg"
+    },
+    "HeavyStrikeCleaveDamage": {
+      "kind": "effect",
+      "id": 2755,
+      "name": "Heavy Strike",
+      "icon": "T_Ink_TimerAbility.jpg"
+    },
+    "HeavyStrikeDamage": {
+      "kind": "effect",
+      "id": 1776,
+      "name": "Heavy Strike",
+      "icon": "T_Ink_TimerAbility.jpg"
     },
     "Intimidate": {
       "kind": "ability",
@@ -3264,6 +3283,24 @@
       "id": 1766,
       "name": "Raging Tempest",
       "icon": "T_Nhance_RPG_Energy_16.jpg"
+    },
+    "RisingSpirit": {
+      "kind": "effect",
+      "id": 3115,
+      "name": "Rising Spirit",
+      "icon": "T_Nhance_RPG_Icons_SpiritAmulet.jpg"
+    },
+    "SchismHammerStorm": {
+      "kind": "effect",
+      "id": 1747,
+      "name": "Schism - Hammer Storm",
+      "icon": "T_Ink_Hammerstorm.jpg"
+    },
+    "SchismSkullCrusher": {
+      "kind": "effect",
+      "id": 1746,
+      "name": "Schism - Skull Crusher",
+      "icon": "T_Ink_Skullcrusher.jpg"
     },
     "SkullCrusher": {
       "kind": "ability",

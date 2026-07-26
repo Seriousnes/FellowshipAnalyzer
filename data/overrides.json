@@ -102,6 +102,50 @@
       "kind": "effect",
       "name": "Executioner's Grin",
       "note": "item-granted proc from the legendary Executioner's Unsanitary Bands (item 5225); DevName GE_Ink_Talent_LowHealthSingleTargetResourceDamage_ChanceActiveOnCommit_Proc. While active it lets Culling Strike be cast regardless of target health. Not in Tariq's Kit; add directly."
+    },
+    "HeavyStrike": {
+      "id": 1929,
+      "cooldown": 8,
+      "note": "the Kit ability is GA_Ink_AutoAttackBuff_InstantAttack but its Constants key carries DevName GA_Ink_AutoAttackBuff, so the source merge cannot link the two and drops the ability's cooldown; the 8s value is pinned here from the s3 hero_data 'Heavy Strike' Kit constants"
+    },
+    "SchismSkullCrusher": {
+      "id": 1746,
+      "kind": "effect",
+      "name": "Schism - Skull Crusher",
+      "icon": "T_Ink_Skullcrusher.jpg",
+      "note": "Schism talent proc buff; casting Hammer Storm has a chance to empower the next Skull Crusher. DevName GE_Ink_Talent_ChanceIncreasedSpenderDamage_HeavySingleTargetAttack_Proc. Not linked to a Kit ability; add directly."
+    },
+    "SchismHammerStorm": {
+      "id": 1747,
+      "kind": "effect",
+      "name": "Schism - Hammer Storm",
+      "icon": "T_Ink_Hammerstorm.jpg",
+      "note": "Schism talent proc buff; casting Skull Crusher has a chance to empower the next Hammer Storm. DevName GE_Ink_Talent_ChanceIncreasedSpenderDamage_AoeAttack_Proc. Not linked to a Kit ability; add directly."
+    },
+    "RisingSpirit": {
+      "id": 3115,
+      "kind": "effect",
+      "name": "Rising Spirit",
+      "icon": "T_Nhance_RPG_Icons_SpiritAmulet.jpg",
+      "note": "shared spirit-refund stacking buff (GE_Shared_SpiritRefund_Buff), added to the tariq scope for Tariq statistics. Not in Tariq's Kit; add directly."
+    },
+    "HeavyStrikeDamage": {
+      "id": 1776,
+      "kind": "effect",
+      "name": "Heavy Strike",
+      "note": "GE_Ink_AutoAttackBuff_Damage; the parent ability's DevName stem does not match the effect stem so it is not auto-linked; add directly"
+    },
+    "HeavyStrikeAoeDamage": {
+      "id": 1779,
+      "kind": "effect",
+      "name": "Heavy Strike",
+      "note": "GE_Ink_AutoAttackBuff_AoeDamage; the parent ability's DevName stem does not match the effect stem so it is not auto-linked; add directly"
+    },
+    "HeavyStrikeCleaveDamage": {
+      "id": 2755,
+      "kind": "effect",
+      "name": "Heavy Strike",
+      "note": "GE_Ink_AutoAttackBuff_CleaveDamage; the parent ability's DevName stem does not match the effect stem so it is not auto-linked; add directly"
     }
   },
   "vigour": {

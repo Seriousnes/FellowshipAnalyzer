@@ -4,6 +4,7 @@ using FellowshipAnalyzer.Heroes.Tariq.Modules;
 namespace FellowshipAnalyzer.Heroes.Tariq.Analysis;
 
 [HeroAnalyzer(HeroName.Tariq)]
+[AddState<FuryTracker>]
 [AddAnalyzer<FuryEconomyAnalyzer>]
 [AddModule<ExecutionersGrinTracker>]
 [AddModule<Modules.Abilities>]
