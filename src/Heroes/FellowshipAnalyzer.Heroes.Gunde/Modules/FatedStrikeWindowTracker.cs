@@ -9,8 +9,8 @@ using Items = FellowshipAnalyzer.Core.Common.Spells.Items;
 namespace FellowshipAnalyzer.Heroes.Gunde.Modules;
 
 /// <summary>
-/// Tracks the Fated Strike window granted by Fateful Arms, the weapon most Gunde parses run. Its
-/// active, Fated Strike, applies the Glorious Purpose self-buff for a few seconds, and abilities
+/// Tracks the window granted by the Fated Strike weapon, which most Gunde parses run. Its active,
+/// also called Fated Strike, applies the Glorious Purpose self-buff for a few seconds, and abilities
 /// cast while that buff is up have their cooldowns accelerated. The window is therefore worth
 /// spending on the abilities whose cooldowns are worth pulling forward rather than on filler.
 /// </summary>
@@ -24,13 +24,33 @@ namespace FellowshipAnalyzer.Heroes.Gunde.Modules;
 /// <para>
 /// A window opens on every buff application, because the weapon is off cooldown far longer than the
 /// buff lasts and a second application is therefore a second activation even when the first window's
-/// removal never reached the log. A refresh only opens a window when none is tracked as open, so a
-/// refresh landing inside a live window extends it instead of counting again.
+/// removal never reached the log. A refresh only opens a window when none is live, so a refresh
+/// landing inside a live window resets its clock instead of counting again.
+/// </para>
+/// <para>
+/// A window is bounded by <see cref="WindowDurationMs"/> plus <see cref="SlackMs"/> rather than held
+/// open until a removal arrives, so a log that drops the removal stops classifying casts at the
+/// point the buff would have expired instead of classifying the rest of the pull.
+/// </para>
+/// <para>
+/// <c>BurstWindowAnalyzer</c> takes the opposite policy on a re-apply, swallowing it into the live
+/// window. Reign in Blood is a long cooldown whose buff cannot physically be re-applied while it is
+/// still running, so a second application there is a logging artefact; Glorious Purpose is a weapon
+/// proc that genuinely can fire again, so a second application here is a second activation.
 /// </para>
 /// </remarks>
 public sealed partial class FatedStrikeWindowTracker : EventSubscriber
 {
-    private bool _windowOpen;
+    /// <summary>Duration of the Glorious Purpose buff; live windows measure 6.01 seconds.</summary>
+    public const int WindowDurationMs = 6_000;
+
+    /// <summary>
+    /// Tolerance added to <see cref="WindowDurationMs"/> when deciding whether a cast is still
+    /// inside the window, covering the drift between the buff's nominal and observed durations.
+    /// </summary>
+    public const int SlackMs = 500;
+
+    private int? _windowOpenedAt;
 
     /// <summary>Glorious Purpose windows opened, counting one still open when the log ended.</summary>
     public int Windows { get; private set; }
@@ -61,22 +81,21 @@ public sealed partial class FatedStrikeWindowTracker : EventSubscriber
     [On<ApplyBuffEvent>(To = Actor.Player, Spell = nameof(Items.GloriousPurpose))]
     private void OnWindowApplied(ApplyBuffEvent buffEvent)
     {
-        _windowOpen = true;
+        _windowOpenedAt = buffEvent.Timestamp;
         Windows++;
     }
 
     [On<RefreshBuffEvent>(To = Actor.Player, Spell = nameof(Items.GloriousPurpose))]
     private void OnWindowRefreshed(RefreshBuffEvent buffEvent)
     {
-        if (_windowOpen)
-            return;
+        if (!IsWindowLive(buffEvent.Timestamp))
+            Windows++;
 
-        _windowOpen = true;
-        Windows++;
+        _windowOpenedAt = buffEvent.Timestamp;
     }
 
     [On<RemoveBuffEvent>(To = Actor.Player, Spell = nameof(Items.GloriousPurpose))]
-    private void OnWindowRemoved(RemoveBuffEvent buffEvent) => _windowOpen = false;
+    private void OnWindowRemoved(RemoveBuffEvent buffEvent) => _windowOpenedAt = null;
 
     [On<CastEvent>(By = Actor.Player, Spells = [
         nameof(Spells.GrimCarve),
@@ -84,7 +103,7 @@ public sealed partial class FatedStrikeWindowTracker : EventSubscriber
         nameof(Spells.HeartSplitter)])]
     private void OnPriorityCast(CastEvent castEvent)
     {
-        if (_windowOpen)
+        if (IsWindowLive(castEvent.Timestamp))
             PriorityCasts++;
     }
 
@@ -93,7 +112,10 @@ public sealed partial class FatedStrikeWindowTracker : EventSubscriber
         nameof(Spells.ReaverEdge)])]
     private void OnFillerCast(CastEvent castEvent)
     {
-        if (_windowOpen)
+        if (IsWindowLive(castEvent.Timestamp))
             FillerCasts++;
     }
+
+    private bool IsWindowLive(int timestamp) =>
+        _windowOpenedAt is { } opened && timestamp - opened is >= 0 and <= WindowDurationMs + SlackMs;
 }

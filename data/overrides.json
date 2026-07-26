@@ -119,7 +119,7 @@
     },
     "OwedInBlood": {
       "cooldown": 3,
-      "note": "source Constants 'Owed in Blood'.Target.Cooldown = 3 is nested under Target so the merge yields no cooldown"
+      "note": "source Constants 'Owed in Blood'.Target.Cooldown = 3 is nested under Target so the merge yields no cooldown. Low confidence: the value is read out of nested per-target cooldown data and is unexercised in live logs, where the fastest observed recast is 8.9 seconds."
     },
     "Warbound": {
       "cooldown": 8,
@@ -135,7 +135,7 @@
       "id": 160,
       "kind": "ability",
       "name": "Fated Strike",
-      "note": "GA_Weapon_CleaveDamageBuffCooldownReduction, the Fateful Arms weapon ability; gear weapon, add directly."
+      "note": "GA_Weapon_CleaveDamageBuffCooldownReduction, the active of the Fated Strike weapon, which shares the weapon's name; gear weapon, add directly."
     },
     "GloriousPurpose": {
       "id": 80,

@@ -6,19 +6,20 @@ namespace FellowshipAnalyzer.Heroes.Gunde.Modules;
 
 /// <summary>
 /// Measures how tightly Gunde stacked his three burst cooldowns into the same window. Reign in Blood
-/// is the amplifier the whole burst is built around: for 12 seconds an additional 30% of ability
-/// damage converts into Rend, and it only comes back every 90 seconds. Bloodbound Spirit (a 20s
-/// self-buff worth 15% on Heart Splitter and Grim Carve, plus haste) and Rupture (the single biggest
-/// hit, and the Open Wounds application) should both land inside that window so their damage is
-/// converted at the boosted rate, and held Blood Feather stacks should be deployed there through
-/// Owed in Blood. Spreading the three across the fight instead is the failure this analyzer names.
+/// is the amplifier the whole burst is built around: for 12 seconds 30% more damage flows into Rend,
+/// and it sits on a long cooldown. Bloodbound Spirit (a 20 second self-buff worth 15% damage) and
+/// Rupture (the single biggest hit, and the Open Wounds application) should both land inside that
+/// window so their damage is amplified, and held Blood Feather stacks should be deployed there
+/// through Owed in Blood. Spreading the three across the fight instead is the failure this analyzer
+/// names.
 /// </summary>
 /// <remarks>
 /// Windows are anchored on the Reign in Blood self-buff rather than on its cast, so a window reflects
 /// the amplifier actually being live. Bloodbound Spirit is commonly pre-cast and Reign in Blood
 /// triggered on top of it, so a cast up to <see cref="LeadInMs"/> before the buff lands still belongs
-/// to the window. Each cast is claimed by at most one window, earliest window first, so a single
-/// Rupture can never satisfy two windows. Assignment runs once when the pull's results are first read.
+/// to the window. The per-window presence flags claim each cast for at most one window, earliest
+/// window first, so a single Rupture can never satisfy two windows. Assignment runs once when the
+/// pull's results are first read.
 /// </remarks>
 [ForPull(PullKind.Single | PullKind.Multi)]
 public sealed partial class BurstWindowAnalyzer : Analyzer
@@ -28,17 +29,6 @@ public sealed partial class BurstWindowAnalyzer : Analyzer
 
     /// <summary>Grace period before a window's start in which a cast still counts as part of the burst.</summary>
     public const int LeadInMs = 3_000;
-
-    private const int FallbackCooldownMs = 90_000;
-
-    /// <summary>
-    /// Reign in Blood's base cooldown in milliseconds, taken from the spell registry and unaffected
-    /// by haste. Exposed so the guide reports the same number the window budget is derived from.
-    /// </summary>
-    public static readonly int ReignInBloodCooldownMs =
-        Spells.ReignInBlood.Cooldown is { } cooldown && cooldown > 0
-            ? (int)(cooldown * 1000)
-            : FallbackCooldownMs;
 
     private readonly List<RawWindow> _rawWindows = [];
     private readonly List<int> _ruptures = [];
@@ -59,20 +49,18 @@ public sealed partial class BurstWindowAnalyzer : Analyzer
     /// <summary>Windows that held Rupture, Bloodbound Spirit and Owed in Blood together.</summary>
     public int FullWindows => Result.FullWindows;
 
-    /// <summary>Rupture casts that landed outside every Reign in Blood window.</summary>
+    /// <summary>
+    /// Rupture casts that fell outside every Reign in Blood window, counted by containment rather
+    /// than by claiming: a second Rupture inside a window an earlier one already satisfied is in a
+    /// window and is not counted here.
+    /// </summary>
     public int OutOfWindowRuptures => Result.OutOfWindowRuptures;
 
-    /// <summary>Bloodbound Spirit casts that landed outside every Reign in Blood window.</summary>
-    public int OutOfWindowBloodboundSpirits => Result.OutOfWindowBloodboundSpirits;
-
     /// <summary>
-    /// Reign in Blood windows the pull was long enough to allow, counting the opener plus one per
-    /// full cooldown that elapsed. The cooldown is read from the spell registry (90 seconds, and
-    /// unhasted - Reign in Blood does not scale with haste in the source data). Never reports fewer
-    /// than <see cref="WindowCount"/>, so a pull that somehow held more windows than the cooldown
-    /// permits still reads as complete rather than as an impossible overshoot.
+    /// Bloodbound Spirit casts that fell outside every Reign in Blood window, counted by containment
+    /// on the same terms as <see cref="OutOfWindowRuptures"/>.
     /// </summary>
-    public int PossibleWindows => Result.PossibleWindows;
+    public int OutOfWindowBloodboundSpirits => Result.OutOfWindowBloodboundSpirits;
 
     [On<ApplyBuffEvent>(To = Actor.Player, Spell = nameof(Spells.ReignInBloodSelfBuff))]
     private void OnWindowOpened(ApplyBuffEvent @event)
@@ -102,10 +90,12 @@ public sealed partial class BurstWindowAnalyzer : Analyzer
     private void OnOwedInBlood(CastEvent @event) => _owedInBloods.Add(@event.Timestamp);
 
     /// <summary>
-    /// Closes any window left open at the pull boundary, then claims casts for windows in encounter
-    /// order. A single pass fills the per-window flags and the out-of-window counts together, so the
-    /// two readings can never disagree about which cast belonged where. Owed in Blood outside a
-    /// window is ordinary filler conversion, so it is not counted as a miss.
+    /// Closes any window left open at the pull boundary, then fills the two readings the analyzer
+    /// exposes. The per-window presence flags claim casts in encounter order, so the first cast
+    /// satisfies a window and no cast satisfies two. The out-of-window counts instead test
+    /// containment against every window's span, so a second cast inside an already-satisfied window
+    /// is in a window and is never reported as stray. Owed in Blood outside a window is ordinary
+    /// filler conversion, so it is not counted as a miss either way.
     /// </summary>
     private Computed Compute()
     {
@@ -114,6 +104,7 @@ public sealed partial class BurstWindowAnalyzer : Analyzer
         var owedClaimed = new bool[_owedInBloods.Count];
 
         var windows = new List<BurstWindow>(_rawWindows.Count);
+        var spans = new List<WindowSpan>(_rawWindows.Count);
         var full = 0;
         foreach (var raw in _rawWindows)
         {
@@ -127,17 +118,14 @@ public sealed partial class BurstWindowAnalyzer : Analyzer
 
             if (window.PresentCount == BurstWindow.CooldownCount) full++;
             windows.Add(window);
+            spans.Add(new WindowSpan(raw.Start - LeadInMs, end));
         }
-
-        var duration = Pull.EndTime - Pull.StartTime;
-        var allowed = 1 + (Math.Max(0, duration - 1) / ReignInBloodCooldownMs);
 
         return new Computed(
             windows,
             full,
-            ruptureClaimed.Count(claimed => !claimed),
-            spiritClaimed.Count(claimed => !claimed),
-            Math.Max(windows.Count, allowed));
+            CountOutside(_ruptures, spans),
+            CountOutside(_bloodboundSpirits, spans));
     }
 
     private static bool Claim(List<int> casts, bool[] claimed, int start, int end)
@@ -155,18 +143,22 @@ public sealed partial class BurstWindowAnalyzer : Analyzer
         return false;
     }
 
+    private static int CountOutside(List<int> casts, List<WindowSpan> spans) =>
+        casts.Count(timestamp => !spans.Any(span => timestamp >= span.Start && timestamp <= span.End));
+
     private sealed class RawWindow(int start)
     {
         public int Start { get; } = start;
         public int? End { get; set; }
     }
 
+    private readonly record struct WindowSpan(int Start, int End);
+
     private sealed record Computed(
         IReadOnlyList<BurstWindow> Windows,
         int FullWindows,
         int OutOfWindowRuptures,
-        int OutOfWindowBloodboundSpirits,
-        int PossibleWindows);
+        int OutOfWindowBloodboundSpirits);
 
     /// <summary>
     /// One Reign in Blood amplifier window in absolute timestamps, and which of the three burst

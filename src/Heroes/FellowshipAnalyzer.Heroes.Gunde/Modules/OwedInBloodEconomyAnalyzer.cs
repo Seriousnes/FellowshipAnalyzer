@@ -5,8 +5,8 @@ using FellowshipAnalyzer.Core.Events;
 namespace FellowshipAnalyzer.Heroes.Gunde.Modules;
 
 /// <summary>
-/// Measures how well Gunde banked and deployed Blood Feathers. Rend ticks drop feather orbs, each
-/// pickup adds one stack of the Owed in Blood self-buff, and the Owed in Blood ability converts every
+/// Measures how well Gunde banked and deployed Blood Feathers. Rend ticks drop feather orbs, picking
+/// one up adds stacks to the Owed in Blood self-buff, and the Owed in Blood ability converts every
 /// held stack one-for-one into Rend on the target. A conversion is therefore worth exactly the pile
 /// standing behind it, and stacks leak in two ways: the buff falls off with stacks still held, and
 /// pickups stop accruing once the pool is pinned at <see cref="MaxStacks"/>. This analyzer records the
@@ -85,7 +85,7 @@ public sealed partial class OwedInBloodEconomyAnalyzer : Analyzer
     public double AverageConversion => Result.AverageConversion;
 
     /// <summary>Stacks the buff shed without an Owed in Blood cast to account for them.</summary>
-    public int DecayedStacks => _decayedStacks;
+    public int DecayedStacks => Result.DecayedStacks;
 
     /// <summary>
     /// Milliseconds the bank sat at <see cref="MaxStacks"/>, during which further pickups could add
@@ -175,8 +175,9 @@ public sealed partial class OwedInBloodEconomyAnalyzer : Analyzer
     }
 
     /// <summary>
-    /// Folds the conversions into their aggregates and closes a capped span left open at the pull
-    /// boundary. Computed once, on first read.
+    /// Folds the conversions into their aggregates, snapshots the decay total, and closes a capped
+    /// span left open at the pull boundary. Computed once, on first read, so every aggregate the
+    /// analyzer exposes comes from the same reading of the pull.
     /// </summary>
     private Computed Compute()
     {
@@ -194,10 +195,15 @@ public sealed partial class OwedInBloodEconomyAnalyzer : Analyzer
         }
 
         var average = _conversions.Count > 0 ? (double)total / _conversions.Count : 0d;
-        return new Computed(total, best, average, cappedMs);
+        return new Computed(total, best, average, cappedMs, _decayedStacks);
     }
 
-    private readonly record struct Computed(int TotalStacksConverted, int BestConversion, double AverageConversion, int CappedMs);
+    private readonly record struct Computed(
+        int TotalStacksConverted,
+        int BestConversion,
+        double AverageConversion,
+        int CappedMs,
+        int DecayedStacks);
 
     private readonly record struct PendingDecay(int Amount, int Timestamp);
 

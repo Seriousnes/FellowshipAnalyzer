@@ -4,15 +4,16 @@
 <GuideSection Title="Slaughter">
     <Explanation>
         <p>
-            <SpellLink Spell="Spells.Slaughter" /> consumes every point of Rend standing on the
+            <SpellLink Spell="Spells.Slaughter" /> consumes every point of
+            <SpellLink Spell="Spells.Rend" /> standing on the
             enemies it hits and pays it back as a 160% bleed, so a Slaughter is worth exactly what was
             built before it was pressed. Each cast is scored on the bleed damage it went on to deal,
             measured against the best Slaughter of the same pull, because damage scales with gear but
             a pull's own casts do not.
         </p>
         <p>
-            <SpellLink Spell="Spells.Rupture" /> leaves <strong>Open Wounds</strong> on the enemies
-            it hits for 18s, and the next Slaughter on that enemy consumes the window to hit 20%
+            <SpellLink Spell="Spells.Rupture" /> leaves <SpellLink Spell="Spells.OpenWounds" /> on the
+            enemies it hits for 18s, and the next Slaughter on that enemy consumes the window to hit 20%
             harder, so every cast is also scored on whether it landed inside a window, and every
             window is checked for the Slaughter that should have cashed it in.
         </p>
@@ -25,7 +26,9 @@
     <ChildContent>
         @if (TotalCasts == 0)
         {
-            <p>No Slaughter was cast on any pull, so every point of Rend expired unspent.</p>
+            <TipBox Variant="TipBoxVariant.Info">
+                No Slaughter was cast on any pull, so every point of Rend expired unspent.
+            </TipBox>
         }
         else
         {

@@ -198,6 +198,43 @@ public sealed class BurstWindowAnalyzerTests
     }
 
     [Fact]
+    public async Task Analyze_TwoBloodboundSpiritsInsideOneWindow_CountsNeitherOutOfWindow()
+    {
+        var events = new List<Event>
+        {
+            WindowOpen(10_000),
+            Cast(Spells.BloodboundSpirit.FSLID, 10_500),
+            Cast(Spells.BloodboundSpirit.FSLID, 15_000),
+            WindowClose(22_000),
+        };
+
+        var analyzer = await AnalyzeAsync(events);
+
+        analyzer.Windows.ShouldHaveSingleItem().BloodboundSpiritIn.ShouldBeTrue();
+        analyzer.OutOfWindowBloodboundSpirits.ShouldBe(0);
+    }
+
+    [Fact]
+    public async Task Analyze_ASecondRuptureInsideASatisfiedWindow_LeavesTheNextWindowUnsatisfied()
+    {
+        var events = new List<Event>
+        {
+            WindowOpen(10_000),
+            Cast(Spells.Rupture.FSLID, 11_000),
+            Cast(Spells.Rupture.FSLID, 15_000),
+            WindowClose(22_000),
+            WindowOpen(100_000),
+            WindowClose(112_000),
+        };
+
+        var analyzer = await AnalyzeAsync(events);
+
+        analyzer.Windows[0].RuptureIn.ShouldBeTrue();
+        analyzer.Windows[1].RuptureIn.ShouldBeFalse();
+        analyzer.OutOfWindowRuptures.ShouldBe(0);
+    }
+
+    [Fact]
     public async Task Analyze_NoWindows_ReportsEveryRuptureAndSpiritOutOfWindow()
     {
         var events = new List<Event>
@@ -217,46 +254,9 @@ public sealed class BurstWindowAnalyzerTests
     }
 
     [Fact]
-    public async Task ReignInBlood_IsCuratedAsANinetySecondCooldown()
+    public void ReignInBlood_IsCuratedAsANinetySecondCooldown()
     {
         Spells.ReignInBlood.Cooldown.ShouldBe(90d);
-
-        var analyzer = await AnalyzeAsync([], BossFight(90_000));
-
-        analyzer.PossibleWindows.ShouldBe(1);
-    }
-
-    [Fact]
-    public async Task Analyze_ShortPull_AllowsOneWindow()
-    {
-        var analyzer = await AnalyzeAsync([], BossFight(10_000));
-
-        analyzer.PossibleWindows.ShouldBe(1);
-    }
-
-    [Fact]
-    public async Task Analyze_HundredSecondPull_AllowsTwoWindows()
-    {
-        var analyzer = await AnalyzeAsync([], BossFight(100_000));
-
-        analyzer.PossibleWindows.ShouldBe(2);
-    }
-
-    [Fact]
-    public async Task Analyze_MoreWindowsThanTheCooldownAllows_NeverReportsFewerPossible()
-    {
-        var events = new List<Event>
-        {
-            WindowOpen(1_000),
-            WindowClose(13_000),
-            WindowOpen(20_000),
-            WindowClose(32_000),
-        };
-
-        var analyzer = await AnalyzeAsync(events, BossFight(40_000));
-
-        analyzer.WindowCount.ShouldBe(2);
-        analyzer.PossibleWindows.ShouldBe(2);
     }
 
     [Fact]
@@ -275,7 +275,7 @@ public sealed class BurstWindowAnalyzerTests
     }
 
     [Fact]
-    public async Task Analyze_DungeonRun_ScoresEachPullAgainstItsOwnLength()
+    public async Task Analyze_DungeonRun_ScoresEachPullSeparately()
     {
         var events = new List<Event>
         {
@@ -292,17 +292,14 @@ public sealed class BurstWindowAnalyzerTests
         var firstTrash = entries[0];
         firstTrash.Pull.IsBoss.ShouldBeFalse();
         firstTrash.Analyzer.WindowCount.ShouldBe(0);
-        firstTrash.Analyzer.PossibleWindows.ShouldBe(1);
 
         var secondTrash = entries[1];
         secondTrash.Pull.IsBoss.ShouldBeFalse();
         secondTrash.Analyzer.WindowCount.ShouldBe(0);
-        secondTrash.Analyzer.PossibleWindows.ShouldBe(1);
 
         var boss = entries[2];
         boss.Pull.IsBoss.ShouldBeTrue();
         boss.Analyzer.WindowCount.ShouldBe(1);
-        boss.Analyzer.PossibleWindows.ShouldBe(3);
         boss.Analyzer.Windows.ShouldHaveSingleItem().RuptureIn.ShouldBeTrue();
     }
 
@@ -357,9 +354,9 @@ public sealed class BurstWindowAnalyzerTests
             new DungeonPull(3, 5, true, 200_000, 400_000, "Boss", null),
         ]);
 
-    private static async Task<BurstWindowAnalyzer> AnalyzeAsync(List<Event> events, ReportFight? fight = null)
+    private static async Task<BurstWindowAnalyzer> AnalyzeAsync(List<Event> events)
     {
-        var (parser, _) = await RunAsync(events, fight ?? BossFight(PullEnd));
+        var (parser, _) = await RunAsync(events, BossFight(PullEnd));
         return parser.BurstWindowAnalyzers.ShouldHaveSingleItem().Analyzer;
     }
 

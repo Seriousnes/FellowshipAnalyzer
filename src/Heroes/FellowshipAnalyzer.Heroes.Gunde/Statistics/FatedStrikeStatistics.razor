@@ -2,10 +2,10 @@
 
 <StatCard Title="Fated Strike Windows">
     <Info>
-        Fateful Arms grants Glorious Purpose for a few seconds after Fated Strike, accelerating the
-        cooldowns of whatever is cast inside it. Only Grim Carve, Blood Arc and Heart Splitter
-        (priority) and Double Strike and Reaver's Edge (filler) are classified here; everything else
-        cast in the window is left out rather than counted against the share.
+        The Fated Strike weapon grants Glorious Purpose for a few seconds when its active is used,
+        accelerating the cooldowns of whatever is cast inside it. Only Grim Carve, Blood Arc and
+        Heart Splitter (priority) and Double Strike and Reaver's Edge (filler) are classified here;
+        everything else cast in the window is left out rather than counted against the share.
     </Info>
     <ChildContent>
         <CastOverview Title="Window Usage" Stats="@BuildOverviewStats()" />
@@ -24,11 +24,11 @@
             new OverviewStat(
                 $"{Analyzer.FatedStrikeCasts}",
                 "Activations",
-                "Fated Strike casts from Fateful Arms over the run."),
+                "Fated Strike casts from the weapon's active over the run."),
             new OverviewStat(
                 $"{Analyzer.Windows}",
                 "Windows",
-                "Glorious Purpose windows the log recorded. A refresh landing in a live window extends it rather than counting again."),
+                "Glorious Purpose windows the log recorded. A refresh landing in a live window resets its clock rather than counting again."),
         };
 
         if (Analyzer.ClassifiedCasts > 0)

@@ -106,6 +106,41 @@ public sealed class FatedStrikeWindowTrackerTests
     }
 
     [Fact]
+    public async Task Analyze_WindowWithNoRemoval_StopsClassifyingWhenTheBuffWouldHaveExpired()
+    {
+        var events = new List<Event>
+        {
+            WindowApplied(10_000),
+            Cast(Spells.GrimCarve.FSLID, 12_000),
+            Cast(Spells.BloodArc.FSLID, 20_000),
+            Cast(Spells.DoubleStrike.FSLID, 40_000),
+        };
+
+        var tracker = await AnalyzeAsync(events);
+
+        tracker.Windows.ShouldBe(1);
+        tracker.PriorityCasts.ShouldBe(1);
+        tracker.FillerCasts.ShouldBe(0);
+        tracker.ClassifiedCasts.ShouldBe(1);
+    }
+
+    [Fact]
+    public async Task Analyze_RefreshAfterAnExpiredWindow_OpensANewWindow()
+    {
+        var events = new List<Event>
+        {
+            WindowApplied(10_000),
+            WindowRefreshed(30_000),
+            Cast(Spells.GrimCarve.FSLID, 30_500),
+        };
+
+        var tracker = await AnalyzeAsync(events);
+
+        tracker.Windows.ShouldBe(2);
+        tracker.PriorityCasts.ShouldBe(1);
+    }
+
+    [Fact]
     public async Task Analyze_UnclassifiedAbilityInsideAWindow_ChangesNothing()
     {
         var events = new List<Event>

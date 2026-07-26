@@ -4,9 +4,9 @@
 <GuideSection Title="Owed in Blood">
     <Explanation>
         <p>
-            Every Blood Feather picked up is one stack of Rend waiting to be placed, and
-            <SpellLink Spell="Spells.OwedInBlood" /> converts the whole bank one-for-one onto its
-            target. A conversion is worth exactly the pile standing behind it, so the button rewards
+            Blood Feathers picked up become stacks of <SpellLink Spell="Spells.Rend" /> waiting to be
+            placed, and <SpellLink Spell="Spells.OwedInBlood" /> converts the whole bank one-for-one
+            onto its target. A conversion is worth exactly the pile standing behind it, so the button rewards
             patience - but only up to a point. The buff falls off with the stacks still on it, and the
             pool stops accepting feathers at @OwedInBloodEconomyAnalyzer.MaxStacks, so hoarding leaks
             just as reflex-spending does.
@@ -21,7 +21,9 @@
     <ChildContent>
         @if (!HasActivity)
         {
-            <p>No Blood Feather stacks were observed on any pull, so there was nothing for Owed in Blood to convert.</p>
+            <TipBox Variant="TipBoxVariant.Info">
+                No Blood Feather stacks were observed on any pull, so there was nothing for Owed in Blood to convert.
+            </TipBox>
         }
         else
         {
@@ -32,13 +34,13 @@
             }
             @if (TotalConversions == 0)
             {
-                <p>@EmptySummary</p>
+                <TipBox Variant="TipBoxVariant.Info">@EmptySummary</TipBox>
             }
             else
             {
                 @if (UnmeasuredConversions > 0)
                 {
-                    <p>@UnmeasuredSummary</p>
+                    <TipBox Variant="TipBoxVariant.Info">@UnmeasuredSummary</TipBox>
                 }
                 <CastDetail Title="Conversions"
                             Description="Each card is one Owed in Blood cast, rated on the bank it cashed in relative to the best conversion of that pull."
