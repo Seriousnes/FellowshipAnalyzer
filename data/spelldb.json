@@ -1726,13 +1726,22 @@
       "name": "Arachnid Assault",
       "icon": "Mara_SpiderAOE.jpg",
       "abilityCategory": "Power",
-      "range": 8
+      "range": 8,
+      "costs": {
+        "primary": 45
+      }
     },
     "ArachnidAssaultDamage": {
       "kind": "effect",
       "id": 1728,
       "name": "",
       "icon": ""
+    },
+    "AssassinsGuileBuff": {
+      "kind": "effect",
+      "id": 2245,
+      "name": "Assassin\u0027s Guile",
+      "icon": "T_Icon_Shadow_121.jpg"
     },
     "Attack": {
       "kind": "ability",
@@ -1751,7 +1760,10 @@
       "id": 1129,
       "name": "Backstab",
       "icon": "Mara_backstab.jpg",
-      "abilityCategory": "Basic"
+      "abilityCategory": "Basic",
+      "costs": {
+        "primary": 20
+      }
     },
     "BackstabCost": {
       "kind": "effect",
@@ -1782,7 +1794,14 @@
       "id": 1130,
       "name": "Brooding Shadows",
       "icon": "Mara_stealth.jpg",
-      "abilityCategory": "Utility"
+      "abilityCategory": "Utility",
+      "cooldown": 15
+    },
+    "BroodingShadowsBuff": {
+      "kind": "effect",
+      "id": 1591,
+      "name": "Brooding Shadows",
+      "icon": "Mara_stealth.jpg"
     },
     "BroodingShadowsCharges": {
       "kind": "effect",
@@ -1795,6 +1814,18 @@
       "id": 1590,
       "name": "",
       "icon": ""
+    },
+    "DeadlySchemeActive": {
+      "kind": "effect",
+      "id": 2068,
+      "name": "Deadly Scheme: Active",
+      "icon": "Tex_SpellBook08_71.jpg"
+    },
+    "DeadlySchemeStacks": {
+      "kind": "effect",
+      "id": 2434,
+      "name": "Deadly Scheme",
+      "icon": "Tex_SpellBook08_71.jpg"
     },
     "FinalStratagem": {
       "kind": "ability",
@@ -1810,7 +1841,10 @@
       "name": "Hemorrhaging Strike",
       "icon": "Mara_Bleed.jpg",
       "abilityCategory": "Power",
-      "cooldown": 2
+      "cooldown": 2,
+      "costs": {
+        "primary": 20
+      }
     },
     "HemorrhagingStrikeBleed": {
       "kind": "effect",
@@ -1867,7 +1901,8 @@
       "id": 1206,
       "name": "Maiden of Death",
       "icon": "Mara_Maiden.jpg",
-      "abilityCategory": "Major"
+      "abilityCategory": "Major",
+      "cooldown": 60
     },
     "MaidenOfDeathBuff": {
       "kind": "effect",
@@ -1881,12 +1916,27 @@
       "name": "",
       "icon": ""
     },
+    "MalevolenceArachnidAssault": {
+      "kind": "effect",
+      "id": 2431,
+      "name": "Malevolence: Arachnid Assault",
+      "icon": "Mara_SpiderAOE.jpg"
+    },
+    "MalevolenceQueensFang": {
+      "kind": "effect",
+      "id": 2430,
+      "name": "Malevolence: Queen\u0027s Fang",
+      "icon": "Mara_SingleTargetFinisher.jpg"
+    },
     "MatriarchMacabre": {
       "kind": "ability",
       "id": 1420,
       "name": "Matriarch Macabre",
       "icon": "Mara_Spirit.jpg",
-      "abilityCategory": "Spirit"
+      "abilityCategory": "Spirit",
+      "costs": {
+        "spirit": 100
+      }
     },
     "MatriarchMacabreCost": {
       "kind": "effect",
@@ -1905,7 +1955,10 @@
       "id": 1201,
       "name": "Queen\u0027s Fang",
       "icon": "Mara_SingleTargetFinisher.jpg",
-      "abilityCategory": "Power"
+      "abilityCategory": "Power",
+      "costs": {
+        "primary": 40
+      }
     },
     "QueenFangCost": {
       "kind": "effect",
@@ -1938,7 +1991,10 @@
       "id": 1213,
       "name": "Skittering Blades",
       "icon": "Mara_AOEBuilder.jpg",
-      "abilityCategory": "Basic"
+      "abilityCategory": "Basic",
+      "costs": {
+        "primary": 35
+      }
     },
     "SkitteringBladesDamage": {
       "kind": "effect",
@@ -1964,6 +2020,7 @@
       "name": "Stalker Step",
       "icon": "Mara_Stalkerstep.jpg",
       "abilityCategory": "Movement",
+      "cooldown": 30,
       "range": 30,
       "charges": 2
     },
@@ -2004,7 +2061,9 @@
       "id": 1207,
       "name": "Widow\u0027s Bite",
       "icon": "Mara_RegainEnergyHit.jpg",
-      "abilityCategory": "Core"
+      "abilityCategory": "Core",
+      "cooldown": 9,
+      "charges": 3
     },
     "WidowBiteCharge": {
       "kind": "effect",

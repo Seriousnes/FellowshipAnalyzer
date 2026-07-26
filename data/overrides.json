@@ -144,6 +144,79 @@
       "note": "GE_Weapon_CleaveDamageBuffCooldownReduction_Buff, the Fated Strike proc window; not in any hero Kit, add directly."
     }
   },
+  "mara": {
+    "BroodingShadows": {
+      "cooldown": 15,
+      "note": "hero_data Constants 'Brooding Shadows' carries Cooldown.Duration 15; the merge reads a flat Cooldown scalar, so the nested value is not emitted"
+    },
+    "MaidenOfDeath": {
+      "cooldown": 60,
+      "note": "hero_data Constants 'Maiden of Death' carries MaxCharges 1 and ChargeDuration 60; the merge reads Cooldown/RechargeTime, so the 60s recharge is not emitted"
+    },
+    "StalkerStep": {
+      "cooldown": 30,
+      "note": "hero_data Constants 'Stalker Step' carries ChargeDuration 30; MaxCharges 2 already merges to charges but the recharge time is not emitted"
+    },
+    "WidowBite": {
+      "cooldown": 9,
+      "charges": 3,
+      "note": "hero_data Constants \"Widow's Bite\" carries NumOfCharges 3 and ChargeTime 9; the merge reads MaxCharges/NumCharges and Cooldown/RechargeTime, so neither name is picked up"
+    },
+    "Backstab": {
+      "costs": { "primary": 20 },
+      "note": "hero_data Constants 'Backstab' Cost 20, spent from Energy (HeroResources CostType Resources); the merge maps a flat Cost scalar only when a CostType is supplied, so Mara costs are not emitted"
+    },
+    "SkitteringBlades": {
+      "costs": { "primary": 35 },
+      "note": "hero_data Constants 'Skittering Blades' Cost 35, spent from Energy; unmapped for the same reason as Backstab"
+    },
+    "QueenFang": {
+      "costs": { "primary": 40 },
+      "note": "hero_data Constants \"Queen's Fang\" Cost 40, spent from Energy; unmapped for the same reason as Backstab"
+    },
+    "ArachnidAssault": {
+      "costs": { "primary": 45 },
+      "note": "hero_data Constants 'Arachnid Assault' Cost 45, spent from Energy; unmapped for the same reason as Backstab"
+    },
+    "HemorrhagingStrike": {
+      "costs": { "primary": 20 },
+      "note": "hero_data Constants 'Hemorrhaging Strike' Cost 20, spent from Energy; unmapped for the same reason as Backstab (the flat Cooldown 2 in the same entry does merge)"
+    },
+    "MatriarchMacabre": {
+      "costs": { "spirit": 100 },
+      "note": "hero_data Constants 'Matriarch Macabre' Cost 100, spent from Spirit (Kit AbilityCategory Spirit, HeroResources CostType SpiritPoints); the merge maps only the SpiritPointCost scalar, which this entry does not use"
+    },
+    "BroodingShadowsBuff": {
+      "id": 1591,
+      "kind": "effect",
+      "note": "GE_Mara_Stealth, the stealth buff itself; effect linking matches the stem GE_Mara_Stealth_ with a trailing separator, so the bare DevName never links"
+    },
+    "AssassinsGuileBuff": {
+      "id": 2245,
+      "kind": "effect",
+      "note": "GE_Mara_Talent_Stealth_SpenderIncreasedDamage_Proc; talent-granted effects are namespaced GE_Mara_Talent_ and have no GA_ Kit ability to link against"
+    },
+    "MalevolenceQueensFang": {
+      "id": 2430,
+      "kind": "effect",
+      "note": "GE_Mara_Talent_DamageSpenders_BuffOtherSpender_HeavyAttackSpenderProc; talent-granted, so no Kit ability stem matches"
+    },
+    "MalevolenceArachnidAssault": {
+      "id": 2431,
+      "kind": "effect",
+      "note": "GE_Mara_Talent_DamageSpenders_BuffOtherSpender_AoeAttackSpenderProc; talent-granted, so no Kit ability stem matches"
+    },
+    "DeadlySchemeStacks": {
+      "id": 2434,
+      "kind": "effect",
+      "note": "GE_Mara_Talent_ResourceAttackSpenderCritChance_Stacker; talent-granted, so no Kit ability stem matches"
+    },
+    "DeadlySchemeActive": {
+      "id": 2068,
+      "kind": "effect",
+      "note": "GE_Mara_Talent_ResourceAttackSpenderCritChance_Proc; talent-granted, so no Kit ability stem matches"
+    }
+  },
   "meiko": {
     "StoneShieldAlt": {
       "id": 1122,

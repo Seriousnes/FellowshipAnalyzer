@@ -6,3 +6,18 @@
 {
     <MaraResourceDisciplineGuide />
 }
+
+@if (Parser.MaraDotAnalyzers.Count > 0)
+{
+    <MaraDotGuide />
+}
+
+@if (Parser.MaidenOfDeathWindowAnalyzers.Count > 0)
+{
+    <MaidenOfDeathGuide />
+}
+
+@if (Parser.StealthWindowAnalyzers.Count > 0)
+{
+    <StealthGuide />
+}

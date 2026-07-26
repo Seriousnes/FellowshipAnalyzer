@@ -2,8 +2,11 @@ namespace FellowshipAnalyzer.Core.Analysis;
 
 /// <summary>
 /// Gates module construction on the selected combatant having a specific talent. Applied to a
-/// module class, it drives the source-generated <c>IsModuleActive</c> override to emit a
-/// <c>context.SelectedCombatant.HasTalent(<see cref="TalentId"/>)</c> check.
+/// fight-lifetime module class, it drives the source-generated <c>IsModuleActive</c> override to
+/// emit a <c>context.SelectedCombatant.HasTalent(<see cref="TalentId"/>)</c> check. Applied to a
+/// pull-lifetime <see cref="Analyzer"/>, the same check joins its <see cref="ForPullAttribute"/>
+/// gate in the generated <c>GetAnalyzerTypes(Pull)</c>, so a build without the talent constructs no
+/// instance and the analyzer's cross-pull read path stays empty.
 /// </summary>
 /// <param name="talentId">
 /// The native talent id (the value stored on the hand-written <c>Talents</c> entry, e.g.
@@ -17,9 +20,9 @@ namespace FellowshipAnalyzer.Core.Analysis;
 /// <see cref="ActiveWhenAttribute{TPredicate}"/> ANDs the predicate with the talent checks.
 /// </para>
 /// <para>
-/// Like <see cref="ActiveWhenAttribute{TPredicate}"/>, this is evaluated once at parser
-/// construction: when the check is false the module is never instantiated, its constructor never
-/// runs, and its <c>[On&lt;T&gt;]</c> handlers never subscribe.
+/// Like <see cref="ActiveWhenAttribute{TPredicate}"/>, this is evaluated against the parse context
+/// built before dispatch: when the check is false the module or analyzer is never instantiated, its
+/// constructor never runs, and its <c>[On&lt;T&gt;]</c> handlers never subscribe.
 /// </para>
 /// </remarks>
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = true, Inherited = false)]

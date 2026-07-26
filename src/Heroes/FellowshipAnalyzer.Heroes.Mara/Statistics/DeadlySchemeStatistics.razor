@@ -1,0 +1,61 @@
+@inherits AnalyzerStatistic<DeadlySchemeTracker>
+@using MaraSpells = FellowshipAnalyzer.Core.Common.Spells.Mara
+
+<StatCard>
+    <Header>
+        <SpellLink Spell="MaraSpells.Talents.DeadlyScheme" />
+    </Header>
+    <Info>
+        <p>
+            Energy spending banks Deadly Scheme stacks, one per five Energy. At
+            @DeadlySchemeTracker.MaxStacks stacks they convert into twelve seconds of guaranteed
+            critical strikes, so each activation is measured by the Queen's Fang, Arachnid Assault and
+            Hemorrhaging Strike casts that landed inside it.
+        </p>
+    </Info>
+    <ChildContent>
+        <CastOverview Title="Guaranteed Crit Windows" Stats="@BuildStats()" />
+    </ChildContent>
+</StatCard>
+
+@code {
+    private IEnumerable<OverviewStat> BuildStats()
+    {
+        var stats = new List<OverviewStat>
+        {
+            new(
+                $"{Analyzer.Activations}",
+                "Activations",
+                "Times the banked stacks converted into Deadly Scheme: Active."),
+            new(
+                $"{Analyzer.ActiveTimeMs / 1000d:0.0}s",
+                "Guaranteed Crit",
+                "Total time the fight spent under Deadly Scheme: Active."),
+            new(
+                $"{Analyzer.HighestStacks}/{DeadlySchemeTracker.MaxStacks}",
+                "Peak Stacks",
+                $"Highest stack count reached against the {DeadlySchemeTracker.MaxStacks}-stack conversion point."),
+            new(
+                $"{Analyzer.FinishersDuringActive}",
+                "Finishers Landed",
+                $"Queen's Fang and Arachnid Assault casts under Active, alongside {Analyzer.HemorrhagingStrikesDuringActive} Hemorrhaging Strike{(Analyzer.HemorrhagingStrikesDuringActive == 1 ? "" : "s")}."),
+        };
+
+        if (Analyzer.Activations > 0)
+        {
+            stats.Add(new OverviewStat(
+                $"{Analyzer.ActivationsUnspent}",
+                "Expired Unspent",
+                "Activations that ended without a Queen's Fang, Arachnid Assault or Hemorrhaging Strike.",
+                UnspentTier()));
+        }
+
+        return stats;
+    }
+
+    private QualitativePerformance UnspentTier()
+    {
+        var spentPercent = (double)Analyzer.ActivationsSpent / Analyzer.Activations * 100;
+        return PerformanceTiers.FromThresholds(spentPercent, 100, 75, 50);
+    }
+}
