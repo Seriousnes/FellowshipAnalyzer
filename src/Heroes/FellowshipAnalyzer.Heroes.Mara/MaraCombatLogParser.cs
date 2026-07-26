@@ -9,6 +9,8 @@ namespace FellowshipAnalyzer.Heroes.Mara.Analysis;
 [AddModule<MaraAuras>]
 [AddAnalyzer<SingleTargetMaraResourceDiscipline>]
 [AddAnalyzer<AoEMaraResourceDiscipline>]
+[AddAnalyzer<MaraDotUptimeAnalyzer>]
+[AddAnalyzer<MaraDotSpreadAnalyzer>]
 public sealed partial class MaraCombatLogParser : CombatLogParser
 {
     public override Type? GuideComponent => typeof(MaraGuide);
