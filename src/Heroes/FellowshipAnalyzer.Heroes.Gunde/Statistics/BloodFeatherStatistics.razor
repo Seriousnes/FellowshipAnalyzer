@@ -1,0 +1,56 @@
+@inherits AnalyzerStatistic<BloodFeatherTracker>
+
+<StatCard Title="Blood Feathers">
+    <Info>
+        The Blood Feather pool as the log's own resource snapshots recorded it. Feathers drop from
+        bleeding enemies and are picked up off the ground, so generation is partly a movement stat.
+    </Info>
+    <ChildContent>
+        <CastOverview Title="Feather Pool" Stats="@BuildOverviewStats()" />
+        @if (Total > 0)
+        {
+            <StackedBar Segments="@BuildStackedBar()" />
+        }
+    </ChildContent>
+</StatCard>
+
+@code {
+    private int Total => Analyzer.Spent + Analyzer.Wasted + Analyzer.Current;
+
+    private IEnumerable<OverviewStat> BuildOverviewStats()
+    {
+        var overcapRate = Analyzer.Generated > 0
+            ? (double)Analyzer.Wasted / Analyzer.Generated * 100
+            : 0;
+
+        return
+        [
+            new OverviewStat(
+                $"{Analyzer.Generated}",
+                "Picked Up",
+                "Blood Feathers gained over the run, counting feathers that landed on a full pool."),
+            new OverviewStat(
+                $"{Analyzer.Spent}",
+                "Spent",
+                "Blood Feathers consumed, converted into Rend by Owed in Blood."),
+            new OverviewStat(
+                $"{Analyzer.Wasted}",
+                "Overcapped",
+                $"Feathers that arrived at the {BloodFeatherTracker.MaxBloodFeathers} cap and added nothing ({overcapRate:F0}% of everything picked up)."),
+            new OverviewStat(
+                $"{Analyzer.Current}",
+                "Held at End",
+                $"Blood Feathers still banked when the log ended, out of a maximum of {BloodFeatherTracker.MaxBloodFeathers}."),
+        ];
+    }
+
+    private IEnumerable<StackedBarSegment> BuildStackedBar() =>
+    [
+        new StackedBarSegment("Spent", Analyzer.Spent, PerformanceColors.Good,
+            $"Spent: {Analyzer.Spent} feathers converted into Rend"),
+        new StackedBarSegment("Overcapped", Analyzer.Wasted, PerformanceColors.Fail,
+            $"Overcapped: {Analyzer.Wasted} feathers arrived at the cap"),
+        new StackedBarSegment("Held", Analyzer.Current, PerformanceColors.Neutral,
+            $"Held: {Analyzer.Current} feathers banked at the end"),
+    ];
+}

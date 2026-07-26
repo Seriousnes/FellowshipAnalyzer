@@ -1,0 +1,56 @@
+@inherits AnalyzerStatistic<FatedStrikeWindowTracker>
+
+<StatCard Title="Fated Strike Windows">
+    <Info>
+        Fateful Arms grants Glorious Purpose for a few seconds after Fated Strike, accelerating the
+        cooldowns of whatever is cast inside it. Only Grim Carve, Blood Arc and Heart Splitter
+        (priority) and Double Strike and Reaver's Edge (filler) are classified here; everything else
+        cast in the window is left out rather than counted against the share.
+    </Info>
+    <ChildContent>
+        <CastOverview Title="Window Usage" Stats="@BuildOverviewStats()" />
+        @if (Analyzer.ClassifiedCasts > 0)
+        {
+            <StackedBar Segments="@BuildStackedBar()" />
+        }
+    </ChildContent>
+</StatCard>
+
+@code {
+    private IEnumerable<OverviewStat> BuildOverviewStats()
+    {
+        var stats = new List<OverviewStat>
+        {
+            new OverviewStat(
+                $"{Analyzer.FatedStrikeCasts}",
+                "Activations",
+                "Fated Strike casts from Fateful Arms over the run."),
+            new OverviewStat(
+                $"{Analyzer.Windows}",
+                "Windows",
+                "Glorious Purpose windows the log recorded. A refresh landing in a live window extends it rather than counting again."),
+        };
+
+        if (Analyzer.ClassifiedCasts > 0)
+        {
+            stats.Add(new OverviewStat(
+                $"{Analyzer.PriorityShare * 100:F0}%",
+                "Priority Share",
+                $"{Analyzer.PriorityCasts} of {Analyzer.ClassifiedCasts} classified in-window casts were Grim Carve, Blood Arc or Heart Splitter.",
+                Analyzer.PriorityShare >= 0.9 ? QualitativePerformance.Perfect
+                    : Analyzer.PriorityShare >= 0.75 ? QualitativePerformance.Good
+                    : Analyzer.PriorityShare >= 0.5 ? QualitativePerformance.Ok
+                    : QualitativePerformance.Fail));
+        }
+
+        return stats;
+    }
+
+    private IEnumerable<StackedBarSegment> BuildStackedBar() =>
+    [
+        new StackedBarSegment("Priority", Analyzer.PriorityCasts, PerformanceColors.Good,
+            $"Priority: {Analyzer.PriorityCasts} Grim Carve, Blood Arc or Heart Splitter casts inside a window"),
+        new StackedBarSegment("Filler", Analyzer.FillerCasts, PerformanceColors.Fail,
+            $"Filler: {Analyzer.FillerCasts} Double Strike or Reaver's Edge casts inside a window"),
+    ];
+}

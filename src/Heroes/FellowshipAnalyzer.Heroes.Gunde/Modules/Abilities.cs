@@ -19,9 +19,10 @@ public class Abilities : CoreAbilities
         new()
         {
             PrimarySpell = Spells.HeartSplitter,
-            AdditionalSpells = [Spells.HeartSplitterDamage],
+            AdditionalSpells = [Spells.HeartSplitterDamage, Spells.HeartSplitterDotBonusDamage],
             Category = SpellCategory.Rotational,
             Gcd = StandardGcd,
+            CooldownReducedByHaste = true,
         },
         new()
         {
@@ -35,6 +36,7 @@ public class Abilities : CoreAbilities
             AdditionalSpells = [Spells.BloodArcDamage],
             Category = SpellCategory.RotationalAoe,
             Gcd = StandardGcd,
+            CooldownReducedByHaste = true,
         },
         new()
         {
@@ -49,6 +51,7 @@ public class Abilities : CoreAbilities
             AdditionalSpells = [Spells.GrimCarveDamage],
             Category = SpellCategory.RotationalAoe,
             Gcd = StandardGcd,
+            CooldownReducedByHaste = true,
         },
         new()
         {
@@ -56,6 +59,7 @@ public class Abilities : CoreAbilities
             AdditionalSpells = [Spells.ReaverEdgeDamage],
             Category = SpellCategory.RotationalAoe,
             Gcd = StandardGcd,
+            CooldownReducedByHaste = true,
         },
         new()
         {
