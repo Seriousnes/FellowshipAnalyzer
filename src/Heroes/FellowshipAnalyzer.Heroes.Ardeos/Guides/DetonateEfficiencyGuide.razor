@@ -1,6 +1,10 @@
 @using FellowshipAnalyzer.Core.Common.Spells.Ardeos
+@using FellowshipAnalyzer.Core.Contracts.Design
 @using Spells = FellowshipAnalyzer.Core.Common.Spells.Ardeos.Spells
+@using DetonateCast = FellowshipAnalyzer.Heroes.Ardeos.Modules.DetonateEfficiencyAnalyzer.DetonateCast
+@inherits ReportComponentBase
 @inject ArdeosCombatLogParser Parser
+@inject ChartPalette Palette
 
 <GuideSection Title="Detonate Efficiency">
     <Explanation>
@@ -24,9 +28,29 @@
     </Explanation>
     <ChildContent>
         <CastOverview Title="Detonate Overview" Stats="@BuildOverviewStats()" />
-        <CastDetail Title="Detonate by Pull"
-                    Description="Each row is one pull, rated on the average DoT instances each Detonate re-triggered per target."
-                    Casts="@BuildPerPullData()" />
+
+        @if (Charted is { } charted)
+        {
+            <SubSection Title="DoT Layering">
+                <HelperText>
+                    Active DoT instances across every enemy through @charted.Pull.Name, with each Detonate
+                    marked where the stack stood when it landed.
+                    @if (Parser.DetonateEfficiencyAnalyzers.Count > 1)
+                    {
+                        <text>Use the pull selector in the report header to chart another pull.</text>
+                    }
+                </HelperText>
+                <AuraStackGraph Samples="@ChartSamples(charted.Analyzer)"
+                                Bands="@ChartBands(charted.Analyzer)"
+                                Markers="@ChartMarkers(charted.Analyzer)"
+                                YAxisTitle="Active DoT instances"
+                                Height="300" />
+            </SubSection>
+        }
+
+        <CastDetail Title="Detonate Casts"
+                    Description="Each card is one Detonate, rated on the average DoT instances it re-triggered per target."
+                    Casts="@BuildPerCastData()" />
     </ChildContent>
 </GuideSection>
 
@@ -35,6 +59,77 @@
         .Select(entry => entry.Analyzer)
         .Any(analyzer => analyzer.ApocalypticSurgeTalented);
 
+    /// <summary>
+    /// The pull the graph plots. The report header's pull selector already clamps the analyzer stream, so
+    /// a chosen pull leaves exactly one; unclamped, the boss pull reads as the interesting one and the
+    /// busiest pull stands in when a dungeon run has no boss.
+    /// </summary>
+    private PullAnalyzer<DetonateEfficiencyAnalyzer>? Charted
+    {
+        get
+        {
+            var analyzers = Parser.DetonateEfficiencyAnalyzers.Where(entry => entry.Analyzer.TotalCasts > 0).ToList();
+            if (analyzers.Count == 0)
+                return null;
+
+            foreach (var entry in analyzers)
+            {
+                if (entry.Pull.IsBoss)
+                    return entry;
+            }
+            return analyzers.MaxBy(entry => entry.Analyzer.TotalCasts);
+        }
+    }
+
+    private static IReadOnlyList<int> ChartSamples(DetonateEfficiencyAnalyzer analyzer) =>
+        [.. analyzer.LayerTimeline.Select(sample => sample.Timestamp)];
+
+    private IReadOnlyList<AuraStackBand> ChartBands(DetonateEfficiencyAnalyzer analyzer)
+    {
+        var timeline = analyzer.LayerTimeline;
+        var bands = new List<AuraStackBand>(ArdeosDots.Count);
+
+        for (var slot = 0; slot < ArdeosDots.Count; slot++)
+        {
+            var index = slot;
+            bands.Add(new AuraStackBand(
+                ArdeosDots.All[index].Name,
+                Palette.Series(index),
+                [.. timeline.Select(sample => sample.Instances[index])]));
+        }
+
+        return bands;
+    }
+
+    /// <summary>
+    /// Places each cast on the sample covering it. Both the casts and the timeline run in time order, so
+    /// one walk carries the sample cursor forward across every cast.
+    /// </summary>
+    private IReadOnlyList<AuraStackMarkers> ChartMarkers(DetonateEfficiencyAnalyzer analyzer)
+    {
+        var timeline = analyzer.LayerTimeline;
+        var wellLayered = new int?[timeline.Count];
+        var underLayered = new int?[timeline.Count];
+
+        var sample = 0;
+        foreach (var cast in analyzer.Casts)
+        {
+            while (sample + 1 < timeline.Count && timeline[sample + 1].Timestamp <= cast.Timestamp)
+                sample++;
+
+            if (cast.AverageInstances >= DetonateEfficiencyAnalyzer.WellLayeredAverage)
+                wellLayered[sample] = cast.TotalInstances;
+            else
+                underLayered[sample] = cast.TotalInstances;
+        }
+
+        return
+        [
+            new AuraStackMarkers("Detonate: well layered", Palette.Performance(QualitativePerformance.Good), wellLayered),
+            new AuraStackMarkers("Detonate: under layered", Palette.Performance(QualitativePerformance.Fail), underLayered),
+        ];
+    }
+
     private IEnumerable<OverviewStat> BuildOverviewStats()
     {
         var casts = Parser.DetonateEfficiencyAnalyzers.SelectMany(entry => entry.Analyzer.Casts).ToList();
@@ -42,6 +137,7 @@
         var averageInstances = totalCasts == 0 ? 0 : casts.Average(cast => cast.AverageInstances);
         var wellLayered = casts.Count(cast => cast.AverageInstances >= DetonateEfficiencyAnalyzer.WellLayeredAverage);
         var wellLayeredPct = totalCasts == 0 ? 0 : (int)Math.Round((double)wellLayered / totalCasts * 100);
+        var averageDots = totalCasts == 0 ? 0 : casts.Average(cast => cast.DistinctDots);
 
         var stats = new List<OverviewStat>
         {
@@ -54,6 +150,10 @@
                 "Avg Instances / Target",
                 "Average active DoT instances each Detonate re-triggered per target.",
                 AverageTier(averageInstances)),
+            new(
+                $"{averageDots:0.0}/{ArdeosDots.Count}",
+                "Avg DoTs at Cast",
+                "Average distinct damage-over-time effects standing anywhere when Detonate landed."),
             new(
                 $"{wellLayeredPct}%",
                 "Well-Layered",
@@ -83,85 +183,104 @@
         return stats;
     }
 
-    private IEnumerable<PerCastData> BuildPerPullData() =>
-        Parser.DetonateEfficiencyAnalyzers.ToPullRows(Parser, (analyzer, pull) => BuildPullRow(analyzer));
+    private IEnumerable<PerCastData> BuildPerCastData() =>
+        Parser.DetonateEfficiencyAnalyzers.ToItemRows(Parser, analyzer => analyzer.Casts, (cast, pull) => BuildCastRow(cast));
 
-    private PerCastRow BuildPullRow(DetonateEfficiencyAnalyzer analyzer)
+    private PerCastRow BuildCastRow(DetonateCast cast)
     {
-        var perf = AverageTier(analyzer.AverageInstancesPerTarget);
-        var wellLayeredPct = analyzer.TotalCasts == 0 ? 0 : (int)Math.Round(analyzer.WellLayeredShare * 100);
+        var perf = AverageTier(cast.AverageInstances);
 
         var stats = new List<PerCastStat>
         {
             new(
-                $"{analyzer.AverageInstancesPerTarget:0.0}",
-                "Avg Instances",
-                "Average active DoT instances re-triggered per target on this pull.",
+                $"{cast.TotalInstances}",
+                "Instances Re-Triggered",
+                "Active DoT instances this Detonate re-triggered across every enemy.",
                 Performance: perf),
             new(
-                $"{analyzer.TotalCasts}",
-                "Casts",
-                "Detonate casts made on this pull."),
+                $"{cast.DistinctDots}/{ArdeosDots.Count}",
+                "DoTs Standing",
+                "Distinct damage-over-time effects standing on at least one enemy at the cast.",
+                Performance: DotCountTier(cast.DistinctDots)),
             new(
-                $"{analyzer.WellLayeredCasts}/{analyzer.TotalCasts}",
-                "Well-Layered",
-                "Detonates that re-triggered three or more instances per target.",
-                Performance: PercentTier(wellLayeredPct)),
+                $"{cast.TargetsWithDoTs}",
+                "Enemies Hit",
+                "Enemies carrying at least one damage-over-time effect at the cast."),
             new(
-                $"{analyzer.UnderLayeredCasts}",
-                "Under-Layered",
-                "Detonates that re-triggered one or fewer instances per target."),
+                $"{cast.MaxTargetInstances}",
+                "Peak On A Target",
+                "The most instances standing on any single enemy at the cast."),
         };
 
-        if (analyzer.ApocalypticSurgeTalented)
+        if (Talented)
         {
             stats.Add(new PerCastStat(
-                $"{analyzer.FreeCasts}",
-                "Free Casts",
-                "Detonates made free by an Apocalyptic Surge stack on this pull."));
+                cast.Free ? "Free" : "1 Ember",
+                "Cost",
+                cast.Free
+                    ? "An Apocalyptic Surge charge paid for this Detonate."
+                    : "No Surge charge was standing, so this Detonate spent an Ember."));
         }
 
         return new PerCastRow
         {
             Performance = perf,
             Stats = stats.ToArray(),
-            Details = BuildDistribution(analyzer),
-            AdditionalContent = new AdditionalContent("Notes", @<div>@BuildNote(analyzer)</div>),
+            Timestamp = cast.Timestamp,
+            AdditionalContent = new AdditionalContent(
+                "DoTs At Cast",
+                @<AuraChecklist Items="@BuildChecklist(cast)" />),
+            Details = @<div>@BuildNote(cast)</div>,
         };
     }
 
-    private RenderFragment BuildDistribution(DetonateEfficiencyAnalyzer analyzer) =>
-        @<div>
-            <div>Instances per target, by cast:</div>
-            <ul>
-                @foreach (var (instances, count) in analyzer.InstanceDistribution)
-                {
-                    <li>@instances instance@(instances == 1 ? "" : "s"): @count cast@(count == 1 ? "" : "s")</li>
-                }
-            </ul>
-        </div>;
+    private static IEnumerable<AuraCheckItem> BuildChecklist(DetonateCast cast) =>
+        cast.Coverage.Select(entry => new AuraCheckItem(
+            entry.Dot.Cast,
+            entry.Active,
+            entry.Magnitude,
+            CountTooltip(entry),
+            entry.Targets > 1 ? $"{entry.Targets} enemies" : null));
 
-    private string BuildNote(DetonateEfficiencyAnalyzer analyzer)
+    private static string? CountTooltip(DetonateEfficiencyAnalyzer.DotCoverage entry) => entry.Dot.Magnitude switch
     {
-        if (analyzer.TotalCasts == 0)
-            return "No Detonate casts were recorded on this pull.";
+        DotMagnitude.Instances => $"{entry.Instances} concurrent applications",
+        DotMagnitude.Stacks => $"{entry.Stacks} stacks",
+        _ => null,
+    };
 
-        var average = analyzer.AverageInstancesPerTarget;
-        if (analyzer.UnderLayeredCasts == 0)
-            return $"Every Detonate landed with DoTs layered, averaging {average:0.0} instances per target across {analyzer.TotalCasts} casts (peak {analyzer.MaxInstances} on a target).";
+    private static string BuildNote(DetonateCast cast)
+    {
+        if (cast.TargetsWithDoTs == 0)
+            return "No enemy carried a damage-over-time effect, so this Detonate re-triggered nothing.";
 
-        var worst = analyzer.Casts
-            .Where(cast => cast.AverageInstances <= DetonateEfficiencyAnalyzer.UnderLayeredAverage)
-            .OrderBy(cast => cast.AverageInstances)
-            .Take(3)
-            .Select(cast => Parser.FormatTimestamp(cast.Timestamp))
-            .ToList();
+        var missing = cast.Coverage.Where(entry => !entry.Active).Select(entry => entry.Dot.Name).ToList();
+        var opening = $"Re-triggered {cast.TotalInstances} instance{(cast.TotalInstances == 1 ? "" : "s")} across {cast.TargetsWithDoTs} " +
+            $"{(cast.TargetsWithDoTs == 1 ? "enemy" : "enemies")}, averaging {cast.AverageInstances:0.0} per target.";
 
-        var worstLabel = worst.Count > 0 ? $" Worst at {string.Join(", ", worst)}." : string.Empty;
-        return $"{analyzer.UnderLayeredCasts} of {analyzer.TotalCasts} Detonates were under-layered (one or fewer instances per target) - lay the DoTs before spending Detonate.{worstLabel}";
+        return missing.Count == 0
+            ? $"{opening} Every damage-over-time effect was standing."
+            : $"{opening} Missing {JoinNames(missing)}.";
+    }
+
+    private static string JoinNames(List<string> names)
+    {
+        if (names.Count == 1)
+            return names[0];
+
+        var builder = new System.Text.StringBuilder();
+        for (var i = 0; i < names.Count; i++)
+        {
+            if (i > 0)
+                builder.Append(i == names.Count - 1 ? " and " : ", ");
+            builder.Append(names[i]);
+        }
+        return builder.ToString();
     }
 
     private static QualitativePerformance AverageTier(double average) => PerformanceTiers.FromThresholds(average, 4, 3, 2);
+
+    private static QualitativePerformance DotCountTier(int dots) => PerformanceTiers.FromThresholds(dots, 5, 4, 2);
 
     private static QualitativePerformance PercentTier(int percent) => PerformanceTiers.FromThresholds(percent, 75, 50, 25);
 }

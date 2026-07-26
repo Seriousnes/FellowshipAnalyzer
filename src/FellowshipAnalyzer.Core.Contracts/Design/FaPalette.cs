@@ -164,6 +164,26 @@ public sealed record FaPalette
     /// <summary>Fail tier.</summary>
     public required FaColor PerfFail { get; init; }
 
+    /* Chart series */
+
+    /// <summary>First categorical chart series.</summary>
+    public required FaColor Chart1 { get; init; }
+
+    /// <summary>Second categorical chart series.</summary>
+    public required FaColor Chart2 { get; init; }
+
+    /// <summary>Third categorical chart series.</summary>
+    public required FaColor Chart3 { get; init; }
+
+    /// <summary>Fourth categorical chart series.</summary>
+    public required FaColor Chart4 { get; init; }
+
+    /// <summary>Fifth categorical chart series.</summary>
+    public required FaColor Chart5 { get; init; }
+
+    /// <summary>Sixth categorical chart series.</summary>
+    public required FaColor Chart6 { get; init; }
+
     /* Hero roles */
 
     /// <summary>Tank role.</summary>
@@ -337,6 +357,13 @@ public sealed record FaPalette
             PerfOk = "#ffc84a",
             PerfFail = perfFail,
 
+            Chart1 = "#3987e5",
+            Chart2 = "#d95926",
+            Chart3 = "#199e70",
+            Chart4 = "#c98500",
+            Chart5 = "#d55181",
+            Chart6 = "#9085e9",
+
             RoleTank = "#336699",
             RoleHealer = perfGood,
             RoleDps = perfFail,
@@ -435,6 +462,14 @@ public sealed record FaPalette
             GoldLight = deep.Step(30),
             GoldPale = deep.Step(26),
             GoldDim = FaSourceColors.WgLight.WithAlpha(FaTint.Medium),
+
+            // The same six categorical hues, stepped for the cream surface rather than flipped.
+            Chart1 = "#2a78d6",
+            Chart2 = "#eb6834",
+            Chart3 = "#1baf7a",
+            Chart4 = "#eda100",
+            Chart5 = "#e87ba4",
+            Chart6 = "#4a3aa7",
 
             Border = navy.WithAlpha(FaTint.Soft),
             BorderCard = navy.WithAlpha(FaTint.Muted),

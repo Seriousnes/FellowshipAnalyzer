@@ -1,0 +1,252 @@
+@* AuraStackGraph — how many aura windows stood over a window of the fight, decomposed by aura, with casts marked on the curve. *@
+
+@using ApexCharts
+@using FellowshipAnalyzer.Core.Contracts.Design
+@using FellowshipAnalyzer.Core.UI.Components
+@using FellowshipAnalyzer.Core.UI.Theming
+@inherits ReportComponentBase
+@implements IDisposable
+@inject ChartPalette Palette
+@inject ThemeService Theme
+
+<div class="aura-stack-graph">
+    <ApexChart TItem="Sample" Options="@_options" Height="@Height">
+        @* Painted largest running total first, so each band inside it draws over the one beneath. *@
+        @for (var slot = _bands.Count - 1; slot >= 0; slot--)
+        {
+            var band = _bands[slot];
+            <ApexPointSeries TItem="Sample"
+                             Items="@band.Points"
+                             Name="@band.Label"
+                             Color="@band.Color"
+                             SeriesType="SeriesType.Area"
+                             XValue="@(point => point.X)"
+                             YValue="@(point => point.Y)" />
+        }
+        @foreach (var marker in _markers)
+        {
+            <ApexPointSeries TItem="Sample"
+                             Items="@marker.Points"
+                             Name="@marker.Label"
+                             Color="@marker.Color"
+                             SeriesType="SeriesType.Scatter"
+                             XValue="@(point => point.X)"
+                             YValue="@(point => point.Y)" />
+        }
+    </ApexChart>
+</div>
+
+@code {
+    /// <summary>The instants the bands are sampled at, as absolute fight timestamps in milliseconds.</summary>
+    [Parameter, EditorRequired] public IReadOnlyList<int> Samples { get; set; } = [];
+
+    /// <summary>One band per aura, each index-aligned to <see cref="Samples"/>.</summary>
+    [Parameter, EditorRequired] public IReadOnlyList<AuraStackBand> Bands { get; set; } = [];
+
+    /// <summary>Cast marker sets drawn over the bands, each index-aligned to <see cref="Samples"/>.</summary>
+    [Parameter] public IReadOnlyList<AuraStackMarkers> Markers { get; set; } = [];
+
+    /// <summary>What the y axis counts, for example "Active DoT instances".</summary>
+    [Parameter] public string YAxisTitle { get; set; } = "";
+
+    [Parameter] public int Height { get; set; } = 280;
+
+    private const int MarkerSize = 6;
+    private const int MarkerStrokeWidth = 2;
+
+    private ApexChartOptions<Sample> _options = new();
+    private List<Series> _bands = [];
+    private List<Series> _markers = [];
+
+    protected override void OnInitialized() => Theme.Changed += OnThemeChanged;
+
+    protected override void OnParametersSet() => Build();
+
+    public void Dispose() => Theme.Changed -= OnThemeChanged;
+
+    private void OnThemeChanged()
+    {
+        Build();
+        StateHasChanged();
+    }
+
+    private void Build()
+    {
+        BuildSeries();
+        BuildOptions();
+    }
+
+    private void BuildSeries()
+    {
+        _bands = [];
+        _markers = [];
+
+        if (Samples.Count == 0)
+            return;
+
+        // Band k plots the running total of bands 0..k, so the outermost curve is the stack's own height
+        // and nothing depends on the chart library stacking for it. Stacking stays off deliberately: it
+        // would stack the cast markers onto the areas and plot them at the wrong height.
+        var running = new int[Samples.Count];
+        foreach (var band in Bands)
+        {
+            var points = new List<Sample>(Samples.Count);
+            for (var i = 0; i < Samples.Count; i++)
+            {
+                running[i] += i < band.Values.Count ? band.Values[i] : 0;
+                points.Add(new Sample(Samples[i] - FightStartTime, running[i]));
+            }
+            _bands.Add(new Series(band.Label, band.Color, points));
+        }
+
+        // Marker series carry a point at every sample so every series shares one index, which is what the
+        // shared tooltip reads positions by; samples with no cast carry a null the chart skips.
+        foreach (var marker in Markers)
+        {
+            var points = new List<Sample>(Samples.Count);
+            for (var i = 0; i < Samples.Count; i++)
+                points.Add(new Sample(Samples[i] - FightStartTime, i < marker.Values.Count ? marker.Values[i] : null));
+
+            _markers.Add(new Series(marker.Label, marker.Color, points));
+        }
+    }
+
+    private void BuildOptions()
+    {
+        var surface = Palette.Resolve(nameof(FaPalette.BgCard));
+        var ink = Palette.Resolve(nameof(FaPalette.TextMuted));
+        var grid = Palette.Resolve(nameof(FaPalette.BorderSubtle));
+
+        // Marker options are indexed by series, and the bands are curves rather than points: only the
+        // cast series wears a marker, or every sample on every band would draw one.
+        var markerSizes = new List<int>();
+        var markerStrokes = new List<int>();
+        for (var i = 0; i < _bands.Count; i++)
+        {
+            markerSizes.Add(0);
+            markerStrokes.Add(0);
+        }
+        for (var i = 0; i < _markers.Count; i++)
+        {
+            markerSizes.Add(MarkerSize);
+            markerStrokes.Add(MarkerStrokeWidth);
+        }
+
+        _options = new ApexChartOptions<Sample>
+        {
+            Chart = new Chart
+            {
+                Background = "transparent",
+                Stacked = false,
+                Toolbar = new Toolbar { Show = false },
+                Animations = new Animations { Enabled = false },
+                Zoom = new Zoom { Enabled = false },
+                Selection = new Selection { Enabled = false },
+            },
+            Xaxis = new XAxis
+            {
+                Type = XAxisType.Numeric,
+                Labels = new XAxisLabels
+                {
+                    Formatter = TimeFormatters.MmSsJs,
+                    Style = new AxisLabelStyle { Colors = ink },
+                },
+                AxisBorder = new AxisBorder { Color = grid },
+                AxisTicks = new AxisTicks { Color = grid },
+                Crosshairs = new AxisCrosshairs { Show = true },
+                Tooltip = new AxisTooltip { Enabled = false },
+            },
+            Yaxis =
+            [
+                new YAxis
+                {
+                    Min = 0,
+                    ForceNiceScale = true,
+                    Title = string.IsNullOrEmpty(YAxisTitle)
+                        ? null
+                        : new AxisTitle { Text = YAxisTitle, Style = new AxisTitleStyle { Color = ink } },
+                    Labels = new YAxisLabels
+                    {
+                        Formatter = TimeFormatters.IdentityJs,
+                        Style = new AxisLabelStyle { Colors = ink },
+                    },
+                },
+            ],
+            Stroke = new Stroke
+            {
+                Curve = [Curve.Stepline],
+                Width = 2,
+                Colors = [surface],
+            },
+            Fill = new Fill
+            {
+                Type = [FillType.Solid],
+                Opacity = [0.85d],
+            },
+            Markers = new Markers
+            {
+                Size = markerSizes,
+                StrokeWidth = markerStrokes,
+                StrokeColors = Palette.Resolve(nameof(FaPalette.Text)),
+                ShowNullDataPoints = false,
+                Hover = new MarkersHover { SizeOffset = 2 },
+            },
+            Grid = new Grid { BorderColor = grid },
+            Legend = new Legend
+            {
+                Show = true,
+                Position = LegendPosition.Bottom,
+                HorizontalAlign = Align.Left,
+                InverseOrder = true,
+                Labels = new LegendLabels { Colors = [ink] },
+                // The legend is a key, not a filter. The bands carry running totals, so hiding one
+                // leaves its contribution inside every band outside it and the survivors would read
+                // as more than they are.
+                OnItemClick = new LegendOnItemClick { ToggleDataSeries = false },
+            },
+            DataLabels = new DataLabels { Enabled = false },
+            Tooltip = new Tooltip
+            {
+                Shared = true,
+                Intersect = false,
+                Custom = TooltipJs(_bands.Count),
+            },
+        };
+    }
+
+    /// <summary>
+    /// Renders the shared tooltip. The band series carry running totals, so an aura's own count is its
+    /// difference against the band inside it; the series are laid out largest first, so the band inside
+    /// is the following index and the innermost band stands alone.
+    /// </summary>
+    private static string TooltipJs(int bandCount) =>
+        $$"""
+        function({series, seriesIndex, dataPointIndex, w}) {
+            var bands = {{bandCount}};
+            var ms = w.globals.seriesX[0][dataPointIndex];
+            var secs = Math.floor(ms / 1000);
+            var time = Math.floor(secs / 60) + ':' + (secs % 60 < 10 ? '0' : '') + (secs % 60);
+            var html = '<div class="aura-stack-tooltip"><div class="aura-stack-tooltip-time">' + time + '</div>';
+            var total = bands > 0 ? series[0][dataPointIndex] : 0;
+            for (var i = bands - 1; i >= 0; i--) {
+                var own = series[i][dataPointIndex] - (i + 1 < bands ? series[i + 1][dataPointIndex] : 0);
+                html += '<div class="aura-stack-tooltip-row' + (own > 0 ? '' : ' empty') + '">'
+                     + '<span class="aura-stack-tooltip-swatch" style="background:' + w.globals.colors[i] + '"></span>'
+                     + '<span class="aura-stack-tooltip-name">' + w.globals.seriesNames[i] + '</span>'
+                     + '<span class="aura-stack-tooltip-value">' + own + '</span></div>';
+            }
+            html += '<div class="aura-stack-tooltip-row total"><span class="aura-stack-tooltip-name">Total</span>'
+                 + '<span class="aura-stack-tooltip-value">' + total + '</span></div>';
+            for (var m = bands; m < series.length; m++) {
+                var mark = series[m][dataPointIndex];
+                if (mark === null || mark === undefined) continue;
+                html += '<div class="aura-stack-tooltip-cast">' + w.globals.seriesNames[m] + '</div>';
+            }
+            return html + '</div>';
+        }
+        """;
+
+    private sealed record Sample(int X, decimal? Y);
+
+    private sealed record Series(string Label, string Color, List<Sample> Points);
+}

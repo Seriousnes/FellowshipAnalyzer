@@ -1,0 +1,28 @@
+@* AuraChecklist — one tick-or-cross line per aura, in a fixed order the caller sets. *@
+
+<ul class="aura-checklist">
+    @foreach (var item in Items)
+    {
+        <li class="aura-checklist-row @(item.Pass ? "pass" : "fail")">
+            <PassFailCheckmark Pass="@item.Pass" Size="15"
+                               Title="@(item.Pass ? "Standing at the cast" : "Not standing at the cast")" />
+            <span class="aura-checklist-name">
+                <SpellLink Spell="@item.Spell" />
+            </span>
+            @if (item.Count is > 1)
+            {
+                <span class="aura-checklist-count" title="@item.CountTooltip">&times;@item.Count</span>
+            }
+            @if (!string.IsNullOrWhiteSpace(item.Note))
+            {
+                <span class="aura-checklist-note">@item.Note</span>
+            }
+        </li>
+    }
+</ul>
+
+@code {
+    /// <summary>The lines to render, in the order they are given. Never reorder by pass or fail: a list
+    /// whose rows move between casts cannot be read across casts.</summary>
+    [Parameter, EditorRequired] public IEnumerable<AuraCheckItem> Items { get; set; } = [];
+}

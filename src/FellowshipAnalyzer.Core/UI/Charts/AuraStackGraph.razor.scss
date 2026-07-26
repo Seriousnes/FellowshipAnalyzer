@@ -1,0 +1,71 @@
+@use 'tokens' as t;
+
+.aura-stack-graph {
+    width: 100%;
+
+    ::deep .apexcharts-tooltip {
+        background: var(--fa-bg-raised);
+        border: var(--fa-border-width) solid var(--fa-border-card);
+        border-radius: var(--fa-radius-sm);
+        box-shadow: var(--fa-shadow-card);
+        color: var(--fa-text);
+        overflow: hidden;
+    }
+
+    ::deep .aura-stack-tooltip {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        padding: 0.45rem 0.6rem;
+        font-family: var(--fa-font-body);
+        font-size: var(--fa-fs-meta);
+        line-height: 1.35;
+        color: var(--fa-text);
+    }
+
+    ::deep .aura-stack-tooltip-time {
+        margin-bottom: 3px;
+        padding-bottom: 3px;
+        border-bottom: var(--fa-border-width) solid var(--fa-edge);
+        font-weight: 700;
+        letter-spacing: 0.4px;
+        color: var(--fa-text-muted);
+    }
+
+    ::deep .aura-stack-tooltip-row {
+        display: grid;
+        grid-template-columns: 9px 1fr auto;
+        align-items: center;
+        gap: 6px;
+    }
+
+    ::deep .aura-stack-tooltip-row.empty {
+        opacity: 0.4;
+    }
+
+    ::deep .aura-stack-tooltip-row.total {
+        margin-top: 3px;
+        padding-top: 3px;
+        border-top: var(--fa-border-width) solid var(--fa-edge);
+        font-weight: 700;
+    }
+
+    ::deep .aura-stack-tooltip-swatch {
+        width: 9px;
+        height: 9px;
+        border-radius: var(--fa-radius-xs);
+    }
+
+    ::deep .aura-stack-tooltip-value {
+        font-variant-numeric: tabular-nums;
+        text-align: right;
+    }
+
+    ::deep .aura-stack-tooltip-cast {
+        margin-top: 3px;
+        padding-top: 3px;
+        border-top: var(--fa-border-width) solid var(--fa-edge);
+        font-weight: 700;
+        color: var(--fa-gold);
+    }
+}

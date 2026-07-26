@@ -3,6 +3,7 @@ using System.Text.Json.Serialization;
 using ApexCharts;
 using FellowshipAnalyzer;
 using FellowshipAnalyzer.Services;
+using FellowshipAnalyzer.Core.UI.Charts;
 using FellowshipAnalyzer.Core.UI.Theming;
 using FellowshipAnalyzer.Core.UI.Timeline;
 using FellowshipAnalyzer.Core.UI.Components;
@@ -50,5 +51,6 @@ builder.Services.AddScoped<IReportCacheService, IndexedDbReportCacheService>();
 builder.Services.AddScoped<ReportAnalysisService>();
 builder.Services.AddScoped<TimelineConfigService>();
 builder.Services.AddScoped<ThemeService>();
+builder.Services.AddScoped<ChartPalette>();
 
 await builder.Build().RunAsync();

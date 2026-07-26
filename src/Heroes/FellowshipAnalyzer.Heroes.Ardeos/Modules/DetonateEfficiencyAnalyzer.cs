@@ -11,17 +11,27 @@ namespace FellowshipAnalyzer.Heroes.Ardeos.Modules;
 /// the free-cast economy the Apocalyptic Surge talent adds. Detonate re-triggers every active DoT window
 /// on every enemy at the moment it is cast, so a Detonate is only as strong as the DoTs standing when it
 /// lands. Each cast is snapshotted against the six Ardeos DoTs (Searing Blaze, Engulfing Flames, Fire
-/// Ball, Fire Frogs, Incinerate and Apocalypse): the enemies carrying at least one of them and the total
-/// unique active instances across them, counted once per concurrent application so a stacked Incinerate
-/// weighs the same as one window and each concurrent Engulfing Flames application weighs one.
+/// Ball, Fire Frogs, Incinerate and Apocalypse): which of them were standing, the enemies carrying at
+/// least one, and the total unique active instances across them, counted once per concurrent application
+/// so a stacked Incinerate weighs the same as one window and each concurrent Engulfing Flames application
+/// weighs one. <see cref="LayerTimeline"/> reconstructs the same coverage continuously across the pull so
+/// the layering can be charted against the casts that cashed it in.
 /// </summary>
 /// <remarks>
 /// Coverage is sampled per cast from the all-units aura registry, which closes every open window at an
-/// enemy's death, so a dead enemy contributes nothing to casts after it dies. The headline
-/// <see cref="AverageInstancesPerTarget"/> is the mean of each cast's average instances per target and
-/// counts a Detonate fired with no DoTs standing as a real sample at zero, since that is a wasted cast
-/// rather than an absent one; the well-layered and under-layered shares use the same all-casts
-/// denominator.
+/// enemy's death, so a dead enemy contributes nothing to casts after it dies. Because Detonate carries no
+/// target and re-triggers on every enemy, a cast's per-effect counts are aggregated across every enemy
+/// carrying the effect, which is the payload the cast actually detonates and which reduces to the single
+/// enemy's own counts on a single-target pull. The headline <see cref="AverageInstancesPerTarget"/> is the
+/// mean of each cast's average instances per target and counts a Detonate fired with no DoTs standing as a
+/// real sample at zero, since that is a wasted cast rather than an absent one; the well-layered and
+/// under-layered shares use the same all-casts denominator.
+/// <para>
+/// Per-effect magnitude is read at the cast, while the parse is dispatching, because a tracked window
+/// carries its live stack count rather than its count at an arbitrary timestamp. Window starts and ends
+/// are historical, so <see cref="LayerTimeline"/> is reconstructed lazily instead, clipped to the pull
+/// because the aura registry spans the whole fight.
+/// </para>
 /// <para>
 /// Apocalyptic Surge grants stacking charges of a free Detonate: casting Apocalypse applies the buff and
 /// every Detonate cast while it stands is free, spending a charge rather than an Ember. A cast is marked
@@ -46,17 +56,9 @@ public sealed partial class DetonateEfficiencyAnalyzer : Analyzer
     /// <summary>Tolerance by which the Surge buff still counts as active at a Detonate cast, absorbing a final-charge stack removal logged just before it.</summary>
     public const int SurgeBufferMs = 100;
 
-    private static readonly int[] DotEffectIds =
-    [
-        Spells.SearingBlazeDot.FSLID,
-        Spells.EngulfingFlamesDot.FSLID,
-        Spells.FireBallDot.FSLID,
-        Spells.FireFrogsDot.FSLID,
-        Spells.IncinerateDot.FSLID,
-        Spells.ApocalypseDot.FSLID,
-    ];
-
     private readonly List<DetonateCast> _casts = [];
+
+    private IReadOnlyList<DotLayerSample>? _layerTimeline;
 
     private int _surgeStacks;
 
@@ -85,6 +87,9 @@ public sealed partial class DetonateEfficiencyAnalyzer : Analyzer
     /// <summary>Peak instances layered on a single target at any Detonate cast.</summary>
     public int MaxInstances => _casts.Count == 0 ? 0 : _casts.Max(cast => cast.MaxTargetInstances);
 
+    /// <summary>Mean distinct damage-over-time effects standing at a cast, across every cast.</summary>
+    public double AverageDistinctDots => _casts.Count == 0 ? 0 : _casts.Average(cast => cast.DistinctDots);
+
     /// <summary>
     /// Casts bucketed by rounded per-cast average instances per target; a cast fired with no DoTs
     /// standing buckets at zero. Keyed ascending by instance count.
@@ -102,6 +107,17 @@ public sealed partial class DetonateEfficiencyAnalyzer : Analyzer
             return distribution;
         }
     }
+
+    /// <summary>
+    /// The pull's damage-over-time layering as a step series: one sample at every instant a window opens
+    /// or closes, each carrying the concurrently-open windows of every effect in
+    /// <see cref="ArdeosDots.All"/> order summed across all enemies. The series is bracketed by a sample
+    /// at the pull's start and end so it spans the pull whatever the log holds.
+    /// </summary>
+    public IReadOnlyList<DotLayerSample> LayerTimeline => _layerTimeline ??= BuildLayerTimeline();
+
+    /// <summary>The peak concurrent DoT instances standing across all enemies at any instant in the pull.</summary>
+    public int PeakLayeredInstances => LayerTimeline.Count == 0 ? 0 : LayerTimeline.Max(sample => sample.Total);
 
     /// <summary>True when the analyzed player has the Apocalyptic Surge talent.</summary>
     public bool ApocalypticSurgeTalented => Combatants.Selected.HasTalent(ArdeosTalents.ApocalypticSurge);
@@ -122,8 +138,8 @@ public sealed partial class DetonateEfficiencyAnalyzer : Analyzer
     private void OnDetonate(CastEvent e)
     {
         var targets = new HashSet<UnitKey>();
-        foreach (var effectId in DotEffectIds)
-            foreach (var key in Combatants.EnemiesWithAura(effectId, e.Timestamp))
+        foreach (var dot in ArdeosDots.All)
+            foreach (var key in Combatants.EnemiesWithAura(dot.EffectId, e.Timestamp))
                 targets.Add(key);
 
         var totalInstances = 0;
@@ -131,8 +147,8 @@ public sealed partial class DetonateEfficiencyAnalyzer : Analyzer
         foreach (var key in targets)
         {
             var perTarget = 0;
-            foreach (var effectId in DotEffectIds)
-                perTarget += Combatants.AuraInstanceCount(key.ActorId, key.Instance, effectId, e.Timestamp);
+            foreach (var dot in ArdeosDots.All)
+                perTarget += Combatants.AuraInstanceCount(key.ActorId, key.Instance, dot.EffectId, e.Timestamp);
             totalInstances += perTarget;
             if (perTarget > maxTargetInstances)
                 maxTargetInstances = perTarget;
@@ -144,8 +160,82 @@ public sealed partial class DetonateEfficiencyAnalyzer : Analyzer
             TargetsWithDoTs = targets.Count,
             TotalInstances = totalInstances,
             MaxTargetInstances = maxTargetInstances,
+            Coverage = SnapshotCoverage(targets, e.Timestamp),
             Free = Owner.SelectedCombatant.HasBuff(Spells.ApocalypticSurge.FSLID, e.Timestamp, bufferTime: SurgeBufferMs),
         });
+    }
+
+    private IReadOnlyList<DotCoverage> SnapshotCoverage(HashSet<UnitKey> targets, int timestamp)
+    {
+        var coverage = new List<DotCoverage>(ArdeosDots.Count);
+        foreach (var dot in ArdeosDots.All)
+        {
+            var effectId = dot.EffectId;
+            var carriers = 0;
+            var instances = 0;
+            var stacks = 0;
+
+            foreach (var key in targets)
+            {
+                var onTarget = Combatants.AuraInstanceCount(key.ActorId, key.Instance, effectId, timestamp);
+                if (onTarget == 0) continue;
+
+                carriers++;
+                instances += onTarget;
+                stacks += Combatants.AuraStackSum(key.ActorId, key.Instance, effectId, timestamp);
+            }
+
+            coverage.Add(new DotCoverage
+            {
+                Dot = dot,
+                Targets = carriers,
+                Instances = instances,
+                Stacks = stacks,
+            });
+        }
+        return coverage;
+    }
+
+    private IReadOnlyList<DotLayerSample> BuildLayerTimeline()
+    {
+        var from = Pull.StartTime;
+        var to = Pull.EndTime;
+
+        var deltas = new List<(int Timestamp, int Index, int Delta)>();
+        for (var index = 0; index < ArdeosDots.Count; index++)
+        {
+            foreach (var window in Combatants.EnemyAuraWindows(ArdeosDots.All[index].EffectId, from, to))
+            {
+                deltas.Add((window.Start, index, 1));
+                deltas.Add((window.End + 1, index, -1));
+            }
+        }
+
+        deltas.Sort((a, b) => a.Timestamp.CompareTo(b.Timestamp));
+
+        var live = new int[ArdeosDots.Count];
+        var samples = new List<DotLayerSample> { new(from, [.. live]) };
+
+        var position = 0;
+        while (position < deltas.Count && deltas[position].Timestamp <= to)
+        {
+            var timestamp = deltas[position].Timestamp;
+            while (position < deltas.Count && deltas[position].Timestamp == timestamp)
+            {
+                live[deltas[position].Index] += deltas[position].Delta;
+                position++;
+            }
+
+            if (timestamp == samples[^1].Timestamp)
+                samples[^1] = new DotLayerSample(timestamp, [.. live]);
+            else
+                samples.Add(new DotLayerSample(timestamp, [.. live]));
+        }
+
+        if (samples[^1].Timestamp < to)
+            samples.Add(new DotLayerSample(to, [.. live]));
+
+        return samples;
     }
 
     [On<ApplyBuffEvent>(To = Actor.Player, Spell = nameof(Spells.ApocalypticSurge))]
@@ -169,6 +259,48 @@ public sealed partial class DetonateEfficiencyAnalyzer : Analyzer
     [On<RemoveBuffEvent>(To = Actor.Player, Spell = nameof(Spells.ApocalypticSurge))]
     private void OnSurgeRemove(RemoveBuffEvent e) => _surgeStacks = 0;
 
+    /// <summary>
+    /// One damage-over-time effect's coverage at a Detonate cast, aggregated across every enemy, since
+    /// Detonate re-triggers on all of them at once.
+    /// </summary>
+    public sealed record DotCoverage
+    {
+        public required ArdeosDot Dot { get; init; }
+
+        /// <summary>Enemies carrying at least one open window of this effect at the cast.</summary>
+        public required int Targets { get; init; }
+
+        /// <summary>Concurrently open windows of this effect, summed across every enemy carrying it.</summary>
+        public required int Instances { get; init; }
+
+        /// <summary>Stacks summed across every open window of this effect at the cast.</summary>
+        public required int Stacks { get; init; }
+
+        /// <summary>True when the effect was standing on at least one enemy.</summary>
+        public bool Active => Instances > 0;
+
+        /// <summary>
+        /// The count shown beside the effect, or null when its magnitude is simple presence and a count
+        /// would say nothing.
+        /// </summary>
+        public int? Magnitude => Dot.Magnitude switch
+        {
+            DotMagnitude.Instances => Instances,
+            DotMagnitude.Stacks => Stacks,
+            _ => null,
+        };
+    }
+
+    /// <summary>
+    /// The layering standing at one instant in the pull: the concurrently open windows of each effect in
+    /// <see cref="ArdeosDots.All"/> order, summed across every enemy.
+    /// </summary>
+    public sealed record DotLayerSample(int Timestamp, IReadOnlyList<int> Instances)
+    {
+        /// <summary>Every effect's open windows at this instant, across all enemies.</summary>
+        public int Total => Instances.Sum();
+    }
+
     /// <summary>A single Detonate cast and the DoT layering standing on its targets when it landed.</summary>
     public sealed class DetonateCast
     {
@@ -183,8 +315,14 @@ public sealed partial class DetonateEfficiencyAnalyzer : Analyzer
         /// <summary>The most active DoT instances standing on any single target at the cast.</summary>
         public required int MaxTargetInstances { get; init; }
 
+        /// <summary>Per-effect coverage at the cast, in <see cref="ArdeosDots.All"/> order.</summary>
+        public required IReadOnlyList<DotCoverage> Coverage { get; init; }
+
         /// <summary>Average active DoT instances per DoT-carrying target, or zero when none carried a DoT.</summary>
         public double AverageInstances => TargetsWithDoTs == 0 ? 0 : (double)TotalInstances / TargetsWithDoTs;
+
+        /// <summary>How many of the six damage-over-time effects were standing anywhere at the cast.</summary>
+        public int DistinctDots => Coverage.Count(entry => entry.Active);
 
         /// <summary>True when the player carried an Apocalyptic Surge charge as this cast landed, spending no Ember.</summary>
         public required bool Free { get; init; }

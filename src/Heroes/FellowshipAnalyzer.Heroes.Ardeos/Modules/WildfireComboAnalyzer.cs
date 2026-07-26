@@ -36,7 +36,7 @@ namespace FellowshipAnalyzer.Heroes.Ardeos.Modules;
 public sealed partial class WildfireComboAnalyzer : Analyzer
 {
     /// <summary>The count of fire damage-over-time effects the setup rotation lays before Wildfire.</summary>
-    public static int TotalDots => DotEffects.Length;
+    public static int TotalDots => ArdeosDots.Count;
 
     /// <summary>Distinct damage-over-time effects on the target that make a window's setup complete.</summary>
     public const int DistinctDotSuccessThreshold = 4;
@@ -52,16 +52,6 @@ public sealed partial class WildfireComboAnalyzer : Analyzer
 
     private const int WildfireBuffDurationMs = 9000;
     private const int SequenceWindowMs = 6000;
-
-    private static readonly (WildfireDot Dot, int EffectId)[] DotEffects =
-    [
-        (WildfireDot.SearingBlaze, Spells.SearingBlazeDot.FSLID),
-        (WildfireDot.EngulfingFlames, Spells.EngulfingFlamesDot.FSLID),
-        (WildfireDot.FireBall, Spells.FireBallDot.FSLID),
-        (WildfireDot.FireFrogs, Spells.FireFrogsDot.FSLID),
-        (WildfireDot.Incinerate, Spells.IncinerateDot.FSLID),
-        (WildfireDot.Apocalypse, Spells.ApocalypseDot.FSLID),
-    ];
 
     private readonly List<CastEvent> _casts = [];
 
@@ -102,7 +92,7 @@ public sealed partial class WildfireComboAnalyzer : Analyzer
         var timestamp = anchor.Timestamp;
         var target = ResolveTarget(anchor);
         var activeDots = ActiveDotsOn(target, timestamp);
-        var engulfingInstances = Combatants.AuraInstanceCount(target.ActorId, target.Instance, Spells.EngulfingFlamesDot.FSLID, timestamp);
+        var engulfingInstances = Combatants.AuraInstanceCount(target.ActorId, target.Instance, ArdeosDots.EngulfingFlames.EffectId, timestamp);
 
         var setupSuccessful =
             activeDots.Count >= DistinctDotSuccessThreshold &&
@@ -149,8 +139,8 @@ public sealed partial class WildfireComboAnalyzer : Analyzer
     private UnitKey? MostDottedEnemy(int timestamp)
     {
         var candidates = new HashSet<UnitKey>();
-        foreach (var (_, effectId) in DotEffects)
-            foreach (var key in Combatants.EnemiesWithAura(effectId, timestamp))
+        foreach (var dot in ArdeosDots.All)
+            foreach (var key in Combatants.EnemiesWithAura(dot.EffectId, timestamp))
                 candidates.Add(key);
 
         UnitKey? best = null;
@@ -166,14 +156,14 @@ public sealed partial class WildfireComboAnalyzer : Analyzer
     }
 
     private int TotalDotInstances(UnitKey key, int timestamp) =>
-        DotEffects.Sum(d => Combatants.AuraInstanceCount(key.ActorId, key.Instance, d.EffectId, timestamp));
+        ArdeosDots.All.Sum(dot => Combatants.AuraInstanceCount(key.ActorId, key.Instance, dot.EffectId, timestamp));
 
-    private IReadOnlyList<WildfireDot> ActiveDotsOn(UnitKey target, int timestamp)
+    private IReadOnlyList<ArdeosDot> ActiveDotsOn(UnitKey target, int timestamp)
     {
-        var dots = new List<WildfireDot>();
-        foreach (var (dot, effectId) in DotEffects)
+        var dots = new List<ArdeosDot>();
+        foreach (var dot in ArdeosDots.All)
         {
-            if (Combatants.AuraInstanceCount(target.ActorId, target.Instance, effectId, timestamp) > 0)
+            if (Combatants.AuraInstanceCount(target.ActorId, target.Instance, dot.EffectId, timestamp) > 0)
                 dots.Add(dot);
         }
         return dots;
@@ -226,17 +216,6 @@ public sealed partial class WildfireComboAnalyzer : Analyzer
         id == Spells.Pyromania.FSLID ||
         id == Spells.Incinerate.FSLID;
 
-    /// <summary>The six fire damage-over-time effects that make up a Wildfire setup.</summary>
-    public enum WildfireDot
-    {
-        SearingBlaze,
-        EngulfingFlames,
-        FireBall,
-        FireFrogs,
-        Incinerate,
-        Apocalypse,
-    }
-
     /// <summary>
     /// Typed evaluation of a single Wildfire burn window: the target it was scored on, which damage
     /// over-time effects were ticking there at the cast, the Engulfing Flames instances present, the
@@ -247,7 +226,7 @@ public sealed partial class WildfireComboAnalyzer : Analyzer
         public int StartTimestamp { get; init; }
         public int TargetId { get; init; }
         public int? TargetInstance { get; init; }
-        public IReadOnlyList<WildfireDot> ActiveDots { get; init; } = [];
+        public IReadOnlyList<ArdeosDot> ActiveDots { get; init; } = [];
         public int DistinctDots => ActiveDots.Count;
         public int EngulfingInstances { get; init; }
         public bool SetupSuccessful { get; init; }

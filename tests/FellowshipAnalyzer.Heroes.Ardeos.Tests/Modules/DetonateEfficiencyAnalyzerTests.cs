@@ -215,6 +215,148 @@ public sealed class DetonateEfficiencyAnalyzerTests
         analyzer.SurgeStacksWasted.ShouldBe(0);
     }
 
+    [Fact]
+    public async Task Coverage_MarksStandingDoTsAndLeavesTheRestInactive()
+    {
+        var analyzer = await Analyze(
+            Combatant(),
+            ApplyDebuff(100, Enemy1, Spells.SearingBlazeDot.FSLID),
+            ApplyDebuff(100, Enemy1, Spells.ApocalypseDot.FSLID),
+            Detonate(1000));
+
+        var cast = analyzer.Casts.ShouldHaveSingleItem();
+        cast.Coverage.Count.ShouldBe(ArdeosDots.Count);
+        cast.Coverage.Select(entry => entry.Dot).ShouldBe(ArdeosDots.All);
+        cast.DistinctDots.ShouldBe(2);
+
+        Coverage(cast, ArdeosDots.SearingBlaze).Active.ShouldBeTrue();
+        Coverage(cast, ArdeosDots.Apocalypse).Active.ShouldBeTrue();
+        Coverage(cast, ArdeosDots.FireFrogs).Active.ShouldBeFalse();
+        Coverage(cast, ArdeosDots.FireBall).Active.ShouldBeFalse();
+    }
+
+    [Fact]
+    public async Task Coverage_CountsEngulfingFlamesInstancesAndShowsNoCountForPresenceDoTs()
+    {
+        var analyzer = await Analyze(
+            Combatant(),
+            ApplyDebuff(100, Enemy1, Spells.EngulfingFlamesDot.FSLID),
+            ApplyDebuff(150, Enemy1, Spells.EngulfingFlamesDot.FSLID),
+            ApplyDebuff(200, Enemy1, Spells.EngulfingFlamesDot.FSLID),
+            ApplyDebuff(100, Enemy1, Spells.SearingBlazeDot.FSLID),
+            Detonate(1000));
+
+        var cast = analyzer.Casts.ShouldHaveSingleItem();
+
+        var engulfing = Coverage(cast, ArdeosDots.EngulfingFlames);
+        engulfing.Instances.ShouldBe(3);
+        engulfing.Magnitude.ShouldBe(3);
+
+        Coverage(cast, ArdeosDots.SearingBlaze).Magnitude.ShouldBeNull();
+    }
+
+    [Fact]
+    public async Task Coverage_ReadsIncinerateStacksAsTheyStoodAtEachCast()
+    {
+        var analyzer = await Analyze(
+            Combatant(),
+            ApplyDebuff(100, Enemy1, Spells.IncinerateDot.FSLID),
+            ApplyDebuffStack(150, Enemy1, Spells.IncinerateDot.FSLID, stack: 5),
+            Detonate(1000),
+            ApplyDebuffStack(1500, Enemy1, Spells.IncinerateDot.FSLID, stack: 12),
+            Detonate(2000));
+
+        analyzer.Casts.Count.ShouldBe(2);
+
+        var first = Coverage(analyzer.Casts[0], ArdeosDots.Incinerate);
+        first.Instances.ShouldBe(1);
+        first.Stacks.ShouldBe(5);
+        first.Magnitude.ShouldBe(5);
+
+        var second = Coverage(analyzer.Casts[1], ArdeosDots.Incinerate);
+        second.Stacks.ShouldBe(12);
+        second.Magnitude.ShouldBe(12);
+    }
+
+    [Fact]
+    public async Task Coverage_AggregatesAcrossEveryEnemyCarryingTheEffect()
+    {
+        var analyzer = await Analyze(
+            Combatant(),
+            ApplyDebuff(100, Enemy1, Spells.EngulfingFlamesDot.FSLID),
+            ApplyDebuff(120, Enemy1, Spells.EngulfingFlamesDot.FSLID),
+            ApplyDebuff(100, Enemy2, Spells.EngulfingFlamesDot.FSLID),
+            Detonate(1000));
+
+        var engulfing = Coverage(analyzer.Casts.ShouldHaveSingleItem(), ArdeosDots.EngulfingFlames);
+        engulfing.Targets.ShouldBe(2);
+        engulfing.Instances.ShouldBe(3);
+    }
+
+    [Fact]
+    public async Task Coverage_CountsAWindowRemovedOnTheCastTimestampAsStanding()
+    {
+        var analyzer = await Analyze(
+            Combatant(),
+            ApplyDebuff(100, Enemy1, Spells.SearingBlazeDot.FSLID),
+            RemoveDebuff(1000, Enemy1, Spells.SearingBlazeDot.FSLID),
+            Detonate(1000));
+
+        var cast = analyzer.Casts.ShouldHaveSingleItem();
+        Coverage(cast, ArdeosDots.SearingBlaze).Active.ShouldBeTrue();
+        cast.TotalInstances.ShouldBe(1);
+    }
+
+    [Fact]
+    public async Task LayerTimeline_TotalAtEachCastMatchesThatCastsInstances()
+    {
+        var analyzer = await Analyze(
+            Combatant(),
+            ApplyDebuff(100, Enemy1, Spells.SearingBlazeDot.FSLID),
+            ApplyDebuff(100, Enemy1, Spells.EngulfingFlamesDot.FSLID),
+            ApplyDebuff(150, Enemy1, Spells.EngulfingFlamesDot.FSLID),
+            ApplyDebuff(200, Enemy2, Spells.FireBallDot.FSLID),
+            Detonate(1000),
+            RemoveDebuff(1500, Enemy1, Spells.SearingBlazeDot.FSLID),
+            Detonate(2000),
+            Death(2500, Enemy2),
+            Detonate(3000));
+
+        analyzer.Casts.Count.ShouldBe(3);
+
+        foreach (var cast in analyzer.Casts)
+            TotalAt(analyzer, cast.Timestamp).ShouldBe(cast.TotalInstances);
+    }
+
+    [Fact]
+    public async Task LayerTimeline_SpansThePullAndTracksEachEffectSeparately()
+    {
+        var analyzer = await Analyze(
+            Combatant(),
+            ApplyDebuff(100, Enemy1, Spells.EngulfingFlamesDot.FSLID),
+            ApplyDebuff(150, Enemy1, Spells.EngulfingFlamesDot.FSLID),
+            Detonate(1000));
+
+        var timeline = analyzer.LayerTimeline;
+        timeline.Count.ShouldBeGreaterThan(1);
+        timeline[0].Timestamp.ShouldBe(analyzer.Pull.StartTime);
+        timeline[^1].Timestamp.ShouldBe(analyzer.Pull.EndTime);
+        timeline[0].Total.ShouldBe(0);
+
+        var engulfingSlot = ArdeosDots.All.ToList().IndexOf(ArdeosDots.EngulfingFlames);
+        SampleAt(analyzer, 1000).Instances[engulfingSlot].ShouldBe(2);
+        analyzer.PeakLayeredInstances.ShouldBe(2);
+    }
+
+    private static DetonateEfficiencyAnalyzer.DotCoverage Coverage(
+        DetonateEfficiencyAnalyzer.DetonateCast cast, ArdeosDot dot) =>
+        cast.Coverage.Single(entry => entry.Dot == dot);
+
+    private static DetonateEfficiencyAnalyzer.DotLayerSample SampleAt(DetonateEfficiencyAnalyzer analyzer, int timestamp) =>
+        analyzer.LayerTimeline.Last(sample => sample.Timestamp <= timestamp);
+
+    private static int TotalAt(DetonateEfficiencyAnalyzer analyzer, int timestamp) => SampleAt(analyzer, timestamp).Total;
+
     private static CombatantInfoEvent Combatant(bool talented = false) => new()
     {
         SourceId = PlayerId,
@@ -244,6 +386,15 @@ public sealed class DetonateEfficiencyAnalyzerTests
         TargetId = targetId,
         TargetInstance = instance,
         Stack = stack,
+        Ability = new Ability { FSLID = effectId, Name = $"Effect {effectId}" },
+    };
+
+    private static RemoveDebuffEvent RemoveDebuff(int timestamp, int targetId, int effectId, int instance = Instance) => new()
+    {
+        Timestamp = timestamp,
+        SourceId = PlayerId,
+        TargetId = targetId,
+        TargetInstance = instance,
         Ability = new Ability { FSLID = effectId, Name = $"Effect {effectId}" },
     };
 

@@ -69,6 +69,46 @@ public abstract class Entity
         return count;
     }
 
+    /// <summary>
+    /// Sums the stacks carried by every concurrently-open window of an effect active at
+    /// <paramref name="timestamp"/>, optionally restricted to auras applied by <paramref name="sourceId"/>.
+    /// A stacking aura contributes its stack count and a multi-instance aura one per window, so the sum
+    /// reads as the applications standing on the unit either way. Only meaningful while the parse is
+    /// dispatching, since a window's stack count tracks the live value rather than the value at
+    /// <paramref name="timestamp"/>.
+    /// </summary>
+    public int GetAuraStackSum(int effectId, long timestamp, int? sourceId = null)
+    {
+        var stacks = 0;
+        foreach (var b in Buffs)
+        {
+            if (b.Ability.Id != effectId) continue;
+            if (sourceId is not null && b.SourceId != sourceId) continue;
+            if (b.Start <= timestamp && ((long?)b.End ?? long.MaxValue) >= timestamp)
+                stacks += Math.Max(b.Stacks, 1);
+        }
+        return stacks;
+    }
+
+    /// <summary>
+    /// Every window of an effect on this unit that overlaps <paramref name="from"/>..<paramref name="to"/>,
+    /// clipped to that range, optionally restricted to auras applied by <paramref name="sourceId"/>. A
+    /// window still open at the end of the range closes there.
+    /// </summary>
+    public IEnumerable<AuraWindow> GetAuraWindows(int effectId, int from, int to, int? sourceId = null)
+    {
+        foreach (var b in Buffs)
+        {
+            if (b.Ability.Id != effectId) continue;
+            if (sourceId is not null && b.SourceId != sourceId) continue;
+
+            var end = Math.Min(b.End ?? to, to);
+            if (b.Start > to || end < from) continue;
+
+            yield return new AuraWindow(Math.Max(b.Start, from), end);
+        }
+    }
+
     internal void ApplyBuff(TrackedBuffEvent buff) => Buffs.Add(buff);
 
     protected Func<TrackedBuffEvent, bool> SpellIdFilter(int spellId)

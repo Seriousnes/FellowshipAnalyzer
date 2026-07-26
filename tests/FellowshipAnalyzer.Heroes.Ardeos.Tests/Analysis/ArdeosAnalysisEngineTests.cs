@@ -12,8 +12,6 @@ using Shouldly;
 
 using Xunit;
 
-using WildfireDot = FellowshipAnalyzer.Heroes.Ardeos.Modules.WildfireComboAnalyzer.WildfireDot;
-
 namespace FellowshipAnalyzer.Heroes.Ardeos.Tests.Analysis;
 
 public sealed class ArdeosAnalysisEngineTests
@@ -83,7 +81,7 @@ public sealed class ArdeosAnalysisEngineTests
         var window = parser.WildfireComboAnalyzers.ShouldHaveSingleItem().Analyzer.Windows.ShouldHaveSingleItem();
         window.EngulfingInstances.ShouldBe(2);
         window.DistinctDots.ShouldBe(1);
-        window.ActiveDots.ShouldContain(WildfireDot.EngulfingFlames);
+        window.ActiveDots.ShouldContain(ArdeosDots.EngulfingFlames);
     }
 
     [Fact]
@@ -161,7 +159,7 @@ public sealed class ArdeosAnalysisEngineTests
 
         var window = parser.WildfireComboAnalyzers.ShouldHaveSingleItem().Analyzer.Windows.ShouldHaveSingleItem();
         window.DistinctDots.ShouldBe(3);
-        window.ActiveDots.ShouldNotContain(WildfireDot.SearingBlaze);
+        window.ActiveDots.ShouldNotContain(ArdeosDots.SearingBlaze);
     }
 
     [Fact]

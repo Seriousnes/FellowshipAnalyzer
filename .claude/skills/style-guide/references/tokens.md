@@ -141,6 +141,34 @@ loss, `--fa-rust` for a partial one, `--fa-stone` for capacity that was availabl
 
 ---
 
+## Chart series
+
+Six categorical hues for a chart that plots several series at once. Assign them **in slot order**,
+one slot per series, and never cycle or reassign a slot when a series is empty: a colour follows the
+thing it names, so a filter that drops a series must not repaint the survivors. The light theme
+carries the same six hues stepped for the cream ground rather than flipped.
+
+| Token | Original / Dark | Light | Hue |
+|---|---|---|---|
+| `--fa-chart1` | `#3987e5` | `#2a78d6` | Blue |
+| `--fa-chart2` | `#d95926` | `#eb6834` | Orange |
+| `--fa-chart3` | `#199e70` | `#1baf7a` | Aqua |
+| `--fa-chart4` | `#c98500` | `#eda100` | Yellow |
+| `--fa-chart5` | `#d55181` | `#e87ba4` | Magenta |
+| `--fa-chart6` | `#9085e9` | `#4a3aa7` | Violet |
+
+The order is the colour-vision-safety mechanism, not decoration: adjacent slots are the pairs a
+stacked or grouped chart puts side by side, and this order was validated for adjacent separation
+against the card surface in both the dark and light grounds. Reordering the slots or substituting a
+hue means re-validating. Green is deliberately absent so a series never impersonates `--fa-perf-good`.
+
+`FaVar.ChartSeries` lists the six references in slot order. A charting library that writes colours
+into SVG presentation attributes cannot read `var(--fa-*)`, so a chart resolves tokens to their CSS
+text through `ChartPalette` rather than handing the reference over; that keeps the C# theme the only
+place a value is written and keeps runtime token overrides reaching the chart.
+
+---
+
 ## Hero roles
 
 `--fa-role-unknown` is a tint of the theme's border colour, so it varies; the other three do not.

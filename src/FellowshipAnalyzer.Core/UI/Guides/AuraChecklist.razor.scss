@@ -1,0 +1,56 @@
+@use 'tokens' as t;
+
+// Two columns while both fit a whole row, one column below that: a truncated aura name is worse
+// than a taller list, and the row order reads the same either way.
+.aura-checklist {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 3px 16px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.aura-checklist-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+    font-size: var(--fa-fs-body);
+    line-height: 1.5;
+}
+
+.aura-checklist-row.fail {
+    opacity: 0.65;
+}
+
+// The name identifies the row, so it keeps its width and the trailing note gives way first.
+.aura-checklist-name {
+    flex: 0 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.aura-checklist-count {
+    flex-shrink: 0;
+    padding: 0 5px;
+    border-radius: var(--fa-radius-xs);
+    background: t.tint(var(--fa-white), t.$fa-tint-faint);
+    border: var(--fa-border-width) solid var(--fa-edge);
+    font-size: var(--fa-fs-meta);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    color: var(--fa-text);
+}
+
+.aura-checklist-note {
+    flex: 0 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: var(--fa-fs-meta);
+    color: var(--fa-text-dim);
+}

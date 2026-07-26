@@ -1,3 +1,4 @@
+using FellowshipAnalyzer.Core.UI.Charts;
 using FellowshipAnalyzer.Core.UI.Theming;
 using FellowshipAnalyzer.DesignSystem.Components;
 
@@ -9,6 +10,7 @@ builder.Services.AddRazorComponents()
 builder.Services.AddSassCompiler();
 
 builder.Services.AddScoped<ThemeService>();
+builder.Services.AddScoped<ChartPalette>();
 
 var app = builder.Build();
 

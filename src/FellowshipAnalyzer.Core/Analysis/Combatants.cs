@@ -93,6 +93,33 @@ public sealed partial class Combatants : Analyzer
     public int AuraInstanceCount(int actorId, int? instance, int effectId, long timestamp, int? sourceId = null)
         => GetUnit(actorId, instance)?.GetAuraInstanceCount(effectId, timestamp, sourceId) ?? 0;
 
+    /// <summary>
+    /// The stacks summed across every concurrently-open window of the effect on a unit at
+    /// <paramref name="timestamp"/>, optionally restricted to auras applied by <paramref name="sourceId"/>.
+    /// Returns 0 when the unit is not tracked. Read it while the parse is dispatching, since a window
+    /// carries its live stack count rather than its count at <paramref name="timestamp"/>.
+    /// </summary>
+    public int AuraStackSum(int actorId, int? instance, int effectId, long timestamp, int? sourceId = null)
+        => GetUnit(actorId, instance)?.GetAuraStackSum(effectId, timestamp, sourceId) ?? 0;
+
+    /// <summary>
+    /// Every window of an effect standing on a non-selected unit that overlaps
+    /// <paramref name="from"/>..<paramref name="to"/>, each clipped to that range and the whole
+    /// ordered by start. Windows are historical, so this reads correctly after the parse; use it to
+    /// reconstruct how an effect layered across a slice of the fight.
+    /// </summary>
+    public IReadOnlyList<AuraWindow> EnemyAuraWindows(int effectId, int from, int to, int? sourceId = null)
+    {
+        var windows = new List<AuraWindow>();
+        foreach (var entity in _units.Values)
+        {
+            if (entity is not Enemy) continue;
+            windows.AddRange(entity.GetAuraWindows(effectId, from, to, sourceId));
+        }
+        windows.Sort((a, b) => a.Start.CompareTo(b.Start));
+        return windows;
+    }
+
     [On<ApplyBuffEvent>]
     private void OnApplyBuff(ApplyBuffEvent e) => ApplyBuff(e, isDebuff: false);
 

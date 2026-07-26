@@ -1,7 +1,6 @@
 @using System.Text
 @using FellowshipAnalyzer.Core.Common.Spells.Ardeos
 @using Spells = FellowshipAnalyzer.Core.Common.Spells.Ardeos.Spells
-@using WildfireDot = FellowshipAnalyzer.Heroes.Ardeos.Modules.WildfireComboAnalyzer.WildfireDot
 @inject ArdeosCombatLogParser Parser
 
 <GuideSection Title="Wildfire Burn Windows">
@@ -181,24 +180,13 @@
     private static List<string> MissingDots(WildfireComboAnalyzer.WildfireWindowEvaluation window)
     {
         var names = new List<string>();
-        foreach (var dot in Enum.GetValues<WildfireDot>())
+        foreach (var dot in ArdeosDots.All)
         {
             if (!window.ActiveDots.Contains(dot))
-                names.Add(DotName(dot));
+                names.Add(dot.Name);
         }
         return names;
     }
-
-    private static string DotName(WildfireDot dot) => dot switch
-    {
-        WildfireDot.SearingBlaze => "Searing Blaze",
-        WildfireDot.EngulfingFlames => "Engulfing Flames",
-        WildfireDot.FireBall => "Fire Ball",
-        WildfireDot.FireFrogs => "Fire Frogs",
-        WildfireDot.Incinerate => "Incinerate",
-        WildfireDot.Apocalypse => "Apocalypse",
-        _ => dot.ToString(),
-    };
 
     private static string JoinNames(List<string> names)
     {

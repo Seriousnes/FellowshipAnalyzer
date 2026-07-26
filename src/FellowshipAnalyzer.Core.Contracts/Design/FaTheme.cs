@@ -135,6 +135,14 @@ public sealed record FaTheme(
                 Token(nameof(FaPalette.PerfOk), p.PerfOk),
                 Token(nameof(FaPalette.PerfFail), p.PerfFail));
 
+            yield return Group("Chart series", nameof(FaPalette),
+                Token(nameof(FaPalette.Chart1), p.Chart1),
+                Token(nameof(FaPalette.Chart2), p.Chart2),
+                Token(nameof(FaPalette.Chart3), p.Chart3),
+                Token(nameof(FaPalette.Chart4), p.Chart4),
+                Token(nameof(FaPalette.Chart5), p.Chart5),
+                Token(nameof(FaPalette.Chart6), p.Chart6));
+
             yield return Group("Hero roles", nameof(FaPalette),
                 Token(nameof(FaPalette.RoleTank), p.RoleTank),
                 Token(nameof(FaPalette.RoleHealer), p.RoleHealer),
