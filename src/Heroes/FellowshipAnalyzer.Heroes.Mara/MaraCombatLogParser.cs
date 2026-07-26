@@ -12,6 +12,8 @@ namespace FellowshipAnalyzer.Heroes.Mara.Analysis;
 [AddAnalyzer<MaraDotUptimeAnalyzer>]
 [AddAnalyzer<MaraDotSpreadAnalyzer>]
 [AddAnalyzer<MaidenOfDeathWindowAnalyzer>]
+[AddAnalyzer<StealthWindowAnalyzer>]
+[AddAnalyzer<GuileWindowAnalyzer>]
 public sealed partial class MaraCombatLogParser : CombatLogParser
 {
     public override Type? GuideComponent => typeof(MaraGuide);
