@@ -59,6 +59,28 @@ public class ParserGeneratorTests
     }
 
     [Fact]
+    public void ForPull_WithRequiresTalent_AppendsTalentGate()
+    {
+        var result = ParserGeneratorTestHarness.Run(
+            OneAnalyzer("[ForPull(PullKind.Single)]\n[RequiresTalent(422)]"));
+
+        result.ConcatenatedGenerated.ShouldContain(
+            $"if ((pull.Targets & ({PullKindFqn}.Single)) != 0 && SelectedCombatant.HasTalent(422)) __analyzers.Add(typeof(global::Test.ComboAnalyzer));");
+        AssertNoErrors(result);
+    }
+
+    [Fact]
+    public void ForPull_WithSeveralRequiresTalent_AndsEveryTalentGate()
+    {
+        var result = ParserGeneratorTestHarness.Run(
+            OneAnalyzer("[ForPull(PullKind.Multi, Boss = PullBoss.Boss)]\n[RequiresTalent(422)]\n[RequiresTalent(443)]"));
+
+        result.ConcatenatedGenerated.ShouldContain(
+            "!= 0 && pull.IsBoss && SelectedCombatant.HasTalent(422) && SelectedCombatant.HasTalent(443)) __analyzers.Add(typeof(global::Test.ComboAnalyzer));");
+        AssertNoErrors(result);
+    }
+
+    [Fact]
     public void AnalyzerSurface_EmitsTypedIndex_AndThreeReadPaths()
     {
         var result = ParserGeneratorTestHarness.Run(OneAnalyzer("[ForPull(PullKind.Single)]"));
