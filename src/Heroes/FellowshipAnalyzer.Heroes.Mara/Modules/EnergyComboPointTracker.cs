@@ -2,6 +2,8 @@ using FellowshipAnalyzer.Core.Common.Spells;
 using FellowshipAnalyzer.Core.Events;
 using FellowshipAnalyzer.Core.Game;
 using FellowshipAnalyzer.Core.Resources;
+using FellowshipAnalyzer.Core.UI;
+using FellowshipAnalyzer.Heroes.Mara.Statistics;
 
 using Microsoft.Extensions.Logging;
 
@@ -36,6 +38,10 @@ public sealed partial class EnergyComboPointTracker : ResourceTracker
             _ => base.GetResourceCost(castEvent, type),
         };
     }
+
+    public override Type? StatisticsComponentType => typeof(EnergyComboPointStatistics);
+
+    public override StatisticCategory StatisticCategory => StatisticCategory.Resources;
 
     /// <summary>Mara's combo-point cap.</summary>
     public int MaxComboPointCount => MaxComboPoints;

@@ -4,8 +4,10 @@ using FellowshipAnalyzer.Core.Common.Spells;
 using FellowshipAnalyzer.Core.Events;
 using FellowshipAnalyzer.Core.FellowshipLogs;
 using FellowshipAnalyzer.Core.Game;
+using FellowshipAnalyzer.Core.UI;
 using FellowshipAnalyzer.Heroes.Mara.Analysis;
 using FellowshipAnalyzer.Heroes.Mara.Modules;
+using FellowshipAnalyzer.Heroes.Mara.Statistics;
 
 using Microsoft.Extensions.DependencyInjection;
 
@@ -105,7 +107,17 @@ public sealed class MaraAnalysisEngineTests
     }
 
     [Fact]
-    public async Task Analyze_EnergyAccounting_BalancesGeneratedAgainstSpentWastedAndCurrent()
+    public async Task Analyze_ShouldCollectEnergyComboPointStatistics()
+    {
+        var (_, result) = await AnalyzeFixtureAsync();
+
+        var entry = result.Statistics.Single(statistic => statistic.Module is EnergyComboPointTracker);
+        entry.ComponentType.ShouldBe(typeof(EnergyComboPointStatistics));
+        entry.Category.ShouldBe(StatisticCategory.Resources);
+    }
+
+    [Fact]
+    public async Task Analyze_EnergyAccounting_BalancesGeneratedAgainstSpentAndCurrent()
     {
         var tracker = await AnalyzeTrackerFixtureAsync();
 
@@ -113,7 +125,7 @@ public sealed class MaraAnalysisEngineTests
         tracker.EnergySpent.ShouldBe(80);
         tracker.EnergyWasted.ShouldBe(0);
         tracker.EnergyCurrent.ShouldBe(20);
-        tracker.EnergyGenerated.ShouldBe(tracker.EnergySpent + tracker.EnergyWasted + tracker.EnergyCurrent);
+        tracker.EnergyGenerated.ShouldBe(tracker.EnergySpent + tracker.EnergyCurrent);
     }
 
     [Fact]
