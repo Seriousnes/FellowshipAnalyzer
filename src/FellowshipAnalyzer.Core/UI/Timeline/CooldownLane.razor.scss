@@ -1,10 +1,5 @@
 @use 'tokens' as t;
 
-/* Clip to the track width so a recharge still in flight at fight end does not render or scroll past it */
-.cooldown-lane {
-    overflow: hidden;
-}
-
 /* Icon — absolutely positioned at the cast-start timestamp */
 .cooldown-lane-icon {
     position: absolute;

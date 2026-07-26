@@ -1,6 +1,8 @@
 using FellowshipAnalyzer.Core.Events;
 using FellowshipAnalyzer.Core.UI.Timeline;
 
+using Shouldly;
+
 using Xunit;
 
 namespace FellowshipAnalyzer.Core.Tests.UI;
@@ -166,6 +168,47 @@ public sealed class CooldownLaneModelTests
         var (_, restores) = CooldownLaneModel.Build(events, windowStart: 2000, windowEnd: 10_000);
 
         Assert.Equal([6000], restores);
+    }
+
+    /// <summary>
+    /// The lane draws every segment at its raw offset with no clipping of its own, because clipping it in
+    /// CSS costs the row's alignment with the cast bar: an overflow makes the lane a block formatting
+    /// context root that the floated label pushes aside. Nothing the model emits may leave the window.
+    /// </summary>
+    [Fact]
+    public void EveryEmittedElement_StaysInsideTheWindow()
+    {
+        const int windowStart = 4000;
+        const int windowEnd = 30_000;
+
+        var events = new List<UpdateSpellUsableEvent>
+        {
+            Update(UpdateSpellUsableType.BeginCooldown, ts: 500, chargeStart: 500, expEnd: 20500, onCd: true),
+            Update(UpdateSpellUsableType.UseCharge, ts: 3000, chargeStart: 500, expEnd: 20500, onCd: true),
+            Update(UpdateSpellUsableType.RestoreCharge, ts: 9000, chargeStart: 9000, expEnd: 29000, onCd: true),
+            Update(UpdateSpellUsableType.UseCharge, ts: 12_000, chargeStart: 9000, expEnd: 29000, onCd: true),
+            Update(UpdateSpellUsableType.BeginCooldown, ts: 26_000, chargeStart: 26_000, expEnd: 46_000, onCd: true),
+        };
+
+        var (segments, restores) = CooldownLaneModel.Build(events, windowStart, windowEnd);
+
+        segments.ShouldNotBeEmpty();
+
+        foreach (var segment in segments)
+        {
+            Assert.InRange(segment.Start, windowStart, windowEnd);
+            Assert.InRange(segment.End, segment.Start, windowEnd);
+
+            if (segment.ShowIcon)
+            {
+                Assert.InRange(segment.IconAt, windowStart, windowEnd);
+            }
+        }
+
+        foreach (var restore in restores)
+        {
+            Assert.InRange(restore, windowStart, windowEnd);
+        }
     }
 
     private static UpdateSpellUsableEvent Update(
