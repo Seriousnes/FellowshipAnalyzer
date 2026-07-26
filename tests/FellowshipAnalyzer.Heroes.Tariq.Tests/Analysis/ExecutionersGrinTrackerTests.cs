@@ -17,7 +17,7 @@ public sealed class ExecutionersGrinTrackerTests
         var (parser, _) = await FuryEconomyAnalyzerTests.AnalyzeAsync(
         [
             FuryEconomyAnalyzerTests.Buff<ApplyBuffEvent>(100, TariqSpells.ExecutionersGrin.FSLID),
-            FuryEconomyAnalyzerTests.Cast(150, TariqSpells.CullingStrike.FSLID, fury: 30, maxFury: 100),
+            FuryEconomyAnalyzerTests.Cast(150, TariqSpells.CullingStrike.FSLID, rawFury: 3_000, rawMaxFury: 10_000),
             FuryEconomyAnalyzerTests.CullingStrikeHit(200, targetHp: 60, targetMaxHp: 100),
             FuryEconomyAnalyzerTests.Buff<RemoveBuffEvent>(300, TariqSpells.ExecutionersGrin.FSLID),
         ]);
