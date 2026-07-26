@@ -1,5 +1,4 @@
 @using FellowshipAnalyzer.Core.Common.Spells.Ardeos
-@using FellowshipAnalyzer.Core.Contracts.Design
 @using Spells = FellowshipAnalyzer.Core.Common.Spells.Ardeos.Spells
 @using DetonateCast = FellowshipAnalyzer.Heroes.Ardeos.Modules.DetonateEfficiencyAnalyzer.DetonateCast
 @inherits ReportComponentBase
@@ -9,20 +8,17 @@
 <GuideSection Title="Detonate Efficiency">
     <Explanation>
         <p>
-            <SpellLink Spell="Spells.Detonate" /> re-triggers every active damage-over-time window on
-            every enemy the moment it is cast, so a Detonate is only worth the DoTs standing when it
-            lands. Each cast is scored on the instances layered across
+            <SpellLink Spell="Spells.Detonate" /> should be cast into a layered pack, never to fill a gap.
+            Each cast is scored on the instances standing when it lands, across
             <SpellLink Spell="Spells.SearingBlaze" />, <SpellLink Spell="Spells.EngulfingFlames" />,
             <SpellLink Spell="Spells.FireBall" />, <SpellLink Spell="Spells.FireFrogs" />,
-            <SpellLink Spell="Spells.Incinerate" /> and <SpellLink Spell="Spells.Apocalypse" /> - three
-            or more instances per target is a well-layered Detonate.
+            <SpellLink Spell="Spells.Incinerate" /> and <SpellLink Spell="Spells.Apocalypse" />.
         </p>
-        @if (Talented)
+        @if (HasApocalypticSurge)
         {
             <p>
-                <SpellLink Spell="Spells.Apocalypse" /> grants Apocalyptic Surge stacks that each make a
-                Detonate free. Free casts should be spent inside a well-layered window; a Surge stack
-                left to expire is a free Detonate thrown away.
+                Apocalyptic Surge stacks should be spent inside a well-layered window, but even a cast with a
+                single DoT is better than letting stacks expire.
             </p>
         }
     </Explanation>
@@ -49,15 +45,14 @@
         }
 
         <CastDetail Title="Detonate Casts"
-                    Description="Each card is one Detonate, rated on the average DoT instances it re-triggered per target."
+                    Description="Each card is one Detonate, rated on the DoT instances standing per enemy when it landed."
                     Casts="@BuildPerCastData()" />
     </ChildContent>
 </GuideSection>
 
 @code {
-    private bool Talented => Parser.DetonateEfficiencyAnalyzers
-        .Select(entry => entry.Analyzer)
-        .Any(analyzer => analyzer.ApocalypticSurgeTalented);
+    
+    private bool HasApocalypticSurge => Parser.SelectedCombatant.HasTalent(Talents.ApocalypticSurge.Id);
 
     /// <summary>
     /// The pull the graph plots. The report header's pull selector already clamps the analyzer stream, so
@@ -94,7 +89,7 @@
             var index = slot;
             bands.Add(new AuraStackBand(
                 ArdeosDots.All[index].Name,
-                Palette.Series(index),
+                ArdeosChartColors.Series(Palette, index),
                 [.. timeline.Select(sample => sample.Instances[index])]));
         }
 
@@ -147,8 +142,8 @@
                 "Total Detonate casts across every pull."),
             new(
                 $"{averageInstances:0.0}",
-                "Avg Instances / Target",
-                "Average active DoT instances each Detonate re-triggered per target.",
+                "Avg Instances / Enemy",
+                "Average DoT instances standing per enemy when Detonate landed.",
                 AverageTier(averageInstances)),
             new(
                 $"{averageDots:0.0}/{ArdeosDots.Count}",
@@ -157,11 +152,11 @@
             new(
                 $"{wellLayeredPct}%",
                 "Well-Layered",
-                $"{wellLayered} of {totalCasts} Detonates re-triggered three or more instances per target.",
+                $"{wellLayered} of {totalCasts} Detonates landed on three or more instances per enemy.",
                 PercentTier(wellLayeredPct)),
         };
 
-        if (Talented)
+        if (HasApocalypticSurge)
         {
             var analyzers = Parser.DetonateEfficiencyAnalyzers.Select(entry => entry.Analyzer).ToList();
             var freeCasts = analyzers.Sum(analyzer => analyzer.FreeCasts);
@@ -194,8 +189,8 @@
         {
             new(
                 $"{cast.TotalInstances}",
-                "Instances Re-Triggered",
-                "Active DoT instances this Detonate re-triggered across every enemy.",
+                "DoT Instances",
+                "DoT instances standing across every enemy when this Detonate landed.",
                 Performance: perf),
             new(
                 $"{cast.DistinctDots}/{ArdeosDots.Count}",
@@ -208,11 +203,11 @@
                 "Enemies carrying at least one damage-over-time effect at the cast."),
             new(
                 $"{cast.MaxTargetInstances}",
-                "Peak On A Target",
+                "Peak On An Enemy",
                 "The most instances standing on any single enemy at the cast."),
         };
 
-        if (Talented)
+        if (HasApocalypticSurge)
         {
             stats.Add(new PerCastStat(
                 cast.Free ? "Free" : "1 Ember",
@@ -235,28 +230,18 @@
     }
 
     private static IEnumerable<AuraCheckItem> BuildChecklist(DetonateCast cast) =>
-        cast.Coverage.Select(entry => new AuraCheckItem(
-            entry.Dot.Cast,
-            entry.Active,
-            entry.Magnitude,
-            CountTooltip(entry),
+        cast.Coverage.Select(entry => ArdeosChecklist.Item(
+            entry,
             entry.Targets > 1 ? $"{entry.Targets} enemies" : null));
-
-    private static string? CountTooltip(DetonateEfficiencyAnalyzer.DotCoverage entry) => entry.Dot.Magnitude switch
-    {
-        DotMagnitude.Instances => $"{entry.Instances} concurrent applications",
-        DotMagnitude.Stacks => $"{entry.Stacks} stacks",
-        _ => null,
-    };
 
     private static string BuildNote(DetonateCast cast)
     {
         if (cast.TargetsWithDoTs == 0)
-            return "No enemy carried a damage-over-time effect, so this Detonate re-triggered nothing.";
+            return "No enemy carried a damage-over-time effect, so this Detonate landed on nothing.";
 
         var missing = cast.Coverage.Where(entry => !entry.Active).Select(entry => entry.Dot.Name).ToList();
-        var opening = $"Re-triggered {cast.TotalInstances} instance{(cast.TotalInstances == 1 ? "" : "s")} across {cast.TargetsWithDoTs} " +
-            $"{(cast.TargetsWithDoTs == 1 ? "enemy" : "enemies")}, averaging {cast.AverageInstances:0.0} per target.";
+        var opening = $"Landed on {cast.TotalInstances} instance{(cast.TotalInstances == 1 ? "" : "s")} across {cast.TargetsWithDoTs} " +
+            $"{(cast.TargetsWithDoTs == 1 ? "enemy" : "enemies")}, averaging {cast.AverageInstances:0.0} per enemy.";
 
         return missing.Count == 0
             ? $"{opening} Every damage-over-time effect was standing."

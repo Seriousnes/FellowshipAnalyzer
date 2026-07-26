@@ -54,6 +54,7 @@ public sealed partial class WildfireComboAnalyzer : Analyzer
     private const int SequenceWindowMs = 6000;
 
     private readonly List<CastEvent> _casts = [];
+    private readonly List<WildfireAnchor> _anchors = [];
 
     private List<WildfireWindowEvaluation>? _evaluated;
     private List<WildfireWindowEvaluation> Evaluated => _evaluated ??= BuildWindows();
@@ -75,24 +76,53 @@ public sealed partial class WildfireComboAnalyzer : Analyzer
         if (castEvent.Fake)
             return;
 
-        if (IsRelevant(castEvent.Ability.Id))
-            _casts.Add(castEvent);
+        if (!IsRelevant(castEvent.Ability.Id))
+            return;
+
+        _casts.Add(castEvent);
+
+        if (castEvent.Ability.Id != Spells.Wildfire.FSLID)
+            return;
+
+        var target = ResolveTarget(castEvent);
+        _anchors.Add(new WildfireAnchor(castEvent, target, SnapshotCoverage(target, castEvent.Timestamp)));
+    }
+
+    /// <summary>
+    /// Reads every effect's state on the target as the cast lands. Taken here rather than when the
+    /// windows are built, because a tracked aura window carries its live stack count.
+    /// </summary>
+    private IReadOnlyList<ArdeosDotCoverage> SnapshotCoverage(UnitKey target, int timestamp)
+    {
+        var coverage = new List<ArdeosDotCoverage>(ArdeosDots.Count);
+        foreach (var dot in ArdeosDots.All)
+        {
+            var instances = Combatants.AuraInstanceCount(target.ActorId, target.Instance, dot.EffectId, timestamp);
+            coverage.Add(new ArdeosDotCoverage
+            {
+                Dot = dot,
+                Instances = instances,
+                Stacks = instances == 0 ? 0 : Combatants.AuraStackSum(target.ActorId, target.Instance, dot.EffectId, timestamp),
+            });
+        }
+        return coverage;
     }
 
     private List<WildfireWindowEvaluation> BuildWindows()
     {
         var windows = new List<WildfireWindowEvaluation>();
-        foreach (var anchor in _casts.Where(c => c.Ability.Id == Spells.Wildfire.FSLID))
+        foreach (var anchor in _anchors)
             windows.Add(EvaluateWindow(anchor));
         return windows;
     }
 
-    private WildfireWindowEvaluation EvaluateWindow(CastEvent anchor)
+    private WildfireWindowEvaluation EvaluateWindow(WildfireAnchor anchor)
     {
-        var timestamp = anchor.Timestamp;
-        var target = ResolveTarget(anchor);
-        var activeDots = ActiveDotsOn(target, timestamp);
-        var engulfingInstances = Combatants.AuraInstanceCount(target.ActorId, target.Instance, ArdeosDots.EngulfingFlames.EffectId, timestamp);
+        var timestamp = anchor.Cast.Timestamp;
+        var target = anchor.Target;
+        var coverage = anchor.Coverage;
+        var activeDots = coverage.Where(entry => entry.Active).Select(entry => entry.Dot).ToList();
+        var engulfingInstances = coverage.Single(entry => entry.Dot == ArdeosDots.EngulfingFlames).Instances;
 
         var setupSuccessful =
             activeDots.Count >= DistinctDotSuccessThreshold &&
@@ -113,6 +143,7 @@ public sealed partial class WildfireComboAnalyzer : Analyzer
             StartTimestamp = timestamp,
             TargetId = target.ActorId,
             TargetInstance = target.Instance,
+            Coverage = coverage,
             ActiveDots = activeDots,
             EngulfingInstances = engulfingInstances,
             SetupSuccessful = setupSuccessful,
@@ -157,17 +188,6 @@ public sealed partial class WildfireComboAnalyzer : Analyzer
 
     private int TotalDotInstances(UnitKey key, int timestamp) =>
         ArdeosDots.All.Sum(dot => Combatants.AuraInstanceCount(key.ActorId, key.Instance, dot.EffectId, timestamp));
-
-    private IReadOnlyList<ArdeosDot> ActiveDotsOn(UnitKey target, int timestamp)
-    {
-        var dots = new List<ArdeosDot>();
-        foreach (var dot in ArdeosDots.All)
-        {
-            if (Combatants.AuraInstanceCount(target.ActorId, target.Instance, dot.EffectId, timestamp) > 0)
-                dots.Add(dot);
-        }
-        return dots;
-    }
 
     private (int Start, int End) ResolveBuffWindow(int anchor)
     {
@@ -216,6 +236,9 @@ public sealed partial class WildfireComboAnalyzer : Analyzer
         id == Spells.Pyromania.FSLID ||
         id == Spells.Incinerate.FSLID;
 
+    /// <summary>A Wildfire cast and the target state captured as it landed.</summary>
+    private sealed record WildfireAnchor(CastEvent Cast, UnitKey Target, IReadOnlyList<ArdeosDotCoverage> Coverage);
+
     /// <summary>
     /// Typed evaluation of a single Wildfire burn window: the target it was scored on, which damage
     /// over-time effects were ticking there at the cast, the Engulfing Flames instances present, the
@@ -226,6 +249,10 @@ public sealed partial class WildfireComboAnalyzer : Analyzer
         public int StartTimestamp { get; init; }
         public int TargetId { get; init; }
         public int? TargetInstance { get; init; }
+
+        /// <summary>Every effect's state on the target at the cast, in <see cref="ArdeosDots.All"/> order.</summary>
+        public IReadOnlyList<ArdeosDotCoverage> Coverage { get; init; } = [];
+
         public IReadOnlyList<ArdeosDot> ActiveDots { get; init; } = [];
         public int DistinctDots => ActiveDots.Count;
         public int EngulfingInstances { get; init; }

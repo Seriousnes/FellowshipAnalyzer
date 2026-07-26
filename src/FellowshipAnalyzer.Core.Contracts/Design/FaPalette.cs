@@ -164,25 +164,29 @@ public sealed record FaPalette
     /// <summary>Fail tier.</summary>
     public required FaColor PerfFail { get; init; }
 
-    /* Chart series */
+    /* Fire ramp */
 
-    /// <summary>First categorical chart series.</summary>
-    public required FaColor Chart1 { get; init; }
+    /// <summary>
+    /// Brightest step of the fire ramp, a six-step warm scale running pale gold to burnt umber.
+    /// Fire is a theme rather than a role, so a component picks the steps it wants and in what
+    /// order; the design system does not assign them.
+    /// </summary>
+    public required FaColor Fire1 { get; init; }
 
-    /// <summary>Second categorical chart series.</summary>
-    public required FaColor Chart2 { get; init; }
+    /// <summary>Second fire step, amber.</summary>
+    public required FaColor Fire2 { get; init; }
 
-    /// <summary>Third categorical chart series.</summary>
-    public required FaColor Chart3 { get; init; }
+    /// <summary>Third fire step, orange.</summary>
+    public required FaColor Fire3 { get; init; }
 
-    /// <summary>Fourth categorical chart series.</summary>
-    public required FaColor Chart4 { get; init; }
+    /// <summary>Fourth fire step, flame.</summary>
+    public required FaColor Fire4 { get; init; }
 
-    /// <summary>Fifth categorical chart series.</summary>
-    public required FaColor Chart5 { get; init; }
+    /// <summary>Fifth fire step, scorched red.</summary>
+    public required FaColor Fire5 { get; init; }
 
-    /// <summary>Sixth categorical chart series.</summary>
-    public required FaColor Chart6 { get; init; }
+    /// <summary>Deepest fire step, burnt umber.</summary>
+    public required FaColor Fire6 { get; init; }
 
     /* Hero roles */
 
@@ -357,12 +361,12 @@ public sealed record FaPalette
             PerfOk = "#ffc84a",
             PerfFail = perfFail,
 
-            Chart1 = "#3987e5",
-            Chart2 = "#d95926",
-            Chart3 = "#199e70",
-            Chart4 = "#c98500",
-            Chart5 = "#d55181",
-            Chart6 = "#9085e9",
+            Fire1 = "#ffe9a3",
+            Fire2 = "#ffc233",
+            Fire3 = "#fb9520",
+            Fire4 = "#ee6a18",
+            Fire5 = "#d24a15",
+            Fire6 = "#a3601f",
 
             RoleTank = "#336699",
             RoleHealer = perfGood,
@@ -464,12 +468,12 @@ public sealed record FaPalette
             GoldDim = FaSourceColors.WgLight.WithAlpha(FaTint.Medium),
 
             // The same six categorical hues, stepped for the cream surface rather than flipped.
-            Chart1 = "#2a78d6",
-            Chart2 = "#eb6834",
-            Chart3 = "#1baf7a",
-            Chart4 = "#eda100",
-            Chart5 = "#e87ba4",
-            Chart6 = "#4a3aa7",
+            Fire1 = "#d99b00",
+            Fire2 = "#e2731a",
+            Fire3 = "#cf4a17",
+            Fire4 = "#9d4a12",
+            Fire5 = "#6f3f14",
+            Fire6 = "#432a16",
 
             Border = navy.WithAlpha(FaTint.Soft),
             BorderCard = navy.WithAlpha(FaTint.Muted),

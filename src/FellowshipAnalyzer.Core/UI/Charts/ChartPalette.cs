@@ -11,6 +11,11 @@ namespace FellowshipAnalyzer.Core.UI.Charts;
 /// than the reference. Reading it back out of <see cref="ThemeService"/> keeps the C# theme the only
 /// place a colour is written, and keeps a chart honouring both the selected theme and any runtime token
 /// override.
+/// <para>
+/// Which tokens a chart's series wear is the caller's choice, not this type's: a fire hero reads in the
+/// fire ramp where a frost hero reads in cold steps, so the caller names its own tokens and resolves
+/// each one here.
+/// </para>
 /// </summary>
 /// <remarks>
 /// A component that holds resolved colours must rebuild them on <see cref="ThemeService.Changed"/>;
@@ -21,9 +26,6 @@ public sealed class ChartPalette(ThemeService theme)
 {
     private FaTheme? _cachedTheme;
     private Dictionary<string, string> _cachedValues = [];
-
-    /// <summary>The number of categorical series colours the design system declares.</summary>
-    public static int SeriesCount => 6;
 
     /// <summary>
     /// The CSS text in force for the token a <see cref="FaPalette"/> property defines, naming it as
@@ -38,12 +40,6 @@ public sealed class ChartPalette(ThemeService theme)
             ? overridden
             : Values.GetValueOrDefault(name, "");
     }
-
-    /// <summary>
-    /// The categorical series colour for a slot, counted from zero. Slots are assigned in fixed order
-    /// and wrap past <see cref="SeriesCount"/> rather than inventing a hue.
-    /// </summary>
-    public string Series(int slot) => Resolve(SeriesProperty(slot % SeriesCount));
 
     /// <summary>The colour of a performance tier, matching what <see cref="PerformanceColors"/> hands to markup.</summary>
     public string Performance(QualitativePerformance tier) => Resolve(tier switch
@@ -67,14 +63,4 @@ public sealed class ChartPalette(ThemeService theme)
             return _cachedValues;
         }
     }
-
-    private static string SeriesProperty(int slot) => slot switch
-    {
-        0 => nameof(FaPalette.Chart1),
-        1 => nameof(FaPalette.Chart2),
-        2 => nameof(FaPalette.Chart3),
-        3 => nameof(FaPalette.Chart4),
-        4 => nameof(FaPalette.Chart5),
-        _ => nameof(FaPalette.Chart6),
-    };
 }

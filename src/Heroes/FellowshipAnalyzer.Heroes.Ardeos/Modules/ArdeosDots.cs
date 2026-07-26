@@ -35,6 +35,41 @@ public sealed record ArdeosDot(Spell Cast, Spell Effect, DotMagnitude Magnitude)
 }
 
 /// <summary>
+/// One damage-over-time effect's state at a single instant: whether it was standing and how much of it
+/// there was. Instances and stacks are both carried because <see cref="DotMagnitude"/> decides which of
+/// them a reader is shown, and only one of them means anything for any given effect.
+/// </summary>
+/// <remarks>
+/// Stacks have to be captured while the parse is dispatching. A tracked aura window carries its live
+/// stack count rather than its count at an arbitrary timestamp, so a coverage snapshot rebuilt after the
+/// parse would report every instant at the pull's final stack count.
+/// </remarks>
+public record ArdeosDotCoverage
+{
+    public required ArdeosDot Dot { get; init; }
+
+    /// <summary>Concurrently open windows of this effect.</summary>
+    public required int Instances { get; init; }
+
+    /// <summary>Stacks summed across this effect's open windows.</summary>
+    public required int Stacks { get; init; }
+
+    /// <summary>True when the effect was standing.</summary>
+    public bool Active => Instances > 0;
+
+    /// <summary>
+    /// The count shown beside the effect, or null when its magnitude is simple presence and a count
+    /// would say nothing.
+    /// </summary>
+    public int? Magnitude => Dot.Magnitude switch
+    {
+        DotMagnitude.Instances => Instances,
+        DotMagnitude.Stacks => Stacks,
+        _ => null,
+    };
+}
+
+/// <summary>
 /// The six fire damage-over-time effects Ardeos's rotation lays on enemies, the shared reference every
 /// Ardeos analyzer that reasons about DoT coverage reads. The order is the order guides present them in
 /// and the order chart series colours are assigned in, so a DoT wears one colour and one position

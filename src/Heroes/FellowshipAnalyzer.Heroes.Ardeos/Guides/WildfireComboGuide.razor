@@ -3,33 +3,32 @@
 @using Spells = FellowshipAnalyzer.Core.Common.Spells.Ardeos.Spells
 @inject ArdeosCombatLogParser Parser
 
+@{
+    RenderFragment wf = @<SpellLink Spell="Spells.Wildfire" />;
+    RenderFragment ef = @<SpellLink Spell="Spells.EngulfingFlames" />;
+}
+
 <GuideSection Title="Wildfire Burn Windows">
     <Explanation>
         <p>
-            Ardeos's burst is a burn window anchored on <SpellLink Spell="Spells.Wildfire" />. The setup
-            rotation lays the fire damage-over-time effects on the target first with
-            <SpellLink Spell="Spells.SearingBlaze" />, <SpellLink Spell="Spells.FireFrogs" />,
-            <SpellLink Spell="Spells.Apocalypse" />, <SpellLink Spell="Spells.FireBall" /> and
-            <SpellLink Spell="Spells.EngulfingFlames" /> twice, so all six are ticking when
-            <SpellLink Spell="Spells.Wildfire" /> lands and <SpellLink Spell="Spells.Detonate" /> spam
-            follows while the Wildfire buff is up.
+            Every damage-over-time effect should be laid on the target before @wf, @ef twice among them,
+            and the buff spent on <SpellLink Spell="Spells.Detonate" /> rather than on more setup.
         </p>
         <p>
-            Each window below is scored on the damage-over-time state of the enemy Wildfire is aimed at, read
-            at the exact instant of the cast: how many of the six DoTs are ticking and how many
-            <SpellLink Spell="Spells.EngulfingFlames" /> instances are stacked. Setup is complete with at
-            least @WildfireComboAnalyzer.DistinctDotSuccessThreshold of the @WildfireComboAnalyzer.TotalDots
-            DoTs ticking and @WildfireComboAnalyzer.EngulfingInstanceThreshold Engulfing Flames instances,
-            and a clean window follows with at least @WildfireComboAnalyzer.DetonateSpamThreshold Detonate
-            casts inside the buff. <SpellLink Spell="Spells.Pyromania" /> and
-            <SpellLink Spell="Spells.Incinerate" /> are cooldown-limited relative to Wildfire, so they are
+            Each window is scored on the enemy @wf is aimed at, read at the instant of the cast. Setup
+            counts as complete with at least @WildfireComboAnalyzer.DistinctDotSuccessThreshold of the
+            @WildfireComboAnalyzer.TotalDots DoTs ticking and
+            @WildfireComboAnalyzer.EngulfingInstanceThreshold Engulfing Flames instances, and a clean
+            window follows with at least @WildfireComboAnalyzer.DetonateSpamThreshold Detonate casts
+            inside the buff. <SpellLink Spell="Spells.Pyromania" /> and
+            <SpellLink Spell="Spells.Incinerate" /> are cooldown-limited against @wf, so they are
             surfaced as bonus alignment rather than required for a clean window.
         </p>
     </Explanation>
     <ChildContent>
         <CastOverview Title="Window Overview" Stats="@BuildOverviewStats()" />
         <CastDetail Title="Wildfire Windows"
-                    Description="Each window shows the DoTs ticking on the target when Wildfire landed and the Detonate spam inside the buff, grouped by the pull it occurred in."
+                    Description="Each window shows the DoTs ticking on the target when Wildfire landed and the Detonate spam inside the buff."
                     Casts="@BuildPerCastData()" />
     </ChildContent>
 </GuideSection>
@@ -126,8 +125,9 @@
             Timestamp = window.StartTimestamp,
             Sequence = sequence,
             AdditionalContent = new AdditionalContent(
-                "Usage Notes",
-                @<div>@BuildOutcome(window)</div>),
+                "DoTs At Cast",
+                @<AuraChecklist Items="@ArdeosChecklist.Items(window.Coverage)" />),
+            Details = @<div>@BuildOutcome(window)</div>,
         };
     }
 

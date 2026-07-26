@@ -298,6 +298,57 @@ public sealed class ArdeosAnalysisEngineTests
         analyzer.Windows[1].Successful.ShouldBeFalse();
     }
 
+    [Fact]
+    public async Task Coverage_MarksEveryDotStandingOnTheTarget()
+    {
+        const int anchor = 10000;
+        var events = new List<Event>();
+        events.AddRange(FullSetup(anchor, TargetId, TargetInstance));
+        events.Add(WildfireCast(anchor, TargetId, TargetInstance));
+
+        var (parser, _) = await AnalyzeAsync(events, SpanningFight(0, 20000));
+
+        var window = parser.WildfireComboAnalyzers.ShouldHaveSingleItem().Analyzer.Windows.ShouldHaveSingleItem();
+        window.Coverage.Count.ShouldBe(ArdeosDots.Count);
+        window.Coverage.Select(entry => entry.Dot).ShouldBe(ArdeosDots.All);
+
+        var engulfing = Coverage(window, ArdeosDots.EngulfingFlames);
+        engulfing.Active.ShouldBeTrue();
+        engulfing.Instances.ShouldBe(2);
+        engulfing.Magnitude.ShouldBe(2);
+
+        var searing = Coverage(window, ArdeosDots.SearingBlaze);
+        searing.Active.ShouldBeTrue();
+        searing.Magnitude.ShouldBeNull();
+
+        Coverage(window, ArdeosDots.FireFrogs).Active.ShouldBeFalse();
+    }
+
+    [Fact]
+    public async Task Coverage_IncinerateStacks_ReadAsTheyStoodAtEachCast()
+    {
+        var events = new List<Event>
+        {
+            ApplyDebuff(1000, TargetId, TargetInstance, Spells.IncinerateDot.FSLID),
+            ApplyDebuffStack(1500, TargetId, TargetInstance, Spells.IncinerateDot.FSLID, stack: 4),
+            WildfireCast(2000, TargetId, TargetInstance),
+            ApplyDebuffStack(50000, TargetId, TargetInstance, Spells.IncinerateDot.FSLID, stack: 11),
+            WildfireCast(51000, TargetId, TargetInstance),
+        };
+
+        var (parser, _) = await AnalyzeAsync(events, SpanningFight(0, 70000));
+
+        var windows = parser.WildfireComboAnalyzers.ShouldHaveSingleItem().Analyzer.Windows;
+        windows.Count.ShouldBe(2);
+        Coverage(windows[0], ArdeosDots.Incinerate).Magnitude.ShouldBe(4);
+        Coverage(windows[1], ArdeosDots.Incinerate).Magnitude.ShouldBe(11);
+    }
+
+    private static ArdeosDotCoverage Coverage(
+        WildfireComboAnalyzer.WildfireWindowEvaluation window,
+        ArdeosDot dot) =>
+        window.Coverage.Single(entry => entry.Dot == dot);
+
     private static IEnumerable<Event> FullSetup(int anchor, int targetId, int targetInstance) =>
     [
         ApplyDebuff(anchor - 3000, targetId, targetInstance, Spells.SearingBlazeDot.FSLID),
@@ -329,6 +380,16 @@ public sealed class ArdeosAnalysisEngineTests
         SourceId = PlayerId,
         TargetId = targetId,
         TargetInstance = targetInstance,
+        Ability = new Ability { FSLID = effectId, Name = $"Effect {effectId}" },
+    };
+
+    private static ApplyDebuffStackEvent ApplyDebuffStack(int timestamp, int targetId, int? targetInstance, int effectId, int stack) => new()
+    {
+        Timestamp = timestamp,
+        SourceId = PlayerId,
+        TargetId = targetId,
+        TargetInstance = targetInstance,
+        Stack = stack,
         Ability = new Ability { FSLID = effectId, Name = $"Effect {effectId}" },
     };
 

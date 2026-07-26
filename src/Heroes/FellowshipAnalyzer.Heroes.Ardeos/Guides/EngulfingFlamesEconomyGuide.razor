@@ -2,24 +2,23 @@
 @using Spells = FellowshipAnalyzer.Core.Common.Spells.Ardeos.Spells
 @inject ArdeosCombatLogParser Parser
 
+@{
+    RenderFragment ef = @<SpellLink Spell="Spells.EngulfingFlames" />;
+    RenderFragment wf = @<SpellLink Spell="Spells.Wildfire" />;
+}
+
 <GuideSection Title="Engulfing Flames Economy">
     <Explanation>
         <p>
-            <SpellLink Spell="Spells.EngulfingFlames" /> is a two-charge, twenty-second-recharge spell.
-            Pool the charges so both applications land in the setup as <SpellLink Spell="Spells.Wildfire" />
-            becomes available, seeding two damage-over-time windows before the burn. Each window is scored on
-            the Engulfing Flames casts in that setup, two being the target.
+            @ef charges should be pooled such that 2 applications land in the setup for @wf.
+            Each window is scored on the Engulfing Flames casts in that setup, two being the target.
         </p>
         <p>
-            Once Wildfire is cast, its nine seconds of twenty-percent-faster ticks reward
-            <SpellLink Spell="Spells.Detonate" /> spam, not more setup. Charges at the ready instant and how
-            long Wildfire was held are shown as context, not scored: starting Engulfing Flames slightly early
-            legitimately lowers charges at that instant, and holding Wildfire for mechanics is fine.
+            Once @wf is cast, attempt to cast as many <SpellLink Spell="Spells.Detonate" /> in the window, not more setup. 
         </p>
         <p>
-            Overcap tracks the recharge wasted while Engulfing Flames sits at maximum charges. Briefly holding
-            both charges for an imminent window costs nothing; sitting capped across a full recharge cycle
-            wastes a charge that could have been spent and recovered.
+            Overcap tracks the recharge wasted while @ef sits at maximum charges. Holding both briefly
+            for an imminent window costs nothing; staying capped does not.
         </p>
     </Explanation>
     <ChildContent>
@@ -29,7 +28,7 @@
             <CastOverview Title="Devouring Flame (Draconic Bracers)" Stats="@BuildDevouringFlameStats()" />
         }
         <CastDetail Title="Wildfire Windows"
-                    Description="Each window shows the Engulfing Flames casts in the setup before Wildfire, with charges at ready and hold time as context, grouped by the pull it occurred in."
+                    Description="Each window shows the Engulfing Flames casts in the setup before Wildfire, with charges at ready and hold time as context."
                     Casts="@BuildPerCastData()" />
     </ChildContent>
 </GuideSection>

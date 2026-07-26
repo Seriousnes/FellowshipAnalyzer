@@ -8,9 +8,8 @@ namespace FellowshipAnalyzer.Heroes.Ardeos.Modules;
 
 /// <summary>
 /// Measures how much of Ardeos's damage-over-time pressure each Detonate cast actually cashes in, plus
-/// the free-cast economy the Apocalyptic Surge talent adds. Detonate re-triggers every active DoT window
-/// on every enemy at the moment it is cast, so a Detonate is only as strong as the DoTs standing when it
-/// lands. Each cast is snapshotted against the six Ardeos DoTs (Searing Blaze, Engulfing Flames, Fire
+/// the free-cast economy the Apocalyptic Surge talent adds. A Detonate is only as strong as the DoTs
+/// standing across the pack when it lands. Each cast is snapshotted against the six Ardeos DoTs (Searing Blaze, Engulfing Flames, Fire
 /// Ball, Fire Frogs, Incinerate and Apocalypse): which of them were standing, the enemies carrying at
 /// least one, and the total unique active instances across them, counted once per concurrent application
 /// so a stacked Incinerate weighs the same as one window and each concurrent Engulfing Flames application
@@ -20,7 +19,7 @@ namespace FellowshipAnalyzer.Heroes.Ardeos.Modules;
 /// <remarks>
 /// Coverage is sampled per cast from the all-units aura registry, which closes every open window at an
 /// enemy's death, so a dead enemy contributes nothing to casts after it dies. Because Detonate carries no
-/// target and re-triggers on every enemy, a cast's per-effect counts are aggregated across every enemy
+/// target and lands on every enemy at once, a cast's per-effect counts are aggregated across every enemy
 /// carrying the effect, which is the payload the cast actually detonates and which reduces to the single
 /// enemy's own counts on a single-target pull. The headline <see cref="AverageInstancesPerTarget"/> is the
 /// mean of each cast's average instances per target and counts a Detonate fired with no DoTs standing as a
@@ -261,34 +260,12 @@ public sealed partial class DetonateEfficiencyAnalyzer : Analyzer
 
     /// <summary>
     /// One damage-over-time effect's coverage at a Detonate cast, aggregated across every enemy, since
-    /// Detonate re-triggers on all of them at once.
+    /// Detonate lands on all of them at once.
     /// </summary>
-    public sealed record DotCoverage
+    public sealed record DotCoverage : ArdeosDotCoverage
     {
-        public required ArdeosDot Dot { get; init; }
-
         /// <summary>Enemies carrying at least one open window of this effect at the cast.</summary>
         public required int Targets { get; init; }
-
-        /// <summary>Concurrently open windows of this effect, summed across every enemy carrying it.</summary>
-        public required int Instances { get; init; }
-
-        /// <summary>Stacks summed across every open window of this effect at the cast.</summary>
-        public required int Stacks { get; init; }
-
-        /// <summary>True when the effect was standing on at least one enemy.</summary>
-        public bool Active => Instances > 0;
-
-        /// <summary>
-        /// The count shown beside the effect, or null when its magnitude is simple presence and a count
-        /// would say nothing.
-        /// </summary>
-        public int? Magnitude => Dot.Magnitude switch
-        {
-            DotMagnitude.Instances => Instances,
-            DotMagnitude.Stacks => Stacks,
-            _ => null,
-        };
     }
 
     /// <summary>

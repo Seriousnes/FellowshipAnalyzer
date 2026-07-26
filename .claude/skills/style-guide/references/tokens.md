@@ -141,31 +141,40 @@ loss, `--fa-rust` for a partial one, `--fa-stone` for capacity that was availabl
 
 ---
 
-## Chart series
+## Fire ramp
 
-Six categorical hues for a chart that plots several series at once. Assign them **in slot order**,
-one slot per series, and never cycle or reassign a slot when a series is empty: a colour follows the
-thing it names, so a filter that drops a series must not repaint the survivors. The light theme
-carries the same six hues stepped for the cream ground rather than flipped.
+A six-step warm scale, brightest first, for anything that reads as flame. The light theme carries
+its own steps for the cream ground rather than the dark ones flipped.
 
-| Token | Original / Dark | Light | Hue |
+| Token | Original / Dark | Light | Step |
 |---|---|---|---|
-| `--fa-chart1` | `#3987e5` | `#2a78d6` | Blue |
-| `--fa-chart2` | `#d95926` | `#eb6834` | Orange |
-| `--fa-chart3` | `#199e70` | `#1baf7a` | Aqua |
-| `--fa-chart4` | `#c98500` | `#eda100` | Yellow |
-| `--fa-chart5` | `#d55181` | `#e87ba4` | Magenta |
-| `--fa-chart6` | `#9085e9` | `#4a3aa7` | Violet |
+| `--fa-fire1` | `#ffe9a3` | `#d99b00` | Pale gold |
+| `--fa-fire2` | `#ffc233` | `#e2731a` | Amber |
+| `--fa-fire3` | `#fb9520` | `#cf4a17` | Orange |
+| `--fa-fire4` | `#ee6a18` | `#9d4a12` | Flame |
+| `--fa-fire5` | `#d24a15` | `#6f3f14` | Scorched |
+| `--fa-fire6` | `#a3601f` | `#432a16` | Burnt umber |
 
-The order is the colour-vision-safety mechanism, not decoration: adjacent slots are the pairs a
-stacked or grouped chart puts side by side, and this order was validated for adjacent separation
-against the card surface in both the dark and light grounds. Reordering the slots or substituting a
-hue means re-validating. Green is deliberately absent so a series never impersonates `--fa-perf-good`.
+The deep end stops short of crimson so a step never reads as `--fa-perf-fail`, which is what a
+chart's failing marker wears on top of it.
 
-`FaVar.ChartSeries` lists the six references in slot order. A charting library that writes colours
-into SVG presentation attributes cannot read `var(--fa-*)`, so a chart resolves tokens to their CSS
-text through `ChartPalette` rather than handing the reference over; that keeps the C# theme the only
-place a value is written and keeps runtime token overrides reaching the chart.
+### Colouring a chart's series
+
+There is no design-system series palette, and adding one would paint every hero's chart the same.
+A chart's series colours belong to the caller: Ardeos reads in the fire ramp, a frost hero would
+read in cold steps. Declare the token names your chart uses, in slot order, next to that hero's
+guides, and never reassign a slot when a series is empty — a colour follows the thing it names, so
+a filter that drops a series must not repaint the survivors.
+
+Adjacent slots are the pairs a stacked chart puts side by side, so a substituted or reordered step
+means re-validating separation against the card surface in both grounds. A themed ramp separates
+mostly by lightness, which is weaker than a categorical palette: carry the legend, a surface-coloured
+stroke between bands and named tooltip rows so identity never rests on the hue alone.
+
+A charting library that writes colours into SVG presentation attributes cannot read `var(--fa-*)`,
+so a chart resolves tokens to their CSS text through `ChartPalette` rather than handing the
+reference over; that keeps the C# theme the only place a value is written and keeps runtime token
+overrides reaching the chart.
 
 ---
 

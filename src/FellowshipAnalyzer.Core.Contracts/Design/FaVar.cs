@@ -61,29 +61,6 @@ public static class FaVar
     /// <summary><c>var(--fa-perf-fail)</c>.</summary>
     public static readonly string PerfFail = FaToken.Var(nameof(FaPalette.PerfFail));
 
-    /* Chart series */
-
-    /// <summary><c>var(--fa-chart1)</c>.</summary>
-    public static readonly string Chart1 = FaToken.Var(nameof(FaPalette.Chart1));
-
-    /// <summary><c>var(--fa-chart2)</c>.</summary>
-    public static readonly string Chart2 = FaToken.Var(nameof(FaPalette.Chart2));
-
-    /// <summary><c>var(--fa-chart3)</c>.</summary>
-    public static readonly string Chart3 = FaToken.Var(nameof(FaPalette.Chart3));
-
-    /// <summary><c>var(--fa-chart4)</c>.</summary>
-    public static readonly string Chart4 = FaToken.Var(nameof(FaPalette.Chart4));
-
-    /// <summary><c>var(--fa-chart5)</c>.</summary>
-    public static readonly string Chart5 = FaToken.Var(nameof(FaPalette.Chart5));
-
-    /// <summary><c>var(--fa-chart6)</c>.</summary>
-    public static readonly string Chart6 = FaToken.Var(nameof(FaPalette.Chart6));
-
-    /// <summary>The categorical chart series references in slot order.</summary>
-    public static IReadOnlyList<string> ChartSeries { get; } = [Chart1, Chart2, Chart3, Chart4, Chart5, Chart6];
-
     /* Hero roles */
 
     /// <summary><c>var(--fa-role-tank)</c>.</summary>
