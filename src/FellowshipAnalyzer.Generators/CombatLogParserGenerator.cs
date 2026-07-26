@@ -1051,7 +1051,7 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
         public ImmutableArray<CtorParam> CtorParams { get; }
         /// <summary>Fully-qualified surface type: the surface marker interface, or the topmost ancestor deriving directly from <c>Analyzer</c>.</summary>
         public string SurfaceTypeFullyQualified { get; }
-        /// <summary>Member base name for the surface's read paths (e.g. "BasicStComboAnalyzer"): the surface class's simple name, or an interface's name with a leading <c>I</c> stripped.</summary>
+        /// <summary>Member base name for the surface's read paths (e.g. "WintersEmbraceWindowAnalyzer"): the surface class's simple name, or an interface's name with a leading <c>I</c> stripped.</summary>
         public string SurfaceTypeMemberName { get; }
         /// <summary>The <c>[ForPull]</c> target bitmask (<c>PullKind</c> as int).</summary>
         public int ForPullTargets { get; }

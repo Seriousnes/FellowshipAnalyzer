@@ -65,8 +65,8 @@ namespace FellowshipAnalyzer.Heroes.Rime.Analysis;
 
 [HeroAnalyzer(HeroName.Rime)]
 [AddState<WinterOrbTracker>]
-[AddAnalyzer<SingleTargetRimeCombo>]
-[AddAnalyzer<AoERimeCombo>]
+[AddAnalyzer<SingleTargetEmbraceWindowAnalyzer>]
+[AddAnalyzer<AoeEmbraceWindowAnalyzer>]
 [AddModule<Modules.Abilities>]
 [AddModule<RimeAuras>]
 public sealed partial class RimeCombatLogParser : CombatLogParser
@@ -78,7 +78,7 @@ public sealed partial class RimeCombatLogParser : CombatLogParser
 The generator emits:
 
 - A constructor that passes `EventEmitter` and `IServiceProvider` to the base parser.
-- Source-generated nullable module properties such as `WinterOrbTracker`, plus the pull read paths for each `[AddAnalyzer]` surface (`BasicStComboAnalyzers`, `pull.BasicStComboAnalyzer`, `Pulls`).
+- Source-generated nullable module properties such as `WinterOrbTracker`, plus the pull read paths for each `[AddAnalyzer]` surface (`WintersEmbraceWindowAnalyzers`, `pull.WintersEmbraceWindowAnalyzer`, `Pulls`).
 - `GetModuleTypes()` and `GetNormalizerTypes()` implementations.
 - `Add{Hero}Analysis()` DI extension methods and keyed `IHeroAnalyzer` registration.
 - `AddCoreAnalysis()` for shared analysis services, base modules, and base normalizers.

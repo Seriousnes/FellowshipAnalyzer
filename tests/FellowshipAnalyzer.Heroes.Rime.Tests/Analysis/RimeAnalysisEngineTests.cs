@@ -4,6 +4,7 @@ using System.Text.Json.Serialization;
 using FellowshipAnalyzer.Core;
 using FellowshipAnalyzer.Core.Analysis;
 using FellowshipAnalyzer.Core.FellowshipLogs;
+using FellowshipAnalyzer.Core.Game;
 using FellowshipAnalyzer.Core.Serialization;
 using FellowshipAnalyzer.Heroes.Rime.Analysis;
 using FellowshipAnalyzer.Heroes.Rime.Modules;
@@ -13,6 +14,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Shouldly;
 
 using Xunit;
+
+using Spells = FellowshipAnalyzer.Core.Common.Spells.Rime.Spells;
 
 namespace FellowshipAnalyzer.Heroes.Rime.Tests.Analysis;
 
@@ -28,14 +31,16 @@ public sealed class RimeAnalysisEngineTests
     }
 
     [Fact]
-    public async Task Analyze_ShouldFindStComboWindows()
+    public async Task Analyze_ShouldFindWintersEmbraceWindows()
     {
         var (parser, _) = await AnalyzeFixtureAsync();
 
-        var analyzer = parser.BasicStComboAnalyzers.ShouldHaveSingleItem().Analyzer;
-        analyzer.EvaluatedWindows.ShouldBeGreaterThan(0);
+        var analyzer = parser.WintersEmbraceWindowAnalyzers.ShouldHaveSingleItem().Analyzer;
+        analyzer.EvaluatedWindows.ShouldBe(87);
         analyzer.Windows.Count.ShouldBe(analyzer.EvaluatedWindows);
-        analyzer.Windows.ShouldAllBe(window => window is SingleTargetRimeCombo.SingleTargetWindowEvaluation);
+        analyzer.Windows.ShouldAllBe(
+            window => window is SingleTargetEmbraceWindowAnalyzer.SingleTargetWindowEvaluation);
+        analyzer.Windows.ShouldAllBe(window => !window.BoundaryTruncated);
     }
 
     [Fact]
@@ -46,24 +51,149 @@ public sealed class RimeAnalysisEngineTests
         var tracker = parser.WinterOrbTracker!;
         tracker.Current.ShouldBeInRange(0, tracker.MaxOrbs);
         tracker.Generated.ShouldBe(tracker.Spent + tracker.Wasted + tracker.Current);
+        tracker.OvercapIncidents.Count.ShouldBe(tracker.Wasted);
     }
 
     [Fact]
-    public async Task Analyze_BasicStCombo_ExposesDetectedBuild()
+    public async Task Analyze_WinterOrbTracker_FixtureCarriesNoOrbSnapshotsSoTheWholePoolReadsZero()
     {
         var (parser, _) = await AnalyzeFixtureAsync();
 
-        var analyzer = parser.BasicStComboAnalyzers.ShouldHaveSingleItem().Analyzer;
-        analyzer.Build.ShouldBeOneOf(RimeBuild.Default, RimeBuild.IcyTalons);
+        var tracker = parser.WinterOrbTracker!;
+        tracker.Generated.ShouldBe(0);
+        tracker.Spent.ShouldBe(0);
+        tracker.Wasted.ShouldBe(0);
+        tracker.Current.ShouldBe(0);
+        tracker.CappedMs.ShouldBe(0);
+        tracker.OvercapIncidents.ShouldBeEmpty();
+        tracker.MaxOrbs.ShouldBe(5);
+        tracker.GetDisplayName(ResourceTypes.Tertiary).ShouldBe("Winter Orbs");
+    }
+
+    [Fact]
+    public async Task Analyze_WintersEmbrace_DetectsDefaultBuildForFixturePlayer()
+    {
+        var (parser, _) = await AnalyzeFixtureAsync();
+
+        var analyzer = parser.WintersEmbraceWindowAnalyzers.ShouldHaveSingleItem().Analyzer;
+        analyzer.Build.ShouldBe(RimeBuild.Default);
+        analyzer.StSpenderName.ShouldBe("Glacial Blast");
+        analyzer.AoeSpenderName.ShouldBe("Ice Comet");
         analyzer.Windows.ShouldAllBe(window => window.Build == analyzer.Build);
     }
 
     [Fact]
-    public async Task Analyze_ShouldHaveStatisticsForWinterOrbs()
+    public async Task Analyze_WintersEmbrace_FixtureCarriesNoOrbSnapshotsSoNoWindowReadsAsStarved()
     {
-        var (_, result) = await AnalyzeFixtureAsync();
+        var (parser, _) = await AnalyzeFixtureAsync();
 
-        result.Statistics.ShouldContain(s => s.Module is WinterOrbTracker);
+        var analyzer = parser.WintersEmbraceWindowAnalyzers.ShouldHaveSingleItem().Analyzer;
+        analyzer.WindowsWithOrbData.ShouldBe(0);
+        analyzer.Windows.ShouldAllBe(window => window.OrbsBankedAtOpen == null);
+        analyzer.StarvedWindows.ShouldBe(0);
+    }
+
+    [Fact]
+    public async Task Analyze_WintersEmbrace_FixtureBurstingIceTargetNeverDiesMidWindow()
+    {
+        var (parser, _) = await AnalyzeFixtureAsync();
+
+        var analyzer = parser.WintersEmbraceWindowAnalyzers.ShouldHaveSingleItem().Analyzer;
+        analyzer.WindowsEndedByTargetDeath.ShouldBe(0);
+    }
+
+    [Fact]
+    public async Task Analyze_MajorCooldowns_FindsWindowsForEveryMajor()
+    {
+        var (parser, _) = await AnalyzeFixtureAsync();
+
+        var analyzer = parser.MajorCooldownAnalyzers.ShouldHaveSingleItem().Analyzer;
+        analyzer.WindowsFor(RimeMajorCooldown.IceBlitz).Count.ShouldBe(12);
+        analyzer.WindowsFor(RimeMajorCooldown.WintersBlessing).Count.ShouldBe(22);
+        analyzer.WindowsFor(RimeMajorCooldown.FlightOfTheNavir).Count.ShouldBe(22);
+        analyzer.WindowsFor(RimeMajorCooldown.WrathOfWinter).Count.ShouldBe(21);
+        analyzer.Windows.Count.ShouldBe(77);
+        analyzer.Windows.ShouldAllBe(window => !window.BoundaryTruncated);
+    }
+
+    [Fact]
+    public async Task Analyze_MajorCooldowns_TracksCastsAndBuffUptimeForEveryCooldownGatedMajor()
+    {
+        var (parser, _) = await AnalyzeFixtureAsync();
+
+        var analyzer = parser.MajorCooldownAnalyzers.ShouldHaveSingleItem().Analyzer;
+        analyzer.PullDurationMs.ShouldBeGreaterThan(0);
+
+        foreach (var major in new[]
+        {
+            RimeMajorCooldown.IceBlitz,
+            RimeMajorCooldown.WintersBlessing,
+            RimeMajorCooldown.FlightOfTheNavir,
+        })
+        {
+            var usage = analyzer.UsageFor(major);
+            usage.Casts.ShouldBeGreaterThan(0);
+            usage.HeldMs.ShouldBeGreaterThanOrEqualTo(0);
+            usage.BuffUptimeMs.ShouldBeGreaterThan(0);
+            usage.BuffUptimeMs.ShouldBeLessThanOrEqualTo(analyzer.PullDurationMs);
+        }
+    }
+
+    [Fact]
+    public async Task Analyze_MajorCooldowns_FixtureCarriesNoOrbSnapshotsSoOrbDerivedReadingsAreUnknown()
+    {
+        var (parser, _) = await AnalyzeFixtureAsync();
+
+        var analyzer = parser.MajorCooldownAnalyzers.ShouldHaveSingleItem().Analyzer;
+        analyzer.Windows.ShouldAllBe(window => window.OrbsAtActivation == null);
+        analyzer.Windows.ShouldAllBe(window => window.OvercapsInside == null);
+    }
+
+    [Fact]
+    public async Task Analyze_MajorCooldowns_ExposesPerPullReadPaths()
+    {
+        var (parser, _) = await AnalyzeFixtureAsync();
+
+        var entry = parser.MajorCooldownAnalyzers.ShouldHaveSingleItem();
+        entry.Pull.MajorCooldownAnalyzer.ShouldBeSameAs(entry.Analyzer);
+        parser.For(entry.Pull).MajorCooldownAnalyzer.ShouldBeSameAs(entry.Analyzer);
+    }
+
+    [Fact]
+    public async Task Analyze_Downtime_AccountsForEveryMillisecondOfTheMeasuredSpan()
+    {
+        var (parser, _) = await AnalyzeFixtureAsync();
+
+        var analyzer = parser.DowntimeAnalyzers.ShouldHaveSingleItem().Analyzer;
+        analyzer.MeasuredSpanMs.ShouldBeGreaterThan(0);
+        analyzer.ActiveMs.ShouldBeGreaterThan(0);
+        (analyzer.ActiveMs + analyzer.DowntimeMs).ShouldBe(analyzer.MeasuredSpanMs);
+        analyzer.ActiveRatio.ShouldBeInRange(0, 1);
+    }
+
+    [Fact]
+    public async Task Analyze_Downtime_SurfacesTheLongestGapsFirstAndCountsThemAll()
+    {
+        var (parser, _) = await AnalyzeFixtureAsync();
+
+        var analyzer = parser.DowntimeAnalyzers.ShouldHaveSingleItem().Analyzer;
+        analyzer.Gaps.Count.ShouldBeLessThanOrEqualTo(DowntimeAnalyzer.TopGapLimit);
+        analyzer.Gaps.Count.ShouldBeLessThanOrEqualTo(analyzer.GapCount);
+        analyzer.Gaps.Select(gap => gap.DurationMs).ShouldBeInOrder(SortDirection.Descending);
+        analyzer.Gaps.ShouldAllBe(gap => gap.DurationMs >= DowntimeAnalyzer.MinimumGapMs);
+        analyzer.Gaps.ShouldNotBeEmpty();
+        analyzer.LongestGapMs.ShouldBe(analyzer.Gaps[0].DurationMs);
+        analyzer.DowntimeMs.ShouldBeGreaterThanOrEqualTo(analyzer.Gaps.Sum(gap => gap.DurationMs));
+    }
+
+    [Fact]
+    public async Task Analyze_Downtime_ExposesPerPullReadPaths()
+    {
+        var (parser, _) = await AnalyzeFixtureAsync();
+
+        var entry = parser.DowntimeAnalyzers.ShouldHaveSingleItem();
+        entry.Pull.DowntimeAnalyzer.ShouldBeSameAs(entry.Analyzer);
+        parser.For(entry.Pull).DowntimeAnalyzer.ShouldBeSameAs(entry.Analyzer);
     }
 
     [Fact]
@@ -75,28 +205,29 @@ public sealed class RimeAnalysisEngineTests
     }
 
     [Fact]
-    public async Task Analyze_BasicStCombo_WindowCountsAreConsistent()
+    public async Task Analyze_WintersEmbrace_WindowCountsAreConsistent()
     {
         var (parser, _) = await AnalyzeFixtureAsync();
 
-        var analyzer = parser.BasicStComboAnalyzers.ShouldHaveSingleItem().Analyzer;
+        var analyzer = parser.WintersEmbraceWindowAnalyzers.ShouldHaveSingleItem().Analyzer;
         analyzer.SuccessfulWindows.ShouldBe(analyzer.Windows.Count(window => window.Successful));
         analyzer.PartialWindows.ShouldBe(analyzer.Windows.Count(window => window.Partial));
-        analyzer.Windows.OfType<AoERimeCombo.AoeWindowEvaluation>().ShouldBeEmpty();
+        analyzer.Windows.ShouldAllBe(window => !(window.Successful && window.Partial));
+        analyzer.Windows.OfType<AoeEmbraceWindowAnalyzer.AoeWindowEvaluation>().ShouldBeEmpty();
     }
 
     [Fact]
-    public async Task Analyze_BasicStCombo_ExposesPerPullReadPaths()
+    public async Task Analyze_WintersEmbrace_ExposesPerPullReadPaths()
     {
         var (parser, _) = await AnalyzeFixtureAsync();
 
-        var entry = parser.BasicStComboAnalyzers.ShouldHaveSingleItem();
+        var entry = parser.WintersEmbraceWindowAnalyzers.ShouldHaveSingleItem();
         var pull = entry.Pull;
         pull.Index.ShouldBe(0);
         entry.Analyzer.EvaluatedWindows.ShouldBeGreaterThan(0);
 
-        pull.BasicStComboAnalyzer.ShouldBeSameAs(entry.Analyzer);
-        parser.For(pull).BasicStComboAnalyzer.ShouldBeSameAs(entry.Analyzer);
+        pull.WintersEmbraceWindowAnalyzer.ShouldBeSameAs(entry.Analyzer);
+        parser.For(pull).WintersEmbraceWindowAnalyzer.ShouldBeSameAs(entry.Analyzer);
     }
 
     private static async Task<(RimeCombatLogParser Parser, HeroAnalysisResult Result)> AnalyzeFixtureAsync()
