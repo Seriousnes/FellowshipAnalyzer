@@ -1,80 +1,118 @@
 @using Spells = FellowshipAnalyzer.Core.Common.Spells.Gunde.Spells
 @inject GundeCombatLogParser Parser
 
-@{
-    RenderFragment slaughter = @<SpellLink Spell="Spells.Slaughter" />;
-    RenderFragment rupture = @<SpellLink Spell="Spells.Rupture" />;
-    RenderFragment heartSplitter = @<SpellLink Spell="Spells.HeartSplitter" />;
-}
-
-<GuideSection Title="Slaughter Efficiency">
+<GuideSection Title="Slaughter">
     <Explanation>
-        <ol>
-            <li>@slaughter dumps every stack of Rend into a short 160% bleed, so its value scales with how much Rend is on the target when it lands.</li>
-            <li>@rupture leaves <strong>Open Wounds</strong> on the target for 18s, buffing the next @slaughter - cast @slaughter inside that window.</li>
-            <li>On bosses, rebuild Rend with @heartSplitter between Slaughters. On trash, land @slaughter into the pack so its bleed spreads wide.</li>
-            <li>Each pull is scored against the priority its shape calls for - single-target on boss pulls, AoE on trash.</li>
-        </ol>
+        <p>
+            <SpellLink Spell="Spells.Slaughter" /> consumes every point of Rend standing on the
+            enemies it hits and pays it back as a 160% bleed, so a Slaughter is worth exactly what was
+            built before it was pressed. Each cast is scored on the bleed damage it went on to deal,
+            measured against the best Slaughter of the same pull, because damage scales with gear but
+            a pull's own casts do not.
+        </p>
+        <p>
+            <SpellLink Spell="Spells.Rupture" /> leaves <strong>Open Wounds</strong> for 18s, making
+            the next Slaughter hit 20% harder, so every cast is also scored on whether it landed
+            inside a window, and every window is checked for the Slaughter that should have cashed
+            it in.
+        </p>
+        <p>
+            Boss casts are scored in addition on whether <SpellLink Spell="Spells.HeartSplitter" />
+            rebuilt Rend since the previous Slaughter; casts on packs are scored on how many enemies
+            the bleed reached.
+        </p>
     </Explanation>
     <ChildContent>
         @if (TotalCasts == 0)
         {
-            <p>No Slaughter was cast on any pull. This is consistent with a Heart Splitter build that keeps Rend on the target instead of consuming it.</p>
+            <p>No Slaughter was cast on any pull, so every point of Rend expired unspent.</p>
         }
         else
         {
             <CastOverview Title="Slaughter Overview" Stats="@BuildOverviewStats()" />
             <CastDetail Title="Slaughters"
-                        Description="Each Slaughter shows whether it landed inside an Open Wounds window and met the priority for its pull's shape."
+                        Description="Each card is one Slaughter, rated on the bleed it cashed out relative to the best Slaughter of that pull."
                         Casts="@BuildPerCastData()" />
         }
     </ChildContent>
 </GuideSection>
 
 @code {
-    private int TotalCasts =>
-        Parser.SlaughterUsageAnalyzers.Sum(entry => entry.Analyzer.SlaughterCasts);
+    private const int RelativePerfect = 80;
+    private const int RelativeGood = 55;
+    private const int RelativeOk = 30;
+
+    private int TotalCasts => Parser.SlaughterUsageAnalyzers.Sum(entry => entry.Analyzer.SlaughterCasts);
 
     private IEnumerable<OverviewStat> BuildOverviewStats()
     {
         var analyzers = Parser.SlaughterUsageAnalyzers.Select(entry => entry.Analyzer).ToList();
         var casts = analyzers.Sum(analyzer => analyzer.SlaughterCasts);
         var well = analyzers.Sum(analyzer => analyzer.WellExecuted);
-        var openWounds = analyzers.Sum(analyzer => analyzer.OpenWoundsTimed);
         var wellRate = casts > 0 ? (int)Math.Round((double)well / casts * 100) : 0;
-        var openWoundsRate = casts > 0 ? (int)Math.Round((double)openWounds / casts * 100) : 0;
+        var windows = analyzers.Sum(analyzer => analyzer.TotalOpenWoundsWindows);
+        var wasted = analyzers.Sum(analyzer => analyzer.WastedOpenWoundsWindows);
+        var payoff = analyzers.Sum(analyzer => analyzer.TotalPayoffDamage);
 
-        return
-        [
-            new OverviewStat(
+        var stats = new List<OverviewStat>
+        {
+            new(
                 $"{casts}",
                 "Slaughters",
                 "Total Slaughter casts evaluated across every pull."),
-            new OverviewStat(
+            new(
                 $"{wellRate}%",
                 "Well Set Up",
                 $"{well} of {casts} Slaughters met the priority for their pull shape.",
-                Tier(wellRate)),
-            new OverviewStat(
-                $"{openWoundsRate}%",
-                "Inside Open Wounds",
-                $"{openWounds} of {casts} Slaughters landed inside a Rupture Open Wounds window.",
-                Tier(openWoundsRate)),
-        ];
+                PercentTier(wellRate)),
+            new(
+                $"{wasted}",
+                "Wasted Windows",
+                windows > 0
+                    ? $"{wasted} of {windows} Open Wounds windows, counted per enemy, closed without a Slaughter cashing the bonus in."
+                    : "No Open Wounds window ran long enough to be judged.",
+                windows > 0 ? PercentTier(UsedWindowRate(windows, wasted)) : null),
+        };
+
+        if (payoff > 0)
+        {
+            stats.Add(new OverviewStat(
+                FormatDamage(payoff / casts),
+                "Avg Payoff",
+                $"Average Slaughter bleed damage per cast, {FormatDamage(payoff)} in total. Absolute damage scales with gear, so each cast is rated against its own pull instead."));
+        }
+
+        return stats;
     }
 
     private IEnumerable<PerCastData> BuildPerCastData() =>
-        Parser.SlaughterUsageAnalyzers.SelectMany(entry =>
-            entry.Analyzer.Slaughters.Select(slaughter => BuildSlaughterData(slaughter, entry.Analyzer.Shape, entry.Pull)));
+        Parser.SlaughterUsageAnalyzers.ToItemRows(Parser, ProjectCasts, (row, pull) => BuildCastRow(row));
 
-    private PerCastData BuildSlaughterData(SlaughterEvaluation slaughter, GundePullShape shape, Pull pull)
+    private static IEnumerable<SlaughterRow> ProjectCasts(SlaughterUsageAnalyzer analyzer)
     {
-        var perf = slaughter.WellExecuted ? QualitativePerformance.Perfect : QualitativePerformance.Fail;
-        var isAoe = shape == GundePullShape.Aoe;
-        var outcome = DescribeOutcome(slaughter, isAoe);
+        var slaughters = analyzer.Slaughters;
+        var best = analyzer.BestPayoff;
+        return slaughters.Select(slaughter => new SlaughterRow(slaughter, analyzer.Shape, best, slaughters.Count));
+    }
+
+    private PerCastRow BuildCastRow(SlaughterRow row)
+    {
+        var slaughter = row.Cast;
+        var isAoe = row.Shape == GundePullShape.Aoe;
+        var relative = row.RelativePayoff;
+        var payoffTier = relative is int percent ? RelativeTier(percent) : (QualitativePerformance?)null;
+        var setupTier = SetupTier(slaughter, isAoe);
+        var perf = payoffTier is { } tier && tier < setupTier ? tier : setupTier;
 
         var stats = new List<PerCastStat>
         {
+            new(
+                FormatDamage(slaughter.PayoffDamage),
+                "Bleed Payoff",
+                relative is int share
+                    ? $"Slaughter bleed damage this cast cashed out - {share}% of the best Slaughter on this pull."
+                    : "Slaughter bleed damage this cast cashed out.",
+                payoffTier),
             new(
                 slaughter.OpenWoundsActive ? "Yes" : "No",
                 "Open Wounds",
@@ -99,21 +137,27 @@
                 slaughter.HeartSplitterPrimed ? QualitativePerformance.Perfect : QualitativePerformance.Fail));
         }
 
-        return new PerCastData
+        var note = BuildNote(row, isAoe);
+
+        return new PerCastRow
         {
             Performance = perf,
             Stats = [.. stats],
-            Timestamp = Parser.FormatTimestamp(slaughter.Timestamp),
+            Timestamp = slaughter.Timestamp,
             Sequence = [new SpellCastEntry(Spells.Slaughter.FSLID.Value, perf)],
-            Group = pull.Name,
-            GroupContent = @<PullBanner Pull="@pull" />,
-            AdditionalContent = new AdditionalContent(
-                "Usage Notes",
-                @<div>@outcome</div>),
+            AdditionalContent = new AdditionalContent("Usage Notes", @<div>@note</div>),
         };
     }
 
-    private static string DescribeOutcome(SlaughterEvaluation slaughter, bool isAoe)
+    private static string BuildNote(SlaughterRow row, bool isAoe)
+    {
+        var slaughter = row.Cast;
+        var setup = DescribeSetup(slaughter, isAoe);
+        var payoff = DescribePayoff(row);
+        return $"{setup} {payoff}";
+    }
+
+    private static string DescribeSetup(SlaughterEvaluation slaughter, bool isAoe)
     {
         if (slaughter.WellExecuted)
         {
@@ -141,15 +185,65 @@
         return JoinReasons(reasons);
     }
 
+    private static string DescribePayoff(SlaughterRow row)
+    {
+        if (row.Cast.PayoffDamage == 0)
+            return "No Slaughter bleed damage followed this cast, so there was no Rend to cash out.";
+
+        var damage = FormatDamage(row.Cast.PayoffDamage);
+        if (row.RelativePayoff is not int percent)
+            return $"It cashed out {damage} of bleed; with a single Slaughter on this pull there is nothing to compare it against.";
+
+        if (percent >= RelativePerfect)
+            return $"It cashed out {damage} of bleed, {percent}% of this pull's best Slaughter.";
+
+        return $"It cashed out {damage} of bleed, only {percent}% of this pull's best Slaughter - build more Rend before pressing it.";
+    }
+
     private static string JoinReasons(List<string> reasons) =>
         reasons.Count == 0
             ? "Only partially set up."
             : char.ToUpperInvariant(reasons[0][0]) + reasons[0][1..] +
                 (reasons.Count > 1 ? ", and " + reasons[1] : string.Empty) + ".";
 
-    private static QualitativePerformance Tier(int rate) =>
-        rate >= 75 ? QualitativePerformance.Perfect
-        : rate >= 50 ? QualitativePerformance.Good
-        : rate >= 25 ? QualitativePerformance.Ok
-        : QualitativePerformance.Fail;
+    /// <summary>
+    /// Grades the setup half of a cast: both shape criteria met is the success bar the analyzer
+    /// scores, one of the two still beats nothing. Grading it rather than passing or failing it lets
+    /// a weak payoff pull the row's overall rating down from any starting point.
+    /// </summary>
+    private static QualitativePerformance SetupTier(SlaughterEvaluation slaughter, bool isAoe)
+    {
+        var spread = isAoe
+            ? slaughter.TargetsHit >= TrashSlaughterUsage.PackThreshold
+            : slaughter.HeartSplitterPrimed;
+
+        return slaughter.OpenWoundsActive && spread ? QualitativePerformance.Perfect
+            : slaughter.OpenWoundsActive || spread ? QualitativePerformance.Ok
+            : QualitativePerformance.Fail;
+    }
+
+    private static int UsedWindowRate(int windows, int wasted) =>
+        (int)Math.Round((double)(windows - wasted) / windows * 100);
+
+    private static string FormatDamage(long damage) =>
+        damage >= 1_000_000 ? $"{damage / 1_000_000d:0.0}M"
+        : damage >= 10_000 ? $"{damage / 1_000d:0}k"
+        : damage >= 1_000 ? $"{damage / 1_000d:0.0}k"
+        : $"{damage}";
+
+    private static QualitativePerformance RelativeTier(int percent) =>
+        PerformanceTiers.FromThresholds(percent, RelativePerfect, RelativeGood, RelativeOk);
+
+    private static QualitativePerformance PercentTier(int percent) =>
+        PerformanceTiers.FromThresholds(percent, 75, 50, 25);
+
+    private sealed record SlaughterRow(SlaughterEvaluation Cast, GundePullShape Shape, long BestPayoff, int PullCasts)
+    {
+        /// <summary>
+        /// This cast's payoff as a percentage of the pull's best Slaughter, or null when the
+        /// comparison would be meaningless: no bleed damage was logged, or the pull held one cast.
+        /// </summary>
+        public int? RelativePayoff =>
+            BestPayoff > 0 && PullCasts > 1 ? (int)Math.Round((double)Cast.PayoffDamage / BestPayoff * 100) : null;
+    }
 }
