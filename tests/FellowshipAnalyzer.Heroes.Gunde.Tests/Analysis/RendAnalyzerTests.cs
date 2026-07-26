@@ -33,6 +33,8 @@ public sealed class RendAnalyzerTests
             Remove(AddId, 3_000),
             Remove(BossId, 5_000),
             Apply(BossId, 8_000),
+            StackGained(BossId, 14_000),
+            StackGained(BossId, PullEnd),
         };
 
         var (parser, _) = await AnalyzeAsync(events, BossFight());
@@ -52,6 +54,71 @@ public sealed class RendAnalyzerTests
         var pull = entry.Pull;
         pull.RendAnalyzer.ShouldBeSameAs(analyzer);
         parser.For(pull).RendAnalyzer.ShouldBeSameAs(analyzer);
+    }
+
+    [Fact]
+    public async Task Analyze_BossPull_AddStopsEmittingWithoutRemove_DoesNotOutrankBoss()
+    {
+        var events = new List<Event>
+        {
+            Apply(BossId, 1_000),
+            Apply(AddId, 2_000),
+            StackGained(AddId, 3_000),
+            Remove(BossId, 9_000),
+            Apply(BossId, 12_000),
+            StackGained(BossId, 16_000),
+            StackGained(BossId, PullEnd),
+        };
+
+        var (parser, _) = await AnalyzeAsync(events, BossFight());
+
+        var analyzer = SingleUptimeAnalyzer(parser);
+        analyzer.Windows.Count.ShouldBe(2);
+        analyzer.Windows[0].Start.ShouldBe(1_000);
+        analyzer.Windows[0].End.ShouldBe(9_000);
+        analyzer.Windows[1].Start.ShouldBe(12_000);
+        analyzer.Windows[1].End.ShouldBe(PullEnd);
+        analyzer.Uptime.ShouldBe(0.8, 0.0001);
+        analyzer.GapCount.ShouldBe(1);
+        analyzer.TotalGapMs.ShouldBe(3_000);
+    }
+
+    [Fact]
+    public async Task Analyze_BossPull_StacksRunToPullEnd_KeepsWindowOpenToPullEnd()
+    {
+        var events = new List<Event>
+        {
+            Apply(BossId, 1_000),
+            StackGained(BossId, 10_000),
+            StackLost(BossId, PullEnd),
+        };
+
+        var (parser, _) = await AnalyzeAsync(events, BossFight());
+
+        var analyzer = SingleUptimeAnalyzer(parser);
+        var window = analyzer.Windows.ShouldHaveSingleItem();
+        window.Start.ShouldBe(1_000);
+        window.End.ShouldBe(PullEnd);
+        analyzer.Uptime.ShouldBe(0.95, 0.0001);
+        analyzer.GapCount.ShouldBe(0);
+    }
+
+    [Fact]
+    public async Task Analyze_BossPull_TargetStopsEmitting_ClosesWindowAtLastEvent()
+    {
+        var events = new List<Event>
+        {
+            Apply(BossId, 1_000),
+            StackGained(BossId, 6_000),
+        };
+
+        var (parser, _) = await AnalyzeAsync(events, BossFight());
+
+        var analyzer = SingleUptimeAnalyzer(parser);
+        var window = analyzer.Windows.ShouldHaveSingleItem();
+        window.End.ShouldBe(6_000);
+        analyzer.Uptime.ShouldBe(0.25, 0.0001);
+        analyzer.GapCount.ShouldBe(0);
     }
 
     [Fact]
@@ -220,6 +287,24 @@ public sealed class RendAnalyzerTests
         Timestamp = timestamp,
         SourceId = PlayerId,
         TargetId = targetId,
+        Ability = new Ability { Id = Spells.Rend.FSLID },
+    };
+
+    private static ApplyDebuffStackEvent StackGained(int targetId, int timestamp) => new()
+    {
+        Timestamp = timestamp,
+        SourceId = PlayerId,
+        TargetId = targetId,
+        Stack = 2,
+        Ability = new Ability { Id = Spells.Rend.FSLID },
+    };
+
+    private static RemoveDebuffStackEvent StackLost(int targetId, int timestamp) => new()
+    {
+        Timestamp = timestamp,
+        SourceId = PlayerId,
+        TargetId = targetId,
+        Stack = 1,
         Ability = new Ability { Id = Spells.Rend.FSLID },
     };
 
