@@ -1,6 +1,6 @@
 {
   "FellowshipAnalyzer.slnx": {
-    "mtime": 1784780808.7109804,
+    "mtime": 1784887044.5374043,
     "ast_hash": "5ebbdf4ce9af9ba4a71504d2fc6c1b03",
     "semantic_hash": "5ebbdf4ce9af9ba4a71504d2fc6c1b03"
   },
@@ -15,12 +15,12 @@
     "semantic_hash": "1cf276958642c4ec5b8b0ec6750a3d82"
   },
   "data/overrides.json": {
-    "mtime": 1784760033.148939,
+    "mtime": 1784887044.5387645,
     "ast_hash": "a29b94bd560c9e76a3814b3cf52ce8e5",
     "semantic_hash": "a29b94bd560c9e76a3814b3cf52ce8e5"
   },
   "data/spelldb.json": {
-    "mtime": 1784778252.1048608,
+    "mtime": 1784887044.5394151,
     "ast_hash": "ae696ec261cf80dc1d59f23a81ce3794",
     "semantic_hash": "ae696ec261cf80dc1d59f23a81ce3794"
   },
@@ -110,7 +110,7 @@
     "semantic_hash": "ff0e3e918363aa19fbb83f52c7743d53"
   },
   "src/FellowshipAnalyzer.AppHost/AppHost.cs": {
-    "mtime": 1784770191.8501253,
+    "mtime": 1784887044.566203,
     "ast_hash": "7b448ee9b241a88f4bdbaa70dd630085",
     "semantic_hash": "7b448ee9b241a88f4bdbaa70dd630085"
   },
@@ -195,7 +195,7 @@
     "semantic_hash": "98a6badce1dc566833af8de15f71714f"
   },
   "src/FellowshipAnalyzer.Core.Contracts/FellowshipLogs/ReportFight.cs": {
-    "mtime": 1784783305.2414658,
+    "mtime": 1784887044.566203,
     "ast_hash": "858d0ad11c3fe9d1ce67a43322926836",
     "semantic_hash": "858d0ad11c3fe9d1ce67a43322926836"
   },
@@ -270,24 +270,24 @@
     "semantic_hash": "451fa96dd526c0acf21f8924beceded3"
   },
   "src/FellowshipAnalyzer.Core/Analysis/ChronoshiftAnalyzer.cs": {
-    "mtime": 1784760033.1499422,
+    "mtime": 1784887044.5672066,
     "ast_hash": "35c1503f9773b7c17e1ccbad7728c995",
     "semantic_hash": "35c1503f9773b7c17e1ccbad7728c995"
   },
   "src/FellowshipAnalyzer.Core/Analysis/CombatLogParser.cs": {
-    "mtime": 1784772076.3501835,
+    "mtime": 1784887044.5672066,
     "ast_hash": "c20122c82af0f8225a66ce188d699a31",
     "semantic_hash": "c20122c82af0f8225a66ce188d699a31"
   },
   "src/FellowshipAnalyzer.Core/Analysis/Combatant.cs": {
-    "mtime": 1784509681.4842453,
+    "mtime": 1784887044.5677116,
     "ast_hash": "01e622d7b0b2ca3fb7d05d72f2d102b4",
     "semantic_hash": "01e622d7b0b2ca3fb7d05d72f2d102b4"
   },
   "src/FellowshipAnalyzer.Core/Analysis/Combatants.cs": {
-    "mtime": 1784509681.4847515,
-    "ast_hash": "83136fb6293737b03cd15f24c07ef956",
-    "semantic_hash": "83136fb6293737b03cd15f24c07ef956"
+    "mtime": 1785033200.7492092,
+    "ast_hash": "bcca160094b65382a68e9f18d6636af9",
+    "semantic_hash": ""
   },
   "src/FellowshipAnalyzer.Core/Analysis/Contributions.cs": {
     "mtime": 1783684384.964635,
@@ -305,7 +305,7 @@
     "semantic_hash": "bb13402499a12510685096eab7067562"
   },
   "src/FellowshipAnalyzer.Core/Analysis/CooldownModifier.cs": {
-    "mtime": 1784509681.4847515,
+    "mtime": 1784887044.5677116,
     "ast_hash": "745ee3c03cc45a2355b6d7e826350171",
     "semantic_hash": "745ee3c03cc45a2355b6d7e826350171"
   },
@@ -315,22 +315,22 @@
     "semantic_hash": "a4f3580aadfa431ae9dfcd9aadc980da"
   },
   "src/FellowshipAnalyzer.Core/Analysis/DebugAnnotations.cs": {
-    "mtime": 1779242319.3765657,
-    "ast_hash": "de05459a78e1641995f44d3456705d18",
-    "semantic_hash": "de05459a78e1641995f44d3456705d18"
+    "mtime": 1784973608.7215497,
+    "ast_hash": "b4b72f11084f7c744a08b990733d5928",
+    "semantic_hash": ""
   },
   "src/FellowshipAnalyzer.Core/Analysis/Enemy.cs": {
-    "mtime": 1784509681.4852512,
+    "mtime": 1784887044.5677116,
     "ast_hash": "0cba497cb77bb9e9c949979d151f36ab",
     "semantic_hash": "0cba497cb77bb9e9c949979d151f36ab"
   },
   "src/FellowshipAnalyzer.Core/Analysis/Entity.cs": {
-    "mtime": 1784509681.485756,
-    "ast_hash": "6fae6796a185b3a2a0df0b162fa58c3e",
-    "semantic_hash": "6fae6796a185b3a2a0df0b162fa58c3e"
+    "mtime": 1785033180.579738,
+    "ast_hash": "692c9c6cecdc8ea2a0b5fc0853401ec3",
+    "semantic_hash": ""
   },
   "src/FellowshipAnalyzer.Core/Analysis/EventEmitter.cs": {
-    "mtime": 1784760033.1504467,
+    "mtime": 1784887044.5687153,
     "ast_hash": "5902c5ef42514f97e95cb8dea333b401",
     "semantic_hash": "5902c5ef42514f97e95cb8dea333b401"
   },
@@ -345,7 +345,7 @@
     "semantic_hash": "e474b770e018027b68b0281c0f70b7b5"
   },
   "src/FellowshipAnalyzer.Core/Analysis/Events.cs": {
-    "mtime": 1784509681.485756,
+    "mtime": 1784887044.5687153,
     "ast_hash": "eaef09d8d3ffd2522526f164ffd49c54",
     "semantic_hash": "eaef09d8d3ffd2522526f164ffd49c54"
   },
@@ -360,9 +360,9 @@
     "semantic_hash": "fa1c1c95cc8672025495d6d9c5d34eb9"
   },
   "src/FellowshipAnalyzer.Core/Analysis/GlobalCooldown.cs": {
-    "mtime": 1783399625.877617,
-    "ast_hash": "b1dbb8b305461b11601e0b5d6de4730f",
-    "semantic_hash": "b1dbb8b305461b11601e0b5d6de4730f"
+    "mtime": 1784973608.7220497,
+    "ast_hash": "56fc74cdd815064be23d5a822f9930b7",
+    "semantic_hash": ""
   },
   "src/FellowshipAnalyzer.Core/Analysis/HasChronoshiftGear.cs": {
     "mtime": 1784280820.8443909,
@@ -370,7 +370,7 @@
     "semantic_hash": "0b9213c1ec68a957aebd9e066b39a121"
   },
   "src/FellowshipAnalyzer.Core/Analysis/Haste.cs": {
-    "mtime": 1784509681.4862618,
+    "mtime": 1784887044.569733,
     "ast_hash": "e435a392d644bbf01f8485e665927033",
     "semantic_hash": "e435a392d644bbf01f8485e665927033"
   },
@@ -395,9 +395,9 @@
     "semantic_hash": "b096e2a88d9ecc7ddc2d72f0d078874f"
   },
   "src/FellowshipAnalyzer.Core/Analysis/Heroes.cs": {
-    "mtime": 1783684384.9656386,
-    "ast_hash": "837e9c036571e9896f2687dec8132a85",
-    "semantic_hash": "837e9c036571e9896f2687dec8132a85"
+    "mtime": 1784973608.7220497,
+    "ast_hash": "3dc895d52eea59a9242c411c4a771b5f",
+    "semantic_hash": ""
   },
   "src/FellowshipAnalyzer.Core/Analysis/IAnalyzerSurface.cs": {
     "mtime": 1784196432.82647,
@@ -410,7 +410,7 @@
     "semantic_hash": "e7884ab2dd9f18c64371231cdbe47623"
   },
   "src/FellowshipAnalyzer.Core/Analysis/IHeroAnalyzer.cs": {
-    "mtime": 1784772076.350691,
+    "mtime": 1784887044.569733,
     "ast_hash": "60079b17f5e2d4614275c29b16135b5a",
     "semantic_hash": "60079b17f5e2d4614275c29b16135b5a"
   },
@@ -450,17 +450,17 @@
     "semantic_hash": "8d7fac2e779b41b3255b29a62736f110"
   },
   "src/FellowshipAnalyzer.Core/Analysis/Normalizers/CastLinkNormalizer.cs": {
-    "mtime": 1784760091.5386302,
+    "mtime": 1784887044.5702374,
     "ast_hash": "2300361c655e71227f8d477066001dd8",
     "semantic_hash": "2300361c655e71227f8d477066001dd8"
   },
   "src/FellowshipAnalyzer.Core/Analysis/Normalizers/FightBookendNormalizer.cs": {
-    "mtime": 1784760033.15145,
+    "mtime": 1784887044.5702374,
     "ast_hash": "f5e9615c4e16e57fd7c8bdf0bee8d906",
     "semantic_hash": "f5e9615c4e16e57fd7c8bdf0bee8d906"
   },
   "src/FellowshipAnalyzer.Core/Analysis/Normalizers/PullBookendNormalizer.cs": {
-    "mtime": 1784760033.1517782,
+    "mtime": 1784887044.5702374,
     "ast_hash": "010936d48fa4ad34ac14418237f270ab",
     "semantic_hash": "010936d48fa4ad34ac14418237f270ab"
   },
@@ -530,17 +530,17 @@
     "semantic_hash": "c443ad7a745d593183ce5bb851ffeb0d"
   },
   "src/FellowshipAnalyzer.Core/Analysis/SpellUsable.cs": {
-    "mtime": 1784760033.1524546,
-    "ast_hash": "cdc1223c0690303963a4f23f73c9dc3e",
-    "semantic_hash": "cdc1223c0690303963a4f23f73c9dc3e"
+    "mtime": 1784973608.7225509,
+    "ast_hash": "2a0b14f9b9144eb82bfa97e840774959",
+    "semantic_hash": ""
   },
   "src/FellowshipAnalyzer.Core/Analysis/SpellbookAbility.cs": {
-    "mtime": 1784777799.1945348,
+    "mtime": 1784887044.5713525,
     "ast_hash": "59d61b8866792400fb2c05b864eeedf4",
     "semantic_hash": "59d61b8866792400fb2c05b864eeedf4"
   },
   "src/FellowshipAnalyzer.Core/Analysis/StatTracker.cs": {
-    "mtime": 1784509681.4877713,
+    "mtime": 1784887044.5718563,
     "ast_hash": "17803709626790591732200ecaf8adfd",
     "semantic_hash": "17803709626790591732200ecaf8adfd"
   },
@@ -550,7 +550,7 @@
     "semantic_hash": "953f28a47597dbb41098c6d225743a89"
   },
   "src/FellowshipAnalyzer.Core/Analysis/UnitKey.cs": {
-    "mtime": 1784509681.4888844,
+    "mtime": 1784887044.5718563,
     "ast_hash": "a873d8c4b6179f9d2128f0ae7c2c461c",
     "semantic_hash": "a873d8c4b6179f9d2128f0ae7c2c461c"
   },
@@ -590,7 +590,7 @@
     "semantic_hash": "f2d42763b6e1e4b60ce7d1265d212e93"
   },
   "src/FellowshipAnalyzer.Core/Common/Spells/AbilityCategory.cs": {
-    "mtime": 1784509681.48939,
+    "mtime": 1784887044.5718563,
     "ast_hash": "27f907e211e23f635aada62daf6cfa59",
     "semantic_hash": "27f907e211e23f635aada62daf6cfa59"
   },
@@ -600,12 +600,12 @@
     "semantic_hash": "4e47d1d1f7f57e7567172512755a587a"
   },
   "src/FellowshipAnalyzer.Core/Common/Spells/Ardeos/IArdeosSpell.cs": {
-    "mtime": 1784777253.2305355,
+    "mtime": 1784887044.5718563,
     "ast_hash": "3df45af91f1acff25288b4ece3d08485",
     "semantic_hash": "3df45af91f1acff25288b4ece3d08485"
   },
   "src/FellowshipAnalyzer.Core/Common/Spells/Ardeos/Talents.cs": {
-    "mtime": 1784760033.1524546,
+    "mtime": 1784887044.5728624,
     "ast_hash": "c1c22d25d5e287cd003904edf9844c2d",
     "semantic_hash": "c1c22d25d5e287cd003904edf9844c2d"
   },
@@ -650,7 +650,7 @@
     "semantic_hash": "a1f46a995a6553c1e8fbc1b4c5bceb5b"
   },
   "src/FellowshipAnalyzer.Core/Common/Spells/Spell.cs": {
-    "mtime": 1784777792.5328217,
+    "mtime": 1784887044.5728624,
     "ast_hash": "fa06d3f791081ce468d64ae1d1fbc9ea",
     "semantic_hash": "fa06d3f791081ce468d64ae1d1fbc9ea"
   },
@@ -720,7 +720,7 @@
     "semantic_hash": "07a1826fcd68a4716427ec01a19be39a"
   },
   "src/FellowshipAnalyzer.Core/Events/BeginChannelEvent.cs": {
-    "mtime": 1784760033.152954,
+    "mtime": 1784887044.5733693,
     "ast_hash": "c25d5b0f96976b3dabe12ebc89416bc3",
     "semantic_hash": "c25d5b0f96976b3dabe12ebc89416bc3"
   },
@@ -735,7 +735,7 @@
     "semantic_hash": "4d18fb594da4382d9c838e52ca59fa66"
   },
   "src/FellowshipAnalyzer.Core/Events/ChangeCooldownModifierEvent.cs": {
-    "mtime": 1784509681.48939,
+    "mtime": 1784887044.5733693,
     "ast_hash": "592f8f3e983db2633a638c0a3d048b5d",
     "semantic_hash": "592f8f3e983db2633a638c0a3d048b5d"
   },
@@ -765,7 +765,7 @@
     "semantic_hash": "6ace6f9ffae21a156b673b9e3df80022"
   },
   "src/FellowshipAnalyzer.Core/Events/DeathEvent.cs": {
-    "mtime": 1784509681.490394,
+    "mtime": 1784887044.5733693,
     "ast_hash": "2e9bd818ac64617ab3276222b03ea948",
     "semantic_hash": "2e9bd818ac64617ab3276222b03ea948"
   },
@@ -785,7 +785,7 @@
     "semantic_hash": "b326990b729688076ffcd84e6ffee365"
   },
   "src/FellowshipAnalyzer.Core/Events/Event.cs": {
-    "mtime": 1784760033.152954,
+    "mtime": 1784887044.5743759,
     "ast_hash": "24ad8cf32f07671c1e49e84b0d682616",
     "semantic_hash": "24ad8cf32f07671c1e49e84b0d682616"
   },
@@ -810,12 +810,12 @@
     "semantic_hash": "886bf93314cec3c8b4b35d39ffccbfb6"
   },
   "src/FellowshipAnalyzer.Core/Events/FightEndEvent.cs": {
-    "mtime": 1784760033.1534534,
+    "mtime": 1784887044.5743759,
     "ast_hash": "862b04026ba48e78fc376157b4d595db",
     "semantic_hash": "862b04026ba48e78fc376157b4d595db"
   },
   "src/FellowshipAnalyzer.Core/Events/FightStartEvent.cs": {
-    "mtime": 1784760033.1534534,
+    "mtime": 1784887044.5748825,
     "ast_hash": "51077f52db39ea83c80ddddb3c168f3f",
     "semantic_hash": "51077f52db39ea83c80ddddb3c168f3f"
   },
@@ -875,12 +875,12 @@
     "semantic_hash": "e1b7f609b5ae134a052fe1a078a9b140"
   },
   "src/FellowshipAnalyzer.Core/Events/PullEndEvent.cs": {
-    "mtime": 1784760033.1534534,
+    "mtime": 1784887044.5748825,
     "ast_hash": "a11634a69ab18df06498701cebd9efa8",
     "semantic_hash": "a11634a69ab18df06498701cebd9efa8"
   },
   "src/FellowshipAnalyzer.Core/Events/PullStartEvent.cs": {
-    "mtime": 1784760033.1534534,
+    "mtime": 1784887044.5748825,
     "ast_hash": "bc64becb82e5a77c142fceff8244e6c6",
     "semantic_hash": "bc64becb82e5a77c142fceff8244e6c6"
   },
@@ -920,12 +920,12 @@
     "semantic_hash": "a0a9fcb50cd09e1cdf6bd644dc4d6fbe"
   },
   "src/FellowshipAnalyzer.Core/FellowshipAnalyzer.Core.csproj": {
-    "mtime": 1783399625.9007816,
-    "ast_hash": "d63d25fdc64d69588fea447ecf2a6b9f",
-    "semantic_hash": "d63d25fdc64d69588fea447ecf2a6b9f"
+    "mtime": 1784973608.7230663,
+    "ast_hash": "39df8a052d70488365b7dc1bf1e543e5",
+    "semantic_hash": ""
   },
   "src/FellowshipAnalyzer.Core/FellowshipLogs/EventStreamMerger.cs": {
-    "mtime": 1784509681.4908998,
+    "mtime": 1784887044.5748825,
     "ast_hash": "8c939cc0c97dae0726f1cbd7d345d5b3",
     "semantic_hash": "8c939cc0c97dae0726f1cbd7d345d5b3"
   },
@@ -970,7 +970,7 @@
     "semantic_hash": "7c3241720788f229dd43310746ecc23a"
   },
   "src/FellowshipAnalyzer.Core/Serialization/FellowshipAnalyzerJsonContext.cs": {
-    "mtime": 1784509681.4908998,
+    "mtime": 1784887044.5748825,
     "ast_hash": "77f187bf95f28467f1521fb2fb6c5ba6",
     "semantic_hash": "77f187bf95f28467f1521fb2fb6c5ba6"
   },
@@ -995,14 +995,14 @@
     "semantic_hash": "27b8e534eeb5cd3aa51101119d2afba6"
   },
   "src/FellowshipAnalyzer.Core/UI/Components/AccordionItem.razor": {
-    "mtime": 1783684384.9675248,
-    "ast_hash": "525a817c6156d6d11aa7cde750a8da66",
-    "semantic_hash": "525a817c6156d6d11aa7cde750a8da66"
+    "mtime": 1784973608.7240498,
+    "ast_hash": "f37cbbde2a496046a76456907b09a4dd",
+    "semantic_hash": ""
   },
   "src/FellowshipAnalyzer.Core/UI/Components/Avatar.razor": {
-    "mtime": 1779413976.1092503,
-    "ast_hash": "9a38d2184dcc09be527d28517d3c429f",
-    "semantic_hash": "9a38d2184dcc09be527d28517d3c429f"
+    "mtime": 1784973608.724552,
+    "ast_hash": "1a12da311118732749e6f1596cf183ac",
+    "semantic_hash": ""
   },
   "src/FellowshipAnalyzer.Core/UI/Components/AvatarShape.cs": {
     "mtime": 1779416203.2605553,
@@ -1015,9 +1015,9 @@
     "semantic_hash": "b7e8334b6a1cbf900890a4498d9da5f1"
   },
   "src/FellowshipAnalyzer.Core/UI/Components/Badge.razor": {
-    "mtime": 1779413920.1194274,
-    "ast_hash": "7dda3d423dfaf89d945e89351a133944",
-    "semantic_hash": "7dda3d423dfaf89d945e89351a133944"
+    "mtime": 1784973608.72505,
+    "ast_hash": "4d3f9e18f368d6961a6cc57785959015",
+    "semantic_hash": ""
   },
   "src/FellowshipAnalyzer.Core/UI/Components/BadgeSize.cs": {
     "mtime": 1779416203.2253,
@@ -1030,9 +1030,9 @@
     "semantic_hash": "d5ae7b7d87b442f2509b26e835f7b7b5"
   },
   "src/FellowshipAnalyzer.Core/UI/Components/BrandIcon.razor": {
-    "mtime": 1779242319.3835864,
-    "ast_hash": "c4428d5fafa429fed124a5e98ec4e88f",
-    "semantic_hash": "c4428d5fafa429fed124a5e98ec4e88f"
+    "mtime": 1784973608.72555,
+    "ast_hash": "ad9995c0f71c637e3d8a61487b188d45",
+    "semantic_hash": ""
   },
   "src/FellowshipAnalyzer.Core/UI/Components/BreadcrumbItem.cs": {
     "mtime": 1779416203.2343214,
@@ -1080,27 +1080,22 @@
     "semantic_hash": "28fadce45e212d07b9109459ea7c2976"
   },
   "src/FellowshipAnalyzer.Core/UI/Components/Glyph.razor": {
-    "mtime": 1784792356.7277465,
-    "ast_hash": "a10d7dbe2e98968c551b02e25ef5e0cf",
-    "semantic_hash": "a10d7dbe2e98968c551b02e25ef5e0cf"
+    "mtime": 1784887044.5774,
+    "ast_hash": "663dec3a73a0e830842de5451db6ae23",
+    "semantic_hash": ""
   },
   "src/FellowshipAnalyzer.Core/UI/Components/HeroIcon.razor": {
     "mtime": 1783684384.9690342,
     "ast_hash": "2e19cf3419f9b3815aa890f105cf9380",
     "semantic_hash": "2e19cf3419f9b3815aa890f105cf9380"
   },
-  "src/FellowshipAnalyzer.Core/UI/Components/HeroRoleStyles.cs": {
-    "mtime": 1779242319.3850865,
-    "ast_hash": "316660b532bca76ec02579d3e69e18b7",
-    "semantic_hash": "316660b532bca76ec02579d3e69e18b7"
-  },
   "src/FellowshipAnalyzer.Core/UI/Components/HeroSupportCard.razor": {
-    "mtime": 1783684384.9700491,
-    "ast_hash": "1b9b276e7715fe6a542a01814d91a468",
-    "semantic_hash": "1b9b276e7715fe6a542a01814d91a468"
+    "mtime": 1784973608.72605,
+    "ast_hash": "98ca17c27b55f67b28cfcdf7d59befa2",
+    "semantic_hash": ""
   },
   "src/FellowshipAnalyzer.Core/UI/Components/HeroSupportList.razor": {
-    "mtime": 1784780587.5558176,
+    "mtime": 1784887044.5779037,
     "ast_hash": "5c3656f5d03134c9efde9cdb54c1b531",
     "semantic_hash": "5c3656f5d03134c9efde9cdb54c1b531"
   },
@@ -1125,19 +1120,19 @@
     "semantic_hash": "f698e6c25491d4efec47846a278207e2"
   },
   "src/FellowshipAnalyzer.Core/UI/Components/PullSelect.razor": {
-    "mtime": 1784777442.5680294,
+    "mtime": 1784887044.5789149,
     "ast_hash": "01079c7ac9e8c128586847c084f85a86",
     "semantic_hash": "01079c7ac9e8c128586847c084f85a86"
   },
   "src/FellowshipAnalyzer.Core/UI/Components/ReportComponentBase.cs": {
-    "mtime": 1784772076.351725,
+    "mtime": 1784887044.579281,
     "ast_hash": "91208616bc19edfe9016ac8958ee2e91",
     "semantic_hash": "91208616bc19edfe9016ac8958ee2e91"
   },
   "src/FellowshipAnalyzer.Core/UI/Components/ReportFooter.razor": {
-    "mtime": 1784771627.337549,
-    "ast_hash": "f36e0681a9a03ee56cb5c8c935e158a8",
-    "semantic_hash": "f36e0681a9a03ee56cb5c8c935e158a8"
+    "mtime": 1784887044.5799224,
+    "ast_hash": "75c17c47ffbb1b802c81ef33f9e85e61",
+    "semantic_hash": ""
   },
   "src/FellowshipAnalyzer.Core/UI/Components/ReportLoadingScreen.razor": {
     "mtime": 1779242319.3860855,
@@ -1205,9 +1200,9 @@
     "semantic_hash": "fbaf0b42b94a21fe5e64ac1744f43e96"
   },
   "src/FellowshipAnalyzer.Core/UI/Components/StatTile.razor": {
-    "mtime": 1784852247.9580464,
-    "ast_hash": "24f7f6fa7638ca9782ab2f3275eb959c",
-    "semantic_hash": "24f7f6fa7638ca9782ab2f3275eb959c"
+    "mtime": 1784973608.728553,
+    "ast_hash": "0a3e8aea93b0dd8d59fe69b117283394",
+    "semantic_hash": ""
   },
   "src/FellowshipAnalyzer.Core/UI/Components/Statistic.razor": {
     "mtime": 1779242921.7752953,
@@ -1225,9 +1220,9 @@
     "semantic_hash": "ff4b42e10461e1fcb62ee91764262590"
   },
   "src/FellowshipAnalyzer.Core/UI/Components/SupportBadge.razor": {
-    "mtime": 1784780804.1355836,
-    "ast_hash": "1ca3961b3072df45e0d828314f4086ae",
-    "semantic_hash": "1ca3961b3072df45e0d828314f4086ae"
+    "mtime": 1784973608.7290533,
+    "ast_hash": "e2101b21b301f482a9349fd237efbcfb",
+    "semantic_hash": ""
   },
   "src/FellowshipAnalyzer.Core/UI/Components/TabItem.razor": {
     "mtime": 1779413894.231913,
@@ -1235,7 +1230,7 @@
     "semantic_hash": "1e96c4964402bd2f87fc1b6cba66e7f2"
   },
   "src/FellowshipAnalyzer.Core/UI/Components/Tabs.razor": {
-    "mtime": 1784772076.3522215,
+    "mtime": 1784887044.5833297,
     "ast_hash": "5330d511f5c92e1dd7b896c0967aa9cf",
     "semantic_hash": "5330d511f5c92e1dd7b896c0967aa9cf"
   },
@@ -1260,24 +1255,24 @@
     "semantic_hash": "c30d430f293a194d986dbeba1f644b6c"
   },
   "src/FellowshipAnalyzer.Core/UI/Diagnostics/DebugAnnotationsView.razor": {
-    "mtime": 1784772076.3532245,
-    "ast_hash": "e437c1c950f5cd7fb25045abe317ade4",
-    "semantic_hash": "e437c1c950f5cd7fb25045abe317ade4"
+    "mtime": 1784973608.7305534,
+    "ast_hash": "20932a2b54f6c03af5d7a6ce1d020f19",
+    "semantic_hash": ""
   },
   "src/FellowshipAnalyzer.Core/UI/Diagnostics/EventsView.razor": {
-    "mtime": 1784772076.3532245,
+    "mtime": 1784887044.58484,
     "ast_hash": "28a9121e091ca206a529703f55fc42e6",
     "semantic_hash": "28a9121e091ca206a529703f55fc42e6"
   },
   "src/FellowshipAnalyzer.Core/UI/FightTimeContext.cs": {
-    "mtime": 1784772076.3537216,
+    "mtime": 1784887044.58484,
     "ast_hash": "8c61162b15c396b46996582c3e9a0d8a",
     "semantic_hash": "8c61162b15c396b46996582c3e9a0d8a"
   },
   "src/FellowshipAnalyzer.Core/UI/Guides/CastDetail.razor": {
-    "mtime": 1784792233.2739103,
-    "ast_hash": "0fc92d641e698fcd134fd0c0afb3395a",
-    "semantic_hash": "0fc92d641e698fcd134fd0c0afb3395a"
+    "mtime": 1784973608.731053,
+    "ast_hash": "840e32276dd8dacfcf266abf3f4ba417",
+    "semantic_hash": ""
   },
   "src/FellowshipAnalyzer.Core/UI/Guides/CastEvaluation.cs": {
     "mtime": 1784196499.5107453,
@@ -1285,9 +1280,9 @@
     "semantic_hash": "45f8a53f1da88a5ac4d508fde7c98bf8"
   },
   "src/FellowshipAnalyzer.Core/UI/Guides/CastOverview.razor": {
-    "mtime": 1784852247.9766247,
-    "ast_hash": "f57ec4973f7e947777def6bb71e199b2",
-    "semantic_hash": "f57ec4973f7e947777def6bb71e199b2"
+    "mtime": 1784887044.5868485,
+    "ast_hash": "59890825d0530e60e357533b19c44e4f",
+    "semantic_hash": ""
   },
   "src/FellowshipAnalyzer.Core/UI/Guides/CastSummary.razor": {
     "mtime": 1784196499.5107453,
@@ -1300,14 +1295,14 @@
     "semantic_hash": "6cbf539d2e7b3e37cf1b7b76c5a18e13"
   },
   "src/FellowshipAnalyzer.Core/UI/Guides/FilterBadge.razor": {
-    "mtime": 1784784334.9855711,
+    "mtime": 1784887044.5868485,
     "ast_hash": "8b2bffd349cea0ac639588d058531e76",
     "semantic_hash": "8b2bffd349cea0ac639588d058531e76"
   },
   "src/FellowshipAnalyzer.Core/UI/Guides/GradiatedPerformanceBar.razor": {
-    "mtime": 1779242319.3941002,
-    "ast_hash": "87e37a210cd6760cdcdc147fcf5e184b",
-    "semantic_hash": "87e37a210cd6760cdcdc147fcf5e184b"
+    "mtime": 1784973608.7330532,
+    "ast_hash": "e2908fd46b2334f029a2e4e414fe3837",
+    "semantic_hash": ""
   },
   "src/FellowshipAnalyzer.Core/UI/Guides/GuideContainer.razor": {
     "mtime": 1779409463.466409,
@@ -1360,7 +1355,7 @@
     "semantic_hash": "eb2a8808955a4bee881b2618b6f19bea"
   },
   "src/FellowshipAnalyzer.Core/UI/Guides/PerfBadgeCount.razor": {
-    "mtime": 1784847281.0202262,
+    "mtime": 1784887044.5894947,
     "ast_hash": "ff10d7125d63c402fc2f9b7637234d2a",
     "semantic_hash": "ff10d7125d63c402fc2f9b7637234d2a"
   },
@@ -1375,9 +1370,9 @@
     "semantic_hash": "9fcf055a7a81826ab034ad7bdd8c9394"
   },
   "src/FellowshipAnalyzer.Core/UI/Guides/PerformanceBoxRow.razor": {
-    "mtime": 1779242319.3985066,
-    "ast_hash": "e86bb015e8d1914a12c5f3edfad8d682",
-    "semantic_hash": "e86bb015e8d1914a12c5f3edfad8d682"
+    "mtime": 1784973608.7345533,
+    "ast_hash": "377f0dd5dd63bcc3e55db10899de8bbe",
+    "semantic_hash": ""
   },
   "src/FellowshipAnalyzer.Core/UI/Guides/PerformanceMark.razor": {
     "mtime": 1784196499.5122492,
@@ -1385,9 +1380,9 @@
     "semantic_hash": "e222fd45237e3d09113927691800fb4e"
   },
   "src/FellowshipAnalyzer.Core/UI/Guides/PerformanceRoundedPanel.razor": {
-    "mtime": 1784196499.5127525,
-    "ast_hash": "8c717b84c6e56c4bfc15c9a3a7e4d108",
-    "semantic_hash": "8c717b84c6e56c4bfc15c9a3a7e4d108"
+    "mtime": 1784973608.7350533,
+    "ast_hash": "f5fce884979441d6c708d3fc52639eac",
+    "semantic_hash": ""
   },
   "src/FellowshipAnalyzer.Core/UI/Guides/PerformanceTipBox.razor": {
     "mtime": 1784196499.5127525,
@@ -1400,7 +1395,7 @@
     "semantic_hash": "e609fdfbe44d45ab883c7191c3dcbcb4"
   },
   "src/FellowshipAnalyzer.Core/UI/Guides/PullBanner.razor": {
-    "mtime": 1784772076.3542242,
+    "mtime": 1784887044.5894947,
     "ast_hash": "2f43e63fb7b223f0b547fc38c7465910",
     "semantic_hash": "2f43e63fb7b223f0b547fc38c7465910"
   },
@@ -1425,9 +1420,9 @@
     "semantic_hash": "8c90e60ea17890e48ec269fa74790b70"
   },
   "src/FellowshipAnalyzer.Core/UI/Guides/SpellSequence.razor": {
-    "mtime": 1784785735.9999301,
-    "ast_hash": "10a619073d195c89c5f37fd77cff81e0",
-    "semantic_hash": "10a619073d195c89c5f37fd77cff81e0"
+    "mtime": 1784973608.7360532,
+    "ast_hash": "32175a0e475c20ab5095e626c9f2c843",
+    "semantic_hash": ""
   },
   "src/FellowshipAnalyzer.Core/UI/Guides/StackedBar.razor": {
     "mtime": 1779242319.400006,
@@ -1435,9 +1430,9 @@
     "semantic_hash": "d53d484d66abaaf57d7e5b60825b45f5"
   },
   "src/FellowshipAnalyzer.Core/UI/Guides/StackedBarSegment.cs": {
-    "mtime": 1779242319.400504,
-    "ast_hash": "9d811c899f8574d5030d1ca1cbe728cf",
-    "semantic_hash": "9d811c899f8574d5030d1ca1cbe728cf"
+    "mtime": 1784973608.7365544,
+    "ast_hash": "5d79962cfbcda4e090cc90bb66e990d1",
+    "semantic_hash": ""
   },
   "src/FellowshipAnalyzer.Core/UI/Guides/SubSection.razor": {
     "mtime": 1779409459.661934,
@@ -1445,9 +1440,9 @@
     "semantic_hash": "52986385e80f82c7ce964e60d25363ee"
   },
   "src/FellowshipAnalyzer.Core/UI/Guides/TipBox.razor": {
-    "mtime": 1784787205.9030192,
-    "ast_hash": "d492e8fd4a134136b9c116622965db1f",
-    "semantic_hash": "d492e8fd4a134136b9c116622965db1f"
+    "mtime": 1784887044.5926416,
+    "ast_hash": "2c496c830cbf02313b3cfb5057337c91",
+    "semantic_hash": ""
   },
   "src/FellowshipAnalyzer.Core/UI/Guides/TipBoxVariant.cs": {
     "mtime": 1779409489.9038873,
@@ -1455,19 +1450,19 @@
     "semantic_hash": "db34c59800c9ff553528ff5d72a3cd08"
   },
   "src/FellowshipAnalyzer.Core/UI/Guides/WipGuide.razor": {
-    "mtime": 1784787191.3071065,
+    "mtime": 1784887044.5926416,
     "ast_hash": "c492293639fd06458148d5b6d8c84750",
     "semantic_hash": "c492293639fd06458148d5b6d8c84750"
   },
   "src/FellowshipAnalyzer.Core/UI/HeroRoleStyles.cs": {
-    "mtime": 1779416203.1988902,
-    "ast_hash": "95385d30dc44712c226831a0e8d84f37",
-    "semantic_hash": "95385d30dc44712c226831a0e8d84f37"
+    "mtime": 1784973608.7370532,
+    "ast_hash": "a9eea82fc70f2c9c4ab2d4e1322d027a",
+    "semantic_hash": ""
   },
   "src/FellowshipAnalyzer.Core/UI/PerformanceColors.cs": {
-    "mtime": 1784852247.9413147,
-    "ast_hash": "ee47e5690e0c65c416c1bf579fd2ff5a",
-    "semantic_hash": "ee47e5690e0c65c416c1bf579fd2ff5a"
+    "mtime": 1784973608.7375534,
+    "ast_hash": "e7a69884edad5202828dfce2bb033a31",
+    "semantic_hash": ""
   },
   "src/FellowshipAnalyzer.Core/UI/SpellBadgeSize.cs": {
     "mtime": 1779237233.7452147,
@@ -1505,22 +1500,22 @@
     "semantic_hash": "1def11bf6222430fb82513bb0c7233f9"
   },
   "src/FellowshipAnalyzer.Core/UI/Timeline/AuraBar.razor": {
-    "mtime": 1784772076.3542242,
+    "mtime": 1784887044.5936477,
     "ast_hash": "879ec25eb0d19f26fbe3bfca473af012",
     "semantic_hash": "879ec25eb0d19f26fbe3bfca473af012"
   },
   "src/FellowshipAnalyzer.Core/UI/Timeline/CastBar.razor": {
-    "mtime": 1784772076.3547244,
+    "mtime": 1784887044.5941513,
     "ast_hash": "96311c7cf00f5d57db0839263ee50774",
     "semantic_hash": "96311c7cf00f5d57db0839263ee50774"
   },
   "src/FellowshipAnalyzer.Core/UI/Timeline/CooldownLane.razor": {
-    "mtime": 1784772076.355722,
+    "mtime": 1784887044.5951548,
     "ast_hash": "03d273433299c43e9c53f1ed9678b010",
     "semantic_hash": "03d273433299c43e9c53f1ed9678b010"
   },
   "src/FellowshipAnalyzer.Core/UI/Timeline/CooldownLaneModel.cs": {
-    "mtime": 1784772076.3562238,
+    "mtime": 1784887044.595659,
     "ast_hash": "eab94b453a60719150a1a88a8fe7cc61",
     "semantic_hash": "eab94b453a60719150a1a88a8fe7cc61"
   },
@@ -1530,7 +1525,7 @@
     "semantic_hash": "cb3145bef233cd53cc6614365d9b3573"
   },
   "src/FellowshipAnalyzer.Core/UI/Timeline/Timeline.razor": {
-    "mtime": 1784772076.3562238,
+    "mtime": 1784887044.5966773,
     "ast_hash": "9157a6f4cff4d9cfbd7c5eccd82fadd0",
     "semantic_hash": "9157a6f4cff4d9cfbd7c5eccd82fadd0"
   },
@@ -1550,9 +1545,9 @@
     "semantic_hash": "429e6d3bf8fa696e5307f053ba6f0ddc"
   },
   "src/FellowshipAnalyzer.Core/UI/_Imports.razor": {
-    "mtime": 1779416703.4981802,
-    "ast_hash": "dd02f957e97806a2160f47e3817d681d",
-    "semantic_hash": "dd02f957e97806a2160f47e3817d681d"
+    "mtime": 1785034578.5407367,
+    "ast_hash": "9fbfc5fdfc1ffe015375f289a6467cf4",
+    "semantic_hash": ""
   },
   "src/FellowshipAnalyzer.Core/Utility/CombatMath.cs": {
     "mtime": 1777270661.573867,
@@ -1570,9 +1565,9 @@
     "semantic_hash": "f0f6043e9ba5904c81b8181072b29880"
   },
   "src/FellowshipAnalyzer.Core/_Imports.razor": {
-    "mtime": 1779416701.9431903,
-    "ast_hash": "366d5b376e5c535a777a46695e0d1bdd",
-    "semantic_hash": "366d5b376e5c535a777a46695e0d1bdd"
+    "mtime": 1784973608.7390532,
+    "ast_hash": "7eaa64ca1c0cfe9b2472481c243fab9e",
+    "semantic_hash": ""
   },
   "src/FellowshipAnalyzer.Core/sasscompiler.json": {
     "mtime": 1779242319.4115038,
@@ -1585,7 +1580,7 @@
     "semantic_hash": "7ee38aa849d594fa8212dd14cd2b8961"
   },
   "src/FellowshipAnalyzer.Core/wwwroot/pull-select-keys.js": {
-    "mtime": 1784772076.3567216,
+    "mtime": 1784887044.5971856,
     "ast_hash": "e1ca2c953e9ed52b9a1904873f299416",
     "semantic_hash": "e1ca2c953e9ed52b9a1904873f299416"
   },
@@ -1595,19 +1590,19 @@
     "semantic_hash": "896546c47f75afdcfdc59492a1fe1792"
   },
   "src/FellowshipAnalyzer.DesignSystem/Components/App.razor": {
-    "mtime": 1784849274.9308493,
-    "ast_hash": "a7a67a188ed41a1d997e25794f95e021",
-    "semantic_hash": "a7a67a188ed41a1d997e25794f95e021"
+    "mtime": 1784973608.7395532,
+    "ast_hash": "570f076eea395367e7bd3213ed2f6985",
+    "semantic_hash": ""
   },
   "src/FellowshipAnalyzer.DesignSystem/Components/Layout/MainLayout.razor": {
-    "mtime": 1779414284.7155104,
-    "ast_hash": "a1b0044fe342951ae3a2c4e8975685eb",
-    "semantic_hash": "a1b0044fe342951ae3a2c4e8975685eb"
+    "mtime": 1784973608.7400534,
+    "ast_hash": "367bf5c3332c11c2326a967841cd6c19",
+    "semantic_hash": ""
   },
   "src/FellowshipAnalyzer.DesignSystem/Components/Layout/NavMenu.razor": {
-    "mtime": 1784845610.5977852,
-    "ast_hash": "79ffaabc117ea1ae33671b6dc57dd516",
-    "semantic_hash": "79ffaabc117ea1ae33671b6dc57dd516"
+    "mtime": 1784973608.7400534,
+    "ast_hash": "b7126d7792a900270b153fcaa8dca76b",
+    "semantic_hash": ""
   },
   "src/FellowshipAnalyzer.DesignSystem/Components/Pages/AccordionShowcase.razor": {
     "mtime": 1779416937.66444,
@@ -1620,14 +1615,14 @@
     "semantic_hash": "f2b26a250cf185130839c0f1afeeb95b"
   },
   "src/FellowshipAnalyzer.DesignSystem/Components/Pages/BadgeShowcase.razor": {
-    "mtime": 1784786939.782083,
-    "ast_hash": "35a5bc89fa54c074e49e7558b637b5a4",
-    "semantic_hash": "35a5bc89fa54c074e49e7558b637b5a4"
+    "mtime": 1784887044.5986986,
+    "ast_hash": "573e5281c14dcee5e605a686e3ed4e0d",
+    "semantic_hash": ""
   },
   "src/FellowshipAnalyzer.DesignSystem/Components/Pages/BarsShowcase.razor": {
-    "mtime": 1784196499.5141046,
-    "ast_hash": "bad81ff9a1ec6ee8c13d1544200f4f1b",
-    "semantic_hash": "bad81ff9a1ec6ee8c13d1544200f4f1b"
+    "mtime": 1784973608.7405531,
+    "ast_hash": "cbca043ce3ece5df7087fc8bb1b5a4ef",
+    "semantic_hash": ""
   },
   "src/FellowshipAnalyzer.DesignSystem/Components/Pages/BrandIconShowcase.razor": {
     "mtime": 1779417008.3124242,
@@ -1645,14 +1640,14 @@
     "semantic_hash": "921662d30393577561b2d5637a31d24c"
   },
   "src/FellowshipAnalyzer.DesignSystem/Components/Pages/CastShowcase.razor": {
-    "mtime": 1784766275.384871,
+    "mtime": 1784887044.5986986,
     "ast_hash": "100a2819b44c3f99fede54ed4550b1c1",
     "semantic_hash": "100a2819b44c3f99fede54ed4550b1c1"
   },
   "src/FellowshipAnalyzer.DesignSystem/Components/Pages/DiagnosticsShowcase.razor": {
-    "mtime": 1784786980.1959634,
-    "ast_hash": "354be3242b6d41d046a8cadce3b032fc",
-    "semantic_hash": "354be3242b6d41d046a8cadce3b032fc"
+    "mtime": 1784887044.5986986,
+    "ast_hash": "442b7a345d773ef723d46cb1e99d774e",
+    "semantic_hash": ""
   },
   "src/FellowshipAnalyzer.DesignSystem/Components/Pages/ExplanationShowcase.razor": {
     "mtime": 1779417175.6322927,
@@ -1690,9 +1685,9 @@
     "semantic_hash": "96ee2ec520f2c6a96f0b416b79cc22c5"
   },
   "src/FellowshipAnalyzer.DesignSystem/Components/Pages/PageHeaderShowcase.razor": {
-    "mtime": 1784786951.56063,
-    "ast_hash": "35e80cfbb5c4e728840a48cd725fc2eb",
-    "semantic_hash": "35e80cfbb5c4e728840a48cd725fc2eb"
+    "mtime": 1784887044.599702,
+    "ast_hash": "886aee20728e33bae07d707599b9a0eb",
+    "semantic_hash": ""
   },
   "src/FellowshipAnalyzer.DesignSystem/Components/Pages/PanelsShowcase.razor": {
     "mtime": 1784196499.5147595,
@@ -1705,7 +1700,7 @@
     "semantic_hash": "aadeca1719454af270839477caebfe0c"
   },
   "src/FellowshipAnalyzer.DesignSystem/Components/Pages/PullSelectShowcase.razor": {
-    "mtime": 1784777442.5692842,
+    "mtime": 1784887044.599702,
     "ast_hash": "f4b0dc6a13ef4242d959ab3f70818aca",
     "semantic_hash": "f4b0dc6a13ef4242d959ab3f70818aca"
   },
@@ -1730,22 +1725,22 @@
     "semantic_hash": "6c46a35d2942efc7e1d534aedaaf7468"
   },
   "src/FellowshipAnalyzer.DesignSystem/Components/Pages/StatisticsShowcase.razor": {
-    "mtime": 1779417024.4822094,
-    "ast_hash": "51e9e9212002060f147df4ef3b462751",
-    "semantic_hash": "51e9e9212002060f147df4ef3b462751"
+    "mtime": 1784973608.7405531,
+    "ast_hash": "4d21afd65f2789c7f425a3302d98f884",
+    "semantic_hash": ""
   },
   "src/FellowshipAnalyzer.DesignSystem/Components/Pages/TabsShowcase.razor": {
-    "mtime": 1784772076.357225,
+    "mtime": 1784887044.6002061,
     "ast_hash": "43c4b4c0025343e914ced500abfe4bcb",
     "semantic_hash": "43c4b4c0025343e914ced500abfe4bcb"
   },
   "src/FellowshipAnalyzer.DesignSystem/Components/Pages/TimelineShowcase.razor": {
-    "mtime": 1784772076.357833,
+    "mtime": 1784887044.6002061,
     "ast_hash": "0d0d7c6c87897e1e461add5d6c33a8ad",
     "semantic_hash": "0d0d7c6c87897e1e461add5d6c33a8ad"
   },
   "src/FellowshipAnalyzer.DesignSystem/Components/Pages/TipBoxShowcase.razor": {
-    "mtime": 1784786957.19533,
+    "mtime": 1784887044.6012099,
     "ast_hash": "91431c3f26ce9649d10fafd6ffe70e82",
     "semantic_hash": "91431c3f26ce9649d10fafd6ffe70e82"
   },
@@ -1760,9 +1755,9 @@
     "semantic_hash": "399bb11f65642881f29c6eff47fac8f0"
   },
   "src/FellowshipAnalyzer.DesignSystem/Components/_Imports.razor": {
-    "mtime": 1779417239.2020302,
-    "ast_hash": "5fd769f582840e3d29deba20439d0480",
-    "semantic_hash": "5fd769f582840e3d29deba20439d0480"
+    "mtime": 1784973608.741557,
+    "ast_hash": "4037c82d6893f52dbcae2cd4828cb415",
+    "semantic_hash": ""
   },
   "src/FellowshipAnalyzer.DesignSystem/FellowshipAnalyzer.DesignSystem.csproj": {
     "mtime": 1779414264.663011,
@@ -1770,9 +1765,9 @@
     "semantic_hash": "efec3c8f181f91119593db97b4f92fc8"
   },
   "src/FellowshipAnalyzer.DesignSystem/Program.cs": {
-    "mtime": 1784787732.0800273,
-    "ast_hash": "a45adba5b673536ed84a4103c0772e11",
-    "semantic_hash": "a45adba5b673536ed84a4103c0772e11"
+    "mtime": 1785034197.188801,
+    "ast_hash": "55e1652eef655930b585e03cc6d82db0",
+    "semantic_hash": ""
   },
   "src/FellowshipAnalyzer.DesignSystem/Properties/launchSettings.json": {
     "mtime": 1779414274.1057627,
@@ -1800,12 +1795,12 @@
     "semantic_hash": "99d3f21a8638a3bae537ed3452009b05"
   },
   "src/FellowshipAnalyzer.Generators/CombatLogParserGenerator.cs": {
-    "mtime": 1784772076.3588364,
+    "mtime": 1784887044.6027558,
     "ast_hash": "7dba044bd632b0d3c4e36497fc4dfcdb",
     "semantic_hash": "7dba044bd632b0d3c4e36497fc4dfcdb"
   },
   "src/FellowshipAnalyzer.Generators/ConsolidatedSpellRegistryGenerator.cs": {
-    "mtime": 1784777904.728638,
+    "mtime": 1784887044.6027558,
     "ast_hash": "2f83694634dcb0bb4c44af4904556937",
     "semantic_hash": "2f83694634dcb0bb4c44af4904556937"
   },
@@ -1875,7 +1870,7 @@
     "semantic_hash": "06541a29ac51ca5acf4f8ba88f50f1e7"
   },
   "src/FellowshipAnalyzer.SpellData/Json/SpellDbJsonOptions.cs": {
-    "mtime": 1784777918.4659107,
+    "mtime": 1784887044.6037989,
     "ast_hash": "b6fcd951eda566ef7379470bde1d9d28",
     "semantic_hash": "b6fcd951eda566ef7379470bde1d9d28"
   },
@@ -1890,7 +1885,7 @@
     "semantic_hash": "e5691ff08f5edde8193e0c0c634d7664"
   },
   "src/FellowshipAnalyzer.SpellData/MergeEngine.cs": {
-    "mtime": 1784777851.442394,
+    "mtime": 1784887044.6037989,
     "ast_hash": "edfb55909d53ca7e07cf9aac961a5bec",
     "semantic_hash": "edfb55909d53ca7e07cf9aac961a5bec"
   },
@@ -1910,7 +1905,7 @@
     "semantic_hash": "3ce36cebfb6da36ec70c1b868e9d6e45"
   },
   "src/FellowshipAnalyzer.SpellData/Normalization.cs": {
-    "mtime": 1784509681.4919093,
+    "mtime": 1784887044.6043062,
     "ast_hash": "9a68f0da85f6c6dfcb50e5a28f43f8dc",
     "semantic_hash": "9a68f0da85f6c6dfcb50e5a28f43f8dc"
   },
@@ -1925,7 +1920,7 @@
     "semantic_hash": "7cca4fab68ff5eead15e6e7eeaf7f7d3"
   },
   "src/FellowshipAnalyzer.SpellData/Sources/HeroDataSource.cs": {
-    "mtime": 1784777817.3661823,
+    "mtime": 1784887044.6043062,
     "ast_hash": "104a267312e4441acb997fbc0475bea2",
     "semantic_hash": "104a267312e4441acb997fbc0475bea2"
   },
@@ -1955,12 +1950,12 @@
     "semantic_hash": "d0f5f7fc0ed4703eaad384e7303de12f"
   },
   "src/FellowshipAnalyzer.SpellStudio/Components/App.razor": {
-    "mtime": 1784786804.4785843,
-    "ast_hash": "9f155be42539949eb0f43f804485d2da",
-    "semantic_hash": "9f155be42539949eb0f43f804485d2da"
+    "mtime": 1784887044.6043062,
+    "ast_hash": "1aee67680cad2d294f986538bc48cdaf",
+    "semantic_hash": ""
   },
   "src/FellowshipAnalyzer.SpellStudio/Components/Pages/Database.razor": {
-    "mtime": 1784787232.336026,
+    "mtime": 1784887044.6053095,
     "ast_hash": "e343ede7bbbeb6dd85347a96807147f7",
     "semantic_hash": "e343ede7bbbeb6dd85347a96807147f7"
   },
@@ -2020,7 +2015,7 @@
     "semantic_hash": "151fcb3c85d976e7515aa94928cda599"
   },
   "src/FellowshipAnalyzer.Tools/probe-deaths.cs": {
-    "mtime": 1784509681.4919093,
+    "mtime": 1784887044.6068242,
     "ast_hash": "7b7c12a2d90e3d6a6b02f09ba160c083",
     "semantic_hash": "7b7c12a2d90e3d6a6b02f09ba160c083"
   },
@@ -2060,7 +2055,7 @@
     "semantic_hash": "79c811db41ea7a98600bee34fc9b0dba"
   },
   "src/FellowshipAnalyzer/FellowshipAnalyzer.Api.Core/CacheKeys.cs": {
-    "mtime": 1784509681.4929433,
+    "mtime": 1784887044.6068242,
     "ast_hash": "8bac8f89d8735511ff4829c440c1655a",
     "semantic_hash": "8bac8f89d8735511ff4829c440c1655a"
   },
@@ -2100,7 +2095,7 @@
     "semantic_hash": "bfc036f351e58af636fa1f46b64c53c2"
   },
   "src/FellowshipAnalyzer/FellowshipAnalyzer.Api.Core/FellowshipLogsApiHandler.cs": {
-    "mtime": 1784781998.181645,
+    "mtime": 1784887044.607328,
     "ast_hash": "151f6cb8dd41ebcd90a0a13785e0e844",
     "semantic_hash": "151f6cb8dd41ebcd90a0a13785e0e844"
   },
@@ -2110,29 +2105,29 @@
     "semantic_hash": "fd213f22402d30058993bcea1d7e9619"
   },
   "src/FellowshipAnalyzer/FellowshipAnalyzer.Api.Core/FellowshipLogsHandlerOptions.cs": {
-    "mtime": 1784780729.7507465,
+    "mtime": 1784887044.607328,
     "ast_hash": "1e099ef8095913b466a12bf1bf9fe613",
     "semantic_hash": "1e099ef8095913b466a12bf1bf9fe613"
   },
   "src/FellowshipAnalyzer/FellowshipAnalyzer.Api.Core/FellowshipLogsRateLimiter.cs": {
-    "mtime": 1784780377.125841,
-    "ast_hash": "a115d000eafcb669ba9b1d6e2975befa",
-    "semantic_hash": "a115d000eafcb669ba9b1d6e2975befa"
+    "mtime": 1784887044.607328,
+    "ast_hash": "2a84529f3dac0daf8d795caf7cef5182",
+    "semantic_hash": ""
   },
   "src/FellowshipAnalyzer/FellowshipAnalyzer.Api.Core/FellowshipLogsService.cs": {
-    "mtime": 1784509681.4939494,
+    "mtime": 1784887044.6083317,
     "ast_hash": "f1c367b7cf466cf1335a8c6fbec603c2",
     "semantic_hash": "f1c367b7cf466cf1335a8c6fbec603c2"
   },
   "src/FellowshipAnalyzer/FellowshipAnalyzer.Api.Core/FellowshipLogsServiceCollectionExtensions.cs": {
-    "mtime": 1784780394.6524,
+    "mtime": 1784887044.6088421,
     "ast_hash": "b2c5b6674fd239e6d6407edf7c05d13d",
     "semantic_hash": "b2c5b6674fd239e6d6407edf7c05d13d"
   },
   "src/FellowshipAnalyzer/FellowshipAnalyzer.Api.Core/FellowshipLogsUpstreamRateLimiter.cs": {
-    "mtime": 1784780724.2306116,
-    "ast_hash": "ffb9c30288852ca6dd42157be8da77e6",
-    "semantic_hash": "ffb9c30288852ca6dd42157be8da77e6"
+    "mtime": 1784887044.6088421,
+    "ast_hash": "e7d753c9cad19a33662038f4301b275b",
+    "semantic_hash": ""
   },
   "src/FellowshipAnalyzer/FellowshipAnalyzer.Api.Core/GraphQLMapper.cs": {
     "mtime": 1783399625.9239676,
@@ -2200,7 +2195,7 @@
     "semantic_hash": "67c80856963f0de0224be54c7eb71c56"
   },
   "src/FellowshipAnalyzer/FellowshipAnalyzer.DevHost/Program.cs": {
-    "mtime": 1784787666.609399,
+    "mtime": 1784887044.6088421,
     "ast_hash": "3dd6fcf9aaead9dfb6f9734f4b781796",
     "semantic_hash": "3dd6fcf9aaead9dfb6f9734f4b781796"
   },
@@ -2220,7 +2215,7 @@
     "semantic_hash": "f7e65dde4e5533740a0d57ac9355c0e8"
   },
   "src/FellowshipAnalyzer/FellowshipAnalyzer/Components/Providers/ReportValuesProvider.razor": {
-    "mtime": 1784772076.3588364,
+    "mtime": 1784887044.6098454,
     "ast_hash": "17889ee0f66234ccc830acc730432f3d",
     "semantic_hash": "17889ee0f66234ccc830acc730432f3d"
   },
@@ -2240,7 +2235,7 @@
     "semantic_hash": "d6c968abfba48e7ec92be0d0d415f77e"
   },
   "src/FellowshipAnalyzer/FellowshipAnalyzer/Layout/MainLayout.razor": {
-    "mtime": 1784787177.9713688,
+    "mtime": 1784887044.6103532,
     "ast_hash": "3066775a9f4290706d9131881d812fe8",
     "semantic_hash": "3066775a9f4290706d9131881d812fe8"
   },
@@ -2270,19 +2265,19 @@
     "semantic_hash": "b43132764687de5710f24e46d3d3f7ff"
   },
   "src/FellowshipAnalyzer/FellowshipAnalyzer/Pages/Report.razor": {
-    "mtime": 1784787173.6491294,
-    "ast_hash": "093ca4e9ea20ea2a32b205d4d7c3b11c",
-    "semantic_hash": "093ca4e9ea20ea2a32b205d4d7c3b11c"
+    "mtime": 1784887044.6117444,
+    "ast_hash": "754c084c5986a00ef778934a7b67c1b3",
+    "semantic_hash": ""
   },
   "src/FellowshipAnalyzer/FellowshipAnalyzer/Pages/ReportInfo.razor": {
-    "mtime": 1784787161.596379,
-    "ast_hash": "14149a03448df890164f4e3123e7ac8a",
-    "semantic_hash": "14149a03448df890164f4e3123e7ac8a"
+    "mtime": 1784973608.7440617,
+    "ast_hash": "27bced53329fcfce23ec88f69d0bb593",
+    "semantic_hash": ""
   },
   "src/FellowshipAnalyzer/FellowshipAnalyzer/Program.cs": {
-    "mtime": 1783684384.9760685,
-    "ast_hash": "cc23b27ce2f9f8cb78c8db8a160fd132",
-    "semantic_hash": "cc23b27ce2f9f8cb78c8db8a160fd132"
+    "mtime": 1785034182.884627,
+    "ast_hash": "312952821ffdeadc9141c036f32c5436",
+    "semantic_hash": ""
   },
   "src/FellowshipAnalyzer/FellowshipAnalyzer/RedirectToLogin.razor": {
     "mtime": 1777431877.476873,
@@ -2295,7 +2290,7 @@
     "semantic_hash": "f241c9f3982f2ee6d8d19e27d2c80537"
   },
   "src/FellowshipAnalyzer/FellowshipAnalyzer/Services/FellowshipLogsApiClient.cs": {
-    "mtime": 1784509681.4939494,
+    "mtime": 1784887044.6132445,
     "ast_hash": "3c9b10131125f38427aebd7e443a0f45",
     "semantic_hash": "3c9b10131125f38427aebd7e443a0f45"
   },
@@ -2305,7 +2300,7 @@
     "semantic_hash": "79296df256086432662791b47f76b6f3"
   },
   "src/FellowshipAnalyzer/FellowshipAnalyzer/Services/ReportAnalysisService.cs": {
-    "mtime": 1784509681.4951365,
+    "mtime": 1784887044.6132445,
     "ast_hash": "199346cc75067021b6109a379b8689c5",
     "semantic_hash": "199346cc75067021b6109a379b8689c5"
   },
@@ -2335,7 +2330,7 @@
     "semantic_hash": "147374d360cd9d396cb7cf89295ed771"
   },
   "src/FellowshipAnalyzer/FellowshipAnalyzer/wwwroot/js/report-cache.js": {
-    "mtime": 1784509681.495642,
+    "mtime": 1784887044.6147213,
     "ast_hash": "5a972fc9dc245b87ff3f9779a4f99205",
     "semantic_hash": "5a972fc9dc245b87ff3f9779a4f99205"
   },
@@ -2380,17 +2375,17 @@
     "semantic_hash": "77e8bc035ea23e4a9992afb2ec956347"
   },
   "src/Heroes/FellowshipAnalyzer.Heroes.Ardeos/ArdeosCombatLogParser.cs": {
-    "mtime": 1784760033.154457,
+    "mtime": 1784887044.6152253,
     "ast_hash": "de4684fb812bfc02e63aee5b6bd5c098",
     "semantic_hash": "de4684fb812bfc02e63aee5b6bd5c098"
   },
   "src/Heroes/FellowshipAnalyzer.Heroes.Ardeos/ArdeosGuide.razor": {
-    "mtime": 1784760033.154962,
+    "mtime": 1784887044.6152253,
     "ast_hash": "089b01f709764f6a99f67cd718563001",
     "semantic_hash": "089b01f709764f6a99f67cd718563001"
   },
   "src/Heroes/FellowshipAnalyzer.Heroes.Ardeos/Changelog.razor": {
-    "mtime": 1784760033.154962,
+    "mtime": 1784887044.6152253,
     "ast_hash": "4867942ad531ef344debc191839a8645",
     "semantic_hash": "4867942ad531ef344debc191839a8645"
   },
@@ -2400,14 +2395,14 @@
     "semantic_hash": "a02fd2c36f16c48cc1ad7744c448e140"
   },
   "src/Heroes/FellowshipAnalyzer.Heroes.Ardeos/Guides/DetonateEfficiencyGuide.razor": {
-    "mtime": 1784760033.1554613,
-    "ast_hash": "7316956310cf813c59ae76894f3ef075",
-    "semantic_hash": "7316956310cf813c59ae76894f3ef075"
+    "mtime": 1785050610.5534544,
+    "ast_hash": "0e764e13cca743743df512d2e0e5d363",
+    "semantic_hash": ""
   },
   "src/Heroes/FellowshipAnalyzer.Heroes.Ardeos/Guides/EngulfingFlamesEconomyGuide.razor": {
-    "mtime": 1784760033.1559613,
-    "ast_hash": "ac3438737e4548666f4a4a45601f3db0",
-    "semantic_hash": "ac3438737e4548666f4a4a45601f3db0"
+    "mtime": 1785050410.613434,
+    "ast_hash": "ff980c6dab913cb7258822441072e58c",
+    "semantic_hash": ""
   },
   "src/Heroes/FellowshipAnalyzer.Heroes.Ardeos/Guides/SearingBlazeGuide.razor": {
     "mtime": 1784196499.516267,
@@ -2415,9 +2410,9 @@
     "semantic_hash": "c1d6e943f4d571389fc609eabe515c50"
   },
   "src/Heroes/FellowshipAnalyzer.Heroes.Ardeos/Guides/WildfireComboGuide.razor": {
-    "mtime": 1784760033.1564622,
-    "ast_hash": "6bed65d371a331ff945edd736d188e9f",
-    "semantic_hash": "6bed65d371a331ff945edd736d188e9f"
+    "mtime": 1785050615.9199388,
+    "ast_hash": "a5c99fe35aef9d476a6afabf70ac6811",
+    "semantic_hash": ""
   },
   "src/Heroes/FellowshipAnalyzer.Heroes.Ardeos/Modules/Abilities.cs": {
     "mtime": 1784363011.9373407,
@@ -2430,12 +2425,12 @@
     "semantic_hash": "d6d4cd564611706b9a78bca86115d0c0"
   },
   "src/Heroes/FellowshipAnalyzer.Heroes.Ardeos/Modules/DetonateEfficiencyAnalyzer.cs": {
-    "mtime": 1784760033.1569617,
-    "ast_hash": "55e4505a69afa049d870dbf9dab16dff",
-    "semantic_hash": "55e4505a69afa049d870dbf9dab16dff"
+    "mtime": 1785050561.770667,
+    "ast_hash": "9c6c34b1f7696bba50919601c7d18b7a",
+    "semantic_hash": ""
   },
   "src/Heroes/FellowshipAnalyzer.Heroes.Ardeos/Modules/EngulfingFlamesEconomyAnalyzer.cs": {
-    "mtime": 1784760033.1569617,
+    "mtime": 1784887044.617741,
     "ast_hash": "fd296f0949229a316ceb59e774e1f3b1",
     "semantic_hash": "fd296f0949229a316ceb59e774e1f3b1"
   },
@@ -2450,12 +2445,12 @@
     "semantic_hash": "7ee05de021f4c01a041443b827e9f15e"
   },
   "src/Heroes/FellowshipAnalyzer.Heroes.Ardeos/Modules/RekindlingFlamesAnalyzer.cs": {
-    "mtime": 1784509681.495642,
+    "mtime": 1784887044.617741,
     "ast_hash": "606259c41457e0efd376572afeddb047",
     "semantic_hash": "606259c41457e0efd376572afeddb047"
   },
   "src/Heroes/FellowshipAnalyzer.Heroes.Ardeos/Modules/RollingFlamesAnalyzer.cs": {
-    "mtime": 1784296006.3645358,
+    "mtime": 1784887044.6182454,
     "ast_hash": "50b62e7b034287c20a1a1cd5d551b8c3",
     "semantic_hash": "50b62e7b034287c20a1a1cd5d551b8c3"
   },
@@ -2470,9 +2465,9 @@
     "semantic_hash": "d33b1bbbb3bcfd29f82b999cfd62851b"
   },
   "src/Heroes/FellowshipAnalyzer.Heroes.Ardeos/Modules/WildfireComboAnalyzer.cs": {
-    "mtime": 1784760033.1574614,
-    "ast_hash": "e4269147995a857fd4704bbb6fad06c3",
-    "semantic_hash": "e4269147995a857fd4704bbb6fad06c3"
+    "mtime": 1785050596.2414248,
+    "ast_hash": "adb32ce95ae2377204beb20e08c347b3",
+    "semantic_hash": ""
   },
   "src/Heroes/FellowshipAnalyzer.Heroes.Ardeos/Statistics/ReignOfFireStatistics.razor": {
     "mtime": 1784280839.8094628,
@@ -2485,9 +2480,9 @@
     "semantic_hash": "8b37d71e93e6d29b0f74565aa3bde704"
   },
   "src/Heroes/FellowshipAnalyzer.Heroes.Ardeos/_Imports.razor": {
-    "mtime": 1783639042.1637874,
-    "ast_hash": "f16efd7914d8224c5b1c2a37ea8b05de",
-    "semantic_hash": "f16efd7914d8224c5b1c2a37ea8b05de"
+    "mtime": 1785034581.871062,
+    "ast_hash": "90e7a602ffe7e3233151ee9636ce7d52",
+    "semantic_hash": ""
   },
   "src/Heroes/FellowshipAnalyzer.Heroes.Ardeos/sasscompiler.json": {
     "mtime": 1779242319.425504,
@@ -2660,7 +2655,7 @@
     "semantic_hash": "9c2b18e90e3e30aa416f963a75c25d85"
   },
   "src/Heroes/FellowshipAnalyzer.Heroes.Gunde/Modules/SlaughterUsageAnalyzer.cs": {
-    "mtime": 1784509681.4966471,
+    "mtime": 1784887044.619252,
     "ast_hash": "dd60f9e4e33beb69d58a5a5402b7fe98",
     "semantic_hash": "dd60f9e4e33beb69d58a5a5402b7fe98"
   },
@@ -2795,9 +2790,9 @@
     "semantic_hash": "71bffad72f6dcf186ae2acef53870d31"
   },
   "src/Heroes/FellowshipAnalyzer.Heroes.Rime/Guides/WinterOrbGuide.razor": {
-    "mtime": 1784196499.5240583,
-    "ast_hash": "cecdad1fdee13eb1d516b8831015cd73",
-    "semantic_hash": "cecdad1fdee13eb1d516b8831015cd73"
+    "mtime": 1784973608.7455618,
+    "ast_hash": "cc32b196c29fdfc44bbaf9c4b86f5868",
+    "semantic_hash": ""
   },
   "src/Heroes/FellowshipAnalyzer.Heroes.Rime/Modules/Abilities.cs": {
     "mtime": 1783399625.9310293,
@@ -2850,14 +2845,14 @@
     "semantic_hash": "696e8cd58a379951f8ce0388e276d926"
   },
   "src/Heroes/FellowshipAnalyzer.Heroes.Rime/Statistics/WinterOrbStatistics.razor": {
-    "mtime": 1784196499.5245614,
-    "ast_hash": "31cef14ecfbf93047fc149472f1fd2ae",
-    "semantic_hash": "31cef14ecfbf93047fc149472f1fd2ae"
+    "mtime": 1784973608.7460642,
+    "ast_hash": "cb78326d66775e702ac4c157fc4e31ec",
+    "semantic_hash": ""
   },
   "src/Heroes/FellowshipAnalyzer.Heroes.Rime/_Imports.razor": {
-    "mtime": 1783399625.932541,
-    "ast_hash": "0eba32dc6d7a223c70fd0e56aa723619",
-    "semantic_hash": "0eba32dc6d7a223c70fd0e56aa723619"
+    "mtime": 1784973608.7460642,
+    "ast_hash": "9d80e0a98aa1177b7e597934d3762d60",
+    "semantic_hash": ""
   },
   "src/Heroes/FellowshipAnalyzer.Heroes.Rime/sasscompiler.json": {
     "mtime": 1779242319.4446225,
@@ -3020,37 +3015,37 @@
     "semantic_hash": "1ba570562016ae57ab1e19b6cd4f6654"
   },
   "tests/FellowshipAnalyzer.Api.Core.Tests/FellowshipAnalyzer.Api.Core.Tests.csproj": {
-    "mtime": 1784780795.096834,
-    "ast_hash": "aeaf7cd45447fc0c63bd76ae5ed05775",
-    "semantic_hash": "aeaf7cd45447fc0c63bd76ae5ed05775"
+    "mtime": 1784887044.619252,
+    "ast_hash": "a032fea8a4347f2fd0319403191fca45",
+    "semantic_hash": ""
   },
   "tests/FellowshipAnalyzer.Api.Core.Tests/RateLimiterTests.cs": {
-    "mtime": 1784780803.900436,
-    "ast_hash": "d7e4f9c1b4ec33575db4ff3d86e3f4e9",
-    "semantic_hash": "d7e4f9c1b4ec33575db4ff3d86e3f4e9"
+    "mtime": 1784887044.619252,
+    "ast_hash": "d0fc75078f065de8c4753d4f88c28785",
+    "semantic_hash": ""
   },
   "tests/FellowshipAnalyzer.Core.Tests/Analysis/ChronoshiftAnalyzerTests.cs": {
-    "mtime": 1784760033.1574614,
+    "mtime": 1784887044.619756,
     "ast_hash": "564b2682a97b98ddff17be9afce587ab",
     "semantic_hash": "564b2682a97b98ddff17be9afce587ab"
   },
   "tests/FellowshipAnalyzer.Core.Tests/Analysis/CombatLogParserTests.Pulls.cs": {
-    "mtime": 1784760033.1584713,
+    "mtime": 1784887044.619756,
     "ast_hash": "361e3b24b573b9b07ffd5b07a9a7ce19",
     "semantic_hash": "361e3b24b573b9b07ffd5b07a9a7ce19"
   },
   "tests/FellowshipAnalyzer.Core.Tests/Analysis/CombatLogParserTests.cs": {
-    "mtime": 1784760033.1584713,
+    "mtime": 1784887044.619756,
     "ast_hash": "6432c1bc394c49e4497ef013159a6f12",
     "semantic_hash": "6432c1bc394c49e4497ef013159a6f12"
   },
   "tests/FellowshipAnalyzer.Core.Tests/Analysis/CombatantsAuraRegistryTests.cs": {
-    "mtime": 1784509681.4981604,
+    "mtime": 1784887044.6207619,
     "ast_hash": "eafea07f2e0710f338808aa8c457b502",
     "semantic_hash": "eafea07f2e0710f338808aa8c457b502"
   },
   "tests/FellowshipAnalyzer.Core.Tests/Analysis/GearCooldownAccelerationTests.cs": {
-    "mtime": 1784778042.3158524,
+    "mtime": 1784887044.6207619,
     "ast_hash": "a7bfcff6809be15ba2101bb7cb1ee46e",
     "semantic_hash": "a7bfcff6809be15ba2101bb7cb1ee46e"
   },
@@ -3090,7 +3085,7 @@
     "semantic_hash": "b06731a8dbc9e68885c6acaf2c61ca18"
   },
   "tests/FellowshipAnalyzer.Core.Tests/Analysis/PullAnalyzerSurfaceTests.cs": {
-    "mtime": 1784772076.359893,
+    "mtime": 1784887044.6212656,
     "ast_hash": "93fe68cd44c8d613e2192d2f7dcc4508",
     "semantic_hash": "93fe68cd44c8d613e2192d2f7dcc4508"
   },
@@ -3100,7 +3095,7 @@
     "semantic_hash": "5ca08082af9cab64d3782d50714c283d"
   },
   "tests/FellowshipAnalyzer.Core.Tests/Analysis/SpellDatabaseTests.cs": {
-    "mtime": 1784778616.6416602,
+    "mtime": 1784887044.6212656,
     "ast_hash": "c0071210765e23c53017b7f2dab5061e",
     "semantic_hash": "c0071210765e23c53017b7f2dab5061e"
   },
@@ -3110,12 +3105,12 @@
     "semantic_hash": "bdf8d75545e68649fc827f720c405453"
   },
   "tests/FellowshipAnalyzer.Core.Tests/Analysis/SpellUsableTests.cs": {
-    "mtime": 1784778046.5888379,
+    "mtime": 1784887044.6212656,
     "ast_hash": "aafef2452af18678b2d4fe581432fe09",
     "semantic_hash": "aafef2452af18678b2d4fe581432fe09"
   },
   "tests/FellowshipAnalyzer.Core.Tests/Analysis/StatTrackerCooldownTests.cs": {
-    "mtime": 1784778053.9600127,
+    "mtime": 1784887044.6222692,
     "ast_hash": "8dd37771029ba199c9c10480629a445d",
     "semantic_hash": "8dd37771029ba199c9c10480629a445d"
   },
@@ -3130,9 +3125,9 @@
     "semantic_hash": "becb1fc7e6cb646674a87e450ed20100"
   },
   "tests/FellowshipAnalyzer.Core.Tests/Common/ReportFightTests.cs": {
-    "mtime": 1784783325.3812578,
-    "ast_hash": "abb1726f10f54e10247560e72e129f58",
-    "semantic_hash": "abb1726f10f54e10247560e72e129f58"
+    "mtime": 1784887044.6222692,
+    "ast_hash": "332dbbde80f39f4219e295fe5cddebbf",
+    "semantic_hash": ""
   },
   "tests/FellowshipAnalyzer.Core.Tests/Common/SpellRegistryTests.cs": {
     "mtime": 1783399625.9370549,
@@ -3160,7 +3155,7 @@
     "semantic_hash": "e56f869f953ca2813a7998727f831fb8"
   },
   "tests/FellowshipAnalyzer.Core.Tests/Serialization/EventStreamMergerTests.cs": {
-    "mtime": 1784509681.4986658,
+    "mtime": 1784887044.6222692,
     "ast_hash": "e9411551569910b0b4e714265932a086",
     "semantic_hash": "e9411551569910b0b4e714265932a086"
   },
@@ -3180,9 +3175,9 @@
     "semantic_hash": "30a1b01ec273f2d91693b49e388618f8"
   },
   "tests/FellowshipAnalyzer.Core.Tests/UI/CooldownLaneModelTests.cs": {
-    "mtime": 1784772076.360397,
-    "ast_hash": "d241701d8e53e01848cfd156227debfb",
-    "semantic_hash": "d241701d8e53e01848cfd156227debfb"
+    "mtime": 1784981005.7912288,
+    "ast_hash": "03dc78119fcda6413713432229bb69a5",
+    "semantic_hash": ""
   },
   "tests/FellowshipAnalyzer.Generators.Tests/FellowshipAnalyzer.Generators.Tests.csproj": {
     "mtime": 1782692408.8274553,
@@ -3210,17 +3205,17 @@
     "semantic_hash": "9d30fa572a1d05dda38c84f1c82584e3"
   },
   "tests/FellowshipAnalyzer.Generators.Tests/ParserGeneratorTests.cs": {
-    "mtime": 1784772076.3609002,
+    "mtime": 1784887044.6233108,
     "ast_hash": "53a30fe98b3673fa1bba6e330a8933f1",
     "semantic_hash": "53a30fe98b3673fa1bba6e330a8933f1"
   },
   "tests/FellowshipAnalyzer.Generators.Tests/SpellDatabaseGeneratorTestHarness.cs": {
-    "mtime": 1784778069.1589024,
+    "mtime": 1784887044.6238189,
     "ast_hash": "c8da95924686003829854f1c3055c6ef",
     "semantic_hash": "c8da95924686003829854f1c3055c6ef"
   },
   "tests/FellowshipAnalyzer.Generators.Tests/SpellDatabaseGeneratorTests.cs": {
-    "mtime": 1784778079.2260165,
+    "mtime": 1784887044.6238189,
     "ast_hash": "8b9fca29551e059970723b1ddfda023b",
     "semantic_hash": "8b9fca29551e059970723b1ddfda023b"
   },
@@ -3240,12 +3235,12 @@
     "semantic_hash": "08b2a8c2472ce42b117ec8b9b0529c88"
   },
   "tests/FellowshipAnalyzer.Heroes.Ardeos.Tests/Analysis/ArdeosAnalysisEngineTests.cs": {
-    "mtime": 1784760033.159475,
-    "ast_hash": "4fecfa4719426ba63ca52d8e6e3c5be5",
-    "semantic_hash": "4fecfa4719426ba63ca52d8e6e3c5be5"
+    "mtime": 1785050681.6519983,
+    "ast_hash": "efbcec34098961e04104233d8dc966b7",
+    "semantic_hash": ""
   },
   "tests/FellowshipAnalyzer.Heroes.Ardeos.Tests/Analysis/EngulfingFlamesEconomyAnalyzerTests.cs": {
-    "mtime": 1784760033.1604788,
+    "mtime": 1784887044.6248264,
     "ast_hash": "6b90409a341b9781b9d0dbc235632e8b",
     "semantic_hash": "6b90409a341b9781b9d0dbc235632e8b"
   },
@@ -3270,17 +3265,17 @@
     "semantic_hash": "daf5df4dab41ad6d8f6721fc63d23694"
   },
   "tests/FellowshipAnalyzer.Heroes.Ardeos.Tests/Modules/DetonateEfficiencyAnalyzerTests.cs": {
-    "mtime": 1784760033.1609838,
-    "ast_hash": "1928e9529efbf884aaeaecc6ddfc5f3f",
-    "semantic_hash": "1928e9529efbf884aaeaecc6ddfc5f3f"
+    "mtime": 1785034815.9778404,
+    "ast_hash": "66e2e96acba926d193838ace8457ab4f",
+    "semantic_hash": ""
   },
   "tests/FellowshipAnalyzer.Heroes.Ardeos.Tests/Modules/ReignOfFireAnalyzerTests.cs": {
-    "mtime": 1784760033.1609838,
+    "mtime": 1784887044.6253345,
     "ast_hash": "1684f26c08c993063e25a3eb79fbc2eb",
     "semantic_hash": "1684f26c08c993063e25a3eb79fbc2eb"
   },
   "tests/FellowshipAnalyzer.Heroes.Ardeos.Tests/Modules/RekindlingFlamesAnalyzerTests.cs": {
-    "mtime": 1784509681.5003664,
+    "mtime": 1784887044.6253345,
     "ast_hash": "493da38dcc145eef5992b262d1806961",
     "semantic_hash": "493da38dcc145eef5992b262d1806961"
   },
@@ -3480,7 +3475,7 @@
     "semantic_hash": "f500ae91f01e97a1ddf86b3b821c65ba"
   },
   "tests/FellowshipAnalyzer.SpellData.Tests/NormalizationTests.cs": {
-    "mtime": 1784509681.5003664,
+    "mtime": 1784887044.6253345,
     "ast_hash": "759a85cf2c72a72e0d68c4fa9403b2d8",
     "semantic_hash": "759a85cf2c72a72e0d68c4fa9403b2d8"
   },
@@ -3519,15 +3514,10 @@
     "ast_hash": "18f93d783b57ed8b42ac8b47b99e90a2",
     "semantic_hash": "18f93d783b57ed8b42ac8b47b99e90a2"
   },
-  ".claude/CLAUDE.md": {
-    "mtime": 1777270661.5278208,
-    "ast_hash": "f5ff8bc56d56720cf70ceee6a1e44554",
-    "semantic_hash": "f5ff8bc56d56720cf70ceee6a1e44554"
-  },
   ".claude/instructions/FellowshipAnalyzer-Architecture-Overview.md": {
-    "mtime": 1784196499.5077355,
-    "ast_hash": "1c761ae11ff2eb090e99184fa3bbf931",
-    "semantic_hash": "1c761ae11ff2eb090e99184fa3bbf931"
+    "mtime": 1785059555.7158563,
+    "ast_hash": "cb591b86d4846b11d209c4f709600f9c",
+    "semantic_hash": ""
   },
   ".claude/prompts/plan-cacheImplementationGuide.prompt.md": {
     "mtime": 1777520217.3840737,
@@ -3535,63 +3525,63 @@
     "semantic_hash": "087ffc3a432db5e6c0ea648e4a6cb54f"
   },
   ".claude/skills/analyze-event-schema/SKILL.md": {
-    "mtime": 1783399625.8645432,
-    "ast_hash": "9cac0dc951d93b718e29b6354f56f3da",
-    "semantic_hash": "9cac0dc951d93b718e29b6354f56f3da"
+    "mtime": 1785059345.9729571,
+    "ast_hash": "dcfeb6071c908d86162d1ee5a28a6215",
+    "semantic_hash": ""
   },
   ".claude/skills/analyze-log-resources/SKILL.md": {
-    "mtime": 1777270661.528326,
-    "ast_hash": "be9d4a3711a36c9340dccf083626a278",
-    "semantic_hash": "be9d4a3711a36c9340dccf083626a278"
+    "mtime": 1785059352.184247,
+    "ast_hash": "24287b6be3b0c5971a9946401648d922",
+    "semantic_hash": ""
   },
   ".claude/skills/create-analyzer/SKILL.md": {
-    "mtime": 1784196499.5077355,
-    "ast_hash": "8e45d14f04758f3dafd91ab8174cb700",
-    "semantic_hash": "8e45d14f04758f3dafd91ab8174cb700"
+    "mtime": 1785059146.9843092,
+    "ast_hash": "975078f2b1f3601f389d7e2d6fd830d1",
+    "semantic_hash": ""
   },
   ".claude/skills/create-guide/SKILL.md": {
-    "mtime": 1784196432.822021,
-    "ast_hash": "12f4e7b320888a94d16f7a6e072630b3",
-    "semantic_hash": "12f4e7b320888a94d16f7a6e072630b3"
+    "mtime": 1785059165.784638,
+    "ast_hash": "171368a31fc2e25452834116511b2828",
+    "semantic_hash": ""
   },
   ".claude/skills/create-hero/SKILL.md": {
-    "mtime": 1777339782.1377406,
-    "ast_hash": "450e819c9281cafc26c7d7e4a9dbd4a1",
-    "semantic_hash": "450e819c9281cafc26c7d7e4a9dbd4a1"
+    "mtime": 1785059290.7083702,
+    "ast_hash": "9ec0118c6014f4dac9147f03def0c703",
+    "semantic_hash": ""
   },
   ".claude/skills/create-normalizer/SKILL.md": {
-    "mtime": 1783399625.8650491,
-    "ast_hash": "8e4f8eb516f50ad90a1071dc8145b087",
-    "semantic_hash": "8e4f8eb516f50ad90a1071dc8145b087"
+    "mtime": 1785059243.6570327,
+    "ast_hash": "3859b1cf6667766b7acf8e7f0ea64162",
+    "semantic_hash": ""
   },
   ".claude/skills/create-resource-tracker/SKILL.md": {
-    "mtime": 1784196432.822021,
-    "ast_hash": "c07404c1639fd8ef233e03ebc9ea1b33",
-    "semantic_hash": "c07404c1639fd8ef233e03ebc9ea1b33"
+    "mtime": 1785059437.8814209,
+    "ast_hash": "9c7c0bfbcf4be62da60cd49675dba251",
+    "semantic_hash": ""
   },
   ".claude/skills/create-statistics/SKILL.md": {
-    "mtime": 1777273156.9655876,
-    "ast_hash": "14d71af4c21cab5dbd3637f6d9ef7930",
-    "semantic_hash": "14d71af4c21cab5dbd3637f6d9ef7930"
+    "mtime": 1785059192.482316,
+    "ast_hash": "cc02da63338c13a546f7f86e22c5e2c4",
+    "semantic_hash": ""
   },
   ".claude/skills/run-tool/SKILL.md": {
-    "mtime": 1783399625.8660548,
-    "ast_hash": "3f50fba33416e028289173cb79cec614",
-    "semantic_hash": "3f50fba33416e028289173cb79cec614"
+    "mtime": 1785059329.5778296,
+    "ast_hash": "98e099e7c5ad1ebf9dbd56528ec5c2a0",
+    "semantic_hash": ""
   },
   ".claude/skills/style-guide/SKILL.md": {
-    "mtime": 1784285381.2928455,
-    "ast_hash": "fadda84dc00e3b0a91f9264f438f67ad",
-    "semantic_hash": "fadda84dc00e3b0a91f9264f438f67ad"
+    "mtime": 1785059366.762169,
+    "ast_hash": "be2e01f836ab6801cf2606b0f532c5ca",
+    "semantic_hash": ""
   },
   ".claude/skills/style-guide/references/naming.md": {
-    "mtime": 1777270661.532547,
-    "ast_hash": "a6fc817dc45d19a96711320e9a0d53e1",
-    "semantic_hash": "a6fc817dc45d19a96711320e9a0d53e1"
+    "mtime": 1785059544.712175,
+    "ast_hash": "c65310b48f8fbd2e1998eb2b81c29bd0",
+    "semantic_hash": ""
   },
   ".claude/skills/style-guide/references/patterns.md": {
-    "mtime": 1784857561.7086923,
-    "ast_hash": "7ca87d4f2f1e4cc3a70b72cbd65ed1b9",
+    "mtime": 1785059544.7126799,
+    "ast_hash": "e02fe6c04ef185aeb498d20478dbfb29",
     "semantic_hash": ""
   },
   ".github/workflows/azure-static-web-apps-black-forest-0e92b4710.yml": {
@@ -3600,7 +3590,7 @@
     "semantic_hash": "35ca73ba7ca995f16946621b717ec1bf"
   },
   ".github/workflows/ci.yml": {
-    "mtime": 1784857783.8545992,
+    "mtime": 1784887044.5358932,
     "ast_hash": "cd6b13fa590a9600d27c221630ab7835",
     "semantic_hash": ""
   },
@@ -3610,9 +3600,9 @@
     "semantic_hash": "53971778e41bcc5335c0abeea0e57dbf"
   },
   "CLAUDE.md": {
-    "mtime": 1784762127.9819782,
-    "ast_hash": "82a152c8efdf5e76b23fe6b69c45a43c",
-    "semantic_hash": "82a152c8efdf5e76b23fe6b69c45a43c"
+    "mtime": 1785059519.3534546,
+    "ast_hash": "36021d72ad338f69a044f1afb9c98f24",
+    "semantic_hash": ""
   },
   "CONTRIBUTING.md": {
     "mtime": 1784196432.8233814,
@@ -3620,8 +3610,8 @@
     "semantic_hash": "38b68f52efca5d2afcc952f4edc1fb88"
   },
   "CombatMechanics.md": {
-    "mtime": 1784858154.4679544,
-    "ast_hash": "efadf687d531d39eef320068677594fd",
+    "mtime": 1784887044.5374043,
+    "ast_hash": "ebbd8a5f477b21e5ad55eb13bf6be45c",
     "semantic_hash": ""
   },
   "NOTICE.md": {
@@ -3630,12 +3620,12 @@
     "semantic_hash": "0c6c7f2c812403acb5fe822e55fb0a1d"
   },
   "README.md": {
-    "mtime": 1784858043.1809423,
-    "ast_hash": "65ace0690fd9a6d2c2b13d3f18376d60",
+    "mtime": 1784887044.538408,
+    "ast_hash": "795db3e946082c0df2059b148f42c243",
     "semantic_hash": ""
   },
   "color-guide.md": {
-    "mtime": 1784847821.423466,
+    "mtime": 1784887044.538408,
     "ast_hash": "87c0bb8e3155e76b23aa4fa265d84d59",
     "semantic_hash": "87c0bb8e3155e76b23aa4fa265d84d59"
   },
@@ -3655,9 +3645,9 @@
     "semantic_hash": "5abdec102390411cbd6310d3b595092c"
   },
   "src/FellowshipAnalyzer/FellowshipAnalyzer/wwwroot/index.html": {
-    "mtime": 1784786810.9509697,
-    "ast_hash": "b3dd8b45d4e95cb14444aa5178ef76c8",
-    "semantic_hash": "b3dd8b45d4e95cb14444aa5178ef76c8"
+    "mtime": 1784887044.6132445,
+    "ast_hash": "0272bc14eb8eb40a240a01bb908f7a2c",
+    "semantic_hash": ""
   },
   "external/fs_tc_uploads/pictures/armor_curve_formula.png": {
     "mtime": 1782691145.3420842,
@@ -3670,8 +3660,163 @@
     "semantic_hash": "5bf6b811bf0051edac5c23cec894f0d4"
   },
   ".github/scripts/discover-tests.sh": {
-    "mtime": 1784857733.5214791,
-    "ast_hash": "c0f4e640f982e466559c748013329d37",
+    "mtime": 1784887044.5358932,
+    "ast_hash": "c8b428dd65503577896796d8e902fc61",
+    "semantic_hash": ""
+  },
+  "src/FellowshipAnalyzer.Core.Contracts/Design/FaColor.cs": {
+    "mtime": 1784973608.7200496,
+    "ast_hash": "4e36d1f42d3f3cb5daf57fc95b992a62",
+    "semantic_hash": ""
+  },
+  "src/FellowshipAnalyzer.Core.Contracts/Design/FaElevation.cs": {
+    "mtime": 1784973608.7200496,
+    "ast_hash": "e6f4ed719d776b7e8816581032968ced",
+    "semantic_hash": ""
+  },
+  "src/FellowshipAnalyzer.Core.Contracts/Design/FaMetrics.cs": {
+    "mtime": 1784973608.72055,
+    "ast_hash": "5ed89c6f54012199dd2e507774c90053",
+    "semantic_hash": ""
+  },
+  "src/FellowshipAnalyzer.Core.Contracts/Design/FaPalette.cs": {
+    "mtime": 1785046757.131463,
+    "ast_hash": "dad4fbea1f06505c6a71a4e952433f67",
+    "semantic_hash": ""
+  },
+  "src/FellowshipAnalyzer.Core.Contracts/Design/FaPaletteScss.cs": {
+    "mtime": 1784973608.72055,
+    "ast_hash": "b18dfb34db75f0d51955f4848730f424",
+    "semantic_hash": ""
+  },
+  "src/FellowshipAnalyzer.Core.Contracts/Design/FaSemantic.cs": {
+    "mtime": 1784973608.72055,
+    "ast_hash": "e982757376fa85bf65a5fc8bd1e5140e",
+    "semantic_hash": ""
+  },
+  "src/FellowshipAnalyzer.Core.Contracts/Design/FaSourceColors.cs": {
+    "mtime": 1784973608.72055,
+    "ast_hash": "02530da3ca2fc53e705923c90416739b",
+    "semantic_hash": ""
+  },
+  "src/FellowshipAnalyzer.Core.Contracts/Design/FaTheme.cs": {
+    "mtime": 1785046762.360942,
+    "ast_hash": "a82f4e9e710f4d0b591bd88637277df9",
+    "semantic_hash": ""
+  },
+  "src/FellowshipAnalyzer.Core.Contracts/Design/FaToken.cs": {
+    "mtime": 1784973608.7210495,
+    "ast_hash": "273bcc012a0ab59ed6efbb9345ce1a29",
+    "semantic_hash": ""
+  },
+  "src/FellowshipAnalyzer.Core.Contracts/Design/FaTokenGroup.cs": {
+    "mtime": 1784973608.7210495,
+    "ast_hash": "ac23164cc0871d20c50ef816f8bef91b",
+    "semantic_hash": ""
+  },
+  "src/FellowshipAnalyzer.Core.Contracts/Design/FaTypography.cs": {
+    "mtime": 1784973608.7210495,
+    "ast_hash": "46527b8a815469c962a37e4a0a699ea9",
+    "semantic_hash": ""
+  },
+  "src/FellowshipAnalyzer.Core.Contracts/Design/FaVar.cs": {
+    "mtime": 1785046769.1598015,
+    "ast_hash": "fecae2a0e14597cb179fda37cf715085",
+    "semantic_hash": ""
+  },
+  "src/FellowshipAnalyzer.Core/Analysis/AuraWindow.cs": {
+    "mtime": 1785033184.7047243,
+    "ast_hash": "316adc150a3a6eb3145107f49ce13b2d",
+    "semantic_hash": ""
+  },
+  "src/FellowshipAnalyzer.Core/UI/Charts/AuraStackGraph.razor": {
+    "mtime": 1785046804.5924418,
+    "ast_hash": "ba75462cb1897531f841e759645b217c",
+    "semantic_hash": ""
+  },
+  "src/FellowshipAnalyzer.Core/UI/Charts/AuraStackModels.cs": {
+    "mtime": 1785034476.8208983,
+    "ast_hash": "f074138d10bb32224e8ef46557569a4d",
+    "semantic_hash": ""
+  },
+  "src/FellowshipAnalyzer.Core/UI/Charts/ChartPalette.cs": {
+    "mtime": 1785046788.5671887,
+    "ast_hash": "630ce9f5338a5689cab8d2d842c8eb46",
+    "semantic_hash": ""
+  },
+  "src/FellowshipAnalyzer.Core/UI/Components/BadgeType.cs": {
+    "mtime": 1784887044.5763972,
+    "ast_hash": "5dac6f33e3e3da28c35bbf1599fe4536",
+    "semantic_hash": ""
+  },
+  "src/FellowshipAnalyzer.Core/UI/Components/StatisticsPanel.razor": {
+    "mtime": 1784887044.58194,
+    "ast_hash": "8f9c6f3b5b8c4b5fa5059b7fd97fac4f",
+    "semantic_hash": ""
+  },
+  "src/FellowshipAnalyzer.Core/UI/Guides/AuraCheckItem.cs": {
+    "mtime": 1785034673.659861,
+    "ast_hash": "2b8814247375e15d8aacd9dace5faa19",
+    "semantic_hash": ""
+  },
+  "src/FellowshipAnalyzer.Core/UI/Guides/AuraChecklist.razor": {
+    "mtime": 1785034356.6370025,
+    "ast_hash": "dc23ae106397304b9a33eefb1e3f0cc3",
+    "semantic_hash": ""
+  },
+  "src/FellowshipAnalyzer.Core/UI/Theming/ThemeService.cs": {
+    "mtime": 1784973608.7375534,
+    "ast_hash": "eff71435afd3d6e250ea15d9ab871063",
+    "semantic_hash": ""
+  },
+  "src/FellowshipAnalyzer.Core/wwwroot/js/statistics-masonry.js": {
+    "mtime": 1784887044.5971856,
+    "ast_hash": "87b5231561afe4d19db28665acb045f8",
+    "semantic_hash": ""
+  },
+  "src/FellowshipAnalyzer.Core/wwwroot/js/theme.js": {
+    "mtime": 1784973608.7395532,
+    "ast_hash": "b7007a392dfcfd8a689d89b88ed272e1",
+    "semantic_hash": ""
+  },
+  "src/FellowshipAnalyzer.DesignSystem/Components/Layout/ThemePicker.razor": {
+    "mtime": 1784973608.7400534,
+    "ast_hash": "f245e0ea1b778ed2ac2b86686f1ed208",
+    "semantic_hash": ""
+  },
+  "src/FellowshipAnalyzer.DesignSystem/Components/Pages/TokensShowcase.razor": {
+    "mtime": 1784973608.7405531,
+    "ast_hash": "639fa32aac1abfb16712c367149c62cb",
+    "semantic_hash": ""
+  },
+  "src/FellowshipAnalyzer.Tools/emit-palette.cs": {
+    "mtime": 1784973608.7425616,
+    "ast_hash": "34357e24878e726c11eff43e676c529e",
+    "semantic_hash": ""
+  },
+  "src/Heroes/FellowshipAnalyzer.Heroes.Ardeos/Guides/ArdeosChartColors.cs": {
+    "mtime": 1785046796.183049,
+    "ast_hash": "8f85bad1fde9ad581d1d0c2742216ceb",
+    "semantic_hash": ""
+  },
+  "src/Heroes/FellowshipAnalyzer.Heroes.Ardeos/Guides/ArdeosChecklist.cs": {
+    "mtime": 1785050604.3471916,
+    "ast_hash": "ac5ff6318d6f99b3abd870b56340f019",
+    "semantic_hash": ""
+  },
+  "src/Heroes/FellowshipAnalyzer.Heroes.Ardeos/Modules/ArdeosDots.cs": {
+    "mtime": 1785050554.7698169,
+    "ast_hash": "d39c49ca25c7113b53c60e5ac708cae7",
+    "semantic_hash": ""
+  },
+  "tests/FellowshipAnalyzer.Core.Tests/Design/PaletteScssDriftTests.cs": {
+    "mtime": 1785034769.4196498,
+    "ast_hash": "cefeeeb2e87618e60bf863ee9c7a08d2",
+    "semantic_hash": ""
+  },
+  "tests/FellowshipAnalyzer.Core.Tests/UI/TimelineLaneAlignmentTests.cs": {
+    "mtime": 1784981011.301023,
+    "ast_hash": "1a3f75d4882db48589f463d1dc558d7e",
     "semantic_hash": ""
   }
 }
