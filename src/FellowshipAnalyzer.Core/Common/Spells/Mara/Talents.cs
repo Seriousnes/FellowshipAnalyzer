@@ -11,13 +11,13 @@ public class Talents
     public static Talent GushingBlood { get; } = new Talent { Id = 122, Name = "Gushing Blood", Icon = "Berserker5.jpg" };
     public static Talent FeedTheQueen { get; } = new Talent { Id = 121, Name = "Feed the Queen", Icon = "T_Nhance_RPG_Shadow_41.jpg" };
     public static Talent DeadlyScheme { get; } = new Talent { Id = 110, Name = "Deadly Scheme", Icon = "Tex_SpellBook08_71.jpg" };
-    public static Talent VeilOfShadows { get; } = new Talent { Id = 115, Name = "Veil of Shadows", Icon = "Mara_Defensive.jpg" };
+    public static Talent MacabreStratagem { get; } = new Talent { Id = 10000, Name = "Macabre Stratagem", Icon = "T_Nhance_RPG_Shadow_16.jpg" };
     public static Talent MaidensDoom { get; } = new Talent { Id = 442, Name = "Maiden's Doom", Icon = "Mara_Maiden.jpg" };
-    public static Talent MagicWard { get; } = new Talent { Id = 118, Name = "Magic Ward", Icon = "T_Arcane_Scroll.jpg" };
+    public static Talent SeethingBurst { get; } = new Talent { Id = 668, Name = "Seething Burst", Icon = "T_Nhance_RPG_Shadow_20.jpg" };
     public static Talent Hemotoxin { get; } = new Talent { Id = 205, Name = "Hemotoxin", Icon = "T_PoisonBlister.jpg" };
     public static Talent SinnersPride { get; } = new Talent { Id = 586, Name = "Sinner's Pride", Icon = "T_Nhance_RPG_Icons_SoulDarkening.jpg" };
     public static Talent Malevolence { get; } = new Talent { Id = 443, Name = "Malevolence", Icon = "Tex_violet_7.jpg" };
     public static Talent ArachnidOnslaught { get; } = new Talent { Id = 166, Name = "Arachnid Onslaught", Icon = "Mara_SpiderAOE.jpg" };
-    public static Talent SpiritedFortitude { get; } = new Talent { Id = 119, Name = "Spirited Fortitude", Icon = "Barbarian3.jpg" };
+    public static Talent CausticWounds { get; } = new Talent { Id = 667, Name = "Caustic Wounds", Icon = "Mara_backstab.jpg" };
     public static Talent Puncture { get; } = new Talent { Id = 123, Name = "Puncture", Icon = "Mara_RegainEnergyHit.jpg" };
 }

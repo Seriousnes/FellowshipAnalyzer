@@ -94,6 +94,89 @@ public sealed class MaraAnalysisEngineTests
         aoe.Finishers.ShouldHaveSingleItem().MeetsThreshold.ShouldBeTrue();
     }
 
+    [Fact]
+    public async Task Analyze_ShouldIncludeEnergyComboPointTrackerModule()
+    {
+        var (_, result) = await AnalyzeFixtureAsync();
+
+        var tracker = result.Modules.OfType<EnergyComboPointTracker>().Single();
+        tracker.GetDisplayName(ResourceTypes.Primary).ShouldBe("Energy");
+        tracker.GetDisplayName(ResourceTypes.Secondary).ShouldBe("Combo Points");
+    }
+
+    [Fact]
+    public async Task Analyze_EnergyAccounting_BalancesGeneratedAgainstSpentWastedAndCurrent()
+    {
+        var tracker = await AnalyzeTrackerFixtureAsync();
+
+        tracker.EnergyGenerated.ShouldBe(100);
+        tracker.EnergySpent.ShouldBe(80);
+        tracker.EnergyWasted.ShouldBe(0);
+        tracker.EnergyCurrent.ShouldBe(20);
+        tracker.EnergyGenerated.ShouldBe(tracker.EnergySpent + tracker.EnergyWasted + tracker.EnergyCurrent);
+    }
+
+    [Fact]
+    public async Task Analyze_EnergySpend_ResolvesCostsFromTheSpellRegistry()
+    {
+        var tracker = await AnalyzeTrackerFixtureAsync();
+
+        var spenders = tracker.GetSpenderCasts(ResourceTypes.Primary);
+        spenders[Spells.Backstab.Id].ShouldBe(2);
+        spenders[Spells.QueenFang.Id].ShouldBe(1);
+    }
+
+    [Fact]
+    public async Task Analyze_ComboPoints_AreCappedAtSixAndNeverSpend()
+    {
+        var tracker = await AnalyzeTrackerFixtureAsync();
+
+        tracker.ComboPoints.ShouldNotBeNull();
+        tracker.ComboPoints!.Max.ShouldBe(tracker.MaxComboPointCount);
+        tracker.ComboPointsGenerated.ShouldBe(6);
+        tracker.ComboPointsCurrent.ShouldBe(6);
+        tracker.GetSpent(ResourceTypes.Secondary).ShouldBe(0);
+    }
+
+    /// <summary>
+    /// Casts whose Energy snapshots chain exactly (each snapshot equals the previous post-cost balance),
+    /// so every decrease is accounted for by a registry cost and the tracker's accounting identity holds.
+    /// </summary>
+    private static async Task<EnergyComboPointTracker> AnalyzeTrackerFixtureAsync()
+    {
+        const int playerId = 7;
+        var services = new ServiceCollection();
+        services.AddLogging();
+        services.AddCoreAnalysisServices();
+        services.AddCoreAnalysis();
+        services.AddMaraAnalysis();
+        using var provider = services.BuildServiceProvider();
+        using var scope = provider.CreateScope();
+
+        var parser = scope.ServiceProvider.GetRequiredService<MaraCombatLogParser>();
+
+        var events = new List<Event>
+        {
+            Cast(1100, playerId, Spells.Backstab, comboPoints: 2, energy: 100),
+            Cast(1200, playerId, Spells.Backstab, comboPoints: 4, energy: 80),
+            Cast(1300, playerId, Spells.QueenFang, comboPoints: 6, energy: 60),
+        };
+
+        var pulls = new List<DungeonPull>
+        {
+            new(Id: 1, EncounterId: 42, Kill: true, StartTime: 1000, EndTime: 2000, Name: "Boss", EnemyNpcs: null),
+        };
+
+        var fight = new ReportFight(
+            Id: 0, Name: "Fight", EncounterId: 0, Kill: true,
+            StartTime: 0, EndTime: 5000, Difficulty: null,
+            FriendlyPlayers: null, FightPercentage: null, InProgress: false,
+            DungeonPulls: pulls);
+
+        await parser.Analyze(events, playerId, fight);
+        return parser.EnergyComboPointTracker!;
+    }
+
     private static async Task<(MaraCombatLogParser Parser, HeroAnalysisResult Result)> AnalyzeFixtureAsync()
     {
         const int playerId = 7;
