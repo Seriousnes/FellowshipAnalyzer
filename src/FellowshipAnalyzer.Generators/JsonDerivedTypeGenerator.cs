@@ -50,13 +50,19 @@ public sealed class JsonDerivedTypeGenerator : IIncrementalGenerator
             return null;
 
         bool hasJsonPolymorphic = false;
+        var discriminatorPropertyName = "$type";
         foreach (var attr in symbol.GetAttributes())
         {
-            if (attr.AttributeClass?.Name == JsonPolymorphicAttributeName)
+            if (attr.AttributeClass?.Name != JsonPolymorphicAttributeName)
+                continue;
+
+            hasJsonPolymorphic = true;
+            foreach (var named in attr.NamedArguments)
             {
-                hasJsonPolymorphic = true;
-                break;
+                if (named.Key == "TypeDiscriminatorPropertyName" && named.Value.Value is string name)
+                    discriminatorPropertyName = name;
             }
+            break;
         }
 
         if (!hasJsonPolymorphic)
@@ -96,7 +102,7 @@ public sealed class JsonDerivedTypeGenerator : IIncrementalGenerator
             ? symbol.ContainingNamespace.ToDisplayString()
             : string.Empty;
 
-        return new TriggerInfo(symbol.Name, triggerNs, [.. derivedTypes]);
+        return new TriggerInfo(symbol.Name, triggerNs, discriminatorPropertyName, [.. derivedTypes]);
     }
 
     private static IEnumerable<INamedTypeSymbol> GetAllNamedTypes(INamespaceSymbol ns)
@@ -181,19 +187,90 @@ public sealed class JsonDerivedTypeGenerator : IIncrementalGenerator
         sb.AppendLine("}");
 
         ctx.AddSource("Event.g.cs", sb.ToString());
+        ctx.AddSource(info.ClassName + "Discriminators.g.cs", BuildDiscriminatorLookup(info));
+    }
+
+    private static string BuildDiscriminatorLookup(TriggerInfo info)
+    {
+        var sb = new StringBuilder();
+        sb.AppendLine("#nullable enable");
+        sb.AppendLine("using System;");
+        sb.AppendLine("using System.Diagnostics.CodeAnalysis;");
+        sb.AppendLine();
+        sb.AppendLine("namespace " + info.Namespace + ";");
+        sb.AppendLine();
+        sb.AppendLine("/// <summary>");
+        sb.AppendLine("/// Maps a raw UTF-8 <c>" + info.DiscriminatorPropertyName + "</c> discriminator to its concrete <see cref=\"" + info.ClassName + "\"/> subclass,");
+        sb.AppendLine("/// so a caller that has already located an object's bytes can deserialize it against the derived");
+        sb.AppendLine("/// type directly instead of paying for polymorphic dispatch. Kept in step with the");
+        sb.AppendLine("/// <c>JsonDerivedType</c> registrations by the same generator.");
+        sb.AppendLine("/// </summary>");
+        sb.AppendLine("public static class " + info.ClassName + "Discriminators");
+        sb.AppendLine("{");
+        sb.AppendLine("    /// <summary>The number of registered discriminators.</summary>");
+        sb.AppendLine("    public static int Count => " + info.DerivedTypes.Length + ";");
+        sb.AppendLine();
+        sb.AppendLine("    /// <summary>");
+        sb.AppendLine("    /// Resolves <paramref name=\"discriminator\"/> to its subclass, returning <see langword=\"false\"/> for a");
+        sb.AppendLine("    /// value that has no registration. Expects the raw, unescaped UTF-8 bytes of the discriminator value.");
+        sb.AppendLine("    /// </summary>");
+        sb.AppendLine("    public static bool TryGetType(ReadOnlySpan<byte> discriminator, [NotNullWhen(true)] out Type? type)");
+        sb.AppendLine("    {");
+        sb.AppendLine("        switch (discriminator.Length)");
+        sb.AppendLine("        {");
+
+        var byLength = new SortedDictionary<int, List<DerivedTypeInfo>>();
+        foreach (var dt in info.DerivedTypes)
+        {
+            if (!byLength.TryGetValue(dt.Discriminator.Length, out var bucket))
+            {
+                bucket = [];
+                byLength[dt.Discriminator.Length] = bucket;
+            }
+            bucket.Add(dt);
+        }
+
+        foreach (var bucket in byLength)
+        {
+            sb.AppendLine("            case " + bucket.Key + ":");
+            foreach (var dt in bucket.Value)
+            {
+                var fullTypeName = string.IsNullOrEmpty(dt.Namespace)
+                    ? dt.Name
+                    : dt.Namespace + "." + dt.Name;
+
+                sb.AppendLine("                if (discriminator.SequenceEqual(\"" + dt.Discriminator + "\"u8))");
+                sb.AppendLine("                {");
+                sb.AppendLine("                    type = typeof(" + fullTypeName + ");");
+                sb.AppendLine("                    return true;");
+                sb.AppendLine("                }");
+            }
+            sb.AppendLine("                break;");
+        }
+
+        sb.AppendLine("        }");
+        sb.AppendLine();
+        sb.AppendLine("        type = null;");
+        sb.AppendLine("        return false;");
+        sb.AppendLine("    }");
+        sb.AppendLine("}");
+
+        return sb.ToString();
     }
 
     private sealed class TriggerInfo
     {
-        public TriggerInfo(string className, string ns, ImmutableArray<DerivedTypeInfo> derivedTypes)
+        public TriggerInfo(string className, string ns, string discriminatorPropertyName, ImmutableArray<DerivedTypeInfo> derivedTypes)
         {
             ClassName = className;
             Namespace = ns;
+            DiscriminatorPropertyName = discriminatorPropertyName;
             DerivedTypes = derivedTypes;
         }
 
         public string ClassName { get; }
         public string Namespace { get; }
+        public string DiscriminatorPropertyName { get; }
         public ImmutableArray<DerivedTypeInfo> DerivedTypes { get; }
     }
 

@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using System.Text.Json;
 
 using FellowshipAnalyzer.Core.Analysis;
 using FellowshipAnalyzer.Core.Events;
@@ -52,8 +51,6 @@ public sealed class ReportAnalysisService(
     ReportNavigationState navState,
     ILogger<ReportAnalysisService> logger)
 {
-    private const int DeserializeProgressBatchSize = 250;
-
     public async Task<ReportAnalysisContext> RunAsync(
         string reportCode,
         int fightId,
@@ -186,122 +183,27 @@ public sealed class ReportAnalysisService(
 
     private async Task<EventsResult> DeserializeEventsResultAsync(byte[] jsonBytes)
     {
-        var metadata = ReadEventsResultMetadata(jsonBytes);
+        var metadata = EventStreamReader.ReadMetadata(jsonBytes, jsonContext);
 
         loadingTracker.TotalDeserializeEventCount = metadata.EventRanges.Count;
         loadingTracker.DeserializedEventCount = 0;
         await Task.Yield();
 
         var events = new List<Event>(metadata.EventRanges.Count);
+        var pacer = new ProgressPacer();
         for (var i = 0; i < metadata.EventRanges.Count; i++)
         {
-            events.Add(DeserializeEvent(jsonBytes, metadata.EventRanges[i], jsonContext));
+            events.Add(EventStreamReader.ReadEvent(jsonBytes, metadata.EventRanges[i]));
 
-            var completed = i + 1;
-            if (completed % DeserializeProgressBatchSize == 0 || completed == metadata.EventRanges.Count)
+            if (pacer.ShouldYield(i))
             {
-                loadingTracker.DeserializedEventCount = completed;
+                loadingTracker.DeserializedEventCount = i + 1;
                 await Task.Yield();
             }
         }
 
+        loadingTracker.DeserializedEventCount = metadata.EventRanges.Count;
+
         return new EventsResult(events, metadata.InProgress);
     }
-
-    private static Event DeserializeEvent(
-        byte[] jsonBytes,
-        EventJsonRange range,
-        FellowshipAnalyzerJsonContext jsonContext)
-    {
-        return JsonSerializer.Deserialize(jsonBytes.AsSpan(range.Start, range.Length), jsonContext.Event)
-            ?? throw new InvalidOperationException("Event data contained a null event.");
-    }
-
-    private static EventsResultMetadata ReadEventsResultMetadata(byte[] jsonBytes)
-    {
-        var reader = new Utf8JsonReader(jsonBytes);
-
-        if (!reader.Read() || reader.TokenType != JsonTokenType.StartObject)
-        {
-            throw new InvalidOperationException("Event data was not a JSON object.");
-        }
-
-        bool? inProgress = null;
-        List<EventJsonRange>? eventRanges = null;
-
-        while (reader.Read())
-        {
-            if (reader.TokenType == JsonTokenType.EndObject)
-            {
-                break;
-            }
-
-            if (reader.TokenType != JsonTokenType.PropertyName)
-            {
-                throw new InvalidOperationException($"Unexpected token in event data: {reader.TokenType}.");
-            }
-
-            var propertyName = reader.GetString();
-            if (!reader.Read())
-            {
-                throw new InvalidOperationException("Event data ended while reading a property value.");
-            }
-
-            switch (propertyName)
-            {
-                case "inProgress":
-                case "InProgress":
-                    if (reader.TokenType is not JsonTokenType.True and not JsonTokenType.False)
-                    {
-                        throw new InvalidOperationException("Event data inProgress value was not a boolean.");
-                    }
-                    inProgress = reader.GetBoolean();
-                    break;
-                case "events":
-                case "Events":
-                    if (reader.TokenType != JsonTokenType.StartArray)
-                    {
-                        throw new InvalidOperationException("Event data events value was not an array.");
-                    }
-                    eventRanges = ReadEventRanges(ref reader);
-                    break;
-                default:
-                    reader.Skip();
-                    break;
-            }
-        }
-
-        return new EventsResultMetadata(
-            inProgress ?? throw new InvalidOperationException("Event data did not include inProgress."),
-            eventRanges ?? throw new InvalidOperationException("Event data did not include events."));
-    }
-
-    private static List<EventJsonRange> ReadEventRanges(ref Utf8JsonReader reader)
-    {
-        var ranges = new List<EventJsonRange>();
-
-        while (reader.Read())
-        {
-            if (reader.TokenType == JsonTokenType.EndArray)
-            {
-                return ranges;
-            }
-
-            if (reader.TokenType != JsonTokenType.StartObject)
-            {
-                throw new InvalidOperationException($"Unexpected token in events array: {reader.TokenType}.");
-            }
-
-            var start = checked((int)reader.TokenStartIndex);
-            reader.Skip();
-            var end = checked((int)reader.BytesConsumed);
-            ranges.Add(new EventJsonRange(start, end - start));
-        }
-
-        throw new InvalidOperationException("Event data ended while reading the events array.");
-    }
-
-    private readonly record struct EventJsonRange(int Start, int Length);
-
-    private sealed record EventsResultMetadata(bool InProgress, List<EventJsonRange> EventRanges);
 }

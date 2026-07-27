@@ -64,7 +64,7 @@ public sealed class EventEmitter(ILogger<EventEmitter> logger) : Module
 
     /// <summary>
     /// Dispatches all events sequentially, processing fabricated events inline.
-    /// Yields to the UI scheduler every <c>YieldInterval</c> events to maintain responsiveness.
+    /// Yields to the UI scheduler on a <see cref="ProgressPacer"/> interval to maintain responsiveness.
     /// </summary>
     public async Task DispatchEventsAsync(List<Event> events, ReportLoadingTracker? tracker = null)
     {
@@ -74,6 +74,7 @@ public sealed class EventEmitter(ILogger<EventEmitter> logger) : Module
         for (var i = 0; i < ordered.Length; i++)
             events[i] = ordered[i];
 
+        var pacer = new ProgressPacer();
         for (var i = 0; i < events.Count; i++)
         {
             if (_scheduled.Count > 0 && _scheduled[0].Timestamp < events[i].Timestamp)
@@ -93,7 +94,7 @@ public sealed class EventEmitter(ILogger<EventEmitter> logger) : Module
             else
                 await TriggerEventAsync(e);
 
-            if (i % YieldInterval == YieldInterval - 1)
+            if (pacer.ShouldYield(i))
             {
                 if (tracker is not null)
                 {
@@ -104,11 +105,15 @@ public sealed class EventEmitter(ILogger<EventEmitter> logger) : Module
             }
         }
 
+        if (tracker is not null)
+        {
+            tracker.TotalEventCount = events.Count;
+            tracker.AnalyzedEventCount = events.Count;
+        }
+
         _events = null;
         _scheduled.Clear();
     }
-
-    private const int YieldInterval = 250;
 
     private async Task TriggerEventAsync(Event e)
     {
