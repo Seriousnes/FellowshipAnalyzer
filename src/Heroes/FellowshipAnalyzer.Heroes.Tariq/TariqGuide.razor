@@ -1,6 +1,21 @@
-@inject TariqCombatLogParser Parser
+@inherits ReportComponent<TariqCombatLogParser>
 
 @if (Parser.FuryEconomyAnalyzers.Count > 0)
 {
     <FuryEconomyGuide />
+}
+
+@if (Parser.ThunderCallWindowAnalyzers.Count > 0 || Parser.FocusedWrathAnalyzers.Count > 0)
+{
+    <MajorCooldownsGuide />
+}
+
+@if (Parser.HammerStormAnalyzers.Count > 0)
+{
+    <HammerStormGuide />
+}
+
+@if (Parser.CullingStrikeAnalyzers.Count > 0)
+{
+    <CullingStrikeGuide />
 }

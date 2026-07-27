@@ -101,8 +101,6 @@ await JsonSerializer.SerializeAsync(stream, allAbilities, writeOptions);
 Console.WriteLine($"Saved to {outputPath}");
 return 0;
 
-// --- Helper methods ---
-
 static async Task<string> GetAccessTokenAsync(
     HttpClient httpClient, string tokenEndpoint, string clientId, string clientSecret)
 {
@@ -176,8 +174,6 @@ static string? LoadUserSecretId(string repoRoot)
         $"USER_SECRET_ID not set in {envPath}. Add a line: USER_SECRET_ID=<your-user-secrets-id>");
     return null;
 }
-
-// --- Response models ---
 
 record GraphQlResponse(GameDataWrapper Data);
 record GameDataWrapper(GameDataContent GameData);

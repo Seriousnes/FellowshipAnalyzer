@@ -15,19 +15,17 @@ public sealed class Combatant : Entity
     private readonly Dictionary<GearSlot, Item> _gear;
     private readonly Dictionary<int, Item> _itemById;
 
-    /// <summary>Emerald "Blessing of the Commander": Ability Cooldown Reduction ranks.</summary>
     private static readonly GemRank[] BlessingOfTheCommander =
     [
         new(RequiredGemPower: 450, Magnitude: 0.04),
         new(RequiredGemPower: 1500, Magnitude: 0.12),
     ];
 
-    /// <summary>Quality tier of a legendary item; the top rarity, of which only one may be equipped.</summary>
     private const int LegendaryQuality = 6;
 
-    /// <summary>The cooldown acceleration a legendary's Strand of Eternity grants, as a fraction (0.10 = +10%).</summary>
     private const double StrandOfEternityAcceleration = 0.10;
 
+    /// <summary>Builds the combatant's gear index and computes its derived <see cref="Stats"/> snapshot from the given combatantinfo.</summary>
     public Combatant(CombatantInfoEvent info)
     {
         Info = info;
@@ -42,48 +40,91 @@ public sealed class Combatant : Entity
         Stats = BuildStats(info);
     }
 
+    /// <summary>The player's source id, as it appears throughout the event stream.</summary>
     public int Id => Info.SourceId;
+
+    /// <summary>The raw <see cref="CombatantInfoEvent"/> this combatant was built from.</summary>
     public CombatantInfoEvent Info { get; }
 
     /// <summary>Frozen snapshot of the player's stat ratings and derived cooldown values, built once from the combatantinfo.</summary>
     public CombatantStats Stats { get; init; }
 
+    /// <summary>The combatant's average equipped item level.</summary>
     public decimal ItemLevel => Info.ComputedItemLevel;
 
-    // Gem powers
+    /// <summary>Total gem power of socketed Amethyst gems.</summary>
     public int Amethyst => Info.Amethyst;
+
+    /// <summary>Total gem power of socketed Diamond gems.</summary>
     public int Diamond => Info.Diamond;
+
+    /// <summary>Total gem power of socketed Topaz gems.</summary>
     public int Topaz => Info.Topaz;
+
+    /// <summary>Total gem power of socketed Ruby gems.</summary>
     public int Ruby => Info.Ruby;
+
+    /// <summary>Total gem power of socketed Sapphire gems.</summary>
     public int Sapphire => Info.Sapphire;
+
+    /// <summary>Total gem power of socketed Emerald gems, the input to <see cref="CombatantStats.AbilityCooldownReduction"/>.</summary>
     public int Emerald => Info.Emerald;
 
     /// <summary>True when any equipped item is legendary quality (the top rarity, of which only one may be equipped).</summary>
     public bool HasLegendary { get; }
 
-    // Gear slot accessors
+    /// <summary>The item equipped in the head slot, or <c>null</c> if that slot is empty.</summary>
     public Item? Head => GetSlot(GearSlot.Head);
+
+    /// <summary>The item equipped in the necklace slot, or <c>null</c> if that slot is empty.</summary>
     public Item? Necklace => GetSlot(GearSlot.Necklace);
+
+    /// <summary>The item equipped in the shoulders slot, or <c>null</c> if that slot is empty.</summary>
     public Item? Shoulders => GetSlot(GearSlot.Shoulders);
+
+    /// <summary>The item equipped in the back slot, or <c>null</c> if that slot is empty.</summary>
     public Item? Back => GetSlot(GearSlot.Back);
+
+    /// <summary>The item equipped in the chest slot, or <c>null</c> if that slot is empty.</summary>
     public Item? Chest => GetSlot(GearSlot.Chest);
+
+    /// <summary>The item equipped in the wrists slot, or <c>null</c> if that slot is empty.</summary>
     public Item? Wrists => GetSlot(GearSlot.Wrists);
+
+    /// <summary>The item equipped in the hands slot, or <c>null</c> if that slot is empty.</summary>
     public Item? Hands => GetSlot(GearSlot.Hands);
+
+    /// <summary>The item equipped in the legs slot, or <c>null</c> if that slot is empty.</summary>
     public Item? Legs => GetSlot(GearSlot.Legs);
+
+    /// <summary>The item equipped in the feet slot, or <c>null</c> if that slot is empty.</summary>
     public Item? Feet => GetSlot(GearSlot.Feet);
+
+    /// <summary>The item equipped in the first ring slot, or <c>null</c> if that slot is empty.</summary>
     public Item? Ring1 => GetSlot(GearSlot.Ring1);
+
+    /// <summary>The item equipped in the second ring slot, or <c>null</c> if that slot is empty.</summary>
     public Item? Ring2 => GetSlot(GearSlot.Ring2);
+
+    /// <summary>The item equipped in the first relic slot, or <c>null</c> if that slot is empty.</summary>
     public Item? Relic1 => GetSlot(GearSlot.Relic1);
+
+    /// <summary>The item equipped in the second relic slot, or <c>null</c> if that slot is empty.</summary>
     public Item? Relic2 => GetSlot(GearSlot.Relic2);
+
+    /// <summary>The item equipped in the weapon slot, or <c>null</c> if that slot is empty.</summary>
     public Item? Weapon => GetSlot(GearSlot.Weapon);
 
+    /// <summary>All equipped items, in the order the combatantinfo reported them.</summary>
     public IReadOnlyList<Item> Gear => Info.Gear;
 
-    // Gear queries
+    /// <summary>Looks up an equipped item by its item id, or <c>null</c> if no equipped item has that id.</summary>
     public Item? GetItem(int itemId) => _itemById.GetValueOrDefault(itemId);
+
+    /// <summary>True when an item with the given item id is equipped.</summary>
     public bool HasGear(int itemId) => _itemById.ContainsKey(itemId);
 
-    // Talent queries
+    /// <summary>The talents the player had selected, as recorded in the combatantinfo.</summary>
     public IReadOnlyList<TalentInfo> Talents => Info.Talents;
 
     /// <summary>
@@ -92,10 +133,10 @@ public sealed class Combatant : Entity
     /// </summary>
     public bool HasTalent(int talentId) => Info.Talents.Any(t => new FSLID(t.Id).NativeId == talentId);
 
-    // Auras (prepull buffs)
+    /// <summary>Buffs and debuffs active on the player at combatantinfo time.</summary>
     public IReadOnlyList<Aura> Auras => Info.Auras;
 
-    // Weapon traits
+    /// <summary>The player's unlocked weapon tree traits and their point allocations.</summary>
     public IReadOnlyList<WeaponTrait> WeaponTraits => Info.WeaponTraits;
 
     private Item? GetSlot(GearSlot slot) => _gear.GetValueOrDefault(slot);
@@ -145,16 +186,37 @@ public sealed class Combatant : Entity
 /// </summary>
 public sealed record CombatantStats
 {
+    /// <summary>The player's health rating, copied from the combatantinfo.</summary>
     public int Health { get; init; }
+
+    /// <summary>The player's mana rating, copied from the combatantinfo.</summary>
     public int Mana { get; init; }
+
+    /// <summary>The player's strength rating, copied from the combatantinfo.</summary>
     public int Strength { get; init; }
+
+    /// <summary>The player's agility rating, copied from the combatantinfo.</summary>
     public int Agility { get; init; }
+
+    /// <summary>The player's intellect rating, copied from the combatantinfo.</summary>
     public int Intellect { get; init; }
+
+    /// <summary>The player's stamina rating, copied from the combatantinfo.</summary>
     public int Stamina { get; init; }
+
+    /// <summary>The player's armor rating, copied from the combatantinfo.</summary>
     public int Armor { get; init; }
+
+    /// <summary>The player's critical strike rating, copied from the combatantinfo.</summary>
     public int Crit { get; init; }
+
+    /// <summary>The player's haste rating, copied from the combatantinfo.</summary>
     public int Haste { get; init; }
+
+    /// <summary>The player's expertise rating, copied from the combatantinfo.</summary>
     public int Expertise { get; init; }
+
+    /// <summary>The player's spirit rating, copied from the combatantinfo.</summary>
     public int Spirit { get; init; }
 
     /// <summary>

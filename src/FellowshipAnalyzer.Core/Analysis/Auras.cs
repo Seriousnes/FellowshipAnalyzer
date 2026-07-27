@@ -5,6 +5,7 @@ namespace FellowshipAnalyzer.Core.Analysis;
 /// </summary>
 public sealed record SpellbookAura
 {
+    /// <summary>The FSLID of the spell whose buff or debuff this aura tracks.</summary>
     public required int SpellId { get; init; }
 
     /// <summary>
@@ -19,8 +20,6 @@ public sealed record SpellbookAura
 /// </summary>
 public abstract class Auras : Analyzer
 {
-    private IReadOnlySet<int>? _timelineHighlightedIds;
-
     /// <summary>Returns all auras registered for this hero.</summary>
     public abstract IEnumerable<SpellbookAura> GetAuras();
 
@@ -29,7 +28,7 @@ public abstract class Auras : Analyzer
     /// Computed once on first access.
     /// </summary>
     public IReadOnlySet<int> TimelineHighlightedIds =>
-        _timelineHighlightedIds ??= GetAuras()
+        field ??= GetAuras()
             .Where(a => a.TimelineHighlight)
             .Select(a => a.SpellId)
             .ToHashSet();

@@ -121,7 +121,10 @@ public sealed class TalentIdConstantsGenerator : IIncrementalGenerator
         sb.AppendLine("public static class " + className);
         sb.AppendLine("{");
         foreach (var c in info.Consts)
+        {
+            sb.AppendLine("    /// <summary>Native talent id of <c>" + c.Name + "</c>.</summary>");
             sb.AppendLine("    public const int " + c.Name + " = " + c.Id.ToString(CultureInfo.InvariantCulture) + ";");
+        }
         sb.AppendLine("}");
 
         ctx.AddSource(className + ".g.cs", sb.ToString());

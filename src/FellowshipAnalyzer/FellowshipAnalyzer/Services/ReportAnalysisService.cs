@@ -61,9 +61,6 @@ public sealed class ReportAnalysisService(
         loadingTracker.FetchEventsState = ReportLoadingTracker.StepState.Loading;
         await Task.Yield();
 
-        // Fetch the preload first so we can determine which hero is being analyzed.
-        // Knowing the hero lets us short-circuit WIP heroes (no GuideComponent registered)
-        // *before* paying for the events fetch / deserialize / analysis.
         var preload = await fellowshipLogs.GetAnalysisPreloadAsync(reportCode);
         var reportInfo = preload.ReportInfo;
         masterDataService.Load(preload.MasterData);
@@ -87,8 +84,6 @@ public sealed class ReportAnalysisService(
         var fightStartTime = (int)fight.StartTime;
         var fightEndTime = (int)fight.EndTime;
 
-        // WIP short-circuit: hero has no implemented analysis. Skip the events API call,
-        // skip deserialization and analysis entirely. The host renders a WIP placeholder.
         if (analyzer.GuideComponent is null)
         {
             loadingTracker.FetchEventsState = ReportLoadingTracker.StepState.Ok;
@@ -106,9 +101,6 @@ public sealed class ReportAnalysisService(
                 fightEndTime);
         }
 
-        // Local cache check is fast (IndexedDB); on a miss, fetch raw UTF-8 JSON bytes only —
-        // defer deserialization to its own step so we can measure network I/O vs JSON parsing
-        // separately, and cache the network bytes verbatim.
         var sw = Stopwatch.StartNew();
         logger.LogInformation(
             "RunAsync events fetch starting reportCode={ReportCode} fightId={FightId} playerId={PlayerId}",
@@ -126,14 +118,11 @@ public sealed class ReportAnalysisService(
 
         if (cachedEventsBytes is not null)
         {
-            // Cached entries already hold the merged player-events + deaths stream.
             eventsResultJsonBytes = cachedEventsBytes;
             isFreshFromNetwork = false;
         }
         else
         {
-            // Player-scoped events and the fight-scoped death stream are fetched concurrently, then
-            // merged into a single stream (deaths query is the single source of truth for deaths).
             logger.LogInformation("RunAsync network fetch starting t={ElapsedMs}ms", sw.ElapsedMilliseconds);
             var eventsFetch = fellowshipLogs.GetRawEventsAsync(reportCode, playerId, fightId);
             var deathsFetch = fellowshipLogs.GetRawDeathsAsync(reportCode, fightId);
@@ -170,8 +159,6 @@ public sealed class ReportAnalysisService(
         loadingTracker.PrepareDisplayState = ReportLoadingTracker.StepState.Loading;
         await Task.Yield();
 
-        // Cache only fresh, completed network responses — never overwrite from a cache-hit path,
-        // and never cache an in-progress fight (which may still be receiving events).
         if (isFreshFromNetwork && !eventsResult.InProgress && events.Count > 0)
         {
             var entry = new ReportHistoryEntry(

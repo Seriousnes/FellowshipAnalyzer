@@ -1,5 +1,5 @@
 @using ApexCharts
-@inherits ReportComponentBase
+@inherits ReportComponent
 
 <div class="resource-graph">
     <ApexChart TItem="GraphPoint"
@@ -83,8 +83,6 @@
         {
             var x = e.Timestamp - FightStartTime;
 
-            // Insert the pre-event value at the same timestamp so linear interpolation
-            // renders a vertical step at the moment of the change.
             var valueBefore = e.Kind == ResourceEventKind.Gain
                 ? e.CurrentAfter - e.Amount
                 : e.CurrentAfter + e.Amount;

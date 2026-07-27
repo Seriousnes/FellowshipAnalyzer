@@ -28,7 +28,6 @@ public sealed class RekindlingFlamesAnalyzerTests
     [Fact]
     public async Task DeathWithoutEngulfingFlamesWindows_IsIgnored()
     {
-        // The enemy carries a non-Engulfing-Flames debuff, so the effect-id filter must reject the death.
         var analyzer = await Analyze(
             Combatant(),
             ApplyDebuff(1000, EnemyId, EnemyInstance, Spells.SearingBlazeDot.FSLID),
@@ -43,8 +42,6 @@ public sealed class RekindlingFlamesAnalyzerTests
     [Fact]
     public async Task SingleWindowDeath_ReducesRunningCooldownFully()
     {
-        // Engulfing Flames on cooldown with one charge in flight; one open DoT window requests 10s and
-        // the running cooldown has more than that remaining, so all of it lands.
         var analyzer = await Analyze(
             Combatant(),
             Cast(Spells.EngulfingFlames.FSLID, 1000),
@@ -60,9 +57,6 @@ public sealed class RekindlingFlamesAnalyzerTests
     [Fact]
     public async Task ManyWindowsDeath_OverflowsChargeCap_IsWasted()
     {
-        // Both charges spent, so 40s of cooldown is reducible at most. Six open windows request 60s at a
-        // death 10s after the casts (10s remains on the first charge, a full 20s on the second), so 30s
-        // lands and 30s overflows.
         var analyzer = await Analyze(
             Combatant(),
             Cast(Spells.EngulfingFlames.FSLID, 1000),

@@ -20,7 +20,12 @@ public sealed class RimeAuras : Auras
             },
             new()
             {
-                SpellId = Spells.WrathOfWinterBuff.FSLID,              
+                SpellId = Spells.WrathOfWinterBuff.FSLID,
+                TimelineHighlight = true
+            },
+            new()
+            {
+                SpellId = Spells.IceBlitzBuff.FSLID,
                 TimelineHighlight = true
             },
         ];

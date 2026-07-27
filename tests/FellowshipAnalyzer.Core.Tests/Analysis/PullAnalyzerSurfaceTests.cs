@@ -35,14 +35,13 @@ public sealed class PullAnalyzerSurfaceTests
         };
         var events = new List<Event>
         {
-            Buff(150), Buff(250),               // pull 0
-            Buff(400),                          // gap — no pull open
-            Buff(550), Buff(600), Buff(650),    // pull 1
+            Buff(150), Buff(250),
+            Buff(400),
+            Buff(550), Buff(600), Buff(650),
         };
 
         await parser.Analyze(events, playerId: 7, fight: Fight(pulls));
 
-        // Cross-pull index: parser.{Analyzer}s
         Assert.Equal(2, parser.PullBuffAnalyzers.Count);
         var (pull0, a0) = (parser.PullBuffAnalyzers[0].Pull, parser.PullBuffAnalyzers[0].Analyzer);
         var (pull1, a1) = (parser.PullBuffAnalyzers[1].Pull, parser.PullBuffAnalyzers[1].Analyzer);
@@ -53,15 +52,12 @@ public sealed class PullAnalyzerSurfaceTests
         Assert.Equal(2, a0.FightCountAtEnd);
         Assert.Equal(6, a1.FightCountAtEnd);
 
-        // Per-pull extension property: pull.{Analyzer}
         Assert.Same(a0, pull0.PullBuffAnalyzer);
         Assert.Same(a1, pull1.PullBuffAnalyzer);
 
-        // Per-pull view: parser.For(pull).{Analyzer}
         Assert.Same(a0, parser.For(pull0).PullBuffAnalyzer);
         Assert.Same(a1, parser.For(pull1).PullBuffAnalyzer);
 
-        // Untyped base list still populated.
         Assert.Equal(2, parser.PullAnalyzers.Count);
     }
 
@@ -109,6 +105,36 @@ public sealed class PullAnalyzerSurfaceTests
         parser.SelectedPull = null;
         Assert.Equal(2, parser.PullBuffAnalyzers.Count);
         Assert.Equal(2, parser.PullAnalyzers.Count);
+    }
+
+    [Fact]
+    public async Task EachAnalysis_ResolvesItsOwnParser_SoOneReportsSurfacesNeverShowAnothers()
+    {
+        var services = new ServiceCollection();
+        services.AddLogging();
+        services.AddCoreAnalysisServices();
+        services.AddCoreAnalysis();
+        services.AddPullSurfaceAnalysis();
+        using var provider = services.BuildServiceProvider();
+        using var scope = provider.CreateScope();
+
+        var first = scope.ServiceProvider.GetRequiredService<PullSurfaceCombatLogParser>();
+        var second = scope.ServiceProvider.GetRequiredService<PullSurfaceCombatLogParser>();
+        Assert.NotSame(first, second);
+
+        var firstFight = Fight([
+            new(Id: 1, EncounterId: 0, Kill: null, StartTime: 100, EndTime: 300, Name: "Trash", EnemyNpcs: null),
+        ]);
+        var secondFight = Fight([
+            new(Id: 2, EncounterId: 42, Kill: true, StartTime: 100, EndTime: 300, Name: "Boss", EnemyNpcs: null),
+            new(Id: 3, EncounterId: 43, Kill: true, StartTime: 500, EndTime: 700, Name: "Boss Two", EnemyNpcs: null),
+        ]);
+
+        await first.Analyze([Buff(150)], playerId: 7, fight: firstFight);
+        await second.Analyze([Buff(150), Buff(550)], playerId: 7, fight: secondFight);
+
+        Assert.Equal(["Trash"], first.PullBuffAnalyzers.Select(entry => entry.Pull.Name));
+        Assert.Equal(["Boss", "Boss Two"], second.PullBuffAnalyzers.Select(entry => entry.Pull.Name));
     }
 
     [Fact]

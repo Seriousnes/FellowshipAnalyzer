@@ -24,9 +24,9 @@ public sealed partial class PullLifecycleTests
         };
         var events = new List<Event>
         {
-            Buff(150), Buff(250),               // inside pull 0
-            Buff(400),                          // in the gap between pulls — no pull open
-            Buff(550), Buff(600), Buff(650),    // inside pull 1
+            Buff(150), Buff(250),
+            Buff(400),
+            Buff(550), Buff(600), Buff(650),
         };
 
         var parser = CreateParser();
@@ -61,9 +61,9 @@ public sealed partial class PullLifecycleTests
         };
         var events = new List<Event>
         {
-            Buff(150), Buff(200),   // pull A window
-            Buff(300),              // shared boundary timestamp (A.End == B.Start)
-            Buff(400),              // pull B window
+            Buff(150), Buff(200),
+            Buff(300),
+            Buff(400),
         };
 
         var parser = CreateParser();

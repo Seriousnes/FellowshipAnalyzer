@@ -44,10 +44,6 @@ public sealed partial class StatTrackerCooldownTests
             StartTime: 0, EndTime: 60_000, Difficulty: null,
             FriendlyPlayers: null, FightPercentage: null);
 
-    // -------------------------------------------------------------------------
-    // Combatant: resolving gem power into unlocked ranks (no parser needed)
-    // -------------------------------------------------------------------------
-
     [Theory]
     [InlineData(0, 0.0)]
     [InlineData(449, 0.0)]
@@ -69,10 +65,6 @@ public sealed partial class StatTrackerCooldownTests
         Assert.Equal(0.12, combatant.Stats.AbilityCooldownReduction.Total(null), precision: 6);
         Assert.NotEqual(0.16, combatant.Stats.AbilityCooldownReduction.Total(null), precision: 6);
     }
-
-    // -------------------------------------------------------------------------
-    // CooldownModifierSet / CooldownScope: scope semantics
-    // -------------------------------------------------------------------------
 
     [Fact]
     public void SpellScopedModifier_AppliesOnlyToAMatchingAbility()
@@ -151,10 +143,6 @@ public sealed partial class StatTrackerCooldownTests
         Assert.Equal(0.05, set.Total(null), precision: 6);
     }
 
-    // -------------------------------------------------------------------------
-    // StatTracker: the additive pools
-    // -------------------------------------------------------------------------
-
     /// <summary>
     /// The gear seed (0.12) and a runtime modifier (0.10) sum to 0.22 on the current total, while the
     /// starting total keeps reporting the seed alone.
@@ -180,10 +168,6 @@ public sealed partial class StatTrackerCooldownTests
         spellUsable.BeginCooldown(SpellA, timestamp: 1000);
         Assert.Equal(0, spellUsable.CooldownRemaining(SpellA, atTimestamp: 1000));
     }
-
-    // -------------------------------------------------------------------------
-    // StatTracker: change events
-    // -------------------------------------------------------------------------
 
     /// <summary>
     /// Adding a modifier during dispatch fabricates a <see cref="ChangeCooldownModifierEvent"/> carrying
@@ -257,10 +241,6 @@ public sealed partial class StatTrackerCooldownTests
         Assert.Equal(10_000, spellUsable.CooldownRemaining(SpellB, atTimestamp: 3000));
     }
 
-    // -------------------------------------------------------------------------
-    // StatTracker: buff-driven registration
-    // -------------------------------------------------------------------------
-
     /// <summary>
     /// A registered <see cref="CooldownBuff"/> joins both pools when the buff applies: ACR 0.10 and
     /// CDA 0.50, taking SpellA's recovery rate to 1.5.
@@ -293,10 +273,6 @@ public sealed partial class StatTrackerCooldownTests
         Assert.Equal(0.0, statTracker.CurrentCooldownAcceleration(null), precision: 6);
         Assert.Equal(1.0, spellUsable.EffectiveRate(SpellA), precision: 6);
     }
-
-    // -------------------------------------------------------------------------
-    // SpellUsable: applying the pools
-    // -------------------------------------------------------------------------
 
     [Fact]
     public async Task AbilityCooldownReduction_ShortensBaseCooldown()
@@ -405,10 +381,6 @@ public sealed partial class StatTrackerCooldownTests
 
         Assert.Equal(8800 / 9, spellUsable.CooldownRemaining(SpellA, atTimestamp: 1000));
     }
-
-    // -------------------------------------------------------------------------
-    // Test infrastructure
-    // -------------------------------------------------------------------------
 
     private static async Task<(StatTracker statTracker, SpellUsable spellUsable, TestParser parser)> Run(
         int emerald = 0,
@@ -539,7 +511,7 @@ public sealed partial class StatTrackerCooldownTests
     }
 
     /// <summary>Registers a <see cref="CooldownBuff"/> on <see cref="StatTracker"/> before dispatch
-    /// starts, standing in for the analyzer that would own the buff in a hero module.</summary>
+    /// starts, in place of the analyzer that would own the buff in a hero module.</summary>
     private sealed class CooldownBuffRegistrar(Lazy<StatTracker> statTracker) : Analyzer
     {
         public int SpellId { get; init; }

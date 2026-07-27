@@ -5,10 +5,6 @@ using Microsoft.JSInterop;
 
 namespace FellowshipAnalyzer.Core.UI.Theming;
 
-/// <summary>
-/// Source-generated metadata for the persisted override map. The theme service ships to the
-/// WebAssembly client, which AOT-compiles, so its persistence must not reflect.
-/// </summary>
 [JsonSerializable(typeof(Dictionary<string, string>))]
 internal sealed partial class ThemeJsonContext : JsonSerializerContext;
 

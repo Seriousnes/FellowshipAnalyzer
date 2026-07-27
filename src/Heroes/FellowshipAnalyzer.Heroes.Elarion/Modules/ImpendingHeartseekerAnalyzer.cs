@@ -2,83 +2,72 @@ using FellowshipAnalyzer.Core.Analysis;
 using FellowshipAnalyzer.Core.Common.Spells.Elarion;
 using FellowshipAnalyzer.Core.Events;
 
+using ElarionTalents = FellowshipAnalyzer.Core.Common.Spells.ElarionTalents;
+
 namespace FellowshipAnalyzer.Heroes.Elarion.Modules;
 
-/// <summary>
-/// Tracks Impending Heartseeker proc lifecycle within a pull: gains, refreshes, consumptions, and
-/// expirations. Procs last 15s; a second proc resets the first timer. Expired procs are wasted
-/// procs. Proc management is shape-agnostic, so this runs on every pull shape.
-/// </summary>
 [ForPull(PullKind.Single | PullKind.Multi)]
+[RequiresTalent(ElarionTalents.ImpendingHeartseeker)]
 public sealed partial class ImpendingHeartseekerAnalyzer : Analyzer
 {
-    private const int ProcDurationMs = 15_000;
-    private const int ExpiryToleranceMs = 250;
+    public const int ConsumeWindowMs = 150;
 
-    private readonly List<ProcEvent> _events = [];
-    private int? _activeStartTimestamp;
-    private int _activeStacks;
+    private readonly List<BarrageCast> _barrageCasts = [];
 
-    public IReadOnlyList<ProcEvent> Procs => _events;
-    public int Gains => _events.Count(p => p.Kind == ProcKind.Gain);
-    public int Refreshes => _events.Count(p => p.Kind == ProcKind.Refresh);
-    public int Consumed => _events.Count(p => p.Kind == ProcKind.Consumed);
-    public int Expired => _events.Count(p => p.Kind == ProcKind.Expired);
+    public int ProcsGained { get; private set; }
+
+    public int ProcsConsumed { get; private set; }
+
+    public int ProcsExpired { get; private set; }
+
+    public int PullDurationMs => Math.Max(0, Pull.EndTime - Pull.StartTime);
+
+    [On<CastEvent>(By = Actor.Player, Spell = nameof(Spells.HeartseekerBarrage))]
+    private void OnBarrageCast(CastEvent e) => _barrageCasts.Add(new BarrageCast(e.Timestamp));
 
     [On<ApplyBuffEvent>(To = Actor.Player, Spell = nameof(Spells.ImpendingHeartseeker))]
-    private void OnApply(ApplyBuffEvent e)
-    {
-        _activeStartTimestamp = e.Timestamp;
-        _activeStacks = 1;
-        _events.Add(new ProcEvent(e.Timestamp, ProcKind.Gain, _activeStacks));
-    }
+    private void OnBuffApplied(ApplyBuffEvent e) => ProcsGained++;
 
     [On<ApplyBuffStackEvent>(To = Actor.Player, Spell = nameof(Spells.ImpendingHeartseeker))]
-    private void OnApplyStack(ApplyBuffStackEvent e)
-    {
-        _activeStartTimestamp = e.Timestamp;
-        _activeStacks = e.Stack;
-        _events.Add(new ProcEvent(e.Timestamp, ProcKind.Gain, _activeStacks));
-    }
-
-    [On<RefreshBuffEvent>(To = Actor.Player, Spell = nameof(Spells.ImpendingHeartseeker))]
-    private void OnRefresh(RefreshBuffEvent e)
-    {
-        _activeStartTimestamp = e.Timestamp;
-        _events.Add(new ProcEvent(e.Timestamp, ProcKind.Refresh, _activeStacks));
-    }
+    private void OnBuffStackApplied(ApplyBuffStackEvent e) => ProcsGained++;
 
     [On<RemoveBuffStackEvent>(To = Actor.Player, Spell = nameof(Spells.ImpendingHeartseeker))]
-    private void OnRemoveStack(RemoveBuffStackEvent e)
-    {
-        _activeStacks = e.Stack;
-        var kind = IsExpiry(e.Timestamp) ? ProcKind.Expired : ProcKind.Consumed;
-        _events.Add(new ProcEvent(e.Timestamp, kind, _activeStacks));
-    }
+    private void OnBuffStackRemoved(RemoveBuffStackEvent e) => ClassifyRemoval(e.Timestamp);
 
     [On<RemoveBuffEvent>(To = Actor.Player, Spell = nameof(Spells.ImpendingHeartseeker))]
-    private void OnRemove(RemoveBuffEvent e)
+    private void OnBuffRemoved(RemoveBuffEvent e) => ClassifyRemoval(e.Timestamp);
+
+    private void ClassifyRemoval(int timestamp)
     {
-        var kind = IsExpiry(e.Timestamp) ? ProcKind.Expired : ProcKind.Consumed;
-        _events.Add(new ProcEvent(e.Timestamp, kind, 0));
-        _activeStartTimestamp = null;
-        _activeStacks = 0;
+        if (ClaimCast(timestamp))
+            ProcsConsumed++;
+        else
+            ProcsExpired++;
     }
 
-    private bool IsExpiry(int now)
+    private bool ClaimCast(int timestamp)
     {
-        if (_activeStartTimestamp is not int start) return false;
-        var elapsed = now - start;
-        return elapsed >= ProcDurationMs - ExpiryToleranceMs;
+        for (var i = _barrageCasts.Count - 1; i >= 0; i--)
+        {
+            var cast = _barrageCasts[i];
+            var elapsed = timestamp - cast.Timestamp;
+            if (elapsed > ConsumeWindowMs)
+                break;
+
+            if (elapsed < 0 || cast.Claimed)
+                continue;
+
+            cast.Claimed = true;
+            return true;
+        }
+
+        return false;
     }
 
-    public readonly record struct ProcEvent(int Timestamp, ProcKind Kind, int Stacks);
-
-    public enum ProcKind
+    private sealed class BarrageCast(int timestamp)
     {
-        Gain,
-        Refresh,
-        Consumed,
-        Expired,
+        public int Timestamp { get; } = timestamp;
+
+        public bool Claimed { get; set; }
     }
 }

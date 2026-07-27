@@ -11,8 +11,10 @@ namespace FellowshipAnalyzer.Core.Events;
 [Fabricated]
 public sealed class PullEndEvent : Event
 {
+    /// <inheritdoc/>
     public override bool? Fabricated => true;
 
+    /// <summary>The pull that just ended.</summary>
     [JsonIgnore]
     public Pull Pull { get; init; } = null!;
 }

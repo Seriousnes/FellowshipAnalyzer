@@ -3,10 +3,13 @@
 
 .stat-card {
     @include mx.card-surface;
+    position: relative;
     overflow: visible;
-    margin-bottom: 16px;
     display: flex;
     flex-direction: column;
+
+    &:hover,
+    &:focus-within { z-index: 5; }
 
     &.stat-card-small  { min-height: 100px; }
     &.stat-card-medium { min-height: 140px; }
@@ -29,6 +32,10 @@
     border-bottom: 1px solid var(--fa-border);
     border-radius: var(--fa-radius-md) var(--fa-radius-md) 0 0;
     background: var(--fa-raise);
+}
+
+.stat-card-header-inset {
+    padding-right: 30px;
 }
 
 .stat-card-heading {
@@ -64,6 +71,17 @@
 }
 
 .stat-card-body {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-content: start;
+    row-gap: 0;
     padding: 4px 14px 12px;
     flex: 1 1 auto;
+
+    ::deep > * { grid-column: 1 / -1; }
+
+    ::deep > .stat-row {
+        grid-column: span 2;
+        grid-template-columns: subgrid;
+    }
 }

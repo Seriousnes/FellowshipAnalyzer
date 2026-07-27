@@ -59,6 +59,28 @@ public class ParserGeneratorTests
     }
 
     [Fact]
+    public void ForPull_WithRequiresTalent_AppendsTalentGate()
+    {
+        var result = ParserGeneratorTestHarness.Run(
+            OneAnalyzer("[ForPull(PullKind.Single)]\n[RequiresTalent(422)]"));
+
+        result.ConcatenatedGenerated.ShouldContain(
+            $"if ((pull.Targets & ({PullKindFqn}.Single)) != 0 && SelectedCombatant.HasTalent(422)) __analyzers.Add(typeof(global::Test.ComboAnalyzer));");
+        AssertNoErrors(result);
+    }
+
+    [Fact]
+    public void ForPull_WithSeveralRequiresTalent_AndsEveryTalentGate()
+    {
+        var result = ParserGeneratorTestHarness.Run(
+            OneAnalyzer("[ForPull(PullKind.Multi, Boss = PullBoss.Boss)]\n[RequiresTalent(422)]\n[RequiresTalent(443)]"));
+
+        result.ConcatenatedGenerated.ShouldContain(
+            "!= 0 && pull.IsBoss && SelectedCombatant.HasTalent(422) && SelectedCombatant.HasTalent(443)) __analyzers.Add(typeof(global::Test.ComboAnalyzer));");
+        AssertNoErrors(result);
+    }
+
+    [Fact]
     public void AnalyzerSurface_EmitsTypedIndex_AndThreeReadPaths()
     {
         var result = ParserGeneratorTestHarness.Run(OneAnalyzer("[ForPull(PullKind.Single)]"));
@@ -75,6 +97,19 @@ public class ParserGeneratorTests
         gen.ShouldContain($"public readonly struct ComboPullView({PullFqn} pull)");
         gen.ShouldContain($"extension({PullFqn} pull)");
         gen.ShouldContain("public global::Test.ComboAnalyzer? ComboAnalyzer => (global::Test.ComboAnalyzer?)pull.GetAnalyzer(typeof(global::Test.ComboAnalyzer));");
+        AssertNoErrors(result);
+    }
+
+    [Fact]
+    public void HeroParser_IsRegisteredTransient_SoEachAnalysisGetsItsOwnInstance()
+    {
+        var result = ParserGeneratorTestHarness.Run(HeroParser());
+        var gen = result.ConcatenatedGenerated;
+
+        gen.ShouldContain("services.AddTransient<ComboCombatLogParser>();");
+        gen.ShouldContain("services.AddKeyedTransient<IHeroAnalyzer>(global::FellowshipAnalyzer.Core.Analysis.HeroName.Rime, (sp, _) => sp.GetRequiredService<ComboCombatLogParser>());");
+        gen.ShouldNotContain("AddScoped");
+        gen.ShouldNotContain("AddKeyedScoped");
         AssertNoErrors(result);
     }
 
@@ -133,6 +168,24 @@ public class ParserGeneratorTests
         }
 
         {{forPull}}
+        public sealed partial class ComboAnalyzer : Analyzer
+        {
+            public int Count { get; private set; }
+
+            [On<ApplyBuffEvent>]
+            private void OnBuff(ApplyBuffEvent e) => Count++;
+        }
+        """;
+
+    private static string HeroParser() => Usings + """
+
+        namespace Test;
+
+        [HeroAnalyzer(HeroName.Rime)]
+        [AddAnalyzer<ComboAnalyzer>]
+        public sealed partial class ComboCombatLogParser : CombatLogParser { }
+
+        [ForPull(PullKind.Single)]
         public sealed partial class ComboAnalyzer : Analyzer
         {
             public int Count { get; private set; }
@@ -259,7 +312,7 @@ public class ParserGeneratorTests
         }
 
         [ForPull(PullKind.Single)]
-        [Uses<DepModule>]
+        [Dependency<DepModule>]
         public sealed partial class ConsumerAnalyzer : Analyzer
         {
             [On<ApplyBuffEvent>]
@@ -290,7 +343,7 @@ public class ParserGeneratorTests
         }
 
         [ForPull(PullKind.Single)]
-        [Uses<DepModule>]
+        [Dependency<DepModule>]
         public sealed partial class ConflictAnalyzer(Lazy<OtherDep> other) : Analyzer
         {
             [On<ApplyBuffEvent>]
@@ -322,8 +375,8 @@ public class ParserGeneratorTests
         }
 
         [ForPull(PullKind.Single)]
-        [Uses<OtherDep>]
-        [Uses<DepModule>]
+        [Dependency<OtherDep>]
+        [Dependency<DepModule>]
         public sealed partial class MultiAnalyzer : Analyzer
         {
             [On<ApplyBuffEvent>]

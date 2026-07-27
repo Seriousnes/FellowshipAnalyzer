@@ -1,8 +1,3 @@
-@* StatisticsPanel — a statistics grid that packs cards vertically (WoWAnalyzer-style).
-   Renders a native CSS grid so Wide/UltraWide column spans are pure CSS; a JS module
-   sets each card's row span from its measured height so short cards pack up under
-   taller neighbours. Degrades to a plain content-height grid if the module never loads. *@
-
 @using Microsoft.JSInterop
 @inject IJSRuntime JS
 @implements IAsyncDisposable

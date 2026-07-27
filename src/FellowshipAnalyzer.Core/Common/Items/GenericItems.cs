@@ -6,5 +6,4 @@ namespace FellowshipAnalyzer.Core.Common.Items;
 /// </summary>
 public class GenericItems : IItemRegistry
 {
-    /// <summary>Placeholder — add shared cross-hero items here.</summary>
 }

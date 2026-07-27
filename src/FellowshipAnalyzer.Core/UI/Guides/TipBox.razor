@@ -1,5 +1,3 @@
-@* TipBox — bordered callout (info / note / success / warning / error). *@
-
 @{
     var variantClass = Variant.ToString().ToLowerInvariant();
     var role = Variant is TipBoxVariant.Warning or TipBoxVariant.Error ? "alert" : "note";

@@ -33,7 +33,10 @@ public partial class CooldownScope : OneOfBase<Spell[], AbilityCategory[], Func<
 /// </summary>
 public enum CooldownPool
 {
+    /// <summary>A snapshot fraction applied as <c>effective = base * (1 - acr)</c> at cast time.</summary>
     AbilityCooldownReduction,
+
+    /// <summary>A dynamic term folded into the shared recovery rate that <see cref="SpellUsable.EffectiveRate"/> divides by.</summary>
     CooldownAcceleration,
 }
 

@@ -1,8 +1,3 @@
-// The splash screen is a separate render-blocking stylesheet, linked before
-// app.css. It reads the same custom properties app.css declares: var() resolves
-// at computed-value time, so a :root block in the later sheet still feeds this
-// one, and a theme change at runtime reaches the splash.
-
 @use 'tokens' as t;
 
 $fa-splash-fade-ms: 150ms;

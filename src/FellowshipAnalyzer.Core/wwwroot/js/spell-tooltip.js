@@ -123,7 +123,6 @@ async function show(anchor) {
         }
     }
 
-    // Only render if still hovering the same target
     if (currentTarget !== anchor) return;
 
     render(html);
@@ -142,20 +141,17 @@ function render(html) {
 }
 
 function position(anchor) {
-    // Reset position so we can measure the tooltip's natural size
     container.style.left = '0px';
     container.style.top = '0px';
 
     const r = anchor.getBoundingClientRect();
     const tr = container.getBoundingClientRect();
 
-    // Prefer above the element; fall back to below if insufficient space
     let top = r.top - tr.height - GAP_PX;
     if (top < GAP_PX) {
         top = r.bottom + GAP_PX;
     }
 
-    // Center horizontally, clamped to viewport
     let left = r.left + r.width / 2 - tr.width / 2;
     left = Math.max(GAP_PX, Math.min(left, window.innerWidth - tr.width - GAP_PX));
     top = Math.max(GAP_PX, Math.min(top, window.innerHeight - tr.height - GAP_PX));

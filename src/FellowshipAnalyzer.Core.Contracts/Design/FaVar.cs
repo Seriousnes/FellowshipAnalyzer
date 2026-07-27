@@ -8,8 +8,6 @@ namespace FellowshipAnalyzer.Core.Contracts.Design;
 /// </summary>
 public static class FaVar
 {
-    /* Base palette */
-
     /// <summary><c>var(--fa-white)</c>.</summary>
     public static readonly string White = FaToken.Var(nameof(FaPalette.White));
 
@@ -28,15 +26,11 @@ public static class FaVar
     /// <summary><c>var(--fa-stone)</c>.</summary>
     public static readonly string Stone = FaToken.Var(nameof(FaPalette.Stone));
 
-    /* Brand artwork */
-
     /// <summary><c>var(--fa-brand-cream)</c>.</summary>
     public static readonly string BrandCream = FaToken.Var(nameof(FaPalette.BrandCream));
 
     /// <summary><c>var(--fa-brand-gold)</c>.</summary>
     public static readonly string BrandGold = FaToken.Var(nameof(FaPalette.BrandGold));
-
-    /* Foreground and intent */
 
     /// <summary><c>var(--fa-fg-neutral)</c>.</summary>
     public static readonly string FgNeutral = FaToken.Var(nameof(FaPalette.FgNeutral));
@@ -46,8 +40,6 @@ public static class FaVar
 
     /// <summary><c>var(--fa-danger)</c>.</summary>
     public static readonly string Danger = FaToken.Var(nameof(FaPalette.Danger));
-
-    /* Performance tiers */
 
     /// <summary><c>var(--fa-perf-perfect)</c>.</summary>
     public static readonly string PerfPerfect = FaToken.Var(nameof(FaPalette.PerfPerfect));
@@ -61,8 +53,6 @@ public static class FaVar
     /// <summary><c>var(--fa-perf-fail)</c>.</summary>
     public static readonly string PerfFail = FaToken.Var(nameof(FaPalette.PerfFail));
 
-    /* Hero roles */
-
     /// <summary><c>var(--fa-role-tank)</c>.</summary>
     public static readonly string RoleTank = FaToken.Var(nameof(FaPalette.RoleTank));
 
@@ -74,8 +64,6 @@ public static class FaVar
 
     /// <summary><c>var(--fa-role-unknown)</c>.</summary>
     public static readonly string RoleUnknown = FaToken.Var(nameof(FaPalette.RoleUnknown));
-
-    /* Hero identity */
 
     /// <summary><c>var(--fa-hero-aeona)</c>.</summary>
     public static readonly string HeroAeona = FaToken.Var(nameof(FaPalette.HeroAeona));

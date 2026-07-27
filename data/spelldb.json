@@ -678,7 +678,10 @@
       "id": 1301,
       "name": "Celestial Shot",
       "icon": "Bowguy_Shot.jpg",
-      "abilityCategory": "Basic"
+      "abilityCategory": "Basic",
+      "costs": {
+        "primary": 15
+      }
     },
     "CelestialShotCost": {
       "kind": "effect",
@@ -691,6 +694,14 @@
       "id": 1864,
       "name": "",
       "icon": ""
+    },
+    "CelestialVeil": {
+      "kind": "ability",
+      "id": 1302,
+      "name": "Celestial Veil",
+      "icon": "Bowguy_Abilityicon_Defensive.jpg",
+      "abilityCategory": "Defensive",
+      "cooldown": 30
     },
     "CelestialVeilSelfBuff": {
       "kind": "effect",
@@ -718,19 +729,16 @@
       "name": "Interrupted",
       "icon": "T_Nhance_RPG_Frost_01.jpg"
     },
-    "EmpoweredMultishotBuff": {
-      "kind": "effect",
-      "id": -1,
-      "name": "",
-      "icon": ""
-    },
     "EventHorizon": {
       "kind": "ability",
       "id": 1584,
       "name": "Event Horizon",
       "icon": "Bowguy_Spirit.jpg",
       "abilityCategory": "Spirit",
-      "castDuration": 0.7
+      "castDuration": 0.7,
+      "costs": {
+        "spirit": 100
+      }
     },
     "EventHorizonBuff": {
       "kind": "effect",
@@ -755,6 +763,12 @@
       "id": 2311,
       "name": "",
       "icon": ""
+    },
+    "FinalCrescendoBuff": {
+      "kind": "effect",
+      "id": 2222,
+      "name": "Final Crescendo",
+      "icon": "Bowguy_Ricochet.jpg"
     },
     "FocusedShot": {
       "kind": "ability",
@@ -787,7 +801,8 @@
       "name": "Grappling Arrow",
       "icon": "Bowguy_GrappleShot.jpg",
       "abilityCategory": "Control",
-      "cooldown": 120
+      "cooldown": 120,
+      "charges": 2
     },
     "GrapplingArrowPull": {
       "kind": "effect",
@@ -807,7 +822,10 @@
       "name": "Heartseeker Barrage",
       "icon": "Bowguy_Spray.jpg",
       "abilityCategory": "Power",
-      "cooldown": 20
+      "cooldown": 20,
+      "costs": {
+        "primary": 30
+      }
     },
     "HeartseekerBarrageCost": {
       "kind": "effect",
@@ -834,7 +852,10 @@
       "icon": "Bowguy_Ricochet.jpg",
       "abilityCategory": "Power",
       "cooldown": 15,
-      "charges": 3
+      "charges": 3,
+      "costs": {
+        "primary": 30
+      }
     },
     "HighwindArrowCharges": {
       "kind": "effect",
@@ -873,7 +894,10 @@
       "icon": "Bowguy_Mark.jpg",
       "abilityCategory": "Major",
       "cooldown": 40,
-      "range": 30
+      "range": 30,
+      "costs": {
+        "primary": 20
+      }
     },
     "LunarlightMarkAoeDamage": {
       "kind": "effect",
@@ -904,7 +928,10 @@
       "id": 1318,
       "name": "Multishot",
       "icon": "Bowguy_Multishot.jpg",
-      "abilityCategory": "Core"
+      "abilityCategory": "Core",
+      "costs": {
+        "primary": 20
+      }
     },
     "MultishotCost": {
       "kind": "effect",
@@ -930,12 +957,11 @@
       "name": "",
       "icon": ""
     },
-    "PathfindersResillience": {
-      "kind": "ability",
-      "id": 1302,
-      "name": "Celestial Veil",
-      "icon": "Bowguy_Abilityicon_Defensive.jpg",
-      "cooldown": 30
+    "ResurgentWindsBuff": {
+      "kind": "effect",
+      "id": 2074,
+      "name": "Resurgent Winds",
+      "icon": "T_Icon_Tech_40.jpg"
     },
     "Roll": {
       "kind": "ability",
@@ -969,12 +995,6 @@
       "name": "",
       "icon": ""
     },
-    "SkystriderSupremacySelfBuff": {
-      "kind": "effect",
-      "id": 2009,
-      "name": "Skystrider\u0027s Supremacy",
-      "icon": "Bowguy_Supremacy.jpg"
-    },
     "SkystridersGrace": {
       "kind": "ability",
       "id": 1304,
@@ -995,6 +1015,12 @@
       "icon": "Bowguy_Supremacy.jpg",
       "cooldown": 45
     },
+    "SkystridersSupremacyBuff": {
+      "kind": "effect",
+      "id": 2009,
+      "name": "Skystrider\u0027s Supremacy",
+      "icon": "Bowguy_Supremacy.jpg"
+    },
     "SpiritOfHeroism": {
       "kind": "effect",
       "id": 2253,
@@ -1007,7 +1033,10 @@
       "name": "Starfall Volley",
       "icon": "Bowguy_Rain.jpg",
       "abilityCategory": "Power",
-      "cooldown": 40
+      "cooldown": 40,
+      "costs": {
+        "primary": 30
+      }
     },
     "StarfallVolleyCost": {
       "kind": "effect",
@@ -1190,13 +1219,26 @@
       "name": "",
       "icon": ""
     },
+    "OpenWounds": {
+      "kind": "effect",
+      "id": 3233,
+      "name": "Open Wounds",
+      "icon": "T_Gunde_Rupture.jpg"
+    },
     "OwedInBlood": {
       "kind": "ability",
       "id": 2298,
       "name": "Owed in Blood",
       "icon": "T_Gunde_SanguineFeast.jpg",
       "abilityCategory": "Utility",
+      "cooldown": 3,
       "range": 20
+    },
+    "OwedInBloodAoe": {
+      "kind": "ability",
+      "id": 2280,
+      "name": "Owed in Blood",
+      "icon": "T_Gunde_SanguineFeast.jpg"
     },
     "OwedInBloodSelfBuff": {
       "kind": "effect",
@@ -1252,6 +1294,24 @@
       "name": "Reign in Blood",
       "icon": "T_Gunde_HPDrain.jpg"
     },
+    "Rend": {
+      "kind": "effect",
+      "id": 3231,
+      "name": "Rend",
+      "icon": "T_Status_Bleed.jpg"
+    },
+    "RendDamage": {
+      "kind": "effect",
+      "id": 3229,
+      "name": "Rend",
+      "icon": ""
+    },
+    "RendManager": {
+      "kind": "ability",
+      "id": 2286,
+      "name": "Rend",
+      "icon": "T_Gunde_BloodBuff.jpg"
+    },
     "Rupture": {
       "kind": "ability",
       "id": 2293,
@@ -1265,6 +1325,12 @@
       "id": 3238,
       "name": "",
       "icon": ""
+    },
+    "SerratedEdge": {
+      "kind": "effect",
+      "id": 3232,
+      "name": "Serrated Edge",
+      "icon": "Gunde_Frontal.jpg"
     },
     "Slaughter": {
       "kind": "ability",
@@ -1286,6 +1352,7 @@
       "name": "Warbound",
       "icon": "T_Gunde_Charge.jpg",
       "abilityCategory": "Movement",
+      "cooldown": 8,
       "charges": 2
     },
     "WarboundDamage": {
@@ -1688,13 +1755,22 @@
       "name": "Arachnid Assault",
       "icon": "Mara_SpiderAOE.jpg",
       "abilityCategory": "Power",
-      "range": 8
+      "range": 8,
+      "costs": {
+        "primary": 45
+      }
     },
     "ArachnidAssaultDamage": {
       "kind": "effect",
       "id": 1728,
       "name": "",
       "icon": ""
+    },
+    "AssassinsGuileBuff": {
+      "kind": "effect",
+      "id": 2245,
+      "name": "Assassin\u0027s Guile",
+      "icon": "T_Icon_Shadow_121.jpg"
     },
     "Attack": {
       "kind": "ability",
@@ -1713,7 +1789,10 @@
       "id": 1129,
       "name": "Backstab",
       "icon": "Mara_backstab.jpg",
-      "abilityCategory": "Basic"
+      "abilityCategory": "Basic",
+      "costs": {
+        "primary": 20
+      }
     },
     "BackstabCost": {
       "kind": "effect",
@@ -1744,7 +1823,14 @@
       "id": 1130,
       "name": "Brooding Shadows",
       "icon": "Mara_stealth.jpg",
-      "abilityCategory": "Utility"
+      "abilityCategory": "Utility",
+      "cooldown": 15
+    },
+    "BroodingShadowsBuff": {
+      "kind": "effect",
+      "id": 1591,
+      "name": "Brooding Shadows",
+      "icon": "Mara_stealth.jpg"
     },
     "BroodingShadowsCharges": {
       "kind": "effect",
@@ -1757,6 +1843,18 @@
       "id": 1590,
       "name": "",
       "icon": ""
+    },
+    "DeadlySchemeActive": {
+      "kind": "effect",
+      "id": 2068,
+      "name": "Deadly Scheme: Active",
+      "icon": "Tex_SpellBook08_71.jpg"
+    },
+    "DeadlySchemeStacks": {
+      "kind": "effect",
+      "id": 2434,
+      "name": "Deadly Scheme",
+      "icon": "Tex_SpellBook08_71.jpg"
     },
     "FinalStratagem": {
       "kind": "ability",
@@ -1772,7 +1870,10 @@
       "name": "Hemorrhaging Strike",
       "icon": "Mara_Bleed.jpg",
       "abilityCategory": "Power",
-      "cooldown": 2
+      "cooldown": 2,
+      "costs": {
+        "primary": 20
+      }
     },
     "HemorrhagingStrikeBleed": {
       "kind": "effect",
@@ -1829,7 +1930,8 @@
       "id": 1206,
       "name": "Maiden of Death",
       "icon": "Mara_Maiden.jpg",
-      "abilityCategory": "Major"
+      "abilityCategory": "Major",
+      "cooldown": 60
     },
     "MaidenOfDeathBuff": {
       "kind": "effect",
@@ -1843,12 +1945,27 @@
       "name": "",
       "icon": ""
     },
+    "MalevolenceArachnidAssault": {
+      "kind": "effect",
+      "id": 2431,
+      "name": "Malevolence: Arachnid Assault",
+      "icon": "Mara_SpiderAOE.jpg"
+    },
+    "MalevolenceQueensFang": {
+      "kind": "effect",
+      "id": 2430,
+      "name": "Malevolence: Queen\u0027s Fang",
+      "icon": "Mara_SingleTargetFinisher.jpg"
+    },
     "MatriarchMacabre": {
       "kind": "ability",
       "id": 1420,
       "name": "Matriarch Macabre",
       "icon": "Mara_Spirit.jpg",
-      "abilityCategory": "Spirit"
+      "abilityCategory": "Spirit",
+      "costs": {
+        "spirit": 100
+      }
     },
     "MatriarchMacabreCost": {
       "kind": "effect",
@@ -1867,7 +1984,10 @@
       "id": 1201,
       "name": "Queen\u0027s Fang",
       "icon": "Mara_SingleTargetFinisher.jpg",
-      "abilityCategory": "Power"
+      "abilityCategory": "Power",
+      "costs": {
+        "primary": 40
+      }
     },
     "QueenFangCost": {
       "kind": "effect",
@@ -1900,7 +2020,10 @@
       "id": 1213,
       "name": "Skittering Blades",
       "icon": "Mara_AOEBuilder.jpg",
-      "abilityCategory": "Basic"
+      "abilityCategory": "Basic",
+      "costs": {
+        "primary": 35
+      }
     },
     "SkitteringBladesDamage": {
       "kind": "effect",
@@ -1926,6 +2049,7 @@
       "name": "Stalker Step",
       "icon": "Mara_Stalkerstep.jpg",
       "abilityCategory": "Movement",
+      "cooldown": 30,
       "range": 30,
       "charges": 2
     },
@@ -1966,7 +2090,9 @@
       "id": 1207,
       "name": "Widow\u0027s Bite",
       "icon": "Mara_RegainEnergyHit.jpg",
-      "abilityCategory": "Core"
+      "abilityCategory": "Core",
+      "cooldown": 9,
+      "charges": 3
     },
     "WidowBiteCharge": {
       "kind": "effect",
@@ -2517,6 +2643,12 @@
       "id": 1374,
       "name": "",
       "icon": ""
+    },
+    "FrostweaversWrathBuff": {
+      "kind": "effect",
+      "id": 2305,
+      "name": "Frostweaver\u0027s Wrath",
+      "icon": "T_Icon_Frost_115.jpg"
     },
     "GlacialBlast": {
       "kind": "ability",
@@ -3181,7 +3313,26 @@
       "id": 1929,
       "name": "Heavy Strike",
       "icon": "T_Ink_TimerAbility.jpg",
-      "abilityCategory": "Core"
+      "abilityCategory": "Core",
+      "cooldown": 8
+    },
+    "HeavyStrikeAoeDamage": {
+      "kind": "effect",
+      "id": 1779,
+      "name": "Heavy Strike",
+      "icon": "T_Ink_TimerAbility.jpg"
+    },
+    "HeavyStrikeCleaveDamage": {
+      "kind": "effect",
+      "id": 2755,
+      "name": "Heavy Strike",
+      "icon": "T_Ink_TimerAbility.jpg"
+    },
+    "HeavyStrikeDamage": {
+      "kind": "effect",
+      "id": 1776,
+      "name": "Heavy Strike",
+      "icon": "T_Ink_TimerAbility.jpg"
     },
     "Intimidate": {
       "kind": "ability",
@@ -3264,6 +3415,24 @@
       "id": 1766,
       "name": "Raging Tempest",
       "icon": "T_Nhance_RPG_Energy_16.jpg"
+    },
+    "RisingSpirit": {
+      "kind": "effect",
+      "id": 3115,
+      "name": "Rising Spirit",
+      "icon": "T_Nhance_RPG_Icons_SpiritAmulet.jpg"
+    },
+    "SchismHammerStorm": {
+      "kind": "effect",
+      "id": 1747,
+      "name": "Schism - Hammer Storm",
+      "icon": "T_Ink_Hammerstorm.jpg"
+    },
+    "SchismSkullCrusher": {
+      "kind": "effect",
+      "id": 1746,
+      "name": "Schism - Skull Crusher",
+      "icon": "T_Ink_Skullcrusher.jpg"
     },
     "SkullCrusher": {
       "kind": "ability",
@@ -4018,6 +4187,19 @@
     }
   },
   "items": {
+    "FatedStrike": {
+      "kind": "ability",
+      "id": 160,
+      "name": "Fated Strike",
+      "icon": "T_Weapon_CDstrike.jpg",
+      "cooldown": 60
+    },
+    "GloriousPurpose": {
+      "kind": "effect",
+      "id": 80,
+      "name": "Glorious Purpose",
+      "icon": "T_Weapon_CDstrike.jpg"
+    },
     "VoidbringerTouch": {
       "kind": "ability",
       "id": 155,

@@ -28,7 +28,6 @@
 
   <g clip-path="url(#bottomCrop)">
 
-  <!-- Cream gradient arc: stroke-width=5, outer edge at y=4 (apex) -->
   <path d="M 14 54
            A 27.16 27.16 0 0 1 32 6.5"
         fill="none"
@@ -42,9 +41,6 @@
         stroke-width="5"
         stroke-linecap="butt"/>
 
-  <!-- Outer gold border: a circle at r=28.6 whose outer edge aligns with the
-       cream arc's outer edge (r=27.6+1.5=29.1). bottomCrop clips the bottom;
-       the chevron drawn after covers the inner portion. -->
   <circle cx="32" cy="33.66" r="29.51"
           fill="none"
           stroke="#d4a744"

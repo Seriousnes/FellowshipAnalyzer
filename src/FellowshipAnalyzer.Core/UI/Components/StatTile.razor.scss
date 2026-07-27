@@ -1,4 +1,5 @@
 @use 'tokens' as t;
+@use 'mixins' as mx;
 
 .stat-tile {
     display: flex;
@@ -11,12 +12,11 @@
 }
 
 .stat-tile-value {
+    @include mx.stat-number;
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 4px 9px;
-    font-size: var(--fa-fs-lg);
-    font-weight: 700;
 }
 
 .stat-tile-divider {

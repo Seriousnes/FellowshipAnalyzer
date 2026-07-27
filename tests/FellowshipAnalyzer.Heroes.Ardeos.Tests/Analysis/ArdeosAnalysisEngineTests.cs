@@ -299,7 +299,7 @@ public sealed class ArdeosAnalysisEngineTests
     }
 
     [Fact]
-    public async Task Coverage_MarksEveryDotStandingOnTheTarget()
+    public async Task Coverage_MarksEveryDotActiveOnTheTarget()
     {
         const int anchor = 10000;
         var events = new List<Event>();
@@ -325,7 +325,7 @@ public sealed class ArdeosAnalysisEngineTests
     }
 
     [Fact]
-    public async Task Coverage_IncinerateStacks_ReadAsTheyStoodAtEachCast()
+    public async Task Coverage_IncinerateStacks_ReadStackCountAtEachCast()
     {
         var events = new List<Event>
         {

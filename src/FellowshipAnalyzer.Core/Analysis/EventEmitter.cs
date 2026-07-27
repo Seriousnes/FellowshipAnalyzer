@@ -21,16 +21,19 @@ public sealed class EventEmitter(ILogger<EventEmitter> logger) : Module
     private List<Event>? _events;
     private int _insertionIndex;
 
+    /// <summary>Registers a synchronous handler for <paramref name="module"/>, routed into the pull or state listener tier depending on whether a pull is currently registering its subscriptions.</summary>
     public void Subscribe(EventSubscriber module, Func<Event, bool> filter, Action<Event> handler)
     {
         (_subscribingToPull ? _pullListeners : _stateListeners).Add(new RegisteredListener(module, filter, handler));
     }
 
+    /// <summary>Registers an asynchronous handler for <paramref name="module"/>, routed into the pull or state listener tier depending on whether a pull is currently registering its subscriptions.</summary>
     public void Subscribe(EventSubscriber module, Func<Event, bool> filter, Func<Event, Task> handler)
     {
         (_subscribingToPull ? _pullListeners : _stateListeners).Add(new RegisteredListener(module, filter, handler));
     }
 
+    /// <summary>Orders the state listener tier by <see cref="Module.Priority"/> so dispatch runs modules in registration order.</summary>
     public void SortListeners()
     {
         _stateListeners.Sort(static (a, b) => a.Module.Priority.CompareTo(b.Module.Priority));
@@ -46,13 +49,14 @@ public sealed class EventEmitter(ILogger<EventEmitter> logger) : Module
         _subscribingToPull = true;
     }
 
+    /// <summary>Orders the per-pull listener tier by <see cref="Module.Priority"/> and closes registration. Paired with <see cref="BeginPullSubscriptions"/>.</summary>
     public void EndPullSubscriptions()
     {
         _pullListeners.Sort(static (a, b) => a.Module.Priority.CompareTo(b.Module.Priority));
         _subscribingToPull = false;
     }
 
-    /// <summary>Retires the current pull's listeners at <see cref="Events.PullEndEvent"/>.</summary>
+    /// <summary>Retires the current pull's listeners at <see cref="FellowshipAnalyzer.Core.Events.PullEndEvent"/>.</summary>
     public void ClearPullListeners()
     {
         _pullListeners.Clear();
@@ -119,7 +123,7 @@ public sealed class EventEmitter(ILogger<EventEmitter> logger) : Module
 
     /// <summary>
     /// Dispatches <paramref name="e"/> synchronously to the state and current pull listener tiers.
-    /// Used by <see cref="CombatLogParser.EndPull"/> to deliver a pull's <see cref="Events.PullEndEvent"/>
+    /// Used by <see cref="CombatLogParser.EndPull"/> to deliver a pull's <see cref="FellowshipAnalyzer.Core.Events.PullEndEvent"/>
     /// to that pull's own listeners at the moment it closes, before the pull tier is retired — the one
     /// point that fires reliably for every pull, including a force-close by <see cref="CombatLogParser.BeginPull"/>.
     /// Pull-end handlers are synchronous.
@@ -262,11 +266,15 @@ public sealed class EventEmitter(ILogger<EventEmitter> logger) : Module
 /// </summary>
 public readonly struct RegisteredListener
 {
+    /// <summary>The subscriber this listener dispatches into, whose <see cref="Module.Priority"/> determines dispatch order and whose <see cref="Module.Active"/> gates whether it runs.</summary>
     public EventSubscriber Module { get; }
+
+    /// <summary>The predicate an event must satisfy for this listener's handler to run.</summary>
     public Func<Event, bool> Filter { get; }
     private readonly Action<Event>? _syncHandler;
     private readonly Func<Event, Task>? _asyncHandler;
 
+    /// <summary>Wraps a synchronous handler registered by <paramref name="module"/>.</summary>
     public RegisteredListener(EventSubscriber module, Func<Event, bool> filter, Action<Event> handler)
     {
         Module = module;
@@ -274,6 +282,7 @@ public readonly struct RegisteredListener
         _syncHandler = handler;
     }
 
+    /// <summary>Wraps an asynchronous handler registered by <paramref name="module"/>.</summary>
     public RegisteredListener(EventSubscriber module, Func<Event, bool> filter, Func<Event, Task> handler)
     {
         Module = module;
@@ -281,6 +290,7 @@ public readonly struct RegisteredListener
         _asyncHandler = handler;
     }
 
+    /// <summary>Invokes the wrapped handler for <paramref name="e"/>, awaiting it when asynchronous or running it synchronously otherwise.</summary>
     public Task InvokeAsync(Event e)
     {
         if (_asyncHandler != null)
@@ -290,6 +300,7 @@ public readonly struct RegisteredListener
         return Task.CompletedTask;
     }
 
+    /// <summary>Invokes the wrapped handler for <paramref name="e"/>, blocking on the asynchronous handler when the listener was registered with one.</summary>
     public void Invoke(Event e)
     {
         if (_syncHandler != null)

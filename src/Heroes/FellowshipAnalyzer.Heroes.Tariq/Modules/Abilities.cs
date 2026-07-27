@@ -33,6 +33,7 @@ public class Abilities : CoreAbilities
         new()
         {
             PrimarySpell = Spells.HeavyStrike,
+            AdditionalSpells = [Spells.HeavyStrikeDamage, Spells.HeavyStrikeAoeDamage, Spells.HeavyStrikeCleaveDamage],
             Category = SpellCategory.Rotational,
             Gcd = StandardGcd,
         },

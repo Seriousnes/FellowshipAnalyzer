@@ -51,9 +51,7 @@ public sealed class ModuleCycleAnalyzer : DiagnosticAnalyzer
                 {
                     if (param.Type is not INamedTypeSymbol paramType) continue;
 
-                    // Lazy<TModule> is an explicit cycle escape — skip.
                     if (paramType.Name == "Lazy" && paramType.TypeArguments.Length == 1) continue;
-
                     if (modules.Contains(paramType))
                         deps[module].Add(paramType);
                 }
@@ -114,8 +112,6 @@ public sealed class ModuleCycleAnalyzer : DiagnosticAnalyzer
 
     private static string BuildCycleKey(List<INamedTypeSymbol> cycle)
     {
-        // Rotate so the lexicographically smallest type leads — deterministic dedupe regardless
-        // of which member we landed on first.
         var names = cycle.Take(cycle.Count - 1).Select(n => n.ToDisplayString()).ToList();
         var minIndex = 0;
         for (var i = 1; i < names.Count; i++)

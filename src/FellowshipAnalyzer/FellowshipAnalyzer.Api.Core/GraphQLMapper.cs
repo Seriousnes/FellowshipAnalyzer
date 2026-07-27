@@ -9,8 +9,6 @@ namespace FellowshipAnalyzer.Api.Core;
 [Mapper]
 public sealed partial class GraphQLMapper
 {
-    // --- Ability ---
-
     public Ability MapAbility(IGetReportMasterData_ReportData_Report_MasterData_Abilities source)
     {
         if (!int.TryParse(source.Type, out var typeInt)) typeInt = 0;
@@ -23,12 +21,8 @@ public sealed partial class GraphQLMapper
         };
     }
 
-    // --- ReportActor ---
-
     public ReportActor MapActor(IGetReportMasterData_ReportData_Report_MasterData_Actors source)
         => new(source.Id ?? 0, source.Name, source.Type, source.SubType, source.Server, source.Icon);
-
-    // --- ReportFight ---
 
     public ReportFight MapFight(IGetReportMasterData_ReportData_Report_Fights source)
     {
@@ -62,8 +56,6 @@ public sealed partial class GraphQLMapper
     public FightNpc MapFightNpc(IGetReportMasterData_ReportData_Report_Fights_EnemyNPCs source)
         => new(source.Id, source.GameID, source.InstanceCount, source.GroupCount, source.PetOwner);
 
-    // --- DungeonPull ---
-
     public DungeonPull MapDungeonPull(IGetReportMasterData_ReportData_Report_Fights_DungeonPulls source)
     {
         var enemyNpcs = source.EnemyNPCs?
@@ -89,8 +81,6 @@ public sealed partial class GraphQLMapper
             source.MinimumInstanceGroupID,
             source.MaximumInstanceGroupID);
 
-    // --- AnalysisPreload ---
-
     public AnalysisPreload MapAnalysisPreload(string reportCode, IGetReportMasterData_ReportData_Report source)
     {
         var masterData = source.MasterData
@@ -115,8 +105,6 @@ public sealed partial class GraphQLMapper
         var reportMasterData = new ReportMasterData(abilities, masterActors);
         return new AnalysisPreload(reportInfo, reportMasterData);
     }
-
-    // --- CharacterReports ---
 
     public CharacterReports MapCharacterReports(IGetCharacterReports_CharacterData_Character source)
     {

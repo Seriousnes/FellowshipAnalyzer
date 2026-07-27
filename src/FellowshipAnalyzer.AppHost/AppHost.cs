@@ -5,10 +5,6 @@ var storage = builder.AddAzureStorage("storage")
 
 var blobs = storage.AddBlobs("blobs");
 
-// Web UI for inspecting Azurite contents from the Aspire dashboard. The explorer runs in its own
-// container and reaches the emulator over the shared Aspire network by the "storage" resource alias
-// on Azurite's internal ports (10000/10001/10002 — independent of the dynamic host port mapping).
-// The account name/key are Azurite's well-known public development credentials.
 const string azuriteConnectionString =
     "DefaultEndpointsProtocol=http;" +
     "AccountName=devstoreaccount1;" +

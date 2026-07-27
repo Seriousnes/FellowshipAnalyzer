@@ -24,7 +24,9 @@ public enum PullBoss
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = false)]
 public sealed class ForPullAttribute(PullKind targets) : Attribute
 {
+    /// <summary>The pull shapes (<see cref="PullKind.Single"/>, <see cref="PullKind.Multi"/>, or both) this analyzer runs on.</summary>
     public PullKind Targets { get; } = targets;
 
+    /// <summary>The boss state a pull must have to match this analyzer. Defaults to <see cref="PullBoss.Either"/>.</summary>
     public PullBoss Boss { get; set; } = PullBoss.Either;
 }

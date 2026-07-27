@@ -81,10 +81,10 @@ public class SpellRegistryTests
     }
 
     [Theory]
-    [InlineData(1558)]      // Chronoshift (central, hand-written)
-    [InlineData(1_000_104)] // Kindling (central, hand-written)
-    [InlineData(1881)]      // EpochBreak (generated from the aeona scope)
-    [InlineData(1_002_613)] // EpochBreakBuff guid (generated from the aeona scope)
+    [InlineData(1558)]
+    [InlineData(1_000_104)]
+    [InlineData(1881)]
+    [InlineData(1_002_613)]
     public void RegisteredCoreSpells_PersistInAll(int guid) =>
         Assert.True(Spells.All.ContainsKey(guid));
 }

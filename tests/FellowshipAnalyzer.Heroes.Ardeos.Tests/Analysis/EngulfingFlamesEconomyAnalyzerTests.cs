@@ -19,10 +19,6 @@ public sealed class EngulfingFlamesEconomyAnalyzerTests
     private const int PlayerId = 7;
     private const int EnemyId = 99;
 
-    // -------------------------------------------------------------------------
-    // Spell curation guards
-    // -------------------------------------------------------------------------
-
     [Fact]
     public void EngulfingFlames_IsCuratedAsTwoChargeTwentySecondSpell()
     {
@@ -38,15 +34,9 @@ public sealed class EngulfingFlamesEconomyAnalyzerTests
         ((int)Spells.EngulfingFlamesDot.FSLID).ShouldBe(1002325);
     }
 
-    // -------------------------------------------------------------------------
-    // Readiness windows re-anchored on Wildfire availability
-    // -------------------------------------------------------------------------
-
     [Fact]
     public async Task FirstWindow_AnchoredAtPullStart_BothEngulfingFlamesCastsSucceed()
     {
-        // Wildfire opens the pull available, so the first window's ready-time is pull start. Both Engulfing
-        // Flames land in the setup before Wildfire, which is exactly the target the new model rewards.
         var events = new List<Event>
         {
             Cast(Spells.EngulfingFlames.FSLID, 500),
@@ -78,9 +68,6 @@ public sealed class EngulfingFlamesEconomyAnalyzerTests
     [Fact]
     public async Task SecondWindow_EngulfingFlamesJustBeforeReady_CountsAndSucceeds()
     {
-        // Wildfire recharges to a mid-fight ready-time of 46000; one Engulfing Flames lands 2s before that
-        // instant (inside ReadyLeadMs) and one just after, so the setup succeeds even though the first
-        // application preceded Wildfire coming off cooldown.
         var events = new List<Event>
         {
             Cast(Spells.Wildfire.FSLID, 1000),
@@ -107,8 +94,6 @@ public sealed class EngulfingFlamesEconomyAnalyzerTests
     [Fact]
     public async Task WildfireHeldLongAfterReady_LateDoubleCast_StillSucceeds()
     {
-        // Wildfire is ready at 46000 but held until 80000 (a 34s hold for mechanics). The two Engulfing
-        // Flames casts land late in the hold; holding never fails the window, and the late double-cast wins.
         var events = new List<Event>
         {
             Cast(Spells.Wildfire.FSLID, 1000),
@@ -169,9 +154,6 @@ public sealed class EngulfingFlamesEconomyAnalyzerTests
     [Fact]
     public async Task ChargesAtReady_ReflectsEngulfingFlamesRechargeState()
     {
-        // Charges at ready are read from the SpellUsable simulation at the ready instant, not hardcoded to
-        // max. Both charges are spent at 20000/20100; by the second window's ready-time of 45500 only one has
-        // recharged, so the context stat reads 1 while the first window (pull start) reads the full 2.
         var events = new List<Event>
         {
             Cast(Spells.Wildfire.FSLID, 500),
@@ -193,8 +175,6 @@ public sealed class EngulfingFlamesEconomyAnalyzerTests
     [Fact]
     public async Task ReadyTime_ReflectsAcrAcceleratedWildfireCooldown()
     {
-        // Emerald at cap (12% ACR) shortens Wildfire's 45s cooldown to 39.6s, so the second window's ready
-        // instant moves from 46000 (unaided) to 40100. The ready-time model reads the gear-adjusted cooldown.
         var events = new List<Event>
         {
             CombatantWithEmerald(1500),
@@ -222,10 +202,6 @@ public sealed class EngulfingFlamesEconomyAnalyzerTests
         analyzer.MissedWindows.ShouldBe(0);
         analyzer.Windows.ShouldBeEmpty();
     }
-
-    // -------------------------------------------------------------------------
-    // Overcap metrics (preserved)
-    // -------------------------------------------------------------------------
 
     [Fact]
     public async Task Overcap_NeverCast_WastesEntirePull()
@@ -294,8 +270,6 @@ public sealed class EngulfingFlamesEconomyAnalyzerTests
     [Fact]
     public async Task Overcap_WithLegendary_CountsAgainstAcceleratedRecharge()
     {
-        // A legendary's Strand of Eternity accelerates the 20s recharge to ~18.2s, so a 200s pull spent
-        // entirely at max charges wastes 11 recharge periods, one more than the raw curated 20s reports.
         var events = new List<Event> { CombatantWithLegendary() };
 
         var (parser, _) = await AnalyzeAsync(events, SpanningFight(0, 200_000));
@@ -318,10 +292,6 @@ public sealed class EngulfingFlamesEconomyAnalyzerTests
         analyzer.WastedCharges.ShouldBe(5);
     }
 
-    // -------------------------------------------------------------------------
-    // Devouring Flame legendary sub-metric (item 5225)
-    // -------------------------------------------------------------------------
-
     [Fact]
     public async Task DevouringFlame_NotEquipped_ReportsFalseAndNoMetrics()
     {
@@ -343,9 +313,6 @@ public sealed class EngulfingFlamesEconomyAnalyzerTests
     [Fact]
     public async Task DevouringFlame_OverlappingEngulfingFlames_ProducesSubMetrics()
     {
-        // Two Engulfing Flames instances overlap on one enemy: A spans [1000, 7000], B spans [3000, 5000].
-        // Any-instance uptime is their union (6000ms), double-instance uptime is the overlap (2000ms), and
-        // the primary target's instance-seconds sum to 8000ms over the 10s pull (0.8 average instances).
         var events = new List<Event>
         {
             CombatantWithDevouringBracers(),
@@ -368,8 +335,6 @@ public sealed class EngulfingFlamesEconomyAnalyzerTests
     [Fact]
     public async Task DevouringFlame_EnemyDeathClosesWindow_FeedsUptime()
     {
-        // The enemy dies carrying an open Engulfing Flames window; the death closes it at 4000, so uptime is
-        // measured to the death rather than to the pull's end at 10000.
         var events = new List<Event>
         {
             CombatantWithDevouringBracers(),
@@ -384,10 +349,6 @@ public sealed class EngulfingFlamesEconomyAnalyzerTests
         analyzer.DevouringFlameAnyUptime.ShouldBe(0.3, 0.0001);
         analyzer.DevouringFlameDoubleUptime.ShouldBe(0d);
     }
-
-    // -------------------------------------------------------------------------
-    // Fixtures
-    // -------------------------------------------------------------------------
 
     private static CastEvent Cast(int abilityId, int timestamp) => new()
     {

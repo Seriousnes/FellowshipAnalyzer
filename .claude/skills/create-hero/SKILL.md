@@ -105,7 +105,7 @@ Do not write a constructor or override `Analyze`; the source generator and base 
 
 `Modules/Abilities.cs` follows the current spellbook shape; copy a live entry from `src/Heroes/FellowshipAnalyzer.Heroes.Ardeos/Modules/Abilities.cs` or Rime's. Scalars such as cooldown and charges flow from the generated registry `Spell` via `PrimarySpell`; the spellbook adds analysis-facing settings (`SpellCategory`, `AbilityCategory`, GCD, `CooldownReducedByHaste`).
 
-The source generator registers this module as a scoped service and aliases it to the core `Abilities` type so core normalizers can inject it.
+The source generator emits the factory that constructs this module per analysis and resolves it polymorphically for the core `Abilities` type, so core normalizers can take it. Modules are never registered in the DI container.
 
 ### 7. Create Imports
 
@@ -134,7 +134,7 @@ The source generator registers this module as a scoped service and aliases it to
 `{Hero}Guide.razor` at the project root, with no `@namespace` directive (live root guides keep the project root namespace):
 
 ```razor
-@inject {Hero}CombatLogParser Parser
+@inherits ReportComponent<{Hero}CombatLogParser>
 
 @if (Parser.{Name}Analyzers.Count > 0)
 {

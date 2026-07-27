@@ -29,8 +29,6 @@ app.UseHttpsRedirection();
 app.UseBlazorFrameworkFiles();
 app.UseStaticFiles();
 
-// In dev the scoped-CSS bundle is named after the host assembly (FellowshipAnalyzer.DevHost.styles.css).
-// The WASM app's index.html always requests FellowshipAnalyzer.styles.css, so redirect it.
 app.MapGet("/FellowshipAnalyzer.styles.css", (HttpContext ctx) =>
     Results.Redirect("/FellowshipAnalyzer.DevHost.styles.css", permanent: false));
 

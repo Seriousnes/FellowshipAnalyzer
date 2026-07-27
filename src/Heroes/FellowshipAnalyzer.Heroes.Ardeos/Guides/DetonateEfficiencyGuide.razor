@@ -1,15 +1,14 @@
 @using FellowshipAnalyzer.Core.Common.Spells.Ardeos
 @using Spells = FellowshipAnalyzer.Core.Common.Spells.Ardeos.Spells
 @using DetonateCast = FellowshipAnalyzer.Heroes.Ardeos.Modules.DetonateEfficiencyAnalyzer.DetonateCast
-@inherits ReportComponentBase
-@inject ArdeosCombatLogParser Parser
+@inherits ReportComponent<ArdeosCombatLogParser>
 @inject ChartPalette Palette
 
 <GuideSection Title="Detonate Efficiency">
     <Explanation>
         <p>
             <SpellLink Spell="Spells.Detonate" /> should be cast into a layered pack, never to fill a gap.
-            Each cast is scored on the instances standing when it lands, across
+            Each cast is scored on the instances active when it lands, across
             <SpellLink Spell="Spells.SearingBlaze" />, <SpellLink Spell="Spells.EngulfingFlames" />,
             <SpellLink Spell="Spells.FireBall" />, <SpellLink Spell="Spells.FireFrogs" />,
             <SpellLink Spell="Spells.Incinerate" /> and <SpellLink Spell="Spells.Apocalypse" />.
@@ -30,7 +29,7 @@
             <SubSection Title="DoT Layering">
                 <HelperText>
                     Active DoT instances across every enemy through @charted.Pull.Name, with each Detonate
-                    marked where the stack stood when it landed.
+                    marked at the stack count when it landed.
                     @if (Parser.DetonateEfficiencyAnalyzers.Count > 1)
                     {
                         <text>Use the pull selector in the report header to chart another pull.</text>
@@ -45,20 +44,15 @@
         }
 
         <CastDetail Title="Detonate Casts"
-                    Description="Each card is one Detonate, rated on the DoT instances standing per enemy when it landed."
+                    Description="Each card is one Detonate, rated on the active DoT instances per enemy when it landed."
                     Casts="@BuildPerCastData()" />
     </ChildContent>
 </GuideSection>
 
 @code {
-    
+
     private bool HasApocalypticSurge => Parser.SelectedCombatant.HasTalent(Talents.ApocalypticSurge.Id);
 
-    /// <summary>
-    /// The pull the graph plots. The report header's pull selector already clamps the analyzer stream, so
-    /// a chosen pull leaves exactly one; unclamped, the boss pull reads as the interesting one and the
-    /// busiest pull stands in when a dungeon run has no boss.
-    /// </summary>
     private PullAnalyzer<DetonateEfficiencyAnalyzer>? Charted
     {
         get
@@ -96,10 +90,6 @@
         return bands;
     }
 
-    /// <summary>
-    /// Places each cast on the sample covering it. Both the casts and the timeline run in time order, so
-    /// one walk carries the sample cursor forward across every cast.
-    /// </summary>
     private IReadOnlyList<AuraStackMarkers> ChartMarkers(DetonateEfficiencyAnalyzer analyzer)
     {
         var timeline = analyzer.LayerTimeline;
@@ -143,12 +133,12 @@
             new(
                 $"{averageInstances:0.0}",
                 "Avg Instances / Enemy",
-                "Average DoT instances standing per enemy when Detonate landed.",
+                "Average active DoT instances per enemy when Detonate landed.",
                 AverageTier(averageInstances)),
             new(
                 $"{averageDots:0.0}/{ArdeosDots.Count}",
                 "Avg DoTs at Cast",
-                "Average distinct damage-over-time effects standing anywhere when Detonate landed."),
+                "Average distinct damage-over-time effects active anywhere when Detonate landed."),
             new(
                 $"{wellLayeredPct}%",
                 "Well-Layered",
@@ -190,12 +180,12 @@
             new(
                 $"{cast.TotalInstances}",
                 "DoT Instances",
-                "DoT instances standing across every enemy when this Detonate landed.",
+                "Active DoT instances across every enemy when this Detonate landed.",
                 Performance: perf),
             new(
                 $"{cast.DistinctDots}/{ArdeosDots.Count}",
-                "DoTs Standing",
-                "Distinct damage-over-time effects standing on at least one enemy at the cast.",
+                "Active DoTs",
+                "Distinct damage-over-time effects active on at least one enemy at the cast.",
                 Performance: DotCountTier(cast.DistinctDots)),
             new(
                 $"{cast.TargetsWithDoTs}",
@@ -204,7 +194,7 @@
             new(
                 $"{cast.MaxTargetInstances}",
                 "Peak On An Enemy",
-                "The most instances standing on any single enemy at the cast."),
+                "The most instances active on any single enemy at the cast."),
         };
 
         if (HasApocalypticSurge)
@@ -214,7 +204,7 @@
                 "Cost",
                 cast.Free
                     ? "An Apocalyptic Surge charge paid for this Detonate."
-                    : "No Surge charge was standing, so this Detonate spent an Ember."));
+                    : "No Surge charge was available, so this Detonate spent an Ember."));
         }
 
         return new PerCastRow
@@ -244,7 +234,7 @@
             $"{(cast.TargetsWithDoTs == 1 ? "enemy" : "enemies")}, averaging {cast.AverageInstances:0.0} per enemy.";
 
         return missing.Count == 0
-            ? $"{opening} Every damage-over-time effect was standing."
+            ? $"{opening} Every damage-over-time effect was active."
             : $"{opening} Missing {JoinNames(missing)}.";
     }
 

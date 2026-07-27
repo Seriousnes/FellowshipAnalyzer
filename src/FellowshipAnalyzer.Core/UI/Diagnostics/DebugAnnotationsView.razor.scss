@@ -13,8 +13,6 @@
     gap: 1.5rem;
 }
 
-/* ── Module section ─────────────────────────────────────────────────────── */
-
 .da-module {
     border: 1px solid var(--fa-border-card);
     border-radius: var(--fa-radius-md);
@@ -42,8 +40,6 @@
     font-size: 0.8rem;
     color: var(--fa-text-muted);
 }
-
-/* ── Dot grid ───────────────────────────────────────────────────────────── */
 
 .da-dot-container {
     padding: 0.75rem 1rem;
@@ -97,8 +93,6 @@
         z-index: 2;
     }
 }
-
-/* ── Event detail panel ─────────────────────────────────────────────────── */
 
 .da-detail {
     border-top: 1px solid var(--fa-border-card);
@@ -178,7 +172,6 @@
     opacity: 0.85;
 }
 
-/* Annotation blocks */
 .da-annotation {
     border-left: 3px solid;
     padding: 0.4rem 0.6rem;
@@ -199,7 +192,6 @@
     line-height: 1.4;
 }
 
-/* JSON panel */
 .da-json {
     margin: 0;
     padding: 0.75rem;

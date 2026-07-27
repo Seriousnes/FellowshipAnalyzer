@@ -24,6 +24,10 @@ public readonly record struct CooldownSegment(int Start, int End, int IconAt, bo
 /// </remarks>
 public static class CooldownLaneModel
 {
+    /// <summary>Builds the recharge-bar segments and charge-restore markers for one spell's cooldown lane, clipped to <paramref name="windowStart"/>-<paramref name="windowEnd"/>.</summary>
+    /// <param name="events">The spell's <see cref="UpdateSpellUsableEvent"/> stream, in timestamp order.</param>
+    /// <param name="windowStart">The start of the render window, in fight-relative milliseconds.</param>
+    /// <param name="windowEnd">The end of the render window, in fight-relative milliseconds.</param>
     public static (IReadOnlyList<CooldownSegment> Segments, IReadOnlyList<int> ChargeRestores) Build(
         IReadOnlyList<UpdateSpellUsableEvent> events, int windowStart, int windowEnd)
     {

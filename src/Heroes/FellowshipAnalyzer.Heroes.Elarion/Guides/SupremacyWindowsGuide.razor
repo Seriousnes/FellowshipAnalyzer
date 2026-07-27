@@ -1,0 +1,162 @@
+@inherits ReportComponent<ElarionCombatLogParser>
+
+<GuideSection Title="Skystrider's Supremacy">
+    <Explanation>
+        <p>
+            <SpellLink Spell="Spells.SkystridersSupremacy" /> loads four empowered
+            <SpellLink Spell="Spells.Multishot" /> charges into a 15 second window. An empowered
+            Multishot hits far harder than the bare cast and costs half the Focus, so the window is
+            only worth its cooldown if all four charges go out before it runs down.
+        </p>
+        <p>
+            Against a single target the bare Multishot is the weakest filler in the kit, so it is worth
+            casting only while the window is empowering it. Against a pack it is the normal filler and
+            the empowered casts are the bonus on top.
+        </p>
+        @if (HasFerventSupremacy)
+        {
+            <p>
+                <SpellLink Spell="Talents.FerventSupremacy" /> shortens the cooldown, so the windows come
+                round more often and the charges have less time to spare between them.
+            </p>
+        }
+    </Explanation>
+    <ChildContent>
+        <CastOverview Title="Supremacy Overview" Stats="@BuildOverviewStats()" />
+        <CastDetail Title="Per-Window Charges"
+                    Description="One card per Skystrider's Supremacy window, rated on the share of its charges that became an empowered Multishot, with whether the window was drained or timed out."
+                    Casts="@BuildWindowRows()" />
+    </ChildContent>
+</GuideSection>
+
+@code {
+    private List<SupremacyWindowAnalyzer> Analyzers() =>
+        Parser.SupremacyWindowAnalyzers.Select(entry => entry.Analyzer).ToList();
+
+    private List<SupremacyWindowAnalyzer> SingleTargetAnalyzers() =>
+        Parser.SupremacyWindowAnalyzers
+            .Where(entry => entry.Pull.Targets == PullKind.Single)
+            .Select(entry => entry.Analyzer)
+            .ToList();
+
+    private bool HasFerventSupremacy => Analyzers().Any(analyzer => analyzer.TalentedFerventSupremacy);
+
+    private IEnumerable<OverviewStat> BuildOverviewStats()
+    {
+        var analyzers = Analyzers();
+
+        var granted = analyzers.Sum(analyzer => analyzer.StacksGranted);
+        var consumed = analyzers.Sum(analyzer => analyzer.StacksConsumed);
+        var wasted = analyzers.Sum(analyzer => analyzer.StacksWasted);
+        var consumedShare = granted == 0 ? 0 : (double)consumed / granted * 100;
+
+        var windows = analyzers.Sum(analyzer => analyzer.Windows.Count);
+        var drained = analyzers.Sum(analyzer => analyzer.WindowsFullyDrained);
+
+        var stats = new List<OverviewStat>
+        {
+            new(
+                $"{consumedShare:0.#}%",
+                "Charges Spent",
+                $"{consumed} of {granted} empowered Multishot charges were fired before their window closed.",
+                granted == 0 ? null : PerformanceTiers.FromThresholds(consumedShare, 100, 75, 50)),
+            new(
+                $"{wasted}",
+                "Charges Wasted",
+                "Empowered Multishot charges that expired with their window, each one a hard-hitting half-cost cast thrown away.",
+                granted == 0 ? null : WasteTier(wasted)),
+            new(
+                $"{drained}/{windows}",
+                "Windows Drained",
+                "Skystrider's Supremacy windows emptied of charges before they expired.",
+                windows == 0 ? null : PerformanceTiers.FromThresholds(
+                    (double)drained / windows * 100, 100, 75, 50)),
+        };
+
+        var singleTarget = SingleTargetAnalyzers();
+        if (singleTarget.Count > 0)
+        {
+            var bare = singleTarget.Sum(analyzer => analyzer.RegularMultishotCasts);
+            stats.Add(new OverviewStat(
+                $"{bare}",
+                "Bare Multishots (Single Target)",
+                $"Multishot casts fired on single-target pulls with no Supremacy charge to empower them, across {singleTarget.Count} such {(singleTarget.Count == 1 ? "pull" : "pulls")}. Every one of those is the kit's weakest hit taking a global cooldown.",
+                BareMultishotTier(bare)));
+        }
+
+        return stats;
+    }
+
+    private IEnumerable<PerCastData> BuildWindowRows() =>
+        Parser.SupremacyWindowAnalyzers.ToItemRows(
+            Parser,
+            analyzer => analyzer.Windows,
+            (window, pull) => BuildWindowRow(window, pull));
+
+    private PerCastRow BuildWindowRow(SupremacyWindowAnalyzer.SupremacyWindow window, Pull pull)
+    {
+        var share = window.StacksGranted == 0
+            ? 0
+            : (double)window.StacksConsumed / window.StacksGranted * 100;
+        var performance = PerformanceTiers.FromThresholds(share, 100, 75, 50);
+
+        var stats = new[]
+        {
+            new PerCastStat(
+                $"{window.StacksConsumed}/{window.StacksGranted}",
+                "Charges Spent",
+                "Empowered Multishot casts fired out of the charges this window granted.",
+                Performance: performance),
+            new PerCastStat(
+                $"{window.StacksWasted}",
+                "Charges Wasted",
+                "Charges still loaded when the window closed.",
+                Performance: WasteTier(window.StacksWasted)),
+            new PerCastStat(
+                window.ClosedByExpiry ? "Expired" : "Drained",
+                "Window Close",
+                window.ClosedByExpiry
+                    ? "The buff ran out on its own rather than being spent down by a Multishot."
+                    : "The last charge went out on a Multishot, so nothing was left to expire."),
+            new PerCastStat(
+                $"{window.DurationMs / 1000d:0.#}s",
+                "Window Length",
+                "How long the buff was up, from the cast to the close."),
+        };
+
+        return new PerCastRow
+        {
+            Performance = performance,
+            Stats = stats,
+            Timestamp = window.StartMs,
+            AdditionalContent = new AdditionalContent(
+                "Usage Notes",
+                @<div>@BuildNote(window, pull)</div>),
+        };
+    }
+
+    private static string BuildNote(SupremacyWindowAnalyzer.SupremacyWindow window, Pull pull)
+    {
+        if (window.StacksWasted == 0)
+            return $"All {window.StacksGranted} charges went out as empowered Multishots, so the window paid out in full.";
+
+        var filler = pull.Targets == PullKind.Single
+            ? "On a single target the empowered casts are the only Multishots worth firing, so there is nothing competing for the window."
+            : "On a pack the Multishots are going out anyway, so the charges only need to be spent while the buff is up.";
+
+        if (window.StacksConsumed == 0)
+            return $"The window closed with all {window.StacksGranted} charges unspent. {filler}";
+
+        return $"{window.StacksWasted} of {window.StacksGranted} charges expired with the window. {filler}";
+    }
+
+    private static QualitativePerformance WasteTier(int wasted) =>
+        wasted == 0 ? QualitativePerformance.Perfect
+        : wasted <= 2 ? QualitativePerformance.Ok
+        : QualitativePerformance.Fail;
+
+    private static QualitativePerformance BareMultishotTier(int bare) =>
+        bare == 0 ? QualitativePerformance.Perfect
+        : bare <= 3 ? QualitativePerformance.Ok
+        : QualitativePerformance.Fail;
+}

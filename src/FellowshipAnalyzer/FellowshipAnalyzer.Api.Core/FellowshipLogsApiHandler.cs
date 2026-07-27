@@ -68,9 +68,6 @@ public sealed class FellowshipLogsApiHandler(
 
         var trimmedReportCode = reportCode.Trim();
 
-        // L1 skipped for events — payloads too large for in-process cache.
-
-        // L2: Blob cache
         var blobKey = CacheKeys.BlobEvents(trimmedReportCode, playerId.Value, fightId.Value);
         logger.LogInformation("GetEventsAsync L2 lookup blobKey={BlobKey} t={ElapsedMs}ms", blobKey, sw.ElapsedMilliseconds);
         var blobEntry = await persistentCache.GetAsync(CachePartition.Events, blobKey, cancellationToken);
@@ -84,9 +81,6 @@ public sealed class FellowshipLogsApiHandler(
         if (blobEntry is not null)
         {
             ApplyCompletedEventsCacheHeaders(context.Response, blobEntry.ExpiresAt, hit: true);
-            // Blob is gzip-compressed for storage efficiency. Decompress on the wire so
-            // clients (Swagger UI, browsers, the WASM HttpClient) receive plain JSON without
-            // having to handle a custom transport encoding.
             Stream payload = blobEntry.Content;
             if (string.Equals(blobEntry.ContentEncoding, "gzip", StringComparison.OrdinalIgnoreCase))
             {
@@ -96,7 +90,6 @@ public sealed class FellowshipLogsApiHandler(
             return Results.Stream(payload, "application/json");
         }
 
-        // L3: Upstream
         if (TryAcquireUpstream(context) is { } upstreamLimited)
         {
             logger.LogWarning("GetEventsAsync upstream-rate-limited at {ElapsedMs}ms", sw.ElapsedMilliseconds);
@@ -115,15 +108,11 @@ public sealed class FellowshipLogsApiHandler(
             var duration = PositiveDuration(cacheOptions.CompletedEventsCacheDuration, TimeSpan.FromDays(30));
             var expiresAt = DateTimeOffset.UtcNow.Add(duration);
 
-            // Compress JSON to gzip and upload to blob (fire-and-forget — don't delay client).
             var gzipBytes = CompressGzip(result.JsonBytes, streamManager);
             logger.LogInformation(
                 "GetEventsAsync compressed for blob raw={Raw} gzip={Gzip} t={ElapsedMs}ms",
                 result.JsonBytes.Length, gzipBytes.Length, sw.ElapsedMilliseconds);
 
-            // Fire-and-forget write-through must outlive the request, so it is scoped to the
-            // application lifetime rather than the request's CancellationToken (which is cancelled
-            // during response teardown and would silently abort the upload).
             WriteThroughInBackground(
                 persistentCache.SetAsync(
                     CachePartition.Events, blobKey,
@@ -172,7 +161,6 @@ public sealed class FellowshipLogsApiHandler(
 
         var trimmedReportCode = reportCode.Trim();
 
-        // Fight-scoped (no player filter) — shared by every combatant in the fight.
         var blobKey = CacheKeys.BlobDeaths(trimmedReportCode, fightId.Value);
         var blobEntry = await persistentCache.GetAsync(CachePartition.Events, blobKey, cancellationToken);
 
@@ -238,14 +226,12 @@ public sealed class FellowshipLogsApiHandler(
 
         var cacheKey = CacheKeys.Analysis(reportCode);
 
-        // L1: In-process cache
         if (cache.TryGetValue(cacheKey, out AnalysisPreload? cachedPreload) && cachedPreload is not null)
         {
             ApplyAnalysisPreloadCacheHeaders(context.Response, cachedPreload, hit: true);
             return Json(cachedPreload);
         }
 
-        // L2: Blob cache
         var blobKey = CacheKeys.BlobAnalysis(reportCode);
         var blobEntry = await persistentCache.GetAsync(CachePartition.Metadata, blobKey, cancellationToken);
         if (blobEntry is not null)
@@ -262,7 +248,6 @@ public sealed class FellowshipLogsApiHandler(
             }
         }
 
-        // L3: Upstream
         if (TryAcquireUpstream(context) is { } upstreamLimited)
         {
             return upstreamLimited;
@@ -274,8 +259,6 @@ public sealed class FellowshipLogsApiHandler(
 
         cache.Set(cacheKey, preload, CreateAnalysisPreloadCacheEntryOptions(preload, cacheOptions));
 
-        // Write-through to L2 (fire-and-forget). Scoped to the application lifetime, not the
-        // request token, so the upload is not aborted when the response completes.
         var preloadBytes = JsonSerializer.SerializeToUtf8Bytes(preload, jsonOptions);
         WriteThroughInBackground(
             persistentCache.SetAsync(
@@ -310,14 +293,12 @@ public sealed class FellowshipLogsApiHandler(
 
         var cacheKey = CacheKeys.Character(id);
 
-        // L1: In-process cache
         if (cache.TryGetValue(cacheKey, out CharacterReports? cached) && cached is not null)
         {
             ApplyNoStoreCacheHeaders(context.Response, hit: true);
             return Json(cached);
         }
 
-        // L2: Blob cache
         var blobKey = CacheKeys.BlobCharacter(id);
         var blobEntry = await persistentCache.GetAsync(CachePartition.Metadata, blobKey, cancellationToken);
         if (blobEntry is not null)
@@ -340,7 +321,6 @@ public sealed class FellowshipLogsApiHandler(
             }
         }
 
-        // L3: Upstream
         if (TryAcquireUpstream(context) is { } upstreamLimited)
         {
             return upstreamLimited;

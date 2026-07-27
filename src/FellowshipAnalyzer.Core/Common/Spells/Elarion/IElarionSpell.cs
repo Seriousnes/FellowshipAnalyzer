@@ -1,5 +1,6 @@
 ﻿namespace FellowshipAnalyzer.Core.Common.Spells.Elarion;
 
+/// <summary>Marks a spell as usable by Elarion, exposing its Focus cost alongside the shared <see cref="Spell"/> facts.</summary>
 public interface IElarionSpell
 {
     /// <summary>

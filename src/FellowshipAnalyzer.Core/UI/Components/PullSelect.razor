@@ -2,9 +2,6 @@
 @implements IAsyncDisposable
 @inject IJSRuntime JS
 
-@* PullSelect: styled single-select over a report's pulls, flanked by prev/next steppers.
-   A null Value maps to "Entire Dungeon" (no clamp). Two-way bindable via @bind-Value. *@
-
 <div class="pull-select" @ref="_rootElement" @onfocusout="OnFocusOut" @attributes="InputAttributes">
     <button type="button"
             class="pull-select-nav"

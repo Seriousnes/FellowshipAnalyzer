@@ -47,8 +47,6 @@ function openDb() {
                 db.createObjectStore(MASTERDATA_STORE);
             }
 
-            // Version 3 changes cached events from raw JSON strings to compressed binary blobs.
-            // Old entries cannot be read without reintroducing the giant-string path, so evict them.
             if (event.oldVersion > 0 && event.oldVersion < 3) {
                 if (db.objectStoreNames.contains(EVENTS_STORE)) {
                     event.target.transaction.objectStore(EVENTS_STORE).clear();
@@ -57,12 +55,7 @@ function openDb() {
                     event.target.transaction.objectStore(HISTORY_STORE).clear();
                 }
             }
-            // Version 4 adds expiresAt to events entries — existing entries remain valid
-            // (they simply have no expiry and will be served until evicted by LRU).
 
-            // Version 5: evict events/history that may contain double-gzipped payloads
-            // produced by earlier broken server iterations.
-            // Version 6: evict player-only event streams cached before deaths were merged in.
             if (event.oldVersion > 0 && event.oldVersion < 6) {
                 if (db.objectStoreNames.contains(EVENTS_STORE)) {
                     event.target.transaction.objectStore(EVENTS_STORE).clear();
@@ -149,7 +142,6 @@ export async function getCachedEventsBytes(reportCode, fightId, playerId) {
     const entry = await promisify(t.objectStore(EVENTS_STORE).get(key));
     if (!entry?.eventsBlob) return null;
 
-    // Respect server-provided expiry: treat as a miss and evict if the entry has expired.
     if (entry.expiresAt != null && Date.now() >= entry.expiresAt) {
         t.objectStore(EVENTS_STORE).delete(key);
         t.objectStore(HISTORY_STORE).delete(key);
@@ -159,15 +151,12 @@ export async function getCachedEventsBytes(reportCode, fightId, playerId) {
     try {
         return await decompressBlob(entry.eventsBlob, entry.compression ?? 'identity');
     } catch (err) {
-        // Corrupt/incompatible cache entry — evict and treat as a miss so the
-        // caller can fall back to the network instead of hanging on a broken stream.
         console.warn('[report-cache] decompress failed; evicting cached entry', { key, err });
         try {
             const evictTxn = txn(db, [EVENTS_STORE, HISTORY_STORE], 'readwrite');
             evictTxn.objectStore(EVENTS_STORE).delete(key);
             evictTxn.objectStore(HISTORY_STORE).delete(key);
         } catch {
-            // Best-effort cleanup.
         }
         return null;
     }
@@ -202,11 +191,9 @@ export async function cacheEventsBytes(reportCode, fightId, playerId, eventsJson
     eventsStore.put({ eventsBlob, compression, expiresAt, ...meta }, key);
     historyStore.put(meta, key);
 
-    // Evict oldest entries if over the limit
     const allKeys = await promisify(historyStore.getAllKeys());
     if (allKeys.length > MAX_ENTRIES) {
         const allValues = await promisify(historyStore.getAll());
-        // Sort ascending by cachedAt; evict the oldest
         const sorted = allKeys
             .map((k, i) => ({ key: k, cachedAt: allValues[i]?.cachedAt ?? 0 }))
             .sort((a, b) => a.cachedAt - b.cachedAt);

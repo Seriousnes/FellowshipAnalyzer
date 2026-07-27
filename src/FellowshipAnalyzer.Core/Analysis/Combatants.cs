@@ -19,6 +19,7 @@ public sealed partial class Combatants : Analyzer
     /// <summary>Every tracked unit keyed by <see cref="UnitKey"/>.</summary>
     public IReadOnlyDictionary<UnitKey, Entity> Units => _units;
 
+    /// <summary>Builds the tracked unit set from every <see cref="CombatantInfoEvent"/> in <paramref name="events"/>, seeds the selected player from <paramref name="parseContext"/>, and fabricates a prepull buff for each aura the player logged in with.</summary>
     public Combatants(ParseContext parseContext, IReadOnlyList<Event> events)
     {
         foreach (var e in events)
@@ -103,7 +104,7 @@ public sealed partial class Combatants : Analyzer
         => GetUnit(actorId, instance)?.GetAuraStackSum(effectId, timestamp, sourceId) ?? 0;
 
     /// <summary>
-    /// Every window of an effect standing on a non-selected unit that overlaps
+    /// Every window of an effect on a non-selected unit that overlaps
     /// <paramref name="from"/>..<paramref name="to"/>, each clipped to that range and the whole
     /// ordered by start. Windows are historical, so this reads correctly after the parse; use it to
     /// reconstruct how an effect layered across a slice of the fight.

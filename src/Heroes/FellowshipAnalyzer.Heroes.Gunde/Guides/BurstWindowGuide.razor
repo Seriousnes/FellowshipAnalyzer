@@ -1,0 +1,150 @@
+@using Spells = FellowshipAnalyzer.Core.Common.Spells.Gunde.Spells
+@inherits ReportComponent<GundeCombatLogParser>
+
+<GuideSection Title="Burst Windows">
+    <Explanation>
+        <p>
+            <SpellLink Spell="Spells.ReignInBlood" /> makes 30% more damage flow into
+            <SpellLink Spell="Spells.Rend" /> for @(BurstWindowAnalyzer.BuffDurationMs / 1000)
+            seconds and sits on a long cooldown - it is the amplifier the rest of the burst is built
+            around. <SpellLink Spell="Spells.Rupture" />, the biggest single hit in the kit, and
+            <SpellLink Spell="Spells.BloodboundSpirit" />, a 20 second self-buff worth 15% more
+            damage, are both worth far less outside it, and saved Blood Feather stacks should be
+            cashed in through <SpellLink Spell="Spells.OwedInBlood" /> while it runs.
+        </p>
+        <p>
+            Each window below is scored on how many of those three landed inside it. A cast up to
+            @(BurstWindowAnalyzer.LeadInMs / 1000) seconds before the buff appears still counts,
+            because Bloodbound Spirit is normally pressed just ahead of Reign in Blood. Ruptures and
+            Bloodbound Spirits spent outside every window are reported as context rather than as a
+            verdict; Owed in Blood outside a window is ordinary filler conversion, not a mistake.
+        </p>
+    </Explanation>
+    <ChildContent>
+        <CastOverview Title="Burst Overview" Stats="@BuildOverviewStats()" />
+        @if (TotalWindows == 0)
+        {
+            <TipBox Variant="TipBoxVariant.Info">
+                Reign in Blood was never used, so none of Gunde's burst damage was amplified.
+            </TipBox>
+        }
+        else
+        {
+            <CastDetail Title="Reign in Blood Windows"
+                        Description="Each card is one Reign in Blood window, rated on how much of the burst was stacked into it."
+                        Casts="@BuildPerCastData()" />
+        }
+    </ChildContent>
+</GuideSection>
+
+@code {
+    private int TotalWindows => Parser.BurstWindowAnalyzers.Sum(entry => entry.Analyzer.WindowCount);
+
+    private IEnumerable<OverviewStat> BuildOverviewStats()
+    {
+        var analyzers = Parser.BurstWindowAnalyzers.Select(entry => entry.Analyzer).ToList();
+        var opened = analyzers.Sum(analyzer => analyzer.WindowCount);
+        var full = analyzers.Sum(analyzer => analyzer.FullWindows);
+        var strayRuptures = analyzers.Sum(analyzer => analyzer.OutOfWindowRuptures);
+        var straySpirits = analyzers.Sum(analyzer => analyzer.OutOfWindowBloodboundSpirits);
+
+        var fullRate = opened > 0 ? (int)Math.Round((double)full / opened * 100) : 0;
+
+        return
+        [
+            new OverviewStat(
+                $"{opened}",
+                "Windows Opened",
+                "Reign in Blood windows opened across the run. Cooldown acceleration decides how many a run can hold, so this is reported as presence rather than against a budget."),
+            new OverviewStat(
+                $"{full}",
+                "Full Windows",
+                opened > 0
+                    ? $"{full} of {opened} windows held Rupture, Bloodbound Spirit and Owed in Blood together."
+                    : "No Reign in Blood window was opened, so none could be judged.",
+                opened > 0 ? PercentTier(fullRate) : null),
+            new OverviewStat(
+                $"{strayRuptures}",
+                "Rupture Outside",
+                "Ruptures cast outside every Reign in Blood window. Rupture comes back faster than the windows do, so some of these are unavoidable - this is context, not a verdict."),
+            new OverviewStat(
+                $"{straySpirits}",
+                "Spirit Outside",
+                "Bloodbound Spirits cast outside every Reign in Blood window. The windows do not always open when it is available, so some of these are unavoidable - this is context, not a verdict."),
+        ];
+    }
+
+    private IEnumerable<PerCastData> BuildPerCastData() =>
+        Parser.BurstWindowAnalyzers.ToItemRows(Parser, analyzer => analyzer.Windows, (window, pull) => BuildWindowRow(window));
+
+    private PerCastRow BuildWindowRow(BurstWindowAnalyzer.BurstWindow window)
+    {
+        var perf = window.PresentCount switch
+        {
+            3 => QualitativePerformance.Perfect,
+            2 => QualitativePerformance.Good,
+            1 => QualitativePerformance.Ok,
+            _ => QualitativePerformance.Fail,
+        };
+
+        var stats = new[]
+        {
+            new PerCastStat(
+                window.RuptureIn ? "Yes" : "No",
+                "Rupture",
+                "Whether Rupture landed inside this window, so its damage was amplified.",
+                window.RuptureIn ? QualitativePerformance.Perfect : QualitativePerformance.Fail),
+            new PerCastStat(
+                window.BloodboundSpiritIn ? "Yes" : "No",
+                "Bloodbound Spirit",
+                "Whether Bloodbound Spirit overlapped this window, stacking its damage buff on top of the amplifier.",
+                window.BloodboundSpiritIn ? QualitativePerformance.Perfect : QualitativePerformance.Fail),
+            new PerCastStat(
+                window.OwedInBloodIn ? "Yes" : "No",
+                "Owed in Blood",
+                "Whether saved Blood Feather stacks were cashed into Rend inside this window.",
+                window.OwedInBloodIn ? QualitativePerformance.Perfect : QualitativePerformance.Fail),
+            new PerCastStat(
+                FormatSeconds(window.End - window.Start),
+                "Window",
+                "How long the Reign in Blood buff was up for this window."),
+        };
+
+        return new PerCastRow
+        {
+            Performance = perf,
+            Stats = stats,
+            Timestamp = window.Start,
+            AdditionalContent = new AdditionalContent("Alignment Notes", @<div>@BuildNote(window)</div>),
+        };
+    }
+
+    private static string BuildNote(BurstWindowAnalyzer.BurstWindow window)
+    {
+        var missing = new List<string>();
+        if (!window.RuptureIn) missing.Add("Rupture");
+        if (!window.BloodboundSpiritIn) missing.Add("Bloodbound Spirit");
+        if (!window.OwedInBloodIn) missing.Add("Owed in Blood");
+
+        if (missing.Count == 0)
+            return "Rupture, Bloodbound Spirit and Owed in Blood all landed inside this window, so the whole burst was amplified.";
+
+        if (missing.Count == BurstWindowAnalyzer.BurstWindow.CooldownCount)
+            return "None of the burst cooldowns landed inside this window, so the extra 30% flowing into Rend had nothing worth amplifying.";
+
+        var held = missing.Count == 1 ? "it" : "them";
+        return $"{JoinNames(missing)} landed outside this window - hold {held} for the next Reign in Blood instead of spending on cooldown.";
+    }
+
+    private static string JoinNames(List<string> names) =>
+        names.Count switch
+        {
+            1 => names[0],
+            2 => $"{names[0]} and {names[1]}",
+            _ => $"{string.Join(", ", names.Take(names.Count - 1))} and {names[^1]}",
+        };
+
+    private static string FormatSeconds(int milliseconds) => $"{milliseconds / 1000d:0.#}s";
+
+    private static QualitativePerformance PercentTier(int percent) => PerformanceTiers.FromThresholds(percent, 75, 50, 25);
+}

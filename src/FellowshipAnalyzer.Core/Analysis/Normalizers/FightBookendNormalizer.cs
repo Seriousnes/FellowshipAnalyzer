@@ -9,8 +9,10 @@ namespace FellowshipAnalyzer.Core.Analysis.Normalizers;
 /// </summary>
 public sealed class FightBookendNormalizer(ParseContext parseContext) : IEventNormalizer
 {
+    /// <inheritdoc/>
     public int Priority => -999;
 
+    /// <inheritdoc/>
     public List<Event> Normalize(List<Event> events, int playerId)
     {
         return

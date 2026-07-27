@@ -8,15 +8,12 @@
         var left = OffsetPx(aura.ClippedStart);
         var width = DurPx(aura.ClippedEnd - aura.ClippedStart);
 
-        @* Duration strip — spans the buff's active window *@
         <div class="aura-bar-strip"
              style="left: @left; width: @width; --level: @aura.Level;"
              title="@aura.Name — @FormatDuration(aura.ClippedEnd - aura.ClippedStart)"></div>
 
-        @* Indicator line — sibling of icon, at left edge of the 24px icon *@
         <div class="aura-bar-indicator" style="left: @OffsetPx(aura.IconAt); --level: @aura.Level;"></div>
 
-        @* Icon left-aligned to apply timestamp *@
         <div class="aura-bar-icon" style="left: @OffsetPx(aura.IconAt); --level: @aura.Level;"
              title="@aura.Name applied at @FormatTimestamp(aura.AppliedAt)">
             <SpellIcon Spell="@aura.Spell" Size="SpellIconSize.Small" />
@@ -70,7 +67,6 @@
 
     private double TrackWidthPx => (WindowEnd - WindowStart) / 1000.0 * PixelsPerSecond;
 
-    // 4px gap + 24px icon + 30px per additional level above 0
     private double BarHeightPx => 4.0 + 24.0 + _maxLevel * 30.0;
 
     private string F(double v) => v.ToString("F1", CultureInfo.InvariantCulture);
@@ -91,10 +87,6 @@
         return $"{seconds:F1}s";
     }
 
-    /// <summary>
-    /// Returns the auras to render. <see cref="VisibleAuraIds"/> takes precedence over
-    /// <see cref="HighlightedSpellIds"/>; when both are null, all auras are returned.
-    /// </summary>
     private IEnumerable<TrackedBuffEvent> AurasToRender()
     {
         if (VisibleAuraIds is not null)
@@ -116,8 +108,6 @@
         _auras = [];
         _maxLevel = 0;
 
-        // Track the end-timestamp of the aura occupying each level, so we can
-        // reuse levels that are no longer active (greedy level-assignment).
         var levelEnds = new List<int>();
 
         var visible = AurasToRender()
@@ -131,12 +121,10 @@
             var clippedEnd = Math.Min(buff.End ?? WindowEnd, WindowEnd);
             var iconAt = Math.Max(buff.Start, WindowStart);
 
-            // Find the lowest level that is free at this aura's start time
             int level = 0;
             while (level < levelEnds.Count && levelEnds[level] > clippedStart)
                 level++;
 
-            // Reserve this level until the aura ends
             if (level < levelEnds.Count)
                 levelEnds[level] = clippedEnd;
             else

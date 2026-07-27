@@ -168,18 +168,30 @@ public sealed partial class StatTracker(Lazy<Combatants> combatants) : Analyzer
             Added = added,
         }, trigger);
 
+    /// <summary>The player's current Intellect rating, including every tracked buff applied so far this pull.</summary>
     public double CurrentIntellect => _currentStats.Intellect;
+    /// <summary>The player's current Stamina rating, including every tracked buff applied so far this pull.</summary>
     public double CurrentStamina => _currentStats.Stamina;
+    /// <summary>The player's current Armor rating, including every tracked buff applied so far this pull.</summary>
     public double CurrentArmor => _currentStats.Armor;
+    /// <summary>The player's current Critical Strike rating, including every tracked buff applied so far this pull.</summary>
     public double CurrentCritRating => _currentStats.Crit;
+    /// <summary>The player's current Haste rating, including every tracked buff applied so far this pull.</summary>
     public double CurrentHasteRating => _currentStats.Haste;
+    /// <summary>The player's current Expertise rating, including every tracked buff applied so far this pull.</summary>
     public double CurrentExpertiseRating => _currentStats.Expertise;
+    /// <summary>The player's current Spirit rating, including every tracked buff applied so far this pull.</summary>
     public double CurrentSpiritRating => _currentStats.Spirit;
 
+    /// <summary>The player's Critical Strike rating at pull start, before any tracked buff was applied.</summary>
     public double StartingCritRating => _pullStats.Crit;
+    /// <summary>The player's Haste rating at pull start, before any tracked buff was applied.</summary>
     public double StartingHasteRating => _pullStats.Haste;
+    /// <summary>The player's Expertise rating at pull start, before any tracked buff was applied.</summary>
     public double StartingExpertiseRating => _pullStats.Expertise;
+    /// <summary>The player's Spirit rating at pull start, before any tracked buff was applied.</summary>
     public double StartingSpiritRating => _pullStats.Spirit;
+    /// <summary>The player's Intellect rating at pull start, before any tracked buff was applied.</summary>
     public double StartingIntellect => _pullStats.Intellect;
 
     /// <summary>
@@ -212,13 +224,20 @@ public sealed partial class StatTracker(Lazy<Combatants> combatants) : Analyzer
     public double CritPercentage(double rating, bool withBase = false) =>
         (withBase ? BaseCritChance : 0.0) + RatingToPercentage(rating);
 
+    /// <summary>Converts a Haste rating to a percentage using <see cref="RatingToPercentage"/>.</summary>
     public double HastePercentage(double rating) => RatingToPercentage(rating);
+    /// <summary>Converts an Expertise rating to a percentage using <see cref="RatingToPercentage"/>.</summary>
     public double ExpertisePercentage(double rating) => RatingToPercentage(rating);
+    /// <summary>Converts a Spirit rating to a percentage using <see cref="RatingToPercentage"/>.</summary>
     public double SpiritPercentage(double rating) => RatingToPercentage(rating);
 
+    /// <summary>The player's current Critical Strike chance, converted from <see cref="CurrentCritRating"/> and including the base crit chance.</summary>
     public double CurrentCritPercentage => CritPercentage(CurrentCritRating, withBase: true);
+    /// <summary>The player's current Haste percentage, converted from <see cref="CurrentHasteRating"/>.</summary>
     public double CurrentHastePercentage => HastePercentage(CurrentHasteRating);
+    /// <summary>The player's current Expertise percentage, converted from <see cref="CurrentExpertiseRating"/>.</summary>
     public double CurrentExpertisePercentage => ExpertisePercentage(CurrentExpertiseRating);
+    /// <summary>The player's current Spirit percentage, converted from <see cref="CurrentSpiritRating"/>.</summary>
     public double CurrentSpiritPercentage => SpiritPercentage(CurrentSpiritRating);
 
     /// <summary>
@@ -323,9 +342,6 @@ public sealed partial class StatTracker(Lazy<Combatants> combatants) : Analyzer
         _currentStats.Spirit += ResolveBuffVal(buff, buff.Spirit) * factor * (withMultipliers ? _multipliers.Spirit : 1.0);
     }
 
-    /// <summary>
-    /// Updates the multiplier state AND scales current stats (for buffs gained/lost mid-fight).
-    /// </summary>
     private void ApplyMultiplierBuff(StatMultiplierBuff buff, bool isGaining, Event trigger)
     {
         var before = _currentStats.ToStats();
@@ -387,10 +403,6 @@ public sealed partial class StatTracker(Lazy<Combatants> combatants) : Analyzer
         }, trigger);
 }
 
-// =============================================================================
-// Supporting types
-// =============================================================================
-
 /// <summary>
 /// A buff value that is either a fixed rating amount or a function that
 /// derives the amount from the combatant (and optionally an item).
@@ -404,12 +416,19 @@ public partial class BuffVal : OneOfBase<double, Func<Combatant, Item?, double>>
 /// </summary>
 public sealed class StatBuff
 {
+    /// <summary>Intellect rating contributed while this buff is active.</summary>
     public BuffVal? Intellect { get; init; }
+    /// <summary>Stamina rating contributed while this buff is active.</summary>
     public BuffVal? Stamina { get; init; }
+    /// <summary>Armor rating contributed while this buff is active.</summary>
     public BuffVal? Armor { get; init; }
+    /// <summary>Critical Strike rating contributed while this buff is active.</summary>
     public BuffVal? Crit { get; init; }
+    /// <summary>Haste rating contributed while this buff is active.</summary>
     public BuffVal? Haste { get; init; }
+    /// <summary>Expertise rating contributed while this buff is active.</summary>
     public BuffVal? Expertise { get; init; }
+    /// <summary>Spirit rating contributed while this buff is active.</summary>
     public BuffVal? Spirit { get; init; }
 
     /// <summary>Item ID to pass to function-based <see cref="BuffVal"/> callbacks.</summary>
@@ -432,16 +451,22 @@ public sealed record CooldownBuff(
 /// </summary>
 public sealed class StatMultiplierBuff
 {
+    /// <summary>Multiplier applied to Intellect while this buff is active.</summary>
     public double? Intellect { get; init; }
+    /// <summary>Multiplier applied to Stamina while this buff is active.</summary>
     public double? Stamina { get; init; }
+    /// <summary>Multiplier applied to Armor while this buff is active.</summary>
     public double? Armor { get; init; }
+    /// <summary>Multiplier applied to Critical Strike rating while this buff is active.</summary>
     public double? Crit { get; init; }
+    /// <summary>Multiplier applied to Haste rating while this buff is active.</summary>
     public double? Haste { get; init; }
+    /// <summary>Multiplier applied to Expertise rating while this buff is active.</summary>
     public double? Expertise { get; init; }
+    /// <summary>Multiplier applied to Spirit rating while this buff is active.</summary>
     public double? Spirit { get; init; }
 }
 
-/// <summary>Mutable snapshot of a player's stat ratings.</summary>
 internal sealed class PlayerStats
 {
     public double Intellect { get; set; }
@@ -466,7 +491,6 @@ internal sealed class PlayerStats
     };
 }
 
-/// <summary>Per-stat multiplier state. All values default to 1.0 (no multiplier).</summary>
 internal sealed class PlayerMultipliers
 {
     public double Intellect { get; set; } = 1.0;

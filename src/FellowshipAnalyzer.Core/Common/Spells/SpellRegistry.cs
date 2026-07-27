@@ -42,6 +42,7 @@ public static class SpellRegistry
     }
 }
 
+/// <summary>Marker interface for a hand-written spell registry class; the source generator collects properties from every implementor into <see cref="Spells.All"/>.</summary>
 public interface ISpellRegistry
 {
 }

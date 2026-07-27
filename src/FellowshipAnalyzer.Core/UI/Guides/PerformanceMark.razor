@@ -1,5 +1,3 @@
-@* PerformanceMark — universal performance-tier icon glyph (circle-check / check / asterisk / cross). *@
-
 @{
     var color = PerformanceColors.ToColor(Performance);
     var label = PerformanceColors.ToLabel(Performance);
@@ -23,7 +21,6 @@
                       stroke-linecap="round" stroke-linejoin="round" />
                 break;
             case QualitativePerformance.Ok:
-                @* 6-point asterisk drawn as 3 crossed strokes (avoids the Razor <text> directive collision) *@
                 <g stroke="@color" stroke-width="@strokeStr" stroke-linecap="round">
                     <line x1="12" y1="4" x2="12" y2="20" />
                     <line x1="5.07" y1="8" x2="18.93" y2="16" />

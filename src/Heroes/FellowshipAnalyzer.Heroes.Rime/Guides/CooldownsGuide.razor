@@ -1,0 +1,195 @@
+@using Window = FellowshipAnalyzer.Heroes.Rime.Modules.MajorCooldownWindow
+@inherits ReportComponent<RimeCombatLogParser>
+
+<GuideSection Title="Major Cooldowns">
+    <Explanation>
+        <p>
+            <SpellLink Spell="Spells.IceBlitz" />, <SpellLink Spell="Spells.WintersBlessing" /> and
+            <SpellLink Spell="Spells.FlightOfTheNavir" /> each run a 60 second cooldown behind a 20
+            second window, so every second one of them sits ready and unused is throughput left on
+            the floor. Held time measures exactly that, and each window is judged on the
+            <SpellLink Spell="Spells.BurstingIce" /> casts that landed inside it, since a major pays
+            most when its window covers one.
+        </p>
+        <p>
+            <SpellLink Spell="Spells.WrathOfWinter" /> is paid for in Spirit rather than in time, so
+            it carries no held-time reading and is judged on window quality alone. It feeds a Winter
+            Orb every four seconds for twenty seconds and makes the granted
+            <SpellLink Spell="Spells.GlacialBlast" /> instant, so its windows are read for the orbs
+            banked when it went off, how quickly that free cast was spent, and whether the orbs it
+            handed out arrived on a full pool.
+        </p>
+    </Explanation>
+    <ChildContent>
+        <CastOverview Title="Cooldown Overview" Stats="@BuildOverviewStats()" />
+        <CastDetail Title="Major Cooldown Windows"
+                    Description="Each row is one buff window, grouped by the pull it happened in."
+                    Casts="@BuildPerCastData()" />
+    </ChildContent>
+</GuideSection>
+
+@code {
+    private const int PerfectOrbLatencyMs = 4_000;
+    private const int AcceptableOrbLatencyMs = 8_000;
+
+    private static readonly RimeMajorCooldown[] CooldownGatedMajors =
+    [
+        RimeMajorCooldown.IceBlitz,
+        RimeMajorCooldown.WintersBlessing,
+        RimeMajorCooldown.FlightOfTheNavir,
+    ];
+
+    private List<MajorCooldownAnalyzer> Analyzers() =>
+        [.. Parser.MajorCooldownAnalyzers.Select(entry => entry.Analyzer)];
+
+    private IEnumerable<OverviewStat> BuildOverviewStats()
+    {
+        var analyzers = Analyzers();
+        var pullMs = analyzers.Sum(analyzer => analyzer.PullDurationMs);
+        var stats = new List<OverviewStat>();
+
+        foreach (var major in CooldownGatedMajors)
+        {
+            var name = MajorName(major);
+            var casts = analyzers.Sum(analyzer => analyzer.UsageFor(major).Casts);
+            var heldMs = analyzers.Sum(analyzer => analyzer.UsageFor(major).HeldMs);
+            var uptimeMs = analyzers.Sum(analyzer => analyzer.UsageFor(major).BuffUptimeMs);
+            var heldShare = pullMs > 0 ? (double)heldMs / pullMs * 100 : 0;
+            var uptimeShare = pullMs > 0 ? (double)uptimeMs / pullMs * 100 : 0;
+
+            stats.Add(new OverviewStat(
+                $"{casts}",
+                $"{name} Casts",
+                $"{name} casts across every pull."));
+            stats.Add(new OverviewStat(
+                FormatDuration(heldMs),
+                $"{name} Held",
+                $"Time {name} spent off cooldown and unused ({heldShare:F0}% of pull time).",
+                HeldTier(heldShare)));
+            stats.Add(new OverviewStat(
+                $"{uptimeShare:F0}%",
+                $"{name} Uptime",
+                $"Share of pull time the {name} buff was active."));
+        }
+
+        var wrathWindows = analyzers.Sum(analyzer => analyzer.WindowsFor(RimeMajorCooldown.WrathOfWinter).Count);
+        stats.Add(new OverviewStat(
+            $"{wrathWindows}",
+            "Wrath Windows",
+            $"{MajorName(RimeMajorCooldown.WrathOfWinter)} windows opened across every pull."));
+
+        return stats;
+    }
+
+    private IEnumerable<PerCastData> BuildPerCastData() =>
+        Parser.MajorCooldownAnalyzers.ToItemRows(
+            Parser,
+            analyzer => analyzer.Windows,
+            (window, pull) => BuildWindowRow(window));
+
+    private PerCastRow BuildWindowRow(Window window)
+    {
+        var burstingIceTier = AtLeastTwo(window.BurstingIceCastsInside);
+        var stats = new List<PerCastStat>
+        {
+            new(
+                MajorName(window.Major),
+                "Major",
+                "The cooldown whose buff opened this window."),
+            new(
+                $"{window.BurstingIceCastsInside}",
+                "Bursting Ice",
+                "Bursting Ice casts that landed inside the window; stacking them under a major multiplies the burst.",
+                Performance: burstingIceTier),
+            new(
+                $"{window.SpenderCastsInside}",
+                "Spenders",
+                "Winter Orb spender casts that landed inside the window."),
+        };
+
+        var performance = burstingIceTier;
+
+        if (window.Major == RimeMajorCooldown.WrathOfWinter)
+        {
+            if (window.OrbsAtActivation is { } orbs)
+            {
+                var orbTier = AtLeastTwo(orbs);
+                performance = Worst(performance, orbTier);
+                stats.Add(new PerCastStat(
+                    $"{orbs}",
+                    "Orbs Banked",
+                    "Winter Orbs held when Wrath of Winter went off; the window spends what it opens with before its own orbs arrive.",
+                    Performance: orbTier));
+            }
+
+            if (window.FirstSpenderLatencyMs is { } latencyMs)
+            {
+                var latencyTier = LatencyTier(latencyMs);
+                performance = Worst(performance, latencyTier);
+                stats.Add(new PerCastStat(
+                    $"{latencyMs / 1000d:0.0}s",
+                    "First Spender",
+                    "Time from the window opening to the first single-target spender, against the four second orb cadence.",
+                    Performance: latencyTier));
+            }
+
+            if (window.OvercapsInside is { } overcaps)
+            {
+                var overcapTier = overcaps == 0 ? QualitativePerformance.Perfect : QualitativePerformance.Fail;
+                performance = Worst(performance, overcapTier);
+                stats.Add(new PerCastStat(
+                    $"{overcaps}",
+                    "Overcaps",
+                    "Generator casts that went out on a full pool while the window's free orbs were arriving.",
+                    Performance: overcapTier));
+            }
+        }
+
+        RenderFragment? details = null;
+        if (window.BoundaryTruncated)
+        {
+            details = @<div>The pull ended before this window did, so it is measured to the pull boundary.</div>;
+        }
+
+        return new PerCastRow
+        {
+            Performance = performance,
+            Stats = [.. stats],
+            Timestamp = window.WindowStart,
+            Details = details,
+        };
+    }
+
+    private static QualitativePerformance HeldTier(double heldSharePercent) =>
+        heldSharePercent < 10 ? QualitativePerformance.Perfect
+        : heldSharePercent < 20 ? QualitativePerformance.Good
+        : heldSharePercent < 35 ? QualitativePerformance.Ok
+        : QualitativePerformance.Fail;
+
+    private static QualitativePerformance LatencyTier(int latencyMs) =>
+        latencyMs <= PerfectOrbLatencyMs ? QualitativePerformance.Perfect
+        : latencyMs <= AcceptableOrbLatencyMs ? QualitativePerformance.Ok
+        : QualitativePerformance.Fail;
+
+    private static QualitativePerformance AtLeastTwo(int value) =>
+        value >= 2 ? QualitativePerformance.Perfect
+        : value == 1 ? QualitativePerformance.Ok
+        : QualitativePerformance.Fail;
+
+    private static QualitativePerformance Worst(QualitativePerformance first, QualitativePerformance second) =>
+        first < second ? first : second;
+
+    private static string MajorName(RimeMajorCooldown major) => major switch
+    {
+        RimeMajorCooldown.IceBlitz => Spells.IceBlitz.Name,
+        RimeMajorCooldown.WintersBlessing => Spells.WintersBlessing.Name,
+        RimeMajorCooldown.FlightOfTheNavir => Spells.FlightOfTheNavir.Name,
+        _ => Spells.WrathOfWinter.Name,
+    };
+
+    private static string FormatDuration(int milliseconds)
+    {
+        var totalSeconds = milliseconds / 1000;
+        return $"{totalSeconds / 60}:{totalSeconds % 60:00}";
+    }
+}

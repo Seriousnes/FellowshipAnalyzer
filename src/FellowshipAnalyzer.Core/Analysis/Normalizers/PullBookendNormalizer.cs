@@ -14,8 +14,10 @@ namespace FellowshipAnalyzer.Core.Analysis.Normalizers;
 /// </summary>
 public sealed class PullBookendNormalizer(ParseContext parseContext) : IEventNormalizer
 {
+    /// <inheritdoc/>
     public int Priority => -1000;
 
+    /// <inheritdoc/>
     public List<Event> Normalize(List<Event> events, int playerId)
     {
         var pulls = BuildPulls();

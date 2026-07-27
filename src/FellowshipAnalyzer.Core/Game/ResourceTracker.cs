@@ -8,9 +8,9 @@ namespace FellowshipAnalyzer.Core.Resources;
 
 /// <summary>
 /// Tracks all resource types for the selected player by subscribing to all events via
-/// <see cref="Events.Any"/> and inspecting <see cref="Event.SourceResources"/> /
+/// <see cref="FellowshipAnalyzer.Core.Analysis.Events.Any"/> and inspecting <see cref="Event.SourceResources"/> /
 /// <see cref="Event.TargetResources"/> to find the selected player's resources.
-/// Spend tracking is driven by <see cref="CastEvent"/> via <see cref="Events.Cast"/>.
+/// Spend tracking is driven by <see cref="CastEvent"/> via <see cref="FellowshipAnalyzer.Core.Analysis.Events.Cast"/>.
 /// </summary>
 public partial class ResourceTracker(ILogger<ResourceTracker> logger) : Analyzer
 {
@@ -40,10 +40,15 @@ public partial class ResourceTracker(ILogger<ResourceTracker> logger) : Analyzer
     public string GetDisplayName(ResourceTypes type) =>
         DisplayNameOverrides.TryGetValue(type, out var name) ? name : type.ToString();
 
+    /// <summary>The tracked state for <see cref="ResourceTypes.Mana"/>, or <c>null</c> if not yet observed.</summary>
     public ResourceState? Mana => GetResourceState(ResourceTypes.Mana);
+    /// <summary>The tracked state for <see cref="ResourceTypes.Primary"/>, or <c>null</c> if not yet observed.</summary>
     public ResourceState? Primary => GetResourceState(ResourceTypes.Primary);
+    /// <summary>The tracked state for <see cref="ResourceTypes.Secondary"/>, or <c>null</c> if not yet observed.</summary>
     public ResourceState? Secondary => GetResourceState(ResourceTypes.Secondary);
+    /// <summary>The tracked state for <see cref="ResourceTypes.Spirit"/>, or <c>null</c> if not yet observed.</summary>
     public ResourceState? Spirit => GetResourceState(ResourceTypes.Spirit);
+    /// <summary>The tracked state for <see cref="ResourceTypes.Stagger"/>, or <c>null</c> if not yet observed.</summary>
     public ResourceState? Stagger => GetResourceState(ResourceTypes.Stagger);
 
     /// <summary>The player's most recently observed current hit points.</summary>
@@ -62,14 +67,23 @@ public partial class ResourceTracker(ILogger<ResourceTracker> logger) : Analyzer
     public ResourceState? GetResourceState(ResourceTypes type) =>
         _states.TryGetValue(type, out var state) ? state : null;
 
+    /// <summary>The current amount of <paramref name="type"/> the player has, defaulting to zero if unobserved.</summary>
     public int GetCurrent(ResourceTypes type) => GetOrCreateState(type).Current;
+    /// <summary>The maximum amount of <paramref name="type"/> observed so far, defaulting to zero if unobserved.</summary>
     public int GetMax(ResourceTypes type) => GetOrCreateState(type).Max;
+    /// <summary>The total amount of <paramref name="type"/> generated across the parse.</summary>
     public int GetGenerated(ResourceTypes type) => GetOrCreateState(type).Generated;
+    /// <summary>The total amount of <paramref name="type"/> generated and lost to being at or over the cap.</summary>
     public int GetWasted(ResourceTypes type) => GetOrCreateState(type).Wasted;
+    /// <summary>The total amount of <paramref name="type"/> spent on casts across the parse.</summary>
     public int GetSpent(ResourceTypes type) => GetOrCreateState(type).Spent;
+    /// <summary>The total amount of <paramref name="type"/> lost to drains rather than spent on casts.</summary>
     public int GetDrained(ResourceTypes type) => GetOrCreateState(type).Drained;
+    /// <summary>Counts of <paramref name="type"/>-generating casts, keyed by spell id.</summary>
     public IReadOnlyDictionary<int, int> GetGeneratorCasts(ResourceTypes type) => GetOrCreateState(type).GeneratorCasts;
+    /// <summary>Counts of <paramref name="type"/>-spending casts, keyed by spell id.</summary>
     public IReadOnlyDictionary<int, int> GetSpenderCasts(ResourceTypes type) => GetOrCreateState(type).SpenderCasts;
+    /// <summary>All gain, spend, and drain events recorded for <paramref name="type"/>, in chronological order.</summary>
     public IReadOnlyList<ResourceEvent> GetResourceEvents(ResourceTypes type) => GetOrCreateState(type).Events;
 
     [On<ResourceChangeEvent>(By = Actor.Player)]
@@ -87,12 +101,6 @@ public partial class ResourceTracker(ILogger<ResourceTracker> logger) : Analyzer
             e.Timestamp);
     }
 
-    /// <summary>
-    /// Observes the post-normalized event stream. Updates health, seeds per-resource Max, and
-    /// detects implicit gains (snapshot deltas) by comparing each event's resource amounts
-    /// against the tracker's running <see cref="ResourceState.Current"/>. Casts and explicit
-    /// <see cref="ResourceChangeEvent"/>s are handled by their own subscribers.
-    /// </summary>
     [On<Event>]
     private void OnEvent(Event e)
     {
@@ -212,7 +220,6 @@ public partial class ResourceTracker(ILogger<ResourceTracker> logger) : Analyzer
         state.Generated += gained;
         state.Wasted += wasted;
 
-        // ClassResource.Amount for an energize is the amount AFTER the gain.
         state.Current = currentAfterFromEvent
             ?? Math.Min(state.Current + gained, state.Max > 0 ? state.Max : int.MaxValue);
 
@@ -258,6 +265,14 @@ public partial class ResourceTracker(ILogger<ResourceTracker> logger) : Analyzer
     }
 }
 
+/// <summary>A single gain, spend, or drain observed for one resource type on <see cref="ResourceTracker"/>.</summary>
+/// <param name="Timestamp">The event's timestamp within the report.</param>
+/// <param name="Id">The spell id responsible for the change, or <c>0</c> if none applies.</param>
+/// <param name="ResourceType">The resource type this event affects.</param>
+/// <param name="Kind">Whether the resource was gained, spent, or drained.</param>
+/// <param name="Amount">The amount gained, spent, or drained.</param>
+/// <param name="Wasted">The portion of a gain lost to being at or over the cap.</param>
+/// <param name="CurrentAfter">The tracker's current amount immediately after this event.</param>
 public sealed record ResourceEvent(
     int Timestamp,
     int Id,
@@ -267,10 +282,14 @@ public sealed record ResourceEvent(
     int Wasted,
     int CurrentAfter);
 
+/// <summary>Classifies how a <see cref="ResourceEvent"/> changed a resource's current amount.</summary>
 public enum ResourceEventKind
 {
+    /// <summary>The resource increased.</summary>
     Gain,
+    /// <summary>The resource decreased because a cast paid its cost.</summary>
     Spend,
+    /// <summary>The resource decreased outside of a cast cost, e.g. a mechanic that drains it directly.</summary>
     Drain,
 }
 
@@ -279,11 +298,17 @@ public enum ResourceEventKind
 /// </summary>
 public sealed class ResourceState
 {
+    /// <summary>The player's current amount of this resource.</summary>
     public int Current { get; internal set; }
+    /// <summary>The highest maximum observed for this resource so far.</summary>
     public int Max { get; internal set; }
+    /// <summary>The total amount generated across the parse.</summary>
     public int Generated { get; internal set; }
+    /// <summary>The total amount generated and lost to being at or over the cap.</summary>
     public int Wasted { get; internal set; }
+    /// <summary>The total amount spent on casts across the parse.</summary>
     public int Spent { get; internal set; }
+    /// <summary>The total amount lost to drains rather than spent on casts.</summary>
     public int Drained { get; internal set; }
 
     internal Dictionary<int, int> GeneratorCasts { get; } = [];

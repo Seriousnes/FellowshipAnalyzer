@@ -23,8 +23,11 @@ public record Spell : IRimeSpell, IElarionSpell, IArdeosSpell
     [JsonIgnore]
     public virtual FSLID FSLID => new FSLID(Id);
 
+    /// <summary>The native FellowshipLogs ability id, with the range offset stripped; <see cref="FSLID"/> reapplies it based on this spell's kind.</summary>
     public int Id { get; init; }
+    /// <summary>The spell's display name as shown in the log and the UI.</summary>
     public string Name { get; init; } = "";
+    /// <summary>The icon asset filename for this spell, as sourced from the game's data.</summary>
     public string Icon { get; init; } = "";
 
     /// <summary>
@@ -34,25 +37,36 @@ public record Spell : IRimeSpell, IElarionSpell, IArdeosSpell
     /// </summary>
     public AbilityCategory? AbilityCategory { get; init; }
 
+    /// <summary>The base cooldown in seconds; <c>null</c> when the spell has no cooldown.</summary>
     public double? Cooldown { get; init; }
 
     /// <summary>Seconds removed from this ability's remaining cooldown when a target it has debuffed dies, per qualifying window.</summary>
     public double? CooldownReductionOnTargetDeath { get; init; }
 
+    /// <summary>The spell's maximum range in game units; <c>null</c> when the spell is not range-limited.</summary>
     public int? Range { get; init; }
+    /// <summary>The number of charges the spell can bank before a cast starts its cooldown; <c>1</c> for a spell without a charge system.</summary>
     public int Charges { get; init; } = 1;
+    /// <summary>The time in seconds to complete a non-channeled cast; <c>null</c> for an instant cast.</summary>
     public double? CastDuration { get; init; }
+    /// <summary>The total duration in seconds of a channeled cast; <c>null</c> when the spell does not channel.</summary>
     public double? ChannelDuration { get; init; }
+    /// <summary>The time in seconds between ticks while channeling; <c>null</c> when the spell does not channel.</summary>
     public double? ChannelTickInterval { get; init; }
 
+    /// <summary>The cost in Gunde's Spirit resource; <c>null</c> when the spell does not spend Spirit.</summary>
     [JsonIgnore] 
     public int? SpiritCost => Cost(ResourceTypes.Spirit);
+    /// <summary>The cost in Rime's Winter Orbs, the hero's <see cref="ResourceTypes.Tertiary"/> resource; <c>null</c> when the spell does not spend orbs.</summary>
     [JsonIgnore] 
     public int? WinterOrbCost => Cost(ResourceTypes.Tertiary);
+    /// <summary>The cost in Rime's Anima, the hero's <see cref="ResourceTypes.Primary"/> resource; <c>null</c> when the spell does not spend Anima.</summary>
     [JsonIgnore] 
     public int? AnimaCost => Cost(ResourceTypes.Primary);
+    /// <summary>The cost in the hero's Focus, the <see cref="ResourceTypes.Primary"/> resource; <c>null</c> when the spell does not spend Focus.</summary>
     [JsonIgnore] 
     public int? FocusCost => Cost(ResourceTypes.Primary);
+    /// <summary>The cost in Ardeos's Embers, the hero's <see cref="ResourceTypes.Primary"/> resource; <c>null</c> when the spell does not spend Embers.</summary>
     [JsonIgnore] 
     public int? EmberCost => Cost(ResourceTypes.Primary);
 
@@ -76,6 +90,7 @@ public record Spell : IRimeSpell, IElarionSpell, IArdeosSpell
 /// <summary>A spell effect (<c>GE_</c>): namespaced id <c>1_000_000 + Id</c>.</summary>
 public record Effect : Spell
 {
+    /// <inheritdoc/>
     [JsonIgnore]
     public override FSLID FSLID => FSLID.FromNative(SpellKind.Effect, Id);
 }
@@ -83,6 +98,7 @@ public record Effect : Spell
 /// <summary>A talent (<c>CAATalent*</c>): namespaced id <c>2_000_000 + Id</c>.</summary>
 public record Talent : Spell
 {
+    /// <inheritdoc/>
     [JsonIgnore]
     public override FSLID FSLID => FSLID.FromNative(SpellKind.Talent, Id);
 }
@@ -90,6 +106,7 @@ public record Talent : Spell
 /// <summary>A weapon trait: namespaced id <c>3_000_000 + Id</c>.</summary>
 public record Weapon : Spell
 {
+    /// <inheritdoc/>
     [JsonIgnore]
     public override FSLID FSLID => FSLID.FromNative(SpellKind.Weapon, Id);
 }

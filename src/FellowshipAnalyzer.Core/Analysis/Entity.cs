@@ -8,6 +8,7 @@ namespace FellowshipAnalyzer.Core.Analysis;
 /// </summary>
 public abstract class Entity
 {
+    /// <summary>The full buff/debuff history tracked for this unit, in application order.</summary>
     public List<TrackedBuffEvent> Buffs { get; } = [];
 
     /// <summary>
@@ -73,7 +74,7 @@ public abstract class Entity
     /// Sums the stacks carried by every concurrently-open window of an effect active at
     /// <paramref name="timestamp"/>, optionally restricted to auras applied by <paramref name="sourceId"/>.
     /// A stacking aura contributes its stack count and a multi-instance aura one per window, so the sum
-    /// reads as the applications standing on the unit either way. Only meaningful while the parse is
+    /// reads as the applications on the unit either way. Only meaningful while the parse is
     /// dispatching, since a window's stack count tracks the live value rather than the value at
     /// <paramref name="timestamp"/>.
     /// </summary>
@@ -111,12 +112,15 @@ public abstract class Entity
 
     internal void ApplyBuff(TrackedBuffEvent buff) => Buffs.Add(buff);
 
+    /// <summary>A predicate matching a tracked buff whose <see cref="Ability"/> id equals <paramref name="spellId"/>.</summary>
     protected Func<TrackedBuffEvent, bool> SpellIdFilter(int spellId)
         => b => b.Ability.Id == spellId;
 
+    /// <summary>A predicate matching a tracked buff by its applying source, or matching everything when <paramref name="sourceId"/> is <c>null</c>.</summary>
     protected Func<TrackedBuffEvent, bool> SourceIdFilter(int? sourceId)
         => sourceId is null ? _ => true : b => b.SourceId == sourceId;
 
+    /// <summary>A predicate matching a tracked buff that was active at <paramref name="timestamp"/>, allowing <paramref name="bufferTime"/> past its end and requiring at least <paramref name="minimalActiveTime"/> since its start. Matches only still-open buffs when <paramref name="timestamp"/> is <c>null</c>.</summary>
     protected Func<TrackedBuffEvent, bool> ActiveAtTimestampFilter(int? timestamp, int bufferTime = 0, int minimalActiveTime = 0)
     {
         if (timestamp is null)

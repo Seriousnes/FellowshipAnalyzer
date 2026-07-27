@@ -34,7 +34,6 @@ public sealed class JsonContextMissingSerializableCodeFix : CodeFixProvider
         if (root is null)
             return;
 
-        // Find the class declaration at the diagnostic location.
         var diagnosticSpan = diagnostic.Location.SourceSpan;
         var classDecl = root.FindToken(diagnosticSpan.Start)
             .Parent?
@@ -62,7 +61,6 @@ public sealed class JsonContextMissingSerializableCodeFix : CodeFixProvider
         string? typeNamespace,
         CancellationToken _)
     {
-        // Build: [JsonSerializable(typeof(TypeName))]
         var typeNameSyntax = string.IsNullOrEmpty(typeNamespace)
             ? (TypeSyntax)SyntaxFactory.IdentifierName(typeName)
             : SyntaxFactory.QualifiedName(
@@ -79,10 +77,8 @@ public sealed class JsonContextMissingSerializableCodeFix : CodeFixProvider
                                 SyntaxFactory.TypeOfExpression(typeNameSyntax)))))))
             .WithAdditionalAnnotations(Formatter.Annotation);
 
-        // Insert after the last existing [JsonSerializable] attribute list (if any),
-        // otherwise append to the end of all attribute lists.
         var attrLists = classDecl.AttributeLists;
-        int insertIndex = attrLists.Count; // default: append at end
+        int insertIndex = attrLists.Count;
 
         for (int i = attrLists.Count - 1; i >= 0; i--)
         {

@@ -1,12 +1,4 @@
 #!/usr/bin/env bash
-# Emits a GitHub Actions job matrix covering every test project in the solution.
-#
-# A project counts as a test project when it is listed in the solution and its
-# csproj references Microsoft.NET.Test.Sdk, so the matrix follows the solution
-# rather than a hand-maintained list.
-#
-# Usage: discover-tests.sh [solution-path]
-# Writes matrix=<json> and count=<n> to $GITHUB_OUTPUT (stdout when unset).
 
 set -euo pipefail
 

@@ -1,7 +1,7 @@
 @using FellowshipAnalyzer.Core.Analysis
 @using FellowshipAnalyzer.Core.Events
 @using Microsoft.JSInterop
-@inherits ReportComponentBase
+@inherits ReportComponent
 @implements IAsyncDisposable
 @inject TimelineConfigService TimelineConfigService
 @inject IJSRuntime JS
@@ -13,12 +13,10 @@
         var aurasModule = Result.Modules.OfType<Auras>().FirstOrDefault();
         var allEvents = Result.Events;
 
-        // Auras: every TrackedBuffEvent targeting the player that isn't a debuff (any source).
         var allPlayerAuras = combatants?.Selected?.Buffs
             .Where(b => b.TargetId == PlayerId && !b.IsDebuff)
             .ToList() ?? [];
 
-        // Available cooldowns: any spell with an UpdateSpellUsableEvent where SourceId == PlayerId.
         var allCooldownGroups = allEvents
             .OfType<UpdateSpellUsableEvent>()
             .Where(e => e.SourceId == PlayerId)
@@ -42,7 +40,6 @@
         var windowStart = SelectedPull?.StartTime ?? FightStartTime;
         var windowEnd = SelectedPull?.EndTime ?? FightEndTime;
 
-        // Build the available-options lists for the settings modal (full pool, before filtering).
         var availableAuraOptions = allPlayerAuras
             .GroupBy(b => b.Ability.FSLID)
             .Select(g =>
@@ -61,7 +58,6 @@
             .OrderBy(o => o.Name, StringComparer.OrdinalIgnoreCase)
             .ToList();
 
-        // Apply config: filter to visible cooldowns and sort by SortOrder.
         var visibleCooldownIds = _effectiveConfig.Cooldowns
             .Where(c => c.Visible)
             .ToDictionary(c => c.SpellId, c => c.SortOrder);
@@ -97,7 +93,6 @@
 
         <div class="timeline-scroll" @ref="_timelineScrollElement">
             <div class="timeline-inner">
-            @* Consolidated cast bar with aura overlay *@
             <div class="timeline-row">
                 <div class="timeline-cast-area">
                     @if (allPlayerAuras.Count > 0)
@@ -120,7 +115,6 @@
                 </div>
             </div>
 
-            @* Cooldowns section — one row per tracked spell *@
             @if (cooldownRows.Count > 0)
             {
                 <div class="timeline-section-divider"></div>
@@ -184,7 +178,6 @@
         }
         else
         {
-            // Re-merge in case the event set changed (e.g. switching reports for the same hero).
             _effectiveConfig = BuildMergedConfig(_effectiveConfig);
         }
     }

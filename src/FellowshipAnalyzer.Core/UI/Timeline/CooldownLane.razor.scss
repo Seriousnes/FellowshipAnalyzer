@@ -1,6 +1,5 @@
 @use 'tokens' as t;
 
-/* Icon — absolutely positioned at the cast-start timestamp */
 .cooldown-lane-icon {
     position: absolute;
     top: 0;
@@ -21,7 +20,6 @@
     }
 }
 
-/* Bar wrapper — absolutely positioned at the cooldown-start timestamp */
 .cooldown-lane-bar-wrap {
     position: absolute;
     top: 0;

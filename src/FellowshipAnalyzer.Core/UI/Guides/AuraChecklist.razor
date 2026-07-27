@@ -1,11 +1,9 @@
-@* AuraChecklist — one tick-or-cross line per aura, in a fixed order the caller sets. *@
-
 <ul class="aura-checklist">
     @foreach (var item in Items)
     {
         <li class="aura-checklist-row @(item.Pass ? "pass" : "fail")">
             <PassFailCheckmark Pass="@item.Pass" Size="15"
-                               Title="@(item.Pass ? "Standing at the cast" : "Not standing at the cast")" />
+                               Title="@(item.Pass ? "Had aura at the cast" : "Missing at the cast")" />
             <span class="aura-checklist-name">
                 <SpellLink Spell="@item.Spell" />
             </span>

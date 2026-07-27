@@ -35,7 +35,6 @@ public sealed class ReportMasterDataService
         if (_abilitiesByGameId.TryGetValue(gameId, out var ability))
             return ability;
 
-        // Return a minimal stub so downstream code can still use the ID.
         return new Ability { FSLID = gameId };
     }
 

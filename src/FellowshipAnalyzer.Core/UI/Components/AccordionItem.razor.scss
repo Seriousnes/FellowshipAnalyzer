@@ -1,9 +1,5 @@
 @use 'tokens' as t;
 
-// These style the elements rendered by AccordionItem.razor. They must live here (not in
-// Accordion.razor.scss) because Blazor scoped CSS only matches elements the component renders,
-// and Accordion.razor renders none (just a CascadingValue).
-
 .accordion-item {
     margin-bottom: 0.5rem;
 }
@@ -29,8 +25,6 @@
     }
 }
 
-// The accent colour arrives on the design system's `--fa-supplied-accent` channel, so the header
-// styles the edge itself instead of the caller pushing `border-left-color` through an inline style.
 .accordion-item-header.has-accent {
     border-left-color: var(--fa-supplied-accent);
     border-left-width: 4px;

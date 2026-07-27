@@ -1,51 +1,26 @@
-@using FellowshipAnalyzer.Heroes.Elarion.Analysis
-@using FellowshipAnalyzer.Core.Game
-@inject ElarionCombatLogParser Parser
+@inherits ReportComponent<ElarionCombatLogParser>
 
-@if (Parser.FocusTracker is not null)
+@if (Parser.CooldownPairingAnalyzers.Count > 0)
 {
-    <ResourceGraph
-        Tracker="Parser.FocusTracker"
-        Resource="ResourceTypes.Primary"
-    />
+    <CooldownPairingGuide />
 }
 
-@if (Parser.LunarlightMarkEruptionAnalyzers.Count > 0)
+@if (Parser.FocusEconomyAnalyzers.Count > 0)
 {
-    <LunarlightMarkEruptionGuide />
+    <FocusEconomyGuide />
 }
 
-@if (Parser.EmpoweredMultishotWasteAnalyzers.Any(e => e.Analyzer.BuildActive))
+@if (Parser.LunarlightMarkAnalyzers.Count > 0)
 {
-    <EmpoweredMultishotWasteGuide />
+    <LunarlightMarkGuide />
 }
 
-@if (Parser.HighwindArrowCapAnalyzers.Count > 0)
+@if (Parser.CelestialImpetusAnalyzers.Count > 0)
 {
-    <HighwindArrowCapGuide />
+    <CelestialImpetusGuide />
 }
 
-@if (Parser.CooldownEfficiencyAnalyzers.Count > 0)
+@if (Parser.SupremacyWindowAnalyzers.Count > 0)
 {
-    <CooldownEfficiencyGuide />
-}
-
-@if (Parser.PreUltimateChecklistAnalyzers.Count > 0)
-{
-    <PreUltimateChecklistGuide />
-}
-
-@if (Parser.ImpendingHeartseekerAnalyzers.Count > 0)
-{
-    <ImpendingHeartseekerGuide />
-}
-
-@if (Parser.StarfallVolleyDesyncAnalyzers.Count > 0)
-{
-    <StarfallVolleyDesyncGuide />
-}
-
-@if (Parser.VoidbringerTouchAnalyzers.Any(e => e.Analyzer.TotalCasts > 0))
-{
-    <VoidbringerTouchGuide />
+    <SupremacyWindowsGuide />
 }

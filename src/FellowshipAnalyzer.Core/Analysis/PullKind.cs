@@ -8,6 +8,9 @@ namespace FellowshipAnalyzer.Core.Analysis;
 [Flags]
 public enum PullKind
 {
+    /// <summary>A boss pull: exactly one primary enemy.</summary>
     Single = 1,
+
+    /// <summary>A trash pull: multiple enemies.</summary>
     Multi = 2,
 }

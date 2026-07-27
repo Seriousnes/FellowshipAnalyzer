@@ -36,10 +36,7 @@ internal sealed class IndexedDbReportCacheService(IJSRuntime js) : IReportCacheS
             eventsJsonBytes,
             entry.FightName,
             entry.PlayerName,
-            // Stored as the lowercase hero id string in IndexedDB so the JS layer
-            // can treat it as opaque metadata; converted back via Hero.TryParse on read.
             entry.Hero?.ToHeroId(),
-            // Server-provided expiry in epoch milliseconds, or null for no expiry.
             expiresAt.HasValue ? (long?)expiresAt.Value.ToUnixTimeMilliseconds() : null);
     }
 
@@ -78,7 +75,6 @@ internal sealed class IndexedDbReportCacheService(IJSRuntime js) : IReportCacheS
         }
     }
 
-    // Matches the shape returned by the JS getHistory() function
     private sealed class IndexedDbHistoryEntry
     {
         public string ReportCode { get; set; } = "";

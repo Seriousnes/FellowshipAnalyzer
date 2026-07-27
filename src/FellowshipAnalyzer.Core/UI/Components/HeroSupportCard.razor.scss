@@ -1,10 +1,6 @@
 @use 'tokens' as t;
 @use 'mixins' as mx;
 
-// The card carries its hero's identity token on the design system's `--fa-supplied-accent`
-// channel. Hero identity is data, not a design tier, so it has no semantic class; one inherited
-// channel colours both the accent edge and the hero name below.
-
 .hero-support-card {
     position: relative;
     display: flex;

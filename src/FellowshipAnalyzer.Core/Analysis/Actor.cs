@@ -13,8 +13,12 @@ namespace FellowshipAnalyzer.Core.Analysis;
 [Flags]
 public enum Actor
 {
+    /// <summary>Matches events regardless of whether the player or their pet is the actor.</summary>
     Any = 0,
+    /// <summary>Matches events where the player is the actor.</summary>
     Player = 1,
+    /// <summary>Matches events where the player's pet is the actor.</summary>
     Pet = 2,
+    /// <summary>Matches events where either the player or their pet is the actor.</summary>
     PlayerOrPet = Player | Pet,
 }

@@ -1,0 +1,114 @@
+@inherits ReportComponent<RimeCombatLogParser>
+
+@{
+    var gapRows = BuildGapRows();
+}
+
+<GuideSection Title="Cast Uptime">
+    <Explanation>
+        <p>
+            A global cooldown that sits empty is Anima you never spend and Winter Orbs you never
+            generate, so idle time is throughput that never arrives.
+            <SpellLink Spell="Spells.FrostBolt" />, <SpellLink Spell="Spells.ColdSnap" /> and
+            <SpellLink Spell="Spells.FreezingTorrent" /> are all generators, so there is almost
+            always one available to keep the global cooldown rolling between mechanics.
+        </p>
+        <p>
+            Time is measured from the first on-global-cooldown cast to the end of the pull. Casting
+            and channelling both count as active, off-global-cooldown utility is ignored, and idle
+            stretches shorter than @(DowntimeAnalyzer.MinimumGapMs)ms are treated as latency rather
+            than a lost cast.
+        </p>
+    </Explanation>
+    <ChildContent>
+        <CastOverview Title="Uptime Overview" Stats="@BuildOverviewStats()" />
+        @if (gapRows.Count > 0)
+        {
+            <CastDetail Title="@GapDetailTitle"
+                        Description="Each row is one idle stretch, grouped by the pull it happened in."
+                        Casts="@gapRows" />
+        }
+    </ChildContent>
+</GuideSection>
+
+@code {
+    private const int AcceptableGapMs = 3_000;
+
+    private static string GapDetailTitle => $"Longest Idle Stretches (top {DowntimeAnalyzer.TopGapLimit} per pull)";
+
+    private List<DowntimeAnalyzer> Analyzers() =>
+        [.. Parser.DowntimeAnalyzers.Select(entry => entry.Analyzer)];
+
+    private IEnumerable<OverviewStat> BuildOverviewStats()
+    {
+        var analyzers = Analyzers();
+        var spanMs = analyzers.Sum(analyzer => analyzer.MeasuredSpanMs);
+        var activeMs = analyzers.Sum(analyzer => analyzer.ActiveMs);
+        var downtimeMs = analyzers.Sum(analyzer => analyzer.DowntimeMs);
+        var gapCount = analyzers.Sum(analyzer => analyzer.GapCount);
+        var longestGapMs = analyzers.Count == 0 ? 0 : analyzers.Max(analyzer => analyzer.LongestGapMs);
+        var activePercent = spanMs > 0 ? (double)activeMs / spanMs * 100 : 100;
+
+        return
+        [
+            new OverviewStat(
+                $"{activePercent:F1}%",
+                "Active Time",
+                "Share of measured time spent casting, channelling, or on the global cooldown.",
+                ActiveTier(activePercent)),
+            new OverviewStat(
+                FormatDuration(downtimeMs),
+                "Downtime",
+                "Total time the global cooldown sat empty across every pull."),
+            new OverviewStat(
+                $"{longestGapMs / 1000d:0.0}s",
+                "Longest Gap",
+                "The single longest idle stretch in any pull.",
+                gapCount == 0 ? QualitativePerformance.Perfect : GapTier(longestGapMs)),
+            new OverviewStat(
+                $"{gapCount}",
+                "Gaps",
+                $"Idle stretches of at least {DowntimeAnalyzer.MinimumGapMs}ms across every pull."),
+        ];
+    }
+
+    private List<PerCastData> BuildGapRows() =>
+        [.. Parser.DowntimeAnalyzers.ToItemRows(
+            Parser,
+            analyzer => analyzer.Gaps.Select(gap => (Analyzer: analyzer, Gap: gap)),
+            (entry, pull) => BuildGapRow(entry.Analyzer, entry.Gap))];
+
+    private static PerCastRow BuildGapRow(DowntimeAnalyzer analyzer, DowntimeGap gap)
+    {
+        var share = analyzer.DowntimeMs > 0 ? (double)gap.DurationMs / analyzer.DowntimeMs * 100 : 0;
+
+        return new PerCastRow
+        {
+            Performance = GapTier(gap.DurationMs),
+            Timestamp = gap.StartTimestamp,
+            Stats =
+            [
+                new PerCastStat(
+                    $"{gap.DurationMs / 1000d:0.0}s",
+                    "Idle",
+                    "How long the global cooldown sat empty before the next cast started."),
+                new PerCastStat(
+                    $"{share:F0}%",
+                    "Of Pull Downtime",
+                    "This gap's share of everything the pull spent idle."),
+            ],
+        };
+    }
+
+    private static QualitativePerformance ActiveTier(double activePercent) =>
+        PerformanceTiers.FromThresholds(activePercent, 95, 90, 80);
+
+    private static QualitativePerformance GapTier(int gapMs) =>
+        gapMs < AcceptableGapMs ? QualitativePerformance.Ok : QualitativePerformance.Fail;
+
+    private static string FormatDuration(int milliseconds)
+    {
+        var totalSeconds = milliseconds / 1000;
+        return $"{totalSeconds / 60}:{totalSeconds % 60:00}";
+    }
+}

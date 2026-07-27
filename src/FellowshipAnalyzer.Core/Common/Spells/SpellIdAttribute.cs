@@ -10,5 +10,6 @@ namespace FellowshipAnalyzer.Core.Common.Spells;
 [AttributeUsage(AttributeTargets.Property)]
 public sealed class SpellIdAttribute(int fslid) : Attribute
 {
+    /// <summary>The namespaced <see cref="FSLID.Value"/> the generator stamped on the property this attribute decorates.</summary>
     public int Fslid { get; } = fslid;
 }

@@ -1,9 +1,7 @@
-@* StatCard — statistic card: a spell/title header with an optional info tooltip, and a stat body. *@
-
 <div class="stat-card @SizeClass @WidthClass">
-    @if (Header is not null || !string.IsNullOrEmpty(Title) || Info is not null)
+    @if (Header is not null || !string.IsNullOrEmpty(Title))
     {
-        <div class="stat-card-header">
+        <div class="stat-card-header @(Info is null ? "" : "stat-card-header-inset")">
             <div class="stat-card-heading">
                 @if (Header is not null)
                 {
@@ -18,15 +16,15 @@
                     <span class="stat-card-meta">@Meta</span>
                 }
             </div>
-            @if (Info is not null)
-            {
-                <InfoTooltip>@Info</InfoTooltip>
-            }
         </div>
     }
     <div class="stat-card-body">
         @ChildContent
     </div>
+    @if (Info is not null)
+    {
+        <InfoTooltip>@Info</InfoTooltip>
+    }
 </div>
 
 @code {

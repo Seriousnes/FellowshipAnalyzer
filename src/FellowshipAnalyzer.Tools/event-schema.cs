@@ -40,8 +40,6 @@ if (schemas.Count == 0)
 WriteMarkdown(inputPath, schemas);
 return 0;
 
-// ---- Analysis ----
-
 static Dictionary<string, EventTypeSchema> Analyze(JsonElement eventArray)
 {
     var schemas = new Dictionary<string, EventTypeSchema>(StringComparer.OrdinalIgnoreCase);
@@ -120,8 +118,6 @@ static string FormatFrequency(int count, int total)
 }
 
 static string EscapePipes(string value) => value.Replace("|", "\\|");
-
-// ---- FindEventArray (shared pattern) ----
 
 static JsonElement? FindEventArray(JsonElement root)
 {
@@ -208,8 +204,6 @@ static bool TryGetNested(JsonElement element, out JsonElement current, params st
     return true;
 }
 
-// ---- Types ----
-
 sealed class EventTypeSchema(string eventType)
 {
     public string EventType { get; } = eventType;
@@ -243,7 +237,6 @@ sealed class PropertyInfo
     {
         Count++;
 
-        // Normalize True/False to Boolean for clarity
         var kind = value.ValueKind is JsonValueKind.True or JsonValueKind.False
             ? "Boolean"
             : value.ValueKind.ToString();

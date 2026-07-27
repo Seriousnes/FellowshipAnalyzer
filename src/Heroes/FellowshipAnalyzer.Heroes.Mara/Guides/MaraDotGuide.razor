@@ -1,0 +1,336 @@
+@inherits ReportComponent<MaraCombatLogParser>
+@inject ChartPalette Palette
+
+<GuideSection Title="Poisons &amp; Bleeds">
+    <Explanation>
+        <p>
+            On a boss neither <SpellLink Spell="Spells.WidowBitePoison" /> nor the
+            <SpellLink Spell="Spells.HemorrhagingStrikeBleed" /> bleed should ever leave the target. Each
+            boss pull is scored on the combined uptime of the two and the gaps between their
+            windows, so a reapplication that lands after the effect has already fallen off costs twice.
+        </p>
+        <p>
+            <SpellLink Spell="Spells.HemorrhagingStrike" /> buys its bleed with the combo points it spends,
+            so each reapplication is measured against the time still left on the window it overwrites; a
+            bleed cut short well before it finished ticking is counted as clipped.
+        </p>
+        <p>
+            In a pack the bleed is the effect that has to be spread by hand, so each AoE pull is scored on
+            how much of the roster took it. <SpellLink Spell="Spells.SkitteringBladesPoison" /> is the
+            exception: it erupts for area damage as it expires, so every reapplication counted here
+            cancelled a blast that had not gone off yet.
+        </p>
+    </Explanation>
+    <ChildContent>
+        <CastOverview Title="Upkeep Overview" Stats="@BuildOverviewStats()" />
+        <CastDetail Title="Poisons &amp; Bleeds by Pull"
+                    Description="Each row is one pull. Boss rows show how continuously each effect was active and how much active bleed was overwritten; AoE rows show how far the bleed spread and how many eruptions were cancelled."
+                    Casts="@BuildPerCastData()" />
+    </ChildContent>
+</GuideSection>
+
+@code {
+    private const int EarlyClipRemainingMs = 4000;
+
+    private IEnumerable<OverviewStat> BuildOverviewStats()
+    {
+        var stats = new List<OverviewStat>();
+
+        var bossAnalyzers = Parser.MaraDotAnalyzers
+            .Select(entry => entry.Analyzer).OfType<MaraDotUptimeAnalyzer>().ToList();
+        if (bossAnalyzers.Count > 0)
+        {
+            foreach (var dot in MaraDots.Maintained)
+            {
+                var uptime = (int)Math.Round(bossAnalyzers.Average(analyzer => UptimeOf(analyzer, dot) * 100));
+                stats.Add(new OverviewStat(
+                    $"{uptime}%",
+                    $"{dot.Name} Uptime",
+                    $"Average {dot.Name} uptime across every boss pull.",
+                    UptimeTier(uptime)));
+            }
+
+            var gaps = bossAnalyzers.Sum(analyzer => analyzer.Dots.Sum(entry => entry.GapCount));
+            stats.Add(new OverviewStat(
+                $"{gaps}",
+                "Boss Gaps",
+                "Times a poison or bleed dropped off a boss before being reapplied."));
+
+            var refreshes = bossAnalyzers.Sum(analyzer => analyzer.HemorrhageRefreshes.Count);
+            var clips = bossAnalyzers.Sum(analyzer => ClipCount(analyzer));
+            stats.Add(new OverviewStat(
+                $"{clips}",
+                "Bleeds Clipped Early",
+                $"{clips} of {refreshes} Hemorrhage reapplications landed with more than {EarlyClipRemainingMs / 1000}s still on the bleed.",
+                ClipTier(clips, refreshes)));
+        }
+
+        var spreadAnalyzers = Parser.MaraDotAnalyzers
+            .Select(entry => entry.Analyzer).OfType<MaraDotSpreadAnalyzer>().ToList();
+        if (spreadAnalyzers.Count > 0)
+        {
+            var coverage = (int)Math.Round(spreadAnalyzers.Average(analyzer => analyzer.Coverage * 100));
+            stats.Add(new OverviewStat(
+                $"{coverage}%",
+                "AoE Bleed Coverage",
+                "Average share of the pack that took the Hemorrhage bleed across every AoE pull.",
+                CoverageTier(coverage, spreadAnalyzers.Sum(analyzer => analyzer.RosterSize))));
+
+            var forfeited = spreadAnalyzers.Sum(analyzer => analyzer.VolatilePoisonRefreshes);
+            stats.Add(new OverviewStat(
+                $"{forfeited}",
+                "Eruptions Forfeited",
+                "Volatile Poison reapplications, each one an area blast cancelled before it went off.",
+                VolatileTier(forfeited)));
+        }
+
+        return stats;
+    }
+
+    private IEnumerable<PerCastData> BuildPerCastData() =>
+        Parser.MaraDotAnalyzers.ToPullRows(Parser, (analyzer, pull) => analyzer switch
+        {
+            MaraDotUptimeAnalyzer uptime => BuildBossRow(uptime, pull),
+            MaraDotSpreadAnalyzer spread => BuildAoeRow(spread),
+            _ => throw new InvalidOperationException($"Unexpected Mara DoT analyzer {analyzer.GetType().Name}"),
+        });
+
+    private PerCastRow BuildBossRow(MaraDotUptimeAnalyzer analyzer, Pull pull)
+    {
+        var sampled = analyzer.PullDurationMs > 0;
+        var stats = new List<PerCastStat>();
+        QualitativePerformance? worst = null;
+
+        foreach (var entry in analyzer.Dots)
+        {
+            var percent = (int)Math.Round(entry.Uptime * 100);
+            QualitativePerformance? tier = sampled ? UptimeTier(percent) : null;
+            stats.Add(new PerCastStat(
+                $"{percent}%",
+                entry.Dot.Name,
+                $"Share of the pull the boss spent carrying {entry.Dot.Name}.",
+                Performance: tier));
+            worst = Worse(worst, tier);
+        }
+
+        var gapCount = analyzer.Dots.Sum(entry => entry.GapCount);
+        var downtime = analyzer.Dots.Sum(entry => entry.TotalGapMs);
+        stats.Add(new PerCastStat(
+            $"{gapCount}",
+            "Gaps",
+            $"Times a tracked effect dropped off before being reapplied, totalling {FormatSeconds(downtime)} of downtime."));
+
+        var refreshes = analyzer.HemorrhageRefreshes.Count;
+        var clips = ClipCount(analyzer);
+        var clipTier = ClipTier(clips, refreshes);
+        stats.Add(new PerCastStat(
+            $"{clips}/{refreshes}",
+            "Bleeds Clipped Early",
+            $"Hemorrhage reapplications that overwrote more than {EarlyClipRemainingMs / 1000}s of an active bleed.",
+            Performance: clipTier));
+        worst = Worse(worst, clipTier);
+
+        if (analyzer.HemorrhageApplications.Count > 0)
+        {
+            stats.Add(new PerCastStat(
+                FormatSeconds((int)analyzer.HemorrhageApplications.Average(application => application.ExpectedDurationMs)),
+                "Avg Bleed Length",
+                "Average Hemorrhage duration bought by the combo points spent on each Hemorrhaging Strike."));
+        }
+
+        AdditionalContent? chart = null;
+        if (analyzer.Dots.Any(entry => entry.Windows.Count > 0))
+        {
+            var samples = ChartSamples(analyzer, pull);
+            var bands = ChartBands(analyzer, samples);
+            chart = new AdditionalContent(
+                "Coverage Through The Pull",
+                @<AuraStackGraph Samples="@samples"
+                                 Bands="@bands"
+                                 YAxisTitle="Active effects"
+                                 Height="240" />);
+        }
+
+        return new PerCastRow
+        {
+            Performance = worst ?? QualitativePerformance.Ok,
+            Stats = [.. stats],
+            AdditionalContent = chart,
+            Details = @<div>@BuildBossNote(analyzer)</div>,
+        };
+    }
+
+    private PerCastRow BuildAoeRow(MaraDotSpreadAnalyzer analyzer)
+    {
+        var coverage = (int)Math.Round(analyzer.Coverage * 100);
+        var coverageTier = CoverageTier(coverage, analyzer.RosterSize);
+        var volatileTier = VolatileTier(analyzer.VolatilePoisonRefreshes);
+
+        var stats = new[]
+        {
+            new PerCastStat(
+                $"{analyzer.HemorrhageTargets}/{analyzer.RosterSize}",
+                "Bleed Coverage",
+                $"Enemies that took the Hemorrhage bleed, against the pack ({coverage}%).",
+                Performance: coverageTier),
+            new PerCastStat(
+                $"{analyzer.HemorrhageApplications}",
+                "Bleed Applications",
+                "Fresh Hemorrhage applications during the pull."),
+            new PerCastStat(
+                $"{analyzer.SeethingPoisonTargets}",
+                MaraDots.SeethingPoison.Name,
+                $"Enemies that took the {MaraDots.SeethingPoison.Name} during the pull."),
+            new PerCastStat(
+                $"{analyzer.VolatilePoisonTargets}",
+                MaraDots.VolatilePoison.Name,
+                $"Enemies that took the {MaraDots.VolatilePoison.Name} during the pull."),
+            new PerCastStat(
+                $"{analyzer.VolatilePoisonRefreshes}/{analyzer.VolatilePoisonApplications + analyzer.VolatilePoisonRefreshes}",
+                "Eruptions Forfeited",
+                "Volatile Poison reapplications, each one an area blast cancelled before it went off.",
+                Performance: volatileTier),
+        };
+
+        return new PerCastRow
+        {
+            Performance = Worse(coverageTier, volatileTier) ?? QualitativePerformance.Ok,
+            Stats = stats,
+            Details = @<div>@BuildAoeNote(analyzer, coverage)</div>,
+        };
+    }
+
+    private static IReadOnlyList<int> ChartSamples(MaraDotUptimeAnalyzer analyzer, Pull pull)
+    {
+        var samples = new SortedSet<int> { pull.StartTime, pull.EndTime };
+        foreach (var entry in analyzer.Dots)
+        {
+            foreach (var window in entry.Windows)
+            {
+                samples.Add(Math.Clamp(window.Start, pull.StartTime, pull.EndTime));
+                samples.Add(Math.Clamp(window.End, pull.StartTime, pull.EndTime));
+            }
+        }
+        return [.. samples];
+    }
+
+    private IReadOnlyList<AuraStackBand> ChartBands(MaraDotUptimeAnalyzer analyzer, IReadOnlyList<int> samples)
+    {
+        var bands = new List<AuraStackBand>(analyzer.Dots.Count);
+        foreach (var entry in analyzer.Dots)
+        {
+            var values = new int[samples.Count];
+            for (var i = 0; i < samples.Count; i++)
+                values[i] = entry.Windows.Count(window => window.Start <= samples[i] && samples[i] < window.End);
+
+            bands.Add(new AuraStackBand(entry.Dot.Name, MaraChartColors.Dot(Palette, entry.Dot), values));
+        }
+        return bands;
+    }
+
+    private static string BuildBossNote(MaraDotUptimeAnalyzer analyzer)
+    {
+        var missing = analyzer.Dots.Where(entry => entry.Windows.Count == 0).Select(entry => entry.Dot.Name).ToList();
+        if (missing.Count == analyzer.Dots.Count)
+            return "Neither the poison nor the bleed was applied on this boss pull.";
+
+        var notes = new List<string>();
+        if (missing.Count > 0)
+            notes.Add($"{JoinNames(missing)} never went up");
+
+        foreach (var entry in analyzer.Dots)
+        {
+            if (entry.GapCount == 0) continue;
+
+            notes.Add($"{entry.Dot.Name} dropped {Count(entry.GapCount, "time")} for {FormatSeconds(entry.TotalGapMs)}");
+        }
+
+        var clipped = analyzer.HemorrhageRefreshes.Where(refresh => refresh.RemainingMs > EarlyClipRemainingMs).ToList();
+        if (clipped.Count > 0)
+        {
+            var averageLost = (int)clipped.Average(refresh => refresh.RemainingMs);
+            notes.Add($"{Count(clipped.Count, "Hemorrhaging Strike")} overwrote a bleed with {FormatSeconds(averageLost)} left on average");
+        }
+
+        if (notes.Count == 0)
+            return "Both effects held for the whole pull with no gaps and no bleed clipped early.";
+
+        return Sentence(notes);
+    }
+
+    private static string BuildAoeNote(MaraDotSpreadAnalyzer analyzer, int coverage)
+    {
+        var notes = new List<string>();
+
+        if (analyzer.HemorrhageTargets == 0)
+            notes.Add("the Hemorrhage bleed never reached the pack");
+        else
+            notes.Add($"the bleed reached {analyzer.HemorrhageTargets} of {analyzer.RosterSize} enemies ({coverage}%)");
+
+        if (analyzer.VolatilePoisonRefreshes > 0)
+            notes.Add($"{Count(analyzer.VolatilePoisonRefreshes, "Volatile Poison")} was laid again over a window that had not erupted yet, cancelling the blast");
+        else if (analyzer.VolatilePoisonApplications > 0)
+            notes.Add($"every one of the {analyzer.VolatilePoisonApplications} Volatile Poisons was left to erupt");
+
+        if (analyzer.TargetCount == 0)
+            notes.Add("the pull reported no enemy roster, so coverage is measured against the enemies you engaged");
+
+        return Sentence(notes);
+    }
+
+    private static double UptimeOf(MaraDotUptimeAnalyzer analyzer, MaraDot dot) =>
+        analyzer.Dots.First(entry => entry.Dot.EffectId == dot.EffectId).Uptime;
+
+    private static int ClipCount(MaraDotUptimeAnalyzer analyzer) =>
+        analyzer.HemorrhageRefreshes.Count(refresh => refresh.RemainingMs > EarlyClipRemainingMs);
+
+    private static string Sentence(List<string> notes)
+    {
+        var joined = string.Join("; ", notes);
+        return $"{char.ToUpperInvariant(joined[0])}{joined[1..]}.";
+    }
+
+    private static string JoinNames(List<string> names)
+    {
+        if (names.Count == 1)
+            return names[0];
+
+        var builder = new System.Text.StringBuilder();
+        for (var i = 0; i < names.Count; i++)
+        {
+            if (i > 0)
+                builder.Append(i == names.Count - 1 ? " and " : ", ");
+            builder.Append(names[i]);
+        }
+        return builder.ToString();
+    }
+
+    private static string Count(int value, string noun) =>
+        value == 1 ? $"1 {noun}" : $"{value} {noun}s";
+
+    private static string FormatSeconds(int milliseconds) =>
+        $"{milliseconds / 1000d:0.#}s";
+
+    private static QualitativePerformance? Worse(QualitativePerformance? left, QualitativePerformance? right)
+    {
+        if (left is not { } first) return right;
+        if (right is not { } second) return left;
+        return first < second ? first : second;
+    }
+
+    private static QualitativePerformance UptimeTier(int percent) =>
+        PerformanceTiers.FromThresholds(percent, 95, 85, 70);
+
+    private static QualitativePerformance? CoverageTier(int percent, int roster) =>
+        roster == 0 ? null : PerformanceTiers.FromThresholds(percent, 75, 50, 25);
+
+    private static QualitativePerformance? ClipTier(int clips, int refreshes) =>
+        refreshes == 0
+            ? null
+            : PerformanceTiers.FromThresholds(100 - (int)Math.Round((double)clips / refreshes * 100), 90, 75, 50);
+
+    private static QualitativePerformance VolatileTier(int refreshes) =>
+        refreshes == 0 ? QualitativePerformance.Perfect
+        : refreshes <= 2 ? QualitativePerformance.Ok
+        : QualitativePerformance.Fail;
+}

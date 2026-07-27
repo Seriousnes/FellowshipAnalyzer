@@ -45,7 +45,6 @@
             a => { _id = a.FSLID.NativeId; _kind = a.FSLID.Kind; _name = a.Name ?? ""; _icon = a.Icon ?? ""; }
         );
 
-        // Reset status when the spell parameter changes.
         _status = null;
         _failed = false;
     }

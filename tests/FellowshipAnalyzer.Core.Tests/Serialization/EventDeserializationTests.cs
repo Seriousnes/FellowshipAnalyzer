@@ -139,21 +139,17 @@ public sealed class EventDeserializationTests
     [Fact]
     public void Deserialize_WithWasmClientOptions_ShouldHavePopulatedAbility()
     {
-        // Exactly mirrors FellowshipAnalyzer/Program.cs
         var wasmOptions = new JsonSerializerOptions(JsonSerializerDefaults.Web)
         {
             AllowOutOfOrderMetadataProperties = true,
         };
         wasmOptions.Converters.Add(new JsonStringEnumConverter(allowIntegerValues: true));
 
-        // Server-side path: deserialize from raw fixture and wrap as EventsResult
         var serverEvents = DeserializeFixtureEvents();
         var eventsResult = new EventsResult(serverEvents, false);
 
-        // Simulate the API endpoint: server serializes EventsResult to JSON
         var json = JsonSerializer.Serialize(eventsResult, JsonContext.EventsResult);
 
-        // WASM client: deserialize EventsResult from the API response
         var result = JsonSerializer.Deserialize<EventsResult>(json, wasmOptions)!;
         var events = result.Events;
 

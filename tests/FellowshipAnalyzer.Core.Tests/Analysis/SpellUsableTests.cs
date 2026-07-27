@@ -45,10 +45,6 @@ public sealed partial class SpellUsableTests
             StartTime: 0, EndTime: 60_000, Difficulty: null,
             FriendlyPlayers: null, FightPercentage: null);
 
-    // -------------------------------------------------------------------------
-    // Tracked Cooldown Acceleration modifiers (added and removed via StatTracker)
-    // -------------------------------------------------------------------------
-
     /// <summary>
     /// SpellA cast at t=1000 with base CD=10000ms recharges to t=11000. A 1.0 acceleration modifier
     /// added at t=2000 takes the rate to 2×: remaining was 9000, new remaining = 9000/2 = 4500, so the
@@ -184,10 +180,6 @@ public sealed partial class SpellUsableTests
         Assert.Equal(1000, rateUpdate!.OverallStartTimestamp);
     }
 
-    // -------------------------------------------------------------------------
-    // Haste's contribution to the pool (per haste-flagged ability)
-    // -------------------------------------------------------------------------
-
     /// <summary>
     /// Recovery and acceleration are one mechanic sharing one pool, so Chronoshift's 8.0 adds to
     /// haste rather than multiplying it: a haste-flagged spell recovers at 1 + haste + 8, not
@@ -219,8 +211,6 @@ public sealed partial class SpellUsableTests
     [Fact]
     public async Task HasteAcceleratedSpell_CooldownShortenedByHaste()
     {
-        // The buff applies haste before the cast; SpellC is flagged CooldownReducedByHaste, so its
-        // 10s base cooldown starts as 10000 / (1 + haste), expiring at 1000 + that.
         var (parser, _, probe) = await Run(
         [
             CreateHasteBuff(500),
@@ -237,7 +227,6 @@ public sealed partial class SpellUsableTests
     [Fact]
     public async Task NonHasteSpell_CooldownUnaffectedByHaste()
     {
-        // SpellA is not flagged CooldownReducedByHaste, so haste does not shorten its cooldown.
         var (_, _, probe) = await Run(
         [
             CreateHasteBuff(500),
@@ -250,8 +239,6 @@ public sealed partial class SpellUsableTests
     [Fact]
     public async Task HasteIncreaseMidCooldown_RescalesAcceleratedSpellOnly()
     {
-        // A haste buff landing mid-cooldown rescales the remaining time of a haste-flagged spell,
-        // while leaving a non-flagged spell's cooldown untouched. Compared against a no-buff run.
         var hasted = await Run([CreateCast(1000, SpellC), CreateCast(1000, SpellA), CreateHasteBuff(3000)]);
         var baseline = await Run([CreateCast(1000, SpellC), CreateCast(1000, SpellA)]);
 
@@ -264,10 +251,6 @@ public sealed partial class SpellUsableTests
             baseline.probe.Updates.Last(e => e.Ability.FSLID == SpellA).ExpectedRechargeTimestamp,
             hasted.probe.Updates.Last(e => e.Ability.FSLID == SpellA).ExpectedRechargeTimestamp);
     }
-
-    // -------------------------------------------------------------------------
-    // Chronological flush and cast-time bookkeeping
-    // -------------------------------------------------------------------------
 
     /// <summary>
     /// SpellA cast at t=0 ends at 10000; SpellB cast at t=100 ends at 20100. Both natural expiries fall
@@ -384,20 +367,13 @@ public sealed partial class SpellUsableTests
         Assert.Equal(CastEnd, beginCd.ChargeStartTimestamp);
     }
 
-    // -------------------------------------------------------------------------
-    // Multi-charge cooldown reduction across the charge-restore boundary
-    // -------------------------------------------------------------------------
-
     [Fact]
     public async Task ReduceCooldown_AcrossChargeBoundary_RestoresChargeAndCarriesRemainderToNext()
     {
-        // SpellB has 2 charges on a 20s recharge. Spend both, then advance to 0.5s before the recharging
-        // charge would restore. A 1.0s reduction spends 0.5s ending that charge and carries the remaining
-        // 0.5s onto the next charge, wasting nothing.
         var (_, spellUsable, _) = await Run([]);
 
-        spellUsable.BeginCooldown(SpellB, timestamp: 0);   // 1 charge left, recharge ends 20000
-        spellUsable.BeginCooldown(SpellB, timestamp: 0);   // 0 charges left, same recharge in flight
+        spellUsable.BeginCooldown(SpellB, timestamp: 0);
+        spellUsable.BeginCooldown(SpellB, timestamp: 0);
 
         Assert.Equal(0, spellUsable.ChargesAvailable(SpellB));
         Assert.Equal(500, spellUsable.CooldownRemaining(SpellB, atTimestamp: 19500));
@@ -408,7 +384,6 @@ public sealed partial class SpellUsableTests
         Assert.Equal(1000, cdr.AppliedMs);
         Assert.Equal(0, cdr.WastedMs);
 
-        // One charge restored; the next charge's fresh 20s recharge is 0.5s shorter (ends at 39000).
         Assert.Equal(1, spellUsable.ChargesAvailable(SpellB));
         Assert.Equal(19500, spellUsable.CooldownRemaining(SpellB, atTimestamp: 19500));
     }
@@ -420,7 +395,6 @@ public sealed partial class SpellUsableTests
         spellUsable.BeginCooldown(SpellB, timestamp: 0);
         spellUsable.BeginCooldown(SpellB, timestamp: 0);
 
-        // Reduction exactly equal to the 500ms remaining: ends the charge with nothing to carry over.
         var cdr = spellUsable.ReduceCooldown(SpellB, 500, timestamp: 19500);
 
         Assert.Equal(500, cdr.AppliedMs);
@@ -436,8 +410,6 @@ public sealed partial class SpellUsableTests
         spellUsable.BeginCooldown(SpellB, timestamp: 0);
         spellUsable.BeginCooldown(SpellB, timestamp: 0);
 
-        // At 19500, charge 1 has 0.5s left and charge 2 needs a further 20s. A 25s reduction restores
-        // both (0.5s + 20s = 20.5s applied); the final 4.5s has no running cooldown left and is wasted.
         var cdr = spellUsable.ReduceCooldown(SpellB, 25000, timestamp: 19500);
 
         Assert.Equal(25000, cdr.GeneratedMs);
@@ -446,10 +418,6 @@ public sealed partial class SpellUsableTests
         Assert.Equal(2, spellUsable.ChargesAvailable(SpellB));
         Assert.False(spellUsable.IsOnCooldown(SpellB));
     }
-
-    // -------------------------------------------------------------------------
-    // Test infrastructure
-    // -------------------------------------------------------------------------
 
     private static async Task<(TestCombatLogParser parser, SpellUsable spellUsable, UpdateProbeModule probe)> Run(
         List<Event> events,

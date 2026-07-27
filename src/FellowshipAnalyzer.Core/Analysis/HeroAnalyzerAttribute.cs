@@ -8,5 +8,6 @@ namespace FellowshipAnalyzer.Core.Analysis;
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = false)]
 public sealed class HeroAnalyzerAttribute(HeroName hero) : Attribute
 {
+    /// <summary>The hero this parser analyzes.</summary>
     public HeroName Hero { get; } = hero;
 }

@@ -13,7 +13,7 @@ public readonly record struct FaSemanticClass(string ClassName, string TokenName
 /// the twelve event types. Derived from the token names, so the class set cannot fall out of step
 /// with the token set.
 ///
-/// <c>RoleUnknown</c> has no class. It is a low-alpha structural grey standing in for "no role",
+/// <c>RoleUnknown</c> has no class. It is a low-alpha structural grey used for "no role",
 /// so it reads as an accent edge but would render text near-invisible.
 /// </summary>
 public static class FaSemantic

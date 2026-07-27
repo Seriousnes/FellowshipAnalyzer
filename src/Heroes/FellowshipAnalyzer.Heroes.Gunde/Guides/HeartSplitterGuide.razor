@@ -1,0 +1,143 @@
+@using Spells = FellowshipAnalyzer.Core.Common.Spells.Gunde.Spells
+@inject GundeCombatLogParser Parser
+
+<GuideSection Title="Heart Splitter">
+    <Explanation>
+        <p>
+            <SpellLink Spell="Spells.HeartSplitter" /> hits twice: a direct strike, and
+            <SpellLink Spell="Spells.HeartSplitterDotBonusDamage" />, which deals a share of all the
+            <SpellLink Spell="Spells.Rend" /> active on the target and leaves that bleed in place.
+            It is therefore worth as much as the pile it lands on, and it wants to go out before
+            <SpellLink Spell="Spells.Slaughter" /> consumes that pile, never just after it.
+        </p>
+        <p>
+            Each cast is scored on that ordering: pressing Slaughter with Heart Splitter about to come
+            up empties the target, and the Exsanguinate that follows cashes almost nothing. The pile
+            it found is shown as a stack count read at the moment of the hit, which is the same
+            measure on any gear; the damage it produced is shown alongside as evidence.
+        </p>
+    </Explanation>
+    <ChildContent>
+        @if (TotalCasts == 0)
+        {
+            <TipBox Variant="TipBoxVariant.Info">
+                Heart Splitter was never cast, so none of Gunde's accumulated Rend was exsanguinated.
+            </TipBox>
+        }
+        else
+        {
+            <CastOverview Title="Heart Splitter Overview" Stats="@BuildOverviewStats()" />
+            <CastDetail Title="Heart Splitters"
+                        Description="Each card is one Heart Splitter, rated on whether a Slaughter had just emptied the target it landed on."
+                        Casts="@BuildPerCastData()" />
+        }
+    </ChildContent>
+</GuideSection>
+
+@code {
+    private List<HeartSplitterAnalyzer> Analyzers =>
+        [.. Parser.HeartSplitterAnalyzers.Select(entry => entry.Analyzer)];
+
+    private int TotalCasts => Analyzers.Sum(analyzer => analyzer.Casts.Count);
+
+    private IEnumerable<OverviewStat> BuildOverviewStats()
+    {
+        var casts = TotalCasts;
+        var clipped = Analyzers.Sum(analyzer => analyzer.ClippedBySlaughter);
+        var measured = Analyzers.Sum(analyzer => analyzer.MeasuredCasts);
+        var rend = Analyzers.Sum(analyzer => analyzer.TotalRendExsanguinated);
+        var damage = Analyzers.Sum(analyzer => analyzer.TotalExsanguinateDamage);
+        var cleanRate = casts > 0 ? (int)Math.Round((double)(casts - clipped) / casts * 100) : 0;
+
+        var stats = new List<OverviewStat>
+        {
+            new(
+                $"{casts}",
+                "Heart Splitters",
+                "Total Heart Splitter casts evaluated across every pull."),
+            new(
+                $"{cleanRate}%",
+                "Rend Intact",
+                $"{casts - clipped} of {casts} Heart Splitters landed on a target no Slaughter had just emptied.",
+                PercentTier(cleanRate)),
+            new(
+                measured > 0 ? $"{rend / measured}" : "-",
+                "Avg Rend Hit",
+                measured > 0
+                    ? $"Average Rend stacks active when Exsanguinate hit, {rend} in total across {measured} casts."
+                    : "No Exsanguinate landed, so there was no bleed to measure."),
+        };
+
+        if (damage > 0)
+        {
+            stats.Add(new OverviewStat(
+                FormatDamage(damage),
+                "Exsanguinate",
+                "Total Exsanguinate damage. Damage scales with gear, so it is reported as context rather than scored."));
+        }
+
+        return stats;
+    }
+
+    private IEnumerable<PerCastData> BuildPerCastData() =>
+        Parser.HeartSplitterAnalyzers.ToItemRows(
+            Parser, analyzer => analyzer.Casts, (cast, pull) => BuildCastRow(cast));
+
+    private PerCastRow BuildCastRow(HeartSplitterCast cast)
+    {
+        var perf = cast.ClippedBySlaughter ? QualitativePerformance.Fail : QualitativePerformance.Perfect;
+
+        var stats = new[]
+        {
+            new PerCastStat(
+                cast.ClippedBySlaughter ? "No" : "Yes",
+                "Rend Intact",
+                $"Whether the target still carried its bleed, or a Slaughter had emptied it within {HeartSplitterAnalyzer.SlaughterClipMs / 1000d:0.#}s.",
+                perf),
+            new PerCastStat(
+                cast.RendOnTarget is { } rend ? $"{rend}" : "-",
+                "Rend on Target",
+                cast.RendOnTarget is not null
+                    ? "Rend stacks active when Exsanguinate hit - the pile it took its share of."
+                    : "No Exsanguinate followed this cast, so there was no pile to measure."),
+            new PerCastStat(
+                FormatDamage(cast.ExsanguinateDamage),
+                "Exsanguinate",
+                "Damage the Exsanguinate half of this cast dealt. Reported as context: it scales with gear, while the stack count does not."),
+        };
+
+        return new PerCastRow
+        {
+            Performance = perf,
+            Stats = stats,
+            Timestamp = cast.Timestamp,
+            Sequence = [new SpellCastEntry(Spells.HeartSplitter.FSLID.Value, perf)],
+            AdditionalContent = new AdditionalContent("Usage Notes", @<div>@BuildNote(cast)</div>),
+        };
+    }
+
+    private static string BuildNote(HeartSplitterCast cast)
+    {
+        if (cast.RendOnTarget is not { } rend)
+            return "No Exsanguinate followed this cast, so nothing is known about the bleed it would have cashed.";
+
+        if (!cast.ClippedBySlaughter)
+        {
+            return cast.MillisecondsSinceSlaughter is { } gap
+                ? $"Exsanguinated {rend} Rend, {gap / 1000d:0.#}s after the last Slaughter - the bleed had rebuilt."
+                : $"Exsanguinated {rend} Rend, with no Slaughter yet to have consumed it.";
+        }
+
+        var since = cast.MillisecondsSinceSlaughter ?? 0;
+        return $"A Slaughter emptied the target {since / 1000d:0.#}s earlier, leaving only {rend} Rend for Exsanguinate to take a share of. Cast Heart Splitter before Slaughter, not after it.";
+    }
+
+    private static string FormatDamage(long damage) =>
+        damage >= 1_000_000 ? $"{damage / 1_000_000d:0.0}M"
+        : damage >= 10_000 ? $"{damage / 1_000d:0}k"
+        : damage >= 1_000 ? $"{damage / 1_000d:0.0}k"
+        : $"{damage}";
+
+    private static QualitativePerformance PercentTier(int percent) =>
+        PerformanceTiers.FromThresholds(percent, 75, 50, 25);
+}

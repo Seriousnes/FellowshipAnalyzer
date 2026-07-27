@@ -49,7 +49,6 @@ public sealed class JsonDerivedTypeGenerator : IIncrementalGenerator
         if (ctx.SemanticModel.GetDeclaredSymbol(classDecl, ct) is not INamedTypeSymbol symbol)
             return null;
 
-        // Must have [JsonPolymorphic] attribute
         bool hasJsonPolymorphic = false;
         var discriminatorPropertyName = "$type";
         foreach (var attr in symbol.GetAttributes())
@@ -69,7 +68,6 @@ public sealed class JsonDerivedTypeGenerator : IIncrementalGenerator
         if (!hasJsonPolymorphic)
             return null;
 
-        // Collect all non-abstract derived types from the current compilation assembly
         var derivedTypes = new List<DerivedTypeInfo>();
 
         foreach (var typeSymbol in GetAllNamedTypes(ctx.SemanticModel.Compilation.Assembly.GlobalNamespace))
@@ -82,8 +80,6 @@ public sealed class JsonDerivedTypeGenerator : IIncrementalGenerator
             if (!InheritsFrom(typeSymbol, symbol))
                 continue;
 
-            // Walk the full base-type chain for [Fabricated] because Roslyn's
-            // GetAttributes() does NOT honour Inherited = true on attributes.
             if (HasFabricatedInChain(typeSymbol))
                 continue;
 
@@ -100,7 +96,6 @@ public sealed class JsonDerivedTypeGenerator : IIncrementalGenerator
             derivedTypes.Add(new DerivedTypeInfo(name, ns, discriminator));
         }
 
-        // Alphabetical sort for deterministic output
         derivedTypes.Sort(static (a, b) => string.Compare(a.Name, b.Name, StringComparison.Ordinal));
 
         var triggerNs = symbol.ContainingNamespace?.IsGlobalNamespace == false

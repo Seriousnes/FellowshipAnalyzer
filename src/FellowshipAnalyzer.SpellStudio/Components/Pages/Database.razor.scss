@@ -31,7 +31,6 @@ $sources: (
     }
 }
 
-// ── Shell ─────────────────────────────────────────────────────────────────────
 .studio {
     height: 100vh;
     display: grid;
@@ -39,7 +38,6 @@ $sources: (
     overflow: hidden;
 }
 
-// ── Command bar ───────────────────────────────────────────────────────────────
 .studio-bar {
     display: flex;
     align-items: center;
@@ -105,7 +103,6 @@ $sources: (
     &:disabled { opacity: 0.55; cursor: default; }
 }
 
-// ── Toolbar / filter rail ─────────────────────────────────────────────────────
 .studio-toolbar {
     display: flex;
     flex-wrap: wrap;
@@ -217,7 +214,6 @@ $sources: (
     }
 }
 
-// ── Main: bordered grid region ────────────────────────────────────────────────
 .studio-main {
     min-height: 0;
     display: flex;
@@ -268,7 +264,6 @@ $sources: (
     color: var(--fa-text-muted);
 }
 
-// ── Data grid ─────────────────────────────────────────────────────────────────
 .spell-grid {
     width: 100%;
     min-width: 60rem;
@@ -312,7 +307,6 @@ $sources: (
     }
 }
 
-// Fixed columns size to content; Member / Name / Costs share the remaining width.
 .col-icon {
     width: 2.6rem;
     padding-right: 0.35rem !important;
@@ -428,7 +422,6 @@ $sources: (
 
 .icon-missing-lg { width: 36px; height: 36px; border-radius: var(--fa-radius-xs); }
 
-// Provenance heatmap — Override always glows; other sources reveal under the toggle.
 .spell-grid {
     .cell.src-override {
         background: var(--fa-gold-dim);
@@ -445,7 +438,6 @@ $sources: (
     }
 }
 
-// ── Modal ─────────────────────────────────────────────────────────────────────
 .modal-backdrop {
     position: fixed;
     inset: 0;
@@ -532,7 +524,6 @@ $sources: (
     border-top: 1px solid var(--fa-border);
 }
 
-// ── Fields ────────────────────────────────────────────────────────────────────
 .field-list {
     display: flex;
     flex-direction: column;
@@ -577,7 +568,6 @@ $sources: (
     border: 1px solid var(--src);
 }
 
-// ── Cost editor ───────────────────────────────────────────────────────────────
 .cost-section {
     display: flex;
     flex-direction: column;
@@ -611,7 +601,6 @@ $sources: (
 .cost-key { font-size: 0.76rem; color: var(--fa-text-muted); }
 .cost-input { width: 100%; }
 
-// ── Buttons ───────────────────────────────────────────────────────────────────
 .btn-primary {
     font: inherit;
     font-weight: 600;

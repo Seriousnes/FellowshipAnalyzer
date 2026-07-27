@@ -7,13 +7,30 @@ namespace FellowshipAnalyzer.Core.Common.Spells;
 /// </summary>
 public enum AbilityCategory
 {
+    /// <summary>A hero's default, always-available attack.</summary>
     Basic,
+
+    /// <summary>An ability whose primary purpose is crowd control (stuns, roots, and similar effects).</summary>
     Control,
+
+    /// <summary>One of a hero's core rotational abilities.</summary>
     Core,
+
+    /// <summary>An ability used to mitigate or avoid incoming damage.</summary>
     Defensive,
+
+    /// <summary>A hero's major cooldown ability.</summary>
     Major,
+
+    /// <summary>An ability whose primary purpose is repositioning.</summary>
     Movement,
+
+    /// <summary>An ability that generates or spends the hero's power resource.</summary>
     Power,
+
+    /// <summary>A support ability that does not fit the other combat categories.</summary>
     Utility,
+
+    /// <summary>An ability that generates or spends Spirit.</summary>
     Spirit,
 }

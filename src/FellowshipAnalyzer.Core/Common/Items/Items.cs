@@ -1,7 +1,9 @@
 namespace FellowshipAnalyzer.Core.Common.Items;
 
+/// <summary>Generic legendary items whose Chronoshift-granting behavior is shared across the heroes that can equip them.</summary>
 public class Items : IItemRegistry
 {
+    /// <summary>The staff legendary that grants the Chronoshift ability (spell 1558) to Ardeos.</summary>
     public static Item AshasChronoshiftSpire { get; } = new(5326, "Asha's Chronoshift Spire", "Tex_staff_05_b.jpg");
 
     /// <summary>

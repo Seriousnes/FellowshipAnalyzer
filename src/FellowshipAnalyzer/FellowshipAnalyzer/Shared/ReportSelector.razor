@@ -110,7 +110,6 @@
 
     private static int? ExtractCharacterId(string input)
     {
-        // Matches: https://www.fellowshiplogs.com/character/id/{numericId}
         var match = Regex.Match(input.Trim(),
             @"fellowshiplogs\.com/character/id/([0-9]+)");
         if (!match.Success)

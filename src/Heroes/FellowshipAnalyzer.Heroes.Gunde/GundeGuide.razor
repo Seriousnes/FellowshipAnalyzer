@@ -1,8 +1,33 @@
 @using FellowshipAnalyzer.Heroes.Gunde.Analysis
 @using FellowshipAnalyzer.Heroes.Gunde.Guides
-@inject GundeCombatLogParser Parser
+@inherits ReportComponent<GundeCombatLogParser>
+
+@if (Parser.RendAnalyzers.Count > 0)
+{
+    <RendGuide />
+}
+
+@if (Parser.HeartSplitterAnalyzers.Count > 0)
+{
+    <HeartSplitterGuide />
+}
 
 @if (Parser.SlaughterUsageAnalyzers.Count > 0)
 {
     <SlaughterUsageGuide />
+}
+
+@if (Parser.SerratedEdgeAnalyzers.Count > 0)
+{
+    <SerratedEdgeGuide />
+}
+
+@if (Parser.BurstWindowAnalyzers.Count > 0)
+{
+    <BurstWindowGuide />
+}
+
+@if (Parser.OwedInBloodEconomyAnalyzers.Count > 0)
+{
+    <OwedInBloodGuide />
 }

@@ -11,9 +11,9 @@ public sealed record AuraStackBand(string Label, string Color, IReadOnlyList<int
 
 /// <summary>
 /// A set of casts marked on an <see cref="AuraStackGraph"/>, plotted against the same sample grid as the
-/// bands so a marker sits exactly where the stack stood when the cast landed.
+/// bands so a marker sits exactly at the stack count when the cast landed.
 /// </summary>
 /// <param name="Label">The marker set's name, shown in the legend.</param>
 /// <param name="Color">The concrete CSS colour, resolved from a design token via <see cref="ChartPalette"/>.</param>
-/// <param name="Values">The height to plot each marker at, or null at samples this set has no cast on.</param>
+/// <param name="Values">The stack count to plot each marker at, or null at samples this set has no cast on.</param>
 public sealed record AuraStackMarkers(string Label, string Color, IReadOnlyList<int?> Values);

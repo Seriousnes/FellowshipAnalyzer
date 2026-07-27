@@ -22,7 +22,10 @@ public sealed record CooldownConfigEntry(int SpellId, bool Visible, int SortOrde
 /// </summary>
 public sealed class TimelineConfig
 {
+    /// <summary>The user's visibility and priority choices for each aura shown on the Timeline aura bar.</summary>
     public List<AuraConfigEntry> Auras { get; init; } = [];
+
+    /// <summary>The user's visibility and ordering choices for each cooldown lane shown on the Timeline.</summary>
     public List<CooldownConfigEntry> Cooldowns { get; init; } = [];
 }
 

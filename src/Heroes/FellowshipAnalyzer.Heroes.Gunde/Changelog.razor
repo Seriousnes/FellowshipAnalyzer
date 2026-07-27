@@ -2,9 +2,18 @@
 @using static FellowshipAnalyzer.Core.Analysis.Contributors
 
 @code {
-    /// <summary>Changelog for Gunde analysis.</summary>
     public static readonly IReadOnlyList<ChangelogEntry> Entries =
     [
+        Change(new(2026, 7, 27), @<text>Serrated Edge grants are graded against the pull shape and what was off cooldown: Grim Carve leads on packs and Heart Splitter on a boss, and filler only counts against you when one of the two was ready to take the buff instead.</text>, Seriousnes),
+        Change(new(2026, 7, 27), @<text>Serrated Edge analysis: every Blood Arc grant judged on the ability that consumed it, with Heart Splitter and Grim Carve as the two worth spending it on.</text>, Seriousnes),
+        Change(new(2026, 7, 27), @<text>Heart Splitter analysis: the Rend active on each target at the moment of the cast, and the casts a Slaughter had just emptied.</text>, Seriousnes),
+        Change(new(2026, 7, 27), @<text>Slaughter and Owed in Blood are no longer scored against the best cast of their own pull. Slaughters are judged on their setup, and conversions on the Rupture and Slaughter they were chained with plus the bank they cashed against the 150 stack cap.</text>, Seriousnes),
+        Change(new(2026, 7, 26), @<text>Fated Strike statistics: how Glorious Purpose windows were spent between priority abilities and filler.</text>, Seriousnes),
+        Change(new(2026, 7, 26), @<text>Owed in Blood economy: conversion sizes, decayed stacks, and time pinned at the Blood Feather cap, plus a Blood Feather resource statistic.</text>, Seriousnes),
+        Change(new(2026, 7, 26), @<text>Burst window analysis: Rupture, Bloodbound Spirit, and Owed in Blood alignment inside each Reign in Blood window.</text>, Seriousnes),
+        Change(new(2026, 7, 26), @<text>Slaughter analysis now measures each cast's bleed payoff and calls out Open Wounds windows that closed unused.</text>, Seriousnes),
+        Change(new(2026, 7, 26), @<text>Rend coverage: uptime and gaps on bosses, spread across packs.</text>, Seriousnes),
+        Change(new(2026, 7, 26), @<text>Season 3 foundation: talent registry, curated Rend, Serrated Edge, and Open Wounds effects, corrected cooldowns and haste flags, timeline auras, and Blood Feather tracking.</text>, Seriousnes),
         Change(new(2026, 7, 12), @<text>Added the spellbook so Gunde's abilities are recognised for cast and cooldown tracking.</text>, Seriousnes),
         Change(new(2026, 7, 10), @<text>Pull-scoped Slaughter efficiency analysis.</text>, Seriousnes),
     ];

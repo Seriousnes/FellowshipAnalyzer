@@ -6,6 +6,6 @@ namespace FellowshipAnalyzer.Core.Analysis;
 /// </summary>
 public readonly record struct AuraWindow(int Start, int End)
 {
-    /// <summary>How long the window stands.</summary>
+    /// <summary>How long the window last in milliseconds.</summary>
     public int Duration => End - Start;
 }

@@ -20,10 +20,6 @@ public sealed class GlobalCooldownTests
     private const int TestSpellId = 42;
     private const int BrainFreezeSpellId = 1019;
 
-    // -------------------------------------------------------------------------
-    // Basic GCD fabrication
-    // -------------------------------------------------------------------------
-
     [Fact]
     public async Task Cast_WithGcdAbility_ShouldCreateGcdEvent()
     {
@@ -69,15 +65,9 @@ public sealed class GlobalCooldownTests
         Assert.Equal(1500, channel.GlobalCooldown!.Duration);
     }
 
-    // -------------------------------------------------------------------------
-    // CastLinkNormalizer integration
-    // -------------------------------------------------------------------------
-
     [Fact]
     public async Task ActivationCast_WithNoDuplicate_ShouldTriggerGcd()
     {
-        // Activation-only cast (instant) with no matching non-activation cast.
-        // CastLinkNormalizer should keep it; GlobalCooldown should create a GCD.
         var events = new List<Event>
         {
             new CastEvent
@@ -101,8 +91,6 @@ public sealed class GlobalCooldownTests
     [Fact]
     public async Task ActivationCast_WithDuplicate_ShouldBeDropped()
     {
-        // When both activation and non-activation CastEvents exist at the same
-        // timestamp, the CastLinkNormalizer drops the activation event.
         var events = new List<Event>
         {
             new CastEvent
@@ -134,8 +122,6 @@ public sealed class GlobalCooldownTests
     [Fact]
     public async Task FakeActivationCast_ShouldBeDropped()
     {
-        // A fake+activation cast event should be removed by the normalizer.
-        // The real begincast (if present) is kept instead.
         var events = new List<Event>
         {
             new CastEvent
@@ -158,18 +144,12 @@ public sealed class GlobalCooldownTests
         var (parser, _) = await RunWithGcd(events, includeNormalizer: true);
 
         var casts = parser.Events.OfType<CastEvent>().ToList();
-        Assert.Empty(casts); // The fake cast is dropped; only the BeginCastEvent remains
+        Assert.Empty(casts);
     }
-
-    // -------------------------------------------------------------------------
-    // Timestamp 1623565 scenario (activation cast + interrupt at same time)
-    // -------------------------------------------------------------------------
 
     [Fact]
     public async Task ActivationCast_WithInterrupt_AtSameTimestamp_ShouldTriggerGcd()
     {
-        // Matches the real data: activation cast for Brain Freeze followed by
-        // an interrupt event at the same timestamp, with no non-activation cast.
         var events = new List<Event>
         {
             new CastEvent
@@ -212,18 +192,13 @@ public sealed class GlobalCooldownTests
         Assert.NotNull(casts[0].GlobalCooldown);
     }
 
-    // -------------------------------------------------------------------------
-    // GCD overlap detection
-    // -------------------------------------------------------------------------
-
     [Fact]
     public async Task OverlappingCasts_ShouldStillCreateGcdEvents()
     {
-        // Two casts within the same GCD window. Both should get GCD events.
         var events = new List<Event>
         {
             CreateCast(1000, TestSpellId),
-            CreateCast(1200, TestSpellId), // 200ms later, within the 1500ms GCD
+            CreateCast(1200, TestSpellId),
         };
 
         var (parser, _) = await RunWithGcd(events);
@@ -233,10 +208,6 @@ public sealed class GlobalCooldownTests
         Assert.NotNull(casts[0].GlobalCooldown);
         Assert.NotNull(casts[1].GlobalCooldown);
     }
-
-    // -------------------------------------------------------------------------
-    // Static GCD (no haste scaling)
-    // -------------------------------------------------------------------------
 
     [Fact]
     public async Task Cast_WithStaticGcd_ShouldUseStaticDuration()
@@ -259,10 +230,6 @@ public sealed class GlobalCooldownTests
         Assert.NotNull(cast.GlobalCooldown);
         Assert.Equal(1000, cast.GlobalCooldown!.Duration);
     }
-
-    // =====================================================================
-    // Test infrastructure
-    // =====================================================================
 
     private static async Task<(TestCombatLogParser parser, GlobalCooldown gcd)> RunWithGcd(
         List<Event>? events = null,
@@ -329,10 +296,6 @@ public sealed class GlobalCooldownTests
         public void AddSpell(SpellbookAbility spell) => _spells.Add(spell);
         public override IEnumerable<SpellbookAbility> Spellbook() => _spells;
     }
-
-    // -------------------------------------------------------------------------
-    // Event factories
-    // -------------------------------------------------------------------------
 
     private static CastEvent CreateCast(int timestamp, int spellId, bool activation = false) => new()
     {

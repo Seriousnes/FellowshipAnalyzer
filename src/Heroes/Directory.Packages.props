@@ -2,6 +2,5 @@
   <Import Project="..\Directory.Packages.props" />
 
   <ItemGroup>
-    <!-- Add hero-only PackageVersion entries here when a hero needs a browser-side package that is not used by the rest of src. -->
   </ItemGroup>
 </Project>

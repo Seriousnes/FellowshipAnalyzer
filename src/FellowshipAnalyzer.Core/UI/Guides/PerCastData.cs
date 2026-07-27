@@ -4,6 +4,12 @@ using FellowshipAnalyzer.Core.Analysis;
 
 namespace FellowshipAnalyzer.Core.UI.Guides;
 
+/// <summary>
+/// Optional rich content block rendered below the stat tiles and sequence filmstrip in
+/// <see cref="CastDetail"/>.
+/// </summary>
+/// <param name="Title">Heading shown above <paramref name="Content"/>; omitted when null or blank.</param>
+/// <param name="Content">The additional markup to render.</param>
 public sealed record AdditionalContent(string? Title, RenderFragment Content);
 
 /// <summary>
@@ -11,11 +17,22 @@ public sealed record AdditionalContent(string? Title, RenderFragment Content);
 /// </summary>
 public sealed class PerCastData
 {
+    /// <summary>The tier used to colour the accent bar and stat tiles for this cast.</summary>
     public required QualitativePerformance Performance { get; init; }
+
+    /// <summary>The stat tiles shown for this cast.</summary>
     public required PerCastStat[] Stats { get; init; }
+
+    /// <summary>The formatted display timestamp for this cast, as produced by <see cref="CombatLogParser.FormatTimestamp"/>.</summary>
     public required string Timestamp { get; init; }
+
+    /// <summary>Optional tooltip text shown for this cast.</summary>
     public string? Tooltip { get; init; }
+
+    /// <summary>Optional extra markup rendered in the details box below the cast card.</summary>
     public RenderFragment? Details { get; init; }
+
+    /// <summary>Optional rich content block rendered below the stat tiles and sequence filmstrip.</summary>
     public AdditionalContent? AdditionalContent { get; init; }
 
     /// <summary>

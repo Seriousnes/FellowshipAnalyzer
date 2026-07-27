@@ -1,14 +1,5 @@
-// ── FellowshipAnalyzer Mixins ────────────────────────────────────────────────
-// Import: @use 'mixins' as mx;  then call @include mx.card-surface;
-//
-// Every value here is a design token. Token values live in C#
-// (FellowshipAnalyzer.Core.Contracts/Design) and reach CSS through _palette.scss.
-
 @use 'tokens' as t;
 
-// ── Surfaces ─────────────────────────────────────────────────────────────────
-
-/// Standard card / panel surface: card bg, gold-tinted border, shadow.
 @mixin card-surface($radius: var(--fa-radius-md)) {
     background: var(--fa-bg-card);
     border: var(--fa-border-width) solid var(--fa-border-card);
@@ -16,23 +7,18 @@
     box-shadow: var(--fa-shadow-card);
 }
 
-/// Slightly raised panel (less prominent than a card).
 @mixin panel-surface($radius: var(--fa-radius-sm)) {
     background: var(--fa-bg-raised);
     border: var(--fa-border-width) solid var(--fa-border);
     border-radius: $radius;
 }
 
-/// Inset / recessed region inside a card.
 @mixin inset-surface($radius: var(--fa-radius-sm)) {
     background: var(--fa-bg-inset);
     border: var(--fa-border-width) solid var(--fa-border);
     border-radius: $radius;
 }
 
-// ── Typography helpers ────────────────────────────────────────────────────────
-
-/// Small all-caps label above a section (eyebrow text).
 @mixin eyebrow {
     margin: 0 0 0.4rem;
     text-transform: uppercase;
@@ -42,7 +28,15 @@
     color: var(--fa-gold);
 }
 
-/// Heading that uses the gold gradient text fill.
+@mixin stat-number {
+    font-family: var(--fa-font-body);
+    font-size: var(--fa-fs-stat);
+    font-weight: 700;
+    line-height: 1.1;
+    color: var(--fa-text);
+    font-variant-numeric: tabular-nums;
+}
+
 @mixin gradient-heading {
     background: linear-gradient(135deg, var(--fa-text), var(--fa-gold-light));
     -webkit-background-clip: text;
@@ -50,14 +44,10 @@
     background-clip: text;
 }
 
-// ── Responsive ───────────────────────────────────────────────────────────────
-
-/// Narrow breakpoint (phones / narrow panels).
 @mixin mobile {
     @media (max-width: 768px) { @content; }
 }
 
-/// Very narrow breakpoint (small phones).
 @mixin mobile-sm {
     @media (max-width: 600px) { @content; }
 }

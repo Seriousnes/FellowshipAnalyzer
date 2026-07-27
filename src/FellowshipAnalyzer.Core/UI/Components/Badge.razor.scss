@@ -1,10 +1,5 @@
 @use 'tokens' as t;
 
-// `--fa-supplied-accent` is the design system's one caller-facing colour channel. A badge needs its
-// variant colour as a mixable value in five places (solid fill, solid hover, outline label, edge,
-// outline hover) plus the active ring on both fill types, so the colour cannot come from a semantic
-// class: a class only ever sets one of `color`, `border-color` or `background`, at full strength.
-
 .badge {
     --fa-supplied-accent: var(--fa-text-muted);
 
@@ -22,9 +17,6 @@
     transition: background 0.15s, color 0.15s, box-shadow 0.15s;
 }
 
-// Solid (default): the full, vivid variant colour as the fill. Bright fills take
-// a dark ink; the darker preserved colours (the reds, tank blue) take a light
-// label so the text clears AA on every variant.
 .badge--solid {
     background: var(--fa-supplied-accent);
     border-color: transparent;
@@ -37,7 +29,6 @@
     color: var(--fa-text);
 }
 
-// Outline: the variant colour carried by the label and a hairline edge.
 .badge--outline {
     background: transparent;
     border-color: color-mix(in srgb, var(--fa-supplied-accent) 42%, transparent);

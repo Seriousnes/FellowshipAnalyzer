@@ -1,0 +1,286 @@
+@using FellowshipAnalyzer.Core.Common.Spells.Mara
+@using Spells = FellowshipAnalyzer.Core.Common.Spells.Mara.Spells
+@inherits ReportComponent<MaraCombatLogParser>
+
+<GuideSection Title="Stealth &amp; Assassin's Guile">
+    <Explanation>
+        <p>
+            <SpellLink Spell="Spells.BroodingShadows" /> is only worth its charge when it comes out as an
+            empowered builder, so every stealth window below is scored on the
+            <SpellLink Spell="Spells.Backstab" />, <SpellLink Spell="Spells.WidowBite" /> or
+            <SpellLink Spell="Spells.SkitteringBlades" /> that opened out of it and the poison that
+            builder laid: <SpellLink Spell="Spells.WidowBitePoison" /> from a stealth Widow's Bite,
+            <SpellLink Spell="Spells.SkitteringBladesPoison" /> from a stealth Skittering Blades.
+        </p>
+        @if (HasGuile)
+        {
+            <p>
+                With <SpellLink Spell="Talents.AssassinsGuile" /> talented that stealth attack also opens a
+                @(GuileDurationSeconds)-second window where <SpellLink Spell="Spells.QueenFang" /> and
+                <SpellLink Spell="Spells.ArachnidAssault" /> hit 40% harder, so each of those windows is
+                scored on the spenders that landed inside it rather than on the stealth alone.
+            </p>
+        }
+        @if (MalevolenceSeen)
+        {
+            <p>
+                <SpellLink Spell="Talents.Malevolence" /> decides what those windows are worth: casting one
+                spender stacks the other's buff, and each stack doubles that ability's damage. The payoff
+                peaks when <SpellLink Spell="Spells.MalevolenceQueensFang" /> and
+                <SpellLink Spell="Spells.MalevolenceArachnidAssault" /> already sit at
+                @GuileWindowAnalyzer.MaxMalevolenceStacks stacks as the window opens, so the stack counts
+                below are read at that instant.
+            </p>
+        }
+    </Explanation>
+    <ChildContent>
+        <CastOverview Title="Stealth Overview" Stats="@BuildOverviewStats()" />
+        <CastDetail Title="Stealth Windows"
+                    Description="Each row is one Brooding Shadows window, from the stealth buff landing to its removal, with the builder it opened and the poison that builder laid."
+                    Casts="@BuildStealthRows()" />
+        @if (HasGuile)
+        {
+            <CastDetail Title="Assassin's Guile Windows"
+                        Description="Each row is one Assassin's Guile window, with the boosted spenders pressed inside it."
+                        Casts="@BuildGuileRows()" />
+        }
+    </ChildContent>
+</GuideSection>
+
+@code {
+    private const int GuileDurationSeconds = 5;
+
+    private bool HasGuile => Parser.GuileWindowAnalyzers.Count > 0;
+
+    private bool MalevolenceSeen =>
+        Parser.GuileWindowAnalyzers.Any(entry => entry.Analyzer.MalevolenceSeen);
+
+    private IEnumerable<OverviewStat> BuildOverviewStats()
+    {
+        var stats = new List<OverviewStat>();
+
+        var stealth = Parser.StealthWindowAnalyzers.Select(entry => entry.Analyzer).ToList();
+        var windows = stealth.Sum(analyzer => analyzer.WindowCount);
+        var converted = stealth.Sum(analyzer => analyzer.ConvertedWindows);
+        var poisoned = stealth.Sum(analyzer => analyzer.WindowsWithPoison);
+        var casts = stealth.Sum(analyzer => analyzer.BroodingShadowsCasts);
+
+        stats.Add(new OverviewStat(
+            $"{converted}/{windows}",
+            "Stealth Windows Converted",
+            windows == 0
+                ? $"No stealth window was observed across {Count(casts, "Brooding Shadows cast")}, so there is nothing to score."
+                : $"Brooding Shadows windows that came out as an empowered builder ({Percent(converted, windows)}%); {poisoned} of them laid a poison.",
+            ConversionTier(converted, windows)));
+
+        if (!HasGuile)
+            return stats;
+
+        var guile = Parser.GuileWindowAnalyzers.Select(entry => entry.Analyzer).ToList();
+        var guileWindows = guile.Sum(analyzer => analyzer.WindowCount);
+        var guileConverted = guile.Sum(analyzer => analyzer.ConvertedWindows);
+        var spenders = guile.Sum(analyzer => analyzer.SpendersInWindows);
+
+        stats.Add(new OverviewStat(
+            $"{guileConverted}/{guileWindows}",
+            "Guile Windows Converted",
+            guileWindows == 0
+                ? "Assassin's Guile never went up, so no boosted window could be scored."
+                : $"Assassin's Guile windows carrying a Queen's Fang or Arachnid Assault ({Percent(guileConverted, guileWindows)}%), {spenders} boosted spenders in total.",
+            ConversionTier(guileConverted, guileWindows)));
+
+        if (MalevolenceSeen)
+        {
+            var stacked = guile.Sum(analyzer => analyzer.WindowsAtMaxStacks);
+            var cap = GuileWindowAnalyzer.MaxMalevolenceStacks;
+            stats.Add(new OverviewStat(
+                $"{stacked}/{guileWindows}",
+                $"Entered at {cap}+{cap} Stacks",
+                $"Assassin's Guile windows opened with both Malevolence buffs already at {cap} stacks, where the 40% boost lands on doubled spenders.",
+                ConversionTier(stacked, guileWindows)));
+        }
+
+        return stats;
+    }
+
+    private IEnumerable<PerCastData> BuildStealthRows() =>
+        Parser.StealthWindowAnalyzers.ToItemRows(
+            Parser, analyzer => analyzer.Windows, (window, pull) => BuildStealthRow(window));
+
+    private PerCastRow BuildStealthRow(StealthWindow window)
+    {
+        var stats = new[]
+        {
+            new PerCastStat(
+                FormatSeconds(window.DurationMs),
+                "Window",
+                "How long the Brooding Shadows stealth buff was active."),
+            new PerCastStat(
+                window.ConvertingAbilityId is { } builder ? BuilderName(builder) : "None",
+                "Opened With",
+                window.ConvertingAbilityId is null
+                    ? "No builder was cast while the stealth buff was active, so the window was spent for nothing."
+                    : "The builder that came out of stealth and took the empowerment."),
+            new PerCastStat(
+                window.PoisonEffectId is { } poison ? PoisonName(poison) : "-",
+                "Poison Laid",
+                PoisonTooltip(window)),
+        };
+
+        return new PerCastRow
+        {
+            Performance = StealthWindowTier(window),
+            Stats = stats,
+            Timestamp = window.OpenedAt,
+            Sequence = window.ConvertingAbilityId is { } id ? new SpellCastEntry[] { new(id) } : null,
+            Details = @<div>@BuildStealthNote(window)</div>,
+        };
+    }
+
+    private IEnumerable<PerCastData> BuildGuileRows() =>
+        Parser.GuileWindowAnalyzers.ToItemRows(
+            Parser, analyzer => analyzer.Windows, (window, pull) => BuildGuileRow(window));
+
+    private PerCastRow BuildGuileRow(GuileWindow window)
+    {
+        var cap = GuileWindowAnalyzer.MaxMalevolenceStacks;
+
+        var stats = new List<PerCastStat>
+        {
+            new(
+                FormatSeconds(window.DurationMs),
+                "Window",
+                "How long the Assassin's Guile buff was active."),
+            new(
+                $"{window.SpenderCasts}",
+                "Boosted Spenders",
+                "Queen's Fang and Arachnid Assault casts made while the 40% boost was up.",
+                Performance: SpenderTier(window.SpenderCasts)),
+        };
+
+        if (MalevolenceSeen)
+        {
+            stats.Add(new PerCastStat(
+                $"{window.QueensFangStacksAtOpen}/{cap}",
+                "Queen's Fang Stacks",
+                "Malevolence: Queen's Fang stacks active as the window opened.",
+                Performance: StackTier(window.QueensFangStacksAtOpen)));
+            stats.Add(new PerCastStat(
+                $"{window.ArachnidAssaultStacksAtOpen}/{cap}",
+                "Arachnid Assault Stacks",
+                "Malevolence: Arachnid Assault stacks active as the window opened.",
+                Performance: StackTier(window.ArachnidAssaultStacksAtOpen)));
+        }
+
+        return new PerCastRow
+        {
+            Performance = GuileWindowTier(window),
+            Stats = [.. stats],
+            Timestamp = window.OpenedAt,
+            Details = @<div>@BuildGuileNote(window)</div>,
+        };
+    }
+
+    private static string BuildStealthNote(StealthWindow window)
+    {
+        if (window.ConvertingAbilityId is not { } builder)
+            return $"This {FormatSeconds(window.DurationMs)} stealth window closed without a builder, so the charge bought nothing.";
+
+        var notes = new List<string> { $"{BuilderName(builder)} came out of stealth" };
+
+        if (window.PoisonEffectId is { } poison)
+            notes.Add($"it laid {PoisonName(poison)}");
+        else if (builder == Spells.Backstab.Id)
+            notes.Add("a stealth Backstab deals its Caustic Poison as damage rather than a tracked debuff, so no poison aura is expected here");
+        else
+            notes.Add("no poison landed behind it");
+
+        return Sentence(notes);
+    }
+
+    private string BuildGuileNote(GuileWindow window)
+    {
+        var cap = GuileWindowAnalyzer.MaxMalevolenceStacks;
+
+        var notes = new List<string>
+        {
+            window.SpenderCasts == 0
+                ? $"this {FormatSeconds(window.DurationMs)} window expired with no Queen's Fang or Arachnid Assault in it"
+                : $"{Count(window.SpenderCasts, "spender")} took the 40% boost",
+        };
+
+        if (MalevolenceSeen)
+        {
+            notes.Add(window.QueensFangStacksAtOpen >= cap && window.ArachnidAssaultStacksAtOpen >= cap
+                ? $"both Malevolence buffs were already at {cap} stacks as it opened"
+                : $"it opened on {window.QueensFangStacksAtOpen} Queen's Fang and {window.ArachnidAssaultStacksAtOpen} Arachnid Assault stacks, short of the {cap} each that doubles them");
+        }
+
+        return Sentence(notes);
+    }
+
+    private static string BuilderName(int abilityId) =>
+        abilityId == Spells.Backstab.Id ? Spells.Backstab.Name
+        : abilityId == Spells.WidowBite.Id ? Spells.WidowBite.Name
+        : abilityId == Spells.SkitteringBlades.Id ? Spells.SkitteringBlades.Name
+        : "Builder";
+
+    private static string PoisonName(int effectId) =>
+        effectId == Spells.WidowBitePoison.FSLID ? Spells.WidowBitePoison.Name
+        : effectId == Spells.SkitteringBladesPoison.FSLID ? Spells.SkitteringBladesPoison.Name
+        : "Poison";
+
+    private static string PoisonTooltip(StealthWindow window) =>
+        window.PoisonEffectId is not null
+            ? "The poison the empowered builder applied out of stealth."
+            : window.ConvertingAbilityId == Spells.Backstab.Id
+                ? "A stealth Backstab deals Caustic Poison as damage rather than applying a tracked debuff."
+                : $"No poison landed within {StealthWindowAnalyzer.PoisonLinkWindowMs / 1000}s of the builder that came out of this window.";
+
+    private static string Sentence(List<string> notes)
+    {
+        var joined = string.Join("; ", notes);
+        return $"{char.ToUpperInvariant(joined[0])}{joined[1..]}.";
+    }
+
+    private static string Count(int value, string noun) =>
+        value == 1 ? $"1 {noun}" : $"{value} {noun}s";
+
+    private static string FormatSeconds(int milliseconds) =>
+        $"{milliseconds / 1000d:0.#}s";
+
+    private static int Percent(int part, int total) =>
+        total == 0 ? 0 : (int)Math.Round((double)part / total * 100);
+
+    private static QualitativePerformance? ConversionTier(int converted, int total) =>
+        total == 0 ? null : PerformanceTiers.FromThresholds(Percent(converted, total), 100, 80, 60);
+
+    private static QualitativePerformance StealthWindowTier(StealthWindow window) =>
+        window.ConvertingAbilityId is not { } builder ? QualitativePerformance.Fail
+        : window.PoisonEffectId is not null || builder == Spells.Backstab.Id
+            ? QualitativePerformance.Perfect
+            : QualitativePerformance.Ok;
+
+    private static QualitativePerformance SpenderTier(int spenders) =>
+        spenders >= 2 ? QualitativePerformance.Perfect
+        : spenders == 1 ? QualitativePerformance.Good
+        : QualitativePerformance.Fail;
+
+    private static QualitativePerformance StackTier(int stacks) =>
+        stacks >= GuileWindowAnalyzer.MaxMalevolenceStacks ? QualitativePerformance.Perfect
+        : stacks == 1 ? QualitativePerformance.Ok
+        : QualitativePerformance.Fail;
+
+    private QualitativePerformance GuileWindowTier(GuileWindow window)
+    {
+        if (window.SpenderCasts == 0)
+            return QualitativePerformance.Fail;
+
+        var spenderTier = SpenderTier(window.SpenderCasts);
+        if (!MalevolenceSeen)
+            return spenderTier;
+
+        var stackTier = StackTier(Math.Min(window.QueensFangStacksAtOpen, window.ArachnidAssaultStacksAtOpen));
+        return stackTier < spenderTier ? stackTier : spenderTier;
+    }
+}

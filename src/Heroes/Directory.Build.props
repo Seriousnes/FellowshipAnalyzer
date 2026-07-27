@@ -1,10 +1,5 @@
 <Project>
 
-  <!--
-    Wire the FellowshipAnalyzer diagnostic analyzer (FA0001, FA0010-FA0013) into every hero RCL.
-    Heroes already reference the source generator project explicitly in their own csproj; this
-    file picks up the runtime diagnostic analyzers without duplicating boilerplate in 11 places.
-  -->
   <ItemGroup>
     <ProjectReference Include="$(MSBuildThisFileDirectory)..\FellowshipAnalyzer.Analyzers\FellowshipAnalyzer.Analyzers.csproj"
                       OutputItemType="Analyzer"

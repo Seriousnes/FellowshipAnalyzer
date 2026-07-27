@@ -1,0 +1,169 @@
+@using Spells = FellowshipAnalyzer.Core.Common.Spells.Gunde.Spells
+@inherits ReportComponent<GundeCombatLogParser>
+
+<GuideSection Title="Rend">
+    <Explanation>
+        <p>
+            <SpellLink Spell="Spells.Rend" /> is the backbone of Gunde's damage: most of his abilities
+            feed it, and <SpellLink Spell="Spells.Slaughter" /> pays out against whatever has
+            accumulated. On bosses the bleed
+            should stay rolling for the whole fight; each boss pull is scored on uptime and the gaps
+            between applications. On packs it should reach every enemy,
+            because both Blood Feather generation and Slaughter's payoff scale with how widely it is
+            seeded; each multi-target pull is scored on how many enemies took it against the size of
+            the pack.
+        </p>
+    </Explanation>
+    <ChildContent>
+        <CastOverview Title="Rend Overview" Stats="@BuildOverviewStats()" />
+        <CastDetail Title="Rend by Pull"
+                    Description="Each row is one pull. Boss rows show Rend uptime and gaps; AoE rows show how many enemies Rend reached."
+                    Casts="@BuildPerCastData()" />
+    </ChildContent>
+</GuideSection>
+
+@code {
+    private IEnumerable<OverviewStat> BuildOverviewStats()
+    {
+        var stats = new List<OverviewStat>();
+
+        var bossAnalyzers = Parser.RendAnalyzers
+            .Select(entry => entry.Analyzer).OfType<RendUptimeAnalyzer>().ToList();
+        if (bossAnalyzers.Count > 0)
+        {
+            var averageUptime = (int)Math.Round(bossAnalyzers.Average(analyzer => analyzer.Uptime * 100));
+            var totalGaps = bossAnalyzers.Sum(analyzer => analyzer.GapCount);
+            stats.Add(new OverviewStat(
+                $"{averageUptime}%",
+                "Boss Uptime",
+                "Average Rend uptime across every boss pull.",
+                UptimeTier(averageUptime)));
+            stats.Add(new OverviewStat(
+                $"{totalGaps}",
+                "Boss Gaps",
+                "Times Rend fell off a boss before being reapplied."));
+        }
+
+        var spreadAnalyzers = Parser.RendAnalyzers
+            .Select(entry => entry.Analyzer).OfType<RendSpreadAnalyzer>().ToList();
+        if (spreadAnalyzers.Count > 0)
+        {
+            var averageSpread = (int)Math.Round(spreadAnalyzers.Average(analyzer => (double)CoverageScore(analyzer)));
+            var totalTargets = spreadAnalyzers.Sum(analyzer => analyzer.DistinctTargets);
+            stats.Add(new OverviewStat(
+                $"{averageSpread}%",
+                "Avg Spread",
+                "Average Rend coverage across every AoE pull.",
+                PercentTier(averageSpread)));
+            stats.Add(new OverviewStat(
+                $"{totalTargets}",
+                "Targets Bled",
+                "Total distinct enemies that took Rend across all AoE pulls."));
+        }
+
+        return stats;
+    }
+
+    private IEnumerable<PerCastData> BuildPerCastData() =>
+        Parser.RendAnalyzers.ToPullRows(Parser, (analyzer, pull) => analyzer switch
+        {
+            RendUptimeAnalyzer uptime => BuildBossRow(uptime),
+            RendSpreadAnalyzer spread => BuildTrashRow(spread),
+            _ => throw new InvalidOperationException($"Unexpected Rend analyzer {analyzer.GetType().Name}"),
+        });
+
+    private PerCastRow BuildBossRow(RendUptimeAnalyzer analyzer)
+    {
+        var uptimePercent = (int)Math.Round(analyzer.Uptime * 100);
+        var perf = UptimeTier(uptimePercent);
+
+        var stats = new[]
+        {
+            new PerCastStat(
+                $"{uptimePercent}%",
+                "Uptime",
+                "Share of the pull the boss spent carrying Rend.",
+                Performance: perf),
+            new PerCastStat(
+                $"{analyzer.GapCount}",
+                "Gaps",
+                "Times Rend fell off before being reapplied."),
+            new PerCastStat(
+                FormatSeconds(analyzer.TotalGapMs),
+                "Downtime",
+                "Total time Rend was off the boss between applications."),
+        };
+
+        return new PerCastRow
+        {
+            Performance = perf,
+            Stats = stats,
+            AdditionalContent = new AdditionalContent("Notes", @<div>@BuildBossNote(analyzer, uptimePercent)</div>),
+        };
+    }
+
+    private PerCastRow BuildTrashRow(RendSpreadAnalyzer analyzer)
+    {
+        var score = CoverageScore(analyzer);
+        var perf = PercentTier(score);
+        var coverageLabel = analyzer.TargetCount > 0
+            ? $"{analyzer.DistinctTargets}/{analyzer.TargetCount}"
+            : $"{analyzer.DistinctTargets}";
+
+        var stats = new[]
+        {
+            new PerCastStat(
+                coverageLabel,
+                "Enemies Bled",
+                "Distinct enemies that took Rend, against the pull's enemy count.",
+                Performance: perf),
+            new PerCastStat(
+                $"{analyzer.TotalApplications}",
+                "Applications",
+                "Fresh Rend applications during the pull."),
+        };
+
+        return new PerCastRow
+        {
+            Performance = perf,
+            Stats = stats,
+            AdditionalContent = new AdditionalContent("Notes", @<div>@BuildTrashNote(analyzer, score)</div>),
+        };
+    }
+
+    private static string BuildBossNote(RendUptimeAnalyzer analyzer, int uptimePercent)
+    {
+        if (analyzer.Windows.Count == 0)
+            return "No Rend was applied on this boss pull, so roughly half of Gunde's output never landed.";
+
+        if (analyzer.GapCount == 0)
+            return $"Rend held {uptimePercent}% uptime with no gaps once applied.";
+
+        var gapLabel = analyzer.GapCount == 1 ? "1 gap" : $"{analyzer.GapCount} gaps";
+        return $"Rend held {uptimePercent}% uptime with {gapLabel} totalling {FormatSeconds(analyzer.TotalGapMs)} - refresh the bleed before it falls off.";
+    }
+
+    private static string BuildTrashNote(RendSpreadAnalyzer analyzer, int score)
+    {
+        if (analyzer.DistinctTargets == 0)
+            return "No Rend was applied on this AoE pull, so Slaughter had nothing to pay out.";
+
+        if (analyzer.TargetCount <= 0)
+            return $"Rend reached {analyzer.DistinctTargets} enemies (the enemy roster was not reported, so coverage is estimated).";
+
+        if (score >= 75)
+            return $"Rend covered {analyzer.DistinctTargets} of {analyzer.TargetCount} enemies on this pull.";
+
+        return $"Rend reached only {analyzer.DistinctTargets} of {analyzer.TargetCount} enemies - seed the bleed across the whole pack before Slaughter.";
+    }
+
+    private static int CoverageScore(RendSpreadAnalyzer analyzer) =>
+        analyzer.DistinctTargets == 0 ? 0 : (int)Math.Round(analyzer.Coverage * 100);
+
+    private static string FormatSeconds(int milliseconds) =>
+        $"{milliseconds / 1000d:0.#}s";
+
+    private static QualitativePerformance UptimeTier(int percent) => PerformanceTiers.FromThresholds(percent, 95, 85, 70);
+
+    private static QualitativePerformance PercentTier(int percent) => PerformanceTiers.FromThresholds(percent, 75, 50, 25);
+}

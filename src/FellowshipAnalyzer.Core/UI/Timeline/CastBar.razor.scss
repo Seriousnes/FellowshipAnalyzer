@@ -1,11 +1,9 @@
 @use 'tokens' as t;
 
-/* ===== Container — establishes the positioning context ===== */
 .cast-bar-container {
     position: relative;
 }
 
-/* ===== Time-line — absolute layer behind casts ===== */
 .cast-bar-time-line {
     white-space: nowrap;
     position: absolute;
@@ -21,8 +19,8 @@
     font-size: 14px;
     position: relative;
     box-sizing: border-box;
+    z-index: 999;
 
-    /* Timestamp label — positioned below the cast row */
     &::before {
         content: attr(data-duration);
         position: absolute;
@@ -34,7 +32,6 @@
         white-space: nowrap;
     }
 
-    /* Half-second marker */
     &::after {
         content: '';
         width: 1px;
@@ -45,7 +42,6 @@
         left: 50%;
     }
 
-    /* Leading partial cell: pads the window start up to the first whole fight-second, so it carries no tick of its own */
     &.leading-partial {
         border-left: none;
 
@@ -54,14 +50,12 @@
     }
 }
 
-/* Hide border & label on the first tick (0:00) only when the window starts at fight start */
 .cast-bar-time-line.at-fight-start .cast-bar-time-line-sec:first-child {
     border-left: none;
 
     &::before { display: none; }
 }
 
-/* ===== Casts row — icons, bars ===== */
 .cast-bar {
     position: relative;
     width: 100%;
@@ -69,7 +63,6 @@
     box-shadow: 0 0 3px t.tint(var(--fa-black), t.$fa-tint-muted);
     box-sizing: content-box;
 
-    /* Subtle background strip behind the 24px main row */
     &::before {
         content: '';
         position: absolute;
@@ -81,14 +74,12 @@
         border-radius: 10px;
     }
 
-    /* All direct children are absolutely positioned within the 24px row */
     & > * {
         position: absolute;
         height: 24px;
     }
 }
 
-/* ===== Icon (on-GCD, top-aligned) ===== */
 .cast-bar-cast {
     z-index: 3;
     width: 24px;
@@ -107,7 +98,6 @@
     }
 }
 
-/* ===== Off-GCD icon — below the row with time-indicator line ===== */
 .cast-bar-cast-lower {
     top: calc(34px + var(--level, 0) * 27px);
     height: 24px;
@@ -118,7 +108,6 @@
     }
 }
 
-/* ===== Cancelled cast: danger border on spell-icon + X overlay ===== */
 .cast-bar-cast-cancelled {
     ::deep .spell-icon { border-color: var(--fa-danger); }
 
@@ -146,7 +135,6 @@
     width: 1px;
     background: var(--fa-amber);
 
-    /* Arrow pointing up from time-indicator */
     &::before {
         content: '';
         width: 0;
@@ -161,7 +149,6 @@
     }
 }
 
-/* ===== GCD bar ===== */
 .cast-bar-gcd {
     height: 8px;
     top: 8px;
@@ -171,7 +158,6 @@
     z-index: 1;
 }
 
-/* ===== Cast-time / Channel bar ===== */
 .cast-bar-cast-time,
 .cast-bar-channel {
     height: 10px;

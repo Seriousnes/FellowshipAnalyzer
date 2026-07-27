@@ -1,12 +1,10 @@
 @use 'tokens' as t;
 
-/* ===== Outer container — establishes the positioning context ===== */
 .aura-bar {
     position: relative;
     overflow: visible;
 }
 
-/* ===== Duration strip ===== */
 .aura-bar-strip {
     position: absolute;
     --level: 0;
@@ -21,7 +19,6 @@
     pointer-events: none;
 }
 
-/* ===== Indicator line ===== */
 .aura-bar-indicator {
     position: absolute;
     --level: 0;
@@ -33,7 +30,6 @@
     pointer-events: none;
 }
 
-/* ===== Icon ===== */
 .aura-bar-icon {
     position: absolute;
     --level: 0;
@@ -54,7 +50,6 @@
         box-sizing: border-box;
     }
 
-    /* Gold border on the spell icon */
     ::deep .spell-icon {
         border: 1px solid var(--fa-amber);
         border-radius: var(--fa-radius-xs);

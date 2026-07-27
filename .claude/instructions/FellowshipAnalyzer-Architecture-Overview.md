@@ -65,8 +65,8 @@ namespace FellowshipAnalyzer.Heroes.Rime.Analysis;
 
 [HeroAnalyzer(HeroName.Rime)]
 [AddState<WinterOrbTracker>]
-[AddAnalyzer<SingleTargetRimeCombo>]
-[AddAnalyzer<AoERimeCombo>]
+[AddAnalyzer<SingleTargetEmbraceWindowAnalyzer>]
+[AddAnalyzer<AoeEmbraceWindowAnalyzer>]
 [AddModule<Modules.Abilities>]
 [AddModule<RimeAuras>]
 public sealed partial class RimeCombatLogParser : CombatLogParser
@@ -78,9 +78,9 @@ public sealed partial class RimeCombatLogParser : CombatLogParser
 The generator emits:
 
 - A constructor that passes `EventEmitter` and `IServiceProvider` to the base parser.
-- Source-generated nullable module properties such as `WinterOrbTracker`, plus the pull read paths for each `[AddAnalyzer]` surface (`BasicStComboAnalyzers`, `pull.BasicStComboAnalyzer`, `Pulls`).
+- Source-generated nullable module properties such as `WinterOrbTracker`, plus the pull read paths for each `[AddAnalyzer]` surface (`WintersEmbraceWindowAnalyzers`, `pull.WintersEmbraceWindowAnalyzer`, `Pulls`).
 - `GetModuleTypes()` and `GetNormalizerTypes()` implementations.
-- `Add{Hero}Analysis()` DI extension methods and keyed `IHeroAnalyzer` registration.
+- `Add{Hero}Analysis()` DI extension methods and keyed `IHeroAnalyzer` registration, both **transient**: a parser serves exactly one analysis, so the host resolves a fresh one per report and a report's read surfaces can never hold another's. Blazor WebAssembly runs the whole session in one DI scope, so a scoped registration would mean one parser for every report the user opens.
 - `AddCoreAnalysis()` for shared analysis services, base modules, and base normalizers.
 
 Application startup registers shared analysis services first, then every referenced hero at once through the generated manifest:
@@ -215,7 +215,7 @@ Shared spell identity data lives in `src/FellowshipAnalyzer.Core/Common/Spells/`
 
 - The parser's `GuideComponent` points to the hero's root guide component.
 - The root guide manually composes feature guide components and null-checks generated module properties.
-- Feature guide components inject the hero parser and read module state.
+- Guide components inherit `ReportComponent<{Hero}CombatLogParser>` for their `Parser` and read module state; hero-agnostic report components inherit the non-generic `ReportComponent`. A parser is transient - one instance per analysis - so it reaches a component through the report shell's cascade, never through `@inject`.
 - Statistics components inherit `AnalyzerStatistic<TModule>` and are auto-collected from active modules with non-null `StatisticsComponentType`.
 - Component styling uses `.razor.scss`; use the `style-guide` skill for all styling work.
 

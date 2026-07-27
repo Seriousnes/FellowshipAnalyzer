@@ -161,8 +161,6 @@ var outputPath = Path.Combine(
 }
 return 0;
 
-// --- Helper methods ---
-
 static async Task<string> GetAccessTokenAsync(
     HttpClient httpClient, string tokenEndpoint, string clientId, string clientSecret)
 {
@@ -236,8 +234,6 @@ static string? LoadUserSecretId(string repoRoot)
         $"USER_SECRET_ID not set in {envPath}. Add a line: USER_SECRET_ID=<your-user-secrets-id>");
     return null;
 }
-
-// --- Handler ---
 
 sealed class FixedResponseHandler(string jsonContent) : HttpMessageHandler
 {

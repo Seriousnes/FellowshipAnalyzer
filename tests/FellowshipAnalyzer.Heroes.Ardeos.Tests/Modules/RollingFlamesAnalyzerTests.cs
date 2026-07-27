@@ -36,8 +36,6 @@ public sealed class RollingFlamesAnalyzerTests
     [Fact]
     public async Task RollingFlames_WithTalent_AccumulatesGeneratedFromTicks()
     {
-        // Searing Blaze damage generates Engulfing Flames CDR; with EF never cast (never on cooldown)
-        // all of it is wasted.
         var events = new List<Event>
         {
             CombatantWithRollingFlames(),
@@ -58,8 +56,6 @@ public sealed class RollingFlamesAnalyzerTests
     [Fact]
     public async Task RollingFlames_ReducesEngulfingFlamesCooldown_FromBothSources()
     {
-        // Cast EF to put it on cooldown, then drive CDR from Searing Blaze damage and Infernal Wave
-        // casts. Both must shorten Engulfing Flames' running cooldown.
         var events = new List<Event>
         {
             CombatantWithRollingFlames(),

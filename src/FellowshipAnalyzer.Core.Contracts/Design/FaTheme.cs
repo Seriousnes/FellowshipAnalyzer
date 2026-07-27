@@ -202,7 +202,8 @@ public sealed record FaTheme(
                 Token(nameof(FaTypography.FsBody), Typography.FsBody),
                 Token(nameof(FaTypography.FsValue), Typography.FsValue),
                 Token(nameof(FaTypography.FsTitle), Typography.FsTitle),
-                Token(nameof(FaTypography.FsLg), Typography.FsLg));
+                Token(nameof(FaTypography.FsLg), Typography.FsLg),
+                Token(nameof(FaTypography.FsStat), Typography.FsStat));
         }
     }
 

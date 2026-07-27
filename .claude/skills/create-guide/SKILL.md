@@ -5,7 +5,9 @@ description: "Create a Guide Razor component for a FellowshipAnalyzer analyzer. 
 
 # Create Guide Component
 
-A guide component is a Razor file in `Guides/` that renders analyzer state in the Guide tab. It injects the hero parser and reads analyzer instances directly - fight-lifetime modules via generated parser properties, pull-lifetime analyzers via the generated pull read paths.
+A guide component is a Razor file in `Guides/` that renders analyzer state in the Guide tab. It inherits `ReportComponent<{Hero}CombatLogParser>` for its `Parser` and reads analyzer instances directly - fight-lifetime modules via generated parser properties, pull-lifetime analyzers via the generated pull read paths.
+
+**Never `@inject` the parser.** Parsers are transient, one instance per analysis, so an injected one has analyzed nothing. `ReportComponent<TParser>` reads the parser that produced the analysis being rendered from the report shell's cascade, and carries the rest of the report scope with it: `FightTime`, `Result`, and `SelectedPull`.
 
 The analyzer holds typed data (counts, rates, timestamps, typed entry records); the guide owns all presentation: prose, severity wording, and `PerformanceTier` judgments. Display-shaping helpers that turn analyzer state into shared component inputs live in the guide's `@code` block.
 
@@ -20,7 +22,7 @@ Place at `src/Heroes/FellowshipAnalyzer.Heroes.{Hero}/Guides/{Name}Guide.razor`.
 For a pull-lifetime analyzer (registered with `[AddAnalyzer<T>]`), read the cross-pull stream `Parser.{Name}Analyzers` - a list of `(Pull, Analyzer)` pairs:
 
 ```razor
-@inject {Hero}CombatLogParser Parser
+@inherits ReportComponent<{Hero}CombatLogParser>
 
 <GuideSection Title="{Feature Name}">
     <Explanation>
@@ -87,7 +89,7 @@ private IEnumerable<PerCastData> BuildPerCastData() =>
 
 Each per-shape builder returns a `PerCastRow` from its own analyzer's members; overview stats partition the one stream by concrete type (`.OfType<SearingBlazeUptimeAnalyzer>()`). Gate the section in the root guide on the single stream being non-empty. Reference: `SearingBlazeGuide.razor` in Ardeos.
 
-For a shared-surface family that *does* share machinery (one abstract base, shape-specialized subclasses; see create-analyzer), read the single merged stream and pattern-match the evaluation subtypes per row instead. Reference: `BasicStComboGuide.razor` in Rime.
+For a shared-surface family that *does* share machinery (one abstract base, shape-specialized subclasses; see create-analyzer), read the single merged stream and pattern-match the evaluation subtypes per row instead. Reference: `WintersEmbraceGuide.razor` in Rime.
 
 ### 2. Add To The Hero Root Guide
 
@@ -95,7 +97,7 @@ Each hero has a root guide component at `src/Heroes/FellowshipAnalyzer.Heroes.{H
 
 ```razor
 @using FellowshipAnalyzer.Heroes.{Hero}.Analysis
-@inject {Hero}CombatLogParser Parser
+@inherits ReportComponent<{Hero}CombatLogParser>
 
 @if (Parser.{Name}Analyzers.Count > 0)
 {
@@ -134,7 +136,7 @@ From `FellowshipAnalyzer.Core.UI.Guides`:
 
 - Guide components go in `Guides/`.
 - The hero root guide lives at the hero project root as `{Hero}Guide.razor`.
-- Inject the hero parser with `@inject`.
+- Reach the hero parser by inheriting `ReportComponent<{Hero}CombatLogParser>`, never by injecting it.
 - Read pull analyzers via `Parser.{Name}Analyzers`, `Parser.For(pull).{Name}Analyzer` or the `pull.{Name}Analyzer` extension (the member is named after the surface type, with a leading `I` stripped for a marker interface). Read fight-lifetime modules via generated properties such as `Parser.WinterOrbTracker`, where the `Analyzer` suffix is stripped.
 - Keep event-derived state in modules; keep prose, severity wording, and `PerformanceTier` mapping here.
 - Project per-pull rows with the `ToPullRows` / `ToItemRows` extensions returning `PerCastRow`; use `PerformanceTiers.FromThresholds` for tier ladders.
@@ -144,7 +146,7 @@ From `FellowshipAnalyzer.Core.UI.Guides`:
 ## Checklist
 
 - [ ] File is at `Guides/{Name}Guide.razor`.
-- [ ] Component injects the hero parser.
+- [ ] Component inherits `ReportComponent<{Hero}CombatLogParser>`.
 - [ ] Component reads analyzer state via the generated read paths.
 - [ ] Feature guide is added to `{Hero}Guide.razor` with a gate.
 - [ ] Parser `GuideComponent` points to the root guide.

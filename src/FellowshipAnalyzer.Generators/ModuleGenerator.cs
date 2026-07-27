@@ -18,8 +18,8 @@ public sealed class ModuleGenerator : IIncrementalGenerator
 {
     private const string OnAttributeShortName = "On";
     private const string OnAttributeFullName = "OnAttribute";
-    private const string UsesAttributeShortName = "Uses";
-    private const string UsesAttributeFullName = "UsesAttribute";
+    private const string DependencyAttributeShortName = "Dependency";
+    private const string DependencyAttributeFullName = "DependencyAttribute";
     private const string AnalysisNamespace = "FellowshipAnalyzer.Core.Analysis";
     private const string SpellsNamespace = "FellowshipAnalyzer.Core.Common.Spells";
     private const string SpellRegistryInterfaceName = "ISpellRegistry";
@@ -50,10 +50,10 @@ public sealed class ModuleGenerator : IIncrementalGenerator
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true);
 
-    private static readonly DiagnosticDescriptor UsesIgnoredDescriptor = new(
+    private static readonly DiagnosticDescriptor DependencyIgnoredDescriptor = new(
         id: "FA0018",
-        title: "[Uses<T>] dependency ignored",
-        messageFormat: "[Uses<{0}>] on '{1}' was ignored ({2})",
+        title: "[Dependency<T>] dependency ignored",
+        messageFormat: "[Dependency<{0}>] on '{1}' was ignored ({2})",
         category: "Module",
         defaultSeverity: DiagnosticSeverity.Warning,
         isEnabledByDefault: true);
@@ -86,13 +86,11 @@ public sealed class ModuleGenerator : IIncrementalGenerator
         }
         if (!isPartial) return false;
 
-        // Candidate if the class carries a [Uses<>] dependency attribute, declares an [On<>]
-        // handler, OR has any primary-ctor parameter (filtered by Lazy<T> in the semantic pass).
         foreach (var attrList in classDecl.AttributeLists)
         {
             foreach (var attr in attrList.Attributes)
             {
-                if (GetAttributeShortName(attr) is UsesAttributeShortName or UsesAttributeFullName)
+                if (GetAttributeShortName(attr) is DependencyAttributeShortName or DependencyAttributeFullName)
                     return true;
             }
         }
@@ -148,9 +146,6 @@ public sealed class ModuleGenerator : IIncrementalGenerator
         if (ctx.SemanticModel.GetDeclaredSymbol(classDecl, ct) is not INamedTypeSymbol symbol)
             return null;
 
-        // For partial classes spanning multiple files, emit only when visiting the
-        // syntax tree that contains the first declaration (sorted by file path).
-        // This keeps the generator output deterministic and avoids duplicate overrides.
         var declRefs = symbol.DeclaringSyntaxReferences;
         if (declRefs.Length > 1)
         {
@@ -220,9 +215,6 @@ public sealed class ModuleGenerator : IIncrementalGenerator
 
     private static ImmutableArray<LazyAccessorInfo> CollectLazyAccessors(INamedTypeSymbol symbol)
     {
-        // Primary-constructor parameters are exposed as members of the type via the symbol
-        // model only indirectly. Locate the primary constructor by checking for the symbol's
-        // associated InstanceConstructors whose declaring syntax is the class itself.
         IMethodSymbol? primaryCtor = null;
         foreach (var ctor in symbol.InstanceConstructors)
         {
@@ -250,8 +242,6 @@ public sealed class ModuleGenerator : IIncrementalGenerator
             if (paramType.ConstructedFrom?.SpecialType != SpecialType.None) continue;
             if (paramType.Name != "Lazy" || paramType.TypeArguments.Length != 1) continue;
             if (paramType.TypeArguments[0] is not INamedTypeSymbol inner) continue;
-            // Skip if the parameter name already begins with an underscore — the caller
-            // already controls the surface and we'd collide on the generated property.
             var paramName = param.Name;
             if (paramName.StartsWith("_")) continue;
             var propName = "_" + paramName;
@@ -282,7 +272,7 @@ public sealed class ModuleGenerator : IIncrementalGenerator
         var depTypes = new List<INamedTypeSymbol>();
         foreach (var attr in symbol.GetAttributes())
         {
-            if (!IsUsesAttribute(attr.AttributeClass)) continue;
+            if (!IsDependencyAttribute(attr.AttributeClass)) continue;
             if (attr.AttributeClass!.TypeArguments.Length != 1) continue;
             if (attr.AttributeClass.TypeArguments[0] is INamedTypeSymbol dep) depTypes.Add(dep);
         }
@@ -302,7 +292,7 @@ public sealed class ModuleGenerator : IIncrementalGenerator
         if (hasExplicitCtor)
         {
             foreach (var dep in depTypes)
-                diagnostics.Add(new PendingDiagnostic(UsesIgnoredDescriptor, location,
+                diagnostics.Add(new PendingDiagnostic(DependencyIgnoredDescriptor, location,
                     ImmutableArray.Create(dep.Name, symbol.Name, "a constructor is declared")));
             return (ImmutableArray<UsesDepInfo>.Empty, diagnostics.ToImmutable());
         }
@@ -321,7 +311,7 @@ public sealed class ModuleGenerator : IIncrementalGenerator
             var propName = dep.Name;
             if (!usedNames.Add(propName))
             {
-                diagnostics.Add(new PendingDiagnostic(UsesIgnoredDescriptor, location,
+                diagnostics.Add(new PendingDiagnostic(DependencyIgnoredDescriptor, location,
                     ImmutableArray.Create(dep.Name, symbol.Name, $"a member named '{propName}' already exists")));
                 continue;
             }
@@ -332,9 +322,9 @@ public sealed class ModuleGenerator : IIncrementalGenerator
         return (deps.ToImmutable(), diagnostics.ToImmutable());
     }
 
-    private static bool IsUsesAttribute(INamedTypeSymbol? attrClass) =>
+    private static bool IsDependencyAttribute(INamedTypeSymbol? attrClass) =>
         attrClass is { IsGenericType: true }
-        && attrClass.Name == UsesAttributeFullName
+        && attrClass.Name == DependencyAttributeFullName
         && attrClass.ContainingNamespace?.ToDisplayString() == AnalysisNamespace;
 
     private static string ToParameterName(string typeName)
@@ -803,6 +793,7 @@ public sealed class ModuleGenerator : IIncrementalGenerator
 
         if (info.Handlers.Length > 0)
         {
+            sb.Append(bodyIndent).AppendLine("/// <inheritdoc/>");
             sb.Append(bodyIndent).AppendLine("protected override void RegisterAttributeSubscriptions()");
             sb.Append(bodyIndent).AppendLine("{");
             if (info.BaseHasAttributeHandlers)
