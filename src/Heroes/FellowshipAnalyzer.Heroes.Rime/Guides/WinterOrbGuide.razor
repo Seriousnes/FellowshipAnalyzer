@@ -1,5 +1,5 @@
 @using Incident = FellowshipAnalyzer.Heroes.Rime.Modules.WinterOrbTracker.OvercapIncident
-@inject RimeCombatLogParser Parser
+@inherits ReportComponent<RimeCombatLogParser>
 
 @{
     RenderFragment fb = @<SpellLink Spell="Spells.FrostBolt" />;

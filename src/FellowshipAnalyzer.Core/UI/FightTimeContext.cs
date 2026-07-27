@@ -2,7 +2,7 @@ namespace FellowshipAnalyzer.Core.UI;
 
 /// <summary>
 /// Report-scoped fight time information cascaded from the report shell to all
-/// report-scoped components. Components inheriting <see cref="FellowshipAnalyzer.Core.UI.Components.ReportComponentBase"/>
+/// report-scoped components. Components inheriting <see cref="FellowshipAnalyzer.Core.UI.Components.ReportComponent"/>
 /// receive this automatically.
 /// </summary>
 /// <param name="StartTime">Absolute fight start timestamp in milliseconds (matches the log timeline).</param>

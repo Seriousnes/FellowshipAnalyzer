@@ -1,8 +1,7 @@
 @using FellowshipAnalyzer.Core.Common.Spells.Ardeos
 @using Spells = FellowshipAnalyzer.Core.Common.Spells.Ardeos.Spells
 @using DetonateCast = FellowshipAnalyzer.Heroes.Ardeos.Modules.DetonateEfficiencyAnalyzer.DetonateCast
-@inherits ReportComponentBase
-@inject ArdeosCombatLogParser Parser
+@inherits ReportComponent<ArdeosCombatLogParser>
 @inject ChartPalette Palette
 
 <GuideSection Title="Detonate Efficiency">

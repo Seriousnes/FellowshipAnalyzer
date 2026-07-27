@@ -764,10 +764,10 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
         sb.AppendLine("{");
         sb.AppendLine("    public static IServiceCollection Add" + parserBaseName + "Analysis(this IServiceCollection services)");
         sb.AppendLine("    {");
-        sb.AppendLine("        services.AddScoped<" + info.ClassName + ">();");
+        sb.AppendLine("        services.AddTransient<" + info.ClassName + ">();");
         if (info.HeroEnumMember != null)
         {
-            sb.AppendLine("        services.AddKeyedScoped<IHeroAnalyzer>(global::FellowshipAnalyzer.Core.Analysis.HeroName." + info.HeroEnumMember + ", (sp, _) => sp.GetRequiredService<" + info.ClassName + ">());");
+            sb.AppendLine("        services.AddKeyedTransient<IHeroAnalyzer>(global::FellowshipAnalyzer.Core.Analysis.HeroName." + info.HeroEnumMember + ", (sp, _) => sp.GetRequiredService<" + info.ClassName + ">());");
         }
         sb.AppendLine("        return services;");
         sb.AppendLine("    }");
@@ -952,7 +952,7 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
         sb.AppendLine("    /// </summary>");
         sb.AppendLine("    public static IServiceCollection AddCoreAnalysis(this IServiceCollection services)");
         sb.AppendLine("    {");
-        sb.AppendLine("        services.AddScoped<EventEmitter>();");
+        sb.AppendLine("        services.AddTransient<EventEmitter>();");
         sb.AppendLine("        return services;");
         sb.AppendLine("    }");
         sb.AppendLine("}");

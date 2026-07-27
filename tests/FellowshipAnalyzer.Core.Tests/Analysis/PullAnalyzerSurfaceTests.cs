@@ -112,6 +112,36 @@ public sealed class PullAnalyzerSurfaceTests
     }
 
     [Fact]
+    public async Task EachAnalysis_ResolvesItsOwnParser_SoOneReportsSurfacesNeverShowAnothers()
+    {
+        var services = new ServiceCollection();
+        services.AddLogging();
+        services.AddCoreAnalysisServices();
+        services.AddCoreAnalysis();
+        services.AddPullSurfaceAnalysis();
+        using var provider = services.BuildServiceProvider();
+        using var scope = provider.CreateScope();
+
+        var first = scope.ServiceProvider.GetRequiredService<PullSurfaceCombatLogParser>();
+        var second = scope.ServiceProvider.GetRequiredService<PullSurfaceCombatLogParser>();
+        Assert.NotSame(first, second);
+
+        var firstFight = Fight([
+            new(Id: 1, EncounterId: 0, Kill: null, StartTime: 100, EndTime: 300, Name: "Trash", EnemyNpcs: null),
+        ]);
+        var secondFight = Fight([
+            new(Id: 2, EncounterId: 42, Kill: true, StartTime: 100, EndTime: 300, Name: "Boss", EnemyNpcs: null),
+            new(Id: 3, EncounterId: 43, Kill: true, StartTime: 500, EndTime: 700, Name: "Boss Two", EnemyNpcs: null),
+        ]);
+
+        await first.Analyze([Buff(150)], playerId: 7, fight: firstFight);
+        await second.Analyze([Buff(150), Buff(550)], playerId: 7, fight: secondFight);
+
+        Assert.Equal(["Trash"], first.PullBuffAnalyzers.Select(entry => entry.Pull.Name));
+        Assert.Equal(["Boss", "Boss Two"], second.PullBuffAnalyzers.Select(entry => entry.Pull.Name));
+    }
+
+    [Fact]
     public async Task SelectedPull_OnSkippedKind_ReturnsEmptySurface()
     {
         var services = new ServiceCollection();

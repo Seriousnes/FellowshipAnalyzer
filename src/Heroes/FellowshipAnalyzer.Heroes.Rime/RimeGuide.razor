@@ -1,5 +1,5 @@
 @using FellowshipAnalyzer.Heroes.Rime.Analysis
-@inject RimeCombatLogParser Parser
+@inherits ReportComponent<RimeCombatLogParser>
 
 @if (Parser.WintersEmbraceWindowAnalyzers.Count > 0)
 {

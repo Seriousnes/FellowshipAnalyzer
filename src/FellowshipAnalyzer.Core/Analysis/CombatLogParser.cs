@@ -14,8 +14,12 @@ namespace FellowshipAnalyzer.Core.Analysis;
 /// Orchestrates event processing through a set of modules.
 /// Owns runtime analysis state (events, player, definition) and delegates
 /// event dispatching to <see cref="EventEmitter"/>.
-/// Registered as a scoped DI service; each <see cref="Analyze"/> call creates an
-/// internal analysis-run service cache so repeated analyses do not share module state.
+/// <para>
+/// One instance serves exactly one analysis. Registered as a transient DI service, so the host
+/// resolves a fresh parser for every report it analyzes and the read surfaces a guide renders can
+/// only ever hold that analysis. Reusing an instance across reports is not supported: the retained
+/// pull analyzers, modules, and event list all belong to the analysis that produced them.
+/// </para>
 /// </summary>
 [AddNormalizer<PullBookendNormalizer>]
 [AddNormalizer<FightBookendNormalizer>]

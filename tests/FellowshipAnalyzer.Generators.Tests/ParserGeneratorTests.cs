@@ -101,6 +101,19 @@ public class ParserGeneratorTests
     }
 
     [Fact]
+    public void HeroParser_IsRegisteredTransient_SoEachAnalysisGetsItsOwnInstance()
+    {
+        var result = ParserGeneratorTestHarness.Run(HeroParser());
+        var gen = result.ConcatenatedGenerated;
+
+        gen.ShouldContain("services.AddTransient<ComboCombatLogParser>();");
+        gen.ShouldContain("services.AddKeyedTransient<IHeroAnalyzer>(global::FellowshipAnalyzer.Core.Analysis.HeroName.Rime, (sp, _) => sp.GetRequiredService<ComboCombatLogParser>());");
+        gen.ShouldNotContain("AddScoped");
+        gen.ShouldNotContain("AddKeyedScoped");
+        AssertNoErrors(result);
+    }
+
+    [Fact]
     public void TwoAnalyzers_SharedAbstractBase_ShareOneSurfaceStream()
     {
         var result = ParserGeneratorTestHarness.Run(TwoAnalyzersSharedBase());
@@ -155,6 +168,24 @@ public class ParserGeneratorTests
         }
 
         {{forPull}}
+        public sealed partial class ComboAnalyzer : Analyzer
+        {
+            public int Count { get; private set; }
+
+            [On<ApplyBuffEvent>]
+            private void OnBuff(ApplyBuffEvent e) => Count++;
+        }
+        """;
+
+    private static string HeroParser() => Usings + """
+
+        namespace Test;
+
+        [HeroAnalyzer(HeroName.Rime)]
+        [AddAnalyzer<ComboAnalyzer>]
+        public sealed partial class ComboCombatLogParser : CombatLogParser { }
+
+        [ForPull(PullKind.Single)]
         public sealed partial class ComboAnalyzer : Analyzer
         {
             public int Count { get; private set; }

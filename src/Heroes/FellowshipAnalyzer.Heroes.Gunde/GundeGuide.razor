@@ -1,6 +1,6 @@
 @using FellowshipAnalyzer.Heroes.Gunde.Analysis
 @using FellowshipAnalyzer.Heroes.Gunde.Guides
-@inject GundeCombatLogParser Parser
+@inherits ReportComponent<GundeCombatLogParser>
 
 @if (Parser.RendAnalyzers.Count > 0)
 {

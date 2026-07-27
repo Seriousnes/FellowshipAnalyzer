@@ -1,6 +1,6 @@
 @using FellowshipAnalyzer.Heroes.Mara.Analysis
 @using FellowshipAnalyzer.Heroes.Mara.Guides
-@inject MaraCombatLogParser Parser
+@inherits ReportComponent<MaraCombatLogParser>
 
 @if (Parser.MaraResourceDisciplineAnalyzers.Count > 0)
 {

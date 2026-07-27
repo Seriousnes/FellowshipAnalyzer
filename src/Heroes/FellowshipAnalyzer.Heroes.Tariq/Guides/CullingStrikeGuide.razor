@@ -1,5 +1,5 @@
 @using Spells = FellowshipAnalyzer.Core.Common.Spells.Tariq.Spells
-@inject TariqCombatLogParser Parser
+@inherits ReportComponent<TariqCombatLogParser>
 
 @{
     var analyzers = Parser.CullingStrikeAnalyzers.Select(entry => entry.Analyzer).ToList();

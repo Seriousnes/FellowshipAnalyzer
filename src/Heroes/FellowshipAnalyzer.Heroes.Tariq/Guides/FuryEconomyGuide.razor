@@ -1,8 +1,7 @@
 @using FellowshipAnalyzer.Core.Common.Spells
 @using FellowshipAnalyzer.Core.Contracts.Design
 @using Spells = FellowshipAnalyzer.Core.Common.Spells.Tariq.Spells
-@inherits ReportComponentBase
-@inject TariqCombatLogParser Parser
+@inherits ReportComponent<TariqCombatLogParser>
 @inject ChartPalette Palette
 
 <GuideSection Title="Fury Economy">
