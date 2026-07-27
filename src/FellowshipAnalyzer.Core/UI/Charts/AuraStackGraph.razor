@@ -1,5 +1,3 @@
-@* AuraStackGraph — how many aura windows stood over a window of the fight, decomposed by aura, with casts marked on the curve. *@
-
 @using ApexCharts
 @using FellowshipAnalyzer.Core.Contracts.Design
 @using FellowshipAnalyzer.Core.UI.Components
@@ -11,7 +9,6 @@
 
 <div class="aura-stack-graph">
     <ApexChart TItem="Sample" Options="@_options" Height="@Height">
-        @* Painted largest running total first, so each band inside it draws over the one beneath. *@
         @for (var slot = _bands.Count - 1; slot >= 0; slot--)
         {
             var band = _bands[slot];
@@ -84,9 +81,6 @@
         if (Samples.Count == 0)
             return;
 
-        // Band k plots the running total of bands 0..k, so the outermost curve is the stack's own height
-        // and nothing depends on the chart library stacking for it. Stacking stays off deliberately: it
-        // would stack the cast markers onto the areas and plot them at the wrong height.
         var running = new int[Samples.Count];
         foreach (var band in Bands)
         {
@@ -99,8 +93,6 @@
             _bands.Add(new Series(band.Label, band.Color, points));
         }
 
-        // Marker series carry a point at every sample so every series shares one index, which is what the
-        // shared tooltip reads positions by; samples with no cast carry a null the chart skips.
         foreach (var marker in Markers)
         {
             var points = new List<Sample>(Samples.Count);
@@ -117,8 +109,6 @@
         var ink = Palette.Resolve(nameof(FaPalette.TextMuted));
         var grid = Palette.Resolve(nameof(FaPalette.BorderSubtle));
 
-        // Marker options are indexed by series, and the bands are curves rather than points: only the
-        // cast series wears a marker, or every sample on every band would draw one.
         var markerSizes = new List<int>();
         var markerStrokes = new List<int>();
         for (var i = 0; i < _bands.Count; i++)
@@ -199,9 +189,6 @@
                 HorizontalAlign = Align.Left,
                 InverseOrder = true,
                 Labels = new LegendLabels { Colors = [ink] },
-                // The legend is a key, not a filter. The bands carry running totals, so hiding one
-                // leaves its contribution inside every band outside it and the survivors would read
-                // as more than they are.
                 OnItemClick = new LegendOnItemClick { ToggleDataSeries = false },
             },
             DataLabels = new DataLabels { Enabled = false },

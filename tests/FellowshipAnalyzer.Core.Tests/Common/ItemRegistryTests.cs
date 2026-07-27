@@ -16,7 +16,6 @@ public class ItemRegistryTests
 {
     public ItemRegistryTests()
     {
-        // Ensure the test assembly (containing TestItems) is scanned.
         ItemRegistry.EnsureAssembly(typeof(TestItems).Assembly);
     }
 

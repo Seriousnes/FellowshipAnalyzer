@@ -1,7 +1,3 @@
-// Every --fa-* custom property, and the data-theme selector for each of the
-// three themes, comes from _palette.scss, which
-// FellowshipAnalyzer.Core.Contracts.Design.FaTheme generates.
-
 @use 'palette';
 
 *, *::before, *::after { box-sizing: border-box; }

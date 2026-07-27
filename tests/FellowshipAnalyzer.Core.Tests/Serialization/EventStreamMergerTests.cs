@@ -25,8 +25,6 @@ public sealed class EventStreamMergerTests
         ]}
         """;
 
-    // Same fight, all deaths regardless of killer/hostility. The 150 enemy death carries a
-    // targetInstance the player-stream copy lacks, and sources 2/5 never appear in the player stream.
     private const string DeathStream = """
         {"inProgress":false,"events":[
           {"timestamp":150,"type":"death","sourceID":3,"targetID":10,"targetInstance":1},
@@ -43,18 +41,14 @@ public sealed class EventStreamMergerTests
         using var doc = JsonParse(combined);
         var events = doc.RootElement.GetProperty("events");
 
-        // 2 non-death player events + 3 death-stream deaths; the player-stream death is dropped.
         events.GetArrayLength().ShouldBe(5);
         var deaths = events.EnumerateArray().Where(e => e.GetProperty("type").GetString() == "death").ToList();
         deaths.Count.ShouldBe(3);
 
-        // Deaths credited to other players (2, 5) are present — proof it is not just the player's kills.
         var deathSources = deaths.Select(d => d.GetProperty("sourceID").GetInt32()).ToList();
         deathSources.ShouldContain(2);
         deathSources.ShouldContain(5);
 
-        // The surviving sourceID:3 death is the death-stream copy (has targetInstance), not the
-        // stripped player-stream copy (which had none).
         var source3Death = deaths.Single(d => d.GetProperty("sourceID").GetInt32() == 3);
         source3Death.TryGetProperty("targetInstance", out _).ShouldBeTrue();
     }

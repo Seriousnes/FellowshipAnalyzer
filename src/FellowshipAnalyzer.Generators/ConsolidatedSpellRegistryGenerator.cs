@@ -690,8 +690,6 @@ public sealed class ConsolidatedSpellRegistryGenerator : IIncrementalGenerator
         HashSet<string> KnownJsonKeys,
         string ResourceTypesGlobalName);
 
-    // --- Minimal JSON reader (netstandard2.0, dependency-free) ---
-
     private readonly struct JsonValue
     {
         public Dictionary<string, JsonValue>? Object { get; }

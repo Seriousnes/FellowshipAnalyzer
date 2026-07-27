@@ -148,8 +148,6 @@ public sealed class ApiEndpointGenerator : IIncrementalGenerator
         }
     }
 
-    // ---------- MinimalApi emission ----------
-
     private static void EmitMinimalApi(SourceProductionContext spc, ImmutableArray<EndpointInfo> endpoints)
     {
         var sb = new StringBuilder();
@@ -182,7 +180,6 @@ public sealed class ApiEndpointGenerator : IIncrementalGenerator
 
     private static void EmitMinimalApiMapping(StringBuilder sb, EndpointInfo ep)
     {
-        // Build lambda parameters mirroring the handler method, plus the handler injected from DI.
         var lambdaParams = new List<string> { $"[Microsoft.AspNetCore.Mvc.FromServices] {ep.ContainingTypeFullName} __handler" };
         var callArgs = new List<string>();
         foreach (var p in ep.Parameters)
@@ -204,8 +201,6 @@ public sealed class ApiEndpointGenerator : IIncrementalGenerator
             .AppendLine("));");
     }
 
-    // ---------- Functions emission ----------
-
     private static void EmitFunctions(SourceProductionContext spc, ImmutableArray<EndpointInfo> endpoints)
     {
         var sb = new StringBuilder();
@@ -223,13 +218,11 @@ public sealed class ApiEndpointGenerator : IIncrementalGenerator
         sb.AppendLine("internal sealed class FellowshipApiFunctions");
         sb.AppendLine("{");
 
-        // Group endpoints by containing type so we can inject one handler per type.
         var byType = endpoints
             .GroupBy(e => e.ContainingTypeFullName)
             .OrderBy(g => g.Key, StringComparer.Ordinal)
             .ToList();
 
-        // Constructor injects all distinct handler types.
         var ctorParams = string.Join(", ", byType.Select((g, i) => $"{g.Key} handler{i}"));
         sb.Append("    public FellowshipApiFunctions(").Append(ctorParams).AppendLine(")");
         sb.AppendLine("    {");
@@ -253,7 +246,6 @@ public sealed class ApiEndpointGenerator : IIncrementalGenerator
             }
         }
 
-        // Static helpers.
         sb.AppendLine("    private static async Task<IActionResult> ExecuteAsync(HttpContext context, IResult result)");
         sb.AppendLine("    {");
         sb.AppendLine("        await result.ExecuteAsync(context);");
@@ -296,10 +288,6 @@ public sealed class ApiEndpointGenerator : IIncrementalGenerator
             routeTokens.Add(m.Groups["name"].Value);
         }
 
-        // Parameters declared on the generated [Function] method:
-        //   - HttpRequest request (always, holds [HttpTrigger])
-        //   - any handler parameter whose name matches a route token (Functions binds it)
-        //   - CancellationToken (passed through if handler uses it)
         var functionParams = new List<string>
         {
             $"[HttpTrigger(AuthorizationLevel.Anonymous, \"{ep.HttpMethod.ToLowerInvariant()}\", Route = \"{EscapeForString(ep.Route)}\")] HttpRequest request",
@@ -326,13 +314,11 @@ public sealed class ApiEndpointGenerator : IIncrementalGenerator
             }
             else if (routeTokens.Contains(p.Name))
             {
-                // Functions binds route values as method parameters.
                 functionParams.Add($"{p.TypeFullName} {p.Name}");
                 callArgs.Add(p.Name);
             }
             else
             {
-                // Read from query string.
                 var local = "__q_" + p.Name;
                 queryReads.Add($"        var {local} = {QueryReaderFor(p)};");
                 callArgs.Add(local);
@@ -367,7 +353,6 @@ public sealed class ApiEndpointGenerator : IIncrementalGenerator
 
     private static string QueryReaderFor(ParameterInfo p)
     {
-        // Strip nullable annotation for matching.
         var t = p.TypeFullName.TrimEnd('?').Trim();
         return t switch
         {
@@ -381,8 +366,6 @@ public sealed class ApiEndpointGenerator : IIncrementalGenerator
 
     private static string EscapeForString(string value) =>
         value.Replace("\\", "\\\\").Replace("\"", "\\\"");
-
-    // ---------- Models ----------
 
     private enum ParamKind { Value, HttpContext, HttpRequest, CancellationToken }
 

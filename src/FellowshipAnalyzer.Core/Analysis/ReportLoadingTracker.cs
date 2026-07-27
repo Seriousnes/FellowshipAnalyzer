@@ -25,9 +25,6 @@ public sealed class ReportLoadingTracker
     private int _normalizedCount;
     private int _totalNormalizerCount;
 
-    // Per-step stopwatches keyed by property name. Started on Waiting/Ok -> Loading,
-    // stopped & logged on Loading -> Ok. Logged to Console so the timings are visible
-    // in the browser DevTools console in both dev and production WASM builds.
     private readonly Dictionary<string, Stopwatch> _stepStopwatches = new(StringComparer.Ordinal);
 
     /// <summary>Fired whenever any tracked state changes.</summary>

@@ -6,8 +6,6 @@ namespace FellowshipAnalyzer.Core.Contracts.Design;
 /// </summary>
 public sealed record FaPalette
 {
-    /* Base palette */
-
     /// <summary>Pure white, base for light tints.</summary>
     public required FaColor White { get; init; }
 
@@ -44,15 +42,11 @@ public sealed record FaPalette
     /// <summary>Warm grey for an inert or available state.</summary>
     public required FaColor Stone { get; init; }
 
-    /* Brand artwork */
-
     /// <summary>Cream stop in the brand mark. Artwork, so every theme carries the same value.</summary>
     public required FaColor BrandCream { get; init; }
 
     /// <summary>Gold stop in the brand mark. Artwork, so every theme carries the same value.</summary>
     public required FaColor BrandGold { get; init; }
-
-    /* Surfaces */
 
     /// <summary>Universal ground under every screen.</summary>
     public required FaColor BgBase { get; init; }
@@ -87,8 +81,6 @@ public sealed record FaPalette
     /// <summary>Section header fill on hover, a gradient rather than a flat colour.</summary>
     public required string SectionHeaderHover { get; init; }
 
-    /* Foreground */
-
     /// <summary>Primary cream body text.</summary>
     public required FaColor Text { get; init; }
 
@@ -110,8 +102,6 @@ public sealed record FaPalette
     /// <summary>Value colour for a stat with no performance tier.</summary>
     public required FaColor FgNeutral { get; init; }
 
-    /* Accents and intent */
-
     /// <summary>Emphasis gold: titles, links, eyebrows.</summary>
     public required FaColor Gold { get; init; }
 
@@ -129,8 +119,6 @@ public sealed record FaPalette
 
     /// <summary>Destructive action, a UI intent rather than a rating.</summary>
     public required FaColor Danger { get; init; }
-
-    /* Structure and edges */
 
     /// <summary>Default structural edge and divider.</summary>
     public required FaColor Border { get; init; }
@@ -150,8 +138,6 @@ public sealed record FaPalette
     /// </summary>
     public required FaColor PanelBorder { get; init; }
 
-    /* Performance tiers */
-
     /// <summary>Perfect tier.</summary>
     public required FaColor PerfPerfect { get; init; }
 
@@ -163,8 +149,6 @@ public sealed record FaPalette
 
     /// <summary>Fail tier.</summary>
     public required FaColor PerfFail { get; init; }
-
-    /* Fire ramp */
 
     /// <summary>
     /// Brightest step of the fire ramp, a six-step warm scale running pale gold to burnt umber.
@@ -188,8 +172,6 @@ public sealed record FaPalette
     /// <summary>Deepest fire step, burnt umber.</summary>
     public required FaColor Fire6 { get; init; }
 
-    /* Hero roles */
-
     /// <summary>Tank role.</summary>
     public required FaColor RoleTank { get; init; }
 
@@ -201,8 +183,6 @@ public sealed record FaPalette
 
     /// <summary>Role not determined.</summary>
     public required FaColor RoleUnknown { get; init; }
-
-    /* Hero identity */
 
     /// <summary>Aeona identity colour.</summary>
     public required FaColor HeroAeona { get; init; }
@@ -242,8 +222,6 @@ public sealed record FaPalette
 
     /// <summary>Colour for a hero the report does not identify.</summary>
     public required FaColor HeroUnknown { get; init; }
-
-    /* Event types */
 
     /// <summary>Cast event.</summary>
     public required FaColor EvCast { get; init; }
@@ -467,7 +445,6 @@ public sealed record FaPalette
             GoldPale = deep.Step(26),
             GoldDim = FaSourceColors.WgLight.WithAlpha(FaTint.Medium),
 
-            // The same six categorical hues, stepped for the cream surface rather than flipped.
             Fire1 = "#d99b00",
             Fire2 = "#e2731a",
             Fire3 = "#cf4a17",
@@ -481,8 +458,6 @@ public sealed record FaPalette
             Edge = navy.WithAlpha(FaTint.Subtle),
             PanelBorder = navy.WithAlpha(FaTint.Soft),
 
-            // A white raise is invisible on the cream ground, so the light
-            // theme darkens on hover where the dark themes lift.
             BgHover = navy.WithAlpha(FaTint.Faint),
 
             RoleUnknown = navy.WithAlpha(FaTint.Soft),

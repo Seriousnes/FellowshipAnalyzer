@@ -11,11 +11,6 @@
     align-items: start;
 }
 
-// No generated class can set a box-shadow, so the tier travels on an out-of-flow
-// overlay that owns the accent and resolves it through currentColor. z-index -1
-// inside the panel's own stacking context keeps the glow under the content, where
-// the panel's own inset shadow used to sit. The radius matches the padding box,
-// which is what an inset shadow is clipped to.
 .perf-rounded-panel-accent {
     position: absolute;
     inset: 0;

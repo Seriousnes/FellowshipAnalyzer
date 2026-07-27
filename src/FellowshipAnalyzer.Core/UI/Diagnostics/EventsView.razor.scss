@@ -11,8 +11,6 @@
     background: var(--fa-bg-card);
 }
 
-/* ── Sidebar ────────────────────────────────────────────────────────────── */
-
 .events-sidebar {
     width: 180px;
     flex-shrink: 0;
@@ -119,8 +117,6 @@
 .legend-fabricated .legend-swatch  { background: t.tint(var(--fa-ev-fabricated), t.$fa-tint-muted); }
 .legend-reordered .legend-swatch   { background: t.tint(var(--fa-ev-reordered), t.$fa-tint-medium); }
 
-/* ── Main event list ────────────────────────────────────────────────────── */
-
 .events-main {
     flex: 1;
     min-width: 0;
@@ -169,7 +165,6 @@
     box-sizing: border-box;
 }
 
-/* Column widths */
 .ev-time   { width: 70px; flex-shrink: 0; color: var(--fa-text-muted); }
 .ev-type   { width: 130px; flex-shrink: 0; }
 .ev-source { width: 120px; flex-shrink: 0; }
@@ -183,7 +178,6 @@
     font-size: 0.72em;
 }
 
-/* Row state colors */
 .ev-row-fabricated .ev-col      { background: t.tint(var(--fa-ev-fabricated), t.$fa-tint-faint); }
 .ev-row-fabricated:hover .ev-col { background: t.tint(var(--fa-ev-fabricated), t.$fa-tint-subtle); }
 
@@ -193,7 +187,6 @@
 .ev-row-reordered .ev-col       { background: t.tint(var(--fa-ev-reordered), t.$fa-tint-subtle); }
 .ev-row-reordered:hover .ev-col { background: t.tint(var(--fa-ev-reordered), t.$fa-tint-soft); }
 
-/* Event type color coding */
 .ev-cast                                    { color: var(--fa-ev-cast); }
 .ev-damage                                  { color: var(--fa-ev-damage); }
 .ev-heal                                    { color: var(--fa-ev-heal); }
@@ -205,7 +198,6 @@
 .ev-resourcechange                          { color: var(--fa-ev-resource); }
 .ev-globalcooldown, .ev-updatespellusable   { color: var(--fa-ev-system); }
 
-/* Footer count */
 .events-count {
     padding: 4px 8px;
     font-size: 0.72rem;

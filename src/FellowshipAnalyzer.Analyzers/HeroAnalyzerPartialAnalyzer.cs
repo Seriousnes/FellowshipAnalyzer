@@ -42,7 +42,6 @@ public sealed class HeroAnalyzerPartialAnalyzer : DiagnosticAnalyzer
         if (!typeSymbol.GetAttributes().Any(a => a.AttributeClass?.Name == "HeroAnalyzerAttribute"))
             return;
 
-        // A class is partial when any of its declaring syntax references carries the partial modifier.
         foreach (var syntaxRef in typeSymbol.DeclaringSyntaxReferences)
         {
             if (syntaxRef.GetSyntax() is ClassDeclarationSyntax classDecl)
@@ -50,7 +49,7 @@ public sealed class HeroAnalyzerPartialAnalyzer : DiagnosticAnalyzer
                 foreach (var modifier in classDecl.Modifiers)
                 {
                     if (modifier.IsKind(SyntaxKind.PartialKeyword))
-                        return; // already partial — no diagnostic
+                        return;
                 }
             }
         }

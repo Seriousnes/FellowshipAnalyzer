@@ -288,7 +288,12 @@ compact and consistent. Reach for the nearest role, not a new size.
 | `--fa-fs-body` | `0.9rem` | Helper text, secondary body copy |
 | `--fa-fs-value` | `1rem` | Distribution counts (filter and perf badges) |
 | `--fa-fs-title` | `1.05rem` | Panel and inner section titles |
-| `--fa-fs-lg` | `1.2rem` | Headline stat numbers, top-level section headings |
+| `--fa-fs-lg` | `1.2rem` | Top-level section headings |
+| `--fa-fs-stat` | `1.65rem` | The statistics number, on every stat card and tile |
+
+Every stat value goes through the `stat-number` mixin, which reads `--fa-fs-stat` along with the
+body face, weight 700 and `tabular-nums`. Include it rather than restating any of those: the heading
+face has no tabular figures, so a value set in it can never align a column.
 
 ---
 

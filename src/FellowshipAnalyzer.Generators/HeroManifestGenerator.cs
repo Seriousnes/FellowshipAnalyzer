@@ -67,7 +67,6 @@ public sealed class HeroManifestGenerator : IIncrementalGenerator
         var entries = new List<HeroEntry>();
         var seen = new HashSet<string>();
 
-        // Scan current compilation and all referenced assemblies for [HeroAnalyzer] types.
         CollectFromAssembly(compilation.Assembly, entries, seen);
         foreach (var reference in compilation.References)
         {
@@ -159,16 +158,11 @@ public sealed class HeroManifestGenerator : IIncrementalGenerator
             var parserTypeFq = ToFullyQualified(type);
             if (!seen.Add(parserTypeFq)) continue;
 
-            // Pair-of-conventions: the parser generator emits `{HeroBaseName}ServiceCollectionExtensions`
-            // in the same namespace as the parser, with an `Add{HeroBaseName}Analysis` method.
             var parserBaseName = StripSuffix(type.Name, "CombatLogParser");
             var ns = GetNamespace(type);
             var ext = string.IsNullOrEmpty(ns) ? parserBaseName + "ServiceCollectionExtensions"
                 : ns + "." + parserBaseName + "ServiceCollectionExtensions";
 
-            // A hero optionally declares its config as a `public static HeroConfig HeroConfig`
-            // member on the parser; reference it by symbol. Heroes with none fall back to the
-            // shared Unmaintained default. The value itself is never parsed here.
             var configAccessor = "global::FellowshipAnalyzer.Core.Analysis.HeroConfig.Unmaintained";
             foreach (var member in type.GetMembers("HeroConfig"))
             {

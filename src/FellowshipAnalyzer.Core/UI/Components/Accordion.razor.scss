@@ -1,4 +1,1 @@
 @use 'tokens' as t;
-// Accordion.razor renders no elements of its own (only a CascadingValue), so scoped CSS here
-// would match nothing. The item/header/body styling lives in AccordionItem.razor.scss, scoped
-// to the component that actually renders those elements.

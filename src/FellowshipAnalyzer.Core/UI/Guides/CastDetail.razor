@@ -1,5 +1,3 @@
-@* CastDetail — per-cast paginated inspector with timeline, stats, and navigation *@
-
 @{
     var filteredCasts = _filteredCasts;
     var filteredCount = filteredCasts.Count;
@@ -46,7 +44,6 @@
         else
         {
             <div class="card-container" tabindex="0" @onkeydown="HandleKeyDown">
-                @* Timeline scrubber — one continuous array of windows *@
                 <div class="timeline-row">
                     <div class="timeline-rect-container">
                         @for (var i = 0; i < filteredCount; i++)
@@ -56,7 +53,6 @@
                     </div>
                 </div>
 
-                @* Cast card *@
                 <div class="cast-card">
                     <div class="card-header">
                         <button class="nav-btn" disabled="@(validIndex == 0)" @onclick="HandlePrevious">
@@ -68,7 +64,6 @@
                         </button>
 
                         <div class="cast-meta">
-                            @* Group (e.g. pull) identifier, inline; omitted when there is no pull *@
                             @if (currentCast!.GroupContent is not null)
                             {
                                 <div class="cast-group">@currentCast.GroupContent</div>
@@ -91,7 +86,6 @@
                         </button>
                     </div>
 
-                    @* Stats grid *@
                     <div class="stats-grid" style="margin-bottom: 10px;">
                         @foreach (var stat in currentCast.Stats)
                         {
@@ -103,7 +97,6 @@
                         }
                     </div>
 
-                    @* Spell sequence / additional content *@
                     @if (currentCast.Sequence is { Length: > 0 })
                     {
                         @RenderAdditionalBlock("Cast Sequence", @<SpellSequence Casts="@currentCast.Sequence" />)
@@ -114,7 +107,6 @@
                         @RenderAdditionalBlock(currentCast.AdditionalContent.Title, currentCast.AdditionalContent.Content)
                     }
 
-                    @* Details *@
                     @if (currentCast.Details is not null)
                     {
                         <div class="details-box">
@@ -122,7 +114,6 @@
                         </div>
                     }
 
-                    @* Accent bar *@
                     <div class="accent-bar @TierClass(currentCast.Performance)"></div>
                 </div>
             </div>

@@ -43,21 +43,44 @@
             <SpellValueText Spell="Spells.GlacialBlast">8</SpellValueText>
             <SpellValueText Spell="Spells.IceComet">3</SpellValueText>
         </StatCard>
+        <StatCard Meta="2/2">
+            <Header>
+                <SpellLink Spell="Spells.GlacialBlast" />
+            </Header>
+            <Info>
+                <p>
+                    A spell header keeps its icon and name on one line, so the card reserves the
+                    corner the info affordance occupies.
+                </p>
+            </Info>
+            <ChildContent>
+                <StatRow Value="8">casts</StatRow>
+                <StatRow Value="4">wasted Orbs</StatRow>
+            </ChildContent>
+        </StatCard>
     </Demo>
 </CodeExample>
 
 <CodeExample Title="StatisticsPanel — masonry layout"
-             Description="Cards pack vertically like WoWAnalyzer: short cards rise under taller neighbours. Wide spans two columns, UltraWide spans the row. Falls back to a plain content-height grid without JS."
+             Description="Cards pack vertically: short cards rise under taller neighbours. Wide spans two columns, UltraWide spans the row. Falls back to a plain content-height grid without JS."
              Code="@_panelCode">
     <Demo>
         <StatisticsPanel>
             <StatCard Title="Chronoshift">
+                <Info>
+                    <p>
+                        Channeling Chronoshift grants 800% increased cooldown recovery, so every ability
+                        on cooldown recovers 9&#215; faster for the duration of the channel.
+                    </p>
+                </Info>
+                <ChildContent>
                 <StatRow Value="270.3s"><SpellLink Spell="Spells.IceComet" /> cooldown recovered</StatRow>
                 <StatRow Value="267.2s"><SpellLink Spell="Spells.GlacialBlast" /> cooldown recovered</StatRow>
                 <StatRow Value="244.4s"><SpellLink Spell="Spells.FrostBolt" /> cooldown recovered</StatRow>
                 <StatRow Value="111.3s"><SpellLink Spell="Spells.IceComet" /> cooldown recovered</StatRow>
                 <StatRow Value="34.9s"><SpellLink Spell="Spells.GlacialBlast" /> cooldown recovered</StatRow>
                 <StatRow Value="23.5s"><SpellLink Spell="Spells.FrostBolt" /> cooldown recovered</StatRow>
+                </ChildContent>
             </StatCard>
             <StatCard Title="Rolling Flames">
                 <StatRow Value="1835.4s">Searing Blaze reduction, 83% of 2199.8s generated</StatRow>
@@ -69,7 +92,15 @@
                 <StatRow Value="4">empowerments wasted (buff expired unused)</StatRow>
             </StatCard>
             <StatCard Title="Ashen Catalyst">
-                <StatRow Value="276s">cooldown reduction</StatRow>
+                <Info>
+                    <p>
+                        A one-row card still lets its detail escape past the card edge and paint over
+                        the neighbour below.
+                    </p>
+                </Info>
+                <ChildContent>
+                    <StatRow Value="276s">cooldown reduction</StatRow>
+                </ChildContent>
             </StatCard>
             <StatCard Title="Elemental Assault" Wide>
                 <StatRow Value="43.2%"><SpellLink Spell="Spells.FrostBolt" /> Stormstrike</StatRow>
@@ -131,8 +162,10 @@
     private const string _panelCode = """
 <StatisticsPanel>
     <StatCard Title="Chronoshift">
-        <StatRow Value="270.3s"><SpellLink Spell="Spells.IceComet" /> cooldown recovered</StatRow>
-        @* ...more rows... *@
+        <Info><p>Chronoshift grants 800% increased cooldown recovery while channelled.</p></Info>
+        <ChildContent>
+            <StatRow Value="270.3s"><SpellLink Spell="Spells.IceComet" /> cooldown recovered</StatRow>
+        </ChildContent>
     </StatCard>
     <StatCard Title="Rolling Flames">
         <StatRow Value="1835.4s">Searing Blaze reduction, 83% of 2199.8s generated</StatRow>

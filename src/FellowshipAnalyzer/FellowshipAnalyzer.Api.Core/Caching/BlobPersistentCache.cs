@@ -24,7 +24,6 @@ public sealed class BlobPersistentCache : IPersistentCache
     private readonly BlobPersistentCacheOptions _options;
     private readonly ILogger<BlobPersistentCache> _logger;
 
-    // Lazy per-partition container: containers are created once and reused.
     private readonly Dictionary<CachePartition, Lazy<Task<BlobContainerClient>>> _containers;
 
     public BlobPersistentCache(BlobServiceClient serviceClient, BlobPersistentCacheOptions options, ILogger<BlobPersistentCache> logger)
@@ -57,7 +56,6 @@ public sealed class BlobPersistentCache : IPersistentCache
                 "Blob GET partition={Partition} key={Key} download headers received length={Length} encoding={Encoding} t={ElapsedMs}ms",
                 partition, key, details.ContentLength, details.ContentEncoding, sw.ElapsedMilliseconds);
 
-            // Lazy expiry: if the stored timestamp is in the past, treat as a miss and purge.
             if (details.Metadata.TryGetValue(ExpiresAtMetadataKey, out var expiresAtStr)
                 && DateTimeOffset.TryParseExact(
                     expiresAtStr, "O",
@@ -65,7 +63,6 @@ public sealed class BlobPersistentCache : IPersistentCache
                     out var expiresAt)
                 && DateTimeOffset.UtcNow >= expiresAt)
             {
-                // Dispose the streaming response to release the connection before async delete.
                 await response.Value.Content.DisposeAsync();
                 _ = DeleteExpiredAsync(blob);
                 return null;
@@ -194,7 +191,6 @@ public sealed class BlobPersistentCache : IPersistentCache
         }
         catch
         {
-            // Fire-and-forget: swallow errors on lazy expiry cleanup.
         }
     }
 }

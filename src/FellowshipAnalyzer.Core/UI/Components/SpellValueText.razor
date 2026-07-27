@@ -1,16 +1,15 @@
-@* SpellValueText — compact stat row: small spell-icon + spell-link label above one or more values. *@
 @using FellowshipAnalyzer.Core.Common.Spells
 @using OneOf
 
-<div class="spell-value-text">
-    <label class="spell-value-text-label">
+<ValueText>
+    <Label>
         <SpellIcon Spell="Spell" Size="SpellIconSize.Small" />
         <SpellLink Spell="Spell" Icon="false" />
-    </label>
-    <div class="spell-value-text-value">
+    </Label>
+    <ChildContent>
         @ChildContent
-    </div>
-</div>
+    </ChildContent>
+</ValueText>
 
 @code {
     [Parameter, EditorRequired]

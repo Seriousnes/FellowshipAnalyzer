@@ -387,10 +387,6 @@ public sealed partial class StatTracker(Lazy<Combatants> combatants) : Analyzer
         }, trigger);
 }
 
-// =============================================================================
-// Supporting types
-// =============================================================================
-
 /// <summary>
 /// A buff value that is either a fixed rating amount or a function that
 /// derives the amount from the combatant (and optionally an item).

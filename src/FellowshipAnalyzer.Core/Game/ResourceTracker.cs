@@ -212,7 +212,6 @@ public partial class ResourceTracker(ILogger<ResourceTracker> logger) : Analyzer
         state.Generated += gained;
         state.Wasted += wasted;
 
-        // ClassResource.Amount for an energize is the amount AFTER the gain.
         state.Current = currentAfterFromEvent
             ?? Math.Min(state.Current + gained, state.Max > 0 ? state.Max : int.MaxValue);
 

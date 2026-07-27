@@ -50,7 +50,6 @@ public sealed class Combatant : Entity
 
     public decimal ItemLevel => Info.ComputedItemLevel;
 
-    // Gem powers
     public int Amethyst => Info.Amethyst;
     public int Diamond => Info.Diamond;
     public int Topaz => Info.Topaz;
@@ -61,7 +60,6 @@ public sealed class Combatant : Entity
     /// <summary>True when any equipped item is legendary quality (the top rarity, of which only one may be equipped).</summary>
     public bool HasLegendary { get; }
 
-    // Gear slot accessors
     public Item? Head => GetSlot(GearSlot.Head);
     public Item? Necklace => GetSlot(GearSlot.Necklace);
     public Item? Shoulders => GetSlot(GearSlot.Shoulders);
@@ -79,11 +77,9 @@ public sealed class Combatant : Entity
 
     public IReadOnlyList<Item> Gear => Info.Gear;
 
-    // Gear queries
     public Item? GetItem(int itemId) => _itemById.GetValueOrDefault(itemId);
     public bool HasGear(int itemId) => _itemById.ContainsKey(itemId);
 
-    // Talent queries
     public IReadOnlyList<TalentInfo> Talents => Info.Talents;
 
     /// <summary>
@@ -92,10 +88,8 @@ public sealed class Combatant : Entity
     /// </summary>
     public bool HasTalent(int talentId) => Info.Talents.Any(t => new FSLID(t.Id).NativeId == talentId);
 
-    // Auras (prepull buffs)
     public IReadOnlyList<Aura> Auras => Info.Auras;
 
-    // Weapon traits
     public IReadOnlyList<WeaponTrait> WeaponTraits => Info.WeaponTraits;
 
     private Item? GetSlot(GearSlot slot) => _gear.GetValueOrDefault(slot);

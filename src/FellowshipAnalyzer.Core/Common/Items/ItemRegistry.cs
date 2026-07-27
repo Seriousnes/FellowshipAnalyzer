@@ -88,7 +88,6 @@ public static class ItemRegistry
 
                     if (prop.GetValue(null) is Item item)
                     {
-                        // Last-writer-wins: hero-specific overrides can shadow generic items.
                         entries[item.Id] = item;
                     }
                 }

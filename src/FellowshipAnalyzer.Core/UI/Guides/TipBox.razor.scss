@@ -1,6 +1,3 @@
-// The variant sets `color` on the box and the accent border, icon fill and icon
-// glyph all read it through currentColor, so the callout carries one colour with
-// no private custom property of its own.
 .tip-box {
     display: grid;
     grid-template-columns: auto 1fr;

@@ -181,10 +181,9 @@ public sealed partial class SpellUsable(
     }
 
     /// <summary>
-    /// Records a debug annotation describing the cooldown state at a player cast, mirroring
-    /// WoWAnalyzer's SpellUsable.recordCooldownDebugInfo. A cast that lands while the tracker
-    /// believes the spell holds no charges and whose next recharge is still more than
-    /// <see cref="CooldownLagMargin"/> ms away is flagged (casting with no charges is impossible
+    /// Records a debug annotation describing the cooldown state at a player cast. 
+    /// A cast that lands while the tracker believes the spell holds no charges and whose next recharge 
+    /// is still more than <see cref="CooldownLagMargin"/> ms away is flagged (casting with no charges is impossible
     /// in-game, so its configured cooldown or charge count is likely too slow); otherwise a spell
     /// that is not in the hero's spellbook is flagged.
     /// </summary>

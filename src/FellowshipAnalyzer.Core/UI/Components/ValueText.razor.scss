@@ -1,4 +1,5 @@
 @use 'tokens' as t;
+@use 'mixins' as mx;
 
 .spell-value-text {
     padding: 4px 0;
@@ -22,10 +23,7 @@
 }
 
 .spell-value-text-value {
-    font-size: 1.6rem;
-    font-weight: 600;
-    line-height: 1.2;
-    color: var(--fa-text);
+    @include mx.stat-number;
 
     small {
         font-size: 0.75rem;
@@ -46,5 +44,4 @@
             margin-left: 4px;
         }
     }
-
 }

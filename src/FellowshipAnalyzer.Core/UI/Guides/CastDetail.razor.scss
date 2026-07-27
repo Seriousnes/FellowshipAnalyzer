@@ -6,7 +6,6 @@
     font-style: italic;
 }
 
-/* No results */
 .no-results {
     padding: 14px 12px;
     text-align: center;
@@ -26,7 +25,6 @@
     color: var(--fa-fg-dim);
 }
 
-/* Card container */
 .card-container {
     outline: none;
     -webkit-tap-highlight-color: transparent;
@@ -37,7 +35,6 @@
     }
 }
 
-/* Timeline */
 .timeline-row {
     display: block;
     align-items: center;
@@ -71,7 +68,6 @@
     &:hover { filter: brightness(1.3); }
 }
 
-/* Group (e.g. pull) identifier fallback text, shown inline in the card header */
 .cast-group-banner {
     color: var(--fa-gold);
     font-size: var(--fa-fs-title);
@@ -80,7 +76,6 @@
     white-space: nowrap;
 }
 
-/* Cast card */
 .cast-card {
     position: relative;
     background: var(--fa-recess);
@@ -182,7 +177,6 @@
     min-width: 0;
 }
 
-/* Pull banner renders inline in the header: strip its standalone box so it blends with the meta row */
 .cast-group ::deep .pull-banner {
     margin: 0;
     padding: 0;
@@ -201,7 +195,6 @@
     color: var(--fa-fg-dim);
 }
 
-/* Stats grid inside cast card */
 .stats-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -212,7 +205,6 @@
     }
 }
 
-/* Additional content */
 .additional-content-container {
     margin-top: 8px;
     padding: 7px 9px;
@@ -232,7 +224,6 @@
     letter-spacing: 0.5px;
 }
 
-/* Details box */
 .details-box {
     margin-top: 8px;
     padding: 7px 9px;
@@ -243,7 +234,6 @@
     color: var(--fa-fg);
 }
 
-/* Accent bar. The performance tier class on the element supplies currentColor. */
 .accent-bar {
     position: absolute;
     bottom: 0;

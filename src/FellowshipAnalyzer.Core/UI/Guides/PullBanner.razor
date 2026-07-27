@@ -1,8 +1,5 @@
 @using FellowshipAnalyzer.Core.Analysis
 
-@* Identifies the pull a per-pull result belongs to: a boss/trash icon + colour, the 1-based
-   pull number, and the pull name. *@
-
 <div class="pull-banner @(Pull.IsBoss ? "boss" : "trash")" title="@(Pull.IsBoss ? "Boss" : "Trash") pull">
     <span class="pull-banner-icon" aria-label="@(Pull.IsBoss ? "Boss" : "Trash")">
         @if (Pull.IsBoss)

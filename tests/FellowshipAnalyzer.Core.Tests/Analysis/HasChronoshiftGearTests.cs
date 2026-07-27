@@ -16,9 +16,9 @@ public sealed class HasChronoshiftGearTests
         new(0, "", 0, null, 0, 0, null, null, null);
 
     [Theory]
-    [InlineData(5333)] // Asha's Chronoshift Spire (Rime)
-    [InlineData(5326)] // Asha's Chronoshift Spire (Ardeos)
-    [InlineData(5325)] // Asha's Chronoshift Bow (Elarion)
+    [InlineData(5333)]
+    [InlineData(5326)]
+    [InlineData(5325)]
     public void IsActive_WithChronoshiftWeaponEquipped_ReturnsTrue(int itemId)
     {
         var context = ContextWithGear(new Item { Id = itemId, Name = "Chronoshift Weapon" });

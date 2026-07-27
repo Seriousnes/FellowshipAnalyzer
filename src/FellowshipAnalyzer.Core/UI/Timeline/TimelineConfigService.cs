@@ -33,7 +33,6 @@ public sealed class TimelineConfigService(IJSRuntime js)
         }
         catch (InvalidOperationException)
         {
-            // JS interop not available yet (e.g. server pre-render). Return defaults.
             return new TimelineConfig();
         }
         catch (JSDisconnectedException)
@@ -58,7 +57,6 @@ public sealed class TimelineConfigService(IJSRuntime js)
         }
         catch (InvalidOperationException)
         {
-            // JS interop unavailable during pre-render — skip persistence.
         }
         catch (JSDisconnectedException)
         {

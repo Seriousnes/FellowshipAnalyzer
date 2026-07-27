@@ -25,14 +25,14 @@ public class SpellDatabaseGeneratorTests
     public void Emits_PerScopeRegistries_WithTypedMembersAndScalars()
     {
         var gen = SpellDatabaseGeneratorTestHarness.Run(SpellDb).ConcatenatedGenerated;
-        gen.ShouldContain("class Spells"); // namespace ...Spells.Rime
+        gen.ShouldContain("class Spells");
         gen.ShouldContain("FreezingTorrent");
         gen.ShouldContain("Cooldown = 15");
         gen.ShouldContain("AbilityCategory = global::FellowshipAnalyzer.Core.Common.Spells.AbilityCategory.Core");
         gen.ShouldContain("ChannelTickInterval = 0.4");
         gen.ShouldContain("Costs = new");
         gen.ShouldContain("ResourceTypes.Tertiary] = 2");
-        gen.ShouldContain("new Effect"); // BurstingIceDamage typed by kind
+        gen.ShouldContain("new Effect");
         gen.ShouldContain("class Items");
         gen.ShouldContain("[global::FellowshipAnalyzer.Core.Common.Spells.SpellId(1027)]");
         gen.ShouldContain("[global::FellowshipAnalyzer.Core.Common.Spells.SpellId(1001396)]");

@@ -86,8 +86,6 @@ public sealed class ModuleGenerator : IIncrementalGenerator
         }
         if (!isPartial) return false;
 
-        // Candidate if the class carries a [Uses<>] dependency attribute, declares an [On<>]
-        // handler, OR has any primary-ctor parameter (filtered by Lazy<T> in the semantic pass).
         foreach (var attrList in classDecl.AttributeLists)
         {
             foreach (var attr in attrList.Attributes)
@@ -148,9 +146,6 @@ public sealed class ModuleGenerator : IIncrementalGenerator
         if (ctx.SemanticModel.GetDeclaredSymbol(classDecl, ct) is not INamedTypeSymbol symbol)
             return null;
 
-        // For partial classes spanning multiple files, emit only when visiting the
-        // syntax tree that contains the first declaration (sorted by file path).
-        // This keeps the generator output deterministic and avoids duplicate overrides.
         var declRefs = symbol.DeclaringSyntaxReferences;
         if (declRefs.Length > 1)
         {
@@ -220,9 +215,6 @@ public sealed class ModuleGenerator : IIncrementalGenerator
 
     private static ImmutableArray<LazyAccessorInfo> CollectLazyAccessors(INamedTypeSymbol symbol)
     {
-        // Primary-constructor parameters are exposed as members of the type via the symbol
-        // model only indirectly. Locate the primary constructor by checking for the symbol's
-        // associated InstanceConstructors whose declaring syntax is the class itself.
         IMethodSymbol? primaryCtor = null;
         foreach (var ctor in symbol.InstanceConstructors)
         {
@@ -250,8 +242,6 @@ public sealed class ModuleGenerator : IIncrementalGenerator
             if (paramType.ConstructedFrom?.SpecialType != SpecialType.None) continue;
             if (paramType.Name != "Lazy" || paramType.TypeArguments.Length != 1) continue;
             if (paramType.TypeArguments[0] is not INamedTypeSymbol inner) continue;
-            // Skip if the parameter name already begins with an underscore — the caller
-            // already controls the surface and we'd collide on the generated property.
             var paramName = param.Name;
             if (paramName.StartsWith("_")) continue;
             var propName = "_" + paramName;

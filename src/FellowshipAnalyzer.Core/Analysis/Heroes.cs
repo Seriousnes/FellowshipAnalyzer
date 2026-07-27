@@ -91,22 +91,18 @@ public readonly record struct Hero(HeroName Name, HeroRole Role)
         _                => FaVar.HeroUnknown,
     };
 
-    /* Tanks */
     public static readonly Hero Helena = new(HeroName.Helena, HeroRole.Tank);
     public static readonly Hero Meiko = new(HeroName.Meiko, HeroRole.Tank);
     public static readonly Hero Xavian = new(HeroName.Xavian, HeroRole.Tank);
 
-    /* Healers */
     public static readonly Hero Aeona = new(HeroName.Aeona, HeroRole.Healer);
     public static readonly Hero Sylvie = new(HeroName.Sylvie, HeroRole.Healer);
     public static readonly Hero Vigour = new(HeroName.Vigour, HeroRole.Healer);
 
-    /* Melee DPS */
     public static readonly Hero Gunde = new(HeroName.Gunde, HeroRole.Dps);
     public static readonly Hero Mara = new(HeroName.Mara, HeroRole.Dps);
     public static readonly Hero Tariq = new(HeroName.Tariq, HeroRole.Dps);
 
-    /* Ranged DPS */
     public static readonly Hero Ardeos = new(HeroName.Ardeos, HeroRole.Dps);
     public static readonly Hero Elarion = new(HeroName.Elarion, HeroRole.Dps);
     public static readonly Hero Rime = new(HeroName.Rime, HeroRole.Dps);

@@ -30,8 +30,11 @@ public sealed record FaTypography
     /// <summary>Panel and section titles.</summary>
     public required string FsTitle { get; init; }
 
-    /// <summary>Headline stat numbers.</summary>
+    /// <summary>Section headings and other large copy.</summary>
     public required string FsLg { get; init; }
+
+    /// <summary>The statistics number, shared by every stat value on a card or tile.</summary>
+    public required string FsStat { get; init; }
 
     /// <summary>The one type system, shared by all three themes.</summary>
     public static FaTypography Default { get; } = new()
@@ -46,5 +49,6 @@ public sealed record FaTypography
         FsValue = "1rem",
         FsTitle = "1.05rem",
         FsLg = "1.2rem",
+        FsStat = "1.65rem",
     };
 }

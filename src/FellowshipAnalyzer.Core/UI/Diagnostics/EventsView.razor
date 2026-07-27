@@ -84,8 +84,6 @@
 @code {
     [Parameter, EditorRequired] public IReadOnlyList<Event> Events { get; set; } = [];
 
-    // ── Filter state ──────────────────────────────────────────────────────────
-
     private string _searchInput = "";
     private string _appliedSearch = "";
     private bool _showFabricated = false;
@@ -153,8 +151,6 @@
         }
     }
 
-    // ── Cached filtered list ─────────────────────────────────────────────────
-
     private void RecomputeFilter()
     {
         var terms = ParseSearchTerms(_appliedSearch);
@@ -199,8 +195,6 @@
             });
         }).ToList();
     }
-
-    // ── Helpers ───────────────────────────────────────────────────────────────
 
     private string FormatTime(int timestamp)
     {
@@ -295,14 +289,11 @@
         return [.. terms];
     }
 
-    // ── Filterable event types dictionary ─────────────────────────────────────
-
     private sealed record EventTypeInfo(string DisplayName, string? Explanation = null, bool IsFabricated = false);
 
     private static readonly IReadOnlyDictionary<string, EventTypeInfo> FilterableTypes =
         new Dictionary<string, EventTypeInfo>(StringComparer.Ordinal)
         {
-            // Casts & channels
             ["begincast"]     = new("Begin Cast"),
             ["beginchannel"]  = new("Begin Channel"),
             ["cast"]          = new("Cast", "Triggered when a cast completes successfully."),
@@ -310,7 +301,6 @@
             ["empowerstart"]  = new("Empower Start"),
             ["empowerend"]    = new("Empower End"),
 
-            // Damage & healing
             ["damage"]        = new("Damage"),
             ["heal"]          = new("Heal"),
             ["absorbed"]      = new("Absorb", "Friendly shield absorbing damage."),
@@ -318,7 +308,6 @@
             ["leech"]         = new("Leech"),
             ["drain"]         = new("Drain"),
 
-            // Buffs
             ["applybuff"]         = new("Buff Apply"),
             ["removebuff"]        = new("Buff Remove"),
             ["applybuffstack"]    = new("Buff Stack Gained"),
@@ -326,7 +315,6 @@
             ["refreshbuff"]       = new("Buff Refresh"),
             ["changebuffstack"]   = new("Buff Stacks Changed", IsFabricated: true),
 
-            // Debuffs
             ["applydebuff"]       = new("Debuff Apply"),
             ["removedebuff"]      = new("Debuff Remove"),
             ["applydebuffstack"]  = new("Debuff Stack Gained"),
@@ -334,26 +322,21 @@
             ["refreshdebuff"]     = new("Debuff Refresh"),
             ["changedebuffstack"] = new("Debuff Stacks Changed", IsFabricated: true),
 
-            // Resources
             ["resourcechange"] = new("Resource Change"),
             ["spendresource"]  = new("Spend Resource", IsFabricated: true),
 
-            // Crowd control / utility
             ["interrupt"]     = new("Interrupt"),
             ["dispel"]        = new("Dispel"),
             ["aurabroken"]    = new("Aura Broken"),
             ["summon"]        = new("Summon"),
             ["extraattacks"]  = new("Extra Attacks"),
 
-            // Life events
             ["death"]         = new("Death"),
             ["resurrect"]     = new("Resurrect"),
 
-            // Stat changes
             ["changehaste"]   = new("Haste Change", "Triggered when haste changes (e.g. from a buff)."),
             ["changestats"]   = new("Stats Change"),
 
-            // Meta / fabricated
             ["globalcooldown"]     = new("Global Cooldown", "Fabricated GCD event.", IsFabricated: true),
             ["updatespellusable"]  = new("Spell Usable Update", "Fabricated cooldown tracking event.", IsFabricated: true),
             ["combatantinfo"]      = new("Player Info", "Player gear and talents at fight start."),

@@ -1,15 +1,8 @@
-// Design values live in C#, in FellowshipAnalyzer.Core.Contracts/Design. The
-// emitter renders them into _palette.scss, which declares every token as a CSS
-// custom property. This file holds only the compile-time scale that has no
-// runtime representation, plus the function that spans the two worlds.
-
 @use 'sass:color';
 @use 'sass:math';
 @use 'sass:meta';
 @use 'sass:string';
 
-// Tint scale — the only alpha steps a style may use. Off-scale values are not
-// permitted, so a faded colour is always one of these seven.
 $fa-tint-faint:  6%;
 $fa-tint-subtle: 12%;
 $fa-tint-soft:   20%;

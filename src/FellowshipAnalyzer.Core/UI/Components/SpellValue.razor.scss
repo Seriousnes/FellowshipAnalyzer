@@ -1,4 +1,5 @@
 @use 'tokens' as t;
+@use 'mixins' as mx;
 
 .spell-value {
     display: flex;
@@ -24,9 +25,7 @@
 }
 
 .spell-value-primary {
-    font-size: 1.6rem;
-    font-weight: 600;
-    color: var(--fa-text);
+    @include mx.stat-number;
     margin: 0 0 4px;
 }
 

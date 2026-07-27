@@ -39,7 +39,6 @@
     {
         if (!firstRender) return;
 
-        // IndexedDB is only available after the first render (JS interop requires the DOM)
         _history = (await ReportCache.GetHistoryAsync())
             .Where(entry => !string.IsNullOrWhiteSpace(entry.PlayerName)
                 && !string.IsNullOrWhiteSpace(entry.FightName))

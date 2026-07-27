@@ -46,17 +46,12 @@
     {
         if (firstRender)
         {
-            // Hide the boot splash on the first interactive render so the
-            // user sees the loader until the app is actually ready to display.
-            // The window.faSplash global is defined in wwwroot/js/splash.js.
             try
             {
                 await JS.InvokeVoidAsync("faSplash.dismiss");
             }
             catch (JSException)
             {
-                // Splash may already be removed (e.g. if the user navigated
-                // back to a route after the initial load). Safe to ignore.
             }
         }
     }

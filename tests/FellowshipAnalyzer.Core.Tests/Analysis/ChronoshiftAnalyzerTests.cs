@@ -20,7 +20,7 @@ namespace FellowshipAnalyzer.Core.Tests.Analysis;
 public sealed class ChronoshiftAnalyzerTests
 {
     private const int PlayerId = 7;
-    private const int BigCdId = 500;   // 30s cooldown spell
+    private const int BigCdId = 500;
     private const int BigCdSeconds = 30;
 
     private static readonly ReportFight TestFight =
@@ -31,9 +31,6 @@ public sealed class ChronoshiftAnalyzerTests
     [Fact]
     public async Task FullChannel_AttributesBonusRecoveryToOnCooldownAbility()
     {
-        // BigCd cast at 1000 → 30000ms remaining. Chronoshift channels [5000, 8000): at open the
-        // spell has 26000ms left, which at 9× needs ~2889ms, so it comes off cooldown just inside the
-        // window. Bonus recovery = 8 × 2889 ≈ 23112ms.
         var analyzer = await Analyze(
         [
             Cast(1000, BigCdId),
@@ -50,9 +47,6 @@ public sealed class ChronoshiftAnalyzerTests
     [Fact]
     public async Task AbilityComingOffCooldownMidChannel_OnlyCreditsTimeSpentOnCooldown()
     {
-        // BigCd cast at 1000 → ends at 31000. Chronoshift channels [27000, 30000): at open the spell
-        // has 4000ms left, which at 9× needs only ~444ms. Recovery past that point is not Chronoshift's
-        // to claim, so the bonus is 8 × 444 ≈ 3552ms, not 8 × the full 3000ms window.
         var analyzer = await Analyze(
         [
             Cast(1000, BigCdId),
@@ -67,8 +61,6 @@ public sealed class ChronoshiftAnalyzerTests
     [Fact]
     public async Task EndChannel_CancelsWindowEarly_GrantsLessRecovery()
     {
-        // Same setup as the full channel, but cancelled at 6000 (1000ms in): bonus recovery is
-        // 8 × 1000 = 8000ms, far less than a full 3-second channel would grant.
         var analyzer = await Analyze(
         [
             Cast(1000, BigCdId),
@@ -84,8 +76,6 @@ public sealed class ChronoshiftAnalyzerTests
     [Fact]
     public async Task RepeatedBeginChannels_DoNotCompound()
     {
-        // Two overlapping begins without ends must not stack the added recovery (the 9^10 bug):
-        // the pair still grants exactly one window's bonus, 8 × 2889 ≈ 23112ms.
         var analyzer = await Analyze(
         [
             Cast(1000, BigCdId),
@@ -114,10 +104,6 @@ public sealed class ChronoshiftAnalyzerTests
     [Fact]
     public async Task FullyChannelled_ClosesWindowAtScheduledEnd_ViaFabricatedEndChannel()
     {
-        // The channel opens at 5000 and the log records no end, so the analyzer fabricates an
-        // EndChannelEvent at the scheduled 3-second mark (8000) and closes the window there - not lazily
-        // on the next observed event (9000). The modifier-removal event rides the fabricated end's
-        // timestamp (8000), the current dispatch time when it fires, so it is not back-dated.
         var parser = await AnalyzeParser(
         [
             Cast(1000, BigCdId),
@@ -158,10 +144,6 @@ public sealed class ChronoshiftAnalyzerTests
         Assert.Equal(6000, endCooldown.Timestamp);
         Assert.InRange(endCooldown.ExpectedRechargeDuration, 25_000, 31_000);
     }
-
-    // -------------------------------------------------------------------------
-    // Test infrastructure
-    // -------------------------------------------------------------------------
 
     private static async Task<ChronoshiftAnalyzer> Analyze(List<Event> events) =>
         (await AnalyzeParser(events)).GetModule<ChronoshiftAnalyzer>()!;

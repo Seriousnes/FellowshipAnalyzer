@@ -311,7 +311,6 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
         if (_activeModules.TryGetValue(typeof(T), out var exact))
             return (T)exact;
 
-        // Support polymorphic lookup: GetModule<BaseType>() finds a registered subclass.
         foreach (var m in _activeModules.Values)
         {
             if (m is T match)
@@ -442,8 +441,8 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
 
     public bool ToPlayer(IHasTargetEvent e, int? playerId = null) => e.TargetId == (playerId ?? PlayerId);
 
-    public bool ByPlayerPet(IHasSourceEvent e) => false; // TODO: implement when pet tracking is added
+    public bool ByPlayerPet(IHasSourceEvent e) => false;
 
-    public bool ToPlayerPet(IHasTargetEvent e) => false; // TODO: implement when pet tracking is added
+    public bool ToPlayerPet(IHasTargetEvent e) => false;
 }
 

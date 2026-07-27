@@ -16,17 +16,13 @@ public sealed partial class HasteTests
     private const int PlayerId = 7;
     private const int HasteBuffSpellId = 100;
     private const int StackingBuffSpellId = 200;
-    private const double FlatHaste = 0.30;     // 30%
-    private const double HastePerStack = 0.04; // 4% per stack
-
-    // -------------------------------------------------------------------------
-    // Static math helpers
-    // -------------------------------------------------------------------------
+    private const double FlatHaste = 0.30;
+    private const double HastePerStack = 0.04;
 
     [Theory]
-    [InlineData(0.0, 0.10, 0.10)]       // 0% + 10% = 10%
-    [InlineData(0.10, 0.10, 0.21)]      // 10% + 10% = 21% (multiplicative)
-    [InlineData(0.0, 0.30, 0.30)]       // 0% + 30% = 30%
+    [InlineData(0.0, 0.10, 0.10)]
+    [InlineData(0.10, 0.10, 0.21)]
+    [InlineData(0.0, 0.30, 0.30)]
     public void AddHaste_ShouldCombineMultiplicatively(double baseHaste, double gain, double expected)
     {
         var result = Haste.AddHaste(baseHaste, gain);
@@ -36,15 +32,14 @@ public sealed partial class HasteTests
     [Fact]
     public void AddHaste_WithNegativeGain_ShouldRemoveHaste()
     {
-        // AddHaste(0.30, -0.10) should undo a 10% buff from 30% total.
         var result = Haste.AddHaste(0.30, -0.10);
         Assert.True(result < 0.30);
         Assert.True(result >= 0.0);
     }
 
     [Theory]
-    [InlineData(0.10, 0.10, 0.0)]        // Removing 10% from 10% = 0%
-    [InlineData(0.30, 0.10, 0.18181818)] // Removing 10% from 30%
+    [InlineData(0.10, 0.10, 0.0)]
+    [InlineData(0.30, 0.10, 0.18181818)]
     public void RemoveHaste_ShouldInvertAddHaste(double baseHaste, double loss, double expected)
     {
         var result = Haste.RemoveHaste(baseHaste, loss);
@@ -69,15 +64,10 @@ public sealed partial class HasteTests
         Assert.True(result > 0.10);
     }
 
-    // -------------------------------------------------------------------------
-    // ScaleDuration
-    // -------------------------------------------------------------------------
-
     [Fact]
     public async Task ScaleDuration_ShouldReduceDurationByHaste()
     {
         var (_, haste) = await RunWithHaste();
-        // At 0% haste, ScaleDuration should return the base duration unchanged.
         Assert.Equal(1500, haste.ScaleDuration(1500));
     }
 
@@ -89,13 +79,8 @@ public sealed partial class HasteTests
             CreateApplyBuff(100, HasteBuffSpellId),
         ], configureHaste: h => h.AddHasteBuff(HasteBuffSpellId, FlatHaste));
 
-        // With 30% haste: 1500 * 100 / 130 ≈ 1153
         Assert.Equal(1153, haste.ScaleDuration(1500));
     }
-
-    // -------------------------------------------------------------------------
-    // Flat haste buff (apply / remove)
-    // -------------------------------------------------------------------------
 
     [Fact]
     public async Task ApplyBuff_RegisteredHasteBuff_ShouldIncreaseHaste()
@@ -143,10 +128,6 @@ public sealed partial class HasteTests
         Assert.Equal(0.0, haste.Current, precision: 10);
     }
 
-    // -------------------------------------------------------------------------
-    // Stacking haste buff (apply / remove stack)
-    // -------------------------------------------------------------------------
-
     [Fact]
     public async Task ApplyBuffStack_ShouldAddPerStackHaste()
     {
@@ -156,7 +137,6 @@ public sealed partial class HasteTests
             CreateApplyBuffStack(200, StackingBuffSpellId, stack: 2),
         ], configureHaste: h => h.AddHasteBuffPerStack(StackingBuffSpellId, HastePerStack));
 
-        // Two stacks: AddHaste(AddHaste(0, 0.04), 0.04)
         var expected = Haste.AddHaste(Haste.AddHaste(0.0, HastePerStack), HastePerStack);
         Assert.Equal(expected, haste.Current, precision: 10);
     }
@@ -171,7 +151,6 @@ public sealed partial class HasteTests
             CreateRemoveBuffStack(300, StackingBuffSpellId, stack: 1),
         ], configureHaste: h => h.AddHasteBuffPerStack(StackingBuffSpellId, HastePerStack));
 
-        // After 2 stacks added, 1 removed → effectively 1 stack.
         Assert.Equal(HastePerStack, haste.Current, precision: 10);
     }
 
@@ -198,10 +177,6 @@ public sealed partial class HasteTests
         Assert.Equal(0.0, haste.Current, precision: 10);
     }
 
-    // -------------------------------------------------------------------------
-    // Unregistered buffs should be ignored
-    // -------------------------------------------------------------------------
-
     [Fact]
     public async Task ApplyBuff_UnregisteredSpell_ShouldNotChangeHaste()
     {
@@ -223,10 +198,6 @@ public sealed partial class HasteTests
 
         Assert.Equal(0.0, haste.Current, precision: 10);
     }
-
-    // -------------------------------------------------------------------------
-    // Events without ability data (the bug fix)
-    // -------------------------------------------------------------------------
 
     [Fact]
     public async Task ApplyBuff_WithoutAbility_ShouldNotThrow()
@@ -261,10 +232,6 @@ public sealed partial class HasteTests
         Assert.Equal(0.0, haste.Current, precision: 10);
     }
 
-    // -------------------------------------------------------------------------
-    // Multiple haste buffs (multiplicative stacking)
-    // -------------------------------------------------------------------------
-
     [Fact]
     public async Task MultipleFlatBuffs_ShouldStackMultiplicatively()
     {
@@ -281,14 +248,9 @@ public sealed partial class HasteTests
             h.AddHasteBuff(buffB, 0.20);
         });
 
-        // 10% then 20% multiplicatively: AddHaste(AddHaste(0, 0.10), 0.20)
         var expected = Haste.AddHaste(Haste.AddHaste(0.0, 0.10), 0.20);
         Assert.Equal(expected, haste.Current, precision: 10);
     }
-
-    // -------------------------------------------------------------------------
-    // ChangeStatsEvent (haste rating changes via StatTracker)
-    // -------------------------------------------------------------------------
 
     [Fact]
     public async Task ChangeStats_WithHasteRatingChange_UpdatesHaste()
@@ -353,16 +315,11 @@ public sealed partial class HasteTests
         Assert.Equal(0.0, haste.Current, precision: 10);
     }
 
-    // -------------------------------------------------------------------------
-    // ChangeHasteEvent fabrication
-    // -------------------------------------------------------------------------
-
     [Fact]
     public async Task Initialize_WithNoBuffs_ShouldStartAtZeroHaste()
     {
         var (_, haste) = await RunWithHaste();
 
-        // With no StatTracker combatant data and no buffs, haste starts at 0.
         Assert.Equal(0.0, haste.Current, precision: 10);
     }
 
@@ -379,17 +336,11 @@ public sealed partial class HasteTests
 
         var probe = parser.GetModule<ChangeHasteProbe>()!;
 
-        // The initial ChangeHasteEvent fires from Haste.OnFightStart (on FightStartEvent) before
-        // the probe's own subscriptions are registered, so we only see the buff application event.
         Assert.Single(probe.ReceivedEvents);
         var buffEvent = probe.ReceivedEvents[0];
         Assert.Equal(0.0, buffEvent.OldHaste);
         Assert.Equal(FlatHaste, buffEvent.NewHaste);
     }
-
-    // -------------------------------------------------------------------------
-    // Registration API
-    // -------------------------------------------------------------------------
 
     [Fact]
     public async Task AddHasteBuff_Record_ShouldWork()
@@ -402,15 +353,9 @@ public sealed partial class HasteTests
         Assert.Equal(FlatHaste, haste.Current, precision: 10);
     }
 
-    // -------------------------------------------------------------------------
-    // Edge cases
-    // -------------------------------------------------------------------------
-
     [Fact]
     public async Task SetHaste_NaN_ShouldBeIgnored()
     {
-        // If somehow a computation produces NaN, Current should not become NaN.
-        // This is tested indirectly by ensuring remove-without-apply doesn't corrupt state.
         var (_, haste) = await RunWithHaste(events:
         [
             CreateRemoveBuff(100, HasteBuffSpellId),
@@ -418,10 +363,6 @@ public sealed partial class HasteTests
 
         Assert.False(double.IsNaN(haste.Current));
     }
-
-    // =====================================================================
-    // Test infrastructure
-    // =====================================================================
 
     private static async Task<(TestCombatLogParser parser, Haste haste)> RunWithHaste(
         List<Event>? events = null,
@@ -492,10 +433,6 @@ public sealed partial class HasteTests
             ReceivedEvents.Add(e);
         }
     }
-
-    // -------------------------------------------------------------------------
-    // Event factories
-    // -------------------------------------------------------------------------
 
     private static ApplyBuffEvent CreateApplyBuff(int timestamp, int spellId) => new()
     {

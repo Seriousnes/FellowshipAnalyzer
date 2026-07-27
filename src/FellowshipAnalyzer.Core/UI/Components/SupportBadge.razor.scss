@@ -1,9 +1,5 @@
 @use 'tokens' as t;
 
-// The support level carries the badge's colour on `color`, so the tinted fill and edge derive from
-// `currentColor` instead of a second channel. Full also wears the design system's `.good` class;
-// partial and unmaintained cannot, because gold and dim text are not semantic tiers.
-
 .support-badge {
     display: inline-flex;
     align-items: center;

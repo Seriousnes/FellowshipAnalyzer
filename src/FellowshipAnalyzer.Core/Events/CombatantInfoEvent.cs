@@ -11,7 +11,6 @@ public class CombatantInfoEvent : Event
     public int WeaponTreeId { get; set; }
     public List<WeaponTrait> WeaponTraits { get; set; } = [];
 
-    // Primary stats
     public int ItemLevel { get; set; }
     public int Health { get; set; }
     public int Mana { get; set; }
@@ -21,13 +20,11 @@ public class CombatantInfoEvent : Event
     public int Stamina { get; set; }
     public int Armor { get; set; }
 
-    // Secondary stats
     public int Crit { get; set; }
     public int Haste { get; set; }
     public int Expertise { get; set; }
     public int Spirit { get; set; }
 
-    // Gem powers
     public int Amethyst { get; set; }
     public int Diamond { get; set; }
     public int Topaz { get; set; }

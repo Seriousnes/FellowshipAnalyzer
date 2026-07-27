@@ -49,7 +49,7 @@ public sealed class SupportStatusGuideAnalyzer : DiagnosticAnalyzer
 
         var (level, location) = ReadSupportLevel(configMember, context.CancellationToken);
         if (level is null)
-            return; // Unmaintained, unset, or not statically readable — nothing to check.
+            return;
 
         if (OverridesGuideComponent(type))
             return;

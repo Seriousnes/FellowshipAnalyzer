@@ -41,10 +41,6 @@ public sealed class GearCooldownAccelerationTests
             StartTime: 0, EndTime: 60_000, Difficulty: null,
             FriendlyPlayers: null, FightPercentage: null);
 
-    // -------------------------------------------------------------------------
-    // Combatant: resolving the legendary Strand of Eternity acceleration
-    // -------------------------------------------------------------------------
-
     [Fact]
     public void Legendary_ResolvesTenPercentAcceleration()
     {
@@ -62,10 +58,6 @@ public sealed class GearCooldownAccelerationTests
         Assert.False(combatant.HasLegendary);
         Assert.Equal(0.0, combatant.Stats.CooldownAcceleration.Total(null), precision: 6);
     }
-
-    // -------------------------------------------------------------------------
-    // SpellUsable: applying the acceleration through the combatant-fed pool
-    // -------------------------------------------------------------------------
 
     /// <summary>The recovery pool divides, so 10000ms / (1 + 0.10) = 9090ms.</summary>
     [Fact]
@@ -172,10 +164,6 @@ public sealed class GearCooldownAccelerationTests
         Assert.Equal((int)(BaseCdMsA / 2.0), spellUsable.CooldownRemaining(SpellA, atTimestamp: 1000));
         Assert.Equal(BaseCdMsB, spellUsable.CooldownRemaining(SpellB, atTimestamp: 1000));
     }
-
-    // -------------------------------------------------------------------------
-    // Test infrastructure
-    // -------------------------------------------------------------------------
 
     private static async Task<SpellUsable> RunWithScopedAcceleration(CooldownModifierSet acceleration)
     {

@@ -1,8 +1,5 @@
 @use 'tokens' as t;
 
-// `--avatar-size` and `--avatar-radius` are geometry, so they stay component-private. The ring
-// colour rides the design system's `--fa-supplied-accent` channel, set by the caller as a token.
-
 .avatar {
     --avatar-size: 48px;
     --avatar-radius: 50%;

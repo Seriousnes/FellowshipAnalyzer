@@ -47,8 +47,6 @@ public sealed class ModuleActivationTests
     [Fact]
     public void IsModuleActive_ForUnGatedModule_ReturnsTrue()
     {
-        // Module without [ActiveWhen<>] falls through the generated switch to the base
-        // implementation, which always returns true.
         var parser = CreateGatedParser();
         var anyCtx = new ParseContext(PlayerId: 0, Fight: TestFight, ActorNames: new Dictionary<int, string>(), EmptyCombatant);
 
@@ -68,7 +66,6 @@ public sealed class ModuleActivationTests
         Assert.NotEqual(-1, indexA);
         Assert.NotEqual(-1, indexB);
         Assert.NotEqual(-1, indexC);
-        // C declares [Before<A>] and [After<B>], so the final order must satisfy B < C < A.
         Assert.True(indexB < indexC, $"B (idx {indexB}) should come before C (idx {indexC})");
         Assert.True(indexC < indexA, $"C (idx {indexC}) should come before A (idx {indexA})");
     }
