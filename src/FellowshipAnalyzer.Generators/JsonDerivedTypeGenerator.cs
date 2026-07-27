@@ -186,7 +186,7 @@ public sealed class JsonDerivedTypeGenerator : IIncrementalGenerator
         sb.AppendLine("{");
         sb.AppendLine("}");
 
-        ctx.AddSource("Event.g.cs", sb.ToString());
+        ctx.AddSource(info.ClassName + ".g.cs", sb.ToString());
         ctx.AddSource(info.ClassName + "Discriminators.g.cs", BuildDiscriminatorLookup(info));
     }
 
