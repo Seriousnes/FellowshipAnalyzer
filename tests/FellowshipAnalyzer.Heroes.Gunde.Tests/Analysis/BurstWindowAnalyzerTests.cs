@@ -51,6 +51,29 @@ public sealed class BurstWindowAnalyzerTests
     }
 
     [Fact]
+    public async Task Analyze_TalentedAoeConversionInsideTheWindow_CountsAsOwedInBlood()
+    {
+        var events = new List<Event>
+        {
+            Cast(Spells.BloodboundSpirit.FSLID, 8_000),
+            WindowOpen(10_000),
+            Cast(Spells.Rupture.FSLID, 11_000),
+            Cast(Spells.OwedInBloodAoe.FSLID, 12_500),
+            WindowClose(22_000),
+        };
+
+        var analyzer = await AnalyzeAsync(events);
+
+        var window = analyzer.Windows.ShouldHaveSingleItem();
+        window.OwedInBloodIn.ShouldBeTrue();
+        window.PresentCount.ShouldBe(3);
+
+        analyzer.FullWindows.ShouldBe(1);
+        analyzer.OutOfWindowRuptures.ShouldBe(0);
+        analyzer.OutOfWindowBloodboundSpirits.ShouldBe(0);
+    }
+
+    [Fact]
     public async Task Analyze_CastBeforeTheLeadIn_IsNotClaimedByTheWindow()
     {
         var events = new List<Event>

@@ -86,7 +86,9 @@ public sealed partial class BurstWindowAnalyzer : Analyzer
     [On<CastEvent>(By = Actor.Player, Spell = nameof(Spells.BloodboundSpirit))]
     private void OnBloodboundSpirit(CastEvent @event) => _bloodboundSpirits.Add(@event.Timestamp);
 
-    [On<CastEvent>(By = Actor.Player, Spell = nameof(Spells.OwedInBlood))]
+    [On<CastEvent>(By = Actor.Player, Spells = [
+        nameof(Spells.OwedInBlood),
+        nameof(Spells.OwedInBloodAoe)])]
     private void OnOwedInBlood(CastEvent @event) => _owedInBloods.Add(@event.Timestamp);
 
     /// <summary>
