@@ -56,6 +56,7 @@ public sealed class HeartSplitterAnalyzerTests
             RendApplied(5_500, BossId),
             RendStack(5_600, BossId, 6),
             Cast(Spells.HeartSplitter.FSLID, 6_000, BossId),
+            Exsanguinate(6_100, 900),
         ]);
 
         var cast = analyzer.Casts.ShouldHaveSingleItem();
@@ -75,6 +76,7 @@ public sealed class HeartSplitterAnalyzerTests
             RendApplied(6_000, BossId),
             RendStack(7_000, BossId, 75),
             Cast(Spells.HeartSplitter.FSLID, 5_001 + HeartSplitterAnalyzer.SlaughterClipMs, BossId),
+            Exsanguinate(5_101 + HeartSplitterAnalyzer.SlaughterClipMs, 9_000),
         ]);
 
         var cast = analyzer.Casts.ShouldHaveSingleItem();
@@ -104,6 +106,7 @@ public sealed class HeartSplitterAnalyzerTests
             RendApplied(1_200, OtherEnemy),
             RendStack(1_300, OtherEnemy, 12),
             Cast(Spells.HeartSplitter.FSLID, 5_000, OtherEnemy),
+            Exsanguinate(5_100, 1_500, OtherEnemy),
         ]);
 
         analyzer.Casts.ShouldHaveSingleItem().RendOnTarget.ShouldBe(12);
@@ -119,6 +122,7 @@ public sealed class HeartSplitterAnalyzerTests
             RendApplied(1_200, BossId, targetInstance: 1),
             RendStack(1_300, BossId, 130, targetInstance: 1),
             Cast(Spells.HeartSplitter.FSLID, 5_000, BossId, targetInstance: 1),
+            Exsanguinate(5_100, 16_000, targetInstance: 1),
         ]);
 
         analyzer.Casts.ShouldHaveSingleItem().RendOnTarget.ShouldBe(130);
@@ -150,9 +154,59 @@ public sealed class HeartSplitterAnalyzerTests
             RendStack(2_000, BossId, 80),
             RendStackRemoved(3_000, BossId, 55),
             Cast(Spells.HeartSplitter.FSLID, 5_000, BossId),
+            Exsanguinate(5_100, 7_000),
         ]);
 
         analyzer.Casts.ShouldHaveSingleItem().RendOnTarget.ShouldBe(55);
+    }
+
+    [Fact]
+    public async Task Analyze_RendAccruingBetweenTheCastAndTheHit_IsReadAtTheHit()
+    {
+        var analyzer = await AnalyzeAsync(
+        [
+            RendApplied(1_000, BossId),
+            Cast(Spells.HeartSplitter.FSLID, 5_000, BossId),
+            RendStack(5_100, BossId, 44),
+            Exsanguinate(5_350, 6_000),
+        ]);
+
+        analyzer.Casts.ShouldHaveSingleItem().RendOnTarget.ShouldBe(44);
+    }
+
+    [Fact]
+    public async Task Analyze_CastWithNoExsanguinateFollowing_LeavesTheBleedUnmeasured()
+    {
+        var analyzer = await AnalyzeAsync(
+        [
+            RendApplied(1_000, BossId),
+            RendStack(2_000, BossId, 70),
+            Cast(Spells.HeartSplitter.FSLID, 5_000, BossId),
+        ]);
+
+        analyzer.Casts.ShouldHaveSingleItem().RendOnTarget.ShouldBeNull();
+        analyzer.MeasuredCasts.ShouldBe(0);
+        analyzer.TotalRendExsanguinated.ShouldBe(0);
+        analyzer.AverageRendOnTarget.ShouldBe(0d);
+    }
+
+    [Fact]
+    public async Task Analyze_StrikeSpreadAcrossThePack_ReadsTheFirstEnemyAndSumsTheDamage()
+    {
+        var analyzer = await AnalyzeAsync(
+        [
+            RendApplied(1_000, BossId),
+            RendStack(1_100, BossId, 95),
+            RendApplied(1_200, OtherEnemy),
+            RendStack(1_300, OtherEnemy, 30),
+            Cast(Spells.HeartSplitter.FSLID, 5_000, BossId),
+            Exsanguinate(5_100, 12_000),
+            Exsanguinate(5_100, 4_000, OtherEnemy),
+        ]);
+
+        var cast = analyzer.Casts.ShouldHaveSingleItem();
+        cast.RendOnTarget.ShouldBe(95);
+        cast.ExsanguinateDamage.ShouldBe(16_000);
     }
 
     [Fact]
@@ -232,11 +286,12 @@ public sealed class HeartSplitterAnalyzerTests
         Ability = new Ability { Id = Spells.Rend.FSLID },
     };
 
-    private static DamageEvent Exsanguinate(int timestamp, long amount) => new()
+    private static DamageEvent Exsanguinate(int timestamp, long amount, int targetId = BossId, int? targetInstance = null) => new()
     {
         Timestamp = timestamp,
         SourceId = PlayerId,
-        TargetId = BossId,
+        TargetId = targetId,
+        TargetInstance = targetInstance,
         Amount = amount,
         Ability = new Ability { Id = Spells.HeartSplitterDotBonusDamage.FSLID },
     };

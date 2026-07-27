@@ -12,9 +12,9 @@
         </p>
         <p>
             Each cast is scored on that ordering: pressing Slaughter with Heart Splitter about to come
-            up empties the target, and the Exsanguinate that follows cashes almost nothing. The Rend
-            standing on the target is shown as a stack count, which reads the same on any gear; the
-            damage it produced is shown alongside as evidence.
+            up empties the target, and the Exsanguinate that follows cashes almost nothing. The pile
+            it found is shown as a stack count read at the moment of the hit, which is the same
+            measure on any gear; the damage it produced is shown alongside as evidence.
         </p>
     </Explanation>
     <ChildContent>
@@ -44,6 +44,7 @@
     {
         var casts = TotalCasts;
         var clipped = Analyzers.Sum(analyzer => analyzer.ClippedBySlaughter);
+        var measured = Analyzers.Sum(analyzer => analyzer.MeasuredCasts);
         var rend = Analyzers.Sum(analyzer => analyzer.TotalRendExsanguinated);
         var damage = Analyzers.Sum(analyzer => analyzer.TotalExsanguinateDamage);
         var cleanRate = casts > 0 ? (int)Math.Round((double)(casts - clipped) / casts * 100) : 0;
@@ -60,9 +61,11 @@
                 $"{casts - clipped} of {casts} Heart Splitters landed on a target no Slaughter had just emptied.",
                 PercentTier(cleanRate)),
             new(
-                $"{rend / casts}",
+                measured > 0 ? $"{rend / measured}" : "-",
                 "Avg Rend Hit",
-                $"Average Rend stacks standing on the target at the moment of the cast, {rend} in total."),
+                measured > 0
+                    ? $"Average Rend stacks standing when Exsanguinate hit, {rend} in total across {measured} casts."
+                    : "No Exsanguinate landed, so there was no bleed to measure."),
         };
 
         if (damage > 0)
@@ -92,9 +95,11 @@
                 $"Whether the target still carried its bleed, or a Slaughter had emptied it within {HeartSplitterAnalyzer.SlaughterClipMs / 1000d:0.#}s.",
                 perf),
             new PerCastStat(
-                $"{cast.RendOnTarget}",
+                cast.RendOnTarget is { } rend ? $"{rend}" : "-",
                 "Rend on Target",
-                "Rend stacks standing on the target when the cast went out - the pile Exsanguinate took its share of."),
+                cast.RendOnTarget is not null
+                    ? "Rend stacks standing when Exsanguinate hit - the pile it took its share of."
+                    : "No Exsanguinate followed this cast, so there was no pile to measure."),
             new PerCastStat(
                 FormatDamage(cast.ExsanguinateDamage),
                 "Exsanguinate",
@@ -113,15 +118,18 @@
 
     private static string BuildNote(HeartSplitterCast cast)
     {
+        if (cast.RendOnTarget is not { } rend)
+            return "No Exsanguinate followed this cast, so nothing is known about the bleed it would have cashed.";
+
         if (!cast.ClippedBySlaughter)
         {
             return cast.MillisecondsSinceSlaughter is { } gap
-                ? $"Landed on {cast.RendOnTarget} Rend, {gap / 1000d:0.#}s after the last Slaughter - the bleed had rebuilt."
-                : $"Landed on {cast.RendOnTarget} Rend, with no Slaughter yet to have consumed it.";
+                ? $"Exsanguinated {rend} Rend, {gap / 1000d:0.#}s after the last Slaughter - the bleed had rebuilt."
+                : $"Exsanguinated {rend} Rend, with no Slaughter yet to have consumed it.";
         }
 
         var since = cast.MillisecondsSinceSlaughter ?? 0;
-        return $"A Slaughter emptied the target {since / 1000d:0.#}s earlier, leaving only {cast.RendOnTarget} Rend for Exsanguinate to take a share of. Cast Heart Splitter before Slaughter, not after it.";
+        return $"A Slaughter emptied the target {since / 1000d:0.#}s earlier, leaving only {rend} Rend for Exsanguinate to take a share of. Cast Heart Splitter before Slaughter, not after it.";
     }
 
     private static string FormatDamage(long damage) =>
