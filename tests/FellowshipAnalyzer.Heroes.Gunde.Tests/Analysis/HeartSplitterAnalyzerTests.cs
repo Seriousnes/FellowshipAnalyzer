@@ -23,7 +23,7 @@ public sealed class HeartSplitterAnalyzerTests
     private const int PullEnd = 120_000;
 
     [Fact]
-    public async Task Analyze_CastOnABleedingTarget_ReadsTheRendStandingOnIt()
+    public async Task Analyze_CastOnABleedingTarget_ReadsTheRendActiveOnIt()
     {
         var analyzer = await AnalyzeAsync(
         [
@@ -237,7 +237,7 @@ public sealed class HeartSplitterAnalyzerTests
     }
 
     [Fact]
-    public async Task Analyze_RendRemoval_RecordsTheStacksThatWereStanding()
+    public async Task Analyze_RendRemoval_RecordsTheStacksThatWereActive()
     {
         var (parser, _) = await RunAsync(
         [

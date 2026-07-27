@@ -5,13 +5,8 @@ using FellowshipAnalyzer.Core.Game;
 
 namespace FellowshipAnalyzer.Heroes.Mara.Modules;
 
-/// <summary>One continuous stretch of a debuff on an enemy, in absolute timestamps.</summary>
 public sealed record MaraDotWindow(int Start, int End);
 
-/// <summary>
-/// How continuously one maintained effect stood on a pull's primary target: the windows themselves,
-/// the share of the pull they cover, and the uncovered stretches between them.
-/// </summary>
 public sealed record MaraDotUptime(
     MaraDot Dot,
     IReadOnlyList<MaraDotWindow> Windows,
@@ -19,40 +14,15 @@ public sealed record MaraDotUptime(
     int GapCount,
     int TotalGapMs);
 
-/// <summary>
-/// One Hemorrhage application, carrying the combo points the preceding Hemorrhaging Strike spent and
-/// the bleed duration those points bought.
-/// </summary>
 public sealed record HemorrhageApplication(int Timestamp, int ComboPoints, int ExpectedDurationMs, bool Refresh);
 
-/// <summary>
-/// One Hemorrhage reapplication, with how much of the standing bleed it overwrote. A large
-/// <paramref name="RemainingMs"/> is a bleed clipped well before it would have finished ticking.
-/// </summary>
 public sealed record HemorrhageRefresh(int Timestamp, int RemainingMs);
 
-/// <summary>
-/// Measures how continuously Mara kept her maintained poisons and bleeds rolling on a boss pull.
-/// Windows are tracked per effect and per (TargetId, TargetInstance) from apply, refresh and remove
-/// events, with a still-open window closed at pull end; each effect's primary target is the one
-/// carrying the most debuff time, so transient adds never dilute the boss reading. Uptime is that
-/// target's covered time against the pull duration, and gaps are the uncovered stretches between its
-/// windows, so the lead-in before the first application lowers uptime without counting as a gap.
-/// <para>
-/// Hemorrhage is measured further, because its duration is bought rather than fixed: the bleed lasts
-/// <see cref="HemorrhageBaseDurationMs"/> plus <see cref="HemorrhageComboPointDurationMs"/> per combo
-/// point spent on the Hemorrhaging Strike that laid it, read from that cast's combo-point snapshot.
-/// Every reapplication is recorded with the time still left on the window it overwrote, so the guide
-/// can decide how much remaining time counts as clipping the bleed early.
-/// </para>
-/// </summary>
 [ForPull(PullKind.Single, Boss = PullBoss.Boss)]
 public sealed partial class MaraDotUptimeAnalyzer : Analyzer, IMaraDotAnalyzer
 {
-    /// <summary>The Hemorrhage bleed's duration before any combo points are spent, in milliseconds.</summary>
     public const int HemorrhageBaseDurationMs = 12_000;
 
-    /// <summary>Milliseconds each combo point spent on Hemorrhaging Strike adds to the bleed.</summary>
     public const int HemorrhageComboPointDurationMs = 3_000;
 
     private readonly Dictionary<(int Slot, int TargetId, int TargetInstance), List<MaraDotWindow>> _windows = [];
@@ -63,24 +33,16 @@ public sealed partial class MaraDotUptimeAnalyzer : Analyzer, IMaraDotAnalyzer
 
     private int _comboPointsOnStrike;
 
-    private IReadOnlyList<MaraDotUptime>? _dots;
+    public IReadOnlyList<MaraDotUptime> Dots => field ??= Compute();
 
-    /// <summary>The maintained effects' readings, in <see cref="MaraDots.Maintained"/> order.</summary>
-    public IReadOnlyList<MaraDotUptime> Dots => _dots ??= Compute();
-
-    /// <summary>How continuously the Seething Poison stood on the boss.</summary>
     public MaraDotUptime SeethingPoison => Find(MaraDots.SeethingPoison);
 
-    /// <summary>How continuously the Hemorrhage bleed stood on the boss.</summary>
     public MaraDotUptime Hemorrhage => Find(MaraDots.Hemorrhage);
 
-    /// <summary>Every Hemorrhage application and reapplication, in encounter order.</summary>
     public IReadOnlyList<HemorrhageApplication> HemorrhageApplications => _hemorrhageApplications;
 
-    /// <summary>Every Hemorrhage reapplication, with the time left on the window it overwrote.</summary>
     public IReadOnlyList<HemorrhageRefresh> HemorrhageRefreshes => _hemorrhageRefreshes;
 
-    /// <summary>Pull length in milliseconds.</summary>
     public int PullDurationMs => Math.Max(0, Pull.EndTime - Pull.StartTime);
 
     [On<CastEvent>(By = Actor.Player, Spell = nameof(Spells.HemorrhagingStrike))]
@@ -118,12 +80,6 @@ public sealed partial class MaraDotUptimeAnalyzer : Analyzer, IMaraDotAnalyzer
             _hemorrhageExpiry.Remove((e.TargetId, e.TargetInstance ?? 0));
     }
 
-    /// <summary>
-    /// Opens a window for the effect on the target when none is standing, then stamps Hemorrhage's
-    /// bought duration. The reapplication is measured against the previous application's expected
-    /// expiry before that expiry is replaced, so the recorded remaining time belongs to the window
-    /// being overwritten.
-    /// </summary>
     private void OpenWindow(BuffEvent e, bool refresh)
     {
         var slot = Slot(e.Ability.Id);
@@ -156,11 +112,6 @@ public sealed partial class MaraDotUptimeAnalyzer : Analyzer, IMaraDotAnalyzer
         return windows;
     }
 
-    /// <summary>
-    /// Closes still-open windows at the pull boundary and picks each effect's primary target. A window
-    /// still open at pull end is a target that died without a logged remove; the boss, the max-coverage
-    /// target, dies at the pull's end time. Computed once, on first read.
-    /// </summary>
     private List<MaraDotUptime> Compute()
     {
         var windows = new Dictionary<(int Slot, int TargetId, int TargetInstance), List<MaraDotWindow>>();

@@ -25,6 +25,7 @@ public static class PerformanceColors
     /// <summary>Value colour for a stat with no performance tier.</summary>
     public static readonly string Neutral = FaVar.FgNeutral;
 
+    /// <summary>Maps a <see cref="QualitativePerformance"/> tier to its CSS colour token, falling back to <see cref="Neutral"/> for unmapped values.</summary>
     public static string ToColor(QualitativePerformance tier) => tier switch
     {
         QualitativePerformance.Perfect => Perfect,
@@ -34,6 +35,7 @@ public static class PerformanceColors
         _ => Neutral,
     };
 
+    /// <summary>Maps a <see cref="QualitativePerformance"/> tier to its display label (<c>Fail</c> shows as "Bad"), falling back to "Unknown" for unmapped values.</summary>
     public static string ToLabel(QualitativePerformance tier) => tier switch
     {
         QualitativePerformance.Perfect => "Perfect",

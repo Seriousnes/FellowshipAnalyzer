@@ -113,10 +113,6 @@
         };
     }
 
-    /// <summary>
-    /// A phase too short for even one Culling Strike cycle. There is nothing the player could have
-    /// pressed, so the pull is shown without a rating rather than credited with a perfect one.
-    /// </summary>
     private PerCastRow ShortPhaseRow(CullingStrikeAnalyzer analyzer, int phaseStart)
     {
         var stats = new List<PerCastStat>

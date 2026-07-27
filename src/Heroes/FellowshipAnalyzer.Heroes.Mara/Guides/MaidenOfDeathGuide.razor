@@ -4,16 +4,15 @@
     <Explanation>
         <p>
             <SpellLink Spell="Spells.MaidenOfDeath" /> and <SpellLink Spell="Spells.MatriarchMacabre" />
-            each raise your damage by 20% while their buff stands, so every window below is scored on the
+            each raise your damage by 20%, so every window below is scored on the
             <SpellLink Spell="Spells.QueenFang" /> and <SpellLink Spell="Spells.ArachnidAssault" /> casts
             that landed inside it and the combo points those finishers carried.
         </p>
         <p>
-            When the two buffs stand at the same time they are counted as one overlapped window, because
-            everything pressed there takes both damage bonuses. A
-            <SpellLink Spell="Spells.FinalStratagem" /> or <SpellLink Spell="Spells.MacabreStratagem" />
-            cast inside a window is counted the same way: the resources and cooldowns it hands back are
-            spent while the buff is still up.
+            Overlapping both buffs at the same time they is sub-optimal because everything pressed 
+            there takes both damage bonuses. A <SpellLink Spell="Spells.FinalStratagem" /> or 
+            <SpellLink Spell="Spells.MacabreStratagem" /> cast inside a window is counted the same way: the 
+            resources and cooldowns it hands back are spent while the buff is still up.
         </p>
         <p>
             Between windows every Maiden of Death recast is measured against its
@@ -24,7 +23,7 @@
     <ChildContent>
         <CastOverview Title="Window Overview" Stats="@BuildOverviewStats()" />
         <CastDetail Title="Burst Windows"
-                    Description="Each row is one window, from the first buff landing to the removal that leaves neither standing, with everything cast inside it."
+                    Description="Each row is one window, from the first buff application to the removal of the last, with everything cast inside it."
                     Casts="@BuildPerCastData()" />
     </ChildContent>
 </GuideSection>
@@ -73,7 +72,7 @@
                 "Resets Inside a Window",
                 resets == 0
                     ? "No Final Stratagem or Macabre Stratagem was cast, so there is nothing to place against a window."
-                    : "Final Stratagem and Macabre Stratagem casts made while a burst buff was standing.",
+                    : "Final Stratagem and Macabre Stratagem casts made while a burst buff was active.",
                 ResetTier(resetsInWindows, resets)),
         ];
     }
@@ -91,7 +90,7 @@
             new PerCastStat(
                 FormatSeconds(window.DurationMs),
                 "Window",
-                "How long a burst buff stood, from the first application to the removal that left neither up."),
+                "How long a burst buff was active, from the first application to the removal that left neither up."),
             new PerCastStat(
                 BuffLabel(window),
                 "Buffs",
@@ -114,7 +113,7 @@
             new PerCastStat(
                 window.ResetCast ? "Yes" : "No",
                 "Reset Inside",
-                "Whether Final Stratagem or Macabre Stratagem was cast while the buff was still standing."),
+                "Whether Final Stratagem or Macabre Stratagem was cast while the buff was still active."),
         };
 
         return new PerCastRow
@@ -135,12 +134,12 @@
 
     private static string BuffTooltip(MaidenOfDeathWindow window) =>
         window.Overlapped
-            ? "Maiden of Death and Matriarch Macabre stood at the same time, so both damage bonuses applied inside this window."
+            ? "Maiden of Death and Matriarch Macabre were active at the same time, so both damage bonuses applied inside this window."
             : window.HadMaidenOfDeath && window.HadMatriarchMacabre
-                ? "Both buffs took part in this window, but they never stood at the same time."
+                ? "Both buffs took part in this window, but they were never active at the same time."
                 : window.HadMaidenOfDeath
-                    ? "Only Maiden of Death stood during this window."
-                    : "Only Matriarch Macabre stood during this window.";
+                    ? "Only Maiden of Death was active during this window."
+                    : "Only Matriarch Macabre was active during this window.";
 
     private string BuildWindowNote(MaidenOfDeathWindow window)
     {
@@ -203,10 +202,6 @@
         : inWindows > 0 ? QualitativePerformance.Ok
         : QualitativePerformance.Fail;
 
-    /// <summary>
-    /// A window is graded on the finishers it fitted in, raised one step when it overlapped both buffs
-    /// or absorbed a reset. A window with no finisher at all fails whatever else happened inside it.
-    /// </summary>
     private static QualitativePerformance WindowTier(MaidenOfDeathWindow window)
     {
         if (window.ScoredFinisherCasts == 0)

@@ -271,7 +271,7 @@ public sealed class MajorCooldownAnalyzerTests
     }
 
     [Fact]
-    public async Task ReapplyWhileAWindowStands_ClosesTheOpenWindowAtTheReapply()
+    public async Task ReapplyWhileAWindowIsOpen_ClosesTheOpenWindowAtTheReapply()
     {
         var analyzer = await AnalyzeAsync(
             DefaultFightEnd,

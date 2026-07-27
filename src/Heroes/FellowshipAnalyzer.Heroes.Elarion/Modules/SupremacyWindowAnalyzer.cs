@@ -6,51 +6,24 @@ using ElarionTalents = FellowshipAnalyzer.Core.Common.Spells.ElarionTalents;
 
 namespace FellowshipAnalyzer.Heroes.Elarion.Modules;
 
-/// <summary>
-/// Measures how each <see cref="Spells.SkystridersSupremacy"/> window was drained. Casting Supremacy
-/// grants <see cref="Spells.SkystridersSupremacyBuff"/> with a full load of stacks, and every
-/// <see cref="Spells.Multishot"/> fired while the buff is up spends one of them on an empowered cast
-/// that hits far harder and costs half the Focus. A window that times out with stacks left is
-/// empowerment thrown away.
-/// <para>
-/// Windows are read from the player's own buff stream. The buff arrives as an apply immediately
-/// followed by a stack event carrying the full load, so the stack count is taken as an absolute
-/// reading and the window still opens on a single stack when that second event is missing. Each
-/// Multishot is logged before the stack loss it causes, so the count read at a cast is the count going
-/// into it. A stack loss within <see cref="ConsumeWindowMs"/> after a Multishot cast is a spend and
-/// every other loss is waste, matched one to one so a single cast cannot claim two losses. A window
-/// with no removal at all stays open to <see cref="Pull"/> end.
-/// </para>
-/// </summary>
 [ForPull(PullKind.Single | PullKind.Multi)]
 public sealed partial class SupremacyWindowAnalyzer : Analyzer
 {
-    /// <summary>
-    /// A stack loss this soon after a Multishot cast counts as spent rather than wasted. Kept tight
-    /// because Multishot is cast far more often than Supremacy comes up, so a wide window would read a
-    /// genuine expiry beside an unrelated cast as a spend.
-    /// </summary>
     public const int ConsumeWindowMs = 150;
 
     private readonly List<MultishotCast> _multishotCasts = [];
     private readonly List<WindowState> _windows = [];
-    private List<SupremacyWindow>? _projectedWindows;
 
-    /// <summary>Skystrider's Supremacy casts made during the pull.</summary>
     public int SupremacyCasts { get; private set; }
 
-    /// <summary>Multishot casts made during the pull, empowered or not.</summary>
     public int MultishotCasts => _multishotCasts.Count;
 
-    /// <summary>Multishot casts started with a Supremacy stack banked, so the cast was empowered.</summary>
     public int EmpoweredMultishotCasts { get; private set; }
 
-    /// <summary>Multishot casts started with no Supremacy stack to spend.</summary>
     public int RegularMultishotCasts => MultishotCasts - EmpoweredMultishotCasts;
 
-    /// <summary>One entry per Supremacy window, in the order they opened.</summary>
     public IReadOnlyList<SupremacyWindow> Windows =>
-        _projectedWindows ??=
+        field ??=
         [
             .. _windows.Select(window => new SupremacyWindow(
                 window.Start,
@@ -61,27 +34,20 @@ public sealed partial class SupremacyWindowAnalyzer : Analyzer
                 window.End is null || window.ClosedByExpiry)),
         ];
 
-    /// <summary>Supremacy stacks granted across every window this pull.</summary>
     public int StacksGranted => Windows.Sum(window => window.StacksGranted);
 
-    /// <summary>Stacks spent on an empowered Multishot across every window this pull.</summary>
     public int StacksConsumed => Windows.Sum(window => window.StacksConsumed);
 
-    /// <summary>Stacks that never became an empowered Multishot across every window this pull.</summary>
     public int StacksWasted => Windows.Sum(window => window.StacksWasted);
 
-    /// <summary>Windows that were emptied of stacks by Multishot casts.</summary>
     public int WindowsFullyDrained => Windows.Count(window => window.StacksWasted == 0);
 
-    /// <summary>Share of granted stacks (0-100) spent on an empowered Multishot.</summary>
     public double StacksConsumedPercentage =>
         StacksGranted == 0 ? 0 : StacksConsumed / (double)StacksGranted * 100;
 
-    /// <summary>Whether the build takes Fervent Supremacy, which reshapes the window.</summary>
     public bool TalentedFerventSupremacy =>
         Owner.SelectedCombatant.HasTalent(ElarionTalents.FerventSupremacy);
 
-    /// <summary>Pull length in milliseconds.</summary>
     public int PullDurationMs => Math.Max(0, Pull.EndTime - Pull.StartTime);
 
     [On<CastEvent>(By = Actor.Player, Spell = nameof(Spells.SkystridersSupremacy))]
@@ -173,10 +139,6 @@ public sealed partial class SupremacyWindowAnalyzer : Analyzer
         return false;
     }
 
-    /// <summary>
-    /// One Skystrider's Supremacy window. <paramref name="ClosedByExpiry"/> is true when the buff ran
-    /// out rather than being emptied by a Multishot, which includes a window still open at pull end.
-    /// </summary>
     public sealed record SupremacyWindow(
         int StartMs,
         int EndMs,
@@ -185,7 +147,6 @@ public sealed partial class SupremacyWindowAnalyzer : Analyzer
         int StacksWasted,
         bool ClosedByExpiry)
     {
-        /// <summary>How long the window lasted, in milliseconds.</summary>
         public int DurationMs => Math.Max(0, EndMs - StartMs);
     }
 

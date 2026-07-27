@@ -14,7 +14,7 @@
     <Explanation>
         <p>
             @bi leaves Winter's Embrace on you for as long as its debuff ticks, and everything except
-            @bi itself hits 20% harder while it stands. Each window below is measured from your own
+            @bi itself hits 20% harder while it is active. Each window below is measured from your own
             buff apply to its removal, so talent-extended windows are judged on the room they really
             had rather than on a fixed three seconds.
         </p>
@@ -28,7 +28,7 @@
     <ChildContent>
         <CastOverview Title="Window Overview" Stats="@BuildOverviewStats()" />
         <CastDetail Title="Winter's Embrace Windows"
-                    Description="Each window shows what was cast while Winter's Embrace stood, grouped by the pull it happened in."
+                    Description="Each window shows what was cast while Winter's Embrace was active, grouped by the pull it happened in."
                     Casts="@BuildPerCastData()" />
     </ChildContent>
 </GuideSection>
@@ -62,7 +62,7 @@
             new(
                 $"{averageSpenders:0.0}",
                 "Avg Spenders",
-                "Average Winter Orb spender casts fitted into a window."),
+                "Average Winter Orb spender casts in a window."),
         };
 
         if (withOrbData > 0)
@@ -124,7 +124,7 @@
             new(
                 $"{window.SpenderCount}/{window.ExpectedSpenderCount}",
                 window.SpenderName,
-                $"{window.SpenderName} casts fitted into the window, against what its {window.DurationMs / 1000d:0.0}s of Winter's Embrace could carry.",
+                $"{window.SpenderName} casts fit into the window, against what its {window.DurationMs / 1000d:0.0}s of Winter's Embrace could carry.",
                 Performance: spenderPerformance),
             new(
                 window.OrbsBankedAtOpen is { } orbs ? $"{orbs}" : "n/a",
@@ -145,7 +145,7 @@
             stats.Add(new PerCastStat(
                 $"{window.TargetCount}",
                 "Targets",
-                "Unique enemies hit by Bursting Ice damage while the window stood."));
+                "Unique enemies hit by Bursting Ice damage while the window was open."));
         }
 
         if (window.MajorActiveAtOpen)
@@ -153,7 +153,7 @@
             stats.Add(new PerCastStat(
                 string.Join(" + ", window.MajorsActiveAtOpen),
                 "Majors",
-                "Major damage cooldowns already standing when the window opened; stacking them multiplies the 20%."));
+                "Major damage cooldowns already active when the window opened; stacking them multiplies the 20%."));
         }
 
         return [.. stats];
@@ -214,11 +214,11 @@
         StWindow { UsedFreezingTorrentCombo: true } =>
             "the window was spent well on single-target damage with the Freezing Torrent into Cold Snap variant",
         StWindow { ExpectsFinisher: true } st =>
-            $"the window fitted the expected {st.SpenderName} casts and a finisher",
+            $"the window fit the expected {st.SpenderName} casts and a finisher",
         StWindow st =>
-            $"the window fitted the expected {st.SpenderName} usage",
+            $"the window fit the expected {st.SpenderName} usage",
         AoeWindow aoe =>
-            $"the window fitted two {aoe.SpenderName} casts and a Cold Snap",
+            $"the window fit two {aoe.SpenderName} casts and a Cold Snap",
         _ => "the window matched the expected follow-up",
     };
 

@@ -8,6 +8,7 @@ namespace FellowshipAnalyzer.Core.Analysis;
 public class Abilities : Module
 {
     private Dictionary<int, SpellbookAbility>? _abilities;
+    /// <summary>The default global cooldown, 1500ms, shared by most abilities that don't define their own.</summary>
     public static GcdInfo StandardGcd => new() { Base = 1500.0 };
 
     /// <summary>

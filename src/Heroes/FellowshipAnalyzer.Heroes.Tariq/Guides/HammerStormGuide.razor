@@ -205,10 +205,6 @@
             : $"The full channel landed but only on {targets}, with no Schism proc held. Skull Crusher would have converted the same Fury into more damage.";
     }
 
-    /// <summary>
-    /// Whether an ability is one of the two that are off the global cooldown far enough to cancel a
-    /// Hammer Storm channel they land inside. Anything else in the window is a coincidence of timing.
-    /// </summary>
     private static bool CancelsChannels(int abilityId) =>
         abilityId == Spells.CullingStrike.FSLID || abilityId == Spells.LeapSmash.FSLID;
 

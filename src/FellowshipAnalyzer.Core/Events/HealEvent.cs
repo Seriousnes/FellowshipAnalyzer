@@ -2,12 +2,14 @@
 
 namespace FellowshipAnalyzer.Core.Events;
 
+/// <summary>A heal cast landing on a target, recording the healer, the target, and how much of the healing was effective versus overhealed.</summary>
 public class HealEvent : Event, IAbilityEvent, IHasSourceWithInstanceEvent, IHasTargetWithInstanceEvent, IAmountEvent
 {
     /// <summary>
     /// Unique Identifier for the source. Nobody else will have this ID
     /// </summary>
     public virtual int SourceId { get; set; }
+    /// <summary>Disambiguates <see cref="SourceId"/> when multiple copies of the healer exist.</summary>
     public virtual int? SourceInstance { get; set; }
     /// <summary>
     /// If the person who is doing the healing friendly
@@ -17,6 +19,7 @@ public class HealEvent : Event, IAbilityEvent, IHasSourceWithInstanceEvent, IHas
     /// Unique Identifier for the target. Nobody else will have this ID
     /// </summary>
     public virtual int TargetId { get; set; }
+    /// <summary>Disambiguates <see cref="TargetId"/> when multiple copies of the healed target exist.</summary>
     public virtual int? TargetInstance { get; set; }
     /// <summary>
     /// Is the target you're healing a friendly
@@ -26,6 +29,7 @@ public class HealEvent : Event, IAbilityEvent, IHasSourceWithInstanceEvent, IHas
     /// The ability that is healing the target
     /// </summary>
     public virtual Ability Ability { get; set; }
+    /// <summary>The FSLID identifying <see cref="Ability"/> in the FellowshipLogs game data.</summary>
     public virtual FSLID AbilityGameId { get; set; }
     /// <summary>
     /// This describes if the spell Hit/Missed/Crit/etc. Look at <see cref="HitTypeEnum"/> all types of hits
@@ -42,14 +46,19 @@ public class HealEvent : Event, IAbilityEvent, IHasSourceWithInstanceEvent, IHas
 
 }
 
+/// <summary>A heal mirrored onto a beacon-bound target, redirecting part of the healing recorded in <see cref="OriginalHeal"/>.</summary>
 public class BeaconHealEvent : HealEvent
 {
+    /// <summary>The heal event whose healing was mirrored onto the beacon-bound target.</summary>
     public virtual HealEvent OriginalHeal { get; set; }
 }
 
+/// <summary>Reports that a beacon heal could not be mirrored onto its bound target.</summary>
 public class BeaconTransferFailedEvent : HealEvent { }
 
+/// <summary>A heal delivered through a feed effect, where <see cref="Feed"/> carries the effect-specific value separate from <see cref="HealEvent.Amount"/>.</summary>
 public class FeedHealEvent : HealEvent
 {
+    /// <summary>The effect-specific value carried by this feed heal.</summary>
     public virtual int Feed { get; set; }
 }

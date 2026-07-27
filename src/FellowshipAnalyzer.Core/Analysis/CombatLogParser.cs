@@ -41,9 +41,13 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
     /// dependencies such as <c>ILogger&lt;T&gt;</c> and <see cref="ReportMasterDataService"/>.</summary>
     protected IServiceProvider Provider { get; } = provider;
 
+    /// <summary>The event dispatcher for the analysis in progress. Replaced with a fresh instance at the start of every <see cref="Analyze"/> call.</summary>
     public EventEmitter EventEmitter { get; private set; } = eventEmitter;
 
+    /// <summary>The normalized event stream for the current analysis, after every <see cref="IEventNormalizer"/> pass has run.</summary>
     public List<Event> Events { get; set; } = [];
+
+    /// <summary>The actor id of the player this analysis is scoped to.</summary>
     public int PlayerId { get; set; }
 
     /// <summary>
@@ -57,7 +61,10 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
     /// </summary>
     public int CurrentTimestamp { get; internal set; }
 
+    /// <summary>The analyzed fight's start time, from <see cref="Fight"/>.</summary>
     public int FightStartTime => (int)Fight.StartTime;
+
+    /// <summary>The analyzed fight's end time, from <see cref="Fight"/>.</summary>
     public int FightEndTime => (int)Fight.EndTime;
 
     /// <summary>
@@ -121,7 +128,7 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
     public Pull? SelectedPull { get; set; }
 
     /// <summary>
-    /// Analyzer instances retained at each <see cref="Events.PullEndEvent"/>, in pull order.
+    /// Analyzer instances retained at each <see cref="FellowshipAnalyzer.Core.Events.PullEndEvent"/>, in pull order.
     /// Clamped to <see cref="SelectedPull"/> when one is set.
     /// </summary>
     public IReadOnlyList<(Pull Pull, Analyzer Analyzer)> PullAnalyzers =>
@@ -236,7 +243,7 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
     protected virtual void IndexPullAnalyzer(Pull pull, Analyzer analyzer) { }
 
     /// <summary>
-    /// Opens a pull: constructs a fresh instance of every <see cref="GetAnalyzerTypes"/> analyzer
+    /// Opens a pull: constructs a fresh instance of every <see cref="GetAnalyzerTypes(Pull)"/> analyzer
     /// into the per-pull cache and routes their subscriptions into the pull listener tier. Enforces
     /// the single-open-pull invariant by closing any already-open pull first (close-before-open).
     /// </summary>
@@ -261,7 +268,7 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
     }
 
     /// <summary>
-    /// Closes a pull, in order: emits a <see cref="Events.PullEndEvent"/> to the pull's own listeners
+    /// Closes a pull, in order: emits a <see cref="FellowshipAnalyzer.Core.Events.PullEndEvent"/> to the pull's own listeners
     /// while they are still live (so a subscriber can snapshot fight-lifetime state at the instant the
     /// pull ends), then retains each analyzer on the pull read surfaces, then retires the pull listener
     /// tier and discards the per-pull instance cache. Emitting here (rather than relying on the
@@ -320,6 +327,7 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
         return null;
     }
 
+    /// <summary>Runs the full analysis pipeline over <paramref name="events"/> for <paramref name="playerId"/> during <paramref name="fight"/>: normalizes the stream, dispatches it through every module and analyzer, and returns the resulting <see cref="HeroAnalysisResult"/>.</summary>
     public Task<HeroAnalysisResult> Analyze(IReadOnlyList<Event> events, int playerId, ReportFight fight)
         => RunAnalysisAsync(events, playerId, fight);
 
@@ -437,12 +445,16 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
         return $"{negative}{minutes}:{seconds}";
     }
 
+    /// <summary>Whether <paramref name="e"/> was sourced by <paramref name="playerId"/>, defaulting to <see cref="PlayerId"/>.</summary>
     public bool ByPlayer(IHasSourceEvent e, int? playerId = null) => e.SourceId == (playerId ?? PlayerId);
 
+    /// <summary>Whether <paramref name="e"/> targeted <paramref name="playerId"/>, defaulting to <see cref="PlayerId"/>.</summary>
     public bool ToPlayer(IHasTargetEvent e, int? playerId = null) => e.TargetId == (playerId ?? PlayerId);
 
+    /// <summary>Whether <paramref name="e"/> was sourced by the player's pet. Fellowship has no pet-hero support yet, so this always returns <c>false</c>.</summary>
     public bool ByPlayerPet(IHasSourceEvent e) => false;
 
+    /// <summary>Whether <paramref name="e"/> targeted the player's pet. Fellowship has no pet-hero support yet, so this always returns <c>false</c>.</summary>
     public bool ToPlayerPet(IHasTargetEvent e) => false;
 }
 

@@ -216,7 +216,7 @@ public sealed class DetonateEfficiencyAnalyzerTests
     }
 
     [Fact]
-    public async Task Coverage_MarksStandingDoTsAndLeavesTheRestInactive()
+    public async Task Coverage_MarksActiveDoTsAndLeavesTheRestInactive()
     {
         var analyzer = await Analyze(
             Combatant(),
@@ -256,7 +256,7 @@ public sealed class DetonateEfficiencyAnalyzerTests
     }
 
     [Fact]
-    public async Task Coverage_ReadsIncinerateStacksAsTheyStoodAtEachCast()
+    public async Task Coverage_ReadsIncinerateStackCountAtEachCast()
     {
         var analyzer = await Analyze(
             Combatant(),
@@ -294,7 +294,7 @@ public sealed class DetonateEfficiencyAnalyzerTests
     }
 
     [Fact]
-    public async Task Coverage_CountsAWindowRemovedOnTheCastTimestampAsStanding()
+    public async Task Coverage_CountsAWindowRemovedOnTheCastTimestampAsActive()
     {
         var analyzer = await Analyze(
             Combatant(),

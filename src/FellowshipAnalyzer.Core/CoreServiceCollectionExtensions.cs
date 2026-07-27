@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace FellowshipAnalyzer.Core;
 
+/// <summary>Dependency injection extension methods for registering FellowshipAnalyzer.Core services.</summary>
 public static class CoreServiceCollectionExtensions
 {
     /// <summary>

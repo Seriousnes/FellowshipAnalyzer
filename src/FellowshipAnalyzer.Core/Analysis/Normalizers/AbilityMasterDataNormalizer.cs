@@ -13,8 +13,10 @@ namespace FellowshipAnalyzer.Core.Analysis.Normalizers;
 /// </summary>
 public sealed class AbilityMasterDataNormalizer(ReportMasterDataService masterData) : IEventNormalizer
 {
+    /// <inheritdoc/>
     public int Priority => -100;
 
+    /// <inheritdoc/>
     public List<Event> Normalize(List<Event> events, int playerId)
     {
         foreach (var e in events)

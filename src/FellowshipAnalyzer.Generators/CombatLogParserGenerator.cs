@@ -267,7 +267,7 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
         {
             var ac = attr.AttributeClass;
             if (ac is not { IsGenericType: true }) continue;
-            if (ac.Name != "UsesAttribute") continue;
+            if (ac.Name != "DependencyAttribute") continue;
             if (ac.ContainingNamespace?.ToDisplayString() != "FellowshipAnalyzer.Core.Analysis") continue;
             if (ac.TypeArguments.Length == 1 && ac.TypeArguments[0] is INamedTypeSymbol dep) depTypes.Add(dep);
         }
@@ -921,6 +921,8 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
         foreach (var m in info.OwnModules)
         {
             var propName = StripSuffix(m.Name, "Analyzer");
+            sb.AppendLine("    /// <summary>The <see cref=\"global::" + m.FullyQualifiedName +
+                          "\"/> module for this analysis, or <c>null</c> when it is not active.</summary>");
             sb.AppendLine("    public " + m.FullyQualifiedName + "? " + propName + " => GetModule<" + m.FullyQualifiedName + ">();");
         }
 
@@ -944,6 +946,7 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
         sb.AppendLine("}");
         sb.AppendLine();
 
+        sb.AppendLine("/// <summary>Dependency-injection registration for the analysis services every hero parser needs.</summary>");
         sb.AppendLine("public static class CombatLogParserServiceCollectionExtensions");
         sb.AppendLine("{");
         sb.AppendLine("    /// <summary>");

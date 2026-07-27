@@ -6,6 +6,7 @@ namespace FellowshipAnalyzer.Core.Analysis;
 /// </summary>
 public static class Contributors
 {
+    /// <summary>The creator and maintainer of FellowshipAnalyzer.</summary>
     public static readonly Contributor Seriousnes = new(
         Nickname: "Seriousnes",
         Github: "Seriousnes",

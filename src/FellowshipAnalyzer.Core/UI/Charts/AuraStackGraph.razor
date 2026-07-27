@@ -201,11 +201,6 @@
         };
     }
 
-    /// <summary>
-    /// Renders the shared tooltip. The band series carry running totals, so an aura's own count is its
-    /// difference against the band inside it; the series are laid out largest first, so the band inside
-    /// is the following index and the innermost band stands alone.
-    /// </summary>
     private static string TooltipJs(int bandCount) =>
         $$"""
         function({series, seriesIndex, dataPointIndex, w}) {

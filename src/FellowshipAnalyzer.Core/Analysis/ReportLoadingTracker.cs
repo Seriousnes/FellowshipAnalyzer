@@ -11,7 +11,16 @@ namespace FellowshipAnalyzer.Core.Analysis;
 /// </summary>
 public sealed class ReportLoadingTracker
 {
-    public enum StepState { Waiting, Loading, Ok }
+    /// <summary>The progress state of one report-loading step tracked by this instance.</summary>
+    public enum StepState
+    {
+        /// <summary>The step has not started yet.</summary>
+        Waiting,
+        /// <summary>The step is currently running.</summary>
+        Loading,
+        /// <summary>The step has finished.</summary>
+        Ok
+    }
 
     private StepState _fetchEventsState;
     private StepState _deserializeState;
@@ -191,10 +200,6 @@ public sealed class ReportLoadingTracker
         OnChanged?.Invoke();
     }
 
-    /// <summary>
-    /// Step setter that also records timing. Logs elapsed milliseconds to the console
-    /// when a step transitions from <see cref="StepState.Loading"/> to <see cref="StepState.Ok"/>.
-    /// </summary>
     private void SetStepState(ref StepState field, StepState value, [CallerMemberName] string stepName = "")
     {
         if (field == value) return;

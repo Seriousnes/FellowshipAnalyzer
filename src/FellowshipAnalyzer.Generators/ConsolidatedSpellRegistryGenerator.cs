@@ -465,6 +465,7 @@ public sealed class ConsolidatedSpellRegistryGenerator : IIncrementalGenerator
         sb.AppendLine();
         sb.AppendLine("namespace " + registry.Namespace + ";");
         sb.AppendLine();
+        sb.AppendLine("/// <summary>Spell definitions generated from <c>data/spelldb.json</c>.</summary>");
         sb.AppendLine("public partial class " + registry.ClassName + " : global::" + SpellsNamespace + ".ISpellRegistry");
         sb.AppendLine("{");
         AppendMembers(sb, registry.Members);
@@ -491,6 +492,7 @@ public sealed class ConsolidatedSpellRegistryGenerator : IIncrementalGenerator
         sb.AppendLine();
         sb.AppendLine("namespace " + ns + ";");
         sb.AppendLine();
+        sb.AppendLine("/// <summary>Spell definitions shared by every hero, generated from <c>data/spelldb.json</c>.</summary>");
         sb.AppendLine("public static partial class " + className);
         sb.AppendLine("{");
 
@@ -519,12 +521,32 @@ public sealed class ConsolidatedSpellRegistryGenerator : IIncrementalGenerator
     {
         foreach (var member in members)
         {
+            sb.AppendLine("    /// <summary>" + DisplayName(member) + " (FSLID " +
+                          member.FSLID.ToString(CultureInfo.InvariantCulture) + ").</summary>");
             sb.AppendLine("    [global::" + SpellsNamespace + ".SpellId(" +
                           member.FSLID.ToString(CultureInfo.InvariantCulture) + ")]");
             sb.AppendLine("    public static " + member.TypeName + " " + member.Name + " { get; } = new " +
                           member.TypeName + " { " + string.Join(", ", member.InitLines) + " };");
+            sb.AppendLine();
         }
     }
+
+    private static string DisplayName(EmitMember member)
+    {
+        foreach (var line in member.InitLines)
+        {
+            if (!line.StartsWith("Name = \"", StringComparison.Ordinal) || !line.EndsWith("\"", StringComparison.Ordinal))
+                continue;
+            var value = line.Substring("Name = \"".Length, line.Length - "Name = \"".Length - 1);
+            if (value.Length == 0 || value.IndexOf('\\') >= 0)
+                break;
+            return XmlEscape(value);
+        }
+        return "<c>" + member.Name + "</c>";
+    }
+
+    private static string XmlEscape(string value) =>
+        value.Replace("&", "&amp;").Replace("<", "&lt;").Replace(">", "&gt;");
 
     private static string HintName(string ns, string className) =>
         (string.IsNullOrEmpty(ns) ? className : ns.Replace('.', '_') + "_" + className) + ".Consolidated.g.cs";

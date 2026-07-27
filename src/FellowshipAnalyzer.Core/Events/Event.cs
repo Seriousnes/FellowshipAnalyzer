@@ -2,6 +2,7 @@
 
 namespace FellowshipAnalyzer.Core.Events;
 
+/// <summary>Base type for every combat log event deserialized from the FellowshipLogs GraphQL API.</summary>
 [JsonPolymorphic(TypeDiscriminatorPropertyName = "type", UnknownDerivedTypeHandling = JsonUnknownDerivedTypeHandling.FailSerialization)]
 public abstract partial class Event : IEventFilter
 {

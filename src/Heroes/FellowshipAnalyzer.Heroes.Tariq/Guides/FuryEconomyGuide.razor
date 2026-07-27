@@ -137,11 +137,6 @@
         return top.WastedFury > 0 ? top : null;
     }
 
-    /// <summary>
-    /// The pull the Fury curve plots. The report header's pull selector already clamps the analyzer
-    /// stream, so a chosen pull leaves exactly one; unclamped, the boss pull reads as the interesting one
-    /// and the busiest pull stands in when a dungeon run has no boss.
-    /// </summary>
     private FuryCurve? Charted
     {
         get

@@ -1,7 +1,9 @@
 namespace FellowshipAnalyzer.Core.Game;
 
+/// <summary>Identifies a resource pool a hero's kit can generate or spend, keying the per-type state kept by <see cref="Resources.ResourceTracker"/>.</summary>
 public enum ResourceTypes
 {
+    /// <summary>Mana-based resource pool, spent on casts by heroes whose kit is mana-costed rather than built around a bespoke primary resource.</summary>
     [ResourceName("Mana")]
     Mana = 1,
     /// <summary>
@@ -14,6 +16,7 @@ public enum ResourceTypes
     /// </summary>
     [ResourceName("Combo Points", "Toughness")]
     Secondary = 3,
+    /// <summary>The universal Spirit resource that charges Spirit of Heroism, generated and spent by every hero regardless of class.</summary>
     [ResourceName("Spirit")]
     Spirit = 4,
     /// <summary>

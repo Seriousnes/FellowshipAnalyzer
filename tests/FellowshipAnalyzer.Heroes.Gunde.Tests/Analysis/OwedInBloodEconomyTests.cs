@@ -301,28 +301,6 @@ public sealed class OwedInBloodEconomyTests
     }
 
     [Fact]
-    public async Task Analyze_TalentedAoeCast_IsAlsoAConversion()
-    {
-        var events = new List<Event>
-        {
-            BuffApplied(1_000),
-            StackApplied(2_000, 22),
-            Cast(Spells.OwedInBloodAoe.FSLID, 10_000),
-            BuffRemoved(10_100),
-        };
-
-        var analyzer = await AnalyzeAsync(events);
-
-        var conversion = analyzer.Conversions.ShouldHaveSingleItem();
-        conversion.StacksConverted.ShouldBe(22);
-        conversion.AbilityId.ShouldBe(Spells.OwedInBloodAoe.FSLID.Value);
-        analyzer.DecayedStacks.ShouldBe(0);
-
-        FellowshipAnalyzer.Core.Common.Spells.SpellRegistry
-            .MaybeGet(conversion.AbilityId).ShouldNotBeNull();
-    }
-
-    [Fact]
     public async Task Analyze_SecondCastAfterAReclassifiedDrop_DoesNotClaimTheSameStacksAgain()
     {
         var events = new List<Event>

@@ -5,7 +5,6 @@ using FellowshipAnalyzer.Core.Game;
 
 namespace FellowshipAnalyzer.Heroes.Rime.Modules;
 
-/// <summary>Rime's three cooldown-gated majors plus the Spirit ultimate.</summary>
 public enum RimeMajorCooldown
 {
     IceBlitz,
@@ -14,16 +13,8 @@ public enum RimeMajorCooldown
     WrathOfWinter,
 }
 
-/// <summary>How one cooldown-gated major was used across a pull.</summary>
-/// <param name="Casts">Times the ability was cast during the pull.</param>
-/// <param name="HeldMs">Milliseconds the ability sat off cooldown before it was recast.</param>
-/// <param name="BuffUptimeMs">Milliseconds its buff stood on the player.</param>
 public readonly record struct MajorCooldownUsage(int Casts, int HeldMs, int BuffUptimeMs);
 
-/// <summary>
-/// One major's buff window and what the player fitted into it. Orb-derived members read the Winter
-/// Orb snapshot the log stamps on a cast, so they are <c>null</c> on logs that carry no snapshots.
-/// </summary>
 public sealed class MajorCooldownWindow
 {
     internal int GeneratorCastsWithOrbSnapshot;
@@ -34,61 +25,24 @@ public sealed class MajorCooldownWindow
 
     public int WindowEnd { get; internal set; }
 
-    /// <summary>How long the window actually stood, in milliseconds.</summary>
     public int DurationMs => Math.Max(0, WindowEnd - WindowStart);
 
-    /// <summary>True when the pull ended before the buff came off, so the window is measured to the pull boundary.</summary>
     public bool BoundaryTruncated { get; internal set; }
 
-    /// <summary>Bursting Ice casts that landed while the window stood.</summary>
     public int BurstingIceCastsInside { get; internal set; }
 
-    /// <summary>Winter Orb spender casts that landed while the window stood.</summary>
     public int SpenderCastsInside { get; internal set; }
 
-    /// <summary>Winter Orbs banked at the cast that opened the window; null when the log carries no snapshot.</summary>
     public int? OrbsAtActivation { get; init; }
 
-    /// <summary>
-    /// Milliseconds from the window opening to the first single-target Winter Orb spender cast inside
-    /// it; null when no such cast landed in the window.
-    /// </summary>
     public int? FirstSpenderLatencyMs { get; internal set; }
 
-    /// <summary>
-    /// Winter Orb generator casts that went out with a full pool while the window stood. Null when no
-    /// generator cast inside the window carried an orb snapshot, since the log then carries no
-    /// evidence either way.
-    /// </summary>
     public int? OvercapsInside => GeneratorCastsWithOrbSnapshot == 0 ? null : GeneratorCastsAtCap;
 }
 
-/// <summary>
-/// Tracks Rime's major cooldowns within a pull. Ice Blitz, Winter's Blessing and Flight of the Navir
-/// are 60-second cooldowns carrying 20-second buffs, so each one is measured on how long it sat off
-/// cooldown before the player used it, how much of the pull its buff stood for, and what landed
-/// inside each window. Wrath of Winter is Spirit-gated rather than cooldown-gated, so it carries no
-/// held-time or cast-efficiency reading and is judged purely on window quality: the orbs banked when
-/// it went off, how quickly the granted instant Glacial Blast was spent, and whether the orbs it
-/// hands out every four seconds landed on a full pool.
-/// </summary>
-/// <remarks>
-/// Held time comes from the <see cref="UpdateSpellUsableEvent"/> stream Core's
-/// <see cref="SpellUsable"/> fabricates, so the interval before the pull's first cast is never
-/// counted; an interval still open when the pull ends runs to <see cref="Pull.EndTime"/>. Windows are
-/// anchored on the player's own buff apply/remove pair: a remove with no live window is ignored, a
-/// re-apply while a window stands closes the open one at the re-apply, and a window still open at the
-/// pull boundary closes there and is marked <see cref="MajorCooldownWindow.BoundaryTruncated"/>.
-/// <para>
-/// The cast that opens a window supplies its Winter Orb snapshot. Casts and buff applications are
-/// separate events and the cast lands first, so each major holds its most recent cast's snapshot and
-/// the next buff apply consumes it; an unconsumed snapshot never carries into a later window.
-/// </para>
-/// </remarks>
 [ForPull(PullKind.Single | PullKind.Multi)]
 public sealed partial class MajorCooldownAnalyzer : Analyzer
 {
-    /// <summary>The Winter Orb pool's capacity; a generator cast at this count wastes its gain.</summary>
     public const int MaxWinterOrbs = 5;
 
     private readonly MajorTracking _iceBlitz = new(RimeMajorCooldown.IceBlitz);
@@ -106,17 +60,11 @@ public sealed partial class MajorCooldownAnalyzer : Analyzer
     public MajorCooldownUsage WintersBlessing => Usage(_wintersBlessing);
     public MajorCooldownUsage FlightOfTheNavir => Usage(_flightOfTheNavir);
 
-    /// <summary>Every major buff window opened during the pull, in encounter order.</summary>
     public IReadOnlyList<MajorCooldownWindow> Windows { get { EnsureMaterialized(); return _windows; } }
 
-    /// <summary>The windows one major opened during the pull, in encounter order.</summary>
     public IReadOnlyList<MajorCooldownWindow> WindowsFor(RimeMajorCooldown major) =>
         [.. Windows.Where(window => window.Major == major)];
 
-    /// <summary>
-    /// The usage reading for one major. Wrath of Winter is Spirit-gated rather than cooldown-gated,
-    /// so its reading always carries a held time of zero.
-    /// </summary>
     public MajorCooldownUsage UsageFor(RimeMajorCooldown major) => Usage(Select(major));
 
     [On<UpdateSpellUsableEvent>(By = Actor.Player, Spells = [
@@ -216,10 +164,6 @@ public sealed partial class MajorCooldownAnalyzer : Analyzer
         }
     }
 
-    /// <summary>
-    /// Adds any buff interval still standing at the pull boundary, so a major whose buff outlived the
-    /// pull is credited to <see cref="Pull.EndTime"/> rather than dropped.
-    /// </summary>
     private MajorCooldownUsage Usage(MajorTracking tracking)
     {
         var heldMs = tracking.TotalHeldMs +
@@ -230,7 +174,6 @@ public sealed partial class MajorCooldownAnalyzer : Analyzer
         return new MajorCooldownUsage(tracking.Casts, heldMs, buffUptimeMs);
     }
 
-    /// <summary>Closes any window still open at the pull boundary, once on first read.</summary>
     private void EnsureMaterialized()
     {
         if (_materialized) return;

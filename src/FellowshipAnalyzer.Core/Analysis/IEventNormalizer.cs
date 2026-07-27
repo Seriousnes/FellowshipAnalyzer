@@ -11,6 +11,12 @@ namespace FellowshipAnalyzer.Core.Analysis;
 /// </summary>
 public interface IEventNormalizer
 {
+    /// <summary>The relative order this normalizer runs in among the other registered normalizers, ascending.</summary>
     int Priority { get; }
+
+    /// <summary>Applies this normalizer's transformation to <paramref name="events"/> for the player identified by <paramref name="playerId"/>.</summary>
+    /// <param name="events">The event stream as normalized so far.</param>
+    /// <param name="playerId">The FellowshipLogs id of the player the report is being analyzed for.</param>
+    /// <returns>The normalized event list.</returns>
     List<Event> Normalize(List<Event> events, int playerId);
 }

@@ -3,7 +3,7 @@
     {
         <li class="aura-checklist-row @(item.Pass ? "pass" : "fail")">
             <PassFailCheckmark Pass="@item.Pass" Size="15"
-                               Title="@(item.Pass ? "Standing at the cast" : "Not standing at the cast")" />
+                               Title="@(item.Pass ? "Had aura at the cast" : "Missing at the cast")" />
             <span class="aura-checklist-name">
                 <SpellLink Spell="@item.Spell" />
             </span>

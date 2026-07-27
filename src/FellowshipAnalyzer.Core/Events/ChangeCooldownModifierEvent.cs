@@ -13,9 +13,13 @@ namespace FellowshipAnalyzer.Core.Events;
 [Fabricated]
 public class ChangeCooldownModifierEvent : Event
 {
+    /// <summary>Always the selected player's actor id: only the player's own cooldown pools are tracked.</summary>
     public virtual int SourceId { get; set; }
+    /// <summary>Always the selected player's actor id: only the player's own cooldown pools are tracked.</summary>
     public virtual int TargetId { get; set; }
+    /// <summary>Always true, since the target is always the selected player.</summary>
     public virtual bool? TargetIsFriendly => true;
+    /// <summary>Which of <see cref="StatTracker"/>'s tracked cooldown stat pools the modifier changed.</summary>
     public virtual CooldownPool Pool { get; set; }
 
     /// <summary>
@@ -24,6 +28,8 @@ public class ChangeCooldownModifierEvent : Event
     /// </summary>
     [JsonIgnore]
     public virtual CooldownModifier Modifier { get; set; } = null!;
+    /// <summary>True when <see cref="Modifier"/> was added to the pool; false when it was removed.</summary>
     public virtual bool Added { get; set; }
+    /// <inheritdoc/>
     public override bool? Fabricated => true;
 }

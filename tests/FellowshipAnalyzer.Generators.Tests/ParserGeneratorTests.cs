@@ -312,7 +312,7 @@ public class ParserGeneratorTests
         }
 
         [ForPull(PullKind.Single)]
-        [Uses<DepModule>]
+        [Dependency<DepModule>]
         public sealed partial class ConsumerAnalyzer : Analyzer
         {
             [On<ApplyBuffEvent>]
@@ -343,7 +343,7 @@ public class ParserGeneratorTests
         }
 
         [ForPull(PullKind.Single)]
-        [Uses<DepModule>]
+        [Dependency<DepModule>]
         public sealed partial class ConflictAnalyzer(Lazy<OtherDep> other) : Analyzer
         {
             [On<ApplyBuffEvent>]
@@ -375,8 +375,8 @@ public class ParserGeneratorTests
         }
 
         [ForPull(PullKind.Single)]
-        [Uses<OtherDep>]
-        [Uses<DepModule>]
+        [Dependency<OtherDep>]
+        [Dependency<DepModule>]
         public sealed partial class MultiAnalyzer : Analyzer
         {
             [On<ApplyBuffEvent>]

@@ -16,12 +16,14 @@ public sealed class ContributorModalService
     /// <summary>Raised whenever <see cref="Current"/> changes.</summary>
     public event Action? Changed;
 
+    /// <summary>Opens the modal on the given <paramref name="contributor"/>'s profile.</summary>
     public void Show(Contributor contributor)
     {
         Current = contributor;
         Changed?.Invoke();
     }
 
+    /// <summary>Closes the modal if it is open; does nothing otherwise.</summary>
     public void Close()
     {
         if (Current is null)

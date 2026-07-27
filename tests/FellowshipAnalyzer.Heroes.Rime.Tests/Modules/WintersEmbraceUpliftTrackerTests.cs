@@ -137,7 +137,7 @@ public sealed class WintersEmbraceUpliftTrackerTests
     }
 
     [Fact]
-    public async Task ReapplyWhileTheBuffStands_LeavesAccrualRunning()
+    public async Task ReapplyWhileTheBuffIsActive_LeavesAccrualRunning()
     {
         var tracker = await Analyze(
             EmbraceApplied(WindowStart),
@@ -151,7 +151,7 @@ public sealed class WintersEmbraceUpliftTrackerTests
     }
 
     [Fact]
-    public async Task RemovalWithNoBuffStanding_IsIgnored()
+    public async Task RemovalWithNoBuffActive_IsIgnored()
     {
         var tracker = await Analyze(
             EmbraceRemoved(500),

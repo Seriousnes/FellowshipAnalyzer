@@ -1,9 +1,5 @@
 namespace FellowshipAnalyzer.Core.Analysis;
 
-/// <summary>
-/// Default <see cref="IPerformanceScoringService"/> implementation.
-/// All methods are pure, stateless computations — registered as a singleton.
-/// </summary>
 internal sealed class PerformanceScoringService : IPerformanceScoringService
 {
     public double ComputeScore(double actual, ScoreBreakpoint[] breakpoints)

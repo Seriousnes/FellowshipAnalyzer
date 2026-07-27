@@ -22,5 +22,8 @@ namespace FellowshipAnalyzer.Core.Analysis;
 /// </remarks>
 public interface IModuleActivePredicate
 {
+    /// <summary>Determines, from static parse context alone, whether the module this predicate guards should be constructed.</summary>
+    /// <param name="context">The parse-time context available before any modules are constructed.</param>
+    /// <returns><c>true</c> if the module should be instantiated and subscribed; otherwise <c>false</c>.</returns>
     static abstract bool IsActive(ParseContext context);
 }

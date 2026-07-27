@@ -5,10 +5,10 @@
     <Explanation>
         <p>
             <SpellLink Spell="Spells.Slaughter" /> consumes every point of
-            <SpellLink Spell="Spells.Rend" /> standing on the enemies it hits and pays it back as a
+            <SpellLink Spell="Spells.Rend" /> active on the enemies it hits and pays it back as a
             bleed, so a Slaughter is worth exactly what was built before it was pressed. Each cast is
             scored on the setup it was given, not on the damage it produced: how much Rend was
-            standing is a matter of gear, but whether the cast was set up is not.
+            active is a matter of gear, but whether the cast was set up is not.
         </p>
         <p>
             <SpellLink Spell="Spells.Rupture" /> leaves <SpellLink Spell="Spells.OpenWounds" /> on the
@@ -192,7 +192,7 @@
     private static string DescribeCashed(SlaughterEvaluation slaughter)
     {
         if (slaughter.RendConsumed == 0)
-            return "No Rend was standing when it was pressed, so the cast cashed nothing at all.";
+            return "No Rend was active when it was pressed, so the cast cashed nothing at all.";
 
         var damage = slaughter.PayoffDamage > 0 ? $", which bled for {FormatDamage(slaughter.PayoffDamage)}" : string.Empty;
         return $"It consumed {slaughter.RendConsumed} Rend{damage}.";
@@ -204,11 +204,6 @@
             : char.ToUpperInvariant(reasons[0][0]) + reasons[0][1..] +
                 (reasons.Count > 1 ? ", and " + reasons[1] : string.Empty) + ".";
 
-    /// <summary>
-    /// Grades a cast on its setup alone: both shape criteria met is the success bar the analyzer
-    /// scores, one of the two still beats nothing. Nothing here compares one cast against another,
-    /// so a pull where every Slaughter was poorly set up scores poorly throughout.
-    /// </summary>
     private static QualitativePerformance SetupTier(SlaughterEvaluation slaughter, bool isAoe)
     {
         var spread = isAoe

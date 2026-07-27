@@ -3,17 +3,11 @@ using FellowshipAnalyzer.Core.Events;
 
 namespace FellowshipAnalyzer.Heroes.Rime.Modules;
 
-/// <summary>
-/// Winter's Embrace analyzer for multi-target pulls. The window is scored against the AoE follow-up:
-/// two of the detected build's AoE Winter Orb spenders plus a Cold Snap, in any order.
-/// </summary>
 [ForPull(PullKind.Multi)]
 public sealed class AoeEmbraceWindowAnalyzer : WintersEmbraceWindowAnalyzer
 {
-    /// <summary>AoE Winter Orb spender casts a clean AoE window carries.</summary>
     public const int RequiredAoeSpenders = 2;
 
-    /// <summary>Cold Snap casts a clean AoE window carries.</summary>
     public const int RequiredColdSnaps = 1;
 
     protected override EmbraceWindowEvaluation EvaluateWindow(
@@ -39,13 +33,10 @@ public sealed class AoeEmbraceWindowAnalyzer : WintersEmbraceWindowAnalyzer
         };
     }
 
-    /// <summary>A window scored against the AoE follow-up.</summary>
     public sealed class AoeWindowEvaluation : EmbraceWindowEvaluation
     {
-        /// <summary>Whether the window contained the expected two AoE spender casts.</summary>
         public bool HasRequiredAoeSpenders { get; init; }
 
-        /// <summary>Whether the window contained the expected Cold Snap.</summary>
         public bool HasRequiredColdSnap { get; init; }
 
         public override int SpenderCount => AoeSpenderCount;

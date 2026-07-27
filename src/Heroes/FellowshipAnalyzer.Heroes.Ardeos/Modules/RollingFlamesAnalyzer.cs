@@ -38,11 +38,6 @@ public sealed partial class RollingFlamesAnalyzer : Analyzer
 
     public override Type? StatisticsComponentType => typeof(RollingFlamesStatistics);
 
-    /// <summary>
-    /// Per-source Engulfing Flames cooldown reduction Rolling Flames drove over the encounter:
-    /// the total CDR that Searing Blaze damage and Infernal Wave casts generated, and the portion
-    /// that actually shortened Engulfing Flames' running cooldown.
-    /// </summary>
     public IReadOnlyList<RollingFlamesCdr> CooldownReductions =>
     [
         ConvertToRollingFlamesCdr(Spells.SearingBlaze),
@@ -56,18 +51,10 @@ public sealed partial class RollingFlamesAnalyzer : Analyzer
     }
 }
 
-/// <summary>
-/// Per-spell projection of Rolling Flames cooldown reduction for the statistics readout.
-/// </summary>
-/// <param name="Spell">The spell whose damage drove the reduction.</param>
-/// <param name="GeneratedMs">Total cooldown reduction generated, in milliseconds.</param>
-/// <param name="EffectiveMs">Reduction that actually shortened a running cooldown, in milliseconds.</param>
 public sealed record RollingFlamesCdr(Spell Spell, int GeneratedMs, int EffectiveMs)
 {
-    /// <summary>Reduction generated while the spell was already off cooldown, in milliseconds.</summary>
     public int WastedMs => GeneratedMs - EffectiveMs;
 
-    /// <summary>Share of the generated reduction that shortened a running cooldown (0 when nothing generated).</summary>
     public double Efficiency => GeneratedMs == 0 ? 0d : (double)EffectiveMs / GeneratedMs;
 }
 

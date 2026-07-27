@@ -6,7 +6,7 @@
         <p>
             On a boss neither <SpellLink Spell="Spells.WidowBitePoison" /> nor the
             <SpellLink Spell="Spells.HemorrhagingStrikeBleed" /> bleed should ever leave the target. Each
-            boss pull is scored on the share of the pull the two stood for and the gaps between their
+            boss pull is scored on the combined uptime of the two and the gaps between their
             windows, so a reapplication that lands after the effect has already fallen off costs twice.
         </p>
         <p>
@@ -24,13 +24,12 @@
     <ChildContent>
         <CastOverview Title="Upkeep Overview" Stats="@BuildOverviewStats()" />
         <CastDetail Title="Poisons &amp; Bleeds by Pull"
-                    Description="Each row is one pull. Boss rows show how continuously each effect stood and how much standing bleed was overwritten; AoE rows show how far the bleed spread and how many eruptions were cancelled."
+                    Description="Each row is one pull. Boss rows show how continuously each effect was active and how much active bleed was overwritten; AoE rows show how far the bleed spread and how many eruptions were cancelled."
                     Casts="@BuildPerCastData()" />
     </ChildContent>
 </GuideSection>
 
 @code {
-    /// <summary>Milliseconds left on a Hemorrhage window above which a reapplication counts as clipping it.</summary>
     private const int EarlyClipRemainingMs = 4000;
 
     private IEnumerable<OverviewStat> BuildOverviewStats()
@@ -127,7 +126,7 @@
         stats.Add(new PerCastStat(
             $"{clips}/{refreshes}",
             "Bleeds Clipped Early",
-            $"Hemorrhage reapplications that overwrote more than {EarlyClipRemainingMs / 1000}s of a standing bleed.",
+            $"Hemorrhage reapplications that overwrote more than {EarlyClipRemainingMs / 1000}s of an active bleed.",
             Performance: clipTier));
         worst = Worse(worst, clipTier);
 
@@ -148,7 +147,7 @@
                 "Coverage Through The Pull",
                 @<AuraStackGraph Samples="@samples"
                                  Bands="@bands"
-                                 YAxisTitle="Effects standing"
+                                 YAxisTitle="Active effects"
                                  Height="240" />);
         }
 
@@ -201,10 +200,6 @@
         };
     }
 
-    /// <summary>
-    /// The instants the coverage chart is sampled at: every window boundary on the pull, clamped to the
-    /// pull window, plus its two ends so the curve spans the whole row.
-    /// </summary>
     private static IReadOnlyList<int> ChartSamples(MaraDotUptimeAnalyzer analyzer, Pull pull)
     {
         var samples = new SortedSet<int> { pull.StartTime, pull.EndTime };

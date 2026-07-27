@@ -112,7 +112,7 @@ public sealed class WintersEmbraceWindowAnalyzerTests
     }
 
     [Fact]
-    public async Task MajorStandingWhenWindowOpens_IsSampledOntoTheWindow()
+    public async Task MajorActiveWhenWindowOpens_IsSampledOntoTheWindow()
     {
         var analyzer = await AnalyzeSingleTarget(
             Combatant(),
@@ -128,7 +128,7 @@ public sealed class WintersEmbraceWindowAnalyzerTests
     }
 
     [Fact]
-    public async Task NoMajorStandingWhenWindowOpens_LeavesTheWindowUnstacked()
+    public async Task NoMajorActiveWhenWindowOpens_LeavesTheWindowUnstacked()
     {
         var analyzer = await AnalyzeSingleTarget(
             Combatant(),

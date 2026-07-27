@@ -15,7 +15,7 @@ namespace FellowshipAnalyzer.Core.Analysis.Normalizers;
 ///     source and spell GUID (within <see cref="MaxChannelCastWindowMs"/>), establishes the expected
 ///     cast-to-channel relationship contract:
 ///     <list type="bullet">
-///       <item><see cref="CastEvent.Channel"/> → <see cref="EndChannelEvent"/> (via <see cref="BaseCastEvent.Channel"/>)</item>
+///       <item><see cref="BaseCastEvent.Channel"/> on the <see cref="CastEvent"/> → <see cref="EndChannelEvent"/></item>
 ///       <item><see cref="BeginCastEvent.Channel"/> → <see cref="BeginChannelEvent"/> (when a begincast preceded the cast)</item>
 ///       <item><see cref="EndChannelEvent.BeginChannel"/> → <see cref="BeginChannelEvent"/> (already linked)</item>
 ///     </list>
@@ -26,8 +26,10 @@ public sealed class CastLinkNormalizer(Abilities? abilities) : IEventNormalizer
 {
     private const int MaxChannelCastWindowMs = 200;
 
+    /// <inheritdoc/>
     public int Priority => 0;
 
+    /// <inheritdoc/>
     public List<Event> Normalize(List<Event> events, int playerId)
     {
         var castableWhileCasting = abilities?.Spellbook()

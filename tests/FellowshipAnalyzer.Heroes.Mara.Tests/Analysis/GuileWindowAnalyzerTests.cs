@@ -68,7 +68,7 @@ public sealed class GuileWindowAnalyzerTests
     }
 
     [Fact]
-    public async Task Analyze_RefreshWhileTheBuffStands_ExtendsTheSameWindow()
+    public async Task Analyze_RefreshWhileTheBuffIsActive_ExtendsTheSameWindow()
     {
         var events = new List<Event>
         {

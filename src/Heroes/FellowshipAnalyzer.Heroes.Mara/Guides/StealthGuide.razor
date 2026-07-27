@@ -48,7 +48,6 @@
 </GuideSection>
 
 @code {
-    /// <summary>Assassin's Guile's buff duration in seconds, quoted in the explanation.</summary>
     private const int GuileDurationSeconds = 5;
 
     private bool HasGuile => Parser.GuileWindowAnalyzers.Count > 0;
@@ -115,12 +114,12 @@
             new PerCastStat(
                 FormatSeconds(window.DurationMs),
                 "Window",
-                "How long the Brooding Shadows stealth buff stood."),
+                "How long the Brooding Shadows stealth buff was active."),
             new PerCastStat(
                 window.ConvertingAbilityId is { } builder ? BuilderName(builder) : "None",
                 "Opened With",
                 window.ConvertingAbilityId is null
-                    ? "No builder was cast while the stealth buff stood, so the window was spent for nothing."
+                    ? "No builder was cast while the stealth buff was active, so the window was spent for nothing."
                     : "The builder that came out of stealth and took the empowerment."),
             new PerCastStat(
                 window.PoisonEffectId is { } poison ? PoisonName(poison) : "-",
@@ -151,7 +150,7 @@
             new(
                 FormatSeconds(window.DurationMs),
                 "Window",
-                "How long the Assassin's Guile buff stood."),
+                "How long the Assassin's Guile buff was active."),
             new(
                 $"{window.SpenderCasts}",
                 "Boosted Spenders",
@@ -164,12 +163,12 @@
             stats.Add(new PerCastStat(
                 $"{window.QueensFangStacksAtOpen}/{cap}",
                 "Queen's Fang Stacks",
-                "Malevolence: Queen's Fang stacks standing as the window opened.",
+                "Malevolence: Queen's Fang stacks active as the window opened.",
                 Performance: StackTier(window.QueensFangStacksAtOpen)));
             stats.Add(new PerCastStat(
                 $"{window.ArachnidAssaultStacksAtOpen}/{cap}",
                 "Arachnid Assault Stacks",
-                "Malevolence: Arachnid Assault stacks standing as the window opened.",
+                "Malevolence: Arachnid Assault stacks active as the window opened.",
                 Performance: StackTier(window.ArachnidAssaultStacksAtOpen)));
         }
 
@@ -256,11 +255,6 @@
     private static QualitativePerformance? ConversionTier(int converted, int total) =>
         total == 0 ? null : PerformanceTiers.FromThresholds(Percent(converted, total), 100, 80, 60);
 
-    /// <summary>
-    /// A stealth window fails when nothing came out of it. A converted window is perfect when its
-    /// builder laid a poison, and a stealth Backstab counts the same way because its Caustic Poison is
-    /// dealt as damage rather than a debuff there is any way to observe.
-    /// </summary>
     private static QualitativePerformance StealthWindowTier(StealthWindow window) =>
         window.ConvertingAbilityId is not { } builder ? QualitativePerformance.Fail
         : window.PoisonEffectId is not null || builder == Spells.Backstab.Id
@@ -277,10 +271,6 @@
         : stacks == 1 ? QualitativePerformance.Ok
         : QualitativePerformance.Fail;
 
-    /// <summary>
-    /// A guile window fails when no boosted spender landed in it. Otherwise it is graded on the spenders
-    /// it fitted in, held down to whichever Malevolence buff was the less stacked when it opened.
-    /// </summary>
     private QualitativePerformance GuileWindowTier(GuileWindow window)
     {
         if (window.SpenderCasts == 0)

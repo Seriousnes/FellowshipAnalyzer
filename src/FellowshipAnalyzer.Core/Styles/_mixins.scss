@@ -1,6 +1,5 @@
 @use 'tokens' as t;
 
-/// Standard card / panel surface: card bg, gold-tinted border, shadow.
 @mixin card-surface($radius: var(--fa-radius-md)) {
     background: var(--fa-bg-card);
     border: var(--fa-border-width) solid var(--fa-border-card);
@@ -8,21 +7,18 @@
     box-shadow: var(--fa-shadow-card);
 }
 
-/// Slightly raised panel (less prominent than a card).
 @mixin panel-surface($radius: var(--fa-radius-sm)) {
     background: var(--fa-bg-raised);
     border: var(--fa-border-width) solid var(--fa-border);
     border-radius: $radius;
 }
 
-/// Inset / recessed region inside a card.
 @mixin inset-surface($radius: var(--fa-radius-sm)) {
     background: var(--fa-bg-inset);
     border: var(--fa-border-width) solid var(--fa-border);
     border-radius: $radius;
 }
 
-/// Small all-caps label above a section (eyebrow text).
 @mixin eyebrow {
     margin: 0 0 0.4rem;
     text-transform: uppercase;
@@ -48,12 +44,10 @@
     background-clip: text;
 }
 
-/// Narrow breakpoint (phones / narrow panels).
 @mixin mobile {
     @media (max-width: 768px) { @content; }
 }
 
-/// Very narrow breakpoint (small phones).
 @mixin mobile-sm {
     @media (max-width: 600px) { @content; }
 }

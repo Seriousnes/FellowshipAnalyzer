@@ -5,6 +5,7 @@ using FellowshipAnalyzer.Core.FellowshipLogs;
 
 namespace FellowshipAnalyzer.Core.Serialization;
 
+/// <summary>Source-generated JSON serialization context covering every combat log event type and FellowshipLogs GraphQL response shape the parser consumes.</summary>
 [JsonSourceGenerationOptions(
     DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
     PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase,

@@ -22,9 +22,8 @@ public abstract class DebuffUptimeAnalyzer : Analyzer
     private readonly Dictionary<(int TargetId, int TargetInstance), List<AuraWindow>> _windowsByTarget = [];
     private readonly Dictionary<(int TargetId, int TargetInstance), int> _openWindowStarts = [];
     private readonly Dictionary<(int TargetId, int TargetInstance), int> _lastObserved = [];
-
-    private Computed? _computed;
-    private Computed Result => _computed ??= Compute();
+    
+    private Computed Result => field ??= Compute();
 
     /// <summary>Share of the pull (0-1) the primary target spent carrying the debuff.</summary>
     public double Uptime => Result.Uptime;
@@ -83,16 +82,6 @@ public abstract class DebuffUptimeAnalyzer : Analyzer
         return windows;
     }
 
-    /// <summary>
-    /// Closes still-open windows and elects the primary target's uptime and gaps. A window still
-    /// open at pull end closes at that target's last observed event rather than at the pull
-    /// boundary: a non-selected enemy that dies is never logged as dying, it simply stops emitting,
-    /// so stretching its window to the boundary would let a two-second add out-cover the boss and
-    /// erase the boss's real gaps. The genuinely long-lived target keeps emitting to the end of the
-    /// pull and so wins the election on its own coverage. Ties break on the earliest first window,
-    /// then on the target key, so the reading never depends on dictionary order. Computed once, on
-    /// first read.
-    /// </summary>
     private Computed Compute()
     {
         var windowsByTarget = new Dictionary<(int TargetId, int TargetInstance), List<AuraWindow>>();
@@ -138,5 +127,5 @@ public abstract class DebuffUptimeAnalyzer : Analyzer
 
     private sealed record Candidate(int TargetId, int TargetInstance, List<AuraWindow> Windows, int Covered);
 
-    private readonly record struct Computed(double Uptime, int GapCount, int TotalGapMs, IReadOnlyList<AuraWindow> Windows);
+    private record Computed(double Uptime, int GapCount, int TotalGapMs, IReadOnlyList<AuraWindow> Windows);
 }

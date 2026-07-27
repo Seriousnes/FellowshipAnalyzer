@@ -4,18 +4,6 @@ using FellowshipAnalyzer.Core.Events;
 
 namespace FellowshipAnalyzer.Heroes.Ardeos.Modules;
 
-/// <summary>
-/// Measures how continuously Ardeos kept the Searing Blaze DoT rolling on a boss pull. Windows are
-/// tracked per (TargetId, TargetInstance) from apply/refresh/remove events, with a window still open
-/// at pull end closed at that target's last logged DoT event; the primary target is the one carrying
-/// the most DoT time, so transient adds never dilute the boss reading. Uptime is the primary
-/// target's covered time against the pull duration. Gaps are the uncovered stretches between that
-/// target's windows; lead-in before the first application lowers uptime without counting as a gap.
-/// </summary>
-/// <remarks>
-/// The DoT's own damage ticks are its liveness signal: a target still burning keeps logging them, so
-/// one that stops has left the fight and its window ends there.
-/// </remarks>
 [ForPull(PullKind.Single, Boss = PullBoss.Boss)]
 public sealed partial class SearingBlazeUptimeAnalyzer : DebuffUptimeAnalyzer, ISearingBlazeAnalyzer
 {

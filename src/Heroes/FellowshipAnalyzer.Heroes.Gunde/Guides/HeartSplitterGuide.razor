@@ -6,7 +6,7 @@
         <p>
             <SpellLink Spell="Spells.HeartSplitter" /> hits twice: a direct strike, and
             <SpellLink Spell="Spells.HeartSplitterDotBonusDamage" />, which deals a share of all the
-            <SpellLink Spell="Spells.Rend" /> standing on the target and leaves that bleed in place.
+            <SpellLink Spell="Spells.Rend" /> active on the target and leaves that bleed in place.
             It is therefore worth as much as the pile it lands on, and it wants to go out before
             <SpellLink Spell="Spells.Slaughter" /> consumes that pile, never just after it.
         </p>
@@ -64,7 +64,7 @@
                 measured > 0 ? $"{rend / measured}" : "-",
                 "Avg Rend Hit",
                 measured > 0
-                    ? $"Average Rend stacks standing when Exsanguinate hit, {rend} in total across {measured} casts."
+                    ? $"Average Rend stacks active when Exsanguinate hit, {rend} in total across {measured} casts."
                     : "No Exsanguinate landed, so there was no bleed to measure."),
         };
 
@@ -98,7 +98,7 @@
                 cast.RendOnTarget is { } rend ? $"{rend}" : "-",
                 "Rend on Target",
                 cast.RendOnTarget is not null
-                    ? "Rend stacks standing when Exsanguinate hit - the pile it took its share of."
+                    ? "Rend stacks active when Exsanguinate hit - the pile it took its share of."
                     : "No Exsanguinate followed this cast, so there was no pile to measure."),
             new PerCastStat(
                 FormatDamage(cast.ExsanguinateDamage),

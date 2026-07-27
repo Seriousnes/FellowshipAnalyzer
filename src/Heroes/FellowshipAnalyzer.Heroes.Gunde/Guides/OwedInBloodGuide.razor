@@ -66,11 +66,6 @@
 
     private int TotalConversions => Analyzers.Sum(analyzer => analyzer.Conversions.Count);
 
-    /// <summary>
-    /// Conversions whose bank the pull actually saw being built. A conversion of a bank carried in
-    /// from the previous pull reads zero stacks with nothing measured behind it, so its size is left
-    /// out of every average and every bank verdict.
-    /// </summary>
     private int MeasuredConversions =>
         Analyzers.Sum(analyzer => analyzer.Conversions.Count(conversion => conversion.BankObserved));
 
@@ -88,10 +83,6 @@
 
     private int TotalCappedMs => Analyzers.Sum(analyzer => analyzer.CappedMs);
 
-    /// <summary>
-    /// Whether the run gave the section anything to judge. A Gunde log with no feather stacks at all
-    /// gets a sentence rather than a wall of zeroes, matching the other Gunde guide sections.
-    /// </summary>
     private bool HasActivity => TotalConversions > 0 || TotalDecayed > 0 || TotalCappedMs > 0;
 
     private string EmptySummary => TotalDecayed > 0
@@ -240,11 +231,6 @@
             : $"It converted only {stacks} stacks, {share}% of the {OwedInBloodEconomyAnalyzer.MaxStacks} cap - let the feathers accumulate further before pressing it.";
     }
 
-    /// <summary>
-    /// Grades the chain a conversion was part of: cashed by a Slaughter under Open Wounds is the
-    /// whole rotation, cashed without the window is half of it, and neither is a bank dumped for
-    /// nothing.
-    /// </summary>
     private static QualitativePerformance ChainTier(OwedInBloodEconomyAnalyzer.OwedInBloodConversion conversion) =>
         conversion.PairedWithRupture ? QualitativePerformance.Perfect
         : conversion.CashedBySlaughter ? QualitativePerformance.Ok
@@ -263,18 +249,9 @@
     private static QualitativePerformance PercentTier(int percent) =>
         PerformanceTiers.FromThresholds(percent, 75, 50, 25);
 
-    /// <summary>
-    /// Grades a bank against the stack cap, the only fixed yardstick a conversion has. Reaching the
-    /// cap is not always possible before the chain has to go out, so the ladder rewards a bank most
-    /// of the way there rather than demanding all of it.
-    /// </summary>
     private static QualitativePerformance BankTier(double shareOfCapPercent) =>
         PerformanceTiers.FromThresholds(shareOfCapPercent, BankPerfect, BankGood, BankOk);
 
-    /// <summary>
-    /// Grades time spent pinned at the stack cap. Any time at the cap is feathers thrown away, but a
-    /// brief touch on the way into a conversion is unavoidable, so only sustained capping fails.
-    /// </summary>
     private static QualitativePerformance CapTier(int cappedMs) =>
         cappedMs == 0 ? QualitativePerformance.Perfect
         : cappedMs < 10_000 ? QualitativePerformance.Good

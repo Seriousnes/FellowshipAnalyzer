@@ -11,9 +11,6 @@ $fa-tint-medium: 40%;
 $fa-tint-strong: 60%;
 $fa-tint-veil:   80%;
 
-/// Fades a colour to a tint step. A literal colour resolves at compile time; a
-/// `var(--fa-*)` reference resolves in the browser via `color-mix`, so a runtime
-/// theme change still reaches the tint.
 @function tint($color, $step) {
     @if meta.type-of($color) == color {
         @return color.change($color, $alpha: math.div($step, 100%));

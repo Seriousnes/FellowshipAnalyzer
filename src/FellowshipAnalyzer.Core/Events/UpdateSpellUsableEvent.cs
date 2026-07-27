@@ -2,10 +2,13 @@
 
 namespace FellowshipAnalyzer.Core.Events;
 
+/// <summary>Fabricated event tracking a spell's cooldown and charge state as it changes over the pull.</summary>
 [Fabricated]
 public class UpdateSpellUsableEvent : Event, IAbilityEvent, IHasSourceEvent, IHasTargetEvent
 {
+    /// <summary>The ability whose usability is being tracked.</summary>
     public virtual Ability Ability { get; set; }
+    /// <summary>The <see cref="FSLID"/> of <see cref="Ability"/>.</summary>
     public virtual FSLID AbilityGameId { get; set; }
     /// <summary>
     /// The kind of update to spell usability this represents.
@@ -76,5 +79,6 @@ public class UpdateSpellUsableEvent : Event, IAbilityEvent, IHasSourceEvent, IHa
     /// In practice will always be true - included to make filtering easier
     /// </summary>
     public virtual bool? TargetIsFriendly { get; set; }
+    /// <inheritdoc/>
     public override bool? Fabricated => true;
 }

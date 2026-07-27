@@ -214,12 +214,6 @@
     private static bool IsFiller(SerratedEdgeOutcome outcome) =>
         outcome is SerratedEdgeOutcome.AvoidableFiller or SerratedEdgeOutcome.ForcedFiller;
 
-    /// <summary>
-    /// Maps an outcome to a tier, which is where the pull shape decides how much a grant was worth.
-    /// The priority ability is full marks; the other of the two is close behind on a pack, where a
-    /// priority target makes a single-target ability reasonable, and a step further back on a boss.
-    /// Filler only fails when a better ability was ready to take the buff instead.
-    /// </summary>
     private static QualitativePerformance Tier(SerratedEdgeOutcome outcome, GundePullShape shape) => outcome switch
     {
         SerratedEdgeOutcome.Priority => QualitativePerformance.Perfect,

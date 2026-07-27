@@ -511,7 +511,7 @@ public sealed partial class StatTrackerCooldownTests
     }
 
     /// <summary>Registers a <see cref="CooldownBuff"/> on <see cref="StatTracker"/> before dispatch
-    /// starts, standing in for the analyzer that would own the buff in a hero module.</summary>
+    /// starts, in place of the analyzer that would own the buff in a hero module.</summary>
     private sealed class CooldownBuffRegistrar(Lazy<StatTracker> statTracker) : Analyzer
     {
         public int SpellId { get; init; }

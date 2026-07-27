@@ -15,7 +15,11 @@ public interface IHeroAnalyzer
     /// Must be populated before calling <see cref="Analyze"/>.
     /// </summary>
     Dictionary<int, string> ActorNames { get; set; }
+
+    /// <summary>The FellowshipLogs actor id of the player this analysis is being run for.</summary>
     int PlayerId { get; set; }
+
+    /// <summary>The combatant record for <see cref="PlayerId"/>, resolved from the report's combatant list.</summary>
     Combatant SelectedCombatant { get; }
 
     /// <summary>
@@ -37,5 +41,10 @@ public interface IHeroAnalyzer
     /// </summary>
     Pull? SelectedPull { get; set; }
 
+    /// <summary>Runs the full normalize-dispatch-accumulate pipeline over <paramref name="events"/> and produces the hero's analysis result.</summary>
+    /// <param name="events">The player's combat log event stream for the report.</param>
+    /// <param name="playerId">The FellowshipLogs actor id of the player being analyzed.</param>
+    /// <param name="fight">The report fight the events belong to.</param>
+    /// <returns>The completed hero analysis, ready for the guide and statistics views.</returns>
     Task<HeroAnalysisResult> Analyze(IReadOnlyList<Event> events, int playerId, ReportFight fight);
 }

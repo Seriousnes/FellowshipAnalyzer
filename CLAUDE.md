@@ -33,12 +33,6 @@ dotnet run --project src/FellowshipAnalyzer.AppHost/FellowshipAnalyzer.AppHost.c
 
 # Run all tests
 dotnet test FellowshipAnalyzer.slnx --no-build
-
-# Run tests for a single hero
-dotnet test tests/FellowshipAnalyzer.Heroes.Rime.Tests/FellowshipAnalyzer.Heroes.Rime.Tests.csproj --no-build
-
-# Run a single test by name filter
-dotnet test tests/FellowshipAnalyzer.Heroes.Rime.Tests/FellowshipAnalyzer.Heroes.Rime.Tests.csproj --no-build --filter "FullyQualifiedName~SomeTestName"
 ```
 
 The local API requires Fellowship Logs credentials on the **DevApi** project (Aspire does not forward AppHost user secrets to children):
@@ -72,11 +66,11 @@ FellowshipLogs GraphQL JSON (player events, plus the fight death stream merged i
 - `src/FellowshipAnalyzer.Core.Contracts` - DTOs/interfaces that cross the API/client boundary, the `FSLID` spell-id struct, and the C# design tokens (`FaTheme`, `FaPalette`, `FaToken`, `FaVar`).
 - `src/FellowshipAnalyzer.Generators` - Roslyn **source** generators (parser ctor, typed module accessors, pull-analyzer surfaces, module/normalizer type lists, spell registries, talent id constants, hero DI manifest). Hero registration is **reflection-free** for AOT.
 - `src/FellowshipAnalyzer.Analyzers` - Roslyn **diagnostic** analyzers (FA00xx), distinct from gameplay "analyzers".
-- `src/Heroes/FellowshipAnalyzer.Heroes.{Hero}` - one Razor class library per hero: Aeona, Ardeos, Elarion, Gunde, Helena, Mara, Meiko, Rime, Sylvie, Tariq, Vigour, Xavian. **Ardeos and Elarion are the most built-out; Rime is the compact reference that covers modules, guides, and statistics.**
+- `src/Heroes/FellowshipAnalyzer.Heroes.{Hero}` - one Razor class library per hero. **Ardeos and Elarion are the most built-out; Rime is the compact reference that covers modules, guides, and statistics.**
 - `src/FellowshipAnalyzer/FellowshipAnalyzer` - the Blazor WASM client. `FellowshipAnalyzer.Api` (Azure Functions), `Api.Core`, and `Api.GraphQL` cover Fellowship Logs access; `DevApi` and `DevHost` are the Aspire-wired local variants.
 - `src/FellowshipAnalyzer.SpellData` and `src/FellowshipAnalyzer.SpellStudio` - offline merge engine that produces `data/spelldb.json`, plus the Blazor Server app for curating `data/overrides.json`.
 - `src/FellowshipAnalyzer.DesignSystem` - Blazor Server showcase hosting the runtime design-token editor.
-- `src/FellowshipAnalyzer.Tools` - file-based `dotnet` scripts (rebuild-spelldb, emit-palette, fetch-report, fetch-abilities, refresh-schema, update-spells, event-schema, resource-analysis, probe-deaths). Use the **run-tool** skill.
+- `src/FellowshipAnalyzer.Tools` - file-based `dotnet` scripts. Use the **run-tool** skill.
 - `src/FellowshipAnalyzer.AppHost` and `src/FellowshipAnalyzer.ServiceDefaults` - Aspire orchestration and shared service defaults.
 
 **Hero parser pattern** - small and declarative; the source generator does the heavy lifting:
@@ -101,7 +95,7 @@ The generator emits the constructor, strongly-typed module properties (for examp
 - `[AddState<T>]` and `[AddModule<T>]` register parse-lifetime modules. `[AddAnalyzer<T>]` registers pull-lifetime `Analyzer`s, constructed fresh for each pull and selected by `[ForPull(PullKind.Single | PullKind.Multi, Boss = PullBoss.Boss)]`.
 - Subscribe with `[On<TEvent>(By = Actor.Player, Spell = ...)]` on handler methods; the generator wires each into `EventEmitter` with inlined predicates. Any other setup goes in the constructor.
 - Accumulate during dispatch and expose results as get-only computed properties over retained state. An analyzer reads its own `Pull` property.
-- Modules are constructed by a generator-emitted factory. `Owner` and `Priority` are assigned by the parser afterwards, so do **not** accept `CombatLogParser` in a module constructor. Declare a sibling-module dependency with `[Uses<T>]` and read the generated accessor.
+- Modules are constructed by a generator-emitted factory. `Owner` and `Priority` are assigned by the parser afterwards, so do **not** accept `CombatLogParser` in a module constructor. Declare a sibling-module dependency with `[Dependency<T>]` and read the generated accessor.
 - Gate a module on a talent with `[RequiresTalent(ArdeosTalents.RollingFlames)]`, using the generated `{Hero}Talents` constants.
 - Order modules relative to each other with `[Before<T>]` / `[After<T>]`; declaration order is the tie-break.
 - Razor reads analyzer instances directly: `Parser.SearingBlazeAnalyzers` for the cross-pull list, `Parser.For(pull).{Surface}` or `pull.{Surface}` for a single pull. Share a surface across pull shapes with a marker interface deriving from `IAnalyzerSurface`.

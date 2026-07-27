@@ -147,7 +147,7 @@
       "id": 2280,
       "kind": "ability",
       "name": "Owed in Blood",
-      "note": "GA_Gunde_Talent_DotTransfer_Aoe, the talented AoE conversion that replaces the base Owed in Blood cast (2298) when the talent is taken; EnabledInGame but outside the Kit, so the source-derived scope omits it. Add directly under a distinct member name because it shares the base cast's name."
+      "note": "GA_Gunde_Talent_DotTransfer_Aoe, the AoE component the DotTransfer talent adds to the base Owed in Blood cast (2298); not a player-castable ability, and present in none of the fetched logs, none of which ran the talent. EnabledInGame but outside the Kit, so the source-derived scope omits it; curated so the id resolves, under a distinct member name because it shares the base cast's name."
     },
     "RendManager": {
       "id": 2286,

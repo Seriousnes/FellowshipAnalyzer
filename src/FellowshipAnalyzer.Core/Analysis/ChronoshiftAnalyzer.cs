@@ -25,26 +25,15 @@ public sealed partial class ChronoshiftAnalyzer(
     Lazy<SpellUsable> spellUsable,
     Lazy<StatTracker> statTracker) : Analyzer
 {
-    /// <summary>
-    /// 800% added cooldown recovery per the spell description, a term on the shared pool rather than a
-    /// standalone multiplier, taking an ability with no haste contribution to 9× recovery. Matches
-    /// <c>Channel.WhileActiveAddedCooldownRecovery</c> in the <c>gear_data.json</c> export.
-    /// </summary>
     private const double AddedRecovery = 8.0;
 
-    /// <summary>The single modifier instance added for each channel window, so removal matches by equality.</summary>
     private static readonly CooldownModifier AddedRecoveryModifier = new(AddedRecovery);
 
-    /// <summary>Chronoshift channels a fixed 3 seconds unless an EndChannel cancels it early.</summary>
     private const int ChannelDurationMs = 3000;
 
     private readonly List<ChronoshiftWindow> _windows = [];
     private readonly Dictionary<int, int> _recoveryBySpell = [];
 
-    /// <summary>
-    /// Cooldown remaining per spell at the open of the current window, captured <i>after</i> the added
-    /// recovery is applied, so it is already the boosted-rate wallclock time each spell needs to finish.
-    /// </summary>
     private readonly Dictionary<int, int> _snapshot = [];
     private int? _scheduledEnd;
     private int _openTimestamp;
@@ -82,13 +71,6 @@ public sealed partial class ChronoshiftAnalyzer(
             FabricateChannelEnd(e);
     }
 
-    /// <summary>
-    /// Fabricates the channel's end at the scheduled 3-second mark for a fully channelled cast the log
-    /// left without an <see cref="EndChannelEvent"/>, completing the begin/end contract so
-    /// <see cref="OnEndChannel"/> closes the window on a real, in-order event. The fabricated end reuses
-    /// the begin's <see cref="BeginChannelEvent.Ability"/> and <see cref="BeginChannelEvent.SourceId"/>,
-    /// so it satisfies the same <c>By = Player, Spell = Chronoshift</c> filter the begin already matched.
-    /// </summary>
     private void FabricateChannelEnd(BeginChannelEvent begin)
     {
         begin.EndChannel = Owner.EventEmitter.FabricateEvent(new EndChannelEvent
@@ -102,14 +84,6 @@ public sealed partial class ChronoshiftAnalyzer(
         }, begin);
     }
 
-    /// <summary>
-    /// Captures the per-spell cooldown snapshot for the window just opened. This runs on the fabricated
-    /// change event rather than inside <see cref="OnBeginChannel"/> because <see cref="SpellUsable"/>
-    /// rescales in-flight cooldowns when that event is dispatched, and the snapshot must hold the
-    /// boosted-rate remaining times; the <c>[After&lt;SpellUsable&gt;]</c> ordering guarantees the
-    /// rescale has happened. Matching by reference keeps another source's equal-valued modifier from
-    /// re-arming the snapshot.
-    /// </summary>
     [On<ChangeCooldownModifierEvent>]
     private void OnChangeCooldownModifier(ChangeCooldownModifierEvent e)
     {
@@ -122,12 +96,6 @@ public sealed partial class ChronoshiftAnalyzer(
     [On<EndChannelEvent>(By = Actor.Player, Spell = nameof(Spells.Chronoshift))]
     private void OnEndChannel(EndChannelEvent e) => CloseWindow(e.Timestamp, e);
 
-    /// <summary>
-    /// Closes the active recovery window at the earlier of <paramref name="timestamp"/> and the
-    /// scheduled 3-second end, removing the acceleration modifier and attributing the bonus recovery
-    /// each on-cooldown ability received to it. A no-op when no window is open, so a stray or duplicate
-    /// close cannot drive the pool negative.
-    /// </summary>
     private void CloseWindow(int timestamp, Event? trigger)
     {
         if (_scheduledEnd is not int scheduledEnd) return;
@@ -148,6 +116,7 @@ public sealed partial class ChronoshiftAnalyzer(
         _windows[^1] = _windows[^1] with { EndTimestamp = closeAt };
     }
 
+    /// <inheritdoc/>
     public override Type? StatisticsComponentType => typeof(ChronoshiftStatistics);
 }
 

@@ -14,8 +14,10 @@ namespace FellowshipAnalyzer.Core.Analysis.Normalizers;
 /// </summary>
 public sealed class ResourceNormalizer : IEventNormalizer
 {
+    /// <inheritdoc/>
     public int Priority => -50;
 
+    /// <inheritdoc/>
     public List<Event> Normalize(List<Event> events, int playerId)
     {
         foreach (var e in events)

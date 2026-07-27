@@ -4,49 +4,21 @@ using FellowshipAnalyzer.Core.Events;
 
 namespace FellowshipAnalyzer.Heroes.Tariq.Modules;
 
-/// <summary>
-/// Measures how quickly Tariq converts a Focused Wrath cast into a Fury spender on every pull,
-/// regardless of shape. Focused Wrath discounts the Fury cost of the next spenders and adds damage on
-/// top, and its charges are consumed by spenders alone, so the whole value of the cooldown is the
-/// spender that follows it: the latency between the two is the measure here.
-/// </summary>
-/// <remarks>
-/// Pairing keys off the Focused Wrath <see cref="CastEvent"/>, never off the buff. The Mouth for War
-/// talent applies the same self-buff without a cast, many times per pull, so buff applications vastly
-/// outnumber casts and would drown the reading; only a cast is a cooldown the player spent and can
-/// therefore mistime.
-/// <para>
-/// Casts and spenders are held in one dispatch-ordered list and paired by scanning forward, so a
-/// spender logged at the same millisecond as the cast (Focused Wrath is off the global cooldown) pairs
-/// correctly on stream order rather than on a timestamp tie-break.
-/// </para>
-/// </remarks>
 [ForPull(PullKind.Single | PullKind.Multi)]
 public sealed partial class FocusedWrathAnalyzer : Analyzer
 {
-    /// <summary>
-    /// Milliseconds the Focused Wrath self-buff lasts, the span a spender has to capture it. Season 3
-    /// <c>hero_data</c> Kit constant (Focused Wrath Duration 15).
-    /// </summary>
     public const int BuffDurationMs = 15_000;
 
     private readonly List<TrackedCast> _tracked = [];
 
-    private List<FocusedWrathCast>? _evaluated;
-    private List<FocusedWrathCast> Evaluated => _evaluated ??= Build();
+    private List<FocusedWrathCast> Evaluated => field ??= Build();
 
-    /// <summary>Every Focused Wrath cast in the pull, in the order it was cast.</summary>
     public IReadOnlyList<FocusedWrathCast> Casts => Evaluated;
 
     public int CastCount => Evaluated.Count;
 
-    /// <summary>Casts that no spender followed inside the buff.</summary>
     public int UnpairedCasts => Evaluated.Count(cast => cast.LatencyToSpenderMs is null);
 
-    /// <summary>
-    /// Mean milliseconds from a cast to the spender that captured it, over the paired casts. Null when
-    /// no cast in the pull was followed by a spender inside the buff.
-    /// </summary>
     public double? AverageLatencyMs
     {
         get
@@ -109,10 +81,4 @@ public sealed partial class FocusedWrathAnalyzer : Analyzer
     private readonly record struct TrackedCast(int Timestamp, bool IsFocusedWrath);
 }
 
-/// <summary>One Focused Wrath cast and the spenders that captured it.</summary>
-/// <param name="Timestamp">Fight-relative timestamp of the cast.</param>
-/// <param name="LatencyToSpenderMs">
-/// Milliseconds to the first spender cast inside the buff, or null when none followed.
-/// </param>
-/// <param name="SpendersInBuff">Spender casts within <see cref="FocusedWrathAnalyzer.BuffDurationMs"/> of the cast.</param>
 public readonly record struct FocusedWrathCast(int Timestamp, int? LatencyToSpenderMs, int SpendersInBuff);

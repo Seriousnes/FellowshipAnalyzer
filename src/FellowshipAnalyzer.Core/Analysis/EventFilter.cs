@@ -7,6 +7,10 @@ using static FellowshipAnalyzer.Core.Analysis.Analyzer;
 
 namespace FellowshipAnalyzer.Core.Analysis;
 
+/// <summary>
+/// Accumulates criteria expressions and combines them with logical AND into a single compiled
+/// predicate that <see cref="EventEmitter"/> tests against each dispatched event.
+/// </summary>
 public abstract class EventFilter
 {
     private readonly List<Expression<Func<Event, bool>>> _conditions = [];
@@ -14,8 +18,14 @@ public abstract class EventFilter
 
     internal CombatLogParser Owner { get; private set; } = null!;
 
+    /// <summary>Adds an expression that must also hold for an event to pass this filter.</summary>
     public void AddCriteria(Expression<Func<Event, bool>> expression) => _conditions.Add(expression);
 
+    /// <summary>
+    /// Combines every criterion added so far into a single predicate and compiles it, caching the
+    /// result so repeated calls do not recompile. <paramref name="owner"/> is captured as
+    /// <see cref="Owner"/> so <c>By</c>/<c>To</c> criteria can resolve the current player.
+    /// </summary>
     public Func<Event, bool> Compile(CombatLogParser owner)
     {
         Owner = owner;
@@ -45,20 +55,33 @@ public abstract class EventFilter
     }
 }
 
+/// <summary>A filter that matches every dispatched event regardless of its concrete type.</summary>
 public class AnyEventFilter : EventFilter<Event>
 {
+    /// <summary>Matches unconditionally; every event passes.</summary>
     protected override Expression<Func<Event, bool>> GetInitialCriteria() => static e => true;
 }
 
+/// <summary>
+/// Fluent builder for a compiled predicate over events of type <typeparamref name="T"/>. Starts
+/// from a type check and narrows with <see cref="By"/>, <see cref="To"/>, <see cref="Spell"/>, and
+/// <see cref="ExtraSpell"/>.
+/// </summary>
 public class EventFilter<T> : EventFilter where T : Event
 {
+    /// <summary>Creates a filter seeded with <see cref="GetInitialCriteria"/> as its first criterion.</summary>
     public EventFilter()
     {
         AddCriteria(GetInitialCriteria());
     }
 
+    /// <summary>The starting criterion for this filter: that the event is a <typeparamref name="T"/>.</summary>
     protected virtual Expression<Func<Event, bool>> GetInitialCriteria() => static e => e is T;
 
+    /// <summary>
+    /// Narrows the filter to events sourced from the selected player and/or their pet, per the
+    /// <c>SELECTED_PLAYER</c> / <c>SELECTED_PLAYER_PET</c> flags in <paramref name="by"/>.
+    /// </summary>
     public EventFilter<T> By(int by)
     {
         if (!ValidateBy(by))
@@ -75,6 +98,10 @@ public class EventFilter<T> : EventFilter where T : Event
         return this;
     }
 
+    /// <summary>
+    /// Narrows the filter to events targeting the selected player and/or their pet, per the
+    /// <c>SELECTED_PLAYER</c> / <c>SELECTED_PLAYER_PET</c> flags in <paramref name="to"/>.
+    /// </summary>
     public EventFilter<T> To(int to)
     {
         var toCriteria = GetToCheck(to);
@@ -86,6 +113,7 @@ public class EventFilter<T> : EventFilter where T : Event
         return this;
     }
 
+    /// <summary>Narrows the filter to events whose <see cref="IAbilityEvent.Ability"/> is one of <paramref name="spells"/>.</summary>
     public EventFilter<T> Spell(params Spell[] spells)
     {
         var ids = spells.Select(s => s.FSLID).ToArray();
@@ -93,6 +121,7 @@ public class EventFilter<T> : EventFilter where T : Event
         return this;
     }
 
+    /// <summary>Narrows the filter to events whose <see cref="IExtraAbilityEvent.ExtraAbility"/> is one of <paramref name="spells"/>.</summary>
     public EventFilter<T> ExtraSpell(params Spell[] spells)
     {
         var ids = spells.Select(s => s.FSLID).ToArray();

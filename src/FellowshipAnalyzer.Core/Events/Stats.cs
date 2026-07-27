@@ -1,15 +1,24 @@
 namespace FellowshipAnalyzer.Core.Events;
 
+/// <summary>A snapshot of a player's derived combat stats, as reported by <see cref="ChangeStatsEvent"/>.</summary>
 public class Stats
 {
+    /// <summary>Intellect, the primary stat driving spell power.</summary>
     public double? Intellect { get; set; }
+    /// <summary>Stamina, the stat driving maximum health.</summary>
     public double? Stamina { get; set; }
+    /// <summary>Armor, reducing incoming physical damage.</summary>
     public double? Armor { get; set; }
+    /// <summary>Critical strike rating.</summary>
     public double? Crit { get; set; }
+    /// <summary>Haste rating, reducing cast times, GCD, and cooldowns.</summary>
     public double? Haste { get; set; }
+    /// <summary>Expertise rating.</summary>
     public double? Expertise { get; set; }
+    /// <summary>Spirit, driving resource or healing regeneration depending on hero.</summary>
     public double? Spirit { get; set; }
 
+    /// <summary>Computes the per-stat difference between two snapshots, treating missing values as zero.</summary>
     public static Stats operator -(Stats a, Stats b) => new()
     {
         Intellect = (a.Intellect ?? 0) - (b.Intellect ?? 0),

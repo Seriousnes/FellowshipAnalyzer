@@ -24,6 +24,7 @@ public sealed class HeroAnalysisResult
     /// </summary>
     public required IReadOnlyList<StatisticEntry> Statistics { get; init; }
 
+    /// <summary>Every module constructed for this parse, in the order the parser built them.</summary>
     public required IReadOnlyList<Module> Modules { get; init; }
 
     /// <summary>

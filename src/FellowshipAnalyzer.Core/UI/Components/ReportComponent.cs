@@ -21,12 +21,15 @@ namespace FellowshipAnalyzer.Core.UI.Components;
 /// </typeparam>
 public abstract class ReportComponent<TParser> : ComponentBase where TParser : CombatLogParser
 {
+    /// <summary>The report's fight start and end timestamps, cascaded from the report shell.</summary>
     [CascadingParameter]
     protected FightTimeContext FightTime { get; set; } = null!;
 
+    /// <summary>The hero analysis result being rendered, cascaded from the report shell.</summary>
     [CascadingParameter]
     protected HeroAnalysisResult Result {get; set; } = null!;
 
+    /// <summary>The parser that produced <see cref="Result"/>, cascaded from the report shell as <see cref="Parser"/>'s untyped source.</summary>
     [CascadingParameter]
     public IHeroAnalyzer Owner { get; set; } = null!;
 

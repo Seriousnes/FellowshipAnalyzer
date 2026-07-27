@@ -69,7 +69,7 @@
             stats.Add(new OverviewStat(
                 $"{uptimeShare:F0}%",
                 $"{name} Uptime",
-                $"Share of pull time the {name} buff stood."));
+                $"Share of pull time the {name} buff was active."));
         }
 
         var wrathWindows = analyzers.Sum(analyzer => analyzer.WindowsFor(RimeMajorCooldown.WrathOfWinter).Count);

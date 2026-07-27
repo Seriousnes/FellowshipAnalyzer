@@ -3,57 +3,13 @@ using FellowshipAnalyzer.Core.Events;
 
 namespace FellowshipAnalyzer.Heroes.Rime.Modules;
 
-/// <summary>
-/// Measures how much of a pull Rime spent with the global cooldown rolling. Every second the GCD
-/// sits idle is Anima and Winter Orb generation that never happened, and Rime's generators are
-/// cheap enough that there is always something to press between mechanics, so idle GCD time reads
-/// as straight throughput loss. This analyzer measures cast uptime only; it says nothing about
-/// which ability should have filled a gap.
-/// </summary>
-/// <remarks>
-/// An activity window is opened by any player event carrying a fabricated
-/// <see cref="GlobalCooldownEvent"/>: a <see cref="CastEvent"/> for an on-GCD cast and a
-/// <see cref="BeginChannelEvent"/> for an on-GCD channel, which is where the core
-/// <c>GlobalCooldown</c> module attaches a channel's GCD. Casts with no GCD event are off-GCD
-/// utility (Ice Dash, Frost Ward, Brain Freeze) and neither open a window nor split one. No event
-/// is fabricated here, so nothing is back-dated; the windows are derived entirely from links the
-/// normalizers already established.
-/// <para>
-/// A window runs from the start of the action to the end of the commitment it created:
-/// <list type="bullet">
-///   <item>
-///     It starts at the linked <see cref="BeginCastEvent"/> when the cast completed a cast bar,
-///     because a <see cref="CastEvent"/> is logged at cast completion and the time spent casting is
-///     activity, not idle. Instants and channels start at their own timestamp.
-///   </item>
-///   <item>
-///     It ends at the later of the GCD expiring and the channel finishing, read from the linked
-///     <see cref="EndChannelEvent"/>'s timestamp. That event's own <c>Start</c> and <c>Duration</c>
-///     fields are not populated by Fellowship Logs, so the channel end is the only usable reading,
-///     and a channel with no logged end falls back to its GCD.
-///   </item>
-/// </list>
-/// Windows are clamped to the pull, merged, and then walked in start order, so a back-dated cast
-/// bar overlapping an earlier window cannot invent a gap.
-/// </para>
-/// <para>
-/// The measured span runs from the later of the pull start and the first activity window to the
-/// pull end, so a pull is never charged for time before the player's first action. Idle stretches
-/// shorter than <see cref="MinimumGapMs"/> are latency and reaction noise rather than lost casts
-/// and are counted as active, including a short idle tail at the pull end, which keeps
-/// <see cref="DowntimeMs"/> exactly equal to the total of every recorded gap.
-/// </para>
-/// </remarks>
 [ForPull(PullKind.Single | PullKind.Multi)]
 public sealed partial class DowntimeAnalyzer : Analyzer
 {
-    /// <summary>Idle stretches shorter than this are treated as latency noise and counted as active.</summary>
     public const int MinimumGapMs = 500;
 
-    /// <summary>How many gaps <see cref="Gaps"/> surfaces; <see cref="GapCount"/> and <see cref="DowntimeMs"/> cover every gap.</summary>
     public const int TopGapLimit = 10;
 
-    /// <summary>Busy window length used when an anchoring event carries no usable GCD duration.</summary>
     public const int FallbackGcdMs = 1500;
 
     private readonly List<ActivityWindow> _windows = [];
@@ -66,16 +22,12 @@ public sealed partial class DowntimeAnalyzer : Analyzer
     private int _gapCount;
     private int _longestGapMs;
 
-    /// <summary>Milliseconds from the first activity window to the pull end.</summary>
     public int MeasuredSpanMs { get { EnsureMaterialized(); return _measuredSpanMs; } }
 
-    /// <summary>Milliseconds of <see cref="MeasuredSpanMs"/> spent casting, channelling, or on the GCD.</summary>
     public int ActiveMs { get { EnsureMaterialized(); return _activeMs; } }
 
-    /// <summary>Milliseconds of <see cref="MeasuredSpanMs"/> spent idle across every recorded gap.</summary>
     public int DowntimeMs { get { EnsureMaterialized(); return Math.Max(0, _measuredSpanMs - _activeMs); } }
 
-    /// <summary>Share of the measured span spent active, from 0 to 1; 1 when there is nothing to measure.</summary>
     public double ActiveRatio
     {
         get
@@ -85,13 +37,10 @@ public sealed partial class DowntimeAnalyzer : Analyzer
         }
     }
 
-    /// <summary>Every idle stretch of at least <see cref="MinimumGapMs"/>, including a trailing idle at the pull end.</summary>
     public int GapCount { get { EnsureMaterialized(); return _gapCount; } }
 
-    /// <summary>The longest single idle stretch in milliseconds.</summary>
     public int LongestGapMs { get { EnsureMaterialized(); return _longestGapMs; } }
 
-    /// <summary>The <see cref="TopGapLimit"/> longest gaps, longest first.</summary>
     public IReadOnlyList<DowntimeGap> Gaps { get { EnsureMaterialized(); return _gaps; } }
 
     [On<BeginCastEvent>(By = Actor.Player)]
@@ -209,5 +158,4 @@ public sealed partial class DowntimeAnalyzer : Analyzer
     private readonly record struct ActivityWindow(int Start, int End);
 }
 
-/// <summary>One idle stretch where the global cooldown was rolling on nothing.</summary>
 public sealed record DowntimeGap(int StartTimestamp, int DurationMs);

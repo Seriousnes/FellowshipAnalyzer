@@ -87,10 +87,6 @@
         return $"{seconds:F1}s";
     }
 
-    /// <summary>
-    /// Returns the auras to render. <see cref="VisibleAuraIds"/> takes precedence over
-    /// <see cref="HighlightedSpellIds"/>; when both are null, all auras are returned.
-    /// </summary>
     private IEnumerable<TrackedBuffEvent> AurasToRender()
     {
         if (VisibleAuraIds is not null)

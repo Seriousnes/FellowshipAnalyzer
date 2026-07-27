@@ -19,6 +19,7 @@ public sealed partial class SpellUsable(
     private readonly Dictionary<int, CooldownInfo> _cooldowns = [];
     private readonly List<TrackedAbilityCast> _casts = [];
 
+    /// <summary>Every player cast recorded during dispatch, in the order it occurred.</summary>
     public IReadOnlyList<TrackedAbilityCast> Casts => _casts;
 
     /// <summary>Returns the IDs of all spells currently on cooldown (any charges on cooldown).</summary>
@@ -60,15 +61,23 @@ public sealed partial class SpellUsable(
         return remaining + ApplyReduction(spellId, milliseconds - remaining, timestamp);
     }
 
+    /// <summary>Whether <paramref name="spellId"/> has at least one charge available to cast right now.</summary>
     public bool IsAvailable(int spellId) => !_cooldowns.TryGetValue(spellId, out var cd) || cd.ChargesAvailable > 0;
 
+    /// <summary>Whether any charge of <paramref name="spellId"/> is currently recharging.</summary>
     public bool IsOnCooldown(int spellId) => _cooldowns.ContainsKey(spellId);
 
+    /// <summary>How many charges of <paramref name="spellId"/> can be cast right now.</summary>
     public int ChargesAvailable(int spellId) =>
         _cooldowns.TryGetValue(spellId, out var cd)
             ? cd.ChargesAvailable
             : _abilities.GetMaxCharges(spellId);
 
+    /// <summary>
+    /// Milliseconds until <paramref name="spellId"/>'s next charge recharges, evaluated at
+    /// <paramref name="atTimestamp"/> (defaulting to the current dispatch time). Zero when a charge is
+    /// already available.
+    /// </summary>
     public int CooldownRemaining(int spellId, int? atTimestamp = null)
     {
         var ts = atTimestamp ?? Owner.CurrentTimestamp;
@@ -91,6 +100,12 @@ public sealed partial class SpellUsable(
         return baseDurationMs <= 0 ? 0 : (int)(_statTracker.ScaleByCooldownReduction(ability, baseDurationMs) / EffectiveRate(spellId));
     }
 
+    /// <summary>
+    /// Consumes a charge of <paramref name="spellId"/>: starts a fresh recharge if none is running, spends an
+    /// already-available charge if one exists, or, if every charge is spent, forces the current recharge to
+    /// complete before beginning a new one, so the tracker stays in sync with an in-game cast it did not
+    /// expect to be possible.
+    /// </summary>
     public void BeginCooldown(int spellId, int? timestamp = null)
     {
         var ts = timestamp ?? Owner.CurrentTimestamp;
@@ -180,13 +195,6 @@ public sealed partial class SpellUsable(
         BeginCooldown(e.Ability.Id, e.Timestamp);
     }
 
-    /// <summary>
-    /// Records a debug annotation describing the cooldown state at a player cast. 
-    /// A cast that lands while the tracker believes the spell holds no charges and whose next recharge 
-    /// is still more than <see cref="CooldownLagMargin"/> ms away is flagged (casting with no charges is impossible
-    /// in-game, so its configured cooldown or charge count is likely too slow); otherwise a spell
-    /// that is not in the hero's spellbook is flagged.
-    /// </summary>
     private void RecordCooldownDebugInfo(CastEvent e)
     {
         var ability = _abilities.GetAbility(e.Ability.Id);
@@ -217,14 +225,6 @@ public sealed partial class SpellUsable(
     private void OnFilterCooldown(FilterCooldownInfoEvent e) =>
         BeginCooldown(e.Ability.Id, e.Timestamp);
 
-    /// <summary>
-    /// Applies the state transition for a natural-expiry end at the instant it is dispatched, and only for
-    /// the event object currently held as this spell's pending end. Every other
-    /// <see cref="UpdateSpellUsableEvent"/> (this module's own immediate notifications, other spells) is
-    /// ignored, so the module never loops on its own output. The last charge coming back removes the
-    /// cooldown; an earlier charge restores one and schedules a fresh pending end for the next charge's
-    /// recharge. The just-dispatched end is now a frozen historical event and is never reused.
-    /// </summary>
     [On<UpdateSpellUsableEvent>]
     private void OnUpdateSpellUsable(UpdateSpellUsableEvent e)
     {
@@ -249,12 +249,6 @@ public sealed partial class SpellUsable(
         RefreshPendingEnd(spellId);
     }
 
-    /// <summary>
-    /// Brings this spell's pending natural-expiry end into line with its current <see cref="CooldownInfo"/>.
-    /// A spell with no pending end (a fresh recharge, or one whose end was just dispatched) gets a new event
-    /// created and scheduled; one already pending is mutated in place and repositioned, never discarded, so a
-    /// held reference stays valid across rescales and reductions.
-    /// </summary>
     private void RefreshPendingEnd(int spellId)
     {
         var cd = _cooldowns[spellId];
@@ -286,12 +280,6 @@ public sealed partial class SpellUsable(
         return e;
     }
 
-    /// <summary>
-    /// Writes the payload for the moment <paramref name="cd"/>'s in-flight recharge completes onto
-    /// <paramref name="e"/>: an <see cref="UpdateSpellUsableType.EndCooldown"/> when the restored charge is
-    /// the last one, otherwise a <see cref="UpdateSpellUsableType.RestoreCharge"/> whose charge-start and
-    /// expected-recharge describe the next charge's window. The event timestamp is the true expiry instant.
-    /// </summary>
     private static void ApplyPendingEndState(UpdateSpellUsableEvent e, CooldownInfo cd)
     {
         var endTs = cd.ExpectedEnd;
@@ -336,22 +324,9 @@ public sealed partial class SpellUsable(
         1.0 + HasteRecovery(spellId)
             + _statTracker.CurrentCooldownAcceleration(_abilities.GetAbility(spellId));
 
-    /// <summary>
-    /// Haste's contribution to <paramref name="spellId"/>'s recovery pool: the player's current haste
-    /// when the ability's cooldown is reduced by haste, otherwise 0.
-    /// </summary>
     private double HasteRecovery(int spellId) =>
         _abilities.GetAbility(spellId)?.CooldownReducedByHaste == true ? _haste.Current : 0.0;
 
-    /// <summary>
-    /// Rescales in-flight cooldowns when the tracked Cooldown Acceleration pool changes, the CDA
-    /// counterpart of <see cref="OnChangeHaste"/>. Each in-flight cooldown is compared against its own
-    /// current <see cref="EffectiveRate"/>, which differs per spell because haste and scoped modifiers
-    /// share the pool; a cooldown whose ability the change does not cover keeps its rate and is left
-    /// alone. Comparing against the rate stored on the cooldown makes several pool mutations batched
-    /// under one event converge on the final rate rather than compounding. Ability Cooldown Reduction
-    /// changes are ignored: ACR is snapshot semantics and never rescales a cooldown in flight.
-    /// </summary>
     [On<ChangeCooldownModifierEvent>]
     private void OnChangeCooldownModifier(ChangeCooldownModifierEvent e)
     {
@@ -359,22 +334,9 @@ public sealed partial class SpellUsable(
         RescaleChangedCooldowns(e.Timestamp);
     }
 
-    /// <summary>
-    /// Rescales in-flight haste-reduced cooldowns when the player's haste changes, so their remaining
-    /// time reflects the new recovery rate for the rest of the cooldown. Haste is a term on the same
-    /// pool the tracked acceleration modifiers feed, so this shares the rate-comparison sweep with
-    /// <see cref="OnChangeCooldownModifier"/>: only cooldowns whose <see cref="EffectiveRate"/> actually
-    /// moved (haste-flagged abilities, for a haste change) are touched.
-    /// </summary>
     [On<ChangeHasteEvent>]
     private void OnChangeHaste(ChangeHasteEvent e) => RescaleChangedCooldowns(e.Timestamp);
 
-    /// <summary>
-    /// Sweeps every in-flight cooldown and rescales those whose current <see cref="EffectiveRate"/>
-    /// differs from the rate the cooldown was last scaled at. Any cooldown that had genuinely expired
-    /// already fired its earlier-scheduled end and left <see cref="_cooldowns"/>, so those still present
-    /// are all in flight.
-    /// </summary>
     private void RescaleChangedCooldowns(int timestamp)
     {
         foreach (var spellId in _cooldowns.Keys.ToList())
@@ -388,11 +350,6 @@ public sealed partial class SpellUsable(
         }
     }
 
-    /// <summary>
-    /// Rescales the in-flight cooldown for <paramref name="spellId"/> to <paramref name="newRate"/>:
-    /// remaining time and total RechargeDuration are divided by the change relative to the rate the
-    /// cooldown was last scaled at. OverallStart and ChargeStart are preserved.
-    /// </summary>
     private void HandleChangeRate(int spellId, double newRate, int timestamp)
     {
         var cd = _cooldowns[spellId];
@@ -431,12 +388,6 @@ public sealed partial class SpellUsable(
         });
     }
 
-    /// <param name="Rate">The <see cref="EffectiveRate"/> the cooldown was last scaled at, so a pool
-    /// change can be applied as the ratio between the new rate and this one.</param>
-    /// <param name="PendingEnd">The scheduled natural-expiry event for the in-flight recharge, held so a
-    /// rescale or reduction can mutate and reposition it while it is still in the future, and so its
-    /// dispatch can be recognised by reference. Null between constructing a fresh cooldown and scheduling
-    /// its end.</param>
     private record struct CooldownInfo(
         int OverallStart,
         int ChargeStart,

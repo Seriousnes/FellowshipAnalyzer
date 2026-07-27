@@ -8,7 +8,9 @@ namespace FellowshipAnalyzer.Core.Analysis;
 /// </summary>
 public class Analyzer : EventSubscriber, IAnalyzerSurface
 {
+    /// <summary>Bit flag matching <see cref="Actor.Player"/>, for filters built from a raw <c>int</c> actor mask instead of the <see cref="Actor"/> enum.</summary>
     public const int SELECTED_PLAYER = 1;
+    /// <summary>Bit flag matching <see cref="Actor.Pet"/>, for filters built from a raw <c>int</c> actor mask instead of the <see cref="Actor"/> enum.</summary>
     public const int SELECTED_PLAYER_PET = 2;
 
     /// <summary>
@@ -19,12 +21,6 @@ public class Analyzer : EventSubscriber, IAnalyzerSurface
     /// </summary>
     public Pull Pull { get; internal set; } = null!;
 
-    /// <summary>
-    /// The type under which <paramref name="analyzerType"/> is exposed on pull read surfaces: its
-    /// <see cref="IAnalyzerSurface"/> marker interface if it implements one, otherwise the topmost
-    /// ancestor deriving directly from <see cref="Analyzer"/>. Shape-specialized analyzers that
-    /// share a surface (disjoint <c>[ForPull]</c> filters) thereby feed one cross-pull stream.
-    /// </summary>
     internal static Type GetSurfaceType(Type analyzerType)
     {
         if (FindSurfaceInterface(analyzerType) is { } surface) return surface;
