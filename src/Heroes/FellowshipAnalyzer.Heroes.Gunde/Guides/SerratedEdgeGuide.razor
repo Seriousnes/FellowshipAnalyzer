@@ -1,0 +1,158 @@
+@using Spells = FellowshipAnalyzer.Core.Common.Spells.Gunde.Spells
+@inject GundeCombatLogParser Parser
+
+<GuideSection Title="Serrated Edge">
+    <Explanation>
+        <p>
+            Every <SpellLink Spell="Spells.BloodArc" /> leaves
+            <SpellLink Spell="Spells.SerratedEdge" /> behind, and the next damaging ability eats it
+            for more bleed damage. It cannot be banked, so the only question is which ability follows
+            Blood Arc: <SpellLink Spell="Spells.HeartSplitter" /> and
+            <SpellLink Spell="Spells.GrimCarve" /> are the two worth putting it on, and anything else
+            spends a buff Blood Arc paid a global cooldown for.
+        </p>
+        <p>
+            Each grant below is judged on the ability that actually consumed it, so a pull is read one
+            buff at a time rather than against its own best stretch.
+        </p>
+    </Explanation>
+    <ChildContent>
+        @if (TotalGrants == 0)
+        {
+            <TipBox Variant="TipBoxVariant.Info">
+                No Serrated Edge buff was observed, so either Blood Arc was never cast or none of its buffs closed inside a pull.
+            </TipBox>
+        }
+        else
+        {
+            <CastOverview Title="Serrated Edge Overview" Stats="@BuildOverviewStats()" />
+            <StackedBar Segments="@BuildStackedBar()" />
+            <CastDetail Title="Grants"
+                        Description="Each card is one Serrated Edge buff, rated on the ability that consumed it."
+                        Casts="@BuildPerCastData()" />
+        }
+    </ChildContent>
+</GuideSection>
+
+@code {
+    private List<SerratedEdgeAnalyzer> Analyzers =>
+        [.. Parser.SerratedEdgeAnalyzers.Select(entry => entry.Analyzer)];
+
+    private int TotalGrants => Analyzers.Sum(analyzer => analyzer.JudgedGrants);
+
+    private IEnumerable<OverviewStat> BuildOverviewStats()
+    {
+        var grants = TotalGrants;
+        var wellSpent = Analyzers.Sum(analyzer => analyzer.WellSpent);
+        var misspent = Analyzers.Sum(analyzer => analyzer.Misspent);
+        var unspent = Analyzers.Sum(analyzer => analyzer.Unspent);
+        var rate = grants > 0 ? (int)Math.Round((double)wellSpent / grants * 100) : 0;
+
+        var stats = new List<OverviewStat>
+        {
+            new(
+                $"{grants}",
+                "Grants",
+                "Serrated Edge buffs that were granted and consumed inside a pull."),
+            new(
+                $"{rate}%",
+                "Well Spent",
+                $"{wellSpent} of {grants} grants were consumed by Heart Splitter or Grim Carve.",
+                PercentTier(rate)),
+            new(
+                $"{misspent}",
+                "Spent on Filler",
+                "Grants consumed by an ability other than Heart Splitter or Grim Carve. Hold Blood Arc a beat so one of those follows it."),
+        };
+
+        if (unspent > 0)
+        {
+            stats.Add(new OverviewStat(
+                $"{unspent}",
+                "Unspent",
+                "Grants whose removal had no cast to account for it, so the buff went unused."));
+        }
+
+        return stats;
+    }
+
+    private IEnumerable<StackedBarSegment> BuildStackedBar()
+    {
+        var byConsumer = Analyzers
+            .SelectMany(analyzer => analyzer.Grants)
+            .GroupBy(grant => grant.ConsumerAbilityId)
+            .OrderByDescending(group => group.Count())
+            .ToList();
+
+        return
+        [
+            .. byConsumer.Select(group => new StackedBarSegment(
+                ConsumerName(group.Key),
+                group.Count(),
+                group.Key is { } consumer && SerratedEdgeAnalyzer.IsIntendedConsumer(consumer)
+                    ? PerformanceColors.Good
+                    : PerformanceColors.Fail,
+                $"{ConsumerName(group.Key)}: {group.Count()} grants"))
+        ];
+    }
+
+    private IEnumerable<PerCastData> BuildPerCastData() =>
+        Parser.SerratedEdgeAnalyzers.ToItemRows(
+            Parser, analyzer => analyzer.Grants, (grant, pull) => BuildGrantRow(grant));
+
+    private PerCastRow BuildGrantRow(SerratedEdgeGrant grant)
+    {
+        var perf = grant.WellSpent ? QualitativePerformance.Perfect : QualitativePerformance.Fail;
+
+        var stats = new[]
+        {
+            new PerCastStat(
+                ConsumerName(grant.ConsumerAbilityId),
+                "Consumed By",
+                "The ability that took the buff. Heart Splitter and Grim Carve are the two it is worth spending on.",
+                perf),
+            new PerCastStat(
+                $"{grant.HeldMs / 1000d:0.0}s",
+                "Held",
+                "How long the buff sat before something consumed it."),
+        };
+
+        return new PerCastRow
+        {
+            Performance = perf,
+            Stats = stats,
+            Timestamp = grant.Timestamp,
+            Sequence = BuildSequence(grant, perf),
+            AdditionalContent = new AdditionalContent("Usage Notes", @<div>@BuildNote(grant)</div>),
+        };
+    }
+
+    private static SpellCastEntry[] BuildSequence(SerratedEdgeGrant grant, QualitativePerformance perf) =>
+        grant.ConsumerAbilityId is { } consumer
+            ? [new SpellCastEntry(Spells.BloodArc.FSLID.Value, null), new SpellCastEntry(consumer, perf)]
+            : [new SpellCastEntry(Spells.BloodArc.FSLID.Value, null)];
+
+    private static string BuildNote(SerratedEdgeGrant grant)
+    {
+        if (grant.WellSpent)
+            return $"{ConsumerName(grant.ConsumerAbilityId)} consumed the buff, which is exactly what Blood Arc set it up for.";
+
+        if (grant.ConsumerAbilityId is null)
+            return "The buff was removed with no cast to account for it, so it did nothing. Follow Blood Arc with Heart Splitter or Grim Carve.";
+
+        return $"{ConsumerName(grant.ConsumerAbilityId)} consumed the buff. Hold Blood Arc a beat longer so Heart Splitter or Grim Carve follows it instead.";
+    }
+
+    private static string ConsumerName(int? abilityId) =>
+        abilityId is not { } consumer ? "Nothing"
+        : consumer == Spells.HeartSplitter.FSLID.Value ? "Heart Splitter"
+        : consumer == Spells.GrimCarve.FSLID.Value ? "Grim Carve"
+        : consumer == Spells.Rupture.FSLID.Value ? "Rupture"
+        : consumer == Spells.BloodArc.FSLID.Value ? "Blood Arc"
+        : consumer == Spells.ReaverEdge.FSLID.Value ? "Reaver's Edge"
+        : consumer == Spells.DoubleStrike.FSLID.Value ? "Double Strike"
+        : "Other";
+
+    private static QualitativePerformance PercentTier(int percent) =>
+        PerformanceTiers.FromThresholds(percent, 75, 50, 25);
+}

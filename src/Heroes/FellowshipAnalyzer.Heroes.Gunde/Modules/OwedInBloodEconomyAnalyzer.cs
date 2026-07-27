@@ -7,10 +7,12 @@ namespace FellowshipAnalyzer.Heroes.Gunde.Modules;
 /// <summary>
 /// Measures how well Gunde banked and deployed Blood Feathers. Rend ticks drop feather orbs, picking
 /// one up adds stacks to the Owed in Blood self-buff, and the Owed in Blood ability converts every
-/// held stack one-for-one into Rend on the target. A conversion is therefore worth exactly the pile
-/// standing behind it, and stacks leak in two ways: the buff falls off with stacks still held, and
-/// pickups stop accruing once the pool is pinned at <see cref="MaxStacks"/>. This analyzer records the
-/// size of every conversion, the stacks lost to decay, and the time spent at the cap.
+/// held stack one-for-one into Rend on the target. A conversion is worth the pile standing behind it
+/// and the use it is put to, so each one is judged three ways: the size of the bank against the
+/// <see cref="MaxStacks"/> cap the game allows, whether a Slaughter followed to cash the Rend it
+/// placed, and whether that Slaughter landed inside a Rupture Open Wounds window. Stacks leak in two
+/// further ways - the buff falls off with stacks still held, and pickups stop accruing once the pool
+/// is pinned at the cap - so decay and time at the cap are recorded as well.
 /// </summary>
 /// <remarks>
 /// <para>
@@ -23,6 +25,12 @@ namespace FellowshipAnalyzer.Heroes.Gunde.Modules;
 /// <para>
 /// Both the base cast and <c>Spells.OwedInBloodAoe</c>, the talented variant that replaces it, count
 /// as conversions.
+/// </para>
+/// <para>
+/// Whether a conversion was cashed is settled after the pull closes, because the Slaughter that pays
+/// it out comes later in the stream. Each Slaughter records whether an Open Wounds window was live
+/// when it went out, so a conversion inherits the Rupture pairing from the cast that actually
+/// consumed its Rend rather than from a window that happened to be up when it was pressed.
 /// </para>
 /// <para>
 /// Decay is detected purely from events - a drop in the stack count that no Owed in Blood cast within
@@ -47,7 +55,8 @@ public sealed partial class OwedInBloodEconomyAnalyzer : Analyzer
 {
     /// <summary>
     /// Blood Feather stacks Gunde can hold, shared with <see cref="BloodFeatherTracker"/>; there is no
-    /// generated registry constant for it.
+    /// generated registry constant for it. The cap is also the target a conversion is scored against,
+    /// because a bank is worth exactly the stacks in it and nothing caps it but this.
     /// </summary>
     public const int MaxStacks = BloodFeatherTracker.MaxBloodFeathers;
 
@@ -59,7 +68,22 @@ public sealed partial class OwedInBloodEconomyAnalyzer : Analyzer
     /// </summary>
     public const int ConversionGraceMs = 1_000;
 
-    private readonly List<OwedInBloodConversion> _conversions = [];
+    /// <summary>
+    /// How long after a conversion a Slaughter still counts as the cast that cashed it. Five global
+    /// cooldowns, which is long enough for the Rupture and Heart Splitter a burst puts between the
+    /// two and short enough that the Rend placed has not started decaying away.
+    /// </summary>
+    public const int CashWindowMs = 5_000;
+
+    /// <summary>
+    /// Duration of the Open Wounds debuff Rupture leaves behind, used to bound a window whose removal
+    /// never reached the log. Live Season 3 windows run to 18.0 seconds exactly.
+    /// </summary>
+    public const int OpenWoundsDurationMs = 18_000;
+
+    private readonly List<PendingConversion> _pending = [];
+    private readonly List<SlaughterMark> _slaughters = [];
+    private readonly Dictionary<OpenWoundsTarget, int> _openWoundsUntil = [];
 
     private int _stacks;
     private int _decayedStacks;
@@ -67,22 +91,29 @@ public sealed partial class OwedInBloodEconomyAnalyzer : Analyzer
     private int? _cappedSince;
     private int? _lastConversion;
     private bool _bankObserved;
+    private bool _spiritActive;
     private PendingDecay? _pendingDecay;
 
     private Computed? _computed;
     private Computed Result => _computed ??= Compute();
 
     /// <summary>Every Owed in Blood cast on the pull, in encounter order, with the bank it cashed in.</summary>
-    public IReadOnlyList<OwedInBloodConversion> Conversions => _conversions;
+    public IReadOnlyList<OwedInBloodConversion> Conversions => Result.Conversions;
 
     /// <summary>Blood Feather stacks turned into Rend across every conversion on the pull.</summary>
     public int TotalStacksConverted => Result.TotalStacksConverted;
 
-    /// <summary>The largest single conversion on the pull, or zero when none were made.</summary>
-    public int BestConversion => Result.BestConversion;
-
     /// <summary>Mean conversion size, or zero when no conversion was made.</summary>
     public double AverageConversion => Result.AverageConversion;
+
+    /// <summary>Conversions a Slaughter followed to cash the Rend they placed.</summary>
+    public int CashedBySlaughter => Result.CashedBySlaughter;
+
+    /// <summary>Conversions whose Slaughter also landed inside a Rupture Open Wounds window.</summary>
+    public int PairedWithRupture => Result.PairedWithRupture;
+
+    /// <summary>Conversions made while the Bloodbound Spirit buff was running.</summary>
+    public int OverlappedSpirit => Result.OverlappedSpirit;
 
     /// <summary>Stacks the buff shed without an Owed in Blood cast to account for them.</summary>
     public int DecayedStacks => Result.DecayedStacks;
@@ -94,26 +125,45 @@ public sealed partial class OwedInBloodEconomyAnalyzer : Analyzer
     public int CappedMs => Result.CappedMs;
 
     [On<ApplyBuffEvent>(To = Actor.Player, Spell = nameof(Spells.OwedInBloodSelfBuff))]
-    private void OnBuffApplied(ApplyBuffEvent @event) => SetStacks(@event.Timestamp, 1);
+    private void OnBuffApplied(ApplyBuffEvent buffEvent) => SetStacks(buffEvent.Timestamp, 1);
 
     [On<ApplyBuffStackEvent>(To = Actor.Player, Spell = nameof(Spells.OwedInBloodSelfBuff))]
-    private void OnStackApplied(ApplyBuffStackEvent @event) => SetStacks(@event.Timestamp, @event.Stack);
+    private void OnStackApplied(ApplyBuffStackEvent buffEvent) => SetStacks(buffEvent.Timestamp, buffEvent.Stack);
 
     [On<RemoveBuffStackEvent>(To = Actor.Player, Spell = nameof(Spells.OwedInBloodSelfBuff))]
-    private void OnStackRemoved(RemoveBuffStackEvent @event) => SetStacks(@event.Timestamp, @event.Stack);
+    private void OnStackRemoved(RemoveBuffStackEvent buffEvent) => SetStacks(buffEvent.Timestamp, buffEvent.Stack);
 
     [On<RemoveBuffEvent>(To = Actor.Player, Spell = nameof(Spells.OwedInBloodSelfBuff))]
-    private void OnBuffRemoved(RemoveBuffEvent @event) => SetStacks(@event.Timestamp, 0);
+    private void OnBuffRemoved(RemoveBuffEvent buffEvent) => SetStacks(buffEvent.Timestamp, 0);
+
+    [On<ApplyBuffEvent>(To = Actor.Player, Spell = nameof(Spells.BloodboundSpiritSelfBuff))]
+    private void OnSpiritApplied(ApplyBuffEvent buffEvent) => _spiritActive = true;
+
+    [On<RemoveBuffEvent>(To = Actor.Player, Spell = nameof(Spells.BloodboundSpiritSelfBuff))]
+    private void OnSpiritRemoved(RemoveBuffEvent buffEvent) => _spiritActive = false;
+
+    [On<ApplyDebuffEvent>(By = Actor.Player, Spell = nameof(Spells.OpenWounds))]
+    private void OnOpenWoundsApplied(ApplyDebuffEvent debuffEvent) => OpenWindow(debuffEvent, debuffEvent.Timestamp);
+
+    [On<RefreshDebuffEvent>(By = Actor.Player, Spell = nameof(Spells.OpenWounds))]
+    private void OnOpenWoundsRefreshed(RefreshDebuffEvent debuffEvent) => OpenWindow(debuffEvent, debuffEvent.Timestamp);
+
+    [On<RemoveDebuffEvent>(By = Actor.Player, Spell = nameof(Spells.OpenWounds))]
+    private void OnOpenWoundsRemoved(RemoveDebuffEvent debuffEvent) => _openWoundsUntil.Remove(Key(debuffEvent));
+
+    [On<CastEvent>(By = Actor.Player, Spell = nameof(Spells.Slaughter))]
+    private void OnSlaughter(CastEvent castEvent) =>
+        _slaughters.Add(new SlaughterMark(castEvent.Timestamp, IsOpenWoundsLive(castEvent.Timestamp)));
 
     [On<CastEvent>(By = Actor.Player, Spells = [
         nameof(Spells.OwedInBlood),
         nameof(Spells.OwedInBloodAoe)])]
-    private void OnConverted(CastEvent @event)
+    private void OnConverted(CastEvent castEvent)
     {
-        var reclaimed = ReclaimPendingDecay(@event.Timestamp);
-        _lastConversion = @event.Timestamp;
-        _conversions.Add(new OwedInBloodConversion(
-            @event.Timestamp, reclaimed + _stacks, _bankObserved, @event.Ability.Id));
+        var reclaimed = ReclaimPendingDecay(castEvent.Timestamp);
+        _lastConversion = castEvent.Timestamp;
+        _pending.Add(new PendingConversion(
+            castEvent.Timestamp, reclaimed + _stacks, _bankObserved, castEvent.Ability.Id, _spiritActive));
     }
 
     /// <summary>
@@ -174,10 +224,15 @@ public sealed partial class OwedInBloodEconomyAnalyzer : Analyzer
         _cappedSince = null;
     }
 
+    private void OpenWindow(IHasTargetWithInstanceEvent debuffEvent, int timestamp) =>
+        _openWoundsUntil[Key(debuffEvent)] = timestamp + OpenWoundsDurationMs;
+
+    private bool IsOpenWoundsLive(int timestamp) => _openWoundsUntil.Values.Any(until => until >= timestamp);
+
     /// <summary>
-    /// Folds the conversions into their aggregates, snapshots the decay total, and closes a capped
-    /// span left open at the pull boundary. Computed once, on first read, so every aggregate the
-    /// analyzer exposes comes from the same reading of the pull.
+    /// Pairs each conversion with the Slaughter that cashed it, folds the results into their
+    /// aggregates, and closes a capped span left open at the pull boundary. Computed once, on first
+    /// read, so every figure the analyzer exposes comes from the same reading of the pull.
     /// </summary>
     private Computed Compute()
     {
@@ -185,27 +240,58 @@ public sealed partial class OwedInBloodEconomyAnalyzer : Analyzer
         if (_cappedSince is { } since)
             cappedMs += Math.Max(0, Pull.EndTime - since);
 
+        var conversions = new List<OwedInBloodConversion>(_pending.Count);
         var total = 0;
-        var best = 0;
-        foreach (var conversion in _conversions)
+        foreach (var pending in _pending)
         {
-            total += conversion.StacksConverted;
-            if (conversion.StacksConverted > best)
-                best = conversion.StacksConverted;
+            var cashed = _slaughters.FirstOrDefault(slaughter =>
+                slaughter.Timestamp > pending.Timestamp &&
+                slaughter.Timestamp - pending.Timestamp <= CashWindowMs);
+
+            total += pending.StacksConverted;
+            conversions.Add(new OwedInBloodConversion(
+                pending.Timestamp,
+                pending.StacksConverted,
+                pending.BankObserved,
+                pending.AbilityId,
+                cashed is not null,
+                cashed?.OpenWoundsActive ?? false,
+                pending.SpiritActive));
         }
 
-        var average = _conversions.Count > 0 ? (double)total / _conversions.Count : 0d;
-        return new Computed(total, best, average, cappedMs, _decayedStacks);
+        var average = conversions.Count > 0 ? (double)total / conversions.Count : 0d;
+        return new Computed(
+            conversions,
+            total,
+            average,
+            conversions.Count(conversion => conversion.CashedBySlaughter),
+            conversions.Count(conversion => conversion.PairedWithRupture),
+            conversions.Count(conversion => conversion.SpiritActive),
+            cappedMs,
+            _decayedStacks);
     }
 
-    private readonly record struct Computed(
+    private static OpenWoundsTarget Key(IHasTargetWithInstanceEvent debuffEvent) =>
+        new(debuffEvent.TargetId, debuffEvent.TargetInstance ?? 0);
+
+    private sealed record Computed(
+        IReadOnlyList<OwedInBloodConversion> Conversions,
         int TotalStacksConverted,
-        int BestConversion,
         double AverageConversion,
+        int CashedBySlaughter,
+        int PairedWithRupture,
+        int OverlappedSpirit,
         int CappedMs,
         int DecayedStacks);
 
     private readonly record struct PendingDecay(int Amount, int Timestamp);
+
+    private readonly record struct PendingConversion(
+        int Timestamp, int StacksConverted, bool BankObserved, int AbilityId, bool SpiritActive);
+
+    private sealed record SlaughterMark(int Timestamp, bool OpenWoundsActive);
+
+    private readonly record struct OpenWoundsTarget(int TargetId, int TargetInstance);
 
     /// <summary>One Owed in Blood cast and the Blood Feather bank it converted into Rend.</summary>
     /// <param name="Timestamp">Encounter time of the cast.</param>
@@ -218,5 +304,25 @@ public sealed partial class OwedInBloodEconomyAnalyzer : Analyzer
     /// <param name="AbilityId">
     /// The ability actually cast, either the base Owed in Blood or the talented AoE variant.
     /// </param>
-    public sealed record OwedInBloodConversion(int Timestamp, int StacksConverted, bool BankObserved, int AbilityId);
+    /// <param name="CashedBySlaughter">
+    /// Whether a Slaughter followed within <see cref="CashWindowMs"/> to consume the Rend this
+    /// conversion placed.
+    /// </param>
+    /// <param name="PairedWithRupture">
+    /// Whether that Slaughter also landed inside a Rupture Open Wounds window, so the Rend went out
+    /// under Rupture's bonus.
+    /// </param>
+    /// <param name="SpiritActive">Whether the Bloodbound Spirit buff was running when the cast went out.</param>
+    public sealed record OwedInBloodConversion(
+        int Timestamp,
+        int StacksConverted,
+        bool BankObserved,
+        int AbilityId,
+        bool CashedBySlaughter,
+        bool PairedWithRupture,
+        bool SpiritActive)
+    {
+        /// <summary>The bank as a share (0-1) of the <see cref="MaxStacks"/> cap it could have reached.</summary>
+        public double ShareOfCap => (double)StacksConverted / MaxStacks;
+    }
 }

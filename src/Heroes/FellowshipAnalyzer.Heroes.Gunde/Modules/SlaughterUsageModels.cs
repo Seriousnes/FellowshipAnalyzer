@@ -13,7 +13,8 @@ public enum GundePullShape
 /// <summary>
 /// Per-cast evaluation of a single Slaughter: whether it landed inside a Rupture Open Wounds
 /// window, whether Heart Splitter had been used to build Rend since the previous Slaughter, how
-/// many enemies its bleed spread to, and the Slaughter bleed damage that cast went on to deal.
+/// many enemies its bleed spread to, the Rend it consumed, and the Slaughter bleed damage that cast
+/// went on to deal.
 /// </summary>
 public sealed record SlaughterEvaluation
 {
@@ -33,8 +34,15 @@ public sealed record SlaughterEvaluation
     public required int TargetsHit { get; init; }
 
     /// <summary>
+    /// Rend stacks the cast consumed across every enemy it reached, summed from the Rend removals
+    /// that followed it. A stack count rather than a damage figure, so it reads the same on any gear.
+    /// </summary>
+    public required int RendConsumed { get; init; }
+
+    /// <summary>
     /// Slaughter bleed damage attributed to this cast: every Slaughter damage-over-time tick between
-    /// this cast and the next one. This is the Rend the cast actually cashed out.
+    /// this cast and the next one. This scales with gear, so it is evidence of the payoff rather than
+    /// a measure the cast is judged on.
     /// </summary>
     public required long PayoffDamage { get; init; }
 

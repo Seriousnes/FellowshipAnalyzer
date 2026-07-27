@@ -41,7 +41,6 @@ public sealed class OwedInBloodEconomyTests
         conversion.StacksConverted.ShouldBe(40);
 
         analyzer.TotalStacksConverted.ShouldBe(40);
-        analyzer.BestConversion.ShouldBe(40);
         analyzer.AverageConversion.ShouldBe(40d);
         analyzer.DecayedStacks.ShouldBe(0);
         analyzer.CappedMs.ShouldBe(0);
@@ -64,7 +63,7 @@ public sealed class OwedInBloodEconomyTests
     }
 
     [Fact]
-    public async Task Analyze_TwoConversionsOfDifferentSizes_ReportsBestAndAverage()
+    public async Task Analyze_TwoConversionsOfDifferentSizes_ReportsTheTotalAndAverage()
     {
         var events = new List<Event>
         {
@@ -85,7 +84,6 @@ public sealed class OwedInBloodEconomyTests
         analyzer.Conversions[1].StacksConverted.ShouldBe(60);
 
         analyzer.TotalStacksConverted.ShouldBe(80);
-        analyzer.BestConversion.ShouldBe(60);
         analyzer.AverageConversion.ShouldBe(40d);
         analyzer.DecayedStacks.ShouldBe(0);
     }
@@ -105,7 +103,6 @@ public sealed class OwedInBloodEconomyTests
         analyzer.DecayedStacks.ShouldBe(25);
         analyzer.Conversions.ShouldBeEmpty();
         analyzer.TotalStacksConverted.ShouldBe(0);
-        analyzer.BestConversion.ShouldBe(0);
         analyzer.AverageConversion.ShouldBe(0d);
     }
 
@@ -221,7 +218,6 @@ public sealed class OwedInBloodEconomyTests
         conversion.BankObserved.ShouldBeFalse();
 
         analyzer.TotalStacksConverted.ShouldBe(0);
-        analyzer.BestConversion.ShouldBe(0);
         analyzer.DecayedStacks.ShouldBe(0);
     }
 
@@ -652,6 +648,218 @@ public sealed class OwedInBloodEconomyTests
         tracker.StatisticsComponentType.ShouldBeNull();
         result.Statistics.ShouldNotContain(entry => entry.ComponentType == typeof(BloodFeatherStatistics));
     }
+
+    [Fact]
+    public async Task Analyze_ConversionCashedByASlaughterInsideOpenWounds_IsTheFullChain()
+    {
+        var events = new List<Event>
+        {
+            BuffApplied(1_000),
+            StackApplied(2_000, 120),
+            OpenWoundsApplied(9_000),
+            Cast(Spells.OwedInBlood.FSLID, 10_000),
+            BuffRemoved(10_100),
+            Cast(Spells.Slaughter.FSLID, 11_000),
+        };
+
+        var analyzer = await AnalyzeAsync(events);
+
+        var conversion = analyzer.Conversions.ShouldHaveSingleItem();
+        conversion.CashedBySlaughter.ShouldBeTrue();
+        conversion.PairedWithRupture.ShouldBeTrue();
+        conversion.SpiritActive.ShouldBeFalse();
+        conversion.ShareOfCap.ShouldBe(120d / OwedInBloodEconomyAnalyzer.MaxStacks);
+
+        analyzer.CashedBySlaughter.ShouldBe(1);
+        analyzer.PairedWithRupture.ShouldBe(1);
+        analyzer.OverlappedSpirit.ShouldBe(0);
+    }
+
+    [Fact]
+    public async Task Analyze_ConversionCashedOutsideOpenWounds_IsCashedButNotPaired()
+    {
+        var events = new List<Event>
+        {
+            BuffApplied(1_000),
+            StackApplied(2_000, 60),
+            Cast(Spells.OwedInBlood.FSLID, 10_000),
+            BuffRemoved(10_100),
+            Cast(Spells.Slaughter.FSLID, 11_000),
+        };
+
+        var analyzer = await AnalyzeAsync(events);
+
+        var conversion = analyzer.Conversions.ShouldHaveSingleItem();
+        conversion.CashedBySlaughter.ShouldBeTrue();
+        conversion.PairedWithRupture.ShouldBeFalse();
+
+        analyzer.CashedBySlaughter.ShouldBe(1);
+        analyzer.PairedWithRupture.ShouldBe(0);
+    }
+
+    [Fact]
+    public async Task Analyze_ConversionWithNoSlaughterFollowing_IsNotCashed()
+    {
+        var events = new List<Event>
+        {
+            BuffApplied(1_000),
+            StackApplied(2_000, 60),
+            Cast(Spells.OwedInBlood.FSLID, 10_000),
+            BuffRemoved(10_100),
+        };
+
+        var analyzer = await AnalyzeAsync(events);
+
+        var conversion = analyzer.Conversions.ShouldHaveSingleItem();
+        conversion.CashedBySlaughter.ShouldBeFalse();
+        conversion.PairedWithRupture.ShouldBeFalse();
+    }
+
+    [Fact]
+    public async Task Analyze_SlaughterBeyondTheCashWindow_DoesNotCountAsCashingTheConversion()
+    {
+        var events = new List<Event>
+        {
+            BuffApplied(1_000),
+            StackApplied(2_000, 60),
+            Cast(Spells.OwedInBlood.FSLID, 10_000),
+            BuffRemoved(10_100),
+            Cast(Spells.Slaughter.FSLID, 10_001 + OwedInBloodEconomyAnalyzer.CashWindowMs),
+        };
+
+        var analyzer = await AnalyzeAsync(events);
+
+        analyzer.Conversions.ShouldHaveSingleItem().CashedBySlaughter.ShouldBeFalse();
+    }
+
+    [Fact]
+    public async Task Analyze_SlaughterPrecedingTheConversion_DoesNotCashIt()
+    {
+        var events = new List<Event>
+        {
+            BuffApplied(1_000),
+            StackApplied(2_000, 60),
+            Cast(Spells.Slaughter.FSLID, 9_000),
+            Cast(Spells.OwedInBlood.FSLID, 10_000),
+            BuffRemoved(10_100),
+        };
+
+        var analyzer = await AnalyzeAsync(events);
+
+        analyzer.Conversions.ShouldHaveSingleItem().CashedBySlaughter.ShouldBeFalse();
+    }
+
+    [Fact]
+    public async Task Analyze_ExpiredOpenWoundsWindow_DoesNotPairTheSlaughterWithRupture()
+    {
+        var events = new List<Event>
+        {
+            BuffApplied(1_000),
+            StackApplied(2_000, 60),
+            OpenWoundsApplied(5_000),
+            Cast(Spells.OwedInBlood.FSLID, 5_001 + OwedInBloodEconomyAnalyzer.OpenWoundsDurationMs),
+            BuffRemoved(5_100 + OwedInBloodEconomyAnalyzer.OpenWoundsDurationMs),
+            Cast(Spells.Slaughter.FSLID, 6_000 + OwedInBloodEconomyAnalyzer.OpenWoundsDurationMs),
+        };
+
+        var analyzer = await AnalyzeAsync(events);
+
+        var conversion = analyzer.Conversions.ShouldHaveSingleItem();
+        conversion.CashedBySlaughter.ShouldBeTrue();
+        conversion.PairedWithRupture.ShouldBeFalse();
+    }
+
+    [Fact]
+    public async Task Analyze_OpenWoundsRemovedBeforeTheSlaughter_DoesNotPairIt()
+    {
+        var events = new List<Event>
+        {
+            BuffApplied(1_000),
+            StackApplied(2_000, 60),
+            OpenWoundsApplied(9_000),
+            OpenWoundsRemoved(9_500),
+            Cast(Spells.OwedInBlood.FSLID, 10_000),
+            BuffRemoved(10_100),
+            Cast(Spells.Slaughter.FSLID, 11_000),
+        };
+
+        var analyzer = await AnalyzeAsync(events);
+
+        analyzer.Conversions.ShouldHaveSingleItem().PairedWithRupture.ShouldBeFalse();
+    }
+
+    [Fact]
+    public async Task Analyze_ConversionInsideTheSpiritBuff_RecordsTheOverlap()
+    {
+        var events = new List<Event>
+        {
+            BuffApplied(1_000),
+            StackApplied(2_000, OwedInBloodEconomyAnalyzer.MaxStacks),
+            SpiritApplied(8_000),
+            Cast(Spells.OwedInBlood.FSLID, 10_000),
+            BuffRemoved(10_100),
+            SpiritRemoved(28_000),
+        };
+
+        var analyzer = await AnalyzeAsync(events);
+
+        var conversion = analyzer.Conversions.ShouldHaveSingleItem();
+        conversion.SpiritActive.ShouldBeTrue();
+        conversion.ShareOfCap.ShouldBe(1d);
+
+        analyzer.OverlappedSpirit.ShouldBe(1);
+    }
+
+    [Fact]
+    public async Task Analyze_ConversionAfterTheSpiritBuffEnded_RecordsNoOverlap()
+    {
+        var events = new List<Event>
+        {
+            BuffApplied(1_000),
+            StackApplied(2_000, 40),
+            SpiritApplied(3_000),
+            SpiritRemoved(9_000),
+            Cast(Spells.OwedInBlood.FSLID, 10_000),
+            BuffRemoved(10_100),
+        };
+
+        var analyzer = await AnalyzeAsync(events);
+
+        analyzer.Conversions.ShouldHaveSingleItem().SpiritActive.ShouldBeFalse();
+        analyzer.OverlappedSpirit.ShouldBe(0);
+    }
+
+    private static ApplyDebuffEvent OpenWoundsApplied(int timestamp) => new()
+    {
+        Timestamp = timestamp,
+        SourceId = PlayerId,
+        TargetId = BossId,
+        Ability = new Ability { Id = Spells.OpenWounds.FSLID },
+    };
+
+    private static RemoveDebuffEvent OpenWoundsRemoved(int timestamp) => new()
+    {
+        Timestamp = timestamp,
+        SourceId = PlayerId,
+        TargetId = BossId,
+        Ability = new Ability { Id = Spells.OpenWounds.FSLID },
+    };
+
+    private static ApplyBuffEvent SpiritApplied(int timestamp) => new()
+    {
+        Timestamp = timestamp,
+        SourceId = PlayerId,
+        TargetId = PlayerId,
+        Ability = new Ability { Id = Spells.BloodboundSpiritSelfBuff.FSLID },
+    };
+
+    private static RemoveBuffEvent SpiritRemoved(int timestamp) => new()
+    {
+        Timestamp = timestamp,
+        SourceId = PlayerId,
+        TargetId = PlayerId,
+        Ability = new Ability { Id = Spells.BloodboundSpiritSelfBuff.FSLID },
+    };
 
     private static ApplyBuffEvent BuffApplied(int timestamp) => new()
     {

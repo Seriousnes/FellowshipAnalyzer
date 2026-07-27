@@ -51,7 +51,6 @@ public sealed class GundeAnalysisEngineTests
         analyzer.Slaughters[1].WellExecuted.ShouldBeFalse();
         analyzer.Slaughters[1].PayoffDamage.ShouldBe(150);
 
-        analyzer.BestPayoff.ShouldBe(600);
         analyzer.TotalPayoffDamage.ShouldBe(750);
         analyzer.TotalOpenWoundsWindows.ShouldBe(1);
         analyzer.WastedOpenWoundsWindows.ShouldBe(0);
@@ -95,7 +94,48 @@ public sealed class GundeAnalysisEngineTests
         analyzer.Slaughters[0].PayoffDamage.ShouldBe(300);
         analyzer.Slaughters[1].PayoffDamage.ShouldBe(500);
         analyzer.TotalPayoffDamage.ShouldBe(800);
-        analyzer.BestPayoff.ShouldBe(500);
+    }
+
+    [Fact]
+    public async Task Analyze_AttributesTheRendEachSlaughterConsumedToThatCast()
+    {
+        var events = new List<Event>
+        {
+            Debuff<ApplyDebuffEvent>(1_000, Spells.Rend.FSLID, Enemy),
+            RendStack(1_100, Enemy, 130),
+            Debuff<ApplyDebuffEvent>(1_200, Spells.Rend.FSLID, OtherEnemy),
+            RendStack(1_300, OtherEnemy, 45),
+            Cast(2_000, Spells.Slaughter.FSLID),
+            Debuff<RemoveDebuffEvent>(2_010, Spells.Rend.FSLID, Enemy),
+            Debuff<RemoveDebuffEvent>(2_020, Spells.Rend.FSLID, OtherEnemy),
+            Debuff<ApplyDebuffEvent>(3_000, Spells.Rend.FSLID, Enemy),
+            RendStack(3_100, Enemy, 20),
+            Cast(6_000, Spells.Slaughter.FSLID),
+            Debuff<RemoveDebuffEvent>(6_010, Spells.Rend.FSLID, Enemy),
+        };
+
+        var (parser, _) = await AnalyzeAsync(events, boss: true);
+
+        var analyzer = SingleAnalyzer(parser);
+        analyzer.Slaughters[0].RendConsumed.ShouldBe(175);
+        analyzer.Slaughters[1].RendConsumed.ShouldBe(20);
+        analyzer.TotalRendConsumed.ShouldBe(195);
+    }
+
+    [Fact]
+    public async Task Analyze_RendRemovedLongAfterASlaughter_IsNotAttributedToIt()
+    {
+        var events = new List<Event>
+        {
+            Debuff<ApplyDebuffEvent>(1_000, Spells.Rend.FSLID, Enemy),
+            RendStack(1_100, Enemy, 60),
+            Cast(2_000, Spells.Slaughter.FSLID),
+            Debuff<RemoveDebuffEvent>(2_001 + SlaughterUsageAnalyzer.RendConsumeGraceMs, Spells.Rend.FSLID, Enemy),
+        };
+
+        var (parser, _) = await AnalyzeAsync(events, boss: true);
+
+        SingleAnalyzer(parser).Slaughters.ShouldHaveSingleItem().RendConsumed.ShouldBe(0);
     }
 
     [Fact]
@@ -453,6 +493,13 @@ public sealed class GundeAnalysisEngineTests
         Amount = amount,
         Ability = new Ability { FSLID = Spells.SlaughterDot.FSLID },
     };
+
+    private static ApplyDebuffStackEvent RendStack(int timestamp, int targetId, int stacks)
+    {
+        var debuff = Debuff<ApplyDebuffStackEvent>(timestamp, Spells.Rend.FSLID, targetId);
+        debuff.Stack = stacks;
+        return debuff;
+    }
 
     private static TEvent Debuff<TEvent>(int timestamp, int abilityFslid, int targetId, int? targetInstance = null)
         where TEvent : BuffEvent, new() => new()

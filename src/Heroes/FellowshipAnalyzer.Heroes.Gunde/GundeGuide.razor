@@ -7,9 +7,19 @@
     <RendGuide />
 }
 
+@if (Parser.HeartSplitterAnalyzers.Count > 0)
+{
+    <HeartSplitterGuide />
+}
+
 @if (Parser.SlaughterUsageAnalyzers.Count > 0)
 {
     <SlaughterUsageGuide />
+}
+
+@if (Parser.SerratedEdgeAnalyzers.Count > 0)
+{
+    <SerratedEdgeGuide />
 }
 
 @if (Parser.BurstWindowAnalyzers.Count > 0)

@@ -5,10 +5,13 @@ namespace FellowshipAnalyzer.Heroes.Gunde.Analysis;
 
 [HeroAnalyzer(HeroName.Gunde)]
 [AddState<BloodFeatherTracker>]
+[AddState<RendStackTracker>]
 [AddAnalyzer<BossSlaughterUsage>]
 [AddAnalyzer<TrashSlaughterUsage>]
 [AddAnalyzer<RendUptimeAnalyzer>]
 [AddAnalyzer<RendSpreadAnalyzer>]
+[AddAnalyzer<HeartSplitterAnalyzer>]
+[AddAnalyzer<SerratedEdgeAnalyzer>]
 [AddAnalyzer<BurstWindowAnalyzer>]
 [AddAnalyzer<OwedInBloodEconomyAnalyzer>]
 [AddModule<Modules.Abilities>]
