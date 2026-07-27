@@ -5,15 +5,15 @@ using FellowshipAnalyzer.Core.Events;
 namespace FellowshipAnalyzer.Heroes.Gunde.Modules;
 
 /// <summary>
-/// Evaluates how well each Slaughter is set up and what it paid out. Slaughter consumes all of the
-/// Rend standing on every enemy it hits and reapplies it as a short 160% bleed, so its value is
+/// Evaluates how well each Slaughter is set up and how much bleed it had to cash. Slaughter consumes
+/// all of the Rend standing on every enemy it hits and reapplies it as a short bleed, so its value is
 /// maximised when it is cast (a) inside the Open Wounds window that Rupture leaves behind, buffing
 /// the next Slaughter for 18s, and (b) after Heart Splitter has been used to build Rend since the
 /// previous Slaughter. The shape-specialised leaves add the extra success criterion their rotation
-/// calls for. The bleed damage that follows each cast is attributed back to it, which measures the
-/// payoff directly rather than inferring it.
+/// calls for. Each cast is judged on those conditions alone, all of which read the same on any gear.
 /// </summary>
 /// <remarks>
+/// <para>
 /// Rupture applies Open Wounds to the enemies it hits, and the next Slaughter on such an enemy
 /// consumes the debuff, which the log shows as the debuff being removed within a millisecond or two
 /// of that cast; a window nobody cashes in expires 18s after it went up. That is the reading live
@@ -22,10 +22,25 @@ namespace FellowshipAnalyzer.Heroes.Gunde.Modules;
 /// (TargetId, TargetInstance), the unit the game applies a debuff to. Windows and per-cast verdicts
 /// are projected once on first read, after the pull has closed, so a single containment test drives
 /// both the per-cast Open Wounds flag and the wasted-window count.
+/// </para>
+/// <para>
+/// Two sizes are recorded alongside the verdict. The Rend consumed comes from
+/// <see cref="RendStackTracker"/>: Slaughter's consumption reaches the log as a burst of Rend
+/// removals sharing the cast's millisecond, so the removals inside <see cref="RendConsumeGraceMs"/>
+/// of a cast are the pile it took. That is a stack count and reads the same on any gear. The bleed
+/// damage that follows is attributed back to the cast as well, but it scales with gear and is
+/// therefore evidence rather than a verdict.
+/// </para>
 /// </remarks>
 public abstract partial class SlaughterUsageAnalyzer : Analyzer
 {
     private const int OpenWoundsDurationMs = 18_000;
+
+    /// <summary>
+    /// Window after a Slaughter cast in which a Rend removal is that cast consuming the bleed. Live
+    /// Season 3 data puts the whole burst of removals inside a few hundred milliseconds of the cast.
+    /// </summary>
+    public const int RendConsumeGraceMs = 500;
 
     private readonly Dictionary<TargetKey, OpenWoundsWindow> _openWindows = [];
     private readonly List<OpenWoundsWindow> _windows = [];
@@ -57,11 +72,8 @@ public abstract partial class SlaughterUsageAnalyzer : Analyzer
     /// <summary>Slaughter bleed damage across every cast on the pull.</summary>
     public long TotalPayoffDamage => Result.TotalPayoffDamage;
 
-    /// <summary>
-    /// The largest payoff any single Slaughter on this pull produced, the yardstick the guide scores
-    /// the other casts against. Zero when no Slaughter bleed damage was logged.
-    /// </summary>
-    public long BestPayoff => Result.BestPayoff;
+    /// <summary>Rend stacks every Slaughter on the pull consumed between them.</summary>
+    public int TotalRendConsumed => Result.TotalRendConsumed;
 
     /// <summary>
     /// Open Wounds windows the pull can be judged on: every window that closed, plus every window
@@ -128,6 +140,7 @@ public abstract partial class SlaughterUsageAnalyzer : Analyzer
                 OpenWoundsActive = IsInsideOpenWounds(cast.Timestamp),
                 HeartSplitterPrimed = cast.HeartSplitterPrimed,
                 TargetsHit = cast.Targets.Count,
+                RendConsumed = RendConsumedBy(cast.Timestamp),
                 PayoffDamage = cast.PayoffDamage,
             };
 
@@ -142,7 +155,7 @@ public abstract partial class SlaughterUsageAnalyzer : Analyzer
             evaluations.Count(slaughter => slaughter.HeartSplitterPrimed),
             evaluations.Count(slaughter => slaughter.WellExecuted),
             _casts.Sum(cast => cast.PayoffDamage),
-            _casts.Count == 0 ? 0 : _casts.Max(cast => cast.PayoffDamage),
+            evaluations.Sum(slaughter => slaughter.RendConsumed),
             judged.Count,
             judged.Count(window => !SawSlaughter(window)));
     }
@@ -180,6 +193,20 @@ public abstract partial class SlaughterUsageAnalyzer : Analyzer
     private bool IsInsideOpenWounds(int timestamp) =>
         _windows.Any(window => window.Covers(timestamp));
 
+    /// <summary>
+    /// Rend the cast at <paramref name="timestamp"/> consumed, taken from the removals the tracker
+    /// recorded in the moments after it. The tracker runs for the whole fight, so the window also
+    /// keeps a neighbouring pull's removals out of this pull's reading. The lookup is ad-hoc rather
+    /// than a declared dependency because this is an abstract base whose sealed leaves would each
+    /// have to forward a generated constructor.
+    /// </summary>
+    private int RendConsumedBy(int timestamp) =>
+        Owner.GetModule<RendStackTracker>() is not { } tracker
+            ? 0
+            : tracker.Removals
+                .Where(removal => removal.Timestamp >= timestamp && removal.Timestamp - timestamp <= RendConsumeGraceMs)
+                .Sum(removal => removal.Stacks);
+
     private static TargetKey Key(IHasTargetWithInstanceEvent target) =>
         new(target.TargetId, target.TargetInstance ?? 0);
 
@@ -209,7 +236,7 @@ public abstract partial class SlaughterUsageAnalyzer : Analyzer
         int HeartSplitterPrimed,
         int WellExecuted,
         long TotalPayoffDamage,
-        long BestPayoff,
+        int TotalRendConsumed,
         int TotalWindows,
         int WastedWindows);
 }

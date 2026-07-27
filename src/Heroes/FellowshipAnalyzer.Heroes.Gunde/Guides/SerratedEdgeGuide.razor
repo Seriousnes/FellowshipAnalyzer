@@ -1,0 +1,247 @@
+@using Spells = FellowshipAnalyzer.Core.Common.Spells.Gunde.Spells
+@inject GundeCombatLogParser Parser
+
+<GuideSection Title="Serrated Edge">
+    <Explanation>
+        <p>
+            Every <SpellLink Spell="Spells.BloodArc" /> leaves
+            <SpellLink Spell="Spells.SerratedEdge" /> behind, and the next damaging ability eats it
+            for more bleed damage. It cannot be banked, so the only question is which ability follows
+            Blood Arc. Packs want <SpellLink Spell="Spells.GrimCarve" />; a boss wants
+            <SpellLink Spell="Spells.HeartSplitter" />. Each is still a fair home on the other shape,
+            and Heart Splitter especially so, because a pack usually has a priority target worth
+            hitting with a single-target ability.
+        </p>
+        <p>
+            Filler is the sub-optimal home, but not always a mistake: Blood Arc comes back faster
+            than either of the two, so some grants have nothing better to go on. Each one below is
+            judged against what was actually off cooldown at the moment it was consumed, so a grant
+            only counts against you when Heart Splitter or Grim Carve was ready to be pressed instead.
+        </p>
+    </Explanation>
+    <ChildContent>
+        @if (TotalGrants == 0)
+        {
+            <TipBox Variant="TipBoxVariant.Info">
+                No Serrated Edge buff was observed, so either Blood Arc was never cast or none of its buffs closed inside a pull.
+            </TipBox>
+        }
+        else
+        {
+            <CastOverview Title="Serrated Edge Overview" Stats="@BuildOverviewStats()" />
+            <StackedBar Segments="@BuildStackedBar()" />
+            <CastDetail Title="Grants"
+                        Description="Each card is one Serrated Edge buff, rated on the ability that consumed it and on what the pull had available at the time."
+                        Casts="@BuildPerCastData()" />
+        }
+    </ChildContent>
+</GuideSection>
+
+@code {
+    private List<SerratedEdgeAnalyzer> Analyzers =>
+        [.. Parser.SerratedEdgeAnalyzers.Select(entry => entry.Analyzer)];
+
+    private int TotalGrants => Analyzers.Sum(analyzer => analyzer.JudgedGrants);
+
+    private IEnumerable<OverviewStat> BuildOverviewStats()
+    {
+        var grants = TotalGrants;
+        var priority = Analyzers.Sum(analyzer => analyzer.PriorityConsumed);
+        var alternate = Analyzers.Sum(analyzer => analyzer.AlternateConsumed);
+        var avoidable = Analyzers.Sum(analyzer => analyzer.AvoidableFiller);
+        var forced = Analyzers.Sum(analyzer => analyzer.ForcedFiller);
+        var unspent = Analyzers.Sum(analyzer => analyzer.Unspent);
+        var priorityRate = grants > 0 ? (int)Math.Round((double)priority / grants * 100) : 0;
+
+        var stats = new List<OverviewStat>
+        {
+            new(
+                $"{grants}",
+                "Grants",
+                $"Serrated Edge buffs granted and consumed inside a pull. Consumed by {ConsumerSplit()}."),
+            new(
+                $"{priorityRate}%",
+                "On Priority",
+                $"{priority} of {grants} grants went on the ability their pull shape calls for - Grim Carve on packs, Heart Splitter on a boss. A further {alternate} went on the other of the two, which is a fair home rather than a miss. Blood Arc returns faster than either, so this cannot reach 100% and is reported as context rather than scored."),
+            new(
+                $"{avoidable}",
+                "Avoidable Filler",
+                "Grants filler consumed while Heart Splitter or Grim Carve was off cooldown and could have taken it instead. Hold Blood Arc a beat so one of them follows it.",
+                avoidable == 0 ? QualitativePerformance.Perfect : AvoidableTier(grants, avoidable)),
+            new(
+                $"{forced}",
+                "Forced Filler",
+                "Grants filler consumed with both Heart Splitter and Grim Carve on cooldown. Blood Arc comes back faster than either, so these were unavoidable - context, not a verdict."),
+        };
+
+        if (unspent > 0)
+        {
+            stats.Add(new OverviewStat(
+                $"{unspent}",
+                "Unspent",
+                "Grants whose removal had no cast to account for it, so the buff went unused.",
+                QualitativePerformance.Fail));
+        }
+
+        return stats;
+    }
+
+    private string ConsumerSplit()
+    {
+        var split = Analyzers
+            .SelectMany(analyzer => analyzer.Grants)
+            .GroupBy(grant => grant.ConsumerAbilityId)
+            .OrderByDescending(group => group.Count())
+            .Select(group => $"{ConsumerName(group.Key)} {group.Count()}");
+
+        return string.Join(", ", split);
+    }
+
+    private IEnumerable<StackedBarSegment> BuildStackedBar()
+    {
+        var buckets = new (SerratedEdgeOutcome Outcome, string Label, string Color, string Description)[]
+        {
+            (SerratedEdgeOutcome.Priority, "On priority", PerformanceColors.Perfect, "went on the ability the pull shape calls for"),
+            (SerratedEdgeOutcome.Alternate, "On the other", PerformanceColors.Good, "went on the other of Heart Splitter and Grim Carve"),
+            (SerratedEdgeOutcome.ForcedFiller, "Forced filler", PerformanceColors.Ok, "went on filler with both better abilities on cooldown"),
+            (SerratedEdgeOutcome.AvoidableFiller, "Avoidable filler", PerformanceColors.Fail, "went on filler with a better ability ready"),
+            (SerratedEdgeOutcome.Unspent, "Unspent", PerformanceColors.Fail, "were removed with nothing to account for them"),
+        };
+
+        var grants = Analyzers.SelectMany(analyzer => analyzer.Grants).ToList();
+
+        return
+        [
+            .. buckets
+                .Select(bucket => (bucket, Count: grants.Count(grant => grant.Outcome == bucket.Outcome)))
+                .Where(entry => entry.Count > 0)
+                .Select(entry => new StackedBarSegment(
+                    entry.bucket.Label,
+                    entry.Count,
+                    entry.bucket.Color,
+                    $"{entry.bucket.Label}: {entry.Count} grants {entry.bucket.Description}"))
+        ];
+    }
+
+    private IEnumerable<PerCastData> BuildPerCastData() =>
+        Parser.SerratedEdgeAnalyzers.ToItemRows(
+            Parser, ProjectGrants, (row, pull) => BuildGrantRow(row));
+
+    private static IEnumerable<GrantRow> ProjectGrants(SerratedEdgeAnalyzer analyzer) =>
+        analyzer.Grants.Select(grant => new GrantRow(grant, analyzer.Shape, analyzer.PriorityAbilityId));
+
+    private PerCastRow BuildGrantRow(GrantRow row)
+    {
+        var grant = row.Grant;
+        var perf = Tier(grant.Outcome, row.Shape);
+
+        var stats = new List<PerCastStat>
+        {
+            new(
+                ConsumerName(grant.ConsumerAbilityId),
+                "Consumed By",
+                $"The ability that took the buff. This pull wanted it on {ConsumerName(row.PriorityAbilityId)}.",
+                perf),
+        };
+
+        if (IsFiller(grant.Outcome))
+        {
+            stats.Add(AvailabilityStat("Heart Splitter", grant.HeartSplitterReady, grant.HeartSplitterRemainingMs));
+            stats.Add(AvailabilityStat("Grim Carve", grant.GrimCarveReady, grant.GrimCarveRemainingMs));
+        }
+        else
+        {
+            stats.Add(new PerCastStat(
+                ConsumerName(row.PriorityAbilityId),
+                "Pull Priority",
+                "The ability this pull shape wants Serrated Edge spent on: Grim Carve on packs, Heart Splitter on a boss."));
+        }
+
+        return new PerCastRow
+        {
+            Performance = perf,
+            Stats = [.. stats],
+            Timestamp = grant.Timestamp,
+            Sequence = BuildSequence(grant, perf),
+            AdditionalContent = new AdditionalContent("Usage Notes", @<div>@BuildNote(row)</div>),
+        };
+    }
+
+    private static PerCastStat AvailabilityStat(string name, bool ready, int remainingMs) =>
+        new(
+            ready ? "Ready" : $"{remainingMs / 1000d:0.#}s",
+            name,
+            ready
+                ? $"{name} was off cooldown and could have taken this buff instead."
+                : $"{name} had {remainingMs / 1000d:0.#}s of cooldown left, so it could not have taken this buff.",
+            ready ? QualitativePerformance.Fail : QualitativePerformance.Ok);
+
+    private static SpellCastEntry[] BuildSequence(SerratedEdgeGrant grant, QualitativePerformance perf) =>
+        grant.ConsumerAbilityId is { } consumer
+            ? [new SpellCastEntry(Spells.BloodArc.FSLID.Value, null), new SpellCastEntry(consumer, perf)]
+            : [new SpellCastEntry(Spells.BloodArc.FSLID.Value, null)];
+
+    private static string BuildNote(GrantRow row)
+    {
+        var grant = row.Grant;
+        var consumer = ConsumerName(grant.ConsumerAbilityId);
+        var priority = ConsumerName(row.PriorityAbilityId);
+
+        return grant.Outcome switch
+        {
+            SerratedEdgeOutcome.Priority =>
+                $"{consumer} consumed the buff, which is exactly what this pull wanted Blood Arc to set up.",
+            SerratedEdgeOutcome.Alternate when row.Shape == GundePullShape.Aoe =>
+                $"{consumer} consumed the buff. On a pack {priority} is the better home, though Heart Splitter is a fair use of it on a priority target.",
+            SerratedEdgeOutcome.Alternate =>
+                $"{consumer} consumed the buff. On a boss {priority} is the home worth saving it for, so this got some of the value but not all of it.",
+            SerratedEdgeOutcome.AvoidableFiller =>
+                $"{consumer} consumed the buff while {ReadyNames(grant)} was off cooldown. Hold Blood Arc a beat so a better ability follows it.",
+            SerratedEdgeOutcome.ForcedFiller =>
+                $"{consumer} consumed the buff with Heart Splitter {Remaining(grant.HeartSplitterRemainingMs)} and Grim Carve {Remaining(grant.GrimCarveRemainingMs)} from coming back, so there was nothing better to put it on. Blood Arc returns faster than either of them, so some grants land here.",
+            _ =>
+                "The buff was removed with no cast to account for it, so it did nothing at all.",
+        };
+    }
+
+    private static string ReadyNames(SerratedEdgeGrant grant) =>
+        grant is { HeartSplitterReady: true, GrimCarveReady: true } ? "both Heart Splitter and Grim Carve"
+        : grant.HeartSplitterReady ? "Heart Splitter"
+        : "Grim Carve";
+
+    private static string Remaining(int milliseconds) => $"{milliseconds / 1000d:0.#}s";
+
+    private static bool IsFiller(SerratedEdgeOutcome outcome) =>
+        outcome is SerratedEdgeOutcome.AvoidableFiller or SerratedEdgeOutcome.ForcedFiller;
+
+    /// <summary>
+    /// Maps an outcome to a tier, which is where the pull shape decides how much a grant was worth.
+    /// The priority ability is full marks; the other of the two is close behind on a pack, where a
+    /// priority target makes a single-target ability reasonable, and a step further back on a boss.
+    /// Filler only fails when a better ability was ready to take the buff instead.
+    /// </summary>
+    private static QualitativePerformance Tier(SerratedEdgeOutcome outcome, GundePullShape shape) => outcome switch
+    {
+        SerratedEdgeOutcome.Priority => QualitativePerformance.Perfect,
+        SerratedEdgeOutcome.Alternate => shape == GundePullShape.Aoe
+            ? QualitativePerformance.Good
+            : QualitativePerformance.Ok,
+        SerratedEdgeOutcome.ForcedFiller => QualitativePerformance.Ok,
+        _ => QualitativePerformance.Fail,
+    };
+
+    private static QualitativePerformance AvoidableTier(int grants, int avoidable) =>
+        PerformanceTiers.FromThresholds(100 - (int)Math.Round((double)avoidable / grants * 100), 90, 75, 50);
+
+    private static string ConsumerName(int? abilityId) =>
+        abilityId is not { } consumer ? "Nothing"
+        : consumer == Spells.HeartSplitter.FSLID.Value ? "Heart Splitter"
+        : consumer == Spells.GrimCarve.FSLID.Value ? "Grim Carve"
+        : consumer == Spells.Rupture.FSLID.Value ? "Rupture"
+        : consumer == Spells.BloodArc.FSLID.Value ? "Blood Arc"
+        : consumer == Spells.ReaverEdge.FSLID.Value ? "Reaver's Edge"
+        : consumer == Spells.DoubleStrike.FSLID.Value ? "Double Strike"
+        : "Other";
+
+    private sealed record GrantRow(SerratedEdgeGrant Grant, GundePullShape Shape, int PriorityAbilityId);
+}
