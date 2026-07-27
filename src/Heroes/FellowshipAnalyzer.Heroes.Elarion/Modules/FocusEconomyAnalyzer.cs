@@ -95,13 +95,6 @@ public sealed partial class FocusEconomyAnalyzer : Analyzer
         });
     }
 
-    [On<ApplyBuffEvent>(To = Actor.Player, Spell = nameof(Spells.EventHorizonBuff))]
-    private void OnEventHorizonBuffApply(ApplyBuffEvent e)
-    {
-        if (OpenWindow() is { } window)
-            window.BuffObserved = true;
-    }
-
     [On<RemoveBuffEvent>(To = Actor.Player, Spell = nameof(Spells.EventHorizonBuff))]
     private void OnEventHorizonBuffRemove(RemoveBuffEvent e)
     {
@@ -165,7 +158,6 @@ public sealed partial class FocusEconomyAnalyzer : Analyzer
         public int Timestamp { get; init; }
         public int? FocusAtCast { get; init; }
         public int? End { get; set; }
-        public bool BuffObserved { get; set; }
         public int Spenders { get; set; }
         public int FocusSpent { get; set; }
     }
