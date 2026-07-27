@@ -17,8 +17,10 @@ public struct ProgressPacer
     /// <summary>How often the elapsed-time check is allowed to run, in loop iterations.</summary>
     public const int CheckInterval = 256;
 
+    /// <summary>The rate a step publishes progress at while it runs, however many events it has left.</summary>
+    public const int UpdatesPerSecond = 20;
+
     private const int CheckMask = CheckInterval - 1;
-    private const int UpdatesPerSecond = 20;
 
     private static readonly long IntervalTicks = Stopwatch.Frequency / UpdatesPerSecond;
 
