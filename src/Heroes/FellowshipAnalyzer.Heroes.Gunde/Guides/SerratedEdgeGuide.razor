@@ -62,8 +62,7 @@
             new(
                 $"{priorityRate}%",
                 "On Priority",
-                $"{priority} of {grants} grants went on the ability their pull shape calls for - Grim Carve on packs, Heart Splitter on a boss. A further {alternate} went on the other of the two, which is a fair home rather than a miss.",
-                PercentTier(priorityRate)),
+                $"{priority} of {grants} grants went on the ability their pull shape calls for - Grim Carve on packs, Heart Splitter on a boss. A further {alternate} went on the other of the two, which is a fair home rather than a miss. Blood Arc returns faster than either, so this cannot reach 100% and is reported as context rather than scored."),
             new(
                 $"{avoidable}",
                 "Avoidable Filler",
@@ -243,9 +242,6 @@
         : consumer == Spells.ReaverEdge.FSLID.Value ? "Reaver's Edge"
         : consumer == Spells.DoubleStrike.FSLID.Value ? "Double Strike"
         : "Other";
-
-    private static QualitativePerformance PercentTier(int percent) =>
-        PerformanceTiers.FromThresholds(percent, 75, 50, 25);
 
     private sealed record GrantRow(SerratedEdgeGrant Grant, GundePullShape Shape, int PriorityAbilityId);
 }
