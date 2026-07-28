@@ -6,12 +6,14 @@ namespace FellowshipAnalyzer.Heroes.Sylvie.Modules;
 
 /// <summary>
 /// What each Heart Bloom was ramped with. Heart Bloom banks a share of the healing that came before it
-/// and pays the bank back out over sixteen seconds, so the cast is worth whatever the flutterflies fed
-/// it while it was on cooldown, and the state Bluey was in decides how much that was.
+/// and pays the bank back out over sixteen seconds, and the flutterflies are the steadiest thing
+/// feeding it while it is on cooldown - which makes where Bluey sat part of the setup for the cast.
 /// <para>
-/// The healing fed and the healing paid out are both measured; the ratio between them is reported as
-/// observed rather than asserted, because the log carries no bank reading and the game data's
-/// accumulation scalar does not on its own account for what the payout is worth.
+/// The flutterfly healing over each accumulation window and the healing the cast then paid out are
+/// both measured, and the ratio between them is reported as observed rather than asserted. On the
+/// validation report the payout runs ahead of the flutterfly healing that preceded it, so the
+/// flutterflies are one input to the bank and not the whole of it; the log carries no reading of the
+/// bank itself, so what else feeds it cannot be settled here.
 /// </para>
 /// </summary>
 [ForPull(PullKind.Single | PullKind.Multi)]

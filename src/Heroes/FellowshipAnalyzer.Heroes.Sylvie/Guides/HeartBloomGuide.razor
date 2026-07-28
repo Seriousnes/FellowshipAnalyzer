@@ -4,15 +4,15 @@
     <Explanation>
         <p>
             <SpellLink Spell="Spells.HeartBloom" /> banks a share of the healing that came before it and
-            pays the bank back out every two seconds for sixteen, so a cast is worth whatever the
-            flutterflies fed it while it was on cooldown. Each cast below reports the flutterfly healing
-            over its own accumulation window - overheal included, because the bank does not care whether
-            the healing landed - and what the cast then paid out.
+            pays the bank back out every two seconds for sixteen, and the flutterflies are the steadiest
+            thing feeding it while it is on cooldown. Each cast below reports the flutterfly healing over
+            its own accumulation window - overheal included, because the bank does not care whether the
+            healing landed - and what the cast then paid out.
         </p>
         <p>
-            The ratio between the two is reported as observed. The log carries no reading of the bank
-            itself, so the accumulation scalar in the game data cannot be checked against it here, and
-            claiming a number the log does not carry would be worse than saying so.
+            The two are reported side by side rather than as a ratio to hit. The payout here runs ahead
+            of the flutterfly healing that preceded it, so the flutterflies are one input to the bank and
+            not the whole of it, and the log carries no reading of the bank to settle what else feeds it.
         </p>
         <p>
             Bluey's placement is the setup that moves the ramp: parked on an ally it doubles that ally's
@@ -58,7 +58,8 @@
             new OverviewStat(
                 $"{fed:N0}",
                 "Flutterfly Healing Fed",
-                $"Flutterfly healing, overheal included, over the accumulation windows; the casts paid out {paid:N0}."),
+                $"Flutterfly healing, overheal included, over the accumulation windows. The casts paid out {paid:N0}, " +
+                "so the flutterflies are one input to the bank rather than all of it."),
         ];
     }
 
