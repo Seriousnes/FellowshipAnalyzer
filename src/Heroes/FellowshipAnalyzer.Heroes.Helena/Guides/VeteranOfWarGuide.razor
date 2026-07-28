@@ -43,12 +43,15 @@
             new OverviewStat(
                 $"{efficiency:F1}%",
                 "Landed",
-                $"{applied / 1000d:N0}s of the {generated / 1000d:N0}s generated shortened something that was still recharging.",
-                PerformanceTiers.FromThresholds(efficiency, 85, 70, 50)),
+                $"{applied / 1000d:N0}s of the {generated / 1000d:N0}s generated shortened something that was " +
+                "still recharging. Left untiered because it is only as good as the cooldown model behind it: " +
+                "see Model Agreement."),
             new OverviewStat(
                 $"{wasted / 1000d:N0}s",
-                "Thrown Away",
-                "Reduction generated against an ability that was already available."),
+                "Thrown Away At Least",
+                "Reduction generated against an ability that was already available. A floor rather than a " +
+                "total: whenever the model holds a cooldown that had really recovered, the reduction is " +
+                "booked as landing, so real waste is higher than this."),
             new OverviewStat(
                 $"{generated / 1000d:N0}s",
                 "Generated",
@@ -121,12 +124,16 @@
             new(
                 $"{analyzer.Efficiency * 100:F0}%",
                 "Landed",
-                "Share of this pull's generated reduction that shortened a running cooldown.",
-                PerformanceTiers.FromThresholds(analyzer.Efficiency * 100, 85, 70, 50)),
+                "Share of this pull's generated reduction the cooldown model says shortened a running cooldown."),
             new(
                 $"{analyzer.WastedMs / 1000d:F0}s",
-                "Thrown Away",
-                "Reduction generated against an ability that was already available."),
+                "Thrown Away At Least",
+                "Reduction generated against an ability that was already available, as a floor."),
+            new(
+                $"{analyzer.ModelAgreement * 100:F0}%",
+                "Model Agreement",
+                $"{analyzer.ModelDisagreements} of {analyzer.TargetCasts} casts of a shortened ability " +
+                "happened while the model believed it had no charge left."),
         };
 
         foreach (var contribution in analyzer.BySource.Take(3))
@@ -134,8 +141,7 @@
             stats.Add(new PerCastStat(
                 $"{contribution.WastedMs / 1000d:F0}s",
                 SpellName(contribution.SourceSpellId),
-                $"{contribution.Events} casts generated {contribution.GeneratedMs / 1000d:F0}s, of which {contribution.AppliedMs / 1000d:F0}s landed.",
-                PerformanceTiers.FromThresholds(contribution.Efficiency * 100, 85, 70, 50)));
+                $"{contribution.Events} casts generated {contribution.GeneratedMs / 1000d:F0}s, of which {contribution.AppliedMs / 1000d:F0}s landed."));
         }
 
         return [.. stats];

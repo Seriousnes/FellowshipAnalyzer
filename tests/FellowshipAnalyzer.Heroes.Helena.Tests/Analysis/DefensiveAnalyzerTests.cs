@@ -24,24 +24,24 @@ public sealed class DefensiveAnalyzerTests
             DamageTaken(PullStart + 14_000, 100, 1_000, 900));
 
         analyzer.HitsCovered.ShouldBe(1);
-        analyzer.DamageTaken.ShouldBe(200);
-        analyzer.DamageFaced.ShouldBe(5_000);
-        analyzer.DamageMitigated.ShouldBe(4_500);
-        analyzer.DamageAbsorbed.ShouldBe(300);
+        analyzer.DamageTakenInWindow.ShouldBe(200);
+        analyzer.DamageFacedInWindow.ShouldBe(5_000);
+        analyzer.MitigatedInWindow.ShouldBe(4_500);
+        analyzer.AbsorbedInWindow.ShouldBe(300);
     }
 
     [Fact]
-    public async Task DamagePrevented_IsMitigatedPlusAbsorbedAndNeverAddsBlocked()
+    public async Task MitigationInWindow_IsMitigatedPlusAbsorbedAndNeverAddsBlocked()
     {
         var analyzer = await ShieldsUp(
             ApplyBuff(PullStart + 1_000, Spells.ShieldsUpBuff),
             DamageTaken(PullStart + 2_000, 0, 10_000, 9_000, absorbed: 1_000, blocked: 4_000, hitType: HitType.Block),
             RemoveBuff(PullStart + 13_000, Spells.ShieldsUpBuff));
 
-        analyzer.DamagePrevented.ShouldBe(10_000);
-        analyzer.DamageBlocked.ShouldBe(4_000);
+        analyzer.MitigationInWindow.ShouldBe(10_000);
+        analyzer.BlockedInWindow.ShouldBe(4_000);
         analyzer.BlockedHits.ShouldBe(1);
-        analyzer.PreventedShare.ShouldBe(1d);
+        analyzer.MitigationShareInWindow.ShouldBe(1d);
     }
 
     [Fact]
@@ -103,7 +103,7 @@ public sealed class DefensiveAnalyzerTests
 
         analyzer.TracksDefensive.ShouldBeTrue();
         analyzer.WindowCount.ShouldBe(1);
-        analyzer.DamagePrevented.ShouldBe(4_900);
+        analyzer.MitigationInWindow.ShouldBe(4_900);
     }
 
     [Fact]

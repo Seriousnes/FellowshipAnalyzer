@@ -20,11 +20,11 @@ namespace FellowshipAnalyzer.Core.Analysis;
 /// declare rather than a list held here.
 /// </para>
 /// <para>
-/// <see cref="DamagePrevented"/> is <see cref="DamageEvent.Mitigated"/> plus
+/// <see cref="MitigationInWindow"/> is <see cref="DamageEvent.Mitigated"/> plus
 /// <see cref="DamageEvent.Absorbed"/>. <see cref="DamageEvent.Blocked"/> is a labelled portion of
 /// <see cref="DamageEvent.Mitigated"/>, not a third bucket - on Fellowship block events
 /// <c>UnmitigatedAmount - Amount</c> equals <c>Mitigated + Absorbed</c> exactly - so it is reported
-/// separately as <see cref="DamageBlocked"/> and never added to the prevented total.
+/// separately as <see cref="BlockedInWindow"/> and never added to the prevented total.
 /// </para>
 /// </summary>
 public abstract class MajorDefensiveAnalyzer : Analyzer
@@ -68,23 +68,29 @@ public abstract class MajorDefensiveAnalyzer : Analyzer
         }
     }
 
-    /// <summary>Damage the player would have taken inside the windows but did not, from mitigation and absorbs.</summary>
-    public long DamagePrevented => Result.Mitigated + Result.Absorbed;
+    /// <summary>
+    /// All mitigation and absorption on hits that landed inside the windows. This is coverage, not
+    /// attribution: it is everything that stood between the player and those hits - passive reduction,
+    /// other defensives, gear - not the share this defensive is responsible for. On a defensive with
+    /// high uptime it approaches the fight's whole mitigation total, so present it as what the windows
+    /// covered rather than as what this defensive prevented.
+    /// </summary>
+    public long MitigationInWindow => Result.Mitigated + Result.Absorbed;
 
-    /// <summary>The mitigated portion of <see cref="DamagePrevented"/>.</summary>
-    public long DamageMitigated => Result.Mitigated;
+    /// <summary>The mitigated portion of <see cref="MitigationInWindow"/>.</summary>
+    public long MitigatedInWindow => Result.Mitigated;
 
-    /// <summary>The absorbed portion of <see cref="DamagePrevented"/>.</summary>
-    public long DamageAbsorbed => Result.Absorbed;
+    /// <summary>The absorbed portion of <see cref="MitigationInWindow"/>.</summary>
+    public long AbsorbedInWindow => Result.Absorbed;
 
-    /// <summary>The share of <see cref="DamageMitigated"/> the log attributes to blocks.</summary>
-    public long DamageBlocked => Result.Blocked;
+    /// <summary>The share of <see cref="MitigatedInWindow"/> the log attributes to blocks.</summary>
+    public long BlockedInWindow => Result.Blocked;
 
     /// <summary>Damage that still landed on the player inside the windows.</summary>
-    public long DamageTaken => Result.Taken;
+    public long DamageTakenInWindow => Result.Taken;
 
     /// <summary>The raw incoming damage the windows faced, before any mitigation.</summary>
-    public long DamageFaced => Result.Unmitigated;
+    public long DamageFacedInWindow => Result.Unmitigated;
 
     /// <summary>Hits the player took inside the windows.</summary>
     public int HitsCovered => Result.Hits;
@@ -92,9 +98,9 @@ public abstract class MajorDefensiveAnalyzer : Analyzer
     /// <summary>Hits inside the windows that came in as a block.</summary>
     public int BlockedHits => Result.BlockedHits;
 
-    /// <summary>Share (0-1) of <see cref="DamageFaced"/> the windows prevented.</summary>
-    public double PreventedShare =>
-        Result.Unmitigated > 0 ? Math.Clamp(DamagePrevented / (double)Result.Unmitigated, 0, 1) : 0;
+    /// <summary>Share (0-1) of <see cref="DamageFacedInWindow"/> that never landed, from every source of mitigation at once.</summary>
+    public double MitigationShareInWindow =>
+        Result.Unmitigated > 0 ? Math.Clamp(MitigationInWindow / (double)Result.Unmitigated, 0, 1) : 0;
 
     /// <summary>
     /// Opens a window at <paramref name="timestamp"/> unless one is already open. Call from apply and
@@ -227,6 +233,6 @@ public sealed record DefensiveWindow(
     /// <summary>How long the defensive was active, in milliseconds.</summary>
     public int DurationMs => End - Start;
 
-    /// <summary>Damage the window prevented, from mitigation and absorbs.</summary>
-    public long Prevented => Mitigated + Absorbed;
+    /// <summary>All mitigation and absorption on the hits this window covered, from every source at once.</summary>
+    public long Mitigation => Mitigated + Absorbed;
 }

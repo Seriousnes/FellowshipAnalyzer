@@ -90,7 +90,10 @@
             stats.Add(new OverviewStat(
                 $"{tracker.OvercappedBlocks}/{tracker.ObservedBlocks}",
                 "Blocks",
-                $"Blocks landed at full Toughness, each losing the {ToughnessTracker.BlockGeneration * 100:F0}% it would have restored. Unlike the casts, these are not yours to time."));
+                $"Blocks landed at full Toughness, each losing the {ToughnessTracker.BlockGeneration * 100:F1}% " +
+                "it would have restored. Only blocks whose event carried a Toughness reading can be judged, " +
+                "so this is a sample of your blocks rather than all of them, and unlike the casts their " +
+                "timing is not yours to choose."));
         }
 
         return stats;

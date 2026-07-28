@@ -28,7 +28,8 @@
         var granted = analyzers.Sum(analyzer => analyzer.EmpowermentsGranted);
         if (granted == 0) return [];
 
-        var consumed = analyzers.Sum(analyzer => analyzer.EmpowermentsConsumed);
+        var applications = analyzers.Sum(analyzer => analyzer.BarrierApplications);
+        var lapsed = analyzers.Sum(analyzer => analyzer.EmpowermentsExpired);
         var used = analyzers.Sum(analyzer => analyzer.AbsorbUsed);
         var wasted = analyzers.Sum(analyzer => analyzer.AbsorbWasted);
         var expired = analyzers.Sum(analyzer => analyzer.BarriersExpiredUnspent);
@@ -38,10 +39,15 @@
         return
         [
             new OverviewStat(
-                $"{consumed}/{granted}",
-                "Empowerments Spent",
-                "Empowerments a Shield Slam spent before they fell off.",
-                PerformanceTiers.FromThresholds(granted > 0 ? (double)consumed / granted * 100 : 0, 95, 85, 70)),
+                $"{applications}",
+                "Barriers Laid",
+                $"Barrier applications across {granted} empowerments, counting a refresh onto a live " +
+                "barrier alongside a fresh one."),
+            new OverviewStat(
+                $"{lapsed}",
+                "Empowerments Lapsed",
+                "Empowerments that fell off with no Shield Slam under them. Shield Slam comes round faster " +
+                "than the buff can lapse, so anything above zero is worth looking at."),
             new OverviewStat(
                 $"{efficiency:F1}%",
                 "Absorb Used",
@@ -61,10 +67,10 @@
             Stats =
             [
                 new PerCastStat(
-                    $"{analyzer.EmpowermentsConsumed}/{analyzer.EmpowermentsGranted}",
-                    "Empowerments Spent",
-                    $"Empowerments a Shield Slam spent this pull, across {analyzer.BarrierWindows} barrier windows.",
-                    PerformanceTiers.FromThresholds(analyzer.EmpowermentEfficiency * 100, 95, 85, 70)),
+                    $"{analyzer.BarrierApplications}",
+                    "Barriers Laid",
+                    $"Barrier applications this pull across {analyzer.EmpowermentsGranted} empowerments, " +
+                    $"forming {analyzer.BarrierWindows} windows."),
                 new PerCastStat(
                     $"{analyzer.AbsorbEfficiency * 100:F0}%",
                     "Absorb Used",

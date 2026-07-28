@@ -15,7 +15,7 @@ namespace FellowshipAnalyzer.Heroes.Helena.Tests.Analysis;
 public sealed class EmpoweredShieldSlamAnalyzerTests
 {
     [Fact]
-    public async Task AnEmpowermentAShieldSlamSpent_CountsAsConsumed()
+    public async Task AnEmpowermentAShieldSlamSpent_DoesNotCountAsLapsed()
     {
         var analyzer = await Analyze(
             ApplyBuff(PullStart + 1_000, Spells.ShieldSlamAbsorbBuffSelfBuff),
@@ -23,9 +23,7 @@ public sealed class EmpoweredShieldSlamAnalyzerTests
             RemoveBuff(PullStart + 2_000, Spells.ShieldSlamAbsorbBuffSelfBuff));
 
         analyzer.EmpowermentsGranted.ShouldBe(1);
-        analyzer.EmpowermentsConsumed.ShouldBe(1);
         analyzer.EmpowermentsExpired.ShouldBe(0);
-        analyzer.EmpowermentEfficiency.ShouldBe(1d);
     }
 
     [Fact]
@@ -36,9 +34,26 @@ public sealed class EmpoweredShieldSlamAnalyzerTests
             RemoveBuff(PullStart + 13_000, Spells.ShieldSlamAbsorbBuffSelfBuff));
 
         analyzer.EmpowermentsGranted.ShouldBe(1);
-        analyzer.EmpowermentsConsumed.ShouldBe(0);
         analyzer.EmpowermentsExpired.ShouldBe(1);
-        analyzer.EmpowermentEfficiency.ShouldBe(0);
+    }
+
+    [Fact]
+    public async Task ARefreshOntoALiveBarrier_CountsAsAnApplicationButNotAWindow()
+    {
+        var analyzer = await Analyze(
+            ApplyBuff(PullStart + 1_000, Spells.ShieldSlamAbsorb),
+            new RefreshBuffEvent
+            {
+                Timestamp = PullStart + 4_000,
+                SourceId = PlayerId,
+                TargetId = PlayerId,
+                Ability = new Core.Events.Ability { FSLID = Spells.ShieldSlamAbsorb.FSLID },
+                AbilityGameId = Spells.ShieldSlamAbsorb.FSLID,
+            },
+            RemoveBuff(PullStart + 16_000, Spells.ShieldSlamAbsorb, absorb: 0));
+
+        analyzer.BarrierApplications.ShouldBe(2);
+        analyzer.BarrierWindows.ShouldBe(1);
     }
 
     [Fact]
@@ -106,9 +121,9 @@ public sealed class EmpoweredShieldSlamAnalyzerTests
         var analyzer = await Analyze(Cast(PullStart + 1_000, Spells.ShieldSlam));
 
         analyzer.EmpowermentsGranted.ShouldBe(0);
+        analyzer.BarrierApplications.ShouldBe(0);
         analyzer.BarrierWindows.ShouldBe(0);
         analyzer.AbsorbEfficiency.ShouldBe(0);
-        analyzer.EmpowermentEfficiency.ShouldBe(0);
     }
 
     private static AbsorbedEvent Absorbed(int timestamp, long amount) => new()

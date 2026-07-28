@@ -23,25 +23,32 @@ public sealed partial class EmpoweredShieldSlamAnalyzer : Analyzer
     private BarrierCapture? _open;
     private int _empowermentsGranted;
     private int _empowermentsExpired;
+    private int _barrierApplications;
     private bool _empowermentOpen;
     private bool _empowermentConsumed;
 
     /// <summary>Hold the Line casts that empowered a Shield Slam this pull.</summary>
     public int EmpowermentsGranted => _empowermentsGranted;
 
-    /// <summary>Empowerments that fell off with no Shield Slam cast under them.</summary>
+    /// <summary>
+    /// Empowerments that fell off with no Shield Slam cast under them. Zero on every pull of the
+    /// validation report, because the buff is removed the instant a Shield Slam spends it and Shield
+    /// Slam comes round faster than the buff can lapse - so treat a non-zero reading as the signal and
+    /// zero as the expected case, never as a score.
+    /// </summary>
     public int EmpowermentsExpired => _empowermentsExpired;
 
-    /// <summary>Empowerments a Shield Slam spent.</summary>
-    public int EmpowermentsConsumed => _empowermentsGranted - _empowermentsExpired;
-
-    /// <summary>Share (0-1) of empowerments a Shield Slam spent before they fell off.</summary>
-    public double EmpowermentEfficiency =>
-        _empowermentsGranted > 0 ? (double)EmpowermentsConsumed / _empowermentsGranted : 0;
+    /// <summary>
+    /// Barrier applications, counting a refresh onto a live barrier alongside a fresh one. Every
+    /// application in the validation report landed inside an empowerment window with a Shield Slam
+    /// within half a second, and no application fell outside one, so the barrier has no second source.
+    /// </summary>
+    public int BarrierApplications => _barrierApplications;
 
     /// <summary>
     /// Barrier windows this pull. A barrier laid while one is already up refreshes it rather than
-    /// stacking, so consecutive empowered Shield Slams inside twelve seconds share one window.
+    /// stacking, so consecutive empowered Shield Slams inside one duration share a window and
+    /// <see cref="BarrierApplications"/> runs ahead of this.
     /// </summary>
     public int BarrierWindows => Result.Barriers.Count;
 
@@ -115,6 +122,8 @@ public sealed partial class EmpoweredShieldSlamAnalyzer : Analyzer
 
     private void OpenBarrier(int timestamp)
     {
+        _barrierApplications++;
+
         if (_open is not null) return;
 
         _open = new BarrierCapture { Start = timestamp, End = timestamp };

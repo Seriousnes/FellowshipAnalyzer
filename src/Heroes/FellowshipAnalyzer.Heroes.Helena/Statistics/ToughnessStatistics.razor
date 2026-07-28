@@ -44,5 +44,6 @@
 
     private string BlockTooltip =>
         $"{Analyzer.OvercappedBlocks} of {Analyzer.ObservedBlocks} blocks landed at a full bar, each losing " +
-        $"the {ToughnessTracker.BlockGeneration * 100:F0}% it would have restored. Block timing is not yours to choose.";
+        $"the {ToughnessTracker.BlockGeneration * 100:F1}% it would have restored. Only blocks whose event " +
+        "carried a Toughness reading can be judged, so this is a sample; block timing is not yours to choose anyway.";
 }

@@ -40,7 +40,7 @@
         var casts = analyzers.Sum(analyzer => analyzer.Casts);
         var activeMs = analyzers.Sum(analyzer => (long)analyzer.ActiveMs);
         var cappedMs = analyzers.Sum(analyzer => (long)analyzer.ChargeCappedMs);
-        var prevented = analyzers.Sum(analyzer => analyzer.DamagePrevented);
+        var covered = analyzers.Sum(analyzer => analyzer.MitigationInWindow);
         var uptime = activeMs / (double)pullMs * 100;
         var cappedShare = cappedMs / (double)pullMs * 100;
 
@@ -57,9 +57,11 @@
                 $"{cappedMs / 1000d:N0}s spent holding both charges, with neither recharging.",
                 PerformanceTiers.FromThresholds(100 - cappedShare, 90, 75, 55)),
             new(
-                $"{prevented:N0}",
-                "Damage Prevented",
-                "Mitigation and absorbs on hits that landed inside a Shields Up window."),
+                $"{covered:N0}",
+                "Mitigation Covered",
+                "All mitigation and absorbs on hits that landed inside a Shields Up window. At high uptime " +
+                "this approaches the fight's whole mitigation total, because it counts everything at once " +
+                "rather than the share Shields Up is responsible for."),
         };
 
         if (Parser.ToughnessTracker is { } tracker)
@@ -87,7 +89,7 @@
 
         var fromHigh = analyzers.Sum(analyzer => analyzer.UsesFromHighToughness);
         var shieldsUpSpent = analyzers.Sum(analyzer => analyzer.UsesWithShieldsUpSpent);
-        var prevented = analyzers.Sum(analyzer => analyzer.DamagePrevented);
+        var covered = analyzers.Sum(analyzer => analyzer.MitigationInWindow);
 
         return
         [
@@ -103,11 +105,14 @@
             new OverviewStat(
                 $"{shieldsUpSpent}/{uses}",
                 "With Shields Up Spent",
-                "Uses made with no Shields Up charge left, which is the window Iron Wall exists to buy."),
+                "Uses made with no Shields Up charge left, which is the window Iron Wall exists to buy. " +
+                "Charges come from the cooldown model rather than the log, so this follows the spellbook's " +
+                "cooldowns."),
             new OverviewStat(
-                $"{prevented:N0}",
-                "Damage Prevented",
-                "Mitigation and absorbs on hits that landed inside an Iron Wall window."),
+                $"{covered:N0}",
+                "Mitigation Covered",
+                "All mitigation and absorbs on hits that landed inside an Iron Wall window, from every " +
+                "source at once rather than Iron Wall's own share."),
         ];
     }
 
@@ -147,9 +152,9 @@
                 "Duration",
                 use.Window.Truncated ? "The pull ended before the window did." : "How long the freeze held."),
             new(
-                $"{use.Window.Prevented:N0}",
-                "Damage Prevented",
-                $"Mitigation and absorbs across the {use.Window.Hits} hits taken inside the window."),
+                $"{use.Window.Mitigation:N0}",
+                "Mitigation Covered",
+                $"All mitigation and absorbs across the {use.Window.Hits} hits taken inside the window."),
         };
 
         if (use.ShieldsUpCharges is { } charges)
