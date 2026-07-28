@@ -13,10 +13,18 @@ namespace FellowshipAnalyzer.Core.Analysis;
 /// reads the cost the spell registry carries, which is empty for a hero whose costs the game data
 /// does not publish per ability.
 /// </para>
+/// <para>
+/// A heal that arrives under an effect id is folded onto the ability that owns it, so long as the
+/// hero's spellbook names the effect in the entry's <see cref="SpellbookAbility.AdditionalSpells"/>.
+/// Without that the casts and the healing land in separate rows and both rates read zero: the cast
+/// row has cost and no healing, the effect row has healing and no cast.
+/// </para>
 /// </summary>
 public partial class HealingEfficiencyTracker : EventSubscriber
 {
     private readonly Dictionary<int, SpellCapture> _bySpell = [];
+
+    private Abilities? _abilities;
 
     private Computed Result => field ??= Compute();
 
@@ -90,14 +98,21 @@ public partial class HealingEfficiencyTracker : EventSubscriber
 
     private SpellCapture CaptureFor(int spellId, string? name)
     {
-        if (!_bySpell.TryGetValue(spellId, out var capture))
-            _bySpell[spellId] = capture = new SpellCapture { Name = name ?? string.Empty };
+        var owner = OwningAbility(spellId);
+        var id = owner?.PrimarySpell.FSLID ?? spellId;
+        var label = owner is not null ? owner.Name ?? owner.PrimarySpell.Name : name;
 
-        if (string.IsNullOrEmpty(capture.Name) && !string.IsNullOrEmpty(name))
-            capture.Name = name;
+        if (!_bySpell.TryGetValue(id, out var capture))
+            _bySpell[id] = capture = new SpellCapture { Name = label ?? string.Empty };
+
+        if (string.IsNullOrEmpty(capture.Name) && !string.IsNullOrEmpty(label))
+            capture.Name = label;
 
         return capture;
     }
+
+    private SpellbookAbility? OwningAbility(int spellId) =>
+        (_abilities ??= Owner.GetModule<Abilities>())?.GetAbility(spellId);
 
     private Computed Compute()
     {
