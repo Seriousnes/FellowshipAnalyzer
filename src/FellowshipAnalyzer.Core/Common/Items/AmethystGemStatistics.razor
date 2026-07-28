@@ -1,0 +1,28 @@
+@using FellowshipAnalyzer.Core.Analysis.Gems
+@inherits AnalyzerStatistic<AmethystGemAnalyzer>
+
+<GemStatisticCard Gem="Analyzer">
+    <Info>
+        <p>
+            Amethyst's ranks grant critical strike. Blessing of the Deathdealer is a passive multiplier with
+            no events of its own, so its contribution is taken from your own crits: the logged amount already
+            includes the bonus, making the share it added <em>amount &#215; bonus &#247; (1 + bonus)</em>.
+        </p>
+    </Info>
+    <ChildContent>
+        <GemTraitSection Trait="AmethystGemAnalyzer.BlessingOfTheDeathdealer" GemPower="Analyzer.GemPower">
+            @if (Analyzer.CriticalDamage > 0)
+            {
+                <ItemDamageDone Amount="Analyzer.CriticalPowerDamage" />
+            }
+            @if (Analyzer.CriticalHealing > 0)
+            {
+                <ItemHealingDone Amount="Analyzer.CriticalPowerHealing" />
+            }
+        </GemTraitSection>
+
+        <GemTraitSection Trait="AmethystGemAnalyzer.ReapersReprieve" GemPower="Analyzer.GemPower">
+            <ItemHealingDone Amount="Analyzer.ReapersReprieveHealing" />
+        </GemTraitSection>
+    </ChildContent>
+</GemStatisticCard>

@@ -1765,8 +1765,8 @@
     "semantic_hash": ""
   },
   "src/FellowshipAnalyzer.Generators/JsonDerivedTypeGenerator.cs": {
-    "mtime": 1785143387.185802,
-    "ast_hash": "3f84571c29ef7fe2f3d11a39638b11d3",
+    "mtime": 1785145331.6801343,
+    "ast_hash": "a09a0a54af9e13f55919000b68b07bb9",
     "semantic_hash": ""
   },
   "src/FellowshipAnalyzer.Generators/ModuleGenerator.cs": {
@@ -4175,8 +4175,8 @@
     "semantic_hash": ""
   },
   "src/FellowshipAnalyzer.Core/Analysis/ProgressPacer.cs": {
-    "mtime": 1785143407.7313323,
-    "ast_hash": "43dfe22335cb808a08008ccfa96d0d70",
+    "mtime": 1785145363.9995358,
+    "ast_hash": "8b3324a176c59d367404ec6568d3f426",
     "semantic_hash": ""
   },
   "src/FellowshipAnalyzer.Core/FellowshipLogs/EventStreamReader.cs": {
@@ -4185,8 +4185,8 @@
     "semantic_hash": ""
   },
   "tests/FellowshipAnalyzer.Core.Tests/Analysis/ProgressPacerTests.cs": {
-    "mtime": 1785143812.841784,
-    "ast_hash": "358a976aa3bdc1aa5eec76098ed97f18",
+    "mtime": 1785145400.2774117,
+    "ast_hash": "266913adfcf30f40145d2bcc792d94ac",
     "semantic_hash": ""
   },
   "tests/FellowshipAnalyzer.Core.Tests/Serialization/EventStreamReaderTests.cs": {

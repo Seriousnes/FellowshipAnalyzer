@@ -1,0 +1,25 @@
+.item-throughput {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.35em;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+}
+
+.item-throughput-icon {
+    font-size: 0.95em;
+}
+
+.item-throughput-approx {
+    color: var(--fa-text-muted);
+}
+
+.item-throughput-rate {
+    font-weight: 600;
+    color: var(--fa-text);
+}
+
+.item-throughput-detail {
+    color: var(--fa-text-muted);
+    font-size: 0.82em;
+}

@@ -1,0 +1,20 @@
+@using FellowshipAnalyzer.Core.Analysis.Gems
+@inherits AnalyzerStatistic<SapphireGemAnalyzer>
+
+<GemStatisticCard Gem="Analyzer">
+    <Info>
+        <p>
+            Sapphire's ranks grant spirit and strengthen Heroism. Ancestral Surge raises your primary
+            attribute while Heroism is active, and the log records no unbuffed comparison, so the measure is
+            the time it was active rather than the damage it added.
+        </p>
+    </Info>
+    <ChildContent>
+        <GemTraitSection Trait="SapphireGemAnalyzer.AncestralSurge" GemPower="Analyzer.GemPower">
+            <span>
+                @($"{Analyzer.AncestralSurgeUptimeMs / 1000d:0.0}s")
+                <small>@($"{Analyzer.AncestralSurgeUptime:P0}") of the fight</small>
+            </span>
+        </GemTraitSection>
+    </ChildContent>
+</GemStatisticCard>

@@ -12,7 +12,7 @@ using Shouldly;
 
 using Xunit;
 
-using Items = FellowshipAnalyzer.Core.Common.Spells.Items;
+using Items = FellowshipAnalyzer.Core.Common.Items.Items;
 using Spells = FellowshipAnalyzer.Core.Common.Spells.Gunde.Spells;
 
 namespace FellowshipAnalyzer.Heroes.Gunde.Tests.Analysis;

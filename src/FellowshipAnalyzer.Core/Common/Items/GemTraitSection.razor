@@ -1,0 +1,24 @@
+@using FellowshipAnalyzer.Core.Analysis.Gems
+
+@if (Trait.ActiveRank(GemPower) is { } rank)
+{
+    <div class="gem-trait">
+        <div class="gem-trait-name">
+            <SpellLink Spell="rank" />
+        </div>
+        <div class="gem-trait-metrics">
+            @ChildContent
+        </div>
+    </div>
+}
+
+@code {
+    /// <summary>The trait to render, which supplies the rank the player's gem power has unlocked.</summary>
+    [Parameter, EditorRequired] public GemTrait Trait { get; set; } = null!;
+
+    /// <summary>The player's power in the owning gem, deciding the rank shown and whether this section renders.</summary>
+    [Parameter, EditorRequired] public int GemPower { get; set; }
+
+    /// <summary>What this trait contributed, one readout per line.</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+}

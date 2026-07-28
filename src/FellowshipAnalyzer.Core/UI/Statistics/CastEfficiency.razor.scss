@@ -1,0 +1,98 @@
+@use 'mixins' as mx;
+
+.cast-efficiency {
+    @include mx.card-surface;
+    overflow-x: auto;
+    padding: 0.25rem 0.75rem 0.5rem;
+}
+
+.cast-efficiency-table {
+    width: 100%;
+    min-width: 520px;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+}
+
+.cast-efficiency-heading th {
+    padding: 1rem 0.75rem 0.5rem;
+    text-align: left;
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    color: var(--fa-text-muted);
+    border-bottom: var(--fa-border-width) solid var(--fa-border-card);
+    white-space: nowrap;
+
+    &:first-child {
+        color: var(--fa-gold);
+    }
+
+    &.cast-efficiency-numeric {
+        text-align: right;
+    }
+}
+
+.cast-efficiency-table tbody:first-child .cast-efficiency-heading th {
+    padding-top: 0.5rem;
+}
+
+.cast-efficiency-table td {
+    padding: 0.4rem 0.75rem;
+    border-bottom: var(--fa-border-width) solid var(--fa-border-subtle);
+    color: var(--fa-text);
+}
+
+.cast-efficiency-table tbody:last-child tr:last-child td {
+    border-bottom: none;
+}
+
+.cast-efficiency-table tbody tr:hover td {
+    background: var(--fa-bg-hover);
+}
+
+.cast-efficiency-ability {
+    width: 32%;
+}
+
+.cast-efficiency-numeric {
+    text-align: right;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+}
+
+.cast-efficiency-share {
+    width: 1%;
+    color: var(--fa-text-muted);
+}
+
+.cast-efficiency-track {
+    width: 30%;
+}
+
+.cast-efficiency-bar {
+    height: 10px;
+    border-radius: var(--fa-radius-xs);
+    overflow: hidden;
+    background: var(--fa-bg-inset);
+}
+
+.cast-efficiency-fill {
+    height: 100%;
+}
+
+.cast-efficiency-fill-plain {
+    background: var(--fa-gold);
+}
+
+@include mx.mobile {
+    .cast-efficiency {
+        padding: 0.25rem 0.5rem 0.5rem;
+    }
+
+    .cast-efficiency-table td,
+    .cast-efficiency-heading th {
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
+    }
+}

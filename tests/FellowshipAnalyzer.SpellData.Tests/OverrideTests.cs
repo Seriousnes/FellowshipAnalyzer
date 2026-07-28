@@ -1,3 +1,4 @@
+using FellowshipAnalyzer.Core.Common.Spells;
 using FellowshipAnalyzer.SpellData;
 using FellowshipAnalyzer.SpellData.Model;
 using FellowshipAnalyzer.SpellData.Sources;
@@ -52,6 +53,41 @@ public class OverrideTests
         var spell = result.Spells.Single(x => x.Scope == "rime" && x.Member == "FreezingTorrent");
         spell.Provenance.For("channelTickInterval").ShouldBe(ProvenanceSource.Override);
         spell.Provenance.For("cooldown").ShouldBe(ProvenanceSource.HeroData);
+    }
+
+    [Fact]
+    public void Patch_SetsAbilityCategory()
+    {
+        var overrides = OverridesSource.FromInline("""
+            { "rime": { "FreezingTorrent": { "abilityCategory": "Control" } } }
+            """);
+        var result = MergeEngine.Run(MergeInputs.Load() with { Overrides = overrides });
+        var spell = result.Spells.Single(x => x.Scope == "rime" && x.Member == "FreezingTorrent");
+        spell.Spell.AbilityCategory.ShouldBe(AbilityCategory.Control);
+        spell.Provenance.For("abilityCategory").ShouldBe(ProvenanceSource.Override);
+    }
+
+    [Fact]
+    public void Add_Ability_InheritsKitAbilityCategory()
+    {
+        var overrides = OverridesSource.FromInline("""
+            { "rime": { "WintersBlessing": { "id": 1026 } } }
+            """);
+        var result = MergeEngine.Run(MergeInputs.Load() with { Overrides = overrides });
+        var spell = result.Spells.Single(x => x.Scope == "rime" && x.Member == "WintersBlessing");
+        spell.Spell.AbilityCategory.ShouldBe(AbilityCategory.Major);
+        spell.Provenance.For("abilityCategory").ShouldBe(ProvenanceSource.HeroData);
+    }
+
+    [Fact]
+    public void Add_Effect_DoesNotInheritCategoryFromAbilityOfSameNativeId()
+    {
+        var overrides = OverridesSource.FromInline("""
+            { "rime": { "WintersBlessingBuff": { "id": 1026, "kind": "effect" } } }
+            """);
+        var result = MergeEngine.Run(MergeInputs.Load() with { Overrides = overrides });
+        result.Spells.Single(x => x.Scope == "rime" && x.Member == "WintersBlessingBuff")
+              .Spell.AbilityCategory.ShouldBeNull();
     }
 
     [Fact]

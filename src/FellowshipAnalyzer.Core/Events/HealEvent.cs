@@ -32,9 +32,9 @@ public class HealEvent : Event, IAbilityEvent, IHasSourceWithInstanceEvent, IHas
     /// <summary>The FSLID identifying <see cref="Ability"/> in the FellowshipLogs game data.</summary>
     public virtual FSLID AbilityGameId { get; set; }
     /// <summary>
-    /// This describes if the spell Hit/Missed/Crit/etc. Look at <see cref="HitTypeEnum"/> all types of hits
+    /// This describes if the spell Hit/Missed/Crit/etc. Look at <see cref="Events.HitType"/> all types of hits
     /// </summary>
-    public virtual HitTypeEnum HitType { get; set; }
+    public virtual HitType HitType { get; set; }
     /// <summary>
     /// The effective healing the event did
     /// </summary>

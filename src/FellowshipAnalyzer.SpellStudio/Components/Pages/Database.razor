@@ -31,6 +31,7 @@
             {
                 <span class="studio-status">@_status</span>
             }
+            <button class="btn-ghost" @onclick="() => StartAdd(null)">New override</button>
             <button class="btn-rebuild" @onclick="RebuildDb" disabled="@_rebuilding">
                 @(_rebuilding ? "Rebuilding…" : "Rebuild spelldb.json")
             </button>
@@ -115,6 +116,7 @@
                                 <th class="col-kind">Kind</th>
                                 <th class="col-id num">Id</th>
                                 <th class="col-name">Name</th>
+                                <th class="col-cat">Category</th>
                                 <th class="col-num num">CD</th>
                                 <th class="col-num num">Rng</th>
                                 <th class="col-num num">Chg</th>
@@ -174,6 +176,7 @@
                                         <td class="col-name cell @SrcCellClass(spell.Provenance.For("name"))">
                                             <SpellLink Spell="@coreSpell" Icon="false" />
                                         </td>
+                                        <td class="col-cat cell @SrcCellClass(spell.Provenance.For("abilityCategory"))">@CellVal(spell.Spell.AbilityCategory?.ToString())</td>
                                         <td class="col-num num mono cell @SrcCellClass(spell.Provenance.For("cooldown"))">@CellVal(Fmt(spell.Spell.Cooldown))</td>
                                         <td class="col-num num mono cell @SrcCellClass(spell.Provenance.For("range"))">@CellVal(spell.Spell.Range?.ToString())</td>
                                         <td class="col-num num mono cell @SrcCellClass(spell.Provenance.For("charges"))">@CellVal(spell.Spell.Charges.ToString())</td>
@@ -206,6 +209,7 @@
                                         <td class="col-kind"><span class="kind-tag">@(addable ? "EFCT" : "DRIFT")</span></td>
                                         <td class="col-id num mono cell-nil">·</td>
                                         <td class="col-name"><span class="candidate-tag">@(addable ? "add effect by id" : GapTitle(gap.Kind))</span></td>
+                                        <td class="col-cat mono cell-nil">·</td>
                                         <td class="col-num num mono cell-nil">·</td>
                                         <td class="col-num num mono cell-nil">·</td>
                                         <td class="col-num num mono cell-nil">·</td>
@@ -249,6 +253,18 @@
             <div class="modal-body">
                 <div class="field-list">
                     <label class="field">
+                        <span class="field-key">Member</span>
+                        <input type="text" class="field-input" @bind="_eMember" @bind:event="oninput" placeholder="@sel.Member" />
+                    </label>
+                    <label class="field">
+                        <span class="field-key">Id @ProvChip(sel.Provenance.For("id"))</span>
+                        <input type="number" class="field-input" @bind="_eId" @bind:event="oninput" placeholder="@sel.Spell.Id" />
+                    </label>
+                    @if (RenameTarget is { } rename)
+                    {
+                        <p class="field-hint">Saves as <b>@sel.Scope / @rename</b>, superseding @sel.Member.</p>
+                    }
+                    <label class="field">
                         <span class="field-key">Name @ProvChip(sel.Provenance.For("name"))</span>
                         <input type="text" class="field-input" @bind="_eName" @bind:event="oninput" placeholder="@sel.Spell.Name" />
                     </label>
@@ -257,8 +273,23 @@
                         <input type="text" class="field-input" @bind="_eIcon" @bind:event="oninput" placeholder="@sel.Spell.Icon" />
                     </label>
                     <label class="field">
+                        <span class="field-key">Category @ProvChip(sel.Provenance.For("abilityCategory"))</span>
+                        <select class="field-input" @bind="_eAbilityCategory">
+                            <option value="">@InheritedLabel(sel.Provenance.For("abilityCategory"), sel.Spell.AbilityCategory?.ToString())</option>
+                            @foreach (var category in Categories)
+                            {
+                                <option value="@category">@category</option>
+                            }
+                        </select>
+                    </label>
+                    <label class="field">
                         <span class="field-key">Cooldown @ProvChip(sel.Provenance.For("cooldown"))</span>
                         <input type="text" class="field-input" @bind="_eCooldown" @bind:event="oninput" placeholder="@Fmt(sel.Spell.Cooldown)" />
+                    </label>
+                    <label class="field">
+                        <span class="field-key" title="Cooldown reduction on target death">CD on Death @ProvChip(sel.Provenance.For("cooldownReductionOnTargetDeath"))</span>
+                        <input type="text" class="field-input" @bind="_eCooldownReductionOnTargetDeath" @bind:event="oninput"
+                               placeholder="@Fmt(sel.Spell.CooldownReductionOnTargetDeath)" />
                     </label>
                     <label class="field">
                         <span class="field-key">Range @ProvChip(sel.Provenance.For("range"))</span>
@@ -285,17 +316,15 @@
                 <div class="cost-section">
                     <div class="cost-section-head">Costs @ProvChip(sel.Provenance.For("costs"))</div>
                     <div class="cost-grid">
-                        @foreach (var slot in CostRowKeys(sel))
+                        @foreach (var slot in CostSlots)
                         {
                             var costSlot = slot;
                             var current = _eCosts.GetValueOrDefault(costSlot, string.Empty);
-                            var inherited = sel.Spell.Costs.TryGetValue(costSlot, out var cv) ? cv.ToString() : string.Empty;
                             <label class="cost-field">
                                 <span class="cost-key">@CostLabel(costSlot)</span>
                                 <input type="number" class="field-input cost-input"
                                        value="@current"
-                                       @oninput="e => _eCosts[costSlot] = e.Value?.ToString() ?? string.Empty"
-                                       placeholder="@inherited" />
+                                       @oninput="e => _eCosts[costSlot] = e.Value?.ToString() ?? string.Empty" />
                             </label>
                         }
                     </div>
@@ -305,39 +334,73 @@
                     <span class="field-key">Note</span>
                     <input type="text" class="field-input" @bind="_eNote" @bind:event="oninput" placeholder="curation note" />
                 </label>
+
+                <p class="modal-hint">An empty field inherits from the merge; clearing a field that carries an override removes it. Id is structural, so clearing it keeps the current one - use Delete override to drop the whole entry.</p>
             </div>
 
             <div class="modal-actions">
                 <button class="btn-primary" @onclick="SaveEdit">Save override</button>
                 <button class="btn-ghost" @onclick="CancelEdit">Cancel</button>
+                @if (HasOverride(sel))
+                {
+                    <button class="btn-ghost btn-danger" @onclick="DeleteOverride">Delete override</button>
+                }
             </div>
         </div>
     </div>
 }
 
-@if (_addGap is not null)
+@if (_adding)
 {
     <div class="modal-backdrop" @onclick="CancelAdd">
         <div class="modal modal-narrow" @onclick="NoOp" @onclick:stopPropagation="true">
             <div class="modal-head">
                 <div class="modal-title">
-                    <strong class="modal-add-title">Add effect</strong>
-                    <span class="modal-meta">@_addGap.Scope / @_addGap.Member</span>
+                    <strong class="modal-add-title">New override</strong>
+                    <span class="modal-meta">add a spell by id</span>
                 </div>
                 <button class="modal-close" @onclick="CancelAdd" aria-label="Close"><i class="ti ti-x" aria-hidden="true"></i></button>
             </div>
             <div class="modal-body">
-                <label class="field field-wide">
-                    <span class="field-key">Id</span>
-                    <input type="number" class="field-input" @bind="_addId" placeholder="native effect id" />
-                </label>
-                <label class="field field-wide">
-                    <span class="field-key">Note</span>
-                    <input type="text" class="field-input" @bind="_addNote" placeholder="why this id" />
-                </label>
+                <div class="field-list">
+                    <label class="field">
+                        <span class="field-key">Scope</span>
+                        <select class="field-input" @bind="_addScope">
+                            @foreach (var scope in Scopes)
+                            {
+                                <option value="@scope">@scope</option>
+                            }
+                        </select>
+                    </label>
+                    <label class="field">
+                        <span class="field-key">Member</span>
+                        <input type="text" class="field-input" @bind="_addMember" @bind:event="oninput" placeholder="PascalCase member" />
+                    </label>
+                    <label class="field">
+                        <span class="field-key">Kind</span>
+                        <select class="field-input" @bind="_addKind">
+                            @foreach (var kind in KindOrder)
+                            {
+                                <option value="@kind">@kind</option>
+                            }
+                        </select>
+                    </label>
+                    <label class="field">
+                        <span class="field-key">Id</span>
+                        <input type="number" class="field-input" @bind="_addId" @bind:event="oninput" placeholder="native id" />
+                    </label>
+                    <label class="field">
+                        <span class="field-key">Note</span>
+                        <input type="text" class="field-input" @bind="_addNote" @bind:event="oninput" placeholder="why this id" />
+                    </label>
+                </div>
+                @if (AddError is { } error)
+                {
+                    <p class="modal-error">@error</p>
+                }
             </div>
             <div class="modal-actions">
-                <button class="btn-primary" @onclick="SaveAdd">Add override</button>
+                <button class="btn-primary" @onclick="SaveAdd" disabled="@(AddError is not null)">Add override</button>
                 <button class="btn-ghost" @onclick="CancelAdd">Cancel</button>
             </div>
         </div>
@@ -346,7 +409,8 @@
 
 @code {
     private CuratedSpell? _selected;
-    private Gap? _addGap;
+    private JsonObject? _selectedOverride;
+    private bool _adding;
     private string? _status;
     private bool _rebuilding;
 
@@ -357,9 +421,13 @@
     private bool _overridesOnly;
     private bool _showProvenance;
 
+    private string _eMember = "";
+    private string _eId = "";
     private string _eName = "";
     private string _eIcon = "";
+    private string _eAbilityCategory = "";
     private string _eCooldown = "";
+    private string _eCooldownReductionOnTargetDeath = "";
     private string _eRange = "";
     private string _eCharges = "";
     private string _eCastDuration = "";
@@ -368,6 +436,9 @@
     private string _eNote = "";
     private Dictionary<ResourceTypes, string> _eCosts = new();
 
+    private string _addScope = "";
+    private string _addMember = "";
+    private SpellKind _addKind = SpellKind.Effect;
     private string _addId = "";
     private string _addNote = "";
 
@@ -382,6 +453,8 @@
         [GapKind.UnresolvedEffect, GapKind.UnknownResource, GapKind.UnknownScope];
 
     private static readonly ResourceTypes[] CostSlots = Enum.GetValues<ResourceTypes>();
+
+    private static readonly AbilityCategory[] Categories = Enum.GetValues<AbilityCategory>();
 
     private sealed record Row(
         CuratedSpell? Spell, Gap? Candidate, string Scope, string Member, IReadOnlyList<GapKind> Gaps);
@@ -448,10 +521,10 @@
         || s.Scope.Contains(term, StringComparison.OrdinalIgnoreCase)
         || s.Spell.Id.ToString().Contains(term, StringComparison.OrdinalIgnoreCase);
 
-    private bool HasOverride(CuratedSpell s) =>
-        Merge.Overrides.ByScopeAndMember.GetValueOrDefault(s.Scope)?.ContainsKey(s.Member) == true;
+    private bool HasOverride(CuratedSpell s) => OverrideFor(s.Scope, s.Member) is not null;
 
-    private static IEnumerable<ResourceTypes> CostRowKeys(CuratedSpell s) => CostSlots;
+    private JsonObject? OverrideFor(string scope, string member) =>
+        Merge.Overrides.ByScopeAndMember.GetValueOrDefault(scope)?.GetValueOrDefault(member);
 
     private void ToggleScope(string scope) => _scopeFilter = _scopeFilter == scope ? null : scope;
     private void ToggleKind(SpellKind kind) => _kindFilter = _kindFilter == kind ? null : kind;
@@ -468,21 +541,27 @@
     private void SelectSpell(CuratedSpell spell)
     {
         _selected = spell;
-        _addGap = null;
+        _selectedOverride = OverrideFor(spell.Scope, spell.Member);
+        _adding = false;
         _status = null;
-        var existing = Merge.Overrides.ByScopeAndMember
-            .GetValueOrDefault(spell.Scope)
-            ?.GetValueOrDefault(spell.Member);
+        var existing = _selectedOverride;
+        _eMember = spell.Member;
+        _eId = NumberField(existing, "id");
         _eName = StringField(existing, "name");
         _eIcon = StringField(existing, "icon");
+        _eAbilityCategory = StringField(existing, "abilityCategory");
         _eCooldown = NumberField(existing, "cooldown");
+        _eCooldownReductionOnTargetDeath = NumberField(existing, "cooldownReductionOnTargetDeath");
         _eRange = NumberField(existing, "range");
         _eCharges = NumberField(existing, "charges");
         _eCastDuration = NumberField(existing, "castDuration");
         _eChannelDuration = NumberField(existing, "channelDuration");
         _eChannelTickInterval = NumberField(existing, "channelTickInterval");
         _eNote = StringField(existing, "note");
-        _eCosts = CostRowKeys(spell).ToDictionary(k => k, _ => "");
+        var costs = OverrideCosts(existing) ?? spell.Spell.Costs;
+        _eCosts = CostSlots.ToDictionary(
+            slot => slot,
+            slot => costs.TryGetValue(slot, out var v) ? v.ToString() : "");
     }
 
     private static string StringField(JsonObject? o, string key) =>
@@ -493,67 +572,168 @@
         o is not null && o.TryGetPropertyValue(key, out var v) && v is JsonValue jv && jv.TryGetValue<double>(out var d)
             ? d.ToString() : "";
 
-    private void CancelEdit() => _selected = null;
+    private static Dictionary<ResourceTypes, int>? OverrideCosts(JsonObject? o)
+    {
+        if (o is null || !o.TryGetPropertyValue("costs", out var node) || node is not JsonObject costs)
+            return null;
+        var result = new Dictionary<ResourceTypes, int>();
+        foreach (var (token, value) in costs)
+            if (ResourceTypesAliases.TryResolve(token, out var slot) && value is JsonValue jv && jv.TryGetValue<int>(out var v))
+                result[slot] = v;
+        return result;
+    }
+
+    private string? RenameTarget
+    {
+        get
+        {
+            var member = _eMember.Trim();
+            return _selected is not null && member.Length > 0 && member != _selected.Member ? member : null;
+        }
+    }
+
+    private void CancelEdit()
+    {
+        _selected = null;
+        _selectedOverride = null;
+    }
 
     private static void NoOp() { }
 
     private void SaveEdit()
     {
         if (_selected is null) return;
-        var merged = new Dictionary<ResourceTypes, int>(_selected.Spell.Costs);
-        foreach (var (k, raw) in _eCosts)
-        {
-            if (string.IsNullOrWhiteSpace(raw)) continue;
-            if (int.TryParse(raw, out var n)) merged[k] = n;
-        }
-        var costs = DictEqual(merged, _selected.Spell.Costs) ? new Dictionary<ResourceTypes, int>() : merged;
+        var sel = _selected;
+        var member = RenameTarget ?? sel.Member;
+        var existing = RenameTarget is null ? _selectedOverride : null;
 
         var delta = new JsonObject();
-        if (!string.IsNullOrWhiteSpace(_eName)) delta["name"] = _eName.Trim();
-        if (!string.IsNullOrWhiteSpace(_eIcon)) delta["icon"] = _eIcon.Trim();
-        if (double.TryParse(_eCooldown, out var cd)) delta["cooldown"] = cd;
-        if (int.TryParse(_eRange, out var rng)) delta["range"] = rng;
-        if (int.TryParse(_eCharges, out var ch)) delta["charges"] = ch;
-        if (double.TryParse(_eCastDuration, out var cast)) delta["castDuration"] = cast;
-        if (double.TryParse(_eChannelDuration, out var chd)) delta["channelDuration"] = chd;
-        if (double.TryParse(_eChannelTickInterval, out var cti)) delta["channelTickInterval"] = cti;
-        if (costs.Count > 0)
-        {
-            var costsNode = new JsonObject();
-            foreach (var (slot, v) in costs.OrderBy(x => (int)x.Key))
-                costsNode[ResourceTypesAliases.ToToken(slot)] = v;
-            delta["costs"] = costsNode;
-        }
-        if (!string.IsNullOrWhiteSpace(_eNote)) delta["note"] = _eNote.Trim();
+        SetText(delta, existing, "name", _eName);
+        SetText(delta, existing, "icon", _eIcon);
+        SetText(delta, existing, "abilityCategory", _eAbilityCategory);
+        SetDouble(delta, existing, "cooldown", _eCooldown);
+        SetDouble(delta, existing, "cooldownReductionOnTargetDeath", _eCooldownReductionOnTargetDeath);
+        SetInt(delta, existing, "range", _eRange);
+        SetInt(delta, existing, "charges", _eCharges);
+        SetDouble(delta, existing, "castDuration", _eCastDuration);
+        SetDouble(delta, existing, "channelDuration", _eChannelDuration);
+        SetDouble(delta, existing, "channelTickInterval", _eChannelTickInterval);
+        SetText(delta, existing, "note", _eNote);
+        SetCosts(delta, existing, sel);
 
-        OverridesPersister.Save(_selected.Scope, _selected.Member, delta);
+        if (int.TryParse(_eId, out var id))
+            delta["id"] = id;
+        else if (RenameTarget is not null)
+            delta["id"] = sel.Spell.Id;
+
+        if (delta.ContainsKey("id") && sel.Kind != SpellKind.Ability)
+            delta["kind"] = sel.Kind.ToString().ToLowerInvariant();
+
+        if (RenameTarget is not null && _selectedOverride is not null)
+            OverridesPersister.Remove(sel.Scope, sel.Member);
+        OverridesPersister.Save(sel.Scope, member, delta);
         Merge.Reload();
-        _status = $"Saved {_selected.Scope}/{_selected.Member}.";
-        _selected = null;
+        _status = $"Saved {sel.Scope}/{member}.";
+        CancelEdit();
     }
 
-    private void StartAdd(Gap gap)
+    private void DeleteOverride()
     {
-        _addGap = gap;
+        if (_selected is null) return;
+        var sel = _selected;
+        OverridesPersister.Remove(sel.Scope, sel.Member);
+        Merge.Reload();
+        _status = $"Removed override {sel.Scope}/{sel.Member}.";
+        CancelEdit();
+    }
+
+    private static void SetText(JsonObject delta, JsonObject? existing, string key, string value)
+    {
+        if (!string.IsNullOrWhiteSpace(value))
+            delta[key] = value.Trim();
+        else if (existing?.ContainsKey(key) == true)
+            delta[key] = null;
+    }
+
+    private static void SetDouble(JsonObject delta, JsonObject? existing, string key, string value)
+    {
+        if (double.TryParse(value, out var parsed))
+            delta[key] = parsed;
+        else if (existing?.ContainsKey(key) == true)
+            delta[key] = null;
+    }
+
+    private static void SetInt(JsonObject delta, JsonObject? existing, string key, string value)
+    {
+        if (int.TryParse(value, out var parsed))
+            delta[key] = parsed;
+        else if (existing?.ContainsKey(key) == true)
+            delta[key] = null;
+    }
+
+    private void SetCosts(JsonObject delta, JsonObject? existing, CuratedSpell sel)
+    {
+        var edited = new Dictionary<ResourceTypes, int>();
+        foreach (var (slot, raw) in _eCosts)
+            if (int.TryParse(raw, out var value))
+                edited[slot] = value;
+
+        var overridden = OverrideCosts(existing);
+        if (overridden is not null)
+        {
+            if (edited.Count == 0)
+                delta["costs"] = null;
+            else if (!DictEqual(edited, overridden))
+                delta["costs"] = CostsNode(edited);
+            return;
+        }
+
+        if (edited.Count > 0 && !DictEqual(edited, sel.Spell.Costs))
+            delta["costs"] = CostsNode(edited);
+    }
+
+    private static JsonObject CostsNode(IReadOnlyDictionary<ResourceTypes, int> costs)
+    {
+        var node = new JsonObject();
+        foreach (var (slot, value) in costs.OrderBy(x => (int)x.Key))
+            node[ResourceTypesAliases.ToToken(slot)] = value;
+        return node;
+    }
+
+    private void StartAdd(Gap? gap)
+    {
+        _adding = true;
         _selected = null;
+        _selectedOverride = null;
         _status = null;
+        _addScope = gap?.Scope ?? Scopes.First();
+        _addMember = gap?.Member ?? "";
+        _addKind = SpellKind.Effect;
         _addId = "";
         _addNote = "";
     }
 
-    private void CancelAdd() => _addGap = null;
+    private void CancelAdd() => _adding = false;
+
+    private string? AddError =>
+        !MemberNaming.IsValidIdentifier(_addMember.Trim()) ? "Member must be a valid C# identifier."
+        : !int.TryParse(_addId, out _) ? "Id must be a number."
+        : OverrideFor(_addScope, _addMember.Trim()) is not null ? "That scope and member already carry an override."
+        : null;
 
     private void SaveAdd()
     {
-        if (_addGap is null || !int.TryParse(_addId, out var id)) return;
-        var scope = _addGap.Scope;
-        var member = _addGap.Member;
-        var delta = new JsonObject { ["id"] = id, ["kind"] = "effect" };
-        if (!string.IsNullOrWhiteSpace(_addNote)) delta["note"] = _addNote.Trim();
-        OverridesPersister.Save(scope, member, delta);
+        if (AddError is not null) return;
+        var member = _addMember.Trim();
+        var delta = new JsonObject { ["id"] = int.Parse(_addId) };
+        if (_addKind != SpellKind.Ability)
+            delta["kind"] = _addKind.ToString().ToLowerInvariant();
+        if (!string.IsNullOrWhiteSpace(_addNote))
+            delta["note"] = _addNote.Trim();
+        OverridesPersister.Save(_addScope, member, delta);
         Merge.Reload();
-        _addGap = null;
-        _status = $"Added {scope}/{member}.";
+        _adding = false;
+        _status = $"Added {_addScope}/{member}.";
     }
 
     private async Task RebuildDb()
@@ -602,6 +782,11 @@
     };
 
     private static string Fmt(double? v) => v?.ToString("0.###") ?? "";
+
+    private static string InheritedLabel(ProvenanceSource? source, string? effective) =>
+        source == ProvenanceSource.Override ? "(inherit)"
+        : effective is null ? "(none)"
+        : $"(inherit {effective})";
 
     private static string CostLabel(ResourceTypes key) => key.ToString();
 

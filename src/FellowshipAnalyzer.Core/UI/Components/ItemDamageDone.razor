@@ -1,0 +1,23 @@
+@using FellowshipAnalyzer.Core.Analysis
+
+<ItemThroughput Icon="bolt" Accent="damage" Approximate="Approximate"
+                Rate="@($"{ThroughputFormat.Rate(Throughput.PerSecond(Amount))} DPS")"
+                Detail="@Detail" />
+
+@code {
+    /// <summary>The damage attributed to this source over the fight.</summary>
+    [Parameter, EditorRequired] public long Amount { get; set; }
+
+    /// <summary>The fight totals the rate and share are computed against.</summary>
+    [CascadingParameter] public ThroughputTracker Throughput { get; set; } = null!;
+
+    /// <summary>Marks the figure as an estimate.</summary>
+    [Parameter] public bool Approximate { get; set; }
+
+    /// <summary>Whether to append the share of the player's total damage. Defaults to <c>true</c>.</summary>
+    [Parameter] public bool ShowShare { get; set; } = true;
+
+    private string? Detail => ShowShare
+        ? $"{ThroughputFormat.Share(Throughput.ShareOfDamage(Amount))} of total"
+        : null;
+}

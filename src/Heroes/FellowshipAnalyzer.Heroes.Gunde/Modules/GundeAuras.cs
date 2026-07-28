@@ -1,7 +1,7 @@
 using FellowshipAnalyzer.Core.Analysis;
 using FellowshipAnalyzer.Core.Common.Spells.Gunde;
 
-using Items = FellowshipAnalyzer.Core.Common.Spells.Items;
+using Items = FellowshipAnalyzer.Core.Common.Items.Items;
 
 namespace FellowshipAnalyzer.Heroes.Gunde.Modules;
 

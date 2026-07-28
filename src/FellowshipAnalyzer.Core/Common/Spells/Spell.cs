@@ -21,7 +21,7 @@ public record Spell : IRimeSpell, IElarionSpell, IArdeosSpell
 {
     /// <summary>The FellowshipLogs id (combat-log <c>abilityGameID</c>). Base spells use <see cref="Id"/>; subtypes add their range offset.</summary>
     [JsonIgnore]
-    public virtual FSLID FSLID => new FSLID(Id);
+    public virtual FSLID FSLID => new(Id);
 
     /// <summary>The native FellowshipLogs ability id, with the range offset stripped; <see cref="FSLID"/> reapplies it based on this spell's kind.</summary>
     public int Id { get; init; }

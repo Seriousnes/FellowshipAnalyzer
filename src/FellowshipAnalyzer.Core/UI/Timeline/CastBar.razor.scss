@@ -8,6 +8,7 @@
     white-space: nowrap;
     position: absolute;
     top: 0;
+    pointer-events: none;
 }
 
 .cast-bar-time-line-sec {
@@ -19,7 +20,7 @@
     font-size: 14px;
     position: relative;
     box-sizing: border-box;
-    z-index: 999;
+    z-index: 5;
 
     &::before {
         content: attr(data-duration);

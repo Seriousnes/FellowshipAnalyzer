@@ -186,6 +186,102 @@
       "kind": "effect",
       "name": "Glorious Purpose",
       "note": "GE_Weapon_CleaveDamageBuffCooldownReduction_Buff, the Fated Strike proc window; not in any hero Kit, add directly."
+    },
+    "ReapersReprieve": {
+      "id": 1930,
+      "kind": "effect",
+      "name": "Reaper's Reprieve",
+      "note": "GE_GemBonus_HoTOnTouchedTargetDeath_HoT_Small, the Amethyst rank 3 heal-over-time. Gem bonuses belong to no hero Kit, so the source-derived scope omits them; add directly."
+    },
+    "ReapersReprieveII": {
+      "id": 1931,
+      "kind": "effect",
+      "name": "Reaper's Reprieve - II",
+      "note": "GE_GemBonus_HoTOnTouchedTargetDeath_HoT_Medium, the Amethyst rank 8 replacement of ReapersReprieve."
+    },
+    "RoguesResurgence": {
+      "id": 1966,
+      "kind": "effect",
+      "name": "Rogue's Resurgence",
+      "note": "GE_GemBonus_AutoHealOnLowHealth_Heal_Small, the Topaz rank 3 emergency heal."
+    },
+    "RoguesResurgenceII": {
+      "id": 1967,
+      "kind": "effect",
+      "name": "Rogue's Resurgence - II",
+      "note": "GE_GemBonus_AutoHealOnLowHealth_Heal_Medium, the Topaz rank 8 replacement of RoguesResurgence."
+    },
+    "UnyieldingVitality": {
+      "id": 1932,
+      "kind": "effect",
+      "name": "Unyielding Vitality",
+      "note": "GE_GemBonus_HealthRegenBonusInCombatSmall, the Ruby rank 3 in-combat health regen."
+    },
+    "UnyieldingVitalityII": {
+      "id": 1933,
+      "kind": "effect",
+      "name": "Unyielding Vitality - II",
+      "note": "GE_GemBonus_HealthRegenBonusInCombatMedium, the Ruby rank 8 replacement of UnyieldingVitality."
+    },
+    "SentinelsBastionShield": {
+      "id": 135,
+      "kind": "ability",
+      "name": "Sentinel's Bastion",
+      "note": "GA_GemBonus_ApplyPeriodicAbsorb_Small, the ability that applies the Emerald rank 3 shield. Registered alongside the effect below because an AbsorbedEvent names the absorbing ability, and which of the pair the log carries is not established."
+    },
+    "SentinelsBastionShieldII": {
+      "id": 136,
+      "kind": "ability",
+      "name": "Sentinel's Bastion - II",
+      "note": "GA_GemBonus_ApplyPeriodicAbsorb_Medium, the ability that applies the Emerald rank 8 shield."
+    },
+    "SentinelsBastion": {
+      "id": 1968,
+      "kind": "effect",
+      "name": "Sentinel's Bastion",
+      "note": "GE_GemBonus_ApplyPeriodicAbsorb_AbsorbEffect_Small, the Emerald rank 3 periodic absorb."
+    },
+    "SentinelsBastionII": {
+      "id": 1969,
+      "kind": "effect",
+      "name": "Sentinel's Bastion - II",
+      "note": "GE_GemBonus_ApplyPeriodicAbsorb_AbsorbEffect_Medium, the Emerald rank 8 replacement of SentinelsBastion."
+    },
+    "HarmoniousSoul": {
+      "id": 1959,
+      "kind": "effect",
+      "name": "Harmonious Soul",
+      "note": "GE_GemBonus_CriticalChanceHasteExpertiseAndSpiritBonusSmall, the Diamond rank 1 stacking secondary-stat buff. Source spells the name 'Harmounious'; corrected here against gear_data."
+    },
+    "HarmoniousSoulII": {
+      "id": 1960,
+      "kind": "effect",
+      "name": "Harmonious Soul - II",
+      "note": "GE_GemBonus_CriticalChanceHasteExpertiseAndSpiritBonusMedium, the Diamond rank 6 replacement of HarmoniousSoul, raising the stack cap from 4 to 12."
+    },
+    "BlessingOfTheDeathdealer": {
+      "id": 1955,
+      "kind": "effect",
+      "name": "Blessing of the Deathdealer",
+      "note": "GE_GemBonus_CriticalPowerBonusPercentageSmall, the Amethyst rank 5 critical power bonus. The source carries no name for it; taken from gear_data Gems.Amethyst.Ranks. Passive, so it emits no events of its own and is measured over the player's own critical strikes."
+    },
+    "BlessingOfTheDeathdealerII": {
+      "id": 1956,
+      "kind": "effect",
+      "name": "Blessing of the Deathdealer - II",
+      "note": "GE_GemBonus_CriticalPowerBonusPercentageMedium, the Amethyst rank 10 replacement of BlessingOfTheDeathdealer."
+    },
+    "AncestralSurge": {
+      "id": 1919,
+      "kind": "effect",
+      "name": "Ancestral Surge",
+      "note": "GE_GemBonus_PrimaryAttributeBonusWhileHeroismSmall, the Sapphire rank 1 primary-attribute buff active during Heroism."
+    },
+    "AncestralSurgeII": {
+      "id": 1920,
+      "kind": "effect",
+      "name": "Ancestral Surge - II",
+      "note": "GE_GemBonus_PrimaryAttributeBonusWhileHeroismMedium, the Sapphire rank 6 replacement of AncestralSurge."
     }
   },
   "mara": {

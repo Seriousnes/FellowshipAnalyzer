@@ -1,0 +1,13 @@
+@using FellowshipAnalyzer.Core.Analysis
+
+<ItemThroughput Icon="shield" Accent="buff"
+                Rate="@($"{ThroughputFormat.Rate(Throughput.PerSecond(Amount))} absorbed/s")"
+                Detail="@($"{ThroughputFormat.Total(Amount)} total")" />
+
+@code {
+    /// <summary>The damage this source's shields consumed over the fight.</summary>
+    [Parameter, EditorRequired] public long Amount { get; set; }
+
+    /// <summary>The fight totals the rate is computed against, cascaded by the enclosing card.</summary>
+    [CascadingParameter] public ThroughputTracker Throughput { get; set; } = null!;
+}

@@ -1,5 +1,6 @@
 using System.Globalization;
 
+using FellowshipAnalyzer.Core.Analysis.Gems;
 using FellowshipAnalyzer.Core.Analysis.Normalizers;
 using FellowshipAnalyzer.Core.Events;
 using FellowshipAnalyzer.Core.FellowshipLogs;
@@ -33,6 +34,14 @@ namespace FellowshipAnalyzer.Core.Analysis;
 [AddModule<GlobalCooldown>]
 [AddModule<SpellUsable>]
 [AddModule<ChronoshiftAnalyzer>]
+[AddModule<ThroughputTracker>]
+[AddModule<GloriousPurposeAnalyzer>]
+[AddModule<RubyGemAnalyzer>]
+[AddModule<AmethystGemAnalyzer>]
+[AddModule<TopazGemAnalyzer>]
+[AddModule<EmeraldGemAnalyzer>]
+[AddModule<SapphireGemAnalyzer>]
+[AddModule<DiamondGemAnalyzer>]
 [AddModule<SpiritTracker>]
 public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServiceProvider provider) : IHeroAnalyzer
 {

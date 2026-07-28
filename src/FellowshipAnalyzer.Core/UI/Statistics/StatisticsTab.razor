@@ -1,0 +1,18 @@
+@inherits ReportComponent
+
+<section class="statistics-tab">
+    @foreach (var category in Result.Statistics.GroupBy(entry => entry.Category).OrderBy(group => group.Key))
+    {
+        <StatisticsSectionTitle Title="@category.Key.ToString()" />
+        <StatisticsPanel>
+            @foreach (var entry in category.OrderBy(item => item.Order))
+            {
+                <CascadingValue Value="@entry.Module">
+                    <DynamicComponent Type="@entry.ComponentType" />
+                </CascadingValue>
+            }
+        </StatisticsPanel>
+    }
+
+    <CastEfficiency />
+</section>

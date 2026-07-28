@@ -1,0 +1,86 @@
+@using System.Globalization
+@using FellowshipAnalyzer.Core.Analysis
+@inherits ReportComponent
+
+@if (_rows.Count > 0)
+{
+    <StatisticsSectionTitle Title="Abilities" />
+    <div class="cast-efficiency">
+        <table class="cast-efficiency-table">
+            @foreach (var group in _rows.GroupBy(row => row.Ability.AbilityCategory)
+                                        .OrderBy(group => group.Key is null)
+                                        .ThenBy(group => group.Key))
+            {
+                <tbody>
+                    <tr class="cast-efficiency-heading">
+                        <th scope="col">@(group.Key?.ToString() ?? "Uncategorized")</th>
+                        <th scope="col" class="cast-efficiency-numeric" title="Casts per minute of analyzed combat time.">CPM</th>
+                        <th scope="col" class="cast-efficiency-numeric" title="@MaxCastsTooltip">Casts</th>
+                        <th scope="col" colspan="2" title="@TimeOnCooldownTooltip">Time on Cooldown</th>
+                    </tr>
+                    @foreach (var row in group.OrderBy(r => r.Ability.Name ?? r.Ability.PrimarySpell.Name, StringComparer.OrdinalIgnoreCase))
+                    {
+                        <tr>
+                            <td class="cast-efficiency-ability"><SpellLink Spell="row.Ability" /></td>
+                            <td class="cast-efficiency-numeric">@row.CastsPerMinute.ToString("F2")</td>
+                            <td class="cast-efficiency-numeric">@CastsLabel(row)</td>
+                            <td class="cast-efficiency-track">
+                                @if (row.Efficiency is { } efficiency)
+                                {
+                                    <div class="cast-efficiency-bar">
+                                        <div class="cast-efficiency-fill @FillClass(row)" style="width: @Width(efficiency)"></div>
+                                    </div>
+                                }
+                            </td>
+                            <td class="cast-efficiency-numeric cast-efficiency-share">
+                                @if (row.Efficiency is { } share)
+                                {
+                                    @($"{(share * 100).ToString("F1")}%")
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            }
+        </table>
+    </div>
+}
+
+@code {
+    private const string MaxCastsTooltip =
+        "Casts made, against the number the analyzed time had room for. That ceiling comes from how long "
+        + "the ability actually took to recharge over this report, so cooldown reduction and acceleration "
+        + "are already counted.";
+
+    private const string TimeOnCooldownTooltip =
+        "The share of analyzed combat time the ability spent recharging. Time between pulls is excluded. "
+        + "An ability with charges counts as recharging whenever it holds fewer than its maximum.";
+
+    private IReadOnlyList<AbilityCastEfficiency> _rows = [];
+
+    protected override void OnParametersSet()
+    {
+        var abilities = Result.Modules.OfType<Abilities>().FirstOrDefault();
+        if (abilities is null)
+        {
+            _rows = [];
+            return;
+        }
+
+        IReadOnlyList<Pull> pulls = SelectedPull is { } pull ? [pull] : Owner.Pulls;
+        _rows = CastEfficiencyModel.Build(abilities, Result.Events, Owner.PlayerId, pulls);
+    }
+
+    private static string CastsLabel(AbilityCastEfficiency row) =>
+        row.MaxCasts is { } maxCasts ? $"{row.Casts}/{maxCasts}" : row.Casts.ToString();
+
+    private static string FillClass(AbilityCastEfficiency row) => row.MeetsRecommendation switch
+    {
+        true => "good-filled",
+        false => "ok-filled",
+        null => "cast-efficiency-fill-plain",
+    };
+
+    private static string Width(double efficiency) =>
+        (Math.Clamp(efficiency, 0, 1) * 100).ToString("F1", CultureInfo.InvariantCulture) + "%";
+}

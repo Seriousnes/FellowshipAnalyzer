@@ -1,0 +1,44 @@
+.chronoshift-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+}
+
+.chronoshift-table th {
+    padding: 6px 0;
+    text-align: left;
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    color: var(--fa-text-muted);
+    border-bottom: var(--fa-border-width) solid var(--fa-border);
+}
+
+.chronoshift-table td {
+    padding: 7px 0;
+    border-top: var(--fa-border-width) solid var(--fa-border);
+    color: var(--fa-text);
+    line-height: 1.4;
+}
+
+.chronoshift-table tbody tr:first-child td {
+    border-top: none;
+}
+
+.chronoshift-table th.chronoshift-recovered,
+.chronoshift-table td.chronoshift-recovered {
+    text-align: right;
+}
+
+.chronoshift-table td.chronoshift-recovered {
+    font-weight: 600;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+}
+
+.chronoshift-empty {
+    margin: 7px 0 0;
+    color: var(--fa-text-muted);
+    font-size: 0.9rem;
+}

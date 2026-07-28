@@ -1,0 +1,16 @@
+@using FellowshipAnalyzer.Core.Analysis.Gems
+@inherits AnalyzerStatistic<RubyGemAnalyzer>
+
+<GemStatisticCard Gem="Analyzer">
+    <Info>
+        <p>
+            Ruby's ranks grant primary attribute, stamina, and health. Only its health regeneration produces
+            events of its own; the rest raise stats the log records as already applied.
+        </p>
+    </Info>
+    <ChildContent>
+        <GemTraitSection Trait="RubyGemAnalyzer.UnyieldingVitality" GemPower="Analyzer.GemPower">
+            <ItemHealingDone Amount="Analyzer.UnyieldingVitalityHealing" />
+        </GemTraitSection>
+    </ChildContent>
+</GemStatisticCard>

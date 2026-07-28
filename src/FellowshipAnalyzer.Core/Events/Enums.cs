@@ -1,26 +1,14 @@
 namespace FellowshipAnalyzer.Core.Events;
 
 /// <summary>How a damage, heal, or ability event resolved against its target.</summary>
-public enum HitTypeEnum
+public enum HitType
 {
-    /// <summary>The attack failed to land.</summary>
-    Miss = 0,
     /// <summary>A regular, non-critical hit.</summary>
     Normal = 1,
     /// <summary>A critical hit.</summary>
     Crit = 2,
-    /// <summary>The amount was absorbed by a shield rather than applied directly.</summary>
-    Absorb = 3,
-    /// <summary>A normal hit that was partially blocked.</summary>
-    BlockedNormal = 4,
-    /// <summary>A critical hit that was partially blocked.</summary>
-    BlockedCrit = 5,
-    /// <summary>The target dodged the attack.</summary>
-    Dodge = 7,
-    /// <summary>The target parried the attack.</summary>
-    Parry = 8,
-    /// <summary>The target was immune to the effect.</summary>
-    Immune = 10
+    /// <summary>Guarantee crit dealing additional damage based on crit chance.</summary>
+    GreviousCrit = 22
 }
 
 /// <summary>The kind of actor an event's source or target is.</summary>

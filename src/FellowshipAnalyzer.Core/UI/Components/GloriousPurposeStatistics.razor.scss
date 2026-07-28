@@ -1,0 +1,44 @@
+.glorious-purpose-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+}
+
+.glorious-purpose-table th {
+    padding: 6px 0;
+    text-align: left;
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    color: var(--fa-text-muted);
+    border-bottom: var(--fa-border-width) solid var(--fa-border);
+}
+
+.glorious-purpose-table td {
+    padding: 7px 0;
+    border-top: var(--fa-border-width) solid var(--fa-border);
+    color: var(--fa-text);
+    line-height: 1.4;
+}
+
+.glorious-purpose-table tbody tr:first-child td {
+    border-top: none;
+}
+
+.glorious-purpose-table th.glorious-purpose-recovered,
+.glorious-purpose-table td.glorious-purpose-recovered {
+    text-align: right;
+}
+
+.glorious-purpose-table td.glorious-purpose-recovered {
+    font-weight: 600;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+}
+
+.glorious-purpose-empty {
+    margin: 7px 0 0;
+    color: var(--fa-text-muted);
+    font-size: 0.9rem;
+}

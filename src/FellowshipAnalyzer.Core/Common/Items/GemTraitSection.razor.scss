@@ -1,0 +1,13 @@
+.gem-trait {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+
+.gem-trait-metrics {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    font-size: 0.95rem;
+    color: var(--fa-text-muted);
+}

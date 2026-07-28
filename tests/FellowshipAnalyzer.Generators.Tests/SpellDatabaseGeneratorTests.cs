@@ -32,7 +32,8 @@ public class SpellDatabaseGeneratorTests
         gen.ShouldContain("ChannelTickInterval = 0.4");
         gen.ShouldContain("Costs = new");
         gen.ShouldContain("ResourceTypes.Tertiary] = 2");
-        gen.ShouldContain("new Effect");
+        gen.ShouldContain("new global::FellowshipAnalyzer.Core.Common.Spells.Effect");
+        gen.ShouldContain("namespace FellowshipAnalyzer.Core.Common.Items;");
         gen.ShouldContain("class Items");
         gen.ShouldContain("[global::FellowshipAnalyzer.Core.Common.Spells.SpellId(1027)]");
         gen.ShouldContain("[global::FellowshipAnalyzer.Core.Common.Spells.SpellId(1001396)]");

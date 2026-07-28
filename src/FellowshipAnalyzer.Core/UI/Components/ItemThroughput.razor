@@ -1,0 +1,29 @@
+<span class="item-throughput">
+    <Glyph Name="@Icon" Class="@($"item-throughput-icon {Accent}")" />
+    @if (Approximate)
+    {
+        <span class="item-throughput-approx">&#8776;</span>
+    }
+    <span class="item-throughput-rate">@Rate</span>
+    @if (!string.IsNullOrEmpty(Detail))
+    {
+        <small class="item-throughput-detail">@Detail</small>
+    }
+</span>
+
+@code {
+    /// <summary>Tabler icon name for the quantity, without the <c>ti-</c> prefix.</summary>
+    [Parameter, EditorRequired] public string Icon { get; set; } = default!;
+
+    /// <summary>Event-type semantic class colouring the icon, for example <c>damage</c> or <c>heal</c>.</summary>
+    [Parameter, EditorRequired] public string Accent { get; set; } = default!;
+
+    /// <summary>The headline figure, already formatted and unit-suffixed.</summary>
+    [Parameter, EditorRequired] public string Rate { get; set; } = default!;
+
+    /// <summary>Dimmed suffix, typically the share of the player's total.</summary>
+    [Parameter] public string? Detail { get; set; }
+
+    /// <summary>Marks the figure as an estimate.</summary>
+    [Parameter] public bool Approximate { get; set; }
+}

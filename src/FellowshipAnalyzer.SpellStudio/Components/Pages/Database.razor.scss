@@ -266,7 +266,7 @@ $sources: (
 
 .spell-grid {
     width: 100%;
-    min-width: 60rem;
+    min-width: 66rem;
     table-layout: fixed;
     border-collapse: separate;
     border-spacing: 0;
@@ -315,6 +315,7 @@ $sources: (
 
 .col-kind { width: 4rem; }
 .col-id { width: 4.4rem; }
+.col-cat { width: 5.6rem; }
 .col-num { width: 3.7rem; }
 
 .col-member,
@@ -558,6 +559,26 @@ $sources: (
     &:focus { outline: none; border-color: var(--fa-gold); }
 }
 
+select.field-input {
+    color-scheme: dark;
+    cursor: pointer;
+}
+
+.field-hint,
+.modal-hint {
+    margin: 0;
+    font-size: 0.72rem;
+    color: var(--fa-text-dim);
+
+    b { color: var(--fa-gold-light); }
+}
+
+.modal-error {
+    margin: 0;
+    font-size: 0.74rem;
+    color: var(--studio-danger);
+}
+
 .src-chip {
     font-size: 0.58rem;
     text-transform: uppercase;
@@ -613,7 +634,8 @@ $sources: (
     color: var(--fa-bg-base);
     transition: background 0.12s, border-color 0.12s;
 
-    &:hover { background: var(--fa-gold-light); border-color: var(--fa-gold-light); }
+    &:hover:not(:disabled) { background: var(--fa-gold-light); border-color: var(--fa-gold-light); }
+    &:disabled { opacity: 0.45; cursor: default; }
 }
 
 .btn-ghost {
@@ -630,6 +652,13 @@ $sources: (
     &:hover { color: var(--fa-text); border-color: var(--fa-gold); }
 }
 
+.btn-danger {
+    margin-left: auto;
+    color: var(--studio-danger);
+
+    &:hover { color: var(--studio-danger); border-color: var(--studio-danger); }
+}
+
 .btn-link {
     font: inherit;
     font-size: 0.74rem;
@@ -643,6 +672,7 @@ $sources: (
 }
 
 button:focus-visible,
+select:focus-visible,
 input:focus-visible {
     outline: 2px solid var(--fa-gold);
     outline-offset: 1px;

@@ -488,5 +488,6 @@
   "486": "INamespaceSymbol",
   "487": "IncrementalGeneratorInitializationContext",
   "488": "SourceProductionContext",
-  "489": "SyntaxNode"
+  "489": "SyntaxNode",
+  "490": "Fact"
 }

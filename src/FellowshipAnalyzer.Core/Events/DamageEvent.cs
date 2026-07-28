@@ -23,8 +23,12 @@ public class DamageEvent : Event, IAbilityEvent, IHasSourceWithInstanceEvent, IH
     public virtual long Amount { get; set; }
     /// <summary>The portion of the raw hit prevented by an absorb shield.</summary>
     public virtual long? Absorbed { get; set; }
+    /// <summary>The type of hit (e.g., normal, critical, glancing).</summary>
+    public virtual HitType HitType { get; set; }
     /// <summary>The portion of the hit prevented by damage reduction, separate from absorbs.</summary>
     public virtual long Mitigated { get; set; }
     /// <summary>The hit's damage before mitigation was applied.</summary>
     public virtual long UnmitigatedAmount { get; set; }
+    /// <summary>Indicates whether the hit was a critical hit.</summary>
+    public bool IsCritical => HitType is HitType.Crit or HitType.GreviousCrit;
 }

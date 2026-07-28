@@ -22,6 +22,7 @@ namespace FellowshipAnalyzer.Generators;
 public sealed class ConsolidatedSpellRegistryGenerator : IIncrementalGenerator
 {
     private const string SpellsNamespace = "FellowshipAnalyzer.Core.Common.Spells";
+    private const string ItemsNamespace = "FellowshipAnalyzer.Core.Common.Items";
     private const string AttributeName = "GenerateRegistryAttribute";
     private const string SpellDbFileName = "spelldb.json";
     private const string SharedScope = "shared";
@@ -227,7 +228,7 @@ public sealed class ConsolidatedSpellRegistryGenerator : IIncrementalGenerator
             }
             else if (string.Equals(scopeName, ItemsScope, StringComparison.OrdinalIgnoreCase))
             {
-                target = new ScopeTarget(SpellsNamespace, "Items", "global::" + SpellsNamespace + ".Items", IsCentral: false);
+                target = new ScopeTarget(ItemsNamespace, "Items", "global::" + ItemsNamespace + ".Items", IsCentral: false);
             }
             else if (IsValidIdentifierSeed(scopeName))
             {
@@ -521,12 +522,13 @@ public sealed class ConsolidatedSpellRegistryGenerator : IIncrementalGenerator
     {
         foreach (var member in members)
         {
+            var typeName = "global::" + SpellsNamespace + "." + member.TypeName;
             sb.AppendLine("    /// <summary>" + DisplayName(member) + " (FSLID " +
                           member.FSLID.ToString(CultureInfo.InvariantCulture) + ").</summary>");
             sb.AppendLine("    [global::" + SpellsNamespace + ".SpellId(" +
                           member.FSLID.ToString(CultureInfo.InvariantCulture) + ")]");
-            sb.AppendLine("    public static " + member.TypeName + " " + member.Name + " { get; } = new " +
-                          member.TypeName + " { " + string.Join(", ", member.InitLines) + " };");
+            sb.AppendLine("    public static " + typeName + " " + member.Name + " { get; } = new " +
+                          typeName + " { " + string.Join(", ", member.InitLines) + " };");
             sb.AppendLine();
         }
     }

@@ -1,0 +1,16 @@
+@using FellowshipAnalyzer.Core.Analysis.Gems
+@inherits AnalyzerStatistic<TopazGemAnalyzer>
+
+<GemStatisticCard Gem="Analyzer">
+    <Info>
+        <p>
+            Topaz's ranks grant haste. Only its emergency heal produces events of its own; the rest raise
+            haste, which the log records as already applied.
+        </p>
+    </Info>
+    <ChildContent>
+        <GemTraitSection Trait="TopazGemAnalyzer.RoguesResurgence" GemPower="Analyzer.GemPower">
+            <ItemHealingDone Amount="Analyzer.RoguesResurgenceHealing" />
+        </GemTraitSection>
+    </ChildContent>
+</GemStatisticCard>

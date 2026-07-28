@@ -14,16 +14,27 @@
     <ChildContent>
         @if (Analyzer.RecoveryByAbility.Count == 0)
         {
-            <StatRow Value="0s">no cooldowns were recovered</StatRow>
+            <p class="chronoshift-empty">No cooldowns were recovered.</p>
         }
         else
         {
-            @foreach (var ability in Analyzer.RecoveryByAbility)
-            {
-                <StatRow Value="@Seconds(ability.RecoveredMs)">
-                    <SpellLink Spell="ability.SpellId" /> cooldown recovered
-                </StatRow>
-            }
+            <table class="chronoshift-table">
+                <thead>
+                    <tr>
+                        <th scope="col">Ability</th>
+                        <th scope="col" class="chronoshift-recovered">Recovered</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var ability in Analyzer.RecoveryByAbility)
+                    {
+                        <tr>
+                            <td><SpellLink Spell="ability.SpellId" /></td>
+                            <td class="chronoshift-recovered">@Seconds(ability.RecoveredMs)</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
         }
     </ChildContent>
 </StatCard>

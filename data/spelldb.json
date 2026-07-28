@@ -1000,6 +1000,7 @@
       "id": 1304,
       "name": "Skystrider\u0027s Grace",
       "icon": "Bowguy_HasteBuff.jpg",
+      "abilityCategory": "Major",
       "cooldown": 120
     },
     "SkystridersGraceBuff": {
@@ -1013,6 +1014,7 @@
       "id": 1398,
       "name": "Skystrider\u0027s Supremacy",
       "icon": "Bowguy_Supremacy.jpg",
+      "abilityCategory": "Major",
       "cooldown": 45
     },
     "SkystridersSupremacyBuff": {
@@ -2315,7 +2317,8 @@
       "kind": "ability",
       "id": 1122,
       "name": "Stone Shield",
-      "icon": "T_Meiko_StoneShield.jpg"
+      "icon": "T_Meiko_StoneShield.jpg",
+      "abilityCategory": "Defensive"
     },
     "StoneShieldBuff": {
       "kind": "effect",
@@ -2781,6 +2784,7 @@
       "id": 1026,
       "name": "Winter\u0027s Blessing",
       "icon": "T_Rime_HealingBuff.jpg",
+      "abilityCategory": "Major",
       "cooldown": 60
     },
     "WintersBlessingBuff": {
@@ -4187,6 +4191,30 @@
     }
   },
   "items": {
+    "AncestralSurge": {
+      "kind": "effect",
+      "id": 1919,
+      "name": "Ancestral Surge",
+      "icon": "T_Icon_Energy_130.jpg"
+    },
+    "AncestralSurgeII": {
+      "kind": "effect",
+      "id": 1920,
+      "name": "Ancestral Surge - II",
+      "icon": "T_Icon_Energy_130.jpg"
+    },
+    "BlessingOfTheDeathdealer": {
+      "kind": "effect",
+      "id": 1955,
+      "name": "Blessing of the Deathdealer",
+      "icon": ""
+    },
+    "BlessingOfTheDeathdealerII": {
+      "kind": "effect",
+      "id": 1956,
+      "name": "Blessing of the Deathdealer - II",
+      "icon": ""
+    },
     "FatedStrike": {
       "kind": "ability",
       "id": 160,
@@ -4199,6 +4227,79 @@
       "id": 80,
       "name": "Glorious Purpose",
       "icon": "T_Weapon_CDstrike.jpg"
+    },
+    "HarmoniousSoul": {
+      "kind": "effect",
+      "id": 1959,
+      "name": "Harmonious Soul",
+      "icon": "T_Nhance_RPG_Arcane_19.jpg"
+    },
+    "HarmoniousSoulII": {
+      "kind": "effect",
+      "id": 1960,
+      "name": "Harmonious Soul - II",
+      "icon": "T_Nhance_RPG_Arcane_19.jpg"
+    },
+    "ReapersReprieve": {
+      "kind": "effect",
+      "id": 1930,
+      "name": "Reaper\u0027s Reprieve",
+      "icon": "T_Nhance_RPG_Icons_ArcaneSmoke.jpg"
+    },
+    "ReapersReprieveII": {
+      "kind": "effect",
+      "id": 1931,
+      "name": "Reaper\u0027s Reprieve - II",
+      "icon": "T_Nhance_RPG_Icons_ArcaneSmoke.jpg"
+    },
+    "RoguesResurgence": {
+      "kind": "effect",
+      "id": 1966,
+      "name": "Rogue\u0027s Resurgence",
+      "icon": "T_Icon_Gold_135.jpg"
+    },
+    "RoguesResurgenceII": {
+      "kind": "effect",
+      "id": 1967,
+      "name": "Rogue\u0027s Resurgence - II",
+      "icon": "T_Icon_Gold_135.jpg"
+    },
+    "SentinelsBastion": {
+      "kind": "effect",
+      "id": 1968,
+      "name": "Sentinel\u0027s Bastion",
+      "icon": "T_Nhance_RPG_Icons_SpiritAmulet_SentinelBastion.jpg"
+    },
+    "SentinelsBastionII": {
+      "kind": "effect",
+      "id": 1969,
+      "name": "Sentinel\u0027s Bastion - II",
+      "icon": "T_Nhance_RPG_Icons_SpiritAmulet_SentinelBastion.jpg",
+      "cooldown": 20
+    },
+    "SentinelsBastionShield": {
+      "kind": "ability",
+      "id": 135,
+      "name": "Sentinel\u0027s Bastion",
+      "icon": "T_Nhance_RPG_Icons_SpiritAmulet_SentinelBastion.jpg"
+    },
+    "SentinelsBastionShieldII": {
+      "kind": "ability",
+      "id": 136,
+      "name": "Sentinel\u0027s Bastion - II",
+      "icon": "T_Nhance_RPG_Icons_SpiritAmulet_SentinelBastion.jpg"
+    },
+    "UnyieldingVitality": {
+      "kind": "effect",
+      "id": 1932,
+      "name": "Unyielding Vitality",
+      "icon": "T_Icon_BloodCombat_137.jpg"
+    },
+    "UnyieldingVitalityII": {
+      "kind": "effect",
+      "id": 1933,
+      "name": "Unyielding Vitality - II",
+      "icon": "T_Icon_BloodCombat_137.jpg"
     },
     "VoidbringerTouch": {
       "kind": "ability",

@@ -259,6 +259,7 @@ public static class MergeEngine
 
         var resolvedName = nameFromSpellData ?? gearWeapon?.DisplayName ?? string.Empty;
         var guid = FSLID.FromNative(kind, nativeId);
+        var abilityCategory = KitCategoryFor(guid, inputs);
         var icon = inputs.Icons.IconFor(guid) ?? string.Empty;
         var costs = Costs.Map(scalars, new ResourceModel(new Dictionary<string, ResourceTypes>(), []));
 
@@ -279,6 +280,7 @@ public static class MergeEngine
             .Set("kind", ProvenanceSource.SpellData);
         if (nameSource is { } ns) prov.Set("name", ns);
         prov.SetIf("icon", icon.Length > 0, ProvenanceSource.Icons);
+        prov.SetIf("abilityCategory", abilityCategory.HasValue, ProvenanceSource.HeroData);
         prov.SetIf("cooldown", cooldown.HasValue, ProvenanceSource.GearData);
         prov.SetIf("cooldownReductionOnTargetDeath", cooldownReductionOnTargetDeath.HasValue, ProvenanceSource.GearData);
         prov.SetIf("range", range.HasValue, ProvenanceSource.GearData);
@@ -289,7 +291,7 @@ public static class MergeEngine
         prov.SetIf("costs", costs.Count > 0, ProvenanceSource.GearData);
 
         var baseSpell = BuildSpell(kind, nativeId, resolvedName, icon, cooldown, cooldownReductionOnTargetDeath,
-            range, charges, castDuration, channelDuration, channelTickInterval, costs);
+            range, charges, castDuration, channelDuration, channelTickInterval, costs, abilityCategory);
         var curated = ApplyPatch(new CuratedSpell(scope, member, baseSpell, prov.Build()), delta);
 
         var addedGaps = new List<Gap>();
@@ -300,6 +302,12 @@ public static class MergeEngine
 
         return (curated, addedGaps);
     }
+
+    private static AbilityCategory? KitCategoryFor(FSLID guid, MergeInputs inputs) =>
+        inputs.HeroData.Heroes
+            .SelectMany(h => h.Kit)
+            .FirstOrDefault(k => k.FslId == guid.Value)
+            ?.AbilityCategory;
 
     private static Dictionary<string, double> GatherScalarsById(int id, MergeInputs inputs)
     {

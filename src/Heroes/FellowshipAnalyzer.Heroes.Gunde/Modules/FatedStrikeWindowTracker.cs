@@ -4,7 +4,7 @@ using FellowshipAnalyzer.Core.Events;
 using FellowshipAnalyzer.Core.UI;
 using FellowshipAnalyzer.Heroes.Gunde.Statistics;
 
-using Items = FellowshipAnalyzer.Core.Common.Spells.Items;
+using Items = FellowshipAnalyzer.Core.Common.Items.Items;
 
 namespace FellowshipAnalyzer.Heroes.Gunde.Modules;
 

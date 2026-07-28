@@ -1,0 +1,31 @@
+@using FellowshipAnalyzer.Core.Analysis.Gems
+
+<StatCard Title="@($"{Gem.Gem} Gem")" Meta="@($"{Gem.GemPower} power")">
+    <Info>
+        @Info
+        <p>
+            Each trait is listed at the rank @Gem.GemPower @Gem.Gem power has unlocked. Ranks replace one
+            another rather than stacking, and a trait the log recorded nothing for is left out.
+        </p>
+    </Info>
+    <ChildContent>
+        <CascadingValue Value="combatLogParser.ThroughputTracker">
+            <div class="gem-traits">
+                @ChildContent
+            </div>
+        </CascadingValue>
+    </ChildContent>
+</StatCard>
+
+@code {
+    /// <summary>The gem this card reports, supplying its colour, power, and the fight totals to cascade.</summary>
+    [Parameter, EditorRequired] public IGemAnalyzer Gem { get; set; } = null!;
+
+    /// <summary>Extra detail for the card's info affordance, rendered above the shared rank note.</summary>
+    [Parameter] public RenderFragment? Info { get; set; }
+
+    /// <summary>The trait sections, one per measured trait on this gem's ladder.</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    private CombatLogParser combatLogParser => ((Analyzer)Gem).Owner;
+}
