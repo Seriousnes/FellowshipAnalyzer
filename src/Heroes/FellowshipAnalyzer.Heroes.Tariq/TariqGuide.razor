@@ -5,9 +5,14 @@
     <FuryEconomyGuide />
 }
 
-@if (Parser.ThunderCallWindowAnalyzers.Count > 0 || Parser.FocusedWrathAnalyzers.Count > 0)
+@if (Parser.ThunderCallWindowAnalyzers.Count > 0)
 {
-    <MajorCooldownsGuide />
+    <EmpowermentWindowsGuide />
+}
+
+@if (Parser.FocusedWrathAnalyzers.Count > 0)
+{
+    <FocusedWrathGuide />
 }
 
 @if (Parser.HammerStormAnalyzers.Count > 0)

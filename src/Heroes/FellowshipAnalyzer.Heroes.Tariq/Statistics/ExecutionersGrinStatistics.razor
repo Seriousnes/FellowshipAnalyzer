@@ -1,35 +1,48 @@
 @inherits AnalyzerStatistic<ExecutionersGrinTracker>
 
 <StatCard Title="Executioner's Grin">
-    <CastOverview Title="Culling Strike Opportunities" Stats="@BuildStats()" />
+    <Info>
+        Executioner's Unsanitary Bands lets Culling Strike be cast on a target above the
+        @ThresholdLabel execute threshold while its proc is up. A proc is spent by the next Culling
+        Strike whatever the target's health, so what the item is worth over an encounter is the casts
+        it bought above the threshold.
+    </Info>
+    <ChildContent>
+        <CastOverview Title="What The Bands Bought" Stats="@BuildStats()" />
+    </ChildContent>
 </StatCard>
 
 @code {
+    private static string ThresholdLabel => $"{CullingStrikeAnalyzer.ExecuteHealthThreshold * 100:0}%";
+
     private IEnumerable<OverviewStat> BuildStats()
     {
-        var stats = new List<OverviewStat>();
-
-        if (Analyzer.Procs > 0)
+        var stats = new List<OverviewStat>
         {
-            var wasteRate = (double)Analyzer.WastedProcs / Analyzer.Procs;
-            stats.Add(new OverviewStat(
+            new(
                 $"{Analyzer.Procs}",
                 "Procs",
-                "Executioner's Grin procs from Executioner's Unsanitary Bands this encounter."));
-            stats.Add(new OverviewStat(
-                $"{Analyzer.WastedProcs}",
-                "Wasted Opportunities",
-                "Procs that expired without a Culling Strike above the 30% execute threshold.",
-                Analyzer.WastedProcs == 0 ? QualitativePerformance.Perfect
-                    : wasteRate < 0.25 ? QualitativePerformance.Good
-                    : wasteRate < 0.5 ? QualitativePerformance.Ok
-                    : QualitativePerformance.Fail));
-        }
+                Analyzer.Reapplications > 0
+                    ? $"Executioner's Grin procs this encounter. {Analyzer.Reapplications} landed on a proc already held and added nothing."
+                    : "Executioner's Grin procs this encounter."),
+            new(
+                $"{Analyzer.SpentAboveThreshold}",
+                "Extra Casts Bought",
+                $"Procs spent on a Culling Strike above {ThresholdLabel}, which the gate would otherwise have blocked."),
+            new(
+                $"{Analyzer.SpentBelowThreshold}",
+                "Spent Below Threshold",
+                $"Procs consumed by a Culling Strike that was already legal at or under {ThresholdLabel}. The game spends the proc on any Culling Strike, so these are the roll landing at an awkward moment rather than a decision."),
+            new(
+                $"{Analyzer.ExpiredUnspent}",
+                "Expired Unspent",
+                "Procs that fell off with no Culling Strike at all."),
+        };
 
         stats.Add(new OverviewStat(
             $"{Analyzer.AboveExecuteCullingStrikes}",
             "Above-Execute Hits",
-            "Culling Strikes that landed on a target above 30% health - only possible while Executioner's Grin is active."));
+            $"Culling Strikes that landed on a target above {ThresholdLabel} health - only possible while Executioner's Grin is active."));
 
         return stats;
     }

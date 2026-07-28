@@ -61,7 +61,7 @@ public sealed class CullingStrikeAnalyzerTests
     }
 
     [Fact]
-    public async Task Analyze_CullingStrike_MeasuresCoverageAgainstTheCyclesThePhaseHadRoomFor()
+    public async Task Analyze_CullingStrike_CountsTheCastsThatLandedInsideThePhase()
     {
         var parser = await AnalyzeAsync(
         [
@@ -79,34 +79,10 @@ public sealed class CullingStrikeAnalyzerTests
         analyzer.ExecutePhaseStartTimestamp.ShouldBe(30_000);
         analyzer.ExecutePhaseDurationMs.ShouldBe(70_000);
         analyzer.CastsInPhase.ShouldBe(5);
-        analyzer.PossibleCasts.ShouldBe(70_000 / CullingStrikeAnalyzer.ExpectedCastIntervalMs);
-        analyzer.Coverage.ShouldBe(0.5, tolerance: 0.0001);
     }
 
     [Fact]
-    public async Task Analyze_CullingStrike_ClampsCoverageWhenTheHastedCooldownBeatTheModelledPace()
-    {
-        var parser = await AnalyzeAsync(
-        [
-            Hit(5_000, BossId, 90, 100),
-            Hit(10_000, BossId, 20, 100),
-            Cast(11_000, BossId),
-            Cast(13_000, BossId),
-            Cast(15_000, BossId),
-            Cast(17_000, BossId),
-            Cast(19_000, BossId),
-        ], fightEnd: 30_000);
-
-        var analyzer = Analyzer(parser);
-
-        analyzer.ExecutePhaseDurationMs.ShouldBe(20_000);
-        analyzer.CastsInPhase.ShouldBe(5);
-        analyzer.PossibleCasts.ShouldBe(5);
-        analyzer.Coverage.ShouldBe(1d);
-    }
-
-    [Fact]
-    public async Task Analyze_CullingStrike_LeavesAPullThatNeverReachedTheThresholdWithNothingToMiss()
+    public async Task Analyze_CullingStrike_LeavesAPullThatNeverReachedTheThresholdWithoutAPhase()
     {
         var parser = await AnalyzeAsync(
         [
@@ -120,18 +96,11 @@ public sealed class CullingStrikeAnalyzerTests
         analyzer.ExecutePhaseStartTimestamp.ShouldBeNull();
         analyzer.ExecutePhaseDurationMs.ShouldBe(0);
         analyzer.CastsInPhase.ShouldBe(0);
-        analyzer.PossibleCasts.ShouldBe(0);
-        analyzer.Coverage.ShouldBe(1d);
         analyzer.CastsAboveThreshold.ShouldBe(1);
     }
 
-    /// <summary>
-    /// A boss dropping into execute range in the pull's last seconds leaves a real phase that had room
-    /// for no cast at all. The guide has to read <see cref="CullingStrikeAnalyzer.PossibleCasts"/> rather
-    /// than the phase timestamp to tell this apart from a phase that was covered perfectly.
-    /// </summary>
     [Fact]
-    public async Task Analyze_CullingStrike_LeavesAPhaseTooShortForOneCycleWithNothingToMiss()
+    public async Task Analyze_CullingStrike_KeepsAPhaseTooShortForACastSeparateFromNoPhaseAtAll()
     {
         var parser = await AnalyzeAsync(
         [
@@ -144,12 +113,10 @@ public sealed class CullingStrikeAnalyzerTests
         analyzer.ExecutePhaseStartTimestamp.ShouldBe(25_000);
         analyzer.ExecutePhaseDurationMs.ShouldBe(5_000);
         analyzer.CastsInPhase.ShouldBe(0);
-        analyzer.PossibleCasts.ShouldBe(0);
-        analyzer.Coverage.ShouldBe(1d);
     }
 
     [Fact]
-    public async Task Analyze_CullingStrike_LeavesAboveThresholdCastsOutOfPhaseDiscipline()
+    public async Task Analyze_CullingStrike_LeavesAboveThresholdCastsOutOfTheInPhaseCount()
     {
         var parser = await AnalyzeAsync(
         [
@@ -172,7 +139,47 @@ public sealed class CullingStrikeAnalyzerTests
         analyzer.TotalCasts.ShouldBe(5);
         analyzer.CastsInPhase.ShouldBe(2);
         analyzer.CastsAboveThreshold.ShouldBe(3);
-        analyzer.PossibleCasts.ShouldBe(80_000 / CullingStrikeAnalyzer.ExpectedCastIntervalMs);
+    }
+
+    /// <summary>
+    /// The game gate makes an above-threshold cast impossible without an Executioner's Grin buff, so
+    /// one recorded without the buff is a bad reading rather than a bad cast, and the analyzer has to
+    /// separate the two.
+    /// </summary>
+    [Fact]
+    public async Task Analyze_CullingStrike_AttributesAboveThresholdCastsToTheExecutionersGrinBuff()
+    {
+        var parser = await AnalyzeAsync(
+        [
+            Hit(5_000, BossId, 90, 100),
+            GrinApplied(9_000),
+            Cast(10_000, BossId),
+            GrinRemoved(11_000),
+            Cast(12_000, BossId),
+        ]);
+
+        var analyzer = Analyzer(parser);
+
+        analyzer.CastsAboveThreshold.ShouldBe(2);
+        analyzer.Casts[0].GrinActive.ShouldBeTrue();
+        analyzer.Casts[1].GrinActive.ShouldBeFalse();
+        analyzer.UnexplainedCastsAboveThreshold.ShouldBe(1);
+    }
+
+    [Fact]
+    public async Task Analyze_CullingStrike_TreatsAGrinBuffStillUpAtPullEndAsActive()
+    {
+        var parser = await AnalyzeAsync(
+        [
+            Hit(5_000, BossId, 90, 100),
+            GrinApplied(9_000),
+            Cast(50_000, BossId),
+        ]);
+
+        var analyzer = Analyzer(parser);
+
+        analyzer.Casts.ShouldHaveSingleItem().GrinActive.ShouldBeTrue();
+        analyzer.UnexplainedCastsAboveThreshold.ShouldBe(0);
     }
 
     [Fact]
@@ -267,6 +274,114 @@ public sealed class CullingStrikeAnalyzerTests
         parser.For(pull).CullingStrikeAnalyzer.ShouldBeSameAs(entry.Analyzer);
     }
 
+    /// <summary>
+    /// Each stretch of the execute phase with a charge in hand is one opportunity: the phase opening with
+    /// Culling Strike already available is one, and every cooldown that ends inside it is another. The
+    /// last one runs to the end of the pull because nothing spent it.
+    /// </summary>
+    [Fact]
+    public async Task Analyze_CullingStrike_CountsEveryChargeTheExecutePhaseOffered()
+    {
+        var parser = await AnalyzeAsync(
+        [
+            Hit(10_000, BossId, 90, 100),
+            Hit(20_000, BossId, 25, 100),
+            Cast(21_000, BossId),
+            Cast(27_500, BossId),
+        ]);
+
+        var analyzer = Analyzer(parser);
+        var opportunities = analyzer.Opportunities;
+
+        opportunities.Count.ShouldBe(3);
+
+        opportunities[0].ReadyAt.ShouldBe(20_000);
+        opportunities[0].CastAt.ShouldBe(21_000);
+        opportunities[0].HeldMs.ShouldBe(1_000);
+        opportunities[0].Prompt.ShouldBeTrue();
+
+        opportunities[1].ReadyAt.ShouldBe(27_000);
+        opportunities[1].CastAt.ShouldBe(27_500);
+        opportunities[1].Prompt.ShouldBeTrue();
+
+        opportunities[2].CastAt.ShouldBeNull();
+        opportunities[2].Prompt.ShouldBeFalse();
+
+        analyzer.PromptCasts.ShouldBe(2);
+        analyzer.HeldWithFury.ShouldBe(1);
+        analyzer.HeldWithoutFury.ShouldBe(0);
+    }
+
+    /// <summary>
+    /// A charge held because Fury was short is a Fury economy problem, so it is separated from one held
+    /// with the <see cref="CullingStrikeAnalyzer.FullStrengthFury"/> a full-strength cast converts.
+    /// </summary>
+    [Fact]
+    public async Task Analyze_CullingStrike_SeparatesAHoldForFuryFromAHoldWithFuryBanked()
+    {
+        var parser = await AnalyzeAsync(
+        [
+            Hit(10_000, BossId, 90, 100),
+            Hit(20_000, BossId, 25, 100),
+            FuryEconomyAnalyzerTests.Cast(21_000, CullingStrikeId, rawFury: 8_000, rawMaxFury: 10_000),
+            FuryEconomyAnalyzerTests.Cast(26_000, TariqSpells.WildSwing.FSLID, rawFury: 500, rawMaxFury: 10_000),
+        ]);
+
+        var analyzer = Analyzer(parser);
+
+        var held = analyzer.Opportunities.Last();
+        held.ReadyAt.ShouldBe(27_000);
+        held.FuryAtReady.ShouldBe(5);
+        held.HadFury.ShouldBeFalse();
+
+        analyzer.HeldWithoutFury.ShouldBe(1);
+        analyzer.HeldWithFury.ShouldBe(0);
+    }
+
+    /// <summary>
+    /// Culling Strike's cooldown is hasted and accelerates further with gear, so the game routinely allows
+    /// a cast the modelled recharge has not finished. Report <c>a:NcqHDKzamL7n6YFv</c> lands 17 casts in an
+    /// execute phase the model only offers 9 charges for. Each early cast has to open its own zero-length
+    /// opportunity, or the phase reads as though it had room for far fewer casts than it did.
+    /// </summary>
+    [Fact]
+    public async Task Analyze_CullingStrike_CountsACastTheCooldownModelDidNotExpectToBePossible()
+    {
+        var parser = await AnalyzeAsync(
+        [
+            Hit(10_000, BossId, 90, 100),
+            Hit(20_000, BossId, 25, 100),
+            Cast(21_000, BossId),
+            Cast(24_000, BossId),
+        ]);
+
+        var analyzer = Analyzer(parser);
+
+        analyzer.CastsInPhase.ShouldBe(2);
+
+        var early = analyzer.Opportunities[1];
+        early.ReadyAt.ShouldBe(24_000);
+        early.CastAt.ShouldBe(24_000);
+        early.HeldMs.ShouldBe(0);
+        early.Prompt.ShouldBeTrue();
+
+        analyzer.Opportunities.Count(opportunity => opportunity.CastAt is not null)
+            .ShouldBe(analyzer.CastsInPhase);
+    }
+
+    [Fact]
+    public async Task Analyze_CullingStrike_OffersNoOpportunitiesWithoutAnExecutePhase()
+    {
+        var parser = await AnalyzeAsync(
+        [
+            Hit(10_000, BossId, 90, 100),
+            Hit(20_000, BossId, 50, 100),
+            Cast(21_000, BossId),
+        ]);
+
+        Analyzer(parser).Opportunities.ShouldBeEmpty();
+    }
+
     private static CullingStrikeAnalyzer Analyzer(TariqCombatLogParser parser) =>
         parser.CullingStrikeAnalyzers.ShouldHaveSingleItem().Analyzer;
 
@@ -277,6 +392,22 @@ public sealed class CullingStrikeAnalyzerTests
         cast.TargetInstance = targetInstance;
         return cast;
     }
+
+    private static ApplyBuffEvent GrinApplied(int timestamp) => new()
+    {
+        Timestamp = timestamp,
+        SourceId = PlayerId,
+        TargetId = PlayerId,
+        Ability = new Ability { FSLID = TariqSpells.ExecutionersGrin.FSLID, Name = "Executioner's Grin" },
+    };
+
+    private static RemoveBuffEvent GrinRemoved(int timestamp) => new()
+    {
+        Timestamp = timestamp,
+        SourceId = PlayerId,
+        TargetId = PlayerId,
+        Ability = new Ability { FSLID = TariqSpells.ExecutionersGrin.FSLID, Name = "Executioner's Grin" },
+    };
 
     /// <summary>
     /// One player damage event carrying a target health snapshot. Health is not rescaled by the

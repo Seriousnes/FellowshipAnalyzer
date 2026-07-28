@@ -4,11 +4,11 @@ namespace FellowshipAnalyzer.Core.Analysis;
 
 /// <summary>
 /// Measures how continuously one debuff stayed on the pull's primary target. Presence windows are
-/// tracked per (TargetId, TargetInstance); the primary target is the one carrying the most covered
-/// time, so transient adds never dilute the boss reading. <see cref="Uptime"/> is the primary
-/// target's covered time against the pull duration, and gaps are the uncovered stretches between
-/// that target's windows, so lead-in before the first application lowers uptime without counting as
-/// a gap.
+/// tracked per (TargetId, TargetInstance) by an <see cref="AuraWindowLedger"/>; the primary target is
+/// the one carrying the most covered time, so transient adds never dilute the boss reading.
+/// <see cref="Uptime"/> is the primary target's covered time against the pull duration, and gaps are
+/// the uncovered stretches between that target's windows, so lead-in before the first application
+/// lowers uptime without counting as a gap.
 /// <para>
 /// Derive a per-hero analyzer from this, keep <c>[ForPull]</c> and the surface marker interface on
 /// the leaf, and declare the debuff's own <c>[On&lt;&gt;]</c> handlers there: apply and refresh call
@@ -19,10 +19,8 @@ namespace FellowshipAnalyzer.Core.Analysis;
 /// </summary>
 public abstract class DebuffUptimeAnalyzer : Analyzer
 {
-    private readonly Dictionary<(int TargetId, int TargetInstance), List<AuraWindow>> _windowsByTarget = [];
-    private readonly Dictionary<(int TargetId, int TargetInstance), int> _openWindowStarts = [];
-    private readonly Dictionary<(int TargetId, int TargetInstance), int> _lastObserved = [];
-    
+    private readonly AuraWindowLedger _ledger = new();
+
     private Computed Result => field ??= Compute();
 
     /// <summary>Share of the pull (0-1) the primary target spent carrying the debuff.</summary>
@@ -38,28 +36,26 @@ public abstract class DebuffUptimeAnalyzer : Analyzer
     public IReadOnlyList<AuraWindow> Windows => Result.Windows;
 
     /// <summary>
+    /// The target every measurement above is taken against - the one carrying the most covered time -
+    /// or <c>null</c> when the debuff never landed. A derived analyzer that tracks something else per
+    /// target (stack counts, damage) reads this to scope its own state to the same target the uptime
+    /// is measured on.
+    /// </summary>
+    public (int TargetId, int TargetInstance)? PrimaryTarget => Result.PrimaryTarget;
+
+    /// <summary>
     /// Opens a window on <paramref name="target"/> unless one is already open, and records the event
     /// as an observation of that target. Call from apply and refresh handlers.
     /// </summary>
-    protected void OpenWindow(IHasTargetWithInstanceEvent target, int timestamp)
-    {
-        var key = Key(target);
-        _lastObserved[key] = timestamp;
-        _openWindowStarts.TryAdd(key, timestamp);
-    }
+    protected void OpenWindow(IHasTargetWithInstanceEvent target, int timestamp) =>
+        _ledger.Open(target, timestamp);
 
     /// <summary>
     /// Closes the window open on <paramref name="target"/>, if any, and records the event as an
     /// observation of that target. Call from remove handlers.
     /// </summary>
-    protected void CloseWindow(IHasTargetWithInstanceEvent target, int timestamp)
-    {
-        var key = Key(target);
-        _lastObserved[key] = timestamp;
-        if (!_openWindowStarts.Remove(key, out var start)) return;
-
-        WindowsFor(key).Add(new AuraWindow(start, timestamp));
-    }
+    protected void CloseWindow(IHasTargetWithInstanceEvent target, int timestamp) =>
+        _ledger.Close(target, timestamp);
 
     /// <summary>
     /// Records that <paramref name="target"/> was still in the log at <paramref name="timestamp"/>,
@@ -68,36 +64,14 @@ public abstract class DebuffUptimeAnalyzer : Analyzer
     /// known to have existed.
     /// </summary>
     protected void ObserveTarget(IHasTargetWithInstanceEvent target, int timestamp) =>
-        _lastObserved[Key(target)] = timestamp;
-
-    private static (int TargetId, int TargetInstance) Key(IHasTargetWithInstanceEvent target) =>
-        (target.TargetId, target.TargetInstance ?? 0);
-
-    private List<AuraWindow> WindowsFor((int TargetId, int TargetInstance) key)
-    {
-        if (_windowsByTarget.TryGetValue(key, out var windows)) return windows;
-
-        windows = [];
-        _windowsByTarget[key] = windows;
-        return windows;
-    }
+        _ledger.Observe(target, timestamp);
 
     private Computed Compute()
     {
-        var windowsByTarget = new Dictionary<(int TargetId, int TargetInstance), List<AuraWindow>>();
-        foreach (var (key, windows) in _windowsByTarget)
-            windowsByTarget[key] = [.. windows];
-        foreach (var (key, start) in _openWindowStarts)
-        {
-            if (!windowsByTarget.TryGetValue(key, out var list))
-                windowsByTarget[key] = list = [];
-            list.Add(new AuraWindow(start, Math.Max(start, _lastObserved.GetValueOrDefault(key))));
-        }
-
-        var primary = windowsByTarget
+        var primary = _ledger.Build()
             .Select(entry => new Candidate(
-                entry.Key.TargetId,
-                entry.Key.TargetInstance,
+                entry.Key.ActorId,
+                entry.Key.Instance ?? 0,
                 entry.Value,
                 entry.Value.Sum(window => window.Duration)))
             .Where(candidate => candidate.Covered > 0)
@@ -107,7 +81,7 @@ public abstract class DebuffUptimeAnalyzer : Analyzer
             .ThenBy(candidate => candidate.TargetInstance)
             .FirstOrDefault();
 
-        if (primary is null) return new Computed(0d, 0, 0, []);
+        if (primary is null) return new Computed(0d, 0, 0, [], null);
 
         var gapCount = 0;
         var totalGapMs = 0;
@@ -122,10 +96,20 @@ public abstract class DebuffUptimeAnalyzer : Analyzer
 
         var duration = Pull.EndTime - Pull.StartTime;
         var uptime = duration > 0 ? Math.Min(1d, primary.Covered / (double)duration) : 0d;
-        return new Computed(uptime, gapCount, totalGapMs, primary.Windows);
+        return new Computed(
+            uptime,
+            gapCount,
+            totalGapMs,
+            primary.Windows,
+            (primary.TargetId, primary.TargetInstance));
     }
 
-    private sealed record Candidate(int TargetId, int TargetInstance, List<AuraWindow> Windows, int Covered);
+    private sealed record Candidate(int TargetId, int TargetInstance, IReadOnlyList<AuraWindow> Windows, int Covered);
 
-    private record Computed(double Uptime, int GapCount, int TotalGapMs, IReadOnlyList<AuraWindow> Windows);
+    private record Computed(
+        double Uptime,
+        int GapCount,
+        int TotalGapMs,
+        IReadOnlyList<AuraWindow> Windows,
+        (int TargetId, int TargetInstance)? PrimaryTarget);
 }

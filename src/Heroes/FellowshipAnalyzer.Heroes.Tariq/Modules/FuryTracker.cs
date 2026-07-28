@@ -13,10 +13,7 @@ public sealed partial class FuryTracker : ResourceTracker
 
     private readonly List<FurySample> _samples = [];
 
-    private bool _seeded;
     private int _fury;
-    private int _generated;
-    private int _spent;
 
     public FuryTracker(ILogger<ResourceTracker> logger) : base(logger)
     {
@@ -32,16 +29,6 @@ public sealed partial class FuryTracker : ResourceTracker
 
         var fury = (int)Math.Clamp(Math.Round(resource.Amount * 100.0 / resource.Max), 0, FuryCap);
 
-        if (_seeded)
-        {
-            var delta = fury - _fury;
-            if (delta > 0)
-                _generated += delta;
-            else if (delta < 0)
-                _spent += -delta;
-        }
-
-        _seeded = true;
         _fury = fury;
         _samples.Add(new FurySample(e.Timestamp, fury));
     }
@@ -61,10 +48,6 @@ public sealed partial class FuryTracker : ResourceTracker
     public int MaxFury => FuryCap;
 
     public int Current => _fury;
-
-    public int Generated => _generated;
-
-    public int Spent => _spent;
 
     public IReadOnlyList<FurySample> Samples => _samples;
 }

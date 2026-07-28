@@ -1,5 +1,3 @@
-using System.Runtime.InteropServices;
-
 using FellowshipAnalyzer.Core.Analysis;
 using FellowshipAnalyzer.Core.Common.Spells.Tariq;
 using FellowshipAnalyzer.Core.Events;
@@ -7,53 +5,55 @@ using FellowshipAnalyzer.Core.Game;
 
 namespace FellowshipAnalyzer.Heroes.Tariq.Modules;
 
+/// <summary>
+/// Measures Fury lost at the cap by the generators whose gain is a known flat amount.
+/// <see cref="Spells.LeapSmash"/> is deliberately outside the model: it is a movement cooldown pressed to
+/// close a gap, so its Fury is a side effect rather than a resource decision. <see cref="Spells.ChainLightning"/>
+/// is outside it too, because its gain scales with targets hit and cannot be evaluated against the cap.
+/// </summary>
 [ForPull(PullKind.Single | PullKind.Multi)]
 public sealed partial class FuryEconomyAnalyzer : Analyzer
 {
     public const int FuryCap = 100;
 
+    /// <summary>Wild Swing's Fury gain, from <c>Wild Swing.ResourceGain</c>.</summary>
     public const int WildSwingGain = 3;
 
+    /// <summary>Face Breaker's Fury gain, from <c>Face Breaker.ResourceGain</c>.</summary>
     public const int FaceBreakerGain = 7;
 
+    /// <summary>Heavy Strike's Fury gain, from <c>Heavy Strike.ResourceGain</c>.</summary>
     public const int HeavyStrikeGain = 12;
 
-    public const int LeapSmashGain = 20;
+    /// <summary>Skull Crusher's Fury cost, from <c>Skull Crusher.Cost</c>.</summary>
+    public const int SkullCrusherCost = 25;
 
-    public const double ChainLightningGainPerTarget = 1.2;
+    /// <summary>Hammer Storm's Fury cost, from <c>AoeAttack.Cost</c>.</summary>
+    public const int HammerStormCost = 50;
 
-    private readonly Dictionary<int, (int Casts, int Wasted)> _perAbility = [];
+    /// <summary>The most Fury a Culling Strike consumes, from <c>Culling Strike.MaxResourceToSpend</c>. It scales its damage with what it spends rather than paying a fixed price.</summary>
+    public const int CullingStrikeMaxSpend = 10;
 
     private int _activeStart = int.MaxValue;
     private int _activeEnd = int.MinValue;
 
+    /// <summary>Casts of the flat-gain generators the waste model covers.</summary>
     public int GeneratorCasts { get; private set; }
 
     public int OvercapCasts { get; private set; }
 
     public int WastedFury { get; private set; }
 
-    public int PotentialGeneration { get; private set; }
-
     public int SkullCrusherCasts { get; private set; }
     public int HammerStormCasts { get; private set; }
     public int CullingStrikeCasts { get; private set; }
 
+    /// <summary>Casts of the three abilities that draw on the bar. A plain count: they do not drain it equally, so it is not a measure of Fury spent.</summary>
     public int SpenderCasts => SkullCrusherCasts + HammerStormCasts + CullingStrikeCasts;
-
-    public IReadOnlyList<AbilityWaste> WasteByAbility => field ??=
-    [
-        .. _perAbility
-            .Select(entry => new AbilityWaste(entry.Key, entry.Value.Casts, entry.Value.Wasted))
-            .OrderByDescending(waste => waste.WastedFury)
-            .ThenBy(waste => waste.SpellId),
-    ];
 
     public int ActiveSpanMs => _activeEnd > _activeStart ? _activeEnd - _activeStart : 0;
 
     public double WastedFuryPerMinute => ActiveSpanMs <= 0 ? 0 : WastedFury * 60_000d / ActiveSpanMs;
-
-    public double WasteRate => PotentialGeneration == 0 ? 0 : (double)WastedFury / PotentialGeneration;
 
     [On<CastEvent>(By = Actor.Player, Spells = new[]
     {
@@ -61,7 +61,6 @@ public sealed partial class FuryEconomyAnalyzer : Analyzer
         nameof(Spells.FaceBreaker),
         nameof(Spells.FaceBreakerAlt),
         nameof(Spells.HeavyStrike),
-        nameof(Spells.LeapSmash),
     })]
     private void OnGeneratorCast(CastEvent @event)
     {
@@ -69,22 +68,12 @@ public sealed partial class FuryEconomyAnalyzer : Analyzer
         GeneratorCasts++;
 
         var gain = GainFor(@event.Ability.Id);
-        PotentialGeneration += gain;
-
         var wasted = FuryPercent(@event) is { } fury ? Math.Max(0, fury + gain - FuryCap) : 0;
+
         if (wasted > 0)
             OvercapCasts++;
 
         WastedFury += wasted;
-        Accumulate(RollUp(@event.Ability.Id), wasted);
-    }
-
-    [On<CastEvent>(By = Actor.Player, Spell = nameof(Spells.ChainLightning))]
-    private void OnChainLightningCast(CastEvent @event)
-    {
-        Track(@event.Timestamp);
-        GeneratorCasts++;
-        Accumulate(Spells.ChainLightning.FSLID, 0);
     }
 
     [On<CastEvent>(By = Actor.Player, Spells = new[]
@@ -104,13 +93,6 @@ public sealed partial class FuryEconomyAnalyzer : Analyzer
             CullingStrikeCasts++;
     }
 
-    private void Accumulate(int spellId, int wasted)
-    {
-        ref var entry = ref CollectionsMarshal.GetValueRefOrAddDefault(_perAbility, spellId, out _);
-        entry.Casts++;
-        entry.Wasted += wasted;
-    }
-
     private void Track(int timestamp)
     {
         if (timestamp < _activeStart)
@@ -122,11 +104,7 @@ public sealed partial class FuryEconomyAnalyzer : Analyzer
     private static int GainFor(int spellId) =>
         spellId == Spells.WildSwing.FSLID ? WildSwingGain
         : spellId == Spells.HeavyStrike.FSLID ? HeavyStrikeGain
-        : spellId == Spells.LeapSmash.FSLID ? LeapSmashGain
         : FaceBreakerGain;
-
-    private static int RollUp(int spellId) =>
-        spellId == Spells.FaceBreakerAlt.FSLID ? Spells.FaceBreaker.FSLID : spellId;
 
     private static int? FuryPercent(Event @event)
     {
@@ -147,5 +125,3 @@ public sealed partial class FuryEconomyAnalyzer : Analyzer
         return null;
     }
 }
-
-public readonly record struct AbilityWaste(int SpellId, int Casts, int WastedFury);

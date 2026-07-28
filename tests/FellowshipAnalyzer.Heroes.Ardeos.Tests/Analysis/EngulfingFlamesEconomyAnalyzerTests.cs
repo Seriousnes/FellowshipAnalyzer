@@ -407,7 +407,7 @@ public sealed class EngulfingFlamesEconomyAnalyzerTests
     private static CombatantInfoEvent CombatantWithDevouringBracers() => new()
     {
         SourceId = PlayerId,
-        Gear = [new Item { Id = EngulfingFlamesEconomyAnalyzer.DevouringFlameBracersItemId, Quality = 6 }],
+        Gear = [new Item { Id = Core.Common.Items.Items.DraconicBracersOfTheDevouringFlame.Id, Quality = 6 }],
     };
 
     private static IEnumerable<Event> Fillers(int start, int end, int interval)

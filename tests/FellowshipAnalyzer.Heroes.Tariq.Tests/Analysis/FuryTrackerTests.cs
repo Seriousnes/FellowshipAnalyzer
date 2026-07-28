@@ -34,19 +34,15 @@ public sealed class FuryTrackerTests
 
         tracker.Samples.Select(sample => sample.Fury).ShouldBe([50, 50]);
         tracker.Current.ShouldBe(50);
-        tracker.Generated.ShouldBe(0);
-        tracker.Spent.ShouldBe(0);
     }
 
     [Fact]
-    public async Task Analyze_FuryTracker_AccumulatesGeneratedAndSpentExcludingTheSeed()
+    public async Task Analyze_FuryTracker_HoldsTheLatestReadingAsCurrent()
     {
         var (parser, _) = await AnalyzeAsync(BuildScenario());
 
         var tracker = parser.FuryTracker.ShouldNotBeNull();
 
-        tracker.Generated.ShouldBe(80);
-        tracker.Spent.ShouldBe(120);
         tracker.Current.ShouldBe(10);
     }
 
@@ -81,8 +77,6 @@ public sealed class FuryTrackerTests
         var tracker = parser.FuryTracker.ShouldNotBeNull();
 
         tracker.Samples.ShouldBe([new FurySample(300, 40)]);
-        tracker.Generated.ShouldBe(0);
-        tracker.Spent.ShouldBe(0);
         tracker.Current.ShouldBe(40);
     }
 

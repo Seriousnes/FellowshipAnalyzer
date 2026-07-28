@@ -1,0 +1,104 @@
+@inherits ReportComponent<SylvieCombatLogParser>
+
+<GuideSection Title="Mana">
+    <Explanation>
+        <p>
+            Mana regenerates continuously against a hard cap, so any stretch spent at a full pool is
+            regeneration thrown away. That is measured by the time between readings rather than by
+            counting events, because the log attaches a mana reading to almost everything and those
+            events crowd together whenever Sylvie is busy.
+        </p>
+        <p>
+            The log carries no cost on a cast, so spending is priced from the Season 3 game data, with
+            the fifth Bluey takes off while it is recalled onto Sylvie applied to the casts it covered.
+            Those are list prices: a cost the game reduces by something the log does not report will
+            read high here.
+        </p>
+    </Explanation>
+    <ChildContent>
+        <CastOverview Title="Overview" Stats="@BuildOverviewStats()" />
+        <CastDetail Title="Mana By Pull"
+                    Description="What each pull cost and how much of it sat at the cap."
+                    Casts="@BuildPerPullData()" />
+    </ChildContent>
+</GuideSection>
+
+@code {
+    private IEnumerable<OverviewStat> BuildOverviewStats()
+    {
+        var analyzers = Parser.ManaEfficiencyAnalyzers.Select(entry => entry.Analyzer).ToList();
+        var measured = analyzers.Sum(analyzer => (long)analyzer.MeasuredMs);
+        if (measured == 0) return [];
+
+        var spent = analyzers.Sum(analyzer => (long)analyzer.Spent);
+        var atFull = analyzers.Sum(analyzer => (long)analyzer.AtFullMs);
+        var lowest = analyzers.Count > 0 ? analyzers.Min(analyzer => analyzer.LowestShare) : 0;
+        var efficiency = Parser.SylvieHealingEfficiencyTracker;
+
+        var stats = new List<OverviewStat>
+        {
+            new(
+                $"{spent:N0}",
+                "Mana Spent",
+                "Priced from the Season 3 game data, because the log attaches no cost to a cast."),
+            new(
+                $"{atFull / (double)measured * 100:F1}%",
+                "At Full Mana",
+                $"{atFull / 1000:N0}s of {measured / 1000:N0}s measured with the pool capped, where regeneration had nowhere to go.",
+                PerformanceTiers.FromThresholds(100 - (atFull / (double)measured * 100), 90, 75, 55)),
+            new(
+                $"{lowest * 100:F0}%",
+                "Lowest Pool",
+                "The lowest mana reading taken across every pull."),
+        };
+
+        if (efficiency is { TotalResourceSpent: > 0 })
+        {
+            stats.Add(new OverviewStat(
+                $"{efficiency.HealingPerResource:N0}",
+                "Healing Per Mana",
+                $"Effective healing across every spell against the {efficiency.TotalResourceSpent:N0} mana they cost."));
+        }
+
+        return stats;
+    }
+
+    private IEnumerable<PerCastData> BuildPerPullData() =>
+        Parser.ManaEfficiencyAnalyzers.ToPullRows(Parser, (analyzer, pull) => new PerCastRow
+        {
+            Performance = PerformanceTiers.FromThresholds(100 - (analyzer.AtFullShare * 100), 90, 75, 55),
+            Stats = BuildPullStats(analyzer),
+        });
+
+    private static PerCastStat[] BuildPullStats(ManaEfficiencyAnalyzer analyzer)
+    {
+        var stats = new List<PerCastStat>
+        {
+            new(
+                $"{analyzer.Spent:N0}",
+                "Mana Spent",
+                $"{analyzer.SpentPerSecond:F1} per second across this pull."),
+            new(
+                $"{analyzer.AtFullShare * 100:F0}%",
+                "At Full Mana",
+                $"{analyzer.AtFullMs / 1000:N0}s with the pool capped and regeneration going nowhere.",
+                PerformanceTiers.FromThresholds(100 - (analyzer.AtFullShare * 100), 90, 75, 55)),
+            new(
+                $"{analyzer.LowestShare * 100:F0}%",
+                "Lowest Pool",
+                $"The lowest reading this pull; it ended at {analyzer.EndingShare * 100:F0}%."),
+        };
+
+        foreach (var (spellId, mana, casts) in analyzer.SpentBySpell.Take(3))
+        {
+            stats.Add(new PerCastStat(
+                $"{mana:N0}",
+                SpellName(spellId),
+                $"{casts} casts this pull."));
+        }
+
+        return [.. stats];
+    }
+
+    private static string SpellName(int spellId) => SpellRegistry.MaybeGet(spellId)?.Name ?? $"Spell {spellId}";
+}

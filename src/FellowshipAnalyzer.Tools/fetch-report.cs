@@ -17,9 +17,10 @@ var fightId = int.Parse(args[1]);
 var sourceId = int.Parse(args[2]);
 
 var repoRoot = FindRepoRoot();
+var fileStem = string.Concat($"{code}-f{fightId}-s{sourceId}".Select(c => Path.GetInvalidFileNameChars().Contains(c) ? '-' : c));
 var outputPath = args.Length >= 4
     ? Path.GetFullPath(args[3])
-    : Path.Combine(repoRoot, "raw-reports", $"{code}-f{fightId}-s{sourceId}.json");
+    : Path.Combine(repoRoot, "raw-reports", $"{fileStem}.json");
 Directory.CreateDirectory(Path.GetDirectoryName(outputPath)!);
 
 var userSecretId = LoadUserSecretId(repoRoot);

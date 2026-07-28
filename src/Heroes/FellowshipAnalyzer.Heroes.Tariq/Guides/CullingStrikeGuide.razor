@@ -4,205 +4,194 @@
 @{
     var analyzers = Parser.CullingStrikeAnalyzers.Select(entry => entry.Analyzer).ToList();
     var phased = analyzers.Where(analyzer => analyzer.ExecutePhaseStartTimestamp is not null).ToList();
-    var totalCasts = analyzers.Sum(analyzer => analyzer.TotalCasts);
+    var opportunities = analyzers.SelectMany(analyzer => analyzer.Opportunities).ToList();
+    var grin = GrinTracker();
 }
 
-@if (totalCasts > 0 || phased.Count > 0)
+@if (analyzers.Count > 0)
 {
     <GuideSection Title="Culling Strike">
         <Explanation>
             <p>
-                <SpellLink Spell="Spells.CullingStrike" /> is locked out until a target drops inside the
-                last @ThresholdLabel of its health. Once the boss is there it stops being situational
-                and becomes a rolling six second obligation: the cooldown comes back, you press it, and
-                every cycle it spends idle is free damage left on the table.
+                Once the boss is inside the execute window, <SpellLink Spell="Spells.CullingStrike" /> is the
+                button you press every time it comes up, with at least
+                @CullingStrikeAnalyzer.FullStrengthFury Fury banked. It converts what it spends into damage
+                up to that point, so pressing it near empty throws the cast away as surely as not pressing it.
             </p>
             <p>
-                Casts above that threshold are only possible while
-                <SpellLink Spell="Spells.ExecutionersGrin" /> is up, from Executioner's Unsanitary Bands.
-                They are counted on their own below and never held against the execute phase - a
-                proc being spent is the item paying out, not a rotation gone wrong.
+                Each time the cooldown ended is counted as one opportunity. Holding it because Fury was short
+                is a Fury problem and is marked separately from holding it with Fury in the bank, which is the
+                one worth fixing.
             </p>
+            @if (grin is { Equipped: true })
+            {
+                <p>
+                    <SpellLink Spell="Spells.ExecutionersGrin" /> from Executioner's Unsanitary Bands lets a
+                    cast go out above the threshold. The proc is spent by the next Culling Strike whatever the
+                    target's health, so the only loss you control is letting one fall off with no cast at all.
+                </p>
+            }
         </Explanation>
         <ChildContent>
-            <CastOverview Title="Execute Phase Overview" Stats="@BuildOverviewStats(analyzers, phased)" />
+            <CastOverview Title="Execute Phase Overview" Stats="@BuildOverviewStats(analyzers, phased, opportunities)" />
 
-            <CastDetail Title="Execute Phases"
-                        Description="Each card is one boss pull, rated on how much of its execute phase Culling Strike actually covered."
-                        Casts="@BuildPullRows()" />
+            @if (opportunities.Count > 0)
+            {
+                <CastDetail Title="Cooldown Opportunities"
+                            Description="Each card is one moment Culling Strike came up inside the execute phase, and what happened next."
+                            Casts="@BuildOpportunityRows()" />
+            }
+
+            @if (grin is { Equipped: true, Procs: > 0 })
+            {
+                <SubSection Title="Executioner's Grin">
+                    <HelperText>
+                        Procs from Executioner's Unsanitary Bands and what each one bought.
+                    </HelperText>
+                    <CastOverview Title="Proc Economy" Stats="@BuildGrinStats(grin)" />
+                </SubSection>
+            }
         </ChildContent>
     </GuideSection>
 }
 
 @code {
+    private ExecutionersGrinTracker? GrinTracker() => Parser.ExecutionersGrinTracker;
+
     private IEnumerable<OverviewStat> BuildOverviewStats(
         List<CullingStrikeAnalyzer> analyzers,
-        List<CullingStrikeAnalyzer> phased)
+        List<CullingStrikeAnalyzer> phased,
+        List<CullingStrikeOpportunity> opportunities)
     {
         var inPhase = phased.Sum(analyzer => analyzer.CastsInPhase);
-        var possible = phased.Sum(analyzer => analyzer.PossibleCasts);
-        var rateable = phased.Count > 0 && possible > 0;
+        var phaseMs = phased.Sum(analyzer => (long)analyzer.ExecutePhaseDurationMs);
+        var prompt = analyzers.Sum(analyzer => analyzer.PromptCasts);
+        var heldWithFury = analyzers.Sum(analyzer => analyzer.HeldWithFury);
+        var heldWithoutFury = analyzers.Sum(analyzer => analyzer.HeldWithoutFury);
+        var idleMs = analyzers.Sum(analyzer => (long)analyzer.IdleMs);
+        var unexplained = analyzers.Sum(analyzer => analyzer.UnexplainedCastsAboveThreshold);
 
-        return
-        [
-            CoverageStat(phased, inPhase, possible, rateable),
-            new OverviewStat(
-                rateable ? $"{inPhase}/{possible}" : "-",
+        var stats = new List<OverviewStat>
+        {
+            new(
+                $"{inPhase}",
                 "Casts in Phase",
-                rateable
-                    ? $"Culling Strikes landed inside an execute phase, against the {possible} the "
-                      + $"{phased.Count} phase{(phased.Count == 1 ? "" : "s")} had room for at one cast every "
-                      + $"{CycleSeconds}s."
-                    : NothingToRate(phased.Count)),
-            AboveThresholdStat(analyzers.Sum(analyzer => analyzer.CastsAboveThreshold)),
-        ];
+                phased.Count == 0
+                    ? "No boss pull was observed reaching the execute threshold."
+                    : $"Culling Strikes landed inside an execute phase, over {phaseMs / 1000d:0.0}s across {phased.Count} pull{(phased.Count == 1 ? "" : "s")}."),
+        };
+
+        if (opportunities.Count > 0)
+        {
+            stats.Add(new OverviewStat(
+                $"{prompt}/{opportunities.Count}",
+                "Pressed on Cooldown",
+                $"Times the cooldown came up inside the execute phase and the cast went out within {CullingStrikeAnalyzer.PromptCastGraceMs / 1000d:0.0}s.",
+                prompt == opportunities.Count ? QualitativePerformance.Perfect : QualitativePerformance.Ok));
+
+            stats.Add(new OverviewStat(
+                $"{heldWithFury}",
+                "Held With Fury",
+                $"Times it sat available with at least {CullingStrikeAnalyzer.FullStrengthFury} Fury banked and no cast followed. Every one is a Culling Strike the phase had room for.",
+                heldWithFury == 0 ? QualitativePerformance.Perfect : QualitativePerformance.Fail));
+
+            stats.Add(new OverviewStat(
+                $"{heldWithoutFury}",
+                "Held Without Fury",
+                $"Times it came up under {CullingStrikeAnalyzer.FullStrengthFury} Fury, so the cast would have landed weak. Counted here rather than against Culling Strike - it belongs to the Fury economy."));
+
+            stats.Add(new OverviewStat(
+                $"{idleMs / 1000d:0.0}s",
+                "Time Idle",
+                "Total execute-phase time Culling Strike spent available and unpressed, past the grace allowed for the cast."));
+        }
+
+        if (unexplained > 0)
+        {
+            stats.Add(new OverviewStat(
+                $"{unexplained}",
+                "Unexplained",
+                $"Casts above {ThresholdLabel} with no Executioner's Grin buff held. The game gate makes these impossible, so this many readings are unreliable rather than this many mistakes."));
+        }
+
+        return stats;
     }
 
-    private static OverviewStat CoverageStat(
-        List<CullingStrikeAnalyzer> phased, int inPhase, int possible, bool rateable)
+    private IEnumerable<OverviewStat> BuildGrinStats(ExecutionersGrinTracker grin) =>
+    [
+        new OverviewStat(
+            $"{grin.Procs}",
+            "Procs",
+            grin.Reapplications > 0
+                ? $"Executioner's Grin procs this encounter. {grin.Reapplications} landed on a proc already held and added nothing."
+                : "Executioner's Grin procs this encounter."),
+        new OverviewStat(
+            $"{grin.SpentAboveThreshold}",
+            "Extra Casts Bought",
+            $"Procs spent on a Culling Strike above {ThresholdLabel}, which the gate would otherwise have blocked. This is what the item is for."),
+        new OverviewStat(
+            $"{grin.ExpiredUnspent}",
+            "Expired Unspent",
+            $"Procs that fell off with no Culling Strike at all. The other {grin.SpentBelowThreshold} were spent on a cast that was already legal, which the game does for you and you cannot avoid.",
+            grin.ExpiredUnspent == 0 ? QualitativePerformance.Perfect : QualitativePerformance.Ok),
+    ];
+
+    private IEnumerable<PerCastData> BuildOpportunityRows() =>
+        Parser.CullingStrikeAnalyzers.ToItemRows(Parser, analyzer => analyzer.Opportunities, (opportunity, pull) => BuildOpportunityRow(opportunity));
+
+    private PerCastRow BuildOpportunityRow(CullingStrikeOpportunity opportunity)
     {
-        if (!rateable)
-            return new OverviewStat("-", "Execute Coverage", NothingToRate(phased.Count));
-
-        var coverage = Math.Min(100d, inPhase * 100d / possible);
-
-        return new OverviewStat(
-            $"{coverage:0}%",
-            "Execute Coverage",
-            $"Share of the Culling Strikes the execute phases had room for that were actually cast, pooled over {phased.Count} phase{(phased.Count == 1 ? "" : "s")}. "
-            + "Nine tenths is perfect, three quarters is good, half is passable.",
-            CoverageTier(coverage));
-    }
-
-    private IEnumerable<PerCastData> BuildPullRows() =>
-        Parser.CullingStrikeAnalyzers.ToPullRows(Parser, (analyzer, pull) => BuildPullRow(analyzer));
-
-    private PerCastRow BuildPullRow(CullingStrikeAnalyzer analyzer)
-    {
-        if (analyzer.ExecutePhaseStartTimestamp is not { } phaseStart)
-            return NoPhaseRow(analyzer);
-
-        if (analyzer.PossibleCasts == 0)
-            return ShortPhaseRow(analyzer, phaseStart);
-
-        var coverage = analyzer.Coverage * 100;
-        var tier = CoverageTier(coverage);
+        var performance = opportunity.Prompt
+            ? QualitativePerformance.Perfect
+            : opportunity.HadFury ? QualitativePerformance.Fail : QualitativePerformance.Ok;
 
         var stats = new List<PerCastStat>
         {
             new(
-                $"{coverage:0}%",
-                "Coverage",
-                $"{analyzer.CastsInPhase} of the {analyzer.PossibleCasts} Culling Strikes this phase had room for.",
-                tier),
+                opportunity.CastAt is null ? "Never" : $"{opportunity.HeldMs / 1000d:0.0}s",
+                "Held",
+                opportunity.CastAt is null
+                    ? "The pull ended with Culling Strike still available."
+                    : $"How long the cooldown sat available before the cast went out, against the {CullingStrikeAnalyzer.PromptCastGraceMs / 1000d:0.0}s allowed for it.",
+                performance),
             new(
-                $"{analyzer.CastsInPhase}/{analyzer.PossibleCasts}",
-                "Casts / Possible",
-                $"Casts inside the phase against the whole {CycleSeconds}s cycles it lasted. The cooldown is hasted, so the target count is the floor of what was available rather than the ceiling."),
-            PhaseDurationStat(analyzer, phaseStart),
+                opportunity.FuryAtReady is { } fury ? $"{fury}%" : "-",
+                "Fury at Ready",
+                opportunity.FuryAtReady is { } banked
+                    ? banked >= CullingStrikeAnalyzer.FullStrengthFury
+                        ? $"Fury held when the cooldown came up. {CullingStrikeAnalyzer.FullStrengthFury} was available, so the cast would have landed at full strength."
+                        : $"Fury held when the cooldown came up, short of the {CullingStrikeAnalyzer.FullStrengthFury} a full-strength cast converts."
+                    : "No event carried a Fury reading at this instant."),
         };
-
-        AddAboveThresholdStat(stats, analyzer);
 
         return new PerCastRow
         {
-            Performance = tier,
+            Performance = performance,
             Stats = [.. stats],
-            Timestamp = phaseStart,
-            Details = PhaseSummary(analyzer),
+            Timestamp = opportunity.ReadyAt,
+            Details = Summary(opportunity),
         };
     }
 
-    private PerCastRow ShortPhaseRow(CullingStrikeAnalyzer analyzer, int phaseStart)
+    private RenderFragment Summary(CullingStrikeOpportunity opportunity) =>
+    @<div>@SummaryText(opportunity)</div>;
+
+    private static string SummaryText(CullingStrikeOpportunity opportunity)
     {
-        var stats = new List<PerCastStat>
+        if (opportunity.Prompt)
+            return "Pressed as it came up.";
+
+        if (opportunity.CastAt is null)
         {
-            new(
-                "-",
-                "Coverage",
-                $"The boss spent less than one {CycleSeconds}s cycle inside the execute threshold, so no Culling Strike was ever available to miss."),
-            PhaseDurationStat(analyzer, phaseStart),
-        };
+            return opportunity.HadFury
+                ? $"The pull ended with Culling Strike available and {opportunity.FuryAtReady}% Fury banked."
+                : "The pull ended with Culling Strike available but not enough Fury to press it well.";
+        }
 
-        AddAboveThresholdStat(stats, analyzer);
-
-        return new PerCastRow
-        {
-            Performance = QualitativePerformance.Ok,
-            Stats = [.. stats],
-            Timestamp = phaseStart,
-        };
+        return opportunity.HadFury
+            ? $"Held {opportunity.HeldMs / 1000d:0.0}s with Fury in the bank. Press it the moment it comes up."
+            : $"Held {opportunity.HeldMs / 1000d:0.0}s at {opportunity.FuryAtReady}% Fury, below the {CullingStrikeAnalyzer.FullStrengthFury} a full-strength cast converts.";
     }
-
-    private static PerCastRow NoPhaseRow(CullingStrikeAnalyzer analyzer)
-    {
-        var stats = new List<PerCastStat>
-        {
-            new(
-                "None",
-                "Execute Phase",
-                $"The boss was never observed at or below {ThresholdLabel} on this pull, so Culling Strike had no execute phase to cover."),
-        };
-
-        AddAboveThresholdStat(stats, analyzer);
-
-        return new PerCastRow
-        {
-            Performance = QualitativePerformance.Ok,
-            Stats = [.. stats],
-        };
-    }
-
-    private PerCastStat PhaseDurationStat(CullingStrikeAnalyzer analyzer, int phaseStart) =>
-        new(
-            $"{analyzer.ExecutePhaseDurationMs / 1000d:0.0}s",
-            "Phase Duration",
-            $"From the boss first dropping to {ThresholdLabel} at {Parser.FormatTimestamp(phaseStart)} through to the pull ending.");
-
-    private static void AddAboveThresholdStat(List<PerCastStat> stats, CullingStrikeAnalyzer analyzer)
-    {
-        if (analyzer.CastsAboveThreshold == 0)
-            return;
-
-        stats.Add(new PerCastStat(
-            $"{analyzer.CastsAboveThreshold}",
-            "Above Threshold",
-            "Casts on a target above the threshold, unlocked by an Executioner's Grin proc. Counted apart from the phase, never against it."));
-    }
-
-    private static OverviewStat AboveThresholdStat(int count) =>
-        new(
-            $"{count}",
-            "Above Threshold",
-            count == 0
-                ? "No Culling Strike landed on a target above the execute threshold, which only Executioner's Grin allows."
-                : "Culling Strikes on a target above the threshold, which only an Executioner's Grin proc from Executioner's Unsanitary Bands makes possible. Extra casts the item bought, counted apart from execute-phase discipline.");
-
-    private RenderFragment PhaseSummary(CullingStrikeAnalyzer analyzer) =>
-    @<div>@Summary(analyzer)</div>;
-
-    private static string Summary(CullingStrikeAnalyzer analyzer)
-    {
-        var missed = analyzer.PossibleCasts - analyzer.CastsInPhase;
-        var duration = $"{analyzer.ExecutePhaseDurationMs / 1000d:0.0}s";
-
-        if (analyzer.CastsInPhase == 0)
-            return $"Culling Strike was never pressed in the {duration} the boss spent inside the execute threshold.";
-
-        return missed <= 0
-            ? $"Culling Strike was kept rolling for the whole {duration} execute phase."
-            : $"{missed} more Culling Strike{(missed == 1 ? "" : "s")} would have fit into the {duration} execute phase.";
-    }
-
-    private static string NothingToRate(int phaseCount) =>
-        phaseCount == 0
-            ? "No boss pull was observed reaching the execute threshold, so there is no execute phase to rate."
-            : $"Every execute phase was shorter than one {CycleSeconds}s Culling Strike cycle, so there was nothing to miss.";
 
     private static string ThresholdLabel => $"{CullingStrikeAnalyzer.ExecuteHealthThreshold * 100:0}%";
-
-    private static int CycleSeconds => CullingStrikeAnalyzer.ExpectedCastIntervalMs / 1000;
-
-    private static QualitativePerformance CoverageTier(double coveragePercent) =>
-        PerformanceTiers.FromThresholds(coveragePercent, 90, 75, 50);
 }

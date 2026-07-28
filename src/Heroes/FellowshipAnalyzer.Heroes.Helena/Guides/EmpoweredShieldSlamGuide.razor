@@ -1,0 +1,85 @@
+@inherits ReportComponent<HelenaCombatLogParser>
+
+<GuideSection Title="Empowered Shield Slam">
+    <Explanation>
+        <p>
+            <SpellLink Spell="Spells.HoldTheLine" /> empowers your next
+            <SpellLink Spell="Spells.ShieldSlam" />, and that Shield Slam lays a barrier on you. The
+            barrier reports how much absorb it still held when it came off, so the part of it you never
+            used is a measurement rather than a guess.
+        </p>
+        <p>
+            An empowerment that fell off before a Shield Slam spent it is the other half of the same
+            picture: the barrier was offered and never laid.
+        </p>
+    </Explanation>
+    <ChildContent>
+        <CastOverview Title="Overview" Stats="@BuildOverviewStats()" />
+        <CastDetail Title="Barriers By Pull"
+                    Description="What each pull's barriers absorbed, and what expired on them."
+                    Casts="@BuildPerPullData()" />
+    </ChildContent>
+</GuideSection>
+
+@code {
+    private IEnumerable<OverviewStat> BuildOverviewStats()
+    {
+        var analyzers = Parser.EmpoweredShieldSlamAnalyzers.Select(entry => entry.Analyzer).ToList();
+        var granted = analyzers.Sum(analyzer => analyzer.EmpowermentsGranted);
+        if (granted == 0) return [];
+
+        var applications = analyzers.Sum(analyzer => analyzer.BarrierApplications);
+        var lapsed = analyzers.Sum(analyzer => analyzer.EmpowermentsExpired);
+        var used = analyzers.Sum(analyzer => analyzer.AbsorbUsed);
+        var wasted = analyzers.Sum(analyzer => analyzer.AbsorbWasted);
+        var expired = analyzers.Sum(analyzer => analyzer.BarriersExpiredUnspent);
+        var offered = used + wasted;
+        var efficiency = offered > 0 ? used / (double)offered * 100 : 0;
+
+        return
+        [
+            new OverviewStat(
+                $"{applications}",
+                "Barriers Laid",
+                $"Barrier applications across {granted} empowerments, counting a refresh onto a live " +
+                "barrier alongside a fresh one."),
+            new OverviewStat(
+                $"{lapsed}",
+                "Empowerments Lapsed",
+                "Empowerments that fell off with no Shield Slam under them. Shield Slam comes round faster " +
+                "than the buff can lapse, so anything above zero is worth looking at."),
+            new OverviewStat(
+                $"{efficiency:F1}%",
+                "Absorb Used",
+                $"{used:N0} of the {offered:N0} the barriers offered was consumed before they expired.",
+                PerformanceTiers.FromThresholds(efficiency, 90, 75, 55)),
+            new OverviewStat(
+                $"{wasted:N0}",
+                "Absorb Expired",
+                $"Absorb still on a barrier when it came off, across {expired} barriers."),
+        ];
+    }
+
+    private IEnumerable<PerCastData> BuildPerPullData() =>
+        Parser.EmpoweredShieldSlamAnalyzers.ToPullRows(Parser, (analyzer, pull) => new PerCastRow
+        {
+            Performance = PerformanceTiers.FromThresholds(analyzer.AbsorbEfficiency * 100, 90, 75, 55),
+            Stats =
+            [
+                new PerCastStat(
+                    $"{analyzer.BarrierApplications}",
+                    "Barriers Laid",
+                    $"Barrier applications this pull across {analyzer.EmpowermentsGranted} empowerments, " +
+                    $"forming {analyzer.BarrierWindows} windows."),
+                new PerCastStat(
+                    $"{analyzer.AbsorbEfficiency * 100:F0}%",
+                    "Absorb Used",
+                    $"{analyzer.AbsorbUsed:N0} consumed against {analyzer.AbsorbWasted:N0} left to expire.",
+                    PerformanceTiers.FromThresholds(analyzer.AbsorbEfficiency * 100, 90, 75, 55)),
+                new PerCastStat(
+                    $"{analyzer.BarriersExpiredUnspent}",
+                    "Expired Unspent",
+                    "Barriers that came off still holding absorb."),
+            ],
+        });
+}

@@ -3,8 +3,8 @@
 <StatCard Title="Rising Spirit">
     <Info>
         Rising Spirit stacks up from Spirit refund procs and falls off whole when they dry up, so its
-        uptime tracks the pace the rotation sustained rather than any single cast. Strong logs sit near
-        70% of the fight with the buff up.
+        uptime tracks the pace the rotation sustained rather than any single cast. It is a shared gear
+        buff with no published stack ceiling, so the peak below is what this log reached.
     </Info>
     <ChildContent>
         <CastOverview Title="Buff Uptime" Stats="@BuildStats()" />
@@ -17,12 +17,11 @@
         new OverviewStat(
             $"{Analyzer.UptimeShare * 100:0}%",
             "Uptime",
-            $"Share of the fight Rising Spirit was up, over {Analyzer.TotalActiveMs / 1000d:0.0}s of the {Analyzer.FightDurationMs / 1000d:0.0}s fight. Strong logs hold it near 70%.",
-            PerformanceTiers.FromThresholds(Analyzer.UptimeShare * 100, 70, 55, 40)),
+            $"Share of the fight Rising Spirit was up, over {Analyzer.TotalActiveMs / 1000d:0.0}s of the {Analyzer.FightDurationMs / 1000d:0.0}s fight."),
         new OverviewStat(
-            $"{Analyzer.MaxStacks}/{RisingSpiritTracker.StackCap}",
+            $"{Analyzer.MaxStacks}",
             "Peak Stacks",
-            $"The deepest the buff stacked, out of the {RisingSpiritTracker.StackCap} it holds at most."),
+            "The deepest the buff stacked in this fight."),
         new OverviewStat(
             $"{Analyzer.AverageStacks:0.0}",
             "Avg Stacks Held",

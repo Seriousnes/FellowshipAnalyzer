@@ -122,7 +122,7 @@ public sealed class Combatant : Entity
     public Item? GetItem(int itemId) => _itemById.GetValueOrDefault(itemId);
 
     /// <summary>True when an item with the given item id is equipped.</summary>
-    public bool HasGear(int itemId) => _itemById.ContainsKey(itemId);
+    public bool HasItem(int itemId) => _itemById.ContainsKey(itemId);
 
     /// <summary>The talents the player had selected, as recorded in the combatantinfo.</summary>
     public IReadOnlyList<TalentInfo> Talents => Info.Talents;

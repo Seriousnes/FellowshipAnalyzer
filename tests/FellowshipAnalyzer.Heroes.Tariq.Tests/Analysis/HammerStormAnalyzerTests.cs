@@ -45,15 +45,70 @@ public sealed class HammerStormAnalyzerTests
         cast.SpinsCompleted.ShouldBe(HammerStormAnalyzer.ExpectedSpins);
         cast.TargetsHit.ShouldBe(3);
         cast.Truncated.ShouldBeFalse();
-        cast.TruncatingAbilityId.ShouldBeNull();
-        cast.MetAoeThreshold.ShouldBeTrue();
+        cast.NextAbilityId.ShouldBeNull();
 
         analyzer.CastCount.ShouldBe(1);
         analyzer.CompleteChannels.ShouldBe(1);
         analyzer.TruncatedChannels.ShouldBe(0);
         analyzer.WhiffedCasts.ShouldBe(0);
-        analyzer.LowTargetCasts.ShouldBe(0);
         analyzer.AverageTargetsHit.ShouldBe(3);
+    }
+
+    /// <summary>
+    /// Hammer Storm returns 0.61x a Skull Crusher per point of Fury on a single target and 1.18x on two,
+    /// measured on report <c>a:NcqHDKzamL7n6YFv</c>, so a channel under the break-even is a miss while a
+    /// whiff - which carries no readable target count at all - is not.
+    /// </summary>
+    [Fact]
+    public async Task Analyze_HammerStorm_MarksChannelsUnderTheTargetBreakEven()
+    {
+        var (parser, _) = await ThunderCallWindowAnalyzerTests.AnalyzeAsync(
+        [
+            Cast(1_000, HammerStormId),
+            Hit(1_050, Enemy1),
+            Cast(10_000, HammerStormId),
+            Hit(10_050, Enemy1),
+            Hit(10_052, Enemy2),
+            Cast(20_000, HammerStormId),
+        ]);
+
+        var analyzer = Analyzer(parser);
+
+        analyzer.CastCount.ShouldBe(3);
+        analyzer.UnderBreakEvenChannels.ShouldBe(1);
+
+        analyzer.Casts[0].UnderTargetBreakEven.ShouldBeTrue();
+        analyzer.Casts[1].TargetsHit.ShouldBe(HammerStormAnalyzer.TargetBreakEven);
+        analyzer.Casts[1].UnderTargetBreakEven.ShouldBeFalse();
+        analyzer.Casts[2].TargetsHit.ShouldBe(0);
+        analyzer.Casts[2].UnderTargetBreakEven.ShouldBeFalse();
+    }
+
+    [Fact]
+    public async Task Analyze_HammerStorm_GroupsChannelsByTargetsCaughtLeavingWhiffsOut()
+    {
+        var (parser, _) = await ThunderCallWindowAnalyzerTests.AnalyzeAsync(
+        [
+            Cast(1_000, HammerStormId),
+            Hit(1_050, Enemy1),
+            Cast(10_000, HammerStormId),
+            Hit(10_050, Enemy1),
+            Cast(20_000, HammerStormId),
+            Hit(20_050, Enemy1),
+            Hit(20_052, Enemy2),
+            Hit(20_054, Enemy3),
+            Cast(30_000, HammerStormId),
+        ]);
+
+        var analyzer = Analyzer(parser);
+
+        analyzer.CastCount.ShouldBe(4);
+        analyzer.WhiffedCasts.ShouldBe(1);
+        analyzer.TargetsHitDistribution.ShouldBe(
+        [
+            new TargetCountBucket(1, 2),
+            new TargetCountBucket(3, 1),
+        ]);
     }
 
     [Fact]
@@ -74,7 +129,6 @@ public sealed class HammerStormAnalyzerTests
 
         cast.SpinsCompleted.ShouldBe(3);
         cast.TargetsHit.ShouldBe(1);
-        cast.MetAoeThreshold.ShouldBeFalse();
     }
 
     [Fact]
@@ -113,7 +167,7 @@ public sealed class HammerStormAnalyzerTests
         cast.SpinsCompleted.ShouldBe(2);
         cast.TargetsHit.ShouldBe(2);
         cast.Truncated.ShouldBeTrue();
-        cast.TruncatingAbilityId.ShouldBe(TariqSpells.CullingStrike.FSLID);
+        cast.NextAbilityId.ShouldBe(TariqSpells.CullingStrike.FSLID);
 
         analyzer.TruncatedChannels.ShouldBe(1);
         analyzer.CompleteChannels.ShouldBe(0);
@@ -133,7 +187,7 @@ public sealed class HammerStormAnalyzerTests
         var cast = Analyzer(parser).Casts.ShouldHaveSingleItem();
 
         cast.Truncated.ShouldBeTrue();
-        cast.TruncatingAbilityId.ShouldBeNull();
+        cast.NextAbilityId.ShouldBeNull();
     }
 
     [Fact]
@@ -151,7 +205,7 @@ public sealed class HammerStormAnalyzerTests
 
         cast.SpinsCompleted.ShouldBe(2);
         cast.Truncated.ShouldBeTrue();
-        cast.TruncatingAbilityId.ShouldBeNull();
+        cast.NextAbilityId.ShouldBeNull();
     }
 
     [Fact]
@@ -169,11 +223,10 @@ public sealed class HammerStormAnalyzerTests
         cast.TargetsHit.ShouldBe(0);
         cast.SpinsCompleted.ShouldBe(0);
         cast.Truncated.ShouldBeFalse();
-        cast.TruncatingAbilityId.ShouldBeNull();
+        cast.NextAbilityId.ShouldBeNull();
 
         analyzer.WhiffedCasts.ShouldBe(1);
         analyzer.TruncatedChannels.ShouldBe(0);
-        analyzer.LowTargetCasts.ShouldBe(0);
         analyzer.AverageTargetsHit.ShouldBe(0);
     }
 
@@ -195,7 +248,7 @@ public sealed class HammerStormAnalyzerTests
         analyzer.Casts.Count.ShouldBe(2);
         analyzer.Casts[0].SpinsCompleted.ShouldBe(1);
         analyzer.Casts[0].Truncated.ShouldBeTrue();
-        analyzer.Casts[0].TruncatingAbilityId.ShouldBeNull();
+        analyzer.Casts[0].NextAbilityId.ShouldBeNull();
         analyzer.Casts[1].SpinsCompleted.ShouldBe(3);
     }
 
@@ -299,7 +352,6 @@ public sealed class HammerStormAnalyzerTests
 
         analyzer.CastCount.ShouldBe(2);
         analyzer.Casts.Select(cast => cast.SchismEmpowered).ShouldBe([false, true]);
-        analyzer.LowTargetCasts.ShouldBe(1);
         analyzer.SchismEmpoweredCasts.ShouldBe(1);
         analyzer.AverageTargetsHit.ShouldBe(1);
     }

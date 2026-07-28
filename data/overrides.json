@@ -411,6 +411,57 @@
       "note": "both id 1121 and id 1122 sanitize to StoneShield; supersede id 1122 under distinct name StoneShieldAlt to eliminate collision"
     }
   },
+  "sylvie": {
+    "FluttercallEmbrace": {
+      "id": 1080,
+      "kind": "ability",
+      "name": "Fluttercall: Embrace",
+      "icon": "T_Mosse_BlueButterfly.jpg",
+      "note": "GA_Mosse_BlueButterfly_Recall, the recall half of Fluttercall: Protect that parks Bluey on Sylvie herself. EnabledInGame in s3 spell_data but absent from Sylvie's Kit block, so the merge never imports it; add directly. Observed cast in report a:gDf7m3N2wvk96dWP fight 22."
+    },
+    "FluttercallProtectBuff": {
+      "id": 1485,
+      "kind": "effect",
+      "name": "Fluttercall: Protect",
+      "icon": "T_Mosse_BlueButterfly.jpg",
+      "note": "GE_Mosse_BlueButterfly_TargetBuff; the parent stem is BlueButterfly_SendOut so the effect does not auto-link; add directly"
+    },
+    "FluttercallEmbraceBuff": {
+      "id": 1486,
+      "kind": "effect",
+      "name": "Fluttercall: Embrace",
+      "icon": "T_Mosse_BlueButterfly.jpg",
+      "note": "GE_Mosse_BlueButterfly_SelfBuff; the parent stem is BlueButterfly_SendOut so the effect does not auto-link; add directly"
+    },
+    "IronleafWardBuff": {
+      "id": 1484,
+      "kind": "effect",
+      "name": "Ironleaf Ward",
+      "icon": "T_Mosse_DR.jpg",
+      "note": "GE_Mosse_SingleTargetCastedDamageReductionBuff; the Buff suffix runs on without a separator so the stem does not match GA_Mosse_SingleTargetCastedDamageReduction; add directly"
+    },
+    "PricklyVineDamage": {
+      "id": 1440,
+      "kind": "effect",
+      "name": "Prickly Vine",
+      "icon": "T_Mosse_Vine.jpg",
+      "note": "GE_Mosse_ProjectileTurret_Damage; singular Turret against the plural GA_Mosse_ProjectileTurrets stem so it does not auto-link. Every vine's damage arrives under this id, not under Prickly Vine itself."
+    },
+    "NaturalProtectorAbsorb": {
+      "id": 2240,
+      "kind": "effect",
+      "name": "Natural Protector",
+      "icon": "Druid17.jpg",
+      "note": "GE_Mosse_Talent_TargetAbsorb, the Natural Protector talent's shield; talent-granted, so no Kit ability stem matches"
+    },
+    "NaturalSelectionBuff": {
+      "id": 2731,
+      "kind": "effect",
+      "name": "Natural Selection",
+      "icon": "T_Nhance_RPG_Nature_02.jpg",
+      "note": "GE_Mosse_Passive_PartyStaminaBuff_Buff; auto-merge names it Buff because the parent passive carries no name, which reads as an untyped placeholder in the registry"
+    }
+  },
   "tariq": {
     "FaceBreakerAlt": {
       "id": 2241,
@@ -465,6 +516,13 @@
       "kind": "effect",
       "name": "Heavy Strike",
       "note": "GE_Ink_AutoAttackBuff_CleaveDamage; the parent ability's DevName stem does not match the effect stem so it is not auto-linked; add directly"
+    },
+    "Sledgehammer": {
+      "id": 2061,
+      "kind": "ability",
+      "name": "Sledgehammer",
+      "icon": "T_Nhance_RPG_Icons_ChaoticSpikes.jpg",
+      "note": "GA_Ink_Talent_Passive_HeavySingleTargetAttack_AoE_Monitor; the Sledgehammer talent's Skull Crusher splash (Skull Crusher.Talent.HeavySingleTargetAttackAoe). EnabledInGame in s3 spell_data but absent from Tariq's Kit block, so the merge never imports it; add directly so the spellbook can attribute its damage to Skull Crusher."
     }
   },
   "vigour": {

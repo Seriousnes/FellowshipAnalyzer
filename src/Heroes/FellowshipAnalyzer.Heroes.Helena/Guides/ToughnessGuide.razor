@@ -1,0 +1,145 @@
+@inherits ReportComponent<HelenaCombatLogParser>
+
+<GuideSection Title="Toughness">
+    <Explanation>
+        <p>
+            Toughness is a physical damage reduction bar with four notches on it, worth 5%, 15%, 25%
+            and 35% from the bottom up. Where the bar sits is the whole of what it does, so this is
+            measured by time rather than by event: the log attaches a Toughness reading to most events
+            and those events crowd together while you are being hit, which would read a burst of
+            incoming damage as time spent low.
+        </p>
+        <p>
+            The bar is also the one resource you can throw away without noticing. It has no spender and
+            no logged generation event, so a <SpellLink Spell="Spells.ShieldSlam" />,
+            <SpellLink Spell="Spells.Shockwave" /> or <SpellLink Spell="Spells.ShieldsUp" /> pressed at
+            full Toughness simply loses what it would have restored. Only the maximum it is measured
+            against moves with your stats, so both readings come from each event's own maximum.
+        </p>
+    </Explanation>
+    <ChildContent>
+        <CastOverview Title="Time In Band" Stats="@BuildBandStats()" />
+        @if (Parser.ToughnessTracker is { } tracker && tracker.GeneratorCasts > 0)
+        {
+            <CastOverview Title="Generation Thrown Away" Stats="@BuildOvercapStats(tracker)" />
+        }
+        <CastDetail Title="Toughness By Pull"
+                    Description="Where the bar sat through each pull, weighted by time in band."
+                    Casts="@BuildPerPullData()" />
+    </ChildContent>
+</GuideSection>
+
+@code {
+    private IEnumerable<OverviewStat> BuildBandStats()
+    {
+        var analyzers = Parser.ToughnessBandAnalyzers.Select(entry => entry.Analyzer).ToList();
+        var measured = analyzers.Sum(analyzer => (long)analyzer.MeasuredMs);
+        if (measured == 0) return [];
+
+        var topBand = analyzers.Sum(analyzer => (long)analyzer.MsIn(ToughnessBand.Level4)) / (double)measured;
+        var atMaximum = analyzers.Sum(analyzer => (long)analyzer.AtMaximumMs) / (double)measured;
+        var averageReduction = analyzers.Sum(analyzer => analyzer.AverageDamageReduction * analyzer.MeasuredMs) / measured;
+        var lowBands = analyzers.Sum(analyzer =>
+            (long)analyzer.MsIn(ToughnessBand.Depleted) + analyzer.MsIn(ToughnessBand.Level1)) / (double)measured;
+
+        return
+        [
+            new OverviewStat(
+                $"{topBand * 100:F1}%",
+                "At 35% Notch",
+                "Share of pull time spent in the top band, where Toughness grants its full 35% physical damage reduction.",
+                PerformanceTiers.FromThresholds(topBand * 100, 90, 75, 55)),
+            new OverviewStat(
+                $"{averageReduction * 100:F1}%",
+                "Average Reduction",
+                "The physical damage reduction Toughness averaged across every pull, against the 35% the top notch allows.",
+                PerformanceTiers.FromThresholds(averageReduction / 0.35 * 100, 90, 75, 55)),
+            new OverviewStat(
+                $"{lowBands * 100:F1}%",
+                "Below 25% Toughness",
+                "Share of pull time spent under the second notch, where the bar is worth 5% or nothing at all.",
+                PerformanceTiers.FromThresholds(100 - (lowBands * 100), 98, 95, 90)),
+            new OverviewStat(
+                $"{atMaximum * 100:F1}%",
+                "Bar Full",
+                "Share of pull time spent at maximum Toughness. Time here is safe, but every generator pressed during it restored nothing."),
+        ];
+    }
+
+    private IEnumerable<OverviewStat> BuildOvercapStats(ToughnessTracker tracker)
+    {
+        var stats = new List<OverviewStat>();
+
+        foreach (var generator in ToughnessTracker.Generators)
+        {
+            var casts = tracker.GeneratorCastsFor(generator.SpellId);
+            if (casts == 0) continue;
+
+            var overcapped = tracker.OvercappedCastsFor(generator.SpellId);
+            var share = (double)overcapped / casts;
+
+            stats.Add(new OverviewStat(
+                $"{overcapped}/{casts}",
+                SpellName(generator.SpellId),
+                $"Casts made at full Toughness, each losing the {generator.NominalShare * 100:F0}% it would have restored.",
+                PerformanceTiers.FromThresholds(100 - (share * 100), 85, 70, 50)));
+        }
+
+        if (tracker.ObservedBlocks > 0)
+        {
+            stats.Add(new OverviewStat(
+                $"{tracker.OvercappedBlocks}/{tracker.ObservedBlocks}",
+                "Blocks",
+                $"Blocks landed at full Toughness, each losing the {ToughnessTracker.BlockGeneration * 100:F1}% " +
+                "it would have restored. Only blocks whose event carried a Toughness reading can be judged, " +
+                "so this is a sample of your blocks rather than all of them, and unlike the casts their " +
+                "timing is not yours to choose."));
+        }
+
+        return stats;
+    }
+
+    private IEnumerable<PerCastData> BuildPerPullData() =>
+        Parser.ToughnessBandAnalyzers.ToPullRows(Parser, (analyzer, pull) => new PerCastRow
+        {
+            Performance = PerformanceTiers.FromThresholds(analyzer.TopBandShare * 100, 90, 75, 55),
+            Stats = BuildPullStats(analyzer),
+        });
+
+    private static PerCastStat[] BuildPullStats(ToughnessBandAnalyzer analyzer)
+    {
+        var stats = new List<PerCastStat>
+        {
+            new(
+                $"{analyzer.AverageDamageReduction * 100:F1}%",
+                "Average Reduction",
+                "Time-weighted physical damage reduction from Toughness over this pull, against a 35% ceiling.",
+                PerformanceTiers.FromThresholds(analyzer.AverageDamageReduction / 0.35 * 100, 90, 75, 55)),
+        };
+
+        foreach (var band in ToughnessBands.All)
+        {
+            var share = analyzer.ShareIn(band);
+            if (share <= 0) continue;
+
+            stats.Add(new PerCastStat(
+                $"{share * 100:F1}%",
+                BandLabel(band),
+                $"Time spent between {ToughnessBands.LowerThreshold(band) * 100:F1}% and the next notch, granting {ToughnessBands.DamageReduction(band) * 100:F0}% physical damage reduction."));
+        }
+
+        return [.. stats];
+    }
+
+    private static string BandLabel(ToughnessBand band) => band switch
+    {
+        ToughnessBand.Level4 => "35% Notch",
+        ToughnessBand.Level3 => "25% Notch",
+        ToughnessBand.Level2 => "15% Notch",
+        ToughnessBand.Level1 => "5% Notch",
+        _ => "Empty",
+    };
+
+    private static string SpellName(int spellId) =>
+        SpellRegistry.MaybeGet(spellId)?.Name ?? $"Spell {spellId}";
+}

@@ -12,13 +12,15 @@ public class Abilities : CoreAbilities
         new()
         {
             PrimarySpell = Spells.FluttercallHeal,
-            Category = SpellCategory.Rotational,
+            AdditionalSpells = [Spells.FluttercallHealHot],
+            Category = SpellCategory.Healing,
             Gcd = StandardGcd,
         },
         new()
         {
             PrimarySpell = Spells.FluttercallRestoreLife,
-            Category = SpellCategory.Rotational,
+            AdditionalSpells = [Spells.FluttercallRestoreLifeHot, Spells.FluttercallRestoreLifeFlashHeal],
+            Category = SpellCategory.Healing,
             Gcd = StandardGcd,
         },
         new()
@@ -31,6 +33,7 @@ public class Abilities : CoreAbilities
         new()
         {
             PrimarySpell = Spells.PricklyVine,
+            AdditionalSpells = [Spells.PricklyVineDamage],
             Category = SpellCategory.Rotational,
             Gcd = StandardGcd,
         },
@@ -75,6 +78,13 @@ public class Abilities : CoreAbilities
         new()
         {
             PrimarySpell = Spells.FluttercallProtect,
+            Category = SpellCategory.Defensive,
+            Gcd = null,
+            IsDefensive = true,
+        },
+        new()
+        {
+            PrimarySpell = Spells.FluttercallEmbrace,
             Category = SpellCategory.Defensive,
             Gcd = null,
             IsDefensive = true,

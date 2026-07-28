@@ -1,0 +1,49 @@
+@inherits AnalyzerStatistic<ToughnessTracker>
+
+<StatCard Title="Toughness Generation">
+    <Info>
+        <p>
+            Toughness has no logged generation event, so a source that fires at a full bar leaves no
+            trace beyond the snapshot it carried. Every generating cast and block is checked against
+            the maximum on its own event, and the ones that fired at full are counted here.
+        </p>
+    </Info>
+    <ChildContent>
+        @foreach (var generator in ToughnessTracker.Generators)
+        {
+            var casts = Analyzer.GeneratorCastsFor(generator.SpellId);
+            if (casts > 0)
+            {
+                <StatRow Value="@Ratio(Analyzer.OvercappedCastsFor(generator.SpellId), casts)"
+                         Tooltip="@GeneratorTooltip(generator, casts)">
+                    <SpellLink Spell="generator.SpellId" /> cast at full
+                </StatRow>
+            }
+        }
+        @if (Analyzer.ObservedBlocks > 0)
+        {
+            <StatRow Value="@Ratio(Analyzer.OvercappedBlocks, Analyzer.ObservedBlocks)"
+                     Tooltip="@BlockTooltip">
+                blocks landed at full
+            </StatRow>
+        }
+        <HelperText>
+            Restore shares are nominal: each source's strength scaler over the 7.7 that sets maximum
+            Toughness, before the secondary-stat modifier that also feeds it.
+        </HelperText>
+    </ChildContent>
+</StatCard>
+
+@code {
+    private static string Ratio(int part, int whole) =>
+        whole > 0 ? $"{(double)part / whole * 100:F0}%" : "0%";
+
+    private string GeneratorTooltip(ToughnessGenerator generator, int casts) =>
+        $"{Analyzer.OvercappedCastsFor(generator.SpellId)} of {casts} casts were made with the bar already " +
+        $"full, each losing the {generator.NominalShare * 100:F0}% it would have restored.";
+
+    private string BlockTooltip =>
+        $"{Analyzer.OvercappedBlocks} of {Analyzer.ObservedBlocks} blocks landed at a full bar, each losing " +
+        $"the {ToughnessTracker.BlockGeneration * 100:F1}% it would have restored. Only blocks whose event " +
+        "carried a Toughness reading can be judged, so this is a sample; block timing is not yours to choose anyway.";
+}

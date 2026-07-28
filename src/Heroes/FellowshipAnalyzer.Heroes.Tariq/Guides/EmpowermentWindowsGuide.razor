@@ -1,0 +1,139 @@
+@using FellowshipAnalyzer.Core.Common.Spells
+@using Spells = FellowshipAnalyzer.Core.Common.Spells.Tariq.Spells
+@inherits ReportComponent<TariqCombatLogParser>
+
+@{
+    var windows = AllWindows();
+}
+
+@if (windows.Count > 0)
+{
+    <GuideSection Title="Empowerment Windows">
+        <Explanation>
+            <p>
+                <SpellLink Spell="Spells.ThunderCall" /> and <SpellLink Spell="Spells.RagingTempest" /> are
+                the only time <SpellLink Spell="Spells.ChainLightning" /> can be cast at all, so open one and
+                fill it: Chain Lightning on cooldown, and your spenders inside rather than after. A window
+                that saw neither bought nothing.
+            </p>
+            <p>
+                Thunder Call runs @(ThunderCallWindowAnalyzer.ThunderCallWindowDurationMs / 1000)s and Raging
+                Tempest's buff @(ThunderCallWindowAnalyzer.RagingTempestWindowDurationMs / 1000)s. Fury banked
+                at the open is a reading rather than a mark - Thunder Call generates Fury while it runs, so
+                opening light is not automatically a mistake.
+            </p>
+        </Explanation>
+        <ChildContent>
+            <CastOverview Title="Window Overview" Stats="@BuildOverviewStats(windows)" />
+
+            <CastDetail Title="Windows"
+                        Description="Each card is one Thunder Call or Raging Tempest window and what was spent inside it."
+                        Casts="@BuildWindowRows()" />
+        </ChildContent>
+    </GuideSection>
+}
+
+@code {
+    private List<ThunderCallWindow> AllWindows() =>
+        Parser.ThunderCallWindowAnalyzers.SelectMany(entry => entry.Analyzer.Windows).ToList();
+
+    private IEnumerable<OverviewStat> BuildOverviewStats(List<ThunderCallWindow> windows)
+    {
+        var clipped = windows.Count(window => window.ClippedByPullEnd);
+        var overlapping = windows.Count(window => window.OverlapsOtherWindow);
+        var thunderCall = windows.Count(window => window.Source == ThunderCallWindowSource.ThunderCall);
+        var readings = windows.Where(window => window.FuryAtOpen is not null).ToList();
+        var spenders = windows.Sum(window => window.SpenderCasts);
+        var chainLightning = windows.Sum(window => window.ChainLightningCasts);
+        var empty = windows.Count(window => window.SpenderCasts == 0 && window.ChainLightningCasts == 0);
+
+        return
+        [
+            new OverviewStat(
+                $"{windows.Count}",
+                "Windows",
+                $"{thunderCall} Thunder Call and {windows.Count - thunderCall} Raging Tempest windows. "
+                + (clipped > 0 ? $"{clipped} were still up when the pull ended. " : "None were still up when the pull ended. ")
+                + (overlapping > 0 ? $"{overlapping} ran alongside a window of the other kind." : "None overlapped each other.")),
+            new OverviewStat(
+                $"{empty}",
+                "Empty Windows",
+                $"Windows that saw no spender and no Chain Lightning at all, out of {windows.Count}.",
+                empty == 0 ? QualitativePerformance.Perfect : QualitativePerformance.Fail),
+            readings.Count > 0
+                ? new OverviewStat(
+                    $"{readings.Average(window => window.FuryAtOpen!.Value):0}%",
+                    "Avg Fury at Open",
+                    $"Fury banked as a window opened, averaged over the {readings.Count} windows with a reading. Context, not a verdict - Thunder Call generates Fury while it runs.")
+                : new OverviewStat("-", "Avg Fury at Open", "No cast carried a Fury snapshot before a window opened."),
+            new OverviewStat(
+                $"{(double)spenders / windows.Count:0.0}",
+                "Avg Spenders per Window",
+                $"{spenders} Skull Crusher, Hammer Storm and Culling Strike casts landed inside a window, across {windows.Count} windows."),
+            new OverviewStat(
+                $"{chainLightning}",
+                "Chain Lightning",
+                "Chain Lightning casts inside an empowerment window. Chain Lightning is not castable anywhere else, so every one is window time converted to damage."),
+        ];
+    }
+
+    private IEnumerable<PerCastData> BuildWindowRows() =>
+        Parser.ThunderCallWindowAnalyzers.ToItemRows(Parser, analyzer => analyzer.Windows, (window, pull) => BuildWindowRow(window));
+
+    private PerCastRow BuildWindowRow(ThunderCallWindow window)
+    {
+        var stats = new List<PerCastStat>
+        {
+            new(
+                SourceName(window.Source),
+                "Cooldown",
+                $"The buff that opened this window, up for {window.DurationMs / 1000d:0.0}s of the expected {window.ExpectedDurationMs / 1000}s."),
+            new(
+                window.FuryAtOpen is { } fury ? $"{fury}%" : "-",
+                "Fury at Open",
+                window.FuryAtOpen is { } banked
+                    ? $"Fury held at the last cast before the window opened. {banked}% of the bar was available to spend inside it."
+                    : "No cast carried a Fury snapshot before this window opened."),
+            new(
+                $"{window.SkullCrusherCasts} / {window.HammerStormCasts} / {window.CullingStrikeCasts}",
+                "Skull / Hammer / Culling",
+                $"The {window.SpenderCasts} spender casts inside this window."),
+            new(
+                $"{window.ChainLightningCasts}",
+                "Chain Lightning",
+                "Chain Lightning casts inside this window, the only place it is castable."),
+        };
+
+        if (window.ClippedByPullEnd)
+        {
+            stats.Add(new PerCastStat(
+                "Yes",
+                "Open at Pull End",
+                "The pull ended with the buff still up. A pull ends when the last enemy dies, so this is the pack running out rather than a mistimed press."));
+        }
+
+        if (window.OverlapsOtherWindow)
+        {
+            stats.Add(new PerCastStat(
+                "Yes",
+                "Overlapped",
+                "A window of the other kind was running at the same time."));
+        }
+
+        return new PerCastRow
+        {
+            Performance = WindowTier(window),
+            Stats = [.. stats],
+            Timestamp = window.OpenedAt,
+            Sequence = [.. window.CastsInWindow.Select(cast => new SpellCastEntry(cast.Ability.Id))],
+        };
+    }
+
+    private static string SourceName(ThunderCallWindowSource source) =>
+        source == ThunderCallWindowSource.ThunderCall ? "Thunder Call" : "Raging Tempest";
+
+    private static QualitativePerformance WindowTier(ThunderCallWindow window) =>
+        window.SpenderCasts == 0 && window.ChainLightningCasts == 0
+            ? QualitativePerformance.Fail
+            : QualitativePerformance.Perfect;
+}

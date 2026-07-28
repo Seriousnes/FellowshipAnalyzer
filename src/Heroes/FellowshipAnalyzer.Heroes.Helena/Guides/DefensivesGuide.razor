@@ -1,0 +1,173 @@
+@inherits ReportComponent<HelenaCombatLogParser>
+
+<GuideSection Title="Shields Up and Iron Wall">
+    <Explanation>
+        <p>
+            <SpellLink Spell="Spells.ShieldsUp" /> holds two charges on a shared recharge, so a charge
+            sitting full is recharge that never started. Time at both charges is counted on its own
+            terms below, separately from how the windows themselves went.
+        </p>
+        <p>
+            <SpellLink Spell="Spells.IronWall" /> does not reduce a hit; it freezes Toughness where it
+            is for twelve seconds. What it is worth is therefore decided before you press it, by how
+            much Toughness there was to freeze and whether
+            <SpellLink Spell="Spells.ShieldsUp" /> charges were already spent.
+        </p>
+    </Explanation>
+    <ChildContent>
+        @if (Parser.ShieldsUpAnalyzers.Count > 0)
+        {
+            <CastOverview Title="Shields Up" Stats="@BuildShieldsUpStats()" />
+        }
+        @if (Parser.IronWallAnalyzers.Count > 0)
+        {
+            <CastOverview Title="Iron Wall" Stats="@BuildIronWallStats()" />
+            <CastDetail Title="Iron Wall Uses"
+                        Description="Each Iron Wall, and the state it was pressed in."
+                        Casts="@BuildIronWallUses()" />
+        }
+    </ChildContent>
+</GuideSection>
+
+@code {
+    private IEnumerable<OverviewStat> BuildShieldsUpStats()
+    {
+        var entries = Parser.ShieldsUpAnalyzers.ToList();
+        var pullMs = entries.Sum(entry => (long)(entry.Pull.EndTime - entry.Pull.StartTime));
+        if (pullMs == 0) return [];
+
+        var analyzers = entries.Select(entry => entry.Analyzer).OfType<ShieldsUpAnalyzer>().ToList();
+        var casts = analyzers.Sum(analyzer => analyzer.Casts);
+        var activeMs = analyzers.Sum(analyzer => (long)analyzer.ActiveMs);
+        var cappedMs = analyzers.Sum(analyzer => (long)analyzer.ChargeCappedMs);
+        var covered = analyzers.Sum(analyzer => analyzer.MitigationInWindow);
+        var uptime = activeMs / (double)pullMs * 100;
+        var cappedShare = cappedMs / (double)pullMs * 100;
+
+        var stats = new List<OverviewStat>
+        {
+            new(
+                $"{uptime:F1}%",
+                "Uptime",
+                $"Share of pull time Shields Up was active across {casts} casts.",
+                PerformanceTiers.FromThresholds(uptime, 80, 65, 45)),
+            new(
+                $"{cappedShare:F1}%",
+                "At Full Charges",
+                $"{cappedMs / 1000d:N0}s spent holding both charges, with neither recharging.",
+                PerformanceTiers.FromThresholds(100 - cappedShare, 90, 75, 55)),
+            new(
+                $"{covered:N0}",
+                "Mitigation Covered",
+                "All mitigation and absorbs on hits that landed inside a Shields Up window. At high uptime " +
+                "this approaches the fight's whole mitigation total, because it counts everything at once " +
+                "rather than the share Shields Up is responsible for."),
+        };
+
+        if (Parser.ToughnessTracker is { } tracker)
+        {
+            var overcapped = tracker.OvercappedCastsFor(Spells.ShieldsUp.FSLID);
+            var total = tracker.GeneratorCastsFor(Spells.ShieldsUp.FSLID);
+            if (total > 0)
+            {
+                stats.Add(new OverviewStat(
+                    $"{overcapped}/{total}",
+                    "Cast At Full Toughness",
+                    "Casts made with the Toughness bar already full, losing the 30% the cast would have restored.",
+                    PerformanceTiers.FromThresholds(100 - ((double)overcapped / total * 100), 85, 70, 50)));
+            }
+        }
+
+        return stats;
+    }
+
+    private IEnumerable<OverviewStat> BuildIronWallStats()
+    {
+        var analyzers = Parser.IronWallAnalyzers.Select(entry => entry.Analyzer).OfType<IronWallAnalyzer>().ToList();
+        var uses = analyzers.Sum(analyzer => analyzer.Uses.Count);
+        if (uses == 0) return [];
+
+        var fromHigh = analyzers.Sum(analyzer => analyzer.UsesFromHighToughness);
+        var shieldsUpSpent = analyzers.Sum(analyzer => analyzer.UsesWithShieldsUpSpent);
+        var covered = analyzers.Sum(analyzer => analyzer.MitigationInWindow);
+
+        return
+        [
+            new OverviewStat(
+                $"{uses}",
+                "Uses",
+                "Iron Wall windows across every pull."),
+            new OverviewStat(
+                $"{fromHigh}/{uses}",
+                "Pressed Above Half",
+                "Uses made at or above 50% Toughness, where the freeze holds a band worth holding.",
+                PerformanceTiers.FromThresholds((double)fromHigh / uses * 100, 90, 75, 50)),
+            new OverviewStat(
+                $"{shieldsUpSpent}/{uses}",
+                "With Shields Up Spent",
+                "Uses made with no Shields Up charge left, which is the window Iron Wall exists to buy. " +
+                "Charges come from the cooldown model rather than the log, so this follows the spellbook's " +
+                "cooldowns."),
+            new OverviewStat(
+                $"{covered:N0}",
+                "Mitigation Covered",
+                "All mitigation and absorbs on hits that landed inside an Iron Wall window, from every " +
+                "source at once rather than Iron Wall's own share."),
+        ];
+    }
+
+    private IEnumerable<PerCastData> BuildIronWallUses() =>
+        Parser.IronWallAnalyzers.ToItemRows(
+            Parser,
+            analyzer => analyzer is IronWallAnalyzer ironWall ? ironWall.Uses : [],
+            (use, pull) => new PerCastRow
+            {
+                Performance = UsePerformance(use),
+                Timestamp = use.Window.Start,
+                Stats = BuildUseStats(use),
+            });
+
+    private static QualitativePerformance UsePerformance(IronWallUse use) => use switch
+    {
+        { ToughnessShare: null } => QualitativePerformance.Ok,
+        { OpenedAboveHalfToughness: true, ShieldsUpCharges: 0 } => QualitativePerformance.Perfect,
+        { OpenedAboveHalfToughness: true } => QualitativePerformance.Good,
+        _ => QualitativePerformance.Fail,
+    };
+
+    private static PerCastStat[] BuildUseStats(IronWallUse use)
+    {
+        var stats = new List<PerCastStat>
+        {
+            new(
+                use.ToughnessShare is { } share ? $"{share * 100:F0}%" : "n/a",
+                "Toughness Frozen",
+                use.ToughnessShare is null
+                    ? "This cast carried no Toughness snapshot."
+                    : $"Toughness when it was pressed, holding the {(use.Band is { } band ? ToughnessBands.DamageReduction(band) * 100 : 0):F0}% notch in place for the duration.",
+                use.ToughnessShare is null ? null
+                    : use.OpenedAboveHalfToughness ? QualitativePerformance.Perfect : QualitativePerformance.Fail),
+            new(
+                $"{use.Window.DurationMs / 1000d:F1}s",
+                "Duration",
+                use.Window.Truncated ? "The pull ended before the window did." : "How long the freeze held."),
+            new(
+                $"{use.Window.Mitigation:N0}",
+                "Mitigation Covered",
+                $"All mitigation and absorbs across the {use.Window.Hits} hits taken inside the window."),
+        };
+
+        if (use.ShieldsUpCharges is { } charges)
+        {
+            stats.Add(new PerCastStat(
+                $"{charges}",
+                "Shields Up Charges",
+                charges == 0
+                    ? "No Shields Up charge was left, which is the gap Iron Wall is meant to cover."
+                    : "Shields Up charges still available when Iron Wall went out.",
+                charges == 0 ? QualitativePerformance.Perfect : QualitativePerformance.Ok));
+        }
+
+        return [.. stats];
+    }
+}

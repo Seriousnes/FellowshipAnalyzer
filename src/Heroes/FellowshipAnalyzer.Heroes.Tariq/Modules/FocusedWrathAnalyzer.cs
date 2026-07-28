@@ -7,29 +7,72 @@ namespace FellowshipAnalyzer.Heroes.Tariq.Modules;
 [ForPull(PullKind.Single | PullKind.Multi)]
 public sealed partial class FocusedWrathAnalyzer : Analyzer
 {
+    /// <summary>Buff lifetime from <c>Focused Wrath.Duration</c>.</summary>
     public const int BuffDurationMs = 15_000;
 
-    private readonly List<TrackedCast> _tracked = [];
+    /// <summary>Stack ceiling from <c>Focused Wrath.MaxStacksLimit</c>.</summary>
+    public const int MaxStackLimit = 3;
 
-    private List<FocusedWrathCast> Evaluated => field ??= Build();
+    /// <summary>Stacks a Focused Wrath cast grants, from <c>Focused Wrath.NumOfStacks</c>.</summary>
+    public const int StacksPerCast = 2;
 
-    public IReadOnlyList<FocusedWrathCast> Casts => Evaluated;
+    /// <summary>How close to a buff application a Focused Wrath cast must sit for the application to be attributed to it rather than to a Leap Smash proc.</summary>
+    public const int CastAttributionMs = 400;
 
-    public int CastCount => Evaluated.Count;
+    /// <summary>Grace after a buff removal within which a spender cast still counts as the one that consumed it; the removal and the consuming cast share a timestamp in practice.</summary>
+    public const int ConsumptionGraceMs = 500;
 
-    public int UnpairedCasts => Evaluated.Count(cast => cast.LatencyToSpenderMs is null);
+    private static readonly int SkullCrusherId = Spells.SkullCrusher.FSLID;
+    private static readonly int HammerStormId = Spells.HammerStorm.FSLID;
+    private static readonly int CullingStrikeId = Spells.CullingStrike.FSLID;
 
-    public double? AverageLatencyMs
-    {
-        get
-        {
-            var paired = Evaluated.Where(cast => cast.LatencyToSpenderMs is not null).ToList();
-            return paired.Count == 0 ? null : paired.Average(cast => cast.LatencyToSpenderMs!.Value);
-        }
-    }
+    private readonly List<OpenWindow> _windows = [];
+    private readonly List<int> _casts = [];
+    private readonly List<SpenderCast> _spenders = [];
+
+    private OpenWindow? _open;
+
+    private List<FocusedWrathWindow> Evaluated => field ??= Build();
+
+    public IReadOnlyList<FocusedWrathWindow> Windows => Evaluated;
+
+    public int WindowCount => Evaluated.Count;
+
+    public int ConsumedWindows => Evaluated.Count(window => window.Consumed);
+
+    public int ExpiredWindows => Evaluated.Count(window => !window.Consumed && !window.ClippedByPullEnd);
+
+    public int WindowsFromCast => Evaluated.Count(window => window.FromCast);
+
+    public int WindowsFromProc => Evaluated.Count(window => !window.FromCast);
+
+    public IReadOnlyList<int> CastTimestamps => _casts;
+
+    public int CastCount => _casts.Count;
+
+    /// <summary>Focused Wrath presses whose own buff reached a spender. The cast is the part of the mechanic that is a cooldown you can mistime, so it is counted apart from the Leap Smash procs.</summary>
+    public int CastsWithConsumedBuff => Evaluated.Count(window => window.FromCast && window.Consumed);
+
+    /// <summary>Focused Wrath presses whose own buff fell off with no spender to take the discount.</summary>
+    public int CastsWithoutSpender =>
+        Evaluated.Count(window => window.FromCast && !window.Consumed && !window.ClippedByPullEnd);
+
+    public int MaxStacksReached => Evaluated.Count == 0 ? 0 : Evaluated.Max(window => window.MaxStacks);
+
+    public int SkullCrusherConsumptions => CountConsumers(SkullCrusherId);
+
+    public int HammerStormConsumptions => CountConsumers(HammerStormId);
+
+    public int CullingStrikeConsumptions => CountConsumers(CullingStrikeId);
 
     [On<CastEvent>(By = Actor.Player, Spell = nameof(Spells.FocusedWrath))]
-    private void OnFocusedWrathCast(CastEvent @event) => Track(@event, isFocusedWrath: true);
+    private void OnFocusedWrathCast(CastEvent @event)
+    {
+        if (@event.Fake)
+            return;
+
+        _casts.Add(@event.Timestamp);
+    }
 
     [On<CastEvent>(By = Actor.Player, Spells = new[]
     {
@@ -37,48 +80,125 @@ public sealed partial class FocusedWrathAnalyzer : Analyzer
         nameof(Spells.HammerStorm),
         nameof(Spells.CullingStrike),
     })]
-    private void OnSpenderCast(CastEvent @event) => Track(@event, isFocusedWrath: false);
-
-    private void Track(CastEvent @event, bool isFocusedWrath)
+    private void OnSpenderCast(CastEvent @event)
     {
         if (@event.Fake)
             return;
 
-        _tracked.Add(new TrackedCast(@event.Timestamp, isFocusedWrath));
+        _spenders.Add(new SpenderCast(@event.Timestamp, @event.Ability.Id));
     }
 
-    private List<FocusedWrathCast> Build()
+    [On<ApplyBuffEvent>(To = Actor.Player, Spell = nameof(Spells.FocusedWrathSelfBuff))]
+    private void OnBuffApplied(ApplyBuffEvent @event)
     {
-        var built = new List<FocusedWrathCast>();
-        for (var i = 0; i < _tracked.Count; i++)
+        if (_open is not null)
+            Close(@event.Timestamp);
+
+        _open = new OpenWindow(@event.Timestamp);
+        _windows.Add(_open);
+    }
+
+    [On<ApplyBuffStackEvent>(To = Actor.Player, Spell = nameof(Spells.FocusedWrathSelfBuff))]
+    private void OnStackGained(ApplyBuffStackEvent @event)
+    {
+        if (_open is null)
         {
-            if (!_tracked[i].IsFocusedWrath)
-                continue;
+            _open = new OpenWindow(@event.Timestamp);
+            _windows.Add(_open);
+        }
 
-            var timestamp = _tracked[i].Timestamp;
-            int? latency = null;
-            var spenders = 0;
+        _open.MaxStacks = Math.Max(_open.MaxStacks, @event.Stack);
+    }
 
-            for (var j = i + 1; j < _tracked.Count; j++)
+    [On<RemoveBuffEvent>(To = Actor.Player, Spell = nameof(Spells.FocusedWrathSelfBuff))]
+    private void OnBuffRemoved(RemoveBuffEvent @event) => Close(@event.Timestamp);
+
+    private void Close(int timestamp)
+    {
+        if (_open is null)
+            return;
+
+        _open.ClosedAt = timestamp;
+        _open = null;
+    }
+
+    private int CountConsumers(int spellId)
+    {
+        var count = 0;
+        foreach (var window in Evaluated)
+        {
+            foreach (var consumer in window.SpenderSpellIds)
             {
-                var candidate = _tracked[j];
-                if (candidate.Timestamp - timestamp > BuffDurationMs)
+                if (consumer == spellId)
+                    count++;
+            }
+        }
+
+        return count;
+    }
+
+    private List<FocusedWrathWindow> Build()
+    {
+        var built = new List<FocusedWrathWindow>(_windows.Count);
+
+        foreach (var window in _windows)
+        {
+            var closedAt = window.ClosedAt ?? Pull.EndTime;
+            var spenders = new List<int>();
+            foreach (var spender in _spenders)
+            {
+                if (spender.Timestamp < window.OpenedAt)
+                    continue;
+                if (spender.Timestamp > closedAt + ConsumptionGraceMs)
                     break;
 
-                if (candidate.IsFocusedWrath)
-                    continue;
-
-                spenders++;
-                latency ??= candidate.Timestamp - timestamp;
+                spenders.Add(spender.SpellId);
             }
 
-            built.Add(new FocusedWrathCast(timestamp, latency, spenders));
+            built.Add(new FocusedWrathWindow
+            {
+                OpenedAt = window.OpenedAt,
+                ClosedAt = closedAt,
+                ClippedByPullEnd = window.ClosedAt is null,
+                FromCast = _casts.Any(cast => cast <= window.OpenedAt && window.OpenedAt - cast <= CastAttributionMs),
+                MaxStacks = window.MaxStacks,
+                SpenderSpellIds = spenders,
+            });
         }
 
         return built;
     }
 
-    private readonly record struct TrackedCast(int Timestamp, bool IsFocusedWrath);
+    private sealed class OpenWindow(int openedAt)
+    {
+        public int OpenedAt { get; } = openedAt;
+        public int? ClosedAt { get; set; }
+        public int MaxStacks { get; set; } = 1;
+    }
+
+    private readonly record struct SpenderCast(int Timestamp, int SpellId);
 }
 
-public readonly record struct FocusedWrathCast(int Timestamp, int? LatencyToSpenderMs, int SpendersInBuff);
+public sealed record FocusedWrathWindow
+{
+    public required int OpenedAt { get; init; }
+
+    public required int ClosedAt { get; init; }
+
+    public int DurationMs => ClosedAt - OpenedAt;
+
+    public required bool ClippedByPullEnd { get; init; }
+
+    /// <summary>The window opened on a Focused Wrath cast rather than on a Leap Smash proc (<c>Leap Smash.Talent.ProcCostReductionBuff</c>).</summary>
+    public required bool FromCast { get; init; }
+
+    public required int MaxStacks { get; init; }
+
+    public IReadOnlyList<int> SpenderSpellIds { get; init; } = [];
+
+    public int SpenderCasts => SpenderSpellIds.Count;
+
+    public bool Consumed => SpenderSpellIds.Count > 0;
+
+    public int? ConsumedBy => SpenderSpellIds.Count > 0 ? SpenderSpellIds[0] : null;
+}
