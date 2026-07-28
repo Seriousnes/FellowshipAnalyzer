@@ -1,0 +1,94 @@
+@inherits ReportComponent<SylvieCombatLogParser>
+
+<GuideSection Title="Heart Bloom">
+    <Explanation>
+        <p>
+            <SpellLink Spell="Spells.HeartBloom" /> banks a share of the healing that came before it and
+            pays the bank back out every two seconds for sixteen, so a cast is worth whatever the
+            flutterflies fed it while it was on cooldown. Each cast below reports the flutterfly healing
+            over its own accumulation window - overheal included, because the bank does not care whether
+            the healing landed - and what the cast then paid out.
+        </p>
+        <p>
+            The ratio between the two is reported as observed. The log carries no reading of the bank
+            itself, so the accumulation scalar in the game data cannot be checked against it here, and
+            claiming a number the log does not carry would be worse than saying so.
+        </p>
+        <p>
+            Bluey's placement is the setup that moves the ramp: parked on an ally it doubles that ally's
+            flutterfly healing, and every point of that feeds the bank.
+        </p>
+    </Explanation>
+    <ChildContent>
+        <CastOverview Title="Overview" Stats="@BuildOverviewStats()" />
+        <CastDetail Title="Every Heart Bloom"
+                    Description="What fed each cast, and what it paid back."
+                    Casts="@BuildPerCastData()" />
+    </ChildContent>
+</GuideSection>
+
+@code {
+    private IEnumerable<OverviewStat> BuildOverviewStats()
+    {
+        var analyzers = Parser.HeartBloomRampAnalyzers.Select(entry => entry.Analyzer).ToList();
+        var casts = analyzers.Sum(analyzer => analyzer.CastCount);
+        if (casts == 0) return [];
+
+        var withBlueyOnAlly = analyzers.Sum(analyzer => analyzer.CastsWithBlueyOnAlly);
+        var fullPayouts = analyzers.Sum(analyzer => analyzer.FullyPaidOutCasts);
+        var fed = analyzers.Sum(analyzer => analyzer.TotalFed);
+        var paid = analyzers.Sum(analyzer => analyzer.TotalPaidOut);
+
+        return
+        [
+            new OverviewStat(
+                $"{casts}",
+                "Heart Blooms",
+                $"Casts across every pull, paying out {analyzers.Sum(analyzer => analyzer.TotalPayouts)} times against {SylvieKit.HeartBloomPayouts} per cast."),
+            new OverviewStat(
+                $"{fullPayouts}/{casts}",
+                "Ran Their Full Sixteen",
+                "Casts that were seen making every payout the duration allows. A pull that ended early cuts the rest off.",
+                PerformanceTiers.FromThresholds((double)fullPayouts / casts * 100, 95, 85, 70)),
+            new OverviewStat(
+                $"{withBlueyOnAlly}/{casts}",
+                "Bluey On An Ally",
+                "Casts made with Bluey parked on somebody other than Sylvie, doubling that ally's flutterfly healing into the bank.",
+                PerformanceTiers.FromThresholds((double)withBlueyOnAlly / casts * 100, 90, 70, 40)),
+            new OverviewStat(
+                $"{fed:N0}",
+                "Flutterfly Healing Fed",
+                $"Flutterfly healing, overheal included, over the accumulation windows; the casts paid out {paid:N0}."),
+        ];
+    }
+
+    private IEnumerable<PerCastData> BuildPerCastData() =>
+        Parser.HeartBloomRampAnalyzers.ToItemRows(
+            Parser,
+            analyzer => analyzer.Casts,
+            (cast, pull) => new PerCastRow
+            {
+                Performance = cast.PaidOutInFull ? QualitativePerformance.Good : QualitativePerformance.Ok,
+                Timestamp = cast.Timestamp,
+                Stats =
+                [
+                    new PerCastStat(
+                        $"{cast.FlutterflyFed:N0}",
+                        "Fed In",
+                        $"Flutterfly healing over the {cast.AccumulationMs / 1000.0:F0}s since the previous cast, {cast.FlutterflyOverheal:N0} of it overheal."),
+                    new PerCastStat(
+                        $"{cast.TotalHealing:N0}",
+                        "Paid Out",
+                        $"{cast.Effective:N0} landed and {cast.Overheal:N0} fell on full bars."),
+                    new PerCastStat(
+                        $"{cast.Payouts}/{SylvieKit.HeartBloomPayouts}",
+                        "Payouts",
+                        "Distinct two-second payout intervals seen for this cast.",
+                        cast.PaidOutInFull ? QualitativePerformance.Good : QualitativePerformance.Ok),
+                    new PerCastStat(
+                        cast.BlueyOnAlly ? "On an ally" : cast.BlueyAssigned ? "On Sylvie" : "Unplaced",
+                        "Bluey",
+                        "Where Bluey was when the cast went out."),
+                ],
+            });
+}

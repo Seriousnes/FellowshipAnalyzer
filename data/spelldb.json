@@ -2827,12 +2827,6 @@
     }
   },
   "sylvie": {
-    "Buff": {
-      "kind": "effect",
-      "id": 2731,
-      "name": "Natural Selection",
-      "icon": "T_Nhance_RPG_Nature_02.jpg"
-    },
     "CureAilment": {
       "kind": "ability",
       "id": 1054,
@@ -2897,6 +2891,18 @@
       "id": 2196,
       "name": "",
       "icon": ""
+    },
+    "FluttercallEmbrace": {
+      "kind": "ability",
+      "id": 1080,
+      "name": "Fluttercall: Embrace",
+      "icon": "T_Mosse_BlueButterfly.jpg"
+    },
+    "FluttercallEmbraceBuff": {
+      "kind": "effect",
+      "id": 1486,
+      "name": "Fluttercall: Embrace",
+      "icon": "T_Mosse_BlueButterfly.jpg"
     },
     "FluttercallHeal": {
       "kind": "ability",
@@ -2966,6 +2972,12 @@
       "name": "Fluttercall: Protect",
       "icon": "T_Mosse_BlueButterfly.jpg",
       "abilityCategory": "Utility"
+    },
+    "FluttercallProtectBuff": {
+      "kind": "effect",
+      "id": 1485,
+      "name": "Fluttercall: Protect",
+      "icon": "T_Mosse_BlueButterfly.jpg"
     },
     "FluttercallRestoreLife": {
       "kind": "ability",
@@ -3070,6 +3082,12 @@
       "abilityCategory": "Major",
       "cooldown": 60
     },
+    "IronleafWardBuff": {
+      "kind": "effect",
+      "id": 1484,
+      "name": "Ironleaf Ward",
+      "icon": "T_Mosse_DR.jpg"
+    },
     "LifePetal": {
       "kind": "ability",
       "id": 1072,
@@ -3090,6 +3108,18 @@
       "id": 1471,
       "name": "",
       "icon": ""
+    },
+    "NaturalProtectorAbsorb": {
+      "kind": "effect",
+      "id": 2240,
+      "name": "Natural Protector",
+      "icon": "Druid17.jpg"
+    },
+    "NaturalSelectionBuff": {
+      "kind": "effect",
+      "id": 2731,
+      "name": "Natural Selection",
+      "icon": "T_Nhance_RPG_Nature_02.jpg"
     },
     "Nettlebolt": {
       "kind": "ability",
@@ -3121,6 +3151,12 @@
       "cooldown": 9,
       "range": 40,
       "charges": 2
+    },
+    "PricklyVineDamage": {
+      "kind": "effect",
+      "id": 1440,
+      "name": "Prickly Vine",
+      "icon": "T_Mosse_Vine.jpg"
     },
     "PricklyVineManaCost": {
       "kind": "effect",

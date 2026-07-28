@@ -31,6 +31,7 @@ public class Abilities : CoreAbilities
         new()
         {
             PrimarySpell = Spells.PricklyVine,
+            AdditionalSpells = [Spells.PricklyVineDamage],
             Category = SpellCategory.Rotational,
             Gcd = StandardGcd,
         },
@@ -75,6 +76,13 @@ public class Abilities : CoreAbilities
         new()
         {
             PrimarySpell = Spells.FluttercallProtect,
+            Category = SpellCategory.Defensive,
+            Gcd = null,
+            IsDefensive = true,
+        },
+        new()
+        {
+            PrimarySpell = Spells.FluttercallEmbrace,
             Category = SpellCategory.Defensive,
             Gcd = null,
             IsDefensive = true,

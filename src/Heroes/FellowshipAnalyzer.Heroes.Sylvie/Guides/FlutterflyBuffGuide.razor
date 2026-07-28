@@ -1,0 +1,86 @@
+@inherits ReportComponent<SylvieCombatLogParser>
+
+<GuideSection Title="Flutterfly Multipliers">
+    <Explanation>
+        <p>
+            Two things scale the butterflies. Every live <SpellLink Spell="Spells.PricklyVine" /> adds
+            three percent to their healing, and <SpellLink Spell="Spells.SafeHaven" /> adds forty
+            percent to everything an ally standing in it receives. Both are measured by time rather
+            than by cast, because a vine cast and forgotten is worth as much as one placed with care
+            for exactly as long as it lives.
+        </p>
+        <p>
+            A vine is not an entity the log tracks: it emits no spawn and no despawn, and its damage
+            arrives under Sylvie's own source id. The live count here is modelled from the casts
+            against the twenty-seven second lifetime in the game data, so a vine killed early or
+            dropped out of range still counts.
+        </p>
+    </Explanation>
+    <ChildContent>
+        <CastOverview Title="Overview" Stats="@BuildOverviewStats()" />
+        <CastDetail Title="Multipliers By Pull"
+                    Description="Vines alive and Safe Haven coverage through each pull."
+                    Casts="@BuildPerPullData()" />
+    </ChildContent>
+</GuideSection>
+
+@code {
+    private IEnumerable<OverviewStat> BuildOverviewStats()
+    {
+        var analyzers = Parser.FlutterflyHealingBuffAnalyzers.Select(entry => entry.Analyzer).ToList();
+        var pullMs = analyzers.Sum(analyzer => (long)analyzer.PullDurationMs);
+        if (pullMs == 0) return [];
+
+        var weightedVines = analyzers.Sum(analyzer => analyzer.AverageLiveVines * analyzer.PullDurationMs) / pullMs;
+        var noVineMs = analyzers.Sum(analyzer => (long)analyzer.NoVineMs);
+        var safeHavenMs = analyzers.Sum(analyzer => (long)analyzer.SafeHavenCoveredMs);
+        var peak = analyzers.Count > 0 ? analyzers.Max(analyzer => analyzer.PeakLiveVines) : 0;
+
+        return
+        [
+            new OverviewStat(
+                $"{weightedVines:F2}",
+                "Vines Alive",
+                $"Time-weighted mean of the modelled live vine count, peaking at {peak}. Each one adds {SylvieKit.FlutterflyHealPerVine * 100:F0}% to flutterfly healing."),
+            new OverviewStat(
+                $"{(1 + (weightedVines * SylvieKit.FlutterflyHealPerVine)) * 100 - 100:F1}%",
+                "Vine Bonus",
+                "The mean flutterfly healing increase the vines were worth across every pull."),
+            new OverviewStat(
+                $"{noVineMs / (double)pullMs * 100:F1}%",
+                "No Vine Out",
+                $"{noVineMs / 1000:N0}s with no vine modelled alive at all.",
+                PerformanceTiers.FromThresholds(100 - (noVineMs / (double)pullMs * 100), 95, 85, 70)),
+            new OverviewStat(
+                $"{safeHavenMs / (double)pullMs * 100:F1}%",
+                "Safe Haven Up",
+                $"{safeHavenMs / 1000:N0}s with at least one ally inside a Safe Haven, taking {(SylvieKit.SafeHavenHealingTakenMultiplier - 1) * 100:F0}% more healing."),
+        ];
+    }
+
+    private IEnumerable<PerCastData> BuildPerPullData() =>
+        Parser.FlutterflyHealingBuffAnalyzers.ToPullRows(Parser, (analyzer, pull) => new PerCastRow
+        {
+            Performance = PerformanceTiers.FromThresholds(100 - (analyzer.NoVineShare * 100), 95, 85, 70),
+            Stats =
+            [
+                new PerCastStat(
+                    $"{analyzer.AverageLiveVines:F2}",
+                    "Vines Alive",
+                    $"{analyzer.VineCasts} vines cast this pull, peaking at {analyzer.PeakLiveVines} alive."),
+                new PerCastStat(
+                    $"{(analyzer.AverageVineMultiplier - 1) * 100:F1}%",
+                    "Vine Bonus",
+                    "The mean flutterfly healing increase the vines were worth this pull."),
+                new PerCastStat(
+                    $"{analyzer.NoVineShare * 100:F0}%",
+                    "No Vine Out",
+                    $"{analyzer.NoVineMs / 1000:N0}s of this pull with no vine modelled alive.",
+                    PerformanceTiers.FromThresholds(100 - (analyzer.NoVineShare * 100), 95, 85, 70)),
+                new PerCastStat(
+                    $"{analyzer.SafeHavenUptime * 100:F0}%",
+                    "Safe Haven Up",
+                    $"{analyzer.SafeHavenCasts} cast, covering {analyzer.SafeHavenAllies} allies for {analyzer.SafeHavenAllyMs / 1000:N0} ally-seconds."),
+            ],
+        });
+}

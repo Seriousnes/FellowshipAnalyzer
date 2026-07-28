@@ -1,0 +1,81 @@
+@inherits ReportComponent<SylvieCombatLogParser>
+
+<GuideSection Title="Natural Protector">
+    <Explanation>
+        <p>
+            Natural Protector lays an absorb shield on the ally it protects, and the log reports how
+            much absorb was still on that shield when it came off. That makes the waste a reading
+            rather than an inference: a shield consumed to nothing carries none, and one that expired
+            untouched carries all of it.
+        </p>
+        <p>
+            <SpellLink Spell="Spells.IronleafWard" /> is not measured here. It reduces damage rather
+            than absorbing it, and its removals carry no absorb at all, so there is nothing on it to
+            waste.
+        </p>
+    </Explanation>
+    <ChildContent>
+        <CastOverview Title="Overview" Stats="@BuildOverviewStats()" />
+        <CastDetail Title="Shields By Pull"
+                    Description="What each pull's shields consumed, and what expired on them."
+                    Casts="@BuildPerPullData()" />
+    </ChildContent>
+</GuideSection>
+
+@code {
+    private IEnumerable<OverviewStat> BuildOverviewStats()
+    {
+        var analyzers = Parser.AbsorbWasteAnalyzers.Select(entry => entry.Analyzer).ToList();
+        var laid = analyzers.Sum(analyzer => analyzer.ShieldsLaid);
+        if (laid == 0) return [];
+
+        var used = analyzers.Sum(analyzer => analyzer.AbsorbUsed);
+        var wasted = analyzers.Sum(analyzer => analyzer.AbsorbWasted);
+        var offered = used + wasted;
+        var expired = analyzers.Sum(analyzer => analyzer.ShieldsExpiredUnspent);
+        var efficiency = offered > 0 ? used / (double)offered * 100 : 0;
+
+        return
+        [
+            new OverviewStat(
+                $"{laid}",
+                "Shields Laid",
+                "Shield applications across every pull, counting a reapplication onto a live shield as a fresh one."),
+            new OverviewStat(
+                $"{efficiency:F1}%",
+                "Absorb Consumed",
+                $"{used:N0} of the {offered:N0} the shields offered was spent before they came off.",
+                PerformanceTiers.FromThresholds(efficiency, 90, 75, 55)),
+            new OverviewStat(
+                $"{wasted:N0}",
+                "Absorb Expired",
+                $"Absorb still on a shield when it came off, across {expired} shields."),
+            new OverviewStat(
+                $"{expired}/{laid}",
+                "Expired Unspent",
+                "Shields that came off still holding absorb. A shield on somebody who was never hit is not automatically a mistake, but it is what this counts."),
+        ];
+    }
+
+    private IEnumerable<PerCastData> BuildPerPullData() =>
+        Parser.AbsorbWasteAnalyzers.ToPullRows(Parser, (analyzer, pull) => new PerCastRow
+        {
+            Performance = PerformanceTiers.FromThresholds(analyzer.AbsorbEfficiency * 100, 90, 75, 55),
+            Stats =
+            [
+                new PerCastStat(
+                    $"{analyzer.ShieldsLaid}",
+                    "Shields Laid",
+                    "Shield applications this pull."),
+                new PerCastStat(
+                    $"{analyzer.AbsorbEfficiency * 100:F0}%",
+                    "Absorb Consumed",
+                    $"{analyzer.AbsorbUsed:N0} spent against {analyzer.AbsorbWasted:N0} left to expire.",
+                    PerformanceTiers.FromThresholds(analyzer.AbsorbEfficiency * 100, 90, 75, 55)),
+                new PerCastStat(
+                    $"{analyzer.ShieldsExpiredUnspent}",
+                    "Expired Unspent",
+                    "Shields that came off still holding absorb."),
+            ],
+        });
+}
