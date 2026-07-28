@@ -1,4 +1,5 @@
 using FellowshipAnalyzer.Core.Analysis;
+using FellowshipAnalyzer.Core.Common.Items;
 using FellowshipAnalyzer.Core.Common.Spells.Ardeos;
 using FellowshipAnalyzer.Core.Events;
 
@@ -13,8 +14,6 @@ public sealed partial class EngulfingFlamesEconomyAnalyzer : Analyzer
     public const int ReadyLeadMs = 6000;
 
     public const int DevouringFlameBonusPerInstance = 6;
-
-    public const int DevouringFlameBracersItemId = 5225;
 
     private const int FallbackRechargeMs = 20_000;
 
@@ -59,7 +58,7 @@ public sealed partial class EngulfingFlamesEconomyAnalyzer : Analyzer
 
     private DevouringFlameMetrics Devouring => field ??= ComputeDevouringFlame();
 
-    public bool DevouringFlameEquipped => Combatants.Selected.HasGear(DevouringFlameBracersItemId);
+    public bool DevouringFlameEquipped => Combatants.Selected.HasItem(Items.DraconicBracersOfTheDevouringFlame.Id);
 
     public double DevouringFlameAnyUptime => Devouring.AnyUptime;
 

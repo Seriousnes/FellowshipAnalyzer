@@ -9,6 +9,5 @@ namespace FellowshipAnalyzer.Core.Analysis;
 public sealed class HasChronoshiftGear : IModuleActivePredicate
 {
     /// <summary><c>true</c> when the selected combatant has any weapon that grants Chronoshift equipped.</summary>
-    public static bool IsActive(ParseContext context) =>
-        Items.ChronoshiftGrantingItemIds.Any(context.SelectedCombatant.HasGear);
+    public static bool IsActive(ParseContext context) => new Item[] { Items.AshasChronoshiftBow, Items.AshasChronoshiftSpire_Ardeos, Items.AshasChronoshiftSpire_Rime, }.Any(item => context.SelectedCombatant.HasItem(item.Id));
 }
