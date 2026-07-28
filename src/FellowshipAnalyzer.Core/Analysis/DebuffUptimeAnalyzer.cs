@@ -38,6 +38,14 @@ public abstract class DebuffUptimeAnalyzer : Analyzer
     public IReadOnlyList<AuraWindow> Windows => Result.Windows;
 
     /// <summary>
+    /// The target every measurement above is taken against - the one carrying the most covered time -
+    /// or <c>null</c> when the debuff never landed. A derived analyzer that tracks something else per
+    /// target (stack counts, damage) reads this to scope its own state to the same target the uptime
+    /// is measured on.
+    /// </summary>
+    public (int TargetId, int TargetInstance)? PrimaryTarget => Result.PrimaryTarget;
+
+    /// <summary>
     /// Opens a window on <paramref name="target"/> unless one is already open, and records the event
     /// as an observation of that target. Call from apply and refresh handlers.
     /// </summary>
@@ -107,7 +115,7 @@ public abstract class DebuffUptimeAnalyzer : Analyzer
             .ThenBy(candidate => candidate.TargetInstance)
             .FirstOrDefault();
 
-        if (primary is null) return new Computed(0d, 0, 0, []);
+        if (primary is null) return new Computed(0d, 0, 0, [], null);
 
         var gapCount = 0;
         var totalGapMs = 0;
@@ -122,10 +130,20 @@ public abstract class DebuffUptimeAnalyzer : Analyzer
 
         var duration = Pull.EndTime - Pull.StartTime;
         var uptime = duration > 0 ? Math.Min(1d, primary.Covered / (double)duration) : 0d;
-        return new Computed(uptime, gapCount, totalGapMs, primary.Windows);
+        return new Computed(
+            uptime,
+            gapCount,
+            totalGapMs,
+            primary.Windows,
+            (primary.TargetId, primary.TargetInstance));
     }
 
     private sealed record Candidate(int TargetId, int TargetInstance, List<AuraWindow> Windows, int Covered);
 
-    private record Computed(double Uptime, int GapCount, int TotalGapMs, IReadOnlyList<AuraWindow> Windows);
+    private record Computed(
+        double Uptime,
+        int GapCount,
+        int TotalGapMs,
+        IReadOnlyList<AuraWindow> Windows,
+        (int TargetId, int TargetInstance)? PrimaryTarget);
 }
