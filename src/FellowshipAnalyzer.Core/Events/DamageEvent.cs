@@ -27,6 +27,12 @@ public class DamageEvent : Event, IAbilityEvent, IHasSourceWithInstanceEvent, IH
     public virtual HitType HitType { get; set; }
     /// <summary>The portion of the hit prevented by damage reduction, separate from absorbs.</summary>
     public virtual long Mitigated { get; set; }
+    /// <summary>
+    /// The portion of the hit prevented by a block. Only ever set on a hit the player took, and only
+    /// alongside <see cref="Events.HitType.Block"/>; a block that prevents the hit outright leaves
+    /// <see cref="Amount"/> at zero.
+    /// </summary>
+    public virtual long Blocked { get; set; }
     /// <summary>The hit's damage before mitigation was applied.</summary>
     public virtual long UnmitigatedAmount { get; set; }
     /// <summary>Indicates whether the hit was a critical hit.</summary>

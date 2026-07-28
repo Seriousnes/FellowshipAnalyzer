@@ -7,6 +7,11 @@ public enum HitType
     Normal = 1,
     /// <summary>A critical hit.</summary>
     Crit = 2,
+    /// <summary>
+    /// A hit the player blocked. Only ever seen on damage the player took, always alongside a
+    /// non-zero <see cref="DamageEvent.Blocked"/>, and frequently reducing the hit to nothing.
+    /// </summary>
+    Block = 4,
     /// <summary>Guarantee crit dealing additional damage based on crit chance.</summary>
     GreviousCrit = 22
 }
