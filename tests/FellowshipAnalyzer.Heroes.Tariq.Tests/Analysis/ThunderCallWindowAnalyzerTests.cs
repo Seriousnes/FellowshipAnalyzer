@@ -43,7 +43,8 @@ public sealed class ThunderCallWindowAnalyzerTests
         window.Source.ShouldBe(ThunderCallWindowSource.ThunderCall);
         window.OpenedAt.ShouldBe(1_100);
         window.ClosedAt.ShouldBe(22_100);
-        window.DurationMs.ShouldBe(ThunderCallWindowAnalyzer.ExpectedWindowDurationMs);
+        window.DurationMs.ShouldBe(ThunderCallWindowAnalyzer.ThunderCallWindowDurationMs);
+        window.ExpectedDurationMs.ShouldBe(ThunderCallWindowAnalyzer.ThunderCallWindowDurationMs);
         window.ClippedByPullEnd.ShouldBeFalse();
         window.OverlapsOtherWindow.ShouldBeFalse();
         window.FuryAtOpen.ShouldBe(70);
@@ -63,6 +64,12 @@ public sealed class ThunderCallWindowAnalyzerTests
         analyzer.AverageSpendersPerWindow.ShouldBe(3);
     }
 
+    /// <summary>
+    /// Raging Tempest's self-buff runs 20s, not the 21s of Thunder Call or of the ability's own
+    /// <c>BuffDuration</c>; report <c>a:NcqHDKzamL7n6YFv</c> shows 12 of 13 windows at exactly 20.0s.
+    /// The fixture is built at that length so the expected duration cannot silently read from the
+    /// Thunder Call constant.
+    /// </summary>
     [Fact]
     public async Task Analyze_ThunderCallWindow_CountsARagingTempestWindowUnderItsOwnSource()
     {
@@ -71,16 +78,29 @@ public sealed class ThunderCallWindowAnalyzerTests
             Cast(1_000, TariqSpells.RagingTempest.FSLID, fury: 90),
             Apply(1_100, RagingTempestBuff),
             Cast(2_000, TariqSpells.HammerStorm.FSLID, fury: 40),
-            Remove(22_100, RagingTempestBuff),
+            Remove(21_100, RagingTempestBuff),
         ]);
 
         var analyzer = parser.ThunderCallWindowAnalyzers.ShouldHaveSingleItem().Analyzer;
         var window = analyzer.Windows.ShouldHaveSingleItem();
 
         window.Source.ShouldBe(ThunderCallWindowSource.RagingTempest);
+        window.DurationMs.ShouldBe(ThunderCallWindowAnalyzer.RagingTempestWindowDurationMs);
+        window.ExpectedDurationMs.ShouldBe(ThunderCallWindowAnalyzer.RagingTempestWindowDurationMs);
         window.FuryAtOpen.ShouldBe(90);
         window.HammerStormCasts.ShouldBe(1);
         window.SpenderCasts.ShouldBe(1);
+    }
+
+    [Fact]
+    public void ExpectedDuration_DiffersPerWindowSource()
+    {
+        ThunderCallWindowAnalyzer.ExpectedDurationMs(ThunderCallWindowSource.ThunderCall)
+            .ShouldBe(ThunderCallWindowAnalyzer.ThunderCallWindowDurationMs);
+        ThunderCallWindowAnalyzer.ExpectedDurationMs(ThunderCallWindowSource.RagingTempest)
+            .ShouldBe(ThunderCallWindowAnalyzer.RagingTempestWindowDurationMs);
+        ThunderCallWindowAnalyzer.RagingTempestWindowDurationMs
+            .ShouldNotBe(ThunderCallWindowAnalyzer.ThunderCallWindowDurationMs);
     }
 
     [Fact]

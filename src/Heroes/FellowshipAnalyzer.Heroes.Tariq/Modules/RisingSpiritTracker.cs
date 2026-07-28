@@ -7,8 +7,6 @@ namespace FellowshipAnalyzer.Heroes.Tariq.Modules;
 
 public sealed partial class RisingSpiritTracker : EventSubscriber
 {
-    public const int StackCap = 5;
-
     private int _fightStart;
     private int _fightEnd;
     private int _windowStart;
@@ -97,7 +95,7 @@ public sealed partial class RisingSpiritTracker : EventSubscriber
 
     private void SetStacks(int stacks, int timestamp)
     {
-        _currentStacks = Math.Min(stacks, StackCap);
+        _currentStacks = stacks;
         _lastStackChange = timestamp;
         CurrentStacks = _currentStacks;
 

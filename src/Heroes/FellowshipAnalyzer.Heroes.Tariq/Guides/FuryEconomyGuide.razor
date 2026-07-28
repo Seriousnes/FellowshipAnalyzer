@@ -7,14 +7,15 @@
 <GuideSection Title="Fury Economy">
     <Explanation>
         <p>
-            Fury caps at 100 and every generator pays a flat amount, so a cast made near the top of the
-            bar throws away exactly the points that would have crossed the cap. Those lost points are the
-            measure here, counted per cast rather than as time spent sitting full.
+            Spend down before you top up. <SpellLink Spell="Spells.WildSwing" />,
+            <SpellLink Spell="Spells.FaceBreaker" /> and <SpellLink Spell="Spells.HeavyStrike" /> each pay a
+            flat amount, so firing one with the bar near full throws away exactly the points that would have
+            crossed the cap. Take <SpellLink Spell="Spells.SkullCrusher" /> or
+            <SpellLink Spell="Spells.HammerStorm" /> first and the generator lands on an empty bar.
         </p>
         <p>
-            <SpellLink Spell="Spells.LeapSmash" /> is the one that hurts: it returns 20 Fury, the largest
-            single gain in the kit, but it plays as a mobility button and is routinely fired while the bar
-            is already full.
+            Auto-attacks and Hammer Storm's passive trickle also feed the bar and neither is a cast, so the
+            points below are what your generator casts threw away rather than every point ever lost.
         </p>
     </Explanation>
     <ChildContent>
@@ -38,7 +39,7 @@
         }
 
         <CastDetail Title="Per-Pull Fury Economy"
-                    Description="Each card is one pull, rated on the Fury points its generators threw away at the cap."
+                    Description="Each card is one pull and the Fury points its generator casts threw away at the cap."
                     Casts="@BuildPerPullData()" />
     </ChildContent>
 </GuideSection>
@@ -51,41 +52,24 @@
     {
         var analyzers = Analyzers();
         var wasted = analyzers.Sum(analyzer => analyzer.WastedFury);
-        var potential = analyzers.Sum(analyzer => analyzer.PotentialGeneration);
         var overcap = analyzers.Sum(analyzer => analyzer.OvercapCasts);
         var generators = analyzers.Sum(analyzer => analyzer.GeneratorCasts);
         var span = analyzers.Sum(analyzer => (long)analyzer.ActiveSpanMs);
 
         var perMinute = span <= 0 ? 0 : wasted * 60_000d / span;
-        var discipline = DisciplinePercent(potential == 0 ? 0 : (double)wasted / potential);
 
-        var stats = new List<OverviewStat>
-        {
-            new(
+        return
+        [
+            new OverviewStat(
                 $"{wasted}",
                 "Wasted Fury",
-                $"Fury points lost to the cap across every pull, {perMinute:0.#} per minute of combat."),
-            new(
-                $"{discipline}%",
-                "Fury Discipline",
-                $"Share of the {potential} Fury your generators could have produced that actually landed in the bar.",
-                DisciplineTier(discipline)),
-            new(
-                $"{overcap}",
+                $"Fury points your generator casts lost to the cap across every pull, {perMinute:0.#} per minute of combat."),
+            new OverviewStat(
+                $"{overcap}/{generators}",
                 "Overcap Casts",
-                $"{overcap} of {generators} generator casts pushed Fury past 100 and lost the remainder."),
-        };
-
-        if (TopWaster() is { } top)
-        {
-            var name = SpellName(top.SpellId);
-            stats.Add(new OverviewStat(
-                name,
-                "Biggest Waster",
-                $"{top.WastedFury} of the {wasted} wasted points came from {top.Casts} {name} casts."));
-        }
-
-        return stats;
+                "Generator casts that pushed Fury past 100 and lost the remainder. Each one is a spender you could have taken first.",
+                overcap == 0 ? QualitativePerformance.Perfect : QualitativePerformance.Ok),
+        ];
     }
 
     private IEnumerable<PerCastData> BuildPerPullData() =>
@@ -93,48 +77,23 @@
 
     private PerCastRow BuildPullRow(FuryEconomyAnalyzer analyzer)
     {
-        var discipline = DisciplinePercent(analyzer.WasteRate);
-        var perf = DisciplineTier(discipline);
-        var top = analyzer.WasteByAbility.FirstOrDefault();
-        var wasterName = top.WastedFury > 0 ? SpellName(top.SpellId) : "None";
-
         var stats = new[]
         {
             new PerCastStat(
                 $"{analyzer.WastedFury}",
                 "Wasted Fury",
-                $"Fury points lost to the cap in this pull, {analyzer.WastedFuryPerMinute:0.#} per minute across {analyzer.OvercapCasts} of {analyzer.GeneratorCasts} generator casts.",
-                Performance: perf),
-            new PerCastStat(
-                wasterName,
-                "Biggest Waster",
-                top.WastedFury > 0
-                    ? $"{top.WastedFury} points lost over {top.Casts} {wasterName} casts."
-                    : "No generator cast crossed the cap in this pull."),
+                $"Fury points lost to the cap in this pull, {analyzer.WastedFuryPerMinute:0.#} per minute across {analyzer.OvercapCasts} of {analyzer.GeneratorCasts} generator casts."),
             new PerCastStat(
                 $"{analyzer.SkullCrusherCasts} / {analyzer.HammerStormCasts} / {analyzer.CullingStrikeCasts}",
                 "Skull / Hammer / Culling",
-                $"Skull Crusher, Hammer Storm and Culling Strike casts - the {analyzer.SpenderCasts} spenders that drained the bar this pull."),
+                $"Casts of the three abilities that draw on the bar. They do not drain it equally: Skull Crusher pays {FuryEconomyAnalyzer.SkullCrusherCost}, Hammer Storm {FuryEconomyAnalyzer.HammerStormCost}, and Culling Strike spends up to {FuryEconomyAnalyzer.CullingStrikeMaxSpend} to scale its own damage."),
         };
 
         return new PerCastRow
         {
-            Performance = perf,
+            Performance = analyzer.OvercapCasts == 0 ? QualitativePerformance.Perfect : QualitativePerformance.Ok,
             Stats = stats,
         };
-    }
-
-    private AbilityWaste? TopWaster()
-    {
-        var top = Parser.FuryEconomyAnalyzers
-            .SelectMany(entry => entry.Analyzer.WasteByAbility)
-            .GroupBy(waste => waste.SpellId)
-            .Select(group => new AbilityWaste(group.Key, group.Sum(waste => waste.Casts), group.Sum(waste => waste.WastedFury)))
-            .OrderByDescending(waste => waste.WastedFury)
-            .ThenBy(waste => waste.SpellId)
-            .FirstOrDefault();
-
-        return top.WastedFury > 0 ? top : null;
     }
 
     private FuryCurve? Charted
@@ -161,13 +120,6 @@
 
     private IReadOnlyList<AuraStackBand> ChartBands(FuryCurve curve) =>
         [new AuraStackBand("Fury", Palette.Resolve(nameof(FaPalette.Amber)), curve.Values)];
-
-    private static string SpellName(int spellId) => SpellRegistry.MaybeGet(spellId)?.Name ?? "Unknown";
-
-    private static int DisciplinePercent(double wasteRate) => (int)Math.Round((1 - wasteRate) * 100);
-
-    private static QualitativePerformance DisciplineTier(int discipline) =>
-        PerformanceTiers.FromThresholds(discipline, 97, 92, 85);
 
     private sealed record FuryCurve(Pull Pull, IReadOnlyList<int> Samples, IReadOnlyList<int> Values);
 }

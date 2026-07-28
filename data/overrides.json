@@ -516,6 +516,13 @@
       "kind": "effect",
       "name": "Heavy Strike",
       "note": "GE_Ink_AutoAttackBuff_CleaveDamage; the parent ability's DevName stem does not match the effect stem so it is not auto-linked; add directly"
+    },
+    "Sledgehammer": {
+      "id": 2061,
+      "kind": "ability",
+      "name": "Sledgehammer",
+      "icon": "T_Nhance_RPG_Icons_ChaoticSpikes.jpg",
+      "note": "GA_Ink_Talent_Passive_HeavySingleTargetAttack_AoE_Monitor; the Sledgehammer talent's Skull Crusher splash (Skull Crusher.Talent.HeavySingleTargetAttackAoe). EnabledInGame in s3 spell_data but absent from Tariq's Kit block, so the merge never imports it; add directly so the spellbook can attribute its damage to Skull Crusher."
     }
   },
   "vigour": {

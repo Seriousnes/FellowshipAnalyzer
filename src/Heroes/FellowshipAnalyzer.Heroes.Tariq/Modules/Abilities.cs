@@ -15,6 +15,7 @@ public class Abilities : CoreAbilities
             AdditionalSpells = [Spells.ChainLightningDamage],
             Category = SpellCategory.Rotational,
             Gcd = StandardGcd,
+            CooldownReducedByHaste = true,
         },
         new()
         {
@@ -22,6 +23,7 @@ public class Abilities : CoreAbilities
             AdditionalSpells = [Spells.CullingStrikeDamage],
             Category = SpellCategory.Rotational,
             Gcd = StandardGcd,
+            CooldownReducedByHaste = true,
         },
         new()
         {
@@ -29,6 +31,7 @@ public class Abilities : CoreAbilities
             AdditionalSpells = [Spells.FaceBreakerAlt, Spells.FaceBreakerDamage],
             Category = SpellCategory.Rotational,
             Gcd = StandardGcd,
+            CooldownReducedByHaste = true,
         },
         new()
         {
@@ -36,11 +39,12 @@ public class Abilities : CoreAbilities
             AdditionalSpells = [Spells.HeavyStrikeDamage, Spells.HeavyStrikeAoeDamage, Spells.HeavyStrikeCleaveDamage],
             Category = SpellCategory.Rotational,
             Gcd = StandardGcd,
+            CooldownReducedByHaste = true,
         },
         new()
         {
             PrimarySpell = Spells.SkullCrusher,
-            AdditionalSpells = [Spells.SkullCrusherDamage],
+            AdditionalSpells = [Spells.SkullCrusherDamage, Spells.SkullCrusherLightningDamage, Spells.Sledgehammer],
             Category = SpellCategory.Rotational,
             Gcd = StandardGcd,
         },
@@ -95,6 +99,7 @@ public class Abilities : CoreAbilities
             AdditionalSpells = [Spells.LeapSmashDamage],
             Category = SpellCategory.Utility,
             Gcd = null,
+            CooldownReducedByHaste = true,
         },
         new()
         {

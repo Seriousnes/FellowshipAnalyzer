@@ -83,8 +83,13 @@ public sealed class RisingSpiritTrackerTests
         tracker.MaxStacks.ShouldBe(3);
     }
 
+    /// <summary>
+    /// Rising Spirit is shared gear with no published stack ceiling, and report
+    /// <c>a:NcqHDKzamL7n6YFv</c> shows it reaching seven, so the tracker reports the depth the log
+    /// carries rather than clamping it.
+    /// </summary>
     [Fact]
-    public async Task Analyze_RisingSpirit_HoldsTheDeepestStackToTheEffectsCap()
+    public async Task Analyze_RisingSpirit_ReportsAStackDepthWithoutClampingIt()
     {
         var tracker = await AnalyzeAsync(
         [
@@ -93,7 +98,7 @@ public sealed class RisingSpiritTrackerTests
             Remove(20_000),
         ]);
 
-        tracker.MaxStacks.ShouldBe(RisingSpiritTracker.StackCap);
+        tracker.MaxStacks.ShouldBe(9);
     }
 
     [Fact]

@@ -3500,6 +3500,12 @@
       "name": "Thunder Call: Skull Crusher",
       "icon": ""
     },
+    "Sledgehammer": {
+      "kind": "ability",
+      "id": 2061,
+      "name": "Sledgehammer",
+      "icon": "T_Nhance_RPG_Icons_ChaoticSpikes.jpg"
+    },
     "ThunderCall": {
       "kind": "ability",
       "id": 1235,

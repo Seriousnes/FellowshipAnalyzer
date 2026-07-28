@@ -28,13 +28,11 @@ public sealed class FuryEconomyAnalyzerTests
 
         var analyzer = parser.FuryEconomyAnalyzers.ShouldHaveSingleItem().Analyzer;
 
-        analyzer.GeneratorCasts.ShouldBe(5);
-        analyzer.OvercapCasts.ShouldBe(3);
-        analyzer.WastedFury.ShouldBe(29);
-        analyzer.PotentialGeneration.ShouldBe(42);
-        analyzer.WasteRate.ShouldBe(29d / 42, tolerance: 0.001);
+        analyzer.GeneratorCasts.ShouldBe(3);
+        analyzer.OvercapCasts.ShouldBe(2);
+        analyzer.WastedFury.ShouldBe(9);
         analyzer.ActiveSpanMs.ShouldBe(800);
-        analyzer.WastedFuryPerMinute.ShouldBe(2175, tolerance: 0.001);
+        analyzer.WastedFuryPerMinute.ShouldBe(675, tolerance: 0.001);
     }
 
     [Fact]
@@ -51,23 +49,6 @@ public sealed class FuryEconomyAnalyzerTests
     }
 
     [Fact]
-    public async Task Analyze_FuryEconomy_BreaksWasteDownByAbilityHeaviestFirst()
-    {
-        var (parser, _) = await AnalyzeAsync(BuildScenario());
-
-        var analyzer = parser.FuryEconomyAnalyzers.ShouldHaveSingleItem().Analyzer;
-
-        analyzer.WasteByAbility.ShouldBe(
-        [
-            new AbilityWaste(TariqSpells.LeapSmash.FSLID, 1, 20),
-            new AbilityWaste(TariqSpells.HeavyStrike.FSLID, 1, 7),
-            new AbilityWaste(TariqSpells.FaceBreaker.FSLID, 1, 2),
-            new AbilityWaste(TariqSpells.WildSwing.FSLID, 1, 0),
-            new AbilityWaste(TariqSpells.ChainLightning.FSLID, 1, 0),
-        ]);
-    }
-
-    [Fact]
     public async Task Analyze_FuryEconomy_WastesNothingMidBar()
     {
         var (parser, _) = await AnalyzeAsync(
@@ -80,12 +61,14 @@ public sealed class FuryEconomyAnalyzerTests
         analyzer.GeneratorCasts.ShouldBe(1);
         analyzer.OvercapCasts.ShouldBe(0);
         analyzer.WastedFury.ShouldBe(0);
-        analyzer.PotentialGeneration.ShouldBe(FuryEconomyAnalyzer.HeavyStrikeGain);
-        analyzer.WasteRate.ShouldBe(0);
     }
 
+    /// <summary>
+    /// Leap Smash is a movement cooldown pressed to close a gap, so the Fury it returns is a side effect
+    /// rather than a resource decision and the waste model leaves it alone entirely - even at a full bar.
+    /// </summary>
     [Fact]
-    public async Task Analyze_FuryEconomy_WastesTheWholeGainWhenLeapSmashLandsAtCap()
+    public async Task Analyze_FuryEconomy_LeavesLeapSmashOutOfTheModelEvenAtCap()
     {
         var (parser, _) = await AnalyzeAsync(
         [
@@ -94,13 +77,17 @@ public sealed class FuryEconomyAnalyzerTests
 
         var analyzer = parser.FuryEconomyAnalyzers.ShouldHaveSingleItem().Analyzer;
 
-        analyzer.OvercapCasts.ShouldBe(1);
-        analyzer.WastedFury.ShouldBe(FuryEconomyAnalyzer.LeapSmashGain);
-        analyzer.WasteRate.ShouldBe(1);
+        analyzer.GeneratorCasts.ShouldBe(0);
+        analyzer.OvercapCasts.ShouldBe(0);
+        analyzer.WastedFury.ShouldBe(0);
     }
 
+    /// <summary>
+    /// Chain Lightning's gain scales with the targets it hits, so a cast at the cap cannot be charged a
+    /// known number of wasted points and is left out of the model rather than counted as clean.
+    /// </summary>
     [Fact]
-    public async Task Analyze_FuryEconomy_ModelsChainLightningAsWastingNothing()
+    public async Task Analyze_FuryEconomy_LeavesChainLightningOutOfTheModel()
     {
         var (parser, _) = await AnalyzeAsync(
         [
@@ -109,12 +96,9 @@ public sealed class FuryEconomyAnalyzerTests
 
         var analyzer = parser.FuryEconomyAnalyzers.ShouldHaveSingleItem().Analyzer;
 
-        analyzer.GeneratorCasts.ShouldBe(1);
+        analyzer.GeneratorCasts.ShouldBe(0);
         analyzer.OvercapCasts.ShouldBe(0);
         analyzer.WastedFury.ShouldBe(0);
-        analyzer.PotentialGeneration.ShouldBe(0);
-        analyzer.WasteByAbility.ShouldHaveSingleItem()
-            .ShouldBe(new AbilityWaste(TariqSpells.ChainLightning.FSLID, 1, 0));
     }
 
     [Fact]
@@ -131,8 +115,6 @@ public sealed class FuryEconomyAnalyzerTests
         analyzer.GeneratorCasts.ShouldBe(2);
         analyzer.OvercapCasts.ShouldBe(1);
         analyzer.WastedFury.ShouldBe(FuryEconomyAnalyzer.HeavyStrikeGain);
-        analyzer.PotentialGeneration.ShouldBe(FuryEconomyAnalyzer.HeavyStrikeGain * 2);
-        analyzer.WasteRate.ShouldBe(0.5, tolerance: 0.001);
     }
 
     [Fact]
