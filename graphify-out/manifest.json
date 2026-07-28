@@ -15,13 +15,13 @@
     "semantic_hash": "1cf276958642c4ec5b8b0ec6750a3d82"
   },
   "data/overrides.json": {
-    "mtime": 1785213415.6586008,
-    "ast_hash": "d29adb4fcf324aebcedc5a7953196d5e",
+    "mtime": 1785231739.4941034,
+    "ast_hash": "4533150bd64d9e11dc34ad72bfdeb69b",
     "semantic_hash": ""
   },
   "data/spelldb.json": {
-    "mtime": 1785213428.1244192,
-    "ast_hash": "8c02df63bb269d097c4bf693fcfd0cce",
+    "mtime": 1785231747.433001,
+    "ast_hash": "b5b1a9ac95a3a1ecc570f7d21ac1ec69",
     "semantic_hash": ""
   },
   "dotnet-tools.json": {
@@ -275,8 +275,8 @@
     "semantic_hash": ""
   },
   "src/FellowshipAnalyzer.Core/Analysis/Combatant.cs": {
-    "mtime": 1785186684.1974778,
-    "ast_hash": "ad6cac1da5801dcc7d1afe4bb41babd9",
+    "mtime": 1785220416.1695848,
+    "ast_hash": "1931b791f258f1b38574bb8b01abf15f",
     "semantic_hash": ""
   },
   "src/FellowshipAnalyzer.Core/Analysis/Combatants.cs": {
@@ -360,8 +360,8 @@
     "semantic_hash": ""
   },
   "src/FellowshipAnalyzer.Core/Analysis/HasChronoshiftGear.cs": {
-    "mtime": 1785186684.2014751,
-    "ast_hash": "e11c2a3105fa08ac913d13d171f4f595",
+    "mtime": 1785221520.9955833,
+    "ast_hash": "d5659b1e1aec74f46df2e441cb36f4d5",
     "semantic_hash": ""
   },
   "src/FellowshipAnalyzer.Core/Analysis/Haste.cs": {
@@ -515,8 +515,8 @@
     "semantic_hash": ""
   },
   "src/FellowshipAnalyzer.Core/Analysis/SpellCategory.cs": {
-    "mtime": 1785186684.2087417,
-    "ast_hash": "5f1f3e89e72d7578a57d42d7045db0a8",
+    "mtime": 1785241217.781248,
+    "ast_hash": "c677dadb9145c0c3c21af76a4c5f6e41",
     "semantic_hash": ""
   },
   "src/FellowshipAnalyzer.Core/Analysis/SpellUsable.cs": {
@@ -560,7 +560,7 @@
     "semantic_hash": ""
   },
   "src/FellowshipAnalyzer.Core/Common/Items/Item.cs": {
-    "mtime": 1777270661.55806,
+    "mtime": 1785221951.047032,
     "ast_hash": "84f273fc10f7d3d5e71a31482f4623de",
     "semantic_hash": "84f273fc10f7d3d5e71a31482f4623de"
   },
@@ -570,8 +570,8 @@
     "semantic_hash": ""
   },
   "src/FellowshipAnalyzer.Core/Common/Items/Items.cs": {
-    "mtime": 1785210704.3274527,
-    "ast_hash": "9f3dbefb4d9307786abd94d9a1b354f9",
+    "mtime": 1785221730.8799617,
+    "ast_hash": "1c459fdca80e4530495eb107dd3ee1de",
     "semantic_hash": ""
   },
   "src/FellowshipAnalyzer.Core/Common/Spells/AbilityCategory.cs": {
@@ -610,8 +610,8 @@
     "semantic_hash": ""
   },
   "src/FellowshipAnalyzer.Core/Common/Spells/Helena/Talents.cs": {
-    "mtime": 1785186684.2132728,
-    "ast_hash": "3b3d4a89d0857030fb9b9cd8338736e9",
+    "mtime": 1785226721.762344,
+    "ast_hash": "9d0c8209906d9f96912a3a26939e0535",
     "semantic_hash": ""
   },
   "src/FellowshipAnalyzer.Core/Common/Spells/Mara/Talents.cs": {
@@ -655,8 +655,8 @@
     "semantic_hash": ""
   },
   "src/FellowshipAnalyzer.Core/Common/Spells/Sylvie/Talents.cs": {
-    "mtime": 1785186684.2158694,
-    "ast_hash": "489a3d4faafefe3318e52d10972723dd",
+    "mtime": 1785226743.8794458,
+    "ast_hash": "3f6a3928e81f61cb8cc4895fb3fe9feb",
     "semantic_hash": ""
   },
   "src/FellowshipAnalyzer.Core/Common/Spells/Tariq/Talents.cs": {
@@ -740,13 +740,13 @@
     "semantic_hash": "b4642c5f83651582cb6ed77d2c7ef2c3"
   },
   "src/FellowshipAnalyzer.Core/Events/CombatantInfoEvent.cs": {
-    "mtime": 1785186684.2209663,
+    "mtime": 1785221951.047537,
     "ast_hash": "03e3ee5cfadd9c80dda232c2e717256f",
     "semantic_hash": ""
   },
   "src/FellowshipAnalyzer.Core/Events/DamageEvent.cs": {
-    "mtime": 1785208160.603773,
-    "ast_hash": "fe3d65fd53ff42af4155a4cb8cb6ac61",
+    "mtime": 1785241225.05175,
+    "ast_hash": "311948ef570c6c39580e29c1750203da",
     "semantic_hash": ""
   },
   "src/FellowshipAnalyzer.Core/Events/DeathEvent.cs": {
@@ -765,8 +765,8 @@
     "semantic_hash": ""
   },
   "src/FellowshipAnalyzer.Core/Events/Enums.cs": {
-    "mtime": 1785207255.7641432,
-    "ast_hash": "e6ecf2c2f884874228627184ff9c73d4",
+    "mtime": 1785241225.0365882,
+    "ast_hash": "d9739edf955cd89e9b90ba527b10cd6d",
     "semantic_hash": ""
   },
   "src/FellowshipAnalyzer.Core/Events/Event.cs": {
@@ -1770,8 +1770,8 @@
     "semantic_hash": ""
   },
   "src/FellowshipAnalyzer.Generators/ModuleGenerator.cs": {
-    "mtime": 1785186684.2804952,
-    "ast_hash": "4785ba7a1e243f8d6835858ff52a7ece",
+    "mtime": 1785233402.2200263,
+    "ast_hash": "d013957645b3000e091b875446d01773",
     "semantic_hash": ""
   },
   "src/FellowshipAnalyzer.Generators/TalentIdConstantsGenerator.cs": {
@@ -1945,9 +1945,9 @@
     "semantic_hash": ""
   },
   "src/FellowshipAnalyzer.Tools/fetch-report.cs": {
-    "mtime": 1783417084.0783484,
-    "ast_hash": "151fcb3c85d976e7515aa94928cda599",
-    "semantic_hash": "151fcb3c85d976e7515aa94928cda599"
+    "mtime": 1785226357.8738914,
+    "ast_hash": "fa0aea59e780d1bab5f5c8ad8421746d",
+    "semantic_hash": ""
   },
   "src/FellowshipAnalyzer.Tools/probe-deaths.cs": {
     "mtime": 1784887044.6068242,
@@ -2365,8 +2365,8 @@
     "semantic_hash": ""
   },
   "src/Heroes/FellowshipAnalyzer.Heroes.Ardeos/Modules/EngulfingFlamesEconomyAnalyzer.cs": {
-    "mtime": 1785186684.2939842,
-    "ast_hash": "364176fc928fc88956004a6f479d43c6",
+    "mtime": 1785220924.722063,
+    "ast_hash": "79414f16cd14563ac639d361b02dc335",
     "semantic_hash": ""
   },
   "src/Heroes/FellowshipAnalyzer.Heroes.Ardeos/Modules/ISearingBlazeAnalyzer.cs": {
@@ -2540,19 +2540,19 @@
     "semantic_hash": "a02fd2c36f16c48cc1ad7744c448e140"
   },
   "src/Heroes/FellowshipAnalyzer.Heroes.Helena/HelenaCombatLogParser.cs": {
-    "mtime": 1777506682.631324,
-    "ast_hash": "98b51d784d10b3b58695f588e4637554",
-    "semantic_hash": "98b51d784d10b3b58695f588e4637554"
+    "mtime": 1785228473.0125237,
+    "ast_hash": "5d38b547ddaf6076634d9e6e5c640da1",
+    "semantic_hash": ""
   },
   "src/Heroes/FellowshipAnalyzer.Heroes.Helena/Modules/Abilities.cs": {
-    "mtime": 1784196432.8412251,
-    "ast_hash": "0052a7a5c1066a2dfd2c2d6164d8db4a",
-    "semantic_hash": "0052a7a5c1066a2dfd2c2d6164d8db4a"
+    "mtime": 1785228168.436752,
+    "ast_hash": "2787d163e82f99b62f3359ed643523f6",
+    "semantic_hash": ""
   },
   "src/Heroes/FellowshipAnalyzer.Heroes.Helena/_Imports.razor": {
-    "mtime": 1779416733.7147963,
-    "ast_hash": "62de05b84c10879fd08c514e6d21fff5",
-    "semantic_hash": "62de05b84c10879fd08c514e6d21fff5"
+    "mtime": 1785228730.188203,
+    "ast_hash": "7603952f1575ff8373f464070dbf5f0f",
+    "semantic_hash": ""
   },
   "src/Heroes/FellowshipAnalyzer.Heroes.Helena/sasscompiler.json": {
     "mtime": 1779242319.4380827,
@@ -2700,19 +2700,19 @@
     "semantic_hash": "a02fd2c36f16c48cc1ad7744c448e140"
   },
   "src/Heroes/FellowshipAnalyzer.Heroes.Sylvie/Modules/Abilities.cs": {
-    "mtime": 1784196432.8457484,
-    "ast_hash": "058b2444a401fd7ca53f19a80db1b0c0",
-    "semantic_hash": "058b2444a401fd7ca53f19a80db1b0c0"
+    "mtime": 1785241238.5376132,
+    "ast_hash": "003d9f778a99a076324cbf8c982523d0",
+    "semantic_hash": ""
   },
   "src/Heroes/FellowshipAnalyzer.Heroes.Sylvie/SylvieCombatLogParser.cs": {
-    "mtime": 1777506682.6127577,
-    "ast_hash": "49a827b6a915124876073c96d498619a",
-    "semantic_hash": "49a827b6a915124876073c96d498619a"
+    "mtime": 1785232195.5539227,
+    "ast_hash": "6f250e4e56ad83cb681d14bf921eda10",
+    "semantic_hash": ""
   },
   "src/Heroes/FellowshipAnalyzer.Heroes.Sylvie/_Imports.razor": {
-    "mtime": 1779416733.7863653,
-    "ast_hash": "9e78276db13adb027f4d66d615b7d846",
-    "semantic_hash": "9e78276db13adb027f4d66d615b7d846"
+    "mtime": 1785232208.026075,
+    "ast_hash": "665db54953e53fc1b8b018c6cf8cb822",
+    "semantic_hash": ""
   },
   "src/Heroes/FellowshipAnalyzer.Heroes.Sylvie/sasscompiler.json": {
     "mtime": 1779242319.447137,
@@ -2720,8 +2720,8 @@
     "semantic_hash": "147374d360cd9d396cb7cf89295ed771"
   },
   "src/Heroes/FellowshipAnalyzer.Heroes.Tariq/Changelog.razor": {
-    "mtime": 1785186684.320129,
-    "ast_hash": "ca6dfa0d0ba4f4608adf5ef7a19d2ece",
+    "mtime": 1785242373.8914475,
+    "ast_hash": "ca52db0e09b503ed49f1dd9a3fe10409",
     "semantic_hash": ""
   },
   "src/Heroes/FellowshipAnalyzer.Heroes.Tariq/FellowshipAnalyzer.Heroes.Tariq.csproj": {
@@ -2730,29 +2730,29 @@
     "semantic_hash": "a02fd2c36f16c48cc1ad7744c448e140"
   },
   "src/Heroes/FellowshipAnalyzer.Heroes.Tariq/Guides/FuryEconomyGuide.razor": {
-    "mtime": 1785186684.320129,
-    "ast_hash": "19f3962c0560c49c1c4fb715467b833a",
+    "mtime": 1785241940.2036183,
+    "ast_hash": "7c8156a4ab1aedf2aa278374bb7ee7eb",
     "semantic_hash": ""
   },
   "src/Heroes/FellowshipAnalyzer.Heroes.Tariq/Modules/Abilities.cs": {
-    "mtime": 1785186684.3218813,
-    "ast_hash": "08d1f6e6ed0cd4848d404bf7f5724bde",
+    "mtime": 1785241666.7330904,
+    "ast_hash": "a04ff4438f08ed9e3c5df2ff3dc4e2da",
     "semantic_hash": ""
   },
   "src/Heroes/FellowshipAnalyzer.Heroes.Tariq/Modules/ExecutionersGrinTracker.cs": {
-    "mtime": 1785186684.3218813,
-    "ast_hash": "1f0e11b28f747c6dbf3edbd5ea9f1a6b",
+    "mtime": 1785241801.2436602,
+    "ast_hash": "05687cd356842b097339bb13b20ec531",
     "semantic_hash": ""
   },
   "src/Heroes/FellowshipAnalyzer.Heroes.Tariq/Modules/FuryEconomyAnalyzer.cs": {
-    "mtime": 1785186684.3228874,
-    "ast_hash": "26dff9e2dbe9cf84cc778a800bf8d463",
+    "mtime": 1785241837.3401046,
+    "ast_hash": "8949b47986389970d965c83f4c1e30da",
     "semantic_hash": ""
   },
   "src/Heroes/FellowshipAnalyzer.Heroes.Tariq/Statistics/ExecutionersGrinStatistics.razor": {
-    "mtime": 1784196499.5255642,
-    "ast_hash": "88fece3e5ac24b9cff1993ce586fda36",
-    "semantic_hash": "88fece3e5ac24b9cff1993ce586fda36"
+    "mtime": 1785242051.9292786,
+    "ast_hash": "077061621f25da16060e32195c542306",
+    "semantic_hash": ""
   },
   "src/Heroes/FellowshipAnalyzer.Heroes.Tariq/TariqCombatLogParser.Config.cs": {
     "mtime": 1784196432.8472555,
@@ -2765,8 +2765,8 @@
     "semantic_hash": ""
   },
   "src/Heroes/FellowshipAnalyzer.Heroes.Tariq/TariqGuide.razor": {
-    "mtime": 1785186684.3247764,
-    "ast_hash": "251e1ae2172a7d9891355fa849d25a80",
+    "mtime": 1785242040.1923566,
+    "ast_hash": "9edd6e3af0e7b59b19239adb0ef419b9",
     "semantic_hash": ""
   },
   "src/Heroes/FellowshipAnalyzer.Heroes.Tariq/_Imports.razor": {
@@ -3075,8 +3075,8 @@
     "semantic_hash": ""
   },
   "tests/FellowshipAnalyzer.Heroes.Ardeos.Tests/Analysis/EngulfingFlamesEconomyAnalyzerTests.cs": {
-    "mtime": 1785186684.332402,
-    "ast_hash": "203ccc8c2a7cd807057c454881183e82",
+    "mtime": 1785221984.2994163,
+    "ast_hash": "ece236e198fe439909bf95c4ddc8f873",
     "semantic_hash": ""
   },
   "tests/FellowshipAnalyzer.Heroes.Ardeos.Tests/Analysis/SearingBlazeSpreadAnalyzerTests.cs": {
@@ -3150,9 +3150,9 @@
     "semantic_hash": "51a138f1c3e7163255b5dfffad5c06e5"
   },
   "tests/FellowshipAnalyzer.Heroes.Helena.Tests/Analysis/HelenaAnalysisEngineTests.cs": {
-    "mtime": 1779069542.8705597,
-    "ast_hash": "0e3348c85783142d6fe14cbfcb532d4b",
-    "semantic_hash": "0e3348c85783142d6fe14cbfcb532d4b"
+    "mtime": 1785229629.149024,
+    "ast_hash": "41bd9517a24f978dcd12f3cbc5ae5dce",
+    "semantic_hash": ""
   },
   "tests/FellowshipAnalyzer.Heroes.Helena.Tests/Analysis/HelenaSpellbookTests.cs": {
     "mtime": 1784196432.8538759,
@@ -3210,14 +3210,14 @@
     "semantic_hash": "c9375fa492302b8eac8f8f3026aa6cb9"
   },
   "tests/FellowshipAnalyzer.Heroes.Sylvie.Tests/Analysis/SylvieAnalysisEngineTests.cs": {
-    "mtime": 1779069542.8725626,
-    "ast_hash": "3cf861b885ab2f4099a1cc22aed230f1",
-    "semantic_hash": "3cf861b885ab2f4099a1cc22aed230f1"
+    "mtime": 1785232847.7811494,
+    "ast_hash": "17da0d2a8bb12665b97fa30eada942ca",
+    "semantic_hash": ""
   },
   "tests/FellowshipAnalyzer.Heroes.Sylvie.Tests/Analysis/SylvieSpellbookTests.cs": {
-    "mtime": 1784196432.8548806,
-    "ast_hash": "10c40a3af67a83b22370786390006171",
-    "semantic_hash": "10c40a3af67a83b22370786390006171"
+    "mtime": 1785232868.6546688,
+    "ast_hash": "4ffbde26ef0228c7e4392f12d3f764de",
+    "semantic_hash": ""
   },
   "tests/FellowshipAnalyzer.Heroes.Sylvie.Tests/FellowshipAnalyzer.Heroes.Sylvie.Tests.csproj": {
     "mtime": 1777272745.419783,
@@ -3225,13 +3225,13 @@
     "semantic_hash": "6f49117c1f6af7b454209464d3a326cd"
   },
   "tests/FellowshipAnalyzer.Heroes.Tariq.Tests/Analysis/ExecutionersGrinTrackerTests.cs": {
-    "mtime": 1785186684.343593,
-    "ast_hash": "57d84848c6e039a0cbda09fc8a1017da",
+    "mtime": 1785242167.7362533,
+    "ast_hash": "d8b779b9aea1352dfbed9bf1835c084d",
     "semantic_hash": ""
   },
   "tests/FellowshipAnalyzer.Heroes.Tariq.Tests/Analysis/FuryEconomyAnalyzerTests.cs": {
-    "mtime": 1785186684.3440926,
-    "ast_hash": "adbe5f9217ccd7e9d8a6e37def11fa75",
+    "mtime": 1785242139.4226122,
+    "ast_hash": "fd3dd9f757cdeb0caba05fa45031f3d9",
     "semantic_hash": ""
   },
   "tests/FellowshipAnalyzer.Heroes.Tariq.Tests/Analysis/TariqAnalysisEngineTests.cs": {
@@ -3240,9 +3240,9 @@
     "semantic_hash": "702fbf1bd33b6f9dd80eb5f051ee34d0"
   },
   "tests/FellowshipAnalyzer.Heroes.Tariq.Tests/Analysis/TariqSpellbookTests.cs": {
-    "mtime": 1784196432.8553815,
-    "ast_hash": "59557f1a927a9bb4ca1f88ccd1651188",
-    "semantic_hash": "59557f1a927a9bb4ca1f88ccd1651188"
+    "mtime": 1785243149.6346612,
+    "ast_hash": "105bd129bf2259d84876d1b096dcd16f",
+    "semantic_hash": ""
   },
   "tests/FellowshipAnalyzer.Heroes.Tariq.Tests/FellowshipAnalyzer.Heroes.Tariq.Tests.csproj": {
     "mtime": 1777272745.4202876,
@@ -3650,8 +3650,8 @@
     "semantic_hash": ""
   },
   "src/FellowshipAnalyzer.Core/Analysis/DebuffUptimeAnalyzer.cs": {
-    "mtime": 1785186684.1984785,
-    "ast_hash": "aae66b2a8291d73d9e2af98cc0a2740e",
+    "mtime": 1785231448.67255,
+    "ast_hash": "db2c0a3011331822c4bc5c89f34ea420",
     "semantic_hash": ""
   },
   "src/FellowshipAnalyzer.Core/Common/Spells/Gunde/Talents.cs": {
@@ -3930,53 +3930,48 @@
     "semantic_hash": ""
   },
   "src/Heroes/FellowshipAnalyzer.Heroes.Tariq/Guides/CullingStrikeGuide.razor": {
-    "mtime": 1785186684.320129,
-    "ast_hash": "a7ed95beb86eb52b168e108bec7b5f79",
+    "mtime": 1785241916.431141,
+    "ast_hash": "7c408af6b52a2a38cf4a750fbee6d22d",
     "semantic_hash": ""
   },
   "src/Heroes/FellowshipAnalyzer.Heroes.Tariq/Guides/HammerStormGuide.razor": {
-    "mtime": 1785186684.321375,
-    "ast_hash": "526bc6a5b13dcf5178909d86d6fb8329",
-    "semantic_hash": ""
-  },
-  "src/Heroes/FellowshipAnalyzer.Heroes.Tariq/Guides/MajorCooldownsGuide.razor": {
-    "mtime": 1785186684.321375,
-    "ast_hash": "9f3330ff7cafee85ecd32c34750347a0",
+    "mtime": 1785242034.9791708,
+    "ast_hash": "794d40c6d7c8e01f167fabceb5b1beef",
     "semantic_hash": ""
   },
   "src/Heroes/FellowshipAnalyzer.Heroes.Tariq/Modules/CullingStrikeAnalyzer.cs": {
-    "mtime": 1785186684.3218813,
-    "ast_hash": "717243fb542fc98e3625c5c6768b031f",
+    "mtime": 1785242866.130604,
+    "ast_hash": "76ae1c6a6a9c7361a2abba5f798517e1",
     "semantic_hash": ""
   },
   "src/Heroes/FellowshipAnalyzer.Heroes.Tariq/Modules/FocusedWrathAnalyzer.cs": {
-    "mtime": 1785186684.3228874,
-    "ast_hash": "3bdd4248233b4177e4f995bde9546a55",
+    "mtime": 1785228818.562167,
+    "ast_hash": "c86456524417ce8a6b52b3d3f99c03af",
     "semantic_hash": ""
   },
   "src/Heroes/FellowshipAnalyzer.Heroes.Tariq/Modules/FuryTracker.cs": {
-    "mtime": 1785186684.3233943,
-    "ast_hash": "dba8b630d79abc5a1fee6c494af124d8",
+    "mtime": 1785227927.9570959,
+    "ast_hash": "0d61b62b5584058a429129064a29e90f",
     "semantic_hash": ""
   },
   "src/Heroes/FellowshipAnalyzer.Heroes.Tariq/Modules/HammerStormAnalyzer.cs": {
-    "mtime": 1785186684.3233943,
-    "ast_hash": "0a7e6d7a65c94cb6f3859cd9c63f023d",
+    "mtime": 1785241863.6201758,
+    "ast_hash": "8cb4141bb28c9abda87121c70f652cf0",
     "semantic_hash": ""
   },
   "src/Heroes/FellowshipAnalyzer.Heroes.Tariq/Modules/RisingSpiritTracker.cs": {
-    "mtime": 1785186684.3233943,
-    "ast_hash": "e5fc43bf62f33327eb08bb7a6362a5c2",
+    "mtime": 1785227889.2825875,
+    "ast_hash": "a335bee5efb7703931f3cffa7e32add8",
     "semantic_hash": ""
   },
   "src/Heroes/FellowshipAnalyzer.Heroes.Tariq/Modules/ThunderCallWindowAnalyzer.cs": {
-    "mtime": 1785186684.3233943,
-    "ast_hash": "eaa6d0d1372fcd7548a268e2c927ae9a",
+    "mtime": 1785227817.7015727,
+    "ast_hash": "69722d6b77d5d17231826c73f6b206fb",
     "semantic_hash": ""
   },
   "src/Heroes/FellowshipAnalyzer.Heroes.Tariq/Statistics/RisingSpiritStatistics.razor": {
-    "mtime": 1785186684.3233943,
-    "ast_hash": "d4dadc28d7e02480fa3860986334876b",
+    "mtime": 1785228161.0522342,
+    "ast_hash": "b724e7b4c124f723904efb92c3be0ed8",
     "semantic_hash": ""
   },
   "tests/FellowshipAnalyzer.Heroes.Elarion.Tests/Modules/CelestialImpetusAnalyzerTests.cs": {
@@ -4100,33 +4095,33 @@
     "semantic_hash": ""
   },
   "tests/FellowshipAnalyzer.Heroes.Tariq.Tests/Analysis/CullingStrikeAnalyzerTests.cs": {
-    "mtime": 1785186684.3430972,
-    "ast_hash": "af0ec285579b921dbb5c9d8af6dae5c7",
+    "mtime": 1785242900.6351485,
+    "ast_hash": "e5c338745569929350fcb1611a24a668",
     "semantic_hash": ""
   },
   "tests/FellowshipAnalyzer.Heroes.Tariq.Tests/Analysis/FocusedWrathAnalyzerTests.cs": {
-    "mtime": 1785186684.343593,
-    "ast_hash": "87e2b0844b2c41f85d55bc2bdc10d3b5",
+    "mtime": 1785228328.0121136,
+    "ast_hash": "f95d247349ec4ab7f10a0b33c7c922cc",
     "semantic_hash": ""
   },
   "tests/FellowshipAnalyzer.Heroes.Tariq.Tests/Analysis/FuryTrackerTests.cs": {
-    "mtime": 1785186684.3440926,
-    "ast_hash": "1c0942349184f2c11fc9aa80e0486d39",
+    "mtime": 1785228521.8556497,
+    "ast_hash": "b77089e6e00ca6f3863f9a68dccb2cc6",
     "semantic_hash": ""
   },
   "tests/FellowshipAnalyzer.Heroes.Tariq.Tests/Analysis/HammerStormAnalyzerTests.cs": {
-    "mtime": 1785186684.3445928,
-    "ast_hash": "373579c0823bdd1ba83b9f055756403b",
+    "mtime": 1785242218.9880443,
+    "ast_hash": "2ae6486400afe520916803e09c4c022c",
     "semantic_hash": ""
   },
   "tests/FellowshipAnalyzer.Heroes.Tariq.Tests/Analysis/RisingSpiritTrackerTests.cs": {
-    "mtime": 1785186684.3445928,
-    "ast_hash": "1f0457de7d471e708ce81a4d97f95c05",
+    "mtime": 1785228501.549428,
+    "ast_hash": "b0191a8d09285360312ee0f1ec8dcb83",
     "semantic_hash": ""
   },
   "tests/FellowshipAnalyzer.Heroes.Tariq.Tests/Analysis/ThunderCallWindowAnalyzerTests.cs": {
-    "mtime": 1785186684.3445928,
-    "ast_hash": "9011a302775785f12104b7271cfc43a4",
+    "mtime": 1785229797.92566,
+    "ast_hash": "8477be74b9d2e5f437a61df3755e3fab",
     "semantic_hash": ""
   },
   "src/FellowshipAnalyzer.Core/UI/Components/ReportComponent.cs": {
@@ -4210,8 +4205,8 @@
     "semantic_hash": ""
   },
   "src/FellowshipAnalyzer.Core/Common/Items/AmethystGemStatistics.razor.cs": {
-    "mtime": 1785213788.3653286,
-    "ast_hash": "382c7e5a865cd1a51af4af49c937c7ab",
+    "mtime": 1785241225.0689464,
+    "ast_hash": "6ff93f42c5c1935929475af0f3abb9a6",
     "semantic_hash": ""
   },
   "src/FellowshipAnalyzer.Core/Common/Items/DiamondGemStatistics.razor": {
@@ -4342,6 +4337,401 @@
   "tests/FellowshipAnalyzer.Core.Tests/UI/CastEfficiencyModelTests.cs": {
     "mtime": 1785199919.6673453,
     "ast_hash": "bf7ac82964736f9b415cd6ec0d8e5d83",
+    "semantic_hash": ""
+  },
+  "images/banner-arc.png": {
+    "mtime": 1785223541.0114696,
+    "ast_hash": "f50aab50fb241c297c18ae724805d9f0",
+    "semantic_hash": ""
+  },
+  "images/banner-lockup.png": {
+    "mtime": 1785223541.0084767,
+    "ast_hash": "340e92bbed9796e1faad40ae9ca91d05",
+    "semantic_hash": ""
+  },
+  "images/splash-emblem.png": {
+    "mtime": 1785223541.0130258,
+    "ast_hash": "667e344d43372e6977c8982eec47ad0a",
+    "semantic_hash": ""
+  },
+  "src/FellowshipAnalyzer.Core/Analysis/DamageTakenTracker.cs": {
+    "mtime": 1785227915.0576935,
+    "ast_hash": "ac9b2274af51b966bf273d466038b878",
+    "semantic_hash": ""
+  },
+  "src/FellowshipAnalyzer.Core/Analysis/MajorDefensiveAnalyzer.cs": {
+    "mtime": 1785230126.8813324,
+    "ast_hash": "a465f1cbfae1e6a2af04a8addccfc27a",
+    "semantic_hash": ""
+  },
+  "src/FellowshipAnalyzer.Core/UI/Components/DamageTakenStatistics.razor": {
+    "mtime": 1785227940.104145,
+    "ast_hash": "c01c3aea337b33c97ff5d2ab1d6d5e34",
+    "semantic_hash": ""
+  },
+  "src/Heroes/FellowshipAnalyzer.Heroes.Helena/Changelog.razor": {
+    "mtime": 1785228491.0168777,
+    "ast_hash": "4f6e8cd0452218e26562228d7780589d",
+    "semantic_hash": ""
+  },
+  "src/Heroes/FellowshipAnalyzer.Heroes.Helena/Guides/DefensivesGuide.razor": {
+    "mtime": 1785230156.4861248,
+    "ast_hash": "6982d2cf159451effe6bf984be2dd441",
+    "semantic_hash": ""
+  },
+  "src/Heroes/FellowshipAnalyzer.Heroes.Helena/Guides/EmpoweredShieldSlamGuide.razor": {
+    "mtime": 1785230217.334587,
+    "ast_hash": "2ecbce0b06f3c39c50d6d52f8e18bd04",
+    "semantic_hash": ""
+  },
+  "src/Heroes/FellowshipAnalyzer.Heroes.Helena/Guides/LingeringConcussionGuide.razor": {
+    "mtime": 1785228845.607644,
+    "ast_hash": "aff2b5cc439c7399a369a133b344a1d0",
+    "semantic_hash": ""
+  },
+  "src/Heroes/FellowshipAnalyzer.Heroes.Helena/Guides/ToughnessGuide.razor": {
+    "mtime": 1785230224.144127,
+    "ast_hash": "96586ff07705cc00bd7a51cb7209fe25",
+    "semantic_hash": ""
+  },
+  "src/Heroes/FellowshipAnalyzer.Heroes.Helena/Guides/VeteranOfWarGuide.razor": {
+    "mtime": 1785230175.954774,
+    "ast_hash": "3753ce89aa3bb7712325956cdecd7a85",
+    "semantic_hash": ""
+  },
+  "src/Heroes/FellowshipAnalyzer.Heroes.Helena/HelenaCombatLogParser.Config.cs": {
+    "mtime": 1785228477.6270514,
+    "ast_hash": "ee26fe1f39fc337ade4fa61a38fb724b",
+    "semantic_hash": ""
+  },
+  "src/Heroes/FellowshipAnalyzer.Heroes.Helena/HelenaGuide.razor": {
+    "mtime": 1785228685.448034,
+    "ast_hash": "b4c2fd58703e6d57474419fff114a7a2",
+    "semantic_hash": ""
+  },
+  "src/Heroes/FellowshipAnalyzer.Heroes.Helena/Modules/EmpoweredShieldSlamAnalyzer.cs": {
+    "mtime": 1785230199.793777,
+    "ast_hash": "01caef9d27af7d130770e073fa7f1ee6",
+    "semantic_hash": ""
+  },
+  "src/Heroes/FellowshipAnalyzer.Heroes.Helena/Modules/HelenaAuras.cs": {
+    "mtime": 1785228467.0363529,
+    "ast_hash": "9cff5dbf77dd180cd23747007cefd36f",
+    "semantic_hash": ""
+  },
+  "src/Heroes/FellowshipAnalyzer.Heroes.Helena/Modules/IronWallAnalyzer.cs": {
+    "mtime": 1785228795.4944918,
+    "ast_hash": "2d9bf26cc250e56883b65d3047c4977d",
+    "semantic_hash": ""
+  },
+  "src/Heroes/FellowshipAnalyzer.Heroes.Helena/Modules/LingeringConcussionAnalyzer.cs": {
+    "mtime": 1785228810.2653568,
+    "ast_hash": "e34ffc567b17d35d7ad915875faaea00",
+    "semantic_hash": ""
+  },
+  "src/Heroes/FellowshipAnalyzer.Heroes.Helena/Modules/ShieldsUpAnalyzer.cs": {
+    "mtime": 1785228785.8705943,
+    "ast_hash": "25840619fcfe089e1b99663a4146108b",
+    "semantic_hash": ""
+  },
+  "src/Heroes/FellowshipAnalyzer.Heroes.Helena/Modules/ToughnessBandAnalyzer.cs": {
+    "mtime": 1785228300.9447453,
+    "ast_hash": "ae37d23d831578f5427adef565e03a2a",
+    "semantic_hash": ""
+  },
+  "src/Heroes/FellowshipAnalyzer.Heroes.Helena/Modules/ToughnessBands.cs": {
+    "mtime": 1785228185.861126,
+    "ast_hash": "d2170b155ebde17978f98db3071c86a2",
+    "semantic_hash": ""
+  },
+  "src/Heroes/FellowshipAnalyzer.Heroes.Helena/Modules/ToughnessTracker.cs": {
+    "mtime": 1785228253.238292,
+    "ast_hash": "8e56d17365bfb5e0235bd267e2a1cb4f",
+    "semantic_hash": ""
+  },
+  "src/Heroes/FellowshipAnalyzer.Heroes.Helena/Modules/VeteranOfWarAnalyzer.cs": {
+    "mtime": 1785229174.1124823,
+    "ast_hash": "841b2bc44129c6223f5c36be1a92b96c",
+    "semantic_hash": ""
+  },
+  "src/Heroes/FellowshipAnalyzer.Heroes.Helena/Statistics/ToughnessStatistics.razor": {
+    "mtime": 1785230229.8108878,
+    "ast_hash": "46632019ad2ff85c6a1e6fad096fccb1",
+    "semantic_hash": ""
+  },
+  "tests/FellowshipAnalyzer.Heroes.Helena.Tests/Analysis/DamageTakenTrackerTests.cs": {
+    "mtime": 1785229670.9014974,
+    "ast_hash": "76cb37c0fde6499e3193104e738f71ff",
+    "semantic_hash": ""
+  },
+  "tests/FellowshipAnalyzer.Heroes.Helena.Tests/Analysis/DefensiveAnalyzerTests.cs": {
+    "mtime": 1785230244.9338002,
+    "ast_hash": "d8fd112a8781f15035a9d9a35f001bea",
+    "semantic_hash": ""
+  },
+  "tests/FellowshipAnalyzer.Heroes.Helena.Tests/Analysis/EmpoweredShieldSlamAnalyzerTests.cs": {
+    "mtime": 1785230267.3233445,
+    "ast_hash": "d3e55e4c156a151e48f070bf28b2bbf1",
+    "semantic_hash": ""
+  },
+  "tests/FellowshipAnalyzer.Heroes.Helena.Tests/Analysis/HelenaAnalysisFixture.cs": {
+    "mtime": 1785229442.8347042,
+    "ast_hash": "be3cf81d1fb6898009e0a1fc21dcb8f6",
+    "semantic_hash": ""
+  },
+  "tests/FellowshipAnalyzer.Heroes.Helena.Tests/Analysis/LingeringConcussionAnalyzerTests.cs": {
+    "mtime": 1785229670.812793,
+    "ast_hash": "f9372726c7eb1098dbcd9e2cdbac3de2",
+    "semantic_hash": ""
+  },
+  "tests/FellowshipAnalyzer.Heroes.Helena.Tests/Analysis/ToughnessBandAnalyzerTests.cs": {
+    "mtime": 1785229773.2536848,
+    "ast_hash": "748dbe03613f639e225db3dbc6d128f2",
+    "semantic_hash": ""
+  },
+  "tests/FellowshipAnalyzer.Heroes.Helena.Tests/Analysis/ToughnessTrackerTests.cs": {
+    "mtime": 1785229670.7723134,
+    "ast_hash": "e5b0875fe64dfcd17cfbb880966d1d01",
+    "semantic_hash": ""
+  },
+  "tests/FellowshipAnalyzer.Heroes.Helena.Tests/Analysis/VeteranOfWarAnalyzerTests.cs": {
+    "mtime": 1785229691.8761005,
+    "ast_hash": "b759c8dd83a8959b5dba26cf2959888d",
+    "semantic_hash": ""
+  },
+  "src/FellowshipAnalyzer.Core/Analysis/AllTargetUptimeAnalyzer.cs": {
+    "mtime": 1785231468.9885879,
+    "ast_hash": "8421cf14118624c5ced55a600c3ce6f9",
+    "semantic_hash": ""
+  },
+  "src/FellowshipAnalyzer.Core/Analysis/AuraWindowLedger.cs": {
+    "mtime": 1785231418.575751,
+    "ast_hash": "d1f8315df0efb6b41453530e0b378b3f",
+    "semantic_hash": ""
+  },
+  "src/FellowshipAnalyzer.Core/Analysis/DispelTracker.cs": {
+    "mtime": 1785231557.9796257,
+    "ast_hash": "8f2699d7facdf66e459fd15d976d16cb",
+    "semantic_hash": ""
+  },
+  "src/FellowshipAnalyzer.Core/Analysis/HealingEfficiencyTracker.cs": {
+    "mtime": 1785234896.9271197,
+    "ast_hash": "a88b947ede602f259b76ddf3f8b2dca3",
+    "semantic_hash": ""
+  },
+  "src/FellowshipAnalyzer.Core/Analysis/HotTracker.cs": {
+    "mtime": 1785231499.0490518,
+    "ast_hash": "da82ab400b8480a9635557acddc30dc2",
+    "semantic_hash": ""
+  },
+  "src/Heroes/FellowshipAnalyzer.Heroes.Sylvie/Changelog.razor": {
+    "mtime": 1785232218.2986622,
+    "ast_hash": "1949beda7ea95e2425e105d1270ca7e3",
+    "semantic_hash": ""
+  },
+  "src/Heroes/FellowshipAnalyzer.Heroes.Sylvie/Guides/AbsorbWasteGuide.razor": {
+    "mtime": 1785232412.0040102,
+    "ast_hash": "54d5b6b5b9107321f214862b288b9df5",
+    "semantic_hash": ""
+  },
+  "src/Heroes/FellowshipAnalyzer.Heroes.Sylvie/Guides/ButterflyGuide.razor": {
+    "mtime": 1785232540.7549627,
+    "ast_hash": "ab8ddd0a055b67ee24e5754578f6b551",
+    "semantic_hash": ""
+  },
+  "src/Heroes/FellowshipAnalyzer.Heroes.Sylvie/Guides/CureAilmentGuide.razor": {
+    "mtime": 1785232428.398271,
+    "ast_hash": "3bb6931deca3a562582d90105fd7476b",
+    "semantic_hash": ""
+  },
+  "src/Heroes/FellowshipAnalyzer.Heroes.Sylvie/Guides/FlutterflyBuffGuide.razor": {
+    "mtime": 1785232393.4859562,
+    "ast_hash": "7a51820baabdf1c6df1903b6cf264e9e",
+    "semantic_hash": ""
+  },
+  "src/Heroes/FellowshipAnalyzer.Heroes.Sylvie/Guides/HeartBloomGuide.razor": {
+    "mtime": 1785233898.307355,
+    "ast_hash": "310addcf61e86c3e53ba047ba5005d2c",
+    "semantic_hash": ""
+  },
+  "src/Heroes/FellowshipAnalyzer.Heroes.Sylvie/Guides/LifePetalGuide.razor": {
+    "mtime": 1785232372.8838196,
+    "ast_hash": "5beb892ed7ef57851b4f69d77c2caab4",
+    "semantic_hash": ""
+  },
+  "src/Heroes/FellowshipAnalyzer.Heroes.Sylvie/Guides/ManaGuide.razor": {
+    "mtime": 1785232451.1823933,
+    "ast_hash": "f08d31b385bc465dec07523d4ae81271",
+    "semantic_hash": ""
+  },
+  "src/Heroes/FellowshipAnalyzer.Heroes.Sylvie/Guides/OverhealGuide.razor": {
+    "mtime": 1785232254.6521685,
+    "ast_hash": "84ecfe512d2da9de73db2b9eb53b3f55",
+    "semantic_hash": ""
+  },
+  "src/Heroes/FellowshipAnalyzer.Heroes.Sylvie/Modules/AbsorbWasteAnalyzer.cs": {
+    "mtime": 1785232504.1674433,
+    "ast_hash": "09b67d10fb887b143127cbdb89db1e11",
+    "semantic_hash": ""
+  },
+  "src/Heroes/FellowshipAnalyzer.Heroes.Sylvie/Modules/BlueyAssignmentAnalyzer.cs": {
+    "mtime": 1785232158.0970984,
+    "ast_hash": "811e069ba44a7c7676057aba03892264",
+    "semantic_hash": ""
+  },
+  "src/Heroes/FellowshipAnalyzer.Heroes.Sylvie/Modules/BlueyTracker.cs": {
+    "mtime": 1785231881.8807728,
+    "ast_hash": "4e81b8926b9386ec3cd14d987f4d9f42",
+    "semantic_hash": ""
+  },
+  "src/Heroes/FellowshipAnalyzer.Heroes.Sylvie/Modules/CureAilmentAnalyzer.cs": {
+    "mtime": 1785232142.408071,
+    "ast_hash": "b1b3f6ee53ca7a1cf7522e25a3c12479",
+    "semantic_hash": ""
+  },
+  "src/Heroes/FellowshipAnalyzer.Heroes.Sylvie/Modules/FlutterflyHealingBuffAnalyzer.cs": {
+    "mtime": 1785232100.241529,
+    "ast_hash": "f81ee66d517a53fd38e206f2849c1379",
+    "semantic_hash": ""
+  },
+  "src/Heroes/FellowshipAnalyzer.Heroes.Sylvie/Modules/HeartBloomRampAnalyzer.cs": {
+    "mtime": 1785233879.8896313,
+    "ast_hash": "0236991f5d85ab1188f028a4ff6b7b9b",
+    "semantic_hash": ""
+  },
+  "src/Heroes/FellowshipAnalyzer.Heroes.Sylvie/Modules/LifePetalAnalyzer.cs": {
+    "mtime": 1785232040.5950716,
+    "ast_hash": "fd6cb02a019dacc111c6d8c90a1de88f",
+    "semantic_hash": ""
+  },
+  "src/Heroes/FellowshipAnalyzer.Heroes.Sylvie/Modules/ManaEfficiencyAnalyzer.cs": {
+    "mtime": 1785232178.747872,
+    "ast_hash": "c9452dce172936b12ae58b42c86837e1",
+    "semantic_hash": ""
+  },
+  "src/Heroes/FellowshipAnalyzer.Heroes.Sylvie/Modules/OverhealAnalyzer.cs": {
+    "mtime": 1785231933.280967,
+    "ast_hash": "d080ea7b6d3fcce531b2377d227bb175",
+    "semantic_hash": ""
+  },
+  "src/Heroes/FellowshipAnalyzer.Heroes.Sylvie/Modules/PinkButterflyAssignmentAnalyzer.cs": {
+    "mtime": 1785231960.143175,
+    "ast_hash": "7ff85f660fd8ac78a101273ee34720fa",
+    "semantic_hash": ""
+  },
+  "src/Heroes/FellowshipAnalyzer.Heroes.Sylvie/Modules/PinkButterflyTracker.cs": {
+    "mtime": 1785231818.1242232,
+    "ast_hash": "af73cdb0fdc4b6bf585126feaf6d6d69",
+    "semantic_hash": ""
+  },
+  "src/Heroes/FellowshipAnalyzer.Heroes.Sylvie/Modules/SylvieAuras.cs": {
+    "mtime": 1785232187.7334483,
+    "ast_hash": "b30bef63ae60a62038df0d97498e2f10",
+    "semantic_hash": ""
+  },
+  "src/Heroes/FellowshipAnalyzer.Heroes.Sylvie/Modules/SylvieHealingEfficiencyTracker.cs": {
+    "mtime": 1785231915.7647662,
+    "ast_hash": "0737db93dd6330f634a5f4a8932f17aa",
+    "semantic_hash": ""
+  },
+  "src/Heroes/FellowshipAnalyzer.Heroes.Sylvie/Modules/SylvieKit.cs": {
+    "mtime": 1785231793.7953825,
+    "ast_hash": "f925530f8c9e8faef0e95be8c7853ae5",
+    "semantic_hash": ""
+  },
+  "src/Heroes/FellowshipAnalyzer.Heroes.Sylvie/Modules/SylvieManaTracker.cs": {
+    "mtime": 1785232536.0514646,
+    "ast_hash": "e8bd33436ea88a318208a033f4980e5b",
+    "semantic_hash": ""
+  },
+  "src/Heroes/FellowshipAnalyzer.Heroes.Sylvie/Statistics/HealingEfficiencyStatistics.razor": {
+    "mtime": 1785232470.3377602,
+    "ast_hash": "4e2dcc3107e11e53db2b8be07f3b2227",
+    "semantic_hash": ""
+  },
+  "src/Heroes/FellowshipAnalyzer.Heroes.Sylvie/Statistics/ManaStatistics.razor": {
+    "mtime": 1785232461.9531374,
+    "ast_hash": "2465f4c6a341b74825f32b5b5f429c73",
+    "semantic_hash": ""
+  },
+  "src/Heroes/FellowshipAnalyzer.Heroes.Sylvie/SylvieCombatLogParser.Config.cs": {
+    "mtime": 1785232201.1927102,
+    "ast_hash": "ae00ef2456eeeef386cd23a6e5001d87",
+    "semantic_hash": ""
+  },
+  "src/Heroes/FellowshipAnalyzer.Heroes.Sylvie/SylvieGuide.razor": {
+    "mtime": 1785232235.099763,
+    "ast_hash": "337b6de6a4dc056399c3f9b95c473ff4",
+    "semantic_hash": ""
+  },
+  "tests/FellowshipAnalyzer.Core.Tests/Analysis/HealerPrimitiveTests.cs": {
+    "mtime": 1785233481.6481903,
+    "ast_hash": "d353c41aaae79b16e88d2e326ac54d41",
+    "semantic_hash": ""
+  },
+  "tests/FellowshipAnalyzer.Generators.Tests/BaseHandlerChainingTests.cs": {
+    "mtime": 1785233582.0127585,
+    "ast_hash": "79567b2b99d39ef4a6ae46723fe3e3c6",
+    "semantic_hash": ""
+  },
+  "tests/FellowshipAnalyzer.Heroes.Sylvie.Tests/Analysis/AbsorbAndDispelTests.cs": {
+    "mtime": 1785232795.4140954,
+    "ast_hash": "8179d3df32d4616d686cf70bf0c3f031",
+    "semantic_hash": ""
+  },
+  "tests/FellowshipAnalyzer.Heroes.Sylvie.Tests/Analysis/BlueyTrackerTests.cs": {
+    "mtime": 1785233449.0632648,
+    "ast_hash": "6970deaeb3b1706f5f7737e69f3d3594",
+    "semantic_hash": ""
+  },
+  "tests/FellowshipAnalyzer.Heroes.Sylvie.Tests/Analysis/FlutterflyHealingBuffAnalyzerTests.cs": {
+    "mtime": 1785232770.2513013,
+    "ast_hash": "1e61ae0f1984d668abd03a4718cc1505",
+    "semantic_hash": ""
+  },
+  "tests/FellowshipAnalyzer.Heroes.Sylvie.Tests/Analysis/HeartBloomRampAnalyzerTests.cs": {
+    "mtime": 1785233441.0748143,
+    "ast_hash": "21f22add8fbc968a41e5fac83d9b5e65",
+    "semantic_hash": ""
+  },
+  "tests/FellowshipAnalyzer.Heroes.Sylvie.Tests/Analysis/LifePetalAnalyzerTests.cs": {
+    "mtime": 1785232747.8178875,
+    "ast_hash": "12497eca92f2824c429a9c87e4ca1083",
+    "semantic_hash": ""
+  },
+  "tests/FellowshipAnalyzer.Heroes.Sylvie.Tests/Analysis/ManaEfficiencyTests.cs": {
+    "mtime": 1785233040.9917107,
+    "ast_hash": "ce8820d0b4472e8cefd4540ed1ca0f1d",
+    "semantic_hash": ""
+  },
+  "tests/FellowshipAnalyzer.Heroes.Sylvie.Tests/Analysis/OverhealAnalyzerTests.cs": {
+    "mtime": 1785232665.995557,
+    "ast_hash": "3e50f984c4b92c24a39dfa0b3181c826",
+    "semantic_hash": ""
+  },
+  "tests/FellowshipAnalyzer.Heroes.Sylvie.Tests/Analysis/PinkButterflyTests.cs": {
+    "mtime": 1785232690.434819,
+    "ast_hash": "ab43a4ab2a723fcaa53099a053a5aa68",
+    "semantic_hash": ""
+  },
+  "tests/FellowshipAnalyzer.Heroes.Sylvie.Tests/Analysis/SylvieAnalysisFixture.cs": {
+    "mtime": 1785232651.7120368,
+    "ast_hash": "d84ac1f6ba069d488a80f08ac98b953d",
+    "semantic_hash": ""
+  },
+  "tests/FellowshipAnalyzer.Core.Tests/Analysis/HealingEfficiencyFoldingTests.cs": {
+    "mtime": 1785234938.3981693,
+    "ast_hash": "32590de4aa48582930cd113474e2d8a8",
+    "semantic_hash": ""
+  },
+  "src/Heroes/FellowshipAnalyzer.Heroes.Tariq/Guides/EmpowermentWindowsGuide.razor": {
+    "mtime": 1785241964.7970562,
+    "ast_hash": "fd9685527ad6d7029b8a74e0f2e152e4",
+    "semantic_hash": ""
+  },
+  "src/Heroes/FellowshipAnalyzer.Heroes.Tariq/Guides/FocusedWrathGuide.razor": {
+    "mtime": 1785241988.7644365,
+    "ast_hash": "43ab446b6f1d251ac67dad8a24f3c8ac",
     "semantic_hash": ""
   }
 }
