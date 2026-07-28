@@ -67,7 +67,7 @@ public sealed partial class AmethystGemAnalyzer : Analyzer, IGemAnalyzer
     [On<HealEvent>(By = Actor.Player)]
     private void OnCriticalHeal(HealEvent healEvent)
     {
-        if (healEvent.HitType is HitType.Crit or HitType.GreviousCrit)
+        if (healEvent.HitType is HitType.Crit or HitType.GrievousCrit)
             CriticalHealing += healEvent.Amount;
     }
 

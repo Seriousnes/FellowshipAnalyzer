@@ -36,5 +36,5 @@ public class DamageEvent : Event, IAbilityEvent, IHasSourceWithInstanceEvent, IH
     /// <summary>The hit's damage before mitigation was applied.</summary>
     public virtual long UnmitigatedAmount { get; set; }
     /// <summary>Indicates whether the hit was a critical hit.</summary>
-    public bool IsCritical => HitType is HitType.Crit or HitType.GreviousCrit;
+    public bool IsCritical => HitType is HitType.Crit or HitType.GrievousCrit;
 }

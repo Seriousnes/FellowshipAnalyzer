@@ -13,14 +13,14 @@ public class Abilities : CoreAbilities
         {
             PrimarySpell = Spells.FluttercallHeal,
             AdditionalSpells = [Spells.FluttercallHealHot],
-            Category = SpellCategory.Rotational,
+            Category = SpellCategory.Healing,
             Gcd = StandardGcd,
         },
         new()
         {
             PrimarySpell = Spells.FluttercallRestoreLife,
             AdditionalSpells = [Spells.FluttercallRestoreLifeHot, Spells.FluttercallRestoreLifeFlashHeal],
-            Category = SpellCategory.Rotational,
+            Category = SpellCategory.Healing,
             Gcd = StandardGcd,
         },
         new()

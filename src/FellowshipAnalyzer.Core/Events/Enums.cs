@@ -19,7 +19,7 @@ public enum HitType
     /// <summary>The attack was parried, dealing no damage.</summary>
     Parry = 8,
     /// <summary>Guarantee crit dealing additional damage based on crit chance.</summary>
-    GreviousCrit = 22
+    GrievousCrit = 22
 }
 
 /// <summary>The kind of actor an event's source or target is.</summary>

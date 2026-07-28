@@ -15,6 +15,9 @@ public enum SpellCategory
     /// <summary>A core rotational ability used against multiple targets.</summary>
     RotationalAoe,
 
+    /// <summary>A core healing ability a healer casts to keep the party alive, as opposed to a longer-recharge healing <see cref="Cooldowns"/>.</summary>
+    Healing,
+
     /// <summary>A longer-recharge ability used for burst or major effects.</summary>
     Cooldowns,
 
