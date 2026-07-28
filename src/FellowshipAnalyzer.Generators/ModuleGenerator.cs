@@ -12,6 +12,11 @@ namespace FellowshipAnalyzer.Generators;
 /// for any <see cref="OnAttribute{TEvent}"/> handlers declared on the class, and a cached
 /// private accessor for every primary-constructor parameter of type <c>Lazy&lt;TModule&gt;</c>.
 /// One hand-written module file produces exactly one generated partial file.
+/// <para>
+/// The override always chains to <c>base.RegisterAttributeSubscriptions()</c> first, so a module
+/// that declares its own handlers keeps the ones its base class declares. The base implementation on
+/// <c>EventSubscriber</c> is empty, so the call costs nothing when there is nothing to inherit.
+/// </para>
 /// </summary>
 [Generator]
 public sealed class ModuleGenerator : IIncrementalGenerator
@@ -192,8 +197,6 @@ public sealed class ModuleGenerator : IIncrementalGenerator
         if (handlers.Count == 0 && lazyAccessors.Length == 0 && usesDeps.Length == 0 && diagnostics.Count == 0)
             return null;
 
-        var hasEventSubscriberBaseWithAttributes = inheritsEventSubscriber && AnyBaseHasOnAttributes(symbol);
-
         var containingTypes = ImmutableArray.CreateBuilder<string>();
         var outer = symbol.ContainingType;
         while (outer is not null)
@@ -209,7 +212,6 @@ public sealed class ModuleGenerator : IIncrementalGenerator
             handlers.ToImmutable(),
             lazyAccessors,
             usesDeps,
-            hasEventSubscriberBaseWithAttributes,
             diagnostics.ToImmutable());
     }
 
@@ -331,25 +333,6 @@ public sealed class ModuleGenerator : IIncrementalGenerator
     {
         var camel = char.ToLowerInvariant(typeName[0]) + typeName.Substring(1);
         return SyntaxFacts.GetKeywordKind(camel) == SyntaxKind.None ? camel : "@" + camel;
-    }
-
-    private static bool AnyBaseHasOnAttributes(INamedTypeSymbol symbol)
-    {
-        var current = symbol.BaseType;
-        while (current is not null && current.SpecialType != SpecialType.System_Object)
-        {
-            if (current.Name == "EventSubscriber" || current.Name == "Module") break;
-            foreach (var member in current.GetMembers())
-            {
-                if (member is not IMethodSymbol method) continue;
-                foreach (var attr in method.GetAttributes())
-                {
-                    if (IsOnAttribute(attr)) return true;
-                }
-            }
-            current = current.BaseType;
-        }
-        return false;
     }
 
     private static bool IsOnAttribute(AttributeData attr) =>
@@ -796,9 +779,7 @@ public sealed class ModuleGenerator : IIncrementalGenerator
             sb.Append(bodyIndent).AppendLine("/// <inheritdoc/>");
             sb.Append(bodyIndent).AppendLine("protected override void RegisterAttributeSubscriptions()");
             sb.Append(bodyIndent).AppendLine("{");
-            if (info.BaseHasAttributeHandlers)
-                sb.Append(bodyIndent).AppendLine("    base.RegisterAttributeSubscriptions();");
-
+            sb.Append(bodyIndent).AppendLine("    base.RegisterAttributeSubscriptions();");
             sb.Append(bodyIndent).AppendLine("    var __owner = Owner;");
             sb.Append(bodyIndent).AppendLine("    var __emitter = __owner.EventEmitter;");
 
@@ -918,7 +899,6 @@ public sealed class ModuleGenerator : IIncrementalGenerator
             ImmutableArray<HandlerInfo> handlers,
             ImmutableArray<LazyAccessorInfo> lazyAccessors,
             ImmutableArray<UsesDepInfo> usesDeps,
-            bool baseHasAttributeHandlers,
             ImmutableArray<PendingDiagnostic> diagnostics)
         {
             ClassName = className;
@@ -927,7 +907,6 @@ public sealed class ModuleGenerator : IIncrementalGenerator
             Handlers = handlers;
             LazyAccessors = lazyAccessors;
             UsesDeps = usesDeps;
-            BaseHasAttributeHandlers = baseHasAttributeHandlers;
             Diagnostics = diagnostics;
         }
         public string ClassName { get; }
@@ -936,7 +915,6 @@ public sealed class ModuleGenerator : IIncrementalGenerator
         public ImmutableArray<HandlerInfo> Handlers { get; }
         public ImmutableArray<LazyAccessorInfo> LazyAccessors { get; }
         public ImmutableArray<UsesDepInfo> UsesDeps { get; }
-        public bool BaseHasAttributeHandlers { get; }
         public ImmutableArray<PendingDiagnostic> Diagnostics { get; }
     }
 
