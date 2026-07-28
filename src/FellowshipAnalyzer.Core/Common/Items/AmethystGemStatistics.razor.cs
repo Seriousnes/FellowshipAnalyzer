@@ -11,8 +11,7 @@ namespace FellowshipAnalyzer.Core.Analysis.Gems;
 /// and Reaper's Reprieve, a heal-over-time with its own heal events. The remaining traits are flat critical
 /// strike rating and chance, which the log records only as already applied.
 /// </summary>
-public sealed partial class AmethystGemAnalyzer(Lazy<ThroughputTracker> throughputTracker)
-    : Analyzer, IGemAnalyzer
+public sealed partial class AmethystGemAnalyzer : Analyzer, IGemAnalyzer
 {
     /// <summary>Increases the damage and healing of critical strikes, by 2% at rank 5 and 6% at rank 10.</summary>
     public static readonly GemTrait BlessingOfTheDeathdealer = new(
@@ -29,9 +28,6 @@ public sealed partial class AmethystGemAnalyzer(Lazy<ThroughputTracker> throughp
 
     /// <inheritdoc/>
     public int GemPower => Owner.SelectedCombatant.Amethyst;
-
-    /// <inheritdoc/>
-    public ThroughputTracker Throughput => throughputTracker.Value;
 
     /// <summary>The critical power bonus the unlocked rank of Blessing of the Deathdealer grants, as a fraction.</summary>
     public double CriticalPowerBonus =>

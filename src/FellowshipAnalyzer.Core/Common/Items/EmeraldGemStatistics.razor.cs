@@ -11,8 +11,7 @@ namespace FellowshipAnalyzer.Core.Analysis.Gems;
 /// expertise rating and percentage plus Blessing of the Commander's ability cooldown reduction, which
 /// <see cref="StatTracker"/> folds into the cooldown pools rather than reporting as output.
 /// </summary>
-public sealed partial class EmeraldGemAnalyzer(Lazy<ThroughputTracker> throughputTracker)
-    : Analyzer, IGemAnalyzer
+public sealed partial class EmeraldGemAnalyzer : Analyzer, IGemAnalyzer
 {
     /// <summary>Reapplies a shield worth a share of the player's maximum health on a timer.</summary>
     public static readonly GemTrait SentinelsBastion = new(
@@ -24,9 +23,6 @@ public sealed partial class EmeraldGemAnalyzer(Lazy<ThroughputTracker> throughpu
 
     /// <inheritdoc/>
     public int GemPower => Owner.SelectedCombatant.Emerald;
-
-    /// <inheritdoc/>
-    public ThroughputTracker Throughput => throughputTracker.Value;
 
     /// <summary>Damage the Sentinel's Bastion shield absorbed over the fight.</summary>
     public long SentinelsBastionAbsorbed { get; private set; }

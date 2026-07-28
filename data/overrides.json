@@ -282,6 +282,54 @@
       "kind": "effect",
       "name": "Ancestral Surge - II",
       "note": "GE_GemBonus_PrimaryAttributeBonusWhileHeroismMedium, the Sapphire rank 6 replacement of AncestralSurge."
+    },
+    "ResonatingSoul": {
+      "id": 129,
+      "kind": "ability",
+      "name": "Resonating Soul",
+      "note": "GA_GemBonus_IncomingHealMultiplierForMissingHealth_Small, the Sapphire rank 3 missing-health damage reduction. The source carries no name for it; taken from gear_data Gems.Sapphire.Ranks. Passive, so it emits no events and is estimated from the player's health at each hit taken."
+    },
+    "ResonatingSoulII": {
+      "id": 130,
+      "kind": "ability",
+      "name": "Resonating Soul - II",
+      "note": "GA_GemBonus_IncomingHealMultiplierForMissingHealth_Medium, the Sapphire rank 8 replacement of ResonatingSoul."
+    },
+    "MightOfTheMinotaur": {
+      "id": 1921,
+      "kind": "effect",
+      "name": "Might of the Minotaur",
+      "note": "GE_GemBonus_PrimaryAttributeBonusWhenHealthySmall, the Ruby rank 1 primary-attribute buff active above a health threshold."
+    },
+    "MightOfTheMinotaurII": {
+      "id": 1922,
+      "kind": "effect",
+      "name": "Might of the Minotaur - II",
+      "note": "GE_GemBonus_PrimaryAttributeBonusWhenHealthyMedium, the Ruby rank 6 replacement of MightOfTheMinotaur."
+    },
+    "BlessingOfTheConqueror": {
+      "id": 2025,
+      "kind": "ability",
+      "name": "Blessing of the Conqueror",
+      "note": "GA_GemBonus_DamageHealingAbsorbBonusInBossBattle_Small, the Ruby rank 5 boss-battle output bonus. The source carries no name for it; taken from gear_data Gems.Ruby.Ranks. Registered alongside the EssenceOfTheConqueror buff below, which is what marks the windows the bonus applied over."
+    },
+    "BlessingOfTheConquerorII": {
+      "id": 2026,
+      "kind": "ability",
+      "name": "Blessing of the Conqueror - II",
+      "note": "GA_GemBonus_DamageHealingAbsorbBonusInBossBattle_Medium, the Ruby rank 10 replacement of BlessingOfTheConqueror."
+    },
+    "EssenceOfTheConqueror": {
+      "id": 1951,
+      "kind": "effect",
+      "name": "Essence of the Conqueror",
+      "note": "GE_GemBonus_DamageHealingAbsorbBonusInBossBattleSmall, the buff Blessing of the Conqueror applies while the player is in combat with a boss."
+    },
+    "EssenceOfTheConquerorII": {
+      "id": 1952,
+      "kind": "effect",
+      "name": "Essence of the Conqueror - II",
+      "note": "GE_GemBonus_DamageHealingAbsorbBonusInBossBattleMedium, the rank 10 buff, applied by BlessingOfTheConquerorII."
     }
   },
   "mara": {

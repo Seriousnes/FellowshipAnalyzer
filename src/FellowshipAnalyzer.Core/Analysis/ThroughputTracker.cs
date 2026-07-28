@@ -27,7 +27,7 @@ public sealed partial class ThroughputTracker : Analyzer
     public long TotalAbsorbed { get; private set; }
 
     /// <summary>The analyzed fight's duration in milliseconds.</summary>
-    public int FightDurationMs => Owner.FightEndTime - Owner.FightStartTime;
+    public int FightDurationMs => Owner.FightDurationMs;
 
     /// <summary>Damage per second across the fight.</summary>
     public double DamagePerSecond => PerSecond(TotalDamage);

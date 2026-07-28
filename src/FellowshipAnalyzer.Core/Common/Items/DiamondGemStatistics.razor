@@ -10,7 +10,8 @@
         </p>
     </Info>
     <ChildContent>
-        <GemTraitSection Trait="DiamondGemAnalyzer.HarmoniousSoul" GemPower="Analyzer.GemPower">
+        <GemTraitSection Trait="DiamondGemAnalyzer.HarmoniousSoul" GemPower="Analyzer.GemPower"
+                         Contributed="Analyzer.HarmoniousSoulUptimeMs > 0">
             <span>
                 @($"{Analyzer.HarmoniousSoulUptimeMs / 1000d:0.0}s")
                 <small>@($"{Analyzer.HarmoniousSoulUptime:P0}") of the fight</small>

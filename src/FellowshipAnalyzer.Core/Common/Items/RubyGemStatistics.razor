@@ -4,13 +4,36 @@
 <GemStatisticCard Gem="Analyzer">
     <Info>
         <p>
-            Ruby's ranks grant primary attribute, stamina, and health. Only its health regeneration produces
-            events of its own; the rest raise stats the log records as already applied.
+            Ruby's ranks grant primary attribute, stamina, and health. Might of the Minotaur raises a stat the
+            log records only as already applied, so it reads as the time it held. Blessing of the Conqueror is
+            a multiplier over everything you did while Essence of the Conqueror was up, making the share it
+            added <em>amount &#215; bonus &#247; (1 + bonus)</em>.
         </p>
     </Info>
     <ChildContent>
-        <GemTraitSection Trait="RubyGemAnalyzer.UnyieldingVitality" GemPower="Analyzer.GemPower">
+        <GemTraitSection Trait="RubyGemAnalyzer.MightOfTheMinotaur" GemPower="Analyzer.GemPower"
+                         Contributed="Analyzer.MightOfTheMinotaurUptimeMs > 0">
+            <span>
+                @($"{Analyzer.MightOfTheMinotaurUptimeMs / 1000d:0.0}s")
+                <small>@($"{Analyzer.MightOfTheMinotaurUptime:P0}") of the fight</small>
+            </span>
+        </GemTraitSection>
+
+        <GemTraitSection Trait="RubyGemAnalyzer.UnyieldingVitality" GemPower="Analyzer.GemPower"
+                         Contributed="Analyzer.UnyieldingVitalityHealing > 0">
             <ItemHealingDone Amount="Analyzer.UnyieldingVitalityHealing" />
+        </GemTraitSection>
+
+        <GemTraitSection Trait="RubyGemAnalyzer.BlessingOfTheConqueror" GemPower="Analyzer.GemPower"
+                         Contributed="Analyzer.ConquerorWindowDamage > 0 || Analyzer.ConquerorWindowHealing > 0">
+            @if (Analyzer.ConquerorWindowDamage > 0)
+            {
+                <ItemDamageDone Amount="Analyzer.ConquerorDamage" />
+            }
+            @if (Analyzer.ConquerorWindowHealing > 0)
+            {
+                <ItemHealingDone Amount="Analyzer.ConquerorHealing" />
+            }
         </GemTraitSection>
     </ChildContent>
 </GemStatisticCard>

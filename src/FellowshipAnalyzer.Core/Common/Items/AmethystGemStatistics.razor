@@ -10,7 +10,8 @@
         </p>
     </Info>
     <ChildContent>
-        <GemTraitSection Trait="AmethystGemAnalyzer.BlessingOfTheDeathdealer" GemPower="Analyzer.GemPower">
+        <GemTraitSection Trait="AmethystGemAnalyzer.BlessingOfTheDeathdealer" GemPower="Analyzer.GemPower"
+                         Contributed="Analyzer.CriticalDamage > 0 || Analyzer.CriticalHealing > 0">
             @if (Analyzer.CriticalDamage > 0)
             {
                 <ItemDamageDone Amount="Analyzer.CriticalPowerDamage" />
@@ -21,7 +22,8 @@
             }
         </GemTraitSection>
 
-        <GemTraitSection Trait="AmethystGemAnalyzer.ReapersReprieve" GemPower="Analyzer.GemPower">
+        <GemTraitSection Trait="AmethystGemAnalyzer.ReapersReprieve" GemPower="Analyzer.GemPower"
+                         Contributed="Analyzer.ReapersReprieveHealing > 0">
             <ItemHealingDone Amount="Analyzer.ReapersReprieveHealing" />
         </GemTraitSection>
     </ChildContent>

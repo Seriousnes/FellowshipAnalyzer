@@ -1,0 +1,16 @@
+@using FellowshipAnalyzer.Core.Analysis
+
+<ItemThroughput Icon="shield-half" Accent="buff" Approximate="Approximate"
+                Rate="@($"{ThroughputFormat.Rate(Throughput.PerSecond(Amount))} reduced/s")"
+                Detail="@($"{ThroughputFormat.Total(Amount)} total")" />
+
+@code {
+    /// <summary>The damage this source kept the player from taking over the fight.</summary>
+    [Parameter, EditorRequired] public long Amount { get; set; }
+
+    /// <summary>The fight totals the rate is computed against, cascaded by the enclosing card.</summary>
+    [CascadingParameter] public ThroughputTracker Throughput { get; set; } = null!;
+
+    /// <summary>Marks the figure as an estimate.</summary>
+    [Parameter] public bool Approximate { get; set; }
+}

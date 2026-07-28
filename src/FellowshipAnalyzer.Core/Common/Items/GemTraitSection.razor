@@ -1,6 +1,6 @@
 @using FellowshipAnalyzer.Core.Analysis.Gems
 
-@if (Trait.ActiveRank(GemPower) is { } rank)
+@if (Contributed && Trait.ActiveRank(GemPower) is { } rank)
 {
     <div class="gem-trait">
         <div class="gem-trait-name">
@@ -18,6 +18,9 @@
 
     /// <summary>The player's power in the owning gem, deciding the rank shown and whether this section renders.</summary>
     [Parameter, EditorRequired] public int GemPower { get; set; }
+
+    /// <summary>Whether the log recorded anything for this trait. A trait that contributed nothing is left out.</summary>
+    [Parameter] public bool Contributed { get; set; } = true;
 
     /// <summary>What this trait contributed, one readout per line.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }

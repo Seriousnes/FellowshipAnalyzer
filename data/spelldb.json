@@ -4203,6 +4203,18 @@
       "name": "Ancestral Surge - II",
       "icon": "T_Icon_Energy_130.jpg"
     },
+    "BlessingOfTheConqueror": {
+      "kind": "ability",
+      "id": 2025,
+      "name": "Blessing of the Conqueror",
+      "icon": ""
+    },
+    "BlessingOfTheConquerorII": {
+      "kind": "ability",
+      "id": 2026,
+      "name": "Blessing of the Conqueror - II",
+      "icon": ""
+    },
     "BlessingOfTheDeathdealer": {
       "kind": "effect",
       "id": 1955,
@@ -4214,6 +4226,18 @@
       "id": 1956,
       "name": "Blessing of the Deathdealer - II",
       "icon": ""
+    },
+    "EssenceOfTheConqueror": {
+      "kind": "effect",
+      "id": 1951,
+      "name": "Essence of the Conqueror",
+      "icon": "T_Nhance_RPG_Icons_BloodHide.jpg"
+    },
+    "EssenceOfTheConquerorII": {
+      "kind": "effect",
+      "id": 1952,
+      "name": "Essence of the Conqueror - II",
+      "icon": "T_Nhance_RPG_Icons_BloodHide.jpg"
     },
     "FatedStrike": {
       "kind": "ability",
@@ -4240,6 +4264,18 @@
       "name": "Harmonious Soul - II",
       "icon": "T_Nhance_RPG_Arcane_19.jpg"
     },
+    "MightOfTheMinotaur": {
+      "kind": "effect",
+      "id": 1921,
+      "name": "Might of the Minotaur",
+      "icon": "T_Nhance_RPG_Icons_InfernalMadness.jpg"
+    },
+    "MightOfTheMinotaurII": {
+      "kind": "effect",
+      "id": 1922,
+      "name": "Might of the Minotaur - II",
+      "icon": "T_Nhance_RPG_Icons_InfernalMadness.jpg"
+    },
     "ReapersReprieve": {
       "kind": "effect",
       "id": 1930,
@@ -4251,6 +4287,18 @@
       "id": 1931,
       "name": "Reaper\u0027s Reprieve - II",
       "icon": "T_Nhance_RPG_Icons_ArcaneSmoke.jpg"
+    },
+    "ResonatingSoul": {
+      "kind": "ability",
+      "id": 129,
+      "name": "Resonating Soul",
+      "icon": ""
+    },
+    "ResonatingSoulII": {
+      "kind": "ability",
+      "id": 130,
+      "name": "Resonating Soul - II",
+      "icon": ""
     },
     "RoguesResurgence": {
       "kind": "effect",

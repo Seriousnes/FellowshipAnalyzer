@@ -10,8 +10,7 @@ namespace FellowshipAnalyzer.Core.Analysis.Gems;
 /// an emergency heal that fires when the player drops below half health. Topaz's other ranks raise haste
 /// rating and percentage, which the log records only as already applied.
 /// </summary>
-public sealed partial class TopazGemAnalyzer(Lazy<ThroughputTracker> throughputTracker)
-    : Analyzer, IGemAnalyzer
+public sealed partial class TopazGemAnalyzer : Analyzer, IGemAnalyzer
 {
     /// <summary>Heals the player when they drop below half health, on its own cooldown.</summary>
     public static readonly GemTrait RoguesResurgence = new(
@@ -23,9 +22,6 @@ public sealed partial class TopazGemAnalyzer(Lazy<ThroughputTracker> throughputT
 
     /// <inheritdoc/>
     public int GemPower => Owner.SelectedCombatant.Topaz;
-
-    /// <inheritdoc/>
-    public ThroughputTracker Throughput => throughputTracker.Value;
 
     /// <summary>Effective healing Rogue's Resurgence did over the fight.</summary>
     public long RoguesResurgenceHealing { get; private set; }

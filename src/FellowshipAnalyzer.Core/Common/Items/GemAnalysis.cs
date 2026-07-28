@@ -80,6 +80,19 @@ public sealed record GemTrait(Spell BaseRank, int BaseRankPower, Spell UpgradedR
         IsUpgraded(gemPower) ? upgraded
         : IsUnlocked(gemPower) ? based
         : locked;
+
+    /// <summary>
+    /// Every window of this trait's unlocked rank on <paramref name="unit"/>, clipped to
+    /// <paramref name="from"/>..<paramref name="to"/>. Reads the windows <see cref="Combatants"/> tracks, so
+    /// a rank the player entered the fight already carrying counts from the start and one still active at the
+    /// end closes there. Empty while the trait is locked.
+    /// </summary>
+    public IEnumerable<AuraWindow> WindowsOn(Entity unit, int gemPower, int from, int to) =>
+        ActiveRank(gemPower) is { } rank ? unit.GetAuraWindows(rank.FSLID, from, to) : [];
+
+    /// <summary>Total time this trait's unlocked rank was active on <paramref name="unit"/> over the fight, in milliseconds.</summary>
+    public int UptimeOn(Entity unit, int gemPower, int from, int to) =>
+        WindowsOn(unit, gemPower, from, to).Sum(window => window.Duration);
 }
 
 /// <summary>

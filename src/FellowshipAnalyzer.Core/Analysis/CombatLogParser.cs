@@ -76,6 +76,9 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
     /// <summary>The analyzed fight's end time, from <see cref="Fight"/>.</summary>
     public int FightEndTime => (int)Fight.EndTime;
 
+    /// <summary>The analyzed fight's duration in milliseconds.</summary>
+    public int FightDurationMs => FightEndTime - FightStartTime;
+
     /// <summary>
     /// Report-level actor name lookup, keyed by actor ID.
     /// Set by the host (e.g. Report.razor) before <see cref="Analyze"/> is called.
