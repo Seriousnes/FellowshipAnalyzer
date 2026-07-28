@@ -1,0 +1,127 @@
+@inherits ReportComponent<HelenaCombatLogParser>
+
+<GuideSection Title="Lingering Concussion">
+    <Explanation>
+        <p>
+            Every <SpellLink Spell="Spells.ShieldSlam" /> leaves Lingering Concussion on what it hits,
+            taking 3% off everything that target deals to you and stacking to five for a 15% cut. It
+            lasts twelve seconds, so holding it is a question of whether Shield Slam kept coming back
+            round rather than of anything you press in reaction.
+        </p>
+        <p>
+            Uptime and stacks are read against whichever enemy carried the debuff longest, so a pull's
+            reading follows the thing actually hitting you rather than being diluted by adds that
+            passed through. Time spent under five stacks is time the debuff was up but not yet paying
+            what it can.
+        </p>
+    </Explanation>
+    <ChildContent>
+        <CastOverview Title="Overview" Stats="@BuildOverviewStats()" />
+        <CastDetail Title="Lingering Concussion By Pull"
+                    Description="Uptime, stack time and gaps against each pull's primary target."
+                    Casts="@BuildPerPullData()" />
+    </ChildContent>
+</GuideSection>
+
+@code {
+    private IEnumerable<OverviewStat> BuildOverviewStats()
+    {
+        var analyzers = Parser.LingeringConcussionAnalyzers
+            .Where(entry => entry.Analyzer is LingeringConcussionAnalyzer)
+            .Select(entry => (entry.Pull, Analyzer: (LingeringConcussionAnalyzer)entry.Analyzer))
+            .ToList();
+        if (analyzers.Count == 0) return [];
+
+        var pullMs = analyzers.Sum(entry => (long)(entry.Pull.EndTime - entry.Pull.StartTime));
+        if (pullMs == 0) return [];
+
+        var covered = analyzers.Sum(entry => (long)entry.Analyzer.CoveredMs);
+        var atCap = analyzers.Sum(entry => (long)entry.Analyzer.AtCapMs);
+        var gaps = analyzers.Sum(entry => entry.Analyzer.GapCount);
+        var reduction = analyzers.Sum(entry =>
+            entry.Analyzer.AverageReduction * (entry.Pull.EndTime - entry.Pull.StartTime)) / pullMs;
+
+        var uptime = covered / (double)pullMs * 100;
+        var capUptime = atCap / (double)pullMs * 100;
+
+        return
+        [
+            new OverviewStat(
+                $"{uptime:F1}%",
+                "Uptime",
+                "Share of pull time the primary target carried the debuff at any stack count.",
+                PerformanceTiers.FromThresholds(uptime, 90, 75, 55)),
+            new OverviewStat(
+                $"{capUptime:F1}%",
+                "At Five Stacks",
+                "Share of pull time the primary target sat at the five-stack cap, where the debuff is worth its full 15%.",
+                PerformanceTiers.FromThresholds(capUptime, 70, 50, 30)),
+            new OverviewStat(
+                $"{reduction * 100:F1}%",
+                "Average Reduction",
+                "The damage reduction the debuff averaged across every pull, against the 15% five stacks allow.",
+                PerformanceTiers.FromThresholds(reduction / (LingeringConcussionAnalyzer.MaxStacks * LingeringConcussionAnalyzer.ReductionPerStack) * 100, 70, 50, 30)),
+            new OverviewStat(
+                $"{gaps}",
+                "Gaps",
+                "Stretches where the debuff came off the primary target and had to be reapplied."),
+        ];
+    }
+
+    private IEnumerable<PerCastData> BuildPerPullData() =>
+        Parser.LingeringConcussionAnalyzers.ToPullRows(Parser, (surface, pull) =>
+        {
+            var analyzer = (LingeringConcussionAnalyzer)surface;
+            return new PerCastRow
+            {
+                Performance = PerformanceTiers.FromThresholds(analyzer.Uptime * 100, 90, 75, 55),
+                Stats = BuildPullStats(analyzer),
+                Details = analyzer.PrimaryTarget is null
+                    ? @<div>The debuff never landed in this pull.</div>
+                    : null,
+            };
+        });
+
+    private static PerCastStat[] BuildPullStats(LingeringConcussionAnalyzer analyzer)
+    {
+        var stats = new List<PerCastStat>
+        {
+            new(
+                $"{analyzer.Uptime * 100:F1}%",
+                "Uptime",
+                "Share of the pull the primary target carried the debuff.",
+                PerformanceTiers.FromThresholds(analyzer.Uptime * 100, 90, 75, 55)),
+            new(
+                $"{analyzer.AtCapUptime * 100:F1}%",
+                "At Five Stacks",
+                "Share of the pull the primary target sat at the cap.",
+                PerformanceTiers.FromThresholds(analyzer.AtCapUptime * 100, 70, 50, 30)),
+            new(
+                $"{analyzer.PeakStacks}/{LingeringConcussionAnalyzer.MaxStacks}",
+                "Peak Stacks",
+                "The highest stack count the primary target reached.",
+                analyzer.PeakStacks >= LingeringConcussionAnalyzer.MaxStacks
+                    ? QualitativePerformance.Perfect
+                    : QualitativePerformance.Ok),
+        };
+
+        if (analyzer.BelowCapMs > 0)
+        {
+            stats.Add(new PerCastStat(
+                $"{analyzer.BelowCapMs / 1000d:F1}s",
+                "Under The Cap",
+                "Time the debuff was up but short of five stacks, so paying less than the 15% it can."));
+        }
+
+        if (analyzer.GapCount > 0)
+        {
+            stats.Add(new PerCastStat(
+                $"{analyzer.GapCount}",
+                "Gaps",
+                $"Stretches with the debuff off the target, totalling {analyzer.TotalGapMs / 1000d:F1}s.",
+                PerformanceTiers.FromThresholds(-analyzer.GapCount, 0, -2, -5)));
+        }
+
+        return [.. stats];
+    }
+}

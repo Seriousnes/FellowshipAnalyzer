@@ -60,8 +60,9 @@ public class Abilities : CoreAbilities
         new()
         {
             PrimarySpell = Spells.IronWall,
-            Category = SpellCategory.Cooldowns,
+            Category = SpellCategory.Defensive,
             Gcd = null,
+            IsDefensive = true,
         },
         new()
         {

@@ -1,0 +1,79 @@
+@inherits ReportComponent<HelenaCombatLogParser>
+
+<GuideSection Title="Empowered Shield Slam">
+    <Explanation>
+        <p>
+            <SpellLink Spell="Spells.HoldTheLine" /> empowers your next
+            <SpellLink Spell="Spells.ShieldSlam" />, and that Shield Slam lays a barrier on you. The
+            barrier reports how much absorb it still held when it came off, so the part of it you never
+            used is a measurement rather than a guess.
+        </p>
+        <p>
+            An empowerment that fell off before a Shield Slam spent it is the other half of the same
+            picture: the barrier was offered and never laid.
+        </p>
+    </Explanation>
+    <ChildContent>
+        <CastOverview Title="Overview" Stats="@BuildOverviewStats()" />
+        <CastDetail Title="Barriers By Pull"
+                    Description="What each pull's barriers absorbed, and what expired on them."
+                    Casts="@BuildPerPullData()" />
+    </ChildContent>
+</GuideSection>
+
+@code {
+    private IEnumerable<OverviewStat> BuildOverviewStats()
+    {
+        var analyzers = Parser.EmpoweredShieldSlamAnalyzers.Select(entry => entry.Analyzer).ToList();
+        var granted = analyzers.Sum(analyzer => analyzer.EmpowermentsGranted);
+        if (granted == 0) return [];
+
+        var consumed = analyzers.Sum(analyzer => analyzer.EmpowermentsConsumed);
+        var used = analyzers.Sum(analyzer => analyzer.AbsorbUsed);
+        var wasted = analyzers.Sum(analyzer => analyzer.AbsorbWasted);
+        var expired = analyzers.Sum(analyzer => analyzer.BarriersExpiredUnspent);
+        var offered = used + wasted;
+        var efficiency = offered > 0 ? used / (double)offered * 100 : 0;
+
+        return
+        [
+            new OverviewStat(
+                $"{consumed}/{granted}",
+                "Empowerments Spent",
+                "Empowerments a Shield Slam spent before they fell off.",
+                PerformanceTiers.FromThresholds(granted > 0 ? (double)consumed / granted * 100 : 0, 95, 85, 70)),
+            new OverviewStat(
+                $"{efficiency:F1}%",
+                "Absorb Used",
+                $"{used:N0} of the {offered:N0} the barriers offered was consumed before they expired.",
+                PerformanceTiers.FromThresholds(efficiency, 90, 75, 55)),
+            new OverviewStat(
+                $"{wasted:N0}",
+                "Absorb Expired",
+                $"Absorb still on a barrier when it came off, across {expired} barriers."),
+        ];
+    }
+
+    private IEnumerable<PerCastData> BuildPerPullData() =>
+        Parser.EmpoweredShieldSlamAnalyzers.ToPullRows(Parser, (analyzer, pull) => new PerCastRow
+        {
+            Performance = PerformanceTiers.FromThresholds(analyzer.AbsorbEfficiency * 100, 90, 75, 55),
+            Stats =
+            [
+                new PerCastStat(
+                    $"{analyzer.EmpowermentsConsumed}/{analyzer.EmpowermentsGranted}",
+                    "Empowerments Spent",
+                    $"Empowerments a Shield Slam spent this pull, across {analyzer.BarrierWindows} barrier windows.",
+                    PerformanceTiers.FromThresholds(analyzer.EmpowermentEfficiency * 100, 95, 85, 70)),
+                new PerCastStat(
+                    $"{analyzer.AbsorbEfficiency * 100:F0}%",
+                    "Absorb Used",
+                    $"{analyzer.AbsorbUsed:N0} consumed against {analyzer.AbsorbWasted:N0} left to expire.",
+                    PerformanceTiers.FromThresholds(analyzer.AbsorbEfficiency * 100, 90, 75, 55)),
+                new PerCastStat(
+                    $"{analyzer.BarriersExpiredUnspent}",
+                    "Expired Unspent",
+                    "Barriers that came off still holding absorb."),
+            ],
+        });
+}
