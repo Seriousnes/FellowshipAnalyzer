@@ -133,6 +133,27 @@ public sealed class EventDeserializationTests
     }
 
     /// <summary>
+    /// The death payload names the killer in <c>sourceID</c> and the ability that landed the killing blow
+    /// in <c>ability</c>; it carries no <c>killingAbility</c> key at all.
+    /// </summary>
+    [Fact]
+    public void Deserialize_DeathEvents_ShouldCarryTheKillerAndTheKillingBlow()
+    {
+        var deaths = DeserializeFixtureEvents().OfType<DeathEvent>().ToList();
+
+        deaths.ShouldNotBeEmpty();
+        foreach (var death in deaths)
+        {
+            death.SourceId.ShouldBeGreaterThan(0, $"DeathEvent at timestamp {death.Timestamp} has no killer");
+            death.TargetId.ShouldBeGreaterThan(0, $"DeathEvent at timestamp {death.Timestamp} has no victim");
+            death.Ability.ShouldNotBeNull();
+            death.Ability.FSLID.Value.ShouldBeGreaterThan(0);
+            death.Ability.Name.ShouldNotBeNullOrEmpty();
+            death.KillingAbility.ShouldBeNull();
+        }
+    }
+
+    /// <summary>
     /// Reproduces the exact WASM client-side deserialization path:
     /// server serializes EventsResult to JSON, WASM deserializes with Web options.
     /// </summary>

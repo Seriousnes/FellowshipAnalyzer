@@ -743,6 +743,20 @@ public sealed class ModuleGenerator : IIncrementalGenerator
             indent += "    ";
         }
 
+        if (info.UsesDeps.Length > 0)
+        {
+            sb.Append(indent).AppendLine("/// <summary>");
+            sb.Append(indent).AppendLine("/// Constructs the module, resolving each <c>[Dependency&lt;T&gt;]</c> sibling module through the");
+            sb.Append(indent).AppendLine("/// owning parser the first time its generated accessor is read.");
+            sb.Append(indent).AppendLine("/// </summary>");
+            foreach (var dep in info.UsesDeps)
+            {
+                sb.Append(indent).Append("/// <param name=\"").Append(dep.ParameterName)
+                  .Append("\">The lazily-resolved <see cref=\"").Append(dep.InnerTypeFullyQualified.Substring("global::".Length))
+                  .AppendLine("\"/> this module declared a dependency on.</param>");
+            }
+        }
+
         sb.Append(indent).Append("partial class ").Append(info.ClassName);
         if (info.UsesDeps.Length > 0)
         {

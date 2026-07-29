@@ -1,0 +1,238 @@
+@using FellowshipAnalyzer.Core.Analysis
+@using FellowshipAnalyzer.Core.Analysis.Deaths
+@using FellowshipAnalyzer.Core.Contracts.Design
+@using FellowshipAnalyzer.Core.Events
+@using FellowshipAnalyzer.Core.UI.Guides
+@inherits ReportComponent
+
+<RoundedPanel StartAligned="true">
+    <div class="death-card-header">
+        <span class="death-card-time">@Parser.FormatTimestamp(Death.Timestamp)</span>
+        <span class="death-card-blow">
+            Killed by <SpellLink Spell="@Death.KillingBlow" />
+            @if (KillerName is { Length: > 0 } killer)
+            {
+                <span class="death-card-killer">&mdash; @killer</span>
+            }
+        </span>
+        @if (EnemyAbilities.MaybeGet(Death.KillingBlow.Id) is { } classification)
+        {
+            <span class="death-card-tags">
+                @foreach (var tag in classification.Tags)
+                {
+                    <Badge Variant="BadgeVariant.Gold" Type="BadgeType.Outline" Size="BadgeSize.Sm">@TagLabel(tag)</Badge>
+                }
+            </span>
+        }
+    </div>
+
+    @if (Death.Pull is { } pull)
+    {
+        <PullBanner Pull="pull" />
+    }
+
+    <SubSection Title="@WindowTitle">
+        <div class="death-card-stats">
+            <StatTile Color="@FaVar.Danger" Value="@($"{Death.DamageTaken:N0}")" Label="Taken"
+                      Tooltip="@TakenTooltip" />
+            <StatTile Color="@FaVar.Steel" Value="@($"{Death.MitigatedShare * 100:F1}%")" Label="Mitigated"
+                      Tooltip="@MitigatedTooltip" />
+            <StatTile Color="@FaVar.FgNeutral" Value="@($"{Death.HealingReceived:N0}")" Label="Healed"
+                      Tooltip="Effective healing that landed on you inside this window, overheal excluded." />
+            <StatTile Color="@FaVar.FgNeutral" Value="@HealthText" Label="Health At Start"
+                      Tooltip="@HealthTooltip" />
+        </div>
+
+        @if (Death.HitCount == 0)
+        {
+            <HelperText>No damage was logged against you in this window.</HelperText>
+        }
+        else
+        {
+            <StackedBar Segments="@BuildSegments()" />
+
+            <table class="death-card-sources">
+                <thead>
+                    <tr>
+                        <th scope="col">Ability</th>
+                        <th scope="col" class="death-card-numeric">Hits</th>
+                        <th scope="col" class="death-card-numeric">Taken</th>
+                        <th scope="col" class="death-card-numeric" title="Damage reduction plus absorbs, as a share of what this ability's hits carried.">Mitigated</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var source in Death.BySource)
+                    {
+                        <tr>
+                            <td class="death-card-source">
+                                <SpellLink Spell="@AbilityFor(source.AbilityId)" />
+                                @if (EnemyAbilities.MaybeGet(source.AbilityId) is { } sourceClassification)
+                                {
+                                    @foreach (var tag in sourceClassification.Tags)
+                                    {
+                                        <Badge Variant="BadgeVariant.Gold" Type="BadgeType.Outline" Size="BadgeSize.Sm">@TagLabel(tag)</Badge>
+                                    }
+                                }
+                            </td>
+                            <td class="death-card-numeric">@source.Hits.ToString("N0")</td>
+                            <td class="death-card-numeric">@source.Taken.ToString("N0")</td>
+                            <td class="death-card-numeric">@($"{source.PreventedShare * 100:F0}%")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+            <HelperText>Mitigated is damage reduction plus absorbs. A block is counted inside it rather than beside it.</HelperText>
+        }
+    </SubSection>
+
+    <SubSection Title="Defensives And Healing">
+        @if (Death.Defensives.Count == 0)
+        {
+            <HelperText>Nothing in this hero's spellbook is a defensive or a heal with a cooldown.</HelperText>
+        }
+        else if (Death.Pressed.Count == 0 && Death.ActiveAtDeath.Count == 0 && Death.AvailableUnused.Count == 0)
+        {
+            <HelperText>Every defensive and heal was recharging at the death.</HelperText>
+        }
+        else
+        {
+            <ul class="death-card-defensives">
+                @foreach (var defensive in Death.Pressed)
+                {
+                    <li class="death-card-defensive">
+                        <PassFailCheckmark Pass="true" Size="15" Title="Cast inside this window" />
+                        <span class="death-card-defensive-name"><SpellLink Spell="@defensive.Ability" /></span>
+                        <span class="death-card-defensive-note">@PressedNote(defensive)</span>
+                    </li>
+                }
+                @foreach (var defensive in Death.ActiveAtDeath.Where(entry => !entry.Pressed))
+                {
+                    <li class="death-card-defensive">
+                        <PassFailCheckmark Pass="true" Size="15" Title="Active on you when you died" />
+                        <span class="death-card-defensive-name"><SpellLink Spell="@defensive.Ability" /></span>
+                        <span class="death-card-defensive-note">active at the death</span>
+                    </li>
+                }
+                @foreach (var defensive in Death.AvailableUnused)
+                {
+                    <li class="death-card-defensive unused">
+                        <PassFailCheckmark Pass="false" Size="15" Title="Held a charge and went uncast" />
+                        <span class="death-card-defensive-name"><SpellLink Spell="@defensive.Ability" /></span>
+                        <span class="death-card-defensive-note">@AvailableNote(defensive)</span>
+                    </li>
+                }
+            </ul>
+            <HelperText>
+                A crossed line held a charge through this window and was not cast. The log records no stun,
+                silence, range or line of sight, so an uncast ability is not on its own a mistake.
+                Abilities recharging at the death are left out.
+            </HelperText>
+        }
+    </SubSection>
+</RoundedPanel>
+
+@code {
+    private const int TopSourceCount = 5;
+
+    private static readonly string[] SegmentColors =
+    [
+        FaVar.Rust,
+        FaVar.Amber,
+        FaVar.BrandGold,
+        FaVar.Steel,
+        FaVar.Arcane,
+    ];
+
+    /// <summary>The death this card reports.</summary>
+    [Parameter, EditorRequired] public PlayerDeath Death { get; set; } = default!;
+
+    private Dictionary<int, Ability> _abilities = [];
+
+    protected override void OnParametersSet()
+    {
+        _abilities = [];
+        foreach (var hit in Death.Hits)
+            _abilities.TryAdd(hit.Ability.Id, hit.Ability);
+    }
+
+    private string? KillerName => Parser.ActorNames.GetValueOrDefault(Death.KillerId);
+
+    private string WindowTitle => $"Last {Death.WindowDurationMs / 1000d:F0} Seconds";
+
+    private string TakenTooltip =>
+        $"{Death.DamageTaken:N0} landed across {Death.HitCount:N0} hits" +
+        (Death.BlockedHits > 0 ? $", {Death.BlockedHits:N0} of them blocked." : ".");
+
+    private string MitigatedTooltip =>
+        $"{Death.Mitigated:N0} never landed: {Death.DamageReduction:N0} through damage reduction " +
+        $"and {Death.Absorbed:N0} absorbed." +
+        (Death.Blocked > 0 ? $" {Death.Blocked:N0} of that is attributed to a block." : "");
+
+    private string HealthText =>
+        Death is { HitPointsAtWindowStart: { } health, MaxHitPoints: > 0 }
+            ? $"{health / (double)Death.MaxHitPoints!.Value * 100:F0}%"
+            : "-";
+
+    private string HealthTooltip =>
+        Death is { HitPointsAtWindowStart: { } health, MaxHitPoints: { } max }
+            ? $"{health:N0} of {max:N0}, reconstructed from the first hit in this window."
+            : "No hit in this window carried a health reading.";
+
+    private Ability AbilityFor(int abilityId) =>
+        _abilities.GetValueOrDefault(abilityId) ?? Ability.UnknownAbility;
+
+    private IEnumerable<StackedBarSegment> BuildSegments()
+    {
+        var sources = Death.BySource;
+        var top = sources.Take(TopSourceCount).ToList();
+        var segments = new List<StackedBarSegment>(top.Count + 1);
+
+        for (var slot = 0; slot < top.Count; slot++)
+        {
+            var label = Label(top[slot]);
+            segments.Add(new StackedBarSegment(
+                label,
+                top[slot].Taken,
+                SegmentColors[slot],
+                $"{label}: {top[slot].Taken:N0} taken over {top[slot].Hits:N0} hits"));
+        }
+
+        var remaining = sources.Count - top.Count;
+        var other = sources.Skip(TopSourceCount).Sum(source => source.Taken);
+        if (other > 0)
+        {
+            segments.Add(new StackedBarSegment(
+                "Other",
+                other,
+                FaVar.Stone,
+                $"Other: {other:N0} taken across {remaining} further abilities"));
+        }
+
+        return segments;
+    }
+
+    private static string Label(DamageTakenSource source) =>
+        string.IsNullOrWhiteSpace(source.Name) ? $"Ability {source.AbilityId}" : source.Name;
+
+    private static string TagLabel(EnemyAbilityTag tag) => tag switch
+    {
+        EnemyAbilityTag.Avoidable => "Avoidable",
+        EnemyAbilityTag.Interruptible => "Interruptible",
+        EnemyAbilityTag.ShouldMitigate => "Hold a defensive",
+        _ => tag.ToString(),
+    };
+
+    private string PressedNote(DefensiveReadiness defensive)
+    {
+        var cast = defensive.LastCastTimestamp is { } timestamp
+            ? $"cast at {Parser.FormatTimestamp(timestamp)}"
+            : "cast in this window";
+
+        return defensive.ActiveAtDeath ? $"{cast}, active at the death" : cast;
+    }
+
+    private static string AvailableNote(DefensiveReadiness defensive) =>
+        defensive.ChargesAvailable > 1
+            ? $"{defensive.ChargesAvailable} charges available"
+            : "available";
+}
