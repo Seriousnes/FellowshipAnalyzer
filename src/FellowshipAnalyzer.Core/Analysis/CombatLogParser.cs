@@ -1,5 +1,6 @@
 using System.Globalization;
 
+using FellowshipAnalyzer.Core.Analysis.Deaths;
 using FellowshipAnalyzer.Core.Analysis.Gems;
 using FellowshipAnalyzer.Core.Analysis.Normalizers;
 using FellowshipAnalyzer.Core.Events;
@@ -33,6 +34,7 @@ namespace FellowshipAnalyzer.Core.Analysis;
 [AddModule<Haste>]
 [AddModule<GlobalCooldown>]
 [AddModule<SpellUsable>]
+[AddModule<DeathTracker>]
 [AddModule<ChronoshiftAnalyzer>]
 [AddModule<ThroughputTracker>]
 [AddState<AbilityTracker>]
