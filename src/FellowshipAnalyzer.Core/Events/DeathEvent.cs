@@ -5,8 +5,6 @@ namespace FellowshipAnalyzer.Core.Events;
 /// <summary>Raised when a unit dies, naming the ability that landed the killing blow.</summary>
 public class DeathEvent : Event, IAbilityEvent, IHasTargetWithInstanceEvent
 {
-    /// <summary>The ability whose hit killed the target.</summary>
-    public virtual Ability? KillingAbility { get; set; }
     /// <summary>The ability associated with this death event.</summary>
     public virtual Ability Ability { get; set; } = new();
     /// <summary>The <see cref="FSLID"/> of <see cref="Ability"/>.</summary>

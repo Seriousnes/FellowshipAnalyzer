@@ -102,7 +102,20 @@
         {
             Performance = PerformanceTiers.FromThresholds(analyzer.TopBandShare * 100, 90, 75, 55),
             Stats = BuildPullStats(analyzer),
+            AdditionalContent = BuildPullGraph(pull),
         });
+
+    private AdditionalContent? BuildPullGraph(Pull pull)
+    {
+        if (Parser.ToughnessTracker is not { Toughness: not null } tracker) return null;
+
+        var hasEvents = tracker.GetResourceEvents(ResourceTypes.Secondary)
+            .Any(e => e.Timestamp >= pull.StartTime && e.Timestamp <= pull.EndTime);
+        if (!hasEvents) return null;
+
+        return new AdditionalContent("Toughness Through The Pull",
+            @<ResourceGraph @key="pull" Tracker="tracker" Resource="ResourceTypes.Secondary" Pull="pull" ShareOfMaximum="true" />);
+    }
 
     private static PerCastStat[] BuildPullStats(ToughnessBandAnalyzer analyzer)
     {

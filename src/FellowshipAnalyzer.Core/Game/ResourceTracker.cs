@@ -200,7 +200,7 @@ public partial class ResourceTracker(ILogger<ResourceTracker> logger) : Analyzer
                 state.Current = Math.Max(0, state.Current - cost);
                 IncrementDict(state.SpenderCasts, e.Ability.Id);
 
-                var ev = new ResourceEvent(e.Timestamp, e.Ability.Id, resource.Type, ResourceEventKind.Spend, cost, Wasted: 0, state.Current);
+                var ev = new ResourceEvent(e.Timestamp, e.Ability.Id, resource.Type, ResourceEventKind.Spend, cost, Wasted: 0, state.Current, state.Max);
                 state.Events.Add(ev);
                 _allEvents.Add(ev);
             }
@@ -225,7 +225,7 @@ public partial class ResourceTracker(ILogger<ResourceTracker> logger) : Analyzer
 
         IncrementDict(state.GeneratorCasts, spellId);
 
-        var ev = new ResourceEvent(timestamp, spellId, type, ResourceEventKind.Gain, gained, wasted, state.Current);
+        var ev = new ResourceEvent(timestamp, spellId, type, ResourceEventKind.Gain, gained, wasted, state.Current, state.Max);
         state.Events.Add(ev);
         _allEvents.Add(ev);
     }
@@ -273,6 +273,7 @@ public partial class ResourceTracker(ILogger<ResourceTracker> logger) : Analyzer
 /// <param name="Amount">The amount gained, spent, or drained.</param>
 /// <param name="Wasted">The portion of a gain lost to being at or over the cap.</param>
 /// <param name="CurrentAfter">The tracker's current amount immediately after this event.</param>
+/// <param name="Max">The resource's maximum as tracked when this event was recorded, or <c>0</c> if never observed.</param>
 public sealed record ResourceEvent(
     int Timestamp,
     int Id,
@@ -280,7 +281,8 @@ public sealed record ResourceEvent(
     ResourceEventKind Kind,
     int Amount,
     int Wasted,
-    int CurrentAfter);
+    int CurrentAfter,
+    int Max);
 
 /// <summary>Classifies how a <see cref="ResourceEvent"/> changed a resource's current amount.</summary>
 public enum ResourceEventKind

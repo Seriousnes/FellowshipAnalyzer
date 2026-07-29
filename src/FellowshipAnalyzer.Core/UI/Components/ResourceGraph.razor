@@ -26,6 +26,8 @@
 @code {
     [Parameter, EditorRequired] public required ResourceTracker Tracker { get; set; }
     [Parameter, EditorRequired] public required ResourceTypes Resource { get; set; }
+    [Parameter] public Pull? Pull { get; set; }
+    [Parameter] public bool ShareOfMaximum { get; set; }
     [Parameter] public bool IncludeWasted { get; set; }
     [Parameter] public int Height { get; set; } = 200;
 
@@ -45,7 +47,7 @@
         Yaxis = [new YAxis { Min = 0 }],
         Stroke = new Stroke
         {
-            Curve = [Curve.Straight, Curve.Stepline],
+            Curve = [Curve.Stepline, Curve.Stepline],
             Width = 2,
         },
         Chart = new Chart
@@ -59,18 +61,34 @@
         {
             Shared = false,
             Intersect = false,
-            Custom = """
-                function({series, seriesIndex, dataPointIndex, w}) {
-                    var name = w.globals.seriesNames[seriesIndex];
-                    var value = series[seriesIndex][dataPointIndex];
-                    return '<div class="apexcharts-tooltip-custom">' + name + ': ' + value + '</div>';
-                }
-                """,
+            Custom = RawTooltipJs,
         },
     };
 
+    private const string ShareAxisJs = "function(val) { return Math.round(val) + '%'; }";
+
+    private const string RawTooltipJs = """
+        function({series, seriesIndex, dataPointIndex, w}) {
+            var name = w.globals.seriesNames[seriesIndex];
+            var value = series[seriesIndex][dataPointIndex];
+            return '<div class="apexcharts-tooltip-custom">' + name + ': ' + value + '</div>';
+        }
+        """;
+
+    private const string ShareTooltipJs = """
+        function({series, seriesIndex, dataPointIndex, w}) {
+            var name = w.globals.seriesNames[seriesIndex];
+            var value = series[seriesIndex][dataPointIndex];
+            return '<div class="apexcharts-tooltip-custom">' + name + ': ' + value.toFixed(1) + '%</div>';
+        }
+        """;
+
     protected override void OnParametersSet()
     {
+        _options.Yaxis = ShareOfMaximum
+            ? [new YAxis { Min = 0, Max = 100, Labels = new YAxisLabels { Formatter = ShareAxisJs } }]
+            : [new YAxis { Min = 0 }];
+        _options.Tooltip.Custom = ShareOfMaximum ? ShareTooltipJs : RawTooltipJs;
         BuildGraphData();
     }
 
@@ -79,21 +97,37 @@
         _resourceData = [];
         _wastedData = [];
 
+        ResourceEvent? last = null;
+
         foreach (var e in Tracker.GetResourceEvents(Resource))
         {
+            if (Pull is { } pull && (e.Timestamp < pull.StartTime || e.Timestamp > pull.EndTime))
+                continue;
+            if (ShareOfMaximum && e.Max <= 0)
+                continue;
+
             var x = e.Timestamp - FightStartTime;
+            var scale = ShareOfMaximum ? 100.0 / e.Max : 1;
 
             var valueBefore = e.Kind == ResourceEventKind.Gain
                 ? e.CurrentAfter - e.Amount
                 : e.CurrentAfter + e.Amount;
 
-            _resourceData.Add(new GraphPoint(x, valueBefore));
-            _resourceData.Add(new GraphPoint(x, e.CurrentAfter));
+            _resourceData.Add(new GraphPoint(x, valueBefore * scale));
+            _resourceData.Add(new GraphPoint(x, e.CurrentAfter * scale));
 
             if (IncludeWasted)
-                _wastedData.Add(new GraphPoint(x, e.Wasted));
+                _wastedData.Add(new GraphPoint(x, e.Wasted * scale));
+
+            last = e;
+        }
+
+        if (Pull is { } scope && last is not null && scope.EndTime > last.Timestamp)
+        {
+            var scale = ShareOfMaximum ? 100.0 / last.Max : 1;
+            _resourceData.Add(new GraphPoint(scope.EndTime - FightStartTime, last.CurrentAfter * scale));
         }
     }
 
-    private sealed record GraphPoint(int X, int Y);
+    private sealed record GraphPoint(int X, double Y);
 }

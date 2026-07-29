@@ -65,25 +65,14 @@ public static class ToughnessBands
     public const double FrontLineDefenderIncrease = 0.05;
 
     /// <summary>The physical damage reduction <paramref name="band"/> grants, as a fraction.</summary>
-    public static double DamageReduction(ToughnessBand band) => band switch
+    public static double DamageReduction(ToughnessBand band, bool frontLineDefender = false) => band switch
     {
-        ToughnessBand.Level4 => 0.35,
-        ToughnessBand.Level3 => 0.25,
-        ToughnessBand.Level2 => 0.15,
-        ToughnessBand.Level1 => 0.05,
+        ToughnessBand.Level4 => 0.35 + (frontLineDefender ? FrontLineDefenderIncrease : 0),
+        ToughnessBand.Level3 => 0.25 + (frontLineDefender ? FrontLineDefenderIncrease : 0),
+        ToughnessBand.Level2 => 0.15 + (frontLineDefender ? FrontLineDefenderIncrease : 0),
+        ToughnessBand.Level1 => 0.05 + (frontLineDefender ? FrontLineDefenderIncrease : 0),
         _ => 0,
     };
-
-    /// <summary>
-    /// The physical damage reduction <paramref name="band"/> grants for a build, adding Front Line
-    /// Defender's increase when <paramref name="frontLineDefender"/> is taken. The empty band grants
-    /// nothing either way, since the talent raises the bands that already grant something rather than
-    /// adding one below them.
-    /// </summary>
-    public static double DamageReduction(ToughnessBand band, bool frontLineDefender) =>
-        band == ToughnessBand.Depleted || !frontLineDefender
-            ? DamageReduction(band)
-            : DamageReduction(band) + FrontLineDefenderIncrease;
 
     /// <summary>
     /// The most physical damage reduction Toughness can grant a build: the top band's value, which is

@@ -600,5 +600,19 @@
   "598": "double",
   "599": "IReadOnlyList",
   "600": "bool",
-  "601": "long"
+  "601": "long",
+  "602": "string",
+  "603": "SyntaxNode",
+  "604": "QualitativePerformance",
+  "605": "ICastTarget",
+  "606": "SpellDataSource",
+  "607": "BlueyTrackerTests",
+  "608": ".CreateCombatLogParser",
+  "609": "OverhealAnalyzerTests",
+  "610": "RekindlingFlamesAnalyzer",
+  "611": "GlobalCooldown",
+  "612": "HeroConfig",
+  "613": "SylvieAnalysisEngineTests",
+  "614": "TestParser",
+  "615": ".EveryEnabledEntry_HasARealCategory"
 }
