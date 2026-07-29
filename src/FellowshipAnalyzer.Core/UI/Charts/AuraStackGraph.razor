@@ -7,7 +7,7 @@
 @inject ChartPalette Palette
 @inject ThemeService Theme
 
-<div class="aura-stack-graph">
+<div class="aura-stack-graph" style="min-height: @(Height)px">
     <ApexChart TItem="Sample" Options="@_options" Height="@Height">
         @for (var slot = _bands.Count - 1; slot >= 0; slot--)
         {

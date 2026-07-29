@@ -113,8 +113,46 @@
             .Any(e => e.Timestamp >= pull.StartTime && e.Timestamp <= pull.EndTime);
         if (!hasEvents) return null;
 
+        var overlay = BuildDamageTakenOverlay(pull);
+
         return new AdditionalContent("Toughness Through The Pull",
-            @<ResourceGraph @key="pull" Tracker="tracker" Resource="ResourceTypes.Secondary" Pull="pull" ShareOfMaximum="true" />);
+            @<ResourceGraph @key="pull" Tracker="tracker" Resource="ResourceTypes.Secondary" Pull="pull" ShareOfMaximum="true" Overlay="overlay" />);
+    }
+
+    private ResourceGraphOverlay? BuildDamageTakenOverlay(Pull pull)
+    {
+        if (Parser.DamageTakenTracker is not { } damage) return null;
+
+        var seconds = (pull.EndTime - pull.StartTime) / 1000;
+        if (seconds < 1) return null;
+
+        var perSecond = new double[seconds];
+        var any = false;
+        foreach (var hit in damage.Hits)
+        {
+            if (hit.Timestamp < pull.StartTime || hit.Timestamp >= pull.EndTime) continue;
+
+            var index = Math.Min((hit.Timestamp - pull.StartTime) / 1000, seconds - 1);
+            perSecond[index] += hit.Amount;
+            any = true;
+        }
+
+        if (!any) return null;
+
+        var points = new List<ResourceGraphOverlayPoint>(seconds);
+        for (var i = 0; i < seconds; i++)
+        {
+            var from = Math.Max(0, i - 2);
+            var to = Math.Min(seconds - 1, i + 2);
+            var sum = 0d;
+            for (var j = from; j <= to; j++) sum += perSecond[j];
+
+            points.Add(new ResourceGraphOverlayPoint(
+                pull.StartTime + (i * 1000) + 500,
+                sum / (to - from + 1)));
+        }
+
+        return new ResourceGraphOverlay("Damage Taken", points);
     }
 
     private static PerCastStat[] BuildPullStats(ToughnessBandAnalyzer analyzer)

@@ -1,13 +1,18 @@
 @using ApexCharts
+@using FellowshipAnalyzer.Core.UI.Theming
 @inherits ReportComponent
+@implements IDisposable
+@inject ChartPalette Palette
+@inject ThemeService Theme
 
-<div class="resource-graph">
+<div class="resource-graph" style="min-height: @(Height)px">
     <ApexChart TItem="GraphPoint"
                Options="@_options"
                Height="@Height">
         <ApexPointSeries TItem="GraphPoint"
                          Items="@_resourceData"
                          Name="@Tracker.GetDisplayName(Resource)"
+                         Color="@_resourceColor"
                          SeriesType="SeriesType.Line"
                          XValue="@(e => e.X)"
                          YValue="@(e => (decimal)e.Y)" />
@@ -16,6 +21,17 @@
             <ApexPointSeries TItem="GraphPoint"
                              Items="@_wastedData"
                              Name="@($"Wasted {Tracker.GetDisplayName(Resource)}")"
+                             Color="@_wastedColor"
+                             SeriesType="SeriesType.Line"
+                             XValue="@(e => e.X)"
+                             YValue="@(e => (decimal)e.Y)" />
+        }
+        @if (Overlay is { Points.Count: > 0 })
+        {
+            <ApexPointSeries TItem="GraphPoint"
+                             Items="@_overlayData"
+                             Name="@Overlay.Name"
+                             Color="@_overlayColor"
                              SeriesType="SeriesType.Line"
                              XValue="@(e => e.X)"
                              YValue="@(e => (decimal)e.Y)" />
@@ -28,74 +44,133 @@
     [Parameter, EditorRequired] public required ResourceTypes Resource { get; set; }
     [Parameter] public Pull? Pull { get; set; }
     [Parameter] public bool ShareOfMaximum { get; set; }
+    [Parameter] public ResourceGraphOverlay? Overlay { get; set; }
     [Parameter] public bool IncludeWasted { get; set; }
     [Parameter] public int Height { get; set; } = 200;
 
     private List<GraphPoint> _resourceData = [];
     private List<GraphPoint> _wastedData = [];
-
-    private readonly ApexChartOptions<GraphPoint> _options = new()
-    {
-        Xaxis = new XAxis
-        {
-            Type = XAxisType.Numeric,
-            Labels = new XAxisLabels
-            {
-                Formatter = TimeFormatters.MmSsJs,
-            },
-        },
-        Yaxis = [new YAxis { Min = 0 }],
-        Stroke = new Stroke
-        {
-            Curve = [Curve.Stepline, Curve.Stepline],
-            Width = 2,
-        },
-        Chart = new Chart
-        {
-            Toolbar = new Toolbar { Show = false },
-            Animations = new Animations { Enabled = false },
-            Zoom = new Zoom { Enabled = false },
-            Selection = new Selection { Enabled = false },
-        },
-        Tooltip = new Tooltip
-        {
-            Shared = false,
-            Intersect = false,
-            Custom = RawTooltipJs,
-        },
-    };
+    private List<GraphPoint> _overlayData = [];
+    private string _resourceColor = "";
+    private string _wastedColor = "";
+    private string _overlayColor = "";
+    private ApexChartOptions<GraphPoint> _options = new();
 
     private const string ShareAxisJs = "function(val) { return Math.round(val) + '%'; }";
 
-    private const string RawTooltipJs = """
-        function({series, seriesIndex, dataPointIndex, w}) {
-            var name = w.globals.seriesNames[seriesIndex];
-            var value = series[seriesIndex][dataPointIndex];
-            return '<div class="apexcharts-tooltip-custom">' + name + ': ' + value + '</div>';
-        }
-        """;
+    private const string RateAxisJs =
+        "function(val) { return val >= 1000 ? (val / 1000).toFixed(0) + 'k' : Math.round(val); }";
 
-    private const string ShareTooltipJs = """
-        function({series, seriesIndex, dataPointIndex, w}) {
-            var name = w.globals.seriesNames[seriesIndex];
-            var value = series[seriesIndex][dataPointIndex];
-            return '<div class="apexcharts-tooltip-custom">' + name + ': ' + value.toFixed(1) + '%</div>';
-        }
-        """;
+    protected override void OnInitialized() => Theme.Changed += OnThemeChanged;
 
-    protected override void OnParametersSet()
+    protected override void OnParametersSet() => Build();
+
+    public void Dispose() => Theme.Changed -= OnThemeChanged;
+
+    private void OnThemeChanged()
     {
-        _options.Yaxis = ShareOfMaximum
-            ? [new YAxis { Min = 0, Max = 100, Labels = new YAxisLabels { Formatter = ShareAxisJs } }]
-            : [new YAxis { Min = 0 }];
-        _options.Tooltip.Custom = ShareOfMaximum ? ShareTooltipJs : RawTooltipJs;
+        Build();
+        StateHasChanged();
+    }
+
+    private void Build()
+    {
         BuildGraphData();
+        BuildOptions();
+    }
+
+    private void BuildOptions()
+    {
+        var ink = Palette.Resolve(nameof(FaPalette.TextMuted));
+        _resourceColor = Palette.Resolve(nameof(FaPalette.Text));
+        _wastedColor = ink;
+        _overlayColor = Palette.Resolve(nameof(FaPalette.EvDamage));
+
+        var hasOverlay = Overlay is { Points.Count: > 0 };
+
+        var curves = new List<Curve> { Curve.Stepline };
+        if (IncludeWasted) curves.Add(Curve.Stepline);
+        if (hasOverlay) curves.Add(Curve.Smooth);
+
+        var axes = new List<YAxis>
+        {
+            ShareOfMaximum
+                ? new YAxis { Min = 0, Max = 100, Labels = new YAxisLabels { Formatter = ShareAxisJs } }
+                : new YAxis { Min = 0 },
+        };
+
+        if (hasOverlay)
+        {
+            axes.Add(new YAxis
+            {
+                Opposite = true,
+                Min = 0,
+                SeriesName = Overlay!.Name,
+                Labels = new YAxisLabels { Formatter = RateAxisJs },
+            });
+        }
+
+        _options = new ApexChartOptions<GraphPoint>
+        {
+            Xaxis = new XAxis
+            {
+                Type = XAxisType.Numeric,
+                Labels = new XAxisLabels
+                {
+                    Formatter = TimeFormatters.MmSsJs,
+                },
+            },
+            Yaxis = axes,
+            Stroke = new Stroke
+            {
+                Curve = [.. curves],
+                Width = 2,
+            },
+            Chart = new Chart
+            {
+                Toolbar = new Toolbar { Show = false },
+                Animations = new Animations { Enabled = false },
+                Zoom = new Zoom { Enabled = false },
+                Selection = new Selection { Enabled = false },
+            },
+            Legend = new Legend
+            {
+                Show = true,
+                Position = LegendPosition.Bottom,
+                HorizontalAlign = Align.Left,
+                Labels = new LegendLabels { Colors = [ink] },
+                OnItemClick = new LegendOnItemClick { ToggleDataSeries = false },
+            },
+            Tooltip = new Tooltip
+            {
+                Shared = false,
+                Intersect = false,
+                Custom = TooltipJs(),
+            },
+        };
+    }
+
+    private string TooltipJs()
+    {
+        var baseExpr = ShareOfMaximum ? "value.toFixed(1) + '%'" : "value";
+        var textExpr = Overlay is { Points.Count: > 0 } overlay
+            ? $"(name === '{overlay.Name.Replace("'", "\\'")}' ? Math.round(value).toLocaleString() + ' per second' : {baseExpr})"
+            : baseExpr;
+
+        return $$"""
+            function({series, seriesIndex, dataPointIndex, w}) {
+                var name = w.globals.seriesNames[seriesIndex];
+                var value = series[seriesIndex][dataPointIndex];
+                return '<div class="apexcharts-tooltip-custom">' + name + ': ' + {{textExpr}} + '</div>';
+            }
+            """;
     }
 
     private void BuildGraphData()
     {
         _resourceData = [];
         _wastedData = [];
+        _overlayData = [];
 
         ResourceEvent? last = null;
 
@@ -126,6 +201,12 @@
         {
             var scale = ShareOfMaximum ? 100.0 / last.Max : 1;
             _resourceData.Add(new GraphPoint(scope.EndTime - FightStartTime, last.CurrentAfter * scale));
+        }
+
+        if (Overlay is { } series)
+        {
+            foreach (var point in series.Points)
+                _overlayData.Add(new GraphPoint(point.Timestamp - FightStartTime, point.Value));
         }
     }
 

@@ -13,8 +13,12 @@ namespace FellowshipAnalyzer.Core.Analysis;
 public sealed partial class DamageTakenTracker : EventSubscriber
 {
     private readonly Dictionary<int, SourceCapture> _bySource = [];
+    private readonly List<DamageTakenHit> _hits = [];
 
     private Computed Result => field ??= Compute();
+
+    /// <summary>Every hit that landed on the player, in encounter order.</summary>
+    public IReadOnlyList<DamageTakenHit> Hits => _hits;
 
     /// <inheritdoc/>
     public override Type? StatisticsComponentType => TotalTaken > 0 ? typeof(DamageTakenStatistics) : null;
@@ -70,6 +74,8 @@ public sealed partial class DamageTakenTracker : EventSubscriber
 
         if (string.IsNullOrEmpty(capture.Name) && !string.IsNullOrEmpty(damageEvent.Ability.Name))
             capture.Name = damageEvent.Ability.Name;
+
+        _hits.Add(new DamageTakenHit(damageEvent.Timestamp, damageEvent.Amount));
 
         capture.Hits++;
         capture.Taken += damageEvent.Amount;
@@ -144,6 +150,13 @@ public sealed partial class DamageTakenTracker : EventSubscriber
         int Hits,
         int BlockedHits);
 }
+
+/// <summary>
+/// One hit the player took.
+/// </summary>
+/// <param name="Timestamp">When it landed.</param>
+/// <param name="Amount">The damage that landed after mitigation and absorbs.</param>
+public sealed record DamageTakenHit(int Timestamp, long Amount);
 
 /// <summary>
 /// One ability's contribution to the damage the player took.
