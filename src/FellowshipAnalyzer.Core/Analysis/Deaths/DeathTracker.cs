@@ -14,9 +14,13 @@ namespace FellowshipAnalyzer.Core.Analysis.Deaths;
 /// it later; it is taken here to keep <see cref="PlayerDeath"/> free of live module references.
 /// </para>
 /// <para>
-/// Casts are counted here rather than read off <see cref="SpellUsable.Casts"/>, which retains the
-/// <see cref="CastEvent.Activation"/> cast-start marker alongside the completion it belongs to. A
-/// cast-time ability would otherwise count twice, and a cast the player cancelled would count as made.
+/// Casts are counted here rather than read off <see cref="SpellUsable.Casts"/>, which holds one entry
+/// per <see cref="CastEvent"/>. A cast-time ability logs two: the press, carrying
+/// <see cref="CastEvent.Activation"/>, and the completion roughly a cast time later without it. An
+/// instant ability logs only the press. Counting every entry therefore counts a cast-time press twice,
+/// so a completion arriving within <see cref="CastCompletionPairingMs"/> of an unconsumed press of the
+/// same ability is folded into it. A cast with no press to fold into still counts, so a log that never
+/// sets the flag loses nothing.
 /// </para>
 /// </summary>
 [Dependency<SpellUsable>]
@@ -26,10 +30,17 @@ public sealed partial class DeathTracker : EventSubscriber
     /// <summary>How far back a death's captured window reaches, in milliseconds, before the pull-start clamp.</summary>
     public const int RecapWindowMs = 15_000;
 
+    /// <summary>
+    /// How long after a press a completion may arrive and still be folded into it. Comfortably above any
+    /// cast time in the game, so a genuinely separate press of the same ability is never swallowed.
+    /// </summary>
+    public const int CastCompletionPairingMs = 6_000;
+
     private readonly List<IncomingHit> _hits = [];
     private readonly List<HealTick> _heals = [];
     private readonly List<PlayerCast> _casts = [];
     private readonly List<PlayerDeath> _deaths = [];
+    private readonly Dictionary<int, int> _pressAwaitingCompletion = [];
 
     /// <summary>Every death of the analyzed player, in the order they happened.</summary>
     public IReadOnlyList<PlayerDeath> Deaths => _deaths;
@@ -68,10 +79,22 @@ public sealed partial class DeathTracker : EventSubscriber
     [On<CastEvent>(By = Actor.Player)]
     private void OnCast(CastEvent castEvent)
     {
-        if (castEvent.Activation) return;
-
         Trim(castEvent.Timestamp);
-        _casts.Add(new PlayerCast(castEvent.Timestamp, castEvent.Ability.Id));
+
+        var abilityId = castEvent.Ability.Id;
+
+        if (castEvent.Activation)
+        {
+            _pressAwaitingCompletion[abilityId] = castEvent.Timestamp;
+        }
+        else if (_pressAwaitingCompletion.TryGetValue(abilityId, out var pressedAt)
+                 && castEvent.Timestamp - pressedAt <= CastCompletionPairingMs)
+        {
+            _pressAwaitingCompletion.Remove(abilityId);
+            return;
+        }
+
+        _casts.Add(new PlayerCast(castEvent.Timestamp, abilityId));
     }
 
     [On<DeathEvent>(To = Actor.Player)]

@@ -239,12 +239,12 @@ public sealed class DeathTrackerTests
     }
 
     /// <summary>
-    /// A cast-time ability logs a cast-start marker at the start and a real cast at the end, and the
-    /// normalizer only drops the marker when both share a timestamp. Counting both would report one press
-    /// as two.
+    /// A cast-time ability logs the press carrying <c>Activation</c> and the completion a cast time
+    /// later without it. Both are real events at different timestamps, so counting them both would report
+    /// one press as two. The press is the moment worth reporting.
     /// </summary>
     [Fact]
-    public async Task Defensive_WithACastStartMarker_CountsThePressOnce()
+    public async Task Defensive_WithACastTime_CountsThePressOnceAtItsStart()
     {
         var tracker = await Analyze(
         [
@@ -256,29 +256,47 @@ public sealed class DeathTrackerTests
         var pressed = Find(tracker.Deaths.ShouldHaveSingleItem(), ShortDefensive);
 
         pressed.CastsInWindow.ShouldBe(1);
-        pressed.LastCastTimestamp.ShouldBe(DeathAt - 3_500);
+        pressed.LastCastTimestamp.ShouldBe(DeathAt - 5_000);
     }
 
     /// <summary>
-    /// A cast the player started and cancelled leaves only the cast-start marker behind, and never became
-    /// a press. Whether the ability then reads as available is <see cref="SpellUsable"/>'s answer, not
-    /// this tracker's: it starts a cooldown on the marker, so a cancelled cast leaves the ability
-    /// believing it has no charge.
+    /// An instant ability logs one cast and it carries <c>Activation</c>, which is how nearly every cast
+    /// in a real log arrives. Treating the flag as a marker to skip would discard almost every press.
     /// </summary>
     [Fact]
-    public async Task Defensive_CancelledMidCast_IsNotReportedPressed()
+    public async Task Defensive_CastInstantly_CountsAsAPress()
     {
         var tracker = await Analyze(
         [
-            Cast(DeathAt - 5_000, ShortDefensive, activation: true),
+            Cast(DeathAt - 4_000, ShortDefensive, activation: true),
             Death(DeathAt),
         ]);
 
-        var candidate = Find(tracker.Deaths.ShouldHaveSingleItem(), ShortDefensive);
+        var pressed = Find(tracker.Deaths.ShouldHaveSingleItem(), ShortDefensive);
 
-        candidate.CastsInWindow.ShouldBe(0);
-        candidate.Pressed.ShouldBeFalse();
-        candidate.LastCastTimestamp.ShouldBeNull();
+        pressed.CastsInWindow.ShouldBe(1);
+        pressed.Pressed.ShouldBeTrue();
+        pressed.LastCastTimestamp.ShouldBe(DeathAt - 4_000);
+    }
+
+    /// <summary>
+    /// Folding a completion into a press is bounded by time, so a second press of the same ability long
+    /// after the first is never swallowed by it.
+    /// </summary>
+    [Fact]
+    public async Task Defensive_CastTwice_CountsBothPresses()
+    {
+        var tracker = await Analyze(
+        [
+            Cast(DeathAt - 12_000, ShortDefensive, activation: true),
+            Cast(DeathAt - 2_000, ShortDefensive),
+            Death(DeathAt),
+        ]);
+
+        var pressed = Find(tracker.Deaths.ShouldHaveSingleItem(), ShortDefensive);
+
+        pressed.CastsInWindow.ShouldBe(2);
+        pressed.LastCastTimestamp.ShouldBe(DeathAt - 2_000);
     }
 
     [Fact]
