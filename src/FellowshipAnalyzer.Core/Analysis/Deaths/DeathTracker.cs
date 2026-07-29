@@ -13,6 +13,11 @@ namespace FellowshipAnalyzer.Core.Analysis.Deaths;
 /// the fight. Aura state, by contrast, is history the parse leaves behind, so the same snapshot could read
 /// it later; it is taken here to keep <see cref="PlayerDeath"/> free of live module references.
 /// </para>
+/// <para>
+/// Casts are counted here rather than read off <see cref="SpellUsable.Casts"/>, which retains the
+/// <see cref="CastEvent.Activation"/> cast-start marker alongside the completion it belongs to. A
+/// cast-time ability would otherwise count twice, and a cast the player cancelled would count as made.
+/// </para>
 /// </summary>
 [Dependency<SpellUsable>]
 [Dependency<Abilities>]
@@ -23,6 +28,7 @@ public sealed partial class DeathTracker : EventSubscriber
 
     private readonly List<IncomingHit> _hits = [];
     private readonly List<HealTick> _heals = [];
+    private readonly List<PlayerCast> _casts = [];
     private readonly List<PlayerDeath> _deaths = [];
 
     /// <summary>Every death of the analyzed player, in the order they happened.</summary>
@@ -59,6 +65,15 @@ public sealed partial class DeathTracker : EventSubscriber
         _heals.Add(new HealTick(healEvent.Timestamp, healEvent.Amount));
     }
 
+    [On<CastEvent>(By = Actor.Player)]
+    private void OnCast(CastEvent castEvent)
+    {
+        if (castEvent.Activation) return;
+
+        Trim(castEvent.Timestamp);
+        _casts.Add(new PlayerCast(castEvent.Timestamp, castEvent.Ability.Id));
+    }
+
     [On<DeathEvent>(To = Actor.Player)]
     private void OnDeath(DeathEvent deathEvent)
     {
@@ -91,10 +106,10 @@ public sealed partial class DeathTracker : EventSubscriber
     private List<DefensiveReadiness> CaptureDefensives(int windowStart, int deathTimestamp)
     {
         var castsInWindow = new Dictionary<int, (int Count, int Last)>();
-        foreach (var cast in SpellUsable.Casts)
+        foreach (var cast in _casts)
         {
             if (cast.Timestamp < windowStart || cast.Timestamp > deathTimestamp) continue;
-            if (Abilities.GetAbility(cast.Id) is not { } ability) continue;
+            if (Abilities.GetAbility(cast.AbilityId) is not { } ability) continue;
 
             var key = ability.PrimarySpell.FSLID.Value;
             var entry = castsInWindow.GetValueOrDefault(key);
@@ -153,7 +168,13 @@ public sealed partial class DeathTracker : EventSubscriber
         var expiredHeals = 0;
         while (expiredHeals < _heals.Count && _heals[expiredHeals].Timestamp < cutoff) expiredHeals++;
         if (expiredHeals > 0) _heals.RemoveRange(0, expiredHeals);
+
+        var expiredCasts = 0;
+        while (expiredCasts < _casts.Count && _casts[expiredCasts].Timestamp < cutoff) expiredCasts++;
+        if (expiredCasts > 0) _casts.RemoveRange(0, expiredCasts);
     }
 
     private readonly record struct HealTick(int Timestamp, long Amount);
+
+    private readonly record struct PlayerCast(int Timestamp, int AbilityId);
 }

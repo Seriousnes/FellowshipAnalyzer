@@ -238,6 +238,49 @@ public sealed class DeathTrackerTests
         death.AvailableUnused.ShouldNotContain(pressed);
     }
 
+    /// <summary>
+    /// A cast-time ability logs a cast-start marker at the start and a real cast at the end, and the
+    /// normalizer only drops the marker when both share a timestamp. Counting both would report one press
+    /// as two.
+    /// </summary>
+    [Fact]
+    public async Task Defensive_WithACastStartMarker_CountsThePressOnce()
+    {
+        var tracker = await Analyze(
+        [
+            Cast(DeathAt - 5_000, ShortDefensive, activation: true),
+            Cast(DeathAt - 3_500, ShortDefensive),
+            Death(DeathAt),
+        ]);
+
+        var pressed = Find(tracker.Deaths.ShouldHaveSingleItem(), ShortDefensive);
+
+        pressed.CastsInWindow.ShouldBe(1);
+        pressed.LastCastTimestamp.ShouldBe(DeathAt - 3_500);
+    }
+
+    /// <summary>
+    /// A cast the player started and cancelled leaves only the cast-start marker behind, and never became
+    /// a press. Whether the ability then reads as available is <see cref="SpellUsable"/>'s answer, not
+    /// this tracker's: it starts a cooldown on the marker, so a cancelled cast leaves the ability
+    /// believing it has no charge.
+    /// </summary>
+    [Fact]
+    public async Task Defensive_CancelledMidCast_IsNotReportedPressed()
+    {
+        var tracker = await Analyze(
+        [
+            Cast(DeathAt - 5_000, ShortDefensive, activation: true),
+            Death(DeathAt),
+        ]);
+
+        var candidate = Find(tracker.Deaths.ShouldHaveSingleItem(), ShortDefensive);
+
+        candidate.CastsInWindow.ShouldBe(0);
+        candidate.Pressed.ShouldBeFalse();
+        candidate.LastCastTimestamp.ShouldBeNull();
+    }
+
     [Fact]
     public async Task Defensive_StillActiveFromAPressBeforeTheWindow_IsReportedActiveRatherThanUnused()
     {
@@ -392,10 +435,9 @@ public sealed class DeathTrackerTests
         }
 
         stream.Add(new FightEndEvent { Timestamp = (int)TestFight.EndTime });
-        stream.Sort((left, right) => left.Timestamp.CompareTo(right.Timestamp));
 
         var parser = new TestParser(emitter, provider, moduleTypes);
-        await parser.Analyze(stream, PlayerId, fight: TestFight);
+        await parser.Analyze([.. stream.OrderBy(e => e.Timestamp)], PlayerId, fight: TestFight);
         return parser.GetModule<DeathTracker>()!;
     }
 
@@ -440,12 +482,13 @@ public sealed class DeathTrackerTests
         Overheal = overheal,
     };
 
-    private static CastEvent Cast(int timestamp, int spellId) => new()
+    private static CastEvent Cast(int timestamp, int spellId, bool activation = false) => new()
     {
         Timestamp = timestamp,
         SourceId = PlayerId,
         TargetId = PlayerId,
         Ability = new Ability { FSLID = spellId, Name = $"Spell {spellId}" },
+        Activation = activation,
     };
 
     private static ApplyBuffEvent ApplyBuff(int timestamp, int spellId) => new()
