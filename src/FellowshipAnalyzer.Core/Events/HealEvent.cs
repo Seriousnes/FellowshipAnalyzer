@@ -43,7 +43,8 @@ public class HealEvent : Event, IAbilityEvent, IHasSourceWithInstanceEvent, IHas
     /// The overheal the event did
     /// </summary>
     public virtual long? Overheal { get; set; }
-
+    /// <summary>Indicates whether the heal was a critical heal.</summary>
+    public bool IsCritical => HitType is HitType.Crit or HitType.GrievousCrit;
 }
 
 /// <summary>A heal mirrored onto a beacon-bound target, redirecting part of the healing recorded in <see cref="OriginalHeal"/>.</summary>

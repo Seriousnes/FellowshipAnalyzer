@@ -35,6 +35,7 @@ namespace FellowshipAnalyzer.Core.Analysis;
 [AddModule<SpellUsable>]
 [AddModule<ChronoshiftAnalyzer>]
 [AddModule<ThroughputTracker>]
+[AddState<AbilityTracker>]
 [AddModule<GloriousPurposeAnalyzer>]
 [AddModule<RubyGemAnalyzer>]
 [AddModule<AmethystGemAnalyzer>]
