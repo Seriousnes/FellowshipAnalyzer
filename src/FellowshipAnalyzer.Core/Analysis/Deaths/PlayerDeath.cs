@@ -8,9 +8,9 @@ namespace FellowshipAnalyzer.Core.Analysis.Deaths;
 /// it: every hit the player took, the healing that landed on them, and how each of their defensive and
 /// healing abilities was placed at the instant they died.
 /// <para>
-/// Prevention follows the same accounting as <see cref="DamageTakenTracker"/>: <see cref="Prevented"/> is
-/// <see cref="Mitigated"/> plus <see cref="Absorbed"/>, and <see cref="Blocked"/> is a labelled share of
-/// <see cref="Mitigated"/> reported alongside rather than a third bucket.
+/// <see cref="Mitigated"/> is everything the window's hits carried that never landed: damage reduction
+/// plus absorbs. <see cref="Blocked"/> is a labelled share of <see cref="DamageReduction"/>, reported
+/// alongside and never added in.
 /// </para>
 /// </summary>
 public sealed class PlayerDeath
@@ -39,30 +39,30 @@ public sealed class PlayerDeath
     /// <summary>Every defensive and healing ability in the player's spellbook, as each was placed at the death.</summary>
     public required IReadOnlyList<DefensiveReadiness> Defensives { get; init; }
 
-    /// <summary>The player's maximum hit points as the window's hits reported them, or <c>null</c> when no hit carried a snapshot.</summary>
-    public required long? MaxHitPoints { get; init; }
-
     private Computed Result => field ??= Compute();
 
     /// <summary>How long the captured window covers, in milliseconds.</summary>
     public int WindowDurationMs => Timestamp - WindowStart;
 
-    /// <summary>The raw incoming damage the window's hits carried, before any mitigation.</summary>
-    public long DamageFaced => Result.Unmitigated;
+    /// <summary>
+    /// The raw incoming damage the window's hits carried, before any mitigation. This is the denominator
+    /// <see cref="MitigatedShare"/> measures against rather than a figure worth reading on its own.
+    /// </summary>
+    public long RawIncoming => Result.Unmitigated;
 
     /// <summary>The damage that actually landed on the player during the window.</summary>
     public long DamageTaken => Result.Taken;
 
-    /// <summary>Damage the window's hits carried that never landed.</summary>
-    public long Prevented => Result.Mitigated + Result.Absorbed;
+    /// <summary>Damage the window's hits carried that never landed: <see cref="DamageReduction"/> plus <see cref="Absorbed"/>.</summary>
+    public long Mitigated => Result.DamageReduction + Result.Absorbed;
 
-    /// <summary>The mitigated portion of <see cref="Prevented"/>.</summary>
-    public long Mitigated => Result.Mitigated;
+    /// <summary>The damage-reduction portion of <see cref="Mitigated"/>, blocks included.</summary>
+    public long DamageReduction => Result.DamageReduction;
 
-    /// <summary>The absorbed portion of <see cref="Prevented"/>.</summary>
+    /// <summary>The absorb-shield portion of <see cref="Mitigated"/>.</summary>
     public long Absorbed => Result.Absorbed;
 
-    /// <summary>The share of <see cref="Mitigated"/> the log attributes to blocks.</summary>
+    /// <summary>The share of <see cref="DamageReduction"/> the log attributes to blocks.</summary>
     public long Blocked => Result.Blocked;
 
     /// <summary>Hits the player took during the window.</summary>
@@ -71,17 +71,25 @@ public sealed class PlayerDeath
     /// <summary>How many of <see cref="HitCount"/> came in as a block.</summary>
     public int BlockedHits => Result.BlockedHits;
 
-    /// <summary>Share (0-1) of <see cref="DamageFaced"/> that never landed.</summary>
-    public double PreventedShare => DamageFaced > 0 ? Math.Clamp(Prevented / (double)DamageFaced, 0, 1) : 0;
+    /// <summary>Share (0-1) of <see cref="RawIncoming"/> that never landed.</summary>
+    public double MitigatedShare => RawIncoming > 0 ? Math.Clamp(Mitigated / (double)RawIncoming, 0, 1) : 0;
 
     /// <summary>Every ability that hit the player during the window, heaviest first by damage that landed.</summary>
     public IReadOnlyList<DamageTakenSource> BySource => Result.Sources;
 
     /// <summary>
-    /// The player's hit points as the window opened, reconstructed from the first hit's own snapshot by
-    /// adding back the damage that hit removed. <c>null</c> when no hit inside the window carried one.
+    /// The player's hit points as the window opened, reconstructed from the first hit that carried a
+    /// snapshot by adding back the damage that hit removed. <c>null</c> when no hit inside the window
+    /// carried one.
     /// </summary>
     public long? HitPointsAtWindowStart => Result.HitPointsAtWindowStart;
+
+    /// <summary>
+    /// The player's maximum hit points, read from the same snapshot <see cref="HitPointsAtWindowStart"/>
+    /// was reconstructed from, so the two are always a coherent pair. <c>null</c> when no hit inside the
+    /// window carried a snapshot.
+    /// </summary>
+    public long? MaxHitPoints => Result.MaxHitPoints;
 
     /// <summary>Abilities the player cast during the window.</summary>
     public IReadOnlyList<DefensiveReadiness> Pressed => Result.Pressed;
@@ -98,7 +106,7 @@ public sealed class PlayerDeath
 
     private Computed Compute()
     {
-        long taken = 0, unmitigated = 0, mitigated = 0, absorbed = 0, blocked = 0;
+        long taken = 0, unmitigated = 0, damageReduction = 0, absorbed = 0, blocked = 0;
         var blockedHits = 0;
 
         var captures = new Dictionary<int, SourceCapture>();
@@ -106,7 +114,7 @@ public sealed class PlayerDeath
         {
             taken += hit.Amount;
             unmitigated += hit.Unmitigated;
-            mitigated += hit.Mitigated;
+            damageReduction += hit.DamageReduction;
             absorbed += hit.Absorbed;
             blocked += hit.Blocked;
             if (hit.HitType == HitType.Block) blockedHits++;
@@ -121,7 +129,7 @@ public sealed class PlayerDeath
             capture.Hits++;
             capture.Taken += hit.Amount;
             capture.Unmitigated += hit.Unmitigated;
-            capture.Mitigated += hit.Mitigated;
+            capture.DamageReduction += hit.DamageReduction;
             capture.Absorbed += hit.Absorbed;
             capture.Blocked += hit.Blocked;
             if (hit.HitType == HitType.Block) capture.BlockedHits++;
@@ -138,7 +146,7 @@ public sealed class PlayerDeath
                 capture.BlockedHits,
                 capture.Taken,
                 capture.Unmitigated,
-                capture.Mitigated,
+                capture.DamageReduction,
                 capture.Absorbed,
                 capture.Blocked,
                 seconds > 0 ? capture.Taken / seconds : 0));
@@ -146,10 +154,12 @@ public sealed class PlayerDeath
         sources.Sort(static (left, right) => right.Taken.CompareTo(left.Taken));
 
         long? hitPointsAtWindowStart = null;
+        long? maxHitPoints = null;
         foreach (var hit in Hits)
         {
             if (hit.HitPointsAfter is not { } after) continue;
             hitPointsAtWindowStart = after + hit.Amount;
+            maxHitPoints = hit.MaxHitPoints;
             break;
         }
 
@@ -162,8 +172,8 @@ public sealed class PlayerDeath
         }
 
         return new Computed(
-            sources, taken, unmitigated, mitigated, absorbed, blocked, blockedHits,
-            hitPointsAtWindowStart, pressed, activeAtDeath, availableUnused);
+            sources, taken, unmitigated, damageReduction, absorbed, blocked, blockedHits,
+            hitPointsAtWindowStart, maxHitPoints, pressed, activeAtDeath, availableUnused);
     }
 
     private sealed class SourceCapture
@@ -173,7 +183,7 @@ public sealed class PlayerDeath
         public int BlockedHits { get; set; }
         public long Taken { get; set; }
         public long Unmitigated { get; set; }
-        public long Mitigated { get; set; }
+        public long DamageReduction { get; set; }
         public long Absorbed { get; set; }
         public long Blocked { get; set; }
     }
@@ -182,11 +192,12 @@ public sealed class PlayerDeath
         IReadOnlyList<DamageTakenSource> Sources,
         long Taken,
         long Unmitigated,
-        long Mitigated,
+        long DamageReduction,
         long Absorbed,
         long Blocked,
         int BlockedHits,
         long? HitPointsAtWindowStart,
+        long? MaxHitPoints,
         IReadOnlyList<DefensiveReadiness> Pressed,
         IReadOnlyList<DefensiveReadiness> ActiveAtDeath,
         IReadOnlyList<DefensiveReadiness> AvailableUnused);
@@ -200,9 +211,9 @@ public sealed class PlayerDeath
 /// <param name="SourceId">The actor id that dealt it.</param>
 /// <param name="Amount">The damage that actually landed.</param>
 /// <param name="Unmitigated">The raw incoming damage before any mitigation.</param>
-/// <param name="Mitigated">The portion prevented by damage reduction, blocks included.</param>
-/// <param name="Absorbed">The portion prevented by absorb shields.</param>
-/// <param name="Blocked">The share of <paramref name="Mitigated"/> the log attributes to a block.</param>
+/// <param name="DamageReduction">The portion stopped by damage reduction, blocks included.</param>
+/// <param name="Absorbed">The portion stopped by absorb shields.</param>
+/// <param name="Blocked">The share of <paramref name="DamageReduction"/> the log attributes to a block.</param>
 /// <param name="HitType">How the log classified the hit.</param>
 /// <param name="HitPointsAfter">The player's hit points once the hit had landed, or <c>null</c> when the hit carried no snapshot.</param>
 /// <param name="MaxHitPoints">The player's maximum hit points at the hit, or <c>null</c> when the hit carried no snapshot.</param>
@@ -213,7 +224,7 @@ public sealed record IncomingHit(
     int SourceId,
     long Amount,
     long Unmitigated,
-    long Mitigated,
+    long DamageReduction,
     long Absorbed,
     long Blocked,
     HitType HitType,
@@ -222,7 +233,7 @@ public sealed record IncomingHit(
     int? AbsorbAfter)
 {
     /// <summary>Damage this hit carried that never landed.</summary>
-    public long Prevented => Mitigated + Absorbed;
+    public long Mitigated => DamageReduction + Absorbed;
 
     /// <summary>The curated classification of the ability that dealt this hit, or <c>null</c> when it has not been classified.</summary>
     public EnemyAbility? Classification => EnemyAbilities.MaybeGet(Ability.Id);
@@ -236,7 +247,11 @@ public sealed record IncomingHit(
 /// <param name="ChargesAvailable">Charges the ability held at the death.</param>
 /// <param name="CastsInWindow">Times the player cast it inside the window.</param>
 /// <param name="LastCastTimestamp">When the player last cast it inside the window, or <c>null</c> when they did not.</param>
-/// <param name="ActiveAtDeath">Whether one of the ability's own auras was active on the player at the death.</param>
+/// <param name="ActiveAtDeath">
+/// Whether one of the ability's own auras was active on the player at the death. Only the spellbook
+/// entry's own <c>PrimarySpell</c> and <c>AdditionalSpells</c> ids are matched, so an ability whose buff
+/// id the spellbook does not declare reads as inactive.
+/// </param>
 public sealed record DefensiveReadiness(
     SpellbookAbility Ability,
     int ChargesAvailable,

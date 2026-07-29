@@ -75,14 +75,6 @@ public sealed partial class DeathTracker : EventSubscriber
                 healing += heal.Amount;
         }
 
-        long? maxHitPoints = null;
-        for (var i = hits.Count - 1; i >= 0; i--)
-        {
-            if (hits[i].MaxHitPoints is not { } max) continue;
-            maxHitPoints = max;
-            break;
-        }
-
         _deaths.Add(new PlayerDeath
         {
             Timestamp = deathEvent.Timestamp,
@@ -92,7 +84,6 @@ public sealed partial class DeathTracker : EventSubscriber
             WindowStart = windowStart,
             Hits = hits,
             HealingReceived = healing,
-            MaxHitPoints = maxHitPoints,
             Defensives = CaptureDefensives(windowStart, deathEvent.Timestamp),
         });
     }

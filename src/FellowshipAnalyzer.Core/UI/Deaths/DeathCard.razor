@@ -33,12 +33,10 @@
 
     <SubSection Title="@WindowTitle">
         <div class="death-card-stats">
-            <StatTile Color="@FaVar.FgNeutral" Value="@($"{Death.DamageFaced:N0}")" Label="Faced"
-                      Tooltip="The raw incoming damage every hit in this window carried, before mitigation." />
             <StatTile Color="@FaVar.Danger" Value="@($"{Death.DamageTaken:N0}")" Label="Taken"
                       Tooltip="@TakenTooltip" />
-            <StatTile Color="@FaVar.Steel" Value="@($"{Death.PreventedShare * 100:F1}%")" Label="Prevented"
-                      Tooltip="@PreventedTooltip" />
+            <StatTile Color="@FaVar.Steel" Value="@($"{Death.MitigatedShare * 100:F1}%")" Label="Mitigated"
+                      Tooltip="@MitigatedTooltip" />
             <StatTile Color="@FaVar.FgNeutral" Value="@($"{Death.HealingReceived:N0}")" Label="Healed"
                       Tooltip="Effective healing that landed on you inside this window, overheal excluded." />
             <StatTile Color="@FaVar.FgNeutral" Value="@HealthText" Label="Health At Start"
@@ -59,7 +57,7 @@
                         <th scope="col">Ability</th>
                         <th scope="col" class="death-card-numeric">Hits</th>
                         <th scope="col" class="death-card-numeric">Taken</th>
-                        <th scope="col" class="death-card-numeric" title="Mitigation plus absorbs, as a share of what the hits carried.">Prevented</th>
+                        <th scope="col" class="death-card-numeric" title="Damage reduction plus absorbs, as a share of what this ability's hits carried.">Mitigated</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -83,7 +81,7 @@
                     }
                 </tbody>
             </table>
-            <HelperText>Prevented is mitigation plus absorbs, measured against the raw incoming total. A block is counted inside the mitigated figure rather than beside it.</HelperText>
+            <HelperText>Mitigated is damage reduction plus absorbs. A block is counted inside it rather than beside it.</HelperText>
         }
     </SubSection>
 
@@ -165,10 +163,10 @@
         $"{Death.DamageTaken:N0} landed across {Death.HitCount:N0} hits" +
         (Death.BlockedHits > 0 ? $", {Death.BlockedHits:N0} of them blocked." : ".");
 
-    private string PreventedTooltip =>
-        $"{Death.Prevented:N0} of {Death.DamageFaced:N0} never landed: " +
-        $"{Death.Mitigated:N0} mitigated and {Death.Absorbed:N0} absorbed." +
-        (Death.Blocked > 0 ? $" {Death.Blocked:N0} of the mitigated total is attributed to a block." : "");
+    private string MitigatedTooltip =>
+        $"{Death.Mitigated:N0} never landed: {Death.DamageReduction:N0} through damage reduction " +
+        $"and {Death.Absorbed:N0} absorbed." +
+        (Death.Blocked > 0 ? $" {Death.Blocked:N0} of that is attributed to a block." : "");
 
     private string HealthText =>
         Death is { HitPointsAtWindowStart: { } health, MaxHitPoints: > 0 }

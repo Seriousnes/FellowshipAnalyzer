@@ -82,29 +82,52 @@ public sealed class DeathTrackerTests
     }
 
     /// <summary>
-    /// A block labels part of the mitigated figure rather than adding a third bucket, so the damage that
-    /// went missing between what the hits carried and what landed is exactly mitigation plus absorbs.
-    /// Adding <see cref="IncomingHit.Blocked"/> in would break that identity.
+    /// A block labels part of the damage-reduction figure rather than adding a third bucket, so the
+    /// damage that went missing between what the hits carried and what landed is exactly damage
+    /// reduction plus absorbs. Adding <see cref="IncomingHit.Blocked"/> in would break that identity.
     /// </summary>
     [Fact]
-    public async Task Prevention_AccountsForABlockWithoutDoubleCountingIt()
+    public async Task Mitigation_AccountsForABlockWithoutDoubleCountingIt()
     {
         var tracker = await Analyze(
         [
-            Hit(DeathAt - 5_000, Cleave, amount: 4_000, unmitigated: 10_000, mitigated: 4_000, absorbed: 2_000),
-            Hit(DeathAt - 2_000, Slam, amount: 1_000, unmitigated: 9_000, mitigated: 8_000, blocked: 8_000, hitType: HitType.Block),
+            Hit(DeathAt - 5_000, Cleave, amount: 4_000, unmitigated: 10_000, damageReduction: 4_000, absorbed: 2_000),
+            Hit(DeathAt - 2_000, Slam, amount: 1_000, unmitigated: 9_000, damageReduction: 8_000, blocked: 8_000, hitType: HitType.Block),
             Death(DeathAt),
         ]);
 
         var death = tracker.Deaths.ShouldHaveSingleItem();
 
-        death.DamageFaced.ShouldBe(19_000);
+        death.RawIncoming.ShouldBe(19_000);
         death.DamageTaken.ShouldBe(5_000);
-        death.Prevented.ShouldBe(14_000);
-        (death.DamageFaced - death.DamageTaken).ShouldBe(death.Prevented);
+        death.Mitigated.ShouldBe(14_000);
+        (death.RawIncoming - death.DamageTaken).ShouldBe(death.Mitigated);
         death.Blocked.ShouldBe(8_000);
         death.BlockedHits.ShouldBe(1);
-        death.PreventedShare.ShouldBe(14_000 / 19_000d, 0.0001);
+        death.MitigatedShare.ShouldBe(14_000 / 19_000d, 0.0001);
+    }
+
+    /// <summary>
+    /// The rolling buffer is trimmed against whichever event most recently arrived, which is not always a
+    /// hit. A heal landing just before the death must not carry the trim past the window's own floor and
+    /// take the oldest hit with it.
+    /// </summary>
+    [Fact]
+    public async Task Window_KeepsTheOldestHitWhenAHealArrivesJustBeforeTheDeath()
+    {
+        var tracker = await Analyze(
+        [
+            Hit(DeathAt - DeathTracker.RecapWindowMs, Cleave, amount: 1_200),
+            Heal(DeathAt - 1, amount: 300),
+            Death(DeathAt),
+        ]);
+
+        var death = tracker.Deaths.ShouldHaveSingleItem();
+
+        death.HitCount.ShouldBe(1);
+        death.Hits[0].Timestamp.ShouldBe(DeathAt - DeathTracker.RecapWindowMs);
+        death.DamageTaken.ShouldBe(1_200);
+        death.HealingReceived.ShouldBe(300);
     }
 
     [Fact]
@@ -142,13 +165,17 @@ public sealed class DeathTrackerTests
         tracker.Deaths.ShouldHaveSingleItem().HealingReceived.ShouldBe(6_500);
     }
 
+    /// <summary>
+    /// Health at the window's start and the maximum it is read against must come from the same snapshot,
+    /// or a fight where maximum health moves renders a ratio of two unrelated numbers.
+    /// </summary>
     [Fact]
-    public async Task HitPointsAtWindowStart_AddsBackTheDamageTheFirstHitRemoved()
+    public async Task HitPointsAtWindowStart_AddsBackTheDamageTheFirstHitRemoved_AndPairsWithThatHitsMaximum()
     {
         var tracker = await Analyze(
         [
             Hit(DeathAt - 6_000, Cleave, amount: 3_000, hitPointsAfter: 47_000, maxHitPoints: 60_000),
-            Hit(DeathAt - 1_000, Slam, amount: 40_000, hitPointsAfter: 7_000, maxHitPoints: 60_000),
+            Hit(DeathAt - 1_000, Slam, amount: 40_000, hitPointsAfter: 7_000, maxHitPoints: 48_000),
             Death(DeathAt),
         ]);
 
@@ -156,6 +183,21 @@ public sealed class DeathTrackerTests
 
         death.HitPointsAtWindowStart.ShouldBe(50_000);
         death.MaxHitPoints.ShouldBe(60_000);
+    }
+
+    [Fact]
+    public async Task HitPointsAtWindowStart_IsNullWhenNoHitCarriedASnapshot()
+    {
+        var tracker = await Analyze(
+        [
+            Hit(DeathAt - 2_000, Cleave, amount: 3_000),
+            Death(DeathAt),
+        ]);
+
+        var death = tracker.Deaths.ShouldHaveSingleItem();
+
+        death.HitPointsAtWindowStart.ShouldBeNull();
+        death.MaxHitPoints.ShouldBeNull();
     }
 
     [Fact]
@@ -362,7 +404,7 @@ public sealed class DeathTrackerTests
         int spellId,
         long amount,
         long? unmitigated = null,
-        long mitigated = 0,
+        long damageReduction = 0,
         long absorbed = 0,
         long blocked = 0,
         HitType hitType = HitType.Normal,
@@ -375,7 +417,7 @@ public sealed class DeathTrackerTests
             Ability = new Ability { FSLID = spellId, Name = spellId == Cleave ? "Cleave" : "Slam" },
             Amount = amount,
             UnmitigatedAmount = unmitigated ?? amount,
-            Mitigated = mitigated,
+            Mitigated = damageReduction,
             Absorbed = absorbed,
             Blocked = blocked,
             HitType = hitType,
