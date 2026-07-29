@@ -1,0 +1,138 @@
+@use 'tokens' as t;
+@use 'mixins' as mx;
+
+.death-card-header {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding-bottom: 6px;
+    border-bottom: var(--fa-border-width) solid var(--fa-border);
+    font-size: var(--fa-fs-title);
+    font-weight: 700;
+    color: var(--fa-text);
+}
+
+.death-card-time {
+    flex-shrink: 0;
+    padding: 1px 7px;
+    border-radius: var(--fa-radius-xs);
+    background: t.tint(var(--fa-ev-death), t.$fa-tint-subtle);
+    border: var(--fa-border-width) solid t.tint(var(--fa-ev-death), t.$fa-tint-muted);
+    color: var(--fa-text);
+    font-size: var(--fa-fs-meta);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.5px;
+}
+
+.death-card-blow {
+    display: inline-flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    min-width: 0;
+}
+
+.death-card-killer {
+    color: var(--fa-text-muted);
+    font-weight: 400;
+}
+
+.death-card-tags {
+    display: inline-flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-left: auto;
+}
+
+.death-card-stats {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 6px;
+
+    @include mx.mobile {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    @include mx.mobile-sm {
+        grid-template-columns: 1fr;
+    }
+}
+
+.death-card-sources {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--fa-fs-body);
+
+    th {
+        padding: 2px 6px;
+        text-align: left;
+        font-size: var(--fa-fs-label);
+        font-weight: 600;
+        color: var(--fa-text-dim);
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        border-bottom: var(--fa-border-width) solid var(--fa-border);
+    }
+
+    td {
+        padding: 3px 6px;
+        border-bottom: var(--fa-border-width) solid t.tint(var(--fa-white), t.$fa-tint-faint);
+    }
+
+    tr:last-child td { border-bottom: none; }
+}
+
+.death-card-source {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 5px;
+    min-width: 0;
+}
+
+.death-card-numeric {
+    width: 1%;
+    white-space: nowrap;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}
+
+.death-card-defensives {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 3px 16px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.death-card-defensive {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+    font-size: var(--fa-fs-body);
+    line-height: 1.5;
+
+    &.unused { opacity: 0.65; }
+}
+
+.death-card-defensive-name {
+    flex: 0 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.death-card-defensive-note {
+    flex: 0 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: var(--fa-fs-meta);
+    color: var(--fa-text-dim);
+}

@@ -1,0 +1,15 @@
+.deaths-tab {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.deaths-empty {
+    padding: 24px;
+    border: var(--fa-border-width) solid var(--fa-border);
+    border-radius: var(--fa-radius-sm);
+    background: var(--fa-bg-inset);
+    color: var(--fa-text-muted);
+    font-size: var(--fa-fs-body);
+    text-align: center;
+}

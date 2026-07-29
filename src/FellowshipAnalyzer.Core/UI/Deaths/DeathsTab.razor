@@ -1,0 +1,40 @@
+@using FellowshipAnalyzer.Core.Analysis
+@using FellowshipAnalyzer.Core.Analysis.Deaths
+@using FellowshipAnalyzer.Core.UI.Guides
+@inherits ReportComponent
+
+<section class="deaths-tab">
+    @if (_deaths.Count == 0)
+    {
+        <div class="deaths-empty">@EmptyText</div>
+    }
+    else
+    {
+        <StatisticsSectionTitle Title="@Title" />
+        <GuideContainer>
+            @foreach (var death in _deaths)
+            {
+                <DeathCard Death="death" />
+            }
+        </GuideContainer>
+    }
+</section>
+
+@code {
+    private IReadOnlyList<PlayerDeath> _deaths = [];
+    private bool _hasDeathsElsewhere;
+
+    private string Title => _deaths.Count == 1 ? "1 Death" : $"{_deaths.Count} Deaths";
+
+    private string EmptyText => _hasDeathsElsewhere
+        ? "No deaths in this pull. Pick another pull, or the whole dungeon, to see the rest."
+        : "No deaths were logged for this player.";
+
+    protected override void OnParametersSet()
+    {
+        var tracker = Result.Modules.OfType<DeathTracker>().FirstOrDefault();
+
+        _deaths = tracker?.For(SelectedPull) ?? [];
+        _hasDeathsElsewhere = _deaths.Count == 0 && tracker is { Deaths.Count: > 0 };
+    }
+}
