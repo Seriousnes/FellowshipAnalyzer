@@ -88,9 +88,13 @@
     </SubSection>
 
     <SubSection Title="Defensives And Healing">
-        @if (Death.Pressed.Count == 0 && Death.ActiveAtDeath.Count == 0 && Death.AvailableUnused.Count == 0)
+        @if (Death.Defensives.Count == 0)
         {
-            <HelperText>Nothing in this hero's spellbook is classified as a defensive or a heal with a cooldown.</HelperText>
+            <HelperText>Nothing in this hero's spellbook is a defensive or a heal with a cooldown.</HelperText>
+        }
+        else if (Death.Pressed.Count == 0 && Death.ActiveAtDeath.Count == 0 && Death.AvailableUnused.Count == 0)
+        {
+            <HelperText>Every defensive and heal was recharging at the death.</HelperText>
         }
         else
         {
