@@ -32,7 +32,15 @@ internal static class HelenaAnalysisFixture
         InProgress: false,
         DungeonPulls: [new DungeonPull(1, 1, true, PullStart, PullEnd, "Boss", null)]);
 
-    public static async Task<HelenaCombatLogParser> Analyze(params Event[] events)
+    public static Task<HelenaCombatLogParser> Analyze(params Event[] events) =>
+        AnalyzeWithTalents([], events);
+
+    /// <summary>
+    /// Runs the parser for a player who selected <paramref name="talents"/>, so <c>[RequiresTalent]</c>
+    /// modules are constructed. Without them a talent-gated module never exists and every metric it
+    /// carries reads a silent zero.
+    /// </summary>
+    public static async Task<HelenaCombatLogParser> AnalyzeWithTalents(Talent[] talents, params Event[] events)
     {
         var services = new ServiceCollection();
         services.AddLogging();
@@ -43,11 +51,15 @@ internal static class HelenaAnalysisFixture
         using var scope = provider.CreateScope();
 
         var parser = scope.ServiceProvider.GetRequiredService<HelenaCombatLogParser>();
-        await parser.Analyze([Combatant(), .. events], PlayerId, BossFight);
+        await parser.Analyze([Combatant(talents), .. events], PlayerId, BossFight);
         return parser;
     }
 
-    public static CombatantInfoEvent Combatant() => new() { SourceId = PlayerId };
+    public static CombatantInfoEvent Combatant(params Talent[] talents) => new()
+    {
+        SourceId = PlayerId,
+        Talents = [.. talents.Select(talent => new TalentInfo { Id = talent.FSLID.Value })],
+    };
 
     /// <summary>
     /// A player cast, optionally carrying a Toughness snapshot. Log resource values are scaled by 100
@@ -103,6 +115,39 @@ internal static class HelenaAnalysisFixture
         TargetId = PlayerId,
         Ability = new Ability { FSLID = spell.FSLID, Name = spell.Name },
         AbilityGameId = spell.FSLID,
+    };
+
+    public static ApplyBuffStackEvent ApplyBuffStack(int timestamp, Spell spell, int stack) => new()
+    {
+        Timestamp = timestamp,
+        SourceId = PlayerId,
+        TargetId = PlayerId,
+        Ability = new Ability { FSLID = spell.FSLID, Name = spell.Name },
+        AbilityGameId = spell.FSLID,
+        Stack = stack,
+    };
+
+    public static RemoveBuffStackEvent RemoveBuffStack(int timestamp, Spell spell, int stack) => new()
+    {
+        Timestamp = timestamp,
+        SourceId = PlayerId,
+        TargetId = PlayerId,
+        Ability = new Ability { FSLID = spell.FSLID, Name = spell.Name },
+        AbilityGameId = spell.FSLID,
+        Stack = stack,
+    };
+
+    /// <summary>Damage the player dealt with <paramref name="spell"/>.</summary>
+    public static DamageEvent DamageDealt(int timestamp, Spell spell, long amount) => new()
+    {
+        Timestamp = timestamp,
+        SourceId = PlayerId,
+        TargetId = EnemyId,
+        TargetInstance = 1,
+        Ability = new Ability { FSLID = spell.FSLID, Name = spell.Name },
+        AbilityGameId = spell.FSLID,
+        Amount = amount,
+        UnmitigatedAmount = amount,
     };
 
     public static RemoveBuffEvent RemoveBuff(int timestamp, Spell spell, int? absorb = null) => new()

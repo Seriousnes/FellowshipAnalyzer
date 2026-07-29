@@ -12,6 +12,9 @@ namespace FellowshipAnalyzer.Heroes.Helena.Analysis;
 [AddAnalyzer<LingeringConcussionAnalyzer>]
 [AddAnalyzer<VeteranOfWarAnalyzer>]
 [AddAnalyzer<EmpoweredShieldSlamAnalyzer>]
+[AddModule<ShieldMasteryAnalyzer>]
+[AddModule<SwordAndBoardAnalyzer>]
+[AddModule<GreaterShockwaveAnalyzer>]
 [AddModule<Modules.Abilities>]
 [AddModule<HelenaAuras>]
 public sealed partial class HelenaCombatLogParser : CombatLogParser

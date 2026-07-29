@@ -57,14 +57,14 @@ public static class SylvieKit
     /// <summary>The share of accumulated healing Heart Bloom banks (<c>Constants.Heart Bloom.AccumulatedHealScalar</c>).</summary>
     public const double HeartBloomAccumulatedShare = 0.12;
 
-    /// <summary>Heart Bloom's payout interval in milliseconds (<c>Constants.Heart Bloom.TickInterval</c>).</summary>
+    /// <summary>Heart Bloom's release interval in milliseconds (<c>Constants.Heart Bloom.TickInterval</c>).</summary>
     public const int HeartBloomTickIntervalMs = 2_000;
 
-    /// <summary>How long Heart Bloom pays out for, in milliseconds (<c>Constants.Heart Bloom.Duration</c>).</summary>
+    /// <summary>How long Heart Bloom keeps releasing, in milliseconds (<c>Constants.Heart Bloom.Duration</c>).</summary>
     public const int HeartBloomDurationMs = 16_000;
 
-    /// <summary>Payouts one Heart Bloom makes over its duration.</summary>
-    public static int HeartBloomPayouts => HeartBloomDurationMs / HeartBloomTickIntervalMs;
+    /// <summary>Releases one Heart Bloom makes over its duration.</summary>
+    public static int HeartBloomReleases => HeartBloomDurationMs / HeartBloomTickIntervalMs;
 
     /// <summary>Seconds a Nettlebolt that lands takes off Life Petal (<c>Constants.Nettlebolt.HealTotemCooldownReduction.CooldownReductionInSecondsDamage</c>).</summary>
     public const int NettleboltCooldownReductionMs = 1_500;

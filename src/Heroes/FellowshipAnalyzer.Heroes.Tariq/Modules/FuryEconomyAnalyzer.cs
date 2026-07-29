@@ -31,7 +31,7 @@ public sealed partial class FuryEconomyAnalyzer : Analyzer
     /// <summary>Hammer Storm's Fury cost, from <c>AoeAttack.Cost</c>.</summary>
     public const int HammerStormCost = 50;
 
-    /// <summary>The most Fury a Culling Strike consumes, from <c>Culling Strike.MaxResourceToSpend</c>. It scales its damage with what it spends rather than paying a fixed price.</summary>
+    /// <summary>The most Fury a Culling Strike consumes, from <c>Culling Strike.MaxResourceToSpend</c>. It scales its damage with what it spends rather than spending a fixed amount.</summary>
     public const int CullingStrikeMaxSpend = 10;
 
     private int _activeStart = int.MaxValue;

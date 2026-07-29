@@ -49,7 +49,7 @@ public sealed class HeartBloomRampAnalyzerTests
     }
 
     [Fact]
-    public async Task PayoutsAreCountedByTheirTwoSecondInterval()
+    public async Task ReleasesAreCountedByTheirTwoSecondInterval()
     {
         var parser = await Analyze(
             Cast(PullStart + 1_000, Spells.HeartBloom),
@@ -60,9 +60,9 @@ public sealed class HeartBloomRampAnalyzerTests
 
         var cast = parser.HeartBloomRampAnalyzers.ShouldHaveSingleItem().Analyzer.Casts.ShouldHaveSingleItem();
 
-        cast.Payouts.ShouldBe(3);
-        cast.PaidOutInFull.ShouldBeFalse();
-        SylvieKit.HeartBloomPayouts.ShouldBe(8);
+        cast.Releases.ShouldBe(3);
+        cast.ReleasedInFull.ShouldBeFalse();
+        SylvieKit.HeartBloomReleases.ShouldBe(8);
     }
 
     [Fact]

@@ -6,12 +6,12 @@ namespace FellowshipAnalyzer.Heroes.Sylvie.Modules;
 
 /// <summary>
 /// What each Heart Bloom was ramped with. Heart Bloom banks a share of the healing that came before it
-/// and pays the bank back out over sixteen seconds, and the flutterflies are the steadiest thing
+/// and releases the bank over sixteen seconds, and the flutterflies are the steadiest thing
 /// feeding it while it is on cooldown - which makes where Bluey sat part of the setup for the cast.
 /// <para>
-/// The flutterfly healing over each accumulation window and the healing the cast then paid out are
+/// The flutterfly healing over each accumulation window and the healing the cast then released are
 /// both measured, and the ratio between them is reported as observed rather than asserted. On the
-/// validation report the payout runs ahead of the flutterfly healing that preceded it, so the
+/// validation report what comes back out runs ahead of the flutterfly healing that preceded it, so the
 /// flutterflies are one input to the bank and not the whole of it; the log carries no reading of the
 /// bank itself, so what else feeds it cannot be settled here.
 /// </para>
@@ -44,14 +44,14 @@ public sealed partial class HeartBloomRampAnalyzer : Analyzer
     /// <summary>Flutterfly healing, overheal included, that fed the bank across this pull's casts.</summary>
     public long TotalFed => Result.Sum(cast => cast.FlutterflyFed);
 
-    /// <summary>Healing, overheal included, that this pull's Heart Blooms paid out.</summary>
-    public long TotalPaidOut => Result.Sum(cast => cast.TotalHealing);
+    /// <summary>Healing, overheal included, that this pull's Heart Blooms released.</summary>
+    public long TotalReleased => Result.Sum(cast => cast.TotalHealing);
 
-    /// <summary>Payouts observed across this pull's casts, against <see cref="SylvieKit.HeartBloomPayouts"/> each.</summary>
-    public int TotalPayouts => Result.Sum(cast => cast.Payouts);
+    /// <summary>Releases observed across this pull's casts, against <see cref="SylvieKit.HeartBloomReleases"/> each.</summary>
+    public int TotalReleases => Result.Sum(cast => cast.Releases);
 
-    /// <summary>Casts that ran their full complement of payouts before the pull or the duration ended.</summary>
-    public int FullyPaidOutCasts => Result.Count(cast => cast.Payouts >= SylvieKit.HeartBloomPayouts);
+    /// <summary>Casts that ran their full complement of releases before the pull or the duration ended.</summary>
+    public int FullyReleasedCasts => Result.Count(cast => cast.Releases >= SylvieKit.HeartBloomReleases);
 
     [On<HealEvent>(By = Actor.Player, Spell = nameof(Spells.FluttercallHealHot))]
     private void OnFlutterflyHeal(HealEvent healEvent)
@@ -99,7 +99,7 @@ public sealed partial class HeartBloomRampAnalyzer : Analyzer
             capture.FedOverheal,
             capture.BlueyAssigned,
             capture.BlueyOnAlly,
-            capture.PayoutInstants.Count,
+            capture.ReleaseInstants.Count,
             capture.Effective,
             capture.Overheal))
     ];
@@ -114,25 +114,25 @@ public sealed partial class HeartBloomRampAnalyzer : Analyzer
         public bool BlueyOnAlly { get; init; }
         public long Effective { get; private set; }
         public long Overheal { get; private set; }
-        public HashSet<int> PayoutInstants { get; } = [];
+        public HashSet<int> ReleaseInstants { get; } = [];
 
         public void Record(int timestamp, long effective, long overheal)
         {
             Effective += effective;
             Overheal += overheal;
-            PayoutInstants.Add((timestamp - Timestamp) / SylvieKit.HeartBloomTickIntervalMs);
+            ReleaseInstants.Add((timestamp - Timestamp) / SylvieKit.HeartBloomTickIntervalMs);
         }
     }
 }
 
-/// <summary>One Heart Bloom, what fed it, and what it paid back.</summary>
+/// <summary>One Heart Bloom, what fed it, and what it returned.</summary>
 /// <param name="Timestamp">When it went out.</param>
 /// <param name="AccumulationMs">How long it had been banking since the previous cast or the pull's start.</param>
 /// <param name="FlutterflyEffective">Flutterfly healing that landed during the accumulation window.</param>
 /// <param name="FlutterflyOverheal">Flutterfly healing lost to full bars during the accumulation window, which the bank still counts.</param>
 /// <param name="BlueyAssigned">Whether Bluey was placed anywhere the log could see when the cast went out.</param>
 /// <param name="BlueyOnAlly">Whether Bluey was on an ally rather than on Sylvie, the placement that feeds the flutterflies hardest.</param>
-/// <param name="Payouts">Distinct payout intervals observed, against the eight the duration allows.</param>
+/// <param name="Releases">Distinct release intervals observed, against the eight the duration allows.</param>
 /// <param name="Effective">Healing this cast landed.</param>
 /// <param name="Overheal">Healing this cast lost to full bars.</param>
 public sealed record HeartBloomCast(
@@ -142,7 +142,7 @@ public sealed record HeartBloomCast(
     long FlutterflyOverheal,
     bool BlueyAssigned,
     bool BlueyOnAlly,
-    int Payouts,
+    int Releases,
     long Effective,
     long Overheal)
 {
@@ -155,6 +155,6 @@ public sealed record HeartBloomCast(
     /// <summary>Share (0-1) of this cast's own healing that was overheal.</summary>
     public double OverhealShare => TotalHealing > 0 ? Overheal / (double)TotalHealing : 0;
 
-    /// <summary>Whether every payout the duration allows was observed.</summary>
-    public bool PaidOutInFull => Payouts >= SylvieKit.HeartBloomPayouts;
+    /// <summary>Whether every release the duration allows was observed.</summary>
+    public bool ReleasedInFull => Releases >= SylvieKit.HeartBloomReleases;
 }

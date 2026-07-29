@@ -8,6 +8,8 @@ using FellowshipAnalyzer.Heroes.Helena.Statistics;
 
 using Microsoft.Extensions.Logging;
 
+using HelenaTalents = FellowshipAnalyzer.Core.Common.Spells.HelenaTalents;
+
 namespace FellowshipAnalyzer.Heroes.Helena.Modules;
 
 /// <summary>
@@ -47,6 +49,23 @@ public sealed partial class ToughnessTracker : ResourceTracker
 
     /// <summary>The nominal share of maximum Toughness a block restores.</summary>
     public static double BlockGeneration => ToughnessBands.NominalGeneration(0.24);
+
+    /// <summary>Whether the player took Greater Shockwave, whose casts return an extra tenth of maximum Toughness.</summary>
+    public bool HasGreaterShockwave => Owner.SelectedCombatant.HasTalent(HelenaTalents.GreaterShockwave);
+
+    /// <summary>
+    /// The share of maximum Toughness <paramref name="spellId"/> nominally restores for the build being
+    /// analyzed, which for Shockwave under Greater Shockwave is its per-hit generation plus a flat tenth
+    /// of maximum Toughness.
+    /// </summary>
+    public double NominalGenerationFor(int spellId)
+    {
+        if (FindGenerator(spellId) is not { } generator) return 0;
+
+        return spellId == Spells.Shockwave.FSLID && HasGreaterShockwave
+            ? generator.NominalShare + GreaterShockwaveAnalyzer.AdditionalToughnessShare
+            : generator.NominalShare;
+    }
 
     /// <inheritdoc/>
     public override Type? StatisticsComponentType => Toughness is null ? null : typeof(ToughnessStatistics);
@@ -95,12 +114,15 @@ public sealed partial class ToughnessTracker : ResourceTracker
     [On<CastEvent>(By = Actor.Player)]
     private void OnGeneratorCast(CastEvent castEvent)
     {
-        if (FindGenerator(castEvent.Ability.Id) is not { } generator) return;
+        if (FindGenerator(castEvent.Ability.Id) is null) return;
 
         _generatorCasts[castEvent.Ability.Id] = _generatorCasts.GetValueOrDefault(castEvent.Ability.Id) + 1;
 
         if (IsAtMaximum(castEvent.SourceResources))
-            _overcaps.Add(new ToughnessOvercap(castEvent.Timestamp, castEvent.Ability.Id, generator.NominalShare));
+        {
+            _overcaps.Add(new ToughnessOvercap(
+                castEvent.Timestamp, castEvent.Ability.Id, NominalGenerationFor(castEvent.Ability.Id)));
+        }
     }
 
     [On<DamageEvent>(To = Actor.Player)]

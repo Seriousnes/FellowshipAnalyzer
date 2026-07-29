@@ -114,7 +114,7 @@ public sealed record IronWallUse(
 {
     /// <summary>
     /// Whether Toughness was at or above half maximum, the threshold from which the freeze holds a
-    /// band worth holding rather than locking in a depleted bar.
+    /// band worth holding rather than locking in a depleted one.
     /// </summary>
     public bool OpenedAboveHalfToughness => ToughnessShare >= ToughnessBands.LowerThreshold(ToughnessBand.Level3);
 }

@@ -1,0 +1,42 @@
+@inherits AnalyzerStatistic<GreaterShockwaveAnalyzer>
+
+<StatCard>
+    <Header>
+        <SpellLink Spell="Talents.GreaterShockwave" />
+    </Header>
+    <Info>
+        <p>
+            Both halves are sized from how much Toughness was held when
+            <SpellLink Spell="Spells.Shockwave" /> went out, and they want opposite things from it. The
+            amplification below is the average across @Analyzer.MeasuredCasts casts; the wasted share is
+            how much of the returned Toughness there was no room to hold.
+        </p>
+    </Info>
+    <ChildContent>
+        <StatRow Value="@Percent(Analyzer.ToughnessWastedShare)" Tooltip="@WastedTooltip">
+            Toughness returned that was wasted
+        </StatRow>
+        <StatRow Value="@Percent(Analyzer.AverageAmplification)" Tooltip="@AmplificationTooltip">
+            average damage amplification
+        </StatRow>
+        @if (Analyzer.UnmeasuredCasts > 0)
+        {
+            <HelperText>
+                @Analyzer.UnmeasuredCasts further casts carried no Toughness reading and are absent from both figures.
+            </HelperText>
+        }
+    </ChildContent>
+</StatCard>
+
+@code {
+    private static string Percent(double share) => $"{share * 100:F1}%";
+
+    private string WastedTooltip =>
+        $"Each cast returns {GreaterShockwaveAnalyzer.AdditionalToughnessShare * 100:F0}% of maximum Toughness, " +
+        "so one made within that much of maximum loses the difference and one made at maximum loses all " +
+        "of it.";
+
+    private string AmplificationTooltip =>
+        $"Shockwave damage scales with Toughness up to {GreaterShockwaveAnalyzer.AmplificationAtFullToughness * 100:F0}% " +
+        $"at full Toughness, and these casts reached {Percent(Analyzer.AmplificationShare)} of that.";
+}

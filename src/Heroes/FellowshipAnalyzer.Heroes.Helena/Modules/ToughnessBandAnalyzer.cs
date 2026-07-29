@@ -2,6 +2,8 @@ using FellowshipAnalyzer.Core.Analysis;
 using FellowshipAnalyzer.Core.Events;
 using FellowshipAnalyzer.Core.Game;
 
+using HelenaTalents = FellowshipAnalyzer.Core.Common.Spells.HelenaTalents;
+
 namespace FellowshipAnalyzer.Heroes.Helena.Modules;
 
 /// <summary>
@@ -44,12 +46,23 @@ public sealed partial class ToughnessBandAnalyzer : Analyzer
     /// <summary>Share (0-1) of the measured time spent in <paramref name="band"/>.</summary>
     public double ShareIn(ToughnessBand band) => Share(MsIn(band));
 
-    /// <summary>Share (0-1) of the measured time spent in the top band, where Toughness grants its full 35%.</summary>
+    /// <summary>Share (0-1) of the measured time spent in the top band, where Toughness grants its full reduction.</summary>
     public double TopBandShare => ShareIn(ToughnessBand.Level4);
 
+    /// <summary>Whether the player took Front Line Defender, which adds five points to every band that grants anything.</summary>
+    public bool HasFrontLineDefender => Owner.SelectedCombatant.HasTalent(HelenaTalents.FrontLineDefender);
+
+    /// <summary>The physical damage reduction <paramref name="band"/> grants this build.</summary>
+    public double DamageReductionIn(ToughnessBand band) =>
+        ToughnessBands.DamageReduction(band, HasFrontLineDefender);
+
+    /// <summary>The most physical damage reduction Toughness can grant this build, which is what <see cref="AverageDamageReduction"/> reads against.</summary>
+    public double DamageReductionCeiling => ToughnessBands.Ceiling(HasFrontLineDefender);
+
     /// <summary>
-    /// The physical damage reduction Toughness averaged over the pull, weighted by time in band. A
-    /// game-defined ceiling of 35% applies, so this reads directly against that cap.
+    /// The physical damage reduction Toughness averaged over the pull, weighted by time in band. The
+    /// game caps it at the top band's value, so this reads directly against
+    /// <see cref="DamageReductionCeiling"/>.
     /// </summary>
     public double AverageDamageReduction
     {
@@ -59,7 +72,7 @@ public sealed partial class ToughnessBandAnalyzer : Analyzer
 
             var weighted = 0d;
             foreach (var (band, ms) in Result.BandMs)
-                weighted += ToughnessBands.DamageReduction(band) * ms;
+                weighted += DamageReductionIn(band) * ms;
 
             return weighted / Result.MeasuredMs;
         }

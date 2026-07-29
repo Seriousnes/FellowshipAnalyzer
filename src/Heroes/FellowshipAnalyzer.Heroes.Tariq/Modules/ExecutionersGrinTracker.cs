@@ -10,7 +10,7 @@ namespace FellowshipAnalyzer.Heroes.Tariq.Modules;
 /// <summary>
 /// Tracks the Executioner's Grin proc from Executioner's Unsanitary Bands, which lets Culling Strike be
 /// cast on a target above <see cref="CullingStrikeAnalyzer.ExecuteHealthThreshold"/>. A proc is spent by
-/// the next Culling Strike whatever the target's health, so the item only pays out when that cast lands
+/// the next Culling Strike whatever the target's health, so the item only returns value when that cast lands
 /// above the threshold; report <c>a:NcqHDKzamL7n6YFv</c> shows 66 of 102 procs doing so, 28 spent on a
 /// cast that was legal anyway, and 8 expiring with no Culling Strike at all.
 /// </summary>

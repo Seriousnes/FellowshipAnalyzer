@@ -287,7 +287,7 @@ public enum ResourceEventKind
 {
     /// <summary>The resource increased.</summary>
     Gain,
-    /// <summary>The resource decreased because a cast paid its cost.</summary>
+    /// <summary>The resource decreased because a cast spent it.</summary>
     Spend,
     /// <summary>The resource decreased outside of a cast cost, e.g. a mechanic that drains it directly.</summary>
     Drain,

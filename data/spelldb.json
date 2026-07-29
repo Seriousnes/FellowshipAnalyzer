@@ -1519,6 +1519,12 @@
       "name": "",
       "icon": ""
     },
+    "PunishingStrikesBuff": {
+      "kind": "effect",
+      "id": 3095,
+      "name": "Punishing Strikes",
+      "icon": "T_Warmaster_FatalBlow.jpg"
+    },
     "ShieldSlam": {
       "kind": "ability",
       "id": 977,
@@ -1730,6 +1736,19 @@
       "id": 1274,
       "name": "",
       "icon": ""
+    },
+    "SwordAndBoardBuff": {
+      "kind": "effect",
+      "id": 1242,
+      "name": "Sword \u0026 Board",
+      "icon": "T_Warmaster_ShieldSlam.jpg",
+      "cooldown": 1.5
+    },
+    "SwordAndBoardFreeCastBuff": {
+      "kind": "effect",
+      "id": 1219,
+      "name": "Sword \u0026 Board",
+      "icon": "T_Warmaster_ShieldSlam.jpg"
     },
     "Taunt": {
       "kind": "ability",

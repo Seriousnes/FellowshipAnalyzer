@@ -5,7 +5,7 @@
     <Explanation>
         <p>
             <SpellLink Spell="Spells.Rend" /> is the backbone of Gunde's damage: most of his abilities
-            feed it, and <SpellLink Spell="Spells.Slaughter" /> pays out against whatever has
+            feed it, and <SpellLink Spell="Spells.Slaughter" /> draws on whatever has
             accumulated. On bosses the bleed
             should stay rolling for the whole fight; each boss pull is scored on uptime and the gaps
             between applications. On packs it should reach every enemy,
@@ -146,7 +146,7 @@
     private static string BuildTrashNote(RendSpreadAnalyzer analyzer, int score)
     {
         if (analyzer.DistinctTargets == 0)
-            return "No Rend was applied on this AoE pull, so Slaughter had nothing to pay out.";
+            return "No Rend was applied on this AoE pull, so Slaughter had nothing to draw on.";
 
         if (analyzer.TargetCount <= 0)
             return $"Rend reached {analyzer.DistinctTargets} enemies (the enemy roster was not reported, so coverage is estimated).";

@@ -187,6 +187,42 @@ public sealed partial class SpellUsable(
         }
     }
 
+    /// <summary>
+    /// Hands one charge of <paramref name="spellId"/> back without disturbing the recharge already
+    /// running, as a refund proc does: the charge that was recovering keeps the progress it had made.
+    /// <see cref="EndCooldown"/> is the wrong call for a refund, since it restarts the next charge's
+    /// recharge from the moment it runs. A refund past the last charge on cooldown leaves nothing
+    /// recharging, so the pending expiry is cancelled and the spell drops to fully available.
+    /// </summary>
+    /// <returns><c>true</c> when a charge was handed back, <c>false</c> when every charge was already available.</returns>
+    public bool RefundCharge(int spellId, int? timestamp = null)
+    {
+        if (!_cooldowns.TryGetValue(spellId, out var cd)) return false;
+
+        var ts = timestamp ?? Owner.CurrentTimestamp;
+        var eventTs = Owner.CurrentTimestamp;
+        cd = cd with { ChargesAvailable = cd.ChargesAvailable + 1 };
+
+        if (cd.ChargesAvailable < cd.MaxCharges)
+        {
+            _cooldowns[spellId] = cd;
+            FabricateUpdate(UpdateSpellUsableType.RestoreCharge, spellId, eventTs, cd);
+            RefreshPendingEnd(spellId);
+            return true;
+        }
+
+        if (cd.PendingEnd is not null)
+        {
+            Owner.EventEmitter.Cancel(cd.PendingEnd);
+            cd = cd with { PendingEnd = null };
+        }
+
+        cd = cd with { ExpectedEnd = ts };
+        FabricateUpdate(UpdateSpellUsableType.EndCooldown, spellId, eventTs, cd);
+        _cooldowns.Remove(spellId);
+        return true;
+    }
+
     [On<CastEvent>(By = Actor.Player)]
     private void OnCast(CastEvent e)
     {

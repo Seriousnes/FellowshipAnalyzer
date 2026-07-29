@@ -202,7 +202,7 @@ public sealed class JsonDerivedTypeGenerator : IIncrementalGenerator
         sb.AppendLine("/// <summary>");
         sb.AppendLine("/// Maps a raw UTF-8 <c>" + info.DiscriminatorPropertyName + "</c> discriminator to its concrete <see cref=\"" + info.ClassName + "\"/> subclass,");
         sb.AppendLine("/// so a caller that has already located an object's bytes can deserialize it against the derived");
-        sb.AppendLine("/// type directly instead of paying for polymorphic dispatch. Kept in step with the");
+        sb.AppendLine("/// type directly instead of incurring polymorphic dispatch. Kept in step with the");
         sb.AppendLine("/// <c>JsonDerivedType</c> registrations by the same generator.");
         sb.AppendLine("/// </summary>");
         sb.AppendLine("public static class " + info.ClassName + "Discriminators");

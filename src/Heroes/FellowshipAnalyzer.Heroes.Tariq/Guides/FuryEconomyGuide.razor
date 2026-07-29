@@ -8,7 +8,7 @@
     <Explanation>
         <p>
             Spend down before you top up. <SpellLink Spell="Spells.WildSwing" />,
-            <SpellLink Spell="Spells.FaceBreaker" /> and <SpellLink Spell="Spells.HeavyStrike" /> each pay a
+            <SpellLink Spell="Spells.FaceBreaker" /> and <SpellLink Spell="Spells.HeavyStrike" /> each add a
             flat amount, so firing one with the bar near full throws away exactly the points that would have
             crossed the cap. Take <SpellLink Spell="Spells.SkullCrusher" /> or
             <SpellLink Spell="Spells.HammerStorm" /> first and the generator lands on an empty bar.
@@ -86,7 +86,7 @@
             new PerCastStat(
                 $"{analyzer.SkullCrusherCasts} / {analyzer.HammerStormCasts} / {analyzer.CullingStrikeCasts}",
                 "Skull / Hammer / Culling",
-                $"Casts of the three abilities that draw on the bar. They do not drain it equally: Skull Crusher pays {FuryEconomyAnalyzer.SkullCrusherCost}, Hammer Storm {FuryEconomyAnalyzer.HammerStormCost}, and Culling Strike spends up to {FuryEconomyAnalyzer.CullingStrikeMaxSpend} to scale its own damage."),
+                $"Casts of the three abilities that draw on the bar. They do not drain it equally: Skull Crusher costs {FuryEconomyAnalyzer.SkullCrusherCost}, Hammer Storm {FuryEconomyAnalyzer.HammerStormCost}, and Culling Strike spends up to {FuryEconomyAnalyzer.CullingStrikeMaxSpend} to scale its own damage."),
         };
 
         return new PerCastRow

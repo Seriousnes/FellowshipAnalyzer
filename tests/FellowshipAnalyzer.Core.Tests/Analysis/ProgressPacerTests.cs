@@ -59,7 +59,7 @@ public sealed class ProgressPacerTests
 
     /// <summary>
     /// The point of pacing by time is that yields track how long a loop runs, not how many iterations it
-    /// has, so a report with ten times the events does not pay ten times the re-render cost. The upper
+    /// has, so a report with ten times the events does not incur ten times the re-render cost. The upper
     /// bound is what makes that true and holds however fast the machine runs the loop.
     /// </summary>
     [Fact]

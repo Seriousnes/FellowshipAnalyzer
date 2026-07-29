@@ -2,6 +2,8 @@ using FellowshipAnalyzer.Core.Analysis;
 using FellowshipAnalyzer.Core.Common.Spells.Helena;
 using FellowshipAnalyzer.Core.Events;
 
+using HelenaTalents = FellowshipAnalyzer.Core.Common.Spells.HelenaTalents;
+
 namespace FellowshipAnalyzer.Heroes.Helena.Modules;
 
 /// <summary>
@@ -27,19 +29,20 @@ public sealed partial class VeteranOfWarAnalyzer : Analyzer
     private readonly Dictionary<int, int> _modelledCharges = [];
 
     private bool _ultimateActive;
+    private int _punishingStrikesStacks;
     private int _targetCasts;
 
     /// <summary>
     /// The reduction each cast hands to each of its targets, in seconds, from the Season 3
-    /// <c>Constants.CooldownReductionCombo</c> block.
+    /// <c>Constants.CooldownReductionCombo</c> block. The Season 2 block carries 1.5s where this one
+    /// carries 2s and 6s where it carries 10s; those are the superseded values.
     /// <para>
     /// The block keys its entries by ability DevName, and the ten-second entry is filed under
-    /// <c>MoveToTargetStun</c>, which the same dump's <c>Kit</c> maps to Charge. That mapping is not
-    /// trusted here: the dump's Hold the Line entry is demonstrably stale - it describes a movement
-    /// buff whose two effect ids appear nowhere in a live log, while Hold the Line's real effect
-    /// (Empowered Shield Slam) fires on every cast - and the four abilities the ten-second entry
-    /// targets are exactly the four Hold the Line is documented to shorten. The source is therefore
-    /// modelled as Hold the Line. Moving it back to Charge is a one-line change to this table.
+    /// <c>MoveToTargetStun</c>, which the same dump's <c>Kit</c> maps to Charge. It is modelled as
+    /// Hold the Line on the owner's reading of the live tooltip, which names all four of these
+    /// abilities. Shield Throw's cast count on report <c>a:gDf7m3N2wvk96dWP</c> fight 22 backs that:
+    /// its 301 casts need about 2,700s of reduction beyond natural recharge, and Hold the Line at ten
+    /// seconds is what closes the gap.
     /// </para>
     /// </summary>
     public static IReadOnlyList<CooldownCombo> Combos { get; } =
@@ -64,6 +67,23 @@ public sealed partial class VeteranOfWarAnalyzer : Analyzer
     /// </summary>
     public const double ActiveUltimateScaler = 2.0;
 
+    /// <summary>
+    /// Punishing Strikes' <c>BlockToIncreasedPower.CooldownReducementMultiplier</c>: while the proc a
+    /// block leaves behind is up, the next reduction is doubled. It multiplies with
+    /// <see cref="ActiveUltimateScaler"/> rather than replacing it, so a combo cast under both is worth
+    /// four times its table value.
+    /// <para>
+    /// Stacks are spent by the log rather than by this analyzer: a cast is doubled whenever the buff
+    /// carries a stack at the moment it happens, and the buff's own stack events decide when that stops
+    /// being true. No log held locally has a player running the talent, so the doubling is modelled from
+    /// the Season 3 constants and has not been checked against live data.
+    /// </para>
+    /// </summary>
+    public const double PunishingStrikesScaler = 2.0;
+
+    /// <summary>The stack count <c>BlockToIncreasedPower.StacksAtProc</c> gives the buff when a block procs it.</summary>
+    public const int PunishingStrikesStacksAtProc = 2;
+
     /// <summary>Every source-to-target pair that generated reduction, ordered by the seconds it wasted.</summary>
     public IReadOnlyList<CooldownContribution> Contributions => Result.Contributions;
 
@@ -84,6 +104,12 @@ public sealed partial class VeteranOfWarAnalyzer : Analyzer
 
     /// <summary>Whether a Spirit ability was active at any point this pull, doubling the reductions made under it.</summary>
     public bool SawActiveUltimate { get; private set; }
+
+    /// <summary>Whether the player took Punishing Strikes, whose block proc doubles the next reduction.</summary>
+    public bool HasPunishingStrikes => Owner.SelectedCombatant.HasTalent(HelenaTalents.PunishingStrikes);
+
+    /// <summary>Combo casts made with a Punishing Strikes stack up, each worth double its table value.</summary>
+    public int PunishingStrikesCasts { get; private set; }
 
     /// <summary>
     /// Casts of a combo target made while the cooldown model believed that ability had no charge left,
@@ -121,6 +147,21 @@ public sealed partial class VeteranOfWarAnalyzer : Analyzer
     [On<RemoveBuffEvent>(To = Actor.Player, Spell = nameof(Spells.SiegebreakerBuff))]
     private void OnUltimateRemoved(RemoveBuffEvent buffEvent) => _ultimateActive = false;
 
+    [On<ApplyBuffEvent>(To = Actor.Player, Spell = nameof(Spells.PunishingStrikesBuff))]
+    private void OnPunishingStrikesApplied(ApplyBuffEvent buffEvent) =>
+        _punishingStrikesStacks = PunishingStrikesStacksAtProc;
+
+    [On<ApplyBuffStackEvent>(To = Actor.Player, Spell = nameof(Spells.PunishingStrikesBuff))]
+    private void OnPunishingStrikesStacked(ApplyBuffStackEvent buffEvent) =>
+        _punishingStrikesStacks = buffEvent.Stack;
+
+    [On<RemoveBuffStackEvent>(To = Actor.Player, Spell = nameof(Spells.PunishingStrikesBuff))]
+    private void OnPunishingStrikesStackRemoved(RemoveBuffStackEvent buffEvent) =>
+        _punishingStrikesStacks = buffEvent.Stack;
+
+    [On<RemoveBuffEvent>(To = Actor.Player, Spell = nameof(Spells.PunishingStrikesBuff))]
+    private void OnPunishingStrikesRemoved(RemoveBuffEvent buffEvent) => _punishingStrikesStacks = 0;
+
     [On<CastEvent>(By = Actor.Player, Spells = [
         nameof(Spells.MeasuredStrike),
         nameof(Spells.PowerStrike),
@@ -133,6 +174,12 @@ public sealed partial class VeteranOfWarAnalyzer : Analyzer
         _sourceCasts[castEvent.Ability.Id] = _sourceCasts.GetValueOrDefault(castEvent.Ability.Id) + 1;
 
         var scaler = _ultimateActive ? ActiveUltimateScaler : 1.0;
+
+        if (_punishingStrikesStacks > 0)
+        {
+            scaler *= PunishingStrikesScaler;
+            PunishingStrikesCasts++;
+        }
 
         foreach (var combo in Combos)
         {

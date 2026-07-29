@@ -1,0 +1,32 @@
+@inherits AnalyzerStatistic<SwordAndBoardAnalyzer>
+
+<StatCard>
+    <Header>
+        <SpellLink Spell="Talents.SwordAndBoard" />
+    </Header>
+    <Info>
+        <p>
+            The damage below is what @Analyzer.FreeCasts free
+            <SpellLink Spell="Spells.ShieldSlam" /> casts dealt, cleave included. A refund advances the
+            charge count without restarting the recharge already running, so a free cast is worth a whole
+            Shield Slam however close the next one was.
+        </p>
+    </Info>
+    <ChildContent>
+        <StatRow Value="@($"{Analyzer.ExtraDamage:N0}")" Tooltip="@DamageTooltip">
+            extra damage from free casts
+        </StatRow>
+        @if (Analyzer.ProcsExpired > 0)
+        {
+            <HelperText>
+                @Analyzer.ProcsExpired of @Analyzer.Procs procs fell off before a Shield Slam was pressed under them.
+            </HelperText>
+        }
+    </ChildContent>
+</StatCard>
+
+@code {
+    private string DamageTooltip =>
+        $"Every Shield Slam hit landed between a free cast and the next Shield Slam, across {Analyzer.FreeCasts} " +
+        $"free casts from {Analyzer.Procs} procs.";
+}

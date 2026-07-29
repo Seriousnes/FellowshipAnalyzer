@@ -138,7 +138,7 @@
     private static string BuildNote(SupremacyWindowAnalyzer.SupremacyWindow window, Pull pull)
     {
         if (window.StacksWasted == 0)
-            return $"All {window.StacksGranted} charges went out as empowered Multishots, so the window paid out in full.";
+            return $"All {window.StacksGranted} charges went out as empowered Multishots, so the window was spent in full.";
 
         var filler = pull.Targets == PullKind.Single
             ? "On a single target the empowered casts are the only Multishots worth firing, so there is nothing competing for the window."

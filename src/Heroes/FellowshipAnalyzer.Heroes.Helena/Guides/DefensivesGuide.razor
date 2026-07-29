@@ -73,7 +73,7 @@
                 stats.Add(new OverviewStat(
                     $"{overcapped}/{total}",
                     "Cast At Full Toughness",
-                    "Casts made with the Toughness bar already full, losing the 30% the cast would have restored.",
+                    "Casts made at maximum Toughness already, losing the 30% the cast would have restored.",
                     PerformanceTiers.FromThresholds(100 - ((double)overcapped / total * 100), 85, 70, 50)));
             }
         }
@@ -144,7 +144,7 @@
                 "Toughness Frozen",
                 use.ToughnessShare is null
                     ? "This cast carried no Toughness snapshot."
-                    : $"Toughness when it was pressed, holding the {(use.Band is { } band ? ToughnessBands.DamageReduction(band) * 100 : 0):F0}% notch in place for the duration.",
+                    : $"Toughness when it was pressed, holding {(use.Band is { } band ? ToughnessBands.DamageReduction(band) * 100 : 0):F0}% reduction in place for the duration.",
                 use.ToughnessShare is null ? null
                     : use.OpenedAboveHalfToughness ? QualitativePerformance.Perfect : QualitativePerformance.Fail),
             new(

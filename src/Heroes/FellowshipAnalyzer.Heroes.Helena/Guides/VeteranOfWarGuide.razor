@@ -3,20 +3,17 @@
 <GuideSection Title="Veteran of War">
     <Explanation>
         <p>
-            Almost everything Helena presses shortens something else. <SpellLink Spell="Spells.MeasuredStrike" />
-            and <SpellLink Spell="Spells.PowerStrike" /> take 2s off
-            <SpellLink Spell="Spells.ShieldSlam" /> and <SpellLink Spell="Spells.ShieldThrow" />; those
-            two take 3s off <SpellLink Spell="Spells.Shockwave" />;
-            <SpellLink Spell="Spells.Shockwave" /> takes 6s off <SpellLink Spell="Spells.ShieldsUp" />;
-            and <SpellLink Spell="Spells.HoldTheLine" /> takes 10s off all four.
-            <SpellLink Spell="Spells.Siegebreaker" /> doubles every one of them while it is up.
-        </p>
-        <p>
             A reduction aimed at something already off cooldown does nothing at all, and that is the
             only thing measured here. The seconds below are what the cooldown model says was generated
-            against an ability that was already available, so they follow the spellbook's cooldowns
-            rather than being read straight off the log.
+            against an ability that was already available, so they are only as good as that model.
         </p>
+        @if (HasPunishingStrikes)
+        {
+            <p>
+                @PunishingStrikesCasts of your combo casts went out under
+                <SpellLink Spell="Talents.PunishingStrikes" />. Both figures below already account for it.
+            </p>
+        }
     </Explanation>
     <ChildContent>
         <CastOverview Title="Overview" Stats="@BuildOverviewStats()" />
@@ -28,6 +25,11 @@
 </GuideSection>
 
 @code {
+    private bool HasPunishingStrikes => Parser.SelectedCombatant.HasTalent(Talents.PunishingStrikes.Id);
+
+    private int PunishingStrikesCasts =>
+        Parser.VeteranOfWarAnalyzers.Sum(entry => entry.Analyzer.PunishingStrikesCasts);
+
     private IEnumerable<OverviewStat> BuildOverviewStats()
     {
         var analyzers = Parser.VeteranOfWarAnalyzers.Select(entry => entry.Analyzer).ToList();

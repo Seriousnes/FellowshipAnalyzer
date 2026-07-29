@@ -6,7 +6,7 @@ namespace FellowshipAnalyzer.Heroes.Sylvie.Modules;
 
 /// <summary>
 /// Life Petal's two charges and the Nettlebolt loop that refills them. Every Nettlebolt that lands
-/// takes a second and a half off Life Petal's recharge and a crit takes three, so the loop only pays
+/// takes a second and a half off Life Petal's recharge and a crit takes three, so the loop only turns
 /// while a charge is actually recharging - reduction generated at two charges is thrown away, and the
 /// two figures are separated here rather than summed.
 /// <para>

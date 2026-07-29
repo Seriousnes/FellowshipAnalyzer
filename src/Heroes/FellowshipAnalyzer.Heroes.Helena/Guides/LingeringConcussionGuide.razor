@@ -11,8 +11,8 @@
         <p>
             Uptime and stacks are read against whichever enemy carried the debuff longest, so a pull's
             reading follows the thing actually hitting you rather than being diluted by adds that
-            passed through. Time spent under five stacks is time the debuff was up but not yet paying
-            what it can.
+            passed through. Time spent under five stacks is time the debuff was up but not yet worth
+            what it can be.
         </p>
     </Explanation>
     <ChildContent>
@@ -110,7 +110,7 @@
             stats.Add(new PerCastStat(
                 $"{analyzer.BelowCapMs / 1000d:F1}s",
                 "Under The Cap",
-                "Time the debuff was up but short of five stacks, so paying less than the 15% it can."));
+                "Time the debuff was up but short of five stacks, so worth less than the 15% it can be."));
         }
 
         if (analyzer.GapCount > 0)

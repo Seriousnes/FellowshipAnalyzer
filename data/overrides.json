@@ -170,6 +170,29 @@
       "note": "source Constants Warbound.CooldownDuration = 8 is not a recognised cooldown key so the merge yields charges 2 but no cooldown"
     }
   },
+  "helena": {
+    "PunishingStrikesBuff": {
+      "id": 3095,
+      "kind": "effect",
+      "name": "Punishing Strikes",
+      "icon": "T_Warmaster_FatalBlow.jpg",
+      "note": "GE_Warmaster_Talent_BlockToIncreasedPower_Proc, the two-stack buff a block procs that doubles the next Veteran of War reduction. Its Constants live under 'Measured Strike'.Talent.BlockToIncreasedPower rather than under a Warmaster ability stem, so the merge never links it; add directly."
+    },
+    "SwordAndBoardBuff": {
+      "id": 1242,
+      "kind": "effect",
+      "name": "Sword & Board",
+      "icon": "T_Warmaster_ShieldSlam.jpg",
+      "note": "GE_Warmaster_MeleeCleaveBonusProc, the proc that refunds a Shield Slam charge. The stem is MeleeCleaveBonusProc rather than MeleeCleave so the effect does not auto-link; add directly."
+    },
+    "SwordAndBoardFreeCastBuff": {
+      "id": 1219,
+      "kind": "effect",
+      "name": "Sword & Board",
+      "icon": "T_Warmaster_ShieldSlam.jpg",
+      "note": "GE_Warmaster_Talent_MeleeCleave_Tier2_MeleeCleaveDamageIncreaseFreeCastProc, the ability-rank tier 2 half of the same refund. Neither id is observed in the one S3 Helena log held locally, whose player did not take the talent, so both are carried."
+    }
+  },
   "items": {
     "VoidbringerTouch": {
       "id": 155,

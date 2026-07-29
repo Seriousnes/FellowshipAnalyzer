@@ -4,15 +4,16 @@
     <Explanation>
         <p>
             <SpellLink Spell="Spells.HeartBloom" /> banks a share of the healing that came before it and
-            pays the bank back out every two seconds for sixteen, and the flutterflies are the steadiest
-            thing feeding it while it is on cooldown. Each cast below reports the flutterfly healing over
-            its own accumulation window - overheal included, because the bank does not care whether the
-            healing landed - and what the cast then paid out.
+            releases the bank every two seconds for sixteen, and the flutterflies are the steadiest thing
+            feeding it while it is on cooldown. Each cast below reports the flutterfly healing over its
+            own accumulation window - overheal included, because the bank does not care whether the
+            healing landed - and what the cast then released.
         </p>
         <p>
-            The two are reported side by side rather than as a ratio to hit. The payout here runs ahead
-            of the flutterfly healing that preceded it, so the flutterflies are one input to the bank and
-            not the whole of it, and the log carries no reading of the bank to settle what else feeds it.
+            The two are reported side by side rather than as a ratio to hit. What comes back out here
+            runs ahead of the flutterfly healing that preceded it, so the flutterflies are one input to
+            the bank and not the whole of it, and the log carries no reading of the bank to settle what
+            else feeds it.
         </p>
         <p>
             Bluey's placement is the setup that moves the ramp: parked on an ally it doubles that ally's
@@ -22,7 +23,7 @@
     <ChildContent>
         <CastOverview Title="Overview" Stats="@BuildOverviewStats()" />
         <CastDetail Title="Every Heart Bloom"
-                    Description="What fed each cast, and what it paid back."
+                    Description="What fed each cast, and what it returned."
                     Casts="@BuildPerCastData()" />
     </ChildContent>
 </GuideSection>
@@ -35,21 +36,21 @@
         if (casts == 0) return [];
 
         var withBlueyOnAlly = analyzers.Sum(analyzer => analyzer.CastsWithBlueyOnAlly);
-        var fullPayouts = analyzers.Sum(analyzer => analyzer.FullyPaidOutCasts);
+        var fullReleases = analyzers.Sum(analyzer => analyzer.FullyReleasedCasts);
         var fed = analyzers.Sum(analyzer => analyzer.TotalFed);
-        var paid = analyzers.Sum(analyzer => analyzer.TotalPaidOut);
+        var released = analyzers.Sum(analyzer => analyzer.TotalReleased);
 
         return
         [
             new OverviewStat(
                 $"{casts}",
                 "Heart Blooms",
-                $"Casts across every pull, paying out {analyzers.Sum(analyzer => analyzer.TotalPayouts)} times against {SylvieKit.HeartBloomPayouts} per cast."),
+                $"Casts across every pull, releasing {analyzers.Sum(analyzer => analyzer.TotalReleases)} times against {SylvieKit.HeartBloomReleases} per cast."),
             new OverviewStat(
-                $"{fullPayouts}/{casts}",
+                $"{fullReleases}/{casts}",
                 "Ran Their Full Sixteen",
-                "Casts that were seen making every payout the duration allows. A pull that ended early cuts the rest off.",
-                PerformanceTiers.FromThresholds((double)fullPayouts / casts * 100, 95, 85, 70)),
+                "Casts that were seen making every release the duration allows. A pull that ended early cuts the rest off.",
+                PerformanceTiers.FromThresholds((double)fullReleases / casts * 100, 95, 85, 70)),
             new OverviewStat(
                 $"{withBlueyOnAlly}/{casts}",
                 "Bluey On An Ally",
@@ -58,7 +59,7 @@
             new OverviewStat(
                 $"{fed:N0}",
                 "Flutterfly Healing Fed",
-                $"Flutterfly healing, overheal included, over the accumulation windows. The casts paid out {paid:N0}, " +
+                $"Flutterfly healing, overheal included, over the accumulation windows. The casts returned {released:N0}, " +
                 "so the flutterflies are one input to the bank rather than all of it."),
         ];
     }
@@ -69,7 +70,7 @@
             analyzer => analyzer.Casts,
             (cast, pull) => new PerCastRow
             {
-                Performance = cast.PaidOutInFull ? QualitativePerformance.Good : QualitativePerformance.Ok,
+                Performance = cast.ReleasedInFull ? QualitativePerformance.Good : QualitativePerformance.Ok,
                 Timestamp = cast.Timestamp,
                 Stats =
                 [
@@ -79,13 +80,13 @@
                         $"Flutterfly healing over the {cast.AccumulationMs / 1000.0:F0}s since the previous cast, {cast.FlutterflyOverheal:N0} of it overheal."),
                     new PerCastStat(
                         $"{cast.TotalHealing:N0}",
-                        "Paid Out",
+                        "Returned",
                         $"{cast.Effective:N0} landed and {cast.Overheal:N0} fell on full bars."),
                     new PerCastStat(
-                        $"{cast.Payouts}/{SylvieKit.HeartBloomPayouts}",
-                        "Payouts",
-                        "Distinct two-second payout intervals seen for this cast.",
-                        cast.PaidOutInFull ? QualitativePerformance.Good : QualitativePerformance.Ok),
+                        $"{cast.Releases}/{SylvieKit.HeartBloomReleases}",
+                        "Releases",
+                        "Distinct two-second release intervals seen for this cast.",
+                        cast.ReleasedInFull ? QualitativePerformance.Good : QualitativePerformance.Ok),
                     new PerCastStat(
                         cast.BlueyOnAlly ? "On an ally" : cast.BlueyAssigned ? "On Sylvie" : "Unplaced",
                         "Bluey",

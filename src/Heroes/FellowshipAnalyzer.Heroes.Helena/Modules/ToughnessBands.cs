@@ -11,16 +11,16 @@ public enum ToughnessBand
     /// <summary>Below the first threshold, granting no physical damage reduction.</summary>
     Depleted,
 
-    /// <summary>At or above 0.1% of maximum Toughness, granting 5% physical damage reduction.</summary>
+    /// <summary>At or above 0.1% of maximum Toughness, granting 5% physical damage reduction, or 10% with Front Line Defender.</summary>
     Level1,
 
-    /// <summary>At or above 25% of maximum Toughness, granting 15% physical damage reduction.</summary>
+    /// <summary>At or above 25% of maximum Toughness, granting 15% physical damage reduction, or 20% with Front Line Defender.</summary>
     Level2,
 
-    /// <summary>At or above 50% of maximum Toughness, granting 25% physical damage reduction.</summary>
+    /// <summary>At or above 50% of maximum Toughness, granting 25% physical damage reduction, or 30% with Front Line Defender.</summary>
     Level3,
 
-    /// <summary>At or above 75% of maximum Toughness, granting 35% physical damage reduction.</summary>
+    /// <summary>At or above 75% of maximum Toughness, granting 35% physical damage reduction, or 40% with Front Line Defender.</summary>
     Level4,
 }
 
@@ -57,6 +57,13 @@ public static class ToughnessBands
         _ => 0,
     };
 
+    /// <summary>
+    /// <c>Toughness.Talent.IncreasedDamageReduction.DamageReductionIncreasePerLevel</c>: Front Line
+    /// Defender adds this to every band that grants anything, taking the bands from 5/15/25/35 to
+    /// 10/20/30/40. New in Season 3, where the talent was reissued under a different id.
+    /// </summary>
+    public const double FrontLineDefenderIncrease = 0.05;
+
     /// <summary>The physical damage reduction <paramref name="band"/> grants, as a fraction.</summary>
     public static double DamageReduction(ToughnessBand band) => band switch
     {
@@ -66,6 +73,24 @@ public static class ToughnessBands
         ToughnessBand.Level1 => 0.05,
         _ => 0,
     };
+
+    /// <summary>
+    /// The physical damage reduction <paramref name="band"/> grants for a build, adding Front Line
+    /// Defender's increase when <paramref name="frontLineDefender"/> is taken. The empty band grants
+    /// nothing either way, since the talent raises the bands that already grant something rather than
+    /// adding one below them.
+    /// </summary>
+    public static double DamageReduction(ToughnessBand band, bool frontLineDefender) =>
+        band == ToughnessBand.Depleted || !frontLineDefender
+            ? DamageReduction(band)
+            : DamageReduction(band) + FrontLineDefenderIncrease;
+
+    /// <summary>
+    /// The most physical damage reduction Toughness can grant a build: the top band's value, which is
+    /// the ceiling every band figure should be read against.
+    /// </summary>
+    public static double Ceiling(bool frontLineDefender) =>
+        DamageReduction(ToughnessBand.Level4, frontLineDefender);
 
     /// <summary>
     /// The nominal share of maximum Toughness a generation source restores, taken from its
