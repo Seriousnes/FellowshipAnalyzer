@@ -9,16 +9,31 @@ namespace FellowshipAnalyzer.Api.Core;
 [Mapper]
 public sealed partial class GraphQLMapper
 {
-    public Ability MapAbility(IGetReportMasterData_ReportData_Report_MasterData_Abilities source)
-    {
-        if (!int.TryParse(source.Type, out var typeInt)) typeInt = 0;
-        return new Ability
+    private const MagicSchool KnownSchools =
+        MagicSchool.Physical | MagicSchool.Magic | MagicSchool.Healing | MagicSchool.Stagger;
+
+    /// <summary>Maps one master-data ability, reading its <c>type</c> as a <see cref="MagicSchool"/>.</summary>
+    public Ability MapAbility(IGetReportMasterData_ReportData_Report_MasterData_Abilities source) =>
+        new()
         {
             FSLID = (int)(source.GameID ?? 0),
             Name = source.Name,
             Icon = source.Icon,
-            Type = (MagicSchool)typeInt
+            Type = ParseSchool(source.Type),
         };
+
+    /// <summary>
+    /// Reads the master-data <c>type</c> string. A value that fails to parse, or that sets any bit
+    /// <see cref="MagicSchool"/> does not name, yields the unresolved default rather than a school, so
+    /// a school test on the result fails closed instead of reading as <see cref="MagicSchool.Physical"/>.
+    /// </summary>
+    private static MagicSchool ParseSchool(string? type)
+    {
+        if (!int.TryParse(type, out var typeInt))
+            return default;
+
+        var school = (MagicSchool)typeInt;
+        return (school & ~KnownSchools) == 0 ? school : default;
     }
 
     public ReportActor MapActor(IGetReportMasterData_ReportData_Report_MasterData_Actors source)

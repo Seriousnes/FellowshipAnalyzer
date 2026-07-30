@@ -1,3 +1,5 @@
+using FellowshipAnalyzer.Core.Events;
+
 namespace FellowshipAnalyzer.SpellData.Model;
 
 /// <summary>Classifies the kind of gap detected during a merge pass.</summary>
@@ -21,4 +23,11 @@ public enum GapKind
 public record Gap(string Scope, string Member, GapKind Kind);
 
 /// <summary>The output of <see cref="MergeEngine.Run"/>: selected spells and detected gaps.</summary>
-public record MergeResult(IReadOnlyList<CuratedSpell> Spells, IReadOnlyList<Gap> Gaps);
+public record MergeResult(IReadOnlyList<CuratedSpell> Spells, IReadOnlyList<Gap> Gaps)
+{
+    /// <summary>
+    /// Every classified damage school in <c>spell_data.json</c>, keyed by FSLID and hero-independent,
+    /// so an enemy ability resolves the same way a hero one does.
+    /// </summary>
+    public IReadOnlyDictionary<int, MagicSchool> Schools { get; init; } = new Dictionary<int, MagicSchool>();
+}

@@ -2,6 +2,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using FellowshipAnalyzer.Core.Analysis;
 using FellowshipAnalyzer.Core.Common.Spells;
+using FellowshipAnalyzer.Core.Events;
 using FellowshipAnalyzer.Core.Game;
 using FellowshipAnalyzer.SpellData.Json;
 using FellowshipAnalyzer.SpellData.Model;
@@ -187,7 +188,27 @@ public static class MergeEngine
             }
         }
 
-        return new MergeResult(spells, gaps);
+        return new MergeResult(spells, gaps) { Schools = BuildSchools(inputs, spells) };
+    }
+
+    /// <summary>
+    /// Collects every classified damage school from <c>spell_data.json</c> into one FSLID-keyed map,
+    /// then lets any curated spell carrying a <see cref="Spell.School"/> override what the dump gave
+    /// that id.
+    /// </summary>
+    private static Dictionary<int, MagicSchool> BuildSchools(MergeInputs inputs, IReadOnlyList<CuratedSpell> spells)
+    {
+        var schools = new Dictionary<int, MagicSchool>();
+
+        foreach (var entry in inputs.SpellData.Abilities.Values.Concat(inputs.SpellData.Effects.Values))
+            if (entry.FslId != 0 && entry.School != default)
+                schools[entry.FslId] = entry.School;
+
+        foreach (var curated in spells)
+            if (curated.Spell.School is { } school && school != default)
+                schools[curated.FSLID.Value] = school;
+
+        return schools;
     }
 
     private static readonly HashSet<string> HeroNames =

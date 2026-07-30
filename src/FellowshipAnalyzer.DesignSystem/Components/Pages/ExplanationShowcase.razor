@@ -1,17 +1,17 @@
 @page "/explanation"
 
-<PageTitle>Explanation + HelperText — Design System</PageTitle>
+<PageTitle>Explanation + HelperText - Design System</PageTitle>
 
 <h1>Explanation / HelperText / WipGuide</h1>
 <p class="lede">Prose primitives used inside guides.</p>
 
 <CodeExample Title="Explanation"
-             Description="Styled prose container — use for the 'why this matters' copy inside a GuideSection."
+             Description="Styled prose container - holds a GuideSection's why-it-matters, what-to-aim-for, what-the-table-shows copy."
              Code="@_explanationCode">
     <Demo>
         <Explanation>
-            <p>Winter Orbs are Rime's primary spendable resource. You generate them from Frost Bolt and Bursting Ice, and consume them with Glacial Blast (2 Orbs) and Ice Comet (2 Orbs).</p>
-            <p>Capping at 5 wastes generation; this section flags casts that pushed you over the limit.</p>
+            <p>Winter Orbs pay for everything Rime hits hard with, so a full pool is generation you never get back. The pool holds five, and Anima you generate at five is gone.</p>
+            <p>Spend down to four before the next gain lands. The table shows the gains that arrived on a full pool, and how long the pool sat there.</p>
         </Explanation>
     </Demo>
 </CodeExample>
@@ -35,8 +35,8 @@
 @code {
     private const string _explanationCode = """
 <Explanation>
-    <p>Winter Orbs are Rime's primary spendable resource...</p>
-    <p>Capping at 5 wastes generation...</p>
+    <p>Winter Orbs pay for everything Rime hits hard with...</p>
+    <p>Spend down to four before the next gain lands. The table shows...</p>
 </Explanation>
 """;
 

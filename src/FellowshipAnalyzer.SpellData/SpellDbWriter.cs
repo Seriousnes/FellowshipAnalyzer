@@ -1,20 +1,26 @@
+using System.Globalization;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using FellowshipAnalyzer.Core.Common.Spells;
+using FellowshipAnalyzer.Core.Events;
 using FellowshipAnalyzer.SpellData.Json;
 using FellowshipAnalyzer.SpellData.Model;
+using FellowshipAnalyzer.SpellData.Sources;
 
 namespace FellowshipAnalyzer.SpellData;
 
 /// <summary>
 /// Deterministic System.Text.Json serializer for the committed <c>spelldb.json</c>.
 /// Each entry is a polymorphic <see cref="Spell"/> (discriminated by <c>kind</c>). Scopes are
-/// written heroes-first (ordinal), then <c>shared</c>, then <c>items</c>; members ordinal;
-/// cost keys ordered by <c>ResourceTypes</c> value. Default <c>charges</c> (1) and empty
-/// <c>costs</c> are pruned. Provenance and gaps are not serialized.
+/// written heroes-first (ordinal), then <c>shared</c>, then <c>items</c>, then the hero-independent
+/// <c>schools</c> map; members ordinal; cost keys ordered by <c>ResourceTypes</c> value. Default
+/// <c>charges</c> (1) and empty <c>costs</c> are pruned. Provenance and gaps are not serialized.
 /// </summary>
 public static class SpellDbWriter
 {
+    /// <summary>The top-level key holding the FSLID → damage school map, which is not a spell scope.</summary>
+    public const string SchoolsSection = "schools";
+
     private static readonly JsonSerializerOptions IndentOptions = new() { WriteIndented = true };
 
     public static string Serialize(MergeResult result)
@@ -24,7 +30,7 @@ public static class SpellDbWriter
             .ToDictionary(g => g.Key, g => g.ToList());
 
         var heroScopes = byScope.Keys
-            .Where(k => k != "shared" && k != "items")
+            .Where(k => k != "shared" && k != "items" && k != SchoolsSection)
             .OrderBy(k => k, StringComparer.Ordinal);
 
         var orderedScopes = heroScopes.AsEnumerable();
@@ -46,6 +52,14 @@ public static class SpellDbWriter
             root[scope] = scopeObj;
         }
 
+        if (result.Schools.Count > 0)
+        {
+            var schoolsObj = new JsonObject();
+            foreach (var (fslId, school) in result.Schools.OrderBy(s => s.Key))
+                schoolsObj[fslId.ToString(CultureInfo.InvariantCulture)] = JsonValue.Create(FormatSchool(school));
+            root[SchoolsSection] = schoolsObj;
+        }
+
         return root.ToJsonString(IndentOptions);
     }
 
@@ -53,11 +67,21 @@ public static class SpellDbWriter
     {
         var root = JsonNode.Parse(json)!.AsObject();
         var spells = new List<CuratedSpell>();
+        var schools = new Dictionary<int, MagicSchool>();
 
         foreach (var (scope, scopeNode) in root)
         {
             if (scopeNode is not JsonObject scopeObj)
                 continue;
+
+            if (scope == SchoolsSection)
+            {
+                foreach (var (id, schoolNode) in scopeObj)
+                    if (int.TryParse(id, out var fslId) && schoolNode?.GetValue<string>() is { } text)
+                        schools[fslId] = SpellDataSource.ParseSchool(text);
+                continue;
+            }
+
             foreach (var (member, memberNode) in scopeObj)
             {
                 if (memberNode is not JsonObject entry)
@@ -67,8 +91,15 @@ public static class SpellDbWriter
             }
         }
 
-        return new MergeResult(spells, []);
+        return new MergeResult(spells, []) { Schools = schools };
     }
+
+    /// <summary>
+    /// Renders a school the way <c>spell_data.json</c> writes it, so a dual-school entry round-trips
+    /// as <c>Magic/Physical</c> rather than as a flags list.
+    /// </summary>
+    public static string FormatSchool(MagicSchool school) =>
+        school == (MagicSchool.Magic | MagicSchool.Physical) ? "Magic/Physical" : school.ToString();
 
     private static JsonNode ToEntryNode(Spell spell)
     {

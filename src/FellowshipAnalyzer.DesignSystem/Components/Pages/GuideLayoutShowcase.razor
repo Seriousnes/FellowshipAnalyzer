@@ -1,9 +1,9 @@
 @page "/guide-layout"
 
-<PageTitle>Guide layout — Design System</PageTitle>
+<PageTitle>Guide layout - Design System</PageTitle>
 
 <h1>GuideContainer / Section / SubSection / GuideSection / SideBySidePanels</h1>
-<p class="lede">Top-level layout primitives that organize a hero's Guide tab. Compose these around your analysis data — never restyle them.</p>
+<p class="lede">Top-level layout primitives that organize a hero's Guide tab. Compose these around your analysis data - never restyle them.</p>
 
 <CodeExample Title="GuideContainer"
              Description="Root flex-column wrapper. Wrap every guide root in this."
@@ -17,7 +17,7 @@
     </Demo>
 </CodeExample>
 
-<CodeExample Title="Section — collapsible top-level region"
+<CodeExample Title="Section - collapsible top-level region"
              Description="Yellow header, default expanded. Pass Expanded=false to start collapsed."
              Code="@_sectionCode">
     <Demo>
@@ -30,7 +30,7 @@
     </Demo>
 </CodeExample>
 
-<CodeExample Title="SubSection — non-collapsible grouping inside Section" Code="@_subSectionCode">
+<CodeExample Title="SubSection - non-collapsible grouping inside Section" Code="@_subSectionCode">
     <Demo>
         <Section Title="Damage analysis">
             <SubSection Title="Single-target rotation">
@@ -43,14 +43,14 @@
     </Demo>
 </CodeExample>
 
-<CodeExample Title="GuideSection — explanation + data 2-column layout"
+<CodeExample Title="GuideSection - explanation + data 2-column layout"
              Description="Left column explains the why, right column shows the data. ExplanationPercent controls split."
              Code="@_guideSectionCode">
     <Demo>
         <GuideSection Title="Winter Orb Efficiency">
             <Explanation>
                 <Explanation>
-                    <p>Winter Orbs are Rime's primary resource. Spending them on Ice Comet at full caps minimises overcap waste.</p>
+                    <p>Winter Orbs pay for everything Rime hits hard with, so a full pool is generation you never get back. Spend at four so the next gain has somewhere to land. The table shows the gains that arrived on a full pool.</p>
                 </Explanation>
             </Explanation>
             <ChildContent>
@@ -62,7 +62,7 @@
     </Demo>
 </CodeExample>
 
-<CodeExample Title="SideBySidePanels — equal horizontal layout" Code="@_sbsCode">
+<CodeExample Title="SideBySidePanels - equal horizontal layout" Code="@_sbsCode">
     <Demo>
         <SideBySidePanels>
             <RoundedPanel><p>Left panel</p></RoundedPanel>
@@ -100,7 +100,7 @@
 <GuideSection Title="Winter Orb Efficiency" ExplanationPercent="40">
     <Explanation>
         <Explanation>
-            <p>Winter Orbs are Rime's primary resource...</p>
+            <p>Winter Orbs pay for everything Rime hits hard with...</p>
         </Explanation>
     </Explanation>
     <ChildContent>
