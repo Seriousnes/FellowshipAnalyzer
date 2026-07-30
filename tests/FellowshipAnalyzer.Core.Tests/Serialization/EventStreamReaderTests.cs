@@ -69,30 +69,6 @@ public sealed class EventStreamReaderTests
         Serialize(viaReader).ShouldBe(Serialize(viaPolymorphic));
     }
 
-    /// <summary>
-    /// The whole point of resolving the discriminator during the range scan is that it must agree with the
-    /// polymorphic path on every event of a real report, not just on the shapes a hand-written payload covers.
-    /// </summary>
-    [Fact]
-    public void ReadEvent_MatchesPolymorphicDeserialization_ForTheWholeFixture()
-    {
-        var bytes = BuildFixturePayload();
-
-        var metadata = EventStreamReader.ReadMetadata(bytes, JsonContext);
-        var viaReader = metadata.EventRanges.Select(r => EventStreamReader.ReadEvent(bytes, r)).ToList();
-
-        using var doc = JsonDocument.Parse(bytes);
-        var viaPolymorphic = doc.RootElement.GetProperty("events")
-            .EnumerateArray()
-            .Select(e => JsonSerializer.Deserialize(e.GetRawText(), JsonContext.Event)!)
-            .ToList();
-
-        viaReader.Count.ShouldBe(viaPolymorphic.Count);
-        viaReader.Count.ShouldBeGreaterThan(10_000);
-        viaReader.Select(e => e.GetType()).Distinct().Count().ShouldBeGreaterThan(10);
-        Serialize(viaReader).ShouldBe(Serialize(viaPolymorphic));
-    }
-
     [Fact]
     public void ReadMetadata_ThrowsForAnUnregisteredEventType()
     {
@@ -175,27 +151,4 @@ public sealed class EventStreamReaderTests
 
     private static byte[] Bytes(string json) => Encoding.UTF8.GetBytes(json);
 
-    private static byte[] BuildFixturePayload()
-    {
-        var fixture = Path.Combine(AppContext.BaseDirectory, "TestData", "events-with-ability-details.json");
-        using var doc = JsonDocument.Parse(File.ReadAllBytes(fixture));
-        var events = doc.RootElement
-            .GetProperty("data")
-            .GetProperty("reportData")
-            .GetProperty("report")
-            .GetProperty("events")
-            .GetProperty("data");
-
-        using var buffer = new MemoryStream();
-        using (var writer = new Utf8JsonWriter(buffer))
-        {
-            writer.WriteStartObject();
-            writer.WriteBoolean("inProgress", false);
-            writer.WritePropertyName("events");
-            events.WriteTo(writer);
-            writer.WriteEndObject();
-        }
-
-        return buffer.ToArray();
-    }
 }

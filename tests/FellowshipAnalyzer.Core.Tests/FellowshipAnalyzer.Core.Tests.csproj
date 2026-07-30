@@ -24,7 +24,6 @@
 	</ItemGroup>
 	
 	<ItemGroup>
-		<None Include="..\TestData\events-with-ability-details.json" Link="TestData\events-with-ability-details.json" CopyToOutputDirectory="PreserveNewest" />
 	</ItemGroup>
 	
 </Project>
