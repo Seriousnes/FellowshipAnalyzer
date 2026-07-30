@@ -1,12 +1,14 @@
-@using FellowshipAnalyzer.Core.Common.Spells.Ardeos
-@using Spells = FellowshipAnalyzer.Core.Common.Spells.Ardeos.Spells
 @using DetonateCast = FellowshipAnalyzer.Heroes.Ardeos.Modules.DetonateEfficiencyAnalyzer.DetonateCast
+@using FellowshipAnalyzer.Core.Common.Spells.Ardeos
+@using FellowshipAnalyzer.Heroes.Ardeos.Core
+@using Spells = FellowshipAnalyzer.Core.Common.Spells.Ardeos.Spells
 @inherits ReportComponent<ArdeosCombatLogParser>
 @inject ChartPalette Palette
 
-<GuideSection Title="Detonate Efficiency">
+<GuideSection Title="Detonate">
     <Explanation>
         <p>
+
             <SpellLink Spell="Spells.Detonate" /> should be cast into a layered pack, never to fill a gap.
             Each cast is scored on the instances active when it lands, across
             <SpellLink Spell="Spells.SearingBlaze" />, <SpellLink Spell="Spells.EngulfingFlames" />,
@@ -82,8 +84,8 @@
         {
             var index = slot;
             bands.Add(new AuraStackBand(
-                ArdeosDots.All[index].Name,
-                ArdeosChartColors.Series(Palette, index),
+                DotName(ArdeosDots.All[index]),
+                ArdeosChartColors.Dots.Series(Palette, index),
                 [.. timeline.Select(sample => sample.Instances[index])]));
         }
 
@@ -214,22 +216,24 @@
             Timestamp = cast.Timestamp,
             AdditionalContent = new AdditionalContent(
                 "DoTs At Cast",
-                @<AuraChecklist Items="@BuildChecklist(cast)" />),
+                @<Checklist Items="@BuildChecklist(cast)" />),
             Details = @<div>@BuildNote(cast)</div>,
         };
     }
 
-    private static IEnumerable<AuraCheckItem> BuildChecklist(DetonateCast cast) =>
-        cast.Coverage.Select(entry => ArdeosChecklist.Item(
+    private static IEnumerable<CheckItem> BuildChecklist(DetonateCast cast) =>
+        cast.Coverage.Select(entry => DotChecklist.Item(
             entry,
             entry.Targets > 1 ? $"{entry.Targets} enemies" : null));
+
+    private static string DotName(Dot dot) => dot.Cast?.Name ?? dot.Effect.Name;
 
     private static string BuildNote(DetonateCast cast)
     {
         if (cast.TargetsWithDoTs == 0)
             return "No enemy carried a damage-over-time effect, so this Detonate landed on nothing.";
 
-        var missing = cast.Coverage.Where(entry => !entry.Active).Select(entry => entry.Dot.Name).ToList();
+        var missing = cast.Coverage.Where(entry => !entry.Active).Select(entry => DotName(entry.Dot)).ToList();
         var opening = $"Landed on {cast.TotalInstances} instance{(cast.TotalInstances == 1 ? "" : "s")} across {cast.TargetsWithDoTs} " +
             $"{(cast.TargetsWithDoTs == 1 ? "enemy" : "enemies")}, averaging {cast.AverageInstances:0.0} per enemy.";
 

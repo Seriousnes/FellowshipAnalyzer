@@ -115,9 +115,6 @@ public sealed partial class ChronoshiftAnalyzer(
         _scheduledEnd = null;
         _windows[^1] = _windows[^1] with { EndTimestamp = closeAt };
     }
-
-    /// <inheritdoc/>
-    public override Type? StatisticsComponentType => typeof(ChronoshiftStatistics);
 }
 
 /// <summary>A single Chronoshift channel window: the interval over which cooldown recovery was boosted.</summary>

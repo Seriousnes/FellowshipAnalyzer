@@ -1,7 +1,6 @@
 using FellowshipAnalyzer.Core.Analysis;
 using FellowshipAnalyzer.Core.Common.Spells.Tariq;
 using FellowshipAnalyzer.Core.Events;
-using FellowshipAnalyzer.Heroes.Tariq.Statistics;
 
 namespace FellowshipAnalyzer.Heroes.Tariq.Modules;
 
@@ -27,8 +26,6 @@ public sealed partial class RisingSpiritTracker : EventSubscriber
     public double UptimeShare => FightDurationMs == 0 ? 0d : Math.Min(1d, (double)TotalActiveMs / FightDurationMs);
 
     public double AverageStacks => TotalActiveMs == 0 ? 0d : (double)_weightedStackMs / TotalActiveMs;
-
-    public override Type? StatisticsComponentType => Applications > 0 ? typeof(RisingSpiritStatistics) : null;
 
     [On<FightStartEvent>]
     private void OnFightStart(FightStartEvent @event)

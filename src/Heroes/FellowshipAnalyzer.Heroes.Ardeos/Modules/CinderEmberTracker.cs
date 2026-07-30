@@ -1,6 +1,5 @@
 using FellowshipAnalyzer.Core.Game;
 using FellowshipAnalyzer.Core.Resources;
-using FellowshipAnalyzer.Heroes.Ardeos.Statistics;
 
 using Microsoft.Extensions.Logging;
 

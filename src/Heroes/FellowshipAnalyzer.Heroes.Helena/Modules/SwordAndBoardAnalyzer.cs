@@ -2,7 +2,6 @@ using FellowshipAnalyzer.Core.Analysis;
 using FellowshipAnalyzer.Core.Common.Spells.Helena;
 using FellowshipAnalyzer.Core.Events;
 using FellowshipAnalyzer.Core.UI;
-using FellowshipAnalyzer.Heroes.Helena.Statistics;
 
 using HelenaTalents = FellowshipAnalyzer.Core.Common.Spells.HelenaTalents;
 
@@ -31,9 +30,6 @@ public sealed partial class SwordAndBoardAnalyzer : Analyzer
     private readonly HashSet<int> _activeProcs = [];
 
     private bool _inFreeCastWindow;
-
-    /// <inheritdoc/>
-    public override Type? StatisticsComponentType => Procs > 0 ? typeof(SwordAndBoardStatistics) : null;
 
     /// <inheritdoc/>
     public override StatisticCategory StatisticCategory => StatisticCategory.Talents;

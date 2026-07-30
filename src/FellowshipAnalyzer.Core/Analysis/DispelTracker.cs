@@ -33,6 +33,36 @@ public sealed partial class DispelTracker : EventSubscriber
     /// <summary>Dispel counts keyed by the dispelling ability.</summary>
     public IReadOnlyDictionary<int, int> BySpell => field ??= Tally(dispel => dispel.SpellId);
 
+    /// <summary>
+    /// Which auras were removed and how often, most-removed first, over a slice of the fight and
+    /// optionally only by one dispelling ability. Unlike <see cref="ByRemovedAura"/> this carries the
+    /// removed aura's name and is ordered, which is what a pull's read surface shows.
+    /// </summary>
+    /// <param name="start">First timestamp to count, inclusive.</param>
+    /// <param name="end">Last timestamp to count, inclusive.</param>
+    /// <param name="spellId">Count only dispels performed with this ability; <c>null</c> counts every ability.</param>
+    public IReadOnlyList<RemovedAura> RemovedAurasBetween(int start, int end, int? spellId = null)
+    {
+        var counts = new Dictionary<int, (string Name, int Count)>();
+        foreach (var dispel in Between(start, end))
+        {
+            if (spellId is { } id && dispel.SpellId != id) continue;
+
+            var current = counts.GetValueOrDefault(dispel.RemovedSpellId);
+            counts[dispel.RemovedSpellId] = (
+                string.IsNullOrEmpty(current.Name) ? dispel.RemovedName : current.Name,
+                current.Count + 1);
+        }
+
+        return
+        [
+            .. counts
+                .Select(entry => new RemovedAura(entry.Key, entry.Value.Name, entry.Value.Count))
+                .OrderByDescending(entry => entry.Count)
+                .ThenBy(entry => entry.SpellId)
+        ];
+    }
+
     [On<DispelEvent>(By = Actor.Player)]
     private void OnDispel(DispelEvent dispelEvent) =>
         _dispels.Add(new DispelRecord(
@@ -72,3 +102,9 @@ public sealed record DispelRecord(
     string RemovedName,
     UnitKey Target,
     bool WasBuff);
+
+/// <summary>One aura that was dispelled and how often.</summary>
+/// <param name="SpellId">The aura that was removed.</param>
+/// <param name="Name">Its name as the log reported it.</param>
+/// <param name="Count">Times it was removed.</param>
+public sealed record RemovedAura(int SpellId, string Name, int Count);

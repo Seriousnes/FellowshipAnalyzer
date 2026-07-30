@@ -1,0 +1,31 @@
+@namespace FellowshipAnalyzer.Core.Analysis.Gems
+@inherits Analyzer
+
+@code {
+    /// <inheritdoc/>
+    public override RenderFragment? Statistic => HarmoniousSoul.IsUnlocked(GemPower) ? Card : null;
+
+    private RenderFragment Card =>
+        @<GemStatisticCard Gem="this">
+            <Info>
+                <p>
+                    Diamond's ranks grant mixed secondary stats, armor, magic damage reduction, and relic cooldown
+                    reduction. Harmonious Soul stacks once per nearby ally, and the log records no unbuffed
+                    comparison, so the measure is how long it held and how high it stacked.
+                </p>
+            </Info>
+            <ChildContent>
+                <GemTraitSection Trait="HarmoniousSoul" GemPower="GemPower"
+                                 Contributed="HarmoniousSoulUptimeMs > 0">
+                    <span>
+                        @($"{HarmoniousSoulUptimeMs / 1000d:0.0}s")
+                        <small>@($"{HarmoniousSoulUptime:P0}") of the fight</small>
+                    </span>
+                    <span>
+                        @($"{HarmoniousSoulAverageStacks:0.0}")
+                        <small>average stacks</small>
+                    </span>
+                </GemTraitSection>
+            </ChildContent>
+        </GemStatisticCard>;
+}

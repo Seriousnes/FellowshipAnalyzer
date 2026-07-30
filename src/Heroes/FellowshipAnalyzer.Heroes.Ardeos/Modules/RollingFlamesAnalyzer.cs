@@ -1,7 +1,6 @@
 using FellowshipAnalyzer.Core.Analysis;
 using FellowshipAnalyzer.Core.Common.Spells.Ardeos;
 using FellowshipAnalyzer.Core.Events;
-using FellowshipAnalyzer.Heroes.Ardeos.Statistics;
 
 using ArdeosTalents = FellowshipAnalyzer.Core.Common.Spells.ArdeosTalents;
 using Spell = FellowshipAnalyzer.Core.Common.Spells.Spell;
@@ -35,8 +34,6 @@ public sealed partial class RollingFlamesAnalyzer : Analyzer
         spellCdr[Spells.InfernalWave.Id].Total += cdr.GeneratedMs;
         spellCdr[Spells.InfernalWave.Id].Applied += cdr.AppliedMs;
     }
-
-    public override Type? StatisticsComponentType => typeof(RollingFlamesStatistics);
 
     public IReadOnlyList<RollingFlamesCdr> CooldownReductions =>
     [

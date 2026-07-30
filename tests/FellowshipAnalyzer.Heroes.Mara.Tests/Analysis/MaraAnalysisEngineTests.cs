@@ -7,7 +7,6 @@ using FellowshipAnalyzer.Core.Game;
 using FellowshipAnalyzer.Core.UI;
 using FellowshipAnalyzer.Heroes.Mara.Analysis;
 using FellowshipAnalyzer.Heroes.Mara.Modules;
-using FellowshipAnalyzer.Heroes.Mara.Statistics;
 
 using Microsoft.Extensions.DependencyInjection;
 
@@ -112,7 +111,6 @@ public sealed class MaraAnalysisEngineTests
         var (_, result) = await AnalyzeFixtureAsync();
 
         var entry = result.Statistics.Single(statistic => statistic.Module is EnergyComboPointTracker);
-        entry.ComponentType.ShouldBe(typeof(EnergyComboPointStatistics));
         entry.Category.ShouldBe(StatisticCategory.Resources);
     }
 

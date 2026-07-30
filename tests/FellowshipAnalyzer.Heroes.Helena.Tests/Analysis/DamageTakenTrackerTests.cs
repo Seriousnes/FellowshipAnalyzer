@@ -8,6 +8,7 @@ using Xunit;
 using Spells = FellowshipAnalyzer.Core.Common.Spells.Helena.Spells;
 
 using static FellowshipAnalyzer.Heroes.Helena.Tests.Analysis.HelenaAnalysisFixture;
+using FellowshipAnalyzer.Core.Common;
 
 namespace FellowshipAnalyzer.Heroes.Helena.Tests.Analysis;
 
@@ -73,7 +74,7 @@ public sealed class DamageTakenTrackerTests
         tracker.TotalTaken.ShouldBe(0);
         tracker.TotalHits.ShouldBe(0);
         tracker.BlockRate.ShouldBe(0);
-        tracker.StatisticsComponentType.ShouldBeNull();
+        tracker.Statistic.ShouldBeNull();
     }
 
     private static DamageEvent Bleed(int timestamp, long amount) => new()

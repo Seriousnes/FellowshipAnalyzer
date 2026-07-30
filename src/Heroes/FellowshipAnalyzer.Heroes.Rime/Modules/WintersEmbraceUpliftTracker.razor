@@ -1,0 +1,87 @@
+@inherits EventSubscriber
+
+@code {
+    /// <inheritdoc/>
+    public override RenderFragment? Statistic => AmplifiedEventCount > 0 ? Card : null;
+
+    private RenderFragment Card =>
+        @<StatCard Title="Winter's Embrace Uplift">
+            <Info>
+                <p>
+                    <SpellLink Spell="Spells.WintersEmbrace" /> adds 20% damage to everything except
+                    <SpellLink Spell="Spells.BurstingIce" /> itself. Every hit that landed while it was active is
+                    split into the damage it would have done anyway and the share the buff added, and only
+                    that share is counted here.
+                </p>
+            </Info>
+            <ChildContent>
+                <StatRow Value="@BonusDamageText"
+                         Tooltip="Damage attributable to the 20% amplifier across every window this fight.">
+                    bonus damage from the amplifier
+                </StatRow>
+                <StatRow Value="@AmplifiedHitsText"
+                         Tooltip="Player damage events that landed while Winter's Embrace was active, Bursting Ice aside.">
+                    amplified hits
+                </StatRow>
+                <StatRow Value="@UpliftShareText"
+                         Tooltip="The amplifier's bonus measured against all of your damage this fight, inside windows and out.">
+                    of your fight damage
+                </StatRow>
+                <StackedBar Segments="@BuildSegments()" />
+                <HelperText>
+                    Attribution is marginal: a 1,200 hit inside a window reads as 1,000 base plus 200 from
+                    Winter's Embrace.
+                </HelperText>
+            </ChildContent>
+        </StatCard>;
+
+    private const int TopSpellCount = 5;
+
+    private static readonly string[] SegmentColors =
+    [
+        FaVar.Ice,
+        FaVar.Steel,
+        FaVar.Arcane,
+        FaVar.Amber,
+        FaVar.BrandGold,
+    ];
+
+    private string BonusDamageText => TotalBonusDamage.ToString("N0");
+
+    private string AmplifiedHitsText => AmplifiedEventCount.ToString("N0");
+
+    private string UpliftShareText => $"{UpliftShare * 100:F1}%";
+
+    private IEnumerable<StackedBarSegment> BuildSegments()
+    {
+        var bySpell = BySpell;
+        var top = bySpell.Take(TopSpellCount).ToList();
+        var segments = new List<StackedBarSegment>(top.Count + 1);
+
+        for (var slot = 0; slot < top.Count; slot++)
+        {
+            var label = Label(top[slot]);
+            segments.Add(new StackedBarSegment(
+                label,
+                top[slot].BonusDamage,
+                SegmentColors[slot],
+                $"{label}: {top[slot].BonusDamage:N0} bonus damage"));
+        }
+
+        var remaining = bySpell.Count - top.Count;
+        var other = bySpell.Skip(TopSpellCount).Sum(uplift => uplift.BonusDamage);
+        if (other > 0)
+        {
+            segments.Add(new StackedBarSegment(
+                "Other",
+                other,
+                FaVar.Stone,
+                $"Other: {other:N0} bonus damage across {remaining} further spells"));
+        }
+
+        return segments;
+    }
+
+    private static string Label(SpellUplift uplift) =>
+        string.IsNullOrWhiteSpace(uplift.Name) ? $"Effect {uplift.AbilityId}" : uplift.Name;
+}

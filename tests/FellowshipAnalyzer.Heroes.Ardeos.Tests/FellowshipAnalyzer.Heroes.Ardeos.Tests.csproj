@@ -19,6 +19,7 @@
 	</ItemGroup>
 	
 	<ItemGroup>
+		<ProjectReference Include="..\..\src\FellowshipAnalyzer.Core\FellowshipAnalyzer.Core.csproj" />
 		<ProjectReference Include="..\..\src\Heroes\FellowshipAnalyzer.Heroes.Ardeos\FellowshipAnalyzer.Heroes.Ardeos.csproj" />
 	</ItemGroup>
 	

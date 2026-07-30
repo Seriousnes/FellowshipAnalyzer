@@ -2,7 +2,6 @@ using FellowshipAnalyzer.Core.Analysis;
 using FellowshipAnalyzer.Core.Common.Spells.Mara;
 using FellowshipAnalyzer.Core.Events;
 using FellowshipAnalyzer.Core.UI;
-using FellowshipAnalyzer.Heroes.Mara.Statistics;
 
 using MaraTalents = FellowshipAnalyzer.Core.Common.Spells.MaraTalents;
 
@@ -30,9 +29,6 @@ public sealed partial class DeadlySchemeTracker : EventSubscriber
     public int ActivationsSpent { get; private set; }
 
     public int ActivationsUnspent { get; private set; }
-
-    public override Type? StatisticsComponentType =>
-        Activations > 0 || HighestStacks > 0 ? typeof(DeadlySchemeStatistics) : null;
 
     public override StatisticCategory StatisticCategory => StatisticCategory.Talents;
 

@@ -1,0 +1,8 @@
+@Content
+
+@code {
+    /// <summary>The module's card, from its <c>Statistic</c> override. Rendered behind this component so a
+    /// card re-renders on its own rather than with every other card on the tab.</summary>
+    [Parameter, EditorRequired]
+    public required RenderFragment Content { get; set; }
+}

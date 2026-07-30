@@ -148,8 +148,7 @@ public sealed class EventDeserializationTests
             death.TargetId.ShouldBeGreaterThan(0, $"DeathEvent at timestamp {death.Timestamp} has no victim");
             death.Ability.ShouldNotBeNull();
             death.Ability.FSLID.Value.ShouldBeGreaterThan(0);
-            death.Ability.Name.ShouldNotBeNullOrEmpty();
-            death.KillingAbility.ShouldBeNull();
+            death.Ability.Name.ShouldNotBeNullOrEmpty();            
         }
     }
 

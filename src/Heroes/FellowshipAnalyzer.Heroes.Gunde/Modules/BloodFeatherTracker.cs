@@ -2,7 +2,6 @@ using FellowshipAnalyzer.Core.Analysis;
 using FellowshipAnalyzer.Core.Common.Spells.Gunde;
 using FellowshipAnalyzer.Core.Events;
 using FellowshipAnalyzer.Core.UI;
-using FellowshipAnalyzer.Heroes.Gunde.Statistics;
 
 namespace FellowshipAnalyzer.Heroes.Gunde.Modules;
 
@@ -26,9 +25,6 @@ public sealed partial class BloodFeatherTracker : EventSubscriber
     public int Current => _bank;
 
     public int CappedMs { get; private set; }
-
-    public override Type? StatisticsComponentType =>
-        Generated > 0 || Spent > 0 ? typeof(BloodFeatherStatistics) : null;
 
     public override StatisticCategory StatisticCategory => StatisticCategory.Resources;
 

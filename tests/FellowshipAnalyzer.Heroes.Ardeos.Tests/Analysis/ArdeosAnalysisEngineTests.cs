@@ -1,9 +1,11 @@
 using FellowshipAnalyzer.Core;
 using FellowshipAnalyzer.Core.Analysis;
+using FellowshipAnalyzer.Core.Common;
 using FellowshipAnalyzer.Core.Common.Spells.Ardeos;
 using FellowshipAnalyzer.Core.Events;
 using FellowshipAnalyzer.Core.FellowshipLogs;
 using FellowshipAnalyzer.Heroes.Ardeos.Analysis;
+using FellowshipAnalyzer.Heroes.Ardeos.Core;
 using FellowshipAnalyzer.Heroes.Ardeos.Modules;
 
 using Microsoft.Extensions.DependencyInjection;
@@ -344,9 +346,9 @@ public sealed class ArdeosAnalysisEngineTests
         Coverage(windows[1], ArdeosDots.Incinerate).Magnitude.ShouldBe(11);
     }
 
-    private static ArdeosDotCoverage Coverage(
+    private static DotCoverage Coverage(
         WildfireComboAnalyzer.WildfireWindowEvaluation window,
-        ArdeosDot dot) =>
+        Dot dot) =>
         window.Coverage.Single(entry => entry.Dot == dot);
 
     private static IEnumerable<Event> FullSetup(int anchor, int targetId, int targetInstance) =>

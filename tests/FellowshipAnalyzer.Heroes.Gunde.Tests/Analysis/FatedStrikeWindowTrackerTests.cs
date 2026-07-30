@@ -4,7 +4,6 @@ using FellowshipAnalyzer.Core.Events;
 using FellowshipAnalyzer.Core.FellowshipLogs;
 using FellowshipAnalyzer.Heroes.Gunde.Analysis;
 using FellowshipAnalyzer.Heroes.Gunde.Modules;
-using FellowshipAnalyzer.Heroes.Gunde.Statistics;
 
 using Microsoft.Extensions.DependencyInjection;
 
@@ -186,8 +185,8 @@ public sealed class FatedStrikeWindowTrackerTests
         var tracker = parser.FatedStrikeWindowTracker.ShouldNotBeNull();
         tracker.Windows.ShouldBe(0);
         tracker.FatedStrikeCasts.ShouldBe(0);
-        tracker.StatisticsComponentType.ShouldBeNull();
-        result.Statistics.ShouldNotContain(entry => entry.ComponentType == typeof(FatedStrikeStatistics));
+        tracker.Statistic.ShouldBeNull();
+        result.Statistics.ShouldNotContain(entry => entry.Module is FatedStrikeWindowTracker);
     }
 
     [Fact]
@@ -203,9 +202,9 @@ public sealed class FatedStrikeWindowTrackerTests
         var (parser, result) = await RunAsync(events, BossFight(PullEnd));
 
         var tracker = parser.FatedStrikeWindowTracker.ShouldNotBeNull();
-        tracker.StatisticsComponentType.ShouldBe(typeof(FatedStrikeStatistics));
+        tracker.Statistic.ShouldNotBeNull();
         tracker.StatisticCategory.ShouldBe(Core.UI.StatisticCategory.Items);
-        result.Statistics.ShouldContain(entry => entry.ComponentType == typeof(FatedStrikeStatistics));
+        result.Statistics.ShouldContain(entry => entry.Module is FatedStrikeWindowTracker);
     }
 
     [Fact]
@@ -216,8 +215,8 @@ public sealed class FatedStrikeWindowTrackerTests
         var tracker = parser.FatedStrikeWindowTracker.ShouldNotBeNull();
         tracker.FatedStrikeCasts.ShouldBe(1);
         tracker.Windows.ShouldBe(0);
-        tracker.StatisticsComponentType.ShouldBe(typeof(FatedStrikeStatistics));
-        result.Statistics.ShouldContain(entry => entry.ComponentType == typeof(FatedStrikeStatistics));
+        tracker.Statistic.ShouldNotBeNull();
+        result.Statistics.ShouldContain(entry => entry.Module is FatedStrikeWindowTracker);
     }
 
     [Fact]

@@ -139,6 +139,6 @@ public sealed class EmpoweredShieldSlamAnalyzerTests
     private static async Task<EmpoweredShieldSlamAnalyzer> Analyze(params Event[] events)
     {
         var parser = await HelenaAnalysisFixture.Analyze(events);
-        return parser.EmpoweredShieldSlamAnalyzers.ShouldHaveSingleItem().Analyzer;
+        return parser.EmpoweredShieldSlamAnalyzers.ShouldHaveSingleItem().Analyzer.ShouldBeOfType<EmpoweredShieldSlamAnalyzer>();
     }
 }

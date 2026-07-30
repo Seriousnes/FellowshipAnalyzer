@@ -35,27 +35,6 @@ public sealed partial class CureAilmentAnalyzer : Analyzer
         .Count();
 
     /// <summary>Which auras Cure Ailment removed this pull and how often, most-removed first.</summary>
-    public IReadOnlyList<(int SpellId, string Name, int Count)> RemovedAuras => field ??= BuildRemovedAuras();
-
-    private IReadOnlyList<(int SpellId, string Name, int Count)> BuildRemovedAuras()
-    {
-        var counts = new Dictionary<int, (string Name, int Count)>();
-        foreach (var dispel in Result)
-        {
-            if (dispel.SpellId != Spells.CureAilment.FSLID) continue;
-
-            var current = counts.GetValueOrDefault(dispel.RemovedSpellId);
-            counts[dispel.RemovedSpellId] = (
-                string.IsNullOrEmpty(current.Name) ? dispel.RemovedName : current.Name,
-                current.Count + 1);
-        }
-
-        return
-        [
-            .. counts
-                .Select(entry => (entry.Key, entry.Value.Name, entry.Value.Count))
-                .OrderByDescending(entry => entry.Count)
-                .ThenBy(entry => entry.Key)
-        ];
-    }
+    public IReadOnlyList<RemovedAura> RemovedAuras => field ??=
+        DispelTracker.RemovedAurasBetween(Pull.StartTime, Pull.EndTime, Spells.CureAilment.FSLID);
 }

@@ -3,7 +3,6 @@ using FellowshipAnalyzer.Core.Common.Items;
 using FellowshipAnalyzer.Core.Common.Spells.Tariq;
 using FellowshipAnalyzer.Core.Events;
 using FellowshipAnalyzer.Core.UI;
-using FellowshipAnalyzer.Heroes.Tariq.Statistics;
 
 namespace FellowshipAnalyzer.Heroes.Tariq.Modules;
 
@@ -42,9 +41,6 @@ public sealed partial class ExecutionersGrinTracker : EventSubscriber
 
     /// <summary>Culling Strikes that landed above the execute threshold, which only a proc makes possible.</summary>
     public int AboveExecuteCullingStrikes { get; private set; }
-
-    public override Type? StatisticsComponentType =>
-        Equipped && Procs > 0 ? typeof(ExecutionersGrinStatistics) : null;
 
     public override StatisticCategory StatisticCategory => StatisticCategory.Items;
 

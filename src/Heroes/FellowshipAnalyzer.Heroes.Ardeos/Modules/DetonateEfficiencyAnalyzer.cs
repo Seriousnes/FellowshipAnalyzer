@@ -1,6 +1,7 @@
 using FellowshipAnalyzer.Core.Analysis;
 using FellowshipAnalyzer.Core.Common.Spells.Ardeos;
 using FellowshipAnalyzer.Core.Events;
+using FellowshipAnalyzer.Heroes.Ardeos.Core;
 
 using ArdeosTalents = FellowshipAnalyzer.Core.Common.Spells.ArdeosTalents;
 
@@ -8,6 +9,7 @@ namespace FellowshipAnalyzer.Heroes.Ardeos.Modules;
 
 [ForPull(PullKind.Single | PullKind.Multi)]
 [Dependency<Combatants>]
+[Dependency<ArdeosDotTracker>]
 public sealed partial class DetonateEfficiencyAnalyzer : Analyzer
 {
     public const int WellLayeredAverage = 3;
@@ -52,7 +54,7 @@ public sealed partial class DetonateEfficiencyAnalyzer : Analyzer
         }
     }
 
-    public IReadOnlyList<DotLayerSample> LayerTimeline => field ??= BuildLayerTimeline();
+    public IReadOnlyList<DotLayerSample> LayerTimeline => field ??= ArdeosDotTracker.LayerTimeline(Pull.StartTime, Pull.EndTime);
 
     public int PeakLayeredInstances => LayerTimeline.Count == 0 ? 0 : LayerTimeline.Max(sample => sample.Total);
 
@@ -69,18 +71,13 @@ public sealed partial class DetonateEfficiencyAnalyzer : Analyzer
     [On<CastEvent>(By = Actor.Player, Spell = nameof(Spells.Detonate))]
     private void OnDetonate(CastEvent e)
     {
-        var targets = new HashSet<UnitKey>();
-        foreach (var dot in ArdeosDots.All)
-            foreach (var key in Combatants.EnemiesWithAura(dot.EffectId, e.Timestamp))
-                targets.Add(key);
+        var targets = ArdeosDotTracker.EnemiesWithAnyDot(e.Timestamp);
 
         var totalInstances = 0;
         var maxTargetInstances = 0;
         foreach (var key in targets)
         {
-            var perTarget = 0;
-            foreach (var dot in ArdeosDots.All)
-                perTarget += Combatants.AuraInstanceCount(key.ActorId, key.Instance, dot.EffectId, e.Timestamp);
+            var perTarget = ArdeosDotTracker.InstancesOn(key, e.Timestamp);
             totalInstances += perTarget;
             if (perTarget > maxTargetInstances)
                 maxTargetInstances = perTarget;
@@ -92,82 +89,9 @@ public sealed partial class DetonateEfficiencyAnalyzer : Analyzer
             TargetsWithDoTs = targets.Count,
             TotalInstances = totalInstances,
             MaxTargetInstances = maxTargetInstances,
-            Coverage = SnapshotCoverage(targets, e.Timestamp),
+            Coverage = ArdeosDotTracker.CoverageAcross(targets, e.Timestamp),
             Free = Owner.SelectedCombatant.HasBuff(Spells.ApocalypticSurge.FSLID, e.Timestamp, bufferTime: SurgeBufferMs),
         });
-    }
-
-    private IReadOnlyList<DotCoverage> SnapshotCoverage(HashSet<UnitKey> targets, int timestamp)
-    {
-        var coverage = new List<DotCoverage>(ArdeosDots.Count);
-        foreach (var dot in ArdeosDots.All)
-        {
-            var effectId = dot.EffectId;
-            var carriers = 0;
-            var instances = 0;
-            var stacks = 0;
-
-            foreach (var key in targets)
-            {
-                var onTarget = Combatants.AuraInstanceCount(key.ActorId, key.Instance, effectId, timestamp);
-                if (onTarget == 0) continue;
-
-                carriers++;
-                instances += onTarget;
-                stacks += Combatants.AuraStackSum(key.ActorId, key.Instance, effectId, timestamp);
-            }
-
-            coverage.Add(new DotCoverage
-            {
-                Dot = dot,
-                Targets = carriers,
-                Instances = instances,
-                Stacks = stacks,
-            });
-        }
-        return coverage;
-    }
-
-    private IReadOnlyList<DotLayerSample> BuildLayerTimeline()
-    {
-        var from = Pull.StartTime;
-        var to = Pull.EndTime;
-
-        var deltas = new List<(int Timestamp, int Index, int Delta)>();
-        for (var index = 0; index < ArdeosDots.Count; index++)
-        {
-            foreach (var window in Combatants.EnemyAuraWindows(ArdeosDots.All[index].EffectId, from, to))
-            {
-                deltas.Add((window.Start, index, 1));
-                deltas.Add((window.End + 1, index, -1));
-            }
-        }
-
-        deltas.Sort((a, b) => a.Timestamp.CompareTo(b.Timestamp));
-
-        var live = new int[ArdeosDots.Count];
-        var samples = new List<DotLayerSample> { new(from, [.. live]) };
-
-        var position = 0;
-        while (position < deltas.Count && deltas[position].Timestamp <= to)
-        {
-            var timestamp = deltas[position].Timestamp;
-            while (position < deltas.Count && deltas[position].Timestamp == timestamp)
-            {
-                live[deltas[position].Index] += deltas[position].Delta;
-                position++;
-            }
-
-            if (timestamp == samples[^1].Timestamp)
-                samples[^1] = new DotLayerSample(timestamp, [.. live]);
-            else
-                samples.Add(new DotLayerSample(timestamp, [.. live]));
-        }
-
-        if (samples[^1].Timestamp < to)
-            samples.Add(new DotLayerSample(to, [.. live]));
-
-        return samples;
     }
 
     [On<ApplyBuffEvent>(To = Actor.Player, Spell = nameof(Spells.ApocalypticSurge))]
@@ -190,16 +114,6 @@ public sealed partial class DetonateEfficiencyAnalyzer : Analyzer
 
     [On<RemoveBuffEvent>(To = Actor.Player, Spell = nameof(Spells.ApocalypticSurge))]
     private void OnSurgeRemove(RemoveBuffEvent e) => _surgeStacks = 0;
-
-    public sealed record DotCoverage : ArdeosDotCoverage
-    {
-        public required int Targets { get; init; }
-    }
-
-    public sealed record DotLayerSample(int Timestamp, IReadOnlyList<int> Instances)
-    {
-        public int Total => Instances.Sum();
-    }
 
     public sealed class DetonateCast
     {

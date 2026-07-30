@@ -7,9 +7,7 @@
         <StatisticsPanel>
             @foreach (var entry in category.OrderBy(item => item.Order))
             {
-                <CascadingValue Value="@entry.Module">
-                    <DynamicComponent Type="@entry.ComponentType" />
-                </CascadingValue>
+                <ModuleStatistic Content="@entry.Content" />
             }
         </StatisticsPanel>
     }

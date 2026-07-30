@@ -45,12 +45,12 @@
                 var uptime = (int)Math.Round(bossAnalyzers.Average(analyzer => UptimeOf(analyzer, dot) * 100));
                 stats.Add(new OverviewStat(
                     $"{uptime}%",
-                    $"{dot.Name} Uptime",
-                    $"Average {dot.Name} uptime across every boss pull.",
+                    $"{dot.Effect.Name} Uptime",
+                    $"Average {dot.Effect.Name} uptime across every boss pull.",
                     UptimeTier(uptime)));
             }
 
-            var gaps = bossAnalyzers.Sum(analyzer => analyzer.Dots.Sum(entry => entry.GapCount));
+            var gaps = bossAnalyzers.Sum(analyzer => analyzer.Uptimes.Sum(entry => entry.GapCount));
             stats.Add(new OverviewStat(
                 $"{gaps}",
                 "Boss Gaps",
@@ -101,20 +101,20 @@
         var stats = new List<PerCastStat>();
         QualitativePerformance? worst = null;
 
-        foreach (var entry in analyzer.Dots)
+        foreach (var entry in analyzer.Uptimes)
         {
             var percent = (int)Math.Round(entry.Uptime * 100);
             QualitativePerformance? tier = sampled ? UptimeTier(percent) : null;
             stats.Add(new PerCastStat(
                 $"{percent}%",
-                entry.Dot.Name,
-                $"Share of the pull the boss spent carrying {entry.Dot.Name}.",
+                entry.Dot.Effect.Name,
+                $"Share of the pull the boss spent carrying {entry.Dot.Effect.Name}.",
                 Performance: tier));
             worst = Worse(worst, tier);
         }
 
-        var gapCount = analyzer.Dots.Sum(entry => entry.GapCount);
-        var downtime = analyzer.Dots.Sum(entry => entry.TotalGapMs);
+        var gapCount = analyzer.Uptimes.Sum(entry => entry.GapCount);
+        var downtime = analyzer.Uptimes.Sum(entry => entry.TotalGapMs);
         stats.Add(new PerCastStat(
             $"{gapCount}",
             "Gaps",
@@ -139,7 +139,7 @@
         }
 
         AdditionalContent? chart = null;
-        if (analyzer.Dots.Any(entry => entry.Windows.Count > 0))
+        if (analyzer.Uptimes.Any(entry => entry.Windows.Count > 0))
         {
             var samples = ChartSamples(analyzer, pull);
             var bands = ChartBands(analyzer, samples);
@@ -179,12 +179,12 @@
                 "Fresh Hemorrhage applications during the pull."),
             new PerCastStat(
                 $"{analyzer.SeethingPoisonTargets}",
-                MaraDots.SeethingPoison.Name,
-                $"Enemies that took the {MaraDots.SeethingPoison.Name} during the pull."),
+                MaraDots.SeethingPoison.Effect.Name,
+                $"Enemies that took the {MaraDots.SeethingPoison.Effect.Name} during the pull."),
             new PerCastStat(
                 $"{analyzer.VolatilePoisonTargets}",
-                MaraDots.VolatilePoison.Name,
-                $"Enemies that took the {MaraDots.VolatilePoison.Name} during the pull."),
+                MaraDots.VolatilePoison.Effect.Name,
+                $"Enemies that took the {MaraDots.VolatilePoison.Effect.Name} during the pull."),
             new PerCastStat(
                 $"{analyzer.VolatilePoisonRefreshes}/{analyzer.VolatilePoisonApplications + analyzer.VolatilePoisonRefreshes}",
                 "Eruptions Forfeited",
@@ -203,7 +203,7 @@
     private static IReadOnlyList<int> ChartSamples(MaraDotUptimeAnalyzer analyzer, Pull pull)
     {
         var samples = new SortedSet<int> { pull.StartTime, pull.EndTime };
-        foreach (var entry in analyzer.Dots)
+        foreach (var entry in analyzer.Uptimes)
         {
             foreach (var window in entry.Windows)
             {
@@ -216,33 +216,33 @@
 
     private IReadOnlyList<AuraStackBand> ChartBands(MaraDotUptimeAnalyzer analyzer, IReadOnlyList<int> samples)
     {
-        var bands = new List<AuraStackBand>(analyzer.Dots.Count);
-        foreach (var entry in analyzer.Dots)
+        var bands = new List<AuraStackBand>(analyzer.Uptimes.Count);
+        foreach (var entry in analyzer.Uptimes)
         {
             var values = new int[samples.Count];
             for (var i = 0; i < samples.Count; i++)
                 values[i] = entry.Windows.Count(window => window.Start <= samples[i] && samples[i] < window.End);
 
-            bands.Add(new AuraStackBand(entry.Dot.Name, MaraChartColors.Dot(Palette, entry.Dot), values));
+            bands.Add(new AuraStackBand(entry.Dot.Effect.Name, MaraChartColors.Dot(Palette, entry.Dot), values));
         }
         return bands;
     }
 
     private static string BuildBossNote(MaraDotUptimeAnalyzer analyzer)
     {
-        var missing = analyzer.Dots.Where(entry => entry.Windows.Count == 0).Select(entry => entry.Dot.Name).ToList();
-        if (missing.Count == analyzer.Dots.Count)
+        var missing = analyzer.Uptimes.Where(entry => entry.Windows.Count == 0).Select(entry => entry.Dot.Effect.Name).ToList();
+        if (missing.Count == analyzer.Uptimes.Count)
             return "Neither the poison nor the bleed was applied on this boss pull.";
 
         var notes = new List<string>();
         if (missing.Count > 0)
             notes.Add($"{JoinNames(missing)} never went up");
 
-        foreach (var entry in analyzer.Dots)
+        foreach (var entry in analyzer.Uptimes)
         {
             if (entry.GapCount == 0) continue;
 
-            notes.Add($"{entry.Dot.Name} dropped {Count(entry.GapCount, "time")} for {FormatSeconds(entry.TotalGapMs)}");
+            notes.Add($"{entry.Dot.Effect.Name} dropped {Count(entry.GapCount, "time")} for {FormatSeconds(entry.TotalGapMs)}");
         }
 
         var clipped = analyzer.HemorrhageRefreshes.Where(refresh => refresh.RemainingMs > EarlyClipRemainingMs).ToList();
@@ -278,8 +278,7 @@
         return Sentence(notes);
     }
 
-    private static double UptimeOf(MaraDotUptimeAnalyzer analyzer, MaraDot dot) =>
-        analyzer.Dots.First(entry => entry.Dot.EffectId == dot.EffectId).Uptime;
+    private static double UptimeOf(MaraDotUptimeAnalyzer analyzer, Dot dot) => analyzer.For(dot).Uptime;
 
     private static int ClipCount(MaraDotUptimeAnalyzer analyzer) =>
         analyzer.HemorrhageRefreshes.Count(refresh => refresh.RemainingMs > EarlyClipRemainingMs);

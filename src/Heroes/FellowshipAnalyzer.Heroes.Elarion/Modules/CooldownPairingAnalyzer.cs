@@ -1,4 +1,5 @@
 using FellowshipAnalyzer.Core.Analysis;
+using FellowshipAnalyzer.Core.Common;
 using FellowshipAnalyzer.Core.Common.Spells.Elarion;
 using FellowshipAnalyzer.Core.Events;
 

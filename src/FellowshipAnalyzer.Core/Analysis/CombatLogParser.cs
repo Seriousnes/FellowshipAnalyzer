@@ -432,8 +432,13 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
         {
             GuideComponentType = GuideComponent,
             Statistics = [.. _activeModules.Values
-                    .Where(m => m.StatisticsComponentType != null)
-                    .Select(m => new StatisticEntry(m, m.StatisticsComponentType!, m.StatisticCategory, m.StatisticOrder))],
+                    .Select(m => (Module: m, Statistic: m.Statistic))
+                    .Where(collected => collected.Statistic is not null)
+                    .Select(collected => new StatisticEntry(
+                        collected.Module,
+                        collected.Statistic!,
+                        collected.Module.StatisticCategory,
+                        collected.Module.StatisticOrder))],
             Modules = [.. _activeModules.Values],
             Events = Events,
             DebugAnnotations = GetModule<DebugAnnotations>(),

@@ -1,5 +1,7 @@
 using FellowshipAnalyzer.Core.UI;
 
+using Microsoft.AspNetCore.Components;
+
 namespace FellowshipAnalyzer.Core.Analysis;
 
 /// <summary>
@@ -7,7 +9,7 @@ namespace FellowshipAnalyzer.Core.Analysis;
 /// <c>[On&lt;T&gt;]</c> handlers via the generated <c>RegisterSubscriptions()</c> and accumulates
 /// state across the whole event stream, unlike a pull-lifetime <see cref="Analyzer"/>.
 /// </summary>
-public abstract class Module
+public abstract class Module : ComponentBase
 {
     /// <summary>Whether this module currently accepts dispatched events. <see cref="EventEmitter"/> checks this per event, so it can be toggled at runtime by dynamic activation conditions (gear, observed talents, etc.).</summary>
     public bool Active { get; protected set; } = true;
@@ -19,11 +21,11 @@ public abstract class Module
     public CombatLogParser Owner { get; set; } = null!;
 
     /// <summary>
-    /// Override with a non-null <see cref="Type"/> to make this module's statistics
-    /// auto-collected and rendered on the Statistics tab via DynamicComponent.
-    /// The type must be a Razor component that inherits AnalyzerStatistic&lt;T&gt;.
+    /// This module's card for the Statistics tab, or null when the module has nothing to report and
+    /// is omitted from the tab. Authored as razor markup in the module's companion
+    /// <c>{Module}.razor</c> partial.
     /// </summary>
-    public virtual Type? StatisticsComponentType => null;
+    public virtual RenderFragment? Statistic => null;
 
     /// <summary>
     /// Section of the Statistics tab this module's statistic renders under.

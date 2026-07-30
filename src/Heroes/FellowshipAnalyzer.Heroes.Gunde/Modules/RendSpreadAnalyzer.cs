@@ -1,39 +1,24 @@
 using FellowshipAnalyzer.Core.Analysis;
+using FellowshipAnalyzer.Core.Common;
 using FellowshipAnalyzer.Core.Common.Spells.Gunde;
 using FellowshipAnalyzer.Core.Events;
 
 namespace FellowshipAnalyzer.Heroes.Gunde.Modules;
 
 [ForPull(PullKind.Multi)]
-public sealed partial class RendSpreadAnalyzer : Analyzer, IRendAnalyzer
+public sealed partial class RendSpreadAnalyzer : DotSpreadAnalyzer, IRendAnalyzer
 {
-    private const int UnknownRosterReference = 3;
+    protected override IReadOnlyList<Dot> Dots => GundeDots.All;
 
-    private readonly HashSet<(int TargetId, int TargetInstance)> _debuffedTargets = [];
+    public int DistinctTargets => TargetsOf(GundeDots.Rend);
 
-    public int DistinctTargets => _debuffedTargets.Count;
+    public double Coverage => CoverageOf(GundeDots.Rend);
 
-    public int TargetCount => Pull.TargetCount;
-
-    public double Coverage
-    {
-        get
-        {
-            var denominator = TargetCount > 0 ? TargetCount : Math.Max(DistinctTargets, UnknownRosterReference);
-            return denominator == 0 ? 0d : Math.Min(1d, DistinctTargets / (double)denominator);
-        }
-    }
-
-    public int TotalApplications { get; private set; }
+    public int TotalApplications => ApplicationsOf(GundeDots.Rend);
 
     [On<ApplyDebuffEvent>(By = Actor.Player, Spell = nameof(Spells.Rend))]
-    private void OnApplied(ApplyDebuffEvent e)
-    {
-        _debuffedTargets.Add((e.TargetId, e.TargetInstance ?? 0));
-        TotalApplications++;
-    }
+    private void OnApplied(ApplyDebuffEvent e) => RecordApplication(e);
 
     [On<RefreshDebuffEvent>(By = Actor.Player, Spell = nameof(Spells.Rend))]
-    private void OnRefreshed(RefreshDebuffEvent e)
-        => _debuffedTargets.Add((e.TargetId, e.TargetInstance ?? 0));
+    private void OnRefreshed(RefreshDebuffEvent e) => RecordRefresh(e);
 }

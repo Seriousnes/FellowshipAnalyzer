@@ -1,6 +1,5 @@
 using FellowshipAnalyzer.Core.Common.Spells.Elarion;
 using FellowshipAnalyzer.Heroes.Elarion.Modules;
-using FellowshipAnalyzer.Heroes.Elarion.Statistics;
 
 using Shouldly;
 
@@ -39,7 +38,7 @@ public sealed class SalvoTrackerTests
             Marks.Damage(1_000, Marks.TargetA, Spells.LunarlightMarkDamage.FSLID, amount: 900));
 
         var tracker = parser.SalvoTracker.ShouldNotBeNull();
-        tracker.StatisticsComponentType.ShouldBe(typeof(SalvoStatistics));
+        tracker.Statistic.ShouldNotBeNull();
     }
 
     [Fact]
@@ -53,6 +52,6 @@ public sealed class SalvoTrackerTests
         tracker.EruptHits.ShouldBe(0);
         tracker.TotalPlayerDamage.ShouldBe(8_000);
         tracker.DamageShare.ShouldBe(0d);
-        tracker.StatisticsComponentType.ShouldBeNull();
+        tracker.Statistic.ShouldBeNull();
     }
 }

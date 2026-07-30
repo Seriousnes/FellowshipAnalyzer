@@ -2,7 +2,6 @@ using FellowshipAnalyzer.Core.Analysis;
 using FellowshipAnalyzer.Core.Common.Spells.Elarion;
 using FellowshipAnalyzer.Core.Events;
 using FellowshipAnalyzer.Core.UI;
-using FellowshipAnalyzer.Heroes.Elarion.Statistics;
 
 namespace FellowshipAnalyzer.Heroes.Elarion.Modules;
 
@@ -24,8 +23,6 @@ public sealed partial class SalvoTracker : EventSubscriber
 
     public double DamageShare =>
         TotalPlayerDamage == 0 ? 0d : TotalMarkDamage / (double)TotalPlayerDamage;
-
-    public override Type? StatisticsComponentType => TotalHits > 0 ? typeof(SalvoStatistics) : null;
 
     public override StatisticCategory StatisticCategory => StatisticCategory.General;
 

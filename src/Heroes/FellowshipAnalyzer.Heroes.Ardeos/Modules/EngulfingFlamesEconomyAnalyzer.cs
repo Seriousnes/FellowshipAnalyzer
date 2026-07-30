@@ -1,4 +1,5 @@
 using FellowshipAnalyzer.Core.Analysis;
+using FellowshipAnalyzer.Core.Common;
 using FellowshipAnalyzer.Core.Common.Items;
 using FellowshipAnalyzer.Core.Common.Spells.Ardeos;
 using FellowshipAnalyzer.Core.Events;

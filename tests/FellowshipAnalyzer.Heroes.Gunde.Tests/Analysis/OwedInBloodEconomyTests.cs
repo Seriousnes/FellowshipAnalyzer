@@ -4,7 +4,6 @@ using FellowshipAnalyzer.Core.Events;
 using FellowshipAnalyzer.Core.FellowshipLogs;
 using FellowshipAnalyzer.Heroes.Gunde.Analysis;
 using FellowshipAnalyzer.Heroes.Gunde.Modules;
-using FellowshipAnalyzer.Heroes.Gunde.Statistics;
 
 using Microsoft.Extensions.DependencyInjection;
 
@@ -611,8 +610,8 @@ public sealed class OwedInBloodEconomyTests
         var (parser, result) = await RunAsync(events, BossFight(PullEnd));
 
         var tracker = parser.BloodFeatherTracker.ShouldNotBeNull();
-        tracker.StatisticsComponentType.ShouldBe(typeof(BloodFeatherStatistics));
-        result.Statistics.ShouldContain(entry => entry.ComponentType == typeof(BloodFeatherStatistics));
+        tracker.Statistic.ShouldNotBeNull();
+        result.Statistics.ShouldContain(entry => entry.Module is BloodFeatherTracker);
     }
 
     [Fact]
@@ -623,8 +622,8 @@ public sealed class OwedInBloodEconomyTests
         var tracker = parser.BloodFeatherTracker.ShouldNotBeNull();
         tracker.Generated.ShouldBe(0);
         tracker.Spent.ShouldBe(0);
-        tracker.StatisticsComponentType.ShouldBeNull();
-        result.Statistics.ShouldNotContain(entry => entry.ComponentType == typeof(BloodFeatherStatistics));
+        tracker.Statistic.ShouldBeNull();
+        result.Statistics.ShouldNotContain(entry => entry.Module is BloodFeatherTracker);
     }
 
     [Fact]

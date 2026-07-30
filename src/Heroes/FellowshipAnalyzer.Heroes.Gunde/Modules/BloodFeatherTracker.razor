@@ -1,0 +1,69 @@
+@inherits EventSubscriber
+
+@code {
+    /// <inheritdoc/>
+    public override RenderFragment? Statistic => Generated > 0 || Spent > 0 ? Card : null;
+
+    private RenderFragment Card =>
+        @<StatCard Title="Blood Feathers">
+            <Info>
+                The Blood Feather bank across the whole run, reconstructed from the Owed in Blood self-buff
+                because Gunde logs carry no resource snapshots. Feathers drop from bleeding enemies and are
+                picked up off the ground, so what reaches the bank is partly a movement stat.
+            </Info>
+            <ChildContent>
+                <CastOverview Title="Feather Pool" Stats="@BuildOverviewStats()" />
+                @if (Total > 0)
+                {
+                    <StackedBar Segments="@BuildStackedBar()" />
+                }
+            </ChildContent>
+        </StatCard>;
+
+    private int Total => Spent + Decayed + Current;
+
+    private IEnumerable<OverviewStat> BuildOverviewStats()
+    {
+        var decayRate = Generated > 0
+            ? (double)Decayed / Generated * 100
+            : 0;
+
+        return
+        [
+            new OverviewStat(
+                $"{Generated}",
+                "Picked Up",
+                "Blood Feathers observed arriving in the bank over the run."),
+            new OverviewStat(
+                $"{Spent}",
+                "Converted",
+                "Blood Feathers Owed in Blood turned into Rend."),
+            new OverviewStat(
+                $"{Decayed}",
+                "Decayed",
+                Generated > 0
+                    ? $"Blood Feathers the buff shed with no Owed in Blood cast to account for them, {decayRate:F0}% of observed pickups."
+                    : "Blood Feathers the buff shed with no Owed in Blood cast to account for them."),
+            new OverviewStat(
+                $"{Current}",
+                "Held at End",
+                $"Blood Feathers still banked when the run ended, out of a maximum of {MaxBloodFeathers}."),
+            new OverviewStat(
+                FormatSeconds(CappedMs),
+                "Time at Cap",
+                $"Time the bank sat at {MaxBloodFeathers}. A feather landing on a full pool produces no event at all, so it can never be counted; time at the cap is the honest measure of what was thrown away."),
+        ];
+    }
+
+    private IEnumerable<StackedBarSegment> BuildStackedBar() =>
+    [
+        new StackedBarSegment("Converted", Spent, PerformanceColors.Good,
+            $"Converted: {Spent} feathers turned into Rend"),
+        new StackedBarSegment("Decayed", Decayed, PerformanceColors.Fail,
+            $"Decayed: {Decayed} feathers shed with no cast to account for them"),
+        new StackedBarSegment("Held", Current, PerformanceColors.Neutral,
+            $"Held: {Current} feathers banked at the end"),
+    ];
+
+    private static string FormatSeconds(int milliseconds) => $"{milliseconds / 1000d:0.#}s";
+}

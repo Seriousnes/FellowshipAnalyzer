@@ -124,6 +124,6 @@ public sealed class ExecutionersGrinTrackerTests
 
         var tracker = parser.GetModule<ExecutionersGrinTracker>().ShouldNotBeNull();
         tracker.Equipped.ShouldBeFalse();
-        tracker.StatisticsComponentType.ShouldBeNull();
+        tracker.Statistic.ShouldBeNull();
     }
 }

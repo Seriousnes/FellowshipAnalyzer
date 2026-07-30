@@ -25,7 +25,8 @@
 @code {
     private IEnumerable<OverviewStat> BuildOverviewStats()
     {
-        var analyzers = Parser.AbsorbWasteAnalyzers.Select(entry => entry.Analyzer).ToList();
+        var analyzers = Parser.AbsorbWasteAnalyzers
+            .Select(entry => entry.Analyzer).OfType<AbsorbWasteAnalyzer>().ToList();
         var laid = analyzers.Sum(analyzer => analyzer.ShieldsLaid);
         if (laid == 0) return [];
 
@@ -58,7 +59,10 @@
     }
 
     private IEnumerable<PerCastData> BuildPerPullData() =>
-        Parser.AbsorbWasteAnalyzers.ToPullRows(Parser, (analyzer, pull) => new PerCastRow
+        Parser.AbsorbWasteAnalyzers.ToPullRows(Parser, (surface, pull) => BuildPullRow((AbsorbWasteAnalyzer)surface));
+
+    private PerCastRow BuildPullRow(AbsorbWasteAnalyzer analyzer) =>
+        new()
         {
             Performance = PerformanceTiers.FromThresholds(analyzer.AbsorbEfficiency * 100, 90, 75, 55),
             Stats =
@@ -77,5 +81,5 @@
                     "Expired Unspent",
                     "Shields that came off still holding absorb."),
             ],
-        });
+        };
 }

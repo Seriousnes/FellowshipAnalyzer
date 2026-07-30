@@ -1,5 +1,7 @@
 using System.Diagnostics;
 
+using FellowshipAnalyzer.Core.Common;
+
 namespace FellowshipAnalyzer.Core.Events;
 
 /// <summary>A player, NPC, or pet as identified in the FellowshipLogs report's actor list.</summary>

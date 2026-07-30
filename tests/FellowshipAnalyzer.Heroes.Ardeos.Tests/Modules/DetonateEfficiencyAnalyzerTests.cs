@@ -1,9 +1,11 @@
 using FellowshipAnalyzer.Core;
 using FellowshipAnalyzer.Core.Analysis;
+using FellowshipAnalyzer.Core.Common;
 using FellowshipAnalyzer.Core.Common.Spells.Ardeos;
 using FellowshipAnalyzer.Core.Events;
 using FellowshipAnalyzer.Core.FellowshipLogs;
 using FellowshipAnalyzer.Heroes.Ardeos.Analysis;
+using FellowshipAnalyzer.Heroes.Ardeos.Core;
 using FellowshipAnalyzer.Heroes.Ardeos.Modules;
 
 using Microsoft.Extensions.DependencyInjection;
@@ -348,11 +350,11 @@ public sealed class DetonateEfficiencyAnalyzerTests
         analyzer.PeakLayeredInstances.ShouldBe(2);
     }
 
-    private static DetonateEfficiencyAnalyzer.DotCoverage Coverage(
-        DetonateEfficiencyAnalyzer.DetonateCast cast, ArdeosDot dot) =>
+    private static DotCoverage Coverage(
+        DetonateEfficiencyAnalyzer.DetonateCast cast, Dot dot) =>
         cast.Coverage.Single(entry => entry.Dot == dot);
 
-    private static DetonateEfficiencyAnalyzer.DotLayerSample SampleAt(DetonateEfficiencyAnalyzer analyzer, int timestamp) =>
+    private static DotLayerSample SampleAt(DetonateEfficiencyAnalyzer analyzer, int timestamp) =>
         analyzer.LayerTimeline.Last(sample => sample.Timestamp <= timestamp);
 
     private static int TotalAt(DetonateEfficiencyAnalyzer analyzer, int timestamp) => SampleAt(analyzer, timestamp).Total;

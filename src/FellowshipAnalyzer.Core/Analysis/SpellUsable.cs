@@ -1,3 +1,4 @@
+using FellowshipAnalyzer.Core.Common;
 using FellowshipAnalyzer.Core.Contracts.Design;
 using FellowshipAnalyzer.Core.Events;
 

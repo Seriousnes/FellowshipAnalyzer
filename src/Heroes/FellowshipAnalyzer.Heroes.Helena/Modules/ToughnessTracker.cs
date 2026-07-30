@@ -1,10 +1,10 @@
 using FellowshipAnalyzer.Core.Analysis;
+using FellowshipAnalyzer.Core.Common;
 using FellowshipAnalyzer.Core.Common.Spells.Helena;
 using FellowshipAnalyzer.Core.Events;
 using FellowshipAnalyzer.Core.Game;
 using FellowshipAnalyzer.Core.Resources;
 using FellowshipAnalyzer.Core.UI;
-using FellowshipAnalyzer.Heroes.Helena.Statistics;
 
 using Microsoft.Extensions.Logging;
 
@@ -66,9 +66,6 @@ public sealed partial class ToughnessTracker : ResourceTracker
             ? generator.NominalShare + GreaterShockwaveAnalyzer.AdditionalToughnessShare
             : generator.NominalShare;
     }
-
-    /// <inheritdoc/>
-    public override Type? StatisticsComponentType => Toughness is null ? null : typeof(ToughnessStatistics);
 
     /// <inheritdoc/>
     public override StatisticCategory StatisticCategory => StatisticCategory.General;

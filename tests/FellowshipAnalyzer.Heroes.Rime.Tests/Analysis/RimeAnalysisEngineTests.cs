@@ -8,7 +8,6 @@ using FellowshipAnalyzer.Core.Game;
 using FellowshipAnalyzer.Core.Serialization;
 using FellowshipAnalyzer.Heroes.Rime.Analysis;
 using FellowshipAnalyzer.Heroes.Rime.Modules;
-using FellowshipAnalyzer.Heroes.Rime.Statistics;
 
 using Microsoft.Extensions.DependencyInjection;
 
@@ -243,9 +242,6 @@ public sealed class RimeAnalysisEngineTests
     {
         var (_, result) = await AnalyzeFixtureAsync();
 
-        var componentTypes = result.Statistics.Select(entry => entry.ComponentType).ToList();
-        componentTypes.ShouldContain(typeof(WintersEmbraceStatistics));
-        componentTypes.ShouldContain(typeof(FrostweaversWrathStatistics));
         result.Statistics.ShouldContain(entry => entry.Module is WintersEmbraceUpliftTracker);
         result.Statistics.ShouldContain(entry => entry.Module is FrostweaverWrathAnalyzer);
     }

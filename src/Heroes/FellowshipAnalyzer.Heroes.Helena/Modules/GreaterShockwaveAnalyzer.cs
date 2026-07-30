@@ -3,7 +3,6 @@ using FellowshipAnalyzer.Core.Common.Spells.Helena;
 using FellowshipAnalyzer.Core.Events;
 using FellowshipAnalyzer.Core.Game;
 using FellowshipAnalyzer.Core.UI;
-using FellowshipAnalyzer.Heroes.Helena.Statistics;
 
 using HelenaTalents = FellowshipAnalyzer.Core.Common.Spells.HelenaTalents;
 
@@ -40,10 +39,6 @@ public sealed partial class GreaterShockwaveAnalyzer : Analyzer
     /// maximum Toughness each cast returns on top of Shockwave's own per-hit generation.
     /// </summary>
     public const double AdditionalToughnessShare = 0.1;
-
-    /// <inheritdoc/>
-    public override Type? StatisticsComponentType =>
-        MeasuredCasts > 0 ? typeof(GreaterShockwaveStatistics) : null;
 
     /// <inheritdoc/>
     public override StatisticCategory StatisticCategory => StatisticCategory.Talents;

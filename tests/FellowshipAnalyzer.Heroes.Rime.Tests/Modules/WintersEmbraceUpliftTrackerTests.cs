@@ -6,7 +6,6 @@ using FellowshipAnalyzer.Core.FellowshipLogs;
 using FellowshipAnalyzer.Core.Utility;
 using FellowshipAnalyzer.Heroes.Rime.Analysis;
 using FellowshipAnalyzer.Heroes.Rime.Modules;
-using FellowshipAnalyzer.Heroes.Rime.Statistics;
 
 using Microsoft.Extensions.DependencyInjection;
 
@@ -172,7 +171,7 @@ public sealed class WintersEmbraceUpliftTrackerTests
         tracker.AmplifiedEventCount.ShouldBe(0);
         tracker.TotalBonusDamage.ShouldBe(0);
         tracker.UpliftShare.ShouldBe(0);
-        tracker.StatisticsComponentType.ShouldBeNull();
+        tracker.Statistic.ShouldBeNull();
     }
 
     [Fact]
@@ -183,7 +182,7 @@ public sealed class WintersEmbraceUpliftTrackerTests
             Damage(WindowStart + 100, Spells.FrostBolt, 1_200),
             EmbraceRemoved(WindowEnd));
 
-        tracker.StatisticsComponentType.ShouldBe(typeof(WintersEmbraceStatistics));
+        tracker.Statistic.ShouldNotBeNull();
     }
 
     private static ApplyBuffEvent EmbraceApplied(int timestamp) => new()

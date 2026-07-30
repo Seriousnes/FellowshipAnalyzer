@@ -1,4 +1,3 @@
-using FellowshipAnalyzer.Core.Events;
 using FellowshipAnalyzer.Heroes.Sylvie.Modules;
 
 using Shouldly;
@@ -8,6 +7,7 @@ using Xunit;
 using Spells = FellowshipAnalyzer.Core.Common.Spells.Sylvie.Spells;
 
 using static FellowshipAnalyzer.Heroes.Sylvie.Tests.Analysis.SylvieAnalysisFixture;
+using FellowshipAnalyzer.Core.Common;
 
 namespace FellowshipAnalyzer.Heroes.Sylvie.Tests.Analysis;
 

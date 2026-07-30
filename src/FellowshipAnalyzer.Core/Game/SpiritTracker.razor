@@ -1,0 +1,11 @@
+@inherits ResourceTracker
+
+@code {
+    /// <inheritdoc/>
+    public override RenderFragment? Statistic =>
+        @<StatCard Title="Spirit" UltraWide>
+            <ResourceGraph Tracker="this"
+                           Resource="ResourceTypes.Spirit"
+                           IncludeWasted="true" />
+        </StatCard>;
+}

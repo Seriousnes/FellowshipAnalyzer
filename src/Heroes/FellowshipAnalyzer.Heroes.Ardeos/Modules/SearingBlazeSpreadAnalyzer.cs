@@ -1,39 +1,25 @@
 using FellowshipAnalyzer.Core.Analysis;
+using FellowshipAnalyzer.Core.Common;
 using FellowshipAnalyzer.Core.Common.Spells.Ardeos;
 using FellowshipAnalyzer.Core.Events;
+using FellowshipAnalyzer.Heroes.Ardeos.Core;
 
 namespace FellowshipAnalyzer.Heroes.Ardeos.Modules;
 
 [ForPull(PullKind.Multi)]
-public sealed partial class SearingBlazeSpreadAnalyzer : Analyzer, ISearingBlazeAnalyzer
+public sealed partial class SearingBlazeSpreadAnalyzer : DotSpreadAnalyzer, ISearingBlazeAnalyzer
 {
-    private const int UnknownRosterReference = 3;
+    protected override IReadOnlyList<Dot> Dots { get; } = [ArdeosDots.SearingBlaze];
 
-    private readonly HashSet<(int TargetId, int TargetInstance)> _debuffedTargets = [];
+    public int DistinctTargets => TargetsOf(ArdeosDots.SearingBlaze);
 
-    public int DistinctTargets => _debuffedTargets.Count;
+    public double Coverage => CoverageOf(ArdeosDots.SearingBlaze);
 
-    public int TargetCount => Pull.TargetCount;
-
-    public double Coverage
-    {
-        get
-        {
-            var denominator = TargetCount > 0 ? TargetCount : Math.Max(DistinctTargets, UnknownRosterReference);
-            return denominator == 0 ? 0d : Math.Min(1d, DistinctTargets / (double)denominator);
-        }
-    }
-
-    public int TotalApplications { get; private set; }
+    public int TotalApplications => ApplicationsOf(ArdeosDots.SearingBlaze);
 
     [On<ApplyDebuffEvent>(By = Actor.Player, Spell = nameof(Spells.SearingBlazeDot))]
-    private void OnApplied(ApplyDebuffEvent e)
-    {
-        _debuffedTargets.Add((e.TargetId, e.TargetInstance ?? 0));
-        TotalApplications++;
-    }
+    private void OnApplied(ApplyDebuffEvent e) => RecordApplication(e);
 
     [On<RefreshDebuffEvent>(By = Actor.Player, Spell = nameof(Spells.SearingBlazeDot))]
-    private void OnRefreshed(RefreshDebuffEvent e)
-        => _debuffedTargets.Add((e.TargetId, e.TargetInstance ?? 0));
+    private void OnRefreshed(RefreshDebuffEvent e) => RecordRefresh(e);
 }

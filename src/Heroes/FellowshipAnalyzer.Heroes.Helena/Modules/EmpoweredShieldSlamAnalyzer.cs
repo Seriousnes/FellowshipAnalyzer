@@ -4,6 +4,9 @@ using FellowshipAnalyzer.Core.Events;
 
 namespace FellowshipAnalyzer.Heroes.Helena.Modules;
 
+/// <summary>Keeps the Shield Slam barrier on its own read surface, apart from any other absorb.</summary>
+public interface IEmpoweredShieldSlamAnalyzer : IAnalyzerSurface;
+
 /// <summary>
 /// Measures what Hold the Line's empowerment turned into. Hold the Line empowers the next Shield
 /// Slam, and that Shield Slam lays a barrier; the barrier's own removal carries whatever absorb it
@@ -16,14 +19,10 @@ namespace FellowshipAnalyzer.Heroes.Helena.Modules;
 /// </para>
 /// </summary>
 [ForPull(PullKind.Single | PullKind.Multi)]
-public sealed partial class EmpoweredShieldSlamAnalyzer : Analyzer
+public sealed partial class EmpoweredShieldSlamAnalyzer : AbsorbAnalyzer, IEmpoweredShieldSlamAnalyzer
 {
-    private readonly List<BarrierCapture> _barriers = [];
-
-    private BarrierCapture? _open;
     private int _empowermentsGranted;
     private int _empowermentsExpired;
-    private int _barrierApplications;
     private bool _empowermentOpen;
     private bool _empowermentConsumed;
 
@@ -43,36 +42,20 @@ public sealed partial class EmpoweredShieldSlamAnalyzer : Analyzer
     /// application in the validation report landed inside an empowerment window with a Shield Slam
     /// within half a second, and no application fell outside one, so the barrier has no second source.
     /// </summary>
-    public int BarrierApplications => _barrierApplications;
+    public int BarrierApplications => Applications;
 
     /// <summary>
     /// Barrier windows this pull. A barrier laid while one is already up refreshes it rather than
     /// stacking, so consecutive empowered Shield Slams inside one duration share a window and
     /// <see cref="BarrierApplications"/> runs ahead of this.
     /// </summary>
-    public int BarrierWindows => Result.Barriers.Count;
+    public int BarrierWindows => ShieldsLaid;
 
     /// <summary>Every barrier this pull, in encounter order.</summary>
-    public IReadOnlyList<BarrierUse> Barriers => Result.Barriers;
-
-    /// <summary>Damage the barriers absorbed.</summary>
-    public long AbsorbUsed => Result.AbsorbUsed;
-
-    /// <summary>Absorb still on a barrier when it expired.</summary>
-    public long AbsorbWasted => Result.AbsorbWasted;
+    public IReadOnlyList<AbsorbUse> Barriers => Shields;
 
     /// <summary>Barriers that expired still holding absorb.</summary>
-    public int BarriersExpiredUnspent => Result.ExpiredUnspent;
-
-    /// <summary>Share (0-1) of the barriers' absorb that was consumed rather than left to expire.</summary>
-    public double AbsorbEfficiency
-    {
-        get
-        {
-            var offered = Result.AbsorbUsed + Result.AbsorbWasted;
-            return offered > 0 ? (double)Result.AbsorbUsed / offered : 0;
-        }
-    }
+    public int BarriersExpiredUnspent => ShieldsExpiredUnspent;
 
     [On<ApplyBuffEvent>(To = Actor.Player, Spell = nameof(Spells.ShieldSlamAbsorbBuffSelfBuff))]
     private void OnEmpowered(ApplyBuffEvent buffEvent)
@@ -98,90 +81,14 @@ public sealed partial class EmpoweredShieldSlamAnalyzer : Analyzer
     }
 
     [On<ApplyBuffEvent>(To = Actor.Player, Spell = nameof(Spells.ShieldSlamAbsorb))]
-    private void OnBarrierApplied(ApplyBuffEvent buffEvent) => OpenBarrier(buffEvent.Timestamp);
+    private void OnBarrierApplied(ApplyBuffEvent buffEvent) => OpenShield(buffEvent);
 
     [On<RefreshBuffEvent>(To = Actor.Player, Spell = nameof(Spells.ShieldSlamAbsorb))]
-    private void OnBarrierRefreshed(RefreshBuffEvent buffEvent) => OpenBarrier(buffEvent.Timestamp);
+    private void OnBarrierRefreshed(RefreshBuffEvent buffEvent) => OpenShield(buffEvent);
 
     [On<RemoveBuffEvent>(To = Actor.Player, Spell = nameof(Spells.ShieldSlamAbsorb))]
-    private void OnBarrierRemoved(RemoveBuffEvent buffEvent)
-    {
-        if (_open is null) return;
-
-        _open.End = buffEvent.Timestamp;
-        _open.Remaining = buffEvent.Absorb ?? 0;
-        _open = null;
-    }
+    private void OnBarrierRemoved(RemoveBuffEvent buffEvent) => CloseShield(buffEvent);
 
     [On<AbsorbedEvent>(To = Actor.Player, Spell = nameof(Spells.ShieldSlamAbsorb))]
-    private void OnAbsorbed(AbsorbedEvent absorbedEvent)
-    {
-        if (_open is null) return;
-        _open.Absorbed += absorbedEvent.Amount;
-    }
-
-    private void OpenBarrier(int timestamp)
-    {
-        _barrierApplications++;
-
-        if (_open is not null) return;
-
-        _open = new BarrierCapture { Start = timestamp, End = timestamp };
-        _barriers.Add(_open);
-    }
-
-    private Computed Result => field ??= Compute();
-
-    private Computed Compute()
-    {
-        var barriers = new List<BarrierUse>(_barriers.Count);
-        long used = 0;
-        long wasted = 0;
-        var expiredUnspent = 0;
-
-        foreach (var capture in _barriers)
-        {
-            var truncated = ReferenceEquals(capture, _open);
-            var end = truncated ? Math.Max(capture.End, Pull.EndTime) : capture.End;
-
-            barriers.Add(new BarrierUse(capture.Start, end, capture.Absorbed, capture.Remaining, truncated));
-
-            used += capture.Absorbed;
-            wasted += capture.Remaining;
-            if (capture.Remaining > 0) expiredUnspent++;
-        }
-
-        return new Computed(barriers, used, wasted, expiredUnspent);
-    }
-
-    private sealed class BarrierCapture
-    {
-        public int Start { get; init; }
-        public int End { get; set; }
-        public long Absorbed { get; set; }
-        public long Remaining { get; set; }
-    }
-
-    private sealed record Computed(
-        IReadOnlyList<BarrierUse> Barriers,
-        long AbsorbUsed,
-        long AbsorbWasted,
-        int ExpiredUnspent);
-}
-
-/// <summary>
-/// One Empowered Shield Slam barrier and what became of it.
-/// </summary>
-/// <param name="Start">When the barrier went up.</param>
-/// <param name="End">When it came off, or the pull's end when <paramref name="Truncated"/>.</param>
-/// <param name="Absorbed">Damage the barrier consumed.</param>
-/// <param name="Remaining">Absorb still on it when it came off.</param>
-/// <param name="Truncated">Whether the pull ended before the barrier did.</param>
-public sealed record BarrierUse(int Start, int End, long Absorbed, long Remaining, bool Truncated)
-{
-    /// <summary>How long the barrier was up, in milliseconds.</summary>
-    public int DurationMs => End - Start;
-
-    /// <summary>Whether the barrier came off with absorb still on it.</summary>
-    public bool ExpiredUnspent => Remaining > 0;
+    private void OnAbsorbed(AbsorbedEvent absorbedEvent) => RecordAbsorbed(absorbedEvent);
 }

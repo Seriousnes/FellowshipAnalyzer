@@ -1,0 +1,28 @@
+<ul class="checklist">
+    @foreach (var item in Items)
+    {
+        <li class="checklist-row @(item.Pass ? "pass" : "fail")">
+            <PassFailCheckmark Pass="@item.Pass" Size="15" Title="@item.Title" />
+            <span class="checklist-name">
+                @item.Label.Match(
+                    spell => @<SpellLink Spell="@spell" />,
+                    plain => @<text>@plain</text>,
+                    markup => markup)
+            </span>
+            @if (item.Count is > 1)
+            {
+                <span class="checklist-count" title="@item.CountTooltip">&times;@item.Count</span>
+            }
+            @if (!string.IsNullOrWhiteSpace(item.Note))
+            {
+                <span class="checklist-note">@item.Note</span>
+            }
+        </li>
+    }
+</ul>
+
+@code {
+    /// <summary>The lines to render, in the order they are given. Never reorder by pass or fail: a list
+    /// whose rows move between casts cannot be read across casts.</summary>
+    [Parameter, EditorRequired] public IEnumerable<CheckItem> Items { get; set; } = [];
+}

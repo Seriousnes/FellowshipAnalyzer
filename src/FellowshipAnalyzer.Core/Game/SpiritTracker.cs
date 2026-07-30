@@ -1,6 +1,5 @@
 using FellowshipAnalyzer.Core.Resources;
 using FellowshipAnalyzer.Core.UI;
-using FellowshipAnalyzer.Core.UI.Components;
 
 using Microsoft.Extensions.Logging;
 
@@ -13,8 +12,6 @@ namespace FellowshipAnalyzer.Core.Game;
 /// </summary>
 public sealed partial class SpiritTracker(ILogger<ResourceTracker> logger) : ResourceTracker(logger)
 {
-    /// <inheritdoc/>
-    public override Type? StatisticsComponentType => typeof(SpiritStatistics);
     /// <inheritdoc/>
     public override StatisticCategory StatisticCategory => StatisticCategory.Resources;
     /// <inheritdoc/>

@@ -175,10 +175,6 @@ public sealed partial class GloriousPurposeAnalyzer(
     }
 
     /// <inheritdoc/>
-    public override Type? StatisticsComponentType =>
-        _windows.Count > 0 || Activations > 0 ? typeof(GloriousPurposeStatistics) : null;
-
-    /// <inheritdoc/>
     public override StatisticCategory StatisticCategory => StatisticCategory.Items;
 }
 

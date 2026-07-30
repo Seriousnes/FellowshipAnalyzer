@@ -1,0 +1,23 @@
+@namespace FellowshipAnalyzer.Core.Analysis.Gems
+@inherits Analyzer
+
+@code {
+    /// <inheritdoc/>
+    public override RenderFragment? Statistic => RoguesResurgence.IsUnlocked(GemPower) ? Card : null;
+
+    private RenderFragment Card =>
+        @<GemStatisticCard Gem="this">
+            <Info>
+                <p>
+                    Topaz's ranks grant haste. Only its emergency heal produces events of its own; the rest raise
+                    haste, which the log records as already applied.
+                </p>
+            </Info>
+            <ChildContent>
+                <GemTraitSection Trait="RoguesResurgence" GemPower="GemPower"
+                                 Contributed="RoguesResurgenceHealing > 0">
+                    <ItemHealingDone Amount="RoguesResurgenceHealing" />
+                </GemTraitSection>
+            </ChildContent>
+        </GemStatisticCard>;
+}

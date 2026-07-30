@@ -2,7 +2,6 @@ using FellowshipAnalyzer.Core.Analysis;
 using FellowshipAnalyzer.Core.Common.Spells.Elarion;
 using FellowshipAnalyzer.Core.Events;
 using FellowshipAnalyzer.Core.UI;
-using FellowshipAnalyzer.Heroes.Elarion.Statistics;
 
 using ElarionTalents = FellowshipAnalyzer.Core.Common.Spells.ElarionTalents;
 
@@ -30,9 +29,6 @@ public sealed partial class ResurgentWindsTracker : EventSubscriber
     public double ConsumedShare => ProcsGained == 0 ? 0d : ProcsConsumed / (double)ProcsGained;
 
     public double ExpiredShare => ProcsGained == 0 ? 0d : ProcsExpired / (double)ProcsGained;
-
-    public override Type? StatisticsComponentType =>
-        ProcsGained > 0 ? typeof(ResurgentWindsStatistics) : null;
 
     public override StatisticCategory StatisticCategory => StatisticCategory.Talents;
 

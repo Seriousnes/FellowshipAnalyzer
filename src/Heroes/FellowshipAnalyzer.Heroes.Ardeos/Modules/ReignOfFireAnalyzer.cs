@@ -1,7 +1,6 @@
 using FellowshipAnalyzer.Core.Analysis;
 using FellowshipAnalyzer.Core.Common.Spells.Ardeos;
 using FellowshipAnalyzer.Core.Events;
-using FellowshipAnalyzer.Heroes.Ardeos.Statistics;
 
 using ArdeosTalents = FellowshipAnalyzer.Core.Common.Spells.ArdeosTalents;
 
@@ -21,8 +20,6 @@ public sealed partial class ReignOfFireAnalyzer : Analyzer
 
     public int EmpowermentsWasted => _procRemovals.Count(removal =>
         !_fireBallCasts.Any(cast => Math.Abs(cast - removal) <= ConsumeWindowMs));
-
-    public override Type? StatisticsComponentType => typeof(ReignOfFireStatistics);
 
     [On<CastEvent>(By = Actor.Player, Spell = nameof(Spells.FireBall))]
     private void OnFireBallCast(CastEvent e) => _fireBallCasts.Add(e.Timestamp);

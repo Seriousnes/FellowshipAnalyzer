@@ -1,0 +1,45 @@
+@inherits EventSubscriber
+
+@code {
+    /// <inheritdoc/>
+    public override RenderFragment? Statistic => TotalHits > 0 ? Card : null;
+
+    private RenderFragment Card =>
+        @<StatCard>
+            <Header>
+                <SpellLink Spell="Spells.LunarlightMarkDamage" />
+            </Header>
+            <Info>
+                <p>
+                    While a target carries <SpellLink Spell="Spells.LunarlightMark" />, the player's ability hits can
+                    trigger Lunarlight Salvo as bonus damage, with Lunarlight Salvo: Erupt as the area variant.
+                    This card shows what the mark actually produced over the fight.
+                </p>
+            </Info>
+            <ChildContent>
+                <StatRow Value="@SalvoHits.ToString("N0")"
+                         Tooltip="Lunarlight Salvo procs that landed on a marked target.">
+                    <SpellLink Spell="Spells.LunarlightMarkDamage" /> hits
+                </StatRow>
+                <StatRow Value="@EruptHits.ToString("N0")"
+                         Tooltip="Lunarlight Salvo: Erupt procs, the area variant of the same payoff.">
+                    <SpellLink Spell="Spells.LunarlightMarkAoeDamage" /> hits
+                </StatRow>
+                <StatRow Value="@Compact(TotalMarkDamage)"
+                         Tooltip="Salvo and Erupt damage added together.">
+                    damage from the mark
+                </StatRow>
+                <StatRow Value="@($"{DamageShare * 100:0.#}%")"
+                         Tooltip="@($"{Compact(TotalMarkDamage)} of {Compact(TotalPlayerDamage)} total damage dealt.")">
+                    of all damage dealt
+                </StatRow>
+            </ChildContent>
+        </StatCard>;
+
+    private static string Compact(long amount) => amount switch
+    {
+        >= 1_000_000 => $"{amount / 1_000_000d:0.##}M",
+        >= 1_000 => $"{amount / 1_000d:0.#}k",
+        _ => amount.ToString("N0"),
+    };
+}

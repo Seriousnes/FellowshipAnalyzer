@@ -1,0 +1,60 @@
+@inherits EventSubscriber
+
+@code {
+    /// <inheritdoc/>
+    public override RenderFragment? Statistic => Windows > 0 || FatedStrikeCasts > 0 ? Card : null;
+
+    private RenderFragment Card =>
+        @<StatCard Title="Fated Strike Windows">
+            <Info>
+                The Fated Strike weapon grants Glorious Purpose for a few seconds when its active is used,
+                accelerating the cooldowns of whatever is cast inside it. Only Grim Carve, Blood Arc and
+                Heart Splitter (priority) and Double Strike and Reaver's Edge (filler) are classified here;
+                everything else cast in the window is left out rather than counted against the share.
+            </Info>
+            <ChildContent>
+                <CastOverview Title="Window Usage" Stats="@BuildOverviewStats()" />
+                @if (ClassifiedCasts > 0)
+                {
+                    <StackedBar Segments="@BuildStackedBar()" />
+                }
+            </ChildContent>
+        </StatCard>;
+
+    private IEnumerable<OverviewStat> BuildOverviewStats()
+    {
+        var stats = new List<OverviewStat>
+        {
+            new OverviewStat(
+                $"{FatedStrikeCasts}",
+                "Activations",
+                "Fated Strike casts from the weapon's active over the run."),
+            new OverviewStat(
+                $"{Windows}",
+                "Windows",
+                "Glorious Purpose windows the log recorded. A refresh landing in a live window resets its clock rather than counting again."),
+        };
+
+        if (ClassifiedCasts > 0)
+        {
+            stats.Add(new OverviewStat(
+                $"{PriorityShare * 100:F0}%",
+                "Priority Share",
+                $"{PriorityCasts} of {ClassifiedCasts} classified in-window casts were Grim Carve, Blood Arc or Heart Splitter.",
+                PriorityShare >= 0.9 ? QualitativePerformance.Perfect
+                    : PriorityShare >= 0.75 ? QualitativePerformance.Good
+                    : PriorityShare >= 0.5 ? QualitativePerformance.Ok
+                    : QualitativePerformance.Fail));
+        }
+
+        return stats;
+    }
+
+    private IEnumerable<StackedBarSegment> BuildStackedBar() =>
+    [
+        new StackedBarSegment("Priority", PriorityCasts, PerformanceColors.Good,
+            $"Priority: {PriorityCasts} Grim Carve, Blood Arc or Heart Splitter casts inside a window"),
+        new StackedBarSegment("Filler", FillerCasts, PerformanceColors.Fail,
+            $"Filler: {FillerCasts} Double Strike or Reaver's Edge casts inside a window"),
+    ];
+}

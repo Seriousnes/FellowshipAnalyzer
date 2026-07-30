@@ -6,7 +6,6 @@ using FellowshipAnalyzer.Core.FellowshipLogs;
 using FellowshipAnalyzer.Core.UI;
 using FellowshipAnalyzer.Heroes.Elarion.Analysis;
 using FellowshipAnalyzer.Heroes.Elarion.Modules;
-using FellowshipAnalyzer.Heroes.Elarion.Statistics;
 
 using Microsoft.Extensions.DependencyInjection;
 
@@ -142,7 +141,7 @@ public sealed class ResurgentWindsTrackerTests
             InstantHighwind(2_000),
             RemoveBuff(2_001));
 
-        tracker.StatisticsComponentType.ShouldBe(typeof(ResurgentWindsStatistics));
+        tracker.Statistic.ShouldNotBeNull();
         tracker.StatisticCategory.ShouldBe(StatisticCategory.Talents);
     }
 
@@ -153,7 +152,7 @@ public sealed class ResurgentWindsTrackerTests
 
         tracker.ProcsGained.ShouldBe(0);
         tracker.InstantHighwindCasts.ShouldBe(1);
-        tracker.StatisticsComponentType.ShouldBeNull();
+        tracker.Statistic.ShouldBeNull();
     }
 
     private static CombatantInfoEvent Talented() => new()

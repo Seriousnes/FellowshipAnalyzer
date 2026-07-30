@@ -1,4 +1,5 @@
-﻿using FellowshipAnalyzer.Core.Common.Spells;
+﻿using FellowshipAnalyzer.Core.Common;
+using FellowshipAnalyzer.Core.Common.Spells;
 
 namespace FellowshipAnalyzer.Core.Events;
 
@@ -32,7 +33,7 @@ public class HealEvent : Event, IAbilityEvent, IHasSourceWithInstanceEvent, IHas
     /// <summary>The FSLID identifying <see cref="Ability"/> in the FellowshipLogs game data.</summary>
     public virtual FSLID AbilityGameId { get; set; }
     /// <summary>
-    /// This describes if the spell Hit/Missed/Crit/etc. Look at <see cref="Events.HitType"/> all types of hits
+    /// This describes if the spell Hit/Missed/Crit/etc. Look at <see cref="Common.HitType"/> all types of hits
     /// </summary>
     public virtual HitType HitType { get; set; }
     /// <summary>

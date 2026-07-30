@@ -1,3 +1,4 @@
+using FellowshipAnalyzer.Core.Common;
 using FellowshipAnalyzer.Core.Events;
 using FellowshipAnalyzer.Core.UI;
 using FellowshipAnalyzer.Core.UI.Components;
@@ -19,9 +20,6 @@ public sealed partial class DamageTakenTracker : EventSubscriber
 
     /// <summary>Every hit that landed on the player, in encounter order.</summary>
     public IReadOnlyList<DamageTakenHit> Hits => _hits;
-
-    /// <inheritdoc/>
-    public override Type? StatisticsComponentType => TotalTaken > 0 ? typeof(DamageTakenStatistics) : null;
 
     /// <inheritdoc/>
     public override StatisticCategory StatisticCategory => StatisticCategory.General;

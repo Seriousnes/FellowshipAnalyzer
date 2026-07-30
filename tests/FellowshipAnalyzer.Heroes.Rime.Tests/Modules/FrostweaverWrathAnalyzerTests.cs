@@ -5,7 +5,6 @@ using FellowshipAnalyzer.Core.Events;
 using FellowshipAnalyzer.Core.FellowshipLogs;
 using FellowshipAnalyzer.Heroes.Rime.Analysis;
 using FellowshipAnalyzer.Heroes.Rime.Modules;
-using FellowshipAnalyzer.Heroes.Rime.Statistics;
 
 using Microsoft.Extensions.DependencyInjection;
 
@@ -182,7 +181,7 @@ public sealed class FrostweaverWrathAnalyzerTests
         analyzer.ProcsGained.ShouldBe(0);
         analyzer.ProcsConsumed.ShouldBe(0);
         analyzer.UtilisationShare.ShouldBe(0);
-        analyzer.StatisticsComponentType.ShouldBeNull();
+        analyzer.Statistic.ShouldBeNull();
     }
 
     [Fact]
@@ -190,7 +189,7 @@ public sealed class FrostweaverWrathAnalyzerTests
     {
         var analyzer = await Analyze(ProcApplied(1_000));
 
-        analyzer.StatisticsComponentType.ShouldBe(typeof(FrostweaversWrathStatistics));
+        analyzer.Statistic.ShouldNotBeNull();
     }
 
     [Fact]

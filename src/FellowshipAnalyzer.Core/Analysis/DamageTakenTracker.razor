@@ -1,0 +1,92 @@
+@inherits EventSubscriber
+
+@code {
+    /// <inheritdoc/>
+    public override RenderFragment? Statistic => TotalTaken > 0 ? Card : null;
+
+    private RenderFragment Card =>
+        @<StatCard Title="Damage Taken" Meta="@FacedText">
+            <Info>
+                <p>
+                    Everything that hit you this fight, split into the share that landed and the share mitigation
+                    and absorbs stopped. Blocks are counted inside the mitigated figure rather than beside it, so
+                    the block line reports how much of that mitigation the log attributes to a block.
+                </p>
+            </Info>
+            <ChildContent>
+                <StatRow Value="@TakenText" Tooltip="Damage that actually landed on you, spread over the fight.">
+                    damage taken per second
+                </StatRow>
+                <StatRow Value="@PreventedShareText" Tooltip="@PreventedTooltip">
+                    of incoming damage prevented
+                </StatRow>
+                <StatRow Value="@BlockRateText" Tooltip="@BlockTooltip">
+                    of hits arrived as a block
+                </StatRow>
+                <StackedBar Segments="@BuildSegments()" />
+                <HelperText>
+                    Prevented is mitigation plus absorbs, measured against the raw incoming total.
+                </HelperText>
+            </ChildContent>
+        </StatCard>;
+
+    private const int TopSourceCount = 5;
+
+    private static readonly string[] SegmentColors =
+    [
+        FaVar.Rust,
+        FaVar.Amber,
+        FaVar.BrandGold,
+        FaVar.Steel,
+        FaVar.Arcane,
+    ];
+
+    private string FacedText => $"{TotalFaced:N0} faced";
+
+    private string TakenText => $"{DamageTakenPerSecond:N0}";
+
+    private string PreventedShareText => $"{PreventedShare * 100:F1}%";
+
+    private string BlockRateText => $"{BlockRate * 100:F1}%";
+
+    private string PreventedTooltip =>
+        $"{TotalPrevented:N0} of {TotalFaced:N0} never landed: " +
+        $"{TotalMitigated:N0} mitigated and {TotalAbsorbed:N0} absorbed.";
+
+    private string BlockTooltip =>
+        $"{TotalBlockedHits:N0} of {TotalHits:N0} hits, carrying " +
+        $"{TotalBlocked:N0} of the mitigated total.";
+
+    private IEnumerable<StackedBarSegment> BuildSegments()
+    {
+        var sources = BySource;
+        var top = sources.Take(TopSourceCount).ToList();
+        var segments = new List<StackedBarSegment>(top.Count + 1);
+
+        for (var slot = 0; slot < top.Count; slot++)
+        {
+            var label = Label(top[slot]);
+            segments.Add(new StackedBarSegment(
+                label,
+                top[slot].Taken,
+                SegmentColors[slot],
+                $"{label}: {top[slot].Taken:N0} taken over {top[slot].Hits:N0} hits"));
+        }
+
+        var remaining = sources.Count - top.Count;
+        var other = sources.Skip(TopSourceCount).Sum(source => source.Taken);
+        if (other > 0)
+        {
+            segments.Add(new StackedBarSegment(
+                "Other",
+                other,
+                FaVar.Stone,
+                $"Other: {other:N0} taken across {remaining} further abilities"));
+        }
+
+        return segments;
+    }
+
+    private static string Label(DamageTakenSource source) =>
+        string.IsNullOrWhiteSpace(source.Name) ? $"Ability {source.AbilityId}" : source.Name;
+}

@@ -15,8 +15,6 @@ namespace FellowshipAnalyzer.Core.Resources;
 public partial class ResourceTracker(ILogger<ResourceTracker> logger) : Analyzer
 {
     private readonly ILogger<ResourceTracker> _logger = logger;
-
-
     private readonly Dictionary<ResourceTypes, ResourceState> _states = [];
     private readonly List<ResourceEvent> _allEvents = [];
 

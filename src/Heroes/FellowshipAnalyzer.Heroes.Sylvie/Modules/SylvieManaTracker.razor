@@ -1,0 +1,52 @@
+@using FellowshipAnalyzer.Core.Resources
+@inherits ResourceTracker
+
+@code {
+    /// <inheritdoc/>
+    public override RenderFragment? Statistic => Mana is null ? null : Card;
+
+    private RenderFragment Card =>
+        @<StatCard Title="Mana">
+            <Info>
+                <p>
+                    The log streams Sylvie's pool on nearly every event but attaches no cost to a cast, so
+                    spending here is priced from the Season 3 game data and discounted by a fifth for the casts
+                    Bluey covered while it was recalled onto her.
+                </p>
+            </Info>
+            <ChildContent>
+                <StatRow Value="@($"{AtFullShare * 100:F1}%")"
+                         Tooltip="@($"{AtFullMs / 1000:N0}s of {MeasuredMs / 1000:N0}s measured with the pool capped, where regeneration had nowhere to go.")">
+                    spent at full mana
+                </StatRow>
+                <StatRow Value="@($"{Spends.Sum(spend => spend.Mana):N0}")"
+                         Tooltip="@($"Across {Spends.Count:N0} priced casts.")">
+                    mana spent
+                </StatRow>
+                @foreach (var (spellId, mana, casts) in TopSpenders())
+                {
+                    <StatRow Value="@($"{mana:N0}")" Tooltip="@($"{casts:N0} casts.")">
+                        <SpellLink Spell="spellId" />
+                    </StatRow>
+                }
+                <HelperText>
+                    Costs are the game's list prices. A reduction the log does not report reads high here.
+                </HelperText>
+            </ChildContent>
+        </StatCard>;
+
+    private IEnumerable<(int SpellId, int Mana, int Casts)> TopSpenders()
+    {
+        var bySpell = new Dictionary<int, (int Mana, int Casts)>();
+        foreach (var spend in Spends)
+        {
+            var current = bySpell.GetValueOrDefault(spend.SpellId);
+            bySpell[spend.SpellId] = (current.Mana + spend.Mana, current.Casts + 1);
+        }
+
+        return bySpell
+            .Select(entry => (entry.Key, entry.Value.Mana, entry.Value.Casts))
+            .OrderByDescending(entry => entry.Mana)
+            .Take(4);
+    }
+}

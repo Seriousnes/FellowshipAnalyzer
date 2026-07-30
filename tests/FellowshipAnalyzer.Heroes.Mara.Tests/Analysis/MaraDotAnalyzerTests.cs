@@ -32,6 +32,7 @@ public sealed class MaraDotAnalyzerTests
             Apply(Spells.WidowBitePoison, BossId, 1000),
             Remove(Spells.WidowBitePoison, BossId, 5000),
             Apply(Spells.WidowBitePoison, BossId, 8000),
+            Tick(Spells.WidowBitePoison, BossId, FightEnd),
         };
 
         var parser = await AnalyzeAsync(events, BossFight());
@@ -65,19 +66,37 @@ public sealed class MaraDotAnalyzerTests
     }
 
     [Fact]
-    public async Task Analyze_OpenWindow_ClosesAtPullEnd()
+    public async Task Analyze_OpenWindow_ClosesAtTheLastTick()
     {
-        var events = new List<Event> { Apply(Spells.HemorrhagingStrikeBleed, BossId, 1000) };
+        var events = new List<Event>
+        {
+            Apply(Spells.HemorrhagingStrikeBleed, BossId, 1000),
+            Tick(Spells.HemorrhagingStrikeBleed, BossId, 10000),
+            Tick(Spells.HemorrhagingStrikeBleed, BossId, 19000),
+        };
 
         var parser = await AnalyzeAsync(events, BossFight());
 
         var analyzer = SingleUptimeAnalyzer(parser);
         var window = analyzer.Hemorrhage.Windows.ShouldHaveSingleItem();
         window.Start.ShouldBe(1000);
-        window.End.ShouldBe(FightEnd);
-        analyzer.Hemorrhage.Uptime.ShouldBe(0.95, 0.0001);
+        window.End.ShouldBe(19000);
+        analyzer.Hemorrhage.Uptime.ShouldBe(0.9, 0.0001);
         analyzer.Hemorrhage.GapCount.ShouldBe(0);
         analyzer.Hemorrhage.TotalGapMs.ShouldBe(0);
+    }
+
+    [Fact]
+    public async Task Analyze_OpenWindowThatStopsTicking_DoesNotRunToPullEnd()
+    {
+        var events = new List<Event> { Apply(Spells.HemorrhagingStrikeBleed, BossId, 1000) };
+
+        var parser = await AnalyzeAsync(events, BossFight());
+
+        var analyzer = SingleUptimeAnalyzer(parser);
+        analyzer.Hemorrhage.Windows.ShouldBeEmpty();
+        analyzer.Hemorrhage.Uptime.ShouldBe(0d, 0.0001);
+        analyzer.Hemorrhage.PrimaryTarget.ShouldBeNull();
     }
 
     [Fact]
@@ -180,8 +199,8 @@ public sealed class MaraDotAnalyzerTests
         var parser = await AnalyzeAsync([], BossFight());
 
         var analyzer = SingleUptimeAnalyzer(parser);
-        analyzer.Dots.Count.ShouldBe(MaraDots.Maintained.Count);
-        foreach (var entry in analyzer.Dots)
+        analyzer.Uptimes.Count.ShouldBe(MaraDots.Maintained.Count);
+        foreach (var entry in analyzer.Uptimes)
         {
             entry.Windows.ShouldBeEmpty();
             entry.Uptime.ShouldBe(0d, 0.0001);
@@ -334,6 +353,15 @@ public sealed class MaraDotAnalyzerTests
     };
 
     private static RemoveDebuffEvent Remove(Spell effect, int targetId, int timestamp, int? targetInstance = null) => new()
+    {
+        Timestamp = timestamp,
+        SourceId = PlayerId,
+        TargetId = targetId,
+        TargetInstance = targetInstance,
+        Ability = new Ability { Id = effect.FSLID },
+    };
+
+    private static DamageEvent Tick(Spell effect, int targetId, int timestamp, int? targetInstance = null) => new()
     {
         Timestamp = timestamp,
         SourceId = PlayerId,

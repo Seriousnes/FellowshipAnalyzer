@@ -3,7 +3,6 @@ using FellowshipAnalyzer.Core.Events;
 using FellowshipAnalyzer.Core.Game;
 using FellowshipAnalyzer.Core.Resources;
 using FellowshipAnalyzer.Core.UI;
-using FellowshipAnalyzer.Heroes.Sylvie.Statistics;
 
 using Microsoft.Extensions.Logging;
 
@@ -36,9 +35,6 @@ public sealed partial class SylvieManaTracker : ResourceTracker
         _bluey = bluey;
         DisplayNameOverrides[ResourceTypes.Mana] = "Mana";
     }
-
-    /// <inheritdoc/>
-    public override Type? StatisticsComponentType => Mana is null ? null : typeof(ManaStatistics);
 
     /// <inheritdoc/>
     public override StatisticCategory StatisticCategory => StatisticCategory.Resources;

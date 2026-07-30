@@ -6,7 +6,6 @@ using FellowshipAnalyzer.Core.FellowshipLogs;
 using FellowshipAnalyzer.Core.UI;
 using FellowshipAnalyzer.Heroes.Mara.Analysis;
 using FellowshipAnalyzer.Heroes.Mara.Modules;
-using FellowshipAnalyzer.Heroes.Mara.Statistics;
 
 using Microsoft.Extensions.DependencyInjection;
 
@@ -150,7 +149,7 @@ public sealed class DeadlySchemeTrackerTests
 
         parser.DeadlySchemeTracker.ShouldBeNull();
         result.Modules.OfType<DeadlySchemeTracker>().ShouldBeEmpty();
-        result.Statistics.ShouldNotContain(statistic => statistic.ComponentType == typeof(DeadlySchemeStatistics));
+        result.Statistics.ShouldNotContain(statistic => statistic.Module is DeadlySchemeTracker);
     }
 
     [Fact]
@@ -166,7 +165,6 @@ public sealed class DeadlySchemeTrackerTests
         var (_, result) = await AnalyzeParserAsync(events);
 
         var entry = result.Statistics.Single(statistic => statistic.Module is DeadlySchemeTracker);
-        entry.ComponentType.ShouldBe(typeof(DeadlySchemeStatistics));
         entry.Category.ShouldBe(StatisticCategory.Talents);
     }
 

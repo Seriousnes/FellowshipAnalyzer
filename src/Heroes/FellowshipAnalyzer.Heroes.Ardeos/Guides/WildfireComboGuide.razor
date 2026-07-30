@@ -1,5 +1,6 @@
 @using System.Text
 @using FellowshipAnalyzer.Core.Common.Spells.Ardeos
+@using FellowshipAnalyzer.Heroes.Ardeos.Core
 @using Spells = FellowshipAnalyzer.Core.Common.Spells.Ardeos.Spells
 @inherits ReportComponent<ArdeosCombatLogParser>
 
@@ -126,7 +127,7 @@
             Sequence = sequence,
             AdditionalContent = new AdditionalContent(
                 "DoTs At Cast",
-                @<AuraChecklist Items="@ArdeosChecklist.Items(window.Coverage)" />),
+                @<Checklist Items="@DotChecklist.Items(window.Coverage)" />),
             Details = @<div>@BuildOutcome(window)</div>,
         };
     }
@@ -183,7 +184,7 @@
         foreach (var dot in ArdeosDots.All)
         {
             if (!window.ActiveDots.Contains(dot))
-                names.Add(dot.Name);
+                names.Add(dot.Cast?.Name ?? dot.Effect.Name);
         }
         return names;
     }

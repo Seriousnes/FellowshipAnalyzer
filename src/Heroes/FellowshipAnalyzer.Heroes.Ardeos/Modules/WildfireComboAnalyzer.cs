@@ -1,11 +1,14 @@
 using FellowshipAnalyzer.Core.Analysis;
+using FellowshipAnalyzer.Core.Common;
 using FellowshipAnalyzer.Core.Common.Spells.Ardeos;
 using FellowshipAnalyzer.Core.Events;
+using FellowshipAnalyzer.Heroes.Ardeos.Core;
 
 namespace FellowshipAnalyzer.Heroes.Ardeos.Modules;
 
 [ForPull(PullKind.Single | PullKind.Multi)]
 [Dependency<Combatants>]
+[Dependency<ArdeosDotTracker>]
 public sealed partial class WildfireComboAnalyzer : Analyzer
 {
     public static int TotalDots => ArdeosDots.Count;
@@ -51,23 +54,7 @@ public sealed partial class WildfireComboAnalyzer : Analyzer
             return;
 
         var target = ResolveTarget(castEvent);
-        _anchors.Add(new WildfireAnchor(castEvent, target, SnapshotCoverage(target, castEvent.Timestamp)));
-    }
-
-    private IReadOnlyList<ArdeosDotCoverage> SnapshotCoverage(UnitKey target, int timestamp)
-    {
-        var coverage = new List<ArdeosDotCoverage>(ArdeosDots.Count);
-        foreach (var dot in ArdeosDots.All)
-        {
-            var instances = Combatants.AuraInstanceCount(target.ActorId, target.Instance, dot.EffectId, timestamp);
-            coverage.Add(new ArdeosDotCoverage
-            {
-                Dot = dot,
-                Instances = instances,
-                Stacks = instances == 0 ? 0 : Combatants.AuraStackSum(target.ActorId, target.Instance, dot.EffectId, timestamp),
-            });
-        }
-        return coverage;
+        _anchors.Add(new WildfireAnchor(castEvent, target, ArdeosDotTracker.CoverageOn(target, castEvent.Timestamp)));
     }
 
     private List<WildfireWindowEvaluation> BuildWindows()
@@ -126,30 +113,8 @@ public sealed partial class WildfireComboAnalyzer : Analyzer
         if (anchor.TargetId > 0)
             return new UnitKey(anchor.TargetId, anchor.TargetInstance);
 
-        return MostDottedEnemy(anchor.Timestamp) ?? new UnitKey(0, null);
+        return ArdeosDotTracker.MostDottedEnemy(anchor.Timestamp) ?? new UnitKey(0, null);
     }
-
-    private UnitKey? MostDottedEnemy(int timestamp)
-    {
-        var candidates = new HashSet<UnitKey>();
-        foreach (var dot in ArdeosDots.All)
-            foreach (var key in Combatants.EnemiesWithAura(dot.EffectId, timestamp))
-                candidates.Add(key);
-
-        UnitKey? best = null;
-        var bestInstances = 0;
-        foreach (var key in candidates)
-        {
-            var instances = TotalDotInstances(key, timestamp);
-            if (best is null || instances > bestInstances)
-                (best, bestInstances) = (key, instances);
-        }
-
-        return best;
-    }
-
-    private int TotalDotInstances(UnitKey key, int timestamp) =>
-        ArdeosDots.All.Sum(dot => Combatants.AuraInstanceCount(key.ActorId, key.Instance, dot.EffectId, timestamp));
 
     private (int Start, int End) ResolveBuffWindow(int anchor)
     {
@@ -198,7 +163,7 @@ public sealed partial class WildfireComboAnalyzer : Analyzer
         id == Spells.Pyromania.FSLID ||
         id == Spells.Incinerate.FSLID;
 
-    private sealed record WildfireAnchor(CastEvent Cast, UnitKey Target, IReadOnlyList<ArdeosDotCoverage> Coverage);
+    private sealed record WildfireAnchor(CastEvent Cast, UnitKey Target, IReadOnlyList<DotCoverage> Coverage);
 
     public sealed record WildfireWindowEvaluation
     {
@@ -206,9 +171,9 @@ public sealed partial class WildfireComboAnalyzer : Analyzer
         public int TargetId { get; init; }
         public int? TargetInstance { get; init; }
 
-        public IReadOnlyList<ArdeosDotCoverage> Coverage { get; init; } = [];
+        public IReadOnlyList<DotCoverage> Coverage { get; init; } = [];
 
-        public IReadOnlyList<ArdeosDot> ActiveDots { get; init; } = [];
+        public IReadOnlyList<Dot> ActiveDots { get; init; } = [];
         public int DistinctDots => ActiveDots.Count;
         public int EngulfingInstances { get; init; }
         public bool SetupSuccessful { get; init; }

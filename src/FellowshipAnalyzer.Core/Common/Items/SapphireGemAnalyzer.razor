@@ -1,0 +1,33 @@
+@namespace FellowshipAnalyzer.Core.Analysis.Gems
+@inherits Analyzer
+
+@code {
+    /// <inheritdoc/>
+    public override RenderFragment? Statistic => AncestralSurge.IsUnlocked(GemPower) ? Card : null;
+
+    private RenderFragment Card =>
+        @<GemStatisticCard Gem="this">
+            <Info>
+                <p>
+                    Sapphire's ranks grant spirit and strengthen Heroism. Ancestral Surge raises a stat the log
+                    records only as already applied, so it reads as the time it held. Resonating Soul is a passive
+                    with no events of its own, so its figure is estimated from the health you were on for each hit
+                    you took.
+                </p>
+            </Info>
+            <ChildContent>
+                <GemTraitSection Trait="AncestralSurge" GemPower="GemPower"
+                                 Contributed="AncestralSurgeUptimeMs > 0">
+                    <span>
+                        @($"{AncestralSurgeUptimeMs / 1000d:0.0}s")
+                        <small>@($"{AncestralSurgeUptime:P0}") of the fight</small>
+                    </span>
+                </GemTraitSection>
+
+                <GemTraitSection Trait="ResonatingSoul" GemPower="GemPower"
+                                 Contributed="ResonatingSoulDamageReduced > 0">
+                    <ItemDamageReduced Amount="ResonatingSoulDamageReduced" Approximate="true" />
+                </GemTraitSection>
+            </ChildContent>
+        </GemStatisticCard>;
+}

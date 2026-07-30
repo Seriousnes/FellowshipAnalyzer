@@ -1,7 +1,6 @@
 using FellowshipAnalyzer.Core.Analysis;
 using FellowshipAnalyzer.Core.Events;
 using FellowshipAnalyzer.Core.UI;
-using FellowshipAnalyzer.Heroes.Sylvie.Statistics;
 
 namespace FellowshipAnalyzer.Heroes.Sylvie.Modules;
 
@@ -13,10 +12,6 @@ namespace FellowshipAnalyzer.Heroes.Sylvie.Modules;
 [Dependency<SylvieManaTracker>]
 public sealed partial class SylvieHealingEfficiencyTracker : HealingEfficiencyTracker
 {
-    /// <inheritdoc/>
-    public override Type? StatisticsComponentType =>
-        TotalEffective > 0 ? typeof(HealingEfficiencyStatistics) : null;
-
     /// <inheritdoc/>
     public override StatisticCategory StatisticCategory => StatisticCategory.General;
 

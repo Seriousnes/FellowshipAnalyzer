@@ -24,7 +24,8 @@
 @code {
     private IEnumerable<OverviewStat> BuildOverviewStats()
     {
-        var analyzers = Parser.EmpoweredShieldSlamAnalyzers.Select(entry => entry.Analyzer).ToList();
+        var analyzers = Parser.EmpoweredShieldSlamAnalyzers
+            .Select(entry => entry.Analyzer).OfType<EmpoweredShieldSlamAnalyzer>().ToList();
         var granted = analyzers.Sum(analyzer => analyzer.EmpowermentsGranted);
         if (granted == 0) return [];
 
@@ -61,7 +62,10 @@
     }
 
     private IEnumerable<PerCastData> BuildPerPullData() =>
-        Parser.EmpoweredShieldSlamAnalyzers.ToPullRows(Parser, (analyzer, pull) => new PerCastRow
+        Parser.EmpoweredShieldSlamAnalyzers.ToPullRows(Parser, (surface, pull) => BuildPullRow((EmpoweredShieldSlamAnalyzer)surface));
+
+    private PerCastRow BuildPullRow(EmpoweredShieldSlamAnalyzer analyzer) =>
+        new()
         {
             Performance = PerformanceTiers.FromThresholds(analyzer.AbsorbEfficiency * 100, 90, 75, 55),
             Stats =
@@ -81,5 +85,5 @@
                     "Expired Unspent",
                     "Barriers that came off still holding absorb."),
             ],
-        });
+        };
 }

@@ -3,7 +3,6 @@ using FellowshipAnalyzer.Core.Common.Spells.Rime;
 using FellowshipAnalyzer.Core.Events;
 using FellowshipAnalyzer.Core.UI;
 using FellowshipAnalyzer.Core.Utility;
-using FellowshipAnalyzer.Heroes.Rime.Statistics;
 
 namespace FellowshipAnalyzer.Heroes.Rime.Modules;
 
@@ -30,9 +29,6 @@ public sealed partial class WintersEmbraceUpliftTracker : EventSubscriber
             .OrderByDescending(uplift => uplift.BonusDamage)
             .ThenBy(uplift => uplift.Name, StringComparer.Ordinal)
     ];
-
-    public override Type? StatisticsComponentType =>
-        AmplifiedEventCount > 0 ? typeof(WintersEmbraceStatistics) : null;
 
     public override StatisticCategory StatisticCategory => StatisticCategory.General;
 

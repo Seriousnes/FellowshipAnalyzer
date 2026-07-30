@@ -2,7 +2,6 @@ using FellowshipAnalyzer.Core.Analysis;
 using FellowshipAnalyzer.Core.Events;
 using FellowshipAnalyzer.Heroes.Helena.Analysis;
 using FellowshipAnalyzer.Heroes.Helena.Modules;
-using FellowshipAnalyzer.Heroes.Helena.Statistics;
 
 using Shouldly;
 
@@ -13,6 +12,7 @@ using Talent = FellowshipAnalyzer.Core.Common.Spells.Talent;
 using Talents = FellowshipAnalyzer.Core.Common.Spells.Helena.Talents;
 
 using static FellowshipAnalyzer.Heroes.Helena.Tests.Analysis.HelenaAnalysisFixture;
+using FellowshipAnalyzer.Core.Common;
 
 namespace FellowshipAnalyzer.Heroes.Helena.Tests.Analysis;
 
@@ -98,9 +98,9 @@ public sealed class TalentMechanicsTests
         var withoutCasts = await AnalyzeWithTalents([Talents.GreaterShockwave]);
 
         withCasts.GetModule<GreaterShockwaveAnalyzer>()
-            .ShouldNotBeNull().StatisticsComponentType.ShouldBe(typeof(GreaterShockwaveStatistics));
+            .ShouldNotBeNull().Statistic.ShouldNotBeNull();
         withoutCasts.GetModule<GreaterShockwaveAnalyzer>()
-            .ShouldNotBeNull().StatisticsComponentType.ShouldBeNull();
+            .ShouldNotBeNull().Statistic.ShouldBeNull();
     }
 
     [Fact]
@@ -112,9 +112,9 @@ public sealed class TalentMechanicsTests
         var withoutProc = await AnalyzeWithTalents([Talents.SwordAndBoard]);
 
         withProc.GetModule<SwordAndBoardAnalyzer>()
-            .ShouldNotBeNull().StatisticsComponentType.ShouldBe(typeof(SwordAndBoardStatistics));
+            .ShouldNotBeNull().Statistic.ShouldNotBeNull();
         withoutProc.GetModule<SwordAndBoardAnalyzer>()
-            .ShouldNotBeNull().StatisticsComponentType.ShouldBeNull();
+            .ShouldNotBeNull().Statistic.ShouldBeNull();
     }
 
     [Fact]

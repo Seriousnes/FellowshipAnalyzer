@@ -4,7 +4,6 @@ using FellowshipAnalyzer.Core.Events;
 using FellowshipAnalyzer.Core.FellowshipLogs;
 using FellowshipAnalyzer.Heroes.Tariq.Analysis;
 using FellowshipAnalyzer.Heroes.Tariq.Modules;
-using FellowshipAnalyzer.Heroes.Tariq.Statistics;
 
 using Microsoft.Extensions.DependencyInjection;
 
@@ -138,7 +137,7 @@ public sealed class RisingSpiritTrackerTests
         tracker.TotalActiveMs.ShouldBe(0);
         tracker.UptimeShare.ShouldBe(0d);
         tracker.AverageStacks.ShouldBe(0d);
-        tracker.StatisticsComponentType.ShouldBeNull();
+        tracker.Statistic.ShouldBeNull();
     }
 
     [Fact]
@@ -150,7 +149,7 @@ public sealed class RisingSpiritTrackerTests
             Remove(20_000),
         ]);
 
-        tracker.StatisticsComponentType.ShouldBe(typeof(RisingSpiritStatistics));
+        tracker.Statistic.ShouldNotBeNull();
     }
 
     private static ApplyBuffEvent Apply(int timestamp) =>

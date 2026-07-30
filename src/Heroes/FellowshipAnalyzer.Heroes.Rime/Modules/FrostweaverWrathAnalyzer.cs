@@ -2,7 +2,6 @@ using FellowshipAnalyzer.Core.Analysis;
 using FellowshipAnalyzer.Core.Common.Spells.Rime;
 using FellowshipAnalyzer.Core.Events;
 using FellowshipAnalyzer.Core.UI;
-using FellowshipAnalyzer.Heroes.Rime.Statistics;
 
 using RimeTalents = FellowshipAnalyzer.Core.Common.Spells.RimeTalents;
 
@@ -24,9 +23,6 @@ public sealed partial class FrostweaverWrathAnalyzer : EventSubscriber
     public int ProcsOverwritten { get; private set; }
 
     public double UtilisationShare => ProcsGained > 0 ? (double)ProcsConsumed / ProcsGained : 0;
-
-    public override Type? StatisticsComponentType =>
-        ProcsGained > 0 ? typeof(FrostweaversWrathStatistics) : null;
 
     public override StatisticCategory StatisticCategory => StatisticCategory.Talents;
 

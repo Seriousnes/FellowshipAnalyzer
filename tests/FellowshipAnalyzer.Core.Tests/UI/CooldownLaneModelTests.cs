@@ -1,3 +1,4 @@
+using FellowshipAnalyzer.Core.Common;
 using FellowshipAnalyzer.Core.Events;
 using FellowshipAnalyzer.Core.UI.Timeline;
 

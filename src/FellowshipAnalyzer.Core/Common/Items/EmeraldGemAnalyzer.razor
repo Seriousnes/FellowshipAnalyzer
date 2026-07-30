@@ -1,0 +1,24 @@
+@namespace FellowshipAnalyzer.Core.Analysis.Gems
+@inherits Analyzer
+
+@code {
+    /// <inheritdoc/>
+    public override RenderFragment? Statistic => SentinelsBastion.IsUnlocked(GemPower) ? Card : null;
+
+    private RenderFragment Card =>
+        @<GemStatisticCard Gem="this">
+            <Info>
+                <p>
+                    Emerald's ranks grant expertise, an absorb shield, and ability cooldown reduction. The cooldown
+                    reduction applies to every cooldown rather than producing output of its own, so only the shield
+                    is measured here.
+                </p>
+            </Info>
+            <ChildContent>
+                <GemTraitSection Trait="SentinelsBastion" GemPower="GemPower"
+                                 Contributed="SentinelsBastionAbsorbed > 0">
+                    <ItemDamageAbsorbed Amount="SentinelsBastionAbsorbed" />
+                </GemTraitSection>
+            </ChildContent>
+        </GemStatisticCard>;
+}

@@ -2,7 +2,6 @@ using FellowshipAnalyzer.Core.Analysis;
 using FellowshipAnalyzer.Core.Common.Spells.Gunde;
 using FellowshipAnalyzer.Core.Events;
 using FellowshipAnalyzer.Core.UI;
-using FellowshipAnalyzer.Heroes.Gunde.Statistics;
 
 using Items = FellowshipAnalyzer.Core.Common.Items.Items;
 
@@ -27,9 +26,6 @@ public sealed partial class FatedStrikeWindowTracker : EventSubscriber
     public int ClassifiedCasts => PriorityCasts + FillerCasts;
 
     public double PriorityShare => ClassifiedCasts > 0 ? (double)PriorityCasts / ClassifiedCasts : 0;
-
-    public override Type? StatisticsComponentType =>
-        Windows > 0 || FatedStrikeCasts > 0 ? typeof(FatedStrikeStatistics) : null;
 
     public override StatisticCategory StatisticCategory => StatisticCategory.Items;
 

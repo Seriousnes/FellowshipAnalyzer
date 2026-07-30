@@ -1,3 +1,5 @@
+using FellowshipAnalyzer.Heroes.Sylvie.Modules;
+
 using Shouldly;
 
 using Xunit;
@@ -20,7 +22,7 @@ public sealed class AbsorbWasteAnalyzerTests
             Absorbed(PullStart + 2_000, Spells.NaturalProtectorAbsorb, TankId, amount: 700),
             RemoveBuff(PullStart + 19_000, Spells.NaturalProtectorAbsorb, TankId, absorb: 300));
 
-        var analyzer = parser.AbsorbWasteAnalyzers.ShouldHaveSingleItem().Analyzer;
+        var analyzer = parser.AbsorbWasteAnalyzers.ShouldHaveSingleItem().Analyzer.ShouldBeOfType<AbsorbWasteAnalyzer>();
 
         analyzer.ShieldsLaid.ShouldBe(1);
         analyzer.AbsorbUsed.ShouldBe(700);
@@ -38,7 +40,7 @@ public sealed class AbsorbWasteAnalyzerTests
             Absorbed(PullStart + 2_000, Spells.NaturalProtectorAbsorb, TankId, amount: 1_000),
             RemoveBuff(PullStart + 3_000, Spells.NaturalProtectorAbsorb, TankId, absorb: 0));
 
-        var analyzer = parser.AbsorbWasteAnalyzers.ShouldHaveSingleItem().Analyzer;
+        var analyzer = parser.AbsorbWasteAnalyzers.ShouldHaveSingleItem().Analyzer.ShouldBeOfType<AbsorbWasteAnalyzer>();
 
         analyzer.AbsorbWasted.ShouldBe(0);
         analyzer.ShieldsExpiredUnspent.ShouldBe(0);
@@ -56,11 +58,11 @@ public sealed class AbsorbWasteAnalyzerTests
             RemoveBuff(PullStart + 3_000, Spells.NaturalProtectorAbsorb, TankId, absorb: 100),
             RemoveBuff(PullStart + 4_000, Spells.NaturalProtectorAbsorb, AllyId, absorb: 900));
 
-        var analyzer = parser.AbsorbWasteAnalyzers.ShouldHaveSingleItem().Analyzer;
+        var analyzer = parser.AbsorbWasteAnalyzers.ShouldHaveSingleItem().Analyzer.ShouldBeOfType<AbsorbWasteAnalyzer>();
 
         analyzer.ShieldsLaid.ShouldBe(2);
         analyzer.AbsorbWasted.ShouldBe(1_000);
-        analyzer.Shields.Count(shield => shield.TargetId == AllyId).ShouldBe(1);
+        analyzer.Shields.Count(shield => shield.Target.ActorId == AllyId).ShouldBe(1);
     }
 
     [Fact]
