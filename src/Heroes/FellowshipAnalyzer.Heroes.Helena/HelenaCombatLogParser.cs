@@ -6,7 +6,7 @@ namespace FellowshipAnalyzer.Heroes.Helena.Analysis;
 [HeroAnalyzer(HeroName.Helena)]
 [AddState<ToughnessTracker>]
 [AddState<DamageTakenTracker>]
-[AddAnalyzer<ToughnessBandAnalyzer>]
+[AddAnalyzer<ToughnessAnalyzer>]
 [AddAnalyzer<ShieldsUpAnalyzer>]
 [AddAnalyzer<IronWallAnalyzer>]
 [AddAnalyzer<LingeringConcussionAnalyzer>]

@@ -2,24 +2,18 @@
 @inherits ReportComponent<GundeCombatLogParser>
 
 <GuideSection Title="Serrated Edge">
-    <Explanation>
+    <LeftPanel>
         <p>
-            Every <SpellLink Spell="Spells.BloodArc" /> leaves
-            <SpellLink Spell="Spells.SerratedEdge" /> behind, and the next damaging ability eats it
-            for more bleed damage. It cannot be banked, so the only question is which ability follows
-            Blood Arc. Packs want <SpellLink Spell="Spells.GrimCarve" />; a boss wants
-            <SpellLink Spell="Spells.HeartSplitter" />. Each is still a fair home on the other shape,
-            and Heart Splitter especially so, because a pack usually has a priority target worth
-            hitting with a single-target ability.
+            Avoid consuming <SpellLink Spell="Spells.SerratedEdge" /> on filler abilities, try to 
+            consume it with <SpellLink Spell="Spells.GrimCarve" /> for AoE or <SpellLink Spell="Spells.HeartSplitter" /> for 
+            single target or priority targets.
         </p>
         <p>
-            Filler is the sub-optimal home, but not always a mistake: Blood Arc comes back faster
-            than either of the two, so some grants have nothing better to go on. Each one below is
-            judged against what was actually off cooldown at the moment it was consumed, so a grant
-            only counts against you when Heart Splitter or Grim Carve was ready to be pressed instead.
+            A sub-optimal consumer is better than a missed cast opportunity, 
+            so avoid holding <SpellLink Spell="Spells.BloodArc" /> for too long.
         </p>
-    </Explanation>
-    <ChildContent>
+    </LeftPanel>
+    <RightPanel>
         @if (TotalGrants == 0)
         {
             <TipBox Variant="TipBoxVariant.Info">
@@ -34,7 +28,7 @@
                         Description="Each card is one Serrated Edge buff, rated on the ability that consumed it and on what the pull had available at the time."
                         Casts="@BuildPerCastData()" />
         }
-    </ChildContent>
+    </RightPanel>
 </GuideSection>
 
 @code {

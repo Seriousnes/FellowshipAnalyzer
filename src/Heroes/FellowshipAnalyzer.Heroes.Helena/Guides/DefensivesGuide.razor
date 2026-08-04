@@ -1,20 +1,18 @@
 @inherits ReportComponent<HelenaCombatLogParser>
 
 <GuideSection Title="Shields Up and Iron Wall">
-    <Explanation>
+    <LeftPanel>
         <p>
-            <SpellLink Spell="Spells.ShieldsUp" /> holds two charges on a shared recharge, so a charge
-            sitting full is recharge that never started. Time at both charges is counted on its own
-            terms below, separately from how the windows themselves went.
+            Use <SpellLink Spell="Spells.ShieldsUp" /> when you have less than 40% toughness, your block buff 
+            is about to expire, or you're about to overcap charges. Almost all your abilities grant CDR to each other,
+            so try to minimise CDR waste on <SpellLink Spell="Spells.Shockwave" /> and <SpellLink Spell="Spells.ShieldsUp" />.
         </p>
         <p>
-            <SpellLink Spell="Spells.IronWall" /> does not reduce a hit; it freezes Toughness where it
-            is for twelve seconds. What it is worth is therefore decided before you press it, by how
-            much Toughness there was to freeze and whether
-            <SpellLink Spell="Spells.ShieldsUp" /> charges were already spent.
+            Use <SpellLink Spell="Spells.IronWall" /> to prevent your Toughness from reducing while active, 
+            allowing you time to regenerate <SpellLink Spell="Spells.ShieldsUp" /> charges when you run out.
         </p>
-    </Explanation>
-    <ChildContent>
+    </LeftPanel>
+    <RightPanel>
         @if (Parser.ShieldsUpAnalyzers.Count > 0)
         {
             <CastOverview Title="Shields Up" Stats="@BuildShieldsUpStats()" />
@@ -26,7 +24,7 @@
                         Description="Each Iron Wall, and the state it was pressed in."
                         Casts="@BuildIronWallUses()" />
         }
-    </ChildContent>
+    </RightPanel>
 </GuideSection>
 
 @code {
@@ -100,7 +98,7 @@
             new OverviewStat(
                 $"{fromHigh}/{uses}",
                 "Pressed Above Half",
-                "Uses made at or above 50% Toughness, where the freeze holds a band worth holding.",
+                "Uses made at or above 50% Toughness, where the window holds a band worth holding.",
                 PerformanceTiers.FromThresholds((double)fromHigh / uses * 100, 90, 75, 50)),
             new OverviewStat(
                 $"{shieldsUpSpent}/{uses}",
@@ -141,16 +139,16 @@
         {
             new(
                 use.ToughnessShare is { } share ? $"{share * 100:F0}%" : "n/a",
-                "Toughness Frozen",
+                "Toughness Held",
                 use.ToughnessShare is null
-                    ? "This cast carried no Toughness snapshot."
-                    : $"Toughness when it was pressed, holding {(use.Band is { } band ? ToughnessBands.DamageReduction(band) * 100 : 0):F0}% reduction in place for the duration.",
+                    ? "This cast carried no Toughness reading."
+                    : $"Toughness when it was pressed. Nothing lowered it for the duration, so it held at least {(use.Band is { } band ? ToughnessBands.DamageReduction(band) * 100 : 0):F0}% reduction.",
                 use.ToughnessShare is null ? null
                     : use.OpenedAboveHalfToughness ? QualitativePerformance.Perfect : QualitativePerformance.Fail),
             new(
                 $"{use.Window.DurationMs / 1000d:F1}s",
                 "Duration",
-                use.Window.Truncated ? "The pull ended before the window did." : "How long the freeze held."),
+                use.Window.Truncated ? "The pull ended before the window did." : "How long the window was open."),
             new(
                 $"{use.Window.Mitigation:N0}",
                 "Mitigation Covered",

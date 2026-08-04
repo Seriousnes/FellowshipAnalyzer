@@ -46,17 +46,8 @@ public sealed partial class ShieldMasteryAnalyzer : Analyzer
     /// <summary>Each shortened ability's totals, ordered by the seconds it wasted.</summary>
     public IReadOnlyList<ShieldMasteryContribution> ByTarget => Result.ByTarget;
 
-    /// <summary>Reduction generated this pull, in milliseconds.</summary>
-    public int GeneratedMs => Result.GeneratedMs;
-
-    /// <summary>Reduction that shortened a running cooldown, in milliseconds.</summary>
-    public int AppliedMs => Result.AppliedMs;
-
-    /// <summary>Reduction generated against an ability that was already available, in milliseconds.</summary>
-    public int WastedMs => Result.GeneratedMs - Result.AppliedMs;
-
-    /// <summary>Share (0-1) of generated reduction that landed on a running cooldown.</summary>
-    public double Efficiency => Result.GeneratedMs > 0 ? (double)Result.AppliedMs / Result.GeneratedMs : 0;
+    /// <summary>Every hit's reduction this pull, and how much of it landed.</summary>
+    public CooldownReductionResult CooldownReduction => Result.CooldownReduction;
 
     /// <summary>Hits Helena took this pull that carried a Toughness reading to size the reduction from.</summary>
     public int HitsTaken => _hitsTaken;
@@ -91,8 +82,7 @@ public sealed partial class ShieldMasteryAnalyzer : Analyzer
             if (!_contributions.TryGetValue(target, out var contribution))
                 _contributions[target] = contribution = new Contribution();
 
-            contribution.Generated += reduction.GeneratedMs;
-            contribution.Applied += reduction.AppliedMs;
+            contribution.CooldownReduction += reduction;
             contribution.Events++;
         }
     }
@@ -121,31 +111,31 @@ public sealed partial class ShieldMasteryAnalyzer : Analyzer
     private Computed Compute()
     {
         var targets = new List<ShieldMasteryContribution>(_contributions.Count);
-        var generated = 0;
-        var applied = 0;
+        var total = new CooldownReductionResult();
 
         foreach (var (target, contribution) in _contributions)
         {
             targets.Add(new ShieldMasteryContribution(
-                target, contribution.Events, contribution.Generated, contribution.Applied));
+                target, contribution.Events, contribution.CooldownReduction));
 
-            generated += contribution.Generated;
-            applied += contribution.Applied;
+            total += contribution.CooldownReduction;
         }
 
-        targets.Sort(static (left, right) => right.WastedMs.CompareTo(left.WastedMs));
+        targets.Sort(static (left, right) =>
+            right.CooldownReduction.Wasted.CompareTo(left.CooldownReduction.Wasted));
 
-        return new Computed(targets, generated, applied);
+        return new Computed(targets, total);
     }
 
     private sealed class Contribution
     {
-        public int Generated { get; set; }
-        public int Applied { get; set; }
+        public CooldownReductionResult CooldownReduction { get; set; }
         public int Events { get; set; }
     }
 
-    private sealed record Computed(IReadOnlyList<ShieldMasteryContribution> ByTarget, int GeneratedMs, int AppliedMs);
+    private sealed record Computed(
+        IReadOnlyList<ShieldMasteryContribution> ByTarget,
+        CooldownReductionResult CooldownReduction);
 }
 
 /// <summary>
@@ -153,17 +143,8 @@ public sealed partial class ShieldMasteryAnalyzer : Analyzer
 /// </summary>
 /// <param name="TargetSpellId">The ability whose cooldown was shortened.</param>
 /// <param name="Events">Hits taken that generated reduction on this ability.</param>
-/// <param name="GeneratedMs">Reduction generated, after Ability Cooldown Reduction scaling.</param>
-/// <param name="AppliedMs">The share of <paramref name="GeneratedMs"/> that shortened a running cooldown.</param>
+/// <param name="CooldownReduction">What those hits generated, and how much of it landed.</param>
 public sealed record ShieldMasteryContribution(
     int TargetSpellId,
     int Events,
-    int GeneratedMs,
-    int AppliedMs)
-{
-    /// <summary>Reduction generated while the ability was already available.</summary>
-    public int WastedMs => GeneratedMs - AppliedMs;
-
-    /// <summary>Share (0-1) of the generated reduction that landed.</summary>
-    public double Efficiency => GeneratedMs > 0 ? (double)AppliedMs / GeneratedMs : 0;
-}
+    CooldownReductionResult CooldownReduction);

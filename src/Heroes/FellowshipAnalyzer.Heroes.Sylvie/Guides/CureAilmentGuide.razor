@@ -1,23 +1,18 @@
 @inherits ReportComponent<SylvieCombatLogParser>
 
 <GuideSection Title="Cure Ailment">
-    <Explanation>
+    <LeftPanel>
         <p>
-            <SpellLink Spell="Spells.CureAilment" /> takes one debuff off one ally on a six second
-            cooldown. What it removed is in the log; what it never got to is not an event at all, so
-            this counts the removals and does not guess at the rest.
+            <SpellLink Spell="Spells.CureAilment" /> is on a six second cooldown, so keeping it moving
+            is most of what it is worth. The table shows what you removed and when.
         </p>
-        <p>
-            Dispels from anything other than Sylvie's own kit are counted apart, because they answer
-            to a different cooldown and say nothing about how she used hers.
-        </p>
-    </Explanation>
-    <ChildContent>
+    </LeftPanel>
+    <RightPanel>
         <CastOverview Title="Overview" Stats="@BuildOverviewStats()" />
         <CastDetail Title="Dispels By Pull"
                     Description="What came off the party in each pull."
                     Casts="@BuildPerPullData()" />
-    </ChildContent>
+    </RightPanel>
 </GuideSection>
 
 @code {
@@ -37,8 +32,14 @@
 
         var stats = new List<OverviewStat>
         {
-            new($"{dispels}", "Cure Ailments", "Auras Cure Ailment took off the party across every pull."),
-            new($"{other}", "Other Dispels", "Auras removed by something other than Sylvie's kit, on its own cooldown."),
+            new(
+                $"{dispels}",
+                "Cure Ailments",
+                "Auras Cure Ailment took off the party across every pull. What it removed is in the log; what it never got to is not an event, so this counts removals and does not guess at the rest."),
+            new(
+                $"{other}",
+                "Other Dispels",
+                "Auras removed by something other than Sylvie's kit. They answer to a different cooldown, so they are counted apart and say nothing about how she used hers."),
         };
 
         foreach (var (name, count) in auras.Take(3))
@@ -65,7 +66,7 @@
                 new PerCastStat(
                     $"{analyzer.OtherDispels}",
                     "Other Dispels",
-                    "Auras removed this pull by something other than Sylvie's kit."),
+                    "Auras removed this pull by something other than Sylvie's kit, answering to a different cooldown."),
                 new PerCastStat(
                     analyzer.RemovedAuras.Count > 0 ? analyzer.RemovedAuras[0].Name : "None",
                     "Most Removed",

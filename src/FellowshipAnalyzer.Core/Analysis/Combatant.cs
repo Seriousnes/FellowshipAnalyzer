@@ -1,6 +1,6 @@
-using FellowshipAnalyzer.Core.Common;
 using FellowshipAnalyzer.Core.Common.Spells;
 using FellowshipAnalyzer.Core.Events;
+using FellowshipAnalyzer.Core.Game;
 
 namespace FellowshipAnalyzer.Core.Analysis;
 

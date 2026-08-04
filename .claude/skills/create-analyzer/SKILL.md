@@ -11,6 +11,19 @@ Guide rendering belongs in the `create-guide` skill. Statistics rendering belong
 
 Reference implementation: `src/Heroes/FellowshipAnalyzer.Heroes.Tariq/Modules/FuryEconomyAnalyzer.cs` with `Guides/FuryEconomyGuide.razor`.
 
+## Non-negotiable rules
+
+Check these before writing a line. Each one has been enforced by the owner deleting work that broke it.
+
+- **One analyzer per ability or talent.** Search `Modules/` for an existing analyzer covering the ability first. If one exists, the new measurement goes **into** it. Never add a second module measuring the same ability, including a statistics-only one.
+- **All damage amplification and reduction maths goes through `Core/Utility/CombatMath.cs`.** Call `CalculateEffectiveDamage(e, increase)` or `CalculateEffectiveDamageReduction(e, reduction)`. Do not write a hero-local maths helper and do not inline `raw - raw / (1 + increase)`. If `CombatMath` cannot express what you need, stop and ask.
+- **Never re-derive what another module owns.** Take it as `[Dependency<T>]` and read it, for instance `ResourceTracker` exposes windowed accessors (`SpentBetween`, `TimeByHolderBetween`, `BandsBetween`) for per-pull questions.
+- **`[On<Event>]` is a last resort.** An unfiltered subscription to every event is almost always the wrong tool; filter on a concrete event type. Stop and ask if you think you need `[On<Event>]` - there is almost always a better way.
+- **A conditional analyzer uses `[ActiveWhen<TPredicate>]`**, never an `if` at the top of a handler. The predicate type implements `IModuleActivePredicate`. This works on pull analyzers and handles inverse gates (active when a talent is *absent*) that `[RequiresTalent]` cannot express.
+- **Name it for what it assesses.** `{Ability}Analyzer`, not `{Ability}WindowAnalyzer` or `{Ability}AssignmentAnalyzer`. A qualifier the domain does not need misstates the analyzer's scope.
+
+`[ForPull]`, `[Dependency<T>]`, `[ActiveWhen<T>]` and `[RequiresTalent]` are all **class-level** attributes, declared above the class alongside each other, never inside the body.
+
 ## Two lifetimes
 
 - **Pull-lifetime analyzer** (the default for gameplay analysis): derives from `Analyzer`, is declared with `[AddAnalyzer<T>]` on the parser, and carries `[ForPull(PullKind…, Boss = …)]`. A fresh instance is constructed for every matching pull, so its state is per-pull by construction.
@@ -76,7 +89,7 @@ The surface type is the analyzer's `IAnalyzerSurface` marker interface if it imp
 
 - **One analyzer, every shape:** a single flat analyzer with a `[ForPull]` filter that matches all shapes it runs on. It is its own surface.
 - **Different questions per shape:** independent analyzers answering different questions for different shapes (e.g. `SearingBlazeUptimeAnalyzer` on boss pulls and `SearingBlazeSpreadAnalyzer` on trash pulls in Ardeos). Give both a shared **surface marker interface** - `public interface ISearingBlazeAnalyzer : IAnalyzerSurface;`, then `: Analyzer, ISearingBlazeAnalyzer` on each - so they share no base class or behaviour but expose one `parser.SearingBlazeAnalyzers` stream and `pull.SearingBlazeAnalyzer` accessor (typed as the interface). Each keeps its own disjoint `[ForPull]`; the guide switches on the concrete type per row (see create-guide). An analyzer may implement at most one surface interface (FA0017).
-- **One question, shape-specific scoring:** when the shapes share subscriptions and accumulated state and differ only in finalization, put the shared machinery on an abstract base and give each concrete subclass a disjoint `[ForPull]` filter plus its own scoring strategy and output subtype (see `WintersEmbraceWindowAnalyzer` with `SingleTargetEmbraceWindowAnalyzer` / `AoeEmbraceWindowAnalyzer` in Rime); the base is the single surface all read paths use.
+- **One question, shape-specific scoring:** when the shapes share subscriptions and accumulated state and differ only in finalization, put the shared machinery on an abstract base and give each concrete subclass a disjoint `[ForPull]` filter plus its own scoring strategy and output subtype (see `WintersEmbraceAnalyzer` with `SingleTargetEmbraceAnalyzer` / `AoeEmbraceAnalyzer` in Rime); the base is the single surface all read paths use.
 
 FA0016 enforces disjoint `[ForPull]` filters across analyzers sharing a surface (a marker interface or a base class). Inheritance (the third pattern) is earned when the base owns real machinery and each subclass owns its strategy and outputs; when the analyses share nothing, prefer the marker interface. A base that implements every strategy itself while subclasses one-line-dispatch into it wants a flat pattern instead.
 

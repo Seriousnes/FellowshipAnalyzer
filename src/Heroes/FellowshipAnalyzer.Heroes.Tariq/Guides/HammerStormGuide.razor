@@ -11,34 +11,28 @@
 @if (casts.Count > 0)
 {
     <GuideSection Title="Hammer Storm">
-        <Explanation>
+        <LeftPanel>
             <p>
-                Save <SpellLink Spell="Spells.HammerStorm" /> for
-                @HammerStormAnalyzer.TargetBreakEven or more targets. It costs
-                @FuryEconomyAnalyzer.HammerStormCost Fury, the price of two
-                <SpellLink Spell="Spells.SkullCrusher" /> casts, and on a single target it returns
-                roughly three fifths of what those two would have. From
-                @HammerStormAnalyzer.TargetBreakEven targets up it is ahead, and it keeps climbing.
-            </p>
-            <p>
-                Let the channel finish. The @HammerStormAnalyzer.ExpectedSpins spins escalate and the last
-                is the biggest, so cutting it short forfeits the part you spent on it.
+                Save <SpellLink Spell="Spells.HammerStorm" /> for @HammerStormAnalyzer.TargetBreakEven or more
+                targets, and let the channel finish - the @HammerStormAnalyzer.ExpectedSpins spins escalate
+                and the last is the biggest. The table shows the targets each cast hit, and the channels you
+                cut short.
             </p>
             @if (talented)
             {
                 <p>
                     Spend a held <SpellLink Spell="Spells.SchismHammerStorm" /> proc rather than letting it
-                    fall off - the spender it empowers is the one that should follow it.
+                    fall off.
                 </p>
             }
-        </Explanation>
-        <ChildContent>
+        </LeftPanel>
+        <RightPanel>
             <CastOverview Title="Hammer Storm Overview" Stats="@BuildOverviewStats(analyzers, casts, talented)" />
 
             <CastDetail Title="Hammer Storm Channels"
                         Description="Each card is one Hammer Storm channel: the targets its first spin caught, whether a Schism proc backed it, and how many of its spins landed."
                         Casts="@BuildCastRows(talented)" />
-        </ChildContent>
+        </RightPanel>
     </GuideSection>
 }
 
@@ -206,7 +200,7 @@
     private static string Outcome(HammerStormCast cast)
     {
         if (cast.TargetsHit == 0)
-            return $"This channel produced no damage at all, so the {FuryEconomyAnalyzer.HammerStormCost} Fury bought nothing.";
+            return $"This channel connected with nothing, so the {FuryEconomyAnalyzer.HammerStormCost} Fury it cost produced no damage.";
 
         var targets = cast.TargetsHit == 1 ? "1 target" : $"{cast.TargetsHit} targets";
 

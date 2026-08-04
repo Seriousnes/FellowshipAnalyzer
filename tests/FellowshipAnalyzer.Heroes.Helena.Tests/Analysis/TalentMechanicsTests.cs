@@ -26,7 +26,7 @@ public sealed class TalentMechanicsTests
     private const double Tolerance = 1e-9;
 
     [Fact]
-    public void FrontLineDefender_AddsFivePointsToEveryNotchButTheEmptyOne()
+    public void FrontLineDefender_AddsFivePointsToEveryBandButTheDepletedOne()
     {
         ToughnessBands.DamageReduction(ToughnessBand.Level1, true).ShouldBe(0.10, Tolerance);
         ToughnessBands.DamageReduction(ToughnessBand.Level2, true).ShouldBe(0.20, Tolerance);
@@ -145,7 +145,7 @@ public sealed class TalentMechanicsTests
         var analyzer = parser.VeteranOfWarAnalyzers.ShouldHaveSingleItem().Analyzer;
 
         analyzer.PunishingStrikesCasts.ShouldBe(1);
-        analyzer.GeneratedMs.ShouldBe((4_000 * 2) + 4_000);
+        analyzer.CooldownReduction.Total.ShouldBe((4_000 * 2) + 4_000);
     }
 
     [Fact]
@@ -157,7 +157,7 @@ public sealed class TalentMechanicsTests
             ApplyBuff(PullStart + 1_100, Spells.PunishingStrikesBuff),
             Cast(PullStart + 2_000, Spells.MeasuredStrike));
 
-        parser.VeteranOfWarAnalyzers.ShouldHaveSingleItem().Analyzer.GeneratedMs.ShouldBe(4_000 * 4);
+        parser.VeteranOfWarAnalyzers.ShouldHaveSingleItem().Analyzer.CooldownReduction.Total.ShouldBe(4_000 * 4);
     }
 
     [Fact]
@@ -175,7 +175,7 @@ public sealed class TalentMechanicsTests
         var analyzer = parser.VeteranOfWarAnalyzers.ShouldHaveSingleItem().Analyzer;
 
         analyzer.PunishingStrikesCasts.ShouldBe(2);
-        analyzer.GeneratedMs.ShouldBe((4_000 * 2) + (4_000 * 2) + 4_000);
+        analyzer.CooldownReduction.Total.ShouldBe((4_000 * 2) + (4_000 * 2) + 4_000);
     }
 
     [Fact]
@@ -190,8 +190,8 @@ public sealed class TalentMechanicsTests
         var analyzer = parser.GetModule<ShieldMasteryAnalyzer>().ShouldNotBeNull();
 
         analyzer.HitsTaken.ShouldBe(1);
-        analyzer.GeneratedMs.ShouldBe((int)((21_000 * 0.1) + (30_000 * 0.1)));
-        analyzer.AppliedMs.ShouldBe(analyzer.GeneratedMs);
+        analyzer.CooldownReduction.Total.ShouldBe((int)((21_000 * 0.1) + (30_000 * 0.1)));
+        analyzer.CooldownReduction.Effective.ShouldBe(analyzer.CooldownReduction.Total);
     }
 
     [Fact]
@@ -205,7 +205,7 @@ public sealed class TalentMechanicsTests
         var analyzer = parser.GetModule<ShieldMasteryAnalyzer>().ShouldNotBeNull();
 
         analyzer.HitsTaken.ShouldBe(1);
-        analyzer.GeneratedMs.ShouldBe(0);
+        analyzer.CooldownReduction.Total.ShouldBe(0);
     }
 
     [Fact]
@@ -220,7 +220,7 @@ public sealed class TalentMechanicsTests
 
         analyzer.HitsTaken.ShouldBe(0);
         analyzer.HitsWithoutToughness.ShouldBe(1);
-        analyzer.GeneratedMs.ShouldBe(0);
+        analyzer.CooldownReduction.Total.ShouldBe(0);
     }
 
     [Fact]
@@ -307,7 +307,7 @@ public sealed class TalentMechanicsTests
             DamageTaken(PullStart - 300, 100, 100, 0, toughness: 1_000));
 
         parser.GetModule<ShieldMasteryAnalyzer>().ShouldNotBeNull().HitsTaken.ShouldBe(1);
-        parser.VeteranOfWarAnalyzers.ShouldHaveSingleItem().Analyzer.GeneratedMs.ShouldBe(0);
+        parser.VeteranOfWarAnalyzers.ShouldHaveSingleItem().Analyzer.CooldownReduction.Total.ShouldBe(0);
     }
 
     private static List<UpdateSpellUsableEvent> ShieldSlamUpdates(HelenaCombatLogParser parser) =>
@@ -315,13 +315,13 @@ public sealed class TalentMechanicsTests
             .OfType<UpdateSpellUsableEvent>()
             .Where(update => update.Ability.Id == Spells.ShieldSlam.FSLID)];
 
-    private static async Task<ToughnessBandAnalyzer> BandAnalyzer(params Talent[] talents)
+    private static async Task<ToughnessAnalyzer> BandAnalyzer(params Talent[] talents)
     {
         var parser = await AnalyzeWithTalents(
             talents,
             ToughnessSample(PullStart + 1_000, 1_000),
             ToughnessSample(PullEnd - 1_000, 1_000));
 
-        return parser.ToughnessBandAnalyzers.ShouldHaveSingleItem().Analyzer;
+        return parser.ToughnessAnalyzers.ShouldHaveSingleItem().Analyzer;
     }
 }

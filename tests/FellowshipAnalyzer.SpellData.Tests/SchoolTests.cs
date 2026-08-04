@@ -1,7 +1,9 @@
-using FellowshipAnalyzer.Core.Events;
+using FellowshipAnalyzer.Core.Game;
 using FellowshipAnalyzer.SpellData;
 using FellowshipAnalyzer.SpellData.Sources;
+
 using Shouldly;
+
 using Xunit;
 
 namespace FellowshipAnalyzer.SpellData.Tests;
@@ -19,9 +21,14 @@ public class SchoolTests
     [Theory]
     [InlineData(null)]
     [InlineData("")]
-    [InlineData("Chaos")]
     public void ParseSchool_UnclassifiedIsDefault(string? text) =>
         SpellDataSource.ParseSchool(text).ShouldBe(default);
+
+    [Theory]
+    [InlineData("Chaos")]
+    [InlineData("Magic/Chaos")]
+    public void ParseSchool_ThrowsOnASchoolTheEnumDoesNotName(string text) =>
+        Should.Throw<ArgumentException>(() => SpellDataSource.ParseSchool(text));
 
     [Fact]
     public void SpellData_CarriesSchoolOnAbilitiesAndEffects()

@@ -1,41 +1,33 @@
 @using System.Text
-@using StWindow = FellowshipAnalyzer.Heroes.Rime.Modules.SingleTargetEmbraceWindowAnalyzer.SingleTargetWindowEvaluation
-@using AoeWindow = FellowshipAnalyzer.Heroes.Rime.Modules.AoeEmbraceWindowAnalyzer.AoeWindowEvaluation
-@using Window = FellowshipAnalyzer.Heroes.Rime.Modules.WintersEmbraceWindowAnalyzer.EmbraceWindowEvaluation
+@using StWindow = FellowshipAnalyzer.Heroes.Rime.Modules.SingleTargetEmbraceAnalyzer.SingleTargetWindowEvaluation
+@using AoeWindow = FellowshipAnalyzer.Heroes.Rime.Modules.AoeEmbraceAnalyzer.AoeWindowEvaluation
+@using Window = FellowshipAnalyzer.Heroes.Rime.Modules.WintersEmbraceAnalyzer.EmbraceWindowEvaluation
 @inherits ReportComponent<RimeCombatLogParser>
 
 @{
     RenderFragment bi = @<SpellLink Spell="Spells.BurstingIce" />;
-    RenderFragment cs = @<SpellLink Spell="Spells.ColdSnap" />;
-    RenderFragment ft = @<SpellLink Spell="Spells.FreezingTorrent" />;
+    RenderFragment we =@<SpellLink Spell="Spells.WintersEmbrace" />;
 }
 
 <GuideSection Title="Winter's Embrace Windows">
-    <Explanation>
+    <LeftPanel>
         <p>
-            @bi leaves Winter's Embrace on you for as long as its debuff ticks, and everything except
-            @bi itself hits 20% harder while it is active. Each window below is measured from your own
-            buff apply to its removal, so talent-extended windows are judged on the room they really
-            had rather than on a fixed three seconds.
+            Every @bi is a mini burst window, and small optimizations during @we
+            can add up over a dungeon. Try to start each window with 5 Winter Orbs, and spend 
+            as many as possible while @we is active.
         </p>
-        <p>
-            A window is only worth as much as what you bank for it: the orbs held when @bi went out
-            cap what can be spent, and @cs or @ft finish a window that still has room. Windows that
-            opened starved, ended when the @bi target died, or overlapped a major cooldown are called
-            out per window.
-        </p>
-    </Explanation>
-    <ChildContent>
+    </LeftPanel>
+    <RightPanel>
         <CastOverview Title="Window Overview" Stats="@BuildOverviewStats()" />
         <CastDetail Title="Winter's Embrace Windows"
                     Description="Each window shows what was cast while Winter's Embrace was active, grouped by the pull it happened in."
                     Casts="@BuildPerCastData()" />
-    </ChildContent>
+    </RightPanel>
 </GuideSection>
 
 @code {
     private List<Window> AllWindows() =>
-        [.. Parser.WintersEmbraceWindowAnalyzers.SelectMany(entry => entry.Analyzer.Windows)];
+        [.. Parser.WintersEmbraceAnalyzers.SelectMany(entry => entry.Analyzer.Windows)];
 
     private IEnumerable<OverviewStat> BuildOverviewStats()
     {
@@ -70,7 +62,7 @@
             stats.Add(new OverviewStat(
                 $"{starved}",
                 "Opened Starved",
-                $"Windows opened on a Bursting Ice cast holding {WintersEmbraceWindowAnalyzer.StarvedOrbThreshold} orb or fewer, leaving nothing to spend into the buff.",
+                $"Windows opened on a Bursting Ice cast holding {WintersEmbraceAnalyzer.StarvedOrbThreshold} orb or fewer, leaving nothing to spend into the buff.",
                 starved == 0 ? QualitativePerformance.Perfect : QualitativePerformance.Fail));
         }
 
@@ -84,7 +76,7 @@
     }
 
     private IEnumerable<PerCastData> BuildPerCastData() =>
-        Parser.WintersEmbraceWindowAnalyzers.ToItemRows(
+        Parser.WintersEmbraceAnalyzers.ToItemRows(
             Parser,
             analyzer => analyzer.Windows,
             (window, pull) => BuildWindowRow(window));
@@ -166,7 +158,7 @@
         if (window.OrbsBankedAtOpen is not { } orbs)
             return null;
 
-        if (orbs <= WintersEmbraceWindowAnalyzer.StarvedOrbThreshold)
+        if (orbs <= WintersEmbraceAnalyzer.StarvedOrbThreshold)
             return QualitativePerformance.Fail;
 
         return orbs >= ComfortableOrbBank ? QualitativePerformance.Perfect : QualitativePerformance.Good;

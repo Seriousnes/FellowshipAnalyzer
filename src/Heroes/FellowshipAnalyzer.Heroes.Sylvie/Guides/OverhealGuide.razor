@@ -1,25 +1,19 @@
 @inherits ReportComponent<SylvieCombatLogParser>
 
 <GuideSection Title="Overheal">
-    <Explanation>
+    <LeftPanel>
         <p>
-            Every heal the log carries reports how much of it landed and how much fell on a bar that
-            was already full. Each ability below is measured against its own output and nothing else -
-            a heal-over-time parked on four allies for a whole pull and a cooldown pressed on a dying
-            tank have nothing to say about one another, and the game's floor for both is the same zero.
+            Overheal tells you where the mana went, not where you went wrong - a periodic heal earns its
+            value in the moments it catches damage, and the rest is the cost of that. The table shows
+            each ability's share against its own output.
         </p>
-        <p>
-            A large overheal share is not automatically a mistake. A periodic heal that ticks whether
-            or not anybody is hurt buys its value in the moments it catches damage, and the rest of it
-            is the price of that. What the number tells you is where the mana went.
-        </p>
-    </Explanation>
-    <ChildContent>
+    </LeftPanel>
+    <RightPanel>
         <CastOverview Title="Healing" Stats="@BuildOverviewStats()" />
         <CastDetail Title="Overheal By Pull"
                     Description="What each pull's healing landed on, ability by ability."
                     Casts="@BuildPerPullData()" />
-    </ChildContent>
+    </RightPanel>
 </GuideSection>
 
 @code {
@@ -33,8 +27,8 @@
 
         var stats = new List<OverviewStat>
         {
-            new($"{effective:N0}", "Healing Landed", $"Effective healing across every pull, against {overheal:N0} that fell on full bars."),
-            new($"{(double)overheal / total * 100:F1}%", "Overheal", "Share of all healing that landed on a bar that was already full."),
+            new($"{effective:N0}", "Healing Landed", $"Effective healing across every pull, against {overheal:N0} that fell on full health."),
+            new($"{(double)overheal / total * 100:F1}%", "Overheal", "Share of all healing that landed on an ally already at full health."),
         };
 
         foreach (var spell in TopSpells(analyzers).Take(4))
@@ -42,7 +36,7 @@
             stats.Add(new OverviewStat(
                 $"{spell.OverhealShare * 100:F1}%",
                 SpellName(spell.SpellId),
-                $"{spell.Overheal:N0} of this ability's own {spell.TotalHealing:N0} healing across {spell.Heals:N0} heals fell on full bars."));
+                $"{spell.Overheal:N0} of this ability's own {spell.TotalHealing:N0} healing across {spell.Heals:N0} heals fell on full health."));
         }
 
         return stats;
@@ -81,7 +75,7 @@
         var stats = new List<PerCastStat>
         {
             new($"{analyzer.TotalEffective:N0}", "Landed", $"Effective healing this pull, against {analyzer.TotalOverheal:N0} overheal."),
-            new($"{analyzer.OverhealShare * 100:F1}%", "Overheal", "Share of this pull's healing that fell on full bars."),
+            new($"{analyzer.OverhealShare * 100:F1}%", "Overheal", "Share of this pull's healing that fell on full health."),
         };
 
         foreach (var spell in analyzer.BySpell.Take(4))
@@ -89,7 +83,7 @@
             stats.Add(new PerCastStat(
                 $"{spell.OverhealShare * 100:F0}%",
                 SpellName(spell.SpellId),
-                $"{spell.Overheal:N0} of this ability's own {spell.TotalHealing:N0} healing over {spell.Heals:N0} heals fell on full bars."));
+                $"{spell.Overheal:N0} of this ability's own {spell.TotalHealing:N0} healing over {spell.Heals:N0} heals fell on full health."));
         }
 
         return [.. stats];

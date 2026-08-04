@@ -3,37 +3,28 @@
 @inherits ReportComponent<MaraCombatLogParser>
 
 <GuideSection Title="Stealth &amp; Assassin's Guile">
-    <Explanation>
+    <LeftPanel>
         <p>
             <SpellLink Spell="Spells.BroodingShadows" /> is only worth its charge when it comes out as an
-            empowered builder, so every stealth window below is scored on the
-            <SpellLink Spell="Spells.Backstab" />, <SpellLink Spell="Spells.WidowBite" /> or
-            <SpellLink Spell="Spells.SkitteringBlades" /> that opened out of it and the poison that
-            builder laid: <SpellLink Spell="Spells.WidowBitePoison" /> from a stealth Widow's Bite,
-            <SpellLink Spell="Spells.SkitteringBladesPoison" /> from a stealth Skittering Blades.
+            empowered builder, so open every stealth into one and lay its poison. The table shows what
+            came out of each stealth.
         </p>
         @if (HasGuile)
         {
             <p>
-                With <SpellLink Spell="Talents.AssassinsGuile" /> talented that stealth attack also opens a
-                @(GuileDurationSeconds)-second window where <SpellLink Spell="Spells.QueenFang" /> and
-                <SpellLink Spell="Spells.ArachnidAssault" /> hit 40% harder, so each of those windows is
-                scored on the spenders that landed inside it rather than on the stealth alone.
+                <SpellLink Spell="Talents.AssassinsGuile" /> turns that opener into a damage window, so
+                land your spenders inside it.
             </p>
         }
         @if (MalevolenceSeen)
         {
             <p>
-                <SpellLink Spell="Talents.Malevolence" /> decides what those windows are worth: casting one
-                spender stacks the other's buff, and each stack doubles that ability's damage. The payoff
-                peaks when <SpellLink Spell="Spells.MalevolenceQueensFang" /> and
-                <SpellLink Spell="Spells.MalevolenceArachnidAssault" /> already sit at
-                @GuileWindowAnalyzer.MaxMalevolenceStacks stacks as the window opens, so the stack counts
-                below are read at that instant.
+                <SpellLink Spell="Talents.Malevolence" /> decides what the window is worth, so go into it
+                with both stacks already high.
             </p>
         }
-    </Explanation>
-    <ChildContent>
+    </LeftPanel>
+    <RightPanel>
         <CastOverview Title="Stealth Overview" Stats="@BuildOverviewStats()" />
         <CastDetail Title="Stealth Windows"
                     Description="Each row is one Brooding Shadows window, from the stealth buff landing to its removal, with the builder it opened and the poison that builder laid."
@@ -44,22 +35,20 @@
                         Description="Each row is one Assassin's Guile window, with the boosted spenders pressed inside it."
                         Casts="@BuildGuileRows()" />
         }
-    </ChildContent>
+    </RightPanel>
 </GuideSection>
 
 @code {
-    private const int GuileDurationSeconds = 5;
-
-    private bool HasGuile => Parser.GuileWindowAnalyzers.Count > 0;
+    private bool HasGuile => Parser.GuileAnalyzers.Count > 0;
 
     private bool MalevolenceSeen =>
-        Parser.GuileWindowAnalyzers.Any(entry => entry.Analyzer.MalevolenceSeen);
+        Parser.GuileAnalyzers.Any(entry => entry.Analyzer.MalevolenceSeen);
 
     private IEnumerable<OverviewStat> BuildOverviewStats()
     {
         var stats = new List<OverviewStat>();
 
-        var stealth = Parser.StealthWindowAnalyzers.Select(entry => entry.Analyzer).ToList();
+        var stealth = Parser.StealthAnalyzers.Select(entry => entry.Analyzer).ToList();
         var windows = stealth.Sum(analyzer => analyzer.WindowCount);
         var converted = stealth.Sum(analyzer => analyzer.ConvertedWindows);
         var poisoned = stealth.Sum(analyzer => analyzer.WindowsWithPoison);
@@ -76,7 +65,7 @@
         if (!HasGuile)
             return stats;
 
-        var guile = Parser.GuileWindowAnalyzers.Select(entry => entry.Analyzer).ToList();
+        var guile = Parser.GuileAnalyzers.Select(entry => entry.Analyzer).ToList();
         var guileWindows = guile.Sum(analyzer => analyzer.WindowCount);
         var guileConverted = guile.Sum(analyzer => analyzer.ConvertedWindows);
         var spenders = guile.Sum(analyzer => analyzer.SpendersInWindows);
@@ -92,7 +81,7 @@
         if (MalevolenceSeen)
         {
             var stacked = guile.Sum(analyzer => analyzer.WindowsAtMaxStacks);
-            var cap = GuileWindowAnalyzer.MaxMalevolenceStacks;
+            var cap = GuileAnalyzer.MaxMalevolenceStacks;
             stats.Add(new OverviewStat(
                 $"{stacked}/{guileWindows}",
                 $"Entered at {cap}+{cap} Stacks",
@@ -104,7 +93,7 @@
     }
 
     private IEnumerable<PerCastData> BuildStealthRows() =>
-        Parser.StealthWindowAnalyzers.ToItemRows(
+        Parser.StealthAnalyzers.ToItemRows(
             Parser, analyzer => analyzer.Windows, (window, pull) => BuildStealthRow(window));
 
     private PerCastRow BuildStealthRow(StealthWindow window)
@@ -138,12 +127,12 @@
     }
 
     private IEnumerable<PerCastData> BuildGuileRows() =>
-        Parser.GuileWindowAnalyzers.ToItemRows(
+        Parser.GuileAnalyzers.ToItemRows(
             Parser, analyzer => analyzer.Windows, (window, pull) => BuildGuileRow(window));
 
     private PerCastRow BuildGuileRow(GuileWindow window)
     {
-        var cap = GuileWindowAnalyzer.MaxMalevolenceStacks;
+        var cap = GuileAnalyzer.MaxMalevolenceStacks;
 
         var stats = new List<PerCastStat>
         {
@@ -200,7 +189,7 @@
 
     private string BuildGuileNote(GuileWindow window)
     {
-        var cap = GuileWindowAnalyzer.MaxMalevolenceStacks;
+        var cap = GuileAnalyzer.MaxMalevolenceStacks;
 
         var notes = new List<string>
         {
@@ -235,7 +224,7 @@
             ? "The poison the empowered builder applied out of stealth."
             : window.ConvertingAbilityId == Spells.Backstab.Id
                 ? "A stealth Backstab deals Caustic Poison as damage rather than applying a tracked debuff."
-                : $"No poison landed within {StealthWindowAnalyzer.PoisonLinkWindowMs / 1000}s of the builder that came out of this window.";
+                : $"No poison landed within {StealthAnalyzer.PoisonLinkWindowMs / 1000}s of the builder that came out of this window.";
 
     private static string Sentence(List<string> notes)
     {
@@ -267,7 +256,7 @@
         : QualitativePerformance.Fail;
 
     private static QualitativePerformance StackTier(int stacks) =>
-        stacks >= GuileWindowAnalyzer.MaxMalevolenceStacks ? QualitativePerformance.Perfect
+        stacks >= GuileAnalyzer.MaxMalevolenceStacks ? QualitativePerformance.Perfect
         : stacks == 1 ? QualitativePerformance.Ok
         : QualitativePerformance.Fail;
 

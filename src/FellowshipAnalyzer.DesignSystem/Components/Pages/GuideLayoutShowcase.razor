@@ -44,20 +44,20 @@
 </CodeExample>
 
 <CodeExample Title="GuideSection - explanation + data 2-column layout"
-             Description="Left column explains the why, right column shows the data. ExplanationPercent controls split."
+             Description="Left column explains the why, right column shows the data. LeftPanelPercent controls split."
              Code="@_guideSectionCode">
     <Demo>
         <GuideSection Title="Winter Orb Efficiency">
-            <Explanation>
-                <Explanation>
+            <LeftPanel>
+                <LeftPanel>
                     <p>Winter Orbs pay for everything Rime hits hard with, so a full pool is generation you never get back. Spend at four so the next gain has somewhere to land. The table shows the gains that arrived on a full pool.</p>
-                </Explanation>
-            </Explanation>
-            <ChildContent>
+                </LeftPanel>
+            </LeftPanel>
+            <RightPanel>
                 <RoundedPanel>
                     <p>Data panel content here.</p>
                 </RoundedPanel>
-            </ChildContent>
+            </RightPanel>
         </GuideSection>
     </Demo>
 </CodeExample>
@@ -97,15 +97,15 @@
 """;
 
     private const string _guideSectionCode = """
-<GuideSection Title="Winter Orb Efficiency" ExplanationPercent="40">
-    <Explanation>
-        <Explanation>
+<GuideSection Title="Winter Orb Efficiency" LeftPanelPercent="40">
+    <LeftPanel>
+        <LeftPanel>
             <p>Winter Orbs pay for everything Rime hits hard with...</p>
-        </Explanation>
-    </Explanation>
-    <ChildContent>
+        </LeftPanel>
+    </LeftPanel>
+    <RightPanel>
         <RoundedPanel>...</RoundedPanel>
-    </ChildContent>
+    </RightPanel>
 </GuideSection>
 """;
 

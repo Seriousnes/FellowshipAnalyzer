@@ -32,7 +32,7 @@ public static class SylvieKit
 
     /// <summary>
     /// The mana multiplier Bluey applies while parked on Sylvie herself
-    /// (<c>Constants.BlueButterfly.SelfBuff.ManaCostScaler</c>).
+    /// (<c>Constants.BlueFlutterfly.SelfBuff.ManaCostScaler</c>).
     /// </summary>
     public const double EmbraceManaCostScaler = 0.8;
 
@@ -45,13 +45,13 @@ public static class SylvieKit
     /// <summary>The flutterfly healing increase each live Prickly Vine grants (<c>Constants.Fluttercall: Heal.IncreasedHealPerVine.HealMultiplierPerVine</c>).</summary>
     public const double FlutterflyHealPerVine = 0.03;
 
-    /// <summary>The healing-taken multiplier Safe Haven grants those standing in it (<c>Constants.Safe Haven.Buff.IncomingHealMultiplier</c>).</summary>
+    /// <summary>The healing-taken multiplier Safe Haven grants allies inside it (<c>Constants.Safe Haven.Buff.IncomingHealMultiplier</c>).</summary>
     public const double SafeHavenHealingTakenMultiplier = 1.4;
 
-    /// <summary>The flutterfly healing multiplier Bluey grants an ally (<c>Constants.BlueButterfly.TargetBuff.HotHealScaler</c>).</summary>
+    /// <summary>The flutterfly healing multiplier Bluey grants an ally (<c>Constants.BlueFlutterfly.TargetBuff.HotHealScaler</c>).</summary>
     public const double BlueyAllyHealScaler = 2.0;
 
-    /// <summary>The flutterfly healing multiplier Bluey grants Sylvie herself (<c>Constants.BlueButterfly.SelfBuff.HotHealScaler</c>).</summary>
+    /// <summary>The flutterfly healing multiplier Bluey grants Sylvie herself (<c>Constants.BlueFlutterfly.SelfBuff.HotHealScaler</c>).</summary>
     public const double BlueySelfHealScaler = 1.5;
 
     /// <summary>The share of accumulated healing Heart Bloom banks (<c>Constants.Heart Bloom.AccumulatedHealScalar</c>).</summary>
@@ -75,8 +75,15 @@ public static class SylvieKit
     /// <summary>Life Petal's charge count (<c>Constants.Life Petal.MaxCharges</c>).</summary>
     public const int LifePetalCharges = 2;
 
-    /// <summary>Pink butterflies Sylvie can bank at once, the maximum the log's tertiary resource reports.</summary>
-    public const int PinkButterflies = 4;
+    /// <summary>Pink Flutterflies Sylvie can bank at once, the maximum the log's tertiary resource reports.</summary>
+    public const int PinkFlutterflies = 4;
+
+    /// <summary>
+    /// Pink flutterflies one <see cref="Spells.FluttercallRestoreLife"/> cast sends. The ability is
+    /// <c>GA_Mosse_PinkFlutterfly_Double</c> in the game data, and the log's tertiary bank steps
+    /// 4 - 2 - 0 across its casts, so a Restore Life window holds two of the four.
+    /// </summary>
+    public const int RestoreLifeFlutterflies = 2;
 
     /// <summary>The mana <paramref name="spellId"/> costs, or zero when it is not a mana-costed ability.</summary>
     public static int ManaCost(int spellId) => ManaCosts.GetValueOrDefault(spellId);

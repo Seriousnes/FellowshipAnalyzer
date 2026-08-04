@@ -1,27 +1,19 @@
 @inherits ReportComponent<SylvieCombatLogParser>
 
 <GuideSection Title="Flutterfly Multipliers">
-    <Explanation>
+    <LeftPanel>
         <p>
-            Two things scale the butterflies. Every live <SpellLink Spell="Spells.PricklyVine" /> adds
-            three percent to their healing, and <SpellLink Spell="Spells.SafeHaven" /> adds forty
-            percent to everything an ally standing in it receives. Both are measured by time rather
-            than by cast, because a vine cast and forgotten is worth as much as one placed with care
-            for exactly as long as it lives.
+            Flutterfly healing scales with the number of <SpellLink Spell="Spells.PricklyVine" /> you
+            keep alive and with <SpellLink Spell="Spells.SafeHaven" /> under the group, so both are
+            about uptime rather than cast count. The table shows how much of the pull each was worth.
         </p>
-        <p>
-            A vine is not an entity the log tracks: it emits no spawn and no despawn, and its damage
-            arrives under Sylvie's own source id. The live count here is modelled from the casts
-            against the twenty-seven second lifetime in the game data, so a vine killed early or
-            dropped out of range still counts.
-        </p>
-    </Explanation>
-    <ChildContent>
+    </LeftPanel>
+    <RightPanel>
         <CastOverview Title="Overview" Stats="@BuildOverviewStats()" />
         <CastDetail Title="Multipliers By Pull"
                     Description="Vines alive and Safe Haven coverage through each pull."
                     Casts="@BuildPerPullData()" />
-    </ChildContent>
+    </RightPanel>
 </GuideSection>
 
 @code {
@@ -41,7 +33,8 @@
             new OverviewStat(
                 $"{weightedVines:F2}",
                 "Vines Alive",
-                $"Time-weighted mean of the modelled live vine count, peaking at {peak}. Each one adds {SylvieKit.FlutterflyHealPerVine * 100:F0}% to flutterfly healing."),
+                $"Time-weighted mean of the modelled live vine count, peaking at {peak}. Each one adds {SylvieKit.FlutterflyHealPerVine * 100:F0}% to flutterfly healing. " +
+                $"A vine is not an entity the log tracks, so the count is modelled from the casts against the {SylvieKit.PricklyVineDurationMs / 1000}s lifetime in the game data: a vine killed early or dropped out of range still counts."),
             new OverviewStat(
                 $"{(1 + (weightedVines * SylvieKit.FlutterflyHealPerVine)) * 100 - 100:F1}%",
                 "Vine Bonus",
@@ -67,7 +60,7 @@
                 new PerCastStat(
                     $"{analyzer.AverageLiveVines:F2}",
                     "Vines Alive",
-                    $"{analyzer.VineCasts} vines cast this pull, peaking at {analyzer.PeakLiveVines} alive."),
+                    $"{analyzer.VineCasts} vines cast this pull, peaking at {analyzer.PeakLiveVines} alive. The count is modelled from the casts against the game data's lifetime, because the log emits no vine spawn or despawn."),
                 new PerCastStat(
                     $"{(analyzer.AverageVineMultiplier - 1) * 100:F1}%",
                     "Vine Bonus",

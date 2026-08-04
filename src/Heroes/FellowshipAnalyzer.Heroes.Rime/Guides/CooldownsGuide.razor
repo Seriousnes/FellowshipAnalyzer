@@ -2,30 +2,25 @@
 @inherits ReportComponent<RimeCombatLogParser>
 
 <GuideSection Title="Major Cooldowns">
-    <Explanation>
+    <LeftPanel>
         <p>
             <SpellLink Spell="Spells.IceBlitz" />, <SpellLink Spell="Spells.WintersBlessing" /> and
             <SpellLink Spell="Spells.FlightOfTheNavir" /> each run a 60 second cooldown behind a 20
-            second window, so every second one of them sits ready and unused is throughput left on
-            the floor. Held time measures exactly that, and each window is judged on the
-            <SpellLink Spell="Spells.BurstingIce" /> casts that landed inside it, since a major is worth
-            most when its window covers one.
+            second window, so every second one sits ready is throughput lost, and every window wants a
+            <SpellLink Spell="Spells.BurstingIce" /> inside it.
         </p>
         <p>
-            <SpellLink Spell="Spells.WrathOfWinter" /> costs Spirit rather than time, so
-            it carries no held-time reading and is judged on window quality alone. It feeds a Winter
-            Orb every four seconds for twenty seconds and makes the granted
-            <SpellLink Spell="Spells.GlacialBlast" /> instant, so its windows are read for the orbs
-            banked when it went off, how quickly that free cast was spent, and whether the orbs it
-            handed out arrived on a full pool.
+            <SpellLink Spell="Spells.WrathOfWinter" /> costs Spirit rather than time, so bank orbs
+            before you press it, and spend the free <SpellLink Spell="Spells.GlacialBlast" /> straight
+            away. The table shows held time and what each window covered.
         </p>
-    </Explanation>
-    <ChildContent>
+    </LeftPanel>
+    <RightPanel>
         <CastOverview Title="Cooldown Overview" Stats="@BuildOverviewStats()" />
         <CastDetail Title="Major Cooldown Windows"
                     Description="Each row is one buff window, grouped by the pull it happened in."
                     Casts="@BuildPerCastData()" />
-    </ChildContent>
+    </RightPanel>
 </GuideSection>
 
 @code {

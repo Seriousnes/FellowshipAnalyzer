@@ -31,7 +31,7 @@ public abstract partial class SlaughterUsageAnalyzer : Analyzer
 
     public int WellExecuted => Result.WellExecuted;
 
-    public long TotalPayoffDamage => Result.TotalPayoffDamage;
+    public long TotalBleedDamage => Result.TotalBleedDamage;
 
     public int TotalRendConsumed => Result.TotalRendConsumed;
 
@@ -62,7 +62,7 @@ public abstract partial class SlaughterUsageAnalyzer : Analyzer
     private void OnSlaughterDotDamage(DamageEvent @event)
     {
         if (_casts.Count > 0)
-            _casts[^1].PayoffDamage += @event.Amount;
+            _casts[^1].BleedDamage += @event.Amount;
     }
 
     [On<CastEvent>(By = Actor.Player, Spell = nameof(Spells.HeartSplitter))]
@@ -89,7 +89,7 @@ public abstract partial class SlaughterUsageAnalyzer : Analyzer
                 HeartSplitterPrimed = cast.HeartSplitterPrimed,
                 TargetsHit = cast.Targets.Count,
                 RendConsumed = RendConsumedBy(cast.Timestamp),
-                PayoffDamage = cast.PayoffDamage,
+                BleedDamage = cast.BleedDamage,
             };
 
             evaluations.Add(evaluation with { WellExecuted = IsWellExecuted(evaluation) });
@@ -102,7 +102,7 @@ public abstract partial class SlaughterUsageAnalyzer : Analyzer
             evaluations.Count(slaughter => slaughter.OpenWoundsActive),
             evaluations.Count(slaughter => slaughter.HeartSplitterPrimed),
             evaluations.Count(slaughter => slaughter.WellExecuted),
-            _casts.Sum(cast => cast.PayoffDamage),
+            _casts.Sum(cast => cast.BleedDamage),
             evaluations.Sum(slaughter => slaughter.RendConsumed),
             judged.Count,
             judged.Count(window => !SawSlaughter(window)));
@@ -168,7 +168,7 @@ public abstract partial class SlaughterUsageAnalyzer : Analyzer
         public int Timestamp { get; } = timestamp;
         public bool HeartSplitterPrimed { get; } = heartSplitterPrimed;
         public HashSet<TargetKey> Targets { get; } = [];
-        public long PayoffDamage { get; set; }
+        public long BleedDamage { get; set; }
     }
 
     private sealed record Projection(
@@ -176,7 +176,7 @@ public abstract partial class SlaughterUsageAnalyzer : Analyzer
         int OpenWoundsTimed,
         int HeartSplitterPrimed,
         int WellExecuted,
-        long TotalPayoffDamage,
+        long TotalBleedDamage,
         int TotalRendConsumed,
         int TotalWindows,
         int WastedWindows);

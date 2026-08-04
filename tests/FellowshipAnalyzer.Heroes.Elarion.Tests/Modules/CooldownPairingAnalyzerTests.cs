@@ -21,6 +21,7 @@ public sealed class CooldownPairingAnalyzerTests
 {
     private const int PlayerId = 1;
     private const int EnemyId = 20;
+    private const int OtherEnemyId = 21;
 
     private static readonly ReportFight Fight = SpanningFight(0, 40_000);
     private static readonly ReportFight LongFight = SpanningFight(0, 90_000);
@@ -75,42 +76,77 @@ public sealed class CooldownPairingAnalyzerTests
     }
 
     [Fact]
-    public async Task MarkAndVolley_PairOnTheNearestVolleyAnywhereInThePull()
+    public async Task AChannelWithNoEndChannel_RanToCompletion()
     {
         var analyzer = await Analyze(
-            LongFight,
-            MarkCast(1_000),
-            VolleyCast(2_500),
-            MarkCast(42_000));
+            BarrageCast(1_000),
+            BarrageChannelBegin(1_000));
 
-        analyzer.MarkCasts.ShouldBe(2);
-        analyzer.VolleyCasts.ShouldBe(1);
-
-        analyzer.MarkVolleyPairings.Count.ShouldBe(2);
-        analyzer.MarkVolleyPairings[0].Timestamp.ShouldBe(1_000);
-        analyzer.MarkVolleyPairings[0].NearestVolleyDeltaMs.ShouldBe(1_500);
-        analyzer.MarkVolleyPairings[1].Timestamp.ShouldBe(42_000);
-        analyzer.MarkVolleyPairings[1].NearestVolleyDeltaMs.ShouldBe(39_500);
+        analyzer.BarrageChannels.ShouldBe(1);
+        analyzer.BarrageChannelsClipped.ShouldBe(0);
+        analyzer.BarrageChannelLostMs.ShouldBe(0);
+        analyzer.BarrageChannelsClippedPercentage.ShouldBe(0d);
     }
 
     [Fact]
-    public async Task MarkWithNoVolleyInThePull_HasNoDelta()
+    public async Task AChannelEndedEarly_ReportsTheTimeLost()
+    {
+        var begin = BarrageChannelBegin(1_000);
+
+        var analyzer = await Analyze(
+            BarrageCast(1_000),
+            begin,
+            BarrageChannelEnd(1_600, begin));
+
+        analyzer.BarrageChannels.ShouldBe(1);
+        analyzer.BarrageChannelsClipped.ShouldBe(1);
+        analyzer.BarrageChannelLostMs.ShouldBe(1_400);
+        analyzer.BarrageChannelsClippedPercentage.ShouldBe(100d);
+    }
+
+    [Fact]
+    public async Task AnEndChannelAtTheFullDuration_LosesNothing()
+    {
+        var begin = BarrageChannelBegin(1_000);
+
+        var analyzer = await Analyze(
+            BarrageCast(1_000),
+            begin,
+            BarrageChannelEnd(3_000, begin));
+
+        analyzer.BarrageChannels.ShouldBe(1);
+        analyzer.BarrageChannelsClipped.ShouldBe(0);
+        analyzer.BarrageChannelLostMs.ShouldBe(0);
+    }
+
+    [Fact]
+    public async Task ClippedTimeAccumulatesAcrossChannels()
+    {
+        var first = BarrageChannelBegin(1_000);
+        var second = BarrageChannelBegin(10_000);
+
+        var analyzer = await Analyze(
+            BarrageCast(1_000),
+            first,
+            BarrageChannelEnd(1_500, first),
+            BarrageCast(10_000),
+            second,
+            BarrageChannelEnd(12_000, second),
+            BarrageCast(20_000),
+            BarrageChannelBegin(20_000));
+
+        analyzer.BarrageChannels.ShouldBe(3);
+        analyzer.BarrageChannelsClipped.ShouldBe(1);
+        analyzer.BarrageChannelLostMs.ShouldBe(1_500);
+    }
+
+    [Fact]
+    public async Task NoChannels_ReportsNothingClipped()
     {
         var analyzer = await Analyze(MarkCast(1_000));
 
-        analyzer.MarkVolleyPairings.ShouldHaveSingleItem().NearestVolleyDeltaMs.ShouldBeNull();
-    }
-
-    [Fact]
-    public async Task AchievableFortySecondCasts_CountsTheOpenerPlusEachRecharge()
-    {
-        var shortPull = await Analyze(MarkCast(1_000));
-        shortPull.PullDurationMs.ShouldBe(40_000);
-        shortPull.AchievableFortySecondCasts.ShouldBe(2);
-
-        var longPull = await Analyze(LongFight, MarkCast(1_000));
-        longPull.PullDurationMs.ShouldBe(90_000);
-        longPull.AchievableFortySecondCasts.ShouldBe(3);
+        analyzer.BarrageChannels.ShouldBe(0);
+        analyzer.BarrageChannelsClippedPercentage.ShouldBe(0d);
     }
 
     [Fact]
@@ -207,19 +243,16 @@ public sealed class CooldownPairingAnalyzerTests
             EventHorizonCast(10_000),
             GraceCast(10_100),
             MarkCast(11_000),
-            VolleyCast(11_200),
+            BarrageCast(11_200),
             EventHorizonCast(60_000),
             MarkCast(61_000),
-            VolleyCast(61_500));
+            BarrageCast(61_500));
 
         var analyzer = parser.CooldownPairingAnalyzers.ShouldHaveSingleItem().Analyzer;
 
         analyzer.EventHorizonPairings
             .Select(pairing => pairing.Timestamp)
             .ShouldBe([10_000, 60_000]);
-        analyzer.MarkVolleyPairings
-            .Select(pairing => pairing.Timestamp)
-            .ShouldBe([11_000, 61_000]);
 
         foreach (var pairing in analyzer.EventHorizonPairings)
             pairing.Timestamp.ShouldBeGreaterThanOrEqualTo(analyzer.Pull.StartTime);
@@ -253,8 +286,35 @@ public sealed class CooldownPairingAnalyzerTests
     private static CastEvent MarkCast(int timestamp) =>
         EnemyCast(timestamp, Spells.LunarlightMark.FSLID, Spells.LunarlightMark.Name);
 
-    private static CastEvent VolleyCast(int timestamp) =>
-        EnemyCast(timestamp, Spells.StarfallVolley.FSLID, Spells.StarfallVolley.Name);
+    private static CastEvent BarrageCast(int timestamp, int targetId = EnemyId) =>
+        EnemyCast(timestamp, Spells.HeartseekerBarrage.FSLID, Spells.HeartseekerBarrage.Name, targetId);
+
+    private static BeginChannelEvent BarrageChannelBegin(int timestamp) => new()
+    {
+        Timestamp = timestamp,
+        SourceId = PlayerId,
+        TargetId = EnemyId,
+        Ability = BarrageAbility(),
+    };
+
+    private static EndChannelEvent BarrageChannelEnd(int timestamp, BeginChannelEvent begin)
+    {
+        var end = new EndChannelEvent
+        {
+            Timestamp = timestamp,
+            SourceId = PlayerId,
+            Ability = BarrageAbility(),
+            BeginChannel = begin,
+        };
+        begin.EndChannel = end;
+        return end;
+    }
+
+    private static SpellAbility BarrageAbility() => new()
+    {
+        FSLID = Spells.HeartseekerBarrage.FSLID,
+        Name = Spells.HeartseekerBarrage.Name,
+    };
 
     private static CastEvent SelfCast(int timestamp, int abilityId, string name) => new()
     {
@@ -265,11 +325,11 @@ public sealed class CooldownPairingAnalyzerTests
         Ability = new SpellAbility { FSLID = abilityId, Name = name },
     };
 
-    private static CastEvent EnemyCast(int timestamp, int abilityId, string name) => new()
+    private static CastEvent EnemyCast(int timestamp, int abilityId, string name, int targetId = EnemyId) => new()
     {
         Timestamp = timestamp,
         SourceId = PlayerId,
-        TargetId = EnemyId,
+        TargetId = targetId,
         Activation = true,
         Ability = new SpellAbility { FSLID = abilityId, Name = name },
     };

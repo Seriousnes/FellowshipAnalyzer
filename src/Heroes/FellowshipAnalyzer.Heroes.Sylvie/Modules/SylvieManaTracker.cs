@@ -51,9 +51,19 @@ public sealed partial class SylvieManaTracker : ResourceTracker
     /// <summary>Share (0-1) of measured time spent at a full mana pool.</summary>
     public double AtFullShare => MeasuredMs > 0 ? AtFullMs / (double)MeasuredMs : 0;
 
+    /// <summary>Mana the Bluey discount took off Sylvie's casts across the whole parse.</summary>
+    public int ManaSavedByEmbrace { get; private set; }
+
     /// <summary>Mana spent on casts between <paramref name="start"/> and <paramref name="end"/>.</summary>
     public int SpentBetween(int start, int end) =>
         _spends.Where(spend => spend.Timestamp >= start && spend.Timestamp <= end).Sum(spend => spend.Mana);
+
+    /// <summary>
+    /// Mana the Bluey discount took off casts between <paramref name="start"/> and
+    /// <paramref name="end"/>, the difference between each cast's listed cost and what it was charged.
+    /// </summary>
+    public int SavedBetween(int start, int end) =>
+        _spends.Where(spend => spend.Timestamp >= start && spend.Timestamp <= end).Sum(spend => spend.Saved);
 
     /// <summary>Mana spent per spell between <paramref name="start"/> and <paramref name="end"/>, heaviest first.</summary>
     public IReadOnlyList<(int SpellId, int Mana, int Casts)> SpentBySpellBetween(int start, int end)
@@ -96,8 +106,14 @@ public sealed partial class SylvieManaTracker : ResourceTracker
     [On<CastEvent>(By = Actor.Player)]
     private void OnSylvieCast(CastEvent castEvent)
     {
+        var listed = SylvieKit.ManaCost(castEvent.Ability.Id);
+        if (listed == 0) return;
+
         var cost = CostOf(castEvent);
-        if (cost > 0) _spends.Add(new ManaSpend(castEvent.Timestamp, castEvent.Ability.Id, cost));
+        var saved = listed - cost;
+
+        ManaSavedByEmbrace += saved;
+        _spends.Add(new ManaSpend(castEvent.Timestamp, castEvent.Ability.Id, cost, saved));
     }
 
     [On<Event>]
@@ -139,4 +155,5 @@ public sealed partial class SylvieManaTracker : ResourceTracker
 /// <param name="Timestamp">When the cast went out.</param>
 /// <param name="SpellId">The ability cast.</param>
 /// <param name="Mana">What it cost, after any Bluey discount.</param>
-public sealed record ManaSpend(int Timestamp, int SpellId, int Mana);
+/// <param name="Saved">What the Bluey discount took off the listed cost, zero when Bluey was elsewhere.</param>
+public sealed record ManaSpend(int Timestamp, int SpellId, int Mana, int Saved);

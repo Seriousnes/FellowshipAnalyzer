@@ -5,22 +5,16 @@
 }
 
 <GuideSection Title="Cast Uptime">
-    <Explanation>
+    <LeftPanel>
         <p>
             A global cooldown that sits empty is Anima you never spend and Winter Orbs you never
-            generate, so idle time is throughput that never arrives.
-            <SpellLink Spell="Spells.FrostBolt" />, <SpellLink Spell="Spells.ColdSnap" /> and
+            generate. <SpellLink Spell="Spells.FrostBolt" />, <SpellLink Spell="Spells.ColdSnap" /> and
             <SpellLink Spell="Spells.FreezingTorrent" /> are all generators, so there is almost
-            always one available to keep the global cooldown rolling between mechanics.
+            always one available to keep it rolling between mechanics. The table shows where the idle
+            time went.
         </p>
-        <p>
-            Time is measured from the first on-global-cooldown cast to the end of the pull. Casting
-            and channelling both count as active, off-global-cooldown utility is ignored, and idle
-            stretches shorter than @(DowntimeAnalyzer.MinimumGapMs)ms are treated as latency rather
-            than a lost cast.
-        </p>
-    </Explanation>
-    <ChildContent>
+    </LeftPanel>
+    <RightPanel>
         <CastOverview Title="Uptime Overview" Stats="@BuildOverviewStats()" />
         @if (gapRows.Count > 0)
         {
@@ -28,7 +22,7 @@
                         Description="Each row is one idle stretch, grouped by the pull it happened in."
                         Casts="@gapRows" />
         }
-    </ChildContent>
+    </RightPanel>
 </GuideSection>
 
 @code {

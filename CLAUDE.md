@@ -8,6 +8,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **IMPORTANT** - Never include comments referencing design docs or plan points. Comments are reserved exclusively for API/usage notes.
 - **Never** add inline comments or comments within methods for any reason.
 
+### Analysis rules
+- **`Core/Utility/CombatMath.cs` is the only place damage amplification or reduction is ever calculated.** This covers every hero: Engulfing Flames multipliers, armor and Toughness reductions, damage buffs, defensive abilities. A hero-local maths helper is banned, and so is an inline `raw - raw / (1 + increase)`. If `CombatMath` cannot express what is needed, ask before writing anything.
+- **An ability or talent has at most one analyzer.** A new measurement goes into the ability's existing analyzer, never into a second module.
+- **A conditionally active analyzer must use `[ActiveWhen<TPredicate>]`**, with a type implementing `IModuleActivePredicate`. Never hand-roll the check inside a handler. It works on pull analyzers, and it expresses the inverse gates `[RequiresTalent]` cannot.
+- **An analyzer may take a `ResourceTracker` as a `[Dependency<T>]`, but must never re-derive what the tracker owns.** Trackers expose windowed accessors (`SpentBetween`, `TimeByHolderBetween`, `BandsBetween`) and analyzers project them.
+- **`[On<Event>]` is a last resort.** Use it only where there is literally no other way. Deriving a resource's state is never such a case.
+- **Name an analyzer or guide for what it assesses.** Do not add a qualifier the domain does not need. A misleading name manufactures a false reason to split an analyzer in two.
+
 ## Project
 
 FellowshipAnalyzer parses and analyzes combat logs from the online RPG "Fellowship". Logs are uploaded to fellowshiplogs.com; this app calls the Fellowship Logs GraphQL API, runs hero-specific analyzers over combat events, and renders guide/statistics views.
@@ -95,9 +103,9 @@ The generator emits the constructor, strongly-typed module properties (for examp
 - `[AddState<T>]` and `[AddModule<T>]` register parse-lifetime modules. `[AddAnalyzer<T>]` registers pull-lifetime `Analyzer`s, constructed fresh for each pull and selected by `[ForPull(PullKind.Single | PullKind.Multi, Boss = PullBoss.Boss)]`.
 - Subscribe with `[On<TEvent>(By = Actor.Player, Spell = ...)]` on handler methods; the generator wires each into `EventEmitter` with inlined predicates. Any other setup goes in the constructor.
 - Accumulate during dispatch and expose results as get-only computed properties over retained state. An analyzer reads its own `Pull` property.
-- Modules are constructed by a generator-emitted factory. `Owner` and `Priority` are assigned by the parser afterwards, so do **not** accept `CombatLogParser` in a module constructor. Declare a sibling-module dependency with `[Dependency<T>]` and read the generated accessor.
+- Modules are constructed by a generator-emitted factory. `Owner` is assigned by the parser afterwards, so do **not** accept `CombatLogParser` in a module constructor. Declare a sibling-module dependency with `[Dependency<T>]` and read the generated accessor.
 - Gate a module on a talent with `[RequiresTalent(ArdeosTalents.RollingFlames)]`, using the generated `{Hero}Talents` constants.
-- Order modules relative to each other with `[Before<T>]` / `[After<T>]`; declaration order is the tie-break.
+- Order modules relative to each other with `[Before<T>]` / `[After<T>]`. The guarantee is pairwise only: `[After<SpellUsable>]` means `SpellUsable` has seen the event by the time this module does, and nothing more. Modules with no constraint between them run in no guaranteed order. `Priority` is a design-time `virtual` override, not something the parser assigns.
 - Razor reads analyzer instances directly: `Parser.SearingBlazeAnalyzers` for the cross-pull list, `Parser.For(pull).{Surface}` or `pull.{Surface}` for a single pull. Share a surface across pull shapes with a marker interface deriving from `IAnalyzerSurface`.
 - A module contributes a statistics card by overriding `StatisticsComponentType => typeof(SomeStatistics)`; the parser collects those into `HeroAnalysisResult.Statistics` and the report page renders each with the module cascaded in.
 

@@ -611,8 +611,5 @@
   "609": "OverhealAnalyzerTests",
   "610": "RekindlingFlamesAnalyzer",
   "611": "GlobalCooldown",
-  "612": "HeroConfig",
-  "613": "SylvieAnalysisEngineTests",
-  "614": "TestParser",
-  "615": ".EveryEnabledEntry_HasARealCategory"
+  "614": "TestParser"
 }

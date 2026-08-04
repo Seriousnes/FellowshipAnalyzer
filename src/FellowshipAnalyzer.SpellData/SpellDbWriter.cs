@@ -1,8 +1,9 @@
 using System.Globalization;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+
 using FellowshipAnalyzer.Core.Common.Spells;
-using FellowshipAnalyzer.Core.Events;
+using FellowshipAnalyzer.Core.Game;
 using FellowshipAnalyzer.SpellData.Json;
 using FellowshipAnalyzer.SpellData.Model;
 using FellowshipAnalyzer.SpellData.Sources;

@@ -1,0 +1,122 @@
+@inherits ReportComponent<MaraCombatLogParser>
+
+<GuideSection Title="Final Stratagem">
+    <LeftPanel>
+        <p>
+            Spend your cooldowns down first, before using <SpellLink Spell="Spells.FinalStratagem" />. 
+            Any abilities not on cooldown is potential waste, and can significantly affect your burst windows.
+        </p>
+    </LeftPanel>
+    <RightPanel>
+        <CastOverview Title="Reset Overview" Stats="@BuildOverviewStats()" />
+        <CastDetail Title="Stratagem Casts"
+                    Description="Each row is one Final Stratagem cast, with every hero ability's recharge and charges at that instant, longest recharge first."
+                    Casts="@BuildPerCastData()" />
+    </RightPanel>
+</GuideSection>
+
+@code {
+    private List<FinalStratagemAnalyzer> Analyzers() =>
+        [.. Parser.FinalStratagemAnalyzers.Select(entry => entry.Analyzer)];
+
+    private IEnumerable<OverviewStat> BuildOverviewStats()
+    {
+        var analyzers = Analyzers();
+
+        var casts = analyzers.Sum(analyzer => analyzer.Casts.Count);
+        var recoveredMs = analyzers.Sum(analyzer => analyzer.CooldownRecoveredMs);
+        var charges = analyzers.Sum(analyzer => analyzer.ChargesRecovered);
+        var averageAbilities = casts == 0
+            ? 0d
+            : (double)analyzers.Sum(analyzer => analyzer.Casts.Sum(cast => cast.AbilitiesReset)) / casts;
+
+        return
+        [
+            new OverviewStat(
+                $"{casts}",
+                "Stratagem Casts",
+                "Final Stratagem and Macabre Stratagem casts across every pull."),
+            new OverviewStat(
+                FormatSeconds(recoveredMs),
+                "Recharge Recovered",
+                casts == 0
+                    ? "No Final Stratagem was cast, so there is nothing to measure."
+                    : $"Total recharge time the resets removed, {FormatSeconds(recoveredMs / casts)} per cast on average.",
+                RecoveryTier(averageAbilities, casts)),
+            new OverviewStat(
+                $"{charges}",
+                "Charges Returned",
+                "Hero ability charges the resets handed back."),
+            new OverviewStat(
+                $"{averageAbilities:0.0}",
+                "Abilities Reset",
+                casts == 0
+                    ? "No Final Stratagem was cast."
+                    : "Hero abilities that had something recharging when the reset landed, per cast. Weapon and relic abilities are outside the reset and are not counted.",
+                RecoveryTier(averageAbilities, casts)),
+        ];
+    }
+
+    private IEnumerable<PerCastData> BuildPerCastData() =>
+        Parser.FinalStratagemAnalyzers.ToItemRows(
+            Parser, analyzer => analyzer.Casts, (cast, pull) => BuildCastRow(cast));
+
+    private PerCastRow BuildCastRow(FinalStratagemCast cast)
+    {
+        var stats = new List<PerCastStat>
+        {
+            new(
+                FormatSeconds(cast.CooldownRecoveredMs),
+                "Recharge Recovered",
+                "Recharge time the reset removed across every hero ability."),
+            new(
+                $"{cast.AbilitiesReset}",
+                "Abilities Reset",
+                "Hero abilities that had something recharging when the reset landed.",
+                Performance: AbilitiesTier(cast.AbilitiesReset)),
+            new(
+                $"{cast.ChargesRecovered}",
+                "Charges Returned",
+                "Hero ability charges the reset handed back."),
+            new(
+                $"{cast.AbilitiesAlreadyAvailable}",
+                "Already Available",
+                "Hero abilities that were fully available, so the reset recovered nothing from them."),
+        };
+
+        return new PerCastRow
+        {
+            Performance = AbilitiesTier(cast.AbilitiesReset),
+            Stats = [.. stats],
+            Timestamp = cast.Timestamp,
+            Sequence = [new SpellCastEntry(cast.AbilityId)],
+            AdditionalContent = new AdditionalContent("Ability State", @<div>
+                <ul>
+                    @foreach (var ability in cast.Abilities)
+                    {
+                        <li>
+                            <SpellLink Spell="ability.AbilityId" />
+                            @if (ability.RemainingMs > 0)
+                            {
+                                <text> - @FormatSeconds(ability.RemainingMs) left, @ability.ChargesAvailable of @ability.MaxCharges charges available</text>
+                            }
+                            else
+                            {
+                                <text> - ready, @ability.ChargesAvailable of @ability.MaxCharges charges available</text>
+                            }
+                        </li>
+                    }
+                </ul>
+            </div>),
+        };
+    }
+
+    private static string FormatSeconds(int milliseconds) =>
+        $"{milliseconds / 1000d:0.#}s";
+
+    private static QualitativePerformance AbilitiesTier(int abilitiesReset) =>
+        PerformanceTiers.FromThresholds(abilitiesReset, 4, 3, 2);
+
+    private static QualitativePerformance? RecoveryTier(double averageAbilities, int casts) =>
+        casts == 0 ? null : PerformanceTiers.FromThresholds(averageAbilities, 4, 3, 2);
+}

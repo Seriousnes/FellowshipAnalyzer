@@ -8,12 +8,7 @@ namespace FellowshipAnalyzer.Heroes.Ardeos.Modules;
 public sealed partial class RekindlingFlamesAnalyzer : Analyzer
 {
     public int QualifyingDeaths { get; private set; }
-
-    public int TotalGeneratedReductionMs { get; private set; }
-
-    public int EffectiveReductionMs { get; private set; }
-
-    public int WastedReductionMs => TotalGeneratedReductionMs - EffectiveReductionMs;
+    public CooldownReductionResult CooldownReduction { get; private set; } = new();    
 
     [On<DeathEvent>]
     private void OnDeath(DeathEvent e)
@@ -27,7 +22,6 @@ public sealed partial class RekindlingFlamesAnalyzer : Analyzer
         var reduction = Owner.SpellUsable!.ReduceCooldown(Spells.EngulfingFlames.Id, requestedMs, e.Timestamp);
 
         QualifyingDeaths++;
-        TotalGeneratedReductionMs += reduction.GeneratedMs;
-        EffectiveReductionMs += reduction.AppliedMs;
+        CooldownReduction += reduction;
     }
 }

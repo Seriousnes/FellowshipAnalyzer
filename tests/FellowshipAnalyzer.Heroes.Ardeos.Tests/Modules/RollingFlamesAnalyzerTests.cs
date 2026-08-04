@@ -19,20 +19,6 @@ public sealed class RollingFlamesAnalyzerTests
     private const int PlayerId = 7;
     private const int RollingFlamesTalentId = 226;
 
-    [Theory]
-    [InlineData(0, 0, 0, 0)]
-    [InlineData(250, 100, 150, 40)]
-    [InlineData(250, 250, 0, 100)]
-    [InlineData(250, 0, 250, 0)]
-    [InlineData(1000, 750, 250, 75)]
-    public void RollingFlamesCdr_DerivesWastedAndEfficiency(int generated, int effective, int wasted, int efficiencyPct)
-    {
-        var cdr = new RollingFlamesCdr(Spells.SearingBlaze, generated, effective);
-
-        cdr.WastedMs.ShouldBe(wasted);
-        ((int)Math.Round(cdr.Efficiency * 100)).ShouldBe(efficiencyPct);
-    }
-
     [Fact]
     public async Task RollingFlames_WithTalent_AccumulatesGeneratedFromTicks()
     {
@@ -48,9 +34,9 @@ public sealed class RollingFlamesAnalyzerTests
 
         analyzer.ShouldNotBeNull();
         var searingBlaze = analyzer.CooldownReductions.First(c => c.Spell.Id == Spells.SearingBlaze.Id);
-        searingBlaze.GeneratedMs.ShouldBe(750);
-        searingBlaze.EffectiveMs.ShouldBe(0);
-        searingBlaze.WastedMs.ShouldBe(750);
+        searingBlaze.CooldownReduction.Total.ShouldBe(750);
+        searingBlaze.CooldownReduction.Effective.ShouldBe(0);
+        searingBlaze.CooldownReduction.Wasted.ShouldBe(750);
     }
 
     [Fact]
@@ -67,8 +53,8 @@ public sealed class RollingFlamesAnalyzerTests
         var analyzer = await AnalyzeAndGetAnalyzer(events);
 
         analyzer.ShouldNotBeNull();
-        analyzer.CooldownReductions.First(c => c.Spell.Id == Spells.SearingBlaze.Id).EffectiveMs.ShouldBe(250);
-        analyzer.CooldownReductions.First(c => c.Spell.Id == Spells.InfernalWave.Id).EffectiveMs.ShouldBe(1000);
+        analyzer.CooldownReductions.First(c => c.Spell.Id == Spells.SearingBlaze.Id).CooldownReduction.Effective.ShouldBe(250);
+        analyzer.CooldownReductions.First(c => c.Spell.Id == Spells.InfernalWave.Id).CooldownReduction.Effective.ShouldBe(1000);
     }
 
     [Fact]

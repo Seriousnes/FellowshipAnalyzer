@@ -23,34 +23,22 @@ public class GraphQLMapperTests
         mapped.Icon.ShouldBe("icon.jpg");
     }
 
-    [Theory]
-    [InlineData("1", MagicSchool.Physical)]
-    [InlineData("2", MagicSchool.Magic)]
-    [InlineData("8", MagicSchool.Healing)]
-    [InlineData("1024", MagicSchool.Stagger)]
-    [InlineData("3", MagicSchool.Physical | MagicSchool.Magic)]
-    public void MapAbility_ReadsTheTypeCodeAsASchool(string type, MagicSchool expected) =>
-        new GraphQLMapper().MapAbility(new StubAbility(2190, "Attack", "icon.jpg", type))
-            .Type.ShouldBe(expected);
-
     /// <summary>
-    /// The old mapper defaulted an unreadable <c>type</c> to <c>0</c>, which was
-    /// <see cref="MagicSchool.Physical"/> at the time and silently passed a physical-damage filter.
-    /// Every row here must land on the unresolved default so that filter fails closed instead.
+    /// The report's <c>type</c> field does not encode a damage school: the same value covers physical
+    /// and magic abilities alike. The mapper therefore ignores it whatever it holds, and the school
+    /// comes from <c>data/spelldb.json</c> at compile time.
     /// </summary>
     [Theory]
-    [InlineData("0")]
-    [InlineData("4")]
-    [InlineData("512")]
-    [InlineData("-1")]
+    [InlineData("1")]
+    [InlineData("1024")]
     [InlineData("not-a-number")]
     [InlineData("")]
     [InlineData(null)]
-    public void MapAbility_UnreadableOrUnmappedTypeIsUnresolvedRatherThanPhysical(string? type)
+    public void MapAbility_IgnoresTheTypeField(string? type)
     {
         var mapped = new GraphQLMapper().MapAbility(new StubAbility(2190, "Attack", "icon.jpg", type));
 
-        mapped.Type.ShouldBe(default);
-        ((mapped.Type & MagicSchool.Physical) != 0).ShouldBeFalse();
+        mapped.FSLID.Value.ShouldBe(2190);
+        mapped.Name.ShouldBe("Attack");
     }
 }

@@ -19,7 +19,7 @@ public sealed record SlaughterEvaluation
 
     public required int RendConsumed { get; init; }
 
-    public required long PayoffDamage { get; init; }
+    public required long BleedDamage { get; init; }
 
     public bool WellExecuted { get; init; }
 }

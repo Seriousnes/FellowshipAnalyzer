@@ -34,9 +34,9 @@ public sealed class RekindlingFlamesAnalyzerTests
             Death(2000, EnemyId, EnemyInstance));
 
         analyzer.QualifyingDeaths.ShouldBe(0);
-        analyzer.TotalGeneratedReductionMs.ShouldBe(0);
-        analyzer.EffectiveReductionMs.ShouldBe(0);
-        analyzer.WastedReductionMs.ShouldBe(0);
+        analyzer.CooldownReduction.Total.ShouldBe(0);
+        analyzer.CooldownReduction.Effective.ShouldBe(0);
+        analyzer.CooldownReduction.Wasted.ShouldBe(0);
     }
 
     [Fact]
@@ -49,9 +49,9 @@ public sealed class RekindlingFlamesAnalyzerTests
             Death(3000, EnemyId, EnemyInstance));
 
         analyzer.QualifyingDeaths.ShouldBe(1);
-        analyzer.TotalGeneratedReductionMs.ShouldBe(10_000);
-        analyzer.EffectiveReductionMs.ShouldBe(10_000);
-        analyzer.WastedReductionMs.ShouldBe(0);
+        analyzer.CooldownReduction.Total.ShouldBe(10_000);
+        analyzer.CooldownReduction.Effective.ShouldBe(10_000);
+        analyzer.CooldownReduction.Wasted.ShouldBe(0);
     }
 
     [Fact]
@@ -70,9 +70,9 @@ public sealed class RekindlingFlamesAnalyzerTests
             Death(11_000, EnemyId, EnemyInstance));
 
         analyzer.QualifyingDeaths.ShouldBe(1);
-        analyzer.TotalGeneratedReductionMs.ShouldBe(60_000);
-        analyzer.EffectiveReductionMs.ShouldBe(30_000);
-        analyzer.WastedReductionMs.ShouldBe(30_000);
+        analyzer.CooldownReduction.Total.ShouldBe(60_000);
+        analyzer.CooldownReduction.Effective.ShouldBe(30_000);
+        analyzer.CooldownReduction.Wasted.ShouldBe(30_000);
     }
 
     private static CombatantInfoEvent Combatant() => new() { SourceId = PlayerId };

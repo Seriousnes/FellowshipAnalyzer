@@ -24,7 +24,7 @@ public class ParserGeneratorTests
         var gen = result.ConcatenatedGenerated;
 
         gen.ShouldContain($"protected override global::System.Type[] GetAnalyzerTypes({PullFqn} pull)");
-        gen.ShouldContain($"if ((pull.Targets & ({PullKindFqn}.Single)) != 0) __analyzers.Add(typeof(global::Test.ComboAnalyzer));");
+        gen.ShouldContain($"if (({PullKindFqn}.Single).HasFlag(pull.Targets)) __analyzers.Add(typeof(global::Test.ComboAnalyzer));");
         gen.ShouldContain("if (type == typeof(global::Test.ComboAnalyzer))");
         AssertNoErrors(result);
     }
@@ -35,7 +35,7 @@ public class ParserGeneratorTests
         var result = ParserGeneratorTestHarness.Run(OneAnalyzer("[ForPull(PullKind.Multi, Boss = PullBoss.Boss)]"));
 
         result.ConcatenatedGenerated.ShouldContain(
-            $"if ((pull.Targets & ({PullKindFqn}.Multi)) != 0 && pull.IsBoss) __analyzers.Add(typeof(global::Test.ComboAnalyzer));");
+            $"if (({PullKindFqn}.Multi).HasFlag(pull.Targets) && pull.IsBoss) __analyzers.Add(typeof(global::Test.ComboAnalyzer));");
         AssertNoErrors(result);
     }
 
@@ -44,7 +44,7 @@ public class ParserGeneratorTests
     {
         var result = ParserGeneratorTestHarness.Run(OneAnalyzer("[ForPull(PullKind.Single, Boss = PullBoss.NonBoss)]"));
 
-        result.ConcatenatedGenerated.ShouldContain("!= 0 && !pull.IsBoss) __analyzers.Add(typeof(global::Test.ComboAnalyzer));");
+        result.ConcatenatedGenerated.ShouldContain(".HasFlag(pull.Targets) && !pull.IsBoss) __analyzers.Add(typeof(global::Test.ComboAnalyzer));");
         AssertNoErrors(result);
     }
 
@@ -54,7 +54,7 @@ public class ParserGeneratorTests
         var result = ParserGeneratorTestHarness.Run(OneAnalyzer("[ForPull(PullKind.Single | PullKind.Multi)]"));
 
         result.ConcatenatedGenerated.ShouldContain(
-            $"(pull.Targets & ({PullKindFqn}.Single | {PullKindFqn}.Multi)) != 0");
+            $"({PullKindFqn}.Single | {PullKindFqn}.Multi).HasFlag(pull.Targets)");
         AssertNoErrors(result);
     }
 
@@ -65,7 +65,7 @@ public class ParserGeneratorTests
             OneAnalyzer("[ForPull(PullKind.Single)]\n[RequiresTalent(422)]"));
 
         result.ConcatenatedGenerated.ShouldContain(
-            $"if ((pull.Targets & ({PullKindFqn}.Single)) != 0 && SelectedCombatant.HasTalent(422)) __analyzers.Add(typeof(global::Test.ComboAnalyzer));");
+            $"if (({PullKindFqn}.Single).HasFlag(pull.Targets) && SelectedCombatant.HasTalent(422)) __analyzers.Add(typeof(global::Test.ComboAnalyzer));");
         AssertNoErrors(result);
     }
 
@@ -76,7 +76,7 @@ public class ParserGeneratorTests
             OneAnalyzer("[ForPull(PullKind.Multi, Boss = PullBoss.Boss)]\n[RequiresTalent(422)]\n[RequiresTalent(443)]"));
 
         result.ConcatenatedGenerated.ShouldContain(
-            "!= 0 && pull.IsBoss && SelectedCombatant.HasTalent(422) && SelectedCombatant.HasTalent(443)) __analyzers.Add(typeof(global::Test.ComboAnalyzer));");
+            ".HasFlag(pull.Targets) && pull.IsBoss && SelectedCombatant.HasTalent(422) && SelectedCombatant.HasTalent(443)) __analyzers.Add(typeof(global::Test.ComboAnalyzer));");
         AssertNoErrors(result);
     }
 

@@ -22,12 +22,22 @@ namespace FellowshipAnalyzer.Heroes.Helena.Modules;
 /// snapshot's maximum: a Shields Up, Shield Slam or Shockwave cast made at maximum threw its
 /// generation away, and so did a block landed at maximum.
 /// </para>
+/// <para>
+/// The band Toughness sits in lives here rather than on a pull analyzer, because it is a property of
+/// the resource. The base tracker's own event stream cannot supply it: <see cref="GetResourceEvents"/>
+/// records a gain but not a decrease, so rebuilding band membership from it would hold a high band
+/// through every drop. A snapshot timeline is therefore recorded here, and every band figure is served
+/// over an explicit window by <see cref="BandsBetween"/> and <see cref="MitigationBetween"/>.
+/// </para>
 /// </summary>
 public sealed partial class ToughnessTracker : ResourceTracker
 {
     private readonly List<ToughnessOvercap> _overcaps = [];
     private readonly Dictionary<int, int> _generatorCasts = [];
+    private readonly List<BandSample> _bandSamples = [];
+    private readonly List<MitigatedHit> _mitigatedHits = [];
 
+    private Event? _lastSampledEvent;
     private int _observedBlocks;
     private int _overcappedBlocks;
 
@@ -52,6 +62,34 @@ public sealed partial class ToughnessTracker : ResourceTracker
 
     /// <summary>Whether the player took Greater Shockwave, whose casts return an extra tenth of maximum Toughness.</summary>
     public bool HasGreaterShockwave => Owner.SelectedCombatant.HasTalent(HelenaTalents.GreaterShockwave);
+
+    /// <summary>Whether the player took Front Line Defender, which adds five points to every band that grants anything.</summary>
+    public bool HasFrontLineDefender => Owner.SelectedCombatant.HasTalent(HelenaTalents.FrontLineDefender);
+
+    /// <summary>The physical damage reduction <paramref name="band"/> grants this build.</summary>
+    public double DamageReductionIn(ToughnessBand band) =>
+        ToughnessBands.DamageReduction(band, HasFrontLineDefender);
+
+    /// <summary>The most physical damage reduction Toughness can grant this build.</summary>
+    public double DamageReductionCeiling => ToughnessBands.Ceiling(HasFrontLineDefender);
+
+    /// <summary>The band the most recent Toughness snapshot put the player in.</summary>
+    public ToughnessBand CurrentBand =>
+        _bandSamples.Count > 0 ? _bandSamples[^1].Band : ToughnessBand.Depleted;
+
+    /// <summary>
+    /// The band in force immediately before <paramref name="e"/> was dispatched, which is the one that
+    /// acted on it. A hit carries its Toughness snapshot sampled after the hit resolves, so
+    /// <see cref="CurrentBand"/> read from a damage handler is the band the hit left behind rather than
+    /// the band that reduced it. This resolves against the snapshot's own event rather than its
+    /// timestamp, so it answers the same whether or not the snapshot handler has already run for
+    /// <paramref name="e"/>, and several events sharing a timestamp cannot confuse it.
+    /// </summary>
+    public ToughnessBand BandBefore(Event e) =>
+        SampleIndexBefore(e) is var index and >= 0 ? _bandSamples[index].Band : ToughnessBand.Depleted;
+
+    private int SampleIndexBefore(Event e) =>
+        ReferenceEquals(_lastSampledEvent, e) ? _bandSamples.Count - 2 : _bandSamples.Count - 1;
 
     /// <summary>
     /// The share of maximum Toughness <paramref name="spellId"/> nominally restores for the build being
@@ -135,6 +173,143 @@ public sealed partial class ToughnessTracker : ResourceTracker
         _overcaps.Add(new ToughnessOvercap(damageEvent.Timestamp, Spells.Attack.FSLID, BlockGeneration));
     }
 
+    [On<Event>]
+    private void OnToughnessSnapshot(Event e)
+    {
+        if (FindToughness(e) is not { Max: > 0 } toughness) return;
+
+        _bandSamples.Add(new BandSample(
+            e.Timestamp,
+            ToughnessBands.For(toughness.Amount / (double)toughness.Max),
+            toughness.Amount >= toughness.Max));
+        _lastSampledEvent = e;
+    }
+
+    /// <summary>
+    /// Records what Toughness turned away from one physical hit, by inverting the band in force out of
+    /// the damage that reached the player. Armour needs no modelling because whatever it removed is
+    /// already inside <see cref="DamageEvent.Amount"/>; an absorb and a block are added back because
+    /// both apply after Toughness rather than as part of it.
+    /// </summary>
+    [On<DamageEvent>(To = Actor.Player)]
+    private void OnPhysicalDamageTaken(DamageEvent damageEvent)
+    {
+        if (damageEvent.HitType is not (HitType.Normal or HitType.Crit or HitType.Block or HitType.GrievousCrit)) return;
+        if (!damageEvent.IsPhysical) return;
+
+        var sampleIndex = SampleIndexBefore(damageEvent);
+        if (sampleIndex < 0) return;
+
+        var reduction = DamageReductionIn(_bandSamples[sampleIndex].Band);
+        var reachedThePlayer = damageEvent.Amount + (damageEvent.Absorbed ?? 0) + damageEvent.Blocked;
+        var preToughness = reachedThePlayer / (1 - reduction);
+
+        _mitigatedHits.Add(new MitigatedHit(
+            damageEvent.Timestamp,
+            sampleIndex,
+            preToughness * reduction,
+            preToughness * DamageReductionCeiling,
+            damageEvent.Tick));
+    }
+
+    /// <summary>
+    /// Where Toughness sat between <paramref name="start"/> and <paramref name="end"/>, weighted by time
+    /// rather than by sample count. Each snapshot holds its band until the next one, and the window opens
+    /// at its first snapshot rather than at <paramref name="start"/>, so a stretch with no snapshot to
+    /// read is never attributed to whichever band happened to precede the window.
+    /// </summary>
+    public ToughnessBandWindow BandsBetween(int start, int end)
+    {
+        var first = FirstSampleIndexIn(start, end);
+        if (first < 0) return ToughnessBandWindow.Empty;
+
+        var bandMs = new Dictionary<ToughnessBand, int>();
+        var atMaximumMs = 0;
+        var samples = 0;
+        int? msToTopBand = null;
+
+        for (var i = first; i < _bandSamples.Count && _bandSamples[i].Timestamp <= end; i++)
+        {
+            var sample = _bandSamples[i];
+            samples++;
+
+            if (msToTopBand is null && sample.Band == ToughnessBand.Level4)
+                msToTopBand = sample.Timestamp - start;
+
+            var until = i + 1 < _bandSamples.Count && _bandSamples[i + 1].Timestamp <= end
+                ? _bandSamples[i + 1].Timestamp
+                : end;
+
+            var elapsed = until - sample.Timestamp;
+            if (elapsed <= 0) continue;
+
+            bandMs[sample.Band] = bandMs.GetValueOrDefault(sample.Band) + elapsed;
+            if (sample.AtMaximum) atMaximumMs += elapsed;
+        }
+
+        var measured = 0;
+        foreach (var ms in bandMs.Values) measured += ms;
+
+        return new ToughnessBandWindow(
+            bandMs, measured, atMaximumMs, samples, msToTopBand,
+            _bandSamples[first].Band == ToughnessBand.Level4);
+    }
+
+    /// <summary>
+    /// What Toughness turned away between <paramref name="start"/> and <paramref name="end"/>, against
+    /// what the top band would have turned away from the same hits. A hit taken before the window's first
+    /// snapshot is left out, because the only band available to measure it against is one carried in from
+    /// before the window.
+    /// </summary>
+    public ToughnessMitigationWindow MitigationBetween(int start, int end)
+    {
+        var first = FirstSampleIndexIn(start, end);
+        if (first < 0) return ToughnessMitigationWindow.Empty;
+
+        double mitigated = 0, atCeiling = 0;
+        int hits = 0, ticks = 0;
+
+        foreach (var hit in _mitigatedHits)
+        {
+            if (hit.SampleIndex < first || hit.Timestamp < start || hit.Timestamp > end) continue;
+
+            mitigated += hit.Mitigated;
+            atCeiling += hit.AtCeiling;
+            hits++;
+            if (hit.Tick) ticks++;
+        }
+
+        return new ToughnessMitigationWindow(mitigated, atCeiling, hits, ticks);
+    }
+
+    private int FirstSampleIndexIn(int start, int end)
+    {
+        for (var i = 0; i < _bandSamples.Count; i++)
+        {
+            if (_bandSamples[i].Timestamp > end) break;
+            if (_bandSamples[i].Timestamp >= start) return i;
+        }
+
+        return -1;
+    }
+
+    private ClassResource? FindToughness(Event e)
+    {
+        var resources = e switch
+        {
+            IHasSourceEvent source when Owner.ByPlayer(source) => e.SourceResources,
+            IHasTargetEvent target when Owner.ToPlayer(target) => e.TargetResources,
+            _ => null,
+        };
+
+        return FindToughness(resources);
+    }
+
+    private readonly record struct BandSample(int Timestamp, ToughnessBand Band, bool AtMaximum);
+
+    private readonly record struct MitigatedHit(
+        int Timestamp, int SampleIndex, double Mitigated, double AtCeiling, bool Tick);
+
     private static ToughnessGenerator? FindGenerator(int spellId)
     {
         foreach (var generator in Generators)
@@ -191,6 +366,48 @@ public sealed record ToughnessGenerator(int SpellId, double StrengthScaler)
 {
     /// <summary>The nominal share of maximum Toughness this source restores.</summary>
     public double NominalShare => ToughnessBands.NominalGeneration(StrengthScaler);
+}
+
+/// <summary>
+/// Where Toughness sat over one window of the fight.
+/// </summary>
+/// <param name="BandMs">Milliseconds spent in each band, keyed by band.</param>
+/// <param name="MeasuredMs">Milliseconds of the window covered by a Toughness snapshot.</param>
+/// <param name="AtMaximumMs">Milliseconds spent with Toughness at its maximum.</param>
+/// <param name="SampleCount">Toughness snapshots seen in the window.</param>
+/// <param name="MsToTopBand">
+/// Milliseconds from the window opening to its first top-band snapshot, or <c>null</c> when Toughness
+/// never reached it. A window that opened in the top band still carries a small figure here when its
+/// first snapshot arrived late, so read it alongside <paramref name="StartedAtTopBand"/>.
+/// </param>
+/// <param name="StartedAtTopBand">Whether the window's first snapshot was already in the top band.</param>
+public sealed record ToughnessBandWindow(
+    IReadOnlyDictionary<ToughnessBand, int> BandMs,
+    int MeasuredMs,
+    int AtMaximumMs,
+    int SampleCount,
+    int? MsToTopBand,
+    bool StartedAtTopBand)
+{
+    /// <summary>A window no Toughness snapshot fell inside.</summary>
+    public static ToughnessBandWindow Empty { get; } =
+        new(new Dictionary<ToughnessBand, int>(), 0, 0, 0, null, false);
+}
+
+/// <summary>
+/// What Toughness turned away over one window of the fight.
+/// </summary>
+/// <param name="Mitigated">Damage Toughness turned away across the window's qualifying hits.</param>
+/// <param name="AtCeiling">What the top band would have turned away from those same hits.</param>
+/// <param name="Hits">Qualifying physical hits folded in.</param>
+/// <param name="Ticks">The share of <paramref name="Hits"/> that were periodic ticks.</param>
+public sealed record ToughnessMitigationWindow(double Mitigated, double AtCeiling, int Hits, int Ticks)
+{
+    /// <summary>A window no qualifying hit fell inside.</summary>
+    public static ToughnessMitigationWindow Empty { get; } = new(0, 0, 0, 0);
+
+    /// <summary>Share (0-1) of what the top band would have turned away that Toughness actually did.</summary>
+    public double Efficiency => AtCeiling > 0 ? Mitigated / AtCeiling : 0;
 }
 
 /// <summary>

@@ -17,7 +17,7 @@ public enum PullBoss
 /// <summary>
 /// Declares the pull shapes an <see cref="Analyzer"/> runs on. Required on every Analyzer.
 /// An Analyzer matches a <see cref="Pull"/> when
-/// <c>(pull.Targets &amp; Targets) != 0</c> and the pull's boss state satisfies <see cref="Boss"/>.
+/// <c>Targets.HasFlag(pull.Targets)</c> and the pull's boss state satisfies <see cref="Boss"/>.
 /// Because the filter is compile-time constant, the parser generator emits it as a static bitmask
 /// gate in the per-pull resolver.
 /// </summary>

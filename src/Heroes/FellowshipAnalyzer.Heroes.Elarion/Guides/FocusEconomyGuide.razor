@@ -2,19 +2,14 @@
 @inherits ReportComponent<ElarionCombatLogParser>
 
 <GuideSection Title="Focus Economy">
-    <Explanation>
+    <LeftPanel>
         <p>
-            Focus regenerates on its own and caps at 100, so every stretch spent sitting at the cap is
-            regeneration thrown away. A <SpellLink Spell="Spells.FocusedShot" /> started near the cap
-            wastes most of the 20 Focus it grants for the same reason.
+            Cast <SpellLink Spell="Spells.CelestialShot" /> to avoid overcapping Focus.            
+            The table shows how often you were casting at full Focus and how much Focus you
+            had available when casting <SpellLink Spell="Spells.EventHorizon" />.
         </p>
-        <p>
-            <SpellLink Spell="Spells.EventHorizon" /> halves every Focus cost for 20 seconds, so the bank
-            carried into it decides how much that window can convert. Each cast below is scored on the
-            Focus it started from, with the spending that followed inside the window as context.
-        </p>
-    </Explanation>
-    <ChildContent>
+    </LeftPanel>
+    <RightPanel>
         @if (Parser.FocusTracker is not null)
         {
             <ResourceGraph
@@ -26,7 +21,7 @@
         <CastDetail Title="Event Horizon Windows"
                     Description="Each card is one Event Horizon cast, rated on the Focus banked going in, with the spenders and approximate Focus spent under the halved costs alongside."
                     Casts="@BuildWindowRows()" />
-    </ChildContent>
+    </RightPanel>
 </GuideSection>
 
 @code {

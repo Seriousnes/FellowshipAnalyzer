@@ -65,8 +65,8 @@ namespace FellowshipAnalyzer.Heroes.Rime.Analysis;
 
 [HeroAnalyzer(HeroName.Rime)]
 [AddState<WinterOrbTracker>]
-[AddAnalyzer<SingleTargetEmbraceWindowAnalyzer>]
-[AddAnalyzer<AoeEmbraceWindowAnalyzer>]
+[AddAnalyzer<SingleTargetEmbraceAnalyzer>]
+[AddAnalyzer<AoeEmbraceAnalyzer>]
 [AddModule<Modules.Abilities>]
 [AddModule<RimeAuras>]
 public sealed partial class RimeCombatLogParser : CombatLogParser
@@ -78,7 +78,7 @@ public sealed partial class RimeCombatLogParser : CombatLogParser
 The generator emits:
 
 - A constructor that passes `EventEmitter` and `IServiceProvider` to the base parser.
-- Source-generated nullable module properties such as `WinterOrbTracker`, plus the pull read paths for each `[AddAnalyzer]` surface (`WintersEmbraceWindowAnalyzers`, `pull.WintersEmbraceWindowAnalyzer`, `Pulls`).
+- Source-generated nullable module properties such as `WinterOrbTracker`, plus the pull read paths for each `[AddAnalyzer]` surface (`WintersEmbraceAnalyzers`, `pull.WintersEmbraceAnalyzer`, `Pulls`).
 - `GetModuleTypes()` and `GetNormalizerTypes()` implementations.
 - `Add{Hero}Analysis()` DI extension methods and keyed `IHeroAnalyzer` registration, both **transient**: a parser serves exactly one analysis, so the host resolves a fresh one per report and a report's read surfaces can never hold another's. Blazor WebAssembly runs the whole session in one DI scope, so a scoped registration would mean one parser for every report the user opens.
 - `AddCoreAnalysis()` for shared analysis services, base modules, and base normalizers.
@@ -95,13 +95,13 @@ builder.Services.AddFellowshipHeroAnalysis();
 
 ## Module Lifecycle
 
-Modules are constructed per analysis run by a generator-emitted factory; sibling-module constructor parameters resolve through the parser's own module cache and any other parameter type falls back to the service provider. The parser assigns `Owner` and `Priority` after constructing each module. There is no `Initialize` or `Complete` virtual - setup runs in the constructor, and finalized metrics are exposed as public properties (computed on read, or set from an `[On<FightEndEvent>]` handler).
+Modules are constructed per analysis run by a generator-emitted factory; sibling-module constructor parameters resolve through the parser's own module cache and any other parameter type falls back to the service provider. The parser assigns `Owner` after constructing each module. There is no `Initialize` or `Complete` virtual - setup runs in the constructor, and finalized metrics are exposed as public properties (computed on read, or set from an `[On<FightEndEvent>]` handler).
 
 ```csharp
 public abstract class Module
 {
     public bool Active { get; protected set; } = true;
-    public int Priority { get; set; }
+    public virtual int Priority => 0;
     public CombatLogParser Owner { get; set; } = null!;
     public virtual Type? StatisticsComponentType => null;
 
@@ -111,7 +111,7 @@ public abstract class Module
 
 Use this lifecycle:
 
-- Declare modules with `[AddModule<T>]` on the parser. Declaration order becomes module priority; `[Before<T>]` / `[After<T>]` refine it.
+- Declare modules with `[AddModule<T>]` on the parser. `Priority` is a design-time constant a module overrides, defaulting to 0; `[Before<T>]` / `[After<T>]` order modules that share one, and guarantee only the pairwise relation they name.
 - Do setup work that needs the selected player or the raw event list in the constructor - inject `ParseContext` and/or `IReadOnlyList<Event>`.
 - Subscribe to events declaratively with `[On<TEvent>]` attributes on instance methods. The `ModuleGenerator` emits the corresponding `RegisterSubscriptions` plumbing.
 - Hook fight-boundary setup via `[On<FightStartEvent>]` and finalization via `[On<FightEndEvent>]` (the `FightBookendNormalizer` fabricates both).

@@ -6,24 +6,19 @@
 @inject ChartPalette Palette
 
 <GuideSection Title="Detonate">
-    <Explanation>
+    <LeftPanel>
         <p>
-
-            <SpellLink Spell="Spells.Detonate" /> should be cast into a layered pack, never to fill a gap.
-            Each cast is scored on the instances active when it lands, across
-            <SpellLink Spell="Spells.SearingBlaze" />, <SpellLink Spell="Spells.EngulfingFlames" />,
-            <SpellLink Spell="Spells.FireBall" />, <SpellLink Spell="Spells.FireFrogs" />,
-            <SpellLink Spell="Spells.Incinerate" /> and <SpellLink Spell="Spells.Apocalypse" />.
+            Cast <SpellLink Spell="Spells.Detonate" /> to capitalize on the DoTs you have active, or to avoid 
+            overcapping on Embers.
         </p>
         @if (HasApocalypticSurge)
         {
             <p>
-                Apocalyptic Surge stacks should be spent inside a well-layered window, but even a cast with a
-                single DoT is better than letting stacks expire.
+                Try to avoid letting <SpellLink Spell="Spells.ApocalypticSurge" /> stacks expire unused.
             </p>
         }
-    </Explanation>
-    <ChildContent>
+    </LeftPanel>
+    <RightPanel>
         <CastOverview Title="Detonate Overview" Stats="@BuildOverviewStats()" />
 
         @if (Charted is { } charted)
@@ -48,7 +43,7 @@
         <CastDetail Title="Detonate Casts"
                     Description="Each card is one Detonate, rated on the active DoT instances per enemy when it landed."
                     Casts="@BuildPerCastData()" />
-    </ChildContent>
+    </RightPanel>
 </GuideSection>
 
 @code {

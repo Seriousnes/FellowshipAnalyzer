@@ -1,25 +1,15 @@
 @inherits ReportComponent<MaraCombatLogParser>
 
 <GuideSection Title="Energy & Combo Points">
-    <Explanation>
+    <LeftPanel>
         <p>
             <SpellLink Spell="Spells.QueenFang" /> and <SpellLink Spell="Spells.ArachnidAssault" /> gain
-            20% damage for every combo point they spend, so each pull is scored on how much was banked
-            when those finishers went out: 5 or more on boss pulls, 4 or more in AoE.
+            20% damage for every combo point they spend, so hold them for 5 on a boss and 4 in a pack.
+            Energy regenerates the whole fight, so casts pressed at full Energy and builders pressed at
+            six combo points are both generation thrown away. The table shows both.
         </p>
-        <p>
-            Energy regenerates the whole time you are in combat, so casts pressed while Energy sat at cap,
-            and <SpellLink Spell="Spells.Backstab" />, <SpellLink Spell="Spells.WidowBite" /> or
-            <SpellLink Spell="Spells.SkitteringBlades" /> casts made at six combo points, are counted here
-            as generation thrown away.
-        </p>
-        <p>
-            <SpellLink Spell="Spells.HemorrhagingStrike" /> is reported for context only: it is pressed to
-            keep bleeds and Hemotoxin running rather than to dump combo points, so it is not scored against
-            the finisher bar.
-        </p>
-    </Explanation>
-    <ChildContent>
+    </LeftPanel>
+    <RightPanel>
         <CastOverview Title="Resource Overview" Stats="@BuildOverviewStats()" />
         <StackedBar Segments="@BuildComboPointDistribution()" />
         @if (Parser.EnergyComboPointTracker is not null)
@@ -27,9 +17,9 @@
             <ResourceGraph Tracker="Parser.EnergyComboPointTracker" Resource="ResourceTypes.Primary" />
         }
         <CastDetail Title="Resources by Pull"
-                    Description="Each row is one pull, scored against the combo-point bar that pull's shape calls for."
+                    Description="Each row is one pull, scored against the combo-point threshold that pull's shape calls for."
                     Casts="@BuildPerCastData()" />
-    </ChildContent>
+    </RightPanel>
 </GuideSection>
 
 @code {
@@ -57,7 +47,7 @@
             new OverviewStat(
                 $"{thresholdRate}%",
                 "Finishers on Threshold",
-                $"{atThreshold} of {finishers} Queen's Fang and Arachnid Assault casts met their pull's combo-point bar (5+ on bosses, 4+ in AoE).",
+                $"{atThreshold} of {finishers} Queen's Fang and Arachnid Assault casts met their pull's combo-point threshold (5+ on bosses, 4+ in AoE).",
                 ThresholdTier(thresholdRate, finishers)),
             new OverviewStat(
                 $"{finishers}",
@@ -91,9 +81,9 @@
             new StackedBarSegment("5 CP", five, PerformanceColors.Good,
                 $"{five} finishers spent at 5 combo points, 20% of the bonus short of a full spend."),
             new StackedBarSegment("4 CP", four, PerformanceColors.Ok,
-                $"{four} finishers spent at 4 combo points, on the AoE bar but under the single-target bar."),
+                $"{four} finishers spent at 4 combo points, at the AoE threshold but under the single-target threshold."),
             new StackedBarSegment("3 CP or fewer", low, PerformanceColors.Fail,
-                $"{low} finishers spent at 3 or fewer combo points, under both pull shapes' bars."),
+                $"{low} finishers spent at 3 or fewer combo points, under both pull shapes' thresholds."),
         ];
     }
 
@@ -114,12 +104,12 @@
                 isAoe ? "AoE" : "ST",
                 "Shape",
                 isAoe
-                    ? "Multi-target pull, scored against the AoE bar of 4 or more combo points per finisher."
-                    : "Single-target pull, scored against the boss bar of 5 or more combo points per finisher."),
+                    ? "Multi-target pull, scored against the AoE threshold of 4 or more combo points per finisher."
+                    : "Single-target pull, scored against the boss threshold of 5 or more combo points per finisher."),
             new PerCastStat(
                 $"{analyzer.FinishersAtThreshold}/{analyzer.Finishers.Count}",
                 $"Finishers at {analyzer.FinisherCpThreshold}+ CP",
-                $"Queen's Fang and Arachnid Assault casts that met this pull's combo-point bar ({thresholdRate}%).",
+                $"Queen's Fang and Arachnid Assault casts that met this pull's combo-point threshold ({thresholdRate}%).",
                 Performance: ThresholdTier(thresholdRate, analyzer.Finishers.Count)),
             new PerCastStat(
                 $"{analyzer.EnergyCappedCasts}/{analyzer.EnergyCastsSampled}",
@@ -134,7 +124,7 @@
             new PerCastStat(
                 $"{analyzer.MaintenanceFinisherCasts}",
                 "Hemorrhaging Strike",
-                "Hemorrhaging Strike casts, pressed for bleed and Hemotoxin upkeep; shown for context, not scored."),
+                "Hemorrhaging Strike casts. It is pressed to keep bleeds and Hemotoxin running rather than to dump combo points, so it is shown for context only and is not scored against the finisher threshold."),
         };
 
         return new PerCastRow

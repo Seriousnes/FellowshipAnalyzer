@@ -12,8 +12,8 @@ namespace FellowshipAnalyzer.Heroes.Helena.Modules;
 public interface IIronWallAnalyzer : IAnalyzerSurface;
 
 /// <summary>
-/// Measures Iron Wall, which freezes Toughness loss for its duration rather than reducing a hit, so
-/// what it is worth is decided before it goes out: the Toughness it freezes in place, and whether
+/// Measures Iron Wall, which stops Toughness being lowered for its duration rather than reducing a
+/// hit, so what it is worth is decided before it goes out: the Toughness it holds, and whether
 /// Shields Up charges were spent when it was pressed. Both are recorded per use alongside the damage
 /// the window covered.
 /// </summary>
@@ -113,8 +113,8 @@ public sealed record IronWallUse(
     int? ShieldsUpCharges)
 {
     /// <summary>
-    /// Whether Toughness was at or above half maximum, the threshold from which the freeze holds a
-    /// band worth holding rather than locking in a depleted one.
+    /// Whether Toughness was at or above half maximum, the threshold from which the window holds a
+    /// band worth holding rather than a depleted one.
     /// </summary>
     public bool OpenedAboveHalfToughness => ToughnessShare >= ToughnessBands.LowerThreshold(ToughnessBand.Level3);
 }

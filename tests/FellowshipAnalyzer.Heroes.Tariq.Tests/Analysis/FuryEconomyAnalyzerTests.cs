@@ -65,7 +65,7 @@ public sealed class FuryEconomyAnalyzerTests
 
     /// <summary>
     /// Leap Smash is a movement cooldown pressed to close a gap, so the Fury it returns is a side effect
-    /// rather than a resource decision and the waste model leaves it alone entirely - even at a full bar.
+    /// rather than a resource decision and the waste model leaves it alone entirely - even at full Fury.
     /// </summary>
     [Fact]
     public async Task Analyze_FuryEconomy_LeavesLeapSmashOutOfTheModelEvenAtCap()

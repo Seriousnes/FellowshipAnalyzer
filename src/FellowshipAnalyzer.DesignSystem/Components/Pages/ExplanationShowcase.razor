@@ -9,10 +9,10 @@
              Description="Styled prose container - holds a GuideSection's why-it-matters, what-to-aim-for, what-the-table-shows copy."
              Code="@_explanationCode">
     <Demo>
-        <Explanation>
+        <LeftPanel>
             <p>Winter Orbs pay for everything Rime hits hard with, so a full pool is generation you never get back. The pool holds five, and Anima you generate at five is gone.</p>
             <p>Spend down to four before the next gain lands. The table shows the gains that arrived on a full pool, and how long the pool sat there.</p>
-        </Explanation>
+        </LeftPanel>
     </Demo>
 </CodeExample>
 
@@ -34,10 +34,10 @@
 
 @code {
     private const string _explanationCode = """
-<Explanation>
+<LeftPanel>
     <p>Winter Orbs pay for everything Rime hits hard with...</p>
     <p>Spend down to four before the next gain lands. The table shows...</p>
-</Explanation>
+</LeftPanel>
 """;
 
     private const string _helperCode = """

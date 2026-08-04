@@ -1,8 +1,10 @@
-using FellowshipAnalyzer.Core.Common.Spells;
+using FellowshipAnalyzer.Core.UI;
 using FellowshipAnalyzer.SpellData;
 using FellowshipAnalyzer.SpellData.Model;
 using FellowshipAnalyzer.SpellData.Sources;
+
 using Shouldly;
+
 using Xunit;
 
 namespace FellowshipAnalyzer.SpellData.Tests;

@@ -8,12 +8,13 @@ namespace FellowshipAnalyzer.Heroes.Elarion.Modules;
 [ForPull(PullKind.Single | PullKind.Multi)]
 public sealed partial class CooldownPairingAnalyzer : Analyzer
 {
-    public const int SharedRechargeMs = 40_000;
+    private static readonly int BarrageChannelMs =
+        (int)((Spells.HeartseekerBarrage.ChannelDuration ?? 0) * 1000);
 
     private readonly List<int> _graceCasts = [];
     private readonly List<int> _eventHorizonCasts = [];
     private readonly List<int> _markCasts = [];
-    private readonly List<int> _volleyCasts = [];
+    private readonly List<int> _barrageCasts = [];
 
     private readonly BuffUptime _graceBuff = new();
     private readonly BuffUptime _eventHorizonBuff = new();
@@ -21,15 +22,22 @@ public sealed partial class CooldownPairingAnalyzer : Analyzer
     private int _graceHeldMs;
     private int? _graceAvailableSince;
 
-    public int PullDurationMs => Math.Max(0, Pull.EndTime - Pull.StartTime);
-
     public int GraceCasts => _graceCasts.Count;
 
     public int EventHorizonCasts => _eventHorizonCasts.Count;
 
     public int MarkCasts => _markCasts.Count;
 
-    public int VolleyCasts => _volleyCasts.Count;
+    public int BarrageCasts => _barrageCasts.Count;
+
+    public int BarrageChannels { get; private set; }
+
+    public int BarrageChannelsClipped { get; private set; }
+
+    public int BarrageChannelLostMs { get; private set; }
+
+    public double BarrageChannelsClippedPercentage =>
+        BarrageChannels == 0 ? 0 : BarrageChannelsClipped / (double)BarrageChannels * 100;
 
     public int GraceHeldMs =>
         _graceHeldMs + (_graceAvailableSince is { } since ? Math.Max(0, Pull.EndTime - since) : 0);
@@ -44,14 +52,6 @@ public sealed partial class CooldownPairingAnalyzer : Analyzer
             .. _eventHorizonCasts.Select(cast => new EventHorizonPairing(cast, NearestDeltaMs(cast, _graceCasts))),
         ];
 
-    public IReadOnlyList<MarkVolleyPairing> MarkVolleyPairings =>
-        field ??=
-        [
-            .. _markCasts.Select(cast => new MarkVolleyPairing(cast, NearestDeltaMs(cast, _volleyCasts))),
-        ];
-
-    public int AchievableFortySecondCasts => PullDurationMs / SharedRechargeMs + 1;
-
     [On<CastEvent>(By = Actor.Player, Spell = nameof(Spells.SkystridersGrace))]
     private void OnGraceCast(CastEvent e) => _graceCasts.Add(e.Timestamp);
 
@@ -61,8 +61,25 @@ public sealed partial class CooldownPairingAnalyzer : Analyzer
     [On<CastEvent>(By = Actor.Player, Spell = nameof(Spells.LunarlightMark))]
     private void OnMarkCast(CastEvent e) => _markCasts.Add(e.Timestamp);
 
-    [On<CastEvent>(By = Actor.Player, Spell = nameof(Spells.StarfallVolley))]
-    private void OnVolleyCast(CastEvent e) => _volleyCasts.Add(e.Timestamp);
+    [On<CastEvent>(By = Actor.Player, Spell = nameof(Spells.HeartseekerBarrage))]
+    private void OnBarrageCast(CastEvent e) => _barrageCasts.Add(e.Timestamp);
+
+    [On<BeginChannelEvent>(By = Actor.Player, Spell = nameof(Spells.HeartseekerBarrage))]
+    private void OnBarrageChannelBegin(BeginChannelEvent e) => BarrageChannels++;
+
+    [On<EndChannelEvent>(By = Actor.Player, Spell = nameof(Spells.HeartseekerBarrage))]
+    private void OnBarrageChannelEnd(EndChannelEvent e)
+    {
+        if (e.BeginChannel is not { } begin)
+            return;
+
+        var lost = BarrageChannelMs - (e.Timestamp - begin.Timestamp);
+        if (lost <= 0)
+            return;
+
+        BarrageChannelsClipped++;
+        BarrageChannelLostMs += lost;
+    }
 
     [On<UpdateSpellUsableEvent>(By = Actor.Player, Spell = nameof(Spells.SkystridersGrace))]
     private void OnGraceUsable(UpdateSpellUsableEvent e)
@@ -104,8 +121,6 @@ public sealed partial class CooldownPairingAnalyzer : Analyzer
     }
 
     public sealed record EventHorizonPairing(int Timestamp, int? NearestGraceDeltaMs);
-
-    public sealed record MarkVolleyPairing(int Timestamp, int? NearestVolleyDeltaMs);
 
     private sealed class BuffUptime
     {

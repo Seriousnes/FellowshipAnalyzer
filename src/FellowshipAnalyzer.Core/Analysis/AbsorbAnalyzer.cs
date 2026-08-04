@@ -16,8 +16,8 @@ namespace FellowshipAnalyzer.Core.Analysis;
 /// </summary>
 public abstract class AbsorbAnalyzer : Analyzer
 {
-    private readonly List<ShieldCapture> _shields = [];
-    private readonly Dictionary<UnitKey, ShieldCapture> _open = [];
+    private readonly List<AbsorbCapture> _absorbs = [];
+    private readonly Dictionary<UnitKey, AbsorbCapture> _open = [];
 
     private Computed Result => field ??= Compute();
 
@@ -27,17 +27,17 @@ public abstract class AbsorbAnalyzer : Analyzer
     /// window it already has leaves it false, so the window stays one reading and
     /// <see cref="Applications"/> is what runs ahead.
     /// </summary>
-    protected virtual bool ReapplicationOpensNewShield => false;
+    protected virtual bool ReapplicationOpensNewAbsorb => false;
 
-    /// <summary>Every shield this pull, in encounter order.</summary>
-    public IReadOnlyList<AbsorbUse> Shields => Result.Shields;
+    /// <summary>Every absorb this pull, in encounter order.</summary>
+    public IReadOnlyList<AbsorbUse> Absorbs => Result.Absorbs;
 
     /// <summary>Shield windows this pull.</summary>
-    public int ShieldsLaid => Result.Shields.Count;
+    public int AbsorbsApplied => Result.Absorbs.Count;
 
     /// <summary>
     /// Applications this pull, counting a re-application onto a live shield. This runs ahead of
-    /// <see cref="ShieldsLaid"/> when <see cref="ReapplicationOpensNewShield"/> is false.
+    /// <see cref="AbsorbsApplied"/> when <see cref="ReapplicationOpensNewAbsorb"/> is false.
     /// </summary>
     public int Applications { get; private set; }
 
@@ -48,7 +48,7 @@ public abstract class AbsorbAnalyzer : Analyzer
     public long AbsorbWasted => Result.Wasted;
 
     /// <summary>Shields that came off still holding absorb.</summary>
-    public int ShieldsExpiredUnspent => Result.ExpiredUnspent;
+    public int AbsorbsExpiredUnspent => Result.ExpiredUnspent;
 
     /// <summary>Share (0-1) of the absorb the shields offered that was consumed rather than left to expire.</summary>
     public double AbsorbEfficiency
@@ -68,14 +68,14 @@ public abstract class AbsorbAnalyzer : Analyzer
         var key = AuraWindowLedger.KeyOf(e);
         if (_open.TryGetValue(key, out var running))
         {
-            if (!ReapplicationOpensNewShield) return;
+            if (!ReapplicationOpensNewAbsorb) return;
 
             running.End = e.Timestamp;
             running.Reapplied = true;
         }
 
-        var shield = new ShieldCapture { Target = key, Start = e.Timestamp, End = e.Timestamp };
-        _shields.Add(shield);
+        var shield = new AbsorbCapture { Target = key, Start = e.Timestamp, End = e.Timestamp };
+        _absorbs.Add(shield);
         _open[key] = shield;
     }
 
@@ -111,16 +111,16 @@ public abstract class AbsorbAnalyzer : Analyzer
 
     private Computed Compute()
     {
-        var shields = new List<AbsorbUse>(_shields.Count);
+        var absorbs = new List<AbsorbUse>(_absorbs.Count);
         long used = 0, wasted = 0;
         var expiredUnspent = 0;
 
-        foreach (var capture in _shields)
+        foreach (var capture in _absorbs)
         {
             var truncated = _open.ContainsValue(capture);
             var end = truncated ? Math.Max(capture.End, Pull.EndTime) : capture.End;
 
-            shields.Add(new AbsorbUse(
+            absorbs.Add(new AbsorbUse(
                 capture.Target,
                 capture.Start,
                 end,
@@ -134,10 +134,10 @@ public abstract class AbsorbAnalyzer : Analyzer
             if (capture.Remaining > 0) expiredUnspent++;
         }
 
-        return new Computed(shields, used, wasted, expiredUnspent);
+        return new Computed(absorbs, used, wasted, expiredUnspent);
     }
 
-    private sealed class ShieldCapture
+    private sealed class AbsorbCapture
     {
         public UnitKey Target { get; init; }
         public int Start { get; init; }
@@ -148,7 +148,7 @@ public abstract class AbsorbAnalyzer : Analyzer
     }
 
     private sealed record Computed(
-        IReadOnlyList<AbsorbUse> Shields,
+        IReadOnlyList<AbsorbUse> Absorbs,
         long Used,
         long Wasted,
         int ExpiredUnspent);
@@ -171,9 +171,9 @@ public sealed record AbsorbUse(
     bool Truncated,
     bool Reapplied)
 {
-    /// <summary>How long the shield was up, in milliseconds.</summary>
+    /// <summary>How long the absorb was up, in milliseconds.</summary>
     public int DurationMs => End - Start;
 
-    /// <summary>Whether the shield came off with absorb still on it.</summary>
+    /// <summary>Whether the absorb came off with absorb still on it.</summary>
     public bool ExpiredUnspent => Remaining > 0;
 }

@@ -115,7 +115,7 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
 
     private Dictionary<Type, Module> _activeModules = [];
     private readonly Dictionary<Type, object> _runInstances = [];
-    private readonly Dictionary<Type, int> _moduleTypeIndex = [];
+    private readonly HashSet<Type> _runModuleTypeSet = [];
     private Type[] _runModuleTypes = [];
     private readonly Dictionary<Type, object> _pullInstances = [];
     private readonly List<(Pull Pull, Analyzer Analyzer)> _pullAnalyzers = [];
@@ -189,7 +189,7 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
         if (_runInstances.TryGetValue(type, out var existing)) return existing;
 
         var concrete = type;
-        if (!_moduleTypeIndex.ContainsKey(type))
+        if (!_runModuleTypeSet.Contains(type))
         {
             Type? match = null;
             foreach (var mt in _runModuleTypes)
@@ -218,15 +218,14 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
         if (instance is Module module)
         {
             module.Owner = this;
-            if (_moduleTypeIndex.TryGetValue(concrete, out var priority))
-                module.Priority = priority;
         }
         return instance;
     }
 
     /// <summary>
-    /// Returns the types of all modules to resolve from DI for this parser.
-    /// Source-generated — includes base + own modules in priority order.
+    /// Returns the types of all modules to resolve from DI for this parser. Source-generated, covering
+    /// base and own modules in the order <c>[Before&lt;T&gt;]</c> and <c>[After&lt;T&gt;]</c>
+    /// topologically sort them, which is the order they are constructed and subscribed in.
     /// </summary>
     protected abstract Type[] GetModuleTypes();
 
@@ -310,7 +309,7 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
             IndexPullAnalyzer(pull, analyzer);
         }
 
-        EventEmitter.ClearPullListeners();
+        EventEmitter.UnsubscribePullAnalyzers();
         _pullInstances.Clear();
         CurrentPull = null;
     }
@@ -362,10 +361,9 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
         SelectedPull = null;
 
         _runInstances.Clear();
-        _moduleTypeIndex.Clear();
+        _runModuleTypeSet.Clear();
         _runModuleTypes = allModuleTypes;
-        for (var i = 0; i < allModuleTypes.Length; i++)
-            _moduleTypeIndex[allModuleTypes[i]] = i;
+        _runModuleTypeSet.UnionWith(allModuleTypes);
 
         Events = [.. events.Where(e => e is not CastEvent { Fake: true })];
 
@@ -384,7 +382,6 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
         {
             if (!IsModuleActive(t, CurrentParseContext)) continue;
             var m = (Module)ResolveAnalysisModule(t);
-            m.Priority = _activeModules.Count;
             if (m.Active)
                 _activeModules[m.GetType()] = m;
         }

@@ -3,8 +3,8 @@ using System.Text.Json.Serialization;
 using FellowshipAnalyzer.Core.Common.Spells.Ardeos;
 using FellowshipAnalyzer.Core.Common.Spells.Elarion;
 using FellowshipAnalyzer.Core.Common.Spells.Rime;
-using FellowshipAnalyzer.Core.Events;
 using FellowshipAnalyzer.Core.Game;
+using FellowshipAnalyzer.Core.UI;
 
 namespace FellowshipAnalyzer.Core.Common.Spells;
 

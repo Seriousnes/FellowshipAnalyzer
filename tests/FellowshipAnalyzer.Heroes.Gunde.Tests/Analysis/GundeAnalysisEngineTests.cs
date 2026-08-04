@@ -45,13 +45,13 @@ public sealed class GundeAnalysisEngineTests
         analyzer.Slaughters[0].OpenWoundsActive.ShouldBeTrue();
         analyzer.Slaughters[0].TargetsHit.ShouldBe(2);
         analyzer.Slaughters[0].WellExecuted.ShouldBeTrue();
-        analyzer.Slaughters[0].PayoffDamage.ShouldBe(600);
+        analyzer.Slaughters[0].BleedDamage.ShouldBe(600);
 
         analyzer.Slaughters[1].OpenWoundsActive.ShouldBeFalse();
         analyzer.Slaughters[1].WellExecuted.ShouldBeFalse();
-        analyzer.Slaughters[1].PayoffDamage.ShouldBe(150);
+        analyzer.Slaughters[1].BleedDamage.ShouldBe(150);
 
-        analyzer.TotalPayoffDamage.ShouldBe(750);
+        analyzer.TotalBleedDamage.ShouldBe(750);
         analyzer.TotalOpenWoundsWindows.ShouldBe(1);
         analyzer.WastedOpenWoundsWindows.ShouldBe(0);
     }
@@ -91,9 +91,9 @@ public sealed class GundeAnalysisEngineTests
         var (parser, _) = await AnalyzeAsync(events, boss: true);
 
         var analyzer = parser.SlaughterUsageAnalyzers.ShouldHaveSingleItem().Analyzer;
-        analyzer.Slaughters[0].PayoffDamage.ShouldBe(300);
-        analyzer.Slaughters[1].PayoffDamage.ShouldBe(500);
-        analyzer.TotalPayoffDamage.ShouldBe(800);
+        analyzer.Slaughters[0].BleedDamage.ShouldBe(300);
+        analyzer.Slaughters[1].BleedDamage.ShouldBe(500);
+        analyzer.TotalBleedDamage.ShouldBe(800);
     }
 
     [Fact]

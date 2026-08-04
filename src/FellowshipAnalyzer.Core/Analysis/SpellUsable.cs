@@ -437,17 +437,31 @@ public sealed partial class SpellUsable(
 }
 
 /// <summary>
-/// The outcome of a <see cref="SpellUsable.ReduceCooldown"/> request.
+/// The outcome of a <see cref="SpellUsable.ReduceCooldown"/> request, in milliseconds.
 /// </summary>
-/// <param name="GeneratedMs">
-/// Reduction the request generated, in milliseconds. This is the requested amount after Ability Cooldown
-/// Reduction scaling: flat reductions are shortened by ACR but are not divided by the cooldown-recovery pool.
+/// <param name="Total">
+/// The reduction the request produced, after Ability Cooldown Reduction scaling. A flat reduction is
+/// shortened by ACR but is not divided by the cooldown-recovery pool.
 /// </param>
-/// <param name="AppliedMs">How much of <paramref name="GeneratedMs"/> shortened a running cooldown.</param>
-public readonly record struct CooldownReductionResult(int GeneratedMs, int AppliedMs)
+/// <param name="Effective">
+/// The amount of reduction that actually shortened a running cooldown
+/// </param>
+public readonly record struct CooldownReductionResult(int Total, int Effective)
 {
-    /// <summary>Reduction generated while the spell was already off cooldown, in milliseconds.</summary>
-    public int WastedMs => GeneratedMs - AppliedMs;
+    /// <summary>
+    /// Creates a new <see cref="CooldownReductionResult"/> with no reduction applied.
+    /// </summary>
+    public CooldownReductionResult() : this(0, 0) { }
+
+    /// <summary>Amount of reduction that was wasted, either because the spell was already off cooldown, or had less time remaining than the total reduction.</summary>
+    public int Wasted => Total - Effective;
+
+    /// <summary>Share (0-1) of <see cref="Total"/> that shortened a running cooldown. Zero when nothing was generated.</summary>
+    public double Efficiency => Total > 0 ? (double)Effective / Total : 0;
+
+    /// <summary>Adds two results together, so a run of requests can be accumulated into one.</summary>
+    public static CooldownReductionResult operator +(CooldownReductionResult a, CooldownReductionResult b) =>
+        new(a.Total + b.Total, a.Effective + b.Effective);
 }
 
 /// <summary>

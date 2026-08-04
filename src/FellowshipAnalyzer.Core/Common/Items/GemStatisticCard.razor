@@ -1,12 +1,8 @@
 @using FellowshipAnalyzer.Core.Analysis.Gems
 
-<StatCard Title="@($"{Gem.Gem} Gem")" Meta="@($"{Gem.GemPower} power")">
+<StatCard Title="@($"{Gem.Gem} Gem")" Meta="@($"{Gem.GemPower} power")">    
     <Info>
         @Info
-        <p>
-            Each trait is listed at the rank @Gem.GemPower @Gem.Gem power has unlocked. Ranks replace one
-            another rather than stacking, and a trait the log recorded nothing for is left out.
-        </p>
     </Info>
     <ChildContent>
         <CascadingValue Value="combatLogParser.ThroughputTracker">

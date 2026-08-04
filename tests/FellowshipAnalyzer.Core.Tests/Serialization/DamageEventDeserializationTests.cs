@@ -3,6 +3,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 
 using FellowshipAnalyzer.Core.Events;
+using FellowshipAnalyzer.Core.Game;
 using FellowshipAnalyzer.Core.Serialization;
 
 using Shouldly;
@@ -74,22 +75,20 @@ public sealed class DamageEventDeserializationTests
     }
 
     [Fact]
-    public void School_ReadsFromTheResolvedAbilityAndFailsClosedWithoutOne()
+    public void School_ReadsFromTheAbilityIdAndFailsClosedWithoutAClassification()
     {
-        var unresolved = new DamageEvent { AbilityGameId = 2190 };
-        unresolved.School.ShouldBe(default);
-        unresolved.IsPhysical.ShouldBeFalse();
-        unresolved.IsMagic.ShouldBeFalse();
-
-        var physical = new DamageEvent { Ability = new Ability { FSLID = 2190, Type = MagicSchool.Physical } };
+        var physical = new DamageEvent { AbilityGameId = 2190 };
+        physical.School.ShouldBe(MagicSchool.Physical);
         physical.IsPhysical.ShouldBeTrue();
         physical.IsMagic.ShouldBeFalse();
 
-        var both = new DamageEvent
-        {
-            Ability = new Ability { FSLID = 255, Type = MagicSchool.Magic | MagicSchool.Physical },
-        };
+        var both = new DamageEvent { AbilityGameId = 255 };
         both.IsPhysical.ShouldBeTrue();
         both.IsMagic.ShouldBeTrue();
+
+        var unclassified = new DamageEvent { AbilityGameId = 5 };
+        unclassified.School.ShouldBe(default);
+        unclassified.IsPhysical.ShouldBeFalse();
+        unclassified.IsMagic.ShouldBeFalse();
     }
 }

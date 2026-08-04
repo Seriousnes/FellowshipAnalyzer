@@ -14,8 +14,8 @@ namespace FellowshipAnalyzer.Core.Analysis;
 /// </summary>
 public sealed class EventEmitter(ILogger<EventEmitter> logger) : Module
 {
-    private readonly List<RegisteredListener> _stateListeners = [];
-    private readonly List<RegisteredListener> _pullListeners = [];
+    private List<RegisteredListener> _stateListeners = [];
+    private List<RegisteredListener> _pullListeners = [];
     private readonly List<Event> _scheduled = [];
     private bool _subscribingToPull;
     private List<Event>? _events;
@@ -33,10 +33,13 @@ public sealed class EventEmitter(ILogger<EventEmitter> logger) : Module
         (_subscribingToPull ? _pullListeners : _stateListeners).Add(new RegisteredListener(module, filter, handler));
     }
 
-    /// <summary>Orders the state listener tier by <see cref="Module.Priority"/> so dispatch runs modules in registration order.</summary>
+    /// <summary>
+    /// Orders the state listener tier by <see cref="Module.Priority"/>. Called once the parse-lifetime
+    /// modules have registered, which is the only time that tier changes.
+    /// </summary>
     public void SortListeners()
     {
-        _stateListeners.Sort(static (a, b) => a.Module.Priority.CompareTo(b.Module.Priority));
+        _stateListeners = Ordered(_stateListeners);
     }
 
     /// <summary>
@@ -52,15 +55,24 @@ public sealed class EventEmitter(ILogger<EventEmitter> logger) : Module
     /// <summary>Orders the per-pull listener tier by <see cref="Module.Priority"/> and closes registration. Paired with <see cref="BeginPullSubscriptions"/>.</summary>
     public void EndPullSubscriptions()
     {
-        _pullListeners.Sort(static (a, b) => a.Module.Priority.CompareTo(b.Module.Priority));
+        _pullListeners = Ordered(_pullListeners);
         _subscribingToPull = false;
     }
 
-    /// <summary>Retires the current pull's listeners at <see cref="FellowshipAnalyzer.Core.Events.PullEndEvent"/>.</summary>
-    public void ClearPullListeners()
+    /// <summary>Retires the current pull's analyzers so they stop receiving events once the pull has ended.</summary>
+    public void UnsubscribePullAnalyzers()
     {
         _pullListeners.Clear();
     }
+
+    /// <summary>
+    /// Orders one tier by <see cref="Module.Priority"/>. The sort has to stay stable: construction order
+    /// is what carries the <c>[Before&lt;T&gt;]</c> and <c>[After&lt;T&gt;]</c> constraints, and only a
+    /// stable sort leaves it intact. Modules sharing a priority with no constraint between them keep
+    /// whatever relative order they were constructed in.
+    /// </summary>
+    private static List<RegisteredListener> Ordered(List<RegisteredListener> listeners) =>
+        [.. listeners.OrderBy(static listener => listener.Module.Priority)];
 
     /// <summary>
     /// Dispatches all events sequentially, processing fabricated events inline.
@@ -87,12 +99,19 @@ public sealed class EventEmitter(ILogger<EventEmitter> logger) : Module
             var e = events[i];
             Owner.CurrentTimestamp = e.Timestamp;
 
-            if (e is PullStartEvent pullStart) Owner.BeginPull(pullStart.Pull);
-
-            if (e is PullEndEvent pullEnd)
-                Owner.EndPull(pullEnd.Pull);
-            else
-                await TriggerEventAsync(e);
+            switch (e)
+            {
+                case PullStartEvent pullStart:
+                    Owner.BeginPull(pullStart.Pull);
+                    await TriggerEventAsync(e);
+                    break;
+                case PullEndEvent pullEnd:
+                    Owner.EndPull(pullEnd.Pull);
+                    break;
+                default:
+                    await TriggerEventAsync(e);
+                    break;
+            }
 
             if (pacer.ShouldYield(i))
             {
@@ -266,7 +285,7 @@ public sealed class EventEmitter(ILogger<EventEmitter> logger) : Module
 /// </summary>
 public readonly struct RegisteredListener
 {
-    /// <summary>The subscriber this listener dispatches into, whose <see cref="Module.Priority"/> determines dispatch order and whose <see cref="Module.Active"/> gates whether it runs.</summary>
+    /// <summary>The subscriber this listener dispatches into, whose <see cref="Module.Priority"/> places it in the dispatch order and whose <see cref="Module.Active"/> gates whether it runs.</summary>
     public EventSubscriber Module { get; }
 
     /// <summary>The predicate an event must satisfy for this listener's handler to run.</summary>

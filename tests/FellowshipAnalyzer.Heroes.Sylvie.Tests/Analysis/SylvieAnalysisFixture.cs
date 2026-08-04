@@ -154,8 +154,8 @@ internal static class SylvieAnalysisFixture
         SourceResources = Mana(mana, manaMax),
     };
 
-    /// <summary>A bare event carrying only a banked-butterfly snapshot on the player.</summary>
-    public static DamageEvent ButterflySample(int timestamp, int banked) => new()
+    /// <summary>A bare event carrying only a banked-Flutterfly snapshot on the player.</summary>
+    public static DamageEvent FlutterflySample(int timestamp, int banked) => new()
     {
         Timestamp = timestamp,
         SourceId = PlayerId,

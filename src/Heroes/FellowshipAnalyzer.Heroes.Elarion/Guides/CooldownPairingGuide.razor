@@ -1,29 +1,28 @@
 @inherits ReportComponent<ElarionCombatLogParser>
 
 <GuideSection Title="Cooldown Pairing">
-    <Explanation>
+    <LeftPanel>
         <p>
-            <SpellLink Spell="Spells.EventHorizon" /> and <SpellLink Spell="Spells.SkystridersGrace" /> are
-            strongest stacked into one double window: the ultimate's damage bonus lands on casts the haste
-            buff is already accelerating, so pressing Grace alongside every Event Horizon is worth more than
-            spreading the two apart.
+            <SpellLink Spell="Spells.EventHorizon" /> and <SpellLink Spell="Spells.SkystridersGrace" /> 
+            should be paired whenever possible.
         </p>
         <p>
-            <SpellLink Spell="Spells.LunarlightMark" /> and <SpellLink Spell="Spells.StarfallVolley" /> share
-            a 40 second cooldown, so they come back together. Casting them together keeps the volley falling
-            on freshly marked targets instead of on enemies whose mark has already run out.
+            In AoE, aim to sync <SpellLink Spell="Spells.LunarlightMark" /> 
+            and <SpellLink Spell="Spells.HeartseekerBarrage" /> whenever possible, ideally without holding 
+            <SpellLink Spell="Spells.HeartseekerBarrage" /> for more than a few seconds.
+            Sometimes this means holding a <SpellLink Spell="Spells.CelestialImpetus" /> proc, or waiting for 
+            <SpellLink Spell="Spells.LunarlightMark" /> for <SpellLink Spell="Spells.HeartseekerBarrage" />.
         </p>
         <p>
-            Grace has no other use, so time it spends sitting off cooldown is lost haste uptime. Event
-            Horizon is gated on Spirit rather than a cooldown, so the pairing is always the player's choice.
+            The table shows how often each pair landed together, and how long Grace sat unused.
         </p>
-    </Explanation>
-    <ChildContent>
+    </LeftPanel>
+    <RightPanel>
         <CastOverview Title="Pairing Overview" Stats="@BuildOverviewStats()" />
         <CastDetail Title="Ultimate Windows"
                     Description="One card per Event Horizon cast, rated on how close Skystrider's Grace landed to it."
                     Casts="@BuildUltimateRows()" />
-    </ChildContent>
+    </RightPanel>
 </GuideSection>
 
 @code {
@@ -40,40 +39,35 @@
         var paired = pairings.Count(pairing => pairing.NearestGraceDeltaMs is { } delta && delta <= PairedWithinMs);
         var pairedShare = pairings.Count == 0 ? 0 : (double)paired / pairings.Count * 100;
 
-        var markDeltas = analyzers
-            .SelectMany(analyzer => analyzer.MarkVolleyPairings)
-            .Select(pairing => pairing.NearestVolleyDeltaMs)
-            .OfType<int>()
-            .ToList();
-        var averageMarkDelta = markDeltas.Count == 0 ? 0 : markDeltas.Average() / 1000d;
-
         var heldSeconds = analyzers.Sum(analyzer => (long)analyzer.GraceHeldMs) / 1000d;
         var graceCasts = analyzers.Sum(analyzer => analyzer.GraceCasts);
 
         var marks = analyzers.Sum(analyzer => analyzer.MarkCasts);
-        var volleys = analyzers.Sum(analyzer => analyzer.VolleyCasts);
-        var achievable = analyzers.Sum(analyzer => analyzer.AchievableFortySecondCasts);
+        var barrages = analyzers.Sum(analyzer => analyzer.BarrageCasts);
+        var channels = analyzers.Sum(analyzer => analyzer.BarrageChannels);
+        var clipped = analyzers.Sum(analyzer => analyzer.BarrageChannelsClipped);
+        var lostSeconds = analyzers.Sum(analyzer => (long)analyzer.BarrageChannelLostMs) / 1000d;
 
         return
         [
             new OverviewStat(
                 $"{pairedShare:0.#}%",
                 "Ultimates Paired",
-                $"{paired} of {pairings.Count} Event Horizon casts had a Skystrider's Grace cast within {PairedWithinMs / 1000} seconds, stacking the haste buff into the ultimate's damage window.",
+                $"{paired} of {pairings.Count} Event Horizon casts had a Skystrider's Grace cast within {PairedWithinMs / 1000} seconds, stacking the haste buff into the ultimate's damage window. Event Horizon is gated on Spirit rather than a cooldown, so the pairing is always the player's choice.",
                 pairings.Count == 0 ? null : PerformanceTiers.FromThresholds(pairedShare, 90, 75, 50)),
             new OverviewStat(
-                markDeltas.Count == 0 ? "-" : $"{averageMarkDelta:0.#}s",
-                "Mark to Volley",
-                $"Average gap between a Lunarlight Mark cast and the nearest Starfall Volley across {markDeltas.Count} marks. Both recharge in 40 seconds, so the volley should be landing on a fresh mark.",
-                markDeltas.Count == 0 ? null : PairingTier(averageMarkDelta)),
+                channels == 0 ? "-" : $"{clipped}/{channels}",
+                "Barrage Clipped",
+                $"{clipped} of {channels} Heartseeker Barrage channels ended early, losing {lostSeconds:0.#}s of channel time.",
+                channels == 0 ? null : ClipTier(clipped)),
             new OverviewStat(
                 $"{heldSeconds:0.#}s",
                 "Grace Held",
                 $"Time Skystrider's Grace spent available and uncast across every pull, against {graceCasts} casts. Nothing else in the kit uses the button, so every second here is haste uptime the run never received."),
             new OverviewStat(
-                $"{marks} + {volleys}",
-                "Mark and Volley Casts",
-                $"{marks} Lunarlight Mark and {volleys} Starfall Volley casts against the {achievable} each that a bare 40 second recharge allows over the pulls analysed. Both routinely go past that ceiling: the mark has secondary application paths and the volley's recharge is compressed by Event Horizon and Repeating Stars."),
+                $"{marks} + {barrages}",
+                "Mark and Barrage Casts",
+                $"{marks} Lunarlight Mark and {barrages} Heartseeker Barrage casts across the pulls analysed."),
         ];
     }
 
@@ -134,10 +128,9 @@
         : performance == QualitativePerformance.Fail ? "Split"
         : "Partial";
 
-    private static QualitativePerformance PairingTier(double seconds) =>
-        seconds <= 3 ? QualitativePerformance.Perfect
-        : seconds <= 6 ? QualitativePerformance.Good
-        : seconds <= 10 ? QualitativePerformance.Ok
+    private static QualitativePerformance ClipTier(int clipped) =>
+        clipped == 0 ? QualitativePerformance.Perfect
+        : clipped == 1 ? QualitativePerformance.Ok
         : QualitativePerformance.Fail;
 
     private static QualitativePerformance RowTier(double seconds) =>

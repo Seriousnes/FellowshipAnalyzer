@@ -68,6 +68,8 @@ public static class Normalization
     {
         if (scalars.TryGetValue("ChannelingDuration", out var channelingDuration))
             return channelingDuration;
+        if (scalars.TryGetValue("ChannelDuration", out var channelDuration))
+            return channelDuration;
         return null;
     }
 

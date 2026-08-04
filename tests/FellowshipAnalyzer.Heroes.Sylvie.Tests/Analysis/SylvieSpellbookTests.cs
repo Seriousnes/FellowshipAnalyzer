@@ -86,6 +86,6 @@ public sealed class SylvieSpellbookTests
         SylvieKit.SafeHavenHealingTakenMultiplier.ShouldBe(1.4, 0.0001);
         SylvieKit.PricklyVineDurationMs.ShouldBe(27_000);
         SylvieKit.LifePetalCharges.ShouldBe(2);
-        SylvieKit.PinkButterflies.ShouldBe(4);
+        SylvieKit.PinkFlutterflies.ShouldBe(4);
     }
 }

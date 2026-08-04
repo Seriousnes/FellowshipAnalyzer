@@ -14,8 +14,8 @@
                     @foreach (var cdr in CooldownReductions)
                     {
                         <li>
-                            <SpellLink Spell="cdr.Spell" /> generated @Seconds(cdr.GeneratedMs)
-                            (@Pct(cdr.Efficiency) effective, @Seconds(cdr.WastedMs) wasted).
+                            <SpellLink Spell="cdr.Spell" /> generated @Seconds(cdr.CooldownReduction.Total)
+                            (@Pct(cdr.CooldownReduction.Efficiency) effective, @Seconds(cdr.CooldownReduction.Wasted) wasted).
                         </li>
                     }
                 </ul>
@@ -23,9 +23,9 @@
             <ChildContent>
                 @foreach (var cdr in CooldownReductions)
                 {
-                    <StatRow Value="@Seconds(cdr.EffectiveMs)"
-                             Tooltip="@($"{Seconds(cdr.GeneratedMs)} generated, {Seconds(cdr.WastedMs)} wasted")">
-                        <SpellLink Spell="cdr.Spell" /> reduction, @Pct(cdr.Efficiency) of @Seconds(cdr.GeneratedMs) generated
+                    <StatRow Value="@Seconds(cdr.CooldownReduction.Effective)"
+                             Tooltip="@($"{Seconds(cdr.CooldownReduction.Total)} generated, {Seconds(cdr.CooldownReduction.Wasted)} wasted")">
+                        <SpellLink Spell="cdr.Spell" /> reduction, @Pct(cdr.CooldownReduction.Efficiency) of @Seconds(cdr.CooldownReduction.Total) generated
                     </StatRow>
                 }
             </ChildContent>

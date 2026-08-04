@@ -18,10 +18,10 @@ public sealed class VeteranOfWarAnalyzerTests
     {
         var analyzer = await Analyze(Cast(PullStart + 1_000, Spells.MeasuredStrike));
 
-        analyzer.GeneratedMs.ShouldBe(4_000);
-        analyzer.AppliedMs.ShouldBe(0);
-        analyzer.WastedMs.ShouldBe(4_000);
-        analyzer.Efficiency.ShouldBe(0);
+        analyzer.CooldownReduction.Total.ShouldBe(4_000);
+        analyzer.CooldownReduction.Effective.ShouldBe(0);
+        analyzer.CooldownReduction.Wasted.ShouldBe(4_000);
+        analyzer.CooldownReduction.Efficiency.ShouldBe(0);
     }
 
     [Fact]
@@ -33,9 +33,9 @@ public sealed class VeteranOfWarAnalyzerTests
 
         var toShockwave = Pairing(analyzer, Spells.ShieldSlam.FSLID, Spells.Shockwave.FSLID);
 
-        toShockwave.GeneratedMs.ShouldBe(3_000);
-        toShockwave.AppliedMs.ShouldBe(3_000);
-        toShockwave.WastedMs.ShouldBe(0);
+        toShockwave.CooldownReduction.Total.ShouldBe(3_000);
+        toShockwave.CooldownReduction.Effective.ShouldBe(3_000);
+        toShockwave.CooldownReduction.Wasted.ShouldBe(0);
     }
 
     [Fact]
@@ -47,9 +47,9 @@ public sealed class VeteranOfWarAnalyzerTests
 
         var toShockwave = Pairing(analyzer, Spells.HoldTheLine.FSLID, Spells.Shockwave.FSLID);
 
-        toShockwave.GeneratedMs.ShouldBe(10_000);
-        toShockwave.AppliedMs.ShouldBe(2_000);
-        toShockwave.WastedMs.ShouldBe(8_000);
+        toShockwave.CooldownReduction.Total.ShouldBe(10_000);
+        toShockwave.CooldownReduction.Effective.ShouldBe(2_000);
+        toShockwave.CooldownReduction.Wasted.ShouldBe(8_000);
     }
 
     [Fact]
@@ -70,7 +70,7 @@ public sealed class VeteranOfWarAnalyzerTests
                 Spells.ShieldsUp.FSLID.Value,
             ],
             ignoreOrder: true);
-        analyzer.GeneratedMs.ShouldBe(40_000);
+        analyzer.CooldownReduction.Total.ShouldBe(40_000);
     }
 
     [Fact]
@@ -83,7 +83,7 @@ public sealed class VeteranOfWarAnalyzerTests
             Cast(PullStart + 4_000, Spells.MeasuredStrike));
 
         analyzer.SawActiveUltimate.ShouldBeTrue();
-        analyzer.GeneratedMs.ShouldBe((4_000 * 2) + 4_000);
+        analyzer.CooldownReduction.Total.ShouldBe((4_000 * 2) + 4_000);
     }
 
     [Fact]
@@ -99,30 +99,6 @@ public sealed class VeteranOfWarAnalyzerTests
     }
 
     [Fact]
-    public async Task ACastTheModelBelievedImpossible_IsCountedAgainstTheModelNotThePlayer()
-    {
-        var analyzer = await Analyze(
-            Cast(PullStart + 1_000, Spells.Shockwave),
-            Cast(PullStart + 2_000, Spells.Shockwave));
-
-        analyzer.ModelDisagreements.ShouldBe(1);
-        analyzer.TargetCasts.ShouldBe(2);
-        analyzer.ModelAgreement.ShouldBe(0.5);
-        analyzer.CastsWhileModelledUnavailable[Spells.Shockwave.FSLID].ShouldBe(1);
-    }
-
-    [Fact]
-    public async Task CastsTheModelAgreesWith_LeaveTheAgreementIntact()
-    {
-        var analyzer = await Analyze(
-            Cast(PullStart + 1_000, Spells.Shockwave),
-            Cast(PullStart + 40_000, Spells.Shockwave));
-
-        analyzer.ModelDisagreements.ShouldBe(0);
-        analyzer.ModelAgreement.ShouldBe(1d);
-    }
-
-    [Fact]
     public async Task TheComboTable_MatchesTheSeasonThreeReductionValues()
     {
         var combos = VeteranOfWarAnalyzer.Combos.ToLookup(combo => combo.SourceSpellId);
@@ -135,6 +111,91 @@ public sealed class VeteranOfWarAnalyzerTests
         combos[Spells.HoldTheLine.FSLID].Select(combo => combo.ReductionMs).ShouldAllBe(ms => ms == 10_000);
         VeteranOfWarAnalyzer.ActiveUltimateScaler.ShouldBe(2.0);
     }
+
+    [Fact]
+    public async Task AHoldTheLinePress_RecordsHowLongEachTargetHadBeenAvailable()
+    {
+        var analyzer = await Analyze(
+            Cast(PullStart + 1_000, Spells.Shockwave),
+            Cast(PullStart + 3_000, Spells.HoldTheLine));
+
+        var press = analyzer.HoldTheLinePresses.ShouldHaveSingleItem();
+        press.Timestamp.ShouldBe(PullStart + 3_000);
+        press.Targets.Select(target => target.SpellId).ShouldBe(VeteranOfWarAnalyzer.HoldTheLineTargets);
+
+        Target(press, Spells.Shockwave).AvailableForMs.ShouldBeNull();
+        Target(press, Spells.ShieldThrow).AvailableForMs.ShouldBe(3_000);
+        Target(press, Spells.ShieldsUp).AvailableForMs.ShouldBe(3_000);
+    }
+
+    [Fact]
+    public async Task ATargetTheSamePressMakesAvailable_IsStillRecordedAsRecharging()
+    {
+        var analyzer = await Analyze(
+            Cast(PullStart + 1_000, Spells.Shockwave),
+            Cast(PullStart + 26_000, Spells.HoldTheLine));
+
+        var press = analyzer.HoldTheLinePresses.ShouldHaveSingleItem();
+
+        Target(press, Spells.Shockwave).WasAvailable.ShouldBeFalse();
+    }
+
+    [Fact]
+    public async Task ShieldSlamWithAChargeInHand_IsAvailableAtThePress()
+    {
+        var analyzer = await Analyze(
+            Cast(PullStart + 1_000, Spells.ShieldSlam),
+            Cast(PullStart + 2_000, Spells.HoldTheLine));
+
+        var press = analyzer.HoldTheLinePresses.ShouldHaveSingleItem();
+
+        Target(press, Spells.ShieldSlam).WasAvailable.ShouldBeTrue();
+    }
+
+    [Fact]
+    public async Task ShieldSlamWithEveryChargeSpent_IsNotAvailableAtThePress()
+    {
+        var analyzer = await Analyze(
+            Cast(PullStart + 1_000, Spells.ShieldSlam),
+            Cast(PullStart + 1_500, Spells.ShieldSlam),
+            Cast(PullStart + 2_000, Spells.HoldTheLine));
+
+        var press = analyzer.HoldTheLinePresses.ShouldHaveSingleItem();
+
+        Target(press, Spells.ShieldSlam).WasAvailable.ShouldBeFalse();
+    }
+
+    [Fact]
+    public async Task ShieldSlamUntouched_IsAvailableAtThePress()
+    {
+        var analyzer = await Analyze(Cast(PullStart + 2_000, Spells.HoldTheLine));
+
+        var press = analyzer.HoldTheLinePresses.ShouldHaveSingleItem();
+
+        Target(press, Spells.ShieldSlam).AvailableForMs.ShouldBe(2_000);
+    }
+
+    [Fact]
+    public async Task EveryHoldTheLineTarget_HasItsUsabilityTracked()
+    {
+        var analyzer = await Analyze(Cast(PullStart + 1_000, Spells.HoldTheLine));
+
+        analyzer.HoldTheLinePresses
+            .ShouldHaveSingleItem()
+            .Targets.Select(target => target.SpellId)
+            .ShouldBe(VeteranOfWarAnalyzer.HoldTheLineTargets);
+        VeteranOfWarAnalyzer.HoldTheLineTargets.ShouldBe(
+            [
+                Spells.ShieldSlam.FSLID.Value,
+                Spells.ShieldThrow.FSLID.Value,
+                Spells.Shockwave.FSLID.Value,
+                Spells.ShieldsUp.FSLID.Value,
+            ],
+            ignoreOrder: true);
+    }
+
+    private static HoldTheLineTarget Target(HoldTheLinePress press, Core.Common.Spells.Spell spell) =>
+        press.Targets.Single(target => target.SpellId == spell.FSLID.Value);
 
     private static CooldownContribution Pairing(VeteranOfWarAnalyzer analyzer, int source, int target) =>
         analyzer.Contributions.Single(contribution =>

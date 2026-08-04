@@ -255,7 +255,8 @@
       "name": "Temporal Barrage",
       "icon": "T_Lisa_Barrage.jpg",
       "abilityCategory": "Core",
-      "cooldown": 15
+      "cooldown": 15,
+      "channelDuration": 2
     },
     "TemporalBarrageCost": {
       "kind": "effect",
@@ -823,6 +824,7 @@
       "icon": "Bowguy_Spray.jpg",
       "abilityCategory": "Power",
       "cooldown": 20,
+      "channelDuration": 2,
       "costs": {
         "primary": 30
       }

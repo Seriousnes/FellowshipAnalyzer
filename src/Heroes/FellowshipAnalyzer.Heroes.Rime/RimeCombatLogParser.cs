@@ -6,8 +6,8 @@ namespace FellowshipAnalyzer.Heroes.Rime.Analysis;
 
 [HeroAnalyzer(HeroName.Rime)]
 [AddState<WinterOrbTracker>]
-[AddAnalyzer<SingleTargetEmbraceWindowAnalyzer>]
-[AddAnalyzer<AoeEmbraceWindowAnalyzer>]
+[AddAnalyzer<SingleTargetEmbraceAnalyzer>]
+[AddAnalyzer<AoeEmbraceAnalyzer>]
 [AddAnalyzer<MajorCooldownAnalyzer>]
 [AddAnalyzer<DowntimeAnalyzer>]
 [AddModule<Modules.Abilities>]

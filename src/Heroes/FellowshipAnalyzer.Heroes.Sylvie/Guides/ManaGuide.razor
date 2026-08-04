@@ -1,26 +1,18 @@
 @inherits ReportComponent<SylvieCombatLogParser>
 
 <GuideSection Title="Mana">
-    <Explanation>
+    <LeftPanel>
         <p>
-            Mana regenerates continuously against a hard cap, so any stretch spent at a full pool is
-            regeneration thrown away. That is measured by the time between readings rather than by
-            counting events, because the log attaches a mana reading to almost everything and those
-            events crowd together whenever Sylvie is busy.
+            Mana regenerates continuously against a hard cap, so any stretch at a full pool is
+            regeneration thrown away. The table shows time at cap and where the mana went.
         </p>
-        <p>
-            The log carries no cost on a cast, so spending is priced from the Season 3 game data, with
-            the fifth Bluey takes off while it is recalled onto Sylvie applied to the casts it covered.
-            Those are list prices: a cost the game reduces by something the log does not report will
-            read high here.
-        </p>
-    </Explanation>
-    <ChildContent>
+    </LeftPanel>
+    <RightPanel>
         <CastOverview Title="Overview" Stats="@BuildOverviewStats()" />
         <CastDetail Title="Mana By Pull"
                     Description="What each pull cost and how much of it sat at the cap."
                     Casts="@BuildPerPullData()" />
-    </ChildContent>
+    </RightPanel>
 </GuideSection>
 
 @code {
@@ -40,11 +32,11 @@
             new(
                 $"{spent:N0}",
                 "Mana Spent",
-                "Priced from the Season 3 game data, because the log attaches no cost to a cast."),
+                "Priced from the Season 3 game data, because the log attaches no cost to a cast, with the fifth Bluey takes off while recalled onto Sylvie applied to the casts it covered. Those are list prices, so a cost the game reduces by something the log does not report reads high here."),
             new(
                 $"{atFull / (double)measured * 100:F1}%",
                 "At Full Mana",
-                $"{atFull / 1000:N0}s of {measured / 1000:N0}s measured with the pool capped, where regeneration had nowhere to go.",
+                $"{atFull / 1000:N0}s of {measured / 1000:N0}s measured with the pool capped, where regeneration had nowhere to go. Measured by the time between readings rather than by counting events, because the log attaches a mana reading to almost everything and those crowd together whenever Sylvie is busy.",
                 PerformanceTiers.FromThresholds(100 - (atFull / (double)measured * 100), 90, 75, 55)),
             new(
                 $"{lowest * 100:F0}%",

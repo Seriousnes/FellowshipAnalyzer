@@ -1,6 +1,7 @@
 using System.Text.Json;
-using FellowshipAnalyzer.Core.Common.Spells;
+
 using FellowshipAnalyzer.Core.Game;
+using FellowshipAnalyzer.Core.UI;
 using FellowshipAnalyzer.SpellData.Json;
 
 namespace FellowshipAnalyzer.SpellData.Sources;

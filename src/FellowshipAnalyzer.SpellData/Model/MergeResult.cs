@@ -1,4 +1,4 @@
-using FellowshipAnalyzer.Core.Events;
+using FellowshipAnalyzer.Core.Game;
 
 namespace FellowshipAnalyzer.SpellData.Model;
 

@@ -11,28 +11,22 @@
 @if (analyzers.Count > 0)
 {
     <GuideSection Title="Culling Strike">
-        <Explanation>
+        <LeftPanel>
             <p>
-                Once the boss is inside the execute window, <SpellLink Spell="Spells.CullingStrike" /> is the
-                button you press every time it comes up, with at least
-                @CullingStrikeAnalyzer.FullStrengthFury Fury banked. It converts what it spends into damage
-                up to that point, so pressing it near empty throws the cast away as surely as not pressing it.
-            </p>
-            <p>
-                Each time the cooldown ended is counted as one opportunity. Holding it because Fury was short
-                is a Fury problem and is marked separately from holding it with Fury in the bank, which is the
-                one worth fixing.
+                Inside the execute window <SpellLink Spell="Spells.CullingStrike" /> goes out every time it
+                comes up, with at least @CullingStrikeAnalyzer.FullStrengthFury Fury banked - it converts what
+                it spends, so pressing it near empty throws the cast away as surely as not pressing it. The
+                table shows the opportunities you took, and why the rest were held.
             </p>
             @if (grin is { Equipped: true })
             {
                 <p>
-                    <SpellLink Spell="Spells.ExecutionersGrin" /> from Executioner's Unsanitary Bands lets a
-                    cast go out above the threshold. The proc is spent by the next Culling Strike whatever the
-                    target's health, so the only loss you control is letting one fall off with no cast at all.
+                    <SpellLink Spell="Spells.ExecutionersGrin" /> lets a cast go out above the threshold, so
+                    never let a proc fall off unspent.
                 </p>
             }
-        </Explanation>
-        <ChildContent>
+        </LeftPanel>
+        <RightPanel>
             <CastOverview Title="Execute Phase Overview" Stats="@BuildOverviewStats(analyzers, phased, opportunities)" />
 
             @if (opportunities.Count > 0)
@@ -51,7 +45,7 @@
                     <CastOverview Title="Proc Economy" Stats="@BuildGrinStats(grin)" />
                 </SubSection>
             }
-        </ChildContent>
+        </RightPanel>
     </GuideSection>
 }
 

@@ -2,6 +2,8 @@ using FellowshipAnalyzer.Core.Analysis;
 using FellowshipAnalyzer.Core.Common.Spells.Tariq;
 using FellowshipAnalyzer.Core.Events;
 
+using TariqTalents = FellowshipAnalyzer.Core.Common.Spells.TariqTalents;
+
 namespace FellowshipAnalyzer.Heroes.Tariq.Modules;
 
 [ForPull(PullKind.Single | PullKind.Multi)]
@@ -13,21 +15,16 @@ public sealed partial class FocusedWrathAnalyzer : Analyzer
     /// <summary>Stack ceiling from <c>Focused Wrath.MaxStacksLimit</c>.</summary>
     public const int MaxStackLimit = 3;
 
-    /// <summary>Stacks a Focused Wrath cast grants, from <c>Focused Wrath.NumOfStacks</c>.</summary>
+    /// <summary>Charges a Focused Wrath cast grants, from <c>Focused Wrath.NumOfStacks</c>.</summary>
     public const int StacksPerCast = 2;
 
-    /// <summary>How close to a buff application a Focused Wrath cast must sit for the application to be attributed to it rather than to a Leap Smash proc.</summary>
-    public const int CastAttributionMs = 400;
-
-    /// <summary>Grace after a buff removal within which a spender cast still counts as the one that consumed it; the removal and the consuming cast share a timestamp in practice.</summary>
+    /// <summary>Grace after a charge leaves the buff within which a spender cast still counts as the one that took it; the removal and the consuming cast share a timestamp in practice.</summary>
     public const int ConsumptionGraceMs = 500;
 
     private static readonly int SkullCrusherId = Spells.SkullCrusher.FSLID;
     private static readonly int HammerStormId = Spells.HammerStorm.FSLID;
-    private static readonly int CullingStrikeId = Spells.CullingStrike.FSLID;
 
     private readonly List<OpenWindow> _windows = [];
-    private readonly List<int> _casts = [];
     private readonly List<SpenderCast> _spenders = [];
 
     private OpenWindow? _open;
@@ -38,47 +35,45 @@ public sealed partial class FocusedWrathAnalyzer : Analyzer
 
     public int WindowCount => Evaluated.Count;
 
-    public int ConsumedWindows => Evaluated.Count(window => window.Consumed);
+    /// <summary>Whether the player took <c>Schism</c>, which makes Hammer Storm the spender to aim a charge at on every pull shape.</summary>
+    public bool SchismTalented => Owner.SelectedCombatant.HasTalent(TariqTalents.Schism);
 
-    public int ExpiredWindows => Evaluated.Count(window => !window.Consumed && !window.ClippedByPullEnd);
+    /// <summary>The spender a charge should go to on this pull: Hammer Storm with Schism talented or on a trash pull, Skull Crusher on a boss pull without it.</summary>
+    public int PreferredSpenderId =>
+        SchismTalented || Pull.Targets == PullKind.Multi ? HammerStormId : SkullCrusherId;
 
-    public int WindowsFromCast => Evaluated.Count(window => window.FromCast);
+    /// <summary>Charges every buff carried, counting each Leap Smash proc that added to a buff already up.</summary>
+    public int ChargesGranted => Evaluated.Sum(window => window.ChargesGranted);
 
-    public int WindowsFromProc => Evaluated.Count(window => !window.FromCast);
+    /// <summary>Charges a spender took.</summary>
+    public int ChargesConsumed => Evaluated.Sum(window => window.ChargesConsumed);
 
-    public IReadOnlyList<int> CastTimestamps => _casts;
+    /// <summary>Charges still on a buff when it fell off, leaving out the buff a pull end clipped.</summary>
+    public int ChargesWasted => Evaluated.Sum(window => window.ChargesWasted);
 
-    public int CastCount => _casts.Count;
+    /// <summary>Charges a Focused Wrath cast granted; each cast grants <see cref="StacksPerCast"/>.</summary>
+    public int ChargesFromCast => Evaluated.Count(window => window.FromCast) * StacksPerCast;
 
-    /// <summary>Focused Wrath presses whose own buff reached a spender. The cast is the part of the mechanic that is a cooldown you can mistime, so it is counted apart from the Leap Smash procs.</summary>
-    public int CastsWithConsumedBuff => Evaluated.Count(window => window.FromCast && window.Consumed);
+    /// <summary>Charges a Leap Smash proc granted, one at a time.</summary>
+    public int ChargesFromProc => ChargesGranted - ChargesFromCast;
 
-    /// <summary>Focused Wrath presses whose own buff fell off with no spender to take the discount.</summary>
-    public int CastsWithoutSpender =>
-        Evaluated.Count(window => window.FromCast && !window.Consumed && !window.ClippedByPullEnd);
+    /// <summary>Charges that went to <see cref="PreferredSpenderId"/>.</summary>
+    public int CorrectSpenders => CountChoice(SpenderChoice.Correct);
 
-    public int MaxStacksReached => Evaluated.Count == 0 ? 0 : Evaluated.Max(window => window.MaxStacks);
+    /// <summary>Charges that went to the other spender.</summary>
+    public int WrongSpenders => CountChoice(SpenderChoice.Wrong);
+
+    /// <summary>Charges with no spender cast to name them, so their choice carries no rating.</summary>
+    public int UnratedConsumptions => CountChoice(SpenderChoice.Unrated);
 
     public int SkullCrusherConsumptions => CountConsumers(SkullCrusherId);
 
     public int HammerStormConsumptions => CountConsumers(HammerStormId);
 
-    public int CullingStrikeConsumptions => CountConsumers(CullingStrikeId);
-
-    [On<CastEvent>(By = Actor.Player, Spell = nameof(Spells.FocusedWrath))]
-    private void OnFocusedWrathCast(CastEvent @event)
-    {
-        if (@event.Fake)
-            return;
-
-        _casts.Add(@event.Timestamp);
-    }
-
     [On<CastEvent>(By = Actor.Player, Spells = new[]
     {
         nameof(Spells.SkullCrusher),
         nameof(Spells.HammerStorm),
-        nameof(Spells.CullingStrike),
     })]
     private void OnSpenderCast(CastEvent @event)
     {
@@ -91,27 +86,40 @@ public sealed partial class FocusedWrathAnalyzer : Analyzer
     [On<ApplyBuffEvent>(To = Actor.Player, Spell = nameof(Spells.FocusedWrathSelfBuff))]
     private void OnBuffApplied(ApplyBuffEvent @event)
     {
-        if (_open is not null)
-            Close(@event.Timestamp);
-
-        _open = new OpenWindow(@event.Timestamp);
-        _windows.Add(_open);
+        Close(@event.Timestamp);
+        Open(@event.Timestamp);
     }
 
     [On<ApplyBuffStackEvent>(To = Actor.Player, Spell = nameof(Spells.FocusedWrathSelfBuff))]
-    private void OnStackGained(ApplyBuffStackEvent @event)
+    private void OnChargeGranted(ApplyBuffStackEvent @event)
     {
         if (_open is null)
         {
-            _open = new OpenWindow(@event.Timestamp);
-            _windows.Add(_open);
+            Open(@event.Timestamp);
+            return;
         }
 
-        _open.MaxStacks = Math.Max(_open.MaxStacks, @event.Stack);
+        _open.ChargesGranted++;
+
+        if (@event.Timestamp == _open.OpenedAt)
+            _open.FromCast = true;
+    }
+
+    [On<RemoveBuffStackEvent>(To = Actor.Player, Spell = nameof(Spells.FocusedWrathSelfBuff))]
+    private void OnChargeRemoved(RemoveBuffStackEvent @event)
+    {
+        if (_open is not null)
+            _open.StacksRemoved++;
     }
 
     [On<RemoveBuffEvent>(To = Actor.Player, Spell = nameof(Spells.FocusedWrathSelfBuff))]
     private void OnBuffRemoved(RemoveBuffEvent @event) => Close(@event.Timestamp);
+
+    private void Open(int timestamp)
+    {
+        _open = new OpenWindow(timestamp);
+        _windows.Add(_open);
+    }
 
     private void Close(int timestamp)
     {
@@ -122,47 +130,62 @@ public sealed partial class FocusedWrathAnalyzer : Analyzer
         _open = null;
     }
 
-    private int CountConsumers(int spellId)
-    {
-        var count = 0;
-        foreach (var window in Evaluated)
-        {
-            foreach (var consumer in window.SpenderSpellIds)
-            {
-                if (consumer == spellId)
-                    count++;
-            }
-        }
+    private int CountChoice(SpenderChoice choice) =>
+        Evaluated.Sum(window => window.Consumptions.Count(consumption => consumption.Choice == choice));
 
-        return count;
-    }
+    private int CountConsumers(int spellId) =>
+        Evaluated.Sum(window => window.Consumptions.Count(consumption => consumption.SpenderSpellId == spellId));
 
     private List<FocusedWrathWindow> Build()
     {
         var built = new List<FocusedWrathWindow>(_windows.Count);
+        var preferred = PreferredSpenderId;
+        var cursor = 0;
 
-        foreach (var window in _windows)
+        for (var index = 0; index < _windows.Count; index++)
         {
+            var window = _windows[index];
+            var clipped = window.ClosedAt is null;
             var closedAt = window.ClosedAt ?? Pull.EndTime;
-            var spenders = new List<int>();
-            foreach (var spender in _spenders)
-            {
-                if (spender.Timestamp < window.OpenedAt)
-                    continue;
-                if (spender.Timestamp > closedAt + ConsumptionGraceMs)
-                    break;
+            var remaining = window.ChargesGranted - window.StacksRemoved;
+            var lastChargeSpent = !clipped && remaining == 1 && closedAt - window.OpenedAt < BuffDurationMs;
+            var consumed = window.StacksRemoved + (lastChargeSpent ? 1 : 0);
 
-                spenders.Add(spender.SpellId);
+            var matchEnd = closedAt + ConsumptionGraceMs;
+            if (index + 1 < _windows.Count)
+                matchEnd = Math.Min(matchEnd, _windows[index + 1].OpenedAt);
+
+            while (cursor < _spenders.Count && _spenders[cursor].Timestamp < window.OpenedAt)
+                cursor++;
+
+            var consumptions = new List<FocusedWrathConsumption>(consumed);
+
+            while (consumptions.Count < consumed
+                && cursor < _spenders.Count
+                && _spenders[cursor].Timestamp <= matchEnd)
+            {
+                var spender = _spenders[cursor++];
+
+                consumptions.Add(new FocusedWrathConsumption
+                {
+                    Timestamp = spender.Timestamp,
+                    SpenderSpellId = spender.SpellId,
+                    Choice = spender.SpellId == preferred ? SpenderChoice.Correct : SpenderChoice.Wrong,
+                });
             }
+
+            while (consumptions.Count < consumed)
+                consumptions.Add(new FocusedWrathConsumption { Choice = SpenderChoice.Unrated });
 
             built.Add(new FocusedWrathWindow
             {
                 OpenedAt = window.OpenedAt,
                 ClosedAt = closedAt,
-                ClippedByPullEnd = window.ClosedAt is null,
-                FromCast = _casts.Any(cast => cast <= window.OpenedAt && window.OpenedAt - cast <= CastAttributionMs),
-                MaxStacks = window.MaxStacks,
-                SpenderSpellIds = spenders,
+                ClippedByPullEnd = clipped,
+                FromCast = window.FromCast,
+                ChargesGranted = window.ChargesGranted,
+                PreferredSpenderId = preferred,
+                Consumptions = consumptions,
             });
         }
 
@@ -173,12 +196,41 @@ public sealed partial class FocusedWrathAnalyzer : Analyzer
     {
         public int OpenedAt { get; } = openedAt;
         public int? ClosedAt { get; set; }
-        public int MaxStacks { get; set; } = 1;
+        public int ChargesGranted { get; set; } = 1;
+        public int StacksRemoved { get; set; }
+        public bool FromCast { get; set; }
     }
 
     private readonly record struct SpenderCast(int Timestamp, int SpellId);
 }
 
+/// <summary>Whether a Focused Wrath charge went to the spender its pull calls for.</summary>
+public enum SpenderChoice
+{
+    /// <summary>No spender cast could be matched to the charge, so there is nothing to rate.</summary>
+    Unrated,
+
+    /// <summary>The charge went to the spender the pull calls for.</summary>
+    Correct,
+
+    /// <summary>The charge went to the other spender.</summary>
+    Wrong,
+}
+
+/// <summary>One charge leaving a Focused Wrath buff, and the spender it went to.</summary>
+public sealed record FocusedWrathConsumption
+{
+    /// <summary>When the spender cast went out, if one was matched to the charge.</summary>
+    public int? Timestamp { get; init; }
+
+    /// <summary>The spender cast that took the charge, or <c>null</c> when no Hammer Storm or Skull Crusher cast inside the buff could be matched to it.</summary>
+    public int? SpenderSpellId { get; init; }
+
+    /// <summary>Whether the charge went to the spender the pull calls for.</summary>
+    public required SpenderChoice Choice { get; init; }
+}
+
+/// <summary>One Focused Wrath buff, from the application that opened it to the removal that closed it.</summary>
 public sealed record FocusedWrathWindow
 {
     public required int OpenedAt { get; init; }
@@ -189,16 +241,29 @@ public sealed record FocusedWrathWindow
 
     public required bool ClippedByPullEnd { get; init; }
 
-    /// <summary>The window opened on a Focused Wrath cast rather than on a Leap Smash proc (<c>Leap Smash.Talent.ProcCostReductionBuff</c>).</summary>
+    /// <summary>The buff opened on a Focused Wrath cast rather than on a Leap Smash proc (<c>Leap Smash.Talent.ProcCostReductionBuff</c>). A cast opens it with <see cref="FocusedWrathAnalyzer.StacksPerCast"/> charges and a proc with one.</summary>
     public required bool FromCast { get; init; }
 
-    public required int MaxStacks { get; init; }
+    /// <summary>Charges the buff carried: the ones it opened with, plus one for every Leap Smash proc that added to it while it was up, up to <see cref="FocusedWrathAnalyzer.MaxStackLimit"/> at a time.</summary>
+    public required int ChargesGranted { get; init; }
 
-    public IReadOnlyList<int> SpenderSpellIds { get; init; } = [];
+    /// <summary>The spender this buff's pull calls for.</summary>
+    public required int PreferredSpenderId { get; init; }
 
-    public int SpenderCasts => SpenderSpellIds.Count;
+    /// <summary>The charges a spender took, in the order they left the buff.</summary>
+    public IReadOnlyList<FocusedWrathConsumption> Consumptions { get; init; } = [];
 
-    public bool Consumed => SpenderSpellIds.Count > 0;
+    public int ChargesConsumed => Consumptions.Count;
 
-    public int? ConsumedBy => SpenderSpellIds.Count > 0 ? SpenderSpellIds[0] : null;
+    /// <summary>Charges still on the buff when it fell off. Zero on a buff the pull end clipped, where what was left on it is an inference.</summary>
+    public int ChargesWasted => ClippedByPullEnd ? 0 : ChargesGranted - ChargesConsumed;
+
+    /// <summary>Charges that went to <see cref="PreferredSpenderId"/>.</summary>
+    public int CorrectSpenders => Consumptions.Count(consumption => consumption.Choice == SpenderChoice.Correct);
+
+    /// <summary>Charges that went to the other spender.</summary>
+    public int WrongSpenders => Consumptions.Count(consumption => consumption.Choice == SpenderChoice.Wrong);
+
+    /// <summary>Charges a spender cast was matched to, so their choice carries a rating.</summary>
+    public int RatedSpenders => CorrectSpenders + WrongSpenders;
 }

@@ -7,7 +7,7 @@
         @<StatCard Title="Energy & Combo Points">
             <Info>
                 <p>
-                    Fight totals for Mara's two resources. Generated counts what actually landed in the bar, so
+                    Fight totals for Mara's two resources. Generated counts what actually reached the pool, so
                     anything lost at cap is reported separately as wasted.
                 </p>
             </Info>
@@ -22,7 +22,7 @@
         new OverviewStat(
             $"{EnergyGenerated}",
             "Generated",
-            "Energy that landed in the bar over the fight, excluding anything lost at cap."),
+            "Energy that reached the pool over the fight, excluding anything lost at cap."),
         new OverviewStat(
             $"{EnergySpent}",
             "Spent",
@@ -43,7 +43,7 @@
         new OverviewStat(
             $"{ComboPointsGenerated}",
             "Generated",
-            "Combo points that landed in the bar, excluding anything generated at six."),
+            "Combo points that reached the pool, excluding anything generated at six."),
         new OverviewStat(
             $"{ComboPointsWasted}",
             "Wasted",

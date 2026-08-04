@@ -47,6 +47,35 @@ public sealed class ManaEfficiencyTests
     }
 
     [Fact]
+    public async Task TheDiscountIsAccumulatedAsManaSaved()
+    {
+        var discounted = (int)Math.Round(118 * SylvieKit.EmbraceManaCostScaler);
+
+        var parser = await Analyze(
+            ApplyBuff(PullStart + 500, Spells.FluttercallEmbraceBuff, PlayerId),
+            Cast(PullStart + 1_000, Spells.HeartBloom),
+            Cast(PullStart + 2_000, Spells.Nettlebolt));
+
+        var tracker = parser.SylvieManaTracker.ShouldNotBeNull();
+
+        tracker.ManaSavedByEmbrace.ShouldBe((118 - discounted) + (5 - (int)Math.Round(5 * SylvieKit.EmbraceManaCostScaler)));
+        tracker.SavedBetween(PullStart, PullStart + 1_500).ShouldBe(118 - discounted);
+    }
+
+    [Fact]
+    public async Task NothingIsSavedWhileBlueySitsOnAnAlly()
+    {
+        var parser = await Analyze(
+            ApplyBuff(PullStart + 500, Spells.FluttercallProtectBuff, TankId),
+            Cast(PullStart + 1_000, Spells.HeartBloom));
+
+        var tracker = parser.SylvieManaTracker.ShouldNotBeNull();
+
+        tracker.ManaSavedByEmbrace.ShouldBe(0);
+        tracker.SavedBetween(PullStart, PullEnd).ShouldBe(0);
+    }
+
+    [Fact]
     public async Task AnAbilityTheGameDataPricesAtNothingSpendsNothing()
     {
         var parser = await Analyze(Cast(PullStart + 1_000, Spells.FluttercallJubilee));

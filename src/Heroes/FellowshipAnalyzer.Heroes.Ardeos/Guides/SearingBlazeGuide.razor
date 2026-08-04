@@ -3,20 +3,19 @@
 @inherits ReportComponent<ArdeosCombatLogParser>
 
 <GuideSection Title="Searing Blaze">
-    <Explanation>
+    <LeftPanel>
         <p>
-            Keep <SpellLink Spell="Spells.SearingBlaze" /> working on every pull. On bosses the DoT
-            should stay rolling for the whole fight; each boss pull is scored on uptime and the gaps
-            between applications. On multi-target pulls the DoT should reach every enemy; each pull
-            is scored on how many enemies took it against the size of the pack.
+            <SpellLink Spell="Spells.SearingBlaze" /> should never leave a boss, and should reach every
+            enemy in a pack. The table shows uptime and reapplication gaps on bosses, and coverage
+            against pack size on multi-target pulls.
         </p>
-    </Explanation>
-    <ChildContent>
+    </LeftPanel>
+    <RightPanel>
         <CastOverview Title="DoT Overview" Stats="@BuildOverviewStats()" />
         <CastDetail Title="Searing Blaze by Pull"
                     Description="Each row is one pull. Boss rows show DoT uptime and gaps; AoE rows show how many enemies Searing Blaze reached."
                     Casts="@BuildPerCastData()" />
-    </ChildContent>
+    </RightPanel>
 </GuideSection>
 
 @code {

@@ -13,12 +13,12 @@
 
 .guide-section-body {
     display: grid;
-    grid-template-columns: var(--explanation-pct) 1fr;
+    grid-template-columns: var(--left-panel-pct) 1fr;
     gap: 16px;
     align-items: start;
 }
 
-.guide-section-explanation {
+.guide-section-left-panel {
     font-size: 0.95rem;
     line-height: 1.6;
     color: var(--fa-text-muted);
@@ -33,7 +33,7 @@
     }
 }
 
-.guide-section-data {
+.guide-section-right-panel {
     background: var(--fa-bg-inset);
     border: 1px solid var(--fa-border);
     border-radius: var(--fa-radius-sm);

@@ -10,28 +10,18 @@
 }
 
 <GuideSection Title="Wildfire Burn Windows">
-    <Explanation>
+    <LeftPanel>
         <p>
-            Every damage-over-time effect should be laid on the target before @wf, @ef twice among them,
-            and the buff spent on <SpellLink Spell="Spells.Detonate" /> rather than on more setup.
+            Apply as many DoTs as possible before @wf, ideally with at least two @ef instances. Once @wf is cast, 
+            try to avoid applying additional DoTs and focus on squeezing in as many <SpellLink Spell="Spells.Detonate" /> casts as possible.
         </p>
-        <p>
-            Each window is scored on the enemy @wf is aimed at, read at the instant of the cast. Setup
-            counts as complete with at least @WildfireComboAnalyzer.DistinctDotSuccessThreshold of the
-            @WildfireComboAnalyzer.TotalDots DoTs ticking and
-            @WildfireComboAnalyzer.EngulfingInstanceThreshold Engulfing Flames instances, and a clean
-            window follows with at least @WildfireComboAnalyzer.DetonateSpamThreshold Detonate casts
-            inside the buff. <SpellLink Spell="Spells.Pyromania" /> and
-            <SpellLink Spell="Spells.Incinerate" /> are cooldown-limited against @wf, so they are
-            surfaced as bonus alignment rather than required for a clean window.
-        </p>
-    </Explanation>
-    <ChildContent>
+    </LeftPanel>
+    <RightPanel>
         <CastOverview Title="Window Overview" Stats="@BuildOverviewStats()" />
         <CastDetail Title="Wildfire Windows"
                     Description="Each window shows the DoTs ticking on the target when Wildfire landed and the Detonate spam inside the buff."
                     Casts="@BuildPerCastData()" />
-    </ChildContent>
+    </RightPanel>
 </GuideSection>
 
 @code {
@@ -54,7 +44,7 @@
             new OverviewStat(
                 $"{successRate}%",
                 "Success Rate",
-                $"{successful} clean / {total} evaluated: setup DoTs in place and Detonate spam followed.",
+                $"{successful} clean / {total} evaluated. A clean window needs at least {WildfireComboAnalyzer.DistinctDotSuccessThreshold} of the {WildfireComboAnalyzer.TotalDots} DoTs ticking on the target with {WildfireComboAnalyzer.EngulfingInstanceThreshold} Engulfing Flames instances, then at least {WildfireComboAnalyzer.DetonateSpamThreshold} Detonate casts inside the buff.",
                 PercentTier(successRate)),
             new OverviewStat(
                 $"{averageDots:0.0}/{WildfireComboAnalyzer.TotalDots}",
@@ -93,17 +83,17 @@
             new PerCastStat(
                 $"{window.DistinctDots}/{WildfireComboAnalyzer.TotalDots}",
                 "DoTs Ticking",
-                "Distinct fire DoTs ticking on the target when Wildfire landed (4 or more is a complete setup).",
+                $"Distinct fire DoTs ticking on the target when Wildfire landed ({WildfireComboAnalyzer.DistinctDotSuccessThreshold} or more is a complete setup).",
                 Performance: dotsPerf),
             new PerCastStat(
                 $"{window.EngulfingInstances}/{WildfireComboAnalyzer.EngulfingInstanceThreshold}",
                 "EF Instances",
-                "Concurrent Engulfing Flames instances on the target at the cast (the standard window stacks it twice).",
+                $"Concurrent Engulfing Flames instances on the target at the cast ({WildfireComboAnalyzer.EngulfingInstanceThreshold} or more is a complete setup).",
                 Performance: engulfingPerf),
             new PerCastStat(
                 $"{window.DetonateCasts}",
                 "Detonate in Window",
-                "Detonate casts spammed inside the Wildfire buff (3 or more is a clean follow-up).",
+                $"Detonate casts spammed inside the Wildfire buff ({WildfireComboAnalyzer.DetonateSpamThreshold} or more is a clean follow-up).",
                 Performance: detonatePerf),
             new PerCastStat(
                 window.HasPyromania ? "Yes" : "No",

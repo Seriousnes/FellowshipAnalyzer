@@ -24,10 +24,10 @@ public sealed class AbsorbWasteAnalyzerTests
 
         var analyzer = parser.AbsorbWasteAnalyzers.ShouldHaveSingleItem().Analyzer.ShouldBeOfType<AbsorbWasteAnalyzer>();
 
-        analyzer.ShieldsLaid.ShouldBe(1);
+        analyzer.AbsorbsApplied.ShouldBe(1);
         analyzer.AbsorbUsed.ShouldBe(700);
         analyzer.AbsorbWasted.ShouldBe(300);
-        analyzer.ShieldsExpiredUnspent.ShouldBe(1);
+        analyzer.AbsorbsExpiredUnspent.ShouldBe(1);
         analyzer.AbsorbEfficiency.ShouldBe(0.7, 0.001);
     }
 
@@ -43,7 +43,7 @@ public sealed class AbsorbWasteAnalyzerTests
         var analyzer = parser.AbsorbWasteAnalyzers.ShouldHaveSingleItem().Analyzer.ShouldBeOfType<AbsorbWasteAnalyzer>();
 
         analyzer.AbsorbWasted.ShouldBe(0);
-        analyzer.ShieldsExpiredUnspent.ShouldBe(0);
+        analyzer.AbsorbsExpiredUnspent.ShouldBe(0);
         analyzer.AbsorbEfficiency.ShouldBe(1d, 0.001);
     }
 
@@ -60,9 +60,9 @@ public sealed class AbsorbWasteAnalyzerTests
 
         var analyzer = parser.AbsorbWasteAnalyzers.ShouldHaveSingleItem().Analyzer.ShouldBeOfType<AbsorbWasteAnalyzer>();
 
-        analyzer.ShieldsLaid.ShouldBe(2);
+        analyzer.AbsorbsApplied.ShouldBe(2);
         analyzer.AbsorbWasted.ShouldBe(1_000);
-        analyzer.Shields.Count(shield => shield.Target.ActorId == AllyId).ShouldBe(1);
+        analyzer.Absorbs.Count(shield => shield.Target.ActorId == AllyId).ShouldBe(1);
     }
 
     [Fact]

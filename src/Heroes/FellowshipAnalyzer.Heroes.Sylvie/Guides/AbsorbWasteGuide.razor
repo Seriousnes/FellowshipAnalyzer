@@ -1,25 +1,19 @@
 @inherits ReportComponent<SylvieCombatLogParser>
 
 <GuideSection Title="Natural Protector">
-    <Explanation>
+    <LeftPanel>
         <p>
-            Natural Protector lays an absorb shield on the ally it protects, and the log reports how
-            much absorb was still on that shield when it came off. That makes the waste a reading
-            rather than an inference: a shield consumed to nothing carries none, and one that expired
-            untouched carries all of it.
+            The absorb from <SpellLink Spell="Spells.NaturalProtectorAbsorb" /> is only worth what the
+            ally actually consumes, so a shield that expires untouched bought nothing. The table shows
+            how much of each shield went unused.
         </p>
-        <p>
-            <SpellLink Spell="Spells.IronleafWard" /> is not measured here. It reduces damage rather
-            than absorbing it, and its removals carry no absorb at all, so there is nothing on it to
-            waste.
-        </p>
-    </Explanation>
-    <ChildContent>
+    </LeftPanel>
+    <RightPanel>
         <CastOverview Title="Overview" Stats="@BuildOverviewStats()" />
         <CastDetail Title="Shields By Pull"
-                    Description="What each pull's shields consumed, and what expired on them."
+                    Description="What each pull's shields consumed, and what expired on them. Ironleaf Ward is not counted: it reduces damage rather than absorbing it, so its removals carry no absorb to waste."
                     Casts="@BuildPerPullData()" />
-    </ChildContent>
+    </RightPanel>
 </GuideSection>
 
 @code {
@@ -27,13 +21,13 @@
     {
         var analyzers = Parser.AbsorbWasteAnalyzers
             .Select(entry => entry.Analyzer).OfType<AbsorbWasteAnalyzer>().ToList();
-        var laid = analyzers.Sum(analyzer => analyzer.ShieldsLaid);
+        var laid = analyzers.Sum(analyzer => analyzer.AbsorbsApplied);
         if (laid == 0) return [];
 
         var used = analyzers.Sum(analyzer => analyzer.AbsorbUsed);
         var wasted = analyzers.Sum(analyzer => analyzer.AbsorbWasted);
         var offered = used + wasted;
-        var expired = analyzers.Sum(analyzer => analyzer.ShieldsExpiredUnspent);
+        var expired = analyzers.Sum(analyzer => analyzer.AbsorbsExpiredUnspent);
         var efficiency = offered > 0 ? used / (double)offered * 100 : 0;
 
         return
@@ -68,7 +62,7 @@
             Stats =
             [
                 new PerCastStat(
-                    $"{analyzer.ShieldsLaid}",
+                    $"{analyzer.AbsorbsApplied}",
                     "Shields Laid",
                     "Shield applications this pull."),
                 new PerCastStat(
@@ -77,7 +71,7 @@
                     $"{analyzer.AbsorbUsed:N0} spent against {analyzer.AbsorbWasted:N0} left to expire.",
                     PerformanceTiers.FromThresholds(analyzer.AbsorbEfficiency * 100, 90, 75, 55)),
                 new PerCastStat(
-                    $"{analyzer.ShieldsExpiredUnspent}",
+                    $"{analyzer.AbsorbsExpiredUnspent}",
                     "Expired Unspent",
                     "Shields that came off still holding absorb."),
             ],

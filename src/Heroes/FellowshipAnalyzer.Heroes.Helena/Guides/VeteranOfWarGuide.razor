@@ -1,109 +1,91 @@
 @inherits ReportComponent<HelenaCombatLogParser>
 
 <GuideSection Title="Veteran of War">
-    <Explanation>
+    <LeftPanel>
         <p>
-            A reduction aimed at something already off cooldown does nothing at all, and that is the
-            only thing measured here. The seconds below are what the cooldown model says was generated
-            against an ability that was already available, so they are only as good as that model.
+            Playing Helena well relies heavily on proper Veteran of War management. The table shows how
+            effectively you lowered cooldowns and where you wasted the most opportunities. If you find
+            yourself frequently pressing <SpellLink Spell="Spells.MeasuredStrike" /> because nothing else
+            is available, check the table for where the most waste occurred.
         </p>
-        @if (HasPunishingStrikes)
-        {
-            <p>
-                @PunishingStrikesCasts of your combo casts went out under
-                <SpellLink Spell="Talents.PunishingStrikes" />. Both figures below already account for it.
-            </p>
-        }
-    </Explanation>
-    <ChildContent>
+    </LeftPanel>
+    <RightPanel>
         <CastOverview Title="Overview" Stats="@BuildOverviewStats()" />
         <CastOverview Title="Waste By Source" Stats="@BuildSourceStats()" />
         <CastDetail Title="Cooldown Reduction By Pull"
                     Description="What each pull generated, and how much of it landed on something still recharging."
                     Casts="@BuildPerPullData()" />
-    </ChildContent>
+    </RightPanel>
 </GuideSection>
 
 @code {
-    private bool HasPunishingStrikes => Parser.SelectedCombatant.HasTalent(Talents.PunishingStrikes.Id);
-
     private int PunishingStrikesCasts =>
         Parser.VeteranOfWarAnalyzers.Sum(entry => entry.Analyzer.PunishingStrikesCasts);
 
     private IEnumerable<OverviewStat> BuildOverviewStats()
     {
-        var analyzers = Parser.VeteranOfWarAnalyzers.Select(entry => entry.Analyzer).ToList();
-        var generated = analyzers.Sum(analyzer => (long)analyzer.GeneratedMs);
-        if (generated == 0) return [];
+        var reduction = Parser.VeteranOfWarAnalyzers.Aggregate(
+            new CooldownReductionResult(), (total, entry) => total + entry.Analyzer.CooldownReduction);
+        if (reduction.Total == 0) return [];
 
-        var applied = analyzers.Sum(analyzer => (long)analyzer.AppliedMs);
-        var wasted = generated - applied;
-        var efficiency = applied / (double)generated * 100;
+        var generated = reduction.Total;
+        var applied = reduction.Effective;
+        var wasted = reduction.Wasted;
+        var efficiency = reduction.Efficiency * 100;
 
-        return
-        [
-            new OverviewStat(
+        var stats = new List<OverviewStat>
+        {
+            new(
                 $"{efficiency:F1}%",
                 "Landed",
                 $"{applied / 1000d:N0}s of the {generated / 1000d:N0}s generated shortened something that was " +
-                "still recharging. Left untiered because it is only as good as the cooldown model behind it: " +
-                "see Model Agreement."),
-            new OverviewStat(
+                "still recharging.",
+                PerformanceTiers.FromThresholds(efficiency, 85, 70, 50)),
+            new(
                 $"{wasted / 1000d:N0}s",
-                "Thrown Away At Least",
-                "Reduction generated against an ability that was already available. A floor rather than a " +
-                "total: whenever the model holds a cooldown that had really recovered, the reduction is " +
-                "booked as landing, so real waste is higher than this."),
-            new OverviewStat(
+                "Wasted",
+                "Reduction generated against an ability that was already available."),
+            new(
                 $"{generated / 1000d:N0}s",
                 "Generated",
                 "Total reduction every combo produced across the fight."),
-            new OverviewStat(
-                $"{Agreement() * 100:F0}%",
-                "Model Agreement",
-                $"{Disagreements()} of {TargetCasts()} casts of a shortened ability happened while the cooldown " +
-                "model believed it had no charge. Each of those is the model being wrong, and each one pushes " +
-                "the landed figure above what really landed.",
-                PerformanceTiers.FromThresholds(Agreement() * 100, 95, 85, 70)),
-        ];
+        };
+
+        if (PunishingStrikesCasts > 0)
+        {
+            stats.Add(new OverviewStat(
+                $"{PunishingStrikesCasts}",
+                "Under Punishing Strikes",
+                "Combo casts made with a Punishing Strikes stack active, each worth double. The figures " +
+                "above already account for them."));
+        }
+
+        return stats;
     }
-
-    private double Agreement()
-    {
-        var casts = TargetCasts();
-        return casts > 0 ? 1 - ((double)Disagreements() / casts) : 1;
-    }
-
-    private int Disagreements() =>
-        Parser.VeteranOfWarAnalyzers.Sum(entry => entry.Analyzer.ModelDisagreements);
-
-    private int TargetCasts() =>
-        Parser.VeteranOfWarAnalyzers.Sum(entry => entry.Analyzer.TargetCasts);
 
     private IEnumerable<OverviewStat> BuildSourceStats()
     {
-        var totals = new Dictionary<int, (int Generated, int Applied)>();
+        var totals = new Dictionary<int, CooldownReductionResult>();
         foreach (var entry in Parser.VeteranOfWarAnalyzers)
         {
             foreach (var contribution in entry.Analyzer.BySource)
             {
-                var current = totals.GetValueOrDefault(contribution.SourceSpellId);
                 totals[contribution.SourceSpellId] =
-                    (current.Generated + contribution.GeneratedMs, current.Applied + contribution.AppliedMs);
+                    totals.GetValueOrDefault(contribution.SourceSpellId) + contribution.CooldownReduction;
             }
         }
 
         return totals
-            .OrderByDescending(entry => entry.Value.Generated - entry.Value.Applied)
+            .OrderByDescending(entry => entry.Value.Wasted)
             .Select(entry =>
             {
-                var (generated, applied) = entry.Value;
-                var efficiency = generated > 0 ? applied / (double)generated * 100 : 0;
+                var reduction = entry.Value;
+                var efficiency = reduction.Efficiency * 100;
 
                 return new OverviewStat(
-                    $"{(generated - applied) / 1000d:N0}s",
+                    $"{reduction.Wasted / 1000d:N0}s",
                     SpellName(entry.Key),
-                    $"{efficiency:F0}% of the {generated / 1000d:N0}s this ability generated landed on a running cooldown.",
+                    $"{efficiency:F0}% of the {reduction.Total / 1000d:N0}s this ability generated landed on a running cooldown.",
                     PerformanceTiers.FromThresholds(efficiency, 85, 70, 50));
             })
             .ToList();
@@ -112,7 +94,7 @@
     private IEnumerable<PerCastData> BuildPerPullData() =>
         Parser.VeteranOfWarAnalyzers.ToPullRows(Parser, (analyzer, pull) => new PerCastRow
         {
-            Performance = PerformanceTiers.FromThresholds(analyzer.Efficiency * 100, 85, 70, 50),
+            Performance = PerformanceTiers.FromThresholds(analyzer.CooldownReduction.Efficiency * 100, 85, 70, 50),
             Stats = BuildPullStats(analyzer),
             Details = analyzer.SawActiveUltimate
                 ? @<div>Siegebreaker was up for part of this pull, doubling every reduction made under it.</div>
@@ -124,26 +106,22 @@
         var stats = new List<PerCastStat>
         {
             new(
-                $"{analyzer.Efficiency * 100:F0}%",
+                $"{analyzer.CooldownReduction.Efficiency * 100:F0}%",
                 "Landed",
-                "Share of this pull's generated reduction the cooldown model says shortened a running cooldown."),
+                "Share of this pull's generated reduction that shortened a running cooldown.",
+                PerformanceTiers.FromThresholds(analyzer.CooldownReduction.Efficiency * 100, 85, 70, 50)),
             new(
-                $"{analyzer.WastedMs / 1000d:F0}s",
-                "Thrown Away At Least",
-                "Reduction generated against an ability that was already available, as a floor."),
-            new(
-                $"{analyzer.ModelAgreement * 100:F0}%",
-                "Model Agreement",
-                $"{analyzer.ModelDisagreements} of {analyzer.TargetCasts} casts of a shortened ability " +
-                "happened while the model believed it had no charge left."),
+                $"{analyzer.CooldownReduction.Wasted / 1000d:F0}s",
+                "Wasted",
+                "Reduction generated against an ability that was already available."),
         };
 
         foreach (var contribution in analyzer.BySource.Take(3))
         {
             stats.Add(new PerCastStat(
-                $"{contribution.WastedMs / 1000d:F0}s",
+                $"{contribution.CooldownReduction.Wasted / 1000d:F0}s",
                 SpellName(contribution.SourceSpellId),
-                $"{contribution.Events} casts generated {contribution.GeneratedMs / 1000d:F0}s, of which {contribution.AppliedMs / 1000d:F0}s landed."));
+                $"{contribution.Events} casts generated {contribution.CooldownReduction.Total / 1000d:F0}s, of which {contribution.CooldownReduction.Effective / 1000d:F0}s landed."));
         }
 
         return [.. stats];

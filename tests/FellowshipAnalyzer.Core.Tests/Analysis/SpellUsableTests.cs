@@ -3,6 +3,7 @@ using FellowshipAnalyzer.Core.Common;
 using FellowshipAnalyzer.Core.Common.Spells;
 using FellowshipAnalyzer.Core.Events;
 using FellowshipAnalyzer.Core.FellowshipLogs;
+using FellowshipAnalyzer.Core.UI;
 
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -381,9 +382,9 @@ public sealed partial class SpellUsableTests
 
         var cdr = spellUsable.ReduceCooldown(SpellB, 1000, timestamp: 19500);
 
-        Assert.Equal(1000, cdr.GeneratedMs);
-        Assert.Equal(1000, cdr.AppliedMs);
-        Assert.Equal(0, cdr.WastedMs);
+        Assert.Equal(1000, cdr.Total);
+        Assert.Equal(1000, cdr.Effective);
+        Assert.Equal(0, cdr.Wasted);
 
         Assert.Equal(1, spellUsable.ChargesAvailable(SpellB));
         Assert.Equal(19500, spellUsable.CooldownRemaining(SpellB, atTimestamp: 19500));
@@ -398,8 +399,8 @@ public sealed partial class SpellUsableTests
 
         var cdr = spellUsable.ReduceCooldown(SpellB, 500, timestamp: 19500);
 
-        Assert.Equal(500, cdr.AppliedMs);
-        Assert.Equal(0, cdr.WastedMs);
+        Assert.Equal(500, cdr.Effective);
+        Assert.Equal(0, cdr.Wasted);
         Assert.Equal(1, spellUsable.ChargesAvailable(SpellB));
         Assert.Equal(20000, spellUsable.CooldownRemaining(SpellB, atTimestamp: 19500));
     }
@@ -413,9 +414,9 @@ public sealed partial class SpellUsableTests
 
         var cdr = spellUsable.ReduceCooldown(SpellB, 25000, timestamp: 19500);
 
-        Assert.Equal(25000, cdr.GeneratedMs);
-        Assert.Equal(20500, cdr.AppliedMs);
-        Assert.Equal(4500, cdr.WastedMs);
+        Assert.Equal(25000, cdr.Total);
+        Assert.Equal(20500, cdr.Effective);
+        Assert.Equal(4500, cdr.Wasted);
         Assert.Equal(2, spellUsable.ChargesAvailable(SpellB));
         Assert.False(spellUsable.IsOnCooldown(SpellB));
     }

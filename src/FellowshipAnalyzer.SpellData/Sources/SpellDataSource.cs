@@ -1,6 +1,7 @@
 using System.Text.Json;
+
 using FellowshipAnalyzer.Core.Common.Spells;
-using FellowshipAnalyzer.Core.Events;
+using FellowshipAnalyzer.Core.Game;
 
 namespace FellowshipAnalyzer.SpellData.Sources;
 
@@ -61,18 +62,15 @@ public sealed class SpellDataSource
 
     /// <summary>
     /// Parses a <c>School</c> string. The dump joins schools with <c>/</c>, so <c>Magic/Physical</c>
-    /// yields both flags. An unrecognized token contributes nothing.
+    /// yields both flags. An absent school is the default, meaning the dump does not classify the
+    /// ability.
     /// </summary>
-    public static MagicSchool ParseSchool(string? value)
-    {
-        if (string.IsNullOrWhiteSpace(value))
-            return default;
-
-        var school = default(MagicSchool);
-        foreach (var part in value.Split('/'))
-            if (Enum.TryParse<MagicSchool>(part.Trim(), ignoreCase: true, out var parsed))
-                school |= parsed;
-
-        return school;
-    }
+    /// <exception cref="ArgumentException">
+    /// The value names a school <see cref="MagicSchool"/> does not declare. A dump that gains a school
+    /// therefore fails loudly instead of silently dropping it.
+    /// </exception>
+    public static MagicSchool ParseSchool(string? value) =>
+        string.IsNullOrWhiteSpace(value)
+            ? default
+            : Enum.Parse<MagicSchool>(value.Replace('/', ','), ignoreCase: true);
 }

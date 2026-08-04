@@ -29,6 +29,7 @@ public sealed class ConsolidatedSpellRegistryGenerator : IIncrementalGenerator
     private const string ItemsScope = "items";
     private const string SchoolsSection = "schools";
     private const string EventsNamespace = "FellowshipAnalyzer.Core.Events";
+    private const string GameNamespace = "FellowshipAnalyzer.Core.Game";
     private const int EffectOffset = 1_000_000;
 
     private static readonly DiagnosticDescriptor DuplicateMemberDescriptor = new(
@@ -306,7 +307,7 @@ public sealed class ConsolidatedSpellRegistryGenerator : IIncrementalGenerator
 
         EmitCentral(spc, centralNamespace, centralClassName, central, sharedMembers, allEntries, lcaGlobalName);
 
-        if (schoolEntries is not null && compilation.GetTypeByMetadataName(EventsNamespace + ".MagicSchool") is not null)
+        if (schoolEntries is not null && compilation.GetTypeByMetadataName(GameNamespace + ".MagicSchool") is not null)
             EmitSchools(spc, schoolEntries);
     }
 
@@ -319,17 +320,22 @@ public sealed class ConsolidatedSpellRegistryGenerator : IIncrementalGenerator
     {
         var abilities = new List<byte>();
         var effects = new List<byte>();
+        var ordinalByText = new Dictionary<string, byte>(StringComparer.OrdinalIgnoreCase);
+        var texts = new List<string>();
 
         foreach (var key in entries.Keys)
         {
             if (!int.TryParse(key, NumberStyles.Integer, CultureInfo.InvariantCulture, out var fslid))
                 continue;
-            if (entries[key].String is not { } text)
+            if (entries[key].String is not { } text || string.IsNullOrWhiteSpace(text))
                 continue;
 
-            var school = ParseSchoolFlags(text);
-            if (school == 0)
-                continue;
+            if (!ordinalByText.TryGetValue(text, out var school))
+            {
+                texts.Add(text);
+                school = (byte)texts.Count;
+                ordinalByText[text] = school;
+            }
 
             var table = fslid >= EffectOffset ? effects : abilities;
             var native = fslid >= EffectOffset ? fslid - EffectOffset : fslid;
@@ -354,10 +360,10 @@ public sealed class ConsolidatedSpellRegistryGenerator : IIncrementalGenerator
         sb.AppendLine("{");
         sb.AppendLine("    /// <summary>");
         sb.AppendLine("    /// The damage school <paramref name=\"id\"/> deals in, or the default <see cref=\"global::" +
-                      EventsNamespace + ".MagicSchool\"/>");
+                      GameNamespace + ".MagicSchool\"/>");
         sb.AppendLine("    /// when the game data does not classify it.");
         sb.AppendLine("    /// </summary>");
-        sb.AppendLine("    public static global::" + EventsNamespace + ".MagicSchool For(global::" +
+        sb.AppendLine("    public static global::" + GameNamespace + ".MagicSchool For(global::" +
                       SpellsNamespace + ".FSLID id)");
         sb.AppendLine("    {");
         sb.AppendLine("        var kind = id.Kind;");
@@ -368,9 +374,11 @@ public sealed class ConsolidatedSpellRegistryGenerator : IIncrementalGenerator
         sb.AppendLine("        var table = kind == global::" + SpellsNamespace + ".SpellKind.Ability ? Abilities : Effects;");
         sb.AppendLine("        var native = id.NativeId;");
         sb.AppendLine("        return (uint)native < (uint)table.Length");
-        sb.AppendLine("            ? (global::" + EventsNamespace + ".MagicSchool)table[native]");
+        sb.AppendLine("            ? Resolve(table[native])");
         sb.AppendLine("            : default;");
         sb.AppendLine("    }");
+        sb.AppendLine();
+        AppendResolve(sb, texts);
         sb.AppendLine();
         AppendTable(sb, "Abilities", abilities);
         sb.AppendLine();
@@ -397,16 +405,27 @@ public sealed class ConsolidatedSpellRegistryGenerator : IIncrementalGenerator
         sb.AppendLine("    };");
     }
 
-    private static byte ParseSchoolFlags(string text)
+    private static void AppendResolve(StringBuilder sb, List<string> texts)
     {
-        byte school = 0;
+        sb.AppendLine("    private static global::" + GameNamespace + ".MagicSchool Resolve(byte ordinal) => ordinal switch");
+        sb.AppendLine("    {");
+        for (var i = 0; i < texts.Count; i++)
+            sb.AppendLine("        " + (i + 1).ToString(CultureInfo.InvariantCulture) + " => " + SchoolExpression(texts[i]) + ",");
+        sb.AppendLine("        _ => default,");
+        sb.AppendLine("    };");
+    }
+
+    private static string SchoolExpression(string text)
+    {
+        var sb = new StringBuilder();
         foreach (var part in text.Split('/'))
         {
             var token = part.Trim();
-            if (token.Equals("Physical", StringComparison.OrdinalIgnoreCase)) school |= 1;
-            else if (token.Equals("Magic", StringComparison.OrdinalIgnoreCase)) school |= 2;
+            if (token.Length == 0) continue;
+            if (sb.Length > 0) sb.Append(" | ");
+            sb.Append("global::").Append(GameNamespace).Append(".MagicSchool.").Append(token);
         }
-        return school;
+        return sb.Length == 0 ? "default" : sb.ToString();
     }
 
     private static void RecordEntry(

@@ -1,0 +1,179 @@
+@inherits ReportComponent<HelenaCombatLogParser>
+
+<GuideSection Title="Hold the Line">
+    <LeftPanel>
+        <p>
+            <SpellLink Spell="Spells.HoldTheLine" /> gives a huge amount of CDR on several important abilities,
+            in addition to the reset and absorb shield on <SpellLink Spell="Spells.ShieldSlam" />.
+            Try to get all affected abilities on cooldown as soon as possible for the maximum benefit
+            of the CDR and not waste any uses.
+        </p>
+    </LeftPanel>
+    <RightPanel>
+        @if (Presses.Count > 0)
+        {
+            <CastOverview Title="Overview" Stats="@BuildOverviewStats()" />
+            <CastOverview Title="Cooldown Reduction By Ability" Stats="@BuildTargetStats()" />
+            <CastDetail Title="Presses"
+                        Description="Each Hold the Line, and how long each affected ability had already been available."
+                        Casts="@BuildPressData()" />
+        }
+        @if (Empowerments > 0)
+        {
+            <CastOverview Title="Shield Slam Barrier" Stats="@BuildBarrierStats()" />
+        }
+    </RightPanel>
+</GuideSection>
+
+@code {
+    private IReadOnlyList<HoldTheLinePress> Presses =>
+        field ??= [.. Parser.VeteranOfWarAnalyzers.SelectMany(entry => entry.Analyzer.HoldTheLinePresses)];
+
+    private IReadOnlyList<EmpoweredShieldSlamAnalyzer> BarrierAnalyzers =>
+        field ??= [.. Parser.EmpoweredShieldSlamAnalyzers
+            .Select(entry => entry.Analyzer).OfType<EmpoweredShieldSlamAnalyzer>()];
+
+    private int Empowerments => BarrierAnalyzers.Sum(analyzer => analyzer.EmpowermentsGranted);
+
+    private IEnumerable<OverviewStat> BuildOverviewStats()
+    {
+        if (Presses.Count == 0) return [];
+
+        var slamReady = Presses.Count(press => TargetOf(press, Spells.ShieldSlam.FSLID)?.WasAvailable == true);
+        var slamShare = (double)slamReady / Presses.Count * 100;
+        var reduction = TotalsByTarget().Values
+            .Aggregate(new CooldownReductionResult(), (total, entry) => total + entry);
+
+        return
+        [
+            new OverviewStat(
+                $"{Presses.Count}",
+                "Presses",
+                "Hold the Line casts across every pull."),
+            new OverviewStat(
+                $"{slamReady}/{Presses.Count}",
+                "Shield Slam Already Up",
+                $"Presses made with {Spells.ShieldSlam.Name} off cooldown, where the reset it grants had " +
+                "nothing to give back. Shield Slam is left out of the reduction figures for the same " +
+                "reason: ten seconds always covers the whole of its cooldown.",
+                PerformanceTiers.FromThresholds(100 - slamShare, 90, 75, 55)),
+            new OverviewStat(
+                $"{reduction.Wasted / 1000d:N0}s",
+                "Reduction Wasted",
+                $"Of the {reduction.Total / 1000d:N0}s Hold the Line generated on the other three abilities, " +
+                $"{reduction.Effective / 1000d:N0}s landed on something still recharging."),
+        ];
+    }
+
+    private IEnumerable<OverviewStat> BuildTargetStats() =>
+        TotalsByTarget()
+            .OrderByDescending(entry => entry.Value.Wasted)
+            .Select(entry =>
+            {
+                var efficiency = entry.Value.Efficiency * 100;
+                var pressesUp = Presses.Count(press => TargetOf(press, entry.Key)?.WasAvailable == true);
+
+                return new OverviewStat(
+                    $"{efficiency:F0}%",
+                    SpellName(entry.Key),
+                    $"{entry.Value.Effective / 1000d:N0}s of the {entry.Value.Total / 1000d:N0}s aimed at it " +
+                    $"landed, with {pressesUp} of {Presses.Count} presses made while it was already available.",
+                    PerformanceTiers.FromThresholds(efficiency, 85, 70, 50));
+            })
+            .ToList();
+
+    private IEnumerable<PerCastData> BuildPressData() =>
+        Parser.VeteranOfWarAnalyzers.ToItemRows(
+            Parser,
+            analyzer => analyzer.HoldTheLinePresses,
+            (press, pull) => new PerCastRow
+            {
+                Performance = PressPerformance(press),
+                Timestamp = press.Timestamp,
+                Stats = BuildPressStats(press),
+            });
+
+    private static QualitativePerformance PressPerformance(HoldTheLinePress press) =>
+        press.Targets.Count(target => target.SpellId != Spells.ShieldSlam.FSLID && target.WasAvailable) switch
+        {
+            0 => QualitativePerformance.Perfect,
+            1 => QualitativePerformance.Good,
+            2 => QualitativePerformance.Ok,
+            _ => QualitativePerformance.Fail,
+        };
+
+    private static PerCastStat[] BuildPressStats(HoldTheLinePress press) =>
+    [
+        .. press.Targets.Select(target => new PerCastStat(
+            target.AvailableForMs is { } available ? $"{available / 1000d:F1}s" : "recharging",
+            SpellName(target.SpellId),
+            target.AvailableForMs is { } held
+                ? $"It had been available for {held / 1000d:F1}s when the press landed, so the press had nothing to give it back."
+                : target.SpellId == Spells.ShieldSlam.FSLID
+                    ? "It had no charge left, so the press reset it."
+                    : "It was still recharging, so the press shortened it.",
+            target.WasAvailable ? QualitativePerformance.Fail : QualitativePerformance.Perfect)),
+    ];
+
+    private IEnumerable<OverviewStat> BuildBarrierStats()
+    {
+        var analyzers = BarrierAnalyzers;
+        var granted = Empowerments;
+        if (granted == 0) return [];
+
+        var applications = analyzers.Sum(analyzer => analyzer.BarrierApplications);
+        var lapsed = analyzers.Sum(analyzer => analyzer.EmpowermentsExpired);
+        var used = analyzers.Sum(analyzer => analyzer.AbsorbUsed);
+        var wasted = analyzers.Sum(analyzer => analyzer.AbsorbWasted);
+        var expired = analyzers.Sum(analyzer => analyzer.BarriersExpiredUnspent);
+        var offered = used + wasted;
+        var efficiency = offered > 0 ? used / (double)offered * 100 : 0;
+
+        return
+        [
+            new OverviewStat(
+                $"{applications}",
+                "Barriers Laid",
+                $"Barrier applications across {granted} empowerments, counting a refresh onto a live " +
+                "barrier alongside a fresh one."),
+            new OverviewStat(
+                $"{lapsed}",
+                "Empowerments Lapsed",
+                "Empowerments that fell off with no Shield Slam under them. Shield Slam comes round faster " +
+                "than the buff can lapse, so anything above zero is worth looking at."),
+            new OverviewStat(
+                $"{efficiency:F1}%",
+                "Absorb Used",
+                $"{used:N0} of the {offered:N0} the barriers offered was consumed before they expired.",
+                PerformanceTiers.FromThresholds(efficiency, 90, 75, 55)),
+            new OverviewStat(
+                $"{wasted:N0}",
+                "Absorb Expired",
+                $"Absorb still on a barrier when it came off, across {expired} barriers."),
+        ];
+    }
+
+    private Dictionary<int, CooldownReductionResult> TotalsByTarget()
+    {
+        var totals = new Dictionary<int, CooldownReductionResult>();
+        foreach (var entry in Parser.VeteranOfWarAnalyzers)
+        {
+            foreach (var contribution in entry.Analyzer.Contributions)
+            {
+                if (contribution.SourceSpellId != Spells.HoldTheLine.FSLID) continue;
+                if (contribution.TargetSpellId is not { } target) continue;
+                if (target == Spells.ShieldSlam.FSLID) continue;
+
+                totals[target] = totals.GetValueOrDefault(target) + contribution.CooldownReduction;
+            }
+        }
+
+        return totals;
+    }
+
+    private static HoldTheLineTarget? TargetOf(HoldTheLinePress press, int spellId) =>
+        press.Targets.FirstOrDefault(target => target.SpellId == spellId);
+
+    private static string SpellName(int spellId) =>
+        SpellRegistry.MaybeGet(spellId)?.Name ?? $"Spell {spellId}";
+}

@@ -6,7 +6,7 @@ namespace FellowshipAnalyzer.Heroes.Tariq.Analysis;
 [HeroAnalyzer(HeroName.Tariq)]
 [AddState<FuryTracker>]
 [AddAnalyzer<FuryEconomyAnalyzer>]
-[AddAnalyzer<ThunderCallWindowAnalyzer>]
+[AddAnalyzer<ThunderCallAnalyzer>]
 [AddAnalyzer<FocusedWrathAnalyzer>]
 [AddAnalyzer<HammerStormAnalyzer>]
 [AddAnalyzer<CullingStrikeAnalyzer>]

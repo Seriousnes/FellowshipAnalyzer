@@ -23,10 +23,10 @@ public sealed class LifePetalAnalyzerTests
 
         analyzer.NettleboltHits.ShouldBe(1);
         analyzer.NettleboltsAtFullCharges.ShouldBe(1);
-        analyzer.ReductionGeneratedMs.ShouldBe(SylvieKit.NettleboltCooldownReductionMs);
-        analyzer.ReductionAppliedMs.ShouldBe(0);
-        analyzer.ReductionWastedMs.ShouldBe(SylvieKit.NettleboltCooldownReductionMs);
-        analyzer.ReductionEfficiency.ShouldBe(0d);
+        analyzer.CooldownReduction.Total.ShouldBe(SylvieKit.NettleboltCooldownReductionMs);
+        analyzer.CooldownReduction.Effective.ShouldBe(0);
+        analyzer.CooldownReduction.Wasted.ShouldBe(SylvieKit.NettleboltCooldownReductionMs);
+        analyzer.CooldownReduction.Efficiency.ShouldBe(0d);
     }
 
     [Fact]
@@ -38,7 +38,7 @@ public sealed class LifePetalAnalyzerTests
         var analyzer = parser.LifePetalAnalyzers.ShouldHaveSingleItem().Analyzer;
 
         analyzer.NettleboltCrits.ShouldBe(1);
-        analyzer.ReductionGeneratedMs.ShouldBe(SylvieKit.NettleboltCritCooldownReductionMs);
+        analyzer.CooldownReduction.Total.ShouldBe(SylvieKit.NettleboltCritCooldownReductionMs);
     }
 
     [Fact]
@@ -54,8 +54,8 @@ public sealed class LifePetalAnalyzerTests
 
         analyzer.Casts.ShouldBe(2);
         analyzer.NettleboltsAtFullCharges.ShouldBe(0);
-        analyzer.ReductionAppliedMs.ShouldBe(analyzer.ReductionGeneratedMs);
-        analyzer.ReductionEfficiency.ShouldBe(1d, 0.001);
+        analyzer.CooldownReduction.Effective.ShouldBe(analyzer.CooldownReduction.Total);
+        analyzer.CooldownReduction.Efficiency.ShouldBe(1d, 0.001);
     }
 
     [Fact]
@@ -82,6 +82,6 @@ public sealed class LifePetalAnalyzerTests
         var analyzer = parser.LifePetalAnalyzers.ShouldHaveSingleItem().Analyzer;
 
         analyzer.NettleboltHits.ShouldBe(0);
-        analyzer.ReductionGeneratedMs.ShouldBe(0);
+        analyzer.CooldownReduction.Total.ShouldBe(0);
     }
 }

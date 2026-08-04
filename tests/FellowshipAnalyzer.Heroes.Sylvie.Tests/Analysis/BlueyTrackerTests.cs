@@ -1,3 +1,5 @@
+using FellowshipAnalyzer.Heroes.Sylvie.Modules;
+
 using Shouldly;
 
 using Xunit;
@@ -63,7 +65,7 @@ public sealed class BlueyTrackerTests
             RemoveBuff(PullStart + 21_000, Spells.FluttercallProtectBuff, TankId),
             ApplyBuff(PullStart + 21_000, Spells.FluttercallEmbraceBuff, PlayerId));
 
-        var analyzer = parser.BlueyAssignmentAnalyzers.ShouldHaveSingleItem().Analyzer;
+        var analyzer = parser.BlueyAnalyzers.ShouldHaveSingleItem().Analyzer;
 
         analyzer.OnAllyMs.ShouldBe(21_000);
         analyzer.OnSylvieMs.ShouldBe(PullEnd - PullStart - 21_000);
@@ -80,5 +82,61 @@ public sealed class BlueyTrackerTests
             Cast(PullStart + 20_000, Spells.FluttercallEmbrace, targetId: PlayerId));
 
         parser.BlueyTracker.ShouldNotBeNull().Reassignments.ShouldBe(2);
+    }
+
+    [Fact]
+    public async Task OnAnAllyBlueyAccountsForHalfOfThatAllysFlutterflyHealing()
+    {
+        var parser = await Analyze(
+            ApplyBuff(PullStart + 500, Spells.FluttercallProtectBuff, TankId),
+            ApplyBuff(PullStart + 500, Spells.FluttercallHealHot, TankId),
+            Heal(PullStart + 3_000, Spells.FluttercallHealHot, TankId, amount: 600, overheal: 200),
+            Heal(PullStart + 6_000, Spells.FluttercallRestoreLifeHot, TankId, amount: 400));
+
+        var analyzer = parser.BlueyAnalyzers.ShouldHaveSingleItem().Analyzer;
+
+        analyzer.UpliftedTicks.ShouldBe(2);
+        analyzer.HealingUpliftOnAlly.ShouldBe(500);
+        analyzer.HealingUpliftOnSylvie.ShouldBe(0);
+        analyzer.HealingUplift.ShouldBe(500);
+    }
+
+    [Fact]
+    public async Task RecalledOntoSylvieBlueyAccountsForAThirdOfHerOwnFlutterflyHealing()
+    {
+        var parser = await Analyze(
+            ApplyBuff(PullStart + 500, Spells.FluttercallEmbraceBuff, PlayerId),
+            Heal(PullStart + 3_000, Spells.FluttercallHealHot, PlayerId, amount: 900));
+
+        var analyzer = parser.BlueyAnalyzers.ShouldHaveSingleItem().Analyzer;
+
+        analyzer.UpliftedTicks.ShouldBe(1);
+        analyzer.HealingUpliftOnSylvie.ShouldBe(300);
+        analyzer.HealingUpliftOnAlly.ShouldBe(0);
+    }
+
+    [Fact]
+    public async Task HealingOnSomebodyWhoIsNotCarryingBlueyAddsNoUplift()
+    {
+        var parser = await Analyze(
+            ApplyBuff(PullStart + 500, Spells.FluttercallProtectBuff, TankId),
+            Heal(PullStart + 3_000, Spells.FluttercallHealHot, AllyId, amount: 600));
+
+        var analyzer = parser.BlueyAnalyzers.ShouldHaveSingleItem().Analyzer;
+
+        analyzer.UpliftedTicks.ShouldBe(0);
+        analyzer.HealingUplift.ShouldBe(0);
+    }
+
+    [Fact]
+    public async Task ThePullAnalyzerReportsTheManaTheDiscountSaved()
+    {
+        var parser = await Analyze(
+            ApplyBuff(PullStart + 500, Spells.FluttercallEmbraceBuff, PlayerId),
+            Cast(PullStart + 1_000, Spells.HeartBloom));
+
+        var analyzer = parser.BlueyAnalyzers.ShouldHaveSingleItem().Analyzer;
+
+        analyzer.ManaSaved.ShouldBe(118 - (int)Math.Round(118 * SylvieKit.EmbraceManaCostScaler));
     }
 }

@@ -1,26 +1,18 @@
 @inherits ReportComponent<HelenaCombatLogParser>
 
 <GuideSection Title="Lingering Concussion">
-    <Explanation>
+    <LeftPanel>
         <p>
-            Every <SpellLink Spell="Spells.ShieldSlam" /> leaves Lingering Concussion on what it hits,
-            taking 3% off everything that target deals to you and stacking to five for a 15% cut. It
-            lasts twelve seconds, so holding it is a question of whether Shield Slam kept coming back
-            round rather than of anything you press in reaction.
+            Try to maintain 5 stacks of <SpellLink Spell="Spells.ShieldSlamReducedIncomingDamageFromTargetDebuff" /> on 
+            most dangerous target on trash pulls, and aim for 100% uptime on bosses.
         </p>
-        <p>
-            Uptime and stacks are read against whichever enemy carried the debuff longest, so a pull's
-            reading follows the thing actually hitting you rather than being diluted by adds that
-            passed through. Time spent under five stacks is time the debuff was up but not yet worth
-            what it can be.
-        </p>
-    </Explanation>
-    <ChildContent>
+    </LeftPanel>
+    <RightPanel>
         <CastOverview Title="Overview" Stats="@BuildOverviewStats()" />
         <CastDetail Title="Lingering Concussion By Pull"
                     Description="Uptime, stack time and gaps against each pull's primary target."
                     Casts="@BuildPerPullData()" />
-    </ChildContent>
+    </RightPanel>
 </GuideSection>
 
 @code {
@@ -49,7 +41,9 @@
             new OverviewStat(
                 $"{uptime:F1}%",
                 "Uptime",
-                "Share of pull time the primary target carried the debuff at any stack count.",
+                "Share of pull time the primary target carried the debuff at any stack count. Each pull is read " +
+                "against whichever enemy carried it longest, so the figure follows the thing actually hitting " +
+                "you rather than being diluted by adds that passed through.",
                 PerformanceTiers.FromThresholds(uptime, 90, 75, 55)),
             new OverviewStat(
                 $"{capUptime:F1}%",

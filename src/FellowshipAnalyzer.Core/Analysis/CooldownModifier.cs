@@ -1,4 +1,6 @@
 using FellowshipAnalyzer.Core.Common.Spells;
+using FellowshipAnalyzer.Core.UI;
+
 using OneOf;
 
 namespace FellowshipAnalyzer.Core.Analysis;

@@ -8,13 +8,15 @@ namespace FellowshipAnalyzer.Heroes.Mara.Analysis;
 [AddModule<Modules.Abilities>]
 [AddModule<MaraAuras>]
 [AddModule<DeadlySchemeTracker>]
+[AddAnalyzer<FinalStratagemAnalyzer>]
 [AddAnalyzer<SingleTargetMaraResourceDiscipline>]
 [AddAnalyzer<AoEMaraResourceDiscipline>]
 [AddAnalyzer<MaraDotUptimeAnalyzer>]
 [AddAnalyzer<MaraDotSpreadAnalyzer>]
-[AddAnalyzer<MaidenOfDeathWindowAnalyzer>]
-[AddAnalyzer<StealthWindowAnalyzer>]
-[AddAnalyzer<GuileWindowAnalyzer>]
+[AddAnalyzer<MaidenOfDeathAnalyzer>]
+[AddAnalyzer<MatriarchMacabreAnalyzer>]
+[AddAnalyzer<StealthAnalyzer>]
+[AddAnalyzer<GuileAnalyzer>]
 public sealed partial class MaraCombatLogParser : CombatLogParser
 {
     public override Type? GuideComponent => typeof(MaraGuide);

@@ -47,7 +47,7 @@ public sealed partial class FlutterflyHealingBuffAnalyzer : Analyzer
     /// <summary>Safe Havens cast this pull.</summary>
     public int SafeHavenCasts { get; private set; }
 
-    /// <summary>Milliseconds of the pull covered by at least one ally standing in a Safe Haven.</summary>
+    /// <summary>Milliseconds of the pull covered by at least one ally inside a Safe Haven.</summary>
     public int SafeHavenCoveredMs => Result.SafeHavenMs;
 
     /// <summary>Share (0-1) of the pull with a Safe Haven window open on somebody.</summary>
@@ -56,7 +56,7 @@ public sealed partial class FlutterflyHealingBuffAnalyzer : Analyzer
     /// <summary>Ally-milliseconds of Safe Haven coverage, counting each ally in the circle separately.</summary>
     public long SafeHavenAllyMs => Result.SafeHavenAllyMs;
 
-    /// <summary>Distinct allies who stood in a Safe Haven this pull.</summary>
+    /// <summary>Distinct allies who were inside a Safe Haven this pull.</summary>
     public int SafeHavenAllies => Result.SafeHavenAllies;
 
     /// <summary>The pull's length in milliseconds.</summary>

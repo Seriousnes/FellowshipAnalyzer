@@ -21,7 +21,7 @@ public interface IAbsorbWasteAnalyzer : IAnalyzerSurface;
 public sealed partial class AbsorbWasteAnalyzer : AbsorbAnalyzer, IAbsorbWasteAnalyzer
 {
     /// <summary>A shield laid on an ally who already carries one is a fresh shield, not an extension.</summary>
-    protected override bool ReapplicationOpensNewShield => true;
+    protected override bool ReapplicationOpensNewAbsorb => true;
 
     [On<ApplyBuffEvent>(By = Actor.Player, Spell = nameof(Spells.NaturalProtectorAbsorb))]
     private void OnShieldApplied(ApplyBuffEvent buffEvent) => OpenShield(buffEvent);

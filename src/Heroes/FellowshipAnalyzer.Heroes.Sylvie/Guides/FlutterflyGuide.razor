@@ -1,0 +1,214 @@
+@inherits ReportComponent<SylvieCombatLogParser>
+@inject FellowshipAnalyzer.Core.FellowshipLogs.ReportMasterDataService MasterData
+
+<GuideSection Title="Flutterflies">
+    <LeftPanel>
+        <p>
+            Pink flutterflies are Sylvie's primary source of healing, and correctly directing them is
+            key to keeping the group alive. <SpellLink Spell="Spells.FluttercallHeal" /> sends one to a
+            target; <SpellLink Spell="Spells.FluttercallRestoreLife" /> sends two, with a burst heal up
+            front and a window that runs down on its own.
+        </p>
+        <p>
+            Bluey should be assigned to the tank with <SpellLink Spell="Spells.FluttercallProtect" /> or
+            to yourself with <SpellLink Spell="Spells.FluttercallEmbrace" /> depending on incoming group
+            damage. The table shows uptime on each target, and what the increased healing and mana
+            reduction were worth.
+        </p>
+    </LeftPanel>
+    <RightPanel>
+        <CastOverview Title="Pink Flutterflies" Stats="@BuildFlutterflyStats()" />
+        @if (Parser.BlueyAnalyzers.Count > 0)
+        {
+            <CastOverview Title="Bluey" Stats="@BuildBlueyStats()" />
+        }
+        <CastDetail Title="Flutterflies By Pull"
+                    Description="Where the pink flutterflies were through each pull, and what they healed."
+                    Casts="@BuildPerPullData()" />
+        @if (Parser.BlueyAnalyzers.Count > 0)
+        {
+            <CastDetail Title="Bluey By Pull"
+                        Description="Uptime on each target through the pull, and what the placement was worth."
+                        Casts="@BuildBlueyPullData()" />
+        }
+    </RightPanel>
+</GuideSection>
+
+@code {
+    private IEnumerable<OverviewStat> BuildFlutterflyStats()
+    {
+        var analyzers = Parser.PinkFlutterflyAnalyzers.Select(entry => entry.Analyzer).ToList();
+        var assignable = analyzers.Sum(analyzer => analyzer.AssignableMs);
+        if (assignable == 0) return [];
+
+        var assigned = analyzers.Sum(analyzer => analyzer.AssignedMs);
+        var share = assigned / (double)assignable;
+        var effective = analyzers.Sum(analyzer => analyzer.Effective);
+        var overheal = analyzers.Sum(analyzer => analyzer.Overheal);
+        var total = effective + overheal;
+        var moves = analyzers.Sum(analyzer => analyzer.AssignmentsOpened);
+        var peakBanked = analyzers.Count > 0 ? analyzers.Max(analyzer => analyzer.PeakBanked) : 0;
+        var restoreLifeWindows = analyzers.Sum(analyzer => analyzer.RestoreLifeAssignmentsOpened);
+        var restoreLifeMs = analyzers.Sum(analyzer => analyzer.RestoreLifeAssignedMs);
+        var restoreLifeEffective = analyzers.Sum(analyzer => analyzer.RestoreLifeEffective);
+
+        var stats = new List<OverviewStat>
+        {
+            new(
+                $"{share * 100:F1}%",
+                "Flutterflies Out",
+                $"{assigned / 1000:N0} flutterfly-seconds parked on an ally against the {assignable / 1000:N0} four flutterflies could have covered. " +
+                $"A Restore Life window holds {SylvieKit.RestoreLifeFlutterflies} of the four, so it counts double here.",
+                PerformanceTiers.FromThresholds(share * 100, 98, 90, 75)),
+            new(
+                $"{peakBanked}",
+                "Most Banked",
+                $"The most flutterflies seen waiting in the bank at once, out of {SylvieKit.PinkFlutterflies}. A flutterfly in the bank is healing nobody."),
+            new(
+                $"{moves}",
+                "Flutterflies Placed",
+                $"Flutterflies sent onto an ally during the fight, {restoreLifeWindows} of them by Restore Life. A flutterfly stays where it is put, so this counts placements rather than upkeep."),
+            new(
+                total > 0 ? $"{(double)overheal / total * 100:F1}%" : "0%",
+                "Flutterfly Overheal",
+                $"{overheal:N0} of the flutterflies' own {total:N0} healing fell on full health."),
+        };
+
+        if (restoreLifeWindows > 0)
+        {
+            stats.Add(new OverviewStat(
+                $"{restoreLifeEffective:N0}",
+                "Restore Life Healing",
+                $"Healing from Restore Life's own periodic effect over {restoreLifeMs / 1000:N0} flutterfly-seconds, counted inside the totals above."));
+        }
+
+        return stats;
+    }
+
+    private IEnumerable<OverviewStat> BuildBlueyStats()
+    {
+        var analyzers = Parser.BlueyAnalyzers.Select(entry => entry.Analyzer).ToList();
+        var pullMs = analyzers.Sum(analyzer => (long)analyzer.PullDurationMs);
+        if (pullMs == 0) return [];
+
+        var onAlly = analyzers.Sum(analyzer => (long)analyzer.OnAllyMs);
+        var onSylvie = analyzers.Sum(analyzer => (long)analyzer.OnSylvieMs);
+        var unplaced = analyzers.Sum(analyzer => (long)analyzer.UnplacedMs);
+        var uplift = analyzers.Sum(analyzer => analyzer.HealingUplift);
+        var upliftOnAlly = analyzers.Sum(analyzer => analyzer.HealingUpliftOnAlly);
+        var upliftOnSylvie = analyzers.Sum(analyzer => analyzer.HealingUpliftOnSylvie);
+        var manaSaved = analyzers.Sum(analyzer => analyzer.ManaSaved);
+
+        return
+        [
+            new OverviewStat(
+                $"{onAlly / (double)pullMs * 100:F1}%",
+                "On An Ally",
+                $"{onAlly / 1000:N0}s parked on somebody other than Sylvie, where Bluey doubles that ally's flutterfly healing."),
+            new OverviewStat(
+                $"{onSylvie / (double)pullMs * 100:F1}%",
+                "On Sylvie",
+                $"{onSylvie / 1000:N0}s recalled onto Sylvie, worth half the flutterfly bonus and a fifth off her mana costs."),
+            new OverviewStat(
+                $"{uplift:N0}",
+                "Healing Added",
+                $"Flutterfly healing the multiplier accounts for: {upliftOnAlly:N0} while Bluey was on an ally and {upliftOnSylvie:N0} while it was on Sylvie. Overheal is left out, because a doubled tick on full health delivered nothing."),
+            new OverviewStat(
+                $"{manaSaved:N0}",
+                "Mana Saved",
+                $"Mana the {(1 - SylvieKit.EmbraceManaCostScaler) * 100:F0}% discount took off Sylvie's casts while Bluey was recalled onto her."),
+            new OverviewStat(
+                $"{unplaced / 1000:N0}s",
+                "Unplaced",
+                "Pull time in which the log placed Bluey nowhere at all."),
+        ];
+    }
+
+    private IEnumerable<PerCastData> BuildPerPullData() =>
+        Parser.PinkFlutterflyAnalyzers.ToPullRows(Parser, (analyzer, pull) => new PerCastRow
+        {
+            Performance = PerformanceTiers.FromThresholds(analyzer.AssignedShare * 100, 98, 90, 75),
+            Stats = BuildPullStats(analyzer),
+        });
+
+    private PerCastStat[] BuildPullStats(PinkFlutterflyAnalyzer analyzer)
+    {
+        var stats = new List<PerCastStat>
+        {
+            new(
+                $"{analyzer.AssignedShare * 100:F1}%",
+                "Flutterflies Out",
+                $"{analyzer.AssignedMs / 1000:N0} flutterfly-seconds parked against the {analyzer.AssignableMs / 1000:N0} this pull offered.",
+                PerformanceTiers.FromThresholds(analyzer.AssignedShare * 100, 98, 90, 75)),
+            new(
+                $"{analyzer.HoldersCovered}",
+                "Allies Healed",
+                "Distinct allies the flutterflies ticked on during this pull."),
+        };
+
+        if (analyzer.RestoreLifeTicks > 0)
+        {
+            stats.Add(new PerCastStat(
+                $"{analyzer.RestoreLifeEffective:N0}",
+                "Restore Life",
+                $"{analyzer.RestoreLifeTicks:N0} ticks over {analyzer.RestoreLifeAssignedMs / 1000:N0} flutterfly-seconds, from {analyzer.RestoreLifeAssignmentsOpened} windows opened this pull."));
+        }
+
+        foreach (var holding in analyzer.Holdings.Take(4))
+        {
+            stats.Add(new PerCastStat(
+                $"{holding.AssignedMs / 1000:N0}s",
+                HolderName(holding.Unit.ActorId),
+                $"{holding.AssignedMs / 1000:N0} flutterfly-seconds held, over {holding.Ticks:N0} ticks for {holding.Effective:N0} landed and {holding.Overheal:N0} overhealed."));
+        }
+
+        return [.. stats];
+    }
+
+    private IEnumerable<PerCastData> BuildBlueyPullData() =>
+        Parser.BlueyAnalyzers.ToPullRows(Parser, (analyzer, pull) => new PerCastRow
+        {
+            Performance = QualitativePerformance.Ok,
+            Stats = BuildBlueyPullStats(analyzer),
+        });
+
+    private PerCastStat[] BuildBlueyPullStats(BlueyAnalyzer analyzer)
+    {
+        var stats = new List<PerCastStat>
+        {
+            new(
+                $"{analyzer.HealingUplift:N0}",
+                "Healing Added",
+                $"Flutterfly healing the multiplier accounts for across {analyzer.UpliftedTicks:N0} ticks that landed on whoever was carrying Bluey."),
+            new(
+                $"{analyzer.ManaSaved:N0}",
+                "Mana Saved",
+                "Mana the discount took off Sylvie's casts this pull."),
+            new(
+                $"{analyzer.Reassignments}",
+                "Reassignments",
+                "Casts that moved Bluey during this pull. Bluey has no cooldown pressure, so this is cadence rather than a score."),
+        };
+
+        foreach (var (targetId, ms, onSylvie) in analyzer.TimeByHolder.Take(4))
+        {
+            stats.Add(new PerCastStat(
+                analyzer.PullDurationMs > 0 ? $"{ms / (double)analyzer.PullDurationMs * 100:F0}%" : "0%",
+                onSylvie ? "Sylvie" : HolderName(targetId),
+                $"{ms / 1000:N0}s of this pull, worth {(onSylvie ? SylvieKit.BlueySelfHealScaler : SylvieKit.BlueyAllyHealScaler):F1}x flutterfly healing on this target."));
+        }
+
+        if (analyzer.UnplacedMs > 0)
+        {
+            stats.Add(new PerCastStat(
+                $"{analyzer.UnplacedMs / 1000:N0}s",
+                "Unplaced",
+                "Pull time in which the log placed Bluey nowhere at all."));
+        }
+
+        return [.. stats];
+    }
+
+    private string HolderName(int actorId) =>
+        MasterData.GetHero(actorId)?.Name.ToString() ?? (actorId == Parser.PlayerId ? "Sylvie" : $"Ally {actorId}");
+}

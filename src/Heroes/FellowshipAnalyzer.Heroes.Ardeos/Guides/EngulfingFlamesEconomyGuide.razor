@@ -8,20 +8,13 @@
 }
 
 <GuideSection Title="Engulfing Flames Economy">
-    <Explanation>
+    <LeftPanel>
         <p>
-            @ef charges should be pooled such that 2 applications land in the setup for @wf.
-            Each window is scored on the Engulfing Flames casts in that setup, two being the target.
+            Pool @ef charges to have 2 available for an @wf window, but avoid sitting on capped charges for extended periods.
+            The table shows the setup each window got, and the recharge lost while Engulfing Flames sat capped.
         </p>
-        <p>
-            Once @wf is cast, attempt to cast as many <SpellLink Spell="Spells.Detonate" /> in the window, not more setup. 
-        </p>
-        <p>
-            Overcap tracks the recharge wasted while @ef sits at maximum charges. Holding both briefly
-            for an imminent window costs nothing; staying capped does not.
-        </p>
-    </Explanation>
-    <ChildContent>
+    </LeftPanel>
+    <RightPanel>
         <CastOverview Title="Economy Overview" Stats="@BuildOverviewStats()" />
         @if (DevouringFlameEquipped())
         {
@@ -30,7 +23,7 @@
         <CastDetail Title="Wildfire Windows"
                     Description="Each window shows the Engulfing Flames casts in the setup before Wildfire, with charges at ready and hold time as context."
                     Casts="@BuildPerCastData()" />
-    </ChildContent>
+    </RightPanel>
 </GuideSection>
 
 @code {
@@ -62,7 +55,7 @@
             new OverviewStat(
                 $"{wasted}",
                 "Wasted Charges",
-                "Engulfing Flames recharge periods spent sitting at maximum charges across every pull.",
+                "Engulfing Flames recharge periods spent sitting at maximum charges across every pull. Holding both charges briefly for an imminent window costs nothing; staying capped does.",
                 wasted == 0 ? QualitativePerformance.Perfect : wasted <= 2 ? QualitativePerformance.Ok : QualitativePerformance.Fail),
             new OverviewStat(
                 $"{overcapSeconds:0.#}s",

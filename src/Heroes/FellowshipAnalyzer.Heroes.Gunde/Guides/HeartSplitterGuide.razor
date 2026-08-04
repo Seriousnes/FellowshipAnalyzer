@@ -2,22 +2,14 @@
 @inherits ReportComponent<GundeCombatLogParser>
 
 <GuideSection Title="Heart Splitter">
-    <Explanation>
+    <LeftPanel>
         <p>
-            <SpellLink Spell="Spells.HeartSplitter" /> hits twice: a direct strike, and
-            <SpellLink Spell="Spells.HeartSplitterDotBonusDamage" />, which deals a share of all the
-            <SpellLink Spell="Spells.Rend" /> active on the target and leaves that bleed in place.
-            It is therefore worth as much as the pile it lands on, and it wants to go out before
-            <SpellLink Spell="Spells.Slaughter" /> consumes that pile, never just after it.
+            <SpellLink Spell="Spells.HeartSplitter" /> is best used with large stacks of 
+            <SpellLink Spell="Spells.Rend" />. Aim to have <SpellLink Spell="Spells.HeartSplitter" /> ready before consuming
+            a high <SpellLink Spell="Spells.Rend" /> stack with <SpellLink Spell="Spells.Slaughter" />.
         </p>
-        <p>
-            Each cast is scored on that ordering: pressing Slaughter with Heart Splitter about to come
-            up empties the target, and the Exsanguinate that follows cashes almost nothing. The pile
-            it found is shown as a stack count read at the moment of the hit, which is the same
-            measure on any gear; the damage it produced is shown alongside as evidence.
-        </p>
-    </Explanation>
-    <ChildContent>
+    </LeftPanel>
+    <RightPanel>
         @if (TotalCasts == 0)
         {
             <TipBox Variant="TipBoxVariant.Info">
@@ -31,7 +23,7 @@
                         Description="Each card is one Heart Splitter, rated on whether a Slaughter had just emptied the target it landed on."
                         Casts="@BuildPerCastData()" />
         }
-    </ChildContent>
+    </RightPanel>
 </GuideSection>
 
 @code {

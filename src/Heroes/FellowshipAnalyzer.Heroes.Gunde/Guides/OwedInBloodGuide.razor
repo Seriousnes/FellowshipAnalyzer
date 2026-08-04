@@ -2,25 +2,15 @@
 @inherits ReportComponent<GundeCombatLogParser>
 
 <GuideSection Title="Owed in Blood">
-    <Explanation>
+    <LeftPanel>
         <p>
-            Blood Feathers picked up become stacks of <SpellLink Spell="Spells.Rend" /> waiting to be
-            placed, and <SpellLink Spell="Spells.OwedInBlood" /> converts the whole bank one-for-one
-            onto its target. It is not a button to press on cooldown: it belongs in a chain with
-            <SpellLink Spell="Spells.Rupture" /> and <SpellLink Spell="Spells.Slaughter" /> - Rupture
-            leaves <SpellLink Spell="Spells.OpenWounds" />, Owed in Blood dumps the bank as Rend, and
-            the Slaughter that follows cashes the lot under Rupture's bonus.
+            <SpellLink Spell="Spells.OwedInBlood" /> is key to maximising single target damage. 
+            Save Blood Feather stacks to combine with <SpellLink Spell="Spells.Rupture" /> and 
+            <SpellLink Spell="Spells.Slaughter" /> ever time, and save as many as possible for overlapping
+            with <SpellLink Spell="Spells.BloodboundSpirit" />.
         </p>
-        <p>
-            Each conversion is judged on that chain and on the size of the bank behind it, measured
-            against the @OwedInBloodEconomyAnalyzer.MaxStacks stack cap the game allows rather than
-            against the other conversions of the same pull. Holding also has a cost: the buff falls
-            off with the stacks still on it, and the pool stops accepting feathers at the cap.
-            Conversions made while <SpellLink Spell="Spells.BloodboundSpirit" /> is running are noted
-            as the bonus overlap they are.
-        </p>
-    </Explanation>
-    <ChildContent>
+    </LeftPanel>
+    <RightPanel>
         @if (!HasActivity)
         {
             <TipBox Variant="TipBoxVariant.Info">
@@ -49,7 +39,7 @@
                             Casts="@BuildPerCastData()" />
             }
         }
-    </ChildContent>
+    </RightPanel>
 </GuideSection>
 
 @code {

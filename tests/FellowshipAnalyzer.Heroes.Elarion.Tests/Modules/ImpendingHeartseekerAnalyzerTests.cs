@@ -20,91 +20,118 @@ public sealed class ImpendingHeartseekerAnalyzerTests
 {
     private const int PlayerId = 1;
     private const int EnemyId = 20;
+    private const int BarrageCooldownMs = 20_000;
 
-    private static readonly ReportFight Fight =
-        new(Id: 0, Name: "Boss", EncounterId: 31, Kill: true,
-            StartTime: 0, EndTime: 20_000, Difficulty: null,
-            FriendlyPlayers: null, FightPercentage: null);
+    private static readonly ReportFight Fight = SpanningFight(60_000);
+
+    private static readonly ReportFight ShortFight = SpanningFight(8_000);
 
     [Fact]
-    public async Task WithoutTheTalent_NoAnalyzerIsConstructed()
+    public async Task WithoutTheTalent_TheModuleIsInactive()
     {
-        var (parser, _) = await AnalyzeAsync(
-            ApplyBuff(1_000),
-            Barrage(2_000),
-            RemoveBuff(2_050));
+        var parser = await AnalyzeAsync(
+            ShortFight,
+            Barrage(1_000),
+            ApplyBuff(6_000));
 
-        parser.ImpendingHeartseekerAnalyzers.ShouldBeEmpty();
-        parser.CelestialImpetusAnalyzers.ShouldNotBeEmpty();
+        parser.ImpendingHeartseeker.ShouldBeNull();
+        parser.GetModule<ImpendingHeartseekerAnalyzer>().ShouldBeNull();
     }
 
     [Fact]
-    public async Task WithTheTalent_TheAnalyzerRunsOnThePull()
+    public async Task WithoutTheTalent_BarrageKeepsItsFullCooldown()
     {
-        var (parser, _) = await AnalyzeAsync(
-            Talented(),
-            ApplyBuff(1_000));
+        var parser = await AnalyzeAsync(
+            ShortFight,
+            Barrage(1_000),
+            ApplyBuff(6_000));
 
-        parser.ImpendingHeartseekerAnalyzers.ShouldHaveSingleItem();
+        parser.SpellUsable.ShouldNotBeNull()
+            .CooldownRemaining(Spells.HeartseekerBarrage.Id, 6_000)
+            .ShouldBe(BarrageCooldownMs - 5_000);
     }
 
     [Fact]
-    public async Task BuffRemoved_JustAfterABarrage_IsConsumed()
+    public async Task TheBuffResetsBarrage_AndRecoversTheRemainingRecharge()
     {
-        var analyzer = await Analyze(
-            ApplyBuff(1_000),
-            Barrage(2_000),
-            RemoveBuff(2_050));
+        var (parser, tracker) = await TrackAsync(
+            ShortFight,
+            Barrage(1_000),
+            ApplyBuff(6_000));
 
-        analyzer.ProcsGained.ShouldBe(1);
-        analyzer.ProcsConsumed.ShouldBe(1);
-        analyzer.ProcsExpired.ShouldBe(0);
-        analyzer.PullDurationMs.ShouldBe(20_000);
+        tracker.Resets.ShouldBe(1);
+        tracker.LandedResets.ShouldBe(1);
+        tracker.WastedResets.ShouldBe(0);
+        tracker.RecoveredMs.ShouldBe(BarrageCooldownMs - 5_000);
+        tracker.AverageRecoveredMs.ShouldBe(BarrageCooldownMs - 5_000);
+
+        parser.SpellUsable.ShouldNotBeNull()
+            .CooldownRemaining(Spells.HeartseekerBarrage.Id, 6_000)
+            .ShouldBe(0);
     }
 
     [Fact]
-    public async Task BuffRemoved_SecondsFromAnyBarrage_IsExpired()
+    public async Task TheResetLetsBarrageBeRecastInsideItsCooldown()
     {
-        var analyzer = await Analyze(
-            ApplyBuff(1_000),
-            Barrage(2_000),
-            RemoveBuff(16_000));
+        var (parser, tracker) = await TrackAsync(
+            ShortFight,
+            Barrage(1_000),
+            ApplyBuff(6_000),
+            Barrage(7_000));
 
-        analyzer.ProcsGained.ShouldBe(1);
-        analyzer.ProcsConsumed.ShouldBe(0);
-        analyzer.ProcsExpired.ShouldBe(1);
+        tracker.Resets.ShouldBe(1);
+
+        parser.SpellUsable.ShouldNotBeNull()
+            .CooldownRemaining(Spells.HeartseekerBarrage.Id, 7_000)
+            .ShouldBe(BarrageCooldownMs);
     }
 
     [Fact]
-    public async Task OneBarrage_CannotClaimTwoRemovals()
+    public async Task ABuffWithBarrageAlreadyAvailable_RecoversNothing()
     {
-        var analyzer = await Analyze(
-            ApplyBuff(1_000),
-            ApplyBuffStack(1_500, stack: 2),
-            Barrage(2_000),
-            RemoveBuffStack(2_040, stack: 1),
-            RemoveBuff(2_080));
+        var (_, tracker) = await TrackAsync(ApplyBuff(6_000));
 
-        analyzer.ProcsGained.ShouldBe(2);
-        analyzer.ProcsConsumed.ShouldBe(1);
-        analyzer.ProcsExpired.ShouldBe(1);
+        tracker.Resets.ShouldBe(1);
+        tracker.WastedResets.ShouldBe(1);
+        tracker.LandedResets.ShouldBe(0);
+        tracker.RecoveredMs.ShouldBe(0);
+        tracker.AverageRecoveredMs.ShouldBe(0);
+        tracker.WastedShare.ShouldBe(1d);
     }
 
     [Fact]
-    public async Task Analyze_ImpendingHeartseeker_ExposesPerPullReadPaths()
+    public async Task EveryGrantOfTheBuff_CountsAsAReset()
     {
-        var (parser, _) = await AnalyzeAsync(
-            Talented(),
-            ApplyBuff(1_000),
-            Barrage(2_000),
-            RemoveBuff(2_050));
+        var (_, tracker) = await TrackAsync(
+            Barrage(1_000),
+            ApplyBuff(6_000),
+            Barrage(7_000),
+            ApplyBuffStack(9_000, stack: 2),
+            Barrage(10_000),
+            RefreshBuff(12_000));
 
-        var entry = parser.ImpendingHeartseekerAnalyzers.ShouldHaveSingleItem();
-        var pull = entry.Pull;
-        pull.Index.ShouldBe(0);
+        tracker.Resets.ShouldBe(3);
+        tracker.WastedResets.ShouldBe(0);
+        tracker.RecoveredMs.ShouldBe(15_000 + 18_000 + 18_000);
+    }
 
-        pull.ImpendingHeartseekerAnalyzer.ShouldBeSameAs(entry.Analyzer);
-        parser.For(pull).ImpendingHeartseekerAnalyzer.ShouldBeSameAs(entry.Analyzer);
+    [Fact]
+    public async Task WithNoBuffAtAll_TheStatisticsCardIsWithheld()
+    {
+        var (_, tracker) = await TrackAsync(Barrage(1_000));
+
+        tracker.Resets.ShouldBe(0);
+        tracker.Statistic.ShouldBeNull();
+    }
+
+    [Fact]
+    public async Task AResetMakesTheStatisticsCardAvailable()
+    {
+        var (_, tracker) = await TrackAsync(
+            Barrage(1_000),
+            ApplyBuff(6_000));
+
+        tracker.Statistic.ShouldNotBeNull();
     }
 
     private static CombatantInfoEvent Talented() => new()
@@ -119,6 +146,7 @@ public sealed class ImpendingHeartseekerAnalyzerTests
         Timestamp = timestamp,
         SourceId = PlayerId,
         TargetId = EnemyId,
+        Activation = true,
         Ability = new SpellAbility
         {
             FSLID = Spells.HeartseekerBarrage.FSLID,
@@ -143,20 +171,11 @@ public sealed class ImpendingHeartseekerAnalyzerTests
         Ability = BuffAbility(),
     };
 
-    private static RemoveBuffEvent RemoveBuff(int timestamp) => new()
+    private static RefreshBuffEvent RefreshBuff(int timestamp) => new()
     {
         Timestamp = timestamp,
         SourceId = PlayerId,
         TargetId = PlayerId,
-        Ability = BuffAbility(),
-    };
-
-    private static RemoveBuffStackEvent RemoveBuffStack(int timestamp, int stack) => new()
-    {
-        Timestamp = timestamp,
-        SourceId = PlayerId,
-        TargetId = PlayerId,
-        Stack = stack,
         Ability = BuffAbility(),
     };
 
@@ -166,14 +185,23 @@ public sealed class ImpendingHeartseekerAnalyzerTests
         Name = Spells.ImpendingHeartseeker.Name,
     };
 
-    private static async Task<ImpendingHeartseekerAnalyzer> Analyze(params Event[] events)
+    private static ReportFight SpanningFight(int endTime) =>
+        new(Id: 0, Name: "Boss", EncounterId: 31, Kill: true,
+            StartTime: 0, EndTime: endTime, Difficulty: null,
+            FriendlyPlayers: null, FightPercentage: null);
+
+    private static Task<(ElarionCombatLogParser Parser, ImpendingHeartseekerAnalyzer Tracker)> TrackAsync(
+        params Event[] events) => TrackAsync(Fight, events);
+
+    private static async Task<(ElarionCombatLogParser Parser, ImpendingHeartseekerAnalyzer Tracker)> TrackAsync(
+        ReportFight fight,
+        params Event[] events)
     {
-        var (parser, _) = await AnalyzeAsync([Talented(), .. events]);
-        return parser.ImpendingHeartseekerAnalyzers.ShouldHaveSingleItem().Analyzer;
+        var parser = await AnalyzeAsync(fight, [Talented(), .. events]);
+        return (parser, parser.ImpendingHeartseeker.ShouldNotBeNull());
     }
 
-    private static async Task<(ElarionCombatLogParser Parser, HeroAnalysisResult Result)> AnalyzeAsync(
-        params Event[] events)
+    private static async Task<ElarionCombatLogParser> AnalyzeAsync(ReportFight fight, params Event[] events)
     {
         var services = new ServiceCollection();
         services.AddLogging();
@@ -184,7 +212,7 @@ public sealed class ImpendingHeartseekerAnalyzerTests
         using var scope = provider.CreateScope();
 
         var parser = scope.ServiceProvider.GetRequiredService<ElarionCombatLogParser>();
-        var result = await parser.Analyze([.. events], PlayerId, Fight);
-        return (parser, result);
+        await parser.Analyze([.. events], PlayerId, fight);
+        return parser;
     }
 }

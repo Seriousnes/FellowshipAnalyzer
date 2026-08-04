@@ -32,18 +32,8 @@ public sealed partial class LifePetalAnalyzer : Analyzer
     /// <summary>Nettlebolts that crit this pull, each of which drives double the reduction.</summary>
     public int NettleboltCrits { get; private set; }
 
-    /// <summary>Milliseconds of Life Petal cooldown reduction the Nettlebolts generated.</summary>
-    public int ReductionGeneratedMs { get; private set; }
-
-    /// <summary>Milliseconds of that reduction that actually shortened a running recharge.</summary>
-    public int ReductionAppliedMs { get; private set; }
-
-    /// <summary>Milliseconds of reduction generated while no charge was recharging, so it bought nothing.</summary>
-    public int ReductionWastedMs => ReductionGeneratedMs - ReductionAppliedMs;
-
-    /// <summary>Share (0-1) of the generated reduction that shortened a recharge.</summary>
-    public double ReductionEfficiency =>
-        ReductionGeneratedMs > 0 ? (double)ReductionAppliedMs / ReductionGeneratedMs : 0;
+    /// <summary>The Life Petal reduction the Nettlebolts generated, and how much of it shortened a running recharge.</summary>
+    public CooldownReductionResult CooldownReduction { get; private set; } = new();
 
     /// <summary>Milliseconds spent holding both charges, where the loop had nothing to shorten.</summary>
     public int ChargeCappedMs { get; private set; }
@@ -76,9 +66,7 @@ public sealed partial class LifePetalAnalyzer : Analyzer
         var atFullCharges = SpellUsable.ChargesAvailable(Spells.LifePetal.FSLID) >= SylvieKit.LifePetalCharges;
         if (atFullCharges) NettleboltsAtFullCharges++;
 
-        var result = SpellUsable.ReduceCooldown(Spells.LifePetal.FSLID, request, damageEvent.Timestamp);
-        ReductionGeneratedMs += result.GeneratedMs;
-        ReductionAppliedMs += result.AppliedMs;
+        CooldownReduction += SpellUsable.ReduceCooldown(Spells.LifePetal.FSLID, request, damageEvent.Timestamp);
 
         SampleCharges(damageEvent.Timestamp);
     }

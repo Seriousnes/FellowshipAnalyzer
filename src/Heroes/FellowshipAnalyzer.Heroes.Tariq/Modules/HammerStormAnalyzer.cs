@@ -17,11 +17,9 @@ public sealed partial class HammerStormAnalyzer : Analyzer
     /// <summary>
     /// The target count from which Hammer Storm out-earns Skull Crusher for the Fury it costs. Absent from
     /// the hero data, which carries only <c>AoeAttack.TargetThresholdForDamageScale: 12.0</c> - a damage
-    /// scaling point, not a break-even. Measured on report <c>a:NcqHDKzamL7n6YFv</c> by bucketing both
-    /// abilities' casts by distinct targets hit and comparing unmitigated damage per point of Fury: Hammer
-    /// Storm returns 0.61x a Skull Crusher on one target, 1.18x on two, and rises monotonically from there.
+    /// scaling point, not a break-even - so the hero's break-even of three targets is the owner's value.
     /// </summary>
-    public const int TargetBreakEven = 2;
+    public const int TargetBreakEven = 3;
 
     public const int MaxChannelDurationMs = 2500;
 

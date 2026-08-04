@@ -129,12 +129,12 @@ public sealed partial class HeartBloomRampAnalyzer : Analyzer
 /// <param name="Timestamp">When it went out.</param>
 /// <param name="AccumulationMs">How long it had been banking since the previous cast or the pull's start.</param>
 /// <param name="FlutterflyEffective">Flutterfly healing that landed during the accumulation window.</param>
-/// <param name="FlutterflyOverheal">Flutterfly healing lost to full bars during the accumulation window, which the bank still counts.</param>
+/// <param name="FlutterflyOverheal">Flutterfly healing lost to full health during the accumulation window, which the bank still counts.</param>
 /// <param name="BlueyAssigned">Whether Bluey was placed anywhere the log could see when the cast went out.</param>
 /// <param name="BlueyOnAlly">Whether Bluey was on an ally rather than on Sylvie, the placement that feeds the flutterflies hardest.</param>
 /// <param name="Releases">Distinct release intervals observed, against the eight the duration allows.</param>
 /// <param name="Effective">Healing this cast landed.</param>
-/// <param name="Overheal">Healing this cast lost to full bars.</param>
+/// <param name="Overheal">Healing this cast lost to full health.</param>
 public sealed record HeartBloomCast(
     int Timestamp,
     int AccumulationMs,

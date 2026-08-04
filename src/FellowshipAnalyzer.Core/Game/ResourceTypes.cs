@@ -22,7 +22,7 @@ public enum ResourceTypes
     /// <summary>
     /// Tertiary resources, e.g. Rime's Winter Orbs, etc.
     /// </summary>
-    [ResourceName("Winter Orbs", "Blood Feathers", "Pink Butterflies")]
+    [ResourceName("Winter Orbs", "Blood Feathers", "Pink Flutterflies")]
     Tertiary = 5,
     /// <summary>
     /// Delayed HP damage resource when Aeona is in the party.

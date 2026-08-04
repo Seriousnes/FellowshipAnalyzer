@@ -1,31 +1,20 @@
 @inherits ReportComponent<SylvieCombatLogParser>
 
 <GuideSection Title="Heart Bloom">
-    <Explanation>
+    <LeftPanel>
         <p>
-            <SpellLink Spell="Spells.HeartBloom" /> banks a share of the healing that came before it and
-            releases the bank every two seconds for sixteen, and the flutterflies are the steadiest thing
-            feeding it while it is on cooldown. Each cast below reports the flutterfly healing over its
-            own accumulation window - overheal included, because the bank does not care whether the
-            healing landed - and what the cast then released.
+            <SpellLink Spell="Spells.HeartBloom" /> releases a share of the healing banked before it, so
+            the ramp into each cast decides what it gives back. Keep the flutterflies out and Bluey
+            placed through that ramp. The table shows the flutterfly healing over each accumulation
+            window and what the cast released.
         </p>
-        <p>
-            The two are reported side by side rather than as a ratio to hit. What comes back out here
-            runs ahead of the flutterfly healing that preceded it, so the flutterflies are one input to
-            the bank and not the whole of it, and the log carries no reading of the bank to settle what
-            else feeds it.
-        </p>
-        <p>
-            Bluey's placement is the setup that moves the ramp: parked on an ally it doubles that ally's
-            flutterfly healing, and every point of that feeds the bank.
-        </p>
-    </Explanation>
-    <ChildContent>
+    </LeftPanel>
+    <RightPanel>
         <CastOverview Title="Overview" Stats="@BuildOverviewStats()" />
         <CastDetail Title="Every Heart Bloom"
                     Description="What fed each cast, and what it returned."
                     Casts="@BuildPerCastData()" />
-    </ChildContent>
+    </RightPanel>
 </GuideSection>
 
 @code {
@@ -81,7 +70,7 @@
                     new PerCastStat(
                         $"{cast.TotalHealing:N0}",
                         "Returned",
-                        $"{cast.Effective:N0} landed and {cast.Overheal:N0} fell on full bars."),
+                        $"{cast.Effective:N0} landed and {cast.Overheal:N0} fell on full health. What comes back out runs ahead of the flutterfly healing that preceded it, so the flutterflies are one input to the bank rather than the whole of it."),
                     new PerCastStat(
                         $"{cast.Releases}/{SylvieKit.HeartBloomReleases}",
                         "Releases",

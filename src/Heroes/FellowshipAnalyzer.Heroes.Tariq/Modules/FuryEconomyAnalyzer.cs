@@ -48,7 +48,7 @@ public sealed partial class FuryEconomyAnalyzer : Analyzer
     public int HammerStormCasts { get; private set; }
     public int CullingStrikeCasts { get; private set; }
 
-    /// <summary>Casts of the three abilities that draw on the bar. A plain count: they do not drain it equally, so it is not a measure of Fury spent.</summary>
+    /// <summary>Casts of the three abilities that spend Fury. A plain count: they do not drain it equally, so it is not a measure of Fury spent.</summary>
     public int SpenderCasts => SkullCrusherCasts + HammerStormCasts + CullingStrikeCasts;
 
     public int ActiveSpanMs => _activeEnd > _activeStart ? _activeEnd - _activeStart : 0;

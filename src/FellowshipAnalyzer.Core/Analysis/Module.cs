@@ -14,8 +14,13 @@ public abstract class Module : ComponentBase
     /// <summary>Whether this module currently accepts dispatched events. <see cref="EventEmitter"/> checks this per event, so it can be toggled at runtime by dynamic activation conditions (gear, observed talents, etc.).</summary>
     public bool Active { get; protected set; } = true;
 
-    /// <summary>The order this module is constructed and subscribed relative to other modules, assigned by the parser from <c>[Before&lt;T&gt;]</c> / <c>[After&lt;T&gt;]</c> ordering and declaration order.</summary>
-    public int Priority { get; set; }
+    /// <summary>
+    /// Dispatch order for this module's handlers relative to other modules', fixed at design time by
+    /// overriding this property. Lower runs first; the default is 0. Modules sharing a priority run in
+    /// no guaranteed order beyond the pairwise constraints <c>[Before&lt;T&gt;]</c> and
+    /// <c>[After&lt;T&gt;]</c> declare.
+    /// </summary>
+    public virtual int Priority => 0;
 
     /// <summary>The parser instance that constructed and owns this module.</summary>
     public CombatLogParser Owner { get; set; } = null!;

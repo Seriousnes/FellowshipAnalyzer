@@ -5,7 +5,7 @@ using FellowshipAnalyzer.Core.Events;
 namespace FellowshipAnalyzer.Heroes.Sylvie.Modules;
 
 /// <summary>
-/// Where Bluey is. There is one blue butterfly and it is always somewhere: parked on an ally by
+/// Where Bluey is. There is one blue Flutterfly and it is always somewhere: parked on an ally by
 /// <see cref="Spells.FluttercallProtect"/> or recalled onto Sylvie by
 /// <see cref="Spells.FluttercallEmbrace"/>, and the two auras are mutually exclusive - the log removes
 /// one in the same millisecond it applies the other.
