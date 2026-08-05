@@ -7,8 +7,8 @@
     /// contributor's contributions.
     /// </summary>
     public static readonly IReadOnlyList<ChangelogEntry> Entries =
-    [   
-        Change(new(2026, 8, 5), @<text>Add support for <span style="color: var(--fa-hero-helena)">Helena</span> and <span style="color: var(--fa-hero-sylvie)">Sylvie</span>.</text>, Seriousnes),
+    [
+        Change(new(2026, 8, 5), @<text>Add support for <HeroText Hero="HeroName.Helena">Helena</HeroText> and <HeroText Hero="HeroName.Sylvie">Sylvie</HeroText>.</text>, Seriousnes),
         Change(new(2026, 7, 10), @<text>Added hero support-status list and contributor profiles.</text>, Seriousnes),
     ];
 }
