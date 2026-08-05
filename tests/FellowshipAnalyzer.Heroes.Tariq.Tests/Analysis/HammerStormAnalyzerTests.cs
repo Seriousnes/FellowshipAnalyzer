@@ -25,7 +25,7 @@ public sealed class HammerStormAnalyzerTests
     [Fact]
     public async Task Analyze_HammerStorm_ClustersEachSpinsMultiTargetBurstIntoOneSpin()
     {
-        var (parser, _) = await ThunderCallWindowAnalyzerTests.AnalyzeAsync(
+        var (parser, _) = await ThunderCallAnalyzerTests.AnalyzeAsync(
         [
             Cast(1_000, HammerStormId),
             Hit(1_050, Enemy1),
@@ -55,20 +55,22 @@ public sealed class HammerStormAnalyzerTests
     }
 
     /// <summary>
-    /// Hammer Storm returns 0.61x a Skull Crusher per point of Fury on a single target and 1.18x on two,
-    /// measured on report <c>a:NcqHDKzamL7n6YFv</c>, so a channel under the break-even is a miss while a
-    /// whiff - which carries no readable target count at all - is not.
+    /// A channel that connected with fewer targets than <see cref="HammerStormAnalyzer.TargetBreakEven"/>
+    /// is marked, one that reached it exactly is not, and a whiff carries no readable target count so it
+    /// is left unmarked rather than counted against the break-even.
     /// </summary>
     [Fact]
     public async Task Analyze_HammerStorm_MarksChannelsUnderTheTargetBreakEven()
     {
-        var (parser, _) = await ThunderCallWindowAnalyzerTests.AnalyzeAsync(
+        var (parser, _) = await ThunderCallAnalyzerTests.AnalyzeAsync(
         [
             Cast(1_000, HammerStormId),
             Hit(1_050, Enemy1),
+            Hit(1_052, Enemy2),
             Cast(10_000, HammerStormId),
             Hit(10_050, Enemy1),
             Hit(10_052, Enemy2),
+            Hit(10_054, Enemy3),
             Cast(20_000, HammerStormId),
         ]);
 
@@ -76,7 +78,9 @@ public sealed class HammerStormAnalyzerTests
 
         analyzer.CastCount.ShouldBe(3);
         analyzer.UnderBreakEvenChannels.ShouldBe(1);
+        analyzer.WhiffedCasts.ShouldBe(1);
 
+        analyzer.Casts[0].TargetsHit.ShouldBe(2);
         analyzer.Casts[0].UnderTargetBreakEven.ShouldBeTrue();
         analyzer.Casts[1].TargetsHit.ShouldBe(HammerStormAnalyzer.TargetBreakEven);
         analyzer.Casts[1].UnderTargetBreakEven.ShouldBeFalse();
@@ -87,7 +91,7 @@ public sealed class HammerStormAnalyzerTests
     [Fact]
     public async Task Analyze_HammerStorm_GroupsChannelsByTargetsCaughtLeavingWhiffsOut()
     {
-        var (parser, _) = await ThunderCallWindowAnalyzerTests.AnalyzeAsync(
+        var (parser, _) = await ThunderCallAnalyzerTests.AnalyzeAsync(
         [
             Cast(1_000, HammerStormId),
             Hit(1_050, Enemy1),
@@ -114,7 +118,7 @@ public sealed class HammerStormAnalyzerTests
     [Fact]
     public async Task Analyze_HammerStorm_CountsTargetsOnTheFirstSpinAlone()
     {
-        var (parser, _) = await ThunderCallWindowAnalyzerTests.AnalyzeAsync(
+        var (parser, _) = await ThunderCallAnalyzerTests.AnalyzeAsync(
         [
             Cast(1_000, HammerStormId),
             Hit(1_050, Enemy1),
@@ -134,7 +138,7 @@ public sealed class HammerStormAnalyzerTests
     [Fact]
     public async Task Analyze_HammerStorm_ClustersDamageLoggedUnderTheChannelsEffectIds()
     {
-        var (parser, _) = await ThunderCallWindowAnalyzerTests.AnalyzeAsync(
+        var (parser, _) = await ThunderCallAnalyzerTests.AnalyzeAsync(
         [
             Cast(1_000, HammerStormId),
             Hit(1_050, Enemy1, abilityId: TariqSpells.HammerStormDamage.FSLID),
@@ -151,7 +155,7 @@ public sealed class HammerStormAnalyzerTests
     [Fact]
     public async Task Analyze_HammerStorm_BlamesTheOffGlobalAbilityThatCutTheChannelShort()
     {
-        var (parser, _) = await ThunderCallWindowAnalyzerTests.AnalyzeAsync(
+        var (parser, _) = await ThunderCallAnalyzerTests.AnalyzeAsync(
         [
             Cast(1_000, HammerStormId),
             Hit(1_050, Enemy1),
@@ -176,7 +180,7 @@ public sealed class HammerStormAnalyzerTests
     [Fact]
     public async Task Analyze_HammerStorm_LeavesATruncationUnattributedWhenNothingWasCastInsideTheChannel()
     {
-        var (parser, _) = await ThunderCallWindowAnalyzerTests.AnalyzeAsync(
+        var (parser, _) = await ThunderCallAnalyzerTests.AnalyzeAsync(
         [
             Cast(1_000, HammerStormId),
             Hit(1_050, Enemy1),
@@ -193,7 +197,7 @@ public sealed class HammerStormAnalyzerTests
     [Fact]
     public async Task Analyze_HammerStorm_IgnoresACastMadeBeforeTheChannelsLastSpin()
     {
-        var (parser, _) = await ThunderCallWindowAnalyzerTests.AnalyzeAsync(
+        var (parser, _) = await ThunderCallAnalyzerTests.AnalyzeAsync(
         [
             Cast(1_000, HammerStormId),
             Hit(1_050, Enemy1),
@@ -211,7 +215,7 @@ public sealed class HammerStormAnalyzerTests
     [Fact]
     public async Task Analyze_HammerStorm_TreatsACastThatLandedNoDamageAsAWhiffRatherThanATruncation()
     {
-        var (parser, _) = await ThunderCallWindowAnalyzerTests.AnalyzeAsync(
+        var (parser, _) = await ThunderCallAnalyzerTests.AnalyzeAsync(
         [
             Cast(1_000, HammerStormId),
             Cast(2_000, TariqSpells.CullingStrike.FSLID),
@@ -233,7 +237,7 @@ public sealed class HammerStormAnalyzerTests
     [Fact]
     public async Task Analyze_HammerStorm_StopsAttributingDamageAtTheNextHammerStormCast()
     {
-        var (parser, _) = await ThunderCallWindowAnalyzerTests.AnalyzeAsync(
+        var (parser, _) = await ThunderCallAnalyzerTests.AnalyzeAsync(
         [
             Cast(1_000, HammerStormId),
             Hit(1_050, Enemy1),
@@ -255,7 +259,7 @@ public sealed class HammerStormAnalyzerTests
     [Fact]
     public async Task Analyze_HammerStorm_LeavesDamagePastTheChannelCapOutOfTheSpinCount()
     {
-        var (parser, _) = await ThunderCallWindowAnalyzerTests.AnalyzeAsync(
+        var (parser, _) = await ThunderCallAnalyzerTests.AnalyzeAsync(
         [
             Cast(1_000, HammerStormId),
             Hit(1_050, Enemy1),
@@ -270,7 +274,7 @@ public sealed class HammerStormAnalyzerTests
     [Fact]
     public async Task Analyze_HammerStorm_MarksAChannelEmpoweredByAHeldSchismProc()
     {
-        var (parser, _) = await ThunderCallWindowAnalyzerTests.AnalyzeAsync(
+        var (parser, _) = await ThunderCallAnalyzerTests.AnalyzeAsync(
         [
             Apply(500, SchismHammerStorm),
             Cast(1_000, HammerStormId),
@@ -293,7 +297,7 @@ public sealed class HammerStormAnalyzerTests
     [Fact]
     public async Task Analyze_HammerStorm_ConsumesAProcRemovedAtTheSameMillisecondAsTheCast()
     {
-        var (parser, _) = await ThunderCallWindowAnalyzerTests.AnalyzeAsync(
+        var (parser, _) = await ThunderCallAnalyzerTests.AnalyzeAsync(
         [
             Apply(1_000, SchismHammerStorm),
             Remove(2_000, SchismHammerStorm),
@@ -310,7 +314,7 @@ public sealed class HammerStormAnalyzerTests
     [Fact]
     public async Task Analyze_HammerStorm_CountsTheProcEconomyInBothDirections()
     {
-        var (parser, _) = await ThunderCallWindowAnalyzerTests.AnalyzeAsync(
+        var (parser, _) = await ThunderCallAnalyzerTests.AnalyzeAsync(
         [
             Apply(1_000, SchismHammerStorm),
             Apply(1_100, SchismSkullCrusher),
@@ -334,7 +338,7 @@ public sealed class HammerStormAnalyzerTests
     [Fact]
     public async Task Analyze_HammerStorm_ExcludesSchismEmpoweredCastsFromTheLowTargetCount()
     {
-        var (parser, _) = await ThunderCallWindowAnalyzerTests.AnalyzeAsync(
+        var (parser, _) = await ThunderCallAnalyzerTests.AnalyzeAsync(
         [
             Cast(1_000, HammerStormId),
             Hit(1_050, Enemy1),
@@ -359,13 +363,13 @@ public sealed class HammerStormAnalyzerTests
     [Fact]
     public async Task Analyze_HammerStorm_ReadsSchismFromTheSelectedCombatantsTalents()
     {
-        var (talented, _) = await ThunderCallWindowAnalyzerTests.AnalyzeAsync(
+        var (talented, _) = await ThunderCallAnalyzerTests.AnalyzeAsync(
         [
             Combatant(schism: true),
             Cast(1_000, HammerStormId),
         ]);
 
-        var (untalented, _) = await ThunderCallWindowAnalyzerTests.AnalyzeAsync(
+        var (untalented, _) = await ThunderCallAnalyzerTests.AnalyzeAsync(
         [
             Combatant(schism: false),
             Cast(1_000, HammerStormId),
@@ -378,7 +382,7 @@ public sealed class HammerStormAnalyzerTests
     [Fact]
     public async Task Analyze_HammerStorm_ExposesPerPullReadPaths()
     {
-        var (parser, _) = await ThunderCallWindowAnalyzerTests.AnalyzeAsync(
+        var (parser, _) = await ThunderCallAnalyzerTests.AnalyzeAsync(
         [
             Cast(1_000, HammerStormId),
             Hit(1_050, Enemy1),

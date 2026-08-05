@@ -20,6 +20,16 @@ namespace FellowshipAnalyzer.Heroes.Mara.Tests.Analysis;
 
 public sealed class MaraAnalysisEngineTests
 {
+    private const int BossPullId = 1;
+    private const int TrashPullId = 2;
+    private const int BossNpcId = 900;
+    private const int TrashNpcId = 901;
+    private const int BossPullEnemies = 1;
+    private const int TrashPullEnemies = 4;
+
+    private static DungeonPullNpc Npc(int id, int instances) =>
+        new(id, GameId: id, MinimumInstanceId: 1, MaximumInstanceId: instances, null, null);
+
     [Fact]
     public async Task Analyze_ShouldProvideGuideComponentType()
     {
@@ -38,30 +48,24 @@ public sealed class MaraAnalysisEngineTests
     }
 
     [Fact]
-    public async Task Analyze_ResourceDiscipline_ProducesOnePerPull_WithShapeSpecificThresholds()
+    public async Task Analyze_ResourceDiscipline_ProducesOnePerPull()
     {
         var (parser, _) = await AnalyzeFixtureAsync();
 
         parser.MaraResourceDisciplineAnalyzers.Count.ShouldBe(2);
 
-        var single = parser.MaraResourceDisciplineAnalyzers
-            .Single(entry => entry.Analyzer.Shape == MaraPullShape.SingleTarget).Analyzer;
-        single.ShouldBeOfType<SingleTargetMaraResourceDiscipline>();
-        single.FinisherCpThreshold.ShouldBe(5);
-        single.Finishers.Count.ShouldBe(2);
-        single.FinishersAtThreshold.ShouldBe(1);
-        single.EnergyCastsSampled.ShouldBe(3);
-        single.EnergyCappedCasts.ShouldBe(1);
-        single.GeneratorCasts.ShouldBe(1);
-        single.GeneratorOvercapCasts.ShouldBe(1);
+        var boss = AnalyzerForPull(parser, BossPullId);
+        boss.Finishers.Count.ShouldBe(3);
+        boss.FinishersAtThreshold.ShouldBe(2);
+        boss.EnergyCastsSampled.ShouldBe(4);
+        boss.EnergyCappedCasts.ShouldBe(1);
+        boss.GeneratorCasts.ShouldBe(1);
+        boss.GeneratorOvercapCasts.ShouldBe(1);
 
-        var aoe = parser.MaraResourceDisciplineAnalyzers
-            .Single(entry => entry.Analyzer.Shape == MaraPullShape.Aoe).Analyzer;
-        aoe.ShouldBeOfType<AoEMaraResourceDiscipline>();
-        aoe.FinisherCpThreshold.ShouldBe(4);
-        aoe.Finishers.Count.ShouldBe(1);
-        aoe.FinishersAtThreshold.ShouldBe(1);
-        aoe.MaintenanceFinisherCasts.ShouldBe(1);
+        var trash = AnalyzerForPull(parser, TrashPullId);
+        trash.Finishers.Count.ShouldBe(2);
+        trash.FinishersAtThreshold.ShouldBe(1);
+        trash.MaintenanceFinisherCasts.ShouldBe(1);
     }
 
     [Fact]
@@ -69,8 +73,7 @@ public sealed class MaraAnalysisEngineTests
     {
         var (parser, _) = await AnalyzeFixtureAsync();
 
-        var entry = parser.MaraResourceDisciplineAnalyzers
-            .Single(e => e.Analyzer.Shape == MaraPullShape.SingleTarget);
+        var entry = parser.MaraResourceDisciplineAnalyzers.Single(e => e.Pull.Id == BossPullId);
         var pull = entry.Pull;
 
         pull.MaraResourceDisciplineAnalyzer.ShouldBeSameAs(entry.Analyzer);
@@ -78,22 +81,89 @@ public sealed class MaraAnalysisEngineTests
     }
 
     [Fact]
-    public async Task Analyze_ResourceDiscipline_EvaluatesFinishersAgainstPullThreshold()
+    public async Task Analyze_ResourceDiscipline_HoldsQueenFangToFiveOnEveryPullShape()
     {
         var (parser, _) = await AnalyzeFixtureAsync();
 
-        var single = parser.MaraResourceDisciplineAnalyzers
-            .Single(entry => entry.Analyzer.Shape == MaraPullShape.SingleTarget).Analyzer;
-        single.Finishers[0].ComboPoints.ShouldBe(6);
-        single.Finishers[0].MeetsThreshold.ShouldBeTrue();
-        single.Finishers[1].ComboPoints.ShouldBe(3);
-        single.Finishers[1].MeetsThreshold.ShouldBeFalse();
+        var boss = AnalyzerForPull(parser, BossPullId);
+        boss.QueenFangCasts.ShouldBe(2);
+        boss.QueenFangAtThreshold.ShouldBe(1);
+        boss.Finishers[0].ComboPoints.ShouldBe(6);
+        boss.Finishers[0].MeetsThreshold.ShouldBeTrue();
+        boss.Finishers[1].ComboPoints.ShouldBe(3);
+        boss.Finishers[1].MeetsThreshold.ShouldBeFalse();
 
-        var aoe = parser.MaraResourceDisciplineAnalyzers
-            .Single(entry => entry.Analyzer.Shape == MaraPullShape.Aoe).Analyzer;
-        aoe.ShouldNotBeSameAs(single);
-        aoe.Finishers.ShouldHaveSingleItem().MeetsThreshold.ShouldBeTrue();
+        var trash = AnalyzerForPull(parser, TrashPullId);
+        var queenFang = trash.Finishers.Single(finisher => finisher.AbilityId == Spells.QueenFang.Id);
+        queenFang.ComboPoints.ShouldBe(4);
+        queenFang.Threshold.ShouldBe(MaraResourceDisciplineAnalyzer.QueenFangThreshold);
+        queenFang.MeetsThreshold.ShouldBeFalse();
+        trash.QueenFangAtThreshold.ShouldBe(0);
     }
+
+    [Fact]
+    public async Task Analyze_ResourceDiscipline_HoldsArachnidAssaultToFourOnEveryPullShape()
+    {
+        var (parser, _) = await AnalyzeFixtureAsync();
+
+        var boss = AnalyzerForPull(parser, BossPullId);
+        var onBoss = boss.Finishers.Single(finisher => finisher.AbilityId == Spells.ArachnidAssault.Id);
+        onBoss.ComboPoints.ShouldBe(4);
+        onBoss.Threshold.ShouldBe(MaraResourceDisciplineAnalyzer.ArachnidAssaultThreshold);
+        onBoss.MeetsThreshold.ShouldBeTrue();
+        boss.ArachnidAssaultAtThreshold.ShouldBe(1);
+
+        var trash = AnalyzerForPull(parser, TrashPullId);
+        trash.ArachnidAssaultCasts.ShouldBe(1);
+        trash.ArachnidAssaultAtThreshold.ShouldBe(1);
+    }
+
+    [Fact]
+    public async Task Analyze_ResourceDiscipline_ReadsEnemiesAliveAtEachFinisher()
+    {
+        var (parser, _) = await AnalyzeFixtureAsync();
+
+        AnalyzerForPull(parser, BossPullId).Finishers
+            .ShouldAllBe(finisher => finisher.EnemiesAlive == BossPullEnemies);
+        AnalyzerForPull(parser, TrashPullId).Finishers
+            .ShouldAllBe(finisher => finisher.EnemiesAlive == TrashPullEnemies);
+    }
+
+    [Fact]
+    public async Task Analyze_ResourceDiscipline_FlagsTheFinisherTheEnemyCountDoesNotCallFor()
+    {
+        var (parser, _) = await AnalyzeFixtureAsync();
+
+        var boss = AnalyzerForPull(parser, BossPullId);
+        boss.ArachnidAssaultTargetThreshold.ShouldBe(MaraResourceDisciplineAnalyzer.ArachnidAssaultTargets);
+        boss.FinishersWithTargetCount.ShouldBe(3);
+        boss.FinishersMatchingTargetCount.ShouldBe(2);
+        boss.ArachnidAssaultBelowTargetThreshold.ShouldBe(1);
+        boss.QueenFangAboveTargetThreshold.ShouldBe(0);
+
+        var trash = AnalyzerForPull(parser, TrashPullId);
+        trash.FinishersWithTargetCount.ShouldBe(2);
+        trash.FinishersMatchingTargetCount.ShouldBe(1);
+        trash.QueenFangAboveTargetThreshold.ShouldBe(1);
+        trash.ArachnidAssaultBelowTargetThreshold.ShouldBe(0);
+    }
+
+    [Fact]
+    public async Task Analyze_ResourceDiscipline_FeedTheQueenRaisesTheArachnidAssaultTargetThreshold()
+    {
+        var (parser, _) = await AnalyzeFixtureAsync(feedTheQueen: true);
+
+        var trash = AnalyzerForPull(parser, TrashPullId);
+        trash.ArachnidAssaultTargetThreshold
+            .ShouldBe(MaraResourceDisciplineAnalyzer.ArachnidAssaultTargetsWithFeedTheQueen);
+
+        trash.FinishersMatchingTargetCount.ShouldBe(1);
+        trash.QueenFangAboveTargetThreshold.ShouldBe(0);
+        trash.ArachnidAssaultBelowTargetThreshold.ShouldBe(1);
+    }
+
+    private static MaraResourceDisciplineAnalyzer AnalyzerForPull(MaraCombatLogParser parser, int pullId) =>
+        parser.MaraResourceDisciplineAnalyzers.Single(entry => entry.Pull.Id == pullId).Analyzer;
 
     [Fact]
     public async Task Analyze_ShouldIncludeEnergyComboPointTrackerModule()
@@ -187,7 +257,8 @@ public sealed class MaraAnalysisEngineTests
         return parser.EnergyComboPointTracker!;
     }
 
-    private static async Task<(MaraCombatLogParser Parser, HeroAnalysisResult Result)> AnalyzeFixtureAsync()
+    private static async Task<(MaraCombatLogParser Parser, HeroAnalysisResult Result)> AnalyzeFixtureAsync(
+        bool feedTheQueen = false)
     {
         const int playerId = 7;
         var services = new ServiceCollection();
@@ -202,17 +273,26 @@ public sealed class MaraAnalysisEngineTests
 
         var pulls = new List<DungeonPull>
         {
-            new(Id: 1, EncounterId: 42, Kill: true, StartTime: 1000, EndTime: 2000, Name: "Boss", EnemyNpcs: null),
-            new(Id: 2, EncounterId: 0, Kill: null, StartTime: 3000, EndTime: 4000, Name: "Trash", EnemyNpcs: null),
+            new(Id: BossPullId, EncounterId: 42, Kill: true, StartTime: 1000, EndTime: 2000, Name: "Boss",
+                EnemyNpcs: [Npc(BossNpcId, instances: BossPullEnemies)]),
+            new(Id: TrashPullId, EncounterId: 0, Kill: null, StartTime: 3000, EndTime: 4000, Name: "Trash",
+                EnemyNpcs: [Npc(TrashNpcId, instances: TrashPullEnemies)]),
         };
 
         var events = new List<Event>
         {
+            new CombatantInfoEvent
+            {
+                SourceId = playerId,
+                Talents = feedTheQueen ? [new TalentInfo { Id = MaraTalents.FeedTheQueen }] : [],
+            },
             Cast(1100, playerId, Spells.QueenFang, comboPoints: 6, energy: 200, maxEnergy: 200),
             Cast(1200, playerId, Spells.QueenFang, comboPoints: 3, energy: 100),
             Cast(1300, playerId, Spells.Backstab, comboPoints: 6, energy: 150),
+            Cast(1400, playerId, Spells.ArachnidAssault, comboPoints: 4, energy: 130),
             Cast(3100, playerId, Spells.ArachnidAssault, comboPoints: 4, energy: 120),
             Cast(3200, playerId, Spells.HemorrhagingStrike, comboPoints: 5, energy: 100),
+            Cast(3300, playerId, Spells.QueenFang, comboPoints: 4, energy: 90),
         };
 
         var fight = new ReportFight(

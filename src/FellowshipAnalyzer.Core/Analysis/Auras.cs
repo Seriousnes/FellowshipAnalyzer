@@ -18,7 +18,7 @@ public sealed record SpellbookAura
 /// Per-hero module that declares which auras/buffs are relevant for the timeline.
 /// Inherit in each hero's project and override <see cref="GetAuras"/> to register auras.
 /// </summary>
-public abstract class Auras : Analyzer
+public abstract class Auras : Module
 {
     /// <summary>Returns all auras registered for this hero.</summary>
     public abstract IEnumerable<SpellbookAura> GetAuras();

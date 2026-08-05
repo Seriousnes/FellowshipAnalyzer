@@ -25,7 +25,7 @@ namespace FellowshipAnalyzer.Core.Analysis.Deaths;
 /// </summary>
 [Dependency<SpellUsable>]
 [Dependency<Abilities>]
-public sealed partial class DeathTracker : EventSubscriber
+public sealed partial class DeathTracker : Analyzer
 {
     /// <summary>How far back a death's captured window reaches, in milliseconds, before the pull-start clamp.</summary>
     public const int RecapWindowMs = 15_000;

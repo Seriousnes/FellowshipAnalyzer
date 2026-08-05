@@ -1,0 +1,14 @@
+<span class="hero-text" style="--fa-supplied-accent: @Accent;" @attributes="InputAttributes">@ChildContent</span>
+
+@code {
+    /// <summary>The hero whose identity colour the content is set in.</summary>
+    [Parameter, EditorRequired] public HeroName Hero { get; set; }
+
+    /// <summary>The content to colour. Nested markup inherits the colour.</summary>
+    [Parameter, EditorRequired] public RenderFragment ChildContent { get; set; } = default!;
+
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object> InputAttributes { get; set; } = new();
+
+    private string Accent => FellowshipAnalyzer.Core.Analysis.Hero.For(Hero).Color;
+}

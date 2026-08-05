@@ -5,37 +5,22 @@ using FellowshipAnalyzer.Core.Game;
 
 namespace FellowshipAnalyzer.Heroes.Helena.Modules;
 
-/// <summary>
-/// The read surface Iron Wall analysis is published under, keeping it distinct from the other
-/// <see cref="MajorDefensiveAnalyzer"/> running on the same pull.
-/// </summary>
 public interface IIronWallAnalyzer : IAnalyzerSurface;
 
-/// <summary>
-/// Measures Iron Wall, which freezes Toughness loss for its duration rather than reducing a hit, so
-/// what it is worth is decided before it goes out: the Toughness it freezes in place, and whether
-/// Shields Up charges were spent when it was pressed. Both are recorded per use alongside the damage
-/// the window covered.
-/// </summary>
 [ForPull(PullKind.Single | PullKind.Multi)]
 [Dependency<SpellUsable>]
 public sealed partial class IronWallAnalyzer : MajorDefensiveAnalyzer, IIronWallAnalyzer
 {
-    /// <summary>How long after a cast its buff may apply and still be paired with it.</summary>
     public const int CastPairingGraceMs = 500;
 
     private readonly List<CastContext> _casts = [];
 
-    /// <inheritdoc/>
     protected override int DefensiveSpellId => Spells.IronWall.FSLID;
 
-    /// <summary>Every Iron Wall window with the state it was pressed in.</summary>
     public IReadOnlyList<IronWallUse> Uses => field ??= BuildUses();
 
-    /// <summary>Iron Walls pressed at or above the 50% Toughness threshold.</summary>
     public int UsesFromHighToughness => Uses.Count(use => use.OpenedAboveHalfToughness);
 
-    /// <summary>Iron Walls pressed with no Shields Up charge left, the window it is meant to buy.</summary>
     public int UsesWithShieldsUpSpent => Uses.Count(use => use.ShieldsUpCharges == 0);
 
     [On<CastEvent>(By = Actor.Player, Spell = nameof(Spells.IronWall))]
@@ -99,22 +84,11 @@ public sealed partial class IronWallAnalyzer : MajorDefensiveAnalyzer, IIronWall
     private sealed record CastContext(int Timestamp, double? ToughnessShare, int ShieldsUpCharges);
 }
 
-/// <summary>
-/// One Iron Wall window and the state it was pressed in.
-/// </summary>
-/// <param name="Window">The window itself, carrying the damage it covered.</param>
-/// <param name="ToughnessShare">Toughness as a share of maximum when it was pressed, or <c>null</c> when the cast carried no snapshot.</param>
-/// <param name="Band">The Toughness band that share falls into.</param>
-/// <param name="ShieldsUpCharges">Shields Up charges available when it was pressed, or <c>null</c> when no cast paired with the window.</param>
 public sealed record IronWallUse(
     DefensiveWindow Window,
     double? ToughnessShare,
     ToughnessBand? Band,
     int? ShieldsUpCharges)
 {
-    /// <summary>
-    /// Whether Toughness was at or above half maximum, the threshold from which the freeze holds a
-    /// band worth holding rather than locking in a depleted one.
-    /// </summary>
     public bool OpenedAboveHalfToughness => ToughnessShare >= ToughnessBands.LowerThreshold(ToughnessBand.Level3);
 }

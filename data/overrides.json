@@ -553,5 +553,27 @@
       "id": 999,
       "note": "both id 995 and id 999 sanitize to RuneOfRenewal; supersede id 999 under distinct name RuneOfRenewalAlt to eliminate collision"
     }
+  },
+  "shared": {
+    "VeinSprout": {
+      "id": 2031,
+      "school": "Magic",
+      "note": "enemy ability GA_ST_BossDefenseEye_Passive_ShootProjectilesAndAoePlacement carries no School; the damage it places, GE_ST_BossDefenseEye_AoePlacementDebuff_Stack_Damage (1002936), is Magic/Blood"
+    },
+    "ConduitOfStrikingShadows": {
+      "id": 2113,
+      "school": "Magic",
+      "note": "enemy ability GA_ST_BossGatekeeper_Conduit_Triangle_Passive carries no School; its damage effect GE_ST_BossGatekeeper_Conduit_Triangle_AoeDamage (1002914) is Magic/Blood"
+    },
+    "ConduitOfTheBleedingGaze": {
+      "id": 2116,
+      "school": "Magic",
+      "note": "enemy ability GA_ST_BossGatekeeper_Conduit_Circle_Passive carries no School; its damage effect GE_ST_BossGatekeeper_Conduit_Circle_ProjectileDamage (1002920) is Magic/Blood"
+    },
+    "SanguineClaws": {
+      "id": 2187,
+      "school": "Physical",
+      "note": "enemy ability GA_MC_BloodHound_Cleave carries no School; its damage effect GE_MC_BloodHound_Cleave_Damage (1003046) and its bleed GE_MC_BloodHound_Cleave_Bleed_Dot (1003047) are both Physical"
+    }
   }
 }

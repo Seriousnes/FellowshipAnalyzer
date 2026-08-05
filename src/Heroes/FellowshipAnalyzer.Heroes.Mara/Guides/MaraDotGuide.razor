@@ -2,31 +2,20 @@
 @inject ChartPalette Palette
 
 <GuideSection Title="Poisons &amp; Bleeds">
-    <Explanation>
+    <LeftPanel>
         <p>
-            On a boss neither <SpellLink Spell="Spells.WidowBitePoison" /> nor the
-            <SpellLink Spell="Spells.HemorrhagingStrikeBleed" /> bleed should ever leave the target. Each
-            boss pull is scored on the combined uptime of the two and the gaps between their
-            windows, so a reapplication that lands after the effect has already fallen off costs twice.
+            Keep <SpellLink Spell="Spells.WidowBitePoison" /> and the
+            <SpellLink Spell="Spells.HemorrhagingStrike" /> bleed active on a boss, and
+            in a pack spread the bleed by hand. Do not refresh
+            <SpellLink Spell="Spells.SkitteringBladesPoison" /> early.
         </p>
-        <p>
-            <SpellLink Spell="Spells.HemorrhagingStrike" /> buys its bleed with the combo points it spends,
-            so each reapplication is measured against the time still left on the window it overwrites; a
-            bleed cut short well before it finished ticking is counted as clipped.
-        </p>
-        <p>
-            In a pack the bleed is the effect that has to be spread by hand, so each AoE pull is scored on
-            how much of the roster took it. <SpellLink Spell="Spells.SkitteringBladesPoison" /> is the
-            exception: it erupts for area damage as it expires, so every reapplication counted here
-            cancelled a blast that had not gone off yet.
-        </p>
-    </Explanation>
-    <ChildContent>
+    </LeftPanel>
+    <RightPanel>
         <CastOverview Title="Upkeep Overview" Stats="@BuildOverviewStats()" />
         <CastDetail Title="Poisons &amp; Bleeds by Pull"
-                    Description="Each row is one pull. Boss rows show how continuously each effect was active and how much active bleed was overwritten; AoE rows show how far the bleed spread and how many eruptions were cancelled."
+                    Description="Each row is one pull. Boss pulls are measured on uptime, AoE pulls on spread."
                     Casts="@BuildPerCastData()" />
-    </ChildContent>
+    </RightPanel>
 </GuideSection>
 
 @code {
@@ -54,14 +43,14 @@
             stats.Add(new OverviewStat(
                 $"{gaps}",
                 "Boss Gaps",
-                "Times a poison or bleed dropped off a boss before being reapplied."));
+                "Debuff downtime."));
 
             var refreshes = bossAnalyzers.Sum(analyzer => analyzer.HemorrhageRefreshes.Count);
             var clips = bossAnalyzers.Sum(analyzer => ClipCount(analyzer));
             stats.Add(new OverviewStat(
                 $"{clips}",
                 "Bleeds Clipped Early",
-                $"{clips} of {refreshes} Hemorrhage reapplications landed with more than {EarlyClipRemainingMs / 1000}s still on the bleed.",
+                $"{clips} of {refreshes} Hemorrhage reapplications overwrote more than {EarlyClipRemainingMs / 1000}s of an active bleed.",
                 ClipTier(clips, refreshes)));
         }
 
@@ -76,12 +65,12 @@
                 "Average share of the pack that took the Hemorrhage bleed across every AoE pull.",
                 CoverageTier(coverage, spreadAnalyzers.Sum(analyzer => analyzer.RosterSize))));
 
-            var forfeited = spreadAnalyzers.Sum(analyzer => analyzer.VolatilePoisonRefreshes);
+            var reapplied = spreadAnalyzers.Sum(analyzer => analyzer.VolatilePoisonRefreshes);
             stats.Add(new OverviewStat(
-                $"{forfeited}",
-                "Eruptions Forfeited",
-                "Volatile Poison reapplications, each one an area blast cancelled before it went off.",
-                VolatileTier(forfeited)));
+                $"{reapplied}",
+                "Volatile Poison Reapplied",
+                "Volatile Poison applications made on a target that already had it.",
+                VolatileTier(reapplied)));
         }
 
         return stats;
@@ -108,7 +97,7 @@
             stats.Add(new PerCastStat(
                 $"{percent}%",
                 entry.Dot.Effect.Name,
-                $"Share of the pull the boss spent carrying {entry.Dot.Effect.Name}.",
+                $"Share of the pull {entry.Dot.Effect.Name} was active on the primary target.",
                 Performance: tier));
             worst = Worse(worst, tier);
         }
@@ -118,7 +107,7 @@
         stats.Add(new PerCastStat(
             $"{gapCount}",
             "Gaps",
-            $"Times a tracked effect dropped off before being reapplied, totalling {FormatSeconds(downtime)} of downtime."));
+            $"Stretches with a tracked effect off the primary target between its windows, totalling {FormatSeconds(downtime)}."));
 
         var refreshes = analyzer.HemorrhageRefreshes.Count;
         var clips = ClipCount(analyzer);
@@ -135,7 +124,7 @@
             stats.Add(new PerCastStat(
                 FormatSeconds((int)analyzer.HemorrhageApplications.Average(application => application.ExpectedDurationMs)),
                 "Avg Bleed Length",
-                "Average Hemorrhage duration bought by the combo points spent on each Hemorrhaging Strike."));
+                "Average Hemorrhage duration, derived from the combo points spent on each Hemorrhaging Strike rather than observed."));
         }
 
         AdditionalContent? chart = null;
@@ -187,8 +176,8 @@
                 $"Enemies that took the {MaraDots.VolatilePoison.Effect.Name} during the pull."),
             new PerCastStat(
                 $"{analyzer.VolatilePoisonRefreshes}/{analyzer.VolatilePoisonApplications + analyzer.VolatilePoisonRefreshes}",
-                "Eruptions Forfeited",
-                "Volatile Poison reapplications, each one an area blast cancelled before it went off.",
+                "Volatile Poison Reapplied",
+                "Volatile Poison applications made on a target that already had it.",
                 Performance: volatileTier),
         };
 
@@ -236,13 +225,13 @@
 
         var notes = new List<string>();
         if (missing.Count > 0)
-            notes.Add($"{JoinNames(missing)} never went up");
+            notes.Add($"{JoinNames(missing)} was never applied");
 
         foreach (var entry in analyzer.Uptimes)
         {
             if (entry.GapCount == 0) continue;
 
-            notes.Add($"{entry.Dot.Effect.Name} dropped {Count(entry.GapCount, "time")} for {FormatSeconds(entry.TotalGapMs)}");
+            notes.Add($"{entry.Dot.Effect.Name} was off the primary target {Count(entry.GapCount, "time")} for {FormatSeconds(entry.TotalGapMs)}");
         }
 
         var clipped = analyzer.HemorrhageRefreshes.Where(refresh => refresh.RemainingMs > EarlyClipRemainingMs).ToList();
@@ -253,7 +242,7 @@
         }
 
         if (notes.Count == 0)
-            return "Both effects held for the whole pull with no gaps and no bleed clipped early.";
+            return "Both effects were active for the whole pull, with no gaps and no bleed clipped early.";
 
         return Sentence(notes);
     }
@@ -268,9 +257,9 @@
             notes.Add($"the bleed reached {analyzer.HemorrhageTargets} of {analyzer.RosterSize} enemies ({coverage}%)");
 
         if (analyzer.VolatilePoisonRefreshes > 0)
-            notes.Add($"{Count(analyzer.VolatilePoisonRefreshes, "Volatile Poison")} was laid again over a window that had not erupted yet, cancelling the blast");
+            notes.Add($"{Count(analyzer.VolatilePoisonRefreshes, "Volatile Poison")} went onto a target that already had it");
         else if (analyzer.VolatilePoisonApplications > 0)
-            notes.Add($"every one of the {analyzer.VolatilePoisonApplications} Volatile Poisons was left to erupt");
+            notes.Add($"none of the {analyzer.VolatilePoisonApplications} Volatile Poison applications went onto a target that already had it");
 
         if (analyzer.TargetCount == 0)
             notes.Add("the pull reported no enemy roster, so coverage is measured against the enemies you engaged");

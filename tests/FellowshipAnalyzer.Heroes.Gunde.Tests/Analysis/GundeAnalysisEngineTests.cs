@@ -45,19 +45,19 @@ public sealed class GundeAnalysisEngineTests
         analyzer.Slaughters[0].OpenWoundsActive.ShouldBeTrue();
         analyzer.Slaughters[0].TargetsHit.ShouldBe(2);
         analyzer.Slaughters[0].WellExecuted.ShouldBeTrue();
-        analyzer.Slaughters[0].PayoffDamage.ShouldBe(600);
+        analyzer.Slaughters[0].BleedDamage.ShouldBe(600);
 
         analyzer.Slaughters[1].OpenWoundsActive.ShouldBeFalse();
         analyzer.Slaughters[1].WellExecuted.ShouldBeFalse();
-        analyzer.Slaughters[1].PayoffDamage.ShouldBe(150);
+        analyzer.Slaughters[1].BleedDamage.ShouldBe(150);
 
-        analyzer.TotalPayoffDamage.ShouldBe(750);
+        analyzer.TotalBleedDamage.ShouldBe(750);
         analyzer.TotalOpenWoundsWindows.ShouldBe(1);
         analyzer.WastedOpenWoundsWindows.ShouldBe(0);
     }
 
     [Fact]
-    public async Task Analyze_BossPull_ScoresSlaughterAgainstHeartSplitterPriming()
+    public async Task Analyze_BossPull_ScoresSlaughterAgainstOpenWounds()
     {
         var (parser, _) = await AnalyzeAsync(BossEvents(), boss: true);
 
@@ -65,14 +65,12 @@ public sealed class GundeAnalysisEngineTests
         analyzer.SlaughterCasts.ShouldBe(2);
         analyzer.Shape.ShouldBe(GundePullShape.Boss);
         analyzer.OpenWoundsTimed.ShouldBe(2);
-        analyzer.HeartSplitterPrimed.ShouldBe(1);
-        analyzer.WellExecuted.ShouldBe(1);
+        analyzer.WellExecuted.ShouldBe(2);
 
         analyzer.Slaughters[0].WellExecuted.ShouldBeTrue();
 
         analyzer.Slaughters[1].OpenWoundsActive.ShouldBeTrue();
-        analyzer.Slaughters[1].HeartSplitterPrimed.ShouldBeFalse();
-        analyzer.Slaughters[1].WellExecuted.ShouldBeFalse();
+        analyzer.Slaughters[1].WellExecuted.ShouldBeTrue();
     }
 
     [Fact]
@@ -91,9 +89,9 @@ public sealed class GundeAnalysisEngineTests
         var (parser, _) = await AnalyzeAsync(events, boss: true);
 
         var analyzer = parser.SlaughterUsageAnalyzers.ShouldHaveSingleItem().Analyzer;
-        analyzer.Slaughters[0].PayoffDamage.ShouldBe(300);
-        analyzer.Slaughters[1].PayoffDamage.ShouldBe(500);
-        analyzer.TotalPayoffDamage.ShouldBe(800);
+        analyzer.Slaughters[0].BleedDamage.ShouldBe(300);
+        analyzer.Slaughters[1].BleedDamage.ShouldBe(500);
+        analyzer.TotalBleedDamage.ShouldBe(800);
     }
 
     [Fact]
@@ -289,11 +287,10 @@ public sealed class GundeAnalysisEngineTests
     }
 
     [Fact]
-    public async Task Analyze_BossPull_HeartSplitterPrimedWithoutOpenWounds_IsNotWellExecuted()
+    public async Task Analyze_BossPull_SlaughterOutsideOpenWounds_IsNotWellExecuted()
     {
         var events = new List<Event>
         {
-            Cast(1_500, Spells.HeartSplitter.FSLID),
             Cast(2_000, Spells.Slaughter.FSLID),
             Debuff<ApplyDebuffEvent>(2_050, Spells.SlaughterDot.FSLID, Enemy),
         };
@@ -303,7 +300,6 @@ public sealed class GundeAnalysisEngineTests
         var analyzer = SingleAnalyzer(parser);
         var slaughter = analyzer.Slaughters.ShouldHaveSingleItem();
         slaughter.OpenWoundsActive.ShouldBeFalse();
-        slaughter.HeartSplitterPrimed.ShouldBeTrue();
         slaughter.WellExecuted.ShouldBeFalse();
         analyzer.WellExecuted.ShouldBe(0);
     }
@@ -350,7 +346,6 @@ public sealed class GundeAnalysisEngineTests
             Debuff<ApplyDebuffEvent>(2_050, Spells.SlaughterDot.FSLID, Enemy),
             Debuff<ApplyDebuffEvent>(2_060, Spells.SlaughterDot.FSLID, OtherEnemy),
             Debuff<ApplyDebuffEvent>(31_000, OpenWoundsFslid, Enemy),
-            Cast(31_500, Spells.HeartSplitter.FSLID),
             Cast(32_000, Spells.Slaughter.FSLID),
             Debuff<ApplyDebuffEvent>(32_050, Spells.SlaughterDot.FSLID, Enemy),
         };
@@ -370,7 +365,7 @@ public sealed class GundeAnalysisEngineTests
         boss.Pull.Index.ShouldBe(1);
         boss.Analyzer.Shape.ShouldBe(GundePullShape.Boss);
         var bossSlaughter = boss.Analyzer.Slaughters.ShouldHaveSingleItem();
-        bossSlaughter.HeartSplitterPrimed.ShouldBeTrue();
+        bossSlaughter.OpenWoundsActive.ShouldBeTrue();
         bossSlaughter.WellExecuted.ShouldBeTrue();
 
         trash.Pull.SlaughterUsageAnalyzer.ShouldBeSameAs(trash.Analyzer);
@@ -469,7 +464,6 @@ public sealed class GundeAnalysisEngineTests
     private static List<Event> BossEvents() =>
     [
         Debuff<ApplyDebuffEvent>(1_000, OpenWoundsFslid, Enemy),
-        Cast(1_500, Spells.HeartSplitter.FSLID),
         Cast(2_000, Spells.Slaughter.FSLID),
         Debuff<ApplyDebuffEvent>(2_050, Spells.SlaughterDot.FSLID, Enemy),
         Cast(6_000, Spells.Slaughter.FSLID),

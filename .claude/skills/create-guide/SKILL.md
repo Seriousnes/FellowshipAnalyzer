@@ -26,7 +26,10 @@ For a pull-lifetime analyzer (registered with `[AddAnalyzer<T>]`), read the cros
 
 <GuideSection Title="{Feature Name}">
     <Explanation>
-        <p>What this section measures and why it matters. Prose belongs here, in the guide layer.</p>
+        <p>
+            Why this matters for playing {Hero} well. What to aim for. What the table shows and what
+            to look for in it.
+        </p>
     </Explanation>
     <ChildContent>
         <CastOverview Title="Overview" Stats="@BuildOverviewStats()" />
@@ -60,6 +63,23 @@ Project rows with the `ToPullRows` / `ToItemRows` extensions (in `FellowshipAnal
 For a fight-lifetime module, read the generated nullable parser property (`Parser.WinterOrbTracker` style) and null-check it.
 
 `_Imports.razor` should include the hero `Modules` namespace, as Rime does, so analyzer types are available to guides.
+
+### Explanation voice
+
+One shape, every time: **why this matters for playing the hero well** -> **what to aim for** -> **what the table shows and what to look for in it**. Second person, plain language, a paragraph or two. Link an ability with `<SpellLink>` when it has a spelldb entry; leave it plain text when it does not.
+
+Delete these four registers wherever they appear:
+
+- **Measurement epistemics** - "only as good as that model", "a reading rather than an inference", "the log carries no cost on a cast", "not an event at all".
+- **Scoring methodology** - "each cast is scored on...", "measured against the cap the game allows rather than against the other conversions of the same pull".
+- **Mechanics lectures** that teach the ability instead of the play.
+- **Gear and fairness justifications** - "how much Rend was active is a matter of gear, but whether the cast was set up is not".
+
+Where a caveat is load-bearing for trusting a number, it moves into that stat's own `Tooltip` - the third argument to both `OverviewStat` and `PerCastStat`. The Explanation stays clean and the table describes itself.
+
+Write "the table", never "the table to the right": `GuideSection` collapses to one column under 768px, so on a narrow screen the explanation sits above the table.
+
+This supersedes the older "a guide states what is measured" rule. The "never how the ability or the log works" half stays.
 
 ### Merging analyzers across pull shapes
 
@@ -139,6 +159,7 @@ From `FellowshipAnalyzer.Core.UI.Guides`:
 - Reach the hero parser by inheriting `ReportComponent<{Hero}CombatLogParser>`, never by injecting it.
 - Read pull analyzers via `Parser.{Name}Analyzers`, `Parser.For(pull).{Name}Analyzer` or the `pull.{Name}Analyzer` extension (the member is named after the surface type, with a leading `I` stripped for a marker interface). Read fight-lifetime modules via generated properties such as `Parser.WinterOrbTracker`, where the `Analyzer` suffix is stripped.
 - Keep event-derived state in modules; keep prose, severity wording, and `PerformanceTier` mapping here.
+- Write every `<Explanation>` in the voice above; put a load-bearing caveat in the stat's `Tooltip`, not in the prose.
 - Project per-pull rows with the `ToPullRows` / `ToItemRows` extensions returning `PerCastRow`; use `PerformanceTiers.FromThresholds` for tier ladders.
 - Use shared components from `FellowshipAnalyzer.Core.UI.Guides` when possible.
 - Use the `style-guide` skill before adding or changing component styles.
@@ -148,5 +169,6 @@ From `FellowshipAnalyzer.Core.UI.Guides`:
 - [ ] File is at `Guides/{Name}Guide.razor`.
 - [ ] Component inherits `ReportComponent<{Hero}CombatLogParser>`.
 - [ ] Component reads analyzer state via the generated read paths.
+- [ ] `<Explanation>` opens on why it matters, states what to aim for, then points at the table.
 - [ ] Feature guide is added to `{Hero}Guide.razor` with a gate.
 - [ ] Parser `GuideComponent` points to the root guide.

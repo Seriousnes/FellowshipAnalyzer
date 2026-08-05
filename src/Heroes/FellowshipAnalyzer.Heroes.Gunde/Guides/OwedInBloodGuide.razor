@@ -2,29 +2,19 @@
 @inherits ReportComponent<GundeCombatLogParser>
 
 <GuideSection Title="Owed in Blood">
-    <Explanation>
+    <LeftPanel>
         <p>
-            Blood Feathers picked up become stacks of <SpellLink Spell="Spells.Rend" /> waiting to be
-            placed, and <SpellLink Spell="Spells.OwedInBlood" /> converts the whole bank one-for-one
-            onto its target. It is not a button to press on cooldown: it belongs in a chain with
-            <SpellLink Spell="Spells.Rupture" /> and <SpellLink Spell="Spells.Slaughter" /> - Rupture
-            leaves <SpellLink Spell="Spells.OpenWounds" />, Owed in Blood dumps the bank as Rend, and
-            the Slaughter that follows cashes the lot under Rupture's bonus.
+            <SpellLink Spell="Spells.OwedInBlood" /> is key to maximising single target damage. 
+            Save Blood Feather stacks to combine with <SpellLink Spell="Spells.Rupture" /> and 
+            <SpellLink Spell="Spells.Slaughter" /> ever time, and save as many as possible for overlapping
+            with <SpellLink Spell="Spells.BloodboundSpirit" />.
         </p>
-        <p>
-            Each conversion is judged on that chain and on the size of the bank behind it, measured
-            against the @OwedInBloodEconomyAnalyzer.MaxStacks stack cap the game allows rather than
-            against the other conversions of the same pull. Holding also has a cost: the buff falls
-            off with the stacks still on it, and the pool stops accepting feathers at the cap.
-            Conversions made while <SpellLink Spell="Spells.BloodboundSpirit" /> is running are noted
-            as the bonus overlap they are.
-        </p>
-    </Explanation>
-    <ChildContent>
+    </LeftPanel>
+    <RightPanel>
         @if (!HasActivity)
         {
             <TipBox Variant="TipBoxVariant.Info">
-                No Blood Feather stacks were observed on any pull, so there was nothing for Owed in Blood to convert.
+                No Blood Feather stacks were observed on any pull.
             </TipBox>
         }
         else
@@ -45,11 +35,11 @@
                     <TipBox Variant="TipBoxVariant.Info">@UnmeasuredSummary</TipBox>
                 }
                 <CastDetail Title="Conversions"
-                            Description="Each card is one Owed in Blood cast, rated on the Rupture and Slaughter it was chained with and on the bank it cashed against the stack cap."
+                            Description="Each card is one Owed in Blood cast, rated on the Rupture and Slaughter chained to it and on the stacks it converted against the cap."
                             Casts="@BuildPerCastData()" />
             }
         }
-    </ChildContent>
+    </RightPanel>
 </GuideSection>
 
 @code {
@@ -72,8 +62,8 @@
     private int UnmeasuredConversions => TotalConversions - MeasuredConversions;
 
     private string UnmeasuredSummary => UnmeasuredConversions == 1
-        ? "One conversion cashed in a bank built before its pull started. Its size could not be measured, so it is rated on its chain alone."
-        : $"{UnmeasuredConversions} conversions cashed in banks built before their pull started. Their sizes could not be measured, so they are rated on their chains alone.";
+        ? "One conversion drew on a bank built before its pull started. Its size could not be measured, so it is rated on its chain alone."
+        : $"{UnmeasuredConversions} conversions drew on banks built before their pull started. Their sizes could not be measured, so they are rated on their chains alone.";
 
     private int TotalConverted => Analyzers.Sum(analyzer => analyzer.TotalStacksConverted);
 
@@ -86,8 +76,8 @@
     private bool HasActivity => TotalConversions > 0 || TotalDecayed > 0 || TotalCappedMs > 0;
 
     private string EmptySummary => TotalDecayed > 0
-        ? $"Owed in Blood was never cast, so all {TotalDecayed} banked Blood Feathers expired without becoming Rend."
-        : "Owed in Blood was never cast, and no Blood Feather stacks were observed to bank.";
+        ? $"Owed in Blood was never cast, so all {TotalDecayed} banked Blood Feathers expired unused."
+        : "Owed in Blood was never cast, and no Blood Feather stacks were observed.";
 
     private IEnumerable<OverviewStat> BuildOverviewStats()
     {
@@ -98,7 +88,7 @@
         var decayed = TotalDecayed;
         var accounted = AccountedStacks;
         var cappedMs = TotalCappedMs;
-        var cashed = Analyzers.Sum(analyzer => analyzer.CashedBySlaughter);
+        var followed = Analyzers.Sum(analyzer => analyzer.CashedBySlaughter);
         var paired = Analyzers.Sum(analyzer => analyzer.PairedWithRupture);
         var spirit = Analyzers.Sum(analyzer => analyzer.OverlappedSpirit);
         var average = measured > 0 ? (double)converted / measured : 0d;
@@ -110,35 +100,35 @@
                 $"{conversions}",
                 "Conversions",
                 unmeasured > 0
-                    ? $"Owed in Blood casts across every pull. {unmeasured} of them cashed in a bank built before their pull started, so only {measured} could be sized."
+                    ? $"Owed in Blood casts across every pull. {unmeasured} of them drew on a bank built before their pull started, so only {measured} have a measured stack count."
                     : "Owed in Blood casts evaluated across every pull."),
             new OverviewStat(
                 $"{chainRate}%",
                 "Full Chain",
-                $"{paired} of {conversions} conversions were cashed by a Slaughter that landed inside a Rupture Open Wounds window. {cashed} were cashed by a Slaughter at all.",
+                $"{paired} of {conversions} conversions were followed by a Slaughter cast inside a Rupture Open Wounds window. {followed} were followed by a Slaughter at all.",
                 PercentTier(chainRate)),
             new OverviewStat(
                 measured > 0 ? $"{average:0.#}" : "-",
-                "Avg Bank",
+                "Avg Converted",
                 measured > 0
-                    ? $"Average stacks per sized conversion, against a cap of {OwedInBloodEconomyAnalyzer.MaxStacks}. Bigger piles place more Rend per cast, so the button rewards holding."
-                    : "No Owed in Blood cast had a measurable bank behind it, so there is no bank size to average.",
+                    ? $"Average Blood Feather stacks converted per measured cast, against a cap of {OwedInBloodEconomyAnalyzer.MaxStacks}."
+                    : "No Owed in Blood cast had a measurable bank behind it.",
                 measured > 0 ? BankTier(ShareOfCap(average)) : null),
             new OverviewStat(
                 $"{spirit}",
                 "Spirit Overlap",
-                $"Conversions made while Bloodbound Spirit was running, the overlap worth saving the biggest banks for. Reported as context: the log carries no signal for when Spirit was about to become available."),
+                "Conversions made while Bloodbound Spirit was active. Reported as context: the log records nothing about when Spirit was about to become available."),
             new OverviewStat(
                 $"{decayed}",
                 "Stacks Decayed",
                 accounted > 0
-                    ? $"{decayed} of {accounted} banked stacks fell off before Owed in Blood could place them."
-                    : "No Blood Feather stacks were observed to fall off unspent.",
+                    ? $"{decayed} of {accounted} banked stacks expired unused."
+                    : "No Blood Feather stacks were observed to expire unused.",
                 accounted > 0 ? RetentionTier(RetentionRate(converted, accounted)) : null),
             new OverviewStat(
                 FormatSeconds(cappedMs),
                 "Time at Cap",
-                $"Time the bank sat at {OwedInBloodEconomyAnalyzer.MaxStacks} stacks, during which further feathers added nothing.",
+                $"Time the bank sat at {OwedInBloodEconomyAnalyzer.MaxStacks} stacks.",
                 CapTier(cappedMs)),
         ];
     }
@@ -146,9 +136,9 @@
     private IEnumerable<StackedBarSegment> BuildStackedBar() =>
     [
         new StackedBarSegment("Converted", TotalConverted, PerformanceColors.Good,
-            $"Converted: {TotalConverted} stacks placed as Rend"),
+            $"Converted: {TotalConverted} stacks"),
         new StackedBarSegment("Decayed", TotalDecayed, PerformanceColors.Fail,
-            $"Decayed: {TotalDecayed} stacks lost when the buff fell off"),
+            $"Decayed: {TotalDecayed} stacks that expired unused"),
     ];
 
     private IEnumerable<PerCastData> BuildPerCastData() =>
@@ -168,23 +158,23 @@
                 measured ? $"{conversion.StacksConverted}" : "-",
                 "Stacks Converted",
                 measured
-                    ? $"Blood Feather stacks this cast placed as Rend, out of a cap of {OwedInBloodEconomyAnalyzer.MaxStacks}."
+                    ? $"Blood Feather stacks this cast converted, out of a cap of {OwedInBloodEconomyAnalyzer.MaxStacks}."
                     : "The bank this cast converted was built before the pull started, so its size could not be measured.",
                 bankTier),
             new(
                 conversion.PairedWithRupture ? "Yes" : "No",
                 "Rupture Chain",
-                "Whether the Slaughter that cashed this conversion landed inside a Rupture Open Wounds window.",
+                "Whether the Slaughter that followed this conversion was cast inside a Rupture Open Wounds window.",
                 conversion.PairedWithRupture ? QualitativePerformance.Perfect : QualitativePerformance.Fail),
             new(
                 conversion.CashedBySlaughter ? "Yes" : "No",
-                "Slaughter Cashed",
-                $"Whether a Slaughter followed within {OwedInBloodEconomyAnalyzer.CashWindowMs / 1000}s to consume the Rend this cast placed.",
+                "Slaughter Followed",
+                $"Whether a Slaughter was cast within {OwedInBloodEconomyAnalyzer.CashWindowMs / 1000}s of this conversion.",
                 conversion.CashedBySlaughter ? QualitativePerformance.Perfect : QualitativePerformance.Fail),
             new(
                 conversion.SpiritActive ? "Yes" : "No",
-                "Spirit Up",
-                "Whether Bloodbound Spirit was running when this conversion went out. A bonus overlap, so it lifts nothing and costs nothing."),
+                "Spirit Active",
+                "Whether Bloodbound Spirit was active when this conversion was cast. Reported as context, not scored."),
         };
 
         return new PerCastRow
@@ -201,19 +191,18 @@
     {
         var chain = DescribeChain(conversion);
         var bank = DescribeBank(conversion);
-        var spirit = conversion.SpiritActive ? " Bloodbound Spirit was running, so the Rend it placed went out amplified." : string.Empty;
-        return $"{chain} {bank}{spirit}";
+        return $"{chain} {bank}";
     }
 
     private static string DescribeChain(OwedInBloodEconomyAnalyzer.OwedInBloodConversion conversion)
     {
         if (conversion.PairedWithRupture)
-            return "Chained properly: a Slaughter cashed the Rend this placed, inside a Rupture Open Wounds window.";
+            return "A Slaughter followed inside a Rupture Open Wounds window.";
 
         if (conversion.CashedBySlaughter)
-            return "A Slaughter cashed the Rend this placed, but outside any Open Wounds window - pair the conversion with Rupture so the Slaughter lands under its bonus.";
+            return "A Slaughter followed, but outside any Open Wounds window - press Rupture first so the Slaughter is cast inside one.";
 
-        return "No Slaughter followed to cash the Rend this placed, so it was left to tick and decay - hold the conversion until Rupture and Slaughter are ready to follow it.";
+        return $"No Slaughter followed within {OwedInBloodEconomyAnalyzer.CashWindowMs / 1000}s - hold the conversion until Rupture and Slaughter are ready to follow it.";
     }
 
     private static string DescribeBank(OwedInBloodEconomyAnalyzer.OwedInBloodConversion conversion)
@@ -223,7 +212,7 @@
 
         var stacks = conversion.StacksConverted;
         if (stacks == 0)
-            return "No Blood Feather stacks were banked when it was pressed, so it placed no Rend at all.";
+            return "No Blood Feather stacks were banked when it was pressed.";
 
         var share = (int)Math.Round(conversion.ShareOfCap * 100);
         return share >= BankPerfect

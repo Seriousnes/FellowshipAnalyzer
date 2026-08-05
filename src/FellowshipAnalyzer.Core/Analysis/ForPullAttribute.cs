@@ -15,11 +15,15 @@ public enum PullBoss
 }
 
 /// <summary>
-/// Declares the pull shapes an <see cref="Analyzer"/> runs on. Required on every Analyzer.
-/// An Analyzer matches a <see cref="Pull"/> when
-/// <c>(pull.Targets &amp; Targets) != 0</c> and the pull's boss state satisfies <see cref="Boss"/>.
-/// Because the filter is compile-time constant, the parser generator emits it as a static bitmask
-/// gate in the per-pull resolver.
+/// Declares the pull shapes an <see cref="Analyzer"/> runs on, and by its presence makes the analyzer
+/// pull-lifetime: a fresh instance per matching pull, retained on the pull read surfaces. An analyzer
+/// matches a <see cref="Pull"/> when <c>Targets.HasFlag(pull.Targets)</c> and the pull's boss state
+/// satisfies <see cref="Boss"/>. Because the filter is compile-time constant, the parser generator
+/// emits it as a static bitmask gate in the per-pull resolver.
+/// <para>
+/// Valid only on a concrete <see cref="Analyzer"/> (diagnostics FA0020 and FA0021): an abstract
+/// pull-analyzer base declares the shape and each concrete subclass declares its own filter.
+/// </para>
 /// </summary>
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = false)]
 public sealed class ForPullAttribute(PullKind targets) : Attribute

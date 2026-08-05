@@ -1,0 +1,36 @@
+@inherits Analyzer
+@using FellowshipAnalyzer.Core.UI
+
+@code {
+    public override RenderFragment? Statistic => Resets > 0 ? Card : null;
+
+    private RenderFragment Card =>
+        @<StatCard>
+            <Header>
+                <SpellLink Spell="Talents.ImpendingHeartseeker" />
+            </Header>
+            <ChildContent>
+                <StatRow Value="@Resets.ToString("N0")"
+                         Tooltip="Impending Heartseeker buffs granted over the fight.">
+                    resets granted
+                </StatRow>
+                <StatRow Value="@WastedResets.ToString("N0")"
+                         Color="@PerformanceColors.ToColor(WastedTier)"
+                         Tooltip="@($"{WastedResets} of {Resets} resets arrived while Heartseeker Barrage was already available.")">
+                    resets wasted
+                </StatRow>
+                <StatRow Value="@Seconds(AverageRecoveredMs)"
+                         Tooltip="@($"{Seconds(RecoveredMs)} of Heartseeker Barrage cooldown removed across {LandedResets} resets that arrived on a running cooldown.")">
+                    average cooldown removed
+                </StatRow>
+            </ChildContent>
+        </StatCard>;
+
+    private QualitativePerformance WastedTier =>
+        WastedResets == 0 ? QualitativePerformance.Perfect
+            : WastedShare < 0.1 ? QualitativePerformance.Good
+            : WastedShare < 0.2 ? QualitativePerformance.Ok
+            : QualitativePerformance.Fail;
+
+    private static string Seconds(double milliseconds) => $"{milliseconds / 1000d:0.#}s";
+}

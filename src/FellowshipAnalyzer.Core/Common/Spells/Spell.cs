@@ -4,6 +4,7 @@ using FellowshipAnalyzer.Core.Common.Spells.Ardeos;
 using FellowshipAnalyzer.Core.Common.Spells.Elarion;
 using FellowshipAnalyzer.Core.Common.Spells.Rime;
 using FellowshipAnalyzer.Core.Game;
+using FellowshipAnalyzer.Core.UI;
 
 namespace FellowshipAnalyzer.Core.Common.Spells;
 
@@ -36,6 +37,13 @@ public record Spell : IRimeSpell, IElarionSpell, IArdeosSpell
     /// analysis grouping. <c>null</c> when the source data does not classify the ability.
     /// </summary>
     public AbilityCategory? AbilityCategory { get; init; }
+
+    /// <summary>
+    /// The damage school this spell deals in. <c>null</c> when the school comes straight from
+    /// <c>spell_data.json</c> and needs no curation; set on an entry the dump leaves unclassified, where
+    /// it overrides what the merge collected for this <see cref="FSLID"/>.
+    /// </summary>
+    public MagicSchool? School { get; init; }
 
     /// <summary>The base cooldown in seconds; <c>null</c> when the spell has no cooldown.</summary>
     public double? Cooldown { get; init; }

@@ -5,15 +5,8 @@ using CoreAbilities = FellowshipAnalyzer.Core.Analysis.Abilities;
 
 namespace FellowshipAnalyzer.Heroes.Helena.Modules;
 
-/// <summary>
-/// Helena's spellbook. <c>CooldownReducedByHaste</c> follows the Season 3 <c>Kit</c> block's
-/// <c>SpellCDHasted</c> flag, which is set for Shockwave, Power Strike and Shield Throw alone. The flag
-/// is known to under-report rather than over-report, so an ability found to recharge faster than its
-/// configured cooldown allows may need it despite the source saying otherwise.
-/// </summary>
 public class Abilities : CoreAbilities
 {
-    /// <inheritdoc/>
     public override IEnumerable<SpellbookAbility> Spellbook() =>
     [
         new()

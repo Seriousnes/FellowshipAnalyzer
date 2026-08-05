@@ -1,31 +1,18 @@
 @inherits ReportComponent<SylvieCombatLogParser>
 
 <GuideSection Title="Heart Bloom">
-    <Explanation>
+    <LeftPanel>
         <p>
-            <SpellLink Spell="Spells.HeartBloom" /> banks a share of the healing that came before it and
-            releases the bank every two seconds for sixteen, and the flutterflies are the steadiest thing
-            feeding it while it is on cooldown. Each cast below reports the flutterfly healing over its
-            own accumulation window - overheal included, because the bank does not care whether the
-            healing landed - and what the cast then released.
+            Keep the flutterflies assigned through the ramp into each
+            <SpellLink Spell="Spells.HeartBloom" />.
         </p>
-        <p>
-            The two are reported side by side rather than as a ratio to hit. What comes back out here
-            runs ahead of the flutterfly healing that preceded it, so the flutterflies are one input to
-            the bank and not the whole of it, and the log carries no reading of the bank to settle what
-            else feeds it.
-        </p>
-        <p>
-            Bluey's placement is the setup that moves the ramp: parked on an ally it doubles that ally's
-            flutterfly healing, and every point of that feeds the bank.
-        </p>
-    </Explanation>
-    <ChildContent>
+    </LeftPanel>
+    <RightPanel>
         <CastOverview Title="Overview" Stats="@BuildOverviewStats()" />
         <CastDetail Title="Every Heart Bloom"
-                    Description="What fed each cast, and what it returned."
+                    Description="What fed each cast, and what it released."
                     Casts="@BuildPerCastData()" />
-    </ChildContent>
+    </RightPanel>
 </GuideSection>
 
 @code {
@@ -48,19 +35,17 @@
                 $"Casts across every pull, releasing {analyzers.Sum(analyzer => analyzer.TotalReleases)} times against {SylvieKit.HeartBloomReleases} per cast."),
             new OverviewStat(
                 $"{fullReleases}/{casts}",
-                "Ran Their Full Sixteen",
-                "Casts that were seen making every release the duration allows. A pull that ended early cuts the rest off.",
+                "Fully Released",
+                "Casts seen making every release. A pull that ended early cuts the rest off.",
                 PerformanceTiers.FromThresholds((double)fullReleases / casts * 100, 95, 85, 70)),
             new OverviewStat(
                 $"{withBlueyOnAlly}/{casts}",
                 "Bluey On An Ally",
-                "Casts made with Bluey parked on somebody other than Sylvie, doubling that ally's flutterfly healing into the bank.",
-                PerformanceTiers.FromThresholds((double)withBlueyOnAlly / casts * 100, 90, 70, 40)),
+                "Casts made with Bluey on somebody other than Sylvie. Reported as context rather than scored."),
             new OverviewStat(
                 $"{fed:N0}",
                 "Flutterfly Healing Fed",
-                $"Flutterfly healing, overheal included, over the accumulation windows. The casts returned {released:N0}, " +
-                "so the flutterflies are one input to the bank rather than all of it."),
+                $"Flutterfly healing, overheal included, over the accumulation windows. The casts released {released:N0}."),
         ];
     }
 
@@ -80,12 +65,12 @@
                         $"Flutterfly healing over the {cast.AccumulationMs / 1000.0:F0}s since the previous cast, {cast.FlutterflyOverheal:N0} of it overheal."),
                     new PerCastStat(
                         $"{cast.TotalHealing:N0}",
-                        "Returned",
-                        $"{cast.Effective:N0} landed and {cast.Overheal:N0} fell on full bars."),
+                        "Released",
+                        $"{cast.Effective:N0} effective healing and {cast.Overheal:N0} overheal."),
                     new PerCastStat(
                         $"{cast.Releases}/{SylvieKit.HeartBloomReleases}",
                         "Releases",
-                        "Distinct two-second release intervals seen for this cast.",
+                        "Distinct release intervals seen for this cast.",
                         cast.ReleasedInFull ? QualitativePerformance.Good : QualitativePerformance.Ok),
                     new PerCastStat(
                         cast.BlueyOnAlly ? "On an ally" : cast.BlueyAssigned ? "On Sylvie" : "Unplaced",

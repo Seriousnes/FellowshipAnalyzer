@@ -1,4 +1,4 @@
-using FellowshipAnalyzer.Core.Common.Spells;
+using FellowshipAnalyzer.Core.UI;
 
 using Xunit;
 

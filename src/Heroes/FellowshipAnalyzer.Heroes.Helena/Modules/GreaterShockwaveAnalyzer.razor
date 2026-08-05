@@ -1,7 +1,6 @@
 @inherits Analyzer
 
 @code {
-    /// <inheritdoc/>
     public override RenderFragment? Statistic => MeasuredCasts > 0 ? Card : null;
 
     private RenderFragment Card =>
@@ -11,10 +10,8 @@
             </Header>
             <Info>
                 <p>
-                    Both halves are sized from how much Toughness was held when
-                    <SpellLink Spell="Spells.Shockwave" /> went out, and they want opposite things from it. The
-                    amplification below is the average across @MeasuredCasts casts; the wasted share is
-                    how much of the returned Toughness there was no room to hold.
+                    The amplification below is the average across @MeasuredCasts
+                    <SpellLink Spell="Spells.Shockwave" /> casts.
                 </p>
             </Info>
             <ChildContent>
@@ -27,7 +24,7 @@
                 @if (UnmeasuredCasts > 0)
                 {
                     <HelperText>
-                        @UnmeasuredCasts further casts carried no Toughness reading and are absent from both figures.
+                        @UnmeasuredCasts further casts had no Toughness reading and are absent from both figures.
                     </HelperText>
                 }
             </ChildContent>
@@ -36,11 +33,8 @@
     private static string Percent(double share) => $"{share * 100:F1}%";
 
     private string WastedTooltip =>
-        $"Each cast returns {AdditionalToughnessShare * 100:F0}% of maximum Toughness, " +
-        "so one made within that much of maximum loses the difference and one made at maximum loses all " +
-        "of it.";
+        $"Averaged across the {MeasuredCasts} casts with a Toughness reading.";
 
     private string AmplificationTooltip =>
-        $"Shockwave damage scales with Toughness up to {AmplificationAtFullToughness * 100:F0}% " +
-        $"at full Toughness, and these casts reached {Percent(AmplificationShare)} of that.";
+        $"These casts reached {Percent(AmplificationShare)} of the amplification ceiling.";
 }

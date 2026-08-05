@@ -1,41 +1,33 @@
 @using System.Text
-@using StWindow = FellowshipAnalyzer.Heroes.Rime.Modules.SingleTargetEmbraceWindowAnalyzer.SingleTargetWindowEvaluation
-@using AoeWindow = FellowshipAnalyzer.Heroes.Rime.Modules.AoeEmbraceWindowAnalyzer.AoeWindowEvaluation
-@using Window = FellowshipAnalyzer.Heroes.Rime.Modules.WintersEmbraceWindowAnalyzer.EmbraceWindowEvaluation
+@using StWindow = FellowshipAnalyzer.Heroes.Rime.Modules.SingleTargetEmbraceAnalyzer.SingleTargetWindowEvaluation
+@using AoeWindow = FellowshipAnalyzer.Heroes.Rime.Modules.AoeEmbraceAnalyzer.AoeWindowEvaluation
+@using Window = FellowshipAnalyzer.Heroes.Rime.Modules.WintersEmbraceAnalyzer.EmbraceWindowEvaluation
 @inherits ReportComponent<RimeCombatLogParser>
 
 @{
     RenderFragment bi = @<SpellLink Spell="Spells.BurstingIce" />;
-    RenderFragment cs = @<SpellLink Spell="Spells.ColdSnap" />;
-    RenderFragment ft = @<SpellLink Spell="Spells.FreezingTorrent" />;
+    RenderFragment we =@<SpellLink Spell="Spells.WintersEmbrace" />;
 }
 
 <GuideSection Title="Winter's Embrace Windows">
-    <Explanation>
+    <LeftPanel>
         <p>
-            @bi leaves Winter's Embrace on you for as long as its debuff ticks, and everything except
-            @bi itself hits 20% harder while it is active. Each window below is measured from your own
-            buff apply to its removal, so talent-extended windows are judged on the room they really
-            had rather than on a fixed three seconds.
+            Every @bi is a mini burst window, and small optimizations during @we
+            can add up over a dungeon. Try to start each window with 5 Winter Orbs, and spend 
+            as many as possible while @we is active.
         </p>
-        <p>
-            A window is only worth as much as what you bank for it: the orbs held when @bi went out
-            cap what can be spent, and @cs or @ft finish a window that still has room. Windows that
-            opened starved, ended when the @bi target died, or overlapped a major cooldown are called
-            out per window.
-        </p>
-    </Explanation>
-    <ChildContent>
+    </LeftPanel>
+    <RightPanel>
         <CastOverview Title="Window Overview" Stats="@BuildOverviewStats()" />
         <CastDetail Title="Winter's Embrace Windows"
                     Description="Each window shows what was cast while Winter's Embrace was active, grouped by the pull it happened in."
                     Casts="@BuildPerCastData()" />
-    </ChildContent>
+    </RightPanel>
 </GuideSection>
 
 @code {
     private List<Window> AllWindows() =>
-        [.. Parser.WintersEmbraceWindowAnalyzers.SelectMany(entry => entry.Analyzer.Windows)];
+        [.. Parser.WintersEmbraceAnalyzers.SelectMany(entry => entry.Analyzer.Windows)];
 
     private IEnumerable<OverviewStat> BuildOverviewStats()
     {
@@ -70,21 +62,21 @@
             stats.Add(new OverviewStat(
                 $"{starved}",
                 "Opened Starved",
-                $"Windows opened on a Bursting Ice cast holding {WintersEmbraceWindowAnalyzer.StarvedOrbThreshold} orb or fewer, leaving nothing to spend into the buff.",
+                $"Windows opened on a Bursting Ice cast with {WintersEmbraceAnalyzer.StarvedOrbThreshold} Winter Orb or fewer.",
                 starved == 0 ? QualitativePerformance.Perfect : QualitativePerformance.Fail));
         }
 
         stats.Add(new OverviewStat(
             $"{cutShort}",
             "Cut Short",
-            "Windows that ended early because the Bursting Ice target died while the debuff was still ticking.",
+            "Windows that ended early because the Bursting Ice target died.",
             cutShort == 0 ? QualitativePerformance.Perfect : QualitativePerformance.Ok));
 
         return stats;
     }
 
     private IEnumerable<PerCastData> BuildPerCastData() =>
-        Parser.WintersEmbraceWindowAnalyzers.ToItemRows(
+        Parser.WintersEmbraceAnalyzers.ToItemRows(
             Parser,
             analyzer => analyzer.Windows,
             (window, pull) => BuildWindowRow(window));
@@ -124,14 +116,14 @@
             new(
                 $"{window.SpenderCount}/{window.ExpectedSpenderCount}",
                 window.SpenderName,
-                $"{window.SpenderName} casts fit into the window, against what its {window.DurationMs / 1000d:0.0}s of Winter's Embrace could carry.",
+                $"{window.SpenderName} casts made inside the window, and the number expected.",
                 Performance: spenderPerformance),
             new(
                 window.OrbsBankedAtOpen is { } orbs ? $"{orbs}" : "n/a",
                 "Orbs Banked",
                 window.OrbsBankedAtOpen is null
-                    ? "This log carries no Winter Orb snapshot on the opening Bursting Ice cast."
-                    : "Winter Orbs held when Bursting Ice went out; each spender costs two.",
+                    ? "This log records no Winter Orb count on the opening Bursting Ice cast."
+                    : "Winter Orbs held when Bursting Ice was cast.",
                 Performance: OrbPerformance(window)),
             new(
                 $"{window.ColdSnapCount + window.FreezingTorrentCount}",
@@ -153,7 +145,7 @@
             stats.Add(new PerCastStat(
                 string.Join(" + ", window.MajorsActiveAtOpen),
                 "Majors",
-                "Major damage cooldowns already active when the window opened; stacking them multiplies the 20%."));
+                "Ice Blitz or Wrath of Winter active when the window opened."));
         }
 
         return [.. stats];
@@ -166,7 +158,7 @@
         if (window.OrbsBankedAtOpen is not { } orbs)
             return null;
 
-        if (orbs <= WintersEmbraceWindowAnalyzer.StarvedOrbThreshold)
+        if (orbs <= WintersEmbraceAnalyzer.StarvedOrbThreshold)
             return QualitativePerformance.Fail;
 
         return orbs >= ComfortableOrbBank ? QualitativePerformance.Perfect : QualitativePerformance.Good;
@@ -237,7 +229,7 @@
         }
 
         if (window is { ExpectsFinisher: true, HasValidFinisher: false })
-            reasons.Add("there was room for a finisher, but neither Cold Snap nor Freezing Torrent landed");
+            reasons.Add("there was room for a finisher, but neither Cold Snap nor Freezing Torrent was cast");
     }
 
     private static void AddAoeReasons(AoeWindow window, List<string> reasons)
@@ -245,7 +237,7 @@
         if (!window.HasRequiredAoeSpenders)
         {
             reasons.Add(window.AoeSpenderCount == 0
-                ? $"no {window.SpenderName} casts landed in the window"
+                ? $"no {window.SpenderName} casts were made in the window"
                 : $"the window missed its second {window.SpenderName}");
         }
 
@@ -258,18 +250,18 @@
         if (window.OpenedStarved)
         {
             reasons.Add(window.OrbsBankedAtOpen == 0
-                ? "Bursting Ice went out with no Winter Orbs banked, so there was nothing to spend into it"
-                : "Bursting Ice went out with a single Winter Orb banked, short of the two a spender costs");
+                ? "Bursting Ice was cast with no Winter Orbs banked"
+                : "Bursting Ice was cast with a single Winter Orb banked");
         }
 
         if (window.EndedByTargetDeath)
-            reasons.Add("the Bursting Ice target died mid-window, cutting Winter's Embrace short");
+            reasons.Add("the Bursting Ice target died mid-window");
 
         if (window.BoundaryTruncated)
             reasons.Add("the pull ended before the window did, so it is measured to the pull boundary");
 
         if (window.MajorActiveAtOpen)
-            reasons.Add($"{JoinNames(window.MajorsActiveAtOpen)} stacked onto this window");
+            reasons.Add($"{JoinNames(window.MajorsActiveAtOpen)} {(window.MajorsActiveAtOpen.Count == 1 ? "was" : "were")} active when the window opened");
     }
 
     private static string JoinNames(IReadOnlyList<string> names)

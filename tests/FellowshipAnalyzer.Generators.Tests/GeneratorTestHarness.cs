@@ -29,7 +29,7 @@ internal static class GeneratorTestHarness
                 public CombatLogParser Owner { get; set; } = null!;
             }
 
-            public class EventSubscriber : Module
+            public class Analyzer : Module
             {
                 internal int NumExecutions { get; set; }
                 protected virtual void RegisterAttributeSubscriptions() { }
@@ -46,10 +46,10 @@ internal static class GeneratorTestHarness
 
             public class EventEmitter
             {
-                public void Subscribe(EventSubscriber m,
+                public void Subscribe(Analyzer m,
                     System.Func<FellowshipAnalyzer.Core.Events.Event, bool> filter,
                     System.Action<FellowshipAnalyzer.Core.Events.Event> a) { }
-                public void Subscribe(EventSubscriber m,
+                public void Subscribe(Analyzer m,
                     System.Func<FellowshipAnalyzer.Core.Events.Event, bool> filter,
                     System.Func<FellowshipAnalyzer.Core.Events.Event, System.Threading.Tasks.Task> a) { }
             }

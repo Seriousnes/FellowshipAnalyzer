@@ -15,7 +15,7 @@ namespace FellowshipAnalyzer.Generators;
 /// <para>
 /// The override always chains to <c>base.RegisterAttributeSubscriptions()</c> first, so a module
 /// that declares its own handlers keeps the ones its base class declares. The base implementation on
-/// <c>EventSubscriber</c> is empty, so the call costs nothing when there is nothing to inherit.
+/// <c>Analyzer</c> is empty, so the call costs nothing when there is nothing to inherit.
 /// </para>
 /// </summary>
 [Generator]
@@ -166,11 +166,11 @@ public sealed class ModuleGenerator : IIncrementalGenerator
                 return null;
         }
 
-        var inheritsEventSubscriber = InheritsFromEventSubscriber(symbol);
+        var inheritsAnalyzer = InheritsFromAnalyzer(symbol);
 
         var handlers = ImmutableArray.CreateBuilder<HandlerInfo>();
         var diagnostics = ImmutableArray.CreateBuilder<PendingDiagnostic>();
-        if (inheritsEventSubscriber)
+        if (inheritsAnalyzer)
         {
             foreach (var member in symbol.GetMembers())
             {
@@ -690,12 +690,12 @@ public sealed class ModuleGenerator : IIncrementalGenerator
         return false;
     }
 
-    private static bool InheritsFromEventSubscriber(INamedTypeSymbol symbol)
+    private static bool InheritsFromAnalyzer(INamedTypeSymbol symbol)
     {
         var current = symbol.BaseType;
         while (current is not null)
         {
-            if (current.Name == "EventSubscriber") return true;
+            if (current.Name == "Analyzer") return true;
             current = current.BaseType;
         }
         return false;

@@ -6,7 +6,7 @@ using FellowshipAnalyzer.Core.Utility;
 
 namespace FellowshipAnalyzer.Heroes.Rime.Modules;
 
-public sealed partial class WintersEmbraceUpliftTracker : EventSubscriber
+public sealed partial class WintersEmbraceUpliftTracker : Analyzer
 {
     public const double DamageIncrease = 0.20;
 

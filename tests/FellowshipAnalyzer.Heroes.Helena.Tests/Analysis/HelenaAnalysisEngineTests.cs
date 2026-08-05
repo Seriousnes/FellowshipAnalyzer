@@ -35,7 +35,8 @@ public sealed class HelenaAnalysisEngineTests
     {
         var config = HelenaCombatLogParser.HeroConfig;
 
-        config.Support.ShouldNotBe(SupportLevel.Unmaintained);
+        config.Support.ShouldNotBe(SupportLevel.None);
+        config.Maintainers.ShouldNotBeEmpty();
         config.SeasonLabel.ShouldBe(Seasons.Season3);
         config.ExampleReport.ShouldBe("a:gDf7m3N2wvk96dWP/22/109");
         config.Changelog.ShouldNotBeEmpty();

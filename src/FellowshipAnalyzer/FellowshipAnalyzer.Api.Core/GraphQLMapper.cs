@@ -9,17 +9,13 @@ namespace FellowshipAnalyzer.Api.Core;
 [Mapper]
 public sealed partial class GraphQLMapper
 {
-    public Ability MapAbility(IGetReportMasterData_ReportData_Report_MasterData_Abilities source)
-    {
-        if (!int.TryParse(source.Type, out var typeInt)) typeInt = 0;
-        return new Ability
+    public Ability MapAbility(IGetReportMasterData_ReportData_Report_MasterData_Abilities source) =>
+        new()
         {
             FSLID = (int)(source.GameID ?? 0),
             Name = source.Name,
             Icon = source.Icon,
-            Type = (MagicSchool)typeInt
         };
-    }
 
     public ReportActor MapActor(IGetReportMasterData_ReportData_Report_MasterData_Actors source)
         => new(source.Id ?? 0, source.Name, source.Type, source.SubType, source.Server, source.Icon);

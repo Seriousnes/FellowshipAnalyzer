@@ -42,6 +42,7 @@ Twelve raw colours. Identical in every theme, and the base every other colour is
 | `--fa-blood` | `#661111` | Deep blood red |
 | `--fa-rust` | `#dd5533` | Scorched orange-red |
 | `--fa-stone` | `#696864` | Warm grey for an inert or available state |
+| `--fa-ash` | `#8a9099` | Cool mid grey, light enough for dark text over it |
 
 ---
 
@@ -176,6 +177,26 @@ A charting library that writes colours into SVG presentation attributes cannot r
 so a chart resolves tokens to their CSS text through `ChartPalette` rather than handing the
 reference over; that keeps the C# theme the only place a value is written and keeps runtime token
 overrides reaching the chart.
+
+---
+
+## Item qualities
+
+The game's own quality colours. They are game artwork, so every theme holds the same value, and
+`SupportBadge` fills its pill with them.
+
+| Token | Value | Quality |
+|---|---|---|
+| `--fa-legendary` | `#ff8000` | Legendary |
+| `--fa-regal` | `#b15c5a` | Regal |
+| `--fa-epic` | `#a73def` | Epic |
+
+Each is set as an opaque fill under `--fa-black` text, which is what puts every level above the
+4.5:1 WCAG AA minimum for the badge's 12.48px label, in all three themes at once. Regal and Epic
+are the game's colours lifted by 7% and 4% white respectively, which is the smallest move that
+clears the threshold. Read as text on a themed ground instead, the untouched colours measure 1.77
+to 3.89, so a level that stops filling its ground has to solve contrast again. `--fa-ash` is the
+matching neutral for a level with no quality.
 
 ---
 

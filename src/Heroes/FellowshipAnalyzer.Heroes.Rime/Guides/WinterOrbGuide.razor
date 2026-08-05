@@ -1,27 +1,13 @@
 @using Incident = FellowshipAnalyzer.Heroes.Rime.Modules.WinterOrbTracker.OvercapIncident
 @inherits ReportComponent<RimeCombatLogParser>
 
-@{
-    RenderFragment fb = @<SpellLink Spell="Spells.FrostBolt" />;
-    RenderFragment ft = @<SpellLink Spell="Spells.FreezingTorrent" />;
-    RenderFragment bi = @<SpellLink Spell="Spells.BurstingIce" />;
-    RenderFragment cs = @<SpellLink Spell="Spells.ColdSnap" />;
-}
-
 <GuideSection Title="Winter Orb Efficiency">
-    <Explanation>
-        <ol>
-            <li>@fb generates 3 Anima a cast, @ft 1 per tick, and @bi 1 per pulse. Every 9 Anima folds into one Winter Orb.</li>
-            <li>@cs skips Anima entirely and hands you a whole orb on the spot.</li>
-            <li>The pool holds 5 orbs. Anima generated at 5 is gone, so spending at 4 keeps the next gain somewhere to land.</li>
-        </ol>
+    <LeftPanel>
         <p>
-            The readouts here are reconstructed from the orb count the log stamps on your own casts.
-            <strong>Overcapped</strong> counts the gains that arrived on a full pool, and
-            <strong>Time at Cap</strong> measures how long the pool stayed full between one cast and the next.
+            Press a spender at four Winter Orbs.
         </p>
-    </Explanation>
-    <ChildContent>
+    </LeftPanel>
+    <RightPanel>
         <CastOverview Title="Orb Overview" Stats="@BuildOverviewStats()" />
         <StackedBar Segments="@BuildStackedBar()" />
         @if (OvercapsByGenerator is { Count: > 0 } breakdown)
@@ -43,7 +29,7 @@
         {
             <HelperText>No Winter Orb gains were lost to overcap.</HelperText>
         }
-    </ChildContent>
+    </RightPanel>
 </GuideSection>
 
 @code {
@@ -93,7 +79,7 @@
             new OverviewStat(
                 FormatDuration(Tracker.CappedMs),
                 "Time at Cap",
-                $"Time the pool sat at {Tracker.MaxOrbs} orbs ({cappedShare:F0}% of the fight), where every further gain is wasted.",
+                $"Time the pool sat at {Tracker.MaxOrbs} orbs ({cappedShare:F0}% of the fight), measured between your own casts.",
                 Tracker.CappedMs == 0 ? QualitativePerformance.Perfect
                     : cappedShare < 5 ? QualitativePerformance.Good
                     : cappedShare < 10 ? QualitativePerformance.Ok

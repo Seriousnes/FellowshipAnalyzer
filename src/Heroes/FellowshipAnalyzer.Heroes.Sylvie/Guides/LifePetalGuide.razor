@@ -1,37 +1,32 @@
 @inherits ReportComponent<SylvieCombatLogParser>
 
 <GuideSection Title="Life Petal">
-    <Explanation>
+    <LeftPanel>
         <p>
-            <SpellLink Spell="Spells.LifePetal" /> banks two charges on a sixty second recharge, and
-            every <SpellLink Spell="Spells.Nettlebolt" /> that lands takes a second and a half off that
-            recharge - three on a crit. The loop only turns while a charge is actually recharging, so
-            reduction generated at two banked charges bought nothing and is counted apart from the
-            reduction that landed.
+            Cast <SpellLink Spell="Spells.LifePetal" /> on cooldown unless you are holding it for
+            a known damage event.
         </p>
-        <p>
-            Time spent holding both charges is the other side of it: the game caps you at two, and a
-            second charge sitting in the bank is a petal that is not on the floor.
-        </p>
-    </Explanation>
-    <ChildContent>
+    </LeftPanel>
+    <RightPanel>
         <CastOverview Title="Overview" Stats="@BuildOverviewStats()" />
         <CastDetail Title="Life Petal By Pull"
                     Description="Charges held and reduction realised through each pull."
                     Casts="@BuildPerPullData()" />
-    </ChildContent>
+    </RightPanel>
 </GuideSection>
 
 @code {
     private IEnumerable<OverviewStat> BuildOverviewStats()
     {
         var analyzers = Parser.LifePetalAnalyzers.Select(entry => entry.Analyzer).ToList();
-        var generated = analyzers.Sum(analyzer => (long)analyzer.ReductionGeneratedMs);
+        var reduction = analyzers.Aggregate(
+            new CooldownReductionResult(), (total, analyzer) => total + analyzer.CooldownReduction);
         var casts = analyzers.Sum(analyzer => analyzer.Casts);
-        if (casts == 0 && generated == 0) return [];
+        if (casts == 0 && reduction.Total == 0) return [];
 
-        var applied = analyzers.Sum(analyzer => (long)analyzer.ReductionAppliedMs);
-        var efficiency = generated > 0 ? applied / (double)generated : 0;
+        var generated = reduction.Total;
+        var applied = reduction.Effective;
+        var efficiency = reduction.Efficiency;
         var measured = analyzers.Sum(analyzer => (long)analyzer.MeasuredMs);
         var capped = analyzers.Sum(analyzer => (long)analyzer.ChargeCappedMs);
         var cappedShare = measured > 0 ? capped / (double)measured : 0;
@@ -51,13 +46,13 @@
                 $"{applied / 1000:N0}s of the {generated / 1000:N0}s the Nettlebolts generated actually shortened a recharge.",
                 PerformanceTiers.FromThresholds(efficiency * 100, 85, 70, 50)),
             new OverviewStat(
-                $"{(generated - applied) / 1000:N0}s",
+                $"{reduction.Wasted / 1000:N0}s",
                 "Reduction Lost",
-                $"Reduction generated with both charges already banked, across {atFull:N0} Nettlebolts that landed at full charges."),
+                $"Reduction that shortened nothing. {atFull:N0} Nettlebolts hit with both charges already available."),
             new OverviewStat(
                 $"{cappedShare * 100:F1}%",
-                "Holding Both Charges",
-                $"{capped / 1000:N0}s of {measured / 1000:N0}s measured with both charges banked and nothing recharging.",
+                "Both Charges Held",
+                $"{capped / 1000:N0}s of {measured / 1000:N0}s measured with both charges available and nothing recharging.",
                 PerformanceTiers.FromThresholds(100 - (cappedShare * 100), 85, 70, 50)),
         ];
     }
@@ -65,7 +60,7 @@
     private IEnumerable<PerCastData> BuildPerPullData() =>
         Parser.LifePetalAnalyzers.ToPullRows(Parser, (analyzer, pull) => new PerCastRow
         {
-            Performance = PerformanceTiers.FromThresholds(analyzer.ReductionEfficiency * 100, 85, 70, 50),
+            Performance = PerformanceTiers.FromThresholds(analyzer.CooldownReduction.Efficiency * 100, 85, 70, 50),
             Stats =
             [
                 new PerCastStat(
@@ -73,10 +68,10 @@
                     "Casts",
                     $"Life Petals cast this pull, fed by {analyzer.NettleboltHits:N0} Nettlebolts."),
                 new PerCastStat(
-                    $"{analyzer.ReductionEfficiency * 100:F0}%",
+                    $"{analyzer.CooldownReduction.Efficiency * 100:F0}%",
                     "Reduction Realised",
-                    $"{analyzer.ReductionAppliedMs / 1000:N0}s of the {analyzer.ReductionGeneratedMs / 1000:N0}s generated shortened a recharge.",
-                    PerformanceTiers.FromThresholds(analyzer.ReductionEfficiency * 100, 85, 70, 50)),
+                    $"{analyzer.CooldownReduction.Effective / 1000:N0}s of the {analyzer.CooldownReduction.Total / 1000:N0}s generated shortened a recharge.",
+                    PerformanceTiers.FromThresholds(analyzer.CooldownReduction.Efficiency * 100, 85, 70, 50)),
                 new PerCastStat(
                     $"{analyzer.ChargeCappedShare * 100:F0}%",
                     "Both Charges Held",
@@ -85,7 +80,7 @@
                 new PerCastStat(
                     $"{analyzer.NettleboltsAtFullCharges}",
                     "Nettlebolts At Full",
-                    "Nettlebolts that landed with both charges already banked, each losing what it would have taken off."),
+                    "Nettlebolts that hit with both charges already available."),
             ],
         });
 }

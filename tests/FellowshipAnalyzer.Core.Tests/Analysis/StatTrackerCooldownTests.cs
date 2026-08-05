@@ -3,6 +3,7 @@ using FellowshipAnalyzer.Core.Common;
 using FellowshipAnalyzer.Core.Common.Spells;
 using FellowshipAnalyzer.Core.Events;
 using FellowshipAnalyzer.Core.FellowshipLogs;
+using FellowshipAnalyzer.Core.UI;
 
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -307,9 +308,9 @@ public sealed partial class StatTrackerCooldownTests
 
         var cdr = spellUsable.ReduceCooldown(SpellA, 1000, timestamp: 1000);
 
-        Assert.Equal(880, cdr.GeneratedMs);
-        Assert.Equal(880, cdr.AppliedMs);
-        Assert.Equal(0, cdr.WastedMs);
+        Assert.Equal(880, cdr.Total);
+        Assert.Equal(880, cdr.Effective);
+        Assert.Equal(0, cdr.Wasted);
         Assert.Equal(8800 - 880, spellUsable.CooldownRemaining(SpellA, atTimestamp: 1000));
     }
 
@@ -322,8 +323,8 @@ public sealed partial class StatTrackerCooldownTests
 
         var cdr = spellUsable.ReduceCooldown(SpellA, 1000, timestamp: 1000);
 
-        Assert.Equal(1000, cdr.GeneratedMs);
-        Assert.Equal(1000, cdr.AppliedMs);
+        Assert.Equal(1000, cdr.Total);
+        Assert.Equal(1000, cdr.Effective);
         Assert.Equal(BaseCdMs - 1000, spellUsable.CooldownRemaining(SpellA, atTimestamp: 1000));
     }
 
@@ -339,9 +340,9 @@ public sealed partial class StatTrackerCooldownTests
 
         var cdr = spellUsable.ReduceCooldown(SpellA, 100_000, timestamp: 1000);
 
-        Assert.Equal(88_000, cdr.GeneratedMs);
-        Assert.Equal(8800, cdr.AppliedMs);
-        Assert.Equal(88_000 - 8800, cdr.WastedMs);
+        Assert.Equal(88_000, cdr.Total);
+        Assert.Equal(8800, cdr.Effective);
+        Assert.Equal(88_000 - 8800, cdr.Wasted);
         Assert.False(spellUsable.IsOnCooldown(SpellA));
     }
 
@@ -361,9 +362,9 @@ public sealed partial class StatTrackerCooldownTests
 
         var cdr = spellUsable.ReduceCooldown(SpellB, 1000, timestamp: 17_100);
 
-        Assert.Equal(880, cdr.GeneratedMs);
-        Assert.Equal(880, cdr.AppliedMs);
-        Assert.Equal(0, cdr.WastedMs);
+        Assert.Equal(880, cdr.Total);
+        Assert.Equal(880, cdr.Effective);
+        Assert.Equal(0, cdr.Wasted);
         Assert.Equal(1, spellUsable.ChargesAvailable(SpellB));
         Assert.Equal(17_600 - 380, spellUsable.CooldownRemaining(SpellB, atTimestamp: 17_100));
     }

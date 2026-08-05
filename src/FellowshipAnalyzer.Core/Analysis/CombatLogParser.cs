@@ -29,23 +29,24 @@ namespace FellowshipAnalyzer.Core.Analysis;
 [AddNormalizer<ResourceNormalizer>]
 [AddNormalizer<CastLinkNormalizer>]
 [AddModule<DebugAnnotations>]
-[AddModule<Combatants>]
-[AddModule<StatTracker>]
-[AddModule<Haste>]
-[AddModule<GlobalCooldown>]
-[AddModule<SpellUsable>]
-[AddModule<DeathTracker>]
-[AddModule<ChronoshiftAnalyzer>]
-[AddModule<ThroughputTracker>]
-[AddState<AbilityTracker>]
-[AddModule<GloriousPurposeAnalyzer>]
-[AddModule<RubyGemAnalyzer>]
-[AddModule<AmethystGemAnalyzer>]
-[AddModule<TopazGemAnalyzer>]
-[AddModule<EmeraldGemAnalyzer>]
-[AddModule<SapphireGemAnalyzer>]
-[AddModule<DiamondGemAnalyzer>]
-[AddModule<SpiritTracker>]
+[AddAnalyzer<Combatants>]
+[AddModule<Enemies>]
+[AddAnalyzer<StatTracker>]
+[AddAnalyzer<Haste>]
+[AddAnalyzer<GlobalCooldown>]
+[AddAnalyzer<SpellUsable>]
+[AddAnalyzer<DeathTracker>]
+[AddAnalyzer<ChronoshiftAnalyzer>]
+[AddAnalyzer<ThroughputTracker>]
+[AddAnalyzer<AbilityTracker>]
+[AddAnalyzer<GloriousPurposeAnalyzer>]
+[AddAnalyzer<RubyGemAnalyzer>]
+[AddAnalyzer<AmethystGemAnalyzer>]
+[AddAnalyzer<TopazGemAnalyzer>]
+[AddAnalyzer<EmeraldGemAnalyzer>]
+[AddAnalyzer<SapphireGemAnalyzer>]
+[AddAnalyzer<DiamondGemAnalyzer>]
+[AddAnalyzer<SpiritTracker>]
 public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServiceProvider provider) : IHeroAnalyzer
 {
     /// <summary>The outer DI container, passed through from the parser's primary constructor.
@@ -83,10 +84,15 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
     public int FightDurationMs => FightEndTime - FightStartTime;
 
     /// <summary>
-    /// Report-level actor name lookup, keyed by actor ID.
-    /// Set by the host (e.g. Report.razor) before <see cref="Analyze"/> is called.
+    /// Report-level actor master data: every player, NPC, and pet the report names.
+    /// Set by the host (e.g. Report.razor) before <see cref="Analyze"/> is called, and the source
+    /// <see cref="Enemies"/> reads hostility from.
     /// </summary>
-    public Dictionary<int, string> ActorNames { get; set; } = [];
+    public IReadOnlyList<ReportActor> Actors { get; set; } = [];
+
+    /// <summary>Actor display names keyed by actor id, derived from <see cref="Actors"/>.</summary>
+    public IReadOnlyDictionary<int, string> ActorNames =>
+        field ??= Actors.ToDictionary(actor => actor.Id, actor => actor.Name);
 
     /// <summary>
     /// The combatant representing the selected (analyzed) player. Populated by
@@ -115,7 +121,7 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
 
     private Dictionary<Type, Module> _activeModules = [];
     private readonly Dictionary<Type, object> _runInstances = [];
-    private readonly Dictionary<Type, int> _moduleTypeIndex = [];
+    private readonly HashSet<Type> _runModuleTypeSet = [];
     private Type[] _runModuleTypes = [];
     private readonly Dictionary<Type, object> _pullInstances = [];
     private readonly List<(Pull Pull, Analyzer Analyzer)> _pullAnalyzers = [];
@@ -189,7 +195,7 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
         if (_runInstances.TryGetValue(type, out var existing)) return existing;
 
         var concrete = type;
-        if (!_moduleTypeIndex.ContainsKey(type))
+        if (!_runModuleTypeSet.Contains(type))
         {
             Type? match = null;
             foreach (var mt in _runModuleTypes)
@@ -218,15 +224,14 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
         if (instance is Module module)
         {
             module.Owner = this;
-            if (_moduleTypeIndex.TryGetValue(concrete, out var priority))
-                module.Priority = priority;
         }
         return instance;
     }
 
     /// <summary>
-    /// Returns the types of all modules to resolve from DI for this parser.
-    /// Source-generated — includes base + own modules in priority order.
+    /// Returns the types of all modules to resolve from DI for this parser. Source-generated, covering
+    /// base and own modules in the order <c>[Before&lt;T&gt;]</c> and <c>[After&lt;T&gt;]</c>
+    /// topologically sort them, which is the order they are constructed and subscribed in.
     /// </summary>
     protected abstract Type[] GetModuleTypes();
 
@@ -237,7 +242,7 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
     protected virtual Type[] GetNormalizerTypes() => [];
 
     /// <summary>
-    /// Returns the pull-lifetime <see cref="Analyzer"/> types. The default is empty; concrete
+    /// Returns the <c>[ForPull]</c> <see cref="Analyzer"/> types. The default is empty; concrete
     /// parsers override it.
     /// </summary>
     protected virtual Type[] GetAnalyzerTypes() => [];
@@ -252,8 +257,8 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
 
     /// <summary>
     /// Routes a retained analyzer into the parser's denormalized, surface-typed cross-pull
-    /// index. The default is a no-op; the source generator overrides it for parsers that declare
-    /// <c>[AddAnalyzer]</c> analyzers, appending to the matching <see cref="PullAnalyzerList{T}"/>.
+    /// index. The default is a no-op; the source generator overrides it for parsers that register a
+    /// <c>[ForPull]</c> analyzer, appending to the matching <see cref="PullAnalyzerList{T}"/>.
     /// </summary>
     protected virtual void IndexPullAnalyzer(Pull pull, Analyzer analyzer) { }
 
@@ -276,8 +281,11 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
                 ?? throw new InvalidOperationException($"No generated factory for analyzer {analyzerType.Name}.");
             _pullInstances[analyzerType] = instance;
             if (instance is Module module) module.Owner = this;
-            if (instance is Analyzer analyzer) analyzer.Pull = pull;
-            if (instance is EventSubscriber subscriber) subscriber.RegisterSubscriptions();
+            if (instance is Analyzer analyzer)
+            {
+                analyzer.Pull = pull;
+                analyzer.RegisterSubscriptions();
+            }
         }
         EventEmitter.EndPullSubscriptions();
     }
@@ -310,7 +318,7 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
             IndexPullAnalyzer(pull, analyzer);
         }
 
-        EventEmitter.ClearPullListeners();
+        EventEmitter.UnsubscribePullAnalyzers();
         _pullInstances.Clear();
         CurrentPull = null;
     }
@@ -362,16 +370,15 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
         SelectedPull = null;
 
         _runInstances.Clear();
-        _moduleTypeIndex.Clear();
+        _runModuleTypeSet.Clear();
         _runModuleTypes = allModuleTypes;
-        for (var i = 0; i < allModuleTypes.Length; i++)
-            _moduleTypeIndex[allModuleTypes[i]] = i;
+        _runModuleTypeSet.UnionWith(allModuleTypes);
 
         Events = [.. events.Where(e => e is not CastEvent { Fake: true })];
 
         var playerInfo = Events.OfType<CombatantInfoEvent>().FirstOrDefault(e => e.SourceId == playerId)
             ?? new CombatantInfoEvent { SourceId = playerId };
-        CurrentParseContext = new ParseContext(playerId, fight, ActorNames, CreateSelectedCombatant(playerInfo));
+        CurrentParseContext = new ParseContext(playerId, fight, ActorNames, CreateSelectedCombatant(playerInfo), Actors);
 
         EventEmitter = new EventEmitter((ILogger<EventEmitter>)Provider.GetService(typeof(ILogger<EventEmitter>))!)
         {
@@ -384,7 +391,6 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
         {
             if (!IsModuleActive(t, CurrentParseContext)) continue;
             var m = (Module)ResolveAnalysisModule(t);
-            m.Priority = _activeModules.Count;
             if (m.Active)
                 _activeModules[m.GetType()] = m;
         }
@@ -410,7 +416,7 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
 
         foreach (var m in _activeModules.Values)
         {
-            if (m is EventSubscriber es) es.RegisterSubscriptions();
+            if (m is Analyzer analyzer) analyzer.RegisterSubscriptions();
         }
 
         EventEmitter.SortListeners();

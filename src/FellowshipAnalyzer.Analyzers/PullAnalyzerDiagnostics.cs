@@ -6,35 +6,48 @@ using Microsoft.CodeAnalysis.Diagnostics;
 namespace FellowshipAnalyzer.Analyzers;
 
 /// <summary>
-/// Guardrails for the pull-lifetime <c>Analyzer</c> surface, all role-based off the
-/// <c>[AddState]</c> / <c>[AddAnalyzer]</c> declarations on parser classes:
+/// Guardrails for analyzer and module registration. <c>[ForPull]</c> is the sole lifetime
+/// determinant, so every rule keys off its presence rather than off which attribute registered
+/// the type:
 /// <list type="bullet">
-/// <item>FA0014 — an Analyzer constructor (or <c>Lazy&lt;&gt;</c>) depends on another Analyzer.</item>
-/// <item>FA0015 — an Analyzer is missing <c>[ForPull]</c> or declares no targets.</item>
-/// <item>FA0016 — two Analyzers sharing a surface have overlapping <c>[ForPull]</c> filters.</item>
-/// <item>FA0017 — an Analyzer implements more than one surface marker interface.</item>
+/// <item>FA0014 — a registered type or normalizer depends on a <c>[ForPull]</c> analyzer.</item>
+/// <item>FA0015 — a <c>[ForPull]</c> declares no <c>PullKind</c> target.</item>
+/// <item>FA0016 — two <c>[ForPull]</c> analyzers sharing a surface have overlapping filters.</item>
+/// <item>FA0017 — a <c>[ForPull]</c> analyzer implements more than one surface marker interface.</item>
+/// <item>FA0019 — <c>[AddModule]</c> / <c>[AddState]</c> registers a type deriving from <c>Analyzer</c>.</item>
+/// <item>FA0020 — <c>[ForPull]</c> sits on a type that does not derive from <c>Analyzer</c>.</item>
+/// <item>FA0021 — <c>[ForPull]</c> sits on an abstract <c>Analyzer</c>.</item>
 /// </list>
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public sealed class PullAnalyzerDiagnostics : DiagnosticAnalyzer
 {
-    private static readonly DiagnosticDescriptor DependsOnAnalyzer = new(
-        id: "FA0014",
-        title: "Analyzer must depend on State only",
-        messageFormat: "Analyzer '{0}' depends on Analyzer '{1}'; an Analyzer may depend on State modules only",
-        category: "Analysis",
-        defaultSeverity: DiagnosticSeverity.Error,
-        isEnabledByDefault: true,
-        description: "Analyzers are constructed fresh per pull and read State for point-in-time snapshots. Depending on another pull-lifetime Analyzer breaks per-pull instantiation. Depend on a State module instead.");
+    private const string AnalyzerBaseName = "Analyzer";
+    private const string ForPullAttributeName = "ForPullAttribute";
+    private const string DependencyAttributeName = "DependencyAttribute";
+    private const string AddModuleAttributeName = "AddModuleAttribute";
+    private const string AddStateAttributeName = "AddStateAttribute";
+    private const string AddAnalyzerAttributeName = "AddAnalyzerAttribute";
+    private const string AddNormalizerAttributeName = "AddNormalizerAttribute";
+    private const string SurfaceInterfaceName = "IAnalyzerSurface";
 
-    private static readonly DiagnosticDescriptor MissingForPull = new(
-        id: "FA0015",
-        title: "Analyzer must declare [ForPull] targets",
-        messageFormat: "Analyzer '{0}' must declare [ForPull] with at least one PullKind target",
+    private static readonly DiagnosticDescriptor DependsOnPullAnalyzer = new(
+        id: "FA0014",
+        title: "Dependency on a pull-lifetime analyzer",
+        messageFormat: "'{0}' depends on '{1}', which declares [ForPull]",
         category: "Analysis",
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true,
-        description: "Every Analyzer must declare which pull shapes it runs on via [ForPull(PullKind, Boss = …)] with a non-zero target set.");
+        description: "A [ForPull] analyzer is constructed fresh for every matching pull, directly into the parser's per-pull cache, and no dependency-resolution path reads that cache. Depending on one throws at runtime. Depend on a parse-lifetime module or analyzer instead.");
+
+    private static readonly DiagnosticDescriptor ForPullMissingTargets = new(
+        id: "FA0015",
+        title: "[ForPull] must declare at least one PullKind target",
+        messageFormat: "[ForPull] on '{0}' must declare at least one PullKind target",
+        category: "Analysis",
+        defaultSeverity: DiagnosticSeverity.Error,
+        isEnabledByDefault: true,
+        description: "[ForPull(PullKind, Boss = …)] declares which pull shapes an analyzer runs on. An empty target set matches no pull, so the analyzer would never be constructed.");
 
     private static readonly DiagnosticDescriptor OverlappingForPull = new(
         id: "FA0016",
@@ -54,8 +67,43 @@ public sealed class PullAnalyzerDiagnostics : DiagnosticAnalyzer
         isEnabledByDefault: true,
         description: "An analyzer's surface (the type its cross-pull stream and per-pull accessor are keyed on) must be unique. Implementing more than one IAnalyzerSurface marker interface leaves the surface ambiguous.");
 
+    private static readonly DiagnosticDescriptor ModuleRegistrationOfAnalyzer = new(
+        id: "FA0019",
+        title: "[AddModule] and [AddState] register non-subscribers only",
+        messageFormat: "'{0}' derives from Analyzer, so it is registered with [AddAnalyzer<{0}>]",
+        category: "Analysis",
+        defaultSeverity: DiagnosticSeverity.Error,
+        isEnabledByDefault: true,
+        description: "[AddAnalyzer] registers every event subscriber; [AddModule] and [AddState] register everything that is not one. A type deriving from Analyzer subscribes to events and belongs under [AddAnalyzer], whichever lifetime its [ForPull] gives it.");
+
+    private static readonly DiagnosticDescriptor ForPullRequiresAnalyzer = new(
+        id: "FA0020",
+        title: "[ForPull] requires a type deriving from Analyzer",
+        messageFormat: "[ForPull] on '{0}' requires a type deriving from Analyzer",
+        category: "Analysis",
+        defaultSeverity: DiagnosticSeverity.Error,
+        isEnabledByDefault: true,
+        description: "[ForPull] makes a type pull-lifetime, which only the Analyzer surface supports: the parser assigns Analyzer.Pull, retains the instance on the pull read surfaces, and keys it by its analyzer surface type.");
+
+    private static readonly DiagnosticDescriptor ForPullOnAbstractAnalyzer = new(
+        id: "FA0021",
+        title: "[ForPull] may not sit on an abstract Analyzer",
+        messageFormat: "[ForPull] on abstract Analyzer '{0}' is dead metadata; declare it on each concrete subclass",
+        category: "Analysis",
+        defaultSeverity: DiagnosticSeverity.Error,
+        isEnabledByDefault: true,
+        description: "ForPullAttribute is Inherited = false, and both the generator and these diagnostics read directly-applied attributes only. On an abstract base the attribute reads as though it applied to every subclass while gating none of them. An abstract pull-analyzer base declares the shape; each concrete subclass declares its own [ForPull].");
+
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
-        [DependsOnAnalyzer, MissingForPull, OverlappingForPull, MultipleSurfaceInterfaces];
+    [
+        DependsOnPullAnalyzer,
+        ForPullMissingTargets,
+        OverlappingForPull,
+        MultipleSurfaceInterfaces,
+        ModuleRegistrationOfAnalyzer,
+        ForPullRequiresAnalyzer,
+        ForPullOnAbstractAnalyzer,
+    ];
 
     public override void Initialize(AnalysisContext context)
     {
@@ -66,69 +114,132 @@ public sealed class PullAnalyzerDiagnostics : DiagnosticAnalyzer
 
     private static void AnalyzeCompilation(CompilationAnalysisContext context)
     {
-        var parsers = new List<(INamedTypeSymbol Parser, List<AnalyzerModel> Analyzers)>();
-        var allAnalyzers = new HashSet<INamedTypeSymbol>(SymbolEqualityComparer.Default);
+        var parsers = new List<List<Registration>>();
 
         foreach (var type in GetAllNamedTypes(context.Compilation.Assembly.GlobalNamespace))
         {
             context.CancellationToken.ThrowIfCancellationRequested();
 
-            var analyzerTypes = CollectDeclaredAnalyzers(type);
-            if (analyzerTypes.Count == 0) continue;
+            CheckForPullPlacement(context, type);
 
-            var models = analyzerTypes.Select(BuildModel).ToList();
-            parsers.Add((type, models));
-            foreach (var t in analyzerTypes) allAnalyzers.Add(t);
+            var registrations = CollectRegistrations(type);
+            if (registrations.Count > 0) parsers.Add(registrations);
         }
-
-        if (allAnalyzers.Count == 0) return;
 
         var reportedFa14 = new HashSet<ISymbol>(SymbolEqualityComparer.Default);
         var reportedFa15 = new HashSet<ISymbol>(SymbolEqualityComparer.Default);
         var reportedFa17 = new HashSet<ISymbol>(SymbolEqualityComparer.Default);
 
-        foreach (var (_, models) in parsers)
+        foreach (var registrations in parsers)
         {
-            foreach (var model in models)
+            var pullAnalyzers = new List<AnalyzerModel>();
+
+            foreach (var registration in registrations)
             {
-                if (reportedFa14.Add(model.Type)) CheckDependencies(context, model, allAnalyzers);
-                if (reportedFa15.Add(model.Type)) CheckForPull(context, model);
+                if (reportedFa14.Add(registration.Type)) CheckDependencies(context, registration.Type);
+
+                CheckModuleRegistration(context, registration);
+
+                if (!HasForPull(registration.Type)) continue;
+
+                var model = BuildModel(registration.Type);
+                pullAnalyzers.Add(model);
+
+                if (reportedFa15.Add(model.Type)) CheckTargets(context, model);
                 if (reportedFa17.Add(model.Type)) CheckSurfaceInterfaces(context, model.Type);
             }
 
-            CheckOverlaps(context, models);
+            CheckOverlaps(context, pullAnalyzers);
         }
     }
 
-    private static void CheckDependencies(CompilationAnalysisContext context, AnalyzerModel model, HashSet<INamedTypeSymbol> allAnalyzers)
+    /// <summary>
+    /// FA0020 and FA0021: where <c>[ForPull]</c> may sit. Both are properties of the type alone, so
+    /// they are checked over every type in the compilation that declares the attribute, registered or
+    /// not, and report in the assembly that declares the type.
+    /// </summary>
+    private static void CheckForPullPlacement(CompilationAnalysisContext context, INamedTypeSymbol type)
     {
-        foreach (var ctor in model.Type.InstanceConstructors)
+        if (FindForPull(type) is not { } forPull) return;
+
+        var location = AttributeLocation(forPull, type);
+
+        if (!DerivesFromAnalyzer(type))
+        {
+            context.ReportDiagnostic(Diagnostic.Create(ForPullRequiresAnalyzer, location, type.Name));
+            return;
+        }
+
+        if (type.IsAbstract)
+            context.ReportDiagnostic(Diagnostic.Create(ForPullOnAbstractAnalyzer, location, type.Name));
+    }
+
+    /// <summary>
+    /// FA0019: <c>[AddModule&lt;T&gt;]</c> and <c>[AddState&lt;T&gt;]</c> take a non-subscriber. Reports at
+    /// the attribute application on the parser, so it is skipped for a base-chain attribute read from
+    /// metadata: that has no application syntax in this compilation and was already checked when its
+    /// own assembly built.
+    /// </summary>
+    private static void CheckModuleRegistration(CompilationAnalysisContext context, Registration registration)
+    {
+        if (!registration.IsModuleAttribute) return;
+        if (!DerivesFromAnalyzer(registration.Type)) return;
+        if (registration.Attribute.ApplicationSyntaxReference is not { } syntaxRef) return;
+
+        context.ReportDiagnostic(Diagnostic.Create(
+            ModuleRegistrationOfAnalyzer,
+            Location.Create(syntaxRef.SyntaxTree, syntaxRef.Span),
+            registration.Type.Name));
+    }
+
+    /// <summary>
+    /// FA0014: nothing the parser resolves may depend on a <c>[ForPull]</c> type. <c>BeginPull</c>
+    /// constructs pull instances straight into its per-pull cache, which no resolution path reads, so
+    /// a registered type or a normalizer naming one throws "No registered module is assignable" at
+    /// runtime. Covers constructor parameters, <c>Lazy&lt;T&gt;</c> parameters, and
+    /// <c>[Dependency&lt;T&gt;]</c> — the last reports at the attribute, because a
+    /// <c>[Dependency&lt;T&gt;]</c>-only type's constructor exists solely in generated code, which
+    /// <see cref="GeneratedCodeAnalysisFlags.None"/> suppresses diagnostics in.
+    /// </summary>
+    private static void CheckDependencies(CompilationAnalysisContext context, INamedTypeSymbol type)
+    {
+        foreach (var ctor in type.InstanceConstructors)
         {
             foreach (var param in ctor.Parameters)
             {
                 if (param.Type is not INamedTypeSymbol paramType) continue;
+                if (!HasForPull(Unwrap(paramType))) continue;
 
-                var dep = paramType;
-                if (paramType.Name == "Lazy" && paramType.TypeArguments.Length == 1
-                    && paramType.TypeArguments[0] is INamedTypeSymbol inner)
-                    dep = inner;
-
-                if (allAnalyzers.Contains(dep))
-                {
-                    var location = param.Locations.Length > 0 ? param.Locations[0] : model.Type.Locations[0];
-                    context.ReportDiagnostic(Diagnostic.Create(DependsOnAnalyzer, location, model.Type.Name, dep.Name));
-                }
+                var location = param.Locations.Length > 0 ? param.Locations[0] : type.Locations[0];
+                context.ReportDiagnostic(Diagnostic.Create(
+                    DependsOnPullAnalyzer, location, type.Name, Unwrap(paramType).Name));
             }
+        }
+
+        foreach (var attr in type.GetAttributes())
+        {
+            var ac = attr.AttributeClass;
+            if (ac is not { IsGenericType: true } || ac.Name != DependencyAttributeName) continue;
+            if (ac.TypeArguments.Length != 1 || ac.TypeArguments[0] is not INamedTypeSymbol dep) continue;
+            if (!HasForPull(dep)) continue;
+
+            context.ReportDiagnostic(Diagnostic.Create(
+                DependsOnPullAnalyzer, AttributeLocation(attr, type), type.Name, dep.Name));
         }
     }
 
-    private static void CheckForPull(CompilationAnalysisContext context, AnalyzerModel model)
+    /// <summary>The dependency a parameter names, seeing through a <c>Lazy&lt;T&gt;</c> wrapper.</summary>
+    private static INamedTypeSymbol Unwrap(INamedTypeSymbol paramType) =>
+        paramType.Name == "Lazy" && paramType.TypeArguments.Length == 1
+            && paramType.TypeArguments[0] is INamedTypeSymbol inner
+                ? inner
+                : paramType;
+
+    private static void CheckTargets(CompilationAnalysisContext context, AnalyzerModel model)
     {
-        if (!model.HasForPull || model.Targets == 0)
-        {
-            var location = model.Type.Locations.Length > 0 ? model.Type.Locations[0] : Location.None;
-            context.ReportDiagnostic(Diagnostic.Create(MissingForPull, location, model.Type.Name));
-        }
+        if (model.Targets != 0) return;
+
+        context.ReportDiagnostic(Diagnostic.Create(ForPullMissingTargets, model.Location, model.Type.Name));
     }
 
     private static void CheckSurfaceInterfaces(CompilationAnalysisContext context, INamedTypeSymbol analyzer)
@@ -186,23 +297,29 @@ public sealed class PullAnalyzerDiagnostics : DiagnosticAnalyzer
     }
 
     /// <summary>
-    /// The analyzers declared directly on <paramref name="parser"/> via <c>[AddAnalyzer]</c>.
-    /// FA0016's overlap grouping is per declaring type, which assumes analyzers are declared on leaf
-    /// parsers (the generator merges base + own at runtime); base-declared analyzers would need this
-    /// to walk the base chain the same way before they could overlap with a derived parser's own.
+    /// Every type <paramref name="parser"/> registers — from all three registration attributes plus
+    /// <c>[AddNormalizer]</c>, which FA0014 covers alongside them — walking the base chain so a hero
+    /// parser also sees what <c>CombatLogParser</c> registers. FA0016's overlap grouping is per parser,
+    /// which the walk is what makes correct.
     /// </summary>
-    private static List<INamedTypeSymbol> CollectDeclaredAnalyzers(INamedTypeSymbol parser)
+    private static List<Registration> CollectRegistrations(INamedTypeSymbol parser)
     {
-        var result = new List<INamedTypeSymbol>();
+        var result = new List<Registration>();
         var current = parser;
         while (current != null && current.SpecialType != SpecialType.System_Object)
         {
             foreach (var attr in current.GetAttributes())
             {
                 var ac = attr.AttributeClass;
-                if (ac == null || ac.Name != "AddAnalyzerAttribute") continue;
-                if (!ac.IsGenericType || ac.TypeArguments.Length == 0) continue;
-                if (ac.TypeArguments[0] is INamedTypeSymbol arg) result.Add(arg);
+                if (ac is not { IsGenericType: true } || ac.TypeArguments.Length == 0) continue;
+
+                var isModuleAttribute = ac.Name is AddModuleAttributeName or AddStateAttributeName;
+                if (!isModuleAttribute
+                    && ac.Name != AddAnalyzerAttributeName
+                    && ac.Name != AddNormalizerAttributeName) continue;
+                if (ac.TypeArguments[0] is not INamedTypeSymbol arg) continue;
+
+                result.Add(new Registration(arg, attr, isModuleAttribute));
             }
             current = current.BaseType;
         }
@@ -211,18 +328,15 @@ public sealed class PullAnalyzerDiagnostics : DiagnosticAnalyzer
 
     private static AnalyzerModel BuildModel(INamedTypeSymbol analyzer)
     {
-        var hasForPull = false;
         var targets = 0;
         var boss = 0;
-        foreach (var attr in analyzer.GetAttributes())
+        var attr = FindForPull(analyzer);
+        if (attr is not null)
         {
-            if (attr.AttributeClass?.Name != "ForPullAttribute") continue;
-            hasForPull = true;
             if (attr.ConstructorArguments.Length == 1 && attr.ConstructorArguments[0].Value is int t)
                 targets = t;
             foreach (var na in attr.NamedArguments)
                 if (na.Key == "Boss" && na.Value.Value is int b) boss = b;
-            break;
         }
 
         var surfaces = GetSurfaceInterfaces(analyzer);
@@ -236,13 +350,46 @@ public sealed class PullAnalyzerDiagnostics : DiagnosticAnalyzer
             surfaceType = analyzer;
             while (surfaceType.BaseType is { } baseType
                 && baseType.SpecialType != SpecialType.System_Object
-                && baseType.Name != "Analyzer")
+                && baseType.Name != AnalyzerBaseName)
             {
                 surfaceType = baseType;
             }
         }
 
-        return new AnalyzerModel(analyzer, hasForPull, targets, boss, surfaceType);
+        return new AnalyzerModel(analyzer, targets, boss, surfaceType, AttributeLocation(attr, analyzer));
+    }
+
+    private static AttributeData? FindForPull(INamedTypeSymbol type)
+    {
+        foreach (var attr in type.GetAttributes())
+        {
+            if (attr.AttributeClass?.Name == ForPullAttributeName) return attr;
+        }
+        return null;
+    }
+
+    private static bool HasForPull(INamedTypeSymbol type) => FindForPull(type) is not null;
+
+    private static bool DerivesFromAnalyzer(INamedTypeSymbol type)
+    {
+        var current = type.BaseType;
+        while (current != null)
+        {
+            if (current.Name == AnalyzerBaseName) return true;
+            current = current.BaseType;
+        }
+        return false;
+    }
+
+    /// <summary>
+    /// Where an attribute application sits, falling back to the annotated type when the attribute was
+    /// read from metadata rather than source.
+    /// </summary>
+    private static Location AttributeLocation(AttributeData? attr, INamedTypeSymbol type)
+    {
+        if (attr?.ApplicationSyntaxReference is { } syntaxRef)
+            return Location.Create(syntaxRef.SyntaxTree, syntaxRef.Span);
+        return type.Locations.Length > 0 ? type.Locations[0] : Location.None;
     }
 
     /// <summary>
@@ -255,10 +402,10 @@ public sealed class PullAnalyzerDiagnostics : DiagnosticAnalyzer
         var result = new List<INamedTypeSymbol>();
         foreach (var iface in analyzer.AllInterfaces)
         {
-            if (iface.Name == "IAnalyzerSurface") continue;
+            if (iface.Name == SurfaceInterfaceName) continue;
             foreach (var baseIface in iface.AllInterfaces)
             {
-                if (baseIface.Name == "IAnalyzerSurface")
+                if (baseIface.Name == SurfaceInterfaceName)
                 {
                     result.Add(iface);
                     break;
@@ -289,13 +436,20 @@ public sealed class PullAnalyzerDiagnostics : DiagnosticAnalyzer
         }
     }
 
-    private sealed class AnalyzerModel(
-        INamedTypeSymbol type, bool hasForPull, int targets, int boss, INamedTypeSymbol surfaceType)
+    private sealed class Registration(INamedTypeSymbol type, AttributeData attribute, bool isModuleAttribute)
     {
         public INamedTypeSymbol Type { get; } = type;
-        public bool HasForPull { get; } = hasForPull;
+        public AttributeData Attribute { get; } = attribute;
+        public bool IsModuleAttribute { get; } = isModuleAttribute;
+    }
+
+    private sealed class AnalyzerModel(
+        INamedTypeSymbol type, int targets, int boss, INamedTypeSymbol surfaceType, Location location)
+    {
+        public INamedTypeSymbol Type { get; } = type;
         public int Targets { get; } = targets;
         public int Boss { get; } = boss;
         public INamedTypeSymbol SurfaceType { get; } = surfaceType;
+        public Location Location { get; } = location;
     }
 }

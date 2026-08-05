@@ -2,7 +2,7 @@ namespace FellowshipAnalyzer.Core.Analysis;
 
 /// <summary>
 /// The tool's internal grouping for a spellbook ability, distinct from the game's own
-/// <see cref="Common.Spells.AbilityCategory"/> taxonomy.
+/// <see cref="UI.AbilityCategory"/> taxonomy.
 /// </summary>
 public enum SpellCategory
 {

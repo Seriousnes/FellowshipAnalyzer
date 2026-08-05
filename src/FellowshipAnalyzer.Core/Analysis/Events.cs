@@ -7,7 +7,7 @@ namespace FellowshipAnalyzer.Core.Analysis;
 /// concrete <see cref="Event"/> subtype. Chain <see cref="EventFilter{T}.By"/>,
 /// <see cref="EventFilter{T}.To"/>, <see cref="EventFilter{T}.Spell"/>, or
 /// <see cref="EventFilter{T}.ExtraSpell"/> and pass the result to
-/// <see cref="EventSubscriber.AddEventListener{T}(EventFilter{T}, Action{T})"/>.
+/// <see cref="OnAttribute{TEvent}"/>.
 /// </summary>
 public static class Events
 {

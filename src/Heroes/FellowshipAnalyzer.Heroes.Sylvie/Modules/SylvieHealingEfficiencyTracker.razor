@@ -1,7 +1,6 @@
 @inherits HealingEfficiencyTracker
 
 @code {
-    /// <inheritdoc/>
     public override RenderFragment? Statistic => TotalEffective > 0 ? Card : null;
 
     private RenderFragment Card =>
@@ -33,6 +32,6 @@
             .Take(6);
 
     private static string Tooltip(SpellHealingEfficiency spell) =>
-        $"{spell.Effective:N0} landed over {spell.Heals:N0} heals from {spell.Casts:N0} casts costing {spell.ResourceSpent:N0} mana, " +
+        $"{spell.Effective:N0} effective over {spell.Heals:N0} heals from {spell.Casts:N0} casts costing {spell.ResourceSpent:N0} mana, " +
         $"{spell.HealingPerExecutionSecond:N0} per second of execution time, {spell.OverhealShare * 100:F0}% overheal.";
 }

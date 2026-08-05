@@ -5,15 +5,14 @@ using FellowshipAnalyzer.Heroes.Rime.Modules;
 namespace FellowshipAnalyzer.Heroes.Rime.Analysis;
 
 [HeroAnalyzer(HeroName.Rime)]
-[AddState<WinterOrbTracker>]
-[AddAnalyzer<SingleTargetEmbraceWindowAnalyzer>]
-[AddAnalyzer<AoeEmbraceWindowAnalyzer>]
+[AddAnalyzer<WinterOrbTracker>]
+[AddAnalyzer<SingleTargetEmbraceAnalyzer>]
+[AddAnalyzer<AoeEmbraceAnalyzer>]
 [AddAnalyzer<MajorCooldownAnalyzer>]
 [AddAnalyzer<DowntimeAnalyzer>]
 [AddModule<Modules.Abilities>]
 [AddModule<RimeAuras>]
-[AddModule<WintersEmbraceUpliftTracker>]
-[AddModule<FrostweaverWrathAnalyzer>]
+[AddAnalyzer<WintersEmbraceUpliftTracker>]
 public sealed partial class RimeCombatLogParser : CombatLogParser
 {
     public override Type? GuideComponent => typeof(RimeGuide);

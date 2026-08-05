@@ -4,7 +4,7 @@ using FellowshipAnalyzer.Core.Events;
 
 namespace FellowshipAnalyzer.Heroes.Gunde.Modules;
 
-public sealed partial class RendStackTracker : EventSubscriber
+public sealed partial class RendStackTracker : Analyzer
 {
     private readonly Dictionary<RendTarget, int> _stacks = [];
     private readonly List<RendRemoval> _removals = [];

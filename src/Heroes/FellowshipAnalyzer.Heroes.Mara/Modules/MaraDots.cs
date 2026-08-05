@@ -21,7 +21,6 @@ public static class MaraDots
 
     public static Dot VolatilePoison { get; } = All[2];
 
-    /// <summary>The effects that have to be held on a boss for the whole pull.</summary>
     public static IReadOnlyList<Dot> Maintained { get; } = [SeethingPoison, Hemorrhage];
 }
 

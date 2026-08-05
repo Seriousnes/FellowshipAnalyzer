@@ -11,7 +11,7 @@ namespace FellowshipAnalyzer.Core.Analysis;
 /// prevented; <see cref="DamageEvent.Blocked"/> is a labelled portion of the mitigated figure rather
 /// than a third bucket, so it is reported alongside and never added in.
 /// </summary>
-public sealed partial class DamageTakenTracker : EventSubscriber
+public sealed partial class DamageTakenTracker : Analyzer
 {
     private readonly Dictionary<int, SourceCapture> _bySource = [];
     private readonly List<DamageTakenHit> _hits = [];

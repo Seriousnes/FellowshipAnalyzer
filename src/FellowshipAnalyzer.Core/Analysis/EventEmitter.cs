@@ -14,29 +14,32 @@ namespace FellowshipAnalyzer.Core.Analysis;
 /// </summary>
 public sealed class EventEmitter(ILogger<EventEmitter> logger) : Module
 {
-    private readonly List<RegisteredListener> _stateListeners = [];
-    private readonly List<RegisteredListener> _pullListeners = [];
+    private List<RegisteredListener> _stateListeners = [];
+    private List<RegisteredListener> _pullListeners = [];
     private readonly List<Event> _scheduled = [];
     private bool _subscribingToPull;
     private List<Event>? _events;
     private int _insertionIndex;
 
     /// <summary>Registers a synchronous handler for <paramref name="module"/>, routed into the pull or state listener tier depending on whether a pull is currently registering its subscriptions.</summary>
-    public void Subscribe(EventSubscriber module, Func<Event, bool> filter, Action<Event> handler)
+    public void Subscribe(Analyzer module, Func<Event, bool> filter, Action<Event> handler)
     {
         (_subscribingToPull ? _pullListeners : _stateListeners).Add(new RegisteredListener(module, filter, handler));
     }
 
     /// <summary>Registers an asynchronous handler for <paramref name="module"/>, routed into the pull or state listener tier depending on whether a pull is currently registering its subscriptions.</summary>
-    public void Subscribe(EventSubscriber module, Func<Event, bool> filter, Func<Event, Task> handler)
+    public void Subscribe(Analyzer module, Func<Event, bool> filter, Func<Event, Task> handler)
     {
         (_subscribingToPull ? _pullListeners : _stateListeners).Add(new RegisteredListener(module, filter, handler));
     }
 
-    /// <summary>Orders the state listener tier by <see cref="Module.Priority"/> so dispatch runs modules in registration order.</summary>
+    /// <summary>
+    /// Orders the state listener tier by <see cref="Module.Priority"/>. Called once the parse-lifetime
+    /// modules have registered, which is the only time that tier changes.
+    /// </summary>
     public void SortListeners()
     {
-        _stateListeners.Sort(static (a, b) => a.Module.Priority.CompareTo(b.Module.Priority));
+        _stateListeners = Ordered(_stateListeners);
     }
 
     /// <summary>
@@ -52,15 +55,24 @@ public sealed class EventEmitter(ILogger<EventEmitter> logger) : Module
     /// <summary>Orders the per-pull listener tier by <see cref="Module.Priority"/> and closes registration. Paired with <see cref="BeginPullSubscriptions"/>.</summary>
     public void EndPullSubscriptions()
     {
-        _pullListeners.Sort(static (a, b) => a.Module.Priority.CompareTo(b.Module.Priority));
+        _pullListeners = Ordered(_pullListeners);
         _subscribingToPull = false;
     }
 
-    /// <summary>Retires the current pull's listeners at <see cref="FellowshipAnalyzer.Core.Events.PullEndEvent"/>.</summary>
-    public void ClearPullListeners()
+    /// <summary>Retires the current pull's analyzers so they stop receiving events once the pull has ended.</summary>
+    public void UnsubscribePullAnalyzers()
     {
         _pullListeners.Clear();
     }
+
+    /// <summary>
+    /// Orders one tier by <see cref="Module.Priority"/>. The sort has to stay stable: construction order
+    /// is what carries the <c>[Before&lt;T&gt;]</c> and <c>[After&lt;T&gt;]</c> constraints, and only a
+    /// stable sort leaves it intact. Modules sharing a priority with no constraint between them keep
+    /// whatever relative order they were constructed in.
+    /// </summary>
+    private static List<RegisteredListener> Ordered(List<RegisteredListener> listeners) =>
+        [.. listeners.OrderBy(static listener => listener.Module.Priority)];
 
     /// <summary>
     /// Dispatches all events sequentially, processing fabricated events inline.
@@ -87,12 +99,19 @@ public sealed class EventEmitter(ILogger<EventEmitter> logger) : Module
             var e = events[i];
             Owner.CurrentTimestamp = e.Timestamp;
 
-            if (e is PullStartEvent pullStart) Owner.BeginPull(pullStart.Pull);
-
-            if (e is PullEndEvent pullEnd)
-                Owner.EndPull(pullEnd.Pull);
-            else
-                await TriggerEventAsync(e);
+            switch (e)
+            {
+                case PullStartEvent pullStart:
+                    Owner.BeginPull(pullStart.Pull);
+                    await TriggerEventAsync(e);
+                    break;
+                case PullEndEvent pullEnd:
+                    Owner.EndPull(pullEnd.Pull);
+                    break;
+                default:
+                    await TriggerEventAsync(e);
+                    break;
+            }
 
             if (pacer.ShouldYield(i))
             {
@@ -266,8 +285,8 @@ public sealed class EventEmitter(ILogger<EventEmitter> logger) : Module
 /// </summary>
 public readonly struct RegisteredListener
 {
-    /// <summary>The subscriber this listener dispatches into, whose <see cref="Module.Priority"/> determines dispatch order and whose <see cref="Module.Active"/> gates whether it runs.</summary>
-    public EventSubscriber Module { get; }
+    /// <summary>The subscriber this listener dispatches into, whose <see cref="Module.Priority"/> places it in the dispatch order and whose <see cref="Module.Active"/> gates whether it runs.</summary>
+    public Analyzer Module { get; }
 
     /// <summary>The predicate an event must satisfy for this listener's handler to run.</summary>
     public Func<Event, bool> Filter { get; }
@@ -275,7 +294,7 @@ public readonly struct RegisteredListener
     private readonly Func<Event, Task>? _asyncHandler;
 
     /// <summary>Wraps a synchronous handler registered by <paramref name="module"/>.</summary>
-    public RegisteredListener(EventSubscriber module, Func<Event, bool> filter, Action<Event> handler)
+    public RegisteredListener(Analyzer module, Func<Event, bool> filter, Action<Event> handler)
     {
         Module = module;
         Filter = filter;
@@ -283,7 +302,7 @@ public readonly struct RegisteredListener
     }
 
     /// <summary>Wraps an asynchronous handler registered by <paramref name="module"/>.</summary>
-    public RegisteredListener(EventSubscriber module, Func<Event, bool> filter, Func<Event, Task> handler)
+    public RegisteredListener(Analyzer module, Func<Event, bool> filter, Func<Event, Task> handler)
     {
         Module = module;
         Filter = filter;

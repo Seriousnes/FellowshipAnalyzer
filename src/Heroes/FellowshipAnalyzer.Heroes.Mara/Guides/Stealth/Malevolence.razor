@@ -1,0 +1,32 @@
+@using FellowshipAnalyzer.Core.Common.Spells.Mara
+@using MaraTalents = FellowshipAnalyzer.Core.Common.Spells.MaraTalents
+
+@if (HasMalevolence)
+{
+    <p>
+        Alternate <SpellLink Spell="Spells.QueenFang" /> and <SpellLink Spell="Spells.ArachnidAssault" />
+        so the finisher your target count calls for always has
+        <SpellLink Spell="Talents.Malevolence" /> stacks available, and spend the stacks on that
+        finisher rather than the other one. Hold it at two stacks and spend down to one; from zero,
+        getting back to one comes before anything else.
+    </p>
+    @if (HasGuile)
+    {
+        <p>
+            Reach two stacks on that finisher before an <SpellLink Spell="Talents.AssassinsGuile" />
+            window opens, so you can spend both inside it.
+        </p>
+    }
+    <p>
+        On a single target, press <SpellLink Spell="Spells.ArachnidAssault" /> at whatever combo points
+        you have, purely to stack <SpellLink Spell="Spells.QueenFang" />.
+    </p>
+}
+
+@code {
+    [CascadingParameter] public Combatant SelectedCombatant { get; set; } = null!;
+
+    private bool HasMalevolence => SelectedCombatant.HasTalent(MaraTalents.Malevolence);
+
+    private bool HasGuile => SelectedCombatant.HasTalent(MaraTalents.AssassinsGuile);
+}

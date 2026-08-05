@@ -10,7 +10,7 @@ FellowshipLogs API JSON
   -> CombatLogParser.Analyze
   -> module construction (DI, ctor-time setup, [ActiveWhen<>] gating)
   -> normalizers (FightBookendNormalizer prepends FightStartEvent, appends FightEndEvent)
-  -> RegisterSubscriptions on every EventSubscriber
+  -> RegisterSubscriptions on every Analyzer
   -> EventEmitter dispatch (FightStartEvent first, FightEndEvent last)
   -> HeroAnalysisResult
   -> Blazor guide/statistics components read module and analyzer state directly
@@ -45,12 +45,12 @@ Do not hand-maintain a static event schema. Use the `analyze-event-schema` skill
 [AddNormalizer<ResourceNormalizer>]
 [AddNormalizer<CastLinkNormalizer>]
 [AddModule<DebugAnnotations>]
-[AddModule<Combatants>]
-[AddModule<StatTracker>]
-[AddModule<Haste>]
-[AddModule<GlobalCooldown>]
-[AddModule<SpellUsable>]
-[AddModule<ChronoshiftAnalyzer>]
+[AddAnalyzer<Combatants>]
+[AddAnalyzer<StatTracker>]
+[AddAnalyzer<Haste>]
+[AddAnalyzer<GlobalCooldown>]
+[AddAnalyzer<SpellUsable>]
+[AddAnalyzer<ChronoshiftAnalyzer>]
 public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServiceProvider provider) : IHeroAnalyzer
 ```
 
@@ -64,9 +64,9 @@ using FellowshipAnalyzer.Heroes.Rime.Modules;
 namespace FellowshipAnalyzer.Heroes.Rime.Analysis;
 
 [HeroAnalyzer(HeroName.Rime)]
-[AddState<WinterOrbTracker>]
-[AddAnalyzer<SingleTargetEmbraceWindowAnalyzer>]
-[AddAnalyzer<AoeEmbraceWindowAnalyzer>]
+[AddAnalyzer<WinterOrbTracker>]
+[AddAnalyzer<SingleTargetEmbraceAnalyzer>]
+[AddAnalyzer<AoeEmbraceAnalyzer>]
 [AddModule<Modules.Abilities>]
 [AddModule<RimeAuras>]
 public sealed partial class RimeCombatLogParser : CombatLogParser
@@ -78,7 +78,7 @@ public sealed partial class RimeCombatLogParser : CombatLogParser
 The generator emits:
 
 - A constructor that passes `EventEmitter` and `IServiceProvider` to the base parser.
-- Source-generated nullable module properties such as `WinterOrbTracker`, plus the pull read paths for each `[AddAnalyzer]` surface (`WintersEmbraceWindowAnalyzers`, `pull.WintersEmbraceWindowAnalyzer`, `Pulls`).
+- Source-generated nullable module properties such as `WinterOrbTracker`, plus the pull read paths for each `[ForPull]` surface (`WintersEmbraceAnalyzers`, `pull.WintersEmbraceAnalyzer`, `Pulls`).
 - `GetModuleTypes()` and `GetNormalizerTypes()` implementations.
 - `Add{Hero}Analysis()` DI extension methods and keyed `IHeroAnalyzer` registration, both **transient**: a parser serves exactly one analysis, so the host resolves a fresh one per report and a report's read surfaces can never hold another's. Blazor WebAssembly runs the whole session in one DI scope, so a scoped registration would mean one parser for every report the user opens.
 - `AddCoreAnalysis()` for shared analysis services, base modules, and base normalizers.
@@ -95,13 +95,13 @@ builder.Services.AddFellowshipHeroAnalysis();
 
 ## Module Lifecycle
 
-Modules are constructed per analysis run by a generator-emitted factory; sibling-module constructor parameters resolve through the parser's own module cache and any other parameter type falls back to the service provider. The parser assigns `Owner` and `Priority` after constructing each module. There is no `Initialize` or `Complete` virtual - setup runs in the constructor, and finalized metrics are exposed as public properties (computed on read, or set from an `[On<FightEndEvent>]` handler).
+Modules are constructed per analysis run by a generator-emitted factory; sibling-module constructor parameters resolve through the parser's own module cache and any other parameter type falls back to the service provider. The parser assigns `Owner` after constructing each module. There is no `Initialize` or `Complete` virtual - setup runs in the constructor, and finalized metrics are exposed as public properties (computed on read, or set from an `[On<FightEndEvent>]` handler).
 
 ```csharp
 public abstract class Module
 {
     public bool Active { get; protected set; } = true;
-    public int Priority { get; set; }
+    public virtual int Priority => 0;
     public CombatLogParser Owner { get; set; } = null!;
     public virtual Type? StatisticsComponentType => null;
 
@@ -111,7 +111,7 @@ public abstract class Module
 
 Use this lifecycle:
 
-- Declare modules with `[AddModule<T>]` on the parser. Declaration order becomes module priority; `[Before<T>]` / `[After<T>]` refine it.
+- Declare a type that subscribes to events with `[AddAnalyzer<T>]` on the parser, and one that does not with `[AddModule<T>]` or its synonym `[AddState<T>]` (FA0019). `Priority` is a design-time constant a module overrides, defaulting to 0; `[Before<T>]` / `[After<T>]` order modules that share one, and guarantee only the pairwise relation they name.
 - Do setup work that needs the selected player or the raw event list in the constructor - inject `ParseContext` and/or `IReadOnlyList<Event>`.
 - Subscribe to events declaratively with `[On<TEvent>]` attributes on instance methods. The `ModuleGenerator` emits the corresponding `RegisterSubscriptions` plumbing.
 - Hook fight-boundary setup via `[On<FightStartEvent>]` and finalization via `[On<FightEndEvent>]` (the `FightBookendNormalizer` fabricates both).
@@ -121,12 +121,12 @@ Use this lifecycle:
 
 Activation is two-tiered. Use the mutable `Active` flag for dynamic deactivation that must respect mid-fight state. Use `[ActiveWhen<TPredicate>]` (where `TPredicate : IModuleActivePredicate`) for compile-time gating evaluated at parser construction - predicates read `ParseContext`, including `SelectedCombatant`, which the parser builds from the player's `CombatantInfoEvent` before any module is constructed.
 
-`Analyzer` is the pull-lifetime specialization of `EventSubscriber`. Declare analyzers with `[AddAnalyzer<T>]` on the parser and `[ForPull(PullKind…, Boss = …)]` on the analyzer. A fresh instance is constructed for every matching pull, accumulates that pull's events into private state, and is retained on the pull read surfaces; it exposes its metrics as get-style properties (reading its assigned `Pull` for boundary values such as `Pull.EndTime`) rather than finalizing at pull end. The parser still emits a `PullEndEvent` to the pull's own analyzers as it closes (once per pull, even a force-close) for anything that must react to the pull ending as an event, such as snapshotting a fight-lifetime module's live state:
+`Analyzer` is the base for every event subscriber, and `[ForPull(PullKind…, Boss = …)]` on the analyzer is what makes one pull-lifetime. A fresh instance is constructed for every matching pull, accumulates that pull's events into private state, and is retained on the pull read surfaces; it exposes its metrics as get-style properties (reading its assigned `Pull` for boundary values such as `Pull.EndTime`) rather than finalizing at pull end. The parser still emits a `PullEndEvent` to the pull's own analyzers as it closes (once per pull, even a force-close) for anything that must react to the pull ending as an event, such as snapshotting a fight-lifetime module's live state:
 
 - `parser.{Surface}s` - the cross-pull stream, an `IReadOnlyList<PullAnalyzer<T>>` of `(Pull, Analyzer)` pairs.
 - `parser.For(pull).{Surface}` and the `pull.{Surface}` extension - the retained instance for one pull.
 
-The surface type is the topmost ancestor deriving directly from `Analyzer`, so shape-specialized subclasses (disjoint `[ForPull]` filters over a shared abstract base) feed one stream. Analyzers may depend on `[AddState]` modules (fight-lifetime `EventSubscriber`s) but never on other analyzers (FA0014).
+The surface type is the topmost ancestor deriving directly from `Analyzer`, so shape-specialized subclasses (disjoint `[ForPull]` filters over a shared abstract base) feed one stream. `[ForPull]` is valid only on a concrete `Analyzer` (FA0020, FA0021), and nothing the parser resolves - module, parse-lifetime analyzer, or normalizer - may depend on a `[ForPull]` type (FA0014); depend on a parse-lifetime one instead.
 
 ## Event Subscriptions
 

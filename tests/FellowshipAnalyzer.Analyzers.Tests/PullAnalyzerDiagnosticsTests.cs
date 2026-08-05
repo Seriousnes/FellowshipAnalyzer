@@ -10,11 +10,13 @@ public class PullAnalyzerDiagnosticsTests
 {
     private const string Usings = """
         using System;
+        using System.Collections.Generic;
         using FellowshipAnalyzer.Core.Analysis;
+        using FellowshipAnalyzer.Core.Events;
         """;
 
     [Fact]
-    public void FA0014_AnalyzerDependingOnAnalyzer_Reports()
+    public void FA0014_AnalyzerDependingOnPullAnalyzer_Reports()
     {
         var diagnostics = AnalyzerTestHarness.Run(Usings + """
 
@@ -35,7 +37,7 @@ public class PullAnalyzerDiagnosticsTests
     }
 
     [Fact]
-    public void FA0014_LazyAnalyzerDependency_Reports()
+    public void FA0014_LazyPullAnalyzerDependency_Reports()
     {
         var diagnostics = AnalyzerTestHarness.Run(Usings + """
 
@@ -56,17 +58,91 @@ public class PullAnalyzerDiagnosticsTests
     }
 
     [Fact]
-    public void FA0014_DependingOnState_Silent()
+    public void FA0014_DependencyAttributeOnPullAnalyzer_Reports()
     {
         var diagnostics = AnalyzerTestHarness.Run(Usings + """
 
             namespace Test;
 
-            [AddState<MyState>]
+            [AddAnalyzer<DepAnalyzer>]
             [AddAnalyzer<MyAnalyzer>]
             public abstract class Host { }
 
-            public sealed class MyState : EventSubscriber { }
+            [ForPull(PullKind.Single)]
+            public sealed class DepAnalyzer : Analyzer { }
+
+            [ForPull(PullKind.Single)]
+            [Dependency<DepAnalyzer>]
+            public sealed class MyAnalyzer : Analyzer { }
+            """);
+
+        Ids(diagnostics).ShouldContain("FA0014");
+    }
+
+    /// <summary>
+    /// FA0014 is not analyzer-on-analyzer: a plain module cannot reach a per-pull instance either, and
+    /// throws the same "No registered module is assignable" at runtime.
+    /// </summary>
+    [Fact]
+    public void FA0014_ModuleDependingOnPullAnalyzer_Reports()
+    {
+        var diagnostics = AnalyzerTestHarness.Run(Usings + """
+
+            namespace Test;
+
+            [AddModule<MyModule>]
+            [AddAnalyzer<DepAnalyzer>]
+            public abstract class Host { }
+
+            [ForPull(PullKind.Single)]
+            public sealed class DepAnalyzer : Analyzer { }
+
+            public sealed class MyModule(Lazy<DepAnalyzer> dep) : Module { }
+            """);
+
+        Ids(diagnostics).ShouldContain("FA0014");
+    }
+
+    [Fact]
+    public void FA0014_NormalizerDependingOnPullAnalyzer_Reports()
+    {
+        var diagnostics = AnalyzerTestHarness.Run(Usings + """
+
+            namespace Test;
+
+            [AddNormalizer<MyNormalizer>]
+            [AddAnalyzer<DepAnalyzer>]
+            public abstract class Host { }
+
+            [ForPull(PullKind.Single)]
+            public sealed class DepAnalyzer : Analyzer { }
+
+            public sealed class MyNormalizer(Lazy<DepAnalyzer> dep) : IEventNormalizer
+            {
+                public int Priority => 0;
+                public List<Event> Normalize(List<Event> events, int playerId) => events;
+            }
+            """);
+
+        Ids(diagnostics).ShouldContain("FA0014");
+    }
+
+    /// <summary>
+    /// An analyzer without <c>[ForPull]</c> is parse-lifetime, resolved from <c>GetModuleTypes()</c> like
+    /// any module, so depending on it is exactly what FA0014 leaves alone.
+    /// </summary>
+    [Fact]
+    public void FA0014_DependingOnParseLifetimeAnalyzer_Silent()
+    {
+        var diagnostics = AnalyzerTestHarness.Run(Usings + """
+
+            namespace Test;
+
+            [AddAnalyzer<MyState>]
+            [AddAnalyzer<MyAnalyzer>]
+            public abstract class Host { }
+
+            public sealed class MyState : Analyzer { }
 
             [ForPull(PullKind.Single)]
             public sealed class MyAnalyzer(MyState state) : Analyzer { }
@@ -76,19 +152,40 @@ public class PullAnalyzerDiagnosticsTests
     }
 
     [Fact]
-    public void FA0015_MissingForPull_Reports()
+    public void FA0015_EmptyTargets_Reports()
     {
         var diagnostics = AnalyzerTestHarness.Run(Usings + """
 
             namespace Test;
 
-            [AddAnalyzer<NoFilterAnalyzer>]
+            [AddAnalyzer<NoTargetAnalyzer>]
             public abstract class Host { }
 
-            public sealed class NoFilterAnalyzer : Analyzer { }
+            [ForPull((PullKind)0)]
+            public sealed class NoTargetAnalyzer : Analyzer { }
             """);
 
         Ids(diagnostics).ShouldContain("FA0015");
+    }
+
+    /// <summary>
+    /// A registered analyzer with no <c>[ForPull]</c> is a parse-lifetime analyzer, which is what most of
+    /// <c>CombatLogParser</c>'s own registrations are.
+    /// </summary>
+    [Fact]
+    public void FA0015_MissingForPull_Silent()
+    {
+        var diagnostics = AnalyzerTestHarness.Run(Usings + """
+
+            namespace Test;
+
+            [AddAnalyzer<ParseLifetimeAnalyzer>]
+            public abstract class Host { }
+
+            public sealed class ParseLifetimeAnalyzer : Analyzer { }
+            """);
+
+        Ids(diagnostics).ShouldNotContain("FA0015");
     }
 
     [Fact]
@@ -198,6 +295,31 @@ public class PullAnalyzerDiagnosticsTests
         Ids(diagnostics).ShouldNotContain("FA0016");
     }
 
+    /// <summary>
+    /// Two parse-lifetime analyzers share the <c>Analyzer</c> surface trivially and are constructed once
+    /// each, so FA0016 has nothing to say about them.
+    /// </summary>
+    [Fact]
+    public void FA0016_ParseLifetimeAnalyzers_Silent()
+    {
+        var diagnostics = AnalyzerTestHarness.Run(Usings + """
+
+            namespace Test;
+
+            [AddAnalyzer<StateA>]
+            [AddAnalyzer<StateB>]
+            public abstract class Host { }
+
+            public abstract class SharedBase : Analyzer { }
+
+            public sealed class StateA : SharedBase { }
+
+            public sealed class StateB : SharedBase { }
+            """);
+
+        Ids(diagnostics).ShouldNotContain("FA0016");
+    }
+
     [Fact]
     public void FA0016_OverlappingFilters_SharedInterface_Reports()
     {
@@ -281,6 +403,119 @@ public class PullAnalyzerDiagnosticsTests
             """);
 
         Ids(diagnostics).ShouldNotContain("FA0017");
+    }
+
+    [Fact]
+    public void FA0019_AddModuleOfAnalyzer_Reports()
+    {
+        var diagnostics = AnalyzerTestHarness.Run(Usings + """
+
+            namespace Test;
+
+            [AddModule<MyAnalyzer>]
+            public abstract class Host { }
+
+            public sealed class MyAnalyzer : Analyzer { }
+            """);
+
+        Ids(diagnostics).ShouldContain("FA0019");
+    }
+
+    [Fact]
+    public void FA0019_AddStateOfAnalyzer_Reports()
+    {
+        var diagnostics = AnalyzerTestHarness.Run(Usings + """
+
+            namespace Test;
+
+            [AddState<MyAnalyzer>]
+            public abstract class Host { }
+
+            public sealed class MyAnalyzer : Analyzer { }
+            """);
+
+        Ids(diagnostics).ShouldContain("FA0019");
+    }
+
+    [Fact]
+    public void FA0019_AddModuleOfModule_Silent()
+    {
+        var diagnostics = AnalyzerTestHarness.Run(Usings + """
+
+            namespace Test;
+
+            [AddModule<MyModule>]
+            public abstract class Host { }
+
+            public sealed class MyModule : Module { }
+            """);
+
+        Ids(diagnostics).ShouldNotContain("FA0019");
+    }
+
+    [Fact]
+    public void FA0020_ForPullOnNonAnalyzer_Reports()
+    {
+        var diagnostics = AnalyzerTestHarness.Run(Usings + """
+
+            namespace Test;
+
+            [ForPull(PullKind.Single)]
+            public sealed class NotAnAnalyzer : Module { }
+            """);
+
+        Ids(diagnostics).ShouldContain("FA0020");
+    }
+
+    [Fact]
+    public void FA0020_ForPullOnAnalyzer_Silent()
+    {
+        var diagnostics = AnalyzerTestHarness.Run(Usings + """
+
+            namespace Test;
+
+            [ForPull(PullKind.Single)]
+            public sealed class MyAnalyzer : Analyzer { }
+            """);
+
+        Ids(diagnostics).ShouldNotContain("FA0020");
+    }
+
+    [Fact]
+    public void FA0021_ForPullOnAbstractAnalyzer_Reports()
+    {
+        var diagnostics = AnalyzerTestHarness.Run(Usings + """
+
+            namespace Test;
+
+            [ForPull(PullKind.Single)]
+            public abstract class BaseAnalyzer : Analyzer { }
+            """);
+
+        Ids(diagnostics).ShouldContain("FA0021");
+    }
+
+    /// <summary>
+    /// The shape an abstract base is allowed to have: it declares the members, and each concrete subclass
+    /// declares its own <c>[ForPull]</c>.
+    /// </summary>
+    [Fact]
+    public void FA0021_AbstractBaseWithoutForPull_Silent()
+    {
+        var diagnostics = AnalyzerTestHarness.Run(Usings + """
+
+            namespace Test;
+
+            public abstract class BaseAnalyzer : Analyzer { }
+
+            [ForPull(PullKind.Single)]
+            public sealed class StAnalyzer : BaseAnalyzer { }
+
+            [ForPull(PullKind.Multi)]
+            public sealed class AoeAnalyzer : BaseAnalyzer { }
+            """);
+
+        Ids(diagnostics).ShouldNotContain("FA0021");
     }
 
     private static IEnumerable<string> Ids(IEnumerable<Diagnostic> diagnostics) =>

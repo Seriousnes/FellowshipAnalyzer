@@ -29,7 +29,7 @@ public class ModuleGeneratorObjectInitializerTests
 
         namespace Sample
         {
-            public partial class Probe : EventSubscriber
+            public partial class Probe : Analyzer
             {
                 [On<DamageEvent>(Spell = nameof(Rime.FreezingTorrent))]
                 private void OnChannel(DamageEvent e) { }

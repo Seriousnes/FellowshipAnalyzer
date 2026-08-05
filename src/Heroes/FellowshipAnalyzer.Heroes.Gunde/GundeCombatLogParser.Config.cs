@@ -6,7 +6,7 @@ public sealed partial class GundeCombatLogParser
 {
     public static HeroConfig HeroConfig { get; } = new()
     {
-        Support = SupportLevel.WIP,
+        Support = SupportLevel.Minimal,
         Maintainers = [Contributors.Seriousnes],
         SeasonLabel = Seasons.Season3,
         Changelog = Changelog.Entries,

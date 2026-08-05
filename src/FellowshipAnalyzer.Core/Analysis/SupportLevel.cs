@@ -7,10 +7,8 @@ public enum SupportLevel
 {
     /// <summary>No analysis is available for this hero.</summary>
     None,
-    /// <summary>Analysis is still being built out, but is not yet usable.</summary>
-    WIP,
-    /// <summary>Analysis is absent or incomplete.</summary>
-    Unmaintained,
+    /// <summary>Analysis covers a few of the hero's abilities.</summary>
+    Minimal,
     /// <summary>Analysis is still being built out.</summary>
     Partial,
     /// <summary>Analysis is largely complete.</summary>

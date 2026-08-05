@@ -108,7 +108,7 @@ public sealed class DefensiveAnalyzerTests
     }
 
     [Fact]
-    public async Task IronWall_RecordsTheToughnessItFroze()
+    public async Task IronWall_RecordsTheToughnessItHeld()
     {
         var analyzer = await IronWall(
             Cast(PullStart + 1_000, Spells.IronWall, toughness: 600),
@@ -123,7 +123,7 @@ public sealed class DefensiveAnalyzerTests
     }
 
     [Fact]
-    public async Task IronWall_PressedOnADepletedBar_IsNotCountedAsAHighToughnessUse()
+    public async Task IronWall_PressedAtLowToughness_IsNotCountedAsAHighToughnessUse()
     {
         var analyzer = await IronWall(
             Cast(PullStart + 1_000, Spells.IronWall, toughness: 100),

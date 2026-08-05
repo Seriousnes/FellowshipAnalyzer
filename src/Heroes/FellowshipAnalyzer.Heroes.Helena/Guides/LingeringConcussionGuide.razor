@@ -1,26 +1,18 @@
 @inherits ReportComponent<HelenaCombatLogParser>
 
 <GuideSection Title="Lingering Concussion">
-    <Explanation>
+    <LeftPanel>
         <p>
-            Every <SpellLink Spell="Spells.ShieldSlam" /> leaves Lingering Concussion on what it hits,
-            taking 3% off everything that target deals to you and stacking to five for a 15% cut. It
-            lasts twelve seconds, so holding it is a question of whether Shield Slam kept coming back
-            round rather than of anything you press in reaction.
+            Try to maintain 5 stacks of <SpellLink Spell="Spells.ShieldSlamReducedIncomingDamageFromTargetDebuff" /> on the
+            most dangerous target on trash pulls, and aim for 100% uptime on bosses.
         </p>
-        <p>
-            Uptime and stacks are read against whichever enemy carried the debuff longest, so a pull's
-            reading follows the thing actually hitting you rather than being diluted by adds that
-            passed through. Time spent under five stacks is time the debuff was up but not yet worth
-            what it can be.
-        </p>
-    </Explanation>
-    <ChildContent>
+    </LeftPanel>
+    <RightPanel>
         <CastOverview Title="Overview" Stats="@BuildOverviewStats()" />
         <CastDetail Title="Lingering Concussion By Pull"
                     Description="Uptime, stack time and gaps against each pull's primary target."
                     Casts="@BuildPerPullData()" />
-    </ChildContent>
+    </RightPanel>
 </GuideSection>
 
 @code {
@@ -49,22 +41,25 @@
             new OverviewStat(
                 $"{uptime:F1}%",
                 "Uptime",
-                "Share of pull time the primary target carried the debuff at any stack count.",
+                "Share of pull time the debuff was active on the primary target at any stack count. Each pull " +
+                "is read against whichever enemy had it active longest, so adds passing through never dilute " +
+                "the figure.",
                 PerformanceTiers.FromThresholds(uptime, 90, 75, 55)),
             new OverviewStat(
                 $"{capUptime:F1}%",
                 "At Five Stacks",
-                "Share of pull time the primary target sat at the five-stack cap, where the debuff is worth its full 15%.",
+                "Share of pull time the primary target sat at the five-stack cap.",
                 PerformanceTiers.FromThresholds(capUptime, 70, 50, 30)),
             new OverviewStat(
                 $"{reduction * 100:F1}%",
                 "Average Reduction",
-                "The damage reduction the debuff averaged across every pull, against the 15% five stacks allow.",
+                "The damage reduction the debuff averaged across every pull, counting time with it off the " +
+                "target as zero.",
                 PerformanceTiers.FromThresholds(reduction / (LingeringConcussionAnalyzer.MaxStacks * LingeringConcussionAnalyzer.ReductionPerStack) * 100, 70, 50, 30)),
             new OverviewStat(
                 $"{gaps}",
                 "Gaps",
-                "Stretches where the debuff came off the primary target and had to be reapplied."),
+                "Stretches with the debuff off the primary target."),
         ];
     }
 
@@ -77,7 +72,7 @@
                 Performance = PerformanceTiers.FromThresholds(analyzer.Uptime * 100, 90, 75, 55),
                 Stats = BuildPullStats(analyzer),
                 Details = analyzer.PrimaryTarget is null
-                    ? @<div>The debuff never landed in this pull.</div>
+                    ? @<div>The debuff was never applied in this pull.</div>
                     : null,
             };
         });
@@ -89,7 +84,7 @@
             new(
                 $"{analyzer.Uptime * 100:F1}%",
                 "Uptime",
-                "Share of the pull the primary target carried the debuff.",
+                "Share of the pull the debuff was active on the primary target.",
                 PerformanceTiers.FromThresholds(analyzer.Uptime * 100, 90, 75, 55)),
             new(
                 $"{analyzer.AtCapUptime * 100:F1}%",
@@ -110,7 +105,7 @@
             stats.Add(new PerCastStat(
                 $"{analyzer.BelowCapMs / 1000d:F1}s",
                 "Under The Cap",
-                "Time the debuff was up but short of five stacks, so worth less than the 15% it can be."));
+                "Time the debuff was active on the primary target below five stacks."));
         }
 
         if (analyzer.GapCount > 0)

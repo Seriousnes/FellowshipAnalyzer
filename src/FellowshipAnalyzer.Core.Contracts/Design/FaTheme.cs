@@ -86,7 +86,8 @@ public sealed record FaTheme(
                 Token(nameof(FaPalette.Frame), p.Frame),
                 Token(nameof(FaPalette.Blood), p.Blood),
                 Token(nameof(FaPalette.Rust), p.Rust),
-                Token(nameof(FaPalette.Stone), p.Stone));
+                Token(nameof(FaPalette.Stone), p.Stone),
+                Token(nameof(FaPalette.Ash), p.Ash));
 
             yield return Group("Brand artwork", nameof(FaPalette),
                 Token(nameof(FaPalette.BrandCream), p.BrandCream),
@@ -142,6 +143,11 @@ public sealed record FaTheme(
                 Token(nameof(FaPalette.Fire4), p.Fire4),
                 Token(nameof(FaPalette.Fire5), p.Fire5),
                 Token(nameof(FaPalette.Fire6), p.Fire6));
+
+            yield return Group("Item qualities", nameof(FaPalette),
+                Token(nameof(FaPalette.Legendary), p.Legendary),
+                Token(nameof(FaPalette.Regal), p.Regal),
+                Token(nameof(FaPalette.Epic), p.Epic));
 
             yield return Group("Hero roles", nameof(FaPalette),
                 Token(nameof(FaPalette.RoleTank), p.RoleTank),

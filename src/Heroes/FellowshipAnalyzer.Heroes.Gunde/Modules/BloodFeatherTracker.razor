@@ -1,16 +1,10 @@
-@inherits EventSubscriber
+@inherits Analyzer
 
 @code {
-    /// <inheritdoc/>
     public override RenderFragment? Statistic => Generated > 0 || Spent > 0 ? Card : null;
 
     private RenderFragment Card =>
         @<StatCard Title="Blood Feathers">
-            <Info>
-                The Blood Feather bank across the whole run, reconstructed from the Owed in Blood self-buff
-                because Gunde logs carry no resource snapshots. Feathers drop from bleeding enemies and are
-                picked up off the ground, so what reaches the bank is partly a movement stat.
-            </Info>
             <ChildContent>
                 <CastOverview Title="Feather Pool" Stats="@BuildOverviewStats()" />
                 @if (Total > 0)
@@ -32,18 +26,18 @@
         [
             new OverviewStat(
                 $"{Generated}",
-                "Picked Up",
+                "Gained",
                 "Blood Feathers observed arriving in the bank over the run."),
             new OverviewStat(
                 $"{Spent}",
                 "Converted",
-                "Blood Feathers Owed in Blood turned into Rend."),
+                "Blood Feathers an Owed in Blood cast converted."),
             new OverviewStat(
                 $"{Decayed}",
                 "Decayed",
                 Generated > 0
-                    ? $"Blood Feathers the buff shed with no Owed in Blood cast to account for them, {decayRate:F0}% of observed pickups."
-                    : "Blood Feathers the buff shed with no Owed in Blood cast to account for them."),
+                    ? $"Blood Feathers that expired unused, {decayRate:F0}% of those gained."
+                    : "Blood Feathers that expired unused."),
             new OverviewStat(
                 $"{Current}",
                 "Held at End",
@@ -51,16 +45,16 @@
             new OverviewStat(
                 FormatSeconds(CappedMs),
                 "Time at Cap",
-                $"Time the bank sat at {MaxBloodFeathers}. A feather landing on a full pool produces no event at all, so it can never be counted; time at the cap is the honest measure of what was thrown away."),
+                $"Time the bank sat at {MaxBloodFeathers}. A feather arriving on a full pool produces no event, so time at the cap stands in for the feathers that were lost."),
         ];
     }
 
     private IEnumerable<StackedBarSegment> BuildStackedBar() =>
     [
         new StackedBarSegment("Converted", Spent, PerformanceColors.Good,
-            $"Converted: {Spent} feathers turned into Rend"),
+            $"Converted: {Spent} feathers"),
         new StackedBarSegment("Decayed", Decayed, PerformanceColors.Fail,
-            $"Decayed: {Decayed} feathers shed with no cast to account for them"),
+            $"Decayed: {Decayed} feathers that expired unused"),
         new StackedBarSegment("Held", Current, PerformanceColors.Neutral,
             $"Held: {Current} feathers banked at the end"),
     ];

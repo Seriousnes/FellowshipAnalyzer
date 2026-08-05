@@ -1,0 +1,141 @@
+@using Spells = FellowshipAnalyzer.Core.Common.Spells.Gunde.Spells
+@inherits ReportComponent<GundeCombatLogParser>
+
+<GuideSection Title="Burst Windows">
+    <LeftPanel>
+        <p>
+            Combine <SpellLink Spell="Spells.BloodboundSpirit" />,
+            <SpellLink Spell="Spells.OwedInBlood" />, and <SpellLink Spell="Spells.ReignInBlood" />
+            to set up a large <SpellLink Spell="Spells.Rend" />, then consume with a
+            <SpellLink Spell="Spells.Rupture" /> empowered <SpellLink Spell="Spells.Slaughter" />.
+        </p>
+    </LeftPanel>
+    <RightPanel>
+        <CastOverview Title="Burst Overview" Stats="@BuildOverviewStats()" />
+        @if (TotalWindows == 0)
+        {
+            <TipBox Variant="TipBoxVariant.Info">
+                Reign in Blood was never.
+            </TipBox>
+        }
+        else
+        {
+            <CastDetail Title="Reign in Blood Windows"
+                        Description="Each card is one Reign in Blood window, rated on how many of Rupture, Bloodbound Spirit and Owed in Blood were cast inside it."
+                        Casts="@BuildPerCastData()" />
+        }
+    </RightPanel>
+</GuideSection>
+
+@code {
+    private int TotalWindows => Parser.BurstAnalyzers.Sum(entry => entry.Analyzer.WindowCount);
+
+    private IEnumerable<OverviewStat> BuildOverviewStats()
+    {
+        var analyzers = Parser.BurstAnalyzers.Select(entry => entry.Analyzer).ToList();
+        var opened = analyzers.Sum(analyzer => analyzer.WindowCount);
+        var full = analyzers.Sum(analyzer => analyzer.FullWindows);
+        var strayRuptures = analyzers.Sum(analyzer => analyzer.OutOfWindowRuptures);
+        var straySpirits = analyzers.Sum(analyzer => analyzer.OutOfWindowBloodboundSpirits);
+
+        var fullRate = opened > 0 ? (int)Math.Round((double)full / opened * 100) : 0;
+
+        return
+        [
+            new OverviewStat(
+                $"{opened}",
+                "Windows Opened",
+                "Reign in Blood windows opened across the run. Reported as context rather than scored."),
+            new OverviewStat(
+                $"{full}",
+                "Full Windows",
+                opened > 0
+                    ? $"{full} of {opened} windows had Rupture, Bloodbound Spirit and Owed in Blood all cast inside. A cast up to {BurstAnalyzer.LeadInMs / 1000} seconds before the buff was applied counts as inside."
+                    : "No Reign in Blood window was opened, so none could be judged.",
+                opened > 0 ? PercentTier(fullRate) : null),
+            new OverviewStat(
+                $"{strayRuptures}",
+                "Rupture Outside",
+                "Ruptures cast outside every Reign in Blood window. This is context, not a verdict."),
+            new OverviewStat(
+                $"{straySpirits}",
+                "Spirit Outside",
+                "Bloodbound Spirits cast outside every Reign in Blood window. This is context, not a verdict."),
+        ];
+    }
+
+    private IEnumerable<PerCastData> BuildPerCastData() =>
+        Parser.BurstAnalyzers.ToItemRows(Parser, analyzer => analyzer.Windows, (window, pull) => BuildWindowRow(window));
+
+    private PerCastRow BuildWindowRow(BurstAnalyzer.BurstWindow window)
+    {
+        var perf = window.PresentCount switch
+        {
+            3 => QualitativePerformance.Perfect,
+            2 => QualitativePerformance.Good,
+            1 => QualitativePerformance.Ok,
+            _ => QualitativePerformance.Fail,
+        };
+
+        var stats = new[]
+        {
+            new PerCastStat(
+                window.RuptureIn ? "Yes" : "No",
+                "Rupture",
+                "Whether Rupture was cast inside this window.",
+                window.RuptureIn ? QualitativePerformance.Perfect : QualitativePerformance.Fail),
+            new PerCastStat(
+                window.BloodboundSpiritIn ? "Yes" : "No",
+                "Bloodbound Spirit",
+                "Whether Bloodbound Spirit was cast inside this window.",
+                window.BloodboundSpiritIn ? QualitativePerformance.Perfect : QualitativePerformance.Fail),
+            new PerCastStat(
+                window.OwedInBloodIn ? "Yes" : "No",
+                "Owed in Blood",
+                "Whether Owed in Blood was cast inside this window.",
+                window.OwedInBloodIn ? QualitativePerformance.Perfect : QualitativePerformance.Fail),
+            new PerCastStat(
+                FormatSeconds(window.End - window.Start),
+                "Duration",
+                $"How long the Reign in Blood buff was active. A cast up to {BurstAnalyzer.LeadInMs / 1000} seconds before it was applied counts as inside."),
+        };
+
+        return new PerCastRow
+        {
+            Performance = perf,
+            Stats = stats,
+            Timestamp = window.Start,
+            AdditionalContent = new AdditionalContent("Alignment Notes", @<div>@BuildNote(window)</div>),
+        };
+    }
+
+    private static string BuildNote(BurstAnalyzer.BurstWindow window)
+    {
+        var missing = new List<string>();
+        if (!window.RuptureIn) missing.Add("Rupture");
+        if (!window.BloodboundSpiritIn) missing.Add("Bloodbound Spirit");
+        if (!window.OwedInBloodIn) missing.Add("Owed in Blood");
+
+        if (missing.Count == 0)
+            return "Rupture, Bloodbound Spirit and Owed in Blood were all cast inside this window.";
+
+        if (missing.Count == BurstAnalyzer.BurstWindow.CooldownCount)
+            return "None of the three was cast inside this window - press them inside the next Reign in Blood.";
+
+        var held = missing.Count == 1 ? "it" : "them";
+        var verb = missing.Count == 1 ? "was" : "were";
+        return $"{JoinNames(missing)} {verb} cast outside this window - hold {held} for the next Reign in Blood.";
+    }
+
+    private static string JoinNames(List<string> names) =>
+        names.Count switch
+        {
+            1 => names[0],
+            2 => $"{names[0]} and {names[1]}",
+            _ => $"{string.Join(", ", names.Take(names.Count - 1))} and {names[^1]}",
+        };
+
+    private static string FormatSeconds(int milliseconds) => $"{milliseconds / 1000d:0.#}s";
+
+    private static QualitativePerformance PercentTier(int percent) => PerformanceTiers.FromThresholds(percent, 75, 50, 25);
+}

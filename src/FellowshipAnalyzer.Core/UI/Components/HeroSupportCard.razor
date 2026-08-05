@@ -4,7 +4,7 @@
     var hero = Hero.For(Entry.Hero);
     var config = Entry.Config;
     var reportHref = string.IsNullOrEmpty(config.ExampleReport) ? null : $"/report/{config.ExampleReport}";
-    var showSeason = !string.IsNullOrEmpty(config.SeasonLabel) && config.Support != SupportLevel.Unmaintained;
+    var showSeason = !string.IsNullOrEmpty(config.SeasonLabel) && config.Support != SupportLevel.None;
 }
 
 <div class="hero-support-card@(reportHref is null ? "" : " linkable")"

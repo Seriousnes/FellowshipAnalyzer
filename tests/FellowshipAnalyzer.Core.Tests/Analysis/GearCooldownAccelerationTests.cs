@@ -3,6 +3,7 @@ using FellowshipAnalyzer.Core.Analysis.Normalizers;
 using FellowshipAnalyzer.Core.Common.Spells;
 using FellowshipAnalyzer.Core.Events;
 using FellowshipAnalyzer.Core.FellowshipLogs;
+using FellowshipAnalyzer.Core.UI;
 
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -140,9 +141,9 @@ public sealed class GearCooldownAccelerationTests
 
         var cdr = spellUsable.ReduceCooldown(SpellB, 1000, timestamp: 1000);
 
-        Assert.Equal(1000, cdr.GeneratedMs);
-        Assert.Equal(1000, cdr.AppliedMs);
-        Assert.Equal(0, cdr.WastedMs);
+        Assert.Equal(1000, cdr.Total);
+        Assert.Equal(1000, cdr.Effective);
+        Assert.Equal(0, cdr.Wasted);
     }
 
     /// <summary>

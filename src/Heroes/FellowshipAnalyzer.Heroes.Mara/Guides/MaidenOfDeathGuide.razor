@@ -1,119 +1,121 @@
 @inherits ReportComponent<MaraCombatLogParser>
 
 <GuideSection Title="Maiden of Death Windows">
-    <Explanation>
+    <LeftPanel>
         <p>
-            <SpellLink Spell="Spells.MaidenOfDeath" /> and <SpellLink Spell="Spells.MatriarchMacabre" />
-            each raise your damage by 20%, so every window below is scored on the
-            <SpellLink Spell="Spells.QueenFang" /> and <SpellLink Spell="Spells.ArachnidAssault" /> casts
-            that landed inside it and the combo points those finishers carried.
+            While <SpellLink Spell="Spells.MaidenOfDeath" /> is active, alternate builders and spend with
+            <SpellLink Spell="Spells.QueenFang" /> / <SpellLink Spell="Spells.ArachnidAssault" />. Avoid two
+            builders back to back, and avoid opening the window on near-full combo points.
         </p>
         <p>
-            Overlapping both buffs at the same time they is sub-optimal because everything pressed 
-            there takes both damage bonuses. A <SpellLink Spell="Spells.FinalStratagem" /> or 
-            <SpellLink Spell="Spells.MacabreStratagem" /> cast inside a window is counted the same way: the 
-            resources and cooldowns it hands back are spent while the buff is still up.
+            Aim to pair it with <SpellLink Spell="Spells.MatriarchMacabre" /> when possible, but do not delay
+            either to line them up if that costs a cast.
         </p>
-        <p>
-            Between windows every Maiden of Death recast is measured against its
-            @(MaidenOfDeathWindowAnalyzer.RechargeMs / 1000)-second recharge. Anything beyond that is
-            counted here as time the charge was ready and unspent.
-        </p>
-    </Explanation>
-    <ChildContent>
+    </LeftPanel>
+    <RightPanel>
         <CastOverview Title="Window Overview" Stats="@BuildOverviewStats()" />
         <CastDetail Title="Burst Windows"
-                    Description="Each row is one window, from the first buff application to the removal of the last, with everything cast inside it."
+                    Description="Each row is one Maiden of Death window, from the buff being applied to its removal, with everything cast inside it."
                     Casts="@BuildPerCastData()" />
-    </ChildContent>
+    </RightPanel>
 </GuideSection>
 
 @code {
-    private List<MaidenOfDeathWindowAnalyzer> Analyzers() =>
-        [.. Parser.MaidenOfDeathWindowAnalyzers.Select(entry => entry.Analyzer)];
+    private List<MaidenOfDeathAnalyzer> Analyzers() =>
+        [.. Parser.MaidenOfDeathAnalyzers.Select(entry => entry.Analyzer)];
 
     private IEnumerable<OverviewStat> BuildOverviewStats()
     {
         var analyzers = Analyzers();
 
         var windows = analyzers.Sum(analyzer => analyzer.WindowCount);
-        var overlapped = analyzers.Sum(analyzer => analyzer.OverlappedWindows);
-        var finishers = analyzers.Sum(analyzer => analyzer.ScoredFinishersInWindows);
-        var comboPoints = analyzers.Sum(analyzer => analyzer.ComboPointsSpentInWindows);
-        var averageFinishers = windows == 0 ? 0d : (double)finishers / windows;
+        var clean = analyzers.Sum(analyzer => analyzer.CleanWindows);
+        var generators = analyzers.Sum(analyzer => analyzer.GeneratorsInWindows);
+        var spenders = analyzers.Sum(analyzer => analyzer.SpendersInWindows);
+        var wasted = analyzers.Sum(analyzer => analyzer.WastedGeneratorCasts);
+        var idleMs = analyzers.Sum(analyzer => analyzer.IdleMs);
+        var gaps = analyzers.Sum(analyzer => analyzer.GapCount);
+        var lostCasts = analyzers.Sum(analyzer => analyzer.LostCasts);
 
         var recasts = analyzers.Sum(analyzer => analyzer.MaidenOfDeathRecasts.Count);
         var heldMs = analyzers.Sum(analyzer => analyzer.TotalHeldMs);
         var averageHeldSeconds = recasts == 0 ? 0d : heldMs / 1000d / recasts;
 
-        var resets = analyzers.Sum(analyzer => analyzer.ResetCasts);
-        var resetsInWindows = analyzers.Sum(analyzer => analyzer.ResetCastsInWindows);
-
         return
         [
             new OverviewStat(
-                $"{windows}",
-                "Burst Windows",
-                $"Maiden of Death and Matriarch Macabre windows across every pull; {overlapped} held both buffs at once."),
+                $"{clean}/{windows}",
+                "Clean Cycles",
+                windows == 0
+                    ? "No Maiden of Death window was observed, so there is nothing to measure."
+                    : $"Windows that ran with no doubled builder and no idle time, across {generators} builders and {spenders} spenders.",
+                CleanTier(clean, windows)),
             new OverviewStat(
-                $"{averageFinishers:0.0}",
-                "Finishers per Window",
-                $"{finishers} Queen's Fang and Arachnid Assault casts landed inside a window, spending {comboPoints} combo points under the buff.",
-                FinisherTier(averageFinishers, windows)),
+                $"{wasted}",
+                "Builders Doubled Up",
+                $"Builders pressed after another builder with no spender between them, or on a window that opened at {MaidenOfDeathAnalyzer.OpeningComboPointLimit} combo points or more.",
+                WasteTier(wasted, generators)),
+            new OverviewStat(
+                FormatSeconds(idleMs),
+                "Idle in Window",
+                gaps == 0
+                    ? $"No stretch of {MaidenOfDeathAnalyzer.MinimumGapMs / 1000d:0.#}s or longer passed without a cast."
+                    : $"{Count(gaps, "idle stretch", "idle stretches")} of at least {MaidenOfDeathAnalyzer.MinimumGapMs / 1000d:0.#}s, room for about {Count(lostCasts, "more cast")} at one global cooldown each.",
+                IdleTier(lostCasts, windows)),
             new OverviewStat(
                 FormatSeconds(heldMs),
                 "Maiden of Death Held",
                 recasts == 0
                     ? "Maiden of Death was cast at most once per pull, so no recast could be measured against its recharge."
-                    : $"Time a ready charge went unspent across {Count(recasts, "recast")}, {averageHeldSeconds:0.#}s per recast on average.",
+                    : $"Time a ready charge went unspent across {Count(recasts, "recast")}, {averageHeldSeconds:0.#}s per recast on average, measured against a {MaidenOfDeathAnalyzer.RechargeMs / 1000}-second recharge.",
                 HeldTier(averageHeldSeconds, recasts)),
-            new OverviewStat(
-                $"{resetsInWindows}/{resets}",
-                "Resets Inside a Window",
-                resets == 0
-                    ? "No Final Stratagem or Macabre Stratagem was cast, so there is nothing to place against a window."
-                    : "Final Stratagem and Macabre Stratagem casts made while a burst buff was active.",
-                ResetTier(resetsInWindows, resets)),
         ];
     }
 
     private IEnumerable<PerCastData> BuildPerCastData() =>
-        Parser.MaidenOfDeathWindowAnalyzers.ToItemRows(
+        Parser.MaidenOfDeathAnalyzers.ToItemRows(
             Parser, analyzer => analyzer.Windows, (window, pull) => BuildWindowRow(window));
 
     private PerCastRow BuildWindowRow(MaidenOfDeathWindow window)
     {
-        var finisherTier = FinisherTier(window.ScoredFinisherCasts, 1);
-
         var stats = new[]
         {
             new PerCastStat(
                 FormatSeconds(window.DurationMs),
                 "Window",
-                "How long a burst buff was active, from the first application to the removal that left neither up."),
+                "How long the Maiden of Death buff was active."),
             new PerCastStat(
-                BuffLabel(window),
-                "Buffs",
-                BuffTooltip(window)),
+                $"{window.GeneratorCasts}/{window.SpenderCasts}",
+                "Builders / Spenders",
+                "Combo point builders and spenders cast inside the window."),
             new PerCastStat(
-                $"{window.ScoredFinisherCasts}",
-                "Finishers",
-                "Queen's Fang and Arachnid Assault casts made inside the window.",
-                Performance: finisherTier),
+                window.ComboPointsAtOpen is { } atOpen ? $"{atOpen}" : "-",
+                "Combo Points at Open",
+                window.ComboPointsAtOpen is null
+                    ? "The combo point tracker recorded nothing at or before this window opened."
+                    : "Combo points held as the window opened."),
             new PerCastStat(
-                $"{window.FinisherComboPointsSpent}",
+                $"{window.WastedGeneratorCasts}",
+                "Builders Doubled Up",
+                $"Builders pressed after another builder with no spender between them, or on a window that opened at {MaidenOfDeathAnalyzer.OpeningComboPointLimit} combo points or more.",
+                Performance: WasteTier(window.WastedGeneratorCasts, window.GeneratorCasts)),
+            new PerCastStat(
+                FormatSeconds(window.IdleMs),
+                "Idle",
+                window.GapCount == 0
+                    ? "No stretch inside the window passed without a cast."
+                    : $"{Count(window.GapCount, "idle stretch", "idle stretches")}, longest {FormatSeconds(window.LongestGapMs)}, room for about {Count(window.LostCasts, "more cast")}.",
+                Performance: IdleTier(window.LostCasts, 1)),
+            new PerCastStat(
+                $"{window.ComboPointsSpent}",
                 "Combo Points Spent",
-                "Combo points carried into the finishers cast inside the window."),
+                "Combo points held going into the spenders cast inside the window."),
             new PerCastStat(
                 window.EnergyAtClose is { } energy ? $"{energy}" : "-",
                 "Energy Into Last Cast",
                 window.EnergyAtClose is null
                     ? "No cast inside the window reported an Energy snapshot."
                     : "Energy available going into the last cast made inside the window."),
-            new PerCastStat(
-                window.ResetCast ? "Yes" : "No",
-                "Reset Inside",
-                "Whether Final Stratagem or Macabre Stratagem was cast while the buff was still active."),
         };
 
         return new PerCastRow
@@ -126,47 +128,30 @@
         };
     }
 
-    private static string BuffLabel(MaidenOfDeathWindow window) =>
-        window.Overlapped ? "Overlapped"
-        : window.HadMaidenOfDeath && window.HadMatriarchMacabre ? "Both"
-        : window.HadMaidenOfDeath ? "Maiden"
-        : "Matriarch";
-
-    private static string BuffTooltip(MaidenOfDeathWindow window) =>
-        window.Overlapped
-            ? "Maiden of Death and Matriarch Macabre were active at the same time, so both damage bonuses applied inside this window."
-            : window.HadMaidenOfDeath && window.HadMatriarchMacabre
-                ? "Both buffs took part in this window, but they were never active at the same time."
-                : window.HadMaidenOfDeath
-                    ? "Only Maiden of Death was active during this window."
-                    : "Only Matriarch Macabre was active during this window.";
-
-    private string BuildWindowNote(MaidenOfDeathWindow window)
+    private static string BuildWindowNote(MaidenOfDeathWindow window)
     {
-        var notes = new List<string>();
+        if (window.Casts.Count == 0)
+            return "Nothing was cast inside this window.";
 
-        if (window.ScoredFinisherCasts == 0)
+        var notes = new List<string>
         {
-            notes.Add(window.Casts.Count == 0
-                ? "nothing was cast inside this window"
-                : $"none of the {Count(window.Casts.Count, "cast")} inside this window was a Queen's Fang or Arachnid Assault");
-        }
-        else
-        {
-            notes.Add($"{Count(window.ScoredFinisherCasts, "finisher")} spent {Count(window.FinisherComboPointsSpent, "combo point")} under the buff");
-        }
+            $"{Count(window.GeneratorCasts, "builder")} and {Count(window.SpenderCasts, "spender")} went out",
+        };
 
-        if (window.Overlapped)
-            notes.Add("Matriarch Macabre overlapped Maiden of Death, so both damage bonuses stacked here");
+        if (window.WastedGeneratorCasts > 0)
+            notes.Add($"{Count(window.WastedGeneratorCasts, "builder")} went out on an unspent pool");
 
-        if (window.ResetCast)
-            notes.Add($"{Count(window.ResetCasts, "reset")} landed inside the window, so what it returned was spent buffed");
+        if (window.ComboPointsAtOpen is { } atOpen && atOpen >= MaidenOfDeathAnalyzer.OpeningComboPointLimit)
+            notes.Add($"the window opened on {Count(atOpen, "combo point")}");
 
-        if (window.EnergyAtClose is { } energy)
-            notes.Add($"the last cast in the window went out on {energy} Energy");
+        if (window.GapCount > 0)
+            notes.Add($"{FormatSeconds(window.IdleMs)} passed with nothing going out, the longest stretch {FormatSeconds(window.LongestGapMs)}");
 
-        if (window.GeneratorCasts > 0 && window.ScoredFinisherCasts == 0)
-            notes.Add($"{Count(window.GeneratorCasts, "generator cast")} filled the window with nothing spending the combo points");
+        if (window.SpenderCasts == 0 && window.GeneratorCasts > 0)
+            notes.Add("no spender went out after the builders");
+
+        if (window.CleanCycle)
+            notes.Add("the cycle ran clean");
 
         return Sentence(notes);
     }
@@ -174,7 +159,7 @@
     private static string Sentence(List<string> notes)
     {
         if (notes.Count == 0)
-            return "This window recorded no casts to score.";
+            return "This window recorded no casts to measure.";
 
         var joined = string.Join("; ", notes);
         return $"{char.ToUpperInvariant(joined[0])}{joined[1..]}.";
@@ -183,11 +168,29 @@
     private static string Count(int value, string noun) =>
         value == 1 ? $"1 {noun}" : $"{value} {noun}s";
 
+    private static string Count(int value, string singular, string plural) =>
+        value == 1 ? $"1 {singular}" : $"{value} {plural}";
+
     private static string FormatSeconds(int milliseconds) =>
         $"{milliseconds / 1000d:0.#}s";
 
-    private static QualitativePerformance? FinisherTier(double averageFinishers, int windows) =>
-        windows == 0 ? null : PerformanceTiers.FromThresholds(averageFinishers, 3, 2, 1);
+    private static int Percent(int part, int total) =>
+        total == 0 ? 0 : (int)Math.Round((double)part / total * 100);
+
+    private static QualitativePerformance? CleanTier(int clean, int windows) =>
+        windows == 0 ? null : PerformanceTiers.FromThresholds(Percent(clean, windows), 100, 75, 50);
+
+    private static QualitativePerformance? WasteTier(int wasted, int generators) =>
+        generators == 0 ? null
+        : wasted == 0 ? QualitativePerformance.Perfect
+        : PerformanceTiers.FromThresholds(100 - Percent(wasted, generators), 90, 75, 50);
+
+    private static QualitativePerformance? IdleTier(int lostCasts, int windows) =>
+        windows == 0 ? null
+        : lostCasts == 0 ? QualitativePerformance.Perfect
+        : lostCasts <= windows ? QualitativePerformance.Good
+        : lostCasts <= windows * 2 ? QualitativePerformance.Ok
+        : QualitativePerformance.Fail;
 
     private static QualitativePerformance? HeldTier(double averageHeldSeconds, int recasts) =>
         recasts == 0 ? null
@@ -196,26 +199,14 @@
         : averageHeldSeconds < 15 ? QualitativePerformance.Ok
         : QualitativePerformance.Fail;
 
-    private static QualitativePerformance? ResetTier(int inWindows, int total) =>
-        total == 0 ? null
-        : inWindows >= total ? QualitativePerformance.Perfect
-        : inWindows > 0 ? QualitativePerformance.Ok
-        : QualitativePerformance.Fail;
-
     private static QualitativePerformance WindowTier(MaidenOfDeathWindow window)
     {
-        if (window.ScoredFinisherCasts == 0)
+        if (window.Casts.Count == 0)
             return QualitativePerformance.Fail;
 
-        var tier = PerformanceTiers.FromThresholds(window.ScoredFinisherCasts, 3, 2, 1);
-        if (!window.Overlapped && !window.ResetCast)
-            return tier;
+        var waste = WasteTier(window.WastedGeneratorCasts, window.GeneratorCasts) ?? QualitativePerformance.Ok;
+        var idle = IdleTier(window.LostCasts, 1) ?? QualitativePerformance.Ok;
 
-        return tier switch
-        {
-            QualitativePerformance.Good => QualitativePerformance.Perfect,
-            QualitativePerformance.Ok => QualitativePerformance.Good,
-            _ => tier,
-        };
+        return waste < idle ? waste : idle;
     }
 }

@@ -1,124 +1,205 @@
 @using FellowshipAnalyzer.Core.Common.Spells
 @using Spells = FellowshipAnalyzer.Core.Common.Spells.Tariq.Spells
+@using Talents = FellowshipAnalyzer.Core.Common.Spells.Tariq.Talents
 @inherits ReportComponent<TariqCombatLogParser>
 
 @{
-    var windows = AllWindows();
+    var analyzers = Parser.FocusedWrathAnalyzers.Select(entry => entry.Analyzer).ToList();
+    var windows = analyzers.SelectMany(analyzer => analyzer.Windows).ToList();
+    var talented = analyzers.Any(analyzer => analyzer.SchismTalented);
 }
 
 @if (windows.Count > 0)
 {
     <GuideSection Title="Focused Wrath">
-        <Explanation>
-            <p>
-                Spend <SpellLink Spell="Spells.FocusedWrath" /> on the spender that costs most. The discount
-                is a share of the price, so it is worth twice as much on
-                <SpellLink Spell="Spells.HammerStorm" /> at @FuryEconomyAnalyzer.HammerStormCost Fury as on
-                <SpellLink Spell="Spells.SkullCrusher" /> at @FuryEconomyAnalyzer.SkullCrusherCost, and least
-                on <SpellLink Spell="Spells.CullingStrike" />, which spends only up to
-                @FuryEconomyAnalyzer.CullingStrikeMaxSpend.
-            </p>
-            <p>
-                The buff is not only yours to press - <SpellLink Spell="Spells.LeapSmash" /> procs it too - so
-                every buff is counted, however it arrived. Press Focused Wrath itself only with a spender
-                ready to take the discount.
-            </p>
-        </Explanation>
-        <ChildContent>
-            <CastOverview Title="Focused Wrath Overview" Stats="@BuildOverviewStats(windows)" />
+        <LeftPanel>
+            @if (talented)
+            {
+                <p>
+                    Attempt to spend both <SpellLink Spell="Talents.Schism" /> empowered <SpellLink Spell="Spells.HammerStorm" /> with
+                    the <SpellLink Spell="Spells.FocusedWrath" />, in both AoE and single target.
+                </p>
+            }
+            else
+            {
+                <p>
+                    Spend the charges of <SpellLink Spell="Spells.FocusedWrath" /> on
+                    <SpellLink Spell="Spells.HammerStorm" /> or <SpellLink Spell="Spells.SkullCrusher" /> is mostly
+                    determined by target count. For single target, or high priority targets use <SpellLink Spell="Spells.SkullCrusher" />,
+                    or <SpellLink Spell="Spells.HammerStorm" /> at @HammerStormAnalyzer.TargetBreakEven or more targets.
+                </p>
+            }
+        </LeftPanel>
+        <RightPanel>
+            <CastOverview Title="Focused Wrath Overview" Stats="@BuildOverviewStats(analyzers)" />
 
             <CastDetail Title="Focused Wrath Buffs"
-                        Description="Each card is one Focused Wrath buff, rated on whether a spender consumed it before it fell off."
+                        Description="Each card is one Focused Wrath buff: the charges it granted, the spender each charge went to, and where the buff came from."
                         Casts="@BuildWrathRows()" />
-        </ChildContent>
+        </RightPanel>
     </GuideSection>
 }
 
 @code {
-    private List<FocusedWrathWindow> AllWindows() =>
-        Parser.FocusedWrathAnalyzers.SelectMany(entry => entry.Analyzer.Windows).ToList();
-
-    private IEnumerable<OverviewStat> BuildOverviewStats(List<FocusedWrathWindow> windows)
+    private IEnumerable<OverviewStat> BuildOverviewStats(List<FocusedWrathAnalyzer> analyzers)
     {
-        var consumed = windows.Count(window => window.Consumed);
-        var expired = windows.Count(window => !window.Consumed && !window.ClippedByPullEnd);
-        var fromCast = windows.Count(window => window.FromCast);
-        var analyzers = Parser.FocusedWrathAnalyzers.Select(entry => entry.Analyzer).ToList();
-        var castsWithoutSpender = analyzers.Sum(analyzer => analyzer.CastsWithoutSpender);
-        var casts = analyzers.Sum(analyzer => analyzer.CastCount);
+        var granted = analyzers.Sum(analyzer => analyzer.ChargesGranted);
+        var consumed = analyzers.Sum(analyzer => analyzer.ChargesConsumed);
+        var wasted = analyzers.Sum(analyzer => analyzer.ChargesWasted);
+        var fromCast = analyzers.Sum(analyzer => analyzer.ChargesFromCast);
+        var fromProc = analyzers.Sum(analyzer => analyzer.ChargesFromProc);
+        var correct = analyzers.Sum(analyzer => analyzer.CorrectSpenders);
+        var wrong = analyzers.Sum(analyzer => analyzer.WrongSpenders);
+        var unnamed = analyzers.Sum(analyzer => analyzer.UnratedConsumptions);
+        var rated = correct + wrong;
 
         var stats = new List<OverviewStat>
         {
             new(
-                $"{consumed}/{windows.Count}",
-                "Buffs Consumed",
-                $"Buffs a spender took the discount from, out of {windows.Count}. {expired} fell off unused. "
-                + $"{fromCast} came from a Focused Wrath cast, {windows.Count - fromCast} from a Leap Smash proc.",
-                expired == 0 ? QualitativePerformance.Perfect : QualitativePerformance.Ok),
-            new(
-                DiscountSplit(analyzers),
-                "Discount Went To",
-                "Hammer Storm / Skull Crusher / Culling Strike consumptions. The discount is a share of the spender's cost, so it is worth twice as much on Hammer Storm as on Skull Crusher."),
+                $"{consumed}/{granted}",
+                "Charges Spent",
+                $"Charges a spender took. {wasted} expired unspent. "
+                + $"{fromCast} came from a Focused Wrath cast and {fromProc} from a Leap Smash proc.",
+                wasted == 0
+                    ? QualitativePerformance.Perfect
+                    : PerformanceTiers.FromThresholds(consumed * 100d / granted, 100, 95, 85)),
         };
 
-        if (casts > 0)
+        if (rated > 0)
         {
-            var consumedPresses = analyzers.Sum(analyzer => analyzer.CastsWithConsumedBuff);
-
             stats.Add(new OverviewStat(
-                $"{consumedPresses}/{casts}",
-                "Presses That Landed",
-                $"Focused Wrath casts whose own buff reached a spender. {castsWithoutSpender} pressed with nothing to spend it on.",
-                castsWithoutSpender == 0 ? QualitativePerformance.Perfect : QualitativePerformance.Fail));
+                $"{correct}/{rated}",
+                "Correct Spender",
+                $"Charges that went to the spender their pull calls for. {wrong} went to the other one."
+                + (unnamed > 0 ? $" A further {unnamed} had no spender cast to name them." : string.Empty),
+                PerformanceTiers.FromThresholds(correct * 100d / rated, 95, 85, 70)));
         }
+
+        stats.Add(new OverviewStat(
+            SpenderSplit(analyzers),
+            "Spender Split",
+            "Charges Hammer Storm took, against those Skull Crusher took."));
 
         return stats;
     }
 
-    private static string DiscountSplit(List<FocusedWrathAnalyzer> analyzers) =>
+    private static string SpenderSplit(List<FocusedWrathAnalyzer> analyzers) =>
         $"{analyzers.Sum(analyzer => analyzer.HammerStormConsumptions)} / "
-        + $"{analyzers.Sum(analyzer => analyzer.SkullCrusherConsumptions)} / "
-        + $"{analyzers.Sum(analyzer => analyzer.CullingStrikeConsumptions)}";
+        + $"{analyzers.Sum(analyzer => analyzer.SkullCrusherConsumptions)}";
 
     private IEnumerable<PerCastData> BuildWrathRows() =>
         Parser.FocusedWrathAnalyzers.ToItemRows(Parser, analyzer => analyzer.Windows, (window, pull) => BuildWrathRow(window));
 
-    private PerCastRow BuildWrathRow(FocusedWrathWindow window)
+    private static PerCastRow BuildWrathRow(FocusedWrathWindow window)
     {
-        var performance = window.Consumed
-            ? QualitativePerformance.Perfect
-            : window.ClippedByPullEnd ? QualitativePerformance.Ok : QualitativePerformance.Fail;
-
-        var consumerName = window.ConsumedBy is { } id ? SpellRegistry.MaybeGet(id)?.Name ?? "Unknown" : "None";
+        var openedWith = window.FromCast ? FocusedWrathAnalyzer.StacksPerCast : 1;
+        var toppedUp = window.ChargesGranted - openedWith;
 
         var stats = new List<PerCastStat>
         {
             new(
-                consumerName,
-                "Consumed By",
-                window.Consumed
-                    ? $"The first spender inside the buff, {window.DurationMs}ms after it landed."
-                    : window.ClippedByPullEnd
-                        ? "The pull ended with the buff still up."
-                        : $"No spender followed inside the {FocusedWrathAnalyzer.BuffDurationMs / 1000}s buff, so the discount expired unused.",
-                performance),
+                $"{window.ChargesConsumed}/{window.ChargesGranted}",
+                "Charges Spent",
+                ChargeTooltip(window),
+                ChargeTier(window)),
+            new(
+                SpenderNames(window),
+                "Spent On",
+                SpenderTooltip(window),
+                SpenderTier(window)),
             new(
                 window.FromCast ? "Cast" : "Leap Smash",
                 "Source",
-                window.FromCast
-                    ? "This buff came from a Focused Wrath cast."
-                    : "This buff came from a Leap Smash proc rather than a Focused Wrath cast."),
-            new(
-                $"{window.MaxStacks}/{FocusedWrathAnalyzer.MaxStackLimit}",
-                "Stacks",
-                $"Stacks the buff reached against its {FocusedWrathAnalyzer.MaxStackLimit}-stack cap. A cast grants {FocusedWrathAnalyzer.StacksPerCast}."),
+                (window.FromCast
+                    ? "A Focused Wrath cast opened this buff."
+                    : "A Leap Smash proc opened this buff.")
+                + (toppedUp switch
+                {
+                    0 => string.Empty,
+                    1 => " A Leap Smash proc added one more charge while it was active.",
+                    _ => $" Leap Smash procs added {toppedUp} more charges while it was active.",
+                })),
         };
 
         return new PerCastRow
         {
-            Performance = performance,
+            Performance = RowTier(window),
             Stats = [.. stats],
             Timestamp = window.OpenedAt,
         };
+    }
+
+    private static string SpenderNames(FocusedWrathWindow window)
+    {
+        var names = new List<string>();
+
+        foreach (var consumption in window.Consumptions)
+        {
+            if (consumption.SpenderSpellId is not { } id)
+                continue;
+
+            var name = SpellRegistry.MaybeGet(id)?.Name ?? "Unknown";
+            if (!names.Contains(name))
+                names.Add(name);
+        }
+
+        return names.Count == 0 ? "None" : string.Join(" + ", names);
+    }
+
+    private static string ChargeTooltip(FocusedWrathWindow window)
+    {
+        var unspent = window.ChargesGranted - window.ChargesConsumed;
+
+        if (unspent == 0)
+            return "Every charge this buff granted went to a spender.";
+
+        return window.ClippedByPullEnd
+            ? $"The pull ended with {ChargeCount(unspent)} still on this buff."
+            : $"The buff expired with {ChargeCount(unspent)} left.";
+    }
+
+    private static string SpenderTooltip(FocusedWrathWindow window)
+    {
+        if (window.ChargesConsumed == 0)
+            return "No charge from this buff reached a spender.";
+
+        if (window.RatedSpenders == 0)
+            return "No spender cast could be matched to this buff.";
+
+        var preferred = SpellRegistry.MaybeGet(window.PreferredSpenderId)?.Name ?? "Unknown";
+
+        return window.WrongSpenders == 0
+            ? $"Every charge went to {preferred}, the spender this pull calls for."
+            : $"{window.WrongSpenders} of {window.RatedSpenders} charges went to a spender other than {preferred}.";
+    }
+
+    private static string ChargeCount(int charges) => charges == 1 ? "1 charge" : $"{charges} charges";
+
+    private static QualitativePerformance ChargeTier(FocusedWrathWindow window)
+    {
+        if (window.ChargesWasted > 0)
+            return QualitativePerformance.Fail;
+
+        return window.ChargesConsumed < window.ChargesGranted
+            ? QualitativePerformance.Ok
+            : QualitativePerformance.Perfect;
+    }
+
+    private static QualitativePerformance? SpenderTier(FocusedWrathWindow window)
+    {
+        if (window.RatedSpenders == 0)
+            return null;
+
+        return window.WrongSpenders == 0 ? QualitativePerformance.Perfect : QualitativePerformance.Fail;
+    }
+
+    private static QualitativePerformance RowTier(FocusedWrathWindow window)
+    {
+        if (window.ChargesWasted > 0 || window.WrongSpenders > 0)
+            return QualitativePerformance.Fail;
+
+        return window.ChargesConsumed < window.ChargesGranted || window.RatedSpenders == 0
+            ? QualitativePerformance.Ok
+            : QualitativePerformance.Perfect;
     }
 }

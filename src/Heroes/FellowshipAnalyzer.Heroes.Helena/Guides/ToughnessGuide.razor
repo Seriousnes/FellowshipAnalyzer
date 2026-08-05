@@ -1,23 +1,21 @@
 @inherits ReportComponent<HelenaCombatLogParser>
 
 <GuideSection Title="Toughness">
-    <Explanation>
+    <LeftPanel>
         <p>
-            How high you held Toughness is how much physical damage you turned away, so everything below
-            is weighted by time and read against your own build's ceiling. Generation restored on top of
-            maximum Toughness is counted separately, because it is worth nothing and costs you a cast.
+            Managing Toughness is key to Helena's survival. You should aim to reach @CeilingLabel physical
         </p>
-    </Explanation>
-    <ChildContent>
-        <CastOverview Title="Time At Each Reduction" Stats="@BuildBandStats()" />
+    </LeftPanel>
+    <RightPanel>
+        <CastOverview Title="Overview" Stats="@BuildBandStats()" />
         @if (Parser.ToughnessTracker is { } tracker && tracker.GeneratorCasts > 0)
         {
-            <CastOverview Title="Generation Thrown Away" Stats="@BuildOvercapStats(tracker)" />
+            <CastOverview Title="Toughness Management" Stats="@BuildOvercapStats(tracker)" />
         }
         <CastDetail Title="Toughness By Pull"
-                    Description="How high Toughness was held through each pull, weighted by time."
+                    Description="What Toughness mitigated in each pull, and the bands it sat in."
                     Casts="@BuildPerPullData()" />
-    </ChildContent>
+    </RightPanel>
 </GuideSection>
 
 @code {
@@ -29,7 +27,7 @@
 
     private IEnumerable<OverviewStat> BuildBandStats()
     {
-        var analyzers = Parser.ToughnessBandAnalyzers.Select(entry => entry.Analyzer).ToList();
+        var analyzers = Parser.ToughnessAnalyzers.Select(entry => entry.Analyzer).ToList();
         var measured = analyzers.Sum(analyzer => (long)analyzer.MeasuredMs);
         if (measured == 0) return [];
 
@@ -39,29 +37,74 @@
         var lowBands = analyzers.Sum(analyzer =>
             (long)analyzer.MsIn(ToughnessBand.Depleted) + analyzer.MsIn(ToughnessBand.Level1)) / (double)measured;
         var lowest = ToughnessBands.DamageReduction(ToughnessBand.Level1, HasFrontLineDefender);
+        var mitigated = analyzers.Sum(analyzer => analyzer.ToughnessMitigated);
+        var atCeiling = analyzers.Sum(analyzer => analyzer.MitigationAtCeiling);
+        var hits = analyzers.Sum(analyzer => analyzer.MitigatedHits);
+        var ticks = analyzers.Sum(analyzer => analyzer.MitigatedTicks);
 
-        return
-        [
-            new OverviewStat(
-                $"{topBand * 100:F1}%",
-                $"At {CeilingLabel} Reduction",
-                $"Share of pull time spent with Toughness granting its full {CeilingLabel} physical damage reduction.",
-                PerformanceTiers.FromThresholds(topBand * 100, 90, 75, 55)),
-            new OverviewStat(
-                $"{averageReduction * 100:F1}%",
-                "Average Reduction",
-                $"The physical damage reduction Toughness averaged across every pull, against the {CeilingLabel} this build allows.",
-                PerformanceTiers.FromThresholds(averageReduction / Ceiling * 100, 90, 75, 55)),
-            new OverviewStat(
-                $"{lowBands * 100:F1}%",
-                "Below 25% Toughness",
-                $"Share of pull time spent with Toughness worth {lowest * 100:F0}% or nothing at all.",
-                PerformanceTiers.FromThresholds(100 - (lowBands * 100), 98, 95, 90)),
-            new OverviewStat(
-                $"{atMaximum * 100:F1}%",
-                "At Maximum",
-                "Share of pull time spent at maximum Toughness. Time here is safe, but every generator pressed during it restored nothing."),
-        ];
+        var stats = new List<OverviewStat>();
+
+        if (atCeiling > 0)
+        {
+            stats.Add(new OverviewStat(
+                $"{mitigated / atCeiling * 100:F1}%",
+                "Mitigation",
+                $"Toughness mitigated {mitigated:N0} of the {atCeiling:N0} it would have mitigated held at " +
+                $"{CeilingLabel} throughout, across {hits:N0} physical hits ({ticks:N0} of them periodic ticks). " +
+                "Weighted by damage rather than by time, so a low band with no damage incoming costs nothing."));
+        }
+
+        stats.Add(new OverviewStat(
+            $"{topBand * 100:F1}%",
+            $"At {CeilingLabel} Reduction",
+            $"Share of measured pull time at the full {CeilingLabel} physical damage reduction.",
+            PerformanceTiers.FromThresholds(topBand * 100, 90, 75, 55)));
+
+        if (BuildTimeToTopBand(analyzers) is { } timeToTop) stats.Add(timeToTop);
+
+        stats.Add(new OverviewStat(
+            $"{averageReduction * 100:F1}%",
+            "Average Reduction",
+            $"The physical damage reduction Toughness averaged across every pull, against the {CeilingLabel} this " +
+            "build allows. Weighted by time."));
+
+        stats.Add(new OverviewStat(
+            $"{lowBands * 100:F1}%",
+            "Below 25% Toughness",
+            $"Share of measured pull time at {lowest * 100:F0}% reduction or none at all.",
+            PerformanceTiers.FromThresholds(100 - (lowBands * 100), 98, 95, 90)));
+
+        stats.Add(new OverviewStat(
+            $"{atMaximum * 100:F1}%",
+            "At Maximum",
+            "Share of measured pull time at maximum Toughness."));
+
+        return stats;
+    }
+
+    private OverviewStat? BuildTimeToTopBand(List<ToughnessAnalyzer> analyzers)
+    {
+        var climbed = analyzers.Where(analyzer => !analyzer.StartedAtTopBand && analyzer.MsToTopBand is not null).ToList();
+        var alreadyThere = analyzers.Count(analyzer => analyzer.StartedAtTopBand);
+        var neverReached = analyzers.Count(analyzer => !analyzer.StartedAtTopBand && analyzer.MsToTopBand is null);
+
+        if (climbed.Count == 0 && alreadyThere == 0) return null;
+
+        var context = $"{alreadyThere} of {analyzers.Count} pulls opened already at {CeilingLabel}. " +
+            $"{neverReached} never reached it.";
+
+        if (climbed.Count == 0)
+        {
+            return new OverviewStat("already there", $"Time To {CeilingLabel}", context);
+        }
+
+        var average = climbed.Average(analyzer => (double)analyzer.MsToTopBand!.Value);
+
+        return new OverviewStat(
+            $"{average / 1000d:F1}s",
+            $"Time To {CeilingLabel}",
+            $"Average time from the pull opening to reaching {CeilingLabel} reduction, over the {climbed.Count} " +
+            $"pulls that had to climb to it. {context}");
     }
 
     private IEnumerable<OverviewStat> BuildOvercapStats(ToughnessTracker tracker)
@@ -75,12 +118,11 @@
 
             var overcapped = tracker.OvercappedCastsFor(generator.SpellId);
             var share = (double)overcapped / casts;
-            var restored = tracker.NominalGenerationFor(generator.SpellId);
 
             stats.Add(new OverviewStat(
                 $"{overcapped}/{casts}",
                 SpellName(generator.SpellId),
-                $"Casts made at full Toughness, each losing the {restored * 100:F0}% it would have restored.",
+                "Casts made at maximum Toughness.",
                 PerformanceTiers.FromThresholds(100 - (share * 100), 85, 70, 50)));
         }
 
@@ -89,21 +131,61 @@
             stats.Add(new OverviewStat(
                 $"{tracker.OvercappedBlocks}/{tracker.ObservedBlocks}",
                 "Blocks",
-                $"Blocks landed at full Toughness, each losing the {ToughnessTracker.BlockGeneration * 100:F1}% " +
-                "it would have restored. This is a sample of your blocks rather than all of them, and unlike " +
-                "the casts their timing is not yours to choose."));
+                "Blocks taken at maximum Toughness. Only blocks with a Toughness reading are counted, so " +
+                "this is a sample."));
         }
 
         return stats;
     }
 
     private IEnumerable<PerCastData> BuildPerPullData() =>
-        Parser.ToughnessBandAnalyzers.ToPullRows(Parser, (analyzer, pull) => new PerCastRow
+        Parser.ToughnessAnalyzers.ToPullRows(Parser, (analyzer, pull) => new PerCastRow
         {
             Performance = PerformanceTiers.FromThresholds(analyzer.TopBandShare * 100, 90, 75, 55),
             Stats = BuildPullStats(analyzer),
+            Details = BuildBandBar(analyzer),
             AdditionalContent = BuildPullGraph(pull),
         });
+
+    private RenderFragment? BuildBandBar(ToughnessAnalyzer analyzer)
+    {
+        if (analyzer.MeasuredMs <= 0) return null;
+
+        var segments = BuildBandSegments(analyzer);
+
+        return @<div>
+            <StackedBar Segments="@segments" />
+            <HelperText>Share of measured pull time at each level of physical damage reduction</HelperText>
+        </div>;
+    }
+
+    private static IEnumerable<StackedBarSegment> BuildBandSegments(ToughnessAnalyzer analyzer)
+    {
+        var segments = new List<StackedBarSegment>(ToughnessBands.All.Count);
+
+        foreach (var band in ToughnessBands.All)
+        {
+            var ms = analyzer.MsIn(band);
+            if (ms <= 0) continue;
+
+            segments.Add(new StackedBarSegment(
+                BandLabel(analyzer, band),
+                Math.Round(analyzer.ShareIn(band) * 100, 1),
+                BandColor(band),
+                $"{BandLabel(analyzer, band)}: {ms:N0} ms of the pull"));
+        }
+
+        return segments;
+    }
+
+    private static string BandColor(ToughnessBand band) => band switch
+    {
+        ToughnessBand.Level4 => FaVar.PerfPerfect,
+        ToughnessBand.Level3 => FaVar.PerfGood,
+        ToughnessBand.Level2 => FaVar.PerfOk,
+        ToughnessBand.Level1 => FaVar.PerfFail,
+        _ => FaVar.Stone,
+    };
 
     private AdditionalContent? BuildPullGraph(Pull pull)
     {
@@ -155,34 +237,46 @@
         return new ResourceGraphOverlay("Damage Taken", points);
     }
 
-    private static PerCastStat[] BuildPullStats(ToughnessBandAnalyzer analyzer)
+    private static PerCastStat[] BuildPullStats(ToughnessAnalyzer analyzer)
     {
         var ceiling = analyzer.DamageReductionCeiling;
 
-        var stats = new List<PerCastStat>
-        {
-            new(
-                $"{analyzer.AverageDamageReduction * 100:F1}%",
-                "Average Reduction",
-                $"Time-weighted physical damage reduction from Toughness over this pull, against a {ceiling * 100:F0}% ceiling.",
-                PerformanceTiers.FromThresholds(analyzer.AverageDamageReduction / ceiling * 100, 90, 75, 55)),
-        };
+        var stats = new List<PerCastStat>();
 
-        foreach (var band in ToughnessBands.All)
+        if (analyzer.MitigationAtCeiling > 0)
         {
-            var share = analyzer.ShareIn(band);
-            if (share <= 0) continue;
-
             stats.Add(new PerCastStat(
-                $"{share * 100:F1}%",
-                BandLabel(analyzer, band),
-                $"Time spent holding at least {ToughnessBands.LowerThreshold(band) * 100:F1}% Toughness, granting {analyzer.DamageReductionIn(band) * 100:F0}% physical damage reduction."));
+                $"{analyzer.MitigationEfficiency * 100:F1}%",
+                "Mitigation",
+                $"Toughness mitigated {analyzer.ToughnessMitigated:N0} of the {analyzer.MitigationAtCeiling:N0} a " +
+                $"held {ceiling * 100:F0}% would have mitigated, across {analyzer.MitigatedHits:N0} physical hits."));
         }
+
+        stats.Add(new PerCastStat(
+            $"{analyzer.AverageDamageReduction * 100:F1}%",
+            "Average Reduction",
+            $"Time-weighted physical damage reduction from Toughness over this pull, against a {ceiling * 100:F0}% ceiling."));
+
+        stats.Add(new PerCastStat(
+            TimeToTopBandValue(analyzer),
+            $"Time To {ceiling * 100:F0}%",
+            analyzer.StartedAtTopBand
+                ? $"This pull opened with Toughness already granting {ceiling * 100:F0}% reduction."
+                : analyzer.MsToTopBand is null
+                    ? $"Toughness never reached {ceiling * 100:F0}% reduction in this pull."
+                    : $"Time from the pull opening to the first snapshot granting {ceiling * 100:F0}% reduction."));
 
         return [.. stats];
     }
 
-    private static string BandLabel(ToughnessBandAnalyzer analyzer, ToughnessBand band) =>
+    private static string TimeToTopBandValue(ToughnessAnalyzer analyzer) => analyzer switch
+    {
+        { StartedAtTopBand: true } => "already there",
+        { MsToTopBand: { } ms } => $"{ms / 1000d:F1}s",
+        _ => "never",
+    };
+
+    private static string BandLabel(ToughnessAnalyzer analyzer, ToughnessBand band) =>
         band == ToughnessBand.Depleted ? "No Reduction" : $"{analyzer.DamageReductionIn(band) * 100:F0}% Reduction";
 
     private static string SpellName(int spellId) =>

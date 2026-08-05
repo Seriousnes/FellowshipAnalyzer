@@ -8,29 +8,21 @@
 }
 
 <GuideSection Title="Engulfing Flames Economy">
-    <Explanation>
+    <LeftPanel>
         <p>
-            @ef charges should be pooled such that 2 applications land in the setup for @wf.
-            Each window is scored on the Engulfing Flames casts in that setup, two being the target.
+            Pool @ef charges to have 2 available for an @wf window, but avoid sitting on capped charges for extended periods.
         </p>
-        <p>
-            Once @wf is cast, attempt to cast as many <SpellLink Spell="Spells.Detonate" /> in the window, not more setup. 
-        </p>
-        <p>
-            Overcap tracks the recharge wasted while @ef sits at maximum charges. Holding both briefly
-            for an imminent window costs nothing; staying capped does not.
-        </p>
-    </Explanation>
-    <ChildContent>
+    </LeftPanel>
+    <RightPanel>
         <CastOverview Title="Economy Overview" Stats="@BuildOverviewStats()" />
         @if (DevouringFlameEquipped())
         {
             <CastOverview Title="Devouring Flame (Draconic Bracers)" Stats="@BuildDevouringFlameStats()" />
         }
         <CastDetail Title="Wildfire Windows"
-                    Description="Each window shows the Engulfing Flames casts in the setup before Wildfire, with charges at ready and hold time as context."
+                    Description="Each row is one Wildfire cast and the Engulfing Flames casts during setup."
                     Casts="@BuildPerCastData()" />
-    </ChildContent>
+    </RightPanel>
 </GuideSection>
 
 @code {
@@ -57,17 +49,17 @@
             new OverviewStat(
                 $"{doubleRate}%",
                 "Double Applied",
-                $"{doubleApplied} of {evaluated} windows landed both Engulfing Flames applications in the setup.",
+                $"{doubleApplied} of {evaluated} windows had {EngulfingFlamesEconomyAnalyzer.DoubleApplicationThreshold} or more Engulfing Flames casts in the setup.",
                 PercentTier(doubleRate)),
             new OverviewStat(
                 $"{wasted}",
                 "Wasted Charges",
-                "Engulfing Flames recharge periods spent sitting at maximum charges across every pull.",
+                "Engulfing Flames recharge periods spent at maximum charges across every pull.",
                 wasted == 0 ? QualitativePerformance.Perfect : wasted <= 2 ? QualitativePerformance.Ok : QualitativePerformance.Fail),
             new OverviewStat(
                 $"{overcapSeconds:0.#}s",
                 "Time at Max",
-                "Total time Engulfing Flames spent capped at both charges across every pull."),
+                "Total time Engulfing Flames spent at maximum charges across every pull."),
         ];
     }
 
@@ -89,17 +81,17 @@
             new OverviewStat(
                 $"{anyUptime:0.#}%",
                 "Engulfing Flames Uptime",
-                "Share of the pull an enemy carried at least one Engulfing Flames instance, feeding the Devouring Flame damage bonus.",
+                "Share of the pull with at least one Engulfing Flames instance active on an enemy.",
                 PerformanceTiers.FromThresholds(anyUptime, 90, 75, 50)),
             new OverviewStat(
                 $"{doubleUptime:0.#}%",
                 "Double Instance Uptime",
-                "Share of the pull an enemy carried two or more concurrent Engulfing Flames instances, the double Devouring Flame state.",
+                "Share of the pull with two or more concurrent Engulfing Flames instances active on one enemy.",
                 PerformanceTiers.FromThresholds(doubleUptime, 40, 25, 10)),
             new OverviewStat(
                 $"{modeledBonus:0.#}%",
                 "Modeled Damage Bonus",
-                $"Modeled average Devouring Flame bonus on the primary target: {EngulfingFlamesEconomyAnalyzer.DevouringFlameBonusPerInstance}% per instance times {averageInstances:0.00} average instances. Modeled from Engulfing Flames windows, as the effect is not logged.",
+                $"{EngulfingFlamesEconomyAnalyzer.DevouringFlameBonusPerInstance}% per instance times {averageInstances:0.00} average instances on the primary target. The effect is not logged, so this is modeled from Engulfing Flames windows.",
                 PerformanceTiers.FromThresholds(modeledBonus, 9, 6, 3)),
         ];
     }
@@ -119,16 +111,16 @@
             new PerCastStat(
                 $"{window.EngulfingFlamesCastCount}/{EngulfingFlamesEconomyAnalyzer.DoubleApplicationThreshold}",
                 "EF in Setup",
-                "Engulfing Flames casts in the setup as Wildfire became available (two applications is the target).",
+                $"Engulfing Flames casts made in the setup before Wildfire ({EngulfingFlamesEconomyAnalyzer.DoubleApplicationThreshold} is the target).",
                 Performance: perf),
             new PerCastStat(
                 $"{window.ChargesAtReady}/{Spells.EngulfingFlames.Charges}",
                 "Charges at Ready",
-                "Engulfing Flames charges available the instant Wildfire came off cooldown. Context only - pre-casting Engulfing Flames legitimately lowers this."),
+                "Engulfing Flames charges available the instant Wildfire came off cooldown. Context only."),
             new PerCastStat(
                 $"{window.HeldMs / 1000d:0.0}s",
                 "Held",
-                "How long Wildfire was held past coming off cooldown. Context only - holding for mechanics is legitimate."),
+                "How long Wildfire was held after it came off cooldown. Context only."),
         };
 
         var sequence = window.EngulfingFlamesCasts
@@ -151,12 +143,12 @@
     private static string BuildNote(EngulfingFlamesEconomyAnalyzer.ReadinessWindow window)
     {
         if (window.EngulfingFlamesCastCount >= EngulfingFlamesEconomyAnalyzer.DoubleApplicationThreshold)
-            return "Both Engulfing Flames applications landed in the setup, seeding two damage-over-time windows before the burn.";
+            return "Both Engulfing Flames casts were made in the setup.";
 
         if (window.EngulfingFlamesCastCount == 1)
-            return "Only one Engulfing Flames cast landed in the setup - pool both charges so two applications seed the burn as Wildfire becomes available.";
+            return "Only one Engulfing Flames cast was made in the setup - pool both charges before Wildfire becomes available.";
 
-        return "No Engulfing Flames landed in the setup before Wildfire - pool both charges so two applications seed the burn as it becomes available.";
+        return "No Engulfing Flames cast was made in the setup - pool both charges before Wildfire becomes available.";
     }
 
     private static QualitativePerformance PercentTier(int percent) => PerformanceTiers.FromThresholds(percent, 75, 50, 25);

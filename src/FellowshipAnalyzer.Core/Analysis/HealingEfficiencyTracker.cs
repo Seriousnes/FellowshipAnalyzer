@@ -20,7 +20,7 @@ namespace FellowshipAnalyzer.Core.Analysis;
 /// row has cost and no healing, the effect row has healing and no cast.
 /// </para>
 /// </summary>
-public partial class HealingEfficiencyTracker : EventSubscriber
+public partial class HealingEfficiencyTracker : Analyzer
 {
     private readonly Dictionary<int, SpellCapture> _bySpell = [];
 

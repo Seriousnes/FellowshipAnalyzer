@@ -4,51 +4,27 @@ using FellowshipAnalyzer.Core.Events;
 
 namespace FellowshipAnalyzer.Heroes.Helena.Modules;
 
-/// <summary>
-/// The read surface Lingering Concussion analysis is published under, so it is indexed under its own
-/// name rather than under the shared <see cref="DebuffUptimeAnalyzer"/> base.
-/// </summary>
 public interface ILingeringConcussionAnalyzer : IAnalyzerSurface;
 
-/// <summary>
-/// Measures Lingering Concussion, the Shield Slam debuff that takes 3% off everything the target
-/// deals to Helena per stack, up to five. Uptime and gaps come from the shared debuff machinery,
-/// which scopes them to whichever target carried the debuff longest, so adds passing through a pull
-/// never dilute the reading. Stack time is scoped to that same target, because a stack count only
-/// means anything against the enemy actually hitting her.
-/// <para>
-/// The log carries only the debuff itself: the <c>1002476</c> self-buff and <c>1002477</c> stacker
-/// that the spell data lists alongside it never appear, so every stack reading here comes from the
-/// debuff's own apply, refresh and stack events.
-/// </para>
-/// </summary>
 [ForPull(PullKind.Single | PullKind.Multi)]
 public sealed partial class LingeringConcussionAnalyzer : DebuffUptimeAnalyzer, ILingeringConcussionAnalyzer
 {
-    /// <summary>The stack count at which the debuff's damage reduction is at its full 15%.</summary>
     public const int MaxStacks = 5;
 
-    /// <summary>The damage reduction each stack applies to what the target deals to Helena.</summary>
     public const double ReductionPerStack = 0.03;
 
     private readonly List<StackSample> _samples = [];
 
-    /// <summary>Milliseconds the primary target carried the debuff at each stack count, indexed by stack.</summary>
     public IReadOnlyDictionary<int, int> MsAtStacks => Result.MsAtStacks;
 
-    /// <summary>Milliseconds the primary target carried the debuff at all.</summary>
     public int CoveredMs => Result.CoveredMs;
 
-    /// <summary>Milliseconds the primary target carried the debuff below its five-stack cap.</summary>
     public int BelowCapMs => Result.CoveredMs - Result.AtCapMs;
 
-    /// <summary>Milliseconds the primary target carried the debuff at its five-stack cap.</summary>
     public int AtCapMs => Result.AtCapMs;
 
-    /// <summary>Share (0-1) of the covered time spent at the five-stack cap.</summary>
     public double AtCapShare => Result.CoveredMs > 0 ? (double)Result.AtCapMs / Result.CoveredMs : 0;
 
-    /// <summary>Share (0-1) of the pull spent at the five-stack cap.</summary>
     public double AtCapUptime
     {
         get
@@ -58,11 +34,6 @@ public sealed partial class LingeringConcussionAnalyzer : DebuffUptimeAnalyzer, 
         }
     }
 
-    /// <summary>
-    /// The damage reduction the debuff averaged over the pull, weighted by time at each stack count.
-    /// Time with the debuff off the target counts as zero, so this reads against the 15% the five-stack
-    /// cap allows.
-    /// </summary>
     public double AverageReduction
     {
         get
@@ -78,7 +49,6 @@ public sealed partial class LingeringConcussionAnalyzer : DebuffUptimeAnalyzer, 
         }
     }
 
-    /// <summary>The highest stack count the primary target reached.</summary>
     public int PeakStacks => Result.PeakStacks;
 
     [On<ApplyDebuffEvent>(By = Actor.Player, Spell = nameof(Spells.ShieldSlamReducedIncomingDamageFromTargetDebuff))]

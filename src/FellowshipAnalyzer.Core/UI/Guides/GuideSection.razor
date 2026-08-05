@@ -2,20 +2,20 @@
     <header class="guide-section-header">
         <h3>@Title</h3>
     </header>
-    <div class="guide-section-body" style="--explanation-pct: @(ExplanationPercent)%;">
-        @if (Explanation is not null)
+    <div class="guide-section-body" style="--left-panel-pct: @(LeftPanelPercent)%;">
+        @if (LeftPanel is not null)
         {
-            <div class="guide-section-explanation">@Explanation</div>
+            <div class="guide-section-left-panel">@LeftPanel</div>
         }
-        <div class="guide-section-data">
-            @ChildContent
+        <div class="guide-section-right-panel">
+            @RightPanel
         </div>
     </div>
 </section>
 
 @code {
     [Parameter] public string Title { get; set; } = "";
-    [Parameter] public RenderFragment? Explanation { get; set; }
-    [Parameter] public RenderFragment? ChildContent { get; set; }
-    [Parameter] public int ExplanationPercent { get; set; } = 40;
+    [Parameter] public RenderFragment? LeftPanel { get; set; }
+    [Parameter] public RenderFragment? RightPanel { get; set; }
+    [Parameter] public int LeftPanelPercent { get; set; } = 40;
 }

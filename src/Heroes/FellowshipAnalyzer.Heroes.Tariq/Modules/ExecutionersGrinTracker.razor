@@ -1,19 +1,12 @@
-@inherits EventSubscriber
+@inherits Analyzer
 
 @code {
-    /// <inheritdoc/>
     public override RenderFragment? Statistic => Equipped && Procs > 0 ? Card : null;
 
     private RenderFragment Card =>
         @<StatCard Title="Executioner's Grin">
-            <Info>
-                Executioner's Unsanitary Bands lets Culling Strike be cast on a target above the
-                @ThresholdLabel execute threshold while its proc is up. A proc is spent by the next Culling
-                Strike whatever the target's health, so what the item is worth over an encounter is the casts
-                it bought above the threshold.
-            </Info>
             <ChildContent>
-                <CastOverview Title="What The Bands Bought" Stats="@BuildStats()" />
+                <CastOverview Title="Proc Economy" Stats="@BuildStats()" />
             </ChildContent>
         </StatCard>;
 
@@ -27,26 +20,26 @@
                 $"{Procs}",
                 "Procs",
                 Reapplications > 0
-                    ? $"Executioner's Grin procs this encounter. {Reapplications} landed on a proc already held and added nothing."
+                    ? $"Executioner's Grin procs this encounter. {Reapplications} were reapplied on a proc already active."
                     : "Executioner's Grin procs this encounter."),
             new(
                 $"{SpentAboveThreshold}",
                 "Extra Casts Bought",
-                $"Procs spent on a Culling Strike above {ThresholdLabel}, which the gate would otherwise have blocked."),
+                $"Procs spent on a Culling Strike above {ThresholdLabel}."),
             new(
                 $"{SpentBelowThreshold}",
                 "Spent Below Threshold",
-                $"Procs consumed by a Culling Strike that was already legal at or under {ThresholdLabel}. The game spends the proc on any Culling Strike, so these are the roll landing at an awkward moment rather than a decision."),
+                $"Procs spent on a Culling Strike at or under {ThresholdLabel}. Reported as context rather than scored."),
             new(
                 $"{ExpiredUnspent}",
                 "Expired Unspent",
-                "Procs that fell off with no Culling Strike at all."),
+                "Procs that expired with no Culling Strike cast at all."),
         };
 
         stats.Add(new OverviewStat(
             $"{AboveExecuteCullingStrikes}",
             "Above-Execute Hits",
-            $"Culling Strikes that landed on a target above {ThresholdLabel} health - only possible while Executioner's Grin is active."));
+            $"Culling Strikes that dealt damage to a target above {ThresholdLabel} health."));
 
         return stats;
     }

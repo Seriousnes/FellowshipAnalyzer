@@ -1,0 +1,67 @@
+@inherits ReportComponent<SylvieCombatLogParser>
+
+<GuideSection Title="Prickly Vine">
+    <LeftPanel>
+        <p>
+            Flutterfly healing scales with the number of <SpellLink Spell="Spells.PricklyVine" /> you
+            keep alive and with <SpellLink Spell="Spells.SafeHaven" /> under the group, so both are
+            about uptime rather than cast count.
+        </p>
+    </LeftPanel>
+    <RightPanel>
+        <CastOverview Title="Overview" Stats="@BuildOverviewStats()" />
+        <CastDetail Title="Vines By Pull"
+                    Description="Vines alive through each pull."
+                    Casts="@BuildPerPullData()" />
+    </RightPanel>
+</GuideSection>
+
+@code {
+    private IEnumerable<OverviewStat> BuildOverviewStats()
+    {
+        var analyzers = Parser.PricklyVineAnalyzers.Select(entry => entry.Analyzer).ToList();
+        var pullMs = analyzers.Sum(analyzer => (long)analyzer.PullDurationMs);
+        if (pullMs == 0) return [];
+
+        var weightedVines = analyzers.Sum(analyzer => analyzer.AverageLiveVines * analyzer.PullDurationMs) / pullMs;
+        var noVineMs = analyzers.Sum(analyzer => (long)analyzer.NoVineMs);
+        var peak = analyzers.Count > 0 ? analyzers.Max(analyzer => analyzer.PeakLiveVines) : 0;
+        var casts = analyzers.Sum(analyzer => analyzer.VineCasts);
+
+        return
+        [
+            new OverviewStat(
+                $"{casts}",
+                "Vines Cast",
+                "Prickly Vines cast across every pull."),
+            new OverviewStat(
+                $"{weightedVines:F2}",
+                "Vines Alive",
+                $"Time-weighted mean of the modelled live vine count, peaking at {peak}. " +
+                $"A vine is not an entity the log tracks, so the count is modelled from the casts against the {SylvieKit.PricklyVineDurationMs / 1000}s lifetime in the game data: a vine killed early or cast out of range still counts."),
+            new OverviewStat(
+                $"{noVineMs / (double)pullMs * 100:F1}%",
+                "No Vine Alive",
+                $"{noVineMs / 1000:N0}s with no vine modelled alive at all.",
+                PerformanceTiers.FromThresholds(100 - (noVineMs / (double)pullMs * 100), 95, 85, 70)),
+        ];
+    }
+
+    private IEnumerable<PerCastData> BuildPerPullData() =>
+        Parser.PricklyVineAnalyzers.ToPullRows(Parser, (analyzer, pull) => new PerCastRow
+        {
+            Performance = PerformanceTiers.FromThresholds(100 - (analyzer.NoVineShare * 100), 95, 85, 70),
+            Stats =
+            [
+                new PerCastStat(
+                    $"{analyzer.AverageLiveVines:F2}",
+                    "Vines Alive",
+                    $"{analyzer.VineCasts} vines cast this pull, peaking at {analyzer.PeakLiveVines} alive. The count is modelled from the casts against the game data's lifetime, because the log emits no vine spawn or despawn."),
+                new PerCastStat(
+                    $"{analyzer.NoVineShare * 100:F0}%",
+                    "No Vine Alive",
+                    $"{analyzer.NoVineMs / 1000:N0}s of this pull with no vine modelled alive.",
+                    PerformanceTiers.FromThresholds(100 - (analyzer.NoVineShare * 100), 95, 85, 70)),
+            ],
+        });
+}

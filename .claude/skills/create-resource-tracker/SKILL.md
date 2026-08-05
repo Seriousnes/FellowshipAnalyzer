@@ -70,13 +70,13 @@ Register the tracker before analyzers that depend on it:
 
 ```csharp
 [HeroAnalyzer(HeroName.{Hero})]
-[AddState<{Resource}Tracker>]
+[AddAnalyzer<{Resource}Tracker>]
 [AddModule<Modules.Abilities>]
 [AddAnalyzer<SomeAnalyzer>]
 public sealed partial class {Hero}CombatLogParser : CombatLogParser
 ```
 
-Use `[AddState<T>]` for a tracker that pull analyzers read (Rime's `[AddState<WinterOrbTracker>]`, Elarion's `[AddState<FocusTracker>]`); `[AddModule<T>]` is the same registration for a module nothing else depends on. A pull-lifetime `Analyzer` may depend on state modules only; FA0014 reports a dependency on another `[AddAnalyzer]` type.
+A tracker subscribes to events, so it registers with `[AddAnalyzer<T>]` (FA0019). Declaring no `[ForPull]` is what keeps it fight-lifetime, which is what makes it readable from a pull analyzer: FA0014 reports a dependency on a `[ForPull]` type, whatever registered it.
 
 Declaration order is the default module order (base parser modules first, then the hero's, in the order declared) and the tie-break for the sort. Use `[Before<TOther>]` or `[After<TOther>]` on a module when it must run relative to a specific other module rather than relying on where it sits in the attribute list.
 
@@ -129,7 +129,7 @@ For ad-hoc reads outside a declared dependency, `Owner.GetModule<T>()` also work
 - Use `ResourceTypes`, not raw resource IDs, in analyzer code.
 - Override `GetResourceCost` when the log does not directly provide spend cost information; read costs with `Spell.Cost(ResourceTypes)`.
 - Set `MaxOverrides` in the constructor, not in any post-construction hook.
-- Register with `[AddState<T>]` before dependent analyzers.
+- Register with `[AddAnalyzer<T>]`, and no `[ForPull]`, before dependent analyzers.
 - Never read `Pull` from a tracker; it is fight-lifetime.
 - Use the `analyze-log-resources` skill before adding enum values or guessing resource behavior.
 
@@ -140,4 +140,4 @@ For ad-hoc reads outside a declared dependency, `Owner.GetModule<T>()` also work
 - [ ] Class is `partial` and extends `ResourceTracker`.
 - [ ] Optional `MaxOverrides` are set in the constructor.
 - [ ] `GetResourceCost` is implemented if spend costs must come from spell metadata.
-- [ ] `[AddState<T>]` is on the parser before dependent analyzers.
+- [ ] `[AddAnalyzer<T>]`, with no `[ForPull]`, is on the parser before dependent analyzers.

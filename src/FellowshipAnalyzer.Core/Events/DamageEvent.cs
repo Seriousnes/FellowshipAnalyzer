@@ -1,5 +1,6 @@
 ﻿using FellowshipAnalyzer.Core.Common;
 using FellowshipAnalyzer.Core.Common.Spells;
+using FellowshipAnalyzer.Core.Game;
 
 namespace FellowshipAnalyzer.Core.Events;
 
@@ -36,6 +37,28 @@ public class DamageEvent : Event, IAbilityEvent, IHasSourceWithInstanceEvent, IH
     public virtual long Blocked { get; set; }
     /// <summary>The hit's damage before mitigation was applied.</summary>
     public virtual long UnmitigatedAmount { get; set; }
+    /// <summary>Indicates whether the hit was a periodic tick rather than a direct hit.</summary>
+    public virtual bool Tick { get; set; }
     /// <summary>Indicates whether the hit was a critical hit.</summary>
     public bool IsCritical => HitType is HitType.Crit or HitType.GrievousCrit;
+
+    /// <summary>
+    /// The damage school of this hit, resolved at compile time from <c>data/spelldb.json</c> by
+    /// <see cref="AbilityGameId"/>. Carries both flags for an ability that deals both, and the default
+    /// when the game data does not classify the ability.
+    /// </summary>
+    public MagicSchool School => SpellSchools.For(AbilityGameId);
+
+    /// <summary>
+    /// Indicates whether this hit dealt physical damage, which is what armour and Toughness reduce.
+    /// An unclassified ability reads as <c>false</c>, so a physical-only population never silently
+    /// absorbs damage of an unknown school.
+    /// </summary>
+    public bool IsPhysical => School.HasFlag(MagicSchool.Physical);
+
+    /// <summary>
+    /// Indicates whether this hit dealt magic damage. An ability that deals both schools reads as
+    /// <c>true</c> for this and for <see cref="IsPhysical"/>.
+    /// </summary>
+    public bool IsMagic => School.HasFlag(MagicSchool.Magic);
 }

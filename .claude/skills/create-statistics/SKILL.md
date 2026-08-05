@@ -41,7 +41,7 @@ Place at `src/Heroes/FellowshipAnalyzer.Heroes.{Hero}/Statistics/{Name}Statistic
 
 No `@using` lines are needed: the hero `_Imports.razor` already imports `FellowshipAnalyzer.Core.UI.Components`, `.UI.Guides` and the hero's own `Statistics` namespace (see Rime's `_Imports.razor`; `WinterOrbStatistics.razor` opens straight with `@inherits`).
 
-`AnalyzerStatistic<T>` lives in `FellowshipAnalyzer.Core.Game` (`src/FellowshipAnalyzer.Core/Game/AnalyzerStatistic.cs`); `T` is constrained to `Module`, so any `Module`, `EventSubscriber`, `Analyzer` or `ResourceTracker` subclass works. It provides a typed `Analyzer` property from the cascading module value:
+`AnalyzerStatistic<T>` lives in `FellowshipAnalyzer.Core.Game` (`src/FellowshipAnalyzer.Core/Game/AnalyzerStatistic.cs`); `T` is constrained to `Module`, so any `Module`, `Analyzer` or `ResourceTracker` subclass works. It provides a typed `Analyzer` property from the cascading module value:
 
 ```csharp
 public abstract class AnalyzerStatistic<T> : ComponentBase where T : Module
@@ -66,7 +66,7 @@ public sealed partial class {Name}Tracker : Analyzer
 }
 ```
 
-The module must be marked `partial` (so the generator can wire its `[On<>]` handlers) and registered with `[AddModule<T>]` or `[AddState<T>]`. Statistics are collected only from the parser's active-module set, which comes from the `[AddModule]`/`[AddState]` list; a pull-lifetime `[AddAnalyzer<T>]` class is never in that set, so its `StatisticsComponentType` is never read. Surface per-pull work through a guide instead.
+The module must be marked `partial` (so the generator can wire its `[On<>]` handlers) and registered with `[AddAnalyzer<T>]` when it subscribes to events, or `[AddModule<T>]` / `[AddState<T>]` when it does not, in both cases with no `[ForPull]`. Statistics are collected only from the parser's active-module set, which is every registered type with no `[ForPull]`; a pull-lifetime analyzer is never in that set, so it never contributes a card. Surface per-pull work through a guide instead.
 
 `Report.razor` groups the collected `StatisticEntry(Module, ComponentType, StatisticCategory, StatisticOrder)` entries by category, orders each group by `StatisticOrder`, renders a `StatisticsSectionTitle` and wraps the group in `StatisticsPanel` (which runs the masonry pass in `_content/FellowshipAnalyzer.Core/js/statistics-masonry.js`), then renders each entry as:
 
@@ -95,7 +95,7 @@ Do not assume a fixed card width: the panel packs cards, and `StatCard` exposes 
 - Access module data through the `Analyzer` property.
 - Do not inject the parser; the module comes from the cascading value.
 - Statistics are optional, interesting information the Guide tab does not show. Never duplicate a guide section as a statistic.
-- The module must be a fight-lifetime `[AddModule]`/`[AddState]` registration with `StatisticsComponentType` set for auto-collection to work.
+- The module must be a registration with no `[ForPull]`, and must expose its card, for auto-collection to work.
 - Use the `style-guide` skill before adding or changing component styles.
 
 ## Checklist
@@ -103,6 +103,6 @@ Do not assume a fixed card width: the panel packs cards, and `StatCard` exposes 
 - [ ] File is at `Statistics/{Name}Statistics.razor`.
 - [ ] Component inherits `AnalyzerStatistic<{Name}Tracker>` or the matching module type.
 - [ ] Component uses `Analyzer` to access state.
-- [ ] The module is `partial`, registered `[AddModule]`/`[AddState]`, and returns `typeof({Name}Statistics)` from `StatisticsComponentType`.
+- [ ] The module is `partial`, registered with no `[ForPull]`, and exposes its `{Name}Statistics` card.
 - [ ] `StatisticCategory` and `StatisticOrder` place the card sensibly.
 - [ ] The card does not duplicate Guide tab content.

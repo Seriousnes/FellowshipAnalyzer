@@ -2,15 +2,8 @@
 @inherits ResourceTracker
 
 @code {
-    /// <inheritdoc/>
     public override RenderFragment? Statistic =>
         @<StatCard Title="Energy & Combo Points">
-            <Info>
-                <p>
-                    Fight totals for Mara's two resources. Generated counts what actually landed in the bar, so
-                    anything lost at cap is reported separately as wasted.
-                </p>
-            </Info>
             <ChildContent>
                 <CastOverview Title="Energy" Stats="@BuildEnergyStats()" />
                 <CastOverview Title="Combo Points" Stats="@BuildComboPointStats()" />
@@ -22,7 +15,7 @@
         new OverviewStat(
             $"{EnergyGenerated}",
             "Generated",
-            "Energy that landed in the bar over the fight, excluding anything lost at cap."),
+            "Energy that reached the pool over the fight, excluding anything lost at cap."),
         new OverviewStat(
             $"{EnergySpent}",
             "Spent",
@@ -30,7 +23,7 @@
         new OverviewStat(
             $"{EnergyWasted}",
             "Wasted",
-            $"Energy that regenerated while already at cap ({WastePercent(EnergyGenerated, EnergyWasted)}% of everything the fight offered).",
+            $"Energy that regenerated while already at cap ({WastePercent(EnergyGenerated, EnergyWasted)}% of the Energy the fight produced).",
             WasteTier(EnergyGenerated, EnergyWasted)),
         new OverviewStat(
             $"{EnergyCurrent}",
@@ -43,11 +36,11 @@
         new OverviewStat(
             $"{ComboPointsGenerated}",
             "Generated",
-            "Combo points that landed in the bar, excluding anything generated at six."),
+            "Combo points that reached the pool, excluding anything generated at six."),
         new OverviewStat(
             $"{ComboPointsWasted}",
             "Wasted",
-            $"Combo points generated while already at six ({WastePercent(ComboPointsGenerated, ComboPointsWasted)}% of everything the fight offered).",
+            $"Combo points generated while already at six ({WastePercent(ComboPointsGenerated, ComboPointsWasted)}% of the combo points the fight produced).",
             WasteTier(ComboPointsGenerated, ComboPointsWasted)),
     ];
 

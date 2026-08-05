@@ -4,15 +4,19 @@ namespace FellowshipAnalyzer.Core.Analysis;
 
 /// <summary>
 /// Immutable per-analysis context exposing only the values a module reasonably needs at construction
-/// time: the selected player, the fight being analyzed, and report-level actor names. Populated by
+/// time: the selected player, the fight being analyzed, and report-level actor data. Populated by
 /// <see cref="CombatLogParser.Analyze"/> and read by generator-emitted <c>CreateInstance</c>.
 /// </summary>
 public sealed record ParseContext(
     int PlayerId,
     ReportFight Fight,
     IReadOnlyDictionary<int, string> ActorNames,
-    Combatant SelectedCombatant)
+    Combatant SelectedCombatant,
+    IReadOnlyList<ReportActor>? Actors = null)
 {
+    /// <summary>Report-level actor master data, empty when the host supplied none.</summary>
+    public IReadOnlyList<ReportActor> Actors { get; init; } = Actors ?? [];
+
     /// <summary>The fight's start timestamp, truncated to <see cref="int"/> from <see cref="ReportFight.StartTime"/>.</summary>
     public int FightStartTime => (int)Fight.StartTime;
 

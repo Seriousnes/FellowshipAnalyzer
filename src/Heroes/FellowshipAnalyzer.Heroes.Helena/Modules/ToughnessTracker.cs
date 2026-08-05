@@ -12,34 +12,24 @@ using HelenaTalents = FellowshipAnalyzer.Core.Common.Spells.HelenaTalents;
 
 namespace FellowshipAnalyzer.Heroes.Helena.Modules;
 
-/// <summary>
-/// Tracks Helena's Toughness, which the log streams as <see cref="ResourceTypes.Secondary"/> with a
-/// per-event maximum that moves with Strength and secondary stats.
-/// <para>
-/// Generation is never logged as its own event, so a source that fires while Toughness already sits
-/// at maximum produces no delta and is invisible to the base tracker's gain accounting. The overcap
-/// incidents below close that gap by testing the generating event's own snapshot against that
-/// snapshot's maximum: a Shields Up, Shield Slam or Shockwave cast made at maximum threw its
-/// generation away, and so did a block landed at maximum.
-/// </para>
-/// </summary>
 public sealed partial class ToughnessTracker : ResourceTracker
 {
     private readonly List<ToughnessOvercap> _overcaps = [];
     private readonly Dictionary<int, int> _generatorCasts = [];
+    private readonly List<BandSample> _bandSamples = [];
+    private readonly List<MitigatedHit> _mitigatedHits = [];
 
+    private Event? _lastSampledEvent;
     private int _observedBlocks;
     private int _overcappedBlocks;
 
     private Computed Result => field ??= Compute();
 
-    /// <summary>Creates the tracker and labels <see cref="ResourceTypes.Secondary"/> as Toughness for the resource UI.</summary>
     public ToughnessTracker(ILogger<ResourceTracker> logger) : base(logger)
     {
         DisplayNameOverrides[ResourceTypes.Secondary] = "Toughness";
     }
 
-    /// <summary>The generation sources whose casts are checked for overcap, with each one's <c>StrengthScaler</c>.</summary>
     public static IReadOnlyList<ToughnessGenerator> Generators { get; } =
     [
         new(Spells.ShieldsUp.FSLID, 2.31),
@@ -47,17 +37,26 @@ public sealed partial class ToughnessTracker : ResourceTracker
         new(Spells.ShieldSlam.FSLID, 1.155),
     ];
 
-    /// <summary>The nominal share of maximum Toughness a block restores.</summary>
     public static double BlockGeneration => ToughnessBands.NominalGeneration(0.24);
 
-    /// <summary>Whether the player took Greater Shockwave, whose casts return an extra tenth of maximum Toughness.</summary>
     public bool HasGreaterShockwave => Owner.SelectedCombatant.HasTalent(HelenaTalents.GreaterShockwave);
 
-    /// <summary>
-    /// The share of maximum Toughness <paramref name="spellId"/> nominally restores for the build being
-    /// analyzed, which for Shockwave under Greater Shockwave is its per-hit generation plus a flat tenth
-    /// of maximum Toughness.
-    /// </summary>
+    public bool HasFrontLineDefender => Owner.SelectedCombatant.HasTalent(HelenaTalents.FrontLineDefender);
+
+    public double DamageReductionIn(ToughnessBand band) =>
+        ToughnessBands.DamageReduction(band, HasFrontLineDefender);
+
+    public double DamageReductionCeiling => ToughnessBands.Ceiling(HasFrontLineDefender);
+
+    public ToughnessBand CurrentBand =>
+        _bandSamples.Count > 0 ? _bandSamples[^1].Band : ToughnessBand.Depleted;
+
+    public ToughnessBand BandBefore(Event e) =>
+        SampleIndexBefore(e) is var index and >= 0 ? _bandSamples[index].Band : ToughnessBand.Depleted;
+
+    private int SampleIndexBefore(Event e) =>
+        ReferenceEquals(_lastSampledEvent, e) ? _bandSamples.Count - 2 : _bandSamples.Count - 1;
+
     public double NominalGenerationFor(int spellId)
     {
         if (FindGenerator(spellId) is not { } generator) return 0;
@@ -67,45 +66,32 @@ public sealed partial class ToughnessTracker : ResourceTracker
             : generator.NominalShare;
     }
 
-    /// <inheritdoc/>
     public override StatisticCategory StatisticCategory => StatisticCategory.General;
 
-    /// <summary>The tracked Toughness state, or <c>null</c> when the log carried no Toughness snapshot.</summary>
     public ResourceState? Toughness => GetResourceState(ResourceTypes.Secondary);
 
-    /// <summary>Every generation event that fired while Toughness was already at maximum, in encounter order.</summary>
     public IReadOnlyList<ToughnessOvercap> Overcaps => _overcaps;
 
-    /// <summary>Generation-source casts that landed at maximum Toughness, keyed by spell id.</summary>
     public IReadOnlyDictionary<int, int> OvercappedCastsBySpell => Result.OvercappedCasts;
 
-    /// <summary>Every generation-source cast, keyed by spell id, whether or not it overcapped.</summary>
     public IReadOnlyDictionary<int, int> GeneratorCastsBySpell => _generatorCasts;
 
-    /// <summary>Generation-source casts made at maximum Toughness.</summary>
     public int OvercappedCasts => Result.OvercappedCastTotal;
 
-    /// <summary>Generation-source casts made at any Toughness level.</summary>
     public int GeneratorCasts => Result.GeneratorCastTotal;
 
-    /// <summary>Blocks landed while Toughness was already at maximum.</summary>
     public int OvercappedBlocks => _overcappedBlocks;
 
-    /// <summary>Blocks the player landed while a Toughness snapshot was available to judge them against.</summary>
     public int ObservedBlocks => _observedBlocks;
 
-    /// <summary>Share (0-1) of generation-source casts that were made at maximum Toughness.</summary>
     public double OvercappedCastShare =>
         Result.GeneratorCastTotal > 0 ? (double)Result.OvercappedCastTotal / Result.GeneratorCastTotal : 0;
 
-    /// <summary>Share (0-1) of observed blocks that landed at maximum Toughness.</summary>
     public double OvercappedBlockShare =>
         _observedBlocks > 0 ? (double)_overcappedBlocks / _observedBlocks : 0;
 
-    /// <summary>The overcapped-cast count for <paramref name="spellId"/>.</summary>
     public int OvercappedCastsFor(int spellId) => Result.OvercappedCasts.GetValueOrDefault(spellId);
 
-    /// <summary>The total cast count for <paramref name="spellId"/> as a generation source.</summary>
     public int GeneratorCastsFor(int spellId) => _generatorCasts.GetValueOrDefault(spellId);
 
     [On<CastEvent>(By = Actor.Player)]
@@ -134,6 +120,125 @@ public sealed partial class ToughnessTracker : ResourceTracker
         _overcappedBlocks++;
         _overcaps.Add(new ToughnessOvercap(damageEvent.Timestamp, Spells.Attack.FSLID, BlockGeneration));
     }
+
+    [On<Event>]
+    private void OnToughnessSnapshot(Event e)
+    {
+        if (FindToughness(e) is not { Max: > 0 } toughness) return;
+
+        _bandSamples.Add(new BandSample(
+            e.Timestamp,
+            ToughnessBands.For(toughness.Amount / (double)toughness.Max),
+            toughness.Amount >= toughness.Max));
+        _lastSampledEvent = e;
+    }
+
+    [On<DamageEvent>(To = Actor.Player)]
+    private void OnPhysicalDamageTaken(DamageEvent damageEvent)
+    {
+        if (damageEvent.HitType is not (HitType.Normal or HitType.Crit or HitType.Block or HitType.GrievousCrit)) return;
+        if (!damageEvent.IsPhysical) return;
+
+        var sampleIndex = SampleIndexBefore(damageEvent);
+        if (sampleIndex < 0) return;
+
+        var reduction = DamageReductionIn(_bandSamples[sampleIndex].Band);
+        var reachedThePlayer = damageEvent.Amount + (damageEvent.Absorbed ?? 0) + damageEvent.Blocked;
+        var preToughness = reachedThePlayer / (1 - reduction);
+
+        _mitigatedHits.Add(new MitigatedHit(
+            damageEvent.Timestamp,
+            sampleIndex,
+            preToughness * reduction,
+            preToughness * DamageReductionCeiling,
+            damageEvent.Tick));
+    }
+
+    public ToughnessBandWindow BandsBetween(int start, int end)
+    {
+        var first = FirstSampleIndexIn(start, end);
+        if (first < 0) return ToughnessBandWindow.Empty;
+
+        var bandMs = new Dictionary<ToughnessBand, int>();
+        var atMaximumMs = 0;
+        var samples = 0;
+        int? msToTopBand = null;
+
+        for (var i = first; i < _bandSamples.Count && _bandSamples[i].Timestamp <= end; i++)
+        {
+            var sample = _bandSamples[i];
+            samples++;
+
+            if (msToTopBand is null && sample.Band == ToughnessBand.Level4)
+                msToTopBand = sample.Timestamp - start;
+
+            var until = i + 1 < _bandSamples.Count && _bandSamples[i + 1].Timestamp <= end
+                ? _bandSamples[i + 1].Timestamp
+                : end;
+
+            var elapsed = until - sample.Timestamp;
+            if (elapsed <= 0) continue;
+
+            bandMs[sample.Band] = bandMs.GetValueOrDefault(sample.Band) + elapsed;
+            if (sample.AtMaximum) atMaximumMs += elapsed;
+        }
+
+        var measured = 0;
+        foreach (var ms in bandMs.Values) measured += ms;
+
+        return new ToughnessBandWindow(
+            bandMs, measured, atMaximumMs, samples, msToTopBand,
+            _bandSamples[first].Band == ToughnessBand.Level4);
+    }
+
+    public ToughnessMitigationWindow MitigationBetween(int start, int end)
+    {
+        var first = FirstSampleIndexIn(start, end);
+        if (first < 0) return ToughnessMitigationWindow.Empty;
+
+        double mitigated = 0, atCeiling = 0;
+        int hits = 0, ticks = 0;
+
+        foreach (var hit in _mitigatedHits)
+        {
+            if (hit.SampleIndex < first || hit.Timestamp < start || hit.Timestamp > end) continue;
+
+            mitigated += hit.Mitigated;
+            atCeiling += hit.AtCeiling;
+            hits++;
+            if (hit.Tick) ticks++;
+        }
+
+        return new ToughnessMitigationWindow(mitigated, atCeiling, hits, ticks);
+    }
+
+    private int FirstSampleIndexIn(int start, int end)
+    {
+        for (var i = 0; i < _bandSamples.Count; i++)
+        {
+            if (_bandSamples[i].Timestamp > end) break;
+            if (_bandSamples[i].Timestamp >= start) return i;
+        }
+
+        return -1;
+    }
+
+    private ClassResource? FindToughness(Event e)
+    {
+        var resources = e switch
+        {
+            IHasSourceEvent source when Owner.ByPlayer(source) => e.SourceResources,
+            IHasTargetEvent target when Owner.ToPlayer(target) => e.TargetResources,
+            _ => null,
+        };
+
+        return FindToughness(resources);
+    }
+
+    private readonly record struct BandSample(int Timestamp, ToughnessBand Band, bool AtMaximum);
+
+    private readonly record struct MitigatedHit(
+        int Timestamp, int SampleIndex, double Mitigated, double AtCeiling, bool Tick);
 
     private static ToughnessGenerator? FindGenerator(int spellId)
     {
@@ -182,21 +287,28 @@ public sealed partial class ToughnessTracker : ResourceTracker
         int GeneratorCastTotal);
 }
 
-/// <summary>
-/// A Toughness generation source and the share of maximum Toughness it nominally restores.
-/// </summary>
-/// <param name="SpellId">The generating ability's spell id.</param>
-/// <param name="StrengthScaler">The source's <c>StrengthScaler</c> from <c>Constants.Toughness</c>.</param>
 public sealed record ToughnessGenerator(int SpellId, double StrengthScaler)
 {
-    /// <summary>The nominal share of maximum Toughness this source restores.</summary>
     public double NominalShare => ToughnessBands.NominalGeneration(StrengthScaler);
 }
 
-/// <summary>
-/// One generation event that fired while Toughness was already at maximum, so its generation was lost.
-/// </summary>
-/// <param name="Timestamp">When it happened.</param>
-/// <param name="SpellId">The generating ability, or the auto-attack id for a block.</param>
-/// <param name="NominalShare">The share of maximum Toughness the source nominally restores.</param>
+public sealed record ToughnessBandWindow(
+    IReadOnlyDictionary<ToughnessBand, int> BandMs,
+    int MeasuredMs,
+    int AtMaximumMs,
+    int SampleCount,
+    int? MsToTopBand,
+    bool StartedAtTopBand)
+{
+    public static ToughnessBandWindow Empty { get; } =
+        new(new Dictionary<ToughnessBand, int>(), 0, 0, 0, null, false);
+}
+
+public sealed record ToughnessMitigationWindow(double Mitigated, double AtCeiling, int Hits, int Ticks)
+{
+    public static ToughnessMitigationWindow Empty { get; } = new(0, 0, 0, 0);
+
+    public double Efficiency => AtCeiling > 0 ? Mitigated / AtCeiling : 0;
+}
+
 public sealed record ToughnessOvercap(int Timestamp, int SpellId, double NominalShare);

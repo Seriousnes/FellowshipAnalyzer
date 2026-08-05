@@ -1,6 +1,6 @@
 using System.Diagnostics;
 
-using FellowshipAnalyzer.Core.Common;
+using FellowshipAnalyzer.Core.Game;
 
 namespace FellowshipAnalyzer.Core.Events;
 

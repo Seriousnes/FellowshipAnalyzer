@@ -78,7 +78,11 @@ internal static class HelenaAnalysisFixture
             SourceResources = toughness is null ? null : Resources(toughness.Value, toughnessMax),
         };
 
-    /// <summary>A hit the player took, optionally carrying a Toughness snapshot on the target.</summary>
+    /// <summary>
+    /// A hit the player took, optionally carrying a Toughness snapshot on the target. It is dealt by
+    /// <see cref="PhysicalAbility"/> when <paramref name="physical"/> is set and by Helena's own Attack
+    /// otherwise, which the game data leaves unclassified so a physical-only population rejects it.
+    /// </summary>
     public static DamageEvent DamageTaken(
         int timestamp,
         long amount,
@@ -88,22 +92,50 @@ internal static class HelenaAnalysisFixture
         long blocked = 0,
         HitType hitType = HitType.Normal,
         int? toughness = null,
-        int toughnessMax = 1_000) =>
-        new()
+        int toughnessMax = 1_000,
+        bool physical = false,
+        bool tick = false)
+    {
+        var ability = physical ? PhysicalAbility : Spells.Attack;
+
+        return new DamageEvent
         {
             Timestamp = timestamp,
             SourceId = EnemyId,
             TargetId = PlayerId,
-            Ability = new Ability { FSLID = Spells.Attack.FSLID, Name = Spells.Attack.Name },
-            AbilityGameId = Spells.Attack.FSLID,
+            Ability = new Ability { FSLID = ability.FSLID, Name = ability.Name },
+            AbilityGameId = ability.FSLID,
             Amount = amount,
             UnmitigatedAmount = unmitigated,
             Mitigated = mitigated,
             Absorbed = absorbed,
             Blocked = blocked,
             HitType = hitType,
+            Tick = tick,
             TargetResources = toughness is null ? null : Resources(toughness.Value, toughnessMax),
         };
+    }
+
+    /// <summary>
+    /// An ability the game data classifies as Physical, so a hit built from it survives a physical-only
+    /// filter. Taken from the spellbook rather than written down as an id, because the classification
+    /// lives in the game data dump and moves with it.
+    /// </summary>
+    public static Spell PhysicalAbility => Spells.MeasuredStrikeDamage;
+
+    /// <summary>A physical hit the player took, for the mitigation population.</summary>
+    public static DamageEvent PhysicalHit(
+        int timestamp,
+        long amount,
+        long absorbed = 0,
+        long blocked = 0,
+        HitType hitType = HitType.Normal,
+        int? toughness = null,
+        int toughnessMax = 1_000,
+        bool tick = false) =>
+        DamageTaken(
+            timestamp, amount, amount + absorbed + blocked, 0, absorbed, blocked, hitType,
+            toughness, toughnessMax, physical: true, tick: tick);
 
     /// <summary>A bare event carrying only a Toughness snapshot on the player, for band sampling.</summary>
     public static DamageEvent ToughnessSample(int timestamp, int toughness, int toughnessMax = 1_000) =>

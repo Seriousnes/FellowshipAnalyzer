@@ -5,20 +5,23 @@
 @inject ChartPalette Palette
 
 <GuideSection Title="Fury Economy">
-    <Explanation>
-        <p>
-            Spend down before you top up. <SpellLink Spell="Spells.WildSwing" />,
-            <SpellLink Spell="Spells.FaceBreaker" /> and <SpellLink Spell="Spells.HeavyStrike" /> each add a
-            flat amount, so firing one with the bar near full throws away exactly the points that would have
-            crossed the cap. Take <SpellLink Spell="Spells.SkullCrusher" /> or
-            <SpellLink Spell="Spells.HammerStorm" /> first and the generator lands on an empty bar.
-        </p>
-        <p>
-            Auto-attacks and Hammer Storm's passive trickle also feed the bar and neither is a cast, so the
-            points below are what your generator casts threw away rather than every point ever lost.
-        </p>
-    </Explanation>
-    <ChildContent>
+    <LeftPanel>
+        <ul>
+            <li>
+                <strong>Build</strong> Fury with Basic and Core abilities. Pool to your maximum fury outside your
+                outside your major cooldowns <SpellLink Spell="Spells.ThunderCall" /> &amp; <SpellLink Spell="Spells.RagingTempest" />.
+            </li>
+            <li>
+                <strong>Spend</strong> Fury on <SpellLink Spell="Spells.HammerStorm" /> (AoE) and <SpellLink Spell="Spells.SkullCrusher" /> (ST). 
+                You should only spend Fury outside of <SpellLink Spell="Spells.ThunderCall" />/<SpellLink Spell="Spells.RagingTempest" /> if
+                you hit 100 Fury in order not to overcap.
+                <br />
+                Once an enemy falls below 30%, <SpellLink Spell="Spells.CullingStrike" /> is the top priority spender in both AoE and ST,
+                and you sould always attempt to have at least 10 Fury for every cast.
+            </li>
+        </ul>
+    </LeftPanel>
+    <RightPanel>
         <CastOverview Title="Fury Overview" Stats="@BuildOverviewStats()" />
 
         @if (Charted is { } charted)
@@ -39,9 +42,9 @@
         }
 
         <CastDetail Title="Per-Pull Fury Economy"
-                    Description="Each card is one pull and the Fury points its generator casts threw away at the cap."
+                    Description="Each card is one pull and the Fury points its generator casts lost at the cap."
                     Casts="@BuildPerPullData()" />
-    </ChildContent>
+    </RightPanel>
 </GuideSection>
 
 @code {
@@ -63,11 +66,12 @@
             new OverviewStat(
                 $"{wasted}",
                 "Wasted Fury",
-                $"Fury points your generator casts lost to the cap across every pull, {perMinute:0.#} per minute of combat."),
+                $"Fury points your generator casts lost to the cap across every pull, {perMinute:0.#} per minute of combat. "
+                + "Counted over generator casts only, not over every point the pull lost."),
             new OverviewStat(
                 $"{overcap}/{generators}",
                 "Overcap Casts",
-                "Generator casts that pushed Fury past 100 and lost the remainder. Each one is a spender you could have taken first.",
+                "Generator casts that lost Fury at the cap. Each one is a spender you could have taken first.",
                 overcap == 0 ? QualitativePerformance.Perfect : QualitativePerformance.Ok),
         ];
     }
@@ -86,7 +90,7 @@
             new PerCastStat(
                 $"{analyzer.SkullCrusherCasts} / {analyzer.HammerStormCasts} / {analyzer.CullingStrikeCasts}",
                 "Skull / Hammer / Culling",
-                $"Casts of the three abilities that draw on the bar. They do not drain it equally: Skull Crusher costs {FuryEconomyAnalyzer.SkullCrusherCost}, Hammer Storm {FuryEconomyAnalyzer.HammerStormCost}, and Culling Strike spends up to {FuryEconomyAnalyzer.CullingStrikeMaxSpend} to scale its own damage."),
+                "Casts of the three abilities that spend Fury. A plain count, not a measure of Fury spent."),
         };
 
         return new PerCastRow

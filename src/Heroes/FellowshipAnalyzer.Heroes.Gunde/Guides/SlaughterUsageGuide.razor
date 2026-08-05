@@ -1,43 +1,30 @@
+@using FellowshipAnalyzer.Core.Common.Spells.Gunde
 @using Spells = FellowshipAnalyzer.Core.Common.Spells.Gunde.Spells
 @inherits ReportComponent<GundeCombatLogParser>
 
 <GuideSection Title="Slaughter">
-    <Explanation>
+    <LeftPanel>
         <p>
-            <SpellLink Spell="Spells.Slaughter" /> consumes every point of
-            <SpellLink Spell="Spells.Rend" /> active on the enemies it hits and returns it as a
-            bleed, so a Slaughter is worth exactly what was built before it was pressed. Each cast is
-            scored on the setup it was given, not on the damage it produced: how much Rend was
-            active is a matter of gear, but whether the cast was set up is not.
+            Plan your <SpellLink Spell="Spells.Slaughter" /> usage to maximise
+            <SpellLink Spell="Spells.Rend" /> stacks consumed. Every <SpellLink Spell="Spells.Slaughter" />
+            should be paired with <SpellLink Spell="Spells.OwedInBlood" />.
         </p>
-        <p>
-            <SpellLink Spell="Spells.Rupture" /> leaves <SpellLink Spell="Spells.OpenWounds" /> on the
-            enemies it hits for 18s, and the next Slaughter on that enemy consumes the window to hit
-            harder, so every cast is scored on whether it landed inside a window, and every window is
-            checked for the Slaughter that should have cashed it in.
-        </p>
-        <p>
-            Boss casts are scored in addition on whether <SpellLink Spell="Spells.HeartSplitter" />
-            rebuilt Rend since the previous Slaughter; casts on packs are scored on how many enemies
-            the bleed reached. The Rend each cast consumed and the bleed it dealt are shown alongside
-            as evidence.
-        </p>
-    </Explanation>
-    <ChildContent>
+    </LeftPanel>
+    <RightPanel>
         @if (TotalCasts == 0)
         {
             <TipBox Variant="TipBoxVariant.Info">
-                No Slaughter was cast on any pull, so every point of Rend expired unspent.
+                No Slaughter was cast on any pull.
             </TipBox>
         }
         else
         {
             <CastOverview Title="Slaughter Overview" Stats="@BuildOverviewStats()" />
             <CastDetail Title="Slaughters"
-                        Description="Each card is one Slaughter, rated on whether it was set up: an Open Wounds window, and Rend rebuilt or the bleed spread."
+                        Description="Each card is one Slaughter, rated on its setup: an Open Wounds window, plus the bleed spread on a pack."
                         Casts="@BuildPerCastData()" />
         }
-    </ChildContent>
+    </RightPanel>
 </GuideSection>
 
 @code {
@@ -52,7 +39,7 @@
         var windows = analyzers.Sum(analyzer => analyzer.TotalOpenWoundsWindows);
         var wasted = analyzers.Sum(analyzer => analyzer.WastedOpenWoundsWindows);
         var rend = analyzers.Sum(analyzer => analyzer.TotalRendConsumed);
-        var payoff = analyzers.Sum(analyzer => analyzer.TotalPayoffDamage);
+        var bleed = analyzers.Sum(analyzer => analyzer.TotalBleedDamage);
 
         var stats = new List<OverviewStat>
         {
@@ -69,7 +56,7 @@
                 $"{wasted}",
                 "Wasted Windows",
                 windows > 0
-                    ? $"{wasted} of {windows} Open Wounds windows, counted per enemy, closed without a Slaughter cashing the bonus in."
+                    ? $"{wasted} of {windows} Open Wounds windows, counted per enemy, closed with no Slaughter cast inside them."
                     : "No Open Wounds window ran long enough to be judged.",
                 windows > 0 ? PercentTier(UsedWindowRate(windows, wasted)) : null),
         };
@@ -78,16 +65,16 @@
         {
             stats.Add(new OverviewStat(
                 $"{rend / casts}",
-                "Avg Rend Cashed",
+                "Avg Rend Consumed",
                 $"Average Rend stacks consumed per Slaughter, {rend} in total across every enemy reached."));
         }
 
-        if (payoff > 0)
+        if (bleed > 0)
         {
             stats.Add(new OverviewStat(
-                FormatDamage(payoff / casts),
-                "Avg Payoff",
-                $"Average Slaughter bleed damage per cast, {FormatDamage(payoff)} in total. Damage scales with gear, so it is reported as context rather than scored."));
+                FormatDamage(bleed / casts),
+                "Avg Bleed Damage",
+                $"Average Slaughter bleed damage per cast, {FormatDamage(bleed)} in total. This is context, not a verdict."));
         }
 
         return stats;
@@ -122,24 +109,16 @@
                 "Enemies the Slaughter bleed spread to.",
                 slaughter.TargetsHit >= TrashSlaughterUsage.PackThreshold ? QualitativePerformance.Perfect : QualitativePerformance.Fail));
         }
-        else
-        {
-            stats.Add(new PerCastStat(
-                slaughter.HeartSplitterPrimed ? "Yes" : "No",
-                "Rend Rebuilt",
-                "Whether Heart Splitter was used to rebuild Rend since the previous Slaughter.",
-                slaughter.HeartSplitterPrimed ? QualitativePerformance.Perfect : QualitativePerformance.Fail));
-        }
 
         stats.Add(new PerCastStat(
             $"{slaughter.RendConsumed}",
-            "Rend Cashed",
-            "Rend stacks this cast consumed across every enemy it reached. Reported as context: it is what the setup produced, not a criterion of its own."));
+            "Rend Consumed",
+            "Rend stacks this cast consumed across every enemy it reached. Reported as context, not scored."));
 
         stats.Add(new PerCastStat(
-            FormatDamage(slaughter.PayoffDamage),
-            "Bleed Payoff",
-            "Slaughter bleed damage this cast went on to deal. Damage scales with gear, so it is context rather than a verdict."));
+            FormatDamage(slaughter.BleedDamage),
+            "Bleed Damage",
+            "Slaughter bleed damage this cast dealt. This is context, not a verdict."));
 
         var note = BuildNote(row, isAoe);
 
@@ -157,8 +136,8 @@
     {
         var slaughter = row.Cast;
         var setup = DescribeSetup(slaughter, isAoe);
-        var cashed = DescribeCashed(slaughter);
-        return $"{setup} {cashed}";
+        var consumed = DescribeConsumed(slaughter);
+        return $"{setup} {consumed}";
     }
 
     private static string DescribeSetup(SlaughterEvaluation slaughter, bool isAoe)
@@ -167,34 +146,27 @@
         {
             return isAoe
                 ? $"Cast inside Open Wounds, spreading the bleed to {slaughter.TargetsHit} enemies."
-                : "Cast inside Open Wounds with Rend rebuilt by Heart Splitter.";
+                : "Cast inside Open Wounds.";
         }
 
         var reasons = new List<string>();
         if (!slaughter.OpenWoundsActive)
-            reasons.Add("no Open Wounds window was active, so it missed Rupture's bonus");
+            reasons.Add("no Open Wounds window was active");
 
-        if (isAoe)
-        {
-            if (slaughter.TargetsHit < TrashSlaughterUsage.PackThreshold)
-                reasons.Add(slaughter.TargetsHit <= 1
-                    ? "it hit a single target, wasting the AoE bleed"
-                    : $"it only reached {slaughter.TargetsHit} enemies");
-        }
-        else if (!slaughter.HeartSplitterPrimed)
-        {
-            reasons.Add("Heart Splitter was not used since the previous Slaughter, so Rend was not rebuilt");
-        }
+        if (isAoe && slaughter.TargetsHit < TrashSlaughterUsage.PackThreshold)
+            reasons.Add(slaughter.TargetsHit <= 1
+                ? "it hit a single target"
+                : $"it only reached {slaughter.TargetsHit} enemies");
 
         return JoinReasons(reasons);
     }
 
-    private static string DescribeCashed(SlaughterEvaluation slaughter)
+    private static string DescribeConsumed(SlaughterEvaluation slaughter)
     {
         if (slaughter.RendConsumed == 0)
-            return "No Rend was active when it was pressed, so the cast cashed nothing at all.";
+            return "No Rend was consumed.";
 
-        var damage = slaughter.PayoffDamage > 0 ? $", which bled for {FormatDamage(slaughter.PayoffDamage)}" : string.Empty;
+        var damage = slaughter.BleedDamage > 0 ? $", which bled for {FormatDamage(slaughter.BleedDamage)}" : string.Empty;
         return $"It consumed {slaughter.RendConsumed} Rend{damage}.";
     }
 
@@ -206,9 +178,10 @@
 
     private static QualitativePerformance SetupTier(SlaughterEvaluation slaughter, bool isAoe)
     {
-        var spread = isAoe
-            ? slaughter.TargetsHit >= TrashSlaughterUsage.PackThreshold
-            : slaughter.HeartSplitterPrimed;
+        if (!isAoe)
+            return slaughter.OpenWoundsActive ? QualitativePerformance.Perfect : QualitativePerformance.Fail;
+
+        var spread = slaughter.TargetsHit >= TrashSlaughterUsage.PackThreshold;
 
         return slaughter.OpenWoundsActive && spread ? QualitativePerformance.Perfect
             : slaughter.OpenWoundsActive || spread ? QualitativePerformance.Ok

@@ -80,8 +80,8 @@ Use the existing attributes instead of runtime scanning:
 ```csharp
 [HeroAnalyzer(HeroName.Rime)]
 [AddState<WinterOrbTracker>]
-[AddAnalyzer<SingleTargetEmbraceWindowAnalyzer>]
-[AddAnalyzer<AoeEmbraceWindowAnalyzer>]
+[AddAnalyzer<SingleTargetEmbraceAnalyzer>]
+[AddAnalyzer<AoeEmbraceAnalyzer>]
 public sealed partial class RimeCombatLogParser : CombatLogParser
 {
     public override Type? GuideComponent => typeof(RimeGuide);

@@ -4,19 +4,19 @@ using FellowshipAnalyzer.Heroes.Gunde.Modules;
 namespace FellowshipAnalyzer.Heroes.Gunde.Analysis;
 
 [HeroAnalyzer(HeroName.Gunde)]
-[AddState<BloodFeatherTracker>]
-[AddState<RendStackTracker>]
+[AddModule<Modules.Abilities>]
+[AddModule<GundeAuras>]
+[AddAnalyzer<BloodFeatherTracker>]
+[AddAnalyzer<RendStackTracker>]
 [AddAnalyzer<BossSlaughterUsage>]
 [AddAnalyzer<TrashSlaughterUsage>]
 [AddAnalyzer<RendUptimeAnalyzer>]
 [AddAnalyzer<RendSpreadAnalyzer>]
 [AddAnalyzer<HeartSplitterAnalyzer>]
 [AddAnalyzer<SerratedEdgeAnalyzer>]
-[AddAnalyzer<BurstWindowAnalyzer>]
+[AddAnalyzer<BurstAnalyzer>]
 [AddAnalyzer<OwedInBloodEconomyAnalyzer>]
-[AddModule<Modules.Abilities>]
-[AddModule<GundeAuras>]
-[AddModule<FatedStrikeWindowTracker>]
+[AddAnalyzer<CarnageAnalyzer>]
 public sealed partial class GundeCombatLogParser : CombatLogParser
 {
     public override Type? GuideComponent => typeof(GundeGuide);

@@ -3,10 +3,8 @@ using FellowshipAnalyzer.Core.Common.Spells.Sylvie;
 
 namespace FellowshipAnalyzer.Heroes.Sylvie.Modules;
 
-/// <summary>The auras whose windows are worth shading on Sylvie's timeline.</summary>
 public sealed class SylvieAuras : Auras
 {
-    /// <inheritdoc/>
     public override IEnumerable<SpellbookAura> GetAuras() =>
     [
         new()

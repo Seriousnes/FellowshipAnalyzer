@@ -1,0 +1,38 @@
+@using FellowshipAnalyzer.Core.Common.Spells.Mara
+@using MaraTalents = FellowshipAnalyzer.Core.Common.Spells.MaraTalents
+
+@if (HasDeadlyScheme)
+{
+    <p>
+        Spend <SpellLink Spell="Talents.DeadlyScheme" /> on a finisher (<SpellLink Spell="Spells.QueenFang" /> or
+        <SpellLink Spell="Spells.ArachnidAssault" />) you have already stacked with your other damage
+        modifiers.
+        @if (HasGuile && HasMalevolence)
+        {
+            <text>
+                Hold it for an <SpellLink Spell="Talents.AssassinsGuile" /> window and press it on a
+                finisher with <SpellLink Spell="Talents.Malevolence" /> stacks available.
+            </text>
+        }
+        else if (HasGuile)
+        {
+            <text>Hold it for an <SpellLink Spell="Talents.AssassinsGuile" /> window.</text>
+        }
+        else if (HasMalevolence)
+        {
+            <text>
+                Press it on a finisher with <SpellLink Spell="Talents.Malevolence" /> stacks available.
+            </text>
+        }
+    </p>
+}
+
+@code {
+    [CascadingParameter] public Combatant SelectedCombatant { get; set; } = null!;
+
+    private bool HasDeadlyScheme => SelectedCombatant.HasTalent(MaraTalents.DeadlyScheme);
+
+    private bool HasGuile => SelectedCombatant.HasTalent(MaraTalents.AssassinsGuile);
+
+    private bool HasMalevolence => SelectedCombatant.HasTalent(MaraTalents.Malevolence);
+}

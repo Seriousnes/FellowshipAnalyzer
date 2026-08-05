@@ -9,7 +9,7 @@ namespace FellowshipAnalyzer.Core.Analysis;
 public sealed record HeroConfig
 {
     /// <summary>How complete the hero's analysis is.</summary>
-    public SupportLevel Support { get; init; } = SupportLevel.Unmaintained;
+    public SupportLevel Support { get; init; } = SupportLevel.None;
 
     /// <summary>People responsible for the hero's analysis.</summary>
     public IReadOnlyList<Contributor> Maintainers { get; init; } = [];

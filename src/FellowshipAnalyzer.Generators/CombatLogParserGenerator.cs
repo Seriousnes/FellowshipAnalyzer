@@ -86,13 +86,13 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
                 if (containingType.TypeArguments[0] is not INamedTypeSymbol typeArg)
                     continue;
 
-                var ns = GetNamespace(typeArg);
-
-                if (containingType.Name == AddModuleAttributeShortName
-                    || containingType.Name == AddStateAttributeShortName)
-                    ownModules.Add(BuildModuleTypeInfo(typeArg));
-                else if (containingType.Name == AddAnalyzerAttributeShortName)
-                    ownAnalyzers.Add(BuildAnalyzerInfo(typeArg));
+                if (IsRegistrationAttribute(containingType.Name))
+                {
+                    if (HasForPull(typeArg))
+                        ownAnalyzers.Add(BuildAnalyzerInfo(typeArg));
+                    else
+                        ownModules.Add(BuildModuleTypeInfo(typeArg));
+                }
                 else if (containingType.Name == AddNormalizerAttributeShortName)
                     normalizerTypes.Add(BuildNormalizerTypeInfo(typeArg));
             }
@@ -181,16 +181,41 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
             isAbstractBase: false);
     }
 
+    /// <summary>
+    /// Whether <paramref name="name"/> is one of the three attributes that register a type on a parser.
+    /// Which list the registered type lands in is decided by <see cref="HasForPull"/>, not by which of
+    /// the three declared it.
+    /// </summary>
+    private static bool IsRegistrationAttribute(string name) =>
+        name == AddModuleAttributeShortName
+        || name == AddStateAttributeShortName
+        || name == AddAnalyzerAttributeShortName;
+
+    /// <summary>
+    /// Whether <paramref name="type"/> declares <c>[ForPull]</c> directly, which is what makes a
+    /// registered type pull-lifetime. <c>ForPullAttribute</c> is <c>Inherited = false</c>, and
+    /// <c>GetAttributes()</c> returns only directly-applied attributes, so an abstract base declaring
+    /// the shape never decides a subclass's lifetime.
+    /// </summary>
+    private static bool HasForPull(INamedTypeSymbol type)
+    {
+        foreach (var attr in type.GetAttributes())
+        {
+            if (attr.AttributeClass?.Name == ForPullAttributeShortName) return true;
+        }
+        return false;
+    }
+
     private static void CollectModulesFromSymbol(INamedTypeSymbol symbol, List<TypeInfo> modules)
     {
         foreach (var attr in symbol.GetAttributes())
         {
             if (attr.AttributeClass == null) continue;
-            if (attr.AttributeClass.Name != AddModuleAttributeShortName
-                && attr.AttributeClass.Name != AddStateAttributeShortName) continue;
+            if (!IsRegistrationAttribute(attr.AttributeClass.Name)) continue;
             if (!attr.AttributeClass.IsGenericType || attr.AttributeClass.TypeArguments.Length == 0) continue;
 
             if (attr.AttributeClass.TypeArguments[0] is not INamedTypeSymbol typeArg) continue;
+            if (HasForPull(typeArg)) continue;
 
             modules.Add(BuildModuleTypeInfo(typeArg));
         }
@@ -201,10 +226,11 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
         foreach (var attr in symbol.GetAttributes())
         {
             if (attr.AttributeClass == null) continue;
-            if (attr.AttributeClass.Name != AddAnalyzerAttributeShortName) continue;
+            if (!IsRegistrationAttribute(attr.AttributeClass.Name)) continue;
             if (!attr.AttributeClass.IsGenericType || attr.AttributeClass.TypeArguments.Length == 0) continue;
 
             if (attr.AttributeClass.TypeArguments[0] is not INamedTypeSymbol typeArg) continue;
+            if (!HasForPull(typeArg)) continue;
 
             analyzers.Add(BuildAnalyzerInfo(typeArg));
         }
@@ -419,6 +445,7 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
         var boss = 0;
         var seenForPull = false;
         var requiredTalentIds = new List<int>();
+        string? activePredicate = null;
         foreach (var attr in analyzerType.GetAttributes())
         {
             var ac = attr.AttributeClass;
@@ -428,6 +455,13 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
             {
                 if (attr.ConstructorArguments.Length == 1 && attr.ConstructorArguments[0].Value is int talentId)
                     requiredTalentIds.Add(talentId);
+                continue;
+            }
+
+            if (ac.Name == ActiveWhenAttributeShortName && ac.IsGenericType && ac.TypeArguments.Length > 0)
+            {
+                if (ac.TypeArguments[0] is INamedTypeSymbol predicate)
+                    activePredicate = FullyQualifiedName(predicate);
                 continue;
             }
 
@@ -450,7 +484,8 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
             surfaceMemberName,
             targets,
             boss,
-            [.. requiredTalentIds]);
+            [.. requiredTalentIds],
+            activePredicate);
     }
 
     /// <summary>
@@ -796,8 +831,11 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
 
     /// <summary>
     /// Emits the <c>[ForPull]</c> match expression: the compile-time-constant
-    /// <c>(pull.Targets &amp; (mask)) != 0</c> with an optional boss clause, followed by one
+    /// <c>(mask).HasFlag(pull.Targets)</c> with an optional boss clause, followed by one
     /// <c>SelectedCombatant.HasTalent(id)</c> term per <c>[RequiresTalent(id)]</c> on the analyzer.
+    /// The declared mask is the receiver: a pull carries exactly one
+    /// <see cref="FellowshipAnalyzer.Core.Analysis.PullKind"/>, so the test is that the declared set
+    /// contains it.
     /// An analyzer with no talent gate emits output byte-identical to the pre-<c>[RequiresTalent]</c>
     /// form. The talent terms read the parse context populated before any pull opens, so a build
     /// without the talent never constructs the analyzer and its read paths stay empty.
@@ -809,11 +847,13 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
         if ((a.ForPullTargets & 1) != 0) flags.Add(pk + ".Single");
         if ((a.ForPullTargets & 2) != 0) flags.Add(pk + ".Multi");
         var mask = flags.Count > 0 ? string.Join(" | ", flags) : "(" + pk + ")0";
-        var gate = "(pull.Targets & (" + mask + ")) != 0";
+        var gate = "(" + mask + ").HasFlag(pull.Targets)";
         if (a.ForPullBoss == 1) gate += " && pull.IsBoss";
         else if (a.ForPullBoss == 2) gate += " && !pull.IsBoss";
         foreach (var id in a.RequiredTalentIds)
             gate += " && SelectedCombatant.HasTalent(" + id.ToString(CultureInfo.InvariantCulture) + ")";
+        if (a.ActivePredicate is { } predicate)
+            gate += " && global::" + predicate + ".IsActive(CurrentParseContext)";
         return gate;
     }
 
@@ -1061,8 +1101,10 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
             string surfaceTypeMemberName,
             int forPullTargets,
             int forPullBoss,
-            ImmutableArray<int> requiredTalentIds)
+            ImmutableArray<int> requiredTalentIds,
+            string? activePredicate)
         {
+            ActivePredicate = activePredicate;
             Name = name;
             Namespace = ns;
             CtorParams = ctorParams.IsDefault ? ImmutableArray<CtorParam>.Empty : ctorParams;
@@ -1077,7 +1119,7 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
         public ImmutableArray<CtorParam> CtorParams { get; }
         /// <summary>Fully-qualified surface type: the surface marker interface, or the topmost ancestor deriving directly from <c>Analyzer</c>.</summary>
         public string SurfaceTypeFullyQualified { get; }
-        /// <summary>Member base name for the surface's read paths (e.g. "WintersEmbraceWindowAnalyzer"): the surface class's simple name, or an interface's name with a leading <c>I</c> stripped.</summary>
+        /// <summary>Member base name for the surface's read paths (e.g. "WintersEmbraceAnalyzer"): the surface class's simple name, or an interface's name with a leading <c>I</c> stripped.</summary>
         public string SurfaceTypeMemberName { get; }
         /// <summary>The <c>[ForPull]</c> target bitmask (<c>PullKind</c> as int).</summary>
         public int ForPullTargets { get; }
@@ -1085,6 +1127,8 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
         public int ForPullBoss { get; }
         /// <summary>Native talent ids the selected combatant must have (from <c>[RequiresTalent(id)]</c>), in declaration order.</summary>
         public ImmutableArray<int> RequiredTalentIds { get; }
+        /// <summary>Fully-qualified predicate type from <c>[ActiveWhen&lt;T&gt;]</c>, or <c>null</c> when the analyzer is unconditional.</summary>
+        public string? ActivePredicate { get; }
         public string FullyQualifiedName => string.IsNullOrEmpty(Namespace) ? Name : Namespace + "." + Name;
     }
 }

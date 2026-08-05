@@ -1,0 +1,88 @@
+@inherits ReportComponent<SylvieCombatLogParser>
+
+<GuideSection Title="Safe Haven">
+    <LeftPanel>
+        <p>
+            Proper placement of <SpellLink Spell="Spells.SafeHaven" /> can be difficult to achieve, 
+            but it is a powerful tool for keeping allies alive.
+        </p>
+    </LeftPanel>
+    <RightPanel>
+        <CastOverview Title="Overview" Stats="@BuildOverviewStats()" />
+        <CastDetail Title="Every Safe Haven"
+                    Description="Who each placement reached, and for how much of its duration."
+                    Casts="@BuildPerCastData()" />
+    </RightPanel>
+</GuideSection>
+
+@code {
+    private IEnumerable<OverviewStat> BuildOverviewStats()
+    {
+        var analyzers = Parser.SafeHavenAnalyzers.Select(entry => entry.Analyzer).ToList();
+        var casts = analyzers.Sum(analyzer => analyzer.Casts);
+        if (casts == 0) return [];
+
+        var allyMs = analyzers.Sum(analyzer => analyzer.AllyMs);
+        var offered = analyzers.Sum(analyzer =>
+            analyzer.Placements.Sum(placement => (long)placement.Allies * placement.AvailableMs));
+        var held = offered > 0 ? allyMs / (double)offered : 0;
+        var reached = analyzers.Sum(analyzer => analyzer.AlliesReached);
+        var empty = analyzers.Sum(analyzer => analyzer.CastsWithoutAnAlly);
+        var carriedMs = analyzers.Sum(analyzer => analyzer.CarriedInAllyMs);
+
+        var stats = new List<OverviewStat>
+        {
+            new OverviewStat(
+                $"{casts}",
+                "Safe Havens",
+                "Casts across every pull."),
+            new OverviewStat(
+                $"{held * 100:F1}%",
+                "Held",
+                $"{allyMs / 1000:N0} of the {offered / 1000:N0} ally-seconds the placements offered, measured against the {SylvieKit.SafeHavenDurationMs / 1000}s duration and clamped where a pull ended first. Reported as context rather than scored, because an ally leaves the radius for reasons the log does not record."),
+            new OverviewStat(
+                $"{reached / (double)casts:F1}",
+                "Allies Per Placement",
+                $"{reached} ally arrivals across {casts} placements. The log lists no party roster, so this is not scored against a group size."),
+            new OverviewStat(
+                $"{empty}/{casts}",
+                "Reached Nobody",
+                "Placements no ally was ever inside.",
+                PerformanceTiers.FromThresholds(100 - (empty / (double)casts * 100), 100, 90, 75)),
+        };
+
+        if (carriedMs > 0)
+        {
+            stats.Add(new OverviewStat(
+                $"{carriedMs / 1000:N0}s",
+                "Carried In",
+                "Ally-seconds from a placement made before the pull started, left out of the figures above."));
+        }
+
+        return stats;
+    }
+
+    private IEnumerable<PerCastData> BuildPerCastData() =>
+        Parser.SafeHavenAnalyzers.ToItemRows(
+            Parser,
+            analyzer => analyzer.Placements,
+            (placement, pull) => new PerCastRow
+            {
+                Performance = placement.Allies == 0
+                    ? QualitativePerformance.Fail
+                    : QualitativePerformance.Good,
+                Timestamp = placement.Timestamp,
+                Stats =
+                [
+                    new PerCastStat(
+                        $"{placement.Allies}",
+                        "Allies",
+                        "Allies inside this placement at any point."),
+                    new PerCastStat(
+                        $"{placement.HeldShare * 100:F0}%",
+                        "Held",
+                        $"{placement.AllyMs / 1000:N0} of the {(long)placement.Allies * placement.AvailableMs / 1000:N0} ally-seconds this placement offered." +
+                        (placement.Truncated ? " The pull ended before it expired." : string.Empty)),
+                ],
+            });
+}

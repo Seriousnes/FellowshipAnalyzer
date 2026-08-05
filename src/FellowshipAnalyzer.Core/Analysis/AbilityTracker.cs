@@ -16,7 +16,7 @@ namespace FellowshipAnalyzer.Core.Analysis;
 /// landed, with overheal carried separately.
 /// </para>
 /// </summary>
-public sealed partial class AbilityTracker : EventSubscriber
+public sealed partial class AbilityTracker : Analyzer
 {
     private readonly Dictionary<int, TrackedAbility> _bySpell = [];
     private readonly List<TrackedAbility> _spells = [];

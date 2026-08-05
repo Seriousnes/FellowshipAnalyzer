@@ -1,3 +1,4 @@
+using FellowshipAnalyzer.Core.Common.Spells;
 using FellowshipAnalyzer.Core.Events;
 using FellowshipAnalyzer.Core.FellowshipLogs;
 
@@ -21,11 +22,17 @@ public sealed class AbilityMasterDataNormalizer(ReportMasterDataService masterDa
     {
         foreach (var e in events)
         {
-            if (e is IAbilityEvent abilityEvent && abilityEvent.AbilityGameId != 0 && abilityEvent.Ability is null or { FSLID.Value: 0 })
-                abilityEvent.Ability = masterData.GetAbility(abilityEvent.AbilityGameId);
+            if (e is IAbilityEvent abilityEvent && abilityEvent.AbilityGameId != 0)
+            {
+                if (abilityEvent.Ability is null or { FSLID.Value: 0 })
+                    abilityEvent.Ability = masterData.GetAbility(abilityEvent.AbilityGameId);
+            }
 
-            if (e is IExtraAbilityEvent extraAbilityEvent && extraAbilityEvent.ExtraAbilityGameId != 0 && extraAbilityEvent.ExtraAbility is null or { FSLID.Value: 0 })
-                extraAbilityEvent.ExtraAbility = masterData.GetAbility(extraAbilityEvent.ExtraAbilityGameId);
+            if (e is IExtraAbilityEvent extraAbilityEvent && extraAbilityEvent.ExtraAbilityGameId != 0)
+            {
+                if (extraAbilityEvent.ExtraAbility is null or { FSLID.Value: 0 })
+                    extraAbilityEvent.ExtraAbility = masterData.GetAbility(extraAbilityEvent.ExtraAbilityGameId);
+            }
         }
 
         return events;
