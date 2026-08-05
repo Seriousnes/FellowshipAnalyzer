@@ -1,5 +1,3 @@
-@use 'tokens' as t;
-
 .support-badge {
     display: inline-flex;
     align-items: center;
@@ -9,20 +7,22 @@
     font-size: 0.78rem;
     font-weight: 600;
     white-space: nowrap;
-    border: var(--fa-border-width) solid var(--fa-border);
-    background: color-mix(in srgb, currentColor 12%, transparent);
+    border: var(--fa-border-width) solid transparent;
+    color: var(--fa-black);
 }
 
 .support-badge--full {
-    border-color: color-mix(in srgb, currentColor 35%, transparent);
+    background: var(--fa-legendary);
 }
 
 .support-badge--partial {
-    color: var(--fa-gold);
-    border-color: var(--fa-gold-dim);
+    background: var(--fa-regal);
 }
 
-.support-badge--unmaintained {
-    color: var(--fa-text-dim);
-    border-color: var(--fa-border);
+.support-badge--minimal {
+    background: var(--fa-epic);
+}
+
+.support-badge--none {
+    background: var(--fa-ash);
 }

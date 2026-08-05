@@ -42,6 +42,9 @@ public sealed record FaPalette
     /// <summary>Warm grey for an inert or available state.</summary>
     public required FaColor Stone { get; init; }
 
+    /// <summary>Cool mid grey, light enough for dark text over it.</summary>
+    public required FaColor Ash { get; init; }
+
     /// <summary>Cream stop in the brand mark. Artwork, so every theme carries the same value.</summary>
     public required FaColor BrandCream { get; init; }
 
@@ -172,6 +175,15 @@ public sealed record FaPalette
     /// <summary>Deepest fire step, burnt umber.</summary>
     public required FaColor Fire6 { get; init; }
 
+    /// <summary>Legendary item quality. Game artwork, so every theme carries the same value.</summary>
+    public required FaColor Legendary { get; init; }
+
+    /// <summary>Regal item quality. Game artwork, so every theme carries the same value.</summary>
+    public required FaColor Regal { get; init; }
+
+    /// <summary>Epic item quality. Game artwork, so every theme carries the same value.</summary>
+    public required FaColor Epic { get; init; }
+
     /// <summary>Tank role.</summary>
     public required FaColor RoleTank { get; init; }
 
@@ -297,6 +309,7 @@ public sealed record FaPalette
             Blood = blood,
             Rust = "#dd5533",
             Stone = "#696864",
+            Ash = "#8a9099",
 
             BrandCream = "#f4e9d0",
             BrandGold = "#d4a744",
@@ -345,6 +358,10 @@ public sealed record FaPalette
             Fire4 = "#ee6a18",
             Fire5 = "#d24a15",
             Fire6 = "#a3601f",
+
+            Legendary = "#ff8000",
+            Regal = "#b15c5a",
+            Epic = "#a73def",
 
             RoleTank = "#336699",
             RoleHealer = perfGood,

@@ -30,7 +30,7 @@ public class PaletteScssDriftTests
     {
         var expected = FaTheme.Original.Tokens.Select(t => t.Name).ToList();
 
-        expected.Count.ShouldBe(103);
+        expected.Count.ShouldBe(107);
 
         foreach (var theme in FaTheme.All)
         {

@@ -1,22 +1,22 @@
 @using FellowshipAnalyzer.Core.Analysis
 
-<span class="support-badge support-badge--@_class @_semanticClass" title="@_title">
+<span class="support-badge support-badge--@_class" title="@_title">
     @_label
 </span>
 
 @code {
     [Parameter, EditorRequired] public SupportLevel Support { get; set; }
 
-    private string _class = "unmaintained";
-    private string _semanticClass = "";
-    private string _label = "Unmaintained";
+    private string _class = "none";
+    private string _label = "No support";
     private string _title = "";
 
     protected override void OnParametersSet() =>
-        (_class, _semanticClass, _label, _title) = Support switch
+        (_class, _label, _title) = Support switch
         {
-            SupportLevel.Full => ("full", "good", "Full support", "Analysis is largely complete."),
-            SupportLevel.Partial => ("partial", "", "Partial support", "Analysis is still being built out."),
-            _ => ("unmaintained", "", "Unmaintained", "Analysis is absent or incomplete."),
+            SupportLevel.Full => ("full", "Full support", "Analysis is largely complete."),
+            SupportLevel.Partial => ("partial", "Partial support", "Analysis is still being built out."),
+            SupportLevel.Minimal => ("minimal", "Minimal support", "Analysis covers a few of the hero's abilities."),
+            _ => ("none", "No support", "No analysis is available for this hero."),
         };
 }

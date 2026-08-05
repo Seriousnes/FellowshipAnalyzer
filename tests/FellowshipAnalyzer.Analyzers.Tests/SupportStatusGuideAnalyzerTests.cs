@@ -52,14 +52,14 @@ public class SupportStatusGuideAnalyzerTests
     }
 
     [Fact]
-    public void FA0017_UnmaintainedWithoutGuide_Silent()
+    public void FA0017_NoSupportWithoutGuide_Silent()
     {
         var diagnostics = AnalyzerTestHarness.Run(Preamble + """
 
             [HeroAnalyzer(HeroName.Meiko)]
             public partial class MeikoParser : FakeParser
             {
-                public static HeroConfig HeroConfig { get; } = new() { Support = SupportLevel.Unmaintained };
+                public static HeroConfig HeroConfig { get; } = new() { Support = SupportLevel.None };
             }
             """, new SupportStatusGuideAnalyzer());
 

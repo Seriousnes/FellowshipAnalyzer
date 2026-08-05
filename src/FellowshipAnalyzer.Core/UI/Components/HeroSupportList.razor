@@ -31,15 +31,8 @@
             role => (IReadOnlyList<HeroConfigEntry>)
                 [.. Catalog.Heroes
                     .Where(e => Hero.For(e.Hero).Role == role)
-                    .OrderByDescending(e => Rank(e.Config.Support))
+                    .OrderByDescending(e => e.Config.Support)
                     .ThenBy(e => e.Hero.ToString(), StringComparer.Ordinal)]);
-
-    private static int Rank(SupportLevel support) => support switch
-    {
-        SupportLevel.Full => 2,
-        SupportLevel.Partial => 1,
-        _ => 0,
-    };
 
     private static string RoleLabel(HeroRole role) => role switch
     {

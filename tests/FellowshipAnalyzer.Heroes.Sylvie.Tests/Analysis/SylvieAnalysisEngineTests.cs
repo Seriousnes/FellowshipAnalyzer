@@ -35,7 +35,8 @@ public sealed class SylvieAnalysisEngineTests
     {
         var config = SylvieCombatLogParser.HeroConfig;
 
-        config.Support.ShouldNotBe(SupportLevel.Unmaintained);
+        config.Support.ShouldNotBe(SupportLevel.None);
+        config.Maintainers.ShouldNotBeEmpty();
         config.SeasonLabel.ShouldBe(Seasons.Season3);
         config.ExampleReport.ShouldBe("a:gDf7m3N2wvk96dWP/22/118");
         config.Changelog.ShouldNotBeEmpty();
