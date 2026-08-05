@@ -14,9 +14,6 @@ public abstract partial class SlaughterUsageAnalyzer : Analyzer
     private readonly List<OpenWoundsWindow> _windows = [];
     private readonly List<SlaughterCast> _casts = [];
 
-    private int _lastHeartSplitterTimestamp = int.MinValue;
-    private int _previousSlaughterTimestamp = int.MinValue;
-
     private Projection Result => field ??= Project();
 
     public abstract GundePullShape Shape { get; }
@@ -26,8 +23,6 @@ public abstract partial class SlaughterUsageAnalyzer : Analyzer
     public int SlaughterCasts => _casts.Count;
 
     public int OpenWoundsTimed => Result.OpenWoundsTimed;
-
-    public int HeartSplitterPrimed => Result.HeartSplitterPrimed;
 
     public int WellExecuted => Result.WellExecuted;
 
@@ -65,15 +60,8 @@ public abstract partial class SlaughterUsageAnalyzer : Analyzer
             _casts[^1].BleedDamage += @event.Amount;
     }
 
-    [On<CastEvent>(By = Actor.Player, Spell = nameof(Spells.HeartSplitter))]
-    private void OnHeartSplitter(CastEvent @event) => _lastHeartSplitterTimestamp = @event.Timestamp;
-
     [On<CastEvent>(By = Actor.Player, Spell = nameof(Spells.Slaughter))]
-    private void OnSlaughter(CastEvent @event)
-    {
-        _casts.Add(new SlaughterCast(@event.Timestamp, _lastHeartSplitterTimestamp > _previousSlaughterTimestamp));
-        _previousSlaughterTimestamp = @event.Timestamp;
-    }
+    private void OnSlaughter(CastEvent @event) => _casts.Add(new SlaughterCast(@event.Timestamp));
 
     protected abstract bool IsWellExecuted(SlaughterEvaluation slaughter);
 
@@ -86,7 +74,6 @@ public abstract partial class SlaughterUsageAnalyzer : Analyzer
             {
                 Timestamp = cast.Timestamp,
                 OpenWoundsActive = IsInsideOpenWounds(cast.Timestamp),
-                HeartSplitterPrimed = cast.HeartSplitterPrimed,
                 TargetsHit = cast.Targets.Count,
                 RendConsumed = RendConsumedBy(cast.Timestamp),
                 BleedDamage = cast.BleedDamage,
@@ -100,7 +87,6 @@ public abstract partial class SlaughterUsageAnalyzer : Analyzer
         return new Projection(
             evaluations,
             evaluations.Count(slaughter => slaughter.OpenWoundsActive),
-            evaluations.Count(slaughter => slaughter.HeartSplitterPrimed),
             evaluations.Count(slaughter => slaughter.WellExecuted),
             _casts.Sum(cast => cast.BleedDamage),
             evaluations.Sum(slaughter => slaughter.RendConsumed),
@@ -163,10 +149,9 @@ public abstract partial class SlaughterUsageAnalyzer : Analyzer
         public bool Covers(int timestamp) => timestamp >= Start && timestamp <= End;
     }
 
-    private sealed class SlaughterCast(int timestamp, bool heartSplitterPrimed)
+    private sealed class SlaughterCast(int timestamp)
     {
         public int Timestamp { get; } = timestamp;
-        public bool HeartSplitterPrimed { get; } = heartSplitterPrimed;
         public HashSet<TargetKey> Targets { get; } = [];
         public long BleedDamage { get; set; }
     }
@@ -174,7 +159,6 @@ public abstract partial class SlaughterUsageAnalyzer : Analyzer
     private sealed record Projection(
         IReadOnlyList<SlaughterEvaluation> Slaughters,
         int OpenWoundsTimed,
-        int HeartSplitterPrimed,
         int WellExecuted,
         long TotalBleedDamage,
         int TotalRendConsumed,
@@ -188,7 +172,7 @@ public sealed class BossSlaughterUsage : SlaughterUsageAnalyzer
     public override GundePullShape Shape => GundePullShape.Boss;
 
     protected override bool IsWellExecuted(SlaughterEvaluation slaughter) =>
-        slaughter.OpenWoundsActive && slaughter.HeartSplitterPrimed;
+        slaughter.OpenWoundsActive;
 }
 
 [ForPull(PullKind.Multi)]

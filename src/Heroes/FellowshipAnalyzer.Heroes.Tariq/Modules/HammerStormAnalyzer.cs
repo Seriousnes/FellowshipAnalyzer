@@ -11,14 +11,8 @@ public sealed partial class HammerStormAnalyzer : Analyzer
 {
     public const int SpinGapMs = 150;
 
-    /// <summary>Damage bursts a full channel lands. The hero data says <c>AoeAttack.MaxAttacks: 4.0</c>; report <c>a:NcqHDKzamL7n6YFv</c> shows three, stable from 100ms to 250ms clustering, in 127 of 129 channels.</summary>
     public const int ExpectedSpins = 3;
 
-    /// <summary>
-    /// The target count from which Hammer Storm out-earns Skull Crusher for the Fury it costs. Absent from
-    /// the hero data, which carries only <c>AoeAttack.TargetThresholdForDamageScale: 12.0</c> - a damage
-    /// scaling point, not a break-even - so the hero's break-even of three targets is the owner's value.
-    /// </summary>
     public const int TargetBreakEven = 3;
 
     public const int MaxChannelDurationMs = 2500;
@@ -55,10 +49,8 @@ public sealed partial class HammerStormAnalyzer : Analyzer
         }
     }
 
-    /// <summary>Channels that caught fewer than <see cref="TargetBreakEven"/> targets, where the Fury would have earned more as Skull Crushers.</summary>
     public int UnderBreakEvenChannels => Evaluated.Count(cast => cast.UnderTargetBreakEven);
 
-    /// <summary>Channels grouped by the number of distinct units their first spin caught, ascending. Target counts hold steady across a channel's spins, so the first spin reads the whole.</summary>
     public IReadOnlyList<TargetCountBucket> TargetsHitDistribution => field ??=
     [
         .. Evaluated
@@ -293,12 +285,10 @@ public sealed record HammerStormCast
 
     public required bool SchismEmpowered { get; init; }
 
-    /// <summary>The first ability cast at or after this channel's last spin. Named as a fact about cast order; the hero data says nothing about which abilities cancel a channel.</summary>
     public int? NextAbilityId { get; init; }
 
     public bool Truncated => SpinsCompleted < HammerStormAnalyzer.ExpectedSpins && TargetsHit > 0;
 
-    /// <summary>The channel connected with fewer than <see cref="HammerStormAnalyzer.TargetBreakEven"/> targets, so its Fury would have earned more as Skull Crushers.</summary>
     public bool UnderTargetBreakEven => TargetsHit > 0 && TargetsHit < HammerStormAnalyzer.TargetBreakEven;
 }
 

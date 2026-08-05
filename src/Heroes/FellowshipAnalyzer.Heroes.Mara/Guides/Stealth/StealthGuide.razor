@@ -1,38 +1,33 @@
 @using FellowshipAnalyzer.Core.Common.Spells.Mara
 @using Spells = FellowshipAnalyzer.Core.Common.Spells.Mara.Spells
+@using MaraTalents = FellowshipAnalyzer.Core.Common.Spells.MaraTalents
 @inherits ReportComponent<MaraCombatLogParser>
 
 <GuideSection Title="Stealth &amp; Assassin's Guile">
     <LeftPanel>
         <p>
-            <SpellLink Spell="Spells.BroodingShadows" /> is only worth its charge when it comes out as an
-            empowered builder, so open every stealth into one and lay its poison. The table shows what
-            came out of each stealth.
+            Maintain Seething Poison with <SpellLink Spell="Spells.WidowBite" /> from
+            <SpellLink Spell="Spells.BroodingShadows" /> on the priority target at all times.
         </p>
-        @if (HasGuile)
-        {
-            <p>
-                <SpellLink Spell="Talents.AssassinsGuile" /> turns that opener into a damage window, so
-                land your spenders inside it.
-            </p>
-        }
-        @if (MalevolenceSeen)
-        {
-            <p>
-                <SpellLink Spell="Talents.Malevolence" /> decides what the window is worth, so go into it
-                with both stacks already high.
-            </p>
-        }
+        <p>
+            Use Volatile Poison with <SpellLink Spell="Spells.SkitteringBlades" /> when fighting
+            4 or more targets, and avoid overwriting it.
+        </p>
+        <CascadingValue Value="Parser.SelectedCombatant" IsFixed="true">
+            <AssassinsGuile />
+            <Malevolence />
+            <DeadlyScheme />
+        </CascadingValue>
     </LeftPanel>
     <RightPanel>
         <CastOverview Title="Stealth Overview" Stats="@BuildOverviewStats()" />
         <CastDetail Title="Stealth Windows"
-                    Description="Each row is one Brooding Shadows window, from the stealth buff landing to its removal, with the builder it opened and the poison that builder laid."
+                    Description="Each row is one Brooding Shadows window, from the stealth buff being applied to its removal, with the builder cast inside it and the poison that builder applied."
                     Casts="@BuildStealthRows()" />
         @if (HasGuile)
         {
             <CastDetail Title="Assassin's Guile Windows"
-                        Description="Each row is one Assassin's Guile window, with the boosted spenders pressed inside it."
+                        Description="Each row is one Assassin's Guile window, with the spenders pressed inside it."
                         Casts="@BuildGuileRows()" />
         }
     </RightPanel>
@@ -41,8 +36,8 @@
 @code {
     private bool HasGuile => Parser.GuileAnalyzers.Count > 0;
 
-    private bool MalevolenceSeen =>
-        Parser.GuileAnalyzers.Any(entry => entry.Analyzer.MalevolenceSeen);
+    private bool HasMalevolence =>
+        Parser.SelectedCombatant.HasTalent(MaraTalents.Malevolence);
 
     private IEnumerable<OverviewStat> BuildOverviewStats()
     {
@@ -59,7 +54,7 @@
             "Stealth Windows Converted",
             windows == 0
                 ? $"No stealth window was observed across {Count(casts, "Brooding Shadows cast")}, so there is nothing to score."
-                : $"Brooding Shadows windows that came out as an empowered builder ({Percent(converted, windows)}%); {poisoned} of them laid a poison.",
+                : $"Brooding Shadows windows with a builder cast inside them ({Percent(converted, windows)}%); a poison was applied in {poisoned} of them.",
             ConversionTier(converted, windows)));
 
         if (!HasGuile)
@@ -74,18 +69,18 @@
             $"{guileConverted}/{guileWindows}",
             "Guile Windows Converted",
             guileWindows == 0
-                ? "Assassin's Guile never went up, so no boosted window could be scored."
-                : $"Assassin's Guile windows carrying a Queen's Fang or Arachnid Assault ({Percent(guileConverted, guileWindows)}%), {spenders} boosted spenders in total.",
+                ? "Assassin's Guile was never applied, so there is nothing to score."
+                : $"Assassin's Guile windows with a Queen's Fang or Arachnid Assault cast inside them ({Percent(guileConverted, guileWindows)}%), {spenders} spenders in total.",
             ConversionTier(guileConverted, guileWindows)));
 
-        if (MalevolenceSeen)
+        if (HasMalevolence)
         {
             var stacked = guile.Sum(analyzer => analyzer.WindowsAtMaxStacks);
             var cap = GuileAnalyzer.MaxMalevolenceStacks;
             stats.Add(new OverviewStat(
                 $"{stacked}/{guileWindows}",
-                $"Entered at {cap}+{cap} Stacks",
-                $"Assassin's Guile windows opened with both Malevolence buffs already at {cap} stacks, where the 40% boost lands on doubled spenders.",
+                $"Entered at {cap} Stacks",
+                $"Assassin's Guile windows opened with either Malevolence buff already at {cap} stacks.",
                 ConversionTier(stacked, guileWindows)));
         }
 
@@ -108,11 +103,11 @@
                 window.ConvertingAbilityId is { } builder ? BuilderName(builder) : "None",
                 "Opened With",
                 window.ConvertingAbilityId is null
-                    ? "No builder was cast while the stealth buff was active, so the window was spent for nothing."
-                    : "The builder that came out of stealth and took the empowerment."),
+                    ? "No builder was cast while the stealth buff was active."
+                    : "The builder cast while the stealth buff was active."),
             new PerCastStat(
                 window.PoisonEffectId is { } poison ? PoisonName(poison) : "-",
-                "Poison Laid",
+                "Poison Applied",
                 PoisonTooltip(window)),
         };
 
@@ -142,23 +137,21 @@
                 "How long the Assassin's Guile buff was active."),
             new(
                 $"{window.SpenderCasts}",
-                "Boosted Spenders",
-                "Queen's Fang and Arachnid Assault casts made while the 40% boost was up.",
+                "Spenders",
+                "Queen's Fang and Arachnid Assault casts made while Assassin's Guile was active.",
                 Performance: SpenderTier(window.SpenderCasts)),
         };
 
-        if (MalevolenceSeen)
+        if (HasMalevolence)
         {
             stats.Add(new PerCastStat(
                 $"{window.QueensFangStacksAtOpen}/{cap}",
                 "Queen's Fang Stacks",
-                "Malevolence: Queen's Fang stacks active as the window opened.",
-                Performance: StackTier(window.QueensFangStacksAtOpen)));
+                "Malevolence: Queen's Fang stacks active as the window opened. Context, not a verdict."));
             stats.Add(new PerCastStat(
                 $"{window.ArachnidAssaultStacksAtOpen}/{cap}",
                 "Arachnid Assault Stacks",
-                "Malevolence: Arachnid Assault stacks active as the window opened.",
-                Performance: StackTier(window.ArachnidAssaultStacksAtOpen)));
+                "Malevolence: Arachnid Assault stacks active as the window opened. Context, not a verdict."));
         }
 
         return new PerCastRow
@@ -173,16 +166,16 @@
     private static string BuildStealthNote(StealthWindow window)
     {
         if (window.ConvertingAbilityId is not { } builder)
-            return $"This {FormatSeconds(window.DurationMs)} stealth window closed without a builder, so the charge bought nothing.";
+            return $"This {FormatSeconds(window.DurationMs)} stealth window closed without a builder.";
 
         var notes = new List<string> { $"{BuilderName(builder)} came out of stealth" };
 
         if (window.PoisonEffectId is { } poison)
-            notes.Add($"it laid {PoisonName(poison)}");
+            notes.Add($"it applied {PoisonName(poison)}");
         else if (builder == Spells.Backstab.Id)
-            notes.Add("a stealth Backstab deals its Caustic Poison as damage rather than a tracked debuff, so no poison aura is expected here");
+            notes.Add("the log records no poison debuff for it");
         else
-            notes.Add("no poison landed behind it");
+            notes.Add("no poison was applied after it");
 
         return Sentence(notes);
     }
@@ -195,14 +188,14 @@
         {
             window.SpenderCasts == 0
                 ? $"this {FormatSeconds(window.DurationMs)} window expired with no Queen's Fang or Arachnid Assault in it"
-                : $"{Count(window.SpenderCasts, "spender")} took the 40% boost",
+                : $"{Count(window.SpenderCasts, "spender")} went out inside it",
         };
 
-        if (MalevolenceSeen)
+        if (HasMalevolence)
         {
-            notes.Add(window.QueensFangStacksAtOpen >= cap && window.ArachnidAssaultStacksAtOpen >= cap
-                ? $"both Malevolence buffs were already at {cap} stacks as it opened"
-                : $"it opened on {window.QueensFangStacksAtOpen} Queen's Fang and {window.ArachnidAssaultStacksAtOpen} Arachnid Assault stacks, short of the {cap} each that doubles them");
+            notes.Add(Math.Max(window.QueensFangStacksAtOpen, window.ArachnidAssaultStacksAtOpen) >= cap
+                ? $"a Malevolence buff was already at {cap} stacks as it opened"
+                : $"it opened on {window.QueensFangStacksAtOpen} Queen's Fang and {window.ArachnidAssaultStacksAtOpen} Arachnid Assault stacks, short of {cap} on both");
         }
 
         return Sentence(notes);
@@ -221,10 +214,10 @@
 
     private static string PoisonTooltip(StealthWindow window) =>
         window.PoisonEffectId is not null
-            ? "The poison the empowered builder applied out of stealth."
+            ? "The poison the builder applied out of stealth."
             : window.ConvertingAbilityId == Spells.Backstab.Id
-                ? "A stealth Backstab deals Caustic Poison as damage rather than applying a tracked debuff."
-                : $"No poison landed within {StealthAnalyzer.PoisonLinkWindowMs / 1000}s of the builder that came out of this window.";
+                ? "The log records no poison debuff for a stealth Backstab."
+                : $"No poison was applied within {StealthAnalyzer.PoisonLinkWindowMs / 1000}s of the builder cast in this window.";
 
     private static string Sentence(List<string> notes)
     {
@@ -266,10 +259,10 @@
             return QualitativePerformance.Fail;
 
         var spenderTier = SpenderTier(window.SpenderCasts);
-        if (!MalevolenceSeen)
+        if (!HasMalevolence)
             return spenderTier;
 
-        var stackTier = StackTier(Math.Min(window.QueensFangStacksAtOpen, window.ArachnidAssaultStacksAtOpen));
+        var stackTier = StackTier(Math.Max(window.QueensFangStacksAtOpen, window.ArachnidAssaultStacksAtOpen));
         return stackTier < spenderTier ? stackTier : spenderTier;
     }
 }

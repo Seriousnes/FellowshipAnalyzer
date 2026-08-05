@@ -4,15 +4,13 @@
 <GuideSection Title="Major Cooldowns">
     <LeftPanel>
         <p>
+            Cast <SpellLink Spell="Spells.BurstingIce" /> inside every
             <SpellLink Spell="Spells.IceBlitz" />, <SpellLink Spell="Spells.WintersBlessing" /> and
-            <SpellLink Spell="Spells.FlightOfTheNavir" /> each run a 60 second cooldown behind a 20
-            second window, so every second one sits ready is throughput lost, and every window wants a
-            <SpellLink Spell="Spells.BurstingIce" /> inside it.
+            <SpellLink Spell="Spells.FlightOfTheNavir" /> window.
         </p>
         <p>
-            <SpellLink Spell="Spells.WrathOfWinter" /> costs Spirit rather than time, so bank orbs
-            before you press it, and spend the free <SpellLink Spell="Spells.GlacialBlast" /> straight
-            away. The table shows held time and what each window covered.
+            Bank Winter Orbs before casting <SpellLink Spell="Spells.WrathOfWinter" />, then cast
+            spenders as soon as the window opens.
         </p>
     </LeftPanel>
     <RightPanel>
@@ -90,16 +88,16 @@
             new(
                 MajorName(window.Major),
                 "Major",
-                "The cooldown whose buff opened this window."),
+                "The cooldown this window belongs to."),
             new(
                 $"{window.BurstingIceCastsInside}",
                 "Bursting Ice",
-                "Bursting Ice casts that landed inside the window; stacking them under a major multiplies the burst.",
+                "Bursting Ice casts made inside the window.",
                 Performance: burstingIceTier),
             new(
                 $"{window.SpenderCastsInside}",
                 "Spenders",
-                "Winter Orb spender casts that landed inside the window."),
+                "Winter Orb spender casts made inside the window."),
         };
 
         var performance = burstingIceTier;
@@ -113,7 +111,7 @@
                 stats.Add(new PerCastStat(
                     $"{orbs}",
                     "Orbs Banked",
-                    "Winter Orbs held when Wrath of Winter went off; the window spends what it opens with before its own orbs arrive.",
+                    "Winter Orbs held when Wrath of Winter was cast.",
                     Performance: orbTier));
             }
 
@@ -124,7 +122,7 @@
                 stats.Add(new PerCastStat(
                     $"{latencyMs / 1000d:0.0}s",
                     "First Spender",
-                    "Time from the window opening to the first single-target spender, against the four second orb cadence.",
+                    "Time from the window opening to the first single-target spender.",
                     Performance: latencyTier));
             }
 
@@ -135,7 +133,7 @@
                 stats.Add(new PerCastStat(
                     $"{overcaps}",
                     "Overcaps",
-                    "Generator casts that went out on a full pool while the window's free orbs were arriving.",
+                    "Generator casts made on a full pool inside the window.",
                     Performance: overcapTier));
             }
         }

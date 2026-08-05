@@ -1,30 +1,21 @@
 @inherits EventSubscriber
 
 @code {
-    /// <inheritdoc/>
     public override RenderFragment? Statistic => AmplifiedEventCount > 0 ? Card : null;
 
     private RenderFragment Card =>
         @<StatCard Title="Winter's Embrace Uplift">
-            <Info>
-                <p>
-                    <SpellLink Spell="Spells.WintersEmbrace" /> adds 20% damage to everything except
-                    <SpellLink Spell="Spells.BurstingIce" /> itself. Every hit that landed while it was active is
-                    split into the damage it would have done anyway and the share the buff added, and only
-                    that share is counted here.
-                </p>
-            </Info>
             <ChildContent>
                 <StatRow Value="@BonusDamageText"
-                         Tooltip="Damage attributable to the 20% amplifier across every window this fight.">
-                    bonus damage from the amplifier
+                         Tooltip="Damage attributable to Winter's Embrace across every window this fight.">
+                    bonus damage from Winter's Embrace
                 </StatRow>
                 <StatRow Value="@AmplifiedHitsText"
-                         Tooltip="Player damage events that landed while Winter's Embrace was active, Bursting Ice aside.">
+                         Tooltip="Player damage events dealt while Winter's Embrace was active, Bursting Ice aside.">
                     amplified hits
                 </StatRow>
                 <StatRow Value="@UpliftShareText"
-                         Tooltip="The amplifier's bonus measured against all of your damage this fight, inside windows and out.">
+                         Tooltip="The Winter's Embrace bonus measured against all of your damage this fight, inside windows and out.">
                     of your fight damage
                 </StatRow>
                 <StackedBar Segments="@BuildSegments()" />

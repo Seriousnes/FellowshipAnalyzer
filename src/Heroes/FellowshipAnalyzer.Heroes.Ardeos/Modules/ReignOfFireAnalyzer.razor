@@ -3,27 +3,24 @@
 @using ArdeosSpells = FellowshipAnalyzer.Core.Common.Spells.Ardeos
 
 @code {
-    /// <inheritdoc/>
     public override RenderFragment? Statistic =>
         @<StatCard>
             <Header>
                 <SpellLink Spell="ArdeosSpells.Talents.ReignOfFire" />
             </Header>
-            <Info>
-                <p>Detonate procs Reign of Fire, restoring a <SpellLink Spell="ArdeosSpells.Spells.FireBall" /> charge and empowering the next Fire Ball. A proc at 2 charges overcaps the restored charge, and an empowerment that expires without a Fire Ball cast is lost.</p>
-            </Info>
             <ChildContent>
                 <StatRow Value="@Procs.ToString()">
-                    procs granted by Detonate
+                    procs
                 </StatRow>
                 <StatRow Value="@ChargesWasted.ToString()"
                          Color="@PerformanceColors.ToColor(Tier(ChargesWasted, ChargeRate))"
-                         Tooltip="Procs gained while Fire Ball was already at 2 charges.">
-                    <SpellLink Spell="ArdeosSpells.Spells.FireBall" /> charges wasted (proc at 2 charges)
+                         Tooltip="Procs gained while Fire Ball was already at maximum charges.">
+                    <SpellLink Spell="ArdeosSpells.Spells.FireBall" /> charges wasted
                 </StatRow>
                 <StatRow Value="@EmpowermentsWasted.ToString()"
-                         Color="@PerformanceColors.ToColor(Tier(EmpowermentsWasted, EmpowerRate))">
-                    empowerments wasted (buff expired unused)
+                         Color="@PerformanceColors.ToColor(Tier(EmpowermentsWasted, EmpowerRate))"
+                         Tooltip="Reign of Fire's expired.">
+                    empowerments wasted
                 </StatRow>
             </ChildContent>
         </StatCard>;

@@ -13,7 +13,7 @@
         <CastOverview Title="Overview" Stats="@BuildOverviewStats()" />
         <CastOverview Title="Waste By Source" Stats="@BuildSourceStats()" />
         <CastDetail Title="Cooldown Reduction By Pull"
-                    Description="What each pull generated, and how much of it landed on something still recharging."
+                    Description="What each pull generated, and how much of it shortened something still recharging."
                     Casts="@BuildPerPullData()" />
     </RightPanel>
 </GuideSection>
@@ -37,7 +37,7 @@
         {
             new(
                 $"{efficiency:F1}%",
-                "Landed",
+                "Effective",
                 $"{applied / 1000d:N0}s of the {generated / 1000d:N0}s generated shortened something that was " +
                 "still recharging.",
                 PerformanceTiers.FromThresholds(efficiency, 85, 70, 50)),
@@ -56,8 +56,8 @@
             stats.Add(new OverviewStat(
                 $"{PunishingStrikesCasts}",
                 "Under Punishing Strikes",
-                "Combo casts made with a Punishing Strikes stack active, each worth double. The figures " +
-                "above already account for them."));
+                "Combo casts made with a Punishing Strikes stack active. The figures above already " +
+                "account for them."));
         }
 
         return stats;
@@ -85,7 +85,7 @@
                 return new OverviewStat(
                     $"{reduction.Wasted / 1000d:N0}s",
                     SpellName(entry.Key),
-                    $"{efficiency:F0}% of the {reduction.Total / 1000d:N0}s this ability generated landed on a running cooldown.",
+                    $"{efficiency:F0}% of the {reduction.Total / 1000d:N0}s this ability generated shortened a running cooldown.",
                     PerformanceTiers.FromThresholds(efficiency, 85, 70, 50));
             })
             .ToList();
@@ -97,7 +97,7 @@
             Performance = PerformanceTiers.FromThresholds(analyzer.CooldownReduction.Efficiency * 100, 85, 70, 50),
             Stats = BuildPullStats(analyzer),
             Details = analyzer.SawActiveUltimate
-                ? @<div>Siegebreaker was up for part of this pull, doubling every reduction made under it.</div>
+                ? @<div>Siegebreaker was active for part of this pull.</div>
                 : null,
         });
 
@@ -107,7 +107,7 @@
         {
             new(
                 $"{analyzer.CooldownReduction.Efficiency * 100:F0}%",
-                "Landed",
+                "Effective",
                 "Share of this pull's generated reduction that shortened a running cooldown.",
                 PerformanceTiers.FromThresholds(analyzer.CooldownReduction.Efficiency * 100, 85, 70, 50)),
             new(
@@ -121,7 +121,7 @@
             stats.Add(new PerCastStat(
                 $"{contribution.CooldownReduction.Wasted / 1000d:F0}s",
                 SpellName(contribution.SourceSpellId),
-                $"{contribution.Events} casts generated {contribution.CooldownReduction.Total / 1000d:F0}s, of which {contribution.CooldownReduction.Effective / 1000d:F0}s landed."));
+                $"{contribution.Events} casts generated {contribution.CooldownReduction.Total / 1000d:F0}s, of which {contribution.CooldownReduction.Effective / 1000d:F0}s shortened a running cooldown."));
         }
 
         return [.. stats];

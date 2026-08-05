@@ -41,8 +41,8 @@ public sealed partial class GuileAnalyzer : Analyzer
     public int ConvertedWindows => Windows.Count(window => window.Converted);
 
     public int WindowsAtMaxStacks => Windows.Count(window =>
-        window.QueensFangStacksAtOpen >= MaxMalevolenceStacks
-        && window.ArachnidAssaultStacksAtOpen >= MaxMalevolenceStacks);
+        Math.Max(window.QueensFangStacksAtOpen, window.ArachnidAssaultStacksAtOpen)
+        >= MaxMalevolenceStacks);
 
     public int SpendersInWindows => Windows.Sum(window => window.SpenderCasts);
 

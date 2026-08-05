@@ -2,7 +2,6 @@
 @inherits ResourceTracker
 
 @code {
-    /// <inheritdoc/>
     public override RenderFragment? Statistic => Mana is null ? null : Card;
 
     private RenderFragment Card =>
@@ -10,13 +9,13 @@
             <Info>
                 <p>
                     The log streams Sylvie's pool on nearly every event but attaches no cost to a cast, so
-                    spending here is priced from the Season 3 game data and discounted by a fifth for the casts
-                    Bluey covered while it was recalled onto her.
+                    spending here is priced from the Season 3 game data, with the Bluey discount applied to
+                    the casts it covered while it was recalled onto her.
                 </p>
             </Info>
             <ChildContent>
                 <StatRow Value="@($"{AtFullShare * 100:F1}%")"
-                         Tooltip="@($"{AtFullMs / 1000:N0}s of {MeasuredMs / 1000:N0}s measured with the pool capped, where regeneration had nowhere to go.")">
+                         Tooltip="@($"{AtFullMs / 1000:N0}s of {MeasuredMs / 1000:N0}s measured at a full pool.")">
                     spent at full mana
                 </StatRow>
                 <StatRow Value="@($"{Spends.Sum(spend => spend.Mana):N0}")"

@@ -8,10 +8,8 @@ namespace FellowshipAnalyzer.Heroes.Tariq.Modules;
 [ForPull(PullKind.Single | PullKind.Multi)]
 public sealed partial class ThunderCallAnalyzer : Analyzer
 {
-    /// <summary>Thunder Call's buff lifetime, from <c>Thunder Call.Duration</c>.</summary>
     public const int ThunderCallWindowDurationMs = 21_000;
 
-    /// <summary>Raging Tempest's buff lifetime, from <c>Raging Tempest.PulsatingSingleDamage.SelfBuff.Duration</c>. Shorter than the ability's own 21s <c>BuffDuration</c>, and the self-buff is what the log brackets the window with.</summary>
     public const int RagingTempestWindowDurationMs = 20_000;
 
     private const int FuryCap = 100;
@@ -228,7 +226,6 @@ public sealed record ThunderCallWindow
 
     public IReadOnlyList<CastEvent> CastsInWindow { get; init; } = [];
 
-    /// <summary>A window of the other kind was live at the same time. Recorded because it changes how the window reads, not because the game makes the two exclusive.</summary>
     public bool OverlapsOtherWindow { get; init; }
 
     public int ExpectedDurationMs => ThunderCallAnalyzer.ExpectedDurationMs(Source);

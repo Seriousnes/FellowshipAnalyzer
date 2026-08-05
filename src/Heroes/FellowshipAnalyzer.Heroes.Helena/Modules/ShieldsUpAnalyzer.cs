@@ -4,19 +4,8 @@ using FellowshipAnalyzer.Core.Events;
 
 namespace FellowshipAnalyzer.Heroes.Helena.Modules;
 
-/// <summary>
-/// The read surface Shields Up analysis is published under. Helena runs more than one
-/// <see cref="MajorDefensiveAnalyzer"/> on the same pull, and the shared base would otherwise be the
-/// surface both are indexed against, so each defensive names its own.
-/// </summary>
 public interface IShieldsUpAnalyzer : IAnalyzerSurface;
 
-/// <summary>
-/// Measures Shields Up: the damage its windows covered, and the charge economy behind them. Two
-/// charges recharging on a shared cooldown means a charge sitting full is recharge time that never
-/// happened, so time at full charges is counted as its own absolute waste figure independent of how
-/// the windows themselves went.
-/// </summary>
 [ForPull(PullKind.Single | PullKind.Multi)]
 [Dependency<SpellUsable>]
 public sealed partial class ShieldsUpAnalyzer : MajorDefensiveAnalyzer, IShieldsUpAnalyzer
@@ -27,16 +16,12 @@ public sealed partial class ShieldsUpAnalyzer : MajorDefensiveAnalyzer, IShields
     private int? _cappedSince;
     private int _maxCharges;
 
-    /// <inheritdoc/>
     protected override int DefensiveSpellId => Spells.ShieldsUp.FSLID;
 
-    /// <summary>Shields Up casts this pull.</summary>
     public int Casts => _castTimestamps.Count;
 
-    /// <summary>Milliseconds spent holding every Shields Up charge, with none recharging.</summary>
     public int ChargeCappedMs => Result.ChargeCappedMs;
 
-    /// <summary>Share (0-1) of the pull spent holding every charge.</summary>
     public double ChargeCappedShare
     {
         get
@@ -46,7 +31,6 @@ public sealed partial class ShieldsUpAnalyzer : MajorDefensiveAnalyzer, IShields
         }
     }
 
-    /// <summary>The charge count Shields Up carries, as the spellbook and the cooldown stream report it.</summary>
     public int MaxCharges => _maxCharges > 0 ? _maxCharges : SpellUsable.ChargesAvailable(Spells.ShieldsUp.FSLID);
 
     [On<PullStartEvent>]

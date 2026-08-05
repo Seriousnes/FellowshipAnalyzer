@@ -8,13 +8,10 @@ namespace FellowshipAnalyzer.Heroes.Tariq.Modules;
 [ForPull(PullKind.Single, Boss = PullBoss.Boss)]
 public sealed partial class CullingStrikeAnalyzer : Analyzer
 {
-    /// <summary>The health share at or below which Culling Strike unlocks. Absent from the hero data; measured on report <c>a:NcqHDKzamL7n6YFv</c>, where no cast without an Executioner's Grin buff landed above 29.85%.</summary>
     public const double ExecuteHealthThreshold = 0.30;
 
-    /// <summary>The Fury a Culling Strike wants banked to land at full strength. <c>Culling Strike.MaxResourceToSpend: 0.1</c> caps what one cast consumes at 10 and scales its damage with what it spends, so a cast below this is a weak one rather than an impossible one - report <c>a:NcqHDKzamL7n6YFv</c> carries 3 casts under 10 Fury.</summary>
     public const int FullStrengthFury = 10;
 
-    /// <summary>How long after the cooldown ends a cast still counts as prompt: one global cooldown, since a press landing inside the previous ability's cooldown is not a hold.</summary>
     public const int PromptCastGraceMs = 1500;
 
     private readonly Dictionary<(int TargetId, int TargetInstance), List<HealthSample>> _samplesByInstance = [];
@@ -38,22 +35,16 @@ public sealed partial class CullingStrikeAnalyzer : Analyzer
 
     public int CastsAboveThreshold => Result.CastsAboveThreshold;
 
-    /// <summary>Every moment inside the execute phase at which Culling Strike had a charge available, and what became of it.</summary>
     public IReadOnlyList<CullingStrikeOpportunity> Opportunities => Result.Opportunities;
 
-    /// <summary>Opportunities converted within <see cref="PromptCastGraceMs"/> of the cooldown ending.</summary>
     public int PromptCasts => Result.Opportunities.Count(opportunity => opportunity.Prompt);
 
-    /// <summary>Opportunities held past the grace with at least <see cref="FullStrengthFury"/> Fury banked. The actionable miss: the cast was available and affordable.</summary>
     public int HeldWithFury => Result.Opportunities.Count(opportunity => !opportunity.Prompt && opportunity.HadFury);
 
-    /// <summary>Opportunities held past the grace with Fury short of <see cref="FullStrengthFury"/>. A Fury economy problem rather than a Culling Strike one.</summary>
     public int HeldWithoutFury => Result.Opportunities.Count(opportunity => !opportunity.Prompt && !opportunity.HadFury);
 
-    /// <summary>Total time inside the execute phase that Culling Strike sat available past the prompt-cast grace.</summary>
     public int IdleMs => Result.Opportunities.Sum(opportunity => Math.Max(0, opportunity.HeldMs - PromptCastGraceMs));
 
-    /// <summary>Casts above <see cref="ExecuteHealthThreshold"/> with no Executioner's Grin buff held. The game gate makes these impossible, so any count above zero means the health reading or the gate model is wrong for this parse.</summary>
     public int UnexplainedCastsAboveThreshold => Result.UnexplainedAboveThreshold;
 
     public int CastsWithoutHealthReading => Result.Casts.Count(cast => cast.TargetHealthPercent is null);
@@ -323,29 +314,17 @@ public sealed record CullingStrikeCast(
     bool AboveThreshold,
     bool GrinActive);
 
-/// <summary>
-/// One stretch of the execute phase during which Culling Strike had a charge available, ending either
-/// at the cast that spent it or at the pull. A cast the cooldown model did not expect to be possible
-/// yet still opens one, of zero length, so every cast in the phase is accounted for even where the
-/// modelled recharge runs slower than the game's.
-/// </summary>
 public sealed record CullingStrikeOpportunity
 {
-    /// <summary>When the charge became available, or the execute phase opened with it already available.</summary>
     public required int ReadyAt { get; init; }
 
-    /// <summary>How long the charge sat unspent.</summary>
     public required int HeldMs { get; init; }
 
-    /// <summary>Fury banked when the charge came up, from the player's last resource reading at or before that instant. <c>null</c> when no event carried one.</summary>
     public required int? FuryAtReady { get; init; }
 
-    /// <summary>The cast that spent this charge, or <c>null</c> if the pull ended with it still available.</summary>
     public required int? CastAt { get; init; }
 
-    /// <summary>The charge was spent inside <see cref="CullingStrikeAnalyzer.PromptCastGraceMs"/> of coming up.</summary>
     public bool Prompt => CastAt is not null && HeldMs <= CullingStrikeAnalyzer.PromptCastGraceMs;
 
-    /// <summary>Fury reached <see cref="CullingStrikeAnalyzer.FullStrengthFury"/> when the charge came up. A missing reading counts as affordable rather than against the player.</summary>
     public bool HadFury => FuryAtReady is null or >= CullingStrikeAnalyzer.FullStrengthFury;
 }

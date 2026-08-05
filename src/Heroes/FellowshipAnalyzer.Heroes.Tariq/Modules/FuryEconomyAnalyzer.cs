@@ -5,39 +5,26 @@ using FellowshipAnalyzer.Core.Game;
 
 namespace FellowshipAnalyzer.Heroes.Tariq.Modules;
 
-/// <summary>
-/// Measures Fury lost at the cap by the generators whose gain is a known flat amount.
-/// <see cref="Spells.LeapSmash"/> is deliberately outside the model: it is a movement cooldown pressed to
-/// close a gap, so its Fury is a side effect rather than a resource decision. <see cref="Spells.ChainLightning"/>
-/// is outside it too, because its gain scales with targets hit and cannot be evaluated against the cap.
-/// </summary>
 [ForPull(PullKind.Single | PullKind.Multi)]
 public sealed partial class FuryEconomyAnalyzer : Analyzer
 {
     public const int FuryCap = 100;
 
-    /// <summary>Wild Swing's Fury gain, from <c>Wild Swing.ResourceGain</c>.</summary>
     public const int WildSwingGain = 3;
 
-    /// <summary>Face Breaker's Fury gain, from <c>Face Breaker.ResourceGain</c>.</summary>
     public const int FaceBreakerGain = 7;
 
-    /// <summary>Heavy Strike's Fury gain, from <c>Heavy Strike.ResourceGain</c>.</summary>
     public const int HeavyStrikeGain = 12;
 
-    /// <summary>Skull Crusher's Fury cost, from <c>Skull Crusher.Cost</c>.</summary>
     public const int SkullCrusherCost = 25;
 
-    /// <summary>Hammer Storm's Fury cost, from <c>AoeAttack.Cost</c>.</summary>
     public const int HammerStormCost = 50;
 
-    /// <summary>The most Fury a Culling Strike consumes, from <c>Culling Strike.MaxResourceToSpend</c>. It scales its damage with what it spends rather than spending a fixed amount.</summary>
     public const int CullingStrikeMaxSpend = 10;
 
     private int _activeStart = int.MaxValue;
     private int _activeEnd = int.MinValue;
 
-    /// <summary>Casts of the flat-gain generators the waste model covers.</summary>
     public int GeneratorCasts { get; private set; }
 
     public int OvercapCasts { get; private set; }
@@ -48,7 +35,6 @@ public sealed partial class FuryEconomyAnalyzer : Analyzer
     public int HammerStormCasts { get; private set; }
     public int CullingStrikeCasts { get; private set; }
 
-    /// <summary>Casts of the three abilities that spend Fury. A plain count: they do not drain it equally, so it is not a measure of Fury spent.</summary>
     public int SpenderCasts => SkullCrusherCasts + HammerStormCasts + CullingStrikeCasts;
 
     public int ActiveSpanMs => _activeEnd > _activeStart ? _activeEnd - _activeStart : 0;

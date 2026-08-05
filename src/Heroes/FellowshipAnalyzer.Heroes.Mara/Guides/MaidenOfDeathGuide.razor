@@ -3,19 +3,19 @@
 <GuideSection Title="Maiden of Death Windows">
     <LeftPanel>
         <p>
-            While <SpellLink Spell="Spells.MaidenOfDeath" /> aim to alternate between generators and spenders,
-            <SpellLink Spell="Spells.QueenFang" /> or <SpellLink Spell="Spells.ArachnidAssault" />. Avoid two builders 
-            back to back, likewise casting near near-full Combo Points wastes the first builder the same way.
+            While <SpellLink Spell="Spells.MaidenOfDeath" /> is active, alternate builders and spend with
+            <SpellLink Spell="Spells.QueenFang" /> / <SpellLink Spell="Spells.ArachnidAssault" />. Avoid two
+            builders back to back, and avoid opening the window on near-full combo points.
         </p>
         <p>
-            Aim to pair with <SpellLink Spell="Spells.MatriarchMacabre" /> when possible, but don't delay them to
-            line them up if it means losing a cast of either.
+            Aim to pair it with <SpellLink Spell="Spells.MatriarchMacabre" /> when possible, but do not delay
+            either to line them up if that costs a cast.
         </p>
     </LeftPanel>
     <RightPanel>
         <CastOverview Title="Window Overview" Stats="@BuildOverviewStats()" />
         <CastDetail Title="Burst Windows"
-                    Description="Each row is one Maiden of Death window, from the buff landing to its removal, with everything cast inside it."
+                    Description="Each row is one Maiden of Death window, from the buff being applied to its removal, with everything cast inside it."
                     Casts="@BuildPerCastData()" />
     </RightPanel>
 </GuideSection>
@@ -33,7 +33,6 @@
         var generators = analyzers.Sum(analyzer => analyzer.GeneratorsInWindows);
         var spenders = analyzers.Sum(analyzer => analyzer.SpendersInWindows);
         var wasted = analyzers.Sum(analyzer => analyzer.WastedGeneratorCasts);
-        var comboPointsWasted = analyzers.Sum(analyzer => analyzer.ComboPointsWasted);
         var idleMs = analyzers.Sum(analyzer => analyzer.IdleMs);
         var gaps = analyzers.Sum(analyzer => analyzer.GapCount);
         var lostCasts = analyzers.Sum(analyzer => analyzer.LostCasts);
@@ -54,9 +53,7 @@
             new OverviewStat(
                 $"{wasted}",
                 "Builders Doubled Up",
-                wasted == 0
-                    ? "No builder landed on a pool that was already full, so no combo points were overwritten."
-                    : $"Builders that landed with nowhere to put the generation, whether following another builder or opening a window at {MaidenOfDeathAnalyzer.OpeningComboPointLimit} combo points or more. {comboPointsWasted} combo points thrown away.",
+                $"Builders pressed after another builder with no spender between them, or on a window that opened at {MaidenOfDeathAnalyzer.OpeningComboPointLimit} combo points or more.",
                 WasteTier(wasted, generators)),
             new OverviewStat(
                 FormatSeconds(idleMs),
@@ -90,19 +87,17 @@
             new PerCastStat(
                 $"{window.GeneratorCasts}/{window.SpenderCasts}",
                 "Builders / Spenders",
-                "Combo point builders and spenders cast inside the window. Alternating one for one is what the window rewards."),
+                "Combo point builders and spenders cast inside the window."),
             new PerCastStat(
                 window.ComboPointsAtOpen is { } atOpen ? $"{atOpen}" : "-",
                 "Combo Points at Open",
                 window.ComboPointsAtOpen is null
                     ? "The combo point tracker recorded nothing at or before this window opened."
-                    : $"Combo points held as the window opened. Opening a builder on {MaidenOfDeathAnalyzer.OpeningComboPointLimit} or more wastes most of the six it grants."),
+                    : "Combo points held as the window opened."),
             new PerCastStat(
                 $"{window.WastedGeneratorCasts}",
                 "Builders Doubled Up",
-                window.WastedGeneratorCasts == 0
-                    ? "Every builder was spent before the next one went out."
-                    : $"Builders that landed with nowhere to put the generation, throwing away {window.ComboPointsWasted} combo points.",
+                $"Builders pressed after another builder with no spender between them, or on a window that opened at {MaidenOfDeathAnalyzer.OpeningComboPointLimit} combo points or more.",
                 Performance: WasteTier(window.WastedGeneratorCasts, window.GeneratorCasts)),
             new PerCastStat(
                 FormatSeconds(window.IdleMs),
@@ -114,7 +109,7 @@
             new PerCastStat(
                 $"{window.ComboPointsSpent}",
                 "Combo Points Spent",
-                "Combo points carried into the spenders cast inside the window."),
+                "Combo points held going into the spenders cast inside the window."),
             new PerCastStat(
                 window.EnergyAtClose is { } energy ? $"{energy}" : "-",
                 "Energy Into Last Cast",
@@ -144,16 +139,16 @@
         };
 
         if (window.WastedGeneratorCasts > 0)
-            notes.Add($"{Count(window.WastedGeneratorCasts, "builder")} landed on a full pool, overwriting {Count(window.ComboPointsWasted, "combo point")}");
+            notes.Add($"{Count(window.WastedGeneratorCasts, "builder")} went out on an unspent pool");
 
         if (window.ComboPointsAtOpen is { } atOpen && atOpen >= MaidenOfDeathAnalyzer.OpeningComboPointLimit)
-            notes.Add($"the window opened on {Count(atOpen, "combo point")}, so there was little room for a builder to start it");
+            notes.Add($"the window opened on {Count(atOpen, "combo point")}");
 
         if (window.GapCount > 0)
             notes.Add($"{FormatSeconds(window.IdleMs)} passed with nothing going out, the longest stretch {FormatSeconds(window.LongestGapMs)}");
 
         if (window.SpenderCasts == 0 && window.GeneratorCasts > 0)
-            notes.Add("nothing spent the combo points the builders produced");
+            notes.Add("no spender went out after the builders");
 
         if (window.CleanCycle)
             notes.Add("the cycle ran clean");

@@ -2,7 +2,7 @@
 
 @code {
     /// <inheritdoc/>
-    public override RenderFragment? Statistic => _windows.Count > 0 || Activations > 0 ? Card : null;
+    public override RenderFragment? Statistic => Windows.Count > 0 || Activations > 0 ? Card : null;
 
     private RenderFragment Card =>
         @<StatCard>
@@ -11,12 +11,11 @@
             </Header>
             <Info>
                 <p>
-                    Casting <SpellLink Spell="Items.FatedStrike" /> grants Glorious Purpose for 6 seconds, taking
-                    cooldown recovery to 3&#215; for an ability with no haste contribution. These are the bonus
-                    reductions each ability received beyond its natural cooldown recovery.
+                    Bonus cooldown recovery each ability received from <SpellLink Spell="Items.FatedStrike" />.
                 </p>
             </Info>
             <ChildContent>
+                <CastOverview Title="Overview" Stats="@BuildOverviewStats()" />
                 @if (RecoveryByAbility.Count == 0)
                 {
                     <p class="glorious-purpose-empty">No cooldowns were recovered.</p>
@@ -43,6 +42,18 @@
                 }
             </ChildContent>
         </StatCard>;
+
+    private IEnumerable<OverviewStat> BuildOverviewStats() =>
+    [
+        new OverviewStat(
+            $"{Activations}",
+            "Casts",
+            "Fated Strike casts over the run."),
+        new OverviewStat(
+            $"{Windows.Count}",
+            "Windows",
+            "Glorious Purpose windows."),
+    ];
 
     private static string Seconds(int milliseconds) => $"{milliseconds / 1000d:0.0}s";
 }

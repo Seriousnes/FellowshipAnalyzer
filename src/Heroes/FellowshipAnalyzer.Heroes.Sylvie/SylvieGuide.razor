@@ -1,10 +1,5 @@
 @inherits ReportComponent<SylvieCombatLogParser>
 
-@if (Parser.OverhealAnalyzers.Count > 0)
-{
-    <OverhealGuide />
-}
-
 @if (Parser.PinkFlutterflyAnalyzers.Count > 0 || Parser.BlueyAnalyzers.Count > 0)
 {
     <FlutterflyGuide />
@@ -20,22 +15,12 @@
     <LifePetalGuide />
 }
 
-@if (Parser.FlutterflyHealingBuffAnalyzers.Count > 0)
+@if (Parser.PricklyVineAnalyzers.Count > 0)
 {
-    <FlutterflyBuffGuide />
+    <PricklyVineGuide />
 }
 
-@if (Parser.AbsorbWasteAnalyzers.Count > 0)
+@if (Parser.SafeHavenAnalyzers.Count > 0)
 {
-    <AbsorbWasteGuide />
-}
-
-@if (Parser.CureAilmentAnalyzers.Count > 0)
-{
-    <CureAilmentGuide />
-}
-
-@if (Parser.ManaEfficiencyAnalyzers.Count > 0)
-{
-    <ManaGuide />
+    <SafeHavenGuide />
 }

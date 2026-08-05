@@ -1,15 +1,12 @@
 @inherits EventSubscriber
 
 @code {
-    /// <inheritdoc/>
     public override RenderFragment? Statistic => Applications > 0 ? Card : null;
 
     private RenderFragment Card =>
         @<StatCard Title="Rising Spirit">
             <Info>
-                Rising Spirit stacks up from Spirit refund procs and falls off whole when they dry up, so its
-                uptime tracks the pace the rotation sustained rather than any single cast. It is a shared gear
-                buff with no published stack ceiling, so the peak below is what this log reached.
+                There is no published stack ceiling, so the peak below is what this log reached.
             </Info>
             <ChildContent>
                 <CastOverview Title="Buff Uptime" Stats="@BuildStats()" />
@@ -21,18 +18,18 @@
         new OverviewStat(
             $"{UptimeShare * 100:0}%",
             "Uptime",
-            $"Share of the fight Rising Spirit was up, over {TotalActiveMs / 1000d:0.0}s of the {FightDurationMs / 1000d:0.0}s fight."),
+            $"Share of the fight Rising Spirit was active, over {TotalActiveMs / 1000d:0.0}s of the {FightDurationMs / 1000d:0.0}s fight."),
         new OverviewStat(
             $"{MaxStacks}",
             "Peak Stacks",
-            "The deepest the buff stacked in this fight."),
+            "The most stacks reached in this fight."),
         new OverviewStat(
             $"{AverageStacks:0.0}",
             "Avg Stacks Held",
-            "Mean stacks while the buff was up, weighted by the time spent at each depth."),
+            "Mean stacks while the buff was active, weighted by the time spent at each stack count."),
         new OverviewStat(
             $"{Applications}",
             "Applications",
-            "Times the buff went up from nothing, each one a refund proc landing while it was down."),
+            "Times the buff was applied."),
     ];
 }

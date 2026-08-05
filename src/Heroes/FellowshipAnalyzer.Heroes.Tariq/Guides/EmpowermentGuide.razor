@@ -11,10 +11,8 @@
     <GuideSection Title="Empowerment Windows">
         <LeftPanel>
             <p>
-                <SpellLink Spell="Spells.ThunderCall" /> and <SpellLink Spell="Spells.RagingTempest" /> are
-                the only time <SpellLink Spell="Spells.ChainLightning" /> can be cast at all, so open one and
-                fill it: Chain Lightning on cooldown, and your spenders inside rather than after. The table
-                shows what each window caught.
+                Prioritize burning pooled fury inside <SpellLink Spell="Spells.ThunderCall" /> &amp; <SpellLink Spell="Spells.RagingTempest" />.
+                You should enter each <SpellLink Spell="Spells.ThunderCall" /> with 100 Fury.
             </p>
         </LeftPanel>
         <RightPanel>
@@ -46,9 +44,8 @@
             new OverviewStat(
                 $"{windows.Count}",
                 "Windows",
-                $"{thunderCall} Thunder Call windows running {ThunderCallAnalyzer.ThunderCallWindowDurationMs / 1000}s "
-                + $"and {windows.Count - thunderCall} Raging Tempest windows running {ThunderCallAnalyzer.RagingTempestWindowDurationMs / 1000}s. "
-                + (clipped > 0 ? $"{clipped} were still up when the pull ended. " : "None were still up when the pull ended. ")
+                $"{thunderCall} Thunder Call windows and {windows.Count - thunderCall} Raging Tempest windows. "
+                + (clipped > 0 ? $"{clipped} were still open when the pull ended. " : "None were still open when the pull ended. ")
                 + (overlapping > 0 ? $"{overlapping} ran alongside a window of the other kind." : "None overlapped each other.")),
             new OverviewStat(
                 $"{empty}",
@@ -59,16 +56,16 @@
                 ? new OverviewStat(
                     $"{readings.Average(window => window.FuryAtOpen!.Value):0}%",
                     "Avg Fury at Open",
-                    $"Fury banked as a window opened, averaged over the {readings.Count} windows with a reading. Thunder Call generates Fury while it runs, so opening light is not automatically a mistake.")
-                : new OverviewStat("-", "Avg Fury at Open", "No cast carried a Fury snapshot before a window opened."),
+                    $"Fury banked as a window opened, averaged over the {readings.Count} windows with a reading. Reported as context rather than scored.")
+                : new OverviewStat("-", "Avg Fury at Open", "No cast before a window opened had a Fury reading."),
             new OverviewStat(
                 $"{(double)spenders / windows.Count:0.0}",
                 "Avg Spenders per Window",
-                $"{spenders} Skull Crusher, Hammer Storm and Culling Strike casts landed inside a window, across {windows.Count} windows."),
+                $"{spenders} Skull Crusher, Hammer Storm and Culling Strike casts made inside a window, across {windows.Count} windows."),
             new OverviewStat(
                 $"{chainLightning}",
                 "Chain Lightning",
-                "Chain Lightning casts inside an empowerment window. Chain Lightning is not castable anywhere else, so every one is window time converted to damage."),
+                "Chain Lightning casts inside an empowerment window."),
         ];
     }
 
@@ -82,13 +79,13 @@
             new(
                 SourceName(window.Source),
                 "Cooldown",
-                $"The buff that opened this window, up for {window.DurationMs / 1000d:0.0}s of the expected {window.ExpectedDurationMs / 1000}s."),
+                $"The buff that opened this window, open for {window.DurationMs / 1000d:0.0}s of the expected {window.ExpectedDurationMs / 1000}s."),
             new(
                 window.FuryAtOpen is { } fury ? $"{fury}%" : "-",
                 "Fury at Open",
-                window.FuryAtOpen is { } banked
-                    ? $"Fury held at the last cast before the window opened. {banked}% of your Fury was available to spend inside it."
-                    : "No cast carried a Fury snapshot before this window opened."),
+                window.FuryAtOpen is not null
+                    ? "Fury held at the last cast before the window opened."
+                    : "No cast before this window opened had a Fury reading."),
             new(
                 $"{window.SkullCrusherCasts} / {window.HammerStormCasts} / {window.CullingStrikeCasts}",
                 "Skull / Hammer / Culling",
@@ -96,7 +93,7 @@
             new(
                 $"{window.ChainLightningCasts}",
                 "Chain Lightning",
-                "Chain Lightning casts inside this window, the only place it is castable."),
+                "Chain Lightning casts inside this window."),
         };
 
         if (window.ClippedByPullEnd)
@@ -104,7 +101,7 @@
             stats.Add(new PerCastStat(
                 "Yes",
                 "Open at Pull End",
-                "The pull ended with the buff still up. A pull ends when the last enemy dies, so this is the pack running out rather than a mistimed press."));
+                "The pull ended with the buff still open. Reported as context rather than scored."));
         }
 
         if (window.OverlapsOtherWindow)
@@ -112,7 +109,7 @@
             stats.Add(new PerCastStat(
                 "Yes",
                 "Overlapped",
-                "A window of the other kind was running at the same time."));
+                "A window of the other kind was open at the same time. While two are open, a cast is counted against the more recently opened one."));
         }
 
         return new PerCastRow

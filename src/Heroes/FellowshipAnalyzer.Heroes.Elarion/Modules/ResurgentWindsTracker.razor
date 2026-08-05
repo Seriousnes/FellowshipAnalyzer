@@ -2,7 +2,6 @@
 @using FellowshipAnalyzer.Core.UI
 
 @code {
-    /// <inheritdoc/>
     public override RenderFragment? Statistic => ProcsGained > 0 ? Card : null;
 
     private RenderFragment Card =>
@@ -10,27 +9,20 @@
             <Header>
                 <SpellLink Spell="Talents.ResurgentWinds" />
             </Header>
-            <Info>
-                <p>
-                    Resurgent Winds procs off any ability and turns the next
-                    <SpellLink Spell="Spells.HighwindArrow" /> into an instant free cast. A proc that expires
-                    before that cast goes out is a Highwind Arrow lost.
-                </p>
-            </Info>
             <ChildContent>
                 <StatRow Value="@ProcsGained.ToString("N0")"
-                         Tooltip="Resurgent Winds procs granted over the fight, one per apply or stack gain.">
+                         Tooltip="Resurgent Winds procs granted over the fight.">
                     procs gained
                 </StatRow>
                 <StatRow Value="@ProcsConsumed.ToString("N0")"
                          Color="@PerformanceColors.ToColor(ConsumedTier)"
-                         Tooltip="@($"{ProcsConsumed} of {ProcsGained} procs were spent on an instant Highwind Arrow.")">
-                    procs spent on a free <SpellLink Spell="Spells.HighwindArrow" />
+                         Tooltip="@($"{ProcsConsumed} of {ProcsGained} procs spent.")">
+                    procs spent
                 </StatRow>
                 <StatRow Value="@ProcsExpired.ToString("N0")"
                          Color="@PerformanceColors.ToColor(ExpiredTier)"
-                         Tooltip="Procs that fell off before a Highwind Arrow was fired, each one a free cast lost.">
-                    procs expired unspent
+                         Tooltip="Procs that expired unused.">
+                    procs expired unused
                 </StatRow>
             </ChildContent>
         </StatCard>;

@@ -2,7 +2,6 @@
 @using MaraSpells = FellowshipAnalyzer.Core.Common.Spells.Mara
 
 @code {
-    /// <inheritdoc/>
     public override RenderFragment? Statistic => Activations > 0 || HighestStacks > 0 ? Card : null;
 
     private RenderFragment Card =>
@@ -10,16 +9,8 @@
             <Header>
                 <SpellLink Spell="MaraSpells.Talents.DeadlyScheme" />
             </Header>
-            <Info>
-                <p>
-                    Energy spending banks Deadly Scheme stacks, one per five Energy. At
-                    @MaxStacks stacks they convert into twelve seconds of guaranteed
-                    critical strikes, so each activation is measured by the Queen's Fang, Arachnid Assault and
-                    Hemorrhaging Strike casts that landed inside it.
-                </p>
-            </Info>
             <ChildContent>
-                <CastOverview Title="Guaranteed Crit Windows" Stats="@BuildStats()" />
+                <CastOverview Title="Deadly Scheme Activations" Stats="@BuildStats()" />
             </ChildContent>
         </StatCard>;
 
@@ -30,26 +21,26 @@
             new(
                 $"{Activations}",
                 "Activations",
-                "Times the banked stacks converted into Deadly Scheme: Active."),
+                "Times Deadly Scheme: Active was applied."),
             new(
                 $"{ActiveTimeMs / 1000d:0.0}s",
-                "Guaranteed Crit",
-                "Total time the fight spent under Deadly Scheme: Active."),
+                "Time Active",
+                "Total fight time with Deadly Scheme: Active."),
             new(
                 $"{HighestStacks}/{MaxStacks}",
                 "Peak Stacks",
-                $"Highest stack count reached against the {MaxStacks}-stack conversion point."),
+                "Highest stack count reached."),
             new(
                 $"{FinishersDuringActive}",
-                "Finishers Landed",
-                $"Queen's Fang and Arachnid Assault casts under Active, alongside {HemorrhagingStrikesDuringActive} Hemorrhaging Strike{(HemorrhagingStrikesDuringActive == 1 ? "" : "s")}."),
+                "Finishers While Active",
+                $"Queen's Fang and Arachnid Assault casts made under Deadly Scheme: Active, alongside {HemorrhagingStrikesDuringActive} Hemorrhaging Strike{(HemorrhagingStrikesDuringActive == 1 ? "" : "s")}."),
         };
 
         if (Activations > 0)
         {
             stats.Add(new OverviewStat(
                 $"{ActivationsUnspent}",
-                "Expired Unspent",
+                "Ended Unspent",
                 "Activations that ended without a Queen's Fang, Arachnid Assault or Hemorrhaging Strike.",
                 UnspentTier()));
         }

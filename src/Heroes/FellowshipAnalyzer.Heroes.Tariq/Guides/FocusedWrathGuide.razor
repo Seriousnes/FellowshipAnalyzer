@@ -29,16 +29,12 @@
                     or <SpellLink Spell="Spells.HammerStorm" /> at @HammerStormAnalyzer.TargetBreakEven or more targets.
                 </p>
             }
-            <p>
-                See the table for the effectiveness and accuracy of each use, such as the wrong ability
-                choice for the situation, or letting the buff fall off without spending both charges.
-            </p>
         </LeftPanel>
         <RightPanel>
             <CastOverview Title="Focused Wrath Overview" Stats="@BuildOverviewStats(analyzers)" />
 
             <CastDetail Title="Focused Wrath Buffs"
-                        Description="Each card is one Focused Wrath buff: the charges it carried, the spender each charge went to, and where the buff came from."
+                        Description="Each card is one Focused Wrath buff: the charges it granted, the spender each charge went to, and where the buff came from."
                         Casts="@BuildWrathRows()" />
         </RightPanel>
     </GuideSection>
@@ -62,7 +58,7 @@
             new(
                 $"{consumed}/{granted}",
                 "Charges Spent",
-                $"Charges a spender took, out of the {granted} the buffs carried. {wasted} fell off unspent. "
+                $"Charges a spender took. {wasted} expired unspent. "
                 + $"{fromCast} came from a Focused Wrath cast and {fromProc} from a Leap Smash proc.",
                 wasted == 0
                     ? QualitativePerformance.Perfect
@@ -115,13 +111,13 @@
                 window.FromCast ? "Cast" : "Leap Smash",
                 "Source",
                 (window.FromCast
-                    ? $"A Focused Wrath cast opened this buff with {FocusedWrathAnalyzer.StacksPerCast} charges."
-                    : "A Leap Smash proc opened this buff with one charge.")
+                    ? "A Focused Wrath cast opened this buff."
+                    : "A Leap Smash proc opened this buff.")
                 + (toppedUp switch
                 {
                     0 => string.Empty,
-                    1 => " A Leap Smash proc added one more while it was up.",
-                    _ => $" Leap Smash procs added {toppedUp} more while it was up.",
+                    1 => " A Leap Smash proc added one more charge while it was active.",
+                    _ => $" Leap Smash procs added {toppedUp} more charges while it was active.",
                 })),
         };
 
@@ -155,11 +151,11 @@
         var unspent = window.ChargesGranted - window.ChargesConsumed;
 
         if (unspent == 0)
-            return "Every charge this buff carried went to a spender.";
+            return "Every charge this buff granted went to a spender.";
 
         return window.ClippedByPullEnd
             ? $"The pull ended with {ChargeCount(unspent)} still on this buff."
-            : $"The buff ran its full {FocusedWrathAnalyzer.BuffDurationMs / 1000}s and fell off with {ChargeCount(unspent)} left.";
+            : $"The buff expired with {ChargeCount(unspent)} left.";
     }
 
     private static string SpenderTooltip(FocusedWrathWindow window)

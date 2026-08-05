@@ -13,14 +13,11 @@
             Sometimes this means holding a <SpellLink Spell="Spells.CelestialImpetus" /> proc, or waiting for 
             <SpellLink Spell="Spells.LunarlightMark" /> for <SpellLink Spell="Spells.HeartseekerBarrage" />.
         </p>
-        <p>
-            The table shows how often each pair landed together, and how long Grace sat unused.
-        </p>
     </LeftPanel>
     <RightPanel>
         <CastOverview Title="Pairing Overview" Stats="@BuildOverviewStats()" />
-        <CastDetail Title="Ultimate Windows"
-                    Description="One card per Event Horizon cast, rated on how close Skystrider's Grace landed to it."
+        <CastDetail Title="Ultimate Casts"
+                    Description="One card per Event Horizon cast, rated on how close the nearest Skystrider's Grace cast was to it."
                     Casts="@BuildUltimateRows()" />
     </RightPanel>
 </GuideSection>
@@ -53,7 +50,7 @@
             new OverviewStat(
                 $"{pairedShare:0.#}%",
                 "Ultimates Paired",
-                $"{paired} of {pairings.Count} Event Horizon casts had a Skystrider's Grace cast within {PairedWithinMs / 1000} seconds, stacking the haste buff into the ultimate's damage window. Event Horizon is gated on Spirit rather than a cooldown, so the pairing is always the player's choice.",
+                $"{paired} of {pairings.Count} Event Horizon casts had a Skystrider's Grace cast within {PairedWithinMs / 1000} seconds.",
                 pairings.Count == 0 ? null : PerformanceTiers.FromThresholds(pairedShare, 90, 75, 50)),
             new OverviewStat(
                 channels == 0 ? "-" : $"{clipped}/{channels}",
@@ -63,7 +60,7 @@
             new OverviewStat(
                 $"{heldSeconds:0.#}s",
                 "Grace Held",
-                $"Time Skystrider's Grace spent available and uncast across every pull, against {graceCasts} casts. Nothing else in the kit uses the button, so every second here is haste uptime the run never received."),
+                $"Time Skystrider's Grace spent available and uncast across every pull, against {graceCasts} casts."),
             new OverviewStat(
                 $"{marks} + {barrages}",
                 "Mark and Barrage Casts",
@@ -87,12 +84,12 @@
             new PerCastStat(
                 seconds is { } value ? $"{value:0.##}s" : "-",
                 "Grace Delta",
-                "How far the nearest Skystrider's Grace cast sat from this Event Horizon. The two buffs both run 20 seconds, so pressing them together gives the longest overlap.",
+                "How far the nearest Skystrider's Grace cast was from this Event Horizon.",
                 Performance: performance),
             new PerCastStat(
-                WindowLabel(pairing.NearestGraceDeltaMs, performance),
-                "Double Window",
-                "Whether this ultimate ran with the haste buff stacked on top of it."),
+                PairingLabel(pairing.NearestGraceDeltaMs, performance),
+                "Pairing",
+                "Whether the nearest Skystrider's Grace cast was within three seconds of this Event Horizon, further out, or absent."),
         };
 
         return new PerCastRow
@@ -109,22 +106,22 @@
     private static string BuildNote(CooldownPairingAnalyzer.EventHorizonPairing pairing)
     {
         if (pairing.NearestGraceDeltaMs is not { } deltaMs)
-            return "No Grace cast this pull, so this ultimate ran on its own damage bonus with no haste behind it.";
+            return "No Skystrider's Grace cast this pull.";
 
         var seconds = deltaMs / 1000d;
 
         if (seconds <= 3)
-            return $"Grace landed {seconds:0.##}s away, so the haste buff and the ultimate ran as one double window.";
+            return "Cast together with Skystrider's Grace.";
 
         if (seconds <= 10)
-            return $"Grace landed {seconds:0.#}s away, so the two windows only partly overlapped. Press Grace straight after Event Horizon to stack them fully.";
+            return $"Skystrider's Grace was cast {seconds:0.#}s away. Press it straight after Event Horizon.";
 
-        return $"Grace was {seconds:0.#}s away from this ultimate, so the two ran as separate windows. Grace has a 120 second cooldown against a Spirit-gated ultimate, so it can always be saved for the next one.";
+        return $"Skystrider's Grace was cast {seconds:0.#}s away. Press it straight after Event Horizon, or save it for the next one.";
     }
 
-    private static string WindowLabel(int? deltaMs, QualitativePerformance performance) =>
+    private static string PairingLabel(int? deltaMs, QualitativePerformance performance) =>
         deltaMs is null ? "None"
-        : performance == QualitativePerformance.Perfect ? "Stacked"
+        : performance == QualitativePerformance.Perfect ? "Paired"
         : performance == QualitativePerformance.Fail ? "Split"
         : "Partial";
 

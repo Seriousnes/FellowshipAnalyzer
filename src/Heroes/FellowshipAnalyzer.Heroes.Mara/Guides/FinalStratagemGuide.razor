@@ -45,14 +45,14 @@
                 RecoveryTier(averageAbilities, casts)),
             new OverviewStat(
                 $"{charges}",
-                "Charges Returned",
-                "Hero ability charges the resets handed back."),
+                "Charges Recovered",
+                "Hero ability charges the resets recovered."),
             new OverviewStat(
                 $"{averageAbilities:0.0}",
                 "Abilities Reset",
                 casts == 0
                     ? "No Final Stratagem was cast."
-                    : "Hero abilities that had something recharging when the reset landed, per cast. Weapon and relic abilities are outside the reset and are not counted.",
+                    : "Hero abilities that had something recharging at the cast, per cast. Weapon and relic abilities are not counted.",
                 RecoveryTier(averageAbilities, casts)),
         ];
     }
@@ -72,16 +72,16 @@
             new(
                 $"{cast.AbilitiesReset}",
                 "Abilities Reset",
-                "Hero abilities that had something recharging when the reset landed.",
+                "Hero abilities that had something recharging at the cast.",
                 Performance: AbilitiesTier(cast.AbilitiesReset)),
             new(
                 $"{cast.ChargesRecovered}",
-                "Charges Returned",
-                "Hero ability charges the reset handed back."),
+                "Charges Recovered",
+                "Hero ability charges the reset recovered."),
             new(
                 $"{cast.AbilitiesAlreadyAvailable}",
                 "Already Available",
-                "Hero abilities that were fully available, so the reset recovered nothing from them."),
+                "Hero abilities that were already at full charges."),
         };
 
         return new PerCastRow

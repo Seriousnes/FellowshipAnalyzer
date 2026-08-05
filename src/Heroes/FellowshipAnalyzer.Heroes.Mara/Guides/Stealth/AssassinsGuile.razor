@@ -1,0 +1,22 @@
+@using FellowshipAnalyzer.Core.Common.Spells.Mara
+@using MaraTalents = FellowshipAnalyzer.Core.Common.Spells.MaraTalents
+
+@if (HasGuile)
+{
+    <p>
+        Fit four casts into every <SpellLink Spell="Talents.AssassinsGuile" /> window, and make as many
+        of them <SpellLink Spell="Spells.QueenFang" /> or <SpellLink Spell="Spells.ArachnidAssault" />
+        as you can.
+    </p>
+    <p>
+        Against 4 or more targets, alternate the generator you open with so one window chains into the
+        next: put <SpellLink Spell="Spells.WidowBite" /> or <SpellLink Spell="Spells.Backstab" />
+        between <SpellLink Spell="Spells.SkitteringBlades" /> casts to avoid reapplying Volatile Poison.
+    </p>
+}
+
+@code {
+    [CascadingParameter] public Combatant SelectedCombatant { get; set; } = null!;
+
+    private bool HasGuile => SelectedCombatant.HasTalent(MaraTalents.AssassinsGuile);
+}

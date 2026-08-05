@@ -13,7 +13,6 @@ namespace FellowshipAnalyzer.Heroes.Rime.Analysis;
 [AddModule<Modules.Abilities>]
 [AddModule<RimeAuras>]
 [AddModule<WintersEmbraceUpliftTracker>]
-[AddModule<FrostweaverWrathAnalyzer>]
 public sealed partial class RimeCombatLogParser : CombatLogParser
 {
     public override Type? GuideComponent => typeof(RimeGuide);

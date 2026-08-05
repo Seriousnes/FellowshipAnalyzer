@@ -5,37 +5,38 @@ using FellowshipAnalyzer.Core.Game;
 
 namespace FellowshipAnalyzer.Heroes.Mara.Modules;
 
-public enum MaraPullShape
-{
-    SingleTarget,
-    Aoe,
-}
-
 public sealed record MaraFinisherCast(
     int Timestamp,
     int AbilityId,
     int ComboPoints,
-    bool MeetsThreshold);
-
-public abstract partial class MaraResourceDisciplineAnalyzer : Analyzer
+    int Threshold)
 {
+    public bool MeetsThreshold => ComboPoints >= Threshold;
+}
+
+[ForPull(PullKind.Single | PullKind.Multi)]
+public sealed partial class MaraResourceDisciplineAnalyzer : Analyzer
+{
+    public const int QueenFangThreshold = 5;
+
+    public const int ArachnidAssaultThreshold = 4;
+
     private static readonly int[] Generators =
         [Spells.Backstab.Id, Spells.WidowBite.Id, Spells.SkitteringBlades.Id];
 
-    private static readonly int[] ScoredFinishers =
-        [Spells.QueenFang.Id, Spells.ArachnidAssault.Id];
-
     private readonly List<MaraFinisherCast> _finishers = [];
 
-    private List<MaraFinisherCast> Scored => field ??= StampThresholds();
+    public IReadOnlyList<MaraFinisherCast> Finishers => _finishers;
 
-    public abstract int FinisherCpThreshold { get; }
+    public int FinishersAtThreshold => _finishers.Count(finisher => finisher.MeetsThreshold);
 
-    public abstract MaraPullShape Shape { get; }
+    public int QueenFangCasts => CastsOf(Spells.QueenFang.Id);
 
-    public IReadOnlyList<MaraFinisherCast> Finishers => Scored;
+    public int QueenFangAtThreshold => AtThresholdOf(Spells.QueenFang.Id);
 
-    public int FinishersAtThreshold => Scored.Count(f => f.MeetsThreshold);
+    public int ArachnidAssaultCasts => CastsOf(Spells.ArachnidAssault.Id);
+
+    public int ArachnidAssaultAtThreshold => AtThresholdOf(Spells.ArachnidAssault.Id);
 
     public int MaintenanceFinisherCasts { get; private set; }
 
@@ -50,6 +51,11 @@ public abstract partial class MaraResourceDisciplineAnalyzer : Analyzer
     public double FinisherThresholdRate => _finishers.Count == 0 ? 0 : (double)FinishersAtThreshold / _finishers.Count;
 
     public double EnergyCapRate => EnergyCastsSampled == 0 ? 0 : (double)EnergyCappedCasts / EnergyCastsSampled;
+
+    public static int ThresholdFor(int abilityId) =>
+        abilityId == Spells.QueenFang.Id ? QueenFangThreshold
+        : abilityId == Spells.ArachnidAssault.Id ? ArachnidAssaultThreshold
+        : 0;
 
     [On<CastEvent>(By = Actor.Player)]
     private void OnCast(CastEvent castEvent)
@@ -83,16 +89,16 @@ public abstract partial class MaraResourceDisciplineAnalyzer : Analyzer
             return;
         }
 
-        if (Array.IndexOf(ScoredFinishers, abilityId) >= 0 && comboPoints is not null)
+        if (ThresholdFor(abilityId) is var threshold and > 0 && comboPoints is not null)
             _finishers.Add(new MaraFinisherCast(
-                castEvent.Timestamp, abilityId, comboPoints.Amount, MeetsThreshold: false));
+                castEvent.Timestamp, abilityId, comboPoints.Amount, threshold));
     }
 
-    private List<MaraFinisherCast> StampThresholds()
-    {
-        var threshold = FinisherCpThreshold;
-        return [.. _finishers.Select(f => f with { MeetsThreshold = f.ComboPoints >= threshold })];
-    }
+    private int CastsOf(int abilityId) =>
+        _finishers.Count(finisher => finisher.AbilityId == abilityId);
+
+    private int AtThresholdOf(int abilityId) =>
+        _finishers.Count(finisher => finisher.AbilityId == abilityId && finisher.MeetsThreshold);
 
     private static ClassResource? FindResource(List<ClassResource> resources, ResourceTypes type)
     {
@@ -101,18 +107,4 @@ public abstract partial class MaraResourceDisciplineAnalyzer : Analyzer
                 return resource;
         return null;
     }
-}
-
-[ForPull(PullKind.Single)]
-public sealed class SingleTargetMaraResourceDiscipline : MaraResourceDisciplineAnalyzer
-{
-    public override int FinisherCpThreshold => 5;
-    public override MaraPullShape Shape => MaraPullShape.SingleTarget;
-}
-
-[ForPull(PullKind.Multi)]
-public sealed class AoEMaraResourceDiscipline : MaraResourceDisciplineAnalyzer
-{
-    public override int FinisherCpThreshold => 4;
-    public override MaraPullShape Shape => MaraPullShape.Aoe;
 }

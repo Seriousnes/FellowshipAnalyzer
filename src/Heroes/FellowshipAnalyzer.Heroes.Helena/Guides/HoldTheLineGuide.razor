@@ -52,16 +52,15 @@
                 "Hold the Line casts across every pull."),
             new OverviewStat(
                 $"{slamReady}/{Presses.Count}",
-                "Shield Slam Already Up",
-                $"Presses made with {Spells.ShieldSlam.Name} off cooldown, where the reset it grants had " +
-                "nothing to give back. Shield Slam is left out of the reduction figures for the same " +
-                "reason: ten seconds always covers the whole of its cooldown.",
+                "Shield Slam Available",
+                $"Presses made with {Spells.ShieldSlam.Name} off cooldown. Shield Slam is left out of the " +
+                "reduction figures.",
                 PerformanceTiers.FromThresholds(100 - slamShare, 90, 75, 55)),
             new OverviewStat(
                 $"{reduction.Wasted / 1000d:N0}s",
                 "Reduction Wasted",
                 $"Of the {reduction.Total / 1000d:N0}s Hold the Line generated on the other three abilities, " +
-                $"{reduction.Effective / 1000d:N0}s landed on something still recharging."),
+                $"{reduction.Effective / 1000d:N0}s shortened something still recharging."),
         ];
     }
 
@@ -77,7 +76,8 @@
                     $"{efficiency:F0}%",
                     SpellName(entry.Key),
                     $"{entry.Value.Effective / 1000d:N0}s of the {entry.Value.Total / 1000d:N0}s aimed at it " +
-                    $"landed, with {pressesUp} of {Presses.Count} presses made while it was already available.",
+                    $"shortened a running cooldown, with {pressesUp} of {Presses.Count} presses made while it " +
+                    "was already available.",
                     PerformanceTiers.FromThresholds(efficiency, 85, 70, 50));
             })
             .ToList();
@@ -108,10 +108,10 @@
             target.AvailableForMs is { } available ? $"{available / 1000d:F1}s" : "recharging",
             SpellName(target.SpellId),
             target.AvailableForMs is { } held
-                ? $"It had been available for {held / 1000d:F1}s when the press landed, so the press had nothing to give it back."
+                ? $"It had been available for {held / 1000d:F1}s when Hold the Line was pressed."
                 : target.SpellId == Spells.ShieldSlam.FSLID
-                    ? "It had no charge left, so the press reset it."
-                    : "It was still recharging, so the press shortened it.",
+                    ? "It had no charge available."
+                    : "It was still recharging.",
             target.WasAvailable ? QualitativePerformance.Fail : QualitativePerformance.Perfect)),
     ];
 
@@ -121,11 +121,11 @@
         var granted = Empowerments;
         if (granted == 0) return [];
 
-        var applications = analyzers.Sum(analyzer => analyzer.BarrierApplications);
+        var applications = analyzers.Sum(analyzer => analyzer.AbsorbsApplied);
         var lapsed = analyzers.Sum(analyzer => analyzer.EmpowermentsExpired);
         var used = analyzers.Sum(analyzer => analyzer.AbsorbUsed);
         var wasted = analyzers.Sum(analyzer => analyzer.AbsorbWasted);
-        var expired = analyzers.Sum(analyzer => analyzer.BarriersExpiredUnspent);
+        var expired = analyzers.Sum(analyzer => analyzer.AbsorbsExpiredUnused);
         var offered = used + wasted;
         var efficiency = offered > 0 ? used / (double)offered * 100 : 0;
 
@@ -133,14 +133,13 @@
         [
             new OverviewStat(
                 $"{applications}",
-                "Barriers Laid",
+                "Barrier Applications",
                 $"Barrier applications across {granted} empowerments, counting a refresh onto a live " +
                 "barrier alongside a fresh one."),
             new OverviewStat(
                 $"{lapsed}",
-                "Empowerments Lapsed",
-                "Empowerments that fell off with no Shield Slam under them. Shield Slam comes round faster " +
-                "than the buff can lapse, so anything above zero is worth looking at."),
+                "Empowerments Expired",
+                "Empowerments that expired with no Shield Slam cast under them."),
             new OverviewStat(
                 $"{efficiency:F1}%",
                 "Absorb Used",
@@ -149,7 +148,7 @@
             new OverviewStat(
                 $"{wasted:N0}",
                 "Absorb Expired",
-                $"Absorb still on a barrier when it came off, across {expired} barriers."),
+                $"Absorb still on a barrier when it expired, across {expired} barriers."),
         ];
     }
 

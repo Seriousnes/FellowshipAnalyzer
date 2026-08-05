@@ -2,16 +2,14 @@
 @inherits ResourceTracker
 
 @code {
-    /// <inheritdoc/>
     public override RenderFragment? Statistic => Toughness is null ? null : Card;
 
     private RenderFragment Card =>
         @<StatCard Title="Toughness Generation">
             <Info>
                 <p>
-                    Toughness has no logged generation event, so a source that fires at maximum leaves no
-                    trace beyond the snapshot it carried. Every generating cast and block is checked against
-                    the maximum on its own event, and the ones that fired at full are counted here.
+                    Every generating cast and block is checked against the maximum on its own event, and
+                    the ones at maximum are counted here.
                 </p>
             </Info>
             <ChildContent>
@@ -22,7 +20,7 @@
                     {
                         <StatRow Value="@Ratio(OvercappedCastsFor(generator.SpellId), casts)"
                                  Tooltip="@GeneratorTooltip(generator, casts)">
-                            <SpellLink Spell="generator.SpellId" /> cast at full
+                            <SpellLink Spell="generator.SpellId" /> cast at maximum
                         </StatRow>
                     }
                 }
@@ -30,13 +28,9 @@
                 {
                     <StatRow Value="@Ratio(OvercappedBlocks, ObservedBlocks)"
                              Tooltip="@BlockTooltip">
-                        blocks landed at full
+                        blocks taken at maximum
                     </StatRow>
                 }
-                <HelperText>
-                    Restore shares are nominal: each source's strength scaler over the 7.7 that sets maximum
-                    Toughness, before the secondary-stat modifier that also feeds it.
-                </HelperText>
             </ChildContent>
         </StatCard>;
 
@@ -44,11 +38,9 @@
         whole > 0 ? $"{(double)part / whole * 100:F0}%" : "0%";
 
     private string GeneratorTooltip(ToughnessGenerator generator, int casts) =>
-        $"{OvercappedCastsFor(generator.SpellId)} of {casts} casts were made at maximum Toughness, " +
-        $"each losing the {NominalGenerationFor(generator.SpellId) * 100:F0}% it would have restored.";
+        $"{OvercappedCastsFor(generator.SpellId)} of {casts} casts were made at maximum Toughness.";
 
     private string BlockTooltip =>
-        $"{OvercappedBlocks} of {ObservedBlocks} blocks landed at maximum Toughness, each losing " +
-        $"the {BlockGeneration * 100:F1}% it would have restored. Only blocks whose event " +
-        "carried a Toughness reading can be judged, so this is a sample; block timing is not yours to choose anyway.";
+        $"{OvercappedBlocks} of {ObservedBlocks} blocks were taken at maximum Toughness. Only blocks with " +
+        "a Toughness reading are counted, so this is a sample.";
 }

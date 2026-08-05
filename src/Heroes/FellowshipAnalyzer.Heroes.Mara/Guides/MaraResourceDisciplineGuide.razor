@@ -1,12 +1,15 @@
 @inherits ReportComponent<MaraCombatLogParser>
+@using FellowshipAnalyzer.Core.Common.Spells;
 
 <GuideSection Title="Energy & Combo Points">
     <LeftPanel>
         <p>
-            <SpellLink Spell="Spells.QueenFang" /> and <SpellLink Spell="Spells.ArachnidAssault" /> gain
-            20% damage for every combo point they spend, so hold them for 5 on a boss and 4 in a pack.
-            Energy regenerates the whole fight, so casts pressed at full Energy and builders pressed at
-            six combo points are both generation thrown away. The table shows both.
+            Cast <SpellLink Spell="Spells.QueenFang" /> at 5+ Combo Points when fighting 
+            @(_hasFeedTheQueen ? @<text>5</text> : @<text>2</text>) or fewer targets.
+        </p>
+        <p>
+            Cast <SpellLink Spell="Spells.ArachnidAssault" /> at 4+ Combo Points when fighting
+            @(_hasFeedTheQueen ?@<text>6</text> : @<text>3</text>) or more targets.
         </p>
     </LeftPanel>
     <RightPanel>
@@ -17,7 +20,7 @@
             <ResourceGraph Tracker="Parser.EnergyComboPointTracker" Resource="ResourceTypes.Primary" />
         }
         <CastDetail Title="Resources by Pull"
-                    Description="Each row is one pull, scored against the combo-point threshold that pull's shape calls for."
+                    Description="Each row is one pull."
                     Casts="@BuildPerCastData()" />
     </RightPanel>
 </GuideSection>
@@ -25,6 +28,8 @@
 @code {
     private List<MaraResourceDisciplineAnalyzer> Analyzers() =>
         [.. Parser.MaraResourceDisciplineAnalyzers.Select(entry => entry.Analyzer)];
+
+    private bool _hasFeedTheQueen => Owner.SelectedCombatant.HasTalent(MaraTalents.FeedTheQueen);
 
     private IEnumerable<OverviewStat> BuildOverviewStats()
     {
@@ -47,21 +52,21 @@
             new OverviewStat(
                 $"{thresholdRate}%",
                 "Finishers on Threshold",
-                $"{atThreshold} of {finishers} Queen's Fang and Arachnid Assault casts met their pull's combo-point threshold (5+ on bosses, 4+ in AoE).",
+                $"{atThreshold} of {finishers} Queen's Fang and Arachnid Assault casts met their combo-point threshold.",
                 ThresholdTier(thresholdRate, finishers)),
             new OverviewStat(
                 $"{finishers}",
                 "Finishers Cast",
-                "Queen's Fang and Arachnid Assault casts that carried a combo-point snapshot."),
+                "Queen's Fang and Arachnid Assault casts."),
             new OverviewStat(
                 $"{energyCapped}/{energySampled}",
                 "Casts at Capped Energy",
-                $"{energyCapRate}% of sampled casts were pressed at full Energy, so the Energy that regenerated while capped was lost.",
+                $"{energyCapRate}% of sampled casts were pressed at full Energy.",
                 EnergyCapTier(energyCapRate, energySampled)),
             new OverviewStat(
                 $"{generatorOvercap}",
                 "Generators at 6 CP",
-                $"{generatorOvercap} of {generatorCasts} generator casts ({overcapRate}%) landed while already at six combo points, wasting the generation.",
+                $"{generatorOvercap} of {generatorCasts} generator casts ({overcapRate}%) were pressed at six combo points.",
                 OvercapTier(overcapRate, generatorCasts)),
         ];
     }
@@ -77,13 +82,13 @@
         return
         [
             new StackedBarSegment("6 CP", six, PerformanceColors.Perfect,
-                $"{six} finishers spent at 6 combo points, carrying the full 120% combo-point damage bonus."),
-            new StackedBarSegment("5 CP", five, PerformanceColors.Good,
-                $"{five} finishers spent at 5 combo points, 20% of the bonus short of a full spend."),
-            new StackedBarSegment("4 CP", four, PerformanceColors.Ok,
-                $"{four} finishers spent at 4 combo points, at the AoE threshold but under the single-target threshold."),
+                $"{six} finishers spent 6 combo points."),
+            new StackedBarSegment("5 CP", five, PerformanceColors.Perfect,
+                $"{five} finishers spent 5 combo points."),
+            new StackedBarSegment("4 CP", four, PerformanceColors.Neutral,
+                $"{four} finishers spent 4 combo points, which meets the Arachnid Assault threshold and misses the Queen's Fang threshold."),
             new StackedBarSegment("3 CP or fewer", low, PerformanceColors.Fail,
-                $"{low} finishers spent at 3 or fewer combo points, under both pull shapes' thresholds."),
+                $"{low} finishers spent 3 or fewer combo points."),
         ];
     }
 
@@ -92,8 +97,9 @@
 
     private PerCastRow BuildPullRow(MaraResourceDisciplineAnalyzer analyzer)
     {
-        var isAoe = analyzer.Shape == MaraPullShape.Aoe;
         var thresholdRate = Percent(analyzer.FinishersAtThreshold, analyzer.Finishers.Count);
+        var queenFangRate = Percent(analyzer.QueenFangAtThreshold, analyzer.QueenFangCasts);
+        var arachnidRate = Percent(analyzer.ArachnidAssaultAtThreshold, analyzer.ArachnidAssaultCasts);
         var energyCapRate = Percent(analyzer.EnergyCappedCasts, analyzer.EnergyCastsSampled);
         var overcapRate = Percent(analyzer.GeneratorOvercapCasts, analyzer.GeneratorCasts);
         var belowThreshold = analyzer.Finishers.Where(finisher => !finisher.MeetsThreshold).Take(5).ToList();
@@ -101,30 +107,29 @@
         var stats = new[]
         {
             new PerCastStat(
-                isAoe ? "AoE" : "ST",
-                "Shape",
-                isAoe
-                    ? "Multi-target pull, scored against the AoE threshold of 4 or more combo points per finisher."
-                    : "Single-target pull, scored against the boss threshold of 5 or more combo points per finisher."),
+                $"{analyzer.QueenFangAtThreshold}/{analyzer.QueenFangCasts}",
+                $"Queen's Fang at {MaraResourceDisciplineAnalyzer.QueenFangThreshold}+ CP",
+                $"Queen's Fang casts that met their combo-point threshold ({queenFangRate}%).",
+                Performance: ThresholdTier(queenFangRate, analyzer.QueenFangCasts)),
             new PerCastStat(
-                $"{analyzer.FinishersAtThreshold}/{analyzer.Finishers.Count}",
-                $"Finishers at {analyzer.FinisherCpThreshold}+ CP",
-                $"Queen's Fang and Arachnid Assault casts that met this pull's combo-point threshold ({thresholdRate}%).",
-                Performance: ThresholdTier(thresholdRate, analyzer.Finishers.Count)),
+                $"{analyzer.ArachnidAssaultAtThreshold}/{analyzer.ArachnidAssaultCasts}",
+                $"Arachnid Assault at {MaraResourceDisciplineAnalyzer.ArachnidAssaultThreshold}+ CP",
+                $"Arachnid Assault casts that met their combo-point threshold ({arachnidRate}%).",
+                Performance: ThresholdTier(arachnidRate, analyzer.ArachnidAssaultCasts)),
             new PerCastStat(
                 $"{analyzer.EnergyCappedCasts}/{analyzer.EnergyCastsSampled}",
                 "Casts at Capped Energy",
-                $"Casts pressed at full Energy ({energyCapRate}%); the Energy that regenerated while capped was lost.",
+                $"Casts pressed at full Energy ({energyCapRate}%).",
                 Performance: EnergyCapTier(energyCapRate, analyzer.EnergyCastsSampled)),
             new PerCastStat(
                 $"{analyzer.GeneratorOvercapCasts}/{analyzer.GeneratorCasts}",
                 "Generators at 6 CP",
-                $"Generator casts made at maximum combo points ({overcapRate}%), wasting the generation.",
+                $"Generator casts made at maximum combo points ({overcapRate}%).",
                 Performance: OvercapTier(overcapRate, analyzer.GeneratorCasts)),
             new PerCastStat(
                 $"{analyzer.MaintenanceFinisherCasts}",
                 "Hemorrhaging Strike",
-                "Hemorrhaging Strike casts. It is pressed to keep bleeds and Hemotoxin running rather than to dump combo points, so it is shown for context only and is not scored against the finisher threshold."),
+                "Hemorrhaging Strike casts. Reported as context rather than scored against the finisher threshold."),
         };
 
         return new PerCastRow
@@ -152,24 +157,24 @@
     private static string BuildPullNote(MaraResourceDisciplineAnalyzer analyzer, int energyCapRate)
     {
         if (analyzer.Finishers.Count == 0 && analyzer.EnergyCastsSampled == 0)
-            return "No casts on this pull carried a resource snapshot, so there is nothing to score.";
+            return "The log recorded no resource snapshot on this pull, so there is nothing to score.";
 
         var notes = new List<string>();
 
         var below = analyzer.Finishers.Count - analyzer.FinishersAtThreshold;
         if (below > 0)
-            notes.Add($"{Count(below, "finisher")} went out under {analyzer.FinisherCpThreshold} combo points, giving up 20% damage for every point missing");
+            notes.Add($"{Count(below, "finisher")} went out under their combo-point threshold");
 
         if (analyzer.GeneratorOvercapCasts > 0)
-            notes.Add($"{Count(analyzer.GeneratorOvercapCasts, "generator cast")} landed at six combo points and threw that generation away");
+            notes.Add($"{Count(analyzer.GeneratorOvercapCasts, "generator cast")} went out at six combo points");
 
         if (analyzer.EnergyCappedCasts > 0)
-            notes.Add($"{Count(analyzer.EnergyCappedCasts, "cast")} went out at full Energy ({energyCapRate}% of sampled casts), so the regeneration in those windows was lost");
+            notes.Add($"{Count(analyzer.EnergyCappedCasts, "cast")} went out at full Energy ({energyCapRate}% of sampled casts)");
 
         if (notes.Count == 0)
             return analyzer.Finishers.Count == 0
-                ? "No spending finishers landed on this pull, but nothing overcapped either."
-                : $"Every finisher went out at {analyzer.FinisherCpThreshold} or more combo points with no Energy or combo-point overcap.";
+                ? "No spending finisher was cast on this pull, but nothing overcapped either."
+                : "Every finisher met its combo-point threshold with no Energy or combo-point overcap.";
 
         return $"{string.Join("; ", notes)}.";
     }

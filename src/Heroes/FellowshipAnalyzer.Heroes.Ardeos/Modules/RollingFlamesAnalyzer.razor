@@ -2,24 +2,11 @@
 @using ArdeosSpells = FellowshipAnalyzer.Core.Common.Spells.Ardeos
 
 @code {
-    /// <inheritdoc/>
     public override RenderFragment? Statistic =>
         @<StatCard>
             <Header>
                 <SpellLink Spell="ArdeosSpells.Talents.RollingFlames" />
             </Header>
-            <Info>
-                <p>Rolling Flames reduces Engulfing Flames' cooldown from Searing Blaze damage and Infernal Wave casts.</p>
-                <ul>
-                    @foreach (var cdr in CooldownReductions)
-                    {
-                        <li>
-                            <SpellLink Spell="cdr.Spell" /> generated @Seconds(cdr.CooldownReduction.Total)
-                            (@Pct(cdr.CooldownReduction.Efficiency) effective, @Seconds(cdr.CooldownReduction.Wasted) wasted).
-                        </li>
-                    }
-                </ul>
-            </Info>
             <ChildContent>
                 @foreach (var cdr in CooldownReductions)
                 {

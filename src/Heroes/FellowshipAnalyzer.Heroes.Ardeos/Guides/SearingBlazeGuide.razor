@@ -5,15 +5,14 @@
 <GuideSection Title="Searing Blaze">
     <LeftPanel>
         <p>
-            <SpellLink Spell="Spells.SearingBlaze" /> should never leave a boss, and should reach every
-            enemy in a pack. The table shows uptime and reapplication gaps on bosses, and coverage
-            against pack size on multi-target pulls.
+            <SpellLink Spell="Spells.SearingBlaze" /> should never drop off a boss, and should be applied to every
+            enemy in a pack.
         </p>
     </LeftPanel>
     <RightPanel>
         <CastOverview Title="DoT Overview" Stats="@BuildOverviewStats()" />
         <CastDetail Title="Searing Blaze by Pull"
-                    Description="Each row is one pull. Boss rows show DoT uptime and gaps; AoE rows show how many enemies Searing Blaze reached."
+                    Description="Each row is one pull, measured by uptime on boss pulls and by coverage on multi-target pulls."
                     Casts="@BuildPerCastData()" />
     </RightPanel>
 </GuideSection>
@@ -37,7 +36,7 @@
             stats.Add(new OverviewStat(
                 $"{totalGaps}",
                 "Boss Gaps",
-                "Times the DoT dropped off a boss before being reapplied."));
+                "Times Searing Blaze dropped off a boss before being reapplied."));
         }
 
         var spreadAnalyzers = Parser.SearingBlazeAnalyzers
@@ -53,7 +52,7 @@
                 PercentTier(averageSpread)));
             stats.Add(new OverviewStat(
                 $"{totalTargets}",
-                "Targets Hit",
+                "Enemies Hit",
                 "Total distinct enemies that took Searing Blaze across all AoE pulls."));
         }
 
@@ -78,7 +77,7 @@
             new PerCastStat(
                 $"{uptimePercent}%",
                 "Uptime",
-                "Share of the pull the boss spent carrying Searing Blaze.",
+                "Share of the pull Searing Blaze was active on the boss.",
                 Performance: perf),
             new PerCastStat(
                 $"{analyzer.GapCount}",
@@ -87,7 +86,7 @@
             new PerCastStat(
                 FormatSeconds(analyzer.TotalGapMs),
                 "Downtime",
-                "Total time Searing Blaze was down between applications."),
+                "Total time Searing Blaze was off the boss between applications."),
         };
 
         return new PerCastRow
@@ -116,7 +115,7 @@
             new PerCastStat(
                 $"{analyzer.TotalApplications}",
                 "Applications",
-                "Total Searing Blaze applications during the pull."),
+                "Fresh Searing Blaze applications during the pull, not counting refreshes."),
         };
 
         return new PerCastRow
@@ -133,10 +132,10 @@
             return "No Searing Blaze applications were detected on this boss pull.";
 
         if (analyzer.GapCount == 0)
-            return $"Searing Blaze held {uptimePercent}% uptime with no gaps once applied.";
+            return $"Searing Blaze had {uptimePercent}% uptime with no gaps once applied.";
 
         var gapLabel = analyzer.GapCount == 1 ? "1 gap" : $"{analyzer.GapCount} gaps";
-        return $"Searing Blaze held {uptimePercent}% uptime with {gapLabel} totalling {FormatSeconds(analyzer.TotalGapMs)} - reapply before the DoT falls off.";
+        return $"Searing Blaze had {uptimePercent}% uptime with {gapLabel} totalling {FormatSeconds(analyzer.TotalGapMs)} - reapply it before it expires.";
     }
 
     private static string BuildTrashNote(SearingBlazeSpreadAnalyzer analyzer, int score)
@@ -150,7 +149,7 @@
         if (score >= 75)
             return $"Searing Blaze covered {analyzer.DistinctTargets} of {analyzer.TargetCount} enemies on this pull.";
 
-        return $"Searing Blaze reached only {analyzer.DistinctTargets} of {analyzer.TargetCount} enemies - keep the DoT spread across the pack.";
+        return $"Searing Blaze reached only {analyzer.DistinctTargets} of {analyzer.TargetCount} enemies - keep it spread across the pack.";
     }
 
     private static int CoverageScore(SearingBlazeSpreadAnalyzer analyzer) =>

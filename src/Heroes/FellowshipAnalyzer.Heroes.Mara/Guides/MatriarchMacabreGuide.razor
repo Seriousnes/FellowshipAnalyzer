@@ -3,15 +3,13 @@
 <GuideSection Title="Matriarch Macabre Windows">
     <LeftPanel>
         <p>
-            <SpellLink Spell="Spells.MatriarchMacabre" /> sends out two clones that imitate every
-            <SpellLink Spell="Spells.QueenFang" /> and <SpellLink Spell="Spells.ArachnidAssault" /> you cast. 
             Attempt to cast as many finishers as possible during the <SpellLink Spell="Spells.MatriarchMacabre" /> window.
         </p>
     </LeftPanel>
     <RightPanel>
         <CastOverview Title="Matriarch Overview" Stats="@BuildOverviewStats()" />
         <CastDetail Title="Matriarch Windows"
-                    Description="Each row is one Matriarch Macabre window, from the buff landing to its removal, with the finishers the clones imitated."
+                    Description="Each row is one Matriarch Macabre usage, with the finishers cast inside it."
                     Casts="@BuildPerCastData()" />
     </RightPanel>
 </GuideSection>
@@ -36,17 +34,17 @@
         [
             new OverviewStat(
                 $"{imitated}",
-                "Finishers Imitated",
+                "Finishers in Window",
                 windows == 0
                     ? $"No Matriarch Macabre window was observed across {Count(casts, "cast")}, so there is nothing to measure."
-                    : $"{queensFang} Queen's Fang and {arachnid} Arachnid Assault casts landed inside a window, {average:0.0} per window.",
+                    : $"{queensFang} Queen's Fang and {arachnid} Arachnid Assault casts inside a window, {average:0.0} per window.",
                 ImitatedTier(average, windows)),
             new OverviewStat(
                 $"{converted}/{windows}",
                 "Windows Used",
                 windows == 0
                     ? "No Matriarch Macabre window was observed."
-                    : $"Windows that carried at least one finisher for the clones to imitate, out of {Count(windows, "window")}.",
+                    : $"Windows with at least one finisher cast, out of {Count(windows, "window")}.",
                 ConversionTier(converted, windows)),
         ];
     }
@@ -65,8 +63,8 @@
                 $"How long the Matriarch Macabre buff was active, against its {MatriarchMacabreAnalyzer.WindowMs / 1000}-second duration."),
             new PerCastStat(
                 $"{window.ImitatedCasts}",
-                "Finishers Imitated",
-                "Queen's Fang and Arachnid Assault casts the clones copied.",
+                "Finishers in Window",
+                "Queen's Fang and Arachnid Assault casts made inside the window.",
                 Performance: ImitatedTier(window.ImitatedCasts, 1)),
             new PerCastStat(
                 $"{window.QueensFangCasts}",
@@ -89,8 +87,8 @@
 
     private static string BuildWindowNote(MatriarchMacabreWindow window) =>
         window.ImitatedCasts == 0
-            ? $"This {FormatSeconds(window.DurationMs)} window expired with no Queen's Fang or Arachnid Assault in it, so the clones had nothing to copy."
-            : $"The clones copied {Count(window.ImitatedCasts, "finisher")} over {FormatSeconds(window.DurationMs)}.";
+            ? $"This {FormatSeconds(window.DurationMs)} window expired with no Queen's Fang or Arachnid Assault in it."
+            : $"{Count(window.ImitatedCasts, "finisher")} went out over {FormatSeconds(window.DurationMs)}.";
 
     private static string Count(int value, string noun) =>
         value == 1 ? $"1 {noun}" : $"{value} {noun}s";

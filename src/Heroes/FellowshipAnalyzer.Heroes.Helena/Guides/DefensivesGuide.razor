@@ -51,13 +51,13 @@
                 PerformanceTiers.FromThresholds(uptime, 80, 65, 45)),
             new(
                 $"{cappedShare:F1}%",
-                "At Full Charges",
-                $"{cappedMs / 1000d:N0}s spent holding both charges, with neither recharging.",
+                "At Maximum Charges",
+                $"{cappedMs / 1000d:N0}s of the pull spent holding every charge.",
                 PerformanceTiers.FromThresholds(100 - cappedShare, 90, 75, 55)),
             new(
                 $"{covered:N0}",
                 "Mitigation Covered",
-                "All mitigation and absorbs on hits that landed inside a Shields Up window. At high uptime " +
+                "All mitigation and absorbs on hits taken inside a Shields Up window. At high uptime " +
                 "this approaches the fight's whole mitigation total, because it counts everything at once " +
                 "rather than the share Shields Up is responsible for."),
         };
@@ -70,8 +70,8 @@
             {
                 stats.Add(new OverviewStat(
                     $"{overcapped}/{total}",
-                    "Cast At Full Toughness",
-                    "Casts made at maximum Toughness already, losing the 30% the cast would have restored.",
+                    "Cast At Maximum Toughness",
+                    "Casts made at maximum Toughness.",
                     PerformanceTiers.FromThresholds(100 - ((double)overcapped / total * 100), 85, 70, 50)));
             }
         }
@@ -98,18 +98,17 @@
             new OverviewStat(
                 $"{fromHigh}/{uses}",
                 "Pressed Above Half",
-                "Uses made at or above 50% Toughness, where the window holds a band worth holding.",
+                "Uses made at or above 50% Toughness.",
                 PerformanceTiers.FromThresholds((double)fromHigh / uses * 100, 90, 75, 50)),
             new OverviewStat(
                 $"{shieldsUpSpent}/{uses}",
                 "With Shields Up Spent",
-                "Uses made with no Shields Up charge left, which is the window Iron Wall exists to buy. " +
-                "Charges come from the cooldown model rather than the log, so this follows the spellbook's " +
-                "cooldowns."),
+                "Uses made with no Shields Up charge left. Charges come from the cooldown model rather " +
+                "than the log, so this follows the spellbook's cooldowns."),
             new OverviewStat(
                 $"{covered:N0}",
                 "Mitigation Covered",
-                "All mitigation and absorbs on hits that landed inside an Iron Wall window, from every " +
+                "All mitigation and absorbs on hits taken inside an Iron Wall window, from every " +
                 "source at once rather than Iron Wall's own share."),
         ];
     }
@@ -139,10 +138,10 @@
         {
             new(
                 use.ToughnessShare is { } share ? $"{share * 100:F0}%" : "n/a",
-                "Toughness Held",
+                "Toughness At Press",
                 use.ToughnessShare is null
-                    ? "This cast carried no Toughness reading."
-                    : $"Toughness when it was pressed. Nothing lowered it for the duration, so it held at least {(use.Band is { } band ? ToughnessBands.DamageReduction(band) * 100 : 0):F0}% reduction.",
+                    ? "This cast has no Toughness reading."
+                    : "Toughness when it was pressed.",
                 use.ToughnessShare is null ? null
                     : use.OpenedAboveHalfToughness ? QualitativePerformance.Perfect : QualitativePerformance.Fail),
             new(
@@ -161,8 +160,8 @@
                 $"{charges}",
                 "Shields Up Charges",
                 charges == 0
-                    ? "No Shields Up charge was left, which is the gap Iron Wall is meant to cover."
-                    : "Shields Up charges still available when Iron Wall went out.",
+                    ? "No Shields Up charge was left."
+                    : "Shields Up charges available when Iron Wall was pressed.",
                 charges == 0 ? QualitativePerformance.Perfect : QualitativePerformance.Ok));
         }
 

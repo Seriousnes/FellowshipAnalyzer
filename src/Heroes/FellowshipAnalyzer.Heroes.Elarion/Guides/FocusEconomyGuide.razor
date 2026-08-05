@@ -4,9 +4,7 @@
 <GuideSection Title="Focus Economy">
     <LeftPanel>
         <p>
-            Cast <SpellLink Spell="Spells.CelestialShot" /> to avoid overcapping Focus.            
-            The table shows how often you were casting at full Focus and how much Focus you
-            had available when casting <SpellLink Spell="Spells.EventHorizon" />.
+            Cast <SpellLink Spell="Spells.CelestialShot" /> to avoid overcapping Focus.
         </p>
     </LeftPanel>
     <RightPanel>
@@ -19,7 +17,7 @@
         }
         <CastOverview Title="Focus Overview" Stats="@BuildOverviewStats()" />
         <CastDetail Title="Event Horizon Windows"
-                    Description="Each card is one Event Horizon cast, rated on the Focus banked going in, with the spenders and approximate Focus spent under the halved costs alongside."
+                    Description="Each card is one Event Horizon cast, rated on the Focus banked going in, with the spenders and approximate Focus spent alongside."
                     Casts="@BuildWindowRows()" />
     </RightPanel>
 </GuideSection>
@@ -47,16 +45,16 @@
             new OverviewStat(
                 $"{nearCapPercent:0.#}%",
                 "Focused Shot Near Cap",
-                $"{nearCap} of {focusedShots} Focused Shot casts started at {FocusEconomyAnalyzer.NearCapFocus} Focus or more, where most of the 20 Focus generated cannot fit under the cap.",
+                $"{nearCap} of {focusedShots} Focused Shot casts started at {FocusEconomyAnalyzer.NearCapFocus} Focus or more.",
                 PerformanceTiers.FromThresholds(100 - nearCapPercent, 95, 85, 70)),
             new OverviewStat(
                 $"{atCapPercent:0.#}%",
                 "Casts at Full Focus",
-                $"{atCap} of {sampled} casts carrying a Focus reading were already at the cap, so the regeneration during those stretches was wasted."),
+                $"{atCap} of {sampled} casts with a Focus reading were already at the cap."),
             new OverviewStat(
                 $"{windows}",
                 "Event Horizon Casts",
-                "Event Horizon casts across every pull, each opening 20 seconds of halved Focus costs."),
+                "Event Horizon casts across every pull."),
         ];
     }
 
@@ -77,12 +75,12 @@
             new PerCastStat(
                 window.FocusAtCast is { } banked ? $"{banked}" : "-",
                 "Focus Banked",
-                "Focus held when Event Horizon was cast. The window halves every Focus cost, so a full bank buys the most casts.",
+                "Focus held when Event Horizon was cast.",
                 Performance: window.FocusAtCast is null ? null : performance),
             new PerCastStat(
                 $"{window.SpendersInWindow}",
                 "Spenders",
-                "Focus spenders cast while the Event Horizon buff was up."),
+                "Focus spenders cast while the Event Horizon buff was active."),
             new PerCastStat(
                 $"{window.FocusSpentInWindow}",
                 "Focus Spent",
@@ -103,17 +101,17 @@
     private static string BuildNote(FocusEconomyAnalyzer.EventHorizonWindow window)
     {
         if (window.FocusAtCast is not { } focus)
-            return "No Focus reading on this cast, so the bank going in is unknown - the spending inside the window is still counted.";
+            return "No Focus reading on this cast, so the bank going in is unknown. The spending inside the window is still counted.";
 
         if (focus >= 90)
-            return "Banked to near full before pressing Event Horizon, so the halved costs had the most to convert.";
+            return "Banked to near full before pressing Event Horizon.";
 
         if (focus >= 70)
-            return "A healthy bank going in - a little more pooling beforehand would have fit another spender under the halved costs.";
+            return "A healthy bank going in. Pool a little longer before pressing it.";
 
         if (focus >= 50)
-            return "Entered on a half bank; hold Event Horizon until Focus is high so the halved costs apply to a full pool.";
+            return "Entered on a half bank. Hold Event Horizon until Focus is high.";
 
-        return "Entered Event Horizon on a low bank, so the halved costs had little to work with - pool Focus before pressing it.";
+        return "Entered Event Horizon on a low bank. Pool Focus before pressing it.";
     }
 }

@@ -3,10 +3,8 @@
 <GuideSection Title="Life Petal">
     <LeftPanel>
         <p>
-            <SpellLink Spell="Spells.LifePetal" /> holds two charges and every
-            <SpellLink Spell="Spells.Nettlebolt" /> that lands shortens the recharge, so a second charge
-            sitting in the bank is a petal that is not on the floor. The table shows time at both
-            charges, and the reduction that landed on nothing.
+            Cast <SpellLink Spell="Spells.LifePetal" /> on cooldown unless you are holding it for
+            a known damage event.
         </p>
     </LeftPanel>
     <RightPanel>
@@ -50,11 +48,11 @@
             new OverviewStat(
                 $"{reduction.Wasted / 1000:N0}s",
                 "Reduction Lost",
-                $"Reduction generated with both charges already banked, across {atFull:N0} Nettlebolts that landed at full charges."),
+                $"Reduction that shortened nothing. {atFull:N0} Nettlebolts hit with both charges already available."),
             new OverviewStat(
                 $"{cappedShare * 100:F1}%",
-                "Holding Both Charges",
-                $"{capped / 1000:N0}s of {measured / 1000:N0}s measured with both charges banked and nothing recharging.",
+                "Both Charges Held",
+                $"{capped / 1000:N0}s of {measured / 1000:N0}s measured with both charges available and nothing recharging.",
                 PerformanceTiers.FromThresholds(100 - (cappedShare * 100), 85, 70, 50)),
         ];
     }
@@ -82,7 +80,7 @@
                 new PerCastStat(
                     $"{analyzer.NettleboltsAtFullCharges}",
                     "Nettlebolts At Full",
-                    "Nettlebolts that landed with both charges already banked, each losing what it would have taken off."),
+                    "Nettlebolts that hit with both charges already available."),
             ],
         });
 }

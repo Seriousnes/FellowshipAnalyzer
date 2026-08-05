@@ -4,9 +4,7 @@
 <GuideSection Title="Winter Orb Efficiency">
     <LeftPanel>
         <p>
-            The pool holds five Winter Orbs, and Anima generated at five is gone, so spend at four to
-            give the next gain somewhere to land. The table shows the gains that arrived on a full
-            pool, and how long the pool stayed full.
+            Press a spender at four Winter Orbs.
         </p>
     </LeftPanel>
     <RightPanel>
@@ -73,7 +71,7 @@
             new OverviewStat(
                 $"{Tracker.Wasted}",
                 "Overcapped",
-                $"Orbs lost to overcap ({overcapRate:F0}% of potential), read from the orb count the log stamps on your own casts.",
+                $"Orbs lost to overcap ({overcapRate:F0}% of potential).",
                 Tracker.Wasted == 0 ? QualitativePerformance.Perfect
                     : overcapRate < 10 ? QualitativePerformance.Good
                     : overcapRate < 20 ? QualitativePerformance.Ok
@@ -81,7 +79,7 @@
             new OverviewStat(
                 FormatDuration(Tracker.CappedMs),
                 "Time at Cap",
-                $"Time the pool sat at {Tracker.MaxOrbs} orbs ({cappedShare:F0}% of the fight), where every further gain is wasted; read from the orb count the log stamps on each of your own casts.",
+                $"Time the pool sat at {Tracker.MaxOrbs} orbs ({cappedShare:F0}% of the fight), measured between your own casts.",
                 Tracker.CappedMs == 0 ? QualitativePerformance.Perfect
                     : cappedShare < 5 ? QualitativePerformance.Good
                     : cappedShare < 10 ? QualitativePerformance.Ok

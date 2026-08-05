@@ -4,23 +4,23 @@
 <GuideSection Title="Heart Splitter">
     <LeftPanel>
         <p>
-            <SpellLink Spell="Spells.HeartSplitter" /> is best used with large stacks of 
-            <SpellLink Spell="Spells.Rend" />. Aim to have <SpellLink Spell="Spells.HeartSplitter" /> ready before consuming
-            a high <SpellLink Spell="Spells.Rend" /> stack with <SpellLink Spell="Spells.Slaughter" />.
+            <SpellLink Spell="Spells.HeartSplitter" /> benefits from large <SpellLink Spell="Spells.Rend" />,
+            just like <SpellLink Spell="Spells.Slaughter" />, so aim to cast <SpellLink Spell="Spells.HeartSplitter" />
+            before consuming <SpellLink Spell="Spells.Rend" /> stacks with <SpellLink Spell="Spells.Slaughter" />.
         </p>
     </LeftPanel>
     <RightPanel>
         @if (TotalCasts == 0)
         {
             <TipBox Variant="TipBoxVariant.Info">
-                Heart Splitter was never cast, so none of Gunde's accumulated Rend was exsanguinated.
+                Heart Splitter was never cast.
             </TipBox>
         }
         else
         {
             <CastOverview Title="Heart Splitter Overview" Stats="@BuildOverviewStats()" />
             <CastDetail Title="Heart Splitters"
-                        Description="Each card is one Heart Splitter, rated on whether a Slaughter had just emptied the target it landed on."
+                        Description="Each card is one Heart Splitter, rated on whether a Slaughter was cast just before it."
                         Casts="@BuildPerCastData()" />
         }
     </RightPanel>
@@ -49,15 +49,15 @@
                 "Total Heart Splitter casts evaluated across every pull."),
             new(
                 $"{cleanRate}%",
-                "Rend Intact",
-                $"{casts - clipped} of {casts} Heart Splitters landed on a target no Slaughter had just emptied.",
+                "Clear of Slaughter",
+                $"{casts - clipped} of {casts} Heart Splitters were cast with no Slaughter in the {HeartSplitterAnalyzer.SlaughterClipMs / 1000d:0.#}s before them.",
                 PercentTier(cleanRate)),
             new(
                 measured > 0 ? $"{rend / measured}" : "-",
-                "Avg Rend Hit",
+                "Avg Rend on Target",
                 measured > 0
-                    ? $"Average Rend stacks active when Exsanguinate hit, {rend} in total across {measured} casts."
-                    : "No Exsanguinate landed, so there was no bleed to measure."),
+                    ? $"Average Rend stacks active on the target when Exsanguinate hit, {rend} in total across {measured} casts."
+                    : "No Exsanguinate damage was recorded, so there were no stacks to measure."),
         };
 
         if (damage > 0)
@@ -65,7 +65,7 @@
             stats.Add(new OverviewStat(
                 FormatDamage(damage),
                 "Exsanguinate",
-                "Total Exsanguinate damage. Damage scales with gear, so it is reported as context rather than scored."));
+                "Total Exsanguinate damage. This is context, not a verdict."));
         }
 
         return stats;
@@ -83,19 +83,19 @@
         {
             new PerCastStat(
                 cast.ClippedBySlaughter ? "No" : "Yes",
-                "Rend Intact",
-                $"Whether the target still carried its bleed, or a Slaughter had emptied it within {HeartSplitterAnalyzer.SlaughterClipMs / 1000d:0.#}s.",
+                "Clear of Slaughter",
+                $"Yes when no Slaughter was cast in the {HeartSplitterAnalyzer.SlaughterClipMs / 1000d:0.#}s before this one.",
                 perf),
             new PerCastStat(
                 cast.RendOnTarget is { } rend ? $"{rend}" : "-",
                 "Rend on Target",
                 cast.RendOnTarget is not null
-                    ? "Rend stacks active when Exsanguinate hit - the pile it took its share of."
-                    : "No Exsanguinate followed this cast, so there was no pile to measure."),
+                    ? "Rend stacks active on the target when Exsanguinate hit."
+                    : "No Exsanguinate damage followed this cast, so no stack count was measured."),
             new PerCastStat(
                 FormatDamage(cast.ExsanguinateDamage),
                 "Exsanguinate",
-                "Damage the Exsanguinate half of this cast dealt. Reported as context: it scales with gear, while the stack count does not."),
+                "Exsanguinate damage from this cast. This is context, not a verdict."),
         };
 
         return new PerCastRow
@@ -111,17 +111,17 @@
     private static string BuildNote(HeartSplitterCast cast)
     {
         if (cast.RendOnTarget is not { } rend)
-            return "No Exsanguinate followed this cast, so nothing is known about the bleed it would have cashed.";
+            return "No Exsanguinate damage followed this cast, so no stack count was measured.";
 
         if (!cast.ClippedBySlaughter)
         {
             return cast.MillisecondsSinceSlaughter is { } gap
-                ? $"Exsanguinated {rend} Rend, {gap / 1000d:0.#}s after the last Slaughter - the bleed had rebuilt."
-                : $"Exsanguinated {rend} Rend, with no Slaughter yet to have consumed it.";
+                ? $"Exsanguinated {rend} Rend, {gap / 1000d:0.#}s after the last Slaughter."
+                : $"Exsanguinated {rend} Rend, with no Slaughter cast earlier in the pull.";
         }
 
         var since = cast.MillisecondsSinceSlaughter ?? 0;
-        return $"A Slaughter emptied the target {since / 1000d:0.#}s earlier, leaving only {rend} Rend for Exsanguinate to take a share of. Cast Heart Splitter before Slaughter, not after it.";
+        return $"A Slaughter was cast {since / 1000d:0.#}s earlier, and Exsanguinate hit {rend} Rend. Cast Heart Splitter before Slaughter, not after it.";
     }
 
     private static string FormatDamage(long damage) =>

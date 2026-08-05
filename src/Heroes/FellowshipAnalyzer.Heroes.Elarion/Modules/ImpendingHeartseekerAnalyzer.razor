@@ -2,7 +2,6 @@
 @using FellowshipAnalyzer.Core.UI
 
 @code {
-    /// <inheritdoc/>
     public override RenderFragment? Statistic => Resets > 0 ? Card : null;
 
     private RenderFragment Card =>
@@ -10,24 +9,18 @@
             <Header>
                 <SpellLink Spell="Talents.ImpendingHeartseeker" />
             </Header>
-            <Info>
-                <p>
-                    Impending Heartseeker resets <SpellLink Spell="Spells.HeartseekerBarrage" />, so a reset that
-                    arrives while Barrage is already available recovers nothing.
-                </p>
-            </Info>
             <ChildContent>
                 <StatRow Value="@Resets.ToString("N0")"
-                         Tooltip="Impending Heartseeker buffs granted over the fight, each one a Heartseeker Barrage reset.">
+                         Tooltip="Impending Heartseeker buffs granted over the fight.">
                     resets granted
                 </StatRow>
                 <StatRow Value="@WastedResets.ToString("N0")"
                          Color="@PerformanceColors.ToColor(WastedTier)"
-                         Tooltip="@($"{WastedResets} of {Resets} resets landed while Heartseeker Barrage was already available.")">
-                    resets with nothing to recover
+                         Tooltip="@($"{WastedResets} of {Resets} resets arrived while Heartseeker Barrage was already available.")">
+                    resets wasted
                 </StatRow>
                 <StatRow Value="@Seconds(AverageRecoveredMs)"
-                         Tooltip="@($"{Seconds(RecoveredMs)} of Heartseeker Barrage cooldown removed across {LandedResets} resets that landed on a running cooldown.")">
+                         Tooltip="@($"{Seconds(RecoveredMs)} of Heartseeker Barrage cooldown removed across {LandedResets} resets that arrived on a running cooldown.")">
                     average cooldown removed
                 </StatRow>
             </ChildContent>

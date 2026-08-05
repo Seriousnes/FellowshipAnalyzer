@@ -6,7 +6,6 @@ namespace FellowshipAnalyzer.Heroes.Gunde.Analysis;
 [HeroAnalyzer(HeroName.Gunde)]
 [AddModule<Modules.Abilities>]
 [AddModule<GundeAuras>]
-[AddModule<FatedStrikeTracker>]
 [AddState<BloodFeatherTracker>]
 [AddState<RendStackTracker>]
 [AddAnalyzer<BossSlaughterUsage>]

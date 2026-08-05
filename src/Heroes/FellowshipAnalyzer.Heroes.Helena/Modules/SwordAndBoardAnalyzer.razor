@@ -1,7 +1,6 @@
 @inherits Analyzer
 
 @code {
-    /// <inheritdoc/>
     public override RenderFragment? Statistic => Procs > 0 ? Card : null;
 
     private RenderFragment Card =>
@@ -12,9 +11,7 @@
             <Info>
                 <p>
                     The damage below is what @FreeCasts free
-                    <SpellLink Spell="Spells.ShieldSlam" /> casts dealt, cleave included. A refund advances the
-                    charge count without restarting the recharge already running, so a free cast is worth a whole
-                    Shield Slam however close the next one was.
+                    <SpellLink Spell="Spells.ShieldSlam" /> casts dealt, cleave included.
                 </p>
             </Info>
             <ChildContent>
@@ -24,13 +21,13 @@
                 @if (ProcsExpired > 0)
                 {
                     <HelperText>
-                        @ProcsExpired of @Procs procs fell off before a Shield Slam was pressed under them.
+                        @ProcsExpired of @Procs procs were replaced or expired with no Shield Slam pressed under them.
                     </HelperText>
                 }
             </ChildContent>
         </StatCard>;
 
     private string DamageTooltip =>
-        $"Every Shield Slam hit landed between a free cast and the next Shield Slam, across {FreeCasts} " +
+        $"Every Shield Slam hit dealt between a free cast and the next Shield Slam, across {FreeCasts} " +
         $"free casts from {Procs} procs.";
 }

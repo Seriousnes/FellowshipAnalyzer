@@ -13,8 +13,6 @@ public sealed record SlaughterEvaluation
 
     public required bool OpenWoundsActive { get; init; }
 
-    public required bool HeartSplitterPrimed { get; init; }
-
     public required int TargetsHit { get; init; }
 
     public required int RendConsumed { get; init; }

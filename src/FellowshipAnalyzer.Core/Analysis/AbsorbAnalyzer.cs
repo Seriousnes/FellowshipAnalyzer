@@ -48,7 +48,7 @@ public abstract class AbsorbAnalyzer : Analyzer
     public long AbsorbWasted => Result.Wasted;
 
     /// <summary>Shields that came off still holding absorb.</summary>
-    public int AbsorbsExpiredUnspent => Result.ExpiredUnspent;
+    public int AbsorbsExpiredUnused => Result.ExpiredUnspent;
 
     /// <summary>Share (0-1) of the absorb the shields offered that was consumed rather than left to expire.</summary>
     public double AbsorbEfficiency

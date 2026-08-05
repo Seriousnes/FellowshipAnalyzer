@@ -12,14 +12,14 @@
 <GuideSection Title="Wildfire Burn Windows">
     <LeftPanel>
         <p>
-            Apply as many DoTs as possible before @wf, ideally with at least two @ef instances. Once @wf is cast, 
-            try to avoid applying additional DoTs and focus on squeezing in as many <SpellLink Spell="Spells.Detonate" /> casts as possible.
+            Apply as many DoTs as possible before @wf, ideally with at least two @ef instances. Once @wf is cast,
+            try to avoid applying more DoTs and cast <SpellLink Spell="Spells.Detonate" /> as many times as possible before the window ends.
         </p>
     </LeftPanel>
     <RightPanel>
         <CastOverview Title="Window Overview" Stats="@BuildOverviewStats()" />
         <CastDetail Title="Wildfire Windows"
-                    Description="Each window shows the DoTs ticking on the target when Wildfire landed and the Detonate spam inside the buff."
+                    Description="Each window shows the DoTs ticking on the target when Wildfire was cast and the Detonate casts made inside the window."
                     Casts="@BuildPerCastData()" />
     </RightPanel>
 </GuideSection>
@@ -44,16 +44,16 @@
             new OverviewStat(
                 $"{successRate}%",
                 "Success Rate",
-                $"{successful} clean / {total} evaluated. A clean window needs at least {WildfireComboAnalyzer.DistinctDotSuccessThreshold} of the {WildfireComboAnalyzer.TotalDots} DoTs ticking on the target with {WildfireComboAnalyzer.EngulfingInstanceThreshold} Engulfing Flames instances, then at least {WildfireComboAnalyzer.DetonateSpamThreshold} Detonate casts inside the buff.",
+                $"{successful} clean / {total} evaluated. A clean window needs at least {WildfireComboAnalyzer.DistinctDotSuccessThreshold} of the {WildfireComboAnalyzer.TotalDots} DoTs ticking on the target with {WildfireComboAnalyzer.EngulfingInstanceThreshold} Engulfing Flames instances, then at least {WildfireComboAnalyzer.DetonateSpamThreshold} Detonate casts inside the window.",
                 PercentTier(successRate)),
             new OverviewStat(
                 $"{averageDots:0.0}/{WildfireComboAnalyzer.TotalDots}",
                 "Avg DoTs at Cast",
-                "Average distinct fire DoTs ticking on the target when Wildfire landed."),
+                "Average distinct fire DoTs ticking on the target when Wildfire was cast."),
             new OverviewStat(
                 $"{averageDetonate:0.0}",
                 "Avg Detonate Casts",
-                "Average Detonate casts spammed inside the Wildfire buff."),
+                "Average Detonate casts made inside the window."),
         ];
     }
 
@@ -83,7 +83,7 @@
             new PerCastStat(
                 $"{window.DistinctDots}/{WildfireComboAnalyzer.TotalDots}",
                 "DoTs Ticking",
-                $"Distinct fire DoTs ticking on the target when Wildfire landed ({WildfireComboAnalyzer.DistinctDotSuccessThreshold} or more is a complete setup).",
+                $"Distinct fire DoTs ticking on the target when Wildfire was cast ({WildfireComboAnalyzer.DistinctDotSuccessThreshold} or more is a complete setup).",
                 Performance: dotsPerf),
             new PerCastStat(
                 $"{window.EngulfingInstances}/{WildfireComboAnalyzer.EngulfingInstanceThreshold}",
@@ -93,16 +93,16 @@
             new PerCastStat(
                 $"{window.DetonateCasts}",
                 "Detonate in Window",
-                $"Detonate casts spammed inside the Wildfire buff ({WildfireComboAnalyzer.DetonateSpamThreshold} or more is a clean follow-up).",
+                $"Detonate casts made inside the window ({WildfireComboAnalyzer.DetonateSpamThreshold} or more is a clean follow-up).",
                 Performance: detonatePerf),
             new PerCastStat(
                 window.HasPyromania ? "Yes" : "No",
                 "Pyromania",
-                "Whether Pyromania aligned in the setup before Wildfire. Bonus alignment, not required for a clean window."),
+                "Whether Pyromania was cast in the setup before Wildfire. Not required for a clean window."),
             new PerCastStat(
                 window.HasIncinerate ? "Yes" : "No",
                 "Incinerate",
-                "Whether Incinerate extended the DoTs into this window. Bonus alignment, not required for a clean window."),
+                "Whether Incinerate was cast in the setup before Wildfire. Not required for a clean window."),
         };
 
         var sequence = window.CastsInWindow
@@ -127,20 +127,20 @@
         if (window.Successful)
         {
             var note = window is { HasPyromania: true, HasIncinerate: true }
-                ? " Pyromania and Incinerate both aligned to extend the burn."
+                ? " Pyromania and Incinerate were both cast in the setup."
                 : window.HasPyromania
-                    ? " Pyromania aligned with this window."
+                    ? " Pyromania was cast in the setup."
                     : window.HasIncinerate
-                        ? " Incinerate extended the DoTs into this window."
+                        ? " Incinerate was cast in the setup."
                         : string.Empty;
-            return $"Wildfire landed with {window.DistinctDots} of {WildfireComboAnalyzer.TotalDots} DoTs ticking and {window.EngulfingInstances} Engulfing Flames instances, then Detonate was spammed {window.DetonateCasts} times inside the buff." + note;
+            return $"Wildfire was cast with {window.DistinctDots} of {WildfireComboAnalyzer.TotalDots} DoTs ticking and {window.EngulfingInstances} Engulfing Flames instances, then Detonate was cast {window.DetonateCasts} times inside the window." + note;
         }
 
         var reasons = new List<string>();
 
         if (window.DistinctDots == 0)
         {
-            reasons.Add("no fire DoTs were ticking on the target when Wildfire landed");
+            reasons.Add("no fire DoTs were ticking on the target when Wildfire was cast");
         }
         else if (window.DistinctDots < WildfireComboAnalyzer.DistinctDotSuccessThreshold)
         {
@@ -154,13 +154,13 @@
         {
             reasons.Add(window.EngulfingInstances == 0
                 ? "Engulfing Flames was not ticking on the target"
-                : $"Engulfing Flames held only {window.EngulfingInstances} instance (the standard window stacks it twice)");
+                : $"only {window.EngulfingInstances} Engulfing Flames instance was active on the target");
         }
 
         if (window.DetonateCasts == 0)
-            reasons.Add("Detonate was not spammed inside the Wildfire buff");
+            reasons.Add("no Detonate was cast inside the window");
         else if (window.DetonateCasts < WildfireComboAnalyzer.DetonateSpamThreshold)
-            reasons.Add($"only {window.DetonateCasts} Detonate cast{(window.DetonateCasts == 1 ? " " : "s ")}landed inside the Wildfire buff");
+            reasons.Add($"only {window.DetonateCasts} Detonate cast{(window.DetonateCasts == 1 ? " was" : "s were")} made inside the window");
 
         if (reasons.Count == 0)
             reasons.Add("the window only partially matched the expected burn setup");

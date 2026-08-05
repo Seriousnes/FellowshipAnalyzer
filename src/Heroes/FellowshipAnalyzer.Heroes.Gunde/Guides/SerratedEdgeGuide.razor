@@ -17,7 +17,7 @@
         @if (TotalGrants == 0)
         {
             <TipBox Variant="TipBoxVariant.Info">
-                No Serrated Edge buff was observed, so either Blood Arc was never cast or none of its buffs closed inside a pull.
+                No Serrated Edge buff was recorded on any pull.
             </TipBox>
         }
         else
@@ -52,20 +52,20 @@
             new(
                 $"{grants}",
                 "Grants",
-                $"Serrated Edge buffs granted and consumed inside a pull. Consumed by {ConsumerSplit()}."),
+                $"Serrated Edge buffs granted and removed inside a pull. Consumed by {ConsumerSplit()}."),
             new(
                 $"{priorityRate}%",
                 "On Priority",
-                $"{priority} of {grants} grants went on the ability their pull shape calls for - Grim Carve on packs, Heart Splitter on a boss. A further {alternate} went on the other of the two, which is a fair home rather than a miss. Blood Arc returns faster than either, so this cannot reach 100% and is reported as context rather than scored."),
+                $"{priority} of {grants} grants went on the ability their pull shape calls for - Grim Carve on packs, Heart Splitter on a boss. A further {alternate} went on the other of the two, which is not counted as a miss. Reported as context rather than scored, because it cannot reach 100%."),
             new(
                 $"{avoidable}",
                 "Avoidable Filler",
-                "Grants filler consumed while Heart Splitter or Grim Carve was off cooldown and could have taken it instead. Hold Blood Arc a beat so one of them follows it.",
+                "Grants consumed by a filler ability while Heart Splitter or Grim Carve was off cooldown. Hold Blood Arc a beat so one of them follows it.",
                 avoidable == 0 ? QualitativePerformance.Perfect : AvoidableTier(grants, avoidable)),
             new(
                 $"{forced}",
                 "Forced Filler",
-                "Grants filler consumed with both Heart Splitter and Grim Carve on cooldown. Blood Arc comes back faster than either, so these were unavoidable - context, not a verdict."),
+                "Grants consumed by a filler ability with both Heart Splitter and Grim Carve on cooldown. This is context, not a verdict."),
         };
 
         if (unspent > 0)
@@ -73,7 +73,7 @@
             stats.Add(new OverviewStat(
                 $"{unspent}",
                 "Unspent",
-                "Grants whose removal had no cast to account for it, so the buff went unused.",
+                "Grants removed with no cast to account for them.",
                 QualitativePerformance.Fail));
         }
 
@@ -186,15 +186,15 @@
             SerratedEdgeOutcome.Priority =>
                 $"{consumer} consumed the buff, which is exactly what this pull wanted Blood Arc to set up.",
             SerratedEdgeOutcome.Alternate when row.Shape == GundePullShape.Aoe =>
-                $"{consumer} consumed the buff. On a pack {priority} is the better home, though Heart Splitter is a fair use of it on a priority target.",
+                $"{consumer} consumed the buff. On a pack {priority} is the better choice, though Heart Splitter is a fair use of it on a priority target.",
             SerratedEdgeOutcome.Alternate =>
-                $"{consumer} consumed the buff. On a boss {priority} is the home worth saving it for, so this got some of the value but not all of it.",
+                $"{consumer} consumed the buff. On a boss {priority} is the ability to save it for.",
             SerratedEdgeOutcome.AvoidableFiller =>
                 $"{consumer} consumed the buff while {ReadyNames(grant)} was off cooldown. Hold Blood Arc a beat so a better ability follows it.",
             SerratedEdgeOutcome.ForcedFiller =>
-                $"{consumer} consumed the buff with Heart Splitter {Remaining(grant.HeartSplitterRemainingMs)} and Grim Carve {Remaining(grant.GrimCarveRemainingMs)} from coming back, so there was nothing better to put it on. Blood Arc returns faster than either of them, so some grants land here.",
+                $"{consumer} consumed the buff with Heart Splitter {Remaining(grant.HeartSplitterRemainingMs)} and Grim Carve {Remaining(grant.GrimCarveRemainingMs)} from coming back, so there was nothing better to put it on.",
             _ =>
-                "The buff was removed with no cast to account for it, so it did nothing at all.",
+                "The buff was removed with no cast to account for it.",
         };
     }
 
