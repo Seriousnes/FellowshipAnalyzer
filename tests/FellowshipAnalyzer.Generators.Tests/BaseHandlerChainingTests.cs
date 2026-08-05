@@ -27,7 +27,7 @@ public class BaseHandlerChainingTests
         var source = Usings + """
 
             namespace Test;
-            public partial class BaseModule : EventSubscriber
+            public partial class BaseModule : Analyzer
             {
                 [On<CastEvent>]
                 private void OnBaseCast(CastEvent e) { }
@@ -54,7 +54,7 @@ public class BaseHandlerChainingTests
         var source = Usings + """
 
             namespace Test;
-            public partial class M : EventSubscriber
+            public partial class M : Analyzer
             {
                 [On<CastEvent>]
                 private void H(CastEvent e) { }

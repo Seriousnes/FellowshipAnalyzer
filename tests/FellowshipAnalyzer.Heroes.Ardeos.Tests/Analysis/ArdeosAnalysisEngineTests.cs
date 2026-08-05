@@ -430,6 +430,13 @@ public sealed class ArdeosAnalysisEngineTests
     private static ReportFight SpanningFight(double startTime, double endTime) =>
         new(0, "", 0, null, startTime, endTime, null, null, null);
 
+    private static readonly ReportActor[] Actors =
+    [
+        new(PlayerId, "Ardeos", "Player", null, null, null),
+        new(TargetId, "Target", "NPC", null, null, null),
+        new(OtherId, "Other", "NPC", null, null, null),
+    ];
+
     private static async Task<(ArdeosCombatLogParser Parser, HeroAnalysisResult Result)> AnalyzeAsync(List<Event> events, ReportFight fight)
     {
         var services = new ServiceCollection();
@@ -441,6 +448,7 @@ public sealed class ArdeosAnalysisEngineTests
         using var scope = provider.CreateScope();
 
         var parser = scope.ServiceProvider.GetRequiredService<ArdeosCombatLogParser>();
+        parser.Actors = Actors;
         var result = await parser.Analyze(events, PlayerId, fight);
         return (parser, result);
     }

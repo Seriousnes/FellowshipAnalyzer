@@ -52,8 +52,7 @@ public sealed class EmpoweredShieldSlamAnalyzerTests
             },
             RemoveBuff(PullStart + 16_000, Spells.ShieldSlamAbsorb, absorb: 0));
 
-        analyzer.BarrierApplications.ShouldBe(2);
-        analyzer.BarrierWindows.ShouldBe(1);
+        analyzer.AbsorbsApplied.ShouldBe(1);
     }
 
     [Fact]
@@ -78,7 +77,7 @@ public sealed class EmpoweredShieldSlamAnalyzerTests
 
         analyzer.AbsorbUsed.ShouldBe(4_000);
         analyzer.AbsorbWasted.ShouldBe(500);
-        analyzer.BarriersExpiredUnspent.ShouldBe(1);
+        analyzer.AbsorbsExpiredUnused.ShouldBe(1);
         analyzer.AbsorbEfficiency.ShouldBe(4_000 / 4_500d, 0.001);
     }
 
@@ -92,7 +91,7 @@ public sealed class EmpoweredShieldSlamAnalyzerTests
 
         analyzer.AbsorbUsed.ShouldBe(5_000);
         analyzer.AbsorbWasted.ShouldBe(0);
-        analyzer.BarriersExpiredUnspent.ShouldBe(0);
+        analyzer.AbsorbsExpiredUnused.ShouldBe(0);
         analyzer.AbsorbEfficiency.ShouldBe(1d);
     }
 
@@ -111,8 +110,7 @@ public sealed class EmpoweredShieldSlamAnalyzerTests
             },
             RemoveBuff(PullStart + 17_000, Spells.ShieldSlamAbsorb, absorb: 100));
 
-        analyzer.BarrierWindows.ShouldBe(1);
-        analyzer.Barriers.ShouldHaveSingleItem().DurationMs.ShouldBe(16_000);
+        analyzer.Absorbs.ShouldHaveSingleItem().DurationMs.ShouldBe(16_000);
     }
 
     [Fact]
@@ -121,8 +119,8 @@ public sealed class EmpoweredShieldSlamAnalyzerTests
         var analyzer = await Analyze(Cast(PullStart + 1_000, Spells.ShieldSlam));
 
         analyzer.EmpowermentsGranted.ShouldBe(0);
-        analyzer.BarrierApplications.ShouldBe(0);
-        analyzer.BarrierWindows.ShouldBe(0);
+        analyzer.AbsorbsApplied.ShouldBe(0);
+        analyzer.Absorbs.ShouldBeEmpty();
         analyzer.AbsorbEfficiency.ShouldBe(0);
     }
 

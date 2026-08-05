@@ -11,10 +11,13 @@ namespace FellowshipAnalyzer.Core.Analysis;
 public interface IHeroAnalyzer
 {
     /// <summary>
-    /// Report-level actor name lookup, keyed by actor ID.
+    /// Report-level actor master data: every player, NPC, and pet the report names.
     /// Must be populated before calling <see cref="Analyze"/>.
     /// </summary>
-    Dictionary<int, string> ActorNames { get; set; }
+    IReadOnlyList<ReportActor> Actors { get; set; }
+
+    /// <summary>Actor display names keyed by actor id, derived from <see cref="Actors"/>.</summary>
+    IReadOnlyDictionary<int, string> ActorNames { get; }
 
     /// <summary>The FellowshipLogs actor id of the player this analysis is being run for.</summary>
     int PlayerId { get; set; }

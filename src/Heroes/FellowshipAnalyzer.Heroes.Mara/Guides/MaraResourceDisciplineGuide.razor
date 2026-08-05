@@ -47,6 +47,10 @@
         var generatorOvercap = analyzers.Sum(analyzer => analyzer.GeneratorOvercapCasts);
         var overcapRate = Percent(generatorOvercap, generatorCasts);
 
+        var withTargetCount = analyzers.Sum(analyzer => analyzer.FinishersWithTargetCount);
+        var matchingTargetCount = analyzers.Sum(analyzer => analyzer.FinishersMatchingTargetCount);
+        var targetCountRate = Percent(matchingTargetCount, withTargetCount);
+
         return
         [
             new OverviewStat(
@@ -54,6 +58,11 @@
                 "Finishers on Threshold",
                 $"{atThreshold} of {finishers} Queen's Fang and Arachnid Assault casts met their combo-point threshold.",
                 ThresholdTier(thresholdRate, finishers)),
+            new OverviewStat(
+                $"{targetCountRate}%",
+                "Finishers on Target Count",
+                $"{matchingTargetCount} of {withTargetCount} finishers matched the enemies alive at the cast.",
+                ThresholdTier(targetCountRate, withTargetCount)),
             new OverviewStat(
                 $"{finishers}",
                 "Finishers Cast",
@@ -102,6 +111,7 @@
         var arachnidRate = Percent(analyzer.ArachnidAssaultAtThreshold, analyzer.ArachnidAssaultCasts);
         var energyCapRate = Percent(analyzer.EnergyCappedCasts, analyzer.EnergyCastsSampled);
         var overcapRate = Percent(analyzer.GeneratorOvercapCasts, analyzer.GeneratorCasts);
+        var targetCountRate = Percent(analyzer.FinishersMatchingTargetCount, analyzer.FinishersWithTargetCount);
         var belowThreshold = analyzer.Finishers.Where(finisher => !finisher.MeetsThreshold).Take(5).ToList();
 
         var stats = new[]
@@ -116,6 +126,11 @@
                 $"Arachnid Assault at {MaraResourceDisciplineAnalyzer.ArachnidAssaultThreshold}+ CP",
                 $"Arachnid Assault casts that met their combo-point threshold ({arachnidRate}%).",
                 Performance: ThresholdTier(arachnidRate, analyzer.ArachnidAssaultCasts)),
+            new PerCastStat(
+                $"{analyzer.FinishersMatchingTargetCount}/{analyzer.FinishersWithTargetCount}",
+                "Finishers on Target Count",
+                $"Finishers matching the enemies alive at the cast ({targetCountRate}%), with Arachnid Assault from {analyzer.ArachnidAssaultTargetThreshold} enemies.",
+                Performance: ThresholdTier(targetCountRate, analyzer.FinishersWithTargetCount)),
             new PerCastStat(
                 $"{analyzer.EnergyCappedCasts}/{analyzer.EnergyCastsSampled}",
                 "Casts at Capped Energy",
@@ -134,7 +149,7 @@
 
         return new PerCastRow
         {
-            Performance = PullTier(analyzer, thresholdRate, energyCapRate),
+            Performance = PullTier(analyzer, thresholdRate, energyCapRate, targetCountRate),
             Stats = stats,
             AdditionalContent = new AdditionalContent("Notes", @<div>
                 <p>@BuildPullNote(analyzer, energyCapRate)</p>
@@ -165,18 +180,27 @@
         if (below > 0)
             notes.Add($"{Count(below, "finisher")} went out under their combo-point threshold");
 
+        if (analyzer.QueenFangAboveTargetThreshold > 0)
+            notes.Add($"{Count(analyzer.QueenFangAboveTargetThreshold, "Queen's Fang cast")} went out with {analyzer.ArachnidAssaultTargetThreshold} or more enemies alive");
+
+        if (analyzer.ArachnidAssaultBelowTargetThreshold > 0)
+            notes.Add($"{Count(analyzer.ArachnidAssaultBelowTargetThreshold, "Arachnid Assault cast")} went out with fewer than {analyzer.ArachnidAssaultTargetThreshold} enemies alive");
+
         if (analyzer.GeneratorOvercapCasts > 0)
             notes.Add($"{Count(analyzer.GeneratorOvercapCasts, "generator cast")} went out at six combo points");
 
         if (analyzer.EnergyCappedCasts > 0)
             notes.Add($"{Count(analyzer.EnergyCappedCasts, "cast")} went out at full Energy ({energyCapRate}% of sampled casts)");
 
-        if (notes.Count == 0)
-            return analyzer.Finishers.Count == 0
-                ? "No spending finisher was cast on this pull, but nothing overcapped either."
-                : "Every finisher met its combo-point threshold with no Energy or combo-point overcap.";
+        if (notes.Count > 0)
+            return $"{string.Join("; ", notes)}.";
 
-        return $"{string.Join("; ", notes)}.";
+        if (analyzer.Finishers.Count == 0)
+            return "No spending finisher was cast on this pull, but nothing overcapped either.";
+
+        return analyzer.FinishersWithTargetCount > 0
+            ? "Every finisher met its combo-point threshold and matched the enemies alive, with no Energy or combo-point overcap."
+            : "Every finisher met its combo-point threshold with no Energy or combo-point overcap.";
     }
 
     private static string Count(int value, string noun) =>
@@ -199,17 +223,17 @@
     private static QualitativePerformance? OvercapTier(int overcapRate, int generatorCasts) =>
         generatorCasts == 0 ? null : PerformanceTiers.FromThresholds(100 - overcapRate, 99, 95, 90);
 
-    private static QualitativePerformance PullTier(MaraResourceDisciplineAnalyzer analyzer, int thresholdRate, int energyCapRate)
+    private static QualitativePerformance PullTier(
+        MaraResourceDisciplineAnalyzer analyzer, int thresholdRate, int energyCapRate, int targetCountRate)
     {
-        var finisherTier = ThresholdTier(thresholdRate, analyzer.Finishers.Count);
-        var energyTier = EnergyCapTier(energyCapRate, analyzer.EnergyCastsSampled);
+        QualitativePerformance?[] tiers =
+        [
+            ThresholdTier(thresholdRate, analyzer.Finishers.Count),
+            ThresholdTier(targetCountRate, analyzer.FinishersWithTargetCount),
+            EnergyCapTier(energyCapRate, analyzer.EnergyCastsSampled),
+        ];
 
-        if (finisherTier is null)
-            return energyTier ?? QualitativePerformance.Ok;
-
-        if (energyTier is null)
-            return finisherTier.Value;
-
-        return finisherTier.Value < energyTier.Value ? finisherTier.Value : energyTier.Value;
+        var scored = tiers.Where(tier => tier is not null).Select(tier => tier!.Value).ToList();
+        return scored.Count == 0 ? QualitativePerformance.Ok : scored.Min();
     }
 }

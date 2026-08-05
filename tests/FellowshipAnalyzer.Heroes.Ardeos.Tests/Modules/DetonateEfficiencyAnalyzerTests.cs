@@ -29,6 +29,13 @@ public sealed class DetonateEfficiencyAnalyzerTests
             StartTime: 0, EndTime: 60_000, Difficulty: null,
             FriendlyPlayers: null, FightPercentage: null);
 
+    private static readonly ReportActor[] Actors =
+    [
+        new(PlayerId, "Ardeos", "Player", null, null, null),
+        new(Enemy1, "Enemy 1", "NPC", null, null, null),
+        new(Enemy2, "Enemy 2", "NPC", null, null, null),
+    ];
+
     [Fact]
     public async Task SingleTargetWithFourDistinctDoTs_IsWellLayeredAtFour()
     {
@@ -452,6 +459,7 @@ public sealed class DetonateEfficiencyAnalyzerTests
         using var scope = provider.CreateScope();
 
         var parser = scope.ServiceProvider.GetRequiredService<ArdeosCombatLogParser>();
+        parser.Actors = Actors;
         await parser.Analyze([.. events], PlayerId, Fight);
         return parser.DetonateEfficiencyAnalyzers.ShouldHaveSingleItem().Analyzer;
     }

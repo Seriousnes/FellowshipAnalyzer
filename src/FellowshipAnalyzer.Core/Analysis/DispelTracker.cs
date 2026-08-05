@@ -7,7 +7,7 @@ namespace FellowshipAnalyzer.Core.Analysis;
 /// The log names both the ability that dispelled and the aura it removed, so nothing here is
 /// inferred; a dispel the player never got to is not an event and cannot be counted.
 /// </summary>
-public sealed partial class DispelTracker : EventSubscriber
+public sealed partial class DispelTracker : Analyzer
 {
     private readonly List<DispelRecord> _dispels = [];
 

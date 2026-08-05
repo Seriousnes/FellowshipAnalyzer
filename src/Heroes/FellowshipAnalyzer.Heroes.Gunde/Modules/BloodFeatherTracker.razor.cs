@@ -5,7 +5,7 @@ using FellowshipAnalyzer.Core.UI;
 
 namespace FellowshipAnalyzer.Heroes.Gunde.Modules;
 
-public sealed partial class BloodFeatherTracker : EventSubscriber
+public sealed partial class BloodFeatherTracker : Analyzer
 {
     public const int MaxBloodFeathers = 150;
 

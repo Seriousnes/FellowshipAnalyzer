@@ -4,10 +4,10 @@ using FellowshipAnalyzer.Heroes.Mara.Modules;
 namespace FellowshipAnalyzer.Heroes.Mara.Analysis;
 
 [HeroAnalyzer(HeroName.Mara)]
-[AddState<EnergyComboPointTracker>]
+[AddAnalyzer<EnergyComboPointTracker>]
 [AddModule<Modules.Abilities>]
 [AddModule<MaraAuras>]
-[AddModule<DeadlySchemeTracker>]
+[AddAnalyzer<DeadlySchemeTracker>]
 [AddAnalyzer<FinalStratagemAnalyzer>]
 [AddAnalyzer<MaraResourceDisciplineAnalyzer>]
 [AddAnalyzer<MaraDotUptimeAnalyzer>]

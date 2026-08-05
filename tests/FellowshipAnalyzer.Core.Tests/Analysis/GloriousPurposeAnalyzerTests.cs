@@ -3,6 +3,7 @@ using FellowshipAnalyzer.Core.Common.Items;
 using FellowshipAnalyzer.Core.Common.Spells;
 using FellowshipAnalyzer.Core.Events;
 using FellowshipAnalyzer.Core.FellowshipLogs;
+using FellowshipAnalyzer.Core.UI;
 
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -98,6 +99,34 @@ public sealed class GloriousPurposeAnalyzerTests
         Assert.InRange(recovery.RecoveredMs, 17_000, 17_600);
     }
 
+    /// <summary>
+    /// Once the fabricated expiry has closed a window, a later refresh has no window to extend, so it
+    /// opens a second one.
+    /// </summary>
+    [Fact]
+    public async Task RefreshAfterWindowExpired_OpensAnotherWindow()
+    {
+        var analyzer = await Analyze(
+        [
+            ApplyBuff(5000),
+            RefreshBuff(30_000),
+            Filler(50_000),
+        ]);
+
+        Assert.Collection(
+            analyzer.Windows,
+            first =>
+            {
+                Assert.Equal(5000, first.BeginTimestamp);
+                Assert.Equal(11_000, first.EndTimestamp);
+            },
+            second =>
+            {
+                Assert.Equal(30_000, second.BeginTimestamp);
+                Assert.Equal(36_000, second.EndTimestamp);
+            });
+    }
+
     [Fact]
     public async Task RepeatedApplies_DoNotCompound()
     {
@@ -154,6 +183,45 @@ public sealed class GloriousPurposeAnalyzerTests
         ]);
 
         Assert.Equal(2, analyzer.Activations);
+    }
+
+    [Fact]
+    public async Task NoActivationsOrWindows_ContributesNoStatisticsCard()
+    {
+        var analyzer = await Analyze([Cast(1000, BigCdId)]);
+
+        Assert.Equal(0, analyzer.Activations);
+        Assert.Empty(analyzer.Windows);
+        Assert.Null(analyzer.Statistic);
+    }
+
+    /// <summary>
+    /// A cast with no accompanying buff events still evidences the weapon, so the card is contributed
+    /// on the activation alone.
+    /// </summary>
+    [Fact]
+    public async Task ActivationWithNoBuffEvents_ContributesTheStatisticsCard()
+    {
+        var analyzer = await Analyze([Cast(1000, Items.FatedStrike.FSLID)]);
+
+        Assert.Equal(1, analyzer.Activations);
+        Assert.Empty(analyzer.Windows);
+        Assert.NotNull(analyzer.Statistic);
+    }
+
+    [Fact]
+    public async Task WindowWithNoActivation_ContributesTheStatisticsCard()
+    {
+        var analyzer = await Analyze(
+        [
+            Cast(1000, BigCdId),
+            ApplyBuff(5000),
+            Filler(20_000),
+        ]);
+
+        Assert.Single(analyzer.Windows);
+        Assert.NotNull(analyzer.Statistic);
+        Assert.Equal(StatisticCategory.Items, analyzer.StatisticCategory);
     }
 
     private static async Task<GloriousPurposeAnalyzer> Analyze(List<Event> events) =>

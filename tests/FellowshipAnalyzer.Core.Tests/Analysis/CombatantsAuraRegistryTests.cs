@@ -16,7 +16,8 @@ namespace FellowshipAnalyzer.Core.Tests.Analysis;
 /// <summary>
 /// Tests for the <see cref="Combatants"/> all-units aura registry: composite <see cref="UnitKey"/>
 /// separation of concurrent spawns, multi-instance window counting, death-driven close-out with a
-/// closed-interval activity query, and source filtering.
+/// closed-interval activity query, and source filtering. The enemy-facing queries over the same state
+/// are covered by <see cref="EnemiesTests"/>.
 /// </summary>
 public sealed class CombatantsAuraRegistryTests
 {
@@ -63,21 +64,6 @@ public sealed class CombatantsAuraRegistryTests
     }
 
     [Fact]
-    public async Task CountEnemiesWithAura_CountsDistinctEnemies()
-    {
-        var combatants = await Run(
-            ApplyDebuff(1000, 100, 1, EffectId),
-            ApplyDebuff(1000, 101, 1, EffectId),
-            ApplyDebuff(1000, 102, 1, EffectId),
-            ApplyDebuff(1050, 100, 1, EffectId));
-
-        combatants.CountEnemiesWithAura(EffectId, 1050).ShouldBe(3);
-        combatants.EnemiesWithAura(EffectId, 1050).ShouldBe(
-            [new UnitKey(100, 1), new UnitKey(101, 1), new UnitKey(102, 1)],
-            ignoreOrder: true);
-    }
-
-    [Fact]
     public async Task DeathCloseOut_StampsEndAndClosedIntervalQueryStillSeesWindow()
     {
         var combatants = await Run(
@@ -105,7 +91,6 @@ public sealed class CombatantsAuraRegistryTests
         combatants.AuraInstanceCount(100, 1, EffectId, 1000).ShouldBe(2);
         combatants.AuraInstanceCount(100, 1, EffectId, 1000, sourceId: PlayerId).ShouldBe(1);
         combatants.AuraInstanceCount(100, 1, EffectId, 1000, sourceId: otherSource).ShouldBe(1);
-        combatants.CountEnemiesWithAura(EffectId, 1000, sourceId: PlayerId).ShouldBe(1);
     }
 
     [Fact]

@@ -9,7 +9,7 @@ namespace FellowshipAnalyzer.Heroes.Elarion.Modules;
 
 [RequiresTalent(ElarionTalents.ImpendingHeartseeker)]
 [Dependency<SpellUsable>]
-public sealed partial class ImpendingHeartseekerAnalyzer : EventSubscriber
+public sealed partial class ImpendingHeartseekerAnalyzer : Analyzer
 {
     public int Resets { get; private set; }
 

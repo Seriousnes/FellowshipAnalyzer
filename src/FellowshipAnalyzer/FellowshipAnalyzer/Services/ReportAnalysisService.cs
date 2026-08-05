@@ -153,7 +153,7 @@ public sealed class ReportAnalysisService(
         loadingTracker.DeserializeState = ReportLoadingTracker.StepState.Ok;
         await Task.Yield();
 
-        analyzer.ActorNames = reportInfo.Actors.ToDictionary(a => a.Id, a => a.Name);
+        analyzer.Actors = reportInfo.Actors;
         var result = await analyzer.Analyze(events, playerId, fight);
 
         loadingTracker.PrepareDisplayState = ReportLoadingTracker.StepState.Loading;

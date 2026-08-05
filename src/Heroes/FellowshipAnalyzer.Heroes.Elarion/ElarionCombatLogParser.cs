@@ -4,12 +4,12 @@ using FellowshipAnalyzer.Heroes.Elarion.Modules;
 namespace FellowshipAnalyzer.Heroes.Elarion.Analysis;
 
 [HeroAnalyzer(HeroName.Elarion)]
-[AddState<Modules.Abilities>]
-[AddState<ElarionAuras>]
-[AddState<FocusTracker>]
-[AddModule<SalvoTracker>]
-[AddModule<ResurgentWindsTracker>]
-[AddModule<ImpendingHeartseekerAnalyzer>]
+[AddModule<Modules.Abilities>]
+[AddModule<ElarionAuras>]
+[AddAnalyzer<FocusTracker>]
+[AddAnalyzer<SalvoTracker>]
+[AddAnalyzer<ResurgentWindsTracker>]
+[AddAnalyzer<ImpendingHeartseekerAnalyzer>]
 [AddAnalyzer<CooldownPairingAnalyzer>]
 [AddAnalyzer<FocusEconomyAnalyzer>]
 [AddAnalyzer<SupremacyAnalyzer>]

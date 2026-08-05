@@ -7,7 +7,9 @@ namespace FellowshipAnalyzer.Core.Analysis;
 /// <see cref="UnitKey"/> so distinct spawns of one actor id stay separate. Players seed from their
 /// <see cref="CombatantInfoEvent"/> as <see cref="Combatant"/>s; any other unit a player-sourced aura
 /// event targets is fabricated as an <see cref="Enemy"/>. Exposes <see cref="Selected"/> for downstream
-/// modules that depend on the analyzed player, and aura-query methods for enemy debuff tracking.
+/// modules that depend on the analyzed player, and per-unit aura queries that resolve any unit
+/// including the selected player. <see cref="Analysis.Enemies"/> owns the enemy-facing queries, which
+/// need report master data to tell an enemy from an ally.
 /// </summary>
 public sealed partial class Combatants : Analyzer
 {
@@ -65,28 +67,6 @@ public sealed partial class Combatants : Analyzer
     public Entity? GetUnit(int actorId, int? instance) => _units.GetValueOrDefault(new UnitKey(actorId, instance));
 
     /// <summary>
-    /// The number of distinct non-selected units with at least one active window of the effect at
-    /// <paramref name="timestamp"/>, optionally restricted to auras applied by <paramref name="sourceId"/>.
-    /// </summary>
-    public int CountEnemiesWithAura(int effectId, long timestamp, int? sourceId = null)
-        => EnemiesWithAura(effectId, timestamp, sourceId).Count;
-
-    /// <summary>
-    /// The keys of every non-selected unit with at least one active window of the effect at
-    /// <paramref name="timestamp"/>, optionally restricted to auras applied by <paramref name="sourceId"/>.
-    /// </summary>
-    public IReadOnlyCollection<UnitKey> EnemiesWithAura(int effectId, long timestamp, int? sourceId = null)
-    {
-        var keys = new List<UnitKey>();
-        foreach (var (key, entity) in _units)
-        {
-            if (entity is Enemy && entity.GetAuraInstanceCount(effectId, timestamp, sourceId) > 0)
-                keys.Add(key);
-        }
-        return keys;
-    }
-
-    /// <summary>
     /// The number of concurrently-open windows of the effect active on a unit at <paramref name="timestamp"/>,
     /// optionally restricted to auras applied by <paramref name="sourceId"/>. Returns 0 when the unit is
     /// not tracked.
@@ -102,24 +82,6 @@ public sealed partial class Combatants : Analyzer
     /// </summary>
     public int AuraStackSum(int actorId, int? instance, int effectId, long timestamp, int? sourceId = null)
         => GetUnit(actorId, instance)?.GetAuraStackSum(effectId, timestamp, sourceId) ?? 0;
-
-    /// <summary>
-    /// Every window of an effect on a non-selected unit that overlaps
-    /// <paramref name="from"/>..<paramref name="to"/>, each clipped to that range and the whole
-    /// ordered by start. Windows are historical, so this reads correctly after the parse; use it to
-    /// reconstruct how an effect layered across a slice of the fight.
-    /// </summary>
-    public IReadOnlyList<AuraWindow> EnemyAuraWindows(int effectId, int from, int to, int? sourceId = null)
-    {
-        var windows = new List<AuraWindow>();
-        foreach (var entity in _units.Values)
-        {
-            if (entity is not Enemy) continue;
-            windows.AddRange(entity.GetAuraWindows(effectId, from, to, sourceId));
-        }
-        windows.Sort((a, b) => a.Start.CompareTo(b.Start));
-        return windows;
-    }
 
     [On<ApplyBuffEvent>]
     private void OnApplyBuff(ApplyBuffEvent e) => ApplyBuff(e, isDebuff: false);

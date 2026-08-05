@@ -22,13 +22,13 @@ public sealed class EventEmitter(ILogger<EventEmitter> logger) : Module
     private int _insertionIndex;
 
     /// <summary>Registers a synchronous handler for <paramref name="module"/>, routed into the pull or state listener tier depending on whether a pull is currently registering its subscriptions.</summary>
-    public void Subscribe(EventSubscriber module, Func<Event, bool> filter, Action<Event> handler)
+    public void Subscribe(Analyzer module, Func<Event, bool> filter, Action<Event> handler)
     {
         (_subscribingToPull ? _pullListeners : _stateListeners).Add(new RegisteredListener(module, filter, handler));
     }
 
     /// <summary>Registers an asynchronous handler for <paramref name="module"/>, routed into the pull or state listener tier depending on whether a pull is currently registering its subscriptions.</summary>
-    public void Subscribe(EventSubscriber module, Func<Event, bool> filter, Func<Event, Task> handler)
+    public void Subscribe(Analyzer module, Func<Event, bool> filter, Func<Event, Task> handler)
     {
         (_subscribingToPull ? _pullListeners : _stateListeners).Add(new RegisteredListener(module, filter, handler));
     }
@@ -286,7 +286,7 @@ public sealed class EventEmitter(ILogger<EventEmitter> logger) : Module
 public readonly struct RegisteredListener
 {
     /// <summary>The subscriber this listener dispatches into, whose <see cref="Module.Priority"/> places it in the dispatch order and whose <see cref="Module.Active"/> gates whether it runs.</summary>
-    public EventSubscriber Module { get; }
+    public Analyzer Module { get; }
 
     /// <summary>The predicate an event must satisfy for this listener's handler to run.</summary>
     public Func<Event, bool> Filter { get; }
@@ -294,7 +294,7 @@ public readonly struct RegisteredListener
     private readonly Func<Event, Task>? _asyncHandler;
 
     /// <summary>Wraps a synchronous handler registered by <paramref name="module"/>.</summary>
-    public RegisteredListener(EventSubscriber module, Func<Event, bool> filter, Action<Event> handler)
+    public RegisteredListener(Analyzer module, Func<Event, bool> filter, Action<Event> handler)
     {
         Module = module;
         Filter = filter;
@@ -302,7 +302,7 @@ public readonly struct RegisteredListener
     }
 
     /// <summary>Wraps an asynchronous handler registered by <paramref name="module"/>.</summary>
-    public RegisteredListener(EventSubscriber module, Func<Event, bool> filter, Func<Event, Task> handler)
+    public RegisteredListener(Analyzer module, Func<Event, bool> filter, Func<Event, Task> handler)
     {
         Module = module;
         Filter = filter;

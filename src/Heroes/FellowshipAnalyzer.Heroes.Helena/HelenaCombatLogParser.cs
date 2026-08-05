@@ -4,17 +4,17 @@ using FellowshipAnalyzer.Heroes.Helena.Modules;
 namespace FellowshipAnalyzer.Heroes.Helena.Analysis;
 
 [HeroAnalyzer(HeroName.Helena)]
-[AddState<ToughnessTracker>]
-[AddState<DamageTakenTracker>]
+[AddAnalyzer<ToughnessTracker>]
+[AddAnalyzer<DamageTakenTracker>]
 [AddAnalyzer<ToughnessAnalyzer>]
 [AddAnalyzer<ShieldsUpAnalyzer>]
 [AddAnalyzer<IronWallAnalyzer>]
 [AddAnalyzer<LingeringConcussionAnalyzer>]
 [AddAnalyzer<VeteranOfWarAnalyzer>]
 [AddAnalyzer<EmpoweredShieldSlamAnalyzer>]
-[AddModule<ShieldMasteryAnalyzer>]
-[AddModule<SwordAndBoardAnalyzer>]
-[AddModule<GreaterShockwaveAnalyzer>]
+[AddAnalyzer<ShieldMasteryAnalyzer>]
+[AddAnalyzer<SwordAndBoardAnalyzer>]
+[AddAnalyzer<GreaterShockwaveAnalyzer>]
 [AddModule<Modules.Abilities>]
 [AddModule<HelenaAuras>]
 public sealed partial class HelenaCombatLogParser : CombatLogParser

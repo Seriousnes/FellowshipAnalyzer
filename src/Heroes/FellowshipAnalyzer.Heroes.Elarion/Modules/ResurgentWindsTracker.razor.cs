@@ -8,7 +8,7 @@ using ElarionTalents = FellowshipAnalyzer.Core.Common.Spells.ElarionTalents;
 namespace FellowshipAnalyzer.Heroes.Elarion.Modules;
 
 [RequiresTalent(ElarionTalents.ResurgentWinds)]
-public sealed partial class ResurgentWindsTracker : EventSubscriber
+public sealed partial class ResurgentWindsTracker : Analyzer
 {
     public const int ConsumeWindowMs = 150;
 

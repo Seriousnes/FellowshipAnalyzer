@@ -4,7 +4,7 @@ using FellowshipAnalyzer.Core.Events;
 
 namespace FellowshipAnalyzer.Heroes.Sylvie.Modules;
 
-public sealed partial class BlueyTracker : EventSubscriber
+public sealed partial class BlueyTracker : Analyzer
 {
     private readonly List<BlueyPosting> _postings = [];
 

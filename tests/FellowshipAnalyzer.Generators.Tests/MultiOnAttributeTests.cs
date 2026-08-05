@@ -20,7 +20,7 @@ public class MultiOnAttributeTests
         var source = Usings + """
 
             namespace Test;
-            public partial class M : EventSubscriber
+            public partial class M : Analyzer
             {
                 [On<CastEvent>]
                 private void H(CastEvent e) { }
@@ -40,7 +40,7 @@ public class MultiOnAttributeTests
         var source = Usings + """
 
             namespace Test;
-            public partial class M : EventSubscriber
+            public partial class M : Analyzer
             {
                 [On<CastEvent>, On<HealEvent>]
                 private void H(IAbilityEvent e) { }
@@ -62,7 +62,7 @@ public class MultiOnAttributeTests
         var source = Usings + """
 
             namespace Test;
-            public partial class M : EventSubscriber
+            public partial class M : Analyzer
             {
                 [On<CastEvent>, On<ApplyBuffEvent>]
                 private void H(IHasSourceEvent e) { }
@@ -80,7 +80,7 @@ public class MultiOnAttributeTests
         var source = Usings + """
 
             namespace Test;
-            public partial class M : EventSubscriber
+            public partial class M : Analyzer
             {
                 [On<CastEvent>, On<DeathEvent>]
                 private void H(IHasSourceEvent e) { }
@@ -100,7 +100,7 @@ public class MultiOnAttributeTests
         var source = Usings + """
 
             namespace Test;
-            public partial class M : EventSubscriber
+            public partial class M : Analyzer
             {
                 [On<CastEvent>]
                 private void H(IHasSourceEvent e) { }
@@ -118,7 +118,7 @@ public class MultiOnAttributeTests
         var source = Usings + """
 
             namespace Test;
-            public partial class M : EventSubscriber
+            public partial class M : Analyzer
             {
                 [On<CastEvent>, On<HealEvent>, On<ApplyBuffEvent>]
                 private void H(OneOf<CastEvent, HealEvent, ApplyBuffEvent> e) { }
@@ -142,7 +142,7 @@ public class MultiOnAttributeTests
         var source = Usings + """
 
             namespace Test;
-            public partial class M : EventSubscriber
+            public partial class M : Analyzer
             {
                 [On<CastEvent>, On<HealEvent>]
                 private void H(OneOf<CastEvent, HealEvent, AbsorbedEvent> e) { }
@@ -163,7 +163,7 @@ public class MultiOnAttributeTests
         var source = Usings + """
 
             namespace Test;
-            public partial class M : EventSubscriber
+            public partial class M : Analyzer
             {
                 [On<CastEvent>]
                 private void H(OneOf<HealEvent, DamageEvent> e) { }
@@ -180,7 +180,7 @@ public class MultiOnAttributeTests
         var source = Usings + """
 
             namespace Test;
-            public partial class M : EventSubscriber
+            public partial class M : Analyzer
             {
                 [On<CastEvent>]
                 private void H(OneOf<IHasSourceEvent, IAbilityEvent> e) { }
@@ -197,7 +197,7 @@ public class MultiOnAttributeTests
         var source = Usings + """
 
             namespace Test;
-            public partial class M : EventSubscriber
+            public partial class M : Analyzer
             {
                 [On<CastEvent>]
                 private void H(OneOf<BaseCastEvent, HealEvent> e) { }
@@ -216,7 +216,7 @@ public class MultiOnAttributeTests
         var source = Usings + """
 
             namespace Test;
-            public partial class M : EventSubscriber
+            public partial class M : Analyzer
             {
                 [On<CastEvent>]
                 private void H(Event e) { }

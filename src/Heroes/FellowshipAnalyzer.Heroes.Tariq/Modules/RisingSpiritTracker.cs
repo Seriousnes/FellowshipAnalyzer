@@ -4,7 +4,7 @@ using FellowshipAnalyzer.Core.Events;
 
 namespace FellowshipAnalyzer.Heroes.Tariq.Modules;
 
-public sealed partial class RisingSpiritTracker : EventSubscriber
+public sealed partial class RisingSpiritTracker : Analyzer
 {
     private int _fightStart;
     private int _fightEnd;

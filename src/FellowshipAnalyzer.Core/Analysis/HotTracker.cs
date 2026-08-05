@@ -19,7 +19,7 @@ namespace FellowshipAnalyzer.Core.Analysis;
 /// pull and still held in the last has no application event inside the later pulls at all.
 /// </para>
 /// </summary>
-public partial class HotTracker : EventSubscriber
+public partial class HotTracker : Analyzer
 {
     private readonly List<HotAssignment> _assignments = [];
     private readonly Dictionary<(int SpellId, UnitKey Unit), HotAssignment> _open = [];

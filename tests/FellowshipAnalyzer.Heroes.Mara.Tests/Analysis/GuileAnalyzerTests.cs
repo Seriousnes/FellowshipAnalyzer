@@ -137,7 +137,7 @@ public sealed class GuileAnalyzerTests
             Cast(1200, Spells.QueenFang),
             Buff<RemoveBuffEvent>(6000, Spells.AssassinsGuileBuff),
             Stack<ApplyBuffStackEvent>(7000, Spells.MalevolenceQueensFang, 2),
-            Stack<ApplyBuffStackEvent>(7100, Spells.MalevolenceArachnidAssault, 2),
+            Buff<RemoveBuffEvent>(7100, Spells.MalevolenceArachnidAssault),
             Buff<ApplyBuffEvent>(8000, Spells.AssassinsGuileBuff),
             Cast(8200, Spells.ArachnidAssault),
             Buff<RemoveBuffEvent>(12000, Spells.AssassinsGuileBuff),
@@ -156,11 +156,32 @@ public sealed class GuileAnalyzerTests
         analyzer.Windows[0].ArachnidAssaultStacksAtOpen.ShouldBe(1);
 
         analyzer.Windows[1].QueensFangStacksAtOpen.ShouldBe(2);
-        analyzer.Windows[1].ArachnidAssaultStacksAtOpen.ShouldBe(2);
+        analyzer.Windows[1].ArachnidAssaultStacksAtOpen.ShouldBe(0);
 
         analyzer.Windows[2].QueensFangStacksAtOpen.ShouldBe(0);
         analyzer.Windows[2].ArachnidAssaultStacksAtOpen.ShouldBe(1);
 
+        analyzer.WindowsAtMaxStacks.ShouldBe(1);
+    }
+
+    [Fact]
+    public async Task Analyze_OneFinisherAtMaxStacks_CountsTheWindowAtMaxStacks()
+    {
+        var events = new List<Event>
+        {
+            Combatant(),
+            Buff<ApplyBuffEvent>(500, Spells.MalevolenceQueensFang),
+            Stack<ApplyBuffStackEvent>(600, Spells.MalevolenceQueensFang, 2),
+            Buff<ApplyBuffEvent>(1000, Spells.AssassinsGuileBuff),
+            Cast(1200, Spells.QueenFang),
+            Buff<RemoveBuffEvent>(6000, Spells.AssassinsGuileBuff),
+        };
+
+        var analyzer = await AnalyzeAsync(events);
+
+        var window = analyzer.Windows.ShouldHaveSingleItem();
+        window.QueensFangStacksAtOpen.ShouldBe(2);
+        window.ArachnidAssaultStacksAtOpen.ShouldBe(0);
         analyzer.WindowsAtMaxStacks.ShouldBe(1);
     }
 
@@ -185,7 +206,7 @@ public sealed class GuileAnalyzerTests
         window.QueensFangStacksAtOpen.ShouldBe(2);
         window.ArachnidAssaultStacksAtOpen.ShouldBe(1);
         analyzer.MalevolenceSeen.ShouldBeTrue();
-        analyzer.WindowsAtMaxStacks.ShouldBe(0);
+        analyzer.WindowsAtMaxStacks.ShouldBe(1);
     }
 
     [Fact]

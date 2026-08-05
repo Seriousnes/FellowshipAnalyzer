@@ -5,9 +5,9 @@ using Microsoft.AspNetCore.Components;
 namespace FellowshipAnalyzer.Core.Analysis;
 
 /// <summary>
-/// Base type for parse-lifetime state built once per report. A module subscribes its
-/// <c>[On&lt;T&gt;]</c> handlers via the generated <c>RegisterSubscriptions()</c> and accumulates
-/// state across the whole event stream, unlike a pull-lifetime <see cref="Analyzer"/>.
+/// Base type for parse-lifetime state built once per report, registered with <c>[AddModule&lt;T&gt;]</c>
+/// or <c>[AddState&lt;T&gt;]</c>. A module subscribing to events derives from <see cref="Analyzer"/>
+/// instead, which is what <c>[AddAnalyzer&lt;T&gt;]</c> registers.
 /// </summary>
 public abstract class Module : ComponentBase
 {

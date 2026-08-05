@@ -26,8 +26,10 @@ Check these before writing a line. Each one has been enforced by the owner delet
 
 ## Two lifetimes
 
-- **Pull-lifetime analyzer** (the default for gameplay analysis): derives from `Analyzer`, is declared with `[AddAnalyzer<T>]` on the parser, and carries `[ForPull(PullKind…, Boss = …)]`. A fresh instance is constructed for every matching pull, so its state is per-pull by construction.
-- **Fight-lifetime module**: declared with `[AddModule<T>]` (or `[AddState<T>]` when pull analyzers read it), observes the whole fight, and is constructed once per run. The registration attribute, not the base class, decides the lifetime: a class deriving from `Analyzer` but registered `[AddModule]` runs fight-lifetime and its `Pull` property is never assigned. Use for cross-pull state, statistics sources, and infrastructure.
+Every event subscriber derives from `Analyzer` and registers with `[AddAnalyzer<T>]` (FA0019). `[ForPull]` declared directly on the class, and nothing else, chooses between the two lifetimes:
+
+- **Pull-lifetime analyzer** (the default for gameplay analysis): carries `[ForPull(PullKind…, Boss = …)]`. A fresh instance is constructed for every matching pull, so its state is per-pull by construction. Valid only on a concrete class - an abstract base declares the shape and each concrete subclass its own filter (FA0021).
+- **Fight-lifetime analyzer**: declares no `[ForPull]`, observes the whole fight, and is constructed once per run; its `Pull` property is never assigned. Use for cross-pull state, statistics sources, and infrastructure. `[AddModule<T>]` and its synonym `[AddState<T>]` register a type that subscribes to nothing at all, such as `Abilities` or `Auras`.
 
 ## Procedure
 
@@ -71,7 +73,7 @@ An analyzer finalizes nothing at pull end - it exposes its metrics as **get-styl
 
 ### 2. Register On The CombatLogParser
 
-Pull-lifetime analyzers use `[AddAnalyzer<T>]`; fight-lifetime modules use `[AddModule<T>]` (declaration order is module priority).
+Analyzers of either lifetime use `[AddAnalyzer<T>]`; a non-subscriber uses `[AddModule<T>]` (declaration order is module priority).
 
 ```csharp
 [HeroAnalyzer(HeroName.{Hero})]
@@ -80,7 +82,7 @@ Pull-lifetime analyzers use `[AddAnalyzer<T>]`; fight-lifetime modules use `[Add
 public sealed partial class {Hero}CombatLogParser : CombatLogParser
 ```
 
-For each `[AddAnalyzer]` surface type the source generator produces three read paths plus DI wiring:
+For each `[ForPull]` surface type the source generator produces three read paths plus DI wiring:
 
 - `parser.{Name}Analyzers` - the cross-pull stream, `IReadOnlyList<PullAnalyzer<{Name}Analyzer>>` of `(Pull, Analyzer)` pairs in pull order.
 - `parser.For(pull).{Name}Analyzer` and the `pull.{Name}Analyzer` extension - the retained instance for one pull (nullable).
@@ -93,7 +95,7 @@ The surface type is the analyzer's `IAnalyzerSurface` marker interface if it imp
 
 FA0016 enforces disjoint `[ForPull]` filters across analyzers sharing a surface (a marker interface or a base class). Inheritance (the third pattern) is earned when the base owns real machinery and each subclass owns its strategy and outputs; when the analyses share nothing, prefer the marker interface. A base that implements every strategy itself while subclasses one-line-dispatch into it wants a flat pattern instead.
 
-For `[AddModule]` modules the generator emits a typed nullable parser property (`{Name}Analyzer` becomes `{Name}` - the `Analyzer` suffix is stripped).
+For a parse-lifetime registration - whichever attribute declared it - the generator emits a typed nullable parser property (`{Name}Analyzer` becomes `{Name}` - the `Analyzer` suffix is stripped).
 
 ### 3. Optionally Set StatisticsComponentType
 
@@ -103,7 +105,7 @@ If this module has a statistics component, expose it (a dynamic expression is fi
 public override Type? StatisticsComponentType => Procs > 0 ? typeof({Name}Statistics) : null;
 ```
 
-Statistics are collected only from fight-lifetime modules: the parser builds the statistics list from its active-module set, which comes from the `[AddModule]`/`[AddState]` list, so a pull-lifetime `[AddAnalyzer<T>]` class never has its `StatisticsComponentType` read. Also override `StatisticCategory` and `StatisticOrder` to place the card.
+Statistics are collected only from parse-lifetime registrations: the parser builds the statistics list from its active-module set, which is every registered type with no `[ForPull]`, so a `[ForPull]` analyzer never contributes a card. Also override `StatisticCategory` and `StatisticOrder` to place it.
 
 ## Event Subscription API
 
@@ -152,7 +154,7 @@ public sealed partial class FreezingTorrentAnalyzer : Analyzer
 
 `Lazy<T>` resolution is deferred to dispatch time, so two modules that reference each other can both declare `[Uses<T>]` without hitting the FA0013 cycle diagnostic. A class that also needs an outer service (for example `ILogger`, as `ResourceTracker` does) keeps a hand-written constructor instead; declaring both forms reports FA0018 and the attribute is ignored. For ad-hoc lookups, use `Owner.GetModule<T>()`.
 
-A pull-lifetime analyzer may depend on `[AddState]` fight-lifetime modules for point-in-time snapshots, but never on another analyzer (FA0014).
+Depend on a parse-lifetime module or analyzer for point-in-time snapshots. Nothing the parser resolves - module, parse-lifetime analyzer, or normalizer - may depend on a `[ForPull]` type (FA0014), because a per-pull instance is constructed straight into the parser's per-pull cache and no resolution path reads it.
 
 ## Gating On A Talent
 
@@ -160,7 +162,7 @@ Gate a module on a talent with `[RequiresTalent({Hero}Talents.Name)]`, using a `
 
 ## Key Rules
 
-- Pull-scoped gameplay analysis extends `Analyzer` with `[ForPull]` and registers via `[AddAnalyzer<T>]`. For resources, use `ResourceTracker` through the `create-resource-tracker` skill.
+- Pull-scoped gameplay analysis extends `Analyzer` with `[ForPull]`, and every `Analyzer` registers via `[AddAnalyzer<T>]`. For resources, use `ResourceTracker` through the `create-resource-tracker` skill.
 - Mark the class `partial`.
 - Declare event subscriptions with `[On<TEvent>]` attributes, never in the constructor.
 - Declare sibling-module dependencies with `[Uses<TOther>]` (or `Owner.GetModule<T>()` for ad-hoc reads). Do not take `CombatLogParser` in the constructor.
@@ -172,10 +174,10 @@ Gate a module on a talent with `[RequiresTalent({Hero}Talents.Name)]`, using a `
 ## Checklist
 
 - [ ] File is at `Modules/{Name}Analyzer.cs`.
-- [ ] Class is `partial`, extends `Analyzer`, and declares `[ForPull]` (or is a fight-lifetime `EventSubscriber` registered with `[AddModule]`).
+- [ ] Class is `partial`, extends `Analyzer`, and declares `[ForPull]` unless it is fight-lifetime.
 - [ ] Event handlers are decorated with `[On<TEvent>]` attributes.
 - [ ] Cross-module reads use `[Uses<TOther>]` (or `Owner.GetModule<T>()`), never another analyzer.
 - [ ] Per-pull metrics are get-style properties over accumulated state (reading `Pull.EndTime` for still-open intervals), not finalized at pull end.
 - [ ] No prose or severity strings in the module.
-- [ ] `[AddAnalyzer<T>]` / `[AddModule<T>]` is added to the hero parser.
+- [ ] `[AddAnalyzer<T>]` is added to the hero parser.
 - [ ] `StatisticsComponentType` is set if a statistics component exists.

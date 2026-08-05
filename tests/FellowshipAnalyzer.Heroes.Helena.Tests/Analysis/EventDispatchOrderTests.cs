@@ -31,10 +31,10 @@ public sealed class EventDispatchOrderTests
         var order = new List<string>();
 
         emitter.BeginPullSubscriptions();
-        emitter.Subscribe(new EventSubscriber(), static _ => true, _ => order.Add("pull"));
+        emitter.Subscribe(new Analyzer(), static _ => true, _ => order.Add("pull"));
         emitter.EndPullSubscriptions();
 
-        emitter.Subscribe(new EventSubscriber(), static _ => true, _ => order.Add("state"));
+        emitter.Subscribe(new Analyzer(), static _ => true, _ => order.Add("state"));
         emitter.SortListeners();
 
         emitter.Emit(new DamageEvent());
@@ -89,7 +89,7 @@ public sealed class EventDispatchOrderTests
 
         for (var i = 0; i < ListenerCount; i += HandlersPerModule)
         {
-            var subscriber = new EventSubscriber();
+            var subscriber = new Analyzer();
             subscriber.Priority.ShouldBe(0);
 
             for (var handler = 0; handler < HandlersPerModule; handler++)

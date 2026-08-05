@@ -4,11 +4,11 @@ using FellowshipAnalyzer.Heroes.Sylvie.Modules;
 namespace FellowshipAnalyzer.Heroes.Sylvie.Analysis;
 
 [HeroAnalyzer(HeroName.Sylvie)]
-[AddState<BlueyTracker>]
-[AddState<PinkFlutterflyTracker>]
-[AddState<SylvieManaTracker>]
-[AddState<SylvieHealingEfficiencyTracker>]
-[AddState<DispelTracker>]
+[AddAnalyzer<BlueyTracker>]
+[AddAnalyzer<PinkFlutterflyTracker>]
+[AddAnalyzer<SylvieManaTracker>]
+[AddAnalyzer<SylvieHealingEfficiencyTracker>]
+[AddAnalyzer<DispelTracker>]
 [AddAnalyzer<PinkFlutterflyAnalyzer>]
 [AddAnalyzer<HeartBloomRampAnalyzer>]
 [AddAnalyzer<BlueyAnalyzer>]

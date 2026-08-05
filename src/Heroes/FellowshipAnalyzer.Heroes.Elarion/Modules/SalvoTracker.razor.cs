@@ -5,7 +5,7 @@ using FellowshipAnalyzer.Core.UI;
 
 namespace FellowshipAnalyzer.Heroes.Elarion.Modules;
 
-public sealed partial class SalvoTracker : EventSubscriber
+public sealed partial class SalvoTracker : Analyzer
 {
     public int SalvoHits { get; private set; }
 

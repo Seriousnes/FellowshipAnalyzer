@@ -6,7 +6,7 @@ using FellowshipAnalyzer.Core.UI;
 
 namespace FellowshipAnalyzer.Heroes.Tariq.Modules;
 
-public sealed partial class ExecutionersGrinTracker : EventSubscriber
+public sealed partial class ExecutionersGrinTracker : Analyzer
 {
     private bool _held;
     private int? _unclaimedRemoval;

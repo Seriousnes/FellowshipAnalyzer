@@ -188,11 +188,11 @@ public sealed class PullAnalyzerSurfaceTests
         => new() { Timestamp = timestamp, SourceId = 7, TargetId = 7 };
 }
 
-[AddState<FightBuffCounter>]
+[AddAnalyzer<FightBuffCounter>]
 [AddAnalyzer<PullBuffAnalyzer>]
 public sealed partial class PullSurfaceCombatLogParser : CombatLogParser { }
 
-public sealed partial class FightBuffCounter : EventSubscriber
+public sealed partial class FightBuffCounter : Analyzer
 {
     public int Count { get; private set; }
 

@@ -3,13 +3,14 @@ using FellowshipAnalyzer.Core.Common;
 namespace FellowshipAnalyzer.Core.Analysis;
 
 /// <summary>
-/// Reads a hero's damage-over-time effects off the aura state <see cref="Combatants"/> already keeps,
-/// so an analyzer asks what was on an enemy at an instant rather than rebuilding that from events.
+/// Reads a hero's damage-over-time effects off the aura state <see cref="Combatants"/> and
+/// <see cref="Enemies"/> already keep, so an analyzer asks what was on an enemy at an instant rather
+/// than rebuilding that from events.
 /// <para>
 /// This module declares no <c>[On&lt;&gt;]</c> handlers. A spell filter has to name a member of the
-/// hero's own generated registry, which Core cannot see, so every reading here is derived from
-/// <see cref="Combatants"/> by effect id instead. A hero that needs event-driven bookkeeping of its
-/// own declares those handlers on its analyzer, where the registry is visible.
+/// hero's own generated registry, which Core cannot see, so every reading here is derived by effect id
+/// instead. A hero that needs event-driven bookkeeping of its own declares those handlers on its
+/// analyzer, where the registry is visible.
 /// </para>
 /// <para>
 /// Derive a per-hero tracker that returns the hero's list from <see cref="Dots"/> and register it
@@ -28,13 +29,17 @@ public abstract class DotTracker : Module
         ?? throw new InvalidOperationException(
             $"{GetType().Name} reads aura state from {nameof(Analysis.Combatants)}, which the parser did not construct.");
 
+    private Enemies Enemies => field ??= Owner.Enemies
+        ?? throw new InvalidOperationException(
+            $"{GetType().Name} reads the enemy population from {nameof(Analysis.Enemies)}, which the parser did not construct.");
+
     /// <summary>Every enemy carrying at least one of <see cref="Dots"/> at <paramref name="timestamp"/>.</summary>
     public IReadOnlyCollection<UnitKey> EnemiesWithAnyDot(int timestamp)
     {
         var enemies = new HashSet<UnitKey>();
         foreach (var dot in Dots)
         {
-            foreach (var key in Combatants.EnemiesWithAura(dot.EffectId, timestamp))
+            foreach (var key in Enemies.WithAura(dot.EffectId, timestamp))
                 enemies.Add(key);
         }
         return enemies;
@@ -117,7 +122,7 @@ public abstract class DotTracker : Module
         var deltas = new List<(int Timestamp, int Index, int Delta)>();
         for (var index = 0; index < Dots.Count; index++)
         {
-            foreach (var window in Combatants.EnemyAuraWindows(Dots[index].EffectId, from, to))
+            foreach (var window in Enemies.AuraWindows(Dots[index].EffectId, from, to))
             {
                 deltas.Add((window.Start, index, 1));
                 deltas.Add((window.End + 1, index, -1));

@@ -3,7 +3,7 @@ using FellowshipAnalyzer.Core.Events;
 namespace FellowshipAnalyzer.Core.Analysis;
 
 /// <summary>
-/// Declares an event handler on an <see cref="EventSubscriber"/>. The source generator emits
+/// Declares an event handler on an <see cref="Analyzer"/>. The source generator emits
 /// a <c>RegisterAttributeSubscriptions</c> override that wires every <see cref="OnAttribute{TEvent}"/>
 /// directly into the <see cref="EventEmitter"/> with inlined predicates.
 /// <para>

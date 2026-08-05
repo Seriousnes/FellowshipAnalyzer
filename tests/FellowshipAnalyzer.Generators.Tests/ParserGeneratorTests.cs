@@ -157,11 +157,11 @@ public class ParserGeneratorTests
 
         namespace Test;
 
-        [AddState<ComboState>]
+        [AddAnalyzer<ComboState>]
         [AddAnalyzer<ComboAnalyzer>]
         public sealed partial class ComboCombatLogParser : CombatLogParser { }
 
-        public sealed partial class ComboState : EventSubscriber
+        public sealed partial class ComboState : Analyzer
         {
             [On<ApplyBuffEvent>]
             private void OnBuff(ApplyBuffEvent e) { }
@@ -299,11 +299,11 @@ public class ParserGeneratorTests
 
         namespace Test;
 
-        [AddModule<DepModule>]
+        [AddAnalyzer<DepModule>]
         [AddAnalyzer<ConsumerAnalyzer>]
         public sealed partial class ComboCombatLogParser : CombatLogParser { }
 
-        public sealed partial class DepModule : EventSubscriber
+        public sealed partial class DepModule : Analyzer
         {
             [On<ApplyBuffEvent>]
             private void OnBuff(ApplyBuffEvent e) { }
@@ -324,18 +324,18 @@ public class ParserGeneratorTests
 
         namespace Test;
 
-        [AddModule<DepModule>]
-        [AddModule<OtherDep>]
+        [AddAnalyzer<DepModule>]
+        [AddAnalyzer<OtherDep>]
         [AddAnalyzer<ConflictAnalyzer>]
         public sealed partial class ComboCombatLogParser : CombatLogParser { }
 
-        public sealed partial class DepModule : EventSubscriber
+        public sealed partial class DepModule : Analyzer
         {
             [On<ApplyBuffEvent>]
             private void OnBuff(ApplyBuffEvent e) { }
         }
 
-        public sealed partial class OtherDep : EventSubscriber
+        public sealed partial class OtherDep : Analyzer
         {
             [On<ApplyBuffEvent>]
             private void OnBuff(ApplyBuffEvent e) { }
@@ -355,19 +355,19 @@ public class ParserGeneratorTests
 
         namespace Test;
 
-        [AddModule<DepModule>]
-        [AddModule<OtherDep>]
+        [AddAnalyzer<DepModule>]
+        [AddAnalyzer<OtherDep>]
         [AddAnalyzer<MultiAnalyzer>]
         public sealed partial class ComboCombatLogParser : CombatLogParser { }
 
-        public sealed partial class DepModule : EventSubscriber
+        public sealed partial class DepModule : Analyzer
         {
             [On<ApplyBuffEvent>]
             private void OnBuff(ApplyBuffEvent e) { }
             public int Ping() => 1;
         }
 
-        public sealed partial class OtherDep : EventSubscriber
+        public sealed partial class OtherDep : Analyzer
         {
             [On<ApplyBuffEvent>]
             private void OnBuff(ApplyBuffEvent e) { }
@@ -381,6 +381,69 @@ public class ParserGeneratorTests
         {
             [On<ApplyBuffEvent>]
             private void OnBuff(ApplyBuffEvent e) { _ = DepModule.Ping() + OtherDep.Pong(); }
+        }
+        """;
+
+    /// <summary>
+    /// The generator routes purely on <c>[ForPull]</c>, so <c>[AddModule]</c> over a <c>[ForPull]</c>
+    /// analyzer still produces the pull surface. Diagnostic FA0019 is what rejects that combination, and
+    /// this harness runs generators only, so the routing is observable here and nowhere in the product.
+    /// </summary>
+    [Fact]
+    public void AddModuleOfForPullAnalyzer_RoutesToThePullSurface()
+    {
+        var result = ParserGeneratorTestHarness.Run(AddModuleOverForPullAnalyzer());
+        var gen = result.ConcatenatedGenerated;
+
+        gen.ShouldContain($"if (({PullKindFqn}.Single).HasFlag(pull.Targets)) __analyzers.Add(typeof(global::Test.ComboAnalyzer));");
+        gen.ShouldContain("global::FellowshipAnalyzer.Core.Analysis.PullAnalyzerList<global::Test.ComboAnalyzer>");
+        gen.ShouldNotContain("GetModule<Test.ComboAnalyzer>()");
+        AssertNoErrors(result);
+    }
+
+    /// <summary>
+    /// The mirror of <see cref="AddModuleOfForPullAnalyzer_RoutesToThePullSurface"/>: <c>[AddAnalyzer]</c>
+    /// over an analyzer with no <c>[ForPull]</c> is parse-lifetime, which is what most of
+    /// <c>CombatLogParser</c>'s own registrations are.
+    /// </summary>
+    [Fact]
+    public void AddAnalyzerWithoutForPull_RoutesToParseLifetime()
+    {
+        var result = ParserGeneratorTestHarness.Run(AddAnalyzerWithoutForPull());
+        var gen = result.ConcatenatedGenerated;
+
+        gen.ShouldContain("public Test.ComboState? ComboState => GetModule<Test.ComboState>();");
+        gen.ShouldContain("typeof(Test.ComboState),");
+        gen.ShouldNotContain("__analyzers.Add(typeof(global::Test.ComboState));");
+        AssertNoErrors(result);
+    }
+
+    private static string AddModuleOverForPullAnalyzer() => Usings + """
+
+        namespace Test;
+
+        [AddModule<ComboAnalyzer>]
+        public sealed partial class ComboCombatLogParser : CombatLogParser { }
+
+        [ForPull(PullKind.Single)]
+        public sealed partial class ComboAnalyzer : Analyzer
+        {
+            [On<ApplyBuffEvent>]
+            private void OnBuff(ApplyBuffEvent e) { }
+        }
+        """;
+
+    private static string AddAnalyzerWithoutForPull() => Usings + """
+
+        namespace Test;
+
+        [AddAnalyzer<ComboState>]
+        public sealed partial class ComboCombatLogParser : CombatLogParser { }
+
+        public sealed partial class ComboState : Analyzer
+        {
+            [On<ApplyBuffEvent>]
+            private void OnBuff(ApplyBuffEvent e) { }
         }
         """;
 

@@ -8,7 +8,7 @@ using MaraTalents = FellowshipAnalyzer.Core.Common.Spells.MaraTalents;
 namespace FellowshipAnalyzer.Heroes.Mara.Modules;
 
 [RequiresTalent(MaraTalents.DeadlyScheme)]
-public sealed partial class DeadlySchemeTracker : EventSubscriber
+public sealed partial class DeadlySchemeTracker : Analyzer
 {
     public const int MaxStacks = 40;
 

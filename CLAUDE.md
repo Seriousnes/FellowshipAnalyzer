@@ -63,7 +63,7 @@ FellowshipLogs GraphQL JSON (player events, plus the fight death stream merged i
   → IEventNormalizer passes in Priority order (bookend pulls, rescale resources, attach master data, link casts)
   → parse-lifetime modules constructed; RegisterSubscriptions() wires their [On<TEvent>] handlers
   → EventEmitter dispatches; PullStartEvent / PullEndEvent open and close each pull,
-    constructing a fresh set of [AddAnalyzer] analyzers per pull and retaining them afterwards
+    constructing a fresh set of [ForPull] analyzers per pull and retaining them afterwards
   → modules and analyzers expose derived metrics as computed get-only properties over retained state
   → HeroAnalysisResult → Razor guide and statistics components
 ```
@@ -86,7 +86,7 @@ FellowshipLogs GraphQL JSON (player events, plus the fight death stream merged i
 ```csharp
 [HeroAnalyzer(HeroName.Ardeos)]
 [AddModule<Abilities>]
-[AddModule<CinderEmberTracker>]
+[AddAnalyzer<CinderEmberTracker>]
 [AddAnalyzer<WildfireComboAnalyzer>]
 [AddAnalyzer<SearingBlazeSpreadAnalyzer>]
 [AddAnalyzer<SearingBlazeUptimeAnalyzer>]
@@ -100,7 +100,8 @@ The generator emits the constructor, strongly-typed module properties (for examp
 
 **Module and analyzer lifecycle**
 
-- `[AddState<T>]` and `[AddModule<T>]` register parse-lifetime modules. `[AddAnalyzer<T>]` registers pull-lifetime `Analyzer`s, constructed fresh for each pull and selected by `[ForPull(PullKind.Single | PullKind.Multi, Boss = PullBoss.Boss)]`.
+- `[AddAnalyzer<T>]` registers every type that subscribes to events, which is every `Analyzer`. `[AddModule<T>]` and `[AddState<T>]` register everything that is not one, and are exact synonyms.
+- `[ForPull(PullKind.Single | PullKind.Multi, Boss = PullBoss.Boss)]` declared directly on the registered type is the only thing that decides lifetime. With it, a fresh instance is constructed for each matching pull and retained on the pull read surfaces; without it, one instance serves the whole report and is reachable through the generated `Parser.{Name}` accessor. It is valid only on a concrete `Analyzer`: an abstract base declares the shape, each concrete subclass its own filter.
 - Subscribe with `[On<TEvent>(By = Actor.Player, Spell = ...)]` on handler methods; the generator wires each into `EventEmitter` with inlined predicates. Any other setup goes in the constructor.
 - Accumulate during dispatch and expose results as get-only computed properties over retained state. An analyzer reads its own `Pull` property.
 - Modules are constructed by a generator-emitted factory. `Owner` is assigned by the parser afterwards, so do **not** accept `CombatLogParser` in a module constructor. Declare a sibling-module dependency with `[Dependency<T>]` and read the generated accessor.

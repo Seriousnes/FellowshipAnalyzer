@@ -86,13 +86,13 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
                 if (containingType.TypeArguments[0] is not INamedTypeSymbol typeArg)
                     continue;
 
-                var ns = GetNamespace(typeArg);
-
-                if (containingType.Name == AddModuleAttributeShortName
-                    || containingType.Name == AddStateAttributeShortName)
-                    ownModules.Add(BuildModuleTypeInfo(typeArg));
-                else if (containingType.Name == AddAnalyzerAttributeShortName)
-                    ownAnalyzers.Add(BuildAnalyzerInfo(typeArg));
+                if (IsRegistrationAttribute(containingType.Name))
+                {
+                    if (HasForPull(typeArg))
+                        ownAnalyzers.Add(BuildAnalyzerInfo(typeArg));
+                    else
+                        ownModules.Add(BuildModuleTypeInfo(typeArg));
+                }
                 else if (containingType.Name == AddNormalizerAttributeShortName)
                     normalizerTypes.Add(BuildNormalizerTypeInfo(typeArg));
             }
@@ -181,16 +181,41 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
             isAbstractBase: false);
     }
 
+    /// <summary>
+    /// Whether <paramref name="name"/> is one of the three attributes that register a type on a parser.
+    /// Which list the registered type lands in is decided by <see cref="HasForPull"/>, not by which of
+    /// the three declared it.
+    /// </summary>
+    private static bool IsRegistrationAttribute(string name) =>
+        name == AddModuleAttributeShortName
+        || name == AddStateAttributeShortName
+        || name == AddAnalyzerAttributeShortName;
+
+    /// <summary>
+    /// Whether <paramref name="type"/> declares <c>[ForPull]</c> directly, which is what makes a
+    /// registered type pull-lifetime. <c>ForPullAttribute</c> is <c>Inherited = false</c>, and
+    /// <c>GetAttributes()</c> returns only directly-applied attributes, so an abstract base declaring
+    /// the shape never decides a subclass's lifetime.
+    /// </summary>
+    private static bool HasForPull(INamedTypeSymbol type)
+    {
+        foreach (var attr in type.GetAttributes())
+        {
+            if (attr.AttributeClass?.Name == ForPullAttributeShortName) return true;
+        }
+        return false;
+    }
+
     private static void CollectModulesFromSymbol(INamedTypeSymbol symbol, List<TypeInfo> modules)
     {
         foreach (var attr in symbol.GetAttributes())
         {
             if (attr.AttributeClass == null) continue;
-            if (attr.AttributeClass.Name != AddModuleAttributeShortName
-                && attr.AttributeClass.Name != AddStateAttributeShortName) continue;
+            if (!IsRegistrationAttribute(attr.AttributeClass.Name)) continue;
             if (!attr.AttributeClass.IsGenericType || attr.AttributeClass.TypeArguments.Length == 0) continue;
 
             if (attr.AttributeClass.TypeArguments[0] is not INamedTypeSymbol typeArg) continue;
+            if (HasForPull(typeArg)) continue;
 
             modules.Add(BuildModuleTypeInfo(typeArg));
         }
@@ -201,10 +226,11 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
         foreach (var attr in symbol.GetAttributes())
         {
             if (attr.AttributeClass == null) continue;
-            if (attr.AttributeClass.Name != AddAnalyzerAttributeShortName) continue;
+            if (!IsRegistrationAttribute(attr.AttributeClass.Name)) continue;
             if (!attr.AttributeClass.IsGenericType || attr.AttributeClass.TypeArguments.Length == 0) continue;
 
             if (attr.AttributeClass.TypeArguments[0] is not INamedTypeSymbol typeArg) continue;
+            if (!HasForPull(typeArg)) continue;
 
             analyzers.Add(BuildAnalyzerInfo(typeArg));
         }
