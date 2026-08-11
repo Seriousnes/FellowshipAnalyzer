@@ -85,9 +85,12 @@ applying an edit.
 ### The falsification test
 
 Before any optimizer exists, score the blessed prose and a fresh `guide-writer` draft on three
-fixtures. The blessed prose must score strictly higher in total and on at least two of the three
-sections. A scorer that does not separate them makes the gate inert, and the loop cannot work at any
-budget. This test is the first deliverable and everything after it depends on the result.
+fixtures. The blessed prose must lead by more than the control band on at least two of the three
+sections, so by two counts or more, and lead on the total. A one-count lead sits inside judge
+variance and is not a pass.
+
+A scorer that does not separate them makes the gate inert, and the loop cannot work at any budget.
+This test is the first deliverable and everything after it depends on the result.
 
 ## A round
 
@@ -138,12 +141,18 @@ passes the same gate.
 ## Build order
 
 1. The owner blesses six to nine sections and writes each `fixture.md` directive.
-2. `create-guide/SKILL.md` is committed. It is the trained artifact, so a round has no baseline until
-   it settles.
-3. `guide-judge` and the five counts. Run the falsification test.
-4. Rename `banned-vocabulary` to `guide-review` and update the ten referring lines across eight files:
+2. `create-guide/SKILL.md` is committed, which `81184bb` did. It is the trained artifact, so a round
+   has no baseline until it settles.
+3. Reconcile `guide-review` against the memory record. `feedback_never_mention_the_log` postdates the
+   rulebook and reverses it: the presence table blesses "the log records no", the memory states that
+   phrasing was never blessed. The judge reads `guide-review` as its rubric, so an unreconciled entry
+   produces a wrong count rather than a stale note.
+4. `guide-judge` and the five counts. Run the falsification test.
+5. Rename `banned-vocabulary` to `guide-review` and update the ten referring lines across eight files:
    `guide-writer.md` lines 32 and 53, `create-guide/SKILL.md` line 70, and six memory files including
-   `MEMORY.md`. The `guide-writer.md` edit removes the instruction to read the record end to end. This
-   is setup, and it is the last edit made to the harness before it is frozen.
-5. `guide-optimizer`, the budget, the gate, and `rejected.md`.
-6. Longitudinal guidance.
+   `MEMORY.md`. Both `guide-writer.md:32` and `create-guide/SKILL.md:70` instruct that the record be
+   read at write time, and `81184bb` committed the second of those by hand today, so removing them is
+   the owner's call to confirm rather than a mechanical rename. This is setup, and it is the last edit
+   made to the harness before it is frozen.
+6. `guide-optimizer`, the budget, the gate, and `rejected.md`.
+7. Longitudinal guidance.
