@@ -6,13 +6,6 @@
 
     private RenderFragment Card =>
         @<StatCard Title="Mana">
-            <Info>
-                <p>
-                    The log streams Sylvie's pool on nearly every event but attaches no cost to a cast, so
-                    spending here is priced from the Season 3 game data, with the Bluey discount applied to
-                    the casts it covered while it was recalled onto her.
-                </p>
-            </Info>
             <ChildContent>
                 <StatRow Value="@($"{AtFullShare * 100:F1}%")"
                          Tooltip="@($"{AtFullMs / 1000:N0}s of {MeasuredMs / 1000:N0}s measured at a full pool.")">
@@ -28,9 +21,6 @@
                         <SpellLink Spell="spellId" />
                     </StatRow>
                 }
-                <HelperText>
-                    Costs are the game's list prices. A reduction the log does not report reads high here.
-                </HelperText>
             </ChildContent>
         </StatCard>;
 
