@@ -33,13 +33,18 @@ the smallest corpus a round can use. At this size the gate is the point and the 
 
 One fixture per section:
 
+A fixture is a pair of git refs around an owner prose correction, held in one file:
+
 ```
 .claude/guide-training/corpus/<hero>-<section>/
-  fixture.md        directive, blessing date, source paths, split assignment
-  analyzer.cs       the analyzer as of the blessing date
-  guide.razor       the guide with every writer-owned region emptied
-  blessed.razor     the owner's approved prose
+  fixture.md        guide and analyzer paths, before and after refs, directive, blessing date, split
 ```
+
+`before` is the ref where the section reads as a draft; `after` is the ref where the owner's
+correction landed. `git show <ref>:<path>` materialises either side on demand, so nothing is copied
+and a fixture cannot drift from what was actually reviewed. `06055b4` is the shape: it deletes three
+methodology clauses from `SafeHavenGuide.razor` and an `<Info>` block and a `HelperText` from
+`SylvieManaTracker.razor`, with no behaviour change beside them.
 
 `fixture.md` states the directive in the owner's own words: when to press the ability, what to spend
 it on, what to have ready first. `guide-writer` fails closed without one, so a fixture missing it
@@ -49,9 +54,9 @@ Blessing is a dated override. `guide-writer.md` and `guide-review` both instruct
 pre-cleared, so a section enters the corpus because the owner cleared it on a stated date, and
 `fixture.md` records that date.
 
-The writer-owned regions emptied in `guide.razor` are the ones `guide-writer.md` lists: `LeftPanel`
-prose, `GuideSection` / `SubSection` / `CastOverview` / `CastDetail` titles and descriptions,
-`HelperText` and `TipBox` bodies, and every `OverviewStat` and `PerCastStat` label and tooltip.
+The sections a fixture covers are the ones `guide-writer.md` owns: `LeftPanel` prose, `GuideSection`
+/ `SubSection` / `CastOverview` / `CastDetail` titles and descriptions, `HelperText` and `TipBox`
+bodies, and every `OverviewStat` and `PerCastStat` label and tooltip.
 
 ## The scorer
 
@@ -126,11 +131,16 @@ passes the same gate.
 
 ```
 .claude/guide-training/
-  README.md
-  corpus/<hero>-<section>/
+  README.md       this design
+  PLAN.md         the task-by-task build
+  corpus/<hero>-<section>/fixture.md
+  schema/scores.md
+  tools/          materialise.ps1, score.cs, and their tests
   runs/<run-id>/
     rollouts/       one directory per fixture, holding the draft and the agent report
-    scores.json     five counts per section, plus the control
+    scores.json     five counts per section
+    control.json    the same counts over the approved prose, for judge drift
+    candidate.json  the gate split rescored under the proposed edit
     proposals.json  the full pool, with the ranking and the selected index
     decision.md     accepted or rejected, the score before and after
   rejected.md
