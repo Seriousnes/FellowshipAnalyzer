@@ -24,7 +24,7 @@
             </Breadcrumbs>
             <Portrait>
                 <Avatar Size="AvatarSize.Xl"
-                        Src="@(BossIconUrl(header.BossIcon) ?? header.Dungeon.DungeonIconUrl)"
+                        Src="@(header.BossIconUrl ?? header.Dungeon.DungeonIconUrl)"
                         Alt="@header.Dungeon.Name"
                         FallbackText="@FirstCharacter(header.Dungeon.Name)"
                         AccentColorVar="var(--fa-gold)" />
@@ -251,7 +251,7 @@
                 _reportInfo,
                 dungeon,
                 player,
-                GetBossIcon(_reportInfo, dungeon),
+                _reportInfo.FindNpcIconUrl(dungeon.Name),
                 FormatDuration(dungeon.EndTime - dungeon.StartTime));
         }
     }
@@ -339,15 +339,6 @@
             ? analysis.Events.Count(e => e.Timestamp >= pull.StartTime && e.Timestamp <= pull.EndTime)
             : 0;
 
-    private static string? GetBossIcon(CoreReportInfo reportInfo, CoreReportDungeon dungeon) =>
-        reportInfo.Actors.FirstOrDefault(a =>
-            !string.Equals(a.Type, "Player", StringComparison.OrdinalIgnoreCase)
-            && string.Equals(a.Name, dungeon.Name, StringComparison.OrdinalIgnoreCase)
-            && !string.IsNullOrEmpty(a.Icon))?.Icon;
-
-    private static string? BossIconUrl(string? bossIcon) =>
-        bossIcon is null ? null : $"https://assets.rpglogs.com/img/fellowship/abilities/{bossIcon}";
-
     private IReadOnlyList<BreadcrumbItem> BuildBreadcrumbs(ReportHeader header)
     {
         var items = new List<BreadcrumbItem>();
@@ -407,6 +398,6 @@
         CoreReportInfo ReportInfo,
         CoreReportDungeon Dungeon,
         CoreReportActor Player,
-        string? BossIcon,
+        string? BossIconUrl,
         string DungeonDuration);
 }

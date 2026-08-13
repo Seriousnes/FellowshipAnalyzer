@@ -39,8 +39,7 @@
                     <div class="encounter-group @(groupHasExpandedDungeon ? "selected" : "")">
                         <div class="encounter-header">
                             @{
-                                var bossIcon = _bossIconByName.TryGetValue(group.Key, out var ic) ? ic : null;
-                                var bossIconUrl = bossIcon is not null ? $"https://assets.rpglogs.com/img/fellowship/abilities/{bossIcon}" : null;
+                                var bossIconUrl = _report.FindNpcIconUrl(group.Key);
                                 var dungeonIconUrl = group.Value.Count > 0 ? group.Value[0].DungeonIconUrl : null;
                                 var firstLetter = group.Key.Length > 0 ? group.Key[0].ToString() : "?";
                             }
@@ -177,7 +176,6 @@
     private CoreReportInfo? _report;
     private bool _isLoading = true;
     private string? _error;
-    private Dictionary<string, string?> _bossIconByName = [];
     private int? _expandedDungeonId;
     private string? _expandedPlayerIdStr;
     private bool _byPlayer = false;
@@ -207,11 +205,6 @@
         if (!NavState.TryGet(ReportCode, out _report) || _report is null)
             return;
 
-        _bossIconByName = _report.Actors
-            .Where(a => !string.Equals(a.Type, "Player", StringComparison.OrdinalIgnoreCase))
-            .Where(a => !string.IsNullOrEmpty(a.Icon))
-            .GroupBy(a => a.Name)
-            .ToDictionary(g => g.Key, g => g.First().Icon, StringComparer.OrdinalIgnoreCase);
         SetInitialExpandedDungeon();
         _isLoading = false;
     }
@@ -224,11 +217,6 @@
         {
             _report = (await FellowshipLogs.GetAnalysisPreloadAsync(ReportCode)).ReportInfo;
             NavState.Set(ReportCode, _report);
-            _bossIconByName = _report.Actors
-                .Where(a => !string.Equals(a.Type, "Player", StringComparison.OrdinalIgnoreCase))
-                .Where(a => !string.IsNullOrEmpty(a.Icon))
-                .GroupBy(a => a.Name)
-                .ToDictionary(g => g.Key, g => g.First().Icon, StringComparer.OrdinalIgnoreCase);
             SetInitialExpandedDungeon();
         }
         catch (Exception exception)

@@ -10,4 +10,33 @@ public sealed record ReportInfo(
     double? EndTime,
     IReadOnlyList<ReportDungeon> Dungeons,
     IReadOnlyList<ReportActor> Actors
-);
+)
+{
+    private const string PlayerActorType = "Player";
+
+    /// <summary>
+    /// Icon URL of the first non-player actor named <paramref name="name"/> that carries an icon, or
+    /// <see langword="null"/> when there is none. Names are matched case-insensitively; a boss and the
+    /// dungeon it headlines share a name. Reports may contain unnamed actors, so a
+    /// <see langword="null"/> or empty <paramref name="name"/> never matches.
+    /// </summary>
+    public string? FindNpcIconUrl(string? name)
+    {
+        if (string.IsNullOrEmpty(name))
+            return null;
+
+        foreach (var actor in Actors)
+        {
+            if (string.Equals(actor.Type, PlayerActorType, StringComparison.OrdinalIgnoreCase))
+                continue;
+
+            if (!string.Equals(actor.Name, name, StringComparison.OrdinalIgnoreCase))
+                continue;
+
+            if (actor.IconUrl is { } iconUrl)
+                return iconUrl;
+        }
+
+        return null;
+    }
+}
