@@ -1,0 +1,58 @@
+@use 'tokens' as t;
+@use 'mixins' as mx;
+
+.page-error {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+    max-width: 40rem;
+    margin: 4rem auto;
+    padding: 2rem;
+    text-align: center;
+    @include mx.card-surface(var(--fa-radius-lg));
+}
+
+.page-error-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: var(--fa-radius-pill);
+    background: t.tint(var(--fa-danger), t.$fa-tint-subtle);
+    color: var(--fa-danger);
+    font-size: 1.35rem;
+}
+
+.page-error-title {
+    margin: 0;
+    font-family: var(--fa-font-heading);
+    font-size: var(--fa-fs-lg);
+    color: var(--fa-text);
+}
+
+.page-error-message {
+    margin: 0;
+    color: var(--fa-text-muted);
+    font-size: var(--fa-fs-body);
+    line-height: 1.55;
+    overflow-wrap: anywhere;
+}
+
+.page-error-details {
+    padding: 0.5rem 1rem;
+    border: var(--fa-border-width) solid t.tint(var(--fa-gold), t.$fa-tint-muted);
+    border-radius: var(--fa-radius-sm);
+    background: transparent;
+    color: var(--fa-gold-light);
+    font-size: var(--fa-fs-body);
+    font-weight: 600;
+    cursor: pointer;
+
+    &:hover {
+        border-color: var(--fa-gold);
+        color: var(--fa-gold);
+        background: var(--fa-gold-dim);
+    }
+}

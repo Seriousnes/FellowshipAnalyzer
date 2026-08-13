@@ -1,0 +1,55 @@
+<div class="error-backdrop" @onclick="Close"></div>
+<div class="error-dialog" role="alertdialog" aria-modal="true" aria-labelledby="error-dialog-title"
+     @onclick:stopPropagation="true">
+    <button type="button" class="error-close" @onclick="Close" aria-label="Close">
+        <Glyph Name="x" />
+    </button>
+
+    <header class="error-header">
+        <span class="error-icon"><Glyph Name="alert-triangle" /></span>
+        <div class="error-heading">
+            <p class="error-eyebrow">Unhandled error</p>
+            <h2 class="error-title" id="error-dialog-title">@Report.Title</h2>
+        </div>
+    </header>
+
+    <p class="error-message">@Report.Exception.Message</p>
+
+    <dl class="error-meta">
+        <div class="error-meta-row">
+            <dt>Page</dt>
+            <dd>@Report.RelativePath</dd>
+        </div>
+        @if (Report.ReportCode is { } reportCode)
+        {
+            <div class="error-meta-row">
+                <dt>Report</dt>
+                <dd>@reportCode</dd>
+            </div>
+        }
+        @if (Report.Component is { } component)
+        {
+            <div class="error-meta-row">
+                <dt>Component</dt>
+                <dd>@component</dd>
+            </div>
+        }
+    </dl>
+
+    <pre class="error-detail"><code>@Report.Detail</code></pre>
+
+    <footer class="error-actions">
+        <a class="error-issue" href="@Report.IssueUrl" target="_blank" rel="noopener noreferrer">
+            <Glyph Name="brand-github" />
+            Open issue on GitHub
+        </a>
+    </footer>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public ErrorReport Report { get; set; } = default!;
+
+    [Parameter] public EventCallback OnClose { get; set; }
+
+    private Task Close() => OnClose.InvokeAsync();
+}
