@@ -1,4 +1,4 @@
-<ul class="checklist">
+<ul class="checklist @(DimFailed ? "dim-failed" : null)">
     @foreach (var item in Items)
     {
         <li class="checklist-row @(item.Pass ? "pass" : "fail")">
@@ -25,4 +25,8 @@
     /// <summary>The lines to render, in the order they are given. Never reorder by pass or fail: a list
     /// whose rows move between casts cannot be read across casts.</summary>
     [Parameter, EditorRequired] public IEnumerable<CheckItem> Items { get; set; } = [];
+
+    /// <summary>Whether a failed line is de-emphasised. Set this false where a failed line carries a
+    /// reading the other lines do not, rather than reporting something that was absent.</summary>
+    [Parameter] public bool DimFailed { get; set; } = true;
 }
