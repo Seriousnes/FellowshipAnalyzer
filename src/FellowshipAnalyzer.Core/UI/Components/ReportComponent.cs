@@ -1,4 +1,5 @@
 using FellowshipAnalyzer.Core.Analysis;
+using FellowshipAnalyzer.Core.Events;
 
 using Microsoft.AspNetCore.Components;
 
@@ -39,7 +40,7 @@ public abstract class ReportComponent<TParser> : ComponentBase where TParser : C
     /// crops its view to the same pull window.
     /// </summary>
     [CascadingParameter(Name = "SelectedPull")]
-    protected Pull? SelectedPull { get; set; }
+    protected PullStartEvent? SelectedPull { get; set; }
 
     /// <summary>
     /// The parser that produced the analysis being rendered, strongly typed. Reached through the

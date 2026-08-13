@@ -11,8 +11,8 @@ namespace FellowshipAnalyzer.Core.Analysis;
 /// The module declares no <c>[On&lt;TEvent&gt;]</c> handlers. Its state is built once, lazily, on the
 /// first query, by a single pass over <see cref="CombatLogParser.Events"/>, and retained. Every
 /// accessor filters that state by timestamp rather than accumulating up to a dispatch cursor, so
-/// <see cref="AliveAt(Pull, int)"/> returns the same answer during dispatch and from a guide rendered
-/// after the parse.
+/// <see cref="AliveAt(PullStartEvent, int)"/> returns the same answer during dispatch and from a guide
+/// rendered after the parse.
 /// </para>
 /// <para>
 /// A pull's roster is a projection, not an expansion: <see cref="Analysis.Combatants"/> seeds every
@@ -66,7 +66,7 @@ public sealed partial class Enemies : Module
     /// sole roster instance in the pull, and keeps its <c>null</c> instance where no roster names the
     /// actor once.
     /// </summary>
-    public UnitKey? Resolve(int actorId, int? instance, Pull pull)
+    public UnitKey? Resolve(int actorId, int? instance, PullStartEvent pull)
     {
         if (!IsEnemy(actorId)) return null;
         if (instance is not null) return new UnitKey(actorId, instance);
@@ -82,24 +82,24 @@ public sealed partial class Enemies : Module
     /// pull is measured against. Two pulls of one dungeon can name the same unit, so a death is
     /// recorded against that unit in every pull naming it and it never comes back alive.
     /// </summary>
-    public IReadOnlyList<EnemyUnit> Roster(Pull pull) =>
+    public IReadOnlyList<EnemyUnit> Roster(PullStartEvent pull) =>
         Index.ByPull.TryGetValue(pull.Index, out var population) ? population.Roster : [];
 
     /// <summary>
     /// Every unit alive at some point inside <paramref name="pull"/>: its roster, plus each enemy the
     /// events name that no roster does.
     /// </summary>
-    public IReadOnlyList<EnemyUnit> Population(Pull pull) =>
+    public IReadOnlyList<EnemyUnit> Population(PullStartEvent pull) =>
         Index.ByPull.TryGetValue(pull.Index, out var population) ? population.Units : [];
 
     /// <summary>
     /// How many of <paramref name="pull"/>'s enemies are alive at <paramref name="timestamp"/>. A unit
-    /// is alive from the moment it enters, which is <see cref="Pull.StartTime"/> for a roster unit and
-    /// the first event naming it for any other, up to but not including its death. A unit still alive at
-    /// <see cref="Pull.EndTime"/> despawns and is counted there. Returns 0 outside the pull window, and
-    /// exceeds <see cref="Roster"/>'s count while an unrostered unit is alive.
+    /// is alive from the moment it enters, which is <see cref="PullStartEvent.StartTime"/> for a roster
+    /// unit and the first event naming it for any other, up to but not including its death. A unit still
+    /// alive at <see cref="PullStartEvent.EndTime"/> despawns and is counted there. Returns 0 outside the
+    /// pull window, and exceeds <see cref="Roster"/>'s count while an unrostered unit is alive.
     /// </summary>
-    public int AliveAt(Pull pull, int timestamp)
+    public int AliveAt(PullStartEvent pull, int timestamp)
     {
         if (timestamp < pull.StartTime || timestamp > pull.EndTime) return 0;
         if (!Index.ByPull.TryGetValue(pull.Index, out var population)) return 0;
@@ -128,7 +128,7 @@ public sealed partial class Enemies : Module
     /// A band runs from its <see cref="AliveBand.Start"/> to where the next one begins; the last band
     /// ends at <paramref name="to"/> and includes it.
     /// </summary>
-    public IReadOnlyList<AliveBand> AliveBetween(Pull pull, int from, int to)
+    public IReadOnlyList<AliveBand> AliveBetween(PullStartEvent pull, int from, int to)
     {
         var start = Math.Max(from, pull.StartTime);
         var end = Math.Min(to, pull.EndTime);
@@ -146,7 +146,7 @@ public sealed partial class Enemies : Module
     }
 
     /// <summary>The most enemies alive at once anywhere in <paramref name="pull"/>.</summary>
-    public int PeakAlive(Pull pull)
+    public int PeakAlive(PullStartEvent pull)
     {
         var peak = 0;
         foreach (var band in AliveBetween(pull, pull.StartTime, pull.EndTime))
@@ -336,7 +336,7 @@ public sealed partial class Enemies : Module
         return bands;
     }
 
-    private static Pull? PullAt(List<Pull> pulls, int timestamp)
+    private static PullStartEvent? PullAt(List<PullStartEvent> pulls, int timestamp)
     {
         for (var i = pulls.Count - 1; i >= 0; i--)
         {
@@ -358,10 +358,10 @@ public sealed partial class Enemies : Module
             enemyActorIds.Add(actor.Id);
         }
 
-        List<Pull> pulls = [];
+        List<PullStartEvent> pulls = [];
         foreach (var e in Owner.Events)
         {
-            if (e is PullStartEvent start) pulls.Add(start.Pull);
+            if (e is PullStartEvent start) pulls.Add(start);
         }
         pulls.Sort(static (left, right) => left.Index.CompareTo(right.Index));
 
@@ -428,13 +428,13 @@ public sealed partial class Enemies : Module
 
     private sealed class State(
         HashSet<int> enemyActorIds,
-        List<Pull> pulls,
+        List<PullStartEvent> pulls,
         Dictionary<int, PullPopulation> byPull,
         List<EnemyDeath> deaths)
     {
         public HashSet<int> EnemyActorIds { get; } = enemyActorIds;
 
-        public List<Pull> Pulls { get; } = pulls;
+        public List<PullStartEvent> Pulls { get; } = pulls;
 
         public Dictionary<int, PullPopulation> ByPull { get; } = byPull;
 
@@ -448,7 +448,7 @@ public sealed partial class Enemies : Module
         private readonly Dictionary<int, List<int?>> _rosterInstances = [];
         private readonly int _rosterCount;
 
-        public PullPopulation(Pull pull, List<UnitKey> rosterKeys)
+        public PullPopulation(PullStartEvent pull, List<UnitKey> rosterKeys)
         {
             foreach (var key in rosterKeys)
             {

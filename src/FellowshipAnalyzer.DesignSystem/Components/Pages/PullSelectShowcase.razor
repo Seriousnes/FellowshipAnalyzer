@@ -26,20 +26,34 @@
 @code {
     private const int _dungeonStart = 600_000;
 
-    private static readonly IReadOnlyList<Pull> _pulls =
+    private static readonly IReadOnlyList<PullStartEvent> _pulls =
     [
-        new(0, 101, "Gnarled Sentinels", 630_000, 685_000, PullKind.Multi, IsBoss: false, Kill: true),
-        new(1, 102, "Fungal Brood", 690_000, 742_000, PullKind.Multi, IsBoss: false, Kill: true),
-        new(2, 103, "Rotmaw", 760_000, 845_000, PullKind.Single, IsBoss: true, Kill: false),
-        new(3, 104, "Rotmaw", 860_000, 928_000, PullKind.Single, IsBoss: true, Kill: true),
-        new(4, 105, "Archsentinel of the Withered Vale", 940_000, 1_020_000, PullKind.Single, IsBoss: true, Kill: true),
+        MakePull(0, 101, "Gnarled Sentinels", 630_000, 685_000, PullKind.Multi, isBoss: false, kill: true),
+        MakePull(1, 102, "Fungal Brood", 690_000, 742_000, PullKind.Multi, isBoss: false, kill: true),
+        MakePull(2, 103, "Rotmaw", 760_000, 845_000, PullKind.Single, isBoss: true, kill: false),
+        MakePull(3, 104, "Rotmaw", 860_000, 928_000, PullKind.Single, isBoss: true, kill: true),
+        MakePull(4, 105, "Archsentinel of the Withered Vale", 940_000, 1_020_000, PullKind.Single, isBoss: true, kill: true),
     ];
 
-    private Pull? _selected;
-    private Pull? _bossSelected = _pulls[2];
-    private Pull? _stepped;
+    private static PullStartEvent MakePull(
+        int index, int id, string name, int startTime, int endTime, PullKind targets, bool isBoss, bool kill) =>
+        new()
+        {
+            Timestamp = startTime,
+            End = new PullEndEvent { Timestamp = endTime },
+            Index = index,
+            Id = id,
+            Name = name,
+            Targets = targets,
+            IsBoss = isBoss,
+            Kill = kill,
+        };
 
-    private static string Describe(Pull? pull) =>
+    private PullStartEvent? _selected;
+    private PullStartEvent? _bossSelected = _pulls[2];
+    private PullStartEvent? _stepped;
+
+    private static string Describe(PullStartEvent? pull) =>
         pull is null
             ? "Selected: Entire Dungeon"
             : $"Selected: Pull #{pull.Index + 1}{(string.IsNullOrWhiteSpace(pull.Name) ? "" : $" - {pull.Name}")}";
@@ -50,13 +64,13 @@
 @code {
     private const int _dungeonStart = 600_000;
 
-    private static readonly IReadOnlyList<Pull> _pulls =
+    private static readonly IReadOnlyList<PullStartEvent> _pulls =
     [
-        new(0, 101, "Gnarled Sentinels", 630_000, 685_000, PullKind.Multi, IsBoss: false, Kill: true),
-        new(2, 103, "Rotmaw", 760_000, 845_000, PullKind.Single, IsBoss: true, Kill: false),
+        new() { Timestamp = 630_000, End = new PullEndEvent { Timestamp = 685_000 }, Index = 0, Id = 101, Name = "Gnarled Sentinels", Targets = PullKind.Multi, IsBoss = false, Kill = true },
+        new() { Timestamp = 760_000, End = new PullEndEvent { Timestamp = 845_000 }, Index = 2, Id = 103, Name = "Rotmaw", Targets = PullKind.Single, IsBoss = true, Kill = false },
     ];
 
-    private Pull? _selected;
+    private PullStartEvent? _selected;
 }
 """;
 
@@ -64,7 +78,7 @@
 <PullSelect Pulls="_pulls" DungeonStartTime="_dungeonStart" @bind-Value="_bossSelected" />
 
 @code {
-    private Pull? _bossSelected = _pulls[2];
+    private PullStartEvent? _bossSelected = _pulls[2];
 }
 """;
 
@@ -72,7 +86,7 @@
 <PullSelect Pulls="_pulls" DungeonStartTime="_dungeonStart" @bind-Value="_stepped" />
 
 @code {
-    private Pull? _stepped;
+    private PullStartEvent? _stepped;
 }
 """;
 }

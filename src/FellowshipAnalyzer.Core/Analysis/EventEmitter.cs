@@ -102,11 +102,11 @@ public sealed class EventEmitter(ILogger<EventEmitter> logger) : Module
             switch (e)
             {
                 case PullStartEvent pullStart:
-                    Owner.BeginPull(pullStart.Pull);
+                    Owner.BeginPull(pullStart);
                     await TriggerEventAsync(e);
                     break;
                 case PullEndEvent pullEnd:
-                    Owner.EndPull(pullEnd.Pull);
+                    Owner.EndPull(pullEnd.Start);
                     break;
                 default:
                     await TriggerEventAsync(e);
@@ -142,7 +142,7 @@ public sealed class EventEmitter(ILogger<EventEmitter> logger) : Module
 
     /// <summary>
     /// Dispatches <paramref name="e"/> synchronously to the state and current pull listener tiers.
-    /// Used by <see cref="CombatLogParser.EndPull"/> to deliver a pull's <see cref="FellowshipAnalyzer.Core.Events.PullEndEvent"/>
+    /// Used by <see cref="CombatLogParser.EndPull"/> to deliver a pull's <see cref="PullEndEvent"/>
     /// to that pull's own listeners at the moment it closes, before the pull tier is retired — the one
     /// point that fires reliably for every pull, including a force-close by <see cref="CombatLogParser.BeginPull"/>.
     /// Pull-end handlers are synchronous.

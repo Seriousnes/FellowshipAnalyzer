@@ -858,7 +858,7 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
     }
 
     /// <summary>
-    /// Emits the in-class analyzer surface: the per-pull <c>GetAnalyzerTypes(Pull)</c> gate, the
+    /// Emits the in-class analyzer surface: the per-pull <c>GetAnalyzerTypes(PullStartEvent)</c> gate, the
     /// typed per-surface cross-pull index (backing list + read-only property), the
     /// <c>IndexPullAnalyzer</c> router, and the <c>For(pull)</c> per-pull view accessor.
     /// </summary>
@@ -868,7 +868,7 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
         if (analyzers.Count == 0) return;
 
         var parserBaseName = StripSuffix(info.ClassName, "CombatLogParser");
-        const string pull = "global::FellowshipAnalyzer.Core.Analysis.Pull";
+        const string pull = "global::FellowshipAnalyzer.Core.Events.PullStartEvent";
 
         sb.AppendLine();
         sb.AppendLine("    protected override global::System.Type[] GetAnalyzerTypes(" + pull + " pull)");
@@ -912,18 +912,18 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
     /// <summary>
     /// Emits the namespace-level per-pull read paths: a <c>{Parser}PullView</c> struct exposing
     /// each retained analyzer by surface type, and a <c>{Parser}PullExtensions</c> class adding the
-    /// <c>pull.{Analyzer}</c> extension property over <see cref="FellowshipAnalyzer.Core.Analysis.Pull"/>.
+    /// <c>pull.{Analyzer}</c> extension property over <c>FellowshipAnalyzer.Core.Events.PullStartEvent</c>.
     /// </summary>
     private static void EmitPullReadPaths(StringBuilder sb, string parserBaseName, List<(string Fqn, string MemberName)> surfaceTypes)
     {
         if (surfaceTypes.Count == 0) return;
-        const string pull = "global::FellowshipAnalyzer.Core.Analysis.Pull";
+        const string pull = "global::FellowshipAnalyzer.Core.Events.PullStartEvent";
 
         sb.Append("public readonly struct ").Append(parserBaseName).Append("PullView(").Append(pull).AppendLine(" pull)");
         sb.AppendLine("{");
         foreach (var st in surfaceTypes)
             sb.Append("    public ").Append(st.Fqn).Append("? ").Append(st.MemberName)
-              .Append(" => (").Append(st.Fqn).Append("?)pull.GetAnalyzer(typeof(").Append(st.Fqn).AppendLine("));");
+              .Append(" => (").Append(st.Fqn).Append("?)pull.Metadata.GetAnalyzer(typeof(").Append(st.Fqn).AppendLine("));");
         sb.AppendLine("}");
         sb.AppendLine();
 
@@ -933,7 +933,7 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
         sb.AppendLine("    {");
         foreach (var st in surfaceTypes)
             sb.Append("        public ").Append(st.Fqn).Append("? ").Append(st.MemberName)
-              .Append(" => (").Append(st.Fqn).Append("?)pull.GetAnalyzer(typeof(").Append(st.Fqn).AppendLine("));");
+              .Append(" => (").Append(st.Fqn).Append("?)pull.Metadata.GetAnalyzer(typeof(").Append(st.Fqn).AppendLine("));");
         sb.AppendLine("    }");
         sb.AppendLine("}");
         sb.AppendLine();

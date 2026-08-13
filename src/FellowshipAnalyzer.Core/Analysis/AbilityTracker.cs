@@ -7,7 +7,7 @@ namespace FellowshipAnalyzer.Core.Analysis;
 /// healing done, keyed by the ability id the log reported. Every figure is tallied twice - once
 /// across the whole dungeon and once for the pull it happened in - so the same ability reads
 /// dungeon-wide through <see cref="For(int)"/> or scoped to one encounter through
-/// <see cref="For(int, Pull)"/>.
+/// <see cref="For(int, PullStartEvent)"/>.
 /// <para>
 /// Rows accumulate live as events dispatch: a dungeon-wide row keeps growing until the stream ends,
 /// while a pull's rows are complete the moment that pull closes, so a pull analyzer reading its
@@ -29,10 +29,10 @@ public sealed partial class AbilityTracker : Analyzer
     public TrackedAbility? For(int spellId) => _bySpell.GetValueOrDefault(spellId);
 
     /// <summary>Every ability the player used during <paramref name="pull"/>, in first-use order.</summary>
-    public IReadOnlyList<TrackedAbility> During(Pull pull) => LedgerOf(pull)?.Spells ?? [];
+    public IReadOnlyList<TrackedAbility> During(PullStartEvent pull) => LedgerOf(pull)?.Spells ?? [];
 
     /// <summary>The totals for <paramref name="spellId"/> scoped to <paramref name="pull"/>, or <c>null</c> when the player never used it there.</summary>
-    public TrackedAbility? For(int spellId, Pull pull) => LedgerOf(pull)?.BySpell.GetValueOrDefault(spellId);
+    public TrackedAbility? For(int spellId, PullStartEvent pull) => LedgerOf(pull)?.BySpell.GetValueOrDefault(spellId);
 
     [On<CastEvent>(By = Actor.Player)]
     private void OnCast(CastEvent castEvent)
@@ -113,7 +113,7 @@ public sealed partial class AbilityTracker : Analyzer
         return ledger;
     }
 
-    private PullLedger? LedgerOf(Pull pull)
+    private PullLedger? LedgerOf(PullStartEvent pull)
     {
         foreach (var ledger in _pullLedgers)
         {
@@ -123,9 +123,9 @@ public sealed partial class AbilityTracker : Analyzer
         return null;
     }
 
-    private sealed class PullLedger(Pull pull)
+    private sealed class PullLedger(PullStartEvent pull)
     {
-        public Pull Pull { get; } = pull;
+        public PullStartEvent Pull { get; } = pull;
         public Dictionary<int, TrackedAbility> BySpell { get; } = [];
         public List<TrackedAbility> Spells { get; } = [];
     }

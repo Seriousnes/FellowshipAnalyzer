@@ -41,12 +41,13 @@ public sealed class PullBookendNormalizerTests
 
         var start = Assert.Single(Starts(result));
         var end = Assert.Single(Ends(result));
-        Assert.Same(start.Pull, end.Pull);
-        Assert.Equal(0, start.Pull.Index);
+        Assert.Same(start, end.Start);
+        Assert.Same(end, start.End);
+        Assert.Equal(0, start.Index);
         Assert.Equal(100, start.Timestamp);
         Assert.Equal(5000, end.Timestamp);
-        Assert.Equal(100, start.Pull.StartTime);
-        Assert.Equal(5000, start.Pull.EndTime);
+        Assert.Equal(100, start.StartTime);
+        Assert.Equal(5000, start.EndTime);
         Assert.Contains(existing, result);
     }
 
@@ -66,7 +67,7 @@ public sealed class PullBookendNormalizerTests
         var ends = Ends(result);
         Assert.Equal(2, starts.Count);
         Assert.Equal(2, ends.Count);
-        Assert.Equal([0, 1], starts.Select(s => s.Pull.Index));
+        Assert.Equal([0, 1], starts.Select(s => s.Index));
         Assert.Equal([200, 1000], starts.Select(s => s.Timestamp));
         Assert.Equal([800, 2000], ends.Select(e => e.Timestamp));
     }
@@ -82,7 +83,7 @@ public sealed class PullBookendNormalizerTests
         };
         var normalizer = new PullBookendNormalizer(Context(Dungeon(dungeonPulls: pulls)));
 
-        var pull = Assert.Single(Starts(normalizer.Normalize([], playerId: 1))).Pull;
+        var pull = Assert.Single(Starts(normalizer.Normalize([], playerId: 1)));
 
         Assert.Equal(expectedBoss, pull.IsBoss);
     }
@@ -96,7 +97,7 @@ public sealed class PullBookendNormalizerTests
         };
         var normalizer = new PullBookendNormalizer(Context(Dungeon(dungeonPulls: pulls)));
 
-        var pull = Assert.Single(Starts(normalizer.Normalize([], playerId: 1))).Pull;
+        var pull = Assert.Single(Starts(normalizer.Normalize([], playerId: 1)));
 
         Assert.False(pull.Kill);
         Assert.True(pull.IsBoss);
@@ -118,7 +119,7 @@ public sealed class PullBookendNormalizerTests
         };
         var normalizer = new PullBookendNormalizer(Context(Dungeon(dungeonPulls: pulls)));
 
-        var pull = Assert.Single(Starts(normalizer.Normalize([], playerId: 1))).Pull;
+        var pull = Assert.Single(Starts(normalizer.Normalize([], playerId: 1)));
 
         Assert.Equal(expectedShape, pull.Targets);
     }
@@ -133,7 +134,7 @@ public sealed class PullBookendNormalizerTests
         };
         var normalizer = new PullBookendNormalizer(Context(Dungeon(encounterId: 7, kill: true, enemyNpcs: npcs)));
 
-        var pull = Assert.Single(Starts(normalizer.Normalize([], playerId: 1))).Pull;
+        var pull = Assert.Single(Starts(normalizer.Normalize([], playerId: 1)));
 
         Assert.Equal(PullKind.Single, pull.Targets);
         Assert.True(pull.IsBoss);

@@ -67,7 +67,7 @@
             return;
         }
 
-        IReadOnlyList<Pull> pulls = SelectedPull is { } pull ? [pull] : Owner.Pulls;
+        IReadOnlyList<PullStartEvent> pulls = SelectedPull is { } pull ? [pull] : Owner.Pulls;
         _rows = CastEfficiencyModel.Build(abilities, Result.Events, Owner.PlayerId, pulls);
     }
 

@@ -111,14 +111,14 @@ public sealed class AbilityTrackerTests
         var tracker = await Analyze(
         [
             Damage(500, SpellA, amount: 250),
-            new PullStartEvent { Timestamp = 1000, Pull = pull1 },
+            pull1,
             Cast(2000, SpellA),
             Damage(2500, SpellA, amount: 3000),
-            new PullEndEvent { Timestamp = 5000, Pull = pull1 },
+            pull1.End,
             Damage(6000, SpellA, amount: 1000),
-            new PullStartEvent { Timestamp = 7000, Pull = pull2 },
+            pull2,
             Damage(8000, SpellA, amount: 500),
-            new PullEndEvent { Timestamp = 9000, Pull = pull2 },
+            pull2.End,
         ]);
 
         var dungeonWide = tracker.For(SpellA)!;
@@ -146,19 +146,29 @@ public sealed class AbilityTrackerTests
 
         var tracker = await Analyze(
         [
-            new PullStartEvent { Timestamp = 1000, Pull = pull },
+            pull,
             Damage(2000, SpellA, amount: 100),
-            new PullEndEvent { Timestamp = 5000, Pull = pull },
-            new PullStartEvent { Timestamp = 7000, Pull = idlePull },
-            new PullEndEvent { Timestamp = 9000, Pull = idlePull },
+            pull.End,
+            idlePull,
+            idlePull.End,
         ]);
 
         Assert.Empty(tracker.During(idlePull));
         Assert.Null(tracker.For(SpellA, idlePull));
     }
 
-    private static Pull MakePull(int index, int id, int startTime, int endTime) =>
-        new(index, id, $"Pull {id}", startTime, endTime, PullKind.Single, IsBoss: true, Kill: true);
+    private static PullStartEvent MakePull(int index, int id, int startTime, int endTime) =>
+        new()
+        {
+            Timestamp = startTime,
+            End = new PullEndEvent { Timestamp = endTime },
+            Index = index,
+            Id = id,
+            Name = $"Pull {id}",
+            Targets = PullKind.Single,
+            IsBoss = true,
+            Kill = true,
+        };
 
     private static async Task<AbilityTracker> Analyze(List<Event> events)
     {

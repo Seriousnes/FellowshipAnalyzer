@@ -1,4 +1,5 @@
 @using FellowshipAnalyzer.Core.Analysis
+@using FellowshipAnalyzer.Core.Events
 @using FellowshipAnalyzer.Core.UI
 @using FellowshipAnalyzer.Services
 
@@ -19,7 +20,7 @@
     public ReportAnalysisContext Context { get; set; } = null!;
 
     [Parameter]
-    public Pull? SelectedPull { get; set; }
+    public PullStartEvent? SelectedPull { get; set; }
 
     [Parameter]
     public RenderFragment ChildContent { get; set; } = null!;

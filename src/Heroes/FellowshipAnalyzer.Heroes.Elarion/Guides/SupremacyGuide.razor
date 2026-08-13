@@ -78,7 +78,7 @@
             analyzer => analyzer.Windows,
             (window, pull) => BuildWindowRow(window, pull));
 
-    private PerCastRow BuildWindowRow(SupremacyAnalyzer.SupremacyWindow window, Pull pull)
+    private PerCastRow BuildWindowRow(SupremacyAnalyzer.SupremacyWindow window, PullStartEvent pull)
     {
         var share = window.StacksGranted == 0
             ? 0
@@ -120,7 +120,7 @@
         };
     }
 
-    private static string BuildNote(SupremacyAnalyzer.SupremacyWindow window, Pull pull)
+    private static string BuildNote(SupremacyAnalyzer.SupremacyWindow window, PullStartEvent pull)
     {
         if (window.StacksWasted == 0)
             return $"All {window.StacksGranted} charges were spent on a Multishot.";

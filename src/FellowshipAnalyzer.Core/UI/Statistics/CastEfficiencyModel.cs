@@ -50,7 +50,7 @@ public static class CastEfficiencyModel
         Abilities abilities,
         IReadOnlyList<Event> events,
         int playerId,
-        IReadOnlyList<Pull> pulls)
+        IReadOnlyList<PullStartEvent> pulls)
     {
         var analyzedMs = 0;
         var lastPullEnd = 0;
@@ -182,7 +182,7 @@ public static class CastEfficiencyModel
         return recharges;
     }
 
-    private static int OverlapMs(Recharge recharge, IReadOnlyList<Pull> pulls)
+    private static int OverlapMs(Recharge recharge, IReadOnlyList<PullStartEvent> pulls)
     {
         var total = 0;
         foreach (var pull in pulls)
@@ -190,7 +190,7 @@ public static class CastEfficiencyModel
         return total;
     }
 
-    private static bool CompletedWithinOnePull(Recharge recharge, IReadOnlyList<Pull> pulls)
+    private static bool CompletedWithinOnePull(Recharge recharge, IReadOnlyList<PullStartEvent> pulls)
     {
         if (!recharge.Completed) return false;
 
@@ -201,7 +201,7 @@ public static class CastEfficiencyModel
         return false;
     }
 
-    private static bool IsInAnyPull(IReadOnlyList<Pull> pulls, int timestamp)
+    private static bool IsInAnyPull(IReadOnlyList<PullStartEvent> pulls, int timestamp)
     {
         foreach (var pull in pulls)
             if (timestamp >= pull.StartTime && timestamp <= pull.EndTime)

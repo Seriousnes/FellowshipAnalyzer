@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Microsoft.AspNetCore.Components;
 
 using FellowshipAnalyzer.Core.Analysis;
+using FellowshipAnalyzer.Core.Events;
 
 namespace FellowshipAnalyzer.Core.UI.Guides;
 
@@ -18,7 +19,7 @@ public static class PullAnalyzerGuideExtensions
     public static IEnumerable<PerCastData> ToPullRows<T>(
         this IReadOnlyList<PullAnalyzer<T>> analyzers,
         CombatLogParser parser,
-        Func<T, Pull, PerCastRow> build) where T : IAnalyzerSurface
+        Func<T, PullStartEvent, PerCastRow> build) where T : IAnalyzerSurface
     {
         foreach (var entry in analyzers)
             yield return ToPerCastData(parser, entry.Pull, build(entry.Analyzer, entry.Pull));
@@ -29,14 +30,14 @@ public static class PullAnalyzerGuideExtensions
         this IReadOnlyList<PullAnalyzer<T>> analyzers,
         CombatLogParser parser,
         Func<T, IEnumerable<TItem>> items,
-        Func<TItem, Pull, PerCastRow> build) where T : IAnalyzerSurface
+        Func<TItem, PullStartEvent, PerCastRow> build) where T : IAnalyzerSurface
     {
         foreach (var entry in analyzers)
             foreach (var item in items(entry.Analyzer))
                 yield return ToPerCastData(parser, entry.Pull, build(item, entry.Pull));
     }
 
-    private static PerCastData ToPerCastData(CombatLogParser parser, Pull pull, PerCastRow row) =>
+    private static PerCastData ToPerCastData(CombatLogParser parser, PullStartEvent pull, PerCastRow row) =>
         new()
         {
             Performance = row.Performance,
@@ -50,7 +51,7 @@ public static class PullAnalyzerGuideExtensions
             GroupContent = PullBannerFragment(pull),
         };
 
-    private static RenderFragment PullBannerFragment(Pull pull) => builder =>
+    private static RenderFragment PullBannerFragment(PullStartEvent pull) => builder =>
     {
         builder.OpenComponent<PullBanner>(0);
         builder.AddAttribute(1, nameof(PullBanner.Pull), pull);

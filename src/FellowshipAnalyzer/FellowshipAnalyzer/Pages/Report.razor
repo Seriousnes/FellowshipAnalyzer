@@ -1,6 +1,7 @@
 @page "/report/{ReportCode}/{DungeonId:int}/{PlayerId:int}"
 @using FellowshipAnalyzer.Components.Providers
 @using FellowshipAnalyzer.Core.Analysis
+@using FellowshipAnalyzer.Core.Events
 @using CoreReportActor = FellowshipAnalyzer.Core.FellowshipLogs.ReportActor
 @using CoreReportDungeon = FellowshipAnalyzer.Core.FellowshipLogs.ReportDungeon
 @using CoreReportInfo = FellowshipAnalyzer.Core.FellowshipLogs.ReportInfo
@@ -68,9 +69,7 @@
     }
     else
     {
-        <PageHeader Title="Loading report details..." aria-busy="true">
-            <Eyebrow>Combat Report</Eyebrow>
-        </PageHeader>
+        <ReportHeaderSkeleton />
     }
 
     @if (_isLoading)
@@ -231,7 +230,7 @@
     private bool _isLoading = true;
     private string? _error;
     private string _aboutSubViewId = "overview";
-    private Pull? _selectedPull;
+    private PullStartEvent? _selectedPull;
 
     private ReportHeader? Header
     {
@@ -307,7 +306,7 @@
         context.Analyzer.SelectedPull = resolved;
     }
 
-    private void OnSelectedPullChanged(Pull? pull)
+    private void OnSelectedPullChanged(PullStartEvent? pull)
     {
         if (ReferenceEquals(pull, _selectedPull))
             return;
@@ -335,7 +334,7 @@
                             DungeonStartTime="context.DungeonStartTime" />;
     }
 
-    private int CountEventsInPull(Pull pull) =>
+    private int CountEventsInPull(PullStartEvent pull) =>
         _context?.Analysis is { } analysis
             ? analysis.Events.Count(e => e.Timestamp >= pull.StartTime && e.Timestamp <= pull.EndTime)
             : 0;

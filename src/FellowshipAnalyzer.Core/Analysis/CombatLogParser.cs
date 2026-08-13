@@ -124,8 +124,8 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
     private readonly HashSet<Type> _runModuleTypeSet = [];
     private Type[] _runModuleTypes = [];
     private readonly Dictionary<Type, object> _pullInstances = [];
-    private readonly List<(Pull Pull, Analyzer Analyzer)> _pullAnalyzers = [];
-    private readonly List<Pull> _pulls = [];
+    private readonly List<(PullStartEvent Pull, Analyzer Analyzer)> _pullAnalyzers = [];
+    private readonly List<PullStartEvent> _pulls = [];
 
     /// <summary>
     /// The active parser for the analysis currently in progress, exposed to pipeline-internal
@@ -138,7 +138,7 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
     /// The pull currently being dispatched, or <c>null</c> outside any pull window (dungeon setup,
     /// teardown, and gaps between pulls). Set by <see cref="BeginPull"/> / <see cref="EndPull"/>.
     /// </summary>
-    public Pull? CurrentPull { get; private set; }
+    public PullStartEvent? CurrentPull { get; private set; }
 
     /// <summary>
     /// When set, generated analyzer surface streams (<c>{Surface}s</c>) and <see cref="PullAnalyzers"/>
@@ -146,13 +146,13 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
     /// at the start of every <see cref="Analyze"/> run, and only ever assigned afterwards by the host.
     /// <see cref="Pulls"/> stays unclamped.
     /// </summary>
-    public Pull? SelectedPull { get; set; }
+    public PullStartEvent? SelectedPull { get; set; }
 
     /// <summary>
-    /// Analyzer instances retained at each <see cref="FellowshipAnalyzer.Core.Events.PullEndEvent"/>, in pull order.
+    /// Analyzer instances retained at each <see cref="PullEndEvent"/>, in pull order.
     /// Clamped to <see cref="SelectedPull"/> when one is set.
     /// </summary>
-    public IReadOnlyList<(Pull Pull, Analyzer Analyzer)> PullAnalyzers =>
+    public IReadOnlyList<(PullStartEvent Pull, Analyzer Analyzer)> PullAnalyzers =>
         SelectedPull is null
             ? _pullAnalyzers
             : [.. _pullAnalyzers.Where(entry => ReferenceEquals(entry.Pull, SelectedPull))];
@@ -162,7 +162,7 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
     /// this to compose sections from more than one analyzer surface, probing each pull's
     /// generated nullable accessors for the shape that ran.
     /// </summary>
-    public IReadOnlyList<Pull> Pulls => _pulls;
+    public IReadOnlyList<PullStartEvent> Pulls => _pulls;
 
     /// <summary>
     /// Filters a generated per-surface analyzer stream to <see cref="SelectedPull"/>. Returns the
@@ -253,21 +253,21 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
     /// and discarded in <see cref="EndPull"/>. The source generator overrides this with a static
     /// bitmask gate; the default runs every analyzer on every pull.
     /// </summary>
-    protected virtual Type[] GetAnalyzerTypes(Pull pull) => GetAnalyzerTypes();
+    protected virtual Type[] GetAnalyzerTypes(PullStartEvent pull) => GetAnalyzerTypes();
 
     /// <summary>
     /// Routes a retained analyzer into the parser's denormalized, surface-typed cross-pull
     /// index. The default is a no-op; the source generator overrides it for parsers that register a
     /// <c>[ForPull]</c> analyzer, appending to the matching <see cref="PullAnalyzerList{T}"/>.
     /// </summary>
-    protected virtual void IndexPullAnalyzer(Pull pull, Analyzer analyzer) { }
+    protected virtual void IndexPullAnalyzer(PullStartEvent pull, Analyzer analyzer) { }
 
     /// <summary>
-    /// Opens a pull: constructs a fresh instance of every <see cref="GetAnalyzerTypes(Pull)"/> analyzer
-    /// into the per-pull cache and routes their subscriptions into the pull listener tier. Enforces
-    /// the single-open-pull invariant by closing any already-open pull first (close-before-open).
+    /// Opens a pull: constructs a fresh instance of every <see cref="GetAnalyzerTypes(PullStartEvent)"/>
+    /// analyzer into the per-pull cache and routes their subscriptions into the pull listener tier.
+    /// Enforces the single-open-pull invariant by closing any already-open pull first (close-before-open).
     /// </summary>
-    public void BeginPull(Pull pull)
+    public void BeginPull(PullStartEvent pull)
     {
         if (CurrentPull is not null) EndPull(CurrentPull);
 
@@ -291,30 +291,30 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
     }
 
     /// <summary>
-    /// Closes a pull, in order: emits a <see cref="FellowshipAnalyzer.Core.Events.PullEndEvent"/> to the pull's own listeners
-    /// while they are still live (so a subscriber can snapshot dungeon-lifetime state at the instant the
-    /// pull ends), then retains each analyzer on the pull read surfaces, then retires the pull listener
-    /// tier and discards the per-pull instance cache. Emitting here (rather than relying on the
-    /// fabricated event's dispatch) is what makes the event fire exactly once for every pull, including
-    /// a force-close triggered by <see cref="BeginPull"/>. Analyzers derive their own per-pull metrics
-    /// from retained state via get-style accessors, so this does not run a finalization pass. Ignores a
-    /// <paramref name="pull"/> that is not the currently-open one (a stale end left over from
+    /// Closes a pull, in order: emits the pull's own <see cref="PullStartEvent.End"/> to the pull's
+    /// listeners while they are still live (so a subscriber can snapshot dungeon-lifetime state at the
+    /// instant the pull ends), then retains each analyzer on the pull read surfaces, then retires the
+    /// pull listener tier and discards the per-pull instance cache. Emitting here (rather than relying on
+    /// the fabricated event's dispatch) is what makes the event fire exactly once for every pull,
+    /// including a force-close triggered by <see cref="BeginPull"/>. Analyzers derive their own per-pull
+    /// metrics from retained state via get-style accessors, so this does not run a finalization pass.
+    /// Ignores a <paramref name="pull"/> that is not the currently-open one (a stale end left over from
     /// close-before-open).
     /// </summary>
-    public void EndPull(Pull pull)
+    public void EndPull(PullStartEvent pull)
     {
         if (!ReferenceEquals(CurrentPull, pull)) return;
 
         _pulls.Add(pull);
 
-        EventEmitter.Emit(new PullEndEvent { Timestamp = CurrentTimestamp, Pull = pull });
+        EventEmitter.Emit(pull.End);
 
         foreach (var instance in _pullInstances.Values)
         {
             if (instance is not Analyzer analyzer) continue;
 
             _pullAnalyzers.Add((pull, analyzer));
-            pull.SetAnalyzer(Analyzer.GetSurfaceType(analyzer.GetType()), analyzer);
+            pull.Metadata.SetAnalyzer(Analyzer.GetSurfaceType(analyzer.GetType()), analyzer);
             IndexPullAnalyzer(pull, analyzer);
         }
 

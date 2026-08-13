@@ -84,7 +84,7 @@
             _ => throw new InvalidOperationException($"Unexpected Mara DoT analyzer {analyzer.GetType().Name}"),
         });
 
-    private PerCastRow BuildBossRow(MaraDotUptimeAnalyzer analyzer, Pull pull)
+    private PerCastRow BuildBossRow(MaraDotUptimeAnalyzer analyzer, PullStartEvent pull)
     {
         var sampled = analyzer.PullDurationMs > 0;
         var stats = new List<PerCastStat>();
@@ -189,7 +189,7 @@
         };
     }
 
-    private static IReadOnlyList<int> ChartSamples(MaraDotUptimeAnalyzer analyzer, Pull pull)
+    private static IReadOnlyList<int> ChartSamples(MaraDotUptimeAnalyzer analyzer, PullStartEvent pull)
     {
         var samples = new SortedSet<int> { pull.StartTime, pull.EndTime };
         foreach (var entry in analyzer.Uptimes)

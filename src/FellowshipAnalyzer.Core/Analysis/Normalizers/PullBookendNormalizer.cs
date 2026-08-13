@@ -4,7 +4,7 @@ using FellowshipAnalyzer.Core.FellowshipLogs;
 namespace FellowshipAnalyzer.Core.Analysis.Normalizers;
 
 /// <summary>
-/// Fabricates a <see cref="PullStartEvent"/> / <see cref="PullEndEvent"/> pair for each Fellowship
+/// Fabricates a <see cref="PullStartEvent"/> and its <see cref="PullEndEvent"/> for each Fellowship
 /// Logs dungeon pull on the dungeon, classifying it from the pull's <c>encounterID</c>, <c>kill</c>,
 /// and <c>enemyNPCs</c>. A dungeon that exposes no dungeon pulls (raids and other non-dungeon content)
 /// gets one implicit pull spanning the whole dungeon, classified from the dungeon's own fields. Pull opens
@@ -28,23 +28,20 @@ public sealed class PullBookendNormalizer(ParseContext parseContext) : IEventNor
         var pulls = BuildPulls();
 
         var result = new List<Event>(events.Count + (pulls.Count * 2));
-        foreach (var pull in pulls)
-            result.Add(new PullStartEvent { Timestamp = pull.StartTime, Pull = pull });
-
+        result.AddRange(pulls);
         result.AddRange(events);
-
         foreach (var pull in pulls)
-            result.Add(new PullEndEvent { Timestamp = pull.EndTime, Pull = pull });
+            result.Add(pull.End);
 
         return result;
     }
 
-    private List<Pull> BuildPulls()
+    private List<PullStartEvent> BuildPulls()
     {
         var dungeonPulls = parseContext.DungeonPulls;
         if (dungeonPulls is { Count: > 0 })
         {
-            var pulls = new List<Pull>(dungeonPulls.Count);
+            var pulls = new List<PullStartEvent>(dungeonPulls.Count);
             for (var i = 0; i < dungeonPulls.Count; i++)
                 pulls.Add(FromDungeonPull(i, dungeonPulls[i]));
             return pulls;
@@ -53,32 +50,36 @@ public sealed class PullBookendNormalizer(ParseContext parseContext) : IEventNor
         return [FromDungeon(parseContext.Dungeon)];
     }
 
-    private static Pull FromDungeonPull(int index, DungeonPull pull)
+    private static PullStartEvent FromDungeonPull(int index, DungeonPull pull)
     {
         var isBoss = pull.EncounterId != 0;
-        return new Pull(
-            Index: index,
-            Id: pull.Id,
-            Name: pull.Name,
-            StartTime: (int)pull.StartTime,
-            EndTime: (int)pull.EndTime,
-            Targets: ShapeFor(isBoss),
-            IsBoss: isBoss,
-            Kill: pull.Kill ?? false);
+        return new PullStartEvent
+        {
+            Timestamp = (int)pull.StartTime,
+            End = new PullEndEvent { Timestamp = (int)pull.EndTime },
+            Index = index,
+            Id = pull.Id,
+            Name = pull.Name,
+            Targets = ShapeFor(isBoss),
+            IsBoss = isBoss,
+            Kill = pull.Kill ?? false,
+        };
     }
 
-    private static Pull FromDungeon(ReportDungeon dungeon)
+    private static PullStartEvent FromDungeon(ReportDungeon dungeon)
     {
         var isBoss = dungeon.EncounterId != 0;
-        return new Pull(
-            Index: 0,
-            Id: 0,
-            Name: dungeon.Name,
-            StartTime: (int)dungeon.StartTime,
-            EndTime: (int)dungeon.EndTime,
-            Targets: ShapeFor(isBoss),
-            IsBoss: isBoss,
-            Kill: dungeon.Kill ?? false);
+        return new PullStartEvent
+        {
+            Timestamp = (int)dungeon.StartTime,
+            End = new PullEndEvent { Timestamp = (int)dungeon.EndTime },
+            Index = 0,
+            Id = 0,
+            Name = dungeon.Name,
+            Targets = ShapeFor(isBoss),
+            IsBoss = isBoss,
+            Kill = dungeon.Kill ?? false,
+        };
     }
 
     private static PullKind ShapeFor(bool isBoss)

@@ -25,7 +25,7 @@
 </div>
 
 @code {
-    [Parameter, EditorRequired] public Pull Pull { get; set; } = default!;
+    [Parameter, EditorRequired] public PullStartEvent Pull { get; set; } = default!;
 
     private string DisplayName =>
         string.IsNullOrWhiteSpace(Pull.Name) ? $"Pull {Pull.Index + 1}" : Pull.Name;

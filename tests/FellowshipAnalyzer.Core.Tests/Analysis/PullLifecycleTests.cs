@@ -44,8 +44,8 @@ public sealed partial class PullLifecycleTests
         Assert.Equal(2, ((PullProbeAnalyzer)analyzer0).StateCountAtEnd);
         Assert.Equal(6, ((PullProbeAnalyzer)analyzer1).StateCountAtEnd);
 
-        Assert.Same(analyzer0, pull0.GetAnalyzer(typeof(PullProbeAnalyzer)));
-        Assert.Same(analyzer1, pull1.GetAnalyzer(typeof(PullProbeAnalyzer)));
+        Assert.Same(analyzer0, pull0.Metadata.GetAnalyzer(typeof(PullProbeAnalyzer)));
+        Assert.Same(analyzer1, pull1.Metadata.GetAnalyzer(typeof(PullProbeAnalyzer)));
 
         var state = parser.GetModule<WholeDungeonCounter>()!;
         Assert.Equal(6, state.Count);
@@ -124,8 +124,8 @@ public sealed partial class PullLifecycleTests
         Assert.Equal("P0", parser.Pulls[0].Name);
         Assert.Equal("P1", parser.Pulls[1].Name);
         Assert.Single(parser.PullAnalyzers);
-        Assert.NotNull(parser.Pulls[0].GetAnalyzer(typeof(PullProbeAnalyzer)));
-        Assert.Null(parser.Pulls[1].GetAnalyzer(typeof(PullProbeAnalyzer)));
+        Assert.NotNull(parser.Pulls[0].Metadata.GetAnalyzer(typeof(PullProbeAnalyzer)));
+        Assert.Null(parser.Pulls[1].Metadata.GetAnalyzer(typeof(PullProbeAnalyzer)));
 
         await parser.Analyze(events, playerId: 7, dungeon: Dungeon(pulls));
 
@@ -177,7 +177,7 @@ public sealed partial class PullLifecycleTests
         protected override Type[] GetNormalizerTypes() =>
             [typeof(DungeonBookendNormalizer), typeof(PullBookendNormalizer)];
 
-        protected override Type[] GetAnalyzerTypes(Pull pull) =>
+        protected override Type[] GetAnalyzerTypes(PullStartEvent pull) =>
             pull.Index == 0 ? [typeof(PullProbeAnalyzer)] : [];
 
         protected override object? CreateInstance(Type type)

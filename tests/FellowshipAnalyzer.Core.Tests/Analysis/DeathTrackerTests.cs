@@ -445,12 +445,20 @@ public sealed class DeathTrackerTests
         var stream = new List<Event>(events);
         if (pullStart is { } start && pullEnd is { } end)
         {
-            var pull = new Pull(
-                Index: 0, Id: 1, Name: "Test Pull", StartTime: start, EndTime: end,
-                Targets: PullKind.Single, IsBoss: true, Kill: false);
+            var pull = new PullStartEvent
+            {
+                Timestamp = start,
+                End = new PullEndEvent { Timestamp = end },
+                Index = 0,
+                Id = 1,
+                Name = "Test Pull",
+                Targets = PullKind.Single,
+                IsBoss = true,
+                Kill = false,
+            };
 
-            stream.Add(new PullStartEvent { Timestamp = start, Pull = pull });
-            stream.Add(new PullEndEvent { Timestamp = end, Pull = pull });
+            stream.Add(pull);
+            stream.Add(pull.End);
         }
 
         stream.Add(new DungeonEndEvent { Timestamp = (int)TestDungeon.EndTime });

@@ -46,7 +46,7 @@ public sealed partial class DeathTracker : Analyzer
     public IReadOnlyList<PlayerDeath> Deaths => _deaths;
 
     /// <summary>The deaths that fall inside <paramref name="pull"/>, or every death when it is <c>null</c>.</summary>
-    public IReadOnlyList<PlayerDeath> For(Pull? pull) =>
+    public IReadOnlyList<PlayerDeath> For(PullStartEvent? pull) =>
         pull is null ? _deaths : [.. _deaths.Where(death => ReferenceEquals(death.Pull, pull))];
 
     [On<DamageEvent>(To = Actor.Player)]

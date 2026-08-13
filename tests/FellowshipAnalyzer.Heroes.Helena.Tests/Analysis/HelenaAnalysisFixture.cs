@@ -16,7 +16,7 @@ namespace FellowshipAnalyzer.Heroes.Helena.Tests.Analysis;
 /// <summary>
 /// Builds analyses through the real parser rather than a bare test parser, so the pull and dungeon
 /// bookend normalizers run and every pull-lifetime analyzer is constructed against a real
-/// <see cref="Pull"/>. Without them a pull analyzer never opens and every metric reads a silent zero.
+/// <see cref="PullStartEvent"/>. Without them a pull analyzer never opens and every metric reads a silent zero.
 /// </summary>
 internal static class HelenaAnalysisFixture
 {

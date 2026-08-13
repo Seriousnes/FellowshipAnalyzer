@@ -42,7 +42,7 @@
 @code {
     [Parameter, EditorRequired] public required ResourceTracker Tracker { get; set; }
     [Parameter, EditorRequired] public required ResourceTypes Resource { get; set; }
-    [Parameter] public Pull? Pull { get; set; }
+    [Parameter] public PullStartEvent? Pull { get; set; }
     [Parameter] public bool ShareOfMaximum { get; set; }
     [Parameter] public ResourceGraphOverlay? Overlay { get; set; }
     [Parameter] public bool IncludeWasted { get; set; }

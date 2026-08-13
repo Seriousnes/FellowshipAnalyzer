@@ -187,7 +187,7 @@
         _ => FaVar.Stone,
     };
 
-    private AdditionalContent? BuildPullGraph(Pull pull)
+    private AdditionalContent? BuildPullGraph(PullStartEvent pull)
     {
         if (Parser.ToughnessTracker is not { Toughness: not null } tracker) return null;
 
@@ -201,7 +201,7 @@
             @<ResourceGraph @key="pull" Tracker="tracker" Resource="ResourceTypes.Secondary" Pull="pull" ShareOfMaximum="true" Overlay="overlay" />);
     }
 
-    private ResourceGraphOverlay? BuildDamageTakenOverlay(Pull pull)
+    private ResourceGraphOverlay? BuildDamageTakenOverlay(PullStartEvent pull)
     {
         if (Parser.DamageTakenTracker is not { } damage) return null;
 

@@ -1,3 +1,5 @@
+using FellowshipAnalyzer.Core.Events;
+
 namespace FellowshipAnalyzer.Core.Analysis;
 
 /// <summary>
@@ -17,7 +19,7 @@ public enum PullBoss
 /// <summary>
 /// Declares the pull shapes an <see cref="Analyzer"/> runs on, and by its presence makes the analyzer
 /// pull-lifetime: a fresh instance per matching pull, retained on the pull read surfaces. An analyzer
-/// matches a <see cref="Pull"/> when <c>Targets.HasFlag(pull.Targets)</c> and the pull's boss state
+/// matches a <see cref="PullStartEvent"/> when <c>Targets.HasFlag(pull.Targets)</c> and the pull's boss state
 /// satisfies <see cref="Boss"/>. Because the filter is compile-time constant, the parser generator
 /// emits it as a static bitmask gate in the per-pull resolver.
 /// <para>

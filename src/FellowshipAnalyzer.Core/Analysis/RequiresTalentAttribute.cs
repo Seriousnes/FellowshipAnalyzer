@@ -5,7 +5,7 @@ namespace FellowshipAnalyzer.Core.Analysis;
 /// dungeon-lifetime module class, it drives the source-generated <c>IsModuleActive</c> override to
 /// emit a <c>context.SelectedCombatant.HasTalent(<see cref="TalentId"/>)</c> check. Applied to a
 /// pull-lifetime <see cref="Analyzer"/>, the same check joins its <see cref="ForPullAttribute"/>
-/// gate in the generated <c>GetAnalyzerTypes(Pull)</c>, so a build without the talent constructs no
+/// gate in the generated <c>GetAnalyzerTypes(PullStartEvent)</c>, so a build without the talent constructs no
 /// instance and the analyzer's cross-pull read path stays empty.
 /// </summary>
 /// <param name="talentId">

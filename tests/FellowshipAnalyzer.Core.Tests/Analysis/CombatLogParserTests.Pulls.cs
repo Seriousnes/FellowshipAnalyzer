@@ -21,7 +21,7 @@ public sealed partial class CombatLogParserTests
         Assert.IsType<DungeonEndEvent>(events[^1]);
         var pullEnd = Assert.IsType<PullEndEvent>(events[^2]);
 
-        Assert.Same(pullStart.Pull, pullEnd.Pull);
+        Assert.Same(pullStart, pullEnd.Start);
         Assert.Equal(owner.DungeonStartTime, pullStart.Timestamp);
         Assert.Equal(owner.DungeonEndTime, pullEnd.Timestamp);
         Assert.Single(events.OfType<PullStartEvent>());
