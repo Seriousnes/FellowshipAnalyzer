@@ -64,7 +64,7 @@ public class ReportInfoTests
     public void FindNpcIconUrl_ToleratesUnnamedActors()
     {
         var report = Report(
-            Actor(1, null!, "NPC", "unnamed.jpg"),
+            Actor(1, null, "NPC", "unnamed.jpg"),
             Actor(2, "Grovetender", "NPC", "boss.jpg"));
 
         report.FindNpcIconUrl("Grovetender")
@@ -91,6 +91,6 @@ public class ReportInfoTests
             Dungeons: [],
             Actors: actors);
 
-    private static ReportActor Actor(int id, string name, string type, string? icon) =>
-        new(id, name, type, SubType: null, Server: null, Icon: icon);
+    private static ReportActor Actor(int id, string? name, string type, string? icon) =>
+        new(id, name!, type, SubType: null, Server: null, Icon: icon);
 }
