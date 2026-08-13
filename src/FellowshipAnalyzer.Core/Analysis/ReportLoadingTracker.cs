@@ -95,7 +95,7 @@ public sealed class ReportLoadingTracker
         set => Set(ref _analyzedEventCount, value);
     }
 
-    /// <summary>Total number of events to dispatch in this fight.</summary>
+    /// <summary>Total number of events to dispatch in this dungeon.</summary>
     public int TotalEventCount
     {
         get => _totalEventCount;

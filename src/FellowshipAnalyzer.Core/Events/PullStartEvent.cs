@@ -5,7 +5,7 @@ using FellowshipAnalyzer.Core.Analysis;
 namespace FellowshipAnalyzer.Core.Events;
 
 /// <summary>
-/// Marks the start of a <see cref="Analysis.Pull"/> window inside a fight. Fabricated by the
+/// Marks the start of a <see cref="Analysis.Pull"/> window inside a dungeon. Fabricated by the
 /// pull-bookend normalizer; modules hook it via <c>[On&lt;PullStartEvent&gt;]</c>.
 /// </summary>
 [Fabricated]

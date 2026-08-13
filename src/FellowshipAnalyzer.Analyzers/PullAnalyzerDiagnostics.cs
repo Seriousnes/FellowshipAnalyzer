@@ -38,7 +38,7 @@ public sealed class PullAnalyzerDiagnostics : DiagnosticAnalyzer
         category: "Analysis",
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true,
-        description: "A [ForPull] analyzer is constructed fresh for every matching pull, directly into the parser's per-pull cache, and no dependency-resolution path reads that cache. Depending on one throws at runtime. Depend on a parse-lifetime module or analyzer instead.");
+        description: "A [ForPull] analyzer is constructed fresh for every matching pull, directly into the parser's per-pull cache, and no dependency-resolution path reads that cache. Depending on one throws at runtime. Depend on a dungeon-lifetime module or analyzer instead.");
 
     private static readonly DiagnosticDescriptor ForPullMissingTargets = new(
         id: "FA0015",

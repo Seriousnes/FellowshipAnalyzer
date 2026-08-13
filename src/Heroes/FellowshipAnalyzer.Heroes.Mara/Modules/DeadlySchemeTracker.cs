@@ -73,7 +73,7 @@ public sealed partial class DeadlySchemeTracker : Analyzer
     }
 
     [On<DungeonEndEvent>]
-    private void OnFightEnd(DungeonEndEvent fightEndEvent) => CloseActivation(fightEndEvent.Timestamp);
+    private void OnDungeonEnd(DungeonEndEvent dungeonEndEvent) => CloseActivation(dungeonEndEvent.Timestamp);
 
     private void SetStacks(int stacks)
     {

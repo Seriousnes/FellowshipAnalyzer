@@ -11,7 +11,7 @@ namespace FellowshipAnalyzer.Core.Analysis;
 public interface IHeroAnalyzer
 {
     /// <summary>
-    /// Report-level actor master data: every player, NPC, and pet the report names.
+    /// Report-level actor master data: every player and NPC the report names.
     /// Must be populated before calling <see cref="Analyze"/>.
     /// </summary>
     IReadOnlyList<ReportActor> Actors { get; set; }
@@ -40,14 +40,14 @@ public interface IHeroAnalyzer
 
     /// <summary>
     /// When set, generated analyzer surface streams are clamped to this pull so a report view can
-    /// crop to a single encounter. <c>null</c> leaves the whole fight in view.
+    /// crop to a single encounter. <c>null</c> leaves the whole dungeon in view.
     /// </summary>
     Pull? SelectedPull { get; set; }
 
     /// <summary>Runs the full normalize-dispatch-accumulate pipeline over <paramref name="events"/> and produces the hero's analysis result.</summary>
     /// <param name="events">The player's combat log event stream for the report.</param>
     /// <param name="playerId">The FellowshipLogs actor id of the player being analyzed.</param>
-    /// <param name="fight">The report fight the events belong to.</param>
+    /// <param name="dungeon">The report dungeon the events belong to.</param>
     /// <returns>The completed hero analysis, ready for the guide and statistics views.</returns>
-    Task<HeroAnalysisResult> Analyze(IReadOnlyList<Event> events, int playerId, ReportFight fight);
+    Task<HeroAnalysisResult> Analyze(IReadOnlyList<Event> events, int playerId, ReportDungeon dungeon);
 }

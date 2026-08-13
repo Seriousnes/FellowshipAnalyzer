@@ -2,7 +2,7 @@ namespace FellowshipAnalyzer.Core.Analysis;
 
 /// <summary>
 /// One spawn of a hostile unit, tracked for its aura history. Seeded from the rosters the report
-/// declares - the fight's enemy NPC list and every dungeon pull's - and fabricated on demand for a
+/// declares - the dungeon's enemy NPC list and every dungeon pull's - and fabricated on demand for a
 /// unit no roster names. <see cref="Analysis.Enemies"/> answers the enemy-facing questions over these.
 /// </summary>
 public sealed class Enemy(int id, int? instance, bool rostered = false) : Combatant(id)

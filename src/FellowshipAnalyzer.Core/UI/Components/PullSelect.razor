@@ -111,8 +111,8 @@
     /// <summary>Raised when the selection changes; supports <c>@@bind-Value</c>.</summary>
     [Parameter] public EventCallback<Pull?> ValueChanged { get; set; }
 
-    /// <summary>Fight start time in milliseconds, used to render fight-relative pull ranges.</summary>
-    [Parameter, EditorRequired] public int FightStartTime { get; set; }
+    /// <summary>Dungeon start time in milliseconds, used to render dungeon-relative pull ranges.</summary>
+    [Parameter, EditorRequired] public int DungeonStartTime { get; set; }
 
     [Parameter(CaptureUnmatchedValues = true)]
     public Dictionary<string, object> InputAttributes { get; set; } = new();
@@ -167,7 +167,7 @@
     }
 
     private string FormatRange(Pull pull) =>
-        $"({FormatClock(pull.StartTime - FightStartTime)} - {FormatClock(pull.EndTime - FightStartTime)})";
+        $"({FormatClock(pull.StartTime - DungeonStartTime)} - {FormatClock(pull.EndTime - DungeonStartTime)})";
 
     private static string FormatClock(int milliseconds)
     {

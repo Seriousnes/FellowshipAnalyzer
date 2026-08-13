@@ -15,7 +15,7 @@ namespace FellowshipAnalyzer.Core.Tests.Analysis;
 
 /// <summary>
 /// Tests for <see cref="ThroughputTracker"/>: the selected player's damage, healing, and absorbed totals are
-/// summed over the fight and converted into the per-second rates and shares that item statistics report a
+/// summed over the dungeon and converted into the per-second rates and shares that item statistics report a
 /// contribution with.
 /// </summary>
 public sealed class ThroughputTrackerTests
@@ -23,10 +23,10 @@ public sealed class ThroughputTrackerTests
     private const int PlayerId = 7;
     private const int OtherPlayerId = 9;
 
-    private static readonly ReportFight TestFight =
+    private static readonly ReportDungeon TestDungeon =
         new(Id: 0, Name: "", EncounterId: 0, Kill: null,
             StartTime: 0, EndTime: 60_000, Difficulty: null,
-            FriendlyPlayers: null, FightPercentage: null);
+            FriendlyPlayers: null, CompletionPercentage: null);
 
     [Fact]
     public async Task Totals_SumTheSelectedPlayersOutput()
@@ -60,11 +60,11 @@ public sealed class ThroughputTrackerTests
     }
 
     [Fact]
-    public async Task Rates_DivideTheTotalByTheFightDuration()
+    public async Task Rates_DivideTheTotalByTheDungeonDuration()
     {
         var tracker = await Analyze([Damage(1000, amount: 60_000)]);
 
-        Assert.Equal(60_000, tracker.FightDurationMs);
+        Assert.Equal(60_000, tracker.DungeonDurationMs);
         Assert.Equal(1000, tracker.DamagePerSecond);
     }
 
@@ -101,7 +101,7 @@ public sealed class ThroughputTrackerTests
         Type[] moduleTypes = [typeof(TestAbilities), typeof(DebugAnnotations), typeof(Combatants), typeof(ThroughputTracker)];
 
         var parser = new TestParser(emitter, provider, moduleTypes);
-        await parser.Analyze(events, PlayerId, fight: TestFight);
+        await parser.Analyze(events, PlayerId, dungeon: TestDungeon);
         return parser.GetModule<ThroughputTracker>()!;
     }
 

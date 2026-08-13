@@ -18,7 +18,7 @@ public sealed partial class DraconicBracersoftheDevouringFlame : Analyzer
     private void OnDamage(DamageEvent damageEvent)
     {
         var target = Combatants.GetCombatant(damageEvent.TargetId, damageEvent.TargetInstance);
-        var stacks = target?.GetAuraInstanceCount(Spells.EngulfingFlamesDot.Id, damageEvent.Timestamp) ?? 0;
+        var stacks = target?.GetAuraInstanceCount(Spells.EngulfingFlamesDot, damageEvent.Timestamp) ?? 0;
 
         totalIncreasedDamage += CombatMath.CalculateEffectiveDamage(damageEvent, stacks * DamageAmpPerStack);
     }

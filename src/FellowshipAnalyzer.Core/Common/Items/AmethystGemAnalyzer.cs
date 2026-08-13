@@ -49,7 +49,7 @@ public sealed partial class AmethystGemAnalyzer : Analyzer, IGemAnalyzer
     /// <summary>The share of <see cref="CriticalHealing"/> Blessing of the Deathdealer was responsible for.</summary>
     public long CriticalPowerHealing => ContributedShare(CriticalHealing);
 
-    /// <summary>Effective healing Reaper's Reprieve did over the fight.</summary>
+    /// <summary>Effective healing Reaper's Reprieve did over the dungeon.</summary>
     public long ReapersReprieveHealing { get; private set; }
 
     /// <summary>Healing Reaper's Reprieve lost to overheal.</summary>

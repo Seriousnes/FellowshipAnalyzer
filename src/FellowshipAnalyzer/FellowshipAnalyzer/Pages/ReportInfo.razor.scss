@@ -7,13 +7,13 @@
 }
 
 .status-panel,
-.fights-section {
+.dungeons-section {
     border: 1px solid var(--fa-border-card);
     background: var(--fa-bg-card);
     box-shadow: var(--fa-shadow-card);
 }
 
-.fights-section {
+.dungeons-section {
     border-radius: var(--fa-radius-lg);
     padding: 1.5rem;
 }
@@ -113,7 +113,7 @@
     color: var(--fa-text-muted);
 }
 
-.player-accordion-fights {
+.player-accordion-dungeons {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
     gap: 0.4rem;

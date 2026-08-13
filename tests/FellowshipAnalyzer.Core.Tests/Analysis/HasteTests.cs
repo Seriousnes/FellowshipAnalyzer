@@ -374,7 +374,7 @@ public sealed partial class HasteTests
             moduleTypes.AddRange(additionalModules);
 
         var parser = CreateCombatLogParser([.. moduleTypes], configureHaste);
-        await parser.Analyze(events ?? [], PlayerId, fight: new ReportFight(0, "", 0, null, 0, 60_000, null, null, null));
+        await parser.Analyze(events ?? [], PlayerId, dungeon: new ReportDungeon(0, "", 0, null, 0, 60_000, null, null, null));
 
         var haste = parser.GetModule<Haste>()!;
         return (parser, haste);

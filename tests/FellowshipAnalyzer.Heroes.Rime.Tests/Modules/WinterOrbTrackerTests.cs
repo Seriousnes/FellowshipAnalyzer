@@ -28,10 +28,10 @@ public sealed class WinterOrbTrackerTests
     private const int EnemyId = 100;
     private const int MaxOrbs = 5;
 
-    private static readonly ReportFight BossFight = new(
+    private static readonly ReportDungeon BossDungeon = new(
         Id: 0, Name: "Boss", EncounterId: 1, Kill: true,
         StartTime: 0, EndTime: 120_000, Difficulty: null,
-        FriendlyPlayers: null, FightPercentage: null);
+        FriendlyPlayers: null, CompletionPercentage: null);
 
     [Fact]
     public async Task FirstSnapshot_SeedsThePoolAndIsNotCountedAsGeneration()
@@ -208,7 +208,7 @@ public sealed class WinterOrbTrackerTests
     }
 
     [Fact]
-    public async Task CappedMs_IsMeasuredFromTheSeedingSnapshotNotTheFightStart()
+    public async Task CappedMs_IsMeasuredFromTheSeedingSnapshotNotTheDungeonStart()
     {
         var tracker = await Analyze(
             Cast(60_000, Spells.FrostBolt, orbs: 5),
@@ -220,7 +220,7 @@ public sealed class WinterOrbTrackerTests
     }
 
     [Fact]
-    public async Task CappedMs_SumsEveryCappedSpanAcrossTheFight()
+    public async Task CappedMs_SumsEveryCappedSpanAcrossTheDungeon()
     {
         var tracker = await Analyze(
             EmptyPool(500),
@@ -358,7 +358,7 @@ public sealed class WinterOrbTrackerTests
         using var scope = provider.CreateScope();
 
         var parser = scope.ServiceProvider.GetRequiredService<RimeCombatLogParser>();
-        await parser.Analyze([Combatant(), .. events], PlayerId, BossFight);
+        await parser.Analyze([Combatant(), .. events], PlayerId, BossDungeon);
         return parser.WinterOrbTracker!;
     }
 }

@@ -20,21 +20,13 @@ public sealed partial class GraphQLMapper
     public ReportActor MapActor(IGetReportMasterData_ReportData_Report_MasterData_Actors source)
         => new(source.Id ?? 0, source.Name, source.Type, source.SubType, source.Server, source.Icon);
 
-    public ReportFight MapFight(IGetReportMasterData_ReportData_Report_Fights source)
+    public ReportDungeon MapDungeon(IGetReportMasterData_ReportData_Report_Fights source)
     {
         var fp = source.FriendlyPlayers?
             .Where(x => x.HasValue)
             .Select(x => x!.Value)
             .ToList();
-        var enemyNpcs = source.EnemyNPCs?
-            .Where(n => n?.Id is not null)
-            .Select(n => MapFightNpc(n!))
-            .ToList();
-        var dungeonPulls = source.DungeonPulls?
-            .Where(p => p is not null)
-            .Select(p => MapDungeonPull(p!))
-            .ToList();
-        return new ReportFight(
+        return new ReportDungeon(
             source.Id,
             source.Name,
             source.EncounterID,
@@ -44,15 +36,13 @@ public sealed partial class GraphQLMapper
             source.Difficulty,
             fp,
             source.FightPercentage,
-            source.InProgress ?? false,
-            dungeonPulls,
-            enemyNpcs);
+            source.InProgress ?? false);
     }
 
-    public FightNpc MapFightNpc(IGetReportMasterData_ReportData_Report_Fights_EnemyNPCs source)
+    public DungeonNpc MapDungeonNpc(IGetReportMasterData_ReportData_Report_TargetFight_EnemyNPCs source)
         => new(source.Id ?? 0, source.GameID ?? 0, source.InstanceCount ?? 1, source.GroupCount ?? 1, source.PetOwner);
 
-    public DungeonPull MapDungeonPull(IGetReportMasterData_ReportData_Report_Fights_DungeonPulls source)
+    public DungeonPull MapDungeonPull(IGetReportMasterData_ReportData_Report_TargetFight_DungeonPulls source)
     {
         var enemyNpcs = source.EnemyNPCs?
             .Where(n => n is not null)
@@ -68,7 +58,7 @@ public sealed partial class GraphQLMapper
             enemyNpcs);
     }
 
-    public DungeonPullNpc MapDungeonPullNpc(IGetReportMasterData_ReportData_Report_Fights_DungeonPulls_EnemyNPCs source)
+    public DungeonPullNpc MapDungeonPullNpc(IGetReportMasterData_ReportData_Report_TargetFight_DungeonPulls_EnemyNPCs source)
         => new(
             source.Id,
             source.GameID,
@@ -92,12 +82,37 @@ public sealed partial class GraphQLMapper
             .Select(a => MapActor(a!))
             .ToList() ?? [];
 
-        var fights = source.Fights?
+        var dungeons = source.Fights?
             .Where(f => f is not null)
-            .Select(f => MapFight(f!))
+            .Select(f => MapDungeon(f!))
             .ToList() ?? [];
 
-        var reportInfo = new ReportInfo(reportCode, source.Title, source.StartTime, source.EndTime, fights, masterActors);
+        if (source.TargetFight is { } targetDungeons)
+        {
+            foreach (var target in targetDungeons)
+            {
+                if (target is null)
+                    continue;
+
+                var index = dungeons.FindIndex(d => d.Id == target.Id);
+                if (index < 0)
+                    continue;
+
+                dungeons[index] = dungeons[index] with
+                {
+                    DungeonPulls = target.DungeonPulls?
+                        .Where(p => p is not null)
+                        .Select(p => MapDungeonPull(p!))
+                        .ToList(),
+                    EnemyNpcs = target.EnemyNPCs?
+                        .Where(n => n?.Id is not null)
+                        .Select(n => MapDungeonNpc(n!))
+                        .ToList(),
+                };
+            }
+        }
+
+        var reportInfo = new ReportInfo(reportCode, source.Title, source.StartTime, source.EndTime, dungeons, masterActors);
         var reportMasterData = new ReportMasterData(abilities, masterActors);
         return new AnalysisPreload(reportInfo, reportMasterData);
     }

@@ -4,7 +4,7 @@ using OneOf;
 namespace FellowshipAnalyzer.Core.Analysis;
 
 /// <summary>
-/// Tracks the selected player's stat ratings over the course of a fight.
+/// Tracks the selected player's stat ratings over the course of a dungeon.
 /// Monitors buff/debuff stack changes to keep rating totals up to date and
 /// fabricates <see cref="ChangeStatsEvent"/> whenever stats change.
 /// Also tracks the two cooldown stat pools, Ability Cooldown Reduction and Cooldown Acceleration:
@@ -36,7 +36,7 @@ public sealed partial class StatTracker : Analyzer
     public const double BaseCritChance = 0.05;
 
     [On<DungeonStartEvent>]
-    private void OnFightStart(DungeonStartEvent _)
+    private void OnDungeonStart(DungeonStartEvent _)
     {
         var stats = Owner.SelectedCombatant.Stats;
 

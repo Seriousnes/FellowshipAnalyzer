@@ -268,7 +268,7 @@ public sealed class BurstAnalyzerTests
             WindowClose(22_000),
         };
 
-        var (parser, _) = await RunAsync(events, TrashFight(PullEnd));
+        var (parser, _) = await RunAsync(events, TrashDungeon(PullEnd));
 
         parser.BurstAnalyzers.ShouldHaveSingleItem()
             .Analyzer.Windows.ShouldHaveSingleItem().Start.ShouldBe(10_000);
@@ -306,7 +306,7 @@ public sealed class BurstAnalyzerTests
     [Fact]
     public async Task Analyze_RetainsTheAnalyzerOnEveryPullReadPath()
     {
-        var (parser, _) = await RunAsync([WindowOpen(10_000)], BossFight(PullEnd));
+        var (parser, _) = await RunAsync([WindowOpen(10_000)], BossDungeon(PullEnd));
 
         var entry = parser.BurstAnalyzers.ShouldHaveSingleItem();
         var pull = entry.Pull;
@@ -340,13 +340,13 @@ public sealed class BurstAnalyzerTests
         Target = new CastTarget(),
     };
 
-    private static ReportFight BossFight(int endTime) =>
+    private static ReportDungeon BossDungeon(int endTime) =>
         new(0, "Boss", 1, null, 0, endTime, null, null, null);
 
-    private static ReportFight TrashFight(int endTime) =>
-        new(0, "Trash", 0, null, 0, endTime, null, null, null, EnemyNpcs: [new FightNpc(1, 100, 4, 1, null)]);
+    private static ReportDungeon TrashDungeon(int endTime) =>
+        new(0, "Trash", 0, null, 0, endTime, null, null, null, EnemyNpcs: [new DungeonNpc(1, 100, 4, 1, null)]);
 
-    private static ReportFight DungeonRun() =>
+    private static ReportDungeon DungeonRun() =>
         new(0, "Dungeon", 0, null, 0, 400_000, null, null, null, DungeonPulls:
         [
             new DungeonPull(1, 0, true, 0, 20_000, "Trash", null),
@@ -356,12 +356,12 @@ public sealed class BurstAnalyzerTests
 
     private static async Task<BurstAnalyzer> AnalyzeAsync(List<Event> events)
     {
-        var (parser, _) = await RunAsync(events, BossFight(PullEnd));
+        var (parser, _) = await RunAsync(events, BossDungeon(PullEnd));
         return parser.BurstAnalyzers.ShouldHaveSingleItem().Analyzer;
     }
 
     private static async Task<(GundeCombatLogParser Parser, HeroAnalysisResult Result)> RunAsync(
-        List<Event> events, ReportFight fight)
+        List<Event> events, ReportDungeon dungeon)
     {
         var services = new ServiceCollection();
         services.AddLogging();
@@ -372,7 +372,7 @@ public sealed class BurstAnalyzerTests
         using var scope = provider.CreateScope();
 
         var parser = scope.ServiceProvider.GetRequiredService<GundeCombatLogParser>();
-        var result = await parser.Analyze(events, PlayerId, fight);
+        var result = await parser.Analyze(events, PlayerId, dungeon);
         return (parser, result);
     }
 

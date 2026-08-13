@@ -38,10 +38,10 @@ public sealed class DeathTrackerTests
     private const int PullStart = 40_000;
     private const int DeathAt = 50_000;
 
-    private static readonly ReportFight TestFight =
+    private static readonly ReportDungeon TestDungeon =
         new(Id: 0, Name: "", EncounterId: 0, Kill: null,
             StartTime: 0, EndTime: 120_000, Difficulty: null,
-            FriendlyPlayers: null, FightPercentage: null);
+            FriendlyPlayers: null, CompletionPercentage: null);
 
     [Fact]
     public async Task Window_KeepsOnlyTheHitsInsideIt()
@@ -168,7 +168,7 @@ public sealed class DeathTrackerTests
 
     /// <summary>
     /// Health at the window's start and the maximum it is read against must come from the same snapshot,
-    /// or a fight where maximum health moves renders a ratio of two unrelated numbers.
+    /// or a dungeon where maximum health moves renders a ratio of two unrelated numbers.
     /// </summary>
     [Fact]
     public async Task HitPointsAtWindowStart_AddsBackTheDamageTheFirstHitRemoved_AndPairsWithThatHitsMaximum()
@@ -370,7 +370,7 @@ public sealed class DeathTrackerTests
     }
 
     [Fact]
-    public async Task FightWithNoDeaths_YieldsAnEmptyList()
+    public async Task DungeonWithNoDeaths_YieldsAnEmptyList()
     {
         var tracker = await Analyze([Hit(DeathAt, Cleave, amount: 1_000)]);
 
@@ -453,10 +453,10 @@ public sealed class DeathTrackerTests
             stream.Add(new PullEndEvent { Timestamp = end, Pull = pull });
         }
 
-        stream.Add(new DungeonEndEvent { Timestamp = (int)TestFight.EndTime });
+        stream.Add(new DungeonEndEvent { Timestamp = (int)TestDungeon.EndTime });
 
         var parser = new TestParser(emitter, provider, moduleTypes);
-        await parser.Analyze([.. stream.OrderBy(e => e.Timestamp)], PlayerId, fight: TestFight);
+        await parser.Analyze([.. stream.OrderBy(e => e.Timestamp)], PlayerId, dungeon: TestDungeon);
         return parser.GetModule<DeathTracker>()!;
     }
 

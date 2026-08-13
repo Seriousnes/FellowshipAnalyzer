@@ -19,7 +19,7 @@ namespace FellowshipAnalyzer.Heroes.Mara.Tests.Analysis;
 public sealed class GuileAnalyzerTests
 {
     private const int PlayerId = 7;
-    private const int FightEnd = 20000;
+    private const int DungeonEnd = 20000;
 
     [Fact]
     public async Task Analyze_GuileWindowWithSpenders_IsConverted()
@@ -100,8 +100,8 @@ public sealed class GuileAnalyzerTests
         var analyzer = await AnalyzeAsync(events);
 
         var window = analyzer.Windows.ShouldHaveSingleItem();
-        window.ClosedAt.ShouldBe(FightEnd);
-        window.DurationMs.ShouldBe(FightEnd - 1000);
+        window.ClosedAt.ShouldBe(DungeonEnd);
+        window.DurationMs.ShouldBe(DungeonEnd - 1000);
     }
 
     [Fact]
@@ -237,7 +237,7 @@ public sealed class GuileAnalyzerTests
             Buff<RemoveBuffEvent>(6000, Spells.AssassinsGuileBuff),
         };
 
-        var parser = await AnalyzeParserAsync(events, BossFight());
+        var parser = await AnalyzeParserAsync(events, BossDungeon());
 
         parser.GuileAnalyzers.ShouldBeEmpty();
         parser.StealthAnalyzers.ShouldNotBeEmpty();
@@ -253,7 +253,7 @@ public sealed class GuileAnalyzerTests
             Buff<ApplyBuffEvent>(1000, Spells.AssassinsGuileBuff),
         };
 
-        var parser = await AnalyzeParserAsync(events, BossFight());
+        var parser = await AnalyzeParserAsync(events, BossDungeon());
 
         var entry = parser.GuileAnalyzers.ShouldHaveSingleItem();
         var pull = entry.Pull;
@@ -291,16 +291,16 @@ public sealed class GuileAnalyzerTests
         Ability = new Ability { Id = spell.Id },
     };
 
-    private static ReportFight BossFight(int endTime = FightEnd) =>
+    private static ReportDungeon BossDungeon(int endTime = DungeonEnd) =>
         new(0, "", 1, null, 0, endTime, null, null, null);
 
-    private static async Task<GuileAnalyzer> AnalyzeAsync(List<Event> events, ReportFight? fight = null)
+    private static async Task<GuileAnalyzer> AnalyzeAsync(List<Event> events, ReportDungeon? dungeon = null)
     {
-        var parser = await AnalyzeParserAsync(events, fight ?? BossFight());
+        var parser = await AnalyzeParserAsync(events, dungeon ?? BossDungeon());
         return parser.GuileAnalyzers.ShouldHaveSingleItem().Analyzer;
     }
 
-    private static async Task<MaraCombatLogParser> AnalyzeParserAsync(List<Event> events, ReportFight fight)
+    private static async Task<MaraCombatLogParser> AnalyzeParserAsync(List<Event> events, ReportDungeon dungeon)
     {
         var services = new ServiceCollection();
         services.AddLogging();
@@ -311,7 +311,7 @@ public sealed class GuileAnalyzerTests
         using var scope = provider.CreateScope();
 
         var parser = scope.ServiceProvider.GetRequiredService<MaraCombatLogParser>();
-        await parser.Analyze(events, PlayerId, fight);
+        await parser.Analyze(events, PlayerId, dungeon);
         return parser;
     }
 }

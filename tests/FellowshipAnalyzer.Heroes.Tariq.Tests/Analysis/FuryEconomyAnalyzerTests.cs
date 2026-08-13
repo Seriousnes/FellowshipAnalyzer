@@ -152,8 +152,8 @@ public sealed class FuryEconomyAnalyzerTests
         using var scope = provider.CreateScope();
 
         var parser = scope.ServiceProvider.GetRequiredService<TariqCombatLogParser>();
-        var fight = new ReportFight(0, "Boss", 1, true, 0, 2_000, null, null, null);
-        var result = await parser.Analyze(events, playerId: PlayerId, fight: fight);
+        var dungeon = new ReportDungeon(0, "Boss", 1, true, 0, 2_000, null, null, null);
+        var result = await parser.Analyze(events, playerId: PlayerId, dungeon: dungeon);
         return (parser, result);
     }
 

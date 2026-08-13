@@ -29,7 +29,7 @@ Check these before writing a line. Each one has been enforced by the owner delet
 Every event subscriber derives from `Analyzer` and registers with `[AddAnalyzer<T>]` (FA0019). `[ForPull]` declared directly on the class, and nothing else, chooses between the two lifetimes:
 
 - **Pull-lifetime analyzer** (the default for gameplay analysis): carries `[ForPull(PullKind…, Boss = …)]`. A fresh instance is constructed for every matching pull, so its state is per-pull by construction. Valid only on a concrete class - an abstract base declares the shape and each concrete subclass its own filter (FA0021).
-- **Fight-lifetime analyzer**: declares no `[ForPull]`, observes the whole fight, and is constructed once per run; its `Pull` property is never assigned. Use for cross-pull state, statistics sources, and infrastructure. `[AddModule<T>]` and its synonym `[AddState<T>]` register a type that subscribes to nothing at all, such as `Abilities` or `Auras`.
+- **Dungeon-lifetime analyzer**: declares no `[ForPull]`, observes the whole dungeon, and is constructed once per run; its `Pull` property is never assigned. Use for cross-pull state, statistics sources, and infrastructure. `[AddModule<T>]` and its synonym `[AddState<T>]` register a type that subscribes to nothing at all, such as `Abilities` or `Auras`.
 
 ## Procedure
 
@@ -69,7 +69,7 @@ public sealed partial class {Name}Analyzer : Analyzer
 
 Mark the class `partial` so the `ModuleGenerator` can emit its event-subscription override and any lazy-module accessors. Use simple helper records/classes in the same file unless they are large or shared.
 
-An analyzer finalizes nothing at pull end - it exposes its metrics as **get-style** properties (or methods) evaluated when a guide reads them. An analyzer's own state is frozen once its pull ends (its listeners are cleared), so a getter always sees the final state. Aggregates over completed data are plain get-style properties. When a metric depends on an interval still open at pull end (a buff still up, a resource still capped, a DoT with no logged remove), read the boundary from the analyzer's `Pull` property inside the getter - `Pull.EndTime` is the close time. For a heavy multi-output computation, run it once behind a private nullable field (`_result ??= Compute()`) so repeated reads do not recompute. Subscribe to `[On<PullEndEvent>]` only to react to the pull ending as an event: the one thing get-style cannot do is snapshot another (fight-lifetime) module's live state at the instant this pull closes.
+An analyzer finalizes nothing at pull end - it exposes its metrics as **get-style** properties (or methods) evaluated when a guide reads them. An analyzer's own state is frozen once its pull ends (its listeners are cleared), so a getter always sees the final state. Aggregates over completed data are plain get-style properties. When a metric depends on an interval still open at pull end (a buff still up, a resource still capped, a DoT with no logged remove), read the boundary from the analyzer's `Pull` property inside the getter - `Pull.EndTime` is the close time. For a heavy multi-output computation, run it once behind a private nullable field (`_result ??= Compute()`) so repeated reads do not recompute. Subscribe to `[On<PullEndEvent>]` only to react to the pull ending as an event: the one thing get-style cannot do is snapshot another (dungeon-lifetime) module's live state at the instant this pull closes.
 
 ### 2. Register On The CombatLogParser
 
@@ -126,13 +126,13 @@ Supported attribute arguments:
 
 | Argument | Effect |
 |---|---|
-| `By = Actor.Player` / `Actor.Pet` / `Actor.PlayerOrPet` | restrict source actor (event must implement `IHasSourceEvent`) |
-| `To = Actor.Player` / `Actor.Pet` / `Actor.PlayerOrPet` | restrict target actor (event must implement `IHasTargetEvent`) |
+| `By = Actor.Player` | restrict source actor (event must implement `IHasSourceEvent`) |
+| `To = Actor.Player` | restrict target actor (event must implement `IHasTargetEvent`) |
 | `Spell = nameof(Spells.X)` | single ability match (event must implement `IAbilityEvent`) |
 | `Spells = new[] { … }` | any of several abilities |
 | `ExtraSpell = …` / `ExtraSpells = new[] { … }` | filter `IExtraAbilityEvent.ExtraAbility.Id` |
 
-Use `[On<Event>]` for an unfiltered "any event" subscription. Use `[On<FightStartEvent>]` / `[On<FightEndEvent>]` to hook the fabricated fight-boundary events for fight-lifetime setup/finalization - the `FightBookendNormalizer` prepends/appends those events to every analysis run. `[On<PullStartEvent>]` anchors a pull-scoped starting timestamp when you need one; pull metrics are otherwise get-style (see step 1), not computed in a handler. The `PullBookendNormalizer` fabricates a start/end pair around each pull, and the parser re-emits `PullEndEvent` to the pull's own analyzers as it closes (once per pull, even a force-close) - subscribe to it only to react to the pull ending as an event, e.g. to snapshot a fight-lifetime module's live value at that instant.
+Use `[On<Event>]` for an unfiltered "any event" subscription. Use `[On<DungeonStartEvent>]` / `[On<DungeonEndEvent>]` to hook the fabricated dungeon-boundary events for dungeon-lifetime setup/finalization - the `DungeonBookendNormalizer` prepends/appends those events to every analysis run. `[On<PullStartEvent>]` anchors a pull-scoped starting timestamp when you need one; pull metrics are otherwise get-style (see step 1), not computed in a handler. The `PullBookendNormalizer` fabricates a start/end pair around each pull, and the parser re-emits `PullEndEvent` to the pull's own analyzers as it closes (once per pull, even a force-close) - subscribe to it only to react to the pull ending as an event, e.g. to snapshot a dungeon-lifetime module's live value at that instant.
 
 ## Dependencies
 
@@ -174,7 +174,7 @@ Gate a module on a talent with `[RequiresTalent({Hero}Talents.Name)]`, using a `
 ## Checklist
 
 - [ ] File is at `Modules/{Name}Analyzer.cs`.
-- [ ] Class is `partial`, extends `Analyzer`, and declares `[ForPull]` unless it is fight-lifetime.
+- [ ] Class is `partial`, extends `Analyzer`, and declares `[ForPull]` unless it is dungeon-lifetime.
 - [ ] Event handlers are decorated with `[On<TEvent>]` attributes.
 - [ ] Cross-module reads use `[Uses<TOther>]` (or `Owner.GetModule<T>()`), never another analyzer.
 - [ ] Per-pull metrics are get-style properties over accumulated state (reading `Pull.EndTime` for still-open intervals), not finalized at pull end.

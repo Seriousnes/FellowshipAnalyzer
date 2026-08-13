@@ -28,10 +28,10 @@ public sealed class HealingEfficiencyFoldingTests
     private const int TickEffect = 1_001_445;
     private const int UnknownSpell = 4242;
 
-    private static readonly ReportFight TestFight =
+    private static readonly ReportDungeon TestDungeon =
         new(Id: 0, Name: "", EncounterId: 0, Kill: null,
             StartTime: 0, EndTime: 60_000, Difficulty: null,
-            FriendlyPlayers: null, FightPercentage: null);
+            FriendlyPlayers: null, CompletionPercentage: null);
 
     [Fact]
     public async Task TicksUnderAnEffectIdLandOnTheAbilityThatPaidForThem()
@@ -71,7 +71,7 @@ public sealed class HealingEfficiencyFoldingTests
         Type[] moduleTypes = [typeof(FoldingAbilities), typeof(DebugAnnotations), typeof(Combatants), typeof(TestFoldingTracker)];
 
         var parser = new TestParser(emitter, provider, moduleTypes);
-        await parser.Analyze(events, PlayerId, fight: TestFight);
+        await parser.Analyze(events, PlayerId, dungeon: TestDungeon);
         return parser.GetModule<TestFoldingTracker>()!;
     }
 

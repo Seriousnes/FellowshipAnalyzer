@@ -49,7 +49,7 @@ public sealed partial class BloodFeatherTracker : Analyzer
     }
 
     [On<DungeonEndEvent>]
-    private void OnFightEnd(DungeonEndEvent fightEnd) => CloseCapWindow(fightEnd.Timestamp);
+    private void OnDungeonEnd(DungeonEndEvent dungeonEnd) => CloseCapWindow(dungeonEnd.Timestamp);
 
     private void SetBank(int timestamp, int bank)
     {

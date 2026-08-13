@@ -39,7 +39,7 @@ public abstract class DotTracker : Module
         var enemies = new HashSet<UnitKey>();
         foreach (var dot in Dots)
         {
-            foreach (var key in Enemies.WithAura(dot.EffectId, timestamp))
+            foreach (var key in Enemies.WithAura(dot.Effect, timestamp))
                 enemies.Add(key);
         }
         return enemies;
@@ -50,7 +50,7 @@ public abstract class DotTracker : Module
     {
         var instances = 0;
         foreach (var dot in Dots)
-            instances += Combatants.AuraInstanceCount(enemy.ActorId, enemy.Instance, dot.EffectId, timestamp);
+            instances += Combatants.AuraInstanceCount(enemy.ActorId, enemy.Instance, dot.Effect, timestamp);
         return instances;
     }
 
@@ -93,12 +93,12 @@ public abstract class DotTracker : Module
 
             foreach (var key in enemies)
             {
-                var onTarget = Combatants.AuraInstanceCount(key.ActorId, key.Instance, dot.EffectId, timestamp);
+                var onTarget = Combatants.AuraInstanceCount(key.ActorId, key.Instance, dot.Effect, timestamp);
                 if (onTarget == 0) continue;
 
                 carriers++;
                 instances += onTarget;
-                stacks += Combatants.AuraStackSum(key.ActorId, key.Instance, dot.EffectId, timestamp);
+                stacks += Combatants.AuraStackSum(key.ActorId, key.Instance, dot.Effect, timestamp);
             }
 
             coverage.Add(new DotCoverage
@@ -122,7 +122,7 @@ public abstract class DotTracker : Module
         var deltas = new List<(int Timestamp, int Index, int Delta)>();
         for (var index = 0; index < Dots.Count; index++)
         {
-            foreach (var window in Enemies.AuraWindows(Dots[index].EffectId, from, to))
+            foreach (var window in Enemies.AuraWindows(Dots[index].Effect, from, to))
             {
                 deltas.Add((window.Start, index, 1));
                 deltas.Add((window.End + 1, index, -1));

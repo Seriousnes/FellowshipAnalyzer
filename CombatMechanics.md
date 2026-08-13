@@ -9,7 +9,7 @@
 
 Fellowship uses a World of Warcraft–style stat system built around ratings that convert into percentages with tiered diminishing returns and a unified "Haste" stat that speeds up most time-based mechanics (GCD, casts, ticks, and many cooldowns). [^1][^2] These mechanics can be modeled deterministically for a combat-log analysis app by combining published rating→percentage formulas with empirically verified haste scaling on cooldowns and global cooldown. [^2][^3][^4]
 
-A robust analyzer needs to: (1) convert rating to post‑DR secondary percentages, (2) derive effective haste (including buffs) for each time segment of the fight, and (3) translate that haste into adjusted GCDs, casts, ticks, and cooldown timers while also applying ability‑specific cooldown modifiers. [^2][^5][^6]
+A robust analyzer needs to: (1) convert rating to post‑DR secondary percentages, (2) derive effective haste (including buffs) for each time segment of the dungeon, and (3) translate that haste into adjusted GCDs, casts, ticks, and cooldown timers while also applying ability‑specific cooldown modifiers. [^2][^5][^6]
 
 ## Secondary Stats and Rating System
 
@@ -258,7 +258,7 @@ When a cast event is observed in the log, the analyzer can:
 3. Set the ability’s next-available time to t + C_effective.
 4. Apply ongoing reductions from procs (e.g., on-crit reductions) as those events appear in the log, shortening the remaining cooldown. [^9][^14]
 
-Comparing these predicted "ready" timestamps with actual subsequent casts provides direct metrics for wasted cooldown time, drift relative to optimal usage, and alignment with fight mechanics.
+Comparing these predicted "ready" timestamps with actual subsequent casts provides direct metrics for wasted cooldown time, drift relative to optimal usage, and alignment with encounter mechanics.
 
 ### Modeling global cooldown and action windows
 
@@ -272,7 +272,7 @@ This model should be refined with empirical data (e.g., network latency, animati
 
 ### Haste snapshots vs dynamic updates
 
-Some games snapshot Haste at cast start for determining cooldown and tick timing, while others update dynamically. Fellowship community discussions indicate that effects like spirit ultimates and Haste buffs clearly change GCD and cast speed mid-fight, but publicly available documentation does not fully specify snapshot rules. [^4][^3]
+Some games snapshot Haste at cast start for determining cooldown and tick timing, while others update dynamically. Fellowship community discussions indicate that effects like spirit ultimates and Haste buffs clearly change GCD and cast speed mid-pull, but publicly available documentation does not fully specify snapshot rules. [^4][^3]
 
 A practical approach is to:
 

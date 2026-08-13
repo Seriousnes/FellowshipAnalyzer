@@ -3,13 +3,13 @@
 <PageTitle>Timeline — Design System</PageTitle>
 
 <h1>Timeline / CastBar / AuraBar / CooldownLane / TimeIndicators / TimelineSettingsModal</h1>
-<p class="lede">The Timeline tab. All sub-components inherit <code>ReportComponent</code> and read fight bounds from cascading context — they're only meaningful inside a loaded report. Documented here for reference.</p>
+<p class="lede">The Timeline tab. All sub-components inherit <code>ReportComponent</code> and read dungeon bounds from cascading context — they're only meaningful inside a loaded report. Documented here for reference.</p>
 
 <CodeExample Title="Timeline — top-level shell"
              Description="The Timeline component composes CastBar (with overlaid AuraBar) plus one CooldownLane per visible spell. Wire it into a hero's Guide tab and the source-generator-emitted module accessors do the rest."
              Code="@_timelineCode">
     <Demo>
-        <p style="color: var(--fa-text-muted);">No live demo — needs cascading <code>FightTimeContext</code>, <code>HeroAnalysisResult</code>, and <code>IHeroAnalyzer</code>.</p>
+        <p style="color: var(--fa-text-muted);">No live demo — needs cascading <code>DungeonTimeContext</code>, <code>HeroAnalysisResult</code>, and <code>IHeroAnalyzer</code>.</p>
     </Demo>
 </CodeExample>
 
@@ -17,7 +17,7 @@
              Description="Renders all the player's casts, channels, and cancelled casts along a horizontal timeline. Lower casts (no GCD) stack vertically below the main track."
              Code="@_castBarCode">
     <Demo>
-        <p style="color: var(--fa-text-muted);">No live demo — needs the player's full Event list, FightStartTime, WindowStart, WindowEnd.</p>
+        <p style="color: var(--fa-text-muted);">No live demo — needs the player's full Event list, DungeonStartTime, WindowStart, WindowEnd.</p>
     </Demo>
 </CodeExample>
 
@@ -38,7 +38,7 @@
 </CodeExample>
 
 <CodeExample Title="TimeIndicators"
-             Description="Standalone timestamp ruler — shown above the cast bar when the timeline is not used as a single composed view. Fight duration in ms; output a tick per second labelled with the elapsed time."
+             Description="Standalone timestamp ruler — shown above the cast bar when the timeline is not used as a single composed view. Pull duration in ms; output a tick per second labelled with the elapsed time."
              Code="@_timeCode">
     <Demo>
         <p style="color: var(--fa-text-muted);">Renders inline — but you'd usually use the parent Timeline rather than mounting this directly.</p>
@@ -65,7 +65,7 @@
     private const string _castBarCode = """
 <CastBar Events="@playerEvents"
          PlayerId="@PlayerId"
-         FightStartTime="@FightStartTime"
+         DungeonStartTime="@DungeonStartTime"
          WindowStart="@windowStart"
          WindowEnd="@windowEnd"
          PixelsPerSecond="60.0"
@@ -74,7 +74,7 @@
 
     private const string _auraBarCode = """
 <AuraBar Auras="@playerAuras"
-         FightStartTime="@FightStartTime"
+         DungeonStartTime="@DungeonStartTime"
          WindowStart="@windowStart"
          WindowEnd="@windowEnd"
          PixelsPerSecond="60.0"
@@ -85,14 +85,14 @@
     private const string _cooldownCode = """
 <CooldownLane Ability="@spellbookAbility"
               CooldownEvents="@updateSpellUsableEvents"
-              FightStartTime="@FightStartTime"
+              DungeonStartTime="@DungeonStartTime"
               WindowStart="@windowStart"
               WindowEnd="@windowEnd"
               PixelsPerSecond="60.0" />
 """;
 
     private const string _timeCode = """
-<TimeIndicators FightDurationMs="@(FightEndTime - FightStartTime)"
+<TimeIndicators DungeonDurationMs="@(DungeonEndTime - DungeonStartTime)"
                 PixelsPerSecond="60.0" />
 """;
 

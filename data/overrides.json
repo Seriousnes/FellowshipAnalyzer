@@ -440,7 +440,7 @@
       "kind": "ability",
       "name": "Fluttercall: Embrace",
       "icon": "T_Mosse_BlueButterfly.jpg",
-      "note": "GA_Mosse_BlueButterfly_Recall, the recall half of Fluttercall: Protect that parks Bluey on Sylvie herself. EnabledInGame in s3 spell_data but absent from Sylvie's Kit block, so the merge never imports it; add directly. Observed cast in report a:gDf7m3N2wvk96dWP fight 22."
+      "note": "GA_Mosse_BlueButterfly_Recall, the recall half of Fluttercall: Protect that parks Bluey on Sylvie herself. EnabledInGame in s3 spell_data but absent from Sylvie's Kit block, so the merge never imports it; add directly. Observed cast in report a:gDf7m3N2wvk96dWP dungeon 22."
     },
     "FluttercallProtectBuff": {
       "id": 1485,

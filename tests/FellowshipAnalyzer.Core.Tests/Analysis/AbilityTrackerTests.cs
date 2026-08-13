@@ -14,7 +14,7 @@ namespace FellowshipAnalyzer.Core.Tests.Analysis;
 
 /// <summary>
 /// Tests for <see cref="AbilityTracker"/>: the player's completed casts, damage, and healing are
-/// tallied per ability across the whole fight and again scoped to the pull each event landed in.
+/// tallied per ability across the whole dungeon and again scoped to the pull each event landed in.
 /// </summary>
 public sealed class AbilityTrackerTests
 {
@@ -23,10 +23,10 @@ public sealed class AbilityTrackerTests
     private const int SpellA = 4242;
     private const int SpellB = 4243;
 
-    private static readonly ReportFight TestFight =
+    private static readonly ReportDungeon TestDungeon =
         new(Id: 0, Name: "", EncounterId: 0, Kill: null,
             StartTime: 0, EndTime: 60_000, Difficulty: null,
-            FriendlyPlayers: null, FightPercentage: null);
+            FriendlyPlayers: null, CompletionPercentage: null);
 
     [Fact]
     public async Task Rows_TallyCastsDamageAndHealingPerAbility()
@@ -121,10 +121,10 @@ public sealed class AbilityTrackerTests
             new PullEndEvent { Timestamp = 9000, Pull = pull2 },
         ]);
 
-        var fightWide = tracker.For(SpellA)!;
-        Assert.Equal(4, fightWide.DamageHits);
-        Assert.Equal(4750, fightWide.Damage);
-        Assert.Equal(1, fightWide.Casts);
+        var dungeonWide = tracker.For(SpellA)!;
+        Assert.Equal(4, dungeonWide.DamageHits);
+        Assert.Equal(4750, dungeonWide.Damage);
+        Assert.Equal(1, dungeonWide.Casts);
 
         var inPull1 = Assert.Single(tracker.During(pull1));
         Assert.Equal(1, inPull1.Casts);
@@ -169,7 +169,7 @@ public sealed class AbilityTrackerTests
         Type[] moduleTypes = [typeof(DebugAnnotations), typeof(Combatants), typeof(AbilityTracker)];
 
         var parser = new TestParser(emitter, provider, moduleTypes);
-        await parser.Analyze(events, PlayerId, fight: TestFight);
+        await parser.Analyze(events, PlayerId, dungeon: TestDungeon);
         return parser.GetModule<AbilityTracker>()!;
     }
 

@@ -291,7 +291,7 @@ strings use zero times across all five `s3` files, against 8 uses of `active` an
 | An event or record field holds or lacks a value | **with** / **with no**, then name the field, as in `ShieldMasteryAnalyzer.HitsWithoutToughness` | "casts carrying a Focus reading" |
 | A dataset does not record something | name the dataset: **the log records no**, **the data lists no**, the report **shows** | "the log carries no signal" |
 | A window, buff or cast holds N | **granted** (`ChargesGranted`), **made inside the window**, **contained**, or name the count | "the charges it carried" |
-| The unit a pet or assignment is on | **holder**, from `BlueyAnalyzer.Holders` and `BlueyTracker.TimeByHolderBetween` | "whoever was carrying Bluey" |
+| The unit a companion or assignment is on | **holder**, from `BlueyAnalyzer.Holders` and `BlueyTracker.TimeByHolderBetween` | "whoever was carrying Bluey" |
 | Engineering prose with no game entity in it | **marked with**, **gives**, **with**, introducing no domain word | "a class carrying `[HeroAnalyzer]`" |
 
 The first four senses are owner-stated. The rest are drawn from the model rather than invented, and are

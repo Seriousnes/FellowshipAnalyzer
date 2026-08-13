@@ -115,7 +115,7 @@ public sealed partial class WildfireComboAnalyzer : Analyzer
 
     private (int Start, int End) ResolveBuffWindow(int anchor)
     {
-        var buff = Owner.SelectedCombatant.GetBuff(Spells.WildfireDotBonusBuff.FSLID, forTimestamp: anchor);
+        var buff = Owner.SelectedCombatant.GetBuff(Spells.WildfireDotBonusBuff, forTimestamp: anchor);
         if (buff is null)
             return (anchor, anchor + WildfireBuffDurationMs);
 

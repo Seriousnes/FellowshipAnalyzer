@@ -7,24 +7,24 @@
 
 <CodeExample Title="Default (Entire Dungeon)" Description="@Describe(_selected)" Code="@_basicCode">
     <Demo>
-        <PullSelect Pulls="_pulls" FightStartTime="_fightStart" @bind-Value="_selected" />
+        <PullSelect Pulls="_pulls" DungeonStartTime="_dungeonStart" @bind-Value="_selected" />
     </Demo>
 </CodeExample>
 
 <CodeExample Title="Boss pull preselected" Description="@Describe(_bossSelected)" Code="@_presetCode">
     <Demo>
-        <PullSelect Pulls="_pulls" FightStartTime="_fightStart" @bind-Value="_bossSelected" />
+        <PullSelect Pulls="_pulls" DungeonStartTime="_dungeonStart" @bind-Value="_bossSelected" />
     </Demo>
 </CodeExample>
 
 <CodeExample Title="Steppers" Description="Prev/next walk the pull list; next from Entire Dungeon jumps to the first pull." Code="@_stepperCode">
     <Demo>
-        <PullSelect Pulls="_pulls" FightStartTime="_fightStart" @bind-Value="_stepped" />
+        <PullSelect Pulls="_pulls" DungeonStartTime="_dungeonStart" @bind-Value="_stepped" />
     </Demo>
 </CodeExample>
 
 @code {
-    private const int _fightStart = 600_000;
+    private const int _dungeonStart = 600_000;
 
     private static readonly IReadOnlyList<Pull> _pulls =
     [
@@ -45,10 +45,10 @@
             : $"Selected: Pull #{pull.Index + 1}{(string.IsNullOrWhiteSpace(pull.Name) ? "" : $" - {pull.Name}")}";
 
     private const string _basicCode = """
-<PullSelect Pulls="_pulls" FightStartTime="_fightStart" @bind-Value="_selected" />
+<PullSelect Pulls="_pulls" DungeonStartTime="_dungeonStart" @bind-Value="_selected" />
 
 @code {
-    private const int _fightStart = 600_000;
+    private const int _dungeonStart = 600_000;
 
     private static readonly IReadOnlyList<Pull> _pulls =
     [
@@ -61,7 +61,7 @@
 """;
 
     private const string _presetCode = """
-<PullSelect Pulls="_pulls" FightStartTime="_fightStart" @bind-Value="_bossSelected" />
+<PullSelect Pulls="_pulls" DungeonStartTime="_dungeonStart" @bind-Value="_bossSelected" />
 
 @code {
     private Pull? _bossSelected = _pulls[2];
@@ -69,7 +69,7 @@
 """;
 
     private const string _stepperCode = """
-<PullSelect Pulls="_pulls" FightStartTime="_fightStart" @bind-Value="_stepped" />
+<PullSelect Pulls="_pulls" DungeonStartTime="_dungeonStart" @bind-Value="_stepped" />
 
 @code {
     private Pull? _stepped;

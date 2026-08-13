@@ -3,10 +3,10 @@ using System.Text.Json;
 namespace FellowshipAnalyzer.Core.FellowshipLogs;
 
 /// <summary>
-/// Merges the player-scoped event stream with the fight-scoped death stream into a single
+/// Merges the player-scoped event stream with the dungeon-scoped death stream into a single
 /// combined <c>{ inProgress, events }</c> payload for caching and analysis.
 /// <para>
-/// The fight-scoped death query is the single source of truth for <c>death</c> events, so every
+/// The dungeon-scoped death query is the single source of truth for <c>death</c> events, so every
 /// <c>death</c> event in the player stream is dropped and replaced by the death stream (which
 /// includes deaths credited to any player and both hostilities, not just the selected player's
 /// kills). Events are emitted in ascending timestamp order; ties keep player-stream-before-death
@@ -16,7 +16,7 @@ namespace FellowshipAnalyzer.Core.FellowshipLogs;
 public static class EventStreamMerger
 {
     /// <summary>
-    /// Combines a player-scoped <c>{ inProgress, events }</c> payload and a fight-scoped death
+    /// Combines a player-scoped <c>{ inProgress, events }</c> payload and a dungeon-scoped death
     /// payload into a single timestamp-ordered <c>{ inProgress, events }</c> payload. Death events
     /// present in <paramref name="playerEventsJson"/> are dropped in favour of
     /// <paramref name="deathStreamJson"/>. Event objects are copied verbatim. The sort is in place

@@ -5,10 +5,10 @@
                 Detail="@Detail" />
 
 @code {
-    /// <summary>The effective healing attributed to this source over the fight.</summary>
+    /// <summary>The effective healing attributed to this source over the dungeon.</summary>
     [Parameter, EditorRequired] public long Amount { get; set; }
 
-    /// <summary>The fight totals the rate and share are computed against.</summary>
+    /// <summary>The dungeon totals the rate and share are computed against.</summary>
     [CascadingParameter] public ThroughputTracker Throughput { get; set; } = null!;
 
     /// <summary>Marks the figure as an estimate.</summary>

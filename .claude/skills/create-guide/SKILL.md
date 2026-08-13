@@ -5,9 +5,9 @@ description: "Create a Guide Razor component for a FellowshipAnalyzer analyzer. 
 
 # Create Guide Component
 
-A guide component is a Razor file in `Guides/` that renders analyzer state in the Guide tab. It inherits `ReportComponent<{Hero}CombatLogParser>` for its `Parser` and reads analyzer instances directly - fight-lifetime modules via generated parser properties, pull-lifetime analyzers via the generated pull read paths.
+A guide component is a Razor file in `Guides/` that renders analyzer state in the Guide tab. It inherits `ReportComponent<{Hero}CombatLogParser>` for its `Parser` and reads analyzer instances directly - dungeon-lifetime modules via generated parser properties, pull-lifetime analyzers via the generated pull read paths.
 
-**Never `@inject` the parser.** Parsers are transient, one instance per analysis, so an injected one has analyzed nothing. `ReportComponent<TParser>` reads the parser that produced the analysis being rendered from the report shell's cascade, and carries the rest of the report scope with it: `FightTime`, `Result`, and `SelectedPull`.
+**Never `@inject` the parser.** Parsers are transient, one instance per analysis, so an injected one has analyzed nothing. `ReportComponent<TParser>` reads the parser that produced the analysis being rendered from the report shell's cascade, and carries the rest of the report scope with it: `DungeonTime`, `Result`, and `SelectedPull`.
 
 The analyzer holds typed data (counts, rates, timestamps, typed entry records); the guide owns all presentation: prose, severity wording, and `PerformanceTier` judgments. Display-shaping helpers that turn analyzer state into shared component inputs live in the guide's `@code` block.
 
@@ -59,7 +59,7 @@ For a pull-lifetime analyzer (registered with `[AddAnalyzer<T>]`), read the cros
 
 Project rows with the `ToPullRows` / `ToItemRows` extensions (in `FellowshipAnalyzer.Core.UI.Guides`) rather than hand-building each `PerCastData`. The row builder returns a `PerCastRow` with only the varying fields (`Performance`, `Stats`, and optionally `Sequence` / `AdditionalContent` / `Details` / `Tooltip`); the extension fills the pull-derived grouping (the `FormatTimestamp` label, `Group` name, and `PullBanner`) for you. Use `ToPullRows` for one row per analyzer (a per-pull aggregate); use `ToItemRows(Parser, a => a.Windows, (window, pull) => ...)` to flatten an inner collection into one row per item. When a row's timestamp is not the pull start (e.g. a window start), set `PerCastRow.Timestamp`. Map thresholds to a `PerformanceTier` with `PerformanceTiers.FromThresholds(value, perfect, good, ok)` instead of hand-writing the ladder.
 
-For a fight-lifetime module, read the generated nullable parser property (`Parser.WinterOrbTracker` style) and null-check it.
+For a dungeon-lifetime module, read the generated nullable parser property (`Parser.WinterOrbTracker` style) and null-check it.
 
 `_Imports.razor` should include the hero `Modules` namespace, as Rime does, so analyzer types are available to guides.
 
@@ -293,7 +293,7 @@ not follow this order.
 }
 ```
 
-Gate pull-analyzer guides on a non-empty stream; null-check generated module properties for fight-lifetime modules (modules may be inactive).
+Gate pull-analyzer guides on a non-empty stream; null-check generated module properties for dungeon-lifetime modules (modules may be inactive).
 
 ### 3. Ensure The Parser Points To The Root Guide
 
@@ -328,7 +328,7 @@ From `FellowshipAnalyzer.Core.UI.Guides`:
 - Guide components go in `Guides/`.
 - The hero root guide lives at the hero project root as `{Hero}Guide.razor`.
 - Reach the hero parser by inheriting `ReportComponent<{Hero}CombatLogParser>`, never by injecting it.
-- Read pull analyzers via `Parser.{Name}Analyzers`, `Parser.For(pull).{Name}Analyzer` or the `pull.{Name}Analyzer` extension (the member is named after the surface type, with a leading `I` stripped for a marker interface). Read fight-lifetime modules via generated properties such as `Parser.WinterOrbTracker`, where the `Analyzer` suffix is stripped.
+- Read pull analyzers via `Parser.{Name}Analyzers`, `Parser.For(pull).{Name}Analyzer` or the `pull.{Name}Analyzer` extension (the member is named after the surface type, with a leading `I` stripped for a marker interface). Read dungeon-lifetime modules via generated properties such as `Parser.WinterOrbTracker`, where the `Analyzer` suffix is stripped.
 - Keep event-derived state in modules; keep prose, severity wording, and `PerformanceTier` mapping here.
 - Write every `<LeftPanel>` in the voice above: role sentence, directives, then a reading note only where it changes how the number reads.
 - Project per-pull rows with the `ToPullRows` / `ToItemRows` extensions returning `PerCastRow`; use `PerformanceTiers.FromThresholds` for tier ladders.

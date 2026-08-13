@@ -39,13 +39,13 @@ public sealed class FellowshipLogsApiHandler(
         HttpContext context,
         string? reportCode,
         int? playerId,
-        int? fightId,
+        int? dungeonId,
         CancellationToken cancellationToken)
     {
         var sw = Stopwatch.StartNew();
         logger.LogInformation(
-            "GetEventsAsync ENTER reportCode={ReportCode} playerId={PlayerId} fightId={FightId}",
-            reportCode, playerId, fightId);
+            "GetEventsAsync ENTER reportCode={ReportCode} playerId={PlayerId} dungeonId={DungeonId}",
+            reportCode, playerId, dungeonId);
 
         if (await TryApplyRateLimitAsync(context, cancellationToken) is { } limited)
         {
@@ -61,14 +61,14 @@ public sealed class FellowshipLogsApiHandler(
         {
             return BadRequest("Missing required query parameter 'playerId'.");
         }
-        if (fightId is null)
+        if (dungeonId is null)
         {
-            return BadRequest("Missing required query parameter 'fightId'.");
+            return BadRequest("Missing required query parameter 'dungeonId'.");
         }
 
         var trimmedReportCode = reportCode.Trim();
 
-        var blobKey = CacheKeys.BlobEvents(trimmedReportCode, playerId.Value, fightId.Value);
+        var blobKey = CacheKeys.BlobEvents(trimmedReportCode, playerId.Value, dungeonId.Value);
         logger.LogInformation("GetEventsAsync L2 lookup blobKey={BlobKey} t={ElapsedMs}ms", blobKey, sw.ElapsedMilliseconds);
         var blobEntry = await persistentCache.GetAsync(CachePartition.Events, blobKey, cancellationToken);
         logger.LogInformation(
@@ -98,7 +98,7 @@ public sealed class FellowshipLogsApiHandler(
 
         logger.LogInformation("GetEventsAsync L3 upstream call starting t={ElapsedMs}ms", sw.ElapsedMilliseconds);
         var result = await fellowshipLogsService.GetRawEventsAsync(
-            trimmedReportCode, playerId.Value, fightId.Value, cancellationToken);
+            trimmedReportCode, playerId.Value, dungeonId.Value, cancellationToken);
         logger.LogInformation(
             "GetEventsAsync L3 upstream returned bytes={Bytes} inProgress={InProgress} t={ElapsedMs}ms",
             result.JsonBytes.Length, result.InProgress, sw.ElapsedMilliseconds);
@@ -142,7 +142,7 @@ public sealed class FellowshipLogsApiHandler(
     public async Task<IResult> GetDeathsAsync(
         HttpContext context,
         string? reportCode,
-        int? fightId,
+        int? dungeonId,
         CancellationToken cancellationToken)
     {
         if (await TryApplyRateLimitAsync(context, cancellationToken) is { } limited)
@@ -154,14 +154,14 @@ public sealed class FellowshipLogsApiHandler(
         {
             return BadRequest("Missing required query parameter 'reportCode'.");
         }
-        if (fightId is null)
+        if (dungeonId is null)
         {
-            return BadRequest("Missing required query parameter 'fightId'.");
+            return BadRequest("Missing required query parameter 'dungeonId'.");
         }
 
         var trimmedReportCode = reportCode.Trim();
 
-        var blobKey = CacheKeys.BlobDeaths(trimmedReportCode, fightId.Value);
+        var blobKey = CacheKeys.BlobDeaths(trimmedReportCode, dungeonId.Value);
         var blobEntry = await persistentCache.GetAsync(CachePartition.Events, blobKey, cancellationToken);
 
         if (blobEntry is not null)
@@ -181,7 +181,7 @@ public sealed class FellowshipLogsApiHandler(
         }
 
         var result = await fellowshipLogsService.GetRawDeathsAsync(
-            trimmedReportCode, fightId.Value, cancellationToken);
+            trimmedReportCode, dungeonId.Value, cancellationToken);
 
         if (!result.InProgress && result.HasEvents)
         {
@@ -212,6 +212,7 @@ public sealed class FellowshipLogsApiHandler(
     public async Task<IResult> GetAnalysisAsync(
         HttpContext context,
         string reportCode,
+        int? dungeonId,
         CancellationToken cancellationToken)
     {
         if (await TryApplyRateLimitAsync(context, cancellationToken) is { } limited)
@@ -224,15 +225,15 @@ public sealed class FellowshipLogsApiHandler(
             return BadRequest("Route parameter 'reportCode' is required.");
         }
 
-        var cacheKey = CacheKeys.Analysis(reportCode);
+        var cacheKey = CacheKeys.Analysis(reportCode, dungeonId);
 
         if (cache.TryGetValue(cacheKey, out AnalysisPreload? cachedPreload) && cachedPreload is not null)
         {
-            ApplyAnalysisPreloadCacheHeaders(context.Response, cachedPreload, hit: true);
+            ApplyNoStoreCacheHeaders(context.Response, hit: true);
             return Json(cachedPreload);
         }
 
-        var blobKey = CacheKeys.BlobAnalysis(reportCode);
+        var blobKey = CacheKeys.BlobAnalysis(reportCode, dungeonId);
         var blobEntry = await persistentCache.GetAsync(CachePartition.Metadata, blobKey, cancellationToken);
         if (blobEntry is not null)
         {
@@ -248,10 +249,10 @@ public sealed class FellowshipLogsApiHandler(
             }
             await blobEntry.Content.DisposeAsync();
 
-            if (blobPreload is not null)
+            if (blobPreload is { ReportInfo.Dungeons: not null, MasterData: not null })
             {
                 cache.Set(cacheKey, blobPreload, CreateAnalysisPreloadCacheEntryOptions(blobPreload, cacheOptions));
-                ApplyAnalysisPreloadCacheHeaders(context.Response, blobPreload, hit: true);
+                ApplyNoStoreCacheHeaders(context.Response, hit: true);
                 return Json(blobPreload);
             }
         }
@@ -261,7 +262,7 @@ public sealed class FellowshipLogsApiHandler(
             return upstreamLimited;
         }
 
-        var preload = await fellowshipLogsService.GetReportMasterDataAsync(reportCode, cancellationToken);
+        var preload = await fellowshipLogsService.GetReportMasterDataAsync(reportCode, dungeonId, cancellationToken);
         var analysisDuration = GetAnalysisPreloadCacheDuration(preload, cacheOptions);
         var analysisExpiresAt = DateTimeOffset.UtcNow.Add(analysisDuration);
 
@@ -279,7 +280,7 @@ public sealed class FellowshipLogsApiHandler(
                 appLifetime.ApplicationStopping),
             CachePartition.Metadata, blobKey);
 
-        ApplyAnalysisPreloadCacheHeaders(context.Response, preload, hit: false);
+        ApplyNoStoreCacheHeaders(context.Response, hit: false);
         return Json(preload);
     }
 
@@ -427,12 +428,6 @@ public sealed class FellowshipLogsApiHandler(
         }
     }
 
-    private void ApplyAnalysisPreloadCacheHeaders(HttpResponse response, AnalysisPreload preload, bool hit)
-    {
-        var duration = GetAnalysisPreloadCacheDuration(preload, cacheOptions);
-        ApplyPublicCacheHeaders(response, duration, DateTimeOffset.UtcNow.Add(duration), hit);
-    }
-
     private void ApplyCompletedEventsCacheHeaders(HttpResponse response, DateTimeOffset? expiresAt, bool hit)
     {
         var duration = PositiveDuration(cacheOptions.CompletedEventsCacheDuration, TimeSpan.FromDays(30));
@@ -466,7 +461,7 @@ public sealed class FellowshipLogsApiHandler(
         AnalysisPreload preload,
         FellowshipLogsCacheOptions cacheOptions)
     {
-        if (preload.ReportInfo.Fights.Any(fight => fight.InProgress)
+        if (preload.ReportInfo.Dungeons.Any(dungeon => dungeon.InProgress)
             || ReportEndedRecently(preload.ReportInfo, cacheOptions.RecentReportWindow))
         {
             return PositiveDuration(cacheOptions.RecentReportMetadataCacheDuration, TimeSpan.FromMinutes(10));

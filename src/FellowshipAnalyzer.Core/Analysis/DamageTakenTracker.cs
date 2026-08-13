@@ -6,7 +6,7 @@ using FellowshipAnalyzer.Core.UI.Components;
 namespace FellowshipAnalyzer.Core.Analysis;
 
 /// <summary>
-/// Fight-lifetime accounting of everything that hit the player, split by the ability that dealt it.
+/// Dungeon-lifetime accounting of everything that hit the player, split by the ability that dealt it.
 /// <see cref="DamageEvent.Mitigated"/> and <see cref="DamageEvent.Absorbed"/> sum to the damage
 /// prevented; <see cref="DamageEvent.Blocked"/> is a labelled portion of the mitigated figure rather
 /// than a third bucket, so it is reported alongside and never added in.
@@ -24,7 +24,7 @@ public sealed partial class DamageTakenTracker : Analyzer
     /// <inheritdoc/>
     public override StatisticCategory StatisticCategory => StatisticCategory.General;
 
-    /// <summary>Damage that actually landed on the player across the fight.</summary>
+    /// <summary>Damage that actually landed on the player across the dungeon.</summary>
     public long TotalTaken => Result.Taken;
 
     /// <summary>The raw incoming damage before any mitigation.</summary>
@@ -42,7 +42,7 @@ public sealed partial class DamageTakenTracker : Analyzer
     /// <summary>The share of <see cref="TotalMitigated"/> the log attributes to blocks.</summary>
     public long TotalBlocked => Result.Blocked;
 
-    /// <summary>Hits the player took across the fight.</summary>
+    /// <summary>Hits the player took across the dungeon.</summary>
     public int TotalHits => Result.Hits;
 
     /// <summary>How many of <see cref="TotalHits"/> came in as a block.</summary>
@@ -54,10 +54,10 @@ public sealed partial class DamageTakenTracker : Analyzer
     /// <summary>Share (0-1) of <see cref="TotalFaced"/> that never landed.</summary>
     public double PreventedShare => TotalFaced > 0 ? Math.Clamp(TotalPrevented / (double)TotalFaced, 0, 1) : 0;
 
-    /// <summary><see cref="TotalTaken"/> spread over the fight's duration.</summary>
+    /// <summary><see cref="TotalTaken"/> spread over the dungeon's duration.</summary>
     public double DamageTakenPerSecond => PerSecond(TotalTaken);
 
-    /// <summary><see cref="TotalFaced"/> spread over the fight's duration.</summary>
+    /// <summary><see cref="TotalFaced"/> spread over the dungeon's duration.</summary>
     public double DamageFacedPerSecond => PerSecond(TotalFaced);
 
     /// <summary>Every ability that damaged the player, heaviest first by damage that landed.</summary>
@@ -87,7 +87,7 @@ public sealed partial class DamageTakenTracker : Analyzer
 
     private double PerSecond(long amount)
     {
-        var seconds = Owner.FightDurationMs / 1000d;
+        var seconds = Owner.DungeonDurationMs / 1000d;
         return seconds > 0 ? amount / seconds : 0;
     }
 
@@ -96,7 +96,7 @@ public sealed partial class DamageTakenTracker : Analyzer
         long taken = 0, unmitigated = 0, mitigated = 0, absorbed = 0, blocked = 0;
         var hits = 0;
         var blockedHits = 0;
-        var seconds = Owner.FightDurationMs / 1000d;
+        var seconds = Owner.DungeonDurationMs / 1000d;
 
         var sources = new List<DamageTakenSource>(_bySource.Count);
         foreach (var (id, capture) in _bySource)
@@ -168,7 +168,7 @@ public sealed record DamageTakenHit(int Timestamp, long Amount);
 /// <param name="Mitigated">The portion prevented by damage reduction, blocks included.</param>
 /// <param name="Absorbed">The portion prevented by absorb shields.</param>
 /// <param name="Blocked">The share of <paramref name="Mitigated"/> the log attributes to blocks.</param>
-/// <param name="DamageTakenPerSecond"><paramref name="Taken"/> spread over the fight's duration.</param>
+/// <param name="DamageTakenPerSecond"><paramref name="Taken"/> spread over the dungeon's duration.</param>
 public sealed record DamageTakenSource(
     int AbilityId,
     string Name,

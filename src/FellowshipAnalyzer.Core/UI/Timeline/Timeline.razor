@@ -32,12 +32,12 @@
 
     @if (allEvents.Count == 0)
     {
-        <p class="timeline-empty">No event data available for this fight.</p>
+        <p class="timeline-empty">No event data available for this dungeon.</p>
     }
     else
     {
-        var windowStart = SelectedPull?.StartTime ?? FightStartTime;
-        var windowEnd = SelectedPull?.EndTime ?? FightEndTime;
+        var windowStart = SelectedPull?.StartTime ?? DungeonStartTime;
+        var windowEnd = SelectedPull?.EndTime ?? DungeonEndTime;
 
         var availableAuraOptions = allPlayerAuras
             .GroupBy(b => b.Ability.FSLID)
@@ -97,7 +97,7 @@
                     @if (allPlayerAuras.Count > 0)
                     {
                         <AuraBar Auras="@allPlayerAuras"
-                                 FightStartTime="@FightStartTime"
+                                 DungeonStartTime="@DungeonStartTime"
                                  WindowStart="@windowStart"
                                  WindowEnd="@windowEnd"
                                  PixelsPerSecond="@PixelsPerSecond"
@@ -106,7 +106,7 @@
                     }
                     <CastBar Events="@allEvents"
                              PlayerId="@PlayerId"
-                             FightStartTime="@FightStartTime"
+                             DungeonStartTime="@DungeonStartTime"
                              WindowStart="@windowStart"
                              WindowEnd="@windowEnd"
                              PixelsPerSecond="@PixelsPerSecond"
@@ -126,7 +126,7 @@
                         </div>
                         <CooldownLane Ability="@ability"
                                       CooldownEvents="@cdEvents"
-                                      FightStartTime="@FightStartTime"
+                                      DungeonStartTime="@DungeonStartTime"
                                       WindowStart="@windowStart"
                                       WindowEnd="@windowEnd"
                                       PixelsPerSecond="@PixelsPerSecond" />
@@ -150,7 +150,7 @@
 </div>
 
 @code {
-    /// <summary>Pixels rendered per second of fight time. Default: 30 px/s (1 min = 1800 px).</summary>
+    /// <summary>Pixels rendered per second of dungeon time. Default: 30 px/s (1 min = 1800 px).</summary>
     [Parameter] public double PixelsPerSecond { get; set; } = 60.0;
 
     private TimelineConfig _effectiveConfig = new();

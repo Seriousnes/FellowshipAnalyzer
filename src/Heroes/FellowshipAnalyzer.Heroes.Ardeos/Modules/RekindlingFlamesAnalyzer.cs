@@ -13,7 +13,7 @@ public sealed partial class RekindlingFlamesAnalyzer : Analyzer
     [On<DeathEvent>]
     private void OnDeath(DeathEvent e)
     {
-        var windows = Combatants.AuraInstanceCount(e.TargetId, e.TargetInstance, Spells.EngulfingFlamesDot.FSLID, e.Timestamp);
+        var windows = Combatants.AuraInstanceCount(e.TargetId, e.TargetInstance, Spells.EngulfingFlamesDot, e.Timestamp);
         if (windows == 0)
             return;
 

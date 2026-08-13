@@ -22,7 +22,7 @@ public sealed class MaraDotAnalyzerTests
     private const int PlayerId = 7;
     private const int BossId = 99;
     private const int AddId = 50;
-    private const int FightEnd = 20000;
+    private const int DungeonEnd = 20000;
 
     [Fact]
     public async Task Analyze_SeethingPoisonReapplied_MeasuresUptimeAndGap()
@@ -32,10 +32,10 @@ public sealed class MaraDotAnalyzerTests
             Apply(Spells.WidowBitePoison, BossId, 1000),
             Remove(Spells.WidowBitePoison, BossId, 5000),
             Apply(Spells.WidowBitePoison, BossId, 8000),
-            Tick(Spells.WidowBitePoison, BossId, FightEnd),
+            Tick(Spells.WidowBitePoison, BossId, DungeonEnd),
         };
 
-        var parser = await AnalyzeAsync(events, BossFight());
+        var parser = await AnalyzeAsync(events, BossDungeon());
 
         var entry = parser.MaraDotAnalyzers.ShouldHaveSingleItem();
         var analyzer = entry.Analyzer.ShouldBeOfType<MaraDotUptimeAnalyzer>();
@@ -56,7 +56,7 @@ public sealed class MaraDotAnalyzerTests
     {
         var events = new List<Event> { Apply(Spells.WidowBitePoison, BossId, 1000) };
 
-        var parser = await AnalyzeAsync(events, BossFight());
+        var parser = await AnalyzeAsync(events, BossDungeon());
 
         var entry = parser.MaraDotAnalyzers.ShouldHaveSingleItem();
         var pull = entry.Pull;
@@ -75,7 +75,7 @@ public sealed class MaraDotAnalyzerTests
             Tick(Spells.HemorrhagingStrikeBleed, BossId, 19000),
         };
 
-        var parser = await AnalyzeAsync(events, BossFight());
+        var parser = await AnalyzeAsync(events, BossDungeon());
 
         var analyzer = SingleUptimeAnalyzer(parser);
         var window = analyzer.Hemorrhage.Windows.ShouldHaveSingleItem();
@@ -91,7 +91,7 @@ public sealed class MaraDotAnalyzerTests
     {
         var events = new List<Event> { Apply(Spells.HemorrhagingStrikeBleed, BossId, 1000) };
 
-        var parser = await AnalyzeAsync(events, BossFight());
+        var parser = await AnalyzeAsync(events, BossDungeon());
 
         var analyzer = SingleUptimeAnalyzer(parser);
         analyzer.Hemorrhage.Windows.ShouldBeEmpty();
@@ -110,7 +110,7 @@ public sealed class MaraDotAnalyzerTests
             Remove(Spells.HemorrhagingStrikeBleed, BossId, 11000),
         };
 
-        var parser = await AnalyzeAsync(events, BossFight());
+        var parser = await AnalyzeAsync(events, BossDungeon());
 
         var analyzer = SingleUptimeAnalyzer(parser);
         var window = analyzer.Hemorrhage.Windows.ShouldHaveSingleItem();
@@ -130,7 +130,7 @@ public sealed class MaraDotAnalyzerTests
             Refresh(Spells.HemorrhagingStrikeBleed, BossId, 5000),
         };
 
-        var parser = await AnalyzeAsync(events, BossFight());
+        var parser = await AnalyzeAsync(events, BossDungeon());
 
         var analyzer = SingleUptimeAnalyzer(parser);
         analyzer.HemorrhageApplications.Count.ShouldBe(2);
@@ -156,7 +156,7 @@ public sealed class MaraDotAnalyzerTests
             Refresh(Spells.HemorrhagingStrikeBleed, BossId, 5000),
         };
 
-        var parser = await AnalyzeAsync(events, BossFight());
+        var parser = await AnalyzeAsync(events, BossDungeon());
 
         var refresh = SingleUptimeAnalyzer(parser).HemorrhageRefreshes.ShouldHaveSingleItem();
         refresh.Timestamp.ShouldBe(5000);
@@ -174,7 +174,7 @@ public sealed class MaraDotAnalyzerTests
             Refresh(Spells.HemorrhagingStrikeBleed, BossId, 15000),
         };
 
-        var parser = await AnalyzeAsync(events, BossFight());
+        var parser = await AnalyzeAsync(events, BossDungeon());
 
         var analyzer = SingleUptimeAnalyzer(parser);
         analyzer.HemorrhageApplications[0].ExpectedDurationMs.ShouldBe(MaraDotUptimeAnalyzer.HemorrhageBaseDurationMs);
@@ -186,7 +186,7 @@ public sealed class MaraDotAnalyzerTests
     {
         var events = new List<Event> { Apply(Spells.HemorrhagingStrikeBleed, BossId, 1000) };
 
-        var parser = await AnalyzeAsync(events, BossFight());
+        var parser = await AnalyzeAsync(events, BossDungeon());
 
         var application = SingleUptimeAnalyzer(parser).HemorrhageApplications.ShouldHaveSingleItem();
         application.ComboPoints.ShouldBe(0);
@@ -196,7 +196,7 @@ public sealed class MaraDotAnalyzerTests
     [Fact]
     public async Task Analyze_NoApplications_ReportsZeroForEveryMaintainedEffect()
     {
-        var parser = await AnalyzeAsync([], BossFight());
+        var parser = await AnalyzeAsync([], BossDungeon());
 
         var analyzer = SingleUptimeAnalyzer(parser);
         analyzer.Uptimes.Count.ShouldBe(MaraDots.Maintained.Count);
@@ -214,7 +214,7 @@ public sealed class MaraDotAnalyzerTests
     {
         var events = new List<Event> { Apply(Spells.WidowBitePoison, BossId, 1000) };
 
-        var parser = await AnalyzeAsync(events, TrashFight(4));
+        var parser = await AnalyzeAsync(events, TrashDungeon(4));
 
         parser.MaraDotAnalyzers.Select(entry => entry.Analyzer).OfType<MaraDotUptimeAnalyzer>().ShouldBeEmpty();
     }
@@ -231,7 +231,7 @@ public sealed class MaraDotAnalyzerTests
             Apply(Spells.WidowBitePoison, 10, 3000),
         };
 
-        var parser = await AnalyzeAsync(events, TrashFight(5));
+        var parser = await AnalyzeAsync(events, TrashDungeon(5));
 
         var entry = parser.MaraDotAnalyzers.ShouldHaveSingleItem();
         var analyzer = entry.Analyzer.ShouldBeOfType<MaraDotSpreadAnalyzer>();
@@ -258,7 +258,7 @@ public sealed class MaraDotAnalyzerTests
             Refresh(Spells.SkitteringBladesPoison, 10, 5000),
         };
 
-        var parser = await AnalyzeAsync(events, TrashFight(4));
+        var parser = await AnalyzeAsync(events, TrashDungeon(4));
 
         var analyzer = SingleSpreadAnalyzer(parser);
         analyzer.VolatilePoisonTargets.ShouldBe(2);
@@ -275,7 +275,7 @@ public sealed class MaraDotAnalyzerTests
             Apply(Spells.HemorrhagingStrikeBleed, 10, 1500, targetInstance: 1),
         };
 
-        var parser = await AnalyzeAsync(events, TrashFight(4));
+        var parser = await AnalyzeAsync(events, TrashDungeon(4));
 
         SingleSpreadAnalyzer(parser).HemorrhageTargets.ShouldBe(2);
     }
@@ -291,7 +291,7 @@ public sealed class MaraDotAnalyzerTests
             Apply(Spells.SkitteringBladesPoison, 13, 2500),
         };
 
-        var parser = await AnalyzeAsync(events, SpanningFight());
+        var parser = await AnalyzeAsync(events, SpanningDungeon());
 
         var analyzer = SingleSpreadAnalyzer(parser);
         analyzer.TargetCount.ShouldBe(0);
@@ -311,7 +311,7 @@ public sealed class MaraDotAnalyzerTests
             Apply(Spells.HemorrhagingStrikeBuff, 30, 2000),
         };
 
-        var parser = await AnalyzeAsync(events, TrashFight(5));
+        var parser = await AnalyzeAsync(events, TrashDungeon(5));
 
         var analyzer = SingleSpreadAnalyzer(parser);
         analyzer.HemorrhageTargets.ShouldBe(1);
@@ -323,7 +323,7 @@ public sealed class MaraDotAnalyzerTests
     {
         var events = new List<Event> { Apply(Spells.HemorrhagingStrikeBleed, 10, 1000) };
 
-        var parser = await AnalyzeAsync(events, BossFight());
+        var parser = await AnalyzeAsync(events, BossDungeon());
 
         parser.MaraDotAnalyzers.Select(entry => entry.Analyzer).OfType<MaraDotSpreadAnalyzer>().ShouldBeEmpty();
     }
@@ -398,16 +398,16 @@ public sealed class MaraDotAnalyzerTests
         },
     };
 
-    private static ReportFight BossFight() =>
-        new(0, "", 1, null, 0, FightEnd, null, null, null);
+    private static ReportDungeon BossDungeon() =>
+        new(0, "", 1, null, 0, DungeonEnd, null, null, null);
 
-    private static ReportFight TrashFight(int enemies) =>
-        new(0, "", 0, null, 0, FightEnd, null, null, null, EnemyNpcs: [new FightNpc(1, 100, enemies, 1, null)]);
+    private static ReportDungeon TrashDungeon(int enemies) =>
+        new(0, "", 0, null, 0, DungeonEnd, null, null, null, EnemyNpcs: [new DungeonNpc(1, 100, enemies, 1, null)]);
 
-    private static ReportFight SpanningFight() =>
-        new(0, "", 0, null, 0, FightEnd, null, null, null);
+    private static ReportDungeon SpanningDungeon() =>
+        new(0, "", 0, null, 0, DungeonEnd, null, null, null);
 
-    private static async Task<MaraCombatLogParser> AnalyzeAsync(List<Event> events, ReportFight fight)
+    private static async Task<MaraCombatLogParser> AnalyzeAsync(List<Event> events, ReportDungeon dungeon)
     {
         var services = new ServiceCollection();
         services.AddLogging();
@@ -418,7 +418,7 @@ public sealed class MaraDotAnalyzerTests
         using var scope = provider.CreateScope();
 
         var parser = scope.ServiceProvider.GetRequiredService<MaraCombatLogParser>();
-        await parser.Analyze(events, PlayerId, fight);
+        await parser.Analyze(events, PlayerId, dungeon);
         return parser;
     }
 }

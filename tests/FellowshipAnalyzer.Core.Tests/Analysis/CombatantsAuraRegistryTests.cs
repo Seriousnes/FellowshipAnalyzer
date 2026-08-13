@@ -24,10 +24,10 @@ public sealed class CombatantsAuraRegistryTests
     private const int PlayerId = 25;
     private const int EffectId = 1002325;
 
-    private static readonly ReportFight TestFight =
+    private static readonly ReportDungeon TestDungeon =
         new(Id: 0, Name: "", EncounterId: 0, Kill: null,
             StartTime: 0, EndTime: 60_000, Difficulty: null,
-            FriendlyPlayers: null, FightPercentage: null);
+            FriendlyPlayers: null, CompletionPercentage: null);
 
     [Fact]
     public async Task CompositeKey_SeparatesTwoSpawnsOfSameActorId()
@@ -125,7 +125,7 @@ public sealed class CombatantsAuraRegistryTests
         provider.GetService(typeof(ILogger<EventEmitter>)).Returns(NullLogger<EventEmitter>.Instance);
 
         var parser = new TestParser(emitter, provider);
-        await parser.Analyze([.. events], PlayerId, fight: TestFight);
+        await parser.Analyze([.. events], PlayerId, dungeon: TestDungeon);
         return (parser, parser.GetModule<Combatants>()!);
     }
 

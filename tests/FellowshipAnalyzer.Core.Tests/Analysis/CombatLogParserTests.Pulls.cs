@@ -8,12 +8,12 @@ namespace FellowshipAnalyzer.Core.Tests.Analysis;
 public sealed partial class CombatLogParserTests
 {
     [Fact]
-    public async Task Analyze_WithPullNormalizer_NestsImplicitPullInsideFightBookends()
+    public async Task Analyze_WithPullNormalizer_NestsImplicitPullInsideDungeonBookends()
     {
         var owner = CreateCombatLogParser(
             normalizerTypes: [typeof(PullBookendNormalizer), typeof(DungeonBookendNormalizer)]);
 
-        await owner.Analyze(CreateEvents(), playerId: 7, fight: TestFight);
+        await owner.Analyze(CreateEvents(), playerId: 7, dungeon: TestDungeon);
 
         var events = owner.Events;
         Assert.IsType<DungeonStartEvent>(events[0]);
@@ -22,8 +22,8 @@ public sealed partial class CombatLogParserTests
         var pullEnd = Assert.IsType<PullEndEvent>(events[^2]);
 
         Assert.Same(pullStart.Pull, pullEnd.Pull);
-        Assert.Equal(owner.FightStartTime, pullStart.Timestamp);
-        Assert.Equal(owner.FightEndTime, pullEnd.Timestamp);
+        Assert.Equal(owner.DungeonStartTime, pullStart.Timestamp);
+        Assert.Equal(owner.DungeonEndTime, pullEnd.Timestamp);
         Assert.Single(events.OfType<PullStartEvent>());
         Assert.Single(events.OfType<PullEndEvent>());
     }
@@ -33,21 +33,21 @@ public sealed partial class CombatLogParserTests
     {
         var events = new List<Event>
         {
-            CreateCast(timestamp: FightStart, abilityId: 1),
+            CreateCast(timestamp: DungeonStart, abilityId: 1),
             CreateCast(timestamp: 30_000, abilityId: 1),
-            CreateCast(timestamp: FightEnd, abilityId: 1),
+            CreateCast(timestamp: DungeonEnd, abilityId: 1),
         };
 
         var owner = CreateCombatLogParser(
             normalizerTypes: [typeof(PullBookendNormalizer), typeof(DungeonBookendNormalizer)]);
 
-        await owner.Analyze(events, playerId: 7, fight: TestFight);
+        await owner.Analyze(events, playerId: 7, dungeon: TestDungeon);
 
         var stream = owner.Events;
         var pullStart = stream.FindIndex(e => e is PullStartEvent);
         var pullEnd = stream.FindIndex(e => e is PullEndEvent);
-        var castAtStart = stream.FindIndex(e => e is CastEvent c && c.Timestamp == FightStart);
-        var castAtEnd = stream.FindIndex(e => e is CastEvent c && c.Timestamp == FightEnd);
+        var castAtStart = stream.FindIndex(e => e is CastEvent c && c.Timestamp == DungeonStart);
+        var castAtEnd = stream.FindIndex(e => e is CastEvent c && c.Timestamp == DungeonEnd);
 
         Assert.True(pullStart < castAtStart, "an open must precede same-timestamp gameplay");
         Assert.True(castAtEnd < pullEnd, "a close must follow same-timestamp gameplay");
@@ -62,7 +62,7 @@ public sealed partial class CombatLogParserTests
 
         var owner = CreateCombatLogParser(normalizerTypes: [typeof(DungeonBookendNormalizer)]);
 
-        await owner.Analyze(events, playerId: 7, fight: TestFight);
+        await owner.Analyze(events, playerId: 7, dungeon: TestDungeon);
 
         var ids = owner.Events
             .OfType<CastEvent>()
@@ -73,6 +73,6 @@ public sealed partial class CombatLogParserTests
         Assert.Equal(Enumerable.Range(1000, 30).ToList(), ids);
     }
 
-    private const int FightStart = 0;
-    private const int FightEnd = 60_000;
+    private const int DungeonStart = 0;
+    private const int DungeonEnd = 60_000;
 }

@@ -146,7 +146,7 @@ The source generator emits the factory that constructs this module per analysis 
 }
 ```
 
-Gate pull analyzers on a non-empty surface stream and fight-lifetime modules on a null check, exactly as `RimeGuide.razor` does for both. The root guide renders only analysis-driven guide components; no static rotation, overview, or how-to-play prose belongs in it. Add feature guides with the `create-guide` skill.
+Gate pull analyzers on a non-empty surface stream and dungeon-lifetime modules on a null check, exactly as `RimeGuide.razor` does for both. The root guide renders only analysis-driven guide components; no static rotation, overview, or how-to-play prose belongs in it. Add feature guides with the `create-guide` skill.
 
 ### 9. Configure SCSS
 

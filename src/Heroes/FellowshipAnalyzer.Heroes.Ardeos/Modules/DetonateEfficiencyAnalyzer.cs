@@ -89,7 +89,7 @@ public sealed partial class DetonateEfficiencyAnalyzer : Analyzer
             TotalInstances = totalInstances,
             MaxTargetInstances = maxTargetInstances,
             Coverage = ArdeosDotTracker.CoverageAcross(targets, e.Timestamp),
-            Free = Owner.SelectedCombatant.HasBuff(Spells.ApocalypticSurge.FSLID, e.Timestamp, bufferTime: SurgeBufferMs),
+            Free = Owner.SelectedCombatant.HasBuff(Spells.ApocalypticSurge, e.Timestamp, bufferTime: SurgeBufferMs),
         });
     }
 

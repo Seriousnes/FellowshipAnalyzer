@@ -11,20 +11,20 @@ public sealed class PullBookendNormalizerTests
 {
     private static readonly FullCombatant EmptyCombatant = new(new CombatantInfoEvent());
 
-    private static ParseContext Context(ReportFight fight)
-        => new(PlayerId: 1, Fight: fight, ActorNames: new Dictionary<int, string>(), EmptyCombatant);
+    private static ParseContext Context(ReportDungeon dungeon)
+        => new(PlayerId: 1, Dungeon: dungeon, ActorNames: new Dictionary<int, string>(), EmptyCombatant);
 
-    private static ReportFight Fight(
+    private static ReportDungeon Dungeon(
         int encounterId = 0,
         bool? kill = null,
         double startTime = 100,
         double endTime = 5000,
         IReadOnlyList<DungeonPull>? dungeonPulls = null,
-        IReadOnlyList<FightNpc>? enemyNpcs = null,
-        string name = "Fight")
+        IReadOnlyList<DungeonNpc>? enemyNpcs = null,
+        string name = "Dungeon")
         => new(Id: 0, Name: name, EncounterId: encounterId, Kill: kill,
             StartTime: startTime, EndTime: endTime, Difficulty: null,
-            FriendlyPlayers: null, FightPercentage: null, InProgress: false,
+            FriendlyPlayers: null, CompletionPercentage: null, InProgress: false,
             DungeonPulls: dungeonPulls, EnemyNpcs: enemyNpcs);
 
     private static List<PullStartEvent> Starts(List<Event> events) => [.. events.OfType<PullStartEvent>()];
@@ -32,9 +32,9 @@ public sealed class PullBookendNormalizerTests
     private static List<PullEndEvent> Ends(List<Event> events) => [.. events.OfType<PullEndEvent>()];
 
     [Fact]
-    public void Normalize_NoDungeonPulls_FabricatesOneImplicitPullSpanningFight()
+    public void Normalize_NoDungeonPulls_FabricatesOneImplicitPullSpanningDungeon()
     {
-        var normalizer = new PullBookendNormalizer(Context(Fight(startTime: 100, endTime: 5000)));
+        var normalizer = new PullBookendNormalizer(Context(Dungeon(startTime: 100, endTime: 5000)));
         var existing = new ApplyBuffEvent { Timestamp = 200 };
 
         var result = normalizer.Normalize([existing], playerId: 1);
@@ -58,7 +58,7 @@ public sealed class PullBookendNormalizerTests
             new(Id: 1, EncounterId: 0, Kill: null, StartTime: 200, EndTime: 800, Name: "Trash", EnemyNpcs: null),
             new(Id: 2, EncounterId: 42, Kill: true, StartTime: 1000, EndTime: 2000, Name: "Boss", EnemyNpcs: null),
         };
-        var normalizer = new PullBookendNormalizer(Context(Fight(dungeonPulls: pulls)));
+        var normalizer = new PullBookendNormalizer(Context(Dungeon(dungeonPulls: pulls)));
 
         var result = normalizer.Normalize([], playerId: 1);
 
@@ -80,7 +80,7 @@ public sealed class PullBookendNormalizerTests
         {
             new(Id: 1, EncounterId: encounterId, Kill: true, StartTime: 200, EndTime: 800, Name: "P", EnemyNpcs: null),
         };
-        var normalizer = new PullBookendNormalizer(Context(Fight(dungeonPulls: pulls)));
+        var normalizer = new PullBookendNormalizer(Context(Dungeon(dungeonPulls: pulls)));
 
         var pull = Assert.Single(Starts(normalizer.Normalize([], playerId: 1))).Pull;
 
@@ -94,7 +94,7 @@ public sealed class PullBookendNormalizerTests
         {
             new(Id: 1, EncounterId: 42, Kill: false, StartTime: 200, EndTime: 800, Name: "Wipe", EnemyNpcs: null),
         };
-        var normalizer = new PullBookendNormalizer(Context(Fight(dungeonPulls: pulls)));
+        var normalizer = new PullBookendNormalizer(Context(Dungeon(dungeonPulls: pulls)));
 
         var pull = Assert.Single(Starts(normalizer.Normalize([], playerId: 1))).Pull;
 
@@ -116,7 +116,7 @@ public sealed class PullBookendNormalizerTests
         {
             new(Id: 1, EncounterId: encounterId, Kill: true, StartTime: 200, EndTime: 800, Name: "P", EnemyNpcs: npcs),
         };
-        var normalizer = new PullBookendNormalizer(Context(Fight(dungeonPulls: pulls)));
+        var normalizer = new PullBookendNormalizer(Context(Dungeon(dungeonPulls: pulls)));
 
         var pull = Assert.Single(Starts(normalizer.Normalize([], playerId: 1))).Pull;
 
@@ -124,14 +124,14 @@ public sealed class PullBookendNormalizerTests
     }
 
     [Fact]
-    public void Classify_ImplicitPull_TakesItsEncounterAndKillFromTheFight()
+    public void Classify_ImplicitPull_TakesItsEncounterAndKillFromTheDungeon()
     {
-        var npcs = new List<FightNpc>
+        var npcs = new List<DungeonNpc>
         {
             new(Id: 10, GameId: 100, InstanceCount: 1, GroupCount: 1, PetOwner: null),
             new(Id: 11, GameId: 101, InstanceCount: 5, GroupCount: 1, PetOwner: 10),
         };
-        var normalizer = new PullBookendNormalizer(Context(Fight(encounterId: 7, kill: true, enemyNpcs: npcs)));
+        var normalizer = new PullBookendNormalizer(Context(Dungeon(encounterId: 7, kill: true, enemyNpcs: npcs)));
 
         var pull = Assert.Single(Starts(normalizer.Normalize([], playerId: 1))).Pull;
 

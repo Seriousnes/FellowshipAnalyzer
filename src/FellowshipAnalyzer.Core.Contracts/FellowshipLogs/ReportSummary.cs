@@ -8,5 +8,5 @@ public sealed record ReportSummary(
     string? Title,
     double StartTime,
     double? EndTime,
-    int FightCount
+    int DungeonCount
 );

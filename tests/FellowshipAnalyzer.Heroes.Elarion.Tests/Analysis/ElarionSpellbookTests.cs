@@ -23,7 +23,7 @@ public sealed class ElarionSpellbookTests
         using var scope = provider.CreateScope();
 
         var parser = scope.ServiceProvider.GetRequiredService<ElarionCombatLogParser>();
-        await parser.Analyze([], playerId: 1, fight: new ReportFight(0, "", 0, null, 0, 0, null, null, null));
+        await parser.Analyze([], playerId: 1, dungeon: new ReportDungeon(0, "", 0, null, 0, 0, null, null, null));
 
         var spellbook = parser.Abilities!.Spellbook().Where(e => e.Enabled).ToList();
 

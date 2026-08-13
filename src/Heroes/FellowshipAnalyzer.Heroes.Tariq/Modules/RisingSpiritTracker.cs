@@ -6,8 +6,8 @@ namespace FellowshipAnalyzer.Heroes.Tariq.Modules;
 
 public sealed partial class RisingSpiritTracker : Analyzer
 {
-    private int _fightStart;
-    private int _fightEnd;
+    private int _dungeonStart;
+    private int _dungeonEnd;
     private int _windowStart;
     private int _lastStackChange;
     private int _currentStacks;
@@ -21,23 +21,23 @@ public sealed partial class RisingSpiritTracker : Analyzer
 
     public int TotalActiveMs { get; private set; }
 
-    public int FightDurationMs => Math.Max(0, _fightEnd - _fightStart);
+    public int DungeonDurationMs => Math.Max(0, _dungeonEnd - _dungeonStart);
 
-    public double UptimeShare => FightDurationMs == 0 ? 0d : Math.Min(1d, (double)TotalActiveMs / FightDurationMs);
+    public double UptimeShare => DungeonDurationMs == 0 ? 0d : Math.Min(1d, (double)TotalActiveMs / DungeonDurationMs);
 
     public double AverageStacks => TotalActiveMs == 0 ? 0d : (double)_weightedStackMs / TotalActiveMs;
 
     [On<DungeonStartEvent>]
-    private void OnFightStart(DungeonStartEvent @event)
+    private void OnDungeonStart(DungeonStartEvent @event)
     {
-        _fightStart = @event.Timestamp;
-        _fightEnd = @event.Timestamp;
+        _dungeonStart = @event.Timestamp;
+        _dungeonEnd = @event.Timestamp;
     }
 
     [On<DungeonEndEvent>]
-    private void OnFightEnd(DungeonEndEvent @event)
+    private void OnDungeonEnd(DungeonEndEvent @event)
     {
-        _fightEnd = @event.Timestamp;
+        _dungeonEnd = @event.Timestamp;
         CloseWindow(@event.Timestamp);
     }
 

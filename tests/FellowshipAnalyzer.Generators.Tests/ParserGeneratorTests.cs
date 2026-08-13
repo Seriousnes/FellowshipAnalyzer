@@ -403,11 +403,11 @@ public class ParserGeneratorTests
 
     /// <summary>
     /// The mirror of <see cref="AddModuleOfForPullAnalyzer_RoutesToThePullSurface"/>: <c>[AddAnalyzer]</c>
-    /// over an analyzer with no <c>[ForPull]</c> is parse-lifetime, which is what most of
+    /// over an analyzer with no <c>[ForPull]</c> is dungeon-lifetime, which is what most of
     /// <c>CombatLogParser</c>'s own registrations are.
     /// </summary>
     [Fact]
-    public void AddAnalyzerWithoutForPull_RoutesToParseLifetime()
+    public void AddAnalyzerWithoutForPull_RoutesToDungeonLifetime()
     {
         var result = ParserGeneratorTestHarness.Run(AddAnalyzerWithoutForPull());
         var gen = result.ConcatenatedGenerated;

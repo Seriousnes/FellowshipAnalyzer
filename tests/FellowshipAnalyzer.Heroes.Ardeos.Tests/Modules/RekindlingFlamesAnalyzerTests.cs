@@ -20,10 +20,10 @@ public sealed class RekindlingFlamesAnalyzerTests
     private const int EnemyId = 100;
     private const int EnemyInstance = 1;
 
-    private static readonly ReportFight Fight =
+    private static readonly ReportDungeon Dungeon =
         new(Id: 0, Name: "", EncounterId: 0, Kill: null,
             StartTime: 0, EndTime: 60_000, Difficulty: null,
-            FriendlyPlayers: null, FightPercentage: null);
+            FriendlyPlayers: null, CompletionPercentage: null);
 
     [Fact]
     public async Task DeathWithoutEngulfingFlamesWindows_IsIgnored()
@@ -111,7 +111,7 @@ public sealed class RekindlingFlamesAnalyzerTests
         using var scope = provider.CreateScope();
 
         var parser = scope.ServiceProvider.GetRequiredService<ArdeosCombatLogParser>();
-        await parser.Analyze([.. events], PlayerId, Fight);
+        await parser.Analyze([.. events], PlayerId, Dungeon);
         return parser.GetModule<RekindlingFlamesAnalyzer>()!;
     }
 }

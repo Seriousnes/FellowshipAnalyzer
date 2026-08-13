@@ -14,7 +14,7 @@ Execute a .NET 10 file-based app from `src/FellowshipAnalyzer.Tools/`.
 |--------|---------|-------|
 | `rebuild-spelldb.cs` | Regenerates `data/spelldb.json` from the SpellData merge engine; the source of every generated per-hero `Spells` registry. Hand corrections go in `data/overrides.json`, never in the output. | `dotnet run --no-cache src/FellowshipAnalyzer.Tools/rebuild-spelldb.cs` |
 | `emit-palette.cs` | Renders `src/FellowshipAnalyzer.Core/Styles/_palette.scss` from the C# design tokens. `PaletteScssDriftTests.Committed_Palette_Matches_The_Theme` fails the build if the committed file is stale. | from `src/FellowshipAnalyzer.Tools`: `dotnet run --no-cache emit-palette.cs "../FellowshipAnalyzer.Core/Styles/_palette.scss"` |
-| `fetch-report.cs` | Fetches one player's event stream for a fight and writes it to the gitignored `raw-reports/{code}-f{fight}-s{source}.json`. Requires credentials. | `dotnet run src/FellowshipAnalyzer.Tools/fetch-report.cs <code> <fightId> <sourceId> [outputPath]` |
+| `fetch-report.cs` | Fetches one player's event stream for a dungeon and writes it to the gitignored `raw-reports/{code}-f{dungeon}-s{source}.json`. Requires credentials. | `dotnet run src/FellowshipAnalyzer.Tools/fetch-report.cs <code> <dungeonId> <sourceId> [outputPath]` |
 | `fetch-abilities.cs` | Fetches all abilities from the FellowshipLogs API and writes `abilities.json` at the repo root. Uses the cached file if it exists; pass `--refresh` to re-fetch. Requires credentials. | `dotnet run src/FellowshipAnalyzer.Tools/fetch-abilities.cs [--refresh]` |
 | `refresh-schema.cs` | Fetches a fresh GraphQL introspection result from the FellowshipLogs API and writes SDL to `src/FellowshipAnalyzer/FellowshipAnalyzer.Api.GraphQL/schema.graphql`. Takes no arguments and always hits the network, so it requires credentials. | `dotnet run src/FellowshipAnalyzer.Tools/refresh-schema.cs` |
 | `probe-deaths.cs` | Probes the Deaths GraphQL query semantics (defaults to the RaMDvgzWXBCnF4QT/16/25 example report; has a `--scan` mode). Requires credentials. | `dotnet run src/FellowshipAnalyzer.Tools/probe-deaths.cs` |
@@ -55,11 +55,11 @@ The drift test catches a forgotten run, so a stale committed `_palette.scss` fai
 
 ### fetch-report
 
-1. Run from the repo root with the report code (anonymous reports keep their `a:` prefix), fight id, and source (player) id:
+1. Run from the repo root with the report code (anonymous reports keep their `a:` prefix), dungeon id, and source (player) id:
    ```
    dotnet run src/FellowshipAnalyzer.Tools/fetch-report.cs 6fgrXtW1b2aTZcD3 347 4
    ```
-2. Output lands in the gitignored `raw-reports/` folder as `{code}-f{fight}-s{source}.json`. Analyze it with the `analyze-event-schema` or `analyze-log-resources` skill.
+2. Output lands in the gitignored `raw-reports/` folder as `{code}-f{dungeon}-s{source}.json`. Analyze it with the `analyze-event-schema` or `analyze-log-resources` skill.
 
 ### fetch-abilities
 

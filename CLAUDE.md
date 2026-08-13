@@ -57,11 +57,11 @@ AppHost pins DevHost to its `http` launch profile, so the app is at `http://fell
 Per-report, per-hero analysis pipeline:
 
 ```
-FellowshipLogs GraphQL JSON (player events, plus the fight death stream merged in by EventStreamMerger)
+FellowshipLogs GraphQL JSON (player events, plus the dungeon death stream merged in by EventStreamMerger)
   → event deserialization (polymorphic on Event)
   → CombatLogParser.Analyze
   → IEventNormalizer passes in Priority order (bookend pulls, rescale resources, attach master data, link casts)
-  → parse-lifetime modules constructed; RegisterSubscriptions() wires their [On<TEvent>] handlers
+  → dungeon-lifetime modules constructed; RegisterSubscriptions() wires their [On<TEvent>] handlers
   → EventEmitter dispatches; PullStartEvent / PullEndEvent open and close each pull,
     constructing a fresh set of [ForPull] analyzers per pull and retaining them afterwards
   → modules and analyzers expose derived metrics as computed get-only properties over retained state

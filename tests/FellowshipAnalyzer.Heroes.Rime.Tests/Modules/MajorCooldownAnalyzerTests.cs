@@ -23,7 +23,7 @@ public sealed class MajorCooldownAnalyzerTests
     private const int EnemyId = 100;
     private const int EnemyInstance = 1;
 
-    private const int DefaultFightEnd = 60_000;
+    private const int DefaultDungeonEnd = 60_000;
     private const int WindowStart = 1_000;
     private const int WindowEnd = 21_000;
 
@@ -31,7 +31,7 @@ public sealed class MajorCooldownAnalyzerTests
     public async Task HeldTime_SumsEveryGapBetweenComingOffCooldownAndTheNextCast()
     {
         var analyzer = await AnalyzeAsync(
-            fightEndTime: 200_000,
+            dungeonEndTime: 200_000,
             Cast(0, Spells.IceBlitz),
             Cast(70_000, Spells.IceBlitz),
             Cast(140_000, Spells.IceBlitz));
@@ -44,7 +44,7 @@ public sealed class MajorCooldownAnalyzerTests
     public async Task HeldTime_ClosesAnIntervalStillOpenAtPullEnd()
     {
         var analyzer = await AnalyzeAsync(
-            fightEndTime: 200_000,
+            dungeonEndTime: 200_000,
             Cast(0, Spells.IceBlitz));
 
         analyzer.PullDurationMs.ShouldBe(200_000);
@@ -56,7 +56,7 @@ public sealed class MajorCooldownAnalyzerTests
     public async Task HeldTime_IsNotChargedForTheTimeBeforeTheFirstCast()
     {
         var analyzer = await AnalyzeAsync(
-            fightEndTime: 70_000,
+            dungeonEndTime: 70_000,
             Cast(50_000, Spells.IceBlitz));
 
         analyzer.IceBlitz.HeldMs.ShouldBe(0);
@@ -68,7 +68,7 @@ public sealed class MajorCooldownAnalyzerTests
         Spells.WrathOfWinter.Cooldown.ShouldBeNull();
 
         var analyzer = await AnalyzeAsync(
-            fightEndTime: 200_000,
+            dungeonEndTime: 200_000,
             Cast(0, Spells.WrathOfWinter));
 
         analyzer.UsageFor(RimeMajorCooldown.WrathOfWinter).HeldMs.ShouldBe(0);
@@ -78,7 +78,7 @@ public sealed class MajorCooldownAnalyzerTests
     public async Task BuffWindow_CountsBurstingIceAndSpenderCastsInsideOnly()
     {
         var analyzer = await AnalyzeAsync(
-            DefaultFightEnd,
+            DefaultDungeonEnd,
             BuffApplied(WindowStart, Spells.IceBlitzBuff),
             Cast(2_000, Spells.BurstingIce),
             Cast(3_000, Spells.GlacialBlast),
@@ -104,7 +104,7 @@ public sealed class MajorCooldownAnalyzerTests
     public async Task BuffUptime_IsMeasuredFromApplyToRemove()
     {
         var analyzer = await AnalyzeAsync(
-            DefaultFightEnd,
+            DefaultDungeonEnd,
             BuffApplied(WindowStart, Spells.IceBlitzBuff),
             BuffRemoved(WindowEnd, Spells.IceBlitzBuff));
 
@@ -115,7 +115,7 @@ public sealed class MajorCooldownAnalyzerTests
     public async Task AllFourMajors_OpenTheirOwnWindows()
     {
         var analyzer = await AnalyzeAsync(
-            DefaultFightEnd,
+            DefaultDungeonEnd,
             BuffApplied(1_000, Spells.IceBlitzBuff),
             BuffRemoved(2_000, Spells.IceBlitzBuff),
             BuffApplied(3_000, Spells.WinterBlessingSelfBuff),
@@ -144,7 +144,7 @@ public sealed class MajorCooldownAnalyzerTests
     public async Task WrathOfWinter_OrbsAtActivationComeFromTheOpeningCastSnapshot(int orbs)
     {
         var analyzer = await AnalyzeAsync(
-            DefaultFightEnd,
+            DefaultDungeonEnd,
             Cast(WindowStart, Spells.WrathOfWinter, orbs),
             BuffApplied(WindowStart, Spells.WrathOfWinterBuff),
             BuffRemoved(WindowEnd, Spells.WrathOfWinterBuff));
@@ -156,7 +156,7 @@ public sealed class MajorCooldownAnalyzerTests
     public async Task WrathOfWinter_WithoutACastSnapshot_LeavesOrbsAtActivationNull()
     {
         var analyzer = await AnalyzeAsync(
-            DefaultFightEnd,
+            DefaultDungeonEnd,
             Cast(WindowStart, Spells.WrathOfWinter),
             BuffApplied(WindowStart, Spells.WrathOfWinterBuff),
             BuffRemoved(WindowEnd, Spells.WrathOfWinterBuff));
@@ -168,7 +168,7 @@ public sealed class MajorCooldownAnalyzerTests
     public async Task WrathOfWinter_OrbSnapshotIsConsumedByTheWindowItOpens()
     {
         var analyzer = await AnalyzeAsync(
-            DefaultFightEnd,
+            DefaultDungeonEnd,
             Cast(WindowStart, Spells.WrathOfWinter, orbs: 4),
             BuffApplied(WindowStart, Spells.WrathOfWinterBuff),
             BuffRemoved(WindowEnd, Spells.WrathOfWinterBuff),
@@ -184,7 +184,7 @@ public sealed class MajorCooldownAnalyzerTests
     public async Task FirstSpenderLatency_MeasuresTheFirstSingleTargetSpenderInsideTheWindow()
     {
         var analyzer = await AnalyzeAsync(
-            DefaultFightEnd,
+            DefaultDungeonEnd,
             Cast(500, Spells.GlacialBlast),
             BuffApplied(WindowStart, Spells.WrathOfWinterBuff),
             Cast(2_000, Spells.IceComet),
@@ -201,7 +201,7 @@ public sealed class MajorCooldownAnalyzerTests
     public async Task FirstSpenderLatency_IsNullWhenNoSingleTargetSpenderLandsInside()
     {
         var analyzer = await AnalyzeAsync(
-            DefaultFightEnd,
+            DefaultDungeonEnd,
             BuffApplied(WindowStart, Spells.WrathOfWinterBuff),
             Cast(2_000, Spells.IceComet),
             BuffRemoved(WindowEnd, Spells.WrathOfWinterBuff));
@@ -215,7 +215,7 @@ public sealed class MajorCooldownAnalyzerTests
     public async Task OvercapsInside_CountsOnlyGeneratorCastsAtTheOrbCap()
     {
         var analyzer = await AnalyzeAsync(
-            DefaultFightEnd,
+            DefaultDungeonEnd,
             BuffApplied(WindowStart, Spells.WrathOfWinterBuff),
             Cast(2_000, Spells.FrostBolt, orbs: MajorCooldownAnalyzer.MaxWinterOrbs),
             Cast(3_000, Spells.ColdSnap, orbs: MajorCooldownAnalyzer.MaxWinterOrbs),
@@ -233,7 +233,7 @@ public sealed class MajorCooldownAnalyzerTests
     public async Task OvercapsInside_IsNullWhenNoGeneratorCastInsideCarriesASnapshot()
     {
         var analyzer = await AnalyzeAsync(
-            DefaultFightEnd,
+            DefaultDungeonEnd,
             BuffApplied(WindowStart, Spells.WrathOfWinterBuff),
             Cast(2_000, Spells.GlacialBlast, orbs: MajorCooldownAnalyzer.MaxWinterOrbs),
             Cast(3_000, Spells.FrostBolt),
@@ -246,7 +246,7 @@ public sealed class MajorCooldownAnalyzerTests
     public async Task WindowStillOpenAtPullEnd_ClosesAtTheBoundaryAndIsMarkedTruncated()
     {
         var analyzer = await AnalyzeAsync(
-            fightEndTime: 30_000,
+            dungeonEndTime: 30_000,
             BuffApplied(20_000, Spells.IceBlitzBuff),
             Cast(21_000, Spells.BurstingIce));
 
@@ -261,7 +261,7 @@ public sealed class MajorCooldownAnalyzerTests
     public async Task RemoveWithoutALiveWindow_IsIgnored()
     {
         var analyzer = await AnalyzeAsync(
-            DefaultFightEnd,
+            DefaultDungeonEnd,
             BuffRemoved(500, Spells.IceBlitzBuff),
             BuffApplied(WindowStart, Spells.IceBlitzBuff),
             BuffRemoved(WindowEnd, Spells.IceBlitzBuff));
@@ -274,7 +274,7 @@ public sealed class MajorCooldownAnalyzerTests
     public async Task ReapplyWhileAWindowIsOpen_ClosesTheOpenWindowAtTheReapply()
     {
         var analyzer = await AnalyzeAsync(
-            DefaultFightEnd,
+            DefaultDungeonEnd,
             BuffApplied(WindowStart, Spells.IceBlitzBuff),
             BuffApplied(5_000, Spells.IceBlitzBuff),
             BuffRemoved(WindowEnd, Spells.IceBlitzBuff));
@@ -290,7 +290,7 @@ public sealed class MajorCooldownAnalyzerTests
     public async Task PerPullReadPathsResolveToTheSameAnalyzerInstance()
     {
         var parser = await Analyze(
-            Fight(DefaultFightEnd),
+            Dungeon(DefaultDungeonEnd),
             BuffApplied(WindowStart, Spells.IceBlitzBuff),
             BuffRemoved(WindowEnd, Spells.IceBlitzBuff));
 
@@ -341,18 +341,18 @@ public sealed class MajorCooldownAnalyzerTests
         Ability = new Ability { FSLID = spell.FSLID, Name = spell.Name },
     };
 
-    private static ReportFight Fight(int endTime) => new(
+    private static ReportDungeon Dungeon(int endTime) => new(
         Id: 0, Name: "Boss", EncounterId: 1, Kill: true,
         StartTime: 0, EndTime: endTime, Difficulty: null,
-        FriendlyPlayers: null, FightPercentage: null);
+        FriendlyPlayers: null, CompletionPercentage: null);
 
-    private static async Task<MajorCooldownAnalyzer> AnalyzeAsync(int fightEndTime, params Event[] events)
+    private static async Task<MajorCooldownAnalyzer> AnalyzeAsync(int dungeonEndTime, params Event[] events)
     {
-        var parser = await Analyze(Fight(fightEndTime), events);
+        var parser = await Analyze(Dungeon(dungeonEndTime), events);
         return parser.MajorCooldownAnalyzers.ShouldHaveSingleItem().Analyzer;
     }
 
-    private static async Task<RimeCombatLogParser> Analyze(ReportFight fight, params Event[] events)
+    private static async Task<RimeCombatLogParser> Analyze(ReportDungeon dungeon, params Event[] events)
     {
         var services = new ServiceCollection();
         services.AddLogging();
@@ -363,7 +363,7 @@ public sealed class MajorCooldownAnalyzerTests
         using var scope = provider.CreateScope();
 
         var parser = scope.ServiceProvider.GetRequiredService<RimeCombatLogParser>();
-        await parser.Analyze([.. events], PlayerId, fight);
+        await parser.Analyze([.. events], PlayerId, dungeon);
         return parser;
     }
 }

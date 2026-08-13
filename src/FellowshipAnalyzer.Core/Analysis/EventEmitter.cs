@@ -34,7 +34,7 @@ public sealed class EventEmitter(ILogger<EventEmitter> logger) : Module
     }
 
     /// <summary>
-    /// Orders the state listener tier by <see cref="Module.Priority"/>. Called once the parse-lifetime
+    /// Orders the state listener tier by <see cref="Module.Priority"/>. Called once the dungeon-lifetime
     /// modules have registered, which is the only time that tier changes.
     /// </summary>
     public void SortListeners()
@@ -242,7 +242,7 @@ public sealed class EventEmitter(ILogger<EventEmitter> logger) : Module
     /// when the drain in <see cref="DispatchEventsAsync"/> reaches an unscheduled event with a strictly
     /// greater timestamp. Used for a natural cooldown expiry whose true instant may fall in a gap between
     /// logged events. A scheduled end that never precedes a later event - one past the final event, such as a
-    /// cooldown still recharging at fight end - is left unfired when the stream ends rather than dispatched in
+    /// cooldown still recharging at dungeon end - is left unfired when the stream ends rather than dispatched in
     /// post-combat dead time.
     /// </summary>
     public void Schedule(Event e, Event? trigger = null)

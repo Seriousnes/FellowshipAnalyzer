@@ -2,7 +2,7 @@
 
 <div class="time-indicators" style="width: @(TrackWidthPx.ToString("F1", CultureInfo.InvariantCulture))px">
     @{
-        var totalSeconds = (int)Math.Ceiling(FightDurationMs / 1000.0);
+        var totalSeconds = (int)Math.Ceiling(DungeonDurationMs / 1000.0);
     }
     @for (var sec = 0; sec < totalSeconds; sec++)
     {
@@ -16,13 +16,13 @@
 </div>
 
 @code {
-    /// <summary>Total fight length in milliseconds.</summary>
-    [Parameter, EditorRequired] public int FightDurationMs { get; set; }
+    /// <summary>Total dungeon length in milliseconds.</summary>
+    [Parameter, EditorRequired] public int DungeonDurationMs { get; set; }
 
-    /// <summary>Horizontal scale factor — pixels rendered per second of fight time.</summary>
+    /// <summary>Horizontal scale factor — pixels rendered per second of dungeon time.</summary>
     [Parameter] public double PixelsPerSecond { get; set; } = 60.0;
 
-    private double TrackWidthPx => (FightDurationMs / 1000.0) * PixelsPerSecond;
+    private double TrackWidthPx => (DungeonDurationMs / 1000.0) * PixelsPerSecond;
 
     private static string FormatSec(int sec)
     {

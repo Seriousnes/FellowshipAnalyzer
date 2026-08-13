@@ -22,7 +22,7 @@ public sealed partial class CombatLogParserTests
     {
         var owner = CreateCombatLogParser([typeof(StatTracker), typeof(SpellUsable), typeof(ProbeModule)]);
 
-        await owner.Analyze(CreateEvents(), playerId: 7, fight: TestFight);
+        await owner.Analyze(CreateEvents(), playerId: 7, dungeon: TestDungeon);
 
         var spellUsable = owner.GetModule<SpellUsable>()!;
         var probe = owner.GetModule<ProbeModule>()!;
@@ -36,16 +36,16 @@ public sealed partial class CombatLogParserTests
     {
         var owner = CreateCombatLogParser([typeof(CountingProbeModule)]);
 
-        await owner.Analyze(CreateEvents(), playerId: 7, fight: TestFight);
+        await owner.Analyze(CreateEvents(), playerId: 7, dungeon: TestDungeon);
         var firstProbe = owner.GetModule<CountingProbeModule>()!;
         Assert.Equal(6, firstProbe.ListenerCastCount);
 
-        await owner.Analyze(CreateEvents(), playerId: 7, fight: TestFight);
+        await owner.Analyze(CreateEvents(), playerId: 7, dungeon: TestDungeon);
         var secondProbe = owner.GetModule<CountingProbeModule>()!;
         Assert.Equal(6, secondProbe.ListenerCastCount);
         Assert.NotSame(firstProbe, secondProbe);
 
-        await owner.Analyze(CreateEvents(), playerId: 7, fight: TestFight);
+        await owner.Analyze(CreateEvents(), playerId: 7, dungeon: TestDungeon);
         var thirdProbe = owner.GetModule<CountingProbeModule>()!;
         Assert.Equal(6, thirdProbe.ListenerCastCount);
         Assert.NotSame(secondProbe, thirdProbe);
@@ -64,16 +64,16 @@ public sealed partial class CombatLogParserTests
 
         var owner = CreateCombatLogParser([typeof(Combatants)]);
 
-        await owner.Analyze(events, playerId: 7, fight: TestFight);
+        await owner.Analyze(events, playerId: 7, dungeon: TestDungeon);
         var firstCombatants = owner.GetModule<Combatants>()!;
         AssertSingleTrackedBuff(firstCombatants, buffId);
 
-        await owner.Analyze(events, playerId: 7, fight: TestFight);
+        await owner.Analyze(events, playerId: 7, dungeon: TestDungeon);
         var secondCombatants = owner.GetModule<Combatants>()!;
         AssertSingleTrackedBuff(secondCombatants, buffId);
         Assert.NotSame(firstCombatants, secondCombatants);
 
-        await owner.Analyze(events, playerId: 7, fight: TestFight);
+        await owner.Analyze(events, playerId: 7, dungeon: TestDungeon);
         var thirdCombatants = owner.GetModule<Combatants>()!;
         AssertSingleTrackedBuff(thirdCombatants, buffId);
         Assert.NotSame(secondCombatants, thirdCombatants);
@@ -91,18 +91,18 @@ public sealed partial class CombatLogParserTests
 
         var owner = CreateCombatLogParser([typeof(TestResourceTracker)]);
 
-        await owner.Analyze(events, playerId: 7, fight: TestFight);
+        await owner.Analyze(events, playerId: 7, dungeon: TestDungeon);
         var firstTracker = owner.GetModule<TestResourceTracker>()!;
         Assert.Equal(2, firstTracker.GetGenerated(ResourceTypes.Primary));
         Assert.Equal(1, firstTracker.GetWasted(ResourceTypes.Primary));
 
-        await owner.Analyze(events, playerId: 7, fight: TestFight);
+        await owner.Analyze(events, playerId: 7, dungeon: TestDungeon);
         var secondTracker = owner.GetModule<TestResourceTracker>()!;
         Assert.Equal(2, secondTracker.GetGenerated(ResourceTypes.Primary));
         Assert.Equal(1, secondTracker.GetWasted(ResourceTypes.Primary));
         Assert.NotSame(firstTracker, secondTracker);
 
-        await owner.Analyze(events, playerId: 7, fight: TestFight);
+        await owner.Analyze(events, playerId: 7, dungeon: TestDungeon);
         var thirdTracker = owner.GetModule<TestResourceTracker>()!;
         Assert.Equal(2, thirdTracker.GetGenerated(ResourceTypes.Primary));
         Assert.Equal(1, thirdTracker.GetWasted(ResourceTypes.Primary));
@@ -114,12 +114,12 @@ public sealed partial class CombatLogParserTests
     {
         var owner = CreateCombatLogParser([typeof(StatTracker), typeof(SpellUsable), typeof(ProbeModule)]);
 
-        await owner.Analyze(CreateEvents(), playerId: 7, fight: TestFight);
+        await owner.Analyze(CreateEvents(), playerId: 7, dungeon: TestDungeon);
         var spellUsable = owner.GetModule<SpellUsable>()!;
         var probe = owner.GetModule<ProbeModule>()!;
         Assert.Same(spellUsable, probe.State);
 
-        await owner.Analyze(CreateEvents(), playerId: 7, fight: TestFight);
+        await owner.Analyze(CreateEvents(), playerId: 7, dungeon: TestDungeon);
         var nextSpellUsable = owner.GetModule<SpellUsable>()!;
         var nextProbe = owner.GetModule<ProbeModule>()!;
         Assert.Same(nextSpellUsable, nextProbe.State);
@@ -141,7 +141,7 @@ public sealed partial class CombatLogParserTests
 
         var owner = CreateCombatLogParser([typeof(TestResourceTracker)]);
 
-        await owner.Analyze(events, playerId: 7, fight: TestFight);
+        await owner.Analyze(events, playerId: 7, dungeon: TestDungeon);
 
         var tracker = owner.GetModule<TestResourceTracker>()!;
         Assert.Equal(3, tracker.GetGenerated(ResourceTypes.Primary));
@@ -164,7 +164,7 @@ public sealed partial class CombatLogParserTests
 
         var owner = CreateCombatLogParser([typeof(TestResourceTracker)]);
 
-        await owner.Analyze(events, playerId: 7, fight: TestFight);
+        await owner.Analyze(events, playerId: 7, dungeon: TestDungeon);
         var tracker = owner.GetModule<TestResourceTracker>()!;
         Assert.Equal(1, tracker.GetGenerated(ResourceTypes.Primary));
         Assert.Equal(5, tracker.GetGenerated(ResourceTypes.Secondary));
@@ -177,7 +177,7 @@ public sealed partial class CombatLogParserTests
     {
         var owner = CreateCombatLogParser([typeof(StatTracker), typeof(SpellUsable), typeof(SpellFilterProbeModule)]);
 
-        await owner.Analyze(CreateEvents(), playerId: 7, fight: TestFight);
+        await owner.Analyze(CreateEvents(), playerId: 7, dungeon: TestDungeon);
 
         var probe = owner.GetModule<SpellFilterProbeModule>()!;
         Assert.Equal(2, probe.MatchedCastCount);
@@ -195,7 +195,7 @@ public sealed partial class CombatLogParserTests
 
         var owner = CreateCombatLogParser([typeof(StatTracker), typeof(SpellUsable), typeof(ProbeModule)]);
 
-        await owner.Analyze(events, playerId: 7, fight: TestFight);
+        await owner.Analyze(events, playerId: 7, dungeon: TestDungeon);
 
         var probe = owner.GetModule<ProbeModule>()!;
         Assert.Equal(2, probe.ListenerCastCount);
@@ -206,7 +206,7 @@ public sealed partial class CombatLogParserTests
     {
         var owner = CreateCombatLogParser([typeof(StatTracker), typeof(SpellUsable), typeof(ProbeModule)]);
 
-        await owner.Analyze(new List<Event>(), playerId: 7, fight: TestFight);
+        await owner.Analyze(new List<Event>(), playerId: 7, dungeon: TestDungeon);
 
         var fabricated = owner.EventEmitter.FabricateEvent(CreateCast(timestamp: 500, abilityId: 1));
 
@@ -216,13 +216,13 @@ public sealed partial class CombatLogParserTests
     }
 
     [Fact]
-    public async Task FormatTimestamp_ShouldReturnFightRelativeTime()
+    public async Task FormatTimestamp_ShouldReturnDungeonRelativeTime()
     {
         var owner = CreateCombatLogParser();
         await owner.Analyze(
             [],
             playerId: 7,
-            fight: new ReportFight(0, "", 0, null, StartTime: 1_741_000, EndTime: 0, null, null, null));
+            dungeon: new ReportDungeon(0, "", 0, null, StartTime: 1_741_000, EndTime: 0, null, null, null));
 
         var formatted = owner.FormatTimestamp(1_744_535);
 
@@ -239,7 +239,7 @@ public sealed partial class CombatLogParserTests
 
         var owner = CreateCombatLogParser([typeof(FabricatingProbeModule)]);
 
-        await owner.Analyze(events, playerId: 7, fight: TestFight);
+        await owner.Analyze(events, playerId: 7, dungeon: TestDungeon);
 
         var fabricator = owner.GetModule<FabricatingProbeModule>()!;
         Assert.Equal(2, fabricator.TotalCalls);
@@ -257,7 +257,7 @@ public sealed partial class CombatLogParserTests
 
         var owner = CreateCombatLogParser([typeof(FutureFabricatingProbeModule)]);
 
-        await owner.Analyze(events, playerId: 7, fight: TestFight);
+        await owner.Analyze(events, playerId: 7, dungeon: TestDungeon);
 
         var stream = owner.Events;
         var fabricatedIndex = stream.FindIndex(e =>
@@ -276,17 +276,17 @@ public sealed partial class CombatLogParserTests
 
         var owner = CreateCombatLogParser([typeof(EarlierFabricatingProbeModule)]);
 
-        await owner.Analyze(events, playerId: 7, fight: TestFight);
+        await owner.Analyze(events, playerId: 7, dungeon: TestDungeon);
 
         var probe = owner.GetModule<EarlierFabricatingProbeModule>()!;
         Assert.NotNull(probe.Fabricated);
         Assert.Equal(200, probe.Fabricated!.Timestamp);
     }
 
-    private static readonly ReportFight TestFight =
+    private static readonly ReportDungeon TestDungeon =
         new(Id: 0, Name: "", EncounterId: 0, Kill: null,
             StartTime: 0, EndTime: 60_000, Difficulty: null,
-            FriendlyPlayers: null, FightPercentage: null);
+            FriendlyPlayers: null, CompletionPercentage: null);
 
     private static TestCombatLogParser CreateCombatLogParser(Type[]? moduleTypes = null, Type[]? normalizerTypes = null)
     {
@@ -427,7 +427,7 @@ public sealed partial class CombatLogParserTests
         }
 
         [On<DungeonEndEvent>]
-        private void OnFightEnd(DungeonEndEvent e)
+        private void OnDungeonEnd(DungeonEndEvent e)
         {
             SeenCastCount = State.Casts.Count;
         }

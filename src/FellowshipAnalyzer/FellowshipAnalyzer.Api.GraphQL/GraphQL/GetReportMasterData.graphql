@@ -1,4 +1,4 @@
-query GetReportMasterData($code: String!) {
+query GetReportMasterData($code: String!, $fightIDs: [Int], $includeFight: Boolean!) {
   reportData {
     report(code: $code) {
       title
@@ -15,6 +15,9 @@ query GetReportMasterData($code: String!) {
         friendlyPlayers
         inProgress
         fightPercentage
+      }
+      targetFight: fights(fightIDs: $fightIDs) @include(if: $includeFight) {
+        id
         enemyNPCs {
           id
           gameID

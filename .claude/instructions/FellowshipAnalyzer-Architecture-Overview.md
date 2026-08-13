@@ -9,9 +9,9 @@ FellowshipLogs API JSON
   -> event deserialization
   -> CombatLogParser.Analyze
   -> module construction (DI, ctor-time setup, [ActiveWhen<>] gating)
-  -> normalizers (FightBookendNormalizer prepends FightStartEvent, appends FightEndEvent)
+  -> normalizers (DungeonBookendNormalizer prepends DungeonStartEvent, appends DungeonEndEvent)
   -> RegisterSubscriptions on every Analyzer
-  -> EventEmitter dispatch (FightStartEvent first, FightEndEvent last)
+  -> EventEmitter dispatch (DungeonStartEvent first, DungeonEndEvent last)
   -> HeroAnalysisResult
   -> Blazor guide/statistics components read module and analyzer state directly
 ```
@@ -95,7 +95,7 @@ builder.Services.AddFellowshipHeroAnalysis();
 
 ## Module Lifecycle
 
-Modules are constructed per analysis run by a generator-emitted factory; sibling-module constructor parameters resolve through the parser's own module cache and any other parameter type falls back to the service provider. The parser assigns `Owner` after constructing each module. There is no `Initialize` or `Complete` virtual - setup runs in the constructor, and finalized metrics are exposed as public properties (computed on read, or set from an `[On<FightEndEvent>]` handler).
+Modules are constructed per analysis run by a generator-emitted factory; sibling-module constructor parameters resolve through the parser's own module cache and any other parameter type falls back to the service provider. The parser assigns `Owner` after constructing each module. There is no `Initialize` or `Complete` virtual - setup runs in the constructor, and finalized metrics are exposed as public properties (computed on read, or set from an `[On<DungeonEndEvent>]` handler).
 
 ```csharp
 public abstract class Module
@@ -114,14 +114,14 @@ Use this lifecycle:
 - Declare a type that subscribes to events with `[AddAnalyzer<T>]` on the parser, and one that does not with `[AddModule<T>]` or its synonym `[AddState<T>]` (FA0019). `Priority` is a design-time constant a module overrides, defaulting to 0; `[Before<T>]` / `[After<T>]` order modules that share one, and guarantee only the pairwise relation they name.
 - Do setup work that needs the selected player or the raw event list in the constructor - inject `ParseContext` and/or `IReadOnlyList<Event>`.
 - Subscribe to events declaratively with `[On<TEvent>]` attributes on instance methods. The `ModuleGenerator` emits the corresponding `RegisterSubscriptions` plumbing.
-- Hook fight-boundary setup via `[On<FightStartEvent>]` and finalization via `[On<FightEndEvent>]` (the `FightBookendNormalizer` fabricates both).
+- Hook dungeon-boundary setup via `[On<DungeonStartEvent>]` and finalization via `[On<DungeonEndEvent>]` (the `DungeonBookendNormalizer` fabricates both).
 - Expose state as public read-only properties and typed entry records; guide and statistics components read them directly. Keep prose, severity wording, and `PerformanceTier` judgments in the Razor components - modules hold typed data only.
 - Declare cross-module references with `[Uses<TOther>]` on the class; the generator emits the `Lazy<TOther>` primary-constructor parameter and a cached PascalCase accessor named after the type. `Lazy<>` edges are ignored by the FA0013 cycle analyzer. A class that also needs an outer service (such as `ILogger`) keeps a hand-written constructor instead.
 - Do not require `CombatLogParser` in module constructors; the parser sets `Owner` after DI resolution.
 
-Activation is two-tiered. Use the mutable `Active` flag for dynamic deactivation that must respect mid-fight state. Use `[ActiveWhen<TPredicate>]` (where `TPredicate : IModuleActivePredicate`) for compile-time gating evaluated at parser construction - predicates read `ParseContext`, including `SelectedCombatant`, which the parser builds from the player's `CombatantInfoEvent` before any module is constructed.
+Activation is two-tiered. Use the mutable `Active` flag for dynamic deactivation that must respect mid-dungeon state. Use `[ActiveWhen<TPredicate>]` (where `TPredicate : IModuleActivePredicate`) for compile-time gating evaluated at parser construction - predicates read `ParseContext`, including `SelectedCombatant`, which the parser builds from the player's `CombatantInfoEvent` before any module is constructed.
 
-`Analyzer` is the base for every event subscriber, and `[ForPull(PullKind…, Boss = …)]` on the analyzer is what makes one pull-lifetime. A fresh instance is constructed for every matching pull, accumulates that pull's events into private state, and is retained on the pull read surfaces; it exposes its metrics as get-style properties (reading its assigned `Pull` for boundary values such as `Pull.EndTime`) rather than finalizing at pull end. The parser still emits a `PullEndEvent` to the pull's own analyzers as it closes (once per pull, even a force-close) for anything that must react to the pull ending as an event, such as snapshotting a fight-lifetime module's live state:
+`Analyzer` is the base for every event subscriber, and `[ForPull(PullKind…, Boss = …)]` on the analyzer is what makes one pull-lifetime. A fresh instance is constructed for every matching pull, accumulates that pull's events into private state, and is retained on the pull read surfaces; it exposes its metrics as get-style properties (reading its assigned `Pull` for boundary values such as `Pull.EndTime`) rather than finalizing at pull end. The parser still emits a `PullEndEvent` to the pull's own analyzers as it closes (once per pull, even a force-close) for anything that must react to the pull ending as an event, such as snapshotting a dungeon-lifetime module's live state:
 
 - `parser.{Surface}s` - the cross-pull stream, an `IReadOnlyList<PullAnalyzer<T>>` of `(Pull, Analyzer)` pairs.
 - `parser.For(pull).{Surface}` and the `pull.{Surface}` extension - the retained instance for one pull.
@@ -151,12 +151,12 @@ public sealed partial class WintersEmbraceAnalyzer : Analyzer
 
 Supported attribute arguments:
 
-- `By = Actor.Player` / `Actor.Pet` / `Actor.PlayerOrPet` restricts source actor (event must implement `IHasSourceEvent`).
-- `To = Actor.Player` / `Actor.Pet` / `Actor.PlayerOrPet` restricts target actor (event must implement `IHasTargetEvent`).
+- `By = Actor.Player` restricts source actor (event must implement `IHasSourceEvent`).
+- `To = Actor.Player` restricts target actor (event must implement `IHasTargetEvent`).
 - `Spell = SpellIds.X` or `Spells = new[] { SpellIds.X, SpellIds.Y }` filters `IAbilityEvent.Ability.Id`.
 - `ExtraSpell` / `ExtraSpells` filter `IExtraAbilityEvent.ExtraAbility.Id`.
 
-Use `[On<Event>]` for an unfiltered "any event" subscription. The fabricated `FightStartEvent` and `FightEndEvent` always dispatch first and last respectively, courtesy of `FightBookendNormalizer`.
+Use `[On<Event>]` for an unfiltered "any event" subscription. The fabricated `DungeonStartEvent` and `DungeonEndEvent` always dispatch first and last respectively, courtesy of `DungeonBookendNormalizer`.
 
 ## Normalizers
 

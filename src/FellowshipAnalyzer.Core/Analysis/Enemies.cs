@@ -1,3 +1,4 @@
+using FellowshipAnalyzer.Core.Common.Spells;
 using FellowshipAnalyzer.Core.Events;
 using FellowshipAnalyzer.Core.FellowshipLogs;
 
@@ -16,7 +17,7 @@ namespace FellowshipAnalyzer.Core.Analysis;
 /// <para>
 /// A pull's roster is a projection, not an expansion: <see cref="Analysis.Combatants"/> seeds every
 /// spawn the report's rosters name, and this module selects the ones a pull admits - those its own
-/// enemy NPC list names by instance span, or the whole seeded population for a fight exposing no
+/// enemy NPC list names by instance span, or the whole seeded population for a dungeon exposing no
 /// dungeon pulls - less the pets. Seeding covers every roster in the report, so a projection can
 /// never want a key the population lacks. A roster key is not always the key an event writes: an
 /// actor with one spawn omits the instance on its events, so its auras accrue under a
@@ -25,7 +26,7 @@ namespace FellowshipAnalyzer.Core.Analysis;
 /// <see cref="Combatants.AuraInstanceCount"/>.
 /// </para>
 /// <para>
-/// A roster is fight metadata and needs no master data. Hostility does: a death event and an aura
+/// A roster is dungeon metadata and needs no master data. Hostility does: a death event and an aura
 /// event name an actor and nothing more, so telling an enemy from the selected player, an ally, or the
 /// Environment actor is read from <see cref="CombatLogParser.Actors"/>. An analysis run given no actors
 /// therefore keeps its rosters and admits nothing else: no unrostered unit, no death, and no aura.
@@ -39,7 +40,7 @@ public sealed partial class Enemies : Module
 
     private State Index => field ??= Build();
 
-    private static HashSet<int> PetActorIds(IReadOnlyList<FightNpc>? npcs)
+    private static HashSet<int> PetActorIds(IReadOnlyList<DungeonNpc>? npcs)
     {
         HashSet<int> petActorIds = [];
         foreach (var npc in npcs ?? [])
@@ -51,7 +52,7 @@ public sealed partial class Enemies : Module
 
     /// <summary>
     /// Whether <paramref name="actorId"/> is an enemy: an actor the report master data types as an NPC,
-    /// with a non-negative id, that <see cref="FightNpc.PetOwner"/> does not name as a pet. The
+    /// with a non-negative id, that <see cref="DungeonNpc.PetOwner"/> does not name as a pet. The
     /// Environment actor is id <c>-1</c>, a damage source and cast target rather than a unit, so it is
     /// excluded. Hostility is a property of the actor, so <paramref name="instance"/> is accepted for
     /// callers passing an event's actor and instance together and does not narrow the answer.
@@ -60,7 +61,7 @@ public sealed partial class Enemies : Module
 
     /// <summary>
     /// The <see cref="UnitKey"/> an event's actor and instance name within <paramref name="pull"/>, or
-    /// <c>null</c> when the actor is not an enemy. An actor with exactly one instance in the fight omits
+    /// <c>null</c> when the actor is not an enemy. An actor with exactly one instance in the dungeon omits
     /// the instance on its events, so a <c>null</c> <paramref name="instance"/> resolves to that actor's
     /// sole roster instance in the pull, and keeps its <c>null</c> instance where no roster names the
     /// actor once.
@@ -77,8 +78,8 @@ public sealed partial class Enemies : Module
 
     /// <summary>
     /// The units <paramref name="pull"/> names, one per instance, from the pull's own enemy NPC list, or
-    /// the whole seeded population for a fight exposing no dungeon pulls. This is the enemy count a
-    /// pull is measured against. Two pulls of one fight can name the same unit, so a death is
+    /// the whole seeded population for a dungeon exposing no dungeon pulls. This is the enemy count a
+    /// pull is measured against. Two pulls of one dungeon can name the same unit, so a death is
     /// recorded against that unit in every pull naming it and it never comes back alive.
     /// </summary>
     public IReadOnlyList<EnemyUnit> Roster(Pull pull) =>
@@ -164,11 +165,11 @@ public sealed partial class Enemies : Module
     /// Whether the effect is active on at least one enemy at <paramref name="timestamp"/>, optionally
     /// restricted to auras applied by <paramref name="sourceId"/>.
     /// </summary>
-    public bool AnyHasAura(int effectId, long timestamp, int? sourceId = null)
+    public bool AnyHasAura(SpellRef effect, long timestamp, int? sourceId = null)
     {
         foreach (var (key, entity) in Combatants.Units)
         {
-            if (IsEnemy(key.ActorId) && entity.GetAuraInstanceCount(effectId, timestamp, sourceId) > 0)
+            if (IsEnemy(key.ActorId) && entity.GetAuraInstanceCount(effect, timestamp, sourceId) > 0)
                 return true;
         }
         return false;
@@ -178,8 +179,8 @@ public sealed partial class Enemies : Module
     /// How many enemies the effect is active on at <paramref name="timestamp"/>, optionally restricted
     /// to auras applied by <paramref name="sourceId"/>.
     /// </summary>
-    public int CountWithAura(int effectId, long timestamp, int? sourceId = null)
-        => WithAura(effectId, timestamp, sourceId).Count;
+    public int CountWithAura(SpellRef effect, long timestamp, int? sourceId = null)
+        => WithAura(effect, timestamp, sourceId).Count;
 
     /// <summary>
     /// The keys of every enemy the effect is active on at <paramref name="timestamp"/>, optionally
@@ -187,12 +188,12 @@ public sealed partial class Enemies : Module
     /// them, so they read straight back into <see cref="Combatants.AuraInstanceCount"/> and
     /// <see cref="Combatants.AuraStackSum"/>.
     /// </summary>
-    public IReadOnlyCollection<UnitKey> WithAura(int effectId, long timestamp, int? sourceId = null)
+    public IReadOnlyCollection<UnitKey> WithAura(SpellRef effect, long timestamp, int? sourceId = null)
     {
         var keys = new List<UnitKey>();
         foreach (var (key, entity) in Combatants.Units)
         {
-            if (IsEnemy(key.ActorId) && entity.GetAuraInstanceCount(effectId, timestamp, sourceId) > 0)
+            if (IsEnemy(key.ActorId) && entity.GetAuraInstanceCount(effect, timestamp, sourceId) > 0)
                 keys.Add(key);
         }
         return keys;
@@ -203,13 +204,13 @@ public sealed partial class Enemies : Module
     /// one per application, each clipped to that range and the whole ordered by start. Windows overlap,
     /// both across enemies and across concurrent applications on one enemy.
     /// </summary>
-    public IReadOnlyList<AuraWindow> AuraWindows(int effectId, int from, int to, int? sourceId = null)
+    public IReadOnlyList<AuraWindow> AuraWindows(SpellRef effect, int from, int to, int? sourceId = null)
     {
         var windows = new List<AuraWindow>();
         foreach (var (key, entity) in Combatants.Units)
         {
             if (!IsEnemy(key.ActorId)) continue;
-            windows.AddRange(entity.GetAuraWindows(effectId, from, to, sourceId));
+            windows.AddRange(entity.GetAuraWindows(effect, from, to, sourceId));
         }
         windows.Sort(static (left, right) => left.Start.CompareTo(right.Start));
         return windows;
@@ -219,18 +220,18 @@ public sealed partial class Enemies : Module
     /// The union of <see cref="AuraWindows"/>, which is when the effect was active on at least one
     /// enemy.
     /// </summary>
-    public IReadOnlyList<AuraWindow> MergedAuraWindows(int effectId, int from, int to, int? sourceId = null)
-        => Merge(AuraWindows(effectId, from, to, sourceId));
+    public IReadOnlyList<AuraWindow> MergedAuraWindows(SpellRef effect, int from, int to, int? sourceId = null)
+        => Merge(AuraWindows(effect, from, to, sourceId));
 
     /// <summary>
-    /// One timeline covering every effect in <paramref name="effectIds"/>, for an ability that applies
-    /// more than one effect id to the same unit.
+    /// One timeline covering every effect in <paramref name="effects"/>, for an ability that applies
+    /// more than one effect to the same unit.
     /// </summary>
-    public IReadOnlyList<AuraWindow> MergedAuraWindows(IReadOnlyList<int> effectIds, int from, int to, int? sourceId = null)
+    public IReadOnlyList<AuraWindow> MergedAuraWindows(IReadOnlyList<SpellRef> effects, int from, int to, int? sourceId = null)
     {
         var windows = new List<AuraWindow>();
-        foreach (var effectId in effectIds)
-            windows.AddRange(AuraWindows(effectId, from, to, sourceId));
+        foreach (var effect in effects)
+            windows.AddRange(AuraWindows(effect, from, to, sourceId));
         return Merge(windows);
     }
 
@@ -240,7 +241,7 @@ public sealed partial class Enemies : Module
     /// applications counts once. A band runs from its <see cref="AuraTargetBand.Start"/> to where the
     /// next one begins; the last band ends at <paramref name="to"/> and includes it.
     /// </summary>
-    public IReadOnlyList<AuraTargetBand> AuraTargetsBetween(int effectId, int from, int to, int? sourceId = null)
+    public IReadOnlyList<AuraTargetBand> AuraTargetsBetween(SpellRef effect, int from, int to, int? sourceId = null)
     {
         if (to < from) return [];
 
@@ -248,7 +249,7 @@ public sealed partial class Enemies : Module
         foreach (var (key, entity) in Combatants.Units)
         {
             if (!IsEnemy(key.ActorId)) continue;
-            perEnemy.AddRange(Merge([.. entity.GetAuraWindows(effectId, from, to, sourceId)]));
+            perEnemy.AddRange(Merge([.. entity.GetAuraWindows(effect, from, to, sourceId)]));
         }
 
         List<int> changes = [];
@@ -266,10 +267,10 @@ public sealed partial class Enemies : Module
     /// The most enemies the effect was active on at once across
     /// <paramref name="from"/>..<paramref name="to"/>.
     /// </summary>
-    public int PeakAuraTargets(int effectId, int from, int to, int? sourceId = null)
+    public int PeakAuraTargets(SpellRef effect, int from, int to, int? sourceId = null)
     {
         var peak = 0;
-        foreach (var band in AuraTargetsBetween(effectId, from, to, sourceId))
+        foreach (var band in AuraTargetsBetween(effect, from, to, sourceId))
             peak = Math.Max(peak, band.Targets);
         return peak;
     }
@@ -346,7 +347,7 @@ public sealed partial class Enemies : Module
 
     private State Build()
     {
-        var petActorIds = PetActorIds(Owner.Fight.EnemyNpcs);
+        var petActorIds = PetActorIds(Owner.Dungeon.EnemyNpcs);
 
         HashSet<int> enemyActorIds = [];
         foreach (var actor in Owner.Actors)
@@ -367,7 +368,7 @@ public sealed partial class Enemies : Module
         var byPull = new Dictionary<int, PullPopulation>(pulls.Count);
         foreach (var pull in pulls)
         {
-            var dungeonPull = Owner.Fight.DungeonPulls?
+            var dungeonPull = Owner.Dungeon.DungeonPulls?
                 .FirstOrDefault(candidate => candidate.Id == pull.Id);
 
             List<UnitKey> rosterKeys = [];
@@ -507,14 +508,14 @@ public enum EnemyOrigin
 }
 
 /// <summary>
-/// One enemy unit within a pull. <see cref="Died"/> is <c>null</c> when the fight records no death for
+/// One enemy unit within a pull. <see cref="Died"/> is <c>null</c> when the dungeon records no death for
 /// the unit, which for a roster unit means it despawned at the pull's end. A <see cref="Died"/> outside
 /// the pull's window belongs to a unit more than one pull names.
 /// </summary>
 /// <param name="Key">The actor and instance identifying the unit.</param>
 /// <param name="Origin">Whether the pull's roster names the unit.</param>
 /// <param name="Entered">When the unit became alive.</param>
-/// <param name="Died">When the unit died, or <c>null</c> when the fight records no death for it.</param>
+/// <param name="Died">When the unit died, or <c>null</c> when the dungeon records no death for it.</param>
 public readonly record struct EnemyUnit(UnitKey Key, EnemyOrigin Origin, int Entered, int? Died)
 {
     /// <summary>Whether the unit is alive at <paramref name="timestamp"/>. A death is an exit at its own instant.</summary>

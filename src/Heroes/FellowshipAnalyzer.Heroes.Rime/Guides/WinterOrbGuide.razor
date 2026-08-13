@@ -37,10 +37,10 @@
 
     private WinterOrbTracker Tracker => Parser.WinterOrbTracker!;
 
-    private int FightSpanMs => Parser.FightEndTime - Parser.FightStartTime;
+    private int DungeonSpanMs => Parser.DungeonEndTime - Parser.DungeonStartTime;
 
     private double CappedSharePercent =>
-        FightSpanMs > 0 ? (double)Tracker.CappedMs / FightSpanMs * 100 : 0;
+        DungeonSpanMs > 0 ? (double)Tracker.CappedMs / DungeonSpanMs * 100 : 0;
 
     private List<(int AbilityId, List<Incident> Incidents)> OvercapsByGenerator =>
     [
@@ -79,7 +79,7 @@
             new OverviewStat(
                 FormatDuration(Tracker.CappedMs),
                 "Time at Cap",
-                $"Time the pool sat at {Tracker.MaxOrbs} orbs ({cappedShare:F0}% of the fight), measured between your own casts.",
+                $"Time the pool sat at {Tracker.MaxOrbs} orbs ({cappedShare:F0}% of the dungeon), measured between your own casts.",
                 Tracker.CappedMs == 0 ? QualitativePerformance.Perfect
                     : cappedShare < 5 ? QualitativePerformance.Good
                     : cappedShare < 10 ? QualitativePerformance.Ok
@@ -96,7 +96,7 @@
             new StackedBarSegment("Overcapped", Tracker.Wasted, PerformanceColors.Fail,
                 $"Overcapped: {Tracker.Wasted} orbs lost to cap"),
             new StackedBarSegment("Remaining", Tracker.Current, FaVar.Steel,
-                $"Remaining: {Tracker.Current} orbs at fight end"),
+                $"Remaining: {Tracker.Current} orbs at dungeon end"),
         ];
     }
 

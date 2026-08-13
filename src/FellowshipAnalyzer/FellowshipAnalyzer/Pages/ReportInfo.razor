@@ -1,5 +1,5 @@
 @page "/report/{ReportCode}"
-@page "/report/{ReportCode}/{FightId:int}"
+@page "/report/{ReportCode}/{DungeonId:int}"
 @using FellowshipAnalyzer.Core.Analysis
 @using FellowshipAnalyzer.Core.FellowshipLogs
 @using FellowshipAnalyzer.Core.UI
@@ -15,7 +15,7 @@
 <div class="analysis-page">
     <PageHeader Title="@(_report?.Title ?? "")">
         <Eyebrow>Combat Report</Eyebrow>
-        <Subtitle>Select a fight and player to analyze.</Subtitle>
+        <Subtitle>Select a dungeon and player to analyze.</Subtitle>
     </PageHeader>
 
     @if (_isLoading)
@@ -28,15 +28,15 @@
     }
     else if (_report is not null)
     {
-        <section class="fights-section">
+        <section class="dungeons-section">
             <ButtonGroup TValue="bool" Options="_viewOptions" @bind-Value="ByPlayer" />
 
             @if (!ByPlayer)
             {
-                @foreach (var group in GetFightGroups())
+                @foreach (var group in GetDungeonGroups())
                 {
-                    var groupHasExpandedFight = _expandedFightId is { } expandedFightId && group.Value.Any(f => f.Id == expandedFightId);
-                    <div class="encounter-group @(groupHasExpandedFight ? "selected" : "")">
+                    var groupHasExpandedDungeon = _expandedDungeonId is { } expandedDungeonId && group.Value.Any(f => f.Id == expandedDungeonId);
+                    <div class="encounter-group @(groupHasExpandedDungeon ? "selected" : "")">
                         <div class="encounter-header">
                             @{
                                 var bossIcon = _bossIconByName.TryGetValue(group.Key, out var ic) ? ic : null;
@@ -53,37 +53,37 @@
                         </div>
                         <div class="attempts-row">
                             @{ int wipeIndex = 0; }
-                            @foreach (var fight in group.Value)
+                            @foreach (var dungeon in group.Value)
                             {
-                                var isKill = fight.Kill == true;
+                                var isKill = dungeon.Kill == true;
                                 if (!isKill) wipeIndex++;
-                                var isExpanded = _expandedFightId == fight.Id;
+                                var isExpanded = _expandedDungeonId == dungeon.Id;
                                 var variant = isKill ? BadgeVariant.Success : BadgeVariant.Failure;
-                                var capturedFightId = fight.Id;
+                                var capturedDungeonId = dungeon.Id;
                                 var capturedIsExpanded = isExpanded;
-                                <Badge Variant="variant" Active="isExpanded" OnClick="@(() => _expandedFightId = capturedIsExpanded ? null : capturedFightId)">
+                                <Badge Variant="variant" Active="isExpanded" OnClick="@(() => _expandedDungeonId = capturedIsExpanded ? null : capturedDungeonId)">
                                     @if (isKill)
                                     {
                                         <Glyph Name="check" />
-                                        <span>@FormatDuration(fight.EndTime - fight.StartTime)</span>
+                                        <span>@FormatDuration(dungeon.EndTime - dungeon.StartTime)</span>
                                     }
                                     else
                                     {
                                         <Glyph Name="skull" />
                                         <span>Wipe @wipeIndex</span>
-                                        @if (fight.FightPercentage is { } pct)
+                                        @if (dungeon.CompletionPercentage is { } pct)
                                         {
                                             <span class="pill-pct">@pct.ToString("F2")%</span>
                                         }
-                                        <span>@FormatDuration(fight.EndTime - fight.StartTime)</span>
+                                        <span>@FormatDuration(dungeon.EndTime - dungeon.StartTime)</span>
                                     }
                                 </Badge>
                             }
                         </div>
-                        @if (_expandedFightId is { } expandedId && group.Value.Any(f => f.Id == expandedId))
+                        @if (_expandedDungeonId is { } expandedId && group.Value.Any(f => f.Id == expandedId))
                         {
-                            var expandedFight = group.Value.First(f => f.Id == expandedId);
-                            var players = GetPlayersForFight(expandedFight).ToList();
+                            var expandedDungeon = group.Value.First(f => f.Id == expandedId);
+                            var players = GetPlayersForDungeon(expandedDungeon).ToList();
                             var tankCount = players.Count(p => GetRole(p.SubType) == HeroRole.Tank);
                             var healCount = players.Count(p => GetRole(p.SubType) == HeroRole.Healer);
                             var dpsCount = players.Count(p => GetRole(p.SubType) == HeroRole.Dps);
@@ -126,7 +126,7 @@
                     {
                         var hasHero = Hero.TryParse(player.SubType, out var playerHero);
                         var accent = hasHero ? playerHero.Color : HeroRoleStyles.GetAccentColorVar(GetRole(player.SubType));
-                        var playerFights = _report.Fights.Where(f => f.FriendlyPlayers?.Contains(player.Id) == true).ToList();
+                        var playerDungeons = _report.Dungeons.Where(f => f.FriendlyPlayers?.Contains(player.Id) == true).ToList();
                         <AccordionItem Id="@($"player-{player.Id}")" BorderAccentColorVar="@accent">
                             <Header>
                                 @if (hasHero)
@@ -143,12 +143,12 @@
                                 </div>
                             </Header>
                             <ChildContent>
-                                <div class="player-accordion-fights">
-                                    @foreach (var fight in playerFights)
+                                <div class="player-accordion-dungeons">
+                                    @foreach (var dungeon in playerDungeons)
                                     {
-                                        var isKill = fight.Kill == true;
+                                        var isKill = dungeon.Kill == true;
                                         var variant = isKill ? BadgeVariant.Success : BadgeVariant.Failure;
-                                        <Badge Variant="variant" Size="BadgeSize.Sm" Href="@($"/report/{ReportCode}/{fight.Id}/{player.Id}")">
+                                        <Badge Variant="variant" Size="BadgeSize.Sm" Href="@($"/report/{ReportCode}/{dungeon.Id}/{player.Id}")">
                                             @if (isKill)
                                             {
                                                 <Glyph Name="check" />
@@ -157,7 +157,7 @@
                                             {
                                                 <Glyph Name="skull" />
                                             }
-                                            @fight.Name — @FormatDuration(fight.EndTime - fight.StartTime)
+                                            @dungeon.Name — @FormatDuration(dungeon.EndTime - dungeon.StartTime)
                                         </Badge>
                                     }
                                 </div>
@@ -172,19 +172,19 @@
 
 @code {
     [Parameter] public string ReportCode { get; set; } = "";
-    [Parameter] public int? FightId { get; set; }
+    [Parameter] public int? DungeonId { get; set; }
 
     private CoreReportInfo? _report;
     private bool _isLoading = true;
     private string? _error;
     private Dictionary<string, string?> _bossIconByName = [];
-    private int? _expandedFightId;
+    private int? _expandedDungeonId;
     private string? _expandedPlayerIdStr;
     private bool _byPlayer = false;
 
     private static readonly IReadOnlyList<ButtonGroupOption<bool>> _viewOptions =
     [
-        new(false, "By Fight"),
+        new(false, "By Dungeon"),
         new(true, "By Player"),
     ];
 
@@ -196,7 +196,7 @@
             if (_byPlayer == value) return;
             _byPlayer = value;
             if (value)
-                _expandedFightId = null;
+                _expandedDungeonId = null;
             else
                 _expandedPlayerIdStr = null;
         }
@@ -212,7 +212,7 @@
             .Where(a => !string.IsNullOrEmpty(a.Icon))
             .GroupBy(a => a.Name)
             .ToDictionary(g => g.Key, g => g.First().Icon, StringComparer.OrdinalIgnoreCase);
-        SetInitialExpandedFight();
+        SetInitialExpandedDungeon();
         _isLoading = false;
     }
 
@@ -229,7 +229,7 @@
                 .Where(a => !string.IsNullOrEmpty(a.Icon))
                 .GroupBy(a => a.Name)
                 .ToDictionary(g => g.Key, g => g.First().Icon, StringComparer.OrdinalIgnoreCase);
-            SetInitialExpandedFight();
+            SetInitialExpandedDungeon();
         }
         catch (Exception exception)
         {
@@ -241,17 +241,17 @@
         }
     }
 
-    private Dictionary<string, List<ReportFight>> GetFightGroups()
+    private Dictionary<string, List<ReportDungeon>> GetDungeonGroups()
     {
-        var groups = new Dictionary<string, List<ReportFight>>(StringComparer.OrdinalIgnoreCase);
-        foreach (var fight in _report!.Fights)
+        var groups = new Dictionary<string, List<ReportDungeon>>(StringComparer.OrdinalIgnoreCase);
+        foreach (var dungeon in _report!.Dungeons)
         {
-            if (!groups.TryGetValue(fight.Name, out var list))
+            if (!groups.TryGetValue(dungeon.Name, out var list))
             {
                 list = [];
-                groups[fight.Name] = list;
+                groups[dungeon.Name] = list;
             }
-            list.Add(fight);
+            list.Add(dungeon);
         }
         return groups;
     }
@@ -265,14 +265,14 @@
             .ThenBy(a => a.Name);
     }
 
-    private IEnumerable<ReportActor> GetPlayersForFight(ReportFight fight)
+    private IEnumerable<ReportActor> GetPlayersForDungeon(ReportDungeon dungeon)
     {
         if (_report is null) return [];
 
         var players = _report.Actors.Where(a =>
             string.Equals(a.Type, "Player", StringComparison.OrdinalIgnoreCase));
 
-        if (fight.FriendlyPlayers is { Count: > 0 } friendlies)
+        if (dungeon.FriendlyPlayers is { Count: > 0 } friendlies)
             players = players.Where(a => friendlies.Contains(a.Id));
 
         return players;
@@ -281,13 +281,13 @@
     private static HeroRole GetRole(string? subType) =>
         Hero.TryParse(subType, out var hero) ? hero.Role : HeroRole.Unknown;
 
-    private void SetInitialExpandedFight()
+    private void SetInitialExpandedDungeon()
     {
-        if (_report is null || FightId is not { } fightId)
+        if (_report is null || DungeonId is not { } dungeonId)
             return;
 
-        if (_report.Fights.Any(f => f.Id == fightId))
-            _expandedFightId = fightId;
+        if (_report.Dungeons.Any(f => f.Id == dungeonId))
+            _expandedDungeonId = dungeonId;
     }
 
     private static string FormatDuration(double milliseconds)

@@ -64,27 +64,27 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
     public int PlayerId { get; set; }
 
     /// <summary>
-    /// The fight currently being analyzed. Set at the start of every <see cref="Analyze"/> call.
+    /// The dungeon currently being analyzed. Set at the start of every <see cref="Analyze"/> call.
     /// </summary>
-    public ReportFight Fight { get; private set; } = null!;
+    public ReportDungeon Dungeon { get; private set; } = null!;
 
     /// <summary>
     /// The timestamp of the event currently being dispatched. Updated by <see cref="EventEmitter"/>
-    /// before each listener invocation. Initialized to <see cref="Fight"/>.StartTime when <see cref="Analyze"/> begins.
+    /// before each listener invocation. Initialized to <see cref="Dungeon"/>.StartTime when <see cref="Analyze"/> begins.
     /// </summary>
     public int CurrentTimestamp { get; internal set; }
 
-    /// <summary>The analyzed fight's start time, from <see cref="Fight"/>.</summary>
-    public int FightStartTime => (int)Fight.StartTime;
+    /// <summary>The analyzed dungeon's start time, from <see cref="Dungeon"/>.</summary>
+    public int DungeonStartTime => (int)Dungeon.StartTime;
 
-    /// <summary>The analyzed fight's end time, from <see cref="Fight"/>.</summary>
-    public int FightEndTime => (int)Fight.EndTime;
+    /// <summary>The analyzed dungeon's end time, from <see cref="Dungeon"/>.</summary>
+    public int DungeonEndTime => (int)Dungeon.EndTime;
 
-    /// <summary>The analyzed fight's duration in milliseconds.</summary>
-    public int FightDurationMs => FightEndTime - FightStartTime;
+    /// <summary>The analyzed dungeon's duration in milliseconds.</summary>
+    public int DungeonDurationMs => DungeonEndTime - DungeonStartTime;
 
     /// <summary>
-    /// Report-level actor master data: every player, NPC, and pet the report names.
+    /// Report-level actor master data: every player and NPC the report names.
     /// Set by the host (e.g. Report.razor) before <see cref="Analyze"/> is called, and the source
     /// <see cref="Enemies"/> reads hostility from.
     /// </summary>
@@ -135,7 +135,7 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
     public static CombatLogParser? Current { get; private set; }
 
     /// <summary>
-    /// The pull currently being dispatched, or <c>null</c> outside any pull window (fight setup,
+    /// The pull currently being dispatched, or <c>null</c> outside any pull window (dungeon setup,
     /// teardown, and gaps between pulls). Set by <see cref="BeginPull"/> / <see cref="EndPull"/>.
     /// </summary>
     public Pull? CurrentPull { get; private set; }
@@ -292,7 +292,7 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
 
     /// <summary>
     /// Closes a pull, in order: emits a <see cref="FellowshipAnalyzer.Core.Events.PullEndEvent"/> to the pull's own listeners
-    /// while they are still live (so a subscriber can snapshot fight-lifetime state at the instant the
+    /// while they are still live (so a subscriber can snapshot dungeon-lifetime state at the instant the
     /// pull ends), then retains each analyzer on the pull read surfaces, then retires the pull listener
     /// tier and discards the per-pull instance cache. Emitting here (rather than relying on the
     /// fabricated event's dispatch) is what makes the event fire exactly once for every pull, including
@@ -350,15 +350,15 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
         return null;
     }
 
-    /// <summary>Runs the full analysis pipeline over <paramref name="events"/> for <paramref name="playerId"/> during <paramref name="fight"/>: normalizes the stream, dispatches it through every module and analyzer, and returns the resulting <see cref="HeroAnalysisResult"/>.</summary>
-    public Task<HeroAnalysisResult> Analyze(IReadOnlyList<Event> events, int playerId, ReportFight fight)
-        => RunAnalysisAsync(events, playerId, fight);
+    /// <summary>Runs the full analysis pipeline over <paramref name="events"/> for <paramref name="playerId"/> during <paramref name="dungeon"/>: normalizes the stream, dispatches it through every module and analyzer, and returns the resulting <see cref="HeroAnalysisResult"/>.</summary>
+    public Task<HeroAnalysisResult> Analyze(IReadOnlyList<Event> events, int playerId, ReportDungeon dungeon)
+        => RunAnalysisAsync(events, playerId, dungeon);
 
-    private async Task<HeroAnalysisResult> RunAnalysisAsync(IReadOnlyList<Event> events, int playerId, ReportFight fight)
+    private async Task<HeroAnalysisResult> RunAnalysisAsync(IReadOnlyList<Event> events, int playerId, ReportDungeon dungeon)
     {
         PlayerId = playerId;
-        Fight = fight;
-        CurrentTimestamp = (int)fight.StartTime;
+        Dungeon = dungeon;
+        CurrentTimestamp = (int)dungeon.StartTime;
 
         var allModuleTypes = GetModuleTypes();
         var normalizerTypes = GetNormalizerTypes();
@@ -378,7 +378,7 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
 
         var playerInfo = Events.OfType<CombatantInfoEvent>().FirstOrDefault(e => e.SourceId == playerId)
             ?? new CombatantInfoEvent { SourceId = playerId };
-        CurrentParseContext = new ParseContext(playerId, fight, ActorNames, CreateSelectedCombatant(playerInfo), Actors);
+        CurrentParseContext = new ParseContext(playerId, dungeon, ActorNames, CreateSelectedCombatant(playerInfo), Actors);
 
         EventEmitter = new EventEmitter((ILogger<EventEmitter>)Provider.GetService(typeof(ILogger<EventEmitter>))!)
         {
@@ -452,12 +452,12 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
     }
 
     /// <summary>
-    /// Formats an absolute event timestamp as time into the analyzed fight (mm:ss).
-    /// Uses <see cref="FightStartTime"/> obtained from the Fellowship Logs API.
+    /// Formats an absolute event timestamp as time into the analyzed dungeon (mm:ss).
+    /// Uses <see cref="DungeonStartTime"/> obtained from the Fellowship Logs API.
     /// </summary>
     public string FormatTimestamp(int timestamp, int precision = 0)
     {
-        var totalSeconds = (timestamp - FightStartTime) / 1000d;
+        var totalSeconds = (timestamp - DungeonStartTime) / 1000d;
         var negative = totalSeconds < 0 ? "-" : string.Empty;
         var positiveSeconds = Math.Abs(totalSeconds);
         var minutes = (int)Math.Floor(positiveSeconds / 60);
@@ -477,10 +477,5 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
     /// <summary>Whether <paramref name="e"/> targeted <paramref name="playerId"/>, defaulting to <see cref="PlayerId"/>.</summary>
     public bool ToPlayer(IHasTargetEvent e, int? playerId = null) => e.TargetId == (playerId ?? PlayerId);
 
-    /// <summary>Whether <paramref name="e"/> was sourced by the player's pet. Fellowship has no pet-hero support yet, so this always returns <c>false</c>.</summary>
-    public bool ByPlayerPet(IHasSourceEvent e) => false;
-
-    /// <summary>Whether <paramref name="e"/> targeted the player's pet. Fellowship has no pet-hero support yet, so this always returns <c>false</c>.</summary>
-    public bool ToPlayerPet(IHasTargetEvent e) => false;
 }
 

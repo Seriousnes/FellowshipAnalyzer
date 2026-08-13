@@ -1,13 +1,14 @@
+using FellowshipAnalyzer.Core.Common.Spells;
 using FellowshipAnalyzer.Core.Events;
 
 namespace FellowshipAnalyzer.Core.Analysis;
 
 /// <summary>
-/// Core module that tracks buff/debuff state for every unit in the fight, keyed by
+/// Core module that tracks buff/debuff state for every unit in the dungeon, keyed by
 /// <see cref="UnitKey"/> so distinct spawns of one actor id stay separate. The rosters the report
 /// declares seed the set: the analyzed player as the <see cref="FullCombatant"/> the parse context
 /// carries, every other group member as a <see cref="Combatant"/>, and one <see cref="Enemy"/> per
-/// spawn the fight's enemy NPC list or any dungeon pull's names. Seeding the union of both means no
+/// spawn the dungeon's enemy NPC list or any dungeon pull's names. Seeding the union of both means no
 /// pull can name a spawn the population lacks. A unit no roster names is fabricated as an
 /// <see cref="Enemy"/> when an event first targets it, and carries <see cref="Enemy.Rostered"/>
 /// <c>false</c> to say so. Exposes per-unit aura queries that resolve any unit including the analyzed
@@ -30,13 +31,13 @@ public sealed partial class Combatants : Analyzer
         var selected = parseContext.SelectedCombatant;
         _units[new UnitKey(selected.Id, null)] = selected;
 
-        foreach (var friendlyPlayer in parseContext.Fight.FriendlyPlayers ?? [])
+        foreach (var friendlyPlayer in parseContext.Dungeon.FriendlyPlayers ?? [])
         {
             var key = new UnitKey(friendlyPlayer, null);
             if (!_units.ContainsKey(key)) _units[key] = new Combatant(friendlyPlayer);
         }
 
-        foreach (var npc in parseContext.Fight.EnemyNpcs ?? [])
+        foreach (var npc in parseContext.Dungeon.EnemyNpcs ?? [])
             SeedSpawns(npc.Id, 1, Math.Max(npc.InstanceCount, 1));
 
         foreach (var dungeonPull in parseContext.DungeonPulls ?? [])
@@ -85,8 +86,8 @@ public sealed partial class Combatants : Analyzer
     /// optionally restricted to auras applied by <paramref name="sourceId"/>. Returns 0 when the unit is
     /// not tracked.
     /// </summary>
-    public int AuraInstanceCount(int actorId, int? instance, int effectId, long timestamp, int? sourceId = null)
-        => GetCombatant(actorId, instance)?.GetAuraInstanceCount(effectId, timestamp, sourceId) ?? 0;
+    public int AuraInstanceCount(int actorId, int? instance, SpellRef effect, long timestamp, int? sourceId = null)
+        => GetCombatant(actorId, instance)?.GetAuraInstanceCount(effect, timestamp, sourceId) ?? 0;
 
     /// <summary>
     /// The stacks summed across every concurrently-open window of the effect on a unit at
@@ -94,8 +95,8 @@ public sealed partial class Combatants : Analyzer
     /// Returns 0 when the unit is not tracked. Read it while the parse is dispatching, since a window
     /// carries its live stack count rather than its count at <paramref name="timestamp"/>.
     /// </summary>
-    public int AuraStackSum(int actorId, int? instance, int effectId, long timestamp, int? sourceId = null)
-        => GetCombatant(actorId, instance)?.GetAuraStackSum(effectId, timestamp, sourceId) ?? 0;
+    public int AuraStackSum(int actorId, int? instance, SpellRef effect, long timestamp, int? sourceId = null)
+        => GetCombatant(actorId, instance)?.GetAuraStackSum(effect, timestamp, sourceId) ?? 0;
 
     [On<ApplyBuffEvent>]
     private void OnApplyBuff(ApplyBuffEvent e) => ApplyBuff(e, isDebuff: false);
@@ -230,7 +231,7 @@ public sealed partial class Combatants : Analyzer
     }
 
     [On<DungeonEndEvent>]
-    private void OnFightEnd(DungeonEndEvent e)
+    private void OnDungeonEnd(DungeonEndEvent e)
     {
         foreach (var entity in _units.Values)
         {

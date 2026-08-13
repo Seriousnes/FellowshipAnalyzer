@@ -5,7 +5,7 @@ using FellowshipAnalyzer.Core.Game;
 namespace FellowshipAnalyzer.Core.Analysis;
 
 /// <summary>
-/// One combat unit the fight names, identified by its actor id and carrying the aura history
+/// One combat unit the dungeon names, identified by its actor id and carrying the aura history
 /// <see cref="Entity"/> tracks. A group member other than the analyzed player is a plain
 /// <see cref="Combatant"/>; an enemy is an <see cref="Enemy"/>, which adds its spawn instance; the
 /// analyzed player is a <see cref="FullCombatant"/>, the only one a

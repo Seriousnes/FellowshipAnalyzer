@@ -1,6 +1,6 @@
 ﻿namespace FellowshipAnalyzer.Core.Events;
 
-/// <summary>Marks a boss phase transition inside a fight, fabricated when the event stream satisfies a <see cref="PhaseConfig"/>'s <see cref="PhaseConfig.Filter"/>.</summary>
+/// <summary>Marks a boss phase transition inside a pull, fabricated when the event stream satisfies a <see cref="PhaseConfig"/>'s <see cref="PhaseConfig.Filter"/>.</summary>
 [Fabricated]
 public class PhaseEvent : Event
 {
@@ -21,7 +21,7 @@ public class PhaseConfig
     public List<int> Difficulties { get; set; } = [];
     /// <summary>The criteria used to detect when this phase begins.</summary>
     public IPhaseFilter? Filter { get; set; }
-    /// <summary>Whether this phase can occur more than once within a fight.</summary>
+    /// <summary>Whether this phase can occur more than once within a pull.</summary>
     public bool? Multiple { get; set; }
     /// <summary>Which occurrence of a repeating phase this config represents, when <see cref="Multiple"/> is set.</summary>
     public int? Instance { get; set; }

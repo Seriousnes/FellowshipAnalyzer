@@ -181,7 +181,7 @@
             if (ShareOfMaximum && e.Max <= 0)
                 continue;
 
-            var x = e.Timestamp - FightStartTime;
+            var x = e.Timestamp - DungeonStartTime;
             var scale = ShareOfMaximum ? 100.0 / e.Max : 1;
 
             var valueBefore = e.Kind == ResourceEventKind.Gain
@@ -200,13 +200,13 @@
         if (Pull is { } scope && last is not null && scope.EndTime > last.Timestamp)
         {
             var scale = ShareOfMaximum ? 100.0 / last.Max : 1;
-            _resourceData.Add(new GraphPoint(scope.EndTime - FightStartTime, last.CurrentAfter * scale));
+            _resourceData.Add(new GraphPoint(scope.EndTime - DungeonStartTime, last.CurrentAfter * scale));
         }
 
         if (Overlay is { } series)
         {
             foreach (var point in series.Points)
-                _overlayData.Add(new GraphPoint(point.Timestamp - FightStartTime, point.Value));
+                _overlayData.Add(new GraphPoint(point.Timestamp - DungeonStartTime, point.Value));
         }
     }
 

@@ -15,7 +15,7 @@
         new OverviewStat(
             $"{EnergyGenerated}",
             "Generated",
-            "Energy that reached the pool over the fight, excluding anything lost at cap."),
+            "Energy that reached the pool over the dungeon, excluding anything lost at cap."),
         new OverviewStat(
             $"{EnergySpent}",
             "Spent",
@@ -23,12 +23,12 @@
         new OverviewStat(
             $"{EnergyWasted}",
             "Wasted",
-            $"Energy that regenerated while already at cap ({WastePercent(EnergyGenerated, EnergyWasted)}% of the Energy the fight produced).",
+            $"Energy that regenerated while already at cap ({WastePercent(EnergyGenerated, EnergyWasted)}% of the Energy the dungeon produced).",
             WasteTier(EnergyGenerated, EnergyWasted)),
         new OverviewStat(
             $"{EnergyCurrent}",
             "Ending",
-            "Energy still banked when the fight ended."),
+            "Energy still banked when the dungeon ended."),
     ];
 
     private IEnumerable<OverviewStat> BuildComboPointStats() =>
@@ -40,7 +40,7 @@
         new OverviewStat(
             $"{ComboPointsWasted}",
             "Wasted",
-            $"Combo points generated while already at six ({WastePercent(ComboPointsGenerated, ComboPointsWasted)}% of the combo points the fight produced).",
+            $"Combo points generated while already at six ({WastePercent(ComboPointsGenerated, ComboPointsWasted)}% of the combo points the dungeon produced).",
             WasteTier(ComboPointsGenerated, ComboPointsWasted)),
     ];
 

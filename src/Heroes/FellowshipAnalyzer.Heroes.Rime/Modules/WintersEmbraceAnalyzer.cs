@@ -104,10 +104,10 @@ public abstract partial class WintersEmbraceAnalyzer : Analyzer
     {
         var majors = new List<string>(2);
 
-        if (Owner.SelectedCombatant.HasBuff(Spells.IceBlitzBuff.FSLID, forTimestamp: timestamp))
+        if (Owner.SelectedCombatant.HasBuff(Spells.IceBlitzBuff, forTimestamp: timestamp))
             majors.Add(Spells.IceBlitzBuff.Name);
 
-        if (Owner.SelectedCombatant.HasBuff(Spells.WrathOfWinterBuff.FSLID, forTimestamp: timestamp))
+        if (Owner.SelectedCombatant.HasBuff(Spells.WrathOfWinterBuff, forTimestamp: timestamp))
             majors.Add(Spells.WrathOfWinterBuff.Name);
 
         return majors;

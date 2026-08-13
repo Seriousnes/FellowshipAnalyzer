@@ -20,7 +20,7 @@ namespace FellowshipAnalyzer.Heroes.Mara.Tests.Analysis;
 public sealed class MaidenOfDeathAnalyzerTests
 {
     private const int PlayerId = 7;
-    private const int FightEnd = 20000;
+    private const int DungeonEnd = 20000;
 
     [Fact]
     public void RechargeMs_ComesFromTheSpellRegistry()
@@ -82,7 +82,7 @@ public sealed class MaidenOfDeathAnalyzerTests
 
         var window = analyzer.Windows.ShouldHaveSingleItem();
         window.OpenedAt.ShouldBe(1000);
-        window.ClosedAt.ShouldBe(FightEnd);
+        window.ClosedAt.ShouldBe(DungeonEnd);
     }
 
     [Fact]
@@ -353,7 +353,7 @@ public sealed class MaidenOfDeathAnalyzerTests
             Cast(130000, Spells.MaidenOfDeath),
         };
 
-        var analyzer = await AnalyzeAsync(events, BossFight(200000));
+        var analyzer = await AnalyzeAsync(events, BossDungeon(200000));
 
         analyzer.MaidenOfDeathCasts.ShouldBe(3);
         analyzer.MaidenOfDeathRecasts.Count.ShouldBe(2);
@@ -378,7 +378,7 @@ public sealed class MaidenOfDeathAnalyzerTests
             Cast(58000, Spells.MaidenOfDeath),
         };
 
-        var analyzer = await AnalyzeAsync(events, BossFight(200000));
+        var analyzer = await AnalyzeAsync(events, BossDungeon(200000));
 
         analyzer.MaidenOfDeathRecasts.ShouldHaveSingleItem().HeldMs.ShouldBe(0);
         analyzer.TotalHeldMs.ShouldBe(0);
@@ -389,7 +389,7 @@ public sealed class MaidenOfDeathAnalyzerTests
     {
         var events = new List<Event> { Buff<ApplyBuffEvent>(1000, Spells.MaidenOfDeathBuff) };
 
-        var parser = await AnalyzeParserAsync(events, BossFight());
+        var parser = await AnalyzeParserAsync(events, BossDungeon());
 
         var entry = parser.MaidenOfDeathAnalyzers.ShouldHaveSingleItem();
         var pull = entry.Pull;
@@ -439,16 +439,16 @@ public sealed class MaidenOfDeathAnalyzerTests
     private static CastEvent Generate(int timestamp, int comboPoints) =>
         Cast(timestamp, Spells.Backstab, comboPoints: comboPoints);
 
-    private static ReportFight BossFight(int endTime = FightEnd) =>
+    private static ReportDungeon BossDungeon(int endTime = DungeonEnd) =>
         new(0, "", 1, null, 0, endTime, null, null, null);
 
-    private static async Task<MaidenOfDeathAnalyzer> AnalyzeAsync(List<Event> events, ReportFight? fight = null)
+    private static async Task<MaidenOfDeathAnalyzer> AnalyzeAsync(List<Event> events, ReportDungeon? dungeon = null)
     {
-        var parser = await AnalyzeParserAsync(events, fight ?? BossFight());
+        var parser = await AnalyzeParserAsync(events, dungeon ?? BossDungeon());
         return parser.MaidenOfDeathAnalyzers.ShouldHaveSingleItem().Analyzer;
     }
 
-    private static async Task<MaraCombatLogParser> AnalyzeParserAsync(List<Event> events, ReportFight fight)
+    private static async Task<MaraCombatLogParser> AnalyzeParserAsync(List<Event> events, ReportDungeon dungeon)
     {
         var services = new ServiceCollection();
         services.AddLogging();
@@ -459,7 +459,7 @@ public sealed class MaidenOfDeathAnalyzerTests
         using var scope = provider.CreateScope();
 
         var parser = scope.ServiceProvider.GetRequiredService<MaraCombatLogParser>();
-        await parser.Analyze(events, PlayerId, fight);
+        await parser.Analyze(events, PlayerId, dungeon);
         return parser;
     }
 }

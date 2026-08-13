@@ -19,10 +19,10 @@ internal sealed class IndexedDbReportCacheService(IJSRuntime js) : IReportCacheS
         return _module;
     }
 
-    public async ValueTask<byte[]?> GetCachedEventsBytesAsync(string reportCode, int fightId, int playerId)
+    public async ValueTask<byte[]?> GetCachedEventsBytesAsync(string reportCode, int dungeonId, int playerId)
     {
         var module = await GetModuleAsync();
-        return await module.InvokeAsync<byte[]?>("getCachedEventsBytes", reportCode, fightId, playerId);
+        return await module.InvokeAsync<byte[]?>("getCachedEventsBytes", reportCode, dungeonId, playerId);
     }
 
     public async ValueTask CacheAsync(ReportHistoryEntry entry, byte[] eventsJsonBytes, DateTimeOffset? expiresAt = null)
@@ -31,10 +31,10 @@ internal sealed class IndexedDbReportCacheService(IJSRuntime js) : IReportCacheS
         await module.InvokeVoidAsync(
             "cacheEventsBytes",
             entry.ReportCode,
-            entry.FightId,
+            entry.DungeonId,
             entry.PlayerId,
             eventsJsonBytes,
-            entry.FightName,
+            entry.DungeonName,
             entry.PlayerName,
             entry.Hero?.ToHeroId(),
             expiresAt.HasValue ? (long?)expiresAt.Value.ToUnixTimeMilliseconds() : null);
@@ -46,9 +46,9 @@ internal sealed class IndexedDbReportCacheService(IJSRuntime js) : IReportCacheS
         var raw = await module.InvokeAsync<IndexedDbHistoryEntry[]>("getHistory");
         return [.. raw.Select(e => new ReportHistoryEntry(
             e.ReportCode,
-            e.FightId,
+            e.DungeonId,
             e.PlayerId,
-            e.FightName,
+            e.DungeonName,
             e.PlayerName,
             Hero.TryParse(e.HeroId, out var hero) ? hero.Name : null,
             DateTimeOffset.FromUnixTimeMilliseconds(e.CachedAt)
@@ -78,9 +78,9 @@ internal sealed class IndexedDbReportCacheService(IJSRuntime js) : IReportCacheS
     private sealed class IndexedDbHistoryEntry
     {
         public string ReportCode { get; set; } = "";
-        public int FightId { get; set; }
+        public int DungeonId { get; set; }
         public int PlayerId { get; set; }
-        public string? FightName { get; set; }
+        public string? DungeonName { get; set; }
         public string? PlayerName { get; set; }
         public string? HeroId { get; set; }
         public long CachedAt { get; set; }

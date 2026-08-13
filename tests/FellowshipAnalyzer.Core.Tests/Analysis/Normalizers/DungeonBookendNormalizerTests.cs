@@ -7,19 +7,19 @@ using Xunit;
 
 namespace FellowshipAnalyzer.Core.Tests.Analysis.Normalizers;
 
-public sealed class FightBookendNormalizerTests
+public sealed class DungeonBookendNormalizerTests
 {
-    private static readonly ReportFight Fight =
+    private static readonly ReportDungeon Dungeon =
         new(Id: 0, Name: "", EncounterId: 0, Kill: null,
             StartTime: 100, EndTime: 5000, Difficulty: null,
-            FriendlyPlayers: null, FightPercentage: null);
+            FriendlyPlayers: null, CompletionPercentage: null);
 
     private static readonly FullCombatant EmptyCombatant = new(new CombatantInfoEvent());
 
     [Fact]
-    public void Normalize_PrependsFightStartAndAppendsFightEnd()
+    public void Normalize_PrependsDungeonStartAndAppendsDungeonEnd()
     {
-        var ctx = new ParseContext(PlayerId: 1, Fight: Fight, ActorNames: new Dictionary<int, string>(), EmptyCombatant);
+        var ctx = new ParseContext(PlayerId: 1, Dungeon: Dungeon, ActorNames: new Dictionary<int, string>(), EmptyCombatant);
         var normalizer = new DungeonBookendNormalizer(ctx);
         var existing = new ApplyBuffEvent { Timestamp = 200, SourceId = 1, TargetId = 1 };
 
@@ -36,7 +36,7 @@ public sealed class FightBookendNormalizerTests
     [Fact]
     public void Normalize_PreservesOrderOfExistingEvents()
     {
-        var ctx = new ParseContext(PlayerId: 1, Fight: Fight, ActorNames: new Dictionary<int, string>(), EmptyCombatant);
+        var ctx = new ParseContext(PlayerId: 1, Dungeon: Dungeon, ActorNames: new Dictionary<int, string>(), EmptyCombatant);
         var normalizer = new DungeonBookendNormalizer(ctx);
         var first = new ApplyBuffEvent { Timestamp = 200 };
         var second = new RemoveBuffEvent { Timestamp = 300 };

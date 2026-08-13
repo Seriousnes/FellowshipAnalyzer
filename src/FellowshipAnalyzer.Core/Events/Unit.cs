@@ -4,7 +4,7 @@ using FellowshipAnalyzer.Core.Game;
 
 namespace FellowshipAnalyzer.Core.Events;
 
-/// <summary>A player, NPC, or pet as identified in the FellowshipLogs report's actor list.</summary>
+/// <summary>A player or NPC as identified in the FellowshipLogs report's actor list.</summary>
 [DebuggerDisplay("{Name,nq}")]
 public class Unit
 {
@@ -27,7 +27,7 @@ public class Unit
     public string Name { get; set; } = string.Empty;
     /// <summary>The game's persistent identifier for this unit, shared across reports.</summary>
     public int Guid { get; set; }
-    /// <summary>Whether this unit is a player, NPC, or pet.</summary>
+    /// <summary>Whether this unit is a player or an NPC.</summary>
     public UnitTypeEnum Type { get; set; }
     /// <summary>Icon name used to render this unit in the UI.</summary>
     public string Icon { get; set; } = string.Empty;

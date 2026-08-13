@@ -1,3 +1,4 @@
+@using System.Globalization
 @using System.Text.RegularExpressions
 @using FellowshipAnalyzer.Core.FellowshipLogs
 @using FellowshipAnalyzer.Services
@@ -73,22 +74,29 @@
         _isLoading = true;
         _error = null;
 
+        var dungeon = ExtractQueryParam(_reportInput, "fight");
+        var player = ExtractQueryParam(_reportInput, "source");
+
+        if (int.TryParse(dungeon, CultureInfo.InvariantCulture, out var dungeonId)
+            && int.TryParse(player, CultureInfo.InvariantCulture, out var playerId))
+        {
+            Navigation.NavigateTo($"/report/{code}/{dungeonId}/{playerId}");
+            return;
+        }
+
         try
         {
             var preload = await FellowshipLogs.GetAnalysisPreloadAsync(code);
             NavState.Set(code, preload.ReportInfo);
 
-            var fight = ExtractQueryParam(_reportInput, "fight");
-
-            if (string.Equals(fight, "last", StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(dungeon, "last", StringComparison.OrdinalIgnoreCase))
             {
-                fight = preload.ReportInfo.Fights
-                    .OrderByDescending(f => f.Id)
+                dungeon = preload.ReportInfo.Dungeons
+                    .OrderByDescending(d => d.Id)
                     .FirstOrDefault()?.Id.ToString();
             }
 
-            var player = ExtractQueryParam(_reportInput, "source");
-            var segments = new[] { code, fight, player }.Where(s => !string.IsNullOrEmpty(s));
+            var segments = new[] { code, dungeon, player }.Where(s => !string.IsNullOrEmpty(s));
             Navigation.NavigateTo("/report/" + string.Join("/", segments));
         }
         catch (Exception ex)

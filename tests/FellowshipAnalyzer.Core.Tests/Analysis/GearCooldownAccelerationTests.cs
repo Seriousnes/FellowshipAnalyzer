@@ -37,10 +37,10 @@ public sealed class GearCooldownAccelerationTests
     /// <summary>Emerald rank 10 ("Blessing of the Commander - II"), granting 12% ACR, per s3 gear_data.json.</summary>
     private const int EmeraldCap = 1500;
 
-    private static readonly ReportFight TestFight =
+    private static readonly ReportDungeon TestDungeon =
         new(Id: 0, Name: "", EncounterId: 0, Kill: null,
             StartTime: 0, EndTime: 60_000, Difficulty: null,
-            FriendlyPlayers: null, FightPercentage: null);
+            FriendlyPlayers: null, CompletionPercentage: null);
 
     [Fact]
     public void Legendary_ResolvesTenPercentAcceleration()
@@ -188,7 +188,7 @@ public sealed class GearCooldownAccelerationTests
         ];
 
         var parser = new TestParser(emitter, provider, moduleTypes, acceleration);
-        await parser.Analyze(events, PlayerId, fight: TestFight);
+        await parser.Analyze(events, PlayerId, dungeon: TestDungeon);
 
         return parser.GetModule<SpellUsable>()!;
     }
@@ -227,7 +227,7 @@ public sealed class GearCooldownAccelerationTests
         ];
 
         var parser = new TestParser(emitter, provider, moduleTypes);
-        await parser.Analyze(events, PlayerId, fight: TestFight);
+        await parser.Analyze(events, PlayerId, dungeon: TestDungeon);
 
         return parser.GetModule<SpellUsable>()!;
     }

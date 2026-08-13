@@ -8,16 +8,16 @@ using Microsoft.Extensions.Configuration;
 
 if (args.Length < 3)
 {
-    Console.Error.WriteLine("Usage: dotnet run src/FellowshipAnalyzer.Tools/fetch-report.cs <code> <fightId> <sourceId> [outputPath]");
+    Console.Error.WriteLine("Usage: dotnet run src/FellowshipAnalyzer.Tools/fetch-report.cs <code> <dungeonId> <sourceId> [outputPath]");
     return 1;
 }
 
 var code = args[0];
-var fightId = int.Parse(args[1]);
+var dungeonId = int.Parse(args[1]);
 var sourceId = int.Parse(args[2]);
 
 var repoRoot = FindRepoRoot();
-var fileStem = string.Concat($"{code}-f{fightId}-s{sourceId}".Select(c => Path.GetInvalidFileNameChars().Contains(c) ? '-' : c));
+var fileStem = string.Concat($"{code}-f{dungeonId}-s{sourceId}".Select(c => Path.GetInvalidFileNameChars().Contains(c) ? '-' : c));
 var outputPath = args.Length >= 4
     ? Path.GetFullPath(args[3])
     : Path.Combine(repoRoot, "raw-reports", $"{fileStem}.json");
@@ -80,12 +80,12 @@ var masterDoc = await PostGraphQlAsync(httpClient, graphQlEndpoint, token, maste
 var report = masterDoc["data"]?["reportData"]?["report"]
     ?? throw new InvalidOperationException("Report not found (check the code and that the log is accessible).");
 
-var fights = report["fights"]?.AsArray() ?? throw new InvalidOperationException("No fights on report.");
-var fight = fights.FirstOrDefault(f => (int?)f?["id"] == fightId)
-    ?? throw new InvalidOperationException($"Fight {fightId} not found on report {code}.");
-var fightName = (string?)fight["name"] ?? "(unnamed)";
-var pulls = fight["dungeonPulls"]?.AsArray();
-Console.WriteLine($"  Fight {fightId} \"{fightName}\": {pulls?.Count ?? 0} dungeon pulls, encounterID={fight["encounterID"]}, kill={fight["kill"]}.");
+var dungeons = report["fights"]?.AsArray() ?? throw new InvalidOperationException("No dungeons on report.");
+var dungeon = dungeons.FirstOrDefault(d => (int?)d?["id"] == dungeonId)
+    ?? throw new InvalidOperationException($"Dungeon {dungeonId} not found on report {code}.");
+var dungeonName = (string?)dungeon["name"] ?? "(unnamed)";
+var pulls = dungeon["dungeonPulls"]?.AsArray();
+Console.WriteLine($"  Dungeon {dungeonId} \"{dungeonName}\": {pulls?.Count ?? 0} dungeon pulls, encounterID={dungeon["encounterID"]}, kill={dungeon["kill"]}.");
 
 var events = new JsonArray();
 double startTime = 0;
@@ -97,7 +97,7 @@ while (true)
     var variables = new JsonObject
     {
         ["code"] = code,
-        ["fightIDs"] = new JsonArray(fightId),
+        ["fightIDs"] = new JsonArray(dungeonId),
         ["sourceID"] = sourceId,
         ["startTime"] = startTime,
     };
@@ -134,7 +134,7 @@ var output = new JsonObject
                 ["startTime"] = report["startTime"]?.DeepClone(),
                 ["endTime"] = report["endTime"]?.DeepClone(),
                 ["events"] = new JsonObject { ["data"] = events },
-                ["fights"] = new JsonArray(fight.DeepClone()),
+                ["fights"] = new JsonArray(dungeon.DeepClone()),
                 ["masterData"] = report["masterData"]?.DeepClone(),
             },
         },

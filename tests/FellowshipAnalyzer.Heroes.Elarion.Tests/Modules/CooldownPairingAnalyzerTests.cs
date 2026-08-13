@@ -23,8 +23,8 @@ public sealed class CooldownPairingAnalyzerTests
     private const int EnemyId = 20;
     private const int OtherEnemyId = 21;
 
-    private static readonly ReportFight Fight = SpanningFight(0, 40_000);
-    private static readonly ReportFight LongFight = SpanningFight(0, 90_000);
+    private static readonly ReportDungeon Dungeon = SpanningDungeon(0, 40_000);
+    private static readonly ReportDungeon LongDungeon = SpanningDungeon(0, 90_000);
 
     [Fact]
     public async Task EventHorizonWithGraceRightAfterIt_PairsAtThatDistance()
@@ -203,7 +203,7 @@ public sealed class CooldownPairingAnalyzerTests
     public async Task BuffUptimes_AccumulateAcrossEveryApplyRemovePair()
     {
         var analyzer = await Analyze(
-            LongFight,
+            LongDungeon,
             ApplyGraceBuff(1_000),
             RemoveGraceBuff(21_000),
             ApplyGraceBuff(50_000),
@@ -239,7 +239,7 @@ public sealed class CooldownPairingAnalyzerTests
     public async Task PairingTimestamps_AscendAndAreNeverBackDated()
     {
         var (parser, _) = await AnalyzeAsync(
-            LongFight,
+            LongDungeon,
             EventHorizonCast(10_000),
             GraceCast(10_100),
             MarkCast(11_000),
@@ -265,7 +265,7 @@ public sealed class CooldownPairingAnalyzerTests
     public async Task Analyze_CooldownPairing_ExposesPerPullReadPaths()
     {
         var (parser, _) = await AnalyzeAsync(
-            Fight,
+            Dungeon,
             EventHorizonCast(10_000),
             GraceCast(10_100));
 
@@ -389,21 +389,21 @@ public sealed class CooldownPairingAnalyzerTests
         Ability = new SpellAbility { FSLID = effectId, Name = name },
     };
 
-    private static ReportFight SpanningFight(int startTime, int endTime) =>
+    private static ReportDungeon SpanningDungeon(int startTime, int endTime) =>
         new(Id: 0, Name: "Boss", EncounterId: 31, Kill: true,
             StartTime: startTime, EndTime: endTime, Difficulty: null,
-            FriendlyPlayers: null, FightPercentage: null);
+            FriendlyPlayers: null, CompletionPercentage: null);
 
-    private static Task<CooldownPairingAnalyzer> Analyze(params Event[] events) => Analyze(Fight, events);
+    private static Task<CooldownPairingAnalyzer> Analyze(params Event[] events) => Analyze(Dungeon, events);
 
-    private static async Task<CooldownPairingAnalyzer> Analyze(ReportFight fight, params Event[] events)
+    private static async Task<CooldownPairingAnalyzer> Analyze(ReportDungeon dungeon, params Event[] events)
     {
-        var (parser, _) = await AnalyzeAsync(fight, events);
+        var (parser, _) = await AnalyzeAsync(dungeon, events);
         return parser.CooldownPairingAnalyzers.ShouldHaveSingleItem().Analyzer;
     }
 
     private static async Task<(ElarionCombatLogParser Parser, HeroAnalysisResult Result)> AnalyzeAsync(
-        ReportFight fight,
+        ReportDungeon dungeon,
         params Event[] events)
     {
         var services = new ServiceCollection();
@@ -415,7 +415,7 @@ public sealed class CooldownPairingAnalyzerTests
         using var scope = provider.CreateScope();
 
         var parser = scope.ServiceProvider.GetRequiredService<ElarionCombatLogParser>();
-        var result = await parser.Analyze([.. events], PlayerId, fight);
+        var result = await parser.Analyze([.. events], PlayerId, dungeon);
         return (parser, result);
     }
 }

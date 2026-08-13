@@ -23,7 +23,7 @@ public sealed partial class TopazGemAnalyzer : Analyzer, IGemAnalyzer
     /// <inheritdoc/>
     public int GemPower => Owner.SelectedCombatant.Topaz;
 
-    /// <summary>Effective healing Rogue's Resurgence did over the fight.</summary>
+    /// <summary>Effective healing Rogue's Resurgence did over the dungeon.</summary>
     public long RoguesResurgenceHealing { get; private set; }
 
     /// <summary>Healing Rogue's Resurgence lost to overheal.</summary>

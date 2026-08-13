@@ -28,10 +28,10 @@ public sealed class HealerPrimitiveTests
     private const int HotSpell = 1_001_445;
     private const int CostedSpell = 1075;
 
-    private static readonly ReportFight TestFight =
+    private static readonly ReportDungeon TestDungeon =
         new(Id: 0, Name: "", EncounterId: 0, Kill: null,
             StartTime: 0, EndTime: 60_000, Difficulty: null,
-            FriendlyPlayers: null, FightPercentage: null);
+            FriendlyPlayers: null, CompletionPercentage: null);
 
     [Fact]
     public async Task HotTracker_AttributesTicksToTheOpenAssignmentForThatTarget()
@@ -211,7 +211,7 @@ public sealed class HealerPrimitiveTests
         Type[] moduleTypes = [typeof(TestAbilities), typeof(DebugAnnotations), typeof(Combatants), moduleType];
 
         var parser = new TestParser(emitter, provider, moduleTypes);
-        await parser.Analyze(events, PlayerId, fight: TestFight);
+        await parser.Analyze(events, PlayerId, dungeon: TestDungeon);
         return parser.GetModule<T>()!;
     }
 

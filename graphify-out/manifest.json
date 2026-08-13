@@ -3269,11 +3269,6 @@
     "ast_hash": "5f30995f9814c7d48e29cdcfaab699cf",
     "semantic_hash": ""
   },
-  ".claude/prompts/plan-cacheImplementationGuide.prompt.md": {
-    "mtime": 1777520217.3840737,
-    "ast_hash": "087ffc3a432db5e6c0ea648e4a6cb54f",
-    "semantic_hash": "087ffc3a432db5e6c0ea648e4a6cb54f"
-  },
   ".claude/skills/analyze-event-schema/SKILL.md": {
     "mtime": 1785059345.9729571,
     "ast_hash": "dcfeb6071c908d86162d1ee5a28a6215",
@@ -4857,6 +4852,16 @@
   ".claude/agents/guide-writer.md": {
     "mtime": 1786432684.7585273,
     "ast_hash": "aea6180226a9bcb84007ab55a6ec415c",
+    "semantic_hash": ""
+  },
+  ".claude/guide-training/README.md": {
+    "mtime": 1786434595.0762546,
+    "ast_hash": "4762f3ca671cf660d14b213536b907a3",
+    "semantic_hash": ""
+  },
+  ".claude/guide-training/PLAN.md": {
+    "mtime": 1786434615.9244187,
+    "ast_hash": "69787b9558a2bed3773d0b4c29bd676d",
     "semantic_hash": ""
   }
 }

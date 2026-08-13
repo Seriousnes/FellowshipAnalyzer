@@ -15,8 +15,6 @@ public class Analyzer : Module, IAnalyzerSurface
 {
     /// <summary>Bit flag matching <see cref="Actor.Player"/>, for filters built from a raw <c>int</c> actor mask instead of the <see cref="Actor"/> enum.</summary>
     public const int SELECTED_PLAYER = 1;
-    /// <summary>Bit flag matching <see cref="Actor.Pet"/>, for filters built from a raw <c>int</c> actor mask instead of the <see cref="Actor"/> enum.</summary>
-    public const int SELECTED_PLAYER_PET = 2;
 
     internal int NumExecutions { get; set; }
 

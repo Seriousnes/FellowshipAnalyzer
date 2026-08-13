@@ -21,7 +21,7 @@ internal static class ParserGeneratorTestHarness
     [
         typeof(object).Assembly.Location,
         typeof(CombatLogParser).Assembly.Location,
-        typeof(ReportFight).Assembly.Location,
+        typeof(ReportDungeon).Assembly.Location,
         typeof(IServiceCollection).Assembly.Location,
         typeof(ServiceCollection).Assembly.Location,
     ];

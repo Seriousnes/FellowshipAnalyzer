@@ -19,7 +19,7 @@ namespace FellowshipAnalyzer.Heroes.Mara.Tests.Analysis;
 public sealed class MatriarchMacabreAnalyzerTests
 {
     private const int PlayerId = 7;
-    private const int FightEnd = 60000;
+    private const int DungeonEnd = 60000;
 
     [Fact]
     public async Task Analyze_MatriarchBuff_OpensAndClosesOneWindow()
@@ -131,7 +131,7 @@ public sealed class MatriarchMacabreAnalyzerTests
 
         var analyzer = await AnalyzeAsync(events);
 
-        analyzer.Windows.ShouldHaveSingleItem().ClosedAt.ShouldBe(FightEnd);
+        analyzer.Windows.ShouldHaveSingleItem().ClosedAt.ShouldBe(DungeonEnd);
     }
 
     [Fact]
@@ -139,7 +139,7 @@ public sealed class MatriarchMacabreAnalyzerTests
     {
         var events = new List<Event> { Buff<ApplyBuffEvent>(1000, Spells.MatriarchMacabreSelfBuff) };
 
-        var parser = await AnalyzeParserAsync(events, BossFight());
+        var parser = await AnalyzeParserAsync(events, BossDungeon());
 
         var entry = parser.MatriarchMacabreAnalyzers.ShouldHaveSingleItem();
         var pull = entry.Pull;
@@ -163,16 +163,16 @@ public sealed class MatriarchMacabreAnalyzerTests
         Ability = new Ability { Id = spell.Id },
     };
 
-    private static ReportFight BossFight(int endTime = FightEnd) =>
+    private static ReportDungeon BossDungeon(int endTime = DungeonEnd) =>
         new(0, "", 1, null, 0, endTime, null, null, null);
 
-    private static async Task<MatriarchMacabreAnalyzer> AnalyzeAsync(List<Event> events, ReportFight? fight = null)
+    private static async Task<MatriarchMacabreAnalyzer> AnalyzeAsync(List<Event> events, ReportDungeon? dungeon = null)
     {
-        var parser = await AnalyzeParserAsync(events, fight ?? BossFight());
+        var parser = await AnalyzeParserAsync(events, dungeon ?? BossDungeon());
         return parser.MatriarchMacabreAnalyzers.ShouldHaveSingleItem().Analyzer;
     }
 
-    private static async Task<MaraCombatLogParser> AnalyzeParserAsync(List<Event> events, ReportFight fight)
+    private static async Task<MaraCombatLogParser> AnalyzeParserAsync(List<Event> events, ReportDungeon dungeon)
     {
         var services = new ServiceCollection();
         services.AddLogging();
@@ -183,7 +183,7 @@ public sealed class MatriarchMacabreAnalyzerTests
         using var scope = provider.CreateScope();
 
         var parser = scope.ServiceProvider.GetRequiredService<MaraCombatLogParser>();
-        await parser.Analyze(events, PlayerId, fight);
+        await parser.Analyze(events, PlayerId, dungeon);
         return parser;
     }
 }

@@ -41,10 +41,10 @@ public sealed partial class StatTrackerCooldownTests
     /// <summary>Ability id registered with a <see cref="CooldownBuff"/> in the buff-driven tests.</summary>
     private const int CooldownBuffId = 555;
 
-    private static readonly ReportFight TestFight =
+    private static readonly ReportDungeon TestDungeon =
         new(Id: 0, Name: "", EncounterId: 0, Kill: null,
             StartTime: 0, EndTime: 60_000, Difficulty: null,
-            FriendlyPlayers: null, FightPercentage: null);
+            FriendlyPlayers: null, CompletionPercentage: null);
 
     [Theory]
     [InlineData(0, 0.0)]
@@ -418,7 +418,7 @@ public sealed partial class StatTrackerCooldownTests
             OnApplyBuff = onApplyBuff,
             CooldownBuff = cooldownBuff,
         };
-        await parser.Analyze(allEvents, PlayerId, fight: TestFight);
+        await parser.Analyze(allEvents, PlayerId, dungeon: TestDungeon);
 
         return (parser.GetModule<StatTracker>()!, parser.GetModule<SpellUsable>()!, parser);
     }

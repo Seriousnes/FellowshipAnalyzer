@@ -24,10 +24,10 @@ public sealed class DetonateEfficiencyAnalyzerTests
     private const int Instance = 1;
     private const int ApocalypticSurgeTalentId = 678;
 
-    private static readonly ReportFight Fight =
+    private static readonly ReportDungeon Dungeon =
         new(Id: 0, Name: "", EncounterId: 0, Kill: null,
             StartTime: 0, EndTime: 60_000, Difficulty: null,
-            FriendlyPlayers: null, FightPercentage: null);
+            FriendlyPlayers: null, CompletionPercentage: null);
 
     private static readonly ReportActor[] Actors =
     [
@@ -479,7 +479,7 @@ public sealed class DetonateEfficiencyAnalyzerTests
 
         var parser = scope.ServiceProvider.GetRequiredService<ArdeosCombatLogParser>();
         parser.Actors = Actors;
-        await parser.Analyze([.. events], PlayerId, Fight);
+        await parser.Analyze([.. events], PlayerId, Dungeon);
         return parser.DetonateEfficiencyAnalyzers.ShouldHaveSingleItem().Analyzer;
     }
 }

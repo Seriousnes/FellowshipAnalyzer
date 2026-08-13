@@ -1,11 +1,11 @@
 namespace FellowshipAnalyzer.Core.Analysis;
 
 /// <summary>
-/// A single encounter window within a report-fight — the unit of per-encounter analysis.
-/// Derived from a Fellowship Logs dungeon pull, or fabricated to span a whole fight that exposes
+/// A single encounter window within a report-dungeon — the unit of per-encounter analysis.
+/// Derived from a Fellowship Logs dungeon pull, or fabricated to span a whole dungeon that exposes
 /// no pulls. <see cref="Index"/> is the zero-based dispatch ordinal; <see cref="Id"/> is the
 /// Fellowship Logs dungeon-pull id used to correlate back to the report (0 for an implicit
-/// whole-fight pull). <see cref="StartTime"/> and <see cref="EndTime"/> are milliseconds.
+/// whole-dungeon pull). <see cref="StartTime"/> and <see cref="EndTime"/> are milliseconds.
 /// </summary>
 public sealed record Pull(
     int Index,

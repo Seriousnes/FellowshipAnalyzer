@@ -20,7 +20,7 @@
     public string ReportCode { get; set; } = "";
 
     [Parameter, EditorRequired]
-    public int FightId { get; set; }
+    public int DungeonId { get; set; }
 
     [Parameter, EditorRequired]
     public int SourceId { get; set; }
@@ -32,5 +32,5 @@
     private string ViewType => Role == HeroRole.Healer ? "healing" : "damage-done";
 
     private string ReportUrl =>
-        $"https://www.fellowshiplogs.com/reports/{ReportCode}?fight={FightId}&source={SourceId}&type={ViewType}";
+        $"https://www.fellowshiplogs.com/reports/{ReportCode}?fight={DungeonId}&source={SourceId}&type={ViewType}";
 }

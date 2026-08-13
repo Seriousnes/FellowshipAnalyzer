@@ -187,7 +187,7 @@ public sealed class SearingBlazeUptimeAnalyzerTests
     {
         var events = new List<Event> { Apply(BossId, 1000) };
 
-        var (parser, _) = await AnalyzeAsync(events, TrashFight());
+        var (parser, _) = await AnalyzeAsync(events, TrashDungeon());
 
         parser.SearingBlazeAnalyzers.Select(e => e.Analyzer).OfType<SearingBlazeUptimeAnalyzer>().ShouldBeEmpty();
     }
@@ -228,14 +228,14 @@ public sealed class SearingBlazeUptimeAnalyzerTests
         Ability = new Ability { Id = Spells.SearingBlazeDot.FSLID },
     };
 
-    private static ReportFight BossFight() =>
+    private static ReportDungeon BossDungeon() =>
         new(0, "", 1, null, 0, 20000, null, null, null);
 
-    private static ReportFight TrashFight() =>
-        new(0, "", 0, null, 0, 20000, null, null, null, EnemyNpcs: [new FightNpc(1, 100, 4, 1, null)]);
+    private static ReportDungeon TrashDungeon() =>
+        new(0, "", 0, null, 0, 20000, null, null, null, EnemyNpcs: [new DungeonNpc(1, 100, 4, 1, null)]);
 
     private static async Task<(ArdeosCombatLogParser Parser, HeroAnalysisResult Result)> AnalyzeAsync(
-        List<Event> events, ReportFight? fight = null)
+        List<Event> events, ReportDungeon? dungeon = null)
     {
         var services = new ServiceCollection();
         services.AddLogging();
@@ -246,7 +246,7 @@ public sealed class SearingBlazeUptimeAnalyzerTests
         using var scope = provider.CreateScope();
 
         var parser = scope.ServiceProvider.GetRequiredService<ArdeosCombatLogParser>();
-        var result = await parser.Analyze(events, PlayerId, fight ?? BossFight());
+        var result = await parser.Analyze(events, PlayerId, dungeon ?? BossDungeon());
         return (parser, result);
     }
 }

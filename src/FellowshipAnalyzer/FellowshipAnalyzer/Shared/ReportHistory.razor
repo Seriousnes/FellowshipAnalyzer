@@ -10,10 +10,10 @@
             @foreach (var entry in _history)
             {
                 <li class="report-history-item">
-                    <a href="/report/@entry.ReportCode/@entry.FightId/@entry.PlayerId"
+                    <a href="/report/@entry.ReportCode/@entry.DungeonId/@entry.PlayerId"
                        class="report-history-link">
                         <span class="report-history-player" style="@(entry.Hero is { } hero ? $"color: {Hero.For(hero).Color}" : null)">@entry.PlayerName</span>
-                        <span class="report-history-fight">@entry.FightName</span>
+                        <span class="report-history-dungeon">@entry.DungeonName</span>
                         <span class="report-history-age">@FormatAge(entry.CachedAt)</span>
                     </a>
                 </li>
@@ -41,7 +41,7 @@
 
         _history = (await ReportCache.GetHistoryAsync())
             .Where(entry => !string.IsNullOrWhiteSpace(entry.PlayerName)
-                && !string.IsNullOrWhiteSpace(entry.FightName))
+                && !string.IsNullOrWhiteSpace(entry.DungeonName))
             .ToList();
         _loaded = true;
         StateHasChanged();

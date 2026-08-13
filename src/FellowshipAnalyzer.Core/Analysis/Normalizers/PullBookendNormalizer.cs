@@ -5,12 +5,12 @@ namespace FellowshipAnalyzer.Core.Analysis.Normalizers;
 
 /// <summary>
 /// Fabricates a <see cref="PullStartEvent"/> / <see cref="PullEndEvent"/> pair for each Fellowship
-/// Logs dungeon pull on the fight, classifying it from the pull's <c>encounterID</c>, <c>kill</c>,
-/// and <c>enemyNPCs</c>. A fight that exposes no dungeon pulls (raids and other non-dungeon content)
-/// gets one implicit pull spanning the whole fight, classified from the fight's own fields. Pull opens
+/// Logs dungeon pull on the dungeon, classifying it from the pull's <c>encounterID</c>, <c>kill</c>,
+/// and <c>enemyNPCs</c>. A dungeon that exposes no dungeon pulls (raids and other non-dungeon content)
+/// gets one implicit pull spanning the whole dungeon, classified from the dungeon's own fields. Pull opens
 /// are placed ahead of the stream and closes after it so the stable dispatch sort seats each boundary
 /// against same-timestamp gameplay (opens before, closes after); running before
-/// <see cref="DungeonBookendNormalizer"/> lets the fight bookends wrap the pull bookends.
+/// <see cref="DungeonBookendNormalizer"/> lets the dungeon bookends wrap the pull bookends.
 /// <para>
 /// A pull carries only what its own Fellowship Logs entry states. How many enemies it contains is
 /// <see cref="Enemies.Roster"/>'s answer, projected out of the seeded population when something asks,
@@ -50,7 +50,7 @@ public sealed class PullBookendNormalizer(ParseContext parseContext) : IEventNor
             return pulls;
         }
 
-        return [FromFight(parseContext.Fight)];
+        return [FromDungeon(parseContext.Dungeon)];
     }
 
     private static Pull FromDungeonPull(int index, DungeonPull pull)
@@ -67,18 +67,18 @@ public sealed class PullBookendNormalizer(ParseContext parseContext) : IEventNor
             Kill: pull.Kill ?? false);
     }
 
-    private static Pull FromFight(ReportFight fight)
+    private static Pull FromDungeon(ReportDungeon dungeon)
     {
-        var isBoss = fight.EncounterId != 0;
+        var isBoss = dungeon.EncounterId != 0;
         return new Pull(
             Index: 0,
             Id: 0,
-            Name: fight.Name,
-            StartTime: (int)fight.StartTime,
-            EndTime: (int)fight.EndTime,
+            Name: dungeon.Name,
+            StartTime: (int)dungeon.StartTime,
+            EndTime: (int)dungeon.EndTime,
             Targets: ShapeFor(isBoss),
             IsBoss: isBoss,
-            Kill: fight.Kill ?? false);
+            Kill: dungeon.Kill ?? false);
     }
 
     private static PullKind ShapeFor(bool isBoss)

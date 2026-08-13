@@ -42,7 +42,7 @@ public sealed class DamageTakenTrackerTests
     }
 
     [Fact]
-    public async Task DamageTakenPerSecond_IsSpreadOverTheFightDuration()
+    public async Task DamageTakenPerSecond_IsSpreadOverTheDungeonDuration()
     {
         var tracker = await Analyze(
             DamageTaken(PullStart + 1_000, 62_000, 62_000, 0));
@@ -67,7 +67,7 @@ public sealed class DamageTakenTrackerTests
     }
 
     [Fact]
-    public async Task AFightWithNoIncomingDamage_PublishesNoStatisticsCard()
+    public async Task ADungeonWithNoIncomingDamage_PublishesNoStatisticsCard()
     {
         var tracker = await Analyze(Cast(PullStart + 1_000, Spells.ShieldSlam));
 

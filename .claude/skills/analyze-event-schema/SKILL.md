@@ -30,7 +30,7 @@ Example:
 dotnet run src/FellowshipAnalyzer.Tools/event-schema.cs raw-reports/RaMDvgzWXBCnF4QT-f16-s25.json
 ```
 
-Raw report JSON lives in the gitignored `raw-reports/` folder at the repo root, named `{code}-f{fightId}-s{sourceId}.json`. Fetch a new one with `dotnet run src/FellowshipAnalyzer.Tools/fetch-report.cs <code> <fightId> <sourceId>`.
+Raw report JSON lives in the gitignored `raw-reports/` folder at the repo root, named `{code}-f{dungeonId}-s{sourceId}.json`. Fetch a new one with `dotnet run src/FellowshipAnalyzer.Tools/fetch-report.cs <code> <dungeonId> <sourceId>`.
 
 ## Input Shapes Supported
 
@@ -46,7 +46,7 @@ Raw report JSON lives in the gitignored `raw-reports/` folder at the repo root, 
 ## Current Event Model Facts
 
 - Events are mutable classes, not `record struct` types.
-- The base class is `Event`, with shared fields such as `Timestamp`, `Fight`, `SourceResources`, `TargetResources`, `Prepull`, `Fabricated`, and link/normalizer metadata.
+- The base class is `Event`, with shared fields such as `Timestamp`, `DungeonId`, `SourceResources`, `TargetResources`, `Prepull`, `Fabricated`, and link/normalizer metadata.
 - Concrete events inherit from `Event`, for example `CastEvent`, `DamageEvent`, `HealEvent`, `ApplyBuffEvent`, and `DeathEvent`.
 - Capability interfaces such as `IAbilityEvent`, `IExtraAbilityEvent`, `IHasSourceEvent`, and `IHasTargetEvent` expose common properties for filters and analyzers.
 - `ActorResources` models nested `sourceResources` and `targetResources`, including hit points, max hit points, absorb, position, facing, and `resources`.
@@ -81,7 +81,7 @@ For each event type in the tool output:
 
 ## Current Checks To Remember
 
-- `fight`, `sourceResources`, and `targetResources` are modeled on the base `Event` class.
+- `fight` (bound to `Event.DungeonId`), `sourceResources`, and `targetResources` are modeled on the base `Event` class.
 - Advanced actor details such as health, absorb, position, facing, and resources belong under `ActorResources`.
 - Ability master data may be hydrated by `AbilityMasterDataNormalizer` from report master data when events only contain IDs.
 - `ResourceNormalizer` divides every resource snapshot's `amount`, `max` and `cost` by 100 before analyzers see them, so a raw-JSON value is 100x the analyzer-visible one. HitPoints and MaxHitPoints stay unscaled, and the `max: -100` no-maximum sentinel becomes -1.

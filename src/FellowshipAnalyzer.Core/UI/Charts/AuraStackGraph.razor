@@ -34,7 +34,7 @@
 </div>
 
 @code {
-    /// <summary>The instants the bands are sampled at, as absolute fight timestamps in milliseconds.</summary>
+    /// <summary>The instants the bands are sampled at, as absolute dungeon timestamps in milliseconds.</summary>
     [Parameter, EditorRequired] public IReadOnlyList<int> Samples { get; set; } = [];
 
     /// <summary>One band per aura, each index-aligned to <see cref="Samples"/>.</summary>
@@ -88,7 +88,7 @@
             for (var i = 0; i < Samples.Count; i++)
             {
                 running[i] += i < band.Values.Count ? band.Values[i] : 0;
-                points.Add(new Sample(Samples[i] - FightStartTime, running[i]));
+                points.Add(new Sample(Samples[i] - DungeonStartTime, running[i]));
             }
             _bands.Add(new Series(band.Label, band.Color, points));
         }
@@ -97,7 +97,7 @@
         {
             var points = new List<Sample>(Samples.Count);
             for (var i = 0; i < Samples.Count; i++)
-                points.Add(new Sample(Samples[i] - FightStartTime, i < marker.Values.Count ? marker.Values[i] : null));
+                points.Add(new Sample(Samples[i] - DungeonStartTime, i < marker.Values.Count ? marker.Values[i] : null));
 
             _markers.Add(new Series(marker.Label, marker.Color, points));
         }

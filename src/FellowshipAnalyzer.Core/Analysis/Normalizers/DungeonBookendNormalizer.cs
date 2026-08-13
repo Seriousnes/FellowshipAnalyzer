@@ -3,9 +3,9 @@ using FellowshipAnalyzer.Core.Events;
 namespace FellowshipAnalyzer.Core.Analysis.Normalizers;
 
 /// <summary>
-/// Prepends a <see cref="DungeonStartEvent"/> at the fight's start timestamp and appends a
+/// Prepends a <see cref="DungeonStartEvent"/> at the dungeon's start timestamp and appends a
 /// <see cref="DungeonEndEvent"/> at its end timestamp so modules can hook bookend lifecycle
-/// work through <c>[On&lt;FightStartEvent&gt;]</c> / <c>[On&lt;FightEndEvent&gt;]</c> handlers.
+/// work through <c>[On&lt;DungeonStartEvent&gt;]</c> / <c>[On&lt;DungeonEndEvent&gt;]</c> handlers.
 /// </summary>
 public sealed class DungeonBookendNormalizer(ParseContext parseContext) : IEventNormalizer
 {
@@ -17,9 +17,9 @@ public sealed class DungeonBookendNormalizer(ParseContext parseContext) : IEvent
     {
         return
         [
-            new DungeonStartEvent { Timestamp = parseContext.FightStartTime },
+            new DungeonStartEvent { Timestamp = parseContext.DungeonStartTime },
             .. events,
-            new DungeonEndEvent { Timestamp = parseContext.FightEndTime }
+            new DungeonEndEvent { Timestamp = parseContext.DungeonEndTime }
         ];
     }
 }

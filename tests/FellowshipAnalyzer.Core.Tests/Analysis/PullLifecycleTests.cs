@@ -30,7 +30,7 @@ public sealed partial class PullLifecycleTests
         };
 
         var parser = CreateParser();
-        await parser.Analyze(events, playerId: 7, fight: Fight(pulls));
+        await parser.Analyze(events, playerId: 7, dungeon: Dungeon(pulls));
 
         Assert.Equal(2, parser.PullAnalyzers.Count);
 
@@ -47,7 +47,7 @@ public sealed partial class PullLifecycleTests
         Assert.Same(analyzer0, pull0.GetAnalyzer(typeof(PullProbeAnalyzer)));
         Assert.Same(analyzer1, pull1.GetAnalyzer(typeof(PullProbeAnalyzer)));
 
-        var state = parser.GetModule<WholeFightCounter>()!;
+        var state = parser.GetModule<WholeDungeonCounter>()!;
         Assert.Equal(6, state.Count);
     }
 
@@ -67,7 +67,7 @@ public sealed partial class PullLifecycleTests
         };
 
         var parser = CreateParser();
-        await parser.Analyze(events, playerId: 7, fight: Fight(pulls));
+        await parser.Analyze(events, playerId: 7, dungeon: Dungeon(pulls));
 
         Assert.Equal(2, parser.PullAnalyzers.Count);
 
@@ -81,7 +81,7 @@ public sealed partial class PullLifecycleTests
         Assert.Equal(2, ((PullProbeAnalyzer)analyzerA).StateCountAtEnd);
         Assert.Equal(4, ((PullProbeAnalyzer)analyzerB).StateCountAtEnd);
 
-        var state = parser.GetModule<WholeFightCounter>()!;
+        var state = parser.GetModule<WholeDungeonCounter>()!;
         Assert.Equal(4, state.Count);
     }
 
@@ -99,7 +99,7 @@ public sealed partial class PullLifecycleTests
         };
 
         var ex = await Assert.ThrowsAsync<InvalidOperationException>(
-            () => parser.Analyze([Buff(150)], playerId: 7, fight: Fight(pulls)));
+            () => parser.Analyze([Buff(150)], playerId: 7, dungeon: Dungeon(pulls)));
         Assert.Contains("multiple surface interfaces", ex.Message);
     }
 
@@ -118,7 +118,7 @@ public sealed partial class PullLifecycleTests
         provider.GetService(typeof(ILogger<EventEmitter>)).Returns(NullLogger<EventEmitter>.Instance);
         var parser = new FirstPullOnlyParser(emitter, provider);
 
-        await parser.Analyze(events, playerId: 7, fight: Fight(pulls));
+        await parser.Analyze(events, playerId: 7, dungeon: Dungeon(pulls));
 
         Assert.Equal(2, parser.Pulls.Count);
         Assert.Equal("P0", parser.Pulls[0].Name);
@@ -127,7 +127,7 @@ public sealed partial class PullLifecycleTests
         Assert.NotNull(parser.Pulls[0].GetAnalyzer(typeof(PullProbeAnalyzer)));
         Assert.Null(parser.Pulls[1].GetAnalyzer(typeof(PullProbeAnalyzer)));
 
-        await parser.Analyze(events, playerId: 7, fight: Fight(pulls));
+        await parser.Analyze(events, playerId: 7, dungeon: Dungeon(pulls));
 
         Assert.Equal(2, parser.Pulls.Count);
     }
@@ -140,10 +140,10 @@ public sealed partial class PullLifecycleTests
         return new PullTestParser(emitter, provider);
     }
 
-    private static ReportFight Fight(IReadOnlyList<DungeonPull> pulls)
-        => new(Id: 0, Name: "Fight", EncounterId: 0, Kill: null,
+    private static ReportDungeon Dungeon(IReadOnlyList<DungeonPull> pulls)
+        => new(Id: 0, Name: "Dungeon", EncounterId: 0, Kill: null,
             StartTime: 0, EndTime: 1000, Difficulty: null,
-            FriendlyPlayers: null, FightPercentage: null, InProgress: false,
+            FriendlyPlayers: null, CompletionPercentage: null, InProgress: false,
             DungeonPulls: pulls);
 
     private static ApplyBuffEvent Buff(int timestamp, int sourceId = 7)
@@ -152,7 +152,7 @@ public sealed partial class PullLifecycleTests
     private sealed class PullTestParser(EventEmitter emitter, IServiceProvider provider)
         : CombatLogParser(emitter, provider)
     {
-        protected override Type[] GetModuleTypes() => [typeof(WholeFightCounter)];
+        protected override Type[] GetModuleTypes() => [typeof(WholeDungeonCounter)];
 
         protected override Type[] GetNormalizerTypes() =>
             [typeof(DungeonBookendNormalizer), typeof(PullBookendNormalizer)];
@@ -161,10 +161,10 @@ public sealed partial class PullLifecycleTests
 
         protected override object? CreateInstance(Type type)
         {
-            if (type == typeof(WholeFightCounter)) return new WholeFightCounter();
+            if (type == typeof(WholeDungeonCounter)) return new WholeDungeonCounter();
             if (type == typeof(PullProbeAnalyzer))
                 return new PullProbeAnalyzer(
-                    new Lazy<WholeFightCounter>(() => (WholeFightCounter)ResolveAnalysisModule(typeof(WholeFightCounter))));
+                    new Lazy<WholeDungeonCounter>(() => (WholeDungeonCounter)ResolveAnalysisModule(typeof(WholeDungeonCounter))));
             return base.CreateInstance(type);
         }
     }
@@ -172,7 +172,7 @@ public sealed partial class PullLifecycleTests
     private sealed class FirstPullOnlyParser(EventEmitter emitter, IServiceProvider provider)
         : CombatLogParser(emitter, provider)
     {
-        protected override Type[] GetModuleTypes() => [typeof(WholeFightCounter)];
+        protected override Type[] GetModuleTypes() => [typeof(WholeDungeonCounter)];
 
         protected override Type[] GetNormalizerTypes() =>
             [typeof(DungeonBookendNormalizer), typeof(PullBookendNormalizer)];
@@ -182,15 +182,15 @@ public sealed partial class PullLifecycleTests
 
         protected override object? CreateInstance(Type type)
         {
-            if (type == typeof(WholeFightCounter)) return new WholeFightCounter();
+            if (type == typeof(WholeDungeonCounter)) return new WholeDungeonCounter();
             if (type == typeof(PullProbeAnalyzer))
                 return new PullProbeAnalyzer(
-                    new Lazy<WholeFightCounter>(() => (WholeFightCounter)ResolveAnalysisModule(typeof(WholeFightCounter))));
+                    new Lazy<WholeDungeonCounter>(() => (WholeDungeonCounter)ResolveAnalysisModule(typeof(WholeDungeonCounter))));
             return base.CreateInstance(type);
         }
     }
 
-    private sealed partial class WholeFightCounter : Analyzer
+    private sealed partial class WholeDungeonCounter : Analyzer
     {
         public int Count { get; private set; }
 
@@ -198,7 +198,7 @@ public sealed partial class PullLifecycleTests
         private void OnBuff(ApplyBuffEvent e) => Count++;
     }
 
-    private sealed partial class PullProbeAnalyzer(Lazy<WholeFightCounter> state) : Analyzer
+    private sealed partial class PullProbeAnalyzer(Lazy<WholeDungeonCounter> state) : Analyzer
     {
         public int Count { get; private set; }
         public int StateCountAtEnd { get; private set; }

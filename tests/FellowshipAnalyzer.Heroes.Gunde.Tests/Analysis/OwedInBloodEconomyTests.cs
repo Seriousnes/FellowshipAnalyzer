@@ -268,7 +268,7 @@ public sealed class OwedInBloodEconomyTests
             BuffRemoved(35_100),
         };
 
-        var (parser, _) = await RunAsync(events, DungeonFight());
+        var (parser, _) = await RunAsync(events, Dungeon());
 
         parser.OwedInBloodEconomyAnalyzers.Count.ShouldBe(2);
         var second = parser.OwedInBloodEconomyAnalyzers[1].Analyzer;
@@ -290,7 +290,7 @@ public sealed class OwedInBloodEconomyTests
             BuffRemoved(35_100),
         };
 
-        var (parser, _) = await RunAsync(events, DungeonFight());
+        var (parser, _) = await RunAsync(events, Dungeon());
 
         var second = parser.OwedInBloodEconomyAnalyzers[1].Analyzer;
 
@@ -423,7 +423,7 @@ public sealed class OwedInBloodEconomyTests
             Cast(Spells.OwedInBlood.FSLID, 5_000),
         };
 
-        var (parser, _) = await RunAsync(events, TrashFight(PullEnd));
+        var (parser, _) = await RunAsync(events, TrashDungeon(PullEnd));
 
         parser.OwedInBloodEconomyAnalyzers.ShouldHaveSingleItem()
             .Analyzer.Conversions.ShouldHaveSingleItem().StacksConverted.ShouldBe(12);
@@ -432,7 +432,7 @@ public sealed class OwedInBloodEconomyTests
     [Fact]
     public async Task Analyze_RetainsTheAnalyzerOnEveryPullReadPath()
     {
-        var (parser, _) = await RunAsync([BuffApplied(1_000)], BossFight(PullEnd));
+        var (parser, _) = await RunAsync([BuffApplied(1_000)], BossDungeon(PullEnd));
 
         var entry = parser.OwedInBloodEconomyAnalyzers.ShouldHaveSingleItem();
         var pull = entry.Pull;
@@ -442,7 +442,7 @@ public sealed class OwedInBloodEconomyTests
     }
 
     [Fact]
-    public async Task Analyze_TrackerBankBuiltThenCashedIn_ReconstructsTheFightLifetimeTotals()
+    public async Task Analyze_TrackerBankBuiltThenCashedIn_ReconstructsTheDungeonLifetimeTotals()
     {
         var events = new List<Event>
         {
@@ -501,7 +501,7 @@ public sealed class OwedInBloodEconomyTests
     }
 
     [Fact]
-    public async Task Analyze_TrackerBankPinnedAtTheCap_LatchesTheSpanAndClosesItAtTheFightEnd()
+    public async Task Analyze_TrackerBankPinnedAtTheCap_LatchesTheSpanAndClosesItAtTheDungeonEnd()
     {
         var events = new List<Event>
         {
@@ -573,7 +573,7 @@ public sealed class OwedInBloodEconomyTests
     }
 
     [Fact]
-    public async Task Analyze_TrackerSpansEveryPullOfTheFight()
+    public async Task Analyze_TrackerSpansEveryPullOfTheDungeon()
     {
         var events = new List<Event>
         {
@@ -587,7 +587,7 @@ public sealed class OwedInBloodEconomyTests
             BuffRemoved(35_100),
         };
 
-        var (parser, _) = await RunAsync(events, DungeonFight());
+        var (parser, _) = await RunAsync(events, Dungeon());
 
         var tracker = parser.BloodFeatherTracker.ShouldNotBeNull();
         tracker.Generated.ShouldBe(50);
@@ -607,7 +607,7 @@ public sealed class OwedInBloodEconomyTests
             BuffRemoved(5_100),
         };
 
-        var (parser, result) = await RunAsync(events, BossFight(PullEnd));
+        var (parser, result) = await RunAsync(events, BossDungeon(PullEnd));
 
         var tracker = parser.BloodFeatherTracker.ShouldNotBeNull();
         tracker.Statistic.ShouldNotBeNull();
@@ -617,7 +617,7 @@ public sealed class OwedInBloodEconomyTests
     [Fact]
     public async Task Analyze_WithNoFeatherActivity_ContributesNoStatisticsCard()
     {
-        var (parser, result) = await RunAsync([Cast(Spells.HeartSplitter.FSLID, 1_000)], BossFight(PullEnd));
+        var (parser, result) = await RunAsync([Cast(Spells.HeartSplitter.FSLID, 1_000)], BossDungeon(PullEnd));
 
         var tracker = parser.BloodFeatherTracker.ShouldNotBeNull();
         tracker.Generated.ShouldBe(0);
@@ -881,33 +881,33 @@ public sealed class OwedInBloodEconomyTests
         Target = new CastTarget(),
     };
 
-    private static ReportFight BossFight(int endTime) =>
+    private static ReportDungeon BossDungeon(int endTime) =>
         new(0, "Boss", 1, null, 0, endTime, null, null, null);
 
-    private static ReportFight TrashFight(int endTime) =>
-        new(0, "Trash", 0, null, 0, endTime, null, null, null, EnemyNpcs: [new FightNpc(1, 100, 4, 1, null)]);
+    private static ReportDungeon TrashDungeon(int endTime) =>
+        new(0, "Trash", 0, null, 0, endTime, null, null, null, EnemyNpcs: [new DungeonNpc(1, 100, 4, 1, null)]);
 
-    private static ReportFight DungeonFight() =>
+    private static ReportDungeon Dungeon() =>
         new(0, "Dungeon", 0, true, 0, PullEnd, null, null, null, false,
             [
                 new DungeonPull(1, 0, null, 0, 20_000, "Trash", null),
                 new DungeonPull(2, 42, true, 30_000, PullEnd, "Boss", null),
             ]);
 
-    private static async Task<OwedInBloodEconomyAnalyzer> AnalyzeAsync(List<Event> events, ReportFight? fight = null)
+    private static async Task<OwedInBloodEconomyAnalyzer> AnalyzeAsync(List<Event> events, ReportDungeon? dungeon = null)
     {
-        var (parser, _) = await RunAsync(events, fight ?? BossFight(PullEnd));
+        var (parser, _) = await RunAsync(events, dungeon ?? BossDungeon(PullEnd));
         return parser.OwedInBloodEconomyAnalyzers.ShouldHaveSingleItem().Analyzer;
     }
 
     private static async Task<BloodFeatherTracker> TrackAsync(List<Event> events)
     {
-        var (parser, _) = await RunAsync(events, BossFight(PullEnd));
+        var (parser, _) = await RunAsync(events, BossDungeon(PullEnd));
         return parser.BloodFeatherTracker.ShouldNotBeNull();
     }
 
     private static async Task<(GundeCombatLogParser Parser, HeroAnalysisResult Result)> RunAsync(
-        List<Event> events, ReportFight fight)
+        List<Event> events, ReportDungeon dungeon)
     {
         var services = new ServiceCollection();
         services.AddLogging();
@@ -918,7 +918,7 @@ public sealed class OwedInBloodEconomyTests
         using var scope = provider.CreateScope();
 
         var parser = scope.ServiceProvider.GetRequiredService<GundeCombatLogParser>();
-        var result = await parser.Analyze(events, PlayerId, fight);
+        var result = await parser.Analyze(events, PlayerId, dungeon);
         return (parser, result);
     }
 

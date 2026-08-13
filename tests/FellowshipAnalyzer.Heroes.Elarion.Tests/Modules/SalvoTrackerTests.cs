@@ -21,10 +21,10 @@ public sealed class SalvoTrackerTests
     private const int TargetA = 20;
     private const int TargetB = 21;
 
-    private static readonly ReportFight Fight =
+    private static readonly ReportDungeon Dungeon =
         new(Id: 0, Name: "Boss", EncounterId: 31, Kill: true,
             StartTime: 0, EndTime: 20_000, Difficulty: null,
-            FriendlyPlayers: null, FightPercentage: null);
+            FriendlyPlayers: null, CompletionPercentage: null);
 
     [Fact]
     public async Task SalvoAndErupt_AreTotalledAsAShareOfThePlayersDamage()
@@ -91,7 +91,7 @@ public sealed class SalvoTrackerTests
         using var scope = provider.CreateScope();
 
         var parser = scope.ServiceProvider.GetRequiredService<ElarionCombatLogParser>();
-        await parser.Analyze([.. events], PlayerId, Fight);
+        await parser.Analyze([.. events], PlayerId, Dungeon);
         return parser;
     }
 }

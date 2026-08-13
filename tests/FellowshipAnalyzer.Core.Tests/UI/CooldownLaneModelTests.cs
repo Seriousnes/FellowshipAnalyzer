@@ -68,7 +68,7 @@ public sealed class CooldownLaneModelTests
     }
 
     [Fact]
-    public void RechargeOpenAtFightEnd_ClampsToExpectedRechargeThenWindowEnd()
+    public void RechargeOpenAtDungeonEnd_ClampsToExpectedRechargeThenWindowEnd()
     {
         var beforeEnd = new List<UpdateSpellUsableEvent>
         {

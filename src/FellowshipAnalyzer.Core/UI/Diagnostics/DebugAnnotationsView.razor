@@ -146,7 +146,7 @@ else
 
     private string FormatTime(int timestamp)
     {
-        var ms = timestamp - FightStartTime;
+        var ms = timestamp - DungeonStartTime;
         var totalSec = Math.Abs(ms) / 1000.0;
         var min = (int)(totalSec / 60);
         var sec = (int)(totalSec % 60);
@@ -185,7 +185,7 @@ else
         if (events.Count == 0) yield break;
 
         var byMinute = events
-            .GroupBy(ae => (ae.Event.Timestamp - FightStartTime) / 60_000)
+            .GroupBy(ae => (ae.Event.Timestamp - DungeonStartTime) / 60_000)
             .OrderBy(g => g.Key);
 
         foreach (var group in byMinute)

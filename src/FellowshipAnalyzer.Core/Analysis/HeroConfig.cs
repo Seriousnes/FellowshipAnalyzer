@@ -17,7 +17,7 @@ public sealed record HeroConfig
     /// <summary>Season the analysis is validated against, e.g. <c>"Season 1"</c>.</summary>
     public string? SeasonLabel { get; init; }
 
-    /// <summary>An example report path (<c>code/fightId/playerId</c>) demonstrating the hero.</summary>
+    /// <summary>An example report path (<c>code/dungeonId/playerId</c>) demonstrating the hero.</summary>
     public string? ExampleReport { get; init; }
 
     /// <summary>The hero's changelog, most-recent-first when rendered.</summary>
