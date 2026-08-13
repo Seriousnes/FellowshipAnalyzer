@@ -1,0 +1,83 @@
+@use 'tokens' as t;
+
+.skeleton-block {
+    display: inline-block;
+    background: t.tint(var(--fa-white), t.$fa-tint-subtle);
+    border-radius: var(--fa-radius-xs);
+}
+
+.skeleton-breadcrumbs {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+    font-size: 0.82rem;
+}
+
+.skeleton-separator {
+    color: var(--fa-text-dim);
+    user-select: none;
+}
+
+.skeleton-crumb-report {
+    width: 8.5rem;
+    height: 0.82em;
+}
+
+.skeleton-crumb-dungeon {
+    width: 6rem;
+    height: 0.82em;
+}
+
+.skeleton-crumb-player {
+    width: 4.5rem;
+    height: 0.82em;
+}
+
+.skeleton-portrait {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+}
+
+.skeleton-title {
+    width: 13rem;
+    height: 0.72em;
+    vertical-align: baseline;
+}
+
+.skeleton-badge {
+    width: 3.4rem;
+    height: 1.2rem;
+    border-radius: var(--fa-radius-sm);
+}
+
+.skeleton-duration {
+    width: 2.4rem;
+    height: 0.85rem;
+}
+
+.skeleton-player-portrait {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+}
+
+.skeleton-player-text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    align-items: flex-start;
+}
+
+.skeleton-player-name {
+    width: 7rem;
+    font-size: clamp(1.2rem, 2.5vw, 1.7rem);
+    line-height: 1.1;
+    height: 0.72em;
+}
+
+.skeleton-player-hero {
+    width: 4rem;
+    height: 0.85rem;
+}

@@ -14,7 +14,16 @@
                 {
                     <div class="page-header-eyebrow">@Eyebrow</div>
                 }
-                <h1 class="page-header-title">@Title</h1>
+                <h1 class="page-header-title">
+                    @if (TitleContent is not null)
+                    {
+                        @TitleContent
+                    }
+                    else
+                    {
+                        @Title
+                    }
+                </h1>
                 @if (Subtitle is not null)
                 {
                     <div class="page-header-subtitle">@Subtitle</div>
@@ -38,6 +47,13 @@
 
 @code {
     [Parameter, EditorRequired] public string Title { get; set; } = "";
+
+    /// <summary>
+    /// Renders inside the heading in place of <see cref="Title"/>, for a header whose title is not
+    /// yet text, such as a loading placeholder.
+    /// </summary>
+    [Parameter] public RenderFragment? TitleContent { get; set; }
+
     [Parameter] public RenderFragment? Breadcrumbs { get; set; }
     [Parameter] public RenderFragment? Portrait { get; set; }
     [Parameter] public RenderFragment? Eyebrow { get; set; }
