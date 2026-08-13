@@ -75,16 +75,15 @@ public sealed class EventEmitter(ILogger<EventEmitter> logger) : Module
         [.. listeners.OrderBy(static listener => listener.Module.Priority)];
 
     /// <summary>
-    /// Dispatches all events sequentially, processing fabricated events inline.
+    /// Dispatches all events sequentially in the order it receives them, processing fabricated events
+    /// inline. <see cref="CombatLogParser.Events"/> is already ascending by timestamp, which
+    /// <see cref="FabricateEvent"/> and <see cref="Schedule"/> rely on to place what they insert.
     /// Yields to the UI scheduler on a <see cref="ProgressPacer"/> interval to maintain responsiveness.
     /// </summary>
     public async Task DispatchEventsAsync(List<Event> events, ReportLoadingTracker? tracker = null)
     {
         _events = events;
         _scheduled.Clear();
-        var ordered = events.OrderBy(static e => e.Timestamp).ToArray();
-        for (var i = 0; i < ordered.Length; i++)
-            events[i] = ordered[i];
 
         var pacer = new ProgressPacer();
         for (var i = 0; i < events.Count; i++)

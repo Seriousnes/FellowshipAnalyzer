@@ -57,7 +57,12 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
     /// <summary>The event dispatcher for the analysis in progress. Replaced with a fresh instance at the start of every <see cref="Analyze"/> call.</summary>
     public EventEmitter EventEmitter { get; private set; } = eventEmitter;
 
-    /// <summary>The normalized event stream for the current analysis, after every <see cref="IEventNormalizer"/> pass has run.</summary>
+    /// <summary>
+    /// The normalized event stream for the current analysis, after every <see cref="IEventNormalizer"/>
+    /// pass has run. Ordered by ascending timestamp once, stably, as <see cref="Analyze"/> materializes
+    /// it and before the first normalizer runs; every normalizer preserves that order, and
+    /// <see cref="EventEmitter.DispatchEventsAsync"/> dispatches the list as it receives it.
+    /// </summary>
     public List<Event> Events { get; set; } = [];
 
     /// <summary>The actor id of the player this analysis is scoped to.</summary>
@@ -374,7 +379,9 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
         _runModuleTypes = allModuleTypes;
         _runModuleTypeSet.UnionWith(allModuleTypes);
 
-        Events = [.. events.Where(e => e is not CastEvent { Fake: true })];
+        Events = [.. events
+            .Where(static e => e is not CastEvent { Fake: true })
+            .OrderBy(static e => e.Timestamp)];
 
         var playerInfo = Events.OfType<CombatantInfoEvent>().FirstOrDefault(e => e.SourceId == playerId)
             ?? new CombatantInfoEvent { SourceId = playerId };

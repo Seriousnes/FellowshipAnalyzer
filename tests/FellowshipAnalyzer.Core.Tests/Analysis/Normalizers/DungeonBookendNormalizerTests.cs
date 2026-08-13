@@ -49,4 +49,25 @@ public sealed class DungeonBookendNormalizerTests
         Assert.Same(second, result[2]);
         Assert.IsType<DungeonEndEvent>(result[3]);
     }
+
+    [Fact]
+    public void Normalize_SeatsEachBookendAtItsTimestampPosition()
+    {
+        var ctx = new ParseContext(PlayerId: 1, Dungeon: Dungeon, ActorNames: new Dictionary<int, string>(), EmptyCombatant);
+        var normalizer = new DungeonBookendNormalizer(ctx);
+        var beforeStart = new ApplyBuffEvent { Timestamp = 50 };
+        var atStart = new ApplyBuffEvent { Timestamp = 100 };
+        var atEnd = new ApplyBuffEvent { Timestamp = 5000 };
+        var afterEnd = new ApplyBuffEvent { Timestamp = 5500 };
+
+        var result = normalizer.Normalize([beforeStart, atStart, atEnd, afterEnd], playerId: 1);
+
+        Assert.Collection(result,
+            e => Assert.Same(beforeStart, e),
+            e => Assert.IsType<DungeonStartEvent>(e),
+            e => Assert.Same(atStart, e),
+            e => Assert.Same(atEnd, e),
+            e => Assert.IsType<DungeonEndEvent>(e),
+            e => Assert.Same(afterEnd, e));
+    }
 }

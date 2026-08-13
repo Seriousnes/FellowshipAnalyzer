@@ -7,10 +7,15 @@ namespace FellowshipAnalyzer.Core.Analysis.Normalizers;
 /// Fabricates a <see cref="PullStartEvent"/> and its <see cref="PullEndEvent"/> for each Fellowship
 /// Logs dungeon pull on the dungeon, classifying it from the pull's <c>encounterID</c>, <c>kill</c>,
 /// and <c>enemyNPCs</c>. A dungeon that exposes no dungeon pulls (raids and other non-dungeon content)
-/// gets one implicit pull spanning the whole dungeon, classified from the dungeon's own fields. Pull opens
-/// are placed ahead of the stream and closes after it so the stable dispatch sort seats each boundary
-/// against same-timestamp gameplay (opens before, closes after); running before
+/// gets one implicit pull spanning the whole dungeon, classified from the dungeon's own fields.
+/// <para>
+/// Boundaries are merged into the incoming stream by timestamp, so what comes back is still ascending: an
+/// open is seated before the first event at or after its timestamp, a close after the last event at or
+/// before its timestamp, and an open sharing a timestamp with a close precedes it. A pull that starts
+/// where another ends therefore opens before the earlier pull's close is reached, and
+/// <see cref="CombatLogParser.BeginPull"/> closes the open pull first. Running before
 /// <see cref="DungeonBookendNormalizer"/> lets the dungeon bookends wrap the pull bookends.
+/// </para>
 /// <para>
 /// A pull carries only what its own Fellowship Logs entry states. How many enemies it contains is
 /// <see cref="Enemies.Roster"/>'s answer, projected out of the seeded population when something asks,
@@ -26,15 +31,43 @@ public sealed class PullBookendNormalizer(ParseContext parseContext) : IEventNor
     public List<Event> Normalize(List<Event> events, int playerId)
     {
         var pulls = BuildPulls();
+        var boundaries = Ordered(pulls);
 
-        var result = new List<Event>(events.Count + (pulls.Count * 2));
-        result.AddRange(pulls);
-        result.AddRange(events);
-        foreach (var pull in pulls)
-            result.Add(pull.End);
+        var result = new List<Event>(events.Count + boundaries.Count);
+        var next = 0;
+
+        foreach (var e in events)
+        {
+            while (next < boundaries.Count && Precedes(boundaries[next], e.Timestamp))
+                result.Add(boundaries[next++]);
+
+            result.Add(e);
+        }
+
+        for (; next < boundaries.Count; next++)
+            result.Add(boundaries[next]);
 
         return result;
     }
+
+    private static List<Event> Ordered(List<PullStartEvent> pulls)
+    {
+        var boundaries = new List<Event>(pulls.Count * 2);
+        foreach (var pull in pulls)
+        {
+            boundaries.Add(pull);
+            boundaries.Add(pull.End);
+        }
+
+        return [.. boundaries
+            .OrderBy(static boundary => boundary.Timestamp)
+            .ThenBy(static boundary => boundary is PullStartEvent ? 0 : 1)];
+    }
+
+    private static bool Precedes(Event boundary, int timestamp) =>
+        boundary is PullStartEvent
+            ? boundary.Timestamp <= timestamp
+            : boundary.Timestamp < timestamp;
 
     private List<PullStartEvent> BuildPulls()
     {

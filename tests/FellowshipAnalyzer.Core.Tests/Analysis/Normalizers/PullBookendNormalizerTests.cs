@@ -125,6 +125,82 @@ public sealed class PullBookendNormalizerTests
     }
 
     [Fact]
+    public void Normalize_ReturnsAnAscendingStream()
+    {
+        var pulls = new List<DungeonPull>
+        {
+            new(Id: 1, EncounterId: 0, Kill: true, StartTime: 200, EndTime: 800, Name: "Trash", EnemyNpcs: null),
+            new(Id: 2, EncounterId: 42, Kill: true, StartTime: 800, EndTime: 2000, Name: "Boss", EnemyNpcs: null),
+        };
+        var normalizer = new PullBookendNormalizer(Context(Dungeon(dungeonPulls: pulls)));
+
+        var result = normalizer.Normalize(
+        [
+            new ApplyBuffEvent { Timestamp = 100 },
+            new ApplyBuffEvent { Timestamp = 200 },
+            new ApplyBuffEvent { Timestamp = 800 },
+            new ApplyBuffEvent { Timestamp = 2000 },
+            new ApplyBuffEvent { Timestamp = 3000 },
+        ], playerId: 1);
+
+        var timestamps = result.Select(e => e.Timestamp).ToList();
+        Assert.Equal(timestamps.Order(), timestamps);
+    }
+
+    [Fact]
+    public void Normalize_SeatsAnOpenBeforeSameTimestampGameplay()
+    {
+        var pulls = new List<DungeonPull>
+        {
+            new(Id: 1, EncounterId: 0, Kill: true, StartTime: 200, EndTime: 800, Name: "Trash", EnemyNpcs: null),
+        };
+        var normalizer = new PullBookendNormalizer(Context(Dungeon(dungeonPulls: pulls)));
+        var atStart = new ApplyBuffEvent { Timestamp = 200 };
+
+        var result = normalizer.Normalize(
+            [new ApplyBuffEvent { Timestamp = 100 }, atStart], playerId: 1);
+
+        Assert.True(
+            result.FindIndex(e => e is PullStartEvent) < result.IndexOf(atStart),
+            "an open must precede same-timestamp gameplay");
+    }
+
+    [Fact]
+    public void Normalize_SeatsACloseAfterSameTimestampGameplay()
+    {
+        var pulls = new List<DungeonPull>
+        {
+            new(Id: 1, EncounterId: 0, Kill: true, StartTime: 200, EndTime: 800, Name: "Trash", EnemyNpcs: null),
+        };
+        var normalizer = new PullBookendNormalizer(Context(Dungeon(dungeonPulls: pulls)));
+        var atEnd = new ApplyBuffEvent { Timestamp = 800 };
+
+        var result = normalizer.Normalize(
+            [atEnd, new ApplyBuffEvent { Timestamp = 900 }], playerId: 1);
+
+        Assert.True(
+            result.IndexOf(atEnd) < result.FindIndex(e => e is PullEndEvent),
+            "a close must follow same-timestamp gameplay");
+    }
+
+    [Fact]
+    public void Normalize_SeatsAnOpenBeforeACloseSharingItsTimestamp()
+    {
+        var pulls = new List<DungeonPull>
+        {
+            new(Id: 1, EncounterId: 0, Kill: true, StartTime: 200, EndTime: 800, Name: "First", EnemyNpcs: null),
+            new(Id: 2, EncounterId: 0, Kill: true, StartTime: 800, EndTime: 1400, Name: "Second", EnemyNpcs: null),
+        };
+        var normalizer = new PullBookendNormalizer(Context(Dungeon(dungeonPulls: pulls)));
+
+        var result = normalizer.Normalize([], playerId: 1);
+
+        var secondOpen = result.FindIndex(e => e is PullStartEvent { Index: 1 });
+        var firstClose = result.FindIndex(e => e is PullEndEvent { Start.Index: 0 });
+        Assert.True(secondOpen < firstClose, "an open must precede a close sharing its timestamp");
+    }
+
+    [Fact]
     public void Classify_ImplicitPull_TakesItsEncounterAndKillFromTheDungeon()
     {
         var npcs = new List<DungeonNpc>
