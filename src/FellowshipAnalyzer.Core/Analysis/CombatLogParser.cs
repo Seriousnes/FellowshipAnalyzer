@@ -24,7 +24,7 @@ namespace FellowshipAnalyzer.Core.Analysis;
 /// </para>
 /// </summary>
 [AddNormalizer<PullBookendNormalizer>]
-[AddNormalizer<FightBookendNormalizer>]
+[AddNormalizer<DungeonBookendNormalizer>]
 [AddNormalizer<AbilityMasterDataNormalizer>]
 [AddNormalizer<ResourceNormalizer>]
 [AddNormalizer<CastLinkNormalizer>]
@@ -98,14 +98,14 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
     /// The combatant representing the selected (analyzed) player. Populated by
     /// <see cref="Analyze"/> before any module is constructed.
     /// </summary>
-    public Combatant SelectedCombatant => CurrentParseContext.SelectedCombatant;
+    public FullCombatant SelectedCombatant => CurrentParseContext.SelectedCombatant;
 
     /// <summary>
-    /// Builds the selected player's <see cref="Combatant"/> from the resolved combatantinfo. Overridable so
+    /// Builds the selected player's <see cref="FullCombatant"/> from the resolved combatantinfo. Overridable so
     /// tests can supply a combatant with hand-built <see cref="CombatantStats"/> (e.g. scoped cooldown
     /// modifiers that no combatantinfo field yet produces).
     /// </summary>
-    protected virtual Combatant CreateSelectedCombatant(CombatantInfoEvent info) => new(info);
+    protected virtual FullCombatant CreateSelectedCombatant(CombatantInfoEvent info) => new(info);
 
     /// <summary>
     /// The Razor component type to render for the Guide tab.

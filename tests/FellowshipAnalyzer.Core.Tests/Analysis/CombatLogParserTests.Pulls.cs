@@ -11,14 +11,14 @@ public sealed partial class CombatLogParserTests
     public async Task Analyze_WithPullNormalizer_NestsImplicitPullInsideFightBookends()
     {
         var owner = CreateCombatLogParser(
-            normalizerTypes: [typeof(PullBookendNormalizer), typeof(FightBookendNormalizer)]);
+            normalizerTypes: [typeof(PullBookendNormalizer), typeof(DungeonBookendNormalizer)]);
 
         await owner.Analyze(CreateEvents(), playerId: 7, fight: TestFight);
 
         var events = owner.Events;
-        Assert.IsType<FightStartEvent>(events[0]);
+        Assert.IsType<DungeonStartEvent>(events[0]);
         var pullStart = Assert.IsType<PullStartEvent>(events[1]);
-        Assert.IsType<FightEndEvent>(events[^1]);
+        Assert.IsType<DungeonEndEvent>(events[^1]);
         var pullEnd = Assert.IsType<PullEndEvent>(events[^2]);
 
         Assert.Same(pullStart.Pull, pullEnd.Pull);
@@ -39,7 +39,7 @@ public sealed partial class CombatLogParserTests
         };
 
         var owner = CreateCombatLogParser(
-            normalizerTypes: [typeof(PullBookendNormalizer), typeof(FightBookendNormalizer)]);
+            normalizerTypes: [typeof(PullBookendNormalizer), typeof(DungeonBookendNormalizer)]);
 
         await owner.Analyze(events, playerId: 7, fight: TestFight);
 
@@ -60,7 +60,7 @@ public sealed partial class CombatLogParserTests
         for (var i = 0; i < 30; i++)
             events.Add(CreateCast(timestamp: 500, abilityId: 1000 + i));
 
-        var owner = CreateCombatLogParser(normalizerTypes: [typeof(FightBookendNormalizer)]);
+        var owner = CreateCombatLogParser(normalizerTypes: [typeof(DungeonBookendNormalizer)]);
 
         await owner.Analyze(events, playerId: 7, fight: TestFight);
 

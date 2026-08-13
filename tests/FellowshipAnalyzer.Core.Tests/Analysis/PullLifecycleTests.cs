@@ -155,7 +155,7 @@ public sealed partial class PullLifecycleTests
         protected override Type[] GetModuleTypes() => [typeof(WholeFightCounter)];
 
         protected override Type[] GetNormalizerTypes() =>
-            [typeof(FightBookendNormalizer), typeof(PullBookendNormalizer)];
+            [typeof(DungeonBookendNormalizer), typeof(PullBookendNormalizer)];
 
         protected override Type[] GetAnalyzerTypes() => [typeof(PullProbeAnalyzer)];
 
@@ -175,7 +175,7 @@ public sealed partial class PullLifecycleTests
         protected override Type[] GetModuleTypes() => [typeof(WholeFightCounter)];
 
         protected override Type[] GetNormalizerTypes() =>
-            [typeof(FightBookendNormalizer), typeof(PullBookendNormalizer)];
+            [typeof(DungeonBookendNormalizer), typeof(PullBookendNormalizer)];
 
         protected override Type[] GetAnalyzerTypes(Pull pull) =>
             pull.Index == 0 ? [typeof(PullProbeAnalyzer)] : [];
@@ -226,7 +226,7 @@ public sealed partial class PullLifecycleTests
         protected override Type[] GetModuleTypes() => [];
 
         protected override Type[] GetNormalizerTypes() =>
-            [typeof(FightBookendNormalizer), typeof(PullBookendNormalizer)];
+            [typeof(DungeonBookendNormalizer), typeof(PullBookendNormalizer)];
 
         protected override Type[] GetAnalyzerTypes() => [typeof(TwoSurfaceProbe)];
 

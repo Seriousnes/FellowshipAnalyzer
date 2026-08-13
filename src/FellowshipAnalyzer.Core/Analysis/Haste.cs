@@ -36,8 +36,8 @@ public sealed partial class Haste(Lazy<StatTracker> statTracker) : Analyzer
         { RimeSpells.WrathOfWinterBuff.FSLID, new(Haste: 0.3)  },
     };
 
-    [On<FightStartEvent>]
-    private void OnFightStart(FightStartEvent e)
+    [On<DungeonStartEvent>]
+    private void OnFightStart(DungeonStartEvent e)
     {
         Current = _statTracker.CurrentHastePercentage;
         TriggerChangeHaste(e, null, Current);

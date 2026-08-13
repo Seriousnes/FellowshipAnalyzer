@@ -1,0 +1,14 @@
+.attribution {
+    width: min(48rem, 100%);
+    margin: 0 auto;
+    text-align: center;
+    font-size: 0.78rem;
+    color: var(--fa-text-dim);
+
+    a {
+        text-decoration: none;
+
+        &:hover,
+        &:focus-visible { text-decoration: underline; }
+    }
+}

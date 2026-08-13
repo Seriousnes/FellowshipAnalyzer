@@ -50,6 +50,10 @@
 
     private bool HasApocalypticSurge => Parser.SelectedCombatant.HasTalent(Talents.ApocalypticSurge.Id);
 
+    private IReadOnlyList<Dot> TrackedDots => Parser.ArdeosDotTracker!.Dots;
+
+    private int TotalDots => TrackedDots.Count;
+
     private PullAnalyzer<DetonateEfficiencyAnalyzer>? Charted
     {
         get
@@ -73,14 +77,15 @@
     private IReadOnlyList<AuraStackBand> ChartBands(DetonateEfficiencyAnalyzer analyzer)
     {
         var timeline = analyzer.LayerTimeline;
-        var bands = new List<AuraStackBand>(ArdeosDots.Count);
+        var dots = TrackedDots;
+        var bands = new List<AuraStackBand>(dots.Count);
 
-        for (var slot = 0; slot < ArdeosDots.Count; slot++)
+        for (var slot = 0; slot < dots.Count; slot++)
         {
             var index = slot;
             bands.Add(new AuraStackBand(
-                DotName(ArdeosDots.All[index]),
-                ArdeosChartColors.Dots.Series(Palette, index),
+                DotName(dots[index]),
+                ArdeosChartColors.Dots.Series(Palette, ArdeosDots.IndexOf(dots[index])),
                 [.. timeline.Select(sample => sample.Instances[index])]));
         }
 
@@ -133,7 +138,7 @@
                 "Average active DoT instances per enemy when Detonate was cast.",
                 AverageTier(averageInstances)),
             new(
-                $"{averageDots:0.0}/{ArdeosDots.Count}",
+                $"{averageDots:0.0}/{TotalDots}",
                 "Avg DoTs at Cast",
                 "Average distinct damage-over-time effects active on any enemy when Detonate was cast."),
             new(
@@ -180,7 +185,7 @@
                 "Active DoT instances across every enemy when this Detonate was cast.",
                 Performance: perf),
             new(
-                $"{cast.DistinctDots}/{ArdeosDots.Count}",
+                $"{cast.DistinctDots}/{TotalDots}",
                 "Active DoTs",
                 "Distinct damage-over-time effects active on at least one enemy at the cast.",
                 Performance: DotCountTier(cast.DistinctDots)),

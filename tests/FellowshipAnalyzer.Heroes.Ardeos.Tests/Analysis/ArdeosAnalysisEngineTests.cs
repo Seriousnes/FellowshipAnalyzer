@@ -36,7 +36,7 @@ public sealed class ArdeosAnalysisEngineTests
     public async Task CleanWindow_FourDotsTwoEngulfingAndDetonateSpam_IsSuccessful()
     {
         const int anchor = 10000;
-        var events = new List<Event>();
+        var events = new List<Event> { CombatantWithBoomtasticRing() };
         events.AddRange(FullSetup(anchor, TargetId, TargetInstance));
         events.Add(ApplyBuff(anchor, Spells.WildfireDotBonusBuff.FSLID));
         events.Add(WildfireCast(anchor, TargetId, TargetInstance));
@@ -149,6 +149,7 @@ public sealed class ArdeosAnalysisEngineTests
         const int anchor = 10000;
         var events = new List<Event>
         {
+            CombatantWithBoomtasticRing(),
             ApplyDebuff(anchor - 3000, TargetId, TargetInstance, Spells.SearingBlazeDot.FSLID),
             ApplyDebuff(anchor - 3000, TargetId, TargetInstance, Spells.FireBallDot.FSLID),
             ApplyDebuff(anchor - 3000, TargetId, TargetInstance, Spells.ApocalypseDot.FSLID),
@@ -170,6 +171,7 @@ public sealed class ArdeosAnalysisEngineTests
         const int anchor = 10000;
         var events = new List<Event>
         {
+            CombatantWithBoomtasticRing(),
             ApplyDebuff(anchor - 3000, OtherId, OtherInstance, Spells.SearingBlazeDot.FSLID),
             ApplyDebuff(anchor - 3000, OtherId, OtherInstance, Spells.FireBallDot.FSLID),
             ApplyDebuff(anchor - 3000, OtherId, OtherInstance, Spells.ApocalypseDot.FSLID),
@@ -190,6 +192,7 @@ public sealed class ArdeosAnalysisEngineTests
         const int anchor = 10000;
         var events = new List<Event>
         {
+            CombatantWithBoomtasticRing(),
             ApplyDebuff(anchor - 4000, OtherId, OtherInstance, Spells.SearingBlazeDot.FSLID),
             ApplyDebuff(anchor - 4000, OtherId, OtherInstance, Spells.FireBallDot.FSLID),
             ApplyDebuff(anchor - 4000, OtherId, OtherInstance, Spells.ApocalypseDot.FSLID),
@@ -213,6 +216,7 @@ public sealed class ArdeosAnalysisEngineTests
         const int anchor = 10000;
         var events = new List<Event>
         {
+            CombatantWithBoomtasticRing(),
             ApplyDebuff(anchor - 3000, OtherId, OtherInstance, Spells.SearingBlazeDot.FSLID),
             ApplyDebuff(anchor - 3000, OtherId, OtherInstance, Spells.FireBallDot.FSLID),
         };
@@ -234,6 +238,7 @@ public sealed class ArdeosAnalysisEngineTests
         const int anchor = 10000;
         var events = new List<Event>
         {
+            CombatantWithBoomtasticRing(),
             ApplyDebuff(anchor - 4000, OtherId, OtherInstance, Spells.SearingBlazeDot.FSLID),
             ApplyDebuff(anchor - 4000, OtherId, OtherInstance, Spells.FireBallDot.FSLID),
             ApplyDebuff(anchor - 4000, OtherId, OtherInstance, Spells.ApocalypseDot.FSLID),
@@ -255,7 +260,7 @@ public sealed class ArdeosAnalysisEngineTests
     public async Task DetonatesOutsideBuffWindow_DoNotCountTowardSpam()
     {
         const int anchor = 10000;
-        var events = new List<Event>();
+        var events = new List<Event> { CombatantWithBoomtasticRing() };
         events.AddRange(FullSetup(anchor, TargetId, TargetInstance));
         events.Add(ApplyBuff(anchor, Spells.WildfireDotBonusBuff.FSLID));
         events.Add(WildfireCast(anchor, TargetId, TargetInstance));
@@ -277,7 +282,7 @@ public sealed class ArdeosAnalysisEngineTests
     [Fact]
     public async Task MultipleWildfireAnchors_AreEvaluatedIndependently()
     {
-        var events = new List<Event>();
+        var events = new List<Event> { CombatantWithBoomtasticRing() };
         events.AddRange(FullSetup(10000, TargetId, TargetInstance));
         events.Add(ApplyBuff(10000, Spells.WildfireDotBonusBuff.FSLID));
         events.Add(WildfireCast(10000, TargetId, TargetInstance));
@@ -304,7 +309,7 @@ public sealed class ArdeosAnalysisEngineTests
     public async Task Coverage_MarksEveryDotActiveOnTheTarget()
     {
         const int anchor = 10000;
-        var events = new List<Event>();
+        var events = new List<Event> { CombatantWithBoomtasticRing() };
         events.AddRange(FullSetup(anchor, TargetId, TargetInstance));
         events.Add(WildfireCast(anchor, TargetId, TargetInstance));
 
@@ -324,6 +329,25 @@ public sealed class ArdeosAnalysisEngineTests
         searing.Magnitude.ShouldBeNull();
 
         Coverage(window, ArdeosDots.FireFrogs).Active.ShouldBeFalse();
+    }
+
+    [Fact]
+    public async Task WithoutTheBoomtasticRing_ApocalypseIsNotCovered()
+    {
+        const int anchor = 10000;
+        var events = new List<Event>();
+        events.AddRange(FullSetup(anchor, TargetId, TargetInstance));
+        events.Add(WildfireCast(anchor, TargetId, TargetInstance));
+
+        var (parser, _) = await AnalyzeAsync(events, SpanningFight(0, 20000));
+
+        parser.ArdeosDotTracker!.BoomtasticRingEquipped.ShouldBeFalse();
+
+        var window = parser.WildfireComboAnalyzers.ShouldHaveSingleItem().Analyzer.Windows.ShouldHaveSingleItem();
+        window.Coverage.Count.ShouldBe(ArdeosDots.Count - 1);
+        window.Coverage.Select(entry => entry.Dot).ShouldNotContain(ArdeosDots.Apocalypse);
+        window.ActiveDots.ShouldNotContain(ArdeosDots.Apocalypse);
+        window.DistinctDots.ShouldBe(3);
     }
 
     [Fact]
@@ -425,6 +449,12 @@ public sealed class ArdeosAnalysisEngineTests
         Timestamp = timestamp,
         TargetId = targetId,
         TargetInstance = targetInstance,
+    };
+
+    private static CombatantInfoEvent CombatantWithBoomtasticRing() => new()
+    {
+        SourceId = PlayerId,
+        Gear = [new Item { Id = FellowshipAnalyzer.Core.Common.Items.Items.RingOfBoomtasticExplosions.Id }],
     };
 
     private static ReportFight SpanningFight(double startTime, double endTime) =>

@@ -11,4 +11,5 @@ public partial class Items : IItemRegistry
 
     public static Item DraconicBracersOfTheDevouringFlame { get; } = new(5225, "Draconic Bracers of the Devouring Flame", "Tex_bracers_01_b.jpg");
     public static Item ExecutionersUnsanitaryBands { get; } = new(5225, "Executioner's Unsanitary Bands", "Tex_bracers_01_b.jpg");
+    public static Item RingOfBoomtasticExplosions { get; } = new(5222, "Ring of Boomtastic Explosions");
 }

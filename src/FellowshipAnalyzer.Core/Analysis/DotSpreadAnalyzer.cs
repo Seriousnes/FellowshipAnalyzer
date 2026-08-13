@@ -8,10 +8,11 @@ namespace FellowshipAnalyzer.Core.Analysis;
 /// took it, how often it was applied fresh, and how often it was laid again over a window that was
 /// still running.
 /// <para>
-/// Coverage is read against <see cref="Pull.TargetCount"/> when the pull reports one. When it does
-/// not, the roster falls back to the enemies the player engaged at all, which is a truer denominator
-/// than the enemies that took the effect, and finally to <see cref="UnknownRosterReference"/> so a
-/// pull with no roster at all still reports something bounded.
+/// Coverage is read against the enemies <see cref="Enemies.Roster"/> names for the pull. When it
+/// names none, the roster falls back to the enemies the player engaged at all, which is a truer
+/// denominator than the enemies that took the effect, and finally to
+/// <see cref="UnknownRosterReference"/> so a pull with no roster at all still reports something
+/// bounded.
 /// </para>
 /// <para>
 /// Derive a per-hero analyzer from this, keep <c>[ForPull]</c> and the surface marker interface on
@@ -31,8 +32,8 @@ public abstract class DotSpreadAnalyzer : Analyzer
     /// <summary>The effects this analyzer measures, in the order results are reported.</summary>
     protected abstract IReadOnlyList<Dot> Dots { get; }
 
-    /// <summary>The enemy count the pull itself reports, or zero when it reports none.</summary>
-    public int TargetCount => Pull.TargetCount;
+    /// <summary>The enemies the pull's roster names, or zero when it names none.</summary>
+    public int TargetCount => Owner.Enemies?.Roster(Pull).Count ?? 0;
 
     private int? _enemiesEngaged;
 

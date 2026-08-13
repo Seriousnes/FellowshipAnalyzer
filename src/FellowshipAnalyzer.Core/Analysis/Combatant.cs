@@ -5,12 +5,25 @@ using FellowshipAnalyzer.Core.Game;
 namespace FellowshipAnalyzer.Core.Analysis;
 
 /// <summary>
-/// Represents a player entity with gear, talents, and buff history. Populated from a
+/// One combat unit the fight names, identified by its actor id and carrying the aura history
+/// <see cref="Entity"/> tracks. A group member other than the analyzed player is a plain
+/// <see cref="Combatant"/>; an enemy is an <see cref="Enemy"/>, which adds its spawn instance; the
+/// analyzed player is a <see cref="FullCombatant"/>, the only one a
+/// <see cref="CombatantInfoEvent"/> populates and so the only one with gear, talents, and stats.
+/// </summary>
+public class Combatant(int id) : Entity
+{
+    /// <summary>The unit's actor id, as it appears throughout the event stream.</summary>
+    public int Id { get; init; } = id;
+}
+
+/// <summary>
+/// The analyzed player, with gear, talents, and buff history. Populated from a
 /// <see cref="CombatantInfoEvent"/> at the start of analysis. The player's stat ratings and derived
 /// cooldown values are exposed as a frozen <see cref="CombatantStats"/> snapshot on <see cref="Stats"/>,
 /// built once from the combatantinfo.
 /// </summary>
-public sealed class Combatant : Entity
+public sealed class FullCombatant : Combatant
 {
     private readonly Dictionary<GearSlot, Item> _gear;
     private readonly Dictionary<int, Item> _itemById;
@@ -22,11 +35,10 @@ public sealed class Combatant : Entity
     ];
 
     private const int LegendaryQuality = 6;
-
     private const double StrandOfEternityAcceleration = 0.10;
 
     /// <summary>Builds the combatant's gear index and computes its derived <see cref="Stats"/> snapshot from the given combatantinfo.</summary>
-    public Combatant(CombatantInfoEvent info)
+    public FullCombatant(CombatantInfoEvent info) : base(info.SourceId)
     {
         Info = info;
 
@@ -39,9 +51,6 @@ public sealed class Combatant : Entity
         HasLegendary = info.Gear.Any(item => item.Quality >= LegendaryQuality);
         Stats = BuildStats(info);
     }
-
-    /// <summary>The player's source id, as it appears throughout the event stream.</summary>
-    public int Id => Info.SourceId;
 
     /// <summary>The raw <see cref="CombatantInfoEvent"/> this combatant was built from.</summary>
     public CombatantInfoEvent Info { get; }
@@ -179,7 +188,7 @@ public sealed class Combatant : Entity
 }
 
 /// <summary>
-/// Frozen snapshot of a <see cref="Combatant"/>'s stat ratings and derived cooldown values, built once from
+/// Frozen snapshot of a <see cref="FullCombatant"/>'s stat ratings and derived cooldown values, built once from
 /// the <see cref="CombatantInfoEvent"/> when the combatant is constructed. The rating fields are copied
 /// straight from the combatantinfo; the cooldown fields are computed from gem-power rank unlocks and equipped
 /// gear.

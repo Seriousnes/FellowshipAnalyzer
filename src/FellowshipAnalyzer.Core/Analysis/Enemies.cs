@@ -14,6 +14,17 @@ namespace FellowshipAnalyzer.Core.Analysis;
 /// after the parse.
 /// </para>
 /// <para>
+/// A pull's roster is a projection, not an expansion: <see cref="Analysis.Combatants"/> seeds every
+/// spawn the report's rosters name, and this module selects the ones a pull admits - those its own
+/// enemy NPC list names by instance span, or the whole seeded population for a fight exposing no
+/// dungeon pulls - less the pets. Seeding covers every roster in the report, so a projection can
+/// never want a key the population lacks. A roster key is not always the key an event writes: an
+/// actor with one spawn omits the instance on its events, so its auras accrue under a
+/// <c>null</c>-instance key while its roster entry names instance 1. <see cref="Resolve"/> bridges
+/// the two; do not read a <see cref="Roster"/> key straight out of
+/// <see cref="Combatants.AuraInstanceCount"/>.
+/// </para>
+/// <para>
 /// A roster is fight metadata and needs no master data. Hostility does: a death event and an aura
 /// event name an actor and nothing more, so telling an enemy from the selected player, an ally, or the
 /// Environment actor is read from <see cref="CombatLogParser.Actors"/>. An analysis run given no actors
@@ -28,60 +39,14 @@ public sealed partial class Enemies : Module
 
     private State Index => field ??= Build();
 
-    /// <summary>
-    /// The actor ids <paramref name="npcs"/> names as pets, which no roster admits.
-    /// </summary>
-    public static HashSet<int> PetActorIds(IReadOnlyList<FightNpc>? npcs)
+    private static HashSet<int> PetActorIds(IReadOnlyList<FightNpc>? npcs)
     {
         HashSet<int> petActorIds = [];
         foreach (var npc in npcs ?? [])
         {
-            if (npc is { PetOwner: not null, Id: int id }) petActorIds.Add(id);
+            if (npc.PetOwner is not null) petActorIds.Add(npc.Id);
         }
         return petActorIds;
-    }
-
-    /// <summary>
-    /// The units a dungeon pull's enemy NPC list names, one per instance across each entry's
-    /// <see cref="DungeonPullNpc.MinimumInstanceId"/>..<see cref="DungeonPullNpc.MaximumInstanceId"/>
-    /// span, excluding <paramref name="petActorIds"/>. <c>PullBookendNormalizer</c> counts the result
-    /// for <see cref="Pull.TargetCount"/>, so the roster and the count cannot diverge.
-    /// </summary>
-    public static List<UnitKey> RosterKeys(IReadOnlyList<DungeonPullNpc>? npcs, IReadOnlySet<int> petActorIds)
-    {
-        List<UnitKey> keys = [];
-        foreach (var npc in npcs ?? [])
-        {
-            if (npc.Id is not int id || petActorIds.Contains(id)) continue;
-
-            if (npc is { MinimumInstanceId: int low, MaximumInstanceId: int high } && high >= low)
-            {
-                for (var instance = low; instance <= high; instance++)
-                    keys.Add(new UnitKey(id, instance));
-                continue;
-            }
-
-            keys.Add(new UnitKey(id, npc.MinimumInstanceId ?? 1));
-        }
-        return keys;
-    }
-
-    /// <summary>
-    /// The units a fight's enemy NPC list names, one per instance from 1 up to
-    /// <see cref="FightNpc.InstanceCount"/>, excluding pets. Read for a fight that exposes no dungeon
-    /// pulls, whose single roster spans the whole fight.
-    /// </summary>
-    public static List<UnitKey> RosterKeys(IReadOnlyList<FightNpc>? npcs)
-    {
-        List<UnitKey> keys = [];
-        foreach (var npc in npcs ?? [])
-        {
-            if (npc.Id is not int id || npc.PetOwner is not null) continue;
-
-            for (var instance = 1; instance <= (npc.InstanceCount ?? 1); instance++)
-                keys.Add(new UnitKey(id, instance));
-        }
-        return keys;
     }
 
     /// <summary>
@@ -112,8 +77,8 @@ public sealed partial class Enemies : Module
 
     /// <summary>
     /// The units <paramref name="pull"/> names, one per instance, from the pull's own enemy NPC list, or
-    /// from the fight's when it exposes no dungeon pulls. The count equals
-    /// <see cref="Pull.TargetCount"/>. Two pulls of one fight can name the same unit, so a death is
+    /// the whole seeded population for a fight exposing no dungeon pulls. This is the enemy count a
+    /// pull is measured against. Two pulls of one fight can name the same unit, so a death is
     /// recorded against that unit in every pull naming it and it never comes back alive.
     /// </summary>
     public IReadOnlyList<EnemyUnit> Roster(Pull pull) =>
@@ -131,7 +96,7 @@ public sealed partial class Enemies : Module
     /// is alive from the moment it enters, which is <see cref="Pull.StartTime"/> for a roster unit and
     /// the first event naming it for any other, up to but not including its death. A unit still alive at
     /// <see cref="Pull.EndTime"/> despawns and is counted there. Returns 0 outside the pull window, and
-    /// exceeds <see cref="Pull.TargetCount"/> while an unrostered unit is alive.
+    /// exceeds <see cref="Roster"/>'s count while an unrostered unit is alive.
     /// </summary>
     public int AliveAt(Pull pull, int timestamp)
     {
@@ -401,7 +366,29 @@ public sealed partial class Enemies : Module
 
         var byPull = new Dictionary<int, PullPopulation>(pulls.Count);
         foreach (var pull in pulls)
-            byPull[pull.Index] = new PullPopulation(pull, RosterKeysFor(pull, petActorIds));
+        {
+            var dungeonPull = Owner.Fight.DungeonPulls?
+                .FirstOrDefault(candidate => candidate.Id == pull.Id);
+
+            List<UnitKey> rosterKeys = [];
+            foreach (var (key, unit) in Combatants.Units)
+            {
+                if (unit is not Enemy { Rostered: true }) continue;
+                if (petActorIds.Contains(key.ActorId)) continue;
+                if (dungeonPull is not null && !(dungeonPull.EnemyNpcs ?? []).Any(npc =>
+                        npc.Id == key.ActorId
+                        && key.Instance >= npc.LowInstance
+                        && key.Instance <= npc.HighInstance))
+                    continue;
+
+                rosterKeys.Add(key);
+            }
+            rosterKeys.Sort(static (left, right) => left.ActorId != right.ActorId
+                ? left.ActorId.CompareTo(right.ActorId)
+                : Nullable.Compare(left.Instance, right.Instance));
+
+            byPull[pull.Index] = new PullPopulation(pull, rosterKeys);
+        }
 
         Dictionary<UnitKey, EnemyDeath> deaths = [];
         foreach (var e in Owner.Events)
@@ -436,14 +423,6 @@ public sealed partial class Enemies : Module
             pulls,
             byPull,
             [.. deaths.Values.OrderBy(static death => death.Timestamp)]);
-    }
-
-    private List<UnitKey> RosterKeysFor(Pull pull, HashSet<int> petActorIds)
-    {
-        var dungeonPull = Owner.Fight.DungeonPulls?.FirstOrDefault(candidate => candidate.Id == pull.Id);
-        return dungeonPull is not null
-            ? RosterKeys(dungeonPull.EnemyNpcs, petActorIds)
-            : RosterKeys(Owner.Fight.EnemyNpcs);
     }
 
     private sealed class State(

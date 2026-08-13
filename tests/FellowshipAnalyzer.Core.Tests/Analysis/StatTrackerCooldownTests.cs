@@ -54,7 +54,7 @@ public sealed partial class StatTrackerCooldownTests
     [InlineData(1500, 0.12)]
     public void EmeraldPower_UnlocksBlessingOfTheCommander(int emerald, double expected)
     {
-        var combatant = new Combatant(new CombatantInfoEvent { SourceId = PlayerId, Emerald = emerald });
+        var combatant = new FullCombatant(new CombatantInfoEvent { SourceId = PlayerId, Emerald = emerald });
 
         Assert.Equal(expected, combatant.Stats.AbilityCooldownReduction.Total(null), precision: 6);
     }
@@ -62,7 +62,7 @@ public sealed partial class StatTrackerCooldownTests
     [Fact]
     public void EmeraldAtCap_ReplacesLowerRank_RatherThanSummingWithIt()
     {
-        var combatant = new Combatant(new CombatantInfoEvent { SourceId = PlayerId, Emerald = Rank10Power });
+        var combatant = new FullCombatant(new CombatantInfoEvent { SourceId = PlayerId, Emerald = Rank10Power });
 
         Assert.Equal(0.12, combatant.Stats.AbilityCooldownReduction.Total(null), precision: 6);
         Assert.NotEqual(0.16, combatant.Stats.AbilityCooldownReduction.Total(null), precision: 6);

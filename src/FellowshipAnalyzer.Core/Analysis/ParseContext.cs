@@ -11,7 +11,7 @@ public sealed record ParseContext(
     int PlayerId,
     ReportFight Fight,
     IReadOnlyDictionary<int, string> ActorNames,
-    Combatant SelectedCombatant,
+    FullCombatant SelectedCombatant,
     IReadOnlyList<ReportActor>? Actors = null)
 {
     /// <summary>Report-level actor master data, empty when the host supplied none.</summary>

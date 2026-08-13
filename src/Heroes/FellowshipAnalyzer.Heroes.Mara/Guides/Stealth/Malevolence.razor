@@ -24,7 +24,7 @@
 }
 
 @code {
-    [CascadingParameter] public Combatant SelectedCombatant { get; set; } = null!;
+    [CascadingParameter] public FullCombatant SelectedCombatant { get; set; } = null!;
 
     private bool HasMalevolence => SelectedCombatant.HasTalent(MaraTalents.Malevolence);
 

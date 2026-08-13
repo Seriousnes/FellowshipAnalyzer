@@ -66,7 +66,7 @@ public sealed partial class MultiOnHandlerTests
             .Returns(NullLogger<EventEmitter>.Instance);
         provider.GetService(typeof(Microsoft.Extensions.Logging.ILogger<ResourceTracker>))
             .Returns(NullLogger<ResourceTracker>.Instance);
-        return new TestCombatLogParser(emitter, provider, moduleTypes, [typeof(FightBookendNormalizer)]);
+        return new TestCombatLogParser(emitter, provider, moduleTypes, [typeof(DungeonBookendNormalizer)]);
     }
 
     private sealed class TestCombatLogParser(

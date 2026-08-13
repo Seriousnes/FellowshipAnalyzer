@@ -23,7 +23,7 @@ public interface IHeroAnalyzer
     int PlayerId { get; set; }
 
     /// <summary>The combatant record for <see cref="PlayerId"/>, resolved from the report's combatant list.</summary>
-    Combatant SelectedCombatant { get; }
+    FullCombatant SelectedCombatant { get; }
 
     /// <summary>
     /// The Razor component type to render for the Guide tab.

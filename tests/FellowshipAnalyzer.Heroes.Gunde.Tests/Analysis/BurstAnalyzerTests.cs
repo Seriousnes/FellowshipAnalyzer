@@ -344,7 +344,7 @@ public sealed class BurstAnalyzerTests
         new(0, "Boss", 1, null, 0, endTime, null, null, null);
 
     private static ReportFight TrashFight(int endTime) =>
-        new(0, "Trash", 0, null, 0, endTime, null, null, null, EnemyNpcs: [new FightNpc(1, 100, 4, null, null)]);
+        new(0, "Trash", 0, null, 0, endTime, null, null, null, EnemyNpcs: [new FightNpc(1, 100, 4, 1, null)]);
 
     private static ReportFight DungeonRun() =>
         new(0, "Dungeon", 0, null, 0, 400_000, null, null, null, DungeonPulls:

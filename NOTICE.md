@@ -25,3 +25,21 @@ license as WoWAnalyzer.
 A heartfelt thank you to the WoWAnalyzer maintainers and contributors for
 building and openly sharing the project that made FellowshipAnalyzer
 possible.
+
+## Fellowship
+
+[Fellowship](https://www.fellowship.gg/) and all related artwork are the
+property of [Chief Rebel](https://www.chiefrebel.com/). FellowshipAnalyzer is
+a fan site and is not affiliated with, endorsed by, or sponsored by Chief
+Rebel.
+
+## Fellowship Logs
+
+Combat log data is read from [Fellowship
+Logs](https://www.fellowshiplogs.com), which also serves the ability and
+boss artwork rendered in the UI.
+
+## Tabler Icons
+
+Interface glyphs come from [Tabler Icons](https://tabler.io/icons),
+distributed under the MIT License.

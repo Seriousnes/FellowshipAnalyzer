@@ -158,7 +158,7 @@ public sealed class AbilityTrackerTests
     }
 
     private static Pull MakePull(int index, int id, int startTime, int endTime) =>
-        new(index, id, $"Pull {id}", startTime, endTime, PullKind.Single, IsBoss: true, Kill: true, TargetCount: 1);
+        new(index, id, $"Pull {id}", startTime, endTime, PullKind.Single, IsBoss: true, Kill: true);
 
     private static async Task<AbilityTracker> Analyze(List<Event> events)
     {

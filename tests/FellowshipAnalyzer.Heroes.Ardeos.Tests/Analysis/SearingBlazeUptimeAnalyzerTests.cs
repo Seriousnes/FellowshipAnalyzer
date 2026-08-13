@@ -232,7 +232,7 @@ public sealed class SearingBlazeUptimeAnalyzerTests
         new(0, "", 1, null, 0, 20000, null, null, null);
 
     private static ReportFight TrashFight() =>
-        new(0, "", 0, null, 0, 20000, null, null, null, EnemyNpcs: [new FightNpc(1, 100, 4, null, null)]);
+        new(0, "", 0, null, 0, 20000, null, null, null, EnemyNpcs: [new FightNpc(1, 100, 4, 1, null)]);
 
     private static async Task<(ArdeosCombatLogParser Parser, HeroAnalysisResult Result)> AnalyzeAsync(
         List<Event> events, ReportFight? fight = null)

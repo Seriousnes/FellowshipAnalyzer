@@ -28,4 +28,15 @@ public static class ArdeosDots
     public static Dot FireBall { get; } = All[4];
 
     public static Dot Apocalypse { get; } = All[5];
+
+    public static int IndexOf(Dot dot)
+    {
+        for (var index = 0; index < All.Count; index++)
+        {
+            if (All[index] == dot)
+                return index;
+        }
+
+        throw new ArgumentOutOfRangeException(nameof(dot), $"{dot.Effect.Name} is not an Ardeos damage-over-time effect.");
+    }
 }

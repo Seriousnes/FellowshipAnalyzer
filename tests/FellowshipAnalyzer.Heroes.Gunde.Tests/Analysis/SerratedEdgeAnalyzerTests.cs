@@ -322,7 +322,7 @@ public sealed class SerratedEdgeAnalyzerTests
 
     private static ReportFight TrashFight() =>
         new(0, "Trash", 0, null, 0, PullEnd, null, null, null,
-            EnemyNpcs: [new FightNpc(1, 100, 4, null, null)]);
+            EnemyNpcs: [new FightNpc(1, 100, 4, 1, null)]);
 
     private static async Task<SerratedEdgeAnalyzer> AnalyzeAsync(List<Event> events, bool boss)
     {

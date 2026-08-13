@@ -15,8 +15,7 @@ public sealed record Pull(
     int EndTime,
     PullKind Targets,
     bool IsBoss,
-    bool Kill,
-    int TargetCount)
+    bool Kill)
 {
     private readonly Dictionary<Type, Analyzer> _analyzers = [];
 

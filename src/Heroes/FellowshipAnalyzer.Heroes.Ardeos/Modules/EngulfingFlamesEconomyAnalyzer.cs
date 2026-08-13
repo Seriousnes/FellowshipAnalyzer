@@ -59,7 +59,7 @@ public sealed partial class EngulfingFlamesEconomyAnalyzer : Analyzer
 
     private DevouringFlameMetrics Devouring => field ??= ComputeDevouringFlame();
 
-    public bool DevouringFlameEquipped => Combatants.Selected.HasItem(Items.DraconicBracersOfTheDevouringFlame.Id);
+    public bool DevouringFlameEquipped => Owner.SelectedCombatant.HasItem(Items.DraconicBracersOfTheDevouringFlame.Id);
 
     public double DevouringFlameAnyUptime => Devouring.AnyUptime;
 

@@ -48,8 +48,8 @@ public sealed partial class BloodFeatherTracker : Analyzer
         Spent += reclaimed + _bank;
     }
 
-    [On<FightEndEvent>]
-    private void OnFightEnd(FightEndEvent fightEnd) => CloseCapWindow(fightEnd.Timestamp);
+    [On<DungeonEndEvent>]
+    private void OnFightEnd(DungeonEndEvent fightEnd) => CloseCapWindow(fightEnd.Timestamp);
 
     private void SetBank(int timestamp, int bank)
     {

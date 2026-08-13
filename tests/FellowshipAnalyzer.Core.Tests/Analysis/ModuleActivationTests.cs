@@ -24,7 +24,7 @@ public sealed class ModuleActivationTests
             StartTime: 0, EndTime: 0, Difficulty: null,
             FriendlyPlayers: null, FightPercentage: null);
 
-    private static readonly Combatant EmptyCombatant = new(new CombatantInfoEvent());
+    private static readonly FullCombatant EmptyCombatant = new(new CombatantInfoEvent());
 
     [Fact]
     public void IsModuleActive_WhenPredicateFalse_ReturnsFalse()

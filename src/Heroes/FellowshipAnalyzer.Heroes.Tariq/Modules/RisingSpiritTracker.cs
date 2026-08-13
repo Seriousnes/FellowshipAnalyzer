@@ -27,15 +27,15 @@ public sealed partial class RisingSpiritTracker : Analyzer
 
     public double AverageStacks => TotalActiveMs == 0 ? 0d : (double)_weightedStackMs / TotalActiveMs;
 
-    [On<FightStartEvent>]
-    private void OnFightStart(FightStartEvent @event)
+    [On<DungeonStartEvent>]
+    private void OnFightStart(DungeonStartEvent @event)
     {
         _fightStart = @event.Timestamp;
         _fightEnd = @event.Timestamp;
     }
 
-    [On<FightEndEvent>]
-    private void OnFightEnd(FightEndEvent @event)
+    [On<DungeonEndEvent>]
+    private void OnFightEnd(DungeonEndEvent @event)
     {
         _fightEnd = @event.Timestamp;
         CloseWindow(@event.Timestamp);

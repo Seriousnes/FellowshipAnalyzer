@@ -447,13 +447,13 @@ public sealed class DeathTrackerTests
         {
             var pull = new Pull(
                 Index: 0, Id: 1, Name: "Test Pull", StartTime: start, EndTime: end,
-                Targets: PullKind.Single, IsBoss: true, Kill: false, TargetCount: 1);
+                Targets: PullKind.Single, IsBoss: true, Kill: false);
 
             stream.Add(new PullStartEvent { Timestamp = start, Pull = pull });
             stream.Add(new PullEndEvent { Timestamp = end, Pull = pull });
         }
 
-        stream.Add(new FightEndEvent { Timestamp = (int)TestFight.EndTime });
+        stream.Add(new DungeonEndEvent { Timestamp = (int)TestFight.EndTime });
 
         var parser = new TestParser(emitter, provider, moduleTypes);
         await parser.Analyze([.. stream.OrderBy(e => e.Timestamp)], PlayerId, fight: TestFight);

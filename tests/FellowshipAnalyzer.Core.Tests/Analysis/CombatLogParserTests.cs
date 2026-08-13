@@ -294,7 +294,7 @@ public sealed partial class CombatLogParserTests
         var provider = Substitute.For<IServiceProvider>();
         provider.GetService(typeof(ILogger<EventEmitter>)).Returns(NullLogger<EventEmitter>.Instance);
         provider.GetService(typeof(ILogger<ResourceTracker>)).Returns(NullLogger<ResourceTracker>.Instance);
-        return new TestCombatLogParser(emitter, provider, moduleTypes ?? [], normalizerTypes ?? [typeof(FightBookendNormalizer)]);
+        return new TestCombatLogParser(emitter, provider, moduleTypes ?? [], normalizerTypes ?? [typeof(DungeonBookendNormalizer)]);
     }
 
     private sealed class TestCombatLogParser(
@@ -395,7 +395,7 @@ public sealed partial class CombatLogParserTests
 
     private static void AssertSingleTrackedBuff(Combatants combatants, int abilityId)
     {
-        var buff = Assert.Single(combatants.Selected.Buffs);
+        var buff = Assert.Single(combatants.GetCombatant(7, null)!.Buffs);
         Assert.Equal(abilityId, buff.Ability.FSLID.Value);
         Assert.Equal(100, buff.Start);
         Assert.Equal(200, buff.End);
@@ -426,8 +426,8 @@ public sealed partial class CombatLogParserTests
             ListenerCastCount += 1;
         }
 
-        [On<FightEndEvent>]
-        private void OnFightEnd(FightEndEvent e)
+        [On<DungeonEndEvent>]
+        private void OnFightEnd(DungeonEndEvent e)
         {
             SeenCastCount = State.Casts.Count;
         }

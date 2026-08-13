@@ -8,10 +8,10 @@ namespace FellowshipAnalyzer.Core.Analysis;
 
 /// <summary>
 /// A GCD sub-value — either a fixed number of milliseconds, or a function of
-/// the player's <see cref="Combatant"/> that returns milliseconds.
+/// the player's <see cref="FullCombatant"/> that returns milliseconds.
 /// </summary>
 [GenerateOneOf]
-public partial class GcdValue : OneOfBase<double, Func<Combatant, double>>;
+public partial class GcdValue : OneOfBase<double, Func<FullCombatant, double>>;
 
 /// <summary>
 /// Defines a spell's gameplay metadata for the spellbook.
@@ -133,7 +133,7 @@ public sealed record SpellbookAbility
 
 /// <summary>
 /// GCD configuration for a spell. Each sub-value can be a fixed number of
-/// milliseconds or a function of the player's <see cref="Combatant"/>.
+/// milliseconds or a function of the player's <see cref="FullCombatant"/>.
 /// </summary>
 public sealed record GcdInfo
 {

@@ -16,7 +16,7 @@ namespace FellowshipAnalyzer.Core.Analysis;
 /// formula (CombatMechanics.md). All secondary stats share the same curve.
 /// Critical Strike has an additional 5% base chance added after DR.
 /// </remarks>
-public sealed partial class StatTracker(Lazy<Combatants> combatants) : Analyzer
+public sealed partial class StatTracker : Analyzer
 {
     private PlayerStats _currentStats = new();
     private PlayerStats _pullStats = new();
@@ -35,10 +35,10 @@ public sealed partial class StatTracker(Lazy<Combatants> combatants) : Analyzer
     /// <summary>5% base critical strike chance, added after diminishing returns.</summary>
     public const double BaseCritChance = 0.05;
 
-    [On<FightStartEvent>]
-    private void OnFightStart(FightStartEvent _)
+    [On<DungeonStartEvent>]
+    private void OnFightStart(DungeonStartEvent _)
     {
-        var stats = _combatants.Selected.Stats;
+        var stats = Owner.SelectedCombatant.Stats;
 
         _pullStats = new PlayerStats
         {
@@ -384,10 +384,11 @@ public sealed partial class StatTracker(Lazy<Combatants> combatants) : Analyzer
             value => value,
             func =>
             {
+                var combatant = Owner.SelectedCombatant;
                 Item? item = null;
                 if (buffObj.ItemId is int itemId)
-                    item = _combatants.Selected.GetItem(itemId);
-                return func(_combatants.Selected, item);
+                    item = combatant.GetItem(itemId);
+                return func(combatant, item);
             });
     }
 
@@ -408,7 +409,7 @@ public sealed partial class StatTracker(Lazy<Combatants> combatants) : Analyzer
 /// derives the amount from the combatant (and optionally an item).
 /// </summary>
 [GenerateOneOf]
-public partial class BuffVal : OneOfBase<double, Func<Combatant, Item?, double>>;
+public partial class BuffVal : OneOfBase<double, Func<FullCombatant, Item?, double>>;
 
 /// <summary>
 /// Describes a stat rating buff. Unset fields contribute 0 to each stat.

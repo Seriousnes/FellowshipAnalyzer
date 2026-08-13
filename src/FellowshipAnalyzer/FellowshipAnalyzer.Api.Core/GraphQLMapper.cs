@@ -27,7 +27,7 @@ public sealed partial class GraphQLMapper
             .Select(x => x!.Value)
             .ToList();
         var enemyNpcs = source.EnemyNPCs?
-            .Where(n => n is not null)
+            .Where(n => n?.Id is not null)
             .Select(n => MapFightNpc(n!))
             .ToList();
         var dungeonPulls = source.DungeonPulls?
@@ -50,7 +50,7 @@ public sealed partial class GraphQLMapper
     }
 
     public FightNpc MapFightNpc(IGetReportMasterData_ReportData_Report_Fights_EnemyNPCs source)
-        => new(source.Id, source.GameID, source.InstanceCount, source.GroupCount, source.PetOwner);
+        => new(source.Id ?? 0, source.GameID ?? 0, source.InstanceCount ?? 1, source.GroupCount ?? 1, source.PetOwner);
 
     public DungeonPull MapDungeonPull(IGetReportMasterData_ReportData_Report_Fights_DungeonPulls source)
     {

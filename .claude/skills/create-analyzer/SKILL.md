@@ -158,7 +158,7 @@ Depend on a parse-lifetime module or analyzer for point-in-time snapshots. Nothi
 
 ## Gating On A Talent
 
-Gate a module on a talent with `[RequiresTalent({Hero}Talents.Name)]`, using a `using ArdeosTalents = FellowshipAnalyzer.Core.Common.Spells.ArdeosTalents;` alias (importing the whole `Core.Common.Spells` namespace collides with the `Spells` registry class). The `{Hero}Talents` constants are generated from the hand-written `Core/Common/Spells/{Hero}/Talents.cs` and carry native ids. Repeat the attribute for AND-ed talents. Do not gate an analyzer whose job is to report whether the optimal talent is taken: gating makes its build-active readout trivially true. Leave that one ungated and record `Combatants.Selected.HasTalent(...)` into a property instead.
+Gate a module on a talent with `[RequiresTalent({Hero}Talents.Name)]`, using a `using ArdeosTalents = FellowshipAnalyzer.Core.Common.Spells.ArdeosTalents;` alias (importing the whole `Core.Common.Spells` namespace collides with the `Spells` registry class). The `{Hero}Talents` constants are generated from the hand-written `Core/Common/Spells/{Hero}/Talents.cs` and carry native ids. Repeat the attribute for AND-ed talents. Do not gate an analyzer whose job is to report whether the optimal talent is taken: gating makes its build-active readout trivially true. Leave that one ungated and record `Owner.SelectedCombatant.HasTalent(...)` into a property instead.
 
 ## Key Rules
 

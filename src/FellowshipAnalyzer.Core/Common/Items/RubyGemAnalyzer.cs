@@ -80,8 +80,8 @@ public sealed partial class RubyGemAnalyzer : Analyzer, IGemAnalyzer
     private long ContributedShare(long amount) =>
         ConquerorBonus <= 0 ? 0 : (long)(amount * (ConquerorBonus / (1 + ConquerorBonus)));
 
-    [On<FightStartEvent>]
-    private void OnFightStart(FightStartEvent fightStartEvent)
+    [On<DungeonStartEvent>]
+    private void OnFightStart(DungeonStartEvent fightStartEvent)
     {
         if (Owner.SelectedCombatant.Auras.Any(aura => IsEssenceOfTheConqueror(aura.Ability)))
             OpenConquerorWindow();
@@ -117,8 +117,8 @@ public sealed partial class RubyGemAnalyzer : Analyzer, IGemAnalyzer
             CloseConquerorWindow();
     }
 
-    [On<FightEndEvent>]
-    private void OnFightEnd(FightEndEvent fightEndEvent)
+    [On<DungeonEndEvent>]
+    private void OnFightEnd(DungeonEndEvent fightEndEvent)
     {
         if (_conquerorActive)
             CloseConquerorWindow();

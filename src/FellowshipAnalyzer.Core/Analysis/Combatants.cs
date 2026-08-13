@@ -3,68 +3,82 @@ using FellowshipAnalyzer.Core.Events;
 namespace FellowshipAnalyzer.Core.Analysis;
 
 /// <summary>
-/// Core module that tracks buff/debuff state for every unit seen in the event log, keyed by
-/// <see cref="UnitKey"/> so distinct spawns of one actor id stay separate. Players seed from their
-/// <see cref="CombatantInfoEvent"/> as <see cref="Combatant"/>s; any other unit a player-sourced aura
-/// event targets is fabricated as an <see cref="Enemy"/>. Exposes <see cref="Selected"/> for downstream
-/// modules that depend on the analyzed player, and per-unit aura queries that resolve any unit
-/// including the selected player. <see cref="Analysis.Enemies"/> owns the enemy-facing queries, which
-/// need report master data to tell an enemy from an ally.
+/// Core module that tracks buff/debuff state for every unit in the fight, keyed by
+/// <see cref="UnitKey"/> so distinct spawns of one actor id stay separate. The rosters the report
+/// declares seed the set: the analyzed player as the <see cref="FullCombatant"/> the parse context
+/// carries, every other group member as a <see cref="Combatant"/>, and one <see cref="Enemy"/> per
+/// spawn the fight's enemy NPC list or any dungeon pull's names. Seeding the union of both means no
+/// pull can name a spawn the population lacks. A unit no roster names is fabricated as an
+/// <see cref="Enemy"/> when an event first targets it, and carries <see cref="Enemy.Rostered"/>
+/// <c>false</c> to say so. Exposes per-unit aura queries that resolve any unit including the analyzed
+/// player. <see cref="Enemies"/> owns the enemy-facing queries, which need report master data to tell
+/// an enemy from an ally, and projects each pull's roster out of this population.
 /// </summary>
 public sealed partial class Combatants : Analyzer
 {
-    private readonly Dictionary<UnitKey, Entity> _units = [];
-
-    /// <summary>The combatant representing the selected (analyzed) player.</summary>
-    public Combatant Selected { get; }
+    private readonly Dictionary<UnitKey, Combatant> _units = [];
 
     /// <summary>Every tracked unit keyed by <see cref="UnitKey"/>.</summary>
-    public IReadOnlyDictionary<UnitKey, Entity> Units => _units;
+    public IReadOnlyDictionary<UnitKey, Combatant> Units => _units;
 
-    /// <summary>Builds the tracked unit set from every <see cref="CombatantInfoEvent"/> in <paramref name="events"/>, seeds the selected player from <paramref name="parseContext"/>, and fabricates a prepull buff for each aura the player logged in with.</summary>
-    public Combatants(ParseContext parseContext, IReadOnlyList<Event> events)
+    /// <summary>
+    /// Seeds the tracked unit set from every roster the report declares and fabricates a prepull buff
+    /// for each aura the analyzed player logged in with.
+    /// </summary>
+    public Combatants(ParseContext parseContext)
     {
-        foreach (var e in events)
+        var selected = parseContext.SelectedCombatant;
+        _units[new UnitKey(selected.Id, null)] = selected;
+
+        foreach (var friendlyPlayer in parseContext.Fight.FriendlyPlayers ?? [])
         {
-            if (e is CombatantInfoEvent info)
+            var key = new UnitKey(friendlyPlayer, null);
+            if (!_units.ContainsKey(key)) _units[key] = new Combatant(friendlyPlayer);
+        }
+
+        foreach (var npc in parseContext.Fight.EnemyNpcs ?? [])
+            SeedSpawns(npc.Id, 1, Math.Max(npc.InstanceCount, 1));
+
+        foreach (var dungeonPull in parseContext.DungeonPulls ?? [])
+        {
+            foreach (var npc in dungeonPull.EnemyNpcs ?? [])
             {
-                var key = new UnitKey(info.SourceId, null);
-                if (!_units.ContainsKey(key))
-                    _units[key] = new Combatant(info);
+                if (npc.Id is int id) SeedSpawns(id, npc.LowInstance, npc.HighInstance);
             }
         }
 
-        Selected = parseContext.SelectedCombatant;
-        _units[new UnitKey(parseContext.PlayerId, null)] = parseContext.SelectedCombatant;
-
-        foreach (var entity in _units.Values)
+        foreach (var aura in selected.Auras)
         {
-            if (entity is not Combatant combatant) continue;
-
-            foreach (var aura in combatant.Auras)
+            var prepullBuff = new TrackedBuffEvent
             {
-                var prepullBuff = new TrackedBuffEvent
-                {
-                    Timestamp = combatant.Info.Timestamp,
-                    Ability = new Ability { FSLID = aura.Ability, Name = aura.Name, Icon = aura.Icon },
-                    SourceId = aura.Source,
-                    TargetId = combatant.Id,
-                    Start = combatant.Info.Timestamp,
-                    Stacks = aura.Stacks,
-                    IsDebuff = aura.Source != combatant.Id,
-                };
-                prepullBuff.StackHistory.Add(new TrackedBuffEvent.StackHistoryElement
-                {
-                    Stacks = aura.Stacks,
-                    Timestamp = combatant.Info.Timestamp,
-                });
-                combatant.ApplyBuff(prepullBuff);
-            }
+                Timestamp = selected.Info.Timestamp,
+                Ability = new Ability { FSLID = aura.Ability, Name = aura.Name, Icon = aura.Icon },
+                SourceId = aura.Source,
+                TargetId = selected.Id,
+                Start = selected.Info.Timestamp,
+                Stacks = aura.Stacks,
+                IsDebuff = aura.Source != selected.Id,
+            };
+            prepullBuff.StackHistory.Add(new TrackedBuffEvent.StackHistoryElement
+            {
+                Stacks = aura.Stacks,
+                Timestamp = selected.Info.Timestamp,
+            });
+            selected.ApplyBuff(prepullBuff);
         }
     }
 
     /// <summary>The tracked unit for an actor id and spawn instance, or null when none is tracked.</summary>
-    public Entity? GetUnit(int actorId, int? instance) => _units.GetValueOrDefault(new UnitKey(actorId, instance));
+    public Combatant? GetCombatant(int actorId, int? instance) => _units.GetValueOrDefault(new UnitKey(actorId, instance));
+
+    private void SeedSpawns(int actorId, int lowInstance, int highInstance)
+    {
+        for (var instance = lowInstance; instance <= highInstance; instance++)
+        {
+            var key = new UnitKey(actorId, instance);
+            if (!_units.ContainsKey(key)) _units[key] = new Enemy(actorId, instance, rostered: true);
+        }
+    }
 
     /// <summary>
     /// The number of concurrently-open windows of the effect active on a unit at <paramref name="timestamp"/>,
@@ -72,7 +86,7 @@ public sealed partial class Combatants : Analyzer
     /// not tracked.
     /// </summary>
     public int AuraInstanceCount(int actorId, int? instance, int effectId, long timestamp, int? sourceId = null)
-        => GetUnit(actorId, instance)?.GetAuraInstanceCount(effectId, timestamp, sourceId) ?? 0;
+        => GetCombatant(actorId, instance)?.GetAuraInstanceCount(effectId, timestamp, sourceId) ?? 0;
 
     /// <summary>
     /// The stacks summed across every concurrently-open window of the effect on a unit at
@@ -81,7 +95,7 @@ public sealed partial class Combatants : Analyzer
     /// carries its live stack count rather than its count at <paramref name="timestamp"/>.
     /// </summary>
     public int AuraStackSum(int actorId, int? instance, int effectId, long timestamp, int? sourceId = null)
-        => GetUnit(actorId, instance)?.GetAuraStackSum(effectId, timestamp, sourceId) ?? 0;
+        => GetCombatant(actorId, instance)?.GetAuraStackSum(effectId, timestamp, sourceId) ?? 0;
 
     [On<ApplyBuffEvent>]
     private void OnApplyBuff(ApplyBuffEvent e) => ApplyBuff(e, isDebuff: false);
@@ -215,8 +229,8 @@ public sealed partial class Combatants : Analyzer
         }
     }
 
-    [On<FightEndEvent>]
-    private void OnFightEnd(FightEndEvent e)
+    [On<DungeonEndEvent>]
+    private void OnFightEnd(DungeonEndEvent e)
     {
         foreach (var entity in _units.Values)
         {
@@ -232,7 +246,7 @@ public sealed partial class Combatants : Analyzer
         }
     }
 
-    private Entity GetOrCreateEntity(int targetId, int? instance)
+    private Combatant GetOrCreateEntity(int targetId, int? instance)
     {
         var key = new UnitKey(targetId, instance);
         if (!_units.TryGetValue(key, out var entity))

@@ -236,8 +236,16 @@ public sealed class FellowshipLogsApiHandler(
         var blobEntry = await persistentCache.GetAsync(CachePartition.Metadata, blobKey, cancellationToken);
         if (blobEntry is not null)
         {
-            var blobPreload = await JsonSerializer.DeserializeAsync<AnalysisPreload>(
-                blobEntry.Content, jsonOptions, cancellationToken);
+            AnalysisPreload? blobPreload;
+            try
+            {
+                blobPreload = await JsonSerializer.DeserializeAsync<AnalysisPreload>(
+                    blobEntry.Content, jsonOptions, cancellationToken);
+            }
+            catch (JsonException)
+            {
+                blobPreload = null;
+            }
             await blobEntry.Content.DisposeAsync();
 
             if (blobPreload is not null)

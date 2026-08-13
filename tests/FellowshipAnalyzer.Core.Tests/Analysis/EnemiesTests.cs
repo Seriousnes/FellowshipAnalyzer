@@ -15,8 +15,9 @@ using Xunit;
 namespace FellowshipAnalyzer.Core.Tests.Analysis;
 
 /// <summary>
-/// Tests for <see cref="Enemies"/>: roster expansion against <see cref="Pull.TargetCount"/>, instance
-/// resolution at the roster boundary, the population over time, and the enemy-facing aura queries.
+/// Tests for <see cref="Enemies"/>: the roster each pull projects out of the seeded population,
+/// instance resolution at the roster boundary, the population over time, and the enemy-facing aura
+/// queries.
 /// The fixtures below are shaped after report <c>6fgrXtW1b2aTZcD3</c> fight 36.
 /// </summary>
 public sealed partial class EnemiesTests
@@ -164,16 +165,101 @@ public sealed partial class EnemiesTests
     ];
 
     [Fact]
-    public async Task Roster_MatchesTargetCountOnEveryPull()
+    public async Task Roster_NamesTheUnitsEachPullsOwnSpansAdmit()
     {
         var (parser, enemies) = await RunDungeon();
 
         parser.Pulls.Count.ShouldBe(2);
-        foreach (var pull in parser.Pulls)
-            enemies.Roster(pull).Count.ShouldBe(pull.TargetCount);
 
-        parser.Pulls[0].TargetCount.ShouldBe(3);
-        parser.Pulls[1].TargetCount.ShouldBe(2);
+        enemies.Roster(parser.Pulls[0]).Select(unit => unit.Key).ShouldBe(
+            [new UnitKey(TrashCaster, 1), new UnitKey(TrashMelee, 1), new UnitKey(TrashMelee, 2)],
+            ignoreOrder: true);
+        enemies.Roster(parser.Pulls[1]).Select(unit => unit.Key).ShouldBe(
+            [new UnitKey(TrashCaster, 2), new UnitKey(Boss, 1)],
+            ignoreOrder: true);
+    }
+
+    [Fact]
+    public async Task Roster_OnAFightWithNoDungeonPulls_IsEveryFightNpcSpawnExceptPets()
+    {
+        var fight = SinglePullFight with
+        {
+            EnemyNpcs =
+            [
+                new FightNpc(100, GameId: 1000, InstanceCount: 2, GroupCount: 1, PetOwner: null),
+                new FightNpc(101, GameId: 1010, InstanceCount: 3, GroupCount: 1, PetOwner: 100),
+            ],
+        };
+
+        var (parser, enemies) = await Run(fight, [], AuraActors);
+
+        enemies.Roster(parser.Pulls.ShouldHaveSingleItem()).Select(unit => unit.Key).ShouldBe(
+            [new UnitKey(100, 1), new UnitKey(100, 2)],
+            ignoreOrder: true);
+    }
+
+    [Fact]
+    public async Task Roster_OnAFightWithNoDungeonPulls_OmitsAnEnemyOnlyTheEventsName()
+    {
+        var fight = SinglePullFight with
+        {
+            EnemyNpcs = [new FightNpc(100, GameId: 1000, InstanceCount: 1, GroupCount: 1, PetOwner: null)],
+        };
+
+        var (parser, enemies) = await Run(
+            fight,
+            [ApplyDebuff(1_000, targetId: 101, targetInstance: 1)],
+            AuraActors);
+        var pull = parser.Pulls.ShouldHaveSingleItem();
+
+        enemies.Roster(pull).Select(unit => unit.Key).ShouldBe([new UnitKey(100, 1)]);
+        enemies.Population(pull)
+            .Where(unit => unit.Key.ActorId == 101)
+            .ShouldHaveSingleItem()
+            .Origin.ShouldBe(EnemyOrigin.Unrostered);
+    }
+
+    [Theory]
+    [InlineData(null, null)]
+    [InlineData(null, 5)]
+    [InlineData(3, null)]
+    [InlineData(3, 1)]
+    public async Task Roster_ANpcNotStatingBothBounds_NamesOneInstance(int? minimum, int? maximum)
+    {
+        var fight = DungeonFight with
+        {
+            DungeonPulls =
+            [
+                new DungeonPull(Id: 1, EncounterId: 0, Kill: null,
+                    StartTime: FirstPullStart, EndTime: FirstPullEnd, Name: "Trash",
+                    EnemyNpcs:
+                    [
+                        new DungeonPullNpc(TrashMelee, GameId: 210, minimum, maximum, null, null),
+                    ]),
+            ],
+        };
+
+        var (parser, enemies) = await Run(fight, [], DungeonActors);
+
+        enemies.Roster(parser.Pulls.ShouldHaveSingleItem()).Select(unit => unit.Key)
+            .ShouldBe([new UnitKey(TrashMelee, minimum ?? 1)]);
+    }
+
+    [Fact]
+    public async Task Roster_OnADungeonPullNamingNoNpcs_IsEmpty()
+    {
+        var fight = DungeonFight with
+        {
+            DungeonPulls =
+            [
+                new DungeonPull(Id: 1, EncounterId: 0, Kill: null,
+                    StartTime: FirstPullStart, EndTime: FirstPullEnd, Name: "Trash", EnemyNpcs: null),
+            ],
+        };
+
+        var (parser, enemies) = await Run(fight, [], DungeonActors);
+
+        enemies.Roster(parser.Pulls.ShouldHaveSingleItem()).ShouldBeEmpty();
     }
 
     [Fact]
@@ -234,7 +320,7 @@ public sealed partial class EnemiesTests
         var (parser, enemies) = await RunDungeon();
         var trashPull = parser.Pulls[0];
 
-        enemies.AliveAt(trashPull, 1_050).ShouldBe(trashPull.TargetCount);
+        enemies.AliveAt(trashPull, 1_050).ShouldBe(enemies.Roster(trashPull).Count);
         enemies.AliveAt(trashPull, 1_200).ShouldBe(5);
         enemies.PeakAlive(trashPull).ShouldBe(5);
 
@@ -261,9 +347,9 @@ public sealed partial class EnemiesTests
         crystal.Entered.ShouldBe(2_000);
         crystal.Died.ShouldBe(2_000);
 
-        enemies.AliveAt(trashPull, 1_999).ShouldBe(trashPull.TargetCount);
-        enemies.AliveAt(trashPull, 2_000).ShouldBe(trashPull.TargetCount);
-        enemies.PeakAlive(trashPull).ShouldBe(trashPull.TargetCount);
+        enemies.AliveAt(trashPull, 1_999).ShouldBe(enemies.Roster(trashPull).Count);
+        enemies.AliveAt(trashPull, 2_000).ShouldBe(enemies.Roster(trashPull).Count);
+        enemies.PeakAlive(trashPull).ShouldBe(enemies.Roster(trashPull).Count);
     }
 
     [Fact]
@@ -540,10 +626,10 @@ public sealed partial class EnemiesTests
         var trashPull = parser.Pulls[0];
 
         enemies.IsEnemy(Boss).ShouldBeFalse();
-        enemies.Roster(trashPull).Count.ShouldBe(trashPull.TargetCount);
+        enemies.Roster(trashPull).Count.ShouldBe(enemies.Roster(trashPull).Count);
         enemies.Population(trashPull).ShouldBe(enemies.Roster(trashPull));
         enemies.Population(trashPull).ShouldAllBe(unit => unit.Died == null);
-        enemies.AliveAt(trashPull, 1_200).ShouldBe(trashPull.TargetCount);
+        enemies.AliveAt(trashPull, 1_200).ShouldBe(enemies.Roster(trashPull).Count);
         enemies.DeathsBetween(0, 10_000).ShouldBeEmpty();
         enemies.CountWithAura(EffectId, 1_200).ShouldBe(0);
     }
@@ -618,7 +704,7 @@ public sealed partial class EnemiesTests
     {
         protected override Type[] GetModuleTypes() => [typeof(Combatants), typeof(Enemies)];
 
-        protected override Type[] GetNormalizerTypes() => [typeof(PullBookendNormalizer), typeof(FightBookendNormalizer)];
+        protected override Type[] GetNormalizerTypes() => [typeof(PullBookendNormalizer), typeof(DungeonBookendNormalizer)];
     }
 
     private sealed class ProbingParser(EventEmitter emitter, IServiceProvider provider)
@@ -626,7 +712,7 @@ public sealed partial class EnemiesTests
     {
         protected override Type[] GetModuleTypes() => [typeof(Combatants), typeof(Enemies), typeof(AliveProbe)];
 
-        protected override Type[] GetNormalizerTypes() => [typeof(PullBookendNormalizer), typeof(FightBookendNormalizer)];
+        protected override Type[] GetNormalizerTypes() => [typeof(PullBookendNormalizer), typeof(DungeonBookendNormalizer)];
 
         protected override object? CreateInstance(Type type) =>
             type == typeof(AliveProbe) ? new AliveProbe() : base.CreateInstance(type);

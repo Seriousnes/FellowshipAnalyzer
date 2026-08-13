@@ -9,7 +9,7 @@ namespace FellowshipAnalyzer.Core.Tests.Analysis.Normalizers;
 
 public sealed class PullBookendNormalizerTests
 {
-    private static readonly Combatant EmptyCombatant = new(new CombatantInfoEvent());
+    private static readonly FullCombatant EmptyCombatant = new(new CombatantInfoEvent());
 
     private static ParseContext Context(ReportFight fight)
         => new(PlayerId: 1, Fight: fight, ActorNames: new Dictionary<int, string>(), EmptyCombatant);
@@ -102,76 +102,29 @@ public sealed class PullBookendNormalizerTests
         Assert.True(pull.IsBoss);
     }
 
-    [Fact]
-    public void Classify_SingleTarget_FromOneEnemyInstance()
-    {
-        var npcs = new List<DungeonPullNpc>
-        {
-            new(Id: 10, GameId: 100, MinimumInstanceId: 1, MaximumInstanceId: 1,
-                MinimumInstanceGroupId: null, MaximumInstanceGroupId: null),
-        };
-        var pulls = new List<DungeonPull>
-        {
-            new(Id: 1, EncounterId: 42, Kill: true, StartTime: 200, EndTime: 800, Name: "Boss", EnemyNpcs: npcs),
-        };
-        var normalizer = new PullBookendNormalizer(Context(Fight(dungeonPulls: pulls)));
-
-        var pull = Assert.Single(Starts(normalizer.Normalize([], playerId: 1))).Pull;
-
-        Assert.Equal(1, pull.TargetCount);
-        Assert.Equal(PullKind.Single, pull.Targets);
-    }
-
-    [Fact]
-    public void Classify_MultiTarget_FromInstanceRangeAndMultipleNpcs()
+    [Theory]
+    [InlineData(42, PullKind.Single)]
+    [InlineData(0, PullKind.Multi)]
+    public void Classify_Shape_FromEncounterId(int encounterId, PullKind expectedShape)
     {
         var npcs = new List<DungeonPullNpc>
         {
             new(Id: 10, GameId: 100, MinimumInstanceId: 1, MaximumInstanceId: 3,
                 MinimumInstanceGroupId: null, MaximumInstanceGroupId: null),
-            new(Id: 11, GameId: 101, MinimumInstanceId: null, MaximumInstanceId: null,
-                MinimumInstanceGroupId: null, MaximumInstanceGroupId: null),
         };
         var pulls = new List<DungeonPull>
         {
-            new(Id: 1, EncounterId: 0, Kill: null, StartTime: 200, EndTime: 800, Name: "Trash", EnemyNpcs: npcs),
+            new(Id: 1, EncounterId: encounterId, Kill: true, StartTime: 200, EndTime: 800, Name: "P", EnemyNpcs: npcs),
         };
         var normalizer = new PullBookendNormalizer(Context(Fight(dungeonPulls: pulls)));
 
         var pull = Assert.Single(Starts(normalizer.Normalize([], playerId: 1))).Pull;
 
-        Assert.Equal(4, pull.TargetCount);
-        Assert.Equal(PullKind.Multi, pull.Targets);
+        Assert.Equal(expectedShape, pull.Targets);
     }
 
     [Fact]
-    public void Classify_DungeonPull_TargetsExcludePetsTheFightNames()
-    {
-        var npcs = new List<DungeonPullNpc>
-        {
-            new(Id: 10, GameId: 100, MinimumInstanceId: 1, MaximumInstanceId: 2,
-                MinimumInstanceGroupId: null, MaximumInstanceGroupId: null),
-            new(Id: 11, GameId: 101, MinimumInstanceId: 1, MaximumInstanceId: 5,
-                MinimumInstanceGroupId: null, MaximumInstanceGroupId: null),
-        };
-        var pulls = new List<DungeonPull>
-        {
-            new(Id: 1, EncounterId: 0, Kill: null, StartTime: 200, EndTime: 800, Name: "Trash", EnemyNpcs: npcs),
-        };
-        var fightNpcs = new List<FightNpc>
-        {
-            new(Id: 10, GameId: 100, InstanceCount: 2, GroupCount: 1, PetOwner: null),
-            new(Id: 11, GameId: 101, InstanceCount: 5, GroupCount: 1, PetOwner: 10),
-        };
-        var normalizer = new PullBookendNormalizer(Context(Fight(dungeonPulls: pulls, enemyNpcs: fightNpcs)));
-
-        var pull = Assert.Single(Starts(normalizer.Normalize([], playerId: 1))).Pull;
-
-        Assert.Equal(2, pull.TargetCount);
-    }
-
-    [Fact]
-    public void Classify_ImplicitPull_TargetsFromFightNpcs_ExcludingPets()
+    public void Classify_ImplicitPull_TakesItsEncounterAndKillFromTheFight()
     {
         var npcs = new List<FightNpc>
         {
@@ -182,7 +135,6 @@ public sealed class PullBookendNormalizerTests
 
         var pull = Assert.Single(Starts(normalizer.Normalize([], playerId: 1))).Pull;
 
-        Assert.Equal(1, pull.TargetCount);
         Assert.Equal(PullKind.Single, pull.Targets);
         Assert.True(pull.IsBoss);
         Assert.True(pull.Kill);

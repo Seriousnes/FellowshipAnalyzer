@@ -14,21 +14,21 @@ public sealed class FightBookendNormalizerTests
             StartTime: 100, EndTime: 5000, Difficulty: null,
             FriendlyPlayers: null, FightPercentage: null);
 
-    private static readonly Combatant EmptyCombatant = new(new CombatantInfoEvent());
+    private static readonly FullCombatant EmptyCombatant = new(new CombatantInfoEvent());
 
     [Fact]
     public void Normalize_PrependsFightStartAndAppendsFightEnd()
     {
         var ctx = new ParseContext(PlayerId: 1, Fight: Fight, ActorNames: new Dictionary<int, string>(), EmptyCombatant);
-        var normalizer = new FightBookendNormalizer(ctx);
+        var normalizer = new DungeonBookendNormalizer(ctx);
         var existing = new ApplyBuffEvent { Timestamp = 200, SourceId = 1, TargetId = 1 };
 
         var result = normalizer.Normalize([existing], playerId: 1);
 
         Assert.Equal(3, result.Count);
-        var start = Assert.IsType<FightStartEvent>(result[0]);
+        var start = Assert.IsType<DungeonStartEvent>(result[0]);
         Assert.Same(existing, result[1]);
-        var end = Assert.IsType<FightEndEvent>(result[2]);
+        var end = Assert.IsType<DungeonEndEvent>(result[2]);
         Assert.Equal(100, start.Timestamp);
         Assert.Equal(5000, end.Timestamp);
     }
@@ -37,16 +37,16 @@ public sealed class FightBookendNormalizerTests
     public void Normalize_PreservesOrderOfExistingEvents()
     {
         var ctx = new ParseContext(PlayerId: 1, Fight: Fight, ActorNames: new Dictionary<int, string>(), EmptyCombatant);
-        var normalizer = new FightBookendNormalizer(ctx);
+        var normalizer = new DungeonBookendNormalizer(ctx);
         var first = new ApplyBuffEvent { Timestamp = 200 };
         var second = new RemoveBuffEvent { Timestamp = 300 };
 
         var result = normalizer.Normalize([first, second], playerId: 1);
 
         Assert.Equal(4, result.Count);
-        Assert.IsType<FightStartEvent>(result[0]);
+        Assert.IsType<DungeonStartEvent>(result[0]);
         Assert.Same(first, result[1]);
         Assert.Same(second, result[2]);
-        Assert.IsType<FightEndEvent>(result[3]);
+        Assert.IsType<DungeonEndEvent>(result[3]);
     }
 }

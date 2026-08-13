@@ -45,7 +45,7 @@ public sealed class GearCooldownAccelerationTests
     [Fact]
     public void Legendary_ResolvesTenPercentAcceleration()
     {
-        var combatant = new Combatant(new CombatantInfoEvent { Gear = [new Item { Id = 999, Quality = LegendaryQuality }] });
+        var combatant = new FullCombatant(new CombatantInfoEvent { Gear = [new Item { Id = 999, Quality = LegendaryQuality }] });
 
         Assert.True(combatant.HasLegendary);
         Assert.Equal(0.10, combatant.Stats.CooldownAcceleration.Total(null), precision: 6);
@@ -54,7 +54,7 @@ public sealed class GearCooldownAccelerationTests
     [Fact]
     public void NoLegendary_ResolvesNoAcceleration()
     {
-        var combatant = new Combatant(new CombatantInfoEvent { Gear = [new Item { Id = 999, Quality = EpicQuality }] });
+        var combatant = new FullCombatant(new CombatantInfoEvent { Gear = [new Item { Id = 999, Quality = EpicQuality }] });
 
         Assert.False(combatant.HasLegendary);
         Assert.Equal(0.0, combatant.Stats.CooldownAcceleration.Total(null), precision: 6);
@@ -241,17 +241,17 @@ public sealed class GearCooldownAccelerationTests
     {
         protected override Type[] GetModuleTypes() => moduleTypes;
 
-        protected override Type[] GetNormalizerTypes() => [typeof(FightBookendNormalizer)];
+        protected override Type[] GetNormalizerTypes() => [typeof(DungeonBookendNormalizer)];
 
-        protected override Combatant CreateSelectedCombatant(CombatantInfoEvent info) =>
+        protected override FullCombatant CreateSelectedCombatant(CombatantInfoEvent info) =>
             acceleration is null
                 ? base.CreateSelectedCombatant(info)
-                : new Combatant(info) { Stats = new CombatantStats { CooldownAcceleration = acceleration } };
+                : new FullCombatant(info) { Stats = new CombatantStats { CooldownAcceleration = acceleration } };
 
         protected override object? CreateInstance(Type type)
         {
             if (type == typeof(TestAbilities)) return new TestAbilities();
-            if (type == typeof(FightBookendNormalizer)) return new FightBookendNormalizer(CurrentParseContext);
+            if (type == typeof(DungeonBookendNormalizer)) return new DungeonBookendNormalizer(CurrentParseContext);
             return base.CreateInstance(type);
         }
     }

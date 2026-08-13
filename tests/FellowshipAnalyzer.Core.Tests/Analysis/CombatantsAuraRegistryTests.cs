@@ -36,8 +36,8 @@ public sealed class CombatantsAuraRegistryTests
             ApplyDebuff(1000, targetId: 100, targetInstance: 1, effectId: EffectId),
             ApplyDebuff(1000, targetId: 100, targetInstance: 2, effectId: EffectId));
 
-        var first = combatants.GetUnit(100, 1);
-        var second = combatants.GetUnit(100, 2);
+        var first = combatants.GetCombatant(100, 1);
+        var second = combatants.GetCombatant(100, 2);
 
         first.ShouldNotBeNull();
         second.ShouldNotBeNull();
@@ -59,7 +59,7 @@ public sealed class CombatantsAuraRegistryTests
             ApplyDebuff(1500, 100, 1, EffectId));
 
         combatants.AuraInstanceCount(100, 1, EffectId, 1500).ShouldBe(6);
-        combatants.GetUnit(100, 1)!.GetAuraInstanceCount(EffectId, 1500).ShouldBe(6);
+        combatants.GetCombatant(100, 1)!.GetAuraInstanceCount(EffectId, 1500).ShouldBe(6);
         combatants.AuraInstanceCount(100, 1, EffectId, 1250).ShouldBe(3);
     }
 
@@ -71,7 +71,7 @@ public sealed class CombatantsAuraRegistryTests
             ApplyDebuff(1200, 100, 1, EffectId),
             Death(2000, targetId: 100, targetInstance: 1));
 
-        var windows = combatants.GetUnit(100, 1)!.Buffs.Where(b => b.Ability.Id == EffectId).ToList();
+        var windows = combatants.GetCombatant(100, 1)!.Buffs.Where(b => b.Ability.Id == EffectId).ToList();
         windows.Count.ShouldBe(2);
         windows.ShouldAllBe(b => b.End == 2000);
 
@@ -107,14 +107,18 @@ public sealed class CombatantsAuraRegistryTests
             ],
         };
 
-        var combatants = await Run(info);
+        var (parser, combatants) = await RunParser(info);
 
-        combatants.Selected.ShouldBeSameAs(combatants.GetUnit(PlayerId, null));
-        combatants.Selected.GetBuff(500, forTimestamp: 0)!.IsDebuff.ShouldBeFalse();
-        combatants.Selected.GetBuff(600, forTimestamp: 0)!.IsDebuff.ShouldBeTrue();
+        var selected = parser.SelectedCombatant;
+        selected.ShouldBeSameAs(combatants.GetCombatant(PlayerId, null));
+        selected.GetBuff(500, forTimestamp: 0)!.IsDebuff.ShouldBeFalse();
+        selected.GetBuff(600, forTimestamp: 0)!.IsDebuff.ShouldBeTrue();
     }
 
-    private static async Task<Combatants> Run(params Event[] events)
+    private static async Task<Combatants> Run(params Event[] events) =>
+        (await RunParser(events)).Combatants;
+
+    private static async Task<(CombatLogParser Parser, Combatants Combatants)> RunParser(params Event[] events)
     {
         var emitter = new EventEmitter(NullLogger<EventEmitter>.Instance);
         var provider = Substitute.For<IServiceProvider>();
@@ -122,7 +126,7 @@ public sealed class CombatantsAuraRegistryTests
 
         var parser = new TestParser(emitter, provider);
         await parser.Analyze([.. events], PlayerId, fight: TestFight);
-        return parser.GetModule<Combatants>()!;
+        return (parser, parser.GetModule<Combatants>()!);
     }
 
     private static ApplyDebuffEvent ApplyDebuff(int timestamp, int targetId, int? targetInstance, int effectId, int sourceId = PlayerId) => new()

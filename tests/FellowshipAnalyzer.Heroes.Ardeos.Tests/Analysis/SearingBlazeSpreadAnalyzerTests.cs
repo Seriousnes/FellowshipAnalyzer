@@ -247,7 +247,7 @@ public sealed class SearingBlazeSpreadAnalyzerTests
     };
 
     private static ReportFight TrashFight(int enemies) =>
-        new(0, "", 0, null, 0, 20000, null, null, null, EnemyNpcs: [new FightNpc(1, 100, enemies, null, null)]);
+        new(0, "", 0, null, 0, 20000, null, null, null, EnemyNpcs: [new FightNpc(1, 100, enemies, 1, null)]);
 
     private static ReportFight SpanningFight() =>
         new(0, "", 0, null, 0, 20000, null, null, null);

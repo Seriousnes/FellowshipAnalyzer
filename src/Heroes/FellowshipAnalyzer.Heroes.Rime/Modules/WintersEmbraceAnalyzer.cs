@@ -47,8 +47,6 @@ public abstract partial class WintersEmbraceAnalyzer : Analyzer
     private string _stSpenderName = Spells.GlacialBlast.Name;
     private string _aoeSpenderName = Spells.IceComet.Name;
 
-    private Combatants Combatants => field ??= Owner.GetModule<Combatants>()!;
-
     [On<ApplyBuffEvent>(By = Actor.Player, Spell = nameof(Spells.WintersEmbrace))]
     private void OnWintersEmbraceApplied(ApplyBuffEvent applyBuffEvent)
     {
@@ -106,10 +104,10 @@ public abstract partial class WintersEmbraceAnalyzer : Analyzer
     {
         var majors = new List<string>(2);
 
-        if (Combatants.Selected.HasBuff(Spells.IceBlitzBuff.FSLID, forTimestamp: timestamp))
+        if (Owner.SelectedCombatant.HasBuff(Spells.IceBlitzBuff.FSLID, forTimestamp: timestamp))
             majors.Add(Spells.IceBlitzBuff.Name);
 
-        if (Combatants.Selected.HasBuff(Spells.WrathOfWinterBuff.FSLID, forTimestamp: timestamp))
+        if (Owner.SelectedCombatant.HasBuff(Spells.WrathOfWinterBuff.FSLID, forTimestamp: timestamp))
             majors.Add(Spells.WrathOfWinterBuff.Name);
 
         return majors;

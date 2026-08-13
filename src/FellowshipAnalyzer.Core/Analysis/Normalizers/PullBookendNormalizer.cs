@@ -10,10 +10,11 @@ namespace FellowshipAnalyzer.Core.Analysis.Normalizers;
 /// gets one implicit pull spanning the whole fight, classified from the fight's own fields. Pull opens
 /// are placed ahead of the stream and closes after it so the stable dispatch sort seats each boundary
 /// against same-timestamp gameplay (opens before, closes after); running before
-/// <see cref="FightBookendNormalizer"/> lets the fight bookends wrap the pull bookends.
+/// <see cref="DungeonBookendNormalizer"/> lets the fight bookends wrap the pull bookends.
 /// <para>
-/// <see cref="Pull.TargetCount"/> counts the roster <see cref="Enemies.RosterKeys(IReadOnlyList{DungeonPullNpc}, IReadOnlySet{int})"/>
-/// expands, so a pull's target count and the units <see cref="Enemies.Roster"/> names cannot diverge.
+/// A pull carries only what its own Fellowship Logs entry states. How many enemies it contains is
+/// <see cref="Enemies.Roster"/>'s answer, projected out of the seeded population when something asks,
+/// so no roster is expanded here and no count can drift from the units it counts.
 /// </para>
 /// </summary>
 public sealed class PullBookendNormalizer(ParseContext parseContext) : IEventNormalizer
@@ -43,19 +44,17 @@ public sealed class PullBookendNormalizer(ParseContext parseContext) : IEventNor
         var dungeonPulls = parseContext.DungeonPulls;
         if (dungeonPulls is { Count: > 0 })
         {
-            var petActorIds = Enemies.PetActorIds(parseContext.EnemyNpcs);
             var pulls = new List<Pull>(dungeonPulls.Count);
             for (var i = 0; i < dungeonPulls.Count; i++)
-                pulls.Add(FromDungeonPull(i, dungeonPulls[i], petActorIds));
+                pulls.Add(FromDungeonPull(i, dungeonPulls[i]));
             return pulls;
         }
 
         return [FromFight(parseContext.Fight)];
     }
 
-    private static Pull FromDungeonPull(int index, DungeonPull pull, IReadOnlySet<int> petActorIds)
+    private static Pull FromDungeonPull(int index, DungeonPull pull)
     {
-        var targetCount = Enemies.RosterKeys(pull.EnemyNpcs, petActorIds).Count;
         var isBoss = pull.EncounterId != 0;
         return new Pull(
             Index: index,
@@ -65,13 +64,11 @@ public sealed class PullBookendNormalizer(ParseContext parseContext) : IEventNor
             EndTime: (int)pull.EndTime,
             Targets: ShapeFor(isBoss),
             IsBoss: isBoss,
-            Kill: pull.Kill ?? false,
-            TargetCount: targetCount);
+            Kill: pull.Kill ?? false);
     }
 
     private static Pull FromFight(ReportFight fight)
     {
-        var targetCount = Enemies.RosterKeys(fight.EnemyNpcs).Count;
         var isBoss = fight.EncounterId != 0;
         return new Pull(
             Index: 0,
@@ -81,8 +78,7 @@ public sealed class PullBookendNormalizer(ParseContext parseContext) : IEventNor
             EndTime: (int)fight.EndTime,
             Targets: ShapeFor(isBoss),
             IsBoss: isBoss,
-            Kill: fight.Kill ?? false,
-            TargetCount: targetCount);
+            Kill: fight.Kill ?? false);
     }
 
     private static PullKind ShapeFor(bool isBoss)

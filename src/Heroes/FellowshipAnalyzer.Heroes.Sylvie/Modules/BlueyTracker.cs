@@ -81,8 +81,8 @@ public sealed partial class BlueyTracker : Analyzer
     [On<CastEvent>(By = Actor.Player, Spells = new[] { nameof(Spells.FluttercallProtect), nameof(Spells.FluttercallEmbrace) })]
     private void OnCast(CastEvent castEvent) => Reassignments++;
 
-    [On<FightEndEvent>]
-    private void OnFightEnd(FightEndEvent fightEndEvent) => _open?.Close(fightEndEvent.Timestamp);
+    [On<DungeonEndEvent>]
+    private void OnFightEnd(DungeonEndEvent fightEndEvent) => _open?.Close(fightEndEvent.Timestamp);
 
     private void Post(BuffEvent buffEvent, int targetId)
     {

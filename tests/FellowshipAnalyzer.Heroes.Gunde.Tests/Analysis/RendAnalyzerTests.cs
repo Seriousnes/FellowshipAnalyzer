@@ -320,7 +320,7 @@ public sealed class RendAnalyzerTests
         new(0, "Boss", 1, null, 0, PullEnd, null, null, null);
 
     private static ReportFight TrashFight(int enemies) =>
-        new(0, "Trash", 0, null, 0, PullEnd, null, null, null, EnemyNpcs: [new FightNpc(1, 100, enemies, null, null)]);
+        new(0, "Trash", 0, null, 0, PullEnd, null, null, null, EnemyNpcs: [new FightNpc(1, 100, enemies, 1, null)]);
 
     private static ReportFight SpanningFight() =>
         new(0, "Trash", 0, null, 0, PullEnd, null, null, null);

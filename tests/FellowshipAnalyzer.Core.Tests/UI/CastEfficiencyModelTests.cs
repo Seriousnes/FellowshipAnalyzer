@@ -250,7 +250,7 @@ public sealed class CastEfficiencyModelTests
         rows.Single(row => (int)row.Ability.PrimarySpell.FSLID == SpellId);
 
     private static Pull Pull(int index, int start, int end) =>
-        new(index, index + 1, $"Pull {index}", start, end, PullKind.Multi, IsBoss: false, Kill: true, TargetCount: 3);
+        new(index, index + 1, $"Pull {index}", start, end, PullKind.Multi, IsBoss: false, Kill: true);
 
     private static CastEvent Cast(int spellId, int timestamp, int sourceId = PlayerId) => new()
     {

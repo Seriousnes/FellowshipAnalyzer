@@ -397,7 +397,7 @@ public sealed class EngulfingFlamesEconomyAnalyzerTests
     private static CombatantInfoEvent CombatantWithLegendary() => new()
     {
         SourceId = PlayerId,
-        Gear = [new Item { Id = 5222, Quality = 6 }],
+        Gear = [new Item { Id = 5999, Quality = 6 }],
     };
 
     /// <summary>
