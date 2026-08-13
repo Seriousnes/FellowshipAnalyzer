@@ -15,9 +15,10 @@ using Xunit;
 namespace FellowshipAnalyzer.Core.Tests.Analysis;
 
 /// <summary>
-/// Tests for <see cref="Enemies"/>: roster expansion against <see cref="Pull.TargetCount"/>, instance
-/// resolution at the roster boundary, the population over time, and the enemy-facing aura queries.
-/// The fixtures below are shaped after report <c>6fgrXtW1b2aTZcD3</c> fight 36.
+/// Tests for <see cref="Enemies"/>: the roster each pull projects out of the seeded population,
+/// instance resolution at the roster boundary, the population over time, and the enemy-facing aura
+/// queries.
+/// The fixtures below are shaped after report <c>6fgrXtW1b2aTZcD3</c> dungeon 36.
 /// </summary>
 public sealed partial class EnemiesTests
 {
@@ -35,10 +36,10 @@ public sealed partial class EnemiesTests
     private const int BossPullStart = 5_000;
     private const int BossPullEnd = 8_000;
 
-    private static readonly ReportFight DungeonFight = new(
+    private static readonly ReportDungeon Dungeon = new(
         Id: 0, Name: "Scryer's Peak", EncounterId: 0, Kill: null,
         StartTime: 0, EndTime: 10_000, Difficulty: null,
-        FriendlyPlayers: null, FightPercentage: null, InProgress: false,
+        FriendlyPlayers: null, CompletionPercentage: null, InProgress: false,
         DungeonPulls:
         [
             new DungeonPull(Id: 1, EncounterId: 0, Kill: null,
@@ -59,18 +60,18 @@ public sealed partial class EnemiesTests
         ],
         EnemyNpcs:
         [
-            new FightNpc(TrashCaster, GameId: 190, InstanceCount: 2, GroupCount: 1, PetOwner: null),
-            new FightNpc(TrashMelee, GameId: 210, InstanceCount: 2, GroupCount: 1, PetOwner: null),
-            new FightNpc(Boss, GameId: 240, InstanceCount: 1, GroupCount: 1, PetOwner: null),
-            new FightNpc(BossPet, GameId: 400, InstanceCount: 3, GroupCount: 1, PetOwner: Boss),
+            new DungeonNpc(TrashCaster, GameId: 190, InstanceCount: 2, GroupCount: 1, PetOwner: null),
+            new DungeonNpc(TrashMelee, GameId: 210, InstanceCount: 2, GroupCount: 1, PetOwner: null),
+            new DungeonNpc(Boss, GameId: 240, InstanceCount: 1, GroupCount: 1, PetOwner: null),
+            new DungeonNpc(BossPet, GameId: 400, InstanceCount: 3, GroupCount: 1, PetOwner: Boss),
         ]);
 
     private const int Boundary = 2_000;
 
-    private static readonly ReportFight TouchingPullFight = new(
+    private static readonly ReportDungeon TouchingPullDungeon = new(
         Id: 0, Name: "Touching", EncounterId: 0, Kill: null,
         StartTime: 0, EndTime: 10_000, Difficulty: null,
-        FriendlyPlayers: null, FightPercentage: null, InProgress: false,
+        FriendlyPlayers: null, CompletionPercentage: null, InProgress: false,
         DungeonPulls:
         [
             new DungeonPull(Id: 1, EncounterId: 0, Kill: null,
@@ -82,8 +83,8 @@ public sealed partial class EnemiesTests
         ],
         EnemyNpcs:
         [
-            new FightNpc(TrashCaster, GameId: 190, InstanceCount: 1, GroupCount: 1, PetOwner: null),
-            new FightNpc(TrashMelee, GameId: 210, InstanceCount: 3, GroupCount: 1, PetOwner: null),
+            new DungeonNpc(TrashCaster, GameId: 190, InstanceCount: 1, GroupCount: 1, PetOwner: null),
+            new DungeonNpc(TrashMelee, GameId: 210, InstanceCount: 3, GroupCount: 1, PetOwner: null),
         ]);
 
     private static readonly ReportActor[] TouchingPullActors =
@@ -95,10 +96,10 @@ public sealed partial class EnemiesTests
 
     private const int Bloodfang = 66;
 
-    private static readonly ReportFight OverlappingRosterFight = new(
+    private static readonly ReportDungeon OverlappingRosterDungeon = new(
         Id: 0, Name: "Urrak Markets", EncounterId: 0, Kill: null,
         StartTime: 0, EndTime: 10_000, Difficulty: null,
-        FriendlyPlayers: null, FightPercentage: null, InProgress: false,
+        FriendlyPlayers: null, CompletionPercentage: null, InProgress: false,
         DungeonPulls:
         [
             new DungeonPull(Id: 1, EncounterId: 0, Kill: null,
@@ -108,7 +109,7 @@ public sealed partial class EnemiesTests
                 StartTime: 3_000, EndTime: 6_000, Name: "Second",
                 EnemyNpcs: [new DungeonPullNpc(Bloodfang, GameId: 660, MinimumInstanceId: 1, MaximumInstanceId: 4, null, null)]),
         ],
-        EnemyNpcs: [new FightNpc(Bloodfang, GameId: 660, InstanceCount: 4, GroupCount: 1, PetOwner: null)]);
+        EnemyNpcs: [new DungeonNpc(Bloodfang, GameId: 660, InstanceCount: 4, GroupCount: 1, PetOwner: null)]);
 
     private static readonly ReportActor[] OverlappingRosterActors =
     [
@@ -116,15 +117,15 @@ public sealed partial class EnemiesTests
         new(Bloodfang, "Bloodfang", "NPC", null, null, null),
     ];
 
-    private static readonly ReportFight SinglePullFight = new(
+    private static readonly ReportDungeon SinglePullDungeon = new(
         Id: 0, Name: "Boss", EncounterId: 42, Kill: true,
         StartTime: 0, EndTime: 10_000, Difficulty: null,
-        FriendlyPlayers: null, FightPercentage: null, InProgress: false,
+        FriendlyPlayers: null, CompletionPercentage: null, InProgress: false,
         DungeonPulls: null,
         EnemyNpcs:
         [
-            new FightNpc(100, GameId: 1000, InstanceCount: 1, GroupCount: 1, PetOwner: null),
-            new FightNpc(101, GameId: 1010, InstanceCount: 1, GroupCount: 1, PetOwner: null),
+            new DungeonNpc(100, GameId: 1000, InstanceCount: 1, GroupCount: 1, PetOwner: null),
+            new DungeonNpc(101, GameId: 1010, InstanceCount: 1, GroupCount: 1, PetOwner: null),
         ]);
 
     private static readonly ReportActor[] DungeonActors =
@@ -164,16 +165,101 @@ public sealed partial class EnemiesTests
     ];
 
     [Fact]
-    public async Task Roster_MatchesTargetCountOnEveryPull()
+    public async Task Roster_NamesTheUnitsEachPullsOwnSpansAdmit()
     {
         var (parser, enemies) = await RunDungeon();
 
         parser.Pulls.Count.ShouldBe(2);
-        foreach (var pull in parser.Pulls)
-            enemies.Roster(pull).Count.ShouldBe(pull.TargetCount);
 
-        parser.Pulls[0].TargetCount.ShouldBe(3);
-        parser.Pulls[1].TargetCount.ShouldBe(2);
+        enemies.Roster(parser.Pulls[0]).Select(unit => unit.Key).ShouldBe(
+            [new UnitKey(TrashCaster, 1), new UnitKey(TrashMelee, 1), new UnitKey(TrashMelee, 2)],
+            ignoreOrder: true);
+        enemies.Roster(parser.Pulls[1]).Select(unit => unit.Key).ShouldBe(
+            [new UnitKey(TrashCaster, 2), new UnitKey(Boss, 1)],
+            ignoreOrder: true);
+    }
+
+    [Fact]
+    public async Task Roster_OnADungeonWithNoPulls_IsEveryDungeonNpcSpawnExceptPets()
+    {
+        var dungeon = SinglePullDungeon with
+        {
+            EnemyNpcs =
+            [
+                new DungeonNpc(100, GameId: 1000, InstanceCount: 2, GroupCount: 1, PetOwner: null),
+                new DungeonNpc(101, GameId: 1010, InstanceCount: 3, GroupCount: 1, PetOwner: 100),
+            ],
+        };
+
+        var (parser, enemies) = await Run(dungeon, [], AuraActors);
+
+        enemies.Roster(parser.Pulls.ShouldHaveSingleItem()).Select(unit => unit.Key).ShouldBe(
+            [new UnitKey(100, 1), new UnitKey(100, 2)],
+            ignoreOrder: true);
+    }
+
+    [Fact]
+    public async Task Roster_OnADungeonWithNoPulls_OmitsAnEnemyOnlyTheEventsName()
+    {
+        var dungeon = SinglePullDungeon with
+        {
+            EnemyNpcs = [new DungeonNpc(100, GameId: 1000, InstanceCount: 1, GroupCount: 1, PetOwner: null)],
+        };
+
+        var (parser, enemies) = await Run(
+            dungeon,
+            [ApplyDebuff(1_000, targetId: 101, targetInstance: 1)],
+            AuraActors);
+        var pull = parser.Pulls.ShouldHaveSingleItem();
+
+        enemies.Roster(pull).Select(unit => unit.Key).ShouldBe([new UnitKey(100, 1)]);
+        enemies.Population(pull)
+            .Where(unit => unit.Key.ActorId == 101)
+            .ShouldHaveSingleItem()
+            .Origin.ShouldBe(EnemyOrigin.Unrostered);
+    }
+
+    [Theory]
+    [InlineData(null, null)]
+    [InlineData(null, 5)]
+    [InlineData(3, null)]
+    [InlineData(3, 1)]
+    public async Task Roster_ANpcNotStatingBothBounds_NamesOneInstance(int? minimum, int? maximum)
+    {
+        var dungeon = Dungeon with
+        {
+            DungeonPulls =
+            [
+                new DungeonPull(Id: 1, EncounterId: 0, Kill: null,
+                    StartTime: FirstPullStart, EndTime: FirstPullEnd, Name: "Trash",
+                    EnemyNpcs:
+                    [
+                        new DungeonPullNpc(TrashMelee, GameId: 210, minimum, maximum, null, null),
+                    ]),
+            ],
+        };
+
+        var (parser, enemies) = await Run(dungeon, [], DungeonActors);
+
+        enemies.Roster(parser.Pulls.ShouldHaveSingleItem()).Select(unit => unit.Key)
+            .ShouldBe([new UnitKey(TrashMelee, minimum ?? 1)]);
+    }
+
+    [Fact]
+    public async Task Roster_OnADungeonPullNamingNoNpcs_IsEmpty()
+    {
+        var dungeon = Dungeon with
+        {
+            DungeonPulls =
+            [
+                new DungeonPull(Id: 1, EncounterId: 0, Kill: null,
+                    StartTime: FirstPullStart, EndTime: FirstPullEnd, Name: "Trash", EnemyNpcs: null),
+            ],
+        };
+
+        var (parser, enemies) = await Run(dungeon, [], DungeonActors);
+
+        enemies.Roster(parser.Pulls.ShouldHaveSingleItem()).ShouldBeEmpty();
     }
 
     [Fact]
@@ -234,7 +320,7 @@ public sealed partial class EnemiesTests
         var (parser, enemies) = await RunDungeon();
         var trashPull = parser.Pulls[0];
 
-        enemies.AliveAt(trashPull, 1_050).ShouldBe(trashPull.TargetCount);
+        enemies.AliveAt(trashPull, 1_050).ShouldBe(enemies.Roster(trashPull).Count);
         enemies.AliveAt(trashPull, 1_200).ShouldBe(5);
         enemies.PeakAlive(trashPull).ShouldBe(5);
 
@@ -250,7 +336,7 @@ public sealed partial class EnemiesTests
     public async Task AnUnrosteredUnitKnownOnlyByItsDeath_IsAliveForZeroDuration()
     {
         var (parser, enemies) = await Run(
-            DungeonFight,
+            Dungeon,
             [Death(2_000, BloodCrystal, 1)],
             DungeonActors);
         var trashPull = parser.Pulls[0];
@@ -261,9 +347,9 @@ public sealed partial class EnemiesTests
         crystal.Entered.ShouldBe(2_000);
         crystal.Died.ShouldBe(2_000);
 
-        enemies.AliveAt(trashPull, 1_999).ShouldBe(trashPull.TargetCount);
-        enemies.AliveAt(trashPull, 2_000).ShouldBe(trashPull.TargetCount);
-        enemies.PeakAlive(trashPull).ShouldBe(trashPull.TargetCount);
+        enemies.AliveAt(trashPull, 1_999).ShouldBe(enemies.Roster(trashPull).Count);
+        enemies.AliveAt(trashPull, 2_000).ShouldBe(enemies.Roster(trashPull).Count);
+        enemies.PeakAlive(trashPull).ShouldBe(enemies.Roster(trashPull).Count);
     }
 
     [Fact]
@@ -274,7 +360,7 @@ public sealed partial class EnemiesTests
         provider.GetService(typeof(ILogger<EventEmitter>)).Returns(NullLogger<EventEmitter>.Instance);
 
         var parser = new ProbingParser(emitter, provider) { Actors = DungeonActors };
-        await parser.Analyze(DungeonEvents(), PlayerId, DungeonFight);
+        await parser.Analyze(DungeonEvents(), PlayerId, Dungeon);
 
         var enemies = parser.GetModule<Enemies>()!;
         var readings = parser.GetModule<AliveProbe>()!.Readings;
@@ -331,7 +417,7 @@ public sealed partial class EnemiesTests
     public async Task ADeathReachesEveryPullNamingTheUnit()
     {
         var (parser, enemies) = await Run(
-            OverlappingRosterFight,
+            OverlappingRosterDungeon,
             [Death(1_900, Bloodfang, 2), Death(4_000, Bloodfang, 1)],
             OverlappingRosterActors);
         var (first, second) = (parser.Pulls[0], parser.Pulls[1]);
@@ -364,7 +450,7 @@ public sealed partial class EnemiesTests
         provider.GetService(typeof(ILogger<EventEmitter>)).Returns(NullLogger<EventEmitter>.Instance);
 
         var parser = new ProbingParser(emitter, provider) { Actors = TouchingPullActors };
-        await parser.Analyze([Death(Boundary, TrashMelee, 1)], PlayerId, TouchingPullFight);
+        await parser.Analyze([Death(Boundary, TrashMelee, 1)], PlayerId, TouchingPullDungeon);
 
         var enemies = parser.GetModule<Enemies>()!;
         var (first, second) = (parser.Pulls[0], parser.Pulls[1]);
@@ -536,14 +622,14 @@ public sealed partial class EnemiesTests
     [Fact]
     public async Task NoActors_KeepsTheRosterAndAdmitsNothingElse()
     {
-        var (parser, enemies) = await Run(DungeonFight, DungeonEvents(), actors: []);
+        var (parser, enemies) = await Run(Dungeon, DungeonEvents(), actors: []);
         var trashPull = parser.Pulls[0];
 
         enemies.IsEnemy(Boss).ShouldBeFalse();
-        enemies.Roster(trashPull).Count.ShouldBe(trashPull.TargetCount);
+        enemies.Roster(trashPull).Count.ShouldBe(enemies.Roster(trashPull).Count);
         enemies.Population(trashPull).ShouldBe(enemies.Roster(trashPull));
         enemies.Population(trashPull).ShouldAllBe(unit => unit.Died == null);
-        enemies.AliveAt(trashPull, 1_200).ShouldBe(trashPull.TargetCount);
+        enemies.AliveAt(trashPull, 1_200).ShouldBe(enemies.Roster(trashPull).Count);
         enemies.DeathsBetween(0, 10_000).ShouldBeEmpty();
         enemies.CountWithAura(EffectId, 1_200).ShouldBe(0);
     }
@@ -553,16 +639,16 @@ public sealed partial class EnemiesTests
     private static readonly Ability Hit = new() { FSLID = 4242, Name = "Hit" };
 
     private static async Task<(CombatLogParser Parser, Enemies Enemies)> RunDungeon() =>
-        await Run(DungeonFight, DungeonEvents(), DungeonActors);
+        await Run(Dungeon, DungeonEvents(), DungeonActors);
 
     private static async Task<Enemies> RunAura(params Event[] events)
     {
-        var (_, enemies) = await Run(SinglePullFight, [.. events], AuraActors);
+        var (_, enemies) = await Run(SinglePullDungeon, [.. events], AuraActors);
         return enemies;
     }
 
     private static async Task<(CombatLogParser Parser, Enemies Enemies)> Run(
-        ReportFight fight,
+        ReportDungeon dungeon,
         List<Event> events,
         IReadOnlyList<ReportActor> actors)
     {
@@ -571,7 +657,7 @@ public sealed partial class EnemiesTests
         provider.GetService(typeof(ILogger<EventEmitter>)).Returns(NullLogger<EventEmitter>.Instance);
 
         var parser = new TestParser(emitter, provider) { Actors = actors };
-        await parser.Analyze(events, PlayerId, fight);
+        await parser.Analyze(events, PlayerId, dungeon);
         return (parser, parser.GetModule<Enemies>()!);
     }
 
@@ -618,7 +704,7 @@ public sealed partial class EnemiesTests
     {
         protected override Type[] GetModuleTypes() => [typeof(Combatants), typeof(Enemies)];
 
-        protected override Type[] GetNormalizerTypes() => [typeof(PullBookendNormalizer), typeof(FightBookendNormalizer)];
+        protected override Type[] GetNormalizerTypes() => [typeof(PullBookendNormalizer), typeof(DungeonBookendNormalizer)];
     }
 
     private sealed class ProbingParser(EventEmitter emitter, IServiceProvider provider)
@@ -626,7 +712,7 @@ public sealed partial class EnemiesTests
     {
         protected override Type[] GetModuleTypes() => [typeof(Combatants), typeof(Enemies), typeof(AliveProbe)];
 
-        protected override Type[] GetNormalizerTypes() => [typeof(PullBookendNormalizer), typeof(FightBookendNormalizer)];
+        protected override Type[] GetNormalizerTypes() => [typeof(PullBookendNormalizer), typeof(DungeonBookendNormalizer)];
 
         protected override object? CreateInstance(Type type) =>
             type == typeof(AliveProbe) ? new AliveProbe() : base.CreateInstance(type);

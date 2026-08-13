@@ -1,11 +1,13 @@
+using FellowshipAnalyzer.Core.Events;
+
 namespace FellowshipAnalyzer.Core.Analysis;
 
 /// <summary>
-/// A retained analyzer instance paired with the <see cref="Pull"/> it ran on. <typeparamref name="T"/>
-/// is the analyzer's surface type: a concrete <see cref="Analyzer"/> subclass, or an
-/// <see cref="IAnalyzerSurface"/> marker interface shared by several shape-specialized analyzers.
+/// A retained analyzer instance paired with the <see cref="PullStartEvent"/> it ran on.
+/// <typeparamref name="T"/> is the analyzer's surface type: a concrete <see cref="Analyzer"/> subclass,
+/// or an <see cref="IAnalyzerSurface"/> marker interface shared by several shape-specialized analyzers.
 /// </summary>
-public readonly record struct PullAnalyzer<T>(Pull Pull, T Analyzer) where T : IAnalyzerSurface;
+public readonly record struct PullAnalyzer<T>(PullStartEvent Pull, T Analyzer) where T : IAnalyzerSurface;
 
 /// <summary>
 /// The cross-pull stream of one analyzer surface, in pull order. The parser builds it

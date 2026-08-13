@@ -240,7 +240,7 @@ public sealed class GlobalCooldownTests
         Type[] normalizerTypes = includeNormalizer ? [typeof(CastLinkNormalizer)] : [];
 
         var parser = CreateCombatLogParser(moduleTypes, normalizerTypes, configureAbilities);
-        await parser.Analyze(events ?? [], PlayerId, fight: new ReportFight(0, "", 0, null, 0, 0, null, null, null));
+        await parser.Analyze(events ?? [], PlayerId, dungeon: new ReportDungeon(0, "", 0, null, 0, 0, null, null, null));
 
         var gcd = parser.GetModule<GlobalCooldown>()!;
         return (parser, gcd);

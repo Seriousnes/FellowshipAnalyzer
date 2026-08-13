@@ -20,7 +20,7 @@ namespace FellowshipAnalyzer.Heroes.Mara.Tests.Analysis;
 public sealed class DeadlySchemeTrackerTests
 {
     private const int PlayerId = 7;
-    private const int FightEnd = 30000;
+    private const int DungeonEnd = 30000;
 
     [Fact]
     public async Task Analyze_StackStream_TracksThePeakAndClearsOnRemoval()
@@ -76,7 +76,7 @@ public sealed class DeadlySchemeTrackerTests
     }
 
     [Fact]
-    public async Task Analyze_ActivationWithoutRemoval_IsClosedAtFightEnd()
+    public async Task Analyze_ActivationWithoutRemoval_IsClosedAtDungeonEnd()
     {
         var events = new List<Event>
         {
@@ -87,7 +87,7 @@ public sealed class DeadlySchemeTrackerTests
         var tracker = await AnalyzeAsync(events);
 
         tracker.Activations.ShouldBe(1);
-        tracker.ActiveTimeMs.ShouldBe(FightEnd - 25000);
+        tracker.ActiveTimeMs.ShouldBe(DungeonEnd - 25000);
         tracker.ActivationsUnspent.ShouldBe(1);
     }
 
@@ -230,8 +230,8 @@ public sealed class DeadlySchemeTrackerTests
         using var scope = provider.CreateScope();
 
         var parser = scope.ServiceProvider.GetRequiredService<MaraCombatLogParser>();
-        var fight = new ReportFight(0, "", 1, null, 0, FightEnd, null, null, null);
-        var result = await parser.Analyze(events, PlayerId, fight);
+        var dungeon = new ReportDungeon(0, "", 1, null, 0, DungeonEnd, null, null, null);
+        var result = await parser.Analyze(events, PlayerId, dungeon);
         return (parser, result);
     }
 }

@@ -37,7 +37,7 @@ public sealed class RendAnalyzerTests
             StackGained(BossId, PullEnd),
         };
 
-        var (parser, _) = await AnalyzeAsync(events, BossFight());
+        var (parser, _) = await AnalyzeAsync(events, BossDungeon());
 
         var entry = parser.RendAnalyzers.ShouldHaveSingleItem();
         var analyzer = entry.Analyzer.ShouldBeOfType<RendUptimeAnalyzer>();
@@ -70,7 +70,7 @@ public sealed class RendAnalyzerTests
             StackGained(BossId, PullEnd),
         };
 
-        var (parser, _) = await AnalyzeAsync(events, BossFight());
+        var (parser, _) = await AnalyzeAsync(events, BossDungeon());
 
         var analyzer = SingleUptimeAnalyzer(parser);
         analyzer.Windows.Count.ShouldBe(2);
@@ -93,7 +93,7 @@ public sealed class RendAnalyzerTests
             StackLost(BossId, PullEnd),
         };
 
-        var (parser, _) = await AnalyzeAsync(events, BossFight());
+        var (parser, _) = await AnalyzeAsync(events, BossDungeon());
 
         var analyzer = SingleUptimeAnalyzer(parser);
         var window = analyzer.Windows.ShouldHaveSingleItem();
@@ -112,7 +112,7 @@ public sealed class RendAnalyzerTests
             StackGained(BossId, 6_000),
         };
 
-        var (parser, _) = await AnalyzeAsync(events, BossFight());
+        var (parser, _) = await AnalyzeAsync(events, BossDungeon());
 
         var analyzer = SingleUptimeAnalyzer(parser);
         var window = analyzer.Windows.ShouldHaveSingleItem();
@@ -131,7 +131,7 @@ public sealed class RendAnalyzerTests
             Remove(BossId, 5_000),
         };
 
-        var (parser, _) = await AnalyzeAsync(events, BossFight());
+        var (parser, _) = await AnalyzeAsync(events, BossDungeon());
 
         var analyzer = SingleUptimeAnalyzer(parser);
         var window = analyzer.Windows.ShouldHaveSingleItem();
@@ -144,7 +144,7 @@ public sealed class RendAnalyzerTests
     [Fact]
     public async Task Analyze_BossPull_NoApplications_ReportsZero()
     {
-        var (parser, _) = await AnalyzeAsync([], BossFight());
+        var (parser, _) = await AnalyzeAsync([], BossDungeon());
 
         var analyzer = SingleUptimeAnalyzer(parser);
         analyzer.Windows.ShouldBeEmpty();
@@ -158,7 +158,7 @@ public sealed class RendAnalyzerTests
     {
         var events = new List<Event> { Apply(BossId, 1_000) };
 
-        var (parser, _) = await AnalyzeAsync(events, BossFight());
+        var (parser, _) = await AnalyzeAsync(events, BossDungeon());
 
         parser.RendAnalyzers.Select(e => e.Analyzer).OfType<RendSpreadAnalyzer>().ShouldBeEmpty();
     }
@@ -174,7 +174,7 @@ public sealed class RendAnalyzerTests
             Refresh(10, 2_500),
         };
 
-        var (parser, _) = await AnalyzeAsync(events, TrashFight(4));
+        var (parser, _) = await AnalyzeAsync(events, TrashDungeon(4));
 
         var entry = parser.RendAnalyzers.ShouldHaveSingleItem();
         var analyzer = entry.Analyzer.ShouldBeOfType<RendSpreadAnalyzer>();
@@ -198,7 +198,7 @@ public sealed class RendAnalyzerTests
             Apply(11, 1_500),
         };
 
-        var (parser, _) = await AnalyzeAsync(events, SpanningFight());
+        var (parser, _) = await AnalyzeAsync(events, SpanningDungeon());
 
         var analyzer = SingleSpreadAnalyzer(parser);
         analyzer.TargetCount.ShouldBe(0);
@@ -215,7 +215,7 @@ public sealed class RendAnalyzerTests
             Apply(10, 1_500, targetInstance: 1),
         };
 
-        var (parser, _) = await AnalyzeAsync(events, TrashFight(3));
+        var (parser, _) = await AnalyzeAsync(events, TrashDungeon(3));
 
         var analyzer = SingleSpreadAnalyzer(parser);
         analyzer.DistinctTargets.ShouldBe(2);
@@ -231,7 +231,7 @@ public sealed class RendAnalyzerTests
             EnemySourcedApply(20, 1_500),
         };
 
-        var (parser, _) = await AnalyzeAsync(events, TrashFight(4));
+        var (parser, _) = await AnalyzeAsync(events, TrashDungeon(4));
 
         var analyzer = SingleSpreadAnalyzer(parser);
         analyzer.DistinctTargets.ShouldBe(1);
@@ -241,7 +241,7 @@ public sealed class RendAnalyzerTests
     [Fact]
     public async Task Analyze_MultiPull_NoApplications_ReportsZeroCoverage()
     {
-        var (parser, _) = await AnalyzeAsync([], TrashFight(5));
+        var (parser, _) = await AnalyzeAsync([], TrashDungeon(5));
 
         var analyzer = SingleSpreadAnalyzer(parser);
         analyzer.DistinctTargets.ShouldBe(0);
@@ -254,7 +254,7 @@ public sealed class RendAnalyzerTests
     {
         var events = new List<Event> { Apply(10, 1_000) };
 
-        var (parser, _) = await AnalyzeAsync(events, TrashFight(4));
+        var (parser, _) = await AnalyzeAsync(events, TrashDungeon(4));
 
         parser.RendAnalyzers.Select(e => e.Analyzer).OfType<RendUptimeAnalyzer>().ShouldBeEmpty();
     }
@@ -316,17 +316,17 @@ public sealed class RendAnalyzerTests
         Ability = new Ability { Id = Spells.Rend.FSLID },
     };
 
-    private static ReportFight BossFight() =>
+    private static ReportDungeon BossDungeon() =>
         new(0, "Boss", 1, null, 0, PullEnd, null, null, null);
 
-    private static ReportFight TrashFight(int enemies) =>
-        new(0, "Trash", 0, null, 0, PullEnd, null, null, null, EnemyNpcs: [new FightNpc(1, 100, enemies, null, null)]);
+    private static ReportDungeon TrashDungeon(int enemies) =>
+        new(0, "Trash", 0, null, 0, PullEnd, null, null, null, EnemyNpcs: [new DungeonNpc(1, 100, enemies, 1, null)]);
 
-    private static ReportFight SpanningFight() =>
+    private static ReportDungeon SpanningDungeon() =>
         new(0, "Trash", 0, null, 0, PullEnd, null, null, null);
 
     private static async Task<(GundeCombatLogParser Parser, HeroAnalysisResult Result)> AnalyzeAsync(
-        List<Event> events, ReportFight fight)
+        List<Event> events, ReportDungeon dungeon)
     {
         var services = new ServiceCollection();
         services.AddLogging();
@@ -337,7 +337,7 @@ public sealed class RendAnalyzerTests
         using var scope = provider.CreateScope();
 
         var parser = scope.ServiceProvider.GetRequiredService<GundeCombatLogParser>();
-        var result = await parser.Analyze(events, PlayerId, fight);
+        var result = await parser.Analyze(events, PlayerId, dungeon);
         return (parser, result);
     }
 }

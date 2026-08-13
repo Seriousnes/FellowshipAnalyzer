@@ -825,35 +825,11 @@ public sealed class ModuleGenerator : IIncrementalGenerator
         var local = "__e" + index;
         var conditions = new List<string>();
 
-        var byHasSelf = (h.ByActor & 1) != 0;
-        var byHasPet = (h.ByActor & 2) != 0;
-        if (byHasSelf && h.EventImplementsHasSource)
+        if ((h.ByActor & 1) != 0 && h.EventImplementsHasSource)
             conditions.Add("__owner.ByPlayer(" + local + ", null)");
-        if (byHasPet && h.EventImplementsHasSource)
-            conditions.Add("__owner.ByPlayerPet(" + local + ")");
-        if (byHasSelf && byHasPet && h.EventImplementsHasSource)
-        {
-            var pet = conditions[conditions.Count - 1];
-            var self = conditions[conditions.Count - 2];
-            conditions.RemoveAt(conditions.Count - 1);
-            conditions.RemoveAt(conditions.Count - 1);
-            conditions.Add("(" + self + " || " + pet + ")");
-        }
 
-        var toHasSelf = (h.ToActor & 1) != 0;
-        var toHasPet = (h.ToActor & 2) != 0;
-        if (toHasSelf && h.EventImplementsHasTarget)
+        if ((h.ToActor & 1) != 0 && h.EventImplementsHasTarget)
             conditions.Add("__owner.ToPlayer(" + local + ", null)");
-        if (toHasPet && h.EventImplementsHasTarget)
-            conditions.Add("__owner.ToPlayerPet(" + local + ")");
-        if (toHasSelf && toHasPet && h.EventImplementsHasTarget)
-        {
-            var pet = conditions[conditions.Count - 1];
-            var self = conditions[conditions.Count - 2];
-            conditions.RemoveAt(conditions.Count - 1);
-            conditions.RemoveAt(conditions.Count - 1);
-            conditions.Add("(" + self + " || " + pet + ")");
-        }
 
         if (h.EventImplementsAbility)
         {

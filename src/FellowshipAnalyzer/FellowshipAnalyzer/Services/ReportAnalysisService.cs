@@ -10,7 +10,7 @@ using FellowshipAnalyzer.Core.Serialization;
 namespace FellowshipAnalyzer.Services;
 
 /// <summary>
-/// Returned by <see cref="ReportAnalysisService.RunAsync"/> once a fight has been
+/// Returned by <see cref="ReportAnalysisService.RunAsync"/> once a dungeon has been
 /// fully fetched and analyzed. All display-layer data is read directly from these
 /// objects — no redundant string fields.
 /// <para>
@@ -21,12 +21,12 @@ namespace FellowshipAnalyzer.Services;
 /// </summary>
 public sealed record ReportAnalysisContext(
     ReportInfo ReportInfo,
-    ReportFight Fight,
+    ReportDungeon Dungeon,
     ReportActor Player,
     HeroAnalysisResult? Analysis,
     IHeroAnalyzer Analyzer,
-    int FightStartTime,
-    int FightEndTime
+    int DungeonStartTime,
+    int DungeonEndTime
 )
 {
     /// <summary>
@@ -38,7 +38,7 @@ public sealed record ReportAnalysisContext(
 }
 
 /// <summary>
-/// Orchestrates the full analysis pipeline for a single fight:
+/// Orchestrates the full analysis pipeline for a single dungeon:
 /// concurrent API fetch, master-data loading, hero resolution, analysis, and caching.
 /// </summary>
 public sealed class ReportAnalysisService(
@@ -53,7 +53,7 @@ public sealed class ReportAnalysisService(
 {
     public async Task<ReportAnalysisContext> RunAsync(
         string reportCode,
-        int fightId,
+        int dungeonId,
         int playerId,
         Func<ReportInfo, Task>? reportInfoLoaded = null)
     {
@@ -61,12 +61,12 @@ public sealed class ReportAnalysisService(
         loadingTracker.FetchEventsState = ReportLoadingTracker.StepState.Loading;
         await Task.Yield();
 
-        var preload = await fellowshipLogs.GetAnalysisPreloadAsync(reportCode);
+        var preload = await fellowshipLogs.GetAnalysisPreloadAsync(reportCode, dungeonId);
         var reportInfo = preload.ReportInfo;
         masterDataService.Load(preload.MasterData);
 
-        var fight = reportInfo.Fights.FirstOrDefault(f => f.Id == fightId)
-            ?? throw new InvalidOperationException($"Fight {fightId} not found in report.");
+        var dungeon = reportInfo.Dungeons.FirstOrDefault(f => f.Id == dungeonId)
+            ?? throw new InvalidOperationException($"Dungeon {dungeonId} not found in report.");
         var player = reportInfo.Actors.FirstOrDefault(a => a.Id == playerId)
             ?? throw new InvalidOperationException($"Player {playerId} not found in report.");
 
@@ -81,8 +81,8 @@ public sealed class ReportAnalysisService(
         var analyzer = serviceProvider.GetKeyedService<IHeroAnalyzer>(hero.Name)
             ?? throw new InvalidOperationException($"No hero analyzer found for '{hero.Name}'.");
 
-        var fightStartTime = (int)fight.StartTime;
-        var fightEndTime = (int)fight.EndTime;
+        var dungeonStartTime = (int)dungeon.StartTime;
+        var dungeonEndTime = (int)dungeon.EndTime;
 
         if (analyzer.GuideComponent is null)
         {
@@ -93,21 +93,21 @@ public sealed class ReportAnalysisService(
             loadingTracker.PrepareDisplayState = ReportLoadingTracker.StepState.Ok;
             return new ReportAnalysisContext(
                 reportInfo,
-                fight,
+                dungeon,
                 player,
                 Analysis: null,
                 analyzer,
-                fightStartTime,
-                fightEndTime);
+                dungeonStartTime,
+                dungeonEndTime);
         }
 
         var sw = Stopwatch.StartNew();
         logger.LogInformation(
-            "RunAsync events fetch starting reportCode={ReportCode} fightId={FightId} playerId={PlayerId}",
-            reportCode, fightId, playerId);
+            "RunAsync events fetch starting reportCode={ReportCode} dungeonId={DungeonId} playerId={PlayerId}",
+            reportCode, dungeonId, playerId);
 
         logger.LogInformation("RunAsync IndexedDB cache lookup starting t={ElapsedMs}ms", sw.ElapsedMilliseconds);
-        var cachedEventsBytes = await reportCache.GetCachedEventsBytesAsync(reportCode, fightId, playerId);
+        var cachedEventsBytes = await reportCache.GetCachedEventsBytesAsync(reportCode, dungeonId, playerId);
         logger.LogInformation(
             "RunAsync IndexedDB cache lookup result hit={Hit} bytes={Bytes} t={ElapsedMs}ms",
             cachedEventsBytes is not null, cachedEventsBytes?.Length, sw.ElapsedMilliseconds);
@@ -124,8 +124,8 @@ public sealed class ReportAnalysisService(
         else
         {
             logger.LogInformation("RunAsync network fetch starting t={ElapsedMs}ms", sw.ElapsedMilliseconds);
-            var eventsFetch = fellowshipLogs.GetRawEventsAsync(reportCode, playerId, fightId);
-            var deathsFetch = fellowshipLogs.GetRawDeathsAsync(reportCode, fightId);
+            var eventsFetch = fellowshipLogs.GetRawEventsAsync(reportCode, playerId, dungeonId);
+            var deathsFetch = fellowshipLogs.GetRawDeathsAsync(reportCode, dungeonId);
             await Task.WhenAll(eventsFetch, deathsFetch);
             var eventsResponse = await eventsFetch;
             var deathsResponse = await deathsFetch;
@@ -154,7 +154,7 @@ public sealed class ReportAnalysisService(
         await Task.Yield();
 
         analyzer.Actors = reportInfo.Actors;
-        var result = await analyzer.Analyze(events, playerId, fight);
+        var result = await analyzer.Analyze(events, playerId, dungeon);
 
         loadingTracker.PrepareDisplayState = ReportLoadingTracker.StepState.Loading;
         await Task.Yield();
@@ -162,8 +162,8 @@ public sealed class ReportAnalysisService(
         if (isFreshFromNetwork && !eventsResult.InProgress && events.Count > 0)
         {
             var entry = new ReportHistoryEntry(
-                reportCode, fightId, playerId,
-                fight.Name, player.Name, hero.Name,
+                reportCode, dungeonId, playerId,
+                dungeon.Name, player.Name, hero.Name,
                 DateTimeOffset.UtcNow);
             await reportCache.CacheAsync(entry, eventsResultJsonBytes, eventsExpiresAt);
         }
@@ -173,12 +173,12 @@ public sealed class ReportAnalysisService(
 
         return new ReportAnalysisContext(
             reportInfo,
-            fight,
+            dungeon,
             player,
             result,
             analyzer,
-            fightStartTime,
-            fightEndTime);
+            dungeonStartTime,
+            dungeonEndTime);
     }
 
     private async Task<EventsResult> DeserializeEventsResultAsync(byte[] jsonBytes)

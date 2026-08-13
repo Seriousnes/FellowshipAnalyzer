@@ -268,7 +268,7 @@ public sealed class SerratedEdgeAnalyzerTests
     [Fact]
     public async Task Analyze_RetainsTheAnalyzerOnEveryPullReadPath()
     {
-        var (parser, _) = await RunAsync([Granted(1_000), Removed(2_000)], BossFight());
+        var (parser, _) = await RunAsync([Granted(1_000), Removed(2_000)], BossDungeon());
 
         var entry = parser.SerratedEdgeAnalyzers.ShouldHaveSingleItem();
         entry.Pull.SerratedEdgeAnalyzer.ShouldBeSameAs(entry.Analyzer);
@@ -318,20 +318,20 @@ public sealed class SerratedEdgeAnalyzerTests
         Target = new CastTarget(),
     };
 
-    private static ReportFight BossFight() => new(0, "Boss", 1, null, 0, PullEnd, null, null, null);
+    private static ReportDungeon BossDungeon() => new(0, "Boss", 1, null, 0, PullEnd, null, null, null);
 
-    private static ReportFight TrashFight() =>
+    private static ReportDungeon TrashDungeon() =>
         new(0, "Trash", 0, null, 0, PullEnd, null, null, null,
-            EnemyNpcs: [new FightNpc(1, 100, 4, null, null)]);
+            EnemyNpcs: [new DungeonNpc(1, 100, 4, 1, null)]);
 
     private static async Task<SerratedEdgeAnalyzer> AnalyzeAsync(List<Event> events, bool boss)
     {
-        var (parser, _) = await RunAsync(events, boss ? BossFight() : TrashFight());
+        var (parser, _) = await RunAsync(events, boss ? BossDungeon() : TrashDungeon());
         return parser.SerratedEdgeAnalyzers.ShouldHaveSingleItem().Analyzer;
     }
 
     private static async Task<(GundeCombatLogParser Parser, HeroAnalysisResult Result)> RunAsync(
-        List<Event> events, ReportFight fight)
+        List<Event> events, ReportDungeon dungeon)
     {
         var services = new ServiceCollection();
         services.AddLogging();
@@ -342,7 +342,7 @@ public sealed class SerratedEdgeAnalyzerTests
         using var scope = provider.CreateScope();
 
         var parser = scope.ServiceProvider.GetRequiredService<GundeCombatLogParser>();
-        var result = await parser.Analyze(events, PlayerId, fight);
+        var result = await parser.Analyze(events, PlayerId, dungeon);
         return (parser, result);
     }
 

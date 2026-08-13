@@ -7,12 +7,9 @@ using FellowshipAnalyzer.Heroes.Ardeos.Core;
 namespace FellowshipAnalyzer.Heroes.Ardeos.Modules;
 
 [ForPull(PullKind.Single | PullKind.Multi)]
-[Dependency<Combatants>]
 [Dependency<ArdeosDotTracker>]
 public sealed partial class WildfireComboAnalyzer : Analyzer
 {
-    public static int TotalDots => ArdeosDots.Count;
-
     public const int DistinctDotSuccessThreshold = 4;
 
     public const int PartialSetupFloor = 2;
@@ -118,7 +115,7 @@ public sealed partial class WildfireComboAnalyzer : Analyzer
 
     private (int Start, int End) ResolveBuffWindow(int anchor)
     {
-        var buff = Combatants.Selected.GetBuff(Spells.WildfireDotBonusBuff.FSLID, forTimestamp: anchor);
+        var buff = Owner.SelectedCombatant.GetBuff(Spells.WildfireDotBonusBuff, forTimestamp: anchor);
         if (buff is null)
             return (anchor, anchor + WildfireBuffDurationMs);
 

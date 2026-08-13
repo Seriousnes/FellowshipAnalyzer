@@ -12,7 +12,7 @@ namespace FellowshipAnalyzer.Generators.Tests;
 /// <summary>
 /// Runs <see cref="CombatLogParserGenerator"/> (alongside <see cref="ModuleGenerator"/>) against a
 /// compilation that references the real <c>FellowshipAnalyzer.Core</c> assembly, so generated
-/// parser surface is checked against the real attribute, <c>Pull</c>, and result-model types rather
+/// parser surface is checked against the real attribute, <c>PullStartEvent</c>, and result-model types rather
 /// than a hand-maintained preamble.
 /// </summary>
 internal static class ParserGeneratorTestHarness
@@ -21,7 +21,7 @@ internal static class ParserGeneratorTestHarness
     [
         typeof(object).Assembly.Location,
         typeof(CombatLogParser).Assembly.Location,
-        typeof(ReportFight).Assembly.Location,
+        typeof(ReportDungeon).Assembly.Location,
         typeof(IServiceCollection).Assembly.Location,
         typeof(ServiceCollection).Assembly.Location,
     ];

@@ -12,7 +12,7 @@ namespace FellowshipAnalyzer.Core.Tests.UI;
 
 /// <summary>
 /// Tests for <see cref="CastEfficiencyModel"/>: the denominator is the summed pull duration rather
-/// than the fight span, recharges are clipped to those pulls, and the cast ceiling is derived from the
+/// than the dungeon span, recharges are clipped to those pulls, and the cast ceiling is derived from the
 /// recharge period actually observed rather than the curated cooldown.
 /// </summary>
 public sealed class CastEfficiencyModelTests
@@ -25,7 +25,7 @@ public sealed class CastEfficiencyModelTests
     [Fact]
     public void DowntimeBetweenPulls_IsExcludedFromTheDenominator()
     {
-        var pulls = new List<Pull> { Pull(0, 0, 10_000), Pull(1, 60_000, 70_000) };
+        var pulls = new List<PullStartEvent> { Pull(0, 0, 10_000), Pull(1, 60_000, 70_000) };
         var events = new List<Event>
         {
             Cast(SpellId, 1000),
@@ -43,7 +43,7 @@ public sealed class CastEfficiencyModelTests
     [Fact]
     public void RechargeStraddlingAPullEnd_CountsOnlyTheTimeInsideThePull()
     {
-        var pulls = new List<Pull> { Pull(0, 0, 10_000), Pull(1, 60_000, 70_000) };
+        var pulls = new List<PullStartEvent> { Pull(0, 0, 10_000), Pull(1, 60_000, 70_000) };
         var events = new List<Event>
         {
             Cast(SpellId, 8000),
@@ -59,7 +59,7 @@ public sealed class CastEfficiencyModelTests
     [Fact]
     public void CooldownStillRunningAtTheEnd_CountsUntilTheLastPullEnd()
     {
-        var pulls = new List<Pull> { Pull(0, 0, 10_000) };
+        var pulls = new List<PullStartEvent> { Pull(0, 0, 10_000) };
         var events = new List<Event>
         {
             Cast(SpellId, 4000),
@@ -74,7 +74,7 @@ public sealed class CastEfficiencyModelTests
     [Fact]
     public void MaxCasts_UsesTheObservedRechargeRatherThanTheCuratedCooldown()
     {
-        var pulls = new List<Pull> { Pull(0, 0, 40_000) };
+        var pulls = new List<PullStartEvent> { Pull(0, 0, 40_000) };
         var events = new List<Event>
         {
             Cast(SpellId, 0),
@@ -94,7 +94,7 @@ public sealed class CastEfficiencyModelTests
     [Fact]
     public void MaxCasts_FallsBackToTheCuratedCooldownWhenNoRechargeCompletedInsideAPull()
     {
-        var pulls = new List<Pull> { Pull(0, 0, 40_000) };
+        var pulls = new List<PullStartEvent> { Pull(0, 0, 40_000) };
         var events = new List<Event>();
 
         var row = Single(Build(events, pulls));
@@ -107,7 +107,7 @@ public sealed class CastEfficiencyModelTests
     [Fact]
     public void RechargeCompletingOutsideThePull_DoesNotShortenTheObservedPeriod()
     {
-        var pulls = new List<Pull> { Pull(0, 0, 40_000) };
+        var pulls = new List<PullStartEvent> { Pull(0, 0, 40_000) };
         var straddling = new List<Event>
         {
             Cast(SpellId, 35_000),
@@ -123,7 +123,7 @@ public sealed class CastEfficiencyModelTests
     [Fact]
     public void CastsOutsideEveryPull_AreNotCounted()
     {
-        var pulls = new List<Pull> { Pull(0, 0, 10_000) };
+        var pulls = new List<PullStartEvent> { Pull(0, 0, 10_000) };
         var events = new List<Event>
         {
             Cast(SpellId, 5000),
@@ -138,7 +138,7 @@ public sealed class CastEfficiencyModelTests
     [Fact]
     public void AdditionalSpells_CountTowardsTheirPrimaryAbility()
     {
-        var pulls = new List<Pull> { Pull(0, 0, 10_000) };
+        var pulls = new List<PullStartEvent> { Pull(0, 0, 10_000) };
         var events = new List<Event>
         {
             Cast(SpellId, 1000),
@@ -153,7 +153,7 @@ public sealed class CastEfficiencyModelTests
     [Fact]
     public void HiddenAbilities_AndUnusedAbilitiesWithoutACooldown_AreOmitted()
     {
-        var pulls = new List<Pull> { Pull(0, 0, 10_000) };
+        var pulls = new List<PullStartEvent> { Pull(0, 0, 10_000) };
 
         var rows = Build([], pulls);
 
@@ -163,7 +163,7 @@ public sealed class CastEfficiencyModelTests
     [Fact]
     public void AnAbilityWithoutACooldown_ReportsCastsButNoEfficiency()
     {
-        var pulls = new List<Pull> { Pull(0, 0, 30_000) };
+        var pulls = new List<PullStartEvent> { Pull(0, 0, 30_000) };
         var events = new List<Event> { Cast(FillerId, 1000), Cast(FillerId, 2000) };
 
         var filler = Build(events, pulls).Single(row => (int)row.Ability.PrimarySpell.FSLID == FillerId);
@@ -177,7 +177,7 @@ public sealed class CastEfficiencyModelTests
     [Fact]
     public void WithoutACastEfficiencyEntry_NoRecommendationIsReported()
     {
-        var pulls = new List<Pull> { Pull(0, 0, 40_000) };
+        var pulls = new List<PullStartEvent> { Pull(0, 0, 40_000) };
 
         Single(Build([], pulls)).MeetsRecommendation.ShouldBeNull();
     }
@@ -187,7 +187,7 @@ public sealed class CastEfficiencyModelTests
     [InlineData(10_000, false)]
     public void WithACastEfficiencyEntry_TheRecommendationIsCompared(int rechargeMs, bool expected)
     {
-        var pulls = new List<Pull> { Pull(0, 0, 40_000) };
+        var pulls = new List<PullStartEvent> { Pull(0, 0, 40_000) };
         var events = new List<Event>
         {
             Cast(SpellId, 0),
@@ -204,7 +204,7 @@ public sealed class CastEfficiencyModelTests
     [Fact]
     public void ChargeRestores_CountAsSeparateRechargePeriods()
     {
-        var pulls = new List<Pull> { Pull(0, 0, 40_000) };
+        var pulls = new List<PullStartEvent> { Pull(0, 0, 40_000) };
         var events = new List<Event>
         {
             Cast(SpellId, 0),
@@ -223,7 +223,7 @@ public sealed class CastEfficiencyModelTests
     [Fact]
     public void EventsFromAnotherActor_AreIgnored()
     {
-        var pulls = new List<Pull> { Pull(0, 0, 10_000) };
+        var pulls = new List<PullStartEvent> { Pull(0, 0, 10_000) };
         var events = new List<Event>
         {
             Cast(SpellId, 1000, sourceId: PlayerId + 1),
@@ -243,14 +243,24 @@ public sealed class CastEfficiencyModelTests
         CastEfficiencyModel.Build(new TestSpellbook(), [], PlayerId, []).ShouldBeEmpty();
     }
 
-    private static IReadOnlyList<AbilityCastEfficiency> Build(IReadOnlyList<Event> events, IReadOnlyList<Pull> pulls) =>
+    private static IReadOnlyList<AbilityCastEfficiency> Build(IReadOnlyList<Event> events, IReadOnlyList<PullStartEvent> pulls) =>
         CastEfficiencyModel.Build(new TestSpellbook(), events, PlayerId, pulls);
 
     private static AbilityCastEfficiency Single(IReadOnlyList<AbilityCastEfficiency> rows) =>
         rows.Single(row => (int)row.Ability.PrimarySpell.FSLID == SpellId);
 
-    private static Pull Pull(int index, int start, int end) =>
-        new(index, index + 1, $"Pull {index}", start, end, PullKind.Multi, IsBoss: false, Kill: true, TargetCount: 3);
+    private static PullStartEvent Pull(int index, int start, int end) =>
+        new()
+        {
+            Timestamp = start,
+            End = new PullEndEvent { Timestamp = end },
+            Index = index,
+            Id = index + 1,
+            Name = $"Pull {index}",
+            Targets = PullKind.Multi,
+            IsBoss = false,
+            Kill = true,
+        };
 
     private static CastEvent Cast(int spellId, int timestamp, int sourceId = PlayerId) => new()
     {

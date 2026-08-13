@@ -6,7 +6,7 @@ using RimeSpells = FellowshipAnalyzer.Core.Common.Spells.Rime.Spells;
 namespace FellowshipAnalyzer.Core.Analysis;
 
 /// <summary>
-/// Tracks the selected player's total effective haste percentage throughout a fight,
+/// Tracks the selected player's total effective haste percentage throughout a dungeon,
 /// combining rating-based haste (from <see cref="StatTracker"/>) with
 /// percentage-based haste buffs (e.g., speed cooldowns).
 /// Fabricates <see cref="ChangeHasteEvent"/> whenever effective haste changes.
@@ -36,8 +36,8 @@ public sealed partial class Haste(Lazy<StatTracker> statTracker) : Analyzer
         { RimeSpells.WrathOfWinterBuff.FSLID, new(Haste: 0.3)  },
     };
 
-    [On<FightStartEvent>]
-    private void OnFightStart(FightStartEvent e)
+    [On<DungeonStartEvent>]
+    private void OnDungeonStart(DungeonStartEvent e)
     {
         Current = _statTracker.CurrentHastePercentage;
         TriggerChangeHaste(e, null, Current);

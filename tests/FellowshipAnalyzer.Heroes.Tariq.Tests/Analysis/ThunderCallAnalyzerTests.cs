@@ -18,7 +18,7 @@ namespace FellowshipAnalyzer.Heroes.Tariq.Tests.Analysis;
 public sealed class ThunderCallAnalyzerTests
 {
     private const int PlayerId = 7;
-    private const int FightEnd = 300_000;
+    private const int DungeonEnd = 300_000;
 
     private static readonly int ThunderCallBuff = TariqSpells.ThunderCallBuff.FSLID;
     private static readonly int RagingTempestBuff = TariqSpells.RagingTempestPulsatingSingleDamageSelfBuff.FSLID;
@@ -117,7 +117,7 @@ public sealed class ThunderCallAnalyzerTests
         var window = analyzer.Windows.ShouldHaveSingleItem();
 
         window.ClippedByPullEnd.ShouldBeTrue();
-        window.ClosedAt.ShouldBe(FightEnd);
+        window.ClosedAt.ShouldBe(DungeonEnd);
         window.DurationMs.ShouldBe(20_000);
         analyzer.ClippedWindows.ShouldBe(1);
     }
@@ -270,8 +270,8 @@ public sealed class ThunderCallAnalyzerTests
         using var scope = provider.CreateScope();
 
         var parser = scope.ServiceProvider.GetRequiredService<TariqCombatLogParser>();
-        var fight = new ReportFight(0, "Boss", 1, true, 0, FightEnd, null, null, null);
-        var result = await parser.Analyze(events, playerId: PlayerId, fight: fight);
+        var dungeon = new ReportDungeon(0, "Boss", 1, true, 0, DungeonEnd, null, null, null);
+        var result = await parser.Analyze(events, playerId: PlayerId, dungeon: dungeon);
         return (parser, result);
     }
 

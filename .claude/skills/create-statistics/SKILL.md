@@ -5,9 +5,9 @@ description: "Create an auto-collected statistics Razor component for a Fellowsh
 
 # Create Statistics Component
 
-A statistics component is a Razor file in `Statistics/` that renders a summary card on the Statistics tab. It receives its module through a cascading value and is auto-collected from active fight-lifetime modules with a non-null `StatisticsComponentType`.
+A statistics component is a Razor file in `Statistics/` that renders a summary card on the Statistics tab. It receives its module through a cascading value and is auto-collected from active dungeon-lifetime modules with a non-null `StatisticsComponentType`.
 
-Statistics surface optional, interesting information the Guide tab does not already show: fight-level resource totals, top contributors, item-proc counts, aggregate health. Before adding one, ask whether the Guide already covers it; if it does, do not add it. Per-cast scoring, rotation checklists and "did the player play this right" content belong on the Guide tab. Typed data stays in the module; prose and `QualitativePerformance` mapping live here in the component.
+Statistics surface optional, interesting information the Guide tab does not already show: dungeon-level resource totals, top contributors, item-proc counts, aggregate health. Before adding one, ask whether the Guide already covers it; if it does, do not add it. Per-cast scoring, rotation checklists and "did the player play this right" content belong on the Guide tab. Typed data stays in the module; prose and `QualitativePerformance` mapping live here in the component.
 
 ## Procedure
 

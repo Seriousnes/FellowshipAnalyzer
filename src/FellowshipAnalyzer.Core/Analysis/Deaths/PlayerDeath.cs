@@ -20,7 +20,7 @@ public sealed class PlayerDeath
     public required int Timestamp { get; init; }
 
     /// <summary>The pull the death happened in, or <c>null</c> when it fell outside every pull window.</summary>
-    public required Pull? Pull { get; init; }
+    public required PullStartEvent? Pull { get; init; }
 
     /// <summary>The ability the log names on the death event, as resolved from the report's master data.</summary>
     public required Ability KillingBlow { get; init; }

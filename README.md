@@ -80,7 +80,7 @@ A typical analyzer contribution looks like this:
 
 1. Add or update spell metadata in `Modules/Abilities.cs`.
 2. Add an analyzer module under `Modules/`.
-3. Register it on `{Hero}CombatLogParser.cs` with `[AddAnalyzer<T>]` (pull-lifetime gameplay analysis) or `[AddModule<T>]` / `[AddState<T>]` (fight-lifetime state).
+3. Register it on `{Hero}CombatLogParser.cs` with `[AddAnalyzer<T>]` (pull-lifetime gameplay analysis) or `[AddModule<T>]` / `[AddState<T>]` (dungeon-lifetime state).
 4. Add a guide component under `Guides/` or a statistics component under `Statistics/` when there is player-facing output.
 5. Add focused tests in `tests/FellowshipAnalyzer.Heroes.{Hero}.Tests`.
 

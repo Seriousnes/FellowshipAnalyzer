@@ -20,7 +20,7 @@ public sealed class StealthAnalyzerTests
 {
     private const int PlayerId = 7;
     private const int EnemyId = 42;
-    private const int FightEnd = 20000;
+    private const int DungeonEnd = 20000;
 
     [Fact]
     public async Task Analyze_StealthWidowBite_ConvertsTheWindowAndLinksSeethingPoison()
@@ -102,8 +102,8 @@ public sealed class StealthAnalyzerTests
 
         var window = analyzer.Windows.ShouldHaveSingleItem();
         window.OpenedAt.ShouldBe(1000);
-        window.ClosedAt.ShouldBe(FightEnd);
-        window.DurationMs.ShouldBe(FightEnd - 1000);
+        window.ClosedAt.ShouldBe(DungeonEnd);
+        window.DurationMs.ShouldBe(DungeonEnd - 1000);
     }
 
     [Fact]
@@ -237,7 +237,7 @@ public sealed class StealthAnalyzerTests
     {
         var events = new List<Event> { Buff<ApplyBuffEvent>(1000, Spells.BroodingShadowsBuff) };
 
-        var parser = await AnalyzeParserAsync(events, BossFight());
+        var parser = await AnalyzeParserAsync(events, BossDungeon());
 
         var entry = parser.StealthAnalyzers.ShouldHaveSingleItem();
         var pull = entry.Pull;
@@ -269,16 +269,16 @@ public sealed class StealthAnalyzerTests
         Ability = new Ability { Id = spell.Id },
     };
 
-    private static ReportFight BossFight(int endTime = FightEnd) =>
+    private static ReportDungeon BossDungeon(int endTime = DungeonEnd) =>
         new(0, "", 1, null, 0, endTime, null, null, null);
 
-    private static async Task<StealthAnalyzer> AnalyzeAsync(List<Event> events, ReportFight? fight = null)
+    private static async Task<StealthAnalyzer> AnalyzeAsync(List<Event> events, ReportDungeon? dungeon = null)
     {
-        var parser = await AnalyzeParserAsync(events, fight ?? BossFight());
+        var parser = await AnalyzeParserAsync(events, dungeon ?? BossDungeon());
         return parser.StealthAnalyzers.ShouldHaveSingleItem().Analyzer;
     }
 
-    private static async Task<MaraCombatLogParser> AnalyzeParserAsync(List<Event> events, ReportFight fight)
+    private static async Task<MaraCombatLogParser> AnalyzeParserAsync(List<Event> events, ReportDungeon dungeon)
     {
         var services = new ServiceCollection();
         services.AddLogging();
@@ -289,7 +289,7 @@ public sealed class StealthAnalyzerTests
         using var scope = provider.CreateScope();
 
         var parser = scope.ServiceProvider.GetRequiredService<MaraCombatLogParser>();
-        await parser.Analyze(events, PlayerId, fight);
+        await parser.Analyze(events, PlayerId, dungeon);
         return parser;
     }
 }

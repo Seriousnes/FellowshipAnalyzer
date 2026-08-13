@@ -10,7 +10,7 @@
     <Demo>
         <SpellValue Spell="Spells.IceComet">
             <Value><strong style="font-size: 1.25rem;">12</strong></Value>
-            <Label>casts during fight</Label>
+            <Label>casts during pull</Label>
         </SpellValue>
     </Demo>
 </CodeExample>
@@ -26,7 +26,7 @@
 <CodeExample Title="ValueText — non-spell stat" Code="@_valueTextCode">
     <Demo>
         <ValueText><Label>Total damage</Label><ChildContent>1,234,567</ChildContent></ValueText>
-        <ValueText><Label>Fight duration</Label><ChildContent>4:23</ChildContent></ValueText>
+        <ValueText><Label>Pull duration</Label><ChildContent>4:23</ChildContent></ValueText>
     </Demo>
 </CodeExample>
 
@@ -34,7 +34,7 @@
     private const string _spellValueCode = """
 <SpellValue Spell="Spells.IceComet">
     <Value><strong>12</strong></Value>
-    <Label>casts during fight</Label>
+    <Label>casts during pull</Label>
 </SpellValue>
 """;
 

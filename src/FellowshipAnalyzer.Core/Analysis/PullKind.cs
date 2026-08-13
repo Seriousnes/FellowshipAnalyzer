@@ -1,7 +1,9 @@
+using FellowshipAnalyzer.Core.Events;
+
 namespace FellowshipAnalyzer.Core.Analysis;
 
 /// <summary>
-/// The target shape of a <see cref="Pull"/>. A bitfield so an Analyzer can declare the shapes it
+/// The target shape of a <see cref="PullStartEvent"/>. A bitfield so an Analyzer can declare the shapes it
 /// matches and the pull resolver can test membership with <c>declared.HasFlag(pull.Targets)</c>.
 /// A given pull carries exactly one of these.
 /// </summary>

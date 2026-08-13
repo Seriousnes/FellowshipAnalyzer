@@ -1,8 +1,9 @@
-@page "/report/{ReportCode}/{FightId:int}/{PlayerId:int}"
+@page "/report/{ReportCode}/{DungeonId:int}/{PlayerId:int}"
 @using FellowshipAnalyzer.Components.Providers
 @using FellowshipAnalyzer.Core.Analysis
+@using FellowshipAnalyzer.Core.Events
 @using CoreReportActor = FellowshipAnalyzer.Core.FellowshipLogs.ReportActor
-@using CoreReportFight = FellowshipAnalyzer.Core.FellowshipLogs.ReportFight
+@using CoreReportDungeon = FellowshipAnalyzer.Core.FellowshipLogs.ReportDungeon
 @using CoreReportInfo = FellowshipAnalyzer.Core.FellowshipLogs.ReportInfo
 @using FellowshipAnalyzer.Core.UI.Deaths
 @using FellowshipAnalyzer.Core.UI.Timeline
@@ -17,27 +18,27 @@
 <div class="analysis-page">
     @if (Header is { } header)
     {
-        <PageHeader Title="@header.Fight.Name">
+        <PageHeader Title="@header.Dungeon.Name">
             <Breadcrumbs>
                 <FellowshipAnalyzer.Core.UI.Components.Breadcrumbs Items="@BuildBreadcrumbs(header)" />
             </Breadcrumbs>
             <Portrait>
                 <Avatar Size="AvatarSize.Xl"
-                        Src="@(BossIconUrl(header.BossIcon) ?? header.Fight.DungeonIconUrl)"
-                        Alt="@header.Fight.Name"
-                        FallbackText="@FirstCharacter(header.Fight.Name)"
+                        Src="@(BossIconUrl(header.BossIcon) ?? header.Dungeon.DungeonIconUrl)"
+                        Alt="@header.Dungeon.Name"
+                        FallbackText="@FirstCharacter(header.Dungeon.Name)"
                         AccentColorVar="var(--fa-gold)" />
             </Portrait>
             <Badges>
-                @if (header.Fight.Kill == true)
+                @if (header.Dungeon.Kill == true)
                 {
                     <Badge Variant="BadgeVariant.Success" Size="BadgeSize.Sm"><Glyph Name="check" /> Kill</Badge>
                 }
-                else if (header.Fight.Kill == false)
+                else if (header.Dungeon.Kill == false)
                 {
                     <Badge Variant="BadgeVariant.Failure" Size="BadgeSize.Sm"><Glyph Name="skull" /> Wipe</Badge>
                 }
-                <span class="fight-duration">@header.FightDuration</span>
+                <span class="dungeon-duration">@header.DungeonDuration</span>
             </Badges>
             <Secondary>
                 @{
@@ -68,9 +69,7 @@
     }
     else
     {
-        <PageHeader Title="Loading report details..." aria-busy="true">
-            <Eyebrow>Combat Report</Eyebrow>
-        </PageHeader>
+        <ReportHeaderSkeleton />
     }
 
     @if (_isLoading)
@@ -174,8 +173,8 @@
                                     <dl class="about-meta">
                                         <dt>Report</dt>
                                         <dd>@ReportCode</dd>
-                                        <dt>Fight</dt>
-                                        <dd>@FightId</dd>
+                                        <dt>Dungeon</dt>
+                                        <dd>@DungeonId</dd>
                                         <dt>Player</dt>
                                         <dd>@PlayerId</dd>
                                         <dt>Events</dt>
@@ -189,8 +188,8 @@
                                                 @($"{_context.Analysis.Events.Count} total")
                                             }
                                         </dd>
-                                        <dt>Fight Duration</dt>
-                                        <dd>@FormatDuration(_context.Fight.EndTime - _context.Fight.StartTime)</dd>
+                                        <dt>Dungeon Duration</dt>
+                                        <dd>@FormatDuration(_context.Dungeon.EndTime - _context.Dungeon.StartTime)</dd>
                                     </dl>
                                     <div class="about-overview-links">
                                         <Badge Variant="BadgeVariant.Gold" OnClick="@(() => _aboutSubViewId = "events")">View Events List →</Badge>
@@ -212,7 +211,7 @@
 
         var footerRole = Hero.TryParse(_context.Player.SubType, out var footerHero) ? footerHero.Role : HeroRole.Unknown;
         <ReportFooter ReportCode="@ReportCode"
-                      FightId="@FightId"
+                      DungeonId="@DungeonId"
                       SourceId="@PlayerId"
                       Role="@footerRole" />
     }
@@ -220,7 +219,7 @@
 
 @code {
     [Parameter] public string ReportCode { get; set; } = "";
-    [Parameter] public int FightId { get; set; }
+    [Parameter] public int DungeonId { get; set; }
     [Parameter] public int PlayerId { get; set; }
 
     [Parameter, SupplyParameterFromQuery(Name = "pull")]
@@ -231,7 +230,7 @@
     private bool _isLoading = true;
     private string? _error;
     private string _aboutSubViewId = "overview";
-    private Pull? _selectedPull;
+    private PullStartEvent? _selectedPull;
 
     private ReportHeader? Header
     {
@@ -240,8 +239,8 @@
             if (_reportInfo is null)
                 return null;
 
-            var fight = _reportInfo.Fights.FirstOrDefault(f => f.Id == FightId);
-            if (fight is null)
+            var dungeon = _reportInfo.Dungeons.FirstOrDefault(f => f.Id == DungeonId);
+            if (dungeon is null)
                 return null;
 
             var player = _reportInfo.Actors.FirstOrDefault(a => a.Id == PlayerId);
@@ -250,10 +249,10 @@
 
             return new ReportHeader(
                 _reportInfo,
-                fight,
+                dungeon,
                 player,
-                GetBossIcon(_reportInfo, fight),
-                FormatDuration(fight.EndTime - fight.StartTime));
+                GetBossIcon(_reportInfo, dungeon),
+                FormatDuration(dungeon.EndTime - dungeon.StartTime));
         }
     }
 
@@ -269,7 +268,7 @@
     {
         try
         {
-            _context = await AnalysisService.RunAsync(ReportCode, FightId, PlayerId, UpdateReportInfoAsync);
+            _context = await AnalysisService.RunAsync(ReportCode, DungeonId, PlayerId, UpdateReportInfoAsync);
             _reportInfo = _context.ReportInfo;
         }
         catch (Exception exception)
@@ -307,7 +306,7 @@
         context.Analyzer.SelectedPull = resolved;
     }
 
-    private void OnSelectedPullChanged(Pull? pull)
+    private void OnSelectedPullChanged(PullStartEvent? pull)
     {
         if (ReferenceEquals(pull, _selectedPull))
             return;
@@ -332,18 +331,18 @@
         return @<PullSelect Pulls="dungeonPulls"
                             Value="_selectedPull"
                             ValueChanged="OnSelectedPullChanged"
-                            FightStartTime="context.FightStartTime" />;
+                            DungeonStartTime="context.DungeonStartTime" />;
     }
 
-    private int CountEventsInPull(Pull pull) =>
+    private int CountEventsInPull(PullStartEvent pull) =>
         _context?.Analysis is { } analysis
             ? analysis.Events.Count(e => e.Timestamp >= pull.StartTime && e.Timestamp <= pull.EndTime)
             : 0;
 
-    private static string? GetBossIcon(CoreReportInfo reportInfo, CoreReportFight fight) =>
+    private static string? GetBossIcon(CoreReportInfo reportInfo, CoreReportDungeon dungeon) =>
         reportInfo.Actors.FirstOrDefault(a =>
             !string.Equals(a.Type, "Player", StringComparison.OrdinalIgnoreCase)
-            && string.Equals(a.Name, fight.Name, StringComparison.OrdinalIgnoreCase)
+            && string.Equals(a.Name, dungeon.Name, StringComparison.OrdinalIgnoreCase)
             && !string.IsNullOrEmpty(a.Icon))?.Icon;
 
     private static string? BossIconUrl(string? bossIcon) =>
@@ -354,7 +353,7 @@
         var items = new List<BreadcrumbItem>();
         if (!string.IsNullOrWhiteSpace(header.ReportInfo.Title))
             items.Add(new(header.ReportInfo.Title, $"/report/{ReportCode}"));
-        items.Add(new(header.Fight.Name));
+        items.Add(new(header.Dungeon.Name));
         items.Add(new(header.Player.Name));
         return items;
     }
@@ -377,37 +376,37 @@
                     ? _reportInfo.Title
                     : "Fellowship Analyzer";
 
-            var fightLabel = FormatFightLabel(_reportInfo!, header.Fight, header.FightDuration);
-            return $"{fightLabel} by {header.Player.Name} in {header.ReportInfo.Title}";
+            var dungeonLabel = FormatDungeonLabel(_reportInfo!, header.Dungeon, header.DungeonDuration);
+            return $"{dungeonLabel} by {header.Player.Name} in {header.ReportInfo.Title}";
         }
     }
 
-    private static string FormatFightLabel(CoreReportInfo reportInfo, CoreReportFight fight, string duration)
+    private static string FormatDungeonLabel(CoreReportInfo reportInfo, CoreReportDungeon dungeon, string duration)
     {
         string result;
-        if (fight.Kill == true)
+        if (dungeon.Kill == true)
         {
             result = "Kill";
         }
         else
         {
             var wipeNumber = 0;
-            foreach (var f in reportInfo.Fights.Where(f => string.Equals(f.Name, fight.Name, StringComparison.OrdinalIgnoreCase)))
+            foreach (var f in reportInfo.Dungeons.Where(f => string.Equals(f.Name, dungeon.Name, StringComparison.OrdinalIgnoreCase)))
             {
                 if (f.Kill != true)
                     wipeNumber++;
-                if (f.Id == fight.Id)
+                if (f.Id == dungeon.Id)
                     break;
             }
             result = wipeNumber > 0 ? $"Wipe {wipeNumber}" : "Wipe";
         }
-        return $"{fight.Name} - {result} ({duration})";
+        return $"{dungeon.Name} - {result} ({duration})";
     }
 
     private sealed record ReportHeader(
         CoreReportInfo ReportInfo,
-        CoreReportFight Fight,
+        CoreReportDungeon Dungeon,
         CoreReportActor Player,
         string? BossIcon,
-        string FightDuration);
+        string DungeonDuration);
 }

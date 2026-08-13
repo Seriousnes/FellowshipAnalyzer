@@ -79,8 +79,8 @@ public class EventFilter<T> : EventFilter where T : Event
     protected virtual Expression<Func<Event, bool>> GetInitialCriteria() => static e => e is T;
 
     /// <summary>
-    /// Narrows the filter to events sourced from the selected player and/or their pet, per the
-    /// <c>SELECTED_PLAYER</c> / <c>SELECTED_PLAYER_PET</c> flags in <paramref name="by"/>.
+    /// Narrows the filter to events sourced from the selected player, per the
+    /// <c>SELECTED_PLAYER</c> flag in <paramref name="by"/>.
     /// </summary>
     public EventFilter<T> By(int by)
     {
@@ -99,8 +99,8 @@ public class EventFilter<T> : EventFilter where T : Event
     }
 
     /// <summary>
-    /// Narrows the filter to events targeting the selected player and/or their pet, per the
-    /// <c>SELECTED_PLAYER</c> / <c>SELECTED_PLAYER_PET</c> flags in <paramref name="to"/>.
+    /// Narrows the filter to events targeting the selected player, per the
+    /// <c>SELECTED_PLAYER</c> flag in <paramref name="to"/>.
     /// </summary>
     public EventFilter<T> To(int to)
     {
@@ -131,22 +131,9 @@ public class EventFilter<T> : EventFilter where T : Event
 
     private Expression<Func<Event, bool>>? GetByCheck(int by)
     {
-        var checkPlayer = (by & SELECTED_PLAYER) != 0;
-        var checkPet = (by & SELECTED_PLAYER_PET) != 0;
-
-        if (checkPlayer && checkPet)
-        {
-            return e => e is IHasSourceEvent && (Owner.ByPlayer((IHasSourceEvent)e, null) || Owner.ByPlayerPet((IHasSourceEvent)e));
-        }
-
-        if (checkPlayer)
+        if ((by & SELECTED_PLAYER) != 0)
         {
             return e => e is IHasSourceEvent && Owner.ByPlayer((IHasSourceEvent)e, null);
-        }
-
-        if (checkPet)
-        {
-            return e => e is IHasSourceEvent && Owner.ByPlayerPet((IHasSourceEvent)e);
         }
 
         return null;
@@ -154,26 +141,13 @@ public class EventFilter<T> : EventFilter where T : Event
 
     private Expression<Func<Event, bool>>? GetToCheck(int to)
     {
-        var checkPlayer = (to & SELECTED_PLAYER) != 0;
-        var checkPet = (to & SELECTED_PLAYER_PET) != 0;
-
-        if (checkPlayer && checkPet)
-        {
-            return e => e is IHasTargetEvent && (Owner.ToPlayer((IHasTargetEvent)e, null) || Owner.ToPlayerPet((IHasTargetEvent)e));
-        }
-
-        if (checkPlayer)
+        if ((to & SELECTED_PLAYER) != 0)
         {
             return e => e is IHasTargetEvent && Owner.ToPlayer((IHasTargetEvent)e, null);
-        }
-
-        if (checkPet)
-        {
-            return e => e is IHasTargetEvent && Owner.ToPlayerPet((IHasTargetEvent)e);
         }
 
         return null;
     }
 
-    private static bool ValidateBy(int value) => (value & (SELECTED_PLAYER | SELECTED_PLAYER_PET)) == value;
+    private static bool ValidateBy(int value) => (value & SELECTED_PLAYER) == value;
 }

@@ -4,7 +4,7 @@ namespace FellowshipAnalyzer.Services;
 
 /// <summary>
 /// Scoped service that caches report info during a navigation session,
-/// allowing the analysis page to display fight/player names without an extra API call.
+/// allowing the analysis page to display dungeon/player names without an extra API call.
 /// </summary>
 public sealed class ReportNavigationState
 {

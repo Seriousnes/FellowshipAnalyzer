@@ -25,6 +25,8 @@
 </GuideSection>
 
 @code {
+    private int TotalDots => Parser.ArdeosDotTracker!.Count;
+
     private IEnumerable<OverviewStat> BuildOverviewStats()
     {
         var analyzers = Parser.WildfireComboAnalyzers.Select(entry => entry.Analyzer).ToList();
@@ -44,10 +46,10 @@
             new OverviewStat(
                 $"{successRate}%",
                 "Success Rate",
-                $"{successful} clean / {total} evaluated. A clean window needs at least {WildfireComboAnalyzer.DistinctDotSuccessThreshold} of the {WildfireComboAnalyzer.TotalDots} DoTs ticking on the target with {WildfireComboAnalyzer.EngulfingInstanceThreshold} Engulfing Flames instances, then at least {WildfireComboAnalyzer.DetonateSpamThreshold} Detonate casts inside the window.",
+                $"{successful} clean / {total} evaluated. A clean window needs at least {WildfireComboAnalyzer.DistinctDotSuccessThreshold} of the {TotalDots} DoTs ticking on the target with {WildfireComboAnalyzer.EngulfingInstanceThreshold} Engulfing Flames instances, then at least {WildfireComboAnalyzer.DetonateSpamThreshold} Detonate casts inside the window.",
                 PercentTier(successRate)),
             new OverviewStat(
-                $"{averageDots:0.0}/{WildfireComboAnalyzer.TotalDots}",
+                $"{averageDots:0.0}/{TotalDots}",
                 "Avg DoTs at Cast",
                 "Average distinct fire DoTs ticking on the target when Wildfire was cast."),
             new OverviewStat(
@@ -81,7 +83,7 @@
         var stats = new[]
         {
             new PerCastStat(
-                $"{window.DistinctDots}/{WildfireComboAnalyzer.TotalDots}",
+                $"{window.DistinctDots}/{TotalDots}",
                 "DoTs Ticking",
                 $"Distinct fire DoTs ticking on the target when Wildfire was cast ({WildfireComboAnalyzer.DistinctDotSuccessThreshold} or more is a complete setup).",
                 Performance: dotsPerf),
@@ -122,7 +124,7 @@
         };
     }
 
-    private static string BuildOutcome(WildfireComboAnalyzer.WildfireWindowEvaluation window)
+    private string BuildOutcome(WildfireComboAnalyzer.WildfireWindowEvaluation window)
     {
         if (window.Successful)
         {
@@ -133,7 +135,7 @@
                     : window.HasIncinerate
                         ? " Incinerate was cast in the setup."
                         : string.Empty;
-            return $"Wildfire was cast with {window.DistinctDots} of {WildfireComboAnalyzer.TotalDots} DoTs ticking and {window.EngulfingInstances} Engulfing Flames instances, then Detonate was cast {window.DetonateCasts} times inside the window." + note;
+            return $"Wildfire was cast with {window.DistinctDots} of {TotalDots} DoTs ticking and {window.EngulfingInstances} Engulfing Flames instances, then Detonate was cast {window.DetonateCasts} times inside the window." + note;
         }
 
         var reasons = new List<string>();
@@ -168,16 +170,10 @@
         return JoinReasons(reasons);
     }
 
-    private static List<string> MissingDots(WildfireComboAnalyzer.WildfireWindowEvaluation window)
-    {
-        var names = new List<string>();
-        foreach (var dot in ArdeosDots.All)
-        {
-            if (!window.ActiveDots.Contains(dot))
-                names.Add(dot.Cast?.Name ?? dot.Effect.Name);
-        }
-        return names;
-    }
+    private static List<string> MissingDots(WildfireComboAnalyzer.WildfireWindowEvaluation window) =>
+        [.. window.Coverage
+            .Where(entry => !entry.Active)
+            .Select(entry => entry.Dot.Cast?.Name ?? entry.Dot.Effect.Name)];
 
     private static string JoinNames(List<string> names)
     {

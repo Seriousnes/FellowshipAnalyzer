@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Components;
 namespace FellowshipAnalyzer.Core.Analysis;
 
 /// <summary>
-/// Base type for parse-lifetime state built once per report, registered with <c>[AddModule&lt;T&gt;]</c>
+/// Base type for dungeon-lifetime state built once per report, registered with <c>[AddModule&lt;T&gt;]</c>
 /// or <c>[AddState&lt;T&gt;]</c>. A module subscribing to events derives from <see cref="Analyzer"/>
 /// instead, which is what <c>[AddAnalyzer&lt;T&gt;]</c> registers.
 /// </summary>

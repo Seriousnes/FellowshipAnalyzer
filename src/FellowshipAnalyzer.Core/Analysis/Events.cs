@@ -47,10 +47,10 @@ public static class Events
     public static EventFilter<DeathEvent> Death => new();
     /// <summary>Matches <see cref="DispelEvent"/>s, raised when a buff or debuff is dispelled.</summary>
     public static EventFilter<DispelEvent> Dispel => new();
-    /// <summary>Matches <see cref="FightEndEvent"/>s, fabricated when a pull ends.</summary>
-    public static EventFilter<FightEndEvent> FightEnd => new();
-    /// <summary>Matches <see cref="FightStartEvent"/>s, fabricated when a pull starts.</summary>
-    public static EventFilter<FightStartEvent> FightStart => new();
+    /// <summary>Matches <see cref="DungeonEndEvent"/>s, fabricated when a pull ends.</summary>
+    public static EventFilter<DungeonEndEvent> DungeonEnd => new();
+    /// <summary>Matches <see cref="DungeonStartEvent"/>s, fabricated when a pull starts.</summary>
+    public static EventFilter<DungeonStartEvent> DungeonStart => new();
     /// <summary>Matches <see cref="HealEvent"/>s, raised on every healing tick.</summary>
     public static EventFilter<HealEvent> Heal => new();
     /// <summary>Matches <see cref="InterruptEvent"/>s, raised when a cast or channel is interrupted.</summary>

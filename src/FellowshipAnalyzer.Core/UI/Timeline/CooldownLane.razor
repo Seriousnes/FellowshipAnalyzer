@@ -30,13 +30,13 @@
     [Parameter, EditorRequired] public SpellbookAbility Ability { get; set; } = null!;
     [Parameter, EditorRequired] public IReadOnlyList<UpdateSpellUsableEvent> CooldownEvents { get; set; } = [];
 
-    /// <summary>True fight start, used as the origin for tooltip timestamps so they stay fight-relative.</summary>
-    [Parameter, EditorRequired] public int FightStartTime { get; set; }
+    /// <summary>True dungeon start, used as the origin for tooltip timestamps so they stay dungeon-relative.</summary>
+    [Parameter, EditorRequired] public int DungeonStartTime { get; set; }
 
-    /// <summary>Render-window start (selected pull start, or fight start). Geometry origin.</summary>
+    /// <summary>Render-window start (selected pull start, or dungeon start). Geometry origin.</summary>
     [Parameter, EditorRequired] public int WindowStart { get; set; }
 
-    /// <summary>Render-window end (selected pull end, or fight end). Geometry extent.</summary>
+    /// <summary>Render-window end (selected pull end, or dungeon end). Geometry extent.</summary>
     [Parameter, EditorRequired] public int WindowEnd { get; set; }
 
     [Parameter] public double PixelsPerSecond { get; set; } = 60.0;
@@ -54,7 +54,7 @@
 
     private string FormatTimestamp(int timestamp)
     {
-        var totalSec = (timestamp - FightStartTime) / 1000;
+        var totalSec = (timestamp - DungeonStartTime) / 1000;
         var min = totalSec / 60;
         var sec = totalSec % 60;
         return min > 0 ? $"{min}:{sec:D2}" : $"{sec}s";

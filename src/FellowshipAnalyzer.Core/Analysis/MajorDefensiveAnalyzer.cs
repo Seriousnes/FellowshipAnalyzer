@@ -73,7 +73,7 @@ public abstract class MajorDefensiveAnalyzer : Analyzer
     /// All mitigation and absorption on hits that landed inside the windows. This is coverage, not
     /// attribution: it is everything that stood between the player and those hits - passive reduction,
     /// other defensives, gear - not the share this defensive is responsible for. On a defensive with
-    /// high uptime it approaches the fight's whole mitigation total, so present it as what the windows
+    /// high uptime it approaches the pull's whole mitigation total, so present it as what the windows
     /// covered rather than as what this defensive prevented.
     /// </summary>
     public long MitigationInWindow => Result.Mitigated + Result.Absorbed;

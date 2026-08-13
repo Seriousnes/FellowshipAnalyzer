@@ -110,8 +110,17 @@
         },
     ];
 
-    private static readonly Pull _pull =
-        new(5, 6, "Deceitful Scholar", 0, 0, PullKind.Single, IsBoss: true, Kill: true, TargetCount: 1);
+    private static readonly PullStartEvent _pull = new()
+    {
+        Timestamp = 0,
+        End = new PullEndEvent { Timestamp = 0 },
+        Index = 5,
+        Id = 6,
+        Name = "Deceitful Scholar",
+        Targets = PullKind.Single,
+        IsBoss = true,
+        Kill = true,
+    };
 
     private RenderFragment DeceitfulScholarBanner => @<PullBanner Pull="_pull" />;
 

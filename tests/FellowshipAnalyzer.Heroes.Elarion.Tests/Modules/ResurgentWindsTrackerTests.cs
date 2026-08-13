@@ -22,10 +22,10 @@ public sealed class ResurgentWindsTrackerTests
     private const int PlayerId = 1;
     private const int EnemyId = 20;
 
-    private static readonly ReportFight Fight =
+    private static readonly ReportDungeon Dungeon =
         new(Id: 0, Name: "Boss", EncounterId: 31, Kill: true,
             StartTime: 0, EndTime: 30_000, Difficulty: null,
-            FriendlyPlayers: null, FightPercentage: null);
+            FriendlyPlayers: null, CompletionPercentage: null);
 
     [Fact]
     public async Task WithoutTheTalent_TheModuleIsInactive()
@@ -252,7 +252,7 @@ public sealed class ResurgentWindsTrackerTests
         using var scope = provider.CreateScope();
 
         var parser = scope.ServiceProvider.GetRequiredService<ElarionCombatLogParser>();
-        await parser.Analyze([.. events], PlayerId, Fight);
+        await parser.Analyze([.. events], PlayerId, Dungeon);
         return parser;
     }
 }

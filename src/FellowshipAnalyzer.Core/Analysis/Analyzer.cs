@@ -1,3 +1,5 @@
+using FellowshipAnalyzer.Core.Events;
+
 namespace FellowshipAnalyzer.Core.Analysis;
 
 /// <summary>
@@ -15,18 +17,16 @@ public class Analyzer : Module, IAnalyzerSurface
 {
     /// <summary>Bit flag matching <see cref="Actor.Player"/>, for filters built from a raw <c>int</c> actor mask instead of the <see cref="Actor"/> enum.</summary>
     public const int SELECTED_PLAYER = 1;
-    /// <summary>Bit flag matching <see cref="Actor.Pet"/>, for filters built from a raw <c>int</c> actor mask instead of the <see cref="Actor"/> enum.</summary>
-    public const int SELECTED_PLAYER_PET = 2;
 
     internal int NumExecutions { get; set; }
 
     /// <summary>
     /// The pull this analyzer instance was constructed for, meaningful on an analyzer declaring
     /// <c>[ForPull]</c>. Assigned by the parser in <see cref="CombatLogParser.BeginPull"/>, so get-style
-    /// accessors can reference pull-boundary values (e.g. <see cref="Pull.EndTime"/>) to close an
-    /// interval still open when the pull ends, without a pull-end finalization pass.
+    /// accessors can reference pull-boundary values (e.g. <see cref="PullStartEvent.EndTime"/>) to close
+    /// an interval still open when the pull ends, without a pull-end finalization pass.
     /// </summary>
-    public Pull Pull { get; internal set; } = null!;
+    public PullStartEvent Pull { get; internal set; } = null!;
 
     /// <summary>
     /// Wires up subscriptions declared via <see cref="OnAttribute{TEvent}"/>. The source generator

@@ -37,15 +37,15 @@ public sealed class GearCooldownAccelerationTests
     /// <summary>Emerald rank 10 ("Blessing of the Commander - II"), granting 12% ACR, per s3 gear_data.json.</summary>
     private const int EmeraldCap = 1500;
 
-    private static readonly ReportFight TestFight =
+    private static readonly ReportDungeon TestDungeon =
         new(Id: 0, Name: "", EncounterId: 0, Kill: null,
             StartTime: 0, EndTime: 60_000, Difficulty: null,
-            FriendlyPlayers: null, FightPercentage: null);
+            FriendlyPlayers: null, CompletionPercentage: null);
 
     [Fact]
     public void Legendary_ResolvesTenPercentAcceleration()
     {
-        var combatant = new Combatant(new CombatantInfoEvent { Gear = [new Item { Id = 999, Quality = LegendaryQuality }] });
+        var combatant = new FullCombatant(new CombatantInfoEvent { Gear = [new Item { Id = 999, Quality = LegendaryQuality }] });
 
         Assert.True(combatant.HasLegendary);
         Assert.Equal(0.10, combatant.Stats.CooldownAcceleration.Total(null), precision: 6);
@@ -54,7 +54,7 @@ public sealed class GearCooldownAccelerationTests
     [Fact]
     public void NoLegendary_ResolvesNoAcceleration()
     {
-        var combatant = new Combatant(new CombatantInfoEvent { Gear = [new Item { Id = 999, Quality = EpicQuality }] });
+        var combatant = new FullCombatant(new CombatantInfoEvent { Gear = [new Item { Id = 999, Quality = EpicQuality }] });
 
         Assert.False(combatant.HasLegendary);
         Assert.Equal(0.0, combatant.Stats.CooldownAcceleration.Total(null), precision: 6);
@@ -188,7 +188,7 @@ public sealed class GearCooldownAccelerationTests
         ];
 
         var parser = new TestParser(emitter, provider, moduleTypes, acceleration);
-        await parser.Analyze(events, PlayerId, fight: TestFight);
+        await parser.Analyze(events, PlayerId, dungeon: TestDungeon);
 
         return parser.GetModule<SpellUsable>()!;
     }
@@ -227,7 +227,7 @@ public sealed class GearCooldownAccelerationTests
         ];
 
         var parser = new TestParser(emitter, provider, moduleTypes);
-        await parser.Analyze(events, PlayerId, fight: TestFight);
+        await parser.Analyze(events, PlayerId, dungeon: TestDungeon);
 
         return parser.GetModule<SpellUsable>()!;
     }
@@ -241,17 +241,17 @@ public sealed class GearCooldownAccelerationTests
     {
         protected override Type[] GetModuleTypes() => moduleTypes;
 
-        protected override Type[] GetNormalizerTypes() => [typeof(FightBookendNormalizer)];
+        protected override Type[] GetNormalizerTypes() => [typeof(DungeonBookendNormalizer)];
 
-        protected override Combatant CreateSelectedCombatant(CombatantInfoEvent info) =>
+        protected override FullCombatant CreateSelectedCombatant(CombatantInfoEvent info) =>
             acceleration is null
                 ? base.CreateSelectedCombatant(info)
-                : new Combatant(info) { Stats = new CombatantStats { CooldownAcceleration = acceleration } };
+                : new FullCombatant(info) { Stats = new CombatantStats { CooldownAcceleration = acceleration } };
 
         protected override object? CreateInstance(Type type)
         {
             if (type == typeof(TestAbilities)) return new TestAbilities();
-            if (type == typeof(FightBookendNormalizer)) return new FightBookendNormalizer(CurrentParseContext);
+            if (type == typeof(DungeonBookendNormalizer)) return new DungeonBookendNormalizer(CurrentParseContext);
             return base.CreateInstance(type);
         }
     }

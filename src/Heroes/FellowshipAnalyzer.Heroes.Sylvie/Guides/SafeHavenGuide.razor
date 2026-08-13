@@ -39,11 +39,11 @@
             new OverviewStat(
                 $"{held * 100:F1}%",
                 "Held",
-                $"{allyMs / 1000:N0} of the {offered / 1000:N0} ally-seconds the placements offered, measured against the {SylvieKit.SafeHavenDurationMs / 1000}s duration and clamped where a pull ended first. Reported as context rather than scored, because an ally leaves the radius for reasons the log does not record."),
+                $"{allyMs / 1000:N0} of the {offered / 1000:N0} ally-seconds the placements offered, measured against the {SylvieKit.SafeHavenDurationMs / 1000}s duration and clamped where a pull ended first."),
             new OverviewStat(
                 $"{reached / (double)casts:F1}",
                 "Allies Per Placement",
-                $"{reached} ally arrivals across {casts} placements. The log lists no party roster, so this is not scored against a group size."),
+                $"{reached} ally arrivals across {casts} placements."),
             new OverviewStat(
                 $"{empty}/{casts}",
                 "Reached Nobody",

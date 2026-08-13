@@ -72,18 +72,10 @@ main {
 }
 
 .site-footer {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 0.5rem;
     padding: 1.5rem 2rem;
     margin-top: auto;
-    font-size: 0.78rem;
-    color: var(--fa-text-dim);
     border-top: 1px solid var(--fa-border);
 }
-
-.separator { opacity: 0.4; }
 
 #blazor-error-ui {
     color-scheme: light only;

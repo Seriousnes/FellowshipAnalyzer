@@ -40,7 +40,7 @@ public sealed class PullAnalyzerSurfaceTests
             Buff(550), Buff(600), Buff(650),
         };
 
-        await parser.Analyze(events, playerId: 7, fight: Fight(pulls));
+        await parser.Analyze(events, playerId: 7, dungeon: Dungeon(pulls));
 
         Assert.Equal(2, parser.PullBuffAnalyzers.Count);
         var (pull0, a0) = (parser.PullBuffAnalyzers[0].Pull, parser.PullBuffAnalyzers[0].Analyzer);
@@ -49,8 +49,8 @@ public sealed class PullAnalyzerSurfaceTests
         Assert.Equal(1, pull1.Index);
         Assert.Equal(2, a0.PullCount);
         Assert.Equal(3, a1.PullCount);
-        Assert.Equal(2, a0.FightCountAtEnd);
-        Assert.Equal(6, a1.FightCountAtEnd);
+        Assert.Equal(2, a0.DungeonCountAtEnd);
+        Assert.Equal(6, a1.DungeonCountAtEnd);
 
         Assert.Same(a0, pull0.PullBuffAnalyzer);
         Assert.Same(a1, pull1.PullBuffAnalyzer);
@@ -85,7 +85,7 @@ public sealed class PullAnalyzerSurfaceTests
             Buff(550), Buff(600), Buff(650),
         };
 
-        await parser.Analyze(events, playerId: 7, fight: Fight(pulls));
+        await parser.Analyze(events, playerId: 7, dungeon: Dungeon(pulls));
 
         Assert.Null(parser.SelectedPull);
         Assert.Equal(2, parser.PullBuffAnalyzers.Count);
@@ -122,16 +122,16 @@ public sealed class PullAnalyzerSurfaceTests
         var second = scope.ServiceProvider.GetRequiredService<PullSurfaceCombatLogParser>();
         Assert.NotSame(first, second);
 
-        var firstFight = Fight([
+        var firstDungeon = Dungeon([
             new(Id: 1, EncounterId: 0, Kill: null, StartTime: 100, EndTime: 300, Name: "Trash", EnemyNpcs: null),
         ]);
-        var secondFight = Fight([
+        var secondDungeon = Dungeon([
             new(Id: 2, EncounterId: 42, Kill: true, StartTime: 100, EndTime: 300, Name: "Boss", EnemyNpcs: null),
             new(Id: 3, EncounterId: 43, Kill: true, StartTime: 500, EndTime: 700, Name: "Boss Two", EnemyNpcs: null),
         ]);
 
-        await first.Analyze([Buff(150)], playerId: 7, fight: firstFight);
-        await second.Analyze([Buff(150), Buff(550)], playerId: 7, fight: secondFight);
+        await first.Analyze([Buff(150)], playerId: 7, dungeon: firstDungeon);
+        await second.Analyze([Buff(150), Buff(550)], playerId: 7, dungeon: secondDungeon);
 
         Assert.Equal(["Trash"], first.PullBuffAnalyzers.Select(entry => entry.Pull.Name));
         Assert.Equal(["Boss", "Boss Two"], second.PullBuffAnalyzers.Select(entry => entry.Pull.Name));
@@ -161,7 +161,7 @@ public sealed class PullAnalyzerSurfaceTests
             Buff(550), Buff(600),
         };
 
-        await parser.Analyze(events, playerId: 7, fight: Fight(pulls));
+        await parser.Analyze(events, playerId: 7, dungeon: Dungeon(pulls));
 
         Assert.Single(parser.SingleOnlyAnalyzers);
         var bossPull = parser.SingleOnlyAnalyzers[0].Pull;
@@ -178,21 +178,21 @@ public sealed class PullAnalyzerSurfaceTests
         Assert.Same(bossPull, parser.SingleOnlyAnalyzers[0].Pull);
     }
 
-    private static ReportFight Fight(IReadOnlyList<DungeonPull> pulls)
-        => new(Id: 0, Name: "Fight", EncounterId: 0, Kill: null,
+    private static ReportDungeon Dungeon(IReadOnlyList<DungeonPull> pulls)
+        => new(Id: 0, Name: "Dungeon", EncounterId: 0, Kill: null,
             StartTime: 0, EndTime: 1000, Difficulty: null,
-            FriendlyPlayers: null, FightPercentage: null, InProgress: false,
+            FriendlyPlayers: null, CompletionPercentage: null, InProgress: false,
             DungeonPulls: pulls);
 
     private static ApplyBuffEvent Buff(int timestamp)
         => new() { Timestamp = timestamp, SourceId = 7, TargetId = 7 };
 }
 
-[AddAnalyzer<FightBuffCounter>]
+[AddAnalyzer<DungeonBuffCounter>]
 [AddAnalyzer<PullBuffAnalyzer>]
 public sealed partial class PullSurfaceCombatLogParser : CombatLogParser { }
 
-public sealed partial class FightBuffCounter : Analyzer
+public sealed partial class DungeonBuffCounter : Analyzer
 {
     public int Count { get; private set; }
 
@@ -201,16 +201,16 @@ public sealed partial class FightBuffCounter : Analyzer
 }
 
 [ForPull(PullKind.Single | PullKind.Multi)]
-public sealed partial class PullBuffAnalyzer(Lazy<FightBuffCounter> state) : Analyzer
+public sealed partial class PullBuffAnalyzer(Lazy<DungeonBuffCounter> state) : Analyzer
 {
     public int PullCount { get; private set; }
-    public int FightCountAtEnd { get; private set; }
+    public int DungeonCountAtEnd { get; private set; }
 
     [On<ApplyBuffEvent>(By = Actor.Player)]
     private void OnBuff(ApplyBuffEvent e) => PullCount++;
 
     [On<PullEndEvent>]
-    private void OnPullEnd(PullEndEvent _) => FightCountAtEnd = state.Value.Count;
+    private void OnPullEnd(PullEndEvent _) => DungeonCountAtEnd = state.Value.Count;
 }
 
 [AddAnalyzer<SingleOnlyAnalyzer>]

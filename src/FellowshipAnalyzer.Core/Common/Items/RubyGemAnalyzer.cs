@@ -44,15 +44,15 @@ public sealed partial class RubyGemAnalyzer : Analyzer, IGemAnalyzer
     /// <inheritdoc/>
     public int GemPower => Owner.SelectedCombatant.Ruby;
 
-    /// <summary>Total time Might of the Minotaur was active over the fight, in milliseconds.</summary>
+    /// <summary>Total time Might of the Minotaur was active over the dungeon, in milliseconds.</summary>
     public int MightOfTheMinotaurUptimeMs =>
-        MightOfTheMinotaur.UptimeOn(Owner.SelectedCombatant, GemPower, Owner.FightStartTime, Owner.FightEndTime);
+        MightOfTheMinotaur.UptimeOn(Owner.SelectedCombatant, GemPower, Owner.DungeonStartTime, Owner.DungeonEndTime);
 
-    /// <summary>Might of the Minotaur's share of the fight, as a fraction.</summary>
+    /// <summary>Might of the Minotaur's share of the dungeon, as a fraction.</summary>
     public double MightOfTheMinotaurUptime =>
-        Owner.FightDurationMs > 0 ? (double)MightOfTheMinotaurUptimeMs / Owner.FightDurationMs : 0;
+        Owner.DungeonDurationMs > 0 ? (double)MightOfTheMinotaurUptimeMs / Owner.DungeonDurationMs : 0;
 
-    /// <summary>Effective healing Unyielding Vitality did over the fight.</summary>
+    /// <summary>Effective healing Unyielding Vitality did over the dungeon.</summary>
     public long UnyieldingVitalityHealing { get; private set; }
 
     /// <summary>Healing Unyielding Vitality lost to overheal.</summary>
@@ -80,8 +80,8 @@ public sealed partial class RubyGemAnalyzer : Analyzer, IGemAnalyzer
     private long ContributedShare(long amount) =>
         ConquerorBonus <= 0 ? 0 : (long)(amount * (ConquerorBonus / (1 + ConquerorBonus)));
 
-    [On<FightStartEvent>]
-    private void OnFightStart(FightStartEvent fightStartEvent)
+    [On<DungeonStartEvent>]
+    private void OnDungeonStart(DungeonStartEvent dungeonStartEvent)
     {
         if (Owner.SelectedCombatant.Auras.Any(aura => IsEssenceOfTheConqueror(aura.Ability)))
             OpenConquerorWindow();
@@ -117,8 +117,8 @@ public sealed partial class RubyGemAnalyzer : Analyzer, IGemAnalyzer
             CloseConquerorWindow();
     }
 
-    [On<FightEndEvent>]
-    private void OnFightEnd(FightEndEvent fightEndEvent)
+    [On<DungeonEndEvent>]
+    private void OnDungeonEnd(DungeonEndEvent dungeonEndEvent)
     {
         if (_conquerorActive)
             CloseConquerorWindow();

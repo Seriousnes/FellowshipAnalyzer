@@ -2,26 +2,20 @@
  * IndexedDB-backed cache for Fellowship Analyzer combat event data.
  *
  * Database: "fellowship-analyzer"
- *   Store "events": keyed by "{reportCode}/{fightId}/{playerId}"
- *     value: { eventsBlob: Blob, compression: 'gzip'|'identity', fightName: string|null,
+ *   Store "events": keyed by "{reportCode}/{dungeonId}/{playerId}"
+ *     value: { eventsBlob: Blob, compression: 'gzip'|'identity', dungeonName: string|null,
  *              playerName: string|null, heroId: string|null, cachedAt: number (ms since epoch),
  *              expiresAt: number|null (ms since epoch; null = never expires) }
  *   Store "history": same key, same metadata minus eventsBlob (for listing without loading events)
- *     value: { reportCode, fightId, playerId, fightName, playerName, heroId, cachedAt }
+ *     value: { reportCode, dungeonId, playerId, dungeonName, playerName, heroId, cachedAt }
  *   Store "masterdata": keyed by reportCode
  *     value: { masterDataJson: string }
  *
  *   Max 20 entries are kept; oldest (by cachedAt) are evicted on insert.
- * Version 4: added expiresAt to events entries.
- * Version 5: clears events/history; earlier broken server iterations returned
- *   double-encoded payloads that were cached as if they were plain JSON. Those
- *   entries hang on decompress and must be evicted.
- * Version 6: clears events/history; entries now hold the merged player-events + fight-scoped
- *   death stream. Earlier entries carry only the player's own kills, an incomplete death set.
  */
 
 const DB_NAME = 'fellowship-analyzer';
-const DB_VERSION = 6;
+const DB_VERSION = 7;
 const EVENTS_STORE = 'events';
 const HISTORY_STORE = 'history';
 const MASTERDATA_STORE = 'masterdata';
@@ -62,6 +56,15 @@ function openDb() {
                 }
                 if (db.objectStoreNames.contains(HISTORY_STORE)) {
                     event.target.transaction.objectStore(HISTORY_STORE).clear();
+                }
+            }
+
+            if (event.oldVersion > 0 && event.oldVersion < 7) {
+                if (db.objectStoreNames.contains(HISTORY_STORE)) {
+                    event.target.transaction.objectStore(HISTORY_STORE).clear();
+                }
+                if (db.objectStoreNames.contains(MASTERDATA_STORE)) {
+                    event.target.transaction.objectStore(MASTERDATA_STORE).clear();
                 }
             }
         };
@@ -135,9 +138,9 @@ async function decompressBlob(blob, compression) {
  * Returns null on cache miss or if the entry has exceeded its server-provided expiry.
  * @returns {Promise<Uint8Array|null>} Raw events JSON bytes, or null on miss/expired.
  */
-export async function getCachedEventsBytes(reportCode, fightId, playerId) {
+export async function getCachedEventsBytes(reportCode, dungeonId, playerId) {
     const db = await openDb();
-    const key = `${reportCode}/${fightId}/${playerId}`;
+    const key = `${reportCode}/${dungeonId}/${playerId}`;
     const t = txn(db, [EVENTS_STORE, HISTORY_STORE], 'readwrite');
     const entry = await promisify(t.objectStore(EVENTS_STORE).get(key));
     if (!entry?.eventsBlob) return null;
@@ -163,26 +166,26 @@ export async function getCachedEventsBytes(reportCode, fightId, playerId) {
 }
 
 /**
- * Store events + metadata for a completed fight.
+ * Store events + metadata for a completed dungeon.
  * Evicts the oldest entry when the store exceeds MAX_ENTRIES.
  *
  * @param {string} reportCode
- * @param {number} fightId
+ * @param {number} dungeonId
  * @param {number} playerId
  * @param {Uint8Array} eventsJsonBytes    UTF-8 EventsResult JSON bytes
- * @param {string|null} fightName
+ * @param {string|null} dungeonName
  * @param {string|null} playerName
  * @param {string|null} heroId
  * @param {number|null} expiresAtMs  Server-provided expiry as epoch milliseconds, or null.
  */
-export async function cacheEventsBytes(reportCode, fightId, playerId, eventsJsonBytes, fightName, playerName, heroId, expiresAtMs) {
+export async function cacheEventsBytes(reportCode, dungeonId, playerId, eventsJsonBytes, dungeonName, playerName, heroId, expiresAtMs) {
     const db = await openDb();
-    const key = `${reportCode}/${fightId}/${playerId}`;
+    const key = `${reportCode}/${dungeonId}/${playerId}`;
     const cachedAt = Date.now();
     const { blob: eventsBlob, compression } = await compressBytes(eventsJsonBytes);
     const expiresAt = (expiresAtMs != null && expiresAtMs > 0) ? expiresAtMs : null;
 
-    const meta = { reportCode, fightId, playerId, fightName, playerName, heroId, cachedAt };
+    const meta = { reportCode, dungeonId, playerId, dungeonName, playerName, heroId, cachedAt };
 
     const t = txn(db, [EVENTS_STORE, HISTORY_STORE], 'readwrite');
     const eventsStore = t.objectStore(EVENTS_STORE);
@@ -226,9 +229,9 @@ export async function getHistory() {
 /**
  * Remove a single entry from both stores.
  */
-export async function removeEntry(reportCode, fightId, playerId) {
+export async function removeEntry(reportCode, dungeonId, playerId) {
     const db = await openDb();
-    const key = `${reportCode}/${fightId}/${playerId}`;
+    const key = `${reportCode}/${dungeonId}/${playerId}`;
     const t = txn(db, [EVENTS_STORE, HISTORY_STORE], 'readwrite');
     t.objectStore(EVENTS_STORE).delete(key);
     t.objectStore(HISTORY_STORE).delete(key);

@@ -2,7 +2,7 @@ namespace FellowshipAnalyzer.Core.UI.Components;
 
 /// <summary>
 /// Shared JavaScript formatter snippets used by chart libraries (e.g. ApexCharts) to render
-/// fight-relative timestamps. Centralised here so the same literal isn't duplicated across
+/// dungeon-relative timestamps. Centralised here so the same literal isn't duplicated across
 /// chart components.
 /// </summary>
 public static class TimeFormatters

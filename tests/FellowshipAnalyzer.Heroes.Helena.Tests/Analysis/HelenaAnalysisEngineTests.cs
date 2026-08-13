@@ -25,7 +25,7 @@ public sealed class HelenaAnalysisEngineTests
         using var scope = provider.CreateScope();
 
         var analyzer = scope.ServiceProvider.GetRequiredKeyedService<IHeroAnalyzer>(HeroName.Helena);
-        var result = await analyzer.Analyze([], playerId: 1, fight: new ReportFight(0, "", 0, null, 0, 0, null, null, null));
+        var result = await analyzer.Analyze([], playerId: 1, dungeon: new ReportDungeon(0, "", 0, null, 0, 0, null, null, null));
 
         result.GuideComponentType.ShouldNotBeNull();
     }

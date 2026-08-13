@@ -105,7 +105,7 @@ public sealed class RollingFlamesAnalyzerTests
         using var scope = provider.CreateScope();
 
         var parser = scope.ServiceProvider.GetRequiredService<ArdeosCombatLogParser>();
-        await parser.Analyze(events, PlayerId, new ReportFight(0, "", 0, null, 0, 10000, null, null, null));
+        await parser.Analyze(events, PlayerId, new ReportDungeon(0, "", 0, null, 0, 10000, null, null, null));
         return parser.GetModule<RollingFlamesAnalyzer>();
     }
 }

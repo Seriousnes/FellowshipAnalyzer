@@ -8,7 +8,6 @@ using ArdeosTalents = FellowshipAnalyzer.Core.Common.Spells.ArdeosTalents;
 namespace FellowshipAnalyzer.Heroes.Ardeos.Modules;
 
 [ForPull(PullKind.Single | PullKind.Multi)]
-[Dependency<Combatants>]
 [Dependency<ArdeosDotTracker>]
 public sealed partial class DetonateEfficiencyAnalyzer : Analyzer
 {
@@ -58,7 +57,7 @@ public sealed partial class DetonateEfficiencyAnalyzer : Analyzer
 
     public int PeakLayeredInstances => LayerTimeline.Count == 0 ? 0 : LayerTimeline.Max(sample => sample.Total);
 
-    public bool ApocalypticSurgeTalented => Combatants.Selected.HasTalent(ArdeosTalents.ApocalypticSurge);
+    public bool ApocalypticSurgeTalented => Owner.SelectedCombatant.HasTalent(ArdeosTalents.ApocalypticSurge);
 
     public int FreeCasts => _casts.Count(cast => cast.Free);
 
@@ -90,7 +89,7 @@ public sealed partial class DetonateEfficiencyAnalyzer : Analyzer
             TotalInstances = totalInstances,
             MaxTargetInstances = maxTargetInstances,
             Coverage = ArdeosDotTracker.CoverageAcross(targets, e.Timestamp),
-            Free = Owner.SelectedCombatant.HasBuff(Spells.ApocalypticSurge.FSLID, e.Timestamp, bufferTime: SurgeBufferMs),
+            Free = Owner.SelectedCombatant.HasBuff(Spells.ApocalypticSurge, e.Timestamp, bufferTime: SurgeBufferMs),
         });
     }
 

@@ -34,7 +34,7 @@ public sealed class EventEmitter(ILogger<EventEmitter> logger) : Module
     }
 
     /// <summary>
-    /// Orders the state listener tier by <see cref="Module.Priority"/>. Called once the parse-lifetime
+    /// Orders the state listener tier by <see cref="Module.Priority"/>. Called once the dungeon-lifetime
     /// modules have registered, which is the only time that tier changes.
     /// </summary>
     public void SortListeners()
@@ -75,16 +75,15 @@ public sealed class EventEmitter(ILogger<EventEmitter> logger) : Module
         [.. listeners.OrderBy(static listener => listener.Module.Priority)];
 
     /// <summary>
-    /// Dispatches all events sequentially, processing fabricated events inline.
+    /// Dispatches all events sequentially in the order it receives them, processing fabricated events
+    /// inline. <see cref="CombatLogParser.Events"/> is already ascending by timestamp, which
+    /// <see cref="FabricateEvent"/> and <see cref="Schedule"/> rely on to place what they insert.
     /// Yields to the UI scheduler on a <see cref="ProgressPacer"/> interval to maintain responsiveness.
     /// </summary>
     public async Task DispatchEventsAsync(List<Event> events, ReportLoadingTracker? tracker = null)
     {
         _events = events;
         _scheduled.Clear();
-        var ordered = events.OrderBy(static e => e.Timestamp).ToArray();
-        for (var i = 0; i < ordered.Length; i++)
-            events[i] = ordered[i];
 
         var pacer = new ProgressPacer();
         for (var i = 0; i < events.Count; i++)
@@ -102,11 +101,11 @@ public sealed class EventEmitter(ILogger<EventEmitter> logger) : Module
             switch (e)
             {
                 case PullStartEvent pullStart:
-                    Owner.BeginPull(pullStart.Pull);
+                    Owner.BeginPull(pullStart);
                     await TriggerEventAsync(e);
                     break;
                 case PullEndEvent pullEnd:
-                    Owner.EndPull(pullEnd.Pull);
+                    Owner.EndPull(pullEnd.Start);
                     break;
                 default:
                     await TriggerEventAsync(e);
@@ -142,7 +141,7 @@ public sealed class EventEmitter(ILogger<EventEmitter> logger) : Module
 
     /// <summary>
     /// Dispatches <paramref name="e"/> synchronously to the state and current pull listener tiers.
-    /// Used by <see cref="CombatLogParser.EndPull"/> to deliver a pull's <see cref="FellowshipAnalyzer.Core.Events.PullEndEvent"/>
+    /// Used by <see cref="CombatLogParser.EndPull"/> to deliver a pull's <see cref="PullEndEvent"/>
     /// to that pull's own listeners at the moment it closes, before the pull tier is retired — the one
     /// point that fires reliably for every pull, including a force-close by <see cref="CombatLogParser.BeginPull"/>.
     /// Pull-end handlers are synchronous.
@@ -242,7 +241,7 @@ public sealed class EventEmitter(ILogger<EventEmitter> logger) : Module
     /// when the drain in <see cref="DispatchEventsAsync"/> reaches an unscheduled event with a strictly
     /// greater timestamp. Used for a natural cooldown expiry whose true instant may fall in a gap between
     /// logged events. A scheduled end that never precedes a later event - one past the final event, such as a
-    /// cooldown still recharging at fight end - is left unfired when the stream ends rather than dispatched in
+    /// cooldown still recharging at dungeon end - is left unfired when the stream ends rather than dispatched in
     /// post-combat dead time.
     /// </summary>
     public void Schedule(Event e, Event? trigger = null)

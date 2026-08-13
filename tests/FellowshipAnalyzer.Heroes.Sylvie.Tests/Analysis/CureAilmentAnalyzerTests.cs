@@ -11,7 +11,7 @@ namespace FellowshipAnalyzer.Heroes.Sylvie.Tests.Analysis;
 public sealed class CureAilmentAnalyzerTests
 {
     [Fact]
-    public async Task TheFightLifetimeTrackerKeepsEveryDispel()
+    public async Task TheDungeonLifetimeTrackerKeepsEveryDispel()
     {
         var parser = await Analyze(
             Dispel(PullStart + 1_000, Spells.CureAilment, TankId, Spells.EnfeeblingRootsapDebuff),

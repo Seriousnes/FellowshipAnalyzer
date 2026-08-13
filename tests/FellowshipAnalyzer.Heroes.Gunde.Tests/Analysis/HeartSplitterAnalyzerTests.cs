@@ -212,7 +212,7 @@ public sealed class HeartSplitterAnalyzerTests
     [Fact]
     public async Task Analyze_RetainsTheAnalyzerOnEveryPullReadPath()
     {
-        var (parser, _) = await RunAsync([Cast(Spells.HeartSplitter.FSLID, 1_000, BossId)], BossFight());
+        var (parser, _) = await RunAsync([Cast(Spells.HeartSplitter.FSLID, 1_000, BossId)], BossDungeon());
 
         var entry = parser.HeartSplitterAnalyzers.ShouldHaveSingleItem();
         entry.Pull.HeartSplitterAnalyzer.ShouldBeSameAs(entry.Analyzer);
@@ -220,14 +220,14 @@ public sealed class HeartSplitterAnalyzerTests
     }
 
     [Fact]
-    public async Task Analyze_TracksRendAcrossTheWholeFight()
+    public async Task Analyze_TracksRendAcrossTheWholeDungeon()
     {
         var (parser, _) = await RunAsync(
         [
             RendApplied(1_000, BossId),
             RendStack(2_000, BossId, 64),
             Cast(Spells.HeartSplitter.FSLID, 5_000, BossId),
-        ], BossFight());
+        ], BossDungeon());
 
         var tracker = parser.RendStackTracker.ShouldNotBeNull();
         tracker.StacksOn(BossId, 0).ShouldBe(64);
@@ -244,7 +244,7 @@ public sealed class HeartSplitterAnalyzerTests
             RendApplied(1_000, BossId),
             RendStack(2_000, BossId, 64),
             RendRemoved(5_000, BossId),
-        ], BossFight());
+        ], BossDungeon());
 
         var tracker = parser.RendStackTracker.ShouldNotBeNull();
         var removal = tracker.Removals.ShouldHaveSingleItem();
@@ -306,16 +306,16 @@ public sealed class HeartSplitterAnalyzerTests
         Target = new CastTarget(),
     };
 
-    private static ReportFight BossFight() => new(0, "Boss", 1, null, 0, PullEnd, null, null, null);
+    private static ReportDungeon BossDungeon() => new(0, "Boss", 1, null, 0, PullEnd, null, null, null);
 
     private static async Task<HeartSplitterAnalyzer> AnalyzeAsync(List<Event> events)
     {
-        var (parser, _) = await RunAsync(events, BossFight());
+        var (parser, _) = await RunAsync(events, BossDungeon());
         return parser.HeartSplitterAnalyzers.ShouldHaveSingleItem().Analyzer;
     }
 
     private static async Task<(GundeCombatLogParser Parser, HeroAnalysisResult Result)> RunAsync(
-        List<Event> events, ReportFight fight)
+        List<Event> events, ReportDungeon dungeon)
     {
         var services = new ServiceCollection();
         services.AddLogging();
@@ -326,7 +326,7 @@ public sealed class HeartSplitterAnalyzerTests
         using var scope = provider.CreateScope();
 
         var parser = scope.ServiceProvider.GetRequiredService<GundeCombatLogParser>();
-        var result = await parser.Analyze(events, PlayerId, fight);
+        var result = await parser.Analyze(events, PlayerId, dungeon);
         return (parser, result);
     }
 

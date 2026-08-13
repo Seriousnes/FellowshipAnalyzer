@@ -103,16 +103,16 @@
 
 @code {
     /// <summary>The pulls offered as filter targets, in encounter order.</summary>
-    [Parameter, EditorRequired] public IReadOnlyList<Pull> Pulls { get; set; } = [];
+    [Parameter, EditorRequired] public IReadOnlyList<PullStartEvent> Pulls { get; set; } = [];
 
     /// <summary>The selected pull, or <c>null</c> for "Entire Dungeon" (no clamp).</summary>
-    [Parameter] public Pull? Value { get; set; }
+    [Parameter] public PullStartEvent? Value { get; set; }
 
     /// <summary>Raised when the selection changes; supports <c>@@bind-Value</c>.</summary>
-    [Parameter] public EventCallback<Pull?> ValueChanged { get; set; }
+    [Parameter] public EventCallback<PullStartEvent?> ValueChanged { get; set; }
 
-    /// <summary>Fight start time in milliseconds, used to render fight-relative pull ranges.</summary>
-    [Parameter, EditorRequired] public int FightStartTime { get; set; }
+    /// <summary>Dungeon start time in milliseconds, used to render dungeon-relative pull ranges.</summary>
+    [Parameter, EditorRequired] public int DungeonStartTime { get; set; }
 
     [Parameter(CaptureUnmatchedValues = true)]
     public Dictionary<string, object> InputAttributes { get; set; } = new();
@@ -151,7 +151,7 @@
 
     private string TriggerLabel => Value is null ? "Entire Dungeon" : DisplayName(Value);
 
-    private static string DisplayName(Pull pull) =>
+    private static string DisplayName(PullStartEvent pull) =>
         string.IsNullOrWhiteSpace(pull.Name)
             ? $"Pull #{pull.Index + 1}"
             : $"Pull #{pull.Index + 1} - {pull.Name}";
@@ -166,8 +166,8 @@
         return state.Trim();
     }
 
-    private string FormatRange(Pull pull) =>
-        $"({FormatClock(pull.StartTime - FightStartTime)} - {FormatClock(pull.EndTime - FightStartTime)})";
+    private string FormatRange(PullStartEvent pull) =>
+        $"({FormatClock(pull.StartTime - DungeonStartTime)} - {FormatClock(pull.EndTime - DungeonStartTime)})";
 
     private static string FormatClock(int milliseconds)
     {
@@ -191,7 +191,7 @@
 
     private void OnFocusOut() => _open = false;
 
-    private async Task Select(Pull? pull)
+    private async Task Select(PullStartEvent? pull)
     {
         _open = false;
         if (!ReferenceEquals(pull, Value))

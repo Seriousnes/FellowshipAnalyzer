@@ -18,12 +18,12 @@ namespace FellowshipAnalyzer.Heroes.Tariq.Tests.Analysis;
 public sealed class RisingSpiritTrackerTests
 {
     private const int PlayerId = 7;
-    private const int FightEnd = 100_000;
+    private const int DungeonEnd = 100_000;
 
     private static readonly int RisingSpiritId = TariqSpells.RisingSpirit.FSLID;
 
     [Fact]
-    public async Task Analyze_RisingSpirit_MeasuresUptimeOverTheFight()
+    public async Task Analyze_RisingSpirit_MeasuresUptimeOverTheDungeon()
     {
         var tracker = await AnalyzeAsync(
         [
@@ -33,13 +33,13 @@ public sealed class RisingSpiritTrackerTests
 
         tracker.Applications.ShouldBe(1);
         tracker.TotalActiveMs.ShouldBe(50_000);
-        tracker.FightDurationMs.ShouldBe(FightEnd);
+        tracker.DungeonDurationMs.ShouldBe(DungeonEnd);
         tracker.UptimeShare.ShouldBe(0.5, tolerance: 0.0001);
         tracker.CurrentStacks.ShouldBe(0);
     }
 
     [Fact]
-    public async Task Analyze_RisingSpirit_ClosesABuffStillHeldWhenTheFightEnds()
+    public async Task Analyze_RisingSpirit_ClosesABuffStillHeldWhenTheDungeonEnds()
     {
         var tracker = await AnalyzeAsync(
         [
@@ -181,8 +181,8 @@ public sealed class RisingSpiritTrackerTests
         using var scope = provider.CreateScope();
 
         var parser = scope.ServiceProvider.GetRequiredService<TariqCombatLogParser>();
-        var fight = new ReportFight(0, "Boss", 1, true, 0, FightEnd, null, null, null);
-        await parser.Analyze(events, playerId: PlayerId, fight: fight);
+        var dungeon = new ReportDungeon(0, "Boss", 1, true, 0, DungeonEnd, null, null, null);
+        await parser.Analyze(events, playerId: PlayerId, dungeon: dungeon);
         return parser.GetModule<RisingSpiritTracker>().ShouldNotBeNull();
     }
 }

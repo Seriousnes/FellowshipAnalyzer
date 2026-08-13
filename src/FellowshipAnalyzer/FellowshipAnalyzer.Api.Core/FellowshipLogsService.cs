@@ -14,18 +14,18 @@ internal sealed record RawEventsResult(byte[] JsonBytes, bool InProgress, bool H
 public sealed class FellowshipLogsService(IFellowshipLogsApiClient client, GraphQLMapper mapper, RecyclableMemoryStreamManager streamManager)
 {
     internal async Task<RawEventsResult> GetRawEventsAsync(
-        string reportCode, int playerId, int fightId,
+        string reportCode, int playerId, int dungeonId,
         CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(reportCode))
             throw new ArgumentException("Report code is required.", nameof(reportCode));
         if (playerId <= 0)
             throw new ArgumentOutOfRangeException(nameof(playerId), "Player ID must be greater than zero.");
-        if (fightId <= 0)
-            throw new ArgumentOutOfRangeException(nameof(fightId), "Fight ID must be greater than zero.");
+        if (dungeonId <= 0)
+            throw new ArgumentOutOfRangeException(nameof(dungeonId), "Dungeon ID must be greater than zero.");
 
         var result = await client.GetEvents.ExecuteAsync(
-            reportCode, new int?[] { fightId }, playerId, cancellationToken);
+            reportCode, new int?[] { dungeonId }, playerId, cancellationToken);
         ThrowIfErrors(result);
 
         var report = result.Data!.ReportData?.Report
@@ -64,23 +64,23 @@ public sealed class FellowshipLogsService(IFellowshipLogsApiClient client, Graph
     }
 
     /// <summary>
-    /// Fetches all death events for a fight regardless of who landed the kill or which side died.
+    /// Fetches all death events for a dungeon regardless of who landed the kill or which side died.
     /// The Fellowship Logs <c>events(dataType: Deaths)</c> stream is split by <c>hostilityType</c>:
     /// the enemy view returns enemy deaths, the friendly view returns player deaths. Neither value
     /// returns both, so both are fetched and concatenated into a single <c>events</c> array. This is
-    /// fight-scoped (no player filter), so it is shared by every combatant in the fight.
+    /// dungeon-scoped (no player filter), so it is shared by every combatant in the dungeon.
     /// </summary>
     internal async Task<RawEventsResult> GetRawDeathsAsync(
-        string reportCode, int fightId,
+        string reportCode, int dungeonId,
         CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(reportCode))
             throw new ArgumentException("Report code is required.", nameof(reportCode));
-        if (fightId <= 0)
-            throw new ArgumentOutOfRangeException(nameof(fightId), "Fight ID must be greater than zero.");
+        if (dungeonId <= 0)
+            throw new ArgumentOutOfRangeException(nameof(dungeonId), "Dungeon ID must be greater than zero.");
 
         var result = await client.GetDeaths.ExecuteAsync(
-            reportCode, new int?[] { fightId }, cancellationToken);
+            reportCode, new int?[] { dungeonId }, cancellationToken);
         ThrowIfErrors(result);
 
         var report = result.Data!.ReportData?.Report
@@ -122,12 +122,14 @@ public sealed class FellowshipLogsService(IFellowshipLogsApiClient client, Graph
     }
 
     public async Task<AnalysisPreload> GetReportMasterDataAsync(
-        string reportCode, CancellationToken cancellationToken = default)
+        string reportCode, int? dungeonId = null, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(reportCode))
             throw new ArgumentException("Report code is required.", nameof(reportCode));
 
-        var result = await client.GetReportMasterData.ExecuteAsync(reportCode, cancellationToken);
+        int?[] dungeonIds = dungeonId is { } id ? [id] : [];
+        var result = await client.GetReportMasterData.ExecuteAsync(
+            reportCode, dungeonIds, dungeonId is not null, cancellationToken);
         ThrowIfErrors(result);
 
         var report = result.Data!.ReportData?.Report

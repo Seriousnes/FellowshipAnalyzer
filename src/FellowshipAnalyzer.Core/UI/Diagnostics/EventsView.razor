@@ -198,7 +198,7 @@
 
     private string FormatTime(int timestamp)
     {
-        var ms = timestamp - FightStartTime;
+        var ms = timestamp - DungeonStartTime;
         var absMs = Math.Abs(ms);
         var min = absMs / 60_000;
         var sec = (absMs / 1000) % 60;
@@ -339,7 +339,7 @@
 
             ["globalcooldown"]     = new("Global Cooldown", "Fabricated GCD event.", IsFabricated: true),
             ["updatespellusable"]  = new("Spell Usable Update", "Fabricated cooldown tracking event.", IsFabricated: true),
-            ["combatantinfo"]      = new("Player Info", "Player gear and talents at fight start."),
-            ["fightend"]           = new("Fight End"),
+            ["combatantinfo"]      = new("Player Info", "Player gear and talents at dungeon start."),
+            ["dungeonend"]         = new("Dungeon End"),
         };
 }

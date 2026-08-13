@@ -42,10 +42,10 @@ public sealed partial class SpellUsableTests
     /// <summary>Ability id of the in-stream buff that triggers a modifier removal via the probe callback.</summary>
     private const int RemoveTriggerId = 8887;
 
-    private static readonly ReportFight TestFight =
+    private static readonly ReportDungeon TestDungeon =
         new(Id: 0, Name: "", EncounterId: 0, Kill: null,
             StartTime: 0, EndTime: 60_000, Difficulty: null,
-            FriendlyPlayers: null, FightPercentage: null);
+            FriendlyPlayers: null, CompletionPercentage: null);
 
     /// <summary>
     /// SpellA cast at t=1000 with base CD=10000ms recharges to t=11000. A 1.0 acceleration modifier
@@ -332,9 +332,9 @@ public sealed partial class SpellUsableTests
 
     /// <summary>
     /// A cooldown whose true expiry falls past the final logged event is deliberately not fired: an end with
-    /// no later event to precede is dead time after the fight and is dropped rather than dispatched in
-    /// post-combat time. In a real report the appended fight-end bookend is the final event, so every in-fight
-    /// expiry still fires via the in-stream drain; only genuinely post-fight ends are left unfired, and the
+    /// no later event to precede is dead time after the dungeon and is dropped rather than dispatched in
+    /// post-combat time. In a real report the appended dungeon-end bookend is the final event, so every expiry
+    /// inside the dungeon still fires via the in-stream drain; only ends past it are left unfired, and the
     /// cooldown stays in flight in the tracker rather than being force-completed.
     /// </summary>
     [Fact]
@@ -441,7 +441,7 @@ public sealed partial class SpellUsableTests
         ];
 
         var parser = new TestCombatLogParser(emitter, provider, moduleTypes) { OnApplyBuff = onApplyBuff };
-        await parser.Analyze(events, PlayerId, fight: TestFight);
+        await parser.Analyze(events, PlayerId, dungeon: TestDungeon);
 
         return (parser, parser.GetModule<SpellUsable>()!, parser.GetModule<UpdateProbeModule>()!);
     }

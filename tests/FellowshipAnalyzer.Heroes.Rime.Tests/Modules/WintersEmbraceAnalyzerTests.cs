@@ -27,20 +27,20 @@ public sealed class WintersEmbraceAnalyzerTests
     private const int WindowStart = 1_000;
     private const int WindowEnd = 4_000;
 
-    private static readonly ReportFight BossFight = new(
+    private static readonly ReportDungeon BossDungeon = new(
         Id: 0, Name: "Boss", EncounterId: 1, Kill: true,
         StartTime: 0, EndTime: 60_000, Difficulty: null,
-        FriendlyPlayers: null, FightPercentage: null);
+        FriendlyPlayers: null, CompletionPercentage: null);
 
     private static readonly IReadOnlyList<DungeonPull> TrashPulls =
     [
         new(Id: 1, EncounterId: 0, Kill: null, StartTime: 0, EndTime: 20_000, Name: "Trash", EnemyNpcs: null),
     ];
 
-    private static readonly ReportFight TrashFight = new(
+    private static readonly ReportDungeon TrashDungeon = new(
         Id: 0, Name: "Dungeon", EncounterId: 0, Kill: null,
         StartTime: 0, EndTime: 20_000, Difficulty: null,
-        FriendlyPlayers: null, FightPercentage: null, InProgress: false,
+        FriendlyPlayers: null, CompletionPercentage: null, InProgress: false,
         DungeonPulls: TrashPulls);
 
     [Theory]
@@ -300,7 +300,7 @@ public sealed class WintersEmbraceAnalyzerTests
     public async Task PerPullReadPathsResolveToTheSameAnalyzerInstance()
     {
         var parser = await Analyze(
-            BossFight,
+            BossDungeon,
             Combatant(),
             BurstingIce(WindowStart, orbs: 4),
             EmbraceApplied(WindowStart),
@@ -382,17 +382,17 @@ public sealed class WintersEmbraceAnalyzerTests
 
     private static async Task<WintersEmbraceAnalyzer> AnalyzeSingleTarget(params Event[] events)
     {
-        var parser = await Analyze(BossFight, events);
+        var parser = await Analyze(BossDungeon, events);
         return parser.WintersEmbraceAnalyzers.ShouldHaveSingleItem().Analyzer;
     }
 
     private static async Task<WintersEmbraceAnalyzer> AnalyzeMulti(params Event[] events)
     {
-        var parser = await Analyze(TrashFight, events);
+        var parser = await Analyze(TrashDungeon, events);
         return parser.WintersEmbraceAnalyzers.ShouldHaveSingleItem().Analyzer;
     }
 
-    private static async Task<RimeCombatLogParser> Analyze(ReportFight fight, params Event[] events)
+    private static async Task<RimeCombatLogParser> Analyze(ReportDungeon dungeon, params Event[] events)
     {
         var services = new ServiceCollection();
         services.AddLogging();
@@ -403,7 +403,7 @@ public sealed class WintersEmbraceAnalyzerTests
         using var scope = provider.CreateScope();
 
         var parser = scope.ServiceProvider.GetRequiredService<RimeCombatLogParser>();
-        await parser.Analyze([.. events], PlayerId, fight);
+        await parser.Analyze([.. events], PlayerId, dungeon);
         return parser;
     }
 }

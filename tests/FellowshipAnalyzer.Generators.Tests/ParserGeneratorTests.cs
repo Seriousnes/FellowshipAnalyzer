@@ -14,7 +14,7 @@ public class ParserGeneratorTests
         using FellowshipAnalyzer.Core.Events;
         """;
 
-    private const string PullFqn = "global::FellowshipAnalyzer.Core.Analysis.Pull";
+    private const string PullFqn = "global::FellowshipAnalyzer.Core.Events.PullStartEvent";
     private const string PullKindFqn = "global::FellowshipAnalyzer.Core.Analysis.PullKind";
 
     [Fact]
@@ -96,7 +96,7 @@ public class ParserGeneratorTests
         gen.ShouldContain($"public ComboPullView For({PullFqn} pull) => new(pull);");
         gen.ShouldContain($"public readonly struct ComboPullView({PullFqn} pull)");
         gen.ShouldContain($"extension({PullFqn} pull)");
-        gen.ShouldContain("public global::Test.ComboAnalyzer? ComboAnalyzer => (global::Test.ComboAnalyzer?)pull.GetAnalyzer(typeof(global::Test.ComboAnalyzer));");
+        gen.ShouldContain("public global::Test.ComboAnalyzer? ComboAnalyzer => (global::Test.ComboAnalyzer?)pull.Metadata.GetAnalyzer(typeof(global::Test.ComboAnalyzer));");
         AssertNoErrors(result);
     }
 
@@ -135,7 +135,7 @@ public class ParserGeneratorTests
         OccurrenceCount(gen, "_comboAnalyzers = new();").ShouldBe(1);
         OccurrenceCount(gen, "case global::Test.IComboAnalyzer").ShouldBe(1);
         gen.ShouldContain("public global::System.Collections.Generic.IReadOnlyList<global::FellowshipAnalyzer.Core.Analysis.PullAnalyzer<global::Test.IComboAnalyzer>> ComboAnalyzers => ClampToSelectedPull(_comboAnalyzers);");
-        gen.ShouldContain("public global::Test.IComboAnalyzer? ComboAnalyzer => (global::Test.IComboAnalyzer?)pull.GetAnalyzer(typeof(global::Test.IComboAnalyzer));");
+        gen.ShouldContain("public global::Test.IComboAnalyzer? ComboAnalyzer => (global::Test.IComboAnalyzer?)pull.Metadata.GetAnalyzer(typeof(global::Test.IComboAnalyzer));");
         gen.ShouldContain("__analyzers.Add(typeof(global::Test.StAnalyzer));");
         gen.ShouldContain("__analyzers.Add(typeof(global::Test.AoeAnalyzer));");
         AssertNoErrors(result);
@@ -149,7 +149,7 @@ public class ParserGeneratorTests
 
         gen.ShouldContain("__analyzers.Add(typeof(global::Test.SideAnalyzer));");
         gen.ShouldContain("global::FellowshipAnalyzer.Core.Analysis.PullAnalyzerList<global::Test.SideAnalyzer>");
-        gen.ShouldContain("public global::Test.SideAnalyzer? SideAnalyzer => (global::Test.SideAnalyzer?)pull.GetAnalyzer(typeof(global::Test.SideAnalyzer));");
+        gen.ShouldContain("public global::Test.SideAnalyzer? SideAnalyzer => (global::Test.SideAnalyzer?)pull.Metadata.GetAnalyzer(typeof(global::Test.SideAnalyzer));");
         AssertNoErrors(result);
     }
 
@@ -403,11 +403,11 @@ public class ParserGeneratorTests
 
     /// <summary>
     /// The mirror of <see cref="AddModuleOfForPullAnalyzer_RoutesToThePullSurface"/>: <c>[AddAnalyzer]</c>
-    /// over an analyzer with no <c>[ForPull]</c> is parse-lifetime, which is what most of
+    /// over an analyzer with no <c>[ForPull]</c> is dungeon-lifetime, which is what most of
     /// <c>CombatLogParser</c>'s own registrations are.
     /// </summary>
     [Fact]
-    public void AddAnalyzerWithoutForPull_RoutesToParseLifetime()
+    public void AddAnalyzerWithoutForPull_RoutesToDungeonLifetime()
     {
         var result = ParserGeneratorTestHarness.Run(AddAnalyzerWithoutForPull());
         var gen = result.ConcatenatedGenerated;

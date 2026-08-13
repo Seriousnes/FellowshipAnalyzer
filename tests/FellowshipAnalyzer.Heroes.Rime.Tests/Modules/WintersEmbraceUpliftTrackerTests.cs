@@ -25,10 +25,10 @@ public sealed class WintersEmbraceUpliftTrackerTests
     private const int WindowStart = 1_000;
     private const int WindowEnd = 4_000;
 
-    private static readonly ReportFight Fight = new(
+    private static readonly ReportDungeon Dungeon = new(
         Id: 0, Name: "Boss", EncounterId: 1, Kill: true,
         StartTime: 0, EndTime: 60_000, Difficulty: null,
-        FriendlyPlayers: null, FightPercentage: null);
+        FriendlyPlayers: null, CompletionPercentage: null);
 
     [Fact]
     public async Task DamageInsideAWindow_AccruesTheMarginalShareOfTheTwentyPercentAmplifier()
@@ -88,7 +88,7 @@ public sealed class WintersEmbraceUpliftTrackerTests
     }
 
     [Fact]
-    public async Task DamageOutsideAWindow_IsNotAmplifiedButStillCountsTowardsFightDamage()
+    public async Task DamageOutsideAWindow_IsNotAmplifiedButStillCountsTowardsDungeonDamage()
     {
         var tracker = await Analyze(
             Damage(500, Spells.FrostBolt, 1_200),
@@ -222,7 +222,7 @@ public sealed class WintersEmbraceUpliftTrackerTests
         using var scope = provider.CreateScope();
 
         var parser = scope.ServiceProvider.GetRequiredService<RimeCombatLogParser>();
-        await parser.Analyze([.. events], PlayerId, Fight);
+        await parser.Analyze([.. events], PlayerId, Dungeon);
         return parser.GetModule<WintersEmbraceUpliftTracker>().ShouldNotBeNull();
     }
 }

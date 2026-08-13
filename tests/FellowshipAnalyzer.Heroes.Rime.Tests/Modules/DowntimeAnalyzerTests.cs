@@ -28,13 +28,13 @@ public sealed class DowntimeAnalyzerTests
     /// </summary>
     private const int Gcd = 1_500;
 
-    private const int FightEnd = 60_000;
+    private const int DungeonEnd = 60_000;
 
     [Fact]
     public async Task FabricatedCastsLandOnTheUnhastedGlobalCooldown()
     {
         var events = new Event[] { Cast(1_000, Spells.ColdSnap) };
-        var parser = await Analyze(Fight(FightEnd), events);
+        var parser = await Analyze(Dungeon(DungeonEnd), events);
 
         var cast = events.OfType<CastEvent>().Single();
         cast.GlobalCooldown.ShouldNotBeNull();
@@ -46,7 +46,7 @@ public sealed class DowntimeAnalyzerTests
     public async Task BackToBackCasts_LeaveNoGapAndAFullyActivePull()
     {
         var analyzer = await AnalyzeAsync(
-            fightEndTime: 1_000 + (Gcd * 4),
+            dungeonEndTime: 1_000 + (Gcd * 4),
             Cast(1_000, Spells.ColdSnap),
             Cast(1_000 + Gcd, Spells.IceComet),
             Cast(1_000 + (Gcd * 2), Spells.IceComet),
@@ -65,7 +65,7 @@ public sealed class DowntimeAnalyzerTests
     public async Task ASpacedPair_ProducesOneGapMeasuredFromTheGlobalCooldownExpiring()
     {
         var analyzer = await AnalyzeAsync(
-            fightEndTime: 10_000 + Gcd,
+            dungeonEndTime: 10_000 + Gcd,
             Cast(1_000, Spells.ColdSnap),
             Cast(10_000, Spells.IceComet));
 
@@ -86,7 +86,7 @@ public sealed class DowntimeAnalyzerTests
         const int idleMs = DowntimeAnalyzer.MinimumGapMs - 1;
 
         var analyzer = await AnalyzeAsync(
-            fightEndTime: 1_000 + Gcd + idleMs + Gcd,
+            dungeonEndTime: 1_000 + Gcd + idleMs + Gcd,
             Cast(1_000, Spells.ColdSnap),
             Cast(1_000 + Gcd + idleMs, Spells.IceComet));
 
@@ -102,7 +102,7 @@ public sealed class DowntimeAnalyzerTests
         const int idleMs = DowntimeAnalyzer.MinimumGapMs;
 
         var analyzer = await AnalyzeAsync(
-            fightEndTime: 1_000 + Gcd + idleMs + Gcd,
+            dungeonEndTime: 1_000 + Gcd + idleMs + Gcd,
             Cast(1_000, Spells.ColdSnap),
             Cast(1_000 + Gcd + idleMs, Spells.IceComet));
 
@@ -117,7 +117,7 @@ public sealed class DowntimeAnalyzerTests
         const int castTime = 2_500;
 
         var analyzer = await AnalyzeAsync(
-            fightEndTime: castStart + castTime + Gcd,
+            dungeonEndTime: castStart + castTime + Gcd,
             Cast(1_000, Spells.ColdSnap),
             BeginCast(castStart, Spells.FrostBolt),
             Cast(castStart + castTime, Spells.FrostBolt));
@@ -134,7 +134,7 @@ public sealed class DowntimeAnalyzerTests
         const int channelEnd = 4_000;
 
         var analyzer = await AnalyzeAsync(
-            fightEndTime: channelEnd + Gcd,
+            dungeonEndTime: channelEnd + Gcd,
             Cast(channelStart, Spells.FreezingTorrent),
             BeginChannel(channelStart, Spells.FreezingTorrent),
             EndChannel(channelEnd, Spells.FreezingTorrent),
@@ -152,7 +152,7 @@ public sealed class DowntimeAnalyzerTests
         const int channelStart = 1_000;
 
         var analyzer = await AnalyzeAsync(
-            fightEndTime: 4_000 + Gcd,
+            dungeonEndTime: 4_000 + Gcd,
             Cast(channelStart, Spells.FreezingTorrent),
             BeginChannel(channelStart, Spells.FreezingTorrent),
             Cast(4_000, Spells.IceComet));
@@ -164,7 +164,7 @@ public sealed class DowntimeAnalyzerTests
     public async Task OffGlobalCooldownCasts_NeitherOpenWindowsNorSplitAGap()
     {
         var analyzer = await AnalyzeAsync(
-            fightEndTime: 20_000 + Gcd,
+            dungeonEndTime: 20_000 + Gcd,
             Cast(1_000, Spells.ColdSnap),
             Cast(6_000, Spells.IceDash),
             Cast(11_000, Spells.FrostWard),
@@ -181,7 +181,7 @@ public sealed class DowntimeAnalyzerTests
     public async Task ACastWithNoGlobalCooldownAtAll_LeavesNothingToMeasure()
     {
         var analyzer = await AnalyzeAsync(
-            fightEndTime: FightEnd,
+            dungeonEndTime: DungeonEnd,
             Cast(1_000, Spells.IceDash),
             Cast(20_000, Spells.FrostWard));
 
@@ -197,13 +197,13 @@ public sealed class DowntimeAnalyzerTests
     public async Task TrailingIdleAfterTheLastCast_CountsAsAGap()
     {
         var analyzer = await AnalyzeAsync(
-            fightEndTime: FightEnd,
+            dungeonEndTime: DungeonEnd,
             Cast(1_000, Spells.ColdSnap));
 
         var gap = analyzer.Gaps.ShouldHaveSingleItem();
         gap.StartTimestamp.ShouldBe(1_000 + Gcd);
-        gap.DurationMs.ShouldBe(FightEnd - (1_000 + Gcd));
-        analyzer.MeasuredSpanMs.ShouldBe(FightEnd - 1_000);
+        gap.DurationMs.ShouldBe(DungeonEnd - (1_000 + Gcd));
+        analyzer.MeasuredSpanMs.ShouldBe(DungeonEnd - 1_000);
         analyzer.ActiveMs.ShouldBe(Gcd);
         analyzer.DowntimeMs.ShouldBe(gap.DurationMs);
     }
@@ -212,9 +212,9 @@ public sealed class DowntimeAnalyzerTests
     public async Task ATrailingIdleBelowTheNoiseThreshold_IsAbsorbedRatherThanRecorded()
     {
         const int tailMs = DowntimeAnalyzer.MinimumGapMs - 1;
-        const int fightEnd = 1_000 + Gcd + tailMs;
+        const int dungeonEnd = 1_000 + Gcd + tailMs;
 
-        var analyzer = await AnalyzeAsync(fightEnd, Cast(1_000, Spells.ColdSnap));
+        var analyzer = await AnalyzeAsync(dungeonEnd, Cast(1_000, Spells.ColdSnap));
 
         analyzer.GapCount.ShouldBe(0);
         analyzer.DowntimeMs.ShouldBe(0);
@@ -248,9 +248,9 @@ public sealed class DowntimeAnalyzerTests
     [Fact]
     public async Task AnActivityWindowRunningPastThePullEnd_IsClampedToTheBoundary()
     {
-        const int fightEnd = 2_000;
+        const int dungeonEnd = 2_000;
 
-        var analyzer = await AnalyzeAsync(fightEnd, Cast(1_500, Spells.ColdSnap));
+        var analyzer = await AnalyzeAsync(dungeonEnd, Cast(1_500, Spells.ColdSnap));
 
         analyzer.MeasuredSpanMs.ShouldBe(500);
         analyzer.ActiveMs.ShouldBe(500);
@@ -261,7 +261,7 @@ public sealed class DowntimeAnalyzerTests
     [Fact]
     public async Task PerPullReadPathsResolveToTheSameAnalyzerInstance()
     {
-        var parser = await Analyze(Fight(FightEnd), [Cast(1_000, Spells.ColdSnap)]);
+        var parser = await Analyze(Dungeon(DungeonEnd), [Cast(1_000, Spells.ColdSnap)]);
 
         var entry = parser.DowntimeAnalyzers.ShouldHaveSingleItem();
         entry.Pull.DowntimeAnalyzer.ShouldBeSameAs(entry.Analyzer);
@@ -298,18 +298,18 @@ public sealed class DowntimeAnalyzerTests
         Ability = new Ability { FSLID = spell.FSLID, Name = spell.Name },
     };
 
-    private static ReportFight Fight(int endTime) => new(
+    private static ReportDungeon Dungeon(int endTime) => new(
         Id: 0, Name: "Boss", EncounterId: 1, Kill: true,
         StartTime: 0, EndTime: endTime, Difficulty: null,
-        FriendlyPlayers: null, FightPercentage: null);
+        FriendlyPlayers: null, CompletionPercentage: null);
 
-    private static async Task<DowntimeAnalyzer> AnalyzeAsync(int fightEndTime, params Event[] events)
+    private static async Task<DowntimeAnalyzer> AnalyzeAsync(int dungeonEndTime, params Event[] events)
     {
-        var parser = await Analyze(Fight(fightEndTime), events);
+        var parser = await Analyze(Dungeon(dungeonEndTime), events);
         return parser.DowntimeAnalyzers.ShouldHaveSingleItem().Analyzer;
     }
 
-    private static async Task<RimeCombatLogParser> Analyze(ReportFight fight, params Event[] events)
+    private static async Task<RimeCombatLogParser> Analyze(ReportDungeon dungeon, params Event[] events)
     {
         var services = new ServiceCollection();
         services.AddLogging();
@@ -320,7 +320,7 @@ public sealed class DowntimeAnalyzerTests
         using var scope = provider.CreateScope();
 
         var parser = scope.ServiceProvider.GetRequiredService<RimeCombatLogParser>();
-        await parser.Analyze([.. events], PlayerId, fight);
+        await parser.Analyze([.. events], PlayerId, dungeon);
         return parser;
     }
 }

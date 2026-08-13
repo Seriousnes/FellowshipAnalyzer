@@ -1,9 +1,9 @@
 namespace FellowshipAnalyzer.Core.FellowshipLogs;
 
 /// <summary>
-/// Represents a single fight/encounter within a report.
+/// Represents a single dungeon run within a report.
 /// </summary>
-public sealed record ReportFight(
+public sealed record ReportDungeon(
     int Id,
     string Name,
     int EncounterId,
@@ -12,17 +12,17 @@ public sealed record ReportFight(
     double EndTime,
     int? Difficulty,
     IReadOnlyList<int>? FriendlyPlayers,
-    double? FightPercentage,
+    double? CompletionPercentage,
     bool InProgress = false,
     IReadOnlyList<DungeonPull>? DungeonPulls = null,
-    IReadOnlyList<FightNpc>? EnemyNpcs = null
+    IReadOnlyList<DungeonNpc>? EnemyNpcs = null
 )
 {
     private const int ZoneEncounterOffset = 100_000;
 
     /// <summary>
-    /// Icon URL for the dungeon/zone this fight took place in, served from the RPGLogs CDN, or
-    /// <see langword="null"/> when the fight has no zone. Some reports offset the zone id by
+    /// Icon URL for the dungeon/zone this dungeon took place in, served from the RPGLogs CDN, or
+    /// <see langword="null"/> when the dungeon has no zone. Some reports offset the zone id by
     /// <c>100000</c>, so <see cref="EncounterId"/> is reduced modulo that offset before use.
     /// </summary>
     public string? DungeonIconUrl =>

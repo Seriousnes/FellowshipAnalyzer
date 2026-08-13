@@ -32,19 +32,19 @@ public sealed partial class SapphireGemAnalyzer : Analyzer, IGemAnalyzer
     /// <inheritdoc/>
     public int GemPower => Owner.SelectedCombatant.Sapphire;
 
-    /// <summary>Total time Ancestral Surge was active over the fight, in milliseconds.</summary>
+    /// <summary>Total time Ancestral Surge was active over the dungeon, in milliseconds.</summary>
     public int AncestralSurgeUptimeMs =>
-        AncestralSurge.UptimeOn(Owner.SelectedCombatant, GemPower, Owner.FightStartTime, Owner.FightEndTime);
+        AncestralSurge.UptimeOn(Owner.SelectedCombatant, GemPower, Owner.DungeonStartTime, Owner.DungeonEndTime);
 
-    /// <summary>Ancestral Surge's share of the fight, as a fraction.</summary>
+    /// <summary>Ancestral Surge's share of the dungeon, as a fraction.</summary>
     public double AncestralSurgeUptime =>
-        Owner.FightDurationMs > 0 ? (double)AncestralSurgeUptimeMs / Owner.FightDurationMs : 0;
+        Owner.DungeonDurationMs > 0 ? (double)AncestralSurgeUptimeMs / Owner.DungeonDurationMs : 0;
 
     /// <summary>Damage reduction the unlocked rank of Resonating Soul grants per 1% of health missing, as a fraction.</summary>
     public double ResonatingSoulReductionPerPercent =>
         ResonatingSoul.ByRank(GemPower, based: 0.001, upgraded: 0.003, locked: 0);
 
-    /// <summary>Estimated damage Resonating Soul prevented over the fight.</summary>
+    /// <summary>Estimated damage Resonating Soul prevented over the dungeon.</summary>
     public long ResonatingSoulDamageReduced { get; private set; }
 
     [On<DamageEvent>(To = Actor.Player)]

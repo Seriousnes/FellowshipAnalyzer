@@ -128,11 +128,11 @@ public class PullAnalyzerDiagnosticsTests
     }
 
     /// <summary>
-    /// An analyzer without <c>[ForPull]</c> is parse-lifetime, resolved from <c>GetModuleTypes()</c> like
+    /// An analyzer without <c>[ForPull]</c> is dungeon-lifetime, resolved from <c>GetModuleTypes()</c> like
     /// any module, so depending on it is exactly what FA0014 leaves alone.
     /// </summary>
     [Fact]
-    public void FA0014_DependingOnParseLifetimeAnalyzer_Silent()
+    public void FA0014_DependingOnDungeonLifetimeAnalyzer_Silent()
     {
         var diagnostics = AnalyzerTestHarness.Run(Usings + """
 
@@ -169,7 +169,7 @@ public class PullAnalyzerDiagnosticsTests
     }
 
     /// <summary>
-    /// A registered analyzer with no <c>[ForPull]</c> is a parse-lifetime analyzer, which is what most of
+    /// A registered analyzer with no <c>[ForPull]</c> is a dungeon-lifetime analyzer, which is what most of
     /// <c>CombatLogParser</c>'s own registrations are.
     /// </summary>
     [Fact]
@@ -179,10 +179,10 @@ public class PullAnalyzerDiagnosticsTests
 
             namespace Test;
 
-            [AddAnalyzer<ParseLifetimeAnalyzer>]
+            [AddAnalyzer<DungeonLifetimeAnalyzer>]
             public abstract class Host { }
 
-            public sealed class ParseLifetimeAnalyzer : Analyzer { }
+            public sealed class DungeonLifetimeAnalyzer : Analyzer { }
             """);
 
         Ids(diagnostics).ShouldNotContain("FA0015");
@@ -296,11 +296,11 @@ public class PullAnalyzerDiagnosticsTests
     }
 
     /// <summary>
-    /// Two parse-lifetime analyzers share the <c>Analyzer</c> surface trivially and are constructed once
+    /// Two dungeon-lifetime analyzers share the <c>Analyzer</c> surface trivially and are constructed once
     /// each, so FA0016 has nothing to say about them.
     /// </summary>
     [Fact]
-    public void FA0016_ParseLifetimeAnalyzers_Silent()
+    public void FA0016_DungeonLifetimeAnalyzers_Silent()
     {
         var diagnostics = AnalyzerTestHarness.Run(Usings + """
 

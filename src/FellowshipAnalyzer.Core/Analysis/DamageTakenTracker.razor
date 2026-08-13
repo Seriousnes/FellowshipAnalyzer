@@ -8,13 +8,13 @@
         @<StatCard Title="Damage Taken" Meta="@FacedText">
             <Info>
                 <p>
-                    Everything that hit you this fight, split into the share that landed and the share mitigation
+                    Everything that hit you this dungeon, split into the share that landed and the share mitigation
                     and absorbs stopped. Blocks are counted inside the mitigated figure rather than beside it, so
                     the block line reports how much of that mitigation the log attributes to a block.
                 </p>
             </Info>
             <ChildContent>
-                <StatRow Value="@TakenText" Tooltip="Damage that actually landed on you, spread over the fight.">
+                <StatRow Value="@TakenText" Tooltip="Damage that actually landed on you, spread over the dungeon.">
                     damage taken per second
                 </StatRow>
                 <StatRow Value="@PreventedShareText" Tooltip="@PreventedTooltip">

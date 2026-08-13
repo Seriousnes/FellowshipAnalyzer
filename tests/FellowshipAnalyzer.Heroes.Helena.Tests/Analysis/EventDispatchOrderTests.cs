@@ -11,7 +11,7 @@ using Xunit;
 namespace FellowshipAnalyzer.Heroes.Helena.Tests.Analysis;
 
 /// <summary>
-/// Covers the two ordering guarantees Helena's Toughness measurement rests on: the parse-lifetime tier
+/// Covers the two ordering guarantees Helena's Toughness measurement rests on: the dungeon-lifetime tier
 /// always runs ahead of the pull tier, so a tracker has seen an event before any analyzer of that pull
 /// can read it, and listeners within a tier dispatch in registration order.
 /// <para>
@@ -25,7 +25,7 @@ public sealed class EventDispatchOrderTests
     private const int ListenerCount = 24;
 
     [Fact]
-    public void TheParseLifetimeTier_DispatchesBeforeThePullTierWhateverRegisteredFirst()
+    public void TheDungeonLifetimeTier_DispatchesBeforeThePullTierWhateverRegisteredFirst()
     {
         var emitter = Emitter();
         var order = new List<string>();
@@ -65,7 +65,7 @@ public sealed class EventDispatchOrderTests
     }
 
     [Fact]
-    public void TheParseLifetimeTier_KeepsOneModulesHandlersInRegistrationOrder()
+    public void TheDungeonLifetimeTier_KeepsOneModulesHandlersInRegistrationOrder()
     {
         var emitter = Emitter();
         var order = new List<int>();

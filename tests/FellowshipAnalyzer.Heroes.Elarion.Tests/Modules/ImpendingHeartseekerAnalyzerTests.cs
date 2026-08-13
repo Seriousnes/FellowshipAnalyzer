@@ -22,15 +22,15 @@ public sealed class ImpendingHeartseekerAnalyzerTests
     private const int EnemyId = 20;
     private const int BarrageCooldownMs = 20_000;
 
-    private static readonly ReportFight Fight = SpanningFight(60_000);
+    private static readonly ReportDungeon Dungeon = SpanningDungeon(60_000);
 
-    private static readonly ReportFight ShortFight = SpanningFight(8_000);
+    private static readonly ReportDungeon ShortDungeon = SpanningDungeon(8_000);
 
     [Fact]
     public async Task WithoutTheTalent_TheModuleIsInactive()
     {
         var parser = await AnalyzeAsync(
-            ShortFight,
+            ShortDungeon,
             Barrage(1_000),
             ApplyBuff(6_000));
 
@@ -42,7 +42,7 @@ public sealed class ImpendingHeartseekerAnalyzerTests
     public async Task WithoutTheTalent_BarrageKeepsItsFullCooldown()
     {
         var parser = await AnalyzeAsync(
-            ShortFight,
+            ShortDungeon,
             Barrage(1_000),
             ApplyBuff(6_000));
 
@@ -55,7 +55,7 @@ public sealed class ImpendingHeartseekerAnalyzerTests
     public async Task TheBuffResetsBarrage_AndRecoversTheRemainingRecharge()
     {
         var (parser, tracker) = await TrackAsync(
-            ShortFight,
+            ShortDungeon,
             Barrage(1_000),
             ApplyBuff(6_000));
 
@@ -74,7 +74,7 @@ public sealed class ImpendingHeartseekerAnalyzerTests
     public async Task TheResetLetsBarrageBeRecastInsideItsCooldown()
     {
         var (parser, tracker) = await TrackAsync(
-            ShortFight,
+            ShortDungeon,
             Barrage(1_000),
             ApplyBuff(6_000),
             Barrage(7_000));
@@ -185,23 +185,23 @@ public sealed class ImpendingHeartseekerAnalyzerTests
         Name = Spells.ImpendingHeartseeker.Name,
     };
 
-    private static ReportFight SpanningFight(int endTime) =>
+    private static ReportDungeon SpanningDungeon(int endTime) =>
         new(Id: 0, Name: "Boss", EncounterId: 31, Kill: true,
             StartTime: 0, EndTime: endTime, Difficulty: null,
-            FriendlyPlayers: null, FightPercentage: null);
+            FriendlyPlayers: null, CompletionPercentage: null);
 
     private static Task<(ElarionCombatLogParser Parser, ImpendingHeartseekerAnalyzer Tracker)> TrackAsync(
-        params Event[] events) => TrackAsync(Fight, events);
+        params Event[] events) => TrackAsync(Dungeon, events);
 
     private static async Task<(ElarionCombatLogParser Parser, ImpendingHeartseekerAnalyzer Tracker)> TrackAsync(
-        ReportFight fight,
+        ReportDungeon dungeon,
         params Event[] events)
     {
-        var parser = await AnalyzeAsync(fight, [Talented(), .. events]);
+        var parser = await AnalyzeAsync(dungeon, [Talented(), .. events]);
         return (parser, parser.ImpendingHeartseeker.ShouldNotBeNull());
     }
 
-    private static async Task<ElarionCombatLogParser> AnalyzeAsync(ReportFight fight, params Event[] events)
+    private static async Task<ElarionCombatLogParser> AnalyzeAsync(ReportDungeon dungeon, params Event[] events)
     {
         var services = new ServiceCollection();
         services.AddLogging();
@@ -212,7 +212,7 @@ public sealed class ImpendingHeartseekerAnalyzerTests
         using var scope = provider.CreateScope();
 
         var parser = scope.ServiceProvider.GetRequiredService<ElarionCombatLogParser>();
-        await parser.Analyze([.. events], PlayerId, fight);
+        await parser.Analyze([.. events], PlayerId, dungeon);
         return parser;
     }
 }

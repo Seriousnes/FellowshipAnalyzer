@@ -24,7 +24,7 @@ public sealed partial class EmeraldGemAnalyzer : Analyzer, IGemAnalyzer
     /// <inheritdoc/>
     public int GemPower => Owner.SelectedCombatant.Emerald;
 
-    /// <summary>Damage the Sentinel's Bastion shield absorbed over the fight.</summary>
+    /// <summary>Damage the Sentinel's Bastion shield absorbed over the dungeon.</summary>
     public long SentinelsBastionAbsorbed { get; private set; }
 
     /// <remarks>

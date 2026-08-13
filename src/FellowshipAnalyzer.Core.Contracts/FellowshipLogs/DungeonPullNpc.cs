@@ -12,4 +12,16 @@ public sealed record DungeonPullNpc(
     int? MaximumInstanceId,
     int? MinimumInstanceGroupId,
     int? MaximumInstanceGroupId
-);
+)
+{
+    /// <summary>The first spawn instance this entry names, defaulting to the sole instance.</summary>
+    public int LowInstance => MinimumInstanceId ?? 1;
+
+    /// <summary>
+    /// The last spawn instance this entry names. An entry naming a range states both bounds, so one
+    /// stated alone, or a maximum below the minimum, names a single instance at
+    /// <see cref="LowInstance"/>.
+    /// </summary>
+    public int HighInstance =>
+        MinimumInstanceId is int low && MaximumInstanceId is int high && high >= low ? high : LowInstance;
+}

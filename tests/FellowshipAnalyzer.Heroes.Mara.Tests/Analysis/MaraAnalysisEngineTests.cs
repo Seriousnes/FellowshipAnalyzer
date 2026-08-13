@@ -42,7 +42,7 @@ public sealed class MaraAnalysisEngineTests
         using var scope = provider.CreateScope();
 
         var analyzer = scope.ServiceProvider.GetRequiredKeyedService<IHeroAnalyzer>(HeroName.Mara);
-        var result = await analyzer.Analyze([], playerId: 1, fight: new ReportFight(0, "", 0, null, 0, 0, null, null, null));
+        var result = await analyzer.Analyze([], playerId: 1, dungeon: new ReportDungeon(0, "", 0, null, 0, 0, null, null, null));
 
         result.GuideComponentType.ShouldNotBeNull();
     }
@@ -247,13 +247,13 @@ public sealed class MaraAnalysisEngineTests
             new(Id: 1, EncounterId: 42, Kill: true, StartTime: 1000, EndTime: 2000, Name: "Boss", EnemyNpcs: null),
         };
 
-        var fight = new ReportFight(
-            Id: 0, Name: "Fight", EncounterId: 0, Kill: true,
+        var dungeon = new ReportDungeon(
+            Id: 0, Name: "Dungeon", EncounterId: 0, Kill: true,
             StartTime: 0, EndTime: 5000, Difficulty: null,
-            FriendlyPlayers: null, FightPercentage: null, InProgress: false,
+            FriendlyPlayers: null, CompletionPercentage: null, InProgress: false,
             DungeonPulls: pulls);
 
-        await parser.Analyze(events, playerId, fight);
+        await parser.Analyze(events, playerId, dungeon);
         return parser.EnergyComboPointTracker!;
     }
 
@@ -295,13 +295,13 @@ public sealed class MaraAnalysisEngineTests
             Cast(3300, playerId, Spells.QueenFang, comboPoints: 4, energy: 90),
         };
 
-        var fight = new ReportFight(
-            Id: 0, Name: "Fight", EncounterId: 0, Kill: true,
+        var dungeon = new ReportDungeon(
+            Id: 0, Name: "Dungeon", EncounterId: 0, Kill: true,
             StartTime: 0, EndTime: 5000, Difficulty: null,
-            FriendlyPlayers: null, FightPercentage: null, InProgress: false,
+            FriendlyPlayers: null, CompletionPercentage: null, InProgress: false,
             DungeonPulls: pulls);
 
-        var result = await parser.Analyze(events, playerId, fight);
+        var result = await parser.Analyze(events, playerId, dungeon);
         return (parser, result);
     }
 

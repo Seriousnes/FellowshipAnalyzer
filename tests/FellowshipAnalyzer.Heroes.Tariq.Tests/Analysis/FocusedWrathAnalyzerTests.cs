@@ -19,7 +19,7 @@ namespace FellowshipAnalyzer.Heroes.Tariq.Tests.Analysis;
 public sealed class FocusedWrathAnalyzerTests
 {
     private const int PlayerId = 7;
-    private const int FightEnd = 300_000;
+    private const int DungeonEnd = 300_000;
 
     private static readonly int SelfBuff = TariqSpells.FocusedWrathSelfBuff.FSLID;
     private static readonly int FocusedWrath = TariqSpells.FocusedWrath.FSLID;
@@ -461,7 +461,7 @@ public sealed class FocusedWrathAnalyzerTests
     ];
 
     /// <summary>
-    /// Runs the pipeline over a fight with no encounter, which <c>PullBookendNormalizer</c> classifies
+    /// Runs the pipeline over a dungeon with no encounter, which <c>PullBookendNormalizer</c> classifies
     /// as a trash pull. The shared boss helper cannot express that shape, and the spender a charge
     /// should go to turns on it.
     /// </summary>
@@ -476,8 +476,8 @@ public sealed class FocusedWrathAnalyzerTests
         using var scope = provider.CreateScope();
 
         var parser = scope.ServiceProvider.GetRequiredService<TariqCombatLogParser>();
-        var fight = new ReportFight(0, "Trash", 0, true, 0, FightEnd, null, null, null);
-        await parser.Analyze(events, playerId: PlayerId, fight: fight);
+        var dungeon = new ReportDungeon(0, "Trash", 0, true, 0, DungeonEnd, null, null, null);
+        await parser.Analyze(events, playerId: PlayerId, dungeon: dungeon);
         return parser;
     }
 

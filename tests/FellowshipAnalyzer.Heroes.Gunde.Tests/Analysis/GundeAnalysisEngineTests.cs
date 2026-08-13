@@ -148,7 +148,7 @@ public sealed class GundeAnalysisEngineTests
             Debuff<ApplyDebuffEvent>(70_000, OpenWoundsFslid, ThirdEnemy),
         };
 
-        var (parser, _) = await AnalyzeAsync(events, boss: true, fightEnd: 75_000);
+        var (parser, _) = await AnalyzeAsync(events, boss: true, dungeonEnd: 75_000);
 
         var entry = parser.SlaughterUsageAnalyzers.ShouldHaveSingleItem();
         entry.Pull.EndTime.ShouldBe(75_000);
@@ -167,7 +167,7 @@ public sealed class GundeAnalysisEngineTests
             Debuff<RemoveDebuffEvent>(5_000, OpenWoundsFslid, Enemy),
         };
 
-        var (parser, _) = await AnalyzeAsync(events, boss: true, fightEnd: 40_000);
+        var (parser, _) = await AnalyzeAsync(events, boss: true, dungeonEnd: 40_000);
 
         var analyzer = SingleAnalyzer(parser);
         analyzer.Slaughters.ShouldHaveSingleItem().OpenWoundsActive.ShouldBeTrue();
@@ -186,7 +186,7 @@ public sealed class GundeAnalysisEngineTests
             Cast(10_001, Spells.Slaughter.FSLID),
         };
 
-        var (parser, _) = await AnalyzeAsync(events, boss: true, fightEnd: 40_000);
+        var (parser, _) = await AnalyzeAsync(events, boss: true, dungeonEnd: 40_000);
 
         var analyzer = SingleAnalyzer(parser);
         analyzer.Slaughters.ShouldHaveSingleItem().OpenWoundsActive.ShouldBeTrue();
@@ -204,7 +204,7 @@ public sealed class GundeAnalysisEngineTests
             Cast(10_000, Spells.Slaughter.FSLID),
         };
 
-        var (parser, _) = await AnalyzeAsync(events, boss: true, fightEnd: 40_000);
+        var (parser, _) = await AnalyzeAsync(events, boss: true, dungeonEnd: 40_000);
 
         var analyzer = SingleAnalyzer(parser);
         analyzer.TotalOpenWoundsWindows.ShouldBe(2);
@@ -221,7 +221,7 @@ public sealed class GundeAnalysisEngineTests
             Cast(2_000, Spells.Slaughter.FSLID),
         };
 
-        var (parser, _) = await AnalyzeAsync(events, boss: true, fightEnd: 40_000);
+        var (parser, _) = await AnalyzeAsync(events, boss: true, dungeonEnd: 40_000);
 
         var analyzer = SingleAnalyzer(parser);
         analyzer.TotalOpenWoundsWindows.ShouldBe(2);
@@ -314,7 +314,7 @@ public sealed class GundeAnalysisEngineTests
             Cast(20_000, Spells.Slaughter.FSLID),
         };
 
-        var (parser, _) = await AnalyzeAsync(events, boss: true, fightEnd: 40_000);
+        var (parser, _) = await AnalyzeAsync(events, boss: true, dungeonEnd: 40_000);
 
         var analyzer = parser.SlaughterUsageAnalyzers.ShouldHaveSingleItem().Analyzer;
         analyzer.Slaughters.ShouldHaveSingleItem().OpenWoundsActive.ShouldBeTrue();
@@ -350,7 +350,7 @@ public sealed class GundeAnalysisEngineTests
             Debuff<ApplyDebuffEvent>(32_050, Spells.SlaughterDot.FSLID, Enemy),
         };
 
-        var (parser, _) = await AnalyzeAsync(events, DungeonFight());
+        var (parser, _) = await AnalyzeAsync(events, Dungeon());
 
         parser.SlaughterUsageAnalyzers.Count.ShouldBe(2);
         var trash = parser.SlaughterUsageAnalyzers[0];
@@ -419,7 +419,7 @@ public sealed class GundeAnalysisEngineTests
     private static SlaughterUsageAnalyzer SingleAnalyzer(GundeCombatLogParser parser) =>
         parser.SlaughterUsageAnalyzers.ShouldHaveSingleItem().Analyzer;
 
-    private static ReportFight DungeonFight() =>
+    private static ReportDungeon Dungeon() =>
         new(0, "Dungeon", 0, true, 0, 60_000, null, null, null, false,
             [
                 new DungeonPull(1, 0, null, 0, 20_000, "Trash", null),
@@ -427,11 +427,11 @@ public sealed class GundeAnalysisEngineTests
             ]);
 
     private static Task<(GundeCombatLogParser Parser, HeroAnalysisResult Result)> AnalyzeAsync(
-        List<Event> events, bool boss, int fightEnd = 10_000) =>
-        AnalyzeAsync(events, new ReportFight(0, "Test", boss ? 1 : 0, true, 0, fightEnd, null, null, null));
+        List<Event> events, bool boss, int dungeonEnd = 10_000) =>
+        AnalyzeAsync(events, new ReportDungeon(0, "Test", boss ? 1 : 0, true, 0, dungeonEnd, null, null, null));
 
     private static async Task<(GundeCombatLogParser Parser, HeroAnalysisResult Result)> AnalyzeAsync(
-        List<Event> events, ReportFight fight)
+        List<Event> events, ReportDungeon dungeon)
     {
         var services = new ServiceCollection();
         services.AddLogging();
@@ -442,7 +442,7 @@ public sealed class GundeAnalysisEngineTests
         using var scope = provider.CreateScope();
 
         var parser = scope.ServiceProvider.GetRequiredService<GundeCombatLogParser>();
-        var result = await parser.Analyze(events, Player, fight);
+        var result = await parser.Analyze(events, Player, dungeon);
         return (parser, result);
     }
 

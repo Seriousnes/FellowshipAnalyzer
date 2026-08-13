@@ -24,7 +24,7 @@ namespace FellowshipAnalyzer.Core.Analysis;
 /// </para>
 /// </summary>
 [AddNormalizer<PullBookendNormalizer>]
-[AddNormalizer<FightBookendNormalizer>]
+[AddNormalizer<DungeonBookendNormalizer>]
 [AddNormalizer<AbilityMasterDataNormalizer>]
 [AddNormalizer<ResourceNormalizer>]
 [AddNormalizer<CastLinkNormalizer>]
@@ -57,34 +57,39 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
     /// <summary>The event dispatcher for the analysis in progress. Replaced with a fresh instance at the start of every <see cref="Analyze"/> call.</summary>
     public EventEmitter EventEmitter { get; private set; } = eventEmitter;
 
-    /// <summary>The normalized event stream for the current analysis, after every <see cref="IEventNormalizer"/> pass has run.</summary>
+    /// <summary>
+    /// The normalized event stream for the current analysis, after every <see cref="IEventNormalizer"/>
+    /// pass has run. Ordered by ascending timestamp once, stably, as <see cref="Analyze"/> materializes
+    /// it and before the first normalizer runs, and <see cref="EventEmitter.DispatchEventsAsync"/>
+    /// dispatches the list as it receives it.
+    /// </summary>
     public List<Event> Events { get; set; } = [];
 
     /// <summary>The actor id of the player this analysis is scoped to.</summary>
     public int PlayerId { get; set; }
 
     /// <summary>
-    /// The fight currently being analyzed. Set at the start of every <see cref="Analyze"/> call.
+    /// The dungeon currently being analyzed. Set at the start of every <see cref="Analyze"/> call.
     /// </summary>
-    public ReportFight Fight { get; private set; } = null!;
+    public ReportDungeon Dungeon { get; private set; } = null!;
 
     /// <summary>
     /// The timestamp of the event currently being dispatched. Updated by <see cref="EventEmitter"/>
-    /// before each listener invocation. Initialized to <see cref="Fight"/>.StartTime when <see cref="Analyze"/> begins.
+    /// before each listener invocation. Initialized to <see cref="Dungeon"/>.StartTime when <see cref="Analyze"/> begins.
     /// </summary>
     public int CurrentTimestamp { get; internal set; }
 
-    /// <summary>The analyzed fight's start time, from <see cref="Fight"/>.</summary>
-    public int FightStartTime => (int)Fight.StartTime;
+    /// <summary>The analyzed dungeon's start time, from <see cref="Dungeon"/>.</summary>
+    public int DungeonStartTime => (int)Dungeon.StartTime;
 
-    /// <summary>The analyzed fight's end time, from <see cref="Fight"/>.</summary>
-    public int FightEndTime => (int)Fight.EndTime;
+    /// <summary>The analyzed dungeon's end time, from <see cref="Dungeon"/>.</summary>
+    public int DungeonEndTime => (int)Dungeon.EndTime;
 
-    /// <summary>The analyzed fight's duration in milliseconds.</summary>
-    public int FightDurationMs => FightEndTime - FightStartTime;
+    /// <summary>The analyzed dungeon's duration in milliseconds.</summary>
+    public int DungeonDurationMs => DungeonEndTime - DungeonStartTime;
 
     /// <summary>
-    /// Report-level actor master data: every player, NPC, and pet the report names.
+    /// Report-level actor master data: every player and NPC the report names.
     /// Set by the host (e.g. Report.razor) before <see cref="Analyze"/> is called, and the source
     /// <see cref="Enemies"/> reads hostility from.
     /// </summary>
@@ -98,14 +103,14 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
     /// The combatant representing the selected (analyzed) player. Populated by
     /// <see cref="Analyze"/> before any module is constructed.
     /// </summary>
-    public Combatant SelectedCombatant => CurrentParseContext.SelectedCombatant;
+    public FullCombatant SelectedCombatant => CurrentParseContext.SelectedCombatant;
 
     /// <summary>
-    /// Builds the selected player's <see cref="Combatant"/> from the resolved combatantinfo. Overridable so
+    /// Builds the selected player's <see cref="FullCombatant"/> from the resolved combatantinfo. Overridable so
     /// tests can supply a combatant with hand-built <see cref="CombatantStats"/> (e.g. scoped cooldown
     /// modifiers that no combatantinfo field yet produces).
     /// </summary>
-    protected virtual Combatant CreateSelectedCombatant(CombatantInfoEvent info) => new(info);
+    protected virtual FullCombatant CreateSelectedCombatant(CombatantInfoEvent info) => new(info);
 
     /// <summary>
     /// The Razor component type to render for the Guide tab.
@@ -124,8 +129,8 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
     private readonly HashSet<Type> _runModuleTypeSet = [];
     private Type[] _runModuleTypes = [];
     private readonly Dictionary<Type, object> _pullInstances = [];
-    private readonly List<(Pull Pull, Analyzer Analyzer)> _pullAnalyzers = [];
-    private readonly List<Pull> _pulls = [];
+    private readonly List<(PullStartEvent Pull, Analyzer Analyzer)> _pullAnalyzers = [];
+    private readonly List<PullStartEvent> _pulls = [];
 
     /// <summary>
     /// The active parser for the analysis currently in progress, exposed to pipeline-internal
@@ -135,10 +140,10 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
     public static CombatLogParser? Current { get; private set; }
 
     /// <summary>
-    /// The pull currently being dispatched, or <c>null</c> outside any pull window (fight setup,
+    /// The pull currently being dispatched, or <c>null</c> outside any pull window (dungeon setup,
     /// teardown, and gaps between pulls). Set by <see cref="BeginPull"/> / <see cref="EndPull"/>.
     /// </summary>
-    public Pull? CurrentPull { get; private set; }
+    public PullStartEvent? CurrentPull { get; private set; }
 
     /// <summary>
     /// When set, generated analyzer surface streams (<c>{Surface}s</c>) and <see cref="PullAnalyzers"/>
@@ -146,13 +151,13 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
     /// at the start of every <see cref="Analyze"/> run, and only ever assigned afterwards by the host.
     /// <see cref="Pulls"/> stays unclamped.
     /// </summary>
-    public Pull? SelectedPull { get; set; }
+    public PullStartEvent? SelectedPull { get; set; }
 
     /// <summary>
-    /// Analyzer instances retained at each <see cref="FellowshipAnalyzer.Core.Events.PullEndEvent"/>, in pull order.
+    /// Analyzer instances retained at each <see cref="PullEndEvent"/>, in pull order.
     /// Clamped to <see cref="SelectedPull"/> when one is set.
     /// </summary>
-    public IReadOnlyList<(Pull Pull, Analyzer Analyzer)> PullAnalyzers =>
+    public IReadOnlyList<(PullStartEvent Pull, Analyzer Analyzer)> PullAnalyzers =>
         SelectedPull is null
             ? _pullAnalyzers
             : [.. _pullAnalyzers.Where(entry => ReferenceEquals(entry.Pull, SelectedPull))];
@@ -162,7 +167,7 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
     /// this to compose sections from more than one analyzer surface, probing each pull's
     /// generated nullable accessors for the shape that ran.
     /// </summary>
-    public IReadOnlyList<Pull> Pulls => _pulls;
+    public IReadOnlyList<PullStartEvent> Pulls => _pulls;
 
     /// <summary>
     /// Filters a generated per-surface analyzer stream to <see cref="SelectedPull"/>. Returns the
@@ -253,21 +258,21 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
     /// and discarded in <see cref="EndPull"/>. The source generator overrides this with a static
     /// bitmask gate; the default runs every analyzer on every pull.
     /// </summary>
-    protected virtual Type[] GetAnalyzerTypes(Pull pull) => GetAnalyzerTypes();
+    protected virtual Type[] GetAnalyzerTypes(PullStartEvent pull) => GetAnalyzerTypes();
 
     /// <summary>
     /// Routes a retained analyzer into the parser's denormalized, surface-typed cross-pull
     /// index. The default is a no-op; the source generator overrides it for parsers that register a
     /// <c>[ForPull]</c> analyzer, appending to the matching <see cref="PullAnalyzerList{T}"/>.
     /// </summary>
-    protected virtual void IndexPullAnalyzer(Pull pull, Analyzer analyzer) { }
+    protected virtual void IndexPullAnalyzer(PullStartEvent pull, Analyzer analyzer) { }
 
     /// <summary>
-    /// Opens a pull: constructs a fresh instance of every <see cref="GetAnalyzerTypes(Pull)"/> analyzer
-    /// into the per-pull cache and routes their subscriptions into the pull listener tier. Enforces
-    /// the single-open-pull invariant by closing any already-open pull first (close-before-open).
+    /// Opens a pull: constructs a fresh instance of every <see cref="GetAnalyzerTypes(PullStartEvent)"/>
+    /// analyzer into the per-pull cache and routes their subscriptions into the pull listener tier.
+    /// Enforces the single-open-pull invariant by closing any already-open pull first (close-before-open).
     /// </summary>
-    public void BeginPull(Pull pull)
+    public void BeginPull(PullStartEvent pull)
     {
         if (CurrentPull is not null) EndPull(CurrentPull);
 
@@ -291,30 +296,30 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
     }
 
     /// <summary>
-    /// Closes a pull, in order: emits a <see cref="FellowshipAnalyzer.Core.Events.PullEndEvent"/> to the pull's own listeners
-    /// while they are still live (so a subscriber can snapshot fight-lifetime state at the instant the
-    /// pull ends), then retains each analyzer on the pull read surfaces, then retires the pull listener
-    /// tier and discards the per-pull instance cache. Emitting here (rather than relying on the
-    /// fabricated event's dispatch) is what makes the event fire exactly once for every pull, including
-    /// a force-close triggered by <see cref="BeginPull"/>. Analyzers derive their own per-pull metrics
-    /// from retained state via get-style accessors, so this does not run a finalization pass. Ignores a
-    /// <paramref name="pull"/> that is not the currently-open one (a stale end left over from
+    /// Closes a pull, in order: emits the pull's own <see cref="PullStartEvent.End"/> to the pull's
+    /// listeners while they are still live (so a subscriber can snapshot dungeon-lifetime state at the
+    /// instant the pull ends), then retains each analyzer on the pull read surfaces, then retires the
+    /// pull listener tier and discards the per-pull instance cache. Emitting here (rather than relying on
+    /// the fabricated event's dispatch) is what makes the event fire exactly once for every pull,
+    /// including a force-close triggered by <see cref="BeginPull"/>. Analyzers derive their own per-pull
+    /// metrics from retained state via get-style accessors, so this does not run a finalization pass.
+    /// Ignores a <paramref name="pull"/> that is not the currently-open one (a stale end left over from
     /// close-before-open).
     /// </summary>
-    public void EndPull(Pull pull)
+    public void EndPull(PullStartEvent pull)
     {
         if (!ReferenceEquals(CurrentPull, pull)) return;
 
         _pulls.Add(pull);
 
-        EventEmitter.Emit(new PullEndEvent { Timestamp = CurrentTimestamp, Pull = pull });
+        EventEmitter.Emit(pull.End);
 
         foreach (var instance in _pullInstances.Values)
         {
             if (instance is not Analyzer analyzer) continue;
 
             _pullAnalyzers.Add((pull, analyzer));
-            pull.SetAnalyzer(Analyzer.GetSurfaceType(analyzer.GetType()), analyzer);
+            pull.Metadata.SetAnalyzer(Analyzer.GetSurfaceType(analyzer.GetType()), analyzer);
             IndexPullAnalyzer(pull, analyzer);
         }
 
@@ -350,15 +355,15 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
         return null;
     }
 
-    /// <summary>Runs the full analysis pipeline over <paramref name="events"/> for <paramref name="playerId"/> during <paramref name="fight"/>: normalizes the stream, dispatches it through every module and analyzer, and returns the resulting <see cref="HeroAnalysisResult"/>.</summary>
-    public Task<HeroAnalysisResult> Analyze(IReadOnlyList<Event> events, int playerId, ReportFight fight)
-        => RunAnalysisAsync(events, playerId, fight);
+    /// <summary>Runs the full analysis pipeline over <paramref name="events"/> for <paramref name="playerId"/> during <paramref name="dungeon"/>: normalizes the stream, dispatches it through every module and analyzer, and returns the resulting <see cref="HeroAnalysisResult"/>.</summary>
+    public Task<HeroAnalysisResult> Analyze(IReadOnlyList<Event> events, int playerId, ReportDungeon dungeon)
+        => RunAnalysisAsync(events, playerId, dungeon);
 
-    private async Task<HeroAnalysisResult> RunAnalysisAsync(IReadOnlyList<Event> events, int playerId, ReportFight fight)
+    private async Task<HeroAnalysisResult> RunAnalysisAsync(IReadOnlyList<Event> events, int playerId, ReportDungeon dungeon)
     {
         PlayerId = playerId;
-        Fight = fight;
-        CurrentTimestamp = (int)fight.StartTime;
+        Dungeon = dungeon;
+        CurrentTimestamp = (int)dungeon.StartTime;
 
         var allModuleTypes = GetModuleTypes();
         var normalizerTypes = GetNormalizerTypes();
@@ -374,11 +379,13 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
         _runModuleTypes = allModuleTypes;
         _runModuleTypeSet.UnionWith(allModuleTypes);
 
-        Events = [.. events.Where(e => e is not CastEvent { Fake: true })];
+        Events = [.. events
+            .Where(static e => e is not CastEvent { Fake: true })
+            .OrderBy(static e => e.Timestamp)];
 
         var playerInfo = Events.OfType<CombatantInfoEvent>().FirstOrDefault(e => e.SourceId == playerId)
             ?? new CombatantInfoEvent { SourceId = playerId };
-        CurrentParseContext = new ParseContext(playerId, fight, ActorNames, CreateSelectedCombatant(playerInfo), Actors);
+        CurrentParseContext = new ParseContext(playerId, dungeon, ActorNames, CreateSelectedCombatant(playerInfo), Actors);
 
         EventEmitter = new EventEmitter((ILogger<EventEmitter>)Provider.GetService(typeof(ILogger<EventEmitter>))!)
         {
@@ -452,12 +459,12 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
     }
 
     /// <summary>
-    /// Formats an absolute event timestamp as time into the analyzed fight (mm:ss).
-    /// Uses <see cref="FightStartTime"/> obtained from the Fellowship Logs API.
+    /// Formats an absolute event timestamp as time into the analyzed dungeon (mm:ss).
+    /// Uses <see cref="DungeonStartTime"/> obtained from the Fellowship Logs API.
     /// </summary>
     public string FormatTimestamp(int timestamp, int precision = 0)
     {
-        var totalSeconds = (timestamp - FightStartTime) / 1000d;
+        var totalSeconds = (timestamp - DungeonStartTime) / 1000d;
         var negative = totalSeconds < 0 ? "-" : string.Empty;
         var positiveSeconds = Math.Abs(totalSeconds);
         var minutes = (int)Math.Floor(positiveSeconds / 60);
@@ -477,10 +484,5 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
     /// <summary>Whether <paramref name="e"/> targeted <paramref name="playerId"/>, defaulting to <see cref="PlayerId"/>.</summary>
     public bool ToPlayer(IHasTargetEvent e, int? playerId = null) => e.TargetId == (playerId ?? PlayerId);
 
-    /// <summary>Whether <paramref name="e"/> was sourced by the player's pet. Fellowship has no pet-hero support yet, so this always returns <c>false</c>.</summary>
-    public bool ByPlayerPet(IHasSourceEvent e) => false;
-
-    /// <summary>Whether <paramref name="e"/> targeted the player's pet. Fellowship has no pet-hero support yet, so this always returns <c>false</c>.</summary>
-    public bool ToPlayerPet(IHasTargetEvent e) => false;
 }
 

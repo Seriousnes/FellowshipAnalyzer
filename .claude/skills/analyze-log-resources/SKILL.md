@@ -29,7 +29,7 @@ Example:
 dotnet run src/FellowshipAnalyzer.Tools/resource-analysis.cs raw-reports/RaMDvgzWXBCnF4QT-f16-s25.json
 ```
 
-Report JSON lives in the gitignored `raw-reports/` folder at the repo root, named `{code}-f{fightId}-s{sourceId}.json`; fetch a new one with `fetch-report.cs` (run-tool skill).
+Report JSON lives in the gitignored `raw-reports/` folder at the repo root, named `{code}-f{dungeonId}-s{sourceId}.json`; fetch a new one with `fetch-report.cs` (run-tool skill).
 
 ## Input Shapes Supported
 

@@ -23,13 +23,13 @@ public sealed partial class DiamondGemAnalyzer : Analyzer, IGemAnalyzer
     /// <inheritdoc/>
     public int GemPower => Owner.SelectedCombatant.Diamond;
 
-    /// <summary>Total time Harmonious Soul was active over the fight, in milliseconds.</summary>
+    /// <summary>Total time Harmonious Soul was active over the dungeon, in milliseconds.</summary>
     public int HarmoniousSoulUptimeMs =>
-        HarmoniousSoul.UptimeOn(Owner.SelectedCombatant, GemPower, Owner.FightStartTime, Owner.FightEndTime);
+        HarmoniousSoul.UptimeOn(Owner.SelectedCombatant, GemPower, Owner.DungeonStartTime, Owner.DungeonEndTime);
 
-    /// <summary>Harmonious Soul's share of the fight, as a fraction.</summary>
+    /// <summary>Harmonious Soul's share of the dungeon, as a fraction.</summary>
     public double HarmoniousSoulUptime =>
-        Owner.FightDurationMs > 0 ? (double)HarmoniousSoulUptimeMs / Owner.FightDurationMs : 0;
+        Owner.DungeonDurationMs > 0 ? (double)HarmoniousSoulUptimeMs / Owner.DungeonDurationMs : 0;
 
     /// <summary>Time-weighted mean stack count while Harmonious Soul was active.</summary>
     public double HarmoniousSoulAverageStacks =>
@@ -42,14 +42,14 @@ public sealed partial class DiamondGemAnalyzer : Analyzer, IGemAnalyzer
             if (HarmoniousSoul.ActiveRank(GemPower) is not { } rank) return 0;
 
             var total = 0L;
-            foreach (var buff in Owner.SelectedCombatant.GetBuffHistory(rank.FSLID))
+            foreach (var buff in Owner.SelectedCombatant.GetBuffHistory(rank))
             {
-                var windowEnd = Math.Min(buff.End ?? Owner.FightEndTime, Owner.FightEndTime);
+                var windowEnd = Math.Min(buff.End ?? Owner.DungeonEndTime, Owner.DungeonEndTime);
                 var history = buff.StackHistory;
 
                 for (var i = 0; i < history.Count; i++)
                 {
-                    var from = Math.Max(history[i].Timestamp, Owner.FightStartTime);
+                    var from = Math.Max(history[i].Timestamp, Owner.DungeonStartTime);
                     var until = Math.Min(i + 1 < history.Count ? history[i + 1].Timestamp : windowEnd, windowEnd);
 
                     if (until > from)

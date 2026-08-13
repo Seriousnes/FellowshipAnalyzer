@@ -9,7 +9,7 @@ using Microsoft.Extensions.Configuration;
 var scanMode = args.Contains("--scan");
 var positional = args.Where(a => !a.StartsWith("--")).ToArray();
 var code = positional.Length >= 1 ? positional[0] : "RaMDvgzWXBCnF4QT";
-var fightId = positional.Length >= 2 ? int.Parse(positional[1]) : 16;
+var dungeonId = positional.Length >= 2 ? int.Parse(positional[1]) : 16;
 var playerId = positional.Length >= 3 ? int.Parse(positional[2]) : 25;
 
 var repoRoot = FindRepoRoot();
@@ -110,7 +110,7 @@ foreach (var v in variants)
     Console.WriteLine();
     Console.WriteLine("================================================================");
     Console.WriteLine(v.Name);
-    var deaths = await FetchDeathsAsync(httpClient, graphQlEndpoint, token, eventsQuery, code, fightId, v.SourceId, v.Hostility);
+    var deaths = await FetchDeathsAsync(httpClient, graphQlEndpoint, token, eventsQuery, code, dungeonId, v.SourceId, v.Hostility);
     Report(deaths);
 }
 
@@ -127,7 +127,7 @@ const string aliasedQuery = """
     }
     """;
 var aliasedDoc = await PostGraphQlAsync(httpClient, graphQlEndpoint, token, aliasedQuery,
-    new JsonObject { ["code"] = code, ["fightIDs"] = new JsonArray(fightId) });
+    new JsonObject { ["code"] = code, ["fightIDs"] = new JsonArray(dungeonId) });
 var rep = aliasedDoc["data"]?["reportData"]?["report"];
 var enemyCount = rep?["enemyDeaths"]?["data"]?.AsArray()?.Count ?? 0;
 var friendlyCount = rep?["friendlyDeaths"]?["data"]?.AsArray()?.Count ?? 0;
@@ -137,9 +137,9 @@ Console.WriteLine($"  inProgress={ip}  enemyDeaths={enemyCount}  friendlyDeaths=
 Console.WriteLine();
 Console.WriteLine("================================================================");
 Console.WriteLine($"NAMESPACE ALIGNMENT: player {playerId} kills in player-stream vs Enemies-view");
-var playerAll = await FetchEventsAsync(httpClient, graphQlEndpoint, token, eventsQuery, code, fightId, playerId, null, null);
+var playerAll = await FetchEventsAsync(httpClient, graphQlEndpoint, token, eventsQuery, code, dungeonId, playerId, null, null);
 var playerKills = playerAll.Where(e => (string?)e?["type"] == "death").ToList();
-var enemyView = await FetchEventsAsync(httpClient, graphQlEndpoint, token, eventsQuery, code, fightId, 0, "Deaths", "Enemies");
+var enemyView = await FetchEventsAsync(httpClient, graphQlEndpoint, token, eventsQuery, code, dungeonId, 0, "Deaths", "Enemies");
 var enemyBySource = enemyView.Where(e => (int?)e?["sourceID"] == playerId).ToList();
 
 Console.WriteLine($"  player-stream death events (kills by {playerId}): {playerKills.Count}");
@@ -167,11 +167,11 @@ static string StrictKey(JsonNode? e) => $"{(long?)e?["timestamp"]}/{(int?)e?["ta
 static string LooseKey(JsonNode? e) => $"{(long?)e?["timestamp"]}/{(int?)e?["targetID"]}";
 
 async Task<List<JsonNode>> FetchDeathsAsync(HttpClient http, string endpoint, string tok, string query,
-    string reportCode, int fight, int? sourceId, string? hostility)
-    => await FetchEventsAsync(http, endpoint, tok, query, reportCode, fight, sourceId, "Deaths", hostility);
+    string reportCode, int dungeonId, int? sourceId, string? hostility)
+    => await FetchEventsAsync(http, endpoint, tok, query, reportCode, dungeonId, sourceId, "Deaths", hostility);
 
 async Task<List<JsonNode>> FetchEventsAsync(HttpClient http, string endpoint, string tok, string query,
-    string reportCode, int fight, int? sourceId, string? dataType, string? hostility)
+    string reportCode, int dungeonId, int? sourceId, string? dataType, string? hostility)
 {
     var all = new List<JsonNode>();
     double startTime = 0;
@@ -180,7 +180,7 @@ async Task<List<JsonNode>> FetchEventsAsync(HttpClient http, string endpoint, st
         var variables = new JsonObject
         {
             ["code"] = reportCode,
-            ["fightIDs"] = new JsonArray(fight),
+            ["fightIDs"] = new JsonArray(dungeonId),
             ["sourceID"] = sourceId,
             ["startTime"] = startTime,
         };

@@ -18,10 +18,10 @@ public sealed partial class MultiOnHandlerTests
 {
     private const int PlayerId = 7;
 
-    private static readonly ReportFight TestFight =
+    private static readonly ReportDungeon TestDungeon =
         new(Id: 0, Name: "", EncounterId: 0, Kill: null,
             StartTime: 0, EndTime: 60_000, Difficulty: null,
-            FriendlyPlayers: null, FightPercentage: null);
+            FriendlyPlayers: null, CompletionPercentage: null);
 
     [Fact]
     public async Task InterfaceParam_ReceivesAllStackedAttributes()
@@ -33,7 +33,7 @@ public sealed partial class MultiOnHandlerTests
         };
 
         var owner = CreateCombatLogParser([typeof(InterfaceParamProbe)]);
-        await owner.Analyze(events, playerId: PlayerId, fight: TestFight);
+        await owner.Analyze(events, playerId: PlayerId, dungeon: TestDungeon);
 
         var probe = owner.GetModule<InterfaceParamProbe>()!;
         Assert.Equal(2, probe.Count);
@@ -51,7 +51,7 @@ public sealed partial class MultiOnHandlerTests
         };
 
         var owner = CreateCombatLogParser([typeof(OneOfParamProbe)]);
-        await owner.Analyze(events, playerId: PlayerId, fight: TestFight);
+        await owner.Analyze(events, playerId: PlayerId, dungeon: TestDungeon);
 
         var probe = owner.GetModule<OneOfParamProbe>()!;
         Assert.Equal(1, probe.T0Hits);
@@ -66,7 +66,7 @@ public sealed partial class MultiOnHandlerTests
             .Returns(NullLogger<EventEmitter>.Instance);
         provider.GetService(typeof(Microsoft.Extensions.Logging.ILogger<ResourceTracker>))
             .Returns(NullLogger<ResourceTracker>.Instance);
-        return new TestCombatLogParser(emitter, provider, moduleTypes, [typeof(FightBookendNormalizer)]);
+        return new TestCombatLogParser(emitter, provider, moduleTypes, [typeof(DungeonBookendNormalizer)]);
     }
 
     private sealed class TestCombatLogParser(

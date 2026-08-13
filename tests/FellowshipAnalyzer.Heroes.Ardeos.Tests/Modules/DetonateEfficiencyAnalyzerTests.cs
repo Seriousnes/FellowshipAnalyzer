@@ -24,10 +24,10 @@ public sealed class DetonateEfficiencyAnalyzerTests
     private const int Instance = 1;
     private const int ApocalypticSurgeTalentId = 678;
 
-    private static readonly ReportFight Fight =
+    private static readonly ReportDungeon Dungeon =
         new(Id: 0, Name: "", EncounterId: 0, Kill: null,
             StartTime: 0, EndTime: 60_000, Difficulty: null,
-            FriendlyPlayers: null, FightPercentage: null);
+            FriendlyPlayers: null, CompletionPercentage: null);
 
     private static readonly ReportActor[] Actors =
     [
@@ -228,7 +228,7 @@ public sealed class DetonateEfficiencyAnalyzerTests
     public async Task Coverage_MarksActiveDoTsAndLeavesTheRestInactive()
     {
         var analyzer = await Analyze(
-            Combatant(),
+            Combatant(boomtasticRing: true),
             ApplyDebuff(100, Enemy1, Spells.SearingBlazeDot.FSLID),
             ApplyDebuff(100, Enemy1, Spells.ApocalypseDot.FSLID),
             Detonate(1000));
@@ -242,6 +242,22 @@ public sealed class DetonateEfficiencyAnalyzerTests
         Coverage(cast, ArdeosDots.Apocalypse).Active.ShouldBeTrue();
         Coverage(cast, ArdeosDots.FireFrogs).Active.ShouldBeFalse();
         Coverage(cast, ArdeosDots.FireBall).Active.ShouldBeFalse();
+    }
+
+    [Fact]
+    public async Task Coverage_WithoutTheBoomtasticRing_OmitsApocalypse()
+    {
+        var analyzer = await Analyze(
+            Combatant(),
+            ApplyDebuff(100, Enemy1, Spells.SearingBlazeDot.FSLID),
+            ApplyDebuff(100, Enemy1, Spells.ApocalypseDot.FSLID),
+            Detonate(1000));
+
+        var cast = analyzer.Casts.ShouldHaveSingleItem();
+        cast.Coverage.Count.ShouldBe(ArdeosDots.Count - 1);
+        cast.Coverage.Select(entry => entry.Dot).ShouldNotContain(ArdeosDots.Apocalypse);
+        cast.DistinctDots.ShouldBe(1);
+        cast.TotalInstances.ShouldBe(1);
     }
 
     [Fact]
@@ -366,10 +382,13 @@ public sealed class DetonateEfficiencyAnalyzerTests
 
     private static int TotalAt(DetonateEfficiencyAnalyzer analyzer, int timestamp) => SampleAt(analyzer, timestamp).Total;
 
-    private static CombatantInfoEvent Combatant(bool talented = false) => new()
+    private static CombatantInfoEvent Combatant(bool talented = false, bool boomtasticRing = false) => new()
     {
         SourceId = PlayerId,
         Talents = talented ? [new TalentInfo { Id = ApocalypticSurgeTalentId }] : [],
+        Gear = boomtasticRing
+            ? [new Item { Id = FellowshipAnalyzer.Core.Common.Items.Items.RingOfBoomtasticExplosions.Id }]
+            : [],
     };
 
     private static CastEvent Detonate(int timestamp) => new()
@@ -460,7 +479,7 @@ public sealed class DetonateEfficiencyAnalyzerTests
 
         var parser = scope.ServiceProvider.GetRequiredService<ArdeosCombatLogParser>();
         parser.Actors = Actors;
-        await parser.Analyze([.. events], PlayerId, Fight);
+        await parser.Analyze([.. events], PlayerId, Dungeon);
         return parser.DetonateEfficiencyAnalyzers.ShouldHaveSingleItem().Analyzer;
     }
 }

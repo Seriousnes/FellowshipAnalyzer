@@ -3,14 +3,14 @@ using FellowshipAnalyzer.Core.Events;
 namespace FellowshipAnalyzer.Core.Analysis.Deaths;
 
 /// <summary>
-/// Fight-lifetime capture of every death of the analyzed player. Incoming hits and healing accumulate
-/// into a rolling buffer trimmed to <see cref="RecapWindowMs"/>, so a long fight keeps only the lead-up
+/// Dungeon-lifetime capture of every death of the analyzed player. Incoming hits and healing accumulate
+/// into a rolling buffer trimmed to <see cref="RecapWindowMs"/>, so a long dungeon keeps only the lead-up
 /// it might need; a death snapshots that buffer plus everything only knowable during dispatch, and
 /// <see cref="PlayerDeath"/> derives the rest from the retained state.
 /// <para>
 /// Cooldown availability has to be captured here rather than derived afterwards: <see cref="SpellUsable"/>
 /// answers only for the current dispatch position, and by the end of the parse that position is the end of
-/// the fight. Aura state, by contrast, is history the parse leaves behind, so the same snapshot could read
+/// the dungeon. Aura state, by contrast, is history the parse leaves behind, so the same snapshot could read
 /// it later; it is taken here to keep <see cref="PlayerDeath"/> free of live module references.
 /// </para>
 /// <para>
@@ -46,7 +46,7 @@ public sealed partial class DeathTracker : Analyzer
     public IReadOnlyList<PlayerDeath> Deaths => _deaths;
 
     /// <summary>The deaths that fall inside <paramref name="pull"/>, or every death when it is <c>null</c>.</summary>
-    public IReadOnlyList<PlayerDeath> For(Pull? pull) =>
+    public IReadOnlyList<PlayerDeath> For(PullStartEvent? pull) =>
         pull is null ? _deaths : [.. _deaths.Where(death => ReferenceEquals(death.Pull, pull))];
 
     [On<DamageEvent>(To = Actor.Player)]
@@ -101,7 +101,7 @@ public sealed partial class DeathTracker : Analyzer
     private void OnDeath(DeathEvent deathEvent)
     {
         var pull = Owner.CurrentPull;
-        var floor = pull?.StartTime ?? Owner.FightStartTime;
+        var floor = pull?.StartTime ?? Owner.DungeonStartTime;
         var windowStart = Math.Max(deathEvent.Timestamp - RecapWindowMs, floor);
 
         List<IncomingHit> hits = [.. _hits.Where(hit => hit.Timestamp >= windowStart && hit.Timestamp <= deathEvent.Timestamp)];
@@ -168,13 +168,13 @@ public sealed partial class DeathTracker : Analyzer
 
     private bool IsActiveOnPlayer(SpellbookAbility ability, int timestamp)
     {
-        if (Owner.SelectedCombatant.HasBuff(ability.PrimarySpell.FSLID.Value, timestamp)) return true;
+        if (Owner.SelectedCombatant.HasBuff(ability.PrimarySpell, timestamp)) return true;
 
         if (ability.AdditionalSpells is not { } extras) return false;
 
         foreach (var extra in extras)
         {
-            if (Owner.SelectedCombatant.HasBuff(extra.FSLID.Value, timestamp)) return true;
+            if (Owner.SelectedCombatant.HasBuff(extra, timestamp)) return true;
         }
 
         return false;

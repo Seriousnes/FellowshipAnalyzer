@@ -20,7 +20,7 @@ public enum CachePartition
     Metadata,
 
     /// <summary>
-    /// Raw combat event JSON for completed fights (stored gzip-compressed).
+    /// Raw combat event JSON for completed dungeons (stored gzip-compressed).
     /// Maps to the <c>events</c> container (Cool tier).
     /// </summary>
     Events,

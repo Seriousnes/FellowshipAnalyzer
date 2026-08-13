@@ -20,7 +20,7 @@ public sealed class CullingStrikeAnalyzerTests
     private const int PlayerId = 7;
     private const int BossId = 11;
     private const int AddId = 12;
-    private const int FightEnd = 100_000;
+    private const int DungeonEnd = 100_000;
 
     private static readonly int CullingStrikeId = TariqSpells.CullingStrike.FSLID;
 
@@ -37,7 +37,7 @@ public sealed class CullingStrikeAnalyzerTests
         var analyzer = Analyzer(parser);
 
         analyzer.ExecutePhaseStartTimestamp.ShouldBe(20_000);
-        analyzer.ExecutePhaseDurationMs.ShouldBe(FightEnd - 20_000);
+        analyzer.ExecutePhaseDurationMs.ShouldBe(DungeonEnd - 20_000);
     }
 
     [Fact]
@@ -106,7 +106,7 @@ public sealed class CullingStrikeAnalyzerTests
         [
             Hit(5_000, BossId, 90, 100),
             Hit(25_000, BossId, 20, 100),
-        ], fightEnd: 30_000);
+        ], dungeonEnd: 30_000);
 
         var analyzer = Analyzer(parser);
 
@@ -424,7 +424,7 @@ public sealed class CullingStrikeAnalyzerTests
     };
 
     private static async Task<TariqCombatLogParser> AnalyzeAsync(
-        List<Event> events, int fightEnd = FightEnd, int encounterId = 1)
+        List<Event> events, int dungeonEnd = DungeonEnd, int encounterId = 1)
     {
         var services = new ServiceCollection();
         services.AddLogging();
@@ -435,8 +435,8 @@ public sealed class CullingStrikeAnalyzerTests
         using var scope = provider.CreateScope();
 
         var parser = scope.ServiceProvider.GetRequiredService<TariqCombatLogParser>();
-        var fight = new ReportFight(0, "Boss", encounterId, true, 0, fightEnd, null, null, null);
-        await parser.Analyze(events, playerId: PlayerId, fight: fight);
+        var dungeon = new ReportDungeon(0, "Boss", encounterId, true, 0, dungeonEnd, null, null, null);
+        await parser.Analyze(events, playerId: PlayerId, dungeon: dungeon);
         return parser;
     }
 }

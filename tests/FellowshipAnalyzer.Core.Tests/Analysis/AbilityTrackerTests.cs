@@ -14,7 +14,7 @@ namespace FellowshipAnalyzer.Core.Tests.Analysis;
 
 /// <summary>
 /// Tests for <see cref="AbilityTracker"/>: the player's completed casts, damage, and healing are
-/// tallied per ability across the whole fight and again scoped to the pull each event landed in.
+/// tallied per ability across the whole dungeon and again scoped to the pull each event landed in.
 /// </summary>
 public sealed class AbilityTrackerTests
 {
@@ -23,10 +23,10 @@ public sealed class AbilityTrackerTests
     private const int SpellA = 4242;
     private const int SpellB = 4243;
 
-    private static readonly ReportFight TestFight =
+    private static readonly ReportDungeon TestDungeon =
         new(Id: 0, Name: "", EncounterId: 0, Kill: null,
             StartTime: 0, EndTime: 60_000, Difficulty: null,
-            FriendlyPlayers: null, FightPercentage: null);
+            FriendlyPlayers: null, CompletionPercentage: null);
 
     [Fact]
     public async Task Rows_TallyCastsDamageAndHealingPerAbility()
@@ -111,20 +111,20 @@ public sealed class AbilityTrackerTests
         var tracker = await Analyze(
         [
             Damage(500, SpellA, amount: 250),
-            new PullStartEvent { Timestamp = 1000, Pull = pull1 },
+            pull1,
             Cast(2000, SpellA),
             Damage(2500, SpellA, amount: 3000),
-            new PullEndEvent { Timestamp = 5000, Pull = pull1 },
+            pull1.End,
             Damage(6000, SpellA, amount: 1000),
-            new PullStartEvent { Timestamp = 7000, Pull = pull2 },
+            pull2,
             Damage(8000, SpellA, amount: 500),
-            new PullEndEvent { Timestamp = 9000, Pull = pull2 },
+            pull2.End,
         ]);
 
-        var fightWide = tracker.For(SpellA)!;
-        Assert.Equal(4, fightWide.DamageHits);
-        Assert.Equal(4750, fightWide.Damage);
-        Assert.Equal(1, fightWide.Casts);
+        var dungeonWide = tracker.For(SpellA)!;
+        Assert.Equal(4, dungeonWide.DamageHits);
+        Assert.Equal(4750, dungeonWide.Damage);
+        Assert.Equal(1, dungeonWide.Casts);
 
         var inPull1 = Assert.Single(tracker.During(pull1));
         Assert.Equal(1, inPull1.Casts);
@@ -146,19 +146,29 @@ public sealed class AbilityTrackerTests
 
         var tracker = await Analyze(
         [
-            new PullStartEvent { Timestamp = 1000, Pull = pull },
+            pull,
             Damage(2000, SpellA, amount: 100),
-            new PullEndEvent { Timestamp = 5000, Pull = pull },
-            new PullStartEvent { Timestamp = 7000, Pull = idlePull },
-            new PullEndEvent { Timestamp = 9000, Pull = idlePull },
+            pull.End,
+            idlePull,
+            idlePull.End,
         ]);
 
         Assert.Empty(tracker.During(idlePull));
         Assert.Null(tracker.For(SpellA, idlePull));
     }
 
-    private static Pull MakePull(int index, int id, int startTime, int endTime) =>
-        new(index, id, $"Pull {id}", startTime, endTime, PullKind.Single, IsBoss: true, Kill: true, TargetCount: 1);
+    private static PullStartEvent MakePull(int index, int id, int startTime, int endTime) =>
+        new()
+        {
+            Timestamp = startTime,
+            End = new PullEndEvent { Timestamp = endTime },
+            Index = index,
+            Id = id,
+            Name = $"Pull {id}",
+            Targets = PullKind.Single,
+            IsBoss = true,
+            Kill = true,
+        };
 
     private static async Task<AbilityTracker> Analyze(List<Event> events)
     {
@@ -169,7 +179,7 @@ public sealed class AbilityTrackerTests
         Type[] moduleTypes = [typeof(DebugAnnotations), typeof(Combatants), typeof(AbilityTracker)];
 
         var parser = new TestParser(emitter, provider, moduleTypes);
-        await parser.Analyze(events, PlayerId, fight: TestFight);
+        await parser.Analyze(events, PlayerId, dungeon: TestDungeon);
         return parser.GetModule<AbilityTracker>()!;
     }
 

@@ -1,7 +1,7 @@
 namespace FellowshipAnalyzer.Core.FellowshipLogs;
 
 /// <summary>
-/// A single pull within a dungeon-type <see cref="ReportFight"/>, as reported by Fellowship Logs.
+/// A single pull within a dungeon-type <see cref="ReportDungeon"/>, as reported by Fellowship Logs.
 /// An <see cref="EncounterId"/> of 0 denotes a trash pull; any other value denotes a boss encounter.
 /// </summary>
 public sealed record DungeonPull(

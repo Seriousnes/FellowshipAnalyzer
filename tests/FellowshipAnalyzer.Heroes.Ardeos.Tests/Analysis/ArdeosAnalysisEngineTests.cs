@@ -27,7 +27,7 @@ public sealed class ArdeosAnalysisEngineTests
     [Fact]
     public async Task Analyze_ShouldProvideGuideComponentType()
     {
-        var (_, result) = await AnalyzeAsync([], new ReportFight(0, "", 0, null, 0, 0, null, null, null));
+        var (_, result) = await AnalyzeAsync([], new ReportDungeon(0, "", 0, null, 0, 0, null, null, null));
 
         result.GuideComponentType.ShouldNotBeNull();
     }
@@ -36,7 +36,7 @@ public sealed class ArdeosAnalysisEngineTests
     public async Task CleanWindow_FourDotsTwoEngulfingAndDetonateSpam_IsSuccessful()
     {
         const int anchor = 10000;
-        var events = new List<Event>();
+        var events = new List<Event> { CombatantWithBoomtasticRing() };
         events.AddRange(FullSetup(anchor, TargetId, TargetInstance));
         events.Add(ApplyBuff(anchor, Spells.WildfireDotBonusBuff.FSLID));
         events.Add(WildfireCast(anchor, TargetId, TargetInstance));
@@ -45,7 +45,7 @@ public sealed class ArdeosAnalysisEngineTests
         events.Add(Cast(Spells.Detonate.FSLID, anchor + 1500));
         events.Add(RemoveBuff(anchor + 9000, Spells.WildfireDotBonusBuff.FSLID));
 
-        var (parser, _) = await AnalyzeAsync(events, SpanningFight(0, 25000));
+        var (parser, _) = await AnalyzeAsync(events, SpanningDungeon(0, 25000));
 
         var entry = parser.WildfireComboAnalyzers.ShouldHaveSingleItem();
         var analyzer = entry.Analyzer;
@@ -78,7 +78,7 @@ public sealed class ArdeosAnalysisEngineTests
             WildfireCast(anchor, TargetId, TargetInstance),
         };
 
-        var (parser, _) = await AnalyzeAsync(events, SpanningFight(0, 20000));
+        var (parser, _) = await AnalyzeAsync(events, SpanningDungeon(0, 20000));
 
         var window = parser.WildfireComboAnalyzers.ShouldHaveSingleItem().Analyzer.Windows.ShouldHaveSingleItem();
         window.EngulfingInstances.ShouldBe(2);
@@ -102,7 +102,7 @@ public sealed class ArdeosAnalysisEngineTests
             RemoveBuff(anchor + 9000, Spells.WildfireDotBonusBuff.FSLID),
         };
 
-        var (parser, _) = await AnalyzeAsync(events, SpanningFight(0, 25000));
+        var (parser, _) = await AnalyzeAsync(events, SpanningDungeon(0, 25000));
 
         var analyzer = parser.WildfireComboAnalyzers.ShouldHaveSingleItem().Analyzer;
         analyzer.SuccessfulWindows.ShouldBe(0);
@@ -130,7 +130,7 @@ public sealed class ArdeosAnalysisEngineTests
             RemoveBuff(anchor + 9000, Spells.WildfireDotBonusBuff.FSLID),
         };
 
-        var (parser, _) = await AnalyzeAsync(events, SpanningFight(0, 25000));
+        var (parser, _) = await AnalyzeAsync(events, SpanningDungeon(0, 25000));
 
         var analyzer = parser.WildfireComboAnalyzers.ShouldHaveSingleItem().Analyzer;
         analyzer.SuccessfulWindows.ShouldBe(0);
@@ -149,6 +149,7 @@ public sealed class ArdeosAnalysisEngineTests
         const int anchor = 10000;
         var events = new List<Event>
         {
+            CombatantWithBoomtasticRing(),
             ApplyDebuff(anchor - 3000, TargetId, TargetInstance, Spells.SearingBlazeDot.FSLID),
             ApplyDebuff(anchor - 3000, TargetId, TargetInstance, Spells.FireBallDot.FSLID),
             ApplyDebuff(anchor - 3000, TargetId, TargetInstance, Spells.ApocalypseDot.FSLID),
@@ -157,7 +158,7 @@ public sealed class ArdeosAnalysisEngineTests
             WildfireCast(anchor, TargetId, TargetInstance),
         };
 
-        var (parser, _) = await AnalyzeAsync(events, SpanningFight(0, 20000));
+        var (parser, _) = await AnalyzeAsync(events, SpanningDungeon(0, 20000));
 
         var window = parser.WildfireComboAnalyzers.ShouldHaveSingleItem().Analyzer.Windows.ShouldHaveSingleItem();
         window.DistinctDots.ShouldBe(3);
@@ -170,6 +171,7 @@ public sealed class ArdeosAnalysisEngineTests
         const int anchor = 10000;
         var events = new List<Event>
         {
+            CombatantWithBoomtasticRing(),
             ApplyDebuff(anchor - 3000, OtherId, OtherInstance, Spells.SearingBlazeDot.FSLID),
             ApplyDebuff(anchor - 3000, OtherId, OtherInstance, Spells.FireBallDot.FSLID),
             ApplyDebuff(anchor - 3000, OtherId, OtherInstance, Spells.ApocalypseDot.FSLID),
@@ -177,7 +179,7 @@ public sealed class ArdeosAnalysisEngineTests
             WildfireCast(anchor, TargetId, TargetInstance),
         };
 
-        var (parser, _) = await AnalyzeAsync(events, SpanningFight(0, 20000));
+        var (parser, _) = await AnalyzeAsync(events, SpanningDungeon(0, 20000));
 
         var window = parser.WildfireComboAnalyzers.ShouldHaveSingleItem().Analyzer.Windows.ShouldHaveSingleItem();
         window.DistinctDots.ShouldBe(0);
@@ -190,6 +192,7 @@ public sealed class ArdeosAnalysisEngineTests
         const int anchor = 10000;
         var events = new List<Event>
         {
+            CombatantWithBoomtasticRing(),
             ApplyDebuff(anchor - 4000, OtherId, OtherInstance, Spells.SearingBlazeDot.FSLID),
             ApplyDebuff(anchor - 4000, OtherId, OtherInstance, Spells.FireBallDot.FSLID),
             ApplyDebuff(anchor - 4000, OtherId, OtherInstance, Spells.ApocalypseDot.FSLID),
@@ -200,7 +203,7 @@ public sealed class ArdeosAnalysisEngineTests
             WildfireCast(anchor, TargetId, TargetInstance),
         };
 
-        var (parser, _) = await AnalyzeAsync(events, SpanningFight(0, 20000));
+        var (parser, _) = await AnalyzeAsync(events, SpanningDungeon(0, 20000));
 
         var window = parser.WildfireComboAnalyzers.ShouldHaveSingleItem().Analyzer.Windows.ShouldHaveSingleItem();
         window.TargetId.ShouldBe(TargetId);
@@ -213,13 +216,14 @@ public sealed class ArdeosAnalysisEngineTests
         const int anchor = 10000;
         var events = new List<Event>
         {
+            CombatantWithBoomtasticRing(),
             ApplyDebuff(anchor - 3000, OtherId, OtherInstance, Spells.SearingBlazeDot.FSLID),
             ApplyDebuff(anchor - 3000, OtherId, OtherInstance, Spells.FireBallDot.FSLID),
         };
         events.AddRange(FullSetup(anchor, TargetId, TargetInstance));
         events.Add(WildfireCast(anchor, targetId: -1, targetInstance: null));
 
-        var (parser, _) = await AnalyzeAsync(events, SpanningFight(0, 20000));
+        var (parser, _) = await AnalyzeAsync(events, SpanningDungeon(0, 20000));
 
         var window = parser.WildfireComboAnalyzers.ShouldHaveSingleItem().Analyzer.Windows.ShouldHaveSingleItem();
         window.TargetId.ShouldBe(TargetId);
@@ -234,6 +238,7 @@ public sealed class ArdeosAnalysisEngineTests
         const int anchor = 10000;
         var events = new List<Event>
         {
+            CombatantWithBoomtasticRing(),
             ApplyDebuff(anchor - 4000, OtherId, OtherInstance, Spells.SearingBlazeDot.FSLID),
             ApplyDebuff(anchor - 4000, OtherId, OtherInstance, Spells.FireBallDot.FSLID),
             ApplyDebuff(anchor - 4000, OtherId, OtherInstance, Spells.ApocalypseDot.FSLID),
@@ -244,7 +249,7 @@ public sealed class ArdeosAnalysisEngineTests
             WildfireCast(anchor, targetId: -1, targetInstance: null),
         };
 
-        var (parser, _) = await AnalyzeAsync(events, SpanningFight(0, 20000));
+        var (parser, _) = await AnalyzeAsync(events, SpanningDungeon(0, 20000));
 
         var window = parser.WildfireComboAnalyzers.ShouldHaveSingleItem().Analyzer.Windows.ShouldHaveSingleItem();
         window.TargetId.ShouldBe(TargetId);
@@ -255,7 +260,7 @@ public sealed class ArdeosAnalysisEngineTests
     public async Task DetonatesOutsideBuffWindow_DoNotCountTowardSpam()
     {
         const int anchor = 10000;
-        var events = new List<Event>();
+        var events = new List<Event> { CombatantWithBoomtasticRing() };
         events.AddRange(FullSetup(anchor, TargetId, TargetInstance));
         events.Add(ApplyBuff(anchor, Spells.WildfireDotBonusBuff.FSLID));
         events.Add(WildfireCast(anchor, TargetId, TargetInstance));
@@ -266,7 +271,7 @@ public sealed class ArdeosAnalysisEngineTests
         events.Add(Cast(Spells.Detonate.FSLID, anchor + 5000));
         events.Add(Cast(Spells.Detonate.FSLID, anchor + 8000));
 
-        var (parser, _) = await AnalyzeAsync(events, SpanningFight(0, 25000));
+        var (parser, _) = await AnalyzeAsync(events, SpanningDungeon(0, 25000));
 
         var window = parser.WildfireComboAnalyzers.ShouldHaveSingleItem().Analyzer.Windows.ShouldHaveSingleItem();
         window.BuffWindowEnd.ShouldBe(anchor + 3000);
@@ -277,7 +282,7 @@ public sealed class ArdeosAnalysisEngineTests
     [Fact]
     public async Task MultipleWildfireAnchors_AreEvaluatedIndependently()
     {
-        var events = new List<Event>();
+        var events = new List<Event> { CombatantWithBoomtasticRing() };
         events.AddRange(FullSetup(10000, TargetId, TargetInstance));
         events.Add(ApplyBuff(10000, Spells.WildfireDotBonusBuff.FSLID));
         events.Add(WildfireCast(10000, TargetId, TargetInstance));
@@ -289,7 +294,7 @@ public sealed class ArdeosAnalysisEngineTests
         events.Add(ApplyDebuff(59000, OtherId, OtherInstance, Spells.SearingBlazeDot.FSLID));
         events.Add(WildfireCast(60000, OtherId, OtherInstance));
 
-        var (parser, _) = await AnalyzeAsync(events, SpanningFight(0, 80000));
+        var (parser, _) = await AnalyzeAsync(events, SpanningDungeon(0, 80000));
 
         var analyzer = parser.WildfireComboAnalyzers.ShouldHaveSingleItem().Analyzer;
         analyzer.EvaluatedWindows.ShouldBe(2);
@@ -304,11 +309,11 @@ public sealed class ArdeosAnalysisEngineTests
     public async Task Coverage_MarksEveryDotActiveOnTheTarget()
     {
         const int anchor = 10000;
-        var events = new List<Event>();
+        var events = new List<Event> { CombatantWithBoomtasticRing() };
         events.AddRange(FullSetup(anchor, TargetId, TargetInstance));
         events.Add(WildfireCast(anchor, TargetId, TargetInstance));
 
-        var (parser, _) = await AnalyzeAsync(events, SpanningFight(0, 20000));
+        var (parser, _) = await AnalyzeAsync(events, SpanningDungeon(0, 20000));
 
         var window = parser.WildfireComboAnalyzers.ShouldHaveSingleItem().Analyzer.Windows.ShouldHaveSingleItem();
         window.Coverage.Count.ShouldBe(ArdeosDots.Count);
@@ -327,6 +332,25 @@ public sealed class ArdeosAnalysisEngineTests
     }
 
     [Fact]
+    public async Task WithoutTheBoomtasticRing_ApocalypseIsNotCovered()
+    {
+        const int anchor = 10000;
+        var events = new List<Event>();
+        events.AddRange(FullSetup(anchor, TargetId, TargetInstance));
+        events.Add(WildfireCast(anchor, TargetId, TargetInstance));
+
+        var (parser, _) = await AnalyzeAsync(events, SpanningDungeon(0, 20000));
+
+        parser.ArdeosDotTracker!.BoomtasticRingEquipped.ShouldBeFalse();
+
+        var window = parser.WildfireComboAnalyzers.ShouldHaveSingleItem().Analyzer.Windows.ShouldHaveSingleItem();
+        window.Coverage.Count.ShouldBe(ArdeosDots.Count - 1);
+        window.Coverage.Select(entry => entry.Dot).ShouldNotContain(ArdeosDots.Apocalypse);
+        window.ActiveDots.ShouldNotContain(ArdeosDots.Apocalypse);
+        window.DistinctDots.ShouldBe(3);
+    }
+
+    [Fact]
     public async Task Coverage_IncinerateStacks_ReadStackCountAtEachCast()
     {
         var events = new List<Event>
@@ -338,7 +362,7 @@ public sealed class ArdeosAnalysisEngineTests
             WildfireCast(51000, TargetId, TargetInstance),
         };
 
-        var (parser, _) = await AnalyzeAsync(events, SpanningFight(0, 70000));
+        var (parser, _) = await AnalyzeAsync(events, SpanningDungeon(0, 70000));
 
         var windows = parser.WildfireComboAnalyzers.ShouldHaveSingleItem().Analyzer.Windows;
         windows.Count.ShouldBe(2);
@@ -427,7 +451,13 @@ public sealed class ArdeosAnalysisEngineTests
         TargetInstance = targetInstance,
     };
 
-    private static ReportFight SpanningFight(double startTime, double endTime) =>
+    private static CombatantInfoEvent CombatantWithBoomtasticRing() => new()
+    {
+        SourceId = PlayerId,
+        Gear = [new Item { Id = FellowshipAnalyzer.Core.Common.Items.Items.RingOfBoomtasticExplosions.Id }],
+    };
+
+    private static ReportDungeon SpanningDungeon(double startTime, double endTime) =>
         new(0, "", 0, null, startTime, endTime, null, null, null);
 
     private static readonly ReportActor[] Actors =
@@ -437,7 +467,7 @@ public sealed class ArdeosAnalysisEngineTests
         new(OtherId, "Other", "NPC", null, null, null),
     ];
 
-    private static async Task<(ArdeosCombatLogParser Parser, HeroAnalysisResult Result)> AnalyzeAsync(List<Event> events, ReportFight fight)
+    private static async Task<(ArdeosCombatLogParser Parser, HeroAnalysisResult Result)> AnalyzeAsync(List<Event> events, ReportDungeon dungeon)
     {
         var services = new ServiceCollection();
         services.AddLogging();
@@ -449,7 +479,7 @@ public sealed class ArdeosAnalysisEngineTests
 
         var parser = scope.ServiceProvider.GetRequiredService<ArdeosCombatLogParser>();
         parser.Actors = Actors;
-        var result = await parser.Analyze(events, PlayerId, fight);
+        var result = await parser.Analyze(events, PlayerId, dungeon);
         return (parser, result);
     }
 }

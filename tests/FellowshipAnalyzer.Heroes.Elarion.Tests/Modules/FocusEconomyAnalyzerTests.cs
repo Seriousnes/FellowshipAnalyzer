@@ -25,10 +25,10 @@ public sealed class FocusEconomyAnalyzerTests
     private const int LogResourceScale = 100;
     private const int MaxFocus = 100;
 
-    private static readonly ReportFight Fight =
+    private static readonly ReportDungeon Dungeon =
         new(Id: 0, Name: "Boss", EncounterId: 31, Kill: true,
             StartTime: 0, EndTime: 20_000, Difficulty: null,
-            FriendlyPlayers: null, FightPercentage: null);
+            FriendlyPlayers: null, CompletionPercentage: null);
 
     [Fact]
     public async Task FocusedShot_CountsOnlyTheCastsStartedNearCap()
@@ -160,7 +160,7 @@ public sealed class FocusEconomyAnalyzerTests
         using var scope = provider.CreateScope();
 
         var parser = scope.ServiceProvider.GetRequiredService<ElarionCombatLogParser>();
-        var result = await parser.Analyze([.. events], PlayerId, Fight);
+        var result = await parser.Analyze([.. events], PlayerId, Dungeon);
         return (parser, result);
     }
 }

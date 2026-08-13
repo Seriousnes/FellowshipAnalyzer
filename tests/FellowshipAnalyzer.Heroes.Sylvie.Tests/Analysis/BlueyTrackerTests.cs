@@ -45,7 +45,7 @@ public sealed class BlueyTrackerTests
     }
 
     [Fact]
-    public async Task ARemovalWithNoApplicationBackdatesThePostingToTheFightStart()
+    public async Task ARemovalWithNoApplicationBackdatesThePostingToTheDungeonStart()
     {
         var parser = await Analyze(
             RemoveBuff(PullStart + 4_000, Spells.FluttercallEmbraceBuff, PlayerId));

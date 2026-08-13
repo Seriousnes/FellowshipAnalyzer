@@ -26,7 +26,7 @@ public sealed class ElarionAnalysisEngineTests
     [Fact]
     public async Task Analyze_ShouldProvideGuideComponentType()
     {
-        var (_, result) = await AnalyzeAsync([], new ReportFight(0, "", 0, null, 0, 0, null, null, null));
+        var (_, result) = await AnalyzeAsync([], new ReportDungeon(0, "", 0, null, 0, 0, null, null, null));
 
         result.GuideComponentType.ShouldNotBeNull();
     }
@@ -57,7 +57,7 @@ public sealed class ElarionAnalysisEngineTests
             Cast(Spells.HighwindArrow.Id, 1_000, focus: 100),
         };
 
-        var (parser, _) = await AnalyzeAsync(events, new ReportFight(0, "Boss", 31, true, 0, 20_000, null, null, null));
+        var (parser, _) = await AnalyzeAsync(events, new ReportDungeon(0, "Boss", 31, true, 0, 20_000, null, null, null));
 
         var tracker = parser.FocusTracker.ShouldNotBeNull();
         tracker.GetSpent(ResourceTypes.Primary).ShouldBe(30);
@@ -86,7 +86,7 @@ public sealed class ElarionAnalysisEngineTests
     };
 
     private static async Task<(ElarionCombatLogParser Parser, HeroAnalysisResult Result)> AnalyzeAsync(
-        IReadOnlyList<Event> events, ReportFight fight)
+        IReadOnlyList<Event> events, ReportDungeon dungeon)
     {
         var services = new ServiceCollection();
         services.AddLogging();
@@ -97,7 +97,7 @@ public sealed class ElarionAnalysisEngineTests
         using var scope = provider.CreateScope();
 
         var parser = scope.ServiceProvider.GetRequiredService<ElarionCombatLogParser>();
-        var result = await parser.Analyze(events, PlayerId, fight);
+        var result = await parser.Analyze(events, PlayerId, dungeon);
         return (parser, result);
     }
 }

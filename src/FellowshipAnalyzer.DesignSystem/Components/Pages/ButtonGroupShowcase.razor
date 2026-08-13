@@ -26,12 +26,12 @@
 @code {
     private enum SortMode { Name, Role, Damage }
 
-    private string _view = "fight";
+    private string _view = "dungeon";
     private SortMode _mode = SortMode.Role;
 
     private static readonly IReadOnlyList<ButtonGroupOption<string>> _stringOptions =
     [
-        new("fight", "By Fight"),
+        new("dungeon", "By Dungeon"),
         new("player", "By Player"),
     ];
 
@@ -46,11 +46,11 @@
 <ButtonGroup TValue="string" Options="@_options" @bind-Value="_view" />
 
 @code {
-    private string _view = "fight";
+    private string _view = "dungeon";
 
     private static readonly IReadOnlyList<ButtonGroupOption<string>> _options =
     [
-        new("fight", "By Fight"),
+        new("dungeon", "By Dungeon"),
         new("player", "By Player"),
     ];
 }

@@ -31,7 +31,7 @@ public sealed class SearingBlazeSpreadAnalyzerTests
             Apply(targetId: 12, targetInstance: 0, timestamp: 2000),
         };
 
-        var (parser, _) = await AnalyzeAsync(events, TrashFight(5));
+        var (parser, _) = await AnalyzeAsync(events, TrashDungeon(5));
 
         var entry = parser.SearingBlazeAnalyzers.ShouldHaveSingleItem();
         var analyzer = entry.Analyzer.ShouldBeOfType<SearingBlazeSpreadAnalyzer>();
@@ -56,7 +56,7 @@ public sealed class SearingBlazeSpreadAnalyzerTests
             Refresh(targetId: 10, targetInstance: 0, timestamp: 2500),
         };
 
-        var (parser, _) = await AnalyzeAsync(events, TrashFight(4));
+        var (parser, _) = await AnalyzeAsync(events, TrashDungeon(4));
 
         var analyzer = SingleSpreadAnalyzer(parser);
         analyzer.DistinctTargets.ShouldBe(2);
@@ -74,7 +74,7 @@ public sealed class SearingBlazeSpreadAnalyzerTests
             Apply(targetId: 12, targetInstance: 0, timestamp: 2000),
         };
 
-        var (parser, _) = await AnalyzeAsync(events, TrashFight(3));
+        var (parser, _) = await AnalyzeAsync(events, TrashDungeon(3));
 
         var analyzer = SingleSpreadAnalyzer(parser);
         analyzer.DistinctTargets.ShouldBe(3);
@@ -84,7 +84,7 @@ public sealed class SearingBlazeSpreadAnalyzerTests
     [Fact]
     public async Task Analyze_NoSearingBlaze_ReportsZeroCoverage()
     {
-        var (parser, _) = await AnalyzeAsync([], TrashFight(5));
+        var (parser, _) = await AnalyzeAsync([], TrashDungeon(5));
 
         var analyzer = SingleSpreadAnalyzer(parser);
         analyzer.DistinctTargets.ShouldBe(0);
@@ -101,7 +101,7 @@ public sealed class SearingBlazeSpreadAnalyzerTests
             Apply(targetId: 11, targetInstance: 0, timestamp: 1500),
         };
 
-        var (parser, _) = await AnalyzeAsync(events, SpanningFight());
+        var (parser, _) = await AnalyzeAsync(events, SpanningDungeon());
 
         var analyzer = SingleSpreadAnalyzer(parser);
         analyzer.TargetCount.ShouldBe(0);
@@ -119,7 +119,7 @@ public sealed class SearingBlazeSpreadAnalyzerTests
             Apply(targetId: 12, targetInstance: 0, timestamp: 2000),
         };
 
-        var (parser, _) = await AnalyzeAsync(events, BossFight());
+        var (parser, _) = await AnalyzeAsync(events, BossDungeon());
 
         parser.SearingBlazeAnalyzers.Select(e => e.Analyzer).OfType<SearingBlazeSpreadAnalyzer>().ShouldBeEmpty();
     }
@@ -133,7 +133,7 @@ public sealed class SearingBlazeSpreadAnalyzerTests
             Apply(targetId: 10, targetInstance: 1, timestamp: 1500),
         };
 
-        var (parser, _) = await AnalyzeAsync(events, TrashFight(3));
+        var (parser, _) = await AnalyzeAsync(events, TrashDungeon(3));
 
         var analyzer = SingleSpreadAnalyzer(parser);
         analyzer.DistinctTargets.ShouldBe(2);
@@ -151,7 +151,7 @@ public sealed class SearingBlazeSpreadAnalyzerTests
             EnemySourcedRefresh(targetId: 50, targetInstance: 0, timestamp: 3000),
         };
 
-        var (parser, _) = await AnalyzeAsync(events, TrashFight(5));
+        var (parser, _) = await AnalyzeAsync(events, TrashDungeon(5));
 
         var analyzer = SingleSpreadAnalyzer(parser);
         analyzer.DistinctTargets.ShouldBe(1);
@@ -167,7 +167,7 @@ public sealed class SearingBlazeSpreadAnalyzerTests
             Refresh(targetId: 20, targetInstance: 0, timestamp: 1500),
         };
 
-        var (parser, _) = await AnalyzeAsync(events, TrashFight(4));
+        var (parser, _) = await AnalyzeAsync(events, TrashDungeon(4));
 
         var analyzer = SingleSpreadAnalyzer(parser);
         analyzer.DistinctTargets.ShouldBe(2);
@@ -182,7 +182,7 @@ public sealed class SearingBlazeSpreadAnalyzerTests
             Apply(targetId: 10, targetInstance: 0, timestamp: 1000),
         };
 
-        var (parser, _) = await AnalyzeAsync(events, TrashFight(10));
+        var (parser, _) = await AnalyzeAsync(events, TrashDungeon(10));
 
         var analyzer = SingleSpreadAnalyzer(parser);
         analyzer.DistinctTargets.ShouldBe(1);
@@ -246,16 +246,16 @@ public sealed class SearingBlazeSpreadAnalyzerTests
         Ability = new Ability { Id = Spells.SearingBlazeDot.FSLID },
     };
 
-    private static ReportFight TrashFight(int enemies) =>
-        new(0, "", 0, null, 0, 20000, null, null, null, EnemyNpcs: [new FightNpc(1, 100, enemies, null, null)]);
+    private static ReportDungeon TrashDungeon(int enemies) =>
+        new(0, "", 0, null, 0, 20000, null, null, null, EnemyNpcs: [new DungeonNpc(1, 100, enemies, 1, null)]);
 
-    private static ReportFight SpanningFight() =>
+    private static ReportDungeon SpanningDungeon() =>
         new(0, "", 0, null, 0, 20000, null, null, null);
 
-    private static ReportFight BossFight() =>
+    private static ReportDungeon BossDungeon() =>
         new(0, "", 1, null, 0, 20000, null, null, null);
 
-    private static async Task<(ArdeosCombatLogParser Parser, HeroAnalysisResult Result)> AnalyzeAsync(List<Event> events, ReportFight fight)
+    private static async Task<(ArdeosCombatLogParser Parser, HeroAnalysisResult Result)> AnalyzeAsync(List<Event> events, ReportDungeon dungeon)
     {
         var services = new ServiceCollection();
         services.AddLogging();
@@ -266,7 +266,7 @@ public sealed class SearingBlazeSpreadAnalyzerTests
         using var scope = provider.CreateScope();
 
         var parser = scope.ServiceProvider.GetRequiredService<ArdeosCombatLogParser>();
-        var result = await parser.Analyze(events, PlayerId, fight);
+        var result = await parser.Analyze(events, PlayerId, dungeon);
         return (parser, result);
     }
 }

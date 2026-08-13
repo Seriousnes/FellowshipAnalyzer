@@ -60,7 +60,7 @@ A normal analyzer change usually includes:
 
 1. `Modules/Abilities.cs` updates for spell metadata, cooldowns, charges, costs, GCD behavior, or hidden related spell IDs.
 2. A module under `Modules/` that inherits from `Analyzer`, `ResourceTracker`, `Auras`, or another existing base type.
-3. An `[AddAnalyzer<T>]` entry on `{Hero}CombatLogParser.cs` for pull-lifetime gameplay analysis, or `[AddModule<T>]` / `[AddState<T>]` for fight-lifetime state.
+3. An `[AddAnalyzer<T>]` entry on `{Hero}CombatLogParser.cs` for pull-lifetime gameplay analysis, or `[AddModule<T>]` / `[AddState<T>]` for dungeon-lifetime state.
 4. A guide component under `Guides/` or statistics component under `Statistics/` when the result should be visible to users.
 5. Tests in `tests/FellowshipAnalyzer.Heroes.{Hero}.Tests`.
 

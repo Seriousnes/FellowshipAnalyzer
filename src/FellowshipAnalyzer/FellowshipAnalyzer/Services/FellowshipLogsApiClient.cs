@@ -8,9 +8,14 @@ namespace FellowshipAnalyzer.Services;
 
 public sealed class FellowshipLogsApiClient(HttpClient http, FellowshipAnalyzerJsonContext jsonContext, ILogger<FellowshipLogsApiClient> logger)
 {
-    public async Task<AnalysisPreload> GetAnalysisPreloadAsync(string reportCode, CancellationToken ct = default)
+    public async Task<AnalysisPreload> GetAnalysisPreloadAsync(
+        string reportCode, int? dungeonId = null, CancellationToken ct = default)
     {
-        return await http.GetFromJsonAsync($"api/analysis/{Uri.EscapeDataString(reportCode)}", jsonContext.AnalysisPreload, ct)
+        var url = $"api/analysis/{Uri.EscapeDataString(reportCode)}";
+        if (dungeonId is { } id)
+            url += $"?dungeonId={id}";
+
+        return await http.GetFromJsonAsync(url, jsonContext.AnalysisPreload, ct)
             ?? throw new InvalidOperationException("Analysis preload response was null.");
     }
 
@@ -21,10 +26,10 @@ public sealed class FellowshipLogsApiClient(HttpClient http, FellowshipAnalyzerJ
     }
 
     public async Task<RawEventsResponse> GetRawEventsAsync(
-        string reportCode, int playerId, int fightId, CancellationToken ct = default)
+        string reportCode, int playerId, int dungeonId, CancellationToken ct = default)
     {
         var sw = Stopwatch.StartNew();
-        var url = $"api/events?reportCode={Uri.EscapeDataString(reportCode)}&playerId={playerId}&fightId={fightId}";
+        var url = $"api/events?reportCode={Uri.EscapeDataString(reportCode)}&playerId={playerId}&dungeonId={dungeonId}";
         logger.LogInformation("GetRawEventsAsync sending GET {Url}", url);
 
         using var response = await http.GetAsync(url, HttpCompletionOption.ResponseHeadersRead, ct);
@@ -54,13 +59,13 @@ public sealed class FellowshipLogsApiClient(HttpClient http, FellowshipAnalyzerJ
     }
 
     /// <summary>
-    /// Fetches all death events for a fight regardless of hostility or killer. Fight-scoped
-    /// (no player filter), so the same payload is shared by every combatant in the fight.
+    /// Fetches all death events for a dungeon regardless of hostility or killer. Dungeon-scoped
+    /// (no player filter), so the same payload is shared by every combatant in the dungeon.
     /// </summary>
     public async Task<RawEventsResponse> GetRawDeathsAsync(
-        string reportCode, int fightId, CancellationToken ct = default)
+        string reportCode, int dungeonId, CancellationToken ct = default)
     {
-        var url = $"api/deaths?reportCode={Uri.EscapeDataString(reportCode)}&fightId={fightId}";
+        var url = $"api/deaths?reportCode={Uri.EscapeDataString(reportCode)}&dungeonId={dungeonId}";
         logger.LogInformation("GetRawDeathsAsync sending GET {Url}", url);
 
         using var response = await http.GetAsync(url, HttpCompletionOption.ResponseHeadersRead, ct);

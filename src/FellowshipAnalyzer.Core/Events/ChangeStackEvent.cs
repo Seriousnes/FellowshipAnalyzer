@@ -9,10 +9,10 @@ public abstract class ChangeStackEvent : BuffEvent
 {
     /// <summary>A single stack-history entry: the stack count reached at a given point in time.</summary>
     /// <param name="Stacks">The stack count reached at this point in the aura's history.</param>
-    /// <param name="Timestamp">The fight-relative timestamp, in milliseconds, at which this stack count was reached.</param>
+    /// <param name="Timestamp">The dungeon-relative timestamp, in milliseconds, at which this stack count was reached.</param>
     public record class History(int Stacks, long Timestamp);
 
-    /// <summary>The fight-relative timestamp, in milliseconds, at which the tracked aura ended, or <c>null</c> while it is still active.</summary>
+    /// <summary>The dungeon-relative timestamp, in milliseconds, at which the tracked aura ended, or <c>null</c> while it is still active.</summary>
     public virtual int? End { get; set; }
     /// <summary>Whether the aura whose stack count changed is a debuff rather than a buff.</summary>
     public virtual bool? IsDebuff { get; set; }
@@ -28,7 +28,7 @@ public abstract class ChangeStackEvent : BuffEvent
     public virtual int Stacks { get; set; }
     /// <summary>The signed change in stack count for this event; negative when stacks were lost.</summary>
     public virtual int StacksGained { get; set; }
-    /// <summary>The fight-relative timestamp, in milliseconds, at which the tracked aura was first applied.</summary>
+    /// <summary>The dungeon-relative timestamp, in milliseconds, at which the tracked aura was first applied.</summary>
     public virtual int Start { get; set; }
     /// <inheritdoc/>
     public override bool? Fabricated => true;

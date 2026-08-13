@@ -7,7 +7,7 @@ description: "Create a ResourceTracker subclass that tracks a numeric resource (
 
 A resource tracker is a specialized module in `Modules/` that extends `ResourceTracker`. The base tracker tracks all observed `ResourceTypes` for the selected player and stores a `ResourceState` per resource type.
 
-`ResourceTracker` derives from `Analyzer` but is registered fight-lifetime, so its inherited `Pull` property is never assigned. Do not read `Pull` from a tracker; it accumulates across the whole fight.
+`ResourceTracker` derives from `Analyzer` but is registered dungeon-lifetime, so its inherited `Pull` property is never assigned. Do not read `Pull` from a tracker; it accumulates across the whole dungeon.
 
 Use a hero-specific subclass when you need convenience accessors, max overrides, spell-definition cost lookup, or a statistics component for a specific resource.
 
@@ -76,7 +76,7 @@ Register the tracker before analyzers that depend on it:
 public sealed partial class {Hero}CombatLogParser : CombatLogParser
 ```
 
-A tracker subscribes to events, so it registers with `[AddAnalyzer<T>]` (FA0019). Declaring no `[ForPull]` is what keeps it fight-lifetime, which is what makes it readable from a pull analyzer: FA0014 reports a dependency on a `[ForPull]` type, whatever registered it.
+A tracker subscribes to events, so it registers with `[AddAnalyzer<T>]` (FA0019). Declaring no `[ForPull]` is what keeps it dungeon-lifetime, which is what makes it readable from a pull analyzer: FA0014 reports a dependency on a `[ForPull]` type, whatever registered it.
 
 Declaration order is the default module order (base parser modules first, then the hero's, in the order declared) and the tie-break for the sort. Use `[Before<TOther>]` or `[After<TOther>]` on a module when it must run relative to a specific other module rather than relying on where it sits in the attribute list.
 
@@ -130,7 +130,7 @@ For ad-hoc reads outside a declared dependency, `Owner.GetModule<T>()` also work
 - Override `GetResourceCost` when the log does not directly provide spend cost information; read costs with `Spell.Cost(ResourceTypes)`.
 - Set `MaxOverrides` in the constructor, not in any post-construction hook.
 - Register with `[AddAnalyzer<T>]`, and no `[ForPull]`, before dependent analyzers.
-- Never read `Pull` from a tracker; it is fight-lifetime.
+- Never read `Pull` from a tracker; it is dungeon-lifetime.
 - Use the `analyze-log-resources` skill before adding enum values or guessing resource behavior.
 
 ## Checklist

@@ -24,10 +24,10 @@ public sealed class ChronoshiftAnalyzerTests
     private const int BigCdId = 500;
     private const int BigCdSeconds = 30;
 
-    private static readonly ReportFight TestFight =
+    private static readonly ReportDungeon TestDungeon =
         new(Id: 0, Name: "", EncounterId: 0, Kill: null,
             StartTime: 0, EndTime: 60_000, Difficulty: null,
-            FriendlyPlayers: null, FightPercentage: null);
+            FriendlyPlayers: null, CompletionPercentage: null);
 
     [Fact]
     public async Task FullChannel_AttributesBonusRecoveryToOnCooldownAbility()
@@ -167,7 +167,7 @@ public sealed class ChronoshiftAnalyzerTests
         ];
 
         var parser = new TestParser(emitter, provider, moduleTypes);
-        await parser.Analyze(events, PlayerId, fight: TestFight);
+        await parser.Analyze(events, PlayerId, dungeon: TestDungeon);
         return parser;
     }
 

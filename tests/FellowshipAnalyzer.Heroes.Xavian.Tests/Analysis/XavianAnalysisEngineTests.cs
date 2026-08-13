@@ -25,7 +25,7 @@ public sealed class XavianAnalysisEngineTests
         using var scope = provider.CreateScope();
 
         var analyzer = scope.ServiceProvider.GetRequiredKeyedService<IHeroAnalyzer>(HeroName.Xavian);
-        var result = await analyzer.Analyze([], playerId: 1, fight: new ReportFight(0, "", 0, null, 0, 0, null, null, null));
+        var result = await analyzer.Analyze([], playerId: 1, dungeon: new ReportDungeon(0, "", 0, null, 0, 0, null, null, null));
 
         result.GuideComponentType.ShouldBeNull();
     }

@@ -12,7 +12,7 @@ namespace FellowshipAnalyzer.Core.Tests.Analysis;
 /// </summary>
 public sealed class HasChronoshiftGearTests
 {
-    private static readonly ReportFight TestFight =
+    private static readonly ReportDungeon TestDungeon =
         new(0, "", 0, null, 0, 0, null, null, null);
 
     [Theory]
@@ -36,7 +36,7 @@ public sealed class HasChronoshiftGearTests
 
     private static ParseContext ContextWithGear(params Item[] gear)
     {
-        var combatant = new Combatant(new CombatantInfoEvent { Gear = [.. gear] });
-        return new ParseContext(PlayerId: 7, Fight: TestFight, ActorNames: new Dictionary<int, string>(), combatant);
+        var combatant = new FullCombatant(new CombatantInfoEvent { Gear = [.. gear] });
+        return new ParseContext(PlayerId: 7, Dungeon: TestDungeon, ActorNames: new Dictionary<int, string>(), combatant);
     }
 }

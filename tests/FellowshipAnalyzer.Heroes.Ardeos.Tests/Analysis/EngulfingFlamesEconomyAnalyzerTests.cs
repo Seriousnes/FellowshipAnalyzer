@@ -44,7 +44,7 @@ public sealed class EngulfingFlamesEconomyAnalyzerTests
             Cast(Spells.Wildfire.FSLID, 1000),
         };
 
-        var (parser, _) = await AnalyzeAsync(events, SpanningFight(0, 15000));
+        var (parser, _) = await AnalyzeAsync(events, SpanningDungeon(0, 15000));
 
         var entry = parser.EngulfingFlamesEconomyAnalyzers.ShouldHaveSingleItem();
         var analyzer = entry.Analyzer;
@@ -76,7 +76,7 @@ public sealed class EngulfingFlamesEconomyAnalyzerTests
             Cast(Spells.Wildfire.FSLID, 48000),
         };
 
-        var (parser, _) = await AnalyzeAsync(events, SpanningFight(0, 50000));
+        var (parser, _) = await AnalyzeAsync(events, SpanningDungeon(0, 50000));
 
         var analyzer = parser.EngulfingFlamesEconomyAnalyzers.ShouldHaveSingleItem().Analyzer;
         analyzer.WindowsEvaluated.ShouldBe(2);
@@ -102,7 +102,7 @@ public sealed class EngulfingFlamesEconomyAnalyzerTests
             Cast(Spells.Wildfire.FSLID, 80000),
         };
 
-        var (parser, _) = await AnalyzeAsync(events, SpanningFight(0, 85000));
+        var (parser, _) = await AnalyzeAsync(events, SpanningDungeon(0, 85000));
 
         var analyzer = parser.EngulfingFlamesEconomyAnalyzers.ShouldHaveSingleItem().Analyzer;
         analyzer.DoubleAppliedWindows.ShouldBe(1);
@@ -123,7 +123,7 @@ public sealed class EngulfingFlamesEconomyAnalyzerTests
             Cast(Spells.Wildfire.FSLID, 1000),
         };
 
-        var (parser, _) = await AnalyzeAsync(events, SpanningFight(0, 15000));
+        var (parser, _) = await AnalyzeAsync(events, SpanningDungeon(0, 15000));
 
         var analyzer = parser.EngulfingFlamesEconomyAnalyzers.ShouldHaveSingleItem().Analyzer;
         analyzer.DoubleAppliedWindows.ShouldBe(0);
@@ -140,7 +140,7 @@ public sealed class EngulfingFlamesEconomyAnalyzerTests
     {
         var events = new List<Event> { Cast(Spells.Wildfire.FSLID, 1000) };
 
-        var (parser, _) = await AnalyzeAsync(events, SpanningFight(0, 15000));
+        var (parser, _) = await AnalyzeAsync(events, SpanningDungeon(0, 15000));
 
         var analyzer = parser.EngulfingFlamesEconomyAnalyzers.ShouldHaveSingleItem().Analyzer;
         analyzer.MissedWindows.ShouldBe(1);
@@ -162,7 +162,7 @@ public sealed class EngulfingFlamesEconomyAnalyzerTests
             Cast(Spells.Wildfire.FSLID, 45600),
         };
 
-        var (parser, _) = await AnalyzeAsync(events, SpanningFight(0, 50000));
+        var (parser, _) = await AnalyzeAsync(events, SpanningDungeon(0, 50000));
 
         var analyzer = parser.EngulfingFlamesEconomyAnalyzers.ShouldHaveSingleItem().Analyzer;
         analyzer.Windows[0].ChargesAtReady.ShouldBe(2);
@@ -182,7 +182,7 @@ public sealed class EngulfingFlamesEconomyAnalyzerTests
             Cast(Spells.Wildfire.FSLID, 41000),
         };
 
-        var (parser, _) = await AnalyzeAsync(events, SpanningFight(0, 45000));
+        var (parser, _) = await AnalyzeAsync(events, SpanningDungeon(0, 45000));
 
         var analyzer = parser.EngulfingFlamesEconomyAnalyzers.ShouldHaveSingleItem().Analyzer;
         analyzer.WindowsEvaluated.ShouldBe(2);
@@ -195,7 +195,7 @@ public sealed class EngulfingFlamesEconomyAnalyzerTests
     [Fact]
     public async Task NoWildfireWindows_EvaluatesNothing()
     {
-        var (parser, _) = await AnalyzeAsync([], SpanningFight(0, 15000));
+        var (parser, _) = await AnalyzeAsync([], SpanningDungeon(0, 15000));
 
         var analyzer = parser.EngulfingFlamesEconomyAnalyzers.ShouldHaveSingleItem().Analyzer;
         analyzer.WindowsEvaluated.ShouldBe(0);
@@ -206,7 +206,7 @@ public sealed class EngulfingFlamesEconomyAnalyzerTests
     [Fact]
     public async Task Overcap_NeverCast_WastesEntirePull()
     {
-        var (parser, _) = await AnalyzeAsync([], SpanningFight(0, 100000));
+        var (parser, _) = await AnalyzeAsync([], SpanningDungeon(0, 100000));
 
         var analyzer = parser.EngulfingFlamesEconomyAnalyzers.ShouldHaveSingleItem().Analyzer;
         analyzer.WindowsEvaluated.ShouldBe(0);
@@ -224,7 +224,7 @@ public sealed class EngulfingFlamesEconomyAnalyzerTests
         };
         events.AddRange(Fillers(10000, 90000, 10000));
 
-        var (parser, _) = await AnalyzeAsync(events, SpanningFight(0, 100000));
+        var (parser, _) = await AnalyzeAsync(events, SpanningDungeon(0, 100000));
 
         var analyzer = parser.EngulfingFlamesEconomyAnalyzers.ShouldHaveSingleItem().Analyzer;
         analyzer.WastedCharges.ShouldBe(3);
@@ -240,7 +240,7 @@ public sealed class EngulfingFlamesEconomyAnalyzerTests
             Cast(Spells.EngulfingFlames.FSLID, 100),
         };
 
-        var (parser, _) = await AnalyzeAsync(events, SpanningFight(0, 15000));
+        var (parser, _) = await AnalyzeAsync(events, SpanningDungeon(0, 15000));
 
         var analyzer = parser.EngulfingFlamesEconomyAnalyzers.ShouldHaveSingleItem().Analyzer;
         analyzer.WastedCharges.ShouldBe(0);
@@ -248,7 +248,7 @@ public sealed class EngulfingFlamesEconomyAnalyzerTests
     }
 
     [Fact]
-    public async Task Overcap_ActivelyCycledOverLongFight_NoWaste()
+    public async Task Overcap_ActivelyCycledOverLongDungeon_NoWaste()
     {
         var events = new List<Event>
         {
@@ -260,7 +260,7 @@ public sealed class EngulfingFlamesEconomyAnalyzerTests
         };
         events.AddRange(Fillers(5000, 75000, 5000));
 
-        var (parser, _) = await AnalyzeAsync(events, SpanningFight(0, 80000));
+        var (parser, _) = await AnalyzeAsync(events, SpanningDungeon(0, 80000));
 
         var analyzer = parser.EngulfingFlamesEconomyAnalyzers.ShouldHaveSingleItem().Analyzer;
         analyzer.WastedCharges.ShouldBe(0);
@@ -272,7 +272,7 @@ public sealed class EngulfingFlamesEconomyAnalyzerTests
     {
         var events = new List<Event> { CombatantWithLegendary() };
 
-        var (parser, _) = await AnalyzeAsync(events, SpanningFight(0, 200_000));
+        var (parser, _) = await AnalyzeAsync(events, SpanningDungeon(0, 200_000));
 
         var analyzer = parser.EngulfingFlamesEconomyAnalyzers.ShouldHaveSingleItem().Analyzer;
         analyzer.CappedSeconds.ShouldBe(200d);
@@ -284,7 +284,7 @@ public sealed class EngulfingFlamesEconomyAnalyzerTests
     {
         var events = new List<Event> { Cast(Spells.Wildfire.FSLID, 1000) };
 
-        var (parser, _) = await AnalyzeAsync(events, SpanningFight(0, 100000));
+        var (parser, _) = await AnalyzeAsync(events, SpanningDungeon(0, 100000));
 
         var analyzer = parser.EngulfingFlamesEconomyAnalyzers.ShouldHaveSingleItem().Analyzer;
         analyzer.WindowsEvaluated.ShouldBe(1);
@@ -301,7 +301,7 @@ public sealed class EngulfingFlamesEconomyAnalyzerTests
             RemoveDebuff(5000, EnemyId, Spells.EngulfingFlamesDot.FSLID),
         };
 
-        var (parser, _) = await AnalyzeAsync(events, SpanningFight(0, 10000));
+        var (parser, _) = await AnalyzeAsync(events, SpanningDungeon(0, 10000));
 
         var analyzer = parser.EngulfingFlamesEconomyAnalyzers.ShouldHaveSingleItem().Analyzer;
         analyzer.DevouringFlameEquipped.ShouldBeFalse();
@@ -322,7 +322,7 @@ public sealed class EngulfingFlamesEconomyAnalyzerTests
             RemoveDebuff(7000, EnemyId, Spells.EngulfingFlamesDot.FSLID),
         };
 
-        var (parser, _) = await AnalyzeAsync(events, SpanningFight(0, 10000));
+        var (parser, _) = await AnalyzeAsync(events, SpanningDungeon(0, 10000));
 
         var analyzer = parser.EngulfingFlamesEconomyAnalyzers.ShouldHaveSingleItem().Analyzer;
         analyzer.DevouringFlameEquipped.ShouldBeTrue();
@@ -342,7 +342,7 @@ public sealed class EngulfingFlamesEconomyAnalyzerTests
             Death(4000, EnemyId),
         };
 
-        var (parser, _) = await AnalyzeAsync(events, SpanningFight(0, 10000));
+        var (parser, _) = await AnalyzeAsync(events, SpanningDungeon(0, 10000));
 
         var analyzer = parser.EngulfingFlamesEconomyAnalyzers.ShouldHaveSingleItem().Analyzer;
         analyzer.DevouringFlameEquipped.ShouldBeTrue();
@@ -397,7 +397,7 @@ public sealed class EngulfingFlamesEconomyAnalyzerTests
     private static CombatantInfoEvent CombatantWithLegendary() => new()
     {
         SourceId = PlayerId,
-        Gear = [new Item { Id = 5222, Quality = 6 }],
+        Gear = [new Item { Id = 5999, Quality = 6 }],
     };
 
     /// <summary>
@@ -425,10 +425,10 @@ public sealed class EngulfingFlamesEconomyAnalyzerTests
         Amount = 1,
     };
 
-    private static ReportFight SpanningFight(double startTime, double endTime) =>
+    private static ReportDungeon SpanningDungeon(double startTime, double endTime) =>
         new(0, "", 0, null, startTime, endTime, null, null, null);
 
-    private static async Task<(ArdeosCombatLogParser Parser, HeroAnalysisResult Result)> AnalyzeAsync(List<Event> events, ReportFight fight)
+    private static async Task<(ArdeosCombatLogParser Parser, HeroAnalysisResult Result)> AnalyzeAsync(List<Event> events, ReportDungeon dungeon)
     {
         var services = new ServiceCollection();
         services.AddLogging();
@@ -439,7 +439,7 @@ public sealed class EngulfingFlamesEconomyAnalyzerTests
         using var scope = provider.CreateScope();
 
         var parser = scope.ServiceProvider.GetRequiredService<ArdeosCombatLogParser>();
-        var result = await parser.Analyze(events, PlayerId, fight);
+        var result = await parser.Analyze(events, PlayerId, dungeon);
         return (parser, result);
     }
 }

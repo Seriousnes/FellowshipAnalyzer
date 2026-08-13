@@ -66,7 +66,7 @@ public sealed partial class BlueyTracker : Analyzer
 
         if (_open is null)
         {
-            var priorPosting = new BlueyPosting(buffEvent.TargetId, buffEvent.TargetId == PlayerId, Owner.FightStartTime);
+            var priorPosting = new BlueyPosting(buffEvent.TargetId, buffEvent.TargetId == PlayerId, Owner.DungeonStartTime);
             priorPosting.Close(buffEvent.Timestamp);
             _postings.Insert(0, priorPosting);
             return;
@@ -81,8 +81,8 @@ public sealed partial class BlueyTracker : Analyzer
     [On<CastEvent>(By = Actor.Player, Spells = new[] { nameof(Spells.FluttercallProtect), nameof(Spells.FluttercallEmbrace) })]
     private void OnCast(CastEvent castEvent) => Reassignments++;
 
-    [On<FightEndEvent>]
-    private void OnFightEnd(FightEndEvent fightEndEvent) => _open?.Close(fightEndEvent.Timestamp);
+    [On<DungeonEndEvent>]
+    private void OnDungeonEnd(DungeonEndEvent dungeonEndEvent) => _open?.Close(dungeonEndEvent.Timestamp);
 
     private void Post(BuffEvent buffEvent, int targetId)
     {

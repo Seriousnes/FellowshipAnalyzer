@@ -11,9 +11,11 @@ public abstract partial class Event : IEventFilter
     /// </summary>
     public virtual int Timestamp { get; set; }
     /// <summary>
-    /// Fight ID
+    /// The id of the dungeon this event belongs to. Bound to the raw <c>fight</c> field, which is
+    /// what Fellowship Logs calls a dungeon.
     /// </summary>
-    public virtual int Fight { get; set; }
+    [JsonPropertyName("fight")]
+    public virtual int DungeonId { get; set; }
     /// <summary>
     /// Resource snapshot for the source actor (typically the casting player).
     /// </summary>

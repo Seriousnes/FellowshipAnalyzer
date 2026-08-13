@@ -3,13 +3,13 @@ using FellowshipAnalyzer.Core.Events;
 namespace FellowshipAnalyzer.Core.Analysis;
 
 /// <summary>
-/// Parse-lifetime per-ability totals of the player's output: completed casts, damage dealt, and
+/// Dungeon-lifetime per-ability totals of the player's output: completed casts, damage dealt, and
 /// healing done, keyed by the ability id the log reported. Every figure is tallied twice - once
-/// across the whole fight and once for the pull it happened in - so the same ability reads
-/// fight-wide through <see cref="For(int)"/> or scoped to one encounter through
-/// <see cref="For(int, Pull)"/>.
+/// across the whole dungeon and once for the pull it happened in - so the same ability reads
+/// dungeon-wide through <see cref="For(int)"/> or scoped to one encounter through
+/// <see cref="For(int, PullStartEvent)"/>.
 /// <para>
-/// Rows accumulate live as events dispatch: a fight-wide row keeps growing until the stream ends,
+/// Rows accumulate live as events dispatch: a dungeon-wide row keeps growing until the stream ends,
 /// while a pull's rows are complete the moment that pull closes, so a pull analyzer reading its
 /// own pull's rows at <see cref="PullEndEvent"/> sees final values. Amounts follow
 /// <see cref="ThroughputTracker"/> semantics - damage and healing are the effective amounts that
@@ -22,41 +22,41 @@ public sealed partial class AbilityTracker : Analyzer
     private readonly List<TrackedAbility> _spells = [];
     private readonly List<PullLedger> _pullLedgers = [];
 
-    /// <summary>Every ability the player cast, damaged, or healed with across the fight, in first-use order.</summary>
+    /// <summary>Every ability the player cast, damaged, or healed with across the dungeon, in first-use order.</summary>
     public IReadOnlyList<TrackedAbility> BySpell => _spells;
 
-    /// <summary>The fight-wide totals for <paramref name="spellId"/>, or <c>null</c> when the player never used it.</summary>
+    /// <summary>The dungeon-wide totals for <paramref name="spellId"/>, or <c>null</c> when the player never used it.</summary>
     public TrackedAbility? For(int spellId) => _bySpell.GetValueOrDefault(spellId);
 
     /// <summary>Every ability the player used during <paramref name="pull"/>, in first-use order.</summary>
-    public IReadOnlyList<TrackedAbility> During(Pull pull) => LedgerOf(pull)?.Spells ?? [];
+    public IReadOnlyList<TrackedAbility> During(PullStartEvent pull) => LedgerOf(pull)?.Spells ?? [];
 
     /// <summary>The totals for <paramref name="spellId"/> scoped to <paramref name="pull"/>, or <c>null</c> when the player never used it there.</summary>
-    public TrackedAbility? For(int spellId, Pull pull) => LedgerOf(pull)?.BySpell.GetValueOrDefault(spellId);
+    public TrackedAbility? For(int spellId, PullStartEvent pull) => LedgerOf(pull)?.BySpell.GetValueOrDefault(spellId);
 
     [On<CastEvent>(By = Actor.Player)]
     private void OnCast(CastEvent castEvent)
     {
         if (castEvent.Activation) return;
 
-        var (fight, pull) = Track(castEvent.Ability);
-        fight.Casts++;
+        var (dungeon, pull) = Track(castEvent.Ability);
+        dungeon.Casts++;
         if (pull is not null) pull.Casts++;
     }
 
     [On<DamageEvent>(By = Actor.Player)]
     private void OnDamage(DamageEvent damageEvent)
     {
-        var (fight, pull) = Track(damageEvent.Ability);
-        AddDamage(fight, damageEvent);
+        var (dungeon, pull) = Track(damageEvent.Ability);
+        AddDamage(dungeon, damageEvent);
         if (pull is not null) AddDamage(pull, damageEvent);
     }
 
     [On<HealEvent>(By = Actor.Player)]
     private void OnHeal(HealEvent healEvent)
     {
-        var (fight, pull) = Track(healEvent.Ability);
-        AddHeal(fight, healEvent);
+        var (dungeon, pull) = Track(healEvent.Ability);
+        AddHeal(dungeon, healEvent);
         if (pull is not null) AddHeal(pull, healEvent);
     }
 
@@ -81,11 +81,11 @@ public sealed partial class AbilityTracker : Analyzer
         ability.CriticalHealing += healEvent.Amount;
     }
 
-    private (TrackedAbility Fight, TrackedAbility? Pull) Track(Ability ability)
+    private (TrackedAbility Dungeon, TrackedAbility? Pull) Track(Ability ability)
     {
-        var fight = RowOf(_bySpell, _spells, ability);
+        var dungeon = RowOf(_bySpell, _spells, ability);
         var ledger = OpenLedger();
-        return (fight, ledger is null ? null : RowOf(ledger.BySpell, ledger.Spells, ability));
+        return (dungeon, ledger is null ? null : RowOf(ledger.BySpell, ledger.Spells, ability));
     }
 
     private static TrackedAbility RowOf(Dictionary<int, TrackedAbility> bySpell, List<TrackedAbility> spells, Ability ability)
@@ -113,7 +113,7 @@ public sealed partial class AbilityTracker : Analyzer
         return ledger;
     }
 
-    private PullLedger? LedgerOf(Pull pull)
+    private PullLedger? LedgerOf(PullStartEvent pull)
     {
         foreach (var ledger in _pullLedgers)
         {
@@ -123,9 +123,9 @@ public sealed partial class AbilityTracker : Analyzer
         return null;
     }
 
-    private sealed class PullLedger(Pull pull)
+    private sealed class PullLedger(PullStartEvent pull)
     {
-        public Pull Pull { get; } = pull;
+        public PullStartEvent Pull { get; } = pull;
         public Dictionary<int, TrackedAbility> BySpell { get; } = [];
         public List<TrackedAbility> Spells { get; } = [];
     }

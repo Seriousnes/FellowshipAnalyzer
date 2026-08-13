@@ -13,7 +13,7 @@ public sealed class BlobPersistentCacheOptions
     /// <summary>Container for report metadata entries (Hot tier).</summary>
     public string MetadataContainer { get; set; } = "metadata";
 
-    /// <summary>Container for completed-fight event payloads (Cool tier).</summary>
+    /// <summary>Container for completed-dungeon event payloads (Cool tier).</summary>
     public string EventsContainer { get; set; } = "events";
 
     internal string ContainerName(CachePartition partition) => partition switch

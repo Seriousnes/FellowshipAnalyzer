@@ -19,7 +19,7 @@ namespace FellowshipAnalyzer.Heroes.Mara.Tests.Analysis;
 public sealed class FinalStratagemAnalyzerTests
 {
     private const int PlayerId = 7;
-    private const int FightEnd = 200000;
+    private const int DungeonEnd = 200000;
 
     [Fact]
     public async Task Analyze_NoStratagemCast_RecordsNothing()
@@ -149,7 +149,7 @@ public sealed class FinalStratagemAnalyzerTests
             Cast(3000, Spells.FinalStratagem),
         };
 
-        var parser = await AnalyzeParserAsync(events, ShortFight, withMacabreStratagem: true);
+        var parser = await AnalyzeParserAsync(events, ShortDungeon, withMacabreStratagem: true);
 
         parser.FinalStratagemAnalyzers.ShouldBeEmpty();
 
@@ -167,7 +167,7 @@ public sealed class FinalStratagemAnalyzerTests
             Cast(2000, Spells.FinalStratagem),
         };
 
-        var parser = await AnalyzeParserAsync(events, ShortFight);
+        var parser = await AnalyzeParserAsync(events, ShortDungeon);
         var analyzer = parser.FinalStratagemAnalyzers.ShouldHaveSingleItem().Analyzer;
 
         analyzer.Casts.Count.ShouldBe(1);
@@ -178,13 +178,13 @@ public sealed class FinalStratagemAnalyzerTests
     }
 
     /// <summary>
-    /// Pins the dispatch guarantee the write depends on. <c>EventEmitter.Emit</c> runs parse-lifetime
+    /// Pins the dispatch guarantee the write depends on. <c>EventEmitter.Emit</c> runs dungeon-lifetime
     /// listeners before pull-lifetime ones, so SpellUsable has already begun the Maiden of Death cooldown
     /// when this pull analyzer sees a later cast: the snapshot reads the real remaining recharge rather than
     /// zero, and the reset written afterwards is what the tracker carries from then on.
     /// </summary>
     [Fact]
-    public async Task Analyze_SeesCooldownStateWrittenByTheParseLifetimeTracker()
+    public async Task Analyze_SeesCooldownStateWrittenByTheDungeonLifetimeTracker()
     {
         var events = new List<Event>
         {
@@ -192,7 +192,7 @@ public sealed class FinalStratagemAnalyzerTests
             Cast(2000, Spells.FinalStratagem),
         };
 
-        var parser = await AnalyzeParserAsync(events, ShortFight);
+        var parser = await AnalyzeParserAsync(events, ShortDungeon);
         var analyzer = parser.FinalStratagemAnalyzers.ShouldHaveSingleItem().Analyzer;
 
         var maiden = analyzer.Casts.ShouldHaveSingleItem()
@@ -208,7 +208,7 @@ public sealed class FinalStratagemAnalyzerTests
     [Fact]
     public async Task Analyze_ExposesPerPullReadPaths()
     {
-        var parser = await AnalyzeParserAsync([Cast(1000, Spells.FinalStratagem)], BossFight());
+        var parser = await AnalyzeParserAsync([Cast(1000, Spells.FinalStratagem)], BossDungeon());
 
         var entry = parser.FinalStratagemAnalyzers.ShouldHaveSingleItem();
         var pull = entry.Pull;
@@ -230,23 +230,23 @@ public sealed class FinalStratagemAnalyzerTests
         Talents = withMacabreStratagem ? [new TalentInfo { Id = MaraTalents.MacabreStratagem }] : [],
     };
 
-    private static ReportFight BossFight(int endTime = FightEnd) =>
+    private static ReportDungeon BossDungeon(int endTime = DungeonEnd) =>
         new(0, "", 1, null, 0, endTime, null, null, null);
 
     /// <summary>
-    /// A fight that ends before any cooldown started in these fixtures could recharge naturally, so a
+    /// A dungeon that ends before any cooldown started in these fixtures could recharge naturally, so a
     /// post-parse read of the shared tracker reflects what the analyzer wrote rather than a natural expiry.
     /// </summary>
-    private static ReportFight ShortFight => BossFight(5000);
+    private static ReportDungeon ShortDungeon => BossDungeon(5000);
 
-    private static async Task<FinalStratagemAnalyzer> AnalyzeAsync(List<Event> events, ReportFight? fight = null)
+    private static async Task<FinalStratagemAnalyzer> AnalyzeAsync(List<Event> events, ReportDungeon? dungeon = null)
     {
-        var parser = await AnalyzeParserAsync(events, fight ?? BossFight());
+        var parser = await AnalyzeParserAsync(events, dungeon ?? BossDungeon());
         return parser.FinalStratagemAnalyzers.ShouldHaveSingleItem().Analyzer;
     }
 
     private static async Task<MaraCombatLogParser> AnalyzeParserAsync(
-        List<Event> events, ReportFight fight, bool withMacabreStratagem = false)
+        List<Event> events, ReportDungeon dungeon, bool withMacabreStratagem = false)
     {
         var services = new ServiceCollection();
         services.AddLogging();
@@ -257,7 +257,7 @@ public sealed class FinalStratagemAnalyzerTests
         using var scope = provider.CreateScope();
 
         var parser = scope.ServiceProvider.GetRequiredService<MaraCombatLogParser>();
-        await parser.Analyze([Combatant(withMacabreStratagem), .. events], PlayerId, fight);
+        await parser.Analyze([Combatant(withMacabreStratagem), .. events], PlayerId, dungeon);
         return parser;
     }
 }
