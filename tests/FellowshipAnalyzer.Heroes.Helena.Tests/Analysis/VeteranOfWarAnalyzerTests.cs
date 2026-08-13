@@ -1,3 +1,4 @@
+using FellowshipAnalyzer.Core.Analysis;
 using FellowshipAnalyzer.Core.Events;
 using FellowshipAnalyzer.Heroes.Helena.Modules;
 
@@ -192,6 +193,44 @@ public sealed class VeteranOfWarAnalyzerTests
                 Spells.ShieldsUp.FSLID.Value,
             ],
             ignoreOrder: true);
+    }
+
+    [Fact]
+    public async Task AHoldTheLinePress_RecordsWhatEachTargetsReductionGenerated()
+    {
+        var analyzer = await Analyze(
+            Cast(PullStart + 1_000, Spells.Shockwave),
+            Cast(PullStart + 29_000, Spells.HoldTheLine));
+
+        var press = analyzer.HoldTheLinePresses.ShouldHaveSingleItem();
+
+        Target(press, Spells.Shockwave).CooldownReduction.ShouldBe(new CooldownReductionResult(10_000, 2_000));
+        Target(press, Spells.ShieldsUp).CooldownReduction.ShouldBe(new CooldownReductionResult(10_000, 0));
+    }
+
+    [Fact]
+    public async Task ATargetThePressItselfMakesAvailable_KeepsItsReductionEffective()
+    {
+        var analyzer = await Analyze(
+            Cast(PullStart + 1_000, Spells.Shockwave),
+            Cast(PullStart + 26_000, Spells.HoldTheLine));
+
+        var shockwave = Target(analyzer.HoldTheLinePresses.ShouldHaveSingleItem(), Spells.Shockwave);
+
+        shockwave.WasAvailable.ShouldBeFalse();
+        shockwave.CooldownReduction.Effective.ShouldBe(5_000);
+    }
+
+    [Fact]
+    public void ReductionTargets_NameEveryReducedAbilityOnceInComboTableOrder()
+    {
+        VeteranOfWarAnalyzer.ReductionTargets.ShouldBe(
+            [
+                Spells.ShieldSlam.FSLID.Value,
+                Spells.ShieldThrow.FSLID.Value,
+                Spells.Shockwave.FSLID.Value,
+                Spells.ShieldsUp.FSLID.Value,
+            ]);
     }
 
     private static HoldTheLineTarget Target(HoldTheLinePress press, Core.Common.Spells.Spell spell) =>

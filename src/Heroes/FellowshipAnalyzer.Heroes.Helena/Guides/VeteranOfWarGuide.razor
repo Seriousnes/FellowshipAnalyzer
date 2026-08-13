@@ -96,10 +96,36 @@
         {
             Performance = PerformanceTiers.FromThresholds(analyzer.CooldownReduction.Efficiency * 100, 85, 70, 50),
             Stats = BuildPullStats(analyzer),
+            AdditionalContent = BuildReductionChecklist(analyzer),
             Details = analyzer.SawActiveUltimate
                 ? @<div>Siegebreaker was active for part of this pull.</div>
                 : null,
         });
+
+    private static AdditionalContent? BuildReductionChecklist(VeteranOfWarAnalyzer analyzer)
+    {
+        var items = CooldownReductionChecklist.Items(ReductionByTarget(analyzer)).ToList();
+
+        return items.Count == 0
+            ? null
+            : new AdditionalContent("Cooldown Reduction", @<Checklist Items="@items" DimFailed="false" />);
+    }
+
+    private static IEnumerable<(int SpellId, CooldownReductionResult Reduction)> ReductionByTarget(
+        VeteranOfWarAnalyzer analyzer)
+    {
+        var totals = new Dictionary<int, CooldownReductionResult>();
+        foreach (var contribution in analyzer.Contributions)
+        {
+            if (contribution.TargetSpellId is not { } target) continue;
+
+            totals[target] = totals.GetValueOrDefault(target) + contribution.CooldownReduction;
+        }
+
+        return VeteranOfWarAnalyzer.ReductionTargets
+            .Where(totals.ContainsKey)
+            .Select(target => (target, totals[target]));
+    }
 
     private static PerCastStat[] BuildPullStats(VeteranOfWarAnalyzer analyzer)
     {

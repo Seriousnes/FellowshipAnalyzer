@@ -91,7 +91,19 @@
                 Performance = PressPerformance(press),
                 Timestamp = press.Timestamp,
                 Stats = BuildPressStats(press),
+                AdditionalContent = BuildReductionChecklist(press),
             });
+
+    private static AdditionalContent? BuildReductionChecklist(HoldTheLinePress press)
+    {
+        var items = CooldownReductionChecklist
+            .Items(press.Targets.Select(target => (target.SpellId, target.CooldownReduction)))
+            .ToList();
+
+        return items.Count == 0
+            ? null
+            : new AdditionalContent("Cooldown Reduction", @<Checklist Items="@items" DimFailed="false" />);
+    }
 
     private static QualitativePerformance PressPerformance(HoldTheLinePress press) =>
         press.Targets.Count(target => target.SpellId != Spells.ShieldSlam.FSLID && target.WasAvailable) switch
