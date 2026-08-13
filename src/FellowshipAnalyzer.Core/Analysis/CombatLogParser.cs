@@ -60,8 +60,8 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
     /// <summary>
     /// The normalized event stream for the current analysis, after every <see cref="IEventNormalizer"/>
     /// pass has run. Ordered by ascending timestamp once, stably, as <see cref="Analyze"/> materializes
-    /// it and before the first normalizer runs; every normalizer preserves that order, and
-    /// <see cref="EventEmitter.DispatchEventsAsync"/> dispatches the list as it receives it.
+    /// it and before the first normalizer runs, and <see cref="EventEmitter.DispatchEventsAsync"/>
+    /// dispatches the list as it receives it.
     /// </summary>
     public List<Event> Events { get; set; } = [];
 
