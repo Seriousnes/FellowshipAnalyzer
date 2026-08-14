@@ -43,7 +43,7 @@ public sealed class FellowshipLogsApiHandler(
         CancellationToken cancellationToken)
     {
         var sw = Stopwatch.StartNew();
-        logger.LogInformation(
+        logger.LogDebug(
             "GetEventsAsync ENTER reportCode={ReportCode} playerId={PlayerId} dungeonId={DungeonId}",
             reportCode, playerId, dungeonId);
 
@@ -69,9 +69,9 @@ public sealed class FellowshipLogsApiHandler(
         var trimmedReportCode = reportCode.Trim();
 
         var blobKey = CacheKeys.BlobEvents(trimmedReportCode, playerId.Value, dungeonId.Value);
-        logger.LogInformation("GetEventsAsync L2 lookup blobKey={BlobKey} t={ElapsedMs}ms", blobKey, sw.ElapsedMilliseconds);
+        logger.LogDebug("GetEventsAsync L2 lookup blobKey={BlobKey} t={ElapsedMs}ms", blobKey, sw.ElapsedMilliseconds);
         var blobEntry = await persistentCache.GetAsync(CachePartition.Events, blobKey, cancellationToken);
-        logger.LogInformation(
+        logger.LogDebug(
             "GetEventsAsync L2 lookup result hit={Hit} encoding={Encoding} length={Length} t={ElapsedMs}ms",
             blobEntry is not null,
             blobEntry?.ContentEncoding,
@@ -86,7 +86,9 @@ public sealed class FellowshipLogsApiHandler(
             {
                 payload = new GZipStream(blobEntry.Content, CompressionMode.Decompress, leaveOpen: false);
             }
-            logger.LogInformation("GetEventsAsync returning HIT stream at t={ElapsedMs}ms", sw.ElapsedMilliseconds);
+            logger.LogInformation(
+                "Events reportCode={ReportCode} playerId={PlayerId} dungeonId={DungeonId} cache=HIT t={ElapsedMs}ms",
+                trimmedReportCode, playerId.Value, dungeonId.Value, sw.ElapsedMilliseconds);
             return Results.Stream(payload, "application/json");
         }
 
@@ -96,10 +98,10 @@ public sealed class FellowshipLogsApiHandler(
             return upstreamLimited;
         }
 
-        logger.LogInformation("GetEventsAsync L3 upstream call starting t={ElapsedMs}ms", sw.ElapsedMilliseconds);
+        logger.LogDebug("GetEventsAsync L3 upstream call starting t={ElapsedMs}ms", sw.ElapsedMilliseconds);
         var result = await fellowshipLogsService.GetRawEventsAsync(
             trimmedReportCode, playerId.Value, dungeonId.Value, cancellationToken);
-        logger.LogInformation(
+        logger.LogDebug(
             "GetEventsAsync L3 upstream returned bytes={Bytes} inProgress={InProgress} t={ElapsedMs}ms",
             result.JsonBytes.Length, result.InProgress, sw.ElapsedMilliseconds);
 
@@ -109,7 +111,7 @@ public sealed class FellowshipLogsApiHandler(
             var expiresAt = DateTimeOffset.UtcNow.Add(duration);
 
             var gzipBytes = CompressGzip(result.JsonBytes, streamManager);
-            logger.LogInformation(
+            logger.LogDebug(
                 "GetEventsAsync compressed for blob raw={Raw} gzip={Gzip} t={ElapsedMs}ms",
                 result.JsonBytes.Length, gzipBytes.Length, sw.ElapsedMilliseconds);
 
@@ -125,15 +127,17 @@ public sealed class FellowshipLogsApiHandler(
                 CachePartition.Events, blobKey);
 
             ApplyCompletedEventsCacheHeaders(context.Response, expiresAt, hit: false);
-            logger.LogInformation("GetEventsAsync returning MISS bytes (completed) at t={ElapsedMs}ms", sw.ElapsedMilliseconds);
+            logger.LogInformation(
+                "Events reportCode={ReportCode} playerId={PlayerId} dungeonId={DungeonId} cache=MISS t={ElapsedMs}ms",
+                trimmedReportCode, playerId.Value, dungeonId.Value, sw.ElapsedMilliseconds);
             return Results.Bytes(result.JsonBytes, "application/json");
         }
         else
         {
             ApplyNoStoreCacheHeaders(context.Response, hit: false);
             logger.LogInformation(
-                "GetEventsAsync returning MISS bytes (not cached: inProgress={InProgress} hasEvents={HasEvents}) at t={ElapsedMs}ms",
-                result.InProgress, result.HasEvents, sw.ElapsedMilliseconds);
+                "Events reportCode={ReportCode} playerId={PlayerId} dungeonId={DungeonId} cache=NONE inProgress={InProgress} hasEvents={HasEvents} t={ElapsedMs}ms",
+                trimmedReportCode, playerId.Value, dungeonId.Value, result.InProgress, result.HasEvents, sw.ElapsedMilliseconds);
             return Results.Bytes(result.JsonBytes, "application/json");
         }
     }
@@ -225,6 +229,8 @@ public sealed class FellowshipLogsApiHandler(
             return BadRequest("Route parameter 'reportCode' is required.");
         }
 
+        logger.LogInformation("Analysis reportCode={ReportCode} dungeonId={DungeonId}", reportCode, dungeonId);
+
         var cacheKey = CacheKeys.Analysis(reportCode, dungeonId);
 
         if (cache.TryGetValue(cacheKey, out AnalysisPreload? cachedPreload) && cachedPreload is not null)
@@ -299,6 +305,8 @@ public sealed class FellowshipLogsApiHandler(
         {
             return BadRequest("Route parameter 'id' must be a positive integer.");
         }
+
+        logger.LogInformation("Character characterId={CharacterId}", id);
 
         var cacheKey = CacheKeys.Character(id);
 
