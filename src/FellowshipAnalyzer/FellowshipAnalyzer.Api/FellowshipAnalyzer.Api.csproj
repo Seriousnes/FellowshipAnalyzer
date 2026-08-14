@@ -16,9 +16,7 @@
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="Aspire.Azure.Storage.Blobs" />
-    <PackageReference Include="Microsoft.ApplicationInsights.WorkerService" />
     <PackageReference Include="Microsoft.Azure.Functions.Worker" />
-    <PackageReference Include="Microsoft.Azure.Functions.Worker.ApplicationInsights" />
     <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore" />
     <PackageReference Include="Microsoft.Azure.Functions.Worker.Sdk" OutputItemType="Analyzer" PrivateAssets="all" />
   </ItemGroup>
