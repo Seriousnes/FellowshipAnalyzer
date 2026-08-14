@@ -6,7 +6,7 @@ namespace FellowshipAnalyzer.SpellData.Tests;
 
 public class NormalizationTests
 {
-    private static readonly System.Collections.Generic.Dictionary<string, double> FreezingTorrent = new()
+    private static readonly Dictionary<string, double> FreezingTorrent = new()
     {
         ["Cooldown"] = 15.0, ["MaxRange"] = 3000.0, ["ChannelingDuration"] = 2.0, ["ChannelingTickInterval"] = 0.4,
     };

@@ -820,31 +820,81 @@ public sealed class ConsolidatedSpellRegistryGenerator : IIncrementalGenerator
             ? type.ContainingNamespace.ToDisplayString()
             : string.Empty;
 
-    private sealed record CentralTriggerInfo(string ClassName, string Namespace, ImmutableArray<CentralMember> Members);
+    private sealed class CentralTriggerInfo(string ClassName, string Namespace, ImmutableArray<CentralMember> Members)
+    {
+        public string ClassName { get; } = ClassName;
+        public string Namespace { get; } = Namespace;
+        public ImmutableArray<CentralMember> Members { get; } = Members;
+    }
 
-    private readonly record struct CentralMember(string Name, string GlobalTypeName, int FSLID);
+    private readonly struct CentralMember(string Name, string GlobalTypeName, int FSLID)
+    {
+        public string Name { get; } = Name;
+        public string GlobalTypeName { get; } = GlobalTypeName;
+        public int FSLID { get; } = FSLID;
+    }
 
-    private readonly record struct KindInfo(string TypeName, int Offset, ITypeSymbol? Type);
+    private readonly struct KindInfo(string TypeName, int Offset, ITypeSymbol? Type)
+    {
+        public string TypeName { get; } = TypeName;
+        public int Offset { get; } = Offset;
+        public ITypeSymbol? Type { get; } = Type;
+    }
 
-    private readonly record struct ScopeTarget(string Namespace, string ClassName, string GlobalName, bool IsCentral);
+    private readonly struct ScopeTarget(string Namespace, string ClassName, string GlobalName, bool IsCentral)
+    {
+        public string Namespace { get; } = Namespace;
+        public string ClassName { get; } = ClassName;
+        public string GlobalName { get; } = GlobalName;
+        public bool IsCentral { get; } = IsCentral;
+    }
 
-    private sealed record RegistryModel(string Namespace, string ClassName, List<EmitMember> Members);
+    private sealed class RegistryModel(string Namespace, string ClassName, List<EmitMember> Members)
+    {
+        public string Namespace { get; } = Namespace;
+        public string ClassName { get; } = ClassName;
+        public List<EmitMember> Members { get; } = Members;
+    }
 
-    private readonly record struct EmitMember(string TypeName, string Name, int FSLID, List<string> InitLines);
+    private readonly struct EmitMember(string TypeName, string Name, int FSLID, List<string> InitLines)
+    {
+        public string TypeName { get; } = TypeName;
+        public string Name { get; } = Name;
+        public int FSLID { get; } = FSLID;
+        public List<string> InitLines { get; } = InitLines;
+    }
 
-    private readonly record struct AllEntry(string ContainerGlobalName, string MemberName, int FSLID);
+    private readonly struct AllEntry(string ContainerGlobalName, string MemberName, int FSLID)
+    {
+        public string ContainerGlobalName { get; } = ContainerGlobalName;
+        public string MemberName { get; } = MemberName;
+        public int FSLID { get; } = FSLID;
+    }
 
     private enum ScalarKind { Int, Double, String, Enum }
 
-    private readonly record struct ScalarProp(
+    private readonly struct ScalarProp(
         string Name, string JsonKey, ScalarKind Kind,
-        string? EnumGlobalName = null, HashSet<string>? EnumMembers = null);
+        string? EnumGlobalName = null, HashSet<string>? EnumMembers = null)
+    {
+        public string Name { get; } = Name;
+        public string JsonKey { get; } = JsonKey;
+        public ScalarKind Kind { get; } = Kind;
+        public string? EnumGlobalName { get; } = EnumGlobalName;
+        public HashSet<string>? EnumMembers { get; } = EnumMembers;
+    }
 
-    private sealed record SpellSchema(
+    private sealed class SpellSchema(
         IReadOnlyList<ScalarProp> Scalars,
         IReadOnlyDictionary<string, string> CostTokens,
         HashSet<string> KnownJsonKeys,
-        string ResourceTypesGlobalName);
+        string ResourceTypesGlobalName)
+    {
+        public IReadOnlyList<ScalarProp> Scalars { get; } = Scalars;
+        public IReadOnlyDictionary<string, string> CostTokens { get; } = CostTokens;
+        public HashSet<string> KnownJsonKeys { get; } = KnownJsonKeys;
+        public string ResourceTypesGlobalName { get; } = ResourceTypesGlobalName;
+    }
 
     private readonly struct JsonValue
     {

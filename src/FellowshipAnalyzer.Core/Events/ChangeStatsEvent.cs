@@ -1,7 +1,7 @@
 ﻿namespace FellowshipAnalyzer.Core.Events;
 
 /// <summary>
-/// Fabricated by <see cref="FellowshipAnalyzer.Core.Analysis.StatTracker"/> whenever the selected
+/// Fabricated by <see cref="Analysis.StatTracker"/> whenever the selected
 /// player's stat ratings change, carrying the full stat snapshot before and after the change.
 /// </summary>
 [Fabricated]
@@ -24,7 +24,7 @@ public class ChangeStatsEvent : Event
 }
 
 /// <summary>
-/// Fabricated by <see cref="FellowshipAnalyzer.Core.Analysis.Haste"/> whenever the selected player's
+/// Fabricated by <see cref="Analysis.Haste"/> whenever the selected player's
 /// total effective haste percentage changes.
 /// </summary>
 public class ChangeHasteEvent : ChangeStatsEvent

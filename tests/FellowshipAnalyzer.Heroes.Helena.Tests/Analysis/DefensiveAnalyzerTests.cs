@@ -55,7 +55,7 @@ public sealed class DefensiveAnalyzerTests
                 Timestamp = PullStart + 5_000,
                 SourceId = PlayerId,
                 TargetId = PlayerId,
-                Ability = new Core.Events.Ability { FSLID = Spells.ShieldsUpBuff.FSLID },
+                Ability = new Ability { FSLID = Spells.ShieldsUpBuff.FSLID },
                 AbilityGameId = Spells.ShieldsUpBuff.FSLID,
             },
             RemoveBuff(PullStart + 13_000, Spells.ShieldsUpBuff));

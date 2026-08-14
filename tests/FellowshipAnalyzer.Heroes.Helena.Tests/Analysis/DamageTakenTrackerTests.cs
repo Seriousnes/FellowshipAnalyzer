@@ -82,7 +82,7 @@ public sealed class DamageTakenTrackerTests
         Timestamp = timestamp,
         SourceId = EnemyId,
         TargetId = PlayerId,
-        Ability = new Core.Events.Ability { FSLID = Spells.SweepingStrikeBleedDebuff.FSLID, Name = "Bleed" },
+        Ability = new Ability { FSLID = Spells.SweepingStrikeBleedDebuff.FSLID, Name = "Bleed" },
         AbilityGameId = Spells.SweepingStrikeBleedDebuff.FSLID,
         Amount = amount,
         UnmitigatedAmount = amount,

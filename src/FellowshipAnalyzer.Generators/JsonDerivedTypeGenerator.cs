@@ -258,33 +258,18 @@ public sealed class JsonDerivedTypeGenerator : IIncrementalGenerator
         return sb.ToString();
     }
 
-    private sealed class TriggerInfo
+    private sealed class TriggerInfo(string className, string ns, string discriminatorPropertyName, ImmutableArray<DerivedTypeInfo> derivedTypes)
     {
-        public TriggerInfo(string className, string ns, string discriminatorPropertyName, ImmutableArray<DerivedTypeInfo> derivedTypes)
-        {
-            ClassName = className;
-            Namespace = ns;
-            DiscriminatorPropertyName = discriminatorPropertyName;
-            DerivedTypes = derivedTypes;
-        }
-
-        public string ClassName { get; }
-        public string Namespace { get; }
-        public string DiscriminatorPropertyName { get; }
-        public ImmutableArray<DerivedTypeInfo> DerivedTypes { get; }
+        public string ClassName { get; } = className;
+        public string Namespace { get; } = ns;
+        public string DiscriminatorPropertyName { get; } = discriminatorPropertyName;
+        public ImmutableArray<DerivedTypeInfo> DerivedTypes { get; } = derivedTypes;
     }
 
-    private sealed class DerivedTypeInfo
+    private sealed class DerivedTypeInfo(string name, string ns, string discriminator)
     {
-        public DerivedTypeInfo(string name, string ns, string discriminator)
-        {
-            Name = name;
-            Namespace = ns;
-            Discriminator = discriminator;
-        }
-
-        public string Name { get; }
-        public string Namespace { get; }
-        public string Discriminator { get; }
+        public string Name { get; } = name;
+        public string Namespace { get; } = ns;
+        public string Discriminator { get; } = discriminator;
     }
 }

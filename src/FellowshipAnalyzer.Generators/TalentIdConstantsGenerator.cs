@@ -130,11 +130,21 @@ public sealed class TalentIdConstantsGenerator : IIncrementalGenerator
         ctx.AddSource(className + ".g.cs", sb.ToString());
     }
 
-    private sealed record TalentClassInfo(
+    private sealed class TalentClassInfo(
         string ParentNamespace,
         string HeroName,
         string TalentsNamespace,
-        ImmutableArray<TalentConst> Consts);
+        ImmutableArray<TalentConst> Consts)
+    {
+        public string ParentNamespace { get; } = ParentNamespace;
+        public string HeroName { get; } = HeroName;
+        public string TalentsNamespace { get; } = TalentsNamespace;
+        public ImmutableArray<TalentConst> Consts { get; } = Consts;
+    }
 
-    private readonly record struct TalentConst(string Name, int Id);
+    private readonly struct TalentConst(string Name, int Id)
+    {
+        public string Name { get; } = Name;
+        public int Id { get; } = Id;
+    }
 }

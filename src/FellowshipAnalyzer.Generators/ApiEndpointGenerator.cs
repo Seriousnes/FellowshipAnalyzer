@@ -369,9 +369,14 @@ public sealed class ApiEndpointGenerator : IIncrementalGenerator
 
     private enum ParamKind { Value, HttpContext, HttpRequest, CancellationToken }
 
-    private sealed record ParameterInfo(string Name, string TypeFullName, ParamKind Kind);
+    private sealed class ParameterInfo(string Name, string TypeFullName, ParamKind Kind)
+    {
+        public string Name { get; } = Name;
+        public string TypeFullName { get; } = TypeFullName;
+        public ParamKind Kind { get; } = Kind;
+    }
 
-    private sealed record EndpointInfo(
+    private sealed class EndpointInfo(
         string MethodName,
         string DisplayName,
         string ContainingTypeFullName,
@@ -379,6 +384,13 @@ public sealed class ApiEndpointGenerator : IIncrementalGenerator
         string Route,
         ImmutableArray<ParameterInfo> Parameters)
     {
+        public string MethodName { get; } = MethodName;
+        public string DisplayName { get; } = DisplayName;
+        public string ContainingTypeFullName { get; } = ContainingTypeFullName;
+        public string HttpMethod { get; } = HttpMethod;
+        public string Route { get; } = Route;
+        public ImmutableArray<ParameterInfo> Parameters { get; } = Parameters;
+
         public static EndpointInfo From(IMethodSymbol method, INamedTypeSymbol containingType, string httpMethod, string route)
         {
             var parameters = method.Parameters.Select(p =>

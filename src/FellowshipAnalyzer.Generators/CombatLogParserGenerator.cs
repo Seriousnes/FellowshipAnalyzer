@@ -1004,58 +1004,41 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
     }
 
 
-    private sealed class TypeInfo
+    private sealed class TypeInfo(
+        string name,
+        string ns,
+        bool extendsAbilities = false,
+        string? activePredicateFullyQualified = null,
+        ImmutableArray<string> beforeModules = default,
+        ImmutableArray<string> afterModules = default,
+        ImmutableArray<CtorParam> ctorParams = default,
+        ImmutableArray<int> requiredTalentIds = default)
     {
-        public TypeInfo(
-            string name,
-            string ns,
-            bool extendsAbilities = false,
-            string? activePredicateFullyQualified = null,
-            ImmutableArray<string> beforeModules = default,
-            ImmutableArray<string> afterModules = default,
-            ImmutableArray<CtorParam> ctorParams = default,
-            ImmutableArray<int> requiredTalentIds = default)
-        {
-            Name = name;
-            Namespace = ns;
-            ExtendsAbilities = extendsAbilities;
-            ActivePredicateFullyQualified = activePredicateFullyQualified;
-            BeforeModules = beforeModules.IsDefault ? ImmutableArray<string>.Empty : beforeModules;
-            AfterModules = afterModules.IsDefault ? ImmutableArray<string>.Empty : afterModules;
-            CtorParams = ctorParams.IsDefault ? ImmutableArray<CtorParam>.Empty : ctorParams;
-            RequiredTalentIds = requiredTalentIds.IsDefault ? ImmutableArray<int>.Empty : requiredTalentIds;
-        }
-        public string Name { get; }
-        public string Namespace { get; }
+        public string Name { get; } = name;
+        public string Namespace { get; } = ns;
         /// <summary>True when this module extends FellowshipAnalyzer.Core.Analysis.Abilities.</summary>
-        public bool ExtendsAbilities { get; }
+        public bool ExtendsAbilities { get; } = extendsAbilities;
         /// <summary>Fully-qualified predicate type from <c>[ActiveWhen&lt;T&gt;]</c>; otherwise null.</summary>
-        public string? ActivePredicateFullyQualified { get; }
+        public string? ActivePredicateFullyQualified { get; } = activePredicateFullyQualified;
         /// <summary>Fully-qualified module names this module must come before (from <c>[Before&lt;T&gt;]</c>).</summary>
-        public ImmutableArray<string> BeforeModules { get; }
+        public ImmutableArray<string> BeforeModules { get; } = beforeModules.IsDefault ? ImmutableArray<string>.Empty : beforeModules;
         /// <summary>Fully-qualified module names this module must come after (from <c>[After&lt;T&gt;]</c>).</summary>
-        public ImmutableArray<string> AfterModules { get; }
+        public ImmutableArray<string> AfterModules { get; } = afterModules.IsDefault ? ImmutableArray<string>.Empty : afterModules;
         /// <summary>Native talent ids the selected combatant must have (from <c>[RequiresTalent(id)]</c>), in declaration order.</summary>
-        public ImmutableArray<int> RequiredTalentIds { get; }
+        public ImmutableArray<int> RequiredTalentIds { get; } = requiredTalentIds.IsDefault ? ImmutableArray<int>.Empty : requiredTalentIds;
         /// <summary>Parameters of the public constructor selected for generator-emitted construction.</summary>
-        public ImmutableArray<CtorParam> CtorParams { get; }
+        public ImmutableArray<CtorParam> CtorParams { get; } = ctorParams.IsDefault ? ImmutableArray<CtorParam>.Empty : ctorParams;
         public string FullyQualifiedName => string.IsNullOrEmpty(Namespace) ? Name : Namespace + "." + Name;
     }
 
-    private sealed class CtorParam
+    private sealed class CtorParam(string fullyQualified, string? lazyInnerFullyQualified, bool nullable)
     {
-        public CtorParam(string fullyQualified, string? lazyInnerFullyQualified, bool nullable)
-        {
-            FullyQualified = fullyQualified;
-            LazyInnerFullyQualified = lazyInnerFullyQualified;
-            Nullable = nullable;
-        }
         /// <summary>The parameter's type, fully qualified with <c>global::</c> prefix.</summary>
-        public string FullyQualified { get; }
+        public string FullyQualified { get; } = fullyQualified;
         /// <summary>For <c>Lazy&lt;T&gt;</c> parameters, the inner T fully qualified; otherwise null.</summary>
-        public string? LazyInnerFullyQualified { get; }
+        public string? LazyInnerFullyQualified { get; } = lazyInnerFullyQualified;
         /// <summary>True when the parameter has a nullable reference type annotation.</summary>
-        public bool Nullable { get; }
+        public bool Nullable { get; } = nullable;
     }
 
     private sealed class ParserInfo(
@@ -1091,44 +1074,32 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
         public bool IsAbstractBase { get; } = isAbstractBase;
     }
 
-    private sealed class AnalyzerInfo
+    private sealed class AnalyzerInfo(
+        string name,
+        string ns,
+        ImmutableArray<CtorParam> ctorParams,
+        string surfaceTypeFullyQualified,
+        string surfaceTypeMemberName,
+        int forPullTargets,
+        int forPullBoss,
+        ImmutableArray<int> requiredTalentIds,
+        string? activePredicate)
     {
-        public AnalyzerInfo(
-            string name,
-            string ns,
-            ImmutableArray<CtorParam> ctorParams,
-            string surfaceTypeFullyQualified,
-            string surfaceTypeMemberName,
-            int forPullTargets,
-            int forPullBoss,
-            ImmutableArray<int> requiredTalentIds,
-            string? activePredicate)
-        {
-            ActivePredicate = activePredicate;
-            Name = name;
-            Namespace = ns;
-            CtorParams = ctorParams.IsDefault ? ImmutableArray<CtorParam>.Empty : ctorParams;
-            SurfaceTypeFullyQualified = surfaceTypeFullyQualified;
-            SurfaceTypeMemberName = surfaceTypeMemberName;
-            ForPullTargets = forPullTargets;
-            ForPullBoss = forPullBoss;
-            RequiredTalentIds = requiredTalentIds.IsDefault ? ImmutableArray<int>.Empty : requiredTalentIds;
-        }
-        public string Name { get; }
-        public string Namespace { get; }
-        public ImmutableArray<CtorParam> CtorParams { get; }
+        public string Name { get; } = name;
+        public string Namespace { get; } = ns;
+        public ImmutableArray<CtorParam> CtorParams { get; } = ctorParams.IsDefault ? ImmutableArray<CtorParam>.Empty : ctorParams;
         /// <summary>Fully-qualified surface type: the surface marker interface, or the topmost ancestor deriving directly from <c>Analyzer</c>.</summary>
-        public string SurfaceTypeFullyQualified { get; }
+        public string SurfaceTypeFullyQualified { get; } = surfaceTypeFullyQualified;
         /// <summary>Member base name for the surface's read paths (e.g. "WintersEmbraceAnalyzer"): the surface class's simple name, or an interface's name with a leading <c>I</c> stripped.</summary>
-        public string SurfaceTypeMemberName { get; }
+        public string SurfaceTypeMemberName { get; } = surfaceTypeMemberName;
         /// <summary>The <c>[ForPull]</c> target bitmask (<c>PullKind</c> as int).</summary>
-        public int ForPullTargets { get; }
+        public int ForPullTargets { get; } = forPullTargets;
         /// <summary><c>[ForPull(Boss = …)]</c> as <c>PullBoss</c> int: 0 = Either, 1 = Boss, 2 = NonBoss.</summary>
-        public int ForPullBoss { get; }
+        public int ForPullBoss { get; } = forPullBoss;
         /// <summary>Native talent ids the selected combatant must have (from <c>[RequiresTalent(id)]</c>), in declaration order.</summary>
-        public ImmutableArray<int> RequiredTalentIds { get; }
+        public ImmutableArray<int> RequiredTalentIds { get; } = requiredTalentIds.IsDefault ? ImmutableArray<int>.Empty : requiredTalentIds;
         /// <summary>Fully-qualified predicate type from <c>[ActiveWhen&lt;T&gt;]</c>, or <c>null</c> when the analyzer is unconditional.</summary>
-        public string? ActivePredicate { get; }
+        public string? ActivePredicate { get; } = activePredicate;
         public string FullyQualifiedName => string.IsNullOrEmpty(Namespace) ? Name : Namespace + "." + Name;
     }
 }

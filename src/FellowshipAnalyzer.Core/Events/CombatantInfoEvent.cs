@@ -2,7 +2,7 @@
 
 namespace FellowshipAnalyzer.Core.Events;
 
-/// <summary>The FellowshipLogs <c>combatantinfo</c> event: a snapshot of a player's gear, talents, stat ratings, and active auras, used to build the analysis <see cref="FellowshipAnalyzer.Core.Analysis.Combatant"/>.</summary>
+/// <summary>The FellowshipLogs <c>combatantinfo</c> event: a snapshot of a player's gear, talents, stat ratings, and active auras, used to build the analysis <see cref="Analysis.Combatant"/>.</summary>
 public class CombatantInfoEvent : Event
 {
     /// <summary>The player's actor id, in the same id space as the source and target ids used throughout the event stream.</summary>

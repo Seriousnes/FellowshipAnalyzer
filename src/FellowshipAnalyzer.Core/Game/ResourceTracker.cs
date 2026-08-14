@@ -8,9 +8,9 @@ namespace FellowshipAnalyzer.Core.Resources;
 
 /// <summary>
 /// Tracks all resource types for the selected player by subscribing to all events via
-/// <see cref="FellowshipAnalyzer.Core.Analysis.Events.Any"/> and inspecting <see cref="Event.SourceResources"/> /
+/// <see cref="Analysis.Events.Any"/> and inspecting <see cref="Event.SourceResources"/> /
 /// <see cref="Event.TargetResources"/> to find the selected player's resources.
-/// Spend tracking is driven by <see cref="CastEvent"/> via <see cref="FellowshipAnalyzer.Core.Analysis.Events.Cast"/>.
+/// Spend tracking is driven by <see cref="CastEvent"/> via <see cref="Analysis.Events.Cast"/>.
 /// </summary>
 public partial class ResourceTracker(ILogger<ResourceTracker> logger) : Analyzer
 {
