@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using System.Globalization;
 using System.IO.Compression;
 using System.Runtime.InteropServices;
@@ -42,14 +41,9 @@ public sealed class FellowshipLogsApiHandler(
         int? dungeonId,
         CancellationToken cancellationToken)
     {
-        var sw = Stopwatch.StartNew();
-        logger.LogDebug(
-            "GetEventsAsync ENTER reportCode={ReportCode} playerId={PlayerId} dungeonId={DungeonId}",
-            reportCode, playerId, dungeonId);
-
         if (await TryApplyRateLimitAsync(context, cancellationToken) is { } limited)
         {
-            logger.LogWarning("GetEventsAsync rate-limited at {ElapsedMs}ms", sw.ElapsedMilliseconds);
+            logger.LogInformation("Events rate limited reportCode={ReportCode}", reportCode);
             return limited;
         }
 
@@ -69,14 +63,7 @@ public sealed class FellowshipLogsApiHandler(
         var trimmedReportCode = reportCode.Trim();
 
         var blobKey = CacheKeys.BlobEvents(trimmedReportCode, playerId.Value, dungeonId.Value);
-        logger.LogDebug("GetEventsAsync L2 lookup blobKey={BlobKey} t={ElapsedMs}ms", blobKey, sw.ElapsedMilliseconds);
         var blobEntry = await persistentCache.GetAsync(CachePartition.Events, blobKey, cancellationToken);
-        logger.LogDebug(
-            "GetEventsAsync L2 lookup result hit={Hit} encoding={Encoding} length={Length} t={ElapsedMs}ms",
-            blobEntry is not null,
-            blobEntry?.ContentEncoding,
-            blobEntry?.ContentLength,
-            sw.ElapsedMilliseconds);
 
         if (blobEntry is not null)
         {
@@ -87,23 +74,21 @@ public sealed class FellowshipLogsApiHandler(
                 payload = new GZipStream(blobEntry.Content, CompressionMode.Decompress, leaveOpen: false);
             }
             logger.LogInformation(
-                "Events reportCode={ReportCode} playerId={PlayerId} dungeonId={DungeonId} cache=HIT t={ElapsedMs}ms",
-                trimmedReportCode, playerId.Value, dungeonId.Value, sw.ElapsedMilliseconds);
+                "Events reportCode={ReportCode} playerId={PlayerId} dungeonId={DungeonId} cache=HIT",
+                trimmedReportCode, playerId.Value, dungeonId.Value);
             return Results.Stream(payload, "application/json");
         }
 
         if (TryAcquireUpstream(context) is { } upstreamLimited)
         {
-            logger.LogWarning("GetEventsAsync upstream-rate-limited at {ElapsedMs}ms", sw.ElapsedMilliseconds);
+            logger.LogInformation(
+                "Events upstream limited reportCode={ReportCode} playerId={PlayerId} dungeonId={DungeonId}",
+                trimmedReportCode, playerId.Value, dungeonId.Value);
             return upstreamLimited;
         }
 
-        logger.LogDebug("GetEventsAsync L3 upstream call starting t={ElapsedMs}ms", sw.ElapsedMilliseconds);
         var result = await fellowshipLogsService.GetRawEventsAsync(
             trimmedReportCode, playerId.Value, dungeonId.Value, cancellationToken);
-        logger.LogDebug(
-            "GetEventsAsync L3 upstream returned bytes={Bytes} inProgress={InProgress} t={ElapsedMs}ms",
-            result.JsonBytes.Length, result.InProgress, sw.ElapsedMilliseconds);
 
         if (!result.InProgress && result.HasEvents)
         {
@@ -111,9 +96,6 @@ public sealed class FellowshipLogsApiHandler(
             var expiresAt = DateTimeOffset.UtcNow.Add(duration);
 
             var gzipBytes = CompressGzip(result.JsonBytes, streamManager);
-            logger.LogDebug(
-                "GetEventsAsync compressed for blob raw={Raw} gzip={Gzip} t={ElapsedMs}ms",
-                result.JsonBytes.Length, gzipBytes.Length, sw.ElapsedMilliseconds);
 
             WriteThroughInBackground(
                 persistentCache.SetAsync(
@@ -128,16 +110,16 @@ public sealed class FellowshipLogsApiHandler(
 
             ApplyCompletedEventsCacheHeaders(context.Response, expiresAt, hit: false);
             logger.LogInformation(
-                "Events reportCode={ReportCode} playerId={PlayerId} dungeonId={DungeonId} cache=MISS t={ElapsedMs}ms",
-                trimmedReportCode, playerId.Value, dungeonId.Value, sw.ElapsedMilliseconds);
+                "Events reportCode={ReportCode} playerId={PlayerId} dungeonId={DungeonId} cache=MISS",
+                trimmedReportCode, playerId.Value, dungeonId.Value);
             return Results.Bytes(result.JsonBytes, "application/json");
         }
         else
         {
             ApplyNoStoreCacheHeaders(context.Response, hit: false);
             logger.LogInformation(
-                "Events reportCode={ReportCode} playerId={PlayerId} dungeonId={DungeonId} cache=NONE inProgress={InProgress} hasEvents={HasEvents} t={ElapsedMs}ms",
-                trimmedReportCode, playerId.Value, dungeonId.Value, result.InProgress, result.HasEvents, sw.ElapsedMilliseconds);
+                "Events reportCode={ReportCode} playerId={PlayerId} dungeonId={DungeonId} cache=NONE inProgress={InProgress} hasEvents={HasEvents}",
+                trimmedReportCode, playerId.Value, dungeonId.Value, result.InProgress, result.HasEvents);
             return Results.Bytes(result.JsonBytes, "application/json");
         }
     }
