@@ -30,6 +30,24 @@
         color: var(--fa-text-dim);
     }
 
+    ul {
+        margin: 0;
+        padding-left: 1.25rem;
+        line-height: 1.65;
+        color: var(--fa-text-dim);
+    }
+
+    li {
+        margin: 0 0 0.35rem;
+
+        &::marker { color: var(--fa-gold); }
+    }
+
+    strong {
+        color: var(--fa-text);
+        font-weight: 600;
+    }
+
     a {
         color: var(--fa-gold);
         text-decoration: none;

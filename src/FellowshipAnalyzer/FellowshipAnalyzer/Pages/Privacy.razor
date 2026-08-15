@@ -4,54 +4,29 @@
 <PageTitle>Privacy - Fellowship Analyzer</PageTitle>
 
 <div class="privacy-page">
-    <PageHeader Title="Privacy">
-        <Subtitle>What this site records, and what it does not.</Subtitle>
-    </PageHeader>
+    <PageHeader Title="Privacy" />
 
     <section class="privacy-body">
-        <h2>No cookies, no analytics storage</h2>
+        <h2>Privacy First: No Cookies or Ads</h2>
         <p>
-            This site sets no cookies. It stores nothing on your device for analytics, loads no
-            third-party analytics or advertising script, and cannot follow you to any other site.
-        </p>
-        <p>
-            Reports you open are cached in your browser so reopening one does not fetch it again,
-            and your theme choice is stored the same way. Both stay on your device and are never
-            sent anywhere. Clearing your browser storage removes them.
+            This site is cookie-free and ad-free. Your theme choices and recently viewed reports are
+            saved locally on your device and vanish as soon as you clear your browser data.
         </p>
 
-        <h2>What this site records about usage</h2>
+        <h2>What Our Servers See</h2>
         <p>
-            The first time a given report, player and dungeon is analysed, the server records two
-            things: the hero and the dungeon name. That record contains no player name, no character
-            id, no report code and no account details, and it is never linked to a visitor.
+            Our server logs are kept securely for 90 days and only collect the bare minimum to make
+            the site work:
         </p>
-        <p>
-            The server also counts how often each of its endpoints is called, without recording
-            anything about which report was asked for.
-        </p>
+        <ul>
+            <li><strong>Gameplay data:</strong> Hero, dungeon name, report code, player ID, and dungeon ID.</li>
+            <li><strong>General location:</strong> Approximate city or country (your actual IP address is discarded immediately).</li>
+            <li><strong>What we DON'T collect:</strong> Player names, email addresses, or account credentials. Nothing is ever linked to you as an individual visitor.</li>
+        </ul>
 
-        <h2>What Azure records</h2>
+        <h2>Questions?</h2>
         <p>
-            The site runs on Azure Static Web Apps and its request data goes to Azure Application
-            Insights. That is a Microsoft service, and what it keeps is set by Azure rather than by
-            this site.
-        </p>
-        <p>
-            For every request, Azure derives an approximate location from your network address,
-            keeps the city, region and country, and discards the address itself. It also keeps the
-            full web address of the request. For a report request that web address includes the
-            report code, the player id and the dungeon id, because they are what the request asks
-            for. Records of a failure can include a report code for the same reason: a failure that
-            names no report cannot be investigated.
-        </p>
-        <p>
-            Application Insights keeps this data for 90 days and then deletes it.
-        </p>
-
-        <h2>Questions</h2>
-        <p>
-            Open an issue on
+            Drop us a line by opening an issue on
             <a href="https://github.com/Seriousnes/FellowshipAnalyzer/issues" target="_blank" rel="noopener noreferrer">GitHub</a>.
         </p>
     </section>
