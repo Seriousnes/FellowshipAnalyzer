@@ -1,0 +1,58 @@
+@page "/privacy"
+@layout MainLayout
+
+<PageTitle>Privacy - Fellowship Analyzer</PageTitle>
+
+<div class="privacy-page">
+    <PageHeader Title="Privacy">
+        <Subtitle>What this site records, and what it does not.</Subtitle>
+    </PageHeader>
+
+    <section class="privacy-body">
+        <h2>No cookies, no analytics storage</h2>
+        <p>
+            This site sets no cookies. It stores nothing on your device for analytics, loads no
+            third-party analytics or advertising script, and cannot follow you to any other site.
+        </p>
+        <p>
+            Reports you open are cached in your browser so reopening one does not fetch it again,
+            and your theme choice is stored the same way. Both stay on your device and are never
+            sent anywhere. Clearing your browser storage removes them.
+        </p>
+
+        <h2>What this site records about usage</h2>
+        <p>
+            The first time a given report, player and dungeon is analysed, the server records two
+            things: the hero and the dungeon name. That record contains no player name, no character
+            id, no report code and no account details, and it is never linked to a visitor.
+        </p>
+        <p>
+            The server also counts how often each of its endpoints is called, without recording
+            anything about which report was asked for.
+        </p>
+
+        <h2>What Azure records</h2>
+        <p>
+            The site runs on Azure Static Web Apps and its request data goes to Azure Application
+            Insights. That is a Microsoft service, and what it keeps is set by Azure rather than by
+            this site.
+        </p>
+        <p>
+            For every request, Azure derives an approximate location from your network address,
+            keeps the city, region and country, and discards the address itself. It also keeps the
+            full web address of the request. For a report request that web address includes the
+            report code, the player id and the dungeon id, because they are what the request asks
+            for. Records of a failure can include a report code for the same reason: a failure that
+            names no report cannot be investigated.
+        </p>
+        <p>
+            Application Insights keeps this data for 90 days and then deletes it.
+        </p>
+
+        <h2>Questions</h2>
+        <p>
+            Open an issue on
+            <a href="https://github.com/Seriousnes/FellowshipAnalyzer/issues" target="_blank" rel="noopener noreferrer">GitHub</a>.
+        </p>
+    </section>
+</div>

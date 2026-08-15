@@ -32,6 +32,9 @@ public sealed class FellowshipLogsApiHandler(
     IHostApplicationLifetime appLifetime,
     ILogger<FellowshipLogsApiHandler> logger)
 {
+    private const int MaxHeroLength = 32;
+    private const int MaxDungeonLength = 64;
+    private const string Unknown = "unknown";
 
     [ApiEndpoint("GET", "events")]
     public async Task<IResult> GetEventsAsync(
@@ -43,7 +46,7 @@ public sealed class FellowshipLogsApiHandler(
     {
         if (await TryApplyRateLimitAsync(context, cancellationToken) is { } limited)
         {
-            logger.LogInformation("Events rate limited reportCode={ReportCode}", reportCode);
+            logger.LogInformation("Events rate limited");
             return limited;
         }
 
@@ -73,19 +76,18 @@ public sealed class FellowshipLogsApiHandler(
             {
                 payload = new GZipStream(blobEntry.Content, CompressionMode.Decompress, leaveOpen: false);
             }
-            logger.LogInformation(
-                "Events reportCode={ReportCode} playerId={PlayerId} dungeonId={DungeonId} cache=HIT",
-                trimmedReportCode, playerId.Value, dungeonId.Value);
+            logger.LogInformation("Events cache=HIT");
             return Results.Stream(payload, "application/json");
         }
 
         if (TryAcquireUpstream(context) is { } upstreamLimited)
         {
-            logger.LogInformation(
-                "Events upstream limited reportCode={ReportCode} playerId={PlayerId} dungeonId={DungeonId}",
-                trimmedReportCode, playerId.Value, dungeonId.Value);
+            logger.LogInformation("Events upstream limited");
             return upstreamLimited;
         }
+
+        var usage = await TryGetUsageFactsAsync(
+            trimmedReportCode, playerId.Value, dungeonId.Value, cancellationToken);
 
         var result = await fellowshipLogsService.GetRawEventsAsync(
             trimmedReportCode, playerId.Value, dungeonId.Value, cancellationToken);
@@ -109,17 +111,13 @@ public sealed class FellowshipLogsApiHandler(
                 CachePartition.Events, blobKey);
 
             ApplyCompletedEventsCacheHeaders(context.Response, expiresAt, hit: false);
-            logger.LogInformation(
-                "Events reportCode={ReportCode} playerId={PlayerId} dungeonId={DungeonId} cache=MISS",
-                trimmedReportCode, playerId.Value, dungeonId.Value);
+            logger.LogInformation("Events hero={Hero} dungeon={Dungeon} cache=MISS", usage.Hero, usage.Dungeon);
             return Results.Bytes(result.JsonBytes, "application/json");
         }
         else
         {
             ApplyNoStoreCacheHeaders(context.Response, hit: false);
-            logger.LogInformation(
-                "Events reportCode={ReportCode} playerId={PlayerId} dungeonId={DungeonId} cache=NONE inProgress={InProgress} hasEvents={HasEvents}",
-                trimmedReportCode, playerId.Value, dungeonId.Value, result.InProgress, result.HasEvents);
+            logger.LogInformation("Events hero={Hero} dungeon={Dungeon} cache=NONE inProgress={InProgress} hasEvents={HasEvents}", usage.Hero, usage.Dungeon, result.InProgress, result.HasEvents);
             return Results.Bytes(result.JsonBytes, "application/json");
         }
     }
@@ -211,7 +209,7 @@ public sealed class FellowshipLogsApiHandler(
             return BadRequest("Route parameter 'reportCode' is required.");
         }
 
-        logger.LogInformation("Analysis reportCode={ReportCode} dungeonId={DungeonId}", reportCode, dungeonId);
+        logger.LogInformation("Analysis requested");
 
         var cacheKey = CacheKeys.Analysis(reportCode, dungeonId);
 
@@ -288,7 +286,7 @@ public sealed class FellowshipLogsApiHandler(
             return BadRequest("Route parameter 'id' must be a positive integer.");
         }
 
-        logger.LogInformation("Character characterId={CharacterId}", id);
+        logger.LogInformation("Character requested");
 
         var cacheKey = CacheKeys.Character(id);
 
@@ -347,6 +345,21 @@ public sealed class FellowshipLogsApiHandler(
 
         ApplyNoStoreCacheHeaders(context.Response, hit: false);
         return Json(result);
+    }
+
+    private async Task<UsageFacts> TryGetUsageFactsAsync(
+        string reportCode, int playerId, int dungeonId, CancellationToken cancellationToken)
+    {
+        try
+        {
+            return await fellowshipLogsService.GetUsageFactsAsync(
+                reportCode, playerId, dungeonId, cancellationToken);
+        }
+        catch (Exception exception)
+        {
+            logger.LogError(exception, "Usage facts lookup failed.");
+            return new UsageFacts(null, null);
+        }
     }
 
     private async ValueTask<IResult?> TryApplyRateLimitAsync(HttpContext context, CancellationToken cancellationToken)

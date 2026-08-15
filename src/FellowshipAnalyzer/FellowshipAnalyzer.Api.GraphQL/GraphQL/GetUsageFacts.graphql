@@ -1,0 +1,15 @@
+query GetUsageFacts($code: String!, $fightIDs: [Int]) {
+  reportData {
+    report(code: $code) {
+      fights(fightIDs: $fightIDs) {
+        name
+      }
+      masterData {
+        actors {
+          id
+          subType
+        }
+      }
+    }
+  }
+}

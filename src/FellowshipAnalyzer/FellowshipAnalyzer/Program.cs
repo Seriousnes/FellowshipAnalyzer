@@ -47,7 +47,6 @@ builder.Services.AddScoped<ContributorModalService>();
 builder.Services.AddScoped<ReportLoadingTracker>();
 builder.Services.AddScoped<ReportNavigationState>();
 builder.Services.AddScoped<FellowshipLogsApiClient>();
-builder.Services.AddScoped<UsageApiClient>();
 builder.Services.AddScoped<IReportCacheService, IndexedDbReportCacheService>();
 builder.Services.AddScoped<ReportAnalysisService>();
 builder.Services.AddScoped<TimelineConfigService>();
