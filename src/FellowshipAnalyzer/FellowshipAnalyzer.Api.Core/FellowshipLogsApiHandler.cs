@@ -111,17 +111,13 @@ public sealed class FellowshipLogsApiHandler(
                 CachePartition.Events, blobKey);
 
             ApplyCompletedEventsCacheHeaders(context.Response, expiresAt, hit: false);
-            logger.LogInformation(
-                "Events hero={Hero} dungeon={Dungeon} cache=MISS",
-                SanitizeHero(usage.Hero), SanitizeDungeon(usage.Dungeon));
+            logger.LogInformation("Events hero={Hero} dungeon={Dungeon} cache=MISS", usage.Hero, usage.Dungeon);
             return Results.Bytes(result.JsonBytes, "application/json");
         }
         else
         {
             ApplyNoStoreCacheHeaders(context.Response, hit: false);
-            logger.LogInformation(
-                "Events hero={Hero} dungeon={Dungeon} cache=NONE inProgress={InProgress} hasEvents={HasEvents}",
-                SanitizeHero(usage.Hero), SanitizeDungeon(usage.Dungeon), result.InProgress, result.HasEvents);
+            logger.LogInformation("Events hero={Hero} dungeon={Dungeon} cache=NONE inProgress={InProgress} hasEvents={HasEvents}", usage.Hero, usage.Dungeon, result.InProgress, result.HasEvents);
             return Results.Bytes(result.JsonBytes, "application/json");
         }
     }
@@ -349,42 +345,6 @@ public sealed class FellowshipLogsApiHandler(
 
         ApplyNoStoreCacheHeaders(context.Response, hit: false);
         return Json(result);
-    }
-
-    public static string SanitizeHero(string? value)
-    {
-        if (string.IsNullOrWhiteSpace(value) || value.Length > MaxHeroLength)
-        {
-            return Unknown;
-        }
-
-        foreach (var character in value)
-        {
-            if (!char.IsAsciiLetter(character))
-            {
-                return Unknown;
-            }
-        }
-
-        return value.ToLowerInvariant();
-    }
-
-    public static string SanitizeDungeon(string? value)
-    {
-        if (string.IsNullOrWhiteSpace(value) || value.Length > MaxDungeonLength)
-        {
-            return Unknown;
-        }
-
-        foreach (var character in value)
-        {
-            if (char.IsControl(character))
-            {
-                return Unknown;
-            }
-        }
-
-        return value;
     }
 
     private async Task<UsageFacts> TryGetUsageFactsAsync(
