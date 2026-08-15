@@ -12,7 +12,6 @@
 @inject ReportLoadingTracker LoadingTracker
 @inject ReportNavigationState NavState
 @inject NavigationManager NavigationManager
-@inject UsageApiClient Usage
 
 <PageTitle>@PageTitleText</PageTitle>
 
@@ -271,11 +270,6 @@
         {
             _context = await AnalysisService.RunAsync(ReportCode, DungeonId, PlayerId, UpdateReportInfoAsync);
             _reportInfo = _context.ReportInfo;
-
-            if (Hero.TryParse(_context.Player.SubType, out var analysedHero))
-            {
-                Usage.TrackHero(analysedHero.Id);
-            }
         }
         catch (Exception exception)
         {

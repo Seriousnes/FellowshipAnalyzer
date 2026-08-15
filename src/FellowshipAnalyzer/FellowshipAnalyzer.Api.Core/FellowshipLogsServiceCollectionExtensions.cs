@@ -105,7 +105,6 @@ public static class FellowshipLogsServiceCollectionExtensions
         services.AddSingleton<FellowshipLogsRateLimiter>();
         services.AddSingleton<FellowshipLogsUpstreamRateLimiter>();
         services.AddScoped<FellowshipLogsApiHandler>();
-        services.AddScoped<UsageApiHandler>();
         services.AddSingleton<Microsoft.AspNetCore.Hosting.IStartupFilter, FellowshipLogsApiStartupFilter>();
 
         return services;

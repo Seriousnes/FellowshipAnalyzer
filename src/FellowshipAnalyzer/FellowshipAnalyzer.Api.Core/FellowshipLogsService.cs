@@ -11,6 +11,8 @@ namespace FellowshipAnalyzer.Api.Core;
 
 internal sealed record RawEventsResult(byte[] JsonBytes, bool InProgress, bool HasEvents);
 
+internal sealed record UsageFacts(string? Hero, string? Dungeon);
+
 public sealed class FellowshipLogsService(IFellowshipLogsApiClient client, GraphQLMapper mapper, RecyclableMemoryStreamManager streamManager)
 {
     internal async Task<RawEventsResult> GetRawEventsAsync(
@@ -119,6 +121,23 @@ public sealed class FellowshipLogsService(IFellowshipLogsApiClient client, Graph
             }
             return count;
         }
+    }
+
+    internal async Task<UsageFacts> GetUsageFactsAsync(
+        string reportCode, int playerId, int dungeonId,
+        CancellationToken cancellationToken = default)
+    {
+        var result = await client.GetUsageFacts.ExecuteAsync(
+            reportCode, new int?[] { dungeonId }, cancellationToken);
+        ThrowIfErrors(result);
+
+        var report = result.Data!.ReportData?.Report;
+
+        var dungeon = report?.Fights?.FirstOrDefault(fight => fight is not null)?.Name;
+        var hero = report?.MasterData?.Actors?
+            .FirstOrDefault(actor => actor?.Id == playerId)?.SubType;
+
+        return new UsageFacts(hero, dungeon);
     }
 
     public async Task<AnalysisPreload> GetReportMasterDataAsync(

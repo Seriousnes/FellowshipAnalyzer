@@ -1,7 +1,5 @@
 ﻿@inherits LayoutComponentBase
-@using FellowshipAnalyzer.Services
 @inject IJSRuntime JS
-@inject UsageApiClient Usage
 
 <div class="layout-shell">
     <header class="topbar">
@@ -48,8 +46,6 @@
     {
         if (firstRender)
         {
-            Usage.StartPageTracking();
-
             try
             {
                 await JS.InvokeVoidAsync("faSplash.dismiss");
