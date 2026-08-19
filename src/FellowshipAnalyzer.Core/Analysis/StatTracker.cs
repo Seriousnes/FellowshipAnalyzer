@@ -84,6 +84,12 @@ public sealed partial class StatTracker : Analyzer
     /// Registers a flat percentage stat buff (e.g., 30% haste). Its values are added to the
     /// rating-derived percentage rather than multiplied with it.
     /// </summary>
+    /// <remarks>
+    /// Stack counts are absolute, taken from what the log reports rather than accumulated from deltas, so a
+    /// stack removal that leaves a positive count on a buff never seen applied is read as a window that was
+    /// already open, and the remaining stacks start contributing from there. A removal that leaves no stacks
+    /// contributes nothing, so a stray removal cannot drive a stat negative.
+    /// </remarks>
     public void AddPercentageBuff(int spellId, StatPercentageBuff buff) =>
         _percentageBuffs[spellId] = buff;
 

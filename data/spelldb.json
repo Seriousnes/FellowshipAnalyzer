@@ -4861,6 +4861,30 @@
       "cooldown": 32,
       "range": 3
     },
+    "SpiritOfHeroism": {
+      "kind": "effect",
+      "id": 1350,
+      "name": "Spirit of Heroism",
+      "icon": "Tex_b_02.jpg"
+    },
+    "SpiritOfHeroismHealer": {
+      "kind": "effect",
+      "id": 2277,
+      "name": "Spirit of Heroism",
+      "icon": "Tex_b_02.jpg"
+    },
+    "SpiritOfHeroismNotTank": {
+      "kind": "effect",
+      "id": 2253,
+      "name": "Spirit of Heroism",
+      "icon": "Tex_b_02.jpg"
+    },
+    "SpiritOfHeroismXavian": {
+      "kind": "effect",
+      "id": 2662,
+      "name": "Spirit of Heroism",
+      "icon": "Tex_b_02.jpg"
+    },
     "VeinSprout": {
       "kind": "ability",
       "id": 2031,

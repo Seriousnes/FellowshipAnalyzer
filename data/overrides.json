@@ -421,6 +421,34 @@
     }
   },
   "shared": {
+    "SpiritOfHeroism": {
+      "id": 1350,
+      "kind": "effect",
+      "name": "Spirit of Heroism",
+      "icon": "Tex_b_02.jpg",
+      "note": "GE_Shared_SpiritTriggeredBuff; the +30% Haste every hero gains on activating their Spirit ability, applied by the shared passive GA_Shared_Passive_SpiritMechanic (1007). Four ids carry the same haste grant with different riders; add all four directly so StatBuffs can name them"
+    },
+    "SpiritOfHeroismNotTank": {
+      "id": 2253,
+      "kind": "effect",
+      "name": "Spirit of Heroism",
+      "icon": "Tex_b_02.jpg",
+      "note": "GE_Shared_SpiritTriggeredBuff_NotTank; the variant every non-tank logs, which also raises damage and heal threat multipliers. Auto-merge files it under elarion alone even though six heroes in the report corpus log it, so it is added to shared as well; the resulting FA0008 duplicate-FSLID warning is deliberate, and the fix for it belongs in the merge engine's effect linking, not here"
+    },
+    "SpiritOfHeroismHealer": {
+      "id": 2277,
+      "kind": "effect",
+      "name": "Spirit of Heroism",
+      "icon": "Tex_b_02.jpg",
+      "note": "GE_Shared_SpiritTriggeredBuff_Healer; the variant Aeona, Sylvie, and Vigour log, which also raises mana regeneration by 600%"
+    },
+    "SpiritOfHeroismXavian": {
+      "id": 2662,
+      "kind": "effect",
+      "name": "Spirit of Heroism",
+      "icon": "Tex_b_02.jpg",
+      "note": "GE_Sune_SpiritTriggeredBuff; Xavian's own variant, whose DevKey is Sune. Kept with the rest of the family rather than in the xavian scope because StatBuffs reads the four as one set"
+    },
     "VeinSprout": {
       "id": 2031,
       "school": "Magic"
