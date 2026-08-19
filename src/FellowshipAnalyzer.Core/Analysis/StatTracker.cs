@@ -36,9 +36,9 @@ public sealed partial class StatTracker : Analyzer
 
     private readonly Dictionary<int, CooldownBuff> _cooldownBuffs = new(StatBuffs.Cooldowns);
 
-    private readonly Dictionary<int, int> _percentageStacks = [];
+    private readonly Dictionary<int, int> _stackedStacks = [];
 
-    private readonly Dictionary<int, PercentageAmounts> _percentageAmounts = [];
+    private readonly Dictionary<int, StackedAmounts> _stackedAmounts = [];
 
     private readonly List<CooldownModifier> _abilityCooldownReduction = [];
 
@@ -66,7 +66,7 @@ public sealed partial class StatTracker : Analyzer
         _currentStats = _pullStats.Clone();
 
         foreach (var aura in combatant.Info.Auras)
-            SetPercentageStacks(aura.Ability, Math.Max(aura.Stacks, 1), e);
+            SetStackedBuff(aura.Ability, Math.Max(aura.Stacks, 1), e);
     }
 
     /// <summary>
@@ -307,110 +307,136 @@ public sealed partial class StatTracker : Analyzer
     private void OnApplyBuff(ApplyBuffEvent e)
     {
         HandleBuffGain(e.Ability.FSLID, e.Prepull.GetValueOrDefault(), e);
-        SetPercentageStacks(e.Ability.FSLID, stacks: 1, e);
+        SetStackedBuff(e.Ability.FSLID, stacks: 1, e);
     }
 
     [On<RemoveBuffEvent>(To = Actor.Player)]
     private void OnRemoveBuff(RemoveBuffEvent e)
     {
         HandleBuffLoss(e.Ability.FSLID, e);
-        SetPercentageStacks(e.Ability.FSLID, stacks: 0, e);
+        SetStackedBuff(e.Ability.FSLID, stacks: 0, e);
     }
 
     [On<ApplyBuffStackEvent>(To = Actor.Player)]
     private void OnApplyBuffStack(ApplyBuffStackEvent e)
     {
         HandleBuffGain(e.Ability.FSLID, isPrepull: false, e);
-        SetPercentageStacks(e.Ability.FSLID, e.Stack, e);
+        SetStackedBuff(e.Ability.FSLID, e.Stack, e);
     }
 
     [On<RemoveBuffStackEvent>(To = Actor.Player)]
     private void OnRemoveBuffStack(RemoveBuffStackEvent e)
     {
         HandleBuffLoss(e.Ability.FSLID, e);
-        SetPercentageStacks(e.Ability.FSLID, e.Stack, e);
+        SetStackedBuff(e.Ability.FSLID, e.Stack, e);
     }
 
     [On<ApplyDebuffEvent>(To = Actor.Player)]
     private void OnApplyDebuff(ApplyDebuffEvent e)
     {
         HandleBuffGain(e.Ability.FSLID, e.Prepull.GetValueOrDefault(), e);
-        SetPercentageStacks(e.Ability.FSLID, stacks: 1, e);
+        SetStackedBuff(e.Ability.FSLID, stacks: 1, e);
     }
 
     [On<RemoveDebuffEvent>(To = Actor.Player)]
     private void OnRemoveDebuff(RemoveDebuffEvent e)
     {
         HandleBuffLoss(e.Ability.FSLID, e);
-        SetPercentageStacks(e.Ability.FSLID, stacks: 0, e);
+        SetStackedBuff(e.Ability.FSLID, stacks: 0, e);
     }
 
     [On<ApplyDebuffStackEvent>(To = Actor.Player)]
     private void OnApplyDebuffStack(ApplyDebuffStackEvent e)
     {
         HandleBuffGain(e.Ability.FSLID, isPrepull: false, e);
-        SetPercentageStacks(e.Ability.FSLID, e.Stack, e);
+        SetStackedBuff(e.Ability.FSLID, e.Stack, e);
     }
 
     [On<RemoveDebuffStackEvent>(To = Actor.Player)]
     private void OnRemoveDebuffStack(RemoveDebuffStackEvent e)
     {
         HandleBuffLoss(e.Ability.FSLID, e);
-        SetPercentageStacks(e.Ability.FSLID, e.Stack, e);
+        SetStackedBuff(e.Ability.FSLID, e.Stack, e);
     }
 
-    private void SetPercentageStacks(int spellId, int stacks, Event trigger)
+    private void SetStackedBuff(int spellId, int stacks, Event trigger)
     {
-        if (!_percentageBuffs.TryGetValue(spellId, out var buff)) return;
+        var percentageBuff = _percentageBuffs.GetValueOrDefault(spellId);
+        var ratingBuff = _statBuffs.GetValueOrDefault(spellId);
+        if (ratingBuff?.PerStack != true) ratingBuff = null;
+        if (percentageBuff is null && ratingBuff is null) return;
 
-        var previous = _percentageStacks.GetValueOrDefault(spellId);
-        var next = buff.PerStack ? Math.Max(stacks, 0) : stacks > 0 ? 1 : 0;
+        var perStack = percentageBuff?.PerStack == true || ratingBuff is not null;
+        var previous = _stackedStacks.GetValueOrDefault(spellId);
+        var next = perStack ? Math.Max(stacks, 0) : stacks > 0 ? 1 : 0;
         if (next == previous) return;
 
         if (previous == 0)
-            _percentageAmounts[spellId] = ResolvePercentages(buff, trigger);
+            _stackedAmounts[spellId] = ResolveStacked(percentageBuff, ratingBuff, trigger);
 
-        var amounts = _percentageAmounts[spellId];
+        var amounts = _stackedAmounts[spellId];
 
-        _percentageStacks[spellId] = next;
+        _stackedStacks[spellId] = next;
         if (next == 0)
         {
-            _percentageStacks.Remove(spellId);
-            _percentageAmounts.Remove(spellId);
+            _stackedStacks.Remove(spellId);
+            _stackedAmounts.Remove(spellId);
         }
 
         var before = _currentStats.ToStats();
-        ApplyPercentages(amounts, next - previous);
+        ApplyStacked(amounts, next - previous);
         var after = _currentStats.ToStats();
         FabricateChangeStats(trigger, before, after - before, after);
     }
 
-    private PercentageAmounts ResolvePercentages(StatPercentageBuff buff, Event trigger) => new(
-        ResolveBuffVal(buff.ItemId, buff.Crit, trigger),
-        ResolveBuffVal(buff.ItemId, buff.Haste, trigger),
-        ResolveBuffVal(buff.ItemId, buff.Expertise, trigger),
-        ResolveBuffVal(buff.ItemId, buff.Spirit, trigger),
-        ResolveBuffVal(buff.ItemId, buff.CritPower, trigger));
+    private StackedAmounts ResolveStacked(StatPercentageBuff? percentage, StatBuff? rating, Event trigger) => new(
+        ResolveBuffVal(percentage?.ItemId, percentage?.Crit, trigger),
+        ResolveBuffVal(percentage?.ItemId, percentage?.Haste, trigger),
+        ResolveBuffVal(percentage?.ItemId, percentage?.Expertise, trigger),
+        ResolveBuffVal(percentage?.ItemId, percentage?.Spirit, trigger),
+        ResolveBuffVal(percentage?.ItemId, percentage?.CritPower, trigger),
+        ResolveBuffVal(rating?.ItemId, rating?.MainStat, trigger),
+        ResolveBuffVal(rating?.ItemId, rating?.Stamina, trigger),
+        ResolveBuffVal(rating?.ItemId, rating?.Armor, trigger),
+        ResolveBuffVal(rating?.ItemId, rating?.Crit, trigger),
+        ResolveBuffVal(rating?.ItemId, rating?.Haste, trigger),
+        ResolveBuffVal(rating?.ItemId, rating?.Expertise, trigger),
+        ResolveBuffVal(rating?.ItemId, rating?.Spirit, trigger));
 
-    private void ApplyPercentages(PercentageAmounts amounts, int stackDelta)
+    private void ApplyStacked(StackedAmounts amounts, int stackDelta)
     {
-        _currentStats.AdditionalCrit += amounts.Crit * stackDelta;
-        _currentStats.AdditionalHaste += amounts.Haste * stackDelta;
-        _currentStats.AdditionalExpertise += amounts.Expertise * stackDelta;
-        _currentStats.AdditionalSpirit += amounts.Spirit * stackDelta;
-        _currentStats.AdditionalCritPower += amounts.CritPower * stackDelta;
+        _currentStats.AdditionalCrit += amounts.AdditionalCrit * stackDelta;
+        _currentStats.AdditionalHaste += amounts.AdditionalHaste * stackDelta;
+        _currentStats.AdditionalExpertise += amounts.AdditionalExpertise * stackDelta;
+        _currentStats.AdditionalSpirit += amounts.AdditionalSpirit * stackDelta;
+        _currentStats.AdditionalCritPower += amounts.AdditionalCritPower * stackDelta;
+
+        _currentStats.MainStat += amounts.MainStat * stackDelta * _multipliers.MainStat;
+        _currentStats.Stamina += amounts.Stamina * stackDelta * _multipliers.Stamina;
+        _currentStats.Armor += amounts.Armor * stackDelta * _multipliers.Armor;
+        _currentStats.Crit += amounts.Crit * stackDelta * _multipliers.Crit;
+        _currentStats.Haste += amounts.Haste * stackDelta * _multipliers.Haste;
+        _currentStats.Expertise += amounts.Expertise * stackDelta * _multipliers.Expertise;
+        _currentStats.Spirit += amounts.Spirit * stackDelta * _multipliers.Spirit;
     }
 
-    private readonly record struct PercentageAmounts(
+    private readonly record struct StackedAmounts(
+        double AdditionalCrit,
+        double AdditionalHaste,
+        double AdditionalExpertise,
+        double AdditionalSpirit,
+        double AdditionalCritPower,
+        double MainStat,
+        double Stamina,
+        double Armor,
         double Crit,
         double Haste,
         double Expertise,
-        double Spirit,
-        double CritPower);
+        double Spirit);
 
     private void HandleBuffGain(int spellId, bool isPrepull, Event trigger)
     {
-        if (!isPrepull && _statBuffs.TryGetValue(spellId, out var ratingBuff))
+        if (!isPrepull && _statBuffs.TryGetValue(spellId, out var ratingBuff) && !ratingBuff.PerStack)
         {
             var before = _currentStats.ToStats();
             ApplyRatingBuff(ratingBuff, 1.0);
@@ -441,7 +467,7 @@ public sealed partial class StatTracker : Analyzer
 
     private void HandleBuffLoss(int spellId, Event trigger)
     {
-        if (_statBuffs.TryGetValue(spellId, out var ratingBuff))
+        if (_statBuffs.TryGetValue(spellId, out var ratingBuff) && !ratingBuff.PerStack)
         {
             var before = _currentStats.ToStats();
             ApplyRatingBuff(ratingBuff, -1.0);
@@ -593,6 +619,14 @@ public sealed class StatBuff
     public BuffVal? Expertise { get; init; }
     /// <summary>Spirit rating contributed while this buff is active.</summary>
     public BuffVal? Spirit { get; init; }
+
+    /// <summary>
+    /// Whether each rating is contributed once per stack. When set, the tracked contribution follows the
+    /// absolute stack count the log reports, so the whole buff leaves when it drops however many stacks it
+    /// had. When unset, every apply or stack event contributes the rating again and every removal takes one
+    /// contribution back.
+    /// </summary>
+    public bool PerStack { get; init; }
 
     /// <summary>Item ID to pass to function-based <see cref="BuffVal"/> callbacks.</summary>
     public int? ItemId { get; init; }
