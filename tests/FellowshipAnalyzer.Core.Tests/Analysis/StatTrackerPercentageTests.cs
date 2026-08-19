@@ -93,30 +93,13 @@ public sealed partial class StatTrackerPercentageTests
     }
 
     [Fact]
-    public async Task CritPowerMoveSpeedAndDamageReduction_StartFromTheirBases()
+    public async Task FlatCritPower_AddsToTheBaseCriticalMultiplier()
     {
         var tracker = await Run(
             events: [ApplyBuff(1000, HasteBuffId)],
-            configure: s => s.AddPercentageBuff(HasteBuffId, new StatPercentageBuff
-            {
-                CritPower = 0.20,
-                MoveSpeed = 0.15,
-                DamageReduction = 0.05,
-            }));
+            configure: s => s.AddPercentageBuff(HasteBuffId, new StatPercentageBuff { CritPower = 0.20 }));
 
         Assert.Equal(StatTracker.BaseCritPower + 0.20, tracker.CurrentCritPower, precision: 10);
-        Assert.Equal(1.15, tracker.CurrentMoveSpeed, precision: 10);
-        Assert.Equal(0.05, tracker.CurrentDamageReduction, precision: 10);
-    }
-
-    [Fact]
-    public async Task DamageReduction_IsCappedBelowTotalImmunity()
-    {
-        var tracker = await Run(
-            events: [ApplyBuff(1000, HasteBuffId)],
-            configure: s => s.AddPercentageBuff(HasteBuffId, new StatPercentageBuff { DamageReduction = 2.0 }));
-
-        Assert.Equal(0.99, tracker.CurrentDamageReduction, precision: 10);
     }
 
     [Fact]

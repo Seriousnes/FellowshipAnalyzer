@@ -288,16 +288,6 @@ public sealed partial class StatTracker : Analyzer
     /// </summary>
     public double CurrentCritPower => BaseCritPower + _currentStats.AdditionalCritPower;
 
-    /// <summary>The player's current movement rate as a multiple of the base rate, where 1.0 is unmodified.</summary>
-    public double CurrentMoveSpeed => 1.0 + _currentStats.AdditionalMoveSpeed;
-
-    /// <summary>
-    /// The share of incoming damage active flat-percentage effects remove, as a fraction (0.05 = 5% less
-    /// damage taken). Sources are additive, and the total is capped just below 1.0 so damage taken can be
-    /// driven towards zero but never to it or below.
-    /// </summary>
-    public double CurrentDamageReduction => Math.Clamp(_currentStats.AdditionalDamageReduction, 0.0, 0.99);
-
     /// <summary>The 2.0 base critical multiplier every hero starts from, from each hero's <c>CritMultiplier</c> attribute.</summary>
     public const double BaseCritPower = 2.0;
 
@@ -400,9 +390,7 @@ public sealed partial class StatTracker : Analyzer
         ResolveBuffVal(buff.ItemId, buff.Haste, trigger),
         ResolveBuffVal(buff.ItemId, buff.Expertise, trigger),
         ResolveBuffVal(buff.ItemId, buff.Spirit, trigger),
-        ResolveBuffVal(buff.ItemId, buff.CritPower, trigger),
-        ResolveBuffVal(buff.ItemId, buff.MoveSpeed, trigger),
-        ResolveBuffVal(buff.ItemId, buff.DamageReduction, trigger));
+        ResolveBuffVal(buff.ItemId, buff.CritPower, trigger));
 
     private void ApplyPercentages(PercentageAmounts amounts, int stackDelta)
     {
@@ -411,8 +399,6 @@ public sealed partial class StatTracker : Analyzer
         _currentStats.AdditionalExpertise += amounts.Expertise * stackDelta;
         _currentStats.AdditionalSpirit += amounts.Spirit * stackDelta;
         _currentStats.AdditionalCritPower += amounts.CritPower * stackDelta;
-        _currentStats.AdditionalMoveSpeed += amounts.MoveSpeed * stackDelta;
-        _currentStats.AdditionalDamageReduction += amounts.DamageReduction * stackDelta;
     }
 
     private readonly record struct PercentageAmounts(
@@ -420,9 +406,7 @@ public sealed partial class StatTracker : Analyzer
         double Haste,
         double Expertise,
         double Spirit,
-        double CritPower,
-        double MoveSpeed,
-        double DamageReduction);
+        double CritPower);
 
     private void HandleBuffGain(int spellId, bool isPrepull, Event trigger)
     {
@@ -664,10 +648,6 @@ public sealed class StatPercentageBuff
     public BuffVal? Spirit { get; init; }
     /// <summary>Flat critical strike power contributed while this buff is active.</summary>
     public BuffVal? CritPower { get; init; }
-    /// <summary>Flat movement speed contributed while this buff is active.</summary>
-    public BuffVal? MoveSpeed { get; init; }
-    /// <summary>Flat reduction of incoming damage contributed while this buff is active.</summary>
-    public BuffVal? DamageReduction { get; init; }
 
     /// <summary>
     /// Whether each value is contributed once per stack. When set, the tracked contribution follows the
@@ -695,8 +675,6 @@ internal sealed class PlayerStats
     public double AdditionalExpertise { get; set; }
     public double AdditionalSpirit { get; set; }
     public double AdditionalCritPower { get; set; }
-    public double AdditionalMoveSpeed { get; set; }
-    public double AdditionalDamageReduction { get; set; }
 
     public PlayerStats Clone() => (PlayerStats)MemberwiseClone();
 
@@ -714,8 +692,6 @@ internal sealed class PlayerStats
         AdditionalExpertise = AdditionalExpertise,
         AdditionalSpirit = AdditionalSpirit,
         AdditionalCritPower = AdditionalCritPower,
-        AdditionalMoveSpeed = AdditionalMoveSpeed,
-        AdditionalDamageReduction = AdditionalDamageReduction,
     };
 }
 

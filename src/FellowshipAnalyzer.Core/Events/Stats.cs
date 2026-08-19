@@ -36,10 +36,6 @@ public class Stats
     public double? AdditionalSpirit { get; set; }
     /// <summary>Flat critical strike power added to the base critical multiplier, as a fraction (0.20 = 20%).</summary>
     public double? AdditionalCritPower { get; set; }
-    /// <summary>Flat movement speed added to the base movement rate, as a fraction (0.15 = 15%).</summary>
-    public double? AdditionalMoveSpeed { get; set; }
-    /// <summary>Flat reduction of incoming damage, as a fraction (0.05 = 5% less damage taken).</summary>
-    public double? AdditionalDamageReduction { get; set; }
 
     /// <summary>Computes the per-stat difference between two snapshots, treating missing values as zero.</summary>
     public static Stats operator -(Stats a, Stats b) => new()
@@ -56,7 +52,5 @@ public class Stats
         AdditionalExpertise = (a.AdditionalExpertise ?? 0) - (b.AdditionalExpertise ?? 0),
         AdditionalSpirit = (a.AdditionalSpirit ?? 0) - (b.AdditionalSpirit ?? 0),
         AdditionalCritPower = (a.AdditionalCritPower ?? 0) - (b.AdditionalCritPower ?? 0),
-        AdditionalMoveSpeed = (a.AdditionalMoveSpeed ?? 0) - (b.AdditionalMoveSpeed ?? 0),
-        AdditionalDamageReduction = (a.AdditionalDamageReduction ?? 0) - (b.AdditionalDamageReduction ?? 0),
     };
 }

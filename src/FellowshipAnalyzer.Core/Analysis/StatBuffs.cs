@@ -16,10 +16,15 @@ namespace FellowshipAnalyzer.Core.Analysis;
 /// than literals, so a rename in <c>data/spelldb.json</c> breaks the build instead of silently missing a
 /// buff.
 /// <para>
-/// Effects with no log trace are out of scope here: a permanent gear passive raises a stat from the first
-/// instant of the dungeon and never fires an apply or remove event, so there is nothing for an event-driven
-/// tracker to key on. Effects scoped to a subset of a hero's abilities are also out, because a global pool
-/// would apply them to every cast.
+/// Effects with no log trace are out of scope here, for two separate reasons. A gear effect that adds a
+/// stat <em>rating</em> is already inside the combatantinfo totals <see cref="StatTracker"/> seeds each
+/// pull from, so registering it would count it twice: across the report corpus a player's reported Crit,
+/// Haste, Expertise, and Spirit exceed the sum of their gear attributes by exactly their Amethyst, Topaz,
+/// Emerald, and Sapphire gem tier. A gear effect that adds a flat <em>percentage</em> is not in that
+/// snapshot, but it also never fires an apply or remove event, so an event-driven tracker has nothing to
+/// key on; resolving those from gem power, set piece counts, and blessing levels is separate work.
+/// Effects scoped to a subset of a hero's abilities are out as well, because a global pool would apply them
+/// to every cast.
 /// </para>
 /// </remarks>
 public static class StatBuffs
