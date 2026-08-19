@@ -120,6 +120,10 @@ public class Item
     public ItemGem? Gem { get; set; }
     /// <summary>The bonus attributes rolled onto this item.</summary>
     public List<ItemAttribute> Attributes { get; set; } = [];
+    /// <summary>The traits rolled onto this item.</summary>
+    public List<ItemTrait> Traits { get; set; } = [];
+    /// <summary>The blessings slotted into this item.</summary>
+    public List<ItemBlessing> Blessings { get; set; } = [];
     /// <summary>The item set this item belongs to, or <c>null</c> if it is not part of a set.</summary>
     public ItemSet? Set { get; set; }
 
@@ -147,6 +151,36 @@ public class ItemGem
     public string Name { get; set; } = string.Empty;
     /// <summary>The gem's rarity tier.</summary>
     public int Quality { get; set; }
+}
+
+/// <summary>A trait rolled onto an equipped <see cref="Item"/>.</summary>
+public class ItemTrait
+{
+    /// <summary>The trait's id, in the FSL Weapon and Trait id namespace.</summary>
+    public int Id { get; set; }
+    /// <summary>The trait's unlocked rank.</summary>
+    public int Rank { get; set; }
+    /// <summary>The trait's display name.</summary>
+    public string Name { get; set; } = string.Empty;
+    /// <summary>The icon asset name shown for this trait in FellowshipLogs.</summary>
+    public string Icon { get; set; } = string.Empty;
+}
+
+/// <summary>
+/// A blessing slotted into an equipped <see cref="Item"/>. The same blessing carries a different
+/// <see cref="Id"/> in each gear slot it can be slotted into, so <see cref="Name"/> is what identifies
+/// which blessing it is.
+/// </summary>
+public class ItemBlessing
+{
+    /// <summary>The blessing's id, in the FSL Blessing id namespace.</summary>
+    public int Id { get; set; }
+    /// <summary>The blessing's allocated level, which selects its magnitude.</summary>
+    public int Level { get; set; }
+    /// <summary>The blessing's display name, for example <c>"The Wayfarer"</c>.</summary>
+    public string Name { get; set; } = string.Empty;
+    /// <summary>The icon asset name shown for this blessing in FellowshipLogs.</summary>
+    public string Icon { get; set; } = string.Empty;
 }
 
 /// <summary>A bonus attribute rolled onto an equipped <see cref="Item"/>.</summary>

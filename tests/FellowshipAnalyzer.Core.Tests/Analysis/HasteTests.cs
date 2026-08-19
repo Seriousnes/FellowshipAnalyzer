@@ -19,53 +19,8 @@ public sealed partial class HasteTests
     private const double FlatHaste = 0.30;
     private const double HastePerStack = 0.04;
 
-    [Theory]
-    [InlineData(0.0, 0.10, 0.10)]
-    [InlineData(0.10, 0.10, 0.21)]
-    [InlineData(0.0, 0.30, 0.30)]
-    public void AddHaste_ShouldCombineMultiplicatively(double baseHaste, double gain, double expected)
-    {
-        var result = Haste.AddHaste(baseHaste, gain);
-        Assert.Equal(expected, result, precision: 10);
-    }
-
     [Fact]
-    public void AddHaste_WithNegativeGain_ShouldRemoveHaste()
-    {
-        var result = Haste.AddHaste(0.30, -0.10);
-        Assert.True(result < 0.30);
-        Assert.True(result >= 0.0);
-    }
-
-    [Theory]
-    [InlineData(0.10, 0.10, 0.0)]
-    [InlineData(0.30, 0.10, 0.18181818)]
-    public void RemoveHaste_ShouldInvertAddHaste(double baseHaste, double loss, double expected)
-    {
-        var result = Haste.RemoveHaste(baseHaste, loss);
-        Assert.Equal(expected, result, precision: 5);
-    }
-
-    [Theory]
-    [InlineData(0.0, 0.10)]
-    [InlineData(0.0, 0.30)]
-    [InlineData(0.15, 0.25)]
-    public void AddThenRemove_ShouldRoundTrip(double baseHaste, double gain)
-    {
-        var added = Haste.AddHaste(baseHaste, gain);
-        var removed = Haste.RemoveHaste(added, gain);
-        Assert.Equal(baseHaste, removed, precision: 10);
-    }
-
-    [Fact]
-    public void RemoveHaste_WithNegativeLoss_ShouldAddHaste()
-    {
-        var result = Haste.RemoveHaste(0.10, -0.10);
-        Assert.True(result > 0.10);
-    }
-
-    [Fact]
-    public async Task ScaleDuration_ShouldReduceDurationByHaste()
+    public async Task ScaleDuration_WithNoHaste_ShouldLeaveDurationUnchanged()
     {
         var (_, haste) = await RunWithHaste();
         Assert.Equal(1500, haste.ScaleDuration(1500));
@@ -77,7 +32,7 @@ public sealed partial class HasteTests
         var (_, haste) = await RunWithHaste(events:
         [
             CreateApplyBuff(100, HasteBuffSpellId),
-        ], configureHaste: h => h.AddHasteBuff(HasteBuffSpellId, FlatHaste));
+        ], configureStats: s => s.AddPercentageBuff(HasteBuffSpellId, new StatPercentageBuff { Haste = FlatHaste }));
 
         Assert.Equal(1153, haste.ScaleDuration(1500));
     }
@@ -88,7 +43,7 @@ public sealed partial class HasteTests
         var (_, haste) = await RunWithHaste(events:
         [
             CreateApplyBuff(100, HasteBuffSpellId),
-        ], configureHaste: h => h.AddHasteBuff(HasteBuffSpellId, FlatHaste));
+        ], configureStats: s => s.AddPercentageBuff(HasteBuffSpellId, new StatPercentageBuff { Haste = FlatHaste }));
 
         Assert.Equal(FlatHaste, haste.Current, precision: 10);
     }
@@ -100,7 +55,7 @@ public sealed partial class HasteTests
         [
             CreateApplyBuff(100, HasteBuffSpellId),
             CreateRemoveBuff(200, HasteBuffSpellId),
-        ], configureHaste: h => h.AddHasteBuff(HasteBuffSpellId, FlatHaste));
+        ], configureStats: s => s.AddPercentageBuff(HasteBuffSpellId, new StatPercentageBuff { Haste = FlatHaste }));
 
         Assert.Equal(0.0, haste.Current, precision: 10);
     }
@@ -111,7 +66,7 @@ public sealed partial class HasteTests
         var (_, haste) = await RunWithHaste(events:
         [
             CreateApplyDebuff(100, HasteBuffSpellId),
-        ], configureHaste: h => h.AddHasteBuff(HasteBuffSpellId, FlatHaste));
+        ], configureStats: s => s.AddPercentageBuff(HasteBuffSpellId, new StatPercentageBuff { Haste = FlatHaste }));
 
         Assert.Equal(FlatHaste, haste.Current, precision: 10);
     }
@@ -123,7 +78,7 @@ public sealed partial class HasteTests
         [
             CreateApplyDebuff(100, HasteBuffSpellId),
             CreateRemoveDebuff(200, HasteBuffSpellId),
-        ], configureHaste: h => h.AddHasteBuff(HasteBuffSpellId, FlatHaste));
+        ], configureStats: s => s.AddPercentageBuff(HasteBuffSpellId, new StatPercentageBuff { Haste = FlatHaste }));
 
         Assert.Equal(0.0, haste.Current, precision: 10);
     }
@@ -135,10 +90,9 @@ public sealed partial class HasteTests
         [
             CreateApplyBuffStack(100, StackingBuffSpellId, stack: 1),
             CreateApplyBuffStack(200, StackingBuffSpellId, stack: 2),
-        ], configureHaste: h => h.AddHasteBuffPerStack(StackingBuffSpellId, HastePerStack));
+        ], configureStats: s => s.AddPercentageBuff(StackingBuffSpellId, new StatPercentageBuff { Haste = HastePerStack, PerStack = true }));
 
-        var expected = Haste.AddHaste(Haste.AddHaste(0.0, HastePerStack), HastePerStack);
-        Assert.Equal(expected, haste.Current, precision: 10);
+        Assert.Equal(HastePerStack * 2, haste.Current, precision: 10);
     }
 
     [Fact]
@@ -149,7 +103,7 @@ public sealed partial class HasteTests
             CreateApplyBuffStack(100, StackingBuffSpellId, stack: 1),
             CreateApplyBuffStack(200, StackingBuffSpellId, stack: 2),
             CreateRemoveBuffStack(300, StackingBuffSpellId, stack: 1),
-        ], configureHaste: h => h.AddHasteBuffPerStack(StackingBuffSpellId, HastePerStack));
+        ], configureStats: s => s.AddPercentageBuff(StackingBuffSpellId, new StatPercentageBuff { Haste = HastePerStack, PerStack = true }));
 
         Assert.Equal(HastePerStack, haste.Current, precision: 10);
     }
@@ -160,7 +114,7 @@ public sealed partial class HasteTests
         var (_, haste) = await RunWithHaste(events:
         [
             CreateApplyDebuffStack(100, StackingBuffSpellId, stack: 1),
-        ], configureHaste: h => h.AddHasteBuffPerStack(StackingBuffSpellId, HastePerStack));
+        ], configureStats: s => s.AddPercentageBuff(StackingBuffSpellId, new StatPercentageBuff { Haste = HastePerStack, PerStack = true }));
 
         Assert.Equal(HastePerStack, haste.Current, precision: 10);
     }
@@ -172,9 +126,22 @@ public sealed partial class HasteTests
         [
             CreateApplyDebuffStack(100, StackingBuffSpellId, stack: 1),
             CreateRemoveDebuffStack(200, StackingBuffSpellId, stack: 0),
-        ], configureHaste: h => h.AddHasteBuffPerStack(StackingBuffSpellId, HastePerStack));
+        ], configureStats: s => s.AddPercentageBuff(StackingBuffSpellId, new StatPercentageBuff { Haste = HastePerStack, PerStack = true }));
 
         Assert.Equal(0.0, haste.Current, precision: 10);
+    }
+
+    [Fact]
+    public async Task ApplyBuffStack_OnAFlatBuff_ShouldNotMultiplyIt()
+    {
+        var (_, haste) = await RunWithHaste(events:
+        [
+            CreateApplyBuff(100, HasteBuffSpellId),
+            CreateApplyBuffStack(200, HasteBuffSpellId, stack: 2),
+            CreateApplyBuffStack(300, HasteBuffSpellId, stack: 3),
+        ], configureStats: s => s.AddPercentageBuff(HasteBuffSpellId, new StatPercentageBuff { Haste = FlatHaste }));
+
+        Assert.Equal(FlatHaste, haste.Current, precision: 10);
     }
 
     [Fact]
@@ -205,7 +172,7 @@ public sealed partial class HasteTests
         var (_, haste) = await RunWithHaste(events:
         [
             new ApplyBuffEvent { Timestamp = 100, SourceId = PlayerId, TargetId = PlayerId },
-        ], configureHaste: h => h.AddHasteBuff(HasteBuffSpellId, FlatHaste));
+        ], configureStats: s => s.AddPercentageBuff(HasteBuffSpellId, new StatPercentageBuff { Haste = FlatHaste }));
 
         Assert.Equal(0.0, haste.Current, precision: 10);
     }
@@ -233,7 +200,7 @@ public sealed partial class HasteTests
     }
 
     [Fact]
-    public async Task MultipleFlatBuffs_ShouldStackMultiplicatively()
+    public async Task MultipleFlatBuffs_ShouldStackAdditively()
     {
         const int buffA = 300;
         const int buffB = 301;
@@ -242,75 +209,50 @@ public sealed partial class HasteTests
         [
             CreateApplyBuff(100, buffA),
             CreateApplyBuff(200, buffB),
-        ], configureHaste: h =>
+        ], configureStats: s =>
         {
-            h.AddHasteBuff(buffA, 0.10);
-            h.AddHasteBuff(buffB, 0.20);
+            s.AddPercentageBuff(buffA, new StatPercentageBuff { Haste = 0.10 });
+            s.AddPercentageBuff(buffB, new StatPercentageBuff { Haste = 0.20 });
         });
 
-        var expected = Haste.AddHaste(Haste.AddHaste(0.0, 0.10), 0.20);
-        Assert.Equal(expected, haste.Current, precision: 10);
+        Assert.Equal(0.30, haste.Current, precision: 10);
     }
 
     [Fact]
-    public async Task ChangeStats_WithHasteRatingChange_UpdatesHaste()
+    public async Task RatingHaste_AndFlatHaste_ShouldStackAdditively()
     {
         var (_, haste) = await RunWithHaste(
             events:
             [
-                new ChangeStatsEvent
-                {
-                    Timestamp = 100,
-                    SourceId = PlayerId,
-                    TargetId = PlayerId,
-                    Before = new Stats { Haste = 0 },
-                    After = new Stats { Haste = 200 },
-                    Delta = new Stats { Haste = 200 },
-                },
+                CreateApplyBuff(100, RatingBuffSpellId),
+                CreateApplyBuff(200, HasteBuffSpellId),
             ],
-            additionalModules: [typeof(StatTracker)]);
+            configureStats: s =>
+            {
+                s.Add(RatingBuffSpellId, new StatBuff { Haste = 200.0 });
+                s.AddPercentageBuff(HasteBuffSpellId, new StatPercentageBuff { Haste = FlatHaste });
+            });
 
-        Assert.True(haste.Current > 0, $"Expected non-zero haste, got {haste.Current}");
+        Assert.Equal(StatTracker.RatingToPercentage(200) + FlatHaste, haste.Current, precision: 10);
     }
 
     [Fact]
-    public async Task ChangeStats_WithZeroHasteDelta_ShouldNotChangeHaste()
+    public async Task RatingHasteChange_ShouldUpdateHaste()
     {
         var (_, haste) = await RunWithHaste(
-            events:
-            [
-                new ChangeStatsEvent
-                {
-                    Timestamp = 100,
-                    SourceId = PlayerId,
-                    TargetId = PlayerId,
-                    Before = new Stats { Haste = 0 },
-                    After = new Stats { Haste = 0 },
-                    Delta = new Stats { Haste = 0 },
-                },
-            ],
-            additionalModules: [typeof(StatTracker)]);
+            events: [CreateApplyBuff(100, RatingBuffSpellId)],
+            configureStats: s => s.Add(RatingBuffSpellId, new StatBuff { Haste = 200.0 }));
 
-        Assert.Equal(0.0, haste.Current, precision: 10);
+        Assert.Equal(StatTracker.RatingToPercentage(200), haste.Current, precision: 10);
+        Assert.True(haste.Current > 0);
     }
 
     [Fact]
-    public async Task ChangeStats_WithNullHasteDelta_ShouldNotChangeHaste()
+    public async Task StatChangeThatLeavesHasteAlone_ShouldNotChangeHaste()
     {
         var (_, haste) = await RunWithHaste(
-            events:
-            [
-                new ChangeStatsEvent
-                {
-                    Timestamp = 100,
-                    SourceId = PlayerId,
-                    TargetId = PlayerId,
-                    Before = new Stats(),
-                    After = new Stats { Intellect = 100 },
-                    Delta = new Stats { Intellect = 100 },
-                },
-            ],
-            additionalModules: [typeof(StatTracker)]);
+            events: [CreateApplyBuff(100, RatingBuffSpellId)],
+            configureStats: s => s.Add(RatingBuffSpellId, new StatBuff { MainStat = 100.0 }));
 
         Assert.Equal(0.0, haste.Current, precision: 10);
     }
@@ -331,7 +273,7 @@ public sealed partial class HasteTests
             [
                 CreateApplyBuff(100, HasteBuffSpellId),
             ],
-            configureHaste: h => h.AddHasteBuff(HasteBuffSpellId, FlatHaste),
+            configureStats: s => s.AddPercentageBuff(HasteBuffSpellId, new StatPercentageBuff { Haste = FlatHaste }),
             additionalModules: [typeof(ChangeHasteProbe)]);
 
         var probe = parser.GetModule<ChangeHasteProbe>()!;
@@ -343,49 +285,52 @@ public sealed partial class HasteTests
     }
 
     [Fact]
-    public async Task AddHasteBuff_Record_ShouldWork()
+    public async Task StatChangeThatLeavesHasteAlone_ShouldNotFabricateChangeHasteEvent()
     {
-        var (_, haste) = await RunWithHaste(events:
-        [
-            CreateApplyBuff(100, HasteBuffSpellId),
-        ], configureHaste: h => h.AddHasteBuff(HasteBuffSpellId, new HasteBuff(Haste: FlatHaste)));
+        var (parser, _) = await RunWithHaste(
+            events: [CreateApplyBuff(100, RatingBuffSpellId)],
+            configureStats: s => s.Add(RatingBuffSpellId, new StatBuff { MainStat = 100.0 }),
+            additionalModules: [typeof(ChangeHasteProbe)]);
 
-        Assert.Equal(FlatHaste, haste.Current, precision: 10);
+        Assert.Empty(parser.GetModule<ChangeHasteProbe>()!.ReceivedEvents);
     }
 
     [Fact]
-    public async Task SetHaste_NaN_ShouldBeIgnored()
+    public async Task RemoveBuff_ThatWasNeverApplied_ShouldLeaveHasteAtZero()
     {
         var (_, haste) = await RunWithHaste(events:
         [
             CreateRemoveBuff(100, HasteBuffSpellId),
-        ], configureHaste: h => h.AddHasteBuff(HasteBuffSpellId, FlatHaste));
+        ], configureStats: s => s.AddPercentageBuff(HasteBuffSpellId, new StatPercentageBuff { Haste = FlatHaste }));
 
         Assert.False(double.IsNaN(haste.Current));
+        Assert.Equal(0.0, haste.Current, precision: 10);
     }
+
+    private const int RatingBuffSpellId = 400;
 
     private static async Task<(TestCombatLogParser parser, Haste haste)> RunWithHaste(
         List<Event>? events = null,
-        Action<Haste>? configureHaste = null,
+        Action<StatTracker>? configureStats = null,
         Type[]? additionalModules = null)
     {
-        var moduleTypes = new List<Type> { typeof(HasteConfigWrapper), typeof(Haste) };
+        var moduleTypes = new List<Type> { typeof(StatTracker), typeof(StatConfigWrapper), typeof(Haste) };
         if (additionalModules is not null)
             moduleTypes.AddRange(additionalModules);
 
-        var parser = CreateCombatLogParser([.. moduleTypes], configureHaste);
+        var parser = CreateCombatLogParser([.. moduleTypes], configureStats);
         await parser.Analyze(events ?? [], PlayerId, dungeon: new ReportDungeon(0, "", 0, null, 0, 60_000, null, null, null));
 
         var haste = parser.GetModule<Haste>()!;
         return (parser, haste);
     }
 
-    private static TestCombatLogParser CreateCombatLogParser(Type[] moduleTypes, Action<Haste>? configureHaste)
+    private static TestCombatLogParser CreateCombatLogParser(Type[] moduleTypes, Action<StatTracker>? configureStats)
     {
         var emitter = new EventEmitter(NullLogger<EventEmitter>.Instance);
         var provider = Substitute.For<IServiceProvider>();
         provider.GetService(typeof(ILogger<EventEmitter>)).Returns(NullLogger<EventEmitter>.Instance);
-        provider.GetService(typeof(HasteTestConfiguration)).Returns(new HasteTestConfiguration(configureHaste));
+        provider.GetService(typeof(StatTestConfiguration)).Returns(new StatTestConfiguration(configureStats));
         return new TestCombatLogParser(emitter, provider, moduleTypes);
     }
 
@@ -396,27 +341,27 @@ public sealed partial class HasteTests
 
         protected override object? CreateInstance(Type type)
         {
-            if (type == typeof(HasteConfigWrapper))
-                return new HasteConfigWrapper(
-                    (Haste)ResolveAnalysisModule(typeof(Haste)),
-                    (HasteTestConfiguration)Provider.GetService(typeof(HasteTestConfiguration))!);
+            if (type == typeof(StatConfigWrapper))
+                return new StatConfigWrapper(
+                    (StatTracker)ResolveAnalysisModule(typeof(StatTracker)),
+                    (StatTestConfiguration)Provider.GetService(typeof(StatTestConfiguration))!);
             if (type == typeof(ChangeHasteProbe))
                 return new ChangeHasteProbe();
             return base.CreateInstance(type);
         }
     }
 
-    private sealed record HasteTestConfiguration(Action<Haste>? Configure);
+    private sealed record StatTestConfiguration(Action<StatTracker>? Configure);
 
     /// <summary>
     /// Module that runs before Haste and calls the configuration action
-    /// (registering haste buffs) at construction time.
+    /// (registering stat buffs) at construction time.
     /// </summary>
-    private sealed class HasteConfigWrapper : Module
+    private sealed class StatConfigWrapper : Module
     {
-        public HasteConfigWrapper(Haste haste, HasteTestConfiguration configuration)
+        public StatConfigWrapper(StatTracker statTracker, StatTestConfiguration configuration)
         {
-            configuration.Configure?.Invoke(haste);
+            configuration.Configure?.Invoke(statTracker);
         }
     }
 
