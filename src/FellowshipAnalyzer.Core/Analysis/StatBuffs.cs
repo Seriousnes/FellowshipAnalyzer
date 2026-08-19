@@ -154,6 +154,12 @@ public static class StatBuffs
         return Math.Min(context.ResourceFraction(ResourceTypes.Spirit), 0.5) / perStep * 0.002;
     }));
 
+    /// <summary>
+    /// Picks a blessing's magnitude from the level the player's gear reports. The blessing is matched on its
+    /// name because a report's blessing id is a per-hero loadout node id, not an id for the blessing itself:
+    /// The Trickster is 4000033 on Gunde and 4000063 on Aeona. Only levels 1 and 2 appear anywhere in the
+    /// report corpus, so the level 3 and 4 values are from the game data alone.
+    /// </summary>
     private static BuffVal ByBlessingLevel(string blessing, double one, double two, double three, double four) =>
         new((Func<StatBuffContext, double>)(context => context.Combatant.BlessingLevel(blessing) switch
         {
