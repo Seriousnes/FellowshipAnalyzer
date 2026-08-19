@@ -12,7 +12,6 @@ using NSubstitute;
 
 using Xunit;
 
-using RimeSpells = FellowshipAnalyzer.Core.Common.Spells.Rime.Spells;
 
 namespace FellowshipAnalyzer.Core.Tests.Analysis;
 
@@ -33,7 +32,10 @@ public sealed partial class SpellUsableTests
     private const int CdSecondsB = 20;
     private const int CdSecondsC = 10;
 
-    /// <summary>WrathOfWinterBuff is a registered 30% haste buff on the <see cref="Haste"/> module.</summary>
+    /// <summary>Ability id of the test-local flat haste buff registered on <see cref="StatTracker"/>.</summary>
+    private const int HasteBuffId = 8886;
+
+    /// <summary>The flat haste <see cref="HasteBuffId"/> grants.</summary>
     private const double BuffHaste = 0.30;
 
     /// <summary>Ability id of the in-stream buff that triggers a modifier addition via the probe callback.</summary>
@@ -434,6 +436,7 @@ public sealed partial class SpellUsableTests
             typeof(TestAbilities),
             typeof(DebugAnnotations),
             typeof(StatTracker),
+            typeof(HasteBuffRegistrar),
             typeof(Combatants),
             typeof(Haste),
             typeof(SpellUsable),
@@ -464,7 +467,7 @@ public sealed partial class SpellUsableTests
         Timestamp = timestamp,
         SourceId = PlayerId,
         TargetId = PlayerId,
-        Ability = new Ability { FSLID = RimeSpells.WrathOfWinterBuff.FSLID, Name = "Wrath of Winter" },
+        Ability = new Ability { FSLID = HasteBuffId, Name = "Haste Buff" },
     };
 
     private static ApplyBuffEvent CreateTrigger(int timestamp, int triggerId = TriggerId) => new()
@@ -488,9 +491,18 @@ public sealed partial class SpellUsableTests
         protected override object? CreateInstance(Type type)
         {
             if (type == typeof(TestAbilities)) return new TestAbilities();
+            if (type == typeof(HasteBuffRegistrar))
+                return new HasteBuffRegistrar((StatTracker)ResolveAnalysisModule(typeof(StatTracker)));
             if (type == typeof(UpdateProbeModule)) return new UpdateProbeModule { OnApplyBuff = OnApplyBuff };
             return base.CreateInstance(type);
         }
+    }
+
+    /// <summary>Registers the test-local flat haste buff on <see cref="StatTracker"/> at construction time.</summary>
+    internal sealed class HasteBuffRegistrar : Module
+    {
+        public HasteBuffRegistrar(StatTracker statTracker) =>
+            statTracker.AddPercentageBuff(HasteBuffId, new StatPercentageBuff { Haste = BuffHaste });
     }
 
     internal sealed class TestAbilities : Abilities

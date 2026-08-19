@@ -1,4 +1,5 @@
 using FellowshipAnalyzer.Core.Events;
+using FellowshipAnalyzer.Core.Game;
 using OneOf;
 
 namespace FellowshipAnalyzer.Core.Analysis;
@@ -36,6 +37,8 @@ public sealed partial class StatTracker : Analyzer
     private readonly Dictionary<int, CooldownBuff> _cooldownBuffs = new(StatBuffs.Cooldowns);
 
     private readonly Dictionary<int, int> _percentageStacks = [];
+
+    private readonly Dictionary<int, PercentageAmounts> _percentageAmounts = [];
 
     private readonly List<CooldownModifier> _abilityCooldownReduction = [];
 
@@ -368,24 +371,52 @@ public sealed partial class StatTracker : Analyzer
         var next = buff.PerStack ? Math.Max(stacks, 0) : stacks > 0 ? 1 : 0;
         if (next == previous) return;
 
+        if (previous == 0)
+            _percentageAmounts[spellId] = ResolvePercentages(buff, trigger);
+
+        var amounts = _percentageAmounts[spellId];
+
         _percentageStacks[spellId] = next;
+        if (next == 0)
+        {
+            _percentageStacks.Remove(spellId);
+            _percentageAmounts.Remove(spellId);
+        }
 
         var before = _currentStats.ToStats();
-        ApplyPercentageBuff(buff, next - previous);
+        ApplyPercentages(amounts, next - previous);
         var after = _currentStats.ToStats();
         FabricateChangeStats(trigger, before, after - before, after);
     }
 
-    private void ApplyPercentageBuff(StatPercentageBuff buff, int stackDelta)
+    private PercentageAmounts ResolvePercentages(StatPercentageBuff buff, Event trigger) => new(
+        ResolveBuffVal(buff.ItemId, buff.Crit, trigger),
+        ResolveBuffVal(buff.ItemId, buff.Haste, trigger),
+        ResolveBuffVal(buff.ItemId, buff.Expertise, trigger),
+        ResolveBuffVal(buff.ItemId, buff.Spirit, trigger),
+        ResolveBuffVal(buff.ItemId, buff.CritPower, trigger),
+        ResolveBuffVal(buff.ItemId, buff.MoveSpeed, trigger),
+        ResolveBuffVal(buff.ItemId, buff.DamageReduction, trigger));
+
+    private void ApplyPercentages(PercentageAmounts amounts, int stackDelta)
     {
-        _currentStats.AdditionalCrit += ResolveBuffVal(buff.ItemId, buff.Crit) * stackDelta;
-        _currentStats.AdditionalHaste += ResolveBuffVal(buff.ItemId, buff.Haste) * stackDelta;
-        _currentStats.AdditionalExpertise += ResolveBuffVal(buff.ItemId, buff.Expertise) * stackDelta;
-        _currentStats.AdditionalSpirit += ResolveBuffVal(buff.ItemId, buff.Spirit) * stackDelta;
-        _currentStats.AdditionalCritPower += ResolveBuffVal(buff.ItemId, buff.CritPower) * stackDelta;
-        _currentStats.AdditionalMoveSpeed += ResolveBuffVal(buff.ItemId, buff.MoveSpeed) * stackDelta;
-        _currentStats.AdditionalDamageReduction += ResolveBuffVal(buff.ItemId, buff.DamageReduction) * stackDelta;
+        _currentStats.AdditionalCrit += amounts.Crit * stackDelta;
+        _currentStats.AdditionalHaste += amounts.Haste * stackDelta;
+        _currentStats.AdditionalExpertise += amounts.Expertise * stackDelta;
+        _currentStats.AdditionalSpirit += amounts.Spirit * stackDelta;
+        _currentStats.AdditionalCritPower += amounts.CritPower * stackDelta;
+        _currentStats.AdditionalMoveSpeed += amounts.MoveSpeed * stackDelta;
+        _currentStats.AdditionalDamageReduction += amounts.DamageReduction * stackDelta;
     }
+
+    private readonly record struct PercentageAmounts(
+        double Crit,
+        double Haste,
+        double Expertise,
+        double Spirit,
+        double CritPower,
+        double MoveSpeed,
+        double DamageReduction);
 
     private void HandleBuffGain(int spellId, bool isPrepull, Event trigger)
     {
@@ -488,7 +519,7 @@ public sealed partial class StatTracker : Analyzer
         if (buff.Spirit is double spMult) _currentStats.Spirit *= Factor(spMult);
     }
 
-    private double ResolveBuffVal(int? itemId, BuffVal? buffVal)
+    private double ResolveBuffVal(int? itemId, BuffVal? buffVal, Event? trigger = null)
     {
         if (buffVal is null) return 0.0;
         return buffVal.Match(
@@ -497,7 +528,7 @@ public sealed partial class StatTracker : Analyzer
             {
                 var combatant = Owner.SelectedCombatant;
                 var item = itemId is int id ? combatant.GetItem(id) : null;
-                return func(combatant, item);
+                return func(new StatBuffContext(combatant, item, trigger));
             });
     }
 
@@ -514,11 +545,43 @@ public sealed partial class StatTracker : Analyzer
 }
 
 /// <summary>
-/// A buff value that is either a fixed rating amount or a function that
-/// derives the amount from the combatant (and optionally an item).
+/// A buff value that is either a fixed amount or a function that derives the amount from the
+/// player's gear and the event that applied the buff.
 /// </summary>
 [GenerateOneOf]
-public partial class BuffVal : OneOfBase<double, Func<FullCombatant, Item?, double>>;
+public partial class BuffVal : OneOfBase<double, Func<StatBuffContext, double>>;
+
+/// <summary>
+/// What a function-valued <see cref="BuffVal"/> reads to size its contribution: the player's gear and
+/// talents, the item named by <see cref="StatBuff.ItemId"/> or <see cref="StatPercentageBuff.ItemId"/>,
+/// and the event that applied the buff. Effects whose magnitude depends on the player's state at the
+/// moment of application, such as a blessing that scales with current Spirit, read it off
+/// <see cref="Trigger"/>'s resource snapshot.
+/// </summary>
+/// <param name="Combatant">The selected player.</param>
+/// <param name="Item">The equipped item the buff is attached to, or <c>null</c> when it names none.</param>
+/// <param name="Trigger">The event that applied the buff, or <c>null</c> for a forced change.</param>
+public readonly record struct StatBuffContext(FullCombatant Combatant, Item? Item, Event? Trigger)
+{
+    /// <summary>
+    /// The player's own resource snapshot at <see cref="Trigger"/>, taken from whichever side of the
+    /// event the player is on, or <c>null</c> when the event carries none.
+    /// </summary>
+    public ActorResources? PlayerResources =>
+        Trigger is null ? null
+        : Trigger is IHasTargetEvent target && target.TargetId == Combatant.Id ? Trigger.TargetResources ?? Trigger.SourceResources
+        : Trigger.SourceResources ?? Trigger.TargetResources;
+
+    /// <summary>
+    /// The player's amount of <paramref name="resourceType"/> at <see cref="Trigger"/> as a fraction of
+    /// its maximum, or 0 when the event carries no snapshot of it.
+    /// </summary>
+    public double ResourceFraction(ResourceTypes resourceType)
+    {
+        var resource = PlayerResources?.Resources.FirstOrDefault(r => r.Type == resourceType);
+        return resource is { Max: > 0 } ? (double)resource.Amount / resource.Max : 0.0;
+    }
+}
 
 /// <summary>
 /// Describes a stat rating buff. Unset fields contribute 0 to each stat.
