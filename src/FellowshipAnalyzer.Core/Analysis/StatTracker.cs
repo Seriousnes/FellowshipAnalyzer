@@ -66,7 +66,7 @@ public sealed partial class StatTracker : Analyzer
         _currentStats = _pullStats.Clone();
 
         foreach (var aura in combatant.Info.Auras)
-            SetStackedBuff(aura.Ability, Math.Max(aura.Stacks, 1), e);
+            SetStackedBuff(aura.Ability, Math.Max(aura.Stacks, 1), e, ratingsAlreadyCounted: true);
     }
 
     /// <summary>
@@ -359,10 +359,10 @@ public sealed partial class StatTracker : Analyzer
         SetStackedBuff(e.Ability.FSLID, e.Stack, e);
     }
 
-    private void SetStackedBuff(int spellId, int stacks, Event trigger)
+    private void SetStackedBuff(int spellId, int stacks, Event trigger, bool ratingsAlreadyCounted = false)
     {
         var percentageBuff = _percentageBuffs.GetValueOrDefault(spellId);
-        var ratingBuff = _statBuffs.GetValueOrDefault(spellId);
+        var ratingBuff = ratingsAlreadyCounted ? null : _statBuffs.GetValueOrDefault(spellId);
         if (ratingBuff?.PerStack != true) ratingBuff = null;
         if (percentageBuff is null && ratingBuff is null) return;
 
@@ -395,13 +395,13 @@ public sealed partial class StatTracker : Analyzer
         ResolveBuffVal(percentage?.ItemId, percentage?.Expertise, trigger),
         ResolveBuffVal(percentage?.ItemId, percentage?.Spirit, trigger),
         ResolveBuffVal(percentage?.ItemId, percentage?.CritPower, trigger),
-        ResolveBuffVal(rating?.ItemId, rating?.MainStat, trigger),
-        ResolveBuffVal(rating?.ItemId, rating?.Stamina, trigger),
-        ResolveBuffVal(rating?.ItemId, rating?.Armor, trigger),
-        ResolveBuffVal(rating?.ItemId, rating?.Crit, trigger),
-        ResolveBuffVal(rating?.ItemId, rating?.Haste, trigger),
-        ResolveBuffVal(rating?.ItemId, rating?.Expertise, trigger),
-        ResolveBuffVal(rating?.ItemId, rating?.Spirit, trigger));
+        ResolveBuffVal(rating?.ItemId, rating?.MainStat, trigger) * _multipliers.MainStat,
+        ResolveBuffVal(rating?.ItemId, rating?.Stamina, trigger) * _multipliers.Stamina,
+        ResolveBuffVal(rating?.ItemId, rating?.Armor, trigger) * _multipliers.Armor,
+        ResolveBuffVal(rating?.ItemId, rating?.Crit, trigger) * _multipliers.Crit,
+        ResolveBuffVal(rating?.ItemId, rating?.Haste, trigger) * _multipliers.Haste,
+        ResolveBuffVal(rating?.ItemId, rating?.Expertise, trigger) * _multipliers.Expertise,
+        ResolveBuffVal(rating?.ItemId, rating?.Spirit, trigger) * _multipliers.Spirit);
 
     private void ApplyStacked(StackedAmounts amounts, int stackDelta)
     {
@@ -411,13 +411,13 @@ public sealed partial class StatTracker : Analyzer
         _currentStats.AdditionalSpirit += amounts.AdditionalSpirit * stackDelta;
         _currentStats.AdditionalCritPower += amounts.AdditionalCritPower * stackDelta;
 
-        _currentStats.MainStat += amounts.MainStat * stackDelta * _multipliers.MainStat;
-        _currentStats.Stamina += amounts.Stamina * stackDelta * _multipliers.Stamina;
-        _currentStats.Armor += amounts.Armor * stackDelta * _multipliers.Armor;
-        _currentStats.Crit += amounts.Crit * stackDelta * _multipliers.Crit;
-        _currentStats.Haste += amounts.Haste * stackDelta * _multipliers.Haste;
-        _currentStats.Expertise += amounts.Expertise * stackDelta * _multipliers.Expertise;
-        _currentStats.Spirit += amounts.Spirit * stackDelta * _multipliers.Spirit;
+        _currentStats.MainStat += amounts.MainStat * stackDelta;
+        _currentStats.Stamina += amounts.Stamina * stackDelta;
+        _currentStats.Armor += amounts.Armor * stackDelta;
+        _currentStats.Crit += amounts.Crit * stackDelta;
+        _currentStats.Haste += amounts.Haste * stackDelta;
+        _currentStats.Expertise += amounts.Expertise * stackDelta;
+        _currentStats.Spirit += amounts.Spirit * stackDelta;
     }
 
     private readonly record struct StackedAmounts(

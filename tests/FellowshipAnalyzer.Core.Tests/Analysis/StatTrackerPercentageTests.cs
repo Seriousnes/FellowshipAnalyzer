@@ -64,6 +64,45 @@ public sealed partial class StatTrackerPercentageTests
     }
 
     [Fact]
+    public async Task PerStackRatingAuraActiveAtDungeonStart_IsNotAddedOnTopOfTheSnapshot()
+    {
+        var tracker = await Run(
+            auras: [new Aura { Ability = RatingBuffId, Stacks = 3, Source = PlayerId }],
+            configure: s => s.Add(RatingBuffId, new StatBuff { Haste = 40.0, PerStack = true }));
+
+        Assert.Equal(0.0, tracker.CurrentHasteRating, precision: 10);
+    }
+
+    [Fact]
+    public async Task PerStackRating_FollowsTheStackCountAndLeavesWholeOnRemoval()
+    {
+        var tracker = await Run(
+            events:
+            [
+                ApplyBuff(1000, RatingBuffId),
+                ApplyBuffStack(2000, RatingBuffId, stack: 3),
+                RemoveBuff(3000, RatingBuffId),
+            ],
+            configure: s => s.Add(RatingBuffId, new StatBuff { Haste = 40.0, PerStack = true }));
+
+        Assert.Equal(0.0, tracker.CurrentHasteRating, precision: 10);
+    }
+
+    [Fact]
+    public async Task PerStackRating_ScalesWithTheReportedStackCount()
+    {
+        var tracker = await Run(
+            events:
+            [
+                ApplyBuff(1000, RatingBuffId),
+                ApplyBuffStack(2000, RatingBuffId, stack: 3),
+            ],
+            configure: s => s.Add(RatingBuffId, new StatBuff { Haste = 40.0, PerStack = true }));
+
+        Assert.Equal(120.0, tracker.CurrentHasteRating, precision: 10);
+    }
+
+    [Fact]
     public async Task FlatCrit_AddsOnTopOfTheBaseChanceAndTheRating()
     {
         var tracker = await Run(
