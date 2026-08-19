@@ -5,6 +5,21 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Fellowship Analyzer</title>
+    <meta name="description" content="Improve your play with hero-specific feedback and statistics. Just paste the link of a Fellowship Logs report below. Report, Character, Heroes. Analyse." />
+    <meta name="theme-color" content="#0E151D" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Fellowship Analyzer" />
+    <meta property="og:title" content="Fellowship Analyzer" />
+    <meta property="og:description" content="Improve your play with hero-specific feedback and statistics from your Fellowship Logs combat logs." />
+    <meta property="og:url" content="https://www.fellowshipanalyzer.com/" />
+    <meta property="og:image" content="https://www.fellowshipanalyzer.com/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Fellowship Analyzer: combat log analysis for Fellowship" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Fellowship Analyzer" />
+    <meta name="twitter:description" content="Improve your play with hero-specific feedback and statistics from your Fellowship Logs combat logs." />
+    <meta name="twitter:image" content="https://www.fellowshipanalyzer.com/og-image.png" />
     <link rel="icon" type="image/svg+xml" href="favicon.svg" />
     <base href="/" />
     <link rel="preload" href="css/splash.css" as="style" />
@@ -15,11 +30,45 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.45.0/dist/tabler-icons.min.css" />
     <link rel="stylesheet" href="app.css" />
     <link rel="stylesheet" href="FellowshipAnalyzer.styles.css" />
+    <noscript>
+        <style>#fa-splash { display: none; }</style>
+    </noscript>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "WebSite",
+          "@id": "https://www.fellowshipanalyzer.com/#website",
+          "url": "https://www.fellowshipanalyzer.com/",
+          "name": "Fellowship Analyzer",
+          "description": "Combat log analysis for Fellowship, with hero-specific feedback and statistics from Fellowship Logs reports.",
+          "inLanguage": "en"
+        },
+        {
+          "@type": "SoftwareApplication",
+          "@id": "https://www.fellowshipanalyzer.com/#app",
+          "name": "Fellowship Analyzer",
+          "url": "https://www.fellowshipanalyzer.com/",
+          "applicationCategory": "GameApplication",
+          "operatingSystem": "Any modern web browser",
+          "description": "Reads the combat logs you upload to Fellowship Logs and runs hero-specific analysis over them, turning raw events into actionable suggestions and statistics.",
+          "isAccessibleForFree": true,
+          "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD"
+          },
+          "license": "https://github.com/Seriousnes/FellowshipAnalyzer/blob/master/LICENSE"
+        }
+      ]
+    }
+    </script>
 </head>
 
 <body>
     <div id="app">
-        <div class="fa-splash" id="fa-splash">
+        <div class="fa-splash" id="fa-splash" data-nosnippet>
             <h1 class="fa-splash-brand">Fellowship Analyzer</h1>
             <p class="fa-splash-tagline">Combat log analysis for Fellowship</p>
             <div class="fa-splash-bar" id="fa-splash-bar" role="progressbar"
@@ -28,7 +77,26 @@
             </div>
             <div class="fa-splash-status" id="fa-splash-status">Loading runtime…</div>
         </div>
+        <div class="fa-prerender" id="fa-prerender">
+            <h1>Fellowship Analyzer</h1>
+            <p>
+                Improve your play with hero-specific feedback and statistics. Fellowship Analyzer reads the
+                combat logs you upload to
+                <a href="https://www.fellowshiplogs.com" rel="noopener noreferrer">Fellowship Logs</a>
+                and turns raw events into actionable suggestions for the hero you played.
+            </p>
+            <p>Paste a report code, report URL, or character profile URL to analyse a dungeon run.</p>
+            <nav aria-label="Fellowship Analyzer sections">
+                <ul>
+                    <li><a href="/heroes">Heroes</a>: which heroes are analysed, and how complete each one is.</li>
+                    <li><a href="/news">News</a>: what changed in the analysis recently.</li>
+                    <li><a href="/about">About</a>: what the analysis does and how to contribute.</li>
+                    <li><a href="/privacy">Privacy</a>: no cookies, no ads, no tracking.</li>
+                </ul>
+            </nav>
+        </div>
     </div>
+    <script src="js/seo.js"></script>
     <script src="js/splash.js"></script>
     <script src="_framework/blazor.webassembly.js" autostart="false"></script>
 </body>

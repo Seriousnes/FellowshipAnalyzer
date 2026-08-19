@@ -1,7 +1,13 @@
 @page "/"
+@page "/heroes"
+@page "/news"
+@page "/about"
 @using FellowshipAnalyzer.Shared
+@implements IDisposable
+@inject NavigationManager Nav
 
-<PageTitle>Fellowship Analyzer</PageTitle>
+<PageTitle>@PageTitleText</PageTitle>
+<PageMeta Description="@Description" Canonical="@Canonical" />
 
 <div class="home">
     <section class="home-hero">
@@ -17,7 +23,7 @@
     </section>
 
     <section class="home-tabs">
-        <Tabs Variant="TabsVariant.Underline" DefaultActiveId="heroes">
+        <Tabs Variant="TabsVariant.Underline" ActiveId="@Tab" ActiveIdChanged="OnTabChanged">
             <TabItem Id="heroes" Label="Heroes">
                 <HeroSupportList />
             </TabItem>
@@ -30,3 +36,78 @@
         </Tabs>
     </section>
 </div>
+
+@code {
+    private const string SiteRoot = "https://www.fellowshipanalyzer.com";
+
+    private string _path = "/";
+
+    protected override void OnInitialized()
+    {
+        _path = CurrentPath();
+        Nav.LocationChanged += OnLocationChanged;
+    }
+
+    public void Dispose() => Nav.LocationChanged -= OnLocationChanged;
+
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs args)
+    {
+        var path = CurrentPath();
+        if (path == _path)
+        {
+            return;
+        }
+
+        _path = path;
+        StateHasChanged();
+    }
+
+    private string CurrentPath()
+    {
+        var relative = Nav.ToBaseRelativePath(Nav.Uri).Split('?', '#')[0].Trim('/');
+        return $"/{relative}";
+    }
+
+    private string Tab => _path switch
+    {
+        "/news" => "news",
+        "/about" => "about",
+        _ => "heroes",
+    };
+
+    private string PageTitleText => _path switch
+    {
+        "/news" => "News - Fellowship Analyzer",
+        "/about" => "About - Fellowship Analyzer",
+        _ => "Fellowship Analyzer",
+    };
+
+    private string Description => _path switch
+    {
+        "/news" => "What changed recently in Fellowship Analyzer: new hero modules, corrected analysis, and fixes to the statistics.",
+        "/about" => "Fellowship Analyzer reads the combat logs you upload to Fellowship Logs and runs hero-specific analysis over them. Free, open source, no ads.",
+        _ => "Improve your play with hero-specific feedback and statistics. Just paste the link of a Fellowship Logs report below. Report, Character, Heroes. Analyse.",
+    };
+
+    private string Canonical => _path switch
+    {
+        "/news" => $"{SiteRoot}/news",
+        "/about" => $"{SiteRoot}/about",
+        _ => $"{SiteRoot}/",
+    };
+
+    private void OnTabChanged(string id)
+    {
+        if (id == Tab)
+        {
+            return;
+        }
+
+        Nav.NavigateTo(id switch
+        {
+            "news" => "/news",
+            "about" => "/about",
+            _ => "/heroes",
+        });
+    }
+}

@@ -1,16 +1,16 @@
-# Graph Report - FellowshipAnalyzer  (2026-08-13)
+# Graph Report - FellowshipAnalyzer  (2026-08-15)
 
 ## Corpus Check
-- 969 files · ~592,306 words
+- 976 files · ~594,360 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 8692 nodes · 16332 edges · 870 communities (442 shown, 428 thin omitted)
-- Extraction: 98% EXTRACTED · 2% INFERRED · 0% AMBIGUOUS · INFERRED: 273 edges (avg confidence: 0.79)
+- 9644 nodes · 20807 edges · 563 communities (499 shown, 64 thin omitted)
+- Extraction: 98% EXTRACTED · 2% INFERRED · 0% AMBIGUOUS · INFERRED: 462 edges (avg confidence: 0.8)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `a92fb9c4`
+- Built from commit: `5a21f1ee`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -523,349 +523,39 @@
 - .Analyze_ShouldNotProvideGuideComponentType_ForWipHero
 - TestParser
 - .EmeraldPower_UnlocksBlessingOfTheCommander
-- CancellationToken
-- DiagnosticDescriptor
-- GeneratorSyntaxContext
-- IMethodSymbol
-- ImmutableArray
-- INamedTypeSymbol
+- HeartSplitterAnalyzer
+- PricklyVineAnalyzer
+- RecommendedSpellbook
 - IncrementalGeneratorInitializationContext
-- IPropertySymbol
-- ITypeSymbol
-- SourceProductionContext
-- StringBuilder
-- SyntaxNode
-- IncrementalGeneratorInitializationContext
-- IPropertySymbol
-- ITypeSymbol
-- SourceProductionContext
-- Elarion/Talents.cs
-- StringBuilder
-- CoreServiceCollectionExtensions
-- SyntaxNode
-- FellowshipAnalyzer.Core.Common.Spells.Meiko
-- Sylvie/Talents.cs
+- TariqSpellbookTests
+- TestParser
 - FuryTracker
-- IReadOnlyList
-- JsonElement
-- string
 - .Normalize
 - Seasons.cs
-- Type
-- IEnumerable
-- SpellbookAbility
-- IEnumerable
-- Dictionary
-- IReadOnlyList
 - DebugAnnotations
-- HashSet
 - HelenaAnalysisFixture
-- HelenaCombatLogParser
 - IReadOnlyDictionary
-- ResourceState
-- IReadOnlyCollection
 - MeikoSpellbookTests.cs
-- ILogger
-- GeneratorSyntaxContext
-- TariqSpellbookTests
-- Tariq/Talents.cs
-- Dictionary
-- ImmutableArray
-- INamedTypeSymbol
-- HealEvent
-- INamespaceSymbol
-- IncrementalGeneratorInitializationContext
-- SourceProductionContext
-- IEnumerable
-- Computed
-- Dictionary
-- double
-- double
-- Dictionary
-- double
-- IReadOnlyList
-- bool
-- long
-- string
-- SyntaxNode
-- IReadOnlyList
-- JsonSerializerOptions
-- System.Text.RegularExpressions
-- List
-- Parser
-- Result
-- Task
-- PullEndEvent
-- .ScanAssembly
-- CombatLogParserTests
-- FellowshipAnalyzer.Heroes.Helena.Tests.Analysis
 - HeroAnalysisResult
-- MaxChargesChangedEvent
-- On&lt;FightStartEvent&gt;
-- .EnumerateTypes
 - TestCombatLogParser
-- ModuleGeneratorObjectInitializerTests
 - FellowshipAnalyzer.Heroes.Sylvie/Changelog.razor
 - FellowshipAnalyzer.Heroes.Tariq/Changelog.razor
-- EnergyComboPointTracker
-- TestParser
-- Census
-- Count
-- DispelRecord
-- HeroConfig
-- HotTracker
-- InstantCast
-- Name
-- NoVineMs
-- Peak
-- RawWindow
-- Action
-- Func
-- Task
-- int
-- List
-- Type
-- int
-- IReadOnlyList
-- Type
-- int
-- List
-- int
-- List
-- Computed
-- Dictionary
-- int
-- IReadOnlyList
-- List
-- TargetId
-- TargetInstance
-- int
-- List
-- Type
-- Type
-- IReadOnlyList
-- List
-- WindowState
-- PendingDecay
-- Type
-- Computed
-- int
-- IReadOnlyList
-- List
-- int
-- Type
-- ClassResource
-- Computed
-- Dictionary
-- Event
-- int
-- IReadOnlyDictionary
-- int
-- IReadOnlyList
-- List
-- bool
-- int
-- IReadOnlyList
-- List
-- IReadOnlyList
-- List
-- EmbraceWindowEvaluation
-- int
-- IReadOnlyList
-- WindowCapture
-- int
-- Type
-- EmbraceWindowEvaluation
-- int
-- IReadOnlyList
-- WindowCapture
-- bool
-- Dictionary
-- EmbraceWindowEvaluation
-- HashSet
-- IEnumerable
-- int
-- IReadOnlyList
-- List
-- string
-- WindowCapture
-- AbsorbedEvent
-- Computed
-- Dictionary
-- IReadOnlyList
-- List
-- RefreshBuffEvent
-- RemoveBuffEvent
-- IReadOnlyList
-- Ms
-- OnSylvie
-- TargetId
-- IReadOnlyList
-- SpellId
-- ApplyBuffEvent
-- CastEvent
-- Computed
-- Dictionary
-- List
-- RefreshBuffEvent
-- RemoveBuffEvent
-- Casts
-- Event
-- int
-- IReadOnlyList
-- Mana
-- SpellId
-- Computed
-- Dictionary
-- HealEvent
-- IReadOnlyList
-- Event
-- IEnumerable
-- IReadOnlyList
-- List
-- CastEvent
-- Event
-- int
-- IReadOnlyList
-- List
-- RemoveBuffEvent
 - StealthSpan
 - SupremacyWindow
-- ImmutableArray
-- string
-- Fact
-- FellowshipAnalyzerJsonContext
-- InlineData
-- JsonSerializerOptions
-- Theory
-- Fact
-- int
-- Parser
-- Result
-- Task
-- int
-- Parser
-- Result
-- Task
-- Fact
-- int
-- Parser
-- Result
-- Task
-- int
-- List
-- Parser
-- Result
-- Task
-- int
-- List
-- Parser
-- Result
-- Task
-- Fact
-- Task
-- int
-- List
-- Task
-- int
-- List
-- Task
-- int
-- List
-- Task
-- Fact
-- InlineData
-- int
-- Task
-- Theory
-- Fact
-- InlineData
-- int
-- IReadOnlyList
-- Task
-- Theory
-- Fact
-- Task
-- Fact
-- Task
-- Fact
-- Task
-- Fact
-- Task
-- Fact
-- Task
-- ApplyBuffEvent
-- CastEvent
-- Event
-- Fact
-- HeroAnalysisResult
-- int
-- List
-- Parser
-- RemoveBuffEvent
-- Result
-- TariqCombatLogParser
-- Task
-- Theory
-- ToughnessBand
-- ToughnessBandAnalyzer
-- WindowSpan
-- CostMappingTests
-- Combatant
-- Fight
-- FightTimeContext
-- HeroAnalysisResult
-- IHeroAnalyzer
-- PullAnalyzer
-- PullAnalyzerList
-- Spell
-- ReportFight
-- Action
-- bool
-- Dictionary
-- IReadOnlyList
-- Pull
-- Type
-- int
-- RenderFragment
-- CancellationToken
-- GeneratorSyntaxContext
-- ImmutableArray
-- INamedTypeSymbol
 - IncrementalGeneratorInitializationContext
 - SourceProductionContext
-- StringBuilder
-- SyntaxNode
-- Pull
-- ReportFight
-- Fact
-- InlineData
-- Theory
-- ApplyBuffStackEvent
-- RemoveBuffStackEvent
-- ReportFight
-- AbsorbedEvent
-- RefreshBuffEvent
-- Pull
-- ReportActor
-- Type
-- Func
-- int
-- DungeonNpc
-- InlineData
-- Theory
 
 ## God Nodes (most connected - your core abstractions)
-1. `FellowshipAnalyzer.Core.Analysis` - 237 edges
-2. `Event` - 98 edges
-3. `CastEvent` - 89 edges
-4. `CombatLogParser` - 76 edges
-5. `FellowshipAnalyzer.Core.Common.Spells` - 72 edges
-6. `FellowshipAnalyzer.Core.FellowshipLogs` - 71 edges
-7. `OwedInBloodEconomyTests` - 60 edges
-8. `Analyzer` - 54 edges
-9. `ApplyBuffEvent` - 53 edges
-10. `ConsolidatedSpellRegistryGenerator` - 51 edges
+1. `FellowshipAnalyzer.Core.Analysis` - 313 edges
+2. `FellowshipAnalyzer.Core.Events` - 266 edges
+3. `CastEvent` - 183 edges
+4. `Event` - 171 edges
+5. `FellowshipAnalyzer.Core.FellowshipLogs` - 110 edges
+6. `ReportDungeon` - 107 edges
+7. `Analyzer` - 106 edges
+8. `ApplyBuffEvent` - 100 edges
+9. `FellowshipAnalyzer.Core.Common.Spells` - 92 edges
+10. `CombatLogParser` - 85 edges
 
 ## Surprising Connections (you probably didn't know these)
 - `Tiered Diminishing Returns on Secondary Stats` --semantically_similar_to--> `S3 vs S2 Diminishing Returns Tiers`  [INFERRED] [semantically similar]
@@ -882,171 +572,179 @@
 ## Import Cycles
 - None detected.
 
-## Communities (870 total, 428 thin omitted)
+## Communities (563 total, 64 thin omitted)
 
 ### Community 0 - "Skills & Architecture Docs"
 Cohesion: 0.06
 Nodes (72): Per-Report Analysis Pipeline, Analyzer Surface Read Paths, FellowshipAnalyzer Architecture Overview, Combat Event Model, Declarative Event Subscription, Fabricated Fight Bookend Events, Generated Hero DI Registration, Hero Project Layout (+64 more)
 
 ### Community 1 - "Spell Registry Generator"
-Cohesion: 0.07
-Nodes (24): AllEntry, CentralTriggerInfo, Compilation, EmitMember, IPropertySymbol, ITypeSymbol, RegistryModel, ScalarKind (+16 more)
+Cohesion: 0.05
+Nodes (38): AllEntry, CentralTriggerInfo, EmitMember, JsonValue, RegistryModel, ScalarKind, SpellSchema, CancellationToken (+30 more)
 
 ### Community 2 - "Parser Source Generators"
-Cohesion: 0.12
-Nodes (15): AnalyzerInfo, Fqn, INamedTypeSymbol, MemberName, ParserInfo, SourceProductionContext, HashSet, IEnumerable (+7 more)
+Cohesion: 0.19
+Nodes (8): CancellationToken, GeneratorSyntaxContext, INamedTypeSymbol, List, string, CombatLogParserGenerator, CtorParam, TypeInfo
 
 ### Community 3 - "Ardeos Analyzer Tests"
-Cohesion: 0.22
-Nodes (8): ArdeosCombatLogParser, Fact, int, List, Parser, Result, Task, SearingBlazeSpreadAnalyzerTests
+Cohesion: 0.24
+Nodes (7): Fact, int, List, Parser, Result, Task, SearingBlazeSpreadAnalyzerTests
 
 ### Community 4 - "Combatant Gear & Stats"
-Cohesion: 0.07
-Nodes (31): GemRank, Dictionary, double, int, IReadOnlyList, Combatant, CombatantStats, GemRank (+23 more)
+Cohesion: 0.06
+Nodes (33): GemRank, Dictionary, double, int, IReadOnlyList, CombatantStats, FullCombatant, GemRank (+25 more)
 
 ### Community 5 - "Core Analysis Namespaces"
-Cohesion: 0.22
-Nodes (7): Type, SpiritTracker, StatisticCategory, StatisticOrder, int, Type, EnergyComboPointTracker
+Cohesion: 0.14
+Nodes (12): Alive, Fact, InlineData, int, IReadOnlyList, List, Parser, Task (+4 more)
 
 ### Community 6 - "Elarion Modules & Seasons"
-Cohesion: 0.09
-Nodes (13): FellowshipAnalyzer.Core.Common.Spells.Gunde, FellowshipAnalyzer.Heroes.Gunde.Analysis, FellowshipAnalyzer.Heroes.Gunde.Modules, ISpellRegistry, Items, Spells, Talent, Talents (+5 more)
+Cohesion: 0.10
+Nodes (11): FellowshipAnalyzer.Heroes.Gunde.Tests.Analysis, FellowshipAnalyzer.Core.Common.Spells.Gunde, FellowshipAnalyzer.Heroes.Gunde.Analysis, FellowshipAnalyzer.Heroes.Gunde.Modules, ISpellRegistry, Spells, Talent, Talents (+3 more)
 
 ### Community 7 - "Report Page"
 Cohesion: 0.04
-Nodes (50): Avatar, Badge, Badges, BreadcrumbItem, Breadcrumbs, CoreReportActor, CoreReportDungeon, CoreReportInfo (+42 more)
+Nodes (52): CoreReportActor, CoreReportDungeon, DeathsTab, DynamicComponent, FellowshipAnalyzer.Components.Providers, FellowshipAnalyzer.Core.UI.Deaths, ReportAnalysisService, ReportFooter (+44 more)
 
 ### Community 8 - "Timeline Cooldown Lanes"
 Cohesion: 0.07
-Nodes (36): DamageTakenSource, EnemyAbility, CastEvent, DamageEvent, DeathEvent, Dictionary, HealEvent, int (+28 more)
+Nodes (30): Dictionary, int, IReadOnlyList, List, SpellbookAbility, DeathTracker, HealTick, PlayerCast (+22 more)
 
 ### Community 9 - "Module Registration Attributes"
-Cohesion: 0.06
-Nodes (22): Attribute, ActiveWhenAttribute, Actor, AddAnalyzerAttribute, Type, AddModuleAttribute, Type, Type (+14 more)
+Cohesion: 0.05
+Nodes (25): Attribute, ActiveWhenAttribute, Actor, AddAnalyzerAttribute, Type, AddModuleAttribute, Type, Type (+17 more)
 
 ### Community 10 - "Haste Scaling"
-Cohesion: 0.12
-Nodes (12): haste, Action, double, Fact, int, List, parser, Task (+4 more)
+Cohesion: 0.07
+Nodes (23): haste, On&lt;ChangeHasteEvent&gt;, On&lt;ChangeStatsEvent&gt;, Dictionary, Haste, HasteBuff, ChangeHasteEvent, ChangeStatsEvent (+15 more)
 
 ### Community 11 - "Event Deserialization"
 Cohesion: 0.35
 Nodes (5): JsonDocument, Fact, JsonSerializerOptions, string, EventStreamMergerTests
 
 ### Community 12 - "Pull Bookend Normalizer"
-Cohesion: 0.10
-Nodes (13): JsonConverter, JsonSerializerOptions, Type, Utf8JsonReader, Utf8JsonWriter, FSLIDJsonConverter, SpellKind, SpellKindUrlExtensions (+5 more)
+Cohesion: 0.07
+Nodes (12): FellowshipAnalyzer.Core.Common.Spells.Rime, FellowshipAnalyzer.Core.Resources, FellowshipAnalyzer.Core.Tests.Common, FellowshipAnalyzer.Core.Game, Talent, Talents, Talent, ResourceEventKind (+4 more)
 
 ### Community 13 - "SpellData JSON Model"
-Cohesion: 0.10
-Nodes (12): FellowshipAnalyzer.SpellData.Tests, FellowshipAnalyzer.SpellData.Sources, FellowshipAnalyzer.SpellStudio, FellowshipAnalyzer.SpellData.Json, FellowshipAnalyzer.SpellData.Model, FellowshipAnalyzer.SpellData, JsonSerializerOptions, SpellDbJsonOptions (+4 more)
+Cohesion: 0.12
+Nodes (10): FellowshipAnalyzer.SpellData.Tests, FellowshipAnalyzer.SpellData.Sources, FellowshipAnalyzer.SpellStudio, FellowshipAnalyzer.SpellData.Json, FellowshipAnalyzer.SpellData.Model, FellowshipAnalyzer.SpellData, string, SourcePaths (+2 more)
 
 ### Community 14 - "SpellStudio Database Editor"
 Cohesion: 0.04
-Nodes (49): FellowshipAnalyzer.SpellData, FellowshipAnalyzer.SpellData.Json, FellowshipAnalyzer.SpellData.Sources, GapKind, MergeService, Row, CancelAdd, CancelEdit (+41 more)
+Nodes (50): FellowshipAnalyzer.SpellData, FellowshipAnalyzer.SpellData.Json, FellowshipAnalyzer.SpellData.Sources, GapKind, MergeService, Row, CancelAdd, CancelEdit (+42 more)
 
 ### Community 15 - "SpellUsable Cooldown Tests"
-Cohesion: 0.10
-Nodes (22): AuraWindow, End, PullPopulation, SpellRef, Dictionary, DungeonNpc, Func, HashSet (+14 more)
+Cohesion: 0.09
+Nodes (18): PullPopulation, AuraWindow, Dictionary, End, Func, HashSet, IReadOnlyCollection, IReadOnlyList (+10 more)
+
+### Community 16 - "Rime Combo Analyzers"
+Cohesion: 0.05
+Nodes (36): AssassinsGuile, DeadlyScheme, Malevolence, BuilderName, BuildGuileNote, BuildGuileRow, BuildGuileRows, BuildOverviewStats (+28 more)
 
 ### Community 17 - "CombatLogParser Tests"
-Cohesion: 0.18
-Nodes (8): Fact, List, Task, TestCombatLogParser, Type, CombatLogParserTests, TestCombatLogParser, TestResourceTracker
+Cohesion: 0.15
+Nodes (12): bool, Fact, int, List, Task, TestCombatLogParser, Type, CombatLogParserTests (+4 more)
 
 ### Community 18 - "Roslyn Diagnostic Analyzer Tests"
-Cohesion: 0.16
-Nodes (11): FellowshipAnalyzer.Analyzers.Tests, Diagnostic, DiagnosticAnalyzer, ImmutableArray, string, AnalyzerTestHarness, Diagnostic, Fact (+3 more)
+Cohesion: 0.11
+Nodes (16): FellowshipAnalyzer.Analyzers.Tests, Diagnostic, DiagnosticAnalyzer, ImmutableArray, string, AnalyzerTestHarness, Diagnostic, Fact (+8 more)
 
 ### Community 19 - "Event Contracts"
-Cohesion: 0.08
-Nodes (28): OpenWoundsTarget, int, FSLID, AbsorbedEvent, AuraBrokenEvent, AutoAttackCooldownEvent, BaseCastEvent, FilterCooldownInfoEvent (+20 more)
+Cohesion: 0.12
+Nodes (34): On&lt;AbsorbedEvent&gt;, On&lt;BeginCastEvent&gt;, On&lt;BeginChannelEvent&gt;, Events, int, FSLID, Ability, ISpell (+26 more)
 
 ### Community 20 - "API Endpoint Generator"
-Cohesion: 0.17
-Nodes (13): EndpointInfo, ParameterInfo, CancellationToken, Compilation, ImmutableArray, IncrementalGeneratorInitializationContext, Regex, SourceProductionContext (+5 more)
+Cohesion: 0.10
+Nodes (23): EndpointInfo, ParameterInfo, ParamKind, Builder, CancellationToken, Compilation, HashSet, IAssemblySymbol (+15 more)
 
 ### Community 21 - "FellowshipLogs API Handler"
-Cohesion: 0.15
-Nodes (14): ApiEndpoint, HttpContext, IResult, RecyclableMemoryStreamManager, CacheKeys, CancellationToken, ReadOnlyMemory, Stream (+6 more)
+Cohesion: 0.20
+Nodes (13): ApiEndpoint, HttpContext, HttpResponse, IResult, RecyclableMemoryStreamManager, CancellationToken, DateTimeOffset, int (+5 more)
 
 ### Community 22 - "Ardeos Spells & DI Wiring"
-Cohesion: 0.14
-Nodes (11): FellowshipAnalyzer.Heroes.Ardeos.Analysis, FellowshipAnalyzer.Core.Common.Spells.Ardeos, FellowshipAnalyzer.Heroes.Ardeos.Modules, FellowshipAnalyzer.Heroes.Ardeos.Tests.Analysis, FellowshipAnalyzer.Core, FellowshipAnalyzer.Heroes.Ardeos.Tests.Modules, IArdeosSpell, Talent (+3 more)
+Cohesion: 0.10
+Nodes (12): FellowshipAnalyzer.Heroes.Ardeos.Analysis, FellowshipAnalyzer.Heroes.Mara.Analysis, FellowshipAnalyzer.Heroes.Ardeos.Core, FellowshipAnalyzer.Core.Common.Spells.Ardeos, FellowshipAnalyzer.Heroes.Ardeos.Modules, FellowshipAnalyzer.Heroes.Ardeos.Tests.Analysis, FellowshipAnalyzer.Core, FellowshipAnalyzer.Heroes.Ardeos.Tests.Modules (+4 more)
 
 ### Community 23 - "Resource Tracker"
-Cohesion: 0.15
-Nodes (13): ILogger, ResourceTypes, ActorResources, CastEvent, Dictionary, Event, IReadOnlyDictionary, IReadOnlyList (+5 more)
+Cohesion: 0.13
+Nodes (14): On&lt;ResourceChangeEvent&gt;, Dictionary, ILogger, IReadOnlyDictionary, IReadOnlyList, List, ResourceEvent, ResourceState (+6 more)
 
 ### Community 24 - "Event Emitter Dispatch"
-Cohesion: 0.15
-Nodes (10): Action, Func, Module, ReportLoadingTracker, Analyzer, Event, List, Task (+2 more)
+Cohesion: 0.12
+Nodes (12): Action, bool, Func, int, List, Task, EventEmitter, RegisteredListener (+4 more)
 
 ### Community 25 - "Blob Persistent Cache"
 Cohesion: 0.13
-Nodes (18): BlobClient, BlobContainerClient, BlobServiceClient, FellowshipAnalyzer.Api.Core.Caching, Lazy, CancellationToken, Dictionary, ILogger (+10 more)
+Nodes (21): BlobClient, BlobContainerClient, BlobServiceClient, CancellationToken, Dictionary, ILogger, Lazy, ReadOnlyMemory (+13 more)
 
 ### Community 26 - "API Rate Limiting"
-Cohesion: 0.07
-Nodes (16): FellowshipAnalyzer.Api.Core, FixedWindowRateLimiter, IConfiguration, IDisposable, PartitionedRateLimiter, string, ApiDefaults, ApiEndpointAttribute (+8 more)
+Cohesion: 0.22
+Nodes (7): DungeonPullNpc, Fact, int, Parser, Result, Task, MaraAnalysisEngineTests
+
+### Community 27 - "SpellData Merge Engine"
+Cohesion: 0.09
+Nodes (16): HandleInput, HandleKeyDown, FellowshipAnalyzer.Core.FellowshipLogs, FellowshipAnalyzer.Services, FellowshipLogsApiClient, NavigationManager, ReportNavigationState, System.Globalization (+8 more)
 
 ### Community 28 - "Combatants Buff Tracking"
-Cohesion: 0.10
-Nodes (21): AbsorbedEvent, DispelEvent, Fact, Task, BlueyTrackerTests, Fact, Task, LifePetalAnalyzerTests (+13 more)
+Cohesion: 0.32
+Nodes (4): Fact, Spell, Task, VeteranOfWarAnalyzerTests
 
 ### Community 29 - "Elarion Desync Analyzer"
-Cohesion: 0.07
-Nodes (18): EventHorizonWindow, On&lt;CastEvent&gt;, CastEvent, ClassResource, int, IReadOnlyList, List, WindowState (+10 more)
+Cohesion: 0.05
+Nodes (31): ISurfaceMarkerA, ISurfaceMarkerB, On&lt;ApplyBuffEvent&gt;, int, Type, Analyzer, Dictionary, Type (+23 more)
 
 ### Community 30 - "Changelog & Contributors"
-Cohesion: 0.07
-Nodes (23): FellowshipAnalyzer, DateOnly, IEnumerable, IReadOnlyList, RenderFragment, Changelog, ChangelogEntry, ChangelogFeedItem (+15 more)
+Cohesion: 0.08
+Nodes (21): DateOnly, IEnumerable, IReadOnlyList, RenderFragment, Changelog, ChangelogEntry, ChangelogFeedItem, IEnumerable (+13 more)
 
 ### Community 31 - "Global Cooldown Tests"
-Cohesion: 0.17
-Nodes (12): gcd, TestAbilities, Action, Fact, int, parser, Task, TestCombatLogParser (+4 more)
+Cohesion: 0.13
+Nodes (15): gcd, TestAbilities, Action, Fact, IEnumerable, int, List, parser (+7 more)
 
 ### Community 32 - "Report Info Page"
 Cohesion: 0.06
-Nodes (33): route:/report/{ReportCode}, route:/report/{ReportCode}/{FightId:int}, FirstLetter, FormatDuration, GetFightGroups, GetPlayersForFight, GetRole, GetSortedPlayers (+25 more)
+Nodes (33): route:/report/{ReportCode}, route:/report/{ReportCode}/{DungeonId:int}, FirstLetter, FormatDuration, GetDungeonGroups, GetPlayersForDungeon, GetRole, GetSortedPlayers (+25 more)
 
 ### Community 33 - "Enemy Debuff Events"
 Cohesion: 0.18
 Nodes (7): Fact, int, List, Parser, Result, Task, OwedInBloodEconomyTests
 
 ### Community 34 - "Ardeos Wildfire Combo"
-Cohesion: 0.50
-Nodes (3): Fact, Task, TariqAnalysisEngineTests
+Cohesion: 0.16
+Nodes (14): probe, Action, double, Fact, IEnumerable, int, parser, Task (+6 more)
 
 ### Community 35 - "CombatLogParser Core"
-Cohesion: 0.06
-Nodes (35): CombatantInfoEvent, EventEmitter, HashSet, Hero, HeroAnalysisResult, IHasSourceEvent, IHasTargetEvent, IHeroAnalyzer (+27 more)
+Cohesion: 0.07
+Nodes (28): IServiceProvider, Dictionary, HashSet, IReadOnlyDictionary, IReadOnlyList, List, Pull, Task (+20 more)
 
 ### Community 36 - "Rime Guides"
 Cohesion: 0.07
 Nodes (28): AoeWindow, AddAoeReasons, AddContextReasons, AddSingleTargetReasons, AllWindows, BuildOutcome, BuildOverviewStats, BuildPerCastData (+20 more)
 
 ### Community 37 - "Elarion Pre-Ultimate Checklist"
-Cohesion: 0.07
-Nodes (37): ICastTarget, Fact, Task, ExecutionersGrinTrackerTests, ApplyBuffEvent, ApplyBuffStackEvent, CastEvent, Fact (+29 more)
+Cohesion: 0.05
+Nodes (37): TariqCombatLogParser, Fact, int, List, Task, CullingStrikeAnalyzerTests, Fact, Task (+29 more)
 
 ### Community 38 - "Stat Tracker"
-Cohesion: 0.11
-Nodes (14): CooldownModifier, CooldownModifierSet, CooldownPool, Dictionary, double, Func, List, BuffVal (+6 more)
+Cohesion: 0.14
+Nodes (10): Dictionary, double, Func, BuffVal, PlayerMultipliers, PlayerStats, StatBuff, StatMultiplierBuff (+2 more)
 
 ### Community 39 - "Pull Analyzer Guide Surface"
-Cohesion: 0.23
-Nodes (10): List, PerCastRow, RenderFragment, PullAnalyzer, PullAnalyzerList, Func, IEnumerable, IReadOnlyList (+2 more)
+Cohesion: 0.15
+Nodes (15): List, PullAnalyzer, PullAnalyzerList, RenderFragment, AdditionalContent, PerCastData, RenderFragment, PerCastRow (+7 more)
 
 ### Community 40 - "Cooldown Reduction Tests"
-Cohesion: 0.05
-Nodes (37): Buff, probe, SpellId, CooldownBuff, ApplyBuffEvent, Action, double, Fact (+29 more)
+Cohesion: 0.19
+Nodes (6): Fact, int, parser, Task, TestParser, StatTrackerCooldownTests
 
 ### Community 41 - "SpellUsable Charges"
-Cohesion: 0.12
-Nodes (11): ChangeCooldownModifierEvent, IReadOnlyCollection, CastEvent, Dictionary, int, IReadOnlyList, List, CooldownInfo (+3 more)
+Cohesion: 0.09
+Nodes (14): AvailableForMs, CooldownInfo, On&lt;FilterCooldownInfoEvent&gt;, On&lt;PullStartEvent&gt;, Dictionary, int, IReadOnlyCollection, IReadOnlyList (+6 more)
 
 ### Community 42 - "Item Registry"
-Cohesion: 0.14
-Nodes (10): GenericItems, Item, Assembly, FrozenDictionary, IReadOnlyDictionary, IItemRegistry, ItemRegistry, Fact (+2 more)
+Cohesion: 0.19
+Nodes (7): Item, Assembly, FrozenDictionary, IReadOnlyDictionary, ItemRegistry, Fact, ItemRegistryTests
 
 ### Community 43 - "Service Defaults & Project Wiring"
 Cohesion: 0.08
@@ -1054,15 +752,15 @@ Nodes (24): Aspire.Hosting.Azure.Storage, Microsoft.AspNetCore.Components.WebAss
 
 ### Community 44 - "Abilities Module"
 Cohesion: 0.06
-Nodes (32): MaraCombatLogParser, MaraDotSpreadAnalyzer, MaraDotUptimeAnalyzer, ReportComponent<MaraCombatLogParser>, BuildAoeNote, BuildAoeRow, BuildBossNote, BuildBossRow (+24 more)
+Nodes (32): BuildAoeNote, BuildAoeRow, BuildBossNote, BuildBossRow, BuildOverviewStats, BuildPerCastData, ChartBands, ChartSamples (+24 more)
 
 ### Community 45 - "Ardeos Analysis Engine Tests"
-Cohesion: 0.30
-Nodes (6): Fact, int, Parser, Result, Task, ImpendingHeartseekerAnalyzerTests
+Cohesion: 0.27
+Nodes (7): ElarionCombatLogParser, Fact, int, Parser, Task, ImpendingHeartseekerAnalyzerTests, Tracker
 
 ### Community 46 - "UI Formatters & Avatars"
-Cohesion: 0.20
-Nodes (7): FellowshipAnalyzer.Core.UI.Charts, FellowshipAnalyzer.Core.UI.Theming, FellowshipAnalyzer.DesignSystem.Components, JsonSerializerContext, AuraStackBand, AuraStackMarkers, ThemeJsonContext
+Cohesion: 0.12
+Nodes (10): Exception, int, List, string, ErrorReport, Exception, Fact, InlineData (+2 more)
 
 ### Community 47 - "Hero Manifest Generator"
 Cohesion: 0.10
@@ -1070,10 +768,10 @@ Nodes (18): HeroEntry, HostInfo, CancellationToken, Compilation, GeneratorSyntax
 
 ### Community 48 - "Mara Resource Guide"
 Cohesion: 0.08
-Nodes (24): MaraResourceDisciplineAnalyzer, Analyzers, BuildComboPointDistribution, BuildOverviewStats, BuildPerCastData, BuildPullNote, BuildPullRow, Count (+16 more)
+Nodes (25): Analyzers, BuildComboPointDistribution, BuildOverviewStats, BuildPerCastData, BuildPullNote, BuildPullRow, Count, FinisherName (+17 more)
 
 ### Community 49 - "Cast Link Normalizers"
-Cohesion: 0.14
+Cohesion: 0.16
 Nodes (15): CooldownSnapshot, int, IReadOnlyList, List, CooldownSnapshot, SerratedEdgeAnalyzer, SerratedEdgeGrant, SerratedEdgeOutcome (+7 more)
 
 ### Community 50 - "Event Diagnostics View"
@@ -1085,48 +783,48 @@ Cohesion: 0.08
 Nodes (23): Azure.Storage.Blobs, Microsoft.Extensions.Configuration.Abstractions, Microsoft.Extensions.Http, Microsoft.IO.RecyclableMemoryStream, Riok.Mapperly, StrawberryShake.Server, net10.0, net8.0 (+15 more)
 
 ### Community 52 - "Spellbook Ability Cooldowns"
-Cohesion: 0.08
-Nodes (15): ISurfaceMarkerA, ISurfaceMarkerB, On&lt;ApplyBuffEvent&gt;, On&lt;PullEndEvent&gt;, PullEndEvent, PullEndEvent, ApplyBuffEvent, ApplyBuffEvent (+7 more)
+Cohesion: 0.14
+Nodes (12): BuffSpan, double, int, IReadOnlyList, List, BuffSpan, MaidenCastRole, MaidenOfDeathAnalyzer (+4 more)
 
 ### Community 53 - "Performance Scoring"
-Cohesion: 0.09
-Nodes (17): abilityId, On&lt;DeathEvent&gt;, sourceId, Dictionary, int, List, CastLinkNormalizer, BeginCastEvent (+9 more)
+Cohesion: 0.14
+Nodes (12): On&lt;DeathEvent&gt;, DeathEvent, ICastTarget, CastTarget, CastTarget, CastTarget, CastTarget, CastTarget (+4 more)
 
 ### Community 54 - "Hero Data Source Linking"
-Cohesion: 0.11
-Nodes (9): On&lt;RemoveBuffEvent&gt;, RemoveBuffEvent, RemoveBuffEvent, RemoveBuffEvent, bool, int, Type, DeadlySchemeTracker (+1 more)
+Cohesion: 0.07
+Nodes (19): On&lt;RemoveBuffEvent&gt;, SpellUplift, RemoveBuffEvent, bool, int, EmpoweredShieldSlamAnalyzer, IEmpoweredShieldSlamAnalyzer, bool (+11 more)
 
 ### Community 55 - "Pull Analyzer Diagnostics"
-Cohesion: 0.18
-Nodes (12): AnalyzerModel, AnalysisContext, CompilationAnalysisContext, DiagnosticDescriptor, HashSet, IEnumerable, ImmutableArray, INamedTypeSymbol (+4 more)
+Cohesion: 0.16
+Nodes (15): AnalyzerModel, Registration, AttributeData, CompilationAnalysisContext, DiagnosticDescriptor, IEnumerable, ImmutableArray, INamedTypeSymbol (+7 more)
 
 ### Community 56 - "Event Filter Subscriptions"
-Cohesion: 0.14
-Nodes (12): Expression, Func, List, AnyEventFilter, EventFilter, List, IEventNormalizer, HashSet (+4 more)
+Cohesion: 0.10
+Nodes (13): On&lt;Event&gt;, Expression, Func, List, AnyEventFilter, EventFilter, List, IEventNormalizer (+5 more)
 
 ### Community 57 - "Ardeos Detonate Efficiency"
-Cohesion: 0.09
-Nodes (24): AuraWindow, IReadOnlyList, IEnumerable, IEnumerable, GemTrait, DetonateCast, DotCoverage, DotLayerSample (+16 more)
+Cohesion: 0.24
+Nodes (5): DetonateCast, Fact, int, Task, DetonateEfficiencyAnalyzerTests
 
 ### Community 58 - "Tariq Analysis Tests"
 Cohesion: 0.23
 Nodes (9): Fact, IEnumerable, int, List, Parser, Result, Task, WildfireWindowEvaluation (+1 more)
 
 ### Community 59 - "JSON Derived Type Generator"
-Cohesion: 0.27
-Nodes (6): spellUsable, statTracker, Fact, int, Task, GearCooldownAccelerationTests
+Cohesion: 0.21
+Nodes (8): spellUsable, statTracker, Fact, IEnumerable, int, Task, GearCooldownAccelerationTests, TestAbilities
 
 ### Community 60 - "Elarion Voidbringer Analyzer"
 Cohesion: 0.05
-Nodes (29): FellowshipAnalyzer.Core.Common.Spells, FellowshipAnalyzer.Services, FellowshipAnalyzer.Heroes.Tariq.Analysis, FellowshipAnalyzer.Heroes.Aeona.Analysis, FellowshipAnalyzer.Heroes.Meiko.Analysis, FellowshipAnalyzer.Core.Tests.Analysis, FellowshipAnalyzer.Core.Common.Items, FellowshipAnalyzer.Core.Analysis.Normalizers (+21 more)
+Nodes (20): FellowshipAnalyzer.Heroes.Rime.Modules, FellowshipAnalyzer.Services, FellowshipAnalyzer.Core.Tests.Analysis, FellowshipAnalyzer.Core.Analysis.Normalizers, FellowshipAnalyzer.Core.Analysis, FellowshipAnalyzer.Core.UI.Guides, FellowshipAnalyzer.Core.FellowshipLogs, FellowshipAnalyzer.Heroes.Rime.Analysis (+12 more)
 
 ### Community 61 - "SpellData Project Refs"
 Cohesion: 0.09
 Nodes (20): Blazor-ApexCharts, Microsoft.Extensions.Logging.Abstractions, net10.0, AspNetCore.SassCompiler, Microsoft.AspNetCore.Components.Web, Microsoft.Extensions.DependencyInjection.Abstractions, OneOf, OneOf.SourceGenerator (+12 more)
 
 ### Community 62 - "SpellStudio Report Selector"
-Cohesion: 0.16
-Nodes (6): On&lt;ChangeStatsEvent&gt;, Dictionary, Haste, HasteBuff, InlineData, Theory
+Cohesion: 0.35
+Nodes (3): Fact, Task, DefensiveAnalyzerTests
 
 ### Community 63 - "Ardeos Searing Blaze Guide"
 Cohesion: 0.08
@@ -1134,11 +832,11 @@ Nodes (24): BuildBossNote, BuildBossRow, BuildOverviewStats, BuildPerCastData, B
 
 ### Community 64 - "Ardeos Wildfire Guide"
 Cohesion: 0.08
-Nodes (23): BuildOutcome, BuildOverviewStats, BuildPerCastData, BuildWindowRow, Capitalise, JoinNames, JoinReasons, MissingDots (+15 more)
+Nodes (24): BuildOutcome, BuildOverviewStats, BuildPerCastData, BuildWindowRow, Capitalise, JoinNames, JoinReasons, MissingDots (+16 more)
 
 ### Community 65 - "Parser Generator Tests"
-Cohesion: 0.17
-Nodes (5): GeneratorRunResult, Fact, GeneratorRunResult, string, ParserGeneratorTests
+Cohesion: 0.19
+Nodes (3): Fact, string, ParserGeneratorTests
 
 ### Community 66 - "Module Generator"
 Cohesion: 0.32
@@ -1150,23 +848,27 @@ Nodes (22): AuraConfigEntry, AddCustomAura, AuraEntry, CooldownEntry, CustomAura
 
 ### Community 68 - "Pull Select Component"
 Cohesion: 0.09
-Nodes (22): IJSObjectReference, IJSRuntime, CloseFromOutsideAsync, DisplayName, DisposeAsync, FormatClock, FormatRange, MoveHighlight (+14 more)
+Nodes (22): CloseFromOutsideAsync, DisplayName, DisposeAsync, FormatClock, FormatRange, MoveHighlight, OnAfterRenderAsync, OnFocusOut (+14 more)
 
 ### Community 69 - "Timeline Cast Bar"
 Cohesion: 0.09
 Nodes (22): CancelledCastItem, CastItem, ChannelItem, DurPx, F, FormatSec, FormatTimestamp, HasDisplaySpell (+14 more)
 
 ### Community 70 - "Chronoshiftanalyzertests Testparser"
-Cohesion: 0.10
-Nodes (18): ElarionCombatLogParser, Fact, int, IReadOnlyList, Parser, Result, Task, ElarionAnalysisEngineTests (+10 more)
+Cohesion: 0.28
+Nodes (4): Fact, int, Task, ResurgentWindsTrackerTests
 
 ### Community 71 - "Ardeos Searingblazeuptimeanalyzer"
-Cohesion: 0.16
-Nodes (8): On&lt;RefreshDebuffEvent&gt;, RefreshDebuffEvent, HashSet, int, SearingBlazeSpreadAnalyzer, HashSet, int, MaraDotSpreadAnalyzer
+Cohesion: 0.10
+Nodes (16): On&lt;RefreshDebuffEvent&gt;, OpenWoundsTarget, IAnalyzerSurface, RefreshDebuffEvent, ISearingBlazeAnalyzer, IReadOnlyList, SearingBlazeSpreadAnalyzer, SearingBlazeUptimeAnalyzer (+8 more)
 
 ### Community 72 - "Mara Config"
 Cohesion: 0.06
 Nodes (31): BankTier, BuildConversionRow, BuildNote, BuildOverviewStats, BuildPerCastData, BuildStackedBar, CapTier, ChainTier (+23 more)
+
+### Community 73 - "Haste Hastetests"
+Cohesion: 0.19
+Nodes (5): On&lt;RemoveDebuffEvent&gt;, RemoveDebuffEvent, DefaultActors, Unit, UnitTypeEnum
 
 ### Community 74 - "Analyzers Jsoncontextmissingserializableanalyzer"
 Cohesion: 0.15
@@ -1177,56 +879,56 @@ Cohesion: 0.16
 Nodes (14): AnalysisContext, CancellationToken, Compilation, CompilationAnalysisContext, DiagnosticDescriptor, Dictionary, HashSet, IEnumerable (+6 more)
 
 ### Community 76 - "Timeline Ui"
-Cohesion: 0.09
-Nodes (21): BuildMergedConfig, DisposeAsync, OnAfterRenderAsync, OnConfigChangedAsync, OnParametersSetAsync, Abilities, AuraBar, Auras (+13 more)
+Cohesion: 0.10
+Nodes (20): BuildMergedConfig, DisposeAsync, OnAfterRenderAsync, OnConfigChangedAsync, OnParametersSetAsync, Abilities, AuraBar, Auras (+12 more)
 
 ### Community 77 - "Ardeos Engulfingflameseconomyanalyzer"
-Cohesion: 0.17
-Nodes (14): Ability, CastEvent, DamageEvent, Event, Fact, HealEvent, HitType, int (+6 more)
+Cohesion: 0.26
+Nodes (8): HitType, Fact, int, List, Task, Type, AbilityTrackerTests, TestParser
 
 ### Community 78 - "Ardeos Guides"
 Cohesion: 0.09
 Nodes (21): EngulfingFlamesEconomyAnalyzer, Analyzers, BuildDevouringFlameStats, BuildNote, BuildOverviewStats, BuildPerCastData, BuildWindowRow, DevouringFlameEquipped (+13 more)
 
 ### Community 79 - "Multionhandlertests Testcombatlogparser"
-Cohesion: 0.09
-Nodes (13): HeroAnalyzerAttribute, FrozenDictionary, IReadOnlyList, Hero, HeroName, HeroNameExtensions, HeroRole, ReportMasterData (+5 more)
+Cohesion: 0.06
+Nodes (21): FellowshipAnalyzer, FellowshipAnalyzer.Core.UI.Charts, FellowshipAnalyzer.Core.Contracts.Design, FellowshipAnalyzer.Heroes.Mara.Guides, FellowshipAnalyzer.Core.UI.Theming, HeroAnalyzerAttribute, HeroName, HeroNameExtensions (+13 more)
 
 ### Community 80 - "Analyzers Onhandlersignatureanalyzer"
-Cohesion: 0.15
-Nodes (12): AnalysisContext, DiagnosticDescriptor, IMethodSymbol, ImmutableArray, INamedTypeSymbol, string, SymbolAnalysisContext, OnHandlerSignatureAnalyzer (+4 more)
+Cohesion: 0.11
+Nodes (13): FellowshipAnalyzer.Generators, AnalysisContext, DiagnosticDescriptor, IMethodSymbol, ImmutableArray, INamedTypeSymbol, string, SymbolAnalysisContext (+5 more)
 
 ### Community 81 - "Gunde Gundeanalysisenginetests"
-Cohesion: 0.14
-Nodes (8): IReadOnlyDictionary, ISpellRegistry, SpellRegistry, TestSpells, Fact, InlineData, Theory, SpellRegistryTests
+Cohesion: 0.07
+Nodes (16): IArdeosSpell, IElarionSpell, IRimeSpell, IReadOnlyDictionary, Effect, Spell, Weapon, IReadOnlyDictionary (+8 more)
 
 ### Community 82 - "Ui Guides"
 Cohesion: 0.09
 Nodes (21): HandleKeyDown, HandleNext, HandlePrevious, OnParametersSet, ChildContent, FilterBadge, GuideDataWrapper, HelperText (+13 more)
 
 ### Community 83 - "Serialization Services"
-Cohesion: 0.14
-Nodes (16): ConstantsEntry, CuratedSpell, Gaps, AbilityCategory, Dictionary, FSLID, HashSet, IEnumerable (+8 more)
+Cohesion: 0.09
+Nodes (18): Gaps, SpellKind, SpellKindUrlExtensions, Dictionary, HashSet, IEnumerable, IReadOnlyDictionary, IReadOnlyList (+10 more)
 
 ### Community 84 - "Spelldata Spelldbwriter"
-Cohesion: 0.28
-Nodes (5): JsonNode, JsonObject, JsonSerializerOptions, string, SpellDbWriter
+Cohesion: 0.07
+Nodes (26): Spread, Dictionary, int, IReadOnlyList, DotSpreadAnalyzer, Dictionary, IReadOnlyList, DotUptime (+18 more)
 
 ### Community 85 - "Csproj Generators"
 Cohesion: 0.10
 Nodes (17): Microsoft.Azure.Functions.Worker, Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore, Microsoft.Azure.Functions.Worker.Sdk, net8.0, Aspire.Azure.Storage.Blobs, Microsoft.NET.Sdk, netstandard2.0, Microsoft.CodeAnalysis.Analyzers (+9 more)
 
 ### Community 86 - "Gunde Slaughterusageanalyzer"
-Cohesion: 0.16
-Nodes (11): Dictionary, double, int, IReadOnlyList, List, Type, GloriousPurposeAnalyzer, GloriousPurposeWindow (+3 more)
+Cohesion: 0.13
+Nodes (15): History, Dictionary, double, int, IReadOnlyList, List, GloriousPurposeAnalyzer, GloriousPurposeWindow (+7 more)
 
 ### Community 87 - "Tools Resource"
 Cohesion: 0.17
 Nodes (5): AnalysisResult, Dictionary, HashSet, int, ResourceSummary
 
 ### Community 88 - "Ardeos Guides"
-Cohesion: 0.06
-Nodes (34): ArdeosCombatLogParser, AuraCheckItem, AuraChecklist, AuraStackMarkers, DetonateCast, DetonateEfficiencyAnalyzer, ReportComponent<ArdeosCombatLogParser>, AverageTier (+26 more)
+Cohesion: 0.05
+Nodes (38): AverageTier, BuildCastRow, BuildChecklist, BuildNote, BuildOverviewStats, BuildPerCastData, ChartBands, ChartMarkers (+30 more)
 
 ### Community 89 - "Tariq Furyeconomyanalyzertests"
 Cohesion: 0.19
@@ -1241,16 +943,16 @@ Cohesion: 0.08
 Nodes (23): Sample, Series, Build, BuildOptions, BuildSeries, Dispose, OnInitialized, OnParametersSet (+15 more)
 
 ### Community 92 - "Designsystem Imports"
-Cohesion: 0.11
-Nodes (18): FellowshipAnalyzer.DesignSystem, FellowshipAnalyzer.DesignSystem.Components.Layout, FellowshipAnalyzer.DesignSystem.Components.Shared, Microsoft.AspNetCore.Components.Forms, Microsoft.AspNetCore.Components.Routing, Microsoft.AspNetCore.Components.Web.Virtualization, FellowshipAnalyzer.Core.Analysis, FellowshipAnalyzer.Core.Contracts.Design (+10 more)
+Cohesion: 0.10
+Nodes (19): FellowshipAnalyzer.DesignSystem, FellowshipAnalyzer.DesignSystem.Components, FellowshipAnalyzer.DesignSystem.Components.Layout, FellowshipAnalyzer.DesignSystem.Components.Shared, FellowshipAnalyzer.Core.Analysis, FellowshipAnalyzer.Core.Contracts.Design, FellowshipAnalyzer.Core.Events, FellowshipAnalyzer.Core.UI.Components (+11 more)
 
 ### Community 93 - "Aeona Csproj"
 Cohesion: 0.11
 Nodes (16): Microsoft.AspNetCore.Components.WebAssembly, Microsoft.NET.Sdk.BlazorWebAssembly, net10.0, AspNetCore.SassCompiler, net10.0, AspNetCore.SassCompiler, Microsoft.AspNetCore.Components.Web, Microsoft.Extensions.DependencyInjection.Abstractions (+8 more)
 
 ### Community 94 - "Gearcooldownaccelerationtests Legendary"
-Cohesion: 0.03
-Nodes (53): FellowshipAnalyzer.Heroes.Xavian.Modules, FellowshipAnalyzer.Core.Common.Spells.Vigour, FellowshipAnalyzer.Core.Common.Spells.Aeona, FellowshipAnalyzer.Core.Common.Spells.Meiko, FellowshipAnalyzer.Heroes.Aeona.Modules, FellowshipAnalyzer.Heroes.Meiko.Modules, FellowshipAnalyzer.Core.Common.Spells.Xavian, FellowshipAnalyzer.Heroes.Vigour.Modules (+45 more)
+Cohesion: 0.04
+Nodes (36): FellowshipAnalyzer.Heroes.Xavian.Modules, FellowshipAnalyzer.Core.Common.Spells.Aeona, FellowshipAnalyzer.Heroes.Aeona.Analysis, FellowshipAnalyzer.Core.Common.Spells.Meiko, FellowshipAnalyzer.Heroes.Aeona.Tests.Analysis, FellowshipAnalyzer.Heroes.Aeona.Modules, FellowshipAnalyzer.Heroes.Meiko.Modules, FellowshipAnalyzer.Core.Common.Spells.Xavian (+28 more)
 
 ### Community 95 - "Apphost Properties"
 Cohesion: 0.13
@@ -1258,15 +960,15 @@ Nodes (18): ASPIRE_DASHBOARD_OTLP_ENDPOINT_URL, ASPIRE_RESOURCE_SERVICE_ENDPOINT
 
 ### Community 96 - "Haschronoshiftgeartests Haschronoshiftgear"
 Cohesion: 0.07
-Nodes (27): HammerStormAnalyzer, HammerStormCast, SchismProcEconomy, BuildCastRow, BuildCastRows, BuildDetails, BuildOverviewStats, CastTier (+19 more)
+Nodes (27): BuildCastRow, BuildCastRows, BuildDetails, BuildOverviewStats, CastTier, Ordinal, Outcome, CastDetail (+19 more)
 
 ### Community 97 - "Entity Events"
 Cohesion: 0.09
-Nodes (22): BuildGrinStats, BuildOpportunityRow, BuildOpportunityRows, BuildOverviewStats, CastDetail, CastOverview, ChildContent, CullingStrikeAnalyzer (+14 more)
+Nodes (22): BuildGrinStats, BuildOpportunityRow, BuildOpportunityRows, BuildOverviewStats, CastDetail, CastOverview, CullingStrikeAnalyzer, CullingStrikeOpportunity (+14 more)
 
 ### Community 98 - "Gunde Guides"
 Cohesion: 0.07
-Nodes (27): SlaughterRow, BuildCastRow, BuildNote, BuildOverviewStats, BuildPerCastData, DescribeCashed, DescribeSetup, FormatDamage (+19 more)
+Nodes (28): FellowshipAnalyzer.Core.Common.Spells.Gunde, SlaughterRow, BuildCastRow, BuildNote, BuildOverviewStats, BuildPerCastData, DescribeConsumed, DescribeSetup (+20 more)
 
 ### Community 99 - "Ui Contributorprofilemodal"
 Cohesion: 0.11
@@ -1274,39 +976,43 @@ Nodes (17): ContributionGroup, Dispose, GroupAccent, GroupId, HandleChanged, OnE
 
 ### Community 100 - "Events Enums"
 Cohesion: 0.10
-Nodes (19): ChildContent, FellowshipAnalyzer.Core.Resources, On&lt;Event&gt;, bool, CastEvent, Casts, Event, int (+11 more)
+Nodes (13): Mana, SylvieHealingEfficiencyTracker, bool, Casts, int, IReadOnlyList, Lazy, List (+5 more)
 
 ### Community 101 - "Devhost Properties"
 Cohesion: 0.12
 Nodes (17): ASPNETCORE_ENVIRONMENT, applicationUrl, commandName, dotnetRunMessages, environmentVariables, inspectUri, launchBrowser, applicationUrl (+9 more)
+
+### Community 102 - "Ardeos Reignoffireanalyzertests"
+Cohesion: 0.13
+Nodes (19): BurstWindow, RawWindow, Computed, int, IReadOnlyList, List, BurstAnalyzer, BurstWindow (+11 more)
 
 ### Community 103 - "Api Clientcredentialstokencache"
 Cohesion: 0.12
 Nodes (13): DelegatingHandler, SemaphoreSlim, CancellationToken, HttpRequestMessage, HttpResponseMessage, Task, BearerTokenHandler, CancellationToken (+5 more)
 
 ### Community 104 - "Services Reportanalysisservice"
-Cohesion: 0.23
-Nodes (5): Fact, JsonSerializerOptions, List, string, EventStreamReaderTests
+Cohesion: 0.13
+Nodes (14): JsonTypeInfo, Dictionary, List, ReadOnlySpan, Type, Utf8JsonReader, EventJsonRange, EventsResultMetadata (+6 more)
 
 ### Community 105 - "Rime Imports"
-Cohesion: 0.23
-Nodes (6): FellowshipAnalyzer.Heroes.Tariq.Tests.Analysis, FellowshipAnalyzer.Heroes.Tariq.Modules, FellowshipAnalyzer.Core.Analysis, FellowshipAnalyzer.Core.Game, FellowshipAnalyzer.Heroes.Tariq.Analysis, Abilities
+Cohesion: 0.11
+Nodes (10): FellowshipAnalyzer.Heroes.Tariq.Tests.Analysis, FellowshipAnalyzer.Heroes.Tariq.Modules, FellowshipAnalyzer.Heroes.Tariq.Analysis, FellowshipAnalyzer.Core.Common.Spells.Tariq, Talent, Talents, Abilities, Fact (+2 more)
 
 ### Community 106 - "Api Graphqlmapper"
 Cohesion: 0.08
-Nodes (23): MajorCooldownAnalyzer, ReportComponent<RimeCombatLogParser>, RimeCombatLogParser, Analyzers, AtLeastTwo, BuildOverviewStats, BuildPerCastData, BuildWindowRow (+15 more)
+Nodes (23): Analyzers, AtLeastTwo, BuildOverviewStats, BuildPerCastData, BuildWindowRow, FormatDuration, HeldTier, LatencyTier (+15 more)
 
 ### Community 107 - "Analyzers Supportstatusguideanalyzer"
 Cohesion: 0.14
 Nodes (11): Level, AnalysisContext, CancellationToken, DiagnosticDescriptor, ImmutableArray, INamedTypeSymbol, ISymbol, Location (+3 more)
 
 ### Community 108 - "Tariq Eventsubscriber"
-Cohesion: 0.13
-Nodes (13): ApplyBuffEvent, BarrierCapture, bool, CastEvent, int, RefreshBuffEvent, Computed, IReadOnlyList (+5 more)
+Cohesion: 0.16
+Nodes (10): TestEfficiencyTracker, TestHotTracker, Fact, int, List, Task, Type, HealerPrimitiveTests (+2 more)
 
 ### Community 109 - "Elarion Impendingheartseekeranalyzer"
-Cohesion: 0.40
-Nodes (3): FellowshipAnalyzer.Heroes.Aeona.Tests.Analysis, Fact, AeonaSpellbookTests
+Cohesion: 0.10
+Nodes (13): FellowshipAnalyzer.Core.Common.Spells.Vigour, FellowshipAnalyzer.Heroes.Vigour.Analysis, FellowshipAnalyzer.Heroes.Vigour.Tests.Analysis, FellowshipAnalyzer.Heroes.Vigour.Modules, Talent, Talents, Abilities, VigourCombatLogParser (+5 more)
 
 ### Community 110 - "Pulllifecycletests Firstpullonlyparser"
 Cohesion: 0.22
@@ -1314,14 +1020,14 @@ Nodes (8): GundeCombatLogParser, Fact, int, List, Parser, Result, Task, RendAnal
 
 ### Community 111 - "Spelldata Overridetests"
 Cohesion: 0.13
-Nodes (13): IReadOnlyDictionary, MergeResult, MergeService, InlineData, Theory, MigrationDiffTests, Fact, OverrideTests (+5 more)
+Nodes (13): IReadOnlyDictionary, MergeResult, IReadOnlyDictionary, JsonObject, OverridesSource, MergeService, Fact, OverrideTests (+5 more)
 
 ### Community 112 - "Rime Csproj"
 Cohesion: 0.12
 Nodes (15): net10.0, AspNetCore.SassCompiler, Microsoft.AspNetCore.Components.Web, Microsoft.Extensions.DependencyInjection.Abstractions, OneOf, OneOf.SourceGenerator, Microsoft.NET.Sdk.Razor, net10.0 (+7 more)
 
 ### Community 113 - "Combatantsauraregistrytests Testparser"
-Cohesion: 0.27
+Cohesion: 0.24
 Nodes (6): MaraCombatLogParser, Fact, int, List, Task, MaraDotAnalyzerTests
 
 ### Community 114 - "Generators Multionattributetests"
@@ -1334,51 +1040,55 @@ Nodes (15): AuraSegment, AuraSegment, AurasToRender, DurPx, F, FormatDuration, F
 
 ### Community 116 - "Designsystem Castshowcase"
 Cohesion: 0.12
-Nodes (15): CastEvaluation, CastSummary, FellowshipAnalyzer.Core.Common.Spells.Rime, PullBanner, route:/cast, BuildEvaluations, BuildPerCast, OnInitialized (+7 more)
+Nodes (15): CastSummary, route:/cast, BuildEvaluations, BuildPerCast, OnInitialized, CastDetail, CastEvaluation, CastOverview (+7 more)
+
+### Community 117 - "Rime Common"
+Cohesion: 0.07
+Nodes (26): Analyzer surfaces, Arrival and effect, Aura presence, Cost and return, Every sentence comes from the log, Flutterfly placement, Four shapes that survive editing, How this check is run (+18 more)
 
 ### Community 118 - "Mara Mararesourcedisciplineanalyzer"
-Cohesion: 0.08
-Nodes (18): FellowshipAnalyzer.Heroes.Mara.Analysis, FellowshipAnalyzer.Heroes.Mara.Modules, FellowshipAnalyzer.Heroes.Mara.Tests.Analysis, FellowshipAnalyzer.Core.Common.Spells.Mara, IAnalyzerSurface, Talent, Talents, ISearingBlazeAnalyzer (+10 more)
+Cohesion: 0.07
+Nodes (14): FellowshipAnalyzer.Core.Common, FellowshipAnalyzer.Heroes.Mara.Modules, FellowshipAnalyzer.Core.UI.Statistics, FellowshipAnalyzer.Core.Tests.UI, FellowshipAnalyzer.Core.Common.Spells.Mara, FellowshipAnalyzer.Core.UI.Timeline, Talent, Talents (+6 more)
 
 ### Community 119 - "Pulllifecycletests Analyze"
-Cohesion: 0.25
-Nodes (7): DamageTakenTracker, DamageEvent, Fact, Task, DamageTakenTrackerTests, DamageEvent, HitType
+Cohesion: 0.07
+Nodes (24): Dictionary, IEnumerable, int, IReadOnlyCollection, IReadOnlyList, List, long, HotAssignment (+16 more)
 
 ### Community 120 - "Designsystem Pageheadershowcase"
 Cohesion: 0.12
 Nodes (15): route:/page-header, Avatar, Badge, Badges, BreadcrumbItem, Breadcrumbs, CodeExample, Demo (+7 more)
 
 ### Community 121 - "Debugannotations Moduleactivationtests"
-Cohesion: 0.13
-Nodes (14): Event, FSLID, IAbilityEvent, IAmountEvent, IHasSourceWithInstanceEvent, DungeonEndEvent, DungeonStartEvent, HealAbsorbed (+6 more)
+Cohesion: 0.09
+Nodes (16): HeartBloomCapture, On&lt;HealEvent&gt;, ThroughputTracker, HealAbsorbed, BeaconHealEvent, BeaconTransferFailedEvent, FeedHealEvent, HealEvent (+8 more)
 
 ### Community 122 - "Devapi Properties"
 Cohesion: 0.13
 Nodes (15): ASPNETCORE_ENVIRONMENT, applicationUrl, commandName, dotnetRunMessages, environmentVariables, launchBrowser, applicationUrl, commandName (+7 more)
 
 ### Community 123 - "Ardeos Cinderembertrackertests"
-Cohesion: 0.11
-Nodes (12): BuffEvent, ApplyBuffEvent, CastEvent, IReadOnlyList, List, Ms, OnSylvie, RefreshBuffEvent (+4 more)
+Cohesion: 0.16
+Nodes (7): IReadOnlyList, List, Ms, OnSylvie, TargetId, BlueyPosting, BlueyTracker
 
 ### Community 124 - "Rime Guides"
 Cohesion: 0.11
-Nodes (18): Incident, BuildOverviewStats, BuildStackedBar, DescribeIncidents, FormatDuration, CastOverview, ChildContent, Explanation (+10 more)
+Nodes (18): Incident, BuildOverviewStats, BuildStackedBar, DescribeIncidents, FormatDuration, CastOverview, GuideSection, HelperText (+10 more)
 
 ### Community 125 - "Ardeos Rollingflamesanalyzertests"
-Cohesion: 0.16
-Nodes (11): MajorTracking, bool, IEnumerable, int, IReadOnlyList, List, MajorCooldownAnalyzer, MajorCooldownUsage (+3 more)
+Cohesion: 0.08
+Nodes (23): AbilityFor, AvailableNote, BuildSegments, Label, OnParametersSet, PressedNote, Badge, FellowshipAnalyzer.Core.Analysis (+15 more)
 
 ### Community 126 - "Gunde Gundespellbooktests"
-Cohesion: 0.10
-Nodes (20): FightEndEvent, FightStartEvent, long, On&lt;FightEndEvent&gt;, On&lt;FightStartEvent&gt;, ApplyBuffEvent, ApplyBuffStackEvent, int (+12 more)
+Cohesion: 0.18
+Nodes (6): On&lt;DungeonEndEvent&gt;, DungeonEndEvent, int, long, RisingSpiritTracker, ProbeModule
 
 ### Community 127 - "Generators Modulegenerator"
-Cohesion: 0.08
-Nodes (23): AttributeArgumentSyntax, AttributeData, AttributeSyntax, Builder, CancellationToken, Deps, DiagnosticDescriptor, Diagnostics (+15 more)
+Cohesion: 0.10
+Nodes (21): Deps, Diagnostics, HandlerInfo, LazyAccessorInfo, ModuleInfo, PendingDiagnostic, AttributeData, DiagnosticDescriptor (+13 more)
 
 ### Community 128 - "Elarion Imports"
-Cohesion: 0.12
-Nodes (12): FellowshipAnalyzer.Core.Common.Spells.Elarion, FellowshipAnalyzer.Heroes.Elarion.Tests.Analysis, FellowshipAnalyzer.Heroes.Elarion.Modules, FellowshipAnalyzer.Heroes.Elarion.Analysis, IElarionSpell, Talent, Talents, Ability (+4 more)
+Cohesion: 0.13
+Nodes (10): FellowshipAnalyzer.Core.Common.Spells.Elarion, FellowshipAnalyzer.Heroes.Elarion.Tests.Analysis, FellowshipAnalyzer.Heroes.Elarion.Tests.Modules, FellowshipAnalyzer.Heroes.Elarion.Modules, FellowshipAnalyzer.Heroes.Elarion.Analysis, Talent, Talents, Fact (+2 more)
 
 ### Community 129 - "Imports Microsoft"
 Cohesion: 0.12
@@ -1389,20 +1099,20 @@ Cohesion: 0.25
 Nodes (8): IAsyncDisposable, DateTimeOffset, IJSObjectReference, IReadOnlyList, string, ValueTask, IndexedDbHistoryEntry, IndexedDbReportCacheService
 
 ### Community 131 - "Api Fellowshiplogsservice"
-Cohesion: 0.23
-Nodes (8): CharacterReports, IGetCharacterReports_CharacterData_Character, IOperationResult, AnalysisPreload, CancellationToken, Task, FellowshipLogsService, RawEventsResult
+Cohesion: 0.24
+Nodes (8): IGetCharacterReports_CharacterData_Character, IOperationResult, CharacterReports, CancellationToken, Task, FellowshipLogsService, RawEventsResult, UsageFacts
 
 ### Community 132 - "Elarion Guides"
 Cohesion: 0.09
-Nodes (22): Analyzers, BuffLabel, BuffTooltip, BuildOverviewStats, BuildPerCastData, BuildWindowNote, BuildWindowRow, Count (+14 more)
+Nodes (21): Analyzers, BuildOverviewStats, BuildPerCastData, BuildWindowNote, BuildWindowRow, Count, FormatSeconds, Percent (+13 more)
 
 ### Community 133 - "Chronoshiftanalyzer Beginchannelevent"
-Cohesion: 0.16
-Nodes (11): History, On&lt;ChangeCooldownModifierEvent&gt;, Events, ChangeCooldownModifierEvent, List, ChangeBuffStackEvent, ChangeDebuffStackEvent, ChangeStackEvent (+3 more)
+Cohesion: 0.41
+Nodes (4): Effect, Fact, Task, LingeringConcussionAnalyzerTests
 
 ### Community 134 - "Common Spellregistrytests"
-Cohesion: 0.08
-Nodes (27): ProcLedger, SpinTick, ApplyBuffEvent, bool, CastEvent, int, IReadOnlyList, List (+19 more)
+Cohesion: 0.13
+Nodes (13): ProcLedger, SpinTick, bool, int, IReadOnlyList, List, HammerStormAnalyzer, HammerStormCast (+5 more)
 
 ### Community 135 - "Events Phaseevent"
 Cohesion: 0.24
@@ -1410,35 +1120,39 @@ Nodes (13): IPhaseFilter, HealthEvent, List, AbilityPhaseFilter, ApplyBuffPhaseF
 
 ### Community 136 - "Elarion Guides"
 Cohesion: 0.10
-Nodes (19): Analyzers, BuildNote, BuildOverviewStats, BuildUltimateRow, BuildUltimateRows, PairingTier, CastDetail, CastOverview (+11 more)
+Nodes (19): Analyzers, BuildNote, BuildOverviewStats, BuildUltimateRow, BuildUltimateRows, ClipTier, PairingLabel, CastDetail (+11 more)
 
 ### Community 137 - "Elarion Guides"
 Cohesion: 0.12
-Nodes (15): FellowshipAnalyzer.Core.Utility, FellowshipAnalyzer.Heroes.Elarion.Analysis, FellowshipAnalyzer.Heroes.Elarion.Guides, FellowshipAnalyzer.Heroes.Elarion.Modules, Items, FellowshipAnalyzer.Core.Analysis, FellowshipAnalyzer.Core.Events, FellowshipAnalyzer.Core.Game (+7 more)
+Nodes (16): FellowshipAnalyzer.Core.Common.Spells.Elarion, FellowshipAnalyzer.Heroes.Elarion.Analysis, FellowshipAnalyzer.Heroes.Elarion.Guides, FellowshipAnalyzer.Heroes.Elarion.Modules, Items, FellowshipAnalyzer.Core.Analysis, FellowshipAnalyzer.Core.Events, FellowshipAnalyzer.Core.Game (+8 more)
 
 ### Community 138 - "Tariq Guides"
-Cohesion: 0.32
-Nodes (8): int, IReadOnlyList, List, AoEMaraResourceDiscipline, MaraFinisherCast, MaraPullShape, MaraResourceDisciplineAnalyzer, SingleTargetMaraResourceDiscipline
+Cohesion: 0.08
+Nodes (20): OvercapIncident, ClassResource, double, GreaterShockwaveAnalyzer, int, IReadOnlyList, List, MaraFinisherCast (+12 more)
 
 ### Community 139 - "Rime Rimeanalysisenginetests"
 Cohesion: 0.47
 Nodes (4): Fact, int, Task, WintersEmbraceUpliftTrackerTests
 
 ### Community 140 - "Analyzers Jsoncontextmissingserializablecodefix"
-Cohesion: 0.16
-Nodes (10): ClassDeclarationSyntax, CodeFixContext, CodeFixProvider, Document, FixAllProvider, CancellationToken, ImmutableArray, SyntaxNode (+2 more)
+Cohesion: 0.12
+Nodes (11): ClassDeclarationSyntax, CodeFixContext, CodeFixProvider, FellowshipAnalyzer.Analyzers, Document, FixAllProvider, CancellationToken, ImmutableArray (+3 more)
 
 ### Community 141 - "Iheroanalyzer Heroanalysisresult"
-Cohesion: 0.17
-Nodes (10): BuffUptime, EventHorizonPairing, MarkVolleyPairing, int, IReadOnlyList, List, BuffUptime, CooldownPairingAnalyzer (+2 more)
+Cohesion: 0.36
+Nodes (5): Fact, int, List, Task, GuileAnalyzerTests
+
+### Community 142 - "Analyzers Heroanalyzerpartialanalyzer"
+Cohesion: 0.09
+Nodes (21): BuildBarrierStats, BuildOverviewStats, BuildPressData, BuildPressStats, BuildTargetStats, PressPerformance, CastDetail, CastOverview (+13 more)
 
 ### Community 143 - "Generators Spelldatabasegeneratortests"
-Cohesion: 0.19
+Cohesion: 0.16
 Nodes (6): Fact, int, Parser, Result, Task, CooldownPairingAnalyzerTests
 
 ### Community 144 - "Imports Ui"
 Cohesion: 0.12
-Nodes (14): FellowshipAnalyzer.Core.Common.Items, FellowshipAnalyzer.Core.Analysis, FellowshipAnalyzer.Core.Common.Spells, FellowshipAnalyzer.Core.Contracts.Design, FellowshipAnalyzer.Core.Events, FellowshipAnalyzer.Core.Game, FellowshipAnalyzer.Core.UI.Components, FellowshipAnalyzer.Core.UI.Diagnostics (+6 more)
+Nodes (15): FellowshipAnalyzer.Core.Analysis, FellowshipAnalyzer.Core.Common.Items, FellowshipAnalyzer.Core.Common.Spells, FellowshipAnalyzer.Core.Contracts.Design, FellowshipAnalyzer.Core.Events, FellowshipAnalyzer.Core.Game, FellowshipAnalyzer.Core.Resources, FellowshipAnalyzer.Core.UI.Components (+7 more)
 
 ### Community 145 - "Api Fellowshiplogsapihandler"
 Cohesion: 0.06
@@ -1452,12 +1166,16 @@ Nodes (12): Microsoft.CodeAnalysis.CSharp.Workspaces, netstandard2.0, Microsoft.
 Cohesion: 0.11
 Nodes (17): route:/statistics, Badge, ChildContent, CodeExample, Demo, FellowshipAnalyzer.Core.Common.Spells.Rime, Info, PageTitle (+9 more)
 
+### Community 148 - "Spells Common"
+Cohesion: 0.10
+Nodes (20): AllWindows, BuildOverviewStats, BuildWindowRow, BuildWindowRows, CastDetail, CastOverview, FellowshipAnalyzer.Core.Common.Spells, GuideSection (+12 more)
+
 ### Community 149 - "Api Properties"
 Cohesion: 0.15
 Nodes (13): ASPNETCORE_ENVIRONMENT, commandName, dotnetRunMessages, environmentVariables, launchBrowser, commandName, dotnetRunMessages, environmentVariables (+5 more)
 
 ### Community 150 - "Spelldata Sourceloadertests"
-Cohesion: 0.13
+Cohesion: 0.12
 Nodes (12): Dictionary, IReadOnlyList, JsonElement, List, GearDataSource, GearWeapon, Dictionary, IconSource (+4 more)
 
 ### Community 151 - "Ardeos Csproj"
@@ -1505,40 +1223,44 @@ Cohesion: 0.14
 Nodes (12): net10.0, AspNetCore.SassCompiler, Microsoft.AspNetCore.Components.Web, Microsoft.Extensions.DependencyInjection.Abstractions, Microsoft.NET.Sdk.Razor, net10.0, Microsoft.Extensions.DependencyInjection, Microsoft.NET.Test.Sdk (+4 more)
 
 ### Community 162 - "Spellusabletests Cooldowndebuginfo"
-Cohesion: 0.12
-Nodes (14): Casts, HasIncinerate, HasPyromania, UnitKey, End, int, IReadOnlyList, List (+6 more)
+Cohesion: 0.13
+Nodes (15): HasIncinerate, HasPyromania, IReadOnlyList, ArdeosDotTracker, Casts, End, int, IReadOnlyList (+7 more)
 
 ### Community 163 - "Combatmechanics Cooldown"
 Cohesion: 0.18
 Nodes (12): Per-Report Per-Hero Analysis Pipeline, Ability-Specific Cooldown Recovery Modifiers, Metrics Enabled By These Mechanics, Chronoshift (800% increased cooldown recovery), Reconstructing Ability Cooldowns, Global Cooldown Modeling, Haste Snapshots vs Dynamic Updates, Haste-Adjusted Time Scaling (+4 more)
 
 ### Community 164 - "Elarion Elarionguide"
-Cohesion: 0.25
-Nodes (7): CelestialImpetusGuide, CooldownPairingGuide, FocusEconomyGuide, LunarlightMarkGuide, ElarionCombatLogParser, ReportComponent<ElarionCombatLogParser>, SupremacyWindowsGuide
+Cohesion: 0.33
+Nodes (5): CooldownPairingGuide, FocusEconomyGuide, ElarionCombatLogParser, ReportComponent<ElarionCombatLogParser>, SupremacyGuide
+
+### Community 165 - "Sylvie Sylvieanalysisenginetests"
+Cohesion: 0.33
+Nodes (5): Fact, int, List, Task, FinalStratagemAnalyzerTests
 
 ### Community 166 - "Aeona Aeonaanalysisenginetests"
-Cohesion: 0.24
-Nodes (7): Fact, int, Task, TestCombatLogParser, Type, MultiOnHandlerTests, TestCombatLogParser
+Cohesion: 0.20
+Nodes (8): Fact, int, Task, TestCombatLogParser, Type, InterfaceParamProbe, MultiOnHandlerTests, TestCombatLogParser
 
 ### Community 167 - "Meiko Meikoanalysisenginetests"
-Cohesion: 0.15
-Nodes (10): HasChronoshiftGear, IModuleActivePredicate, IReadOnlyList, ParseContext, DungeonPull, Fact, InlineData, Theory (+2 more)
+Cohesion: 0.12
+Nodes (12): HasChronoshiftGear, IModuleActivePredicate, IReadOnlyList, ParseContext, DraconicBracersoftheDevouringFlameActivePredicate, DoesNotHaveMacabreStratagem, Fact, InlineData (+4 more)
 
 ### Community 168 - "Xavian Xaviananalysisenginetests"
-Cohesion: 0.17
-Nodes (12): Slot, Dictionary, int, IReadOnlyList, List, TargetId, TargetInstance, HemorrhageApplication (+4 more)
+Cohesion: 0.18
+Nodes (5): Combatant, Dictionary, IReadOnlyDictionary, Combatants, Enemy
 
 ### Community 169 - "Vigour Vigouranalysisenginetests"
 Cohesion: 0.17
 Nodes (12): DevouringFlameMetrics, ReadinessWindow, End, IEnumerable, int, IReadOnlyList, List, long (+4 more)
 
+### Community 170 - "Helena Helenaanalysisenginetests"
+Cohesion: 0.10
+Nodes (19): BuildNote, BuildOverviewStats, BuildPerCastData, BuildWindowRow, FormatSeconds, JoinNames, PercentTier, CastDetail (+11 more)
+
 ### Community 171 - "Ui Guides"
 Cohesion: 0.15
 Nodes (12): IIncrementalGenerator, CancellationToken, GeneratorSyntaxContext, IncrementalGeneratorInitializationContext, IPropertySymbol, SourceProductionContext, string, SyntaxNode (+4 more)
-
-### Community 172 - "Generators Modulegenerator"
-Cohesion: 0.18
-Nodes (7): On&lt;ApplyDebuffEvent&gt;, ApplyDebuffEvent, DefaultActors, Unit, HashSet, int, RendSpreadAnalyzer
 
 ### Community 173 - "Wwwroot Js"
 Cohesion: 0.40
@@ -1546,19 +1268,19 @@ Nodes (12): cacheEventsBytes(), cacheMasterData(), compressBytes(), decompressBl
 
 ### Community 174 - "Elarion Elarionanalysisenginetests"
 Cohesion: 0.11
-Nodes (10): HitType, On&lt;DamageEvent&gt;, Ability, FSLID, DamageEvent, CombatMath, DamageEvent, DamageEvent (+2 more)
+Nodes (6): On&lt;DamageEvent&gt;, DamageEvent, CombatMath, double, DraconicBracersoftheDevouringFlame, SalvoTracker
 
 ### Community 175 - "Spelldata Handwrittenregistrysnapshot"
-Cohesion: 0.39
-Nodes (5): Assembly, IReadOnlyList, Type, HandWrittenRegistrySnapshot, SpellSnapshot
+Cohesion: 0.23
+Nodes (8): Assembly, IReadOnlyList, Type, HandWrittenRegistrySnapshot, SpellSnapshot, InlineData, Theory, MigrationDiffTests
 
 ### Community 176 - "Designsystem Tabsshowcase"
 Cohesion: 0.17
 Nodes (11): Actions, route:/tabs, Badge, ChildContent, CodeExample, Demo, LabelTemplate, PageTitle (+3 more)
 
 ### Community 177 - "Generators Modulegenerator"
-Cohesion: 0.06
-Nodes (38): ActorResources, Computed, Dictionary, double, HealthSample, SpellCapture, Abilities, CastEvent (+30 more)
+Cohesion: 0.12
+Nodes (14): HealthSample, Computed, Dictionary, double, int, IReadOnlyList, List, Computed (+6 more)
 
 ### Community 178 - "Claude Hero"
 Cohesion: 0.33
@@ -1573,16 +1295,16 @@ Cohesion: 0.18
 Nodes (7): System.Runtime.CompilerServices, Dictionary, int, ReportLoadingTracker, StepState, IsExternalInit, StepState
 
 ### Community 181 - "Ardeos Imports"
-Cohesion: 0.15
-Nodes (12): FellowshipAnalyzer.Heroes.Ardeos.Analysis, FellowshipAnalyzer.Heroes.Ardeos.Guides, FellowshipAnalyzer.Heroes.Ardeos.Modules, FellowshipAnalyzer.Core.Analysis, FellowshipAnalyzer.Core.Game, FellowshipAnalyzer.Core.UI.Charts, FellowshipAnalyzer.Core.UI.Components, FellowshipAnalyzer.Core.UI.Diagnostics (+4 more)
+Cohesion: 0.14
+Nodes (13): FellowshipAnalyzer.Heroes.Ardeos.Analysis, FellowshipAnalyzer.Heroes.Ardeos.Guides, FellowshipAnalyzer.Heroes.Ardeos.Modules, FellowshipAnalyzer.Core.Analysis, FellowshipAnalyzer.Core.Common, FellowshipAnalyzer.Core.Game, FellowshipAnalyzer.Core.UI.Charts, FellowshipAnalyzer.Core.UI.Components (+5 more)
 
 ### Community 182 - "Tariq Imports"
-Cohesion: 0.15
-Nodes (12): FellowshipAnalyzer.Heroes.Tariq.Guides, FellowshipAnalyzer.Heroes.Tariq.Modules, FellowshipAnalyzer.Core.Analysis, FellowshipAnalyzer.Core.Events, FellowshipAnalyzer.Core.Game, FellowshipAnalyzer.Core.UI.Charts, FellowshipAnalyzer.Core.UI.Components, FellowshipAnalyzer.Core.UI.Diagnostics (+4 more)
+Cohesion: 0.14
+Nodes (13): FellowshipAnalyzer.Heroes.Tariq.Analysis, FellowshipAnalyzer.Heroes.Tariq.Guides, FellowshipAnalyzer.Heroes.Tariq.Modules, FellowshipAnalyzer.Core.Analysis, FellowshipAnalyzer.Core.Events, FellowshipAnalyzer.Core.Game, FellowshipAnalyzer.Core.UI.Charts, FellowshipAnalyzer.Core.UI.Components (+5 more)
 
 ### Community 183 - "Designsystem Guidelayoutshowcase"
 Cohesion: 0.08
-Nodes (23): FuryEconomyAnalyzer, ReportComponent<TariqCombatLogParser>, Analyzers, BuildOverviewStats, BuildPerPullData, BuildPullRow, ChartBands, FuryCurve (+15 more)
+Nodes (25): FuryEconomyAnalyzer, Analyzers, BuildOverviewStats, BuildPerPullData, BuildPullRow, ChartBands, FuryCurve, AuraStackBand (+17 more)
 
 ### Community 184 - "Designsystem Barsshowcase"
 Cohesion: 0.17
@@ -1590,23 +1312,23 @@ Nodes (11): PassFailBar, route:/bars, OnBoxClick, CodeExample, Demo, GradiatedPe
 
 ### Community 185 - "Designsystem Infrastructureshowcase"
 Cohesion: 0.17
-Nodes (11): route:/infrastructure, SpiritStatistics, CodeExample, Demo, FellowshipAnalyzer.Core.Analysis, PageTitle, ReportLoadingScreen, ResourceGraph (+3 more)
+Nodes (11): route:/infrastructure, SpiritStatistics, SpiritTracker, CodeExample, Demo, FellowshipAnalyzer.Core.Analysis, PageTitle, ReportLoadingScreen (+3 more)
 
 ### Community 186 - "Auras Elarion"
-Cohesion: 0.19
-Nodes (6): CooldownInfo, FilterCooldownInfoEvent, On&lt;FilterCooldownInfoEvent&gt;, UpdateSpellUsableEvent, CastEvent, UpdateSpellUsableType
+Cohesion: 0.08
+Nodes (24): Fact, Task, BlueyTrackerTests, Fact, Task, CureAilmentAnalyzerTests, Fact, Task (+16 more)
 
 ### Community 187 - "Heroanalyzerattribute Hero"
-Cohesion: 0.17
-Nodes (9): Fact, GeneratorRunResult, Event, List, FullCombatant, ReportDungeon, DungeonBookendNormalizerTests, string (+1 more)
+Cohesion: 0.43
+Nodes (3): Fact, string, BaseHandlerChainingTests
 
 ### Community 188 - "Common Spelltypetests"
-Cohesion: 0.21
-Nodes (9): JsonTypeInfo, Dictionary, List, ReadOnlySpan, Type, Utf8JsonReader, EventJsonRange, EventsResultMetadata (+1 more)
+Cohesion: 0.28
+Nodes (6): JsonSerializerContext, FellowshipAnalyzerJsonContext, ThemeJsonContext, Fact, string, FSLIDSourceGenRoundTripTests
 
 ### Community 189 - "Common Fslidtests"
-Cohesion: 0.25
-Nodes (7): Fact, InlineData, int, List, Task, Theory, RollingFlamesAnalyzerTests
+Cohesion: 0.21
+Nodes (10): Dictionary, int, IReadOnlyList, RollingFlamesAnalyzer, RollingFlamesCdr, Fact, int, List (+2 more)
 
 ### Community 190 - "Ui Diagnostics"
 Cohesion: 0.17
@@ -1616,21 +1338,37 @@ Nodes (11): BuildText, Copy, EscapeForString, OnParametersSet, FellowshipAnalyze
 Cohesion: 0.35
 Nodes (11): cache, cancelHide(), dispose(), hide(), init(), onEnter(), onLeave(), position() (+3 more)
 
+### Community 192 - "Spelldata Resourcetypesconvertertests"
+Cohesion: 0.27
+Nodes (5): Fact, int, List, Task, MaidenOfDeathAnalyzerTests
+
+### Community 193 - "Moduleactivationtests Ismoduleactive"
+Cohesion: 0.11
+Nodes (18): FellowshipAnalyzer.Core.FellowshipLogs.ReportMasterDataService, BuildBlueyPullData, BuildBlueyPullStats, BuildBlueyStats, BuildFlutterflyStats, BuildPerPullData, BuildPullStats, HolderName (+10 more)
+
 ### Community 194 - "Combatmechanics Serena"
 Cohesion: 0.25
 Nodes (11): Serena Project Configuration, Comment Policy, WoWAnalyzer Port-Priority Audit, Archon Fellowship Logs, Fellowship Combat Mechanics for Log Analysis, Secondary Stats and Rating System, Contribution Workflow, AGPL-3.0 License Lineage (+3 more)
 
 ### Community 195 - "Ardeos Statistics"
-Cohesion: 0.24
-Nodes (7): DungeonPull, Event, List, PullKind, PullStartEvent, ReportDungeon, PullBookendNormalizer
+Cohesion: 0.11
+Nodes (18): AbilitiesTier, Analyzers, BuildCastRow, BuildOverviewStats, BuildPerCastData, FormatSeconds, CastDetail, CastOverview (+10 more)
 
 ### Community 196 - "Ardeos Statistics"
-Cohesion: 0.26
-Nodes (5): JsonValue, Dictionary, List, JsonParser, JsonValue
+Cohesion: 0.11
+Nodes (18): Analyzers, BuildOverviewStats, BuildPerCastData, BuildWindowNote, BuildWindowRow, Count, FormatSeconds, CastDetail (+10 more)
 
 ### Community 197 - "External Fs"
 Cohesion: 0.25
 Nodes (8): Hero Parser Pattern, No Cross-Hero Project References, RimeCombatLogParser (reference parser), Shipped Hero Projects, Solution Layout, Choosing Where Code Goes, AddFellowshipHeroAnalysis (aggregate registration), Hero Project Boundary
+
+### Community 198 - "Elarion Cooldownefficiencyanalyzer"
+Cohesion: 0.18
+Nodes (8): SpellCapture, Computed, Dictionary, IReadOnlyList, Computed, HealingEfficiencyTracker, SpellCapture, SpellHealingEfficiency
+
+### Community 199 - "Api Ratelimitertests"
+Cohesion: 0.19
+Nodes (8): MagicSchool, Dictionary, IReadOnlyDictionary, JsonElement, GlobalSpell, SpellDataSource, InlineData, Theory
 
 ### Community 200 - "Elarion Guides"
 Cohesion: 0.25
@@ -1644,13 +1382,17 @@ Nodes (11): Annotated armor breakpoints (100/300/500/800/1200), Armor (input sta
 Cohesion: 0.18
 Nodes (10): FellowshipAnalyzer.Shared, HeroSupportList, HomeAbout, HomeNews, ReportHistory, ReportSelector, PageTitle, route:/ (+2 more)
 
+### Community 203 - "Elarion Guides"
+Cohesion: 0.19
+Nodes (9): AttributeArgumentSyntax, AttributeSyntax, ExpressionSyntax, SemanticModel, Builder, CancellationToken, IMethodSymbol, IPropertySymbol (+1 more)
+
 ### Community 204 - "Designsystem Guidedatawrappershowcase"
 Cohesion: 0.18
 Nodes (10): route:/guide-data-wrapper, ChildContent, CodeExample, Demo, GuideDataWrapper, PageTitle, PerfBadgeCount, PerfBadgeGrid (+2 more)
 
 ### Community 205 - "Designsystem Spellvalueshowcase"
-Cohesion: 0.33
-Nodes (6): Property, Value, Fact, IEnumerable, string, TimelineLaneAlignmentTests
+Cohesion: 0.14
+Nodes (15): Property, route:/spell-value, SpellValue, ChildContent, CodeExample, Demo, FellowshipAnalyzer.Core.Common.Spells.Rime, PageTitle (+7 more)
 
 ### Community 206 - "Designsystem Timelineshowcase"
 Cohesion: 0.18
@@ -1658,51 +1400,55 @@ Nodes (10): route:/timeline, AuraBar, CastBar, CodeExample, CooldownLane, Demo, 
 
 ### Community 207 - "Analyzers Moduleconstructoranalyzer"
 Cohesion: 0.11
-Nodes (18): Analyzers, BuildNote, BuildOverviewStats, BuildWindowRow, BuildWindowRows, CastDetail, CastOverview, ChildContent (+10 more)
+Nodes (18): Analyzers, BuildNote, BuildOverviewStats, BuildWindowRow, BuildWindowRows, CastDetail, CastOverview, ElarionCombatLogParser (+10 more)
 
 ### Community 208 - "Stattracker Cooldownmodifier"
-Cohesion: 0.14
-Nodes (14): FellowshipAnalyzer.Core.Common.Spells.Ardeos, FellowshipAnalyzer.Core.Common.Spells.Elarion, IArdeosSpell, IElarionSpell, IRimeSpell, AbilityCategory, FSLID, IReadOnlyDictionary (+6 more)
+Cohesion: 0.38
+Nodes (5): Fact, int, List, Task, MatriarchMacabreAnalyzerTests
 
 ### Community 209 - "Fellowshiplogs Ireportcacheservice"
-Cohesion: 0.11
-Nodes (17): IReadOnlyDictionary, Costs, IReadOnlyList, EffectLink, Linking, IReadOnlyList, JsonElement, List (+9 more)
+Cohesion: 0.15
+Nodes (13): AbilityCategory, IReadOnlyList, EffectLink, Linking, IReadOnlyList, JsonElement, List, ConstantsEntry (+5 more)
 
 ### Community 210 - "Spelldata Json"
-Cohesion: 0.08
-Nodes (20): FellowshipAnalyzer.Core.Tests.Game, Member, Names, ResourceTypes, IEnumerable, IReadOnlyDictionary, IReadOnlyList, JsonSerializerOptions (+12 more)
+Cohesion: 0.32
+Nodes (3): Fact, JsonSerializerOptions, ResourceTypesConverterTests
 
 ### Community 211 - "Spelldata Sources"
-Cohesion: 0.22
-Nodes (8): Abilities, IEnumerable, SpellbookAbility, TestAbilities, IEnumerable, SpellbookAbility, RecommendedSpellbook, TestSpellbook
+Cohesion: 0.17
+Nodes (10): On&lt;DispelEvent&gt;, Dictionary, Func, IEnumerable, IReadOnlyDictionary, IReadOnlyList, List, DispelRecord (+2 more)
 
 ### Community 212 - "Mara Maraanalysisenginetests"
-Cohesion: 0.09
-Nodes (15): FellowshipAnalyzer.Analyzers, DiagnosticAnalyzer, AnalysisContext, DiagnosticDescriptor, ImmutableArray, string, SymbolAnalysisContext, HeroAnalyzerPartialAnalyzer (+7 more)
+Cohesion: 0.20
+Nodes (7): AnalysisContext, DiagnosticDescriptor, ImmutableArray, INamedTypeSymbol, string, SymbolAnalysisContext, ModuleConstructorAnalyzer
 
 ### Community 213 - "Rime Statistics"
-Cohesion: 0.40
-Nodes (3): FellowshipAnalyzer.Heroes.Xavian.Tests.Analysis, Fact, XavianSpellbookTests
+Cohesion: 0.15
+Nodes (8): FellowshipAnalyzer.Heroes.Xavian.Tests.Analysis, FellowshipAnalyzer.Heroes.Xavian.Analysis, XavianCombatLogParser, Fact, Task, XavianAnalysisEngineTests, Fact, XavianSpellbookTests
 
 ### Community 214 - "Stattrackercooldowntests Stattracker"
-Cohesion: 0.23
-Nodes (9): List, AuraConfigEntry, CooldownConfigEntry, TimelineConfig, TimelineSpellOption, JsonSerializerOptions, string, Task (+1 more)
+Cohesion: 0.12
+Nodes (15): FellowshipAnalyzer.Core.Tests.Timeline, List, AuraConfigEntry, CooldownConfigEntry, TimelineConfig, TimelineSpellOption, IEnumerable, IReadOnlyDictionary (+7 more)
 
 ### Community 215 - "Elarion Guides"
-Cohesion: 0.15
-Nodes (12): ActorResources, ClassResource, Computed, DamageEvent, Dictionary, double, int, IReadOnlyList (+4 more)
+Cohesion: 0.07
+Nodes (29): OneOfBase, Reduction, DotCoverage, Func, GcdValue, CooldownReductionResult, RenderFragment, CheckItem (+21 more)
+
+### Community 216 - "Elarion Plan"
+Cohesion: 0.33
+Nodes (6): Fact, int, Parser, Result, Task, FocusEconomyAnalyzerTests
 
 ### Community 217 - "Aeona Imports"
 Cohesion: 0.20
 Nodes (9): FellowshipAnalyzer.Heroes.Aeona.Analysis, FellowshipAnalyzer.Heroes.Aeona.Modules, FellowshipAnalyzer.Core.Analysis, FellowshipAnalyzer.Core.UI.Components, FellowshipAnalyzer.Core.UI.Diagnostics, FellowshipAnalyzer.Core.UI.Guides, FellowshipAnalyzer.Core.UI.Timeline, Microsoft.AspNetCore.Components (+1 more)
 
 ### Community 218 - "Gunde Imports"
-Cohesion: 0.15
-Nodes (12): FellowshipAnalyzer.Heroes.Gunde.Modules, FellowshipAnalyzer.Heroes.Gunde.Statistics, FellowshipAnalyzer.Core.Analysis, FellowshipAnalyzer.Core.Game, FellowshipAnalyzer.Core.UI, FellowshipAnalyzer.Core.UI.Components, FellowshipAnalyzer.Core.UI.Diagnostics, FellowshipAnalyzer.Core.UI.Guides (+4 more)
+Cohesion: 0.17
+Nodes (11): FellowshipAnalyzer.Heroes.Gunde.Modules, FellowshipAnalyzer.Core.Analysis, FellowshipAnalyzer.Core.Game, FellowshipAnalyzer.Core.UI, FellowshipAnalyzer.Core.UI.Components, FellowshipAnalyzer.Core.UI.Diagnostics, FellowshipAnalyzer.Core.UI.Guides, FellowshipAnalyzer.Core.UI.Timeline (+3 more)
 
 ### Community 219 - "Helena Imports"
-Cohesion: 0.10
-Nodes (18): FellowshipAnalyzer.Core.UI, FellowshipAnalyzer.Core.UI.Components, FellowshipAnalyzer.Core.UI.Diagnostics, FellowshipAnalyzer.Core.UI.Guides, FellowshipAnalyzer.Core.UI.Timeline, FellowshipAnalyzer.Heroes.Sylvie.Analysis, FellowshipAnalyzer.Heroes.Sylvie.Guides, FellowshipAnalyzer.Heroes.Sylvie.Modules (+10 more)
+Cohesion: 0.11
+Nodes (17): FellowshipAnalyzer.Core.Common.Spells.Sylvie, FellowshipAnalyzer.Heroes.Sylvie.Analysis, FellowshipAnalyzer.Heroes.Sylvie.Guides, FellowshipAnalyzer.Heroes.Sylvie.Modules, FellowshipAnalyzer.Core.Analysis, FellowshipAnalyzer.Core.Contracts.Design, FellowshipAnalyzer.Core.Game, FellowshipAnalyzer.Core.UI (+9 more)
 
 ### Community 220 - "Meiko Imports"
 Cohesion: 0.20
@@ -1710,7 +1456,7 @@ Nodes (9): FellowshipAnalyzer.Heroes.Meiko.Analysis, FellowshipAnalyzer.Heroes.M
 
 ### Community 221 - "Sylvie Imports"
 Cohesion: 0.13
-Nodes (13): On&lt;BeginChannelEvent&gt;, On&lt;EndChannelEvent&gt;, Dictionary, double, int, IReadOnlyList, List, Type (+5 more)
+Nodes (11): On&lt;ChangeCooldownModifierEvent&gt;, On&lt;EndChannelEvent&gt;, Dictionary, double, int, IReadOnlyList, List, AbilityRecovery (+3 more)
 
 ### Community 222 - "Vigour Imports"
 Cohesion: 0.20
@@ -1725,12 +1471,16 @@ Cohesion: 0.29
 Nodes (6): IApplicationBuilder, IStartupFilter, Action, string, FellowshipLogsApiBuilderExtensions, FellowshipLogsApiStartupFilter
 
 ### Community 225 - "Elarion Guides"
-Cohesion: 0.13
-Nodes (10): FellowshipAnalyzer.Core.Analysis.Deaths, FellowshipAnalyzer.Core.UI.Statistics, FellowshipAnalyzer.Core.Events, FellowshipAnalyzer.Core.UI.Guides, FellowshipAnalyzer.Core.Common, FellowshipAnalyzer.Core.Common.Spells, Microsoft.AspNetCore.Components, ForPullAttribute (+2 more)
+Cohesion: 0.32
+Nodes (7): Fact, int, List, Parser, Result, Task, FuryTrackerTests
+
+### Community 226 - "Extensions"
+Cohesion: 0.18
+Nodes (8): EventHorizonWindow, int, IReadOnlyList, List, WindowState, EventHorizonWindow, FocusEconomyAnalyzer, WindowState
 
 ### Community 227 - "Spelldata Json"
-Cohesion: 0.10
-Nodes (20): FocusedWrathAnalyzer, AllWindows, BuildOverviewStats, BuildWrathRow, BuildWrathRows, DiscountSplit, CastDetail, CastOverview (+12 more)
+Cohesion: 0.08
+Nodes (25): FocusedWrathAnalyzer, BuildOverviewStats, BuildWrathRow, BuildWrathRows, ChargeCount, ChargeTier, ChargeTooltip, CastDetail (+17 more)
 
 ### Community 228 - "Designsystem Tipboxshowcase"
 Cohesion: 0.20
@@ -1741,8 +1491,8 @@ Cohesion: 0.20
 Nodes (9): route:/diagnostics, CodeExample, CopySpellDefinition, DebugAnnotationsView, Demo, EventsView, FellowshipAnalyzer.Core.Common.Spells.Rime, PageTitle (+1 more)
 
 ### Community 230 - "Api Fellowshiplogshandleroptions"
-Cohesion: 0.24
-Nodes (8): MemoryCacheEntryOptions, HashSet, string, TimeSpan, FellowshipLogsCacheOptions, FellowshipLogsCorsOptions, FellowshipLogsRateLimitOptions, FellowshipLogsUpstreamRateLimitOptions
+Cohesion: 0.20
+Nodes (9): MemoryCacheEntryOptions, AnalysisPreload, HashSet, string, TimeSpan, FellowshipLogsCacheOptions, FellowshipLogsCorsOptions, FellowshipLogsRateLimitOptions (+1 more)
 
 ### Community 231 - "Wwwroot Js"
 Cohesion: 0.44
@@ -1750,15 +1500,15 @@ Nodes (8): loadBootResource(), markResourceComplete(), reportError(), setProgres
 
 ### Community 232 - "Mara Imports"
 Cohesion: 0.11
-Nodes (17): FellowshipAnalyzer.Heroes.Mara.Analysis, FellowshipAnalyzer.Heroes.Mara.Guides, FellowshipAnalyzer.Heroes.Mara.Guides.Stealth, FellowshipAnalyzer.Heroes.Mara.Modules, FellowshipAnalyzer.Core.Analysis, FellowshipAnalyzer.Core.Contracts.Design, FellowshipAnalyzer.Core.Events, FellowshipAnalyzer.Core.Game (+9 more)
+Nodes (18): FellowshipAnalyzer.Heroes.Mara.Guides.Stealth, FellowshipAnalyzer.Heroes.Mara.Modules, FellowshipAnalyzer.Core.Analysis, FellowshipAnalyzer.Core.Common, FellowshipAnalyzer.Core.Contracts.Design, FellowshipAnalyzer.Core.Events, FellowshipAnalyzer.Core.Game, FellowshipAnalyzer.Core.UI (+10 more)
 
 ### Community 233 - "Generators Csproj"
 Cohesion: 0.20
 Nodes (9): net10.0, Microsoft.CodeAnalysis.CSharp, Microsoft.Extensions.DependencyInjection, Microsoft.NET.Test.Sdk, NSubstitute, Shouldly, xunit, xunit.runner.visualstudio (+1 more)
 
 ### Community 234 - "Spelldata Mergeenginetests"
-Cohesion: 0.09
-Nodes (11): FellowshipAnalyzer.Core.Contracts.Design, FaColor, FaElevation, FaMetrics, double, FaSourceColors, FaTint, FaTokenGroup (+3 more)
+Cohesion: 0.14
+Nodes (6): FaColor, FaElevation, FaPalette, double, FaSourceColors, FaTint
 
 ### Community 235 - "Generators Spelldatabasegeneratortestharness"
 Cohesion: 0.15
@@ -1770,31 +1520,31 @@ Nodes (9): Checking a word against the game, Constraints you do not inherit, Del
 
 ### Community 237 - "Ui Resourcegraph"
 Cohesion: 0.10
-Nodes (19): ApexChart, ApexCharts, ApexPointSeries, Curve, FellowshipAnalyzer.Core.UI.Theming, GraphPoint, Build, BuildGraphData (+11 more)
+Nodes (19): Curve, GraphPoint, Build, BuildGraphData, BuildOptions, Dispose, GraphPoint, OnInitialized (+11 more)
 
 ### Community 238 - "Helena Abilities"
-Cohesion: 0.19
-Nodes (14): DungeonNpc, InlineData, DungeonPull, Event, Fact, FullCombatant, IReadOnlyList, List (+6 more)
+Cohesion: 0.06
+Nodes (32): IEventNormalizer, IGetReportMasterData_ReportData_Report_MasterData_Actors, IGetReportMasterData_ReportData_Report_TargetFight_DungeonPulls_EnemyNPCs, IGetReportMasterData_ReportData_Report_TargetFight_EnemyNPCs, List, AbilityMasterDataNormalizer, List, DungeonBookendNormalizer (+24 more)
 
 ### Community 239 - "Xavian Abilities"
 Cohesion: 0.50
 Nodes (4): Core State to Track Per Player, Hero Resource Types, Resource Type ID List, Spirit Generation Formula
 
 ### Community 240 - "ModuleConstructorAnalyzer"
-Cohesion: 0.18
-Nodes (8): ApplyBuffEvent, bool, DamageEvent, HashSet, RemoveBuffEvent, StatisticCategory, Type, SwordAndBoardAnalyzer
+Cohesion: 0.24
+Nodes (5): IReadOnlyDictionary, Normalization, Dictionary, Fact, NormalizationTests
 
 ### Community 241 - "Game Resourcenameattributetests"
-Cohesion: 0.07
-Nodes (20): Func, IReadOnlyList, IPerformanceScoringService, PerformanceScoreThresholds, ScoreBreakpoint, ScoredCheck, Func, IReadOnlyList (+12 more)
+Cohesion: 0.16
+Nodes (9): Func, IReadOnlyList, IPerformanceScoringService, PerformanceScoreThresholds, ScoreBreakpoint, ScoredCheck, Func, IReadOnlyList (+1 more)
 
 ### Community 243 - "UpdateSpellUsableEvent"
-Cohesion: 0.09
-Nodes (17): ApplyBuffStackEvent, bool, CastEvent, Computed, Dictionary, double, int, IReadOnlyDictionary (+9 more)
+Cohesion: 0.15
+Nodes (12): bool, Computed, Dictionary, double, int, IReadOnlyList, Computed, CooldownCombo (+4 more)
 
 ### Community 244 - "WinterOrbTracker"
-Cohesion: 0.10
-Nodes (16): ApplyDebuffEvent, ApplyDebuffStackEvent, DebuffUptimeAnalyzer, RefreshDebuffEvent, RemoveDebuffEvent, RemoveDebuffStackEvent, Computed, Dictionary (+8 more)
+Cohesion: 0.18
+Nodes (7): int, IReadOnlyList, List, StealthAnalyzer, StealthSpan, StealthWindow, StealthSpan
 
 ### Community 245 - "Designsystem Performanceshowcase"
 Cohesion: 0.22
@@ -1805,16 +1555,16 @@ Cohesion: 0.27
 Nodes (7): Fact, int, List, Parser, Result, Task, HeartSplitterAnalyzerTests
 
 ### Community 247 - "ReportFight"
-Cohesion: 0.38
-Nodes (5): Fact, int, List, Task, ThroughputTrackerTests
+Cohesion: 0.20
+Nodes (9): Fact, IEnumerable, int, List, Task, Type, TestAbilities, TestParser (+1 more)
 
 ### Community 248 - "Spelldata Model"
 Cohesion: 0.33
 Nodes (4): Dictionary, Provenance, ProvenanceBuilder, ProvenanceSource
 
 ### Community 249 - "Tariq Furyeconomyanalyzer"
-Cohesion: 0.17
-Nodes (13): Dungeon, PullLedger, Ability, CastEvent, DamageEvent, Dictionary, HealEvent, IReadOnlyList (+5 more)
+Cohesion: 0.20
+Nodes (9): Dungeon, PullLedger, Dictionary, IReadOnlyList, List, Pull, AbilityTracker, PullLedger (+1 more)
 
 ### Community 250 - "Github Workflows"
 Cohesion: 0.28
@@ -1822,11 +1572,11 @@ Nodes (9): RunAOTCompilation=false in CI, CI Build Solution Job, CI Test Matrix 
 
 ### Community 251 - "Ui Herosupportlist"
 Cohesion: 0.29
-Nodes (6): HeroConfigEntry, HeroSupportCard, IHeroConfigCatalog, OnInitialized, FellowshipAnalyzer.Core.Analysis, RoleLabel
+Nodes (6): HeroSupportCard, OnInitialized, FellowshipAnalyzer.Core.Analysis, HeroConfigEntry, IHeroConfigCatalog, RoleLabel
 
 ### Community 252 - "Tools Refresh"
-Cohesion: 0.06
-Nodes (16): FellowshipAnalyzer.Core.UI.Components, FellowshipAnalyzer.Core.Resources, AvatarShape, AvatarSize, BadgeSize, BadgeType, BreadcrumbItem, ButtonGroupOption (+8 more)
+Cohesion: 0.03
+Nodes (30): FellowshipAnalyzer.Core.Common.Spells, FellowshipAnalyzer.Core.Analysis.Deaths, FellowshipAnalyzer.Core.Serialization, FellowshipAnalyzer.Core.Tests.Serialization, FellowshipAnalyzer.Core.UI.Components, FellowshipAnalyzer.Core.Common.Items, FellowshipAnalyzer.Core.Events, FellowshipAnalyzer.Core.Utility (+22 more)
 
 ### Community 253 - ".Initialize"
 Cohesion: 0.11
@@ -1850,7 +1600,7 @@ Nodes (7): route:/character/{Id:int}, FormatDate, OnParametersSetAsync, Fellowsh
 
 ### Community 258 - "Designsystem Explanationshowcase"
 Cohesion: 0.25
-Nodes (7): HelperText, route:/explanation, CodeExample, Demo, Explanation, PageTitle, WipGuide
+Nodes (7): route:/explanation, CodeExample, Demo, HelperText, LeftPanel, PageTitle, WipGuide
 
 ### Community 259 - "Designsystem Filterbadgeshowcase"
 Cohesion: 0.25
@@ -1869,12 +1619,12 @@ Cohesion: 0.32
 Nodes (5): SortedDictionary, SortedSet, JsonElement, EventTypeSchema, PropertyInfo
 
 ### Community 263 - "SpellDatabaseTests.cs"
-Cohesion: 0.18
-Nodes (7): INamespaceSymbol, IncrementalGeneratorInitializationContext, IEnumerable, DerivedTypeInfo, JsonDerivedTypeGenerator, SyntaxNode, TriggerInfo
+Cohesion: 0.13
+Nodes (15): DerivedTypeInfo, CancellationToken, GeneratorSyntaxContext, IEnumerable, ImmutableArray, INamedTypeSymbol, INamespaceSymbol, IncrementalGeneratorInitializationContext (+7 more)
 
 ### Community 264 - "FellowshipAnalyzer.Core.Common.Spells.Meiko"
-Cohesion: 0.23
-Nodes (10): AbilityCastEfficiency, CastEvent, Event, Fact, InlineData, int, IReadOnlyList, Theory (+2 more)
+Cohesion: 0.29
+Nodes (7): AbilityCastEfficiency, Fact, InlineData, int, IReadOnlyList, Theory, CastEfficiencyModelTests
 
 ### Community 265 - "Ui Reportloadingscreen"
 Cohesion: 0.25
@@ -1893,20 +1643,20 @@ Cohesion: 0.32
 Nodes (6): handleReconnectStateChanged(), reconnectModal, resumeButton, retry(), retryButton, retryWhenDocumentBecomesVisible()
 
 ### Community 269 - "Services Fellowshiplogsapiclient"
-Cohesion: 0.33
-Nodes (5): CharacterReports, CancellationToken, Task, FellowshipLogsApiClient, RawEventsResponse
+Cohesion: 0.23
+Nodes (9): EventsResult, CancellationToken, Task, FellowshipLogsApiClient, RawEventsResponse, Func, Task, ReportAnalysisContext (+1 more)
 
 ### Community 270 - "Spelldata Sources"
-Cohesion: 0.32
-Nodes (5): IEnumerable, IReadOnlyDictionary, IReadOnlySet, Fact, TimelineConfigServiceTests
+Cohesion: 0.21
+Nodes (9): int, IReadOnlyList, List, WindowState, MultishotCast, SupremacyAnalyzer, SupremacyWindow, WindowState (+1 more)
 
 ### Community 271 - ".DescribeProblem"
-Cohesion: 0.17
-Nodes (9): EventSubscriber, ApplyBuffEvent, bool, DamageEvent, int, RemoveBuffEvent, StatisticCategory, Type (+1 more)
+Cohesion: 0.14
+Nodes (13): ErrorBoundary, ErrorContent, ErrorDialog, Close, Dispose, HandleLocationChanged, OnInitialized, ChildContent (+5 more)
 
 ### Community 272 - "Ardeos Rollingflamesanalyzer"
-Cohesion: 0.09
-Nodes (21): CastDetail, CastOverview, GuideContainer, GuideSection, LeftPanel, OverviewStat, PerCastData, ReportComponent<SylvieCombatLogParser> (+13 more)
+Cohesion: 0.17
+Nodes (11): route:/guide-layout, SideBySidePanels, CodeExample, Demo, GuideContainer, GuideSection, LeftPanel, PageTitle (+3 more)
 
 ### Community 273 - "Tariq Statistics"
 Cohesion: 0.18
@@ -1917,24 +1667,24 @@ Cohesion: 0.29
 Nodes (6): ChangelogFeedItem, OnInitialized, BrandIcon, ContributorLink, HeroIcon, IHeroConfigCatalog
 
 ### Community 275 - "Layout Mainlayout"
-Cohesion: 0.29
-Nodes (6): ContributorProfileModal, OnAfterRenderAsync, BrandIcon, Glyph, IJSRuntime, SpellTooltipProvider
+Cohesion: 0.22
+Nodes (8): Attribution, ContributorProfileModal, PageErrorBoundary, OnAfterRenderAsync, BrandIcon, Glyph, IJSRuntime, SpellTooltipProvider
 
 ### Community 276 - "Statistics Statisticcategory"
-Cohesion: 0.13
-Nodes (17): Contributor, FellowshipAnalyzer.Heroes.Sylvie.Analysis, ChangelogEntry, IReadOnlyList, HeroConfig, SupportLevel, RimeCombatLogParser, SylvieCombatLogParser (+9 more)
+Cohesion: 0.11
+Nodes (17): MajorTracking, bool, IEnumerable, int, IReadOnlyList, List, MajorCooldownAnalyzer, MajorCooldownUsage (+9 more)
 
 ### Community 277 - "Utility Replaceparametervisitor"
 Cohesion: 0.17
 Nodes (11): Global Constraints, Guide skill training implementation plan, Task 1: Corpus fixtures as git ref pairs, Task 2: Reconcile guide-review against the memory record, Task 3: guide-judge and the five counts, Task 4: score.cs and the gate arithmetic, Task 5: The falsification test, a stop-or-continue gate, Task 6: Rename to guide-review and unhook the writer (+3 more)
 
 ### Community 278 - "Events Changestackevent"
-Cohesion: 0.38
-Nodes (3): Fact, Task, DefensiveAnalyzerTests
+Cohesion: 0.57
+Nodes (3): CooldownModifier, CooldownModifierSet, CooldownPool
 
 ### Community 279 - "Api Fellowshiplogsservicecollectionextensions"
-Cohesion: 0.11
-Nodes (12): FellowshipAnalyzer.Generators, CastsLabel, FillClass, OnParametersSet, AbilityCastEfficiency, FellowshipAnalyzer.Core.Analysis, PullStartEvent, ReportComponent (+4 more)
+Cohesion: 0.15
+Nodes (12): CastsLabel, FillClass, OnParametersSet, Abilities, AbilityCastEfficiency, FellowshipAnalyzer.Core.Analysis, PullStartEvent, ReportComponent (+4 more)
 
 ### Community 280 - "Designsystem Badgeshowcase"
 Cohesion: 0.29
@@ -1962,7 +1712,7 @@ Nodes (6): route:/spell-link, CodeExample, Demo, FellowshipAnalyzer.Core.Common.
 
 ### Community 286 - "Services Reportnavigationstate"
 Cohesion: 0.22
-Nodes (6): double, int, IReadOnlyDictionary, SylvieKit, Fact, SylvieSpellbookTests
+Nodes (4): int, PendingDecay, BloodFeatherTracker, PendingDecay
 
 ### Community 287 - "Ui Accordion"
 Cohesion: 0.29
@@ -1980,6 +1730,10 @@ Nodes (6): net10.0, Microsoft.NET.Test.Sdk, Shouldly, xunit, xunit.runner.visual
 Cohesion: 0.40
 Nodes (5): Azure Static Web Apps Build and Deploy Job, Static + API Split Deploy Layout, wasm-tools Workload Cache, Manual Blazor WebAssembly Bootstrap, Splash Loading Screen (fa-splash)
 
+### Community 291 - "Generators Namespace:4E0846C4B8E2E688"
+Cohesion: 0.47
+Nodes (3): Fact, Task, EmpoweredShieldSlamAnalyzerTests
+
 ### Community 292 - "Ardeos Ardeosguide"
 Cohesion: 0.29
 Nodes (6): DetonateEfficiencyGuide, EngulfingFlamesEconomyGuide, SearingBlazeGuide, ArdeosCombatLogParser, ReportComponent<ArdeosCombatLogParser>, WildfireComboGuide
@@ -1992,9 +1746,13 @@ Nodes (5): route:/avatar, Avatar, CodeExample, Demo, PageTitle
 Cohesion: 0.33
 Nodes (5): route:/brand-icon, BrandIcon, CodeExample, Demo, PageTitle
 
+### Community 295 - "HeroAnalysisResult"
+Cohesion: 0.22
+Nodes (6): int, ReportDungeon, Fact, InlineData, Theory, ReportDungeonTests
+
 ### Community 296 - "QualitativePerformance"
-Cohesion: 0.17
-Nodes (6): On&lt;RefreshBuffEvent&gt;, RefreshBuffEvent, RefreshBuffEvent, RefreshBuffEvent, RefreshBuffEvent, RefreshBuffEvent
+Cohesion: 0.10
+Nodes (10): On&lt;RefreshBuffEvent&gt;, RefreshBuffEvent, ImpendingHeartseekerAnalyzer, Computed, Dictionary, IReadOnlyList, List, Computed (+2 more)
 
 ### Community 297 - "Ui Spelltooltipprovider"
 Cohesion: 0.33
@@ -2008,6 +1766,10 @@ Nodes (5): CascadingValue, TabItem, Register, SetActiveAsync, Unregister
 Cohesion: 0.33
 Nodes (5): AbilitiesPagination, AbilityEntry, GameDataContent, GameDataWrapper, GraphQlResponse
 
+### Community 300 - "Ui Spiritstatistics"
+Cohesion: 0.15
+Nodes (12): BuildOverviewStats, BuildPerPullData, CastDetail, CastOverview, GuideSection, LeftPanel, OverviewStat, PerCastData (+4 more)
+
 ### Community 301 - "Rime Rimeguide"
 Cohesion: 0.25
 Nodes (7): CooldownsGuide, DowntimeGuide, FellowshipAnalyzer.Heroes.Rime.Analysis, ReportComponent<RimeCombatLogParser>, RimeCombatLogParser, WinterOrbGuide, WintersEmbraceGuide
@@ -2017,16 +1779,16 @@ Cohesion: 0.50
 Nodes (5): Critical Strike 5% Base (DR-exempt), Tiered Diminishing Returns on Secondary Stats, FellowBIS Stats Guide, Rating to Percentage Conversion, Crit Damage and Crit Mod Math
 
 ### Community 303 - "MagicSchool.cs"
-Cohesion: 0.29
-Nodes (6): Fact, int, Task, Type, CombatantsAuraRegistryTests, TestParser
+Cohesion: 0.25
+Nodes (7): Fact, int, Parser, Task, Type, CombatantsAuraRegistryTests, TestParser
 
 ### Community 304 - "Gunde Gundeguide"
-Cohesion: 0.18
-Nodes (10): BurstWindowGuide, FellowshipAnalyzer.Heroes.Gunde.Guides, HeartSplitterGuide, OwedInBloodGuide, RendGuide, SerratedEdgeGuide, SlaughterUsageGuide, FellowshipAnalyzer.Heroes.Gunde.Analysis (+2 more)
+Cohesion: 0.20
+Nodes (9): BurstGuide, FellowshipAnalyzer.Heroes.Gunde.Guides, HeartSplitterGuide, OwedInBloodGuide, SerratedEdgeGuide, SlaughterUsageGuide, FellowshipAnalyzer.Heroes.Gunde.Analysis, GundeCombatLogParser (+1 more)
 
 ### Community 305 - "Mara Maraguide"
-Cohesion: 0.22
-Nodes (8): MaidenOfDeathGuide, MaraDotGuide, MaraResourceDisciplineGuide, FellowshipAnalyzer.Heroes.Mara.Analysis, FellowshipAnalyzer.Heroes.Mara.Guides, MaraCombatLogParser, ReportComponent<MaraCombatLogParser>, StealthGuide
+Cohesion: 0.18
+Nodes (10): FinalStratagemGuide, MaidenOfDeathGuide, MaraDotGuide, MaraResourceDisciplineGuide, MatriarchMacabreGuide, FellowshipAnalyzer.Heroes.Mara.Analysis, FellowshipAnalyzer.Heroes.Mara.Guides, MaraCombatLogParser (+2 more)
 
 ### Community 306 - "Spellstudio Imports"
 Cohesion: 0.40
@@ -2037,24 +1799,24 @@ Cohesion: 0.40
 Nodes (4): FocusOnNavigate, Found, Router, RouteView
 
 ### Community 308 - "Events Eventlink"
-Cohesion: 0.14
-Nodes (8): FellowshipAnalyzer.Heroes.Helena.Modules, FellowshipAnalyzer.Heroes.Helena.Analysis, HelenaCombatLogParser, Type, HelenaCombatLogParser, Fact, Task, HelenaAnalysisEngineTests
+Cohesion: 0.50
+Nodes (3): Fact, Task, HelenaAnalysisEngineTests
 
 ### Community 309 - "Pullanalyzer Combatlogparser"
-Cohesion: 0.14
-Nodes (14): ActivityWindow, On&lt;BeginCastEvent&gt;, bool, Dictionary, int, IReadOnlyList, List, ActivityWindow (+6 more)
+Cohesion: 0.16
+Nodes (13): ActivityWindow, bool, Dictionary, int, IReadOnlyList, List, ActivityWindow, DowntimeAnalyzer (+5 more)
 
 ### Community 310 - "SpellRegistry.cs"
-Cohesion: 0.06
-Nodes (32): Abilities, CombatLogParser, DamageEvent, Computed, IReadOnlyList, List, Computed, DefensiveWindow (+24 more)
+Cohesion: 0.15
+Nodes (11): TestFoldingTracker, Fact, IEnumerable, int, List, Task, Type, FoldingAbilities (+3 more)
 
 ### Community 312 - ".RegisteredCoreSpells_PersistInAll"
-Cohesion: 0.14
-Nodes (12): IEnumerable, IReadOnlySet, Auras, SpellbookAura, IEnumerable, ElarionAuras, IEnumerable, GundeAuras (+4 more)
+Cohesion: 0.10
+Nodes (16): IEnumerable, IReadOnlySet, Auras, SpellbookAura, IEnumerable, ElarionAuras, IEnumerable, GundeAuras (+8 more)
 
 ### Community 313 - "Ui Herosupportcard"
 Cohesion: 0.40
-Nodes (4): ContributorLink, HeroIcon, FellowshipAnalyzer.Core.Analysis, SupportBadge
+Nodes (4): ContributorLink, FellowshipAnalyzer.Core.Analysis, HeroIcon, SupportBadge
 
 ### Community 314 - "Ui Spellvaluetext"
 Cohesion: 0.29
@@ -2069,12 +1831,12 @@ Cohesion: 0.33
 Nodes (5): CascadingValue, FellowshipAnalyzer.Core.Analysis, FellowshipAnalyzer.Core.Events, FellowshipAnalyzer.Core.UI, FellowshipAnalyzer.Services
 
 ### Community 317 - "bool"
-Cohesion: 0.28
-Nodes (7): Fact, int, List, Parser, Result, Task, SearingBlazeUptimeAnalyzerTests
+Cohesion: 0.26
+Nodes (8): ArdeosCombatLogParser, Fact, int, List, Parser, Result, Task, SearingBlazeUptimeAnalyzerTests
 
 ### Community 318 - "Generators Modulegeneratorobjectinitializertests"
-Cohesion: 0.14
-Nodes (8): FellowshipAnalyzer.Generators.Tests, string, GeneratorTestHarness, Fact, string, ModuleGeneratorObjectInitializerTests, string, ParserGeneratorTestHarness
+Cohesion: 0.18
+Nodes (6): FellowshipAnalyzer.Generators.Tests, string, GeneratorTestHarness, Fact, string, ModuleGeneratorObjectInitializerTests
 
 ### Community 319 - "Rime Rimespellbooktests"
 Cohesion: 0.17
@@ -2085,12 +1847,12 @@ Cohesion: 0.50
 Nodes (4): Affix Mapping, Zone Dev Prefix to Folder, Zone Name Mapping, Zone Short Names
 
 ### Community 321 - "Func"
-Cohesion: 0.31
-Nodes (5): Fact, InlineData, Theory, Type, SpellTypeTests
+Cohesion: 0.13
+Nodes (10): IReadOnlyDictionary, Costs, ResourceModel, Fact, InlineData, Theory, Type, SpellTypeTests (+2 more)
 
 ### Community 322 - "string"
-Cohesion: 0.25
-Nodes (8): Fact, int, List, Task, TestParser, Type, GloriousPurposeAnalyzerTests, TestParser
+Cohesion: 0.31
+Nodes (6): Fact, int, List, Task, TestParser, GloriousPurposeAnalyzerTests
 
 ### Community 323 - "Ui Accordionitem"
 Cohesion: 0.50
@@ -2120,6 +1882,10 @@ Nodes (3): Found, Router, RouteView
 Cohesion: 0.50
 Nodes (3): Found, Router, RouteView
 
+### Community 330 - "Hastetests Testcombatlogparser"
+Cohesion: 0.15
+Nodes (12): BuildOverviewStats, BuildPerCastData, CastDetail, CastOverview, GuideSection, LeftPanel, OverviewStat, PerCastData (+4 more)
+
 ### Community 331 - "CancellationToken"
 Cohesion: 0.25
 Nodes (6): HttpMessageHandler, CancellationToken, HttpRequestMessage, HttpResponseMessage, Task, FixedResponseHandler
@@ -2130,19 +1896,23 @@ Nodes (3): Blue / Grey Steel Palette, White Gold Palette, UI And Styling Rules
 
 ### Community 333 - "Abstractions Icombatevent"
 Cohesion: 0.11
-Nodes (18): ElarionCombatLogParser, ReportComponent<ElarionCombatLogParser>, Analyzers, BareMultishotTier, BuildNote, BuildOverviewStats, BuildWindowRow, BuildWindowRows (+10 more)
+Nodes (18): Analyzers, BareMultishotTier, BuildNote, BuildOverviewStats, BuildWindowRow, BuildWindowRows, CastDetail, CastOverview (+10 more)
 
 ### Community 334 - "Tariq Tariqguide"
 Cohesion: 0.25
-Nodes (7): CullingStrikeGuide, EmpowermentWindowsGuide, FocusedWrathGuide, FuryEconomyGuide, HammerStormGuide, ReportComponent<TariqCombatLogParser>, TariqCombatLogParser
+Nodes (7): CullingStrikeGuide, EmpowermentGuide, FocusedWrathGuide, FuryEconomyGuide, HammerStormGuide, ReportComponent<TariqCombatLogParser>, TariqCombatLogParser
 
 ### Community 335 - "Layoutcomponentbase Navmenu"
 Cohesion: 0.50
 Nodes (3): LayoutComponentBase, NavMenu, ThemePicker
 
+### Community 336 - "Corechangelog Changelogentry"
+Cohesion: 0.50
+Nodes (3): HeroText, ChangelogEntry, static
+
 ### Community 337 - "HttpResponseMessage"
-Cohesion: 0.31
-Nodes (4): Fact, FellowshipAnalyzerJsonContext, JsonSerializerOptions, DamageEventDeserializationTests
+Cohesion: 0.42
+Nodes (3): Fact, JsonSerializerOptions, DamageEventDeserializationTests
 
 ### Community 343 - "Ui Guides"
 Cohesion: 0.50
@@ -2152,177 +1922,213 @@ Nodes (3): FillClass, HandleClick, PerformanceBoxEntry
 Cohesion: 0.50
 Nodes (3): SpellCastEntry, SpellIcon, TierClass
 
-### Community 357 - "Tariq Changelog"
-Cohesion: 0.29
-Nodes (5): FellowshipAnalyzer.Heroes.Mara.Guides, Dictionary, ChartPalette, string, MaraChartColors
-
 ### Community 358 - "Stattrackercooldowntests Inlinedata"
-Cohesion: 0.11
-Nodes (16): ActorResources, CastEvent, ClassResource, Computed, DamageEvent, Dictionary, int, IReadOnlyDictionary (+8 more)
+Cohesion: 0.06
+Nodes (22): List, ActorResources, IReadOnlyDictionary, ToughnessAnalyzer, double, IReadOnlyList, ToughnessBand, ToughnessBands (+14 more)
 
 ### Community 359 - "double"
-Cohesion: 0.13
-Nodes (10): On&lt;ApplyDebuffStackEvent&gt;, On&lt;RemoveDebuffStackEvent&gt;, ApplyDebuffStackEvent, RemoveDebuffStackEvent, Dictionary, IReadOnlyList, List, RendRemoval (+2 more)
+Cohesion: 0.08
+Nodes (20): On&lt;ApplyDebuffStackEvent&gt;, On&lt;RemoveDebuffStackEvent&gt;, ApplyDebuffStackEvent, RemoveDebuffStackEvent, IBuffStackEvent, Dictionary, IReadOnlyList, List (+12 more)
 
 ### Community 376 - "Generators Parsergeneratortestharness"
-Cohesion: 0.10
-Nodes (15): int, Type, Analyzer, int, GlobalCooldown, Dictionary, Type, PullMetadata (+7 more)
+Cohesion: 0.47
+Nodes (3): Fact, Task, ToughnessTrackerTests
 
 ### Community 405 - "Fact"
 Cohesion: 0.10
 Nodes (19): BuildCastRow, BuildNote, BuildOverviewStats, BuildPerCastData, FormatDamage, PercentTier, CastDetail, CastOverview (+11 more)
 
 ### Community 406 - "InlineData"
-Cohesion: 0.13
-Nodes (14): CastContext, IAnalyzerSurface, ActorResources, ApplyBuffEvent, CastEvent, int, IReadOnlyList, List (+6 more)
+Cohesion: 0.07
+Nodes (21): CastContext, ChargeTotals, Computed, IReadOnlyList, List, WindowCapture, Computed, DefensiveWindow (+13 more)
 
 ### Community 407 - "parser"
-Cohesion: 0.12
-Nodes (11): HandleInput, HandleKeyDown, FellowshipAnalyzer.Core.FellowshipLogs, FellowshipAnalyzer.Services, FellowshipLogsApiClient, NavigationManager, ReportNavigationState, SubmitAsync (+3 more)
+Cohesion: 0.25
+Nodes (7): int, IReadOnlyList, List, OpenWindow, ThunderCallAnalyzer, ThunderCallWindow, ThunderCallWindowSource
 
 ### Community 408 - "Theory"
 Cohesion: 0.11
 Nodes (17): route:/tokens, ApplyAsync, BuildCSharp, CopyAsync, CopyCSharpAsync, CopyJsonAsync, OnAfterRenderAsync, OnInitialized (+9 more)
 
 ### Community 409 - "Type"
-Cohesion: 0.12
-Nodes (12): ChargeTotals, MajorDefensiveAnalyzer, On&lt;PullStartEvent&gt;, ApplyBuffEvent, CastEvent, int, List, RemoveBuffEvent (+4 more)
+Cohesion: 0.23
+Nodes (5): On&lt;PullEndEvent&gt;, PullEndEvent, bool, int, LifePetalAnalyzer
+
+### Community 410 - "INamedTypeSymbol"
+Cohesion: 0.08
+Nodes (16): Census, InstantCast, On&lt;RemoveBuffStackEvent&gt;, RemoveBuffStackEvent, DetonateCast, int, IReadOnlyDictionary, IReadOnlyList (+8 more)
 
 ### Community 411 - "IncrementalGeneratorInitializationContext"
-Cohesion: 0.25
+Cohesion: 0.24
 Nodes (7): Dictionary, IJSObjectReference, IReadOnlyDictionary, string, Task, ValueTask, ThemeService
 
 ### Community 412 - "SourceProductionContext"
-Cohesion: 0.14
-Nodes (9): ApplyBuffStackEvent, RemoveBuffStackEvent, HelenaCombatLogParser, ActorResources, CombatantInfoEvent, int, ReportDungeon, Task (+1 more)
+Cohesion: 0.40
+Nodes (4): Fact, InlineData, Theory, ReportInfoTests
+
+### Community 413 - "StringBuilder"
+Cohesion: 0.26
+Nodes (7): Fact, int, IReadOnlyList, Parser, Result, Task, ElarionAnalysisEngineTests
 
 ### Community 415 - "bool"
-Cohesion: 0.51
-Nodes (4): Fact, IReadOnlyList, Task, PullAnalyzerSurfaceTests
+Cohesion: 0.18
+Nodes (10): DeathCard, OnParametersSet, DeathTracker, FellowshipAnalyzer.Core.Analysis, FellowshipAnalyzer.Core.Analysis.Deaths, FellowshipAnalyzer.Core.UI.Guides, GuideContainer, PlayerDeath (+2 more)
 
 ### Community 416 - "int"
 Cohesion: 0.22
-Nodes (8): JsonElement, Dictionary, IReadOnlyDictionary, SpellKind, GlobalSpell, SpellDataSource, InlineData, Theory
+Nodes (8): MacabreSpan, double, int, IReadOnlyList, List, MacabreSpan, MatriarchMacabreAnalyzer, MatriarchMacabreWindow
 
 ### Community 417 - "bool"
-Cohesion: 0.17
-Nodes (12): CtorParam, DerivedTypeInfo, ImmutableArray, AnalyzerInfo, TypeInfo, TriggerInfo, HandlerInfo, string (+4 more)
+Cohesion: 0.48
+Nodes (5): CtorParam, ImmutableArray, AnalyzerInfo, TypeInfo, SymbolDisplayFormat
 
 ### Community 418 - "HashSet"
-Cohesion: 0.20
-Nodes (9): route:/spell-value, SpellValue, ChildContent, CodeExample, Demo, FellowshipAnalyzer.Core.Common.Spells.Rime, PageTitle, SpellValueText (+1 more)
+Cohesion: 0.18
+Nodes (10): BuildSegments, Label, Analyzer, ChildContent, HelperText, Info, StackedBar, StackedBarSegment (+2 more)
 
 ### Community 419 - "IReadOnlyList"
-Cohesion: 0.40
-Nodes (3): HttpResponse, DateTimeOffset, TimeSpan
+Cohesion: 0.35
+Nodes (5): JsonSerializerOptions, Type, Utf8JsonReader, Utf8JsonWriter, ResourceTypesJsonConverter
 
 ### Community 420 - "List"
-Cohesion: 0.16
-Nodes (12): IHasTargetWithInstanceEvent, Computed, Dictionary, IReadOnlyList, List, Candidate, Computed, DebuffUptimeAnalyzer (+4 more)
+Cohesion: 0.10
+Nodes (15): IReadOnlyList, AllTargetUptimeAnalyzer, TargetCoverage, Dictionary, IReadOnlyDictionary, IReadOnlyList, List, AuraWindowLedger (+7 more)
 
 ### Community 421 - "string"
-Cohesion: 0.35
-Nodes (6): Effect, LingeringConcussionAnalyzer, Spell, Fact, Task, LingeringConcussionAnalyzerTests
+Cohesion: 0.18
+Nodes (10): BuildOverviewStats, BuildStackedBar, FormatSeconds, Analyzer, CastOverview, ChildContent, OverviewStat, StackedBar (+2 more)
+
+### Community 422 - "bool"
+Cohesion: 0.24
+Nodes (3): On&lt;UpdateSpellUsableEvent&gt;, UpdateSpellUsableType, UpdateSpellUsableEvent
+
+### Community 423 - "bool"
+Cohesion: 0.18
+Nodes (10): ChildContent, HealingEfficiencyTracker, HelperText, Info, SpellHealingEfficiency, SpellLink, StatCard, StatRow (+2 more)
 
 ### Community 424 - "int"
-Cohesion: 0.31
-Nodes (3): FellowshipAnalyzer.Core.Tests.Design, Fact, PaletteScssDriftTests
+Cohesion: 0.18
+Nodes (6): FellowshipAnalyzer.Core.Tests.Design, string, StringBuilder, FaPaletteScss, Fact, PaletteScssDriftTests
 
 ### Community 425 - "IReadOnlyList"
 Cohesion: 0.24
-Nodes (5): IReadOnlyDictionary, Normalization, Dictionary, Fact, NormalizationTests
+Nodes (6): JsonConverter, JsonSerializerOptions, Type, Utf8JsonReader, Utf8JsonWriter, FSLIDJsonConverter
 
 ### Community 426 - "List"
-Cohesion: 0.25
-Nodes (8): Recharge, Event, IReadOnlyList, List, SpellbookAbility, UpdateSpellUsableEvent, CastEfficiencyModel, Recharge
+Cohesion: 0.36
+Nodes (6): Recharge, PullStartEvent, IReadOnlyList, List, CastEfficiencyModel, Recharge
 
 ### Community 427 - "int"
-Cohesion: 0.33
-Nodes (3): ReportInfo, Dictionary, ReportNavigationState
+Cohesion: 0.25
+Nodes (4): string, ReportInfo, Dictionary, ReportNavigationState
+
+### Community 428 - "IReadOnlyList"
+Cohesion: 0.20
+Nodes (7): Buff, CooldownBuff, Action, SpellId, Type, CooldownBuffRegistrar, TestParser
 
 ### Community 429 - "List"
 Cohesion: 0.20
-Nodes (8): SpellUplift, bool, Dictionary, double, IReadOnlyList, Type, SpellUplift, WintersEmbraceUpliftTracker
+Nodes (9): MaraSpells, BuildStats, Analyzer, CastOverview, ChildContent, OverviewStat, SpellLink, StatCard (+1 more)
 
 ### Community 430 - "int"
-Cohesion: 0.05
-Nodes (31): FellowshipAnalyzer.Heroes.Rime.Modules, FellowshipAnalyzer.Core.Common.Spells.Rime, FellowshipAnalyzer.Heroes.Rime.Analysis, FellowshipAnalyzer.Core.Utility, FellowshipAnalyzer.Heroes.Rime.Tests.Modules, ExpressionVisitor, FellowshipAnalyzer.Heroes.Rime.Guides, FellowshipAnalyzer.Heroes.Rime.Modules (+23 more)
+Cohesion: 0.12
+Nodes (16): FellowshipAnalyzer.Heroes.Rime.Guides, FellowshipAnalyzer.Heroes.Rime.Modules, RimeSpells, FellowshipAnalyzer.Core.Analysis, FellowshipAnalyzer.Core.Common.Spells.Rime, FellowshipAnalyzer.Core.Contracts.Design, FellowshipAnalyzer.Core.Game, FellowshipAnalyzer.Core.UI (+8 more)
+
+### Community 431 - "IReadOnlyList"
+Cohesion: 0.51
+Nodes (3): Fact, Task, DamageTakenTrackerTests
 
 ### Community 432 - "List"
-Cohesion: 0.42
-Nodes (3): Fact, int, AbilityMasterDataNormalizerTests
+Cohesion: 0.20
+Nodes (9): BuildOverviewStats, Analyzer, CastOverview, ChildContent, Info, OverviewStat, SpellLink, StatCard (+1 more)
 
 ### Community 433 - "WindowCapture"
-Cohesion: 0.17
-Nodes (10): ParamKind, Builder, HashSet, IAssemblySymbol, IEnumerable, IMethodSymbol, INamedTypeSymbol, INamespaceSymbol (+2 more)
+Cohesion: 0.20
+Nodes (9): GeneratorTooltip, Ratio, ChildContent, FellowshipAnalyzer.Core.Resources, Info, ResourceTracker, SpellLink, StatCard (+1 more)
+
+### Community 434 - "bool"
+Cohesion: 0.20
+Nodes (9): BuildComboPointStats, BuildEnergyStats, CastOverview, ChildContent, FellowshipAnalyzer.Core.Resources, OverviewStat, ResourceTracker, StatCard (+1 more)
 
 ### Community 435 - "Dictionary"
+Cohesion: 0.20
+Nodes (9): BuildSegments, Label, Analyzer, ChildContent, HelperText, StackedBar, StackedBarSegment, StatCard (+1 more)
+
+### Community 436 - "double"
 Cohesion: 0.36
-Nodes (5): CooldownContribution, Fact, Task, VeteranOfWarAnalyzerTests, VeteranOfWarAnalyzer
+Nodes (4): FellowshipAnalyzer.Core.Tests.Game, Fact, IReadOnlyList, ResourceNameAttributeTests
 
 ### Community 437 - "HashSet"
-Cohesion: 0.36
-Nodes (4): CastEvent, Event, int, FuryEconomyAnalyzer
+Cohesion: 0.22
+Nodes (7): DiagnosticAnalyzer, AnalysisContext, DiagnosticDescriptor, ImmutableArray, string, SymbolAnalysisContext, HeroAnalyzerPartialAnalyzer
+
+### Community 438 - "IEnumerable"
+Cohesion: 0.29
+Nodes (6): Member, Names, IEnumerable, IReadOnlyDictionary, IReadOnlyList, ResourceTypesAliases
 
 ### Community 439 - "int"
-Cohesion: 0.38
-Nodes (3): string, StringBuilder, FaPaletteScss
+Cohesion: 0.28
+Nodes (7): Computed, Dictionary, IReadOnlyList, AbilityOverheal, Computed, HealCapture, OverhealAnalyzer
 
 ### Community 440 - "IReadOnlyList"
-Cohesion: 0.33
-Nodes (4): Dictionary, IReadOnlyDictionary, Regex, DevNameMappings
+Cohesion: 0.25
+Nodes (4): PerformanceTiers, QualitativePerformance, string, PerformanceColors
 
 ### Community 441 - "List"
-Cohesion: 0.18
-Nodes (8): int, long, ProgressPacer, EventsResult, Func, Task, ReportAnalysisContext, ReportAnalysisService
+Cohesion: 0.22
+Nodes (8): Analyzer, ArdeosSpells, ChildContent, FellowshipAnalyzer.Core.UI, SpellLink, StatCard, StatRow, Tier
 
 ### Community 442 - "StComboWindowEvaluation"
-Cohesion: 0.50
-Nodes (4): int, GemRankPower, GemType, IGemAnalyzer
+Cohesion: 0.15
+Nodes (15): Analyzer, AmethystGemAnalyzer, DiamondGemAnalyzer, EmeraldGemAnalyzer, int, GemRankPower, GemTrait, GemType (+7 more)
 
 ### Community 444 - "int"
 Cohesion: 0.20
 Nodes (9): int, CinderEmberTracker, Fact, InlineData, int, List, Task, Theory (+1 more)
 
+### Community 445 - "StComboWindowEvaluation"
+Cohesion: 0.22
+Nodes (8): Pct, Analyzer, ArdeosSpells, ChildContent, SpellLink, StatCard, StatRow, Seconds
+
 ### Community 446 - "WindowCapture"
-Cohesion: 0.32
-Nodes (5): Fact, Parser, Result, Task, MaraAnalysisEngineTests
+Cohesion: 0.22
+Nodes (8): Percent, Analyzer, ChildContent, HelperText, Info, SpellLink, StatCard, StatRow
 
 ### Community 447 - "UltWindow"
-Cohesion: 0.10
-Nodes (19): Agreement, BuildOverviewStats, BuildPerPullData, BuildPullStats, BuildSourceStats, Disagreements, CastDetail, CastOverview (+11 more)
+Cohesion: 0.11
+Nodes (17): BuildOverviewStats, BuildPerPullData, BuildPullStats, BuildSourceStats, CastDetail, CastOverview, Checklist, GuideSection (+9 more)
 
 ### Community 448 - "VoidbringerCast"
 Cohesion: 0.11
-Nodes (18): IronWallAnalyzer, ShieldsUpAnalyzer, BuildIronWallStats, BuildIronWallUses, BuildShieldsUpStats, BuildUseStats, CastDetail, CastOverview (+10 more)
+Nodes (18): BuildIronWallStats, BuildIronWallUses, BuildShieldsUpStats, BuildUseStats, CastDetail, CastOverview, GuideSection, HelenaCombatLogParser (+10 more)
 
 ### Community 450 - "RemoveDebuffEvent"
 Cohesion: 0.54
 Nodes (3): JsonObject, JsonSerializerOptions, OverridesPersister
 
 ### Community 451 - "ActorResources"
-Cohesion: 0.13
-Nodes (12): OpenWindow, ApplyBuffEvent, ApplyBuffStackEvent, CastEvent, int, IReadOnlyList, List, RemoveBuffEvent (+4 more)
+Cohesion: 0.16
+Nodes (10): OpenWindow, int, IReadOnlyList, List, FocusedWrathAnalyzer, FocusedWrathConsumption, FocusedWrathWindow, OpenWindow (+2 more)
 
 ### Community 452 - "IHeroAnalyzer"
-Cohesion: 0.29
-Nodes (6): CastEfficiency, CascadingValue, DynamicComponent, ReportComponent, StatisticsPanel, StatisticsSectionTitle
+Cohesion: 0.33
+Nodes (5): CastEfficiency, ModuleStatistic, ReportComponent, StatisticsPanel, StatisticsSectionTitle
 
 ### Community 453 - "TestParser"
-Cohesion: 0.28
-Nodes (6): FaToken, FaTokenGroup, FaColor, IEnumerable, IReadOnlyList, FaTheme
+Cohesion: 0.17
+Nodes (6): IEnumerable, IReadOnlyList, FaTheme, string, FaToken, FaTokenGroup
 
 ### Community 454 - "GlobalCooldown"
-Cohesion: 0.15
-Nodes (7): FellowshipAnalyzer.Core.Serialization, FellowshipAnalyzerJsonContext, Fact, string, FSLIDSourceGenRoundTripTests, Fact, JsonContextSerializableRegistrationTests
+Cohesion: 0.24
+Nodes (8): BuffUptime, EventHorizonPairing, int, IReadOnlyList, List, BuffUptime, CooldownPairingAnalyzer, EventHorizonPairing
 
 ### Community 455 - "HeroAnalysisResult"
-Cohesion: 0.12
-Nodes (15): FellowshipAnalyzer.Heroes.Helena.Analysis, FellowshipAnalyzer.Heroes.Helena.Guides, HelenaSpells, FellowshipAnalyzer.Core.Analysis, FellowshipAnalyzer.Core.Contracts.Design, FellowshipAnalyzer.Core.Events, FellowshipAnalyzer.Core.Game, FellowshipAnalyzer.Core.UI (+7 more)
+Cohesion: 0.11
+Nodes (18): FellowshipAnalyzer.Core.Common.Spells.Helena, FellowshipAnalyzer.Heroes.Helena.Analysis, FellowshipAnalyzer.Heroes.Helena.Guides, FellowshipAnalyzer.Heroes.Helena.Modules, HelenaSpells, FellowshipAnalyzer.Core.Analysis, FellowshipAnalyzer.Core.Contracts.Design, FellowshipAnalyzer.Core.Events (+10 more)
 
 ### Community 456 - "IHeroAnalyzer"
-Cohesion: 0.11
-Nodes (15): DungeonPull, DungeonPullNpc, FightNpc, IGetReportMasterData_ReportData_Report, IGetReportMasterData_ReportData_Report_Fights, IGetReportMasterData_ReportData_Report_Fights_DungeonPulls, IGetReportMasterData_ReportData_Report_Fights_DungeonPulls_EnemyNPCs, IGetReportMasterData_ReportData_Report_Fights_EnemyNPCs (+7 more)
+Cohesion: 0.10
+Nodes (19): IGetReportMasterData_ReportData_Report, IGetReportMasterData_ReportData_Report_Fights, IGetReportMasterData_ReportData_Report_MasterData, IGetReportMasterData_ReportData_Report_MasterData_Abilities, IGetReportMasterData_ReportData_Report_TargetFight, IGetReportMasterData_ReportData_Report_TargetFight_DungeonPulls, StubDungeon, StubReport (+11 more)
 
 ### Community 457 - "Pull"
 Cohesion: 0.29
@@ -2330,11 +2136,11 @@ Nodes (6): Dispose, OnAfterRenderAsync, OnInitialized, OnThemeChanged, Fellowshi
 
 ### Community 458 - "WinterOrbTracker"
 Cohesion: 0.08
-Nodes (24): ReportComponent<HelenaCombatLogParser>, ResourceGraph, ResourceGraphOverlayPoint, BandColor, BandLabel, BuildBandSegments, BuildBandStats, BuildOvercapStats (+16 more)
+Nodes (25): ResourceGraphOverlayPoint, BandColor, BandLabel, BuildBandSegments, BuildBandStats, BuildOvercapStats, BuildPerPullData, BuildPullStats (+17 more)
 
 ### Community 459 - "CombatLogParserTests"
-Cohesion: 0.15
-Nodes (14): ComponentBase, DungeonTimeContext, Event, FullCombatant, HeroAnalysisResult, IReadOnlyDictionary, IReadOnlyList, ReportActor (+6 more)
+Cohesion: 0.33
+Nodes (3): Fact, JsonSerializerOptions, WireNamePinningTests
 
 ### Community 460 - "ReportComponent"
 Cohesion: 0.33
@@ -2345,208 +2151,308 @@ Cohesion: 0.33
 Nodes (5): DisposeAsync, OnAfterRenderAsync, IJSObjectReference, IJSRuntime, Microsoft.JSInterop
 
 ### Community 462 - ".Initialize"
-Cohesion: 0.60
-Nodes (3): Fact, Task, SalvoTrackerTests
+Cohesion: 0.53
+Nodes (4): Fact, int, Task, SalvoTrackerTests
+
+### Community 463 - "DetonateEfficiencyAnalyzer"
+Cohesion: 0.24
+Nodes (8): Computed, Dictionary, IReadOnlyList, List, AbsorbAnalyzer, AbsorbCapture, AbsorbUse, Computed
 
 ### Community 465 - ".Normalize"
 Cohesion: 0.29
 Nodes (7): Fact, IEnumerable, IReadOnlyList, Task, TestCombatLogParser, UpdateProbeModule, SpellUsableTests
 
+### Community 466 - "EnergyComboPointTracker"
+Cohesion: 0.25
+Nodes (7): Analyzer, ChildContent, FellowshipAnalyzer.Core.UI, SpellLink, StatCard, StatRow, Seconds
+
 ### Community 467 - "WinterOrbTracker"
-Cohesion: 0.24
-Nodes (11): OvercapIncident, bool, int, IReadOnlyList, List, OvercapIncident, WinterOrbTracker, Fact (+3 more)
+Cohesion: 0.35
+Nodes (4): Fact, int, Task, WinterOrbTrackerTests
 
 ### Community 468 - "CombatLogParserTests"
-Cohesion: 0.32
-Nodes (5): ChargeRestores, Segments, IReadOnlyList, Fact, CooldownLaneModelTests
+Cohesion: 0.27
+Nodes (7): ChargeRestores, Segments, IReadOnlyList, CooldownLaneModel, CooldownSegment, Fact, CooldownLaneModelTests
 
 ### Community 469 - "UpdateSpellUsableEvent"
 Cohesion: 0.13
-Nodes (14): BuildOverviewStats, BuildPerPullData, BuildPullStats, CastDetail, CastOverview, ChildContent, Explanation, GuideSection (+6 more)
+Nodes (14): BuildOverviewStats, BuildPerPullData, BuildPullStats, CastDetail, CastOverview, GuideSection, HelenaCombatLogParser, LeftPanel (+6 more)
+
+### Community 470 - "EventLink"
+Cohesion: 0.25
+Nodes (7): Analyzer, ChildContent, HelperText, Info, SpellLink, StatCard, StatRow
+
+### Community 471 - "FightEndEvent"
+Cohesion: 0.25
+Nodes (7): BuildStats, Analyzer, CastOverview, ChildContent, Info, OverviewStat, StatCard
 
 ### Community 472 - "TestCombatLogParser"
-Cohesion: 0.10
-Nodes (13): Auras, CoreAbilities, FellowshipAnalyzer.Heroes.Sylvie.Tests.Analysis, FellowshipAnalyzer.Heroes.Sylvie.Modules, FellowshipAnalyzer.Core.Common.Spells.Sylvie, IEnumerable, SpellbookAbility, SpellbookAura (+5 more)
+Cohesion: 0.09
+Nodes (11): FellowshipAnalyzer.Heroes.Sylvie.Tests.Analysis, FellowshipAnalyzer.Core.Common.Spells.Sylvie, FellowshipAnalyzer.Heroes.Sylvie.Analysis, FellowshipAnalyzer.Heroes.Sylvie.Modules, Talent, Talents, Abilities, double (+3 more)
 
 ### Community 473 - "TestParser"
-Cohesion: 0.42
-Nodes (4): AbsorbedEvent, Fact, Task, EmpoweredShieldSlamAnalyzerTests
-
-### Community 474 - ".OnFilterCooldown"
-Cohesion: 0.28
-Nodes (4): IEnumerable, Abilities, Fact, RimeSpellbookTests
+Cohesion: 0.36
+Nodes (3): Type, ProbingParser, TestParser
 
 ### Community 481 - "HeroRoleStyles.cs"
-Cohesion: 0.26
-Nodes (5): Fact, Type, GatedTestParser, ModuleActivationTests, OrderedTestParser
+Cohesion: 0.31
+Nodes (4): Fact, Type, ModuleActivationTests, OrderedTestParser
+
+### Community 482 - "SpellDataSource"
+Cohesion: 0.29
+Nodes (6): abilityId, sourceId, Dictionary, int, List, CastLinkNormalizer
+
+### Community 484 - "System.Text.Json.Nodes"
+Cohesion: 0.29
+Nodes (5): ExpressionVisitor, NotNullIfNotNull, ParameterExpression, Expression, ReplaceParameterVisitor
+
+### Community 485 - ".CreateCombatLogParser"
+Cohesion: 0.16
+Nodes (6): FellowshipAnalyzer.Api.Core.Caching, IConfiguration, BlobPersistentCacheOptions, Action, IServiceCollection, FellowshipLogsServiceCollectionExtensions
+
+### Community 486 - "EventLink"
+Cohesion: 0.29
+Nodes (6): Analyzer, ChildContent, Info, SpellLink, StatCard, Seconds
 
 ### Community 487 - "ThroughputFormat"
-Cohesion: 0.26
-Nodes (5): FellowshipAnalyzer.Heroes.Helena.Tests.Analysis, FellowshipAnalyzer.Heroes.Helena.Modules, Fact, Task, ToughnessTrackerTests
+Cohesion: 0.29
+Nodes (6): Analyzer, ChildContent, GemStatisticCard, GemTraitSection, ItemDamageDone, ItemHealingDone
+
+### Community 488 - "MemberNaming"
+Cohesion: 0.29
+Nodes (6): Analyzer, ChildContent, GemStatisticCard, GemTraitSection, ItemDamageDone, ItemHealingDone
+
+### Community 489 - "TestParser"
+Cohesion: 0.29
+Nodes (6): Badges, Breadcrumbs, PageHeader, Portrait, Secondary, TitleContent
 
 ### Community 490 - "Fact"
-Cohesion: 0.39
-Nodes (3): Fact, int, ProgressPacerTests
+Cohesion: 0.26
+Nodes (6): int, long, ProgressPacer, Fact, int, ProgressPacerTests
+
+### Community 491 - "EnergyComboPointTracker"
+Cohesion: 0.32
+Nodes (5): JsonNode, JsonObject, JsonSerializerOptions, string, SpellDbWriter
+
+### Community 492 - "TestParser"
+Cohesion: 0.29
+Nodes (6): Analyzer, ChildContent, FellowshipAnalyzer.Core.UI, SpellLink, StatCard, StatRow
+
+### Community 493 - "TestAbilities"
+Cohesion: 0.29
+Nodes (6): Compact, Analyzer, ChildContent, SpellLink, StatCard, StatRow
+
+### Community 494 - "TargetId"
+Cohesion: 0.29
+Nodes (6): ChildContent, FellowshipAnalyzer.Core.Resources, ResourceTracker, SpellLink, StatCard, StatRow
+
+### Community 495 - "TargetInstance"
+Cohesion: 0.29
+Nodes (6): BuildStats, Analyzer, CastOverview, ChildContent, OverviewStat, StatCard
 
 ### Community 496 - "HelenaGuide.razor"
 Cohesion: 0.25
-Nodes (7): DefensivesGuide, EmpoweredShieldSlamGuide, LingeringConcussionGuide, HelenaCombatLogParser, ReportComponent<HelenaCombatLogParser>, ToughnessGuide, VeteranOfWarGuide
+Nodes (7): DefensivesGuide, HoldTheLineGuide, LingeringConcussionGuide, HelenaCombatLogParser, ReportComponent<HelenaCombatLogParser>, ToughnessGuide, VeteranOfWarGuide
 
 ### Community 497 - ".EmitHandler"
-Cohesion: 0.36
-Nodes (6): Fact, int, List, Task, TestParser, ChronoshiftAnalyzerTests
+Cohesion: 0.22
+Nodes (10): Fact, IEnumerable, int, List, Task, TestParser, Type, ChronoshiftAnalyzerTests (+2 more)
 
 ### Community 498 - "ChangeStackEvent"
-Cohesion: 0.27
-Nodes (6): Analyzer, bool, CastEvent, DamageEvent, int, LifePetalAnalyzer
+Cohesion: 0.33
+Nodes (5): ItemDamageAbsorbed, Analyzer, ChildContent, GemStatisticCard, GemTraitSection
+
+### Community 499 - "AoeEmbraceWindowAnalyzer"
+Cohesion: 0.07
+Nodes (4): On&lt;CastEvent&gt;, CastEvent, OneOf, OneOfParamProbe
 
 ### Community 500 - "RekindlingFlamesAnalyzer"
-Cohesion: 0.10
-Nodes (12): Dictionary, IReadOnlyCollection, IReadOnlyDictionary, Combatants, Enemy, Func, List, Entity (+4 more)
+Cohesion: 0.18
+Nodes (10): Func, IEnumerable, List, Entity, IEnumerable, SpellRef, List, StackHistoryElement (+2 more)
 
 ### Community 502 - ".Initialize"
-Cohesion: 0.11
-Nodes (13): FellowshipAnalyzer.Core.Common.Spells.Helena, IEnumerable, SpellbookAbility, Abilities, ActorResources, CastEvent, ClassResource, double (+5 more)
-
-### Community 503 - "Seasons.cs"
 Cohesion: 0.33
-Nodes (4): IReadOnlyList, Type, HeroAnalysisResult, StatisticEntry
+Nodes (5): ItemDamageReduced, Analyzer, ChildContent, GemStatisticCard, GemTraitSection
 
 ### Community 504 - "Helena/Talents.cs"
-Cohesion: 0.50
-Nodes (3): FellowshipAnalyzer.Core.Common.Spells.Helena, Talent, Talents
+Cohesion: 0.33
+Nodes (5): Analyzer, ChildContent, GemStatisticCard, GemTraitSection, ItemHealingDone
 
 ### Community 505 - "MaxChargesChangedEvent.cs"
 Cohesion: 0.21
 Nodes (4): Type, FirstPullOnlyParser, PullTestParser, TwoSurfaceParser
 
+### Community 506 - ".Initialize"
+Cohesion: 0.33
+Nodes (5): Analyzer, ChildContent, FellowshipAnalyzer.Core.Common.Items, ItemDamageDone, StatCard
+
 ### Community 508 - ".TryReadInitializerId"
 Cohesion: 0.29
 Nodes (5): DateTimeOffset, IReadOnlyList, ValueTask, IReportCacheService, ReportHistoryEntry
 
+### Community 509 - "FellowshipAnalyzer.Heroes.Aeona/Modules/Abilities.cs"
+Cohesion: 0.50
+Nodes (3): PageHeader, PageTitle, route:/privacy
+
 ### Community 510 - "FellowshipAnalyzer.Heroes.Sylvie/Modules/Abilities.cs"
 Cohesion: 0.15
-Nodes (12): BuildOverviewStats, BuildPerPullData, CastDetail, CastOverview, ChildContent, Explanation, GuideSection, OverviewStat (+4 more)
+Nodes (12): BuildOverviewStats, BuildPerPullData, CastDetail, CastOverview, GuideSection, LeftPanel, OverviewStat, PerCastData (+4 more)
+
+### Community 511 - "QualitativePerformance"
+Cohesion: 0.40
+Nodes (4): Analyzer, ChildContent, GemStatisticCard, GemTraitSection
+
+### Community 513 - "HelenaCombatLogParser.cs"
+Cohesion: 0.29
+Nodes (5): IReadOnlyList, HeroConfig, SupportLevel, RimeCombatLogParser, SylvieCombatLogParser
 
 ### Community 514 - "FellowshipAnalyzer.Heroes.Helena.Tests.Analysis"
-Cohesion: 0.20
-Nodes (5): FellowshipAnalyzer.Core.Tests.Timeline, FellowshipAnalyzer.Core.Tests.UI, FellowshipAnalyzer.Core.UI.Timeline, CooldownLaneModel, CooldownSegment
+Cohesion: 0.50
+Nodes (3): Fact, int, SpellSchoolsTests
+
+### Community 515 - ".Analyze_ShouldNotProvideGuideComponentType_ForWipHero"
+Cohesion: 0.10
+Nodes (12): GuileSpan, On&lt;ApplyBuffStackEvent&gt;, ApplyBuffStackEvent, int, List, ReignOfFireAnalyzer, int, IReadOnlyList (+4 more)
+
+### Community 516 - "DevNameMappings"
+Cohesion: 0.50
+Nodes (3): Fact, Task, SylvieAnalysisEngineTests
+
+### Community 517 - "TestParser"
+Cohesion: 0.50
+Nodes (3): ResourceGraph, ResourceTracker, StatCard
+
+### Community 518 - "HeroConfig"
+Cohesion: 0.50
+Nodes (3): CheckItem, PassFailCheckmark, SpellLink
+
+### Community 519 - ".Normalize"
+Cohesion: 0.50
+Nodes (4): Dictionary, int, List, CarnageAnalyzer
+
+### Community 520 - "FuryTracker"
+Cohesion: 0.50
+Nodes (3): FellowshipAnalyzer.Core.Common.Spells.Mara, MaraTalents, SpellLink
 
 ### Community 521 - ".Analyze_ShouldNotProvideGuideComponentType_ForWipHero"
 Cohesion: 0.23
-Nodes (8): Entry, IsDeath, List, ReadOnlySpan, Utf8JsonReader, Entry, EventStreamMerger, Timestamp
+Nodes (8): Entry, IsDeath, List, ReadOnlySpan, Timestamp, Utf8JsonReader, Entry, EventStreamMerger
 
-### Community 528 - "FocusedWrathAnalyzer"
-Cohesion: 0.18
-Nodes (10): AbsorbWasteGuide, ButterflyGuide, CureAilmentGuide, FlutterflyBuffGuide, HeartBloomGuide, LifePetalGuide, ManaGuide, OverhealGuide (+2 more)
-
-### Community 529 - ".EnemyAuraWindows"
-Cohesion: 0.15
-Nodes (12): BuildOverviewStats, BuildPerCastData, CastDetail, CastOverview, ChildContent, Explanation, GuideSection, OverviewStat (+4 more)
-
-### Community 530 - "MemberNaming"
-Cohesion: 0.18
-Nodes (9): Computed, DamageEvent, Dictionary, IReadOnlyList, Computed, DamageTakenSource, DamageTakenTracker, SourceCapture (+1 more)
-
-### Community 531 - "FuryTracker"
-Cohesion: 0.11
-Nodes (13): FellowshipAnalyzer.Api.Core.Tests, IGetReportMasterData_ReportData_Report_MasterData_Abilities, CancellationToken, RateLimitLease, ValueTask, Fact, InlineData, Theory (+5 more)
-
-### Community 533 - "FightStartEvent"
-Cohesion: 0.32
-Nodes (7): PullTestParser, DungeonPull, Fact, IReadOnlyList, ReportDungeon, Task, PullLifecycleTests
-
-### Community 534 - ".Analyze_ShouldNotProvideGuideComponentType_ForWipHero"
-Cohesion: 0.14
-Nodes (9): IEventNormalizer, Event, List, AbilityMasterDataNormalizer, DungeonBookendNormalizer, List, ResourceNormalizer, List (+1 more)
-
-### Community 536 - ".Analyze_ShouldNotProvideGuideComponentType_ForWipHero"
-Cohesion: 0.21
-Nodes (5): IReadOnlyList, FaSemantic, FaSemanticClass, string, FaToken
-
-### Community 555 - "Elarion/Talents.cs"
-Cohesion: 0.29
-Nodes (4): double, IReadOnlyList, ToughnessBand, ToughnessBands
-
-### Community 559 - "FellowshipAnalyzer.Core.Common.Spells.Meiko"
-Cohesion: 0.09
-Nodes (14): HeartBloomCapture, On&lt;AbsorbedEvent&gt;, On&lt;HealEvent&gt;, ThroughputTracker, AbsorbedEvent, CastEvent, HashSet, HealEvent (+6 more)
-
-### Community 560 - "Sylvie/Talents.cs"
+### Community 522 - "FaSourceColors.cs"
 Cohesion: 0.50
-Nodes (3): FellowshipAnalyzer.Core.Common.Spells.Sylvie, Talent, Talents
+Nodes (3): FellowshipAnalyzer.Core.Common.Spells.Mara, MaraTalents, SpellLink
 
-### Community 561 - "FuryTracker"
-Cohesion: 0.24
-Nodes (8): ClassResource, ResourceTracker, CastEvent, int, IReadOnlyList, List, FurySample, FuryTracker
-
-### Community 566 - "Seasons.cs"
-Cohesion: 0.15
-Nodes (8): FellowshipAnalyzer.Heroes.Vigour.Analysis, FellowshipAnalyzer.Heroes.Vigour.Tests.Analysis, VigourCombatLogParser, Fact, Task, VigourAnalysisEngineTests, Fact, VigourSpellbookTests
-
-### Community 573 - "DebugAnnotations"
-Cohesion: 0.15
-Nodes (13): Dictionary, IReadOnlyList, AnnotatedEvent, DebugAnnotation, DebugAnnotations, ModuleAnnotations, Type, Module (+5 more)
-
-### Community 575 - "HelenaAnalysisFixture"
-Cohesion: 0.20
-Nodes (10): Talent, ApplyBuffEvent, CastEvent, RemoveBuffEvent, double, Fact, List, Task (+2 more)
-
-### Community 577 - "IReadOnlyDictionary"
-Cohesion: 0.48
-Nodes (3): int, PullPopulation, UnitKey
-
-### Community 580 - "MeikoSpellbookTests.cs"
-Cohesion: 0.40
-Nodes (3): FellowshipAnalyzer.Heroes.Meiko.Tests.Analysis, Fact, MeikoSpellbookTests
-
-### Community 584 - "Tariq/Talents.cs"
+### Community 523 - ".Normalize"
 Cohesion: 0.50
-Nodes (3): FellowshipAnalyzer.Core.Common.Spells.Tariq, Talent, Talents
+Nodes (3): FellowshipAnalyzer.Core.Common.Spells.Mara, MaraTalents, SpellLink
 
-### Community 606 - "System.Text.RegularExpressions"
-Cohesion: 0.50
-Nodes (3): Fact, Task, AeonaAnalysisEngineTests
-
-### Community 611 - "PullEndEvent"
-Cohesion: 0.50
-Nodes (3): Fact, Task, MeikoAnalysisEngineTests
-
-### Community 612 - ".ScanAssembly"
-Cohesion: 0.50
-Nodes (3): Fact, Task, XavianAnalysisEngineTests
-
-### Community 613 - "CombatLogParserTests"
+### Community 525 - "RemoveBuffEvent"
 Cohesion: 0.48
 Nodes (4): Fact, int, Task, CombatLogParserTests
 
-### Community 614 - "FellowshipAnalyzer.Heroes.Helena.Tests.Analysis"
+### Community 528 - "FocusedWrathAnalyzer"
+Cohesion: 0.25
+Nodes (7): FlutterflyGuide, HeartBloomGuide, LifePetalGuide, PricklyVineGuide, SafeHavenGuide, ReportComponent<SylvieCombatLogParser>, SylvieCombatLogParser
+
+### Community 529 - ".EnemyAuraWindows"
+Cohesion: 0.15
+Nodes (12): BuildOverviewStats, BuildPerCastData, CastDetail, CastOverview, GuideSection, LeftPanel, OverviewStat, PerCastData (+4 more)
+
+### Community 530 - "MemberNaming"
+Cohesion: 0.20
+Nodes (9): Computed, Dictionary, IReadOnlyList, List, Computed, DamageTakenHit, DamageTakenSource, DamageTakenTracker (+1 more)
+
+### Community 531 - "FuryTracker"
+Cohesion: 0.06
+Nodes (19): FellowshipAnalyzer.Api.Core.Tests, FellowshipAnalyzer.Api.Core, FixedWindowRateLimiter, IDisposable, PartitionedRateLimiter, string, ApiDefaults, ApiEndpointAttribute (+11 more)
+
+### Community 532 - "PullAnalyzer"
+Cohesion: 0.04
+Nodes (25): IEnumerable, Func, CooldownScope, CastEfficiencyInfo, SpellbookAbility, SpellCategory, List, IEnumerable (+17 more)
+
+### Community 533 - "FightStartEvent"
+Cohesion: 0.41
+Nodes (5): PullTestParser, Fact, IReadOnlyList, Task, PullLifecycleTests
+
+### Community 534 - ".Analyze_ShouldNotProvideGuideComponentType_ForWipHero"
+Cohesion: 0.15
+Nodes (10): FrozenDictionary, IReadOnlyList, Hero, ReportMasterData, IReadOnlyDictionary, IReadOnlyList, ReportMasterDataService, Fact (+2 more)
+
+### Community 536 - ".Analyze_ShouldNotProvideGuideComponentType_ForWipHero"
 Cohesion: 0.60
-Nodes (3): IReadOnlyDictionary, JsonObject, OverridesSource
+Nodes (3): IReadOnlyList, FaSemantic, FaSemanticClass
+
+### Community 542 - "HeartSplitterAnalyzer"
+Cohesion: 0.40
+Nodes (5): int, IReadOnlyList, List, HeartSplitterAnalyzer, HeartSplitterCast
+
+### Community 543 - "PricklyVineAnalyzer"
+Cohesion: 0.50
+Nodes (4): Computed, List, Computed, PricklyVineAnalyzer
+
+### Community 544 - "RecommendedSpellbook"
+Cohesion: 0.40
+Nodes (3): IEnumerable, RecommendedSpellbook, TestSpellbook
+
+### Community 561 - "FuryTracker"
+Cohesion: 0.07
+Nodes (35): BurstingIceAnchor, EmbraceWindowEvaluation, int, IReadOnlyList, WindowCapture, AoeEmbraceAnalyzer, AoeWindowEvaluation, RimeBuild (+27 more)
+
+### Community 566 - "Seasons.cs"
+Cohesion: 0.09
+Nodes (9): FellowshipAnalyzer.Core.Common.Spells.Helena, FellowshipAnalyzer.Heroes.Helena.Tests.Analysis, FellowshipAnalyzer.Heroes.Helena.Modules, FellowshipAnalyzer.Heroes.Helena.Analysis, Talent, Talents, Abilities, Fact (+1 more)
+
+### Community 573 - "DebugAnnotations"
+Cohesion: 0.09
+Nodes (25): ComponentBase, DungeonTimeContext, Dictionary, IReadOnlyList, DebugAnnotation, DebugAnnotations, ModuleAnnotations, IReadOnlyList (+17 more)
+
+### Community 575 - "HelenaAnalysisFixture"
+Cohesion: 0.15
+Nodes (9): HelenaCombatLogParser, int, Task, HelenaAnalysisFixture, double, Fact, List, Task (+1 more)
+
+### Community 577 - "IReadOnlyDictionary"
+Cohesion: 0.18
+Nodes (9): HashSet, Spread, IReadOnlyCollection, IReadOnlyList, DotLayerSample, DotTracker, int, PullPopulation (+1 more)
+
+### Community 580 - "MeikoSpellbookTests.cs"
+Cohesion: 0.15
+Nodes (8): FellowshipAnalyzer.Heroes.Meiko.Analysis, FellowshipAnalyzer.Heroes.Meiko.Tests.Analysis, MeikoCombatLogParser, Fact, Task, MeikoAnalysisEngineTests, Fact, MeikoSpellbookTests
 
 ### Community 615 - "HeroAnalysisResult"
 Cohesion: 0.83
 Nodes (3): MaxChargesChangedEvent, MaxChargesDecreasedEvent, MaxChargesIncreasedEvent
 
+### Community 745 - "StealthSpan"
+Cohesion: 0.33
+Nodes (5): Fact, int, List, Task, StealthAnalyzerTests
+
+### Community 746 - "SupremacyWindow"
+Cohesion: 0.33
+Nodes (6): Fact, int, Parser, Result, Task, SupremacyAnalyzerTests
+
+### Community 854 - "SourceProductionContext"
+Cohesion: 0.22
+Nodes (9): AnalyzerInfo, Fqn, MemberName, ParserInfo, HashSet, IEnumerable, SourceProductionContext, StringBuilder (+1 more)
+
 ## Knowledge Gaps
-- **2237 isolated node(s):** `HealTick`, `PlayerCast`, `SourceCapture`, `Computed`, `EnemyOrigin` (+2232 more)
+- **2724 isolated node(s):** `route:/privacy`, `PageTitle`, `PageHeader`, `discover-tests.sh script`, `netstandard2.0` (+2719 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **428 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **64 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `FellowshipAnalyzer.Core.Analysis` connect `Elarion Voidbringer Analyzer` to `Elarion Imports`, `Chronoshiftanalyzer Beginchannelevent`, `Elarion Modules & Seasons`, `Module Registration Attributes`, `Tariq Guides`, `SpellUsable Cooldown Tests`, `Imports Ui`, `MemberNaming`, `Roslyn Diagnostic Analyzer Tests`, `Statistics Statisticcategory`, `Ardeos Spells & DI Wiring`, `Resource Tracker`, `Event Emitter Dispatch`, `InlineData`, `Changelog & Contributors`, `Spellusabletests Cooldowndebuginfo`, `List`, `Stat Tracker`, `Meiko Meikoanalysisenginetests`, `Pull Analyzer Guide Surface`, `SpellUsable Charges`, `Xavian Xaviananalysisenginetests`, `Generators Modulegenerator`, `int`, `FellowshipAnalyzer.Core.Common.Spells.Meiko`, `UI Formatters & Avatars`, `Generators Modulegenerator`, `Cast Link Normalizers`, `Reportloadingtracker Stepstate`, `Events Eventlink`, `SpellRegistry.cs`, `Heroanalysisdefinition Abilitydefinition`, `.RegisteredCoreSpells_PersistInAll`, `Ardeos Detonate Efficiency`, `Event Filter Subscriptions`, `List`, `StComboWindowEvaluation`, `DebugAnnotations`, `SpellStudio Report Selector`, `Seasons.cs`, `Generators Modulegeneratorobjectinitializertests`, `MeikoSpellbookTests.cs`, `Multionhandlertests Testcombatlogparser`, `Rime Statistics`, `Elarion Guides`, `TestCombatLogParser`, `.OnFilterCooldown`, `Helena Imports`, `Sylvie Imports`, `Gearcooldownaccelerationtests Legendary`, `Elarion Guides`, `Stattrackercooldowntests Inlinedata`, `double`, `Rime Imports`, `Spelldata Mergeenginetests`, `Tariq Eventsubscriber`, `Elarion Impendingheartseekeranalyzer`, `Game Resourcenameattributetests`, `UpdateSpellUsableEvent`, `RekindlingFlamesAnalyzer`, `Mara Mararesourcedisciplineanalyzer`, `Seasons.cs`, `.Initialize`, `Tariq Furyeconomyanalyzer`, `.Initialize`?**
-  _High betweenness centrality (0.253) - this node is a cross-community bridge._
-- **Why does `System.Globalization` connect `Api Fellowshiplogsservicecollectionextensions` to `Elarion Voidbringer Analyzer`?**
-  _High betweenness centrality (0.058) - this node is a cross-community bridge._
-- **Why does `FellowshipAnalyzer.Core.FellowshipLogs` connect `Elarion Voidbringer Analyzer` to `Elarion Imports`, `Api Fellowshiplogsservice`, `GlobalCooldown`, `Meiko Meikoanalysisenginetests`, `Elarion Modules & Seasons`, `.Analyze_ShouldNotProvideGuideComponentType_ForWipHero`, `int`, `Services Fellowshiplogsapiclient`, `.TryReadInitializerId`, `Multionhandlertests Testcombatlogparser`, `int`, `Ardeos Spells & DI Wiring`, `Mara Mararesourcedisciplineanalyzer`, `Seasons.cs`, `List`, `Common Spelltypetests`, `DebugAnnotations`, `Blob Persistent Cache`?**
-  _High betweenness centrality (0.042) - this node is a cross-community bridge._
-- **What connects `HealTick`, `PlayerCast`, `SourceCapture` to the rest of the system?**
-  _2237 weakly-connected nodes found - possible documentation gaps or missing edges._
+- **Why does `FellowshipAnalyzer.Core.Analysis` connect `Elarion Voidbringer Analyzer` to `Elarion Imports`, `HelenaCombatLogParser.cs`, `Elarion Modules & Seasons`, `Module Registration Attributes`, `Pull Bookend Normalizer`, `SpellData JSON Model`, `SpellUsable Cooldown Tests`, `Roslyn Diagnostic Analyzer Tests`, `PullAnalyzer`, `Events Changestackevent`, `Ardeos Spells & DI Wiring`, `Event Emitter Dispatch`, `Changelog & Contributors`, `List`, `Stat Tracker`, `Meiko Meikoanalysisenginetests`, `Xavian Xaviananalysisenginetests`, `Pull Analyzer Guide Surface`, `Reportloadingtracker Stepstate`, `Seasons.cs`, `Heroanalysisdefinition Abilitydefinition`, `.RegisteredCoreSpells_PersistInAll`, `IReadOnlyList`, `StComboWindowEvaluation`, `DebugAnnotations`, `IReadOnlyDictionary`, `MeikoSpellbookTests.cs`, `Ardeos Searingblazeuptimeanalyzer`, `DetonateEfficiencyAnalyzer`, `Multionhandlertests Testcombatlogparser`, `Rime Statistics`, `TestCombatLogParser`, `Gearcooldownaccelerationtests Legendary`, `Rime Imports`, `Fact`, `Elarion Impendingheartseekeranalyzer`, `Game Resourcenameattributetests`, `UpdateSpellUsableEvent`, `Mara Mararesourcedisciplineanalyzer`, `Pulllifecycletests Analyze`, `Tariq Furyeconomyanalyzer`, `Tools Refresh`?**
+  _High betweenness centrality (0.078) - this node is a cross-community bridge._
+- **Why does `FellowshipAnalyzer.Core.Events` connect `Tools Refresh` to `Elarion Imports`, `Combatant Gear & Stats`, `Elarion Modules & Seasons`, `Events Phaseevent`, `Module Registration Attributes`, `Haste Scaling`, `Pull Bookend Normalizer`, `Event Contracts`, `FuryTracker`, `Ardeos Spells & DI Wiring`, `Event Emitter Dispatch`, `Type`, `INamedTypeSymbol`, `List`, `Stat Tracker`, `Pull Analyzer Guide Surface`, `.Normalize`, `Seasons.cs`, `Event Filter Subscriptions`, `Elarion Voidbringer Analyzer`, `DebugAnnotations`, `Haste Hastetests`, `DetonateEfficiencyAnalyzer`, `Multionhandlertests Testcombatlogparser`, `Gunde Slaughterusageanalyzer`, `TestCombatLogParser`, `Debugannotations Moduleactivationtests`, `Seasons.cs`, `Stattrackercooldowntests Inlinedata`, `HeroAnalysisResult`, `Services Reportanalysisservice`, `Rime Imports`, `UpdateSpellUsableEvent`, `Mara Mararesourcedisciplineanalyzer`, `Pulllifecycletests Analyze`, `Tariq Furyeconomyanalyzer`, `Gunde Gundespellbooktests`?**
+  _High betweenness centrality (0.067) - this node is a cross-community bridge._
+- **Why does `Event` connect `Event Filter Subscriptions` to `Ardeos Analyzer Tests`, `Combatant Gear & Stats`, `Core Analysis Namespaces`, `Events Phaseevent`, `Timeline Cooldown Lanes`, `FellowshipAnalyzer.Core.Common.Spells.Meiko`, `Haste Scaling`, `RefreshBuffEvent`, `Iheroanalyzer Heroanalysisresult`, `CombatLogParser Tests`, `Event Contracts`, `Events Changestackevent`, `Resource Tracker`, `Event Emitter Dispatch`, `Type`, `parser`, `StringBuilder`, `Global Cooldown Tests`, `Enemy Debuff Events`, `Ardeos Wildfire Combo`, `CombatLogParser Core`, `Sylvie Sylvieanalysisenginetests`, `Stat Tracker`, `bool`, `Cooldown Reduction Tests`, `Elarion Pre-Ultimate Checklist`, `List`, `Elarion Elarionanalysisenginetests`, `Cast Link Normalizers`, `Performance Scoring`, `.Normalize`, `SpellRegistry.cs`, `Tariq Analysis Tests`, `int`, `DebugAnnotations`, `bool`, `Common Fslidtests`, `Spelldata Resourcetypesconvertertests`, `string`, `Module Generator`, `Ardeos Engulfingflameseconomyanalyzer`, `Stattracker Cooldownmodifier`, `.Normalize`, `Gunde Slaughterusageanalyzer`, `Tariq Furyeconomyanalyzertests`, `ReportFight`, `Sylvie Imports`, `Elarion Guides`, `SpellDataSource`, `Extensions`, `Stattrackercooldowntests Inlinedata`, `HeroAnalysisResult`, `Services Reportanalysisservice`, `Ardeos Reignoffireanalyzertests`, `StealthSpan`, `Tariq Eventsubscriber`, `Helena Abilities`, `Pulllifecycletests Firstpullonlyparser`, `.EmitHandler`, `Combatantsauraregistrytests Testparser`, `Contributor`, `Seasons.cs`, `Debugannotations Moduleactivationtests`, `Gunde Gundespellbooktests`?**
+  _High betweenness centrality (0.053) - this node is a cross-community bridge._
+- **What connects `route:/privacy`, `PageTitle`, `PageHeader` to the rest of the system?**
+  _2724 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Skills & Architecture Docs` be split into smaller, more focused modules?**
   _Cohesion score 0.06416275430359937 - nodes in this community are weakly interconnected._
 - **Should `Spell Registry Generator` be split into smaller, more focused modules?**
-  _Cohesion score 0.06688311688311688 - nodes in this community are weakly interconnected._
-- **Should `Parser Source Generators` be split into smaller, more focused modules?**
-  _Cohesion score 0.12489795918367347 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.0546218487394958 - nodes in this community are weakly interconnected._
+- **Should `Combatant Gear & Stats` be split into smaller, more focused modules?**
+  _Cohesion score 0.06269592476489028 - nodes in this community are weakly interconnected._

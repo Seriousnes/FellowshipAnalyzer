@@ -306,6 +306,22 @@ By surfacing these as per-pull and per-ability metrics, the analyzer can give ac
 Archon’s Fellowship Logs and Fellows.gg already operate as official or semi-official log and database tools for Fellowship, and their feature sets (damage breakdowns, buff uptime, leaderboards) are good references for baseline functionality and performance expectations. [^6][^5]
 External guides from Icy Veins, Method, and other sites provide stat priority and rotation advice; integrating some of their logic (for example recommended Haste and Crit targets) into the analyzer enables role‑aware suggestions such as "you are pushing Haste past the efficient DR band for this hero." [^1][^20][^16]
 
+## Absorb Shields
+
+### Shield Damage Reduction
+
+Several absorb effects, such as Solar Shield and Luminous Barrier, have a built-in 50% damage reduction effect. Damage absorbed by the shield is reduced by 50% before it is applied to the remaining absorbtion effect, effectively doubling the total absorb capacity. Not all absorbs behave this way, the spell definition will define a "Damage Reduction" multiplier on a case by case basis.
+
+A "Critical" absorb behaves in a similar way, and is checked on a per-hit basis. A critical absorb is applied at half the regular rate in the same way the shield damage reduction works. 
+
+If a critical absorb occurs on a shield with 50% DR, it's applied at 1/4th the regular rate to the absorbtion pool.
+
+### Consequences for analyzer code
+
+`AbsorbAnalyzer.AbsorbEfficiency` computes `used / (used + wasted)`, which mixes damage removed with shield strength left over. That is correct only where a hit costs the shield exactly what it absorbed, it does not consider damage reduction or crit absorbs. Read `Face`, `Consumed` and `Absorbed` off `AbsorbUse` instead.
+
+The datamined build is queryable through the `fellowship-codex` MCP server (`find_entity`, `get_entity`, `list_types`) for gem traits, blessings, weapon and neck traits, effects and abilities with their real descriptions. Use it before guessing what an aura does.
+
 ## Limitations and Open Questions
 
 Fellowship does not publish official developer documentation for the exact rating, DR, and cooldown formulas. The Season 3 stat numbers here come from the game-table data dump in `external/fs_tc_uploads`, which is the closest thing to a primary source; the surrounding narrative comes from community reverse-engineering and third-party guides. [^22][^1][^7]

@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /report/
+Disallow: /character/
+
+Sitemap: https://www.fellowshipanalyzer.com/sitemap.xml

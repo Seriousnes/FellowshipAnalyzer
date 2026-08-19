@@ -9,12 +9,14 @@ using Shouldly;
 
 using Xunit;
 
+using VigourTalents = FellowshipAnalyzer.Core.Common.Spells.VigourTalents;
+
 namespace FellowshipAnalyzer.Heroes.Vigour.Tests.Analysis;
 
 public sealed class VigourAnalysisEngineTests
 {
     [Fact]
-    public async Task Analyze_ShouldNotProvideGuideComponentType_ForWipHero()
+    public async Task Analyze_ShouldProvideGuideComponentType()
     {
         var services = new ServiceCollection();
         services.AddLogging();
@@ -27,6 +29,16 @@ public sealed class VigourAnalysisEngineTests
         var analyzer = scope.ServiceProvider.GetRequiredKeyedService<IHeroAnalyzer>(HeroName.Vigour);
         var result = await analyzer.Analyze([], playerId: 1, dungeon: new ReportDungeon(0, "", 0, null, 0, 0, null, null, null));
 
-        result.GuideComponentType.ShouldBeNull();
+        result.GuideComponentType.ShouldNotBeNull();
+    }
+
+    [Fact]
+    public void GeneratedTalentConstants_CoverTheSeason3Roster()
+    {
+        VigourTalents.RadiantSoul.ShouldBe(654);
+        VigourTalents.SacredBarrier.ShouldBe(566);
+        VigourTalents.EnlightenedSoul.ShouldBe(56);
+        VigourTalents.GrandProliferation.ShouldBe(653);
+        VigourTalents.MeticulousRunesmith.ShouldBe(179);
     }
 }

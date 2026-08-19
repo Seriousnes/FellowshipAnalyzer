@@ -1,0 +1,27 @@
+@inject IJSRuntime JS
+
+@code {
+    private string? _applied;
+
+    [Parameter, EditorRequired] public string Description { get; set; } = string.Empty;
+
+    [Parameter, EditorRequired] public string Canonical { get; set; } = string.Empty;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        var pending = $"{Description}\n{Canonical}";
+        if (pending == _applied)
+        {
+            return;
+        }
+
+        try
+        {
+            await JS.InvokeVoidAsync("faSeo.apply", Description, Canonical);
+            _applied = pending;
+        }
+        catch (JSException)
+        {
+        }
+    }
+}

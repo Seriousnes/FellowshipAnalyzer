@@ -137,7 +137,8 @@
                 });
             });
         }).catch(function (err) {
-            setStatus('Failed to load ' + name);
+            setStatus('Could not finish loading. Try reloading the page.');
+            console.error('Failed to load ' + name, err);
             throw err;
         });
     }
@@ -154,7 +155,7 @@
     }
 
     function reportError(err) {
-        setStatus('Failed to start: ' + (err && err.message ? err.message : err));
+        setStatus('Could not start. Try reloading the page.');
         console.error(err);
     }
 

@@ -63,3 +63,40 @@ $fa-splash-fade-ms: 150ms;
     color: var(--fa-text-dim);
     letter-spacing: 0.04em;
 }
+
+.fa-prerender {
+    max-width: 46rem;
+    margin: 0 auto;
+    padding: 4rem 1.5rem;
+    font-family: var(--fa-font-body);
+    color: var(--fa-text);
+
+    h1 {
+        margin: 0 0 1rem;
+        font-family: var(--fa-font-heading);
+        font-size: clamp(1.75rem, 4vw, 2.75rem);
+        font-weight: 700;
+        letter-spacing: 0.02em;
+        color: var(--fa-gold-light);
+    }
+
+    p {
+        margin: 0 0 1rem;
+        line-height: 1.6;
+        color: var(--fa-text-muted);
+    }
+
+    ul {
+        margin: 1.5rem 0 0;
+        padding: 0;
+        list-style: none;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        color: var(--fa-text-muted);
+    }
+
+    a {
+        color: var(--fa-gold);
+    }
+}

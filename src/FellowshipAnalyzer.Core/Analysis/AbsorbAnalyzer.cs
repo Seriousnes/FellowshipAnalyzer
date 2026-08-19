@@ -1,3 +1,4 @@
+using FellowshipAnalyzer.Core.Common.Spells;
 using FellowshipAnalyzer.Core.Events;
 
 namespace FellowshipAnalyzer.Core.Analysis;
@@ -60,8 +61,11 @@ public abstract class AbsorbAnalyzer : Analyzer
         }
     }
 
-    /// <summary>Opens a shield on the event's target. Call from apply and refresh handlers.</summary>
-    protected void OpenShield<TEvent>(TEvent e) where TEvent : Event, IHasTargetWithInstanceEvent
+    /// <summary>
+    /// Opens a shield on the event's target, carrying the absorb the application put on it. Call from
+    /// apply and refresh handlers, passing the event's own <c>Absorb</c> as <paramref name="absorbAmount"/>.
+    /// </summary>
+    protected void OpenShield<TEvent>(TEvent e, long absorbAmount) where TEvent : Event, IHasTargetWithInstanceEvent
     {
         Applications++;
 
@@ -74,7 +78,7 @@ public abstract class AbsorbAnalyzer : Analyzer
             running.Reapplied = true;
         }
 
-        var shield = new AbsorbCapture { Target = key, Start = e.Timestamp, End = e.Timestamp };
+        var shield = new AbsorbCapture { Target = key, Start = e.Timestamp, End = e.Timestamp, AbsorbAmount = absorbAmount };
         _absorbs.Add(shield);
         _open[key] = shield;
     }
@@ -96,7 +100,7 @@ public abstract class AbsorbAnalyzer : Analyzer
     {
         if (_open.TryGetValue(new UnitKey(e.TargetId, 0), out var shield))
         {
-            shield.Absorbed += e.Amount;
+            Consume(shield, e);
             return;
         }
 
@@ -104,9 +108,15 @@ public abstract class AbsorbAnalyzer : Analyzer
         {
             if (key.ActorId != e.TargetId) continue;
 
-            candidate.Absorbed += e.Amount;
+            Consume(candidate, e);
             return;
         }
+    }
+
+    private static void Consume(AbsorbCapture shield, AbsorbedEvent e)
+    {
+        shield.Absorbed += e.Amount;
+        shield.Hits.Add(new AbsorbHit(e.Timestamp, e.Amount, e.AttackerId, e.ExtraAbility));
     }
 
     private Computed Compute()
@@ -124,8 +134,10 @@ public abstract class AbsorbAnalyzer : Analyzer
                 capture.Target,
                 capture.Start,
                 end,
+                capture.AbsorbAmount,
                 capture.Absorbed,
                 capture.Remaining,
+                capture.Hits,
                 truncated,
                 capture.Reapplied));
 
@@ -142,8 +154,10 @@ public abstract class AbsorbAnalyzer : Analyzer
         public UnitKey Target { get; init; }
         public int Start { get; init; }
         public int End { get; set; }
+        public long AbsorbAmount { get; init; }
         public long Absorbed { get; set; }
         public long Remaining { get; set; }
+        public List<AbsorbHit> Hits { get; } = [];
         public bool Reapplied { get; set; }
     }
 
@@ -154,20 +168,31 @@ public abstract class AbsorbAnalyzer : Analyzer
         int ExpiredUnspent);
 }
 
+/// <summary>One hit an absorb shield took a share of.</summary>
+/// <param name="Timestamp">When the hit landed.</param>
+/// <param name="Amount">Damage this shield removed from the hit. Several shields covering one hit each record their own share.</param>
+/// <param name="AttackerId">The unit that dealt the hit, when the event names one.</param>
+/// <param name="Ability">The ability that dealt the hit, when the event names one.</param>
+public sealed record AbsorbHit(int Timestamp, long Amount, int? AttackerId, Ability? Ability);
+
 /// <summary>One absorb shield and what became of it.</summary>
 /// <param name="Target">The unit it was laid on.</param>
 /// <param name="Start">When it went up.</param>
 /// <param name="End">When it came off, or the pull's end when <paramref name="Truncated"/>.</param>
+/// <param name="Total">The absorb the application put on it, as the apply event reported it.</param>
 /// <param name="Absorbed">Damage it consumed.</param>
 /// <param name="Remaining">Absorb still on it when it came off.</param>
+/// <param name="Hits">Every hit it took a share of, in encounter order.</param>
 /// <param name="Truncated">Whether the pull ended before the shield did.</param>
 /// <param name="Reapplied">Whether a fresh shield replaced this one before it expired.</param>
 public sealed record AbsorbUse(
     UnitKey Target,
     int Start,
     int End,
+    long Total,
     long Absorbed,
     long Remaining,
+    IReadOnlyList<AbsorbHit> Hits,
     bool Truncated,
     bool Reapplied)
 {
@@ -176,4 +201,10 @@ public sealed record AbsorbUse(
 
     /// <summary>Whether the absorb came off with absorb still on it.</summary>
     public bool ExpiredUnspent => Remaining > 0;
+
+    /// <summary>
+    /// Effective absorbtion, calculated as total - remaining
+    /// left on it.
+    /// </summary>
+    public long? Effective => Truncated ? null : Total - Remaining;
 }

@@ -42,10 +42,10 @@ public sealed partial class EmpoweredShieldSlamAnalyzer : AbsorbAnalyzer, IEmpow
     }
 
     [On<ApplyBuffEvent>(To = Actor.Player, Spell = nameof(Spells.ShieldSlamAbsorb))]
-    private void OnBarrierApplied(ApplyBuffEvent buffEvent) => OpenShield(buffEvent);
+    private void OnBarrierApplied(ApplyBuffEvent buffEvent) => OpenShield(buffEvent, buffEvent.Absorb ?? 0);
 
     [On<RefreshBuffEvent>(To = Actor.Player, Spell = nameof(Spells.ShieldSlamAbsorb))]
-    private void OnBarrierRefreshed(RefreshBuffEvent buffEvent) => OpenShield(buffEvent);
+    private void OnBarrierRefreshed(RefreshBuffEvent buffEvent) => OpenShield(buffEvent, buffEvent.Absorb ?? 0);
 
     [On<RemoveBuffEvent>(To = Actor.Player, Spell = nameof(Spells.ShieldSlamAbsorb))]
     private void OnBarrierRemoved(RemoveBuffEvent buffEvent) => CloseShield(buffEvent);
