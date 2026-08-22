@@ -2,6 +2,9 @@ using FellowshipAnalyzer.Core.Analysis;
 using FellowshipAnalyzer.Core.Common.Items;
 using FellowshipAnalyzer.Core.Common.Spells.Gunde;
 using FellowshipAnalyzer.Core.Events;
+using FellowshipAnalyzer.Heroes.Gunde.Normalizers;
+
+using FSLID = FellowshipAnalyzer.Core.Common.Spells.FSLID;
 
 namespace FellowshipAnalyzer.Heroes.Gunde.Modules;
 
@@ -11,11 +14,22 @@ public sealed partial class SerratedEdgeAnalyzer : Analyzer
 {
     public const int ConsumerGraceMs = 250;
 
+    public const double AdditionalRendConversion = 0.20;
+
+    public static readonly FSLID[] Consumers =
+    [
+        Spells.HeartSplitter.FSLID,
+        Spells.GrimCarve.FSLID,
+        Spells.Rupture.FSLID,
+        Spells.BloodArc.FSLID,
+        Spells.ReaverEdge.FSLID,
+        Spells.DoubleStrike.FSLID,
+    ];
+
     private readonly List<SerratedEdgeGrant> _grants = [];
 
     private int? _grantedAt;
-    private int _lastCastTimestamp = int.MinValue;
-    private int _lastCastAbilityId;
+    private CastEvent? _lastCast;
     private IReadOnlyList<ConsumerReadiness> _lastCastReadiness = [];
 
     public GundePullShape Shape => Pull.Targets == PullKind.Single ? GundePullShape.Boss : GundePullShape.Aoe;
@@ -42,6 +56,11 @@ public sealed partial class SerratedEdgeAnalyzer : Analyzer
 
     public int Unspent => Count(SerratedEdgeOutcome.Unspent);
 
+    public long TotalRendConverted => _grants.Sum(grant => grant.RendConverted);
+
+    public long RendConvertedBy(SerratedEdgeOutcome outcome) =>
+        _grants.Where(grant => grant.Outcome == outcome).Sum(grant => grant.RendConverted);
+
     [On<CastEvent>(By = Actor.Player, Spells = [
         nameof(Spells.HeartSplitter),
         nameof(Spells.GrimCarve),
@@ -51,8 +70,7 @@ public sealed partial class SerratedEdgeAnalyzer : Analyzer
         nameof(Spells.DoubleStrike)])]
     private void OnCandidateCast(CastEvent castEvent)
     {
-        _lastCastTimestamp = castEvent.Timestamp;
-        _lastCastAbilityId = castEvent.Ability.Id;
+        _lastCast = castEvent;
         _lastCastReadiness = Snapshot(castEvent.Timestamp);
     }
 
@@ -69,21 +87,29 @@ public sealed partial class SerratedEdgeAnalyzer : Analyzer
 
         _grantedAt = null;
         var consumer = ConsumerAt(granted, buffEvent.Timestamp);
+        var ability = consumer?.Ability.Id;
         var readiness = consumer is null ? Snapshot(buffEvent.Timestamp) : _lastCastReadiness;
-        var rank = consumer is { } ability ? RankOf(ability) : null;
+        var rank = ability is { } consumed ? RankOf(consumed) : null;
+        var damage = consumer is null ? 0L : SumLinked(consumer, GundeEventLinkNormalizer.CastDamage);
 
         _grants.Add(new SerratedEdgeGrant(
             granted,
-            consumer,
+            ability,
             rank,
             readiness,
-            Classify(consumer, rank, readiness)));
+            Classify(ability, rank, readiness),
+            damage,
+            (long)Math.Round(damage * AdditionalRendConversion),
+            consumer is null ? 0L : SumLinked(consumer, GundeEventLinkNormalizer.Exsanguinate)));
     }
 
-    private int? ConsumerAt(int granted, int removed) =>
-        _lastCastTimestamp >= granted && removed - _lastCastTimestamp <= ConsumerGraceMs
-            ? _lastCastAbilityId
+    private CastEvent? ConsumerAt(int granted, int removed) =>
+        _lastCast is { } cast && cast.Timestamp >= granted && removed - cast.Timestamp <= ConsumerGraceMs
+            ? cast
             : null;
+
+    private static long SumLinked(CastEvent cast, string relation) =>
+        cast.RelatedEvents<DamageEvent>(relation).Sum(damageEvent => damageEvent.Amount);
 
     private IReadOnlyList<int> BuildConsumerPriority()
     {
@@ -152,4 +178,7 @@ public sealed record SerratedEdgeGrant(
     int? ConsumerAbilityId,
     int? ConsumerRank,
     IReadOnlyList<ConsumerReadiness> Readiness,
-    SerratedEdgeOutcome Outcome);
+    SerratedEdgeOutcome Outcome,
+    long ConsumerDamage,
+    long RendConverted,
+    long ExsanguinateDamage);

@@ -412,8 +412,128 @@ public sealed class SerratedEdgeAnalyzerTests
         grimCarve.ShouldBeGreaterThan(heartSplitter);
     }
 
+    [Fact]
+    public async Task Analyze_GrimCarveConsumingTheBuff_ConvertsAFifthOfEverySpin()
+    {
+        var analyzer = await AnalyzeAsync(
+        [
+            Granted(1_000),
+            Cast(Spells.GrimCarve.FSLID, 2_000),
+            Removed(2_000),
+            Damage(Spells.GrimCarve.FSLID, 2_200, 1_000),
+            Damage(Spells.GrimCarve.FSLID, 2_700, 1_000),
+            Damage(Spells.GrimCarve.FSLID, 3_200, 500),
+        ], boss: false);
+
+        var grant = analyzer.Grants.ShouldHaveSingleItem();
+        grant.ConsumerDamage.ShouldBe(2_500);
+        grant.RendConverted.ShouldBe(500);
+        analyzer.TotalRendConverted.ShouldBe(500);
+    }
+
+    [Fact]
+    public async Task Analyze_HeartSplitterConsumingTheBuff_LeavesExsanguinateOutOfTheConversion()
+    {
+        var analyzer = await AnalyzeAsync(
+        [
+            Granted(1_000),
+            Cast(Spells.HeartSplitter.FSLID, 2_000),
+            Removed(2_000),
+            Damage(Spells.HeartSplitter.FSLID, 2_005, 4_000),
+            Damage(Spells.HeartSplitterDotBonusDamage.FSLID, 2_006, 16_000),
+        ], boss: true);
+
+        var grant = analyzer.Grants.ShouldHaveSingleItem();
+        grant.ConsumerDamage.ShouldBe(4_000);
+        grant.RendConverted.ShouldBe(800);
+        grant.ExsanguinateDamage.ShouldBe(16_000);
+    }
+
+    [Fact]
+    public async Task Analyze_ASecondCastOfTheSameAbility_KeepsItsDamageOutOfTheFirstGrant()
+    {
+        var analyzer = await AnalyzeAsync(
+        [
+            Granted(1_000),
+            Cast(Spells.GrimCarve.FSLID, 2_000),
+            Removed(2_000),
+            Damage(Spells.GrimCarve.FSLID, 2_100, 1_000),
+            Cast(Spells.GrimCarve.FSLID, 2_500),
+            Damage(Spells.GrimCarve.FSLID, 2_600, 9_000),
+        ], boss: false);
+
+        var grant = analyzer.Grants.ShouldHaveSingleItem();
+        grant.ConsumerDamage.ShouldBe(1_000);
+        grant.RendConverted.ShouldBe(200);
+    }
+
+    [Fact]
+    public async Task Analyze_AnotherAbilitysDamage_IsNotConverted()
+    {
+        var analyzer = await AnalyzeAsync(
+        [
+            Granted(1_000),
+            Cast(Spells.DoubleStrike.FSLID, 2_000),
+            Removed(2_000),
+            Damage(Spells.DoubleStrike.FSLID, 2_010, 400),
+            Damage(Spells.DoubleStrike.FSLID, 2_020, 400),
+            Damage(Spells.ReaverEdge.FSLID, 2_030, 5_000),
+        ], boss: true);
+
+        var grant = analyzer.Grants.ShouldHaveSingleItem();
+        grant.ConsumerDamage.ShouldBe(800);
+        grant.RendConverted.ShouldBe(160);
+    }
+
+    [Fact]
+    public async Task Analyze_AnUnspentGrant_ConvertsNothing()
+    {
+        var analyzer = await AnalyzeAsync(
+        [
+            Granted(1_000),
+            Removed(9_000),
+            Damage(Spells.GrimCarve.FSLID, 9_100, 5_000),
+        ], boss: true);
+
+        var grant = analyzer.Grants.ShouldHaveSingleItem();
+        grant.Outcome.ShouldBe(SerratedEdgeOutcome.Unspent);
+        grant.ConsumerDamage.ShouldBe(0);
+        grant.RendConverted.ShouldBe(0);
+        analyzer.TotalRendConverted.ShouldBe(0);
+    }
+
+    [Fact]
+    public async Task Analyze_EveryGrant_AddsIntoTheConvertedTotal()
+    {
+        var analyzer = await AnalyzeAsync(
+        [
+            Granted(1_000),
+            Cast(Spells.GrimCarve.FSLID, 2_000),
+            Removed(2_000),
+            Damage(Spells.GrimCarve.FSLID, 2_100, 10_000),
+            Granted(20_000),
+            Cast(Spells.DoubleStrike.FSLID, 21_000),
+            Removed(21_000),
+            Damage(Spells.DoubleStrike.FSLID, 21_010, 1_000),
+        ], boss: false);
+
+        analyzer.Grants.Count.ShouldBe(2);
+        analyzer.TotalRendConverted.ShouldBe(2_200);
+        analyzer.RendConvertedBy(SerratedEdgeOutcome.Priority).ShouldBe(2_000);
+        analyzer.RendConvertedBy(SerratedEdgeOutcome.AvoidableFiller).ShouldBe(200);
+    }
+
     private static ConsumerReadiness Readiness(SerratedEdgeGrant grant, int abilityId) =>
         grant.Readiness.Single(entry => entry.AbilityId == abilityId);
+
+    private static DamageEvent Damage(int abilityId, int timestamp, long amount) => new()
+    {
+        Timestamp = timestamp,
+        SourceId = PlayerId,
+        TargetId = BossId,
+        Amount = amount,
+        Ability = new Ability { Id = abilityId },
+    };
 
     private static CombatantInfoEvent Equipped(int itemId) => new()
     {

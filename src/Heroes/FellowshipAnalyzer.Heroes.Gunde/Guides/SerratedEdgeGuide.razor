@@ -1,3 +1,4 @@
+@using FellowshipAnalyzer.Core.Common.Items
 @using Items = FellowshipAnalyzer.Core.Common.Items.Items
 @using Spells = FellowshipAnalyzer.Core.Common.Spells.Gunde.Spells
 @inherits ReportComponent<GundeCombatLogParser>
@@ -5,10 +6,11 @@
 <GuideSection Title="Serrated Edge">
     <LeftPanel>
         <p>
-            Avoid consuming <SpellLink Spell="Spells.SerratedEdge" /> on filler abilities.
-            @if (EquippedLegendary is { } legendary)
+            Avoid consuming <SpellLink Spell="Spells.SerratedEdge" /> on filler abilities.           
+
+            @if (this.Owner.SelectedCombatant.Legendary is { } legendary)
             {
-                <text>With @legendary equipped, spend it in this order:</text>
+                <text>With <ItemLink Item="legendary" /> equipped, spend it in this order:</text>
             }
             else
             {
@@ -19,10 +21,12 @@
         {
             <p>
                 @order.Lead:
-                @for (var rank = 0; rank < order.Abilities.Count; rank++)
-                {
-                    <SpellLink Spell="order.Abilities[rank]" />@Separator(rank, order.Abilities.Count)
-                }
+                <ol>
+                    @foreach(var id in order.Abilities)
+                    {
+                        <li><SpellLink Spell="id" /></li>
+                    }
+                </ol>
             </p>
         }
         <p>
@@ -49,15 +53,15 @@
 </GuideSection>
 
 @code {
+    private static readonly int ConversionPercent =
+        (int)Math.Round(SerratedEdgeAnalyzer.AdditionalRendConversion * 100);
+
     private List<SerratedEdgeAnalyzer> Analyzers =>
         [.. Parser.SerratedEdgeAnalyzers.Select(entry => entry.Analyzer)];
 
     private int TotalGrants => Analyzers.Sum(analyzer => analyzer.JudgedGrants);
 
-    private string? EquippedLegendary =>
-        Analyzers.Any(analyzer => analyzer.BleedingHeartRingEquipped) ? Items.BandOfTheBleedingHeart.Name
-        : Analyzers.Any(analyzer => analyzer.SinisterApronEquipped) ? Items.CarversSinisterApron.Name
-        : null;
+    private long TotalRendConverted => Analyzers.Sum(analyzer => analyzer.TotalRendConverted);
 
     private IEnumerable<(string Lead, IReadOnlyList<int> Abilities)> Orders() =>
         new[] { GundePullShape.Boss, GundePullShape.Aoe }
@@ -67,8 +71,6 @@
 
     private static string ShapeLead(GundePullShape shape) =>
         shape == GundePullShape.Aoe ? "On a pack" : "On a boss";
-
-    private static string Separator(int rank, int count) => rank == count - 1 ? "." : ", then ";
 
     private IEnumerable<OverviewStat> BuildOverviewStats()
     {
@@ -99,6 +101,10 @@
                 $"{forced}",
                 "Forced Filler",
                 "Grants consumed by a filler ability with every ability in the pull's order on cooldown. This is context, not a verdict."),
+            new(
+                $"{TotalRendConverted:N0}",
+                "Rend Converted",
+                $"{ConversionPercent}% of the damage each consuming cast dealt, across all of its hits{ConvertedClause()}. Exsanguinate damage is not counted. This is context, not a verdict."),
         };
 
         if (unspent > 0)
@@ -120,6 +126,25 @@
             .GroupBy(grant => grant.ConsumerAbilityId)
             .OrderByDescending(group => group.Count())
             .Select(group => $"{ConsumerName(group.Key)} {group.Count()}");
+
+        return string.Join(", ", split);
+    }
+
+    private string ConvertedClause()
+    {
+        var split = ConvertedSplit();
+        return split.Length == 0 ? string.Empty : $": {split}";
+    }
+
+    private string ConvertedSplit()
+    {
+        var split = Analyzers
+            .SelectMany(analyzer => analyzer.Grants)
+            .Where(grant => grant.RendConverted > 0)
+            .GroupBy(grant => grant.ConsumerAbilityId)
+            .Select(group => (Name: ConsumerName(group.Key), Converted: group.Sum(grant => grant.RendConverted)))
+            .OrderByDescending(entry => entry.Converted)
+            .Select(entry => $"{entry.Name} {entry.Converted:N0}");
 
         return string.Join(", ", split);
     }
@@ -171,6 +196,14 @@
                 perf),
         };
 
+        if (grant.ConsumerAbilityId is not null)
+        {
+            stats.Add(new PerCastStat(
+                $"{grant.RendConverted:N0}",
+                "Rend Converted",
+                ConvertedTooltip(grant)));
+        }
+
         if (IsFiller(grant.Outcome))
         {
             stats.AddRange(grant.Readiness.Select(entry =>
@@ -193,6 +226,12 @@
             AdditionalContent = new AdditionalContent("Usage Notes", @<div>@BuildNote(row)</div>),
         };
     }
+
+    private static string ConvertedTooltip(SerratedEdgeGrant grant) =>
+        $"{ConversionPercent}% of the {grant.ConsumerDamage:N0} damage {ConsumerName(grant.ConsumerAbilityId)} dealt."
+        + (grant.ExsanguinateDamage > 0
+            ? $" A further {grant.ExsanguinateDamage:N0} of Exsanguinate damage is not counted."
+            : string.Empty);
 
     private static PerCastStat AvailabilityStat(string name, bool ready, int remainingMs) =>
         new(
