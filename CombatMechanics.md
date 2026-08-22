@@ -319,7 +319,7 @@ If a critical absorb occurs on a shield with 50% DR, it's applied at 1/4th the r
 
 ### Consequences for analyzer code
 
-`AbsorbAnalyzer.AbsorbEfficiency` computes `used / (used + wasted)`, which mixes damage removed with shield strength left over. That is correct only where a hit costs the shield exactly what it absorbed, it does not consider damage reduction or crit absorbs. Read `Face`, `Consumed` and `Absorbed` off `AbsorbUse` instead.
+`AbsorbAnalyzer.AbsorbEfficiency` computes `used / (used + wasted)`, which mixes damage removed with shield strength left over. That is correct only where a hit costs the shield exactly what it absorbed, it does not consider damage reduction or crit absorbs. Read `Total`, `Effective` and `Absorbed` off `AbsorbUse` instead.
 
 The datamined build is queryable through the `fellowship-codex` MCP server (`find_entity`, `get_entity`, `list_types`) for gem traits, blessings, weapon and neck traits, effects and abilities with their real descriptions. Use it before guessing what an aura does.
 

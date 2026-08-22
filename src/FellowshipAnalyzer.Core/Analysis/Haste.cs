@@ -57,7 +57,7 @@ public sealed partial class Haste(Lazy<StatTracker> statTracker) : Analyzer
             Timestamp = trigger.Timestamp,
             SourceId = Owner.PlayerId,
             TargetId = Owner.PlayerId,
-            OldHaste = oldHaste,
+            OldHaste = trigger is DungeonStartEvent ? null : oldHaste,
             NewHaste = newHaste,
             Before = stats?.Before ?? new Stats(),
             After = stats?.After ?? new Stats(),

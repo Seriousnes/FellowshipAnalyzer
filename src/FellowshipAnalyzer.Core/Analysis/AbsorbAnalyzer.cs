@@ -1,4 +1,3 @@
-using FellowshipAnalyzer.Core.Common.Spells;
 using FellowshipAnalyzer.Core.Events;
 
 namespace FellowshipAnalyzer.Core.Analysis;

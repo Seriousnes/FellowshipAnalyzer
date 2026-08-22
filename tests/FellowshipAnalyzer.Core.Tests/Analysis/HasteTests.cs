@@ -285,6 +285,31 @@ public sealed partial class HasteTests
     }
 
     [Fact]
+    public async Task DungeonStart_WithHasteAlreadyOnThePlayer_ShouldLeaveOldHasteNull()
+    {
+        var (parser, _) = await RunWithHaste(
+            events:
+            [
+                new CombatantInfoEvent
+                {
+                    Timestamp = 0,
+                    SourceId = PlayerId,
+                    Auras = [new Aura { Ability = HasteBuffSpellId, Stacks = 1, Source = PlayerId }],
+                },
+                new DungeonStartEvent { Timestamp = 0 },
+            ],
+            configureStats: s => s.AddPercentageBuff(HasteBuffSpellId, new StatPercentageBuff { Haste = FlatHaste }),
+            additionalModules: [typeof(ChangeHasteProbe)]);
+
+        var probe = parser.GetModule<ChangeHasteProbe>()!;
+
+        Assert.Single(probe.ReceivedEvents);
+        var startEvent = probe.ReceivedEvents[0];
+        Assert.Null(startEvent.OldHaste);
+        Assert.Equal(FlatHaste, startEvent.NewHaste);
+    }
+
+    [Fact]
     public async Task StatChangeThatLeavesHasteAlone_ShouldNotFabricateChangeHasteEvent()
     {
         var (parser, _) = await RunWithHaste(
