@@ -6,6 +6,8 @@ namespace FellowshipAnalyzer.Core.Events;
 [JsonPolymorphic(TypeDiscriminatorPropertyName = "type", UnknownDerivedTypeHandling = JsonUnknownDerivedTypeHandling.FailSerialization)]
 public abstract partial class Event : IEventFilter
 {
+    private List<LinkedEvent>? _linkedEvents;
+
     /// <summary>
     /// Timestamp in milliseconds
     /// </summary>
@@ -29,14 +31,13 @@ public abstract partial class Event : IEventFilter
     /// </summary>
     public virtual bool? Prepull { get; set; }
     /// <summary>
-    /// Other events associated with this event
+    /// Other events associated with this event, established by an
+    /// <see cref="Analysis.Normalizers.EventLinkNormalizer"/> and read back by
+    /// <see cref="RelatedEvents{TEvent}"/>. Empty until a normalizer links something, and allocated
+    /// only for the events that are linked.
     /// </summary>
     [JsonIgnore]
-    public virtual List<LinkedEvent> LinkedEvents { get; set; } = [];
-    /// <summary>
-    /// Set of <see cref="EventLink"/> that have been processed already to avoid duplicated linking.
-    /// </summary>
-    public virtual HashSet<EventLink> ProcessedLinks { get; set; } = [];
+    public IReadOnlyList<LinkedEvent> LinkedEvents => _linkedEvents ?? [];
     /// <summary>
     /// Was the event created by FSA
     /// </summary>
@@ -53,4 +54,42 @@ public abstract partial class Event : IEventFilter
     /// An analyzer has reordered this event.
     /// </summary>
     public virtual bool? Reordered { get; set; }
+
+    /// <summary>
+    /// Associates <paramref name="event"/> with this event under <paramref name="relation"/>. Adding a
+    /// pair that is already linked does nothing, so normalizing one event stream more than once cannot
+    /// double a link.
+    /// </summary>
+    /// <param name="relation">The relationship name the link is read back by.</param>
+    /// <param name="event">The event to associate with this one.</param>
+    public void AddRelatedEvent(string relation, Event @event)
+    {
+        _linkedEvents ??= [];
+
+        foreach (var link in _linkedEvents)
+        {
+            if (link.Relation == relation && ReferenceEquals(link.Event, @event)) return;
+        }
+
+        _linkedEvents.Add(new LinkedEvent(@event, relation));
+    }
+
+    /// <summary>Every <typeparamref name="TEvent"/> linked to this event under <paramref name="relation"/>, in the order the links were established.</summary>
+    /// <typeparam name="TEvent">The event type to return; a link to any other type is skipped.</typeparam>
+    /// <param name="relation">The relationship name the links were established under.</param>
+    public IEnumerable<TEvent> RelatedEvents<TEvent>(string relation) where TEvent : Event
+    {
+        if (_linkedEvents is null) yield break;
+
+        foreach (var link in _linkedEvents)
+        {
+            if (link.Relation == relation && link.Event is TEvent typed) yield return typed;
+        }
+    }
+
+    /// <summary>The first <typeparamref name="TEvent"/> linked to this event under <paramref name="relation"/>, or <c>null</c> when there is none.</summary>
+    /// <typeparam name="TEvent">The event type to return; a link to any other type is skipped.</typeparam>
+    /// <param name="relation">The relationship name the link was established under.</param>
+    public TEvent? RelatedEvent<TEvent>(string relation) where TEvent : Event =>
+        RelatedEvents<TEvent>(relation).FirstOrDefault();
 }

@@ -1,0 +1,24 @@
+@use 'tokens' as t;
+.item-link {
+    color: var(--fa-gold-light);
+    text-decoration: none;
+    white-space: nowrap;
+
+    &:hover {
+        color: var(--fa-text);
+        text-decoration: underline;
+    }
+
+    & > img {
+        margin-right: 3px;
+    }
+}
+
+.item-link__icon {
+    height: 1.3em;
+    width: 1.3em;
+    margin-top: -0.3em;
+    vertical-align: middle;
+    border-radius: var(--fa-radius-xs);
+    object-fit: cover;
+}

@@ -1,9 +1,11 @@
 using FellowshipAnalyzer.Core.Analysis;
 using FellowshipAnalyzer.Heroes.Gunde.Modules;
+using FellowshipAnalyzer.Heroes.Gunde.Normalizers;
 
 namespace FellowshipAnalyzer.Heroes.Gunde.Analysis;
 
 [HeroAnalyzer(HeroName.Gunde)]
+[AddNormalizer<GundeEventLinkNormalizer>]
 [AddModule<Modules.Abilities>]
 [AddModule<GundeAuras>]
 [AddAnalyzer<BloodFeatherTracker>]
