@@ -27,7 +27,7 @@ public static class Talents
     public static Talent LunarlightAffinity { get; } = new Talent { Id = 203, Name = "Lunarlight Affinity", Icon = "T_Icon_Energy_108.jpg" };
     /// <summary>Elarion's <c>Striker's Aim</c> talent.</summary>
     public static Talent StrikersAim { get; } = new Talent { Id = 680, Name = "Striker's Aim", Icon = "T_Nhance_RPG_Icons_MagicShot.jpg" };
-    /// <summary>Elarion's <c>Fervent Supremacy</c> talent, which shortens the Supremacy window's cooldown so the windows come round more often.</summary>
+    /// <summary>Elarion's <c>Fervent Supremacy</c> talent, which shortens Skystrider's Supremacy's cooldown and turns its window into four charges of Empowered Multishot over fifteen seconds.</summary>
     public static Talent FerventSupremacy { get; } = new Talent { Id = 136, Name = "Fervent Supremacy", Icon = "Bowguy_Supremacy.jpg" };
     /// <summary>Elarion's <c>Impending Heartseeker</c> talent, whose proc buff resets Heartseeker Barrage and empowers the next one when consumed.</summary>
     public static Talent ImpendingHeartseeker { get; } = new Talent { Id = 168, Name = "Impending Heartseeker", Icon = "Bowguy_Spray.jpg" };

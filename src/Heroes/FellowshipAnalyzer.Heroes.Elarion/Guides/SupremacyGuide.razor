@@ -1,112 +1,88 @@
 @inherits ReportComponent<ElarionCombatLogParser>
 
+@{
+    var windows = Parser.SupremacyAnalyzers.SelectMany(entry => entry.Analyzer.Windows).ToList();
+    var fervent = Parser.SelectedCombatant.HasTalent(Talents.FerventSupremacy.Id);
+}
+
 <GuideSection Title="Skystrider's Supremacy">
     <LeftPanel>
         <p>
-            Unsure how this currently works
+            <strong><SpellLink Spell="Spells.SkystridersSupremacy" /></strong> makes
+            <SpellLink Spell="Spells.Multishot" /> your strongest Focus spender while it is active.
+            Try to cast four <SpellLink Spell="Spells.Multishot" /> in every window, and enter it
+            with <SpellLink Spell="Spells.Multishot" /> charges available so you can begin
+            immediately.
         </p>
     </LeftPanel>
     <RightPanel>
-        <CastOverview Title="Supremacy Overview" Stats="@BuildOverviewStats()" />
-        <CastDetail Title="Per-Window Charges"
-                    Description="One card per Skystrider's Supremacy window, rated on the number of charges used or that expired."
-                    Casts="@BuildWindowRows()" />
+        @if (windows.Count == 0)
+        {
+            <TipBox Variant="TipBoxVariant.Info">
+                No Skystrider's Supremacy buff was recorded on any pull.
+            </TipBox>
+        }
+        else
+        {
+            <CastOverview Title="Supremacy Overview" Stats="@BuildOverviewStats(windows, fervent)" />
+            <CastDetail Title="Supremacy Windows"
+                        Description="One card per Skystrider's Supremacy window, rated on the Multishot casts made inside it."
+                        Casts="@BuildWindowRows(fervent)" />            
+        }
     </RightPanel>
 </GuideSection>
 
 @code {
-    private List<SupremacyAnalyzer> Analyzers() =>
-        Parser.SupremacyAnalyzers.Select(entry => entry.Analyzer).ToList();
+    private const int TargetMultishots = 4;
+    private const int SlowOpeningMs = 1_000;
 
-    private List<SupremacyAnalyzer> SingleTargetAnalyzers() =>
-        Parser.SupremacyAnalyzers
-            .Where(entry => entry.Pull.Targets == PullKind.Single)
-            .Select(entry => entry.Analyzer)
-            .ToList();
-
-    private bool HasFerventSupremacy => Analyzers().Any(analyzer => analyzer.TalentedFerventSupremacy);
-
-    private IEnumerable<OverviewStat> BuildOverviewStats()
+    private static IEnumerable<OverviewStat> BuildOverviewStats(
+        List<SupremacyAnalyzer.SupremacyWindow> windows,
+        bool fervent)
     {
-        var analyzers = Analyzers();
+        var casts = windows.Sum(window => window.MultishotCasts);
+        var average = (double)casts / windows.Count;
+        var atTarget = windows.Count(window => window.MultishotCasts >= TargetMultishots);
 
-        var granted = analyzers.Sum(analyzer => analyzer.StacksGranted);
-        var consumed = analyzers.Sum(analyzer => analyzer.StacksConsumed);
-        var wasted = analyzers.Sum(analyzer => analyzer.StacksWasted);
-        var consumedShare = granted == 0 ? 0 : (double)consumed / granted * 100;
-
-        var windows = analyzers.Sum(analyzer => analyzer.Windows.Count);
-        var drained = analyzers.Sum(analyzer => analyzer.WindowsFullyDrained);
-
-        var stats = new List<OverviewStat>
-        {
-            new(
-                $"{consumedShare:0.#}%",
-                "Charges Spent",
-                $"{consumed} of {granted} Skystrider's Supremacy charges were spent on a Multishot before their window closed.",
-                granted == 0 ? null : PerformanceTiers.FromThresholds(consumedShare, 100, 75, 50)),
-            new(
-                $"{wasted}",
-                "Charges Wasted",
-                "Skystrider's Supremacy charges that expired unspent.",
-                granted == 0 ? null : WasteTier(wasted)),
-            new(
-                $"{drained}/{windows}",
-                "Windows Drained",
-                "Skystrider's Supremacy windows that closed with every charge spent.",
-                windows == 0 ? null : PerformanceTiers.FromThresholds(
-                    (double)drained / windows * 100, 100, 75, 50)),
-        };
-
-        var singleTarget = SingleTargetAnalyzers();
-        if (singleTarget.Count > 0)
-        {
-            var bare = singleTarget.Sum(analyzer => analyzer.RegularMultishotCasts);
-            stats.Add(new OverviewStat(
-                $"{bare}",
-                "Bare Multishots (Single Target)",
-                $"Multishot casts on single-target pulls with no Skystrider's Supremacy charge available, across {singleTarget.Count} such {(singleTarget.Count == 1 ? "pull" : "pulls")}.",
-                BareMultishotTier(bare)));
-        }
-
-        return stats;
+        return
+        [
+            new OverviewStat(
+                $"{casts}",
+                "Empowered Multishots",
+                $"Multishot casts made while a Skystrider's Supremacy window was open, across {windows.Count} {(windows.Count == 1 ? "window" : "windows")}."),
+            new OverviewStat(
+                $"{average:0.#}",
+                "Multishots per Window",
+                "Multishot casts made inside a window, averaged across every window."),
+            new OverviewStat(
+                $"{atTarget}/{windows.Count}",
+                "Windows at Four",
+                "Windows with four or more Multishot casts.",
+                WindowShareTier((double)atTarget / windows.Count * 100, fervent)),
+        ];
     }
 
-    private IEnumerable<PerCastData> BuildWindowRows() =>
+    private IEnumerable<PerCastData> BuildWindowRows(bool fervent) =>
         Parser.SupremacyAnalyzers.ToItemRows(
             Parser,
             analyzer => analyzer.Windows,
-            (window, pull) => BuildWindowRow(window, pull));
+            (window, pull) => BuildWindowRow(window, fervent));
 
-    private PerCastRow BuildWindowRow(SupremacyAnalyzer.SupremacyWindow window, PullStartEvent pull)
+    private static PerCastRow BuildWindowRow(SupremacyAnalyzer.SupremacyWindow window, bool fervent)
     {
-        var share = window.StacksGranted == 0
-            ? 0
-            : (double)window.StacksConsumed / window.StacksGranted * 100;
-        var performance = PerformanceTiers.FromThresholds(share, 100, 75, 50);
+        var performance = Tier(window.MultishotCasts, fervent);
 
         var stats = new[]
         {
             new PerCastStat(
-                $"{window.StacksConsumed}/{window.StacksGranted}",
-                "Charges Spent",
-                "Charges from this window spent on a Multishot.",
+                $"{window.MultishotCasts}",
+                "Multishots",
+                "Multishot casts made while this window was open.",
                 Performance: performance),
             new PerCastStat(
-                $"{window.StacksWasted}",
-                "Charges Wasted",
-                "Charges left unspent when the window closed.",
-                Performance: WasteTier(window.StacksWasted)),
-            new PerCastStat(
-                window.ClosedByExpiry ? "Expired" : "Drained",
-                "Window Close",
-                window.ClosedByExpiry
-                    ? "The buff ended with charges unspent."
-                    : "The last charge was spent on a Multishot."),
-            new PerCastStat(
-                $"{window.DurationMs / 1000d:0.#}s",
-                "Window Length",
-                "How long the buff was active."),
+                window.FirstMultishotDelayMs is { } delay ? $"{delay / 1000d:0.##}s" : "-",
+                "Opening Delay",
+                "Time from the window opening to the first Multishot cast."),
         };
 
         return new PerCastRow
@@ -114,34 +90,33 @@
             Performance = performance,
             Stats = stats,
             Timestamp = window.StartMs,
-            AdditionalContent = new AdditionalContent(
-                "Usage Notes",
-                @<div>@BuildNote(window, pull)</div>),
+            AdditionalContent = BuildNote(window, fervent) is { } note
+                ? new AdditionalContent("Usage Notes", @<div>@note</div>)
+                : null,
         };
     }
 
-    private static string BuildNote(SupremacyAnalyzer.SupremacyWindow window, PullStartEvent pull)
+    private static string? BuildNote(SupremacyAnalyzer.SupremacyWindow window, bool fervent)
     {
-        if (window.StacksWasted == 0)
-            return $"All {window.StacksGranted} charges were spent on a Multishot.";
+        if (window.MultishotCasts >= TargetMultishots)
+            return null;
 
-        var advice = pull.Targets == PullKind.Single
-            ? "On a single target, press Multishot only for these charges."
-            : "On a pack, spend the charges while the buff is active.";
+        if (window.FirstMultishotDelayMs is not { } delay)
+            return "No Multishot was cast inside this window. Press Multishot as soon as the window opens.";
 
-        if (window.StacksConsumed == 0)
-            return $"The window closed with all {window.StacksGranted} charges unspent. {advice}";
-
-        return $"{window.StacksWasted} of {window.StacksGranted} charges expired unspent. {advice}";
+        return !fervent && delay >= SlowOpeningMs
+            ? $"The first Multishot came {delay / 1000d:0.##}s after the window opened. Press Multishot as soon as the window opens."
+            : "Enter the window with Multishot charges available.";
     }
 
-    private static QualitativePerformance WasteTier(int wasted) =>
-        wasted == 0 ? QualitativePerformance.Perfect
-        : wasted <= 2 ? QualitativePerformance.Ok
+    private static QualitativePerformance Tier(int casts, bool fervent) =>
+        casts >= TargetMultishots ? QualitativePerformance.Perfect
+        : fervent ? QualitativePerformance.Fail
+        : casts >= 3 ? QualitativePerformance.Ok
         : QualitativePerformance.Fail;
 
-    private static QualitativePerformance BareMultishotTier(int bare) =>
-        bare == 0 ? QualitativePerformance.Perfect
-        : bare <= 3 ? QualitativePerformance.Ok
-        : QualitativePerformance.Fail;
+    private static QualitativePerformance WindowShareTier(double share, bool fervent) =>
+        fervent
+            ? PerformanceTiers.FromThresholds(share, 100, 90, 75)
+            : PerformanceTiers.FromThresholds(share, 100, 75, 50);
 }

@@ -311,11 +311,11 @@ External guides from Icy Veins, Method, and other sites provide stat priority an
 
 ### Shield Damage Reduction
 
-Several absorb effects, such as Solar Shield and Luminous Barrier, have a built-in 50% damage reduction effect. Damage absorbed by the shield is reduced by 50% before it is applied to the remaining absorbtion effect, effectively doubling the total absorb capacity. Not all absorbs behave this way, the spell definition will define a "Damage Reduction" multiplier on a case by case basis.
+Several absorb effects, such as Solar Shield and Luminous Barrier, have a built-in 50% damage reduction effect. Damage absorbed by the shield is reduced by 50% before it is applied to the remaining absorption effect, effectively doubling the total absorb capacity. Not all absorbs behave this way, the spell definition will define a "Damage Reduction" multiplier on a case by case basis.
 
 A "Critical" absorb behaves in a similar way, and is checked on a per-hit basis. A critical absorb is applied at half the regular rate in the same way the shield damage reduction works. 
 
-If a critical absorb occurs on a shield with 50% DR, it's applied at 1/4th the regular rate to the absorbtion pool.
+If a critical absorb occurs on a shield with 50% DR, it's applied at 1/4th the regular rate to the absorption pool.
 
 ### Consequences for analyzer code
 

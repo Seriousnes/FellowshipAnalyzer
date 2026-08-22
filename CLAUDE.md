@@ -15,7 +15,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **An analyzer may take a `ResourceTracker` as a `[Dependency<T>]`, but must never re-derive what the tracker owns.** Trackers expose windowed accessors (`SpentBetween`, `TimeByHolderBetween`, `BandsBetween`) and analyzers project them.
 - **`[On<Event>]` is a last resort.** Use it only where there is literally no other way. Deriving a resource's state is never such a case.
 - **Name an analyzer or guide for what it assesses.** Do not add a qualifier the domain does not need. A misleading name manufactures a false reason to split an analyzer in two.
-- **An absorb's logged strength does not always equal the damage it prevents.**. A damage event's `amount` may not be accurate when it is partially absorbed. 
+- **An absorb's logged strength does not always equal the damage it prevents.** A damage event's `amount` may not be accurate when it is partially absorbed.
 
 ## Project
 

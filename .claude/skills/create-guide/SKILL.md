@@ -172,17 +172,6 @@ The left panel may state a measured value inline: "You overcapped 47 Fury during
 the value is the panel's whole point, this is preferred to a bare directive beside a table that
 repeats it. The tier is carried by the stat in the right panel, not by the prose.
 
-#### Legends and reading keys
-
-A tier legend is declared once per section, best first, as label, dash, condition, and every condition
-is absolute game state: a stack count, a time remaining, a target count. It sits under the data it
-explains, in a `TipBox`, not in the left panel. A per-cast colour caption is a leading-dash fragment
-under `CastDetail`: "- Green is a good cast, Yellow is an ok cast, Red is a bad cast."
-
-A `SubSection` may carry its heading as a bolded inline lead-in instead of a `Title`, which is how the
-graph legend template opens: "**Fury Over Time** - this graph shows...". Pick one per section and do
-not do both.
-
 #### Nothing to report
 
 Three states, three forms. An individual passing cast gets its tier colour and no praise.
