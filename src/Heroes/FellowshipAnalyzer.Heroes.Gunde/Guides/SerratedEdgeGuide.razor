@@ -19,15 +19,13 @@
         </p>
         @foreach (var order in Orders())
         {
-            <p>
-                @order.Lead:
-                <ol>
-                    @foreach(var id in order.Abilities)
-                    {
-                        <li><SpellLink Spell="id" /></li>
-                    }
-                </ol>
-            </p>
+            <p>@order.Lead:</p>
+            <ol>
+                @foreach (var id in order.Abilities)
+                {
+                    <li><SpellLink Spell="id" /></li>
+                }
+            </ol>
         }
         <p>
             A sub-optimal consumer is better than a missed cast opportunity,

@@ -62,7 +62,7 @@ public sealed class PullStartEvent : Event
     /// <summary>When the pull ends, in milliseconds, read from <see cref="End"/>.</summary>
     public int EndTime => End.Timestamp;
 
-    /// <summary>The pull's duration, in milliseconds./// </summary>
+    /// <summary>The pull's duration, in milliseconds.</summary>
     [JsonIgnore]
     public int Duration => EndTime - StartTime;
 }
