@@ -1,12 +1,15 @@
 using FellowshipAnalyzer.Core.Events;
+using FellowshipAnalyzer.Core.Game;
 using OneOf;
 
 namespace FellowshipAnalyzer.Core.Analysis;
 
 /// <summary>
-/// Tracks the selected player's stat ratings over the course of a dungeon.
-/// Monitors buff/debuff stack changes to keep rating totals up to date and
-/// fabricates <see cref="ChangeStatsEvent"/> whenever stats change.
+/// Tracks the selected player's stats over the course of a dungeon across both channels every stat has:
+/// a rating, which converts to a percentage through Fellowship's diminishing-returns curve, and a flat
+/// percentage, which is added to the converted rating afterwards and never sees diminishing returns.
+/// Monitors buff/debuff apply, remove, and stack changes to keep both channels up to date and fabricates
+/// <see cref="ChangeStatsEvent"/> whenever either one moves.
 /// Also tracks the two cooldown stat pools, Ability Cooldown Reduction and Cooldown Acceleration:
 /// each starts from the gear-derived seed frozen on <see cref="CombatantStats"/> and accrues runtime
 /// <see cref="CooldownModifier"/>s, fabricating <see cref="ChangeCooldownModifierEvent"/> on every change.
@@ -15,6 +18,9 @@ namespace FellowshipAnalyzer.Core.Analysis;
 /// Rating → percentage conversion uses Fellowship's piecewise diminishing-returns
 /// formula (CombatMechanics.md). All secondary stats share the same curve.
 /// Critical Strike has an additional 5% base chance added after DR.
+/// Flat percentages are additive with the converted rating and with each other:
+/// <c>effective = RatingToPercentage(rating) + Σ flat</c>. Run the <c>measure-haste-stacking</c> tool to
+/// reproduce the tick-interval measurement that settles this against a multiplicative reading.
 /// </remarks>
 public sealed partial class StatTracker : Analyzer
 {
@@ -22,11 +28,17 @@ public sealed partial class StatTracker : Analyzer
     private PlayerStats _pullStats = new();
     private readonly PlayerMultipliers _multipliers = new();
 
-    private readonly Dictionary<int, StatBuff> _statBuffs = [];
+    private readonly Dictionary<int, StatBuff> _statBuffs = new(StatBuffs.Ratings);
 
-    private readonly Dictionary<int, StatMultiplierBuff> _statMultiplierBuffs = [];
+    private readonly Dictionary<int, StatMultiplierBuff> _statMultiplierBuffs = new(StatBuffs.Multipliers);
 
-    private readonly Dictionary<int, CooldownBuff> _cooldownBuffs = [];
+    private readonly Dictionary<int, StatPercentageBuff> _percentageBuffs = new(StatBuffs.Percentages);
+
+    private readonly Dictionary<int, CooldownBuff> _cooldownBuffs = new(StatBuffs.Cooldowns);
+
+    private readonly Dictionary<int, int> _stackedStacks = [];
+
+    private readonly Dictionary<int, StackedAmounts> _stackedAmounts = [];
 
     private readonly List<CooldownModifier> _abilityCooldownReduction = [];
 
@@ -36,13 +48,14 @@ public sealed partial class StatTracker : Analyzer
     public const double BaseCritChance = 0.05;
 
     [On<DungeonStartEvent>]
-    private void OnDungeonStart(DungeonStartEvent _)
+    private void OnDungeonStart(DungeonStartEvent e)
     {
-        var stats = Owner.SelectedCombatant.Stats;
+        var combatant = Owner.SelectedCombatant;
+        var stats = combatant.Stats;
 
         _pullStats = new PlayerStats
         {
-            Intellect = stats.Intellect,
+            MainStat = Math.Max(stats.Strength, Math.Max(stats.Agility, stats.Intellect)),
             Stamina = stats.Stamina,
             Armor = stats.Armor,
             Crit = stats.Crit,
@@ -51,6 +64,9 @@ public sealed partial class StatTracker : Analyzer
             Spirit = stats.Spirit,
         };
         _currentStats = _pullStats.Clone();
+
+        foreach (var aura in combatant.Info.Auras)
+            SetStackedBuff(aura.Ability, Math.Max(aura.Stacks, 1), e, ratingsAlreadyCounted: true);
     }
 
     /// <summary>
@@ -63,6 +79,19 @@ public sealed partial class StatTracker : Analyzer
     /// </summary>
     public void AddMultiplier(int spellId, StatMultiplierBuff multiplier) =>
         _statMultiplierBuffs[spellId] = multiplier;
+
+    /// <summary>
+    /// Registers a flat percentage stat buff (e.g., 30% haste). Its values are added to the
+    /// rating-derived percentage rather than multiplied with it.
+    /// </summary>
+    /// <remarks>
+    /// Stack counts are absolute, taken from what the log reports rather than accumulated from deltas, so a
+    /// stack removal that leaves a positive count on a buff never seen applied is read as a window that was
+    /// already open, and the remaining stacks start contributing from there. A removal that leaves no stacks
+    /// contributes nothing, so a stray removal cannot drive a stat negative.
+    /// </remarks>
+    public void AddPercentageBuff(int spellId, StatPercentageBuff buff) =>
+        _percentageBuffs[spellId] = buff;
 
     /// <summary>
     /// Registers a cooldown stat buff: while the buff is active on the player its modifiers join the
@@ -168,8 +197,12 @@ public sealed partial class StatTracker : Analyzer
             Added = added,
         }, trigger);
 
-    /// <summary>The player's current Intellect rating, including every tracked buff applied so far this pull.</summary>
-    public double CurrentIntellect => _currentStats.Intellect;
+    /// <summary>
+    /// The player's current main stat rating, including every tracked buff applied so far this pull. A
+    /// combatantinfo carries all three primary slots but populates only the hero's own, so Strength,
+    /// Agility, and Intellect collapse to this one channel.
+    /// </summary>
+    public double CurrentMainStat => _currentStats.MainStat;
     /// <summary>The player's current Stamina rating, including every tracked buff applied so far this pull.</summary>
     public double CurrentStamina => _currentStats.Stamina;
     /// <summary>The player's current Armor rating, including every tracked buff applied so far this pull.</summary>
@@ -191,8 +224,8 @@ public sealed partial class StatTracker : Analyzer
     public double StartingExpertiseRating => _pullStats.Expertise;
     /// <summary>The player's Spirit rating at pull start, before any tracked buff was applied.</summary>
     public double StartingSpiritRating => _pullStats.Spirit;
-    /// <summary>The player's Intellect rating at pull start, before any tracked buff was applied.</summary>
-    public double StartingIntellect => _pullStats.Intellect;
+    /// <summary>The player's main stat rating at pull start, before any tracked buff was applied.</summary>
+    public double StartingMainStat => _pullStats.MainStat;
 
     /// <summary>
     /// Converts a stat rating to a percentage using Fellowship's Season 3 diminishing-returns
@@ -231,14 +264,32 @@ public sealed partial class StatTracker : Analyzer
     /// <summary>Converts a Spirit rating to a percentage using <see cref="RatingToPercentage"/>.</summary>
     public double SpiritPercentage(double rating) => RatingToPercentage(rating);
 
-    /// <summary>The player's current Critical Strike chance, converted from <see cref="CurrentCritRating"/> and including the base crit chance.</summary>
-    public double CurrentCritPercentage => CritPercentage(CurrentCritRating, withBase: true);
-    /// <summary>The player's current Haste percentage, converted from <see cref="CurrentHasteRating"/>.</summary>
-    public double CurrentHastePercentage => HastePercentage(CurrentHasteRating);
-    /// <summary>The player's current Expertise percentage, converted from <see cref="CurrentExpertiseRating"/>.</summary>
-    public double CurrentExpertisePercentage => ExpertisePercentage(CurrentExpertiseRating);
-    /// <summary>The player's current Spirit percentage, converted from <see cref="CurrentSpiritRating"/>.</summary>
-    public double CurrentSpiritPercentage => SpiritPercentage(CurrentSpiritRating);
+    /// <summary>The player's current Critical Strike chance: the converted rating, the 5% base chance, and every active flat percentage.</summary>
+    public double CurrentCritPercentage => CritPercentage(CurrentCritRating, withBase: true) + _currentStats.AdditionalCrit;
+    /// <summary>The player's current Haste percentage: the converted rating plus every active flat percentage.</summary>
+    public double CurrentHastePercentage => HastePercentage(CurrentHasteRating) + _currentStats.AdditionalHaste;
+    /// <summary>The player's current Expertise percentage: the converted rating plus every active flat percentage.</summary>
+    public double CurrentExpertisePercentage => ExpertisePercentage(CurrentExpertiseRating) + _currentStats.AdditionalExpertise;
+    /// <summary>The player's current Spirit percentage: the converted rating plus every active flat percentage.</summary>
+    public double CurrentSpiritPercentage => SpiritPercentage(CurrentSpiritRating) + _currentStats.AdditionalSpirit;
+
+    /// <summary>The flat Critical Strike chance active flat-percentage effects contribute, as a fraction, excluding the rating and the base chance.</summary>
+    public double AdditionalCrit => _currentStats.AdditionalCrit;
+    /// <summary>The flat Haste active flat-percentage effects contribute, as a fraction, excluding the rating.</summary>
+    public double AdditionalHaste => _currentStats.AdditionalHaste;
+    /// <summary>The flat Expertise active flat-percentage effects contribute, as a fraction, excluding the rating.</summary>
+    public double AdditionalExpertise => _currentStats.AdditionalExpertise;
+    /// <summary>The flat Spirit active flat-percentage effects contribute, as a fraction, excluding the rating.</summary>
+    public double AdditionalSpirit => _currentStats.AdditionalSpirit;
+
+    /// <summary>
+    /// The player's current Critical Strike power: the 2.0 base critical multiplier every hero shares plus
+    /// every active flat percentage. A critical hit deals this multiple of a normal one.
+    /// </summary>
+    public double CurrentCritPower => BaseCritPower + _currentStats.AdditionalCritPower;
+
+    /// <summary>The 2.0 base critical multiplier every hero starts from, from each hero's <c>CritMultiplier</c> attribute.</summary>
+    public const double BaseCritPower = 2.0;
 
     /// <summary>
     /// Forces an immediate stat change. Use only for buffs that cannot be described
@@ -253,32 +304,139 @@ public sealed partial class StatTracker : Analyzer
     }
 
     [On<ApplyBuffEvent>(To = Actor.Player)]
-    private void OnApplyBuff(ApplyBuffEvent e) => HandleBuffGain(e.Ability.FSLID, e.Prepull.GetValueOrDefault(), e);
+    private void OnApplyBuff(ApplyBuffEvent e)
+    {
+        HandleBuffGain(e.Ability.FSLID, e.Prepull.GetValueOrDefault(), e);
+        SetStackedBuff(e.Ability.FSLID, stacks: 1, e);
+    }
 
     [On<RemoveBuffEvent>(To = Actor.Player)]
-    private void OnRemoveBuff(RemoveBuffEvent e) => HandleBuffLoss(e.Ability.FSLID, e);
+    private void OnRemoveBuff(RemoveBuffEvent e)
+    {
+        HandleBuffLoss(e.Ability.FSLID, e);
+        SetStackedBuff(e.Ability.FSLID, stacks: 0, e);
+    }
 
     [On<ApplyBuffStackEvent>(To = Actor.Player)]
-    private void OnApplyBuffStack(ApplyBuffStackEvent e) => HandleBuffGain(e.Ability.FSLID, isPrepull: false, e);
+    private void OnApplyBuffStack(ApplyBuffStackEvent e)
+    {
+        HandleBuffGain(e.Ability.FSLID, isPrepull: false, e);
+        SetStackedBuff(e.Ability.FSLID, e.Stack, e);
+    }
 
     [On<RemoveBuffStackEvent>(To = Actor.Player)]
-    private void OnRemoveBuffStack(RemoveBuffStackEvent e) => HandleBuffLoss(e.Ability.FSLID, e);
+    private void OnRemoveBuffStack(RemoveBuffStackEvent e)
+    {
+        HandleBuffLoss(e.Ability.FSLID, e);
+        SetStackedBuff(e.Ability.FSLID, e.Stack, e);
+    }
 
     [On<ApplyDebuffEvent>(To = Actor.Player)]
-    private void OnApplyDebuff(ApplyDebuffEvent e) => HandleBuffGain(e.Ability.FSLID, e.Prepull.GetValueOrDefault(), e);
+    private void OnApplyDebuff(ApplyDebuffEvent e)
+    {
+        HandleBuffGain(e.Ability.FSLID, e.Prepull.GetValueOrDefault(), e);
+        SetStackedBuff(e.Ability.FSLID, stacks: 1, e);
+    }
 
     [On<RemoveDebuffEvent>(To = Actor.Player)]
-    private void OnRemoveDebuff(RemoveDebuffEvent e) => HandleBuffLoss(e.Ability.FSLID, e);
+    private void OnRemoveDebuff(RemoveDebuffEvent e)
+    {
+        HandleBuffLoss(e.Ability.FSLID, e);
+        SetStackedBuff(e.Ability.FSLID, stacks: 0, e);
+    }
 
     [On<ApplyDebuffStackEvent>(To = Actor.Player)]
-    private void OnApplyDebuffStack(ApplyDebuffStackEvent e) => HandleBuffGain(e.Ability.FSLID, isPrepull: false, e);
+    private void OnApplyDebuffStack(ApplyDebuffStackEvent e)
+    {
+        HandleBuffGain(e.Ability.FSLID, isPrepull: false, e);
+        SetStackedBuff(e.Ability.FSLID, e.Stack, e);
+    }
 
     [On<RemoveDebuffStackEvent>(To = Actor.Player)]
-    private void OnRemoveDebuffStack(RemoveDebuffStackEvent e) => HandleBuffLoss(e.Ability.FSLID, e);
+    private void OnRemoveDebuffStack(RemoveDebuffStackEvent e)
+    {
+        HandleBuffLoss(e.Ability.FSLID, e);
+        SetStackedBuff(e.Ability.FSLID, e.Stack, e);
+    }
+
+    private void SetStackedBuff(int spellId, int stacks, Event trigger, bool ratingsAlreadyCounted = false)
+    {
+        var percentageBuff = _percentageBuffs.GetValueOrDefault(spellId);
+        var ratingBuff = ratingsAlreadyCounted ? null : _statBuffs.GetValueOrDefault(spellId);
+        if (ratingBuff?.PerStack != true) ratingBuff = null;
+        if (percentageBuff is null && ratingBuff is null) return;
+
+        var perStack = percentageBuff?.PerStack == true || ratingBuff is not null;
+        var previous = _stackedStacks.GetValueOrDefault(spellId);
+        var next = perStack ? Math.Max(stacks, 0) : stacks > 0 ? 1 : 0;
+        if (next == previous) return;
+
+        if (previous == 0)
+            _stackedAmounts[spellId] = ResolveStacked(percentageBuff, ratingBuff, trigger);
+
+        var amounts = _stackedAmounts[spellId];
+
+        _stackedStacks[spellId] = next;
+        if (next == 0)
+        {
+            _stackedStacks.Remove(spellId);
+            _stackedAmounts.Remove(spellId);
+        }
+
+        var before = _currentStats.ToStats();
+        ApplyStacked(amounts, next - previous);
+        var after = _currentStats.ToStats();
+        FabricateChangeStats(trigger, before, after - before, after);
+    }
+
+    private StackedAmounts ResolveStacked(StatPercentageBuff? percentage, StatBuff? rating, Event trigger) => new(
+        ResolveBuffVal(percentage?.ItemId, percentage?.Crit, trigger),
+        ResolveBuffVal(percentage?.ItemId, percentage?.Haste, trigger),
+        ResolveBuffVal(percentage?.ItemId, percentage?.Expertise, trigger),
+        ResolveBuffVal(percentage?.ItemId, percentage?.Spirit, trigger),
+        ResolveBuffVal(percentage?.ItemId, percentage?.CritPower, trigger),
+        ResolveBuffVal(rating?.ItemId, rating?.MainStat, trigger) * _multipliers.MainStat,
+        ResolveBuffVal(rating?.ItemId, rating?.Stamina, trigger) * _multipliers.Stamina,
+        ResolveBuffVal(rating?.ItemId, rating?.Armor, trigger) * _multipliers.Armor,
+        ResolveBuffVal(rating?.ItemId, rating?.Crit, trigger) * _multipliers.Crit,
+        ResolveBuffVal(rating?.ItemId, rating?.Haste, trigger) * _multipliers.Haste,
+        ResolveBuffVal(rating?.ItemId, rating?.Expertise, trigger) * _multipliers.Expertise,
+        ResolveBuffVal(rating?.ItemId, rating?.Spirit, trigger) * _multipliers.Spirit);
+
+    private void ApplyStacked(StackedAmounts amounts, int stackDelta)
+    {
+        _currentStats.AdditionalCrit += amounts.AdditionalCrit * stackDelta;
+        _currentStats.AdditionalHaste += amounts.AdditionalHaste * stackDelta;
+        _currentStats.AdditionalExpertise += amounts.AdditionalExpertise * stackDelta;
+        _currentStats.AdditionalSpirit += amounts.AdditionalSpirit * stackDelta;
+        _currentStats.AdditionalCritPower += amounts.AdditionalCritPower * stackDelta;
+
+        _currentStats.MainStat += amounts.MainStat * stackDelta;
+        _currentStats.Stamina += amounts.Stamina * stackDelta;
+        _currentStats.Armor += amounts.Armor * stackDelta;
+        _currentStats.Crit += amounts.Crit * stackDelta;
+        _currentStats.Haste += amounts.Haste * stackDelta;
+        _currentStats.Expertise += amounts.Expertise * stackDelta;
+        _currentStats.Spirit += amounts.Spirit * stackDelta;
+    }
+
+    private readonly record struct StackedAmounts(
+        double AdditionalCrit,
+        double AdditionalHaste,
+        double AdditionalExpertise,
+        double AdditionalSpirit,
+        double AdditionalCritPower,
+        double MainStat,
+        double Stamina,
+        double Armor,
+        double Crit,
+        double Haste,
+        double Expertise,
+        double Spirit);
 
     private void HandleBuffGain(int spellId, bool isPrepull, Event trigger)
     {
-        if (!isPrepull && _statBuffs.TryGetValue(spellId, out var ratingBuff))
+        if (!isPrepull && _statBuffs.TryGetValue(spellId, out var ratingBuff) && !ratingBuff.PerStack)
         {
             var before = _currentStats.ToStats();
             ApplyRatingBuff(ratingBuff, 1.0);
@@ -309,7 +467,7 @@ public sealed partial class StatTracker : Analyzer
 
     private void HandleBuffLoss(int spellId, Event trigger)
     {
-        if (_statBuffs.TryGetValue(spellId, out var ratingBuff))
+        if (_statBuffs.TryGetValue(spellId, out var ratingBuff) && !ratingBuff.PerStack)
         {
             var before = _currentStats.ToStats();
             ApplyRatingBuff(ratingBuff, -1.0);
@@ -333,13 +491,13 @@ public sealed partial class StatTracker : Analyzer
 
     private void ApplyRatingBuff(StatBuff buff, double factor, bool withMultipliers = true)
     {
-        _currentStats.Intellect += ResolveBuffVal(buff, buff.Intellect) * factor * (withMultipliers ? _multipliers.Intellect : 1.0);
-        _currentStats.Stamina += ResolveBuffVal(buff, buff.Stamina) * factor * (withMultipliers ? _multipliers.Stamina : 1.0);
-        _currentStats.Armor += ResolveBuffVal(buff, buff.Armor) * factor * (withMultipliers ? _multipliers.Armor : 1.0);
-        _currentStats.Crit += ResolveBuffVal(buff, buff.Crit) * factor * (withMultipliers ? _multipliers.Crit : 1.0);
-        _currentStats.Haste += ResolveBuffVal(buff, buff.Haste) * factor * (withMultipliers ? _multipliers.Haste : 1.0);
-        _currentStats.Expertise += ResolveBuffVal(buff, buff.Expertise) * factor * (withMultipliers ? _multipliers.Expertise : 1.0);
-        _currentStats.Spirit += ResolveBuffVal(buff, buff.Spirit) * factor * (withMultipliers ? _multipliers.Spirit : 1.0);
+        _currentStats.MainStat += ResolveBuffVal(buff.ItemId, buff.MainStat) * factor * (withMultipliers ? _multipliers.MainStat : 1.0);
+        _currentStats.Stamina += ResolveBuffVal(buff.ItemId, buff.Stamina) * factor * (withMultipliers ? _multipliers.Stamina : 1.0);
+        _currentStats.Armor += ResolveBuffVal(buff.ItemId, buff.Armor) * factor * (withMultipliers ? _multipliers.Armor : 1.0);
+        _currentStats.Crit += ResolveBuffVal(buff.ItemId, buff.Crit) * factor * (withMultipliers ? _multipliers.Crit : 1.0);
+        _currentStats.Haste += ResolveBuffVal(buff.ItemId, buff.Haste) * factor * (withMultipliers ? _multipliers.Haste : 1.0);
+        _currentStats.Expertise += ResolveBuffVal(buff.ItemId, buff.Expertise) * factor * (withMultipliers ? _multipliers.Expertise : 1.0);
+        _currentStats.Spirit += ResolveBuffVal(buff.ItemId, buff.Spirit) * factor * (withMultipliers ? _multipliers.Spirit : 1.0);
     }
 
     private void ApplyMultiplierBuff(StatMultiplierBuff buff, bool isGaining, Event trigger)
@@ -355,7 +513,7 @@ public sealed partial class StatTracker : Analyzer
     {
         double Factor(double m) => isGaining ? m : 1.0 / m;
 
-        if (buff.Intellect is double iMult) _multipliers.Intellect *= Factor(iMult);
+        if (buff.MainStat is double mMult) _multipliers.MainStat *= Factor(mMult);
         if (buff.Stamina is double sMult) _multipliers.Stamina *= Factor(sMult);
         if (buff.Armor is double aMult) _multipliers.Armor *= Factor(aMult);
         if (buff.Crit is double cMult) _multipliers.Crit *= Factor(cMult);
@@ -368,7 +526,7 @@ public sealed partial class StatTracker : Analyzer
     {
         double Factor(double m) => isGaining ? m : 1.0 / m;
 
-        if (buff.Intellect is double iMult) _currentStats.Intellect *= Factor(iMult);
+        if (buff.MainStat is double mMult) _currentStats.MainStat *= Factor(mMult);
         if (buff.Stamina is double sMult) _currentStats.Stamina *= Factor(sMult);
         if (buff.Armor is double aMult) _currentStats.Armor *= Factor(aMult);
         if (buff.Crit is double cMult) _currentStats.Crit *= Factor(cMult);
@@ -377,7 +535,7 @@ public sealed partial class StatTracker : Analyzer
         if (buff.Spirit is double spMult) _currentStats.Spirit *= Factor(spMult);
     }
 
-    private double ResolveBuffVal(StatBuff buffObj, BuffVal? buffVal)
+    private double ResolveBuffVal(int? itemId, BuffVal? buffVal, Event? trigger = null)
     {
         if (buffVal is null) return 0.0;
         return buffVal.Match(
@@ -385,10 +543,8 @@ public sealed partial class StatTracker : Analyzer
             func =>
             {
                 var combatant = Owner.SelectedCombatant;
-                Item? item = null;
-                if (buffObj.ItemId is int itemId)
-                    item = combatant.GetItem(itemId);
-                return func(combatant, item);
+                var item = itemId is int id ? combatant.GetItem(id) : null;
+                return func(new StatBuffContext(combatant, item, trigger));
             });
     }
 
@@ -405,11 +561,43 @@ public sealed partial class StatTracker : Analyzer
 }
 
 /// <summary>
-/// A buff value that is either a fixed rating amount or a function that
-/// derives the amount from the combatant (and optionally an item).
+/// A buff value that is either a fixed amount or a function that derives the amount from the
+/// player's gear and the event that applied the buff.
 /// </summary>
 [GenerateOneOf]
-public partial class BuffVal : OneOfBase<double, Func<FullCombatant, Item?, double>>;
+public partial class BuffVal : OneOfBase<double, Func<StatBuffContext, double>>;
+
+/// <summary>
+/// What a function-valued <see cref="BuffVal"/> reads to size its contribution: the player's gear and
+/// talents, the item named by <see cref="StatBuff.ItemId"/> or <see cref="StatPercentageBuff.ItemId"/>,
+/// and the event that applied the buff. Effects whose magnitude depends on the player's state at the
+/// moment of application, such as a blessing that scales with current Spirit, read it off
+/// <see cref="Trigger"/>'s resource snapshot.
+/// </summary>
+/// <param name="Combatant">The selected player.</param>
+/// <param name="Item">The equipped item the buff is attached to, or <c>null</c> when it names none.</param>
+/// <param name="Trigger">The event that applied the buff, or <c>null</c> for a forced change.</param>
+public readonly record struct StatBuffContext(FullCombatant Combatant, Item? Item, Event? Trigger)
+{
+    /// <summary>
+    /// The player's own resource snapshot at <see cref="Trigger"/>, taken from whichever side of the
+    /// event the player is on, or <c>null</c> when the event carries none.
+    /// </summary>
+    public ActorResources? PlayerResources =>
+        Trigger is null ? null
+        : Trigger is IHasTargetEvent target && target.TargetId == Combatant.Id ? Trigger.TargetResources ?? Trigger.SourceResources
+        : Trigger.SourceResources ?? Trigger.TargetResources;
+
+    /// <summary>
+    /// The player's amount of <paramref name="resourceType"/> at <see cref="Trigger"/> as a fraction of
+    /// its maximum, or 0 when the event carries no snapshot of it.
+    /// </summary>
+    public double ResourceFraction(ResourceTypes resourceType)
+    {
+        var resource = PlayerResources?.Resources.FirstOrDefault(r => r.Type == resourceType);
+        return resource is { Max: > 0 } ? (double)resource.Amount / resource.Max : 0.0;
+    }
+}
 
 /// <summary>
 /// Describes a stat rating buff. Unset fields contribute 0 to each stat.
@@ -417,8 +605,8 @@ public partial class BuffVal : OneOfBase<double, Func<FullCombatant, Item?, doub
 /// </summary>
 public sealed class StatBuff
 {
-    /// <summary>Intellect rating contributed while this buff is active.</summary>
-    public BuffVal? Intellect { get; init; }
+    /// <summary>Main stat rating contributed while this buff is active, in whichever primary stat the hero scales from.</summary>
+    public BuffVal? MainStat { get; init; }
     /// <summary>Stamina rating contributed while this buff is active.</summary>
     public BuffVal? Stamina { get; init; }
     /// <summary>Armor rating contributed while this buff is active.</summary>
@@ -431,6 +619,14 @@ public sealed class StatBuff
     public BuffVal? Expertise { get; init; }
     /// <summary>Spirit rating contributed while this buff is active.</summary>
     public BuffVal? Spirit { get; init; }
+
+    /// <summary>
+    /// Whether each rating is contributed once per stack. When set, the tracked contribution follows the
+    /// absolute stack count the log reports, so the whole buff leaves when it drops however many stacks it
+    /// had. When unset, every apply or stack event contributes the rating again and every removal takes one
+    /// contribution back.
+    /// </summary>
+    public bool PerStack { get; init; }
 
     /// <summary>Item ID to pass to function-based <see cref="BuffVal"/> callbacks.</summary>
     public int? ItemId { get; init; }
@@ -452,8 +648,8 @@ public sealed record CooldownBuff(
 /// </summary>
 public sealed class StatMultiplierBuff
 {
-    /// <summary>Multiplier applied to Intellect while this buff is active.</summary>
-    public double? Intellect { get; init; }
+    /// <summary>Multiplier applied to the hero's main stat while this buff is active.</summary>
+    public double? MainStat { get; init; }
     /// <summary>Multiplier applied to Stamina while this buff is active.</summary>
     public double? Stamina { get; init; }
     /// <summary>Multiplier applied to Armor while this buff is active.</summary>
@@ -468,9 +664,39 @@ public sealed class StatMultiplierBuff
     public double? Spirit { get; init; }
 }
 
+/// <summary>
+/// Describes a flat percentage stat buff. Every value is a fraction (0.30 = 30%) added to the
+/// rating-derived percentage rather than multiplied with it, and unset fields contribute 0.
+/// Set <see cref="PerStack"/> when the effect scales with its stack count, and <see cref="ItemId"/>
+/// when any value is item-level-dependent.
+/// </summary>
+public sealed class StatPercentageBuff
+{
+    /// <summary>Flat critical strike chance contributed while this buff is active.</summary>
+    public BuffVal? Crit { get; init; }
+    /// <summary>Flat haste contributed while this buff is active.</summary>
+    public BuffVal? Haste { get; init; }
+    /// <summary>Flat expertise contributed while this buff is active.</summary>
+    public BuffVal? Expertise { get; init; }
+    /// <summary>Flat spirit contributed while this buff is active.</summary>
+    public BuffVal? Spirit { get; init; }
+    /// <summary>Flat critical strike power contributed while this buff is active.</summary>
+    public BuffVal? CritPower { get; init; }
+
+    /// <summary>
+    /// Whether each value is contributed once per stack. When set, the tracked contribution follows the
+    /// stack count the log reports; when unset, the buff contributes its values once while it is active
+    /// regardless of how many stacks it carries.
+    /// </summary>
+    public bool PerStack { get; init; }
+
+    /// <summary>Item ID to pass to function-based <see cref="BuffVal"/> callbacks.</summary>
+    public int? ItemId { get; init; }
+}
+
 internal sealed class PlayerStats
 {
-    public double Intellect { get; set; }
+    public double MainStat { get; set; }
     public double Stamina { get; set; }
     public double Armor { get; set; }
     public double Crit { get; set; }
@@ -478,23 +704,34 @@ internal sealed class PlayerStats
     public double Expertise { get; set; }
     public double Spirit { get; set; }
 
+    public double AdditionalCrit { get; set; }
+    public double AdditionalHaste { get; set; }
+    public double AdditionalExpertise { get; set; }
+    public double AdditionalSpirit { get; set; }
+    public double AdditionalCritPower { get; set; }
+
     public PlayerStats Clone() => (PlayerStats)MemberwiseClone();
 
     public Stats ToStats() => new()
     {
-        Intellect = Intellect,
+        MainStat = MainStat,
         Stamina = Stamina,
         Armor = Armor,
         Crit = Crit,
         Haste = Haste,
         Expertise = Expertise,
         Spirit = Spirit,
+        AdditionalCrit = AdditionalCrit,
+        AdditionalHaste = AdditionalHaste,
+        AdditionalExpertise = AdditionalExpertise,
+        AdditionalSpirit = AdditionalSpirit,
+        AdditionalCritPower = AdditionalCritPower,
     };
 }
 
 internal sealed class PlayerMultipliers
 {
-    public double Intellect { get; set; } = 1.0;
+    public double MainStat { get; set; } = 1.0;
     public double Stamina { get; set; } = 1.0;
     public double Armor { get; set; } = 1.0;
     public double Crit { get; set; } = 1.0;

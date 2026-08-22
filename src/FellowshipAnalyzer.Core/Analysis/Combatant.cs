@@ -148,6 +148,38 @@ public sealed class FullCombatant : Combatant
     /// <summary>The player's unlocked weapon tree traits and their point allocations.</summary>
     public IReadOnlyList<WeaponTrait> WeaponTraits => Info.WeaponTraits;
 
+    /// <summary>Every blessing slotted into equipped gear, across all slots.</summary>
+    public IEnumerable<ItemBlessing> Blessings => Info.Gear.SelectMany(item => item.Blessings);
+
+    /// <summary>Every trait rolled onto equipped gear, across all slots.</summary>
+    public IEnumerable<ItemTrait> Traits => Info.Gear.SelectMany(item => item.Traits);
+
+    /// <summary>
+    /// The highest allocated level of the named blessing across every gear slot, or 0 when the player has
+    /// none. The same blessing carries a different id per slot, so the name is what identifies it.
+    /// </summary>
+    public int BlessingLevel(string blessingName)
+    {
+        var level = 0;
+        foreach (var blessing in Blessings)
+        {
+            if (string.Equals(blessing.Name, blessingName, StringComparison.OrdinalIgnoreCase))
+                level = Math.Max(level, blessing.Level);
+        }
+        return level;
+    }
+
+    /// <summary>The highest rank of the trait with the given id across every gear slot, or 0 when the player has none.</summary>
+    public int TraitRank(int traitId)
+    {
+        var rank = 0;
+        foreach (var trait in Traits)
+        {
+            if (trait.Id == traitId) rank = Math.Max(rank, trait.Rank);
+        }
+        return rank;
+    }
+
     private Item? GetSlot(GearSlot slot) => _gear.GetValueOrDefault(slot);
 
     private CombatantStats BuildStats(CombatantInfoEvent info) => new()

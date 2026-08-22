@@ -4861,6 +4861,30 @@
       "cooldown": 32,
       "range": 3
     },
+    "SpiritOfHeroism": {
+      "kind": "effect",
+      "id": 1350,
+      "name": "Spirit of Heroism",
+      "icon": "Tex_b_02.jpg"
+    },
+    "SpiritOfHeroismHealer": {
+      "kind": "effect",
+      "id": 2277,
+      "name": "Spirit of Heroism",
+      "icon": "Tex_b_02.jpg"
+    },
+    "SpiritOfHeroismNotTank": {
+      "kind": "effect",
+      "id": 2253,
+      "name": "Spirit of Heroism",
+      "icon": "Tex_b_02.jpg"
+    },
+    "SpiritOfHeroismXavian": {
+      "kind": "effect",
+      "id": 2662,
+      "name": "Spirit of Heroism",
+      "icon": "Tex_b_02.jpg"
+    },
     "VeinSprout": {
       "kind": "ability",
       "id": 2031,
@@ -4870,6 +4894,18 @@
     }
   },
   "items": {
+    "AdrenalineRush": {
+      "kind": "effect",
+      "id": 939,
+      "name": "Adrenaline Rush",
+      "icon": "T_Nhance_RPG_BloodCombat_23.jpg"
+    },
+    "AdrenalineRushII": {
+      "kind": "effect",
+      "id": 940,
+      "name": "Adrenaline Rush - II",
+      "icon": "T_Nhance_RPG_Icons_BloodHide.jpg"
+    },
     "AlShackle": {
       "kind": "ability",
       "id": 152,
@@ -5008,6 +5044,12 @@
       "name": "Portal Sickness",
       "icon": "Tex_SpellBook06_39.jpg"
     },
+    "DarkProphecy": {
+      "kind": "effect",
+      "id": 1994,
+      "name": "Dark Prophecy",
+      "icon": "T_Icon_Gold_136.jpg"
+    },
     "Earthbreaker": {
       "kind": "ability",
       "id": 1559,
@@ -5073,6 +5115,24 @@
       "name": "Fated Strike",
       "icon": ""
     },
+    "FirstStrike": {
+      "kind": "effect",
+      "id": 943,
+      "name": "First Strike",
+      "icon": ""
+    },
+    "FirstStrikeII": {
+      "kind": "effect",
+      "id": 944,
+      "name": "First Strike - II",
+      "icon": ""
+    },
+    "FocusedHasteBuff": {
+      "kind": "effect",
+      "id": 2141,
+      "name": "Trait : Focused Haste",
+      "icon": "Tex_SpellBook01_82.jpg"
+    },
     "GloriousPurpose": {
       "kind": "effect",
       "id": 80,
@@ -5090,6 +5150,12 @@
       "id": 1960,
       "name": "Harmonious Soul - II",
       "icon": "T_Nhance_RPG_Arcane_19.jpg"
+    },
+    "HuntersFocusTrait": {
+      "kind": "weapon",
+      "id": 42,
+      "name": "Hunter\u0027s Focus",
+      "icon": "Tex_SpellBook01_82.jpg"
     },
     "IciclesOfAn": {
       "kind": "ability",
@@ -5123,6 +5189,18 @@
       "id": 2845,
       "name": "",
       "icon": ""
+    },
+    "InspiredAllegianceBuff": {
+      "kind": "effect",
+      "id": 2112,
+      "name": "Inspired Allegiance",
+      "icon": "Tex_b_26_layered.jpg"
+    },
+    "InspiredAllegianceTrait": {
+      "kind": "weapon",
+      "id": 2,
+      "name": "Inspired Allegiance",
+      "icon": "Tex_b_26_layered.jpg"
     },
     "InterjectSpell": {
       "kind": "ability",
@@ -5201,6 +5279,36 @@
       "id": 2115,
       "name": "",
       "icon": ""
+    },
+    "NavigatorsIntuitionCrit": {
+      "kind": "effect",
+      "id": 2161,
+      "name": "Navigator\u0027s Intuition : Critical Strike",
+      "icon": "Tex_SpellBook03_42.jpg"
+    },
+    "NavigatorsIntuitionExpertise": {
+      "kind": "effect",
+      "id": 2160,
+      "name": "Navigator\u0027s Intuition : Expertise",
+      "icon": "Tex_SpellBook03_42.jpg"
+    },
+    "NavigatorsIntuitionHaste": {
+      "kind": "effect",
+      "id": 2159,
+      "name": "Navigator\u0027s Intuition : Haste",
+      "icon": "Tex_SpellBook03_42.jpg"
+    },
+    "NavigatorsIntuitionSpirit": {
+      "kind": "effect",
+      "id": 2158,
+      "name": "Navigator\u0027s Intuition : Spirit",
+      "icon": "Tex_SpellBook03_42.jpg"
+    },
+    "NavigatorsIntuitionTrait": {
+      "kind": "weapon",
+      "id": 43,
+      "name": "Navigator\u0027s Intuition",
+      "icon": "Tex_SpellBook03_42.jpg"
     },
     "ObsidianSkin": {
       "kind": "ability",
@@ -5360,6 +5468,18 @@
       "name": "Sanctuary",
       "icon": "T_Relic_DamageReduction.jpg"
     },
+    "SeizedOpportunityBuff": {
+      "kind": "effect",
+      "id": 2110,
+      "name": "Seized Opportunity",
+      "icon": "Tex_violet_27.jpg"
+    },
+    "SeizedOpportunityTrait": {
+      "kind": "weapon",
+      "id": 4,
+      "name": "Seized Opportunity",
+      "icon": "Tex_violet_27.jpg"
+    },
     "SentinelsBastion": {
       "kind": "effect",
       "id": 1968,
@@ -5383,6 +5503,24 @@
       "id": 136,
       "name": "Sentinel\u0027s Bastion - II",
       "icon": "T_Nhance_RPG_Icons_SpiritAmulet_SentinelBastion.jpg"
+    },
+    "ThePhilosopher": {
+      "kind": "effect",
+      "id": 3189,
+      "name": "The Philosopher",
+      "icon": "T_Nhance_RPG_Tech_02.jpg"
+    },
+    "TheTrickster": {
+      "kind": "effect",
+      "id": 3181,
+      "name": "The Trickster",
+      "icon": "Tex_SpellBook06_97.jpg"
+    },
+    "TheWayfarer": {
+      "kind": "effect",
+      "id": 3184,
+      "name": "The Wayfarer",
+      "icon": "T_Nhance_RPG_Elements_38.jpg"
     },
     "TwilightSkybolt": {
       "kind": "ability",
@@ -5430,6 +5568,18 @@
       "name": "Unyielding Vitality - II",
       "icon": "T_Icon_BloodCombat_137.jpg"
     },
+    "VengefulSoulBuff": {
+      "kind": "effect",
+      "id": 2163,
+      "name": "Vengeful Soul",
+      "icon": "Berserker16.jpg"
+    },
+    "VengefulSoulTrait": {
+      "kind": "weapon",
+      "id": 5,
+      "name": "Vengeful Soul",
+      "icon": "Berserker16.jpg"
+    },
     "VoidbringerTouch": {
       "kind": "ability",
       "id": 155,
@@ -5450,6 +5600,18 @@
       "id": 68,
       "name": "Voidbringer\u0027s Touch",
       "icon": "T_Weapon_VoidTouch.jpg"
+    },
+    "WillfulMomentumBuff": {
+      "kind": "effect",
+      "id": 2078,
+      "name": "Willful Momentum",
+      "icon": "T_Nhance_RPG_Icons_SpiritFire.jpg"
+    },
+    "WillfulMomentumTrait": {
+      "kind": "weapon",
+      "id": 39,
+      "name": "Willful Momentum",
+      "icon": "T_Nhance_RPG_Icons_SpiritFire.jpg"
     },
     "ZeralethHunger": {
       "kind": "ability",

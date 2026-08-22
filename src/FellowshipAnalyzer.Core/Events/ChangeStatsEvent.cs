@@ -29,7 +29,10 @@ public class ChangeStatsEvent : Event
 /// </summary>
 public class ChangeHasteEvent : ChangeStatsEvent
 {
-    /// <summary>The total effective haste, as a decimal fraction (0.30 = 30%), immediately before this change.</summary>
+    /// <summary>
+    /// The total effective haste, as a decimal fraction (0.30 = 30%), immediately before this change; null on
+    /// the dungeon-start reading, where the haste the player brought in has no prior value to move from.
+    /// </summary>
     public virtual double? OldHaste { get; set; }
     /// <summary>The total effective haste, as a decimal fraction (0.30 = 30%), immediately after this change.</summary>
     public virtual double? NewHaste { get; set; }

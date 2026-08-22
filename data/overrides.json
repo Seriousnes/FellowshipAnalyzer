@@ -137,6 +137,136 @@
     }
   },
   "items": {
+    "AdrenalineRush": {
+      "id": 939,
+      "kind": "effect",
+      "name": "Adrenaline Rush",
+      "note": "Topaz rank 1; the haste window a damage or heal on a target at or below 30% health opens"
+    },
+    "AdrenalineRushII": {
+      "id": 940,
+      "kind": "effect",
+      "name": "Adrenaline Rush - II",
+      "note": "Topaz rank 6; replaces AdrenalineRush"
+    },
+    "FirstStrike": {
+      "id": 943,
+      "kind": "effect",
+      "name": "First Strike",
+      "note": "Emerald rank 1; the expertise window first damage on an enemy opens"
+    },
+    "FirstStrikeII": {
+      "id": 944,
+      "kind": "effect",
+      "name": "First Strike - II",
+      "note": "Emerald rank 6; replaces FirstStrike"
+    },
+    "DarkProphecy": {
+      "id": 1994,
+      "kind": "effect",
+      "name": "Dark Prophecy",
+      "note": "CA_ArmorSetBonus_HasteOnAbilityUse; the haste window the two-piece set bonus procs"
+    },
+    "TheTrickster": {
+      "id": 3181,
+      "kind": "effect",
+      "name": "The Trickster",
+      "note": "GE_Finesse_PowerToIncreasedCritChance; the crit window a POWER ability opens"
+    },
+    "TheWayfarer": {
+      "id": 3184,
+      "kind": "effect",
+      "name": "The Wayfarer",
+      "note": "GE_Finesse_PeriodicHasteBuff_Buff; the haste window the blessing opens on its own timer"
+    },
+    "ThePhilosopher": {
+      "id": 3189,
+      "kind": "effect",
+      "name": "The Philosopher",
+      "note": "GE_Finesse_CurrentSpiritToBuff_Buff; one buff carrying Haste, Expertise, and Critical Strike sized by the Spirit held when a MAJOR ability applied it"
+    },
+    "WillfulMomentumBuff": {
+      "id": 2078,
+      "kind": "effect",
+      "name": "Willful Momentum",
+      "note": "the main stat window the Willful Momentum trait (3000039) opens on a Spirit Refund"
+    },
+    "SeizedOpportunityBuff": {
+      "id": 2110,
+      "kind": "effect",
+      "name": "Seized Opportunity",
+      "note": "the crit rating window the Seized Opportunity trait (3000004) opens every 20 critical strikes"
+    },
+    "InspiredAllegianceBuff": {
+      "id": 2112,
+      "kind": "effect",
+      "name": "Inspired Allegiance",
+      "note": "the haste rating window the Inspired Allegiance trait (3000002) opens on ability use"
+    },
+    "FocusedHasteBuff": {
+      "id": 2141,
+      "kind": "effect",
+      "name": "Trait : Focused Haste",
+      "note": "the stacking haste rating the Hunter's Focus trait (3000042) accrues on one enemy"
+    },
+    "NavigatorsIntuitionSpirit": {
+      "id": 2158,
+      "kind": "effect",
+      "name": "Navigator's Intuition : Spirit",
+      "note": "the Navigator's Intuition trait (3000043) buffs whichever secondary rating is highest, one effect id per stat"
+    },
+    "NavigatorsIntuitionHaste": {
+      "id": 2159,
+      "kind": "effect",
+      "name": "Navigator's Intuition : Haste"
+    },
+    "NavigatorsIntuitionExpertise": {
+      "id": 2160,
+      "kind": "effect",
+      "name": "Navigator's Intuition : Expertise"
+    },
+    "NavigatorsIntuitionCrit": {
+      "id": 2161,
+      "kind": "effect",
+      "name": "Navigator's Intuition : Critical Strike"
+    },
+    "VengefulSoulBuff": {
+      "id": 2163,
+      "kind": "effect",
+      "name": "Vengeful Soul",
+      "note": "the main stat window the Vengeful Soul trait (3000005) opens on a critical strike"
+    },
+    "InspiredAllegianceTrait": {
+      "id": 2,
+      "kind": "weapon",
+      "name": "Inspired Allegiance",
+      "note": "the gear trait itself; its rank selects the magnitude of the buff it opens"
+    },
+    "SeizedOpportunityTrait": {
+      "id": 4,
+      "kind": "weapon",
+      "name": "Seized Opportunity"
+    },
+    "VengefulSoulTrait": {
+      "id": 5,
+      "kind": "weapon",
+      "name": "Vengeful Soul"
+    },
+    "WillfulMomentumTrait": {
+      "id": 39,
+      "kind": "weapon",
+      "name": "Willful Momentum"
+    },
+    "HuntersFocusTrait": {
+      "id": 42,
+      "kind": "weapon",
+      "name": "Hunter's Focus"
+    },
+    "NavigatorsIntuitionTrait": {
+      "id": 43,
+      "kind": "weapon",
+      "name": "Navigator's Intuition"
+    },
     "VoidbringerTouch": {
       "id": 155
     },
@@ -421,6 +551,34 @@
     }
   },
   "shared": {
+    "SpiritOfHeroism": {
+      "id": 1350,
+      "kind": "effect",
+      "name": "Spirit of Heroism",
+      "icon": "Tex_b_02.jpg",
+      "note": "GE_Shared_SpiritTriggeredBuff; the +30% Haste every hero gains on activating their Spirit ability, applied by the shared passive GA_Shared_Passive_SpiritMechanic (1007). Four ids carry the same haste grant with different riders; add all four directly so StatBuffs can name them"
+    },
+    "SpiritOfHeroismNotTank": {
+      "id": 2253,
+      "kind": "effect",
+      "name": "Spirit of Heroism",
+      "icon": "Tex_b_02.jpg",
+      "note": "GE_Shared_SpiritTriggeredBuff_NotTank; the variant every non-tank logs, which also raises damage and heal threat multipliers. Auto-merge files it under elarion alone even though six heroes in the report corpus log it, so it is added to shared as well; the resulting FA0008 duplicate-FSLID warning is deliberate, and the fix for it belongs in the merge engine's effect linking, not here"
+    },
+    "SpiritOfHeroismHealer": {
+      "id": 2277,
+      "kind": "effect",
+      "name": "Spirit of Heroism",
+      "icon": "Tex_b_02.jpg",
+      "note": "GE_Shared_SpiritTriggeredBuff_Healer; the variant Aeona, Sylvie, and Vigour log, which also raises mana regeneration by 600%"
+    },
+    "SpiritOfHeroismXavian": {
+      "id": 2662,
+      "kind": "effect",
+      "name": "Spirit of Heroism",
+      "icon": "Tex_b_02.jpg",
+      "note": "GE_Sune_SpiritTriggeredBuff; Xavian's own variant, whose DevKey is Sune. Kept with the rest of the family rather than in the xavian scope because StatBuffs reads the four as one set"
+    },
     "VeinSprout": {
       "id": 2031,
       "school": "Magic"

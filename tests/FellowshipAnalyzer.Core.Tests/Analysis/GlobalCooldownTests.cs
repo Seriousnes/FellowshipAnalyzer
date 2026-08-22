@@ -236,7 +236,7 @@ public sealed class GlobalCooldownTests
         bool includeNormalizer = false,
         Action<TestAbilities>? configureAbilities = null)
     {
-        Type[] moduleTypes = [typeof(TestAbilities), typeof(Haste), typeof(DebugAnnotations), typeof(GlobalCooldown)];
+        Type[] moduleTypes = [typeof(TestAbilities), typeof(StatTracker), typeof(Haste), typeof(DebugAnnotations), typeof(GlobalCooldown)];
         Type[] normalizerTypes = includeNormalizer ? [typeof(CastLinkNormalizer)] : [];
 
         var parser = CreateCombatLogParser(moduleTypes, normalizerTypes, configureAbilities);
