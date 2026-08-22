@@ -27,215 +27,122 @@ public sealed class SupremacyAnalyzerTests
             FriendlyPlayers: null, CompletionPercentage: null);
 
     [Fact]
-    public async Task FourMultishots_DrainTheWindowCompletely()
+    public async Task FourMultishotsInsideAFourSecondWindow_AreAllCounted()
     {
         var analyzer = await Analyze(
-            SupremacyCast(1_000),
-            ApplyBuff(1_001),
-            ApplyBuffStack(1_001, stack: 4),
-            Multishot(2_000),
-            RemoveBuffStack(2_002, stack: 3),
-            Multishot(3_000),
-            RemoveBuffStack(3_002, stack: 2),
+            ApplyBuff(1_000),
+            Multishot(1_300),
+            Multishot(2_200),
+            Multishot(3_100),
             Multishot(4_000),
-            RemoveBuffStack(4_002, stack: 1),
-            Multishot(5_000),
-            RemoveBuff(5_001));
+            RemoveBuff(5_000));
 
-        analyzer.SupremacyCasts.ShouldBe(1);
         analyzer.EmpoweredMultishotCasts.ShouldBe(4);
-        analyzer.RegularMultishotCasts.ShouldBe(0);
-        analyzer.StacksGranted.ShouldBe(4);
-        analyzer.StacksConsumed.ShouldBe(4);
-        analyzer.StacksWasted.ShouldBe(0);
-        analyzer.StacksConsumedPercentage.ShouldBe(100d);
-        analyzer.WindowsFullyDrained.ShouldBe(1);
 
         var window = analyzer.Windows.ShouldHaveSingleItem();
-        window.StartMs.ShouldBe(1_001);
-        window.EndMs.ShouldBe(5_001);
-        window.StacksGranted.ShouldBe(4);
-        window.StacksConsumed.ShouldBe(4);
-        window.StacksWasted.ShouldBe(0);
-        window.ClosedByExpiry.ShouldBeFalse();
-        window.DurationMs.ShouldBe(4_000);
+        window.StartMs.ShouldBe(1_000);
+        window.EndMs.ShouldBe(5_000);
+        window.MultishotCasts.ShouldBe(4);
+        window.FirstMultishotDelayMs.ShouldBe(300);
     }
 
     [Fact]
-    public async Task WindowExpiringWithTwoStacksLeft_CountsThemAsWasted()
+    public async Task StackEventsOnAFerventWindow_DoNotChangeTheCount()
     {
-        var analyzer = await Analyze(
-            SupremacyCast(1_000),
-            ApplyBuff(1_001),
-            ApplyBuffStack(1_001, stack: 4),
-            Multishot(2_000),
-            RemoveBuffStack(2_002, stack: 3),
-            Multishot(3_000),
-            RemoveBuffStack(3_002, stack: 2),
-            RemoveBuff(13_000));
+        var (parser, _) = await AnalyzeAsync(
+            FerventSupremacyBuild(),
+            ApplyBuff(1_000),
+            ApplyBuffStack(1_000, stack: 4),
+            Multishot(1_300),
+            RemoveBuffStack(1_302, stack: 3),
+            Multishot(2_200),
+            RemoveBuffStack(2_202, stack: 2),
+            Multishot(3_100),
+            RemoveBuffStack(3_102, stack: 1),
+            Multishot(4_000),
+            RemoveBuff(4_002));
 
-        analyzer.EmpoweredMultishotCasts.ShouldBe(2);
-        analyzer.StacksGranted.ShouldBe(4);
-        analyzer.StacksConsumed.ShouldBe(2);
-        analyzer.StacksWasted.ShouldBe(2);
-        analyzer.WindowsFullyDrained.ShouldBe(0);
-
-        var window = analyzer.Windows.ShouldHaveSingleItem();
-        window.StacksConsumed.ShouldBe(2);
-        window.StacksWasted.ShouldBe(2);
-        window.ClosedByExpiry.ShouldBeTrue();
-        window.EndMs.ShouldBe(13_000);
+        var analyzer = parser.SupremacyAnalyzers.ShouldHaveSingleItem().Analyzer;
+        parser.SelectedCombatant.HasTalent(Talents.FerventSupremacy.Id).ShouldBeTrue();
+        analyzer.Windows.ShouldHaveSingleItem().MultishotCasts.ShouldBe(4);
     }
 
     [Fact]
-    public async Task MultishotOutsideAnyWindow_CountsAsARegularCast()
+    public async Task MultishotOutsideAnyWindow_IsNotCounted()
     {
         var analyzer = await Analyze(
             Multishot(1_000),
+            ApplyBuff(2_000),
+            Multishot(2_500),
+            RemoveBuff(6_000),
+            Multishot(7_000));
+
+        analyzer.EmpoweredMultishotCasts.ShouldBe(1);
+        analyzer.Windows.ShouldHaveSingleItem().MultishotCasts.ShouldBe(1);
+    }
+
+    [Fact]
+    public async Task WindowStillOpenAtPullEnd_ClosesAtThePullEnd()
+    {
+        var analyzer = await Analyze(
+            ApplyBuff(1_000),
+            Multishot(1_500),
+            Multishot(2_400));
+
+        var window = analyzer.Windows.ShouldHaveSingleItem();
+        window.EndMs.ShouldBe(analyzer.Pull.EndTime);
+        window.MultishotCasts.ShouldBe(2);
+    }
+
+    [Fact]
+    public async Task RemoveBuffWithNoOpenWindow_IsIgnored()
+    {
+        var analyzer = await Analyze(
+            RemoveBuff(1_000),
             Multishot(2_000));
 
-        analyzer.MultishotCasts.ShouldBe(2);
-        analyzer.EmpoweredMultishotCasts.ShouldBe(0);
-        analyzer.RegularMultishotCasts.ShouldBe(2);
         analyzer.Windows.ShouldBeEmpty();
-        analyzer.StacksGranted.ShouldBe(0);
-        analyzer.StacksConsumedPercentage.ShouldBe(0d);
+        analyzer.EmpoweredMultishotCasts.ShouldBe(0);
     }
 
     [Fact]
-    public async Task MultishotAfterTheWindowClosed_CountsAsARegularCast()
+    public async Task ApplyBuffWhileAWindowIsOpen_ClosesThePreviousWindow()
     {
         var analyzer = await Analyze(
-            SupremacyCast(1_000),
-            ApplyBuff(1_001),
-            ApplyBuffStack(1_001, stack: 4),
-            Multishot(2_000),
-            RemoveBuffStack(2_002, stack: 3),
-            RemoveBuff(16_000),
-            Multishot(17_000));
+            ApplyBuff(1_000),
+            Multishot(1_500),
+            ApplyBuff(9_000),
+            Multishot(9_400),
+            Multishot(10_300),
+            RemoveBuff(13_000));
 
-        analyzer.MultishotCasts.ShouldBe(2);
-        analyzer.EmpoweredMultishotCasts.ShouldBe(1);
-        analyzer.RegularMultishotCasts.ShouldBe(1);
-        analyzer.StacksWasted.ShouldBe(3);
-    }
-
-    [Fact]
-    public async Task MultishotWhileTheWindowIsOpenButEmpty_CountsAsARegularCast()
-    {
-        var analyzer = await Analyze(
-            SupremacyCast(1_000),
-            ApplyBuff(1_001),
-            Multishot(2_000),
-            RemoveBuffStack(2_002, stack: 0),
-            Multishot(3_000));
-
-        analyzer.MultishotCasts.ShouldBe(2);
-        analyzer.EmpoweredMultishotCasts.ShouldBe(1);
-        analyzer.RegularMultishotCasts.ShouldBe(1);
-        analyzer.StacksGranted.ShouldBe(1);
-        analyzer.StacksConsumed.ShouldBe(1);
-        analyzer.StacksWasted.ShouldBe(0);
-    }
-
-    [Fact]
-    public async Task WindowNeverRemoved_ClosesAtPullEndWithItsStacksWasted()
-    {
-        var analyzer = await Analyze(
-            SupremacyCast(1_000),
-            ApplyBuff(1_001),
-            ApplyBuffStack(1_001, stack: 4),
-            Multishot(2_000),
-            RemoveBuffStack(2_002, stack: 3));
-
-        var window = analyzer.Windows.ShouldHaveSingleItem();
-        window.StacksConsumed.ShouldBe(1);
-        window.StacksWasted.ShouldBe(3);
-        window.ClosedByExpiry.ShouldBeTrue();
-        window.EndMs.ShouldBe(analyzer.Pull.EndTime);
-        analyzer.PullDurationMs.ShouldBe(40_000);
-    }
-
-    [Fact]
-    public async Task ApplyBuffWithoutTheStackEvent_OpensASingleStackWindow()
-    {
-        var analyzer = await Analyze(
-            SupremacyCast(1_000),
-            ApplyBuff(1_001),
-            Multishot(2_000),
-            RemoveBuff(2_001));
-
-        var window = analyzer.Windows.ShouldHaveSingleItem();
-        window.StacksGranted.ShouldBe(1);
-        window.StacksConsumed.ShouldBe(1);
-        window.StacksWasted.ShouldBe(0);
-        window.ClosedByExpiry.ShouldBeFalse();
-    }
-
-    [Fact]
-    public async Task RemovalFarFromAnyMultishot_IsNotClaimedAsASpend()
-    {
-        var analyzer = await Analyze(
-            SupremacyCast(1_000),
-            ApplyBuff(1_001),
-            ApplyBuffStack(1_001, stack: 4),
-            Multishot(2_000),
-            RemoveBuffStack(9_000, stack: 3),
-            RemoveBuff(16_000));
-
-        analyzer.StacksConsumed.ShouldBe(0);
-        analyzer.StacksWasted.ShouldBe(4);
-        analyzer.EmpoweredMultishotCasts.ShouldBe(1);
-    }
-
-    [Fact]
-    public async Task TwoWindows_AreTrackedSeparately()
-    {
-        var analyzer = await Analyze(
-            SupremacyCast(1_000),
-            ApplyBuff(1_001),
-            ApplyBuffStack(1_001, stack: 4),
-            Multishot(2_000),
-            RemoveBuffStack(2_002, stack: 3),
-            RemoveBuff(16_000),
-            SupremacyCast(20_000),
-            ApplyBuff(20_001),
-            ApplyBuffStack(20_001, stack: 4),
-            Multishot(21_000),
-            RemoveBuffStack(21_002, stack: 3),
-            Multishot(22_000),
-            RemoveBuffStack(22_002, stack: 2),
-            RemoveBuff(35_000));
-
-        analyzer.SupremacyCasts.ShouldBe(2);
         analyzer.Windows.Count.ShouldBe(2);
-        analyzer.Windows[0].StacksConsumed.ShouldBe(1);
-        analyzer.Windows[1].StacksConsumed.ShouldBe(2);
-        analyzer.StacksGranted.ShouldBe(8);
-        analyzer.StacksConsumed.ShouldBe(3);
-        analyzer.StacksWasted.ShouldBe(5);
+        analyzer.Windows[0].EndMs.ShouldBe(9_000);
+        analyzer.Windows[0].MultishotCasts.ShouldBe(1);
+        analyzer.Windows[1].MultishotCasts.ShouldBe(2);
+        analyzer.Windows[1].FirstMultishotDelayMs.ShouldBe(400);
+        analyzer.EmpoweredMultishotCasts.ShouldBe(3);
     }
 
     [Fact]
-    public async Task FerventSupremacy_IsReportedFromTheTalentBuildWithoutGatingTheAnalyzer()
+    public async Task WindowWithNoMultishot_HasNoOpeningDelay()
     {
-        var withoutTalent = await Analyze(SupremacyCast(1_000));
-        withoutTalent.TalentedFerventSupremacy.ShouldBeFalse();
+        var analyzer = await Analyze(
+            ApplyBuff(1_000),
+            RemoveBuff(5_000));
 
-        var (parser, _) = await AnalyzeAsync(FerventSupremacyBuild(), SupremacyCast(1_000));
-        parser.SupremacyAnalyzers.ShouldHaveSingleItem()
-            .Analyzer.TalentedFerventSupremacy.ShouldBeTrue();
+        var window = analyzer.Windows.ShouldHaveSingleItem();
+        window.MultishotCasts.ShouldBe(0);
+        window.FirstMultishotDelayMs.ShouldBeNull();
     }
 
     [Fact]
     public async Task Analyze_SupremacyWindows_ExposesPerPullReadPaths()
     {
         var (parser, _) = await AnalyzeAsync(
-            SupremacyCast(1_000),
-            ApplyBuff(1_001),
-            ApplyBuffStack(1_001, stack: 4),
-            Multishot(2_000),
-            RemoveBuffStack(2_002, stack: 3));
+            ApplyBuff(1_000),
+            Multishot(1_400),
+            RemoveBuff(5_000));
 
         var entry = parser.SupremacyAnalyzers.ShouldHaveSingleItem();
         var pull = entry.Pull;
@@ -250,19 +157,6 @@ public sealed class SupremacyAnalyzerTests
         Timestamp = 0,
         SourceId = PlayerId,
         Talents = [new TalentInfo { Id = Talents.FerventSupremacy.FSLID }],
-    };
-
-    private static CastEvent SupremacyCast(int timestamp) => new()
-    {
-        Timestamp = timestamp,
-        SourceId = PlayerId,
-        TargetId = -1,
-        Activation = true,
-        Ability = new SpellAbility
-        {
-            FSLID = Spells.SkystridersSupremacy.FSLID,
-            Name = Spells.SkystridersSupremacy.Name,
-        },
     };
 
     private static CastEvent Multishot(int timestamp) => new()
