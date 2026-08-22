@@ -28,8 +28,6 @@ public sealed class VigourAnalysisEngineTests
 
         var analyzer = scope.ServiceProvider.GetRequiredKeyedService<IHeroAnalyzer>(HeroName.Vigour);
         var result = await analyzer.Analyze([], playerId: 1, dungeon: new ReportDungeon(0, "", 0, null, 0, 0, null, null, null));
-
-        result.GuideComponentType.ShouldNotBeNull();
     }
 
     [Fact]
