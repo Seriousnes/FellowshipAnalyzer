@@ -11,7 +11,7 @@ namespace FellowshipAnalyzer.Core.Common.Spells;
 /// <summary>
 /// A static spell definition: identity, the game's ability category, physical facts (cooldown,
 /// range, charges, cast/channel timing), and resource costs. Behaviour metadata (GCD, the tool's
-/// analysis grouping, haste scaling) lives on <see cref="Analysis.SpellbookAbility"/>.
+/// analysis grouping, haste scaling) lives on <c>SpellbookAbility</c>.
 /// </summary>
 [JsonPolymorphic(TypeDiscriminatorPropertyName = "kind")]
 [JsonDerivedType(typeof(Spell), "ability")]
@@ -33,7 +33,7 @@ public record Spell : IRimeSpell, IElarionSpell, IArdeosSpell
 
     /// <summary>
     /// The game's ability-category classification from the game-data export (Basic, Core,
-    /// Major, Defensive, and so on). Distinct from the tool's internal <see cref="Analysis.SpellCategory"/>
+    /// Major, Defensive, and so on). Distinct from the tool's internal <c>SpellCategory</c>
     /// analysis grouping. <c>null</c> when the source data does not classify the ability.
     /// </summary>
     public AbilityCategory? AbilityCategory { get; init; }

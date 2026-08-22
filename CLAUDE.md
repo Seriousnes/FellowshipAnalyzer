@@ -72,7 +72,7 @@ FellowshipLogs GraphQL JSON (player events, plus the dungeon death stream merged
 **Solution layout** (only the bits that aren't obvious from `ls`):
 
 - `src/FellowshipAnalyzer.Core` - events, parser infrastructure, base modules/normalizers, spell registries, JSON source-generated context, shared Razor UI under `UI/` (Components, Charts, Guides, Timeline, Diagnostics, Theming) and SCSS under `Styles/`. Shared by every hero; code added here ships to every client.
-- `src/FellowshipAnalyzer.Core.Contracts` - DTOs/interfaces that cross the API/client boundary, the `FSLID` spell-id struct, and the C# design tokens (`FaTheme`, `FaPalette`, `FaToken`, `FaVar`).
+- `src/FellowshipAnalyzer.Core.Contracts` - DTOs/interfaces that cross the API/client boundary, the shared vocabulary the offline spell-data tooling and the runtime both speak (`Spell`, `FSLID`, `HeroName`, `ResourceTypes`, `MagicSchool`, `AbilityCategory`), and the C# design tokens (`FaTheme`, `FaPalette`, `FaToken`, `FaVar`). It references nothing, so `FellowshipAnalyzer.SpellData` builds without Core and `rebuild-spelldb` runs even when Core does not compile.
 - `src/FellowshipAnalyzer.Generators` - Roslyn **source** generators (parser ctor, typed module accessors, pull-analyzer surfaces, module/normalizer type lists, spell registries, talent id constants, hero DI manifest). Hero registration is **reflection-free** for AOT.
 - `src/FellowshipAnalyzer.Analyzers` - Roslyn **diagnostic** analyzers (FA00xx), distinct from gameplay "analyzers".
 - `src/Heroes/FellowshipAnalyzer.Heroes.{Hero}` - one Razor class library per hero. **Ardeos and Elarion are the most built-out; Rime is the compact reference that covers modules, guides, and statistics.**

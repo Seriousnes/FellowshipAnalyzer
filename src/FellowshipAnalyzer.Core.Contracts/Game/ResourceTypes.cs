@@ -1,6 +1,6 @@
 namespace FellowshipAnalyzer.Core.Game;
 
-/// <summary>Identifies a resource pool a hero's kit can generate or spend, keying the per-type state kept by <see cref="Resources.ResourceTracker"/>.</summary>
+/// <summary>Identifies a resource pool a hero's kit can generate or spend, keying the per-type state kept by <c>ResourceTracker</c>.</summary>
 public enum ResourceTypes
 {
     /// <summary>Mana-based resource pool, spent on casts by heroes whose kit is mana-costed rather than built around a bespoke primary resource.</summary>
