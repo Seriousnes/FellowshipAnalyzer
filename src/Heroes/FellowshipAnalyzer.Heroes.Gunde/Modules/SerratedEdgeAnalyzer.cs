@@ -1,4 +1,5 @@
 using FellowshipAnalyzer.Core.Analysis;
+using FellowshipAnalyzer.Core.Common.Items;
 using FellowshipAnalyzer.Core.Common.Spells.Gunde;
 using FellowshipAnalyzer.Core.Events;
 
@@ -15,15 +16,17 @@ public sealed partial class SerratedEdgeAnalyzer : Analyzer
     private int? _grantedAt;
     private int _lastCastTimestamp = int.MinValue;
     private int _lastCastAbilityId;
-    private CooldownSnapshot _lastCastCooldowns;
+    private IReadOnlyList<ConsumerReadiness> _lastCastReadiness = [];
 
     public GundePullShape Shape => Pull.Targets == PullKind.Single ? GundePullShape.Boss : GundePullShape.Aoe;
 
-    public int PriorityAbilityId =>
-        Shape == GundePullShape.Aoe ? Spells.GrimCarve.FSLID.Value : Spells.HeartSplitter.FSLID.Value;
+    public bool BleedingHeartRingEquipped => Owner.SelectedCombatant.HasItem(Items.BandOfTheBleedingHeart.Id);
 
-    public int AlternateAbilityId =>
-        Shape == GundePullShape.Aoe ? Spells.HeartSplitter.FSLID.Value : Spells.GrimCarve.FSLID.Value;
+    public bool SinisterApronEquipped => Owner.SelectedCombatant.HasItem(Items.CarversSinisterApron.Id);
+
+    public IReadOnlyList<int> ConsumerPriority => field ??= BuildConsumerPriority();
+
+    public int PriorityAbilityId => ConsumerPriority[0];
 
     public IReadOnlyList<SerratedEdgeGrant> Grants => _grants;
 
@@ -50,7 +53,7 @@ public sealed partial class SerratedEdgeAnalyzer : Analyzer
     {
         _lastCastTimestamp = castEvent.Timestamp;
         _lastCastAbilityId = castEvent.Ability.Id;
-        _lastCastCooldowns = Snapshot(castEvent.Timestamp);
+        _lastCastReadiness = Snapshot(castEvent.Timestamp);
     }
 
     [On<ApplyBuffEvent>(To = Actor.Player, Spell = nameof(Spells.SerratedEdge))]
@@ -66,16 +69,15 @@ public sealed partial class SerratedEdgeAnalyzer : Analyzer
 
         _grantedAt = null;
         var consumer = ConsumerAt(granted, buffEvent.Timestamp);
-        var cooldowns = consumer is null ? Snapshot(buffEvent.Timestamp) : _lastCastCooldowns;
+        var readiness = consumer is null ? Snapshot(buffEvent.Timestamp) : _lastCastReadiness;
+        var rank = consumer is { } ability ? RankOf(ability) : null;
 
         _grants.Add(new SerratedEdgeGrant(
             granted,
             consumer,
-            cooldowns.HeartSplitterReady,
-            cooldowns.HeartSplitterRemainingMs,
-            cooldowns.GrimCarveReady,
-            cooldowns.GrimCarveRemainingMs,
-            Classify(consumer, cooldowns)));
+            rank,
+            readiness,
+            Classify(consumer, rank, readiness)));
     }
 
     private int? ConsumerAt(int granted, int removed) =>
@@ -83,30 +85,51 @@ public sealed partial class SerratedEdgeAnalyzer : Analyzer
             ? _lastCastAbilityId
             : null;
 
-    private SerratedEdgeOutcome Classify(int? consumer, CooldownSnapshot cooldowns)
+    private IReadOnlyList<int> BuildConsumerPriority()
     {
-        if (consumer is not { } ability) return SerratedEdgeOutcome.Unspent;
-        if (ability == PriorityAbilityId) return SerratedEdgeOutcome.Priority;
-        if (ability == AlternateAbilityId) return SerratedEdgeOutcome.Alternate;
+        if (BleedingHeartRingEquipped)
+        {
+            return [Spells.Rupture.FSLID.Value, Spells.HeartSplitter.FSLID.Value, Spells.GrimCarve.FSLID.Value];
+        }
 
-        return cooldowns.HeartSplitterReady || cooldowns.GrimCarveReady
-            ? SerratedEdgeOutcome.AvoidableFiller
-            : SerratedEdgeOutcome.ForcedFiller;
+        if (SinisterApronEquipped)
+        {
+            return Shape == GundePullShape.Aoe
+                ? [Spells.GrimCarve.FSLID.Value, Spells.Rupture.FSLID.Value, Spells.HeartSplitter.FSLID.Value]
+                : [Spells.Rupture.FSLID.Value, Spells.GrimCarve.FSLID.Value, Spells.HeartSplitter.FSLID.Value];
+        }
+
+        return Shape == GundePullShape.Aoe
+            ? [Spells.GrimCarve.FSLID.Value, Spells.HeartSplitter.FSLID.Value]
+            : [Spells.HeartSplitter.FSLID.Value, Spells.GrimCarve.FSLID.Value];
     }
 
-    private CooldownSnapshot Snapshot(int timestamp) => new(
-        SpellUsable.IsAvailable(Spells.HeartSplitter.FSLID.Value),
-        SpellUsable.CooldownRemaining(Spells.HeartSplitter.FSLID.Value, timestamp),
-        SpellUsable.IsAvailable(Spells.GrimCarve.FSLID.Value),
-        SpellUsable.CooldownRemaining(Spells.GrimCarve.FSLID.Value, timestamp));
+    private int? RankOf(int ability)
+    {
+        for (var rank = 0; rank < ConsumerPriority.Count; rank++)
+        {
+            if (ConsumerPriority[rank] == ability) return rank;
+        }
+
+        return null;
+    }
+
+    private static SerratedEdgeOutcome Classify(int? consumer, int? rank, IReadOnlyList<ConsumerReadiness> readiness) =>
+        consumer is null ? SerratedEdgeOutcome.Unspent
+        : rank is 0 ? SerratedEdgeOutcome.Priority
+        : rank is not null ? SerratedEdgeOutcome.Alternate
+        : readiness.Any(entry => entry.Ready) ? SerratedEdgeOutcome.AvoidableFiller
+        : SerratedEdgeOutcome.ForcedFiller;
+
+    private IReadOnlyList<ConsumerReadiness> Snapshot(int timestamp) =>
+    [
+        .. ConsumerPriority.Select(ability => new ConsumerReadiness(
+            ability,
+            SpellUsable.IsAvailable(ability),
+            SpellUsable.CooldownRemaining(ability, timestamp)))
+    ];
 
     private int Count(SerratedEdgeOutcome outcome) => _grants.Count(grant => grant.Outcome == outcome);
-
-    private readonly record struct CooldownSnapshot(
-        bool HeartSplitterReady,
-        int HeartSplitterRemainingMs,
-        bool GrimCarveReady,
-        int GrimCarveRemainingMs);
 }
 
 public enum SerratedEdgeOutcome
@@ -122,11 +145,11 @@ public enum SerratedEdgeOutcome
     Unspent,
 }
 
+public readonly record struct ConsumerReadiness(int AbilityId, bool Ready, int RemainingMs);
+
 public sealed record SerratedEdgeGrant(
     int Timestamp,
     int? ConsumerAbilityId,
-    bool HeartSplitterReady,
-    int HeartSplitterRemainingMs,
-    bool GrimCarveReady,
-    int GrimCarveRemainingMs,
+    int? ConsumerRank,
+    IReadOnlyList<ConsumerReadiness> Readiness,
     SerratedEdgeOutcome Outcome);
