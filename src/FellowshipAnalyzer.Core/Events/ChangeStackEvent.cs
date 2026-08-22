@@ -1,7 +1,7 @@
 ﻿namespace FellowshipAnalyzer.Core.Events;
 
 /// <summary>
-/// Fabricated by <see cref="FellowshipAnalyzer.Core.Analysis.Combatants"/> whenever a tracked buff or
+/// Fabricated by <see cref="Analysis.Combatants"/> whenever a tracked buff or
 /// debuff's stack count changes, carrying the before and after stack counts for the aura instance.
 /// </summary>
 [Fabricated]

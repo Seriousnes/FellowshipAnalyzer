@@ -59,15 +59,16 @@ public enum EnemyAbilityTag
 /// same number a damage event's <c>Ability.Id</c> carries.
 /// <para>
 /// The table starts empty. Whether a hit was avoidable, interruptible, or one to hold a defensive for is
-/// game knowledge: neither the combat log nor the game-data dumps record it. Until an entry is added the
+/// game knowledge: neither the combat log nor the game-data export records it. Until an entry is added the
 /// deaths view renders no tags, and every other figure it shows is unaffected.
 /// </para>
 /// <para>
 /// To add one: open a report where the ability killed someone and read the id and name off the death
-/// card, then confirm the ability against <c>external/fs_tc_uploads/s3/spell_data.json</c>, whose
-/// <c>Abilities</c> and <c>Effects</c> blocks map that id to the ability's <c>DevName</c>, and against
-/// <c>mob_data.json</c>, which lists each creature's abilities by name. Classify from play, add the
-/// entry to <see cref="All"/>, and give <see cref="EnemyAbility.Name"/> the name the dump reports.
+/// card, then confirm both against the game-data export's <c>entities.jsonl</c>. The record whose
+/// <c>id</c> matches and whose <c>$type</c> is <c>ability</c> or <c>effect</c> carries the ability's name
+/// and description; the <c>creature</c> records list each enemy's abilities by id and name under
+/// <c>abilities</c>, and name the dungeon under <c>foundIn</c>. Classify from play, add the entry to
+/// <see cref="All"/>, and give <see cref="EnemyAbility.Name"/> the name the export reports.
 /// </para>
 /// </summary>
 public static class EnemyAbilities

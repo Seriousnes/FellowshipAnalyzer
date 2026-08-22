@@ -46,7 +46,7 @@ public sealed record SpellbookAbility
 
     /// <summary>
     /// The game's Season 3 ability-category classification for this ability, read from
-    /// <see cref="PrimarySpell"/> (sourced from <c>hero_data.json</c>). Distinct from <see cref="Category"/>,
+    /// <see cref="PrimarySpell"/> (sourced from the game-data export). Distinct from <see cref="Category"/>,
     /// which is the tool's internal analysis grouping. <c>null</c> means unclassified, which matches no
     /// <see cref="CooldownScope"/> category scope.
     /// </summary>

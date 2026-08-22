@@ -1,6 +1,6 @@
 namespace FellowshipAnalyzer.Core.Common.Spells.Helena;
 
-/// <summary>Helena's talent tree nodes as spell metadata (id, name, icon) for display; the source the generator reads to emit the <c>HelenaTalents</c> id constants. Ids come from the Season 3 <c>hero_data.json</c> tree and are listed in tree order, row 1 first.</summary>
+/// <summary>Helena's talent tree nodes as spell metadata (id, name, icon) for display; the source the generator reads to emit the <c>HelenaTalents</c> id constants. Ids come from the Season 3 talent tree and are listed in tree order, row 1 first.</summary>
 public class Talents
 {
     /// <summary>The <c>The Best Defense</c> talent; its id backs the generated <c>HelenaTalents.TheBestDefense</c> constant.</summary>

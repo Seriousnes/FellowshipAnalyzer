@@ -15,40 +15,53 @@ public class SchoolTests
     [InlineData("Magic", MagicSchool.Magic)]
     [InlineData("Magic/Physical", MagicSchool.Magic | MagicSchool.Physical)]
     [InlineData("physical", MagicSchool.Physical)]
-    public void ParseSchool_ReadsEveryFormTheDumpWrites(string text, MagicSchool expected) =>
-        SpellDataSource.ParseSchool(text).ShouldBe(expected);
+    public void ParseSchool_ReadsEveryFormSpellDbWrites(string text, MagicSchool expected) =>
+        Schools.Parse(text).ShouldBe(expected);
 
     [Theory]
     [InlineData(null)]
     [InlineData("")]
     public void ParseSchool_UnclassifiedIsDefault(string? text) =>
-        SpellDataSource.ParseSchool(text).ShouldBe(default);
+        Schools.Parse(text).ShouldBe(default);
 
     [Theory]
     [InlineData("Chaos")]
     [InlineData("Magic/Chaos")]
     public void ParseSchool_ThrowsOnASchoolTheEnumDoesNotName(string text) =>
-        Should.Throw<ArgumentException>(() => SpellDataSource.ParseSchool(text));
+        Should.Throw<ArgumentException>(() => Schools.Parse(text));
+
+    [Theory]
+    [InlineData(new[] { "Physical" }, MagicSchool.Physical)]
+    [InlineData(new[] { "Magic / Fire" }, MagicSchool.Magic)]
+    [InlineData(new[] { "Physical / Bleed" }, MagicSchool.Physical)]
+    [InlineData(new[] { "Magic / Fire", "Magic / Frost" }, MagicSchool.Magic)]
+    [InlineData(new[] { "Magic / Frost", "Physical" }, MagicSchool.Magic | MagicSchool.Physical)]
+    [InlineData(new string[0], default(MagicSchool))]
+    public void FromExport_MapsEachEntryOntoItsLeadingSchool(string[] schools, MagicSchool expected) =>
+        Schools.FromExport(schools).ShouldBe(expected);
 
     [Fact]
-    public void SpellData_CarriesSchoolOnAbilitiesAndEffects()
-    {
-        var source = SpellDataSource.Load(SourcePaths.SpellData);
+    public void FromExport_ThrowsOnASchoolThatIsNeitherMagicNorPhysical() =>
+        Should.Throw<InvalidOperationException>(() => Schools.FromExport(["Chaos / Void"]));
 
-        source.Abilities[2190].School.ShouldBe(MagicSchool.Physical);
-        source.Effects[3047].School.ShouldBe(MagicSchool.Physical);
-        source.Effects[3005].School.ShouldBe(MagicSchool.Magic);
-        source.Abilities[255].School.ShouldBe(MagicSchool.Magic | MagicSchool.Physical);
-        source.Abilities[2187].School.ShouldBe(default);
+    [Fact]
+    public void Export_CarriesSchoolOnAbilitiesAndEffects()
+    {
+        var export = ExportSource.Load(SourcePaths.Entities, SourcePaths.Settings);
+
+        Schools.FromExport(export.Abilities[2190].Schools).ShouldBe(MagicSchool.Physical);
+        Schools.FromExport(export.Effects[3005].Schools).ShouldBe(MagicSchool.Magic);
+        Schools.FromExport(export.Abilities[255].Schools).ShouldBe(MagicSchool.Magic | MagicSchool.Physical);
+        Schools.FromExport(export.Abilities[2187].Schools).ShouldBe(default);
     }
 
     [Fact]
-    public void Merge_KeysSchoolsByFslIdAcrossBothSections()
+    public void Merge_KeysSchoolsByFslIdAcrossBothRecordTypes()
     {
         var schools = MergeEngine.Run(MergeInputs.Load()).Schools;
 
         schools[2190].ShouldBe(MagicSchool.Physical);
-        schools[1_003_047].ShouldBe(MagicSchool.Physical);
+        schools[1_000_249].ShouldBe(MagicSchool.Magic | MagicSchool.Physical);
         schools[1_003_005].ShouldBe(MagicSchool.Magic);
         schools[255].ShouldBe(MagicSchool.Magic | MagicSchool.Physical);
     }
@@ -77,7 +90,7 @@ public class SchoolTests
     }
 
     [Fact]
-    public void Overrides_SpellSchoolWinsOverTheDump()
+    public void Overrides_SpellSchoolWinsOverTheExport()
     {
         var overrides = OverridesSource.FromInline("""
             { "shared": { "EnemyAttack": { "id": 2190, "school": "Magic" } } }
@@ -89,7 +102,7 @@ public class SchoolTests
 
     /// <summary>
     /// A curated <c>school</c> is a <see cref="MagicSchool"/> in .NET flags notation, so a spell that
-    /// deals both schools is written <c>"Magic, Physical"</c>. The flat map keeps the dump's own
+    /// deals both schools is written <c>"Magic, Physical"</c>. The flat map keeps spelldb.json's own
     /// <c>Magic/Physical</c> spelling; the two notations are read by different parsers.
     /// </summary>
     [Fact]
@@ -107,7 +120,7 @@ public class SchoolTests
     }
 
     [Fact]
-    public void Spell_LeavesSchoolUnsetWhenTheDumpNeedsNoCuration() =>
+    public void Spell_LeavesSchoolUnsetWhenTheExportNeedsNoCuration() =>
         MergeEngine.Run(MergeInputs.Load()).Spells
             .Single(s => s.Scope == "rime" && s.Member == "BurstingIce")
             .Spell.School.ShouldBeNull();

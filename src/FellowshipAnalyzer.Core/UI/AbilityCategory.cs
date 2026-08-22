@@ -1,7 +1,8 @@
 namespace FellowshipAnalyzer.Core.UI;
 
 /// <summary>
-/// The game's Season 3 ability-category taxonomy as it appears in <c>hero_data.json</c>. This is the
+/// The game's ability-category taxonomy, as the game-data export's <c>settings.json</c>
+/// <c>abilityCategories</c> block declares it, minus <c>None</c> which is no category. This is the
 /// in-game classification of an ability, distinct from <see cref="Analysis.SpellCategory"/>, which is the
 /// tool's internal analysis grouping (rotational, cooldowns, defensive, and so on).
 /// </summary>
@@ -43,4 +44,12 @@ public enum AbilityCategory
     /// An ability whose primary purpose is repositioning.
     /// </summary>
     Movement,
+    /// <summary>
+    /// An ability granted by the hero's equipped weapon.
+    /// </summary>
+    Weapon,
+    /// <summary>
+    /// An ability granted by an equipped relic, shared across every hero that can equip it.
+    /// </summary>
+    Relic,
 }

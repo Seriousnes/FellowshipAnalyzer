@@ -39,8 +39,8 @@ public class MergeEngineTests
         Run().Spells.ShouldContain(x => x.Scope == "rime" && x.Kind == SpellKind.Effect && x.Spell.Id == 1396);
 
     [Fact]
-    public void Rime_NamedEffectsNotLinkedToAbility_AreEmittedAsGaps() =>
-        Run().Gaps.ShouldContain(g => g.Scope == "rime" && g.Kind == GapKind.UnresolvedEffect);
+    public void EveryEffectLinkedToAnAbility_ResolvesToAMember() =>
+        Run().Gaps.ShouldNotContain(g => g.Kind == GapKind.UnresolvedEffect);
 
     [Fact]
     public void HeroesPresentInData_AreIncludedInOutput()

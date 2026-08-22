@@ -32,7 +32,7 @@ public record Spell : IRimeSpell, IElarionSpell, IArdeosSpell
     public string Icon { get; init; } = "";
 
     /// <summary>
-    /// The game's Season 3 ability-category classification from <c>hero_data.json</c> (Basic, Core,
+    /// The game's ability-category classification from the game-data export (Basic, Core,
     /// Major, Defensive, and so on). Distinct from the tool's internal <see cref="Analysis.SpellCategory"/>
     /// analysis grouping. <c>null</c> when the source data does not classify the ability.
     /// </summary>
@@ -40,7 +40,7 @@ public record Spell : IRimeSpell, IElarionSpell, IArdeosSpell
 
     /// <summary>
     /// The damage school this spell deals in. <c>null</c> when the school comes straight from
-    /// <c>spell_data.json</c> and needs no curation; set on an entry the dump leaves unclassified, where
+    /// the game-data export and needs no curation; set on an entry the export leaves unclassified, where
     /// it overrides what the merge collected for this <see cref="FSLID"/>.
     /// </summary>
     public MagicSchool? School { get; init; }
@@ -95,7 +95,7 @@ public record Spell : IRimeSpell, IElarionSpell, IArdeosSpell
     };
 }
 
-/// <summary>A spell effect (<c>GE_</c>): namespaced id <c>1_000_000 + Id</c>.</summary>
+/// <summary>A spell effect: namespaced id <c>1_000_000 + Id</c>.</summary>
 public record Effect : Spell
 {
     /// <inheritdoc/>
@@ -103,7 +103,7 @@ public record Effect : Spell
     public override FSLID FSLID => FSLID.FromNative(SpellKind.Effect, Id);
 }
 
-/// <summary>A talent (<c>CAATalent*</c>): namespaced id <c>2_000_000 + Id</c>.</summary>
+/// <summary>A talent: namespaced id <c>2_000_000 + Id</c>.</summary>
 public record Talent : Spell
 {
     /// <inheritdoc/>

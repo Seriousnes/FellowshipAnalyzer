@@ -15,7 +15,7 @@ namespace FellowshipAnalyzer.Core.Analysis;
 /// rendered after the parse.
 /// </para>
 /// <para>
-/// A pull's roster is a projection, not an expansion: <see cref="Analysis.Combatants"/> seeds every
+/// A pull's roster is a projection, not an expansion: <see cref="Combatants"/> seeds every
 /// spawn the report's rosters name, and this module selects the ones a pull admits - those its own
 /// enemy NPC list names by instance span, or the whole seeded population for a dungeon exposing no
 /// dungeon pulls - less the pets. Seeding covers every roster in the report, so a projection can

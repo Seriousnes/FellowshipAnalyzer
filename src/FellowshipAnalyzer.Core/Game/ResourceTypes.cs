@@ -9,7 +9,7 @@ public enum ResourceTypes
     /// <summary>
     /// Common primary resource for heroes, e.g. Mara's Energy, Rime's Anima, etc.
     /// </summary>
-    [ResourceName("Anima", "Energy", "Fury", "Chrona", "Cinders", "Focus", "Radiant Runes")]
+    [ResourceName("Anima", "Energy", "Fury", "Chrona", "Cinders", "Focus", "Radiant Runes", "Radiant Rune")]
     Primary = 2,
     /// <summary>
     /// Common secondary resource for heroes, e.g. Mara's Combo Points, etc.

@@ -56,7 +56,7 @@ public class SpellTypeTests
     [InlineData(1_001_396, typeof(Effect), 1_001_396)]
     [InlineData(2_002_303, typeof(Talent), 2_002_303)]
     [InlineData(3_000_155, typeof(Weapon), 3_000_155)]
-    public void FromFSLID_DecodesEveryRange(int guid, System.Type type, int expectedGuid)
+    public void FromFSLID_DecodesEveryRange(int guid, Type type, int expectedGuid)
     {
         var s = Spell.FromFSLID(guid);
         s.ShouldBeOfType(type);

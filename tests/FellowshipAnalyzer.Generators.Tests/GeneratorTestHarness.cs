@@ -101,8 +101,8 @@ internal static class GeneratorTestHarness
         var references = new[]
         {
             typeof(object).Assembly,
-            typeof(System.Threading.Tasks.Task).Assembly,
-            typeof(System.Linq.Enumerable).Assembly,
+            typeof(Task).Assembly,
+            typeof(Enumerable).Assembly,
             typeof(Attribute).Assembly,
         };
 

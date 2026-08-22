@@ -1,0 +1,2712 @@
+{
+  "heroes": [
+    {
+      "name": "Elarion",
+      "armorType": "Mail",
+      "primaryStat": "Agility",
+      "color": "7F49F5"
+    },
+    {
+      "name": "Ardeos",
+      "armorType": "Cloth",
+      "primaryStat": "Intellect",
+      "color": "EB6328"
+    },
+    {
+      "name": "Gunde",
+      "armorType": "Leather",
+      "primaryStat": "Strength",
+      "color": "5A1F20"
+    },
+    {
+      "name": "Tariq",
+      "armorType": "Mail",
+      "primaryStat": "Strength",
+      "color": "163EB9"
+    },
+    {
+      "name": "Aeona",
+      "armorType": "Cloth",
+      "primaryStat": "Intellect",
+      "color": "FC9FEC"
+    },
+    {
+      "name": "Mara",
+      "armorType": "Leather",
+      "primaryStat": "Agility",
+      "color": "4519A3"
+    },
+    {
+      "name": "Meiko",
+      "armorType": "Leather",
+      "primaryStat": "Agility",
+      "color": "28E05C"
+    },
+    {
+      "name": "Sylvie",
+      "armorType": "Leather",
+      "primaryStat": "Intellect",
+      "color": "EA4F84"
+    },
+    {
+      "name": "Rime",
+      "armorType": "Cloth",
+      "primaryStat": "Intellect",
+      "color": "1EA3EE"
+    },
+    {
+      "name": "Xavian",
+      "armorType": "Plate",
+      "primaryStat": "Strength",
+      "color": "077365"
+    },
+    {
+      "name": "Vigour",
+      "armorType": "Mail",
+      "primaryStat": "Intellect",
+      "color": "DDDBC5"
+    },
+    {
+      "name": "Helena",
+      "armorType": "Plate",
+      "primaryStat": "Strength",
+      "color": "B46831"
+    }
+  ],
+  "rarities": [
+    {
+      "tier": 0,
+      "name": "Common",
+      "displayName": "Common",
+      "gemDisplayName": "Common"
+    },
+    {
+      "tier": 1,
+      "name": "Uncommon",
+      "displayName": "Uncommon",
+      "gemDisplayName": "Uncommon"
+    },
+    {
+      "tier": 2,
+      "name": "Rare",
+      "displayName": "Rare",
+      "gemDisplayName": "Rare"
+    },
+    {
+      "tier": 3,
+      "name": "Epic",
+      "displayName": "Epic",
+      "gemDisplayName": "Epic"
+    },
+    {
+      "tier": 4,
+      "name": "Champion",
+      "displayName": "Heroic",
+      "gemDisplayName": "Flawless"
+    },
+    {
+      "tier": 5,
+      "name": "Heroic",
+      "displayName": "Regal",
+      "gemDisplayName": "Heroic"
+    },
+    {
+      "tier": 6,
+      "name": "Legendary",
+      "displayName": "Legendary",
+      "gemDisplayName": "Legendary"
+    }
+  ],
+  "abilityCategories": [
+    {
+      "name": "None",
+      "value": 0
+    },
+    {
+      "name": "Basic",
+      "value": 1
+    },
+    {
+      "name": "Core",
+      "value": 2
+    },
+    {
+      "name": "Power",
+      "value": 3
+    },
+    {
+      "name": "Major",
+      "value": 4
+    },
+    {
+      "name": "Spirit",
+      "value": 5
+    },
+    {
+      "name": "Movement",
+      "value": 6
+    },
+    {
+      "name": "Control",
+      "value": 7
+    },
+    {
+      "name": "Defensive",
+      "value": 8
+    },
+    {
+      "name": "Utility",
+      "value": 9
+    },
+    {
+      "name": "Weapon",
+      "value": 10
+    },
+    {
+      "name": "Relic",
+      "value": 11
+    }
+  ],
+  "printFormats": {
+    "Damage": "{0}",
+    "DamageMagic": "\u003Crt.warning\u003E{0}\u003C/\u003E magic damage",
+    "DamagePhysical": "\u003Crt.warning\u003E{0}\u003C/\u003E physical damage",
+    "DamageRange": "{0} - {1}",
+    "DamageRangeMagic": "\u003Crt.warning\u003E{0} - {1}\u003C/\u003E magic damage",
+    "DamageRangePhysical": "\u003Crt.warning\u003E{0} - {1}\u003C/\u003E physical damage",
+    "UnitSecondSingular": "second",
+    "UnitSeconds": "\u003Crt.bold\u003E{0} seconds\u003C/\u003E",
+    "UnitPercent": "{0}%",
+    "NoModDesc": "{0}",
+    "ModDescAddBaseNegative": "-{0}",
+    "ModDescAddBasePositive": "\u002B{0}",
+    "ModDescAddFinalNegative": "-{0} final",
+    "ModDescAddFinalPositive": "\u002B{0} final",
+    "ModDescMultiplyAdditiveNegative": "{0} reduced",
+    "ModDescMultiplyAdditivePositive": "{0} increased",
+    "ModDescMultiplyCompoundNegative": "{0} less",
+    "ModDescMultiplyCompoundPositive": "{0} more",
+    "Healing": "\u003Crt.heal\u003E{0}\u003C/\u003E",
+    "HealingRange": "\u003Crt.heal\u003E{0} - {1}\u003C/\u003E"
+  },
+  "colors": {
+    "effect.physical": "FF0000",
+    "effect.disease": "EFE800",
+    "effect.poison": "AEED67",
+    "effect.curse": "D75BFF",
+    "effect.magic": "2C9DFF",
+    "effect.permanent": "F56464",
+    "effect.harmful": "FF0000",
+    "effect.beneficial": "FFFFFF",
+    "core.disabled-1000": "1D2022",
+    "core.disabled-900": "303437",
+    "core.primary-200": "E3B468",
+    "core.primary-300": "D3A55A",
+    "core.primary-500": "957950",
+    "core.primary-600": "7F6C51",
+    "core.primary-700": "645B52",
+    "core.primary-main": "B08E58",
+    "core.secondary-000": "C3CED9",
+    "core.secondary-100": "A9B5C0",
+    "core.secondary-1000": "0C1722",
+    "core.secondary-200": "909BA6",
+    "core.secondary-300": "77828D",
+    "core.secondary-400": "5D6874",
+    "core.secondary-500": "515C67",
+    "core.secondary-600": "434F5A",
+    "core.secondary-700": "2A3540",
+    "core.secondary-800": "1D2834",
+    "core.secondary-900": "111C27",
+    "core.text-disabled": "949392",
+    "core.text-info": "777C81",
+    "core.text-primary": "EAE3DB",
+    "core.text-secondary": "909BA6",
+    "game.dungeon-contract": "FF8A47",
+    "game.dungeon-hard": "AA99FF",
+    "game.dungeon-normal": "FFEA99",
+    "game.game-chat-party": "ACACFF",
+    "game.game.ability-dmg": "FFE100",
+    "game.game.ability-healing": "4ECC22",
+    "game.game.ability-meiko-1": "FD89FA",
+    "game.game.ability-meiko-2": "42CBB1",
+    "game.game.ability-meiko-3": "E7B034",
+    "game.game.character-boss": "930000",
+    "game.game.character-enemy": "CB0000",
+    "game.game.character-friendly": "00BB1D",
+    "game.game.character-groupmember": "00A0E5",
+    "game.game.character-npc": "909BA6",
+    "game.game.chat-log": "FFFF00",
+    "game.game.chat-stronghold": "FFFFFF",
+    "game.game.chat-whisper-from": "FF80FF",
+    "game.game.chat-whisper-to": "E25DE2",
+    "game.game.effect": "D265EF",
+    "game.game.gem-amethyst": "9966CB",
+    "game.game.gem-diamond": "D5D5D5",
+    "game.game.gem-emerald": "009C4A",
+    "game.game.gem-ruby": "A70947",
+    "game.game.gem-sapphire": "1488F4",
+    "game.game.gem-topaz": "FEDC63",
+    "game.game.hero-elarion": "7F49F5",
+    "game.game.hero-ardeos": "EB6328",
+    "game.game.hero-gunde": "5A1F20",
+    "game.game.hero-tariq": "163EB9",
+    "game.game.hero-aeona": "FC9FEC",
+    "game.game.hero-mara": "4519A3",
+    "game.game.hero-meiko": "28E05C",
+    "game.game.hero-sylvie": "EA4F84",
+    "game.game.hero-rime": "1EA3EE",
+    "game.game.hero-xavian": "077365",
+    "game.game.hero-vigour": "DDDBC5",
+    "game.game.hero-helena": "B46831",
+    "game.game.mana-player": "5F9AC9",
+    "game.game.rarity-champion": "FFE565",
+    "game.game.rarity-heroic": "BE2525",
+    "game.rarity-common": "DEDEDE",
+    "game.rarity-epic": "A335EE",
+    "game.rarity-legendary": "FF8000",
+    "game.rarity-rare": "0070DD",
+    "game.rarity-uncommon": "00E827",
+    "game.rarity-unique": "BA9D6F",
+    "game.role-dps": "C53939",
+    "game.role-support": "4AB235",
+    "game.role-tank": "2194BE",
+    "game.stat-primary": "FFFFFF",
+    "game.stat-secondary": "49EEEE",
+    "hud.game.frame-base": "0C1722",
+    "hud.game.frame-health-depletion": "2A3540",
+    "hud.game.frame-resource-depletion": "444F5A",
+    "hud.game.frame-stroke": "FFFFFF",
+    "league.game.league-1": "00E826",
+    "league.game.league-2": "0070DD",
+    "league.game.league-3": "A335EE",
+    "league.game.league-4": "FFE565",
+    "league.game.league-5": "BE2525",
+    "neutral.200": "CCCCCC",
+    "neutral.300": "969696",
+    "neutral.500": "6D6D6D",
+    "neutral.700": "212121",
+    "neutral.900": "0F0F0F",
+    "neutral.black": "000000",
+    "neutral.white": "FFFFFF",
+    "semantic.change": "F4C882",
+    "semantic.chat-private": "FF99CA",
+    "semantic.core.positive-600": "00FF61",
+    "semantic.leader": "FAC814",
+    "semantic.negative": "FF5B5B",
+    "semantic.negative-600": "FF2323",
+    "semantic.positive": "5FF5BE",
+    "semantic.warning": "E08600",
+    "stats.talent.tree-available": "30FF2F",
+    "colors.cards.placement.any": "E9CFA5",
+    "colors.rarity.common": "CCCCCC",
+    "colors.rarity.uncommon": "21B57E",
+    "colors.rarity.rare": "4C94DD",
+    "colors.rarity.epic": "B47BFF",
+    "colors.rarity.legendary": "C18800",
+    "colors.core.neutral-white": "FFFFFF",
+    "colors.core.neutral-100": "CCCCCC",
+    "colors.core.neutral-300": "979797",
+    "colors.core.primary": "D4A45A",
+    "colors.core.leader": "FAC812",
+    "colors.stat.primary": "FFFFFF",
+    "colors.stat.secondary": "4BEEEE",
+    "colors.stat.increase": "07EF9B",
+    "colors.stat.decrease": "FF2222",
+    "colors.items.outofresources": "FF2222"
+  },
+  "textStyles": {
+    "rt.bold": {
+      "color": "EAE3DB",
+      "weight": "600",
+      "size": 9,
+      "italic": false,
+      "cssWeight": "600"
+    },
+    "rt.absorb": {
+      "color": "D3A55A",
+      "weight": "600",
+      "size": 9,
+      "italic": false,
+      "cssWeight": "600"
+    },
+    "rt.effect": {
+      "color": "D265EF",
+      "weight": "600",
+      "size": 9,
+      "italic": false,
+      "cssWeight": "600"
+    },
+    "rt.warning": {
+      "color": "E08600",
+      "weight": "600",
+      "size": 9,
+      "italic": false,
+      "cssWeight": "600"
+    },
+    "rt.mana": {
+      "color": "5F9AC9",
+      "weight": "600",
+      "size": 9,
+      "italic": false,
+      "cssWeight": "600"
+    },
+    "rt.gold": {
+      "color": "B08E58",
+      "weight": "600",
+      "size": 9,
+      "italic": false,
+      "cssWeight": "600"
+    },
+    "rt.greyitalic": {
+      "color": "909BA6",
+      "weight": "600-Italic",
+      "size": 9,
+      "italic": true,
+      "cssWeight": "600"
+    },
+    "rt.debuff": {
+      "color": "FF5B5B",
+      "weight": "600",
+      "size": 9,
+      "italic": false,
+      "cssWeight": "600"
+    },
+    "rt.heal": {
+      "color": "5FF5BE",
+      "weight": "600",
+      "size": 9,
+      "italic": false,
+      "cssWeight": "600"
+    },
+    "rt.italic": {
+      "color": "FFFFFF",
+      "weight": "600-Italic",
+      "size": 9,
+      "italic": true,
+      "cssWeight": "600"
+    },
+    "rt.primarystat": {
+      "color": "EAE3DB",
+      "weight": "600",
+      "size": 9,
+      "italic": false,
+      "cssWeight": "600"
+    },
+    "rt.secondarystat": {
+      "color": "909BA6",
+      "weight": "600",
+      "size": 9,
+      "italic": false,
+      "cssWeight": "600"
+    },
+    "rt.tertiarystat": {
+      "color": "49EEEE",
+      "weight": "600",
+      "size": 9,
+      "italic": false,
+      "cssWeight": "600"
+    },
+    "rt.meikoability1": {
+      "color": "FD89FA",
+      "weight": "600",
+      "size": 9,
+      "italic": false,
+      "cssWeight": "600"
+    },
+    "rt.meikoability2": {
+      "color": "42CBB1",
+      "weight": "600",
+      "size": 9,
+      "italic": false,
+      "cssWeight": "600"
+    },
+    "rt.meikoability3": {
+      "color": "E7B034",
+      "weight": "600",
+      "size": 9,
+      "italic": false,
+      "cssWeight": "600"
+    },
+    "rt.damage": {
+      "color": "FFE100",
+      "weight": "600",
+      "size": 9,
+      "italic": false,
+      "cssWeight": "600"
+    },
+    "rt.combat-heal": {
+      "color": "4ECC22",
+      "weight": "600",
+      "size": 9,
+      "italic": false,
+      "cssWeight": "600"
+    },
+    "rt.brand-title-m-200": {
+      "color": "E3B468",
+      "weight": "600",
+      "size": 14,
+      "italic": false,
+      "cssWeight": "600"
+    },
+    "rt.brand-title-m-main": {
+      "color": "B08E58",
+      "weight": "600",
+      "size": 14,
+      "italic": false,
+      "cssWeight": "600"
+    },
+    "rt.strike": {
+      "color": "FFFFFF",
+      "weight": "400",
+      "size": 12,
+      "italic": false,
+      "cssWeight": "400"
+    }
+  },
+  "gemTypes": [
+    "Amethyst",
+    "Diamond",
+    "Emerald",
+    "Ruby",
+    "Sapphire",
+    "Topaz"
+  ],
+  "slotIcons": {
+    "Head": "T_Icons_Gear_Head",
+    "Neck": "T_Icons_Gear_Neck",
+    "Shoulders": "T_Icons_Gear_Shoulders",
+    "Back": "T_Icons_Gear_Back",
+    "Chest": "T_Icons_Gear_Chest",
+    "Wrists": "T_Icons_Gear_Wrist",
+    "Hands": "T_Icons_Gear_Hands",
+    "Legs": "T_Icons_Gear_Waist",
+    "Feet": "T_Icons_Gear_Feet",
+    "Ring": "T_Icons_Gear_Ring",
+    "Relic": "T_Icons_Gear_Relic",
+    "Weapon": "T_Icons_Gear_Weapon"
+  },
+  "rarityOrnaments": {
+    "Epic": "T_Backgrounds_TooltipItemHeader_TopDecor_Clean_Champion",
+    "Champion": "T_Backgrounds_TooltipItemHeader_TopDecor_Clean_Paragon",
+    "Heroic": "T_Backgrounds_TooltipItemHeader_TopDecor_Clean_Eternal",
+    "Legendary": "T_Backgrounds_TooltipItemHeader_TopDecor_Clean_Legendary"
+  },
+  "talentTierPlates": {
+    "1": "T_Backgrounds_TalentTierUnlocked_1_2026",
+    "2": "T_Backgrounds_TalentTierUnlocked_2_2026",
+    "3": "T_Backgrounds_TalentTierUnlocked_3_2026",
+    "4": "T_Backgrounds_TalentTierUnlocked_4_2026",
+    "5": "T_Backgrounds_TalentTierUnlocked_5_2026",
+    "6": "T_Backgrounds_TalentTierUnlocked_6_2026",
+    "7": "T_Backgrounds_TalentTierUnlocked_7_2026"
+  },
+  "rarityColorRows": {
+    "Common": "game.rarity-common",
+    "Uncommon": "game.rarity-uncommon",
+    "Rare": "game.rarity-rare",
+    "Epic": "game.rarity-epic",
+    "Champion": "game.game.rarity-champion",
+    "Heroic": "game.game.rarity-heroic",
+    "Legendary": "game.rarity-legendary"
+  },
+  "sectionHeadingRows": {
+    "Ability": "game.game.hero-sylvie",
+    "Legendary": "game.rarity-legendary",
+    "SetBonus": "game.game.character-friendly"
+  },
+  "maxTempers": {
+    "Common": [
+      {
+        "itemLevel": 0,
+        "maxTempers": 0
+      },
+      {
+        "itemLevel": 420,
+        "maxTempers": 0
+      }
+    ],
+    "Uncommon": [
+      {
+        "itemLevel": 0,
+        "maxTempers": 0
+      },
+      {
+        "itemLevel": 15,
+        "maxTempers": 1
+      },
+      {
+        "itemLevel": 105,
+        "maxTempers": 2
+      },
+      {
+        "itemLevel": 180,
+        "maxTempers": 3
+      },
+      {
+        "itemLevel": 255,
+        "maxTempers": 4
+      },
+      {
+        "itemLevel": 420,
+        "maxTempers": 4
+      }
+    ],
+    "Rare": [
+      {
+        "itemLevel": 0,
+        "maxTempers": 0
+      },
+      {
+        "itemLevel": 15,
+        "maxTempers": 1
+      },
+      {
+        "itemLevel": 105,
+        "maxTempers": 2
+      },
+      {
+        "itemLevel": 180,
+        "maxTempers": 3
+      },
+      {
+        "itemLevel": 255,
+        "maxTempers": 4
+      },
+      {
+        "itemLevel": 315,
+        "maxTempers": 5
+      },
+      {
+        "itemLevel": 420,
+        "maxTempers": 5
+      }
+    ],
+    "Epic": [
+      {
+        "itemLevel": 0,
+        "maxTempers": 0
+      },
+      {
+        "itemLevel": 15,
+        "maxTempers": 1
+      },
+      {
+        "itemLevel": 105,
+        "maxTempers": 2
+      },
+      {
+        "itemLevel": 180,
+        "maxTempers": 3
+      },
+      {
+        "itemLevel": 255,
+        "maxTempers": 4
+      },
+      {
+        "itemLevel": 315,
+        "maxTempers": 6
+      },
+      {
+        "itemLevel": 420,
+        "maxTempers": 6
+      }
+    ],
+    "Champion": [
+      {
+        "itemLevel": 0,
+        "maxTempers": 0
+      },
+      {
+        "itemLevel": 15,
+        "maxTempers": 1
+      },
+      {
+        "itemLevel": 105,
+        "maxTempers": 2
+      },
+      {
+        "itemLevel": 180,
+        "maxTempers": 3
+      },
+      {
+        "itemLevel": 255,
+        "maxTempers": 4
+      },
+      {
+        "itemLevel": 315,
+        "maxTempers": 7
+      },
+      {
+        "itemLevel": 420,
+        "maxTempers": 7
+      }
+    ],
+    "Heroic": [
+      {
+        "itemLevel": 0,
+        "maxTempers": 0
+      },
+      {
+        "itemLevel": 15,
+        "maxTempers": 1
+      },
+      {
+        "itemLevel": 105,
+        "maxTempers": 2
+      },
+      {
+        "itemLevel": 180,
+        "maxTempers": 3
+      },
+      {
+        "itemLevel": 255,
+        "maxTempers": 4
+      },
+      {
+        "itemLevel": 315,
+        "maxTempers": 8
+      },
+      {
+        "itemLevel": 420,
+        "maxTempers": 8
+      }
+    ],
+    "Legendary": [
+      {
+        "itemLevel": 0,
+        "maxTempers": 0
+      },
+      {
+        "itemLevel": 420,
+        "maxTempers": 0
+      }
+    ]
+  },
+  "dropItemLevels": [
+    {
+      "row": "Default",
+      "difficulty": 21,
+      "itemLevel": 315
+    },
+    {
+      "row": "Legendary",
+      "difficulty": 21,
+      "itemLevel": 360
+    }
+  ],
+  "blessings": {
+    "name": "Blessing",
+    "heroBlessing": "Hero Blessing",
+    "tierLevel": "Equipped Tier",
+    "tiers": 4
+  },
+  "difficultyScaling": {
+    "health": {
+      "1": 1,
+      "2": 1.31,
+      "3": 1.85,
+      "4": 2.6,
+      "5": 3.67,
+      "6": 4.05,
+      "7": 4.66,
+      "8": 6.11,
+      "9": 8,
+      "10": 10.49,
+      "11": 11.23,
+      "12": 11.96,
+      "13": 14.47,
+      "14": 17.51,
+      "15": 21.18,
+      "16": 21.92,
+      "17": 22.98,
+      "18": 26.77,
+      "19": 31.19,
+      "20": 36.34,
+      "21": 37.37,
+      "22": 39.61,
+      "23": 41.99,
+      "24": 44.51,
+      "25": 47.18,
+      "26": 50.01,
+      "27": 53.01,
+      "28": 56.19,
+      "29": 59.56,
+      "30": 63.13,
+      "31": 66.92,
+      "32": 68.93,
+      "33": 71,
+      "34": 73.12,
+      "35": 75.32,
+      "36": 77.58,
+      "37": 79.91,
+      "38": 82.3,
+      "39": 84.77,
+      "40": 87.32,
+      "41": 89.93,
+      "42": 92.63,
+      "43": 95.41,
+      "44": 98.27,
+      "45": 101.22,
+      "46": 104.26,
+      "47": 107.39,
+      "48": 110.61,
+      "49": 113.93,
+      "50": 117.34,
+      "51": 120.86,
+      "52": 124.49,
+      "53": 128.23,
+      "54": 132.07,
+      "55": 136.03,
+      "56": 140.11,
+      "57": 144.32,
+      "58": 148.65,
+      "59": 153.11,
+      "60": 157.7,
+      "61": 162.43,
+      "62": 167.3,
+      "63": 172.32,
+      "64": 177.49,
+      "65": 182.82,
+      "66": 188.3,
+      "67": 193.95,
+      "68": 199.77,
+      "69": 205.76,
+      "70": 211.94,
+      "71": 218.29,
+      "72": 224.84,
+      "73": 231.59,
+      "74": 238.54,
+      "75": 245.69,
+      "76": 250.61,
+      "77": 255.62,
+      "78": 260.73,
+      "79": 265.95,
+      "80": 271.26,
+      "81": 276.69,
+      "82": 282.22,
+      "83": 287.87,
+      "84": 293.63,
+      "85": 299.5,
+      "86": 305.49,
+      "87": 311.6,
+      "88": 317.83,
+      "89": 324.19,
+      "90": 330.67,
+      "91": 337.28,
+      "92": 344.03,
+      "93": 350.91,
+      "94": 357.93,
+      "95": 365.09,
+      "96": 372.39,
+      "97": 379.84,
+      "98": 387.43,
+      "99": 395.18,
+      "100": 403.08,
+      "101": 411.15,
+      "102": 419.37,
+      "103": 427.76,
+      "104": 436.31,
+      "105": 445.04,
+      "106": 453.94,
+      "107": 463.02,
+      "108": 472.28,
+      "109": 481.72,
+      "110": 491.36,
+      "111": 501.18,
+      "112": 511.21,
+      "113": 521.43,
+      "114": 531.86,
+      "115": 542.5,
+      "116": 553.35,
+      "117": 564.42,
+      "118": 575.7,
+      "119": 587.22,
+      "120": 598.96,
+      "121": 610.94,
+      "122": 623.16,
+      "123": 635.62,
+      "124": 648.34,
+      "125": 661.3,
+      "126": 674.53,
+      "127": 688.02,
+      "128": 701.78,
+      "129": 715.82,
+      "130": 730.13,
+      "131": 744.73,
+      "132": 759.63,
+      "133": 774.82,
+      "134": 790.32,
+      "135": 806.12,
+      "136": 822.25,
+      "137": 838.69,
+      "138": 855.47,
+      "139": 872.57,
+      "140": 890.03,
+      "141": 907.83,
+      "142": 925.98,
+      "143": 944.5,
+      "144": 963.39,
+      "145": 982.66,
+      "146": 1002.31,
+      "147": 1022.36,
+      "148": 1042.81,
+      "149": 1063.66,
+      "150": 1084.94,
+      "151": 1106.64
+    },
+    "damage": {
+      "1": 1,
+      "2": 1.31,
+      "3": 1.85,
+      "4": 2.6,
+      "5": 3.67,
+      "6": 4.05,
+      "7": 4.66,
+      "8": 6.11,
+      "9": 8,
+      "10": 10.49,
+      "11": 11.23,
+      "12": 11.96,
+      "13": 14.47,
+      "14": 17.51,
+      "15": 21.18,
+      "16": 21.92,
+      "17": 22.98,
+      "18": 26.77,
+      "19": 31.19,
+      "20": 36.34,
+      "21": 37.37,
+      "22": 39.61,
+      "23": 41.99,
+      "24": 44.51,
+      "25": 47.18,
+      "26": 50.01,
+      "27": 53.01,
+      "28": 56.19,
+      "29": 59.56,
+      "30": 63.13,
+      "31": 66.92,
+      "32": 68.93,
+      "33": 71,
+      "34": 73.12,
+      "35": 75.32,
+      "36": 77.58,
+      "37": 79.91,
+      "38": 81.5,
+      "39": 83.13,
+      "40": 84.8,
+      "41": 86.49,
+      "42": 88.22,
+      "43": 89.99,
+      "44": 91.79,
+      "45": 93.62,
+      "46": 95.49,
+      "47": 97.4,
+      "48": 99.35,
+      "49": 101.34,
+      "50": 103.37,
+      "51": 105.43,
+      "52": 107.54,
+      "53": 109.69,
+      "54": 111.89,
+      "55": 114.12,
+      "56": 116.41,
+      "57": 118.74,
+      "58": 121.11,
+      "59": 123.53,
+      "60": 126,
+      "61": 128.52,
+      "62": 131.09,
+      "63": 133.72,
+      "64": 136.39,
+      "65": 139.12,
+      "66": 141.9,
+      "67": 144.74,
+      "68": 147.63,
+      "69": 150.59,
+      "70": 153.6,
+      "71": 156.67,
+      "72": 159.8,
+      "73": 163,
+      "74": 166.26,
+      "75": 169.58,
+      "76": 172.98,
+      "77": 176.43,
+      "78": 179.96,
+      "79": 183.56,
+      "80": 187.23,
+      "81": 190.98,
+      "82": 194.8,
+      "83": 198.69,
+      "84": 202.67,
+      "85": 206.72,
+      "86": 210.86,
+      "87": 215.07,
+      "88": 219.37,
+      "89": 223.76,
+      "90": 228.24,
+      "91": 232.8,
+      "92": 237.46,
+      "93": 242.21,
+      "94": 247.05,
+      "95": 251.99,
+      "96": 257.03,
+      "97": 262.17,
+      "98": 267.42,
+      "99": 272.76,
+      "100": 278.22,
+      "101": 283.78,
+      "102": 289.46,
+      "103": 295.25,
+      "104": 301.15,
+      "105": 307.18,
+      "106": 313.32,
+      "107": 319.59,
+      "108": 325.98,
+      "109": 332.5,
+      "110": 339.15,
+      "111": 345.93,
+      "112": 352.85,
+      "113": 359.91,
+      "114": 367.11,
+      "115": 374.45,
+      "116": 381.94,
+      "117": 389.57,
+      "118": 397.37,
+      "119": 405.31,
+      "120": 413.42,
+      "121": 421.69,
+      "122": 430.12,
+      "123": 438.72,
+      "124": 447.5,
+      "125": 456.45,
+      "126": 465.58,
+      "127": 474.89,
+      "128": 484.39,
+      "129": 494.08,
+      "130": 503.96,
+      "131": 514.04,
+      "132": 524.32,
+      "133": 534.8,
+      "134": 545.5,
+      "135": 556.41,
+      "136": 567.54,
+      "137": 578.89,
+      "138": 590.47,
+      "139": 602.27,
+      "140": 614.32,
+      "141": 626.61,
+      "142": 639.14,
+      "143": 651.92,
+      "144": 664.96,
+      "145": 678.26,
+      "146": 691.82,
+      "147": 705.66,
+      "148": 719.77,
+      "149": 734.17,
+      "150": 748.85,
+      "151": 763.83
+    },
+    "namespaces": {
+      "Hatchling": {
+        "health": {
+          "1": 1,
+          "151": 1
+        },
+        "damage": {},
+        "namespaces": {}
+      },
+      "TargetDummy": {
+        "health": {
+          "1": 1,
+          "151": 1
+        },
+        "damage": {},
+        "namespaces": {}
+      },
+      "Rime": {
+        "health": {
+          "1": 1,
+          "151": 1
+        },
+        "damage": {
+          "1": 1,
+          "151": 1
+        },
+        "namespaces": {}
+      },
+      "Ardeos": {
+        "health": {
+          "1": 1,
+          "151": 1
+        },
+        "damage": {
+          "1": 1,
+          "151": 1
+        },
+        "namespaces": {}
+      },
+      "Helena": {
+        "health": {
+          "1": 1,
+          "151": 1
+        },
+        "damage": {
+          "1": 1,
+          "151": 1
+        },
+        "namespaces": {}
+      },
+      "Mara": {
+        "health": {
+          "1": 1,
+          "151": 1
+        },
+        "damage": {
+          "1": 1,
+          "151": 1
+        },
+        "namespaces": {}
+      },
+      "Meiko": {
+        "health": {
+          "1": 1,
+          "151": 1
+        },
+        "damage": {
+          "1": 1,
+          "151": 1
+        },
+        "namespaces": {}
+      },
+      "Vigour": {
+        "health": {
+          "1": 1,
+          "151": 1
+        },
+        "damage": {
+          "1": 1,
+          "151": 1
+        },
+        "namespaces": {}
+      },
+      "Sylvie": {
+        "health": {
+          "1": 1,
+          "151": 1
+        },
+        "damage": {
+          "1": 1,
+          "151": 1
+        },
+        "namespaces": {}
+      },
+      "Brimborn": {
+        "health": {
+          "1": 1,
+          "151": 1
+        },
+        "damage": {
+          "1": 1,
+          "151": 1
+        },
+        "namespaces": {}
+      },
+      "Mulchbug": {
+        "health": {
+          "1": 1,
+          "151": 1
+        },
+        "damage": {
+          "1": 1,
+          "151": 1
+        },
+        "namespaces": {}
+      },
+      "Quetzal": {
+        "health": {
+          "1": 1,
+          "151": 1
+        },
+        "damage": {
+          "1": 1,
+          "151": 1
+        },
+        "namespaces": {}
+      },
+      "HealerPriestess": {
+        "health": {
+          "1": 1,
+          "151": 1
+        },
+        "damage": {
+          "1": 1,
+          "151": 1
+        },
+        "namespaces": {}
+      },
+      "DebugHero1": {
+        "health": {
+          "1": 1,
+          "151": 1
+        },
+        "damage": {
+          "1": 1,
+          "151": 1
+        },
+        "namespaces": {}
+      },
+      "DebugHero2": {
+        "health": {
+          "1": 1,
+          "151": 1
+        },
+        "damage": {
+          "1": 1,
+          "151": 1
+        },
+        "namespaces": {}
+      },
+      "Racket": {
+        "health": {
+          "1": 1,
+          "151": 1
+        },
+        "damage": {
+          "1": 1,
+          "151": 1
+        },
+        "namespaces": {}
+      },
+      "Tariq": {
+        "health": {
+          "1": 1,
+          "151": 1
+        },
+        "damage": {
+          "1": 1,
+          "151": 1
+        },
+        "namespaces": {}
+      },
+      "Grim": {
+        "health": {
+          "1": 1,
+          "151": 1
+        },
+        "damage": {
+          "1": 1,
+          "151": 1
+        },
+        "namespaces": {}
+      },
+      "Gunde": {
+        "health": {
+          "1": 1,
+          "151": 1
+        },
+        "damage": {
+          "1": 1,
+          "151": 1
+        },
+        "namespaces": {}
+      },
+      "Elarion": {
+        "health": {
+          "1": 1,
+          "151": 1
+        },
+        "damage": {
+          "1": 1,
+          "151": 1
+        },
+        "namespaces": {}
+      },
+      "Aeona": {
+        "health": {
+          "1": 1,
+          "151": 1
+        },
+        "damage": {
+          "1": 1,
+          "151": 1
+        },
+        "namespaces": {}
+      },
+      "Xavian": {
+        "health": {
+          "1": 1,
+          "151": 1
+        },
+        "damage": {
+          "1": 1,
+          "151": 1
+        },
+        "namespaces": {}
+      }
+    }
+  },
+  "leagues": [
+    {
+      "row": "League1",
+      "name": "Contender",
+      "tag": "League.ID.League1",
+      "kind": "Ranked",
+      "minimumDifficulty": 1,
+      "maximumDifficulty": 4,
+      "difficulties": [
+        1,
+        2,
+        3,
+        4
+      ]
+    },
+    {
+      "row": "League2",
+      "name": "Adept",
+      "tag": "League.ID.League2",
+      "kind": "Ranked",
+      "minimumDifficulty": 6,
+      "maximumDifficulty": 9,
+      "difficulties": [
+        6,
+        7,
+        8,
+        9
+      ]
+    },
+    {
+      "row": "League3",
+      "name": "Champion",
+      "tag": "League.ID.League3",
+      "kind": "Ranked",
+      "minimumDifficulty": 11,
+      "maximumDifficulty": 14,
+      "difficulties": [
+        11,
+        12,
+        13,
+        14
+      ]
+    },
+    {
+      "row": "League4",
+      "name": "Paragon",
+      "tag": "League.ID.League4",
+      "kind": "Ranked",
+      "minimumDifficulty": 16,
+      "maximumDifficulty": 19,
+      "difficulties": [
+        16,
+        17,
+        18,
+        19
+      ]
+    },
+    {
+      "row": "League5",
+      "name": "Eternal",
+      "tag": "League.ID.League5",
+      "kind": "Eternal",
+      "minimumDifficulty": 21,
+      "maximumDifficulty": 150,
+      "difficulties": [
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        36,
+        37,
+        38,
+        39,
+        40,
+        41,
+        42,
+        43,
+        44,
+        45,
+        46,
+        47,
+        48,
+        49,
+        50,
+        51,
+        52,
+        53,
+        54,
+        55,
+        56,
+        57,
+        58,
+        59,
+        60,
+        61,
+        62,
+        63,
+        64,
+        65,
+        66,
+        67,
+        68,
+        69,
+        70,
+        71,
+        72,
+        73,
+        74,
+        75,
+        76,
+        77,
+        78,
+        79,
+        80,
+        81,
+        82,
+        83,
+        84,
+        85,
+        86,
+        87,
+        88,
+        89,
+        90,
+        91,
+        92,
+        93,
+        94,
+        95,
+        96,
+        97,
+        98,
+        99,
+        100,
+        101,
+        102,
+        103,
+        104,
+        105,
+        106,
+        107,
+        108,
+        109,
+        110,
+        111,
+        112,
+        113,
+        114,
+        115,
+        116,
+        117,
+        118,
+        119,
+        120,
+        121,
+        122,
+        123,
+        124,
+        125,
+        126,
+        127,
+        128,
+        129,
+        130,
+        131,
+        132,
+        133,
+        134,
+        135,
+        136,
+        137,
+        138,
+        139,
+        140,
+        141,
+        142,
+        143,
+        144,
+        145,
+        146,
+        147,
+        148,
+        149,
+        150
+      ]
+    },
+    {
+      "row": "League6",
+      "name": "Pinnacle",
+      "tag": "League.ID.League6",
+      "kind": "Pinnacle",
+      "minimumDifficulty": 31,
+      "maximumDifficulty": 60,
+      "difficulties": [
+        31,
+        43,
+        60
+      ]
+    }
+  ],
+  "statCalculation": {
+    "primaryPool": {
+      "minimumItemLevel": 15,
+      "levelDivisor": 15,
+      "growthBase": 1.08,
+      "multiplier": 6
+    },
+    "secondaryPool": {
+      "minimumItemLevel": 15,
+      "levelMultiplier": 72,
+      "multiplier": 2.4
+    },
+    "primaryPowerBase": 1.03,
+    "primaryAndStaminaMultiplier": 10,
+    "statRarityBase": 1,
+    "baseSlot": {
+      "staminaMultiplierAtThreshold": 1.5
+    },
+    "fixedSlot": {
+      "primaryMultiplier": 0.525,
+      "secondaryMultiplier": 1.125,
+      "staminaMultiplierAtThreshold": 1.5
+    },
+    "dynamicSlot": {
+      "primaryMultiplier": 0.525,
+      "secondaryMultiplier": 1.125,
+      "staminaMultiplierAtThreshold": 1.5,
+      "weightMultiplier": 0.15,
+      "staminaWeight": 0.5,
+      "secondaryWeight": 0.3
+    },
+    "slotWeights": {
+      "Head": {
+        "statWeight": 0.08,
+        "armorWeight": 0.155
+      },
+      "Neck": {
+        "statWeight": 0.07,
+        "armorWeight": 0
+      },
+      "Shoulders": {
+        "statWeight": 0.08,
+        "armorWeight": 0.145
+      },
+      "Back": {
+        "statWeight": 0.05,
+        "armorWeight": 0.08
+      },
+      "Chest": {
+        "statWeight": 0.1,
+        "armorWeight": 0.18
+      },
+      "Wrists": {
+        "statWeight": 0.05,
+        "armorWeight": 0.085
+      },
+      "Hands": {
+        "statWeight": 0.06,
+        "armorWeight": 0.09
+      },
+      "Legs": {
+        "statWeight": 0.09,
+        "armorWeight": 0.165
+      },
+      "Feet": {
+        "statWeight": 0.07,
+        "armorWeight": 0.1
+      },
+      "Ring": {
+        "statWeight": 0.06,
+        "armorWeight": 0
+      },
+      "Relic": {
+        "statWeight": 0.06,
+        "armorWeight": 0
+      },
+      "Weapon": {
+        "statWeight": 0.11,
+        "armorWeight": 0.28
+      }
+    },
+    "armorWeights": {
+      "Plate": {
+        "armorWeight": 2.8,
+        "flatArmor": 200
+      },
+      "Mail": {
+        "armorWeight": 1.65,
+        "flatArmor": 105
+      },
+      "Leather": {
+        "armorWeight": 1.6,
+        "flatArmor": 96
+      },
+      "Cloth": {
+        "armorWeight": 1.41,
+        "flatArmor": 90
+      }
+    },
+    "attributes": {
+      "Stamina": {
+        "displayName": "Stamina",
+        "roundToDecimals": 0,
+        "isPercent": false,
+        "attribute": "Stamina",
+        "baseStatMultiplier": 1,
+        "finalPenaltyPercentage": 0
+      },
+      "Strength": {
+        "displayName": "Strength",
+        "roundToDecimals": 0,
+        "isPercent": false,
+        "attribute": "Strength",
+        "baseStatMultiplier": 1,
+        "finalPenaltyPercentage": 0
+      },
+      "Intellect": {
+        "displayName": "Intellect",
+        "roundToDecimals": 0,
+        "isPercent": false,
+        "attribute": "Intellect",
+        "baseStatMultiplier": 1,
+        "finalPenaltyPercentage": 0
+      },
+      "Agility": {
+        "displayName": "Agility",
+        "roundToDecimals": 0,
+        "isPercent": false,
+        "attribute": "Agility",
+        "baseStatMultiplier": 1,
+        "finalPenaltyPercentage": 0
+      },
+      "CritChance": {
+        "displayName": "Critical Strike",
+        "roundToDecimals": 0,
+        "isPercent": false,
+        "attribute": "CritRating",
+        "baseStatMultiplier": 0.16,
+        "brackets": [
+          {
+            "maxBracketValue": 10,
+            "penaltyPercentage": 1
+          },
+          {
+            "maxBracketValue": 15,
+            "penaltyPercentage": 0.98
+          },
+          {
+            "maxBracketValue": 20,
+            "penaltyPercentage": 0.96
+          },
+          {
+            "maxBracketValue": 25,
+            "penaltyPercentage": 0.94
+          }
+        ],
+        "finalPenaltyPercentage": 0.92
+      },
+      "Haste": {
+        "displayName": "Haste",
+        "roundToDecimals": 0,
+        "isPercent": false,
+        "attribute": "HasteRating",
+        "baseStatMultiplier": 0.16,
+        "brackets": [
+          {
+            "maxBracketValue": 10,
+            "penaltyPercentage": 1
+          },
+          {
+            "maxBracketValue": 15,
+            "penaltyPercentage": 0.98
+          },
+          {
+            "maxBracketValue": 20,
+            "penaltyPercentage": 0.96
+          },
+          {
+            "maxBracketValue": 25,
+            "penaltyPercentage": 0.94
+          }
+        ],
+        "finalPenaltyPercentage": 0.92
+      },
+      "Expertise": {
+        "displayName": "Expertise",
+        "roundToDecimals": 0,
+        "isPercent": false,
+        "attribute": "ExpertiseRating",
+        "baseStatMultiplier": 0.16,
+        "brackets": [
+          {
+            "maxBracketValue": 10,
+            "penaltyPercentage": 1
+          },
+          {
+            "maxBracketValue": 15,
+            "penaltyPercentage": 0.98
+          },
+          {
+            "maxBracketValue": 20,
+            "penaltyPercentage": 0.96
+          },
+          {
+            "maxBracketValue": 25,
+            "penaltyPercentage": 0.94
+          }
+        ],
+        "finalPenaltyPercentage": 0.92
+      },
+      "Spirit": {
+        "displayName": "Spirit",
+        "roundToDecimals": 0,
+        "isPercent": false,
+        "attribute": "SpiritRating",
+        "baseStatMultiplier": 0.16,
+        "brackets": [
+          {
+            "maxBracketValue": 10,
+            "penaltyPercentage": 1
+          },
+          {
+            "maxBracketValue": 15,
+            "penaltyPercentage": 0.98
+          },
+          {
+            "maxBracketValue": 20,
+            "penaltyPercentage": 0.96
+          },
+          {
+            "maxBracketValue": 25,
+            "penaltyPercentage": 0.94
+          }
+        ],
+        "finalPenaltyPercentage": 0.92
+      },
+      "CooldownReduction": {
+        "displayName": "Cooldown Reduction",
+        "roundToDecimals": 0,
+        "isPercent": true,
+        "attribute": "CooldownReduction",
+        "baseStatMultiplier": 0.01,
+        "brackets": [
+          {
+            "maxBracketValue": 999,
+            "penaltyPercentage": 1
+          },
+          {
+            "maxBracketValue": 1000,
+            "penaltyPercentage": 0.9
+          },
+          {
+            "maxBracketValue": 1000,
+            "penaltyPercentage": 0.8
+          },
+          {
+            "maxBracketValue": 1000,
+            "penaltyPercentage": 0.7
+          }
+        ],
+        "finalPenaltyPercentage": 0.6
+      },
+      "Mana": {
+        "displayName": "Max Mana",
+        "roundToDecimals": 2,
+        "isPercent": true,
+        "attribute": "MaxMana",
+        "baseStatMultiplier": 0.03,
+        "finalPenaltyPercentage": 1
+      },
+      "HealthRegen": {
+        "displayName": "Health Regen Rate",
+        "roundToDecimals": 2,
+        "isPercent": true,
+        "attribute": "HealthRegenTickTime",
+        "baseStatMultiplier": 0.03,
+        "finalPenaltyPercentage": 1
+      },
+      "ManaRegen": {
+        "displayName": "Mana Regen Rate",
+        "roundToDecimals": 2,
+        "isPercent": true,
+        "attribute": "ManaRegenTickTime",
+        "baseStatMultiplier": 0.015,
+        "finalPenaltyPercentage": 1
+      },
+      "BonusArmor": {
+        "displayName": "Armor",
+        "roundToDecimals": 0,
+        "isPercent": false,
+        "attribute": "Armor",
+        "baseStatMultiplier": 1,
+        "finalPenaltyPercentage": 1
+      },
+      "Dodge": {
+        "displayName": "Dodge",
+        "roundToDecimals": 4,
+        "isPercent": true,
+        "attribute": "DodgeChance",
+        "baseStatMultiplier": 0.001,
+        "finalPenaltyPercentage": 1
+      },
+      "Parry": {
+        "displayName": "Parry",
+        "roundToDecimals": 4,
+        "isPercent": true,
+        "attribute": "ParryChance",
+        "baseStatMultiplier": 0.001,
+        "finalPenaltyPercentage": 1
+      },
+      "MoveSpeed": {
+        "displayName": "Move Speed",
+        "roundToDecimals": 4,
+        "isPercent": true,
+        "attribute": "MoveSpeed",
+        "baseStatMultiplier": 0.001,
+        "finalPenaltyPercentage": 1
+      },
+      "BlockChance": {
+        "displayName": "Block Chance",
+        "roundToDecimals": 4,
+        "isPercent": true,
+        "attribute": "BlockChance",
+        "baseStatMultiplier": 0.001,
+        "finalPenaltyPercentage": 1
+      },
+      "LifeSteal": {
+        "displayName": "Life Steal",
+        "roundToDecimals": 4,
+        "isPercent": true,
+        "attribute": "LifeSteal",
+        "baseStatMultiplier": 0.001,
+        "finalPenaltyPercentage": 1
+      },
+      "ReflectHeal": {
+        "displayName": "Reflect Heal",
+        "roundToDecimals": 4,
+        "isPercent": true,
+        "attribute": "ReflectHeal",
+        "baseStatMultiplier": 0.001,
+        "finalPenaltyPercentage": 1
+      },
+      "FlatHealth": {
+        "displayName": "Health",
+        "roundToDecimals": 0,
+        "isPercent": false,
+        "attribute": "BaseHealth",
+        "baseStatMultiplier": 1,
+        "finalPenaltyPercentage": 1
+      },
+      "FlatMana": {
+        "displayName": "Mana",
+        "roundToDecimals": 0,
+        "isPercent": true,
+        "attribute": "MaxMana",
+        "baseStatMultiplier": 1,
+        "finalPenaltyPercentage": 1
+      },
+      "Tenacity": {
+        "displayName": "Tenacity",
+        "roundToDecimals": 0,
+        "isPercent": false,
+        "attribute": "Tenacity",
+        "baseStatMultiplier": 1,
+        "finalPenaltyPercentage": 1
+      },
+      "AttackSpeed": {
+        "displayName": "Attack Speed",
+        "roundToDecimals": 0,
+        "isPercent": true,
+        "attribute": "AttackSpeed",
+        "baseStatMultiplier": 0.05,
+        "finalPenaltyPercentage": 1
+      },
+      "Armor": {
+        "displayName": "Armor",
+        "roundToDecimals": 0,
+        "isPercent": false,
+        "attribute": "Armor",
+        "baseStatMultiplier": 1,
+        "brackets": [
+          {
+            "maxBracketValue": 50,
+            "penaltyPercentage": 0.9
+          },
+          {
+            "maxBracketValue": 100,
+            "penaltyPercentage": 0.8
+          }
+        ],
+        "finalPenaltyPercentage": 1
+      }
+    },
+    "randomStatPool": [
+      "Strength",
+      "Agility",
+      "Intellect",
+      "Stamina",
+      "Expertise",
+      "Haste",
+      "Spirit",
+      "CritChance"
+    ],
+    "rarityAdditions": {
+      "Default_GemSlot": {
+        "0": {
+          "tier": 0,
+          "guaranteedSlots": [
+            "GrantedAbility"
+          ],
+          "randomRolls": 0,
+          "randomizedSlots": [],
+          "specialSlots": []
+        },
+        "1": {
+          "tier": 1,
+          "guaranteedSlots": [
+            "RandomStat"
+          ],
+          "randomRolls": 0,
+          "randomizedSlots": [],
+          "specialSlots": []
+        },
+        "2": {
+          "tier": 2,
+          "guaranteedSlots": [
+            "RandomStat"
+          ],
+          "randomRolls": 1,
+          "randomizedSlots": [
+            "RandomStat",
+            "GemPower",
+            "ItemTrait",
+            "AbilityRank"
+          ],
+          "specialSlots": []
+        },
+        "3": {
+          "tier": 3,
+          "guaranteedSlots": [
+            "RandomStat",
+            "GemSocket"
+          ],
+          "randomRolls": 2,
+          "randomizedSlots": [
+            "RandomStat",
+            "GemPower",
+            "ItemTrait",
+            "AbilityRank",
+            "GemPower",
+            "ItemTrait",
+            "AbilityRank",
+            "RandomStat"
+          ],
+          "specialSlots": []
+        },
+        "4": {
+          "tier": 4,
+          "guaranteedSlots": [
+            "RandomStat",
+            "GemSocket",
+            "RandomStat"
+          ],
+          "randomRolls": 2,
+          "randomizedSlots": [
+            "RandomStat",
+            "GemPower",
+            "ItemTrait",
+            "AbilityRank",
+            "GemPower",
+            "ItemTrait",
+            "AbilityRank",
+            "RandomStat"
+          ],
+          "specialSlots": []
+        },
+        "5": {
+          "tier": 5,
+          "guaranteedSlots": [
+            "RandomStat",
+            "GemSocket",
+            "RandomStat"
+          ],
+          "randomRolls": 3,
+          "randomizedSlots": [
+            "RandomStat",
+            "GemPower",
+            "ItemTrait",
+            "AbilityRank",
+            "GemPower",
+            "ItemTrait",
+            "AbilityRank",
+            "RandomStat"
+          ],
+          "specialSlots": []
+        },
+        "6": {
+          "tier": 6,
+          "guaranteedSlots": [],
+          "randomRolls": 0,
+          "randomizedSlots": [],
+          "specialSlots": []
+        }
+      },
+      "Default_NoGemSlot": {
+        "0": {
+          "tier": 0,
+          "guaranteedSlots": [
+            "GrantedAbility"
+          ],
+          "randomRolls": 0,
+          "randomizedSlots": [],
+          "specialSlots": []
+        },
+        "1": {
+          "tier": 1,
+          "guaranteedSlots": [
+            "RandomStat"
+          ],
+          "randomRolls": 0,
+          "randomizedSlots": [],
+          "specialSlots": []
+        },
+        "2": {
+          "tier": 2,
+          "guaranteedSlots": [
+            "RandomStat"
+          ],
+          "randomRolls": 1,
+          "randomizedSlots": [
+            "RandomStat",
+            "GemPower",
+            "ItemTrait",
+            "AbilityRank"
+          ],
+          "specialSlots": []
+        },
+        "3": {
+          "tier": 3,
+          "guaranteedSlots": [
+            "RandomStat"
+          ],
+          "randomRolls": 2,
+          "randomizedSlots": [
+            "RandomStat",
+            "GemPower",
+            "ItemTrait",
+            "AbilityRank",
+            "GemPower",
+            "ItemTrait",
+            "AbilityRank",
+            "RandomStat"
+          ],
+          "specialSlots": []
+        },
+        "4": {
+          "tier": 4,
+          "guaranteedSlots": [
+            "RandomStat",
+            "RandomStat"
+          ],
+          "randomRolls": 2,
+          "randomizedSlots": [
+            "RandomStat",
+            "GemPower",
+            "ItemTrait",
+            "AbilityRank",
+            "GemPower",
+            "ItemTrait",
+            "AbilityRank",
+            "RandomStat"
+          ],
+          "specialSlots": []
+        },
+        "5": {
+          "tier": 5,
+          "guaranteedSlots": [
+            "RandomStat",
+            "RandomStat"
+          ],
+          "randomRolls": 3,
+          "randomizedSlots": [
+            "RandomStat",
+            "GemPower",
+            "ItemTrait",
+            "AbilityRank",
+            "GemPower",
+            "ItemTrait",
+            "AbilityRank",
+            "RandomStat"
+          ],
+          "specialSlots": []
+        },
+        "6": {
+          "tier": 6,
+          "guaranteedSlots": [],
+          "randomRolls": 0,
+          "randomizedSlots": [],
+          "specialSlots": []
+        }
+      },
+      "Relic": {
+        "0": {
+          "tier": 0,
+          "guaranteedSlots": [
+            "GrantedAbility"
+          ],
+          "randomRolls": 0,
+          "randomizedSlots": [],
+          "specialSlots": []
+        },
+        "1": {
+          "tier": 1,
+          "guaranteedSlots": [
+            "RandomStat"
+          ],
+          "randomRolls": 0,
+          "randomizedSlots": [],
+          "specialSlots": []
+        },
+        "2": {
+          "tier": 2,
+          "guaranteedSlots": [
+            "RandomStat",
+            "GrantedAbility"
+          ],
+          "randomRolls": 0,
+          "randomizedSlots": [],
+          "specialSlots": []
+        },
+        "3": {
+          "tier": 3,
+          "guaranteedSlots": [
+            "RandomStat",
+            "GrantedAbility"
+          ],
+          "randomRolls": 1,
+          "randomizedSlots": [
+            "RandomStat",
+            "GemPower",
+            "ItemTrait",
+            "AbilityRank",
+            "GemPower",
+            "ItemTrait",
+            "AbilityRank",
+            "RandomStat"
+          ],
+          "specialSlots": []
+        },
+        "4": {
+          "tier": 4,
+          "guaranteedSlots": [
+            "RandomStat",
+            "GrantedAbility",
+            "RandomStat"
+          ],
+          "randomRolls": 1,
+          "randomizedSlots": [
+            "RandomStat",
+            "GemPower",
+            "ItemTrait",
+            "AbilityRank",
+            "GemPower",
+            "ItemTrait",
+            "AbilityRank",
+            "RandomStat"
+          ],
+          "specialSlots": []
+        },
+        "5": {
+          "tier": 5,
+          "guaranteedSlots": [
+            "RandomStat",
+            "GrantedAbility",
+            "RandomStat"
+          ],
+          "randomRolls": 2,
+          "randomizedSlots": [
+            "RandomStat",
+            "GemPower",
+            "ItemTrait",
+            "AbilityRank",
+            "GemPower",
+            "ItemTrait",
+            "AbilityRank",
+            "RandomStat"
+          ],
+          "specialSlots": []
+        },
+        "6": {
+          "tier": 6,
+          "guaranteedSlots": [],
+          "randomRolls": 0,
+          "randomizedSlots": [],
+          "specialSlots": []
+        }
+      },
+      "SetBonus_GemSlot": {
+        "0": {
+          "tier": 0,
+          "guaranteedSlots": [
+            "GrantedAbility"
+          ],
+          "randomRolls": 0,
+          "randomizedSlots": [],
+          "specialSlots": []
+        },
+        "1": {
+          "tier": 1,
+          "guaranteedSlots": [
+            "RandomStat"
+          ],
+          "randomRolls": 0,
+          "randomizedSlots": [],
+          "specialSlots": []
+        },
+        "2": {
+          "tier": 2,
+          "guaranteedSlots": [
+            "RandomStat",
+            "SetBonus"
+          ],
+          "randomRolls": 0,
+          "randomizedSlots": [],
+          "specialSlots": []
+        },
+        "3": {
+          "tier": 3,
+          "guaranteedSlots": [
+            "RandomStat",
+            "SetBonus",
+            "GemSocket"
+          ],
+          "randomRolls": 1,
+          "randomizedSlots": [
+            "RandomStat",
+            "GemPower",
+            "AbilityRank",
+            "AbilityRank",
+            "ItemTrait",
+            "ItemTrait",
+            "RandomStat",
+            "GemPower"
+          ],
+          "specialSlots": []
+        },
+        "4": {
+          "tier": 4,
+          "guaranteedSlots": [
+            "RandomStat",
+            "SetBonus",
+            "GemSocket",
+            "RandomStat"
+          ],
+          "randomRolls": 1,
+          "randomizedSlots": [
+            "RandomStat",
+            "GemPower",
+            "ItemTrait",
+            "AbilityRank",
+            "GemPower",
+            "ItemTrait",
+            "AbilityRank",
+            "RandomStat"
+          ],
+          "specialSlots": []
+        },
+        "5": {
+          "tier": 5,
+          "guaranteedSlots": [
+            "RandomStat",
+            "SetBonus",
+            "GemSocket",
+            "RandomStat"
+          ],
+          "randomRolls": 2,
+          "randomizedSlots": [
+            "RandomStat",
+            "GemPower",
+            "ItemTrait",
+            "AbilityRank",
+            "GemPower",
+            "ItemTrait",
+            "AbilityRank",
+            "RandomStat"
+          ],
+          "specialSlots": []
+        },
+        "6": {
+          "tier": 6,
+          "guaranteedSlots": [],
+          "randomRolls": 0,
+          "randomizedSlots": [],
+          "specialSlots": []
+        }
+      },
+      "SetBonus_NoGemSlot": {
+        "0": {
+          "tier": 0,
+          "guaranteedSlots": [
+            "GrantedAbility"
+          ],
+          "randomRolls": 0,
+          "randomizedSlots": [],
+          "specialSlots": []
+        },
+        "1": {
+          "tier": 1,
+          "guaranteedSlots": [
+            "RandomStat"
+          ],
+          "randomRolls": 0,
+          "randomizedSlots": [],
+          "specialSlots": []
+        },
+        "2": {
+          "tier": 2,
+          "guaranteedSlots": [
+            "RandomStat",
+            "SetBonus"
+          ],
+          "randomRolls": 0,
+          "randomizedSlots": [],
+          "specialSlots": []
+        },
+        "3": {
+          "tier": 3,
+          "guaranteedSlots": [
+            "RandomStat",
+            "SetBonus"
+          ],
+          "randomRolls": 1,
+          "randomizedSlots": [
+            "RandomStat",
+            "GemPower",
+            "AbilityRank",
+            "AbilityRank",
+            "GemPower",
+            "ItemTrait",
+            "ItemTrait",
+            "RandomStat"
+          ],
+          "specialSlots": []
+        },
+        "4": {
+          "tier": 4,
+          "guaranteedSlots": [
+            "RandomStat",
+            "SetBonus",
+            "RandomStat"
+          ],
+          "randomRolls": 1,
+          "randomizedSlots": [
+            "RandomStat",
+            "GemPower",
+            "ItemTrait",
+            "AbilityRank",
+            "GemPower",
+            "ItemTrait",
+            "AbilityRank",
+            "RandomStat"
+          ],
+          "specialSlots": []
+        },
+        "5": {
+          "tier": 5,
+          "guaranteedSlots": [
+            "RandomStat",
+            "SetBonus",
+            "RandomStat"
+          ],
+          "randomRolls": 2,
+          "randomizedSlots": [
+            "RandomStat",
+            "GemPower",
+            "ItemTrait",
+            "AbilityRank",
+            "GemPower",
+            "ItemTrait",
+            "AbilityRank",
+            "RandomStat"
+          ],
+          "specialSlots": []
+        },
+        "6": {
+          "tier": 6,
+          "guaranteedSlots": [],
+          "randomRolls": 0,
+          "randomizedSlots": [],
+          "specialSlots": []
+        }
+      },
+      "Weapon": {
+        "0": {
+          "tier": 0,
+          "guaranteedSlots": [
+            "GrantedAbility"
+          ],
+          "randomRolls": 0,
+          "randomizedSlots": [],
+          "specialSlots": []
+        },
+        "1": {
+          "tier": 1,
+          "guaranteedSlots": [
+            "RandomStat"
+          ],
+          "randomRolls": 0,
+          "randomizedSlots": [],
+          "specialSlots": []
+        },
+        "2": {
+          "tier": 2,
+          "guaranteedSlots": [
+            "RandomStat",
+            "GrantedAbility"
+          ],
+          "randomRolls": 0,
+          "randomizedSlots": [],
+          "specialSlots": []
+        },
+        "3": {
+          "tier": 3,
+          "guaranteedSlots": [
+            "RandomStat",
+            "GrantedAbility",
+            "TraitTree"
+          ],
+          "randomRolls": 1,
+          "randomizedSlots": [
+            "RandomStat",
+            "GemPower",
+            "ItemTrait",
+            "AbilityRank",
+            "GemPower",
+            "ItemTrait",
+            "AbilityRank",
+            "RandomStat"
+          ],
+          "specialSlots": []
+        },
+        "4": {
+          "tier": 4,
+          "guaranteedSlots": [
+            "RandomStat",
+            "GrantedAbility",
+            "TraitTree",
+            "RandomStat"
+          ],
+          "randomRolls": 1,
+          "randomizedSlots": [
+            "RandomStat",
+            "GemPower",
+            "ItemTrait",
+            "AbilityRank",
+            "GemPower",
+            "ItemTrait",
+            "AbilityRank",
+            "RandomStat"
+          ],
+          "specialSlots": []
+        },
+        "5": {
+          "tier": 5,
+          "guaranteedSlots": [
+            "RandomStat",
+            "GrantedAbility",
+            "TraitTree",
+            "RandomStat"
+          ],
+          "randomRolls": 2,
+          "randomizedSlots": [
+            "RandomStat",
+            "GemPower",
+            "ItemTrait",
+            "AbilityRank",
+            "GemPower",
+            "ItemTrait",
+            "AbilityRank",
+            "RandomStat"
+          ],
+          "specialSlots": []
+        },
+        "6": {
+          "tier": 6,
+          "guaranteedSlots": [],
+          "randomRolls": 0,
+          "randomizedSlots": [],
+          "specialSlots": []
+        }
+      },
+      "Default_NoGemSlot_Necklace": {
+        "0": {
+          "tier": 0,
+          "guaranteedSlots": [
+            "GrantedAbility"
+          ],
+          "randomRolls": 0,
+          "randomizedSlots": [],
+          "specialSlots": []
+        },
+        "1": {
+          "tier": 1,
+          "guaranteedSlots": [
+            "RandomStat"
+          ],
+          "randomRolls": 0,
+          "randomizedSlots": [],
+          "specialSlots": []
+        },
+        "2": {
+          "tier": 2,
+          "guaranteedSlots": [
+            "RandomStat"
+          ],
+          "randomRolls": 1,
+          "randomizedSlots": [
+            "RandomStat",
+            "GemPower",
+            "ItemTrait",
+            "AbilityRank"
+          ],
+          "specialSlots": []
+        },
+        "3": {
+          "tier": 3,
+          "guaranteedSlots": [
+            "RandomStat",
+            "TraitTree"
+          ],
+          "randomRolls": 1,
+          "randomizedSlots": [
+            "RandomStat",
+            "GemPower",
+            "ItemTrait",
+            "AbilityRank",
+            "GemPower",
+            "ItemTrait",
+            "AbilityRank",
+            "RandomStat"
+          ],
+          "specialSlots": []
+        },
+        "4": {
+          "tier": 4,
+          "guaranteedSlots": [
+            "RandomStat",
+            "TraitTree",
+            "RandomStat"
+          ],
+          "randomRolls": 1,
+          "randomizedSlots": [
+            "RandomStat",
+            "GemPower",
+            "ItemTrait",
+            "AbilityRank",
+            "GemPower",
+            "ItemTrait",
+            "AbilityRank",
+            "RandomStat"
+          ],
+          "specialSlots": []
+        },
+        "5": {
+          "tier": 5,
+          "guaranteedSlots": [
+            "RandomStat",
+            "TraitTree",
+            "RandomStat"
+          ],
+          "randomRolls": 2,
+          "randomizedSlots": [
+            "RandomStat",
+            "GemPower",
+            "ItemTrait",
+            "AbilityRank",
+            "GemPower",
+            "ItemTrait",
+            "AbilityRank",
+            "RandomStat"
+          ],
+          "specialSlots": []
+        },
+        "6": {
+          "tier": 6,
+          "guaranteedSlots": [],
+          "randomRolls": 0,
+          "randomizedSlots": [],
+          "specialSlots": []
+        }
+      },
+      "SetBonus_NoGemSlot_Necklace": {
+        "0": {
+          "tier": 0,
+          "guaranteedSlots": [
+            "GrantedAbility"
+          ],
+          "randomRolls": 0,
+          "randomizedSlots": [],
+          "specialSlots": []
+        },
+        "1": {
+          "tier": 1,
+          "guaranteedSlots": [
+            "RandomStat"
+          ],
+          "randomRolls": 0,
+          "randomizedSlots": [],
+          "specialSlots": []
+        },
+        "2": {
+          "tier": 2,
+          "guaranteedSlots": [
+            "RandomStat",
+            "SetBonus"
+          ],
+          "randomRolls": 0,
+          "randomizedSlots": [],
+          "specialSlots": []
+        },
+        "3": {
+          "tier": 3,
+          "guaranteedSlots": [
+            "RandomStat",
+            "SetBonus",
+            "TraitTree"
+          ],
+          "randomRolls": 0,
+          "randomizedSlots": [
+            "RandomStat",
+            "GemPower",
+            "AbilityRank",
+            "AbilityRank",
+            "GemPower",
+            "ItemTrait",
+            "ItemTrait",
+            "RandomStat"
+          ],
+          "specialSlots": []
+        },
+        "4": {
+          "tier": 4,
+          "guaranteedSlots": [
+            "RandomStat",
+            "SetBonus",
+            "TraitTree",
+            "RandomStat"
+          ],
+          "randomRolls": 0,
+          "randomizedSlots": [
+            "RandomStat",
+            "GemPower",
+            "ItemTrait",
+            "AbilityRank",
+            "GemPower",
+            "ItemTrait",
+            "AbilityRank",
+            "RandomStat"
+          ],
+          "specialSlots": []
+        },
+        "5": {
+          "tier": 5,
+          "guaranteedSlots": [
+            "RandomStat",
+            "SetBonus",
+            "TraitTree",
+            "RandomStat"
+          ],
+          "randomRolls": 1,
+          "randomizedSlots": [
+            "RandomStat",
+            "GemPower",
+            "ItemTrait",
+            "AbilityRank",
+            "GemPower",
+            "ItemTrait",
+            "AbilityRank",
+            "RandomStat"
+          ],
+          "specialSlots": []
+        },
+        "6": {
+          "tier": 6,
+          "guaranteedSlots": [],
+          "randomRolls": 0,
+          "randomizedSlots": [],
+          "specialSlots": []
+        }
+      },
+      "Legendary": {
+        "0": {
+          "tier": 0,
+          "guaranteedSlots": [],
+          "randomRolls": 0,
+          "randomizedSlots": [],
+          "specialSlots": []
+        },
+        "1": {
+          "tier": 1,
+          "guaranteedSlots": [],
+          "randomRolls": 0,
+          "randomizedSlots": [],
+          "specialSlots": []
+        },
+        "2": {
+          "tier": 2,
+          "guaranteedSlots": [],
+          "randomRolls": 0,
+          "randomizedSlots": [],
+          "specialSlots": []
+        },
+        "3": {
+          "tier": 3,
+          "guaranteedSlots": [],
+          "randomRolls": 0,
+          "randomizedSlots": [],
+          "specialSlots": []
+        },
+        "4": {
+          "tier": 4,
+          "guaranteedSlots": [],
+          "randomRolls": 0,
+          "randomizedSlots": [],
+          "specialSlots": []
+        },
+        "5": {
+          "tier": 5,
+          "guaranteedSlots": [],
+          "randomRolls": 0,
+          "randomizedSlots": [],
+          "specialSlots": []
+        },
+        "6": {
+          "tier": 6,
+          "guaranteedSlots": [
+            "RandomStat",
+            "RandomStat",
+            "GrantedAbility"
+          ],
+          "randomRolls": 0,
+          "randomizedSlots": [],
+          "specialSlots": [
+            {
+              "slotName": "GemSocket",
+              "condition": "{1}/{2}"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

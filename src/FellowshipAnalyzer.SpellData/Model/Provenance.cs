@@ -1,7 +1,7 @@
 namespace FellowshipAnalyzer.SpellData.Model;
 
 /// <summary>Identifies which upstream data source supplied a particular field value in a <see cref="CuratedSpell"/>.</summary>
-public enum ProvenanceSource { SpellData, HeroData, GearData, Icons, Override }
+public enum ProvenanceSource { Export, Icons, Override }
 
 /// <summary>
 /// Per-field record of which upstream source supplied each value, keyed by the camelCase json

@@ -157,7 +157,7 @@ public readonly record struct Hero(HeroName Name, HeroRole Role)
     /// <summary>Looks up the canonical <see cref="Hero"/> for a <see cref="HeroName"/>.</summary>
     public static Hero For(HeroName name) => ByName[name];
 
-    /// <summary>Attempts to resolve a <see cref="Hero"/> from its lowercase id (see <see cref="Hero.Id"/>), case-insensitively.</summary>
+    /// <summary>Attempts to resolve a <see cref="Hero"/> from its lowercase id (see <see cref="Id"/>), case-insensitively.</summary>
     /// <param name="id">The hero id to look up.</param>
     /// <param name="hero">The resolved hero, or <c>default</c> if <paramref name="id"/> does not match a known hero.</param>
     /// <returns><see langword="true"/> if <paramref name="id"/> matched a known hero.</returns>
@@ -175,6 +175,6 @@ public readonly record struct Hero(HeroName Name, HeroRole Role)
     public static implicit operator Hero(string name) => TryParse(name, out var hero) ? hero : throw new ArgumentException($"Invalid hero name: {name}", nameof(name));    
     /// <summary>Implicitly extracts the <see cref="HeroName"/> from a <see cref="Hero"/>.</summary>
     public static implicit operator HeroName(Hero hero) => hero.Name;
-    /// <summary>Implicitly extracts the hero id (see <see cref="Hero.Id"/>) from a <see cref="Hero"/>.</summary>
+    /// <summary>Implicitly extracts the hero id (see <see cref="Id"/>) from a <see cref="Hero"/>.</summary>
     public static implicit operator string(Hero hero) => hero.Id;
 }

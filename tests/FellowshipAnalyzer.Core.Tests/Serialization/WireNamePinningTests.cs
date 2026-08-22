@@ -69,7 +69,7 @@ public sealed class WireNamePinningTests
     [Fact]
     public void SerializedDungeonId_KeepsTheRawFightName()
     {
-        var json = JsonSerializer.Serialize<Event>(
+        var json = JsonSerializer.Serialize(
             new DamageEvent { Timestamp = 300, DungeonId = 4 }, JsonContext.Event);
 
         using var document = JsonDocument.Parse(json);

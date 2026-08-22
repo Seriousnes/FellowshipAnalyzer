@@ -16,7 +16,7 @@ public class SupportStatusGuideAnalyzerTests
         public class FakeParser { public virtual System.Type? GuideComponent => null; }
         """;
 
-    private static System.Collections.Generic.IEnumerable<string> Ids(
+    private static IEnumerable<string> Ids(
         System.Collections.Immutable.ImmutableArray<Diagnostic> diagnostics) =>
         diagnostics.Select(d => d.Id);
 

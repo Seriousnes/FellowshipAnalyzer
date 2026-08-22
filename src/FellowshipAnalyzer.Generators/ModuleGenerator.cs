@@ -457,7 +457,7 @@ public sealed class ModuleGenerator : IIncrementalGenerator
             diagnostics.Add(new PendingDiagnostic(
                 SpellArgMustBeNameOfDescriptor,
                 argSyntax.Expression.GetLocation(),
-                ImmutableArray.Create<string>(name)));
+                ImmutableArray.Create(name)));
             return ImmutableArray<int>.Empty;
         }
 
@@ -490,7 +490,7 @@ public sealed class ModuleGenerator : IIncrementalGenerator
             diagnostics.Add(new PendingDiagnostic(
                 SpellArgMustBeNameOfDescriptor,
                 expr.GetLocation(),
-                ImmutableArray.Create<string>(argName)));
+                ImmutableArray.Create(argName)));
             return null;
         }
 
@@ -503,7 +503,7 @@ public sealed class ModuleGenerator : IIncrementalGenerator
             diagnostics.Add(new PendingDiagnostic(
                 SpellArgNotRegistryMemberDescriptor,
                 memberAccess.GetLocation(),
-                ImmutableArray.Create<string>(memberAccess.ToString())));
+                ImmutableArray.Create(memberAccess.ToString())));
             return null;
         }
 
@@ -512,7 +512,7 @@ public sealed class ModuleGenerator : IIncrementalGenerator
             diagnostics.Add(new PendingDiagnostic(
                 SpellArgInitializerUnresolvableDescriptor,
                 memberAccess.GetLocation(),
-                ImmutableArray.Create<string>(memberAccess.ToString())));
+                ImmutableArray.Create(memberAccess.ToString())));
             return null;
         }
 
@@ -880,98 +880,85 @@ public sealed class ModuleGenerator : IIncrementalGenerator
         return "(" + string.Join(" || ", parts) + ")";
     }
 
-    private sealed class ModuleInfo
+    private sealed class ModuleInfo(
+        string className,
+        string ns,
+        ImmutableArray<string> containingTypes,
+        ImmutableArray<HandlerInfo> handlers,
+        ImmutableArray<LazyAccessorInfo> lazyAccessors,
+        ImmutableArray<UsesDepInfo> usesDeps,
+        ImmutableArray<PendingDiagnostic> diagnostics)
     {
-        public ModuleInfo(
-            string className,
-            string ns,
-            ImmutableArray<string> containingTypes,
-            ImmutableArray<HandlerInfo> handlers,
-            ImmutableArray<LazyAccessorInfo> lazyAccessors,
-            ImmutableArray<UsesDepInfo> usesDeps,
-            ImmutableArray<PendingDiagnostic> diagnostics)
-        {
-            ClassName = className;
-            Namespace = ns;
-            ContainingTypes = containingTypes;
-            Handlers = handlers;
-            LazyAccessors = lazyAccessors;
-            UsesDeps = usesDeps;
-            Diagnostics = diagnostics;
-        }
-        public string ClassName { get; }
-        public string Namespace { get; }
-        public ImmutableArray<string> ContainingTypes { get; }
-        public ImmutableArray<HandlerInfo> Handlers { get; }
-        public ImmutableArray<LazyAccessorInfo> LazyAccessors { get; }
-        public ImmutableArray<UsesDepInfo> UsesDeps { get; }
-        public ImmutableArray<PendingDiagnostic> Diagnostics { get; }
+        public string ClassName { get; } = className;
+        public string Namespace { get; } = ns;
+        public ImmutableArray<string> ContainingTypes { get; } = containingTypes;
+        public ImmutableArray<HandlerInfo> Handlers { get; } = handlers;
+        public ImmutableArray<LazyAccessorInfo> LazyAccessors { get; } = lazyAccessors;
+        public ImmutableArray<UsesDepInfo> UsesDeps { get; } = usesDeps;
+        public ImmutableArray<PendingDiagnostic> Diagnostics { get; } = diagnostics;
     }
 
-    private sealed class HandlerInfo
+    private sealed class HandlerInfo(
+        string methodName,
+        string eventTypeFullyQualified,
+        int ByActor,
+        int ToActor,
+        int? Spell,
+        ImmutableArray<int> Spells,
+        int? ExtraSpell,
+        ImmutableArray<int> ExtraSpells,
+        bool IsAsync,
+        bool EventImplementsAbility,
+        bool EventImplementsExtraAbility,
+        bool EventImplementsHasSource,
+        bool EventImplementsHasTarget,
+        string? OneOfTypeFullyQualified,
+        int OneOfSlotIndex)
     {
-        public HandlerInfo(
-            string methodName,
-            string eventTypeFullyQualified,
-            int ByActor,
-            int ToActor,
-            int? Spell,
-            ImmutableArray<int> Spells,
-            int? ExtraSpell,
-            ImmutableArray<int> ExtraSpells,
-            bool IsAsync,
-            bool EventImplementsAbility,
-            bool EventImplementsExtraAbility,
-            bool EventImplementsHasSource,
-            bool EventImplementsHasTarget,
-            string? OneOfTypeFullyQualified,
-            int OneOfSlotIndex)
-        {
-            MethodName = methodName;
-            EventTypeFullyQualified = eventTypeFullyQualified;
-            this.ByActor = ByActor;
-            this.ToActor = ToActor;
-            this.Spell = Spell;
-            this.Spells = Spells;
-            this.ExtraSpell = ExtraSpell;
-            this.ExtraSpells = ExtraSpells;
-            this.IsAsync = IsAsync;
-            this.EventImplementsAbility = EventImplementsAbility;
-            this.EventImplementsExtraAbility = EventImplementsExtraAbility;
-            this.EventImplementsHasSource = EventImplementsHasSource;
-            this.EventImplementsHasTarget = EventImplementsHasTarget;
-            this.OneOfTypeFullyQualified = OneOfTypeFullyQualified;
-            this.OneOfSlotIndex = OneOfSlotIndex;
-        }
-        public string MethodName { get; }
-        public string EventTypeFullyQualified { get; }
-        public int ByActor { get; }
-        public int ToActor { get; }
-        public int? Spell { get; }
-        public ImmutableArray<int> Spells { get; }
-        public int? ExtraSpell { get; }
-        public ImmutableArray<int> ExtraSpells { get; }
-        public bool IsAsync { get; }
-        public bool EventImplementsAbility { get; }
-        public bool EventImplementsExtraAbility { get; }
-        public bool EventImplementsHasSource { get; }
-        public bool EventImplementsHasTarget { get; }
-        public string? OneOfTypeFullyQualified { get; }
-        public int OneOfSlotIndex { get; }
+        public string MethodName { get; } = methodName;
+        public string EventTypeFullyQualified { get; } = eventTypeFullyQualified;
+        public int ByActor { get; } = ByActor;
+        public int ToActor { get; } = ToActor;
+        public int? Spell { get; } = Spell;
+        public ImmutableArray<int> Spells { get; } = Spells;
+        public int? ExtraSpell { get; } = ExtraSpell;
+        public ImmutableArray<int> ExtraSpells { get; } = ExtraSpells;
+        public bool IsAsync { get; } = IsAsync;
+        public bool EventImplementsAbility { get; } = EventImplementsAbility;
+        public bool EventImplementsExtraAbility { get; } = EventImplementsExtraAbility;
+        public bool EventImplementsHasSource { get; } = EventImplementsHasSource;
+        public bool EventImplementsHasTarget { get; } = EventImplementsHasTarget;
+        public string? OneOfTypeFullyQualified { get; } = OneOfTypeFullyQualified;
+        public int OneOfSlotIndex { get; } = OneOfSlotIndex;
     }
 
-    private sealed record LazyAccessorInfo(
+    private sealed class LazyAccessorInfo(
         string ParameterName,
         string PropertyName,
-        string InnerTypeFullyQualified);
+        string InnerTypeFullyQualified)
+    {
+        public string ParameterName { get; } = ParameterName;
+        public string PropertyName { get; } = PropertyName;
+        public string InnerTypeFullyQualified { get; } = InnerTypeFullyQualified;
+    }
 
-    private sealed record UsesDepInfo(
+    private sealed class UsesDepInfo(
         string InnerTypeFullyQualified,
         string ParameterName,
-        string PropertyName);
+        string PropertyName)
+    {
+        public string InnerTypeFullyQualified { get; } = InnerTypeFullyQualified;
+        public string ParameterName { get; } = ParameterName;
+        public string PropertyName { get; } = PropertyName;
+    }
 
-    private sealed record PendingDiagnostic(
+    private sealed class PendingDiagnostic(
         DiagnosticDescriptor Descriptor,
         Location? Location,
-        ImmutableArray<string> MessageArgs);
+        ImmutableArray<string> MessageArgs)
+    {
+        public DiagnosticDescriptor Descriptor { get; } = Descriptor;
+        public Location? Location { get; } = Location;
+        public ImmutableArray<string> MessageArgs { get; } = MessageArgs;
+    }
 }

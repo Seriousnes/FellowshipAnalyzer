@@ -84,7 +84,7 @@ public class SpellRegistryTests
     [InlineData(1558)]
     [InlineData(1_000_104)]
     [InlineData(1881)]
-    [InlineData(1_002_613)]
+    [InlineData(1_001_396)]
     public void RegisteredCoreSpells_PersistInAll(int guid) =>
         Assert.True(Spells.All.ContainsKey(guid));
 }

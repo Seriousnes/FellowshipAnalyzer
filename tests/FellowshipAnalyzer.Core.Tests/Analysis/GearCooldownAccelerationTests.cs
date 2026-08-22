@@ -34,7 +34,7 @@ public sealed class GearCooldownAccelerationTests
     private const int EpicQuality = 5;
     private const int LegendaryQuality = 6;
 
-    /// <summary>Emerald rank 10 ("Blessing of the Commander - II"), granting 12% ACR, per s3 gear_data.json.</summary>
+    /// <summary>Emerald rank 10 ("Blessing of the Commander - II"), granting 12% ACR, per the S3 gear data.</summary>
     private const int EmeraldCap = 1500;
 
     private static readonly ReportDungeon TestDungeon =

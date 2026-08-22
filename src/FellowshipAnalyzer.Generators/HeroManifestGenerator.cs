@@ -217,27 +217,17 @@ public sealed class HeroManifestGenerator : IIncrementalGenerator
             yield return type;
     }
 
-    private sealed class HostInfo
+    private sealed class HostInfo(string className, string ns)
     {
-        public HostInfo(string className, string ns) { ClassName = className; Namespace = ns; }
-        public string ClassName { get; }
-        public string Namespace { get; }
+        public string ClassName { get; } = className; public string Namespace { get; } = ns;
     }
 
-    private sealed class HeroEntry
+    private sealed class HeroEntry(string HeroEnumMember, string AssemblyName, string ParserTypeFullyQualified, string ServiceCollectionExtensionFullyQualified, string ConfigAccessorFullyQualified)
     {
-        public HeroEntry(string HeroEnumMember, string AssemblyName, string ParserTypeFullyQualified, string ServiceCollectionExtensionFullyQualified, string ConfigAccessorFullyQualified)
-        {
-            this.HeroEnumMember = HeroEnumMember;
-            this.AssemblyName = AssemblyName;
-            this.ParserTypeFullyQualified = ParserTypeFullyQualified;
-            this.ServiceCollectionExtensionFullyQualified = ServiceCollectionExtensionFullyQualified;
-            this.ConfigAccessorFullyQualified = ConfigAccessorFullyQualified;
-        }
-        public string HeroEnumMember { get; }
-        public string AssemblyName { get; }
-        public string ParserTypeFullyQualified { get; }
-        public string ServiceCollectionExtensionFullyQualified { get; }
-        public string ConfigAccessorFullyQualified { get; }
+        public string HeroEnumMember { get; } = HeroEnumMember;
+        public string AssemblyName { get; } = AssemblyName;
+        public string ParserTypeFullyQualified { get; } = ParserTypeFullyQualified;
+        public string ServiceCollectionExtensionFullyQualified { get; } = ServiceCollectionExtensionFullyQualified;
+        public string ConfigAccessorFullyQualified { get; } = ConfigAccessorFullyQualified;
     }
 }

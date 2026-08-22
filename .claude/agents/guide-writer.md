@@ -73,9 +73,19 @@ You do not build. Report each rename by name so the caller can.
 
 ## Checking a word against the game
 
-Fellowship's own tooltip strings are the vocabulary source of truth and live in
-`external/fs_tc_uploads/s3/*.json`. Use `grep -r` against that path directly. Do **not** use the Grep
-tool for it: ripgrep skips the submodule via its `.gitignore` and answers silently from dead s2 data.
+Fellowship's own tooltip strings are the vocabulary source of truth and live in the `description` field
+of the ability, effect, talent and trait records in `data/v*/entities.jsonl`. The Grep tool reads that
+path, and so does ripgrep. One line is one whole JSON record, so counting takes the pipeline Rule 4 of
+`banned-vocabulary` prints: filter to those four record types, cut each line down to its `description`
+field, blank the backslash-u escapes, then count the word on its own. Feeding the first `grep -o` to
+`uniq -c` counts nothing, because each emitted string is a different description prefix.
+
+```
+grep -E '^\{"\$type":"(ability|effect|talent|trait)"' data/v*/entities.jsonl \
+  | grep -oE '"description":"[^"]*"' \
+  | sed -E 's/\\u[0-9A-Fa-f]{4}/ /g' \
+  | grep -oiE '\b<word>\b' | sort | uniq -c
+```
 
 ## Constraints you do not inherit
 

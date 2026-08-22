@@ -1,6 +1,6 @@
 namespace FellowshipAnalyzer.Core.Common.Spells.Sylvie;
 
-/// <summary>Sylvie's talent tree nodes as spell metadata (id, name, icon) for display; the source the generator reads to emit the <c>SylvieTalents</c> id constants. Ids come from the Season 3 <c>hero_data.json</c> tree and are listed in tree order, row 1 first.</summary>
+/// <summary>Sylvie's talent tree nodes as spell metadata (id, name, icon) for display; the source the generator reads to emit the <c>SylvieTalents</c> id constants. Ids come from the Season 3 talent tree and are listed in tree order, row 1 first.</summary>
 public class Talents
 {
     /// <summary>The <c>Nettle to the Petal</c> talent; its id backs the generated <c>SylvieTalents.NettleToThePetal</c> constant.</summary>

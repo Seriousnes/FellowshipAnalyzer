@@ -16,21 +16,15 @@ namespace FellowshipAnalyzer.SpellData;
 /// Declared as a record so callers can produce patched variants via <c>with { … }</c>.
 /// </summary>
 public record MergeInputs(
-    SpellDataSource SpellData,
-    GearDataSource GearData,
-    HeroDataSource HeroData,
+    ExportSource Export,
     IconSource Icons,
-    OverridesSource Overrides,
-    DevNameMappings Names)
+    OverridesSource Overrides)
 {
     /// <summary>Loads every upstream source from the committed file paths.</summary>
     public static MergeInputs Load() => new(
-        SpellDataSource.Load(SourcePaths.SpellData),
-        GearDataSource.Load(SourcePaths.GearData),
-        HeroDataSource.Load(SourcePaths.HeroData),
+        ExportSource.Load(SourcePaths.Entities, SourcePaths.Settings),
         IconSource.Load(SourcePaths.Abilities),
-        OverridesSource.Load(SourcePaths.Overrides),
-        DevNameMappings.Load(SourcePaths.DevNameMappings));
+        OverridesSource.Load(SourcePaths.Overrides));
 }
 
 /// <summary>
@@ -39,75 +33,56 @@ public record MergeInputs(
 public static class MergeEngine
 {
     /// <summary>
-    /// For each hero in <c>hero_data.json</c>, selects Kit abilities, resolves scalars from Constants,
-    /// links spawned effects, and enriches each entry with name/kind from <c>spell_data</c>, icon from
-    /// <c>abilities.json</c>, and costs from the merged scalar bag. After auto-selection, applies overrides.
+    /// Selects every export ability into the scope that owns it: a <see cref="AbilityCategory.Relic"/> or
+    /// <see cref="AbilityCategory.Weapon"/> ability is granted by equipment, so it lands once in <c>items</c>;
+    /// every other ability lands in each hero scope its <c>heroes</c> array names. Each effect the export marks
+    /// as <c>partOf</c> an ability follows that ability into the same scope, and both are enriched with an icon
+    /// from <c>abilities.json</c>. After auto-selection, applies overrides.
     /// </summary>
     public static MergeResult Run(MergeInputs inputs)
     {
         var spells = new List<CuratedSpell>();
         var gaps = new List<Gap>();
 
-        foreach (var hero in inputs.HeroData.Heroes)
+        var effectsByAbility = inputs.Export.Effects.Values
+            .Where(e => e.PartOf is { Type: "ability" })
+            .GroupBy(e => e.PartOf!.Id)
+            .ToDictionary(g => g.Key, g => g.OrderBy(e => e.Id).ToList());
+
+        foreach (var (scope, abilities) in RouteAbilities(inputs.Export, gaps))
         {
-            var scope = hero.DisplayName.ToLowerInvariant();
-            if (!HeroNames.Contains(scope))
-                gaps.Add(new Gap(scope, scope, GapKind.UnknownScope));
-            foreach (var unknownResource in hero.Resources.UnknownResourceNames)
-                gaps.Add(new Gap(scope, unknownResource, GapKind.UnknownResource));
-            var heroPrefix = $"GA_{hero.DevKey}_";
-            var effectLinks = Linking.LinkEffects(hero, inputs.SpellData);
-            var linksByAbilityFslId = effectLinks
-                .GroupBy(l => l.AbilityFslId)
-                .ToDictionary(g => g.Key, g => g.ToList());
-
-            foreach (var kit in hero.Kit)
+            foreach (var ability in abilities)
             {
-                if (!kit.DevName.StartsWith(heroPrefix, StringComparison.OrdinalIgnoreCase))
+                if (string.IsNullOrEmpty(ability.Name))
+                {
+                    gaps.Add(new Gap(scope, $"ability {ability.Id}", GapKind.MissingName));
                     continue;
+                }
 
-                var kind = new FSLID(kit.FslId).Kind;
-                var nativeId = new FSLID(kit.FslId).NativeId;
-
-                var constants = Linking.ConstantsFor(kit, hero);
-                var scalars = MergeScalars(constants);
-
-                string? spellDataName = null;
-                if (kind == SpellKind.Ability && inputs.SpellData.Abilities.TryGetValue(nativeId, out var abilityEntry))
-                    spellDataName = abilityEntry.Name;
-
-                var name = spellDataName ?? kit.Name ?? string.Empty;
-                var member = MemberNaming.Sanitize(name);
-                var guid = FSLID.FromNative(kind, nativeId);
+                var member = MemberNaming.Sanitize(ability.Name);
+                var guid = FSLID.FromNative(SpellKind.Ability, ability.Id);
                 var icon = inputs.Icons.IconFor(guid) ?? string.Empty;
-                var costs = Costs.Map(scalars, hero.Resources);
-
-                var cooldown = Normalization.Cooldown(scalars);
-                var cooldownReductionOnTargetDeath = Normalization.CooldownReductionOnTargetDeath(scalars);
-                var range = Normalization.Range(scalars);
-                var charges = Normalization.Charges(scalars);
-                var castDuration = Normalization.CastDuration(scalars);
-                var channelDuration = Normalization.ChannelDuration(scalars);
-                var channelTickInterval = Normalization.ChannelTickInterval(scalars);
+                var costs = Costs.Map(ability, gaps, scope, member);
+                var abilityCategory = inputs.Export.CategoryFor(ability.Category);
 
                 var prov = new ProvenanceBuilder()
-                    .Set("id", ProvenanceSource.HeroData)
-                    .Set("kind", ProvenanceSource.HeroData)
-                    .Set("name", spellDataName is not null ? ProvenanceSource.SpellData : ProvenanceSource.HeroData)
+                    .Set("id", ProvenanceSource.Export)
+                    .Set("kind", ProvenanceSource.Export)
+                    .Set("name", ProvenanceSource.Export)
                     .SetIf("icon", icon.Length > 0, ProvenanceSource.Icons)
-                    .SetIf("abilityCategory", kit.AbilityCategory.HasValue, ProvenanceSource.HeroData)
-                    .SetIf("cooldown", cooldown.HasValue, ProvenanceSource.HeroData)
-                    .SetIf("cooldownReductionOnTargetDeath", cooldownReductionOnTargetDeath.HasValue, ProvenanceSource.HeroData)
-                    .SetIf("range", range.HasValue, ProvenanceSource.HeroData)
-                    .Set("charges", ProvenanceSource.HeroData)
-                    .SetIf("castDuration", castDuration.HasValue, ProvenanceSource.HeroData)
-                    .SetIf("channelDuration", channelDuration.HasValue, ProvenanceSource.HeroData)
-                    .SetIf("channelTickInterval", channelTickInterval.HasValue, ProvenanceSource.HeroData)
-                    .SetIf("costs", costs.Count > 0, ProvenanceSource.HeroData)
+                    .SetIf("abilityCategory", abilityCategory.HasValue, ProvenanceSource.Export)
+                    .SetIf("cooldown", ability.Cooldown.HasValue, ProvenanceSource.Export)
+                    .SetIf("range", ability.RangeYards.HasValue, ProvenanceSource.Export)
+                    .Set("charges", ProvenanceSource.Export)
+                    .SetIf("castDuration", ability.CastTime.HasValue, ProvenanceSource.Export)
+                    .SetIf("channelDuration", ability.ChannelTime.HasValue, ProvenanceSource.Export)
+                    .SetIf("channelTickInterval", ability.ChannelTick.HasValue, ProvenanceSource.Export)
+                    .SetIf("costs", costs.Count > 0, ProvenanceSource.Export)
                     .Build();
 
-                var spell = BuildSpell(kind, nativeId, name, icon, cooldown, cooldownReductionOnTargetDeath,
-                    range, charges, castDuration, channelDuration, channelTickInterval, costs, kit.AbilityCategory);
+                var spell = BuildSpell(SpellKind.Ability, ability.Id, ability.Name, icon, ability.Cooldown,
+                    null, ability.RangeYards, ability.ChargeCount, ability.CastTime, ability.ChannelTime,
+                    ability.ChannelTick, costs, abilityCategory);
                 spells.Add(new CuratedSpell(scope, member, spell, prov));
 
                 if (!MemberNaming.IsValidIdentifier(member))
@@ -115,47 +90,35 @@ public static class MergeEngine
                 if (string.IsNullOrEmpty(icon))
                     gaps.Add(new Gap(scope, member, GapKind.MissingIcon));
 
-                if (!linksByAbilityFslId.TryGetValue(kit.FslId, out var links))
+                if (!effectsByAbility.TryGetValue(ability.Id, out var effects))
                     continue;
 
-                foreach (var link in links)
+                foreach (var effect in effects)
                 {
-                    var effectKind = new FSLID(link.EffectFslId).Kind;
-                    var effectId = new FSLID(link.EffectFslId).NativeId;
-                    var effectName = inputs.SpellData.Effects.TryGetValue(effectId, out var effectEntry)
-                        ? effectEntry.Name ?? string.Empty
-                        : string.Empty;
-                    var effectMember = MemberNaming.EffectMember(member, link.Role);
-                    var effectIcon = inputs.Icons.IconFor(FSLID.FromNative(effectKind, effectId)) ?? string.Empty;
+                    if (string.IsNullOrEmpty(effect.Role))
+                    {
+                        gaps.Add(new Gap(scope, $"{member} (effect {effect.Id})", GapKind.UnresolvedEffect));
+                        continue;
+                    }
+
+                    var effectMember = MemberNaming.EffectMember(member, effect.Role);
+                    var effectIcon = inputs.Icons.IconFor(FSLID.FromNative(SpellKind.Effect, effect.Id)) ?? string.Empty;
 
                     var effectProv = new ProvenanceBuilder()
-                        .Set("id", ProvenanceSource.HeroData)
-                        .Set("kind", ProvenanceSource.SpellData)
-                        .SetIf("name", effectEntry?.Name is not null, ProvenanceSource.SpellData)
+                        .Set("id", ProvenanceSource.Export)
+                        .Set("kind", ProvenanceSource.Export)
+                        .SetIf("name", effect.Name is not null, ProvenanceSource.Export)
                         .SetIf("icon", effectIcon.Length > 0, ProvenanceSource.Icons)
-                        .Set("charges", ProvenanceSource.HeroData)
+                        .Set("charges", ProvenanceSource.Export)
                         .Build();
 
-                    var effectSpell = BuildSpell(effectKind, effectId, effectName, effectIcon,
+                    var effectSpell = BuildSpell(SpellKind.Effect, effect.Id, effect.Name ?? string.Empty, effectIcon,
                         null, null, null, 1, null, null, null, EmptyCosts);
                     spells.Add(new CuratedSpell(scope, effectMember, effectSpell, effectProv));
 
                     if (!MemberNaming.IsValidIdentifier(effectMember))
                         gaps.Add(new Gap(scope, effectMember, GapKind.MissingName));
                 }
-            }
-
-            var linkedEffectFslIds = new HashSet<int>(effectLinks.Select(l => l.EffectFslId));
-            var heroEffectPrefix = $"GE_{hero.DevKey}_";
-            foreach (var effect in inputs.SpellData.Effects.Values)
-            {
-                if (!effect.DevName.StartsWith(heroEffectPrefix, StringComparison.OrdinalIgnoreCase))
-                    continue;
-                if (effect.Name is null || effect.FslId == 0)
-                    continue;
-                if (linkedEffectFslIds.Contains(effect.FslId))
-                    continue;
-                gaps.Add(new Gap(scope, MemberNaming.Sanitize(effect.Name), GapKind.UnresolvedEffect));
             }
         }
 
@@ -189,21 +152,77 @@ public static class MergeEngine
             }
         }
 
+        foreach (var (scope, members) in inputs.Overrides.ByScopeAndMember)
+        {
+            foreach (var (member, delta) in members)
+            {
+                if (!ClaimsSoleHero(delta) || ResolveClaim(spells, scope, member, delta) is not FSLID claimed)
+                    continue;
+
+                foreach (var guid in ClaimedWithLinkedEffects(claimed, effectsByAbility))
+                    spells.RemoveAll(s => s.Scope != scope && s.FSLID.Value == guid.Value);
+            }
+        }
+
         return new MergeResult(spells, gaps) { Schools = BuildSchools(inputs, spells) };
     }
 
+    private static List<(string Scope, List<ExportAbility> Abilities)> RouteAbilities(ExportSource export, List<Gap> gaps)
+    {
+        var routed = new List<(string Scope, List<ExportAbility> Abilities)>();
+        var gearGranted = new List<ExportAbility>();
+        var gearSeen = new HashSet<int>();
+
+        foreach (var hero in export.Heroes)
+        {
+            var scope = hero.Name.ToLowerInvariant();
+            if (!HeroNames.Contains(scope))
+                gaps.Add(new Gap(scope, scope, GapKind.UnknownScope));
+
+            var kit = new List<ExportAbility>();
+            foreach (var ability in export.Abilities.Values
+                .Where(a => a.Heroes.Contains(hero.Name, StringComparer.Ordinal))
+                .OrderBy(a => a.Id))
+            {
+                if (export.CategoryFor(ability.Category) is AbilityCategory.Relic or AbilityCategory.Weapon)
+                {
+                    if (gearSeen.Add(ability.Id))
+                        gearGranted.Add(ability);
+                }
+                else
+                {
+                    kit.Add(ability);
+                }
+            }
+
+            routed.Add((scope, kit));
+        }
+
+        routed.Add((ItemsScope, [.. gearGranted.OrderBy(a => a.Id)]));
+        return routed;
+    }
+
     /// <summary>
-    /// Collects every classified damage school from <c>spell_data.json</c> into one FSLID-keyed map,
-    /// then lets any curated spell carrying a <see cref="Spell.School"/> override what the dump gave
-    /// that id.
+    /// Collects every classified damage school in the export into one FSLID-keyed map, then lets any
+    /// curated spell carrying a <see cref="Spell.School"/> override what the export gave that id.
     /// </summary>
     private static Dictionary<int, MagicSchool> BuildSchools(MergeInputs inputs, IReadOnlyList<CuratedSpell> spells)
     {
         var schools = new Dictionary<int, MagicSchool>();
 
-        foreach (var entry in inputs.SpellData.Abilities.Values.Concat(inputs.SpellData.Effects.Values))
-            if (entry.FslId != 0 && entry.School != default)
-                schools[entry.FslId] = entry.School;
+        foreach (var ability in inputs.Export.Abilities.Values)
+        {
+            var school = Schools.FromExport(ability.Schools);
+            if (school != default)
+                schools[FSLID.FromNative(SpellKind.Ability, ability.Id).Value] = school;
+        }
+
+        foreach (var effect in inputs.Export.Effects.Values)
+        {
+            var school = Schools.FromExport(effect.Schools);
+            if (school != default)
+                schools[FSLID.FromNative(SpellKind.Effect, effect.Id).Value] = school;
+        }
 
         foreach (var curated in spells)
             if (curated.Spell.School is { } school && school != default)
@@ -211,6 +230,12 @@ public static class MergeEngine
 
         return schools;
     }
+
+    private const string ItemsScope = "items";
+
+    private const string SoleHeroKey = "soleHero";
+
+    private static readonly HashSet<string> CurationKeys = new(StringComparer.Ordinal) { SoleHeroKey };
 
     private static readonly HashSet<string> HeroNames =
         new(Enum.GetNames<HeroName>(), StringComparer.OrdinalIgnoreCase);
@@ -241,7 +266,7 @@ public static class MergeEngine
         var node = JsonSerializer.SerializeToNode(curated.Spell, SpellDbJsonOptions.Default)!.AsObject();
         foreach (var (key, value) in delta)
         {
-            if (key == "note")
+            if (CurationKeys.Contains(key))
                 continue;
             node[key] = value?.DeepClone();
         }
@@ -249,10 +274,35 @@ public static class MergeEngine
 
         var prov = new Dictionary<string, ProvenanceSource>(curated.Provenance.ByField, StringComparer.Ordinal);
         foreach (var (key, _) in delta)
-            if (key != "note")
+            if (!CurationKeys.Contains(key))
                 prov[key] = ProvenanceSource.Override;
 
         return curated with { Spell = spell, Provenance = new Provenance(prov) };
+    }
+
+    private static bool ClaimsSoleHero(JsonObject delta) =>
+        delta.TryGetPropertyValue(SoleHeroKey, out var v) && v is JsonValue jv
+            && jv.TryGetValue<bool>(out var claimed) && claimed;
+
+    private static FSLID? ResolveClaim(List<CuratedSpell> spells, string scope, string member, JsonObject delta)
+    {
+        if (DeltaId(delta) is int id)
+            return FSLID.FromNative(DeltaKind(delta) ?? new FSLID(id).Kind, new FSLID(id).NativeId);
+
+        var idx = spells.FindIndex(s => s.Scope == scope && s.Member == member);
+        return idx >= 0 ? spells[idx].FSLID : null;
+    }
+
+    private static IEnumerable<FSLID> ClaimedWithLinkedEffects(
+        FSLID claimed, IReadOnlyDictionary<int, List<ExportEffect>> effectsByAbility)
+    {
+        yield return claimed;
+
+        if (claimed.Kind != SpellKind.Ability || !effectsByAbility.TryGetValue(claimed.NativeId, out var effects))
+            yield break;
+
+        foreach (var effect in effects)
+            yield return FSLID.FromNative(SpellKind.Effect, effect.Id);
     }
 
     private static int? DeltaId(JsonObject delta) =>
@@ -268,98 +318,50 @@ public static class MergeEngine
         var id = DeltaId(delta)!.Value;
         var kind = DeltaKind(delta) ?? new FSLID(id).Kind;
         var nativeId = new FSLID(id).NativeId;
-        var scalars = GatherScalarsById(id, inputs);
 
-        string? nameFromSpellData = null;
-        if (kind == SpellKind.Ability && inputs.SpellData.Abilities.TryGetValue(nativeId, out var abilityEntry))
-            nameFromSpellData = abilityEntry.Name;
-        else if (kind == SpellKind.Effect && inputs.SpellData.Effects.TryGetValue(nativeId, out var effectEntry))
-            nameFromSpellData = effectEntry.Name;
+        ExportAbility? ability = null;
+        string? exportName = null;
+        if (kind == SpellKind.Ability && inputs.Export.Abilities.TryGetValue(nativeId, out var abilityRecord))
+        {
+            ability = abilityRecord;
+            exportName = abilityRecord.Name;
+        }
+        else if (kind == SpellKind.Effect && inputs.Export.Effects.TryGetValue(nativeId, out var effectRecord))
+        {
+            exportName = effectRecord.Name;
+        }
 
-        var gearWeapon = inputs.GearData.Weapons.FirstOrDefault(w => w.FslId == id)
-            ?? inputs.GearData.WeaponTraits.FirstOrDefault(w => w.FslId == id);
-
-        var resolvedName = nameFromSpellData ?? gearWeapon?.DisplayName ?? string.Empty;
         var guid = FSLID.FromNative(kind, nativeId);
-        var abilityCategory = KitCategoryFor(guid, inputs);
+        var abilityCategory = inputs.Export.CategoryFor(ability?.Category);
         var icon = inputs.Icons.IconFor(guid) ?? string.Empty;
-        var costs = Costs.Map(scalars, new ResourceModel(new Dictionary<string, ResourceTypes>(), []));
-
-        var cooldown = Normalization.Cooldown(scalars);
-        var cooldownReductionOnTargetDeath = Normalization.CooldownReductionOnTargetDeath(scalars);
-        var range = Normalization.Range(scalars);
-        var charges = Normalization.Charges(scalars);
-        var castDuration = Normalization.CastDuration(scalars);
-        var channelDuration = Normalization.ChannelDuration(scalars);
-        var channelTickInterval = Normalization.ChannelTickInterval(scalars);
-
-        var nameSource = nameFromSpellData is not null ? ProvenanceSource.SpellData
-            : gearWeapon is not null ? ProvenanceSource.GearData
-            : (ProvenanceSource?)null;
-
-        var prov = new ProvenanceBuilder()
-            .Set("id", ProvenanceSource.SpellData)
-            .Set("kind", ProvenanceSource.SpellData);
-        if (nameSource is { } ns) prov.Set("name", ns);
-        prov.SetIf("icon", icon.Length > 0, ProvenanceSource.Icons);
-        prov.SetIf("abilityCategory", abilityCategory.HasValue, ProvenanceSource.HeroData);
-        prov.SetIf("cooldown", cooldown.HasValue, ProvenanceSource.GearData);
-        prov.SetIf("cooldownReductionOnTargetDeath", cooldownReductionOnTargetDeath.HasValue, ProvenanceSource.GearData);
-        prov.SetIf("range", range.HasValue, ProvenanceSource.GearData);
-        prov.Set("charges", ProvenanceSource.GearData);
-        prov.SetIf("castDuration", castDuration.HasValue, ProvenanceSource.GearData);
-        prov.SetIf("channelDuration", channelDuration.HasValue, ProvenanceSource.GearData);
-        prov.SetIf("channelTickInterval", channelTickInterval.HasValue, ProvenanceSource.GearData);
-        prov.SetIf("costs", costs.Count > 0, ProvenanceSource.GearData);
-
-        var baseSpell = BuildSpell(kind, nativeId, resolvedName, icon, cooldown, cooldownReductionOnTargetDeath,
-            range, charges, castDuration, channelDuration, channelTickInterval, costs, abilityCategory);
-        var curated = ApplyPatch(new CuratedSpell(scope, member, baseSpell, prov.Build()), delta);
 
         var addedGaps = new List<Gap>();
+        var costs = ability is not null ? Costs.Map(ability, addedGaps, scope, member) : EmptyCosts;
+
+        var prov = new ProvenanceBuilder()
+            .Set("id", ProvenanceSource.Export)
+            .Set("kind", ProvenanceSource.Export)
+            .SetIf("name", exportName is not null, ProvenanceSource.Export)
+            .SetIf("icon", icon.Length > 0, ProvenanceSource.Icons)
+            .SetIf("abilityCategory", abilityCategory.HasValue, ProvenanceSource.Export)
+            .SetIf("cooldown", ability?.Cooldown is not null, ProvenanceSource.Export)
+            .SetIf("range", ability?.RangeYards is not null, ProvenanceSource.Export)
+            .Set("charges", ProvenanceSource.Export)
+            .SetIf("castDuration", ability?.CastTime is not null, ProvenanceSource.Export)
+            .SetIf("channelDuration", ability?.ChannelTime is not null, ProvenanceSource.Export)
+            .SetIf("channelTickInterval", ability?.ChannelTick is not null, ProvenanceSource.Export)
+            .SetIf("costs", costs.Count > 0, ProvenanceSource.Export);
+
+        var baseSpell = BuildSpell(kind, nativeId, exportName ?? string.Empty, icon, ability?.Cooldown,
+            null, ability?.RangeYards, ability?.ChargeCount ?? 1, ability?.CastTime, ability?.ChannelTime,
+            ability?.ChannelTick, costs, abilityCategory);
+        var curated = ApplyPatch(new CuratedSpell(scope, member, baseSpell, prov.Build()), delta);
+
         if (!MemberNaming.IsValidIdentifier(curated.Member))
             addedGaps.Add(new Gap(scope, curated.Member, GapKind.MissingName));
         if (string.IsNullOrEmpty(curated.Spell.Icon))
             addedGaps.Add(new Gap(scope, curated.Member, GapKind.MissingIcon));
 
         return (curated, addedGaps);
-    }
-
-    private static AbilityCategory? KitCategoryFor(FSLID guid, MergeInputs inputs) =>
-        inputs.HeroData.Heroes
-            .SelectMany(h => h.Kit)
-            .FirstOrDefault(k => k.FslId == guid.Value)
-            ?.AbilityCategory;
-
-    private static Dictionary<string, double> GatherScalarsById(int id, MergeInputs inputs)
-    {
-        var result = new Dictionary<string, double>(StringComparer.Ordinal);
-
-        var gearWeapon = inputs.GearData.Weapons.FirstOrDefault(w => w.FslId == id)
-            ?? inputs.GearData.WeaponTraits.FirstOrDefault(w => w.FslId == id);
-        if (gearWeapon is not null)
-            foreach (var (k, v) in gearWeapon.Scalars)
-                result[k] = v;
-
-        foreach (var hero in inputs.HeroData.Heroes)
-        {
-            var kit = hero.Kit.FirstOrDefault(k => k.FslId == id);
-            if (kit is null)
-                continue;
-            foreach (var (k, v) in MergeScalars(Linking.ConstantsFor(kit, hero)))
-                result[k] = v;
-            break;
-        }
-
-        return result;
-    }
-
-    private static Dictionary<string, double> MergeScalars(IReadOnlyList<ConstantsEntry> constants)
-    {
-        var result = new Dictionary<string, double>(StringComparer.Ordinal);
-        foreach (var c in constants)
-            foreach (var (key, value) in c.Scalars)
-                result[key] = value;
-        return result;
     }
 }

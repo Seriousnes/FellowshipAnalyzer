@@ -11,7 +11,7 @@ public abstract class BaseCastEvent : Event, IAbilityEvent, IHasSourceWithInstan
     public FSLID AbilityGameId { get; set; }
     /// <summary>The shield absorb amount active on the source when the cast landed.</summary>
     public virtual int? Absorb { get; set; }
-    /// <summary>The channel this cast started, linked in by <see cref="FellowshipAnalyzer.Core.Analysis.Normalizers.CastLinkNormalizer"/>.</summary>
+    /// <summary>The channel this cast started, linked in by <see cref="Analysis.Normalizers.CastLinkNormalizer"/>.</summary>
     public virtual EndChannelEvent? Channel { get; set; }
     /// <summary>The unique id of the actor performing the cast.</summary>
     public virtual int SourceId { get; set; }

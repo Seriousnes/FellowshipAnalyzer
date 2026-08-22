@@ -47,7 +47,7 @@ public sealed class EmpoweredShieldSlamAnalyzerTests
                 Timestamp = PullStart + 4_000,
                 SourceId = PlayerId,
                 TargetId = PlayerId,
-                Ability = new Core.Events.Ability { FSLID = Spells.ShieldSlamAbsorb.FSLID },
+                Ability = new Ability { FSLID = Spells.ShieldSlamAbsorb.FSLID },
                 AbilityGameId = Spells.ShieldSlamAbsorb.FSLID,
             },
             RemoveBuff(PullStart + 16_000, Spells.ShieldSlamAbsorb, absorb: 0));
@@ -105,7 +105,7 @@ public sealed class EmpoweredShieldSlamAnalyzerTests
                 Timestamp = PullStart + 5_000,
                 SourceId = PlayerId,
                 TargetId = PlayerId,
-                Ability = new Core.Events.Ability { FSLID = Spells.ShieldSlamAbsorb.FSLID },
+                Ability = new Ability { FSLID = Spells.ShieldSlamAbsorb.FSLID },
                 AbilityGameId = Spells.ShieldSlamAbsorb.FSLID,
             },
             RemoveBuff(PullStart + 17_000, Spells.ShieldSlamAbsorb, absorb: 100));
@@ -129,7 +129,7 @@ public sealed class EmpoweredShieldSlamAnalyzerTests
         Timestamp = timestamp,
         SourceId = PlayerId,
         TargetId = PlayerId,
-        Ability = new Core.Events.Ability { FSLID = Spells.ShieldSlamAbsorb.FSLID },
+        Ability = new Ability { FSLID = Spells.ShieldSlamAbsorb.FSLID },
         AbilityGameId = Spells.ShieldSlamAbsorb.FSLID,
         Amount = amount,
     };

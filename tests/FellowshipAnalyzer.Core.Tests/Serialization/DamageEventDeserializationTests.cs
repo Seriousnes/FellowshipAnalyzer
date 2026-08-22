@@ -68,7 +68,7 @@ public sealed class DamageEventDeserializationTests
     {
         var original = new DamageEvent { Timestamp = 300, AbilityGameId = 2190, Amount = 5, Tick = true };
 
-        var json = JsonSerializer.Serialize<Event>(original, JsonContext.Event);
+        var json = JsonSerializer.Serialize(original, JsonContext.Event);
 
         json.ShouldContain("\"tick\":true");
         Read(json).Tick.ShouldBeTrue();

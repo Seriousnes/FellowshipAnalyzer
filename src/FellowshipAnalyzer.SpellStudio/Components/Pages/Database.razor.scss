@@ -1,9 +1,7 @@
 @use 'tokens' as t;
 
 $sources: (
-    spelldata: var(--studio-src-spelldata),
-    herodata:  var(--studio-src-herodata),
-    geardata:  var(--studio-src-geardata),
+    export:    var(--studio-src-export),
     icons:     var(--studio-src-icons),
     override:  var(--studio-src-override),
 );
@@ -432,9 +430,7 @@ $sources: (
     }
 
     &.show-prov {
-        .cell.src-spelldata,
-        .cell.src-herodata,
-        .cell.src-geardata,
+        .cell.src-export,
         .cell.src-icons { box-shadow: inset 2px 0 0 var(--src); }
     }
 }
