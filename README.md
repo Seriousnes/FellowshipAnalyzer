@@ -13,6 +13,7 @@ The solution is split into a few major areas:
 - `src/Heroes/FellowshipAnalyzer.Heroes.{Hero}` - one Razor class library per hero analyzer.
 - `src/FellowshipAnalyzer.Generators` - source generators for analyzer registration, parser constructors, module accessors, event metadata, and spell registry data.
 - `tests/` - unit and analyzer tests, including one test project per hero.
+- `data/` - the committed spell database `spelldb.json`, the hand-curated `overrides.json` it is merged with, and the vendored game-data export under `data/v{build}` that both are derived from. Everything is in-tree, so a plain `git clone` is enough.
 
 Hero projects are intentionally pre-created and separate. That is a contributor-experience choice as much as an architecture choice: contributors should be able to open the project for a hero, add a module, and stay inside that boundary. Cross-hero sharing should go through `FellowshipAnalyzer.Core` (shared UI lives under its `UI/` and `Styles/` folders), not direct references between hero projects.
 

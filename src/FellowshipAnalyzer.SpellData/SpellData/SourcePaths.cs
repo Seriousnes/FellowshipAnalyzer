@@ -1,17 +1,19 @@
+using System.Globalization;
+
 namespace FellowshipAnalyzer.SpellData;
 
-/// <summary>Resolved absolute paths to the committed upstream game-data files.</summary>
+/// <summary>Resolved absolute paths to the committed game-data export and the curated files beside it.</summary>
 public static class SourcePaths
 {
     public static readonly string RepoRoot = FindRepoRoot();
 
-    public static string SpellData => Path.Combine(RepoRoot, "external", "fs_tc_uploads", "s3", "spell_data.json");
-    public static string GearData => Path.Combine(RepoRoot, "external", "fs_tc_uploads", "s3", "gear_data.json");
-    public static string HeroData => Path.Combine(RepoRoot, "external", "fs_tc_uploads", "s3", "hero_data.json");
+    public static readonly string ExportRoot = FindExportRoot();
+
+    public static string Entities => Path.Combine(ExportRoot, "entities.jsonl");
+    public static string Settings => Path.Combine(ExportRoot, "settings.json");
     public static string Abilities => Path.Combine(RepoRoot, "abilities.json");
     public static string Overrides => Path.Combine(RepoRoot, "data", "overrides.json");
     public static string SpellDb => Path.Combine(RepoRoot, "data", "spelldb.json");
-    public static string DevNameMappings => Path.Combine(RepoRoot, "external", "fs_tc_uploads", "dev_name_mappings.md");
 
     private static string FindRepoRoot()
     {
@@ -26,5 +28,28 @@ public static class SourcePaths
             }
         }
         throw new InvalidOperationException("Could not find repository root (no .slnx file found).");
+    }
+
+    private static string FindExportRoot()
+    {
+        var dataDir = Path.Combine(RepoRoot, "data");
+        var best = Directory.Exists(dataDir)
+            ? Directory.EnumerateDirectories(dataDir, "v*")
+                .Select(dir => (Dir: dir, Name: Path.GetFileName(dir)))
+                .Select(candidate => (
+                    candidate.Dir,
+                    Parsed: long.TryParse(
+                        candidate.Name.AsSpan(1),
+                        NumberStyles.None,
+                        CultureInfo.InvariantCulture,
+                        out var build) ? build : (long?)null))
+                .Where(candidate => candidate.Parsed is not null)
+                .OrderByDescending(candidate => candidate.Parsed!.Value)
+                .Select(candidate => candidate.Dir)
+                .FirstOrDefault()
+            : null;
+
+        return best ?? throw new InvalidOperationException(
+            $"Could not find a game-data export folder (no 'v<build>' directory under '{dataDir}').");
     }
 }

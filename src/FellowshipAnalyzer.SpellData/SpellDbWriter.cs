@@ -6,7 +6,7 @@ using FellowshipAnalyzer.Core.Common.Spells;
 using FellowshipAnalyzer.Core.Game;
 using FellowshipAnalyzer.SpellData.Json;
 using FellowshipAnalyzer.SpellData.Model;
-using FellowshipAnalyzer.SpellData.Sources;
+
 
 namespace FellowshipAnalyzer.SpellData;
 
@@ -79,7 +79,7 @@ public static class SpellDbWriter
             {
                 foreach (var (id, schoolNode) in scopeObj)
                     if (int.TryParse(id, out var fslId) && schoolNode?.GetValue<string>() is { } text)
-                        schools[fslId] = SpellDataSource.ParseSchool(text);
+                        schools[fslId] = Schools.Parse(text);
                 continue;
             }
 
@@ -96,7 +96,7 @@ public static class SpellDbWriter
     }
 
     /// <summary>
-    /// Renders a school the way <c>spell_data.json</c> writes it, so a dual-school entry round-trips
+    /// Renders a school the way the committed <c>spelldb.json</c> writes it, so a dual-school entry round-trips
     /// as <c>Magic/Physical</c> rather than as a flags list.
     /// </summary>
     public static string FormatSchool(MagicSchool school) =>

@@ -5,24 +5,25 @@
       "id": 1964,
       "name": "Amend Fate",
       "icon": "T_Lisa_Stagger.jpg",
-      "abilityCategory": "Power"
+      "abilityCategory": "Power",
+      "range": 30
     },
     "AmendFateCost": {
       "kind": "effect",
       "id": 2741,
-      "name": "",
+      "name": "Amend Fate",
       "icon": ""
     },
     "AmendFateHeal": {
       "kind": "effect",
       "id": 2740,
-      "name": "",
+      "name": "Amend Fate",
       "icon": ""
     },
     "AmendFateRemoveStagger": {
       "kind": "effect",
       "id": 2826,
-      "name": "",
+      "name": "Amend Fate",
       "icon": ""
     },
     "EchoesOfRuin": {
@@ -30,24 +31,35 @@
       "id": 1887,
       "name": "Echoes of Ruin",
       "icon": "T_Lisa_Burst.jpg",
-      "abilityCategory": "Core"
+      "abilityCategory": "Core",
+      "range": 30,
+      "castDuration": 2,
+      "costs": {
+        "mana": 9
+      }
     },
     "EchoesOfRuinCost": {
       "kind": "effect",
       "id": 2618,
-      "name": "",
+      "name": "Echoes of Ruin",
       "icon": ""
     },
     "EchoesOfRuinDamage": {
       "kind": "effect",
       "id": 2617,
-      "name": "",
+      "name": "Echoes of Ruin",
       "icon": ""
     },
     "EchoesOfRuinDot": {
       "kind": "effect",
       "id": 2616,
       "name": "Echoes of Ruin",
+      "icon": "T_Lisa_Burst.jpg"
+    },
+    "EdgeOfRuin": {
+      "kind": "ability",
+      "id": 2060,
+      "name": "Edge of Ruin",
       "icon": "T_Lisa_Burst.jpg"
     },
     "EntropyClaim": {
@@ -57,12 +69,16 @@
       "icon": "T_Lisa_Wither.jpg",
       "abilityCategory": "Core",
       "cooldown": 20,
-      "castDuration": 1.5
+      "range": 30,
+      "castDuration": 1.5,
+      "costs": {
+        "mana": 73
+      }
     },
     "EntropyClaimCost": {
       "kind": "effect",
       "id": 2604,
-      "name": "",
+      "name": "Entropy\u0027s Claim",
       "icon": ""
     },
     "EntropyClaimDot": {
@@ -76,12 +92,17 @@
       "id": 1881,
       "name": "Epoch Break",
       "icon": "T_Lisa_Spirit.jpg",
-      "abilityCategory": "Spirit"
+      "abilityCategory": "Spirit",
+      "range": 30,
+      "castDuration": 1.5,
+      "costs": {
+        "spirit": 100
+      }
     },
     "EpochBreakCost": {
       "kind": "effect",
       "id": 2615,
-      "name": "",
+      "name": "Epoch Break",
       "icon": ""
     },
     "EpochBreakHeal": {
@@ -99,7 +120,7 @@
     "EpochBreakSelfBuff": {
       "kind": "effect",
       "id": 2612,
-      "name": "",
+      "name": "Epoch Break",
       "icon": ""
     },
     "FlashRevision": {
@@ -108,18 +129,22 @@
       "name": "Flash Revision",
       "icon": "T_Lisa_TimeMend.jpg",
       "abilityCategory": "Core",
-      "castDuration": 1.5
+      "range": 30,
+      "castDuration": 1.5,
+      "costs": {
+        "mana": 67
+      }
     },
     "FlashRevisionCost": {
       "kind": "effect",
       "id": 2689,
-      "name": "",
+      "name": "Flash Revision",
       "icon": ""
     },
     "FlashRevisionHeal": {
       "kind": "effect",
       "id": 2688,
-      "name": "",
+      "name": "Flash Revision",
       "icon": ""
     },
     "FleetingHour": {
@@ -128,12 +153,16 @@
       "name": "Fleeting Hour",
       "icon": "T_Lisa_TimeBuff.jpg",
       "abilityCategory": "Major",
-      "cooldown": 20
+      "cooldown": 20,
+      "range": 30,
+      "costs": {
+        "mana": 79
+      }
     },
     "FleetingHourCost": {
       "kind": "effect",
       "id": 2745,
-      "name": "",
+      "name": "Fleeting Hour",
       "icon": ""
     },
     "FleetingHourSelfBuff": {
@@ -148,7 +177,11 @@
       "name": "Intercession",
       "icon": "T_Lisa_AoESilence.jpg",
       "abilityCategory": "Control",
-      "cooldown": 300
+      "cooldown": 300,
+      "range": 30,
+      "costs": {
+        "mana": 98
+      }
     },
     "IntercessionBuff": {
       "kind": "effect",
@@ -159,13 +192,13 @@
     "IntercessionCost": {
       "kind": "effect",
       "id": 2581,
-      "name": "",
+      "name": "Intercession",
       "icon": ""
     },
     "IntercessionInterrupt": {
       "kind": "effect",
       "id": 2580,
-      "name": "",
+      "name": "Intercession",
       "icon": ""
     },
     "IntercessionLockout": {
@@ -179,7 +212,8 @@
       "id": 1970,
       "name": "Oblivion",
       "icon": "T_Lisa_ChronaBlast.jpg",
-      "abilityCategory": "Power"
+      "abilityCategory": "Power",
+      "range": 30
     },
     "OblivionAbsorbAbsorb": {
       "kind": "effect",
@@ -190,13 +224,13 @@
     "OblivionCost": {
       "kind": "effect",
       "id": 2747,
-      "name": "",
+      "name": "Oblivion",
       "icon": ""
     },
     "OblivionDamage": {
       "kind": "effect",
       "id": 2746,
-      "name": "",
+      "name": "Oblivion",
       "icon": ""
     },
     "OblivionSelfBuffBuff": {
@@ -215,19 +249,19 @@
     "RestoreContinuityCost": {
       "kind": "effect",
       "id": 2750,
-      "name": "",
+      "name": "Restore Continuity",
       "icon": ""
     },
     "RestoreContinuityHeal": {
       "kind": "effect",
       "id": 2749,
-      "name": "",
+      "name": "Restore Continuity",
       "icon": ""
     },
     "RestoreContinuityRemoveStagger": {
       "kind": "effect",
       "id": 2827,
-      "name": "",
+      "name": "Restore Continuity",
       "icon": ""
     },
     "RevertMagic": {
@@ -235,18 +269,23 @@
       "id": 1879,
       "name": "Revert Magic",
       "icon": "T_Lisa_Dispel.jpg",
-      "abilityCategory": "Utility"
+      "abilityCategory": "Utility",
+      "cooldown": 6,
+      "range": 30,
+      "costs": {
+        "mana": 82
+      }
     },
     "RevertMagicDispel": {
       "kind": "effect",
       "id": 2608,
-      "name": "",
+      "name": "Revert Magic",
       "icon": ""
     },
     "RevertMagicResourceCost": {
       "kind": "effect",
       "id": 2607,
-      "name": "",
+      "name": "Revert Magic",
       "icon": ""
     },
     "TemporalBarrage": {
@@ -256,24 +295,29 @@
       "icon": "T_Lisa_Barrage.jpg",
       "abilityCategory": "Core",
       "cooldown": 15,
-      "channelDuration": 2
+      "range": 30,
+      "channelDuration": 2,
+      "channelTickInterval": 0.5,
+      "costs": {
+        "mana": 61
+      }
     },
     "TemporalBarrageCost": {
       "kind": "effect",
       "id": 2687,
-      "name": "",
+      "name": "Temporal Barrage",
       "icon": ""
     },
     "TemporalBarrageDamage": {
       "kind": "effect",
       "id": 2686,
-      "name": "",
+      "name": "Temporal Barrage",
       "icon": ""
     },
     "TemporalBarrageHeal": {
       "kind": "effect",
       "id": 2685,
-      "name": "",
+      "name": "Temporal Barrage",
       "icon": ""
     },
     "TimeShard": {
@@ -282,18 +326,22 @@
       "name": "Time Shard",
       "icon": "T_Lisa_FillerCast.jpg",
       "abilityCategory": "Basic",
-      "castDuration": 1.5
+      "range": 30,
+      "castDuration": 1.5,
+      "costs": {
+        "mana": 1
+      }
     },
     "TimeShardCost": {
       "kind": "effect",
       "id": 2623,
-      "name": "",
+      "name": "Time Shard",
       "icon": ""
     },
     "TimeShardDamage": {
       "kind": "effect",
       "id": 2622,
-      "name": "",
+      "name": "Time Shard",
       "icon": ""
     },
     "TimeSkip": {
@@ -301,7 +349,8 @@
       "id": 1864,
       "name": "Time Skip",
       "icon": "T_Lisa_Blink.jpg",
-      "abilityCategory": "Defensive"
+      "abilityCategory": "Defensive",
+      "cooldown": 15
     },
     "TimeSkipMoveSpeedBuff": {
       "kind": "effect",
@@ -316,18 +365,22 @@
       "icon": "T_Lisa_StrandsofTime.jpg",
       "abilityCategory": "Major",
       "cooldown": 45,
-      "castDuration": 2
+      "range": 30,
+      "castDuration": 2,
+      "costs": {
+        "mana": 94
+      }
     },
     "UnfoldingDoomCost": {
       "kind": "effect",
       "id": 2626,
-      "name": "",
+      "name": "Unfolding Doom",
       "icon": ""
     },
     "UnfoldingDoomDamage": {
       "kind": "effect",
       "id": 2625,
-      "name": "",
+      "name": "Unfolding Doom",
       "icon": ""
     },
     "UnfoldingDoomDamageToAoeDamageDamage": {
@@ -357,12 +410,13 @@
       "icon": "Firemage_Apocalypse.jpg",
       "abilityCategory": "Major",
       "cooldown": 45,
+      "range": 30,
       "castDuration": 3
     },
     "ApocalypseDamage": {
       "kind": "effect",
       "id": 1833,
-      "name": "",
+      "name": "Apocalypse",
       "icon": ""
     },
     "ApocalypseDot": {
@@ -371,11 +425,23 @@
       "name": "Apocalypse: Explosivo",
       "icon": "Firemage_Apocalypse.jpg"
     },
+    "ApocalypseExplosivo": {
+      "kind": "ability",
+      "id": 2064,
+      "name": "Apocalypse: Explosivo",
+      "icon": "Firemage_Apocalypse.jpg"
+    },
     "ApocalypticSurge": {
       "kind": "effect",
       "id": 3176,
       "name": "Apocalyptic Surge",
       "icon": "Firemage_detonate.jpg"
+    },
+    "CracklingInferno": {
+      "kind": "ability",
+      "id": 1568,
+      "name": "Crackling Inferno",
+      "icon": "Pyromancer15.jpg"
     },
     "Detonate": {
       "kind": "ability",
@@ -388,7 +454,7 @@
     "DetonateCustomGlobalCooldown": {
       "kind": "effect",
       "id": 1836,
-      "name": "",
+      "name": "Detonate",
       "icon": ""
     },
     "DetonateDamage": {
@@ -400,7 +466,7 @@
     "DetonateDetonationDebuff": {
       "kind": "effect",
       "id": 1834,
-      "name": "",
+      "name": "Detonate",
       "icon": ""
     },
     "DetonateTalentInstantCastedSingleDotProc": {
@@ -430,7 +496,7 @@
     "EngulfingFlamesTalentBoostsIncomingDamageDebuff": {
       "kind": "effect",
       "id": 2756,
-      "name": "",
+      "name": "Engulfing Flames",
       "icon": ""
     },
     "EngulfingFlamesTalentBoostsIncomingDamageDebuffOwnerEffect": {
@@ -446,7 +512,15 @@
       "icon": "Firemage_Inferno.jpg",
       "abilityCategory": "Core",
       "cooldown": 30,
+      "range": 30,
       "charges": 2
+    },
+    "FireBallAoeMonitor": {
+      "kind": "ability",
+      "id": 1581,
+      "name": "Fire Ball",
+      "icon": "Firemage_Inferno.jpg",
+      "cooldown": 30
     },
     "FireBallCharge": {
       "kind": "effect",
@@ -457,7 +531,7 @@
     "FireBallDamage": {
       "kind": "effect",
       "id": 1817,
-      "name": "",
+      "name": "Fire Ball",
       "icon": ""
     },
     "FireBallDot": {
@@ -470,7 +544,8 @@
       "kind": "ability",
       "id": 1565,
       "name": "Fire Ball",
-      "icon": "Firemage_Inferno.jpg"
+      "icon": "Firemage_Inferno.jpg",
+      "cooldown": 30
     },
     "FireBallTalentCastedDotBoostProjectileBonusBuff": {
       "kind": "effect",
@@ -483,7 +558,9 @@
       "id": 1268,
       "name": "Fire Frogs",
       "icon": "Firemage_Firefrog.jpg",
-      "abilityCategory": "Core"
+      "abilityCategory": "Core",
+      "cooldown": 45,
+      "range": 30
     },
     "FireFrogsDot": {
       "kind": "effect",
@@ -509,7 +586,7 @@
     "FireflashDamage": {
       "kind": "effect",
       "id": 1824,
-      "name": "",
+      "name": "Fireflash",
       "icon": ""
     },
     "FireflashDebuff": {
@@ -532,6 +609,12 @@
       "name": "Flame Ward",
       "icon": "Firemage_FlameShield.jpg"
     },
+    "FlareUp": {
+      "kind": "ability",
+      "id": 1257,
+      "name": "Flare Up",
+      "icon": "Pyromancer15.jpg"
+    },
     "Flickerstep": {
       "kind": "ability",
       "id": 1269,
@@ -539,7 +622,9 @@
       "icon": "Firemage_Blink.jpg",
       "abilityCategory": "Movement",
       "cooldown": 25,
-      "charges": 2
+      "charges": 2,
+      "channelDuration": 1,
+      "channelTickInterval": 1
     },
     "FlickerstepCharge": {
       "kind": "effect",
@@ -547,24 +632,35 @@
       "name": "",
       "icon": ""
     },
+    "FrogSquad": {
+      "kind": "ability",
+      "id": 1254,
+      "name": "Frog Squad",
+      "icon": "T_Nhance_RPG_Icons_HypnoToad.jpg"
+    },
     "Incinerate": {
       "kind": "ability",
       "id": 1270,
       "name": "Incinerate",
       "icon": "Firemage_Spirit.jpg",
       "abilityCategory": "Spirit",
-      "castDuration": 1.5
+      "castDuration": 1.5,
+      "channelDuration": 2.5,
+      "channelTickInterval": 0.5,
+      "costs": {
+        "spirit": 100
+      }
     },
     "IncinerateCost": {
       "kind": "effect",
       "id": 1831,
-      "name": "",
+      "name": "Incinerate",
       "icon": ""
     },
     "IncinerateDamage": {
       "kind": "effect",
       "id": 1830,
-      "name": "",
+      "name": "Incinerate",
       "icon": ""
     },
     "IncinerateDot": {
@@ -613,8 +709,7 @@
       "kind": "effect",
       "id": 2301,
       "name": "Reign of Fire",
-      "icon": "Firemage_Inferno.jpg",
-      "range": 30
+      "icon": "Firemage_Inferno.jpg"
     },
     "Scorch": {
       "kind": "ability",
@@ -628,7 +723,7 @@
     "ScorchInterrupt": {
       "kind": "effect",
       "id": 1822,
-      "name": "",
+      "name": "Scorch",
       "icon": ""
     },
     "ScorchLockout": {
@@ -650,6 +745,12 @@
       "id": 1820,
       "name": "Searing Blaze",
       "icon": "Firemage_Dot_02.jpg"
+    },
+    "SpontaneousCombustion": {
+      "kind": "ability",
+      "id": 1255,
+      "name": "Spontaneous Combustion",
+      "icon": "Tex_r_02.jpg"
     },
     "Wildfire": {
       "kind": "ability",
@@ -680,6 +781,7 @@
       "name": "Celestial Shot",
       "icon": "Bowguy_Shot.jpg",
       "abilityCategory": "Basic",
+      "range": 30,
       "costs": {
         "primary": 15
       }
@@ -687,13 +789,13 @@
     "CelestialShotCost": {
       "kind": "effect",
       "id": 1865,
-      "name": "",
+      "name": "Celestial Shot",
       "icon": ""
     },
     "CelestialShotDamage": {
       "kind": "effect",
       "id": 1864,
-      "name": "",
+      "name": "Celestial Shot",
       "icon": ""
     },
     "CelestialVeil": {
@@ -716,12 +818,13 @@
       "name": "Disrupt",
       "icon": "Bowguy_Interrupt.jpg",
       "abilityCategory": "Utility",
-      "cooldown": 20
+      "cooldown": 20,
+      "range": 30
     },
     "DisruptInterrupt": {
       "kind": "effect",
       "id": 1875,
-      "name": "",
+      "name": "Disrupt",
       "icon": ""
     },
     "DisruptLockout": {
@@ -756,13 +859,13 @@
     "EventHorizonCost": {
       "kind": "effect",
       "id": 2313,
-      "name": "",
+      "name": "Event Horizon",
       "icon": ""
     },
     "EventHorizonVisual": {
       "kind": "effect",
       "id": 2311,
-      "name": "",
+      "name": "Event Horizon",
       "icon": ""
     },
     "FinalCrescendoBuff": {
@@ -776,7 +879,9 @@
       "id": 1315,
       "name": "Focused Shot",
       "icon": "Bowguy_FocusShot.jpg",
-      "abilityCategory": "Basic"
+      "abilityCategory": "Basic",
+      "range": 30,
+      "castDuration": 1.5
     },
     "FocusedShotBuff": {
       "kind": "effect",
@@ -787,7 +892,7 @@
     "FocusedShotDamage": {
       "kind": "effect",
       "id": 1891,
-      "name": "",
+      "name": "Focused Shot",
       "icon": ""
     },
     "FocusedShotHeavyDamage": {
@@ -803,12 +908,13 @@
       "icon": "Bowguy_GrappleShot.jpg",
       "abilityCategory": "Control",
       "cooldown": 120,
+      "range": 30,
       "charges": 2
     },
     "GrapplingArrowPull": {
       "kind": "effect",
       "id": 2008,
-      "name": "Grappling Arrow: Pull",
+      "name": "Grappling Arrow",
       "icon": "Tex_SpellBook03_97.jpg"
     },
     "GrapplingArrowSlow": {
@@ -824,7 +930,9 @@
       "icon": "Bowguy_Spray.jpg",
       "abilityCategory": "Power",
       "cooldown": 20,
+      "range": 30,
       "channelDuration": 2,
+      "channelTickInterval": 0.2,
       "costs": {
         "primary": 30
       }
@@ -832,13 +940,13 @@
     "HeartseekerBarrageCost": {
       "kind": "effect",
       "id": 1882,
-      "name": "",
+      "name": "Heartseeker Barrage",
       "icon": ""
     },
     "HeartseekerBarrageDamage": {
       "kind": "effect",
       "id": 1881,
-      "name": "",
+      "name": "Heartseeker Barrage",
       "icon": ""
     },
     "HeartseekerBarrageDebuff": {
@@ -854,7 +962,9 @@
       "icon": "Bowguy_Ricochet.jpg",
       "abilityCategory": "Power",
       "cooldown": 15,
+      "range": 30,
       "charges": 3,
+      "castDuration": 2,
       "costs": {
         "primary": 30
       }
@@ -868,13 +978,13 @@
     "HighwindArrowCost": {
       "kind": "effect",
       "id": 1886,
-      "name": "",
+      "name": "Highwind Arrow",
       "icon": ""
     },
     "HighwindArrowDamage": {
       "kind": "effect",
       "id": 1885,
-      "name": "",
+      "name": "Highwind Arrow",
       "icon": ""
     },
     "HighwindArrowProc": {
@@ -931,6 +1041,7 @@
       "name": "Multishot",
       "icon": "Bowguy_Multishot.jpg",
       "abilityCategory": "Core",
+      "range": 30,
       "costs": {
         "primary": 20
       }
@@ -938,19 +1049,19 @@
     "MultishotCost": {
       "kind": "effect",
       "id": 1900,
-      "name": "",
+      "name": "Multishot",
       "icon": ""
     },
     "MultishotDamage": {
       "kind": "effect",
       "id": 1899,
-      "name": "",
+      "name": "Multishot",
       "icon": ""
     },
     "MultishotDamageMagical": {
       "kind": "effect",
       "id": 2010,
-      "name": "",
+      "name": "Multishot",
       "icon": ""
     },
     "MultishotProc": {
@@ -971,12 +1082,13 @@
       "name": "Roll",
       "icon": "Bowguy_Abilityicon_Roll.jpg",
       "abilityCategory": "Movement",
+      "cooldown": 8,
       "charges": 3
     },
     "RollActive": {
       "kind": "effect",
       "id": 1879,
-      "name": "",
+      "name": "Roll",
       "icon": ""
     },
     "RollCharge": {
@@ -989,12 +1101,13 @@
       "kind": "ability",
       "id": 1303,
       "name": "Shoot",
-      "icon": "Bowguy_FocusShot.jpg"
+      "icon": "Bowguy_FocusShot.jpg",
+      "range": 30
     },
     "ShootDamage": {
       "kind": "effect",
       "id": 1868,
-      "name": "",
+      "name": "Shoot",
       "icon": ""
     },
     "SkystridersGrace": {
@@ -1038,6 +1151,7 @@
       "icon": "Bowguy_Rain.jpg",
       "abilityCategory": "Power",
       "cooldown": 40,
+      "range": 30,
       "costs": {
         "primary": 30
       }
@@ -1045,13 +1159,13 @@
     "StarfallVolleyCost": {
       "kind": "effect",
       "id": 1863,
-      "name": "",
+      "name": "Starfall Volley",
       "icon": ""
     },
     "StarfallVolleyDamage": {
       "kind": "effect",
       "id": 1862,
-      "name": "",
+      "name": "Starfall Volley",
       "icon": ""
     },
     "StarfallVolleyMainTargetBuff": {
@@ -1072,18 +1186,19 @@
       "kind": "ability",
       "id": 1249,
       "name": "Attack",
-      "icon": "Gunde_AOESwing_01.jpg"
+      "icon": "Gunde_AOESwing_01.jpg",
+      "range": 5
     },
     "AttackDamage": {
       "kind": "effect",
       "id": 1796,
-      "name": "",
+      "name": "Attack",
       "icon": ""
     },
     "AttackDamageOld": {
       "kind": "effect",
       "id": 3172,
-      "name": "",
+      "name": "Auto Attack",
       "icon": ""
     },
     "BloodArc": {
@@ -1092,12 +1207,13 @@
       "name": "Blood Arc",
       "icon": "Gunde_Frontal.jpg",
       "abilityCategory": "Core",
-      "cooldown": 9
+      "cooldown": 9,
+      "range": 7
     },
     "BloodArcDamage": {
       "kind": "effect",
       "id": 3236,
-      "name": "",
+      "name": "Blood Arc",
       "icon": ""
     },
     "BloodboundSpirit": {
@@ -1106,12 +1222,13 @@
       "name": "Bloodbound Spirit",
       "icon": "T_Gunde_Spirit.jpg",
       "abilityCategory": "Spirit",
+      "range": 10,
       "castDuration": 1
     },
     "BloodboundSpiritDamage": {
       "kind": "effect",
       "id": 3243,
-      "name": "",
+      "name": "Bloodbound Spirit",
       "icon": ""
     },
     "BloodboundSpiritSelfBuff": {
@@ -1132,7 +1249,7 @@
     "ButcherHookDamage": {
       "kind": "effect",
       "id": 3228,
-      "name": "",
+      "name": "Butcher\u0027s Hook",
       "icon": ""
     },
     "ButcherHookPull": {
@@ -1144,7 +1261,7 @@
     "ButcherHookPullActivator": {
       "kind": "effect",
       "id": 3226,
-      "name": "",
+      "name": "Butcher\u0027s Hook",
       "icon": ""
     },
     "DoubleStrike": {
@@ -1158,8 +1275,27 @@
     "DoubleStrikeDamage": {
       "kind": "effect",
       "id": 3248,
-      "name": "",
+      "name": "Double Strike",
       "icon": ""
+    },
+    "Exsanguinate": {
+      "kind": "ability",
+      "id": 1408,
+      "name": "Exsanguinate",
+      "icon": "T_Gunde_HPDrain.jpg",
+      "cooldown": 60
+    },
+    "ExsanguinateSelfBleed": {
+      "kind": "effect",
+      "id": 2022,
+      "name": "Bleeding",
+      "icon": "T_Nhance_RPG_Icons_BloodRitual.jpg"
+    },
+    "ExsanguinateSelfBuff": {
+      "kind": "effect",
+      "id": 2021,
+      "name": "Exsanguinate",
+      "icon": "T_Nhance_RPG_Icons_BloodHide.jpg"
     },
     "GrimCarve": {
       "kind": "ability",
@@ -1173,7 +1309,7 @@
     "GrimCarveDamage": {
       "kind": "effect",
       "id": 3205,
-      "name": "",
+      "name": "Grim Carve",
       "icon": ""
     },
     "HeartSplitter": {
@@ -1182,12 +1318,13 @@
       "name": "Heart Splitter",
       "icon": "T_Gunde_Cleave.jpg",
       "abilityCategory": "Core",
-      "cooldown": 12
+      "cooldown": 12,
+      "range": 5
     },
     "HeartSplitterDamage": {
       "kind": "effect",
       "id": 3240,
-      "name": "",
+      "name": "Heart Splitter",
       "icon": ""
     },
     "HeartSplitterDotBonusDamage": {
@@ -1199,7 +1336,7 @@
     "HeartSplitterIncreasedCritChance": {
       "kind": "effect",
       "id": 3215,
-      "name": "",
+      "name": "Oathshatter",
       "icon": ""
     },
     "Jawbreaker": {
@@ -1208,19 +1345,19 @@
       "name": "Jawbreaker",
       "icon": "t_gunde_Interrupt.jpg",
       "abilityCategory": "Utility",
-      "cooldown": 16,
+      "cooldown": 12,
       "range": 5
     },
     "JawbreakerInterrupt": {
       "kind": "effect",
       "id": 1786,
-      "name": "",
+      "name": "Jawbreaker",
       "icon": ""
     },
     "JawbreakerLockout": {
       "kind": "effect",
       "id": 1785,
-      "name": "",
+      "name": "Jawbreaker",
       "icon": ""
     },
     "OpenWounds": {
@@ -1242,6 +1379,14 @@
       "kind": "ability",
       "id": 2280,
       "name": "Owed in Blood",
+      "icon": "T_Gunde_SanguineFeast.jpg",
+      "cooldown": 20,
+      "range": 10
+    },
+    "OwedInBloodAoeSelfBuff": {
+      "kind": "effect",
+      "id": 3223,
+      "name": "Owed in Blood",
       "icon": "T_Gunde_SanguineFeast.jpg"
     },
     "OwedInBloodSelfBuff": {
@@ -1262,12 +1407,13 @@
       "name": "Reaver\u0027s Edge",
       "icon": "Gunde_AOESwing_01.jpg",
       "abilityCategory": "Basic",
-      "cooldown": 5
+      "cooldown": 5,
+      "range": 7
     },
     "ReaverEdgeDamage": {
       "kind": "effect",
       "id": 3235,
-      "name": "",
+      "name": "Reaver\u0027s Edge",
       "icon": ""
     },
     "RecklessAbandon": {
@@ -1322,12 +1468,13 @@
       "name": "Rupture",
       "icon": "T_Gunde_Rupture.jpg",
       "abilityCategory": "Power",
-      "cooldown": 60
+      "cooldown": 60,
+      "range": 5
     },
     "RuptureDamage": {
       "kind": "effect",
       "id": 3238,
-      "name": "",
+      "name": "Rupture",
       "icon": ""
     },
     "SerratedEdge": {
@@ -1342,7 +1489,8 @@
       "name": "Slaughter",
       "icon": "T_Gunde_Slaughter.jpg",
       "abilityCategory": "Major",
-      "cooldown": 30
+      "cooldown": 30,
+      "range": 7
     },
     "SlaughterDot": {
       "kind": "effect",
@@ -1362,7 +1510,7 @@
     "WarboundDamage": {
       "kind": "effect",
       "id": 3246,
-      "name": "",
+      "name": "Warbound",
       "icon": ""
     }
   },
@@ -1371,12 +1519,13 @@
       "kind": "ability",
       "id": 978,
       "name": "Attack",
-      "icon": "Tex_swords_01_bg.jpg"
+      "icon": "Tex_swords_01_bg.jpg",
+      "range": 5
     },
     "AttackDamage": {
       "kind": "effect",
       "id": 1267,
-      "name": "",
+      "name": "Attack",
       "icon": ""
     },
     "Bash": {
@@ -1385,12 +1534,13 @@
       "name": "Bash",
       "icon": "T_Warmaster_Interrupt.jpg",
       "abilityCategory": "Utility",
-      "cooldown": 12
+      "cooldown": 12,
+      "range": 5
     },
     "BashInterrupt": {
       "kind": "effect",
       "id": 1261,
-      "name": "",
+      "name": "Bash",
       "icon": ""
     },
     "BashLockout": {
@@ -1417,7 +1567,7 @@
     "ChargeDamage": {
       "kind": "effect",
       "id": 1256,
-      "name": "",
+      "name": "Charge",
       "icon": ""
     },
     "ChargeStun": {
@@ -1493,12 +1643,12 @@
       "name": "Measured Strike",
       "icon": "T_Warmaster_BasicStrike.jpg",
       "abilityCategory": "Basic",
-      "cooldown": 0
+      "range": 5
     },
     "MeasuredStrikeDamage": {
       "kind": "effect",
       "id": 1273,
-      "name": "",
+      "name": "Measured Strike",
       "icon": ""
     },
     "PowerStrike": {
@@ -1507,18 +1657,19 @@
       "name": "Power Strike",
       "icon": "T_Warmaster_FatalBlow.jpg",
       "abilityCategory": "Basic",
-      "cooldown": 6
+      "cooldown": 6,
+      "range": 5
     },
     "PowerStrikeCleaveDamage": {
       "kind": "effect",
       "id": 1278,
-      "name": "",
+      "name": "Power Strike",
       "icon": ""
     },
     "PowerStrikeDamage": {
       "kind": "effect",
       "id": 1277,
-      "name": "",
+      "name": "Power Strike",
       "icon": ""
     },
     "PunishingStrikesBuff": {
@@ -1527,6 +1678,18 @@
       "name": "Punishing Strikes",
       "icon": "T_Warmaster_FatalBlow.jpg"
     },
+    "RazorCrash": {
+      "kind": "ability",
+      "id": 1615,
+      "name": "Razor Crash",
+      "icon": "Tex_SpellBook06_48.jpg"
+    },
+    "RazorShrapnel": {
+      "kind": "ability",
+      "id": 1613,
+      "name": "Razor Shrapnel",
+      "icon": "Tex_SpellBook06_48.jpg"
+    },
     "ShieldSlam": {
       "kind": "ability",
       "id": 977,
@@ -1534,7 +1697,11 @@
       "icon": "T_Warmaster_ShieldSlam.jpg",
       "abilityCategory": "Core",
       "cooldown": 7.5,
-      "charges": 2
+      "range": 5,
+      "charges": 2,
+      "costs": {
+        "secondary": 3
+      }
     },
     "ShieldSlamAbsorb": {
       "kind": "effect",
@@ -1563,13 +1730,13 @@
     "ShieldSlamCleaveDamage": {
       "kind": "effect",
       "id": 1264,
-      "name": "",
+      "name": "Shield Slam",
       "icon": ""
     },
     "ShieldSlamDamage": {
       "kind": "effect",
       "id": 1263,
-      "name": "",
+      "name": "Shield Slam",
       "icon": ""
     },
     "ShieldSlamReducedIncomingDamageFromTargetDebuff": {
@@ -1608,7 +1775,7 @@
     "ShieldThrowDamage": {
       "kind": "effect",
       "id": 1284,
-      "name": "",
+      "name": "Shield Throw",
       "icon": ""
     },
     "ShieldThrowSingleTargetBuff": {
@@ -1624,7 +1791,10 @@
       "icon": "T_Warmaster_Shieldsup.jpg",
       "abilityCategory": "Defensive",
       "cooldown": 30,
-      "charges": 2
+      "charges": 2,
+      "costs": {
+        "secondary": 3
+      }
     },
     "ShieldsUpBuff": {
       "kind": "effect",
@@ -1641,7 +1811,7 @@
     "ShieldsUpTemporaryToughnessLossProtection": {
       "kind": "effect",
       "id": 2475,
-      "name": "",
+      "name": "Shields Up",
       "icon": ""
     },
     "Shockwave": {
@@ -1650,7 +1820,10 @@
       "name": "Shockwave",
       "icon": "T_Warmaster_shockwave.jpg",
       "abilityCategory": "Power",
-      "cooldown": 30
+      "cooldown": 30,
+      "costs": {
+        "secondary": 0
+      }
     },
     "ShockwaveDamage": {
       "kind": "effect",
@@ -1661,7 +1834,7 @@
     "ShockwaveDebuff": {
       "kind": "effect",
       "id": 1271,
-      "name": "",
+      "name": "Shockwave",
       "icon": ""
     },
     "ShockwaveDebuffIcon": {
@@ -1673,7 +1846,7 @@
     "ShockwaveResourceCost": {
       "kind": "effect",
       "id": 1269,
-      "name": "",
+      "name": "Shockwave",
       "icon": ""
     },
     "ShockwaveStun": {
@@ -1687,7 +1860,10 @@
       "id": 1515,
       "name": "Siegebreaker",
       "icon": "T_Warmaster_Ultimate.jpg",
-      "abilityCategory": "Spirit"
+      "abilityCategory": "Spirit",
+      "costs": {
+        "spirit": 100
+      }
     },
     "SiegebreakerBuff": {
       "kind": "effect",
@@ -1698,13 +1874,13 @@
     "SiegebreakerDamageReductionBuff": {
       "kind": "effect",
       "id": 2224,
-      "name": "",
+      "name": "Siegebreaker",
       "icon": ""
     },
     "SiegebreakerSpiritCost": {
       "kind": "effect",
       "id": 2191,
-      "name": "",
+      "name": "Siegebreaker",
       "icon": ""
     },
     "SweepingStrike": {
@@ -1713,7 +1889,11 @@
       "name": "Sweeping Strike",
       "icon": "T_Warmaster_BleedStrike.jpg",
       "abilityCategory": "Power",
-      "cooldown": 30
+      "cooldown": 30,
+      "range": 5,
+      "costs": {
+        "secondary": 2
+      }
     },
     "SweepingStrikeBleedDebuff": {
       "kind": "effect",
@@ -1724,7 +1904,7 @@
     "SweepingStrikeBleedDebuffEnfeeblingEffect": {
       "kind": "effect",
       "id": 2485,
-      "name": "",
+      "name": "Sweeping Strike",
       "icon": ""
     },
     "SweepingStrikeCost": {
@@ -1736,15 +1916,14 @@
     "SweepingStrikeDamage": {
       "kind": "effect",
       "id": 1274,
-      "name": "",
+      "name": "Sweeping Strike",
       "icon": ""
     },
     "SwordAndBoardBuff": {
       "kind": "effect",
       "id": 1242,
       "name": "Sword \u0026 Board",
-      "icon": "T_Warmaster_ShieldSlam.jpg",
-      "cooldown": 1.5
+      "icon": "T_Warmaster_ShieldSlam.jpg"
     },
     "SwordAndBoardFreeCastBuff": {
       "kind": "effect",
@@ -1759,16 +1938,19 @@
       "icon": "T_warmaster_Taunt.jpg",
       "abilityCategory": "Utility",
       "cooldown": 8,
-      "range": 40,
-      "costs": {
-        "spirit": 100
-      }
+      "range": 40
     },
     "TauntDebuff": {
       "kind": "effect",
       "id": 1241,
       "name": "Taunted",
       "icon": "T_warmaster_Taunt.jpg"
+    },
+    "UnscarredSoul": {
+      "kind": "ability",
+      "id": 1591,
+      "name": "Unscarred Soul",
+      "icon": "T_Warmaster_ShieldSlam.jpg"
     }
   },
   "mara": {
@@ -1786,7 +1968,7 @@
     "ArachnidAssaultDamage": {
       "kind": "effect",
       "id": 1728,
-      "name": "",
+      "name": "Arachnid Assault",
       "icon": ""
     },
     "AssassinsGuileBuff": {
@@ -1799,12 +1981,13 @@
       "kind": "ability",
       "id": 1209,
       "name": "Attack",
-      "icon": "Tex_swords_05_bg.jpg"
+      "icon": "Tex_swords_05_bg.jpg",
+      "range": 5
     },
     "AttackDamage": {
       "kind": "effect",
       "id": 1725,
-      "name": "",
+      "name": "Attack",
       "icon": ""
     },
     "Backstab": {
@@ -1813,6 +1996,7 @@
       "name": "Backstab",
       "icon": "Mara_backstab.jpg",
       "abilityCategory": "Basic",
+      "range": 5,
       "costs": {
         "primary": 20
       }
@@ -1820,19 +2004,19 @@
     "BackstabCost": {
       "kind": "effect",
       "id": 1588,
-      "name": "",
+      "name": "Backstab",
       "icon": ""
     },
     "BackstabDamageStrong": {
       "kind": "effect",
       "id": 1587,
-      "name": "",
+      "name": "Backstab",
       "icon": ""
     },
     "BackstabDamageWeak": {
       "kind": "effect",
       "id": 1586,
-      "name": "",
+      "name": "Backstab",
       "icon": ""
     },
     "BackstabPoisonDamage": {
@@ -1847,7 +2031,8 @@
       "name": "Brooding Shadows",
       "icon": "Mara_stealth.jpg",
       "abilityCategory": "Utility",
-      "cooldown": 15
+      "cooldown": 15,
+      "charges": 2
     },
     "BroodingShadowsBuff": {
       "kind": "effect",
@@ -1866,6 +2051,12 @@
       "id": 1590,
       "name": "",
       "icon": ""
+    },
+    "CorrosiveSpill": {
+      "kind": "ability",
+      "id": 1583,
+      "name": "Corrosive Spill",
+      "icon": "T_Icon_Unholy_197.jpg"
     },
     "DeadlySchemeActive": {
       "kind": "effect",
@@ -1887,6 +2078,12 @@
       "abilityCategory": "Major",
       "cooldown": 180
     },
+    "FromTheShadows": {
+      "kind": "ability",
+      "id": 1589,
+      "name": "From the Shadows",
+      "icon": "Mara_stealth.jpg"
+    },
     "HemorrhagingStrike": {
       "kind": "ability",
       "id": 1208,
@@ -1894,6 +2091,7 @@
       "icon": "Mara_Bleed.jpg",
       "abilityCategory": "Power",
       "cooldown": 2,
+      "range": 5,
       "costs": {
         "primary": 20
       }
@@ -1913,14 +2111,20 @@
     "HemorrhagingStrikeCost": {
       "kind": "effect",
       "id": 1722,
-      "name": "",
+      "name": "Hemorrhaging Strike",
       "icon": ""
     },
     "HemorrhagingStrikeDamage": {
       "kind": "effect",
       "id": 1721,
-      "name": "",
+      "name": "Hemorrhaging Strike",
       "icon": ""
+    },
+    "Hemotoxin": {
+      "kind": "ability",
+      "id": 1590,
+      "name": "Hemotoxin",
+      "icon": "T_PoisonBlister.jpg"
     },
     "Kick": {
       "kind": "ability",
@@ -1928,12 +2132,28 @@
       "name": "Kick",
       "icon": "Mara_Kick.jpg",
       "abilityCategory": "Utility",
-      "cooldown": 16
+      "cooldown": 16,
+      "range": 5
+    },
+    "KickAlt": {
+      "kind": "ability",
+      "id": 1167,
+      "name": "Kick",
+      "icon": "Mara_Kick.jpg",
+      "abilityCategory": "Utility",
+      "cooldown": 16,
+      "range": 5
     },
     "KickInterrupt": {
       "kind": "effect",
       "id": 1704,
-      "name": "",
+      "name": "Kick",
+      "icon": ""
+    },
+    "KickInterruptAlt": {
+      "kind": "effect",
+      "id": 1642,
+      "name": "Kick",
       "icon": ""
     },
     "KickLockout": {
@@ -1942,11 +2162,19 @@
       "name": "Tremble!",
       "icon": "Tex_red_10.jpg"
     },
+    "KickLockoutAlt": {
+      "kind": "effect",
+      "id": 1641,
+      "name": "Tremble!",
+      "icon": "Tex_red_10.jpg"
+    },
     "MacabreStratagem": {
       "kind": "ability",
       "id": 2233,
       "name": "Macabre Stratagem",
-      "icon": "T_Nhance_RPG_Shadow_16.jpg"
+      "icon": "T_Nhance_RPG_Shadow_16.jpg",
+      "abilityCategory": "Major",
+      "cooldown": 180
     },
     "MaidenOfDeath": {
       "kind": "ability",
@@ -1959,7 +2187,7 @@
     "MaidenOfDeathBuff": {
       "kind": "effect",
       "id": 1714,
-      "name": "",
+      "name": "Maiden of Death",
       "icon": "effects/T_Nhance_RPG_Shadow_48.jpg"
     },
     "MaidenOfDeathCharges": {
@@ -1993,7 +2221,7 @@
     "MatriarchMacabreCost": {
       "kind": "effect",
       "id": 2040,
-      "name": "",
+      "name": "Matriarch Macabre",
       "icon": ""
     },
     "MatriarchMacabreSelfBuff": {
@@ -2008,6 +2236,7 @@
       "name": "Queen\u0027s Fang",
       "icon": "Mara_SingleTargetFinisher.jpg",
       "abilityCategory": "Power",
+      "range": 5,
       "costs": {
         "primary": 40
       }
@@ -2015,14 +2244,20 @@
     "QueenFangCost": {
       "kind": "effect",
       "id": 1706,
-      "name": "",
+      "name": "Queen\u0027s Fang",
       "icon": ""
     },
     "QueenFangDamage": {
       "kind": "effect",
       "id": 1705,
-      "name": "",
+      "name": "Queen\u0027s Fang",
       "icon": ""
+    },
+    "SeetingBurst": {
+      "kind": "ability",
+      "id": 1131,
+      "name": "Seeting Burst",
+      "icon": "T_TurtleShield.jpg"
     },
     "ShadowWard": {
       "kind": "ability",
@@ -2044,6 +2279,7 @@
       "name": "Skittering Blades",
       "icon": "Mara_AOEBuilder.jpg",
       "abilityCategory": "Basic",
+      "range": 8,
       "costs": {
         "primary": 35
       }
@@ -2051,7 +2287,7 @@
     "SkitteringBladesDamage": {
       "kind": "effect",
       "id": 1732,
-      "name": "",
+      "name": "Skittering Blades",
       "icon": ""
     },
     "SkitteringBladesPoison": {
@@ -2088,13 +2324,20 @@
       "name": "Stalker Step",
       "icon": "Mara_Stalkerstep.jpg"
     },
+    "VexiraVenom": {
+      "kind": "ability",
+      "id": 1616,
+      "name": "Vexira\u0027s Venom",
+      "icon": "Mara_SpiderAOE.jpg"
+    },
     "WebCrack": {
       "kind": "ability",
       "id": 1128,
       "name": "Web Crack",
       "icon": "Mara_Stun.jpg",
       "abilityCategory": "Control",
-      "cooldown": 24
+      "cooldown": 24,
+      "range": 5
     },
     "WebCrackCost": {
       "kind": "effect",
@@ -2115,6 +2358,7 @@
       "icon": "Mara_RegainEnergyHit.jpg",
       "abilityCategory": "Core",
       "cooldown": 9,
+      "range": 5,
       "charges": 3
     },
     "WidowBiteCharge": {
@@ -2132,13 +2376,13 @@
     "WidowBiteDamageFirst": {
       "kind": "effect",
       "id": 1718,
-      "name": "",
+      "name": "Widow\u0027s Bite",
       "icon": ""
     },
     "WidowBiteDamageSecond": {
       "kind": "effect",
       "id": 1717,
-      "name": "",
+      "name": "Widow\u0027s Bite",
       "icon": ""
     },
     "WidowBitePoison": {
@@ -2159,23 +2403,18 @@
       "kind": "ability",
       "id": 1118,
       "name": "Attack",
-      "icon": "T_Nhance_RPG_Icons_HolyHand.jpg"
+      "icon": "T_Nhance_RPG_Icons_HolyHand.jpg",
+      "range": 5
     },
     "AttackDamage": {
       "kind": "effect",
       "id": 1564,
-      "name": "",
+      "name": "Attack",
       "icon": ""
     },
     "AttackMulltiHitSelfHeal": {
       "kind": "effect",
       "id": 1563,
-      "name": "",
-      "icon": ""
-    },
-    "AttackMultiHitDamage": {
-      "kind": "effect",
-      "id": 1562,
       "name": "",
       "icon": ""
     },
@@ -2190,7 +2429,7 @@
     "CycloneActivator": {
       "kind": "effect",
       "id": 1576,
-      "name": "",
+      "name": "Cyclone",
       "icon": ""
     },
     "EarthFist": {
@@ -2198,7 +2437,8 @@
       "id": 1100,
       "name": "Earth Fist",
       "icon": "Meiko_AbilityIcon_03.jpg",
-      "abilityCategory": "Basic"
+      "abilityCategory": "Basic",
+      "range": 5
     },
     "EarthFistCost": {
       "kind": "effect",
@@ -2209,6 +2449,47 @@
     "EarthFistDamage": {
       "kind": "effect",
       "id": 1524,
+      "name": "Earth Fist",
+      "icon": ""
+    },
+    "EarthfistBarrage": {
+      "kind": "ability",
+      "id": 1112,
+      "name": "Earthfist Barrage",
+      "icon": "Meiko_AbilityIcon_09.jpg",
+      "abilityCategory": "Power",
+      "cooldown": 45,
+      "range": 5,
+      "channelDuration": 1,
+      "channelTickInterval": 0.25
+    },
+    "EarthfistBarrageCost": {
+      "kind": "effect",
+      "id": 1553,
+      "name": "",
+      "icon": ""
+    },
+    "EarthfistBarrageDamage": {
+      "kind": "effect",
+      "id": 1552,
+      "name": "Earthfist Barrage",
+      "icon": ""
+    },
+    "EarthfistBarrageFinalDamage": {
+      "kind": "effect",
+      "id": 2335,
+      "name": "Earthfist Barrage",
+      "icon": ""
+    },
+    "EarthfistBarrageResourceIncrease": {
+      "kind": "effect",
+      "id": 1551,
+      "name": "Yellow Power",
+      "icon": "Tex_SpellBook04_11.jpg"
+    },
+    "EarthfistBarrageSelfHeal": {
+      "kind": "effect",
+      "id": 1550,
       "name": "",
       "icon": ""
     },
@@ -2218,13 +2499,28 @@
       "name": "Fighting Techniques",
       "icon": "Tex_SpellBook03_73.jpg"
     },
+    "FightingTechniquesCost": {
+      "kind": "effect",
+      "id": 1523,
+      "name": "Fighting Techniques",
+      "icon": ""
+    },
+    "ForbiddenTechnique": {
+      "kind": "ability",
+      "id": 1090,
+      "name": "Forbidden Technique",
+      "icon": "Meiko_AbilityIcon_04.jpg"
+    },
     "Gust": {
       "kind": "ability",
       "id": 1123,
       "name": "Gust",
       "icon": "Meiko_AbilityIcon_10.jpg",
       "abilityCategory": "Movement",
-      "charges": 2
+      "cooldown": 30,
+      "charges": 2,
+      "channelDuration": 0.5,
+      "channelTickInterval": 0.5
     },
     "GustCharge": {
       "kind": "effect",
@@ -2232,12 +2528,33 @@
       "name": "",
       "icon": ""
     },
+    "LashingStormkick": {
+      "kind": "ability",
+      "id": 1106,
+      "name": "Lashing Stormkick",
+      "icon": "Meiko_AbilityIcon_08.jpg",
+      "abilityCategory": "Power",
+      "range": 5
+    },
+    "LashingStormkickDamage": {
+      "kind": "effect",
+      "id": 1537,
+      "name": "Lashing Stormkick",
+      "icon": ""
+    },
+    "Peacefield": {
+      "kind": "ability",
+      "id": 1547,
+      "name": "Peacefield",
+      "icon": "T_Icon_Elements_77.jpg"
+    },
     "Serenity": {
       "kind": "ability",
       "id": 1119,
       "name": "Serenity",
       "icon": "T_Meiko_Selfheal.jpg",
-      "abilityCategory": "Utility"
+      "abilityCategory": "Utility",
+      "cooldown": 10
     },
     "SerenityHealBonusTracker": {
       "kind": "effect",
@@ -2248,7 +2565,7 @@
     "SerenitySelfHeal": {
       "kind": "effect",
       "id": 1565,
-      "name": "",
+      "name": "Serenity",
       "icon": ""
     },
     "ShatterEarth": {
@@ -2257,7 +2574,8 @@
       "name": "Shatter Earth",
       "icon": "T_Meiko_SlamStun.jpg",
       "abilityCategory": "Major",
-      "cooldown": 60
+      "cooldown": 60,
+      "range": 30
     },
     "ShatterEarthCharge": {
       "kind": "effect",
@@ -2268,13 +2586,13 @@
     "ShatterEarthCost": {
       "kind": "effect",
       "id": 1558,
-      "name": "",
+      "name": "Shatter Earth",
       "icon": ""
     },
     "ShatterEarthDamage": {
       "kind": "effect",
       "id": 1557,
-      "name": "",
+      "name": "Shatter Earth",
       "icon": ""
     },
     "ShatterEarthDot": {
@@ -2288,7 +2606,8 @@
       "id": 1101,
       "name": "Spirit Palm",
       "icon": "Meiko_AbilityIcon_01.jpg",
-      "abilityCategory": "Basic"
+      "abilityCategory": "Basic",
+      "range": 5
     },
     "SpiritPalmCost": {
       "kind": "effect",
@@ -2299,6 +2618,37 @@
     "SpiritPalmDamage": {
       "kind": "effect",
       "id": 1526,
+      "name": "Spirit Palm",
+      "icon": ""
+    },
+    "SpiritedVortex": {
+      "kind": "ability",
+      "id": 1120,
+      "name": "Spirited Vortex",
+      "icon": "Meiko_AbilityIcon_07.jpg",
+      "abilityCategory": "Core"
+    },
+    "SpiritedVortexBuffIcon": {
+      "kind": "effect",
+      "id": 1570,
+      "name": "Spirited Vortex",
+      "icon": "Meiko_AbilityIcon_07.jpg"
+    },
+    "SpiritedVortexDamage": {
+      "kind": "effect",
+      "id": 1569,
+      "name": "Spirited Vortex",
+      "icon": "Meiko_AbilityIcon_04.jpg"
+    },
+    "SpiritedVortexDecreasedMovementSpeed": {
+      "kind": "effect",
+      "id": 1568,
+      "name": "Spirited Vortex",
+      "icon": "Meiko_AbilityIcon_07.jpg"
+    },
+    "SpiritedVortexSelfHeal": {
+      "kind": "effect",
+      "id": 1567,
       "name": "",
       "icon": ""
     },
@@ -2308,12 +2658,13 @@
       "name": "Stagger",
       "icon": "T_Meiko_Interrupt.jpg",
       "abilityCategory": "Utility",
-      "cooldown": 12
+      "cooldown": 12,
+      "range": 5
     },
     "StaggerInterrupt": {
       "kind": "effect",
       "id": 1561,
-      "name": "",
+      "name": "Stagger",
       "icon": ""
     },
     "StaggerLockout": {
@@ -2331,7 +2682,7 @@
     "StoneShieldActive": {
       "kind": "effect",
       "id": 3141,
-      "name": "",
+      "name": "Stone Shield",
       "icon": ""
     },
     "StoneShieldAlt": {
@@ -2339,7 +2690,9 @@
       "id": 1122,
       "name": "Stone Shield",
       "icon": "T_Meiko_StoneShield.jpg",
-      "abilityCategory": "Defensive"
+      "abilityCategory": "Defensive",
+      "cooldown": 30,
+      "charges": 2
     },
     "StoneShieldBuff": {
       "kind": "effect",
@@ -2362,7 +2715,7 @@
     "StoneShieldIncomingDamageMultiplier": {
       "kind": "effect",
       "id": 1571,
-      "name": "",
+      "name": "Stone Shield",
       "icon": ""
     },
     "StoneShieldStoneInvinsibilityBuff": {
@@ -2377,7 +2730,8 @@
       "name": "Stone Stomp",
       "icon": "Meiko_AbilityIcon_11.jpg",
       "abilityCategory": "Control",
-      "cooldown": 120
+      "cooldown": 120,
+      "range": 8
     },
     "StoneStompCost": {
       "kind": "effect",
@@ -2435,14 +2789,20 @@
       "id": 1110,
       "name": "Twin Souls: Army of One",
       "icon": "T_Meiko_SpiritUltimate.jpg",
-      "abilityCategory": "Spirit"
+      "abilityCategory": "Spirit",
+      "costs": {
+        "spirit": 100
+      }
     },
     "TwinSoulsBulwark": {
       "kind": "ability",
       "id": 1082,
       "name": "Twin Souls: Bulwark",
       "icon": "T_Meiko_TauntTotem.jpg",
-      "abilityCategory": "Major"
+      "abilityCategory": "Major",
+      "cooldown": 180,
+      "channelDuration": 0.5,
+      "channelTickInterval": 0.5
     },
     "TwinSoulsBulwarkSelfBuff": {
       "kind": "effect",
@@ -2461,7 +2821,8 @@
       "id": 1102,
       "name": "Wind Kick",
       "icon": "Meiko_AbilityIcon_02.jpg",
-      "abilityCategory": "Basic"
+      "abilityCategory": "Basic",
+      "range": 5
     },
     "WindKickCost": {
       "kind": "effect",
@@ -2472,7 +2833,7 @@
     "WindKickDamage": {
       "kind": "effect",
       "id": 1528,
-      "name": "",
+      "name": "Wind Kick",
       "icon": ""
     }
   },
@@ -2489,7 +2850,7 @@
     "BrainFreezeInterrupt": {
       "kind": "effect",
       "id": 1383,
-      "name": "",
+      "name": "Brain Freeze",
       "icon": ""
     },
     "BrainFreezeLockout": {
@@ -2497,6 +2858,12 @@
       "id": 1382,
       "name": "Interrupted",
       "icon": "T_Nhance_RPG_Frost_01.jpg"
+    },
+    "Burstbolter": {
+      "kind": "ability",
+      "id": 1576,
+      "name": "Burstbolter",
+      "icon": "Cryomancer7.jpg"
     },
     "BurstingIce": {
       "kind": "ability",
@@ -2533,7 +2900,7 @@
     "ColdSnapDamage": {
       "kind": "effect",
       "id": 1384,
-      "name": "",
+      "name": "Cold Snap",
       "icon": ""
     },
     "ColdSnapTalentCooldownResetProc": {
@@ -2575,7 +2942,7 @@
     "FlightOfTheNavirCost": {
       "kind": "effect",
       "id": 1366,
-      "name": "",
+      "name": "Flight of the Navir",
       "icon": ""
     },
     "FreezingTorrent": {
@@ -2598,7 +2965,7 @@
     "FreezingTorrentChannelBuff": {
       "kind": "effect",
       "id": 2315,
-      "name": "",
+      "name": "Freezing Torrent",
       "icon": ""
     },
     "FreezingTorrentTickDamage": {
@@ -2674,6 +3041,12 @@
       "name": "Frostweaver\u0027s Wrath",
       "icon": "T_Icon_Frost_115.jpg"
     },
+    "GlacialAssault": {
+      "kind": "ability",
+      "id": 2023,
+      "name": "Glacial Assault",
+      "icon": "T_Rime_AnimaBolt.jpg"
+    },
     "GlacialBlast": {
       "kind": "ability",
       "id": 1028,
@@ -2689,13 +3062,13 @@
     "GlacialBlastCost": {
       "kind": "effect",
       "id": 1393,
-      "name": "",
+      "name": "Glacial Blast",
       "icon": ""
     },
     "GlacialBlastDamage": {
       "kind": "effect",
       "id": 1392,
-      "name": "",
+      "name": "Glacial Blast",
       "icon": ""
     },
     "GlacialBlastTalentInstantAndBonusDamageProcStacker": {
@@ -2738,7 +3111,7 @@
     "IceCometCost": {
       "kind": "effect",
       "id": 1381,
-      "name": "",
+      "name": "Ice Comet",
       "icon": ""
     },
     "IceCometDamage": {
@@ -2754,7 +3127,9 @@
       "icon": "T_Rime_Dash.jpg",
       "abilityCategory": "Movement",
       "cooldown": 25,
-      "charges": 2
+      "charges": 2,
+      "channelDuration": 0.5,
+      "channelTickInterval": 0.5
     },
     "IceDashCharge": {
       "kind": "effect",
@@ -2767,7 +3142,14 @@
       "id": 2224,
       "name": "Rising Talons",
       "icon": "T_Rime_AOE_Spender.jpg",
-      "abilityCategory": "Power"
+      "abilityCategory": "Power",
+      "range": 30
+    },
+    "SoulfrostTorrent": {
+      "kind": "ability",
+      "id": 1574,
+      "name": "Soulfrost Torrent",
+      "icon": "T_Nhance_RPG_Frost_31.jpg"
     },
     "TalonEdict": {
       "kind": "ability",
@@ -2780,7 +3162,8 @@
       "id": 2223,
       "name": "Talon Strike",
       "icon": "T_Rime_Singletarget_spender_.jpg",
-      "abilityCategory": "Power"
+      "abilityCategory": "Power",
+      "range": 30
     },
     "WinterBlessingHeal": {
       "kind": "effect",
@@ -2797,7 +3180,7 @@
     "WinterBlessingSpiritBuff": {
       "kind": "effect",
       "id": 2299,
-      "name": "",
+      "name": "Winter\u0027s Blessing",
       "icon": ""
     },
     "WintersBlessing": {
@@ -2811,9 +3194,8 @@
     "WintersBlessingBuff": {
       "kind": "effect",
       "id": 1026,
-      "name": "",
-      "icon": "",
-      "cooldown": 60
+      "name": "Winter\u0027s Blessing",
+      "icon": ""
     },
     "WintersEmbrace": {
       "kind": "effect",
@@ -2826,7 +3208,8 @@
       "id": 1023,
       "name": "Wrath of Winter",
       "icon": "T_Rime_SpiritAbility.jpg",
-      "abilityCategory": "Spirit"
+      "abilityCategory": "Spirit",
+      "castDuration": 1.5
     },
     "WrathOfWinterBuff": {
       "kind": "effect",
@@ -2837,13 +3220,13 @@
     "WrathOfWinterSpiritCost": {
       "kind": "effect",
       "id": 1386,
-      "name": "",
+      "name": "Wrath of Winter",
       "icon": ""
     },
     "WrathOfWinterVisual": {
       "kind": "effect",
       "id": 2092,
-      "name": "",
+      "name": "Wrath of Winter",
       "icon": ""
     }
   },
@@ -2854,18 +3237,22 @@
       "name": "Cure Ailment",
       "icon": "T_Mosse_Dispel.jpg",
       "abilityCategory": "Utility",
-      "cooldown": 6
+      "cooldown": 6,
+      "range": 30,
+      "costs": {
+        "mana": 82
+      }
     },
     "CureAilmentDispel": {
       "kind": "effect",
       "id": 1435,
-      "name": "",
+      "name": "Cure Ailment",
       "icon": ""
     },
     "CureAilmentManaCost": {
       "kind": "effect",
       "id": 1434,
-      "name": "",
+      "name": "Cure Ailment",
       "icon": ""
     },
     "EnfeeblingRootsap": {
@@ -2875,7 +3262,10 @@
       "icon": "T_Nhance_RPG_Nature_04.jpg",
       "abilityCategory": "Control",
       "cooldown": 45,
-      "range": 30
+      "range": 30,
+      "costs": {
+        "mana": 77
+      }
     },
     "EnfeeblingRootsapAbsorbBuff": {
       "kind": "effect",
@@ -2904,7 +3294,7 @@
     "EnfeeblingRootsapManaCost": {
       "kind": "effect",
       "id": 1433,
-      "name": "",
+      "name": "Enfeebling Rootsap",
       "icon": ""
     },
     "EnfeeblingRootsapTurretCounter": {
@@ -2917,7 +3307,8 @@
       "kind": "ability",
       "id": 1080,
       "name": "Fluttercall: Embrace",
-      "icon": "T_Mosse_BlueButterfly.jpg"
+      "icon": "T_Mosse_BlueButterfly.jpg",
+      "abilityCategory": "Utility"
     },
     "FluttercallEmbraceBuff": {
       "kind": "effect",
@@ -2930,7 +3321,12 @@
       "id": 1060,
       "name": "Fluttercall: Heal",
       "icon": "Sylvie_AbilityIcon_03.jpg",
-      "abilityCategory": "Core"
+      "abilityCategory": "Core",
+      "range": 30,
+      "castDuration": 1.2,
+      "costs": {
+        "mana": 39
+      }
     },
     "FluttercallHealHot": {
       "kind": "effect",
@@ -2941,7 +3337,7 @@
     "FluttercallHealManaCost": {
       "kind": "effect",
       "id": 1444,
-      "name": "",
+      "name": "Fluttercall: Heal",
       "icon": ""
     },
     "FluttercallJubilee": {
@@ -2949,7 +3345,11 @@
       "id": 1055,
       "name": "Fluttercall: Jubilee",
       "icon": "T_Mosse_Ultimate.jpg",
-      "abilityCategory": "Spirit"
+      "abilityCategory": "Spirit",
+      "castDuration": 1.5,
+      "costs": {
+        "spirit": 100
+      }
     },
     "FluttercallJubileeBuff": {
       "kind": "effect",
@@ -2960,7 +3360,7 @@
     "FluttercallJubileeCost": {
       "kind": "effect",
       "id": 1438,
-      "name": "",
+      "name": "Fluttercall: Jubilee",
       "icon": ""
     },
     "FluttercallJubileeHealthDistributer": {
@@ -2984,7 +3384,7 @@
     "FluttercallJubileeHealthSyncBuff": {
       "kind": "effect",
       "id": 1436,
-      "name": "",
+      "name": "Fluttercall: Jubilee",
       "icon": ""
     },
     "FluttercallProtect": {
@@ -2992,7 +3392,8 @@
       "id": 1079,
       "name": "Fluttercall: Protect",
       "icon": "T_Mosse_BlueButterfly.jpg",
-      "abilityCategory": "Utility"
+      "abilityCategory": "Utility",
+      "range": 30
     },
     "FluttercallProtectBuff": {
       "kind": "effect",
@@ -3005,7 +3406,11 @@
       "id": 1061,
       "name": "Fluttercall: Restore Life",
       "icon": "T_Nhance_RPG_Shadow_58.jpg",
-      "abilityCategory": "Core"
+      "abilityCategory": "Core",
+      "range": 30,
+      "costs": {
+        "mana": 61
+      }
     },
     "FluttercallRestoreLifeChargeup": {
       "kind": "effect",
@@ -3034,7 +3439,7 @@
     "FluttercallRestoreLifeManaCost": {
       "kind": "effect",
       "id": 1447,
-      "name": "",
+      "name": "Fluttercall: Restore Life",
       "icon": ""
     },
     "HeartBloom": {
@@ -3043,7 +3448,10 @@
       "name": "Heart Bloom",
       "icon": "T_Mosse_Bigheal.jpg",
       "abilityCategory": "Power",
-      "cooldown": 45
+      "cooldown": 45,
+      "costs": {
+        "mana": 118
+      }
     },
     "HeartBloomCharge": {
       "kind": "effect",
@@ -3054,13 +3462,13 @@
     "HeartBloomHeal": {
       "kind": "effect",
       "id": 1477,
-      "name": "",
+      "name": "Heart Bloom",
       "icon": ""
     },
     "HeartBloomManaCost": {
       "kind": "effect",
       "id": 1476,
-      "name": "",
+      "name": "Heart Bloom",
       "icon": ""
     },
     "HeartBloomVisualEffect": {
@@ -3075,7 +3483,10 @@
       "name": "Hidden Trail",
       "icon": "T_Mosse_Hide.jpg",
       "abilityCategory": "Defensive",
-      "cooldown": 30
+      "cooldown": 30,
+      "costs": {
+        "mana": 18
+      }
     },
     "HiddenTrailBuff": {
       "kind": "effect",
@@ -3086,13 +3497,13 @@
     "HiddenTrailManaCost": {
       "kind": "effect",
       "id": 2201,
-      "name": "",
+      "name": "Hidden Trail",
       "icon": ""
     },
     "HiddenTrailReduceThreat": {
       "kind": "effect",
       "id": 1469,
-      "name": "",
+      "name": "Hidden Trail",
       "icon": ""
     },
     "IronleafWard": {
@@ -3101,7 +3512,10 @@
       "name": "Ironleaf Ward",
       "icon": "T_Mosse_DR.jpg",
       "abilityCategory": "Major",
-      "cooldown": 60
+      "cooldown": 60,
+      "costs": {
+        "mana": 63
+      }
     },
     "IronleafWardBuff": {
       "kind": "effect",
@@ -3116,18 +3530,21 @@
       "icon": "T_Mosse_Lifepetal.jpg",
       "abilityCategory": "Power",
       "cooldown": 60,
-      "charges": 2
+      "charges": 2,
+      "costs": {
+        "mana": 79
+      }
     },
     "LifePetalHeal": {
       "kind": "effect",
       "id": 1472,
-      "name": "",
+      "name": "Life Petal",
       "icon": ""
     },
     "LifePetalManaCost": {
       "kind": "effect",
       "id": 1471,
-      "name": "",
+      "name": "Life Petal",
       "icon": ""
     },
     "NaturalProtectorAbsorb": {
@@ -3149,18 +3566,21 @@
       "icon": "Sylvie_AbilityIcon_02.jpg",
       "abilityCategory": "Basic",
       "range": 30,
-      "castDuration": 1.5
+      "castDuration": 1.5,
+      "costs": {
+        "mana": 5
+      }
     },
     "NettleboltDamage": {
       "kind": "effect",
       "id": 1480,
-      "name": "",
+      "name": "Nettlebolt",
       "icon": ""
     },
     "NettleboltManaCost": {
       "kind": "effect",
       "id": 1479,
-      "name": "",
+      "name": "Nettlebolt",
       "icon": ""
     },
     "PricklyVine": {
@@ -3171,7 +3591,10 @@
       "abilityCategory": "Core",
       "cooldown": 9,
       "range": 40,
-      "charges": 2
+      "charges": 2,
+      "costs": {
+        "mana": 18
+      }
     },
     "PricklyVineDamage": {
       "kind": "effect",
@@ -3182,7 +3605,7 @@
     "PricklyVineManaCost": {
       "kind": "effect",
       "id": 1441,
-      "name": "",
+      "name": "Prickly Vine",
       "icon": ""
     },
     "SafeHaven": {
@@ -3191,12 +3614,16 @@
       "name": "Safe Haven",
       "icon": "T_Mosse_LinkCD.jpg",
       "abilityCategory": "Major",
-      "cooldown": 120
+      "cooldown": 120,
+      "range": 30,
+      "costs": {
+        "mana": 117
+      }
     },
     "SafeHavenCost": {
       "kind": "effect",
       "id": 1443,
-      "name": "",
+      "name": "Safe Haven",
       "icon": ""
     },
     "SafeHavenDamageReductionBuff": {
@@ -3216,7 +3643,8 @@
       "id": 1073,
       "name": "Shroomsplosion",
       "icon": "T_Mosse_Boomshroom.jpg",
-      "abilityCategory": "Core"
+      "abilityCategory": "Core",
+      "range": 30
     },
     "ShroomsplosionDamage": {
       "kind": "effect",
@@ -3227,8 +3655,14 @@
     "ShroomsplosionStacker": {
       "kind": "effect",
       "id": 1473,
-      "name": "",
+      "name": "Shroomsplosion",
       "icon": ""
+    },
+    "UnyieldingBloom": {
+      "kind": "ability",
+      "id": 1500,
+      "name": "Unyielding Bloom",
+      "icon": "T_Mosse_Bigheal.jpg"
     }
   },
   "tariq": {
@@ -3236,12 +3670,13 @@
       "kind": "ability",
       "id": 1227,
       "name": "Attack",
-      "icon": "Tex_bl_04_bg.jpg"
+      "icon": "Tex_bl_04_bg.jpg",
+      "range": 6
     },
     "AttackDamage": {
       "kind": "effect",
       "id": 1760,
-      "name": "",
+      "name": "Attack",
       "icon": ""
     },
     "ChainLightning": {
@@ -3277,12 +3712,13 @@
       "name": "Culling Strike",
       "icon": "T_Ink_Cullingstrike.jpg",
       "abilityCategory": "Power",
-      "cooldown": 6
+      "cooldown": 6,
+      "range": 6
     },
     "CullingStrikeDamage": {
       "kind": "effect",
       "id": 1762,
-      "name": "",
+      "name": "Culling Strike",
       "icon": ""
     },
     "CullingStrikeLightningBuff": {
@@ -3303,7 +3739,8 @@
       "name": "Face Breaker",
       "icon": "T_Ink_Facebreaker.jpg",
       "abilityCategory": "Basic",
-      "cooldown": 6
+      "cooldown": 6,
+      "range": 6
     },
     "FaceBreakerAlt": {
       "kind": "ability",
@@ -3314,7 +3751,28 @@
     "FaceBreakerDamage": {
       "kind": "effect",
       "id": 3161,
+      "name": "Face Breaker",
+      "icon": ""
+    },
+    "FaceBreakerOld": {
+      "kind": "ability",
+      "id": 1219,
+      "name": "Face Breaker (old)",
+      "icon": "T_Ink_Facebreaker.jpg",
+      "abilityCategory": "Basic",
+      "cooldown": 9,
+      "range": 6
+    },
+    "FaceBreakerOldCost": {
+      "kind": "effect",
+      "id": 1755,
       "name": "",
+      "icon": ""
+    },
+    "FaceBreakerOldDamage": {
+      "kind": "effect",
+      "id": 1754,
+      "name": "Face Breaker (old)",
       "icon": ""
     },
     "FocusedWrath": {
@@ -3323,7 +3781,8 @@
       "name": "Focused Wrath",
       "icon": "T_Ink_FocusedWrath.jpg",
       "abilityCategory": "Major",
-      "cooldown": 90
+      "cooldown": 90,
+      "range": 6
     },
     "FocusedWrathSelfBuff": {
       "kind": "effect",
@@ -3337,24 +3796,26 @@
       "name": "Hammer Storm",
       "icon": "T_Ink_Hammerstorm.jpg",
       "abilityCategory": "Power",
-      "cooldown": 1.5
+      "cooldown": 1.5,
+      "channelDuration": 1,
+      "channelTickInterval": 0.5
     },
     "HammerStormActivated": {
       "kind": "effect",
       "id": 1750,
-      "name": "",
+      "name": "Hammer Storm",
       "icon": ""
     },
     "HammerStormCost": {
       "kind": "effect",
       "id": 1783,
-      "name": "",
+      "name": "Hammer Storm",
       "icon": ""
     },
     "HammerStormDamage": {
       "kind": "effect",
       "id": 1782,
-      "name": "",
+      "name": "Hammer Storm",
       "icon": ""
     },
     "HammerStormLightningDamage": {
@@ -3375,7 +3836,16 @@
       "name": "Heavy Strike",
       "icon": "T_Ink_TimerAbility.jpg",
       "abilityCategory": "Core",
-      "cooldown": 8
+      "cooldown": 8,
+      "range": 6
+    },
+    "HeavyStrikeAlt": {
+      "kind": "ability",
+      "id": 1239,
+      "name": "Heavy Strike",
+      "icon": "T_Ink_TimerAbility.jpg",
+      "abilityCategory": "Core",
+      "range": 6
     },
     "HeavyStrikeAoeDamage": {
       "kind": "effect",
@@ -3401,7 +3871,8 @@
       "name": "Intimidate",
       "icon": "T_Ink_IntimidatingRoar.jpg",
       "abilityCategory": "Control",
-      "cooldown": 90
+      "cooldown": 90,
+      "range": 6
     },
     "IntimidateFear": {
       "kind": "effect",
@@ -3415,12 +3886,13 @@
       "name": "Leap Smash",
       "icon": "T_Ink_Leap.jpg",
       "abilityCategory": "Movement",
-      "cooldown": 20
+      "cooldown": 20,
+      "range": 30
     },
     "LeapSmashDamage": {
       "kind": "effect",
       "id": 1757,
-      "name": "",
+      "name": "Leap Smash",
       "icon": ""
     },
     "Pummel": {
@@ -3429,12 +3901,13 @@
       "name": "Pummel",
       "icon": "T_InkPummel.jpg",
       "abilityCategory": "Utility",
-      "cooldown": 16
+      "cooldown": 16,
+      "range": 6
     },
     "PummelInterrupt": {
       "kind": "effect",
       "id": 1759,
-      "name": "",
+      "name": "Pummel",
       "icon": ""
     },
     "PummelLockout": {
@@ -3456,13 +3929,13 @@
     "RagingTempestAoeImpactDamage": {
       "kind": "effect",
       "id": 2173,
-      "name": "",
+      "name": "Raging Tempest",
       "icon": ""
     },
     "RagingTempestCost": {
       "kind": "effect",
       "id": 1768,
-      "name": "",
+      "name": "Raging Tempest",
       "icon": ""
     },
     "RagingTempestPulsatingSingleDamageDamage": {
@@ -3501,18 +3974,19 @@
       "name": "Skull Crusher",
       "icon": "T_Ink_Skullcrusher.jpg",
       "abilityCategory": "Power",
-      "cooldown": 1
+      "cooldown": 1,
+      "range": 6
     },
     "SkullCrusherCost": {
       "kind": "effect",
       "id": 1765,
-      "name": "",
+      "name": "Skull Crusher",
       "icon": ""
     },
     "SkullCrusherDamage": {
       "kind": "effect",
       "id": 1764,
-      "name": "",
+      "name": "Skull Crusher",
       "icon": ""
     },
     "SkullCrusherLightningDamage": {
@@ -3526,6 +4000,20 @@
       "id": 2061,
       "name": "Sledgehammer",
       "icon": "T_Nhance_RPG_Icons_ChaoticSpikes.jpg"
+    },
+    "Taunt": {
+      "kind": "ability",
+      "id": 1214,
+      "name": "Taunt",
+      "icon": "T_Ink_Taunt.jpg",
+      "cooldown": 15,
+      "range": 40
+    },
+    "TauntDebuff": {
+      "kind": "effect",
+      "id": 1742,
+      "name": "Taunted",
+      "icon": "warmaster_taunt.jpg"
     },
     "ThunderCall": {
       "kind": "ability",
@@ -3567,18 +4055,19 @@
       "name": "Wild Swing",
       "icon": "T_Ink_Wildswing.jpg",
       "abilityCategory": "Basic",
-      "cooldown": 1.5
+      "cooldown": 1.5,
+      "range": 6
     },
     "WildSwingCost": {
       "kind": "effect",
       "id": 1771,
-      "name": "",
+      "name": "Wild Swing",
       "icon": ""
     },
     "WildSwingDamage": {
       "kind": "effect",
       "id": 1770,
-      "name": "",
+      "name": "Wild Swing",
       "icon": ""
     }
   },
@@ -3590,6 +4079,8 @@
       "icon": "T_Vigor_Spirit.jpg",
       "abilityCategory": "Spirit",
       "cooldown": 0,
+      "range": 60,
+      "castDuration": 1.5,
       "costs": {
         "spirit": 100
       }
@@ -3603,7 +4094,7 @@
     "AvatarOfLightResourceCost": {
       "kind": "effect",
       "id": 1331,
-      "name": "",
+      "name": "Avatar of Light",
       "icon": ""
     },
     "AvatarOfLightVisual": {
@@ -3618,12 +4109,16 @@
       "name": "Circle of Light",
       "icon": "T_Vigor_AoEHeal.jpg",
       "abilityCategory": "Core",
-      "cooldown": 15
+      "cooldown": 15,
+      "range": 30,
+      "costs": {
+        "mana": 118
+      }
     },
     "CircleOfLightCost": {
       "kind": "effect",
       "id": 1340,
-      "name": "",
+      "name": "Circle of Light",
       "icon": ""
     },
     "CircleOfLightHeal": {
@@ -3643,13 +4138,13 @@
     "DawnbreakerOrbActiveProjectileProc": {
       "kind": "effect",
       "id": 3105,
-      "name": "",
+      "name": "Dawnbreaker Orb",
       "icon": ""
     },
     "DawnbreakerOrbDamage": {
       "kind": "effect",
       "id": 1311,
-      "name": "",
+      "name": "Dawnbreaker Orb",
       "icon": ""
     },
     "DawnbreakerOrbHeal": {
@@ -3661,7 +4156,7 @@
     "DawnbreakerOrbResourceCost": {
       "kind": "effect",
       "id": 1309,
-      "name": "",
+      "name": "Dawnbreaker Orb",
       "icon": ""
     },
     "Dawnflare": {
@@ -3670,18 +4165,22 @@
       "name": "Dawnflare",
       "icon": "T_Vigor_Bolt.jpg",
       "abilityCategory": "Basic",
-      "range": 30
+      "range": 30,
+      "castDuration": 1.5,
+      "costs": {
+        "mana": 1
+      }
     },
     "DawnflareDamage": {
       "kind": "effect",
       "id": 1349,
-      "name": "",
+      "name": "Dawnflare",
       "icon": ""
     },
     "DawnflareResourceCost": {
       "kind": "effect",
       "id": 1348,
-      "name": "",
+      "name": "Dawnflare",
       "icon": ""
     },
     "GreaterHeal": {
@@ -3690,7 +4189,11 @@
       "name": "Greater Heal",
       "icon": "T_Vigor_Heal.jpg",
       "abilityCategory": "Core",
-      "range": 30
+      "range": 30,
+      "castDuration": 2,
+      "costs": {
+        "mana": 88
+      }
     },
     "GreaterHealHeal": {
       "kind": "effect",
@@ -3701,7 +4204,7 @@
     "GreaterHealResourceCost": {
       "kind": "effect",
       "id": 1346,
-      "name": "",
+      "name": "Greater Heal",
       "icon": ""
     },
     "Levitate": {
@@ -3711,7 +4214,10 @@
       "icon": "T_Vigor_Levitate.jpg",
       "abilityCategory": "Defensive",
       "cooldown": 60,
-      "charges": 2
+      "charges": 2,
+      "costs": {
+        "mana": 18
+      }
     },
     "LevitateCharge": {
       "kind": "effect",
@@ -3722,7 +4228,7 @@
     "LevitateCost": {
       "kind": "effect",
       "id": 1344,
-      "name": "",
+      "name": "Levitate",
       "icon": ""
     },
     "LevitateSelfBuff": {
@@ -3738,12 +4244,15 @@
       "icon": "T_Vigor_Ward.jpg",
       "abilityCategory": "Major",
       "cooldown": 60,
-      "range": 30
+      "range": 30,
+      "costs": {
+        "mana": 63
+      }
     },
     "LightshaperWardCastingCost": {
       "kind": "effect",
       "id": 1341,
-      "name": "",
+      "name": "Lightshaper\u0027s Ward",
       "icon": ""
     },
     "LuminousBarrier": {
@@ -3752,7 +4261,12 @@
       "name": "Luminous Barrier",
       "icon": "T_Vigor_Shield.jpg",
       "abilityCategory": "Power",
-      "cooldown": 20
+      "cooldown": 20,
+      "range": 30,
+      "castDuration": 1.2,
+      "costs": {
+        "primary": 1
+      }
     },
     "LuminousBarrierAbsorb": {
       "kind": "effect",
@@ -3763,7 +4277,7 @@
     "LuminousBarrierCost": {
       "kind": "effect",
       "id": 1320,
-      "name": "",
+      "name": "Luminous Barrier",
       "icon": ""
     },
     "LuminousBarrierUponRemovalBuff": {
@@ -3772,24 +4286,33 @@
       "name": "Residual Luminosity",
       "icon": "Tex_SpellBook06_91.jpg"
     },
+    "MeticulousRunesmith": {
+      "kind": "ability",
+      "id": 1563,
+      "name": "Meticulous Runesmith",
+      "icon": "T_LightPortal.jpg"
+    },
     "RadiantBlast": {
       "kind": "ability",
       "id": 109,
       "name": "Radiant Blast",
       "icon": "T_Vigor_Cone.jpg",
       "abilityCategory": "Core",
-      "cooldown": 10
+      "cooldown": 10,
+      "costs": {
+        "mana": 37
+      }
     },
     "RadiantBlastCost": {
       "kind": "effect",
       "id": 1338,
-      "name": "",
+      "name": "Radiant Blast",
       "icon": ""
     },
     "RadiantBlastDamage": {
       "kind": "effect",
       "id": 1337,
-      "name": "",
+      "name": "Radiant Blast",
       "icon": ""
     },
     "RadiantBlastHeal": {
@@ -3811,18 +4334,21 @@
       "icon": "T_Vigor_Dispel.jpg",
       "abilityCategory": "Utility",
       "cooldown": 6,
-      "range": 30
+      "range": 30,
+      "costs": {
+        "mana": 82
+      }
     },
     "RemoveMagicDispel": {
       "kind": "effect",
       "id": 1323,
-      "name": "",
+      "name": "Remove Magic",
       "icon": ""
     },
     "RemoveMagicResourceCost": {
       "kind": "effect",
       "id": 1322,
-      "name": "",
+      "name": "Remove Magic",
       "icon": ""
     },
     "RuneOfRenewal": {
@@ -3830,7 +4356,12 @@
       "id": 995,
       "name": "Rune of Renewal",
       "icon": "T_Vigor_Rune.jpg",
-      "abilityCategory": "Power"
+      "abilityCategory": "Power",
+      "range": 30,
+      "castDuration": 1.2,
+      "costs": {
+        "primary": 1
+      }
     },
     "RuneOfRenewalAlt": {
       "kind": "ability",
@@ -3841,7 +4372,7 @@
     "RuneOfRenewalDirectHeal": {
       "kind": "effect",
       "id": 1319,
-      "name": "",
+      "name": "Rune of Renewal",
       "icon": ""
     },
     "RuneOfRenewalHot": {
@@ -3853,7 +4384,7 @@
     "RuneOfRenewalResourceCost": {
       "kind": "effect",
       "id": 1317,
-      "name": "",
+      "name": "Rune of Renewal",
       "icon": ""
     },
     "RunicProliferation": {
@@ -3862,7 +4393,10 @@
       "name": "Runic Proliferation",
       "icon": "T_Vigor_HealRune.jpg",
       "abilityCategory": "Major",
-      "cooldown": 60
+      "cooldown": 60,
+      "costs": {
+        "mana": 96
+      }
     },
     "RunicProliferationBuff": {
       "kind": "effect",
@@ -3873,7 +4407,7 @@
     "RunicProliferationManaCost": {
       "kind": "effect",
       "id": 2200,
-      "name": "",
+      "name": "Runic Proliferation",
       "icon": ""
     },
     "Soulbrand": {
@@ -3881,12 +4415,17 @@
       "id": 994,
       "name": "Soulbrand",
       "icon": "T_Vigor_Soulbrand.jpg",
-      "abilityCategory": "Power"
+      "abilityCategory": "Power",
+      "range": 30,
+      "castDuration": 1.2,
+      "costs": {
+        "primary": 1
+      }
     },
     "SoulbrandBuffActiveAdditionalDirectDamage": {
       "kind": "effect",
       "id": 2432,
-      "name": "Soulbrand",
+      "name": "Soulbrand: Remnant",
       "icon": "T_Vigor_Soulbrand.jpg"
     },
     "SoulbrandDot": {
@@ -3898,7 +4437,7 @@
     "SoulbrandResourceCost": {
       "kind": "effect",
       "id": 1314,
-      "name": "",
+      "name": "Soulbrand",
       "icon": ""
     },
     "ThrowBook": {
@@ -3907,12 +4446,16 @@
       "name": "Throw Book",
       "icon": "T_Vigor_Book.jpg",
       "abilityCategory": "Control",
-      "cooldown": 30
+      "cooldown": 30,
+      "range": 30,
+      "costs": {
+        "mana": 0
+      }
     },
     "ThrowBookResourceCost": {
       "kind": "effect",
       "id": 1313,
-      "name": "",
+      "name": "Throw Book",
       "icon": ""
     },
     "ThrowBookStun": {
@@ -3927,7 +4470,8 @@
       "kind": "ability",
       "id": 1854,
       "name": "Attack",
-      "icon": "Tex_swords_01_bg.jpg"
+      "icon": "Tex_swords_01_bg.jpg",
+      "range": 5
     },
     "AttackDamage": {
       "kind": "effect",
@@ -3964,7 +4508,7 @@
     "AuraOfSolaceManaCost": {
       "kind": "effect",
       "id": 2668,
-      "name": "",
+      "name": "Aura of Solace",
       "icon": ""
     },
     "AuraOfSolaceSelfBuff": {
@@ -3985,12 +4529,13 @@
       "name": "Blinding Slash",
       "icon": "T_Sune_Blindingslash.jpg",
       "abilityCategory": "Basic",
-      "cooldown": 6
+      "cooldown": 6,
+      "range": 5
     },
     "BlindingSlashDamage": {
       "kind": "effect",
       "id": 2568,
-      "name": "",
+      "name": "Blinding Slash",
       "icon": ""
     },
     "BrilliantFlare": {
@@ -4000,18 +4545,47 @@
       "icon": "T_Sune_BrilliantFlare.jpg",
       "abilityCategory": "Core",
       "range": 30,
-      "castDuration": 1.5
+      "castDuration": 1.5,
+      "costs": {
+        "mana": 132
+      }
     },
     "BrilliantFlareHeal": {
       "kind": "effect",
       "id": 2573,
-      "name": "",
+      "name": "Brilliant Flare",
       "icon": ""
     },
     "BrilliantFlareManaCost": {
       "kind": "effect",
       "id": 2572,
-      "name": "",
+      "name": "Brilliant Flare",
+      "icon": ""
+    },
+    "BrilliantFlash": {
+      "kind": "ability",
+      "id": 1855,
+      "name": "Brilliant Flash",
+      "icon": "T_Sune_BrilliantFlash.jpg",
+      "abilityCategory": "Power",
+      "range": 30
+    },
+    "BrilliantFlashDamage": {
+      "kind": "effect",
+      "id": 2565,
+      "name": "Brilliant Flash",
+      "icon": ""
+    },
+    "BrilliantFlashHeal": {
+      "kind": "effect",
+      "id": 2564,
+      "name": "Brilliant Flash",
+      "icon": ""
+    },
+    "BrilliantFlashResourceCost": {
+      "kind": "effect",
+      "id": 2563,
+      "name": "Brilliant Flash",
       "icon": ""
     },
     "DecreeOfTheSun": {
@@ -4039,7 +4613,7 @@
     "DecreeOfTheSunSelfBuff": {
       "kind": "effect",
       "id": 2559,
-      "name": "",
+      "name": "Decree of the Sun",
       "icon": ""
     },
     "DecreeOfTheSunSelfBuffDamageReduction": {
@@ -4057,7 +4631,7 @@
     "DecreeOfTheSunSpiritPointCost": {
       "kind": "effect",
       "id": 2556,
-      "name": "",
+      "name": "Decree of the Sun",
       "icon": ""
     },
     "Interrupt": {
@@ -4072,7 +4646,7 @@
     "InterruptInterrupt": {
       "kind": "effect",
       "id": 2546,
-      "name": "",
+      "name": "Interrupt",
       "icon": ""
     },
     "InterruptLockout": {
@@ -4106,7 +4680,7 @@
     "OmnistrikeDamage": {
       "kind": "effect",
       "id": 2577,
-      "name": "",
+      "name": "Omnistrike",
       "icon": ""
     },
     "RupturedDawn": {
@@ -4120,7 +4694,7 @@
     "RupturedDawnDamage": {
       "kind": "effect",
       "id": 2567,
-      "name": "",
+      "name": "Ruptured Dawn",
       "icon": ""
     },
     "RupturedDawnStun": {
@@ -4135,18 +4709,21 @@
       "name": "Shining Halo",
       "icon": "T_Sune_ShiningHalo.jpg",
       "abilityCategory": "Power",
-      "cooldown": 30
+      "cooldown": 30,
+      "costs": {
+        "mana": 218
+      }
     },
     "ShiningHaloDamage": {
       "kind": "effect",
       "id": 2571,
-      "name": "",
+      "name": "Shining Halo",
       "icon": ""
     },
     "ShiningHaloManaCost": {
       "kind": "effect",
       "id": 2570,
-      "name": "",
+      "name": "Shining Halo",
       "icon": ""
     },
     "ShiningHaloSelfBuff": {
@@ -4167,13 +4744,13 @@
     "SkyCrashDamage": {
       "kind": "effect",
       "id": 2540,
-      "name": "",
+      "name": "Sky Crash",
       "icon": ""
     },
     "SkyCrashSelfBuff": {
       "kind": "effect",
       "id": 2539,
-      "name": "",
+      "name": "Sky Crash",
       "icon": ""
     },
     "SolarBlades": {
@@ -4183,18 +4760,21 @@
       "icon": "T_Sune_SolarBlades.jpg",
       "abilityCategory": "Core",
       "cooldown": 9,
-      "range": 30
+      "range": 30,
+      "costs": {
+        "mana": 55
+      }
     },
     "SolarBladesDamage": {
       "kind": "effect",
       "id": 2576,
-      "name": "",
+      "name": "Solar Blades",
       "icon": ""
     },
     "SolarBladesManaCost": {
       "kind": "effect",
       "id": 2575,
-      "name": "",
+      "name": "Solar Blades",
       "icon": ""
     },
     "SolarShield": {
@@ -4204,7 +4784,10 @@
       "icon": "T_Sune_Solarshield.jpg",
       "abilityCategory": "Defensive",
       "cooldown": 15,
-      "range": 30
+      "range": 30,
+      "costs": {
+        "mana": 182
+      }
     },
     "SolarShieldAbsorb": {
       "kind": "effect",
@@ -4221,7 +4804,7 @@
     "SolarShieldManaCost": {
       "kind": "effect",
       "id": 2550,
-      "name": "",
+      "name": "Solar Shield",
       "icon": ""
     },
     "SunStrike": {
@@ -4229,12 +4812,13 @@
       "id": 1845,
       "name": "Sun Strike",
       "icon": "T_Sune_Sunstrike.jpg",
-      "abilityCategory": "Basic"
+      "abilityCategory": "Basic",
+      "range": 5
     },
     "SunStrikeDamage": {
       "kind": "effect",
       "id": 2547,
-      "name": "",
+      "name": "Sun Strike",
       "icon": ""
     },
     "Taunt": {
@@ -4273,7 +4857,9 @@
       "id": 2187,
       "name": "Sanguine Claws",
       "icon": "T_Nhance_RPG_Icons_BloodRitual.jpg",
-      "school": "Physical"
+      "school": "Physical",
+      "cooldown": 32,
+      "range": 3
     },
     "VeinSprout": {
       "kind": "ability",
@@ -4284,6 +4870,45 @@
     }
   },
   "items": {
+    "AlShackle": {
+      "kind": "ability",
+      "id": 152,
+      "name": "Al\u0027zerac\u0027s Shackle",
+      "icon": "T_Weapon_IceShackle.jpg",
+      "abilityCategory": "Weapon",
+      "cooldown": 30,
+      "range": 30
+    },
+    "AlShackleAoeDamage": {
+      "kind": "effect",
+      "id": 67,
+      "name": "",
+      "icon": ""
+    },
+    "AlShackleDebuff": {
+      "kind": "effect",
+      "id": 66,
+      "name": "Al\u0027zerac\u0027s Shackle: Slow",
+      "icon": "T_Weapon_IceShackle.jpg"
+    },
+    "AlShackleSlowDot": {
+      "kind": "effect",
+      "id": 65,
+      "name": "Al\u0027zerac\u0027s Shackle: Slow",
+      "icon": "T_Weapon_IceShackle.jpg"
+    },
+    "AlShackleStun": {
+      "kind": "effect",
+      "id": 64,
+      "name": "Al\u0027zerac\u0027s Shackle: Freeze",
+      "icon": "T_Weapon_IceShackle.jpg"
+    },
+    "AlShackleStunDot": {
+      "kind": "effect",
+      "id": 63,
+      "name": "Al\u0027zerac\u0027s Shackle: Freeze",
+      "icon": "T_Weapon_IceShackle.jpg"
+    },
     "AncestralSurge": {
       "kind": "effect",
       "id": 1919,
@@ -4320,6 +4945,101 @@
       "name": "Blessing of the Deathdealer - II",
       "icon": ""
     },
+    "BloodriteFervor": {
+      "kind": "ability",
+      "id": 185,
+      "name": "Bloodrite Fervor",
+      "icon": "T_Relic_Drums.jpg",
+      "abilityCategory": "Relic",
+      "cooldown": 90,
+      "range": 40
+    },
+    "BloodriteFervorBuff": {
+      "kind": "effect",
+      "id": 156,
+      "name": "Bloodrite Fervor",
+      "icon": "T_Relic_Drums.jpg"
+    },
+    "Chickenize": {
+      "kind": "ability",
+      "id": 1478,
+      "name": "Chickenize!",
+      "icon": "T_Relic_Chicken.jpg",
+      "abilityCategory": "Relic",
+      "cooldown": 180,
+      "range": 30
+    },
+    "Chronoshift": {
+      "kind": "ability",
+      "id": 1558,
+      "name": "Chronoshift",
+      "icon": "T_Nhance_RPG_Icons_ArcaneLoad.jpg",
+      "abilityCategory": "Weapon",
+      "cooldown": 180,
+      "range": 15,
+      "castDuration": 1,
+      "channelDuration": 3,
+      "channelTickInterval": 1.5
+    },
+    "ChronoshiftAoeDamage": {
+      "kind": "effect",
+      "id": 2280,
+      "name": "Chronoshift",
+      "icon": ""
+    },
+    "ChronoshiftBuff": {
+      "kind": "effect",
+      "id": 2279,
+      "name": "Asha\u0027s Arcane Embrace",
+      "icon": "T_Nhance_RPG_Icons_ArcaneLoad.jpg"
+    },
+    "ConjurePortal": {
+      "kind": "ability",
+      "id": 1504,
+      "name": "Conjure Portal",
+      "icon": "T_Relic_Portal.jpg",
+      "abilityCategory": "Relic",
+      "cooldown": 120,
+      "range": 30
+    },
+    "ConjurePortalRecentlyUsedPortal": {
+      "kind": "effect",
+      "id": 2176,
+      "name": "Portal Sickness",
+      "icon": "Tex_SpellBook06_39.jpg"
+    },
+    "Earthbreaker": {
+      "kind": "ability",
+      "id": 1559,
+      "name": "Earthbreaker",
+      "icon": "T_Nhance_RPG_Icons_NatureWave.jpg",
+      "abilityCategory": "Weapon",
+      "cooldown": 180
+    },
+    "EarthbreakerDamageFinal": {
+      "kind": "effect",
+      "id": 2284,
+      "name": "Earthbreaker",
+      "icon": ""
+    },
+    "EarthbreakerDamageInitial": {
+      "kind": "effect",
+      "id": 2283,
+      "name": "Earthbreaker",
+      "icon": ""
+    },
+    "EarthbreakerDamageRepeating": {
+      "kind": "effect",
+      "id": 2282,
+      "name": "Earthbreaker",
+      "icon": ""
+    },
+    "EarthbreakerStun": {
+      "kind": "effect",
+      "id": 2281,
+      "name": "Stunned",
+      "icon": "effect_stunned_icon.jpg"
+    },
     "EssenceOfTheConqueror": {
       "kind": "effect",
       "id": 1951,
@@ -4337,7 +5057,21 @@
       "id": 160,
       "name": "Fated Strike",
       "icon": "T_Weapon_CDstrike.jpg",
-      "cooldown": 60
+      "abilityCategory": "Weapon",
+      "cooldown": 60,
+      "castDuration": 0.15
+    },
+    "FatedStrikeCleaveDamage": {
+      "kind": "effect",
+      "id": 79,
+      "name": "Fated Strike",
+      "icon": ""
+    },
+    "FatedStrikeMainDamage": {
+      "kind": "effect",
+      "id": 78,
+      "name": "Fated Strike",
+      "icon": ""
     },
     "GloriousPurpose": {
       "kind": "effect",
@@ -4357,6 +5091,77 @@
       "name": "Harmonious Soul - II",
       "icon": "T_Nhance_RPG_Arcane_19.jpg"
     },
+    "IciclesOfAn": {
+      "kind": "ability",
+      "id": 1561,
+      "name": "Icicles of An\u0027zhyr",
+      "icon": "T_Nhance_RPG_Icons_FrostRain.jpg",
+      "abilityCategory": "Weapon",
+      "cooldown": 40,
+      "range": 30
+    },
+    "IciclesOfAnDamage": {
+      "kind": "effect",
+      "id": 2287,
+      "name": "Icicles of An\u0027zhyr",
+      "icon": ""
+    },
+    "IciclesOfAnDot": {
+      "kind": "effect",
+      "id": 2286,
+      "name": "Curse of An\u0027zhyr",
+      "icon": "T_Nhance_RPG_Icons_FrostRain.jpg"
+    },
+    "IciclesOfAnExtraDamageDebuff": {
+      "kind": "effect",
+      "id": 2285,
+      "name": "",
+      "icon": ""
+    },
+    "IciclesOfAnExtraDamageDebuffOwnerEffect": {
+      "kind": "effect",
+      "id": 2845,
+      "name": "",
+      "icon": ""
+    },
+    "InterjectSpell": {
+      "kind": "ability",
+      "id": 2073,
+      "name": "Interject Spell",
+      "icon": "T_CurseWeak.jpg",
+      "abilityCategory": "Relic",
+      "cooldown": 90,
+      "range": 30
+    },
+    "InterjectSpellInterrupt": {
+      "kind": "effect",
+      "id": 2850,
+      "name": "Interject Spell",
+      "icon": ""
+    },
+    "InterjectSpellLockout": {
+      "kind": "effect",
+      "id": 2849,
+      "name": "Interrupted",
+      "icon": "T_Nhance_RPG_Frost_01.jpg"
+    },
+    "MajorDispel": {
+      "kind": "ability",
+      "id": 187,
+      "name": "Major Dispel",
+      "icon": "T_Relic_DispelRune.jpg",
+      "abilityCategory": "Relic",
+      "cooldown": 120,
+      "range": 40
+    },
+    "MajorInvisibility": {
+      "kind": "ability",
+      "id": 1486,
+      "name": "Major Invisibility",
+      "icon": "T_Relic_Orb.jpg",
+      "abilityCategory": "Relic",
+      "cooldown": 360
+    },
     "MightOfTheMinotaur": {
       "kind": "effect",
       "id": 1921,
@@ -4368,6 +5173,48 @@
       "id": 1922,
       "name": "Might of the Minotaur - II",
       "icon": "T_Nhance_RPG_Icons_InfernalMadness.jpg"
+    },
+    "NatureFury": {
+      "kind": "ability",
+      "id": 161,
+      "name": "Nature\u0027s Fury",
+      "icon": "T_Weapon_NatureBolt.jpg",
+      "abilityCategory": "Weapon",
+      "cooldown": 60,
+      "range": 30,
+      "castDuration": 1.5
+    },
+    "NatureFuryDamage": {
+      "kind": "effect",
+      "id": 82,
+      "name": "",
+      "icon": ""
+    },
+    "NatureFuryHeal": {
+      "kind": "effect",
+      "id": 81,
+      "name": "",
+      "icon": ""
+    },
+    "NatureFuryVisualWeapon": {
+      "kind": "effect",
+      "id": 2115,
+      "name": "",
+      "icon": ""
+    },
+    "ObsidianSkin": {
+      "kind": "ability",
+      "id": 1952,
+      "name": "Obsidian Skin",
+      "icon": "T_Nhance_RPG_Tech_25.jpg",
+      "abilityCategory": "Relic",
+      "cooldown": 60
+    },
+    "ObsidianSkinBuff": {
+      "kind": "effect",
+      "id": 2715,
+      "name": "Obsidian Skin",
+      "icon": "T_Nhance_RPG_Tech_25.jpg"
     },
     "ReapersReprieve": {
       "kind": "effect",
@@ -4381,6 +5228,35 @@
       "name": "Reaper\u0027s Reprieve - II",
       "icon": "T_Nhance_RPG_Icons_ArcaneSmoke.jpg"
     },
+    "Rejuvenate": {
+      "kind": "ability",
+      "id": 189,
+      "name": "Rejuvenate",
+      "icon": "T_Relic_HealingPotion.jpg",
+      "abilityCategory": "Relic",
+      "cooldown": 120
+    },
+    "RepositoryOfFrozenLight": {
+      "kind": "ability",
+      "id": 164,
+      "name": "Repository of Frozen Light",
+      "icon": "T_Weapon_FrostLightRepository.jpg",
+      "abilityCategory": "Weapon",
+      "cooldown": 120,
+      "castDuration": 1.5
+    },
+    "RepositoryOfFrozenLightBuff": {
+      "kind": "effect",
+      "id": 87,
+      "name": "Frozen Light",
+      "icon": "T_Weapon_FrostLightRepository.jpg"
+    },
+    "RepositoryOfFrozenLightHeal": {
+      "kind": "effect",
+      "id": 86,
+      "name": "",
+      "icon": ""
+    },
     "ResonatingSoul": {
       "kind": "ability",
       "id": 129,
@@ -4391,6 +5267,30 @@
       "kind": "ability",
       "id": 130,
       "name": "Resonating Soul - II",
+      "icon": ""
+    },
+    "RestoreMana": {
+      "kind": "ability",
+      "id": 188,
+      "name": "Restore Mana",
+      "icon": "T_Relic_Mana.jpg",
+      "abilityCategory": "Relic",
+      "cooldown": 120
+    },
+    "Revive": {
+      "kind": "ability",
+      "id": 22,
+      "name": "Revive",
+      "icon": "T_Relic_CombatRess.jpg",
+      "abilityCategory": "Relic",
+      "cooldown": 300,
+      "range": 40,
+      "castDuration": 2
+    },
+    "ReviveSetHealthAndMana": {
+      "kind": "effect",
+      "id": 162,
+      "name": "Revive",
       "icon": ""
     },
     "RoguesResurgence": {
@@ -4405,6 +5305,61 @@
       "name": "Rogue\u0027s Resurgence - II",
       "icon": "T_Icon_Gold_135.jpg"
     },
+    "SahrilAegis": {
+      "kind": "ability",
+      "id": 159,
+      "name": "Sahril\u0027s Aegis",
+      "icon": "T_Weapon_VoidBarrier.jpg",
+      "abilityCategory": "Weapon",
+      "cooldown": 90
+    },
+    "SahrilAegisAbsorb": {
+      "kind": "effect",
+      "id": 77,
+      "name": "Sahril\u0027s Aegis",
+      "icon": "T_Weapon_VoidBarrier.jpg"
+    },
+    "SahrilAegisAoeDamage": {
+      "kind": "effect",
+      "id": 76,
+      "name": "",
+      "icon": ""
+    },
+    "SahrilWrath": {
+      "kind": "ability",
+      "id": 157,
+      "name": "Sahril\u0027s Wrath",
+      "icon": "T_Weapon_CritAOE.jpg",
+      "abilityCategory": "Weapon",
+      "cooldown": 120
+    },
+    "SahrilWrathBuff": {
+      "kind": "effect",
+      "id": 75,
+      "name": "Sundering Wrath",
+      "icon": "T_Weapon_CritAOE.jpg"
+    },
+    "SahrilWrathDamage": {
+      "kind": "effect",
+      "id": 74,
+      "name": "Sahril\u0027s Wrath",
+      "icon": ""
+    },
+    "Sanctuary": {
+      "kind": "ability",
+      "id": 186,
+      "name": "Sanctuary",
+      "icon": "T_Relic_DamageReduction.jpg",
+      "abilityCategory": "Relic",
+      "cooldown": 180,
+      "range": 40
+    },
+    "SanctuaryBuff": {
+      "kind": "effect",
+      "id": 157,
+      "name": "Sanctuary",
+      "icon": "T_Relic_DamageReduction.jpg"
+    },
     "SentinelsBastion": {
       "kind": "effect",
       "id": 1968,
@@ -4415,8 +5370,7 @@
       "kind": "effect",
       "id": 1969,
       "name": "Sentinel\u0027s Bastion - II",
-      "icon": "T_Nhance_RPG_Icons_SpiritAmulet_SentinelBastion.jpg",
-      "cooldown": 20
+      "icon": "T_Nhance_RPG_Icons_SpiritAmulet_SentinelBastion.jpg"
     },
     "SentinelsBastionShield": {
       "kind": "ability",
@@ -4429,6 +5383,40 @@
       "id": 136,
       "name": "Sentinel\u0027s Bastion - II",
       "icon": "T_Nhance_RPG_Icons_SpiritAmulet_SentinelBastion.jpg"
+    },
+    "TwilightSkybolt": {
+      "kind": "ability",
+      "id": 156,
+      "name": "Twilight Skybolt",
+      "icon": "T_Weapon_Skybolt.jpg",
+      "abilityCategory": "Weapon",
+      "cooldown": 20,
+      "range": 30,
+      "charges": 2
+    },
+    "TwilightSkyboltCooldownCharge": {
+      "kind": "effect",
+      "id": 73,
+      "name": "",
+      "icon": ""
+    },
+    "TwilightSkyboltDamage": {
+      "kind": "effect",
+      "id": 72,
+      "name": "Twilight Skybolt",
+      "icon": ""
+    },
+    "TwilightSkyboltHeal": {
+      "kind": "effect",
+      "id": 71,
+      "name": "Twilight Skybolt",
+      "icon": ""
+    },
+    "TwilightSkyboltPowerCharge": {
+      "kind": "effect",
+      "id": 70,
+      "name": "Twilight Skybolt: Eclipse",
+      "icon": "T_Weapon_Skybolt.jpg"
     },
     "UnyieldingVitality": {
       "kind": "effect",
@@ -4447,8 +5435,50 @@
       "id": 155,
       "name": "Voidbringer\u0027s Touch",
       "icon": "T_Weapon_VoidTouch.jpg",
+      "abilityCategory": "Weapon",
       "cooldown": 90,
       "range": 30
+    },
+    "VoidbringerTouchDamage": {
+      "kind": "effect",
+      "id": 69,
+      "name": "",
+      "icon": ""
+    },
+    "VoidbringerTouchDebuff": {
+      "kind": "effect",
+      "id": 68,
+      "name": "Voidbringer\u0027s Touch",
+      "icon": "T_Weapon_VoidTouch.jpg"
+    },
+    "ZeralethHunger": {
+      "kind": "ability",
+      "id": 162,
+      "name": "Zeraleth\u0027s Hunger",
+      "icon": "T_Weapon_Vampiric.jpg",
+      "abilityCategory": "Weapon",
+      "cooldown": 60,
+      "castDuration": 0.5,
+      "channelDuration": 3,
+      "channelTickInterval": 0.5
+    },
+    "ZeralethHungerAoeDamage": {
+      "kind": "effect",
+      "id": 85,
+      "name": "Zeraleth\u0027s Hunger",
+      "icon": ""
+    },
+    "ZeralethHungerDamage": {
+      "kind": "effect",
+      "id": 84,
+      "name": "Zeraleth\u0027s Hunger",
+      "icon": ""
+    },
+    "ZeralethHungerHeal": {
+      "kind": "effect",
+      "id": 83,
+      "name": "Zeraleth\u0027s Hunger",
+      "icon": ""
     }
   },
   "schools": {
@@ -4478,6 +5508,8 @@
     "126": "Magic",
     "144": "Magic",
     "145": "Magic",
+    "149": "Physical",
+    "150": "Physical",
     "152": "Magic",
     "155": "Magic",
     "156": "Magic",
@@ -4490,7 +5522,6 @@
     "205": "Physical",
     "206": "Physical",
     "207": "Physical",
-    "214": "Physical",
     "215": "Physical",
     "217": "Magic",
     "218": "Magic",
@@ -4503,14 +5534,11 @@
     "231": "Magic",
     "232": "Magic",
     "236": "Magic",
-    "238": "Magic",
     "242": "Magic",
-    "244": "Magic",
     "246": "Magic",
     "248": "Physical",
     "251": "Magic",
     "252": "Physical",
-    "254": "Magic",
     "255": "Magic/Physical",
     "265": "Magic",
     "266": "Magic",
@@ -4574,15 +5602,12 @@
     "399": "Physical",
     "402": "Physical",
     "412": "Magic",
-    "419": "Magic",
-    "421": "Physical",
     "430": "Physical",
     "432": "Physical",
     "437": "Physical",
     "442": "Physical",
     "443": "Physical",
     "456": "Magic",
-    "457": "Magic",
     "458": "Magic",
     "460": "Magic",
     "462": "Physical",
@@ -4609,7 +5634,6 @@
     "496": "Magic",
     "497": "Physical",
     "498": "Physical",
-    "499": "Magic",
     "503": "Magic",
     "504": "Physical",
     "505": "Physical",
@@ -4617,9 +5641,7 @@
     "507": "Magic",
     "510": "Physical",
     "512": "Magic",
-    "513": "Magic",
     "514": "Magic",
-    "515": "Physical",
     "525": "Physical",
     "526": "Magic",
     "527": "Magic",
@@ -4628,7 +5650,6 @@
     "534": "Physical",
     "535": "Magic",
     "536": "Physical",
-    "538": "Magic",
     "544": "Physical",
     "545": "Physical",
     "551": "Physical",
@@ -4658,7 +5679,6 @@
     "603": "Physical",
     "609": "Physical",
     "610": "Physical",
-    "612": "Magic",
     "613": "Magic",
     "615": "Magic",
     "616": "Magic",
@@ -4671,7 +5691,6 @@
     "636": "Magic",
     "637": "Magic",
     "638": "Physical",
-    "639": "Magic",
     "640": "Magic",
     "641": "Physical",
     "642": "Physical",
@@ -4683,7 +5702,6 @@
     "650": "Magic",
     "651": "Physical",
     "652": "Physical",
-    "654": "Magic",
     "655": "Magic",
     "657": "Magic",
     "658": "Physical",
@@ -4692,8 +5710,10 @@
     "663": "Magic",
     "664": "Physical",
     "665": "Magic",
+    "667": "Physical",
+    "671": "Physical",
+    "676": "Magic",
     "688": "Magic",
-    "689": "Magic",
     "690": "Magic",
     "692": "Magic",
     "694": "Magic",
@@ -4738,12 +5758,10 @@
     "750": "Magic",
     "751": "Physical",
     "752": "Physical",
-    "753": "Magic",
     "754": "Magic",
     "755": "Magic",
     "756": "Magic",
     "757": "Magic",
-    "758": "Magic",
     "759": "Magic",
     "761": "Physical",
     "763": "Magic",
@@ -4773,7 +5791,6 @@
     "794": "Physical",
     "795": "Magic",
     "797": "Physical",
-    "803": "Physical",
     "805": "Physical",
     "810": "Magic",
     "812": "Physical",
@@ -4793,7 +5810,6 @@
     "838": "Physical",
     "840": "Physical",
     "846": "Magic",
-    "848": "Magic",
     "850": "Physical",
     "853": "Magic",
     "855": "Magic",
@@ -4827,6 +5843,7 @@
     "935": "Magic",
     "936": "Magic",
     "937": "Magic",
+    "952": "Physical",
     "953": "Magic",
     "954": "Magic",
     "959": "Physical",
@@ -4894,6 +5911,7 @@
     "1125": "Physical",
     "1128": "Physical",
     "1129": "Physical",
+    "1167": "Physical",
     "1200": "Physical",
     "1201": "Physical",
     "1207": "Physical",
@@ -4902,6 +5920,7 @@
     "1212": "Physical",
     "1213": "Physical",
     "1214": "Physical",
+    "1219": "Physical",
     "1225": "Physical",
     "1226": "Physical",
     "1227": "Physical",
@@ -4935,9 +5954,10 @@
     "1312": "Physical",
     "1313": "Physical",
     "1315": "Physical",
+    "1317": "Physical",
     "1318": "Physical",
     "1393": "Physical",
-    "1396": "Physical",
+    "1399": "Magic",
     "1406": "Magic",
     "1408": "Physical",
     "1411": "Physical",
@@ -4956,7 +5976,6 @@
     "1449": "Magic",
     "1450": "Physical",
     "1451": "Physical",
-    "1453": "Magic",
     "1454": "Magic",
     "1455": "Magic",
     "1456": "Magic",
@@ -4965,12 +5984,9 @@
     "1470": "Physical",
     "1472": "Physical",
     "1473": "Physical",
-    "1477": "Physical",
     "1479": "Physical",
-    "1482": "Magic",
     "1483": "Magic",
     "1484": "Magic",
-    "1503": "Magic",
     "1506": "Physical",
     "1511": "Physical",
     "1519": "Physical",
@@ -4986,21 +6002,16 @@
     "1584": "Magic",
     "1586": "Magic",
     "1587": "Magic",
-    "1588": "Magic",
-    "1592": "Magic",
     "1593": "Magic",
     "1595": "Magic",
-    "1596": "Magic",
     "1597": "Magic",
     "1599": "Magic",
     "1600": "Magic",
     "1601": "Magic",
-    "1617": "Magic",
     "1618": "Magic",
     "1622": "Physical",
     "1623": "Magic",
     "1634": "Magic",
-    "1635": "Magic",
     "1636": "Magic",
     "1640": "Magic",
     "1641": "Physical",
@@ -5010,7 +6021,6 @@
     "1649": "Magic",
     "1653": "Magic",
     "1657": "Physical",
-    "1664": "Magic",
     "1666": "Magic",
     "1667": "Magic",
     "1764": "Physical",
@@ -5035,9 +6045,11 @@
     "1835": "Magic",
     "1836": "Physical",
     "1838": "Physical",
+    "1842": "Physical",
     "1843": "Physical",
     "1844": "Physical",
     "1845": "Physical",
+    "1846": "Physical",
     "1848": "Physical",
     "1853": "Physical",
     "1855": "Magic",
@@ -5049,6 +6061,7 @@
     "1862": "Physical",
     "1863": "Physical",
     "1876": "Magic",
+    "1877": "Magic",
     "1879": "Magic",
     "1881": "Magic",
     "1887": "Magic",
@@ -5072,7 +6085,6 @@
     "1992": "Magic",
     "1995": "Magic",
     "1997": "Physical",
-    "1998": "Physical",
     "2000": "Magic",
     "2009": "Physical",
     "2013": "Physical",
@@ -5082,7 +6094,6 @@
     "2039": "Physical",
     "2042": "Magic",
     "2043": "Magic",
-    "2069": "Magic",
     "2083": "Magic",
     "2084": "Physical",
     "2085": "Magic",
@@ -5096,7 +6107,6 @@
     "2093": "Magic",
     "2094": "Physical",
     "2096": "Magic",
-    "2097": "Magic",
     "2103": "Magic",
     "2105": "Physical",
     "2106": "Magic",
@@ -5116,17 +6126,10 @@
     "2127": "Magic",
     "2128": "Physical",
     "2130": "Magic",
-    "2131": "Magic",
     "2133": "Physical",
     "2134": "Magic",
-    "2137": "Magic",
-    "2138": "Magic",
     "2139": "Physical",
-    "2140": "Magic",
-    "2141": "Magic",
     "2142": "Magic",
-    "2143": "Magic",
-    "2144": "Magic",
     "2145": "Magic",
     "2147": "Physical",
     "2149": "Physical",
@@ -5151,7 +6154,6 @@
     "2171": "Physical",
     "2172": "Magic",
     "2174": "Physical",
-    "2176": "Magic",
     "2177": "Magic",
     "2178": "Physical",
     "2180": "Magic",
@@ -5163,7 +6165,7 @@
     "2191": "Physical",
     "2192": "Physical",
     "2196": "Physical",
-    "2198": "Physical",
+    "2199": "Magic",
     "2200": "Magic",
     "2203": "Physical",
     "2204": "Physical",
@@ -5173,10 +6175,12 @@
     "2223": "Magic",
     "2224": "Magic",
     "2239": "Physical",
+    "2242": "Physical",
     "2243": "Physical",
     "2262": "Physical",
     "2280": "Physical",
     "2284": "Physical",
+    "2289": "Physical",
     "2290": "Physical",
     "2291": "Physical",
     "2292": "Physical",
@@ -5186,480 +6190,245 @@
     "2298": "Physical",
     "2300": "Physical",
     "2301": "Physical",
-    "2304": "Magic",
-    "1000007": "Physical",
-    "1000029": "Physical",
-    "1000031": "Magic",
-    "1000032": "Magic",
-    "1000035": "Magic",
-    "1000036": "Magic",
+    "2308": "Physical",
+    "2309": "Physical",
     "1000038": "Magic",
     "1000039": "Magic",
-    "1000048": "Magic",
-    "1000049": "Magic",
-    "1000051": "Magic",
-    "1000052": "Magic",
-    "1000053": "Magic",
-    "1000054": "Magic",
-    "1000057": "Magic",
     "1000063": "Magic",
-    "1000064": "Physical",
-    "1000065": "Magic",
-    "1000066": "Magic",
-    "1000067": "Magic",
+    "1000064": "Magic",
     "1000068": "Magic",
-    "1000069": "Magic",
+    "1000070": "Magic",
     "1000071": "Magic",
     "1000072": "Magic",
-    "1000074": "Magic",
-    "1000076": "Magic",
-    "1000077": "Magic",
     "1000078": "Physical",
     "1000079": "Physical",
-    "1000081": "Magic",
-    "1000082": "Magic",
+    "1000080": "Physical",
     "1000083": "Magic",
     "1000084": "Magic",
     "1000085": "Magic",
-    "1000086": "Magic",
-    "1000090": "Magic",
-    "1000093": "Magic",
-    "1000094": "Magic",
-    "1000095": "Magic",
-    "1000096": "Magic",
-    "1000097": "Magic",
-    "1000100": "Magic",
-    "1000101": "Magic",
-    "1000102": "Magic",
-    "1000103": "Magic",
-    "1000104": "Magic",
-    "1000133": "Magic",
-    "1000144": "Magic",
-    "1000145": "Magic",
-    "1000146": "Magic",
-    "1000147": "Magic",
-    "1000148": "Magic",
-    "1000149": "Magic",
-    "1000150": "Magic",
-    "1000152": "Magic",
-    "1000156": "Magic",
-    "1000157": "Magic",
-    "1000158": "Magic",
-    "1000160": "Magic",
-    "1000181": "Physical",
+    "1000087": "Magic",
+    "1000114": "Magic",
     "1000182": "Magic",
-    "1000183": "Magic",
     "1000184": "Magic",
-    "1000185": "Physical",
-    "1000186": "Magic",
+    "1000186": "Physical",
     "1000187": "Physical",
-    "1000188": "Magic",
     "1000189": "Physical",
-    "1000193": "Physical",
-    "1000194": "Magic",
-    "1000195": "Physical",
-    "1000196": "Physical",
     "1000197": "Physical",
-    "1000198": "Physical",
     "1000199": "Magic",
     "1000200": "Magic",
-    "1000201": "Physical",
     "1000202": "Magic",
     "1000203": "Magic",
     "1000204": "Magic",
-    "1000205": "Magic",
-    "1000206": "Magic",
     "1000207": "Magic",
-    "1000210": "Physical",
+    "1000210": "Magic",
+    "1000211": "Magic",
     "1000212": "Physical",
     "1000213": "Magic",
     "1000214": "Magic",
-    "1000215": "Magic",
     "1000216": "Magic",
     "1000217": "Magic",
-    "1000219": "Magic",
-    "1000220": "Magic",
-    "1000221": "Magic",
-    "1000222": "Magic",
     "1000223": "Magic",
-    "1000224": "Magic",
-    "1000229": "Physical",
     "1000232": "Magic",
-    "1000233": "Magic",
-    "1000234": "Magic",
-    "1000235": "Physical",
-    "1000236": "Physical",
+    "1000236": "Magic",
     "1000240": "Physical",
-    "1000241": "Magic",
-    "1000243": "Physical",
     "1000246": "Physical",
-    "1000247": "Magic",
-    "1000248": "Magic",
-    "1000249": "Magic",
-    "1000251": "Magic",
-    "1000253": "Physical",
-    "1000264": "Physical",
+    "1000249": "Magic/Physical",
+    "1000255": "Magic",
+    "1000256": "Magic",
     "1000265": "Magic",
     "1000266": "Magic",
     "1000267": "Magic",
     "1000268": "Magic",
-    "1000269": "Physical",
     "1000270": "Magic",
     "1000271": "Magic",
     "1000272": "Magic",
     "1000273": "Magic",
     "1000274": "Magic",
     "1000275": "Magic",
-    "1000276": "Physical",
+    "1000277": "Physical",
     "1000278": "Physical",
-    "1000279": "Magic",
-    "1000280": "Physical",
-    "1000281": "Physical",
+    "1000279": "Physical",
     "1000282": "Magic",
     "1000283": "Magic",
     "1000284": "Magic",
     "1000285": "Magic",
     "1000286": "Magic",
     "1000287": "Physical",
-    "1000290": "Magic",
-    "1000291": "Magic",
     "1000293": "Physical",
-    "1000294": "Physical",
     "1000297": "Magic",
-    "1000298": "Magic",
-    "1000299": "Physical",
-    "1000301": "Physical",
+    "1000298": "Physical",
     "1000302": "Physical",
-    "1000303": "Magic",
-    "1000304": "Magic",
-    "1000305": "Physical",
     "1000306": "Physical",
     "1000309": "Physical",
-    "1000310": "Physical",
-    "1000311": "Physical",
     "1000312": "Physical",
     "1000313": "Magic",
     "1000314": "Magic",
+    "1000315": "Magic",
     "1000316": "Magic",
-    "1000318": "Physical",
+    "1000317": "Physical",
     "1000321": "Magic",
     "1000323": "Magic",
-    "1000325": "Physical",
-    "1000326": "Physical",
     "1000327": "Magic",
     "1000328": "Magic",
-    "1000329": "Physical",
     "1000333": "Physical",
-    "1000334": "Magic",
-    "1000335": "Magic",
-    "1000336": "Physical",
-    "1000337": "Physical",
-    "1000338": "Physical",
-    "1000339": "Physical",
     "1000340": "Magic",
-    "1000341": "Physical",
     "1000343": "Physical",
-    "1000344": "Physical",
-    "1000346": "Physical",
     "1000347": "Physical",
     "1000348": "Physical",
-    "1000349": "Physical",
-    "1000350": "Physical",
-    "1000351": "Physical",
-    "1000352": "Magic",
-    "1000353": "Magic",
-    "1000354": "Magic",
-    "1000356": "Magic",
-    "1000357": "Physical",
     "1000358": "Physical",
     "1000359": "Physical",
     "1000360": "Physical",
     "1000361": "Physical",
     "1000362": "Physical",
-    "1000363": "Physical",
-    "1000364": "Physical",
-    "1000365": "Physical",
-    "1000366": "Magic",
-    "1000367": "Magic",
-    "1000368": "Magic",
-    "1000369": "Magic",
-    "1000370": "Physical",
-    "1000371": "Physical",
-    "1000372": "Physical",
-    "1000374": "Physical",
-    "1000376": "Physical",
-    "1000377": "Magic",
-    "1000378": "Physical",
-    "1000379": "Magic",
-    "1000380": "Magic",
-    "1000381": "Magic",
-    "1000382": "Magic",
-    "1000383": "Physical",
-    "1000384": "Magic",
-    "1000385": "Physical",
-    "1000386": "Physical",
+    "1000366": "Physical",
     "1000387": "Magic",
     "1000388": "Magic",
     "1000389": "Magic",
     "1000390": "Magic",
     "1000391": "Physical",
-    "1000398": "Physical",
-    "1000399": "Physical",
     "1000400": "Physical",
-    "1000401": "Physical",
-    "1000402": "Magic",
+    "1000402": "Physical",
     "1000403": "Physical",
-    "1000404": "Physical",
+    "1000405": "Physical",
     "1000406": "Physical",
     "1000407": "Physical",
     "1000408": "Physical",
     "1000409": "Physical",
-    "1000410": "Physical",
-    "1000412": "Magic",
-    "1000418": "Physical",
-    "1000419": "Physical",
     "1000420": "Magic",
-    "1000421": "Magic",
-    "1000422": "Magic",
     "1000423": "Physical",
-    "1000425": "Physical",
+    "1000424": "Physical",
     "1000426": "Magic",
     "1000427": "Magic",
-    "1000428": "Physical",
     "1000429": "Physical",
-    "1000430": "Magic",
-    "1000431": "Physical",
     "1000432": "Magic",
-    "1000433": "Magic",
     "1000434": "Magic",
-    "1000435": "Physical",
-    "1000436": "Magic",
-    "1000437": "Magic",
-    "1000438": "Physical",
-    "1000439": "Physical",
-    "1000440": "Magic",
-    "1000441": "Physical",
+    "1000436": "Physical",
+    "1000440": "Physical",
     "1000442": "Physical",
     "1000443": "Physical",
     "1000444": "Physical",
-    "1000445": "Physical",
-    "1000446": "Physical",
-    "1000448": "Physical",
-    "1000449": "Physical",
-    "1000451": "Physical",
-    "1000452": "Physical",
-    "1000453": "Magic",
+    "1000452": "Magic/Physical",
+    "1000453": "Magic/Physical",
     "1000454": "Physical",
-    "1000455": "Physical",
     "1000457": "Physical",
     "1000458": "Physical",
-    "1000459": "Physical",
-    "1000460": "Physical",
-    "1000461": "Physical",
-    "1000462": "Physical",
-    "1000463": "Physical",
-    "1000465": "Physical",
     "1000466": "Magic",
-    "1000468": "Magic",
-    "1000469": "Physical",
-    "1000471": "Magic",
-    "1000475": "Physical",
-    "1000479": "Physical",
-    "1000480": "Physical",
-    "1000481": "Physical",
-    "1000483": "Physical",
-    "1000484": "Physical",
-    "1000487": "Physical",
     "1000488": "Physical",
-    "1000490": "Physical",
     "1000492": "Physical",
     "1000493": "Physical",
-    "1000494": "Physical",
-    "1000495": "Physical",
-    "1000496": "Magic",
-    "1000497": "Magic",
-    "1000498": "Physical",
     "1000499": "Physical",
-    "1000500": "Magic",
-    "1000501": "Magic",
-    "1000502": "Physical",
-    "1000509": "Physical",
-    "1000512": "Physical",
-    "1000513": "Physical",
-    "1000514": "Physical",
-    "1000515": "Physical",
-    "1000516": "Physical",
-    "1000517": "Physical",
-    "1000518": "Physical",
-    "1000520": "Magic",
-    "1000521": "Physical",
-    "1000522": "Physical",
-    "1000524": "Magic",
-    "1000527": "Magic",
-    "1000528": "Magic",
     "1000529": "Magic",
     "1000531": "Physical",
     "1000532": "Magic",
-    "1000533": "Physical",
     "1000534": "Physical",
     "1000535": "Magic",
-    "1000536": "Physical",
-    "1000537": "Magic",
     "1000539": "Magic",
-    "1000540": "Physical",
-    "1000541": "Physical",
-    "1000542": "Magic",
+    "1000542": "Physical",
     "1000543": "Physical",
-    "1000544": "Magic",
+    "1000544": "Physical",
     "1000546": "Physical",
-    "1000547": "Physical",
-    "1000548": "Physical",
-    "1000550": "Physical",
     "1000551": "Physical",
     "1000552": "Physical",
     "1000553": "Magic",
     "1000554": "Magic",
     "1000555": "Magic",
-    "1000556": "Magic",
     "1000557": "Magic",
     "1000558": "Physical",
     "1000559": "Physical",
-    "1000560": "Physical",
-    "1000562": "Physical",
-    "1000564": "Physical",
-    "1000565": "Physical",
-    "1000566": "Magic",
-    "1000567": "Physical",
     "1000568": "Physical",
     "1000569": "Physical",
     "1000570": "Physical",
     "1000571": "Physical",
+    "1000572": "Physical",
     "1000573": "Physical",
     "1000574": "Magic",
     "1000575": "Magic",
     "1000576": "Magic",
     "1000577": "Physical",
     "1000578": "Physical",
-    "1000579": "Magic",
-    "1000580": "Magic",
-    "1000581": "Magic",
-    "1000582": "Magic",
-    "1000583": "Magic",
-    "1000584": "Physical",
+    "1000587": "Magic",
+    "1000588": "Magic",
     "1000589": "Physical",
     "1000590": "Magic",
     "1000591": "Magic",
     "1000592": "Physical",
-    "1000593": "Magic",
+    "1000593": "Physical",
     "1000594": "Physical",
     "1000595": "Magic",
-    "1000596": "Magic",
-    "1000598": "Magic",
-    "1000599": "Magic",
-    "1000600": "Magic",
+    "1000599": "Physical",
+    "1000600": "Physical",
     "1000601": "Physical",
     "1000602": "Physical",
-    "1000605": "Physical",
-    "1000606": "Physical",
+    "1000604": "Magic",
+    "1000605": "Magic",
+    "1000606": "Magic",
     "1000607": "Magic",
-    "1000608": "Magic",
-    "1000609": "Magic",
-    "1000610": "Physical",
     "1000620": "Physical",
     "1000621": "Magic",
     "1000622": "Magic",
-    "1000623": "Magic",
     "1000624": "Magic",
     "1000627": "Physical",
-    "1000628": "Physical",
     "1000629": "Physical",
     "1000630": "Physical",
-    "1000631": "Physical",
+    "1000631": "Magic",
     "1000632": "Physical",
-    "1000634": "Magic",
-    "1000635": "Magic",
-    "1000637": "Physical",
-    "1000639": "Physical",
     "1000640": "Physical",
     "1000641": "Physical",
-    "1000642": "Physical",
-    "1000643": "Physical",
-    "1000645": "Magic",
     "1000647": "Physical",
-    "1000649": "Magic",
     "1000650": "Physical",
+    "1000652": "Physical",
     "1000653": "Physical",
     "1000654": "Physical",
-    "1000655": "Magic",
     "1000659": "Magic",
     "1000660": "Magic",
     "1000661": "Physical",
     "1000662": "Magic",
     "1000663": "Physical",
-    "1000666": "Physical",
-    "1000668": "Physical",
-    "1000669": "Physical",
+    "1000671": "Magic",
     "1000672": "Physical",
+    "1000673": "Magic",
     "1000674": "Magic",
-    "1000675": "Physical",
+    "1000675": "Magic",
     "1000676": "Magic",
-    "1000677": "Magic",
     "1000679": "Physical",
-    "1000680": "Magic",
     "1000681": "Magic",
     "1000682": "Magic",
     "1000683": "Magic",
     "1000684": "Physical",
     "1000685": "Physical",
+    "1000686": "Magic",
+    "1000687": "Magic",
     "1000688": "Magic",
-    "1000691": "Magic",
+    "1000690": "Magic",
     "1000693": "Magic",
     "1000694": "Magic",
     "1000698": "Physical",
-    "1000703": "Magic",
-    "1000705": "Magic",
-    "1000706": "Magic",
-    "1000707": "Magic",
     "1000708": "Physical",
     "1000709": "Physical",
-    "1000713": "Physical",
+    "1000715": "Magic",
     "1000716": "Magic",
+    "1000717": "Magic",
     "1000719": "Magic",
     "1000720": "Magic",
-    "1000722": "Physical",
-    "1000723": "Magic",
     "1000725": "Magic",
     "1000726": "Physical",
-    "1000727": "Magic",
-    "1000729": "Physical",
     "1000730": "Physical",
     "1000731": "Physical",
     "1000733": "Physical",
-    "1000734": "Physical",
-    "1000735": "Magic",
     "1000736": "Magic",
-    "1000737": "Physical",
     "1000738": "Magic",
     "1000739": "Magic",
-    "1000740": "Physical",
     "1000741": "Physical",
-    "1000742": "Physical",
     "1000744": "Physical",
-    "1000747": "Physical",
     "1000748": "Physical",
-    "1000749": "Physical",
     "1000750": "Physical",
-    "1000751": "Physical",
-    "1000752": "Physical",
     "1000754": "Physical",
     "1000755": "Magic",
-    "1000756": "Magic",
     "1000758": "Magic",
     "1000759": "Magic",
     "1000764": "Magic",
     "1000765": "Magic",
     "1000766": "Physical",
-    "1000767": "Magic",
     "1000768": "Magic",
     "1000769": "Physical",
     "1000770": "Physical",
@@ -5670,63 +6439,47 @@
     "1000775": "Physical",
     "1000776": "Magic",
     "1000779": "Physical",
-    "1000780": "Physical",
-    "1000781": "Magic",
-    "1000784": "Magic",
     "1000786": "Magic",
     "1000787": "Physical",
-    "1000788": "Physical",
     "1000790": "Magic",
     "1000791": "Magic",
     "1000792": "Magic",
     "1000793": "Physical",
     "1000794": "Magic",
-    "1000815": "Physical",
+    "1000798": "Physical",
+    "1000799": "Physical",
+    "1000802": "Physical",
+    "1000805": "Magic",
     "1000816": "Magic",
-    "1000817": "Magic",
     "1000818": "Magic",
-    "1000819": "Magic",
-    "1000820": "Magic",
     "1000821": "Magic",
     "1000823": "Magic",
-    "1000824": "Physical",
     "1000825": "Magic",
     "1000826": "Magic",
     "1000827": "Magic",
-    "1000828": "Physical",
     "1000829": "Physical",
-    "1000831": "Magic",
-    "1000832": "Magic",
+    "1000833": "Magic",
     "1000834": "Magic",
-    "1000835": "Physical",
+    "1000836": "Physical",
     "1000837": "Physical",
+    "1000838": "Physical",
     "1000839": "Physical",
-    "1000840": "Magic",
-    "1000841": "Magic",
-    "1000843": "Physical",
-    "1000844": "Magic",
-    "1000846": "Magic",
-    "1000847": "Magic",
     "1000849": "Magic",
-    "1000851": "Physical",
-    "1000852": "Physical",
     "1000853": "Magic",
     "1000854": "Magic",
     "1000855": "Magic",
     "1000856": "Magic",
     "1000857": "Magic",
-    "1000858": "Magic",
     "1000859": "Magic",
-    "1000860": "Physical",
     "1000861": "Physical",
+    "1000862": "Physical",
+    "1000863": "Physical",
     "1000864": "Physical",
-    "1000865": "Physical",
-    "1000866": "Magic",
+    "1000865": "Magic",
+    "1000868": "Physical",
     "1000869": "Physical",
     "1000870": "Physical",
     "1000871": "Physical",
-    "1000874": "Magic",
-    "1000875": "Magic",
     "1000876": "Physical",
     "1000877": "Physical",
     "1000878": "Physical",
@@ -5737,7 +6490,7 @@
     "1000884": "Magic",
     "1000885": "Magic",
     "1000886": "Physical",
-    "1000888": "Magic",
+    "1000887": "Magic",
     "1000889": "Magic",
     "1000890": "Physical",
     "1000891": "Physical",
@@ -5746,11 +6499,8 @@
     "1000896": "Physical",
     "1000897": "Magic",
     "1000899": "Magic",
-    "1000900": "Magic",
-    "1000901": "Magic",
-    "1000902": "Magic",
-    "1000903": "Magic",
     "1000904": "Physical",
+    "1000905": "Magic",
     "1000906": "Physical",
     "1000907": "Physical",
     "1000908": "Magic",
@@ -5762,29 +6512,19 @@
     "1000914": "Physical",
     "1000915": "Magic",
     "1000916": "Magic",
-    "1000917": "Magic",
-    "1000918": "Magic",
-    "1000919": "Magic",
-    "1000920": "Magic",
     "1000921": "Magic",
     "1000922": "Magic",
     "1000924": "Magic",
     "1000926": "Magic",
     "1000927": "Magic",
-    "1000928": "Magic",
-    "1000929": "Physical",
-    "1000931": "Magic",
     "1000932": "Physical",
     "1000933": "Physical",
     "1000934": "Magic",
-    "1000935": "Magic",
     "1000937": "Magic",
     "1000938": "Magic",
     "1000942": "Physical",
-    "1000943": "Physical",
     "1000944": "Physical",
     "1000945": "Physical",
-    "1000946": "Magic",
     "1000947": "Magic",
     "1000949": "Physical",
     "1000950": "Magic",
@@ -5799,6 +6539,7 @@
     "1000959": "Physical",
     "1000960": "Physical",
     "1000961": "Physical",
+    "1000962": "Physical",
     "1000963": "Physical",
     "1000964": "Magic",
     "1000965": "Magic",
@@ -5809,13 +6550,10 @@
     "1000977": "Physical",
     "1000978": "Physical",
     "1000979": "Physical",
-    "1000980": "Magic",
-    "1000981": "Magic",
+    "1000981": "Physical",
+    "1000982": "Physical",
     "1000983": "Physical",
-    "1000986": "Physical",
     "1000990": "Physical",
-    "1000991": "Magic",
-    "1000992": "Physical",
     "1000993": "Magic",
     "1000994": "Magic",
     "1000997": "Physical",
@@ -5823,7 +6561,6 @@
     "1001000": "Physical",
     "1001001": "Physical",
     "1001003": "Physical",
-    "1001004": "Physical",
     "1001005": "Physical",
     "1001007": "Physical",
     "1001008": "Physical",
@@ -5831,139 +6568,70 @@
     "1001010": "Physical",
     "1001011": "Magic",
     "1001012": "Magic",
-    "1001013": "Magic",
-    "1001014": "Physical",
-    "1001015": "Magic",
     "1001016": "Magic",
-    "1001024": "Physical",
     "1001025": "Physical",
     "1001026": "Physical",
     "1001028": "Physical",
-    "1001029": "Magic",
-    "1001031": "Magic",
-    "1001032": "Magic",
-    "1001033": "Physical",
+    "1001029": "Physical",
     "1001034": "Magic",
-    "1001035": "Magic",
-    "1001036": "Physical",
+    "1001037": "Physical",
     "1001038": "Physical",
     "1001039": "Physical",
-    "1001040": "Magic",
-    "1001042": "Magic",
-    "1001043": "Physical",
+    "1001040": "Physical",
     "1001044": "Magic",
     "1001046": "Magic",
+    "1001047": "Magic",
     "1001048": "Physical",
-    "1001050": "Magic",
-    "1001052": "Physical",
     "1001053": "Physical",
-    "1001054": "Magic",
-    "1001055": "Magic",
-    "1001056": "Magic",
     "1001057": "Magic",
     "1001058": "Magic",
-    "1001059": "Magic",
-    "1001062": "Magic",
     "1001065": "Physical",
-    "1001067": "Physical",
-    "1001068": "Physical",
-    "1001069": "Physical",
-    "1001071": "Magic",
-    "1001076": "Magic",
-    "1001077": "Magic",
-    "1001079": "Magic",
-    "1001080": "Magic",
     "1001082": "Physical",
+    "1001083": "Physical",
     "1001084": "Physical",
+    "1001085": "Physical",
+    "1001086": "Physical",
     "1001088": "Physical",
-    "1001090": "Physical",
-    "1001091": "Physical",
     "1001092": "Physical",
     "1001093": "Physical",
+    "1001094": "Physical",
     "1001095": "Physical",
-    "1001097": "Magic",
+    "1001096": "Physical",
     "1001099": "Physical",
-    "1001101": "Magic",
-    "1001102": "Physical",
-    "1001103": "Physical",
     "1001104": "Magic",
-    "1001105": "Physical",
     "1001106": "Magic",
     "1001107": "Magic",
-    "1001109": "Magic",
-    "1001110": "Magic",
     "1001111": "Magic",
     "1001114": "Magic",
-    "1001116": "Physical",
-    "1001117": "Physical",
-    "1001120": "Physical",
     "1001122": "Magic",
-    "1001123": "Magic",
     "1001128": "Physical",
-    "1001132": "Physical",
-    "1001134": "Physical",
     "1001138": "Physical",
-    "1001139": "Physical",
-    "1001142": "Magic",
+    "1001140": "Physical",
+    "1001141": "Physical",
+    "1001142": "Physical",
     "1001143": "Physical",
-    "1001145": "Magic",
-    "1001146": "Magic",
-    "1001148": "Physical",
     "1001150": "Physical",
-    "1001154": "Physical",
     "1001156": "Physical",
-    "1001158": "Physical",
-    "1001160": "Physical",
-    "1001162": "Physical",
-    "1001163": "Physical",
-    "1001164": "Physical",
-    "1001165": "Physical",
-    "1001167": "Physical",
-    "1001168": "Magic",
-    "1001169": "Magic",
     "1001170": "Magic",
-    "1001172": "Physical",
-    "1001173": "Physical",
-    "1001174": "Magic",
-    "1001175": "Magic",
-    "1001176": "Physical",
-    "1001180": "Magic",
     "1001181": "Magic",
     "1001183": "Physical",
-    "1001184": "Magic",
-    "1001185": "Magic",
-    "1001188": "Physical",
-    "1001189": "Physical",
-    "1001192": "Physical",
-    "1001193": "Physical",
-    "1001194": "Physical",
-    "1001195": "Physical",
-    "1001197": "Physical",
-    "1001200": "Magic",
-    "1001201": "Physical",
-    "1001203": "Physical",
+    "1001204": "Physical",
     "1001205": "Magic",
     "1001206": "Magic",
     "1001207": "Magic",
-    "1001208": "Physical",
-    "1001209": "Magic",
-    "1001210": "Magic",
-    "1001211": "Magic",
-    "1001212": "Magic",
-    "1001230": "Physical",
-    "1001239": "Magic",
-    "1001240": "Magic",
+    "1001217": "Physical",
+    "1001219": "Physical",
     "1001241": "Physical",
+    "1001242": "Physical",
     "1001254": "Physical",
-    "1001255": "Physical",
     "1001256": "Physical",
     "1001258": "Physical",
     "1001259": "Physical",
+    "1001260": "Physical",
     "1001261": "Physical",
     "1001263": "Physical",
     "1001264": "Physical",
-    "1001267": "Physical",
-    "1001268": "Physical",
+    "1001269": "Physical",
     "1001270": "Physical",
     "1001271": "Physical",
     "1001272": "Physical",
@@ -5973,202 +6641,160 @@
     "1001277": "Physical",
     "1001278": "Physical",
     "1001284": "Physical",
-    "1001289": "Magic",
     "1001292": "Magic",
     "1001294": "Magic",
-    "1001295": "Magic",
-    "1001296": "Magic",
-    "1001297": "Magic",
-    "1001307": "Magic",
-    "1001308": "Magic",
-    "1001310": "Magic",
+    "1001309": "Magic",
     "1001311": "Magic",
     "1001312": "Magic",
-    "1001315": "Magic",
-    "1001316": "Magic",
-    "1001319": "Magic",
-    "1001321": "Magic",
+    "1001313": "Magic",
+    "1001314": "Magic",
+    "1001317": "Magic",
+    "1001320": "Magic",
+    "1001322": "Magic",
     "1001323": "Magic",
     "1001324": "Magic",
-    "1001328": "Magic",
-    "1001330": "Magic",
-    "1001332": "Magic",
-    "1001333": "Magic",
+    "1001331": "Magic",
     "1001334": "Magic",
     "1001335": "Magic",
-    "1001336": "Magic",
     "1001337": "Magic",
-    "1001339": "Magic",
+    "1001338": "Magic",
+    "1001340": "Magic",
+    "1001341": "Magic",
     "1001342": "Magic",
     "1001343": "Magic",
-    "1001347": "Magic",
+    "1001344": "Magic",
+    "1001346": "Magic",
+    "1001348": "Magic",
     "1001349": "Magic",
-    "1001365": "Magic",
-    "1001368": "Magic",
-    "1001373": "Magic",
-    "1001374": "Magic",
-    "1001376": "Magic",
-    "1001377": "Magic",
+    "1001366": "Magic",
     "1001379": "Magic",
-    "1001380": "Magic",
+    "1001381": "Magic",
+    "1001382": "Magic",
     "1001383": "Magic",
-    "1001384": "Magic",
     "1001385": "Magic",
-    "1001387": "Magic",
     "1001389": "Magic",
-    "1001390": "Magic",
-    "1001391": "Magic",
-    "1001392": "Magic",
-    "1001394": "Magic",
+    "1001393": "Magic",
     "1001395": "Magic",
-    "1001396": "Magic",
-    "1001397": "Magic",
-    "1001398": "Magic",
-    "1001419": "Magic",
+    "1001433": "Magic",
+    "1001434": "Magic",
     "1001435": "Magic",
     "1001436": "Magic",
-    "1001439": "Magic",
-    "1001440": "Magic",
-    "1001445": "Magic",
-    "1001448": "Magic",
-    "1001449": "Magic",
+    "1001438": "Magic",
+    "1001441": "Magic",
+    "1001443": "Magic",
+    "1001444": "Magic",
+    "1001447": "Magic",
     "1001450": "Magic",
     "1001469": "Magic",
     "1001470": "Magic",
+    "1001471": "Magic",
     "1001472": "Magic",
-    "1001474": "Magic",
-    "1001477": "Magic",
-    "1001480": "Magic",
+    "1001473": "Magic",
+    "1001479": "Magic",
+    "1001483": "Magic",
     "1001484": "Magic",
     "1001485": "Magic",
-    "1001486": "Magic",
-    "1001507": "Magic",
-    "1001508": "Magic",
-    "1001509": "Magic",
-    "1001511": "Physical",
+    "1001487": "Magic",
+    "1001510": "Magic",
     "1001514": "Physical",
     "1001524": "Physical",
     "1001526": "Physical",
-    "1001528": "Magic",
-    "1001531": "Magic",
+    "1001528": "Physical",
+    "1001531": "Physical",
     "1001533": "Physical",
     "1001535": "Physical",
-    "1001536": "Magic",
-    "1001537": "Magic",
+    "1001537": "Physical",
     "1001538": "Physical",
-    "1001542": "Magic",
-    "1001548": "Magic",
-    "1001550": "Magic",
+    "1001542": "Physical",
+    "1001551": "Physical",
     "1001552": "Physical",
-    "1001556": "Magic",
+    "1001556": "Physical",
     "1001557": "Physical",
+    "1001558": "Physical",
+    "1001560": "Physical",
     "1001561": "Physical",
     "1001564": "Physical",
     "1001565": "Magic",
-    "1001569": "Magic",
-    "1001572": "Magic",
+    "1001569": "Physical",
+    "1001570": "Physical",
     "1001576": "Physical",
     "1001583": "Physical",
-    "1001585": "Magic",
     "1001586": "Physical",
     "1001587": "Physical",
+    "1001588": "Physical",
+    "1001641": "Physical",
+    "1001642": "Physical",
+    "1001703": "Physical",
     "1001704": "Physical",
     "1001705": "Physical",
-    "1001716": "Magic",
+    "1001706": "Physical",
     "1001717": "Physical",
     "1001718": "Physical",
     "1001721": "Physical",
-    "1001724": "Physical",
+    "1001722": "Physical",
     "1001725": "Physical",
-    "1001726": "Magic",
+    "1001726": "Physical",
     "1001728": "Physical",
-    "1001730": "Magic",
-    "1001731": "Magic",
-    "1001732": "Physical",
+    "1001729": "Physical",
+    "1001738": "Physical",
     "1001742": "Physical",
-    "1001753": "Physical",
+    "1001750": "Physical",
     "1001754": "Physical",
     "1001757": "Physical",
+    "1001758": "Physical",
     "1001759": "Physical",
     "1001760": "Physical",
     "1001762": "Physical",
-    "1001763": "Magic",
+    "1001763": "Physical",
     "1001764": "Physical",
-    "1001766": "Magic",
-    "1001767": "Magic",
+    "1001765": "Physical",
+    "1001768": "Magic",
     "1001770": "Physical",
-    "1001772": "Magic",
-    "1001774": "Magic",
-    "1001776": "Physical",
-    "1001779": "Magic",
-    "1001780": "Physical",
-    "1001781": "Magic",
+    "1001771": "Physical",
+    "1001781": "Physical",
     "1001782": "Physical",
+    "1001783": "Physical",
     "1001784": "Physical",
+    "1001785": "Physical",
+    "1001786": "Physical",
     "1001796": "Physical",
     "1001800": "Physical",
     "1001801": "Physical",
     "1001802": "Physical",
     "1001803": "Physical",
-    "1001804": "Magic",
-    "1001807": "Magic",
-    "1001808": "Magic",
-    "1001810": "Magic",
     "1001815": "Magic",
-    "1001817": "Magic",
-    "1001820": "Magic",
+    "1001821": "Magic",
     "1001822": "Magic",
     "1001823": "Magic",
     "1001824": "Magic",
     "1001825": "Magic",
-    "1001826": "Magic",
-    "1001827": "Magic",
     "1001829": "Magic",
     "1001830": "Magic",
-    "1001832": "Magic",
+    "1001831": "Magic",
     "1001833": "Magic",
     "1001834": "Magic",
-    "1001835": "Magic",
-    "1001837": "Magic",
+    "1001836": "Magic",
     "1001862": "Magic",
+    "1001863": "Magic",
     "1001864": "Magic",
-    "1001868": "Physical",
-    "1001875": "Magic",
-    "1001876": "Magic",
-    "1001877": "Magic",
+    "1001865": "Magic",
     "1001881": "Physical",
+    "1001882": "Physical",
     "1001885": "Physical",
+    "1001886": "Physical",
     "1001891": "Physical",
+    "1001892": "Physical",
     "1001896": "Physical",
+    "1001897": "Physical",
     "1001899": "Physical",
-    "1001930": "Magic",
-    "1001931": "Magic",
-    "1001932": "Magic",
-    "1001933": "Magic",
-    "1001963": "Magic",
-    "1001964": "Magic",
-    "1001966": "Magic",
-    "1001967": "Magic",
-    "1001968": "Magic",
-    "1001969": "Magic",
-    "1001986": "Magic",
-    "1001987": "Magic",
-    "1001993": "Magic",
-    "1001994": "Magic",
+    "1001900": "Physical",
+    "1002000": "Magic",
     "1002002": "Physical",
-    "1002003": "Physical",
-    "1002008": "Physical",
-    "1002010": "Magic",
+    "1002010": "Physical",
+    "1002011": "Magic",
     "1002012": "Magic",
-    "1002013": "Physical",
-    "1002014": "Physical",
-    "1002015": "Physical",
-    "1002017": "Magic",
-    "1002018": "Magic",
     "1002019": "Magic",
     "1002021": "Physical",
-    "1002022": "Physical",
-    "1002026": "Magic",
     "1002029": "Physical",
     "1002031": "Physical",
     "1002032": "Magic",
@@ -6176,26 +6802,18 @@
     "1002034": "Physical",
     "1002035": "Physical",
     "1002036": "Physical",
-    "1002038": "Magic",
+    "1002037": "Physical",
     "1002042": "Magic",
-    "1002043": "Magic",
     "1002044": "Physical",
     "1002045": "Physical",
-    "1002047": "Magic",
-    "1002049": "Magic",
+    "1002050": "Magic",
     "1002054": "Physical",
     "1002055": "Physical",
-    "1002056": "Physical",
-    "1002059": "Physical",
-    "1002060": "Physical",
-    "1002061": "Physical",
-    "1002062": "Magic",
+    "1002057": "Magic",
     "1002071": "Magic",
-    "1002079": "Magic",
-    "1002088": "Physical",
+    "1002075": "Magic",
+    "1002087": "Physical",
     "1002089": "Physical",
-    "1002090": "Magic",
-    "1002091": "Magic",
     "1002095": "Magic",
     "1002096": "Magic",
     "1002097": "Magic",
@@ -6203,187 +6821,113 @@
     "1002099": "Physical",
     "1002100": "Physical",
     "1002102": "Magic",
-    "1002103": "Magic",
     "1002105": "Magic",
     "1002106": "Magic",
-    "1002109": "Magic",
-    "1002113": "Magic",
-    "1002114": "Physical",
     "1002119": "Physical",
     "1002120": "Physical",
-    "1002122": "Magic",
     "1002123": "Physical",
     "1002124": "Physical",
     "1002129": "Physical",
     "1002130": "Physical",
     "1002131": "Physical",
-    "1002132": "Magic",
     "1002133": "Physical",
-    "1002134": "Physical",
-    "1002135": "Physical",
     "1002137": "Physical",
     "1002143": "Magic",
     "1002144": "Magic",
     "1002145": "Magic",
-    "1002147": "Physical",
-    "1002148": "Magic",
-    "1002151": "Magic",
-    "1002155": "Physical",
-    "1002162": "Magic",
+    "1002148": "Physical",
     "1002170": "Magic",
-    "1002172": "Magic",
     "1002173": "Magic",
-    "1002175": "Magic",
+    "1002176": "Physical",
     "1002178": "Magic",
-    "1002179": "Physical",
-    "1002180": "Physical",
-    "1002187": "Physical",
+    "1002180": "Magic",
     "1002199": "Physical",
+    "1002200": "Magic",
+    "1002201": "Magic",
     "1002202": "Physical",
     "1002203": "Physical",
     "1002205": "Physical",
     "1002207": "Magic",
     "1002208": "Physical",
     "1002209": "Physical",
-    "1002210": "Physical",
-    "1002211": "Magic",
     "1002214": "Physical",
-    "1002216": "Magic",
-    "1002217": "Magic",
     "1002218": "Magic",
-    "1002219": "Magic",
-    "1002220": "Magic",
-    "1002221": "Magic",
-    "1002224": "Physical",
+    "1002225": "Magic",
     "1002226": "Magic",
-    "1002227": "Magic",
     "1002229": "Physical",
     "1002232": "Magic",
-    "1002237": "Magic",
     "1002238": "Magic",
     "1002240": "Magic",
-    "1002241": "Magic",
-    "1002243": "Magic",
-    "1002246": "Physical",
     "1002247": "Magic",
     "1002250": "Physical",
     "1002252": "Magic",
-    "1002255": "Magic",
-    "1002256": "Magic",
-    "1002259": "Physical",
+    "1002255": "Physical",
     "1002260": "Physical",
-    "1002261": "Magic",
     "1002264": "Magic",
-    "1002266": "Magic",
+    "1002265": "Magic",
     "1002269": "Magic",
-    "1002270": "Physical",
+    "1002270": "Magic",
     "1002278": "Magic",
-    "1002279": "Magic",
-    "1002280": "Magic",
-    "1002281": "Magic",
-    "1002282": "Magic",
-    "1002283": "Magic",
-    "1002284": "Magic",
-    "1002285": "Magic",
     "1002286": "Magic",
     "1002287": "Magic",
-    "1002289": "Magic",
-    "1002293": "Magic",
-    "1002294": "Magic",
     "1002295": "Magic",
+    "1002296": "Magic",
     "1002297": "Magic",
     "1002298": "Magic",
-    "1002300": "Magic",
+    "1002299": "Magic",
     "1002301": "Magic",
-    "1002302": "Magic",
-    "1002303": "Magic",
-    "1002305": "Magic",
     "1002307": "Magic",
     "1002308": "Magic",
-    "1002309": "Magic",
-    "1002310": "Magic",
+    "1002311": "Magic",
     "1002312": "Magic",
+    "1002313": "Magic",
+    "1002315": "Magic",
     "1002316": "Magic",
-    "1002317": "Magic",
-    "1002325": "Magic",
-    "1002326": "Magic",
-    "1002327": "Magic",
-    "1002328": "Magic",
-    "1002329": "Magic",
-    "1002330": "Magic",
-    "1002331": "Magic",
-    "1002332": "Magic",
+    "1002319": "Magic",
+    "1002320": "Magic",
+    "1002327": "Physical",
+    "1002330": "Physical",
     "1002335": "Physical",
-    "1002337": "Magic",
-    "1002338": "Magic",
-    "1002340": "Physical",
-    "1002346": "Magic",
-    "1002347": "Magic",
-    "1002348": "Magic",
-    "1002349": "Magic",
+    "1002342": "Magic",
+    "1002345": "Magic",
     "1002350": "Magic",
     "1002351": "Magic",
     "1002352": "Magic",
-    "1002354": "Magic",
-    "1002355": "Physical",
-    "1002356": "Physical",
-    "1002357": "Physical",
     "1002360": "Physical",
-    "1002364": "Magic",
-    "1002369": "Magic",
     "1002370": "Magic",
-    "1002373": "Magic",
     "1002374": "Physical",
+    "1002376": "Magic",
     "1002377": "Magic",
-    "1002378": "Magic",
     "1002379": "Magic",
-    "1002380": "Physical",
     "1002381": "Magic",
     "1002401": "Magic",
-    "1002404": "Magic",
     "1002405": "Magic",
-    "1002406": "Magic",
+    "1002406": "Physical",
     "1002407": "Magic",
-    "1002411": "Magic",
-    "1002412": "Magic",
+    "1002410": "Physical",
+    "1002411": "Physical",
     "1002413": "Physical",
+    "1002414": "Magic",
+    "1002415": "Magic",
     "1002416": "Magic",
     "1002421": "Magic",
-    "1002422": "Magic",
-    "1002428": "Physical",
     "1002429": "Physical",
+    "1002430": "Physical",
+    "1002431": "Physical",
     "1002432": "Magic",
-    "1002433": "Physical",
-    "1002435": "Physical",
-    "1002436": "Magic",
     "1002438": "Magic",
     "1002439": "Magic",
     "1002440": "Magic",
     "1002442": "Magic",
     "1002446": "Magic",
-    "1002450": "Magic",
-    "1002451": "Magic",
+    "1002449": "Magic",
     "1002452": "Magic",
-    "1002455": "Magic",
-    "1002456": "Magic",
     "1002458": "Physical",
     "1002461": "Physical",
-    "1002462": "Magic",
-    "1002463": "Magic",
-    "1002464": "Magic",
-    "1002465": "Magic",
-    "1002466": "Magic",
-    "1002468": "Magic",
-    "1002473": "Physical",
-    "1002474": "Magic",
+    "1002467": "Magic",
     "1002478": "Physical",
-    "1002481": "Physical",
-    "1002484": "Magic",
-    "1002487": "Magic",
-    "1002488": "Magic",
-    "1002492": "Magic",
-    "1002495": "Magic",
-    "1002496": "Magic",
+    "1002481": "Magic",
+    "1002485": "Physical",
     "1002497": "Magic",
     "1002498": "Magic",
     "1002499": "Magic",
@@ -6393,199 +6937,130 @@
     "1002503": "Magic",
     "1002504": "Physical",
     "1002506": "Physical",
-    "1002507": "Physical",
-    "1002510": "Physical",
     "1002512": "Physical",
     "1002513": "Physical",
-    "1002516": "Physical",
-    "1002517": "Physical",
+    "1002514": "Physical",
     "1002523": "Physical",
+    "1002524": "Physical",
+    "1002526": "Physical",
     "1002527": "Physical",
-    "1002528": "Magic",
-    "1002529": "Physical",
+    "1002529": "Magic",
     "1002530": "Magic",
     "1002531": "Magic",
     "1002532": "Physical",
-    "1002533": "Magic",
-    "1002539": "Physical",
-    "1002540": "Physical",
+    "1002541": "Physical",
     "1002542": "Physical",
     "1002543": "Physical",
     "1002544": "Physical",
+    "1002545": "Physical",
     "1002546": "Physical",
     "1002547": "Physical",
-    "1002548": "Physical",
     "1002549": "Physical",
-    "1002551": "Magic",
-    "1002552": "Physical",
-    "1002553": "Physical",
-    "1002555": "Physical",
+    "1002550": "Physical",
+    "1002556": "Physical",
     "1002557": "Physical",
-    "1002558": "Physical",
-    "1002560": "Physical",
-    "1002561": "Physical",
-    "1002562": "Physical",
+    "1002559": "Physical",
+    "1002563": "Magic",
     "1002564": "Magic",
     "1002565": "Magic",
     "1002566": "Physical",
     "1002567": "Physical",
     "1002568": "Physical",
     "1002569": "Physical",
+    "1002570": "Physical",
     "1002571": "Physical",
+    "1002572": "Magic",
     "1002573": "Magic",
-    "1002574": "Physical",
-    "1002576": "Magic",
+    "1002575": "Physical",
+    "1002576": "Physical",
     "1002577": "Physical",
-    "1002578": "Magic",
+    "1002579": "Magic",
     "1002580": "Magic",
+    "1002581": "Magic",
     "1002582": "Magic",
-    "1002583": "Magic",
-    "1002585": "Magic",
-    "1002595": "Magic",
-    "1002596": "Magic",
-    "1002599": "Magic",
     "1002603": "Magic",
+    "1002604": "Magic",
+    "1002605": "Magic",
     "1002606": "Magic",
+    "1002607": "Magic",
     "1002608": "Magic",
     "1002612": "Magic",
     "1002613": "Magic",
-    "1002614": "Magic",
+    "1002615": "Magic",
     "1002616": "Magic",
     "1002617": "Magic",
+    "1002618": "Magic",
     "1002622": "Magic",
-    "1002624": "Magic",
+    "1002623": "Magic",
     "1002625": "Magic",
-    "1002640": "Magic",
-    "1002645": "Magic",
-    "1002646": "Magic",
-    "1002647": "Magic",
-    "1002648": "Magic",
-    "1002649": "Magic",
-    "1002650": "Magic",
-    "1002651": "Physical",
-    "1002652": "Magic",
-    "1002653": "Magic",
-    "1002655": "Magic",
-    "1002656": "Magic",
-    "1002657": "Magic",
-    "1002660": "Magic",
-    "1002661": "Magic",
-    "1002664": "Magic",
+    "1002626": "Magic",
+    "1002647": "Physical",
+    "1002657": "Physical",
+    "1002660": "Physical",
     "1002665": "Physical",
-    "1002666": "Physical",
-    "1002667": "Magic",
-    "1002669": "Magic",
-    "1002670": "Magic",
-    "1002674": "Magic",
     "1002685": "Magic",
     "1002686": "Magic",
+    "1002687": "Magic",
     "1002688": "Magic",
-    "1002696": "Magic",
-    "1002701": "Magic",
-    "1002704": "Magic",
-    "1002705": "Magic",
-    "1002706": "Magic",
-    "1002707": "Magic",
-    "1002708": "Magic",
-    "1002709": "Magic",
-    "1002711": "Magic",
-    "1002712": "Magic",
-    "1002715": "Magic",
-    "1002716": "Physical",
-    "1002721": "Magic",
-    "1002723": "Magic",
+    "1002689": "Magic",
+    "1002718": "Physical",
+    "1002721": "Physical",
     "1002724": "Magic",
     "1002725": "Magic",
-    "1002727": "Magic",
     "1002730": "Magic",
-    "1002732": "Magic",
-    "1002733": "Magic",
-    "1002734": "Magic",
-    "1002735": "Magic",
-    "1002736": "Magic",
-    "1002739": "Magic",
     "1002740": "Magic",
+    "1002741": "Magic",
     "1002744": "Magic",
+    "1002745": "Magic",
     "1002746": "Magic",
+    "1002747": "Magic",
     "1002749": "Magic",
-    "1002754": "Magic",
-    "1002755": "Magic",
-    "1002764": "Magic",
-    "1002765": "Magic",
+    "1002750": "Magic",
+    "1002755": "Physical",
+    "1002756": "Magic",
     "1002766": "Physical",
-    "1002767": "Physical",
-    "1002768": "Physical",
-    "1002769": "Physical",
-    "1002770": "Physical",
     "1002771": "Physical",
+    "1002772": "Physical",
     "1002773": "Physical",
+    "1002774": "Physical",
+    "1002775": "Physical",
     "1002776": "Physical",
-    "1002777": "Physical",
     "1002781": "Magic",
-    "1002782": "Physical",
     "1002783": "Magic",
-    "1002784": "Magic",
     "1002785": "Magic",
     "1002786": "Physical",
-    "1002790": "Physical",
     "1002791": "Magic",
-    "1002792": "Physical",
     "1002793": "Magic",
-    "1002794": "Physical",
-    "1002795": "Magic",
-    "1002796": "Magic",
+    "1002795": "Physical",
     "1002797": "Physical",
-    "1002799": "Physical",
     "1002800": "Magic",
-    "1002801": "Physical",
-    "1002802": "Physical",
-    "1002803": "Physical",
-    "1002804": "Magic",
-    "1002805": "Physical",
-    "1002807": "Physical",
     "1002808": "Physical",
-    "1002809": "Physical",
-    "1002810": "Physical",
-    "1002811": "Physical",
     "1002812": "Physical",
-    "1002813": "Physical",
-    "1002814": "Physical",
     "1002815": "Magic",
-    "1002818": "Magic",
-    "1002819": "Magic",
-    "1002820": "Magic",
-    "1002823": "Physical",
     "1002826": "Magic",
     "1002827": "Magic",
-    "1002832": "Magic",
-    "1002837": "Magic",
-    "1002838": "Magic",
+    "1002833": "Magic",
     "1002839": "Magic",
-    "1002841": "Magic",
-    "1002842": "Magic",
-    "1002843": "Magic",
-    "1002844": "Magic",
-    "1002846": "Physical",
-    "1002850": "Magic",
-    "1002856": "Magic",
-    "1002860": "Magic",
     "1002865": "Magic",
     "1002866": "Magic",
     "1002867": "Magic",
     "1002868": "Physical",
+    "1002869": "Physical",
     "1002870": "Magic",
+    "1002871": "Magic",
     "1002872": "Magic",
-    "1002873": "Magic",
-    "1002874": "Magic",
+    "1002873": "Physical",
+    "1002874": "Physical",
     "1002875": "Physical",
     "1002876": "Physical",
-    "1002877": "Magic",
+    "1002877": "Physical",
+    "1002878": "Physical",
     "1002879": "Physical",
     "1002880": "Physical",
     "1002881": "Physical",
     "1002882": "Physical",
     "1002883": "Physical",
-    "1002884": "Magic",
+    "1002884": "Physical",
     "1002885": "Physical",
     "1002886": "Physical",
     "1002887": "Magic",
@@ -6593,40 +7068,26 @@
     "1002889": "Magic",
     "1002890": "Magic",
     "1002891": "Physical",
-    "1002892": "Physical",
     "1002893": "Magic",
     "1002894": "Magic",
-    "1002895": "Magic",
-    "1002896": "Magic",
     "1002897": "Magic",
     "1002898": "Physical",
     "1002899": "Magic",
     "1002900": "Physical",
     "1002901": "Physical",
     "1002902": "Physical",
+    "1002904": "Magic",
     "1002905": "Magic",
     "1002906": "Magic",
-    "1002907": "Magic",
-    "1002908": "Magic",
+    "1002907": "Physical",
+    "1002908": "Physical",
     "1002909": "Physical",
-    "1002910": "Magic",
+    "1002910": "Physical",
     "1002911": "Physical",
     "1002912": "Physical",
-    "1002914": "Magic",
-    "1002918": "Magic",
-    "1002919": "Magic",
-    "1002920": "Magic",
-    "1002924": "Magic",
-    "1002925": "Magic",
-    "1002930": "Magic",
-    "1002931": "Magic",
-    "1002935": "Magic",
-    "1002936": "Magic",
-    "1002938": "Magic",
-    "1002940": "Magic",
-    "1002942": "Magic",
-    "1002943": "Magic",
-    "1002944": "Magic",
+    "1002923": "Magic",
+    "1002926": "Magic",
+    "1002928": "Magic",
     "1002945": "Magic",
     "1002946": "Magic",
     "1002948": "Magic",
@@ -6635,39 +7096,22 @@
     "1002951": "Magic",
     "1002952": "Magic",
     "1002953": "Magic",
+    "1002954": "Physical",
     "1002955": "Physical",
     "1002956": "Physical",
-    "1002957": "Magic/Physical",
     "1002958": "Magic",
     "1002959": "Magic",
     "1002960": "Magic",
-    "1002961": "Magic",
-    "1002962": "Magic",
     "1002963": "Physical",
+    "1002964": "Magic",
     "1002965": "Magic",
     "1002966": "Magic",
-    "1002967": "Magic",
-    "1002968": "Magic",
-    "1002969": "Magic",
-    "1002970": "Magic",
-    "1002971": "Magic",
-    "1002972": "Magic",
-    "1002973": "Magic",
-    "1002976": "Magic",
-    "1002977": "Magic",
-    "1002978": "Magic",
-    "1002980": "Magic",
-    "1002982": "Magic",
-    "1002983": "Magic",
     "1002985": "Magic",
-    "1002986": "Magic",
-    "1002987": "Magic",
     "1002988": "Magic",
     "1002989": "Magic",
-    "1002991": "Physical",
     "1002992": "Physical",
-    "1002994": "Physical",
     "1002995": "Physical",
+    "1002996": "Physical",
     "1002997": "Physical",
     "1002998": "Physical",
     "1002999": "Physical",
@@ -6678,9 +7122,8 @@
     "1003004": "Magic",
     "1003005": "Magic",
     "1003006": "Magic",
-    "1003007": "Magic",
     "1003008": "Physical",
-    "1003009": "Magic",
+    "1003009": "Physical",
     "1003010": "Physical",
     "1003011": "Magic",
     "1003012": "Magic",
@@ -6692,15 +7135,9 @@
     "1003018": "Physical",
     "1003019": "Magic",
     "1003020": "Magic",
+    "1003021": "Magic",
     "1003022": "Physical",
-    "1003023": "Magic",
-    "1003024": "Magic",
-    "1003025": "Magic",
-    "1003026": "Magic",
-    "1003027": "Physical",
-    "1003028": "Physical",
-    "1003029": "Physical",
-    "1003030": "Physical",
+    "1003024": "Physical",
     "1003031": "Magic",
     "1003032": "Magic",
     "1003033": "Magic",
@@ -6711,76 +7148,37 @@
     "1003038": "Magic",
     "1003039": "Physical",
     "1003040": "Physical",
-    "1003043": "Magic",
-    "1003046": "Physical",
-    "1003047": "Physical",
-    "1003048": "Magic",
+    "1003048": "Physical",
+    "1003049": "Physical",
     "1003050": "Physical",
+    "1003051": "Physical",
     "1003052": "Physical",
-    "1003053": "Physical",
     "1003054": "Physical",
     "1003056": "Physical",
     "1003057": "Physical",
     "1003058": "Magic",
     "1003059": "Physical",
-    "1003061": "Magic",
-    "1003062": "Physical",
-    "1003063": "Physical",
-    "1003064": "Physical",
     "1003065": "Physical",
-    "1003066": "Physical",
-    "1003070": "Magic",
     "1003071": "Magic",
-    "1003072": "Magic",
-    "1003073": "Physical",
     "1003075": "Physical",
-    "1003076": "Magic",
-    "1003077": "Magic",
-    "1003079": "Magic",
-    "1003080": "Magic",
+    "1003076": "Physical",
+    "1003077": "Physical",
+    "1003078": "Magic",
     "1003081": "Magic",
-    "1003082": "Physical",
     "1003084": "Physical",
-    "1003088": "Physical",
-    "1003091": "Physical",
     "1003098": "Physical",
-    "1003113": "Magic",
-    "1003114": "Magic",
+    "1003105": "Magic",
     "1003119": "Magic",
-    "1003128": "Magic",
-    "1003129": "Magic",
-    "1003131": "Magic",
-    "1003133": "Magic",
-    "1003134": "Magic",
-    "1003135": "Magic",
-    "1003136": "Magic",
-    "1003139": "Magic",
-    "1003140": "Magic",
-    "1003142": "Magic",
-    "1003144": "Magic",
-    "1003152": "Magic",
-    "1003153": "Magic",
-    "1003154": "Magic",
-    "1003157": "Physical",
     "1003161": "Physical",
-    "1003162": "Physical",
+    "1003163": "Physical",
     "1003172": "Physical",
     "1003173": "Physical",
-    "1003175": "Magic",
-    "1003187": "Magic",
-    "1003188": "Physical",
-    "1003190": "Magic",
-    "1003191": "Physical",
-    "1003193": "Magic",
+    "1003179": "Physical",
     "1003205": "Physical",
-    "1003209": "Physical",
     "1003210": "Physical",
-    "1003220": "Physical",
-    "1003221": "Magic",
+    "1003223": "Physical",
     "1003226": "Physical",
     "1003228": "Physical",
-    "1003229": "Physical",
-    "1003231": "Physical",
     "1003232": "Physical",
     "1003233": "Physical",
     "1003235": "Physical",
@@ -6790,16 +7188,8 @@
     "1003239": "Physical",
     "1003240": "Physical",
     "1003241": "Physical",
-    "1003243": "Magic",
-    "1003245": "Physical",
-    "1003246": "Physical",
     "1003247": "Physical",
     "1003248": "Physical",
-    "1003251": "Magic",
-    "1003252": "Magic",
-    "1003253": "Magic",
-    "1003254": "Magic",
-    "1003255": "Magic",
-    "1003259": "Magic"
+    "1003257": "Physical"
   }
 }

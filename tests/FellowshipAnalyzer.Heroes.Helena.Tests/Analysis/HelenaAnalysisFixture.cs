@@ -119,7 +119,7 @@ internal static class HelenaAnalysisFixture
     /// <summary>
     /// An ability the game data classifies as Physical, so a hit built from it survives a physical-only
     /// filter. Taken from the spellbook rather than written down as an id, because the classification
-    /// lives in the game data dump and moves with it.
+    /// lives in the game-data export and moves with it.
     /// </summary>
     public static Spell PhysicalAbility => Spells.MeasuredStrikeDamage;
 

@@ -164,18 +164,36 @@ instead. That is the same rule at a smaller scope, and it is the move all four s
 
 ## Rule 4. Use the game's verb
 
-Fellowship's own tooltip strings in `external/fs_tc_uploads/s3/*.json` are the vocabulary source of
-truth. They say an ability **strikes**, **deals**, **applies**, and that you **gain** something. Use
-those. A word the game does not use for an event the game does name is a metaphor someone imported, and
-it is a ban candidate on sight. Write no metaphors in prose.
+Fellowship's own tooltip strings are the vocabulary source of truth, and they live in the `description`
+field of the ability, effect, talent and trait records in `data/v*/entities.jsonl`. They say an ability
+**strikes**, **deals**, **applies**, and that you **gain** something. Use those. A word the game does not
+use for an event the game does name is a metaphor someone imported, and it is a ban candidate on sight.
+Write no metaphors in prose.
 
-Check before defending a word: ripgrep skips the submodule via its `.gitignore` and will silently
-answer from dead s2 data, so use `grep -r` against `external/fs_tc_uploads/s3/` directly.
+Check before defending a word. The export is a plain tracked path, so both the Grep tool and ripgrep see
+it, but one line is one whole JSON record, so four stages are needed: keep only the four record types the
+prose above names, cut each line down to its `description` field, blank the backslash-u escapes so a word
+against a markup tag still starts on a word boundary, then count. Every figure quoted in this file comes
+from this pipeline:
 
-**Absence from s3 convicts a word only where the game has a word for the same event.** The game writes
-ability tooltips; this codebase writes analysis prose, so plenty of legitimate analysis words appear in
-s3 zero times. "unused" is one of them, and it is the blessed replacement in the worked example above.
-"fell off" is convicted not by its own zero but by the 22 hits for *expire* against it, describing the
+```
+grep -E '^\{"\$type":"(ability|effect|talent|trait)"' data/v*/entities.jsonl \
+  | grep -oE '"description":"[^"]*"' \
+  | sed -E 's/\\u[0-9A-Fa-f]{4}/ /g' \
+  | grep -oiE 'expir[a-z]*' | sort | uniq -c
+```
+
+For a plain word count, swap the last stage for `grep -oiE '\bstrikes\b' | wc -l`. Descriptions are
+JSON-escaped: apostrophes and the rich-text markup tags arrive as backslash-u escapes, which is what the
+`sed` stage blanks. Match on plain words, never on a phrase containing punctuation. Drop the first stage
+to widen the count to every record type, which raises `strikes` from 42 to 54 and `expires` from 22 to 31,
+and admits mount and item flavour text that is not tooltip vocabulary.
+
+**Absence from the export convicts a word only where the game has a word for the same event.** The game
+writes ability tooltips; this codebase writes analysis prose, so plenty of legitimate analysis words
+appear in the export zero times. "unused" is one of them, and it is the blessed replacement in the worked
+example above.
+"fell off" is convicted not by its own zero but by the 22 hits for *expires* against it, describing the
 same event. No competing game word, no conviction on this rule; judge it under rules 1 and 5 instead.
 
 ## Rule 5. Take the replacement from the code you are editing
@@ -279,8 +297,9 @@ where the renames are.
 
 ## Presence and holding
 
-Nine senses. Recognise them by `carry`, `carries`, `carried`, `carrying`, which Fellowship's own
-strings use zero times across all five `s3` files, against 8 uses of `active` and 15 of `strikes`.
+Nine senses. Recognise them by `carry`, `carries`, `carried`, `carrying`, which Fellowship's ability,
+effect, talent and trait descriptions use zero times, against 93 uses of `active` and 42 of `strikes`.
+Widened to every record type the family reaches one, in a mount's flavour text rather than a tooltip.
 
 | Sense | Say | Recognise |
 |---|---|---|

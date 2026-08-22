@@ -82,9 +82,7 @@
         </div>
 
         <div class="prov-legend" aria-label="Provenance sources">
-            <span class="prov-swatch src-spelldata">spell</span>
-            <span class="prov-swatch src-herodata">hero</span>
-            <span class="prov-swatch src-geardata">gear</span>
+            <span class="prov-swatch src-export">export</span>
             <span class="prov-swatch src-icons">icon</span>
             <span class="prov-swatch src-override">override</span>
         </div>
@@ -331,11 +329,6 @@
                     </div>
                 </div>
 
-                <label class="field field-wide">
-                    <span class="field-key">Note</span>
-                    <input type="text" class="field-input" @bind="_eNote" @bind:event="oninput" placeholder="curation note" />
-                </label>
-
                 <p class="modal-hint">An empty field inherits from the merge; clearing a field that carries an override removes it. Id is structural, so clearing it keeps the current one - use Delete override to drop the whole entry.</p>
             </div>
 
@@ -390,10 +383,6 @@
                         <span class="field-key">Id</span>
                         <input type="number" class="field-input" @bind="_addId" @bind:event="oninput" placeholder="native id" />
                     </label>
-                    <label class="field">
-                        <span class="field-key">Note</span>
-                        <input type="text" class="field-input" @bind="_addNote" @bind:event="oninput" placeholder="why this id" />
-                    </label>
                 </div>
                 @if (AddError is { } error)
                 {
@@ -434,14 +423,12 @@
     private string _eCastDuration = "";
     private string _eChannelDuration = "";
     private string _eChannelTickInterval = "";
-    private string _eNote = "";
     private Dictionary<ResourceTypes, string> _eCosts = new();
 
     private string _addScope = "";
     private string _addMember = "";
     private SpellKind _addKind = SpellKind.Effect;
     private string _addId = "";
-    private string _addNote = "";
 
     private static readonly SpellKind[] KindOrder =
         [SpellKind.Ability, SpellKind.Effect, SpellKind.Talent, SpellKind.Weapon];
@@ -558,7 +545,6 @@
         _eCastDuration = NumberField(existing, "castDuration");
         _eChannelDuration = NumberField(existing, "channelDuration");
         _eChannelTickInterval = NumberField(existing, "channelTickInterval");
-        _eNote = StringField(existing, "note");
         var costs = OverrideCosts(existing) ?? spell.Spell.Costs;
         _eCosts = CostSlots.ToDictionary(
             slot => slot,
@@ -619,7 +605,6 @@
         SetDouble(delta, existing, "castDuration", _eCastDuration);
         SetDouble(delta, existing, "channelDuration", _eChannelDuration);
         SetDouble(delta, existing, "channelTickInterval", _eChannelTickInterval);
-        SetText(delta, existing, "note", _eNote);
         SetCosts(delta, existing, sel);
 
         if (int.TryParse(_eId, out var id))
@@ -629,6 +614,15 @@
 
         if (delta.ContainsKey("id") && sel.Kind != SpellKind.Ability)
             delta["kind"] = sel.Kind.ToString().ToLowerInvariant();
+
+        if (existing is not null)
+        {
+            foreach (var (key, value) in existing)
+            {
+                if (!delta.ContainsKey(key))
+                    delta[key] = value?.DeepClone();
+            }
+        }
 
         if (RenameTarget is not null && _selectedOverride is not null)
             OverridesPersister.Remove(sel.Scope, sel.Member);
@@ -711,7 +705,6 @@
         _addMember = gap?.Member ?? "";
         _addKind = SpellKind.Effect;
         _addId = "";
-        _addNote = "";
     }
 
     private void CancelAdd() => _adding = false;
@@ -729,8 +722,6 @@
         var delta = new JsonObject { ["id"] = int.Parse(_addId) };
         if (_addKind != SpellKind.Ability)
             delta["kind"] = _addKind.ToString().ToLowerInvariant();
-        if (!string.IsNullOrWhiteSpace(_addNote))
-            delta["note"] = _addNote.Trim();
         OverridesPersister.Save(_addScope, member, delta);
         Merge.Reload();
         _adding = false;
@@ -830,20 +821,16 @@
     private static string SrcCellClass(ProvenanceSource? s) => s switch
     {
         ProvenanceSource.Override => "src-override",
-        ProvenanceSource.HeroData => "src-herodata",
-        ProvenanceSource.GearData => "src-geardata",
+        ProvenanceSource.Export => "src-export",
         ProvenanceSource.Icons => "src-icons",
-        ProvenanceSource.SpellData => "src-spelldata",
         _ => "",
     };
 
     private static string SrcLabel(ProvenanceSource s) => s switch
     {
         ProvenanceSource.Override => "override",
-        ProvenanceSource.HeroData => "hero",
-        ProvenanceSource.GearData => "gear",
+        ProvenanceSource.Export => "export",
         ProvenanceSource.Icons => "icon",
-        ProvenanceSource.SpellData => "spell",
         _ => "",
     };
 }

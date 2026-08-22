@@ -21,7 +21,7 @@ public enum GemType
 }
 
 /// <summary>
-/// Gem power thresholds for the ten ranks of every gem, from s3 <c>gear_data.json</c>
+/// Gem power thresholds for the ten ranks of every gem, from the S3 gear data
 /// <c>Gems.&lt;Gem&gt;.Ranks</c>. The ladder is the same for all six colours: ranks 1-5 are the gem's five
 /// traits, and ranks 6-10 are the same five again at their higher tier, each replacing its lower rank.
 /// </summary>

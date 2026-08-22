@@ -1,32 +1,29 @@
 using FellowshipAnalyzer.Core.Game;
+using FellowshipAnalyzer.SpellData.Json;
+using FellowshipAnalyzer.SpellData.Model;
 using FellowshipAnalyzer.SpellData.Sources;
 
 namespace FellowshipAnalyzer.SpellData;
 
-/// <summary>
-/// Maps a merged scalar dictionary and a per-hero <see cref="ResourceModel"/> to
-/// <see cref="ResourceTypes"/>-keyed integer costs.
-/// </summary>
 public static class Costs
 {
+    private static readonly IReadOnlyDictionary<ResourceTypes, int> None = new Dictionary<ResourceTypes, int>();
+
     public static IReadOnlyDictionary<ResourceTypes, int> Map(
-        IReadOnlyDictionary<string, double> scalars,
-        ResourceModel resources,
-        string? costType = null)
+        ExportAbility ability, ICollection<Gap> gaps, string scope, string member)
     {
-        var result = new Dictionary<ResourceTypes, int>();
+        if (ability.Cost is not { } cost || ability.Resource is not { } resource)
+            return None;
 
-        if (scalars.TryGetValue("OrbCost", out var orbCost))
-            result[ResourceTypes.Tertiary] = (int)Math.Round(orbCost);
+        if (ability.CostIsFraction)
+            return None;
 
-        if (scalars.TryGetValue("SpiritPointCost", out var spiritCost))
-            result[ResourceTypes.Spirit] = (int)Math.Round(spiritCost);
+        if (!ResourceTypesAliases.TryResolve(resource, out var slot))
+        {
+            gaps.Add(new Gap(scope, member, GapKind.UnknownResource));
+            return None;
+        }
 
-        if (costType is not null
-            && scalars.TryGetValue("Cost", out var cost)
-            && resources.CostTypeToResource.TryGetValue(costType, out var slot))
-            result[slot] = (int)Math.Round(cost);
-
-        return result;
+        return new Dictionary<ResourceTypes, int> { [slot] = (int)Math.Round(cost) };
     }
 }

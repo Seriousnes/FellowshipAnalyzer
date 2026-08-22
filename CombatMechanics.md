@@ -3,7 +3,7 @@
 > **Season scope.** Every stat formula in the body of this document describes **Season 3, "Rise of the Heskyr"**, live since 2026-06-22. [^22]
 > Season 3 shipped a full progression reset and a stat squish, and it replaced the Season 2 diminishing-returns curve, so Season 2 rating values and Season 3 rating values are not interchangeable. [^22]
 > `StatTracker.RatingToPercentage` is the analyzer's implementation of the Season 3 curve and is the authority for what this codebase actually computes. [^23]
-> The superseded Season 2 model is preserved under [Season 2 (historical)](#season-2-historical) for anyone reading a Season 2 log, since the repo still ships `s2` data.
+> The superseded Season 2 model is preserved under [Season 2 (historical)](#season-2-historical) for anyone reading a Season 2 log.
 
 ## Executive Overview
 
@@ -20,15 +20,17 @@ Secondary stats are always sourced as ratings from gear, gems, and some effects,
 
 ## Season 3 Stat Squish and Base Scaling
 
-Season 3 squished the absolute magnitude of every stat. The `CT_CharacterBaseAttributes` Default row moved base main stat from 1700 to 120 and base health from 28560 to 2856, roughly a 14x squish on main stat and a 10x squish on health. [^22]
+Season 3 squished the absolute magnitude of every stat. Base main stat moved from 1700 to 120 and base health from 28560 to 2856, roughly a 14x squish on main stat and a 10x squish on health.
 
-Health and damage scaling share the same shape, with those base values substituted in: [^22]
+Health and damage scaling share the same shape, with those base values substituted in:
 
 - Health: `ROUND(ROUND(base_health × BaseHealthMultiplier) × DifficultyScaleMultiplier)`
 - Damage: `ROUND(ROUND(base_main_stat × Spell_CoEfficient) × DifficultyScaleMultiplier)`
 
-Season 3 uses `base_main_stat = 120`, `base_health = 2856`; Season 2 used `base_main_stat = 1700`, `base_health = 28560`. [^22]
-Read those constants from the data file rather than hardcoding them: the current `s3/dungeon_data.json` reads `Default.BasicAttributeSet.Strength / Agility / Intellect: 120.0`, which agrees, but `Default.BasicAttributeSet.BaseHealth: 2999.0`, which is higher than the 2856 in the data dump README. [^22]
+Season 3 uses `base_main_stat = 120`, `base_health = 2856`; Season 2 used `base_main_stat = 1700`, `base_health = 28560`.
+
+The two `DifficultyScaleMultiplier` series are not one series: `difficultyScaling.health` and `difficultyScaling.damage` are identical from difficulty 1 through 37 and diverge from 38 upward, where health reads 82.30 against damage 81.50, and the gap widens from there. [^22]
+The export corroborates the 120 without naming it as a constant: 179 of the 213 creature records that carry an attribute block read `strength`/`agility`/`intellect` of 120, and the next largest group is 25 records at 100. Base health has no counterpart in the export at all, so the 2856 figure is inherited from the retired data dump and is unverified here.
 
 The practical consequence for a log analyzer is that **every absolute number changed scale between seasons**: ratings, health pools, and damage amounts from a Season 2 log are roughly an order of magnitude larger than their Season 3 equivalents, so any threshold, breakpoint, or sanity check expressed as an absolute value must be season-aware. [^22]
 
@@ -44,7 +46,6 @@ The Season 2 factor was 0.017 per rating, so Season 3 ratings are about 9.4x sma
 ### Critical Strike base value
 
 Critical Strike has an additional 5% base crit chance that is exempt from diminishing returns and is added after DR on rating. [^22][^7]
-The Season 3 data dump confirms this directly: each hero's base attribute block carries `CritChance: 0.05` alongside `CritMultiplier: 2.0`. [^22]
 In practice, the computation for crit is "post-DR percentage from rating" plus 5% base plus any flat crit percentage bonuses from gems, talents, or set bonuses. [^22][^7]
 `StatTracker.BaseCritChance` encodes the 5%, and `CritPercentage(rating, withBase: true)` performs the addition. [^23]
 
@@ -324,17 +325,17 @@ The datamined build is queryable through the `fellowship-codex` MCP server (`fin
 
 ## Limitations and Open Questions
 
-Fellowship does not publish official developer documentation for the exact rating, DR, and cooldown formulas. The Season 3 stat numbers here come from the game-table data dump in `external/fs_tc_uploads`, which is the closest thing to a primary source; the surrounding narrative comes from community reverse-engineering and third-party guides. [^22][^1][^7]
-The data dump's Season 3 DR note reads "the default mod starts at .16 but each step the new value gets reduced by the next tier", which could be read as compounding the per-band multipliers. The dump's own numeric list (0.98 / 0.96 / 0.94 / 0.92) is flat, and `StatTracker.RatingToPercentage` implements it flat. This document follows the flat reading. [^22][^23]
-The dump also writes the bands as "From 10-15% you get 0.98 value" without saying whether that 10-15% is the raw percentage or the displayed post-DR percentage. The code cuts the bands on the raw percentage, and this document follows the code. [^22][^23]
-The data dump README states the Season 3 base health as 2856 while the live `s3/dungeon_data.json` reads 2999, so the base-health constant should be read from the data file. [^22]
+Fellowship does not publish official developer documentation for the exact rating, DR, and cooldown formulas. The Season 3 stat numbers here come from the offline game-data export vendored at `data/v24736527`, which is the closest thing to a primary source; the surrounding narrative comes from community reverse-engineering and third-party guides. [^22][^1][^7]
+Whether the per-band multipliers compound is settled by the export: each bracket carries its own absolute `penaltyPercentage` (1 / 0.98 / 0.96 / 0.94) with a separate `finalPenaltyPercentage` of 0.92, not a reduction applied to the previous band. Flat is therefore sourced rather than inferred, and `StatTracker.RatingToPercentage` matches. [^22][^23]
+The export writes the band boundaries as `statCalculation.attributes.<Stat>.brackets[].maxBracketValue` with no unit or stage annotation, so it does not say whether the boundary cuts on the raw percentage or the displayed post-DR percentage. The code cuts the bands on the raw percentage, and this document follows the code. [^22][^23]
+The base-health constant has no primary source in the vendored export: it carries no named base-health value, and creature `health` spans 149.95 to 10000000. The 2856 and 2999 figures are inherited from the retired data dump and should be treated as unverified.
 Some details remain uncertain, including exact snapshot rules for Haste on periodic effects, hero-specific base GCD values, and whether certain cooldown recovery effects stack additively or multiplicatively with Haste in edge cases. [^4][^5]
 
 For a production-grade analyzer, these uncertainties should be handled via configuration, sanity-checked against logs from high-end players, and revisited as new theorycrafting emerges or patches change the underlying math. [^6][^21]
 
 ## Season 2 (historical)
 
-This section records the Season 2 stat model. It applies only to logs recorded before Season 3 went live on 2026-06-22, and the analyzer does not implement it. It is kept because the repo still ships `s2` game data and Season 2 logs remain readable. [^22]
+This section records the Season 2 stat model. It applies only to logs recorded before Season 3 went live on 2026-06-22 [^22], and the analyzer does not implement it. It is kept because Season 2 logs remain readable.
 
 **Base values.** Base main stat was 1700 and base health 28560, feeding the same scaling shape used today: `ROUND(ROUND(28560 × BaseHealthMultiplier) × DifficultyScaleMultiplier)` for health and `ROUND(ROUND(1700 × Spell_CoEfficient) × DifficultyScaleMultiplier)` for damage. [^22]
 
@@ -407,7 +408,7 @@ The tiers were also cut on the **post-DR** percentage, so each tier contributed 
 
 21. [Fellowship - News - Public Playtest Patch Notes - March 1 | eprison.de](https://www.eprison.de/spiele/fellowship/steam-news/1792751526079157/8138/89808.html)
 
-22. [Ângry's Fellowship API-ish Dump - `external/fs_tc_uploads`](https://fs-theorycrafting.com) - Season-first dump of the game's own data tables, vendored into this repo as a submodule. Season 3 "Rise of the Heskyr" DR bands, the 0.16 base conversion factor, the stat squish (base main stat 1700 to 120, base health 28560 to 2856), and the health/damage scaling formulas come from `external/fs_tc_uploads/README.md`; base attribute values are read from `external/fs_tc_uploads/s3/dungeon_data.json` and per-hero base crit from `external/fs_tc_uploads/s3/hero_data.json`.
+22. Offline game-data export, vendored at `data/v24736527` (`entities.jsonl`, `settings.json`). The 0.16 base conversion factor and the diminishing-returns bands come from `settings.json` `statCalculation.attributes`, where CritChance, Haste, Expertise and Spirit each carry `baseStatMultiplier: 0.16`, brackets at 10 / 15 / 20 / 25 with penalties 1 / 0.98 / 0.96 / 0.94, and `finalPenaltyPercentage: 0.92`. The per-difficulty health and damage multipliers come from `difficultyScaling`, keyed 1 to 151.
 
 23. `src/FellowshipAnalyzer.Core/Analysis/StatTracker.cs` - `RatingToPercentage` is this codebase's implementation of the Season 3 rating to percentage conversion and is the authority for what the analyzer computes. `BaseCritChance` holds the 5% base crit and `CritPercentage(rating, withBase: true)` adds it.
 

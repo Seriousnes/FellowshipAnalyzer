@@ -4,7 +4,7 @@ namespace FellowshipAnalyzer.SpellData.Sources;
 
 /// <summary>
 /// Sparse per-spell override deltas, indexed by scope → member name. Each delta is a sparse
-/// serialized <c>Spell</c> (only curator-set fields) plus an optional non-<c>Spell</c> <c>note</c>.
+/// serialized <c>Spell</c> carrying only curator-set fields.
 /// </summary>
 public sealed class OverridesSource
 {

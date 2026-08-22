@@ -4,7 +4,7 @@ using System.Text.Json.Nodes;
 namespace FellowshipAnalyzer.SpellStudio;
 
 /// <summary>
-/// Persists a sparse override delta (a serialized partial <c>Spell</c> plus optional <c>note</c>)
+/// Persists a sparse override delta (a serialized partial <c>Spell</c>)
 /// into <c>overrides.json</c>, merging field-wise into any existing member object.
 /// </summary>
 public static class OverridesPersister

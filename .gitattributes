@@ -1,3 +1,4 @@
 * text=auto
-graphify-out/graph.json merge=graphify
 src/FellowshipAnalyzer.Core/Styles/_palette.scss eol=lf
+data/v*/entities.jsonl -diff -text
+data/v*/settings.json -text

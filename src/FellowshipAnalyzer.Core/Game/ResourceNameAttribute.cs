@@ -1,7 +1,7 @@
 namespace FellowshipAnalyzer.Core.Game;
 
 /// <summary>
-/// Declares the upstream <c>hero_data.json</c> resource name(s) that map onto a
+/// Declares the upstream game-data resource name(s) that map onto a
 /// <see cref="ResourceTypes"/> slot. Used by the offline spell-data tooling to resolve a
 /// resource flavor name (e.g. "Winter Orbs") to its abstract slot; never read at runtime.
 /// </summary>

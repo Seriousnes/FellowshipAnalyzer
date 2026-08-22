@@ -40,7 +40,7 @@ dotnet user-secrets set "FellowshipLogs:ClientSecret" "..." --id fellowshipanaly
    ```
    dotnet run --no-cache src/FellowshipAnalyzer.Tools/rebuild-spelldb.cs
    ```
-3. Verify with the SpellData reproducibility tests: `dotnet test tests/FellowshipAnalyzer.SpellData.Tests/... ` (needs the `external/fs_tc_uploads` submodule initialized).
+3. Verify with the SpellData reproducibility tests: `dotnet test tests/FellowshipAnalyzer.SpellData.Tests/... `. The merge reads whichever `data/v*` export folder carries the highest build number, so adding a newer export changes what those tests assert against.
 
 ### emit-palette
 

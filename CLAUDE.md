@@ -113,6 +113,8 @@ The generator emits the constructor, strongly-typed module properties (for examp
 
 **Spell data** - `data/spelldb.json` is produced offline by `FellowshipAnalyzer.SpellData` and turned into per-hero `Spells` registries by the source generator. Curate `data/overrides.json` (via SpellStudio or by hand) and rerun `rebuild-spelldb` rather than editing generated registries. Per-hero `Talents.cs` files stay hand-written. Spell ids are `FSLID` values, which offset effect, talent, and weapon ids into their own million-ranges.
 
+The merge reads the highest-numbered `data/v*` export folder (`entities.jsonl` plus `settings.json`). A hero's kit is every ability record whose `heroes` array names that hero; an effect joins that ability through `partOf` and takes its member name from the ability's member name plus its `role`. An effect with a `partOf` but no `role` is not generated and belongs in `data/overrides.json`. Icons come from `abilities.json` at the repo root keyed by FSLID, not from the export's own `icon` values, which name `.png` files where the CDN serves `.jpg`.
+
 ## Where code goes
 
 - Hero-specific logic → `src/Heroes/FellowshipAnalyzer.Heroes.{Hero}`.

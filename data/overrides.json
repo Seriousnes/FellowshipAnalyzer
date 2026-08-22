@@ -1,173 +1,119 @@
 {
   "ardeos": {
-    "FireBallMonitor": { "id": 1565, "note": "passive PlacedProjectileAoeDamageMonitor also named Fire Ball; supersede to free the FireBall name for id 1260. Relies on the real ability (1260) preceding this monitor in kit order." },
-    "FireBall": { "charges": 2, "note": "source cooldown 30 is correct; NumCharges 2 is nested under Constants.Talent so the source yields 1 charge" },
-    "EngulfingFlames": { "charges": 2, "note": "source cooldown 20 is correct; real charge count is 2 but NumCharges is nested under Constants.Talent so the source yields 1" },
-    "FireFrogsMonitor": { "id": 1532, "note": "passive FrogDamageMonitor also named Fire Frogs; supersede to free the FireFrogs name for id 1268. Relies on the real ability (1268) preceding this monitor in kit order." },
-    "FireBallDot": { "id": 2293, "kind": "effect", "name": "Fire Ball", "note": "source produces blank FireBallDot(1816) and FireBallDirectDamageBasedDot(2293); reconcile 2293 to FireBallDot" },
-    "FireFrogsDot": { "id": 1826, "kind": "effect", "note": "GE_Firemage_FireFrog_Dot not auto-linked (stem FireFrogs vs FireFrog); add directly" },
-    "ApocalypseDot": { "id": 3175, "kind": "effect", "note": "GE_Firemage_Talent_CastedPlacedAoe_DamageBasedDot_Dot unresolved; add directly" },
-    "SearingBlazeDot": { "id": 1820, "kind": "effect", "note": "GE_Firemage_InstantSingleTargetDot_Dot unresolved; add directly" },
-    "ReignOfFireBuff": { "id": 2301, "kind": "effect", "note": "GE_Firemage_Talent_PlacedProjectileAoe_ResetCooldownDamageBuff unresolved; add directly" },
-    "ApocalypticSurge": { "id": 3176, "kind": "effect", "name": "Apocalyptic Surge", "note": "GE_Firemage_Talent_CastedDotDetonate_FreeProc unresolved (free-Detonate stacking buff); add directly" }
+    "FireBallMonitor": { "id": 1565 },
+    "FireBallAoeMonitor": { "id": 1581 },
+    "EngulfingFlames": { "cooldownReductionOnTargetDeath": 10 },
+    "FireFrogsMonitor": { "id": 1532 },
+    "FireBallDot": { "id": 2293, "kind": "effect", "name": "Fire Ball" },
+    "FireFrogsDot": { "id": 1826, "kind": "effect" },
+    "ApocalypseDot": { "id": 3175, "kind": "effect" },
+    "SearingBlazeDot": { "id": 1820, "kind": "effect" },
+    "ReignOfFireBuff": { "id": 2301, "kind": "effect" },
+    "ApocalypticSurge": { "id": 3176, "kind": "effect", "name": "Apocalyptic Surge" }
   },
   "rime": {
     "WintersBlessing": {
-      "id": 1026,
-      "note": "possessive-strip produces WinterBlessing; supersede and re-add as WintersBlessing"
+      "id": 1026
     },
     "WintersBlessingBuff": {
       "id": 1026,
       "kind": "effect",
-      "note": "effect at guid 1001026 is absent from auto-merge (linked effects are 1001389/1001390/1002299); add directly"
+      "name": "Winter's Blessing"
     },
     "FlightOfTheNavirBuff": {
-      "id": 2446,
-      "note": "hand-written as Spell(2446) guid=2446; auto-merge only produces FlightOfTheNavirAoeBuff as Effect guid=1002446; add as ability"
+      "id": 2446
     },
     "WintersEmbrace": {
       "id": 2303,
-      "kind": "effect",
-      "note": "auto-merge names this BurstingIceTalentBuffWhileActive at guid 1002303; rename to WintersEmbrace"
+      "kind": "effect"
     },
     "FrostSwallowsDamage": {
       "id": 1365,
-      "kind": "effect",
-      "note": "effect 1001365 is auto-linked to FlightOfTheNavir (as FlightOfTheNavirDamage); rename to FrostSwallowsDamage"
+      "kind": "effect"
     },
     "FrostweaversWrathBuff": {
       "id": 2305,
-      "kind": "effect",
-      "note": "talent-proc effect GE_Rime_Talent_ChanceOnOrbGain_NextSpenderCritIncrease_Buff has no GA parent so auto-merge skips it; add directly"
+      "kind": "effect"
     }
   },
   "elarion": {
     "SkystridersSupremacy": {
-      "id": 1398,
-      "note": "possessive-strip produces SkystriderSupremacy; supersede and re-add with possessive"
+      "id": 1398
     },
     "SkystridersSupremacyBuff": {
       "id": 2009,
-      "kind": "effect",
-      "note": "possessive-strip on parent produces SkystriderSupremacySelfBuff; rename with possessive"
+      "kind": "effect"
     },
     "SkystridersGrace": {
-      "id": 1304,
-      "note": "possessive-strip produces SkystriderGrace; supersede and re-add with possessive"
+      "id": 1304
     },
     "EventHorizonBuff": {
       "id": 2312,
-      "kind": "effect",
-      "note": "auto-merge names this EventHorizonSelfBuff (role SelfBuff) at guid 1002312; rename to EventHorizonBuff"
+      "kind": "effect"
     },
     "SkystridersGraceBuff": {
       "id": 1869,
-      "kind": "effect",
-      "note": "possessive-strip on parent produces SkystriderGraceBuff at guid 1001869; rename to SkystridersGraceBuff"
+      "kind": "effect"
     },
     "CelestialImpetus": {
       "id": 1867,
-      "kind": "effect",
-      "note": "effect 1001867 is auto-linked to Shoot ability (as ShootProc); rename to CelestialImpetus"
+      "kind": "effect"
     },
     "ImpendingHeartseeker": {
       "id": 2317,
-      "kind": "effect",
-      "note": "no auto-merge entry at guid 1002317; add directly"
+      "kind": "effect"
     },
     "SpiritOfHeroism": {
       "id": 2253,
-      "kind": "effect",
-      "note": "no auto-merge entry at guid 1002253; add directly"
+      "kind": "effect"
     },
     "ResurgentWindsBuff": {
       "id": 2074,
-      "kind": "effect",
-      "note": "Resurgent Winds talent proc buff, log-verified"
+      "kind": "effect"
     },
     "FinalCrescendoBuff": {
       "id": 2222,
       "kind": "effect",
-      "name": "Final Crescendo",
-      "note": "Final Crescendo stack buff, log-verified; spell_data spells it Cresendo"
-    },
-    "CelestialShot": {
-      "costs": { "primary": 15 },
-      "note": "Focus cost is not exposed as a mappable scalar; set from S3 kit data"
-    },
-    "Multishot": {
-      "costs": { "primary": 20 },
-      "note": "Focus cost is not exposed as a mappable scalar; set from S3 kit data"
-    },
-    "HeartseekerBarrage": {
-      "costs": { "primary": 30 },
-      "note": "Focus cost is not exposed as a mappable scalar; set from S3 kit data"
-    },
-    "HighwindArrow": {
-      "costs": { "primary": 30 },
-      "note": "Focus cost is not exposed as a mappable scalar; set from S3 kit data"
-    },
-    "StarfallVolley": {
-      "costs": { "primary": 30 },
-      "note": "Focus cost is not exposed as a mappable scalar; set from S3 kit data"
+      "name": "Final Crescendo"
     },
     "LunarlightMark": {
-      "costs": { "primary": 20 },
-      "note": "Focus cost is not exposed as a mappable scalar; set from S3 kit data"
-    },
-    "EventHorizon": {
-      "costs": { "spirit": 100 },
-      "note": "Spirit cost is not exposed as a mappable scalar; set from S3 kit data"
-    },
-    "GrapplingArrow": {
-      "charges": 2,
-      "note": "S3 baseline 2 charges per launch patch notes; hero_data constants still carry the retired charge talent block"
+      "costs": { "primary": 20 }
     }
   },
   "gunde": {
+    "RendManager": {
+      "id": 2286,
+      "kind": "ability",
+      "name": "Rend"
+    },
     "Rend": {
       "id": 3231,
       "kind": "effect",
-      "name": "Rend",
-      "note": "GE_Gunde_PerTargetAccumulatedBleed, the per-target accumulated bleed Slaughter consumes; not linked to any Kit ability so the source-derived scope omits it. Add directly."
+      "name": "Rend"
     },
     "SerratedEdge": {
       "id": 3232,
       "kind": "effect",
-      "name": "Serrated Edge",
-      "note": "GE_Gunde_ExtraDotDamageGain_SelfBuff; unresolved effect, add directly."
+      "name": "Serrated Edge"
     },
     "OpenWounds": {
       "id": 3233,
       "kind": "effect",
-      "name": "Open Wounds",
-      "note": "GE_Gunde_BoostedDotDamage_TargetDebuff, applied by Rupture and consumed by the next Slaughter on that enemy, verified against live log data; unresolved effect, add directly."
+      "name": "Open Wounds"
     },
     "OwedInBloodAoe": {
       "id": 2280,
       "kind": "ability",
-      "name": "Owed in Blood",
-      "note": "GA_Gunde_Talent_DotTransfer_Aoe, the AoE component the DotTransfer talent adds to the base Owed in Blood cast (2298); not a player-castable ability, and present in none of the fetched logs, none of which ran the talent. EnabledInGame but outside the Kit, so the source-derived scope omits it; curated so the id resolves, under a distinct member name because it shares the base cast's name."
+      "name": "Owed in Blood"
     },
-    "RendManager": {
-      "id": 2286,
-      "kind": "ability",
-      "name": "Rend",
-      "note": "GA_Gunde_Passive_PerTargetAccumulatedBleed_DotManager, the passive manager behind the per-target accumulated bleed; not a player-castable ability, curated so the id resolves. Distinct member name because effect 3231 already holds Rend."
+    "OwedInBloodAoeSelfBuff": {
+      "id": 3223,
+      "kind": "effect"
     },
     "RendDamage": {
       "id": 3229,
       "kind": "effect",
-      "name": "Rend",
-      "note": "GE_Gunde_PerTargetAccumulatedBleed_Damage, the damage effect of the accumulated bleed; never observed dealing logged damage in live data and unnamed in spell_data, curated for completeness."
-    },
-    "OwedInBlood": {
-      "cooldown": 3,
-      "note": "source Constants 'Owed in Blood'.Target.Cooldown = 3 is nested under Target so the merge yields no cooldown. Low confidence: the value is read out of nested per-target cooldown data and is unexercised in live logs, where the fastest observed recast is 8.9 seconds."
-    },
-    "Warbound": {
-      "cooldown": 8,
-      "note": "source Constants Warbound.CooldownDuration = 8 is not a recognised cooldown key so the merge yields charges 2 but no cooldown"
+      "name": "Rend"
     }
   },
   "helena": {
@@ -175,263 +121,196 @@
       "id": 3095,
       "kind": "effect",
       "name": "Punishing Strikes",
-      "icon": "T_Warmaster_FatalBlow.jpg",
-      "note": "GE_Warmaster_Talent_BlockToIncreasedPower_Proc, the two-stack buff a block procs that doubles the next Veteran of War reduction. Its Constants live under 'Measured Strike'.Talent.BlockToIncreasedPower rather than under a Warmaster ability stem, so the merge never links it; add directly."
+      "icon": "T_Warmaster_FatalBlow.jpg"
     },
     "SwordAndBoardBuff": {
       "id": 1242,
       "kind": "effect",
       "name": "Sword & Board",
-      "icon": "T_Warmaster_ShieldSlam.jpg",
-      "note": "GE_Warmaster_MeleeCleaveBonusProc, the proc that refunds a Shield Slam charge. The stem is MeleeCleaveBonusProc rather than MeleeCleave so the effect does not auto-link; add directly."
+      "icon": "T_Warmaster_ShieldSlam.jpg"
     },
     "SwordAndBoardFreeCastBuff": {
       "id": 1219,
       "kind": "effect",
       "name": "Sword & Board",
-      "icon": "T_Warmaster_ShieldSlam.jpg",
-      "note": "GE_Warmaster_Talent_MeleeCleave_Tier2_MeleeCleaveDamageIncreaseFreeCastProc, the ability-rank tier 2 half of the same refund. Neither id is observed in the one S3 Helena log held locally, whose player did not take the talent, so both are carried."
+      "icon": "T_Warmaster_ShieldSlam.jpg"
     }
   },
   "items": {
     "VoidbringerTouch": {
-      "id": 155,
-      "note": "gear weapon moved from Elarion hand-written registry to items scope"
+      "id": 155
     },
     "FatedStrike": {
       "id": 160,
       "kind": "ability",
-      "name": "Fated Strike",
-      "note": "GA_Weapon_CleaveDamageBuffCooldownReduction, the active of the Fated Strike weapon, which shares the weapon's name; gear weapon, add directly."
+      "name": "Fated Strike"
     },
     "GloriousPurpose": {
       "id": 80,
       "kind": "effect",
-      "name": "Glorious Purpose",
-      "note": "GE_Weapon_CleaveDamageBuffCooldownReduction_Buff, the Fated Strike proc window; not in any hero Kit, add directly."
+      "name": "Glorious Purpose"
     },
     "ReapersReprieve": {
       "id": 1930,
       "kind": "effect",
-      "name": "Reaper's Reprieve",
-      "note": "GE_GemBonus_HoTOnTouchedTargetDeath_HoT_Small, the Amethyst rank 3 heal-over-time. Gem bonuses belong to no hero Kit, so the source-derived scope omits them; add directly."
+      "name": "Reaper's Reprieve"
     },
     "ReapersReprieveII": {
       "id": 1931,
       "kind": "effect",
-      "name": "Reaper's Reprieve - II",
-      "note": "GE_GemBonus_HoTOnTouchedTargetDeath_HoT_Medium, the Amethyst rank 8 replacement of ReapersReprieve."
+      "name": "Reaper's Reprieve - II"
     },
     "RoguesResurgence": {
       "id": 1966,
       "kind": "effect",
-      "name": "Rogue's Resurgence",
-      "note": "GE_GemBonus_AutoHealOnLowHealth_Heal_Small, the Topaz rank 3 emergency heal."
+      "name": "Rogue's Resurgence"
     },
     "RoguesResurgenceII": {
       "id": 1967,
       "kind": "effect",
-      "name": "Rogue's Resurgence - II",
-      "note": "GE_GemBonus_AutoHealOnLowHealth_Heal_Medium, the Topaz rank 8 replacement of RoguesResurgence."
+      "name": "Rogue's Resurgence - II"
     },
     "UnyieldingVitality": {
       "id": 1932,
       "kind": "effect",
-      "name": "Unyielding Vitality",
-      "note": "GE_GemBonus_HealthRegenBonusInCombatSmall, the Ruby rank 3 in-combat health regen."
+      "name": "Unyielding Vitality"
     },
     "UnyieldingVitalityII": {
       "id": 1933,
       "kind": "effect",
-      "name": "Unyielding Vitality - II",
-      "note": "GE_GemBonus_HealthRegenBonusInCombatMedium, the Ruby rank 8 replacement of UnyieldingVitality."
+      "name": "Unyielding Vitality - II"
     },
     "SentinelsBastionShield": {
       "id": 135,
       "kind": "ability",
-      "name": "Sentinel's Bastion",
-      "note": "GA_GemBonus_ApplyPeriodicAbsorb_Small, the ability that applies the Emerald rank 3 shield. Registered alongside the effect below because an AbsorbedEvent names the absorbing ability, and which of the pair the log carries is not established."
+      "name": "Sentinel's Bastion"
     },
     "SentinelsBastionShieldII": {
       "id": 136,
       "kind": "ability",
-      "name": "Sentinel's Bastion - II",
-      "note": "GA_GemBonus_ApplyPeriodicAbsorb_Medium, the ability that applies the Emerald rank 8 shield."
+      "name": "Sentinel's Bastion - II"
     },
     "SentinelsBastion": {
       "id": 1968,
       "kind": "effect",
-      "name": "Sentinel's Bastion",
-      "note": "GE_GemBonus_ApplyPeriodicAbsorb_AbsorbEffect_Small, the Emerald rank 3 periodic absorb."
+      "name": "Sentinel's Bastion"
     },
     "SentinelsBastionII": {
       "id": 1969,
       "kind": "effect",
-      "name": "Sentinel's Bastion - II",
-      "note": "GE_GemBonus_ApplyPeriodicAbsorb_AbsorbEffect_Medium, the Emerald rank 8 replacement of SentinelsBastion."
+      "name": "Sentinel's Bastion - II"
     },
     "HarmoniousSoul": {
       "id": 1959,
       "kind": "effect",
-      "name": "Harmonious Soul",
-      "note": "GE_GemBonus_CriticalChanceHasteExpertiseAndSpiritBonusSmall, the Diamond rank 1 stacking secondary-stat buff. Source spells the name 'Harmounious'; corrected here against gear_data."
+      "name": "Harmonious Soul"
     },
     "HarmoniousSoulII": {
       "id": 1960,
       "kind": "effect",
-      "name": "Harmonious Soul - II",
-      "note": "GE_GemBonus_CriticalChanceHasteExpertiseAndSpiritBonusMedium, the Diamond rank 6 replacement of HarmoniousSoul, raising the stack cap from 4 to 12."
+      "name": "Harmonious Soul - II"
     },
     "BlessingOfTheDeathdealer": {
       "id": 1955,
       "kind": "effect",
-      "name": "Blessing of the Deathdealer",
-      "note": "GE_GemBonus_CriticalPowerBonusPercentageSmall, the Amethyst rank 5 critical power bonus. The source carries no name for it; taken from gear_data Gems.Amethyst.Ranks. Passive, so it emits no events of its own and is measured over the player's own critical strikes."
+      "name": "Blessing of the Deathdealer"
     },
     "BlessingOfTheDeathdealerII": {
       "id": 1956,
       "kind": "effect",
-      "name": "Blessing of the Deathdealer - II",
-      "note": "GE_GemBonus_CriticalPowerBonusPercentageMedium, the Amethyst rank 10 replacement of BlessingOfTheDeathdealer."
+      "name": "Blessing of the Deathdealer - II"
     },
     "AncestralSurge": {
       "id": 1919,
       "kind": "effect",
-      "name": "Ancestral Surge",
-      "note": "GE_GemBonus_PrimaryAttributeBonusWhileHeroismSmall, the Sapphire rank 1 primary-attribute buff active during Heroism."
+      "name": "Ancestral Surge"
     },
     "AncestralSurgeII": {
       "id": 1920,
       "kind": "effect",
-      "name": "Ancestral Surge - II",
-      "note": "GE_GemBonus_PrimaryAttributeBonusWhileHeroismMedium, the Sapphire rank 6 replacement of AncestralSurge."
+      "name": "Ancestral Surge - II"
     },
     "ResonatingSoul": {
       "id": 129,
       "kind": "ability",
-      "name": "Resonating Soul",
-      "note": "GA_GemBonus_IncomingHealMultiplierForMissingHealth_Small, the Sapphire rank 3 missing-health damage reduction. The source carries no name for it; taken from gear_data Gems.Sapphire.Ranks. Passive, so it emits no events and is estimated from the player's health at each hit taken."
+      "name": "Resonating Soul"
     },
     "ResonatingSoulII": {
       "id": 130,
       "kind": "ability",
-      "name": "Resonating Soul - II",
-      "note": "GA_GemBonus_IncomingHealMultiplierForMissingHealth_Medium, the Sapphire rank 8 replacement of ResonatingSoul."
+      "name": "Resonating Soul - II"
     },
     "MightOfTheMinotaur": {
       "id": 1921,
       "kind": "effect",
-      "name": "Might of the Minotaur",
-      "note": "GE_GemBonus_PrimaryAttributeBonusWhenHealthySmall, the Ruby rank 1 primary-attribute buff active above a health threshold."
+      "name": "Might of the Minotaur"
     },
     "MightOfTheMinotaurII": {
       "id": 1922,
       "kind": "effect",
-      "name": "Might of the Minotaur - II",
-      "note": "GE_GemBonus_PrimaryAttributeBonusWhenHealthyMedium, the Ruby rank 6 replacement of MightOfTheMinotaur."
+      "name": "Might of the Minotaur - II"
     },
     "BlessingOfTheConqueror": {
       "id": 2025,
       "kind": "ability",
-      "name": "Blessing of the Conqueror",
-      "note": "GA_GemBonus_DamageHealingAbsorbBonusInBossBattle_Small, the Ruby rank 5 boss-battle output bonus. The source carries no name for it; taken from gear_data Gems.Ruby.Ranks. Registered alongside the EssenceOfTheConqueror buff below, which is what marks the windows the bonus applied over."
+      "name": "Blessing of the Conqueror"
     },
     "BlessingOfTheConquerorII": {
       "id": 2026,
       "kind": "ability",
-      "name": "Blessing of the Conqueror - II",
-      "note": "GA_GemBonus_DamageHealingAbsorbBonusInBossBattle_Medium, the Ruby rank 10 replacement of BlessingOfTheConqueror."
+      "name": "Blessing of the Conqueror - II"
     },
     "EssenceOfTheConqueror": {
       "id": 1951,
       "kind": "effect",
-      "name": "Essence of the Conqueror",
-      "note": "GE_GemBonus_DamageHealingAbsorbBonusInBossBattleSmall, the buff Blessing of the Conqueror applies while the player is in combat with a boss."
+      "name": "Essence of the Conqueror"
     },
     "EssenceOfTheConquerorII": {
       "id": 1952,
       "kind": "effect",
-      "name": "Essence of the Conqueror - II",
-      "note": "GE_GemBonus_DamageHealingAbsorbBonusInBossBattleMedium, the rank 10 buff, applied by BlessingOfTheConquerorII."
+      "name": "Essence of the Conqueror - II"
     }
   },
   "mara": {
-    "BroodingShadows": {
-      "cooldown": 15,
-      "note": "hero_data Constants 'Brooding Shadows' carries Cooldown.Duration 15; the merge reads a flat Cooldown scalar, so the nested value is not emitted"
+    "KickAlt": {
+      "id": 1167
     },
-    "MaidenOfDeath": {
-      "cooldown": 60,
-      "note": "hero_data Constants 'Maiden of Death' carries MaxCharges 1 and ChargeDuration 60; the merge reads Cooldown/RechargeTime, so the 60s recharge is not emitted"
+    "KickLockoutAlt": {
+      "id": 1641,
+      "kind": "effect"
     },
-    "StalkerStep": {
-      "cooldown": 30,
-      "note": "hero_data Constants 'Stalker Step' carries ChargeDuration 30; MaxCharges 2 already merges to charges but the recharge time is not emitted"
-    },
-    "WidowBite": {
-      "cooldown": 9,
-      "charges": 3,
-      "note": "hero_data Constants \"Widow's Bite\" carries NumOfCharges 3 and ChargeTime 9; the merge reads MaxCharges/NumCharges and Cooldown/RechargeTime, so neither name is picked up"
-    },
-    "Backstab": {
-      "costs": { "primary": 20 },
-      "note": "hero_data Constants 'Backstab' Cost 20, spent from Energy (HeroResources CostType Resources); the merge maps a flat Cost scalar only when a CostType is supplied, so Mara costs are not emitted"
-    },
-    "SkitteringBlades": {
-      "costs": { "primary": 35 },
-      "note": "hero_data Constants 'Skittering Blades' Cost 35, spent from Energy; unmapped for the same reason as Backstab"
-    },
-    "QueenFang": {
-      "costs": { "primary": 40 },
-      "note": "hero_data Constants \"Queen's Fang\" Cost 40, spent from Energy; unmapped for the same reason as Backstab"
-    },
-    "ArachnidAssault": {
-      "costs": { "primary": 45 },
-      "note": "hero_data Constants 'Arachnid Assault' Cost 45, spent from Energy; unmapped for the same reason as Backstab"
-    },
-    "HemorrhagingStrike": {
-      "costs": { "primary": 20 },
-      "note": "hero_data Constants 'Hemorrhaging Strike' Cost 20, spent from Energy; unmapped for the same reason as Backstab (the flat Cooldown 2 in the same entry does merge)"
-    },
-    "MatriarchMacabre": {
-      "costs": { "spirit": 100 },
-      "note": "hero_data Constants 'Matriarch Macabre' Cost 100, spent from Spirit (Kit AbilityCategory Spirit, HeroResources CostType SpiritPoints); the merge maps only the SpiritPointCost scalar, which this entry does not use"
+    "KickInterruptAlt": {
+      "id": 1642,
+      "kind": "effect"
     },
     "BroodingShadowsBuff": {
       "id": 1591,
-      "kind": "effect",
-      "note": "GE_Mara_Stealth, the stealth buff itself; effect linking matches the stem GE_Mara_Stealth_ with a trailing separator, so the bare DevName never links"
+      "kind": "effect"
     },
     "AssassinsGuileBuff": {
       "id": 2245,
-      "kind": "effect",
-      "note": "GE_Mara_Talent_Stealth_SpenderIncreasedDamage_Proc; talent-granted effects are namespaced GE_Mara_Talent_ and have no GA_ Kit ability to link against"
+      "kind": "effect"
     },
     "MalevolenceQueensFang": {
       "id": 2430,
-      "kind": "effect",
-      "note": "GE_Mara_Talent_DamageSpenders_BuffOtherSpender_HeavyAttackSpenderProc; talent-granted, so no Kit ability stem matches"
+      "kind": "effect"
     },
     "MalevolenceArachnidAssault": {
       "id": 2431,
-      "kind": "effect",
-      "note": "GE_Mara_Talent_DamageSpenders_BuffOtherSpender_AoeAttackSpenderProc; talent-granted, so no Kit ability stem matches"
+      "kind": "effect"
     },
     "DeadlySchemeStacks": {
       "id": 2434,
-      "kind": "effect",
-      "note": "GE_Mara_Talent_ResourceAttackSpenderCritChance_Stacker; talent-granted, so no Kit ability stem matches"
+      "kind": "effect"
     },
     "DeadlySchemeActive": {
       "id": 2068,
-      "kind": "effect",
-      "note": "GE_Mara_Talent_ResourceAttackSpenderCritChance_Proc; talent-granted, so no Kit ability stem matches"
+      "kind": "effect"
     }
   },
   "meiko": {
     "StoneShieldAlt": {
-      "id": 1122,
-      "note": "both id 1121 and id 1122 sanitize to StoneShield; supersede id 1122 under distinct name StoneShieldAlt to eliminate collision"
+      "id": 1122
     }
   },
   "sylvie": {
@@ -439,141 +318,124 @@
       "id": 1080,
       "kind": "ability",
       "name": "Fluttercall: Embrace",
-      "icon": "T_Mosse_BlueButterfly.jpg",
-      "note": "GA_Mosse_BlueButterfly_Recall, the recall half of Fluttercall: Protect that parks Bluey on Sylvie herself. EnabledInGame in s3 spell_data but absent from Sylvie's Kit block, so the merge never imports it; add directly. Observed cast in report a:gDf7m3N2wvk96dWP dungeon 22."
+      "icon": "T_Mosse_BlueButterfly.jpg"
     },
     "FluttercallProtectBuff": {
       "id": 1485,
       "kind": "effect",
       "name": "Fluttercall: Protect",
-      "icon": "T_Mosse_BlueButterfly.jpg",
-      "note": "GE_Mosse_BlueButterfly_TargetBuff; the parent stem is BlueButterfly_SendOut so the effect does not auto-link; add directly"
+      "icon": "T_Mosse_BlueButterfly.jpg"
     },
     "FluttercallEmbraceBuff": {
       "id": 1486,
       "kind": "effect",
       "name": "Fluttercall: Embrace",
-      "icon": "T_Mosse_BlueButterfly.jpg",
-      "note": "GE_Mosse_BlueButterfly_SelfBuff; the parent stem is BlueButterfly_SendOut so the effect does not auto-link; add directly"
+      "icon": "T_Mosse_BlueButterfly.jpg"
     },
     "IronleafWardBuff": {
       "id": 1484,
       "kind": "effect",
       "name": "Ironleaf Ward",
-      "icon": "T_Mosse_DR.jpg",
-      "note": "GE_Mosse_SingleTargetCastedDamageReductionBuff; the Buff suffix runs on without a separator so the stem does not match GA_Mosse_SingleTargetCastedDamageReduction; add directly"
+      "icon": "T_Mosse_DR.jpg"
     },
     "PricklyVineDamage": {
       "id": 1440,
       "kind": "effect",
       "name": "Prickly Vine",
-      "icon": "T_Mosse_Vine.jpg",
-      "note": "GE_Mosse_ProjectileTurret_Damage; singular Turret against the plural GA_Mosse_ProjectileTurrets stem so it does not auto-link. Every vine's damage arrives under this id, not under Prickly Vine itself."
+      "icon": "T_Mosse_Vine.jpg"
     },
     "NaturalProtectorAbsorb": {
       "id": 2240,
       "kind": "effect",
       "name": "Natural Protector",
-      "icon": "Druid17.jpg",
-      "note": "GE_Mosse_Talent_TargetAbsorb, the Natural Protector talent's shield; talent-granted, so no Kit ability stem matches"
+      "icon": "Druid17.jpg"
     },
     "NaturalSelectionBuff": {
       "id": 2731,
       "kind": "effect",
       "name": "Natural Selection",
-      "icon": "T_Nhance_RPG_Nature_02.jpg",
-      "note": "GE_Mosse_Passive_PartyStaminaBuff_Buff; auto-merge names it Buff because the parent passive carries no name, which reads as an untyped placeholder in the registry"
+      "icon": "T_Nhance_RPG_Nature_02.jpg"
     }
   },
   "tariq": {
     "FaceBreakerAlt": {
-      "id": 2241,
-      "note": "both id 2239 and id 2241 sanitize to FaceBreaker; supersede id 2241 under distinct name FaceBreakerAlt to eliminate collision"
+      "id": 2241
+    },
+    "HeavyStrikeAlt": {
+      "id": 1239
     },
     "ExecutionersGrin": {
       "id": 2267,
       "kind": "effect",
-      "name": "Executioner's Grin",
-      "note": "item-granted proc from the legendary Executioner's Unsanitary Bands (item 5225); DevName GE_Ink_Talent_LowHealthSingleTargetResourceDamage_ChanceActiveOnCommit_Proc. While active it lets Culling Strike be cast regardless of target health. Not in Tariq's Kit; add directly."
+      "name": "Executioner's Grin"
     },
     "HeavyStrike": {
-      "id": 1929,
-      "cooldown": 8,
-      "note": "the Kit ability is GA_Ink_AutoAttackBuff_InstantAttack but its Constants key carries DevName GA_Ink_AutoAttackBuff, so the source merge cannot link the two and drops the ability's cooldown; the 8s value is pinned here from the s3 hero_data 'Heavy Strike' Kit constants"
+      "id": 1929
+    },
+    "RagingTempest": {
+      "costs": { "spirit": 100 }
     },
     "SchismSkullCrusher": {
       "id": 1746,
       "kind": "effect",
       "name": "Schism - Skull Crusher",
-      "icon": "T_Ink_Skullcrusher.jpg",
-      "note": "Schism talent proc buff; casting Hammer Storm has a chance to empower the next Skull Crusher. DevName GE_Ink_Talent_ChanceIncreasedSpenderDamage_HeavySingleTargetAttack_Proc. Not linked to a Kit ability; add directly."
+      "icon": "T_Ink_Skullcrusher.jpg"
     },
     "SchismHammerStorm": {
       "id": 1747,
       "kind": "effect",
       "name": "Schism - Hammer Storm",
-      "icon": "T_Ink_Hammerstorm.jpg",
-      "note": "Schism talent proc buff; casting Skull Crusher has a chance to empower the next Hammer Storm. DevName GE_Ink_Talent_ChanceIncreasedSpenderDamage_AoeAttack_Proc. Not linked to a Kit ability; add directly."
+      "icon": "T_Ink_Hammerstorm.jpg"
     },
     "RisingSpirit": {
       "id": 3115,
       "kind": "effect",
       "name": "Rising Spirit",
-      "icon": "T_Nhance_RPG_Icons_SpiritAmulet.jpg",
-      "note": "shared spirit-refund stacking buff (GE_Shared_SpiritRefund_Buff), added to the tariq scope for Tariq statistics. Not in Tariq's Kit; add directly."
+      "icon": "T_Nhance_RPG_Icons_SpiritAmulet.jpg"
     },
     "HeavyStrikeDamage": {
       "id": 1776,
       "kind": "effect",
-      "name": "Heavy Strike",
-      "note": "GE_Ink_AutoAttackBuff_Damage; the parent ability's DevName stem does not match the effect stem so it is not auto-linked; add directly"
+      "name": "Heavy Strike"
     },
     "HeavyStrikeAoeDamage": {
       "id": 1779,
       "kind": "effect",
-      "name": "Heavy Strike",
-      "note": "GE_Ink_AutoAttackBuff_AoeDamage; the parent ability's DevName stem does not match the effect stem so it is not auto-linked; add directly"
+      "name": "Heavy Strike"
     },
     "HeavyStrikeCleaveDamage": {
       "id": 2755,
       "kind": "effect",
-      "name": "Heavy Strike",
-      "note": "GE_Ink_AutoAttackBuff_CleaveDamage; the parent ability's DevName stem does not match the effect stem so it is not auto-linked; add directly"
+      "name": "Heavy Strike"
     },
     "Sledgehammer": {
       "id": 2061,
       "kind": "ability",
       "name": "Sledgehammer",
-      "icon": "T_Nhance_RPG_Icons_ChaoticSpikes.jpg",
-      "note": "GA_Ink_Talent_Passive_HeavySingleTargetAttack_AoE_Monitor; the Sledgehammer talent's Skull Crusher splash (Skull Crusher.Talent.HeavySingleTargetAttackAoe). EnabledInGame in s3 spell_data but absent from Tariq's Kit block, so the merge never imports it; add directly so the spellbook can attribute its damage to Skull Crusher."
+      "icon": "T_Nhance_RPG_Icons_ChaoticSpikes.jpg"
     }
   },
   "vigour": {
     "RuneOfRenewalAlt": {
-      "id": 999,
-      "note": "both id 995 and id 999 sanitize to RuneOfRenewal; supersede id 999 under distinct name RuneOfRenewalAlt to eliminate collision"
+      "id": 999
     }
   },
   "shared": {
     "VeinSprout": {
       "id": 2031,
-      "school": "Magic",
-      "note": "enemy ability GA_ST_BossDefenseEye_Passive_ShootProjectilesAndAoePlacement carries no School; the damage it places, GE_ST_BossDefenseEye_AoePlacementDebuff_Stack_Damage (1002936), is Magic/Blood"
+      "school": "Magic"
     },
     "ConduitOfStrikingShadows": {
       "id": 2113,
-      "school": "Magic",
-      "note": "enemy ability GA_ST_BossGatekeeper_Conduit_Triangle_Passive carries no School; its damage effect GE_ST_BossGatekeeper_Conduit_Triangle_AoeDamage (1002914) is Magic/Blood"
+      "school": "Magic"
     },
     "ConduitOfTheBleedingGaze": {
       "id": 2116,
-      "school": "Magic",
-      "note": "enemy ability GA_ST_BossGatekeeper_Conduit_Circle_Passive carries no School; its damage effect GE_ST_BossGatekeeper_Conduit_Circle_ProjectileDamage (1002920) is Magic/Blood"
+      "school": "Magic"
     },
     "SanguineClaws": {
       "id": 2187,
-      "school": "Physical",
-      "note": "enemy ability GA_MC_BloodHound_Cleave carries no School; its damage effect GE_MC_BloodHound_Cleave_Damage (1003046) and its bleed GE_MC_BloodHound_Cleave_Bleed_Dot (1003047) are both Physical"
+      "school": "Physical"
     }
   }
 }
