@@ -169,7 +169,7 @@ public abstract class AbsorbAnalyzer : Analyzer
 }
 
 /// <summary>One hit an absorb shield took a share of.</summary>
-/// <param name="Timestamp">When the hit landed.</param>
+/// <param name="Timestamp">When the hit was taken.</param>
 /// <param name="Amount">Damage this shield removed from the hit. Several shields covering one hit each record their own share.</param>
 /// <param name="AttackerId">The unit that dealt the hit, when the event names one.</param>
 /// <param name="Ability">The ability that dealt the hit, when the event names one.</param>
@@ -203,8 +203,8 @@ public sealed record AbsorbUse(
     public bool ExpiredUnspent => Remaining > 0;
 
     /// <summary>
-    /// Effective absorbtion, calculated as total - remaining
-    /// left on it.
+    /// Absorption the shield spent, as <see cref="Total"/> less the <see cref="Remaining"/> the
+    /// removal reported; null when the pull ended before the shield came off.
     /// </summary>
     public long? Effective => Truncated ? null : Total - Remaining;
 }
