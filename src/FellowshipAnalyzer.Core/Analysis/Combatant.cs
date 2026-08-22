@@ -48,7 +48,7 @@ public sealed class FullCombatant : Combatant
 
         _itemById = _gear.Values.ToDictionary(i => i.Id);
 
-        HasLegendary = info.Gear.Any(item => item.Quality >= LegendaryQuality);
+        Legendary = info.Gear.SingleOrDefault(item => item.Quality >= LegendaryQuality);
         Stats = BuildStats(info);
     }
 
@@ -80,7 +80,7 @@ public sealed class FullCombatant : Combatant
     public int Emerald => Info.Emerald;
 
     /// <summary>True when any equipped item is legendary quality (the top rarity, of which only one may be equipped).</summary>
-    public bool HasLegendary { get; }
+    public Item? Legendary { get; }
 
     /// <summary>The item equipped in the head slot, or <c>null</c> if that slot is empty.</summary>
     public Item? Head => GetSlot(GearSlot.Head);
@@ -165,7 +165,7 @@ public sealed class FullCombatant : Combatant
         Spirit = info.Spirit,
         AbilityCooldownReduction =
             [new CooldownModifier(HighestUnlocked(BlessingOfTheCommander, info.Emerald))],
-        CooldownAcceleration = HasLegendary
+        CooldownAcceleration = Legendary is not null
             ? [new CooldownModifier(StrandOfEternityAcceleration)]
             : [],
     };

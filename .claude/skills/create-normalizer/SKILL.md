@@ -81,6 +81,13 @@ public List<Event> Normalize(List<Event> events, int playerId)
 
 ### Event Linking
 
+For a rule-driven linker, derive from `EventLinkNormalizer` (`Core/Analysis/Normalizers/`, priority 100)
+and supply `EventLink` records; it owns the timestamp scan, the source and target matching, and the
+guarantee that each referenced event is linked once per rule. `GundeEventLinkNormalizer` is the example.
+Read the links back with `event.RelatedEvents<TEvent>(relation)`.
+
+Link by hand only where a rule cannot express the pairing:
+
 ```csharp
 public List<Event> Normalize(List<Event> events, int playerId)
 {
@@ -94,7 +101,7 @@ public List<Event> Normalize(List<Event> events, int playerId)
             .FirstOrDefault();
         if (matchingCast is not null)
         {
-            damageEvent.LinkedEvents.Add(new LinkedEvent(matchingCast, "matching-cast"));
+            damageEvent.AddRelatedEvent("matching-cast", matchingCast);
         }
     }
 

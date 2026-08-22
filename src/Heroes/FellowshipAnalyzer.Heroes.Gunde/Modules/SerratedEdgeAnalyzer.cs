@@ -1,6 +1,10 @@
 using FellowshipAnalyzer.Core.Analysis;
+using FellowshipAnalyzer.Core.Common.Items;
 using FellowshipAnalyzer.Core.Common.Spells.Gunde;
 using FellowshipAnalyzer.Core.Events;
+using FellowshipAnalyzer.Heroes.Gunde.Normalizers;
+
+using FSLID = FellowshipAnalyzer.Core.Common.Spells.FSLID;
 
 namespace FellowshipAnalyzer.Heroes.Gunde.Modules;
 
@@ -10,20 +14,33 @@ public sealed partial class SerratedEdgeAnalyzer : Analyzer
 {
     public const int ConsumerGraceMs = 250;
 
+    public const double AdditionalRendConversion = 0.20;
+
+    public static readonly FSLID[] Consumers =
+    [
+        Spells.HeartSplitter.FSLID,
+        Spells.GrimCarve.FSLID,
+        Spells.Rupture.FSLID,
+        Spells.BloodArc.FSLID,
+        Spells.ReaverEdge.FSLID,
+        Spells.DoubleStrike.FSLID,
+    ];
+
     private readonly List<SerratedEdgeGrant> _grants = [];
 
     private int? _grantedAt;
-    private int _lastCastTimestamp = int.MinValue;
-    private int _lastCastAbilityId;
-    private CooldownSnapshot _lastCastCooldowns;
+    private CastEvent? _lastCast;
+    private IReadOnlyList<ConsumerReadiness> _lastCastReadiness = [];
 
     public GundePullShape Shape => Pull.Targets == PullKind.Single ? GundePullShape.Boss : GundePullShape.Aoe;
 
-    public int PriorityAbilityId =>
-        Shape == GundePullShape.Aoe ? Spells.GrimCarve.FSLID.Value : Spells.HeartSplitter.FSLID.Value;
+    public bool BleedingHeartRingEquipped => Owner.SelectedCombatant.HasItem(Items.BandOfTheBleedingHeart.Id);
 
-    public int AlternateAbilityId =>
-        Shape == GundePullShape.Aoe ? Spells.HeartSplitter.FSLID.Value : Spells.GrimCarve.FSLID.Value;
+    public bool SinisterApronEquipped => Owner.SelectedCombatant.HasItem(Items.CarversSinisterApron.Id);
+
+    public IReadOnlyList<int> ConsumerPriority => field ??= BuildConsumerPriority();
+
+    public int PriorityAbilityId => ConsumerPriority[0];
 
     public IReadOnlyList<SerratedEdgeGrant> Grants => _grants;
 
@@ -39,6 +56,11 @@ public sealed partial class SerratedEdgeAnalyzer : Analyzer
 
     public int Unspent => Count(SerratedEdgeOutcome.Unspent);
 
+    public long TotalRendConverted => _grants.Sum(grant => grant.RendConverted);
+
+    public long RendConvertedBy(SerratedEdgeOutcome outcome) =>
+        _grants.Where(grant => grant.Outcome == outcome).Sum(grant => grant.RendConverted);
+
     [On<CastEvent>(By = Actor.Player, Spells = [
         nameof(Spells.HeartSplitter),
         nameof(Spells.GrimCarve),
@@ -48,9 +70,8 @@ public sealed partial class SerratedEdgeAnalyzer : Analyzer
         nameof(Spells.DoubleStrike)])]
     private void OnCandidateCast(CastEvent castEvent)
     {
-        _lastCastTimestamp = castEvent.Timestamp;
-        _lastCastAbilityId = castEvent.Ability.Id;
-        _lastCastCooldowns = Snapshot(castEvent.Timestamp);
+        _lastCast = castEvent;
+        _lastCastReadiness = Snapshot(castEvent.Timestamp);
     }
 
     [On<ApplyBuffEvent>(To = Actor.Player, Spell = nameof(Spells.SerratedEdge))]
@@ -66,47 +87,75 @@ public sealed partial class SerratedEdgeAnalyzer : Analyzer
 
         _grantedAt = null;
         var consumer = ConsumerAt(granted, buffEvent.Timestamp);
-        var cooldowns = consumer is null ? Snapshot(buffEvent.Timestamp) : _lastCastCooldowns;
+        var ability = consumer?.Ability.Id;
+        var readiness = consumer is null ? Snapshot(buffEvent.Timestamp) : _lastCastReadiness;
+        var rank = ability is { } consumed ? RankOf(consumed) : null;
+        var damage = consumer is null ? 0L : SumLinked(consumer, GundeEventLinkNormalizer.CastDamage);
 
         _grants.Add(new SerratedEdgeGrant(
             granted,
-            consumer,
-            cooldowns.HeartSplitterReady,
-            cooldowns.HeartSplitterRemainingMs,
-            cooldowns.GrimCarveReady,
-            cooldowns.GrimCarveRemainingMs,
-            Classify(consumer, cooldowns)));
+            ability,
+            rank,
+            readiness,
+            Classify(ability, rank, readiness),
+            damage,
+            (long)Math.Round(damage * AdditionalRendConversion),
+            consumer is null ? 0L : SumLinked(consumer, GundeEventLinkNormalizer.Exsanguinate)));
     }
 
-    private int? ConsumerAt(int granted, int removed) =>
-        _lastCastTimestamp >= granted && removed - _lastCastTimestamp <= ConsumerGraceMs
-            ? _lastCastAbilityId
+    private CastEvent? ConsumerAt(int granted, int removed) =>
+        _lastCast is { } cast && cast.Timestamp >= granted && removed - cast.Timestamp <= ConsumerGraceMs
+            ? cast
             : null;
 
-    private SerratedEdgeOutcome Classify(int? consumer, CooldownSnapshot cooldowns)
-    {
-        if (consumer is not { } ability) return SerratedEdgeOutcome.Unspent;
-        if (ability == PriorityAbilityId) return SerratedEdgeOutcome.Priority;
-        if (ability == AlternateAbilityId) return SerratedEdgeOutcome.Alternate;
+    private static long SumLinked(CastEvent cast, string relation) =>
+        cast.RelatedEvents<DamageEvent>(relation).Sum(damageEvent => damageEvent.Amount);
 
-        return cooldowns.HeartSplitterReady || cooldowns.GrimCarveReady
-            ? SerratedEdgeOutcome.AvoidableFiller
-            : SerratedEdgeOutcome.ForcedFiller;
+    private IReadOnlyList<int> BuildConsumerPriority()
+    {
+        if (BleedingHeartRingEquipped)
+        {
+            return [Spells.Rupture.FSLID.Value, Spells.HeartSplitter.FSLID.Value, Spells.GrimCarve.FSLID.Value];
+        }
+
+        if (SinisterApronEquipped)
+        {
+            return Shape == GundePullShape.Aoe
+                ? [Spells.GrimCarve.FSLID.Value, Spells.Rupture.FSLID.Value, Spells.HeartSplitter.FSLID.Value]
+                : [Spells.Rupture.FSLID.Value, Spells.GrimCarve.FSLID.Value, Spells.HeartSplitter.FSLID.Value];
+        }
+
+        return Shape == GundePullShape.Aoe
+            ? [Spells.GrimCarve.FSLID.Value, Spells.HeartSplitter.FSLID.Value]
+            : [Spells.HeartSplitter.FSLID.Value, Spells.GrimCarve.FSLID.Value];
     }
 
-    private CooldownSnapshot Snapshot(int timestamp) => new(
-        SpellUsable.IsAvailable(Spells.HeartSplitter.FSLID.Value),
-        SpellUsable.CooldownRemaining(Spells.HeartSplitter.FSLID.Value, timestamp),
-        SpellUsable.IsAvailable(Spells.GrimCarve.FSLID.Value),
-        SpellUsable.CooldownRemaining(Spells.GrimCarve.FSLID.Value, timestamp));
+    private int? RankOf(int ability)
+    {
+        for (var rank = 0; rank < ConsumerPriority.Count; rank++)
+        {
+            if (ConsumerPriority[rank] == ability) return rank;
+        }
+
+        return null;
+    }
+
+    private static SerratedEdgeOutcome Classify(int? consumer, int? rank, IReadOnlyList<ConsumerReadiness> readiness) =>
+        consumer is null ? SerratedEdgeOutcome.Unspent
+        : rank is 0 ? SerratedEdgeOutcome.Priority
+        : rank is not null ? SerratedEdgeOutcome.Alternate
+        : readiness.Any(entry => entry.Ready) ? SerratedEdgeOutcome.AvoidableFiller
+        : SerratedEdgeOutcome.ForcedFiller;
+
+    private IReadOnlyList<ConsumerReadiness> Snapshot(int timestamp) =>
+    [
+        .. ConsumerPriority.Select(ability => new ConsumerReadiness(
+            ability,
+            SpellUsable.IsAvailable(ability),
+            SpellUsable.CooldownRemaining(ability, timestamp)))
+    ];
 
     private int Count(SerratedEdgeOutcome outcome) => _grants.Count(grant => grant.Outcome == outcome);
-
-    private readonly record struct CooldownSnapshot(
-        bool HeartSplitterReady,
-        int HeartSplitterRemainingMs,
-        bool GrimCarveReady,
-        int GrimCarveRemainingMs);
 }
 
 public enum SerratedEdgeOutcome
@@ -122,11 +171,14 @@ public enum SerratedEdgeOutcome
     Unspent,
 }
 
+public readonly record struct ConsumerReadiness(int AbilityId, bool Ready, int RemainingMs);
+
 public sealed record SerratedEdgeGrant(
     int Timestamp,
     int? ConsumerAbilityId,
-    bool HeartSplitterReady,
-    int HeartSplitterRemainingMs,
-    bool GrimCarveReady,
-    int GrimCarveRemainingMs,
-    SerratedEdgeOutcome Outcome);
+    int? ConsumerRank,
+    IReadOnlyList<ConsumerReadiness> Readiness,
+    SerratedEdgeOutcome Outcome,
+    long ConsumerDamage,
+    long RendConverted,
+    long ExsanguinateDamage);

@@ -27,6 +27,10 @@ public sealed class SerratedEdgeAnalyzerTests
     /// <summary>Curated Grim Carve cooldown.</summary>
     private const int GrimCarveCooldownMs = 15_000;
 
+    private static readonly int BleedingHeartRing = FellowshipAnalyzer.Core.Common.Items.Items.BandOfTheBleedingHeart.Id;
+
+    private static readonly int SinisterApron = FellowshipAnalyzer.Core.Common.Items.Items.CarversSinisterApron.Id;
+
     [Fact]
     public async Task Analyze_BossPull_HeartSplitterConsumingTheBuff_IsThePriority()
     {
@@ -106,8 +110,9 @@ public sealed class SerratedEdgeAnalyzerTests
 
         var grant = analyzer.Grants.ShouldHaveSingleItem();
         grant.ConsumerAbilityId.ShouldBe(Spells.ReaverEdge.FSLID.Value);
-        grant.HeartSplitterReady.ShouldBeTrue();
-        grant.GrimCarveReady.ShouldBeTrue();
+        grant.ConsumerRank.ShouldBeNull();
+        Readiness(grant, Spells.HeartSplitter.FSLID).Ready.ShouldBeTrue();
+        Readiness(grant, Spells.GrimCarve.FSLID).Ready.ShouldBeTrue();
         grant.Outcome.ShouldBe(SerratedEdgeOutcome.AvoidableFiller);
 
         analyzer.AvoidableFiller.ShouldBe(1);
@@ -128,10 +133,10 @@ public sealed class SerratedEdgeAnalyzerTests
 
         var grant = analyzer.Grants.ShouldHaveSingleItem();
         grant.ConsumerAbilityId.ShouldBe(Spells.ReaverEdge.FSLID.Value);
-        grant.HeartSplitterReady.ShouldBeFalse();
-        grant.GrimCarveReady.ShouldBeFalse();
-        grant.HeartSplitterRemainingMs.ShouldBeGreaterThan(0);
-        grant.GrimCarveRemainingMs.ShouldBeGreaterThan(0);
+        Readiness(grant, Spells.HeartSplitter.FSLID).Ready.ShouldBeFalse();
+        Readiness(grant, Spells.GrimCarve.FSLID).Ready.ShouldBeFalse();
+        Readiness(grant, Spells.HeartSplitter.FSLID).RemainingMs.ShouldBeGreaterThan(0);
+        Readiness(grant, Spells.GrimCarve.FSLID).RemainingMs.ShouldBeGreaterThan(0);
         grant.Outcome.ShouldBe(SerratedEdgeOutcome.ForcedFiller);
 
         analyzer.ForcedFiller.ShouldBe(1);
@@ -150,8 +155,8 @@ public sealed class SerratedEdgeAnalyzerTests
         ], boss: true);
 
         var grant = analyzer.Grants.ShouldHaveSingleItem();
-        grant.HeartSplitterReady.ShouldBeFalse();
-        grant.GrimCarveReady.ShouldBeTrue();
+        Readiness(grant, Spells.HeartSplitter.FSLID).Ready.ShouldBeFalse();
+        Readiness(grant, Spells.GrimCarve.FSLID).Ready.ShouldBeTrue();
         grant.Outcome.ShouldBe(SerratedEdgeOutcome.AvoidableFiller);
     }
 
@@ -169,8 +174,8 @@ public sealed class SerratedEdgeAnalyzerTests
         ], boss: true);
 
         var grant = analyzer.Grants.ShouldHaveSingleItem();
-        grant.HeartSplitterReady.ShouldBeTrue();
-        grant.GrimCarveReady.ShouldBeTrue();
+        Readiness(grant, Spells.HeartSplitter.FSLID).Ready.ShouldBeTrue();
+        Readiness(grant, Spells.GrimCarve.FSLID).Ready.ShouldBeTrue();
         grant.Outcome.ShouldBe(SerratedEdgeOutcome.AvoidableFiller);
     }
 
@@ -189,6 +194,117 @@ public sealed class SerratedEdgeAnalyzerTests
         var grant = analyzer.Grants.ShouldHaveSingleItem();
         grant.ConsumerAbilityId.ShouldBe(Spells.Rupture.FSLID.Value);
         grant.Outcome.ShouldBe(SerratedEdgeOutcome.ForcedFiller);
+    }
+
+    [Fact]
+    public async Task Analyze_BossPull_WithTheBleedingHeartRing_PutsRuptureFirst()
+    {
+        var analyzer = await AnalyzeAsync(
+        [
+            Granted(1_000),
+            Cast(Spells.Rupture.FSLID, 2_000),
+            Removed(2_000),
+        ], boss: true, equipped: BleedingHeartRing);
+
+        analyzer.BleedingHeartRingEquipped.ShouldBeTrue();
+        analyzer.ConsumerPriority.ShouldBe(
+            [Spells.Rupture.FSLID.Value, Spells.HeartSplitter.FSLID.Value, Spells.GrimCarve.FSLID.Value]);
+
+        var grant = analyzer.Grants.ShouldHaveSingleItem();
+        grant.ConsumerRank.ShouldBe(0);
+        grant.Outcome.ShouldBe(SerratedEdgeOutcome.Priority);
+    }
+
+    [Fact]
+    public async Task Analyze_TrashPull_WithTheBleedingHeartRing_KeepsTheSameOrder()
+    {
+        var analyzer = await AnalyzeAsync(
+        [
+            Granted(1_000),
+            Cast(Spells.HeartSplitter.FSLID, 2_000),
+            Removed(2_000),
+        ], boss: false, equipped: BleedingHeartRing);
+
+        analyzer.ConsumerPriority.ShouldBe(
+            [Spells.Rupture.FSLID.Value, Spells.HeartSplitter.FSLID.Value, Spells.GrimCarve.FSLID.Value]);
+
+        var grant = analyzer.Grants.ShouldHaveSingleItem();
+        grant.ConsumerRank.ShouldBe(1);
+        grant.Outcome.ShouldBe(SerratedEdgeOutcome.Alternate);
+    }
+
+    [Fact]
+    public async Task Analyze_BossPull_WithTheSinisterApron_PutsRuptureAheadOfGrimCarve()
+    {
+        var analyzer = await AnalyzeAsync(
+        [
+            Granted(1_000),
+            Cast(Spells.GrimCarve.FSLID, 2_000),
+            Removed(2_000),
+        ], boss: true, equipped: SinisterApron);
+
+        analyzer.SinisterApronEquipped.ShouldBeTrue();
+        analyzer.ConsumerPriority.ShouldBe(
+            [Spells.Rupture.FSLID.Value, Spells.GrimCarve.FSLID.Value, Spells.HeartSplitter.FSLID.Value]);
+
+        var grant = analyzer.Grants.ShouldHaveSingleItem();
+        grant.ConsumerRank.ShouldBe(1);
+        grant.Outcome.ShouldBe(SerratedEdgeOutcome.Alternate);
+    }
+
+    [Fact]
+    public async Task Analyze_TrashPull_WithTheSinisterApron_PutsGrimCarveFirst()
+    {
+        var analyzer = await AnalyzeAsync(
+        [
+            Granted(1_000),
+            Cast(Spells.GrimCarve.FSLID, 2_000),
+            Removed(2_000),
+        ], boss: false, equipped: SinisterApron);
+
+        analyzer.ConsumerPriority.ShouldBe(
+            [Spells.GrimCarve.FSLID.Value, Spells.Rupture.FSLID.Value, Spells.HeartSplitter.FSLID.Value]);
+        analyzer.PriorityAbilityId.ShouldBe(Spells.GrimCarve.FSLID.Value);
+
+        var grant = analyzer.Grants.ShouldHaveSingleItem();
+        grant.ConsumerRank.ShouldBe(0);
+        grant.Outcome.ShouldBe(SerratedEdgeOutcome.Priority);
+    }
+
+    [Fact]
+    public async Task Analyze_WithNoLegendary_RuptureIsNotRanked()
+    {
+        var analyzer = await AnalyzeAsync(
+        [
+            Granted(1_000),
+            Cast(Spells.Rupture.FSLID, 2_000),
+            Removed(2_000),
+        ], boss: true);
+
+        analyzer.BleedingHeartRingEquipped.ShouldBeFalse();
+        analyzer.SinisterApronEquipped.ShouldBeFalse();
+        analyzer.ConsumerPriority.ShouldBe(
+            [Spells.HeartSplitter.FSLID.Value, Spells.GrimCarve.FSLID.Value]);
+
+        analyzer.Grants.ShouldHaveSingleItem().ConsumerRank.ShouldBeNull();
+    }
+
+    [Fact]
+    public async Task Analyze_WithTheBleedingHeartRing_RuptureOffCooldownMakesFillerAvoidable()
+    {
+        var analyzer = await AnalyzeAsync(
+        [
+            Cast(Spells.HeartSplitter.FSLID, 1_000),
+            Cast(Spells.GrimCarve.FSLID, 1_500),
+            Granted(2_000),
+            Cast(Spells.ReaverEdge.FSLID, 3_000),
+            Removed(3_001),
+        ], boss: true, equipped: BleedingHeartRing);
+
+        var grant = analyzer.Grants.ShouldHaveSingleItem();
+        grant.Readiness.Count.ShouldBe(3);
+        Readiness(grant, Spells.Rupture.FSLID).Ready.ShouldBeTrue();
+        grant.Outcome.ShouldBe(SerratedEdgeOutcome.AvoidableFiller);
     }
 
     [Fact]
@@ -288,10 +404,142 @@ public sealed class SerratedEdgeAnalyzerTests
         ], boss: true);
 
         var grant = analyzer.Grants.ShouldHaveSingleItem();
-        grant.HeartSplitterRemainingMs.ShouldBeLessThanOrEqualTo(HeartSplitterCooldownMs);
-        grant.GrimCarveRemainingMs.ShouldBeLessThanOrEqualTo(GrimCarveCooldownMs);
-        grant.GrimCarveRemainingMs.ShouldBeGreaterThan(grant.HeartSplitterRemainingMs);
+        var heartSplitter = Readiness(grant, Spells.HeartSplitter.FSLID).RemainingMs;
+        var grimCarve = Readiness(grant, Spells.GrimCarve.FSLID).RemainingMs;
+
+        heartSplitter.ShouldBeLessThanOrEqualTo(HeartSplitterCooldownMs);
+        grimCarve.ShouldBeLessThanOrEqualTo(GrimCarveCooldownMs);
+        grimCarve.ShouldBeGreaterThan(heartSplitter);
     }
+
+    [Fact]
+    public async Task Analyze_GrimCarveConsumingTheBuff_ConvertsAFifthOfEverySpin()
+    {
+        var analyzer = await AnalyzeAsync(
+        [
+            Granted(1_000),
+            Cast(Spells.GrimCarve.FSLID, 2_000),
+            Removed(2_000),
+            Damage(Spells.GrimCarve.FSLID, 2_200, 1_000),
+            Damage(Spells.GrimCarve.FSLID, 2_700, 1_000),
+            Damage(Spells.GrimCarve.FSLID, 3_200, 500),
+        ], boss: false);
+
+        var grant = analyzer.Grants.ShouldHaveSingleItem();
+        grant.ConsumerDamage.ShouldBe(2_500);
+        grant.RendConverted.ShouldBe(500);
+        analyzer.TotalRendConverted.ShouldBe(500);
+    }
+
+    [Fact]
+    public async Task Analyze_HeartSplitterConsumingTheBuff_LeavesExsanguinateOutOfTheConversion()
+    {
+        var analyzer = await AnalyzeAsync(
+        [
+            Granted(1_000),
+            Cast(Spells.HeartSplitter.FSLID, 2_000),
+            Removed(2_000),
+            Damage(Spells.HeartSplitter.FSLID, 2_005, 4_000),
+            Damage(Spells.HeartSplitterDotBonusDamage.FSLID, 2_006, 16_000),
+        ], boss: true);
+
+        var grant = analyzer.Grants.ShouldHaveSingleItem();
+        grant.ConsumerDamage.ShouldBe(4_000);
+        grant.RendConverted.ShouldBe(800);
+        grant.ExsanguinateDamage.ShouldBe(16_000);
+    }
+
+    [Fact]
+    public async Task Analyze_ASecondCastOfTheSameAbility_KeepsItsDamageOutOfTheFirstGrant()
+    {
+        var analyzer = await AnalyzeAsync(
+        [
+            Granted(1_000),
+            Cast(Spells.GrimCarve.FSLID, 2_000),
+            Removed(2_000),
+            Damage(Spells.GrimCarve.FSLID, 2_100, 1_000),
+            Cast(Spells.GrimCarve.FSLID, 2_500),
+            Damage(Spells.GrimCarve.FSLID, 2_600, 9_000),
+        ], boss: false);
+
+        var grant = analyzer.Grants.ShouldHaveSingleItem();
+        grant.ConsumerDamage.ShouldBe(1_000);
+        grant.RendConverted.ShouldBe(200);
+    }
+
+    [Fact]
+    public async Task Analyze_AnotherAbilitysDamage_IsNotConverted()
+    {
+        var analyzer = await AnalyzeAsync(
+        [
+            Granted(1_000),
+            Cast(Spells.DoubleStrike.FSLID, 2_000),
+            Removed(2_000),
+            Damage(Spells.DoubleStrike.FSLID, 2_010, 400),
+            Damage(Spells.DoubleStrike.FSLID, 2_020, 400),
+            Damage(Spells.ReaverEdge.FSLID, 2_030, 5_000),
+        ], boss: true);
+
+        var grant = analyzer.Grants.ShouldHaveSingleItem();
+        grant.ConsumerDamage.ShouldBe(800);
+        grant.RendConverted.ShouldBe(160);
+    }
+
+    [Fact]
+    public async Task Analyze_AnUnspentGrant_ConvertsNothing()
+    {
+        var analyzer = await AnalyzeAsync(
+        [
+            Granted(1_000),
+            Removed(9_000),
+            Damage(Spells.GrimCarve.FSLID, 9_100, 5_000),
+        ], boss: true);
+
+        var grant = analyzer.Grants.ShouldHaveSingleItem();
+        grant.Outcome.ShouldBe(SerratedEdgeOutcome.Unspent);
+        grant.ConsumerDamage.ShouldBe(0);
+        grant.RendConverted.ShouldBe(0);
+        analyzer.TotalRendConverted.ShouldBe(0);
+    }
+
+    [Fact]
+    public async Task Analyze_EveryGrant_AddsIntoTheConvertedTotal()
+    {
+        var analyzer = await AnalyzeAsync(
+        [
+            Granted(1_000),
+            Cast(Spells.GrimCarve.FSLID, 2_000),
+            Removed(2_000),
+            Damage(Spells.GrimCarve.FSLID, 2_100, 10_000),
+            Granted(20_000),
+            Cast(Spells.DoubleStrike.FSLID, 21_000),
+            Removed(21_000),
+            Damage(Spells.DoubleStrike.FSLID, 21_010, 1_000),
+        ], boss: false);
+
+        analyzer.Grants.Count.ShouldBe(2);
+        analyzer.TotalRendConverted.ShouldBe(2_200);
+        analyzer.RendConvertedBy(SerratedEdgeOutcome.Priority).ShouldBe(2_000);
+        analyzer.RendConvertedBy(SerratedEdgeOutcome.AvoidableFiller).ShouldBe(200);
+    }
+
+    private static ConsumerReadiness Readiness(SerratedEdgeGrant grant, int abilityId) =>
+        grant.Readiness.Single(entry => entry.AbilityId == abilityId);
+
+    private static DamageEvent Damage(int abilityId, int timestamp, long amount) => new()
+    {
+        Timestamp = timestamp,
+        SourceId = PlayerId,
+        TargetId = BossId,
+        Amount = amount,
+        Ability = new Ability { Id = abilityId },
+    };
+
+    private static CombatantInfoEvent Equipped(int itemId) => new()
+    {
+        SourceId = PlayerId,
+        Gear = [new Item { Id = itemId }],
+    };
 
     private static ApplyBuffEvent Granted(int timestamp) => new()
     {
@@ -324,9 +572,10 @@ public sealed class SerratedEdgeAnalyzerTests
         new(0, "Trash", 0, null, 0, PullEnd, null, null, null,
             EnemyNpcs: [new DungeonNpc(1, 100, 4, 1, null)]);
 
-    private static async Task<SerratedEdgeAnalyzer> AnalyzeAsync(List<Event> events, bool boss)
+    private static async Task<SerratedEdgeAnalyzer> AnalyzeAsync(List<Event> events, bool boss, int? equipped = null)
     {
-        var (parser, _) = await RunAsync(events, boss ? BossDungeon() : TrashDungeon());
+        List<Event> stream = equipped is { } itemId ? [Equipped(itemId), .. events] : events;
+        var (parser, _) = await RunAsync(stream, boss ? BossDungeon() : TrashDungeon());
         return parser.SerratedEdgeAnalyzers.ShouldHaveSingleItem().Analyzer;
     }
 
