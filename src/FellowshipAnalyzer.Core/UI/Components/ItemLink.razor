@@ -1,0 +1,46 @@
+@using OneOf
+
+<a href="@ItemUrl" target="_blank" rel="noopener noreferrer" data-tooltip-spell-id="@TooltipSpellId" class="item-link">
+    @if (Icon && _icon is { Length: > 0 })
+    {
+        <img src="@IconUrl" class="item-link__icon" alt="" />
+    }
+    @(_name ?? "Unknown Item")
+</a>
+
+@code {
+    [Parameter, EditorRequired]
+    public OneOf<Core.Events.Item, int> Item { get; set; }
+
+    /// <summary>Whether to render the item icon alongside the name. Defaults to <c>true</c>.</summary>
+    [Parameter]
+    public bool Icon { get; set; } = true;
+
+    /// <summary>Icon size when <see cref="Icon"/> is <c>true</c>. Defaults to <see cref="SpellIconSize.Small"/>.</summary>
+    [Parameter]
+    public SpellIconSize IconSize { get; set; } = SpellIconSize.Small;
+
+    private int _itemId;
+    private string? _name;
+    private string? _icon;
+
+    private string LinkUri => $"item/{_itemId}";
+    private string ItemUrl => $"https://fellows.gg/{LinkUri}";
+    private string? TooltipSpellId => _itemId > 0 ? LinkUri : null;
+    private string IconUrl => $"https://assets.rpglogs.com/img/fellowship/abilities/{_icon}"; // abilities is the correct url segment for item icons
+
+    protected override void OnParametersSet()
+    {
+        Item.Switch(
+            item => { _itemId = item.Id; _name = item.Name; _icon = item.Icon; },
+            id =>
+            {
+                var s = ItemRegistry.MaybeGet(id);
+                if (s is not null)
+                {
+                    _itemId = s.Id; _name = s.Name; _icon = s.Icon;
+                }
+            }
+        );
+    }
+}
