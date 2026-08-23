@@ -1,0 +1,70 @@
+@using FellowshipAnalyzer.Core.Analysis
+@using FellowshipAnalyzer.Core.Common.Spells
+@inherits ReportComponent
+
+@if (_lanes.Count > 0)
+{
+    <GuideSection Title="@Title">
+        <LeftPanel>
+            <p>
+                Cast each cooldown as soon as it becomes available, as long as it can reach a target.
+                Some can be held for a mechanic, up to the point the hold runs a full recharge and
+                another use fits inside it. The rest are cast on cooldown.
+            </p>
+            <p>
+                <strong>Cooldown Graph</strong> - this graph shows when you cast each cooldown and how
+                long it was available in between. Grey segments show the ability available, gold
+                segments show it recharging, and white lines mark each cast. Red segments mark a hold
+                that cost you: on an ability cast on cooldown, every stretch in hand; on one that can
+                be held, a hold that ran a full recharge, so another use fit inside it.
+            </p>
+            <p>
+                The percentage beside each lane is the share of pull time the ability was recharging.
+                Dim segments are time between pulls and count neither way, but everything inside a
+                pull counts, including the end of one with nothing left to cast at, so a lane can
+                read below 100% with no cast missed.
+            </p>
+        </LeftPanel>
+        <RightPanel>
+            <CooldownGraph Lanes="_lanes"
+                           WindowStart="_windowStart"
+                           WindowEnd="_windowEnd"
+                           DungeonStartTime="DungeonStartTime" />
+        </RightPanel>
+    </GuideSection>
+}
+
+@code {
+    /// <summary>The cooldowns to draw a lane for, in the order they should read.</summary>
+    [Parameter, EditorRequired] public List<Spell> CooldownList { get; set; } = [];
+
+    /// <summary>The section heading.</summary>
+    [Parameter] public string Title { get; set; } = "Cooldowns";
+
+    private List<CooldownGraphLane> _lanes = [];
+    private int _windowStart;
+    private int _windowEnd;
+
+    protected override void OnParametersSet()
+    {
+        if (Result.Modules.OfType<Abilities>().FirstOrDefault() is not { } spellbook)
+        {
+            _lanes = [];
+            return;
+        }
+
+        List<PullStartEvent> pulls = SelectedPull is { } pull ? [pull] : [.. Owner.Pulls];
+        _windowStart = SelectedPull?.StartTime ?? DungeonStartTime;
+        _windowEnd = SelectedPull?.EndTime ?? DungeonEndTime;
+
+        var abilities = new List<SpellbookAbility>();
+        foreach (var spell in CooldownList)
+        {
+            if (spellbook.GetAbility(spell.FSLID) is { } ability)
+                abilities.Add(ability);
+        }
+
+        _lanes = CooldownGraphModel.Build(
+            abilities, Result.Events, spellbook, Owner.PlayerId, pulls, _windowStart, _windowEnd);
+    }
+}

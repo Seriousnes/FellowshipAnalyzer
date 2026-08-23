@@ -1,0 +1,213 @@
+@page "/cooldown-graph"
+@using FellowshipAnalyzer.Core.Common
+@using FellowshipAnalyzer.Core.Common.Spells
+@using Spells = FellowshipAnalyzer.Core.Common.Spells.Rime.Spells
+
+<PageTitle>CooldownGraph - Design System</PageTitle>
+
+<h1>CooldownGraph</h1>
+<p class="lede">One lane per cooldown, drawn from <code>CooldownGraphModel.Build</code>. Segment colours state cooldown status and the ability's own <code>CooldownUsage</code>, never a performance tier. The percentage beside each lane is the tiered reading. Every lane below is built from a synthetic <code>UpdateSpellUsableEvent</code> stream through the real model.</p>
+
+<CodeExample Title="Status and configuration"
+             Description="Two pulls with a walk between them. Gold is recharging, grey is available, dim is outside every pull, red is a hold the ability could not take. Ice Blitz is cast on cooldown so every stretch in hand reads red; Frost Ward can be held so only the hold that ran a full recharge does; Cold Snap has charges, which defaults it to the Ice Blitz rule."
+             Code="@_usageCode">
+    <Demo>
+        <CooldownGraph Lanes="_usageLanes" WindowStart="0" WindowEnd="240_000" />
+    </Demo>
+</CodeExample>
+
+<CodeExample Title="Efficiency tiers"
+             Description="A single 100 second pull at four recharging shares. The tier class lands on the percentage alone, which is the whole distinction: the segments beside it carry no tier."
+             Code="@_tierCode">
+    <Demo>
+        <CooldownGraph Lanes="_tierLanes" WindowStart="0" WindowEnd="100_000" />
+    </Demo>
+</CodeExample>
+
+<CodeExample Title="An ability with no cooldown"
+             Description="No recharge to measure, so there is no share to report and no tier to colour. The lane reads a dash and stays available end to end."
+             Code="@_noCooldownCode">
+    <Demo>
+        <CooldownGraph Lanes="_noCooldownLanes" WindowStart="0" WindowEnd="100_000" />
+    </Demo>
+</CodeExample>
+
+@code {
+    private const int PlayerId = 1;
+
+    private List<CooldownGraphLane> _usageLanes = [];
+    private List<CooldownGraphLane> _tierLanes = [];
+    private List<CooldownGraphLane> _noCooldownLanes = [];
+
+    protected override void OnInitialized()
+    {
+        _usageLanes = BuildUsageLanes();
+        _tierLanes = BuildTierLanes();
+        _noCooldownLanes = BuildNoCooldownLanes();
+    }
+
+    private static List<CooldownGraphLane> BuildUsageLanes()
+    {
+        var spellbook = new UsageSpellbook();
+        List<Event> events =
+        [
+            .. Recharge(Spells.IceBlitz.Id, 0, 60_000),
+            .. Recharge(Spells.IceBlitz.Id, 75_000, 135_000),
+
+            .. Recharge(Spells.FrostWard.Id, 0, 30_000),
+            .. Recharge(Spells.FrostWard.Id, 50_000, 80_000),
+            .. Recharge(Spells.FrostWard.Id, 195_000, 225_000),
+
+            .. Recharge(Spells.ColdSnap.Id, 0, 12_000),
+            .. Recharge(Spells.ColdSnap.Id, 20_000, 32_000),
+            .. Recharge(Spells.ColdSnap.Id, 170_000, 182_000),
+            .. Recharge(Spells.ColdSnap.Id, 190_000, 202_000),
+            .. Recharge(Spells.ColdSnap.Id, 210_000, 222_000),
+        ];
+
+        return CooldownGraphModel.Build(
+            [.. spellbook.GetAbilities()],
+            events,
+            spellbook,
+            PlayerId,
+            [Pull(0, 0, 140_000), Pull(1, 170_000, 240_000)],
+            0,
+            240_000);
+    }
+
+    private static List<CooldownGraphLane> BuildTierLanes()
+    {
+        var spellbook = new TierSpellbook();
+        List<Event> events =
+        [
+            .. Recharge(Spells.FlightOfTheNavir.Id, 0, 45_000),
+            .. Recharge(Spells.FlightOfTheNavir.Id, 45_000, 90_000),
+
+            .. Recharge(Spells.WintersBlessing.Id, 0, 39_000),
+            .. Recharge(Spells.WintersBlessing.Id, 39_000, 78_000),
+
+            .. Recharge(Spells.FreezingTorrent.Id, 0, 35_000),
+            .. Recharge(Spells.FreezingTorrent.Id, 35_000, 70_000),
+
+            .. Recharge(Spells.BurstingIce.Id, 0, 20_000),
+            .. Recharge(Spells.BurstingIce.Id, 20_000, 40_000),
+        ];
+
+        return CooldownGraphModel.Build(
+            [.. spellbook.GetAbilities()],
+            events,
+            spellbook,
+            PlayerId,
+            [Pull(0, 0, 100_000)],
+            0,
+            100_000);
+    }
+
+    private static List<CooldownGraphLane> BuildNoCooldownLanes()
+    {
+        var spellbook = new NoCooldownSpellbook();
+        return CooldownGraphModel.Build(
+            [.. spellbook.GetAbilities()],
+            [],
+            spellbook,
+            PlayerId,
+            [Pull(0, 0, 100_000)],
+            0,
+            100_000);
+    }
+
+    private static Event[] Recharge(int spellId, int start, int end) =>
+    [
+        Update(UpdateSpellUsableType.BeginCooldown, spellId, start, start, end, true),
+        Update(UpdateSpellUsableType.EndCooldown, spellId, end, end, end, false),
+    ];
+
+    private static UpdateSpellUsableEvent Update(
+        UpdateSpellUsableType type,
+        int spellId,
+        int timestamp,
+        int chargeStart,
+        int expectedRecharge,
+        bool onCooldown) => new()
+        {
+            Timestamp = timestamp,
+            SourceId = PlayerId,
+            UpdateType = type,
+            IsOnCooldown = onCooldown,
+            ChargeStartTimestamp = chargeStart,
+            OverallStartTimestamp = chargeStart,
+            ExpectedRechargeTimestamp = expectedRecharge,
+            Ability = new Ability { FSLID = spellId, Name = "Showcase Spell" },
+        };
+
+    private static PullStartEvent Pull(int index, int start, int end) => new()
+    {
+        Timestamp = start,
+        End = new PullEndEvent { Timestamp = end },
+        Index = index,
+        Id = index + 1,
+        Name = $"Pull {index}",
+        Targets = PullKind.Multi,
+        IsBoss = false,
+        Kill = true,
+    };
+
+    private static SpellbookAbility Entry(Spell spell, CooldownUsage? usage = null) => new()
+    {
+        PrimarySpell = spell,
+        Category = SpellCategory.Cooldowns,
+        CastEfficiency = usage is { } value ? new CastEfficiencyInfo { Usage = value } : null,
+    };
+
+    private sealed class UsageSpellbook : Abilities
+    {
+        public override IEnumerable<SpellbookAbility> Spellbook() =>
+        [
+            Entry(Spells.IceBlitz, CooldownUsage.OnCooldown),
+            Entry(Spells.FrostWard, CooldownUsage.BeforeAUseIsLost),
+            Entry(Spells.ColdSnap),
+        ];
+    }
+
+    private sealed class TierSpellbook : Abilities
+    {
+        public override IEnumerable<SpellbookAbility> Spellbook() =>
+        [
+            Entry(Spells.FlightOfTheNavir),
+            Entry(Spells.WintersBlessing),
+            Entry(Spells.FreezingTorrent),
+            Entry(Spells.BurstingIce),
+        ];
+    }
+
+    private sealed class NoCooldownSpellbook : Abilities
+    {
+        public override IEnumerable<SpellbookAbility> Spellbook() => [Entry(Spells.FrostBolt)];
+    }
+
+    private const string _usageCode = """
+@* FellowshipAnalyzer.Core.Common.Spells holds a type named Spells, so the hero
+   registry needs an alias rather than a plain @using of its namespace. *@
+@using Spells = FellowshipAnalyzer.Core.Common.Spells.Rime.Spells
+
+<CooldownGraph Lanes="@lanes" WindowStart="@windowStart" WindowEnd="@windowEnd" />
+
+@* Lanes come from the model, which reads each ability's CastEfficiency.Usage: *@
+new SpellbookAbility
+{
+    PrimarySpell = Spells.IceBlitz,
+    Category = SpellCategory.Cooldowns,
+    CastEfficiency = new CastEfficiencyInfo { Usage = CooldownUsage.OnCooldown },
+}
+""";
+
+    private const string _tierCode = """
+@* Usage left unset defaults to BeforeAUseIsLost, or OnCooldown where the ability has charges. *@
+<CooldownGraph Lanes="@lanes" WindowStart="0" WindowEnd="100_000" />
+""";
+
+    private const string _noCooldownCode = """
+@* An ability with no cooldown yields a lane with null MaxCasts, Efficiency and Performance. *@
+<CooldownGraph Lanes="@lanes" WindowStart="0" WindowEnd="100_000" />
+""";
+}
