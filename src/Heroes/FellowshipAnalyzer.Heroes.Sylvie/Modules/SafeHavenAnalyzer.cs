@@ -21,7 +21,7 @@ public sealed partial class SafeHavenAnalyzer : Analyzer
 
     public long AllyMs => Result.Placements.Sum(placement => placement.AllyMs);
 
-    public int AlliesReached => Result.Placements.Sum(placement => placement.Allies);
+    public int AlliesAffected => Result.Placements.Sum(placement => placement.Allies);
 
     public long OfferedAllyMs => Result.Placements.Sum(placement => (long)placement.Allies * placement.AvailableMs);
 

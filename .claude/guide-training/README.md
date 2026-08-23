@@ -153,16 +153,12 @@ passes the same gate.
 1. The owner blesses six to nine sections and writes each `fixture.md` directive.
 2. `create-guide/SKILL.md` is committed, which `81184bb` did. It is the trained artifact, so a round
    has no baseline until it settles.
-3. Reconcile `guide-review` against the memory record. `feedback_never_mention_the_log` postdates the
-   rulebook and reverses it: the presence table blesses "the log records no", the memory states that
-   phrasing was never blessed. The judge reads `guide-review` as its rubric, so an unreconciled entry
-   produces a wrong count rather than a stale note.
+3. Superseded 2026-08-23: `banned-vocabulary` was replaced by `.claude/skills/house-style/SKILL.md`,
+   which states the style positively and carries no "the log records no" entry, so the reconciliation
+   is moot. The judge reads `house-style` as its rubric.
 4. `guide-judge` and the five counts. Run the falsification test.
-5. Rename `banned-vocabulary` to `guide-review` and update the ten referring lines across eight files:
-   `guide-writer.md` lines 32 and 53, `create-guide/SKILL.md` line 70, and six memory files including
-   `MEMORY.md`. Both `guide-writer.md:32` and `create-guide/SKILL.md:70` instruct that the record be
-   read at write time, and `81184bb` committed the second of those by hand today, so removing them is
-   the owner's call to confirm rather than a mechanical rename. This is setup, and it is the last edit
-   made to the harness before it is frozen.
+5. Superseded 2026-08-23: `banned-vocabulary` was replaced by `house-style`, read at write time by
+   `guide-writer` and `create-guide` and read as the rubric by the judge and the optimizer. The
+   referrers were updated in the same change.
 6. `guide-optimizer`, the budget, the gate, and `rejected.md`.
 7. Longitudinal guidance.

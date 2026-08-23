@@ -9,7 +9,7 @@
 <p class="lede">One lane per cooldown, drawn from <code>CooldownGraphModel.Build</code>. Segment colours state cooldown status and the ability's own <code>CooldownUsage</code>, never a performance tier. The percentage beside each lane is the tiered reading. Every lane below is built from a synthetic <code>UpdateSpellUsableEvent</code> stream through the real model.</p>
 
 <CodeExample Title="Status and configuration"
-             Description="Two pulls with a walk between them. Gold is recharging, grey is available, dim is outside every pull, red is a hold the ability could not take. Ice Blitz is cast on cooldown so every stretch in hand reads red; Frost Ward can be held so only the hold that ran a full recharge does; Cold Snap has charges, which defaults it to the Ice Blitz rule."
+             Description="Two pulls with time between them. Gold is recharging, grey is available, dim is outside every pull, red is a hold the ability could not take. Ice Blitz is cast on cooldown so all available time reads red; Frost Ward can be held so only the hold that ran a full recharge does; Cold Snap has charges, which defaults it to the Ice Blitz rule."
              Code="@_usageCode">
     <Demo>
         <CooldownGraph Lanes="_usageLanes" WindowStart="0" WindowEnd="240_000" />
@@ -17,7 +17,7 @@
 </CodeExample>
 
 <CodeExample Title="Efficiency tiers"
-             Description="A single 100 second pull at four recharging shares. The tier class lands on the percentage alone, which is the whole distinction: the segments beside it carry no tier."
+             Description="A single 100 second pull at four recharging shares. The tier class colours the percentage alone, which is the whole distinction: the segments beside it have no tier."
              Code="@_tierCode">
     <Demo>
         <CooldownGraph Lanes="_tierLanes" WindowStart="0" WindowEnd="100_000" />

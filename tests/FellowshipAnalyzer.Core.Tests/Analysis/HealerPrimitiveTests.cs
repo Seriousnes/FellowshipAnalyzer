@@ -188,9 +188,9 @@ public sealed class HealerPrimitiveTests
     [Fact]
     public void AuraWindowLedger_CountsOverlappingWindowsOnce()
     {
-        AuraWindowLedger.CoveredMs([new AuraWindow(0, 10_000), new AuraWindow(5_000, 15_000)]).ShouldBe(15_000);
-        AuraWindowLedger.CoveredMs([new AuraWindow(0, 5_000), new AuraWindow(10_000, 15_000)]).ShouldBe(10_000);
-        AuraWindowLedger.CoveredMs([]).ShouldBe(0);
+        AuraWindowLedger.ActiveMs([new AuraWindow(0, 10_000), new AuraWindow(5_000, 15_000)]).ShouldBe(15_000);
+        AuraWindowLedger.ActiveMs([new AuraWindow(0, 5_000), new AuraWindow(10_000, 15_000)]).ShouldBe(10_000);
+        AuraWindowLedger.ActiveMs([]).ShouldBe(0);
     }
 
     private static async Task<TestHotTracker> AnalyzeHots(List<Event> events) =>

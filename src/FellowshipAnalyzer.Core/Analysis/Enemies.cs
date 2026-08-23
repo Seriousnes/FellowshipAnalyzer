@@ -531,7 +531,7 @@ public readonly record struct EnemyUnit(UnitKey Key, EnemyOrigin Origin, int Ent
 public readonly record struct EnemyDeath(UnitKey Key, int Timestamp, int SourceId, Ability Ability);
 
 /// <summary>
-/// How many enemies were alive across one stretch of a pull. The band runs from <see cref="Start"/> to
+/// How many enemies were alive across one band of a pull. The band runs from <see cref="Start"/> to
 /// where the next band begins.
 /// </summary>
 /// <param name="Start">When the band begins.</param>
@@ -544,7 +544,7 @@ public readonly record struct AliveBand(int Start, int End, int Alive)
 }
 
 /// <summary>
-/// How many enemies one effect was active on across one stretch of a range. The band runs from
+/// How many enemies one effect was active on across one band of a range. The band runs from
 /// <see cref="Start"/> to where the next band begins.
 /// </summary>
 /// <param name="Start">When the band begins.</param>

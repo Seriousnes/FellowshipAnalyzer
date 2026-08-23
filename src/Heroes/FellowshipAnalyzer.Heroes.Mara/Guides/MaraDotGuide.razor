@@ -109,7 +109,7 @@
         stats.Add(new PerCastStat(
             $"{gapCount}",
             "Gaps",
-            $"Stretches with a tracked effect off the primary target between its windows, totalling {FormatSeconds(downtime)}."));
+            $"Gaps with a tracked effect off the primary target between its windows, totalling {FormatSeconds(downtime)}."));
 
         var refreshes = analyzer.HemorrhageRefreshes.Count;
         var clips = ClipCount(analyzer);
@@ -254,9 +254,9 @@
         var notes = new List<string>();
 
         if (analyzer.HemorrhageTargets == 0)
-            notes.Add("the Hemorrhage bleed never reached the pack");
+            notes.Add("the Hemorrhage bleed never spread to the pack");
         else
-            notes.Add($"the bleed reached {analyzer.HemorrhageTargets} of {analyzer.RosterSize} enemies ({coverage}%)");
+            notes.Add($"the bleed spread to {analyzer.HemorrhageTargets} of {analyzer.RosterSize} enemies ({coverage}%)");
 
         if (analyzer.VolatilePoisonRefreshes > 0)
             notes.Add($"{Count(analyzer.VolatilePoisonRefreshes, "Volatile Poison")} went onto a target that already had it");

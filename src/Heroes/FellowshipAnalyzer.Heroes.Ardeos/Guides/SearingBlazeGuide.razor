@@ -146,12 +146,12 @@
             return "No Searing Blaze applications were detected on this AoE pull.";
 
         if (analyzer.TargetCount <= 0)
-            return $"Searing Blaze reached {analyzer.DistinctTargets} enemies (the enemy roster was not reported, so coverage is estimated).";
+            return $"Searing Blaze spread to {analyzer.DistinctTargets} enemies (the enemy roster was not reported, so coverage is estimated).";
 
         if (score >= 75)
-            return $"Searing Blaze covered {analyzer.DistinctTargets} of {analyzer.TargetCount} enemies on this pull.";
+            return $"Searing Blaze spread to {analyzer.DistinctTargets} of {analyzer.TargetCount} enemies on this pull.";
 
-        return $"Searing Blaze reached only {analyzer.DistinctTargets} of {analyzer.TargetCount} enemies - keep it spread across the pack.";
+        return $"Searing Blaze spread to only {analyzer.DistinctTargets} of {analyzer.TargetCount} enemies - keep it spread across the pack.";
     }
 
     private static int CoverageScore(SearingBlazeSpreadAnalyzer analyzer) =>

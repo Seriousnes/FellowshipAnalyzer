@@ -68,7 +68,7 @@
             stats.Add(new OverviewStat(
                 $"{rend / casts}",
                 "Avg Rend Consumed",
-                $"Average Rend stacks consumed per Slaughter, {rend} in total across every enemy reached."));
+                $"Average Rend stacks consumed per Slaughter, {rend} in total across every enemy hit."));
         }
 
         if (bleed > 0)
@@ -115,7 +115,7 @@
         stats.Add(new PerCastStat(
             $"{slaughter.RendConsumed}",
             "Rend Consumed",
-            "Rend stacks this cast consumed across every enemy it reached. Reported as context, not scored."));
+            "Rend stacks this cast consumed across every enemy it hit. Reported as context, not scored."));
 
         stats.Add(new PerCastStat(
             FormatDamage(slaughter.BleedDamage),
@@ -158,7 +158,7 @@
         if (isAoe && slaughter.TargetsHit < TrashSlaughterUsage.PackThreshold)
             reasons.Add(slaughter.TargetsHit <= 1
                 ? "it hit a single target"
-                : $"it only reached {slaughter.TargetsHit} enemies");
+                : $"it hit only {slaughter.TargetsHit} enemies");
 
         return JoinReasons(reasons);
     }

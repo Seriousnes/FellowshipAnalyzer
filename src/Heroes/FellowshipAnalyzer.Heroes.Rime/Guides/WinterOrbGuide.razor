@@ -81,7 +81,7 @@
             new OverviewStat(
                 FormatDuration(Tracker.CappedMs),
                 "Time at Cap",
-                $"Time the pool sat at {Tracker.MaxOrbs} orbs ({cappedShare:F0}% of the dungeon), measured between your own casts.",
+                $"Time at {Tracker.MaxOrbs} orbs ({cappedShare:F0}% of the dungeon), measured between your own casts.",
                 Tracker.CappedMs == 0 ? QualitativePerformance.Perfect
                     : cappedShare < 5 ? QualitativePerformance.Good
                     : cappedShare < 10 ? QualitativePerformance.Ok

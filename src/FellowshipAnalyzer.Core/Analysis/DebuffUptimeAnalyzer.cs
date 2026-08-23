@@ -7,7 +7,7 @@ namespace FellowshipAnalyzer.Core.Analysis;
 /// tracked per (TargetId, TargetInstance) by an <see cref="AuraWindowLedger"/>; the primary target is
 /// the one with the most active time, so transient adds never dilute the boss reading.
 /// <see cref="Uptime"/> is the primary target's active time against the pull duration, and gaps are
-/// the stretches between that target's windows, so lead-in before the first application
+/// the gaps between that target's windows, so lead-in before the first application
 /// lowers uptime without counting as a gap.
 /// <para>
 /// Derive a per-hero analyzer from this, keep <c>[ForPull]</c> and the surface marker interface on
@@ -26,7 +26,7 @@ public abstract class DebuffUptimeAnalyzer : Analyzer
     /// <summary>Share of the pull (0-1) the debuff was active on the primary target.</summary>
     public double Uptime => Result.Uptime;
 
-    /// <summary>Stretches between the primary target's windows.</summary>
+    /// <summary>Gaps between the primary target's windows.</summary>
     public int GapCount => Result.GapCount;
 
     /// <summary>Total milliseconds the debuff was off the primary target between its windows.</summary>

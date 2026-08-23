@@ -192,7 +192,7 @@ public sealed record CastEfficiencyInfo
 /// <summary>When an ability has to be cast, which decides how much of a hold on it is marked.</summary>
 public enum CooldownUsage
 {
-    /// <summary>Cast it the moment it comes off cooldown, so every stretch in hand is marked.</summary>
+    /// <summary>Cast it the moment it becomes available, so all available time is marked.</summary>
     OnCooldown,
 
     /// <summary>
@@ -201,6 +201,6 @@ public enum CooldownUsage
     /// </summary>
     BeforeAUseIsLost,
 
-    /// <summary>Cast it when it is needed, so no stretch in hand is marked.</summary>
+    /// <summary>Cast it when it is needed, so no available time is marked.</summary>
     AsNeeded,
 }

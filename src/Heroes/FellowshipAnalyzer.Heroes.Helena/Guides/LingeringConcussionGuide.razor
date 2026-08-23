@@ -50,7 +50,7 @@
             new OverviewStat(
                 $"{capUptime:F1}%",
                 "At Five Stacks",
-                "Share of pull time the primary target sat at the five-stack cap.",
+                "Share of pull time the primary target was at the five-stack cap.",
                 PerformanceTiers.FromThresholds(capUptime, 70, 50, 30)),
             new OverviewStat(
                 $"{reduction * 100:F1}%",
@@ -61,7 +61,7 @@
             new OverviewStat(
                 $"{gaps}",
                 "Gaps",
-                "Stretches with the debuff off the primary target."),
+                "Gaps with the debuff off the primary target."),
         ];
     }
 
@@ -91,7 +91,7 @@
             new(
                 $"{analyzer.AtCapUptime * 100:F1}%",
                 "At Five Stacks",
-                "Share of the pull the primary target sat at the cap.",
+                "Share of the pull the primary target was at the cap.",
                 PerformanceTiers.FromThresholds(analyzer.AtCapUptime * 100, 70, 50, 30)),
             new(
                 $"{analyzer.PeakStacks}/{LingeringConcussionAnalyzer.MaxStacks}",
@@ -115,7 +115,7 @@
             stats.Add(new PerCastStat(
                 $"{analyzer.GapCount}",
                 "Gaps",
-                $"Stretches with the debuff off the target, totalling {analyzer.TotalGapMs / 1000d:F1}s.",
+                $"Gaps with the debuff off the target, totalling {analyzer.TotalGapMs / 1000d:F1}s.",
                 PerformanceTiers.FromThresholds(-analyzer.GapCount, 0, -2, -5)));
         }
 
