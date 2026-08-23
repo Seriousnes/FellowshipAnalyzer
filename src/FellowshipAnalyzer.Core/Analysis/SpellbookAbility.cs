@@ -178,4 +178,29 @@ public sealed record CastEfficiencyInfo
     /// The efficiency threshold for a major-severity issue.
     /// </summary>
     public double? MajorIssueEfficiency { get; init; }
+
+    /// <summary>
+    /// When the ability has to be cast, which decides how much of a hold on it a cooldown graph
+    /// marks. <c>null</c> takes the default from <see cref="SpellbookAbility.Charges"/>: an ability
+    /// with charges stops recharging once the last one is back, so it defaults to
+    /// <see cref="CooldownUsage.OnCooldown"/>, and a single-charge ability defaults to
+    /// <see cref="CooldownUsage.BeforeAUseIsLost"/>.
+    /// </summary>
+    public CooldownUsage? Usage { get; init; }
+}
+
+/// <summary>When an ability has to be cast, which decides how much of a hold on it is marked.</summary>
+public enum CooldownUsage
+{
+    /// <summary>Cast it the moment it comes off cooldown, so every stretch in hand is marked.</summary>
+    OnCooldown,
+
+    /// <summary>
+    /// Hold it as the pull demands, up to the point the hold runs a full recharge and another use
+    /// fits inside it, which is where the mark starts.
+    /// </summary>
+    BeforeAUseIsLost,
+
+    /// <summary>Cast it when it is needed, so no stretch in hand is marked.</summary>
+    AsNeeded,
 }

@@ -286,27 +286,19 @@ public sealed record FaPalette
         FaColor black = "#000000";
         FaColor frame = "#63696f";
         FaColor gold = "#b8965c";
-        FaColor amber = "#fab700";
-        FaColor steel = "#6b9ed2";
-        FaColor arcane = "#9a7bff";
-        FaColor ice = "#6ec8e8";
-        FaColor blood = "#661111";
-        FaColor textDim = "#949ba5";
-        FaColor perfGood = "#4ec04e";
-        FaColor perfFail = "#ac1f39";
 
         return new FaPalette
         {
             White = white,
             Black = black,
             Grey = "#787878",
-            Amber = amber,
-            Steel = steel,
-            Arcane = arcane,
+            Amber = "#fab700",
+            Steel = "#6b9ed2",
+            Arcane = "#9a7bff",
             Nature = "#5fd0b0",
             Link = "#0087ff",
             Frame = frame,
-            Blood = blood,
+            Blood = "#661111",
             Rust = "#dd5533",
             Stone = "#696864",
             Ash = "#8a9099",
@@ -328,18 +320,18 @@ public sealed record FaPalette
 
             Text = "#e8e0d8",
             TextMuted = "#abb3bc",
-            TextDim = textDim,
+            TextDim = "#949ba5",
             Fg = white.WithAlpha(FaTint.Strong),
             FgMuted = white.WithAlpha(FaTint.Medium),
             FgDim = white.WithAlpha(FaTint.Muted),
-            FgNeutral = white,
+            FgNeutral = "#ffffff",
 
             Gold = gold,
             GoldLight = "#d9b887",
             GoldPale = "#d9b887",
             GoldDim = gold.WithAlpha(FaTint.Subtle),
-            Ice = ice,
-            Danger = perfFail,
+            Ice = "#6ec8e8",
+            Danger = "#ac1f39",
 
             Border = frame.WithAlpha(FaTint.Soft),
             BorderCard = frame.WithAlpha(FaTint.Muted),
@@ -348,9 +340,9 @@ public sealed record FaPalette
             PanelBorder = frame.WithAlpha(FaTint.None),
 
             PerfPerfect = "#2090c0",
-            PerfGood = perfGood,
+            PerfGood = "#4ec04e",
             PerfOk = "#ffc84a",
-            PerfFail = perfFail,
+            PerfFail = "#ac1f39",
 
             Fire1 = "#ffe9a3",
             Fire2 = "#ffc233",
@@ -364,8 +356,8 @@ public sealed record FaPalette
             Epic = "#a73def",
 
             RoleTank = "#336699",
-            RoleHealer = perfGood,
-            RoleDps = perfFail,
+            RoleHealer = "#4ec04e",
+            RoleDps = "#ac1f39",
             RoleUnknown = frame.WithAlpha(FaTint.Soft),
 
             HeroAeona = "#fc9fec",
@@ -382,18 +374,18 @@ public sealed record FaPalette
             HeroXavian = "#077365",
             HeroUnknown = "#9a9586",
 
-            EvCast = ice,
-            EvDamage = perfFail,
-            EvHeal = perfGood,
-            EvBuff = arcane,
-            EvBuffFade = arcane,
-            EvDebuff = amber,
-            EvDeath = blood,
-            EvResource = gold,
-            EvSystem = textDim,
-            EvModified = amber,
-            EvFabricated = perfGood,
-            EvReordered = steel,
+            EvCast = "#6ec8e8",
+            EvDamage = "#ac1f39",
+            EvHeal = "#4ec04e",
+            EvBuff = "#9a7bff",
+            EvBuffFade = "#9a7bff",
+            EvDebuff = "#fab700",
+            EvDeath = "#661111",
+            EvResource = "#b8965c",
+            EvSystem = "#949ba5",
+            EvModified = "#fab700",
+            EvFabricated = "#4ec04e",
+            EvReordered = "#6b9ed2",
         };
     }
 

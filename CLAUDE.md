@@ -8,6 +8,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **IMPORTANT** - Never include comments referencing design docs or plan points. Comments are reserved exclusively for API/usage notes.
 - **Never** add inline comments or comments within methods for any reason.
 
+### Commit messages and PR descriptions
+- **Describe the change, nothing else.** No caveats, no disclaimers, no notes about what was not done, not verified, not seen running, or left for later. A scope boundary the reader already set is not news, and neither is the absence of a step nobody asked for.
+- **Never flag your own work for scrutiny.** No "worth a look", no "push back if you disagree", no listing which decisions the reviewer should re-examine. The diff is the request for review.
+
 ### Analysis rules
 - **`Core/Utility/CombatMath.cs` is the only place damage amplification or reduction is ever calculated.** This covers every hero: Engulfing Flames multipliers, armor and Toughness reductions, damage buffs, defensive abilities. A hero-local maths helper is banned, and so is an inline `raw - raw / (1 + increase)`. If `CombatMath` cannot express what is needed, ask before writing anything.
 - **An ability or talent has at most one analyzer.** A new measurement goes into the ability's existing analyzer, never into a second module.

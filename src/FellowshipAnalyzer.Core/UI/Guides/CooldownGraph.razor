@@ -1,0 +1,110 @@
+@using System.Globalization
+@using FellowshipAnalyzer.Core.Analysis
+
+<div class="cooldown-graph">
+    @foreach (var lane in Lanes)
+    {
+        <div class="cooldown-graph-row">
+            <div class="cooldown-graph-label">
+                <SpellIcon Spell="lane.Ability" Size="SpellIconSize.Small" />
+                <span class="cooldown-graph-effic @TierClass(lane)" title="@Summary(lane)">
+                    @Efficiency(lane) <span class="cooldown-graph-unit">effic</span>
+                </span>
+            </div>
+            <div class="cooldown-graph-track">
+                @foreach (var segment in lane.Segments)
+                {
+                    <div class="cooldown-graph-segment @StateClass(segment.State)"
+                         style="left: @Offset(segment.Start); width: @Width(segment.DurationMs);"
+                         title="@SegmentLabel(lane, segment)"></div>
+                }
+                @foreach (var timestamp in lane.CastTimestamps)
+                {
+                    <div class="cooldown-graph-cast"
+                         style="left: @Offset(timestamp);"
+                         title="@CastLabel(lane, timestamp)"></div>
+                }
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    /// <summary>The lanes to draw, in the order they should read.</summary>
+    [Parameter, EditorRequired] public List<CooldownGraphLane> Lanes { get; set; } = [];
+
+    /// <summary>The start of the render window, in dungeon-relative milliseconds.</summary>
+    [Parameter, EditorRequired] public int WindowStart { get; set; }
+
+    /// <summary>The end of the render window, in dungeon-relative milliseconds.</summary>
+    [Parameter, EditorRequired] public int WindowEnd { get; set; }
+
+    /// <summary>The dungeon start timestamp the clock in every tooltip is measured from.</summary>
+    [Parameter] public int DungeonStartTime { get; set; }
+
+    private int WindowMs => Math.Max(1, WindowEnd - WindowStart);
+
+    private static string StateClass(CooldownGraphState state) => state switch
+    {
+        CooldownGraphState.Recharging => "cooldown-graph-recharging",
+        CooldownGraphState.Held or CooldownGraphState.UseLost => "cooldown-graph-wasted",
+        CooldownGraphState.OutsidePull => "cooldown-graph-outside",
+        _ => "cooldown-graph-available",
+    };
+
+    private static string TierClass(CooldownGraphLane lane) => lane.Performance switch
+    {
+        QualitativePerformance.Perfect => "perfect",
+        QualitativePerformance.Good => "good",
+        QualitativePerformance.Ok => "ok",
+        QualitativePerformance.Fail => "fail",
+        _ => "",
+    };
+
+    private static string Efficiency(CooldownGraphLane lane) =>
+        lane.EffectiveEfficiency is { } share ? $"{share * 100:F0}%" : "-";
+
+    private static string Summary(CooldownGraphLane lane)
+    {
+        var name = lane.Ability.Name ?? lane.Ability.PrimarySpell.Name;
+        if (lane.MaxCasts is not { } max) return $"{name}: {lane.Casts} casts.";
+
+        var recharging = lane.Efficiency is { } share ? $" It was recharging for {share * 100:F0}% of pull time." : "";
+        var capped = lane.ReachedMaxCasts ? " It reads 100% because you made every cast there was room for." : "";
+        return $"{name}: {lane.Casts} casts of a possible {max}.{recharging}{capped}";
+    }
+
+    private string SegmentLabel(CooldownGraphLane lane, CooldownGraphSegment segment)
+    {
+        var name = lane.Ability.Name ?? lane.Ability.PrimarySpell.Name;
+        var span = $"{Clock(segment.Start)} to {Clock(segment.End)}";
+        var charged = lane.Ability.Charges > 1;
+        var inHand = charged ? $"{name} at maximum charges" : $"{name} available";
+        var directive = charged ? "" : ", cast it on cooldown";
+
+        return segment.State switch
+        {
+            CooldownGraphState.Recharging => $"{name} recharging, {span}",
+            CooldownGraphState.Held => $"{inHand}, {span}{directive}",
+            CooldownGraphState.UseLost => $"{inHand}, {span}, long enough to fit another cast",
+            CooldownGraphState.OutsidePull => $"Between pulls, {span}",
+            _ => $"{inHand}, {span}",
+        };
+    }
+
+    private string CastLabel(CooldownGraphLane lane, int timestamp) =>
+        $"{lane.Ability.Name ?? lane.Ability.PrimarySpell.Name} cast at {Clock(timestamp)}";
+
+    private string Offset(int timestamp) => Percent(timestamp - WindowStart);
+
+    private string Width(int durationMs) => Percent(durationMs);
+
+    private string Percent(int milliseconds) =>
+        (Math.Clamp(milliseconds / (double)WindowMs, 0, 1) * 100).ToString("F3", CultureInfo.InvariantCulture) + "%";
+
+    private string Clock(int timestamp)
+    {
+        var seconds = Math.Max(0, timestamp - DungeonStartTime) / 1000;
+        return $"{seconds / 60}:{seconds % 60:00}";
+    }
+}
