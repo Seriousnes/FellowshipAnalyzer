@@ -19,7 +19,7 @@ public sealed class DungeonBookendNormalizerTests
     [Fact]
     public void Normalize_PrependsDungeonStartAndAppendsDungeonEnd()
     {
-        var ctx = new ParseContext(PlayerId: 1, Dungeon: Dungeon, ActorNames: new Dictionary<int, string>(), EmptyCombatant);
+        var ctx = new ParseContext(PlayerId: 1, Dungeon: Dungeon, ActorNames: [], EmptyCombatant);
         var normalizer = new DungeonBookendNormalizer(ctx);
         var existing = new ApplyBuffEvent { Timestamp = 200, SourceId = 1, TargetId = 1 };
 
@@ -36,7 +36,7 @@ public sealed class DungeonBookendNormalizerTests
     [Fact]
     public void Normalize_PreservesOrderOfExistingEvents()
     {
-        var ctx = new ParseContext(PlayerId: 1, Dungeon: Dungeon, ActorNames: new Dictionary<int, string>(), EmptyCombatant);
+        var ctx = new ParseContext(PlayerId: 1, Dungeon: Dungeon, ActorNames: [], EmptyCombatant);
         var normalizer = new DungeonBookendNormalizer(ctx);
         var first = new ApplyBuffEvent { Timestamp = 200 };
         var second = new RemoveBuffEvent { Timestamp = 300 };

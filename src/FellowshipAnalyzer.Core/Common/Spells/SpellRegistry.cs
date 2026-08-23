@@ -1,3 +1,5 @@
+using System.Collections.Frozen;
+
 namespace FellowshipAnalyzer.Core.Common.Spells;
 
 /// <summary>
@@ -8,7 +10,7 @@ namespace FellowshipAnalyzer.Core.Common.Spells;
 public static class SpellRegistry
 {
     /// <summary>The full set of registered spells, keyed by <see cref="Spell.FSLID"/>.</summary>
-    public static IReadOnlyDictionary<int, Spell> All => Spells.All;
+    public static FrozenDictionary<int, Spell> All => Spells.All;
 
     /// <summary>
     /// Gets the spell with the given FSLID.

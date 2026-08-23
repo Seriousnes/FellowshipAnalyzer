@@ -57,7 +57,7 @@ public sealed class ApiEndpointGenerator : IIncrementalGenerator
         var attributeSymbol = compilation.GetTypeByMetadataName(AttributeFullName);
         if (attributeSymbol is null)
         {
-            return ImmutableArray<EndpointInfo>.Empty;
+            return [];
         }
 
         var visited = new HashSet<string>(StringComparer.Ordinal);

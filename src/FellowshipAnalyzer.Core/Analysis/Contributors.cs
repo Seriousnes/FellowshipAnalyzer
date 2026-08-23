@@ -14,9 +14,9 @@ public static class Contributors
         About: "Creator and maintainer of FellowshipAnalyzer.");
 
     /// <summary>All defined contributors.</summary>
-    public static IReadOnlyList<Contributor> All { get; } = [Seriousnes];
+    public static List<Contributor> All { get; } = [Seriousnes];
 
-    private static readonly IReadOnlyDictionary<string, Contributor> ByNicknameIndex =
+    private static readonly Dictionary<string, Contributor> ByNicknameIndex =
         All.ToDictionary(c => c.Nickname, StringComparer.OrdinalIgnoreCase);
 
     /// <summary>Resolves a contributor by nickname, or <c>null</c> when unknown.</summary>

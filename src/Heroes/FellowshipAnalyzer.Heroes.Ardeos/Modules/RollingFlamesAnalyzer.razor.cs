@@ -20,16 +20,16 @@ public sealed partial class RollingFlamesAnalyzer : Analyzer
     };
 
     [On<DamageEvent>(By = Actor.Player, Spell = nameof(Spells.SearingBlazeDot))]
-    public void OnSearingBlazeDamage(DamageEvent _) =>
+    public void OnSearingBlazeDamage() =>
         spellCdr[Spells.SearingBlaze.Id] +=
             Owner.SpellUsable!.ReduceCooldown(Spells.EngulfingFlames.Id, SEARING_BLAZE_CDR);
 
     [On<CastEvent>(By = Actor.Player, Spell = nameof(Spells.InfernalWave))]
-    public void OnInfernalWaveCast(CastEvent _) =>
+    public void OnInfernalWaveCast() =>
         spellCdr[Spells.InfernalWave.Id] +=
             Owner.SpellUsable!.ReduceCooldown(Spells.EngulfingFlames.Id, INFERNAL_WAVE_CDR);
 
-    public IReadOnlyList<RollingFlamesCdr> CooldownReductions =>
+    public List<RollingFlamesCdr> CooldownReductions =>
     [
         new(Spells.SearingBlaze, spellCdr[Spells.SearingBlaze.Id]),
         new(Spells.InfernalWave, spellCdr[Spells.InfernalWave.Id]),

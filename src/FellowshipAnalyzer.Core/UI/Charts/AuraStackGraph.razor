@@ -35,13 +35,13 @@
 
 @code {
     /// <summary>The instants the bands are sampled at, as absolute dungeon timestamps in milliseconds.</summary>
-    [Parameter, EditorRequired] public IReadOnlyList<int> Samples { get; set; } = [];
+    [Parameter, EditorRequired] public List<int> Samples { get; set; } = [];
 
     /// <summary>One band per aura, each index-aligned to <see cref="Samples"/>.</summary>
-    [Parameter, EditorRequired] public IReadOnlyList<AuraStackBand> Bands { get; set; } = [];
+    [Parameter, EditorRequired] public List<AuraStackBand> Bands { get; set; } = [];
 
     /// <summary>Cast marker sets drawn over the bands, each index-aligned to <see cref="Samples"/>.</summary>
-    [Parameter] public IReadOnlyList<AuraStackMarkers> Markers { get; set; } = [];
+    [Parameter] public List<AuraStackMarkers> Markers { get; set; } = [];
 
     /// <summary>What the y axis counts, for example "Active DoT instances".</summary>
     [Parameter] public string YAxisTitle { get; set; } = "";

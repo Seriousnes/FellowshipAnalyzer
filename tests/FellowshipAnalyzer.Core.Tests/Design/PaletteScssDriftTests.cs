@@ -16,8 +16,8 @@ public class PaletteScssDriftTests
     {
         var path = ResolvePalettePath();
 
-        var committed = File.ReadAllText(path).ReplaceLineEndings("\n");
-        var emitted = FaPaletteScss.Render().ReplaceLineEndings("\n");
+        var committed = File.ReadAllText(path).ReplaceLineEndings(FaPaletteScss.NewLine.ToString());
+        var emitted = FaPaletteScss.Render().ReplaceLineEndings(FaPaletteScss.NewLine.ToString());
 
         committed.ShouldBe(
             emitted,

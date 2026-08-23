@@ -17,7 +17,7 @@ public sealed partial class IronWallAnalyzer : MajorDefensiveAnalyzer, IIronWall
 
     protected override int DefensiveSpellId => Spells.IronWall.FSLID;
 
-    public IReadOnlyList<IronWallUse> Uses => field ??= BuildUses();
+    public List<IronWallUse> Uses => field ??= BuildUses();
 
     public int UsesFromHighToughness => Uses.Count(use => use.OpenedAboveHalfToughness);
 
@@ -42,7 +42,7 @@ public sealed partial class IronWallAnalyzer : MajorDefensiveAnalyzer, IIronWall
     [On<DamageEvent>(To = Actor.Player)]
     private void OnDamageTaken(DamageEvent damageEvent) => RecordDamageTaken(damageEvent);
 
-    private IReadOnlyList<IronWallUse> BuildUses()
+    private List<IronWallUse> BuildUses()
     {
         var uses = new List<IronWallUse>(Windows.Count);
         foreach (var window in Windows)

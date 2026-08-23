@@ -206,7 +206,7 @@ public static class MergeEngine
     /// Collects every classified damage school in the export into one FSLID-keyed map, then lets any
     /// curated spell carrying a <see cref="Spell.School"/> override what the export gave that id.
     /// </summary>
-    private static Dictionary<int, MagicSchool> BuildSchools(MergeInputs inputs, IReadOnlyList<CuratedSpell> spells)
+    private static Dictionary<int, MagicSchool> BuildSchools(MergeInputs inputs, List<CuratedSpell> spells)
     {
         var schools = new Dictionary<int, MagicSchool>();
 
@@ -240,13 +240,13 @@ public static class MergeEngine
     private static readonly HashSet<string> HeroNames =
         new(Enum.GetNames<HeroName>(), StringComparer.OrdinalIgnoreCase);
 
-    private static readonly IReadOnlyDictionary<ResourceTypes, int> EmptyCosts =
-        new Dictionary<ResourceTypes, int>();
+    private static readonly Dictionary<ResourceTypes, int> EmptyCosts =
+        [];
 
     private static Spell BuildSpell(
         SpellKind kind, int nativeId, string name, string icon,
         double? cooldown, double? cooldownReductionOnTargetDeath, int? range, int charges, double? castDuration,
-        double? channelDuration, double? channelTickInterval, IReadOnlyDictionary<ResourceTypes, int> costs,
+        double? channelDuration, double? channelTickInterval, Dictionary<ResourceTypes, int> costs,
         AbilityCategory? abilityCategory = null) =>
         Spell.FromFSLID(FSLID.FromNative(kind, nativeId), name, icon) with
         {
@@ -294,7 +294,7 @@ public static class MergeEngine
     }
 
     private static IEnumerable<FSLID> ClaimedWithLinkedEffects(
-        FSLID claimed, IReadOnlyDictionary<int, List<ExportEffect>> effectsByAbility)
+        FSLID claimed, Dictionary<int, List<ExportEffect>> effectsByAbility)
     {
         yield return claimed;
 

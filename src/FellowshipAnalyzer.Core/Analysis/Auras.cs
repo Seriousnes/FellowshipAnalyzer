@@ -27,9 +27,8 @@ public abstract class Auras : Module
     /// The set of spell IDs whose auras should appear on the Timeline by default.
     /// Computed once on first access.
     /// </summary>
-    public IReadOnlySet<int> TimelineHighlightedIds =>
-        field ??= GetAuras()
+    public HashSet<int> TimelineHighlightedIds =>
+        field ??= [.. GetAuras()
             .Where(a => a.TimelineHighlight)
-            .Select(a => a.SpellId)
-            .ToHashSet();
+            .Select(a => a.SpellId)];
 }

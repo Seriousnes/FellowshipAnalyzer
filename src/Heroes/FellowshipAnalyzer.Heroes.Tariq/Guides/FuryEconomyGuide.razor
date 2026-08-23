@@ -124,8 +124,8 @@
         }
     }
 
-    private IReadOnlyList<AuraStackBand> ChartBands(FuryCurve curve) =>
+    private List<AuraStackBand> ChartBands(FuryCurve curve) =>
         [new AuraStackBand("Fury", Palette.Resolve(nameof(FaPalette.Amber)), curve.Values)];
 
-    private sealed record FuryCurve(PullStartEvent Pull, IReadOnlyList<int> Samples, IReadOnlyList<int> Values);
+    private sealed record FuryCurve(PullStartEvent Pull, List<int> Samples, List<int> Values);
 }

@@ -1,4 +1,4 @@
-using FellowshipAnalyzer.Core.Analysis;
+namespace FellowshipAnalyzer.Core.Analysis;
 
 /// <summary>
 /// Registers a dungeon-lifetime <see cref="Module"/> on a parser; the generator constructs and wires it

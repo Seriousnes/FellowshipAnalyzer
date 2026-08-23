@@ -102,7 +102,7 @@ public static class SpellDbWriter
     public static string FormatSchool(MagicSchool school) =>
         school == (MagicSchool.Magic | MagicSchool.Physical) ? "Magic/Physical" : school.ToString();
 
-    private static JsonNode ToEntryNode(Spell spell)
+    private static JsonObject ToEntryNode(Spell spell)
     {
         var node = JsonSerializer.SerializeToNode(spell, SpellDbJsonOptions.Default)!.AsObject();
 

@@ -460,7 +460,7 @@ public sealed class ArdeosAnalysisEngineTests
     private static ReportDungeon SpanningDungeon(double startTime, double endTime) =>
         new(0, "", 0, null, startTime, endTime, null, null, null);
 
-    private static readonly ReportActor[] Actors =
+    private static readonly List<ReportActor> Actors =
     [
         new(PlayerId, "Ardeos", "Player", null, null, null),
         new(TargetId, "Target", "NPC", null, null, null),

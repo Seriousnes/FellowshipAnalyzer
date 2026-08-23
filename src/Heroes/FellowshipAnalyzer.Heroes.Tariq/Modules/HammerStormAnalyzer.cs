@@ -28,7 +28,7 @@ public sealed partial class HammerStormAnalyzer : Analyzer
 
     private List<HammerStormCast> Evaluated => field ??= Build();
 
-    public IReadOnlyList<HammerStormCast> Casts => Evaluated;
+    public List<HammerStormCast> Casts => Evaluated;
 
     public int CastCount => Evaluated.Count;
 
@@ -51,7 +51,7 @@ public sealed partial class HammerStormAnalyzer : Analyzer
 
     public int UnderBreakEvenChannels => Evaluated.Count(cast => cast.UnderTargetBreakEven);
 
-    public IReadOnlyList<TargetCountBucket> TargetsHitDistribution => field ??=
+    public List<TargetCountBucket> TargetsHitDistribution => field ??=
     [
         .. Evaluated
             .Where(cast => cast.TargetsHit > 0)

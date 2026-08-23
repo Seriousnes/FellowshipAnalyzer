@@ -28,10 +28,10 @@
 @code {
     protected override bool IsActive() => Parser.VeteranOfWarAnalyzers.Count > 0;
 
-    private IReadOnlyList<HoldTheLinePress> Presses =>
+    private List<HoldTheLinePress> Presses =>
         field ??= [.. Parser.VeteranOfWarAnalyzers.SelectMany(entry => entry.Analyzer.HoldTheLinePresses)];
 
-    private IReadOnlyList<EmpoweredShieldSlamAnalyzer> BarrierAnalyzers =>
+    private List<EmpoweredShieldSlamAnalyzer> BarrierAnalyzers =>
         field ??= [.. Parser.EmpoweredShieldSlamAnalyzers
             .Select(entry => entry.Analyzer).OfType<EmpoweredShieldSlamAnalyzer>()];
 

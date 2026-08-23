@@ -17,7 +17,7 @@ public static class ToughnessBands
 {
     public const double MaxToughnessStrengthScaler = 7.7;
 
-    public static IReadOnlyList<ToughnessBand> All { get; } =
+    public static List<ToughnessBand> All { get; } =
         [ToughnessBand.Depleted, ToughnessBand.Level1, ToughnessBand.Level2, ToughnessBand.Level3, ToughnessBand.Level4];
 
     public static ToughnessBand For(double shareOfMaximum) => shareOfMaximum switch

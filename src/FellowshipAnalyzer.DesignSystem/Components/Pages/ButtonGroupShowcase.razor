@@ -29,13 +29,13 @@
     private string _view = "dungeon";
     private SortMode _mode = SortMode.Role;
 
-    private static readonly IReadOnlyList<ButtonGroupOption<string>> _stringOptions =
+    private static readonly List<ButtonGroupOption<string>> _stringOptions =
     [
         new("dungeon", "By Dungeon"),
         new("player", "By Player"),
     ];
 
-    private static readonly IReadOnlyList<ButtonGroupOption<SortMode>> _enumOptions =
+    private static readonly List<ButtonGroupOption<SortMode>> _enumOptions =
     [
         new(SortMode.Name, "Name"),
         new(SortMode.Role, "Role"),
@@ -48,7 +48,7 @@
 @code {
     private string _view = "dungeon";
 
-    private static readonly IReadOnlyList<ButtonGroupOption<string>> _options =
+    private static readonly List<ButtonGroupOption<string>> _options =
     [
         new("dungeon", "By Dungeon"),
         new("player", "By Player"),
@@ -63,7 +63,7 @@
     private enum SortMode { Name, Role, Damage }
     private SortMode _mode = SortMode.Role;
 
-    private static readonly IReadOnlyList<ButtonGroupOption<SortMode>> _options =
+    private static readonly List<ButtonGroupOption<SortMode>> _options =
     [
         new(SortMode.Name, "Name"),
         new(SortMode.Role, "Role"),

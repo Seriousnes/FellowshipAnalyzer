@@ -22,16 +22,16 @@ public sealed class HeroAnalysisResult
     /// to render them on the Statistics tab: which Razor component, which section to group
     /// under, and the ordinal position within that section.
     /// </summary>
-    public required IReadOnlyList<StatisticEntry> Statistics { get; init; }
+    public required List<StatisticEntry> Statistics { get; init; }
 
     /// <summary>Every module constructed for this parse, in the order the parser built them.</summary>
-    public required IReadOnlyList<Module> Modules { get; init; }
+    public required List<Module> Modules { get; init; }
 
     /// <summary>
     /// All events processed during analysis, including fabricated events (e.g. GlobalCooldownEvent,
     /// UpdateSpellUsableEvent). Ordered by timestamp. Exposed for Timeline rendering.
     /// </summary>
-    public required IReadOnlyList<Event> Events { get; init; }
+    public required List<Event> Events { get; init; }
 
     /// <summary>
     /// Debug annotations collected during analysis. Null if the DebugAnnotations module was not active.

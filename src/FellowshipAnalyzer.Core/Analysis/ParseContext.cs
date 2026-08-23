@@ -10,12 +10,12 @@ namespace FellowshipAnalyzer.Core.Analysis;
 public sealed record ParseContext(
     int PlayerId,
     ReportDungeon Dungeon,
-    IReadOnlyDictionary<int, string> ActorNames,
+    Dictionary<int, string> ActorNames,
     FullCombatant SelectedCombatant,
-    IReadOnlyList<ReportActor>? Actors = null)
+    List<ReportActor>? Actors = null)
 {
     /// <summary>Report-level actor master data, empty when the host supplied none.</summary>
-    public IReadOnlyList<ReportActor> Actors { get; init; } = Actors ?? [];
+    public List<ReportActor> Actors { get; init; } = Actors ?? [];
 
     /// <summary>The dungeon's start timestamp, truncated to <see cref="int"/> from <see cref="ReportDungeon.StartTime"/>.</summary>
     public int DungeonStartTime => (int)Dungeon.StartTime;
@@ -24,8 +24,8 @@ public sealed record ParseContext(
     public int DungeonEndTime => (int)Dungeon.EndTime;
 
     /// <summary>The dungeon pulls Fellowship Logs recorded for <see cref="Dungeon"/>, if it exposes any.</summary>
-    public IReadOnlyList<DungeonPull>? DungeonPulls => Dungeon.DungeonPulls;
+    public List<DungeonPull>? DungeonPulls => Dungeon.DungeonPulls;
 
     /// <summary>The enemy NPCs present on <see cref="Dungeon"/>, as reported by Fellowship Logs.</summary>
-    public IReadOnlyList<DungeonNpc>? EnemyNpcs => Dungeon.EnemyNpcs;
+    public List<DungeonNpc>? EnemyNpcs => Dungeon.EnemyNpcs;
 }

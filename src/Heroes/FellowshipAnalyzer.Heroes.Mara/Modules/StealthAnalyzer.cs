@@ -30,7 +30,7 @@ public sealed partial class StealthAnalyzer : Analyzer
     private StealthSpan? _openSpan;
     private StealthSpan? _lastConverted;
 
-    public IReadOnlyList<StealthWindow> Windows => field ??= Build();
+    public List<StealthWindow> Windows => field ??= Build();
 
     public int WindowCount => Windows.Count;
 

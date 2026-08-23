@@ -36,7 +36,7 @@ internal sealed class PerformanceScoringService : IPerformanceScoringService
     public double ComputeScore(double actual, Func<double, double> strategy) =>
         Math.Clamp(strategy(actual), 0, 1);
 
-    public double GetAggregatedScore(IReadOnlyList<ScoredCheck> checks)
+    public double GetAggregatedScore(List<ScoredCheck> checks)
     {
         if (checks.Count == 0) return 0;
 

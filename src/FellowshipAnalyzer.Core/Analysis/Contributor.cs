@@ -10,7 +10,7 @@ public sealed record Contributor(
     string Github,
     string? Discord = null,
     string? About = null,
-    IReadOnlyList<HeroName>? Mains = null)
+    List<HeroName>? Mains = null)
 {
     /// <summary>GitHub avatar image URL.</summary>
     public string AvatarUrl => $"https://github.com/{Github}.png?size=200";

@@ -39,7 +39,7 @@ public sealed partial class ChronoshiftAnalyzer(
     private int _openTimestamp;
 
     /// <summary>All Chronoshift recovery windows observed for the selected player.</summary>
-    public IReadOnlyList<ChronoshiftWindow> Windows => _windows;
+    public List<ChronoshiftWindow> Windows => _windows;
 
     /// <summary>
     /// Bonus cooldown recovery Chronoshift granted to each ability over the encounter, in
@@ -47,7 +47,7 @@ public sealed partial class ChronoshiftAnalyzer(
     /// bought beyond what the spell would have made over the same window without it. Because the pool
     /// is additive, that extra is 8× the time on cooldown whatever the ability's haste contribution.
     /// </summary>
-    public IReadOnlyList<AbilityRecovery> RecoveryByAbility =>
+    public List<AbilityRecovery> RecoveryByAbility =>
         [.. _recoveryBySpell
             .Where(kv => kv.Value > 0)
             .OrderByDescending(kv => kv.Value)

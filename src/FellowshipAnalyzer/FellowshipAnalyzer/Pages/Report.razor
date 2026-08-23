@@ -339,7 +339,7 @@
             ? analysis.Events.Count(e => e.Timestamp >= pull.StartTime && e.Timestamp <= pull.EndTime)
             : 0;
 
-    private IReadOnlyList<BreadcrumbItem> BuildBreadcrumbs(ReportHeader header)
+    private List<BreadcrumbItem> BuildBreadcrumbs(ReportHeader header)
     {
         var items = new List<BreadcrumbItem>();
         if (!string.IsNullOrWhiteSpace(header.ReportInfo.Title))

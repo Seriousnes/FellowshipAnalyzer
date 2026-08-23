@@ -87,7 +87,7 @@ public sealed partial class EnemiesTests
             new DungeonNpc(TrashMelee, GameId: 210, InstanceCount: 3, GroupCount: 1, PetOwner: null),
         ]);
 
-    private static readonly ReportActor[] TouchingPullActors =
+    private static readonly List<ReportActor> TouchingPullActors =
     [
         new(PlayerId, "Selected", "Player", null, null, null),
         new(TrashCaster, "Sanguine Sybling", "NPC", null, null, null),
@@ -111,7 +111,7 @@ public sealed partial class EnemiesTests
         ],
         EnemyNpcs: [new DungeonNpc(Bloodfang, GameId: 660, InstanceCount: 4, GroupCount: 1, PetOwner: null)]);
 
-    private static readonly ReportActor[] OverlappingRosterActors =
+    private static readonly List<ReportActor> OverlappingRosterActors =
     [
         new(PlayerId, "Selected", "Player", null, null, null),
         new(Bloodfang, "Bloodfang", "NPC", null, null, null),
@@ -128,7 +128,7 @@ public sealed partial class EnemiesTests
             new DungeonNpc(101, GameId: 1010, InstanceCount: 1, GroupCount: 1, PetOwner: null),
         ]);
 
-    private static readonly ReportActor[] DungeonActors =
+    private static readonly List<ReportActor> DungeonActors =
     [
         new(PlayerId, "Selected", "Player", null, null, null),
         new(Ally, "Ally", "Player", null, null, null),
@@ -140,7 +140,7 @@ public sealed partial class EnemiesTests
         new(Environment, "Environment", "NPC", null, null, null),
     ];
 
-    private static readonly ReportActor[] AuraActors =
+    private static readonly List<ReportActor> AuraActors =
     [
         new(PlayerId, "Selected", "Player", null, null, null),
         new(Ally, "Ally", "Player", null, null, null),
@@ -650,7 +650,7 @@ public sealed partial class EnemiesTests
     private static async Task<(CombatLogParser Parser, Enemies Enemies)> Run(
         ReportDungeon dungeon,
         List<Event> events,
-        IReadOnlyList<ReportActor> actors)
+        List<ReportActor> actors)
     {
         var emitter = new EventEmitter(NullLogger<EventEmitter>.Instance);
         var provider = Substitute.For<IServiceProvider>();

@@ -232,6 +232,17 @@ public sealed class EventLinkNormalizerTests
     }
 
     [Fact]
+    public void LinkedEvents_AddedToDirectly_IsReadBackByRelatedEvents()
+    {
+        var cast = Cast(GrimCarve, 1_000);
+        var damage = Damage(GrimCarve, 1_100);
+
+        cast.LinkedEvents.Add(new LinkedEvent(damage, Relation));
+
+        Assert.Equal([damage], cast.RelatedEvents<DamageEvent>(Relation));
+    }
+
+    [Fact]
     public void Normalize_RunTwiceOverTheSameEvents_DoesNotDoubleTheLinks()
     {
         var cast = Cast(GrimCarve, 1_000);
@@ -256,7 +267,7 @@ public sealed class EventLinkNormalizerTests
     }
 
     private static void Run(List<Event> events, params EventLink[] links) =>
-        new TestNormalizer(links).Normalize(events, PlayerId);
+        new TestNormalizer([.. links]).Normalize(events, PlayerId);
 
     private static EventLink Link(int forwardBufferMs = 0, int backwardBufferMs = 0) => new()
     {
@@ -294,5 +305,5 @@ public sealed class EventLinkNormalizerTests
             Ability = new Ability { Id = abilityId },
         };
 
-    private sealed class TestNormalizer(IReadOnlyList<EventLink> links) : EventLinkNormalizer(links);
+    private sealed class TestNormalizer(List<EventLink> links) : EventLinkNormalizer(links);
 }

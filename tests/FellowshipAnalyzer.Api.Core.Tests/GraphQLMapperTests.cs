@@ -66,7 +66,7 @@ public class GraphQLMapperTests
     [Fact]
     public void MapAbility_CarriesIdentityFromMasterData()
     {
-        var mapped = new GraphQLMapper().MapAbility(new StubAbility(2190, "Attack", "icon.jpg", "1"));
+        var mapped = new StubAbility(2190, "Attack", "icon.jpg", "1").MapAbility();
 
         mapped.FSLID.Value.ShouldBe(2190);
         mapped.Name.ShouldBe("Attack");
@@ -86,7 +86,7 @@ public class GraphQLMapperTests
     [InlineData(null)]
     public void MapAbility_IgnoresTheTypeField(string? type)
     {
-        var mapped = new GraphQLMapper().MapAbility(new StubAbility(2190, "Attack", "icon.jpg", type));
+        var mapped = new StubAbility(2190, "Attack", "icon.jpg", type).MapAbility();
 
         mapped.FSLID.Value.ShouldBe(2190);
         mapped.Name.ShouldBe("Attack");
@@ -101,7 +101,7 @@ public class GraphQLMapperTests
     {
         var report = Report([new StubTargetDungeon(20, null, [new StubPull(1, 5, true, 100, 200, "First", null)])]);
 
-        var preload = new GraphQLMapper().MapAnalysisPreload("code", report);
+        var preload = report.MapAnalysisPreload("code");
 
         preload.ReportInfo.Dungeons.Select(d => d.Id).ShouldBe([10, 20, 30]);
         preload.ReportInfo.Dungeons.Single(d => d.Id == 20).DungeonPulls!.Single().Name.ShouldBe("First");
@@ -111,7 +111,7 @@ public class GraphQLMapperTests
     [Fact]
     public void MapAnalysisPreload_KeepsEveryDungeonWhenNoneWasRequested()
     {
-        var preload = new GraphQLMapper().MapAnalysisPreload("code", Report(null));
+        var preload = Report(null).MapAnalysisPreload("code");
 
         preload.ReportInfo.Dungeons.Select(d => d.Id).ShouldBe([10, 20, 30]);
         preload.ReportInfo.Dungeons.ShouldAllBe(d => d.DungeonPulls == null);

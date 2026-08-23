@@ -5,7 +5,7 @@ namespace FellowshipAnalyzer.Heroes.Ardeos.Core;
 
 public static class ArdeosDots
 {
-    public static IReadOnlyList<Dot> All { get; } =
+    public static List<Dot> All { get; } =
     [
         new(Spells.EngulfingFlames, Spells.EngulfingFlamesDot, StackMethod.ConcurrentInstances),
         new(Spells.SearingBlaze, Spells.SearingBlazeDot, StackMethod.Refresh),

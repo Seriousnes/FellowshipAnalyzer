@@ -103,7 +103,7 @@
 
 @code {
     /// <summary>The pulls offered as filter targets, in encounter order.</summary>
-    [Parameter, EditorRequired] public IReadOnlyList<PullStartEvent> Pulls { get; set; } = [];
+    [Parameter, EditorRequired] public List<PullStartEvent> Pulls { get; set; } = [];
 
     /// <summary>The selected pull, or <c>null</c> for "Entire Dungeon" (no clamp).</summary>
     [Parameter] public PullStartEvent? Value { get; set; }

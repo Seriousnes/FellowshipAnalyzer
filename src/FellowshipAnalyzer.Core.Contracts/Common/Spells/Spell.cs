@@ -79,8 +79,7 @@ public record Spell : IRimeSpell, IElarionSpell, IArdeosSpell
     public int? EmberCost => Cost(ResourceTypes.Primary);
 
     /// <summary>Resource costs keyed by abstract <see cref="ResourceTypes"/> slot; empty when the spell spends nothing.</summary>
-    public IReadOnlyDictionary<ResourceTypes, int> Costs { get; init; } =
-        System.Collections.Frozen.FrozenDictionary<ResourceTypes, int>.Empty;
+    public Dictionary<ResourceTypes, int> Costs { get; init; } = [];
 
     /// <summary>The cost in the given resource slot, or <c>null</c> when the spell does not spend it.</summary>
     public int? Cost(ResourceTypes type) => Costs.TryGetValue(type, out var value) ? value : null;

@@ -24,8 +24,9 @@ public sealed class ModuleCycleAnalyzer : DiagnosticAnalyzer
         messageFormat: "Circular module ctor dependency: {0}. Escape options (in order): event-based decoupling, Lazy<T> ctor injection, result-level composition, or Owner.GetModule<T>() as a last resort.",
         category: "Analysis",
         defaultSeverity: DiagnosticSeverity.Error,
-        isEnabledByDefault: true,
-        description: "Module constructors form a DAG that the parser resolves topologically. Cycles can be broken by Lazy<TOther> ctor injection (which does not participate in cycle detection), event fabrication, or by composing the cycle at the typed-result layer instead of at the module layer.");
+        isEnabledByDefault: true,        
+        description: "Module constructors form a DAG that the parser resolves topologically. Cycles can be broken by Lazy<TOther> ctor injection (which does not participate in cycle detection), event fabrication, or by composing the cycle at the typed-result layer instead of at the module layer.",
+        customTags: [WellKnownDiagnosticTags.CompilationEnd]);
 
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [Rule];
 
@@ -44,7 +45,7 @@ public sealed class ModuleCycleAnalyzer : DiagnosticAnalyzer
         var deps = new Dictionary<INamedTypeSymbol, List<INamedTypeSymbol>>(SymbolEqualityComparer.Default);
         foreach (var module in modules)
         {
-            deps[module] = new List<INamedTypeSymbol>();
+            deps[module] = [];
             foreach (var ctor in module.InstanceConstructors)
             {
                 foreach (var param in ctor.Parameters)

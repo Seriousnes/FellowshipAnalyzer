@@ -10,5 +10,5 @@ public readonly record struct HeroConfigEntry(HeroName Hero, HeroConfig Config);
 public interface IHeroConfigCatalog
 {
     /// <summary>Every hero and its config, in <see cref="HeroName"/> order.</summary>
-    IReadOnlyList<HeroConfigEntry> Heroes { get; }
+    List<HeroConfigEntry> Heroes { get; }
 }

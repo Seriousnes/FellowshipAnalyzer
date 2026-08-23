@@ -33,7 +33,7 @@ public abstract class DebuffUptimeAnalyzer : Analyzer
     public int TotalGapMs => Result.TotalGapMs;
 
     /// <summary>The primary target's windows, in encounter order.</summary>
-    public IReadOnlyList<AuraWindow> Windows => Result.Windows;
+    public List<AuraWindow> Windows => Result.Windows;
 
     /// <summary>
     /// The target every measurement above is taken against - the one carrying the most covered time -
@@ -104,12 +104,12 @@ public abstract class DebuffUptimeAnalyzer : Analyzer
             (primary.TargetId, primary.TargetInstance));
     }
 
-    private sealed record Candidate(int TargetId, int TargetInstance, IReadOnlyList<AuraWindow> Windows, int Covered);
+    private sealed record Candidate(int TargetId, int TargetInstance, List<AuraWindow> Windows, int Covered);
 
     private record Computed(
         double Uptime,
         int GapCount,
         int TotalGapMs,
-        IReadOnlyList<AuraWindow> Windows,
+        List<AuraWindow> Windows,
         (int TargetId, int TargetInstance)? PrimaryTarget);
 }

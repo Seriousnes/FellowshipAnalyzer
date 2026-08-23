@@ -40,7 +40,7 @@ public sealed partial class Enemies : Module
 
     private State Index => field ??= Build();
 
-    private static HashSet<int> PetActorIds(IReadOnlyList<DungeonNpc>? npcs)
+    private static HashSet<int> PetActorIds(List<DungeonNpc>? npcs)
     {
         HashSet<int> petActorIds = [];
         foreach (var npc in npcs ?? [])
@@ -82,14 +82,14 @@ public sealed partial class Enemies : Module
     /// pull is measured against. Two pulls of one dungeon can name the same unit, so a death is
     /// recorded against that unit in every pull naming it and it never comes back alive.
     /// </summary>
-    public IReadOnlyList<EnemyUnit> Roster(PullStartEvent pull) =>
+    public List<EnemyUnit> Roster(PullStartEvent pull) =>
         Index.ByPull.TryGetValue(pull.Index, out var population) ? population.Roster : [];
 
     /// <summary>
     /// Every unit alive at some point inside <paramref name="pull"/>: its roster, plus each enemy the
     /// events name that no roster does.
     /// </summary>
-    public IReadOnlyList<EnemyUnit> Population(PullStartEvent pull) =>
+    public List<EnemyUnit> Population(PullStartEvent pull) =>
         Index.ByPull.TryGetValue(pull.Index, out var population) ? population.Units : [];
 
     /// <summary>
@@ -128,7 +128,7 @@ public sealed partial class Enemies : Module
     /// A band runs from its <see cref="AliveBand.Start"/> to where the next one begins; the last band
     /// ends at <paramref name="to"/> and includes it.
     /// </summary>
-    public IReadOnlyList<AliveBand> AliveBetween(PullStartEvent pull, int from, int to)
+    public List<AliveBand> AliveBetween(PullStartEvent pull, int from, int to)
     {
         var start = Math.Max(from, pull.StartTime);
         var end = Math.Min(to, pull.EndTime);
@@ -158,7 +158,7 @@ public sealed partial class Enemies : Module
     /// Every enemy death between <paramref name="from"/> and <paramref name="to"/> inclusive, in the
     /// order they happened. The merged stream carries player deaths too, and they are absent here.
     /// </summary>
-    public IReadOnlyList<EnemyDeath> DeathsBetween(int from, int to) =>
+    public List<EnemyDeath> DeathsBetween(int from, int to) =>
         [.. Index.Deaths.Where(death => death.Timestamp >= from && death.Timestamp <= to)];
 
     /// <summary>
@@ -188,7 +188,7 @@ public sealed partial class Enemies : Module
     /// them, so they read straight back into <see cref="Combatants.AuraInstanceCount"/> and
     /// <see cref="Combatants.AuraStackSum"/>.
     /// </summary>
-    public IReadOnlyCollection<UnitKey> WithAura(SpellRef effect, long timestamp, int? sourceId = null)
+    public List<UnitKey> WithAura(SpellRef effect, long timestamp, int? sourceId = null)
     {
         var keys = new List<UnitKey>();
         foreach (var (key, entity) in Combatants.Units)
@@ -204,7 +204,7 @@ public sealed partial class Enemies : Module
     /// one per application, each clipped to that range and the whole ordered by start. Windows overlap,
     /// both across enemies and across concurrent applications on one enemy.
     /// </summary>
-    public IReadOnlyList<AuraWindow> AuraWindows(SpellRef effect, int from, int to, int? sourceId = null)
+    public List<AuraWindow> AuraWindows(SpellRef effect, int from, int to, int? sourceId = null)
     {
         var windows = new List<AuraWindow>();
         foreach (var (key, entity) in Combatants.Units)
@@ -220,14 +220,14 @@ public sealed partial class Enemies : Module
     /// The union of <see cref="AuraWindows"/>, which is when the effect was active on at least one
     /// enemy.
     /// </summary>
-    public IReadOnlyList<AuraWindow> MergedAuraWindows(SpellRef effect, int from, int to, int? sourceId = null)
+    public List<AuraWindow> MergedAuraWindows(SpellRef effect, int from, int to, int? sourceId = null)
         => Merge(AuraWindows(effect, from, to, sourceId));
 
     /// <summary>
     /// One timeline covering every effect in <paramref name="effects"/>, for an ability that applies
     /// more than one effect to the same unit.
     /// </summary>
-    public IReadOnlyList<AuraWindow> MergedAuraWindows(IReadOnlyList<SpellRef> effects, int from, int to, int? sourceId = null)
+    public List<AuraWindow> MergedAuraWindows(List<SpellRef> effects, int from, int to, int? sourceId = null)
     {
         var windows = new List<AuraWindow>();
         foreach (var effect in effects)
@@ -241,7 +241,7 @@ public sealed partial class Enemies : Module
     /// applications counts once. A band runs from its <see cref="AuraTargetBand.Start"/> to where the
     /// next one begins; the last band ends at <paramref name="to"/> and includes it.
     /// </summary>
-    public IReadOnlyList<AuraTargetBand> AuraTargetsBetween(SpellRef effect, int from, int to, int? sourceId = null)
+    public List<AuraTargetBand> AuraTargetsBetween(SpellRef effect, int from, int to, int? sourceId = null)
     {
         if (to < from) return [];
 
@@ -285,7 +285,7 @@ public sealed partial class Enemies : Module
         return active;
     }
 
-    private static IReadOnlyList<AuraWindow> Merge(IReadOnlyList<AuraWindow> windows)
+    private static List<AuraWindow> Merge(List<AuraWindow> windows)
     {
         if (windows.Count == 0) return [];
 
@@ -462,9 +462,9 @@ public sealed partial class Enemies : Module
             _rosterCount = _order.Count;
         }
 
-        public IReadOnlyList<EnemyUnit> Roster => field ??= [.. _order.Take(_rosterCount).Select(key => _units[key])];
+        public List<EnemyUnit> Roster => field ??= [.. _order.Take(_rosterCount).Select(key => _units[key])];
 
-        public IReadOnlyList<EnemyUnit> Units => field ??= [.. _order.Select(key => _units[key])];
+        public List<EnemyUnit> Units => field ??= [.. _order.Select(key => _units[key])];
 
         public UnitKey SoleRosterInstance(int actorId) =>
             _rosterInstances.TryGetValue(actorId, out var instances) && instances.Count == 1

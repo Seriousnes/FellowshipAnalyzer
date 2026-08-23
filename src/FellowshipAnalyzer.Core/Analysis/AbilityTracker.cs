@@ -23,13 +23,13 @@ public sealed partial class AbilityTracker : Analyzer
     private readonly List<PullLedger> _pullLedgers = [];
 
     /// <summary>Every ability the player cast, damaged, or healed with across the dungeon, in first-use order.</summary>
-    public IReadOnlyList<TrackedAbility> BySpell => _spells;
+    public List<TrackedAbility> BySpell => _spells;
 
     /// <summary>The dungeon-wide totals for <paramref name="spellId"/>, or <c>null</c> when the player never used it.</summary>
     public TrackedAbility? For(int spellId) => _bySpell.GetValueOrDefault(spellId);
 
     /// <summary>Every ability the player used during <paramref name="pull"/>, in first-use order.</summary>
-    public IReadOnlyList<TrackedAbility> During(PullStartEvent pull) => LedgerOf(pull)?.Spells ?? [];
+    public List<TrackedAbility> During(PullStartEvent pull) => LedgerOf(pull)?.Spells ?? [];
 
     /// <summary>The totals for <paramref name="spellId"/> scoped to <paramref name="pull"/>, or <c>null</c> when the player never used it there.</summary>
     public TrackedAbility? For(int spellId, PullStartEvent pull) => LedgerOf(pull)?.BySpell.GetValueOrDefault(spellId);

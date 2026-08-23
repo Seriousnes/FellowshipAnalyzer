@@ -18,7 +18,7 @@
 </div>
 
 @code {
-    [Parameter, EditorRequired] public IReadOnlyList<ButtonGroupOption<T>> Options { get; set; } = [];
+    [Parameter, EditorRequired] public List<ButtonGroupOption<T>> Options { get; set; } = [];
     [Parameter] public T? Value { get; set; }
     [Parameter] public EventCallback<T> ValueChanged { get; set; }
     [Parameter] public ButtonGroupSize Size { get; set; } = ButtonGroupSize.Md;

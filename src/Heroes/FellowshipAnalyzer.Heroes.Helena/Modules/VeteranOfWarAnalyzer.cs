@@ -19,7 +19,7 @@ public sealed partial class VeteranOfWarAnalyzer : Analyzer
     private bool _ultimateActive;
     private int _punishingStrikesStacks;
 
-    public static IReadOnlyList<CooldownCombo> Combos { get; } =
+    public static List<CooldownCombo> Combos { get; } =
     [
         new(Spells.MeasuredStrike.FSLID, Spells.ShieldSlam.FSLID, 2000),
         new(Spells.MeasuredStrike.FSLID, Spells.ShieldThrow.FSLID, 2000),
@@ -40,20 +40,20 @@ public sealed partial class VeteranOfWarAnalyzer : Analyzer
 
     public const int PunishingStrikesStacksAtProc = 2;
 
-    public static IReadOnlyList<int> HoldTheLineTargets { get; } =
+    public static List<int> HoldTheLineTargets { get; } =
     [
         .. Combos.Where(combo => combo.SourceSpellId == Spells.HoldTheLine.FSLID)
             .Select(combo => combo.TargetSpellId),
     ];
 
-    public static IReadOnlyList<int> ReductionTargets { get; } =
+    public static List<int> ReductionTargets { get; } =
         [.. Combos.Select(combo => combo.TargetSpellId).Distinct()];
 
-    public IReadOnlyList<HoldTheLinePress> HoldTheLinePresses => _holdTheLinePresses;
+    public List<HoldTheLinePress> HoldTheLinePresses => _holdTheLinePresses;
 
-    public IReadOnlyList<CooldownContribution> Contributions => Result.Contributions;
+    public List<CooldownContribution> Contributions => Result.Contributions;
 
-    public IReadOnlyList<CooldownContribution> BySource => Result.BySource;
+    public List<CooldownContribution> BySource => Result.BySource;
 
     public CooldownReductionResult CooldownReduction => Result.CooldownReduction;
 
@@ -64,24 +64,24 @@ public sealed partial class VeteranOfWarAnalyzer : Analyzer
     public int PunishingStrikesCasts { get; private set; }
 
     [On<ApplyBuffEvent>(To = Actor.Player, Spell = nameof(Spells.SiegebreakerBuff))]
-    private void OnUltimateApplied(ApplyBuffEvent buffEvent)
+    private void OnUltimateApplied()
     {
         _ultimateActive = true;
         SawActiveUltimate = true;
     }
 
     [On<RefreshBuffEvent>(To = Actor.Player, Spell = nameof(Spells.SiegebreakerBuff))]
-    private void OnUltimateRefreshed(RefreshBuffEvent buffEvent)
+    private void OnUltimateRefreshed()
     {
         _ultimateActive = true;
         SawActiveUltimate = true;
     }
 
     [On<RemoveBuffEvent>(To = Actor.Player, Spell = nameof(Spells.SiegebreakerBuff))]
-    private void OnUltimateRemoved(RemoveBuffEvent buffEvent) => _ultimateActive = false;
+    private void OnUltimateRemoved() => _ultimateActive = false;
 
     [On<ApplyBuffEvent>(To = Actor.Player, Spell = nameof(Spells.PunishingStrikesBuff))]
-    private void OnPunishingStrikesApplied(ApplyBuffEvent buffEvent) =>
+    private void OnPunishingStrikesApplied() =>
         _punishingStrikesStacks = PunishingStrikesStacksAtProc;
 
     [On<ApplyBuffStackEvent>(To = Actor.Player, Spell = nameof(Spells.PunishingStrikesBuff))]
@@ -93,7 +93,7 @@ public sealed partial class VeteranOfWarAnalyzer : Analyzer
         _punishingStrikesStacks = buffEvent.Stack;
 
     [On<RemoveBuffEvent>(To = Actor.Player, Spell = nameof(Spells.PunishingStrikesBuff))]
-    private void OnPunishingStrikesRemoved(RemoveBuffEvent buffEvent) => _punishingStrikesStacks = 0;
+    private void OnPunishingStrikesRemoved() => _punishingStrikesStacks = 0;
 
     [On<PullStartEvent>]
     private void OnPullStart(PullStartEvent pullStart)
@@ -232,12 +232,12 @@ public sealed partial class VeteranOfWarAnalyzer : Analyzer
     }
 
     private sealed record Computed(
-        IReadOnlyList<CooldownContribution> Contributions,
-        IReadOnlyList<CooldownContribution> BySource,
+        List<CooldownContribution> Contributions,
+        List<CooldownContribution> BySource,
         CooldownReductionResult CooldownReduction);
 }
 
-public sealed record HoldTheLinePress(int Timestamp, IReadOnlyList<HoldTheLineTarget> Targets);
+public sealed record HoldTheLinePress(int Timestamp, List<HoldTheLineTarget> Targets);
 
 public sealed record HoldTheLineTarget(
     int SpellId,

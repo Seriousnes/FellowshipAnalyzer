@@ -65,7 +65,7 @@ public class ResourceTypesConverterTests
     [Fact]
     public void BuildAliasMap_DuplicateToken_Throws()
     {
-        var dup = new (ResourceTypes, IReadOnlyList<string>)[]
+        var dup = new (ResourceTypes, string[])[]
         {
             (ResourceTypes.Primary, new[] { "Shared" }),
             (ResourceTypes.Tertiary, new[] { "shared" }),

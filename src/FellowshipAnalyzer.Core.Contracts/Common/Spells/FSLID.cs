@@ -20,15 +20,13 @@ namespace FellowshipAnalyzer.Core.Common.Spells;
 /// </list>
 /// </remarks>
 [JsonConverter(typeof(FSLIDJsonConverter))]
-public readonly struct FSLID : IEquatable<FSLID>
+public readonly struct FSLID(int value) : IEquatable<FSLID>
 {
     private const int EffectOffset = 1_000_000;
     private const int TalentOffset = 2_000_000;
     private const int WeaponOffset = 3_000_000;
 
-    public int Value { get; }
-
-    public FSLID(int value) => Value = value;
+    public int Value { get; } = value;
 
     public SpellKind Kind => Value switch
     {
@@ -62,4 +60,14 @@ public readonly struct FSLID : IEquatable<FSLID>
     public override bool Equals(object? obj) => obj is FSLID other && Equals(other);
     public override int GetHashCode() => Value;
     public override string ToString() => Value.ToString(CultureInfo.InvariantCulture);
+
+    public static bool operator ==(FSLID left, FSLID right)
+    {
+        return left.Equals(right);
+    }
+
+    public static bool operator !=(FSLID left, FSLID right)
+    {
+        return !(left == right);
+    }
 }

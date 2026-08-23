@@ -8,7 +8,7 @@ using Xunit;
 
 namespace FellowshipAnalyzer.SpellData.Tests;
 
-public class SchoolTests
+public partial class SchoolTests
 {
     [Theory]
     [InlineData("Physical", MagicSchool.Physical)]
@@ -38,7 +38,7 @@ public class SchoolTests
     [InlineData(new[] { "Magic / Frost", "Physical" }, MagicSchool.Magic | MagicSchool.Physical)]
     [InlineData(new string[0], default(MagicSchool))]
     public void FromExport_MapsEachEntryOntoItsLeadingSchool(string[] schools, MagicSchool expected) =>
-        Schools.FromExport(schools).ShouldBe(expected);
+        Schools.FromExport([.. schools]).ShouldBe(expected);
 
     [Fact]
     public void FromExport_ThrowsOnASchoolThatIsNeitherMagicNorPhysical() =>
@@ -147,11 +147,10 @@ public class SchoolTests
         json.ShouldContain("\"2187\": \"Physical\"");
         json.ShouldContain("\"255\": \"Magic/Physical\"");
 
-        var ids = System.Text.RegularExpressions.Regex
-            .Matches(json[json.IndexOf("\"schools\"", StringComparison.Ordinal)..], "\"(\\d+)\": \"")
+        var ids = MyRegex().Matches(json[json.IndexOf("\"schools\"", StringComparison.Ordinal)..])
             .Select(m => int.Parse(m.Groups[1].Value))
             .ToList();
-        ids.ShouldBe(ids.Order().ToList());
+        ids.ShouldBe([.. ids.Order()]);
     }
 
     [Fact]
@@ -164,4 +163,7 @@ public class SchoolTests
         restored.Schools[255].ShouldBe(MagicSchool.Magic | MagicSchool.Physical);
         restored.Schools[2187].ShouldBe(MagicSchool.Physical);
     }
+
+    [System.Text.RegularExpressions.GeneratedRegex("\"(\\d+)\": \"")]
+    private static partial System.Text.RegularExpressions.Regex MyRegex();
 }

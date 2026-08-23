@@ -4,7 +4,7 @@ namespace FellowshipAnalyzer.Heroes.Sylvie.Modules;
 
 public static class SylvieKit
 {
-    public static IReadOnlyDictionary<int, int> ManaCosts { get; } = new Dictionary<int, int>
+    public static Dictionary<int, int> ManaCosts { get; } = new Dictionary<int, int>
     {
         [Spells.Nettlebolt.FSLID] = 5,
         [Spells.PricklyVine.FSLID] = 18,

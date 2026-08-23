@@ -23,11 +23,11 @@ public enum GapKind
 public record Gap(string Scope, string Member, GapKind Kind);
 
 /// <summary>The output of <see cref="MergeEngine.Run"/>: selected spells and detected gaps.</summary>
-public record MergeResult(IReadOnlyList<CuratedSpell> Spells, IReadOnlyList<Gap> Gaps)
+public record MergeResult(List<CuratedSpell> Spells, List<Gap> Gaps)
 {
     /// <summary>
     /// Every classified damage school in the game-data export, keyed by FSLID and hero-independent,
     /// so an enemy ability resolves the same way a hero one does.
     /// </summary>
-    public IReadOnlyDictionary<int, MagicSchool> Schools { get; init; } = new Dictionary<int, MagicSchool>();
+    public Dictionary<int, MagicSchool> Schools { get; init; } = [];
 }

@@ -12,7 +12,7 @@ public static class Schools
             ? default
             : Enum.Parse<MagicSchool>(value.Replace('/', ','), ignoreCase: true);
 
-    public static MagicSchool FromExport(IReadOnlyList<string> schools)
+    public static MagicSchool FromExport(List<string> schools)
     {
         var result = default(MagicSchool);
         foreach (var school in schools)

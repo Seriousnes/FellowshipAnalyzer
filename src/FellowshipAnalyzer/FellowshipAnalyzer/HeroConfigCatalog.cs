@@ -8,6 +8,6 @@ namespace FellowshipAnalyzer;
 /// </summary>
 public sealed class HeroConfigCatalog : IHeroConfigCatalog
 {
-    public IReadOnlyList<HeroConfigEntry> Heroes { get; } =
+    public List<HeroConfigEntry> Heroes { get; } =
         [.. HeroManifest.Entries.Select(e => new HeroConfigEntry(e.Hero, e.Config))];
 }

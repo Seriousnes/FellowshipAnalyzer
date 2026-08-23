@@ -30,7 +30,7 @@ public sealed class ModuleActivationTests
     public void IsModuleActive_WhenPredicateFalse_ReturnsFalse()
     {
         var parser = CreateGatedParser();
-        var inactiveCtx = new ParseContext(PlayerId: 0, Dungeon: TestDungeon, ActorNames: new Dictionary<int, string>(), EmptyCombatant);
+        var inactiveCtx = new ParseContext(PlayerId: 0, Dungeon: TestDungeon, ActorNames: [], EmptyCombatant);
 
         Assert.False(parser.InvokeIsModuleActive(typeof(GatedProbeModule), inactiveCtx));
     }
@@ -39,7 +39,7 @@ public sealed class ModuleActivationTests
     public void IsModuleActive_WhenPredicateTrue_ReturnsTrue()
     {
         var parser = CreateGatedParser();
-        var activeCtx = new ParseContext(PlayerId: 7, Dungeon: TestDungeon, ActorNames: new Dictionary<int, string>(), EmptyCombatant);
+        var activeCtx = new ParseContext(PlayerId: 7, Dungeon: TestDungeon, ActorNames: [], EmptyCombatant);
 
         Assert.True(parser.InvokeIsModuleActive(typeof(GatedProbeModule), activeCtx));
     }
@@ -48,7 +48,7 @@ public sealed class ModuleActivationTests
     public void IsModuleActive_ForUnGatedModule_ReturnsTrue()
     {
         var parser = CreateGatedParser();
-        var anyCtx = new ParseContext(PlayerId: 0, Dungeon: TestDungeon, ActorNames: new Dictionary<int, string>(), EmptyCombatant);
+        var anyCtx = new ParseContext(PlayerId: 0, Dungeon: TestDungeon, ActorNames: [], EmptyCombatant);
 
         Assert.True(parser.InvokeIsModuleActive(typeof(OrderedModuleA), anyCtx));
     }

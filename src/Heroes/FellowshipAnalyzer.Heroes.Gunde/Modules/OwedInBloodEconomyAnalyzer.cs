@@ -30,7 +30,7 @@ public sealed partial class OwedInBloodEconomyAnalyzer : Analyzer
 
     private Computed Result => field ??= Compute();
 
-    public IReadOnlyList<OwedInBloodConversion> Conversions => Result.Conversions;
+    public List<OwedInBloodConversion> Conversions => Result.Conversions;
 
     public int TotalStacksConverted => Result.TotalStacksConverted;
 
@@ -59,10 +59,10 @@ public sealed partial class OwedInBloodEconomyAnalyzer : Analyzer
     private void OnBuffRemoved(RemoveBuffEvent buffEvent) => SetStacks(buffEvent.Timestamp, 0);
 
     [On<ApplyBuffEvent>(To = Actor.Player, Spell = nameof(Spells.BloodboundSpiritSelfBuff))]
-    private void OnSpiritApplied(ApplyBuffEvent buffEvent) => _spiritActive = true;
+    private void OnSpiritApplied() => _spiritActive = true;
 
     [On<RemoveBuffEvent>(To = Actor.Player, Spell = nameof(Spells.BloodboundSpiritSelfBuff))]
-    private void OnSpiritRemoved(RemoveBuffEvent buffEvent) => _spiritActive = false;
+    private void OnSpiritRemoved() => _spiritActive = false;
 
     [On<ApplyDebuffEvent>(By = Actor.Player, Spell = nameof(Spells.OpenWounds))]
     private void OnOpenWoundsApplied(ApplyDebuffEvent debuffEvent) => OpenWindow(debuffEvent, debuffEvent.Timestamp);
@@ -176,7 +176,7 @@ public sealed partial class OwedInBloodEconomyAnalyzer : Analyzer
         new(debuffEvent.TargetId, debuffEvent.TargetInstance ?? 0);
 
     private sealed record Computed(
-        IReadOnlyList<OwedInBloodConversion> Conversions,
+        List<OwedInBloodConversion> Conversions,
         int TotalStacksConverted,
         double AverageConversion,
         int CashedBySlaughter,

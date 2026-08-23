@@ -82,7 +82,7 @@
 </div>
 
 @code {
-    [Parameter, EditorRequired] public IReadOnlyList<Event> Events { get; set; } = [];
+    [Parameter, EditorRequired] public List<Event> Events { get; set; } = [];
 
     private string _searchInput = "";
     private string _appliedSearch = "";
@@ -291,7 +291,7 @@
 
     private sealed record EventTypeInfo(string DisplayName, string? Explanation = null, bool IsFabricated = false);
 
-    private static readonly IReadOnlyDictionary<string, EventTypeInfo> FilterableTypes =
+    private static readonly Dictionary<string, EventTypeInfo> FilterableTypes =
         new Dictionary<string, EventTypeInfo>(StringComparer.Ordinal)
         {
             ["begincast"]     = new("Begin Cast"),

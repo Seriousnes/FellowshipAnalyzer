@@ -30,7 +30,7 @@ public sealed partial class ExecutionersGrinTracker : Analyzer
     public override StatisticCategory StatisticCategory => StatisticCategory.Items;
 
     [On<ApplyBuffEvent>(To = Actor.Player, Spell = nameof(Spells.ExecutionersGrin))]
-    private void OnGrinApplied(ApplyBuffEvent @event)
+    private void OnGrinApplied()
     {
         Procs++;
         _held = true;
@@ -38,7 +38,7 @@ public sealed partial class ExecutionersGrinTracker : Analyzer
     }
 
     [On<RefreshBuffEvent>(To = Actor.Player, Spell = nameof(Spells.ExecutionersGrin))]
-    private void OnGrinReapplied(RefreshBuffEvent @event)
+    private void OnGrinReapplied()
     {
         Reapplications++;
         _held = true;

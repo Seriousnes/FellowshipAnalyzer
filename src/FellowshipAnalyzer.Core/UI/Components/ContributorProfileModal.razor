@@ -117,9 +117,9 @@
 @code {
     private Contributor? _shown;
     private string _initial = "?";
-    private IReadOnlyList<HeroName> _maintained = [];
-    private IReadOnlyList<ContributionGroup> _contributions = [];
-    private IReadOnlyList<string> _expandedIds = [];
+    private List<HeroName> _maintained = [];
+    private List<ContributionGroup> _contributions = [];
+    private List<string> _expandedIds = [];
 
     protected override void OnInitialized() => Modal.Changed += HandleChanged;
 
@@ -140,7 +140,7 @@
         StateHasChanged();
     }
 
-    private void OnExpandedChanged(IReadOnlyList<string> ids) => _expandedIds = ids;
+    private void OnExpandedChanged(List<string> ids) => _expandedIds = ids;
 
     private static string GroupId(ContributionGroup group) =>
         group.IsCore ? "core" : group.Hero!.Value.ToString();

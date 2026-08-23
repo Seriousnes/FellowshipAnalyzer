@@ -21,10 +21,10 @@ public sealed partial class SpellUsable(
     private readonly List<TrackedAbilityCast> _casts = [];
 
     /// <summary>Every player cast recorded during dispatch, in the order it occurred.</summary>
-    public IReadOnlyList<TrackedAbilityCast> Casts => _casts;
+    public List<TrackedAbilityCast> Casts => _casts;
 
     /// <summary>Returns the IDs of all spells currently on cooldown (any charges on cooldown).</summary>
-    public IReadOnlyCollection<int> GetSpellsOnCooldown() => _cooldowns.Keys;
+    public List<int> GetSpellsOnCooldown() => [.. _cooldowns.Keys];
 
     /// <summary>
     /// Reduces the remaining cooldown of a spell by up to <paramref name="milliseconds"/>. The requested flat

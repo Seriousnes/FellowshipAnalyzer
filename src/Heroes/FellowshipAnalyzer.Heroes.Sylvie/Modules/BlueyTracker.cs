@@ -10,7 +10,7 @@ public sealed partial class BlueyTracker : Analyzer
 
     private BlueyPosting? _open;
 
-    public IReadOnlyList<BlueyPosting> Postings => _postings;
+    public List<BlueyPosting> Postings => _postings;
 
     public int Reassignments { get; private set; }
 
@@ -26,7 +26,7 @@ public sealed partial class BlueyTracker : Analyzer
         return found;
     }
 
-    public IReadOnlyList<(int TargetId, int Ms, bool OnSylvie)> TimeByHolderBetween(int start, int end)
+    public List<(int TargetId, int Ms, bool OnSylvie)> TimeByHolderBetween(int start, int end)
     {
         var byTarget = new Dictionary<int, int>();
         foreach (var posting in _postings)
@@ -79,7 +79,7 @@ public sealed partial class BlueyTracker : Analyzer
     }
 
     [On<CastEvent>(By = Actor.Player, Spells = new[] { nameof(Spells.FluttercallProtect), nameof(Spells.FluttercallEmbrace) })]
-    private void OnCast(CastEvent castEvent) => Reassignments++;
+    private void OnCast() => Reassignments++;
 
     [On<DungeonEndEvent>]
     private void OnDungeonEnd(DungeonEndEvent dungeonEndEvent) => _open?.Close(dungeonEndEvent.Timestamp);

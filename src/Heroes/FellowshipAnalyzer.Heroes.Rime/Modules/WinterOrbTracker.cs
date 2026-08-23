@@ -111,5 +111,5 @@ public sealed partial class WinterOrbTracker : ResourceTracker
 
     public int CappedMs => _cappedMs;
 
-    public IReadOnlyList<OvercapIncident> OvercapIncidents => _overcapIncidents;
+    public List<OvercapIncident> OvercapIncidents => _overcapIncidents;
 }

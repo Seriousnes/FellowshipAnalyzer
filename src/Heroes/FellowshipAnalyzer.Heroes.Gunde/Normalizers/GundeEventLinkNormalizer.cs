@@ -13,7 +13,7 @@ public sealed class GundeEventLinkNormalizer() : EventLinkNormalizer(BuildLinks(
 
     private const int CastDamageWindowMs = 2_500;
 
-    private static IReadOnlyList<EventLink> BuildLinks() =>
+    private static List<EventLink> BuildLinks() =>
     [
         .. SerratedEdgeAnalyzer.Consumers.Select(ability => new EventLink
         {

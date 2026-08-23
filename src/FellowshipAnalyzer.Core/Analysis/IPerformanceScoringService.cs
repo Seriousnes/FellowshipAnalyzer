@@ -57,7 +57,7 @@ public interface IPerformanceScoringService
     /// score floors (<see cref="ScoredCheck.MinScore"/>) when specified.
     /// Returns 0 for an empty list or when total weight is zero.
     /// </summary>
-    double GetAggregatedScore(IReadOnlyList<ScoredCheck> checks);
+    double GetAggregatedScore(List<ScoredCheck> checks);
 
     /// <summary>
     /// Maps a 0.0–1.0 score to a <see cref="QualitativePerformance"/> using configurable thresholds.

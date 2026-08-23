@@ -23,12 +23,12 @@
 @code {
     private static readonly HeroRole[] RoleOrder = [HeroRole.Tank, HeroRole.Healer, HeroRole.Dps];
 
-    private Dictionary<HeroRole, IReadOnlyList<HeroConfigEntry>> _byRole = new();
+    private Dictionary<HeroRole, List<HeroConfigEntry>> _byRole = new();
 
     protected override void OnInitialized() =>
         _byRole = RoleOrder.ToDictionary(
             role => role,
-            role => (IReadOnlyList<HeroConfigEntry>)
+            role => (List<HeroConfigEntry>)
                 [.. Catalog.Heroes
                     .Where(e => Hero.For(e.Hero).Role == role)
                     .OrderByDescending(e => e.Config.Support)

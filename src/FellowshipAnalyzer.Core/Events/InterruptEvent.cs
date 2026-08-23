@@ -10,7 +10,7 @@ public class InterruptEvent : Event, IAbilityEvent, IExtraAbilityEvent, IHasSour
     /// <summary>The FSLID identifying <see cref="Ability"/> in the FellowshipLogs game data.</summary>
     public virtual FSLID AbilityGameId { get; set; }
     /// <summary>The ability whose cast was interrupted.</summary>
-    public virtual Ability ExtraAbility { get; set; }
+    public virtual Ability? ExtraAbility { get; set; }
     /// <summary>The FSLID identifying <see cref="ExtraAbility"/> in the FellowshipLogs game data.</summary>
     public virtual FSLID ExtraAbilityGameId { get; set; }
     /// <summary>Unique identifier for the actor who performed the interrupt.</summary>

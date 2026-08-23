@@ -15,7 +15,7 @@ public sealed partial class LingeringConcussionAnalyzer : DebuffUptimeAnalyzer, 
 
     private readonly List<StackSample> _samples = [];
 
-    public IReadOnlyDictionary<int, int> MsAtStacks => Result.MsAtStacks;
+    public Dictionary<int, int> MsAtStacks => Result.MsAtStacks;
 
     public int CoveredMs => Result.CoveredMs;
 
@@ -93,7 +93,7 @@ public sealed partial class LingeringConcussionAnalyzer : DebuffUptimeAnalyzer, 
 
     private Computed Compute()
     {
-        if (PrimaryTarget is not { } primary) return new Computed(new Dictionary<int, int>(), 0, 0, 0);
+        if (PrimaryTarget is not { } primary) return new Computed([], 0, 0, 0);
 
         var msAtStacks = new Dictionary<int, int>();
         var peak = 0;
@@ -137,7 +137,7 @@ public sealed partial class LingeringConcussionAnalyzer : DebuffUptimeAnalyzer, 
     private readonly record struct StackSample(int TargetId, int TargetInstance, int Timestamp, int? Stacks);
 
     private sealed record Computed(
-        IReadOnlyDictionary<int, int> MsAtStacks,
+        Dictionary<int, int> MsAtStacks,
         int CoveredMs,
         int AtCapMs,
         int PeakStacks);

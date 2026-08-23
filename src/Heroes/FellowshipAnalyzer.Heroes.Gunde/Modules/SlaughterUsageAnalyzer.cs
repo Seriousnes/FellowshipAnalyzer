@@ -18,7 +18,7 @@ public abstract partial class SlaughterUsageAnalyzer : Analyzer
 
     public abstract GundePullShape Shape { get; }
 
-    public IReadOnlyList<SlaughterEvaluation> Slaughters => Result.Slaughters;
+    public List<SlaughterEvaluation> Slaughters => Result.Slaughters;
 
     public int SlaughterCasts => _casts.Count;
 
@@ -157,7 +157,7 @@ public abstract partial class SlaughterUsageAnalyzer : Analyzer
     }
 
     private sealed record Projection(
-        IReadOnlyList<SlaughterEvaluation> Slaughters,
+        List<SlaughterEvaluation> Slaughters,
         int OpenWoundsTimed,
         int WellExecuted,
         long TotalBleedDamage,

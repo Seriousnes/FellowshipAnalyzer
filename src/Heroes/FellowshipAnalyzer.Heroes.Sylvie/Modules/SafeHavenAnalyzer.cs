@@ -13,7 +13,7 @@ public sealed partial class SafeHavenAnalyzer : Analyzer
 
     private Computed Result => field ??= Compute();
 
-    public IReadOnlyList<SafeHavenPlacement> Placements => Result.Placements;
+    public List<SafeHavenPlacement> Placements => Result.Placements;
 
     public int Casts => _casts.Count;
 
@@ -96,7 +96,7 @@ public sealed partial class SafeHavenAnalyzer : Analyzer
     }
 
     private sealed record Computed(
-        IReadOnlyList<SafeHavenPlacement> Placements,
+        List<SafeHavenPlacement> Placements,
         long CarriedInAllyMs,
         int CarriedInAllies);
 }

@@ -11,5 +11,5 @@ public sealed record DungeonPull(
     double StartTime,
     double EndTime,
     string Name,
-    IReadOnlyList<DungeonPullNpc>? EnemyNpcs
+    List<DungeonPullNpc>? EnemyNpcs
 );

@@ -143,7 +143,7 @@ public readonly record struct Hero(HeroName Name, HeroRole Role)
 
 
     /// <summary>All defined heroes, in <see cref="HeroName"/> order.</summary>
-    public static IReadOnlyList<Hero> All { get; } =
+    public static List<Hero> All { get; } =
     [
         Aeona, Ardeos, Elarion, Gunde, Helena, Mara, Meiko, Rime, Sylvie, Tariq, Vigour, Xavian,
     ];
@@ -152,7 +152,7 @@ public readonly record struct Hero(HeroName Name, HeroRole Role)
     private static readonly FrozenDictionary<string, Hero> ById = All.ToDictionary(h => h.Id, StringComparer.OrdinalIgnoreCase).ToFrozenDictionary();
 
     /// <summary>All heroes grouped by the <see cref="HeroRole"/> they fill.</summary>
-    public static FrozenDictionary<HeroRole, IReadOnlyList<Hero>> ByRole { get; } = All.GroupBy(h => h.Role).ToDictionary(g => g.Key, g => (IReadOnlyList<Hero>)[.. g]).ToFrozenDictionary();
+    public static FrozenDictionary<HeroRole, List<Hero>> ByRole { get; } = All.GroupBy(h => h.Role).ToDictionary(g => g.Key, g => (List<Hero>)[.. g]).ToFrozenDictionary();
 
     /// <summary>Looks up the canonical <see cref="Hero"/> for a <see cref="HeroName"/>.</summary>
     public static Hero For(HeroName name) => ByName[name];

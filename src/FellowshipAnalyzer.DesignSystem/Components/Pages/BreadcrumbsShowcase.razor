@@ -18,19 +18,19 @@
 </CodeExample>
 
 @code {
-    private static readonly IReadOnlyList<BreadcrumbItem> _basicItems =
+    private static readonly List<BreadcrumbItem> _basicItems =
     [
         new("Sample log title", "/report/abc123"),
         new("The Mire"),
     ];
 
-    private static readonly IReadOnlyList<BreadcrumbItem> _singleItem = [new("Home")];
+    private static readonly List<BreadcrumbItem> _singleItem = [new("Home")];
 
     private const string _basicCode = """
 <Breadcrumbs Items="@_items" />
 
 @code {
-    private static readonly IReadOnlyList<BreadcrumbItem> _items =
+    private static readonly List<BreadcrumbItem> _items =
     [
         new("Sample log title", "/report/abc123"),
         new("The Mire"),

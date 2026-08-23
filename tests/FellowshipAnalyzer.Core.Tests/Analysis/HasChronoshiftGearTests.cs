@@ -37,6 +37,6 @@ public sealed class HasChronoshiftGearTests
     private static ParseContext ContextWithGear(params Item[] gear)
     {
         var combatant = new FullCombatant(new CombatantInfoEvent { Gear = [.. gear] });
-        return new ParseContext(PlayerId: 7, Dungeon: TestDungeon, ActorNames: new Dictionary<int, string>(), combatant);
+        return new ParseContext(PlayerId: 7, Dungeon: TestDungeon, ActorNames: [], combatant);
     }
 }

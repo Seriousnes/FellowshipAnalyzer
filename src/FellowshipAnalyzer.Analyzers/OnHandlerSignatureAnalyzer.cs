@@ -8,11 +8,12 @@ using Microsoft.CodeAnalysis.Diagnostics;
 namespace FellowshipAnalyzer.Analyzers;
 
 /// <summary>
-/// FA0011: <c>[On&lt;TEvent&gt;]</c> handler signature must take a single parameter assignable
-/// from <c>TEvent</c> (concrete event, base class, interface, or a <c>OneOf&lt;…&gt;</c> with a
-/// uniquely-resolvable slot for <c>TEvent</c>) and return <c>void</c>, <c>Task</c>, or
-/// <c>ValueTask</c>. Without this the source generator silently produces no subscription,
-/// leading to a confusing "the handler never fires" debugging session.
+/// FA0011: an <c>[On&lt;TEvent&gt;]</c> handler takes either no parameter, when the fact that the
+/// event happened is the whole signal, or a single parameter assignable from <c>TEvent</c>
+/// (concrete event, base class, interface, or a <c>OneOf&lt;…&gt;</c> with a uniquely-resolvable
+/// slot for <c>TEvent</c>), and returns <c>void</c>, <c>Task</c>, or <c>ValueTask</c>. Without
+/// this the source generator silently produces no subscription, leading to a confusing
+/// "the handler never fires" debugging session.
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public sealed class OnHandlerSignatureAnalyzer : DiagnosticAnalyzer
@@ -26,7 +27,7 @@ public sealed class OnHandlerSignatureAnalyzer : DiagnosticAnalyzer
         category: "Analysis",
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true,
-        description: "The source-generated subscription wires a delegate that invokes the handler with the dispatched event cast to the handler parameter type. The parameter type must be the event type, one of its base classes or interfaces, or a OneOf<…> with a uniquely-resolvable slot for the event type.");
+        description: "The source-generated subscription wires a delegate that invokes the handler with the dispatched event cast to the handler parameter type, or with no argument when the handler declares no parameter. A declared parameter type must be the event type, one of its base classes or interfaces, or a OneOf<…> with a uniquely-resolvable slot for the event type.");
 
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [Rule];
 
@@ -62,15 +63,14 @@ public sealed class OnHandlerSignatureAnalyzer : DiagnosticAnalyzer
 
     private static string? DescribeProblem(IMethodSymbol method, INamedTypeSymbol eventType)
     {
-        if (method.Parameters.Length != 1)
-            return "handler must take exactly one parameter";
+        if (method.Parameters.Length > 1)
+            return "handler must take no parameter or exactly one";
 
-        if (!method.ReturnsVoid)
-        {
-            var rt = method.ReturnType;
-            if (rt.Name is not ("Task" or "ValueTask"))
-                return "handler must return void, Task, or ValueTask";
-        }
+        if (HandlerSignatureRules.ClassifyReturn(method) is HandlerReturnKind.Unsupported)
+            return "handler must return void, Task, or ValueTask";
+
+        if (method.Parameters.Length == 0)
+            return null;
 
         var paramType = method.Parameters[0].Type;
         if (paramType is not INamedTypeSymbol paramNamed)

@@ -7,7 +7,7 @@ namespace FellowshipAnalyzer.Core.Tests.Game;
 
 public class ResourceNameAttributeTests
 {
-    private static IReadOnlyList<string> AliasesOf(ResourceTypes value)
+    private static string[] AliasesOf(ResourceTypes value)
     {
         var field = typeof(ResourceTypes).GetField(value.ToString())!;
         return field.GetCustomAttribute<ResourceNameAttribute>()?.Names ?? [];

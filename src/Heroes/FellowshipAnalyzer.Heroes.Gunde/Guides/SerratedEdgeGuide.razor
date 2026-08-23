@@ -63,7 +63,7 @@
 
     private long TotalRendConverted => Analyzers.Sum(analyzer => analyzer.TotalRendConverted);
 
-    private IEnumerable<(string Lead, IReadOnlyList<int> Abilities)> Orders() =>
+    private IEnumerable<(string Lead, List<int> Abilities)> Orders() =>
         new[] { GundePullShape.Boss, GundePullShape.Aoe }
             .Select(shape => (Lead: ShapeLead(shape), Analyzer: Analyzers.FirstOrDefault(analyzer => analyzer.Shape == shape)))
             .Where(entry => entry.Analyzer is not null)
@@ -288,7 +288,7 @@
     private static string RemainingClause(SerratedEdgeGrant grant) =>
         Join([.. grant.Readiness.Select(entry => $"{ConsumerName(entry.AbilityId)} {Remaining(entry.RemainingMs)}")]);
 
-    private static string Join(IReadOnlyList<string> parts) =>
+    private static string Join(List<string> parts) =>
         parts.Count <= 1
             ? string.Concat(parts)
             : $"{string.Join(", ", parts.Take(parts.Count - 1))} and {parts[^1]}";

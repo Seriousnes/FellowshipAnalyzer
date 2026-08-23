@@ -33,7 +33,7 @@
 </CodeExample>
 
 @code {
-    private static readonly IReadOnlyList<OverviewStat> _overviewStats =
+    private static readonly List<OverviewStat> _overviewStats =
     [
         new("47", "Orbs generated"),
         new("12", "Orbs wasted", Performance: QualitativePerformance.Fail),
@@ -41,9 +41,9 @@
         new("5.2", "Avg orbs at cast"),
     ];
 
-    private static readonly IReadOnlyList<CastEvaluation> _evaluations = BuildEvaluations();
+    private static readonly List<CastEvaluation> _evaluations = BuildEvaluations();
 
-    private static IReadOnlyList<CastEvaluation> BuildEvaluations()
+    private static List<CastEvaluation> BuildEvaluations()
     {
         var list = new List<CastEvaluation>();
         for (var i = 0; i < 8; i++) list.Add(new(QualitativePerformance.Perfect, "Full Orbs", $"0:{12 + i * 9}"));
@@ -53,11 +53,11 @@
         return list;
     }
 
-    private IReadOnlyList<PerCastData> _perCast = [];
+    private List<PerCastData> _perCast = [];
 
     protected override void OnInitialized() => _perCast = BuildPerCast();
 
-    private IReadOnlyList<PerCastData> BuildPerCast() =>
+    private List<PerCastData> BuildPerCast() =>
     [
         new()
         {
@@ -137,7 +137,7 @@
 <CastOverview Title="Winter Orb generation" Stats="@_stats" />
 
 @code {
-    private static readonly IReadOnlyList<OverviewStat> _stats =
+    private static readonly List<OverviewStat> _stats =
     [
         new("47", "Orbs generated"),
         new("12", "Orbs wasted", Performance: QualitativePerformance.Fail),

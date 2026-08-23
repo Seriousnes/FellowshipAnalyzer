@@ -103,7 +103,7 @@ public class ErrorReportTests
     private static ErrorReport Report(Exception exception, string relativePath = "/report/87xnBZqymNLHvk3X/5") =>
         new(exception, $"https://www.fellowshipanalyzer.com{relativePath}", relativePath);
 
-    private static Exception Thrown()
+    private static InvalidOperationException Thrown()
     {
         try
         {

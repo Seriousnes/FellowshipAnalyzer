@@ -21,7 +21,7 @@
 </section>
 
 @code {
-    private IReadOnlyList<PlayerDeath> _deaths = [];
+    private List<PlayerDeath> _deaths = [];
     private bool _hasDeathsElsewhere;
 
     private string Title => _deaths.Count == 1 ? "1 Death" : $"{_deaths.Count} Deaths";

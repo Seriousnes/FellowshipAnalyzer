@@ -61,9 +61,9 @@ public sealed partial class MajorCooldownAnalyzer : Analyzer
     public MajorCooldownUsage WintersBlessing => Usage(_wintersBlessing);
     public MajorCooldownUsage FlightOfTheNavir => Usage(_flightOfTheNavir);
 
-    public IReadOnlyList<MajorCooldownWindow> Windows { get { EnsureMaterialized(); return _windows; } }
+    public List<MajorCooldownWindow> Windows { get { EnsureMaterialized(); return _windows; } }
 
-    public IReadOnlyList<MajorCooldownWindow> WindowsFor(RimeMajorCooldown major) =>
+    public List<MajorCooldownWindow> WindowsFor(RimeMajorCooldown major) =>
         [.. Windows.Where(window => window.Major == major)];
 
     public MajorCooldownUsage UsageFor(RimeMajorCooldown major) => Usage(Select(major));

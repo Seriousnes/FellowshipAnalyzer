@@ -3,10 +3,15 @@ using System.Text.RegularExpressions;
 namespace FellowshipAnalyzer.SpellData;
 
 /// <summary>Produces valid PascalCase C# member names from ability names and effect roles.</summary>
-public static class MemberNaming
+public static partial class MemberNaming
 {
-    private static readonly Regex PossessiveSuffix = new(@"'[a-z]*", RegexOptions.Compiled);
-    private static readonly Regex WordSplit = new(@"[^A-Za-z0-9]+", RegexOptions.Compiled);
+    [GeneratedRegex(@"'[a-z]*", RegexOptions.Compiled)]
+    private static partial Regex PossessiveSuffixRegex();
+    private static readonly Regex PossessiveSuffix = PossessiveSuffixRegex();
+
+    [GeneratedRegex(@"[^A-Za-z0-9]+", RegexOptions.Compiled)]
+    private static partial Regex WordSplitRegex();    
+    private static readonly Regex WordSplit = WordSplitRegex();
 
     /// <summary>
     /// Converts a display name into a valid PascalCase C# identifier.
@@ -39,5 +44,5 @@ public static class MemberNaming
     public static bool IsValidIdentifier(string member) =>
         member.Length > 0 &&
         (char.IsLetter(member[0]) || member[0] == '_') &&
-        member.All(c => char.IsLetterOrDigit(c) || c == '_');
+        member.All(c => char.IsLetterOrDigit(c) || c == '_');    
 }

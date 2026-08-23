@@ -15,9 +15,9 @@ public sealed partial class HeartBloomRampAnalyzer : Analyzer
     private long _pendingOverheal;
     private int _pendingFrom;
 
-    private IReadOnlyList<HeartBloomCast> Result => field ??= Compute();
+    private List<HeartBloomCast> Result => field ??= Compute();
 
-    public IReadOnlyList<HeartBloomCast> Casts => Result;
+    public List<HeartBloomCast> Casts => Result;
 
     public int CastCount => Result.Count;
 
@@ -70,7 +70,7 @@ public sealed partial class HeartBloomRampAnalyzer : Analyzer
         _open.Record(healEvent.Timestamp, healEvent.Amount, healEvent.Overheal ?? 0);
     }
 
-    private IReadOnlyList<HeartBloomCast> Compute() =>
+    private List<HeartBloomCast> Compute() =>
     [
         .. _casts.Select(capture => new HeartBloomCast(
             capture.Timestamp,

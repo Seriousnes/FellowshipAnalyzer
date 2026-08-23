@@ -9,5 +9,5 @@ namespace FellowshipAnalyzer.Core.Game;
 public sealed class ResourceNameAttribute(params string[] names) : Attribute
 {
     /// <summary>The upstream resource flavor names represented by the decorated slot.</summary>
-    public IReadOnlyList<string> Names { get; } = names;
+    public string[] Names { get; } = names;
 }

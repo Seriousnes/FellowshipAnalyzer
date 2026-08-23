@@ -6,7 +6,7 @@ namespace FellowshipAnalyzer.Heroes.Mara.Modules;
 
 public static class MaraDots
 {
-    public static IReadOnlyList<Dot> All { get; } =
+    public static List<Dot> All { get; } =
     [
         new(Spells.WidowBite, Spells.WidowBitePoison, StackMethod.Refresh),
         new(Spells.HemorrhagingStrike, Spells.HemorrhagingStrikeBleed, StackMethod.Refresh),
@@ -21,7 +21,7 @@ public static class MaraDots
 
     public static Dot VolatilePoison { get; } = All[2];
 
-    public static IReadOnlyList<Dot> Maintained { get; } = [SeethingPoison, Hemorrhage];
+    public static List<Dot> Maintained { get; } = [SeethingPoison, Hemorrhage];
 }
 
 public interface IMaraDotAnalyzer : IAnalyzerSurface;

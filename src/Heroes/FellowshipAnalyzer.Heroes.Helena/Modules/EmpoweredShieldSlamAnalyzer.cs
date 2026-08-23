@@ -19,7 +19,7 @@ public sealed partial class EmpoweredShieldSlamAnalyzer : AbsorbAnalyzer, IEmpow
     public int EmpowermentsExpired => _empowermentsExpired;
 
     [On<ApplyBuffEvent>(To = Actor.Player, Spell = nameof(Spells.ShieldSlamAbsorbBuffSelfBuff))]
-    private void OnEmpowered(ApplyBuffEvent buffEvent)
+    private void OnEmpowered()
     {
         _empowermentsGranted++;
         _empowermentOpen = true;
@@ -27,13 +27,13 @@ public sealed partial class EmpoweredShieldSlamAnalyzer : AbsorbAnalyzer, IEmpow
     }
 
     [On<CastEvent>(By = Actor.Player, Spell = nameof(Spells.ShieldSlam))]
-    private void OnShieldSlamCast(CastEvent castEvent)
+    private void OnShieldSlamCast()
     {
         if (_empowermentOpen) _empowermentConsumed = true;
     }
 
     [On<RemoveBuffEvent>(To = Actor.Player, Spell = nameof(Spells.ShieldSlamAbsorbBuffSelfBuff))]
-    private void OnEmpowermentRemoved(RemoveBuffEvent buffEvent)
+    private void OnEmpowermentRemoved()
     {
         if (_empowermentOpen && !_empowermentConsumed) _empowermentsExpired++;
 

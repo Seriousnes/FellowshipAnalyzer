@@ -17,7 +17,7 @@ namespace FellowshipAnalyzer.Core.Serialization;
 [JsonSerializable(typeof(AnalysisPreload))]
 [JsonSerializable(typeof(CharacterReports))]
 [JsonSerializable(typeof(ReportSummary))]
-[JsonSerializable(typeof(IReadOnlyList<ReportSummary>))]
+[JsonSerializable(typeof(List<ReportSummary>))]
 [JsonSerializable(typeof(AbsorbedEvent))]
 [JsonSerializable(typeof(ApplyBuffEvent))]
 [JsonSerializable(typeof(ApplyBuffStackEvent))]

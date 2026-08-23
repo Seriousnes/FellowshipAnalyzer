@@ -79,8 +79,8 @@ public sealed class TimelineConfigService(IJSRuntime js)
     public static TimelineConfig MergeWithDefaults(
         TimelineConfig stored,
         IEnumerable<int> allCooldownIds,
-        IReadOnlySet<int> defaultHighlightedAuras,
-        IReadOnlyDictionary<int, int?> cooldownDefaultSortIndices)
+        HashSet<int> defaultHighlightedAuras,
+        Dictionary<int, int?> cooldownDefaultSortIndices)
     {
         var auraMap = stored.Auras.ToDictionary(a => a.SpellId);
         foreach (var id in defaultHighlightedAuras)

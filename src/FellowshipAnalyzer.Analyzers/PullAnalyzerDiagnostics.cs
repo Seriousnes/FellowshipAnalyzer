@@ -38,7 +38,8 @@ public sealed class PullAnalyzerDiagnostics : DiagnosticAnalyzer
         category: "Analysis",
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true,
-        description: "A [ForPull] analyzer is constructed fresh for every matching pull, directly into the parser's per-pull cache, and no dependency-resolution path reads that cache. Depending on one throws at runtime. Depend on a dungeon-lifetime module or analyzer instead.");
+        description: "A [ForPull] analyzer is constructed fresh for every matching pull, directly into the parser's per-pull cache, and no dependency-resolution path reads that cache. Depending on one throws at runtime. Depend on a dungeon-lifetime module or analyzer instead.",
+        customTags: [WellKnownDiagnosticTags.CompilationEnd]);
 
     private static readonly DiagnosticDescriptor ForPullMissingTargets = new(
         id: "FA0015",
@@ -47,7 +48,8 @@ public sealed class PullAnalyzerDiagnostics : DiagnosticAnalyzer
         category: "Analysis",
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true,
-        description: "[ForPull(PullKind, Boss = …)] declares which pull shapes an analyzer runs on. An empty target set matches no pull, so the analyzer would never be constructed.");
+        description: "[ForPull(PullKind, Boss = …)] declares which pull shapes an analyzer runs on. An empty target set matches no pull, so the analyzer would never be constructed.",
+        customTags: [WellKnownDiagnosticTags.CompilationEnd]);
 
     private static readonly DiagnosticDescriptor OverlappingForPull = new(
         id: "FA0016",
@@ -56,7 +58,8 @@ public sealed class PullAnalyzerDiagnostics : DiagnosticAnalyzer
         category: "Analysis",
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true,
-        description: "Two Analyzers sharing one surface (a surface marker interface, or else the topmost ancestor directly below Analyzer) feed one cross-pull stream. Their [ForPull] match sets must not overlap on any realizable pull (single/multi × boss/non-boss), or a pull would retain two analyzers on one surface.");
+        description: "Two Analyzers sharing one surface (a surface marker interface, or else the topmost ancestor directly below Analyzer) feed one cross-pull stream. Their [ForPull] match sets must not overlap on any realizable pull (single/multi × boss/non-boss), or a pull would retain two analyzers on one surface.",
+        customTags: [WellKnownDiagnosticTags.CompilationEnd]);
 
     private static readonly DiagnosticDescriptor MultipleSurfaceInterfaces = new(
         id: "FA0017",
@@ -65,7 +68,8 @@ public sealed class PullAnalyzerDiagnostics : DiagnosticAnalyzer
         category: "Analysis",
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true,
-        description: "An analyzer's surface (the type its cross-pull stream and per-pull accessor are keyed on) must be unique. Implementing more than one IAnalyzerSurface marker interface leaves the surface ambiguous.");
+        description: "An analyzer's surface (the type its cross-pull stream and per-pull accessor are keyed on) must be unique. Implementing more than one IAnalyzerSurface marker interface leaves the surface ambiguous.",
+        customTags: [WellKnownDiagnosticTags.CompilationEnd]);
 
     private static readonly DiagnosticDescriptor ModuleRegistrationOfAnalyzer = new(
         id: "FA0019",
@@ -74,7 +78,8 @@ public sealed class PullAnalyzerDiagnostics : DiagnosticAnalyzer
         category: "Analysis",
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true,
-        description: "[AddAnalyzer] registers every event subscriber; [AddModule] and [AddState] register everything that is not one. A type deriving from Analyzer subscribes to events and belongs under [AddAnalyzer], whichever lifetime its [ForPull] gives it.");
+        description: "[AddAnalyzer] registers every event subscriber; [AddModule] and [AddState] register everything that is not one. A type deriving from Analyzer subscribes to events and belongs under [AddAnalyzer], whichever lifetime its [ForPull] gives it.",
+        customTags: [WellKnownDiagnosticTags.CompilationEnd]);
 
     private static readonly DiagnosticDescriptor ForPullRequiresAnalyzer = new(
         id: "FA0020",
@@ -83,7 +88,8 @@ public sealed class PullAnalyzerDiagnostics : DiagnosticAnalyzer
         category: "Analysis",
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true,
-        description: "[ForPull] makes a type pull-lifetime, which only the Analyzer surface supports: the parser assigns Analyzer.Pull, retains the instance on the pull read surfaces, and keys it by its analyzer surface type.");
+        description: "[ForPull] makes a type pull-lifetime, which only the Analyzer surface supports: the parser assigns Analyzer.Pull, retains the instance on the pull read surfaces, and keys it by its analyzer surface type.",
+        customTags: [WellKnownDiagnosticTags.CompilationEnd]);
 
     private static readonly DiagnosticDescriptor ForPullOnAbstractAnalyzer = new(
         id: "FA0021",
@@ -92,7 +98,8 @@ public sealed class PullAnalyzerDiagnostics : DiagnosticAnalyzer
         category: "Analysis",
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true,
-        description: "ForPullAttribute is Inherited = false, and both the generator and these diagnostics read directly-applied attributes only. On an abstract base the attribute reads as though it applied to every subclass while gating none of them. An abstract pull-analyzer base declares the shape; each concrete subclass declares its own [ForPull].");
+        description: "ForPullAttribute is Inherited = false, and both the generator and these diagnostics read directly-applied attributes only. On an abstract base the attribute reads as though it applied to every subclass while gating none of them. An abstract pull-analyzer base declares the shape; each concrete subclass declares its own [ForPull].",
+        customTags: [WellKnownDiagnosticTags.CompilationEnd]);
 
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
     [

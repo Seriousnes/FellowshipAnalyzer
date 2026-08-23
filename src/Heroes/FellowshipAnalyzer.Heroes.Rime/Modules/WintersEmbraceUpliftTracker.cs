@@ -22,7 +22,7 @@ public sealed partial class WintersEmbraceUpliftTracker : Analyzer
 
     public double UpliftShare => TotalDamage > 0 ? (double)TotalBonusDamage / TotalDamage : 0;
 
-    public IReadOnlyList<SpellUplift> BySpell =>
+    public List<SpellUplift> BySpell =>
     [
         .. _bonusBySpell
             .Select(entry => new SpellUplift(entry.Key, entry.Value.Name, entry.Value.Bonus))
@@ -33,10 +33,10 @@ public sealed partial class WintersEmbraceUpliftTracker : Analyzer
     public override StatisticCategory StatisticCategory => StatisticCategory.General;
 
     [On<ApplyBuffEvent>(By = Actor.Player, Spell = nameof(Spells.WintersEmbrace))]
-    private void OnEmbraceApplied(ApplyBuffEvent applyBuffEvent) => _embraceActive = true;
+    private void OnEmbraceApplied() => _embraceActive = true;
 
     [On<RemoveBuffEvent>(By = Actor.Player, Spell = nameof(Spells.WintersEmbrace))]
-    private void OnEmbraceRemoved(RemoveBuffEvent removeBuffEvent) => _embraceActive = false;
+    private void OnEmbraceRemoved() => _embraceActive = false;
 
     [On<DamageEvent>(By = Actor.Player)]
     private void OnDamage(DamageEvent damageEvent)

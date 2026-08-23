@@ -40,7 +40,7 @@ public sealed partial class GloriousPurposeAnalyzer(
     private int _openTimestamp;
 
     /// <summary>All Glorious Purpose recovery windows observed for the selected player.</summary>
-    public IReadOnlyList<GloriousPurposeWindow> Windows => _windows;
+    public List<GloriousPurposeWindow> Windows => _windows;
 
     /// <summary>The number of times the Fated Strike weapon's active was cast over the encounter.</summary>
     public int Activations { get; private set; }
@@ -51,7 +51,7 @@ public sealed partial class GloriousPurposeAnalyzer(
     /// bought beyond what the spell would have made over the same window without it. Because the pool is
     /// additive, that extra is 2× the time on cooldown whatever the ability's haste contribution.
     /// </summary>
-    public IReadOnlyList<AbilityRecovery> RecoveryByAbility =>
+    public List<AbilityRecovery> RecoveryByAbility =>
         [.. _recoveryBySpell
             .Where(kv => kv.Value > 0)
             .OrderByDescending(kv => kv.Value)

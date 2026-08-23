@@ -30,7 +30,7 @@ public abstract class DotSpreadAnalyzer : Analyzer
     private readonly Dictionary<int, Spread> _spreads = [];
 
     /// <summary>The effects this analyzer measures, in the order results are reported.</summary>
-    protected abstract IReadOnlyList<Dot> Dots { get; }
+    protected abstract List<Dot> Dots { get; }
 
     /// <summary>The enemies the pull's roster names, or zero when it names none.</summary>
     public int TargetCount => Owner.Enemies?.Roster(Pull).Count ?? 0;

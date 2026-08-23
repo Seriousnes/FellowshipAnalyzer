@@ -33,14 +33,14 @@ public sealed partial class DeadlySchemeTracker : Analyzer
     public override StatisticCategory StatisticCategory => StatisticCategory.Talents;
 
     [On<ApplyBuffEvent>(To = Actor.Player, Spell = nameof(Spells.DeadlySchemeStacks))]
-    private void OnStacksApplied(ApplyBuffEvent buffEvent) => SetStacks(1);
+    private void OnStacksApplied() => SetStacks(1);
 
     [On<ApplyBuffStackEvent>(To = Actor.Player, Spell = nameof(Spells.DeadlySchemeStacks))]
     private void OnStackGained(ApplyBuffStackEvent buffEvent) =>
         SetStacks(buffEvent.Stack > 0 ? buffEvent.Stack : _stacks + 1);
 
     [On<RemoveBuffEvent>(To = Actor.Player, Spell = nameof(Spells.DeadlySchemeStacks))]
-    private void OnStacksRemoved(RemoveBuffEvent buffEvent) => SetStacks(0);
+    private void OnStacksRemoved() => SetStacks(0);
 
     [On<ApplyBuffEvent>(To = Actor.Player, Spell = nameof(Spells.DeadlySchemeActive))]
     private void OnActiveApplied(ApplyBuffEvent buffEvent)

@@ -23,7 +23,7 @@ public sealed partial class PinkFlutterflyTracker : HotTracker
     public static FlutterflyPlacement PlacementOf(HotAssignment assignment) =>
         assignment.SpellId == RestoreLifeHot ? FlutterflyPlacement.RestoreLife : FlutterflyPlacement.Heal;
 
-    public IReadOnlyList<BankSample> BankSamples => _bank;
+    public List<BankSample> BankSamples => _bank;
 
     public int PeakBanked => _bank.Count > 0 ? _bank.Max(sample => sample.Count) : 0;
 
@@ -47,7 +47,7 @@ public sealed partial class PinkFlutterflyTracker : HotTracker
             start,
             end);
 
-    public IReadOnlyList<FlutterflyHolder> HoldersBetween(int start, int end)
+    public List<FlutterflyHolder> HoldersBetween(int start, int end)
     {
         var byUnit = new Dictionary<UnitKey, (long Ms, int Assignments)>();
         foreach (var Flutterfly in Flutterflies)
