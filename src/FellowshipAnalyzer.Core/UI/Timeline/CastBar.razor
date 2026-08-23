@@ -68,7 +68,7 @@
 @code {
     private const int IconWidth = 24;
 
-    [Parameter, EditorRequired] public IReadOnlyList<Event> Events { get; set; } = [];
+    [Parameter, EditorRequired] public List<Event> Events { get; set; } = [];
     [Parameter, EditorRequired] public int PlayerId { get; set; }
 
     /// <summary>True dungeon start, used as the origin for tick labels and tooltips so they stay dungeon-relative.</summary>

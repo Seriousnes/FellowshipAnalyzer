@@ -13,7 +13,7 @@ public sealed partial class RendStackTracker : Analyzer
 
     public int BleedingTargets => _stacks.Count;
 
-    public IReadOnlyList<RendRemoval> Removals => _removals;
+    public List<RendRemoval> Removals => _removals;
 
     public int StacksOn(int targetId, int? targetInstance) =>
         _stacks.GetValueOrDefault(new RendTarget(targetId, targetInstance ?? 0));

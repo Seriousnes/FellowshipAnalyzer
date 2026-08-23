@@ -44,7 +44,7 @@ public sealed class PullStartEvent : Event
     [JsonIgnore]
     public PullEndEvent End
     {
-        get => field;
+        get;
         init
         {
             field = value;

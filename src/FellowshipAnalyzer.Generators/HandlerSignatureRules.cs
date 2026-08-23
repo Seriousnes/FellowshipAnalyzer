@@ -4,6 +4,14 @@ using Microsoft.CodeAnalysis;
 
 namespace FellowshipAnalyzer.Generators;
 
+internal enum HandlerReturnKind
+{
+    Void,
+    Task,
+    ValueTask,
+    Unsupported,
+}
+
 /// <summary>
 /// Single source of truth for "is this <c>[On&lt;TEvent&gt;]</c> handler parameter compatible
 /// with the attribute's <c>TEvent</c>?". Consumed by both <see cref="ModuleGenerator"/> and
@@ -13,6 +21,22 @@ internal static class HandlerSignatureRules
 {
     private const string OneOfTypeName = "OneOf";
     private const string OneOfNamespace = "OneOf";
+    private const string TasksNamespace = "System.Threading.Tasks";
+
+    public static HandlerReturnKind ClassifyReturn(IMethodSymbol method)
+    {
+        if (method.ReturnsVoid) return HandlerReturnKind.Void;
+        if (method.ReturnType is not INamedTypeSymbol returnType) return HandlerReturnKind.Unsupported;
+        if (returnType.ContainingNamespace?.ToDisplayString() != TasksNamespace) return HandlerReturnKind.Unsupported;
+        if (returnType.Arity > 1) return HandlerReturnKind.Unsupported;
+
+        return returnType.Name switch
+        {
+            "Task" => HandlerReturnKind.Task,
+            "ValueTask" => HandlerReturnKind.ValueTask,
+            _ => HandlerReturnKind.Unsupported,
+        };
+    }
 
     /// <summary>
     /// Returns true when a value of <paramref name="eventType"/> is directly assignable to

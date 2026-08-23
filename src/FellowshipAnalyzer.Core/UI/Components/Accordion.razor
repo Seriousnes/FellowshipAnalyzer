@@ -11,8 +11,8 @@
     [Parameter] public bool AllowMultiple { get; set; }
     [Parameter] public string? ExpandedId { get; set; }
     [Parameter] public EventCallback<string?> ExpandedIdChanged { get; set; }
-    [Parameter] public IReadOnlyList<string>? ExpandedIds { get; set; }
-    [Parameter] public EventCallback<IReadOnlyList<string>> ExpandedIdsChanged { get; set; }
+    [Parameter] public List<string>? ExpandedIds { get; set; }
+    [Parameter] public EventCallback<List<string>> ExpandedIdsChanged { get; set; }
 
     internal void Register(AccordionItem item)
     {
@@ -41,7 +41,7 @@
     {
         if (AllowMultiple)
         {
-            var current = (ExpandedIdsChanged.HasDelegate ? ExpandedIds : (IReadOnlyList<string>?)_internalExpandedIds.ToList()) ?? [];
+            var current = (ExpandedIdsChanged.HasDelegate ? ExpandedIds : (List<string>?)_internalExpandedIds.ToList()) ?? [];
             var next = current.Contains(id)
                 ? current.Where(x => x != id).ToList()
                 : current.Append(id).ToList();

@@ -157,7 +157,7 @@ public sealed class CastEfficiencyModelTests
 
         var rows = Build([], pulls);
 
-        rows.Select(row => (int)row.Ability.PrimarySpell.FSLID).ShouldBe(new[] { SpellId });
+        rows.Select(row => (int)row.Ability.PrimarySpell.FSLID).ShouldBe([SpellId]);
     }
 
     [Fact]
@@ -243,10 +243,10 @@ public sealed class CastEfficiencyModelTests
         CastEfficiencyModel.Build(new TestSpellbook(), [], PlayerId, []).ShouldBeEmpty();
     }
 
-    private static IReadOnlyList<AbilityCastEfficiency> Build(IReadOnlyList<Event> events, IReadOnlyList<PullStartEvent> pulls) =>
+    private static List<AbilityCastEfficiency> Build(List<Event> events, List<PullStartEvent> pulls) =>
         CastEfficiencyModel.Build(new TestSpellbook(), events, PlayerId, pulls);
 
-    private static AbilityCastEfficiency Single(IReadOnlyList<AbilityCastEfficiency> rows) =>
+    private static AbilityCastEfficiency Single(List<AbilityCastEfficiency> rows) =>
         rows.Single(row => (int)row.Ability.PrimarySpell.FSLID == SpellId);
 
     private static PullStartEvent Pull(int index, int start, int end) =>

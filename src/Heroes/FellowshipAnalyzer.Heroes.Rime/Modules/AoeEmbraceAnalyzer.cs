@@ -12,8 +12,8 @@ public sealed class AoeEmbraceAnalyzer : WintersEmbraceAnalyzer
 
     protected override EmbraceWindowEvaluation EvaluateWindow(
         WindowCapture window,
-        IReadOnlyList<CastEvent> castsInWindow,
-        IReadOnlyList<CastEvent> relevantCasts)
+        List<CastEvent> castsInWindow,
+        List<CastEvent> relevantCasts)
     {
         var aoeSpenders = relevantCasts.Count(IsAoeSpender);
         var coldSnaps = relevantCasts.Count(IsColdSnap);

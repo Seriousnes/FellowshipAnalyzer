@@ -23,12 +23,12 @@ public abstract class DotUptimeAnalyzer : Analyzer
     private readonly Dictionary<int, AuraWindowLedger> _ledgers = [];
 
     /// <summary>The effects this analyzer measures, in the order results are reported.</summary>
-    protected abstract IReadOnlyList<Dot> Dots { get; }
+    protected abstract List<Dot> Dots { get; }
 
-    private IReadOnlyList<DotUptime> Result => field ??= Compute();
+    private List<DotUptime> Result => field ??= Compute();
 
     /// <summary>One reading per effect in <see cref="Dots"/> order.</summary>
-    public IReadOnlyList<DotUptime> Uptimes => Result;
+    public List<DotUptime> Uptimes => Result;
 
     /// <summary>The reading for <paramref name="dot"/>.</summary>
     /// <exception cref="InvalidOperationException"><paramref name="dot"/> is not one of <see cref="Dots"/>.</exception>
@@ -79,7 +79,7 @@ public abstract class DotUptimeAnalyzer : Analyzer
         return null;
     }
 
-    private IReadOnlyList<DotUptime> Compute()
+    private List<DotUptime> Compute()
     {
         var duration = Pull.EndTime - Pull.StartTime;
         var results = new List<DotUptime>(Dots.Count);
@@ -140,7 +140,7 @@ public abstract class DotUptimeAnalyzer : Analyzer
 public sealed record DotUptime(
     Dot Dot,
     UnitKey? PrimaryTarget,
-    IReadOnlyList<AuraWindow> Windows,
+    List<AuraWindow> Windows,
     double Uptime,
     int GapCount,
     int TotalGapMs);

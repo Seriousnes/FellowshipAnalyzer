@@ -32,7 +32,7 @@
 </div>
 
 @code {
-    private IReadOnlyList<ReportHistoryEntry> _history = [];
+    private List<ReportHistoryEntry> _history = [];
     private bool _loaded;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)

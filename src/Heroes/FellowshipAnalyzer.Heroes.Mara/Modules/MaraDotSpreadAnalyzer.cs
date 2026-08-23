@@ -8,7 +8,7 @@ namespace FellowshipAnalyzer.Heroes.Mara.Modules;
 [ForPull(PullKind.Multi)]
 public sealed partial class MaraDotSpreadAnalyzer : DotSpreadAnalyzer, IMaraDotAnalyzer
 {
-    protected override IReadOnlyList<Dot> Dots => MaraDots.All;
+    protected override List<Dot> Dots => MaraDots.All;
 
     public int HemorrhageTargets => TargetsOf(MaraDots.Hemorrhage);
 

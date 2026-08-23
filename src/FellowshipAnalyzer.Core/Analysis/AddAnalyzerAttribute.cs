@@ -1,4 +1,4 @@
-using FellowshipAnalyzer.Core.Analysis;
+namespace FellowshipAnalyzer.Core.Analysis;
 
 /// <summary>
 /// Registers an <see cref="Analyzer"/> on a parser, which is every type that subscribes to events.

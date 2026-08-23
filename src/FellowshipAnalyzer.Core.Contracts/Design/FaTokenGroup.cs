@@ -11,4 +11,4 @@ namespace FellowshipAnalyzer.Core.Contracts.Design;
 /// uses it to write each value back under the record it came from.
 /// </param>
 /// <param name="Tokens">The group's tokens, in declaration order.</param>
-public sealed record FaTokenGroup(string Name, string Source, IReadOnlyList<FaToken> Tokens);
+public sealed record FaTokenGroup(string Name, string Source, List<FaToken> Tokens);

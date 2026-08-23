@@ -23,15 +23,15 @@ public sealed partial class MaraDotUptimeAnalyzer : DotUptimeAnalyzer, IMaraDotA
 
     private int _comboPointsOnStrike;
 
-    protected override IReadOnlyList<Dot> Dots => MaraDots.Maintained;
+    protected override List<Dot> Dots => MaraDots.Maintained;
 
     public DotUptime SeethingPoison => For(MaraDots.SeethingPoison);
 
     public DotUptime Hemorrhage => For(MaraDots.Hemorrhage);
 
-    public IReadOnlyList<HemorrhageApplication> HemorrhageApplications => _hemorrhageApplications;
+    public List<HemorrhageApplication> HemorrhageApplications => _hemorrhageApplications;
 
-    public IReadOnlyList<HemorrhageRefresh> HemorrhageRefreshes => _hemorrhageRefreshes;
+    public List<HemorrhageRefresh> HemorrhageRefreshes => _hemorrhageRefreshes;
 
     public int PullDurationMs => Math.Max(0, Pull.EndTime - Pull.StartTime);
 

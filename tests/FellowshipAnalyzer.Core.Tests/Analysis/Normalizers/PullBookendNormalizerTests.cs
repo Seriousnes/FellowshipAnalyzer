@@ -12,15 +12,15 @@ public sealed class PullBookendNormalizerTests
     private static readonly FullCombatant EmptyCombatant = new(new CombatantInfoEvent());
 
     private static ParseContext Context(ReportDungeon dungeon)
-        => new(PlayerId: 1, Dungeon: dungeon, ActorNames: new Dictionary<int, string>(), EmptyCombatant);
+        => new(PlayerId: 1, Dungeon: dungeon, ActorNames: [], EmptyCombatant);
 
     private static ReportDungeon Dungeon(
         int encounterId = 0,
         bool? kill = null,
         double startTime = 100,
         double endTime = 5000,
-        IReadOnlyList<DungeonPull>? dungeonPulls = null,
-        IReadOnlyList<DungeonNpc>? enemyNpcs = null,
+        List<DungeonPull>? dungeonPulls = null,
+        List<DungeonNpc>? enemyNpcs = null,
         string name = "Dungeon")
         => new(Id: 0, Name: name, EncounterId: encounterId, Kill: kill,
             StartTime: startTime, EndTime: endTime, Difficulty: null,

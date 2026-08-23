@@ -30,7 +30,7 @@ public abstract class AbsorbAnalyzer : Analyzer
     protected virtual bool ReapplicationOpensNewAbsorb => false;
 
     /// <summary>Every absorb this pull, in encounter order.</summary>
-    public IReadOnlyList<AbsorbUse> Absorbs => Result.Absorbs;
+    public List<AbsorbUse> Absorbs => Result.Absorbs;
 
     /// <summary>Shield windows this pull.</summary>
     public int AbsorbsApplied => Result.Absorbs.Count;
@@ -161,7 +161,7 @@ public abstract class AbsorbAnalyzer : Analyzer
     }
 
     private sealed record Computed(
-        IReadOnlyList<AbsorbUse> Absorbs,
+        List<AbsorbUse> Absorbs,
         long Used,
         long Wasted,
         int ExpiredUnspent);
@@ -191,7 +191,7 @@ public sealed record AbsorbUse(
     long Total,
     long Absorbed,
     long Remaining,
-    IReadOnlyList<AbsorbHit> Hits,
+    List<AbsorbHit> Hits,
     bool Truncated,
     bool Reapplied)
 {

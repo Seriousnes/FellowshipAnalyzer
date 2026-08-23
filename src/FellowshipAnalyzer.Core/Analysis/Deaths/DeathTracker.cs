@@ -43,10 +43,10 @@ public sealed partial class DeathTracker : Analyzer
     private readonly Dictionary<int, int> _pressAwaitingCompletion = [];
 
     /// <summary>Every death of the analyzed player, in the order they happened.</summary>
-    public IReadOnlyList<PlayerDeath> Deaths => _deaths;
+    public List<PlayerDeath> Deaths => _deaths;
 
     /// <summary>The deaths that fall inside <paramref name="pull"/>, or every death when it is <c>null</c>.</summary>
-    public IReadOnlyList<PlayerDeath> For(PullStartEvent? pull) =>
+    public List<PlayerDeath> For(PullStartEvent? pull) =>
         pull is null ? _deaths : [.. _deaths.Where(death => ReferenceEquals(death.Pull, pull))];
 
     [On<DamageEvent>(To = Actor.Player)]
@@ -135,8 +135,8 @@ public sealed partial class DeathTracker : Analyzer
             if (Abilities.GetAbility(cast.AbilityId) is not { } ability) continue;
 
             var key = ability.PrimarySpell.FSLID.Value;
-            var entry = castsInWindow.GetValueOrDefault(key);
-            castsInWindow[key] = (entry.Count + 1, cast.Timestamp);
+            var (Count, Last) = castsInWindow.GetValueOrDefault(key);
+            castsInWindow[key] = (Count + 1, cast.Timestamp);
         }
 
         List<DefensiveReadiness> defensives = [];
@@ -145,13 +145,13 @@ public sealed partial class DeathTracker : Analyzer
             if (!IsMitigationOrHealing(ability) || ability.GetCooldown() <= 0) continue;
 
             var primaryId = ability.PrimarySpell.FSLID.Value;
-            var casts = castsInWindow.GetValueOrDefault(primaryId);
+            var (Count, Last) = castsInWindow.GetValueOrDefault(primaryId);
 
             defensives.Add(new DefensiveReadiness(
                 ability,
                 SpellUsable.ChargesAvailable(primaryId),
-                casts.Count,
-                casts.Count > 0 ? casts.Last : null,
+                Count,
+                Count > 0 ? Last : null,
                 IsActiveOnPlayer(ability, deathTimestamp)));
         }
 

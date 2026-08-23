@@ -29,8 +29,8 @@ public static class CooldownLaneModel
     /// <param name="events">The spell's <see cref="UpdateSpellUsableEvent"/> stream, in timestamp order.</param>
     /// <param name="windowStart">The start of the render window, in dungeon-relative milliseconds.</param>
     /// <param name="windowEnd">The end of the render window, in dungeon-relative milliseconds.</param>
-    public static (IReadOnlyList<CooldownSegment> Segments, IReadOnlyList<int> ChargeRestores) Build(
-        IReadOnlyList<UpdateSpellUsableEvent> events, int windowStart, int windowEnd)
+    public static (List<CooldownSegment> Segments, List<int> ChargeRestores) Build(
+        List<UpdateSpellUsableEvent> events, int windowStart, int windowEnd)
     {
         var raw = new List<CooldownSegment>();
         var chargeRestores = new List<int>();

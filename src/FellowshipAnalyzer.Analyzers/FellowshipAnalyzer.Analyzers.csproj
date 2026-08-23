@@ -7,7 +7,7 @@
 		<Nullable>enable</Nullable>
 		<IncludeBuildOutput>false</IncludeBuildOutput>
 		<EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
-		<NoWarn>RS1038;RS2008</NoWarn>
+		<NoWarn>$(NoWarn);RS1038;RS2008</NoWarn>
 	</PropertyGroup>
 
 	<ItemGroup>

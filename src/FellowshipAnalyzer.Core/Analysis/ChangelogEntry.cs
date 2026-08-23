@@ -9,7 +9,7 @@ namespace FellowshipAnalyzer.Core.Analysis;
 public sealed record ChangelogEntry(
     DateOnly Date,
     RenderFragment Changes,
-    IReadOnlyList<Contributor> Contributors);
+    List<Contributor> Contributors);
 
 /// <summary>
 /// A single changelog entry tagged with the hero it belongs to, or the shared framework when
@@ -29,15 +29,15 @@ public static class Changelog
 {
     /// <summary>Builds a <see cref="ChangelogEntry"/> credited to one or more contributors.</summary>
     public static ChangelogEntry Change(DateOnly date, RenderFragment changes, params Contributor[] by) =>
-        new(date, changes, by);
+        new(date, changes, [.. by]);
 
     /// <summary>
     /// Every hero changelog entry plus every Core entry as <see cref="ChangelogFeedItem"/>s,
     /// most-recent first, for the home News feed.
     /// </summary>
-    public static IReadOnlyList<ChangelogFeedItem> All(
+    public static List<ChangelogFeedItem> All(
         IEnumerable<HeroConfigEntry> heroes,
-        IReadOnlyList<ChangelogEntry> coreChangelog) =>
+        List<ChangelogEntry> coreChangelog) =>
     [
         .. coreChangelog.Select(entry => new ChangelogFeedItem(null, entry))
             .Concat(heroes.SelectMany(h => h.Config.Changelog

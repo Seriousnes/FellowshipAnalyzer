@@ -56,7 +56,7 @@
         "The share of analyzed combat time the ability spent recharging. Time between pulls is excluded. "
         + "An ability with charges counts as recharging whenever it holds fewer than its maximum.";
 
-    private IReadOnlyList<AbilityCastEfficiency> _rows = [];
+    private List<AbilityCastEfficiency> _rows = [];
 
     protected override void OnParametersSet()
     {
@@ -67,7 +67,7 @@
             return;
         }
 
-        IReadOnlyList<PullStartEvent> pulls = SelectedPull is { } pull ? [pull] : Owner.Pulls;
+        List<PullStartEvent> pulls = SelectedPull is { } pull ? [pull] : Owner.Pulls;
         _rows = CastEfficiencyModel.Build(abilities, Result.Events, Owner.PlayerId, pulls);
     }
 

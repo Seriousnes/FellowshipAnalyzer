@@ -21,7 +21,7 @@ public class SupportStatusGuideAnalyzerTests
         diagnostics.Select(d => d.Id);
 
     [Fact]
-    public void FA0017_MaintainedWithoutGuide_Reports()
+    public void FA0022_MaintainedWithoutGuide_Reports()
     {
         var diagnostics = AnalyzerTestHarness.Run(Preamble + """
 
@@ -32,11 +32,11 @@ public class SupportStatusGuideAnalyzerTests
             }
             """, new SupportStatusGuideAnalyzer());
 
-        Ids(diagnostics).ShouldContain("FA0017");
+        Ids(diagnostics).ShouldContain("FA0022");
     }
 
     [Fact]
-    public void FA0017_MaintainedWithGuide_Silent()
+    public void FA0022_MaintainedWithGuide_Silent()
     {
         var diagnostics = AnalyzerTestHarness.Run(Preamble + """
 
@@ -48,11 +48,11 @@ public class SupportStatusGuideAnalyzerTests
             }
             """, new SupportStatusGuideAnalyzer());
 
-        Ids(diagnostics).ShouldNotContain("FA0017");
+        Ids(diagnostics).ShouldNotContain("FA0022");
     }
 
     [Fact]
-    public void FA0017_NoSupportWithoutGuide_Silent()
+    public void FA0022_NoSupportWithoutGuide_Silent()
     {
         var diagnostics = AnalyzerTestHarness.Run(Preamble + """
 
@@ -63,6 +63,6 @@ public class SupportStatusGuideAnalyzerTests
             }
             """, new SupportStatusGuideAnalyzer());
 
-        Ids(diagnostics).ShouldNotContain("FA0017");
+        Ids(diagnostics).ShouldNotContain("FA0022");
     }
 }

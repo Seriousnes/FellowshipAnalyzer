@@ -29,7 +29,7 @@ public sealed class DetonateEfficiencyAnalyzerTests
             StartTime: 0, EndTime: 60_000, Difficulty: null,
             FriendlyPlayers: null, CompletionPercentage: null);
 
-    private static readonly ReportActor[] Actors =
+    private static readonly List<ReportActor> Actors =
     [
         new(PlayerId, "Ardeos", "Player", null, null, null),
         new(Enemy1, "Enemy 1", "NPC", null, null, null),

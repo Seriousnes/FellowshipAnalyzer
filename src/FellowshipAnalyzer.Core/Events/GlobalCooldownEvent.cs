@@ -22,7 +22,7 @@ public class GlobalCooldownEvent : Event, IAbilityEvent
     /// <summary>Whether the target is friendly.</summary>
     public virtual bool? TargetIsFriendly { get; set; }
     /// <summary>The event that started this global cooldown, narrowing <see cref="Event.Trigger"/>.</summary>
-    public virtual ICooldownTriggerEvent Trigger { get; set; }
+    public virtual new ICooldownTriggerEvent? Trigger { get; set; }
     /// <inheritdoc/>
     public override bool? Fabricated => true;
 }

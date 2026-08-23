@@ -51,7 +51,7 @@ public abstract class MajorDefensiveAnalyzer : Analyzer
     public bool TracksDefensive => Ability?.IsDefensive == true;
 
     /// <summary>Every window the defensive was active for, in encounter order.</summary>
-    public IReadOnlyList<DefensiveWindow> Windows => Result.Windows;
+    public List<DefensiveWindow> Windows => Result.Windows;
 
     /// <summary>How many times the defensive went active this pull.</summary>
     public int WindowCount => Result.Windows.Count;
@@ -195,7 +195,7 @@ public abstract class MajorDefensiveAnalyzer : Analyzer
     }
 
     private sealed record Computed(
-        IReadOnlyList<DefensiveWindow> Windows,
+        List<DefensiveWindow> Windows,
         int ActiveMs,
         long Taken,
         long Unmitigated,

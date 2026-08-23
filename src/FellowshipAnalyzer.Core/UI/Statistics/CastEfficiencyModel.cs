@@ -46,11 +46,11 @@ public static class CastEfficiencyModel
     /// <param name="events">The analysis event stream, including fabricated events.</param>
     /// <param name="playerId">The actor id whose casts and cooldowns are measured.</param>
     /// <param name="pulls">The pulls to measure over: the whole encounter list, or the single selected pull.</param>
-    public static IReadOnlyList<AbilityCastEfficiency> Build(
+    public static List<AbilityCastEfficiency> Build(
         Abilities abilities,
-        IReadOnlyList<Event> events,
+        List<Event> events,
         int playerId,
-        IReadOnlyList<PullStartEvent> pulls)
+        List<PullStartEvent> pulls)
     {
         var analyzedMs = 0;
         var lastPullEnd = 0;
@@ -182,7 +182,7 @@ public static class CastEfficiencyModel
         return recharges;
     }
 
-    private static int OverlapMs(Recharge recharge, IReadOnlyList<PullStartEvent> pulls)
+    private static int OverlapMs(Recharge recharge, List<PullStartEvent> pulls)
     {
         var total = 0;
         foreach (var pull in pulls)
@@ -190,7 +190,7 @@ public static class CastEfficiencyModel
         return total;
     }
 
-    private static bool CompletedWithinOnePull(Recharge recharge, IReadOnlyList<PullStartEvent> pulls)
+    private static bool CompletedWithinOnePull(Recharge recharge, List<PullStartEvent> pulls)
     {
         if (!recharge.Completed) return false;
 
@@ -201,7 +201,7 @@ public static class CastEfficiencyModel
         return false;
     }
 
-    private static bool IsInAnyPull(IReadOnlyList<PullStartEvent> pulls, int timestamp)
+    private static bool IsInAnyPull(List<PullStartEvent> pulls, int timestamp)
     {
         foreach (var pull in pulls)
             if (timestamp >= pull.StartTime && timestamp <= pull.EndTime)

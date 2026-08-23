@@ -32,7 +32,7 @@ public sealed class WintersEmbraceAnalyzerTests
         StartTime: 0, EndTime: 60_000, Difficulty: null,
         FriendlyPlayers: null, CompletionPercentage: null);
 
-    private static readonly IReadOnlyList<DungeonPull> TrashPulls =
+    private static readonly List<DungeonPull> TrashPulls =
     [
         new(Id: 1, EncounterId: 0, Kill: null, StartTime: 0, EndTime: 20_000, Name: "Trash", EnemyNpcs: null),
     ];

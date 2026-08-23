@@ -12,8 +12,8 @@ public sealed class SingleTargetEmbraceAnalyzer : WintersEmbraceAnalyzer
 
     protected override EmbraceWindowEvaluation EvaluateWindow(
         WindowCapture window,
-        IReadOnlyList<CastEvent> castsInWindow,
-        IReadOnlyList<CastEvent> relevantCasts)
+        List<CastEvent> castsInWindow,
+        List<CastEvent> relevantCasts)
     {
         var stSpenders = relevantCasts.Count(IsStSpender);
         var coldSnaps = relevantCasts.Count(IsColdSnap);

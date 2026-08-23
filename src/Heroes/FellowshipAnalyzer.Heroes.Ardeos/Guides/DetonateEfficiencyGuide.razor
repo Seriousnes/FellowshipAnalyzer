@@ -52,7 +52,7 @@
 
     private bool HasApocalypticSurge => Parser.SelectedCombatant.HasTalent(Talents.ApocalypticSurge.Id);
 
-    private IReadOnlyList<Dot> TrackedDots => Parser.ArdeosDotTracker!.Dots;
+    private List<Dot> TrackedDots => Parser.ArdeosDotTracker!.Dots;
 
     private int TotalDots => TrackedDots.Count;
 
@@ -73,10 +73,10 @@
         }
     }
 
-    private static IReadOnlyList<int> ChartSamples(DetonateEfficiencyAnalyzer analyzer) =>
+    private static List<int> ChartSamples(DetonateEfficiencyAnalyzer analyzer) =>
         [.. analyzer.LayerTimeline.Select(sample => sample.Timestamp)];
 
-    private IReadOnlyList<AuraStackBand> ChartBands(DetonateEfficiencyAnalyzer analyzer)
+    private List<AuraStackBand> ChartBands(DetonateEfficiencyAnalyzer analyzer)
     {
         var timeline = analyzer.LayerTimeline;
         var dots = TrackedDots;
@@ -94,7 +94,7 @@
         return bands;
     }
 
-    private IReadOnlyList<AuraStackMarkers> ChartMarkers(DetonateEfficiencyAnalyzer analyzer)
+    private List<AuraStackMarkers> ChartMarkers(DetonateEfficiencyAnalyzer analyzer)
     {
         var timeline = analyzer.LayerTimeline;
         var wellLayered = new int?[timeline.Count];
@@ -114,8 +114,8 @@
 
         return
         [
-            new AuraStackMarkers("Detonate: well layered", Palette.Performance(QualitativePerformance.Good), wellLayered),
-            new AuraStackMarkers("Detonate: not well layered", Palette.Performance(QualitativePerformance.Fail), underLayered),
+            new AuraStackMarkers("Detonate: well layered", Palette.Performance(QualitativePerformance.Good), [.. wellLayered]),
+            new AuraStackMarkers("Detonate: not well layered", Palette.Performance(QualitativePerformance.Fail), [.. underLayered]),
         ];
     }
 

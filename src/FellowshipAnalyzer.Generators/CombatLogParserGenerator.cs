@@ -39,7 +39,7 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
 
     private static bool IsCandidateClass(SyntaxNode node)
     {
-        if (!(node is ClassDeclarationSyntax classDecl))
+        if (node is not ClassDeclarationSyntax classDecl)
             return false;
 
         bool isPartial = false;
@@ -255,7 +255,7 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
             return BuildUsesCtorParams(type, fmt);
 
         if (ctor.Parameters.Length == 0)
-            return ImmutableArray<CtorParam>.Empty;
+            return [];
 
         var builder = ImmutableArray.CreateBuilder<CtorParam>(ctor.Parameters.Length);
         foreach (var p in ctor.Parameters)
@@ -299,7 +299,7 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
         }
 
         if (depTypes.Count == 0)
-            return ImmutableArray<CtorParam>.Empty;
+            return [];
 
         var usedNames = new HashSet<string>(StringComparer.Ordinal);
         foreach (var member in type.GetMembers())
@@ -320,7 +320,7 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
     }
 
     private const string ParseContextFqn = "global::FellowshipAnalyzer.Core.Analysis.ParseContext";
-    private const string EventReadOnlyListFqn = "global::System.Collections.Generic.IReadOnlyList<global::FellowshipAnalyzer.Core.Events.Event>";
+    private const string EventReadOnlyListFqn = "global::System.Collections.Generic.List<global::FellowshipAnalyzer.Core.Events.Event>";
 
     /// <summary>
     /// Emits the C# expression for a single constructor argument. Routes by parameter kind:
@@ -640,7 +640,7 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
 
         var inDegree = new int[declarationOrder.Count];
         var outNeighbors = new List<int>[declarationOrder.Count];
-        for (var i = 0; i < outNeighbors.Length; i++) outNeighbors[i] = new List<int>();
+        for (var i = 0; i < outNeighbors.Length; i++) outNeighbors[i] = [];
         foreach (var (u, v) in edges)
         {
             outNeighbors[u].Add(v);
@@ -882,11 +882,11 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
         if (surfaceTypes.Count == 0) return;
 
         sb.AppendLine();
-        foreach (var st in surfaceTypes)
+        foreach (var (Fqn, MemberName) in surfaceTypes)
         {
-            var field = AnalyzerListFieldName(st.MemberName);
-            sb.AppendLine("    private readonly global::FellowshipAnalyzer.Core.Analysis.PullAnalyzerList<" + st.Fqn + "> " + field + " = new();");
-            sb.AppendLine("    public global::System.Collections.Generic.IReadOnlyList<global::FellowshipAnalyzer.Core.Analysis.PullAnalyzer<" + st.Fqn + ">> " + st.MemberName + "s => ClampToSelectedPull(" + field + ");");
+            var field = AnalyzerListFieldName(MemberName);
+            sb.AppendLine("    private readonly global::FellowshipAnalyzer.Core.Analysis.PullAnalyzerList<" + Fqn + "> " + field + " = new();");
+            sb.AppendLine("    public global::System.Collections.Generic.List<global::FellowshipAnalyzer.Core.Analysis.PullAnalyzer<" + Fqn + ">> " + MemberName + "s => ClampToSelectedPull(" + field + ");");
         }
 
         sb.AppendLine();
@@ -895,11 +895,11 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
         sb.AppendLine("        switch (analyzer)");
         sb.AppendLine("        {");
         var caseIndex = 0;
-        foreach (var st in surfaceTypes)
+        foreach (var (Fqn, MemberName) in surfaceTypes)
         {
             var local = "__a" + caseIndex++;
-            sb.AppendLine("            case " + st.Fqn + " " + local + ":");
-            sb.AppendLine("                " + AnalyzerListFieldName(st.MemberName) + ".Add(new global::FellowshipAnalyzer.Core.Analysis.PullAnalyzer<" + st.Fqn + ">(pull, " + local + "));");
+            sb.AppendLine("            case " + Fqn + " " + local + ":");
+            sb.AppendLine("                " + AnalyzerListFieldName(MemberName) + ".Add(new global::FellowshipAnalyzer.Core.Analysis.PullAnalyzer<" + Fqn + ">(pull, " + local + "));");
             sb.AppendLine("                break;");
         }
         sb.AppendLine("        }");
@@ -921,9 +921,9 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
 
         sb.Append("public readonly struct ").Append(parserBaseName).Append("PullView(").Append(pull).AppendLine(" pull)");
         sb.AppendLine("{");
-        foreach (var st in surfaceTypes)
-            sb.Append("    public ").Append(st.Fqn).Append("? ").Append(st.MemberName)
-              .Append(" => (").Append(st.Fqn).Append("?)pull.Metadata.GetAnalyzer(typeof(").Append(st.Fqn).AppendLine("));");
+        foreach (var (Fqn, MemberName) in surfaceTypes)
+            sb.Append("    public ").Append(Fqn).Append("? ").Append(MemberName)
+              .Append(" => (").Append(Fqn).Append("?)pull.Metadata.GetAnalyzer(typeof(").Append(Fqn).AppendLine("));");
         sb.AppendLine("}");
         sb.AppendLine();
 
@@ -931,9 +931,9 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
         sb.AppendLine("{");
         sb.Append("    extension(").Append(pull).AppendLine(" pull)");
         sb.AppendLine("    {");
-        foreach (var st in surfaceTypes)
-            sb.Append("        public ").Append(st.Fqn).Append("? ").Append(st.MemberName)
-              .Append(" => (").Append(st.Fqn).Append("?)pull.Metadata.GetAnalyzer(typeof(").Append(st.Fqn).AppendLine("));");
+        foreach (var (Fqn, MemberName) in surfaceTypes)
+            sb.Append("        public ").Append(Fqn).Append("? ").Append(MemberName)
+              .Append(" => (").Append(Fqn).Append("?)pull.Metadata.GetAnalyzer(typeof(").Append(Fqn).AppendLine("));");
         sb.AppendLine("    }");
         sb.AppendLine("}");
         sb.AppendLine();
@@ -1021,13 +1021,13 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
         /// <summary>Fully-qualified predicate type from <c>[ActiveWhen&lt;T&gt;]</c>; otherwise null.</summary>
         public string? ActivePredicateFullyQualified { get; } = activePredicateFullyQualified;
         /// <summary>Fully-qualified module names this module must come before (from <c>[Before&lt;T&gt;]</c>).</summary>
-        public ImmutableArray<string> BeforeModules { get; } = beforeModules.IsDefault ? ImmutableArray<string>.Empty : beforeModules;
+        public ImmutableArray<string> BeforeModules { get; } = beforeModules.IsDefault ? [] : beforeModules;
         /// <summary>Fully-qualified module names this module must come after (from <c>[After&lt;T&gt;]</c>).</summary>
-        public ImmutableArray<string> AfterModules { get; } = afterModules.IsDefault ? ImmutableArray<string>.Empty : afterModules;
+        public ImmutableArray<string> AfterModules { get; } = afterModules.IsDefault ? [] : afterModules;
         /// <summary>Native talent ids the selected combatant must have (from <c>[RequiresTalent(id)]</c>), in declaration order.</summary>
-        public ImmutableArray<int> RequiredTalentIds { get; } = requiredTalentIds.IsDefault ? ImmutableArray<int>.Empty : requiredTalentIds;
+        public ImmutableArray<int> RequiredTalentIds { get; } = requiredTalentIds.IsDefault ? [] : requiredTalentIds;
         /// <summary>Parameters of the public constructor selected for generator-emitted construction.</summary>
-        public ImmutableArray<CtorParam> CtorParams { get; } = ctorParams.IsDefault ? ImmutableArray<CtorParam>.Empty : ctorParams;
+        public ImmutableArray<CtorParam> CtorParams { get; } = ctorParams.IsDefault ? [] : ctorParams;
         public string FullyQualifiedName => string.IsNullOrEmpty(Namespace) ? Name : Namespace + "." + Name;
     }
 
@@ -1087,7 +1087,7 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
     {
         public string Name { get; } = name;
         public string Namespace { get; } = ns;
-        public ImmutableArray<CtorParam> CtorParams { get; } = ctorParams.IsDefault ? ImmutableArray<CtorParam>.Empty : ctorParams;
+        public ImmutableArray<CtorParam> CtorParams { get; } = ctorParams.IsDefault ? [] : ctorParams;
         /// <summary>Fully-qualified surface type: the surface marker interface, or the topmost ancestor deriving directly from <c>Analyzer</c>.</summary>
         public string SurfaceTypeFullyQualified { get; } = surfaceTypeFullyQualified;
         /// <summary>Member base name for the surface's read paths (e.g. "WintersEmbraceAnalyzer"): the surface class's simple name, or an interface's name with a leading <c>I</c> stripped.</summary>
@@ -1097,7 +1097,7 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
         /// <summary><c>[ForPull(Boss = …)]</c> as <c>PullBoss</c> int: 0 = Either, 1 = Boss, 2 = NonBoss.</summary>
         public int ForPullBoss { get; } = forPullBoss;
         /// <summary>Native talent ids the selected combatant must have (from <c>[RequiresTalent(id)]</c>), in declaration order.</summary>
-        public ImmutableArray<int> RequiredTalentIds { get; } = requiredTalentIds.IsDefault ? ImmutableArray<int>.Empty : requiredTalentIds;
+        public ImmutableArray<int> RequiredTalentIds { get; } = requiredTalentIds.IsDefault ? [] : requiredTalentIds;
         /// <summary>Fully-qualified predicate type from <c>[ActiveWhen&lt;T&gt;]</c>, or <c>null</c> when the analyzer is unconditional.</summary>
         public string? ActivePredicate { get; } = activePredicate;
         public string FullyQualifiedName => string.IsNullOrEmpty(Namespace) ? Name : Namespace + "." + Name;

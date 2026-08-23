@@ -46,7 +46,7 @@ public sealed partial class CooldownPairingAnalyzer : Analyzer
 
     public int EventHorizonBuffUptimeMs => _eventHorizonBuff.TotalAt(Pull.EndTime);
 
-    public IReadOnlyList<EventHorizonPairing> EventHorizonPairings =>
+    public List<EventHorizonPairing> EventHorizonPairings =>
         field ??=
         [
             .. _eventHorizonCasts.Select(cast => new EventHorizonPairing(cast, NearestDeltaMs(cast, _graceCasts))),
@@ -65,7 +65,7 @@ public sealed partial class CooldownPairingAnalyzer : Analyzer
     private void OnBarrageCast(CastEvent e) => _barrageCasts.Add(e.Timestamp);
 
     [On<BeginChannelEvent>(By = Actor.Player, Spell = nameof(Spells.HeartseekerBarrage))]
-    private void OnBarrageChannelBegin(BeginChannelEvent e) => BarrageChannels++;
+    private void OnBarrageChannelBegin() => BarrageChannels++;
 
     [On<EndChannelEvent>(By = Actor.Player, Spell = nameof(Spells.HeartseekerBarrage))]
     private void OnBarrageChannelEnd(EndChannelEvent e)

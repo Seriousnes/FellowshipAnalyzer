@@ -58,7 +58,7 @@
     private string _lastClicked = "(none)";
     private void OnBoxClick(int index) => _lastClicked = $"index {index}";
 
-    private static readonly IReadOnlyList<StackedBarSegment> _segments =
+    private static readonly List<StackedBarSegment> _segments =
     [
         new("Frost Bolt", 12, FaVar.Ice),
         new("Bursting Ice", 6, FaVar.Arcane),
@@ -66,7 +66,7 @@
         new("Ice Comet", 2, FaVar.Rust),
     ];
 
-    private static readonly IReadOnlyList<PerformanceBoxEntry> _boxEntries =
+    private static readonly List<PerformanceBoxEntry> _boxEntries =
     [
         new(QualitativePerformance.Perfect, "0:02"),
         new(QualitativePerformance.Perfect, "0:08"),
@@ -93,7 +93,7 @@
 <StackedBar Segments="@_segments" />
 
 @code {
-    private static readonly IReadOnlyList<StackedBarSegment> _segments =
+    private static readonly List<StackedBarSegment> _segments =
     [
         new("Frost Bolt", 12, FaVar.Ice),
         new("Bursting Ice", 6, FaVar.Arcane),

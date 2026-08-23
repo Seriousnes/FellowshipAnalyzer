@@ -52,7 +52,7 @@ public sealed partial class MaraResourceDisciplineAnalyzer : Analyzer
             ? ArachnidAssaultTargetsWithFeedTheQueen
             : ArachnidAssaultTargets;
 
-    public IReadOnlyList<MaraFinisherCast> Finishers => _finishers;
+    public List<MaraFinisherCast> Finishers => _finishers;
 
     public int FinishersAtThreshold => _finishers.Count(finisher => finisher.MeetsThreshold);
 

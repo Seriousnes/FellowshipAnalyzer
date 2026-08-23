@@ -3,7 +3,7 @@
 @using static FellowshipAnalyzer.Core.Analysis.Contributors
 
 @code {
-    public static readonly IReadOnlyList<ChangelogEntry> Entries =
+    public static readonly List<ChangelogEntry> Entries =
     [
         Change(new(2026, 8, 22), @<text>Report the Rend each <SpellLink Spell="Spells.SerratedEdge" /> grant converted.</text>, Seriousnes),
         Change(new(2026, 8, 22), @<text>Updated <SpellLink Spell="Spells.SerratedEdge" /> usage recommendations.</text>, Seriousnes),

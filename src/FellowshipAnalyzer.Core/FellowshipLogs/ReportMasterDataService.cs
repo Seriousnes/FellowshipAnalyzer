@@ -10,8 +10,8 @@ namespace FellowshipAnalyzer.Core.FellowshipLogs;
 /// </summary>
 public sealed class ReportMasterDataService
 {
-    private IReadOnlyDictionary<int, Ability> _abilitiesByGameId = new Dictionary<int, Ability>();
-    private IReadOnlyList<ReportActor> _actors = [];
+    private Dictionary<int, Ability> _abilitiesByGameId = [];
+    private List<ReportActor> _actors = [];
 
     /// <summary>
     /// Populates the service from fetched master data.

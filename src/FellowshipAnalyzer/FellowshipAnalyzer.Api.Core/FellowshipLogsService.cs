@@ -13,7 +13,7 @@ internal sealed record RawEventsResult(byte[] JsonBytes, bool InProgress, bool H
 
 internal sealed record UsageFacts(string? Hero, string? Dungeon);
 
-public sealed class FellowshipLogsService(IFellowshipLogsApiClient client, GraphQLMapper mapper, RecyclableMemoryStreamManager streamManager)
+public sealed class FellowshipLogsService(IFellowshipLogsApiClient client, RecyclableMemoryStreamManager streamManager)
 {
     internal async Task<RawEventsResult> GetRawEventsAsync(
         string reportCode, int playerId, int dungeonId,
@@ -27,7 +27,7 @@ public sealed class FellowshipLogsService(IFellowshipLogsApiClient client, Graph
             throw new ArgumentOutOfRangeException(nameof(dungeonId), "Dungeon ID must be greater than zero.");
 
         var result = await client.GetEvents.ExecuteAsync(
-            reportCode, new int?[] { dungeonId }, playerId, cancellationToken);
+            reportCode, [dungeonId], playerId, cancellationToken);
         ThrowIfErrors(result);
 
         var report = result.Data!.ReportData?.Report
@@ -82,7 +82,7 @@ public sealed class FellowshipLogsService(IFellowshipLogsApiClient client, Graph
             throw new ArgumentOutOfRangeException(nameof(dungeonId), "Dungeon ID must be greater than zero.");
 
         var result = await client.GetDeaths.ExecuteAsync(
-            reportCode, new int?[] { dungeonId }, cancellationToken);
+            reportCode, [dungeonId], cancellationToken);
         ThrowIfErrors(result);
 
         var report = result.Data!.ReportData?.Report
@@ -128,7 +128,7 @@ public sealed class FellowshipLogsService(IFellowshipLogsApiClient client, Graph
         CancellationToken cancellationToken = default)
     {
         var result = await client.GetUsageFacts.ExecuteAsync(
-            reportCode, new int?[] { dungeonId }, cancellationToken);
+            reportCode, [dungeonId], cancellationToken);
         ThrowIfErrors(result);
 
         var report = result.Data!.ReportData?.Report;
@@ -154,7 +154,7 @@ public sealed class FellowshipLogsService(IFellowshipLogsApiClient client, Graph
         var report = result.Data!.ReportData?.Report
             ?? throw new InvalidOperationException("GraphQL response did not contain expected analysis preload data.");
 
-        return mapper.MapAnalysisPreload(reportCode, report);
+        return report.MapAnalysisPreload(reportCode);
     }
 
     public async Task<CharacterReports> GetCharacterReportsAsync(
@@ -170,7 +170,7 @@ public sealed class FellowshipLogsService(IFellowshipLogsApiClient client, Graph
         var character = result.Data!.CharacterData?.Character
             ?? throw new InvalidOperationException("GraphQL response did not contain expected character data.");
 
-        return mapper.MapCharacterReports(character);
+        return character.MapCharacterReports();
     }
 
     private static void ThrowIfErrors<T>(IOperationResult<T> result) where T : class

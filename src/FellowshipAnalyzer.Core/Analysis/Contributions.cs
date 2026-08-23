@@ -1,7 +1,7 @@
 namespace FellowshipAnalyzer.Core.Analysis;
 
 /// <summary>A group of changelog entries under a heading: the shared framework, or a hero.</summary>
-public sealed record ContributionGroup(HeroName? Hero, IReadOnlyList<ChangelogEntry> Entries)
+public sealed record ContributionGroup(HeroName? Hero, List<ChangelogEntry> Entries)
 {
     /// <summary>True when this group is the shared framework rather than a specific hero.</summary>
     public bool IsCore => Hero is null;
@@ -14,20 +14,18 @@ public sealed record ContributionGroup(HeroName? Hero, IReadOnlyList<ChangelogEn
 public static class Contributions
 {
     /// <summary>Heroes whose config lists <paramref name="contributor"/> as a maintainer.</summary>
-    public static IReadOnlyList<HeroName> MaintainedBy(
+    public static List<HeroName> MaintainedBy(
         Contributor contributor, IEnumerable<HeroConfigEntry> heroes) =>
-        heroes.Where(e => e.Config.Maintainers.Contains(contributor))
-              .Select(e => e.Hero)
-              .ToList();
+        [.. heroes.Where(e => e.Config.Maintainers.Contains(contributor)).Select(e => e.Hero)];
 
     /// <summary>
     /// Every changelog entry authored by <paramref name="contributor"/>, grouped by Core then by
     /// hero, most-recent first within each group and empty groups omitted.
     /// </summary>
-    public static IReadOnlyList<ContributionGroup> ForContributor(
+    public static List<ContributionGroup> ForContributor(
         Contributor contributor,
         IEnumerable<HeroConfigEntry> heroes,
-        IReadOnlyList<ChangelogEntry> coreChangelog)
+        List<ChangelogEntry> coreChangelog)
     {
         var groups = new List<ContributionGroup>();
 

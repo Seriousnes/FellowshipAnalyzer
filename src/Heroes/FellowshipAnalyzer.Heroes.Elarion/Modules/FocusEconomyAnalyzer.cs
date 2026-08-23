@@ -22,7 +22,7 @@ public sealed partial class FocusEconomyAnalyzer : Analyzer
 
     public int SampledAtCap { get; private set; }
 
-    public IReadOnlyList<EventHorizonWindow> EventHorizonCasts =>
+    public List<EventHorizonWindow> EventHorizonCasts =>
         field ??=
         [
             .. _windows.Select(window => new EventHorizonWindow(

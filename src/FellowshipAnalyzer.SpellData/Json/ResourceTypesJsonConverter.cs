@@ -12,8 +12,8 @@ namespace FellowshipAnalyzer.SpellData.Json;
 /// </summary>
 public static class ResourceTypesAliases
 {
-    private static readonly IReadOnlyDictionary<string, ResourceTypes> ByToken = BuildAliasMap(EnumerateMembers());
-    private static readonly IReadOnlyDictionary<ResourceTypes, string> ToTokenMap = BuildTokenMap();
+    private static readonly Dictionary<string, ResourceTypes> ByToken = BuildAliasMap(EnumerateMembers());
+    private static readonly Dictionary<ResourceTypes, string> ToTokenMap = BuildTokenMap();
 
     /// <summary>Resolves a token (member name or flavor alias, case-insensitive) to a slot.</summary>
     public static bool TryResolve(string? token, out ResourceTypes value)
@@ -31,8 +31,8 @@ public static class ResourceTypesAliases
     /// Builds a case-insensitive token→slot map from canonical member names plus aliases,
     /// throwing if any token resolves to two different slots.
     /// </summary>
-    public static IReadOnlyDictionary<string, ResourceTypes> BuildAliasMap(
-        IEnumerable<(ResourceTypes Member, IReadOnlyList<string> Names)> members)
+    public static Dictionary<string, ResourceTypes> BuildAliasMap(
+        IEnumerable<(ResourceTypes Member, string[] Names)> members)
     {
         var map = new Dictionary<string, ResourceTypes>(StringComparer.OrdinalIgnoreCase);
         void Add(string token, ResourceTypes member)
@@ -52,7 +52,7 @@ public static class ResourceTypesAliases
         return map;
     }
 
-    private static IEnumerable<(ResourceTypes, IReadOnlyList<string>)> EnumerateMembers()
+    private static IEnumerable<(ResourceTypes, string[])> EnumerateMembers()
     {
         foreach (ResourceTypes member in Enum.GetValues<ResourceTypes>())
         {
@@ -62,7 +62,7 @@ public static class ResourceTypesAliases
         }
     }
 
-    private static IReadOnlyDictionary<ResourceTypes, string> BuildTokenMap()
+    private static Dictionary<ResourceTypes, string> BuildTokenMap()
     {
         var map = new Dictionary<ResourceTypes, string>();
         foreach (ResourceTypes member in Enum.GetValues<ResourceTypes>())

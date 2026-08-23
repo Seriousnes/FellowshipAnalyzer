@@ -20,8 +20,8 @@ public record ExportAbility(
     double? CastTime,
     double? ChannelTime,
     double? ChannelTick,
-    IReadOnlyList<string> Schools,
-    IReadOnlyList<string> Heroes)
+    List<string> Schools,
+    List<string> Heroes)
 {
     public int? RangeYards => Range is { } range ? (int)Math.Round(range / 100) : null;
 
@@ -33,20 +33,20 @@ public record ExportEffect(
     string? Name,
     EntityRef? PartOf,
     string? Role,
-    IReadOnlyList<string> Schools,
-    IReadOnlyList<string> Heroes);
+    List<string> Schools,
+    List<string> Heroes);
 
 public record ExportHero(string Name, string? ArmorType, string? PrimaryStat, string? Color);
 
 public sealed class ExportSource
 {
-    public IReadOnlyDictionary<int, ExportAbility> Abilities { get; }
+    public Dictionary<int, ExportAbility> Abilities { get; }
 
-    public IReadOnlyDictionary<int, ExportEffect> Effects { get; }
+    public Dictionary<int, ExportEffect> Effects { get; }
 
-    public IReadOnlyList<ExportHero> Heroes { get; }
+    public List<ExportHero> Heroes { get; }
 
-    public IReadOnlyDictionary<string, AbilityCategory?> AbilityCategories { get; }
+    public Dictionary<string, AbilityCategory?> AbilityCategories { get; }
 
     private ExportSource(
         Dictionary<int, ExportAbility> abilities,
@@ -149,8 +149,8 @@ public sealed class ExportSource
         public double? CastTime { get; init; }
         public double? ChannelTime { get; init; }
         public double? ChannelTick { get; init; }
-        public IReadOnlyList<string>? Schools { get; init; }
-        public IReadOnlyList<string>? Heroes { get; init; }
+        public List<string>? Schools { get; init; }
+        public List<string>? Heroes { get; init; }
         public EntityRef? PartOf { get; init; }
         public string? Role { get; init; }
         public string? Tag { get; init; }
@@ -158,8 +158,8 @@ public sealed class ExportSource
 
     private sealed class ExportSettings
     {
-        public IReadOnlyList<SettingsHero>? Heroes { get; init; }
-        public IReadOnlyList<SettingsAbilityCategory>? AbilityCategories { get; init; }
+        public List<SettingsHero>? Heroes { get; init; }
+        public List<SettingsAbilityCategory>? AbilityCategories { get; init; }
     }
 
     private sealed class SettingsHero

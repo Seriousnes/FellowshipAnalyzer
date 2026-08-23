@@ -41,7 +41,7 @@ public sealed record FaTheme(
         FaElevation.Light);
 
     /// <summary>Every theme, in the order the generated stylesheet declares them.</summary>
-    public static IReadOnlyList<FaTheme> All { get; } = [Original, Dark, Light];
+    public static List<FaTheme> All { get; } = [Original, Dark, Light];
 
     /// <summary>The <c>data-theme</c> attribute value that selects this theme.</summary>
     public string Selector => Name.ToLowerInvariant();
@@ -213,7 +213,7 @@ public sealed record FaTheme(
         }
     }
 
-    private static FaTokenGroup Group(string name, string source, params FaToken[] tokens) => new(name, source, tokens);
+    private static FaTokenGroup Group(string name, string source, params FaToken[] tokens) => new(name, source, [.. tokens]);
 
     private static FaToken Token(string property, FaColor value) => new(FaToken.KebabCase(property), value.ToCss());
 

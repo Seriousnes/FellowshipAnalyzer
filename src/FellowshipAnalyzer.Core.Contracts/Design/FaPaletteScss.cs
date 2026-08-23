@@ -10,7 +10,7 @@ namespace FellowshipAnalyzer.Core.Contracts.Design;
 public static class FaPaletteScss
 {
     /// <summary>Line separator for the generated file. Always LF, on every platform.</summary>
-    public const string NewLine = "\n";
+    public const char NewLine = '\n';
 
     /// <summary>The path the emitter writes, relative to the repository root.</summary>
     public const string RelativePath = "src/FellowshipAnalyzer.Core/Styles/_palette.scss";

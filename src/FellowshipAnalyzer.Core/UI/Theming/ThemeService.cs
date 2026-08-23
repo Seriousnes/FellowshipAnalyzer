@@ -49,7 +49,7 @@ public sealed class ThemeService(IJSRuntime js) : IAsyncDisposable
     public FaTheme Theme { get; private set; } = FaTheme.Original;
 
     /// <summary>The overridden tokens, keyed by token name without the <c>--fa-</c> prefix.</summary>
-    public IReadOnlyDictionary<string, string> Overrides => _overrides;
+    public Dictionary<string, string> Overrides => _overrides;
 
     /// <summary>The CSS text in force for a token: its override when it has one, else the theme's value.</summary>
     public string ValueOf(FaToken token) =>

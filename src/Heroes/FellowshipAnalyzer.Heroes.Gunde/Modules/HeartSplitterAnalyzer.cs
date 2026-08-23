@@ -14,7 +14,7 @@ public sealed partial class HeartSplitterAnalyzer : Analyzer
 
     private int? _lastSlaughter;
 
-    public IReadOnlyList<HeartSplitterCast> Casts => _casts;
+    public List<HeartSplitterCast> Casts => _casts;
 
     public int ClippedBySlaughter => _casts.Count(cast => cast.ClippedBySlaughter);
 

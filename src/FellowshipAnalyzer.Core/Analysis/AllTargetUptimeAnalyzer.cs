@@ -19,10 +19,10 @@ public abstract class AllTargetUptimeAnalyzer : Analyzer
 {
     private readonly AuraWindowLedger _ledger = new();
 
-    private IReadOnlyList<TargetCoverage> Result => field ??= Compute();
+    private List<TargetCoverage> Result => field ??= Compute();
 
     /// <summary>Every unit that carried the aura, most-covered first.</summary>
-    public IReadOnlyList<TargetCoverage> Coverage => Result;
+    public List<TargetCoverage> Coverage => Result;
 
     /// <summary>How many distinct units carried the aura at some point this pull.</summary>
     public int TargetsCovered => Result.Count;
@@ -56,7 +56,7 @@ public abstract class AllTargetUptimeAnalyzer : Analyzer
     protected void ObserveTarget(IHasTargetWithInstanceEvent target, int timestamp) =>
         _ledger.Observe(target, timestamp);
 
-    private IReadOnlyList<TargetCoverage> Compute()
+    private List<TargetCoverage> Compute()
     {
         var duration = Pull.EndTime - Pull.StartTime;
 
@@ -84,7 +84,7 @@ public abstract class AllTargetUptimeAnalyzer : Analyzer
 /// <param name="PullDurationMs">The pull's length, the denominator for <see cref="Uptime"/>.</param>
 public sealed record TargetCoverage(
     UnitKey Unit,
-    IReadOnlyList<AuraWindow> Windows,
+    List<AuraWindow> Windows,
     int CoveredMs,
     int PullDurationMs)
 {

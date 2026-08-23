@@ -86,7 +86,7 @@ public sealed class ElarionAnalysisEngineTests
     };
 
     private static async Task<(ElarionCombatLogParser Parser, HeroAnalysisResult Result)> AnalyzeAsync(
-        IReadOnlyList<Event> events, ReportDungeon dungeon)
+        List<Event> events, ReportDungeon dungeon)
     {
         var services = new ServiceCollection();
         services.AddLogging();

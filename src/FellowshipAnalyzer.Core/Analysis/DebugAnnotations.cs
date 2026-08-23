@@ -37,7 +37,7 @@ public sealed class DebugAnnotations : Module
     {
         var annotatedEvents = _annotations.TryGetValue(module, out var eventMap)
             ? [.. eventMap.Select(kvp => new AnnotatedEvent(kvp.Key, kvp.Value))]
-            : (IReadOnlyList<AnnotatedEvent>)[];
+            : (List<AnnotatedEvent>)[];
 
         return new ModuleAnnotations(module, annotatedEvents);
     }
@@ -45,7 +45,7 @@ public sealed class DebugAnnotations : Module
     /// <summary>
     /// Returns all annotated events grouped by module.
     /// </summary>
-    public IReadOnlyList<ModuleAnnotations> GetAll() =>
+    public List<ModuleAnnotations> GetAll() =>
         [.. _annotations.Keys.Select(GetModuleAnnotations)];
 }
 
@@ -67,7 +67,7 @@ public sealed record DebugAnnotation(
     int Priority = 0);
 
 /// <summary>A single event together with all debug annotations attached to it.</summary>
-public sealed record AnnotatedEvent(Event Event, IReadOnlyList<DebugAnnotation> Annotations);
+public sealed record AnnotatedEvent(Event Event, List<DebugAnnotation> Annotations);
 
 /// <summary>All annotated events attributed to a single analyzer module.</summary>
-public sealed record ModuleAnnotations(Module Module, IReadOnlyList<AnnotatedEvent> AnnotatedEvents);
+public sealed record ModuleAnnotations(Module Module, List<AnnotatedEvent> AnnotatedEvents);

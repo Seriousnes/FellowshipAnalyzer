@@ -14,10 +14,10 @@ public interface IHeroAnalyzer
     /// Report-level actor master data: every player and NPC the report names.
     /// Must be populated before calling <see cref="Analyze"/>.
     /// </summary>
-    IReadOnlyList<ReportActor> Actors { get; set; }
+    List<ReportActor> Actors { get; set; }
 
     /// <summary>Actor display names keyed by actor id, derived from <see cref="Actors"/>.</summary>
-    IReadOnlyDictionary<int, string> ActorNames { get; }
+    Dictionary<int, string> ActorNames { get; }
 
     /// <summary>The FellowshipLogs actor id of the player this analysis is being run for.</summary>
     int PlayerId { get; set; }
@@ -36,7 +36,7 @@ public interface IHeroAnalyzer
     /// <summary>
     /// Every ended pull in encounter order. Enumerated by the report header's pull-filter select.
     /// </summary>
-    IReadOnlyList<PullStartEvent> Pulls { get; }
+    List<PullStartEvent> Pulls { get; }
 
     /// <summary>
     /// When set, generated analyzer surface streams are clamped to this pull so a report view can
@@ -49,5 +49,5 @@ public interface IHeroAnalyzer
     /// <param name="playerId">The FellowshipLogs actor id of the player being analyzed.</param>
     /// <param name="dungeon">The report dungeon the events belong to.</param>
     /// <returns>The completed hero analysis, ready for the guide and statistics views.</returns>
-    Task<HeroAnalysisResult> Analyze(IReadOnlyList<Event> events, int playerId, ReportDungeon dungeon);
+    Task<HeroAnalysisResult> Analyze(List<Event> events, int playerId, ReportDungeon dungeon);
 }

@@ -26,7 +26,7 @@ public abstract partial class WintersEmbraceAnalyzer : Analyzer
 
     public RimeBuild Build { get { EnsureMaterialized(); return _build; } }
 
-    public IReadOnlyList<EmbraceWindowEvaluation> Windows { get { EnsureMaterialized(); return _evaluations; } }
+    public List<EmbraceWindowEvaluation> Windows { get { EnsureMaterialized(); return _evaluations; } }
 
     public int EvaluatedWindows => Windows.Count;
 
@@ -100,7 +100,7 @@ public abstract partial class WintersEmbraceAnalyzer : Analyzer
         tracked.ActorId == observed.ActorId &&
         (tracked.Instance is null || observed.Instance is null || tracked.Instance == observed.Instance);
 
-    private IReadOnlyList<string> SampleMajors(int timestamp)
+    private List<string> SampleMajors(int timestamp)
     {
         var majors = new List<string>(2);
 
@@ -210,8 +210,8 @@ public abstract partial class WintersEmbraceAnalyzer : Analyzer
 
     protected abstract EmbraceWindowEvaluation EvaluateWindow(
         WindowCapture window,
-        IReadOnlyList<CastEvent> castsInWindow,
-        IReadOnlyList<CastEvent> relevantCasts);
+        List<CastEvent> castsInWindow,
+        List<CastEvent> relevantCasts);
 
     protected static List<CastEvent> GetWindowCasts(WindowCapture window) =>
         [.. window.CastsInWindow.Where(c => c.Timestamp > window.StartTimestamp && c.Timestamp <= window.EndTimestamp)];
@@ -243,7 +243,7 @@ public abstract partial class WintersEmbraceAnalyzer : Analyzer
 
         public UnitKey? BurstingIceTarget { get; init; }
 
-        public IReadOnlyList<string> MajorsActiveAtOpen { get; init; } = [];
+        public List<string> MajorsActiveAtOpen { get; init; } = [];
 
         public List<CastEvent> CastsInWindow { get; } = [];
         public HashSet<UnitKey> UniqueBurstingIceTargets { get; } = [];
@@ -268,13 +268,13 @@ public abstract partial class WintersEmbraceAnalyzer : Analyzer
 
         public bool EndedByTargetDeath { get; set; }
 
-        public IReadOnlyList<string> MajorsActiveAtOpen { get; set; } = [];
+        public List<string> MajorsActiveAtOpen { get; set; } = [];
 
         public bool MajorActiveAtOpen => MajorsActiveAtOpen.Count > 0;
 
         public int TargetCount { get; set; }
 
-        public IReadOnlyList<CastEvent> CastsInWindow { get; set; } = [];
+        public List<CastEvent> CastsInWindow { get; set; } = [];
 
         public int StSpenderCount { get; set; }
         public int AoeSpenderCount { get; set; }

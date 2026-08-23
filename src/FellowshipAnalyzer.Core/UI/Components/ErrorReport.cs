@@ -6,47 +6,37 @@ namespace FellowshipAnalyzer.Core.UI.Components;
 /// Everything known about an unhandled page exception: the exception itself, where it happened, and
 /// the prefilled GitHub issue URL that reports it.
 /// </summary>
-public sealed class ErrorReport
+/// <remarks>Describes an unhandled exception raised while rendering a page.</remarks>
+/// <param name="exception">The unhandled exception.</param>
+/// <param name="url">Absolute URL of the page that failed.</param>
+/// <param name="relativePath">Path and query of that page, without the origin.</param>
+public sealed class ErrorReport(Exception exception, string url, string relativePath)
 {
     private const string RepositoryUrl = "https://github.com/Seriousnes/FellowshipAnalyzer";
     private const string ProjectNamespace = "FellowshipAnalyzer";
     private const int MaximumIssueDetailLength = 4000;
     private const int MaximumIssueTitleLength = 120;
 
-    /// <summary>Describes an unhandled exception raised while rendering a page.</summary>
-    /// <param name="exception">The unhandled exception.</param>
-    /// <param name="url">Absolute URL of the page that failed.</param>
-    /// <param name="relativePath">Path and query of that page, without the origin.</param>
-    public ErrorReport(Exception exception, string url, string relativePath)
-    {
-        Exception = exception;
-        Url = url;
-        RelativePath = relativePath;
-        ReportCode = ExtractReportCode(relativePath);
-        Component = ExtractComponent(exception);
-        Detail = exception.ToString();
-    }
-
     /// <summary>The unhandled exception this report describes.</summary>
-    public Exception Exception { get; }
+    public Exception Exception { get; } = exception;
 
     /// <summary>Absolute URL of the page that failed.</summary>
-    public string Url { get; }
+    public string Url { get; } = url;
 
     /// <summary>Path and query of the page that failed, without the origin.</summary>
-    public string RelativePath { get; }
+    public string RelativePath { get; } = relativePath;
 
     /// <summary>Report code taken from a <c>/report/{code}</c> path, or <see langword="null"/> elsewhere.</summary>
-    public string? ReportCode { get; }
+    public string? ReportCode { get; } = ExtractReportCode(relativePath);
 
     /// <summary>
     /// Deepest project method on the stack, searched from the innermost exception outwards, or
     /// <see langword="null"/> when no frame names the project.
     /// </summary>
-    public string? Component { get; }
+    public string? Component { get; } = ExtractComponent(exception);
 
     /// <summary>Full exception text: type, message, stack trace, and every inner exception.</summary>
-    public string Detail { get; }
+    public string Detail { get; } = exception.ToString();
 
     /// <summary>Exception type name, used as the dialog heading.</summary>
     public string Title => Exception.GetType().Name;

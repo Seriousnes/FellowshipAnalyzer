@@ -26,7 +26,7 @@ public sealed partial class SylvieManaTracker : ResourceTracker
 
     public override StatisticCategory StatisticCategory => StatisticCategory.Resources;
 
-    public IReadOnlyList<ManaSpend> Spends => _spends;
+    public List<ManaSpend> Spends => _spends;
 
     public int AtFullMs { get; private set; }
 
@@ -42,7 +42,7 @@ public sealed partial class SylvieManaTracker : ResourceTracker
     public int SavedBetween(int start, int end) =>
         _spends.Where(spend => spend.Timestamp >= start && spend.Timestamp <= end).Sum(spend => spend.Saved);
 
-    public IReadOnlyList<(int SpellId, int Mana, int Casts)> SpentBySpellBetween(int start, int end)
+    public List<(int SpellId, int Mana, int Casts)> SpentBySpellBetween(int start, int end)
     {
         var bySpell = new Dictionary<int, (int Mana, int Casts)>();
         foreach (var spend in _spends)

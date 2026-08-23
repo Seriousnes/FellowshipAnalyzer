@@ -27,7 +27,7 @@ public sealed record EnemyAbility
     public bool ShouldMitigate { get; init; }
 
     /// <summary>The flags this entry carries, in a fixed order, for a view that renders one tag per flag.</summary>
-    public IReadOnlyList<EnemyAbilityTag> Tags
+    public List<EnemyAbilityTag> Tags
     {
         get
         {

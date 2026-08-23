@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 namespace FellowshipAnalyzer.Analyzers;
 
 /// <summary>
-/// FA0017: a hero whose <c>HeroConfig.Support</c> is <c>Partial</c> or <c>Full</c> must override
+/// FA0022: a hero whose <c>HeroConfig.Support</c> is <c>Partial</c> or <c>Full</c> must override
 /// <c>GuideComponent</c>. A Partial or Full support level advertises analysis, so the hero must
 /// have analysis UI behind it — otherwise the declared support level and the hero's actual
 /// capability disagree.
@@ -16,7 +16,7 @@ namespace FellowshipAnalyzer.Analyzers;
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public sealed class SupportStatusGuideAnalyzer : DiagnosticAnalyzer
 {
-    public const string DiagnosticId = "FA0017";
+    public const string DiagnosticId = "FA0022";
 
     private static readonly DiagnosticDescriptor Rule = new(
         id: DiagnosticId,

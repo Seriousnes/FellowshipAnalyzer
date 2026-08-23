@@ -33,7 +33,7 @@ public sealed class ConsolidatedSpellRegistryGenerator : IIncrementalGenerator
     private const int EffectOffset = 1_000_000;
 
     private static readonly DiagnosticDescriptor DuplicateMemberDescriptor = new(
-        id: "FA0001",
+        id: "FA0024",
         title: "Duplicate member name in spell scope",
         messageFormat: "Member '{0}' is defined more than once in scope '{1}'. Rename one to resolve the conflict.",
         category: "Registry",
@@ -81,7 +81,7 @@ public sealed class ConsolidatedSpellRegistryGenerator : IIncrementalGenerator
         isEnabledByDefault: true);
 
     private static readonly DiagnosticDescriptor UnknownCostKeyDescriptor = new(
-        id: "FA0010",
+        id: "FA0025",
         title: "Cost key matches no ResourceTypes member",
         messageFormat: "Cost key '{0}' on member '{1}' in scope '{2}' matches no ResourceTypes member and was ignored",
         category: "Registry",
@@ -89,7 +89,7 @@ public sealed class ConsolidatedSpellRegistryGenerator : IIncrementalGenerator
         isEnabledByDefault: true);
 
     private static readonly DiagnosticDescriptor ScopeNotHeroNameDescriptor = new(
-        id: "FA0011",
+        id: "FA0023",
         title: "Spell scope is not a known hero",
         messageFormat: "Scope '{0}' is not 'shared', 'items', or a HeroName member",
         category: "Registry",
@@ -885,13 +885,13 @@ public sealed class ConsolidatedSpellRegistryGenerator : IIncrementalGenerator
     }
 
     private sealed class SpellSchema(
-        IReadOnlyList<ScalarProp> Scalars,
-        IReadOnlyDictionary<string, string> CostTokens,
+        List<ScalarProp> Scalars,
+        Dictionary<string, string> CostTokens,
         HashSet<string> KnownJsonKeys,
         string ResourceTypesGlobalName)
     {
-        public IReadOnlyList<ScalarProp> Scalars { get; } = Scalars;
-        public IReadOnlyDictionary<string, string> CostTokens { get; } = CostTokens;
+        public List<ScalarProp> Scalars { get; } = Scalars;
+        public Dictionary<string, string> CostTokens { get; } = CostTokens;
         public HashSet<string> KnownJsonKeys { get; } = KnownJsonKeys;
         public string ResourceTypesGlobalName { get; } = ResourceTypesGlobalName;
     }

@@ -89,7 +89,7 @@ public class ReportInfoTests
             StartTime: 0,
             EndTime: null,
             Dungeons: [],
-            Actors: actors);
+            Actors: [.. actors]);
 
     private static ReportActor Actor(int id, string? name, string type, string? icon) =>
         new(id, name!, type, SubType: null, Server: null, Icon: icon);

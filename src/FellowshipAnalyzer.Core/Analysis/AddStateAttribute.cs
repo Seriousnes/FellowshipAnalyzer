@@ -1,4 +1,4 @@
-using FellowshipAnalyzer.Core.Analysis;
+namespace FellowshipAnalyzer.Core.Analysis;
 
 /// <summary>Registers a dungeon-lifetime <see cref="Module"/> that holds shared state on a parser, an exact synonym of <see cref="AddModuleAttribute{T}"/>.</summary>
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = true, Inherited = true)]

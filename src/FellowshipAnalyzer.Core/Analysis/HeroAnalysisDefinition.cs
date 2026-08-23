@@ -5,7 +5,7 @@ namespace FellowshipAnalyzer.Core.Analysis;
 /// <param name="Abilities">The hero's abilities, keyed by spell id.</param>
 public sealed record HeroAnalysisDefinition(
     HeroName Hero,
-    IReadOnlyDictionary<int, AbilityDefinition> Abilities)
+    Dictionary<int, AbilityDefinition> Abilities)
 {
     /// <summary>Looks up the ability with the given spell id, or <c>null</c> if this hero has none defined for it.</summary>
     public AbilityDefinition? FindAbility(int abilityId)

@@ -26,7 +26,7 @@ public sealed partial class ThunderCallAnalyzer : Analyzer
 
     private List<ThunderCallWindow> Evaluated => field ??= Build();
 
-    public IReadOnlyList<ThunderCallWindow> Windows => Evaluated;
+    public List<ThunderCallWindow> Windows => Evaluated;
 
     public int WindowCount => Evaluated.Count;
 
@@ -224,7 +224,7 @@ public sealed record ThunderCallWindow
 
     public int SpenderCasts => SkullCrusherCasts + HammerStormCasts + CullingStrikeCasts;
 
-    public IReadOnlyList<CastEvent> CastsInWindow { get; init; } = [];
+    public List<CastEvent> CastsInWindow { get; init; } = [];
 
     public bool OverlapsOtherWindow { get; init; }
 

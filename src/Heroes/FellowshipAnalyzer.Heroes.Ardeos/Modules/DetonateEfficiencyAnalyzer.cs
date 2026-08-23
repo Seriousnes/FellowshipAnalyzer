@@ -21,7 +21,7 @@ public sealed partial class DetonateEfficiencyAnalyzer : Analyzer
 
     private int _surgeStacks;
 
-    public IReadOnlyList<DetonateCast> Casts => _casts;
+    public List<DetonateCast> Casts => _casts;
 
     public int TotalCasts => _casts.Count;
 
@@ -39,7 +39,7 @@ public sealed partial class DetonateEfficiencyAnalyzer : Analyzer
 
     public double AverageDistinctDots => _casts.Count == 0 ? 0 : _casts.Average(cast => cast.DistinctDots);
 
-    public IReadOnlyDictionary<int, int> InstanceDistribution
+    public SortedDictionary<int, int> InstanceDistribution
     {
         get
         {
@@ -53,7 +53,7 @@ public sealed partial class DetonateEfficiencyAnalyzer : Analyzer
         }
     }
 
-    public IReadOnlyList<DotLayerSample> LayerTimeline => field ??= ArdeosDotTracker.LayerTimeline(Pull.StartTime, Pull.EndTime);
+    public List<DotLayerSample> LayerTimeline => field ??= ArdeosDotTracker.LayerTimeline(Pull.StartTime, Pull.EndTime);
 
     public int PeakLayeredInstances => LayerTimeline.Count == 0 ? 0 : LayerTimeline.Max(sample => sample.Total);
 
@@ -94,7 +94,7 @@ public sealed partial class DetonateEfficiencyAnalyzer : Analyzer
     }
 
     [On<ApplyBuffEvent>(To = Actor.Player, Spell = nameof(Spells.ApocalypticSurge))]
-    private void OnSurgeApply(ApplyBuffEvent e)
+    private void OnSurgeApply()
     {
         _surgeStacks = 1;
         SurgeStacksGained += 1;
@@ -112,7 +112,7 @@ public sealed partial class DetonateEfficiencyAnalyzer : Analyzer
     private void OnSurgeRemoveStack(RemoveBuffStackEvent e) => _surgeStacks = e.Stack;
 
     [On<RemoveBuffEvent>(To = Actor.Player, Spell = nameof(Spells.ApocalypticSurge))]
-    private void OnSurgeRemove(RemoveBuffEvent e) => _surgeStacks = 0;
+    private void OnSurgeRemove() => _surgeStacks = 0;
 
     public sealed class DetonateCast
     {
@@ -124,7 +124,7 @@ public sealed partial class DetonateEfficiencyAnalyzer : Analyzer
 
         public required int MaxTargetInstances { get; init; }
 
-        public required IReadOnlyList<DotCoverage> Coverage { get; init; }
+        public required List<DotCoverage> Coverage { get; init; }
 
         public double AverageInstances => TargetsWithDoTs == 0 ? 0 : (double)TotalInstances / TargetsWithDoTs;
 

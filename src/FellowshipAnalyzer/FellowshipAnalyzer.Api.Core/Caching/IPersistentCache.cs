@@ -14,7 +14,7 @@ public sealed record PersistentCacheEntry(
     /// <summary>Content-Encoding stored on the blob (e.g. <c>"gzip"</c>), or <c>null</c>.</summary>
     string? ContentEncoding,
     /// <summary>All non-TTL metadata stored on the blob.</summary>
-    IReadOnlyDictionary<string, string> Metadata
+    Dictionary<string, string> Metadata
 );
 
 /// <summary>
@@ -28,7 +28,7 @@ public sealed record PersistentCacheWriteOptions(
     /// <summary>Content-Encoding to store on the blob, e.g. <c>"gzip"</c>.</summary>
     string? ContentEncoding,
     /// <summary>Additional metadata key-value pairs to store alongside the TTL metadata.</summary>
-    IReadOnlyDictionary<string, string>? Metadata = null
+    Dictionary<string, string>? Metadata = null
 );
 
 /// <summary>

@@ -61,7 +61,8 @@
     <Project Path="src/Heroes/FellowshipAnalyzer.Heroes.Xavian/FellowshipAnalyzer.Heroes.Xavian.csproj" />
     <Project Path="tests/FellowshipAnalyzer.Heroes.Xavian.Tests/FellowshipAnalyzer.Heroes.Xavian.Tests.csproj" />
   </Folder>
-  <Folder Name="/SolutionItems/">
+  <Folder Name="/Solution Items/">
+    <File Path=".editorconfig" />
     <File Path=".gitignore" />
     <File Path="CLAUDE.md" />
     <File Path="Directory.Packages.props" />

@@ -19,9 +19,9 @@ public sealed partial class ShieldMasteryAnalyzer : Analyzer
 
     public const double ToughnessFactor = 0.1;
 
-    public static IReadOnlyList<int> Targets { get; } = [Spells.ShieldThrow.FSLID, Spells.ShieldsUp.FSLID];
+    public static List<int> Targets { get; } = [Spells.ShieldThrow.FSLID, Spells.ShieldsUp.FSLID];
 
-    public IReadOnlyList<ShieldMasteryContribution> ByTarget => Result.ByTarget;
+    public List<ShieldMasteryContribution> ByTarget => Result.ByTarget;
 
     public CooldownReductionResult CooldownReduction => Result.CooldownReduction;
 
@@ -105,7 +105,7 @@ public sealed partial class ShieldMasteryAnalyzer : Analyzer
     }
 
     private sealed record Computed(
-        IReadOnlyList<ShieldMasteryContribution> ByTarget,
+        List<ShieldMasteryContribution> ByTarget,
         CooldownReductionResult CooldownReduction);
 }
 

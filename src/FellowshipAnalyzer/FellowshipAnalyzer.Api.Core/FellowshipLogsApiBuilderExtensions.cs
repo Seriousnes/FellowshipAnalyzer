@@ -32,7 +32,7 @@ public static class FellowshipLogsApiBuilderExtensions
             context.Response.OnStarting(static state =>
             {
                 var response = (HttpResponse)state;
-                response.Headers["X-Content-Type-Options"] = "nosniff";
+                response.Headers.XContentTypeOptions = "nosniff";
                 response.Headers["Referrer-Policy"] = "strict-origin-when-cross-origin";
                 return Task.CompletedTask;
             }, context.Response);

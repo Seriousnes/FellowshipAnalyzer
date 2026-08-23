@@ -20,7 +20,7 @@ namespace FellowshipAnalyzer.Core.Analysis;
 public abstract class DotTracker : Module
 {
     /// <summary>The effects this tracker reads, in the order a chart and a checklist show them.</summary>
-    public abstract IReadOnlyList<Dot> Dots { get; }
+    public abstract List<Dot> Dots { get; }
 
     /// <summary>How many effects <see cref="Dots"/> holds.</summary>
     public int Count => Dots.Count;
@@ -34,7 +34,7 @@ public abstract class DotTracker : Module
             $"{GetType().Name} reads the enemy population from {nameof(Analysis.Enemies)}, which the parser did not construct.");
 
     /// <summary>Every enemy carrying at least one of <see cref="Dots"/> at <paramref name="timestamp"/>.</summary>
-    public IReadOnlyCollection<UnitKey> EnemiesWithAnyDot(int timestamp)
+    public HashSet<UnitKey> EnemiesWithAnyDot(int timestamp)
     {
         var enemies = new HashSet<UnitKey>();
         foreach (var dot in Dots)
@@ -76,13 +76,13 @@ public abstract class DotTracker : Module
     /// One reading per effect in <see cref="Dots"/> order, taken on a single enemy, so
     /// <see cref="DotCoverage.Targets"/> is 0 or 1.
     /// </summary>
-    public IReadOnlyList<DotCoverage> CoverageOn(UnitKey enemy, int timestamp) =>
+    public List<DotCoverage> CoverageOn(UnitKey enemy, int timestamp) =>
         CoverageAcross([enemy], timestamp);
 
     /// <summary>
     /// One reading per effect in <see cref="Dots"/> order, summed across <paramref name="enemies"/>.
     /// </summary>
-    public IReadOnlyList<DotCoverage> CoverageAcross(IReadOnlyCollection<UnitKey> enemies, int timestamp)
+    public List<DotCoverage> CoverageAcross(HashSet<UnitKey> enemies, int timestamp)
     {
         var coverage = new List<DotCoverage>(Dots.Count);
         foreach (var dot in Dots)
@@ -117,7 +117,7 @@ public abstract class DotTracker : Module
     /// <paramref name="from"/>..<paramref name="to"/>, as a sample whenever any of them opened or
     /// closed a window. The range is bookended, so the first and last sample always sit on its edges.
     /// </summary>
-    public IReadOnlyList<DotLayerSample> LayerTimeline(int from, int to)
+    public List<DotLayerSample> LayerTimeline(int from, int to)
     {
         var deltas = new List<(int Timestamp, int Index, int Delta)>();
         for (var index = 0; index < Dots.Count; index++)
@@ -163,7 +163,7 @@ public abstract class DotTracker : Module
 /// </summary>
 /// <param name="Timestamp">When the reading was taken.</param>
 /// <param name="Instances">Active instances per effect, in <see cref="DotTracker.Dots"/> order.</param>
-public sealed record DotLayerSample(int Timestamp, IReadOnlyList<int> Instances)
+public sealed record DotLayerSample(int Timestamp, List<int> Instances)
 {
     /// <summary>Active instances across every effect.</summary>
     public int Total => Instances.Sum();

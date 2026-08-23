@@ -47,7 +47,7 @@
 </div>
 
 @code {
-    private IReadOnlyList<ChangelogFeedItem> _feed = [];
+    private List<ChangelogFeedItem> _feed = [];
 
     protected override void OnInitialized() =>
         _feed = Changelog.All(Catalog.Heroes, CoreChangelog.Entries);

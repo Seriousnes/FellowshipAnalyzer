@@ -40,7 +40,7 @@ internal sealed class IndexedDbReportCacheService(IJSRuntime js) : IReportCacheS
             expiresAt.HasValue ? (long?)expiresAt.Value.ToUnixTimeMilliseconds() : null);
     }
 
-    public async ValueTask<IReadOnlyList<ReportHistoryEntry>> GetHistoryAsync()
+    public async ValueTask<List<ReportHistoryEntry>> GetHistoryAsync()
     {
         var module = await GetModuleAsync();
         var raw = await module.InvokeAsync<IndexedDbHistoryEntry[]>("getHistory");

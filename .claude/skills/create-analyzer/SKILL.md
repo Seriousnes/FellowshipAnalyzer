@@ -111,6 +111,8 @@ Statistics are collected only from parse-lifetime registrations: the parser buil
 
 Declare each handler with a `[On<TEvent>]` attribute on a private (or internal) instance method. The `ModuleGenerator` translates the attributes into a `RegisterAttributeSubscriptions` override with inlined predicates.
 
+The handler takes the dispatched event as a single parameter, typed as `TEvent`, one of its base classes or interfaces, or a `OneOf<…>` carrying a slot for it. Declare no parameter when the handler reads nothing off the event - the attribute's own filters already select which events reach it. A second parameter, or a parameter the event is not assignable to, is FA0011.
+
 ```csharp
 [On<CastEvent>(By = Actor.Player)]
 private void OnCast(CastEvent e) { … }
@@ -120,6 +122,9 @@ private void OnBuffApply(ApplyBuffEvent e) { … }
 
 [On<DamageEvent>(By = Actor.Player, Spells = new[] { nameof(Spells.A), nameof(Spells.B) })]
 private void OnDamage(DamageEvent e) { … }
+
+[On<CastEvent>(By = Actor.Player, Spell = nameof(Spells.SomeCast))]
+private void OnSomeCast() { … }
 ```
 
 Supported attribute arguments:

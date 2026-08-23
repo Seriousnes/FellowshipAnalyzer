@@ -87,7 +87,7 @@ public class ParserGeneratorTests
         var gen = result.ConcatenatedGenerated;
 
         gen.ShouldContain("private readonly global::FellowshipAnalyzer.Core.Analysis.PullAnalyzerList<global::Test.ComboAnalyzer> _comboAnalyzers = new();");
-        gen.ShouldContain("public global::System.Collections.Generic.IReadOnlyList<global::FellowshipAnalyzer.Core.Analysis.PullAnalyzer<global::Test.ComboAnalyzer>> ComboAnalyzers => ClampToSelectedPull(_comboAnalyzers);");
+        gen.ShouldContain("public global::System.Collections.Generic.List<global::FellowshipAnalyzer.Core.Analysis.PullAnalyzer<global::Test.ComboAnalyzer>> ComboAnalyzers => ClampToSelectedPull(_comboAnalyzers);");
 
         gen.ShouldContain($"protected override void IndexPullAnalyzer({PullFqn} pull, global::FellowshipAnalyzer.Core.Analysis.Analyzer analyzer)");
         gen.ShouldContain("case global::Test.ComboAnalyzer");
@@ -134,7 +134,7 @@ public class ParserGeneratorTests
 
         OccurrenceCount(gen, "_comboAnalyzers = new();").ShouldBe(1);
         OccurrenceCount(gen, "case global::Test.IComboAnalyzer").ShouldBe(1);
-        gen.ShouldContain("public global::System.Collections.Generic.IReadOnlyList<global::FellowshipAnalyzer.Core.Analysis.PullAnalyzer<global::Test.IComboAnalyzer>> ComboAnalyzers => ClampToSelectedPull(_comboAnalyzers);");
+        gen.ShouldContain("public global::System.Collections.Generic.List<global::FellowshipAnalyzer.Core.Analysis.PullAnalyzer<global::Test.IComboAnalyzer>> ComboAnalyzers => ClampToSelectedPull(_comboAnalyzers);");
         gen.ShouldContain("public global::Test.IComboAnalyzer? ComboAnalyzer => (global::Test.IComboAnalyzer?)pull.Metadata.GetAnalyzer(typeof(global::Test.IComboAnalyzer));");
         gen.ShouldContain("__analyzers.Add(typeof(global::Test.StAnalyzer));");
         gen.ShouldContain("__analyzers.Add(typeof(global::Test.AoeAnalyzer));");

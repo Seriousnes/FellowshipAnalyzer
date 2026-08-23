@@ -26,7 +26,7 @@ public sealed partial class WildfireComboAnalyzer : Analyzer
 
     private List<WildfireWindowEvaluation> Evaluated => field ??= BuildWindows();
 
-    public IReadOnlyList<WildfireWindowEvaluation> Windows => Evaluated;
+    public List<WildfireWindowEvaluation> Windows => Evaluated;
 
     public int EvaluatedWindows => Evaluated.Count;
     public int SuccessfulWindows => Evaluated.Count(w => w.Successful);
@@ -122,7 +122,7 @@ public sealed partial class WildfireComboAnalyzer : Analyzer
         return (buff.Start, buff.End ?? anchor + WildfireBuffDurationMs);
     }
 
-    private (bool HasPyromania, bool HasIncinerate, IReadOnlyList<CastEvent> Casts) CollectSequence(int anchor)
+    private (bool HasPyromania, bool HasIncinerate, List<CastEvent> Casts) CollectSequence(int anchor)
     {
         var start = anchor - SequenceWindowMs;
         var end = anchor + SequenceWindowMs;
@@ -160,7 +160,7 @@ public sealed partial class WildfireComboAnalyzer : Analyzer
         id == Spells.Pyromania.FSLID ||
         id == Spells.Incinerate.FSLID;
 
-    private sealed record WildfireAnchor(CastEvent Cast, UnitKey Target, IReadOnlyList<DotCoverage> Coverage);
+    private sealed record WildfireAnchor(CastEvent Cast, UnitKey Target, List<DotCoverage> Coverage);
 
     public sealed record WildfireWindowEvaluation
     {
@@ -168,9 +168,9 @@ public sealed partial class WildfireComboAnalyzer : Analyzer
         public int TargetId { get; init; }
         public int? TargetInstance { get; init; }
 
-        public IReadOnlyList<DotCoverage> Coverage { get; init; } = [];
+        public List<DotCoverage> Coverage { get; init; } = [];
 
-        public IReadOnlyList<Dot> ActiveDots { get; init; } = [];
+        public List<Dot> ActiveDots { get; init; } = [];
         public int DistinctDots => ActiveDots.Count;
         public int EngulfingInstances { get; init; }
         public bool SetupSuccessful { get; init; }
@@ -182,6 +182,6 @@ public sealed partial class WildfireComboAnalyzer : Analyzer
         public bool Partial { get; init; }
         public bool HasPyromania { get; init; }
         public bool HasIncinerate { get; init; }
-        public IReadOnlyList<CastEvent> CastsInWindow { get; init; } = [];
+        public List<CastEvent> CastsInWindow { get; init; } = [];
     }
 }

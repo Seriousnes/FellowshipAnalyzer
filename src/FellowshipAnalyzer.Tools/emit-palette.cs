@@ -14,7 +14,7 @@ var path = Path.GetFullPath(args[0]);
 var scss = FaPaletteScss.Render();
 var tokenCount = FaTheme.Original.Tokens.Count();
 
-if (File.Exists(path) && File.ReadAllText(path).ReplaceLineEndings(FaPaletteScss.NewLine) == scss)
+if (File.Exists(path) && File.ReadAllText(path).ReplaceLineEndings(FaPaletteScss.NewLine.ToString()) == scss)
 {
     Console.WriteLine($"{path} is up to date ({tokenCount} tokens x {FaTheme.All.Count} themes).");
     return 0;

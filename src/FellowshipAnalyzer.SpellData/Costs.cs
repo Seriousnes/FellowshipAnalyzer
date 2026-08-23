@@ -7,9 +7,9 @@ namespace FellowshipAnalyzer.SpellData;
 
 public static class Costs
 {
-    private static readonly IReadOnlyDictionary<ResourceTypes, int> None = new Dictionary<ResourceTypes, int>();
+    private static readonly Dictionary<ResourceTypes, int> None = [];
 
-    public static IReadOnlyDictionary<ResourceTypes, int> Map(
+    public static Dictionary<ResourceTypes, int> Map(
         ExportAbility ability, ICollection<Gap> gaps, string scope, string member)
     {
         if (ability.Cost is not { } cost || ability.Resource is not { } resource)

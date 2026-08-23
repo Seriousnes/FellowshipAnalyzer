@@ -24,7 +24,7 @@
             {
                 SpellId = g.Key,
                 Ability = abilities?.GetAbility(g.Key),
-                Events = (IReadOnlyList<UpdateSpellUsableEvent>)[.. g.OrderBy(e => e.Timestamp)],
+                Events = (List<UpdateSpellUsableEvent>)[.. g.OrderBy(e => e.Timestamp)],
             })
             .Where(r => r.Ability is not null)
             .ToList();
@@ -137,7 +137,7 @@
         </div>
 
         var preconfiguredAuraIds = aurasModule?.TimelineHighlightedIds
-            ?? (IReadOnlySet<int>)new HashSet<int>();
+            ?? [];
 
         <TimelineSettingsModal IsOpen="@_settingsOpen"
                                OnClose="() => _settingsOpen = false"
@@ -195,7 +195,7 @@
             .ToList();
 
         var defaultHighlights = aurasModule?.TimelineHighlightedIds
-            ?? (IReadOnlySet<int>)new HashSet<int>();
+            ?? [];
 
         var cooldownDefaultSortIndices = allCooldownIds
             .ToDictionary(id => id, id => abilities?.GetAbility(id)?.TimelineSortIndex);

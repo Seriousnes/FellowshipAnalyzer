@@ -445,7 +445,7 @@
     private static readonly AbilityCategory[] Categories = Enum.GetValues<AbilityCategory>();
 
     private sealed record Row(
-        CuratedSpell? Spell, Gap? Candidate, string Scope, string Member, IReadOnlyList<GapKind> Gaps);
+        CuratedSpell? Spell, Gap? Candidate, string Scope, string Member, List<GapKind> Gaps);
 
     private bool HasActiveFilter =>
         _search.Length > 0 || _scopeFilter is not null || _kindFilter is not null
@@ -464,7 +464,7 @@
             .GroupBy(g => (g.Scope, g.Member))
             .ToDictionary(
                 g => g.Key,
-                g => (IReadOnlyList<GapKind>)GapOrder.Where(k => g.Any(x => x.Kind == k)).ToList());
+                g => (List<GapKind>)GapOrder.Where(k => g.Any(x => x.Kind == k)).ToList());
 
         var spellRows = Merge.Result.Spells
             .Where(s => _scopeFilter is null || s.Scope == _scopeFilter)
@@ -472,7 +472,7 @@
             .Where(s => !_overridesOnly || HasOverride(s))
             .Where(s => term.Length == 0 || Matches(s, term))
             .Select(s => new Row(s, null, s.Scope, s.Member,
-                spellGaps.GetValueOrDefault((s.Scope, s.Member)) ?? Array.Empty<GapKind>()))
+                spellGaps.GetValueOrDefault((s.Scope, s.Member)) ?? []))
             .Where(r => !_incompleteOnly || r.Gaps.Count > 0);
 
         var candidateRows = !_incompleteOnly
@@ -485,7 +485,7 @@
                 .Where(g => term.Length == 0
                     || g.Member.Contains(term, StringComparison.OrdinalIgnoreCase)
                     || g.Scope.Contains(term, StringComparison.OrdinalIgnoreCase))
-                .Select(g => new Row(null, g, g.Scope, g.Member, new[] { g.Kind }));
+                .Select(g => new Row(null, g, g.Scope, g.Member, [g.Kind]));
 
         return spellRows.Concat(candidateRows)
             .OrderBy(r => r.Scope, StringComparer.Ordinal)
@@ -687,7 +687,7 @@
             delta["costs"] = CostsNode(edited);
     }
 
-    private static JsonObject CostsNode(IReadOnlyDictionary<ResourceTypes, int> costs)
+    private static JsonObject CostsNode(Dictionary<ResourceTypes, int> costs)
     {
         var node = new JsonObject();
         foreach (var (slot, value) in costs.OrderBy(x => (int)x.Key))
@@ -742,7 +742,7 @@
         _status = "spelldb.json rebuilt.";
     }
 
-    private static bool DictEqual(IReadOnlyDictionary<ResourceTypes, int> a, IReadOnlyDictionary<ResourceTypes, int> b) =>
+    private static bool DictEqual(Dictionary<ResourceTypes, int> a, Dictionary<ResourceTypes, int> b) =>
         a.Count == b.Count && a.All(kv => b.TryGetValue(kv.Key, out var v) && v == kv.Value);
 
     private static RenderFragment? ProvChip(ProvenanceSource? source) => source is { } src

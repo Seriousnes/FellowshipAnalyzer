@@ -255,7 +255,6 @@ public sealed class GloriousPurposeAnalyzerTests
         SourceId = PlayerId,
         TargetId = 11,
         Ability = new Ability { FSLID = spellId, Name = $"Spell {spellId}" },
-        Target = null,
         Channel = new EndChannelEvent(),
     };
 
