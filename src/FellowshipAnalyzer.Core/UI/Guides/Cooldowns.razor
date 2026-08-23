@@ -130,7 +130,7 @@
         return segment.State switch
         {
             CooldownGraphState.Recharging => $"{name} recharging, {span}",
-            CooldownGraphState.Wasted => $"{name} available {span}, long enough to fit another cast",
+            CooldownGraphState.Wasted => $"{name} available, {span}, long enough to fit another cast",
             CooldownGraphState.OutsidePull => $"Between pulls, {span}",
             _ => $"{name} available, {span}",
         };
