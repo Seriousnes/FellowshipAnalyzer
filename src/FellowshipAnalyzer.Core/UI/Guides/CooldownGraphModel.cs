@@ -186,9 +186,9 @@ public static class CooldownGraphModel
                 rechargingMs += OverlapMs(spans, segment.Start, segment.End);
 
         var castTimeMs = ability.Charges < 2
-            ? (int)((ability.ChannelDuration ?? ability.CastDuration ?? 0) * 1000)
+            ? (ability.ChannelDuration ?? ability.CastDuration ?? 0) * 1000
             : 0;
-        var maxCasts = (int)Math.Floor(analyzedMs / (double)(periodMs + castTimeMs) + ability.Charges - 1) + 1;
+        var maxCasts = (int)Math.Floor(analyzedMs / (periodMs + castTimeMs) + ability.Charges - 1) + 1;
         var efficiency = rechargingMs / (double)analyzedMs;
 
         return new CooldownGraphLane(
