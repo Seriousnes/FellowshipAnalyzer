@@ -2,32 +2,14 @@
 @using FellowshipAnalyzer.Heroes.Mara.Guides
 @inherits ReportComponent<MaraCombatLogParser>
 
-@if (Parser.MaraResourceDisciplineAnalyzers.Count > 0)
-{
-    <MaraResourceDisciplineGuide />
-}
+<MaraResourceDisciplineGuide />
 
-@if (Parser.MaraDotAnalyzers.Count > 0)
-{
-    <MaraDotGuide />
-}
+<MaraDotGuide />
 
-@if (Parser.MaidenOfDeathAnalyzers.Count > 0)
-{
-    <MaidenOfDeathGuide />
-}
+<MaidenOfDeathGuide />
 
-@if (Parser.MatriarchMacabreAnalyzers.Count > 0)
-{
-    <MatriarchMacabreGuide />
-}
+<MatriarchMacabreGuide />
 
-@if (Parser.FinalStratagemAnalyzers.Count > 0)
-{
-    <FinalStratagemGuide />
-}
+<FinalStratagemGuide />
 
-@if (Parser.StealthAnalyzers.Count > 0)
-{
-    <StealthGuide />
-}
+<StealthGuide />

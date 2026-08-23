@@ -1,26 +1,11 @@
 @inherits ReportComponent<HelenaCombatLogParser>
 
-@if (Parser.ToughnessAnalyzers.Count > 0)
-{
-    <ToughnessGuide />
-}
+<ToughnessGuide />
 
-@if (Parser.VeteranOfWarAnalyzers.Count > 0)
-{
-    <VeteranOfWarGuide />
-}
+<VeteranOfWarGuide />
 
-@if (Parser.ShieldsUpAnalyzers.Count > 0 || Parser.IronWallAnalyzers.Count > 0)
-{
-    <DefensivesGuide />
-}
+<DefensivesGuide />
 
-@if (Parser.VeteranOfWarAnalyzers.Count > 0)
-{
-    <HoldTheLineGuide />
-}
+<HoldTheLineGuide />
 
-@if (Parser.LingeringConcussionAnalyzers.Count > 0)
-{
-    <LingeringConcussionGuide />
-}
+<LingeringConcussionGuide />

@@ -1,4 +1,4 @@
-@inherits ReportComponent<HelenaCombatLogParser>
+@inherits GuideComponent<HelenaCombatLogParser>
 
 <GuideSection Title="Lingering Concussion">
     <LeftPanel>
@@ -16,6 +16,8 @@
 </GuideSection>
 
 @code {
+    protected override bool IsActive() => Parser.LingeringConcussionAnalyzers.Count > 0;
+
     private IEnumerable<OverviewStat> BuildOverviewStats()
     {
         var analyzers = Parser.LingeringConcussionAnalyzers

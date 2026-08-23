@@ -1,6 +1,6 @@
 @using FellowshipAnalyzer.Core.Common.Spells
 @using Spells = FellowshipAnalyzer.Core.Common.Spells.Tariq.Spells
-@inherits ReportComponent<TariqCombatLogParser>
+@inherits GuideComponent<TariqCombatLogParser>
 
 @{
     var analyzers = Parser.HammerStormAnalyzers.Select(analyzer => analyzer.Analyzer).ToList();
@@ -35,6 +35,8 @@
 }
 
 @code {
+    protected override bool IsActive() => Parser.HammerStormAnalyzers.Count > 0;
+
     private IEnumerable<OverviewStat> BuildOverviewStats(
         List<HammerStormAnalyzer> analyzers,
         List<HammerStormCast> casts,

@@ -1,4 +1,4 @@
-@inherits ReportComponent<MaraCombatLogParser>
+@inherits GuideComponent<MaraCombatLogParser>
 
 <GuideSection Title="Maiden of Death Windows">
     <LeftPanel>
@@ -21,6 +21,8 @@
 </GuideSection>
 
 @code {
+    protected override bool IsActive() => Parser.MaidenOfDeathAnalyzers.Count > 0;
+
     private List<MaidenOfDeathAnalyzer> Analyzers() =>
         [.. Parser.MaidenOfDeathAnalyzers.Select(entry => entry.Analyzer)];
 

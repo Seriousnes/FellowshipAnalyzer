@@ -1,4 +1,4 @@
-@inherits ReportComponent<HelenaCombatLogParser>
+@inherits GuideComponent<HelenaCombatLogParser>
 
 <GuideSection Title="Toughness">
     <LeftPanel>
@@ -19,6 +19,8 @@
 </GuideSection>
 
 @code {
+    protected override bool IsActive() => Parser.ToughnessAnalyzers.Count > 0;
+
     private bool HasFrontLineDefender => Parser.SelectedCombatant.HasTalent(Talents.FrontLineDefender.Id);
 
     private double Ceiling => ToughnessBands.Ceiling(HasFrontLineDefender);

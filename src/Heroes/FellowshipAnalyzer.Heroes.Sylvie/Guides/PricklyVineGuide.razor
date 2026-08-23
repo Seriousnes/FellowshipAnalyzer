@@ -1,4 +1,4 @@
-@inherits ReportComponent<SylvieCombatLogParser>
+@inherits GuideComponent<SylvieCombatLogParser>
 
 <GuideSection Title="Prickly Vine">
     <LeftPanel>
@@ -17,6 +17,8 @@
 </GuideSection>
 
 @code {
+    protected override bool IsActive() => Parser.PricklyVineAnalyzers.Count > 0;
+
     private IEnumerable<OverviewStat> BuildOverviewStats()
     {
         var analyzers = Parser.PricklyVineAnalyzers.Select(entry => entry.Analyzer).ToList();

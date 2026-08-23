@@ -1,4 +1,4 @@
-@inherits ReportComponent<ElarionCombatLogParser>
+@inherits GuideComponent<ElarionCombatLogParser>
 
 <GuideSection Title="Cooldown Pairing">
     <LeftPanel>
@@ -23,6 +23,8 @@
 </GuideSection>
 
 @code {
+    protected override bool IsActive() => Parser.CooldownPairingAnalyzers.Count > 0;
+
     private const int PairedWithinMs = 3_000;
 
     private List<CooldownPairingAnalyzer> Analyzers() =>

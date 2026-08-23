@@ -1,6 +1,6 @@
 @using FellowshipAnalyzer.Core.Common.Spells.Ardeos
 @using Spells = FellowshipAnalyzer.Core.Common.Spells.Ardeos.Spells
-@inherits ReportComponent<ArdeosCombatLogParser>
+@inherits GuideComponent<ArdeosCombatLogParser>
 
 @{
     RenderFragment ef = @<SpellLink Spell="Spells.EngulfingFlames" />;
@@ -26,6 +26,8 @@
 </GuideSection>
 
 @code {
+    protected override bool IsActive() => Parser.EngulfingFlamesEconomyAnalyzers.Count > 0;
+
     private List<EngulfingFlamesEconomyAnalyzer> Analyzers() =>
         Parser.EngulfingFlamesEconomyAnalyzers.Select(entry => entry.Analyzer).ToList();
 

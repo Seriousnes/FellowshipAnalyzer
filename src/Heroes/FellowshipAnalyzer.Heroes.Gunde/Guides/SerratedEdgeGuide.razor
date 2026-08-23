@@ -1,7 +1,7 @@
 @using FellowshipAnalyzer.Core.Common.Items
 @using Items = FellowshipAnalyzer.Core.Common.Items.Items
 @using Spells = FellowshipAnalyzer.Core.Common.Spells.Gunde.Spells
-@inherits ReportComponent<GundeCombatLogParser>
+@inherits GuideComponent<GundeCombatLogParser>
 
 <GuideSection Title="Serrated Edge">
     <LeftPanel>
@@ -51,6 +51,8 @@
 </GuideSection>
 
 @code {
+    protected override bool IsActive() => Parser.SerratedEdgeAnalyzers.Count > 0;
+
     private static readonly int ConversionPercent =
         (int)Math.Round(SerratedEdgeAnalyzer.AdditionalRendConversion * 100);
 

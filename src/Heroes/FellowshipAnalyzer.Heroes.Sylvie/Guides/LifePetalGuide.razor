@@ -1,4 +1,4 @@
-@inherits ReportComponent<SylvieCombatLogParser>
+@inherits GuideComponent<SylvieCombatLogParser>
 
 <GuideSection Title="Life Petal">
     <LeftPanel>
@@ -16,6 +16,8 @@
 </GuideSection>
 
 @code {
+    protected override bool IsActive() => Parser.LifePetalAnalyzers.Count > 0;
+
     private IEnumerable<OverviewStat> BuildOverviewStats()
     {
         var analyzers = Parser.LifePetalAnalyzers.Select(entry => entry.Analyzer).ToList();

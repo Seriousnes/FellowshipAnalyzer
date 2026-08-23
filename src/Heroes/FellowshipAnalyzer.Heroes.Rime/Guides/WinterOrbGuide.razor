@@ -1,5 +1,5 @@
 @using Incident = FellowshipAnalyzer.Heroes.Rime.Modules.WinterOrbTracker.OvercapIncident
-@inherits ReportComponent<RimeCombatLogParser>
+@inherits GuideComponent<RimeCombatLogParser>
 
 <GuideSection Title="Winter Orb Efficiency">
     <LeftPanel>
@@ -33,6 +33,8 @@
 </GuideSection>
 
 @code {
+    protected override bool IsActive() => Parser.WinterOrbTracker is not null;
+
     private const int MaxIncidentTimestamps = 8;
 
     private WinterOrbTracker Tracker => Parser.WinterOrbTracker!;

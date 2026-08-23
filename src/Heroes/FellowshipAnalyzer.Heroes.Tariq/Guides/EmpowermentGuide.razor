@@ -1,6 +1,6 @@
 @using FellowshipAnalyzer.Core.Common.Spells
 @using Spells = FellowshipAnalyzer.Core.Common.Spells.Tariq.Spells
-@inherits ReportComponent<TariqCombatLogParser>
+@inherits GuideComponent<TariqCombatLogParser>
 
 @{
     var windows = AllWindows();
@@ -26,6 +26,8 @@
 }
 
 @code {
+    protected override bool IsActive() => Parser.ThunderCallAnalyzers.Count > 0;
+
     private List<ThunderCallWindow> AllWindows() =>
         Parser.ThunderCallAnalyzers.SelectMany(entry => entry.Analyzer.Windows).ToList();
 

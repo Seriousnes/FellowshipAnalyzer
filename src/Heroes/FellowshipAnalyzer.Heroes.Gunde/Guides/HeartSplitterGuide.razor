@@ -1,5 +1,5 @@
 @using Spells = FellowshipAnalyzer.Core.Common.Spells.Gunde.Spells
-@inherits ReportComponent<GundeCombatLogParser>
+@inherits GuideComponent<GundeCombatLogParser>
 
 <GuideSection Title="Heart Splitter">
     <LeftPanel>
@@ -27,6 +27,8 @@
 </GuideSection>
 
 @code {
+    protected override bool IsActive() => Parser.HeartSplitterAnalyzers.Count > 0;
+
     private List<HeartSplitterAnalyzer> Analyzers =>
         [.. Parser.HeartSplitterAnalyzers.Select(entry => entry.Analyzer)];
 

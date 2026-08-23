@@ -5,9 +5,13 @@ description: "Create a Guide Razor component for a FellowshipAnalyzer analyzer. 
 
 # Create Guide Component
 
-A guide component is a Razor file in `Guides/` that renders analyzer state in the Guide tab. It inherits `ReportComponent<{Hero}CombatLogParser>` for its `Parser` and reads analyzer instances directly - dungeon-lifetime modules via generated parser properties, pull-lifetime analyzers via the generated pull read paths.
+A guide component is a Razor file in `Guides/` that renders analyzer state in the Guide tab. It inherits `GuideComponent<{Hero}CombatLogParser>` for its `Parser` and reads analyzer instances directly - dungeon-lifetime modules via generated parser properties, pull-lifetime analyzers via the generated pull read paths.
 
-**Never `@inject` the parser.** Parsers are transient, one instance per analysis, so an injected one has analyzed nothing. `ReportComponent<TParser>` reads the parser that produced the analysis being rendered from the report shell's cascade, and carries the rest of the report scope with it: `DungeonTime`, `Result`, and `SelectedPull`.
+**A guide decides for itself whether it has anything to show.** `GuideComponent<TParser>` declares `protected abstract bool IsActive()`; the guide overrides it with the condition on its own analyzer surface and writes its markup normally. The base handles suppression: it overrides `SetParametersAsync`, applies the parameters, and returns without queueing a render when `IsActive()` is false, so an inactive guide contributes no frames and its lifecycle methods never run. This is the only point at which a base class can gate a Razor component, because a derived component overrides `BuildRenderTree` and `ShouldRender()` is bypassed on the first render. A guide therefore never writes an `@if` around its own body, and the hero root guide renders every feature guide unconditionally.
+
+Because an inactive guide is never rendered, a lifecycle override (`OnInitialized`, `OnParametersSet`, `OnAfterRender`) in a guide will not run when the guide is inactive.
+
+**Never `@inject` the parser.** Parsers are transient, one instance per analysis, so an injected one has analyzed nothing. `GuideComponent<TParser>` derives from `ReportComponent<TParser>`, which reads the parser that produced the analysis being rendered from the report shell's cascade and carries the rest of the report scope with it: `DungeonTime`, `Result`, and `SelectedPull`.
 
 The analyzer holds typed data (counts, rates, timestamps, typed entry records); the guide owns all presentation: prose, severity wording, and `PerformanceTier` judgments. Display-shaping helpers that turn analyzer state into shared component inputs live in the guide's `@code` block.
 
@@ -22,7 +26,7 @@ Place at `src/Heroes/FellowshipAnalyzer.Heroes.{Hero}/Guides/{Name}Guide.razor`.
 For a pull-lifetime analyzer (registered with `[AddAnalyzer<T>]`), read the cross-pull stream `Parser.{Name}Analyzers` - a list of `(Pull, Analyzer)` pairs:
 
 ```razor
-@inherits ReportComponent<{Hero}CombatLogParser>
+@inherits GuideComponent<{Hero}CombatLogParser>
 
 <GuideSection Title="{Feature Name}">
     <LeftPanel>
@@ -37,6 +41,8 @@ For a pull-lifetime analyzer (registered with `[AddAnalyzer<T>]`), read the cros
 </GuideSection>
 
 @code {
+    protected override bool IsActive() => Parser.{Name}Analyzers.Count > 0;
+
     private IEnumerable<OverviewStat> BuildOverviewStats()
     {
         var analyzers = Parser.{Name}Analyzers.Select(entry => entry.Analyzer).ToList();
@@ -276,13 +282,12 @@ not follow this order.
 @using FellowshipAnalyzer.Heroes.{Hero}.Analysis
 @inherits ReportComponent<{Hero}CombatLogParser>
 
-@if (Parser.{Name}Analyzers.Count > 0)
-{
-    <{Name}Guide />
-}
+<{Name}Guide />
+
+<{Other}Guide />
 ```
 
-Gate pull-analyzer guides on a non-empty stream; null-check generated module properties for dungeon-lifetime modules (modules may be inactive).
+The root guide inherits `ReportComponent`, not `GuideComponent`: it composes and orders, it does not gate. Every feature guide is a bare element. The condition that decides whether a guide has anything to show belongs in that guide's own `IsActive()`: a non-empty stream for a pull analyzer, a non-null generated property for a dungeon-lifetime module.
 
 ### 3. Ensure The Parser Points To The Root Guide
 
@@ -316,7 +321,8 @@ From `FellowshipAnalyzer.Core.UI.Guides`:
 
 - Guide components go in `Guides/`.
 - The hero root guide lives at the hero project root as `{Hero}Guide.razor`.
-- Reach the hero parser by inheriting `ReportComponent<{Hero}CombatLogParser>`, never by injecting it.
+- Reach the hero parser by inheriting `GuideComponent<{Hero}CombatLogParser>`, never by injecting it. The hero root guide inherits `ReportComponent<{Hero}CombatLogParser>`.
+- Override `IsActive()` with the guide's own activation condition. The base suppresses the whole component when it returns false, so never write an `@if` around the markup body and never gate a feature guide from the root guide.
 - Read pull analyzers via `Parser.{Name}Analyzers`, `Parser.For(pull).{Name}Analyzer` or the `pull.{Name}Analyzer` extension (the member is named after the surface type, with a leading `I` stripped for a marker interface). Read dungeon-lifetime modules via generated properties such as `Parser.WinterOrbTracker`, where the `Analyzer` suffix is stripped.
 - Keep event-derived state in modules; keep prose, severity wording, and `PerformanceTier` mapping here.
 - Write every `<LeftPanel>` in the voice above: role sentence, directives, then a reading note only where it changes how the number reads.
@@ -327,11 +333,12 @@ From `FellowshipAnalyzer.Core.UI.Guides`:
 ## Checklist
 
 - [ ] File is at `Guides/{Name}Guide.razor`.
-- [ ] Component inherits `ReportComponent<{Hero}CombatLogParser>`.
+- [ ] Component inherits `GuideComponent<{Hero}CombatLogParser>`.
+- [ ] Component overrides `IsActive()`, and its markup body carries no `@if` gate of its own.
 - [ ] Component reads analyzer state via the generated read paths.
 - [ ] `<LeftPanel>` opens on the ability's ranking, states the directives, and adds a reading note only where one is needed.
 - [ ] Every mechanic clause states something no single ability tooltip carries.
 - [ ] Absolutes use Never or Always; targets the pull can deny use Try to or Aim to.
 - [ ] No priority list, no comparison to other players, no external source, no em or en dash.
-- [ ] Feature guide is added to `{Hero}Guide.razor` with a gate.
+- [ ] Feature guide is added to `{Hero}Guide.razor` as a bare element, with no gate there.
 - [ ] Parser `GuideComponent` points to the root guide.

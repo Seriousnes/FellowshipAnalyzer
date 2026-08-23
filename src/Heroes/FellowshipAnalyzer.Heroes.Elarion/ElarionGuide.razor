@@ -1,16 +1,7 @@
 @inherits ReportComponent<ElarionCombatLogParser>
 
-@if (Parser.CooldownPairingAnalyzers.Count > 0)
-{
-    <CooldownPairingGuide />
-}
+<CooldownPairingGuide />
 
-@if (Parser.FocusEconomyAnalyzers.Count > 0)
-{
-    <FocusEconomyGuide />
-}
+<FocusEconomyGuide />
 
-@if (Parser.SupremacyAnalyzers.Count > 0)
-{
-    <SupremacyGuide />
-}
+<SupremacyGuide />

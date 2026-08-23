@@ -1,4 +1,4 @@
-@inherits ReportComponent<MaraCombatLogParser>
+@inherits GuideComponent<MaraCombatLogParser>
 @using FellowshipAnalyzer.Core.Common.Spells;
 
 <GuideSection Title="Energy & Combo Points">
@@ -26,6 +26,8 @@
 </GuideSection>
 
 @code {
+    protected override bool IsActive() => Parser.MaraResourceDisciplineAnalyzers.Count > 0;
+
     private List<MaraResourceDisciplineAnalyzer> Analyzers() =>
         [.. Parser.MaraResourceDisciplineAnalyzers.Select(entry => entry.Analyzer)];
 

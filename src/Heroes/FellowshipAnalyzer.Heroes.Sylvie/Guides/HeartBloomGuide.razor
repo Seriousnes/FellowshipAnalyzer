@@ -1,4 +1,4 @@
-@inherits ReportComponent<SylvieCombatLogParser>
+@inherits GuideComponent<SylvieCombatLogParser>
 
 <GuideSection Title="Heart Bloom">
     <LeftPanel>
@@ -16,6 +16,8 @@
 </GuideSection>
 
 @code {
+    protected override bool IsActive() => Parser.HeartBloomRampAnalyzers.Count > 0;
+
     private IEnumerable<OverviewStat> BuildOverviewStats()
     {
         var analyzers = Parser.HeartBloomRampAnalyzers.Select(entry => entry.Analyzer).ToList();

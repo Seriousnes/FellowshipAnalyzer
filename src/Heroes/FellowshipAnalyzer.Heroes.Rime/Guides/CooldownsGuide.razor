@@ -1,5 +1,5 @@
 @using Window = FellowshipAnalyzer.Heroes.Rime.Modules.MajorCooldownWindow
-@inherits ReportComponent<RimeCombatLogParser>
+@inherits GuideComponent<RimeCombatLogParser>
 
 <GuideSection Title="Major Cooldowns">
     <LeftPanel>
@@ -22,6 +22,8 @@
 </GuideSection>
 
 @code {
+    protected override bool IsActive() => Parser.MajorCooldownAnalyzers.Count > 0;
+
     private const int PerfectOrbLatencyMs = 4_000;
     private const int AcceptableOrbLatencyMs = 8_000;
 
