@@ -32,13 +32,13 @@ public sealed class PlayerDeath
     public required int WindowStart { get; init; }
 
     /// <summary>Every hit the player took inside the window, in the order they landed.</summary>
-    public required IReadOnlyList<IncomingHit> Hits { get; init; }
+    public required List<IncomingHit> Hits { get; init; }
 
     /// <summary>Effective healing that landed on the player inside the window, overheal excluded.</summary>
     public required long HealingReceived { get; init; }
 
     /// <summary>Every defensive and healing ability in the player's spellbook, as each was placed at the death.</summary>
-    public required IReadOnlyList<DefensiveReadiness> Defensives { get; init; }
+    public required List<DefensiveReadiness> Defensives { get; init; }
 
     private Computed Result => field ??= Compute();
 
@@ -76,7 +76,7 @@ public sealed class PlayerDeath
     public double MitigatedShare => RawIncoming > 0 ? Math.Clamp(Mitigated / (double)RawIncoming, 0, 1) : 0;
 
     /// <summary>Every ability that hit the player during the window, heaviest first by damage that landed.</summary>
-    public IReadOnlyList<DamageTakenSource> BySource => Result.Sources;
+    public List<DamageTakenSource> BySource => Result.Sources;
 
     /// <summary>
     /// The player's hit points as the window opened, reconstructed from the first hit that carried a
@@ -93,17 +93,17 @@ public sealed class PlayerDeath
     public long? MaxHitPoints => Result.MaxHitPoints;
 
     /// <summary>Abilities the player cast during the window.</summary>
-    public IReadOnlyList<DefensiveReadiness> Pressed => Result.Pressed;
+    public List<DefensiveReadiness> Pressed => Result.Pressed;
 
     /// <summary>Abilities whose effect was active on the player at the moment they died.</summary>
-    public IReadOnlyList<DefensiveReadiness> ActiveAtDeath => Result.ActiveAtDeath;
+    public List<DefensiveReadiness> ActiveAtDeath => Result.ActiveAtDeath;
 
     /// <summary>
     /// Abilities that held a charge at the death, were not cast during the window, and had no effect
     /// active on the player. A log carries no reason an ability went uncast, so this reports availability
     /// and nothing more.
     /// </summary>
-    public IReadOnlyList<DefensiveReadiness> AvailableUnused => Result.AvailableUnused;
+    public List<DefensiveReadiness> AvailableUnused => Result.AvailableUnused;
 
     private Computed Compute()
     {
@@ -190,7 +190,7 @@ public sealed class PlayerDeath
     }
 
     private sealed record Computed(
-        IReadOnlyList<DamageTakenSource> Sources,
+        List<DamageTakenSource> Sources,
         long Taken,
         long Unmitigated,
         long DamageReduction,
@@ -199,9 +199,9 @@ public sealed class PlayerDeath
         int BlockedHits,
         long? HitPointsAtWindowStart,
         long? MaxHitPoints,
-        IReadOnlyList<DefensiveReadiness> Pressed,
-        IReadOnlyList<DefensiveReadiness> ActiveAtDeath,
-        IReadOnlyList<DefensiveReadiness> AvailableUnused);
+        List<DefensiveReadiness> Pressed,
+        List<DefensiveReadiness> ActiveAtDeath,
+        List<DefensiveReadiness> AvailableUnused);
 }
 
 /// <summary>

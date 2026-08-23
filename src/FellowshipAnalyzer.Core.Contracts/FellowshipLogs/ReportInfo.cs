@@ -8,8 +8,8 @@ public sealed record ReportInfo(
     string? Title,
     double StartTime,
     double? EndTime,
-    IReadOnlyList<ReportDungeon> Dungeons,
-    IReadOnlyList<ReportActor> Actors
+    List<ReportDungeon> Dungeons,
+    List<ReportActor> Actors
 )
 {
     private const string PlayerActorType = "Player";

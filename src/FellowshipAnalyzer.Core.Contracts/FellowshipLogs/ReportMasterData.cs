@@ -6,6 +6,6 @@ namespace FellowshipAnalyzer.Core.FellowshipLogs;
 /// Master data for a report: abilities and player actors, cached at the report level.
 /// </summary>
 public sealed record ReportMasterData(
-    IReadOnlyList<Ability> Abilities,
-    IReadOnlyList<ReportActor> Actors
+    List<Ability> Abilities,
+    List<ReportActor> Actors
 );

@@ -7,10 +7,10 @@ public enum ProvenanceSource { Export, Icons, Override }
 /// Per-field record of which upstream source supplied each value, keyed by the camelCase json
 /// field name (the same naming used for serialization). A field with no entry has no provenance.
 /// </summary>
-public sealed record Provenance(IReadOnlyDictionary<string, ProvenanceSource> ByField)
+public sealed record Provenance(Dictionary<string, ProvenanceSource> ByField)
 {
     /// <summary>A provenance with no recorded fields.</summary>
-    public static Provenance Empty { get; } = new(new Dictionary<string, ProvenanceSource>());
+    public static Provenance Empty { get; } = new([]);
 
     /// <summary>The source recorded for <paramref name="field"/>, or <c>null</c> if none.</summary>
     public ProvenanceSource? For(string field) => ByField.TryGetValue(field, out var source) ? source : null;

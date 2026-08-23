@@ -40,7 +40,7 @@ public interface IReportCacheService
     /// <summary>
     /// Returns all history entries, newest first.
     /// </summary>
-    ValueTask<IReadOnlyList<ReportHistoryEntry>> GetHistoryAsync();
+    ValueTask<List<ReportHistoryEntry>> GetHistoryAsync();
 
     /// <summary>
     /// Returns the raw serialized master data JSON for a report, or null on cache miss.

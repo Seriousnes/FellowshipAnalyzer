@@ -20,7 +20,7 @@ public sealed partial class BurstAnalyzer : Analyzer
 
     private Computed Result => field ??= Compute();
 
-    public IReadOnlyList<BurstWindow> Windows => Result.Windows;
+    public List<BurstWindow> Windows => Result.Windows;
 
     public int WindowCount => Result.Windows.Count;
 
@@ -115,7 +115,7 @@ public sealed partial class BurstAnalyzer : Analyzer
     private readonly record struct WindowSpan(int Start, int End);
 
     private sealed record Computed(
-        IReadOnlyList<BurstWindow> Windows,
+        List<BurstWindow> Windows,
         int FullWindows,
         int OutOfWindowRuptures,
         int OutOfWindowBloodboundSpirits);

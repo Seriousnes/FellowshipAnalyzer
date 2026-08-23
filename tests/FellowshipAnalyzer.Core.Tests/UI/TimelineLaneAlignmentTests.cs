@@ -18,9 +18,14 @@ namespace FellowshipAnalyzer.Core.Tests.UI;
 /// label, stays put. Adding <c>overflow: hidden</c> to the lane did exactly that.
 /// </para>
 /// </summary>
-public sealed class TimelineLaneAlignmentTests
+public sealed partial class TimelineLaneAlignmentTests
 {
-    private const string TimelineDirectory = "src/FellowshipAnalyzer.Core/UI/Timeline";
+    [GeneratedRegex(@"class=""cooldown-lane""\s+style=""([^""]*)""")]
+    private static partial Regex InlineStyleRegex();
+    [GeneratedRegex(@"(?<selector>[^{}();@]+?)\{(?<body>[^{}]*)\}")]
+    private static partial Regex DeclarationsRegex();
+
+    private const string TimelineDirectory = "src/FellowshipAnalyzer.Core/UI/Timeline";    
 
     /// <summary>
     /// Properties that make an element a block formatting context root, and so stop it overlapping a
@@ -53,13 +58,13 @@ public sealed class TimelineLaneAlignmentTests
         {
             var source = File.ReadAllText(file);
 
-            foreach (var declaration in DeclarationsFor(source, ".cooldown-lane"))
+            foreach (var (Property, Value) in DeclarationsFor(source, ".cooldown-lane"))
             {
                 foreach (var (property, pattern) in BlockFormattingContextTriggers)
                 {
-                    if (declaration.Property == property && Regex.IsMatch(declaration.Value, pattern, RegexOptions.IgnoreCase))
+                    if (Property == property && Regex.IsMatch(Value, pattern, RegexOptions.IgnoreCase))
                     {
-                        offenders.Add($"{Path.GetFileName(file)}: {declaration.Property}: {declaration.Value}");
+                        offenders.Add($"{Path.GetFileName(file)}: {Property}: {Value}");
                     }
                 }
             }
@@ -77,17 +82,17 @@ public sealed class TimelineLaneAlignmentTests
     {
         var razor = File.ReadAllText(Path.Combine(TimelineRoot(), "CooldownLane.razor"));
 
-        var inlineStyle = Regex.Match(razor, """class="cooldown-lane"\s+style="([^"]*)""" + "\"");
+        var inlineStyle = InlineStyleRegex().Match(razor);
         inlineStyle.Success.ShouldBeTrue("CooldownLane.razor no longer renders a .cooldown-lane root with an inline style.");
 
-        foreach (var declaration in ParseDeclarations(inlineStyle.Groups[1].Value))
+        foreach (var (Property, Value) in ParseDeclarations(inlineStyle.Groups[1].Value))
         {
             foreach (var (property, pattern) in BlockFormattingContextTriggers)
             {
-                if (declaration.Property == property)
+                if (Property == property)
                 {
-                    Regex.IsMatch(declaration.Value, pattern, RegexOptions.IgnoreCase).ShouldBeFalse(
-                        $"CooldownLane.razor sets {declaration.Property}: {declaration.Value} inline, which makes the " +
+                    Regex.IsMatch(Value, pattern, RegexOptions.IgnoreCase).ShouldBeFalse(
+                        $"CooldownLane.razor sets {Property}: {Value} inline, which makes the " +
                         "lane a block formatting context root and pushes it clear of the floated .timeline-label.");
                 }
             }
@@ -107,7 +112,7 @@ public sealed class TimelineLaneAlignmentTests
     /// </summary>
     private static IEnumerable<(string Property, string Value)> DeclarationsFor(string scss, string selector)
     {
-        foreach (Match rule in Regex.Matches(scss, @"(?<selector>[^{}();@]+?)\{(?<body>[^{}]*)\}"))
+        foreach (Match rule in DeclarationsRegex().Matches(scss))
         {
             var selectors = rule.Groups["selector"].Value
                 .Split(',')

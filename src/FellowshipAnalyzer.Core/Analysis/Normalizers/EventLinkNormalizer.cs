@@ -24,13 +24,11 @@ namespace FellowshipAnalyzer.Core.Analysis.Normalizers;
 /// buffers alone cannot guarantee once a rule scans backward.
 /// </para>
 /// </summary>
-public abstract class EventLinkNormalizer : IEventNormalizer
+/// <remarks>Creates a normalizer applying <paramref name="links"/>, in the order given.</remarks>
+/// <param name="links">The rules to apply. A later rule sees the links an earlier one established.</param>
+public abstract class EventLinkNormalizer(List<EventLink> links) : IEventNormalizer
 {
-    private readonly IReadOnlyList<EventLink> _links;
-
-    /// <summary>Creates a normalizer applying <paramref name="links"/>, in the order given.</summary>
-    /// <param name="links">The rules to apply. A later rule sees the links an earlier one established.</param>
-    protected EventLinkNormalizer(IReadOnlyList<EventLink> links) => _links = links;
+    private readonly List<EventLink> _links = links;
 
     /// <inheritdoc/>
     public virtual int Priority => 100;
@@ -90,7 +88,7 @@ public abstract class EventLinkNormalizer : IEventNormalizer
     private static bool IsLinking(EventLink link, Event candidate) =>
         link.LinkingEventType.IsInstanceOfType(candidate) && MatchesAbility(link.LinkingAbilityIds, candidate);
 
-    private static bool MatchesAbility(IReadOnlyList<FSLID>? abilityIds, Event candidate)
+    private static bool MatchesAbility(List<FSLID>? abilityIds, Event candidate)
     {
         if (abilityIds is null) return true;
         if (candidate is not IAbilityEvent abilityEvent) return false;

@@ -24,7 +24,7 @@
 </nav>
 
 @code {
-    [Parameter] public IReadOnlyList<BreadcrumbItem> Items { get; set; } = [];
+    [Parameter] public List<BreadcrumbItem> Items { get; set; } = [];
     [Parameter] public string Separator { get; set; } = "›";
     [Parameter] public RenderFragment? ChildContent { get; set; }
 

@@ -30,7 +30,7 @@ public sealed partial class SerratedEdgeAnalyzer : Analyzer
 
     private int? _grantedAt;
     private CastEvent? _lastCast;
-    private IReadOnlyList<ConsumerReadiness> _lastCastReadiness = [];
+    private List<ConsumerReadiness> _lastCastReadiness = [];
 
     public GundePullShape Shape => Pull.Targets == PullKind.Single ? GundePullShape.Boss : GundePullShape.Aoe;
 
@@ -38,11 +38,11 @@ public sealed partial class SerratedEdgeAnalyzer : Analyzer
 
     public bool SinisterApronEquipped => Owner.SelectedCombatant.HasItem(Items.CarversSinisterApron.Id);
 
-    public IReadOnlyList<int> ConsumerPriority => field ??= BuildConsumerPriority();
+    public List<int> ConsumerPriority => field ??= BuildConsumerPriority();
 
     public int PriorityAbilityId => ConsumerPriority[0];
 
-    public IReadOnlyList<SerratedEdgeGrant> Grants => _grants;
+    public List<SerratedEdgeGrant> Grants => _grants;
 
     public int JudgedGrants => _grants.Count;
 
@@ -111,7 +111,7 @@ public sealed partial class SerratedEdgeAnalyzer : Analyzer
     private static long SumLinked(CastEvent cast, string relation) =>
         cast.RelatedEvents<DamageEvent>(relation).Sum(damageEvent => damageEvent.Amount);
 
-    private IReadOnlyList<int> BuildConsumerPriority()
+    private List<int> BuildConsumerPriority()
     {
         if (BleedingHeartRingEquipped)
         {
@@ -140,14 +140,14 @@ public sealed partial class SerratedEdgeAnalyzer : Analyzer
         return null;
     }
 
-    private static SerratedEdgeOutcome Classify(int? consumer, int? rank, IReadOnlyList<ConsumerReadiness> readiness) =>
+    private static SerratedEdgeOutcome Classify(int? consumer, int? rank, List<ConsumerReadiness> readiness) =>
         consumer is null ? SerratedEdgeOutcome.Unspent
         : rank is 0 ? SerratedEdgeOutcome.Priority
         : rank is not null ? SerratedEdgeOutcome.Alternate
         : readiness.Any(entry => entry.Ready) ? SerratedEdgeOutcome.AvoidableFiller
         : SerratedEdgeOutcome.ForcedFiller;
 
-    private IReadOnlyList<ConsumerReadiness> Snapshot(int timestamp) =>
+    private List<ConsumerReadiness> Snapshot(int timestamp) =>
     [
         .. ConsumerPriority.Select(ability => new ConsumerReadiness(
             ability,
@@ -177,7 +177,7 @@ public sealed record SerratedEdgeGrant(
     int Timestamp,
     int? ConsumerAbilityId,
     int? ConsumerRank,
-    IReadOnlyList<ConsumerReadiness> Readiness,
+    List<ConsumerReadiness> Readiness,
     SerratedEdgeOutcome Outcome,
     long ConsumerDamage,
     long RendConverted,

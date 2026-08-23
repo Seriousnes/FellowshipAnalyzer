@@ -12,7 +12,7 @@ public sealed partial class PinkFlutterflyAnalyzer : Analyzer
 
     private Computed Result => field ??= Compute();
 
-    public IReadOnlyList<FlutterflyHolding> Holdings => Result.Holdings;
+    public List<FlutterflyHolding> Holdings => Result.Holdings;
 
     public long AssignedMs => Result.AssignedMs;
 
@@ -118,7 +118,7 @@ public sealed partial class PinkFlutterflyAnalyzer : Analyzer
     }
 
     private sealed record Computed(
-        IReadOnlyList<FlutterflyHolding> Holdings,
+        List<FlutterflyHolding> Holdings,
         long AssignedMs,
         int PeakBanked,
         long Effective,

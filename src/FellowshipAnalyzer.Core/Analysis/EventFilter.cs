@@ -125,9 +125,12 @@ public class EventFilter<T> : EventFilter where T : Event
     public EventFilter<T> ExtraSpell(params Spell[] spells)
     {
         var ids = spells.Select(s => s.FSLID).ToArray();
-        AddCriteria(e => e is IExtraAbilityEvent && ids.Contains(((IExtraAbilityEvent)e).ExtraAbility.Id));
+        AddCriteria(e => MatchesExtraSpell(e, ids));
         return this;
     }
+
+    private static bool MatchesExtraSpell(Event e, FSLID[] ids) =>
+        e is IExtraAbilityEvent { ExtraAbility: { } extra } && ids.Contains(extra.FSLID);
 
     private Expression<Func<Event, bool>>? GetByCheck(int by)
     {

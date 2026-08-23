@@ -27,7 +27,7 @@
 </CodeExample>
 
 @code {
-    private static readonly IReadOnlyList<SpellCastEntry> _mixed =
+    private static readonly List<SpellCastEntry> _mixed =
     [
         new(Spells.FrostBolt.Id, QualitativePerformance.Good),
         new(Spells.FrostBolt.Id, QualitativePerformance.Good),
@@ -37,7 +37,7 @@
         new(Spells.FrostBolt.Id, QualitativePerformance.Fail),
     ];
 
-    private static readonly IReadOnlyList<SpellCastEntry> _neutral =
+    private static readonly List<SpellCastEntry> _neutral =
     [
         new(Spells.FrostBolt.Id),
         new(Spells.BurstingIce.Id),
@@ -49,7 +49,7 @@
 <SpellSequence Casts="@_casts" />
 
 @code {
-    private static readonly IReadOnlyList<SpellCastEntry> _casts =
+    private static readonly List<SpellCastEntry> _casts =
     [
         new(Spells.FrostBolt.Id, QualitativePerformance.Good),
         new(Spells.BurstingIce.Id, QualitativePerformance.Perfect),

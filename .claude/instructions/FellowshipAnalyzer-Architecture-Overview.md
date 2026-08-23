@@ -132,6 +132,8 @@ The surface type is the topmost ancestor deriving directly from `Analyzer`, so s
 
 Analyzers declare event handlers with `[On<TEvent>]` attributes on instance methods. The class must be `partial`; the `ModuleGenerator` emits the corresponding `RegisterSubscriptions` plumbing.
 
+A handler takes the dispatched event as a single parameter, typed as `TEvent`, one of its base classes or interfaces, or a `OneOf<…>` carrying a slot for it, or it takes no parameter at all when it reads nothing off the event. The generator matches the emitted call to the declared parameters, and the attribute's filters select the events either way.
+
 ```csharp
 public sealed partial class WintersEmbraceAnalyzer : Analyzer
 {

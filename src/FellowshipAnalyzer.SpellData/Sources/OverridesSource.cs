@@ -9,16 +9,16 @@ namespace FellowshipAnalyzer.SpellData.Sources;
 public sealed class OverridesSource
 {
     /// <summary>All override deltas, keyed first by scope then by member name.</summary>
-    public IReadOnlyDictionary<string, IReadOnlyDictionary<string, JsonObject>> ByScopeAndMember { get; }
+    public Dictionary<string, Dictionary<string, JsonObject>> ByScopeAndMember { get; }
 
-    private OverridesSource(Dictionary<string, IReadOnlyDictionary<string, JsonObject>> data) =>
+    private OverridesSource(Dictionary<string, Dictionary<string, JsonObject>> data) =>
         ByScopeAndMember = data;
 
     /// <summary>Loads overrides from <paramref name="path"/>, returning an empty source if the file does not exist.</summary>
     public static OverridesSource Load(string path)
     {
         if (!File.Exists(path))
-            return new OverridesSource(new Dictionary<string, IReadOnlyDictionary<string, JsonObject>>());
+            return new OverridesSource([]);
         return Parse(JsonNode.Parse(File.ReadAllText(path))!.AsObject());
     }
 
@@ -28,7 +28,7 @@ public sealed class OverridesSource
 
     private static OverridesSource Parse(JsonObject root)
     {
-        var result = new Dictionary<string, IReadOnlyDictionary<string, JsonObject>>();
+        var result = new Dictionary<string, Dictionary<string, JsonObject>>();
         foreach (var (scope, scopeNode) in root)
         {
             if (scopeNode is not JsonObject scopeObj)

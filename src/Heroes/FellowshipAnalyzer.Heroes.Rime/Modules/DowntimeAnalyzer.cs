@@ -41,7 +41,7 @@ public sealed partial class DowntimeAnalyzer : Analyzer
 
     public int LongestGapMs { get { EnsureMaterialized(); return _longestGapMs; } }
 
-    public IReadOnlyList<DowntimeGap> Gaps { get { EnsureMaterialized(); return _gaps; } }
+    public List<DowntimeGap> Gaps { get { EnsureMaterialized(); return _gaps; } }
 
     [On<BeginCastEvent>(By = Actor.Player)]
     private void OnBeginCast(BeginCastEvent beginCastEvent)

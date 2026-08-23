@@ -17,7 +17,7 @@ public static class PullAnalyzerGuideExtensions
 {
     /// <summary>One row per analyzer (a per-pull aggregate).</summary>
     public static IEnumerable<PerCastData> ToPullRows<T>(
-        this IReadOnlyList<PullAnalyzer<T>> analyzers,
+        this List<PullAnalyzer<T>> analyzers,
         CombatLogParser parser,
         Func<T, PullStartEvent, PerCastRow> build) where T : IAnalyzerSurface
     {
@@ -27,7 +27,7 @@ public static class PullAnalyzerGuideExtensions
 
     /// <summary>One row per inner item, flattening each analyzer's <paramref name="items"/> collection.</summary>
     public static IEnumerable<PerCastData> ToItemRows<T, TItem>(
-        this IReadOnlyList<PullAnalyzer<T>> analyzers,
+        this List<PullAnalyzer<T>> analyzers,
         CombatLogParser parser,
         Func<T, IEnumerable<TItem>> items,
         Func<TItem, PullStartEvent, PerCastRow> build) where T : IAnalyzerSurface

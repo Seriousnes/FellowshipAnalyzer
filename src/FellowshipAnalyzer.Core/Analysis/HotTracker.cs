@@ -28,10 +28,10 @@ public partial class HotTracker : Analyzer
     private long _unattributedHealing;
 
     /// <summary>Every assignment observed this parse, in the order it opened.</summary>
-    public IReadOnlyList<HotAssignment> Assignments => _assignments;
+    public List<HotAssignment> Assignments => _assignments;
 
     /// <summary>Assignments still open when the parse ended.</summary>
-    public IReadOnlyCollection<HotAssignment> OpenAssignments => _open.Values;
+    public List<HotAssignment> OpenAssignments => [.. _open.Values];
 
     /// <summary>Ticks that landed with no assignment open for their spell and target.</summary>
     public int UnattributedTicks => _unattributedTicks;
@@ -155,7 +155,7 @@ public sealed class HotAssignment
     public long Overheal { get; private set; }
 
     /// <summary>Timestamps at which the aura was reapplied without coming off.</summary>
-    public IReadOnlyList<int> Refreshes => _refreshes;
+    public List<int> Refreshes => _refreshes;
 
     /// <summary>Effective healing plus overheal.</summary>
     public long TotalHealing => Effective + Overheal;

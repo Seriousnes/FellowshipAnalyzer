@@ -256,7 +256,7 @@ public sealed class EventLinkNormalizerTests
     }
 
     private static void Run(List<Event> events, params EventLink[] links) =>
-        new TestNormalizer(links).Normalize(events, PlayerId);
+        new TestNormalizer([.. links]).Normalize(events, PlayerId);
 
     private static EventLink Link(int forwardBufferMs = 0, int backwardBufferMs = 0) => new()
     {
@@ -294,5 +294,5 @@ public sealed class EventLinkNormalizerTests
             Ability = new Ability { Id = abilityId },
         };
 
-    private sealed class TestNormalizer(IReadOnlyList<EventLink> links) : EventLinkNormalizer(links);
+    private sealed class TestNormalizer(List<EventLink> links) : EventLinkNormalizer(links);
 }

@@ -27,7 +27,7 @@ public sealed partial class FocusedWrathAnalyzer : Analyzer
 
     private List<FocusedWrathWindow> Evaluated => field ??= Build();
 
-    public IReadOnlyList<FocusedWrathWindow> Windows => Evaluated;
+    public List<FocusedWrathWindow> Windows => Evaluated;
 
     public int WindowCount => Evaluated.Count;
 
@@ -92,7 +92,7 @@ public sealed partial class FocusedWrathAnalyzer : Analyzer
     }
 
     [On<RemoveBuffStackEvent>(To = Actor.Player, Spell = nameof(Spells.FocusedWrathSelfBuff))]
-    private void OnChargeRemoved(RemoveBuffStackEvent @event)
+    private void OnChargeRemoved()
     {
         if (_open is not null)
             _open.StacksRemoved++;
@@ -224,7 +224,7 @@ public sealed record FocusedWrathWindow
 
     public required int PreferredSpenderId { get; init; }
 
-    public IReadOnlyList<FocusedWrathConsumption> Consumptions { get; init; } = [];
+    public List<FocusedWrathConsumption> Consumptions { get; init; } = [];
 
     public int ChargesConsumed => Consumptions.Count;
 

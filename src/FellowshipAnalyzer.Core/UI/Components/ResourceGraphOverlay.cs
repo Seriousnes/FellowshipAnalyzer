@@ -6,7 +6,7 @@ namespace FellowshipAnalyzer.Core.UI.Components;
 /// </summary>
 /// <param name="Name">The series name shown in the legend and tooltip.</param>
 /// <param name="Points">The rate samples, in encounter order.</param>
-public sealed record ResourceGraphOverlay(string Name, IReadOnlyList<ResourceGraphOverlayPoint> Points);
+public sealed record ResourceGraphOverlay(string Name, List<ResourceGraphOverlayPoint> Points);
 
 /// <summary>One sample of a <see cref="ResourceGraphOverlay"/> series.</summary>
 /// <param name="Timestamp">The sample's absolute report timestamp in milliseconds.</param>

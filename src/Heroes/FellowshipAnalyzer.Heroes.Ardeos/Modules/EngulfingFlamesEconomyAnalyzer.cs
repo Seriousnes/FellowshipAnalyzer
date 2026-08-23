@@ -25,7 +25,7 @@ public sealed partial class EngulfingFlamesEconomyAnalyzer : Analyzer
 
     private List<ReadinessWindow> WindowList => field ??= BuildWindows();
 
-    public IReadOnlyList<ReadinessWindow> Windows => WindowList;
+    public List<ReadinessWindow> Windows => WindowList;
 
     public int WindowsEvaluated => WindowList.Count;
 
@@ -278,7 +278,7 @@ public sealed partial class EngulfingFlamesEconomyAnalyzer : Analyzer
         public int CastTimestamp { get; init; }
         public int ChargesAtReady { get; init; }
         public int HeldMs { get; init; }
-        public IReadOnlyList<int> EngulfingFlamesCasts { get; init; } = [];
+        public List<int> EngulfingFlamesCasts { get; init; } = [];
 
         public int EngulfingFlamesCastCount => EngulfingFlamesCasts.Count;
         public bool DoubleApplied => EngulfingFlamesCastCount >= DoubleApplicationThreshold;

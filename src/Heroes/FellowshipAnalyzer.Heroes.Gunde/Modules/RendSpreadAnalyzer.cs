@@ -8,7 +8,7 @@ namespace FellowshipAnalyzer.Heroes.Gunde.Modules;
 [ForPull(PullKind.Multi)]
 public sealed partial class RendSpreadAnalyzer : DotSpreadAnalyzer, IRendAnalyzer
 {
-    protected override IReadOnlyList<Dot> Dots => GundeDots.All;
+    protected override List<Dot> Dots => GundeDots.All;
 
     public int DistinctTargets => TargetsOf(GundeDots.Rend);
 

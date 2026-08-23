@@ -37,7 +37,7 @@ public abstract partial class Event : IEventFilter
     /// only for the events that are linked.
     /// </summary>
     [JsonIgnore]
-    public IReadOnlyList<LinkedEvent> LinkedEvents => _linkedEvents ?? [];
+    public List<LinkedEvent> LinkedEvents => _linkedEvents ?? [];
     /// <summary>
     /// Was the event created by FSA
     /// </summary>

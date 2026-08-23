@@ -5,5 +5,5 @@ namespace FellowshipAnalyzer.Core.FellowshipLogs;
 /// </summary>
 public sealed record CharacterReports(
     string Name,
-    IReadOnlyList<ReportSummary> Reports
+    List<ReportSummary> Reports
 );

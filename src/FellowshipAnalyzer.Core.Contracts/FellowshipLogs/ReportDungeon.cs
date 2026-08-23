@@ -11,11 +11,11 @@ public sealed record ReportDungeon(
     double StartTime,
     double EndTime,
     int? Difficulty,
-    IReadOnlyList<int>? FriendlyPlayers,
+    List<int>? FriendlyPlayers,
     double? CompletionPercentage,
     bool InProgress = false,
-    IReadOnlyList<DungeonPull>? DungeonPulls = null,
-    IReadOnlyList<DungeonNpc>? EnemyNpcs = null
+    List<DungeonPull>? DungeonPulls = null,
+    List<DungeonNpc>? EnemyNpcs = null
 )
 {
     private const int ZoneEncounterOffset = 100_000;

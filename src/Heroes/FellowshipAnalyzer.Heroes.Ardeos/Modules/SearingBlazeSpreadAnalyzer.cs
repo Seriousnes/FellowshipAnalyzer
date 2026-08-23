@@ -9,7 +9,7 @@ namespace FellowshipAnalyzer.Heroes.Ardeos.Modules;
 [ForPull(PullKind.Multi)]
 public sealed partial class SearingBlazeSpreadAnalyzer : DotSpreadAnalyzer, ISearingBlazeAnalyzer
 {
-    protected override IReadOnlyList<Dot> Dots { get; } = [ArdeosDots.SearingBlaze];
+    protected override List<Dot> Dots { get; } = [ArdeosDots.SearingBlaze];
 
     public int DistinctTargets => TargetsOf(ArdeosDots.SearingBlaze);
 

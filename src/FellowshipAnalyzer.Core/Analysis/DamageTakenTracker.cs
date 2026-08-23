@@ -19,7 +19,7 @@ public sealed partial class DamageTakenTracker : Analyzer
     private Computed Result => field ??= Compute();
 
     /// <summary>Every hit that landed on the player, in encounter order.</summary>
-    public IReadOnlyList<DamageTakenHit> Hits => _hits;
+    public List<DamageTakenHit> Hits => _hits;
 
     /// <inheritdoc/>
     public override StatisticCategory StatisticCategory => StatisticCategory.General;
@@ -61,7 +61,7 @@ public sealed partial class DamageTakenTracker : Analyzer
     public double DamageFacedPerSecond => PerSecond(TotalFaced);
 
     /// <summary>Every ability that damaged the player, heaviest first by damage that landed.</summary>
-    public IReadOnlyList<DamageTakenSource> BySource => Result.Sources;
+    public List<DamageTakenSource> BySource => Result.Sources;
 
     [On<DamageEvent>(To = Actor.Player)]
     private void OnDamageTaken(DamageEvent damageEvent)
@@ -139,7 +139,7 @@ public sealed partial class DamageTakenTracker : Analyzer
     }
 
     private sealed record Computed(
-        IReadOnlyList<DamageTakenSource> Sources,
+        List<DamageTakenSource> Sources,
         long Taken,
         long Unmitigated,
         long Mitigated,

@@ -49,7 +49,7 @@ public sealed partial class FuryTracker : ResourceTracker
 
     public int Current => _fury;
 
-    public IReadOnlyList<FurySample> Samples => _samples;
+    public List<FurySample> Samples => _samples;
 }
 
 public readonly record struct FurySample(int Timestamp, int Fury);

@@ -52,11 +52,11 @@ public sealed class AuraWindowLedger
     /// Every target's windows in encounter order, with any still-open window closed at that target's
     /// last observation. Targets that never carried the aura are absent.
     /// </summary>
-    public IReadOnlyDictionary<UnitKey, IReadOnlyList<AuraWindow>> Build()
+    public Dictionary<UnitKey, List<AuraWindow>> Build()
     {
-        var result = new Dictionary<UnitKey, IReadOnlyList<AuraWindow>>();
+        var result = new Dictionary<UnitKey, List<AuraWindow>>();
         foreach (var (key, windows) in _windowsByTarget)
-            result[key] = windows.ToArray();
+            result[key] = [.. windows];
 
         foreach (var (key, start) in _openStarts)
         {
@@ -72,7 +72,7 @@ public sealed class AuraWindowLedger
         new(target.TargetId, target.TargetInstance ?? 0);
 
     /// <summary>Milliseconds covered by <paramref name="windows"/>, counting overlap once.</summary>
-    public static int CoveredMs(IReadOnlyList<AuraWindow> windows)
+    public static int CoveredMs(List<AuraWindow> windows)
     {
         if (windows.Count == 0) return 0;
 

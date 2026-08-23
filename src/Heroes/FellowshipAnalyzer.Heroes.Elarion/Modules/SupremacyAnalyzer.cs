@@ -9,7 +9,7 @@ public sealed partial class SupremacyAnalyzer : Analyzer
 {
     private readonly List<WindowState> _windows = [];
 
-    public IReadOnlyList<SupremacyWindow> Windows =>
+    public List<SupremacyWindow> Windows =>
         field ??=
         [
             .. _windows.Select(window => new SupremacyWindow(

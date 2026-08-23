@@ -61,7 +61,7 @@ internal static class SpellDatabaseGeneratorTestHarness
                 public double? CastDuration { get; init; }
                 public double? ChannelDuration { get; init; }
                 public double? ChannelTickInterval { get; init; }
-                public System.Collections.Generic.IReadOnlyDictionary<FellowshipAnalyzer.Core.Game.ResourceTypes, int> Costs { get; init; }
+                public System.Collections.Generic.Dictionary<FellowshipAnalyzer.Core.Game.ResourceTypes, int> Costs { get; init; }
                     = new System.Collections.Generic.Dictionary<FellowshipAnalyzer.Core.Game.ResourceTypes, int>();
             }
 

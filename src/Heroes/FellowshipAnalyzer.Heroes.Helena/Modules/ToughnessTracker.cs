@@ -30,7 +30,7 @@ public sealed partial class ToughnessTracker : ResourceTracker
         DisplayNameOverrides[ResourceTypes.Secondary] = "Toughness";
     }
 
-    public static IReadOnlyList<ToughnessGenerator> Generators { get; } =
+    public static List<ToughnessGenerator> Generators { get; } =
     [
         new(Spells.ShieldsUp.FSLID, 2.31),
         new(Spells.Shockwave.FSLID, 1.925),
@@ -70,11 +70,11 @@ public sealed partial class ToughnessTracker : ResourceTracker
 
     public ResourceState? Toughness => GetResourceState(ResourceTypes.Secondary);
 
-    public IReadOnlyList<ToughnessOvercap> Overcaps => _overcaps;
+    public List<ToughnessOvercap> Overcaps => _overcaps;
 
-    public IReadOnlyDictionary<int, int> OvercappedCastsBySpell => Result.OvercappedCasts;
+    public Dictionary<int, int> OvercappedCastsBySpell => Result.OvercappedCasts;
 
-    public IReadOnlyDictionary<int, int> GeneratorCastsBySpell => _generatorCasts;
+    public Dictionary<int, int> GeneratorCastsBySpell => _generatorCasts;
 
     public int OvercappedCasts => Result.OvercappedCastTotal;
 
@@ -282,7 +282,7 @@ public sealed partial class ToughnessTracker : ResourceTracker
     }
 
     private sealed record Computed(
-        IReadOnlyDictionary<int, int> OvercappedCasts,
+        Dictionary<int, int> OvercappedCasts,
         int OvercappedCastTotal,
         int GeneratorCastTotal);
 }
@@ -293,7 +293,7 @@ public sealed record ToughnessGenerator(int SpellId, double StrengthScaler)
 }
 
 public sealed record ToughnessBandWindow(
-    IReadOnlyDictionary<ToughnessBand, int> BandMs,
+    Dictionary<ToughnessBand, int> BandMs,
     int MeasuredMs,
     int AtMaximumMs,
     int SampleCount,
@@ -301,7 +301,7 @@ public sealed record ToughnessBandWindow(
     bool StartedAtTopBand)
 {
     public static ToughnessBandWindow Empty { get; } =
-        new(new Dictionary<ToughnessBand, int>(), 0, 0, 0, null, false);
+        new([], 0, 0, 0, null, false);
 }
 
 public sealed record ToughnessMitigationWindow(double Mitigated, double AtCeiling, int Hits, int Ticks)

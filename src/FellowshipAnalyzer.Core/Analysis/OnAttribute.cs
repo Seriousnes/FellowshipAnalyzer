@@ -7,6 +7,12 @@ namespace FellowshipAnalyzer.Core.Analysis;
 /// a <c>RegisterAttributeSubscriptions</c> override that wires every <see cref="OnAttribute{TEvent}"/>
 /// directly into the <see cref="EventEmitter"/> with inlined predicates.
 /// <para>
+/// The handler takes the dispatched event as its single parameter, typed as <typeparamref name="TEvent"/>,
+/// one of its base classes or interfaces, or a <c>OneOf&lt;…&gt;</c> carrying a slot for it. Declare no
+/// parameter at all when the handler reads nothing off the event: the generator then emits a call with
+/// no argument, and the attribute's own <see cref="By"/>, <see cref="To"/> and spell filters still apply.
+/// </para>
+/// <para>
 /// <see cref="Spell"/>, <see cref="Spells"/>, <see cref="ExtraSpell"/>, and <see cref="ExtraSpells"/>
 /// take <c>nameof(Registry.Member)</c> expressions referencing a static <see cref="Common.Spells.Spell"/>
 /// (or <see cref="Common.Spells.Effect"/>) property on a type implementing

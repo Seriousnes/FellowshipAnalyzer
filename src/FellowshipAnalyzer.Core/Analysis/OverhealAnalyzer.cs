@@ -16,7 +16,7 @@ public sealed partial class OverhealAnalyzer : Analyzer
     private Computed Result => field ??= Compute();
 
     /// <summary>Every ability that healed this pull, heaviest total healing first.</summary>
-    public IReadOnlyList<AbilityOverheal> BySpell => Result.Spells;
+    public List<AbilityOverheal> BySpell => Result.Spells;
 
     /// <summary>Healing that landed this pull.</summary>
     public long TotalEffective => Result.Effective;
@@ -71,7 +71,7 @@ public sealed partial class OverhealAnalyzer : Analyzer
         public long Overheal { get; set; }
     }
 
-    private sealed record Computed(IReadOnlyList<AbilityOverheal> Spells, long Effective, long Overheal);
+    private sealed record Computed(List<AbilityOverheal> Spells, long Effective, long Overheal);
 }
 
 /// <summary>One ability's healing this pull, split into what landed and what was lost to full bars.</summary>

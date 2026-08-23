@@ -33,7 +33,7 @@ public sealed partial class MatriarchMacabreAnalyzer : Analyzer
 
     private MacabreSpan? _openSpan;
 
-    public IReadOnlyList<MatriarchMacabreWindow> Windows => field ??= Build();
+    public List<MatriarchMacabreWindow> Windows => field ??= Build();
 
     public int WindowCount => Windows.Count;
 

@@ -32,7 +32,7 @@ public partial class HealingEfficiencyTracker : Analyzer
     protected virtual ResourceTypes Resource => ResourceTypes.Mana;
 
     /// <summary>Every spell that healed or cost resource, heaviest effective healing first.</summary>
-    public IReadOnlyList<SpellHealingEfficiency> BySpell => Result.Spells;
+    public List<SpellHealingEfficiency> BySpell => Result.Spells;
 
     /// <summary>Effective healing across every tracked spell.</summary>
     public long TotalEffective => Result.Effective;
@@ -155,7 +155,7 @@ public partial class HealingEfficiencyTracker : Analyzer
     }
 
     private sealed record Computed(
-        IReadOnlyList<SpellHealingEfficiency> Spells,
+        List<SpellHealingEfficiency> Spells,
         long Effective,
         long Overheal,
         int Spent,

@@ -206,7 +206,7 @@ public sealed partial class CombatLogParserTests
     {
         var owner = CreateCombatLogParser([typeof(StatTracker), typeof(SpellUsable), typeof(ProbeModule)]);
 
-        await owner.Analyze(new List<Event>(), playerId: 7, dungeon: TestDungeon);
+        await owner.Analyze([], playerId: 7, dungeon: TestDungeon);
 
         var fabricated = owner.EventEmitter.FabricateEvent(CreateCast(timestamp: 500, abilityId: 1));
 

@@ -191,7 +191,7 @@
         };
     }
 
-    private static IReadOnlyList<int> ChartSamples(MaraDotUptimeAnalyzer analyzer, PullStartEvent pull)
+    private static List<int> ChartSamples(MaraDotUptimeAnalyzer analyzer, PullStartEvent pull)
     {
         var samples = new SortedSet<int> { pull.StartTime, pull.EndTime };
         foreach (var entry in analyzer.Uptimes)
@@ -205,7 +205,7 @@
         return [.. samples];
     }
 
-    private IReadOnlyList<AuraStackBand> ChartBands(MaraDotUptimeAnalyzer analyzer, IReadOnlyList<int> samples)
+    private List<AuraStackBand> ChartBands(MaraDotUptimeAnalyzer analyzer, List<int> samples)
     {
         var bands = new List<AuraStackBand>(analyzer.Uptimes.Count);
         foreach (var entry in analyzer.Uptimes)
@@ -214,7 +214,7 @@
             for (var i = 0; i < samples.Count; i++)
                 values[i] = entry.Windows.Count(window => window.Start <= samples[i] && samples[i] < window.End);
 
-            bands.Add(new AuraStackBand(entry.Dot.Effect.Name, MaraChartColors.Dot(Palette, entry.Dot), values));
+            bands.Add(new AuraStackBand(entry.Dot.Effect.Name, MaraChartColors.Dot(Palette, entry.Dot), [.. values]));
         }
         return bands;
     }

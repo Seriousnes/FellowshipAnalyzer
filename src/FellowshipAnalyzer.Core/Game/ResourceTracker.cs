@@ -56,7 +56,7 @@ public partial class ResourceTracker(ILogger<ResourceTracker> logger) : Analyzer
     public long MaxHealth { get; private set; }
 
     /// <summary>All resource events across all types, in chronological order.</summary>
-    public IReadOnlyList<ResourceEvent> AllResourceEvents => _allEvents;
+    public List<ResourceEvent> AllResourceEvents => _allEvents;
 
     /// <summary>
     /// Returns the resource state for <paramref name="type"/>, or <c>null</c> if that resource
@@ -78,11 +78,11 @@ public partial class ResourceTracker(ILogger<ResourceTracker> logger) : Analyzer
     /// <summary>The total amount of <paramref name="type"/> lost to drains rather than spent on casts.</summary>
     public int GetDrained(ResourceTypes type) => GetOrCreateState(type).Drained;
     /// <summary>Counts of <paramref name="type"/>-generating casts, keyed by spell id.</summary>
-    public IReadOnlyDictionary<int, int> GetGeneratorCasts(ResourceTypes type) => GetOrCreateState(type).GeneratorCasts;
+    public Dictionary<int, int> GetGeneratorCasts(ResourceTypes type) => GetOrCreateState(type).GeneratorCasts;
     /// <summary>Counts of <paramref name="type"/>-spending casts, keyed by spell id.</summary>
-    public IReadOnlyDictionary<int, int> GetSpenderCasts(ResourceTypes type) => GetOrCreateState(type).SpenderCasts;
+    public Dictionary<int, int> GetSpenderCasts(ResourceTypes type) => GetOrCreateState(type).SpenderCasts;
     /// <summary>All gain, spend, and drain events recorded for <paramref name="type"/>, in chronological order.</summary>
-    public IReadOnlyList<ResourceEvent> GetResourceEvents(ResourceTypes type) => GetOrCreateState(type).Events;
+    public List<ResourceEvent> GetResourceEvents(ResourceTypes type) => GetOrCreateState(type).Events;
 
     [On<ResourceChangeEvent>(By = Actor.Player)]
     private void OnResourceChange(ResourceChangeEvent e)

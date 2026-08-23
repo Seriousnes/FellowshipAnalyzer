@@ -258,7 +258,7 @@ public sealed class CooldownPairingAnalyzerTests
             pairing.Timestamp.ShouldBeGreaterThanOrEqualTo(analyzer.Pull.StartTime);
 
         var timestamps = parser.Events.Select(e => e.Timestamp).ToList();
-        timestamps.ShouldBe(timestamps.Order().ToList());
+        timestamps.ShouldBe([.. timestamps.Order()]);
     }
 
     [Fact]

@@ -19,7 +19,7 @@ public readonly record struct FaSemanticClass(string ClassName, string TokenName
 public static class FaSemantic
 {
     /// <summary>Every semantic class, in the order the generated map declares them.</summary>
-    public static IReadOnlyList<FaSemanticClass> All { get; } =
+    public static List<FaSemanticClass> All { get; } =
     [
         Tier("perfect", nameof(FaPalette.PerfPerfect)),
         Tier("good", nameof(FaPalette.PerfGood)),

@@ -12,7 +12,7 @@ public sealed partial class DispelTracker : Analyzer
     private readonly List<DispelRecord> _dispels = [];
 
     /// <summary>Every dispel the player performed, in encounter order.</summary>
-    public IReadOnlyList<DispelRecord> Dispels => _dispels;
+    public List<DispelRecord> Dispels => _dispels;
 
     /// <summary>Dispels the player performed.</summary>
     public int TotalDispels => _dispels.Count;
@@ -25,13 +25,13 @@ public sealed partial class DispelTracker : Analyzer
         _dispels.Where(dispel => dispel.Timestamp >= start && dispel.Timestamp <= end);
 
     /// <summary>Dispel counts keyed by the ability that was removed.</summary>
-    public IReadOnlyDictionary<int, int> ByRemovedAura => field ??= Tally(dispel => dispel.RemovedSpellId);
+    public Dictionary<int, int> ByRemovedAura => field ??= Tally(dispel => dispel.RemovedSpellId);
 
     /// <summary>Dispel counts keyed by the unit the aura was taken off.</summary>
-    public IReadOnlyDictionary<UnitKey, int> ByTarget => field ??= Tally(dispel => dispel.Target);
+    public Dictionary<UnitKey, int> ByTarget => field ??= Tally(dispel => dispel.Target);
 
     /// <summary>Dispel counts keyed by the dispelling ability.</summary>
-    public IReadOnlyDictionary<int, int> BySpell => field ??= Tally(dispel => dispel.SpellId);
+    public Dictionary<int, int> BySpell => field ??= Tally(dispel => dispel.SpellId);
 
     /// <summary>
     /// Which auras were removed and how often, most-removed first, over a slice of the dungeon and
@@ -41,17 +41,17 @@ public sealed partial class DispelTracker : Analyzer
     /// <param name="start">First timestamp to count, inclusive.</param>
     /// <param name="end">Last timestamp to count, inclusive.</param>
     /// <param name="spellId">Count only dispels performed with this ability; <c>null</c> counts every ability.</param>
-    public IReadOnlyList<RemovedAura> RemovedAurasBetween(int start, int end, int? spellId = null)
+    public List<RemovedAura> RemovedAurasBetween(int start, int end, int? spellId = null)
     {
         var counts = new Dictionary<int, (string Name, int Count)>();
         foreach (var dispel in Between(start, end))
         {
             if (spellId is { } id && dispel.SpellId != id) continue;
 
-            var current = counts.GetValueOrDefault(dispel.RemovedSpellId);
+            var (Name, Count) = counts.GetValueOrDefault(dispel.RemovedSpellId);
             counts[dispel.RemovedSpellId] = (
-                string.IsNullOrEmpty(current.Name) ? dispel.RemovedName : current.Name,
-                current.Count + 1);
+                string.IsNullOrEmpty(Name) ? dispel.RemovedName : Name,
+                Count + 1);
         }
 
         return

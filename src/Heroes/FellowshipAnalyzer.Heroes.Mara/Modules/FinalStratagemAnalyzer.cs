@@ -23,7 +23,7 @@ public sealed record FinalStratagemCast
 
     public required int AbilityId { get; init; }
 
-    public IReadOnlyList<StratagemAbilityState> Abilities { get; init; } = [];
+    public List<StratagemAbilityState> Abilities { get; init; } = [];
 
     public int AbilitiesReset => Abilities.Count(state => state.RemainingMs > 0 || !state.WasAvailable);
 
@@ -42,7 +42,7 @@ public sealed partial class FinalStratagemAnalyzer : Analyzer
 {
     private readonly List<FinalStratagemCast> _casts = [];
 
-    public IReadOnlyList<FinalStratagemCast> Casts => _casts;
+    public List<FinalStratagemCast> Casts => _casts;
 
     public int CooldownRecoveredMs => _casts.Sum(cast => cast.CooldownRecoveredMs);
 

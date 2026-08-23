@@ -34,7 +34,7 @@ public sealed partial class GuileAnalyzer : Analyzer
     private int _queensFangStacks;
     private int _arachnidAssaultStacks;
 
-    public IReadOnlyList<GuileWindow> Windows => field ??= Build();
+    public List<GuileWindow> Windows => field ??= Build();
 
     public int WindowCount => Windows.Count;
 
@@ -73,7 +73,7 @@ public sealed partial class GuileAnalyzer : Analyzer
     }
 
     [On<ApplyBuffEvent>(To = Actor.Player, Spell = nameof(Spells.MalevolenceQueensFang))]
-    private void OnQueensFangStackApplied(ApplyBuffEvent buffEvent) =>
+    private void OnQueensFangStackApplied() =>
         _queensFangStacks = FirstStack();
 
     [On<ApplyBuffStackEvent>(To = Actor.Player, Spell = nameof(Spells.MalevolenceQueensFang))]
@@ -85,11 +85,11 @@ public sealed partial class GuileAnalyzer : Analyzer
         _queensFangStacks = Lost(buffEvent.Stack, _queensFangStacks);
 
     [On<RemoveBuffEvent>(To = Actor.Player, Spell = nameof(Spells.MalevolenceQueensFang))]
-    private void OnQueensFangStacksRemoved(RemoveBuffEvent buffEvent) =>
+    private void OnQueensFangStacksRemoved() =>
         _queensFangStacks = Cleared();
 
     [On<ApplyBuffEvent>(To = Actor.Player, Spell = nameof(Spells.MalevolenceArachnidAssault))]
-    private void OnArachnidStackApplied(ApplyBuffEvent buffEvent) =>
+    private void OnArachnidStackApplied() =>
         _arachnidAssaultStacks = FirstStack();
 
     [On<ApplyBuffStackEvent>(To = Actor.Player, Spell = nameof(Spells.MalevolenceArachnidAssault))]
@@ -101,7 +101,7 @@ public sealed partial class GuileAnalyzer : Analyzer
         _arachnidAssaultStacks = Lost(buffEvent.Stack, _arachnidAssaultStacks);
 
     [On<RemoveBuffEvent>(To = Actor.Player, Spell = nameof(Spells.MalevolenceArachnidAssault))]
-    private void OnArachnidStacksRemoved(RemoveBuffEvent buffEvent) =>
+    private void OnArachnidStacksRemoved() =>
         _arachnidAssaultStacks = Cleared();
 
     private int FirstStack()

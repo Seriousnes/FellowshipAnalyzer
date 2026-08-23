@@ -221,9 +221,9 @@
     [Parameter, EditorRequired] public EventCallback OnClose { get; set; }
     [Parameter, EditorRequired] public TimelineConfig Config { get; set; } = new();
     [Parameter, EditorRequired] public EventCallback<TimelineConfig> OnConfigChanged { get; set; }
-    [Parameter, EditorRequired] public IReadOnlyList<TimelineSpellOption> AvailableAuras { get; set; } = [];
-    [Parameter, EditorRequired] public IReadOnlyList<TimelineSpellOption> AvailableCooldowns { get; set; } = [];
-    [Parameter, EditorRequired] public IReadOnlySet<int> PreconfiguredAuraIds { get; set; } = new HashSet<int>();
+    [Parameter, EditorRequired] public List<TimelineSpellOption> AvailableAuras { get; set; } = [];
+    [Parameter, EditorRequired] public List<TimelineSpellOption> AvailableCooldowns { get; set; } = [];
+    [Parameter, EditorRequired] public HashSet<int> PreconfiguredAuraIds { get; set; } = [];
 
     private enum Tab { Auras, Cooldowns }
     private Tab _activeTab = Tab.Auras;

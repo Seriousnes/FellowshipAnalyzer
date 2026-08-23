@@ -12,10 +12,10 @@ public sealed partial class BlueyAnalyzer : Analyzer
     private double _upliftOnAlly;
     private double _upliftOnSylvie;
 
-    private IReadOnlyList<(int TargetId, int Ms, bool OnSylvie)> Result =>
+    private List<(int TargetId, int Ms, bool OnSylvie)> Result =>
         field ??= BlueyTracker.TimeByHolderBetween(Pull.StartTime, Pull.EndTime);
 
-    public IReadOnlyList<(int TargetId, int Ms, bool OnSylvie)> TimeByHolder => Result;
+    public List<(int TargetId, int Ms, bool OnSylvie)> TimeByHolder => Result;
 
     public int OnAllyMs => Result.Where(entry => !entry.OnSylvie).Sum(entry => entry.Ms);
 

@@ -81,7 +81,7 @@ public sealed class FinalStratagemAnalyzerTests
 
         var cast = analyzer.Casts.ShouldHaveSingleItem();
         var remaining = cast.Abilities.Select(state => state.RemainingMs).ToList();
-        remaining.ShouldBe(remaining.OrderByDescending(value => value).ToList());
+        remaining.ShouldBe([.. remaining.OrderByDescending(value => value)]);
     }
 
     [Fact]

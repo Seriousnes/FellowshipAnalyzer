@@ -93,10 +93,10 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
     /// Set by the host (e.g. Report.razor) before <see cref="Analyze"/> is called, and the source
     /// <see cref="Enemies"/> reads hostility from.
     /// </summary>
-    public IReadOnlyList<ReportActor> Actors { get; set; } = [];
+    public List<ReportActor> Actors { get; set; } = [];
 
     /// <summary>Actor display names keyed by actor id, derived from <see cref="Actors"/>.</summary>
-    public IReadOnlyDictionary<int, string> ActorNames =>
+    public Dictionary<int, string> ActorNames =>
         field ??= Actors.ToDictionary(actor => actor.Id, actor => actor.Name);
 
     /// <summary>
@@ -157,7 +157,7 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
     /// Analyzer instances retained at each <see cref="PullEndEvent"/>, in pull order.
     /// Clamped to <see cref="SelectedPull"/> when one is set.
     /// </summary>
-    public IReadOnlyList<(PullStartEvent Pull, Analyzer Analyzer)> PullAnalyzers =>
+    public List<(PullStartEvent Pull, Analyzer Analyzer)> PullAnalyzers =>
         SelectedPull is null
             ? _pullAnalyzers
             : [.. _pullAnalyzers.Where(entry => ReferenceEquals(entry.Pull, SelectedPull))];
@@ -167,7 +167,7 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
     /// this to compose sections from more than one analyzer surface, probing each pull's
     /// generated nullable accessors for the shape that ran.
     /// </summary>
-    public IReadOnlyList<PullStartEvent> Pulls => _pulls;
+    public List<PullStartEvent> Pulls => _pulls;
 
     /// <summary>
     /// Filters a generated per-surface analyzer stream to <see cref="SelectedPull"/>. Returns the
@@ -175,7 +175,7 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
     /// <see cref="PullAnalyzer{T}.Pull"/> is reference-equal to the selection (diagnostic FA0016
     /// guarantees at most one analyzer per surface per pull). Called by generated surface getters.
     /// </summary>
-    protected IReadOnlyList<PullAnalyzer<T>> ClampToSelectedPull<T>(PullAnalyzerList<T> analyzers)
+    protected List<PullAnalyzer<T>> ClampToSelectedPull<T>(PullAnalyzerList<T> analyzers)
         where T : IAnalyzerSurface
     {
         if (SelectedPull is null) return analyzers;
@@ -356,10 +356,10 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
     }
 
     /// <summary>Runs the full analysis pipeline over <paramref name="events"/> for <paramref name="playerId"/> during <paramref name="dungeon"/>: normalizes the stream, dispatches it through every module and analyzer, and returns the resulting <see cref="HeroAnalysisResult"/>.</summary>
-    public Task<HeroAnalysisResult> Analyze(IReadOnlyList<Event> events, int playerId, ReportDungeon dungeon)
+    public Task<HeroAnalysisResult> Analyze(List<Event> events, int playerId, ReportDungeon dungeon)
         => RunAnalysisAsync(events, playerId, dungeon);
 
-    private async Task<HeroAnalysisResult> RunAnalysisAsync(IReadOnlyList<Event> events, int playerId, ReportDungeon dungeon)
+    private async Task<HeroAnalysisResult> RunAnalysisAsync(List<Event> events, int playerId, ReportDungeon dungeon)
     {
         PlayerId = playerId;
         Dungeon = dungeon;
@@ -445,7 +445,7 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
         {
             GuideComponentType = GuideComponent,
             Statistics = [.. _activeModules.Values
-                    .Select(m => (Module: m, Statistic: m.Statistic))
+                    .Select(m => (Module: m, m.Statistic))
                     .Where(collected => collected.Statistic is not null)
                     .Select(collected => new StatisticEntry(
                         collected.Module,

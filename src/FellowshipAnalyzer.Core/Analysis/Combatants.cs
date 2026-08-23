@@ -20,7 +20,7 @@ public sealed partial class Combatants : Analyzer
     private readonly Dictionary<UnitKey, Combatant> _units = [];
 
     /// <summary>Every tracked unit keyed by <see cref="UnitKey"/>.</summary>
-    public IReadOnlyDictionary<UnitKey, Combatant> Units => _units;
+    public Dictionary<UnitKey, Combatant> Units => _units;
 
     /// <summary>
     /// Seeds the tracked unit set from every roster the report declares and fabricates a prepull buff

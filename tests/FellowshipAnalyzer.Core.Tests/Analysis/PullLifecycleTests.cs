@@ -140,7 +140,7 @@ public sealed partial class PullLifecycleTests
         return new PullTestParser(emitter, provider);
     }
 
-    private static ReportDungeon Dungeon(IReadOnlyList<DungeonPull> pulls)
+    private static ReportDungeon Dungeon(List<DungeonPull> pulls)
         => new(Id: 0, Name: "Dungeon", EncounterId: 0, Kill: null,
             StartTime: 0, EndTime: 1000, Difficulty: null,
             FriendlyPlayers: null, CompletionPercentage: null, InProgress: false,

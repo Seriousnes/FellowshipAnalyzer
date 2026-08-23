@@ -136,7 +136,7 @@ else
 
     private void ClearSelection() => _selectedEvent = null;
 
-    private IReadOnlyList<AnnotatedEvent> FilterToSelectedPull(IReadOnlyList<AnnotatedEvent> events)
+    private List<AnnotatedEvent> FilterToSelectedPull(List<AnnotatedEvent> events)
     {
         var pull = SelectedPull;
         return pull is null
@@ -155,7 +155,7 @@ else
 
     private string FormatMinute(int minuteIndex) => $"{minuteIndex}:00";
 
-    private static DebugAnnotation GetTopAnnotation(IReadOnlyList<DebugAnnotation> annotations) =>
+    private static DebugAnnotation GetTopAnnotation(List<DebugAnnotation> annotations) =>
         annotations.MaxBy(a => a.Priority) ?? annotations[0];
 
     private static string GetTypeName(Event e)
@@ -178,9 +178,9 @@ else
         }
     }
 
-    private sealed record MinuteRow(int MinuteIndex, IReadOnlyList<AnnotatedEvent> Events);
+    private sealed record MinuteRow(int MinuteIndex, List<AnnotatedEvent> Events);
 
-    private IEnumerable<MinuteRow> GroupByMinute(IReadOnlyList<AnnotatedEvent> events)
+    private IEnumerable<MinuteRow> GroupByMinute(List<AnnotatedEvent> events)
     {
         if (events.Count == 0) yield break;
 

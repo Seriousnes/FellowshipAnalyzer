@@ -28,7 +28,7 @@
 
 @code {
     [Parameter, EditorRequired] public SpellbookAbility Ability { get; set; } = null!;
-    [Parameter, EditorRequired] public IReadOnlyList<UpdateSpellUsableEvent> CooldownEvents { get; set; } = [];
+    [Parameter, EditorRequired] public List<UpdateSpellUsableEvent> CooldownEvents { get; set; } = [];
 
     /// <summary>True dungeon start, used as the origin for tooltip timestamps so they stay dungeon-relative.</summary>
     [Parameter, EditorRequired] public int DungeonStartTime { get; set; }
@@ -41,8 +41,8 @@
 
     [Parameter] public double PixelsPerSecond { get; set; } = 60.0;
 
-    private IReadOnlyList<CooldownSegment> _segments = [];
-    private IReadOnlyList<int> _chargeRestoreTimestamps = [];
+    private List<CooldownSegment> _segments = [];
+    private List<int> _chargeRestoreTimestamps = [];
 
     private double TrackWidthPx => ((WindowEnd - WindowStart) / 1000.0) * PixelsPerSecond;
 

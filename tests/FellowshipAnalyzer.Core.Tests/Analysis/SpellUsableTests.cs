@@ -243,17 +243,17 @@ public sealed partial class SpellUsableTests
     [Fact]
     public async Task HasteIncreaseMidCooldown_RescalesAcceleratedSpellOnly()
     {
-        var hasted = await Run([CreateCast(1000, SpellC), CreateCast(1000, SpellA), CreateHasteBuff(3000)]);
+        var (parser, spellUsable, probe) = await Run([CreateCast(1000, SpellC), CreateCast(1000, SpellA), CreateHasteBuff(3000)]);
         var baseline = await Run([CreateCast(1000, SpellC), CreateCast(1000, SpellA)]);
 
         Assert.True(
-            hasted.probe.Updates.Last(e => e.Ability.FSLID == SpellC).ExpectedRechargeTimestamp
+            probe.Updates.Last(e => e.Ability.FSLID == SpellC).ExpectedRechargeTimestamp
             < baseline.probe.Updates.Last(e => e.Ability.FSLID == SpellC).ExpectedRechargeTimestamp,
             "the haste increase should shorten the accelerated spell's remaining cooldown");
 
         Assert.Equal(
             baseline.probe.Updates.Last(e => e.Ability.FSLID == SpellA).ExpectedRechargeTimestamp,
-            hasted.probe.Updates.Last(e => e.Ability.FSLID == SpellA).ExpectedRechargeTimestamp);
+            probe.Updates.Last(e => e.Ability.FSLID == SpellA).ExpectedRechargeTimestamp);
     }
 
     /// <summary>
@@ -458,7 +458,6 @@ public sealed partial class SpellUsableTests
         SourceId = PlayerId,
         TargetId = 11,
         Ability = new Ability { FSLID = spellId, Name = $"Spell {spellId}" },
-        Target = null,
         Channel = new EndChannelEvent(),
     };
 

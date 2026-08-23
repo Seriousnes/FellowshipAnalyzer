@@ -1,0 +1,10 @@
+﻿[*.cs]
+
+# CA1050: Declare types in namespaces
+dotnet_diagnostic.CA1050.severity = error
+
+# CA1822: Mark members as static
+dotnet_diagnostic.CA1822.severity = none
+
+[src/FellowshipAnalyzer.Core/Events/*.cs]
+dotnet_diagnostic.CS8618.severity = none

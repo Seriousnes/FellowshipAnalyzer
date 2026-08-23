@@ -27,7 +27,7 @@ public sealed partial class CullingStrikeAnalyzer : Analyzer
 
     public int ExecutePhaseDurationMs => Result.PhaseDurationMs;
 
-    public IReadOnlyList<CullingStrikeCast> Casts => Result.Casts;
+    public List<CullingStrikeCast> Casts => Result.Casts;
 
     public int TotalCasts => Result.Casts.Count;
 
@@ -35,7 +35,7 @@ public sealed partial class CullingStrikeAnalyzer : Analyzer
 
     public int CastsAboveThreshold => Result.CastsAboveThreshold;
 
-    public IReadOnlyList<CullingStrikeOpportunity> Opportunities => Result.Opportunities;
+    public List<CullingStrikeOpportunity> Opportunities => Result.Opportunities;
 
     public int PromptCasts => Result.Opportunities.Count(opportunity => opportunity.Prompt);
 
@@ -300,11 +300,11 @@ public sealed partial class CullingStrikeAnalyzer : Analyzer
     private record Computed(
         int? PhaseStart,
         int PhaseDurationMs,
-        IReadOnlyList<CullingStrikeCast> Casts,
+        List<CullingStrikeCast> Casts,
         int CastsInPhase,
         int CastsAboveThreshold,
         int UnexplainedAboveThreshold,
-        IReadOnlyList<CullingStrikeOpportunity> Opportunities);
+        List<CullingStrikeOpportunity> Opportunities);
 }
 
 public sealed record CullingStrikeCast(

@@ -8,19 +8,17 @@ namespace FellowshipAnalyzer.Core.Tests.Analysis;
 
 public sealed partial class SpellUsableTests
 {
-    private static IReadOnlyList<int> RestoreTimestamps(UpdateProbeModule probe) =>
-        probe.Updates
+    private static List<int> RestoreTimestamps(UpdateProbeModule probe) =>
+        [.. probe.Updates
             .Where(u => u.Ability.FSLID == SpellB && u.UpdateType == UpdateSpellUsableType.RestoreCharge)
-            .Select(u => u.Timestamp)
-            .ToList();
+            .Select(u => u.Timestamp)];
 
-    private static IReadOnlyList<DebugAnnotation> NoChargeAnnotations(TestCombatLogParser parser) =>
-        parser.GetModule<DebugAnnotations>()!
+    private static List<DebugAnnotation> NoChargeAnnotations(TestCombatLogParser parser) =>
+        [.. parser.GetModule<DebugAnnotations>()!
             .GetAll()
             .SelectMany(m => m.AnnotatedEvents)
             .SelectMany(a => a.Annotations)
-            .Where(a => a.Summary.Contains("no charges available", StringComparison.OrdinalIgnoreCase))
-            .ToList();
+            .Where(a => a.Summary.Contains("no charges available", StringComparison.OrdinalIgnoreCase))];
 
     private static IEnumerable<Event> Fillers(int start, int end, int interval)
     {

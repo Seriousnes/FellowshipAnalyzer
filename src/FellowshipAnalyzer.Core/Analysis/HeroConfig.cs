@@ -12,7 +12,7 @@ public sealed record HeroConfig
     public SupportLevel Support { get; init; } = SupportLevel.None;
 
     /// <summary>People responsible for the hero's analysis.</summary>
-    public IReadOnlyList<Contributor> Maintainers { get; init; } = [];
+    public List<Contributor> Maintainers { get; init; } = [];
 
     /// <summary>Season the analysis is validated against, e.g. <c>"Season 1"</c>.</summary>
     public string? SeasonLabel { get; init; }
@@ -21,7 +21,7 @@ public sealed record HeroConfig
     public string? ExampleReport { get; init; }
 
     /// <summary>The hero's changelog, most-recent-first when rendered.</summary>
-    public IReadOnlyList<ChangelogEntry> Changelog { get; init; } = [];
+    public List<ChangelogEntry> Changelog { get; init; } = [];
 
     /// <summary>The config a hero resolves to when it declares none.</summary>
     public static HeroConfig Unmaintained { get; } = new();

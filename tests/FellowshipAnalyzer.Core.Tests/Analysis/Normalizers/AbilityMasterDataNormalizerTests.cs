@@ -11,10 +11,10 @@ public sealed class AbilityMasterDataNormalizerTests
     private const int PhysicalAbility = 2190;
     private const int MagicEffect = 1_003_005;
 
-    private static AbilityMasterDataNormalizer Normalizer(params Ability[] abilities)
+    private static AbilityMasterDataNormalizer Normalizer(params IEnumerable<Ability> abilities)
     {
         var service = new ReportMasterDataService();
-        service.Load(new ReportMasterData(abilities, []));
+        service.Load(new ReportMasterData([.. abilities], []));
         return new AbilityMasterDataNormalizer(service);
     }
 

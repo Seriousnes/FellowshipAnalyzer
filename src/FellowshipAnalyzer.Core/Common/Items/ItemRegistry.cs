@@ -20,7 +20,7 @@ public static class ItemRegistry
     private static FrozenDictionary<int, Item> _table = BuildTable();
 
     /// <summary>The full set of registered items, keyed by item ID.</summary>
-    public static IReadOnlyDictionary<int, Item> All => _table;
+    public static FrozenDictionary<int, Item> All => _table;
 
     /// <summary>
     /// Gets the item with the given ID.

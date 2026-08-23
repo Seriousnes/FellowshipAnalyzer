@@ -231,7 +231,7 @@ public sealed class ModuleGenerator : IIncrementalGenerator
             if (primaryCtor is not null) break;
         }
 
-        if (primaryCtor is null) return ImmutableArray<LazyAccessorInfo>.Empty;
+        if (primaryCtor is null) return [];
 
         var builder = ImmutableArray.CreateBuilder<LazyAccessorInfo>();
         var existingMemberNames = new HashSet<string>(StringComparer.Ordinal);
@@ -295,7 +295,7 @@ public sealed class ModuleGenerator : IIncrementalGenerator
         {
             foreach (var dep in depTypes)
                 diagnostics.Add(new PendingDiagnostic(DependencyIgnoredDescriptor, location,
-                    ImmutableArray.Create(dep.Name, symbol.Name, "a constructor is declared")));
+                    [dep.Name, symbol.Name, "a constructor is declared"]));
             return (ImmutableArray<UsesDepInfo>.Empty, diagnostics.ToImmutable());
         }
 
@@ -314,7 +314,7 @@ public sealed class ModuleGenerator : IIncrementalGenerator
             if (!usedNames.Add(propName))
             {
                 diagnostics.Add(new PendingDiagnostic(DependencyIgnoredDescriptor, location,
-                    ImmutableArray.Create(dep.Name, symbol.Name, $"a member named '{propName}' already exists")));
+                    [dep.Name, symbol.Name, $"a member named '{propName}' already exists"]));
                 continue;
             }
 
@@ -349,23 +349,27 @@ public sealed class ModuleGenerator : IIncrementalGenerator
         ImmutableArray<PendingDiagnostic>.Builder diagnostics,
         CancellationToken ct)
     {
-        if (method.Parameters.Length != 1)
+        if (method.Parameters.Length > 1)
             return null;
 
-        var paramType = method.Parameters[0].Type;
-        if (paramType is not INamedTypeSymbol paramNamed) return null;
-
+        var takesEvent = method.Parameters.Length == 1;
         string? oneOfTypeFullyQualified = null;
         var oneOfSlotIndex = -1;
-        if (HandlerSignatureRules.IsOneOfParam(paramNamed, out var oneOfType))
+
+        if (takesEvent)
         {
-            if (!HandlerSignatureRules.TryResolveOneOfSlot(oneOfType, eventType, out oneOfSlotIndex, out _))
+            if (method.Parameters[0].Type is not INamedTypeSymbol paramNamed) return null;
+
+            if (HandlerSignatureRules.IsOneOfParam(paramNamed, out var oneOfType))
+            {
+                if (!HandlerSignatureRules.TryResolveOneOfSlot(oneOfType, eventType, out oneOfSlotIndex, out _))
+                    return null;
+                oneOfTypeFullyQualified = ToFullyQualified(oneOfType);
+            }
+            else if (!HandlerSignatureRules.IsCompatibleParam(paramNamed, eventType))
+            {
                 return null;
-            oneOfTypeFullyQualified = ToFullyQualified(oneOfType);
-        }
-        else if (!HandlerSignatureRules.IsCompatibleParam(paramNamed, eventType))
-        {
-            return null;
+            }
         }
 
         var by = GetIntNamedArg(attr, "By");
@@ -378,7 +382,7 @@ public sealed class ModuleGenerator : IIncrementalGenerator
         var extraSpell = ResolveSpellNamedArg(attrSyntax, semanticModel, "ExtraSpell", diagnostics, ct);
         var extraSpells = ResolveSpellArrayNamedArg(attrSyntax, semanticModel, "ExtraSpells", diagnostics, ct);
 
-        var isAsync = IsTaskReturning(method);
+        var returnKind = HandlerSignatureRules.ClassifyReturn(method);
         var implementsAbility = ImplementsInterface(eventType, "IAbilityEvent");
         var implementsExtraAbility = ImplementsInterface(eventType, "IExtraAbilityEvent");
         var implementsHasSource = ImplementsInterface(eventType, "IHasSourceEvent");
@@ -393,11 +397,12 @@ public sealed class ModuleGenerator : IIncrementalGenerator
             Spells: spells,
             ExtraSpell: extraSpell,
             ExtraSpells: extraSpells,
-            IsAsync: isAsync,
+            ReturnKind: returnKind,
             EventImplementsAbility: implementsAbility,
             EventImplementsExtraAbility: implementsExtraAbility,
             EventImplementsHasSource: implementsHasSource,
             EventImplementsHasTarget: implementsHasTarget,
+            TakesEvent: takesEvent,
             OneOfTypeFullyQualified: oneOfTypeFullyQualified,
             OneOfSlotIndex: oneOfSlotIndex);
     }
@@ -442,7 +447,7 @@ public sealed class ModuleGenerator : IIncrementalGenerator
         CancellationToken ct)
     {
         var argSyntax = FindNamedArgSyntax(attrSyntax, name);
-        if (argSyntax is null) return ImmutableArray<int>.Empty;
+        if (argSyntax is null) return [];
 
         IEnumerable<ExpressionSyntax>? elements = argSyntax.Expression switch
         {
@@ -457,8 +462,8 @@ public sealed class ModuleGenerator : IIncrementalGenerator
             diagnostics.Add(new PendingDiagnostic(
                 SpellArgMustBeNameOfDescriptor,
                 argSyntax.Expression.GetLocation(),
-                ImmutableArray.Create(name)));
-            return ImmutableArray<int>.Empty;
+                [name]));
+            return [];
         }
 
         var builder = ImmutableArray.CreateBuilder<int>();
@@ -490,7 +495,7 @@ public sealed class ModuleGenerator : IIncrementalGenerator
             diagnostics.Add(new PendingDiagnostic(
                 SpellArgMustBeNameOfDescriptor,
                 expr.GetLocation(),
-                ImmutableArray.Create(argName)));
+                [argName]));
             return null;
         }
 
@@ -503,7 +508,7 @@ public sealed class ModuleGenerator : IIncrementalGenerator
             diagnostics.Add(new PendingDiagnostic(
                 SpellArgNotRegistryMemberDescriptor,
                 memberAccess.GetLocation(),
-                ImmutableArray.Create(memberAccess.ToString())));
+                [memberAccess.ToString()]));
             return null;
         }
 
@@ -512,7 +517,7 @@ public sealed class ModuleGenerator : IIncrementalGenerator
             diagnostics.Add(new PendingDiagnostic(
                 SpellArgInitializerUnresolvableDescriptor,
                 memberAccess.GetLocation(),
-                ImmutableArray.Create(memberAccess.ToString())));
+                [memberAccess.ToString()]));
             return null;
         }
 
@@ -671,14 +676,7 @@ public sealed class ModuleGenerator : IIncrementalGenerator
             }
             return builder.ToImmutable();
         }
-        return ImmutableArray<int>.Empty;
-    }
-
-    private static bool IsTaskReturning(IMethodSymbol method)
-    {
-        if (method.ReturnsVoid) return false;
-        var rt = method.ReturnType;
-        return rt.Name == "Task" || rt.Name == "ValueTask";
+        return [];
     }
 
     private static bool ImplementsInterface(INamedTypeSymbol type, string interfaceName)
@@ -851,7 +849,11 @@ public sealed class ModuleGenerator : IIncrementalGenerator
             : "e is " + h.EventTypeFullyQualified + " " + local + " && " + string.Join(" && ", conditions);
 
         string argExpression;
-        if (h.OneOfTypeFullyQualified is not null)
+        if (!h.TakesEvent)
+        {
+            argExpression = string.Empty;
+        }
+        else if (h.OneOfTypeFullyQualified is not null)
         {
             argExpression = h.OneOfTypeFullyQualified + ".FromT" + h.OneOfSlotIndex
                 + "((" + h.EventTypeFullyQualified + ")e)";
@@ -863,9 +865,11 @@ public sealed class ModuleGenerator : IIncrementalGenerator
 
         sb.Append(indent).Append("__emitter.Subscribe(this, ");
         sb.Append("(global::System.Func<global::FellowshipAnalyzer.Core.Events.Event, bool>)(e => ").Append(predicate).Append("), ");
-        if (h.IsAsync)
+        if (h.ReturnKind is HandlerReturnKind.Task or HandlerReturnKind.ValueTask)
             sb.Append("(global::System.Func<global::FellowshipAnalyzer.Core.Events.Event, global::System.Threading.Tasks.Task>)(e => ")
-              .Append(h.MethodName).Append("(").Append(argExpression).Append("))");
+              .Append(h.MethodName).Append("(").Append(argExpression).Append(")")
+              .Append(h.ReturnKind == HandlerReturnKind.ValueTask ? ".AsTask()" : string.Empty)
+              .Append(")");
         else
             sb.Append("(global::System.Action<global::FellowshipAnalyzer.Core.Events.Event>)(e => ")
               .Append(h.MethodName).Append("(").Append(argExpression).Append("))");
@@ -907,11 +911,12 @@ public sealed class ModuleGenerator : IIncrementalGenerator
         ImmutableArray<int> Spells,
         int? ExtraSpell,
         ImmutableArray<int> ExtraSpells,
-        bool IsAsync,
+        HandlerReturnKind ReturnKind,
         bool EventImplementsAbility,
         bool EventImplementsExtraAbility,
         bool EventImplementsHasSource,
         bool EventImplementsHasTarget,
+        bool TakesEvent,
         string? OneOfTypeFullyQualified,
         int OneOfSlotIndex)
     {
@@ -923,11 +928,12 @@ public sealed class ModuleGenerator : IIncrementalGenerator
         public ImmutableArray<int> Spells { get; } = Spells;
         public int? ExtraSpell { get; } = ExtraSpell;
         public ImmutableArray<int> ExtraSpells { get; } = ExtraSpells;
-        public bool IsAsync { get; } = IsAsync;
+        public HandlerReturnKind ReturnKind { get; } = ReturnKind;
         public bool EventImplementsAbility { get; } = EventImplementsAbility;
         public bool EventImplementsExtraAbility { get; } = EventImplementsExtraAbility;
         public bool EventImplementsHasSource { get; } = EventImplementsHasSource;
         public bool EventImplementsHasTarget { get; } = EventImplementsHasTarget;
+        public bool TakesEvent { get; } = TakesEvent;
         public string? OneOfTypeFullyQualified { get; } = OneOfTypeFullyQualified;
         public int OneOfSlotIndex { get; } = OneOfSlotIndex;
     }

@@ -21,13 +21,13 @@ public sealed record EventLink
     public required Type LinkingEventType { get; init; }
 
     /// <summary>The abilities a linking event may name. <c>null</c> matches an event of any ability, and an event naming no ability at all.</summary>
-    public IReadOnlyList<FSLID>? LinkingAbilityIds { get; init; }
+    public List<FSLID>? LinkingAbilityIds { get; init; }
 
     /// <summary>The event type that is linked to.</summary>
     public required Type ReferencedEventType { get; init; }
 
     /// <summary>The abilities a referenced event may name. <c>null</c> matches an event of any ability, and an event naming no ability at all.</summary>
-    public IReadOnlyList<FSLID>? ReferencedAbilityIds { get; init; }
+    public List<FSLID>? ReferencedAbilityIds { get; init; }
 
     /// <summary>How far after the linking event a referenced event may be, in milliseconds. Zero links only within the same timestamp.</summary>
     public int ForwardBufferMs { get; init; }

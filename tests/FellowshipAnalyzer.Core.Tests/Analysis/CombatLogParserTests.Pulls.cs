@@ -70,7 +70,7 @@ public sealed partial class CombatLogParserTests
             .Select(c => c.Ability.Id)
             .ToList();
 
-        Assert.Equal(Enumerable.Range(1000, 30).ToList(), ids);
+        Assert.Equal([.. Enumerable.Range(1000, 30)], ids);
     }
 
     private const int DungeonStart = 0;

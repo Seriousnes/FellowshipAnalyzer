@@ -180,7 +180,7 @@
     private string? _expandedPlayerIdStr;
     private bool _byPlayer = false;
 
-    private static readonly IReadOnlyList<ButtonGroupOption<bool>> _viewOptions =
+    private static readonly List<ButtonGroupOption<bool>> _viewOptions =
     [
         new(false, "By Dungeon"),
         new(true, "By Player"),

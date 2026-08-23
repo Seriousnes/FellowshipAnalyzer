@@ -125,7 +125,7 @@ public sealed class FullCombatant : Combatant
     public Item? Weapon => GetSlot(GearSlot.Weapon);
 
     /// <summary>All equipped items, in the order the combatantinfo reported them.</summary>
-    public IReadOnlyList<Item> Gear => Info.Gear;
+    public List<Item> Gear => Info.Gear;
 
     /// <summary>Looks up an equipped item by its item id, or <c>null</c> if no equipped item has that id.</summary>
     public Item? GetItem(int itemId) => _itemById.GetValueOrDefault(itemId);
@@ -134,7 +134,7 @@ public sealed class FullCombatant : Combatant
     public bool HasItem(int itemId) => _itemById.ContainsKey(itemId);
 
     /// <summary>The talents the player had selected, as recorded in the combatantinfo.</summary>
-    public IReadOnlyList<TalentInfo> Talents => Info.Talents;
+    public List<TalentInfo> Talents => Info.Talents;
 
     /// <summary>
     /// True when the player has the talent with the given native id. Combat logs store talent ids in
@@ -143,10 +143,10 @@ public sealed class FullCombatant : Combatant
     public bool HasTalent(int talentId) => Info.Talents.Any(t => new FSLID(t.Id).NativeId == talentId);
 
     /// <summary>Buffs and debuffs active on the player at combatantinfo time.</summary>
-    public IReadOnlyList<Aura> Auras => Info.Auras;
+    public List<Aura> Auras => Info.Auras;
 
     /// <summary>The player's unlocked weapon tree traits and their point allocations.</summary>
-    public IReadOnlyList<WeaponTrait> WeaponTraits => Info.WeaponTraits;
+    public List<WeaponTrait> WeaponTraits => Info.WeaponTraits;
 
     /// <summary>Every blessing slotted into equipped gear, across all slots.</summary>
     public IEnumerable<ItemBlessing> Blessings => Info.Gear.SelectMany(item => item.Blessings);

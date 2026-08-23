@@ -43,10 +43,10 @@ public sealed partial class ResurgentWindsTracker : Analyzer
     private void OnHighwindBeginCast(BeginCastEvent e) => _beginCasts.Add(e.Timestamp);
 
     [On<ApplyBuffEvent>(To = Actor.Player, Spell = nameof(Spells.ResurgentWindsBuff))]
-    private void OnProcApplied(ApplyBuffEvent e) => ProcsGained++;
+    private void OnProcApplied() => ProcsGained++;
 
     [On<ApplyBuffStackEvent>(To = Actor.Player, Spell = nameof(Spells.ResurgentWindsBuff))]
-    private void OnProcStackApplied(ApplyBuffStackEvent e) => ProcsGained++;
+    private void OnProcStackApplied() => ProcsGained++;
 
     [On<RemoveBuffEvent>(To = Actor.Player, Spell = nameof(Spells.ResurgentWindsBuff))]
     private void OnProcRemoved(RemoveBuffEvent e) => _procRemovals.Add(e.Timestamp);

@@ -14,7 +14,7 @@ public sealed partial class ToughnessAnalyzer : Analyzer
 
     public int MeasuredMs => Bands.MeasuredMs;
 
-    public IReadOnlyDictionary<ToughnessBand, int> BandMs => Bands.BandMs;
+    public Dictionary<ToughnessBand, int> BandMs => Bands.BandMs;
 
     public int AtMaximumMs => Bands.AtMaximumMs;
 

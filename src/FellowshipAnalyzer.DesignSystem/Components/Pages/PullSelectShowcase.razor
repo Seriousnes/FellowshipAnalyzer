@@ -26,7 +26,7 @@
 @code {
     private const int _dungeonStart = 600_000;
 
-    private static readonly IReadOnlyList<PullStartEvent> _pulls =
+    private static readonly List<PullStartEvent> _pulls =
     [
         MakePull(0, 101, "Gnarled Sentinels", 630_000, 685_000, PullKind.Multi, isBoss: false, kill: true),
         MakePull(1, 102, "Fungal Brood", 690_000, 742_000, PullKind.Multi, isBoss: false, kill: true),
@@ -64,7 +64,7 @@
 @code {
     private const int _dungeonStart = 600_000;
 
-    private static readonly IReadOnlyList<PullStartEvent> _pulls =
+    private static readonly List<PullStartEvent> _pulls =
     [
         new() { Timestamp = 630_000, End = new PullEndEvent { Timestamp = 685_000 }, Index = 0, Id = 101, Name = "Gnarled Sentinels", Targets = PullKind.Multi, IsBoss = false, Kill = true },
         new() { Timestamp = 760_000, End = new PullEndEvent { Timestamp = 845_000 }, Index = 2, Id = 103, Name = "Rotmaw", Targets = PullKind.Single, IsBoss = true, Kill = false },

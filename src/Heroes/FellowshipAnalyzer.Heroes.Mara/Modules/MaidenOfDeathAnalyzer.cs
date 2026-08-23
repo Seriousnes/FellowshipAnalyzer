@@ -36,9 +36,9 @@ public sealed record MaidenOfDeathWindow
 
     public int DurationMs => Math.Max(0, ClosedAt - OpenedAt);
 
-    public IReadOnlyList<MaidenWindowCast> Casts { get; init; } = [];
+    public List<MaidenWindowCast> Casts { get; init; } = [];
 
-    public IReadOnlyList<MaidenWindowGap> Gaps { get; init; } = [];
+    public List<MaidenWindowGap> Gaps { get; init; } = [];
 
     public int GeneratorCasts { get; init; }
 
@@ -98,7 +98,7 @@ public sealed partial class MaidenOfDeathAnalyzer : Analyzer
     private BuffSpan? _openSpan;
     private int _previousMaidenCast = -1;
 
-    public IReadOnlyList<MaidenOfDeathWindow> Windows => field ??= Build();
+    public List<MaidenOfDeathWindow> Windows => field ??= Build();
 
     public int WindowCount => Windows.Count;
 
@@ -125,7 +125,7 @@ public sealed partial class MaidenOfDeathAnalyzer : Analyzer
 
     public int MaidenOfDeathCasts { get; private set; }
 
-    public IReadOnlyList<MaidenOfDeathRecast> MaidenOfDeathRecasts => _recasts;
+    public List<MaidenOfDeathRecast> MaidenOfDeathRecasts => _recasts;
 
     public int TotalHeldMs => _recasts.Sum(recast => recast.HeldMs);
 

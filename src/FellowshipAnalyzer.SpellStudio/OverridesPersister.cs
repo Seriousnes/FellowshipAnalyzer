@@ -21,13 +21,13 @@ public static class OverridesPersister
 
         if (!root.TryGetPropertyValue(scope, out var scopeNode) || scopeNode is not JsonObject scopeObj)
         {
-            scopeObj = new JsonObject();
+            scopeObj = [];
             root[scope] = scopeObj;
         }
 
         if (!scopeObj.TryGetPropertyValue(member, out var memberNode) || memberNode is not JsonObject memberObj)
         {
-            memberObj = new JsonObject();
+            memberObj = [];
             scopeObj[member] = memberObj;
         }
 
@@ -59,7 +59,7 @@ public static class OverridesPersister
     private static JsonObject Load() =>
         File.Exists(SpellData.SourcePaths.Overrides)
             ? JsonNode.Parse(File.ReadAllText(SpellData.SourcePaths.Overrides))!.AsObject()
-            : new JsonObject();
+            : [];
 
     private static void Prune(JsonObject root, string scope, string member)
     {

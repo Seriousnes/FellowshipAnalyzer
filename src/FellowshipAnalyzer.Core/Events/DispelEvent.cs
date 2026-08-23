@@ -14,7 +14,7 @@ public class DispelEvent : Event, IAbilityEvent, IExtraAbilityEvent, IHasSourceE
     /// <summary>
     /// The ability dispelled by <see cref="Ability"/>
     /// </summary>
-    public virtual Ability ExtraAbility { get; set; }
+    public virtual Ability? ExtraAbility { get; set; }
     /// <summary>The <see cref="FSLID"/> of <see cref="ExtraAbility"/>.</summary>
     public virtual FSLID ExtraAbilityGameId { get; set; }
     /// <summary>Whether the dispelled aura was a buff rather than a debuff.</summary>

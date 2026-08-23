@@ -98,7 +98,7 @@ public sealed class HeroManifestGenerator : IIncrementalGenerator
 
         sb.AppendLine("public static class HeroManifest");
         sb.AppendLine("{");
-        sb.AppendLine("    public static IReadOnlyList<HeroManifestEntry> Entries { get; } =");
+        sb.AppendLine("    public static List<HeroManifestEntry> Entries { get; } =");
         sb.AppendLine("    [");
         foreach (var entry in entries)
         {

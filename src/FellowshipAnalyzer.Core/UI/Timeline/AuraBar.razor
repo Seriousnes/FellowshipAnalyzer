@@ -22,7 +22,7 @@
 </div>
 
 @code {
-    [Parameter, EditorRequired] public IReadOnlyList<TrackedBuffEvent> Auras { get; set; } = [];
+    [Parameter, EditorRequired] public List<TrackedBuffEvent> Auras { get; set; } = [];
 
     /// <summary>True dungeon start, used as the origin for tooltip timestamps so they stay dungeon-relative.</summary>
     [Parameter, EditorRequired] public int DungeonStartTime { get; set; }
@@ -39,19 +39,19 @@
     /// When provided, only auras whose spell ID appears in this set are rendered.
     /// When null, all auras are rendered (backward-compatible default).
     /// </summary>
-    [Parameter] public IReadOnlySet<int>? HighlightedSpellIds { get; set; }
+    [Parameter] public HashSet<int>? HighlightedSpellIds { get; set; }
 
     /// <summary>
     /// When provided, only auras whose spell ID appears in this set are rendered.
     /// Takes precedence over <see cref="HighlightedSpellIds"/> when both are set.
     /// </summary>
-    [Parameter] public IReadOnlySet<int>? VisibleAuraIds { get; set; }
+    [Parameter] public HashSet<int>? VisibleAuraIds { get; set; }
 
     /// <summary>
     /// Optional per-spell priority used for vertical level assignment. Lower priority = lower level
     /// (closer to the cast bar). Defaults to 0 for any spell not present in the dictionary.
     /// </summary>
-    [Parameter] public IReadOnlyDictionary<int, int>? AuraPriorities { get; set; }
+    [Parameter] public Dictionary<int, int>? AuraPriorities { get; set; }
 
     private sealed record AuraSegment(
         Spell Spell,
