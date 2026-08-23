@@ -40,8 +40,8 @@ public readonly record struct CooldownGraphSegment(int Start, int End, CooldownG
 /// </summary>
 /// <param name="Ability">The spellbook entry this lane reports on.</param>
 /// <param name="Segments">The lane's segments, in order and covering the window with no gaps.</param>
-/// <param name="CastTimestamps">When each charge-consuming cast landed, in order.</param>
-/// <param name="Casts">Casts that landed inside a pull.</param>
+/// <param name="CastTimestamps">When each charge-consuming cast was made, in order.</param>
+/// <param name="Casts">Casts made inside a pull.</param>
 /// <param name="MaxCasts">
 /// How many casts the analyzed time had room for, from the recharge period observed over this
 /// report and the ability's charge count. <c>null</c> for an ability with no cooldown.
