@@ -110,7 +110,7 @@ public static class CooldownGraphModel
     /// <param name="windowEnd">The end of the render window, in dungeon-relative milliseconds.</param>
     public static List<CooldownGraphLane> Build(
         List<SpellbookAbility> abilities,
-        List<Event> events,
+        IReadOnlyList<Event> events,
         Abilities spellbook,
         int playerId,
         List<PullStartEvent> pulls,
