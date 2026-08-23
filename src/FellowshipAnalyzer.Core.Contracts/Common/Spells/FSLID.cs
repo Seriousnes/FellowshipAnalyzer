@@ -13,9 +13,9 @@ namespace FellowshipAnalyzer.Core.Common.Spells;
 /// <remarks>
 /// <list type="table">
 ///   <listheader><term>Value range</term><description>Kind → NativeId</description></listheader>
-///   <item><term>0 – 999,999</term><description>Ability → Value</description></item>
-///   <item><term>1,000,000 – 1,999,999</term><description>Effect → Value − 1,000,000</description></item>
-///   <item><term>2,000,000 – 2,999,999</term><description>Talent → Value − 2,000,000</description></item>
+///   <item><term>0 - 999,999</term><description>Ability → Value</description></item>
+///   <item><term>1,000,000 - 1,999,999</term><description>Effect → Value − 1,000,000</description></item>
+///   <item><term>2,000,000 - 2,999,999</term><description>Talent → Value − 2,000,000</description></item>
 ///   <item><term>3,000,000 +</term><description>Weapon → Value − 3,000,000</description></item>
 /// </list>
 /// </remarks>

@@ -5,9 +5,9 @@ namespace FellowshipAnalyzer.Core.Analysis;
 /// <summary>
 /// Measures how continuously one debuff stayed on the pull's primary target. Presence windows are
 /// tracked per (TargetId, TargetInstance) by an <see cref="AuraWindowLedger"/>; the primary target is
-/// the one carrying the most covered time, so transient adds never dilute the boss reading.
-/// <see cref="Uptime"/> is the primary target's covered time against the pull duration, and gaps are
-/// the uncovered stretches between that target's windows, so lead-in before the first application
+/// the one with the most active time, so transient adds never dilute the boss reading.
+/// <see cref="Uptime"/> is the primary target's active time against the pull duration, and gaps are
+/// the stretches between that target's windows, so lead-in before the first application
 /// lowers uptime without counting as a gap.
 /// <para>
 /// Derive a per-hero analyzer from this, keep <c>[ForPull]</c> and the surface marker interface on
@@ -23,10 +23,10 @@ public abstract class DebuffUptimeAnalyzer : Analyzer
 
     private Computed Result => field ??= Compute();
 
-    /// <summary>Share of the pull (0-1) the primary target spent carrying the debuff.</summary>
+    /// <summary>Share of the pull (0-1) the debuff was active on the primary target.</summary>
     public double Uptime => Result.Uptime;
 
-    /// <summary>Uncovered stretches between the primary target's windows.</summary>
+    /// <summary>Stretches between the primary target's windows.</summary>
     public int GapCount => Result.GapCount;
 
     /// <summary>Total milliseconds the debuff was off the primary target between its windows.</summary>
@@ -36,8 +36,8 @@ public abstract class DebuffUptimeAnalyzer : Analyzer
     public List<AuraWindow> Windows => Result.Windows;
 
     /// <summary>
-    /// The target every measurement above is taken against - the one carrying the most covered time -
-    /// or <c>null</c> when the debuff never landed. A derived analyzer that tracks something else per
+    /// The target every measurement above is taken against - the one with the most active time -
+    /// or <c>null</c> when the debuff was never applied. A derived analyzer that tracks something else per
     /// target (stack counts, damage) reads this to scope its own state to the same target the uptime
     /// is measured on.
     /// </summary>
@@ -74,8 +74,8 @@ public abstract class DebuffUptimeAnalyzer : Analyzer
                 entry.Key.Instance ?? 0,
                 entry.Value,
                 entry.Value.Sum(window => window.Duration)))
-            .Where(candidate => candidate.Covered > 0)
-            .OrderByDescending(candidate => candidate.Covered)
+            .Where(candidate => candidate.ActiveMs > 0)
+            .OrderByDescending(candidate => candidate.ActiveMs)
             .ThenBy(candidate => candidate.Windows[0].Start)
             .ThenBy(candidate => candidate.TargetId)
             .ThenBy(candidate => candidate.TargetInstance)
@@ -95,7 +95,7 @@ public abstract class DebuffUptimeAnalyzer : Analyzer
         }
 
         var duration = Pull.EndTime - Pull.StartTime;
-        var uptime = duration > 0 ? Math.Min(1d, primary.Covered / (double)duration) : 0d;
+        var uptime = duration > 0 ? Math.Min(1d, primary.ActiveMs / (double)duration) : 0d;
         return new Computed(
             uptime,
             gapCount,
@@ -104,7 +104,7 @@ public abstract class DebuffUptimeAnalyzer : Analyzer
             (primary.TargetId, primary.TargetInstance));
     }
 
-    private sealed record Candidate(int TargetId, int TargetInstance, List<AuraWindow> Windows, int Covered);
+    private sealed record Candidate(int TargetId, int TargetInstance, List<AuraWindow> Windows, int ActiveMs);
 
     private record Computed(
         double Uptime,

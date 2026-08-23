@@ -8,7 +8,7 @@
 <GuideSection Title="Detonate">
     <LeftPanel>
         <p>
-            Cast <SpellLink Spell="Spells.Detonate" /> with as many DoTs active as possible, or press it early
+            Cast <SpellLink Spell="Spells.Detonate" /> with as many DoTs active as possible, or cast it early
             to avoid overcapping on Embers.
         </p>
         @if (HasApocalypticSurge)
@@ -163,7 +163,7 @@
             stats.Add(new OverviewStat(
                 $"{wastedStacks}",
                 "Wasted Surge Stacks",
-                "Apocalyptic Surge stacks that expired unused.",
+                "Apocalyptic Surge stacks expired unused.",
                 wastedStacks == 0 ? QualitativePerformance.Perfect
                     : wastedStacks <= 2 ? QualitativePerformance.Ok
                     : QualitativePerformance.Fail));

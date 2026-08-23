@@ -352,7 +352,7 @@ public sealed partial class StatTrackerCooldownTests
     /// 500ms ends that charge and the remaining 380ms carries onto the next charge, wasting nothing.
     /// </summary>
     [Fact]
-    public async Task FlatReduction_ScaledByAcr_CarriesAcrossChargeBoundary()
+    public async Task FlatReduction_ScaledByAcr_PersistsAcrossChargeBoundary()
     {
         var (_, spellUsable, _) = await Run(emerald: Rank10Power);
         spellUsable.BeginCooldown(SpellB, timestamp: 0);

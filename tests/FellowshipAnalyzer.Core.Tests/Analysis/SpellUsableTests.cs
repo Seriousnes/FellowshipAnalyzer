@@ -372,7 +372,7 @@ public sealed partial class SpellUsableTests
     }
 
     [Fact]
-    public async Task ReduceCooldown_AcrossChargeBoundary_RestoresChargeAndCarriesRemainderToNext()
+    public async Task ReduceCooldown_AcrossChargeBoundary_RestoresChargeAndAppliesRemainderToNext()
     {
         var (_, spellUsable, _) = await Run([]);
 

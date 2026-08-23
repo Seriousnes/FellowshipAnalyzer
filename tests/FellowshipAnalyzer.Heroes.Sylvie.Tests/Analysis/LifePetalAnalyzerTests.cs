@@ -75,7 +75,7 @@ public sealed class LifePetalAnalyzerTests
     }
 
     [Fact]
-    public async Task ANettleboltThatNeverLandedGeneratesNothing()
+    public async Task ANettleboltThatNeverHitGeneratesNothing()
     {
         var parser = await Analyze(Cast(PullStart + 1_000, Spells.Nettlebolt));
 

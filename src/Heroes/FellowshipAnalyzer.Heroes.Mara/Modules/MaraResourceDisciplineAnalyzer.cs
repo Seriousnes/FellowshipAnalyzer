@@ -69,11 +69,11 @@ public sealed partial class MaraResourceDisciplineAnalyzer : Analyzer
 
     public int FinishersMatchingTargetCount => _finishers.Count(finisher => finisher.MatchesTargetCount);
 
-    /// <summary>Queen's Fang casts made at an enemy count Arachnid Assault covers.</summary>
+    /// <summary>Queen's Fang casts at an enemy count Arachnid Assault covers.</summary>
     public int QueenFangAboveTargetThreshold => _finishers.Count(finisher =>
         finisher.AbilityId == Spells.QueenFang.Id && finisher.TargetCountMeasured && !finisher.MatchesTargetCount);
 
-    /// <summary>Arachnid Assault casts made at an enemy count Queen's Fang covers.</summary>
+    /// <summary>Arachnid Assault casts at an enemy count Queen's Fang covers.</summary>
     public int ArachnidAssaultBelowTargetThreshold => _finishers.Count(finisher =>
         finisher.AbilityId == Spells.ArachnidAssault.Id && finisher.TargetCountMeasured && !finisher.MatchesTargetCount);
 

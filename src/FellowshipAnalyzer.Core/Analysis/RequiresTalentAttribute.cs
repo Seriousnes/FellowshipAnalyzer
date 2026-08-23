@@ -11,7 +11,7 @@ namespace FellowshipAnalyzer.Core.Analysis;
 /// <param name="talentId">
 /// The native talent id (the value stored on the hand-written <c>Talents</c> entry, e.g.
 /// <c>ArdeosTalents.RollingFlames</c>). <see cref="FullCombatant.HasTalent(int)"/> decodes the log's
-/// FSL talent encoding internally, so pass the native id here — not the FSL-encoded value.
+/// FSL talent encoding internally, so pass the native id here - not the FSL-encoded value.
 /// </param>
 /// <remarks>
 /// <para>

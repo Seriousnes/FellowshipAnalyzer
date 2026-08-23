@@ -84,8 +84,8 @@ public sealed class DeathTrackerTests
 
     /// <summary>
     /// A block labels part of the damage-reduction figure rather than adding a third bucket, so the
-    /// damage that went missing between what the hits carried and what landed is exactly damage
-    /// reduction plus absorbs. Adding <see cref="IncomingHit.Blocked"/> in would break that identity.
+    /// gap between the hits' raw incoming damage and the damage taken is exactly damage reduction
+    /// plus absorbs. Adding <see cref="IncomingHit.Blocked"/> in would break that identity.
     /// </summary>
     [Fact]
     public async Task Mitigation_AccountsForABlockWithoutDoubleCountingIt()
@@ -187,7 +187,7 @@ public sealed class DeathTrackerTests
     }
 
     [Fact]
-    public async Task HitPointsAtWindowStart_IsNullWhenNoHitCarriedASnapshot()
+    public async Task HitPointsAtWindowStart_IsNullWhenNoHitHadASnapshot()
     {
         var tracker = await Analyze(
         [
@@ -214,13 +214,13 @@ public sealed class DeathTrackerTests
         var longDefensive = Find(death, LongDefensive);
 
         longDefensive.ChargesAvailable.ShouldBe(0);
-        longDefensive.Unpressed.ShouldBeFalse();
+        longDefensive.NotCast.ShouldBeFalse();
         death.AvailableUnused.ShouldNotContain(longDefensive);
         death.AvailableUnused.Select(entry => entry.Ability.PrimarySpell.Id).ShouldContain(ShortDefensive);
     }
 
     [Fact]
-    public async Task Defensive_CastInsideTheWindow_IsReportedPressedRatherThanUnused()
+    public async Task Defensive_CastInsideTheWindow_IsReportedCastRatherThanUnused()
     {
         var tracker = await Analyze(
         [
@@ -229,23 +229,23 @@ public sealed class DeathTrackerTests
         ]);
 
         var death = tracker.Deaths.ShouldHaveSingleItem();
-        var pressed = Find(death, ShortDefensive);
+        var cast = Find(death, ShortDefensive);
 
-        pressed.Pressed.ShouldBeTrue();
-        pressed.CastsInWindow.ShouldBe(1);
-        pressed.LastCastTimestamp.ShouldBe(DeathAt - 3_000);
-        pressed.Unpressed.ShouldBeFalse();
-        death.Pressed.ShouldContain(pressed);
-        death.AvailableUnused.ShouldNotContain(pressed);
+        cast.WasCast.ShouldBeTrue();
+        cast.CastsInWindow.ShouldBe(1);
+        cast.LastCastTimestamp.ShouldBe(DeathAt - 3_000);
+        cast.NotCast.ShouldBeFalse();
+        death.Cast.ShouldContain(cast);
+        death.AvailableUnused.ShouldNotContain(cast);
     }
 
     /// <summary>
-    /// A cast-time ability logs the press carrying <c>Activation</c> and the completion a cast time
+    /// A cast-time ability logs the activation carrying <c>Activation</c> and the completion a cast time
     /// later without it. Both are real events at different timestamps, so counting them both would report
-    /// one press as two. The press is the moment worth reporting.
+    /// one activation as two. The activation is the moment worth reporting.
     /// </summary>
     [Fact]
-    public async Task Defensive_WithACastTime_CountsThePressOnceAtItsStart()
+    public async Task Defensive_WithACastTime_CountsTheCastOnceAtItsStart()
     {
         var tracker = await Analyze(
         [
@@ -254,18 +254,18 @@ public sealed class DeathTrackerTests
             Death(DeathAt),
         ]);
 
-        var pressed = Find(tracker.Deaths.ShouldHaveSingleItem(), ShortDefensive);
+        var cast = Find(tracker.Deaths.ShouldHaveSingleItem(), ShortDefensive);
 
-        pressed.CastsInWindow.ShouldBe(1);
-        pressed.LastCastTimestamp.ShouldBe(DeathAt - 5_000);
+        cast.CastsInWindow.ShouldBe(1);
+        cast.LastCastTimestamp.ShouldBe(DeathAt - 5_000);
     }
 
     /// <summary>
     /// An instant ability logs one cast and it carries <c>Activation</c>, which is how nearly every cast
-    /// in a real log arrives. Treating the flag as a marker to skip would discard almost every press.
+    /// in a real log arrives. Treating the flag as a marker to skip would discard almost every activation.
     /// </summary>
     [Fact]
-    public async Task Defensive_CastInstantly_CountsAsAPress()
+    public async Task Defensive_CastInstantly_IsStillCounted()
     {
         var tracker = await Analyze(
         [
@@ -273,19 +273,19 @@ public sealed class DeathTrackerTests
             Death(DeathAt),
         ]);
 
-        var pressed = Find(tracker.Deaths.ShouldHaveSingleItem(), ShortDefensive);
+        var cast = Find(tracker.Deaths.ShouldHaveSingleItem(), ShortDefensive);
 
-        pressed.CastsInWindow.ShouldBe(1);
-        pressed.Pressed.ShouldBeTrue();
-        pressed.LastCastTimestamp.ShouldBe(DeathAt - 4_000);
+        cast.CastsInWindow.ShouldBe(1);
+        cast.WasCast.ShouldBeTrue();
+        cast.LastCastTimestamp.ShouldBe(DeathAt - 4_000);
     }
 
     /// <summary>
-    /// Folding a completion into a press is bounded by time, so a second press of the same ability long
-    /// after the first is never swallowed by it.
+    /// Folding a completion into an activation is bounded by time, so a second activation of the same
+    /// ability long after the first is never swallowed.
     /// </summary>
     [Fact]
-    public async Task Defensive_CastTwice_CountsBothPresses()
+    public async Task Defensive_CastTwice_CountsBothCasts()
     {
         var tracker = await Analyze(
         [
@@ -294,14 +294,14 @@ public sealed class DeathTrackerTests
             Death(DeathAt),
         ]);
 
-        var pressed = Find(tracker.Deaths.ShouldHaveSingleItem(), ShortDefensive);
+        var cast = Find(tracker.Deaths.ShouldHaveSingleItem(), ShortDefensive);
 
-        pressed.CastsInWindow.ShouldBe(2);
-        pressed.LastCastTimestamp.ShouldBe(DeathAt - 2_000);
+        cast.CastsInWindow.ShouldBe(2);
+        cast.LastCastTimestamp.ShouldBe(DeathAt - 2_000);
     }
 
     [Fact]
-    public async Task Defensive_StillActiveFromAPressBeforeTheWindow_IsReportedActiveRatherThanUnused()
+    public async Task Defensive_StillActiveFromACastBeforeTheWindow_IsReportedActiveRatherThanUnused()
     {
         var tracker = await Analyze(
         [
@@ -315,7 +315,7 @@ public sealed class DeathTrackerTests
 
         active.ActiveAtDeath.ShouldBeTrue();
         active.CastsInWindow.ShouldBe(0);
-        active.Unpressed.ShouldBeFalse();
+        active.NotCast.ShouldBeFalse();
         death.ActiveAtDeath.ShouldContain(active);
     }
 

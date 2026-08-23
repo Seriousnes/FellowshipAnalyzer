@@ -111,7 +111,7 @@ public sealed class PinkFlutterflyTests
         analyzer.AssignedShare.ShouldBe(0.25, 0.001);
         analyzer.Effective.ShouldBe(900);
         analyzer.Overheal.ShouldBe(100);
-        analyzer.HoldersCovered.ShouldBe(1);
+        analyzer.Holders.ShouldBe(1);
         analyzer.AssignmentsOpened.ShouldBe(0);
     }
 
@@ -149,7 +149,7 @@ public sealed class PinkFlutterflyTests
     }
 
     [Fact]
-    public async Task AnAssignmentCarriesTheAbilityThatPlacedIt()
+    public async Task AnAssignmentHasTheAbilityThatPlacedIt()
     {
         var parser = await Analyze(
             ApplyBuff(PullStart + 1_000, Spells.FluttercallHealHot, TankId),
@@ -244,7 +244,7 @@ public sealed class PinkFlutterflyTests
         analyzer.RestoreLifeAssignmentsOpened.ShouldBe(1);
         analyzer.RestoreLifeAssignedMs.ShouldBe(30_000);
         analyzer.AssignmentsOpened.ShouldBe(2);
-        analyzer.HoldersCovered.ShouldBe(2);
+        analyzer.Holders.ShouldBe(2);
         analyzer.AssignedMs.ShouldBe(59_000 + 30_000);
         analyzer.AssignedShare.ShouldBe(89_000 / 240_000d, 0.0001);
     }

@@ -93,7 +93,7 @@
             new OverviewStat(
                 $"{modeledBonus:0.#}%",
                 "Modeled Damage Bonus",
-                $"{EngulfingFlamesEconomyAnalyzer.DevouringFlameBonusPerInstance}% per instance times {averageInstances:0.00} average instances on the primary target. The effect is not logged, so this is modeled from Engulfing Flames windows.",
+                $"{EngulfingFlamesEconomyAnalyzer.DevouringFlameBonusPerInstance}% per instance times {averageInstances:0.00} average instances on the primary target.",
                 PerformanceTiers.FromThresholds(modeledBonus, 9, 6, 3)),
         ];
     }
@@ -113,7 +113,7 @@
             new PerCastStat(
                 $"{window.EngulfingFlamesCastCount}/{EngulfingFlamesEconomyAnalyzer.DoubleApplicationThreshold}",
                 "EF in Setup",
-                $"Engulfing Flames casts made in the setup before Wildfire ({EngulfingFlamesEconomyAnalyzer.DoubleApplicationThreshold} is the target).",
+                $"Engulfing Flames casts in the setup before Wildfire ({EngulfingFlamesEconomyAnalyzer.DoubleApplicationThreshold} is the target).",
                 Performance: perf),
             new PerCastStat(
                 $"{window.ChargesAtReady}/{Spells.EngulfingFlames.Charges}",

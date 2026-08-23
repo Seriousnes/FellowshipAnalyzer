@@ -4,7 +4,7 @@ namespace FellowshipAnalyzer.Core.Analysis.Normalizers;
 
 /// <summary>
 /// Corrects resource values that are scaled by a factor of 100 in Fellowship log data.
-/// For example, Winter Orbs appear as 0–500 in logs but are 0–5 in-game.
+/// For example, Winter Orbs appear as 0-500 in logs but are 0-5 in-game.
 /// Hit points (<see cref="ActorResources.HitPoints"/> / <see cref="ActorResources.MaxHitPoints"/>)
 /// are not scaled and are left unchanged.
 /// A <see cref="ClassResource.Max"/> of <c>-100</c> (no-maximum sentinel) becomes <c>-1</c> after normalization.

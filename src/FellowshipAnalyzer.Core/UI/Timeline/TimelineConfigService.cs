@@ -68,7 +68,7 @@ public sealed class TimelineConfigService(IJSRuntime js)
     /// <list type="bullet">
     /// <item>Pre-configured auras (those the hero declared via <c>TimelineHighlight = true</c>) that
     /// aren't already in <paramref name="stored"/> are added with <c>Visible = true</c> and
-    /// <c>Priority = 0</c>. Non-pre-configured in-log auras are NOT auto-added — they only enter the
+    /// <c>Priority = 0</c>. Non-pre-configured in-log auras are NOT auto-added - they only enter the
     /// config when the user explicitly adds them via the settings modal.</item>
     /// <item>Cooldowns seen in the log but not in <paramref name="stored"/> are added visible by default.
     /// <c>SortOrder</c> is the spellbook entry's <c>TimelineSortIndex</c> when present, otherwise the

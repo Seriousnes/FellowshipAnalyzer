@@ -24,7 +24,7 @@ public sealed class DefensiveAnalyzerTests
             RemoveBuff(PullStart + 13_000, Spells.ShieldsUpBuff),
             DamageTaken(PullStart + 14_000, 100, 1_000, 900));
 
-        analyzer.HitsCovered.ShouldBe(1);
+        analyzer.HitsInWindows.ShouldBe(1);
         analyzer.DamageTakenInWindow.ShouldBe(200);
         analyzer.DamageFacedInWindow.ShouldBe(5_000);
         analyzer.MitigatedInWindow.ShouldBe(4_500);
@@ -123,7 +123,7 @@ public sealed class DefensiveAnalyzerTests
     }
 
     [Fact]
-    public async Task IronWall_PressedAtLowToughness_IsNotCountedAsAHighToughnessUse()
+    public async Task IronWall_UsedAtLowToughness_IsNotCountedAsAHighToughnessUse()
     {
         var analyzer = await IronWall(
             Cast(PullStart + 1_000, Spells.IronWall, toughness: 100),

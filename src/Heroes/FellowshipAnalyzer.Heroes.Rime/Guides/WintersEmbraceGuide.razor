@@ -118,13 +118,13 @@
             new(
                 $"{window.SpenderCount}/{window.ExpectedSpenderCount}",
                 window.SpenderName,
-                $"{window.SpenderName} casts made inside the window, and the number expected.",
+                $"{window.SpenderName} casts inside the window, and the number expected.",
                 Performance: spenderPerformance),
             new(
                 window.OrbsBankedAtOpen is { } orbs ? $"{orbs}" : "n/a",
                 "Orbs Banked",
                 window.OrbsBankedAtOpen is null
-                    ? "This log records no Winter Orb count on the opening Bursting Ice cast."
+                    ? "No Winter Orb count on the opening Bursting Ice cast."
                     : "Winter Orbs held when Bursting Ice was cast.",
                 Performance: OrbPerformance(window)),
             new(

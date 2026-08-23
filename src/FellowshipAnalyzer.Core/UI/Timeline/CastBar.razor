@@ -40,7 +40,7 @@
             }
             else if (item is CancelledCastItem cci)
             {
-                @CastIconDiv(cci.Ability, cci.BeginCast.Ability, Px(cci.BeginCast.Timestamp), extraClass: "cast-bar-cast-cancelled", title: $"Cancelled — {FormatTimestamp(cci.BeginCast.Timestamp)}")
+                @CastIconDiv(cci.Ability, cci.BeginCast.Ability, Px(cci.BeginCast.Timestamp), extraClass: "cast-bar-cast-cancelled", title: $"Cancelled at {FormatTimestamp(cci.BeginCast.Timestamp)}")
             }
             else if (item is ChannelItem chi)
             {

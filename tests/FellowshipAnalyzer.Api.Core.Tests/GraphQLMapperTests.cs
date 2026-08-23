@@ -64,7 +64,7 @@ public class GraphQLMapperTests
         new("Report", 0, 1000, [Dungeon(10), Dungeon(20), Dungeon(30)], targetDungeons, new StubMasterData([], []));
 
     [Fact]
-    public void MapAbility_CarriesIdentityFromMasterData()
+    public void MapAbility_HasIdentityFromMasterData()
     {
         var mapped = new StubAbility(2190, "Attack", "icon.jpg", "1").MapAbility();
 

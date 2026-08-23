@@ -84,7 +84,7 @@ public sealed class SafeHavenAnalyzerTests
 
         analyzer.Casts.ShouldBe(0);
         analyzer.Placements.ShouldBeEmpty();
-        analyzer.CarriedInAllies.ShouldBe(1);
-        analyzer.CarriedInAllyMs.ShouldBe(5_000);
+        analyzer.PrepullAllies.ShouldBe(1);
+        analyzer.PrepullAllyMs.ShouldBe(5_000);
     }
 }

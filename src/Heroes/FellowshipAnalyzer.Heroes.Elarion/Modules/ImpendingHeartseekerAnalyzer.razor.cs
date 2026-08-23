@@ -15,11 +15,11 @@ public sealed partial class ImpendingHeartseekerAnalyzer : Analyzer
 
     public int WastedResets { get; private set; }
 
-    public int LandedResets => Resets - WastedResets;
+    public int RecoveredResets => Resets - WastedResets;
 
     public int RecoveredMs { get; private set; }
 
-    public double AverageRecoveredMs => LandedResets == 0 ? 0d : RecoveredMs / (double)LandedResets;
+    public double AverageRecoveredMs => RecoveredResets == 0 ? 0d : RecoveredMs / (double)RecoveredResets;
 
     public double WastedShare => Resets == 0 ? 0d : WastedResets / (double)Resets;
 

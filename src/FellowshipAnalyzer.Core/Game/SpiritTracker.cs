@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging;
 namespace FellowshipAnalyzer.Core.Game;
 
 /// <summary>
-/// Tracks Spirit — the universal hero resource that powers Spirit of Heroism (ultimate).
+/// Tracks Spirit - the universal hero resource that powers Spirit of Heroism (ultimate).
 /// Every hero generates and consumes Spirit, so this is a shared opt-in module: add
 /// <c>[AddModule&lt;SpiritTracker&gt;]</c> to any hero parser to surface the Resources card.
 /// </summary>

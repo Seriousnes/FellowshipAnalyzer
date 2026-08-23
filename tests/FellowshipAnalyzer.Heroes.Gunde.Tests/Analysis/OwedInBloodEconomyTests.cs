@@ -239,7 +239,7 @@ public sealed class OwedInBloodEconomyTests
     }
 
     [Fact]
-    public async Task Analyze_EmptyPressAfterTheBankWasSeen_StaysAProvenEmptyPress()
+    public async Task Analyze_EmptyCastAfterTheBankWasSeen_StaysAProvenEmptyCast()
     {
         var events = new List<Event>
         {
@@ -258,7 +258,7 @@ public sealed class OwedInBloodEconomyTests
     }
 
     [Fact]
-    public async Task Analyze_PullOpeningWithACarriedBank_FlagsTheConversionUnobserved()
+    public async Task Analyze_PullOpeningWithAPrepullBank_FlagsTheConversionUnobserved()
     {
         var events = new List<Event>
         {
@@ -627,7 +627,7 @@ public sealed class OwedInBloodEconomyTests
     }
 
     [Fact]
-    public async Task Analyze_ConversionCashedByASlaughterInsideOpenWounds_IsTheFullChain()
+    public async Task Analyze_ConversionFollowedByASlaughterInsideOpenWounds_IsTheFullChain()
     {
         var events = new List<Event>
         {
@@ -642,12 +642,12 @@ public sealed class OwedInBloodEconomyTests
         var analyzer = await AnalyzeAsync(events);
 
         var conversion = analyzer.Conversions.ShouldHaveSingleItem();
-        conversion.CashedBySlaughter.ShouldBeTrue();
+        conversion.FollowedBySlaughter.ShouldBeTrue();
         conversion.PairedWithRupture.ShouldBeTrue();
         conversion.SpiritActive.ShouldBeFalse();
         conversion.ShareOfCap.ShouldBe(120d / OwedInBloodEconomyAnalyzer.MaxStacks);
 
-        analyzer.CashedBySlaughter.ShouldBe(1);
+        analyzer.FollowedBySlaughter.ShouldBe(1);
         analyzer.PairedWithRupture.ShouldBe(1);
         analyzer.OverlappedSpirit.ShouldBe(0);
     }
@@ -667,10 +667,10 @@ public sealed class OwedInBloodEconomyTests
         var analyzer = await AnalyzeAsync(events);
 
         var conversion = analyzer.Conversions.ShouldHaveSingleItem();
-        conversion.CashedBySlaughter.ShouldBeTrue();
+        conversion.FollowedBySlaughter.ShouldBeTrue();
         conversion.PairedWithRupture.ShouldBeFalse();
 
-        analyzer.CashedBySlaughter.ShouldBe(1);
+        analyzer.FollowedBySlaughter.ShouldBe(1);
         analyzer.PairedWithRupture.ShouldBe(0);
     }
 
@@ -688,7 +688,7 @@ public sealed class OwedInBloodEconomyTests
         var analyzer = await AnalyzeAsync(events);
 
         var conversion = analyzer.Conversions.ShouldHaveSingleItem();
-        conversion.CashedBySlaughter.ShouldBeFalse();
+        conversion.FollowedBySlaughter.ShouldBeFalse();
         conversion.PairedWithRupture.ShouldBeFalse();
     }
 
@@ -706,7 +706,7 @@ public sealed class OwedInBloodEconomyTests
 
         var analyzer = await AnalyzeAsync(events);
 
-        analyzer.Conversions.ShouldHaveSingleItem().CashedBySlaughter.ShouldBeFalse();
+        analyzer.Conversions.ShouldHaveSingleItem().FollowedBySlaughter.ShouldBeFalse();
     }
 
     [Fact]
@@ -723,7 +723,7 @@ public sealed class OwedInBloodEconomyTests
 
         var analyzer = await AnalyzeAsync(events);
 
-        analyzer.Conversions.ShouldHaveSingleItem().CashedBySlaughter.ShouldBeFalse();
+        analyzer.Conversions.ShouldHaveSingleItem().FollowedBySlaughter.ShouldBeFalse();
     }
 
     [Fact]
@@ -742,7 +742,7 @@ public sealed class OwedInBloodEconomyTests
         var analyzer = await AnalyzeAsync(events);
 
         var conversion = analyzer.Conversions.ShouldHaveSingleItem();
-        conversion.CashedBySlaughter.ShouldBeTrue();
+        conversion.FollowedBySlaughter.ShouldBeTrue();
         conversion.PairedWithRupture.ShouldBeFalse();
     }
 

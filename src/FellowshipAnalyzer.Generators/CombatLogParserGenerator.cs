@@ -281,8 +281,8 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
 
     /// <summary>
     /// Constructor parameters synthesized from <c>[Uses&lt;T&gt;]</c> attributes when a type declares
-    /// no constructor of its own. Mirrors <c>ModuleGenerator.CollectUsesDependencies</c> exactly —
-    /// same fully-qualified ordering, de-duplication, and accessor-name collision skipping — so the
+    /// no constructor of its own. Mirrors <c>ModuleGenerator.CollectUsesDependencies</c> exactly -
+    /// same fully-qualified ordering, de-duplication, and accessor-name collision skipping - so the
     /// argument list emitted here lines up with the primary constructor that generator produces. The
     /// two generators never see each other's output, so both derive the list from the same attributes.
     /// </summary>
@@ -702,7 +702,7 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
     /// Builds the boolean activation expression for a gated module: the <c>[ActiveWhen&lt;T&gt;]</c>
     /// predicate call (if any) followed by one <c>context.SelectedCombatant.HasTalent(id)</c> term
     /// per <c>[RequiresTalent(id)]</c>, joined with <c>&amp;&amp;</c>. With only a predicate this
-    /// returns the bare <c>IsActive</c> call — byte-identical to the pre-<c>[RequiresTalent]</c> output.
+    /// returns the bare <c>IsActive</c> call - byte-identical to the pre-<c>[RequiresTalent]</c> output.
     /// </summary>
     private static string BuildActivationExpression(TypeInfo m)
     {
@@ -1058,9 +1058,9 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
         public ImmutableArray<TypeInfo> OwnModules { get; } = ownModules;
         /// <summary>Modules inherited from the base class chain (collected via GetAttributes on base symbols).</summary>
         public ImmutableArray<TypeInfo> BaseModules { get; } = baseModules;
-        /// <summary>All normalizers (base + own) — used for the GetNormalizerTypes override.</summary>
+        /// <summary>All normalizers (base + own) - used for the GetNormalizerTypes override.</summary>
         public ImmutableArray<TypeInfo> NormalizerTypes { get; } = normalizerTypes;
-        /// <summary>Normalizers declared directly on this class — used for hero-specific DI registration.</summary>
+        /// <summary>Normalizers declared directly on this class - used for hero-specific DI registration.</summary>
         public ImmutableArray<TypeInfo> OwnNormalizerTypes { get; } = ownNormalizerTypes;
         /// <summary>HeroName enum field name from [HeroAnalyzer] attribute (e.g. "Rime"), if present.</summary>
         public string? HeroEnumMember { get; } = heroEnumMember;

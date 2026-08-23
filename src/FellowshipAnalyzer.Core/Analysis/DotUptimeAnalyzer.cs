@@ -6,8 +6,8 @@ namespace FellowshipAnalyzer.Core.Analysis;
 /// <summary>
 /// Measures how continuously each of a set of damage-over-time effects stayed on its primary target,
 /// the multi-effect counterpart to <see cref="DebuffUptimeAnalyzer"/>. Each effect keeps its own
-/// <see cref="AuraWindowLedger"/> and picks its own primary target - the one carrying the most
-/// covered time - so a transient add never dilutes the boss reading and two effects maintained on
+/// <see cref="AuraWindowLedger"/> and picks its own primary target - the one with the most
+/// active time - so a transient add never dilutes the boss reading and two effects maintained on
 /// different targets are both read honestly.
 /// <para>
 /// Derive a per-hero analyzer from this, keep <c>[ForPull]</c> and the surface marker interface on
@@ -128,14 +128,14 @@ public abstract class DotUptimeAnalyzer : Analyzer
 }
 
 /// <summary>
-/// How continuously one effect held on the target that carried it longest.
+/// How continuously one effect was active on its primary target.
 /// </summary>
 /// <param name="Dot">The effect measured.</param>
 /// <param name="PrimaryTarget">The target every figure here is taken against, or <c>null</c> when the
-/// effect never landed.</param>
+/// effect was never applied.</param>
 /// <param name="Windows">That target's windows, in encounter order.</param>
-/// <param name="Uptime">Share of the pull (0-1) the primary target carried the effect.</param>
-/// <param name="GapCount">Uncovered stretches between <paramref name="Windows"/>.</param>
+/// <param name="Uptime">Share of the pull (0-1) the effect was active on the primary target.</param>
+/// <param name="GapCount">Stretches between <paramref name="Windows"/>.</param>
 /// <param name="TotalGapMs">Milliseconds the effect was off the primary target between its windows.</param>
 public sealed record DotUptime(
     Dot Dot,

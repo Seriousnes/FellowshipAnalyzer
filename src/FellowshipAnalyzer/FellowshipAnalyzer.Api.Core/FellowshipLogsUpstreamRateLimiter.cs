@@ -26,7 +26,7 @@ public sealed class FellowshipLogsUpstreamRateLimiter : IDisposable
 
     /// <summary>
     /// Attempts to take a permit without queuing. Over-limit callers get an immediately
-    /// non-acquired lease (carrying <c>RetryAfter</c>) rather than blocking a request thread and an
+    /// non-acquired lease (with <c>RetryAfter</c>) rather than blocking a request thread and an
     /// Azure Function invocation for up to a full window.
     /// </summary>
     public RateLimitLease AttemptAcquire() => _limiter.AttemptAcquire(permitCount: 1);

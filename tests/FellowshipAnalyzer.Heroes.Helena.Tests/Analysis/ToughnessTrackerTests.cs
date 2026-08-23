@@ -84,7 +84,7 @@ public sealed class ToughnessTrackerTests
     }
 
     [Fact]
-    public async Task ABlockLandedAtAFullBar_CountsAsOvercap()
+    public async Task ABlockTakenAtFullToughness_CountsAsOvercap()
     {
         var tracker = await Analyze(
             DamageTaken(PullStart + 1_000, 0, 10_000, 9_000, blocked: 1_000, hitType: HitType.Block, toughness: 1_000),

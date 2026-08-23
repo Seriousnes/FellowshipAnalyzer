@@ -1,6 +1,6 @@
 @page "/accordion"
 
-<PageTitle>Accordion — Design System</PageTitle>
+<PageTitle>Accordion - Design System</PageTitle>
 
 <h1>Accordion</h1>
 <p class="lede">Expandable list. Single-select by default; set <code>AllowMultiple</code> to allow concurrent expansion. Use <code>@@bind-ExpandedId</code> for deep-link control.</p>
@@ -9,15 +9,15 @@
     <Demo>
         <Accordion>
             <AccordionItem Id="one">
-                <Header>The Mire — 3 attempts</Header>
+                <Header>The Mire - 3 attempts</Header>
                 <ChildContent>Players list, role counts, dungeon pills…</ChildContent>
             </AccordionItem>
             <AccordionItem Id="two">
-                <Header>The Vault — 1 kill</Header>
+                <Header>The Vault - 1 kill</Header>
                 <ChildContent>Players list for The Vault.</ChildContent>
             </AccordionItem>
             <AccordionItem Id="three">
-                <Header>Sunken Shrine — 2 wipes</Header>
+                <Header>Sunken Shrine - 2 wipes</Header>
                 <ChildContent>Wipe analysis for Sunken Shrine.</ChildContent>
             </AccordionItem>
         </Accordion>
@@ -56,7 +56,7 @@
 </CodeExample>
 
 <CodeExample Title="Controlled"
-             Description="@($"Bind via @@bind-ExpandedId — current: {_expandedId ?? "(none)"}")"
+             Description="@($"Bind via @@bind-ExpandedId - current: {_expandedId ?? "(none)"}")"
              Code="@_controlledCode">
     <Demo>
         <Accordion @bind-ExpandedId="_expandedId">
@@ -72,11 +72,11 @@
     private const string _singleCode = """
 <Accordion>
     <AccordionItem Id="one">
-        <Header>The Mire — 3 attempts</Header>
+        <Header>The Mire - 3 attempts</Header>
         <ChildContent>Players list, role counts, dungeon pills…</ChildContent>
     </AccordionItem>
     <AccordionItem Id="two">
-        <Header>The Vault — 1 kill</Header>
+        <Header>The Vault - 1 kill</Header>
         <ChildContent>Players list for The Vault.</ChildContent>
     </AccordionItem>
 </Accordion>

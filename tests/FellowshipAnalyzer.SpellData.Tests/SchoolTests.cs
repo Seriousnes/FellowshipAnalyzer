@@ -45,7 +45,7 @@ public partial class SchoolTests
         Should.Throw<InvalidOperationException>(() => Schools.FromExport(["Chaos / Void"]));
 
     [Fact]
-    public void Export_CarriesSchoolOnAbilitiesAndEffects()
+    public void Export_HasSchoolOnAbilitiesAndEffects()
     {
         var export = ExportSource.Load(SourcePaths.Entities, SourcePaths.Settings);
 

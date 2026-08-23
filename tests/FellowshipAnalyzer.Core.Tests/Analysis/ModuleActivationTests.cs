@@ -15,7 +15,7 @@ namespace FellowshipAnalyzer.Core.Tests.Analysis;
 /// <c>IsModuleActive</c> override, and that <see cref="BeforeAttribute{TOther}"/> /
 /// <see cref="AfterAttribute{TOther}"/> reorder the generated <c>GetModuleTypes</c> output.
 /// Tests bypass <see cref="CombatLogParser.Analyze"/> so the base-module DI graph isn't
-/// required — we only need to inspect the generator's emission.
+/// required - we only need to inspect the generator's emission.
 /// </summary>
 public sealed class ModuleActivationTests
 {

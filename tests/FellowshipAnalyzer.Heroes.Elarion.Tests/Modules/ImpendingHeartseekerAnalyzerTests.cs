@@ -60,7 +60,7 @@ public sealed class ImpendingHeartseekerAnalyzerTests
             ApplyBuff(6_000));
 
         tracker.Resets.ShouldBe(1);
-        tracker.LandedResets.ShouldBe(1);
+        tracker.RecoveredResets.ShouldBe(1);
         tracker.WastedResets.ShouldBe(0);
         tracker.RecoveredMs.ShouldBe(BarrageCooldownMs - 5_000);
         tracker.AverageRecoveredMs.ShouldBe(BarrageCooldownMs - 5_000);
@@ -93,7 +93,7 @@ public sealed class ImpendingHeartseekerAnalyzerTests
 
         tracker.Resets.ShouldBe(1);
         tracker.WastedResets.ShouldBe(1);
-        tracker.LandedResets.ShouldBe(0);
+        tracker.RecoveredResets.ShouldBe(0);
         tracker.RecoveredMs.ShouldBe(0);
         tracker.AverageRecoveredMs.ShouldBe(0);
         tracker.WastedShare.ShouldBe(1d);

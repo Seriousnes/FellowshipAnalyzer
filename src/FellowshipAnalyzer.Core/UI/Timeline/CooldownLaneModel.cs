@@ -16,7 +16,7 @@ public readonly record struct CooldownSegment(int Start, int End, int IconAt, bo
 /// <see cref="UpdateSpellUsableType.EndCooldown"/>. The bar end is never taken from
 /// <see cref="UpdateSpellUsableEvent.ExpectedRechargeTimestamp"/>, because dynamic cooldown
 /// reductions (e.g. Rolling Flames) shorten the real recharge without restating that field, so a
-/// spell that recharges in 5s would otherwise render a stale 20s bar with a restore landing mid-bar.
+/// spell that recharges in 5s would otherwise render a stale 20s bar with a restore arriving mid-bar.
 /// <para>
 /// Every emitted element is then clipped to <c>[windowStart, windowEnd]</c>: a segment straddling an
 /// edge is trimmed to it, a segment wholly outside the window is dropped, a cast icon whose timestamp

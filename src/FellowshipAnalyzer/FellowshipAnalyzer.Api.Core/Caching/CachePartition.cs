@@ -13,7 +13,7 @@ public enum CachePartition
     GameData,
 
     /// <summary>
-    /// Report metadata — <see cref="FellowshipAnalyzer.Core.FellowshipLogs.AnalysisPreload"/>
+    /// Report metadata - <see cref="FellowshipAnalyzer.Core.FellowshipLogs.AnalysisPreload"/>
     /// and <see cref="FellowshipAnalyzer.Core.FellowshipLogs.CharacterReports"/>.
     /// Maps to the <c>metadata</c> container (Hot tier).
     /// </summary>

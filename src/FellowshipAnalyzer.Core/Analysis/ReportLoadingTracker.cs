@@ -5,7 +5,7 @@ namespace FellowshipAnalyzer.Core.Analysis;
 
 /// <summary>
 /// Tracks granular loading progress during report fetching and analysis.
-/// Registered as a scoped DI service — one instance per Blazor circuit.
+/// Registered as a scoped DI service - one instance per Blazor circuit.
 /// Call <see cref="Reset"/> before each report load.
 /// Subscribe to <see cref="OnChanged"/> to react to state updates (e.g. trigger a re-render).
 /// </summary>
@@ -117,7 +117,7 @@ public sealed class ReportLoadingTracker
     }
 
     /// <summary>
-    /// Returns the sub-progress (0–1) for a step that is currently in <see cref="StepState.Loading"/>.
+    /// Returns the sub-progress (0-1) for a step that is currently in <see cref="StepState.Loading"/>.
     /// Returns 0 for Waiting, 1 for Ok.
     /// </summary>
     public double DeserializeSubProgress => _deserializeState switch
@@ -128,7 +128,7 @@ public sealed class ReportLoadingTracker
     };
 
     /// <summary>
-    /// Returns the sub-progress (0–1) for normalizer execution.
+    /// Returns the sub-progress (0-1) for normalizer execution.
     /// </summary>
     public double NormalizeSubProgress => _normalizeState switch
     {
@@ -138,7 +138,7 @@ public sealed class ReportLoadingTracker
     };
 
     /// <summary>
-    /// Returns the sub-progress (0–1) for event analysis.
+    /// Returns the sub-progress (0-1) for event analysis.
     /// </summary>
     public double AnalyzeSubProgress => _analyzeState switch
     {
@@ -148,7 +148,7 @@ public sealed class ReportLoadingTracker
     };
 
     /// <summary>
-    /// Overall loading progress, 0–1.
+    /// Overall loading progress, 0-1.
     /// Each of the 5 steps contributes 20%; Normalize and Analyze use sub-progress while in progress.
     /// </summary>
     public double Progress

@@ -14,7 +14,7 @@ namespace FellowshipAnalyzer.Core.UI.Guides;
 public partial class CheckLabel : OneOfBase<Spell, string, RenderFragment>;
 
 /// <summary>
-/// One line of a <see cref="Checklist"/>: something was there or it was missing, optionally carrying
+/// One line of a <see cref="Checklist"/>: something was there or it was missing, optionally with
 /// how many of it there were.
 /// </summary>
 public sealed record CheckItem
@@ -37,7 +37,7 @@ public sealed record CheckItem
     /// <summary>What the count means, for example "3 concurrent applications".</summary>
     public string? CountTooltip { get; init; }
 
-    /// <summary>A short trailing qualifier, for example how many enemies carried the aura.</summary>
+    /// <summary>A short trailing qualifier, for example how many enemies had the aura active.</summary>
     public string? Note { get; init; }
 
     /// <summary>

@@ -122,7 +122,7 @@
             return "Rupture, Bloodbound Spirit and Owed in Blood were all cast inside this window.";
 
         if (missing.Count == BurstAnalyzer.BurstWindow.CooldownCount)
-            return "None of the three was cast inside this window - press them inside the next Reign in Blood.";
+            return "None of the three was cast inside this window - cast them inside the next Reign in Blood.";
 
         var held = missing.Count == 1 ? "it" : "them";
         var verb = missing.Count == 1 ? "was" : "were";

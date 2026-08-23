@@ -25,9 +25,9 @@ public sealed partial class SafeHavenAnalyzer : Analyzer
 
     public long OfferedAllyMs => Result.Placements.Sum(placement => (long)placement.Allies * placement.AvailableMs);
 
-    public long CarriedInAllyMs => Result.CarriedInAllyMs;
+    public long PrepullAllyMs => Result.PrepullAllyMs;
 
-    public int CarriedInAllies => Result.CarriedInAllies;
+    public int PrepullAllies => Result.PrepullAllies;
 
     public double HeldShare => OfferedAllyMs > 0 ? AllyMs / (double)OfferedAllyMs : 0;
 
@@ -97,8 +97,8 @@ public sealed partial class SafeHavenAnalyzer : Analyzer
 
     private sealed record Computed(
         List<SafeHavenPlacement> Placements,
-        long CarriedInAllyMs,
-        int CarriedInAllies);
+        long PrepullAllyMs,
+        int PrepullAllies);
 }
 
 public sealed record SafeHavenPlacement(

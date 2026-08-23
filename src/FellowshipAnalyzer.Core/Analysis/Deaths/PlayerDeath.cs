@@ -6,10 +6,10 @@ namespace FellowshipAnalyzer.Core.Analysis.Deaths;
 
 /// <summary>
 /// One death of the analyzed player, with the lead-up window <see cref="DeathTracker"/> captured around
-/// it: every hit the player took, the healing that landed on them, and how each of their defensive and
+/// it: every hit the player took, the healing they received, and how each of their defensive and
 /// healing abilities was placed at the instant they died.
 /// <para>
-/// <see cref="Mitigated"/> is everything the window's hits carried that never landed: damage reduction
+/// <see cref="Mitigated"/> is the damage prevented on the window's hits: damage reduction
 /// plus absorbs. <see cref="Blocked"/> is a labelled share of <see cref="DamageReduction"/>, reported
 /// alongside and never added in.
 /// </para>
@@ -31,10 +31,10 @@ public sealed class PlayerDeath
     /// <summary>The start of the captured window: <see cref="DeathTracker.RecapWindowMs"/> back from <see cref="Timestamp"/>, clamped to the pull's start.</summary>
     public required int WindowStart { get; init; }
 
-    /// <summary>Every hit the player took inside the window, in the order they landed.</summary>
+    /// <summary>Every hit the player took inside the window, in encounter order.</summary>
     public required List<IncomingHit> Hits { get; init; }
 
-    /// <summary>Effective healing that landed on the player inside the window, overheal excluded.</summary>
+    /// <summary>Effective healing the player received inside the window, overheal excluded.</summary>
     public required long HealingReceived { get; init; }
 
     /// <summary>Every defensive and healing ability in the player's spellbook, as each was placed at the death.</summary>
@@ -46,15 +46,15 @@ public sealed class PlayerDeath
     public int WindowDurationMs => Timestamp - WindowStart;
 
     /// <summary>
-    /// The raw incoming damage the window's hits carried, before any mitigation. This is the denominator
+    /// The raw incoming damage of the window's hits, before any mitigation. This is the denominator
     /// <see cref="MitigatedShare"/> measures against rather than a figure worth reading on its own.
     /// </summary>
     public long RawIncoming => Result.Unmitigated;
 
-    /// <summary>The damage that actually landed on the player during the window.</summary>
+    /// <summary>The damage the player took during the window.</summary>
     public long DamageTaken => Result.Taken;
 
-    /// <summary>Damage the window's hits carried that never landed: <see cref="DamageReduction"/> plus <see cref="Absorbed"/>.</summary>
+    /// <summary>Damage prevented on the window's hits: <see cref="DamageReduction"/> plus <see cref="Absorbed"/>.</summary>
     public long Mitigated => Result.DamageReduction + Result.Absorbed;
 
     /// <summary>The damage-reduction portion of <see cref="Mitigated"/>, blocks included.</summary>
@@ -72,35 +72,35 @@ public sealed class PlayerDeath
     /// <summary>How many of <see cref="HitCount"/> came in as a block.</summary>
     public int BlockedHits => Result.BlockedHits;
 
-    /// <summary>Share (0-1) of <see cref="RawIncoming"/> that never landed.</summary>
+    /// <summary>Share (0-1) of <see cref="RawIncoming"/> that was prevented.</summary>
     public double MitigatedShare => RawIncoming > 0 ? Math.Clamp(Mitigated / (double)RawIncoming, 0, 1) : 0;
 
-    /// <summary>Every ability that hit the player during the window, heaviest first by damage that landed.</summary>
+    /// <summary>Every ability that hit the player during the window, heaviest first by damage taken.</summary>
     public List<DamageTakenSource> BySource => Result.Sources;
 
     /// <summary>
-    /// The player's hit points as the window opened, reconstructed from the first hit that carried a
+    /// The player's hit points as the window opened, reconstructed from the first hit with a
     /// snapshot by adding back the damage that hit removed. <c>null</c> when no hit inside the window
-    /// carried one.
+    /// had one.
     /// </summary>
     public long? HitPointsAtWindowStart => Result.HitPointsAtWindowStart;
 
     /// <summary>
     /// The player's maximum hit points, read from the same snapshot <see cref="HitPointsAtWindowStart"/>
     /// was reconstructed from, so the two are always a coherent pair. <c>null</c> when no hit inside the
-    /// window carried a snapshot.
+    /// window had a snapshot.
     /// </summary>
     public long? MaxHitPoints => Result.MaxHitPoints;
 
     /// <summary>Abilities the player cast during the window.</summary>
-    public List<DefensiveReadiness> Pressed => Result.Pressed;
+    public List<DefensiveReadiness> Cast => Result.Cast;
 
     /// <summary>Abilities whose effect was active on the player at the moment they died.</summary>
     public List<DefensiveReadiness> ActiveAtDeath => Result.ActiveAtDeath;
 
     /// <summary>
     /// Abilities that held a charge at the death, were not cast during the window, and had no effect
-    /// active on the player. A log carries no reason an ability went uncast, so this reports availability
+    /// active on the player. The log records no reason an ability was not cast, so this reports availability
     /// and nothing more.
     /// </summary>
     public List<DefensiveReadiness> AvailableUnused => Result.AvailableUnused;
@@ -164,17 +164,17 @@ public sealed class PlayerDeath
             break;
         }
 
-        List<DefensiveReadiness> pressed = [], activeAtDeath = [], availableUnused = [];
+        List<DefensiveReadiness> cast = [], activeAtDeath = [], availableUnused = [];
         foreach (var defensive in Defensives)
         {
-            if (defensive.Pressed) pressed.Add(defensive);
+            if (defensive.WasCast) cast.Add(defensive);
             if (defensive.ActiveAtDeath) activeAtDeath.Add(defensive);
-            if (defensive.Unpressed) availableUnused.Add(defensive);
+            if (defensive.NotCast) availableUnused.Add(defensive);
         }
 
         return new Computed(
             sources, taken, unmitigated, damageReduction, absorbed, blocked, blockedHits,
-            hitPointsAtWindowStart, maxHitPoints, pressed, activeAtDeath, availableUnused);
+            hitPointsAtWindowStart, maxHitPoints, cast, activeAtDeath, availableUnused);
     }
 
     private sealed class SourceCapture
@@ -199,26 +199,26 @@ public sealed class PlayerDeath
         int BlockedHits,
         long? HitPointsAtWindowStart,
         long? MaxHitPoints,
-        List<DefensiveReadiness> Pressed,
+        List<DefensiveReadiness> Cast,
         List<DefensiveReadiness> ActiveAtDeath,
         List<DefensiveReadiness> AvailableUnused);
 }
 
 /// <summary>
-/// One hit the player took, with the log's own accounting of what the hit carried and what reached them.
+/// One hit the player took, with the log's own accounting of its raw incoming damage and what reached them.
 /// </summary>
-/// <param name="Timestamp">When the hit landed.</param>
+/// <param name="Timestamp">When the player took the hit.</param>
 /// <param name="Ability">The ability that dealt it, as resolved from the report's master data.</param>
 /// <param name="SourceId">The actor id that dealt it.</param>
-/// <param name="Amount">The damage that actually landed.</param>
+/// <param name="Amount">The damage taken.</param>
 /// <param name="Unmitigated">The raw incoming damage before any mitigation.</param>
 /// <param name="DamageReduction">The portion stopped by damage reduction, blocks included.</param>
 /// <param name="Absorbed">The portion stopped by absorb shields.</param>
 /// <param name="Blocked">The share of <paramref name="DamageReduction"/> the log attributes to a block.</param>
 /// <param name="HitType">How the log classified the hit.</param>
-/// <param name="HitPointsAfter">The player's hit points once the hit had landed, or <c>null</c> when the hit carried no snapshot.</param>
-/// <param name="MaxHitPoints">The player's maximum hit points at the hit, or <c>null</c> when the hit carried no snapshot.</param>
-/// <param name="AbsorbAfter">The absorb shield left on the player once the hit had landed, or <c>null</c> when the hit carried no snapshot.</param>
+/// <param name="HitPointsAfter">The player's hit points after the hit, or <c>null</c> when the hit has no snapshot.</param>
+/// <param name="MaxHitPoints">The player's maximum hit points at the hit, or <c>null</c> when the hit has no snapshot.</param>
+/// <param name="AbsorbAfter">The absorb shield left on the player after the hit, or <c>null</c> when the hit has no snapshot.</param>
 public sealed record IncomingHit(
     int Timestamp,
     Ability Ability,
@@ -233,7 +233,7 @@ public sealed record IncomingHit(
     long? MaxHitPoints,
     int? AbsorbAfter)
 {
-    /// <summary>Damage this hit carried that never landed.</summary>
+    /// <summary>Damage prevented on this hit.</summary>
     public long Mitigated => DamageReduction + Absorbed;
 
     /// <summary>The curated classification of the ability that dealt this hit, or <c>null</c> when it has not been classified.</summary>
@@ -261,8 +261,8 @@ public sealed record DefensiveReadiness(
     bool ActiveAtDeath)
 {
     /// <summary>Whether the player cast the ability inside the window.</summary>
-    public bool Pressed => CastsInWindow > 0;
+    public bool WasCast => CastsInWindow > 0;
 
     /// <summary>Whether the ability held a charge at the death yet neither was cast in the window nor had an aura active.</summary>
-    public bool Unpressed => CastsInWindow == 0 && !ActiveAtDeath && ChargesAvailable > 0;
+    public bool NotCast => CastsInWindow == 0 && !ActiveAtDeath && ChargesAvailable > 0;
 }

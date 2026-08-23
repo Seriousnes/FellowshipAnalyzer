@@ -106,7 +106,7 @@ public sealed class LingeringConcussionAnalyzerTests
     }
 
     [Fact]
-    public async Task APullTheDebuffNeverLandedIn_ReadsZeroRatherThanThrowing()
+    public async Task APullTheDebuffWasNeverAppliedIn_ReadsZeroRatherThanThrowing()
     {
         var analyzer = await Analyze(Cast(PullStart + 1_000, Spells.ShieldSlam));
 

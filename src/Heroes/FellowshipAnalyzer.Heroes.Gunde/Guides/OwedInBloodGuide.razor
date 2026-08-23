@@ -6,7 +6,7 @@
         <p>
             <SpellLink Spell="Spells.OwedInBlood" /> is key to maximising single target damage. 
             Save Blood Feather stacks to combine with <SpellLink Spell="Spells.Rupture" /> and 
-            <SpellLink Spell="Spells.Slaughter" /> ever time, and save as many as possible for overlapping
+            <SpellLink Spell="Spells.Slaughter" /> every time, and save as many as possible for overlapping
             with <SpellLink Spell="Spells.BloodboundSpirit" />.
         </p>
     </LeftPanel>
@@ -90,7 +90,7 @@
         var decayed = TotalDecayed;
         var accounted = AccountedStacks;
         var cappedMs = TotalCappedMs;
-        var followed = Analyzers.Sum(analyzer => analyzer.CashedBySlaughter);
+        var followed = Analyzers.Sum(analyzer => analyzer.FollowedBySlaughter);
         var paired = Analyzers.Sum(analyzer => analyzer.PairedWithRupture);
         var spirit = Analyzers.Sum(analyzer => analyzer.OverlappedSpirit);
         var average = measured > 0 ? (double)converted / measured : 0d;
@@ -119,7 +119,7 @@
             new OverviewStat(
                 $"{spirit}",
                 "Spirit Overlap",
-                "Conversions made while Bloodbound Spirit was active. Reported as context: the log records nothing about when Spirit was about to become available."),
+                "Damage converted to Rend while Bloodbound Spirit was active."),
             new OverviewStat(
                 $"{decayed}",
                 "Stacks Decayed",
@@ -140,7 +140,7 @@
         new StackedBarSegment("Converted", TotalConverted, PerformanceColors.Good,
             $"Converted: {TotalConverted} stacks"),
         new StackedBarSegment("Decayed", TotalDecayed, PerformanceColors.Fail,
-            $"Decayed: {TotalDecayed} stacks that expired unused"),
+            $"Decayed: {TotalDecayed} stacks expired unused"),
     ];
 
     private IEnumerable<PerCastData> BuildPerCastData() =>
@@ -169,14 +169,14 @@
                 "Whether the Slaughter that followed this conversion was cast inside a Rupture Open Wounds window.",
                 conversion.PairedWithRupture ? QualitativePerformance.Perfect : QualitativePerformance.Fail),
             new(
-                conversion.CashedBySlaughter ? "Yes" : "No",
+                conversion.FollowedBySlaughter ? "Yes" : "No",
                 "Slaughter Followed",
                 $"Whether a Slaughter was cast within {OwedInBloodEconomyAnalyzer.CashWindowMs / 1000}s of this conversion.",
-                conversion.CashedBySlaughter ? QualitativePerformance.Perfect : QualitativePerformance.Fail),
+                conversion.FollowedBySlaughter ? QualitativePerformance.Perfect : QualitativePerformance.Fail),
             new(
                 conversion.SpiritActive ? "Yes" : "No",
                 "Spirit Active",
-                "Whether Bloodbound Spirit was active when this conversion was cast. Reported as context, not scored."),
+                "Whether Bloodbound Spirit was active when this conversion was cast."),
         };
 
         return new PerCastRow
@@ -201,8 +201,8 @@
         if (conversion.PairedWithRupture)
             return "A Slaughter followed inside a Rupture Open Wounds window.";
 
-        if (conversion.CashedBySlaughter)
-            return "A Slaughter followed, but outside any Open Wounds window - press Rupture first so the Slaughter is cast inside one.";
+        if (conversion.FollowedBySlaughter)
+            return "A Slaughter followed, but outside any Open Wounds window - cast Rupture first so the Slaughter is cast inside one.";
 
         return $"No Slaughter followed within {OwedInBloodEconomyAnalyzer.CashWindowMs / 1000}s - hold the conversion until Rupture and Slaughter are ready to follow it.";
     }
@@ -214,17 +214,17 @@
 
         var stacks = conversion.StacksConverted;
         if (stacks == 0)
-            return "No Blood Feather stacks were banked when it was pressed.";
+            return "No Blood Feather stacks were banked when it was cast.";
 
         var share = (int)Math.Round(conversion.ShareOfCap * 100);
         return share >= BankPerfect
             ? $"It converted {stacks} stacks, {share}% of the {OwedInBloodEconomyAnalyzer.MaxStacks} cap."
-            : $"It converted only {stacks} stacks, {share}% of the {OwedInBloodEconomyAnalyzer.MaxStacks} cap - let the feathers accumulate further before pressing it.";
+            : $"It converted only {stacks} stacks, {share}% of the {OwedInBloodEconomyAnalyzer.MaxStacks} cap - let the feathers accumulate further before casting it.";
     }
 
     private static QualitativePerformance ChainTier(OwedInBloodEconomyAnalyzer.OwedInBloodConversion conversion) =>
         conversion.PairedWithRupture ? QualitativePerformance.Perfect
-        : conversion.CashedBySlaughter ? QualitativePerformance.Ok
+        : conversion.FollowedBySlaughter ? QualitativePerformance.Ok
         : QualitativePerformance.Fail;
 
     private static double ShareOfCap(double stacks) => stacks / OwedInBloodEconomyAnalyzer.MaxStacks * 100;

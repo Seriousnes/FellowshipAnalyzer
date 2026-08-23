@@ -19,7 +19,7 @@
     /// <summary>Total dungeon length in milliseconds.</summary>
     [Parameter, EditorRequired] public int DungeonDurationMs { get; set; }
 
-    /// <summary>Horizontal scale factor — pixels rendered per second of dungeon time.</summary>
+    /// <summary>Horizontal scale factor - pixels rendered per second of dungeon time.</summary>
     [Parameter] public double PixelsPerSecond { get; set; } = 60.0;
 
     private double TrackWidthPx => (DungeonDurationMs / 1000.0) * PixelsPerSecond;

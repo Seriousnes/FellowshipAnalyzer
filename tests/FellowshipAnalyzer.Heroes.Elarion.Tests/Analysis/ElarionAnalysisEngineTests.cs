@@ -41,7 +41,7 @@ public sealed class ElarionAnalysisEngineTests
     }
 
     [Fact]
-    public void Registry_CarriesSeason3AbilityFacts()
+    public void Registry_HasSeason3AbilityFacts()
     {
         Spells.CelestialVeil.FSLID.Value.ShouldBe(1302);
         Spells.GrapplingArrow.Charges.ShouldBe(2);

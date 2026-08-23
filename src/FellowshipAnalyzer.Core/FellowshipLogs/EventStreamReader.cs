@@ -17,7 +17,7 @@ public sealed record EventsResultMetadata(bool InProgress, List<EventJsonRange> 
 /// at a time, so the caller can report progress and yield between events.
 /// <para>
 /// The scan resolves each event's concrete type from its <c>type</c> discriminator as it passes over the
-/// object, which lets <see cref="ReadEvent"/> deserialize against the derived type rather than paying for
+/// object, which lets <see cref="ReadEvent"/> deserialize against the derived type rather than incurring
 /// polymorphic dispatch on a base <see cref="Event"/> that would have to find the same discriminator again.
 /// </para>
 /// </summary>
@@ -27,7 +27,7 @@ public static class EventStreamReader
 
     /// <summary>
     /// Reads the payload's <c>inProgress</c> flag and locates every event object in its <c>events</c> array.
-    /// Throws when the payload is malformed, or carries an event whose <c>type</c> has no registered subclass.
+    /// Throws when the payload is malformed, or contains an event whose <c>type</c> has no registered subclass.
     /// </summary>
     public static EventsResultMetadata ReadMetadata(byte[] eventsResultJson, FellowshipAnalyzerJsonContext jsonContext)
     {

@@ -55,7 +55,7 @@
             new OverviewStat(
                 $"{wasted}",
                 "Builders Doubled Up",
-                $"Builders pressed after another builder with no spender between them, or on a window that opened at {MaidenOfDeathAnalyzer.OpeningComboPointLimit} combo points or more.",
+                $"Builders cast after another builder with no spender between them, or on a window that opened at {MaidenOfDeathAnalyzer.OpeningComboPointLimit} combo points or more.",
                 WasteTier(wasted, generators)),
             new OverviewStat(
                 FormatSeconds(idleMs),
@@ -99,7 +99,7 @@
             new PerCastStat(
                 $"{window.WastedGeneratorCasts}",
                 "Builders Doubled Up",
-                $"Builders pressed after another builder with no spender between them, or on a window that opened at {MaidenOfDeathAnalyzer.OpeningComboPointLimit} combo points or more.",
+                $"Builders cast after another builder with no spender between them, or on a window that opened at {MaidenOfDeathAnalyzer.OpeningComboPointLimit} combo points or more.",
                 Performance: WasteTier(window.WastedGeneratorCasts, window.GeneratorCasts)),
             new PerCastStat(
                 FormatSeconds(window.IdleMs),

@@ -66,7 +66,7 @@ public class ApplyBuffStackEvent : BuffEvent, IBuffStackEvent
     public virtual int Stack { get; set; }
 }
 
-/// <summary>Raised when a buff falls off or is removed entirely.</summary>
+/// <summary>Raised when a buff expires or is removed entirely.</summary>
 public class RemoveBuffEvent : BuffEvent
 {
     /// <summary>The absorb shield amount that remained when this buff was removed, if any.</summary>
@@ -112,7 +112,7 @@ public class ApplyDebuffStackEvent : BuffEvent, IBuffStackEvent
     public virtual int Stack { get; set; }
 }
 
-/// <summary>Raised when a debuff falls off or is removed entirely.</summary>
+/// <summary>Raised when a debuff expires or is removed entirely.</summary>
 public class RemoveDebuffEvent : BuffEvent
 {
     /// <summary>The unit that removed the debuff, defaulting to <see cref="DefaultActors.Environment"/> when the source is not a report actor.</summary>

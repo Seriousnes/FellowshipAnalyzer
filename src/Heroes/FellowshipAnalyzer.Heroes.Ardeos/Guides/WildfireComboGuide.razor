@@ -19,7 +19,7 @@
     <RightPanel>
         <CastOverview Title="Window Overview" Stats="@BuildOverviewStats()" />
         <CastDetail Title="Wildfire Windows"
-                    Description="Each window shows the DoTs ticking on the target when Wildfire was cast and the Detonate casts made inside the window."
+                    Description="Each window shows the DoTs ticking on the target when Wildfire was cast and the Detonate casts inside the window."
                     Casts="@BuildPerCastData()" />
     </RightPanel>
 </GuideSection>
@@ -57,7 +57,7 @@
             new OverviewStat(
                 $"{averageDetonate:0.0}",
                 "Avg Detonate Casts",
-                "Average Detonate casts made inside the window."),
+                "Average Detonate casts inside the window."),
         ];
     }
 
@@ -97,7 +97,7 @@
             new PerCastStat(
                 $"{window.DetonateCasts}",
                 "Detonate in Window",
-                $"Detonate casts made inside the window ({WildfireComboAnalyzer.DetonateSpamThreshold} or more is a clean follow-up).",
+                $"Detonate casts inside the window ({WildfireComboAnalyzer.DetonateSpamThreshold} or more is a clean follow-up).",
                 Performance: detonatePerf),
             new PerCastStat(
                 window.HasPyromania ? "Yes" : "No",

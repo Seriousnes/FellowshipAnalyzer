@@ -32,7 +32,7 @@ word list in this file. `DetonateEfficiencyGuide.razor:159` read "Apocalyptic Su
 expiry instead of a free Detonate." A vocabulary pass rewrote it to "stacks that expired without
 making a Detonate free" and left the breach in place, because the breach was never the word. It was
 the clause explaining what Apocalyptic Surge does, which the reader already knew. The correct text is
-**"Apocalyptic Surge stacks that expired unused."** Nine lines above, the same file already said
+**"Apocalyptic Surge stacks expired unused."** Nine lines above, the same file already said
 "expire unused".
 
 ### The surfaces
@@ -95,7 +95,7 @@ The counting test is what catches a qualifier disguised as precision.
 expired before an instant Highwind Arrow was cast". A Resurgent Winds proc has exactly one sink, so
 every spent proc was spent on a Highwind Arrow and every expired proc was not. Naming the sink counted
 nothing. The owner's text is **"procs spent"** and **"procs expired unused"**, with tooltips reading
-"{ProcsConsumed} of {ProcsGained} procs spent." and "Procs that expired unused."
+"{ProcsConsumed} of {ProcsGained} procs spent." and "Procs expired unused."
 
 Name the object only where it narrows the count. "Fury spent on Hammer Storm" is a real measurement,
 because Fury has other spenders. "Procs spent on Highwind Arrow" is not, because there is nothing else
@@ -114,7 +114,7 @@ words.
 | Shape | What the wrong fix looks like | The right fix |
 |---|---|---|
 | The banned word sits inside the mechanic clause, so fixing the word keeps the clause | "where the debuff **is worth** its full 15%" -> "where the debuff **applies** its full 15% reduction" | Delete the clause: "Share of pull time the primary target was at the five-stack cap." |
-| The clause names the resource's only sink, so deleting it looks like leaving the stat undefined | "procs spent **on an instant Highwind Arrow**", "stacks lost to expiry **instead of a free Detonate**" | State the event alone: "procs spent", "stacks that expired unused" |
+| The clause names the resource's only sink, so deleting it looks like leaving the stat undefined | "procs spent **on an instant Highwind Arrow**", "stacks lost to expiry **instead of a free Detonate**" | State the event alone: "procs spent", "stacks expired unused" |
 | The clause states the guaranteed consequence of the event being counted | "Hammer Storms cast inside a Focused Wrath window, **so they were empowered**" | Stop at the condition: "Hammer Storms cast inside a Focused Wrath window." |
 | The surviving sentence reads unfinished, so the mechanic returns as its justification | "Reported as context rather than scored, **because Blood Arc grants more often than Heart Splitter and Grim Carve come back**" | Stop at the measurement: "Reported as context rather than scored, because it cannot reach 100%." Methodology needs no mechanical justification; the reader supplies it. |
 
@@ -141,6 +141,15 @@ beneath it inherits the framing.
 
 **Worked examples here quote files as they stood when the rule was written.** Read the live file before
 assuming an example still matches it, and never treat a file named here as pre-cleared.
+
+### The surface decides the scope
+
+Owner-corrected 2026-08-23: the delete-the-clause move is for stat descriptions and tooltips. A
+LeftPanel directive keeps the mechanic clause that motivates it: "Try to use Executioner's Grin as
+soon as possible, to avoid overwriting any procs." stays whole, because some procs stack and this one
+does not, so the clause carries the reason for the timing. The Defensives, Hold the Line and Veteran
+of War panels were restored in full on the same ruling. Importance-ranking openers ("X is key to
+maximising single target damage") also stay, under the optimality-claims ruling.
 
 ## Rule 2. State what was measured
 
@@ -194,7 +203,12 @@ writes ability tooltips; this codebase writes analysis prose, so plenty of legit
 appear in the export zero times. "unused" is one of them, and it is the blessed replacement in the worked
 example above.
 "fell off" is convicted not by its own zero but by the 22 hits for *expires* against it, describing the
-same event. No competing game word, no conviction on this rule; judge it under rules 1 and 5 instead.
+same event.
+
+Owner-kept exception 2026-08-23: "drop off" for a DoT lapsing on a boss stays (SearingBlazeGuide kept
+both sites); event doc comments still say expires.
+
+No competing game word, no conviction on this rule; judge it under rules 1 and 5 instead.
 
 ## Rule 5. Take the replacement from the code you are editing
 
@@ -218,6 +232,31 @@ mechanic explanation. Read the donor before borrowing from it.
 
 The vocabulary below is a special case of rules 1, 2 and 4, so the escape from a settled word is almost
 never a synonym. Delete the clause, or name the quantity.
+
+## Rule 6. One line, no tails
+
+Owner-stated 2026-08-23. A stat description, tooltip, or doc summary is a single line naming the
+quantity. If it cannot be said in one line, it is too long.
+
+- Blessed shapes: "Per-spell healing to mana efficiency.", "Number of times the DoT was refreshed
+  before expiring.", "The spell's mana efficiency.", "No resource snapshot was observed."
+- Drop reading-note and methodology tails: "Reported as context (rather than scored)", "Context, not
+  a verdict", "so there is nothing to score", "modeled from X windows", "Charges come from the
+  cooldown model". The label, the value and the tier carry the reading.
+- Drop complementary counts ("The other {n} were spent ..."); a second quantity belongs under its own
+  label.
+- Drop superfluous words in labels and members: "Extra Casts", not "Extra Casts Bought"; `Holders`,
+  not `HoldersCovered` or `DistinctHolders`. Redundancy dies: a healing spell's efficiency needs no
+  "healing" in the sentence.
+- An unmeasurable case folds into the nearest existing category rather than getting its own
+  explanation: a stealth Backstab with no poison debuff reads as "no poison was applied", never as a
+  measurement note.
+- A condition clause survives only where it narrows the count: "Damage converted to Rend while
+  Bloodbound Spirit was active" keeps its clause; "procs spent on the only sink" loses the sink.
+- Drop the relative pronoun: "Procs expired unspent.", not "Procs that expired unspent." The
+  participle attaches straight to the noun.
+- Drop "made": "Sunders cast during Avatar of Stone.", not "Sunder casts made during Avatar of
+  Stone." The ability name pluralises and takes the participle directly.
 
 ---
 
@@ -253,9 +292,9 @@ Resolve a site in this order.
    - "how much of the pull each was worth" -> "the uptime of each".
    - "each worth double" -> "counted twice", or name the multiplier.
 
-**`bought` splits on its object.** `bought nothing` and `buys you` are the valuation frame. `bought`
-with a countable, log-observable object names a measurement and is fine: "the casts it bought above the
-threshold", "the free Shield Slams the proc bought".
+**`bought` is banned outright.** Owner-corrected 2026-08-23: the earlier allowance for `bought` with a
+countable object should never have been made. The verb adds nothing over the count; name the count and
+stop. Precedent: the stat label "Extra Casts Bought" became **"Extra Casts"**.
 
 **Ordinary-English "worth" is a different word and stays.** `worth doing`, `worth showing`, `worth
 reporting`, `worth firing`, `worth shading`, `worth publishing`, `worth looking at`, `worth saving it
@@ -286,9 +325,9 @@ imported metaphor for events the game already names.
 |---|---|---|
 | Magnitude after mitigation or overheal | **Taken** / **Effective**, already domain terms here alongside `Overheal` | "Damage that actually landed on the player", `"Landed"` as a stat label |
 | Nothing got through | **prevented**, **mitigated**, **absorbed** | "damage that never landed", "share of RawIncoming that never landed" |
-| A cast or hit inside a window | **cast**, **pressed**, **taken**, **spent**: "casts made inside the window", "each pair was cast together" | "casts that landed inside the window", "each pair landed together" |
+| A cast or hit inside a window | **cast**, **taken**, **spent**: "casts inside the window", "each pair was cast together" | "casts that landed inside the window", "each pair landed together" |
 | An aura arriving | **applied**, matching `ApplyBuffEvent` and `ExecutionersGrinTracker.Reapplications` | "when the buff landed", "the debuff never landed", "landed on a proc already held" |
-| The state at the moment of a press | **cast** / **pressed**: "Nettlebolts cast at full charges", "this Detonate was cast into nothing" | "Nettlebolts that landed at full charges", "this Detonate landed on nothing" |
+| The state at the moment of the cast | **cast**: "Nettlebolts cast at full charges", "this Detonate was cast into nothing" | "Nettlebolts that landed at full charges", "this Detonate landed on nothing" |
 | A resource gain arriving | **arrives**, as `WinterOrbGuide` already says in "the gains that arrived on a full pool" | "before the next gain lands" |
 
 Identifiers move too: `LandedResets` -> `RecoveredResets`, `var landed` -> `var taken`. The word hides
@@ -308,7 +347,7 @@ Widened to every record type the family reaches one, in a mount's flavour text r
 | The thing was there at all | **exists** / **existed** | "no window carried a spender" |
 | Already there at pull start | **already active** for an aura; delete for a resource, since the reader knows it persists between pulls | "carrying Toughness in from before" |
 | An event or record field holds or lacks a value | **with** / **with no**, then name the field, as in `ShieldMasteryAnalyzer.HitsWithoutToughness` | "casts carrying a Focus reading" |
-| A dataset does not record something | name the dataset: **the log records no**, **the data lists no**, the report **shows** | "the log carries no signal" |
+| A dataset does not record something | rendered prose states the absence plainly ("No resource snapshot was observed."); only an internal doc comment names the dataset ("the log records no") | "the log carries no signal" |
 | A window, buff or cast holds N | **granted** (`ChargesGranted`), **made inside the window**, **contained**, or name the count | "the charges it carried" |
 | The unit a companion or assignment is on | **holder**, from `BlueyAnalyzer.Holders` and `BlueyTracker.TimeByHolderBetween` | "whoever was carrying Bluey" |
 | Engineering prose with no game entity in it | **marked with**, **gives**, **with**, introducing no domain word | "a class carrying `[HeroAnalyzer]`" |
@@ -340,6 +379,10 @@ for it.
 
 Leave `standard`, `StandardGcd`, `netstandard` alone.
 
+In window arithmetic, covered time is **active time**, and a stretch between windows needs no
+qualifier ("Stretches between the primary target's windows"). Renames: `HitsCovered` ->
+`HitsInWindows`, the private `Covered` sum -> `ActiveMs`.
+
 ## Resources: name the resource, not its display
 
 Say **maximum Toughness** and **at maximum**, and label reduction steps by the reduction itself: `At
@@ -362,6 +405,18 @@ to full bars" both name the widget with the resource elsewhere in the sentence.
 A pink Flutterfly is **assigned** to an ally, or **unassigned**. Reserve `bank` and `banked` for
 something that genuinely accumulates: Heart Bloom's stored healing, Focus and Fury pools, spell
 charges.
+
+## Press, cast, use, activation
+
+Owner-settled 2026-08-23. "press" leaves prose and identifiers: an ability is **cast**; a surface
+already named for uses (Iron Wall's `Uses`) says **used**; a proc spent by casting something else is
+**used** ("Use it on a finisher"). A cooldown **became available**, never "came up". An ability not
+cast is **not cast**, never "uncast" or "unpressed". Where the two halves of a cast must be
+distinguished, the vocabulary is the model's own: the **activation** (the event carrying
+`CastEvent.Activation`) and the **completion**. Precedent renames: `HoldTheLinePress` ->
+`HoldTheLineCast`, `Pressed`/`Unpressed` -> `WasCast`/`NotCast`, `PlayerDeath.Pressed` -> `Cast`,
+`_pressAwaitingCompletion` -> `_activationAwaitingCompletion`. `aria-pressed` and a literal pointer
+press keep their words.
 
 ## Analyzer surfaces
 

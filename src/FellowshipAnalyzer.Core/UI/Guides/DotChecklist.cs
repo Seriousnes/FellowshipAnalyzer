@@ -14,7 +14,7 @@ public static class DotChecklist
     /// there is one and by the effect itself where several abilities apply it.
     /// </summary>
     /// <param name="coverage">The reading the line reports.</param>
-    /// <param name="note">A short trailing qualifier, for example how many enemies carried it.</param>
+    /// <param name="note">A short trailing qualifier, for example how many enemies had it active.</param>
     public static CheckItem Item(DotCoverage coverage, string? note = null) => new()
     {
         Label = coverage.Dot.Cast ?? coverage.Dot.Effect,

@@ -3,7 +3,7 @@ namespace FellowshipAnalyzer.Api.Core.Caching;
 /// <summary>
 /// Configuration for <see cref="BlobPersistentCache"/>.
 /// Container names must satisfy Azure Blob Storage naming rules
-/// (lowercase letters, digits, hyphens; 3–63 characters).
+/// (lowercase letters, digits, hyphens; 3-63 characters).
 /// </summary>
 public sealed class BlobPersistentCacheOptions
 {

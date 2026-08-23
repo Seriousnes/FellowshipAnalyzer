@@ -36,8 +36,8 @@
                 $"{Decayed}",
                 "Decayed",
                 Generated > 0
-                    ? $"Blood Feathers that expired unused, {decayRate:F0}% of those gained."
-                    : "Blood Feathers that expired unused."),
+                    ? $"Blood Feathers expired unused, {decayRate:F0}% of those gained."
+                    : "Blood Feathers expired unused."),
             new OverviewStat(
                 $"{Current}",
                 "Held at End",
@@ -54,7 +54,7 @@
         new StackedBarSegment("Converted", Spent, PerformanceColors.Good,
             $"Converted: {Spent} feathers"),
         new StackedBarSegment("Decayed", Decayed, PerformanceColors.Fail,
-            $"Decayed: {Decayed} feathers that expired unused"),
+            $"Decayed: {Decayed} feathers expired unused"),
         new StackedBarSegment("Held", Current, PerformanceColors.Neutral,
             $"Held: {Current} feathers banked at the end"),
     ];

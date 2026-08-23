@@ -12,7 +12,7 @@ public sealed class HeroAnalysisResult
     /// <summary>
     /// The Razor component type to render for the Guide tab.
     /// Rendered via DynamicComponent on Report.razor.
-    /// <c>null</c> when the hero has no guide implemented yet — Report.razor
+    /// <c>null</c> when the hero has no guide implemented yet - Report.razor
     /// renders a WIP fallback in that case.
     /// </summary>
     public required Type? GuideComponentType { get; init; }

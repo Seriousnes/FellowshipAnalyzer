@@ -1,12 +1,12 @@
 @page "/spell-value"
 @using FellowshipAnalyzer.Core.Common.Spells.Rime
 
-<PageTitle>SpellValue — Design System</PageTitle>
+<PageTitle>SpellValue - Design System</PageTitle>
 
 <h1>SpellValue / SpellValueText / ValueText</h1>
 <p class="lede">Stat row primitives. <code>SpellValue</code> is the heavy stat block; <code>SpellValueText</code> is the compact spell+value row; <code>ValueText</code> is the spell-less variant.</p>
 
-<CodeExample Title="SpellValue — heavy block with large icon" Code="@_spellValueCode">
+<CodeExample Title="SpellValue - heavy block with large icon" Code="@_spellValueCode">
     <Demo>
         <SpellValue Spell="Spells.IceComet">
             <Value><strong style="font-size: 1.25rem;">12</strong></Value>
@@ -15,7 +15,7 @@
     </Demo>
 </CodeExample>
 
-<CodeExample Title="SpellValueText — compact row" Code="@_spellValueTextCode">
+<CodeExample Title="SpellValueText - compact row" Code="@_spellValueTextCode">
     <Demo>
         <SpellValueText Spell="Spells.FrostBolt">12 casts</SpellValueText>
         <SpellValueText Spell="Spells.GlacialBlast">8 casts • 4 wasted Orbs</SpellValueText>
@@ -23,7 +23,7 @@
     </Demo>
 </CodeExample>
 
-<CodeExample Title="ValueText — non-spell stat" Code="@_valueTextCode">
+<CodeExample Title="ValueText - non-spell stat" Code="@_valueTextCode">
     <Demo>
         <ValueText><Label>Total damage</Label><ChildContent>1,234,567</ChildContent></ValueText>
         <ValueText><Label>Pull duration</Label><ChildContent>4:23</ChildContent></ValueText>

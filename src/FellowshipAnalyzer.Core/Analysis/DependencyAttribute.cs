@@ -4,7 +4,7 @@ namespace FellowshipAnalyzer.Core.Analysis;
 /// Declares a dependency on a sibling module. Applied to a module, analyzer, normalizer, or
 /// resource-tracker class, <c>[Dependency&lt;TDependency&gt;]</c> makes the source generator emit a
 /// primary-constructor parameter <c>Lazy&lt;TDependency&gt;</c> and a cached read-only accessor
-/// property named after <typeparamref name="TDependency"/> — e.g. <c>[Dependency&lt;Haste&gt;]</c> yields
+/// property named after <typeparamref name="TDependency"/> - e.g. <c>[Dependency&lt;Haste&gt;]</c> yields
 /// <c>private Haste Haste =&gt; …;</c>. The dependency resolves per analysis run through the parser's
 /// module cache, exactly as a hand-written <c>Lazy&lt;TDependency&gt;</c> constructor parameter would.
 /// <para>

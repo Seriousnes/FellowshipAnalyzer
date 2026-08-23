@@ -36,7 +36,7 @@ public abstract class BaseCastEvent : Event, IAbilityEvent, IHasSourceWithInstan
 /// <summary>The FellowshipLogs <c>cast</c> event, raised when an ability cast completes successfully.</summary>
 public class CastEvent : BaseCastEvent
 {
-    /// <summary>FellowshipLogs synthetic event — not a real player action.</summary>
+    /// <summary>FellowshipLogs synthetic event - not a real player action.</summary>
     public virtual bool Fake { get; set; }
 
     /// <summary>FellowshipLogs cast-start marker (beginning of a cast with cast time).</summary>

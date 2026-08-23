@@ -30,7 +30,7 @@
             @if (opportunities.Count > 0)
             {
                 <CastDetail Title="Cooldown Opportunities"
-                            Description="Each card is one moment Culling Strike came up inside the execute phase, and what happened next."
+                            Description="Each card is one moment Culling Strike became available inside the execute phase, and what happened next."
                             Casts="@BuildOpportunityRows()" />
             }
 
@@ -79,25 +79,25 @@
         {
             stats.Add(new OverviewStat(
                 $"{prompt}/{opportunities.Count}",
-                "Pressed on Cooldown",
-                $"Times the cooldown came up inside the execute phase and the cast went out within {CullingStrikeAnalyzer.PromptCastGraceMs / 1000d:0.0}s.",
+                "Cast on Cooldown",
+                $"Times the cooldown became available inside the execute phase and the cast went out within {CullingStrikeAnalyzer.PromptCastGraceMs / 1000d:0.0}s.",
                 prompt == opportunities.Count ? QualitativePerformance.Perfect : QualitativePerformance.Ok));
 
             stats.Add(new OverviewStat(
                 $"{heldWithFury}",
                 "Held With Fury",
-                $"Times the cooldown came up inside the execute phase with no Fury reading under {CullingStrikeAnalyzer.FullStrengthFury}, and no cast followed within the {CullingStrikeAnalyzer.PromptCastGraceMs / 1000d:0.0}s grace.",
+                $"Times the cooldown became available inside the execute phase with no Fury reading under {CullingStrikeAnalyzer.FullStrengthFury}, and no cast followed within the {CullingStrikeAnalyzer.PromptCastGraceMs / 1000d:0.0}s grace.",
                 heldWithFury == 0 ? QualitativePerformance.Perfect : QualitativePerformance.Fail));
 
             stats.Add(new OverviewStat(
                 $"{heldWithoutFury}",
                 "Held Without Fury",
-                $"Times the cooldown came up inside the execute phase under {CullingStrikeAnalyzer.FullStrengthFury} Fury and no cast followed within the grace. Reported as context rather than scored."));
+                $"Times the cooldown became available inside the execute phase under {CullingStrikeAnalyzer.FullStrengthFury} Fury and no cast followed within the grace."));
 
             stats.Add(new OverviewStat(
                 $"{idleMs / 1000d:0.0}s",
                 "Time Idle",
-                "Total execute-phase time Culling Strike spent available and unpressed, past the grace allowed for the cast."));
+                "Total execute-phase time Culling Strike spent available and not cast, past the grace allowed for the cast."));
         }
 
         if (unexplained > 0)
@@ -121,12 +121,12 @@
                 : "Executioner's Grin procs this encounter."),
         new OverviewStat(
             $"{grin.SpentAboveThreshold}",
-            "Extra Casts Bought",
-            $"Procs spent on a Culling Strike above {ThresholdLabel}."),
+            "Extra Casts",
+            $"Procs spent above {ThresholdLabel}."),
         new OverviewStat(
             $"{grin.ExpiredUnspent}",
             "Expired Unspent",
-            $"Procs that expired with no Culling Strike cast at all. The other {grin.SpentBelowThreshold} were spent on a Culling Strike at or under {ThresholdLabel}.",
+            "Procs expired unspent.",
             grin.ExpiredUnspent == 0 ? QualitativePerformance.Perfect : QualitativePerformance.Ok),
     ];
 
@@ -153,8 +153,8 @@
                 "Fury at Ready",
                 opportunity.FuryAtReady is { } banked
                     ? banked >= CullingStrikeAnalyzer.FullStrengthFury
-                        ? $"Fury held when the cooldown came up, at or above {CullingStrikeAnalyzer.FullStrengthFury}."
-                        : $"Fury held when the cooldown came up, short of {CullingStrikeAnalyzer.FullStrengthFury}."
+                        ? $"Fury held when the cooldown became available, at or above {CullingStrikeAnalyzer.FullStrengthFury}."
+                        : $"Fury held when the cooldown became available, short of {CullingStrikeAnalyzer.FullStrengthFury}."
                     : "No event at this instant had a Fury reading."),
         };
 
@@ -173,7 +173,7 @@
     private static string SummaryText(CullingStrikeOpportunity opportunity)
     {
         if (opportunity.Prompt)
-            return "Pressed as it came up.";
+            return "Cast as it became available.";
 
         if (opportunity.CastAt is null)
         {
@@ -186,7 +186,7 @@
         }
 
         return opportunity.HadFury
-            ? $"Held {opportunity.HeldMs / 1000d:0.0}s. Press it the moment it comes up."
+            ? $"Held {opportunity.HeldMs / 1000d:0.0}s. Cast it the moment it becomes available."
             : $"Held {opportunity.HeldMs / 1000d:0.0}s at {opportunity.FuryAtReady}% Fury, below {CullingStrikeAnalyzer.FullStrengthFury}.";
     }
 

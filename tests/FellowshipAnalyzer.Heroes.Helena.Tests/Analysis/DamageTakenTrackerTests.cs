@@ -51,7 +51,7 @@ public sealed class DamageTakenTrackerTests
     }
 
     [Fact]
-    public async Task Sources_AreSplitByAbilityAndOrderedByDamageThatLanded()
+    public async Task Sources_AreSplitByAbilityAndOrderedByDamageTaken()
     {
         var tracker = await Analyze(
             DamageTaken(PullStart + 1_000, 100, 1_000, 900),

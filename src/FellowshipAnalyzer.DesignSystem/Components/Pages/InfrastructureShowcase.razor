@@ -1,7 +1,7 @@
 @page "/infrastructure"
 @using FellowshipAnalyzer.Core.Analysis
 
-<PageTitle>Infrastructure components — Design System</PageTitle>
+<PageTitle>Infrastructure components - Design System</PageTitle>
 
 <h1>ReportLoadingScreen, ResourceGraph, SpiritStatistics, SpellTooltipProvider</h1>
 <p class="lede">These components require runtime state (a tracker subscription, a loaded report, JS interop) and are not usefully demoed in isolation. They're documented here for reference.</p>
@@ -10,7 +10,7 @@
              Description="Subscribes to a ReportLoadingTracker and renders the chunked loading bar with per-step status. Drop into a Report layout while loading."
              Code="@_loadingCode">
     <Demo>
-        <p style="color: var(--fa-text-muted);">No live demo — requires a real ReportLoadingTracker subscription.</p>
+        <p style="color: var(--fa-text-muted);">No live demo - requires a real ReportLoadingTracker subscription.</p>
     </Demo>
 </CodeExample>
 
@@ -18,7 +18,7 @@
              Description="ApexCharts line chart showing resource amount over pull time. Inherits ReportComponent so it can read DungeonStartTime from cascading context."
              Code="@_resourceCode">
     <Demo>
-        <p style="color: var(--fa-text-muted);">No live demo — requires a hero analyzer with a ResourceTracker (e.g. SpiritTracker, WinterOrbTracker).</p>
+        <p style="color: var(--fa-text-muted);">No live demo - requires a hero analyzer with a ResourceTracker (e.g. SpiritTracker, WinterOrbTracker).</p>
     </Demo>
 </CodeExample>
 
@@ -26,7 +26,7 @@
              Description="Drop-in statistics card showing the universal Spirit resource graph. Add [AddModule<SpiritTracker>] to any hero parser to surface it."
              Code="@_spiritCode">
     <Demo>
-        <p style="color: var(--fa-text-muted);">No live demo — auto-registered via the statistics collection.</p>
+        <p style="color: var(--fa-text-muted);">No live demo - auto-registered via the statistics collection.</p>
     </Demo>
 </CodeExample>
 
@@ -34,7 +34,7 @@
              Description="Root-level component that initialises the fellows.gg spell tooltip JS module. Mount it once in App.razor."
              Code="@_tooltipCode">
     <Demo>
-        <p style="color: var(--fa-text-muted);">No live demo — sets up JS interop on first render.</p>
+        <p style="color: var(--fa-text-muted);">No live demo - sets up JS interop on first render.</p>
     </Demo>
 </CodeExample>
 

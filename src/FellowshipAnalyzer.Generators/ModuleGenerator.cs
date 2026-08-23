@@ -538,7 +538,7 @@ public sealed class ModuleGenerator : IIncrementalGenerator
     }
 
     /// <summary>
-    /// True when the property's containing type is a spell registry — either it implements
+    /// True when the property's containing type is a spell registry - either it implements
     /// <c>ISpellRegistry</c> directly, or it is the static trigger class decorated with
     /// <c>[GenerateRegistry&lt;ISpellRegistry&gt;]</c>. The trigger class can't implement the
     /// interface itself (static classes can't have interfaces), but its own static
@@ -572,10 +572,10 @@ public sealed class ModuleGenerator : IIncrementalGenerator
     /// <summary>
     /// Reads the spell's runtime FSLID for a registry property. Two paths, in order:
     /// <list type="bullet">
-    /// <item>Metadata path — read the source-generated <c>[SpellId(&lt;fslid&gt;)]</c> attribute
+    /// <item>Metadata path - read the source-generated <c>[SpellId(&lt;fslid&gt;)]</c> attribute
     ///   stamped on the property. Works when the registry lives in a referenced assembly (the
     ///   typical hero-analyzer scenario).</item>
-    /// <item>Syntax path — read the <c>Id =</c> member initializer as an int literal, then apply
+    /// <item>Syntax path - read the <c>Id =</c> member initializer as an int literal, then apply
     ///   the subtype range offset (<see cref="FellowshipAnalyzer.Core.Common.Spells.Effect"/> /
     ///   <c>Talent</c> / <c>Weapon</c>) by property type. Required for same-assembly references
     ///   because source generators do not see each other's output in the same compilation pass.</item>

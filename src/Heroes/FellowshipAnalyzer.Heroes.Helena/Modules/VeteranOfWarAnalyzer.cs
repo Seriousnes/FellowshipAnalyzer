@@ -14,7 +14,7 @@ public sealed partial class VeteranOfWarAnalyzer : Analyzer
     private readonly Dictionary<int, int> _sourceCasts = [];
     private readonly Dictionary<int, int> _castableSince = [];
     private readonly Dictionary<int, int> _idleSince = [];
-    private readonly List<HoldTheLinePress> _holdTheLinePresses = [];
+    private readonly List<HoldTheLineCast> _holdTheLineCasts = [];
 
     private bool _ultimateActive;
     private int _punishingStrikesStacks;
@@ -49,7 +49,7 @@ public sealed partial class VeteranOfWarAnalyzer : Analyzer
     public static List<int> ReductionTargets { get; } =
         [.. Combos.Select(combo => combo.TargetSpellId).Distinct()];
 
-    public List<HoldTheLinePress> HoldTheLinePresses => _holdTheLinePresses;
+    public List<HoldTheLineCast> HoldTheLineCasts => _holdTheLineCasts;
 
     public List<CooldownContribution> Contributions => Result.Contributions;
 
@@ -142,7 +142,7 @@ public sealed partial class VeteranOfWarAnalyzer : Analyzer
             PunishingStrikesCasts++;
         }
 
-        var pressReductions = availability is null ? null : new Dictionary<int, CooldownReductionResult>();
+        var castReductions = availability is null ? null : new Dictionary<int, CooldownReductionResult>();
 
         foreach (var combo in Combos)
         {
@@ -151,7 +151,7 @@ public sealed partial class VeteranOfWarAnalyzer : Analyzer
             var requested = (int)Math.Round(combo.ReductionMs * scaler);
             var reduction = SpellUsable.ReduceCooldown(combo.TargetSpellId, requested, castEvent.Timestamp);
 
-            pressReductions?.Add(combo.TargetSpellId, reduction);
+            castReductions?.Add(combo.TargetSpellId, reduction);
 
             var key = (combo.SourceSpellId, combo.TargetSpellId);
             if (!_contributions.TryGetValue(key, out var contribution))
@@ -163,12 +163,12 @@ public sealed partial class VeteranOfWarAnalyzer : Analyzer
 
         if (availability is null) return;
 
-        _holdTheLinePresses.Add(new HoldTheLinePress(
+        _holdTheLineCasts.Add(new HoldTheLineCast(
             castEvent.Timestamp,
             [.. availability.Select(entry => new HoldTheLineTarget(
                 entry.SpellId,
                 entry.AvailableForMs,
-                pressReductions!.GetValueOrDefault(entry.SpellId)))]));
+                castReductions!.GetValueOrDefault(entry.SpellId)))]));
     }
 
     private List<(int SpellId, int? AvailableForMs)> CaptureHoldTheLineAvailability(int timestamp)
@@ -237,7 +237,7 @@ public sealed partial class VeteranOfWarAnalyzer : Analyzer
         CooldownReductionResult CooldownReduction);
 }
 
-public sealed record HoldTheLinePress(int Timestamp, List<HoldTheLineTarget> Targets);
+public sealed record HoldTheLineCast(int Timestamp, List<HoldTheLineTarget> Targets);
 
 public sealed record HoldTheLineTarget(
     int SpellId,

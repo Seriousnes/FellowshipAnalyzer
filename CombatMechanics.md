@@ -7,7 +7,7 @@
 
 ## Executive Overview
 
-Fellowship uses a World of Warcraft–style stat system built around ratings that convert into percentages with tiered diminishing returns and a unified "Haste" stat that speeds up most time-based mechanics (GCD, casts, ticks, and many cooldowns). [^1][^2] These mechanics can be modeled deterministically for a combat-log analysis app by combining published rating→percentage formulas with empirically verified haste scaling on cooldowns and global cooldown. [^2][^3][^4]
+Fellowship uses a World of Warcraft-style stat system built around ratings that convert into percentages with tiered diminishing returns and a unified "Haste" stat that speeds up most time-based mechanics (GCD, casts, ticks, and many cooldowns). [^1][^2] These mechanics can be modeled deterministically for a combat-log analysis app by combining published rating→percentage formulas with empirically verified haste scaling on cooldowns and global cooldown. [^2][^3][^4]
 
 A robust analyzer needs to: (1) convert rating to post‑DR secondary percentages, (2) derive effective haste (including buffs) for each time segment of the dungeon, and (3) translate that haste into adjusted GCDs, casts, ticks, and cooldown timers while also applying ability‑specific cooldown modifiers. [^2][^5][^6]
 
@@ -142,7 +142,7 @@ As with other secondaries, DR applies only to rating-based Haste; flat Haste per
 
 ### Empirical cooldown scaling formula
 
-Players on the Fellowship subreddit report that, for abilities that scale with Haste, cooldowns are shortened proportionally, with an effective formula equivalent to World of Warcraft or League of Legends–style "ability haste". [^3][^11]
+Players on the Fellowship subreddit report that, for abilities that scale with Haste, cooldowns are shortened proportionally, with an effective formula equivalent to World of Warcraft or League of Legends-style "ability haste". [^3][^11]
 One widely cited explanation is that if a player has H percent Haste, the cooldown is multiplied by 100 ÷ (100 + H), so 100% Haste halves the effective cooldown, and 50% Haste yields about a 33% reduction in cooldown length. [^3]
 
 For example, with 50% Haste, a 30‑second base cooldown would be reduced to roughly 20 seconds, since 30 × 100 ÷ 150 ≈ 20. [^3]

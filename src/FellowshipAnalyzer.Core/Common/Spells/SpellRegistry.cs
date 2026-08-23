@@ -5,7 +5,7 @@ namespace FellowshipAnalyzer.Core.Common.Spells;
 /// <summary>
 /// Central spell lookup table. Delegates to the source-generated <see cref="Spells.All"/>
 /// dictionary, which is built at compile time from every <see cref="ISpellRegistry"/>
-/// implementor in the assembly — no runtime reflection required.
+/// implementor in the assembly - no runtime reflection required.
 /// </summary>
 public static class SpellRegistry
 {

@@ -213,7 +213,7 @@ public sealed class HammerStormAnalyzerTests
     }
 
     [Fact]
-    public async Task Analyze_HammerStorm_TreatsACastThatLandedNoDamageAsAWhiffRatherThanATruncation()
+    public async Task Analyze_HammerStorm_TreatsACastThatDealtNoDamageAsAWhiffRatherThanATruncation()
     {
         var (parser, _) = await ThunderCallAnalyzerTests.AnalyzeAsync(
         [

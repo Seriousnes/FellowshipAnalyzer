@@ -18,13 +18,13 @@ public sealed partial class DamageTakenTracker : Analyzer
 
     private Computed Result => field ??= Compute();
 
-    /// <summary>Every hit that landed on the player, in encounter order.</summary>
+    /// <summary>Every hit the player took, in encounter order.</summary>
     public List<DamageTakenHit> Hits => _hits;
 
     /// <inheritdoc/>
     public override StatisticCategory StatisticCategory => StatisticCategory.General;
 
-    /// <summary>Damage that actually landed on the player across the dungeon.</summary>
+    /// <summary>Damage the player took across the dungeon.</summary>
     public long TotalTaken => Result.Taken;
 
     /// <summary>The raw incoming damage before any mitigation.</summary>
@@ -51,7 +51,7 @@ public sealed partial class DamageTakenTracker : Analyzer
     /// <summary>Share (0-1) of the player's damage taken that arrived as a block.</summary>
     public double BlockRate => TotalHits > 0 ? (double)TotalBlockedHits / TotalHits : 0;
 
-    /// <summary>Share (0-1) of <see cref="TotalFaced"/> that never landed.</summary>
+    /// <summary>Share (0-1) of <see cref="TotalFaced"/> that was prevented.</summary>
     public double PreventedShare => TotalFaced > 0 ? Math.Clamp(TotalPrevented / (double)TotalFaced, 0, 1) : 0;
 
     /// <summary><see cref="TotalTaken"/> spread over the dungeon's duration.</summary>
@@ -60,7 +60,7 @@ public sealed partial class DamageTakenTracker : Analyzer
     /// <summary><see cref="TotalFaced"/> spread over the dungeon's duration.</summary>
     public double DamageFacedPerSecond => PerSecond(TotalFaced);
 
-    /// <summary>Every ability that damaged the player, heaviest first by damage that landed.</summary>
+    /// <summary>Every ability that damaged the player, heaviest first by damage taken.</summary>
     public List<DamageTakenSource> BySource => Result.Sources;
 
     [On<DamageEvent>(To = Actor.Player)]
@@ -152,8 +152,8 @@ public sealed partial class DamageTakenTracker : Analyzer
 /// <summary>
 /// One hit the player took.
 /// </summary>
-/// <param name="Timestamp">When it landed.</param>
-/// <param name="Amount">The damage that landed after mitigation and absorbs.</param>
+/// <param name="Timestamp">When it was taken.</param>
+/// <param name="Amount">The damage taken after mitigation and absorbs.</param>
 public sealed record DamageTakenHit(int Timestamp, long Amount);
 
 /// <summary>
@@ -161,9 +161,9 @@ public sealed record DamageTakenHit(int Timestamp, long Amount);
 /// </summary>
 /// <param name="AbilityId">The damaging ability's spell id.</param>
 /// <param name="Name">The ability's name as the log reported it.</param>
-/// <param name="Hits">Hits this ability landed on the player.</param>
+/// <param name="Hits">Hits the player took from this ability.</param>
 /// <param name="BlockedHits">How many of <paramref name="Hits"/> came in as a block.</param>
-/// <param name="Taken">Damage that actually landed.</param>
+/// <param name="Taken">The damage taken.</param>
 /// <param name="Unmitigated">The raw incoming damage before any mitigation.</param>
 /// <param name="Mitigated">The portion prevented by damage reduction, blocks included.</param>
 /// <param name="Absorbed">The portion prevented by absorb shields.</param>
@@ -184,6 +184,6 @@ public sealed record DamageTakenSource(
     /// <summary>Damage this ability would have dealt but did not.</summary>
     public long Prevented => Mitigated + Absorbed;
 
-    /// <summary>Share (0-1) of <see cref="Unmitigated"/> that never landed.</summary>
+    /// <summary>Share (0-1) of <see cref="Unmitigated"/> that was prevented.</summary>
     public double PreventedShare => Unmitigated > 0 ? Math.Clamp(Prevented / (double)Unmitigated, 0, 1) : 0;
 }

@@ -26,7 +26,7 @@
         {
             <CastOverview Title="Supremacy Overview" Stats="@BuildOverviewStats(windows, fervent)" />
             <CastDetail Title="Supremacy Windows"
-                        Description="One card per Skystrider's Supremacy window, rated on the Multishot casts made inside it."
+                        Description="One card per Skystrider's Supremacy window, rated on the Multishot casts inside it."
                         Casts="@BuildWindowRows(fervent)" />            
         }
     </RightPanel>
@@ -51,11 +51,11 @@
             new OverviewStat(
                 $"{casts}",
                 "Empowered Multishots",
-                $"Multishot casts made while a Skystrider's Supremacy window was open, across {windows.Count} {(windows.Count == 1 ? "window" : "windows")}."),
+                $"Multishot casts while a Skystrider's Supremacy window was open, across {windows.Count} {(windows.Count == 1 ? "window" : "windows")}."),
             new OverviewStat(
                 $"{average:0.#}",
                 "Multishots per Window",
-                "Multishot casts made inside a window, averaged across every window."),
+                "Multishot casts inside a window, averaged across every window."),
             new OverviewStat(
                 $"{atTarget}/{windows.Count}",
                 "Windows at Four",
@@ -79,7 +79,7 @@
             new PerCastStat(
                 $"{window.MultishotCasts}",
                 "Multishots",
-                "Multishot casts made while this window was open.",
+                "Multishot casts while this window was open.",
                 Performance: performance),
             new PerCastStat(
                 window.FirstMultishotDelayMs is { } delay ? $"{delay / 1000d:0.##}s" : "-",
@@ -104,10 +104,10 @@
             return null;
 
         if (window.FirstMultishotDelayMs is not { } delay)
-            return "No Multishot was cast inside this window. Press Multishot as soon as the window opens.";
+            return "No Multishot was cast inside this window. Cast Multishot as soon as the window opens.";
 
         return !fervent && delay >= SlowOpeningMs
-            ? $"The first Multishot came {delay / 1000d:0.##}s after the window opened. Press Multishot as soon as the window opens."
+            ? $"The first Multishot came {delay / 1000d:0.##}s after the window opened. Cast Multishot as soon as the window opens."
             : "Enter the window with Multishot charges available.";
     }
 

@@ -12,7 +12,7 @@ namespace FellowshipAnalyzer.Services;
 /// <summary>
 /// Returned by <see cref="ReportAnalysisService.RunAsync"/> once a dungeon has been
 /// fully fetched and analyzed. All display-layer data is read directly from these
-/// objects — no redundant string fields.
+/// objects - no redundant string fields.
 /// <para>
 /// When <see cref="Analysis"/> is <c>null</c> the report belongs to a hero with no
 /// implemented analysis yet (WIP). In that case the events fetch and analysis are

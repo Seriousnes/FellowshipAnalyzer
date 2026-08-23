@@ -10,13 +10,13 @@ namespace FellowshipAnalyzer.Analyzers;
 /// determinant, so every rule keys off its presence rather than off which attribute registered
 /// the type:
 /// <list type="bullet">
-/// <item>FA0014 — a registered type or normalizer depends on a <c>[ForPull]</c> analyzer.</item>
-/// <item>FA0015 — a <c>[ForPull]</c> declares no <c>PullKind</c> target.</item>
-/// <item>FA0016 — two <c>[ForPull]</c> analyzers sharing a surface have overlapping filters.</item>
-/// <item>FA0017 — a <c>[ForPull]</c> analyzer implements more than one surface marker interface.</item>
-/// <item>FA0019 — <c>[AddModule]</c> / <c>[AddState]</c> registers a type deriving from <c>Analyzer</c>.</item>
-/// <item>FA0020 — <c>[ForPull]</c> sits on a type that does not derive from <c>Analyzer</c>.</item>
-/// <item>FA0021 — <c>[ForPull]</c> sits on an abstract <c>Analyzer</c>.</item>
+/// <item>FA0014 - a registered type or normalizer depends on a <c>[ForPull]</c> analyzer.</item>
+/// <item>FA0015 - a <c>[ForPull]</c> declares no <c>PullKind</c> target.</item>
+/// <item>FA0016 - two <c>[ForPull]</c> analyzers sharing a surface have overlapping filters.</item>
+/// <item>FA0017 - a <c>[ForPull]</c> analyzer implements more than one surface marker interface.</item>
+/// <item>FA0019 - <c>[AddModule]</c> / <c>[AddState]</c> registers a type deriving from <c>Analyzer</c>.</item>
+/// <item>FA0020 - <c>[ForPull]</c> sits on a type that does not derive from <c>Analyzer</c>.</item>
+/// <item>FA0021 - <c>[ForPull]</c> sits on an abstract <c>Analyzer</c>.</item>
 /// </list>
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
@@ -204,7 +204,7 @@ public sealed class PullAnalyzerDiagnostics : DiagnosticAnalyzer
     /// constructs pull instances straight into its per-pull cache, which no resolution path reads, so
     /// a registered type or a normalizer naming one throws "No registered module is assignable" at
     /// runtime. Covers constructor parameters, <c>Lazy&lt;T&gt;</c> parameters, and
-    /// <c>[Dependency&lt;T&gt;]</c> — the last reports at the attribute, because a
+    /// <c>[Dependency&lt;T&gt;]</c> - the last reports at the attribute, because a
     /// <c>[Dependency&lt;T&gt;]</c>-only type's constructor exists solely in generated code, which
     /// <see cref="GeneratedCodeAnalysisFlags.None"/> suppresses diagnostics in.
     /// </summary>
@@ -304,8 +304,8 @@ public sealed class PullAnalyzerDiagnostics : DiagnosticAnalyzer
     }
 
     /// <summary>
-    /// Every type <paramref name="parser"/> registers — from all three registration attributes plus
-    /// <c>[AddNormalizer]</c>, which FA0014 covers alongside them — walking the base chain so a hero
+    /// Every type <paramref name="parser"/> registers - from all three registration attributes plus
+    /// <c>[AddNormalizer]</c>, which FA0014 covers alongside them - walking the base chain so a hero
     /// parser also sees what <c>CombatLogParser</c> registers. FA0016's overlap grouping is per parser,
     /// which the walk is what makes correct.
     /// </summary>

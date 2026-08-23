@@ -84,7 +84,7 @@ static void WriteMarkdown(string inputPath, Dictionary<string, EventTypeSchema> 
     Console.WriteLine("| --- | ---: | ---: | ---: |");
     foreach (var schema in sorted)
     {
-        var pct = totalEvents > 0 ? $"{schema.Count * 100.0 / totalEvents:F1}%" : "—";
+        var pct = totalEvents > 0 ? $"{schema.Count * 100.0 / totalEvents:F1}%" : "-";
         Console.WriteLine($"| `{schema.EventType}` | {schema.Count} | {pct} | {schema.Properties.Count} |");
     }
 

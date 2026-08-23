@@ -12,7 +12,7 @@ namespace FellowshipAnalyzer.Generators;
 /// emits a companion <c>{Hero}Talents</c> static class of <c>public const int &lt;Name&gt; = &lt;Id&gt;;</c>
 /// members (one per static <c>Talent</c> property, using its <c>Id</c> initializer value). This lets
 /// <c>[RequiresTalent(&lt;Hero&gt;Talents.&lt;Name&gt;)]</c> reference native talent ids as compile-time
-/// constants — e.g. <c>ArdeosTalents.RollingFlames == 226</c>.
+/// constants - e.g. <c>ArdeosTalents.RollingFlames == 226</c>.
 /// </summary>
 /// <remarks>
 /// The companion class is emitted in the parent namespace (<c>FellowshipAnalyzer.Core.Common.Spells</c>),

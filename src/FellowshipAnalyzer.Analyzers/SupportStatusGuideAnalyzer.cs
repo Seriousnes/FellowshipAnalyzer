@@ -10,7 +10,7 @@ namespace FellowshipAnalyzer.Analyzers;
 /// <summary>
 /// FA0022: a hero whose <c>HeroConfig.Support</c> is <c>Partial</c> or <c>Full</c> must override
 /// <c>GuideComponent</c>. A Partial or Full support level advertises analysis, so the hero must
-/// have analysis UI behind it — otherwise the declared support level and the hero's actual
+/// have analysis UI behind it - otherwise the declared support level and the hero's actual
 /// capability disagree.
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]

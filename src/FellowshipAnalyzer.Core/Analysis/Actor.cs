@@ -5,7 +5,7 @@ namespace FellowshipAnalyzer.Core.Analysis;
 /// </summary>
 /// <remarks>
 /// Modelled as a flags enum (not record singletons) because attribute arguments must be
-/// compile-time constants — only primitives, strings, types, and enum values qualify.
+/// compile-time constants - only primitives, strings, types, and enum values qualify.
 /// Reference-type singletons like <c>public static Actor Player { get; } = new PlayerActor();</c>
 /// can't be written as <c>[On&lt;CastEvent&gt;(By = Actor.Player)]</c>. The generator
 /// pattern-matches the enum value to emit specialized predicates.

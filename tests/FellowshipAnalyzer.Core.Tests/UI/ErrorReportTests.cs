@@ -45,7 +45,7 @@ public class ErrorReportTests
     }
 
     [Fact]
-    public void Detail_CarriesTheInnerException()
+    public void Detail_HasTheInnerException()
     {
         var exception = new InvalidOperationException("outer", new ArgumentNullException("key"));
 

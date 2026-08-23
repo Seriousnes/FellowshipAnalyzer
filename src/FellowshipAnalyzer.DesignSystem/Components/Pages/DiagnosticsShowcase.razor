@@ -1,13 +1,13 @@
 @page "/diagnostics"
 @using FellowshipAnalyzer.Core.Common.Spells.Rime
 
-<PageTitle>Diagnostics — Design System</PageTitle>
+<PageTitle>Diagnostics - Design System</PageTitle>
 
 <h1>CopySpellDefinition / DebugAnnotationsView / EventsView</h1>
 <p class="lede">Author/debug tools. Surface these inside the Report's About tab to inspect raw analysis output.</p>
 
 <CodeExample Title="CopySpellDefinition"
-             Description="Copies a C# Spell declaration to the clipboard — useful when bootstrapping a new hero's spell file from an unknown spell observed in a log."
+             Description="Copies a C# Spell declaration to the clipboard - useful when bootstrapping a new hero's spell file from an unknown spell observed in a log."
              Code="@_copyCode">
     <Demo>
         <p>
@@ -28,7 +28,7 @@
              Description="Renders all annotations a module attached to events via DebugAnnotations.Annotate(). One column per module, dot per annotated event grouped by minute, click for details."
              Code="@_annotationsCode">
     <Demo>
-        <p style="color: var(--fa-text-muted);">No live demo — needs an analyzed report with DebugAnnotations populated.</p>
+        <p style="color: var(--fa-text-muted);">No live demo - needs an analyzed report with DebugAnnotations populated.</p>
     </Demo>
 </CodeExample>
 
@@ -36,7 +36,7 @@
              Description="Virtualised event log with type-filter sidebar, search, and JSON-on-click. Use during hero development to inspect what the analyzer actually sees."
              Code="@_eventsCode">
     <Demo>
-        <p style="color: var(--fa-text-muted);">No live demo — needs a loaded event stream and ReportComponent cascade.</p>
+        <p style="color: var(--fa-text-muted);">No live demo - needs a loaded event stream and ReportComponent cascade.</p>
     </Demo>
 </CodeExample>
 

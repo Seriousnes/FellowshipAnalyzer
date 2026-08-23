@@ -72,12 +72,12 @@
             new OverviewStat(
                 $"{energyCapped}/{energySampled}",
                 "Casts at Capped Energy",
-                $"{energyCapRate}% of sampled casts were pressed at full Energy.",
+                $"{energyCapRate}% of sampled casts were at full Energy.",
                 EnergyCapTier(energyCapRate, energySampled)),
             new OverviewStat(
                 $"{generatorOvercap}",
                 "Generators at 6 CP",
-                $"{generatorOvercap} of {generatorCasts} generator casts ({overcapRate}%) were pressed at six combo points.",
+                $"{generatorOvercap} of {generatorCasts} generators ({overcapRate}%) were cast at six combo points.",
                 OvercapTier(overcapRate, generatorCasts)),
         ];
     }
@@ -136,17 +136,17 @@
             new PerCastStat(
                 $"{analyzer.EnergyCappedCasts}/{analyzer.EnergyCastsSampled}",
                 "Casts at Capped Energy",
-                $"Casts pressed at full Energy ({energyCapRate}%).",
+                $"Casts at full Energy ({energyCapRate}%).",
                 Performance: EnergyCapTier(energyCapRate, analyzer.EnergyCastsSampled)),
             new PerCastStat(
                 $"{analyzer.GeneratorOvercapCasts}/{analyzer.GeneratorCasts}",
                 "Generators at 6 CP",
-                $"Generator casts made at maximum combo points ({overcapRate}%).",
+                $"Generators cast at maximum combo points ({overcapRate}%).",
                 Performance: OvercapTier(overcapRate, analyzer.GeneratorCasts)),
             new PerCastStat(
                 $"{analyzer.MaintenanceFinisherCasts}",
                 "Hemorrhaging Strike",
-                "Hemorrhaging Strike casts. Reported as context rather than scored against the finisher threshold."),
+                "Hemorrhaging Strike casts."),
         };
 
         return new PerCastRow
@@ -174,7 +174,7 @@
     private static string BuildPullNote(MaraResourceDisciplineAnalyzer analyzer, int energyCapRate)
     {
         if (analyzer.Finishers.Count == 0 && analyzer.EnergyCastsSampled == 0)
-            return "The log recorded no resource snapshot on this pull, so there is nothing to score.";
+            return "No resource snapshot was observed.";
 
         var notes = new List<string>();
 

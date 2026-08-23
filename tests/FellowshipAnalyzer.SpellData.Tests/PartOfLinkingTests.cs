@@ -25,7 +25,7 @@ public class PartOfLinkingTests
             .ShouldContain(s => s.Scope == "rime" && s.Member == "BurstingIceDamage" && s.Spell.Id == 1396);
 
     [Fact]
-    public void EveryEffectLinkedToAnAbility_CarriesARole()
+    public void EveryEffectLinkedToAnAbility_HasARole()
     {
         var linked = Export().Effects.Values.Where(e => e.PartOf is { Type: "ability" }).ToList();
 

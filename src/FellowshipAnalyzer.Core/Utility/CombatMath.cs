@@ -9,7 +9,7 @@ public static class CombatMath
 {
     /// <summary>
     /// Calculates the effective damage attributable to a percent damage buff.
-    /// The bonus damage is treated as marginal — it is the first to be consumed by absorbs.
+    /// The bonus damage is treated as marginal - it is the first to be consumed by absorbs.
     ///
     /// For example, an effect that boosts damage by 20%: pass <paramref name="increase"/> = 0.20.
     /// A raw hit of 1200 would yield 1200 - (1200 / 1.20) = 200 attributable damage.

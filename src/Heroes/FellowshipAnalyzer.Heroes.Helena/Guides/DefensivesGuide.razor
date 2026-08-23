@@ -21,7 +21,7 @@
         {
             <CastOverview Title="Iron Wall" Stats="@BuildIronWallStats()" />
             <CastDetail Title="Iron Wall Uses"
-                        Description="Each Iron Wall, and the state it was pressed in."
+                        Description="Each Iron Wall, and the state it was used in."
                         Casts="@BuildIronWallUses()" />
         }
     </RightPanel>
@@ -73,7 +73,7 @@
                 stats.Add(new OverviewStat(
                     $"{overcapped}/{total}",
                     "Cast At Maximum Toughness",
-                    "Casts made at maximum Toughness.",
+                    "Casts at maximum Toughness.",
                     PerformanceTiers.FromThresholds(100 - ((double)overcapped / total * 100), 85, 70, 50)));
             }
         }
@@ -99,14 +99,13 @@
                 "Iron Wall windows across every pull."),
             new OverviewStat(
                 $"{fromHigh}/{uses}",
-                "Pressed Above Half",
-                "Uses made at or above 50% Toughness.",
+                "Used Above Half",
+                "Uses at or above 50% Toughness.",
                 PerformanceTiers.FromThresholds((double)fromHigh / uses * 100, 90, 75, 50)),
             new OverviewStat(
                 $"{shieldsUpSpent}/{uses}",
                 "With Shields Up Spent",
-                "Uses made with no Shields Up charge left. Charges come from the cooldown model rather " +
-                "than the log, so this follows the spellbook's cooldowns."),
+                "Casts with no Shields Up charge left."),
             new OverviewStat(
                 $"{covered:N0}",
                 "Mitigation Covered",
@@ -140,10 +139,10 @@
         {
             new(
                 use.ToughnessShare is { } share ? $"{share * 100:F0}%" : "n/a",
-                "Toughness At Press",
+                "Toughness At Use",
                 use.ToughnessShare is null
                     ? "This cast has no Toughness reading."
-                    : "Toughness when it was pressed.",
+                    : "Toughness when it was used.",
                 use.ToughnessShare is null ? null
                     : use.OpenedAboveHalfToughness ? QualitativePerformance.Perfect : QualitativePerformance.Fail),
             new(
@@ -163,7 +162,7 @@
                 "Shields Up Charges",
                 charges == 0
                     ? "No Shields Up charge was left."
-                    : "Shields Up charges available when Iron Wall was pressed.",
+                    : "Shields Up charges available when Iron Wall was used.",
                 charges == 0 ? QualitativePerformance.Perfect : QualitativePerformance.Ok));
         }
 

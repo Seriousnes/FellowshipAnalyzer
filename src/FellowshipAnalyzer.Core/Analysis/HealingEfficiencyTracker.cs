@@ -163,14 +163,14 @@ public partial class HealingEfficiencyTracker : Analyzer
 }
 
 /// <summary>
-/// One spell's healing measured against what it cost to press.
+/// The spell's mana efficiency.
 /// </summary>
 /// <param name="SpellId">The spell's id.</param>
 /// <param name="Name">Its name as the log reported it.</param>
 /// <param name="Casts">Casts the player made.</param>
 /// <param name="Heals">Heal events the spell produced, ticks included.</param>
 /// <param name="Effective">Healing that landed.</param>
-/// <param name="Overheal">Healing that was lost to full health bars.</param>
+/// <param name="Overheal">Healing that was lost to overheal.</param>
 /// <param name="ResourceSpent">Resource the casts cost.</param>
 /// <param name="ExecutionMs">Milliseconds of global cooldown or cast time the casts occupied.</param>
 public sealed record SpellHealingEfficiency(

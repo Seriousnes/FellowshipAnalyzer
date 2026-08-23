@@ -55,7 +55,7 @@ public sealed class ThemeService(IJSRuntime js) : IAsyncDisposable
     public string ValueOf(FaToken token) =>
         _overrides.TryGetValue(token.Name, out var value) ? value : token.Value;
 
-    /// <summary>True when the token carries an override rather than the theme's value.</summary>
+    /// <summary>True when the token has an override rather than the theme's value.</summary>
     public bool IsOverridden(FaToken token) => _overrides.ContainsKey(token.Name);
 
     /// <summary>

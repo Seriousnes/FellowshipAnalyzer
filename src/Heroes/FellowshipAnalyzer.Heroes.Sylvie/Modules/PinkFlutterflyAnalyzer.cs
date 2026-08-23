@@ -32,7 +32,7 @@ public sealed partial class PinkFlutterflyAnalyzer : Analyzer
 
     public long Overheal => Result.Overheal;
 
-    public int HoldersCovered => Result.Holdings.Count;
+    public int Holders => Result.Holdings.Count;
 
     public int RestoreLifeAssignmentsOpened =>
         PinkFlutterflyTracker.RestoreLifeAssignments

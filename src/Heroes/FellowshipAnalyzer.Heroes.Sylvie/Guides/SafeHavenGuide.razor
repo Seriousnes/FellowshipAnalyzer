@@ -30,7 +30,7 @@
         var held = offered > 0 ? allyMs / (double)offered : 0;
         var reached = analyzers.Sum(analyzer => analyzer.AlliesReached);
         var empty = analyzers.Sum(analyzer => analyzer.CastsWithoutAnAlly);
-        var carriedMs = analyzers.Sum(analyzer => analyzer.CarriedInAllyMs);
+        var carriedMs = analyzers.Sum(analyzer => analyzer.PrepullAllyMs);
 
         var stats = new List<OverviewStat>
         {
@@ -57,7 +57,7 @@
         {
             stats.Add(new OverviewStat(
                 $"{carriedMs / 1000:N0}s",
-                "Carried In",
+                "Prepull Placement",
                 "Ally-seconds from a placement made before the pull started, left out of the figures above."));
         }
 

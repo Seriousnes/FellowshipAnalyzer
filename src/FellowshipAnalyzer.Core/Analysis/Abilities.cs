@@ -1,7 +1,7 @@
 namespace FellowshipAnalyzer.Core.Analysis;
 
 /// <summary>
-/// Base module that defines a hero's spellbook — the set of abilities available
+/// Base module that defines a hero's spellbook - the set of abilities available
 /// to the player along with their gameplay metadata (cooldowns, GCD, categories, etc.).
 /// Hero analyzers override <see cref="Spellbook"/> to provide spec-specific entries.
 /// </summary>

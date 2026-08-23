@@ -26,7 +26,7 @@ public sealed class TariqSpellbookTests
     /// Kit block in the hero data, which is why it needs an <c>overrides.json</c> scope entry.
     /// </summary>
     [Fact]
-    public void SkullCrusher_CarriesItsTalentSplashAndLightningRider()
+    public void SkullCrusher_HasItsTalentSplashAndLightningRider()
     {
         var entry = new TariqAbilities().Spellbook()
             .Where(spell => spell.PrimarySpell.FSLID == TariqSpells.SkullCrusher.FSLID)

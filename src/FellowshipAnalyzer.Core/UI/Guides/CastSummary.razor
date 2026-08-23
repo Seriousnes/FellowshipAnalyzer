@@ -58,6 +58,6 @@
     private static IEnumerable<PerformanceBoxEntry> BuildBoxEntries(IEnumerable<CastEvaluation> casts) =>
         casts.Select(c => new PerformanceBoxEntry(
             c.Performance,
-            c.Timestamp is not null && c.Reason is not null ? $"{c.Timestamp} — {c.Reason}"
+            c.Timestamp is not null && c.Reason is not null ? $"{c.Timestamp} - {c.Reason}"
                 : c.Timestamp ?? c.Reason));
 }

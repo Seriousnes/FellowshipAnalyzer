@@ -36,7 +36,7 @@ public sealed partial class OwedInBloodEconomyAnalyzer : Analyzer
 
     public double AverageConversion => Result.AverageConversion;
 
-    public int CashedBySlaughter => Result.CashedBySlaughter;
+    public int FollowedBySlaughter => Result.FollowedBySlaughter;
 
     public int PairedWithRupture => Result.PairedWithRupture;
 
@@ -165,7 +165,7 @@ public sealed partial class OwedInBloodEconomyAnalyzer : Analyzer
             conversions,
             total,
             average,
-            conversions.Count(conversion => conversion.CashedBySlaughter),
+            conversions.Count(conversion => conversion.FollowedBySlaughter),
             conversions.Count(conversion => conversion.PairedWithRupture),
             conversions.Count(conversion => conversion.SpiritActive),
             cappedMs,
@@ -179,7 +179,7 @@ public sealed partial class OwedInBloodEconomyAnalyzer : Analyzer
         List<OwedInBloodConversion> Conversions,
         int TotalStacksConverted,
         double AverageConversion,
-        int CashedBySlaughter,
+        int FollowedBySlaughter,
         int PairedWithRupture,
         int OverlappedSpirit,
         int CappedMs,
@@ -199,7 +199,7 @@ public sealed partial class OwedInBloodEconomyAnalyzer : Analyzer
         int StacksConverted,
         bool BankObserved,
         int AbilityId,
-        bool CashedBySlaughter,
+        bool FollowedBySlaughter,
         bool PairedWithRupture,
         bool SpiritActive)
     {

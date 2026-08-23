@@ -61,7 +61,7 @@ public sealed class CullingStrikeAnalyzerTests
     }
 
     [Fact]
-    public async Task Analyze_CullingStrike_CountsTheCastsThatLandedInsideThePhase()
+    public async Task Analyze_CullingStrike_CountsTheCastsInsideThePhase()
     {
         var parser = await AnalyzeAsync(
         [

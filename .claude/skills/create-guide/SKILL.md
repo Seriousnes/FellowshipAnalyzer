@@ -98,13 +98,13 @@ or superlative is the point of this sentence: "your highest damage-per-Focus spe
 filler while the cooldown is unavailable", "the strongest Blood spender". A tooltip cannot rank, so a
 ranking is decision content and belongs here.
 
-**2. Directives.** One to three sentences: when to press it, what to spend it on where there is a
+**2. Directives.** One to three sentences: when to cast it, what to spend it on where there is a
 choice, what to have ready first. Live example, `SerratedEdgeGuide.razor:7`: "Avoid consuming Serrated
 Edge on filler abilities, try to consume it with Grim Carve for AoE or Heart Splitter for single
 target or priority targets."
 
 **3. Reading note.** Only where it changes how the number should be read. A scoring scope ("the only
-casts flagged here are those pressed with the buff already available") and an exclusion ("Blood spent
+casts flagged here are those cast with the buff already available") and an exclusion ("Blood spent
 during Slaughter is not evaluated") both qualify. Where nothing changes the reading, the panel ends
 after the directives.
 
@@ -131,7 +131,7 @@ Mixed, set by how much the pull can prevent compliance.
 
 | Strength | Words | Use for |
 |---|---|---|
-| Absolute | `Never`, `Always` | A state that is wrong regardless of build: a generator pressed at cap, a spender below its floor |
+| Absolute | `Never`, `Always` | A state that is wrong regardless of build: a generator cast at cap, a spender below its floor |
 | Target | `Try to`, `Aim to`, `Attempt to` | A percentage or count the pull can deny: uptime, window fill, cast efficiency |
 | Plain | bare imperative | Everything else: "Spend Blood at five stacks", "Open the window with Owed in Blood ready" |
 
@@ -149,7 +149,7 @@ Each of these recurs across the corpus. Fill and use them rather than inventing 
 | Role plus directive | "**{Ability}** is your {ranking}. {Directive}." |
 | Window fill | "During {window}, cast as many {ability} as possible. Enter it with {precondition} so you can begin immediately." |
 | Uptime target | "Keep {aura} active on the target at all times. Try to maintain {N}% uptime." |
-| Cooldown holding | "{Hero}'s cooldowns should not be held for long. Press each as soon as it becomes available, as long as it can reach a target." |
+| Cooldown holding | "{Hero}'s cooldowns should not be held for long. Cast each as soon as it becomes available, as long as it can reach a target." |
 | Chart pointer | "The chart below shows your {quantity} through {pull}." |
 | Graph legend | "{Graph name} - this graph shows {what it plots}. Grey segments show {neutral state}, yellow segments show {busy state}. Red segments highlight {the missed opportunity}." |
 | Tier legend | "Perfect - {condition}. Good - {condition}. Ok - {condition}. Fail - {condition}." |
@@ -157,7 +157,7 @@ Each of these recurs across the corpus. Fill and use them rather than inventing 
 | Permission | "{Doing X} briefly is fine, but {the condition that makes it a failure}." |
 | Named non-goal | "This section is about {what it measures}, not {the adjacent quantity it does not}." |
 | Measurement boundary | "This section flags only {the one condition measured}. {The other case a reader would expect to be judged} is not flagged, and is treated as acceptable." |
-| Window ceiling | "You {pressed} {n} of a maximum of {max} this window, from {entry state}, {gains during it}, and {gains that arrived too late to convert}." |
+| Window ceiling | "You {cast} {n} of a maximum of {max} this window, from {entry state}, {gains during it}, and {gains that arrived too late to convert}." |
 | Defensive tolerance | "{Defensive} usage varies from pull to pull, and may need to be delayed for specific mechanics. Any amount of usage is good, and anywhere you could fit another usage is a theoretical loss." |
 | Context, not a verdict | "This section is informative only and is not suggestive of poor performance." |
 
@@ -195,10 +195,10 @@ Three states, three forms. An individual passing cast gets its tier colour and n
 | `wasted` | A resource or proc that expired, overcapped, or was overwritten |
 | `overcap`, `capping` | Generating a resource above its ceiling, where naming the cause matters |
 | `uptime` | Share of the pull an aura was active |
-| `on cooldown` | Pressed the moment it becomes available |
-| `window` | A bounded period during which presses are counted |
+| `on cooldown` | Cast the moment it becomes available |
+| `window` | A bounded period during which casts are counted |
 | `pool`, `pooling` | Accumulating a resource ahead of a window |
-| `filler` | A low-priority press that occupies a global |
+| `filler` | A low-priority cast that occupies a global |
 | `expired`, `overwritten`, `unused` | The three ways a proc is lost |
 
 Write no metaphor for an event the game names. `munched`, `sniping` and `smuggling` all appear in the
@@ -268,7 +268,7 @@ It is a flat list of feature guides, so the order of that list is the only compo
 carries. Place a new guide by this order:
 
 1. **Resource economy.** What the hero generates and spends, and what it lost at the cap.
-2. **Core abilities.** The presses the rotation is built from, most decisive first.
+2. **Core abilities.** The casts the rotation is built from, most decisive first.
 3. **Cooldowns.** Long cooldowns and the windows they open.
 4. **Defensives and utility**, where the hero has analyzed ones.
 5. **Downtime.**

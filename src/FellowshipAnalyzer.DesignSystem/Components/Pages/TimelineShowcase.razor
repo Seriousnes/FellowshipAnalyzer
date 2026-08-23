@@ -1,15 +1,15 @@
 @page "/timeline"
 
-<PageTitle>Timeline — Design System</PageTitle>
+<PageTitle>Timeline - Design System</PageTitle>
 
 <h1>Timeline / CastBar / AuraBar / CooldownLane / TimeIndicators / TimelineSettingsModal</h1>
-<p class="lede">The Timeline tab. All sub-components inherit <code>ReportComponent</code> and read dungeon bounds from cascading context — they're only meaningful inside a loaded report. Documented here for reference.</p>
+<p class="lede">The Timeline tab. All sub-components inherit <code>ReportComponent</code> and read dungeon bounds from cascading context - they're only meaningful inside a loaded report. Documented here for reference.</p>
 
-<CodeExample Title="Timeline — top-level shell"
+<CodeExample Title="Timeline - top-level shell"
              Description="The Timeline component composes CastBar (with overlaid AuraBar) plus one CooldownLane per visible spell. Wire it into a hero's Guide tab and the source-generator-emitted module accessors do the rest."
              Code="@_timelineCode">
     <Demo>
-        <p style="color: var(--fa-text-muted);">No live demo — needs cascading <code>DungeonTimeContext</code>, <code>HeroAnalysisResult</code>, and <code>IHeroAnalyzer</code>.</p>
+        <p style="color: var(--fa-text-muted);">No live demo - needs cascading <code>DungeonTimeContext</code>, <code>HeroAnalysisResult</code>, and <code>IHeroAnalyzer</code>.</p>
     </Demo>
 </CodeExample>
 
@@ -17,7 +17,7 @@
              Description="Renders all the player's casts, channels, and cancelled casts along a horizontal timeline. Lower casts (no GCD) stack vertically below the main track."
              Code="@_castBarCode">
     <Demo>
-        <p style="color: var(--fa-text-muted);">No live demo — needs the player's full Event list, DungeonStartTime, WindowStart, WindowEnd.</p>
+        <p style="color: var(--fa-text-muted);">No live demo - needs the player's full Event list, DungeonStartTime, WindowStart, WindowEnd.</p>
     </Demo>
 </CodeExample>
 
@@ -25,7 +25,7 @@
              Description="Overlays buff duration strips on top of the CastBar. Each aura gets a vertical level assigned greedily so concurrent buffs don't overlap; lower priority means closer to the cast bar."
              Code="@_auraBarCode">
     <Demo>
-        <p style="color: var(--fa-text-muted);">No live demo — needs TrackedBuffEvent data from the Auras module.</p>
+        <p style="color: var(--fa-text-muted);">No live demo - needs TrackedBuffEvent data from the Auras module.</p>
     </Demo>
 </CodeExample>
 
@@ -33,15 +33,15 @@
              Description="Single-row timeline showing a spell's cooldown windows (gray bars) with the spell icon at each begin point and orange tick marks for charge restores."
              Code="@_cooldownCode">
     <Demo>
-        <p style="color: var(--fa-text-muted);">No live demo — needs UpdateSpellUsableEvent stream and a SpellbookAbility.</p>
+        <p style="color: var(--fa-text-muted);">No live demo - needs UpdateSpellUsableEvent stream and a SpellbookAbility.</p>
     </Demo>
 </CodeExample>
 
 <CodeExample Title="TimeIndicators"
-             Description="Standalone timestamp ruler — shown above the cast bar when the timeline is not used as a single composed view. Pull duration in ms; output a tick per second labelled with the elapsed time."
+             Description="Standalone timestamp ruler - shown above the cast bar when the timeline is not used as a single composed view. Pull duration in ms; output a tick per second labelled with the elapsed time."
              Code="@_timeCode">
     <Demo>
-        <p style="color: var(--fa-text-muted);">Renders inline — but you'd usually use the parent Timeline rather than mounting this directly.</p>
+        <p style="color: var(--fa-text-muted);">Renders inline - but you'd usually use the parent Timeline rather than mounting this directly.</p>
     </Demo>
 </CodeExample>
 
@@ -49,7 +49,7 @@
              Description="Per-hero settings modal opened from the gear button on Timeline. Manages visible cooldowns and tracked auras, and persists choices via TimelineConfigService (localStorage)."
              Code="@_settingsCode">
     <Demo>
-        <p style="color: var(--fa-text-muted);">No live demo — opened internally by Timeline.</p>
+        <p style="color: var(--fa-text-muted);">No live demo - opened internally by Timeline.</p>
     </Demo>
 </CodeExample>
 

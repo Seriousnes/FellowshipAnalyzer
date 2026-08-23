@@ -14,7 +14,7 @@ public class ResourceNameAttributeTests
     }
 
     [Fact]
-    public void Primary_CarriesEveryPrimaryFlavorName()
+    public void Primary_HasEveryPrimaryFlavorName()
     {
         var names = AliasesOf(ResourceTypes.Primary);
         names.ShouldContain("Anima");
@@ -27,7 +27,7 @@ public class ResourceNameAttributeTests
     }
 
     [Fact]
-    public void Tertiary_CarriesWinterOrbsAndBloodFeathers()
+    public void Tertiary_HasWinterOrbsAndBloodFeathers()
     {
         var names = AliasesOf(ResourceTypes.Tertiary);
         names.ShouldContain("Winter Orbs");
@@ -35,7 +35,7 @@ public class ResourceNameAttributeTests
     }
 
     [Fact]
-    public void Secondary_CarriesComboPointsAndToughness()
+    public void Secondary_HasComboPointsAndToughness()
     {
         var names = AliasesOf(ResourceTypes.Secondary);
         names.ShouldContain("Combo Points");

@@ -11,7 +11,7 @@ namespace FellowshipAnalyzer.Core.Analysis;
 /// <para>
 /// Apply and refresh handlers call <see cref="OpenWindow"/>, remove handlers call
 /// <see cref="CloseWindow"/>, and a <c>[On&lt;DamageEvent&gt;(To = Actor.Player)]</c> handler calls
-/// <see cref="RecordDamageTaken"/> for every hit the player takes; only hits landing inside an open
+/// <see cref="RecordDamageTaken"/> for every hit the player takes; only hits taken inside an open
 /// window are attributed. A window still open when the pull ends closes at <see cref="Analyzer.Pull"/>'s
 /// end time and is flagged <see cref="DefensiveWindow.Truncated"/>.
 /// </para>
@@ -70,8 +70,8 @@ public abstract class MajorDefensiveAnalyzer : Analyzer
     }
 
     /// <summary>
-    /// All mitigation and absorption on hits that landed inside the windows. This is coverage, not
-    /// attribution: it is everything that stood between the player and those hits - passive reduction,
+    /// All mitigation and absorption on hits taken inside the windows. This is coverage, not
+    /// attribution: it is every source of mitigation on those hits - passive reduction,
     /// other defensives, gear - not the share this defensive is responsible for. On a defensive with
     /// high uptime it approaches the pull's whole mitigation total, so present it as what the windows
     /// covered rather than as what this defensive prevented.
@@ -87,19 +87,19 @@ public abstract class MajorDefensiveAnalyzer : Analyzer
     /// <summary>The share of <see cref="MitigatedInWindow"/> the log attributes to blocks.</summary>
     public long BlockedInWindow => Result.Blocked;
 
-    /// <summary>Damage that still landed on the player inside the windows.</summary>
+    /// <summary>Damage the player still took inside the windows.</summary>
     public long DamageTakenInWindow => Result.Taken;
 
     /// <summary>The raw incoming damage the windows faced, before any mitigation.</summary>
     public long DamageFacedInWindow => Result.Unmitigated;
 
-    /// <summary>Hits the player took inside the windows.</summary>
-    public int HitsCovered => Result.Hits;
+    /// <summary>Hits taken inside the windows.</summary>
+    public int HitsInWindows => Result.Hits;
 
     /// <summary>Hits inside the windows that came in as a block.</summary>
     public int BlockedHits => Result.BlockedHits;
 
-    /// <summary>Share (0-1) of <see cref="DamageFacedInWindow"/> that never landed, from every source of mitigation at once.</summary>
+    /// <summary>Share (0-1) of <see cref="DamageFacedInWindow"/> that was prevented, from every source of mitigation at once.</summary>
     public double MitigationShareInWindow =>
         Result.Unmitigated > 0 ? Math.Clamp(MitigationInWindow / (double)Result.Unmitigated, 0, 1) : 0;
 
@@ -207,18 +207,18 @@ public abstract class MajorDefensiveAnalyzer : Analyzer
 }
 
 /// <summary>
-/// One window a defensive was active for, and the incoming damage that landed inside it.
+/// One window a defensive was active for, and the incoming damage taken inside it.
 /// </summary>
 /// <param name="Start">When the defensive went active.</param>
-/// <param name="End">When it fell off, or the pull's end time when <paramref name="Truncated"/>.</param>
-/// <param name="Taken">Damage that still landed on the player.</param>
+/// <param name="End">When it closed, or the pull's end time when <paramref name="Truncated"/>.</param>
+/// <param name="Taken">Damage the player still took.</param>
 /// <param name="Unmitigated">The raw incoming damage before any mitigation.</param>
 /// <param name="Mitigated">The portion prevented by damage reduction, blocks included.</param>
 /// <param name="Absorbed">The portion prevented by absorb shields.</param>
 /// <param name="Blocked">The share of <paramref name="Mitigated"/> the log attributes to blocks.</param>
 /// <param name="Hits">Hits the player took inside the window.</param>
 /// <param name="BlockedHits">How many of <paramref name="Hits"/> came in as a block.</param>
-/// <param name="Truncated">Whether the pull ended before the defensive fell off.</param>
+/// <param name="Truncated">Whether the pull ended while the window was still open.</param>
 public sealed record DefensiveWindow(
     int Start,
     int End,

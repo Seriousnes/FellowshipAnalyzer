@@ -78,7 +78,7 @@ public sealed partial class TimelineLaneAlignmentTests
     }
 
     [Fact]
-    public void CooldownLane_InlineStyleCarriesNoLayoutProperties()
+    public void CooldownLane_InlineStyleHasNoLayoutProperties()
     {
         var razor = File.ReadAllText(Path.Combine(TimelineRoot(), "CooldownLane.razor"));
 

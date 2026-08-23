@@ -12,7 +12,7 @@
             Killed by <SpellLink Spell="@Death.KillingBlow" />
             @if (KillerName is { Length: > 0 } killer)
             {
-                <span class="death-card-killer">&mdash; @killer</span>
+                <span class="death-card-killer">- @killer</span>
             }
         </span>
         @if (EnemyAbilities.MaybeGet(Death.KillingBlow.Id) is { } classification)
@@ -38,7 +38,7 @@
             <StatTile Color="@FaVar.Steel" Value="@($"{Death.MitigatedShare * 100:F1}%")" Label="Mitigated"
                       Tooltip="@MitigatedTooltip" />
             <StatTile Color="@FaVar.FgNeutral" Value="@($"{Death.HealingReceived:N0}")" Label="Healed"
-                      Tooltip="Effective healing that landed on you inside this window, overheal excluded." />
+                      Tooltip="Effective healing received inside this window." />
             <StatTile Color="@FaVar.FgNeutral" Value="@HealthText" Label="Health At Start"
                       Tooltip="@HealthTooltip" />
         </div>
@@ -57,7 +57,7 @@
                         <th scope="col">Ability</th>
                         <th scope="col" class="death-card-numeric">Hits</th>
                         <th scope="col" class="death-card-numeric">Taken</th>
-                        <th scope="col" class="death-card-numeric" title="Damage reduction plus absorbs, as a share of what this ability's hits carried.">Mitigated</th>
+                        <th scope="col" class="death-card-numeric" title="Damage reduction plus absorbs, as a share of the raw incoming damage.">Mitigated</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -90,22 +90,22 @@
         {
             <HelperText>Nothing in this hero's spellbook is a defensive or a heal with a cooldown.</HelperText>
         }
-        else if (Death.Pressed.Count == 0 && Death.ActiveAtDeath.Count == 0 && Death.AvailableUnused.Count == 0)
+        else if (Death.Cast.Count == 0 && Death.ActiveAtDeath.Count == 0 && Death.AvailableUnused.Count == 0)
         {
             <HelperText>Every defensive and heal was recharging at the death.</HelperText>
         }
         else
         {
             <ul class="death-card-defensives">
-                @foreach (var defensive in Death.Pressed)
+                @foreach (var defensive in Death.Cast)
                 {
                     <li class="death-card-defensive">
                         <PassFailCheckmark Pass="true" Size="15" Title="Cast inside this window" />
                         <span class="death-card-defensive-name"><SpellLink Spell="@defensive.Ability" /></span>
-                        <span class="death-card-defensive-note">@PressedNote(defensive)</span>
+                        <span class="death-card-defensive-note">@CastNote(defensive)</span>
                     </li>
                 }
-                @foreach (var defensive in Death.ActiveAtDeath.Where(entry => !entry.Pressed))
+                @foreach (var defensive in Death.ActiveAtDeath.Where(entry => !entry.WasCast))
                 {
                     <li class="death-card-defensive">
                         <PassFailCheckmark Pass="true" Size="15" Title="Active on you when you died" />
@@ -116,16 +116,15 @@
                 @foreach (var defensive in Death.AvailableUnused)
                 {
                     <li class="death-card-defensive unused">
-                        <PassFailCheckmark Pass="false" Size="15" Title="Held a charge and went uncast" />
+                        <PassFailCheckmark Pass="false" Size="15" Title="Held a charge and was not cast" />
                         <span class="death-card-defensive-name"><SpellLink Spell="@defensive.Ability" /></span>
                         <span class="death-card-defensive-note">@AvailableNote(defensive)</span>
                     </li>
                 }
             </ul>
             <HelperText>
-                A crossed line held a charge through this window and was not cast. The log records no stun,
-                silence, range or line of sight, so an uncast ability is not on its own a mistake.
-                Abilities recharging at the death are left out.
+                A crossed line held a charge through this window and was not cast. An ability that was not
+                cast is not on its own a mistake. Abilities recharging at the death are left out.
             </HelperText>
         }
     </SubSection>
@@ -160,11 +159,11 @@
     private string WindowTitle => $"Last {Death.WindowDurationMs / 1000d:F0} Seconds";
 
     private string TakenTooltip =>
-        $"{Death.DamageTaken:N0} landed across {Death.HitCount:N0} hits" +
+        $"{Death.DamageTaken:N0} taken across {Death.HitCount:N0} hits" +
         (Death.BlockedHits > 0 ? $", {Death.BlockedHits:N0} of them blocked." : ".");
 
     private string MitigatedTooltip =>
-        $"{Death.Mitigated:N0} never landed: {Death.DamageReduction:N0} through damage reduction " +
+        $"{Death.Mitigated:N0} prevented: {Death.DamageReduction:N0} through damage reduction " +
         $"and {Death.Absorbed:N0} absorbed." +
         (Death.Blocked > 0 ? $" {Death.Blocked:N0} of that is attributed to a block." : "");
 
@@ -176,7 +175,7 @@
     private string HealthTooltip =>
         Death is { HitPointsAtWindowStart: { } health, MaxHitPoints: { } max }
             ? $"{health:N0} of {max:N0}, reconstructed from the first hit in this window."
-            : "No hit in this window carried a health reading.";
+            : "No hit in this window had a health reading.";
 
     private Ability AbilityFor(int abilityId) =>
         _abilities.GetValueOrDefault(abilityId) ?? Ability.UnknownAbility;
@@ -222,7 +221,7 @@
         _ => tag.ToString(),
     };
 
-    private string PressedNote(DefensiveReadiness defensive)
+    private string CastNote(DefensiveReadiness defensive)
     {
         var cast = defensive.LastCastTimestamp is { } timestamp
             ? $"cast at {Parser.FormatTimestamp(timestamp)}"

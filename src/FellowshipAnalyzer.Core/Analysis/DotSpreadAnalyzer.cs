@@ -37,7 +37,7 @@ public abstract class DotSpreadAnalyzer : Analyzer
 
     private int? _enemiesEngaged;
 
-    /// <summary>Enemies that carried any aura from the player during this pull.</summary>
+    /// <summary>Enemies with any aura from the player active during this pull.</summary>
     public int EnemiesEngaged => _enemiesEngaged ??= CountEnemiesEngaged();
 
     /// <summary>The denominator <see cref="CoverageOf"/> is read against.</summary>
@@ -50,9 +50,7 @@ public abstract class DotSpreadAnalyzer : Analyzer
     public int ApplicationsOf(Dot dot) => Lookup(dot)?.Applications ?? 0;
 
     /// <summary>
-    /// Times <paramref name="dot"/> was laid again over a window that had not ended. What that costs
-    /// depends on the effect: an <see cref="StackMethod.Accumulate"/> pool forfeits nothing, where an
-    /// effect that pays out as it expires loses the payout.
+    /// Number of times <paramref name="dot"/> was refreshed before expiring.
     /// </summary>
     public int RefreshesOf(Dot dot) => Lookup(dot)?.Refreshes ?? 0;
 

@@ -27,7 +27,7 @@
         @if (HasGuile)
         {
             <CastDetail Title="Assassin's Guile Windows"
-                        Description="Each row is one Assassin's Guile window, with the spenders pressed inside it."
+                        Description="Each row is one Assassin's Guile window, with the spenders cast inside it."
                         Casts="@BuildGuileRows()" />
         }
     </RightPanel>
@@ -140,7 +140,7 @@
             new(
                 $"{window.SpenderCasts}",
                 "Spenders",
-                "Queen's Fang and Arachnid Assault casts made while Assassin's Guile was active.",
+                "Queen's Fang and Arachnid Assault casts while Assassin's Guile was active.",
                 Performance: SpenderTier(window.SpenderCasts)),
         };
 
@@ -149,11 +149,11 @@
             stats.Add(new PerCastStat(
                 $"{window.QueensFangStacksAtOpen}/{cap}",
                 "Queen's Fang Stacks",
-                "Malevolence: Queen's Fang stacks active as the window opened. Context, not a verdict."));
+                "Malevolence: Queen's Fang stacks active as the window opened."));
             stats.Add(new PerCastStat(
                 $"{window.ArachnidAssaultStacksAtOpen}/{cap}",
                 "Arachnid Assault Stacks",
-                "Malevolence: Arachnid Assault stacks active as the window opened. Context, not a verdict."));
+                "Malevolence: Arachnid Assault stacks active as the window opened."));
         }
 
         return new PerCastRow
@@ -174,8 +174,6 @@
 
         if (window.PoisonEffectId is { } poison)
             notes.Add($"it applied {PoisonName(poison)}");
-        else if (builder == Spells.Backstab.Id)
-            notes.Add("the log records no poison debuff for it");
         else
             notes.Add("no poison was applied after it");
 
@@ -217,9 +215,7 @@
     private static string PoisonTooltip(StealthWindow window) =>
         window.PoisonEffectId is not null
             ? "The poison the builder applied out of stealth."
-            : window.ConvertingAbilityId == Spells.Backstab.Id
-                ? "The log records no poison debuff for a stealth Backstab."
-                : $"No poison was applied within {StealthAnalyzer.PoisonLinkWindowMs / 1000}s of the builder cast in this window.";
+            : $"No poison was applied within {StealthAnalyzer.PoisonLinkWindowMs / 1000}s of the builder cast in this window.";
 
     private static string Sentence(List<string> notes)
     {

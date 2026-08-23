@@ -68,7 +68,7 @@ public sealed class EventStreamMergerTests
     }
 
     [Fact]
-    public void Merge_CarriesInProgressFromPlayerStream()
+    public void Merge_TakesInProgressFromPlayerStream()
     {
         var inProgressPlayer = PlayerStream.Replace("\"inProgress\":false", "\"inProgress\":true");
 

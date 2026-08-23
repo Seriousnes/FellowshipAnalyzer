@@ -7,7 +7,7 @@ using OneOf;
 namespace FellowshipAnalyzer.Core.Analysis;
 
 /// <summary>
-/// A GCD sub-value — either a fixed number of milliseconds, or a function of
+/// A GCD sub-value - either a fixed number of milliseconds, or a function of
 /// the player's <see cref="FullCombatant"/> that returns milliseconds.
 /// </summary>
 [GenerateOneOf]
@@ -15,7 +15,7 @@ public partial class GcdValue : OneOfBase<double, Func<FullCombatant, double>>;
 
 /// <summary>
 /// Defines a spell's gameplay metadata for the spellbook.
-/// This is the input definition — hero analyzers override <see cref="Abilities.Spellbook"/>
+/// This is the input definition - hero analyzers override <see cref="Abilities.Spellbook"/>
 /// to provide these entries.
 /// </summary>
 public sealed record SpellbookAbility
@@ -165,7 +165,7 @@ public sealed record CastEfficiencyInfo
     public bool Suggestion { get; init; }
 
     /// <summary>
-    /// The recommended cast efficiency as a ratio (0.0–1.0). Default is 0.8.
+    /// The recommended cast efficiency as a ratio (0.0-1.0). Default is 0.8.
     /// </summary>
     public double RecommendedEfficiency { get; init; } = 0.8;
 

@@ -5,7 +5,7 @@ namespace FellowshipAnalyzer.Core.Analysis;
 /// <summary>
 /// How much of each healing ability landed on a bar that was already full. Every reading is that
 /// ability's overheal against its own output, never against another ability's - a heal-over-time
-/// parked on four allies for a whole pull and a cooldown pressed on a dying tank are not comparable,
+/// parked on four allies for a whole pull and a cooldown cast on a dying tank are not comparable,
 /// and the game's own ceiling for each is the same 0%.
 /// </summary>
 [ForPull(PullKind.Single | PullKind.Multi)]
@@ -21,7 +21,7 @@ public sealed partial class OverhealAnalyzer : Analyzer
     /// <summary>Healing that landed this pull.</summary>
     public long TotalEffective => Result.Effective;
 
-    /// <summary>Healing lost to full health bars this pull.</summary>
+    /// <summary>Healing lost to overheal this pull.</summary>
     public long TotalOverheal => Result.Overheal;
 
     /// <summary>Effective healing plus overheal.</summary>
@@ -74,12 +74,12 @@ public sealed partial class OverhealAnalyzer : Analyzer
     private sealed record Computed(List<AbilityOverheal> Spells, long Effective, long Overheal);
 }
 
-/// <summary>One ability's healing this pull, split into what landed and what was lost to full bars.</summary>
+/// <summary>One ability's healing this pull, split into effective and overheal.</summary>
 /// <param name="SpellId">The healing ability.</param>
 /// <param name="Name">Its name as the log reported it.</param>
 /// <param name="Heals">Heal events it produced, ticks included.</param>
 /// <param name="Effective">Healing that landed.</param>
-/// <param name="Overheal">Healing lost to full health bars.</param>
+/// <param name="Overheal">Healing lost to overheal.</param>
 public sealed record AbilityOverheal(int SpellId, string Name, int Heals, long Effective, long Overheal)
 {
     /// <summary>Effective healing plus overheal.</summary>

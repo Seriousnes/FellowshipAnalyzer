@@ -4,8 +4,8 @@ using FellowshipAnalyzer.Core.Contracts.Design;
 namespace FellowshipAnalyzer.Core.UI;
 
 /// <summary>
-/// The four <see cref="QualitativePerformance"/> tiers and the neutral a stat wears when it carries
-/// no rating, each as the CSS reference to the token that colours it. Nothing here holds a value,
+/// The four <see cref="QualitativePerformance"/> tiers and the neutral for a stat with no rating,
+/// each as the CSS reference to the token that colours it. Nothing here holds a value,
 /// so C# and the stylesheet cannot disagree.
 /// </summary>
 public static class PerformanceColors

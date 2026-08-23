@@ -13,14 +13,14 @@ namespace FellowshipAnalyzer.Core.Tests.Analysis;
 public sealed class SpellDatabaseTests
 {
     [Fact]
-    public void FreezingTorrent_CarriesGeneratedScalars()
+    public void FreezingTorrent_HasGeneratedScalars()
     {
         Assert.Equal(15, RimeSpells.FreezingTorrent.Cooldown);
         Assert.Equal(0.4, RimeSpells.FreezingTorrent.ChannelTickInterval);
     }
 
     [Fact]
-    public void FreezingTorrent_CarriesGeneratedAbilityCategory()
+    public void FreezingTorrent_HasGeneratedAbilityCategory()
     {
         Assert.Equal(AbilityCategory.Core, RimeSpells.FreezingTorrent.AbilityCategory);
     }

@@ -3,7 +3,7 @@
 <GuideSection Title="Toughness">
     <LeftPanel>
         <p>
-            Managing Toughness is key to Helena's survival. You should aim to reach @CeilingLabel physical
+            Managing Toughness is key to Helena's survival. You should aim to reach @CeilingLabel DR as soon as possible.
         </p>
     </LeftPanel>
     <RightPanel>
@@ -124,7 +124,7 @@
             stats.Add(new OverviewStat(
                 $"{overcapped}/{casts}",
                 SpellName(generator.SpellId),
-                "Casts made at maximum Toughness.",
+                "Casts at maximum Toughness.",
                 PerformanceTiers.FromThresholds(100 - (share * 100), 85, 70, 50)));
         }
 

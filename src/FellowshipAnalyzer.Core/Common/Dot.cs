@@ -6,7 +6,7 @@ namespace FellowshipAnalyzer.Core.Common;
 /// One damage-over-time effect a hero maintains, paired with the ability that applies it and how
 /// repeat applications combine.
 /// </summary>
-/// <param name="Cast">The ability the player presses to apply <paramref name="Effect"/>, or
+/// <param name="Cast">The ability the player casts to apply <paramref name="Effect"/>, or
 /// <c>null</c> when several abilities apply it and none of them names it.</param>
 /// <param name="Effect">The aura that ticks on the target. This is the identity of the effect: it is
 /// what the log carries and what <see cref="EffectId"/> reads.</param>

@@ -117,7 +117,7 @@
             new OverviewStat(
                 $"{unplaced / 1000:N0}s",
                 "Unplaced",
-                "Pull time in which the log placed Bluey nowhere at all."),
+                "Pull time with Bluey on nobody."),
         ];
     }
 
@@ -138,7 +138,7 @@
                 $"{analyzer.AssignedMs / 1000:N0} flutterfly-seconds assigned against the {analyzer.AssignableMs / 1000:N0} this pull offered.",
                 PerformanceTiers.FromThresholds(analyzer.AssignedShare * 100, 98, 90, 75)),
             new(
-                $"{analyzer.HoldersCovered}",
+                $"{analyzer.Holders}",
                 "Allies Healed",
                 "Distinct allies the flutterflies ticked on during this pull."),
         };
@@ -200,7 +200,7 @@
             stats.Add(new PerCastStat(
                 $"{analyzer.UnplacedMs / 1000:N0}s",
                 "Unplaced",
-                "Pull time in which the log placed Bluey nowhere at all."));
+                "Pull time with Bluey on nobody."));
         }
 
         return [.. stats];

@@ -10,7 +10,7 @@ namespace FellowshipAnalyzer.Core.Common;
 /// e.g. <see cref="Spells.ISpellRegistry"/> or <see cref="Items.IItemRegistry"/>.
 /// </typeparam>
 /// <remarks>
-/// Entry types must expose an <c>FSLID</c> property — this is used as the key for the
+/// Entry types must expose an <c>FSLID</c> property - this is used as the key for the
 /// generated <c>All</c> dictionary. The value type of <c>All</c> is inferred as the lowest common
 /// ancestor of all entry property types found across all implementors.
 /// </remarks>

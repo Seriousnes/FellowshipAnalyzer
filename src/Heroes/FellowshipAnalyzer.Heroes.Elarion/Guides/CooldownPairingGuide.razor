@@ -62,7 +62,7 @@
             new OverviewStat(
                 $"{heldSeconds:0.#}s",
                 "Grace Held",
-                $"Time Skystrider's Grace spent available and uncast across every pull, against {graceCasts} casts."),
+                $"Time Skystrider's Grace spent available and not cast across every pull, against {graceCasts} casts."),
             new OverviewStat(
                 $"{marks} + {barrages}",
                 "Mark and Barrage Casts",
@@ -116,9 +116,9 @@
             return "Cast together with Skystrider's Grace.";
 
         if (seconds <= 10)
-            return $"Skystrider's Grace was cast {seconds:0.#}s away. Press it straight after Event Horizon.";
+            return $"Skystrider's Grace was cast {seconds:0.#}s away. Cast it straight after Event Horizon.";
 
-        return $"Skystrider's Grace was cast {seconds:0.#}s away. Press it straight after Event Horizon, or save it for the next one.";
+        return $"Skystrider's Grace was cast {seconds:0.#}s away. Cast it straight after Event Horizon, or save it for the next one.";
     }
 
     private static string PairingLabel(int? deltaMs, QualitativePerformance performance) =>

@@ -66,7 +66,7 @@ public sealed class FellowshipLogsService(IFellowshipLogsApiClient client, Recyc
     }
 
     /// <summary>
-    /// Fetches all death events for a dungeon regardless of who landed the kill or which side died.
+    /// Fetches all death events for a dungeon regardless of who dealt the killing blow or which side died.
     /// The Fellowship Logs <c>events(dataType: Deaths)</c> stream is split by <c>hostilityType</c>:
     /// the enemy view returns enemy deaths, the friendly view returns player deaths. Neither value
     /// returns both, so both are fetched and concatenated into a single <c>events</c> array. This is

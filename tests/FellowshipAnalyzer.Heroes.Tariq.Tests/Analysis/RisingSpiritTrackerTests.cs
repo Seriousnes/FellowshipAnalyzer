@@ -129,7 +129,7 @@ public sealed class RisingSpiritTrackerTests
     }
 
     [Fact]
-    public async Task Analyze_RisingSpirit_ContributesNoStatisticWhenTheBuffNeverLanded()
+    public async Task Analyze_RisingSpirit_ContributesNoStatisticWhenTheBuffWasNeverApplied()
     {
         var tracker = await AnalyzeAsync([]);
 
@@ -141,7 +141,7 @@ public sealed class RisingSpiritTrackerTests
     }
 
     [Fact]
-    public async Task Analyze_RisingSpirit_ContributesItsStatisticOnceTheBuffLanded()
+    public async Task Analyze_RisingSpirit_ContributesItsStatisticOnceTheBuffWasApplied()
     {
         var tracker = await AnalyzeAsync(
         [
