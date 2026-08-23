@@ -1,22 +1,10 @@
 @using FellowshipAnalyzer.Heroes.Rime.Analysis
 @inherits ReportComponent<RimeCombatLogParser>
 
-@if (Parser.WintersEmbraceAnalyzers.Count > 0)
-{
-    <WintersEmbraceGuide />
-}
+<WintersEmbraceGuide />
 
-@if (Parser.WinterOrbTracker is not null)
-{
-    <WinterOrbGuide />
-}
+<WinterOrbGuide />
 
-@if (Parser.MajorCooldownAnalyzers.Count > 0)
-{
-    <CooldownsGuide />
-}
+<CooldownsGuide />
 
-@if (Parser.DowntimeAnalyzers.Count > 0)
-{
-    <DowntimeGuide />
-}
+<DowntimeGuide />

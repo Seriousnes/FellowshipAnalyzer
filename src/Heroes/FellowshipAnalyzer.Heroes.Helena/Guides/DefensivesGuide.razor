@@ -1,4 +1,4 @@
-@inherits ReportComponent<HelenaCombatLogParser>
+@inherits GuideComponent<HelenaCombatLogParser>
 
 <GuideSection Title="Shields Up and Iron Wall">
     <LeftPanel>
@@ -28,6 +28,8 @@
 </GuideSection>
 
 @code {
+    protected override bool IsActive() => Parser.ShieldsUpAnalyzers.Count > 0 || Parser.IronWallAnalyzers.Count > 0;
+
     private IEnumerable<OverviewStat> BuildShieldsUpStats()
     {
         var entries = Parser.ShieldsUpAnalyzers.ToList();

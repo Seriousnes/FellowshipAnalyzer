@@ -1,5 +1,5 @@
 @using Spells = FellowshipAnalyzer.Core.Common.Spells.Gunde.Spells
-@inherits ReportComponent<GundeCombatLogParser>
+@inherits GuideComponent<GundeCombatLogParser>
 
 <GuideSection Title="Owed in Blood">
     <LeftPanel>
@@ -43,6 +43,8 @@
 </GuideSection>
 
 @code {
+    protected override bool IsActive() => Parser.OwedInBloodEconomyAnalyzers.Count > 0;
+
     private const int BankPerfect = 80;
     private const int BankGood = 55;
     private const int BankOk = 30;

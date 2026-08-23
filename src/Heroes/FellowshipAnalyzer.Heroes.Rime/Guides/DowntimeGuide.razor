@@ -1,4 +1,4 @@
-@inherits ReportComponent<RimeCombatLogParser>
+@inherits GuideComponent<RimeCombatLogParser>
 
 @{
     var gapRows = BuildGapRows();
@@ -23,6 +23,8 @@
 </GuideSection>
 
 @code {
+    protected override bool IsActive() => Parser.DowntimeAnalyzers.Count > 0;
+
     private const int AcceptableGapMs = 3_000;
 
     private static string GapDetailTitle => $"Longest Idle Stretches (top {DowntimeAnalyzer.TopGapLimit} per pull)";

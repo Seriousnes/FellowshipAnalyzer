@@ -1,5 +1,5 @@
 @using Spells = FellowshipAnalyzer.Core.Common.Spells.Tariq.Spells
-@inherits ReportComponent<TariqCombatLogParser>
+@inherits GuideComponent<TariqCombatLogParser>
 
 @{
     var analyzers = Parser.CullingStrikeAnalyzers.Select(entry => entry.Analyzer).ToList();
@@ -48,6 +48,8 @@
 }
 
 @code {
+    protected override bool IsActive() => Parser.CullingStrikeAnalyzers.Count > 0;
+
     private ExecutionersGrinTracker? GrinTracker() => Parser.ExecutionersGrinTracker;
 
     private IEnumerable<OverviewStat> BuildOverviewStats(

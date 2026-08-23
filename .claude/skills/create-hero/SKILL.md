@@ -136,17 +136,12 @@ The source generator emits the factory that constructs this module per analysis 
 ```razor
 @inherits ReportComponent<{Hero}CombatLogParser>
 
-@if (Parser.{Name}Analyzers.Count > 0)
-{
-    <{Name}Guide />
-}
-@if (Parser.{Name}Tracker is not null)
-{
-    <{Tracker}Guide />
-}
+<{Name}Guide />
+
+<{Tracker}Guide />
 ```
 
-Gate pull analyzers on a non-empty surface stream and dungeon-lifetime modules on a null check, exactly as `RimeGuide.razor` does for both. The root guide renders only analysis-driven guide components; no static rotation, overview, or how-to-play prose belongs in it. Add feature guides with the `create-guide` skill.
+The root guide composes and orders; it never checks an analyzer surface. Each feature guide inherits `GuideComponent<{Hero}CombatLogParser>` and decides for itself through its `IsActive()` override: a non-empty surface stream for a pull analyzer, a null check for a dungeon-lifetime module. `RimeGuide.razor` is the reference for both shapes. The root guide renders only analysis-driven guide components; no static rotation, overview, or how-to-play prose belongs in it. Add feature guides with the `create-guide` skill.
 
 ### 9. Configure SCSS
 

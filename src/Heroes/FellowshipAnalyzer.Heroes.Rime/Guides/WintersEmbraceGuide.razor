@@ -2,7 +2,7 @@
 @using StWindow = FellowshipAnalyzer.Heroes.Rime.Modules.SingleTargetEmbraceAnalyzer.SingleTargetWindowEvaluation
 @using AoeWindow = FellowshipAnalyzer.Heroes.Rime.Modules.AoeEmbraceAnalyzer.AoeWindowEvaluation
 @using Window = FellowshipAnalyzer.Heroes.Rime.Modules.WintersEmbraceAnalyzer.EmbraceWindowEvaluation
-@inherits ReportComponent<RimeCombatLogParser>
+@inherits GuideComponent<RimeCombatLogParser>
 
 @{
     RenderFragment bi = @<SpellLink Spell="Spells.BurstingIce" />;
@@ -26,6 +26,8 @@
 </GuideSection>
 
 @code {
+    protected override bool IsActive() => Parser.WintersEmbraceAnalyzers.Count > 0;
+
     private List<Window> AllWindows() =>
         [.. Parser.WintersEmbraceAnalyzers.SelectMany(entry => entry.Analyzer.Windows)];
 

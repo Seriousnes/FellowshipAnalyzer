@@ -1,5 +1,5 @@
 @using Spells = FellowshipAnalyzer.Core.Common.Spells.Gunde.Spells
-@inherits ReportComponent<GundeCombatLogParser>
+@inherits GuideComponent<GundeCombatLogParser>
 
 <GuideSection Title="Burst Windows">
     <LeftPanel>
@@ -28,6 +28,8 @@
 </GuideSection>
 
 @code {
+    protected override bool IsActive() => Parser.BurstAnalyzers.Count > 0;
+
     private int TotalWindows => Parser.BurstAnalyzers.Sum(entry => entry.Analyzer.WindowCount);
 
     private IEnumerable<OverviewStat> BuildOverviewStats()

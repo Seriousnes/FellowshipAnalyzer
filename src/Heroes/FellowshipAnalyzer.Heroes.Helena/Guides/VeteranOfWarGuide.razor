@@ -1,4 +1,4 @@
-@inherits ReportComponent<HelenaCombatLogParser>
+@inherits GuideComponent<HelenaCombatLogParser>
 
 <GuideSection Title="Veteran of War">
     <LeftPanel>
@@ -19,6 +19,8 @@
 </GuideSection>
 
 @code {
+    protected override bool IsActive() => Parser.VeteranOfWarAnalyzers.Count > 0;
+
     private int PunishingStrikesCasts =>
         Parser.VeteranOfWarAnalyzers.Sum(entry => entry.Analyzer.PunishingStrikesCasts);
 

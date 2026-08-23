@@ -2,7 +2,7 @@
 @using FellowshipAnalyzer.Core.Common.Spells.Ardeos
 @using FellowshipAnalyzer.Heroes.Ardeos.Core
 @using Spells = FellowshipAnalyzer.Core.Common.Spells.Ardeos.Spells
-@inherits ReportComponent<ArdeosCombatLogParser>
+@inherits GuideComponent<ArdeosCombatLogParser>
 @inject ChartPalette Palette
 
 <GuideSection Title="Detonate">
@@ -47,6 +47,8 @@
 </GuideSection>
 
 @code {
+    protected override bool IsActive() => Parser.DetonateEfficiencyAnalyzers.Count > 0;
+
 
     private bool HasApocalypticSurge => Parser.SelectedCombatant.HasTalent(Talents.ApocalypticSurge.Id);
 

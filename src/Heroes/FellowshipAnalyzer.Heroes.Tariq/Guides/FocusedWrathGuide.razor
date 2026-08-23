@@ -1,7 +1,7 @@
 @using FellowshipAnalyzer.Core.Common.Spells
 @using Spells = FellowshipAnalyzer.Core.Common.Spells.Tariq.Spells
 @using Talents = FellowshipAnalyzer.Core.Common.Spells.Tariq.Talents
-@inherits ReportComponent<TariqCombatLogParser>
+@inherits GuideComponent<TariqCombatLogParser>
 
 @{
     var analyzers = Parser.FocusedWrathAnalyzers.Select(entry => entry.Analyzer).ToList();
@@ -41,6 +41,8 @@
 }
 
 @code {
+    protected override bool IsActive() => Parser.FocusedWrathAnalyzers.Count > 0;
+
     private IEnumerable<OverviewStat> BuildOverviewStats(List<FocusedWrathAnalyzer> analyzers)
     {
         var granted = analyzers.Sum(analyzer => analyzer.ChargesGranted);

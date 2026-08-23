@@ -1,6 +1,6 @@
 @using FellowshipAnalyzer.Core.Common.Spells.Ardeos
 @using Spells = FellowshipAnalyzer.Core.Common.Spells.Ardeos.Spells
-@inherits ReportComponent<ArdeosCombatLogParser>
+@inherits GuideComponent<ArdeosCombatLogParser>
 
 <GuideSection Title="Searing Blaze">
     <LeftPanel>
@@ -18,6 +18,8 @@
 </GuideSection>
 
 @code {
+    protected override bool IsActive() => Parser.SearingBlazeAnalyzers.Count > 0;
+
     private IEnumerable<OverviewStat> BuildOverviewStats()
     {
         var stats = new List<OverviewStat>();

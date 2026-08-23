@@ -2,7 +2,7 @@
 @using FellowshipAnalyzer.Core.Common.Spells.Ardeos
 @using FellowshipAnalyzer.Heroes.Ardeos.Core
 @using Spells = FellowshipAnalyzer.Core.Common.Spells.Ardeos.Spells
-@inherits ReportComponent<ArdeosCombatLogParser>
+@inherits GuideComponent<ArdeosCombatLogParser>
 
 @{
     RenderFragment wf = @<SpellLink Spell="Spells.Wildfire" />;
@@ -25,6 +25,8 @@
 </GuideSection>
 
 @code {
+    protected override bool IsActive() => Parser.WildfireComboAnalyzers.Count > 0;
+
     private int TotalDots => Parser.ArdeosDotTracker!.Count;
 
     private IEnumerable<OverviewStat> BuildOverviewStats()

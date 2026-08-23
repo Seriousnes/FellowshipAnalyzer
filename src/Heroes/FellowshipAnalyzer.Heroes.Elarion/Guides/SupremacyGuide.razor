@@ -1,4 +1,4 @@
-@inherits ReportComponent<ElarionCombatLogParser>
+@inherits GuideComponent<ElarionCombatLogParser>
 
 @{
     var windows = Parser.SupremacyAnalyzers.SelectMany(entry => entry.Analyzer.Windows).ToList();
@@ -33,6 +33,8 @@
 </GuideSection>
 
 @code {
+    protected override bool IsActive() => Parser.SupremacyAnalyzers.Count > 0;
+
     private const int TargetMultishots = 4;
     private const int SlowOpeningMs = 1_000;
 

@@ -214,8 +214,8 @@ Shared spell identity data lives in `src/FellowshipAnalyzer.Core/Common/Spells/`
 ## UI Integration
 
 - The parser's `GuideComponent` points to the hero's root guide component.
-- The root guide manually composes feature guide components and null-checks generated module properties.
-- Guide components inherit `ReportComponent<{Hero}CombatLogParser>` for their `Parser` and read module state; hero-agnostic report components inherit the non-generic `ReportComponent`. A parser is transient - one instance per analysis - so it reaches a component through the report shell's cascade, never through `@inject`.
+- The root guide manually composes feature guide components in reading order and renders each one unconditionally.
+- Feature guide components inherit `GuideComponent<{Hero}CombatLogParser>` and override `protected abstract bool IsActive()` with their own activation condition. `GuideComponent` overrides `SetParametersAsync` and returns without queueing a render when `IsActive()` is false, so an inactive guide contributes no frames and runs no lifecycle method; the guide writes its markup with no gate of its own. The root guide inherits `ReportComponent<{Hero}CombatLogParser>`; hero-agnostic report components inherit the non-generic `ReportComponent`. A parser is transient - one instance per analysis - so it reaches a component through the report shell's cascade, never through `@inject`.
 - Statistics components inherit `AnalyzerStatistic<TModule>` and are auto-collected from active modules with non-null `StatisticsComponentType`.
 - Component styling uses `.razor.scss`; use the `style-guide` skill for all styling work.
 
