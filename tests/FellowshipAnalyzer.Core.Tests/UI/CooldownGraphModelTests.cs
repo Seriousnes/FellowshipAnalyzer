@@ -12,8 +12,8 @@ namespace FellowshipAnalyzer.Core.Tests.UI;
 
 /// <summary>
 /// Tests for <see cref="CooldownGraphModel"/>: the lane covers the render window with no gaps, time
-/// outside every pull is set aside rather than read as a hold, and a hold is only flagged as a missed
-/// use when one pull held it for a whole recharge.
+/// outside every pull is set aside rather than read as a hold, and how much of a hold is marked
+/// follows the ability's <see cref="CooldownUsage"/>.
 /// </summary>
 public sealed class CooldownGraphModelTests
 {
@@ -21,6 +21,9 @@ public sealed class CooldownGraphModelTests
     private const int SpellId = 100;
     private const int ExtraSpellId = 101;
     private const int ChargeSpellId = 200;
+    private const int OnCooldownSpellId = 300;
+    private const int AsNeededSpellId = 400;
+    private const int HeldChargeSpellId = 500;
 
     [Fact]
     public void Segments_CoverTheWindowEndToEndWithNoGaps()
@@ -56,7 +59,7 @@ public sealed class CooldownGraphModelTests
     }
 
     [Fact]
-    public void AHoldShorterThanTheRecharge_IsAvailableRatherThanWasted()
+    public void AHoldShorterThanTheRecharge_IsAvailableRatherThanAUseLost()
     {
         var lane = Single(
             [
@@ -67,14 +70,14 @@ public sealed class CooldownGraphModelTests
             0,
             35_000);
 
-        lane.Segments.ShouldNotContain(s => s.State == CooldownGraphState.Wasted);
+        lane.Segments.ShouldNotContain(s => s.State == CooldownGraphState.UseLost);
         var hold = lane.Segments.Single(s => s.State == CooldownGraphState.Available);
         hold.Start.ShouldBe(15_000);
         hold.End.ShouldBe(20_000);
     }
 
     [Fact]
-    public void AHoldAsLongAsTheRecharge_IsWasted()
+    public void AHoldAsLongAsTheRecharge_IsAUseLost()
     {
         var lane = Single(
             [
@@ -85,9 +88,9 @@ public sealed class CooldownGraphModelTests
             0,
             45_000);
 
-        var wasted = lane.Segments.Single(s => s.State == CooldownGraphState.Wasted);
-        wasted.Start.ShouldBe(15_000);
-        wasted.End.ShouldBe(30_000);
+        var useLost = lane.Segments.Single(s => s.State == CooldownGraphState.UseLost);
+        useLost.Start.ShouldBe(15_000);
+        useLost.End.ShouldBe(30_000);
     }
 
     [Fact]
@@ -156,14 +159,14 @@ public sealed class CooldownGraphModelTests
     }
 
     [Fact]
-    public void AnAbilityNeverCast_ReportsNoCastsAndAWastedWindow()
+    public void AnAbilityNeverCast_ReportsNoCastsAndAUseLostWindow()
     {
         var lane = Single([], [Pull(0, 0, 40_000)], 0, 40_000);
 
         lane.Casts.ShouldBe(0);
         lane.Efficiency!.Value.ShouldBe(0);
         lane.Performance.ShouldBe(QualitativePerformance.Fail);
-        lane.Segments.Single().ShouldBe(new CooldownGraphSegment(0, 40_000, CooldownGraphState.Wasted));
+        lane.Segments.Single().ShouldBe(new CooldownGraphSegment(0, 40_000, CooldownGraphState.UseLost));
     }
 
     [Fact]
@@ -193,17 +196,65 @@ public sealed class CooldownGraphModelTests
     }
 
     [Fact]
-    public void EveryHoldOnAChargeAbilityIsWasted_BecauseAChargeWasAlreadyRecharging()
+    public void AChargeAbilityDefaultsToMarkingEveryHold()
     {
         var lane = Build(
-            [Cast(ChargeSpellId, 0), Begin(ChargeSpellId, 0), End(ChargeSpellId, 5000)],
-            [Pull(0, 0, 40_000)],
+            [Cast(ChargeSpellId, 0), Begin(ChargeSpellId, 0), End(ChargeSpellId, 15_000)],
+            [Pull(0, 0, 20_000)],
             0,
-            40_000)[1];
+            20_000)[1];
 
         lane.Segments.ShouldNotContain(s => s.State == CooldownGraphState.Available);
-        lane.Segments.Single(s => s.State == CooldownGraphState.Wasted).ShouldBe(
-            new CooldownGraphSegment(5000, 40_000, CooldownGraphState.Wasted));
+        lane.Segments.Single(s => s.State == CooldownGraphState.Held).ShouldBe(
+            new CooldownGraphSegment(15_000, 20_000, CooldownGraphState.Held));
+    }
+
+    [Fact]
+    public void AnAbilityCastOnCooldown_MarksAHoldShorterThanTheRecharge()
+    {
+        var lane = Build(
+            [
+                Cast(OnCooldownSpellId, 0), Begin(OnCooldownSpellId, 0), End(OnCooldownSpellId, 15_000),
+                Cast(OnCooldownSpellId, 20_000), Begin(OnCooldownSpellId, 20_000), End(OnCooldownSpellId, 35_000),
+            ],
+            [Pull(0, 0, 35_000)],
+            0,
+            35_000)[2];
+
+        lane.Segments.ShouldNotContain(s => s.State == CooldownGraphState.Available);
+        lane.Segments.Single(s => s.State == CooldownGraphState.Held).ShouldBe(
+            new CooldownGraphSegment(15_000, 20_000, CooldownGraphState.Held));
+    }
+
+    [Fact]
+    public void AnAbilityCastAsNeeded_MarksNoHoldEvenPastAFullRecharge()
+    {
+        var lane = Build(
+            [
+                Cast(AsNeededSpellId, 0), Begin(AsNeededSpellId, 0), End(AsNeededSpellId, 15_000),
+                Cast(AsNeededSpellId, 30_000), Begin(AsNeededSpellId, 30_000), End(AsNeededSpellId, 45_000),
+            ],
+            [Pull(0, 0, 45_000)],
+            0,
+            45_000)[3];
+
+        lane.Segments.ShouldNotContain(s => s.State == CooldownGraphState.Held || s.State == CooldownGraphState.UseLost);
+        lane.Segments.Single(s => s.State == CooldownGraphState.Available).ShouldBe(
+            new CooldownGraphSegment(15_000, 30_000, CooldownGraphState.Available));
+    }
+
+    [Fact]
+    public void TheSpellbooksOwnUsage_OverridesTheChargesDefault()
+    {
+        var lane = Build(
+            [Cast(HeldChargeSpellId, 0), Begin(HeldChargeSpellId, 0), End(HeldChargeSpellId, 15_000)],
+            [Pull(0, 0, 40_000)],
+            0,
+            40_000)[4];
+
+        lane.Segments.ShouldNotContain(s => s.State == CooldownGraphState.Held || s.State == CooldownGraphState.UseLost);
+        lane.Segments.Single(s => s.State == CooldownGraphState.Available).ShouldBe(
+            new CooldownGraphSegment(15_000, 40_000, CooldownGraphState.Available));
     }
 
     [Fact]
@@ -325,6 +376,24 @@ public sealed class CooldownGraphModelTests
             {
                 PrimarySpell = new Spell { Id = ChargeSpellId, Name = "Charged Spell", Cooldown = 20, Charges = 2 },
                 Category = SpellCategory.Cooldowns,
+            },
+            new()
+            {
+                PrimarySpell = new Spell { Id = OnCooldownSpellId, Name = "On Cooldown Spell", Cooldown = 15 },
+                Category = SpellCategory.Cooldowns,
+                CastEfficiency = new CastEfficiencyInfo { Usage = CooldownUsage.OnCooldown },
+            },
+            new()
+            {
+                PrimarySpell = new Spell { Id = AsNeededSpellId, Name = "As Needed Spell", Cooldown = 15 },
+                Category = SpellCategory.Cooldowns,
+                CastEfficiency = new CastEfficiencyInfo { Usage = CooldownUsage.AsNeeded },
+            },
+            new()
+            {
+                PrimarySpell = new Spell { Id = HeldChargeSpellId, Name = "Held Charge Spell", Cooldown = 20, Charges = 2 },
+                Category = SpellCategory.Cooldowns,
+                CastEfficiency = new CastEfficiencyInfo { Usage = CooldownUsage.AsNeeded },
             },
         ];
     }

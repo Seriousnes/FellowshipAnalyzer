@@ -1,4 +1,3 @@
-@using System.Globalization
 @using FellowshipAnalyzer.Core.Analysis
 @using FellowshipAnalyzer.Core.Common.Spells
 @inherits ReportComponent
@@ -9,14 +8,15 @@
         <LeftPanel>
             <p>
                 Cast each cooldown as soon as it becomes available, as long as it can reach a target.
-                Delaying one for a mechanic is fine, but a hold long enough to fit another use is a
-                cast you did not make.
+                Some can be held for a mechanic, up to the point the hold runs a full recharge and
+                another use fits inside it. The rest are cast on cooldown.
             </p>
             <p>
                 <strong>Cooldown Graph</strong> - this graph shows when you cast each cooldown and how
                 long it was available in between. Grey segments show the ability available, gold
-                segments show it recharging, and white lines mark each cast. Red segments highlight a
-                hold that ran a full recharge long, so another use fit inside it.
+                segments show it recharging, and white lines mark each cast. Red segments mark a hold
+                that cost you: on an ability cast on cooldown, every stretch in hand; on one that can
+                be held, a hold that ran a full recharge, so another use fit inside it.
             </p>
             <p>
                 The percentage beside each lane is the share of pull time the ability was recharging.
@@ -26,33 +26,10 @@
             </p>
         </LeftPanel>
         <RightPanel>
-            <div class="cooldown-graph">
-                @foreach (var lane in _lanes)
-                {
-                    <div class="cooldown-graph-row">
-                        <div class="cooldown-graph-label">
-                            <SpellIcon Spell="lane.Ability" Size="SpellIconSize.Small" />
-                            <span class="cooldown-graph-effic @TierClass(lane)" title="@Summary(lane)">
-                                @Efficiency(lane) <span class="cooldown-graph-unit">effic</span>
-                            </span>
-                        </div>
-                        <div class="cooldown-graph-track">
-                            @foreach (var segment in lane.Segments)
-                            {
-                                <div class="cooldown-graph-segment @StateClass(segment.State)"
-                                     style="left: @Offset(segment.Start); width: @Width(segment.DurationMs);"
-                                     title="@SegmentLabel(lane, segment)"></div>
-                            }
-                            @foreach (var timestamp in lane.CastTimestamps)
-                            {
-                                <div class="cooldown-graph-cast"
-                                     style="left: @Offset(timestamp);"
-                                     title="@CastLabel(lane, timestamp)"></div>
-                            }
-                        </div>
-                    </div>
-                }
-            </div>
+            <CooldownGraph Lanes="_lanes"
+                           WindowStart="_windowStart"
+                           WindowEnd="_windowEnd"
+                           DungeonStartTime="DungeonStartTime" />
         </RightPanel>
     </GuideSection>
 }
@@ -67,8 +44,6 @@
     private List<CooldownGraphLane> _lanes = [];
     private int _windowStart;
     private int _windowEnd;
-
-    private int WindowMs => Math.Max(1, _windowEnd - _windowStart);
 
     protected override void OnParametersSet()
     {
@@ -91,64 +66,5 @@
 
         _lanes = CooldownGraphModel.Build(
             abilities, Result.Events, spellbook, Owner.PlayerId, pulls, _windowStart, _windowEnd);
-    }
-
-    private static string StateClass(CooldownGraphState state) => state switch
-    {
-        CooldownGraphState.Recharging => "cooldown-graph-recharging",
-        CooldownGraphState.Wasted => "fail-filled",
-        CooldownGraphState.OutsidePull => "cooldown-graph-outside",
-        _ => "cooldown-graph-available",
-    };
-
-    private static string TierClass(CooldownGraphLane lane) => lane.Performance switch
-    {
-        QualitativePerformance.Perfect => "perfect",
-        QualitativePerformance.Good => "good",
-        QualitativePerformance.Ok => "ok",
-        QualitativePerformance.Fail => "fail",
-        _ => "",
-    };
-
-    private static string Efficiency(CooldownGraphLane lane) =>
-        lane.EffectiveEfficiency is { } share ? $"{share * 100:F0}%" : "-";
-
-    private static string Summary(CooldownGraphLane lane)
-    {
-        var name = lane.Ability.Name ?? lane.Ability.PrimarySpell.Name;
-        if (lane.MaxCasts is not { } max) return $"{name}: {lane.Casts} casts.";
-
-        var recharging = lane.Efficiency is { } share ? $" It was recharging for {share * 100:F0}% of pull time." : "";
-        return $"{name}: {lane.Casts} casts of a possible {max}.{recharging}";
-    }
-
-    private string SegmentLabel(CooldownGraphLane lane, CooldownGraphSegment segment)
-    {
-        var name = lane.Ability.Name ?? lane.Ability.PrimarySpell.Name;
-        var span = $"{Clock(segment.Start)} to {Clock(segment.End)}";
-
-        return segment.State switch
-        {
-            CooldownGraphState.Recharging => $"{name} recharging, {span}",
-            CooldownGraphState.Wasted => $"{name} available, {span}, long enough to fit another cast",
-            CooldownGraphState.OutsidePull => $"Between pulls, {span}",
-            _ => $"{name} available, {span}",
-        };
-    }
-
-    private string CastLabel(CooldownGraphLane lane, int timestamp) =>
-        $"{lane.Ability.Name ?? lane.Ability.PrimarySpell.Name} cast at {Clock(timestamp)}";
-
-    private string Offset(int timestamp) => Percent(timestamp - _windowStart);
-
-    private string Width(int durationMs) => Percent(durationMs);
-
-    private string Percent(int milliseconds) =>
-        (Math.Clamp(milliseconds / (double)WindowMs, 0, 1) * 100).ToString("F3", CultureInfo.InvariantCulture) + "%";
-
-    private string Clock(int timestamp)
-    {
-        var seconds = Math.Max(0, timestamp - DungeonStartTime) / 1000;
-        return $"{seconds / 60}:{seconds % 60:00}";
     }
 }

@@ -33,11 +33,11 @@
 }
 
 .cooldown-graph-track {
+    @include mx.inset-surface(var(--fa-radius-xs));
+
     position: relative;
     height: 22px;
-    border-radius: var(--fa-radius-xs);
     overflow: hidden;
-    background: var(--fa-bg-inset);
 }
 
 .cooldown-graph-segment {
@@ -52,6 +52,10 @@
 
 .cooldown-graph-available {
     background: var(--fa-stone);
+}
+
+.cooldown-graph-wasted {
+    background: var(--fa-danger);
 }
 
 .cooldown-graph-outside {

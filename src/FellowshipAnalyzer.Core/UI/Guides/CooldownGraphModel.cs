@@ -8,14 +8,24 @@ namespace FellowshipAnalyzer.Core.UI.Guides;
 /// <summary>What a segment of a cooldown graph lane says about the ability over that segment.</summary>
 public enum CooldownGraphState
 {
-    /// <summary>Every charge was in hand and none was spent, for less than one full recharge.</summary>
+    /// <summary>
+    /// Every charge was in hand and none was spent, and no cast was due. The only in-hand state
+    /// under <see cref="CooldownUsage.AsNeeded"/>, whatever the hold ran to.
+    /// </summary>
     Available,
 
     /// <summary>
-    /// Every charge was in hand and none was spent, for at least as long as one recharge takes, so
-    /// a whole extra use fit inside the segment.
+    /// Every charge was in hand while a cast was due, for less than one full recharge. Reached only
+    /// under <see cref="CooldownUsage.OnCooldown"/>.
     /// </summary>
-    Wasted,
+    Held,
+
+    /// <summary>
+    /// Every charge was in hand and none was spent, for at least as long as one recharge takes, so
+    /// a whole extra use fit inside the segment. Not reached under
+    /// <see cref="CooldownUsage.AsNeeded"/>.
+    /// </summary>
+    UseLost,
 
     /// <summary>At least one charge was recharging.</summary>
     Recharging,
@@ -76,8 +86,8 @@ public sealed record CooldownGraphLane(
 
 /// <summary>
 /// Turns one ability's <see cref="UpdateSpellUsableEvent"/> stream into cooldown graph geometry: when
-/// it was recharging, when every charge sat in hand, and where a whole extra use fit into the time it
-/// sat there.
+/// it was recharging, when every charge sat in hand, and how much of that time its
+/// <see cref="CooldownUsage"/> marks.
 /// </summary>
 /// <remarks>
 /// Recharge geometry comes from <see cref="CooldownLaneModel"/>, so a segment ends when the charge
@@ -175,7 +185,9 @@ public static class CooldownGraphModel
                 casts++;
 
         var periodMs = ObservedPeriodMs(updates, spans) ?? (int)(ability.GetCooldown() * 1000);
-        var segments = BuildSegments(recharges, spans, periodMs, ability.Charges > 1, windowStart, windowEnd);
+        var usage = ability.CastEfficiency?.Usage
+            ?? (ability.Charges > 1 ? CooldownUsage.OnCooldown : CooldownUsage.BeforeAUseIsLost);
+        var segments = BuildSegments(recharges, spans, periodMs, usage, windowStart, windowEnd);
 
         if (periodMs <= 0 || analyzedMs <= 0)
             return new CooldownGraphLane(ability, segments, castTimestamps, casts, null, null, null);
@@ -214,7 +226,7 @@ public static class CooldownGraphModel
         List<Span> recharges,
         List<Span> spans,
         int periodMs,
-        bool hasCharges,
+        CooldownUsage usage,
         int windowStart,
         int windowEnd)
     {
@@ -227,12 +239,12 @@ public static class CooldownGraphModel
             var end = Math.Min(recharge.End, windowEnd);
             if (end <= start) continue;
 
-            AddInHand(segments, cursor, start, spans, periodMs, hasCharges);
+            AddInHand(segments, cursor, start, spans, periodMs, usage);
             segments.Add(new CooldownGraphSegment(start, end, CooldownGraphState.Recharging));
             cursor = end;
         }
 
-        AddInHand(segments, cursor, windowEnd, spans, periodMs, hasCharges);
+        AddInHand(segments, cursor, windowEnd, spans, periodMs, usage);
         return segments;
     }
 
@@ -242,7 +254,7 @@ public static class CooldownGraphModel
         int end,
         List<Span> spans,
         int periodMs,
-        bool hasCharges)
+        CooldownUsage usage)
     {
         if (end <= start) return;
 
@@ -256,11 +268,16 @@ public static class CooldownGraphModel
             if (inPullStart > cursor)
                 segments.Add(new CooldownGraphSegment(cursor, inPullStart, CooldownGraphState.OutsidePull));
 
-            var wasted = hasCharges || (periodMs > 0 && inPullEnd - inPullStart >= periodMs);
+            var useLost = usage is not CooldownUsage.AsNeeded
+                && periodMs > 0
+                && inPullEnd - inPullStart >= periodMs;
+
             segments.Add(new CooldownGraphSegment(
                 inPullStart,
                 inPullEnd,
-                wasted ? CooldownGraphState.Wasted : CooldownGraphState.Available));
+                useLost ? CooldownGraphState.UseLost
+                : usage is CooldownUsage.OnCooldown ? CooldownGraphState.Held
+                : CooldownGraphState.Available));
 
             cursor = inPullEnd;
         }
