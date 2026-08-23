@@ -33,11 +33,11 @@ public abstract partial class Event : IEventFilter
     /// <summary>
     /// Other events associated with this event, established by an
     /// <see cref="Analysis.Normalizers.EventLinkNormalizer"/> and read back by
-    /// <see cref="RelatedEvents{TEvent}"/>. Empty until a normalizer links something, and allocated
-    /// only for the events that are linked.
+    /// <see cref="RelatedEvents{TEvent}"/>. Empty until a normalizer links something. The list is this
+    /// event's own, created on first access, so adding to it links the event.
     /// </summary>
     [JsonIgnore]
-    public List<LinkedEvent> LinkedEvents => _linkedEvents ?? [];
+    public List<LinkedEvent> LinkedEvents => _linkedEvents ??= [];
     /// <summary>
     /// Was the event created by FSA
     /// </summary>
