@@ -31,7 +31,7 @@ public sealed class HeroAnalysisResult
     /// All events processed during analysis, including fabricated events (e.g. GlobalCooldownEvent,
     /// UpdateSpellUsableEvent). Ordered by timestamp. Exposed for Timeline rendering.
     /// </summary>
-    public required IReadOnlyList<Event> Events { get; init; }
+    public required List<Event> Events { get; init; }
 
     /// <summary>
     /// Debug annotations collected during analysis. Null if the DebugAnnotations module was not active.

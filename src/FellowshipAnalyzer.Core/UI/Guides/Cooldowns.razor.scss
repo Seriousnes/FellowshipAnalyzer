@@ -1,0 +1,79 @@
+@use 'mixins' as mx;
+
+.cooldown-graph {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.cooldown-graph-row {
+    display: grid;
+    grid-template-columns: minmax(6.5rem, max-content) 1fr;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+.cooldown-graph-label {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    white-space: nowrap;
+}
+
+.cooldown-graph-effic {
+    font-size: var(--fa-fs-title);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    cursor: help;
+}
+
+.cooldown-graph-unit {
+    font-size: var(--fa-fs-label);
+    color: var(--fa-text-dim);
+}
+
+.cooldown-graph-track {
+    position: relative;
+    height: 22px;
+    border-radius: var(--fa-radius-xs);
+    overflow: hidden;
+    background: var(--fa-bg-inset);
+}
+
+.cooldown-graph-segment {
+    position: absolute;
+    top: 0;
+    height: 100%;
+}
+
+.cooldown-graph-recharging {
+    background: var(--fa-gold);
+}
+
+.cooldown-graph-available {
+    background: var(--fa-stone);
+}
+
+.cooldown-graph-outside {
+    background: transparent;
+}
+
+.cooldown-graph-cast {
+    position: absolute;
+    top: 0;
+    width: 2px;
+    height: 100%;
+    background: var(--fa-white);
+    transform: translateX(-1px);
+}
+
+@include mx.mobile {
+    .cooldown-graph-row {
+        grid-template-columns: minmax(5.5rem, max-content) 1fr;
+        gap: 0.4rem;
+    }
+
+    .cooldown-graph-effic {
+        font-size: var(--fa-fs-body);
+    }
+}
