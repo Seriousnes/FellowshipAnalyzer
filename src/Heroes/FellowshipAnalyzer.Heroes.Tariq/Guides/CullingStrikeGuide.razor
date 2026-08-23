@@ -146,7 +146,7 @@
                 "Held",
                 opportunity.CastAt is null
                     ? "The pull ended with Culling Strike still available."
-                    : $"How long the cooldown sat available before the cast went out, against the {CullingStrikeAnalyzer.PromptCastGraceMs / 1000d:0.0}s allowed for it.",
+                    : $"How long the cooldown was available before the cast went out, against the {CullingStrikeAnalyzer.PromptCastGraceMs / 1000d:0.0}s allowed for it.",
                 performance),
             new(
                 opportunity.FuryAtReady is { } fury ? $"{fury}%" : "-",

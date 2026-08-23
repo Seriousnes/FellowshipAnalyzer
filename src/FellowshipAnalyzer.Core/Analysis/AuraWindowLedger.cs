@@ -71,13 +71,13 @@ public sealed class AuraWindowLedger
     public static UnitKey KeyOf(IHasTargetWithInstanceEvent target) =>
         new(target.TargetId, target.TargetInstance ?? 0);
 
-    /// <summary>Milliseconds covered by <paramref name="windows"/>, counting overlap once.</summary>
-    public static int CoveredMs(List<AuraWindow> windows)
+    /// <summary>Milliseconds inside <paramref name="windows"/>, counting overlap once.</summary>
+    public static int ActiveMs(List<AuraWindow> windows)
     {
         if (windows.Count == 0) return 0;
 
         var ordered = windows.OrderBy(window => window.Start).ToArray();
-        var covered = 0;
+        var active = 0;
         var start = ordered[0].Start;
         var end = ordered[0].End;
 
@@ -85,7 +85,7 @@ public sealed class AuraWindowLedger
         {
             if (window.Start > end)
             {
-                covered += end - start;
+                active += end - start;
                 (start, end) = (window.Start, window.End);
                 continue;
             }
@@ -93,7 +93,7 @@ public sealed class AuraWindowLedger
             end = Math.Max(end, window.End);
         }
 
-        return covered + (end - start);
+        return active + (end - start);
     }
 
     private List<AuraWindow> WindowsFor(UnitKey key)

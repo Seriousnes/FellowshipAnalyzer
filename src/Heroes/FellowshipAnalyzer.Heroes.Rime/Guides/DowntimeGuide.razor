@@ -16,7 +16,7 @@
         @if (gapRows.Count > 0)
         {
             <CastDetail Title="@GapDetailTitle"
-                        Description="Each row is one idle stretch, grouped by the pull it happened in."
+                        Description="Each row is one gap, grouped by the pull it happened in."
                         Casts="@gapRows" />
         }
     </RightPanel>
@@ -27,7 +27,7 @@
 
     private const int AcceptableGapMs = 3_000;
 
-    private static string GapDetailTitle => $"Longest Idle Stretches (top {DowntimeAnalyzer.TopGapLimit} per pull)";
+    private static string GapDetailTitle => $"Longest Gaps (top {DowntimeAnalyzer.TopGapLimit} per pull)";
 
     private List<DowntimeAnalyzer> Analyzers() =>
         [.. Parser.DowntimeAnalyzers.Select(entry => entry.Analyzer)];
@@ -52,16 +52,16 @@
             new OverviewStat(
                 FormatDuration(downtimeMs),
                 "Downtime",
-                "Total time the global cooldown sat empty across every pull."),
+                "Total time the global cooldown was empty across every pull."),
             new OverviewStat(
                 $"{longestGapMs / 1000d:0.0}s",
                 "Longest Gap",
-                "The single longest idle stretch in any pull.",
+                "The longest gap in any pull.",
                 gapCount == 0 ? QualitativePerformance.Perfect : GapTier(longestGapMs)),
             new OverviewStat(
                 $"{gapCount}",
                 "Gaps",
-                $"Idle stretches of at least {DowntimeAnalyzer.MinimumGapMs}ms across every pull."),
+                $"Gaps of at least {DowntimeAnalyzer.MinimumGapMs}ms across every pull."),
         ];
     }
 
@@ -84,7 +84,7 @@
                 new PerCastStat(
                     $"{gap.DurationMs / 1000d:0.0}s",
                     "Idle",
-                    "How long the global cooldown sat empty before the next cast started."),
+                    "How long the global cooldown was empty before the next cast started."),
                 new PerCastStat(
                     $"{share:F0}%",
                     "Of Pull Downtime",

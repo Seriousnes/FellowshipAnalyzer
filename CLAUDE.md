@@ -4,6 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Critical
 
+### Memory
+- **This file is the project's only durable memory, capped at 200 lines.** Session memory files are not used; a new durable fact earns its line here by making room, and style rulings live in the house-style skill.
+
 ### Comments
 - **IMPORTANT** - Never include comments referencing design docs or plan points. Comments are reserved exclusively for API/usage notes.
 - **Never** add inline comments or comments within methods for any reason.
@@ -15,10 +18,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ### Analysis rules
 - **`Core/Utility/CombatMath.cs` is the only place damage amplification or reduction is ever calculated.** This covers every hero: Engulfing Flames multipliers, armor and Toughness reductions, damage buffs, defensive abilities. A hero-local maths helper is banned, and so is an inline `raw - raw / (1 + increase)`. If `CombatMath` cannot express what is needed, ask before writing anything.
 - **An ability or talent has at most one analyzer.** A new measurement goes into the ability's existing analyzer, never into a second module.
-- **A conditionally active analyzer must use `[ActiveWhen<TPredicate>]`**, with a type implementing `IModuleActivePredicate`. Never hand-roll the check inside a handler. It works on pull analyzers, and it expresses the inverse gates `[RequiresTalent]` cannot.
+- **A conditionally active analyzer must use `[ActiveWhen<TPredicate>]`**, with a type implementing `IModuleActivePredicate`. Never write the check by hand inside a handler. It works on pull analyzers, and it expresses the inverse gates `[RequiresTalent]` cannot.
 - **An analyzer may take a `ResourceTracker` as a `[Dependency<T>]`, but must never re-derive what the tracker owns.** Trackers expose windowed accessors (`SpentBetween`, `TimeByHolderBetween`, `BandsBetween`) and analyzers project them.
 - **`[On<Event>]` is a last resort.** Use it only where there is literally no other way. Deriving a resource's state is never such a case.
-- **Name an analyzer or guide for what it assesses.** Do not add a qualifier the domain does not need. A misleading name manufactures a false reason to split an analyzer in two.
+- **Name an analyzer or guide for what it assesses.** Do not add a qualifier the domain does not need. A misleading name invents a false reason to split an analyzer in two.
 - **An absorb's logged strength does not always equal the damage it prevents.** A damage event's `amount` may not be accurate when it is partially absorbed.
 
 ## Project
@@ -75,7 +78,7 @@ FellowshipLogs GraphQL JSON (player events, plus the dungeon death stream merged
 
 **Solution layout** (only the bits that aren't obvious from `ls`):
 
-- `src/FellowshipAnalyzer.Core` - events, parser infrastructure, base modules/normalizers, spell registries, JSON source-generated context, shared Razor UI under `UI/` (Components, Charts, Guides, Timeline, Diagnostics, Theming) and SCSS under `Styles/`. Shared by every hero; code added here ships to every client.
+- `src/FellowshipAnalyzer.Core` - events, parser infrastructure, base modules/normalizers, spell registries, JSON source-generated context, shared Razor UI under `UI/` (Components, Charts, Guides, Timeline, Diagnostics, Theming) and SCSS under `Styles/`. Shared by every hero; code added here is downloaded by every client.
 - `src/FellowshipAnalyzer.Core.Contracts` - DTOs/interfaces that cross the API/client boundary, the shared vocabulary the offline spell-data tooling and the runtime both speak (`Spell`, `FSLID`, `HeroName`, `ResourceTypes`, `MagicSchool`, `AbilityCategory`), and the C# design tokens (`FaTheme`, `FaPalette`, `FaToken`, `FaVar`). It references nothing, so `FellowshipAnalyzer.SpellData` builds without Core and `rebuild-spelldb` runs even when Core does not compile.
 - `src/FellowshipAnalyzer.Generators` - Roslyn **source** generators (parser ctor, typed module accessors, pull-analyzer surfaces, module/normalizer type lists, spell registries, talent id constants, hero DI manifest). Hero registration is **reflection-free** for AOT.
 - `src/FellowshipAnalyzer.Analyzers` - Roslyn **diagnostic** analyzers (FA00xx), distinct from gameplay "analyzers".
@@ -86,7 +89,7 @@ FellowshipLogs GraphQL JSON (player events, plus the dungeon death stream merged
 - `src/FellowshipAnalyzer.Tools` - file-based `dotnet` scripts. Use the **run-tool** skill.
 - `src/FellowshipAnalyzer.AppHost` and `src/FellowshipAnalyzer.ServiceDefaults` - Aspire orchestration and shared service defaults.
 
-**Hero parser pattern** - small and declarative; the source generator does the heavy lifting:
+**Hero parser pattern** - small and declarative; the source generator emits the rest:
 
 ```csharp
 [HeroAnalyzer(HeroName.Ardeos)]
@@ -128,7 +131,7 @@ The merge reads the highest-numbered `data/v*` export folder (`entities.jsonl` p
 - Fellowship Logs API access → `FellowshipAnalyzer.Api` (or `Api.Core` / `Api.GraphQL`).
 - Source generator changes → `FellowshipAnalyzer.Generators`.
 
-**Never** add a project reference between two hero projects. If two heroes share behavior, lift it into Core.
+**Never** add a project reference between two hero projects. If two heroes share behavior, move it into Core.
 
 ## Size discipline (Blazor WASM + AOT)
 
@@ -156,8 +159,41 @@ When adding CSS/SCSS to any component, creating a new Razor component with style
 
 - **style-guide** - SCSS setup, design tokens, class naming, scoped vs global styling, component patterns.
 
+When writing or editing any rendered or documented text (guide prose, stat labels, tooltips, XML doc comments, public identifiers), use:
+
+- **house-style** - the voice, clause types, grammar, and vocabulary for every text surface.
+
+## Knowledge
+
+- Every group is exactly 4 players; one (actorId, instance) can be rostered in two pulls, and a death is dispatched to every pull naming that unit.
+- A pull ends when all its enemies are dead. GetEvents is complete for events with the player as source or target; deaths are the exception: the player stream logs only player-caused deaths, the deaths query's hostilityType is decided by the deceased, and anonymous report codes take the `a:` prefix.
+- `filterExpression` knows only `target.name`, `ability.id`, and `type`; any other field is silently null.
+- `CastEvent.Activation` marks the activation half of a cast and its doc comment states the opposite; skipping activations discards ~99% of casts.
+- Flat percentage stats are additive; Spirit of Heroism is the +30% haste, under four ids; gem flat ratings are already inside combatantinfo totals; blessing ids are per-hero loadout nodes, matched by name.
+- The FSL damage `type` field is not a school. `spelldb.json` is the sole school source, read with `Enum.Parse` and no fallback.
+- `CooldownReducedByHaste` is hand-set and drifts, and per-hero `Talents.cs` lags a season; check both against the current `data/v*` before trusting a talent gate or a cooldown-readiness metric.
+- Verify a mechanic in the fellowship-codex MCP before concluding behaviour from spelldb, flags, or hero_data Constants; a talent can override them entirely. Never reason from a duration or cooldown; a defensive is judged on uptime and on holding for heavy incoming damage.
+- Ardeos: Cinder events need normalization before the tracker reads them, and each DoT runs its own aura model.
+- Elarion: the mark is a stack pool Salvo spends; Impending Heartseeker owns the unlogged Barrage reset.
+- Tariq: the execute gate is 30%; Chain Lightning is window-only; one Hammer Storm channel is 3 spins; Spirit is readable from events.
+- Gunde: Rend conversion is additive percent-of-damage, Serrated Edge increases the whole cast's damage, Exsanguinate applies no Rend, and the Serrated Edge consumer order is build-dependent.
+- Helena: s3 numbers take precedence over s2 on conflict, and Hold the Line owns the 10s row. Mara: Malevolence 2+2 is unreachable, so score by the better-stacked finisher.
+- Xavian: Invictus and Rising Sun reset or shorten the Solar cooldowns, so SpellUsable fabricates holds.
+- The six non-DPS heroes are wired stubs; missing tank and healer Core primitives come first. Ally HP exists via TargetResources and Overheal; ally damage taken, threat, and block-as-hit-type do not. Port HotTracker's attribution half only.
+- Core's TestParser runs no normalizers: a test supplies its own bookend events, and a missing DungeonEndEvent fails as a silent zero. A tracker reading zero can also mean the generated subscriptions omitted a base `[On<>]` handler.
+- Generated files under obj/ are stale; force an emit to scratch with `-t:Rebuild` before reading any `.g.cs`.
+- A test harness must copy Program.cs's JsonSerializerOptions or events deserialize empty; case-insensitive property matching is required there.
+- Razor `@<tag>` with an empty element name crashes the renderer; only `@<text>` is markup-only. Modules are ComponentBase: markup goes in `@<>` templates, never RenderTreeBuilder.
+- An unstyled dev page is a cached styles shim, so hard reload; a `_content` import failing to fetch is a stopped DevHost backend.
+- Fabricated events are never back-dated, a natural cooldown expiry fires at its true instant, and dungeon bookends are positional: DungeonStartEvent first, DungeonEndEvent last, never by timestamp.
+- Rendered prose is analysis of this report: no guide-site content, no APL or rotation checking, no comparison to other players, no external sources named; method.gg is research input only.
+- No Finding, Report, or ScoreCard concepts; typed data lives in analyzers, prose and tiers in Razor. The Statistics tab is optional interesting information, never a guide summary, and a gem card is one per rank effect.
+- Files under src/Heroes contain zero comments of any kind, XML docs included. No stubs or polyfills, including a stub written only to get a build passing. Enums take no explicit integer values; a lazy property is `T Prop => field ??= Compute()` with a record class payload.
+- A new data/v* export is intentional: update the stale fixture and rerun rebuild-spelldb, never revert. Legendary item ids are hero-shared by design. `/api/*` stays anonymous by design, and the visitor-facing privacy page names no backend vendors.
+- The wire layer keeps the old API vocabulary on purpose (a `fight` is a Dungeon, a `dungeonPull` a Pull); player pets are deliberately removed, and `DungeonNpc.PetOwner` means enemy summons. Refute before asserting; batch uncertain domain wording into one round of questions.
+
 ## Reference / Inspiration
 
 The project is loosely based on [WoWAnalyzer](https://github.com/WoWAnalyzer/WoWAnalyzer) (TypeScript/React). Some principles and patterns are followed, but the architecture is designed to take advantage of modern C# features. Always consider using the latest C# features when adapting patterns from WoWAnalyzer, and feel free to deviate from their architecture when it makes sense in the context of C# and Blazor. See [NOTICE.md](NOTICE.md) for credits.
 
-**[WoWAnalyzer port-priority audit](https://claude.ai/code/artifact/ec122b55-fb51-4bd6-bf4d-9f1068cb9a41)** - owner-reviewed 0-10 port priorities for every WoWAnalyzer shared module, parser UI, and guide component, with per-item rationales, verified already-have equivalents in this codebase, shippable feature bundles, and a dependency-ordered build roadmap. Consult it when planning shared-infrastructure or hero-analyzer work, and keep it updated as modules land.
+**[WoWAnalyzer port-priority audit](https://claude.ai/code/artifact/ec122b55-fb51-4bd6-bf4d-9f1068cb9a41)** - owner-reviewed 0-10 port priorities for every WoWAnalyzer shared module, parser UI, and guide component, with per-item rationales, verified already-have equivalents in this codebase, shippable feature bundles, and a dependency-ordered build plan. Consult it when planning shared-infrastructure or hero-analyzer work, and keep it updated as modules are merged.

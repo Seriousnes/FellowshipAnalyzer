@@ -205,7 +205,7 @@ public sealed class PlayerDeath
 }
 
 /// <summary>
-/// One hit the player took, with the log's own accounting of its raw incoming damage and what reached them.
+/// One hit the player took, with the log's own accounting of its raw incoming damage and the amount taken.
 /// </summary>
 /// <param name="Timestamp">When the player took the hit.</param>
 /// <param name="Ability">The ability that dealt it, as resolved from the report's master data.</param>

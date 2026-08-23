@@ -61,8 +61,8 @@
                 FormatSeconds(idleMs),
                 "Idle in Window",
                 gaps == 0
-                    ? $"No stretch of {MaidenOfDeathAnalyzer.MinimumGapMs / 1000d:0.#}s or longer passed without a cast."
-                    : $"{Count(gaps, "idle stretch", "idle stretches")} of at least {MaidenOfDeathAnalyzer.MinimumGapMs / 1000d:0.#}s, room for about {Count(lostCasts, "more cast")} at one global cooldown each.",
+                    ? $"No gap reached {MaidenOfDeathAnalyzer.MinimumGapMs / 1000d:0.#}s."
+                    : $"{Count(gaps, "gap", "gaps")} of at least {MaidenOfDeathAnalyzer.MinimumGapMs / 1000d:0.#}s, room for about {Count(lostCasts, "more cast")} at one global cooldown each.",
                 IdleTier(lostCasts, windows)),
             new OverviewStat(
                 FormatSeconds(heldMs),
@@ -105,8 +105,8 @@
                 FormatSeconds(window.IdleMs),
                 "Idle",
                 window.GapCount == 0
-                    ? "No stretch inside the window passed without a cast."
-                    : $"{Count(window.GapCount, "idle stretch", "idle stretches")}, longest {FormatSeconds(window.LongestGapMs)}, room for about {Count(window.LostCasts, "more cast")}.",
+                    ? "No gaps inside the window."
+                    : $"{Count(window.GapCount, "gap", "gaps")}, longest {FormatSeconds(window.LongestGapMs)}, room for about {Count(window.LostCasts, "more cast")}.",
                 Performance: IdleTier(window.LostCasts, 1)),
             new PerCastStat(
                 $"{window.ComboPointsSpent}",
@@ -147,7 +147,7 @@
             notes.Add($"the window opened on {Count(atOpen, "combo point")}");
 
         if (window.GapCount > 0)
-            notes.Add($"{FormatSeconds(window.IdleMs)} passed with nothing going out, the longest stretch {FormatSeconds(window.LongestGapMs)}");
+            notes.Add($"{FormatSeconds(window.IdleMs)} passed with nothing going out, the longest gap {FormatSeconds(window.LongestGapMs)}");
 
         if (window.SpenderCasts == 0 && window.GeneratorCasts > 0)
             notes.Add("no spender went out after the builders");

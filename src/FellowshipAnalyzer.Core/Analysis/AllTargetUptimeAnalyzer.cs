@@ -3,7 +3,7 @@ using FellowshipAnalyzer.Core.Events;
 namespace FellowshipAnalyzer.Core.Analysis;
 
 /// <summary>
-/// Measures how continuously one aura sat on <em>every</em> unit that carried it, rather than
+/// Measures how continuously one aura was active on <em>every</em> unit it was applied to, rather than
 /// collapsing to a single primary target the way <see cref="DebuffUptimeAnalyzer"/> does. Both share
 /// the same <see cref="AuraWindowLedger"/> bookkeeping; this one keeps a row per unit, which is what
 /// a raid-wide buff needs - a party buff has no primary target and reporting one would hide the ally
@@ -19,30 +19,26 @@ public abstract class AllTargetUptimeAnalyzer : Analyzer
 {
     private readonly AuraWindowLedger _ledger = new();
 
-    private List<TargetCoverage> Result => field ??= Compute();
+    private List<TargetUptime> Result => field ??= Compute();
 
-    /// <summary>Every unit that carried the aura, most-covered first.</summary>
-    public List<TargetCoverage> Coverage => Result;
-
-    /// <summary>How many distinct units carried the aura at some point this pull.</summary>
-    public int TargetsCovered => Result.Count;
+    /// <summary>Every unit the aura was applied to, longest active time first.</summary>
+    public List<TargetUptime> TargetUptimes => Result;
 
     /// <summary>
-    /// The sum of every unit's covered time, in milliseconds. A party buff on four allies for the
+    /// The sum of every unit's active time, in milliseconds. A party buff on four allies for the
     /// whole pull reads four pull-lengths, so this is unit-time and not wall-clock time.
     /// </summary>
-    public long TotalCoveredMs => Result.Sum(coverage => (long)coverage.CoveredMs);
+    public long TotalActiveMs => Result.Sum(target => (long)target.ActiveMs);
 
     /// <summary>
-    /// The mean of every covered unit's uptime share (0-1). Units that never carried the aura are not
-    /// in the denominator, so this reports how well the aura held on the units it reached rather than
-    /// how many it reached.
+    /// The mean uptime share (0-1) across <see cref="TargetUptimes"/>. Units the aura was never
+    /// applied to are not in the denominator.
     /// </summary>
-    public double AverageUptime => Result.Count > 0 ? Result.Average(coverage => coverage.Uptime) : 0;
+    public double AverageUptime => Result.Count > 0 ? Result.Average(target => target.Uptime) : 0;
 
-    /// <summary>The covered time on <paramref name="unit"/>, or zero when it never carried the aura.</summary>
-    public int CoveredMsOn(UnitKey unit) =>
-        Result.FirstOrDefault(coverage => coverage.Unit == unit)?.CoveredMs ?? 0;
+    /// <summary>The active time on <paramref name="unit"/>, or zero when the aura was never applied to it.</summary>
+    public int ActiveMsOn(UnitKey unit) =>
+        Result.FirstOrDefault(target => target.Unit == unit)?.ActiveMs ?? 0;
 
     /// <summary>Opens a window on <paramref name="target"/> unless one is already open. Call from apply and refresh handlers.</summary>
     protected void OpenWindow(IHasTargetWithInstanceEvent target, int timestamp) =>
@@ -56,38 +52,38 @@ public abstract class AllTargetUptimeAnalyzer : Analyzer
     protected void ObserveTarget(IHasTargetWithInstanceEvent target, int timestamp) =>
         _ledger.Observe(target, timestamp);
 
-    private List<TargetCoverage> Compute()
+    private List<TargetUptime> Compute()
     {
         var duration = Pull.EndTime - Pull.StartTime;
 
         return
         [
             .. _ledger.Build()
-                .Select(entry => new TargetCoverage(
+                .Select(entry => new TargetUptime(
                     entry.Key,
                     entry.Value,
-                    AuraWindowLedger.CoveredMs(entry.Value),
+                    AuraWindowLedger.ActiveMs(entry.Value),
                     duration))
-                .Where(coverage => coverage.CoveredMs > 0)
-                .OrderByDescending(coverage => coverage.CoveredMs)
-                .ThenBy(coverage => coverage.Unit.ActorId)
+                .Where(target => target.ActiveMs > 0)
+                .OrderByDescending(target => target.ActiveMs)
+                .ThenBy(target => target.Unit.ActorId)
         ];
     }
 }
 
 /// <summary>
-/// One unit's presence windows for an aura and how much of the pull they covered.
+/// One unit's aura windows and the active time inside them.
 /// </summary>
-/// <param name="Unit">The unit the aura sat on.</param>
+/// <param name="Unit">The unit the aura was active on.</param>
 /// <param name="Windows">Its windows, in encounter order.</param>
-/// <param name="CoveredMs">Milliseconds covered by <paramref name="Windows"/>, counting overlap once.</param>
+/// <param name="ActiveMs">Milliseconds inside <paramref name="Windows"/>, counting overlap once.</param>
 /// <param name="PullDurationMs">The pull's length, the denominator for <see cref="Uptime"/>.</param>
-public sealed record TargetCoverage(
+public sealed record TargetUptime(
     UnitKey Unit,
     List<AuraWindow> Windows,
-    int CoveredMs,
+    int ActiveMs,
     int PullDurationMs)
 {
-    /// <summary>Share of the pull (0-1) this unit carried the aura.</summary>
-    public double Uptime => PullDurationMs > 0 ? Math.Min(1d, CoveredMs / (double)PullDurationMs) : 0;
+    /// <summary>Share of the pull (0-1) the aura was active on this unit.</summary>
+    public double Uptime => PullDurationMs > 0 ? Math.Min(1d, ActiveMs / (double)PullDurationMs) : 0;
 }

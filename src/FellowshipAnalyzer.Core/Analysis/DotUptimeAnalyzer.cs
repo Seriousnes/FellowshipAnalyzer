@@ -93,9 +93,9 @@ public abstract class DotUptimeAnalyzer : Analyzer
             }
 
             var primary = ledger.Build()
-                .Select(entry => (Unit: entry.Key, entry.Value, Covered: AuraWindowLedger.CoveredMs(entry.Value)))
-                .Where(candidate => candidate.Covered > 0)
-                .OrderByDescending(candidate => candidate.Covered)
+                .Select(entry => (Unit: entry.Key, entry.Value, Active: AuraWindowLedger.ActiveMs(entry.Value)))
+                .Where(candidate => candidate.Active > 0)
+                .OrderByDescending(candidate => candidate.Active)
                 .ThenBy(candidate => candidate.Value[0].Start)
                 .ThenBy(candidate => candidate.Unit.ActorId)
                 .ToList();
@@ -106,7 +106,7 @@ public abstract class DotUptimeAnalyzer : Analyzer
                 continue;
             }
 
-            var (unit, windows, covered) = primary[0];
+            var (unit, windows, active) = primary[0];
 
             var gapCount = 0;
             var totalGapMs = 0;
@@ -119,7 +119,7 @@ public abstract class DotUptimeAnalyzer : Analyzer
                 totalGapMs += gap;
             }
 
-            var uptime = duration > 0 ? Math.Min(1d, covered / (double)duration) : 0d;
+            var uptime = duration > 0 ? Math.Min(1d, active / (double)duration) : 0d;
             results.Add(new DotUptime(dot, unit, windows, uptime, gapCount, totalGapMs));
         }
 
@@ -135,7 +135,7 @@ public abstract class DotUptimeAnalyzer : Analyzer
 /// effect was never applied.</param>
 /// <param name="Windows">That target's windows, in encounter order.</param>
 /// <param name="Uptime">Share of the pull (0-1) the effect was active on the primary target.</param>
-/// <param name="GapCount">Stretches between <paramref name="Windows"/>.</param>
+/// <param name="GapCount">Gaps between <paramref name="Windows"/>.</param>
 /// <param name="TotalGapMs">Milliseconds the effect was off the primary target between its windows.</param>
 public sealed record DotUptime(
     Dot Dot,

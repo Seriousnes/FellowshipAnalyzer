@@ -25,7 +25,7 @@ public sealed class SafeHavenAnalyzerTests
         var analyzer = parser.SafeHavenAnalyzers.ShouldHaveSingleItem().Analyzer;
 
         analyzer.Casts.ShouldBe(1);
-        analyzer.AlliesReached.ShouldBe(2);
+        analyzer.AlliesAffected.ShouldBe(2);
         analyzer.AllyMs.ShouldBe(2 * SylvieKit.SafeHavenDurationMs);
         analyzer.HeldShare.ShouldBe(1d, 0.001);
         analyzer.CastsWithoutAnAlly.ShouldBe(0);
@@ -41,7 +41,7 @@ public sealed class SafeHavenAnalyzerTests
 
         var analyzer = parser.SafeHavenAnalyzers.ShouldHaveSingleItem().Analyzer;
 
-        analyzer.AlliesReached.ShouldBe(1);
+        analyzer.AlliesAffected.ShouldBe(1);
         analyzer.AllyMs.ShouldBe(5_000);
         analyzer.HeldShare.ShouldBe(5_000 / (double)SylvieKit.SafeHavenDurationMs, 0.001);
     }
@@ -55,7 +55,7 @@ public sealed class SafeHavenAnalyzerTests
 
         analyzer.Casts.ShouldBe(1);
         analyzer.CastsWithoutAnAlly.ShouldBe(1);
-        analyzer.AlliesReached.ShouldBe(0);
+        analyzer.AlliesAffected.ShouldBe(0);
         analyzer.Placements.ShouldHaveSingleItem().HeldShare.ShouldBe(0d);
     }
 

@@ -9,19 +9,19 @@ namespace FellowshipAnalyzer.Core.UI.Guides;
 public enum CooldownGraphState
 {
     /// <summary>
-    /// Every charge was in hand and none was spent, and no cast was due. The only in-hand state
-    /// under <see cref="CooldownUsage.AsNeeded"/>, whatever the hold ran to.
+    /// Every charge was available and none was spent, and no cast was due. The only fully charged
+    /// state reached under <see cref="CooldownUsage.AsNeeded"/>, whatever the hold ran to.
     /// </summary>
     Available,
 
     /// <summary>
-    /// Every charge was in hand while a cast was due, for less than one full recharge. Reached only
+    /// Every charge was available while a cast was due, for less than one full recharge. Reached only
     /// under <see cref="CooldownUsage.OnCooldown"/>.
     /// </summary>
     Held,
 
     /// <summary>
-    /// Every charge was in hand and none was spent, for at least as long as one recharge takes, so
+    /// Every charge was available and none was spent, for at least as long as one recharge takes, so
     /// a whole extra use fit inside the segment. Not reached under
     /// <see cref="CooldownUsage.AsNeeded"/>.
     /// </summary>
@@ -61,7 +61,7 @@ public readonly record struct CooldownGraphSegment(int Start, int End, CooldownG
 /// with no cooldown.
 /// </param>
 /// <param name="Performance">
-/// Where <paramref name="Efficiency"/> lands against the ability's
+/// The tier <paramref name="Efficiency"/> reaches against the ability's
 /// <see cref="CastEfficiencyInfo"/> thresholds, or the <see cref="CooldownGraphModel"/> defaults where
 /// the spellbook sets none. <c>null</c> for an ability with no cooldown.
 /// </param>
@@ -79,22 +79,22 @@ public sealed record CooldownGraphLane(
 
     /// <summary>
     /// <see cref="Efficiency"/>, raised to 1 where <see cref="ReachedMaxCasts"/>: an ability
-    /// cast as often as the window allowed has nothing left to give, whatever share of it was recharging.
+    /// cast as often as the window allowed missed no cast, whatever share of it was recharging.
     /// </summary>
     public double? EffectiveEfficiency => Efficiency is not { } measured ? null : ReachedMaxCasts ? 1 : measured;
 }
 
 /// <summary>
 /// Turns one ability's <see cref="UpdateSpellUsableEvent"/> stream into cooldown graph geometry: when
-/// it was recharging, when every charge sat in hand, and how much of that time its
+/// it was recharging, when every charge was available, and how much of that time its
 /// <see cref="CooldownUsage"/> marks.
 /// </summary>
 /// <remarks>
 /// Recharge geometry comes from <see cref="CooldownLaneModel"/>, so a segment ends when the charge
 /// actually came back rather than when it was expected to. Everything the recharges do not cover is
-/// time the ability was in hand, which is then cut against the pulls: a segment outside every pull is
+/// time the ability was available, which is then cut against the pulls: a segment outside every pull is
 /// <see cref="CooldownGraphState.OutsidePull"/> and leaves both the numerator and the denominator
-/// alone, and each in-pull segment is judged on its own length so a segment either side of a walk
+/// alone, and each in-pull segment is judged on its own length so a segment either side of time
 /// between pulls is never read as one long hold.
 /// </remarks>
 public static class CooldownGraphModel
@@ -239,16 +239,16 @@ public static class CooldownGraphModel
             var end = Math.Min(recharge.End, windowEnd);
             if (end <= start) continue;
 
-            AddInHand(segments, cursor, start, spans, periodMs, usage);
+            AddAvailable(segments, cursor, start, spans, periodMs, usage);
             segments.Add(new CooldownGraphSegment(start, end, CooldownGraphState.Recharging));
             cursor = end;
         }
 
-        AddInHand(segments, cursor, windowEnd, spans, periodMs, usage);
+        AddAvailable(segments, cursor, windowEnd, spans, periodMs, usage);
         return segments;
     }
 
-    private static void AddInHand(
+    private static void AddAvailable(
         List<CooldownGraphSegment> segments,
         int start,
         int end,
