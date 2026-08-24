@@ -1,4 +1,4 @@
-<div class="guide-sub-section" id="@Id">
+<div class="guide-sub-section" id="@Id" @attributes="InputAttributes">
     @if (!string.IsNullOrEmpty(Title))
     {
         <h4 class="guide-sub-section-title">@Title</h4>
@@ -12,4 +12,7 @@
     [Parameter] public string? Title { get; set; }
     [Parameter] public string? Id { get; set; }
     [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object> InputAttributes { get; set; } = new();
 }

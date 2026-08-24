@@ -1,10 +1,10 @@
 <section class="guide-top-section">
     <button type="button" class="guide-top-section-header" @onclick="Toggle"
-            aria-expanded="@_expanded.ToString().ToLowerInvariant()">
+            aria-expanded="@CurrentExpanded.ToString().ToLowerInvariant()">
         <span class="guide-top-section-title">@Title</span>
-        <span class="guide-top-section-chevron @(_expanded ? "expanded" : "")" aria-hidden="true">▼</span>
+        <span class="guide-top-section-chevron @(CurrentExpanded ? "expanded" : "")" aria-hidden="true">▼</span>
     </button>
-    @if (_expanded)
+    @if (CurrentExpanded)
     {
         <div class="guide-top-section-body">
             @ChildContent
@@ -16,11 +16,20 @@
     [Parameter, EditorRequired] public string Title { get; set; } = "";
     [Parameter] public RenderFragment? ChildContent { get; set; }
 
-    /// <summary>Initial expanded state. Defaults to true.</summary>
+    /// <summary>
+    /// Expanded state, defaulting to true. On its own it seeds the initial state and the section owns
+    /// the toggle from then on. Paired with <see cref="ExpandedChanged"/> the caller owns the state and
+    /// two-way binding applies.
+    /// </summary>
     [Parameter] public bool Expanded { get; set; } = true;
+
+    /// <summary>Raised on toggle. Supplying it puts the caller in control of <see cref="Expanded"/>.</summary>
+    [Parameter] public EventCallback<bool> ExpandedChanged { get; set; }
 
     private bool _expanded;
     private bool _initialized;
+
+    private bool CurrentExpanded => ExpandedChanged.HasDelegate ? Expanded : _expanded;
 
     protected override void OnParametersSet()
     {
@@ -31,5 +40,14 @@
         }
     }
 
-    private void Toggle() => _expanded = !_expanded;
+    private Task Toggle()
+    {
+        if (ExpandedChanged.HasDelegate)
+        {
+            return ExpandedChanged.InvokeAsync(!Expanded);
+        }
+
+        _expanded = !_expanded;
+        return Task.CompletedTask;
+    }
 }
