@@ -207,6 +207,10 @@ git commit -m "Add guide training fixtures as git ref pairs"
 
 ### Task 2: Reconcile guide-review against the memory record
 
+**Superseded 2026-08-23.** `banned-vocabulary` was replaced by `.claude/skills/house-style/SKILL.md`,
+which states the style positively and carries no `the log records no` entry, so there is nothing to
+reconcile. The steps below are the earlier plan.
+
 **Files:**
 - Modify: `.claude/skills/banned-vocabulary/SKILL.md:292`
 
@@ -319,7 +323,7 @@ You count. You do not rate, rank, or rewrite.
 
 ## Read before you count
 
-1. `.claude/skills/banned-vocabulary/SKILL.md`, end to end. It is your rubric.
+1. `.claude/skills/house-style/SKILL.md`, end to end. It is your rubric.
 2. Both sections in full, not the differing lines. A clause is judged by what sits beside it.
 
 ## The five counts
@@ -600,6 +604,10 @@ git commit -m "Record the falsification verdict for the guide scorer"
 ---
 
 ### Task 6: Rename to guide-review and unhook the writer
+
+**Superseded 2026-08-23.** `banned-vocabulary` was replaced by `.claude/skills/house-style/SKILL.md`;
+`guide-writer` and `create-guide` read it at write time, and the judge and the optimizer read it as
+the rubric. The steps below are the earlier plan.
 
 **Files:**
 - Modify: `.claude/skills/banned-vocabulary/SKILL.md` renamed to `.claude/skills/guide-review/SKILL.md`
