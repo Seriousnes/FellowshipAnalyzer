@@ -167,6 +167,31 @@ public sealed class EventLinkNormalizerTests
     }
 
     [Fact]
+    public void Normalize_ASecondCastOnAnotherTarget_DoesNotEndATargetScopedWindow()
+    {
+        var cast = Cast(GrimCarve, 1_000);
+        var otherCast = Cast(GrimCarve, 1_200, targetId: BossId + 1);
+        var damage = Damage(GrimCarve, 1_400);
+
+        Run([cast, otherCast, damage], Link(forwardBufferMs: 5_000) with { AnyTarget = false });
+
+        Assert.Equal([damage], cast.RelatedEvents<DamageEvent>(Relation));
+    }
+
+    [Fact]
+    public void Normalize_ASecondCastOnTheSameTarget_EndsATargetScopedWindow()
+    {
+        var first = Cast(GrimCarve, 1_000);
+        var second = Cast(GrimCarve, 1_200);
+        var damage = Damage(GrimCarve, 1_400);
+
+        Run([first, second, damage], Link(forwardBufferMs: 5_000) with { AnyTarget = false });
+
+        Assert.Empty(first.RelatedEvents<DamageEvent>(Relation));
+        Assert.Equal([damage], second.RelatedEvents<DamageEvent>(Relation));
+    }
+
+    [Fact]
     public void Normalize_ASecondCastFromAnotherSource_DoesNotEndTheWindow()
     {
         var cast = Cast(GrimCarve, 1_000);
@@ -281,11 +306,11 @@ public sealed class EventLinkNormalizerTests
         AnyTarget = true,
     };
 
-    private static CastEvent Cast(int abilityId, int timestamp, int sourceId = PlayerId) => new()
+    private static CastEvent Cast(int abilityId, int timestamp, int sourceId = PlayerId, int targetId = BossId) => new()
     {
         Timestamp = timestamp,
         SourceId = sourceId,
-        TargetId = BossId,
+        TargetId = targetId,
         Ability = new Ability { Id = abilityId },
     };
 

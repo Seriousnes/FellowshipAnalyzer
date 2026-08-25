@@ -22,7 +22,7 @@ public class OverrideTests
         var v = result.Spells.Single(x => x.Scope == "items" && x.Member == "VoidbringerTouch");
         v.Spell.Id.ShouldBe(155);
         v.Spell.Cooldown.ShouldBe(90);
-        v.Spell.Range.ShouldBe(30);
+        v.Spell.Range.ShouldBe(3000);
     }
 
     [Fact]

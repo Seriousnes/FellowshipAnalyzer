@@ -83,7 +83,9 @@ public abstract class EventLinkNormalizer(List<EventLink> links) : IEventNormali
     }
 
     private static bool IsBoundary(EventLink link, Event linking, Event candidate) =>
-        IsLinking(link, candidate) && SourceMatches(link, linking, candidate);
+        IsLinking(link, candidate)
+        && SourceMatches(link, linking, candidate)
+        && TargetMatches(link, linking, candidate);
 
     private static bool IsLinking(EventLink link, Event candidate) =>
         link.LinkingEventType.IsInstanceOfType(candidate) && MatchesAbility(link.LinkingAbilityIds, candidate);

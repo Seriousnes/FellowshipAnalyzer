@@ -383,6 +383,20 @@ In window arithmetic, covered time is **active time**, and a stretch between win
 qualifier ("Stretches between the primary target's windows"). Renames: `HitsCovered` ->
 `HitsInWindows`, the private `Covered` sum -> `ActiveMs`.
 
+## Unit location
+
+Say **"Unit's spatial and temporal location"**, or the shorter **"Unit location at a point in
+time"**. Both name what `UnitPosition` holds without narrating how it arrived.
+
+Recognize the narrated form by **"reading"**, **"log"**, and **"context"** standing in for this
+phrase: "One reading of where a unit was, and the instant the log wrote it." (`UnitPosition.cs`)
+explains how the timestamp and location got there instead of stating what the pair is.
+
+`log` keeps its place as the artifact this codebase parses ("combat log", "FSA is a log-analysis
+tool"). `context` already falls under the Rule 6 ban on reading-note tails; this extends the same
+instinct to a record's provenance rather than a stat's methodology. `reading` has no legitimate sense
+in this codebase describing a position or measurement and is banned outright there.
+
 ## Resources: name the resource, not its display
 
 Say **maximum Toughness** and **at maximum**, and label reduction steps by the reduction itself: `At

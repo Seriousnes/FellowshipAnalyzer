@@ -10,7 +10,7 @@ namespace FellowshipAnalyzer.SpellData.Tests;
 public class CostMappingTests
 {
     private static ExportAbility Ability(double? cost, string? resource, bool fraction = false) =>
-        new(1, "Test", null, null, cost, resource, fraction, null, null, null, null, null, [], []);
+        new(1, "Test", null, null, cost, resource, fraction, null, null, null, null, null, null, [], []);
 
     [Fact]
     public void WinterOrbCost_MapsToTertiary() =>

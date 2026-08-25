@@ -25,9 +25,25 @@ public class MergeEngineTests
     {
         var s = Run().Spells.Single(x => x.Scope == "rime" && x.Member == "FreezingTorrent");
         s.Spell.Cooldown.ShouldBe(15);
-        s.Spell.Range.ShouldBe(30);
+        s.Spell.Range.ShouldBe(3000);
         s.Spell.ChannelDuration.ShouldBe(2.0);
         s.Spell.ChannelTickInterval.ShouldBe(0.4);
+    }
+
+    [Fact]
+    public void Gunde_Slaughter_CarriesItsRadiusInGameUnits()
+    {
+        var s = Run().Spells.Single(x => x.Scope == "gunde" && x.Member == "Slaughter");
+        s.Spell.Range.ShouldBe(700);
+        s.Spell.Radius.ShouldBe(700);
+    }
+
+    [Fact]
+    public void Gunde_GrimCarve_CarriesARangeThatOutrunsItsRadius()
+    {
+        var s = Run().Spells.Single(x => x.Scope == "gunde" && x.Member == "GrimCarve");
+        s.Spell.Range.ShouldBe(3000);
+        s.Spell.Radius.ShouldBe(700);
     }
 
     [Fact]
