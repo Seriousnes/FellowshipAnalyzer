@@ -72,7 +72,8 @@ public static class MergeEngine
                     .SetIf("icon", icon.Length > 0, ProvenanceSource.Icons)
                     .SetIf("abilityCategory", abilityCategory.HasValue, ProvenanceSource.Export)
                     .SetIf("cooldown", ability.Cooldown.HasValue, ProvenanceSource.Export)
-                    .SetIf("range", ability.RangeYards.HasValue, ProvenanceSource.Export)
+                    .SetIf("range", ability.Range.HasValue, ProvenanceSource.Export)
+                    .SetIf("radius", ability.Radius.HasValue, ProvenanceSource.Export)
                     .Set("charges", ProvenanceSource.Export)
                     .SetIf("castDuration", ability.CastTime.HasValue, ProvenanceSource.Export)
                     .SetIf("channelDuration", ability.ChannelTime.HasValue, ProvenanceSource.Export)
@@ -80,9 +81,17 @@ public static class MergeEngine
                     .SetIf("costs", costs.Count > 0, ProvenanceSource.Export)
                     .Build();
 
-                var spell = BuildSpell(SpellKind.Ability, ability.Id, ability.Name, icon, ability.Cooldown,
-                    null, ability.RangeYards, ability.ChargeCount, ability.CastTime, ability.ChannelTime,
-                    ability.ChannelTick, costs, abilityCategory);
+                var spell = BuildSpell(SpellKind.Ability, ability.Id, ability.Name, icon,
+                    cooldown: ability.Cooldown,
+                    cooldownReductionOnTargetDeath: null,
+                    range: ability.Range,
+                    radius: ability.Radius,
+                    charges: ability.ChargeCount,
+                    castDuration: ability.CastTime,
+                    channelDuration: ability.ChannelTime,
+                    channelTickInterval: ability.ChannelTick,
+                    costs: costs,
+                    abilityCategory: abilityCategory);
                 spells.Add(new CuratedSpell(scope, member, spell, prov));
 
                 if (!MemberNaming.IsValidIdentifier(member))
@@ -113,7 +122,15 @@ public static class MergeEngine
                         .Build();
 
                     var effectSpell = BuildSpell(SpellKind.Effect, effect.Id, effect.Name ?? string.Empty, effectIcon,
-                        null, null, null, 1, null, null, null, EmptyCosts);
+                        cooldown: null,
+                        cooldownReductionOnTargetDeath: null,
+                        range: null,
+                        radius: null,
+                        charges: 1,
+                        castDuration: null,
+                        channelDuration: null,
+                        channelTickInterval: null,
+                        costs: EmptyCosts);
                     spells.Add(new CuratedSpell(scope, effectMember, effectSpell, effectProv));
 
                     if (!MemberNaming.IsValidIdentifier(effectMember))
@@ -245,8 +262,9 @@ public static class MergeEngine
 
     private static Spell BuildSpell(
         SpellKind kind, int nativeId, string name, string icon,
-        double? cooldown, double? cooldownReductionOnTargetDeath, int? range, int charges, double? castDuration,
-        double? channelDuration, double? channelTickInterval, Dictionary<ResourceTypes, int> costs,
+        double? cooldown, double? cooldownReductionOnTargetDeath, int? range, int? radius, int charges,
+        double? castDuration, double? channelDuration, double? channelTickInterval,
+        Dictionary<ResourceTypes, int> costs,
         AbilityCategory? abilityCategory = null) =>
         Spell.FromFSLID(FSLID.FromNative(kind, nativeId), name, icon) with
         {
@@ -254,6 +272,7 @@ public static class MergeEngine
             Cooldown = cooldown,
             CooldownReductionOnTargetDeath = cooldownReductionOnTargetDeath,
             Range = range,
+            Radius = radius,
             Charges = charges,
             CastDuration = castDuration,
             ChannelDuration = channelDuration,
@@ -345,16 +364,25 @@ public static class MergeEngine
             .SetIf("icon", icon.Length > 0, ProvenanceSource.Icons)
             .SetIf("abilityCategory", abilityCategory.HasValue, ProvenanceSource.Export)
             .SetIf("cooldown", ability?.Cooldown is not null, ProvenanceSource.Export)
-            .SetIf("range", ability?.RangeYards is not null, ProvenanceSource.Export)
+            .SetIf("range", ability?.Range is not null, ProvenanceSource.Export)
+            .SetIf("radius", ability?.Radius is not null, ProvenanceSource.Export)
             .Set("charges", ProvenanceSource.Export)
             .SetIf("castDuration", ability?.CastTime is not null, ProvenanceSource.Export)
             .SetIf("channelDuration", ability?.ChannelTime is not null, ProvenanceSource.Export)
             .SetIf("channelTickInterval", ability?.ChannelTick is not null, ProvenanceSource.Export)
             .SetIf("costs", costs.Count > 0, ProvenanceSource.Export);
 
-        var baseSpell = BuildSpell(kind, nativeId, exportName ?? string.Empty, icon, ability?.Cooldown,
-            null, ability?.RangeYards, ability?.ChargeCount ?? 1, ability?.CastTime, ability?.ChannelTime,
-            ability?.ChannelTick, costs, abilityCategory);
+        var baseSpell = BuildSpell(kind, nativeId, exportName ?? string.Empty, icon,
+            cooldown: ability?.Cooldown,
+            cooldownReductionOnTargetDeath: null,
+            range: ability?.Range,
+            radius: ability?.Radius,
+            charges: ability?.ChargeCount ?? 1,
+            castDuration: ability?.CastTime,
+            channelDuration: ability?.ChannelTime,
+            channelTickInterval: ability?.ChannelTick,
+            costs: costs,
+            abilityCategory: abilityCategory);
         var curated = ApplyPatch(new CuratedSpell(scope, member, baseSpell, prov.Build()), delta);
 
         if (!MemberNaming.IsValidIdentifier(curated.Member))

@@ -11,31 +11,31 @@ public class Abilities : CoreAbilities
     [
         new()
         {
-            PrimarySpell = Spells.FocusedShot with { Range = 30 },
+            PrimarySpell = Spells.FocusedShot,
             Category = SpellCategory.Rotational,
             Gcd = StandardGcd,
         },
         new()
         {
-            PrimarySpell = Spells.CelestialShot with { Range = 30 },
+            PrimarySpell = Spells.CelestialShot,
             Category = SpellCategory.Rotational,
             Gcd = StandardGcd,
         },
         new()
         {
-            PrimarySpell = Spells.Multishot with { Range = 30 },
+            PrimarySpell = Spells.Multishot,
             Category = SpellCategory.Rotational,
             Gcd = StandardGcd,
         },
         new()
         {
-            PrimarySpell = Spells.HighwindArrow with { Range = 30 },
+            PrimarySpell = Spells.HighwindArrow,
             Category = SpellCategory.Rotational,
             Gcd = StandardGcd,
         },
         new()
         {
-            PrimarySpell = Spells.HeartseekerBarrage with { Range = 30 },
+            PrimarySpell = Spells.HeartseekerBarrage,
             Category = SpellCategory.Rotational,
             Gcd = StandardGcd,
         },
@@ -47,7 +47,7 @@ public class Abilities : CoreAbilities
         },
         new()
         {
-            PrimarySpell = Spells.StarfallVolley with { Range = 30 },
+            PrimarySpell = Spells.StarfallVolley,
             Category = SpellCategory.Cooldowns,
             Gcd = StandardGcd,
         },
@@ -85,7 +85,7 @@ public class Abilities : CoreAbilities
         },
         new()
         {
-            PrimarySpell = Spells.Disrupt with { Range = 30 },
+            PrimarySpell = Spells.Disrupt,
             Category = SpellCategory.Utility,
             Gcd = null,
         },

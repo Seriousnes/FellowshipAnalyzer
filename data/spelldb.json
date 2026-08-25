@@ -6,7 +6,7 @@
       "name": "Amend Fate",
       "icon": "T_Lisa_Stagger.jpg",
       "abilityCategory": "Power",
-      "range": 30
+      "range": 3000
     },
     "AmendFateCost": {
       "kind": "effect",
@@ -32,7 +32,7 @@
       "name": "Echoes of Ruin",
       "icon": "T_Lisa_Burst.jpg",
       "abilityCategory": "Core",
-      "range": 30,
+      "range": 3000,
       "castDuration": 2,
       "costs": {
         "mana": 9
@@ -69,7 +69,7 @@
       "icon": "T_Lisa_Wither.jpg",
       "abilityCategory": "Core",
       "cooldown": 20,
-      "range": 30,
+      "range": 3000,
       "castDuration": 1.5,
       "costs": {
         "mana": 73
@@ -93,7 +93,7 @@
       "name": "Epoch Break",
       "icon": "T_Lisa_Spirit.jpg",
       "abilityCategory": "Spirit",
-      "range": 30,
+      "range": 3000,
       "castDuration": 1.5,
       "costs": {
         "spirit": 100
@@ -129,7 +129,7 @@
       "name": "Flash Revision",
       "icon": "T_Lisa_TimeMend.jpg",
       "abilityCategory": "Core",
-      "range": 30,
+      "range": 3000,
       "castDuration": 1.5,
       "costs": {
         "mana": 67
@@ -154,7 +154,7 @@
       "icon": "T_Lisa_TimeBuff.jpg",
       "abilityCategory": "Major",
       "cooldown": 20,
-      "range": 30,
+      "range": 3000,
       "costs": {
         "mana": 79
       }
@@ -178,7 +178,8 @@
       "icon": "T_Lisa_AoESilence.jpg",
       "abilityCategory": "Control",
       "cooldown": 300,
-      "range": 30,
+      "range": 3000,
+      "radius": 500,
       "costs": {
         "mana": 98
       }
@@ -213,7 +214,7 @@
       "name": "Oblivion",
       "icon": "T_Lisa_ChronaBlast.jpg",
       "abilityCategory": "Power",
-      "range": 30
+      "range": 3000
     },
     "OblivionAbsorbAbsorb": {
       "kind": "effect",
@@ -271,7 +272,7 @@
       "icon": "T_Lisa_Dispel.jpg",
       "abilityCategory": "Utility",
       "cooldown": 6,
-      "range": 30,
+      "range": 3000,
       "costs": {
         "mana": 82
       }
@@ -295,7 +296,7 @@
       "icon": "T_Lisa_Barrage.jpg",
       "abilityCategory": "Core",
       "cooldown": 15,
-      "range": 30,
+      "range": 3000,
       "channelDuration": 2,
       "channelTickInterval": 0.5,
       "costs": {
@@ -326,7 +327,7 @@
       "name": "Time Shard",
       "icon": "T_Lisa_FillerCast.jpg",
       "abilityCategory": "Basic",
-      "range": 30,
+      "range": 3000,
       "castDuration": 1.5,
       "costs": {
         "mana": 1
@@ -365,7 +366,7 @@
       "icon": "T_Lisa_StrandsofTime.jpg",
       "abilityCategory": "Major",
       "cooldown": 45,
-      "range": 30,
+      "range": 3000,
       "castDuration": 2,
       "costs": {
         "mana": 94
@@ -410,7 +411,8 @@
       "icon": "Firemage_Apocalypse.jpg",
       "abilityCategory": "Major",
       "cooldown": 45,
-      "range": 30,
+      "range": 3000,
+      "radius": 1000,
       "castDuration": 3
     },
     "ApocalypseDamage": {
@@ -483,7 +485,7 @@
       "abilityCategory": "Core",
       "cooldown": 20,
       "cooldownReductionOnTargetDeath": 10,
-      "range": 30,
+      "range": 3000,
       "charges": 2,
       "castDuration": 1.5
     },
@@ -512,7 +514,8 @@
       "icon": "Firemage_Inferno.jpg",
       "abilityCategory": "Core",
       "cooldown": 30,
-      "range": 30,
+      "range": 3000,
+      "radius": 500,
       "charges": 2
     },
     "FireBallAoeMonitor": {
@@ -520,7 +523,8 @@
       "id": 1581,
       "name": "Fire Ball",
       "icon": "Firemage_Inferno.jpg",
-      "cooldown": 30
+      "cooldown": 30,
+      "radius": 500
     },
     "FireBallCharge": {
       "kind": "effect",
@@ -545,7 +549,8 @@
       "id": 1565,
       "name": "Fire Ball",
       "icon": "Firemage_Inferno.jpg",
-      "cooldown": 30
+      "cooldown": 30,
+      "radius": 500
     },
     "FireBallTalentCastedDotBoostProjectileBonusBuff": {
       "kind": "effect",
@@ -560,7 +565,7 @@
       "icon": "Firemage_Firefrog.jpg",
       "abilityCategory": "Core",
       "cooldown": 45,
-      "range": 30
+      "range": 3000
     },
     "FireFrogsDot": {
       "kind": "effect",
@@ -581,7 +586,7 @@
       "icon": "Firemage_Disorient.jpg",
       "abilityCategory": "Control",
       "cooldown": 24,
-      "range": 30
+      "range": 3000
     },
     "FireflashDamage": {
       "kind": "effect",
@@ -613,7 +618,8 @@
       "kind": "ability",
       "id": 1257,
       "name": "Flare Up",
-      "icon": "Pyromancer15.jpg"
+      "icon": "Pyromancer15.jpg",
+      "radius": 1500
     },
     "Flickerstep": {
       "kind": "ability",
@@ -644,6 +650,7 @@
       "name": "Incinerate",
       "icon": "Firemage_Spirit.jpg",
       "abilityCategory": "Spirit",
+      "radius": 300,
       "castDuration": 1.5,
       "channelDuration": 2.5,
       "channelTickInterval": 0.5,
@@ -681,7 +688,7 @@
       "name": "Infernal Wave",
       "icon": "Firemage_Bolt.jpg",
       "abilityCategory": "Basic",
-      "range": 30,
+      "range": 3000,
       "castDuration": 1.5
     },
     "InfernalWaveDamageAndDotBoost": {
@@ -703,7 +710,7 @@
       "icon": "Firemage_Pyromania.jpg",
       "abilityCategory": "Major",
       "cooldown": 90,
-      "range": 30
+      "range": 3000
     },
     "ReignOfFireBuff": {
       "kind": "effect",
@@ -718,7 +725,7 @@
       "icon": "Firemage_interrupt.jpg",
       "abilityCategory": "Utility",
       "cooldown": 20,
-      "range": 30
+      "range": 3000
     },
     "ScorchInterrupt": {
       "kind": "effect",
@@ -738,7 +745,7 @@
       "name": "Searing Blaze",
       "icon": "Firemage_Dot_02.jpg",
       "abilityCategory": "Core",
-      "range": 30
+      "range": 3000
     },
     "SearingBlazeDot": {
       "kind": "effect",
@@ -759,7 +766,7 @@
       "icon": "Firemage_Wildfire.jpg",
       "abilityCategory": "Major",
       "cooldown": 45,
-      "range": 60
+      "range": 6000
     },
     "WildfireDotBonusBuff": {
       "kind": "effect",
@@ -781,7 +788,7 @@
       "name": "Celestial Shot",
       "icon": "Bowguy_Shot.jpg",
       "abilityCategory": "Basic",
-      "range": 30,
+      "range": 3000,
       "costs": {
         "primary": 15
       }
@@ -819,7 +826,7 @@
       "icon": "Bowguy_Interrupt.jpg",
       "abilityCategory": "Utility",
       "cooldown": 20,
-      "range": 30
+      "range": 3000
     },
     "DisruptInterrupt": {
       "kind": "effect",
@@ -880,7 +887,7 @@
       "name": "Focused Shot",
       "icon": "Bowguy_FocusShot.jpg",
       "abilityCategory": "Basic",
-      "range": 30,
+      "range": 3000,
       "castDuration": 1.5
     },
     "FocusedShotBuff": {
@@ -908,7 +915,8 @@
       "icon": "Bowguy_GrappleShot.jpg",
       "abilityCategory": "Control",
       "cooldown": 120,
-      "range": 30,
+      "range": 3000,
+      "radius": 800,
       "charges": 2
     },
     "GrapplingArrowPull": {
@@ -930,7 +938,7 @@
       "icon": "Bowguy_Spray.jpg",
       "abilityCategory": "Power",
       "cooldown": 20,
-      "range": 30,
+      "range": 3000,
       "channelDuration": 2,
       "channelTickInterval": 0.2,
       "costs": {
@@ -962,7 +970,7 @@
       "icon": "Bowguy_Ricochet.jpg",
       "abilityCategory": "Power",
       "cooldown": 15,
-      "range": 30,
+      "range": 3000,
       "charges": 3,
       "castDuration": 2,
       "costs": {
@@ -1006,7 +1014,7 @@
       "icon": "Bowguy_Mark.jpg",
       "abilityCategory": "Major",
       "cooldown": 40,
-      "range": 30,
+      "range": 3000,
       "costs": {
         "primary": 20
       }
@@ -1033,7 +1041,8 @@
       "kind": "ability",
       "id": 1309,
       "name": "Lunarlight Salvo",
-      "icon": "Bowguy_Mark.jpg"
+      "icon": "Bowguy_Mark.jpg",
+      "radius": 3000
     },
     "Multishot": {
       "kind": "ability",
@@ -1041,7 +1050,8 @@
       "name": "Multishot",
       "icon": "Bowguy_Multishot.jpg",
       "abilityCategory": "Core",
-      "range": 30,
+      "range": 3000,
+      "radius": 600,
       "costs": {
         "primary": 20
       }
@@ -1102,7 +1112,7 @@
       "id": 1303,
       "name": "Shoot",
       "icon": "Bowguy_FocusShot.jpg",
-      "range": 30
+      "range": 3000
     },
     "ShootDamage": {
       "kind": "effect",
@@ -1151,7 +1161,8 @@
       "icon": "Bowguy_Rain.jpg",
       "abilityCategory": "Power",
       "cooldown": 40,
-      "range": 30,
+      "range": 3000,
+      "radius": 700,
       "costs": {
         "primary": 30
       }
@@ -1187,7 +1198,7 @@
       "id": 1249,
       "name": "Attack",
       "icon": "Gunde_AOESwing_01.jpg",
-      "range": 5
+      "range": 500
     },
     "AttackDamage": {
       "kind": "effect",
@@ -1208,7 +1219,8 @@
       "icon": "Gunde_Frontal.jpg",
       "abilityCategory": "Core",
       "cooldown": 9,
-      "range": 7
+      "range": 700,
+      "radius": 700
     },
     "BloodArcDamage": {
       "kind": "effect",
@@ -1222,7 +1234,8 @@
       "name": "Bloodbound Spirit",
       "icon": "T_Gunde_Spirit.jpg",
       "abilityCategory": "Spirit",
-      "range": 10,
+      "range": 1000,
+      "radius": 1000,
       "castDuration": 1
     },
     "BloodboundSpiritDamage": {
@@ -1244,7 +1257,7 @@
       "icon": "T_Gunde_Grip.jpg",
       "abilityCategory": "Control",
       "cooldown": 30,
-      "range": 30
+      "range": 3000
     },
     "ButcherHookDamage": {
       "kind": "effect",
@@ -1270,7 +1283,7 @@
       "name": "Double Strike",
       "icon": "T_Gunde_DoubleStrike.jpg",
       "abilityCategory": "Basic",
-      "range": 30
+      "range": 3000
     },
     "DoubleStrikeDamage": {
       "kind": "effect",
@@ -1304,7 +1317,8 @@
       "icon": "T_Gunde_Sawblade.jpg",
       "abilityCategory": "Power",
       "cooldown": 15,
-      "range": 30
+      "range": 3000,
+      "radius": 700
     },
     "GrimCarveDamage": {
       "kind": "effect",
@@ -1319,7 +1333,7 @@
       "icon": "T_Gunde_Cleave.jpg",
       "abilityCategory": "Core",
       "cooldown": 12,
-      "range": 5
+      "range": 500
     },
     "HeartSplitterDamage": {
       "kind": "effect",
@@ -1346,7 +1360,7 @@
       "icon": "t_gunde_Interrupt.jpg",
       "abilityCategory": "Utility",
       "cooldown": 12,
-      "range": 5
+      "range": 500
     },
     "JawbreakerInterrupt": {
       "kind": "effect",
@@ -1373,7 +1387,7 @@
       "icon": "T_Gunde_SanguineFeast.jpg",
       "abilityCategory": "Utility",
       "cooldown": 3,
-      "range": 20
+      "range": 2000
     },
     "OwedInBloodAoe": {
       "kind": "ability",
@@ -1381,7 +1395,8 @@
       "name": "Owed in Blood",
       "icon": "T_Gunde_SanguineFeast.jpg",
       "cooldown": 20,
-      "range": 10
+      "range": 1000,
+      "radius": 1000
     },
     "OwedInBloodAoeSelfBuff": {
       "kind": "effect",
@@ -1408,7 +1423,8 @@
       "icon": "Gunde_AOESwing_01.jpg",
       "abilityCategory": "Basic",
       "cooldown": 5,
-      "range": 7
+      "range": 700,
+      "radius": 700
     },
     "ReaverEdgeDamage": {
       "kind": "effect",
@@ -1469,7 +1485,7 @@
       "icon": "T_Gunde_Rupture.jpg",
       "abilityCategory": "Power",
       "cooldown": 60,
-      "range": 5
+      "range": 500
     },
     "RuptureDamage": {
       "kind": "effect",
@@ -1490,7 +1506,8 @@
       "icon": "T_Gunde_Slaughter.jpg",
       "abilityCategory": "Major",
       "cooldown": 30,
-      "range": 7
+      "range": 700,
+      "radius": 700
     },
     "SlaughterDot": {
       "kind": "effect",
@@ -1520,7 +1537,7 @@
       "id": 978,
       "name": "Attack",
       "icon": "Tex_swords_01_bg.jpg",
-      "range": 5
+      "range": 500
     },
     "AttackDamage": {
       "kind": "effect",
@@ -1535,7 +1552,7 @@
       "icon": "T_Warmaster_Interrupt.jpg",
       "abilityCategory": "Utility",
       "cooldown": 12,
-      "range": 5
+      "range": 500
     },
     "BashInterrupt": {
       "kind": "effect",
@@ -1556,7 +1573,7 @@
       "icon": "T_Warmaster_Charge.jpg",
       "abilityCategory": "Movement",
       "cooldown": 20,
-      "range": 30
+      "range": 3000
     },
     "ChargeCharge": {
       "kind": "effect",
@@ -1582,7 +1599,8 @@
       "name": "Grand Melee",
       "icon": "T_WM_Incite.jpg",
       "abilityCategory": "Control",
-      "cooldown": 150
+      "cooldown": 150,
+      "radius": 1500
     },
     "GrandMeleeFriendlyAuraBuff": {
       "kind": "effect",
@@ -1609,7 +1627,7 @@
       "icon": "T_WM_HoldTheLine.jpg",
       "abilityCategory": "Major",
       "cooldown": 30,
-      "range": 40
+      "range": 4000
     },
     "HoldTheLineAllyBuff": {
       "kind": "effect",
@@ -1643,7 +1661,7 @@
       "name": "Measured Strike",
       "icon": "T_Warmaster_BasicStrike.jpg",
       "abilityCategory": "Basic",
-      "range": 5
+      "range": 500
     },
     "MeasuredStrikeDamage": {
       "kind": "effect",
@@ -1658,7 +1676,7 @@
       "icon": "T_Warmaster_FatalBlow.jpg",
       "abilityCategory": "Basic",
       "cooldown": 6,
-      "range": 5
+      "range": 500
     },
     "PowerStrikeCleaveDamage": {
       "kind": "effect",
@@ -1688,7 +1706,8 @@
       "kind": "ability",
       "id": 1613,
       "name": "Razor Shrapnel",
-      "icon": "Tex_SpellBook06_48.jpg"
+      "icon": "Tex_SpellBook06_48.jpg",
+      "radius": 500
     },
     "ShieldSlam": {
       "kind": "ability",
@@ -1697,7 +1716,7 @@
       "icon": "T_Warmaster_ShieldSlam.jpg",
       "abilityCategory": "Core",
       "cooldown": 7.5,
-      "range": 5,
+      "range": 500,
       "charges": 2,
       "costs": {
         "secondary": 3
@@ -1770,7 +1789,7 @@
       "icon": "T_Warmaster_Shieldthrow.jpg",
       "abilityCategory": "Core",
       "cooldown": 21,
-      "range": 30
+      "range": 3000
     },
     "ShieldThrowDamage": {
       "kind": "effect",
@@ -1821,6 +1840,7 @@
       "icon": "T_Warmaster_shockwave.jpg",
       "abilityCategory": "Power",
       "cooldown": 30,
+      "radius": 1000,
       "costs": {
         "secondary": 0
       }
@@ -1890,7 +1910,7 @@
       "icon": "T_Warmaster_BleedStrike.jpg",
       "abilityCategory": "Power",
       "cooldown": 30,
-      "range": 5,
+      "range": 500,
       "costs": {
         "secondary": 2
       }
@@ -1938,7 +1958,7 @@
       "icon": "T_warmaster_Taunt.jpg",
       "abilityCategory": "Utility",
       "cooldown": 8,
-      "range": 40
+      "range": 4000
     },
     "TauntDebuff": {
       "kind": "effect",
@@ -1960,7 +1980,8 @@
       "name": "Arachnid Assault",
       "icon": "Mara_SpiderAOE.jpg",
       "abilityCategory": "Power",
-      "range": 8,
+      "range": 800,
+      "radius": 800,
       "costs": {
         "primary": 45
       }
@@ -1982,7 +2003,7 @@
       "id": 1209,
       "name": "Attack",
       "icon": "Tex_swords_05_bg.jpg",
-      "range": 5
+      "range": 500
     },
     "AttackDamage": {
       "kind": "effect",
@@ -1996,7 +2017,7 @@
       "name": "Backstab",
       "icon": "Mara_backstab.jpg",
       "abilityCategory": "Basic",
-      "range": 5,
+      "range": 500,
       "costs": {
         "primary": 20
       }
@@ -2056,7 +2077,8 @@
       "kind": "ability",
       "id": 1583,
       "name": "Corrosive Spill",
-      "icon": "T_Icon_Unholy_197.jpg"
+      "icon": "T_Icon_Unholy_197.jpg",
+      "radius": 500
     },
     "DeadlySchemeActive": {
       "kind": "effect",
@@ -2091,7 +2113,7 @@
       "icon": "Mara_Bleed.jpg",
       "abilityCategory": "Power",
       "cooldown": 2,
-      "range": 5,
+      "range": 500,
       "costs": {
         "primary": 20
       }
@@ -2124,7 +2146,8 @@
       "kind": "ability",
       "id": 1590,
       "name": "Hemotoxin",
-      "icon": "T_PoisonBlister.jpg"
+      "icon": "T_PoisonBlister.jpg",
+      "radius": 700
     },
     "Kick": {
       "kind": "ability",
@@ -2133,7 +2156,7 @@
       "icon": "Mara_Kick.jpg",
       "abilityCategory": "Utility",
       "cooldown": 16,
-      "range": 5
+      "range": 500
     },
     "KickAlt": {
       "kind": "ability",
@@ -2142,7 +2165,7 @@
       "icon": "Mara_Kick.jpg",
       "abilityCategory": "Utility",
       "cooldown": 16,
-      "range": 5
+      "range": 500
     },
     "KickInterrupt": {
       "kind": "effect",
@@ -2236,7 +2259,7 @@
       "name": "Queen\u0027s Fang",
       "icon": "Mara_SingleTargetFinisher.jpg",
       "abilityCategory": "Power",
-      "range": 5,
+      "range": 500,
       "costs": {
         "primary": 40
       }
@@ -2257,7 +2280,8 @@
       "kind": "ability",
       "id": 1131,
       "name": "Seeting Burst",
-      "icon": "T_TurtleShield.jpg"
+      "icon": "T_TurtleShield.jpg",
+      "radius": 700
     },
     "ShadowWard": {
       "kind": "ability",
@@ -2279,7 +2303,8 @@
       "name": "Skittering Blades",
       "icon": "Mara_AOEBuilder.jpg",
       "abilityCategory": "Basic",
-      "range": 8,
+      "range": 800,
+      "radius": 800,
       "costs": {
         "primary": 35
       }
@@ -2309,7 +2334,7 @@
       "icon": "Mara_Stalkerstep.jpg",
       "abilityCategory": "Movement",
       "cooldown": 30,
-      "range": 30,
+      "range": 3000,
       "charges": 2
     },
     "StalkerStepCharge": {
@@ -2337,7 +2362,7 @@
       "icon": "Mara_Stun.jpg",
       "abilityCategory": "Control",
       "cooldown": 24,
-      "range": 5
+      "range": 500
     },
     "WebCrackCost": {
       "kind": "effect",
@@ -2358,7 +2383,7 @@
       "icon": "Mara_RegainEnergyHit.jpg",
       "abilityCategory": "Core",
       "cooldown": 9,
-      "range": 5,
+      "range": 500,
       "charges": 3
     },
     "WidowBiteCharge": {
@@ -2404,7 +2429,7 @@
       "id": 1118,
       "name": "Attack",
       "icon": "T_Nhance_RPG_Icons_HolyHand.jpg",
-      "range": 5
+      "range": 500
     },
     "AttackDamage": {
       "kind": "effect",
@@ -2424,7 +2449,8 @@
       "name": "Cyclone",
       "icon": "T_Meiko_Massgrip.jpg",
       "abilityCategory": "Control",
-      "cooldown": 60
+      "cooldown": 60,
+      "radius": 1400
     },
     "CycloneActivator": {
       "kind": "effect",
@@ -2438,7 +2464,7 @@
       "name": "Earth Fist",
       "icon": "Meiko_AbilityIcon_03.jpg",
       "abilityCategory": "Basic",
-      "range": 5
+      "range": 500
     },
     "EarthFistCost": {
       "kind": "effect",
@@ -2459,7 +2485,7 @@
       "icon": "Meiko_AbilityIcon_09.jpg",
       "abilityCategory": "Power",
       "cooldown": 45,
-      "range": 5,
+      "range": 500,
       "channelDuration": 1,
       "channelTickInterval": 0.25
     },
@@ -2534,7 +2560,7 @@
       "name": "Lashing Stormkick",
       "icon": "Meiko_AbilityIcon_08.jpg",
       "abilityCategory": "Power",
-      "range": 5
+      "range": 500
     },
     "LashingStormkickDamage": {
       "kind": "effect",
@@ -2575,7 +2601,8 @@
       "icon": "T_Meiko_SlamStun.jpg",
       "abilityCategory": "Major",
       "cooldown": 60,
-      "range": 30
+      "range": 3000,
+      "radius": 500
     },
     "ShatterEarthCharge": {
       "kind": "effect",
@@ -2607,7 +2634,7 @@
       "name": "Spirit Palm",
       "icon": "Meiko_AbilityIcon_01.jpg",
       "abilityCategory": "Basic",
-      "range": 5
+      "range": 500
     },
     "SpiritPalmCost": {
       "kind": "effect",
@@ -2626,7 +2653,8 @@
       "id": 1120,
       "name": "Spirited Vortex",
       "icon": "Meiko_AbilityIcon_07.jpg",
-      "abilityCategory": "Core"
+      "abilityCategory": "Core",
+      "radius": 800
     },
     "SpiritedVortexBuffIcon": {
       "kind": "effect",
@@ -2659,7 +2687,7 @@
       "icon": "T_Meiko_Interrupt.jpg",
       "abilityCategory": "Utility",
       "cooldown": 12,
-      "range": 5
+      "range": 500
     },
     "StaggerInterrupt": {
       "kind": "effect",
@@ -2677,7 +2705,8 @@
       "kind": "ability",
       "id": 1121,
       "name": "Stone Shield",
-      "icon": "T_Meiko_StoneShield.jpg"
+      "icon": "T_Meiko_StoneShield.jpg",
+      "radius": 70
     },
     "StoneShieldActive": {
       "kind": "effect",
@@ -2692,6 +2721,7 @@
       "icon": "T_Meiko_StoneShield.jpg",
       "abilityCategory": "Defensive",
       "cooldown": 30,
+      "radius": 70,
       "charges": 2
     },
     "StoneShieldBuff": {
@@ -2731,7 +2761,7 @@
       "icon": "Meiko_AbilityIcon_11.jpg",
       "abilityCategory": "Control",
       "cooldown": 120,
-      "range": 8
+      "range": 800
     },
     "StoneStompCost": {
       "kind": "effect",
@@ -2776,7 +2806,8 @@
       "icon": "T_Meiko_Taunt.jpg",
       "abilityCategory": "Utility",
       "cooldown": 8,
-      "range": 40
+      "range": 4000,
+      "radius": 4000
     },
     "TauntDebuff": {
       "kind": "effect",
@@ -2822,7 +2853,8 @@
       "name": "Wind Kick",
       "icon": "Meiko_AbilityIcon_02.jpg",
       "abilityCategory": "Basic",
-      "range": 5
+      "range": 500,
+      "radius": 500
     },
     "WindKickCost": {
       "kind": "effect",
@@ -2845,7 +2877,7 @@
       "icon": "T_RimeIcon_Interrupt.jpg",
       "abilityCategory": "Utility",
       "cooldown": 20,
-      "range": 30
+      "range": 3000
     },
     "BrainFreezeInterrupt": {
       "kind": "effect",
@@ -2872,7 +2904,8 @@
       "icon": "T_Rime_CastedDebuffAOEdamage.jpg",
       "abilityCategory": "Core",
       "cooldown": 10,
-      "range": 30,
+      "range": 3000,
+      "radius": 600,
       "castDuration": 2
     },
     "BurstingIceDamage": {
@@ -2894,7 +2927,7 @@
       "icon": "T_Rime_InstantHit.jpg",
       "abilityCategory": "Basic",
       "cooldown": 12,
-      "range": 30,
+      "range": 3000,
       "charges": 2
     },
     "ColdSnapDamage": {
@@ -2916,7 +2949,7 @@
       "icon": "T_Rime_BirdCD.jpg",
       "abilityCategory": "Major",
       "cooldown": 60,
-      "range": 30,
+      "range": 3000,
       "costs": {
         "tertiary": 0
       }
@@ -2952,7 +2985,7 @@
       "icon": "T_Rime_ChanneledBeam.jpg",
       "abilityCategory": "Core",
       "cooldown": 15,
-      "range": 30,
+      "range": 3000,
       "channelDuration": 2,
       "channelTickInterval": 0.4
     },
@@ -2994,7 +3027,7 @@
       "name": "Frost Bolt",
       "icon": "T_Rime_SingleTargetBolt.jpg",
       "abilityCategory": "Basic",
-      "range": 30,
+      "range": 3000,
       "castDuration": 1.5
     },
     "FrostBoltDamage": {
@@ -3045,7 +3078,8 @@
       "kind": "ability",
       "id": 2023,
       "name": "Glacial Assault",
-      "icon": "T_Rime_AnimaBolt.jpg"
+      "icon": "T_Rime_AnimaBolt.jpg",
+      "radius": 700
     },
     "GlacialBlast": {
       "kind": "ability",
@@ -3053,7 +3087,7 @@
       "name": "Glacial Blast",
       "icon": "T_Rime_AnimaBolt.jpg",
       "abilityCategory": "Power",
-      "range": 30,
+      "range": 3000,
       "castDuration": 2,
       "costs": {
         "tertiary": 2
@@ -3103,7 +3137,8 @@
       "name": "Ice Comet",
       "icon": "T_Rime_OnTargetPulsatingAOE.jpg",
       "abilityCategory": "Power",
-      "range": 30,
+      "range": 3000,
+      "radius": 700,
       "costs": {
         "tertiary": 2
       }
@@ -3143,7 +3178,7 @@
       "name": "Rising Talons",
       "icon": "T_Rime_AOE_Spender.jpg",
       "abilityCategory": "Power",
-      "range": 30
+      "range": 3000
     },
     "SoulfrostTorrent": {
       "kind": "ability",
@@ -3163,7 +3198,7 @@
       "name": "Talon Strike",
       "icon": "T_Rime_Singletarget_spender_.jpg",
       "abilityCategory": "Power",
-      "range": 30
+      "range": 3000
     },
     "WinterBlessingHeal": {
       "kind": "effect",
@@ -3238,7 +3273,7 @@
       "icon": "T_Mosse_Dispel.jpg",
       "abilityCategory": "Utility",
       "cooldown": 6,
-      "range": 30,
+      "range": 3000,
       "costs": {
         "mana": 82
       }
@@ -3262,7 +3297,7 @@
       "icon": "T_Nhance_RPG_Nature_04.jpg",
       "abilityCategory": "Control",
       "cooldown": 45,
-      "range": 30,
+      "range": 3000,
       "costs": {
         "mana": 77
       }
@@ -3322,7 +3357,7 @@
       "name": "Fluttercall: Heal",
       "icon": "Sylvie_AbilityIcon_03.jpg",
       "abilityCategory": "Core",
-      "range": 30,
+      "range": 3000,
       "castDuration": 1.2,
       "costs": {
         "mana": 39
@@ -3393,7 +3428,7 @@
       "name": "Fluttercall: Protect",
       "icon": "T_Mosse_BlueButterfly.jpg",
       "abilityCategory": "Utility",
-      "range": 30
+      "range": 3000
     },
     "FluttercallProtectBuff": {
       "kind": "effect",
@@ -3407,7 +3442,7 @@
       "name": "Fluttercall: Restore Life",
       "icon": "T_Nhance_RPG_Shadow_58.jpg",
       "abilityCategory": "Core",
-      "range": 30,
+      "range": 3000,
       "costs": {
         "mana": 61
       }
@@ -3449,6 +3484,7 @@
       "icon": "T_Mosse_Bigheal.jpg",
       "abilityCategory": "Power",
       "cooldown": 45,
+      "radius": 4000,
       "costs": {
         "mana": 118
       }
@@ -3565,7 +3601,7 @@
       "name": "Nettlebolt",
       "icon": "Sylvie_AbilityIcon_02.jpg",
       "abilityCategory": "Basic",
-      "range": 30,
+      "range": 3000,
       "castDuration": 1.5,
       "costs": {
         "mana": 5
@@ -3590,7 +3626,7 @@
       "icon": "T_Mosse_Vine.jpg",
       "abilityCategory": "Core",
       "cooldown": 9,
-      "range": 40,
+      "range": 4000,
       "charges": 2,
       "costs": {
         "mana": 18
@@ -3615,7 +3651,8 @@
       "icon": "T_Mosse_LinkCD.jpg",
       "abilityCategory": "Major",
       "cooldown": 120,
-      "range": 30,
+      "range": 3000,
+      "radius": 800,
       "costs": {
         "mana": 117
       }
@@ -3644,7 +3681,8 @@
       "name": "Shroomsplosion",
       "icon": "T_Mosse_Boomshroom.jpg",
       "abilityCategory": "Core",
-      "range": 30
+      "range": 3000,
+      "radius": 700
     },
     "ShroomsplosionDamage": {
       "kind": "effect",
@@ -3671,7 +3709,7 @@
       "id": 1227,
       "name": "Attack",
       "icon": "Tex_bl_04_bg.jpg",
-      "range": 6
+      "range": 550
     },
     "AttackDamage": {
       "kind": "effect",
@@ -3686,7 +3724,7 @@
       "icon": "T_Ink_ChainLightning.jpg",
       "abilityCategory": "Core",
       "cooldown": 8,
-      "range": 30
+      "range": 3000
     },
     "ChainLightningCost": {
       "kind": "effect",
@@ -3713,7 +3751,7 @@
       "icon": "T_Ink_Cullingstrike.jpg",
       "abilityCategory": "Power",
       "cooldown": 6,
-      "range": 6
+      "range": 550
     },
     "CullingStrikeDamage": {
       "kind": "effect",
@@ -3740,7 +3778,7 @@
       "icon": "T_Ink_Facebreaker.jpg",
       "abilityCategory": "Basic",
       "cooldown": 6,
-      "range": 6
+      "range": 550
     },
     "FaceBreakerAlt": {
       "kind": "ability",
@@ -3761,7 +3799,7 @@
       "icon": "T_Ink_Facebreaker.jpg",
       "abilityCategory": "Basic",
       "cooldown": 9,
-      "range": 6
+      "range": 550
     },
     "FaceBreakerOldCost": {
       "kind": "effect",
@@ -3782,7 +3820,7 @@
       "icon": "T_Ink_FocusedWrath.jpg",
       "abilityCategory": "Major",
       "cooldown": 90,
-      "range": 6
+      "range": 550
     },
     "FocusedWrathSelfBuff": {
       "kind": "effect",
@@ -3797,6 +3835,7 @@
       "icon": "T_Ink_Hammerstorm.jpg",
       "abilityCategory": "Power",
       "cooldown": 1.5,
+      "radius": 700,
       "channelDuration": 1,
       "channelTickInterval": 0.5
     },
@@ -3837,7 +3876,8 @@
       "icon": "T_Ink_TimerAbility.jpg",
       "abilityCategory": "Core",
       "cooldown": 8,
-      "range": 6
+      "range": 550,
+      "radius": 800
     },
     "HeavyStrikeAlt": {
       "kind": "ability",
@@ -3845,7 +3885,7 @@
       "name": "Heavy Strike",
       "icon": "T_Ink_TimerAbility.jpg",
       "abilityCategory": "Core",
-      "range": 6
+      "range": 550
     },
     "HeavyStrikeAoeDamage": {
       "kind": "effect",
@@ -3872,7 +3912,8 @@
       "icon": "T_Ink_IntimidatingRoar.jpg",
       "abilityCategory": "Control",
       "cooldown": 90,
-      "range": 6
+      "range": 550,
+      "radius": 1200
     },
     "IntimidateFear": {
       "kind": "effect",
@@ -3887,7 +3928,8 @@
       "icon": "T_Ink_Leap.jpg",
       "abilityCategory": "Movement",
       "cooldown": 20,
-      "range": 30
+      "range": 3000,
+      "radius": 500
     },
     "LeapSmashDamage": {
       "kind": "effect",
@@ -3902,7 +3944,7 @@
       "icon": "T_InkPummel.jpg",
       "abilityCategory": "Utility",
       "cooldown": 16,
-      "range": 6
+      "range": 550
     },
     "PummelInterrupt": {
       "kind": "effect",
@@ -3975,7 +4017,7 @@
       "icon": "T_Ink_Skullcrusher.jpg",
       "abilityCategory": "Power",
       "cooldown": 1,
-      "range": 6
+      "range": 550
     },
     "SkullCrusherCost": {
       "kind": "effect",
@@ -3999,7 +4041,8 @@
       "kind": "ability",
       "id": 2061,
       "name": "Sledgehammer",
-      "icon": "T_Nhance_RPG_Icons_ChaoticSpikes.jpg"
+      "icon": "T_Nhance_RPG_Icons_ChaoticSpikes.jpg",
+      "radius": 500
     },
     "Taunt": {
       "kind": "ability",
@@ -4007,7 +4050,7 @@
       "name": "Taunt",
       "icon": "T_Ink_Taunt.jpg",
       "cooldown": 15,
-      "range": 40
+      "range": 4000
     },
     "TauntDebuff": {
       "kind": "effect",
@@ -4056,7 +4099,8 @@
       "icon": "T_Ink_Wildswing.jpg",
       "abilityCategory": "Basic",
       "cooldown": 1.5,
-      "range": 6
+      "range": 550,
+      "radius": 500
     },
     "WildSwingCost": {
       "kind": "effect",
@@ -4079,7 +4123,7 @@
       "icon": "T_Vigor_Spirit.jpg",
       "abilityCategory": "Spirit",
       "cooldown": 0,
-      "range": 60,
+      "range": 6000,
       "castDuration": 1.5,
       "costs": {
         "spirit": 100
@@ -4110,7 +4154,8 @@
       "icon": "T_Vigor_AoEHeal.jpg",
       "abilityCategory": "Core",
       "cooldown": 15,
-      "range": 30,
+      "range": 3000,
+      "radius": 800,
       "costs": {
         "mana": 118
       }
@@ -4165,7 +4210,7 @@
       "name": "Dawnflare",
       "icon": "T_Vigor_Bolt.jpg",
       "abilityCategory": "Basic",
-      "range": 30,
+      "range": 3000,
       "castDuration": 1.5,
       "costs": {
         "mana": 1
@@ -4189,7 +4234,7 @@
       "name": "Greater Heal",
       "icon": "T_Vigor_Heal.jpg",
       "abilityCategory": "Core",
-      "range": 30,
+      "range": 3000,
       "castDuration": 2,
       "costs": {
         "mana": 88
@@ -4244,7 +4289,7 @@
       "icon": "T_Vigor_Ward.jpg",
       "abilityCategory": "Major",
       "cooldown": 60,
-      "range": 30,
+      "range": 3000,
       "costs": {
         "mana": 63
       }
@@ -4262,7 +4307,7 @@
       "icon": "T_Vigor_Shield.jpg",
       "abilityCategory": "Power",
       "cooldown": 20,
-      "range": 30,
+      "range": 3000,
       "castDuration": 1.2,
       "costs": {
         "primary": 1
@@ -4299,6 +4344,7 @@
       "icon": "T_Vigor_Cone.jpg",
       "abilityCategory": "Core",
       "cooldown": 10,
+      "radius": 3000,
       "costs": {
         "mana": 37
       }
@@ -4334,7 +4380,7 @@
       "icon": "T_Vigor_Dispel.jpg",
       "abilityCategory": "Utility",
       "cooldown": 6,
-      "range": 30,
+      "range": 3000,
       "costs": {
         "mana": 82
       }
@@ -4357,7 +4403,7 @@
       "name": "Rune of Renewal",
       "icon": "T_Vigor_Rune.jpg",
       "abilityCategory": "Power",
-      "range": 30,
+      "range": 3000,
       "castDuration": 1.2,
       "costs": {
         "primary": 1
@@ -4416,7 +4462,7 @@
       "name": "Soulbrand",
       "icon": "T_Vigor_Soulbrand.jpg",
       "abilityCategory": "Power",
-      "range": 30,
+      "range": 3000,
       "castDuration": 1.2,
       "costs": {
         "primary": 1
@@ -4447,7 +4493,7 @@
       "icon": "T_Vigor_Book.jpg",
       "abilityCategory": "Control",
       "cooldown": 30,
-      "range": 30,
+      "range": 3000,
       "costs": {
         "mana": 0
       }
@@ -4471,7 +4517,7 @@
       "id": 1854,
       "name": "Attack",
       "icon": "Tex_swords_01_bg.jpg",
-      "range": 5
+      "range": 500
     },
     "AttackDamage": {
       "kind": "effect",
@@ -4530,7 +4576,7 @@
       "icon": "T_Sune_Blindingslash.jpg",
       "abilityCategory": "Basic",
       "cooldown": 6,
-      "range": 5
+      "range": 500
     },
     "BlindingSlashDamage": {
       "kind": "effect",
@@ -4544,7 +4590,7 @@
       "name": "Brilliant Flare",
       "icon": "T_Sune_BrilliantFlare.jpg",
       "abilityCategory": "Core",
-      "range": 30,
+      "range": 3000,
       "castDuration": 1.5,
       "costs": {
         "mana": 132
@@ -4568,7 +4614,7 @@
       "name": "Brilliant Flash",
       "icon": "T_Sune_BrilliantFlash.jpg",
       "abilityCategory": "Power",
-      "range": 30
+      "range": 3000
     },
     "BrilliantFlashDamage": {
       "kind": "effect",
@@ -4641,7 +4687,7 @@
       "icon": "T_Sune_Interrupt.jpg",
       "abilityCategory": "Utility",
       "cooldown": 12,
-      "range": 5
+      "range": 500
     },
     "InterruptInterrupt": {
       "kind": "effect",
@@ -4675,7 +4721,8 @@
       "name": "Omnistrike",
       "icon": "T_Sune_Omnistrike.jpg",
       "abilityCategory": "Core",
-      "cooldown": 18
+      "cooldown": 18,
+      "radius": 800
     },
     "OmnistrikeDamage": {
       "kind": "effect",
@@ -4710,6 +4757,7 @@
       "icon": "T_Sune_ShiningHalo.jpg",
       "abilityCategory": "Power",
       "cooldown": 30,
+      "radius": 800,
       "costs": {
         "mana": 218
       }
@@ -4739,6 +4787,7 @@
       "icon": "T_Sune_Skycrash.jpg",
       "abilityCategory": "Movement",
       "cooldown": 60,
+      "radius": 700,
       "charges": 2
     },
     "SkyCrashDamage": {
@@ -4760,7 +4809,8 @@
       "icon": "T_Sune_SolarBlades.jpg",
       "abilityCategory": "Core",
       "cooldown": 9,
-      "range": 30,
+      "range": 3000,
+      "radius": 800,
       "costs": {
         "mana": 55
       }
@@ -4784,7 +4834,7 @@
       "icon": "T_Sune_Solarshield.jpg",
       "abilityCategory": "Defensive",
       "cooldown": 15,
-      "range": 30,
+      "range": 3000,
       "costs": {
         "mana": 182
       }
@@ -4813,7 +4863,7 @@
       "name": "Sun Strike",
       "icon": "T_Sune_Sunstrike.jpg",
       "abilityCategory": "Basic",
-      "range": 5
+      "range": 500
     },
     "SunStrikeDamage": {
       "kind": "effect",
@@ -4828,7 +4878,7 @@
       "icon": "T_Sune_Taunt.jpg",
       "abilityCategory": "Utility",
       "cooldown": 8,
-      "range": 40
+      "range": 4000
     },
     "TauntTaunt": {
       "kind": "effect",
@@ -4843,14 +4893,16 @@
       "id": 2113,
       "name": "Conduit of Striking Shadows",
       "icon": "Tex_p_27.jpg",
-      "school": "Magic"
+      "school": "Magic",
+      "radius": 4000
     },
     "ConduitOfTheBleedingGaze": {
       "kind": "ability",
       "id": 2116,
       "name": "Conduit of the Bleeding Gaze",
       "icon": "T_Nhance_RPG_Icons_ShadowEye.jpg",
-      "school": "Magic"
+      "school": "Magic",
+      "radius": 80
     },
     "SanguineClaws": {
       "kind": "ability",
@@ -4859,7 +4911,8 @@
       "icon": "T_Nhance_RPG_Icons_BloodRitual.jpg",
       "school": "Physical",
       "cooldown": 32,
-      "range": 3
+      "range": 300,
+      "radius": 700
     },
     "SpiritOfHeroism": {
       "kind": "effect",
@@ -4890,7 +4943,8 @@
       "id": 2031,
       "name": "Vein Sprout",
       "icon": "",
-      "school": "Magic"
+      "school": "Magic",
+      "radius": 600
     }
   },
   "items": {
@@ -4913,7 +4967,7 @@
       "icon": "T_Weapon_IceShackle.jpg",
       "abilityCategory": "Weapon",
       "cooldown": 30,
-      "range": 30
+      "range": 3000
     },
     "AlShackleAoeDamage": {
       "kind": "effect",
@@ -4988,7 +5042,7 @@
       "icon": "T_Relic_Drums.jpg",
       "abilityCategory": "Relic",
       "cooldown": 90,
-      "range": 40
+      "range": 4000
     },
     "BloodriteFervorBuff": {
       "kind": "effect",
@@ -5003,7 +5057,7 @@
       "icon": "T_Relic_Chicken.jpg",
       "abilityCategory": "Relic",
       "cooldown": 180,
-      "range": 30
+      "range": 3000
     },
     "Chronoshift": {
       "kind": "ability",
@@ -5012,7 +5066,7 @@
       "icon": "T_Nhance_RPG_Icons_ArcaneLoad.jpg",
       "abilityCategory": "Weapon",
       "cooldown": 180,
-      "range": 15,
+      "range": 1500,
       "castDuration": 1,
       "channelDuration": 3,
       "channelTickInterval": 1.5
@@ -5036,7 +5090,7 @@
       "icon": "T_Relic_Portal.jpg",
       "abilityCategory": "Relic",
       "cooldown": 120,
-      "range": 30
+      "range": 3000
     },
     "ConjurePortalRecentlyUsedPortal": {
       "kind": "effect",
@@ -5164,7 +5218,8 @@
       "icon": "T_Nhance_RPG_Icons_FrostRain.jpg",
       "abilityCategory": "Weapon",
       "cooldown": 40,
-      "range": 30
+      "range": 3000,
+      "radius": 700
     },
     "IciclesOfAnDamage": {
       "kind": "effect",
@@ -5209,7 +5264,7 @@
       "icon": "T_CurseWeak.jpg",
       "abilityCategory": "Relic",
       "cooldown": 90,
-      "range": 30
+      "range": 3000
     },
     "InterjectSpellInterrupt": {
       "kind": "effect",
@@ -5230,7 +5285,7 @@
       "icon": "T_Relic_DispelRune.jpg",
       "abilityCategory": "Relic",
       "cooldown": 120,
-      "range": 40
+      "range": 4000
     },
     "MajorInvisibility": {
       "kind": "ability",
@@ -5259,7 +5314,7 @@
       "icon": "T_Weapon_NatureBolt.jpg",
       "abilityCategory": "Weapon",
       "cooldown": 60,
-      "range": 30,
+      "range": 3000,
       "castDuration": 1.5
     },
     "NatureFuryDamage": {
@@ -5351,6 +5406,7 @@
       "icon": "T_Weapon_FrostLightRepository.jpg",
       "abilityCategory": "Weapon",
       "cooldown": 120,
+      "radius": 6000,
       "castDuration": 1.5
     },
     "RepositoryOfFrozenLightBuff": {
@@ -5392,7 +5448,7 @@
       "icon": "T_Relic_CombatRess.jpg",
       "abilityCategory": "Relic",
       "cooldown": 300,
-      "range": 40,
+      "range": 4000,
       "castDuration": 2
     },
     "ReviveSetHealthAndMana": {
@@ -5439,7 +5495,8 @@
       "name": "Sahril\u0027s Wrath",
       "icon": "T_Weapon_CritAOE.jpg",
       "abilityCategory": "Weapon",
-      "cooldown": 120
+      "cooldown": 120,
+      "radius": 1000
     },
     "SahrilWrathBuff": {
       "kind": "effect",
@@ -5460,7 +5517,7 @@
       "icon": "T_Relic_DamageReduction.jpg",
       "abilityCategory": "Relic",
       "cooldown": 180,
-      "range": 40
+      "range": 4000
     },
     "SanctuaryBuff": {
       "kind": "effect",
@@ -5529,7 +5586,7 @@
       "icon": "T_Weapon_Skybolt.jpg",
       "abilityCategory": "Weapon",
       "cooldown": 20,
-      "range": 30,
+      "range": 3000,
       "charges": 2
     },
     "TwilightSkyboltCooldownCharge": {
@@ -5587,7 +5644,7 @@
       "icon": "T_Weapon_VoidTouch.jpg",
       "abilityCategory": "Weapon",
       "cooldown": 90,
-      "range": 30
+      "range": 3000
     },
     "VoidbringerTouchDamage": {
       "kind": "effect",

@@ -40,10 +40,31 @@ public class SourceLoaderTests
         engulfingFlames.ChargeCount.ShouldBe(2);
         engulfingFlames.CastTime.ShouldBe(1.5);
         engulfingFlames.Range.ShouldBe(3000);
-        engulfingFlames.RangeYards.ShouldBe(30);
         engulfingFlames.Schools.ShouldBe(["Magic / Fire"]);
         engulfingFlames.Heroes.ShouldBe(["Ardeos"]);
     }
+
+    [Fact]
+    public void Export_KeepsRangeAndRadiusInGameUnits()
+    {
+        var slaughter = Export().Abilities[2292];
+
+        slaughter.Name.ShouldBe("Slaughter");
+        slaughter.Range.ShouldBe(700);
+        slaughter.Radius.ShouldBe(700);
+    }
+
+    [Fact]
+    public void Export_KeepsARangeThatIsNoRoundHundred()
+    {
+        var glacialSunder = Export().Abilities[205];
+
+        glacialSunder.Range.ShouldBe(850);
+    }
+
+    [Fact]
+    public void Export_LeavesRadiusUnsetOnAnAbilityWithNoArea() =>
+        Export().Abilities[1586].Radius.ShouldBeNull();
 
     [Fact]
     public void Export_KeysAbilitiesAndEffectsSeparately()

@@ -15,7 +15,8 @@ public record ExportAbility(
     double? Cost,
     string? Resource,
     bool CostIsFraction,
-    double? Range,
+    int? Range,
+    int? Radius,
     int? Charges,
     double? CastTime,
     double? ChannelTime,
@@ -23,8 +24,6 @@ public record ExportAbility(
     List<string> Schools,
     List<string> Heroes)
 {
-    public int? RangeYards => Range is { } range ? (int)Math.Round(range / 100) : null;
-
     public int ChargeCount => Charges ?? 1;
 }
 
@@ -92,7 +91,7 @@ public sealed class ExportSource
                 case "ability":
                     abilities[record.Id] = new ExportAbility(
                         record.Id, record.Name, record.Category, record.Cooldown, record.Cost,
-                        record.Resource, record.CostIsFraction, record.Range, record.Charges,
+                        record.Resource, record.CostIsFraction, record.Range, record.Radius, record.Charges,
                         record.CastTime, record.ChannelTime, record.ChannelTick,
                         record.Schools ?? [], record.Heroes ?? []);
                     break;
@@ -144,7 +143,8 @@ public sealed class ExportSource
         public double? Cost { get; init; }
         public string? Resource { get; init; }
         public bool CostIsFraction { get; init; }
-        public double? Range { get; init; }
+        public int? Range { get; init; }
+        public int? Radius { get; init; }
         public int? Charges { get; init; }
         public double? CastTime { get; init; }
         public double? ChannelTime { get; init; }

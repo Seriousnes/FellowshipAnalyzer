@@ -94,7 +94,7 @@ public sealed record SpellbookAbility
     public bool Enabled { get; init; } = true;
 
     /// <summary>
-    /// The spell's range in yards/meters, read from <see cref="PrimarySpell"/>.
+    /// The spell's range in game units, read from <see cref="PrimarySpell"/>.
     /// </summary>
     public int? Range => PrimarySpell.Range;
 

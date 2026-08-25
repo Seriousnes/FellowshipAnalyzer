@@ -53,6 +53,8 @@ public record Spell : IRimeSpell, IElarionSpell, IArdeosSpell
 
     /// <summary>The spell's maximum range in game units; <c>null</c> when the spell is not range-limited.</summary>
     public int? Range { get; init; }
+    /// <summary>The radius of the area the spell affects, in game units; <c>null</c> when the spell affects no area.</summary>
+    public int? Radius { get; init; }
     /// <summary>The number of charges the spell can bank before a cast starts its cooldown; <c>1</c> for a spell without a charge system.</summary>
     public int Charges { get; init; } = 1;
     /// <summary>The time in seconds to complete a non-channeled cast; <c>null</c> for an instant cast.</summary>
