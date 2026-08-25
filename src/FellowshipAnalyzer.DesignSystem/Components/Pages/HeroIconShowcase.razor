@@ -1,9 +1,9 @@
 @page "/hero-icon"
 @using FellowshipAnalyzer.Core.Analysis
 
-<PageTitle>HeroIcon - Design System</PageTitle>
+<PageTitle>HeroIcon / HeroText - Design System</PageTitle>
 
-<h1>HeroIcon</h1>
+<h1>HeroIcon / HeroText</h1>
 <p class="lede">Renders a hero portrait from a strongly-typed <code>Hero</code> instance. Use <code>Avatar</code> instead if you need fallback content or accent rings.</p>
 
 <CodeExample Title="All shipped heroes" Code="@_allHeroesCode">
@@ -27,6 +27,30 @@
     </Demo>
 </CodeExample>
 
+<CodeExample Title="Inline portrait" Code="@_inlineCode">
+    <Demo>
+        <p>Sized to the surrounding text, so it sits on the line: <HeroIcon Hero="Hero.Rime" Inline /> Rime.</p>
+    </Demo>
+</CodeExample>
+
+<h2>HeroText</h2>
+<p class="lede">Sets its content in a hero's identity colour, optionally preceded by an inline portrait. Content defaults to the hero's name.</p>
+
+<CodeExample Title="Hero-coloured text" Code="@_heroTextCode">
+    <Demo>
+        <p>Support was added for <HeroText Hero="HeroName.Helena">Helena</HeroText> and <HeroText Hero="HeroName.Sylvie">Sylvie</HeroText>.</p>
+    </Demo>
+</CodeExample>
+
+<CodeExample Title="With an inline portrait" Code="@_heroTextIconCode">
+    <Demo>
+        @foreach (var hero in Hero.All)
+        {
+            <p><HeroText Hero="hero.Name" Icon /> analysis is a work in progress.</p>
+        }
+    </Demo>
+</CodeExample>
+
 @code {
     private const string _allHeroesCode = """
 @foreach (var hero in Hero.All)
@@ -37,5 +61,17 @@
 
     private const string _sizeCode = """
 <HeroIcon Hero="Hero.Rime" style="width: 64px; height: 64px;" />
+""";
+
+    private const string _inlineCode = """
+<p>Sits on the line: <HeroIcon Hero="Hero.Rime" Inline /> Rime.</p>
+""";
+
+    private const string _heroTextCode = """
+Support was added for <HeroText Hero="HeroName.Helena">Helena</HeroText>.
+""";
+
+    private const string _heroTextIconCode = """
+<HeroText Hero="HeroName.Ardeos" Icon /> analysis is a work in progress.
 """;
 }

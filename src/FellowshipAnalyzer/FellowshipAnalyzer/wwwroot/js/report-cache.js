@@ -241,6 +241,19 @@ export async function removeEntry(reportCode, dungeonId, playerId) {
     });
 }
 
+export async function clearAll() {
+    const db = await openDb();
+    const t = txn(db, [EVENTS_STORE, HISTORY_STORE, MASTERDATA_STORE], 'readwrite');
+    t.objectStore(EVENTS_STORE).clear();
+    t.objectStore(HISTORY_STORE).clear();
+    t.objectStore(MASTERDATA_STORE).clear();
+    await new Promise((resolve, reject) => {
+        t.oncomplete = resolve;
+        t.onerror = () => reject(t.error);
+        t.onabort = () => reject(t.error);
+    });
+}
+
 /**
  * Retrieve cached master data JSON for the given report code.
  * @returns {Promise<string|null>}

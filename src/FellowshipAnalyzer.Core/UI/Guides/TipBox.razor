@@ -1,9 +1,18 @@
 @{
     var variantClass = Variant.ToString().ToLowerInvariant();
+    var fillClass = Fill switch
+    {
+        TipBoxFill.Tint => " tip-box-tint",
+        TipBoxFill.Solid => " tip-box-solid",
+        _ => "",
+    };
+    var titleClass = string.IsNullOrEmpty(Title) ? " tip-box-untitled" : "";
+    var classes = $"tip-box {variantClass}{fillClass}{titleClass}";
     var role = Variant is TipBoxVariant.Warning or TipBoxVariant.Error ? "alert" : "note";
+    var styleAttr = Background is not null ? $"--fa-supplied-accent: {Background};" : null;
 }
 
-<div class="tip-box @variantClass" role="@role">
+<div class="@classes" role="@role" style="@styleAttr">
     @if (!HideIcon)
     {
         <span class="tip-box-icon" aria-hidden="true">
@@ -34,6 +43,16 @@
     [Parameter] public string? Title { get; set; }
     [Parameter] public TipBoxVariant Variant { get; set; } = TipBoxVariant.Info;
     [Parameter] public bool HideIcon { get; set; }
+
+    /// <summary>How much of the accent colour the background carries. Defaults to <see cref="TipBoxFill.None"/>.</summary>
+    [Parameter] public TipBoxFill Fill { get; set; }
+
+    /// <summary>
+    /// Design token reference that replaces the variant's accent colour, for example <c>FaVar.HeroRime</c>.
+    /// It feeds the design system's <c>--fa-supplied-accent</c> channel and colours the left edge, the
+    /// tint and the solid fill alike.
+    /// </summary>
+    [Parameter] public string? Background { get; set; }
 
     private static string DefaultGlyph(TipBoxVariant v) => v switch
     {

@@ -1,10 +1,25 @@
 @using FellowshipAnalyzer.Heroes.Rime.Analysis
 @inherits ReportComponent<RimeCombatLogParser>
 
-<WintersEmbraceGuide />
+<GuideContainer>
+    <TipBox Variant="TipBoxVariant.Warning" Fill="TipBoxFill.Solid">
+        <p>
+            <HeroText Hero="HeroName.Rime" Icon /> analysis is a work in progress. The information here is preliminary and may be incomplete or inaccurate. Please provide feedback to help improve the analysis.
+        </p>
+        <p>
+            Analysis is written by <ContributorLink Contributor="@Contributors.Seriousnes" />, feel free to reach out to them with any questions or feedback.
+        </p>
+    </TipBox>
 
-<WinterOrbGuide />
+    <Section Title="Rotation">
+        <WintersEmbraceGuide />
 
-<CooldownsGuide />
+        <WinterOrbGuide />
+    </Section>
 
-<DowntimeGuide />
+    <Section Title="Cooldowns and Uptime">
+        <CooldownsGuide />
+
+        <DowntimeGuide />
+    </Section>
+</GuideContainer>

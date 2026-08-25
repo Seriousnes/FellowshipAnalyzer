@@ -43,6 +43,11 @@ public interface IReportCacheService
     ValueTask<List<ReportHistoryEntry>> GetHistoryAsync();
 
     /// <summary>
+    /// Removes every cached report from the browser: stored events, history metadata and master data.
+    /// </summary>
+    ValueTask ClearAsync();
+
+    /// <summary>
     /// Returns the raw serialized master data JSON for a report, or null on cache miss.
     /// </summary>
     ValueTask<string?> GetCachedMasterDataJsonAsync(string reportCode);

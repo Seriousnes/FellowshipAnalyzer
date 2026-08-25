@@ -11,3 +11,11 @@
     flex-shrink: 0;
     vertical-align: middle;
 }
+
+.hero-icon-inline {
+    width: 1.4em;
+    height: 1.4em;
+    margin-top: -0.2em;
+    margin-right: 0.25em;
+    border-width: var(--fa-border-width);
+}

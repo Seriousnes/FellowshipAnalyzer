@@ -5,10 +5,36 @@
     width: 100%;
 }
 
+.report-history-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin: 0 0 0.6rem;
+}
+
 .report-history-title {
     @include mx.eyebrow;
-    margin: 0 0 0.6rem;
+    margin: 0;
     font-size: 0.82rem;
+}
+
+.report-history-clear {
+    appearance: none;
+    background: none;
+    border: none;
+    padding: 0;
+    font: inherit;
+    font-size: 0.75rem;
+    color: var(--fa-text-dim);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    cursor: pointer;
+    white-space: nowrap;
+
+    &:hover {
+        color: var(--fa-gold);
+    }
 }
 
 .report-history-list {

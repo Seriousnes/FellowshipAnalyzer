@@ -1,4 +1,5 @@
 using FellowshipAnalyzer.Core.Analysis;
+using FellowshipAnalyzer.Core.UI.Guides;
 
 using Microsoft.AspNetCore.Components;
 
@@ -10,7 +11,13 @@ namespace FellowshipAnalyzer.Core.UI.Components;
 public abstract class GuideComponent<TParser> : ReportComponent<TParser> where TParser : CombatLogParser
 {
     /// <summary>
-    /// Returns <c>true</c> if the component is active, typically based on talent or gear of the <see cref="CombatLogParser.SelectedCombatant"/>    /// 
+    /// The enclosing <see cref="Section"/>'s activity ledger, when the guide is nested in one.
+    /// The guide reports its <see cref="IsActive"/> result to it on every parameter set.
+    /// </summary>
+    [CascadingParameter] public GuideSectionScope? SectionScope { get; set; }
+
+    /// <summary>
+    /// Returns <c>true</c> if the component is active, typically based on talent or gear of the <see cref="CombatLogParser.SelectedCombatant"/>    ///
     /// </summary>
     /// <remarks>Defaults to <c>true</c> if not overridden</remarks>
     protected virtual bool IsActive() => true;
@@ -21,6 +28,10 @@ public abstract class GuideComponent<TParser> : ReportComponent<TParser> where T
     public override Task SetParametersAsync(ParameterView parameters)
     {
         parameters.SetParameterProperties(this);
-        return IsActive() ? base.SetParametersAsync(ParameterView.Empty) : Task.CompletedTask;
+
+        var active = IsActive();
+        SectionScope?.Report(this, active);
+
+        return active ? base.SetParametersAsync(ParameterView.Empty) : Task.CompletedTask;
     }
 }

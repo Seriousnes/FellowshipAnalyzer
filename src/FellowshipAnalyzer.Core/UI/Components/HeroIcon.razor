@@ -1,5 +1,5 @@
 <img src="@Hero.IconUrl"
-     class="hero-icon"
+     class="hero-icon@(Inline ? " hero-icon-inline" : "")"
      alt="@Hero.Name"
      style="border-color: @Hero.Color;"
      @attributes="InputAttributes" />
@@ -7,6 +7,10 @@
 @code {
     [Parameter, EditorRequired]
     public Hero Hero { get; set; }
+
+    /// <summary>Size the portrait to the surrounding text so it sits on the line, rather than at its own fixed size.</summary>
+    [Parameter]
+    public bool Inline { get; set; }
 
     [Parameter(CaptureUnmatchedValues = true)]
     public Dictionary<string, object> InputAttributes { get; set; } = new();

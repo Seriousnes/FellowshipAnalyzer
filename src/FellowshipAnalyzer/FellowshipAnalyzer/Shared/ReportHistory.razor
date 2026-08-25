@@ -3,7 +3,13 @@
 @inject IReportCacheService ReportCache
 
 <div class="report-history">
-    <h3 class="report-history-title">Recently Viewed</h3>
+    <div class="report-history-header">
+        <h3 class="report-history-title">Recently Viewed</h3>
+        @if (_history.Count > 0)
+        {
+            <button type="button" class="report-history-clear" @onclick="ClearHistory">Clear history</button>
+        }
+    </div>
     @if (_history.Count > 0)
     {
         <ul class="report-history-list">
@@ -32,6 +38,8 @@
 </div>
 
 @code {
+    private const int MaxEntries = 5;
+
     private List<ReportHistoryEntry> _history = [];
     private bool _loaded;
 
@@ -42,9 +50,16 @@
         _history = (await ReportCache.GetHistoryAsync())
             .Where(entry => !string.IsNullOrWhiteSpace(entry.PlayerName)
                 && !string.IsNullOrWhiteSpace(entry.DungeonName))
+            .Take(MaxEntries)
             .ToList();
         _loaded = true;
         StateHasChanged();
+    }
+
+    private async Task ClearHistory()
+    {
+        await ReportCache.ClearAsync();
+        _history = [];
     }
 
     private static string FormatAge(DateTimeOffset cachedAt)

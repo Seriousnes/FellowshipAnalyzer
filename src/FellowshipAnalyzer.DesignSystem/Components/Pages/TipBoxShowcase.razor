@@ -21,6 +21,44 @@
     </Demo>
 </CodeExample>
 
+<CodeExample Title="Fill" Description="How much of the accent colour the background carries." Code="@_fillCode">
+    <Demo>
+        <TipBox Variant="TipBoxVariant.Warning" Fill="TipBoxFill.None">Left edge only, the default.</TipBox>
+        <TipBox Variant="TipBoxVariant.Warning" Fill="TipBoxFill.Tint">Background and border tinted in the accent.</TipBox>
+        <TipBox Variant="TipBoxVariant.Warning" Fill="TipBoxFill.Solid">Background filled, content set in whichever of black or white contrasts against the accent.</TipBox>
+    </Demo>
+</CodeExample>
+
+<CodeExample Title="Solid across every variant" Code="@_solidCode">
+    <Demo>
+        <TipBox Variant="TipBoxVariant.Info" Fill="TipBoxFill.Solid" Title="Heads up">An informational note.</TipBox>
+        <TipBox Variant="TipBoxVariant.Note" Fill="TipBoxFill.Solid" Title="Author note">A note from the analyzer author.</TipBox>
+        <TipBox Variant="TipBoxVariant.Success" Fill="TipBoxFill.Solid" Title="Nice work">You did this well.</TipBox>
+        <TipBox Variant="TipBoxVariant.Warning" Fill="TipBoxFill.Solid" Title="Watch out">Common pitfall ahead.</TipBox>
+        <TipBox Variant="TipBoxVariant.Error" Fill="TipBoxFill.Solid" Title="Misplay">Avoid doing this.</TipBox>
+    </Demo>
+</CodeExample>
+
+<CodeExample Title="Background override" Description="A token reference replaces the variant's accent colour." Code="@_backgroundCode">
+    <Demo>
+        <TipBox Variant="TipBoxVariant.Info" Fill="TipBoxFill.Tint" Background="@FaVar.HeroRime">Tinted in Rime's identity colour.</TipBox>
+        <TipBox Variant="TipBoxVariant.Info" Fill="TipBoxFill.Solid" Background="@FaVar.Ice">Filled with the frost accent.</TipBox>
+    </Demo>
+</CodeExample>
+
+<CodeExample Title="Hero guide warning" Description="The shape every hero guide opens with." Code="@_heroWarningCode">
+    <Demo>
+        <TipBox Variant="TipBoxVariant.Warning" Fill="TipBoxFill.Solid">
+            <p>
+                <HeroText Hero="HeroName.Gunde" Icon /> analysis is a work in progress. The information here is preliminary and may be incomplete or inaccurate. Please provide feedback to help improve the analysis.
+            </p>
+            <p>
+                Analysis is written by <ContributorLink Contributor="@Contributors.Seriousnes" />, feel free to reach out to them with any questions or feedback.
+            </p>
+        </TipBox>
+    </Demo>
+</CodeExample>
+
 <CodeExample Title="Hide icon" Code="@_noIconCode">
     <Demo>
         <TipBox Variant="TipBoxVariant.Success" HideIcon>No icon on this one.</TipBox>
@@ -70,6 +108,34 @@
 
     private const string _noIconCode = """
 <TipBox Variant="TipBoxVariant.Success" HideIcon>No icon.</TipBox>
+""";
+
+    private const string _fillCode = """
+<TipBox Variant="TipBoxVariant.Warning" Fill="TipBoxFill.None">Left edge only.</TipBox>
+<TipBox Variant="TipBoxVariant.Warning" Fill="TipBoxFill.Tint">Tinted.</TipBox>
+<TipBox Variant="TipBoxVariant.Warning" Fill="TipBoxFill.Solid">Filled.</TipBox>
+""";
+
+    private const string _solidCode = """
+<TipBox Variant="TipBoxVariant.Error" Fill="TipBoxFill.Solid" Title="Misplay">Avoid this.</TipBox>
+""";
+
+    private const string _backgroundCode = """
+<TipBox Variant="TipBoxVariant.Info" Fill="TipBoxFill.Tint" Background="@FaVar.HeroRime">
+    Tinted in Rime's identity colour.
+</TipBox>
+""";
+
+    private const string _heroWarningCode = """
+<TipBox Variant="TipBoxVariant.Warning" Fill="TipBoxFill.Solid">
+    <p>
+        <HeroText Hero="HeroName.Gunde" Icon /> analysis is a work in progress. The information
+        here is preliminary and may be incomplete or inaccurate.
+    </p>
+    <p>
+        Analysis is written by <ContributorLink Contributor="@Contributors.Seriousnes" />.
+    </p>
+</TipBox>
 """;
 
     private const string _customIconCode = """

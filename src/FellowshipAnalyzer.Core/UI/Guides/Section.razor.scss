@@ -3,7 +3,8 @@
     border: 1px solid var(--fa-border-card);
     border-radius: var(--fa-radius-sm);
     overflow: hidden;
-    margin-bottom: 14px;
+
+    &.inactive { display: none; }
 }
 
 .guide-top-section-header {
@@ -51,4 +52,6 @@
     display: flex;
     flex-direction: column;
     gap: 12px;
+
+    &.collapsed { display: none; }
 }

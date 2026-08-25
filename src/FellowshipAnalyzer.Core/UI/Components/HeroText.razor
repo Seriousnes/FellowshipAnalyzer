@@ -1,11 +1,27 @@
-<span class="hero-text" style="--fa-supplied-accent: @Accent;" @attributes="InputAttributes">@ChildContent</span>
+<span class="hero-text" style="--fa-supplied-accent: @Accent;" @attributes="InputAttributes">
+    @if (Icon)
+    {
+        <HeroIcon Hero="Hero" Inline alt="" />
+    }
+    @if (ChildContent is not null)
+    {
+        @ChildContent
+    }
+    else
+    {
+        @Hero
+    }
+</span>
 
 @code {
     /// <summary>The hero whose identity colour the content is set in.</summary>
     [Parameter, EditorRequired] public HeroName Hero { get; set; }
 
-    /// <summary>The content to colour. Nested markup inherits the colour.</summary>
-    [Parameter, EditorRequired] public RenderFragment ChildContent { get; set; } = default!;
+    /// <summary>Render the hero's portrait inline, ahead of the content.</summary>
+    [Parameter] public bool Icon { get; set; }
+
+    /// <summary>The content to colour. Nested markup inherits the colour. Defaults to the hero's name.</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
 
     [Parameter(CaptureUnmatchedValues = true)]
     public Dictionary<string, object> InputAttributes { get; set; } = new();

@@ -55,6 +55,12 @@ internal sealed class IndexedDbReportCacheService(IJSRuntime js) : IReportCacheS
         ))];
     }
 
+    public async ValueTask ClearAsync()
+    {
+        var module = await GetModuleAsync();
+        await module.InvokeVoidAsync("clearAll");
+    }
+
     public async ValueTask<string?> GetCachedMasterDataJsonAsync(string reportCode)
     {
         var module = await GetModuleAsync();

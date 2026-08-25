@@ -21,25 +21,29 @@
              Description="Yellow header, default expanded. Pass Expanded=false to start collapsed."
              Code="@_sectionCode">
     <Demo>
-        <Section Title="Damage rotation">
-            <p>Section body. Click the header to collapse.</p>
-        </Section>
-        <Section Title="Cooldown usage" Expanded="false">
-            <p>This one starts collapsed.</p>
-        </Section>
+        <GuideContainer>
+            <Section Title="Damage rotation">
+                <p>Section body. Click the header to collapse.</p>
+            </Section>
+            <Section Title="Cooldown usage" Expanded="false">
+                <p>This one starts collapsed.</p>
+            </Section>
+        </GuideContainer>
     </Demo>
 </CodeExample>
 
 <CodeExample Title="SubSection - non-collapsible grouping inside Section" Code="@_subSectionCode">
     <Demo>
-        <Section Title="Damage analysis">
-            <SubSection Title="Single-target rotation">
-                <p>Body for single-target.</p>
-            </SubSection>
-            <SubSection Title="AOE rotation">
-                <p>Body for AOE.</p>
-            </SubSection>
-        </Section>
+        <GuideContainer>
+            <Section Title="Damage analysis">
+                <SubSection Title="Single-target rotation">
+                    <p>Body for single-target.</p>
+                </SubSection>
+                <SubSection Title="AOE rotation">
+                    <p>Body for AOE.</p>
+                </SubSection>
+            </Section>
+        </GuideContainer>
     </Demo>
 </CodeExample>
 

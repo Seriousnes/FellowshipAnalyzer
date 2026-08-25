@@ -2,14 +2,33 @@
 @using FellowshipAnalyzer.Heroes.Mara.Guides
 @inherits ReportComponent<MaraCombatLogParser>
 
-<MaraResourceDisciplineGuide />
+<GuideContainer>
+    <TipBox Variant="TipBoxVariant.Warning" Fill="TipBoxFill.Solid">
+        <p>
+            <HeroText Hero="HeroName.Mara" Icon /> analysis is a work in progress. The information here is preliminary and may be incomplete or inaccurate. Please provide feedback to help improve the analysis.
+        </p>
+        <p>
+            Analysis is written by <ContributorLink Contributor="@Contributors.Seriousnes" />, feel free to reach out to them with any questions or feedback.
+        </p>
+    </TipBox>
 
-<MaraDotGuide />
+    <Section Title="Resources">
+        <MaraResourceDisciplineGuide />
+    </Section>
 
-<MaidenOfDeathGuide />
+    <Section Title="Rotation">
+        <MaraDotGuide />
+    </Section>
 
-<MatriarchMacabreGuide />
+    <Section Title="Cooldowns">
+        <MaidenOfDeathGuide />
 
-<FinalStratagemGuide />
+        <MatriarchMacabreGuide />
 
-<StealthGuide />
+        <FinalStratagemGuide />
+    </Section>
+
+    <Section Title="Utility">
+        <StealthGuide />
+    </Section>
+</GuideContainer>

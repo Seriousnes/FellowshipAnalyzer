@@ -1,4 +1,10 @@
+@use 'tokens' as t;
+
+$on-accent: "oklch(from var(--fa-supplied-accent) clamp(0, (0.65 - l) * 1000, 1) 0 0)";
+
 .tip-box {
+    --fa-supplied-accent: var(--fa-gold);
+
     display: grid;
     grid-template-columns: auto 1fr;
     gap: 10px;
@@ -6,15 +12,33 @@
     padding: 10px 12px;
     background: var(--fa-bg-inset);
     border: var(--fa-border-width) solid var(--fa-border);
-    border-left: var(--fa-accent-width) solid currentColor;
+    border-left: var(--fa-accent-width) solid var(--fa-supplied-accent);
     border-radius: var(--fa-radius-sm);
-    color: var(--fa-gold);
+    color: var(--fa-supplied-accent);
 
-    &.info    { color: var(--fa-steel); }
-    &.note    { color: var(--fa-arcane); }
-    &.success { color: var(--fa-perf-good); }
-    &.warning { color: var(--fa-perf-ok); }
-    &.error   { color: var(--fa-perf-fail); }
+    &.info    { --fa-supplied-accent: var(--fa-steel); }
+    &.note    { --fa-supplied-accent: var(--fa-arcane); }
+    &.success { --fa-supplied-accent: var(--fa-perf-good); }
+    &.warning { --fa-supplied-accent: var(--fa-perf-ok); }
+    &.error   { --fa-supplied-accent: var(--fa-perf-fail); }
+}
+
+.tip-box-tint {
+    background: t.tint(var(--fa-supplied-accent), t.$fa-tint-subtle);
+    border-color: t.tint(var(--fa-supplied-accent), t.$fa-tint-medium);
+    border-left-color: var(--fa-supplied-accent);
+}
+
+.tip-box-solid {
+    background: var(--fa-supplied-accent);
+    border-color: transparent;
+    color: #{$on-accent};
+
+    .tip-box-title,
+    .tip-box-content,
+    ::deep a,
+    ::deep button,
+    ::deep .hero-text { color: inherit; }
 }
 
 .tip-box-icon {
@@ -30,6 +54,10 @@
     line-height: 1;
     flex-shrink: 0;
     margin-top: 2px;
+}
+
+.tip-box-untitled .tip-box-icon {
+    margin-top: 0;
 }
 
 .tip-box-body {
@@ -51,7 +79,7 @@
     font-size: 0.95rem;
     line-height: 1.5;
 
-    p { margin: 0.25em 0; }
-    p:first-child { margin-top: 0; }
-    p:last-child { margin-bottom: 0; }
+    ::deep p { margin: 0.25em 0; }
+    ::deep p:first-child { margin-top: 0; }
+    ::deep p:last-child { margin-bottom: 0; }
 }
