@@ -6,7 +6,10 @@
       "name": "Amend Fate",
       "icon": "T_Lisa_Stagger.png",
       "abilityCategory": "Power",
-      "range": 3000
+      "range": 3000,
+      "costs": {
+        "primary": 0
+      }
     },
     "AmendFateCost": {
       "kind": "effect",
@@ -214,7 +217,10 @@
       "name": "Oblivion",
       "icon": "T_Lisa_ChronaBlast.png",
       "abilityCategory": "Power",
-      "range": 3000
+      "range": 3000,
+      "costs": {
+        "primary": 0
+      }
     },
     "OblivionAbsorbAbsorb": {
       "kind": "effect",
@@ -237,15 +243,18 @@
     "OblivionSelfBuffBuff": {
       "kind": "effect",
       "id": 3153,
-      "name": "Converging Timelines",
-      "icon": "T_Nhance_RPG_Shadow_40.png"
+      "name": "",
+      "icon": ""
     },
     "RestoreContinuity": {
       "kind": "ability",
       "id": 1973,
       "name": "Restore Continuity",
       "icon": "T_Lisa_ChronaWave.png",
-      "abilityCategory": "Power"
+      "abilityCategory": "Power",
+      "costs": {
+        "primary": 0
+      }
     },
     "RestoreContinuityCost": {
       "kind": "effect",
@@ -470,6 +479,12 @@
       "id": 1834,
       "name": "Detonate",
       "icon": "Firemage_detonate.png"
+    },
+    "DetonateStackingEffect": {
+      "kind": "effect",
+      "id": 3267,
+      "name": "",
+      "icon": ""
     },
     "DetonateTalentInstantCastedSingleDotProc": {
       "kind": "effect",
@@ -3837,7 +3852,10 @@
       "cooldown": 1.5,
       "radius": 700,
       "channelDuration": 1,
-      "channelTickInterval": 0.5
+      "channelTickInterval": 0.5,
+      "costs": {
+        "primary": 50
+      }
     },
     "HammerStormActivated": {
       "kind": "effect",
@@ -4017,7 +4035,10 @@
       "icon": "T_Ink_Skullcrusher.png",
       "abilityCategory": "Power",
       "cooldown": 1,
-      "range": 550
+      "range": 550,
+      "costs": {
+        "primary": 25
+      }
     },
     "SkullCrusherCost": {
       "kind": "effect",
@@ -7695,6 +7716,7 @@
     "2171": "Physical",
     "2172": "Magic",
     "2174": "Physical",
+    "2176": "Magic/Physical",
     "2177": "Magic",
     "2178": "Physical",
     "2180": "Magic",

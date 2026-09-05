@@ -22,7 +22,7 @@
     <PackageVersion Include="Microsoft.Extensions.Http.Resilience" Version="10.8.0" />
     <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.10" />
     <PackageVersion Include="Microsoft.Extensions.ServiceDiscovery" Version="10.8.0" />
-    <PackageVersion Include="Fellowship.SDK" Version="1.0.1" />
+    <PackageVersion Include="Fellowship.SDK" Version="1.0.2" />
     <PackageVersion Include="Microsoft.IO.RecyclableMemoryStream" Version="3.0.1" />
     <PackageVersion Include="OneOf" Version="3.0.271" />
     <PackageVersion Include="OneOf.SourceGenerator" Version="3.0.271" />
