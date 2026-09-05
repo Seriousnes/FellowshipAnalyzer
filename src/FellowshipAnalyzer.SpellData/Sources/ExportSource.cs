@@ -1,7 +1,11 @@
 using System.Text.Json;
-using System.Text.Json.Serialization;
+
+using Fellowship.SDK.Documents;
 
 using FellowshipAnalyzer.Core.UI;
+
+using EntityTypes = Fellowship.SDK.EntityTypes;
+using SettingsFile = Fellowship.SDK.SettingsFile;
 
 namespace FellowshipAnalyzer.SpellData.Sources;
 
@@ -35,7 +39,21 @@ public record ExportEffect(
     List<string> Schools,
     List<string> Heroes);
 
+/// <summary>
+/// One talent, carrying the hero whose talent tree slots it. The export declares the talent and the
+/// slot separately; only the slot names a hero.
+/// </summary>
+public record ExportTalent(int Id, string? Name, string Hero);
+
 public record ExportHero(string Name, string? ArmorType, string? PrimaryStat, string? Color);
+
+/// <summary>
+/// One rung of the item and gem rarity ladder. <paramref name="Name"/> is the name the build stores
+/// and the name art files are suffixed with; <paramref name="DisplayName"/> is the name the game
+/// prints. The two are offset from tier 4 upwards, so a rung printed as <c>Heroic</c> stores
+/// <c>Champion</c> and its art ends <c>-champion</c>.
+/// </summary>
+public record ExportRarity(int Tier, string Name, string DisplayName);
 
 public sealed class ExportSource
 {
@@ -43,19 +61,27 @@ public sealed class ExportSource
 
     public Dictionary<int, ExportEffect> Effects { get; }
 
+    public List<ExportTalent> Talents { get; }
+
     public List<ExportHero> Heroes { get; }
+
+    public List<ExportRarity> Rarities { get; }
 
     public Dictionary<string, AbilityCategory?> AbilityCategories { get; }
 
     private ExportSource(
         Dictionary<int, ExportAbility> abilities,
         Dictionary<int, ExportEffect> effects,
+        List<ExportTalent> talents,
         List<ExportHero> heroes,
+        List<ExportRarity> rarities,
         Dictionary<string, AbilityCategory?> abilityCategories)
     {
         Abilities = abilities;
         Effects = effects;
+        Talents = talents;
         Heroes = heroes;
+        Rarities = rarities;
         AbilityCategories = abilityCategories;
     }
 
@@ -73,41 +99,64 @@ public sealed class ExportSource
     {
         var abilities = new Dictionary<int, ExportAbility>();
         var effects = new Dictionary<int, ExportEffect>();
+        var talentDocuments = new Dictionary<int, TalentDocument>();
+        var talentSlots = new List<TalentSlotDocument>();
 
         foreach (var line in File.ReadLines(entitiesPath))
         {
             if (line.Length == 0)
                 continue;
 
-            var record = JsonSerializer.Deserialize<ExportRecord>(line, Options)
-                ?? throw new InvalidOperationException($"Could not read a record from '{entitiesPath}'.");
+            using var parsed = JsonDocument.Parse(line);
+            var root = parsed.RootElement;
 
-            if (record.Tag is not null)
+            if (root.TryGetProperty("tag", out _))
                 throw new InvalidOperationException(
                     $"The export at '{entitiesPath}' still carries internal asset names. Regenerate it.");
 
-            switch (record.Type)
+            switch (root.Deserialize<EntityDocument>(EntityDocuments.Options))
             {
-                case "ability":
-                    abilities[record.Id] = new ExportAbility(
-                        record.Id, record.Name, record.Category, record.Cooldown, record.Cost,
-                        record.Resource, record.CostIsFraction, record.Range, record.Radius, record.Charges,
-                        record.CastTime, record.ChannelTime, record.ChannelTick,
-                        record.Schools ?? [], record.Heroes ?? []);
+                case AbilityDocument ability:
+                    abilities[ability.Id] = new ExportAbility(
+                        ability.Id, ability.Name, ability.Category?.ToString(), ability.Cooldown, ability.Cost,
+                        ability.Resource, CostIsFraction(root), Whole(ability.Range), Whole(ability.Radius), Whole(ability.Charges),
+                        ability.CastTime, ability.ChannelTime, ability.ChannelTick,
+                        [.. ability.Schools ?? []], [.. (ability.Heroes ?? []).Select(hero => hero.ToString())]);
                     break;
-                case "effect":
-                    effects[record.Id] = new ExportEffect(
-                        record.Id, record.Name, record.PartOf, record.Role,
-                        record.Schools ?? [], record.Heroes ?? []);
+                case EffectDocument effect:
+                    effects[effect.Id] = new ExportEffect(
+                        effect.Id, effect.Name, Reference(effect.PartOf), effect.Role,
+                        [.. effect.Schools ?? []], [.. (effect.Heroes ?? []).Select(hero => hero.ToString())]);
+                    break;
+                case TalentDocument talent:
+                    talentDocuments[talent.Id] = talent;
+                    break;
+                case TalentSlotDocument slot:
+                    talentSlots.Add(slot);
                     break;
             }
         }
 
-        var settings = JsonSerializer.Deserialize<ExportSettings>(File.ReadAllText(settingsPath), Options)
+        var talents = talentSlots
+            .Where(slot => slot.Talent is not null && talentDocuments.ContainsKey(slot.Talent.Id))
+            .Select(slot => new ExportTalent(
+                slot.Talent!.Id,
+                talentDocuments[slot.Talent.Id].Name,
+                slot.Hero.ToString()))
+            .OrderBy(talent => talent.Hero, StringComparer.Ordinal)
+            .ThenBy(talent => talent.Id)
+            .ToList();
+
+        var settings = JsonSerializer.Deserialize<SettingsFile>(File.ReadAllText(settingsPath), EntityDocuments.Options)
             ?? throw new InvalidOperationException($"Could not read '{settingsPath}'.");
 
         var heroes = (settings.Heroes ?? [])
             .Select(hero => new ExportHero(hero.Name, hero.ArmorType, hero.PrimaryStat, hero.Color))
+            .ToList();
+
+        var rarities = (settings.Rarities ?? [])
+            .Select(rarity => new ExportRarity(rarity.Tier, rarity.Name, rarity.DisplayName))
+            .OrderBy(rarity => rarity.Tier)
             .ToList();
 
         var categories = new Dictionary<string, AbilityCategory?>(StringComparer.Ordinal);
@@ -122,57 +171,16 @@ public sealed class ExportSource
                     $"settings.json declares ability category '{category.Name}', which AbilityCategory does not.");
         }
 
-        return new ExportSource(abilities, effects, heroes, categories);
+        return new ExportSource(abilities, effects, talents, heroes, rarities, categories);
     }
 
     private const string NoCategory = "None";
 
-    private static readonly JsonSerializerOptions Options = new()
-    {
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-    };
+    private static EntityRef? Reference(Fellowship.SDK.Models.EntityReference? reference) =>
+        reference is null ? null : new EntityRef(EntityTypes.Slug(reference.Type), reference.Id, reference.Name);
 
-    private sealed class ExportRecord
-    {
-        [JsonPropertyName("$type")]
-        public string Type { get; init; } = string.Empty;
-        public int Id { get; init; }
-        public string? Name { get; init; }
-        public string? Category { get; init; }
-        public double? Cooldown { get; init; }
-        public double? Cost { get; init; }
-        public string? Resource { get; init; }
-        public bool CostIsFraction { get; init; }
-        public int? Range { get; init; }
-        public int? Radius { get; init; }
-        public int? Charges { get; init; }
-        public double? CastTime { get; init; }
-        public double? ChannelTime { get; init; }
-        public double? ChannelTick { get; init; }
-        public List<string>? Schools { get; init; }
-        public List<string>? Heroes { get; init; }
-        public EntityRef? PartOf { get; init; }
-        public string? Role { get; init; }
-        public string? Tag { get; init; }
-    }
+    private static int? Whole(double? value) => value is { } number ? (int)number : null;
 
-    private sealed class ExportSettings
-    {
-        public List<SettingsHero>? Heroes { get; init; }
-        public List<SettingsAbilityCategory>? AbilityCategories { get; init; }
-    }
-
-    private sealed class SettingsHero
-    {
-        public string Name { get; init; } = string.Empty;
-        public string? ArmorType { get; init; }
-        public string? PrimaryStat { get; init; }
-        public string? Color { get; init; }
-    }
-
-    private sealed class SettingsAbilityCategory
-    {
-        public string Name { get; init; } = string.Empty;
-        public int Value { get; init; }
-    }
+    private static bool CostIsFraction(JsonElement record) =>
+        record.TryGetProperty("costIsFraction", out var fraction) && fraction.ValueKind == JsonValueKind.True;
 }
