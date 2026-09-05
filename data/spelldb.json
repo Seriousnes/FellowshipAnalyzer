@@ -4,33 +4,36 @@
       "kind": "ability",
       "id": 1964,
       "name": "Amend Fate",
-      "icon": "T_Lisa_Stagger.jpg",
+      "icon": "T_Lisa_Stagger.png",
       "abilityCategory": "Power",
-      "range": 3000
+      "range": 3000,
+      "costs": {
+        "primary": 0
+      }
     },
     "AmendFateCost": {
       "kind": "effect",
       "id": 2741,
       "name": "Amend Fate",
-      "icon": ""
+      "icon": "T_Lisa_Stagger.png"
     },
     "AmendFateHeal": {
       "kind": "effect",
       "id": 2740,
       "name": "Amend Fate",
-      "icon": ""
+      "icon": "T_Lisa_Stagger.png"
     },
     "AmendFateRemoveStagger": {
       "kind": "effect",
       "id": 2826,
       "name": "Amend Fate",
-      "icon": ""
+      "icon": "T_Lisa_Stagger.png"
     },
     "EchoesOfRuin": {
       "kind": "ability",
       "id": 1887,
       "name": "Echoes of Ruin",
-      "icon": "T_Lisa_Burst.jpg",
+      "icon": "T_Lisa_Burst.png",
       "abilityCategory": "Core",
       "range": 3000,
       "castDuration": 2,
@@ -42,31 +45,31 @@
       "kind": "effect",
       "id": 2618,
       "name": "Echoes of Ruin",
-      "icon": ""
+      "icon": "T_Lisa_Burst.png"
     },
     "EchoesOfRuinDamage": {
       "kind": "effect",
       "id": 2617,
       "name": "Echoes of Ruin",
-      "icon": ""
+      "icon": "T_Lisa_Burst.png"
     },
     "EchoesOfRuinDot": {
       "kind": "effect",
       "id": 2616,
       "name": "Echoes of Ruin",
-      "icon": "T_Lisa_Burst.jpg"
+      "icon": "T_Lisa_Burst.png"
     },
     "EdgeOfRuin": {
       "kind": "ability",
       "id": 2060,
       "name": "Edge of Ruin",
-      "icon": "T_Lisa_Burst.jpg"
+      "icon": "T_Lisa_Burst.png"
     },
     "EntropyClaim": {
       "kind": "ability",
       "id": 1876,
       "name": "Entropy\u0027s Claim",
-      "icon": "T_Lisa_Wither.jpg",
+      "icon": "T_Lisa_Wither.png",
       "abilityCategory": "Core",
       "cooldown": 20,
       "range": 3000,
@@ -79,19 +82,19 @@
       "kind": "effect",
       "id": 2604,
       "name": "Entropy\u0027s Claim",
-      "icon": ""
+      "icon": "T_Lisa_Wither.png"
     },
     "EntropyClaimDot": {
       "kind": "effect",
       "id": 2603,
       "name": "Entropy\u0027s Claim",
-      "icon": "T_Lisa_Wither.jpg"
+      "icon": "T_Lisa_Wither.png"
     },
     "EpochBreak": {
       "kind": "ability",
       "id": 1881,
       "name": "Epoch Break",
-      "icon": "T_Lisa_Spirit.jpg",
+      "icon": "T_Lisa_Spirit.png",
       "abilityCategory": "Spirit",
       "range": 3000,
       "castDuration": 1.5,
@@ -103,7 +106,7 @@
       "kind": "effect",
       "id": 2615,
       "name": "Epoch Break",
-      "icon": ""
+      "icon": "T_Lisa_Spirit.png"
     },
     "EpochBreakHeal": {
       "kind": "effect",
@@ -115,19 +118,19 @@
       "kind": "effect",
       "id": 2613,
       "name": "Epoch Break",
-      "icon": "T_Nhance_RPG_Icons_ArcaneVision.jpg"
+      "icon": "T_Nhance_RPG_Icons_ArcaneVision.png"
     },
     "EpochBreakSelfBuff": {
       "kind": "effect",
       "id": 2612,
       "name": "Epoch Break",
-      "icon": ""
+      "icon": "T_Lisa_Spirit.png"
     },
     "FlashRevision": {
       "kind": "ability",
       "id": 1927,
       "name": "Flash Revision",
-      "icon": "T_Lisa_TimeMend.jpg",
+      "icon": "T_Lisa_TimeMend.png",
       "abilityCategory": "Core",
       "range": 3000,
       "castDuration": 1.5,
@@ -139,19 +142,19 @@
       "kind": "effect",
       "id": 2689,
       "name": "Flash Revision",
-      "icon": ""
+      "icon": "T_Lisa_TimeMend.png"
     },
     "FlashRevisionHeal": {
       "kind": "effect",
       "id": 2688,
       "name": "Flash Revision",
-      "icon": ""
+      "icon": "T_Lisa_TimeMend.png"
     },
     "FleetingHour": {
       "kind": "ability",
       "id": 1969,
       "name": "Fleeting Hour",
-      "icon": "T_Lisa_TimeBuff.jpg",
+      "icon": "T_Lisa_TimeBuff.png",
       "abilityCategory": "Major",
       "cooldown": 20,
       "range": 3000,
@@ -163,19 +166,19 @@
       "kind": "effect",
       "id": 2745,
       "name": "Fleeting Hour",
-      "icon": ""
+      "icon": "T_Lisa_TimeBuff.png"
     },
     "FleetingHourSelfBuff": {
       "kind": "effect",
       "id": 2744,
       "name": "Fleeting Hour",
-      "icon": "T_Lisa_TimeBuff.jpg"
+      "icon": "T_Lisa_TimeBuff.png"
     },
     "Intercession": {
       "kind": "ability",
       "id": 1814,
       "name": "Intercession",
-      "icon": "T_Lisa_AoESilence.jpg",
+      "icon": "T_Lisa_AoESilence.png",
       "abilityCategory": "Control",
       "cooldown": 300,
       "range": 3000,
@@ -188,88 +191,94 @@
       "kind": "effect",
       "id": 2582,
       "name": "Chrono Bind",
-      "icon": "T_Lisa_AoESilence.jpg"
+      "icon": "T_Lisa_AoESilence.png"
     },
     "IntercessionCost": {
       "kind": "effect",
       "id": 2581,
       "name": "Intercession",
-      "icon": ""
+      "icon": "T_Lisa_AoESilence.png"
     },
     "IntercessionInterrupt": {
       "kind": "effect",
       "id": 2580,
       "name": "Intercession",
-      "icon": ""
+      "icon": "T_Lisa_AoESilence.png"
     },
     "IntercessionLockout": {
       "kind": "effect",
       "id": 2579,
       "name": "Interrupted",
-      "icon": "T_Nhance_RPG_Frost_01.jpg"
+      "icon": "T_Nhance_RPG_Frost_01.png"
     },
     "Oblivion": {
       "kind": "ability",
       "id": 1970,
       "name": "Oblivion",
-      "icon": "T_Lisa_ChronaBlast.jpg",
+      "icon": "T_Lisa_ChronaBlast.png",
       "abilityCategory": "Power",
-      "range": 3000
+      "range": 3000,
+      "costs": {
+        "primary": 0
+      }
     },
     "OblivionAbsorbAbsorb": {
       "kind": "effect",
       "id": 2736,
       "name": "Oblivion\u0027s Embrace",
-      "icon": "T_Nhance_RPG_Icons_ArcaneLoad.jpg"
+      "icon": "T_Nhance_RPG_Icons_ArcaneLoad.png"
     },
     "OblivionCost": {
       "kind": "effect",
       "id": 2747,
       "name": "Oblivion",
-      "icon": ""
+      "icon": "T_Lisa_ChronaBlast.png"
     },
     "OblivionDamage": {
       "kind": "effect",
       "id": 2746,
       "name": "Oblivion",
-      "icon": ""
+      "icon": "T_Lisa_ChronaBlast.png"
     },
     "OblivionSelfBuffBuff": {
       "kind": "effect",
       "id": 3153,
-      "name": "Converging Timelines",
-      "icon": "T_Nhance_RPG_Shadow_40.jpg"
+      "name": "",
+      "icon": ""
     },
     "RestoreContinuity": {
       "kind": "ability",
       "id": 1973,
       "name": "Restore Continuity",
-      "icon": "T_Lisa_ChronaWave.jpg",
-      "abilityCategory": "Power"
+      "icon": "T_Lisa_ChronaWave.png",
+      "abilityCategory": "Power",
+      "costs": {
+        "primary": 0
+      }
     },
     "RestoreContinuityCost": {
       "kind": "effect",
       "id": 2750,
       "name": "Restore Continuity",
-      "icon": ""
+      "icon": "T_Lisa_ChronaWave.png"
     },
     "RestoreContinuityHeal": {
       "kind": "effect",
       "id": 2749,
       "name": "Restore Continuity",
-      "icon": ""
+      "icon": "T_Lisa_ChronaWave.png"
     },
     "RestoreContinuityRemoveStagger": {
       "kind": "effect",
       "id": 2827,
       "name": "Restore Continuity",
-      "icon": ""
+      "icon": "T_Lisa_ChronaWave.png"
     },
     "RevertMagic": {
       "kind": "ability",
       "id": 1879,
       "name": "Revert Magic",
-      "icon": "T_Lisa_Dispel.jpg",
+      "icon": "T_Lisa_Dispel.png",
       "abilityCategory": "Utility",
       "cooldown": 6,
       "range": 3000,
@@ -281,19 +290,19 @@
       "kind": "effect",
       "id": 2608,
       "name": "Revert Magic",
-      "icon": ""
+      "icon": "T_Lisa_Dispel.png"
     },
     "RevertMagicResourceCost": {
       "kind": "effect",
       "id": 2607,
       "name": "Revert Magic",
-      "icon": ""
+      "icon": "T_Lisa_Dispel.png"
     },
     "TemporalBarrage": {
       "kind": "ability",
       "id": 1926,
       "name": "Temporal Barrage",
-      "icon": "T_Lisa_Barrage.jpg",
+      "icon": "T_Lisa_Barrage.png",
       "abilityCategory": "Core",
       "cooldown": 15,
       "range": 3000,
@@ -307,25 +316,25 @@
       "kind": "effect",
       "id": 2687,
       "name": "Temporal Barrage",
-      "icon": ""
+      "icon": "T_Lisa_Barrage.png"
     },
     "TemporalBarrageDamage": {
       "kind": "effect",
       "id": 2686,
       "name": "Temporal Barrage",
-      "icon": ""
+      "icon": "T_Lisa_Barrage.png"
     },
     "TemporalBarrageHeal": {
       "kind": "effect",
       "id": 2685,
       "name": "Temporal Barrage",
-      "icon": ""
+      "icon": "T_Lisa_Barrage.png"
     },
     "TimeShard": {
       "kind": "ability",
       "id": 1889,
       "name": "Time Shard",
-      "icon": "T_Lisa_FillerCast.jpg",
+      "icon": "T_Lisa_FillerCast.png",
       "abilityCategory": "Basic",
       "range": 3000,
       "castDuration": 1.5,
@@ -337,19 +346,19 @@
       "kind": "effect",
       "id": 2623,
       "name": "Time Shard",
-      "icon": ""
+      "icon": "T_Lisa_FillerCast.png"
     },
     "TimeShardDamage": {
       "kind": "effect",
       "id": 2622,
       "name": "Time Shard",
-      "icon": ""
+      "icon": "T_Lisa_FillerCast.png"
     },
     "TimeSkip": {
       "kind": "ability",
       "id": 1864,
       "name": "Time Skip",
-      "icon": "T_Lisa_Blink.jpg",
+      "icon": "T_Lisa_Blink.png",
       "abilityCategory": "Defensive",
       "cooldown": 15
     },
@@ -357,13 +366,13 @@
       "kind": "effect",
       "id": 3151,
       "name": "Time Skip",
-      "icon": "T_Lisa_Blink.jpg"
+      "icon": "T_Lisa_Blink.png"
     },
     "UnfoldingDoom": {
       "kind": "ability",
       "id": 1890,
       "name": "Unfolding Doom",
-      "icon": "T_Lisa_StrandsofTime.jpg",
+      "icon": "T_Lisa_StrandsofTime.png",
       "abilityCategory": "Major",
       "cooldown": 45,
       "range": 3000,
@@ -376,13 +385,13 @@
       "kind": "effect",
       "id": 2626,
       "name": "Unfolding Doom",
-      "icon": ""
+      "icon": "T_Lisa_StrandsofTime.png"
     },
     "UnfoldingDoomDamage": {
       "kind": "effect",
       "id": 2625,
       "name": "Unfolding Doom",
-      "icon": ""
+      "icon": "T_Lisa_StrandsofTime.png"
     },
     "UnfoldingDoomDamageToAoeDamageDamage": {
       "kind": "effect",
@@ -394,7 +403,7 @@
       "kind": "effect",
       "id": 2624,
       "name": "Unfolding Doom",
-      "icon": "T_Lisa_StrandsofTime.jpg"
+      "icon": "T_Lisa_StrandsofTime.png"
     },
     "UnfoldingDoomDebuffOwnerEffect": {
       "kind": "effect",
@@ -408,7 +417,7 @@
       "kind": "ability",
       "id": 1273,
       "name": "Apocalypse",
-      "icon": "Firemage_Apocalypse.jpg",
+      "icon": "Firemage_Apocalypse.png",
       "abilityCategory": "Major",
       "cooldown": 45,
       "range": 3000,
@@ -419,37 +428,37 @@
       "kind": "effect",
       "id": 1833,
       "name": "Apocalypse",
-      "icon": ""
+      "icon": "Firemage_Apocalypse.png"
     },
     "ApocalypseDot": {
       "kind": "effect",
       "id": 3175,
       "name": "Apocalypse: Explosivo",
-      "icon": "Firemage_Apocalypse.jpg"
+      "icon": "Firemage_Apocalypse.png"
     },
     "ApocalypseExplosivo": {
       "kind": "ability",
       "id": 2064,
       "name": "Apocalypse: Explosivo",
-      "icon": "Firemage_Apocalypse.jpg"
+      "icon": "Firemage_Apocalypse.png"
     },
     "ApocalypticSurge": {
       "kind": "effect",
       "id": 3176,
       "name": "Apocalyptic Surge",
-      "icon": "Firemage_detonate.jpg"
+      "icon": "Firemage_detonate.png"
     },
     "CracklingInferno": {
       "kind": "ability",
       "id": 1568,
       "name": "Crackling Inferno",
-      "icon": "Pyromancer15.jpg"
+      "icon": "Pyromancer15.png"
     },
     "Detonate": {
       "kind": "ability",
       "id": 1275,
       "name": "Detonate",
-      "icon": "Firemage_detonate.jpg",
+      "icon": "Firemage_detonate.png",
       "abilityCategory": "Power",
       "castDuration": 1.5
     },
@@ -457,7 +466,7 @@
       "kind": "effect",
       "id": 1836,
       "name": "Detonate",
-      "icon": ""
+      "icon": "Firemage_detonate.png"
     },
     "DetonateDamage": {
       "kind": "effect",
@@ -469,6 +478,12 @@
       "kind": "effect",
       "id": 1834,
       "name": "Detonate",
+      "icon": "Firemage_detonate.png"
+    },
+    "DetonateStackingEffect": {
+      "kind": "effect",
+      "id": 3267,
+      "name": "",
       "icon": ""
     },
     "DetonateTalentInstantCastedSingleDotProc": {
@@ -481,7 +496,7 @@
       "kind": "ability",
       "id": 1586,
       "name": "Engulfing Flames",
-      "icon": "Firemage_Dot_01.jpg",
+      "icon": "Firemage_Dot_01.png",
       "abilityCategory": "Core",
       "cooldown": 20,
       "cooldownReductionOnTargetDeath": 10,
@@ -493,7 +508,7 @@
       "kind": "effect",
       "id": 2325,
       "name": "Engulfing Flames",
-      "icon": "Firemage_Dot_01.jpg"
+      "icon": "Firemage_Dot_01.png"
     },
     "EngulfingFlamesTalentBoostsIncomingDamageDebuff": {
       "kind": "effect",
@@ -511,7 +526,7 @@
       "kind": "ability",
       "id": 1260,
       "name": "Fire Ball",
-      "icon": "Firemage_Inferno.jpg",
+      "icon": "Firemage_Inferno.png",
       "abilityCategory": "Core",
       "cooldown": 30,
       "range": 3000,
@@ -522,7 +537,7 @@
       "kind": "ability",
       "id": 1581,
       "name": "Fire Ball",
-      "icon": "Firemage_Inferno.jpg",
+      "icon": "Firemage_Inferno.png",
       "cooldown": 30,
       "radius": 500
     },
@@ -536,19 +551,19 @@
       "kind": "effect",
       "id": 1817,
       "name": "Fire Ball",
-      "icon": ""
+      "icon": "Firemage_Inferno.png"
     },
     "FireBallDot": {
       "kind": "effect",
       "id": 2293,
       "name": "Fire Ball",
-      "icon": "effects/T_Nhance_RPG_Fire_36.jpg"
+      "icon": "T_Nhance_RPG_Fire_36.png"
     },
     "FireBallMonitor": {
       "kind": "ability",
       "id": 1565,
       "name": "Fire Ball",
-      "icon": "Firemage_Inferno.jpg",
+      "icon": "Firemage_Inferno.png",
       "cooldown": 30,
       "radius": 500
     },
@@ -556,13 +571,13 @@
       "kind": "effect",
       "id": 1808,
       "name": "Infernal Doom",
-      "icon": "T_Nhance_RPG_Icons_FireRune_2.jpg"
+      "icon": "T_Nhance_RPG_Icons_FireRune_2.png"
     },
     "FireFrogs": {
       "kind": "ability",
       "id": 1268,
       "name": "Fire Frogs",
-      "icon": "Firemage_Firefrog.jpg",
+      "icon": "Firemage_Firefrog.png",
       "abilityCategory": "Core",
       "cooldown": 45,
       "range": 3000
@@ -571,19 +586,19 @@
       "kind": "effect",
       "id": 1826,
       "name": "Fire Frogs",
-      "icon": "T_Nhance_RPG_Icons_HypnoToad.jpg"
+      "icon": "T_Nhance_RPG_Icons_HypnoToad.png"
     },
     "FireFrogsMonitor": {
       "kind": "ability",
       "id": 1532,
       "name": "Fire Frogs",
-      "icon": "Firemage_Firefrog.jpg"
+      "icon": "Firemage_Firefrog.png"
     },
     "Fireflash": {
       "kind": "ability",
       "id": 1265,
       "name": "Fireflash",
-      "icon": "Firemage_Disorient.jpg",
+      "icon": "Firemage_Disorient.png",
       "abilityCategory": "Control",
       "cooldown": 24,
       "range": 3000
@@ -592,19 +607,19 @@
       "kind": "effect",
       "id": 1824,
       "name": "Fireflash",
-      "icon": ""
+      "icon": "Firemage_Disorient.png"
     },
     "FireflashDebuff": {
       "kind": "effect",
       "id": 1823,
       "name": "Scorched",
-      "icon": "T_Nhance_RPG_Fire_38.jpg"
+      "icon": "T_Nhance_RPG_Fire_38.png"
     },
     "FlameWard": {
       "kind": "ability",
       "id": 1258,
       "name": "Flame Ward",
-      "icon": "Firemage_FlameShield.jpg",
+      "icon": "Firemage_FlameShield.png",
       "abilityCategory": "Defensive",
       "cooldown": 30
     },
@@ -612,20 +627,20 @@
       "kind": "effect",
       "id": 1815,
       "name": "Flame Ward",
-      "icon": "Firemage_FlameShield.jpg"
+      "icon": "Firemage_FlameShield.png"
     },
     "FlareUp": {
       "kind": "ability",
       "id": 1257,
       "name": "Flare Up",
-      "icon": "Pyromancer15.jpg",
+      "icon": "Pyromancer15.png",
       "radius": 1500
     },
     "Flickerstep": {
       "kind": "ability",
       "id": 1269,
       "name": "Flickerstep",
-      "icon": "Firemage_Blink.jpg",
+      "icon": "Firemage_Blink.png",
       "abilityCategory": "Movement",
       "cooldown": 25,
       "charges": 2,
@@ -642,13 +657,13 @@
       "kind": "ability",
       "id": 1254,
       "name": "Frog Squad",
-      "icon": "T_Nhance_RPG_Icons_HypnoToad.jpg"
+      "icon": "T_Nhance_RPG_Icons_HypnoToad.png"
     },
     "Incinerate": {
       "kind": "ability",
       "id": 1270,
       "name": "Incinerate",
-      "icon": "Firemage_Spirit.jpg",
+      "icon": "Firemage_Spirit.png",
       "abilityCategory": "Spirit",
       "radius": 300,
       "castDuration": 1.5,
@@ -662,19 +677,19 @@
       "kind": "effect",
       "id": 1831,
       "name": "Incinerate",
-      "icon": ""
+      "icon": "Firemage_Spirit.png"
     },
     "IncinerateDamage": {
       "kind": "effect",
       "id": 1830,
       "name": "Incinerate",
-      "icon": ""
+      "icon": "Firemage_Spirit.png"
     },
     "IncinerateDot": {
       "kind": "effect",
       "id": 1829,
       "name": "Incenerate",
-      "icon": "Tex_SpellBook03_64.jpg"
+      "icon": "Tex_SpellBook03_64.png"
     },
     "IncinerateVisual": {
       "kind": "effect",
@@ -686,7 +701,7 @@
       "kind": "ability",
       "id": 1276,
       "name": "Infernal Wave",
-      "icon": "Firemage_Bolt.jpg",
+      "icon": "Firemage_Bolt.png",
       "abilityCategory": "Basic",
       "range": 3000,
       "castDuration": 1.5
@@ -701,13 +716,13 @@
       "kind": "effect",
       "id": 1810,
       "name": "Flare Up",
-      "icon": "Firemage_Dot_02.jpg"
+      "icon": "Pyromancer15.png"
     },
     "Pyromania": {
       "kind": "ability",
       "id": 1623,
       "name": "Pyromania",
-      "icon": "Firemage_Pyromania.jpg",
+      "icon": "Firemage_Pyromania.png",
       "abilityCategory": "Major",
       "cooldown": 90,
       "range": 3000
@@ -716,13 +731,13 @@
       "kind": "effect",
       "id": 2301,
       "name": "Reign of Fire",
-      "icon": "Firemage_Inferno.jpg"
+      "icon": "Firemage_Inferno.png"
     },
     "Scorch": {
       "kind": "ability",
       "id": 1263,
       "name": "Scorch",
-      "icon": "Firemage_interrupt.jpg",
+      "icon": "Firemage_interrupt.png",
       "abilityCategory": "Utility",
       "cooldown": 20,
       "range": 3000
@@ -731,19 +746,19 @@
       "kind": "effect",
       "id": 1822,
       "name": "Scorch",
-      "icon": ""
+      "icon": "Firemage_interrupt.png"
     },
     "ScorchLockout": {
       "kind": "effect",
       "id": 1821,
       "name": "Interrupted",
-      "icon": "T_Nhance_RPG_Fire_06.jpg"
+      "icon": "T_Nhance_RPG_Fire_06.png"
     },
     "SearingBlaze": {
       "kind": "ability",
       "id": 1587,
       "name": "Searing Blaze",
-      "icon": "Firemage_Dot_02.jpg",
+      "icon": "Firemage_Dot_02.png",
       "abilityCategory": "Core",
       "range": 3000
     },
@@ -751,19 +766,19 @@
       "kind": "effect",
       "id": 1820,
       "name": "Searing Blaze",
-      "icon": "Firemage_Dot_02.jpg"
+      "icon": "Firemage_Dot_02.png"
     },
     "SpontaneousCombustion": {
       "kind": "ability",
       "id": 1255,
       "name": "Spontaneous Combustion",
-      "icon": "Tex_r_02.jpg"
+      "icon": "Tex_r_02.png"
     },
     "Wildfire": {
       "kind": "ability",
       "id": 1267,
       "name": "Wildfire",
-      "icon": "Firemage_Wildfire.jpg",
+      "icon": "Firemage_Wildfire.png",
       "abilityCategory": "Major",
       "cooldown": 45,
       "range": 6000
@@ -772,7 +787,7 @@
       "kind": "effect",
       "id": 1825,
       "name": "Wildfire",
-      "icon": "Firemage_Wildfire.jpg"
+      "icon": "Firemage_Wildfire.png"
     }
   },
   "elarion": {
@@ -780,13 +795,13 @@
       "kind": "effect",
       "id": 1867,
       "name": "Celestial Impetus",
-      "icon": "T_Nhance_RPG_Arcane_37.jpg"
+      "icon": "T_Nhance_RPG_Arcane_37.png"
     },
     "CelestialShot": {
       "kind": "ability",
       "id": 1301,
       "name": "Celestial Shot",
-      "icon": "Bowguy_Shot.jpg",
+      "icon": "Bowguy_Shot.png",
       "abilityCategory": "Basic",
       "range": 3000,
       "costs": {
@@ -797,19 +812,19 @@
       "kind": "effect",
       "id": 1865,
       "name": "Celestial Shot",
-      "icon": ""
+      "icon": "Bowguy_Shot.png"
     },
     "CelestialShotDamage": {
       "kind": "effect",
       "id": 1864,
       "name": "Celestial Shot",
-      "icon": ""
+      "icon": "Bowguy_Shot.png"
     },
     "CelestialVeil": {
       "kind": "ability",
       "id": 1302,
       "name": "Celestial Veil",
-      "icon": "Bowguy_Abilityicon_Defensive.jpg",
+      "icon": "Bowguy_Abilityicon_Defensive.png",
       "abilityCategory": "Defensive",
       "cooldown": 30
     },
@@ -817,13 +832,13 @@
       "kind": "effect",
       "id": 1866,
       "name": "Celestial Veil",
-      "icon": "Bowguy_Abilityicon_Defensive.jpg"
+      "icon": "Bowguy_Abilityicon_Defensive.png"
     },
     "Disrupt": {
       "kind": "ability",
       "id": 1308,
       "name": "Disrupt",
-      "icon": "Bowguy_Interrupt.jpg",
+      "icon": "Bowguy_Interrupt.png",
       "abilityCategory": "Utility",
       "cooldown": 20,
       "range": 3000
@@ -832,19 +847,19 @@
       "kind": "effect",
       "id": 1875,
       "name": "Disrupt",
-      "icon": ""
+      "icon": "Bowguy_Interrupt.png"
     },
     "DisruptLockout": {
       "kind": "effect",
       "id": 1874,
       "name": "Interrupted",
-      "icon": "T_Nhance_RPG_Frost_01.jpg"
+      "icon": "T_Nhance_RPG_Frost_01.png"
     },
     "EventHorizon": {
       "kind": "ability",
       "id": 1584,
       "name": "Event Horizon",
-      "icon": "Bowguy_Spirit.jpg",
+      "icon": "Bowguy_Spirit.png",
       "abilityCategory": "Spirit",
       "castDuration": 0.7,
       "costs": {
@@ -855,7 +870,7 @@
       "kind": "effect",
       "id": 2312,
       "name": "Event Horizon",
-      "icon": "Bowguy_Spirit.jpg"
+      "icon": "Bowguy_Spirit.png"
     },
     "EventHorizonCooldownRecoveryBuff": {
       "kind": "effect",
@@ -867,25 +882,25 @@
       "kind": "effect",
       "id": 2313,
       "name": "Event Horizon",
-      "icon": ""
+      "icon": "Bowguy_Spirit.png"
     },
     "EventHorizonVisual": {
       "kind": "effect",
       "id": 2311,
       "name": "Event Horizon",
-      "icon": ""
+      "icon": "Bowguy_Spirit.png"
     },
     "FinalCrescendoBuff": {
       "kind": "effect",
       "id": 2222,
       "name": "Final Crescendo",
-      "icon": "Bowguy_Ricochet.jpg"
+      "icon": "Bowguy_Ricochet.png"
     },
     "FocusedShot": {
       "kind": "ability",
       "id": 1315,
       "name": "Focused Shot",
-      "icon": "Bowguy_FocusShot.jpg",
+      "icon": "Bowguy_FocusShot.png",
       "abilityCategory": "Basic",
       "range": 3000,
       "castDuration": 1.5
@@ -894,13 +909,13 @@
       "kind": "effect",
       "id": 1892,
       "name": "Steady Hands",
-      "icon": "Tex_SpellBook08_85.jpg"
+      "icon": "Tex_SpellBook08_85.png"
     },
     "FocusedShotDamage": {
       "kind": "effect",
       "id": 1891,
       "name": "Focused Shot",
-      "icon": ""
+      "icon": "Bowguy_FocusShot.png"
     },
     "FocusedShotHeavyDamage": {
       "kind": "effect",
@@ -912,7 +927,7 @@
       "kind": "ability",
       "id": 125,
       "name": "Grappling Arrow",
-      "icon": "Bowguy_GrappleShot.jpg",
+      "icon": "Bowguy_GrappleShot.png",
       "abilityCategory": "Control",
       "cooldown": 120,
       "range": 3000,
@@ -923,19 +938,19 @@
       "kind": "effect",
       "id": 2008,
       "name": "Grappling Arrow",
-      "icon": "Tex_SpellBook03_97.jpg"
+      "icon": "Tex_SpellBook03_97.png"
     },
     "GrapplingArrowSlow": {
       "kind": "effect",
       "id": 1861,
       "name": "Grappling Arrow",
-      "icon": "Tex_SpellBook03_97.jpg"
+      "icon": "Tex_SpellBook03_97.png"
     },
     "HeartseekerBarrage": {
       "kind": "ability",
       "id": 1312,
       "name": "Heartseeker Barrage",
-      "icon": "Bowguy_Spray.jpg",
+      "icon": "Bowguy_Spray.png",
       "abilityCategory": "Power",
       "cooldown": 20,
       "range": 3000,
@@ -949,13 +964,13 @@
       "kind": "effect",
       "id": 1882,
       "name": "Heartseeker Barrage",
-      "icon": ""
+      "icon": "Bowguy_Spray.png"
     },
     "HeartseekerBarrageDamage": {
       "kind": "effect",
       "id": 1881,
       "name": "Heartseeker Barrage",
-      "icon": ""
+      "icon": "Bowguy_Spray.png"
     },
     "HeartseekerBarrageDebuff": {
       "kind": "effect",
@@ -967,7 +982,7 @@
       "kind": "ability",
       "id": 1313,
       "name": "Highwind Arrow",
-      "icon": "Bowguy_Ricochet.jpg",
+      "icon": "Bowguy_Ricochet.png",
       "abilityCategory": "Power",
       "cooldown": 15,
       "range": 3000,
@@ -987,13 +1002,13 @@
       "kind": "effect",
       "id": 1886,
       "name": "Highwind Arrow",
-      "icon": ""
+      "icon": "Bowguy_Ricochet.png"
     },
     "HighwindArrowDamage": {
       "kind": "effect",
       "id": 1885,
       "name": "Highwind Arrow",
-      "icon": ""
+      "icon": "Bowguy_Ricochet.png"
     },
     "HighwindArrowProc": {
       "kind": "effect",
@@ -1005,13 +1020,13 @@
       "kind": "effect",
       "id": 2317,
       "name": "Impending Heartseeker",
-      "icon": "Bowguy_Spray.jpg"
+      "icon": "Bowguy_Spray.png"
     },
     "LunarlightMark": {
       "kind": "ability",
       "id": 1310,
       "name": "Lunarlight Mark",
-      "icon": "Bowguy_Mark.jpg",
+      "icon": "Bowguy_Mark.png",
       "abilityCategory": "Major",
       "cooldown": 40,
       "range": 3000,
@@ -1023,32 +1038,32 @@
       "kind": "effect",
       "id": 2832,
       "name": "Lunarlight Salvo: Erupt",
-      "icon": "Bowguy_Mark.jpg"
+      "icon": "Bowguy_Mark.png"
     },
     "LunarlightMarkDamage": {
       "kind": "effect",
       "id": 1877,
       "name": "Lunarlight Salvo",
-      "icon": "Bowguy_Mark.jpg"
+      "icon": "Bowguy_Mark.png"
     },
     "LunarlightMarkDebuff": {
       "kind": "effect",
       "id": 1876,
       "name": "Lunarlight Mark",
-      "icon": "Bowguy_Mark.jpg"
+      "icon": "Bowguy_Mark.png"
     },
     "LunarlightSalvo": {
       "kind": "ability",
       "id": 1309,
       "name": "Lunarlight Salvo",
-      "icon": "Bowguy_Mark.jpg",
+      "icon": "Bowguy_Mark.png",
       "radius": 3000
     },
     "Multishot": {
       "kind": "ability",
       "id": 1318,
       "name": "Multishot",
-      "icon": "Bowguy_Multishot.jpg",
+      "icon": "Bowguy_Multishot.png",
       "abilityCategory": "Core",
       "range": 3000,
       "radius": 600,
@@ -1060,19 +1075,19 @@
       "kind": "effect",
       "id": 1900,
       "name": "Multishot",
-      "icon": ""
+      "icon": "Bowguy_Multishot.png"
     },
     "MultishotDamage": {
       "kind": "effect",
       "id": 1899,
       "name": "Multishot",
-      "icon": ""
+      "icon": "Bowguy_Multishot.png"
     },
     "MultishotDamageMagical": {
       "kind": "effect",
       "id": 2010,
       "name": "Multishot",
-      "icon": ""
+      "icon": "Bowguy_Multishot.png"
     },
     "MultishotProc": {
       "kind": "effect",
@@ -1084,13 +1099,13 @@
       "kind": "effect",
       "id": 2074,
       "name": "Resurgent Winds",
-      "icon": "T_Icon_Tech_40.jpg"
+      "icon": "T_Icon_Tech_40.png"
     },
     "Roll": {
       "kind": "ability",
       "id": 1311,
       "name": "Roll",
-      "icon": "Bowguy_Abilityicon_Roll.jpg",
+      "icon": "Bowguy_Abilityicon_Roll.png",
       "abilityCategory": "Movement",
       "cooldown": 8,
       "charges": 3
@@ -1099,7 +1114,7 @@
       "kind": "effect",
       "id": 1879,
       "name": "Roll",
-      "icon": ""
+      "icon": "Bowguy_Abilityicon_Roll.png"
     },
     "RollCharge": {
       "kind": "effect",
@@ -1111,20 +1126,20 @@
       "kind": "ability",
       "id": 1303,
       "name": "Shoot",
-      "icon": "Bowguy_FocusShot.jpg",
+      "icon": "Bowguy_FocusShot.png",
       "range": 3000
     },
     "ShootDamage": {
       "kind": "effect",
       "id": 1868,
       "name": "Shoot",
-      "icon": ""
+      "icon": "Bowguy_FocusShot.png"
     },
     "SkystridersGrace": {
       "kind": "ability",
       "id": 1304,
       "name": "Skystrider\u0027s Grace",
-      "icon": "Bowguy_HasteBuff.jpg",
+      "icon": "Bowguy_HasteBuff.png",
       "abilityCategory": "Major",
       "cooldown": 120
     },
@@ -1132,13 +1147,13 @@
       "kind": "effect",
       "id": 1869,
       "name": "Skystrider\u0027s Grace",
-      "icon": "T_Icon_Frost_125.jpg"
+      "icon": "T_Icon_Frost_125.png"
     },
     "SkystridersSupremacy": {
       "kind": "ability",
       "id": 1398,
       "name": "Skystrider\u0027s Supremacy",
-      "icon": "Bowguy_Supremacy.jpg",
+      "icon": "Bowguy_Supremacy.png",
       "abilityCategory": "Major",
       "cooldown": 45
     },
@@ -1146,19 +1161,19 @@
       "kind": "effect",
       "id": 2009,
       "name": "Skystrider\u0027s Supremacy",
-      "icon": "Bowguy_Supremacy.jpg"
+      "icon": "Bowguy_Supremacy.png"
     },
     "SpiritOfHeroism": {
       "kind": "effect",
       "id": 2253,
       "name": "Spirit of Heroism",
-      "icon": "Tex_b_02.jpg"
+      "icon": "Tex_b_02.png"
     },
     "StarfallVolley": {
       "kind": "ability",
       "id": 126,
       "name": "Starfall Volley",
-      "icon": "Bowguy_Rain.jpg",
+      "icon": "Bowguy_Rain.png",
       "abilityCategory": "Power",
       "cooldown": 40,
       "range": 3000,
@@ -1171,13 +1186,13 @@
       "kind": "effect",
       "id": 1863,
       "name": "Starfall Volley",
-      "icon": ""
+      "icon": "Bowguy_Rain.png"
     },
     "StarfallVolleyDamage": {
       "kind": "effect",
       "id": 1862,
       "name": "Starfall Volley",
-      "icon": ""
+      "icon": "Bowguy_Rain.png"
     },
     "StarfallVolleyMainTargetBuff": {
       "kind": "effect",
@@ -1189,7 +1204,7 @@
       "kind": "effect",
       "id": 2316,
       "name": "Skylit Grace",
-      "icon": "Tex_b_03.jpg"
+      "icon": "Tex_b_03.png"
     }
   },
   "gunde": {
@@ -1197,26 +1212,26 @@
       "kind": "ability",
       "id": 1249,
       "name": "Attack",
-      "icon": "Gunde_AOESwing_01.jpg",
+      "icon": "Gunde_AOESwing_01.png",
       "range": 500
     },
     "AttackDamage": {
       "kind": "effect",
       "id": 1796,
       "name": "Attack",
-      "icon": ""
+      "icon": "Gunde_AOESwing_01.png"
     },
     "AttackDamageOld": {
       "kind": "effect",
       "id": 3172,
       "name": "Auto Attack",
-      "icon": ""
+      "icon": "Gunde_AOESwing_01.png"
     },
     "BloodArc": {
       "kind": "ability",
       "id": 2291,
       "name": "Blood Arc",
-      "icon": "Gunde_Frontal.jpg",
+      "icon": "Gunde_Frontal.png",
       "abilityCategory": "Core",
       "cooldown": 9,
       "range": 700,
@@ -1226,13 +1241,13 @@
       "kind": "effect",
       "id": 3236,
       "name": "Blood Arc",
-      "icon": ""
+      "icon": "Gunde_Frontal.png"
     },
     "BloodboundSpirit": {
       "kind": "ability",
       "id": 2296,
       "name": "Bloodbound Spirit",
-      "icon": "T_Gunde_Spirit.jpg",
+      "icon": "T_Gunde_Spirit.png",
       "abilityCategory": "Spirit",
       "range": 1000,
       "radius": 1000,
@@ -1242,19 +1257,19 @@
       "kind": "effect",
       "id": 3243,
       "name": "Bloodbound Spirit",
-      "icon": ""
+      "icon": "T_Gunde_Spirit.png"
     },
     "BloodboundSpiritSelfBuff": {
       "kind": "effect",
       "id": 3242,
       "name": "Bloodbound Spirit",
-      "icon": "T_Gunde_Spirit.jpg"
+      "icon": "T_Gunde_Spirit.png"
     },
     "ButcherHook": {
       "kind": "ability",
       "id": 2284,
       "name": "Butcher\u0027s Hook",
-      "icon": "T_Gunde_Grip.jpg",
+      "icon": "T_Gunde_Grip.png",
       "abilityCategory": "Control",
       "cooldown": 30,
       "range": 3000
@@ -1263,7 +1278,7 @@
       "kind": "effect",
       "id": 3228,
       "name": "Butcher\u0027s Hook",
-      "icon": ""
+      "icon": "T_Gunde_Grip.png"
     },
     "ButcherHookPull": {
       "kind": "effect",
@@ -1275,13 +1290,13 @@
       "kind": "effect",
       "id": 3226,
       "name": "Butcher\u0027s Hook",
-      "icon": ""
+      "icon": "T_Gunde_Grip.png"
     },
     "DoubleStrike": {
       "kind": "ability",
       "id": 2301,
       "name": "Double Strike",
-      "icon": "T_Gunde_DoubleStrike.jpg",
+      "icon": "T_Gunde_DoubleStrike.png",
       "abilityCategory": "Basic",
       "range": 3000
     },
@@ -1289,32 +1304,32 @@
       "kind": "effect",
       "id": 3248,
       "name": "Double Strike",
-      "icon": ""
+      "icon": "T_Gunde_DoubleStrike.png"
     },
     "Exsanguinate": {
       "kind": "ability",
       "id": 1408,
       "name": "Exsanguinate",
-      "icon": "T_Gunde_HPDrain.jpg",
+      "icon": "T_Gunde_HPDrain.png",
       "cooldown": 60
     },
     "ExsanguinateSelfBleed": {
       "kind": "effect",
       "id": 2022,
       "name": "Bleeding",
-      "icon": "T_Nhance_RPG_Icons_BloodRitual.jpg"
+      "icon": "T_Nhance_RPG_Icons_BloodRitual.png"
     },
     "ExsanguinateSelfBuff": {
       "kind": "effect",
       "id": 2021,
       "name": "Exsanguinate",
-      "icon": "T_Nhance_RPG_Icons_BloodHide.jpg"
+      "icon": "T_Nhance_RPG_Icons_BloodHide.png"
     },
     "GrimCarve": {
       "kind": "ability",
       "id": 2262,
       "name": "Grim Carve",
-      "icon": "T_Gunde_Sawblade.jpg",
+      "icon": "T_Gunde_Sawblade.png",
       "abilityCategory": "Power",
       "cooldown": 15,
       "range": 3000,
@@ -1324,13 +1339,13 @@
       "kind": "effect",
       "id": 3205,
       "name": "Grim Carve",
-      "icon": ""
+      "icon": "T_Gunde_Sawblade.png"
     },
     "HeartSplitter": {
       "kind": "ability",
       "id": 2294,
       "name": "Heart Splitter",
-      "icon": "T_Gunde_Cleave.jpg",
+      "icon": "T_Gunde_Cleave.png",
       "abilityCategory": "Core",
       "cooldown": 12,
       "range": 500
@@ -1339,13 +1354,13 @@
       "kind": "effect",
       "id": 3240,
       "name": "Heart Splitter",
-      "icon": ""
+      "icon": "T_Gunde_Cleave.png"
     },
     "HeartSplitterDotBonusDamage": {
       "kind": "effect",
       "id": 3239,
       "name": "Heart Splitter: Exsanguinate",
-      "icon": ""
+      "icon": "T_Gunde_Cleave.png"
     },
     "HeartSplitterIncreasedCritChance": {
       "kind": "effect",
@@ -1357,7 +1372,7 @@
       "kind": "ability",
       "id": 1244,
       "name": "Jawbreaker",
-      "icon": "t_gunde_Interrupt.jpg",
+      "icon": "t_gunde_Interrupt.png",
       "abilityCategory": "Utility",
       "cooldown": 12,
       "range": 500
@@ -1366,25 +1381,25 @@
       "kind": "effect",
       "id": 1786,
       "name": "Jawbreaker",
-      "icon": ""
+      "icon": "t_gunde_Interrupt.png"
     },
     "JawbreakerLockout": {
       "kind": "effect",
       "id": 1785,
       "name": "Jawbreaker",
-      "icon": ""
+      "icon": "t_gunde_Interrupt.png"
     },
     "OpenWounds": {
       "kind": "effect",
       "id": 3233,
       "name": "Open Wounds",
-      "icon": "T_Gunde_Rupture.jpg"
+      "icon": "T_Gunde_Rupture.png"
     },
     "OwedInBlood": {
       "kind": "ability",
       "id": 2298,
       "name": "Owed in Blood",
-      "icon": "T_Gunde_SanguineFeast.jpg",
+      "icon": "T_Gunde_SanguineFeast.png",
       "abilityCategory": "Utility",
       "cooldown": 3,
       "range": 2000
@@ -1393,7 +1408,7 @@
       "kind": "ability",
       "id": 2280,
       "name": "Owed in Blood",
-      "icon": "T_Gunde_SanguineFeast.jpg",
+      "icon": "T_Gunde_SanguineFeast.png",
       "cooldown": 20,
       "range": 1000,
       "radius": 1000
@@ -1402,13 +1417,13 @@
       "kind": "effect",
       "id": 3223,
       "name": "Owed in Blood",
-      "icon": "T_Gunde_SanguineFeast.jpg"
+      "icon": "T_Gunde_SanguineFeast.png"
     },
     "OwedInBloodSelfBuff": {
       "kind": "effect",
       "id": 3245,
       "name": "Owed in Blood",
-      "icon": "T_Gunde_SanguineFeast.jpg"
+      "icon": "T_Gunde_SanguineFeast.png"
     },
     "OwedInBloodSelfBuffFromOrbs": {
       "kind": "effect",
@@ -1420,7 +1435,7 @@
       "kind": "ability",
       "id": 2290,
       "name": "Reaver\u0027s Edge",
-      "icon": "Gunde_AOESwing_01.jpg",
+      "icon": "Gunde_AOESwing_01.png",
       "abilityCategory": "Basic",
       "cooldown": 5,
       "range": 700,
@@ -1430,13 +1445,13 @@
       "kind": "effect",
       "id": 3235,
       "name": "Reaver\u0027s Edge",
-      "icon": ""
+      "icon": "Gunde_AOESwing_01.png"
     },
     "RecklessAbandon": {
       "kind": "ability",
       "id": 2300,
       "name": "Reckless Abandon",
-      "icon": "T_Gunde_Defensive.jpg",
+      "icon": "T_Gunde_Defensive.png",
       "abilityCategory": "Defensive",
       "cooldown": 30
     },
@@ -1444,13 +1459,13 @@
       "kind": "effect",
       "id": 3247,
       "name": "Reckless Abandon",
-      "icon": "T_Gunde_Defensive.jpg"
+      "icon": "T_Gunde_Defensive.png"
     },
     "ReignInBlood": {
       "kind": "ability",
       "id": 2295,
       "name": "Reign in Blood",
-      "icon": "T_Gunde_HPDrain.jpg",
+      "icon": "T_Gunde_HPDrain.png",
       "abilityCategory": "Major",
       "cooldown": 90
     },
@@ -1458,31 +1473,31 @@
       "kind": "effect",
       "id": 3241,
       "name": "Reign in Blood",
-      "icon": "T_Gunde_HPDrain.jpg"
+      "icon": "T_Gunde_HPDrain.png"
     },
     "Rend": {
       "kind": "effect",
       "id": 3231,
       "name": "Rend",
-      "icon": "T_Status_Bleed.jpg"
+      "icon": "T_Status_Bleed.png"
     },
     "RendDamage": {
       "kind": "effect",
       "id": 3229,
       "name": "Rend",
-      "icon": ""
+      "icon": "T_Gunde_BloodBuff.png"
     },
     "RendManager": {
       "kind": "ability",
       "id": 2286,
       "name": "Rend",
-      "icon": "T_Gunde_BloodBuff.jpg"
+      "icon": "T_Gunde_BloodBuff.png"
     },
     "Rupture": {
       "kind": "ability",
       "id": 2293,
       "name": "Rupture",
-      "icon": "T_Gunde_Rupture.jpg",
+      "icon": "T_Gunde_Rupture.png",
       "abilityCategory": "Power",
       "cooldown": 60,
       "range": 500
@@ -1491,19 +1506,19 @@
       "kind": "effect",
       "id": 3238,
       "name": "Rupture",
-      "icon": ""
+      "icon": "T_Gunde_Rupture.png"
     },
     "SerratedEdge": {
       "kind": "effect",
       "id": 3232,
       "name": "Serrated Edge",
-      "icon": "Gunde_Frontal.jpg"
+      "icon": "Gunde_Frontal.png"
     },
     "Slaughter": {
       "kind": "ability",
       "id": 2292,
       "name": "Slaughter",
-      "icon": "T_Gunde_Slaughter.jpg",
+      "icon": "T_Gunde_Slaughter.png",
       "abilityCategory": "Major",
       "cooldown": 30,
       "range": 700,
@@ -1513,13 +1528,13 @@
       "kind": "effect",
       "id": 3237,
       "name": "Slaughter",
-      "icon": "T_Gunde_Slaughter.jpg"
+      "icon": "T_Gunde_Slaughter.png"
     },
     "Warbound": {
       "kind": "ability",
       "id": 2299,
       "name": "Warbound",
-      "icon": "T_Gunde_Charge.jpg",
+      "icon": "T_Gunde_Charge.png",
       "abilityCategory": "Movement",
       "cooldown": 8,
       "charges": 2
@@ -1528,7 +1543,7 @@
       "kind": "effect",
       "id": 3246,
       "name": "Warbound",
-      "icon": ""
+      "icon": "T_Gunde_Charge.png"
     }
   },
   "helena": {
@@ -1536,20 +1551,20 @@
       "kind": "ability",
       "id": 978,
       "name": "Attack",
-      "icon": "Tex_swords_01_bg.jpg",
+      "icon": "Tex_swords_01_bg.png",
       "range": 500
     },
     "AttackDamage": {
       "kind": "effect",
       "id": 1267,
       "name": "Attack",
-      "icon": ""
+      "icon": "Tex_swords_01_bg.png"
     },
     "Bash": {
       "kind": "ability",
       "id": 976,
       "name": "Bash",
-      "icon": "T_Warmaster_Interrupt.jpg",
+      "icon": "T_Warmaster_Interrupt.png",
       "abilityCategory": "Utility",
       "cooldown": 12,
       "range": 500
@@ -1558,19 +1573,19 @@
       "kind": "effect",
       "id": 1261,
       "name": "Bash",
-      "icon": ""
+      "icon": "T_Warmaster_Interrupt.png"
     },
     "BashLockout": {
       "kind": "effect",
       "id": 1260,
       "name": "Interrupted",
-      "icon": "Tex_yellow_17.jpg"
+      "icon": "Tex_yellow_17.png"
     },
     "Charge": {
       "kind": "ability",
       "id": 974,
       "name": "Charge",
-      "icon": "T_Warmaster_Charge.jpg",
+      "icon": "T_Warmaster_Charge.png",
       "abilityCategory": "Movement",
       "cooldown": 20,
       "range": 3000
@@ -1585,19 +1600,19 @@
       "kind": "effect",
       "id": 1256,
       "name": "Charge",
-      "icon": ""
+      "icon": "T_Warmaster_Charge.png"
     },
     "ChargeStun": {
       "kind": "effect",
       "id": 1255,
       "name": "Stunned",
-      "icon": "effect_stunned_icon.jpg"
+      "icon": "effect_stunned_icon.png"
     },
     "GrandMelee": {
       "kind": "ability",
       "id": 1465,
       "name": "Grand Melee",
-      "icon": "T_WM_Incite.jpg",
+      "icon": "T_WM_Incite.png",
       "abilityCategory": "Control",
       "cooldown": 150,
       "radius": 1500
@@ -1606,25 +1621,25 @@
       "kind": "effect",
       "id": 2205,
       "name": "Grand Melee",
-      "icon": "T_Nhance_RPG_Gold_03.jpg"
+      "icon": "T_Nhance_RPG_Gold_03.png"
     },
     "GrandMeleeInciteTarget": {
       "kind": "effect",
       "id": 2120,
       "name": "Grand Melee",
-      "icon": "T_Nhance_RPG_Gold_03.jpg"
+      "icon": "T_Nhance_RPG_Gold_03.png"
     },
     "GrandMeleeSelfBuff": {
       "kind": "effect",
       "id": 2119,
       "name": "Grand Melee",
-      "icon": "T_Nhance_RPG_Gold_03.jpg"
+      "icon": "T_Nhance_RPG_Gold_03.png"
     },
     "HoldTheLine": {
       "kind": "ability",
       "id": 975,
       "name": "Hold the Line",
-      "icon": "T_WM_HoldTheLine.jpg",
+      "icon": "T_WM_HoldTheLine.png",
       "abilityCategory": "Major",
       "cooldown": 30,
       "range": 4000
@@ -1633,19 +1648,19 @@
       "kind": "effect",
       "id": 1259,
       "name": "Battle Command",
-      "icon": "T_Warnaster_Dash.jpg"
+      "icon": "T_Warnaster_Dash.png"
     },
     "HoldTheLineSelfBuff": {
       "kind": "effect",
       "id": 1258,
       "name": "Battle Command",
-      "icon": "T_Warnaster_Dash.jpg"
+      "icon": "T_Warnaster_Dash.png"
     },
     "IronWall": {
       "kind": "ability",
       "id": 973,
       "name": "Iron Wall",
-      "icon": "T_Warmaster_IronWall.jpg",
+      "icon": "T_Warmaster_IronWall.png",
       "abilityCategory": "Major",
       "cooldown": 90
     },
@@ -1653,13 +1668,13 @@
       "kind": "effect",
       "id": 1254,
       "name": "Iron Wall",
-      "icon": "T_Warmaster_IronWall.jpg"
+      "icon": "T_Warmaster_IronWall.png"
     },
     "MeasuredStrike": {
       "kind": "ability",
       "id": 980,
       "name": "Measured Strike",
-      "icon": "T_Warmaster_BasicStrike.jpg",
+      "icon": "T_Warmaster_BasicStrike.png",
       "abilityCategory": "Basic",
       "range": 500
     },
@@ -1667,13 +1682,13 @@
       "kind": "effect",
       "id": 1273,
       "name": "Measured Strike",
-      "icon": ""
+      "icon": "T_Warmaster_BasicStrike.png"
     },
     "PowerStrike": {
       "kind": "ability",
       "id": 982,
       "name": "Power Strike",
-      "icon": "T_Warmaster_FatalBlow.jpg",
+      "icon": "T_Warmaster_FatalBlow.png",
       "abilityCategory": "Basic",
       "cooldown": 6,
       "range": 500
@@ -1682,38 +1697,38 @@
       "kind": "effect",
       "id": 1278,
       "name": "Power Strike",
-      "icon": ""
+      "icon": "T_Warmaster_FatalBlow.png"
     },
     "PowerStrikeDamage": {
       "kind": "effect",
       "id": 1277,
       "name": "Power Strike",
-      "icon": ""
+      "icon": "T_Warmaster_FatalBlow.png"
     },
     "PunishingStrikesBuff": {
       "kind": "effect",
       "id": 3095,
       "name": "Punishing Strikes",
-      "icon": "T_Warmaster_FatalBlow.jpg"
+      "icon": "T_Warmaster_FatalBlow.png"
     },
     "RazorCrash": {
       "kind": "ability",
       "id": 1615,
       "name": "Razor Crash",
-      "icon": "Tex_SpellBook06_48.jpg"
+      "icon": "Tex_SpellBook06_48.png"
     },
     "RazorShrapnel": {
       "kind": "ability",
       "id": 1613,
       "name": "Razor Shrapnel",
-      "icon": "Tex_SpellBook06_48.jpg",
+      "icon": "Tex_SpellBook06_48.png",
       "radius": 500
     },
     "ShieldSlam": {
       "kind": "ability",
       "id": 977,
       "name": "Shield Slam",
-      "icon": "T_Warmaster_ShieldSlam.jpg",
+      "icon": "T_Warmaster_ShieldSlam.png",
       "abilityCategory": "Core",
       "cooldown": 7.5,
       "range": 500,
@@ -1726,13 +1741,13 @@
       "kind": "effect",
       "id": 2229,
       "name": "Empowered Shield Slam: Barrier",
-      "icon": "T_Nhance_RPG_Fire_08.jpg"
+      "icon": "T_Nhance_RPG_Fire_08.png"
     },
     "ShieldSlamAbsorbBuffSelfBuff": {
       "kind": "effect",
       "id": 2435,
       "name": "Empowered Shield Slam",
-      "icon": "T_Warmaster_ShieldSlam.jpg"
+      "icon": "T_Warmaster_ShieldSlam.png"
     },
     "ShieldSlamBuff": {
       "kind": "effect",
@@ -1750,19 +1765,19 @@
       "kind": "effect",
       "id": 1264,
       "name": "Shield Slam",
-      "icon": ""
+      "icon": "T_Warmaster_ShieldSlam.png"
     },
     "ShieldSlamDamage": {
       "kind": "effect",
       "id": 1263,
       "name": "Shield Slam",
-      "icon": ""
+      "icon": "T_Warmaster_ShieldSlam.png"
     },
     "ShieldSlamReducedIncomingDamageFromTargetDebuff": {
       "kind": "effect",
       "id": 2478,
       "name": "Lingering Concussion",
-      "icon": "T_Warmaster_ShieldSlam.jpg"
+      "icon": "T_Warmaster_ShieldSlam.png"
     },
     "ShieldSlamReducedIncomingDamageFromTargetDebuffStacker": {
       "kind": "effect",
@@ -1786,7 +1801,7 @@
       "kind": "ability",
       "id": 985,
       "name": "Shield Throw",
-      "icon": "T_Warmaster_Shieldthrow.jpg",
+      "icon": "T_Warmaster_Shieldthrow.png",
       "abilityCategory": "Core",
       "cooldown": 21,
       "range": 3000
@@ -1795,7 +1810,7 @@
       "kind": "effect",
       "id": 1284,
       "name": "Shield Throw",
-      "icon": ""
+      "icon": "T_Warmaster_Shieldthrow.png"
     },
     "ShieldThrowSingleTargetBuff": {
       "kind": "effect",
@@ -1807,7 +1822,7 @@
       "kind": "ability",
       "id": 984,
       "name": "Shields Up",
-      "icon": "T_Warmaster_Shieldsup.jpg",
+      "icon": "T_Warmaster_Shieldsup.png",
       "abilityCategory": "Defensive",
       "cooldown": 30,
       "charges": 2,
@@ -1819,7 +1834,7 @@
       "kind": "effect",
       "id": 1282,
       "name": "Shields Up",
-      "icon": "T_Warmaster_Shieldsup.jpg"
+      "icon": "T_Warmaster_Shieldsup.png"
     },
     "ShieldsUpCharge": {
       "kind": "effect",
@@ -1831,13 +1846,13 @@
       "kind": "effect",
       "id": 2475,
       "name": "Shields Up",
-      "icon": ""
+      "icon": "T_Warmaster_Shieldsup.png"
     },
     "Shockwave": {
       "kind": "ability",
       "id": 979,
       "name": "Shockwave",
-      "icon": "T_Warmaster_shockwave.jpg",
+      "icon": "T_Warmaster_shockwave.png",
       "abilityCategory": "Power",
       "cooldown": 30,
       "radius": 1000,
@@ -1849,37 +1864,37 @@
       "kind": "effect",
       "id": 1272,
       "name": "Shockwave",
-      "icon": "T_Warmaster_shockwave.jpg"
+      "icon": "T_Warmaster_shockwave.png"
     },
     "ShockwaveDebuff": {
       "kind": "effect",
       "id": 1271,
       "name": "Shockwave",
-      "icon": ""
+      "icon": "T_Warmaster_shockwave.png"
     },
     "ShockwaveDebuffIcon": {
       "kind": "effect",
       "id": 1270,
       "name": "Shockwave",
-      "icon": "T_Warmaster_shockwave.jpg"
+      "icon": "T_Warmaster_shockwave.png"
     },
     "ShockwaveResourceCost": {
       "kind": "effect",
       "id": 1269,
       "name": "Shockwave",
-      "icon": ""
+      "icon": "T_Warmaster_shockwave.png"
     },
     "ShockwaveStun": {
       "kind": "effect",
       "id": 1268,
       "name": "Stunned",
-      "icon": "effect_stunned_icon.jpg"
+      "icon": "effect_stunned_icon.png"
     },
     "Siegebreaker": {
       "kind": "ability",
       "id": 1515,
       "name": "Siegebreaker",
-      "icon": "T_Warmaster_Ultimate.jpg",
+      "icon": "T_Warmaster_Ultimate.png",
       "abilityCategory": "Spirit",
       "costs": {
         "spirit": 100
@@ -1889,25 +1904,25 @@
       "kind": "effect",
       "id": 2192,
       "name": "Siegebreaker",
-      "icon": "T_Warmaster_Ultimate.jpg"
+      "icon": "T_Warmaster_Ultimate.png"
     },
     "SiegebreakerDamageReductionBuff": {
       "kind": "effect",
       "id": 2224,
       "name": "Siegebreaker",
-      "icon": ""
+      "icon": "T_Warmaster_Ultimate.png"
     },
     "SiegebreakerSpiritCost": {
       "kind": "effect",
       "id": 2191,
       "name": "Siegebreaker",
-      "icon": ""
+      "icon": "T_Warmaster_Ultimate.png"
     },
     "SweepingStrike": {
       "kind": "ability",
       "id": 981,
       "name": "Sweeping Strike",
-      "icon": "T_Warmaster_BleedStrike.jpg",
+      "icon": "T_Warmaster_BleedStrike.png",
       "abilityCategory": "Power",
       "cooldown": 30,
       "range": 500,
@@ -1919,13 +1934,13 @@
       "kind": "effect",
       "id": 1276,
       "name": "Sweeping Strike",
-      "icon": "T_Warmaster_BleedStrike.jpg"
+      "icon": "T_Warmaster_BleedStrike.png"
     },
     "SweepingStrikeBleedDebuffEnfeeblingEffect": {
       "kind": "effect",
       "id": 2485,
       "name": "Sweeping Strike",
-      "icon": ""
+      "icon": "T_Warmaster_BleedStrike.png"
     },
     "SweepingStrikeCost": {
       "kind": "effect",
@@ -1937,25 +1952,25 @@
       "kind": "effect",
       "id": 1274,
       "name": "Sweeping Strike",
-      "icon": ""
+      "icon": "T_Warmaster_BleedStrike.png"
     },
     "SwordAndBoardBuff": {
       "kind": "effect",
       "id": 1242,
       "name": "Sword \u0026 Board",
-      "icon": "T_Warmaster_ShieldSlam.jpg"
+      "icon": "T_Warmaster_ShieldSlam.png"
     },
     "SwordAndBoardFreeCastBuff": {
       "kind": "effect",
       "id": 1219,
       "name": "Sword \u0026 Board",
-      "icon": "T_Warmaster_ShieldSlam.jpg"
+      "icon": "T_Warmaster_ShieldSlam.png"
     },
     "Taunt": {
       "kind": "ability",
       "id": 966,
       "name": "Taunt",
-      "icon": "T_warmaster_Taunt.jpg",
+      "icon": "T_warmaster_Taunt.png",
       "abilityCategory": "Utility",
       "cooldown": 8,
       "range": 4000
@@ -1964,13 +1979,13 @@
       "kind": "effect",
       "id": 1241,
       "name": "Taunted",
-      "icon": "T_warmaster_Taunt.jpg"
+      "icon": "T_warmaster_Taunt.png"
     },
     "UnscarredSoul": {
       "kind": "ability",
       "id": 1591,
       "name": "Unscarred Soul",
-      "icon": "T_Warmaster_ShieldSlam.jpg"
+      "icon": "T_Warmaster_ShieldSlam.png"
     }
   },
   "mara": {
@@ -1978,7 +1993,7 @@
       "kind": "ability",
       "id": 1212,
       "name": "Arachnid Assault",
-      "icon": "Mara_SpiderAOE.jpg",
+      "icon": "Mara_SpiderAOE.png",
       "abilityCategory": "Power",
       "range": 800,
       "radius": 800,
@@ -1990,32 +2005,32 @@
       "kind": "effect",
       "id": 1728,
       "name": "Arachnid Assault",
-      "icon": ""
+      "icon": "Mara_SpiderAOE.png"
     },
     "AssassinsGuileBuff": {
       "kind": "effect",
       "id": 2245,
       "name": "Assassin\u0027s Guile",
-      "icon": "T_Icon_Shadow_121.jpg"
+      "icon": "T_Icon_Shadow_121.png"
     },
     "Attack": {
       "kind": "ability",
       "id": 1209,
       "name": "Attack",
-      "icon": "Tex_swords_05_bg.jpg",
+      "icon": "Tex_swords_05_bg.png",
       "range": 500
     },
     "AttackDamage": {
       "kind": "effect",
       "id": 1725,
       "name": "Attack",
-      "icon": ""
+      "icon": "Tex_swords_05_bg.png"
     },
     "Backstab": {
       "kind": "ability",
       "id": 1129,
       "name": "Backstab",
-      "icon": "Mara_backstab.jpg",
+      "icon": "Mara_backstab.png",
       "abilityCategory": "Basic",
       "range": 500,
       "costs": {
@@ -2026,31 +2041,31 @@
       "kind": "effect",
       "id": 1588,
       "name": "Backstab",
-      "icon": ""
+      "icon": "Mara_backstab.png"
     },
     "BackstabDamageStrong": {
       "kind": "effect",
       "id": 1587,
       "name": "Backstab",
-      "icon": ""
+      "icon": "Mara_backstab.png"
     },
     "BackstabDamageWeak": {
       "kind": "effect",
       "id": 1586,
       "name": "Backstab",
-      "icon": ""
+      "icon": "Mara_backstab.png"
     },
     "BackstabPoisonDamage": {
       "kind": "effect",
       "id": 1585,
       "name": "Caustic Poison",
-      "icon": "Mara_backstab.jpg"
+      "icon": "T_TurtleShield.png"
     },
     "BroodingShadows": {
       "kind": "ability",
       "id": 1130,
       "name": "Brooding Shadows",
-      "icon": "Mara_stealth.jpg",
+      "icon": "Mara_stealth.png",
       "abilityCategory": "Utility",
       "cooldown": 15,
       "charges": 2
@@ -2059,7 +2074,7 @@
       "kind": "effect",
       "id": 1591,
       "name": "Brooding Shadows",
-      "icon": "Mara_stealth.jpg"
+      "icon": "Mara_stealth.png"
     },
     "BroodingShadowsCharges": {
       "kind": "effect",
@@ -2077,26 +2092,26 @@
       "kind": "ability",
       "id": 1583,
       "name": "Corrosive Spill",
-      "icon": "T_Icon_Unholy_197.jpg",
+      "icon": "T_Icon_Unholy_197.png",
       "radius": 500
     },
     "DeadlySchemeActive": {
       "kind": "effect",
       "id": 2068,
       "name": "Deadly Scheme: Active",
-      "icon": "Tex_SpellBook08_71.jpg"
+      "icon": "Tex_SpellBook08_71.png"
     },
     "DeadlySchemeStacks": {
       "kind": "effect",
       "id": 2434,
       "name": "Deadly Scheme",
-      "icon": "Tex_SpellBook08_71.jpg"
+      "icon": "Tex_SpellBook08_71.png"
     },
     "FinalStratagem": {
       "kind": "ability",
       "id": 1468,
       "name": "Final Stratagem",
-      "icon": "Mara_Strategem.jpg",
+      "icon": "Mara_Strategem.png",
       "abilityCategory": "Major",
       "cooldown": 180
     },
@@ -2104,13 +2119,13 @@
       "kind": "ability",
       "id": 1589,
       "name": "From the Shadows",
-      "icon": "Mara_stealth.jpg"
+      "icon": "Mara_stealth.png"
     },
     "HemorrhagingStrike": {
       "kind": "ability",
       "id": 1208,
       "name": "Hemorrhaging Strike",
-      "icon": "Mara_Bleed.jpg",
+      "icon": "Mara_Bleed.png",
       "abilityCategory": "Power",
       "cooldown": 2,
       "range": 500,
@@ -2122,7 +2137,7 @@
       "kind": "effect",
       "id": 1724,
       "name": "Hemorrhage",
-      "icon": "Mara_Bleed.jpg"
+      "icon": "Mara_Bleed.png"
     },
     "HemorrhagingStrikeBuff": {
       "kind": "effect",
@@ -2134,26 +2149,26 @@
       "kind": "effect",
       "id": 1722,
       "name": "Hemorrhaging Strike",
-      "icon": ""
+      "icon": "Mara_Bleed.png"
     },
     "HemorrhagingStrikeDamage": {
       "kind": "effect",
       "id": 1721,
       "name": "Hemorrhaging Strike",
-      "icon": ""
+      "icon": "Mara_Bleed.png"
     },
     "Hemotoxin": {
       "kind": "ability",
       "id": 1590,
       "name": "Hemotoxin",
-      "icon": "T_PoisonBlister.jpg",
+      "icon": "T_PoisonBlister.png",
       "radius": 700
     },
     "Kick": {
       "kind": "ability",
       "id": 1200,
       "name": "Kick",
-      "icon": "Mara_Kick.jpg",
+      "icon": "Mara_Kick.png",
       "abilityCategory": "Utility",
       "cooldown": 16,
       "range": 500
@@ -2162,7 +2177,7 @@
       "kind": "ability",
       "id": 1167,
       "name": "Kick",
-      "icon": "Mara_Kick.jpg",
+      "icon": "Mara_Kick.png",
       "abilityCategory": "Utility",
       "cooldown": 16,
       "range": 500
@@ -2171,31 +2186,31 @@
       "kind": "effect",
       "id": 1704,
       "name": "Kick",
-      "icon": ""
+      "icon": "Mara_Kick.png"
     },
     "KickInterruptAlt": {
       "kind": "effect",
       "id": 1642,
       "name": "Kick",
-      "icon": ""
+      "icon": "Mara_Kick.png"
     },
     "KickLockout": {
       "kind": "effect",
       "id": 1703,
       "name": "Tremble!",
-      "icon": "Tex_red_10.jpg"
+      "icon": "Tex_red_10.png"
     },
     "KickLockoutAlt": {
       "kind": "effect",
       "id": 1641,
       "name": "Tremble!",
-      "icon": "Tex_red_10.jpg"
+      "icon": "Tex_red_10.png"
     },
     "MacabreStratagem": {
       "kind": "ability",
       "id": 2233,
       "name": "Macabre Stratagem",
-      "icon": "T_Nhance_RPG_Shadow_16.jpg",
+      "icon": "T_Nhance_RPG_Shadow_16.png",
       "abilityCategory": "Major",
       "cooldown": 180
     },
@@ -2203,7 +2218,7 @@
       "kind": "ability",
       "id": 1206,
       "name": "Maiden of Death",
-      "icon": "Mara_Maiden.jpg",
+      "icon": "Mara_Maiden.png",
       "abilityCategory": "Major",
       "cooldown": 60
     },
@@ -2211,7 +2226,7 @@
       "kind": "effect",
       "id": 1714,
       "name": "Maiden of Death",
-      "icon": "effects/T_Nhance_RPG_Shadow_48.jpg"
+      "icon": "Mara_Maiden.png"
     },
     "MaidenOfDeathCharges": {
       "kind": "effect",
@@ -2223,19 +2238,19 @@
       "kind": "effect",
       "id": 2431,
       "name": "Malevolence: Arachnid Assault",
-      "icon": "Mara_SpiderAOE.jpg"
+      "icon": "Mara_SpiderAOE.png"
     },
     "MalevolenceQueensFang": {
       "kind": "effect",
       "id": 2430,
       "name": "Malevolence: Queen\u0027s Fang",
-      "icon": "Mara_SingleTargetFinisher.jpg"
+      "icon": "Mara_SingleTargetFinisher.png"
     },
     "MatriarchMacabre": {
       "kind": "ability",
       "id": 1420,
       "name": "Matriarch Macabre",
-      "icon": "Mara_Spirit.jpg",
+      "icon": "Mara_Spirit.png",
       "abilityCategory": "Spirit",
       "costs": {
         "spirit": 100
@@ -2245,19 +2260,19 @@
       "kind": "effect",
       "id": 2040,
       "name": "Matriarch Macabre",
-      "icon": ""
+      "icon": "Mara_Spirit.png"
     },
     "MatriarchMacabreSelfBuff": {
       "kind": "effect",
       "id": 2039,
       "name": "Matriarch Macabre",
-      "icon": "Mara_Spirit.jpg"
+      "icon": "Mara_Spirit.png"
     },
     "QueenFang": {
       "kind": "ability",
       "id": 1201,
       "name": "Queen\u0027s Fang",
-      "icon": "Mara_SingleTargetFinisher.jpg",
+      "icon": "Mara_SingleTargetFinisher.png",
       "abilityCategory": "Power",
       "range": 500,
       "costs": {
@@ -2268,26 +2283,26 @@
       "kind": "effect",
       "id": 1706,
       "name": "Queen\u0027s Fang",
-      "icon": ""
+      "icon": "Mara_SingleTargetFinisher.png"
     },
     "QueenFangDamage": {
       "kind": "effect",
       "id": 1705,
       "name": "Queen\u0027s Fang",
-      "icon": ""
+      "icon": "Mara_SingleTargetFinisher.png"
     },
     "SeetingBurst": {
       "kind": "ability",
       "id": 1131,
       "name": "Seeting Burst",
-      "icon": "T_TurtleShield.jpg",
+      "icon": "T_TurtleShield.png",
       "radius": 700
     },
     "ShadowWard": {
       "kind": "ability",
       "id": 1133,
       "name": "Shadow Ward",
-      "icon": "Mara_Defensive.jpg",
+      "icon": "Mara_Defensive.png",
       "abilityCategory": "Defensive",
       "cooldown": 30
     },
@@ -2295,13 +2310,13 @@
       "kind": "effect",
       "id": 1592,
       "name": "Shadow Ward",
-      "icon": "Mara_Defensive.jpg"
+      "icon": "Mara_Defensive.png"
     },
     "SkitteringBlades": {
       "kind": "ability",
       "id": 1213,
       "name": "Skittering Blades",
-      "icon": "Mara_AOEBuilder.jpg",
+      "icon": "Mara_AOEBuilder.png",
       "abilityCategory": "Basic",
       "range": 800,
       "radius": 800,
@@ -2313,25 +2328,25 @@
       "kind": "effect",
       "id": 1732,
       "name": "Skittering Blades",
-      "icon": ""
+      "icon": "Mara_AOEBuilder.png"
     },
     "SkitteringBladesPoison": {
       "kind": "effect",
       "id": 1731,
       "name": "Volatile Poison",
-      "icon": "T_ArcaneCoils.jpg"
+      "icon": "T_ArcaneCoils.png"
     },
     "SkitteringBladesPoisonAoeDamage": {
       "kind": "effect",
       "id": 1730,
       "name": "Volatile Poison",
-      "icon": "T_ArcaneCoils.jpg"
+      "icon": "T_ArcaneCoils.png"
     },
     "StalkerStep": {
       "kind": "ability",
       "id": 1205,
       "name": "Stalker Step",
-      "icon": "Mara_Stalkerstep.jpg",
+      "icon": "Mara_Stalkerstep.png",
       "abilityCategory": "Movement",
       "cooldown": 30,
       "range": 3000,
@@ -2347,19 +2362,19 @@
       "kind": "effect",
       "id": 2190,
       "name": "Stalker Step",
-      "icon": "Mara_Stalkerstep.jpg"
+      "icon": "Mara_Stalkerstep.png"
     },
     "VexiraVenom": {
       "kind": "ability",
       "id": 1616,
       "name": "Vexira\u0027s Venom",
-      "icon": "Mara_SpiderAOE.jpg"
+      "icon": "Mara_SpiderAOE.png"
     },
     "WebCrack": {
       "kind": "ability",
       "id": 1128,
       "name": "Web Crack",
-      "icon": "Mara_Stun.jpg",
+      "icon": "Mara_Stun.png",
       "abilityCategory": "Control",
       "cooldown": 24,
       "range": 500
@@ -2374,13 +2389,13 @@
       "kind": "effect",
       "id": 1583,
       "name": "Web Crack",
-      "icon": "effect_stunned_icon.jpg"
+      "icon": "Mara_Stun.png"
     },
     "WidowBite": {
       "kind": "ability",
       "id": 1207,
       "name": "Widow\u0027s Bite",
-      "icon": "Mara_RegainEnergyHit.jpg",
+      "icon": "Mara_RegainEnergyHit.png",
       "abilityCategory": "Core",
       "cooldown": 9,
       "range": 500,
@@ -2402,25 +2417,25 @@
       "kind": "effect",
       "id": 1718,
       "name": "Widow\u0027s Bite",
-      "icon": ""
+      "icon": "Mara_RegainEnergyHit.png"
     },
     "WidowBiteDamageSecond": {
       "kind": "effect",
       "id": 1717,
       "name": "Widow\u0027s Bite",
-      "icon": ""
+      "icon": "Mara_RegainEnergyHit.png"
     },
     "WidowBitePoison": {
       "kind": "effect",
       "id": 1716,
       "name": "Seething Poison",
-      "icon": "T_Nhance_RPG_Shadow_20.jpg"
+      "icon": "T_Nhance_RPG_Shadow_20.png"
     },
     "WidowBitePoisonBuff": {
       "kind": "effect",
       "id": 1715,
       "name": "Predator\u0027s Rush",
-      "icon": "T_Nhance_RPG_Shadow_20.jpg"
+      "icon": "T_Nhance_RPG_Shadow_20.png"
     }
   },
   "meiko": {
@@ -2428,14 +2443,14 @@
       "kind": "ability",
       "id": 1118,
       "name": "Attack",
-      "icon": "T_Nhance_RPG_Icons_HolyHand.jpg",
+      "icon": "T_Nhance_RPG_Icons_HolyHand.png",
       "range": 500
     },
     "AttackDamage": {
       "kind": "effect",
       "id": 1564,
       "name": "Attack",
-      "icon": ""
+      "icon": "T_Nhance_RPG_Icons_HolyHand.png"
     },
     "AttackMulltiHitSelfHeal": {
       "kind": "effect",
@@ -2447,7 +2462,7 @@
       "kind": "ability",
       "id": 1125,
       "name": "Cyclone",
-      "icon": "T_Meiko_Massgrip.jpg",
+      "icon": "T_Meiko_Massgrip.png",
       "abilityCategory": "Control",
       "cooldown": 60,
       "radius": 1400
@@ -2456,13 +2471,13 @@
       "kind": "effect",
       "id": 1576,
       "name": "Cyclone",
-      "icon": ""
+      "icon": "T_Meiko_Massgrip.png"
     },
     "EarthFist": {
       "kind": "ability",
       "id": 1100,
       "name": "Earth Fist",
-      "icon": "Meiko_AbilityIcon_03.jpg",
+      "icon": "Meiko_AbilityIcon_03.png",
       "abilityCategory": "Basic",
       "range": 500
     },
@@ -2476,13 +2491,13 @@
       "kind": "effect",
       "id": 1524,
       "name": "Earth Fist",
-      "icon": ""
+      "icon": "Meiko_AbilityIcon_03.png"
     },
     "EarthfistBarrage": {
       "kind": "ability",
       "id": 1112,
       "name": "Earthfist Barrage",
-      "icon": "Meiko_AbilityIcon_09.jpg",
+      "icon": "Meiko_AbilityIcon_09.png",
       "abilityCategory": "Power",
       "cooldown": 45,
       "range": 500,
@@ -2499,19 +2514,19 @@
       "kind": "effect",
       "id": 1552,
       "name": "Earthfist Barrage",
-      "icon": ""
+      "icon": "Meiko_AbilityIcon_09.png"
     },
     "EarthfistBarrageFinalDamage": {
       "kind": "effect",
       "id": 2335,
       "name": "Earthfist Barrage",
-      "icon": ""
+      "icon": "Meiko_AbilityIcon_09.png"
     },
     "EarthfistBarrageResourceIncrease": {
       "kind": "effect",
       "id": 1551,
       "name": "Yellow Power",
-      "icon": "Tex_SpellBook04_11.jpg"
+      "icon": "Tex_SpellBook04_11.png"
     },
     "EarthfistBarrageSelfHeal": {
       "kind": "effect",
@@ -2523,25 +2538,25 @@
       "kind": "ability",
       "id": 1099,
       "name": "Fighting Techniques",
-      "icon": "Tex_SpellBook03_73.jpg"
+      "icon": "Tex_SpellBook03_73.png"
     },
     "FightingTechniquesCost": {
       "kind": "effect",
       "id": 1523,
       "name": "Fighting Techniques",
-      "icon": ""
+      "icon": "Tex_SpellBook03_73.png"
     },
     "ForbiddenTechnique": {
       "kind": "ability",
       "id": 1090,
       "name": "Forbidden Technique",
-      "icon": "Meiko_AbilityIcon_04.jpg"
+      "icon": "Meiko_AbilityIcon_04.png"
     },
     "Gust": {
       "kind": "ability",
       "id": 1123,
       "name": "Gust",
-      "icon": "Meiko_AbilityIcon_10.jpg",
+      "icon": "Meiko_AbilityIcon_10.png",
       "abilityCategory": "Movement",
       "cooldown": 30,
       "charges": 2,
@@ -2558,7 +2573,7 @@
       "kind": "ability",
       "id": 1106,
       "name": "Lashing Stormkick",
-      "icon": "Meiko_AbilityIcon_08.jpg",
+      "icon": "Meiko_AbilityIcon_08.png",
       "abilityCategory": "Power",
       "range": 500
     },
@@ -2566,19 +2581,19 @@
       "kind": "effect",
       "id": 1537,
       "name": "Lashing Stormkick",
-      "icon": ""
+      "icon": "Meiko_AbilityIcon_08.png"
     },
     "Peacefield": {
       "kind": "ability",
       "id": 1547,
       "name": "Peacefield",
-      "icon": "T_Icon_Elements_77.jpg"
+      "icon": "T_Icon_Elements_77.png"
     },
     "Serenity": {
       "kind": "ability",
       "id": 1119,
       "name": "Serenity",
-      "icon": "T_Meiko_Selfheal.jpg",
+      "icon": "T_Meiko_Selfheal.png",
       "abilityCategory": "Utility",
       "cooldown": 10
     },
@@ -2592,13 +2607,13 @@
       "kind": "effect",
       "id": 1565,
       "name": "Serenity",
-      "icon": ""
+      "icon": "T_Meiko_Selfheal.png"
     },
     "ShatterEarth": {
       "kind": "ability",
       "id": 1115,
       "name": "Shatter Earth",
-      "icon": "T_Meiko_SlamStun.jpg",
+      "icon": "T_Meiko_SlamStun.png",
       "abilityCategory": "Major",
       "cooldown": 60,
       "range": 3000,
@@ -2614,25 +2629,25 @@
       "kind": "effect",
       "id": 1558,
       "name": "Shatter Earth",
-      "icon": ""
+      "icon": "T_Meiko_SlamStun.png"
     },
     "ShatterEarthDamage": {
       "kind": "effect",
       "id": 1557,
       "name": "Shatter Earth",
-      "icon": ""
+      "icon": "T_Meiko_SlamStun.png"
     },
     "ShatterEarthDot": {
       "kind": "effect",
       "id": 1556,
       "name": "Shatter Earth",
-      "icon": "T_Meiko_SlamStun.jpg"
+      "icon": "T_Meiko_SlamStun.png"
     },
     "SpiritPalm": {
       "kind": "ability",
       "id": 1101,
       "name": "Spirit Palm",
-      "icon": "Meiko_AbilityIcon_01.jpg",
+      "icon": "Meiko_AbilityIcon_01.png",
       "abilityCategory": "Basic",
       "range": 500
     },
@@ -2646,13 +2661,13 @@
       "kind": "effect",
       "id": 1526,
       "name": "Spirit Palm",
-      "icon": ""
+      "icon": "Meiko_AbilityIcon_01.png"
     },
     "SpiritedVortex": {
       "kind": "ability",
       "id": 1120,
       "name": "Spirited Vortex",
-      "icon": "Meiko_AbilityIcon_07.jpg",
+      "icon": "Meiko_AbilityIcon_07.png",
       "abilityCategory": "Core",
       "radius": 800
     },
@@ -2660,19 +2675,19 @@
       "kind": "effect",
       "id": 1570,
       "name": "Spirited Vortex",
-      "icon": "Meiko_AbilityIcon_07.jpg"
+      "icon": "Meiko_AbilityIcon_07.png"
     },
     "SpiritedVortexDamage": {
       "kind": "effect",
       "id": 1569,
       "name": "Spirited Vortex",
-      "icon": "Meiko_AbilityIcon_04.jpg"
+      "icon": "Meiko_AbilityIcon_07.png"
     },
     "SpiritedVortexDecreasedMovementSpeed": {
       "kind": "effect",
       "id": 1568,
       "name": "Spirited Vortex",
-      "icon": "Meiko_AbilityIcon_07.jpg"
+      "icon": "Meiko_AbilityIcon_07.png"
     },
     "SpiritedVortexSelfHeal": {
       "kind": "effect",
@@ -2684,7 +2699,7 @@
       "kind": "ability",
       "id": 1116,
       "name": "Stagger",
-      "icon": "T_Meiko_Interrupt.jpg",
+      "icon": "T_Meiko_Interrupt.png",
       "abilityCategory": "Utility",
       "cooldown": 12,
       "range": 500
@@ -2693,32 +2708,32 @@
       "kind": "effect",
       "id": 1561,
       "name": "Stagger",
-      "icon": ""
+      "icon": "T_Meiko_Interrupt.png"
     },
     "StaggerLockout": {
       "kind": "effect",
       "id": 1560,
       "name": "Interrupted",
-      "icon": "T_Nhance_RPG_Shadow_46.jpg"
+      "icon": "T_Nhance_RPG_Shadow_46.png"
     },
     "StoneShield": {
       "kind": "ability",
       "id": 1121,
       "name": "Stone Shield",
-      "icon": "T_Meiko_StoneShield.jpg",
+      "icon": "T_Meiko_StoneShield.png",
       "radius": 70
     },
     "StoneShieldActive": {
       "kind": "effect",
       "id": 3141,
       "name": "Stone Shield",
-      "icon": ""
+      "icon": "T_Meiko_StoneShield.png"
     },
     "StoneShieldAlt": {
       "kind": "ability",
       "id": 1122,
       "name": "Stone Shield",
-      "icon": "T_Meiko_StoneShield.jpg",
+      "icon": "T_Meiko_StoneShield.png",
       "abilityCategory": "Defensive",
       "cooldown": 30,
       "radius": 70,
@@ -2728,7 +2743,7 @@
       "kind": "effect",
       "id": 1574,
       "name": "Stone Shield",
-      "icon": "T_Meiko_StoneShield.jpg"
+      "icon": "T_Meiko_StoneShield.png"
     },
     "StoneShieldCharges": {
       "kind": "effect",
@@ -2740,25 +2755,25 @@
       "kind": "effect",
       "id": 1572,
       "name": "Stone Shield",
-      "icon": "T_Meiko_StoneShield.jpg"
+      "icon": "T_Meiko_StoneShield.png"
     },
     "StoneShieldIncomingDamageMultiplier": {
       "kind": "effect",
       "id": 1571,
       "name": "Stone Shield",
-      "icon": ""
+      "icon": "T_Meiko_StoneShield.png"
     },
     "StoneShieldStoneInvinsibilityBuff": {
       "kind": "effect",
       "id": 2449,
       "name": "Earthwell",
-      "icon": "T_Icon_Cosmic_01.jpg"
+      "icon": "T_Icon_Cosmic_01.png"
     },
     "StoneStomp": {
       "kind": "ability",
       "id": 1107,
       "name": "Stone Stomp",
-      "icon": "Meiko_AbilityIcon_11.jpg",
+      "icon": "Meiko_AbilityIcon_11.png",
       "abilityCategory": "Control",
       "cooldown": 120,
       "range": 800
@@ -2773,7 +2788,7 @@
       "kind": "effect",
       "id": 1542,
       "name": "Stone Stomp",
-      "icon": "Meiko_AbilityIcon_11.jpg"
+      "icon": "Meiko_AbilityIcon_11.png"
     },
     "StoneStompDamageIncrease": {
       "kind": "effect",
@@ -2797,13 +2812,13 @@
       "kind": "effect",
       "id": 1538,
       "name": "Stunned",
-      "icon": "effect_stunned_icon.jpg"
+      "icon": "effect_stunned_icon.png"
     },
     "Taunt": {
       "kind": "ability",
       "id": 1095,
       "name": "Taunt",
-      "icon": "T_Meiko_Taunt.jpg",
+      "icon": "T_Meiko_Taunt.png",
       "abilityCategory": "Utility",
       "cooldown": 8,
       "range": 4000,
@@ -2813,13 +2828,13 @@
       "kind": "effect",
       "id": 1514,
       "name": "Taunted",
-      "icon": "T_Meiko_Taunt.jpg"
+      "icon": "T_Meiko_Taunt.png"
     },
     "TwinSoulsArmyOfOne": {
       "kind": "ability",
       "id": 1110,
       "name": "Twin Souls: Army of One",
-      "icon": "T_Meiko_SpiritUltimate.jpg",
+      "icon": "T_Meiko_SpiritUltimate.png",
       "abilityCategory": "Spirit",
       "costs": {
         "spirit": 100
@@ -2829,7 +2844,7 @@
       "kind": "ability",
       "id": 1082,
       "name": "Twin Souls: Bulwark",
-      "icon": "T_Meiko_TauntTotem.jpg",
+      "icon": "T_Meiko_TauntTotem.png",
       "abilityCategory": "Major",
       "cooldown": 180,
       "channelDuration": 0.5,
@@ -2839,19 +2854,19 @@
       "kind": "effect",
       "id": 1491,
       "name": "Twin Souls: Bulwark",
-      "icon": "T_Meiko_TauntTotem.jpg"
+      "icon": "T_Meiko_TauntTotem.png"
     },
     "TwinSoulsBulwarkTaunt": {
       "kind": "effect",
       "id": 2380,
       "name": "Taunted",
-      "icon": "T_Meiko_Taunt.jpg"
+      "icon": "T_Meiko_Taunt.png"
     },
     "WindKick": {
       "kind": "ability",
       "id": 1102,
       "name": "Wind Kick",
-      "icon": "Meiko_AbilityIcon_02.jpg",
+      "icon": "Meiko_AbilityIcon_02.png",
       "abilityCategory": "Basic",
       "range": 500,
       "radius": 500
@@ -2866,7 +2881,7 @@
       "kind": "effect",
       "id": 1528,
       "name": "Wind Kick",
-      "icon": ""
+      "icon": "Meiko_AbilityIcon_02.png"
     }
   },
   "rime": {
@@ -2874,7 +2889,7 @@
       "kind": "ability",
       "id": 1019,
       "name": "Brain Freeze",
-      "icon": "T_RimeIcon_Interrupt.jpg",
+      "icon": "T_RimeIcon_Interrupt.png",
       "abilityCategory": "Utility",
       "cooldown": 20,
       "range": 3000
@@ -2883,25 +2898,25 @@
       "kind": "effect",
       "id": 1383,
       "name": "Brain Freeze",
-      "icon": ""
+      "icon": "T_RimeIcon_Interrupt.png"
     },
     "BrainFreezeLockout": {
       "kind": "effect",
       "id": 1382,
       "name": "Interrupted",
-      "icon": "T_Nhance_RPG_Frost_01.jpg"
+      "icon": "T_Nhance_RPG_Frost_01.png"
     },
     "Burstbolter": {
       "kind": "ability",
       "id": 1576,
       "name": "Burstbolter",
-      "icon": "Cryomancer7.jpg"
+      "icon": "Cryomancer7.png"
     },
     "BurstingIce": {
       "kind": "ability",
       "id": 1031,
       "name": "Bursting Ice",
-      "icon": "T_Rime_CastedDebuffAOEdamage.jpg",
+      "icon": "T_Rime_CastedDebuffAOEdamage.png",
       "abilityCategory": "Core",
       "cooldown": 10,
       "range": 3000,
@@ -2912,19 +2927,19 @@
       "kind": "effect",
       "id": 1396,
       "name": "Bursting Ice",
-      "icon": "T_Rime_CastedDebuffAOEdamage.jpg"
+      "icon": "T_Rime_CastedDebuffAOEdamage.png"
     },
     "BurstingIceDebuff": {
       "kind": "effect",
       "id": 1395,
       "name": "Bursting Ice",
-      "icon": "T_Rime_CastedDebuffAOEdamage.jpg"
+      "icon": "T_Rime_CastedDebuffAOEdamage.png"
     },
     "ColdSnap": {
       "kind": "ability",
       "id": 1020,
       "name": "Cold Snap",
-      "icon": "T_Rime_InstantHit.jpg",
+      "icon": "T_Rime_InstantHit.png",
       "abilityCategory": "Basic",
       "cooldown": 12,
       "range": 3000,
@@ -2934,7 +2949,7 @@
       "kind": "effect",
       "id": 1384,
       "name": "Cold Snap",
-      "icon": ""
+      "icon": "T_Rime_InstantHit.png"
     },
     "ColdSnapTalentCooldownResetProc": {
       "kind": "effect",
@@ -2946,7 +2961,7 @@
       "kind": "ability",
       "id": 1009,
       "name": "Flight of the Navir",
-      "icon": "T_Rime_BirdCD.jpg",
+      "icon": "T_Rime_BirdCD.png",
       "abilityCategory": "Major",
       "cooldown": 60,
       "range": 3000,
@@ -2958,13 +2973,13 @@
       "kind": "effect",
       "id": 2446,
       "name": "Flight of the Navir",
-      "icon": "T_Rime_BirdCD.jpg"
+      "icon": "T_Rime_BirdCD.png"
     },
     "FlightOfTheNavirAoeDebuff": {
       "kind": "effect",
       "id": 1367,
       "name": "",
-      "icon": "effects/T_Rime_BirdCD.jpg"
+      "icon": "T_Rime_BirdCD.png"
     },
     "FlightOfTheNavirBuff": {
       "kind": "ability",
@@ -2976,13 +2991,13 @@
       "kind": "effect",
       "id": 1366,
       "name": "Flight of the Navir",
-      "icon": ""
+      "icon": "T_Rime_BirdCD.png"
     },
     "FreezingTorrent": {
       "kind": "ability",
       "id": 1027,
       "name": "Freezing Torrent",
-      "icon": "T_Rime_ChanneledBeam.jpg",
+      "icon": "T_Rime_ChanneledBeam.png",
       "abilityCategory": "Core",
       "cooldown": 15,
       "range": 3000,
@@ -2993,13 +3008,13 @@
       "kind": "effect",
       "id": 2300,
       "name": "Coalescing Frost",
-      "icon": "T_Nhance_RPG_Frost_31.jpg"
+      "icon": "T_Nhance_RPG_Frost_31.png"
     },
     "FreezingTorrentChannelBuff": {
       "kind": "effect",
       "id": 2315,
       "name": "Freezing Torrent",
-      "icon": ""
+      "icon": "T_Rime_ChanneledBeam.png"
     },
     "FreezingTorrentTickDamage": {
       "kind": "effect",
@@ -3011,7 +3026,7 @@
       "kind": "ability",
       "id": 1021,
       "name": "Frigid Winds",
-      "icon": "T_Rime_Knockback.jpg",
+      "icon": "T_Rime_Knockback.png",
       "abilityCategory": "Control",
       "cooldown": 60
     },
@@ -3019,13 +3034,13 @@
       "kind": "effect",
       "id": 1385,
       "name": "Frigid Winds",
-      "icon": "T_Rime_Knockback.jpg"
+      "icon": "T_Rime_Knockback.png"
     },
     "FrostBolt": {
       "kind": "ability",
       "id": 1029,
       "name": "Frost Bolt",
-      "icon": "T_Rime_SingleTargetBolt.jpg",
+      "icon": "T_Rime_SingleTargetBolt.png",
       "abilityCategory": "Basic",
       "range": 3000,
       "castDuration": 1.5
@@ -3040,19 +3055,19 @@
       "kind": "ability",
       "id": 1033,
       "name": "Frost Swallows",
-      "icon": "T_Rime_BirdCD.jpg"
+      "icon": "T_Rime_BirdCD.png"
     },
     "FrostSwallowsDamage": {
       "kind": "effect",
       "id": 1365,
       "name": "Frost Swallows",
-      "icon": "T_Rime_BirdCD.jpg"
+      "icon": "T_Rime_BirdCD.png"
     },
     "FrostWard": {
       "kind": "ability",
       "id": 1015,
       "name": "Frost Ward",
-      "icon": "T_Rime_SelfDefenceBuff.jpg",
+      "icon": "T_Rime_SelfDefenceBuff.png",
       "abilityCategory": "Defensive",
       "cooldown": 30
     },
@@ -3060,7 +3075,7 @@
       "kind": "effect",
       "id": 1379,
       "name": "Frost Ward",
-      "icon": "T_Rime_SelfDefenceBuff.jpg"
+      "icon": "T_Rime_SelfDefenceBuff.png"
     },
     "FrostWardTalentHeal": {
       "kind": "effect",
@@ -3072,20 +3087,20 @@
       "kind": "effect",
       "id": 2305,
       "name": "Frostweaver\u0027s Wrath",
-      "icon": "T_Icon_Frost_115.jpg"
+      "icon": "T_Icon_Frost_115.png"
     },
     "GlacialAssault": {
       "kind": "ability",
       "id": 2023,
       "name": "Glacial Assault",
-      "icon": "T_Rime_AnimaBolt.jpg",
+      "icon": "T_Rime_AnimaBolt.png",
       "radius": 700
     },
     "GlacialBlast": {
       "kind": "ability",
       "id": 1028,
       "name": "Glacial Blast",
-      "icon": "T_Rime_AnimaBolt.jpg",
+      "icon": "T_Rime_AnimaBolt.png",
       "abilityCategory": "Power",
       "range": 3000,
       "castDuration": 2,
@@ -3097,19 +3112,19 @@
       "kind": "effect",
       "id": 1393,
       "name": "Glacial Blast",
-      "icon": ""
+      "icon": "T_Rime_AnimaBolt.png"
     },
     "GlacialBlastDamage": {
       "kind": "effect",
       "id": 1392,
       "name": "Glacial Blast",
-      "icon": ""
+      "icon": "T_Rime_AnimaBolt.png"
     },
     "GlacialBlastTalentInstantAndBonusDamageProcStacker": {
       "kind": "effect",
       "id": 1377,
       "name": "Glacial Assault",
-      "icon": "T_Rime_AnimaBolt.jpg"
+      "icon": "T_Rime_AnimaBolt.png"
     },
     "GlacialBlastTalentInstantAndBonusDamageRealProc": {
       "kind": "effect",
@@ -3121,7 +3136,7 @@
       "kind": "ability",
       "id": 1032,
       "name": "Ice Blitz",
-      "icon": "T_Nhance_RPG_Icons_IcySpikes.jpg",
+      "icon": "T_Nhance_RPG_Icons_IcySpikes.png",
       "abilityCategory": "Major",
       "cooldown": 60
     },
@@ -3129,13 +3144,13 @@
       "kind": "effect",
       "id": 1397,
       "name": "Ice Blitz",
-      "icon": "T_Nhance_RPG_Icons_IcySpikes.jpg"
+      "icon": "T_Nhance_RPG_Icons_IcySpikes.png"
     },
     "IceComet": {
       "kind": "ability",
       "id": 1018,
       "name": "Ice Comet",
-      "icon": "T_Rime_OnTargetPulsatingAOE.jpg",
+      "icon": "T_Rime_OnTargetPulsatingAOE.png",
       "abilityCategory": "Power",
       "range": 3000,
       "radius": 700,
@@ -3147,7 +3162,7 @@
       "kind": "effect",
       "id": 1381,
       "name": "Ice Comet",
-      "icon": ""
+      "icon": "T_Rime_OnTargetPulsatingAOE.png"
     },
     "IceCometDamage": {
       "kind": "effect",
@@ -3159,7 +3174,7 @@
       "kind": "ability",
       "id": 1024,
       "name": "Ice Dash",
-      "icon": "T_Rime_Dash.jpg",
+      "icon": "T_Rime_Dash.png",
       "abilityCategory": "Movement",
       "cooldown": 25,
       "charges": 2,
@@ -3176,7 +3191,7 @@
       "kind": "ability",
       "id": 2224,
       "name": "Rising Talons",
-      "icon": "T_Rime_AOE_Spender.jpg",
+      "icon": "T_Rime_AOE_Spender.png",
       "abilityCategory": "Power",
       "range": 3000
     },
@@ -3184,19 +3199,19 @@
       "kind": "ability",
       "id": 1574,
       "name": "Soulfrost Torrent",
-      "icon": "T_Nhance_RPG_Frost_31.jpg"
+      "icon": "T_Nhance_RPG_Frost_31.png"
     },
     "TalonEdict": {
       "kind": "ability",
       "id": 1555,
       "name": "Talon\u0027s Edict",
-      "icon": "T_Icon_Elements_74.jpg"
+      "icon": "T_Icon_Elements_74.png"
     },
     "TalonStrike": {
       "kind": "ability",
       "id": 2223,
       "name": "Talon Strike",
-      "icon": "T_Rime_Singletarget_spender_.jpg",
+      "icon": "T_Rime_Singletarget_spender_.png",
       "abilityCategory": "Power",
       "range": 3000
     },
@@ -3204,25 +3219,25 @@
       "kind": "effect",
       "id": 1390,
       "name": "Winter\u0027s Blessing",
-      "icon": "T_Rime_HealingBuff.jpg"
+      "icon": "T_Rime_HealingBuff.png"
     },
     "WinterBlessingSelfBuff": {
       "kind": "effect",
       "id": 1389,
       "name": "Winter\u0027s Blessing",
-      "icon": "T_Rime_HealingBuff.jpg"
+      "icon": "T_Rime_HealingBuff.png"
     },
     "WinterBlessingSpiritBuff": {
       "kind": "effect",
       "id": 2299,
       "name": "Winter\u0027s Blessing",
-      "icon": ""
+      "icon": "T_Rime_HealingBuff.png"
     },
     "WintersBlessing": {
       "kind": "ability",
       "id": 1026,
       "name": "Winter\u0027s Blessing",
-      "icon": "T_Rime_HealingBuff.jpg",
+      "icon": "T_Rime_HealingBuff.png",
       "abilityCategory": "Major",
       "cooldown": 60
     },
@@ -3230,19 +3245,19 @@
       "kind": "effect",
       "id": 1026,
       "name": "Winter\u0027s Blessing",
-      "icon": ""
+      "icon": "T_Nhance_RPG_Icons_AxeSwing.png"
     },
     "WintersEmbrace": {
       "kind": "effect",
       "id": 2303,
       "name": "Winter\u0027s Embrace",
-      "icon": "Cryomancer8.jpg"
+      "icon": "Cryomancer8.png"
     },
     "WrathOfWinter": {
       "kind": "ability",
       "id": 1023,
       "name": "Wrath of Winter",
-      "icon": "T_Rime_SpiritAbility.jpg",
+      "icon": "T_Rime_SpiritAbility.png",
       "abilityCategory": "Spirit",
       "castDuration": 1.5
     },
@@ -3250,19 +3265,19 @@
       "kind": "effect",
       "id": 1387,
       "name": "Wrath of Winter",
-      "icon": "T_Rime_SpiritAbility.jpg"
+      "icon": "T_Rime_SpiritAbility.png"
     },
     "WrathOfWinterSpiritCost": {
       "kind": "effect",
       "id": 1386,
       "name": "Wrath of Winter",
-      "icon": ""
+      "icon": "T_Rime_SpiritAbility.png"
     },
     "WrathOfWinterVisual": {
       "kind": "effect",
       "id": 2092,
       "name": "Wrath of Winter",
-      "icon": ""
+      "icon": "T_Rime_SpiritAbility.png"
     }
   },
   "sylvie": {
@@ -3270,7 +3285,7 @@
       "kind": "ability",
       "id": 1054,
       "name": "Cure Ailment",
-      "icon": "T_Mosse_Dispel.jpg",
+      "icon": "T_Mosse_Dispel.png",
       "abilityCategory": "Utility",
       "cooldown": 6,
       "range": 3000,
@@ -3282,19 +3297,19 @@
       "kind": "effect",
       "id": 1435,
       "name": "Cure Ailment",
-      "icon": ""
+      "icon": "T_Mosse_Dispel.png"
     },
     "CureAilmentManaCost": {
       "kind": "effect",
       "id": 1434,
       "name": "Cure Ailment",
-      "icon": ""
+      "icon": "T_Mosse_Dispel.png"
     },
     "EnfeeblingRootsap": {
       "kind": "ability",
       "id": 1047,
       "name": "Enfeebling Rootsap",
-      "icon": "T_Nhance_RPG_Nature_04.jpg",
+      "icon": "T_Nhance_RPG_Nature_04.png",
       "abilityCategory": "Control",
       "cooldown": 45,
       "range": 3000,
@@ -3318,7 +3333,7 @@
       "kind": "effect",
       "id": 2232,
       "name": "Enfeebling Rootsap",
-      "icon": "T_Nhance_RPG_Nature_04.jpg"
+      "icon": "T_Nhance_RPG_Nature_04.png"
     },
     "EnfeeblingRootsapHealBuff": {
       "kind": "effect",
@@ -3330,7 +3345,7 @@
       "kind": "effect",
       "id": 1433,
       "name": "Enfeebling Rootsap",
-      "icon": ""
+      "icon": "T_Nhance_RPG_Nature_04.png"
     },
     "EnfeeblingRootsapTurretCounter": {
       "kind": "effect",
@@ -3342,20 +3357,20 @@
       "kind": "ability",
       "id": 1080,
       "name": "Fluttercall: Embrace",
-      "icon": "T_Mosse_BlueButterfly.jpg",
+      "icon": "T_Mosse_BlueButterfly.png",
       "abilityCategory": "Utility"
     },
     "FluttercallEmbraceBuff": {
       "kind": "effect",
       "id": 1486,
       "name": "Fluttercall: Embrace",
-      "icon": "T_Mosse_BlueButterfly.jpg"
+      "icon": "T_Mosse_BlueButterfly.png"
     },
     "FluttercallHeal": {
       "kind": "ability",
       "id": 1060,
       "name": "Fluttercall: Heal",
-      "icon": "Sylvie_AbilityIcon_03.jpg",
+      "icon": "Sylvie_AbilityIcon_03.png",
       "abilityCategory": "Core",
       "range": 3000,
       "castDuration": 1.2,
@@ -3367,19 +3382,19 @@
       "kind": "effect",
       "id": 1445,
       "name": "Fluttercall: Heal",
-      "icon": "Sylvie_AbilityIcon_03.jpg"
+      "icon": "Sylvie_AbilityIcon_03.png"
     },
     "FluttercallHealManaCost": {
       "kind": "effect",
       "id": 1444,
       "name": "Fluttercall: Heal",
-      "icon": ""
+      "icon": "Sylvie_AbilityIcon_03.png"
     },
     "FluttercallJubilee": {
       "kind": "ability",
       "id": 1055,
       "name": "Fluttercall: Jubilee",
-      "icon": "T_Mosse_Ultimate.jpg",
+      "icon": "T_Mosse_Ultimate.png",
       "abilityCategory": "Spirit",
       "castDuration": 1.5,
       "costs": {
@@ -3390,13 +3405,13 @@
       "kind": "effect",
       "id": 1439,
       "name": "Fluttercall: Jubilee",
-      "icon": "T_Mosse_Ultimate.jpg"
+      "icon": "T_Mosse_Ultimate.png"
     },
     "FluttercallJubileeCost": {
       "kind": "effect",
       "id": 1438,
       "name": "Fluttercall: Jubilee",
-      "icon": ""
+      "icon": "T_Mosse_Ultimate.png"
     },
     "FluttercallJubileeHealthDistributer": {
       "kind": "effect",
@@ -3420,13 +3435,13 @@
       "kind": "effect",
       "id": 1436,
       "name": "Fluttercall: Jubilee",
-      "icon": ""
+      "icon": "T_Mosse_Ultimate.png"
     },
     "FluttercallProtect": {
       "kind": "ability",
       "id": 1079,
       "name": "Fluttercall: Protect",
-      "icon": "T_Mosse_BlueButterfly.jpg",
+      "icon": "T_Mosse_BlueButterfly.png",
       "abilityCategory": "Utility",
       "range": 3000
     },
@@ -3434,13 +3449,13 @@
       "kind": "effect",
       "id": 1485,
       "name": "Fluttercall: Protect",
-      "icon": "T_Mosse_BlueButterfly.jpg"
+      "icon": "T_Mosse_BlueButterfly.png"
     },
     "FluttercallRestoreLife": {
       "kind": "ability",
       "id": 1061,
       "name": "Fluttercall: Restore Life",
-      "icon": "T_Nhance_RPG_Shadow_58.jpg",
+      "icon": "T_Nhance_RPG_Shadow_58.png",
       "abilityCategory": "Core",
       "range": 3000,
       "costs": {
@@ -3451,7 +3466,7 @@
       "kind": "effect",
       "id": 1450,
       "name": "Fluttercall: Restore Life - Pollinating",
-      "icon": "T_Nhance_RPG_Shadow_24.jpg"
+      "icon": "T_Nhance_RPG_Shadow_24.png"
     },
     "FluttercallRestoreLifeFlashHeal": {
       "kind": "effect",
@@ -3463,7 +3478,7 @@
       "kind": "effect",
       "id": 1448,
       "name": "Fluttercall: Restore Life",
-      "icon": "T_Nhance_RPG_Shadow_58.jpg"
+      "icon": "T_Nhance_RPG_Shadow_58.png"
     },
     "FluttercallRestoreLifeHotApplyTalentEffectToOwner": {
       "kind": "effect",
@@ -3475,13 +3490,13 @@
       "kind": "effect",
       "id": 1447,
       "name": "Fluttercall: Restore Life",
-      "icon": ""
+      "icon": "T_Nhance_RPG_Shadow_58.png"
     },
     "HeartBloom": {
       "kind": "ability",
       "id": 1075,
       "name": "Heart Bloom",
-      "icon": "T_Mosse_Bigheal.jpg",
+      "icon": "T_Mosse_Bigheal.png",
       "abilityCategory": "Power",
       "cooldown": 45,
       "radius": 4000,
@@ -3499,25 +3514,25 @@
       "kind": "effect",
       "id": 1477,
       "name": "Heart Bloom",
-      "icon": ""
+      "icon": "T_Mosse_Bigheal.png"
     },
     "HeartBloomManaCost": {
       "kind": "effect",
       "id": 1476,
       "name": "Heart Bloom",
-      "icon": ""
+      "icon": "T_Mosse_Bigheal.png"
     },
     "HeartBloomVisualEffect": {
       "kind": "effect",
       "id": 1475,
       "name": "Heart Bloom",
-      "icon": "T_Mosse_Bigheal.jpg"
+      "icon": "T_Mosse_Bigheal.png"
     },
     "HiddenTrail": {
       "kind": "ability",
       "id": 1071,
       "name": "Hidden Trail",
-      "icon": "T_Mosse_Hide.jpg",
+      "icon": "T_Mosse_Hide.png",
       "abilityCategory": "Defensive",
       "cooldown": 30,
       "costs": {
@@ -3528,25 +3543,25 @@
       "kind": "effect",
       "id": 1470,
       "name": "Hidden Trail",
-      "icon": "T_Mosse_Hide.jpg"
+      "icon": "T_Mosse_Hide.png"
     },
     "HiddenTrailManaCost": {
       "kind": "effect",
       "id": 2201,
       "name": "Hidden Trail",
-      "icon": ""
+      "icon": "T_Mosse_Hide.png"
     },
     "HiddenTrailReduceThreat": {
       "kind": "effect",
       "id": 1469,
       "name": "Hidden Trail",
-      "icon": ""
+      "icon": "T_Mosse_Hide.png"
     },
     "IronleafWard": {
       "kind": "ability",
       "id": 116,
       "name": "Ironleaf Ward",
-      "icon": "T_Mosse_DR.jpg",
+      "icon": "T_Mosse_DR.png",
       "abilityCategory": "Major",
       "cooldown": 60,
       "costs": {
@@ -3557,13 +3572,13 @@
       "kind": "effect",
       "id": 1484,
       "name": "Ironleaf Ward",
-      "icon": "T_Mosse_DR.jpg"
+      "icon": "T_Mosse_DR.png"
     },
     "LifePetal": {
       "kind": "ability",
       "id": 1072,
       "name": "Life Petal",
-      "icon": "T_Mosse_Lifepetal.jpg",
+      "icon": "T_Mosse_Lifepetal.png",
       "abilityCategory": "Power",
       "cooldown": 60,
       "charges": 2,
@@ -3575,31 +3590,31 @@
       "kind": "effect",
       "id": 1472,
       "name": "Life Petal",
-      "icon": ""
+      "icon": "T_Mosse_Lifepetal.png"
     },
     "LifePetalManaCost": {
       "kind": "effect",
       "id": 1471,
       "name": "Life Petal",
-      "icon": ""
+      "icon": "T_Mosse_Lifepetal.png"
     },
     "NaturalProtectorAbsorb": {
       "kind": "effect",
       "id": 2240,
       "name": "Natural Protector",
-      "icon": "Druid17.jpg"
+      "icon": "Druid17.png"
     },
     "NaturalSelectionBuff": {
       "kind": "effect",
       "id": 2731,
       "name": "Natural Selection",
-      "icon": "T_Nhance_RPG_Nature_02.jpg"
+      "icon": "T_Nhance_RPG_Nature_02.png"
     },
     "Nettlebolt": {
       "kind": "ability",
       "id": 1076,
       "name": "Nettlebolt",
-      "icon": "Sylvie_AbilityIcon_02.jpg",
+      "icon": "Sylvie_AbilityIcon_02.png",
       "abilityCategory": "Basic",
       "range": 3000,
       "castDuration": 1.5,
@@ -3611,19 +3626,19 @@
       "kind": "effect",
       "id": 1480,
       "name": "Nettlebolt",
-      "icon": ""
+      "icon": "Sylvie_AbilityIcon_02.png"
     },
     "NettleboltManaCost": {
       "kind": "effect",
       "id": 1479,
       "name": "Nettlebolt",
-      "icon": ""
+      "icon": "Sylvie_AbilityIcon_02.png"
     },
     "PricklyVine": {
       "kind": "ability",
       "id": 1057,
       "name": "Prickly Vine",
-      "icon": "T_Mosse_Vine.jpg",
+      "icon": "T_Mosse_Vine.png",
       "abilityCategory": "Core",
       "cooldown": 9,
       "range": 4000,
@@ -3636,19 +3651,19 @@
       "kind": "effect",
       "id": 1440,
       "name": "Prickly Vine",
-      "icon": "T_Mosse_Vine.jpg"
+      "icon": "T_Mosse_Vine.png"
     },
     "PricklyVineManaCost": {
       "kind": "effect",
       "id": 1441,
       "name": "Prickly Vine",
-      "icon": ""
+      "icon": "T_Mosse_Vine.png"
     },
     "SafeHaven": {
       "kind": "ability",
       "id": 1059,
       "name": "Safe Haven",
-      "icon": "T_Mosse_LinkCD.jpg",
+      "icon": "T_Mosse_LinkCD.png",
       "abilityCategory": "Major",
       "cooldown": 120,
       "range": 3000,
@@ -3661,25 +3676,25 @@
       "kind": "effect",
       "id": 1443,
       "name": "Safe Haven",
-      "icon": ""
+      "icon": "T_Mosse_LinkCD.png"
     },
     "SafeHavenDamageReductionBuff": {
       "kind": "effect",
       "id": 1442,
       "name": "",
-      "icon": "effects/T_Mosse_LinkCD.jpg"
+      "icon": "T_Mosse_LinkCD.png"
     },
     "SafeHavenIncreasedHealingTakenBuff": {
       "kind": "effect",
       "id": 2269,
       "name": "Safe Haven",
-      "icon": "T_Mosse_LinkCD.jpg"
+      "icon": "T_Mosse_LinkCD.png"
     },
     "Shroomsplosion": {
       "kind": "ability",
       "id": 1073,
       "name": "Shroomsplosion",
-      "icon": "T_Mosse_Boomshroom.jpg",
+      "icon": "T_Mosse_Boomshroom.png",
       "abilityCategory": "Core",
       "range": 3000,
       "radius": 700
@@ -3688,19 +3703,19 @@
       "kind": "effect",
       "id": 1474,
       "name": "Shroomsplosion",
-      "icon": "T_Mosse_Boomshroom.jpg"
+      "icon": "T_Mosse_Boomshroom.png"
     },
     "ShroomsplosionStacker": {
       "kind": "effect",
       "id": 1473,
       "name": "Shroomsplosion",
-      "icon": ""
+      "icon": "T_Mosse_Boomshroom.png"
     },
     "UnyieldingBloom": {
       "kind": "ability",
       "id": 1500,
       "name": "Unyielding Bloom",
-      "icon": "T_Mosse_Bigheal.jpg"
+      "icon": "T_Mosse_Bigheal.png"
     }
   },
   "tariq": {
@@ -3708,20 +3723,20 @@
       "kind": "ability",
       "id": 1227,
       "name": "Attack",
-      "icon": "Tex_bl_04_bg.jpg",
+      "icon": "Tex_bl_04_bg.png",
       "range": 550
     },
     "AttackDamage": {
       "kind": "effect",
       "id": 1760,
       "name": "Attack",
-      "icon": ""
+      "icon": "Tex_bl_04_bg.png"
     },
     "ChainLightning": {
       "kind": "ability",
       "id": 1237,
       "name": "Chain Lightning",
-      "icon": "T_Ink_ChainLightning.jpg",
+      "icon": "T_Ink_ChainLightning.png",
       "abilityCategory": "Core",
       "cooldown": 8,
       "range": 3000
@@ -3736,7 +3751,7 @@
       "kind": "effect",
       "id": 1774,
       "name": "Chain Lightning",
-      "icon": "T_Ink_ChainLightning.jpg"
+      "icon": "T_Ink_ChainLightning.png"
     },
     "ChainLightningSelfTargetEffect": {
       "kind": "effect",
@@ -3748,7 +3763,7 @@
       "kind": "ability",
       "id": 1228,
       "name": "Culling Strike",
-      "icon": "T_Ink_Cullingstrike.jpg",
+      "icon": "T_Ink_Cullingstrike.png",
       "abilityCategory": "Power",
       "cooldown": 6,
       "range": 550
@@ -3757,7 +3772,7 @@
       "kind": "effect",
       "id": 1762,
       "name": "Culling Strike",
-      "icon": ""
+      "icon": "T_Ink_Cullingstrike.png"
     },
     "CullingStrikeLightningBuff": {
       "kind": "effect",
@@ -3769,13 +3784,13 @@
       "kind": "effect",
       "id": 2267,
       "name": "Executioner\u0027s Grin",
-      "icon": "T_Nhance_RPG_BloodCombat_17.jpg"
+      "icon": "T_Nhance_RPG_BloodCombat_17.png"
     },
     "FaceBreaker": {
       "kind": "ability",
       "id": 2239,
       "name": "Face Breaker",
-      "icon": "T_Ink_Facebreaker.jpg",
+      "icon": "T_Ink_Facebreaker.png",
       "abilityCategory": "Basic",
       "cooldown": 6,
       "range": 550
@@ -3784,19 +3799,19 @@
       "kind": "ability",
       "id": 2241,
       "name": "Face Breaker",
-      "icon": "T_Ink_Facebreaker.jpg"
+      "icon": "T_Ink_Facebreaker.png"
     },
     "FaceBreakerDamage": {
       "kind": "effect",
       "id": 3161,
       "name": "Face Breaker",
-      "icon": ""
+      "icon": "T_Ink_Facebreaker.png"
     },
     "FaceBreakerOld": {
       "kind": "ability",
       "id": 1219,
       "name": "Face Breaker (old)",
-      "icon": "T_Ink_Facebreaker.jpg",
+      "icon": "T_Ink_Facebreaker.png",
       "abilityCategory": "Basic",
       "cooldown": 9,
       "range": 550
@@ -3811,13 +3826,13 @@
       "kind": "effect",
       "id": 1754,
       "name": "Face Breaker (old)",
-      "icon": ""
+      "icon": "T_Ink_Facebreaker.png"
     },
     "FocusedWrath": {
       "kind": "ability",
       "id": 1233,
       "name": "Focused Wrath",
-      "icon": "T_Ink_FocusedWrath.jpg",
+      "icon": "T_Ink_FocusedWrath.png",
       "abilityCategory": "Major",
       "cooldown": 90,
       "range": 550
@@ -3826,42 +3841,45 @@
       "kind": "effect",
       "id": 1769,
       "name": "Focused Wrath",
-      "icon": "T_Ink_FocusedWrath.jpg"
+      "icon": "T_Ink_FocusedWrath.png"
     },
     "HammerStorm": {
       "kind": "ability",
       "id": 1242,
       "name": "Hammer Storm",
-      "icon": "T_Ink_Hammerstorm.jpg",
+      "icon": "T_Ink_Hammerstorm.png",
       "abilityCategory": "Power",
       "cooldown": 1.5,
       "radius": 700,
       "channelDuration": 1,
-      "channelTickInterval": 0.5
+      "channelTickInterval": 0.5,
+      "costs": {
+        "primary": 50
+      }
     },
     "HammerStormActivated": {
       "kind": "effect",
       "id": 1750,
       "name": "Hammer Storm",
-      "icon": ""
+      "icon": "T_Ink_Hammerstorm.png"
     },
     "HammerStormCost": {
       "kind": "effect",
       "id": 1783,
       "name": "Hammer Storm",
-      "icon": ""
+      "icon": "T_Ink_Hammerstorm.png"
     },
     "HammerStormDamage": {
       "kind": "effect",
       "id": 1782,
       "name": "Hammer Storm",
-      "icon": ""
+      "icon": "T_Ink_Hammerstorm.png"
     },
     "HammerStormLightningDamage": {
       "kind": "effect",
       "id": 1781,
       "name": "Thunder Call: Hammer Storm",
-      "icon": ""
+      "icon": "T_Ink_Hammerstorm.png"
     },
     "HammerStormPassiveAoeDamageReductionIncrease": {
       "kind": "effect",
@@ -3873,7 +3891,7 @@
       "kind": "ability",
       "id": 1929,
       "name": "Heavy Strike",
-      "icon": "T_Ink_TimerAbility.jpg",
+      "icon": "T_Ink_TimerAbility.png",
       "abilityCategory": "Core",
       "cooldown": 8,
       "range": 550,
@@ -3883,7 +3901,7 @@
       "kind": "ability",
       "id": 1239,
       "name": "Heavy Strike",
-      "icon": "T_Ink_TimerAbility.jpg",
+      "icon": "T_Ink_TimerAbility.png",
       "abilityCategory": "Core",
       "range": 550
     },
@@ -3891,25 +3909,25 @@
       "kind": "effect",
       "id": 1779,
       "name": "Heavy Strike",
-      "icon": "T_Ink_TimerAbility.jpg"
+      "icon": "T_Ink_TimerAbility.png"
     },
     "HeavyStrikeCleaveDamage": {
       "kind": "effect",
       "id": 2755,
       "name": "Heavy Strike",
-      "icon": "T_Ink_TimerAbility.jpg"
+      "icon": "T_Ink_TimerAbility.png"
     },
     "HeavyStrikeDamage": {
       "kind": "effect",
       "id": 1776,
       "name": "Heavy Strike",
-      "icon": "T_Ink_TimerAbility.jpg"
+      "icon": "T_Ink_TimerAbility.png"
     },
     "Intimidate": {
       "kind": "ability",
       "id": 1241,
       "name": "Intimidate",
-      "icon": "T_Ink_IntimidatingRoar.jpg",
+      "icon": "T_Ink_IntimidatingRoar.png",
       "abilityCategory": "Control",
       "cooldown": 90,
       "range": 550,
@@ -3919,13 +3937,13 @@
       "kind": "effect",
       "id": 1780,
       "name": "Intimidate",
-      "icon": "T_Ink_IntimidatingRoar.jpg"
+      "icon": "T_Ink_IntimidatingRoar.png"
     },
     "LeapSmash": {
       "kind": "ability",
       "id": 1225,
       "name": "Leap Smash",
-      "icon": "T_Ink_Leap.jpg",
+      "icon": "T_Ink_Leap.png",
       "abilityCategory": "Movement",
       "cooldown": 20,
       "range": 3000,
@@ -3935,13 +3953,13 @@
       "kind": "effect",
       "id": 1757,
       "name": "Leap Smash",
-      "icon": ""
+      "icon": "T_Ink_Leap.png"
     },
     "Pummel": {
       "kind": "ability",
       "id": 1226,
       "name": "Pummel",
-      "icon": "T_InkPummel.jpg",
+      "icon": "T_InkPummel.png",
       "abilityCategory": "Utility",
       "cooldown": 16,
       "range": 550
@@ -3950,19 +3968,19 @@
       "kind": "effect",
       "id": 1759,
       "name": "Pummel",
-      "icon": ""
+      "icon": "T_InkPummel.png"
     },
     "PummelLockout": {
       "kind": "effect",
       "id": 1758,
       "name": "Tremble!",
-      "icon": "Tex_red_10.jpg"
+      "icon": "Tex_red_10.png"
     },
     "RagingTempest": {
       "kind": "ability",
       "id": 1231,
       "name": "Raging Tempest",
-      "icon": "T_Ink_Spirit.jpg",
+      "icon": "T_Ink_Spirit.png",
       "abilityCategory": "Spirit",
       "costs": {
         "spirit": 100
@@ -3972,83 +3990,86 @@
       "kind": "effect",
       "id": 2173,
       "name": "Raging Tempest",
-      "icon": ""
+      "icon": "T_Ink_Spirit.png"
     },
     "RagingTempestCost": {
       "kind": "effect",
       "id": 1768,
       "name": "Raging Tempest",
-      "icon": ""
+      "icon": "T_Ink_Spirit.png"
     },
     "RagingTempestPulsatingSingleDamageDamage": {
       "kind": "effect",
       "id": 1767,
       "name": "Raging Currents",
-      "icon": "T_Ink_Spirit.jpg"
+      "icon": "T_Ink_Spirit.png"
     },
     "RagingTempestPulsatingSingleDamageSelfBuff": {
       "kind": "effect",
       "id": 1766,
       "name": "Raging Tempest",
-      "icon": "T_Nhance_RPG_Energy_16.jpg"
+      "icon": "T_Nhance_RPG_Energy_16.png"
     },
     "RisingSpirit": {
       "kind": "effect",
       "id": 3115,
       "name": "Rising Spirit",
-      "icon": "T_Nhance_RPG_Icons_SpiritAmulet.jpg"
+      "icon": "T_Nhance_RPG_Icons_SpiritAmulet.png"
     },
     "SchismHammerStorm": {
       "kind": "effect",
       "id": 1747,
       "name": "Schism - Hammer Storm",
-      "icon": "T_Ink_Hammerstorm.jpg"
+      "icon": "T_Ink_Hammerstorm.png"
     },
     "SchismSkullCrusher": {
       "kind": "effect",
       "id": 1746,
       "name": "Schism - Skull Crusher",
-      "icon": "T_Ink_Skullcrusher.jpg"
+      "icon": "T_Ink_Skullcrusher.png"
     },
     "SkullCrusher": {
       "kind": "ability",
       "id": 1229,
       "name": "Skull Crusher",
-      "icon": "T_Ink_Skullcrusher.jpg",
+      "icon": "T_Ink_Skullcrusher.png",
       "abilityCategory": "Power",
       "cooldown": 1,
-      "range": 550
+      "range": 550,
+      "costs": {
+        "primary": 25
+      }
     },
     "SkullCrusherCost": {
       "kind": "effect",
       "id": 1765,
       "name": "Skull Crusher",
-      "icon": ""
+      "icon": "T_Ink_Skullcrusher.png"
     },
     "SkullCrusherDamage": {
       "kind": "effect",
       "id": 1764,
       "name": "Skull Crusher",
-      "icon": ""
+      "icon": "T_Ink_Skullcrusher.png"
     },
     "SkullCrusherLightningDamage": {
       "kind": "effect",
       "id": 1763,
       "name": "Thunder Call: Skull Crusher",
-      "icon": ""
+      "icon": "T_Ink_Skullcrusher.png"
     },
     "Sledgehammer": {
       "kind": "ability",
       "id": 2061,
       "name": "Sledgehammer",
-      "icon": "T_Nhance_RPG_Icons_ChaoticSpikes.jpg",
+      "icon": "T_Nhance_RPG_Icons_ChaoticSpikes.png",
       "radius": 500
     },
     "Taunt": {
       "kind": "ability",
       "id": 1214,
       "name": "Taunt",
-      "icon": "T_Ink_Taunt.jpg",
+      "icon": "T_Ink_Taunt.png",
       "cooldown": 15,
       "range": 4000
     },
@@ -4056,13 +4077,13 @@
       "kind": "effect",
       "id": 1742,
       "name": "Taunted",
-      "icon": "warmaster_taunt.jpg"
+      "icon": "warmaster_taunt.png"
     },
     "ThunderCall": {
       "kind": "ability",
       "id": 1235,
       "name": "Thunder Call",
-      "icon": "T_Ink_Selfbuff.jpg",
+      "icon": "T_Ink_Selfbuff.png",
       "abilityCategory": "Major",
       "cooldown": 45
     },
@@ -4070,13 +4091,13 @@
       "kind": "effect",
       "id": 1772,
       "name": "Thunder Call",
-      "icon": "T_Ink_Selfbuff.jpg"
+      "icon": "T_Ink_Selfbuff.png"
     },
     "UnbreakableWill": {
       "kind": "ability",
       "id": 1218,
       "name": "Unbreakable Will",
-      "icon": "T_Ink_TankBuff.jpg",
+      "icon": "T_Ink_TankBuff.png",
       "abilityCategory": "Defensive",
       "cooldown": 30
     },
@@ -4084,7 +4105,7 @@
       "kind": "effect",
       "id": 1752,
       "name": "Unbreakable Will",
-      "icon": "T_Ink_TankBuff.jpg"
+      "icon": "T_Ink_TankBuff.png"
     },
     "UnbreakableWillSelfBuffSecond": {
       "kind": "effect",
@@ -4096,7 +4117,7 @@
       "kind": "ability",
       "id": 1234,
       "name": "Wild Swing",
-      "icon": "T_Ink_Wildswing.jpg",
+      "icon": "T_Ink_Wildswing.png",
       "abilityCategory": "Basic",
       "cooldown": 1.5,
       "range": 550,
@@ -4106,13 +4127,13 @@
       "kind": "effect",
       "id": 1771,
       "name": "Wild Swing",
-      "icon": ""
+      "icon": "T_Ink_Wildswing.png"
     },
     "WildSwingDamage": {
       "kind": "effect",
       "id": 1770,
       "name": "Wild Swing",
-      "icon": ""
+      "icon": "T_Ink_Wildswing.png"
     }
   },
   "vigour": {
@@ -4120,7 +4141,7 @@
       "kind": "ability",
       "id": 1000,
       "name": "Avatar of Light",
-      "icon": "T_Vigor_Spirit.jpg",
+      "icon": "T_Vigor_Spirit.png",
       "abilityCategory": "Spirit",
       "cooldown": 0,
       "range": 6000,
@@ -4139,7 +4160,7 @@
       "kind": "effect",
       "id": 1331,
       "name": "Avatar of Light",
-      "icon": ""
+      "icon": "T_Vigor_Spirit.png"
     },
     "AvatarOfLightVisual": {
       "kind": "effect",
@@ -4151,7 +4172,7 @@
       "kind": "ability",
       "id": 110,
       "name": "Circle of Light",
-      "icon": "T_Vigor_AoEHeal.jpg",
+      "icon": "T_Vigor_AoEHeal.png",
       "abilityCategory": "Core",
       "cooldown": 15,
       "range": 3000,
@@ -4164,7 +4185,7 @@
       "kind": "effect",
       "id": 1340,
       "name": "Circle of Light",
-      "icon": ""
+      "icon": "T_Vigor_AoEHeal.png"
     },
     "CircleOfLightHeal": {
       "kind": "effect",
@@ -4176,7 +4197,7 @@
       "kind": "ability",
       "id": 992,
       "name": "Dawnbreaker Orb",
-      "icon": "T_Vigor_DawnSphere.jpg",
+      "icon": "T_Vigor_DawnSphere.png",
       "abilityCategory": "Power",
       "cooldown": 10
     },
@@ -4184,13 +4205,13 @@
       "kind": "effect",
       "id": 3105,
       "name": "Dawnbreaker Orb",
-      "icon": ""
+      "icon": "T_Vigor_DawnSphere.png"
     },
     "DawnbreakerOrbDamage": {
       "kind": "effect",
       "id": 1311,
       "name": "Dawnbreaker Orb",
-      "icon": ""
+      "icon": "T_Vigor_DawnSphere.png"
     },
     "DawnbreakerOrbHeal": {
       "kind": "effect",
@@ -4202,13 +4223,13 @@
       "kind": "effect",
       "id": 1309,
       "name": "Dawnbreaker Orb",
-      "icon": ""
+      "icon": "T_Vigor_DawnSphere.png"
     },
     "Dawnflare": {
       "kind": "ability",
       "id": 1004,
       "name": "Dawnflare",
-      "icon": "T_Vigor_Bolt.jpg",
+      "icon": "T_Vigor_Bolt.png",
       "abilityCategory": "Basic",
       "range": 3000,
       "castDuration": 1.5,
@@ -4220,19 +4241,19 @@
       "kind": "effect",
       "id": 1349,
       "name": "Dawnflare",
-      "icon": ""
+      "icon": "T_Vigor_Bolt.png"
     },
     "DawnflareResourceCost": {
       "kind": "effect",
       "id": 1348,
       "name": "Dawnflare",
-      "icon": ""
+      "icon": "T_Vigor_Bolt.png"
     },
     "GreaterHeal": {
       "kind": "ability",
       "id": 112,
       "name": "Greater Heal",
-      "icon": "T_Vigor_Heal.jpg",
+      "icon": "T_Vigor_Heal.png",
       "abilityCategory": "Core",
       "range": 3000,
       "castDuration": 2,
@@ -4250,13 +4271,13 @@
       "kind": "effect",
       "id": 1346,
       "name": "Greater Heal",
-      "icon": ""
+      "icon": "T_Vigor_Heal.png"
     },
     "Levitate": {
       "kind": "ability",
       "id": 1003,
       "name": "Levitate",
-      "icon": "T_Vigor_Levitate.jpg",
+      "icon": "T_Vigor_Levitate.png",
       "abilityCategory": "Defensive",
       "cooldown": 60,
       "charges": 2,
@@ -4274,19 +4295,19 @@
       "kind": "effect",
       "id": 1344,
       "name": "Levitate",
-      "icon": ""
+      "icon": "T_Vigor_Levitate.png"
     },
     "LevitateSelfBuff": {
       "kind": "effect",
       "id": 1343,
       "name": "Levitate",
-      "icon": "T_Vigor_Levitate.jpg"
+      "icon": "T_Vigor_Levitate.png"
     },
     "LightshaperWard": {
       "kind": "ability",
       "id": 111,
       "name": "Lightshaper\u0027s Ward",
-      "icon": "T_Vigor_Ward.jpg",
+      "icon": "T_Vigor_Ward.png",
       "abilityCategory": "Major",
       "cooldown": 60,
       "range": 3000,
@@ -4298,13 +4319,13 @@
       "kind": "effect",
       "id": 1341,
       "name": "Lightshaper\u0027s Ward",
-      "icon": ""
+      "icon": "T_Vigor_Ward.png"
     },
     "LuminousBarrier": {
       "kind": "ability",
       "id": 996,
       "name": "Luminous Barrier",
-      "icon": "T_Vigor_Shield.jpg",
+      "icon": "T_Vigor_Shield.png",
       "abilityCategory": "Power",
       "cooldown": 20,
       "range": 3000,
@@ -4317,31 +4338,31 @@
       "kind": "effect",
       "id": 1321,
       "name": "Luminous Barrier",
-      "icon": "T_Vigor_Shield.jpg"
+      "icon": "T_Vigor_Shield.png"
     },
     "LuminousBarrierCost": {
       "kind": "effect",
       "id": 1320,
       "name": "Luminous Barrier",
-      "icon": ""
+      "icon": "T_Vigor_Shield.png"
     },
     "LuminousBarrierUponRemovalBuff": {
       "kind": "effect",
       "id": 2838,
       "name": "Residual Luminosity",
-      "icon": "Tex_SpellBook06_91.jpg"
+      "icon": "Tex_SpellBook06_91.png"
     },
     "MeticulousRunesmith": {
       "kind": "ability",
       "id": 1563,
       "name": "Meticulous Runesmith",
-      "icon": "T_LightPortal.jpg"
+      "icon": "T_LightPortal.png"
     },
     "RadiantBlast": {
       "kind": "ability",
       "id": 109,
       "name": "Radiant Blast",
-      "icon": "T_Vigor_Cone.jpg",
+      "icon": "T_Vigor_Cone.png",
       "abilityCategory": "Core",
       "cooldown": 10,
       "radius": 3000,
@@ -4353,13 +4374,13 @@
       "kind": "effect",
       "id": 1338,
       "name": "Radiant Blast",
-      "icon": ""
+      "icon": "T_Vigor_Cone.png"
     },
     "RadiantBlastDamage": {
       "kind": "effect",
       "id": 1337,
       "name": "Radiant Blast",
-      "icon": ""
+      "icon": "T_Vigor_Cone.png"
     },
     "RadiantBlastHeal": {
       "kind": "effect",
@@ -4377,7 +4398,7 @@
       "kind": "ability",
       "id": 997,
       "name": "Remove Magic",
-      "icon": "T_Vigor_Dispel.jpg",
+      "icon": "T_Vigor_Dispel.png",
       "abilityCategory": "Utility",
       "cooldown": 6,
       "range": 3000,
@@ -4389,19 +4410,19 @@
       "kind": "effect",
       "id": 1323,
       "name": "Remove Magic",
-      "icon": ""
+      "icon": "T_Vigor_Dispel.png"
     },
     "RemoveMagicResourceCost": {
       "kind": "effect",
       "id": 1322,
       "name": "Remove Magic",
-      "icon": ""
+      "icon": "T_Vigor_Dispel.png"
     },
     "RuneOfRenewal": {
       "kind": "ability",
       "id": 995,
       "name": "Rune of Renewal",
-      "icon": "T_Vigor_Rune.jpg",
+      "icon": "T_Vigor_Rune.png",
       "abilityCategory": "Power",
       "range": 3000,
       "castDuration": 1.2,
@@ -4419,7 +4440,7 @@
       "kind": "effect",
       "id": 1319,
       "name": "Rune of Renewal",
-      "icon": ""
+      "icon": "T_Vigor_Rune.png"
     },
     "RuneOfRenewalHot": {
       "kind": "effect",
@@ -4431,13 +4452,13 @@
       "kind": "effect",
       "id": 1317,
       "name": "Rune of Renewal",
-      "icon": ""
+      "icon": "T_Vigor_Rune.png"
     },
     "RunicProliferation": {
       "kind": "ability",
       "id": 1001,
       "name": "Runic Proliferation",
-      "icon": "T_Vigor_HealRune.jpg",
+      "icon": "T_Vigor_HealRune.png",
       "abilityCategory": "Major",
       "cooldown": 60,
       "costs": {
@@ -4448,19 +4469,19 @@
       "kind": "effect",
       "id": 1334,
       "name": "Runic Proliferation",
-      "icon": "T_Vigor_HealRune.jpg"
+      "icon": "T_Vigor_HealRune.png"
     },
     "RunicProliferationManaCost": {
       "kind": "effect",
       "id": 2200,
       "name": "Runic Proliferation",
-      "icon": ""
+      "icon": "T_Vigor_HealRune.png"
     },
     "Soulbrand": {
       "kind": "ability",
       "id": 994,
       "name": "Soulbrand",
-      "icon": "T_Vigor_Soulbrand.jpg",
+      "icon": "T_Vigor_Soulbrand.png",
       "abilityCategory": "Power",
       "range": 3000,
       "castDuration": 1.2,
@@ -4472,25 +4493,25 @@
       "kind": "effect",
       "id": 2432,
       "name": "Soulbrand: Remnant",
-      "icon": "T_Vigor_Soulbrand.jpg"
+      "icon": "T_Vigor_Soulbrand.png"
     },
     "SoulbrandDot": {
       "kind": "effect",
       "id": 1315,
       "name": "Soulbrand",
-      "icon": "T_Vigor_Soulbrand.jpg"
+      "icon": "T_Vigor_Soulbrand.png"
     },
     "SoulbrandResourceCost": {
       "kind": "effect",
       "id": 1314,
       "name": "Soulbrand",
-      "icon": ""
+      "icon": "T_Vigor_Soulbrand.png"
     },
     "ThrowBook": {
       "kind": "ability",
       "id": 993,
       "name": "Throw Book",
-      "icon": "T_Vigor_Book.jpg",
+      "icon": "T_Vigor_Book.png",
       "abilityCategory": "Control",
       "cooldown": 30,
       "range": 3000,
@@ -4502,13 +4523,13 @@
       "kind": "effect",
       "id": 1313,
       "name": "Throw Book",
-      "icon": ""
+      "icon": "T_Vigor_Book.png"
     },
     "ThrowBookStun": {
       "kind": "effect",
       "id": 1312,
       "name": "Stunned by a book",
-      "icon": "effect_stunned_icon.jpg"
+      "icon": "effect_stunned_icon.png"
     }
   },
   "xavian": {
@@ -4516,20 +4537,20 @@
       "kind": "ability",
       "id": 1854,
       "name": "Attack",
-      "icon": "Tex_swords_01_bg.jpg",
+      "icon": "Tex_swords_01_bg.png",
       "range": 500
     },
     "AttackDamage": {
       "kind": "effect",
       "id": 2562,
       "name": "Auto Attack",
-      "icon": ""
+      "icon": "Tex_swords_01_bg.png"
     },
     "AuraOfSolace": {
       "kind": "ability",
       "id": 1917,
       "name": "Aura of Solace",
-      "icon": "T_Sune_AuraOfSolace.jpg",
+      "icon": "T_Sune_AuraOfSolace.png",
       "abilityCategory": "Utility",
       "cooldown": 3
     },
@@ -4537,7 +4558,7 @@
       "kind": "effect",
       "id": 2670,
       "name": "Gift of Solace",
-      "icon": "T_Sune_AuraOfSolace.jpg"
+      "icon": "T_Sune_AuraOfSolace.png"
     },
     "AuraOfSolaceAllyBuffStacker": {
       "kind": "effect",
@@ -4549,19 +4570,19 @@
       "kind": "effect",
       "id": 2669,
       "name": "Aura of Solace",
-      "icon": "T_Sune_AuraOfSolace.jpg"
+      "icon": "T_Sune_AuraOfSolace.png"
     },
     "AuraOfSolaceManaCost": {
       "kind": "effect",
       "id": 2668,
       "name": "Aura of Solace",
-      "icon": ""
+      "icon": "T_Sune_AuraOfSolace.png"
     },
     "AuraOfSolaceSelfBuff": {
       "kind": "effect",
       "id": 2667,
       "name": "Aura of Solace",
-      "icon": "T_Sune_AuraOfSolace.jpg"
+      "icon": "T_Sune_AuraOfSolace.png"
     },
     "AuraOfSolaceTransferedDamage": {
       "kind": "effect",
@@ -4573,7 +4594,7 @@
       "kind": "ability",
       "id": 1858,
       "name": "Blinding Slash",
-      "icon": "T_Sune_Blindingslash.jpg",
+      "icon": "T_Sune_Blindingslash.png",
       "abilityCategory": "Basic",
       "cooldown": 6,
       "range": 500
@@ -4582,13 +4603,13 @@
       "kind": "effect",
       "id": 2568,
       "name": "Blinding Slash",
-      "icon": ""
+      "icon": "T_Sune_Blindingslash.png"
     },
     "BrilliantFlare": {
       "kind": "ability",
       "id": 1860,
       "name": "Brilliant Flare",
-      "icon": "T_Sune_BrilliantFlare.jpg",
+      "icon": "T_Sune_BrilliantFlare.png",
       "abilityCategory": "Core",
       "range": 3000,
       "castDuration": 1.5,
@@ -4600,19 +4621,19 @@
       "kind": "effect",
       "id": 2573,
       "name": "Brilliant Flare",
-      "icon": ""
+      "icon": "T_Sune_BrilliantFlare.png"
     },
     "BrilliantFlareManaCost": {
       "kind": "effect",
       "id": 2572,
       "name": "Brilliant Flare",
-      "icon": ""
+      "icon": "T_Sune_BrilliantFlare.png"
     },
     "BrilliantFlash": {
       "kind": "ability",
       "id": 1855,
       "name": "Brilliant Flash",
-      "icon": "T_Sune_BrilliantFlash.jpg",
+      "icon": "T_Sune_BrilliantFlash.png",
       "abilityCategory": "Power",
       "range": 3000
     },
@@ -4620,25 +4641,25 @@
       "kind": "effect",
       "id": 2565,
       "name": "Brilliant Flash",
-      "icon": ""
+      "icon": "T_Sune_BrilliantFlash.png"
     },
     "BrilliantFlashHeal": {
       "kind": "effect",
       "id": 2564,
       "name": "Brilliant Flash",
-      "icon": ""
+      "icon": "T_Sune_BrilliantFlash.png"
     },
     "BrilliantFlashResourceCost": {
       "kind": "effect",
       "id": 2563,
       "name": "Brilliant Flash",
-      "icon": ""
+      "icon": "T_Sune_BrilliantFlash.png"
     },
     "DecreeOfTheSun": {
       "kind": "ability",
       "id": 1853,
       "name": "Decree of the Sun",
-      "icon": "T_Sune_Decree.jpg",
+      "icon": "T_Sune_Decree.png",
       "abilityCategory": "Spirit",
       "costs": {
         "spirit": 100
@@ -4660,31 +4681,31 @@
       "kind": "effect",
       "id": 2559,
       "name": "Decree of the Sun",
-      "icon": ""
+      "icon": "T_Sune_Decree.png"
     },
     "DecreeOfTheSunSelfBuffDamageReduction": {
       "kind": "effect",
       "id": 2558,
       "name": "Decree of the Sun",
-      "icon": "T_Sune_Decree.jpg"
+      "icon": "T_Sune_Decree.png"
     },
     "DecreeOfTheSunSelfBuffImmunity": {
       "kind": "effect",
       "id": 2557,
       "name": "Decree of the Sun",
-      "icon": "T_Sune_Decree.jpg"
+      "icon": "T_Sune_Decree.png"
     },
     "DecreeOfTheSunSpiritPointCost": {
       "kind": "effect",
       "id": 2556,
       "name": "Decree of the Sun",
-      "icon": ""
+      "icon": "T_Sune_Decree.png"
     },
     "Interrupt": {
       "kind": "ability",
       "id": 1844,
       "name": "Interrupt",
-      "icon": "T_Sune_Interrupt.jpg",
+      "icon": "T_Sune_Interrupt.png",
       "abilityCategory": "Utility",
       "cooldown": 12,
       "range": 500
@@ -4693,19 +4714,19 @@
       "kind": "effect",
       "id": 2546,
       "name": "Interrupt",
-      "icon": ""
+      "icon": "T_Sune_Interrupt.png"
     },
     "InterruptLockout": {
       "kind": "effect",
       "id": 2545,
       "name": "Tremble!",
-      "icon": "Tex_red_10.jpg"
+      "icon": "Tex_red_10.png"
     },
     "OmegaReprieval": {
       "kind": "ability",
       "id": 1861,
       "name": "Omega Reprieval",
-      "icon": "T_Sune_OmegaReprieval.jpg",
+      "icon": "T_Sune_OmegaReprieval.png",
       "abilityCategory": "Major",
       "cooldown": 60
     },
@@ -4713,13 +4734,13 @@
       "kind": "effect",
       "id": 2574,
       "name": "Omega Reprieval",
-      "icon": "T_Sune_OmegaReprieval.jpg"
+      "icon": "T_Sune_OmegaReprieval.png"
     },
     "Omnistrike": {
       "kind": "ability",
       "id": 1863,
       "name": "Omnistrike",
-      "icon": "T_Sune_Omnistrike.jpg",
+      "icon": "T_Sune_Omnistrike.png",
       "abilityCategory": "Core",
       "cooldown": 18,
       "radius": 800
@@ -4728,13 +4749,13 @@
       "kind": "effect",
       "id": 2577,
       "name": "Omnistrike",
-      "icon": ""
+      "icon": "T_Sune_Omnistrike.png"
     },
     "RupturedDawn": {
       "kind": "ability",
       "id": 1857,
       "name": "Ruptured Dawn",
-      "icon": "T_Sune_RisingSun.jpg",
+      "icon": "T_Sune_RisingSun.png",
       "abilityCategory": "Control",
       "cooldown": 60
     },
@@ -4742,19 +4763,19 @@
       "kind": "effect",
       "id": 2567,
       "name": "Ruptured Dawn",
-      "icon": ""
+      "icon": "T_Sune_RisingSun.png"
     },
     "RupturedDawnStun": {
       "kind": "effect",
       "id": 2566,
       "name": "Stunned",
-      "icon": "effect_stunned_icon.jpg"
+      "icon": "effect_stunned_icon.png"
     },
     "ShiningHalo": {
       "kind": "ability",
       "id": 1859,
       "name": "Shining Halo",
-      "icon": "T_Sune_ShiningHalo.jpg",
+      "icon": "T_Sune_ShiningHalo.png",
       "abilityCategory": "Power",
       "cooldown": 30,
       "radius": 800,
@@ -4766,25 +4787,25 @@
       "kind": "effect",
       "id": 2571,
       "name": "Shining Halo",
-      "icon": ""
+      "icon": "T_Sune_ShiningHalo.png"
     },
     "ShiningHaloManaCost": {
       "kind": "effect",
       "id": 2570,
       "name": "Shining Halo",
-      "icon": ""
+      "icon": "T_Sune_ShiningHalo.png"
     },
     "ShiningHaloSelfBuff": {
       "kind": "effect",
       "id": 2569,
       "name": "Shining Halo",
-      "icon": "T_Sune_ShiningHalo.jpg"
+      "icon": "T_Sune_ShiningHalo.png"
     },
     "SkyCrash": {
       "kind": "ability",
       "id": 1841,
       "name": "Sky Crash",
-      "icon": "T_Sune_Skycrash.jpg",
+      "icon": "T_Sune_Skycrash.png",
       "abilityCategory": "Movement",
       "cooldown": 60,
       "radius": 700,
@@ -4794,19 +4815,19 @@
       "kind": "effect",
       "id": 2540,
       "name": "Sky Crash",
-      "icon": ""
+      "icon": "T_Sune_Skycrash.png"
     },
     "SkyCrashSelfBuff": {
       "kind": "effect",
       "id": 2539,
       "name": "Sky Crash",
-      "icon": ""
+      "icon": "T_Sune_Skycrash.png"
     },
     "SolarBlades": {
       "kind": "ability",
       "id": 1862,
       "name": "Solar Blades",
-      "icon": "T_Sune_SolarBlades.jpg",
+      "icon": "T_Sune_SolarBlades.png",
       "abilityCategory": "Core",
       "cooldown": 9,
       "range": 3000,
@@ -4819,19 +4840,19 @@
       "kind": "effect",
       "id": 2576,
       "name": "Solar Blades",
-      "icon": ""
+      "icon": "T_Sune_SolarBlades.png"
     },
     "SolarBladesManaCost": {
       "kind": "effect",
       "id": 2575,
       "name": "Solar Blades",
-      "icon": ""
+      "icon": "T_Sune_SolarBlades.png"
     },
     "SolarShield": {
       "kind": "ability",
       "id": 1848,
       "name": "Solar Shield",
-      "icon": "T_Sune_Solarshield.jpg",
+      "icon": "T_Sune_Solarshield.png",
       "abilityCategory": "Defensive",
       "cooldown": 15,
       "range": 3000,
@@ -4843,7 +4864,7 @@
       "kind": "effect",
       "id": 2551,
       "name": "Solar Shield",
-      "icon": "T_Sune_Solarshield.jpg"
+      "icon": "T_Sune_Solarshield.png"
     },
     "SolarShieldDamageReduction": {
       "kind": "effect",
@@ -4855,13 +4876,13 @@
       "kind": "effect",
       "id": 2550,
       "name": "Solar Shield",
-      "icon": ""
+      "icon": "T_Sune_Solarshield.png"
     },
     "SunStrike": {
       "kind": "ability",
       "id": 1845,
       "name": "Sun Strike",
-      "icon": "T_Sune_Sunstrike.jpg",
+      "icon": "T_Sune_Sunstrike.png",
       "abilityCategory": "Basic",
       "range": 500
     },
@@ -4869,13 +4890,13 @@
       "kind": "effect",
       "id": 2547,
       "name": "Sun Strike",
-      "icon": ""
+      "icon": "T_Sune_Sunstrike.png"
     },
     "Taunt": {
       "kind": "ability",
       "id": 1843,
       "name": "Taunt",
-      "icon": "T_Sune_Taunt.jpg",
+      "icon": "T_Sune_Taunt.png",
       "abilityCategory": "Utility",
       "cooldown": 8,
       "range": 4000
@@ -4884,7 +4905,7 @@
       "kind": "effect",
       "id": 2544,
       "name": "Taunted",
-      "icon": "T_Sune_Taunt.jpg"
+      "icon": "T_Sune_Taunt.png"
     }
   },
   "shared": {
@@ -4892,7 +4913,7 @@
       "kind": "ability",
       "id": 2113,
       "name": "Conduit of Striking Shadows",
-      "icon": "Tex_p_27.jpg",
+      "icon": "Tex_p_27.png",
       "school": "Magic",
       "radius": 4000
     },
@@ -4900,7 +4921,7 @@
       "kind": "ability",
       "id": 2116,
       "name": "Conduit of the Bleeding Gaze",
-      "icon": "T_Nhance_RPG_Icons_ShadowEye.jpg",
+      "icon": "T_Nhance_RPG_Icons_ShadowEye.png",
       "school": "Magic",
       "radius": 80
     },
@@ -4908,7 +4929,7 @@
       "kind": "ability",
       "id": 2187,
       "name": "Sanguine Claws",
-      "icon": "T_Nhance_RPG_Icons_BloodRitual.jpg",
+      "icon": "T_Nhance_RPG_Icons_BloodRitual.png",
       "school": "Physical",
       "cooldown": 32,
       "range": 300,
@@ -4918,31 +4939,31 @@
       "kind": "effect",
       "id": 1350,
       "name": "Spirit of Heroism",
-      "icon": "Tex_b_02.jpg"
+      "icon": "Tex_b_02.png"
     },
     "SpiritOfHeroismHealer": {
       "kind": "effect",
       "id": 2277,
       "name": "Spirit of Heroism",
-      "icon": "Tex_b_02.jpg"
+      "icon": "Tex_b_02.png"
     },
     "SpiritOfHeroismNotTank": {
       "kind": "effect",
       "id": 2253,
       "name": "Spirit of Heroism",
-      "icon": "Tex_b_02.jpg"
+      "icon": "Tex_b_02.png"
     },
     "SpiritOfHeroismXavian": {
       "kind": "effect",
       "id": 2662,
       "name": "Spirit of Heroism",
-      "icon": "Tex_b_02.jpg"
+      "icon": "Tex_b_02.png"
     },
     "VeinSprout": {
       "kind": "ability",
       "id": 2031,
       "name": "Vein Sprout",
-      "icon": "",
+      "icon": "T_Nhance_RPG_Icons_NatureRootsDemonic.png",
       "school": "Magic",
       "radius": 600
     }
@@ -4952,19 +4973,19 @@
       "kind": "effect",
       "id": 939,
       "name": "Adrenaline Rush",
-      "icon": "T_Nhance_RPG_BloodCombat_23.jpg"
+      "icon": "T_Nhance_RPG_BloodCombat_23.png"
     },
     "AdrenalineRushII": {
       "kind": "effect",
       "id": 940,
       "name": "Adrenaline Rush - II",
-      "icon": "T_Nhance_RPG_Icons_BloodHide.jpg"
+      "icon": "T_Nhance_RPG_Icons_BloodHide.png"
     },
     "AlShackle": {
       "kind": "ability",
       "id": 152,
       "name": "Al\u0027zerac\u0027s Shackle",
-      "icon": "T_Weapon_IceShackle.jpg",
+      "icon": "T_Weapon_IceShackle.png",
       "abilityCategory": "Weapon",
       "cooldown": 30,
       "range": 3000
@@ -4979,37 +5000,37 @@
       "kind": "effect",
       "id": 66,
       "name": "Al\u0027zerac\u0027s Shackle: Slow",
-      "icon": "T_Weapon_IceShackle.jpg"
+      "icon": "T_Weapon_IceShackle.png"
     },
     "AlShackleSlowDot": {
       "kind": "effect",
       "id": 65,
       "name": "Al\u0027zerac\u0027s Shackle: Slow",
-      "icon": "T_Weapon_IceShackle.jpg"
+      "icon": "T_Weapon_IceShackle.png"
     },
     "AlShackleStun": {
       "kind": "effect",
       "id": 64,
       "name": "Al\u0027zerac\u0027s Shackle: Freeze",
-      "icon": "T_Weapon_IceShackle.jpg"
+      "icon": "T_Weapon_IceShackle.png"
     },
     "AlShackleStunDot": {
       "kind": "effect",
       "id": 63,
       "name": "Al\u0027zerac\u0027s Shackle: Freeze",
-      "icon": "T_Weapon_IceShackle.jpg"
+      "icon": "T_Weapon_IceShackle.png"
     },
     "AncestralSurge": {
       "kind": "effect",
       "id": 1919,
       "name": "Ancestral Surge",
-      "icon": "T_Icon_Energy_130.jpg"
+      "icon": "T_Icon_Energy_130.png"
     },
     "AncestralSurgeII": {
       "kind": "effect",
       "id": 1920,
       "name": "Ancestral Surge - II",
-      "icon": "T_Icon_Energy_130.jpg"
+      "icon": "T_Icon_Energy_130.png"
     },
     "BlessingOfTheConqueror": {
       "kind": "ability",
@@ -5039,7 +5060,7 @@
       "kind": "ability",
       "id": 185,
       "name": "Bloodrite Fervor",
-      "icon": "T_Relic_Drums.jpg",
+      "icon": "T_Relic_Drums.png",
       "abilityCategory": "Relic",
       "cooldown": 90,
       "range": 4000
@@ -5048,13 +5069,13 @@
       "kind": "effect",
       "id": 156,
       "name": "Bloodrite Fervor",
-      "icon": "T_Relic_Drums.jpg"
+      "icon": "T_Relic_Drums.png"
     },
     "Chickenize": {
       "kind": "ability",
       "id": 1478,
       "name": "Chickenize!",
-      "icon": "T_Relic_Chicken.jpg",
+      "icon": "T_Relic_Chicken.png",
       "abilityCategory": "Relic",
       "cooldown": 180,
       "range": 3000
@@ -5063,7 +5084,7 @@
       "kind": "ability",
       "id": 1558,
       "name": "Chronoshift",
-      "icon": "T_Nhance_RPG_Icons_ArcaneLoad.jpg",
+      "icon": "T_Nhance_RPG_Icons_ArcaneLoad.png",
       "abilityCategory": "Weapon",
       "cooldown": 180,
       "range": 1500,
@@ -5075,19 +5096,19 @@
       "kind": "effect",
       "id": 2280,
       "name": "Chronoshift",
-      "icon": ""
+      "icon": "T_Nhance_RPG_Icons_ArcaneLoad.png"
     },
     "ChronoshiftBuff": {
       "kind": "effect",
       "id": 2279,
       "name": "Asha\u0027s Arcane Embrace",
-      "icon": "T_Nhance_RPG_Icons_ArcaneLoad.jpg"
+      "icon": "T_Nhance_RPG_Icons_ArcaneLoad.png"
     },
     "ConjurePortal": {
       "kind": "ability",
       "id": 1504,
       "name": "Conjure Portal",
-      "icon": "T_Relic_Portal.jpg",
+      "icon": "T_Relic_Portal.png",
       "abilityCategory": "Relic",
       "cooldown": 120,
       "range": 3000
@@ -5096,19 +5117,19 @@
       "kind": "effect",
       "id": 2176,
       "name": "Portal Sickness",
-      "icon": "Tex_SpellBook06_39.jpg"
+      "icon": "Tex_SpellBook06_39.png"
     },
     "DarkProphecy": {
       "kind": "effect",
       "id": 1994,
       "name": "Dark Prophecy",
-      "icon": "T_Icon_Gold_136.jpg"
+      "icon": "T_Icon_Gold_136.png"
     },
     "Earthbreaker": {
       "kind": "ability",
       "id": 1559,
       "name": "Earthbreaker",
-      "icon": "T_Nhance_RPG_Icons_NatureWave.jpg",
+      "icon": "T_Nhance_RPG_Icons_NatureWave.png",
       "abilityCategory": "Weapon",
       "cooldown": 180
     },
@@ -5116,43 +5137,43 @@
       "kind": "effect",
       "id": 2284,
       "name": "Earthbreaker",
-      "icon": ""
+      "icon": "T_Nhance_RPG_Icons_NatureWave.png"
     },
     "EarthbreakerDamageInitial": {
       "kind": "effect",
       "id": 2283,
       "name": "Earthbreaker",
-      "icon": ""
+      "icon": "T_Nhance_RPG_Icons_NatureWave.png"
     },
     "EarthbreakerDamageRepeating": {
       "kind": "effect",
       "id": 2282,
       "name": "Earthbreaker",
-      "icon": ""
+      "icon": "T_Nhance_RPG_Icons_NatureWave.png"
     },
     "EarthbreakerStun": {
       "kind": "effect",
       "id": 2281,
       "name": "Stunned",
-      "icon": "effect_stunned_icon.jpg"
+      "icon": "effect_stunned_icon.png"
     },
     "EssenceOfTheConqueror": {
       "kind": "effect",
       "id": 1951,
       "name": "Essence of the Conqueror",
-      "icon": "T_Nhance_RPG_Icons_BloodHide.jpg"
+      "icon": "T_Nhance_RPG_Icons_BloodHide.png"
     },
     "EssenceOfTheConquerorII": {
       "kind": "effect",
       "id": 1952,
       "name": "Essence of the Conqueror - II",
-      "icon": "T_Nhance_RPG_Icons_BloodHide.jpg"
+      "icon": "T_Nhance_RPG_Icons_BloodHide.png"
     },
     "FatedStrike": {
       "kind": "ability",
       "id": 160,
       "name": "Fated Strike",
-      "icon": "T_Weapon_CDstrike.jpg",
+      "icon": "T_Weapon_CDstrike.png",
       "abilityCategory": "Weapon",
       "cooldown": 60,
       "castDuration": 0.15
@@ -5161,61 +5182,61 @@
       "kind": "effect",
       "id": 79,
       "name": "Fated Strike",
-      "icon": ""
+      "icon": "T_Weapon_CDstrike.png"
     },
     "FatedStrikeMainDamage": {
       "kind": "effect",
       "id": 78,
       "name": "Fated Strike",
-      "icon": ""
+      "icon": "T_Weapon_CDstrike.png"
     },
     "FirstStrike": {
       "kind": "effect",
       "id": 943,
       "name": "First Strike",
-      "icon": ""
+      "icon": "T_Nhance_RPG_Icons_BloodAxeStrike.png"
     },
     "FirstStrikeII": {
       "kind": "effect",
       "id": 944,
       "name": "First Strike - II",
-      "icon": ""
+      "icon": "T_Nhance_RPG_Icons_HolyHand.png"
     },
     "FocusedHasteBuff": {
       "kind": "effect",
       "id": 2141,
       "name": "Trait : Focused Haste",
-      "icon": "Tex_SpellBook01_82.jpg"
+      "icon": "Tex_SpellBook01_82.png"
     },
     "GloriousPurpose": {
       "kind": "effect",
       "id": 80,
       "name": "Glorious Purpose",
-      "icon": "T_Weapon_CDstrike.jpg"
+      "icon": "T_Weapon_CDstrike.png"
     },
     "HarmoniousSoul": {
       "kind": "effect",
       "id": 1959,
       "name": "Harmonious Soul",
-      "icon": "T_Nhance_RPG_Arcane_19.jpg"
+      "icon": "T_Nhance_RPG_Arcane_19.png"
     },
     "HarmoniousSoulII": {
       "kind": "effect",
       "id": 1960,
       "name": "Harmonious Soul - II",
-      "icon": "T_Nhance_RPG_Arcane_19.jpg"
+      "icon": "T_Nhance_RPG_Arcane_19.png"
     },
     "HuntersFocusTrait": {
       "kind": "weapon",
       "id": 42,
       "name": "Hunter\u0027s Focus",
-      "icon": "Tex_SpellBook01_82.jpg"
+      "icon": "Tex_SpellBook01_82.png"
     },
     "IciclesOfAn": {
       "kind": "ability",
       "id": 1561,
       "name": "Icicles of An\u0027zhyr",
-      "icon": "T_Nhance_RPG_Icons_FrostRain.jpg",
+      "icon": "T_Nhance_RPG_Icons_FrostRain.png",
       "abilityCategory": "Weapon",
       "cooldown": 40,
       "range": 3000,
@@ -5225,13 +5246,13 @@
       "kind": "effect",
       "id": 2287,
       "name": "Icicles of An\u0027zhyr",
-      "icon": ""
+      "icon": "T_Nhance_RPG_Icons_FrostRain.png"
     },
     "IciclesOfAnDot": {
       "kind": "effect",
       "id": 2286,
       "name": "Curse of An\u0027zhyr",
-      "icon": "T_Nhance_RPG_Icons_FrostRain.jpg"
+      "icon": "T_Nhance_RPG_Icons_FrostRain.png"
     },
     "IciclesOfAnExtraDamageDebuff": {
       "kind": "effect",
@@ -5249,19 +5270,19 @@
       "kind": "effect",
       "id": 2112,
       "name": "Inspired Allegiance",
-      "icon": "Tex_b_26_layered.jpg"
+      "icon": "Tex_b_26_layered.png"
     },
     "InspiredAllegianceTrait": {
       "kind": "weapon",
       "id": 2,
       "name": "Inspired Allegiance",
-      "icon": "Tex_b_26_layered.jpg"
+      "icon": "Tex_b_26_layered.png"
     },
     "InterjectSpell": {
       "kind": "ability",
       "id": 2073,
       "name": "Interject Spell",
-      "icon": "T_CurseWeak.jpg",
+      "icon": "T_CurseWeak.png",
       "abilityCategory": "Relic",
       "cooldown": 90,
       "range": 3000
@@ -5270,19 +5291,19 @@
       "kind": "effect",
       "id": 2850,
       "name": "Interject Spell",
-      "icon": ""
+      "icon": "T_CurseWeak.png"
     },
     "InterjectSpellLockout": {
       "kind": "effect",
       "id": 2849,
       "name": "Interrupted",
-      "icon": "T_Nhance_RPG_Frost_01.jpg"
+      "icon": "T_Nhance_RPG_Frost_01.png"
     },
     "MajorDispel": {
       "kind": "ability",
       "id": 187,
       "name": "Major Dispel",
-      "icon": "T_Relic_DispelRune.jpg",
+      "icon": "T_Relic_DispelRune.png",
       "abilityCategory": "Relic",
       "cooldown": 120,
       "range": 4000
@@ -5291,7 +5312,7 @@
       "kind": "ability",
       "id": 1486,
       "name": "Major Invisibility",
-      "icon": "T_Relic_Orb.jpg",
+      "icon": "T_Relic_Orb.png",
       "abilityCategory": "Relic",
       "cooldown": 360
     },
@@ -5299,19 +5320,19 @@
       "kind": "effect",
       "id": 1921,
       "name": "Might of the Minotaur",
-      "icon": "T_Nhance_RPG_Icons_InfernalMadness.jpg"
+      "icon": "T_Nhance_RPG_Icons_InfernalMadness.png"
     },
     "MightOfTheMinotaurII": {
       "kind": "effect",
       "id": 1922,
       "name": "Might of the Minotaur - II",
-      "icon": "T_Nhance_RPG_Icons_InfernalMadness.jpg"
+      "icon": "T_Nhance_RPG_Icons_InfernalMadness.png"
     },
     "NatureFury": {
       "kind": "ability",
       "id": 161,
       "name": "Nature\u0027s Fury",
-      "icon": "T_Weapon_NatureBolt.jpg",
+      "icon": "T_Weapon_NatureBolt.png",
       "abilityCategory": "Weapon",
       "cooldown": 60,
       "range": 3000,
@@ -5339,37 +5360,37 @@
       "kind": "effect",
       "id": 2161,
       "name": "Navigator\u0027s Intuition : Critical Strike",
-      "icon": "Tex_SpellBook03_42.jpg"
+      "icon": "Tex_SpellBook03_42.png"
     },
     "NavigatorsIntuitionExpertise": {
       "kind": "effect",
       "id": 2160,
       "name": "Navigator\u0027s Intuition : Expertise",
-      "icon": "Tex_SpellBook03_42.jpg"
+      "icon": "Tex_SpellBook03_42.png"
     },
     "NavigatorsIntuitionHaste": {
       "kind": "effect",
       "id": 2159,
       "name": "Navigator\u0027s Intuition : Haste",
-      "icon": "Tex_SpellBook03_42.jpg"
+      "icon": "Tex_SpellBook03_42.png"
     },
     "NavigatorsIntuitionSpirit": {
       "kind": "effect",
       "id": 2158,
       "name": "Navigator\u0027s Intuition : Spirit",
-      "icon": "Tex_SpellBook03_42.jpg"
+      "icon": "Tex_SpellBook03_42.png"
     },
     "NavigatorsIntuitionTrait": {
       "kind": "weapon",
       "id": 43,
       "name": "Navigator\u0027s Intuition",
-      "icon": "Tex_SpellBook03_42.jpg"
+      "icon": "Tex_SpellBook03_42.png"
     },
     "ObsidianSkin": {
       "kind": "ability",
       "id": 1952,
       "name": "Obsidian Skin",
-      "icon": "T_Nhance_RPG_Tech_25.jpg",
+      "icon": "T_Nhance_RPG_Tech_25.png",
       "abilityCategory": "Relic",
       "cooldown": 60
     },
@@ -5377,25 +5398,25 @@
       "kind": "effect",
       "id": 2715,
       "name": "Obsidian Skin",
-      "icon": "T_Nhance_RPG_Tech_25.jpg"
+      "icon": "T_Nhance_RPG_Tech_25.png"
     },
     "ReapersReprieve": {
       "kind": "effect",
       "id": 1930,
       "name": "Reaper\u0027s Reprieve",
-      "icon": "T_Nhance_RPG_Icons_ArcaneSmoke.jpg"
+      "icon": "T_Nhance_RPG_Icons_ArcaneSmoke.png"
     },
     "ReapersReprieveII": {
       "kind": "effect",
       "id": 1931,
       "name": "Reaper\u0027s Reprieve - II",
-      "icon": "T_Nhance_RPG_Icons_ArcaneSmoke.jpg"
+      "icon": "T_Nhance_RPG_Icons_ArcaneSmoke.png"
     },
     "Rejuvenate": {
       "kind": "ability",
       "id": 189,
       "name": "Rejuvenate",
-      "icon": "T_Relic_HealingPotion.jpg",
+      "icon": "T_Relic_HealingPotion.png",
       "abilityCategory": "Relic",
       "cooldown": 120
     },
@@ -5403,7 +5424,7 @@
       "kind": "ability",
       "id": 164,
       "name": "Repository of Frozen Light",
-      "icon": "T_Weapon_FrostLightRepository.jpg",
+      "icon": "T_Weapon_FrostLightRepository.png",
       "abilityCategory": "Weapon",
       "cooldown": 120,
       "radius": 6000,
@@ -5413,7 +5434,7 @@
       "kind": "effect",
       "id": 87,
       "name": "Frozen Light",
-      "icon": "T_Weapon_FrostLightRepository.jpg"
+      "icon": "T_Weapon_FrostLightRepository.png"
     },
     "RepositoryOfFrozenLightHeal": {
       "kind": "effect",
@@ -5437,7 +5458,7 @@
       "kind": "ability",
       "id": 188,
       "name": "Restore Mana",
-      "icon": "T_Relic_Mana.jpg",
+      "icon": "T_Relic_Mana.png",
       "abilityCategory": "Relic",
       "cooldown": 120
     },
@@ -5445,7 +5466,7 @@
       "kind": "ability",
       "id": 22,
       "name": "Revive",
-      "icon": "T_Relic_CombatRess.jpg",
+      "icon": "T_Relic_CombatRess.png",
       "abilityCategory": "Relic",
       "cooldown": 300,
       "range": 4000,
@@ -5455,25 +5476,25 @@
       "kind": "effect",
       "id": 162,
       "name": "Revive",
-      "icon": ""
+      "icon": "T_Relic_CombatRess.png"
     },
     "RoguesResurgence": {
       "kind": "effect",
       "id": 1966,
       "name": "Rogue\u0027s Resurgence",
-      "icon": "T_Icon_Gold_135.jpg"
+      "icon": "T_Icon_Gold_135.png"
     },
     "RoguesResurgenceII": {
       "kind": "effect",
       "id": 1967,
       "name": "Rogue\u0027s Resurgence - II",
-      "icon": "T_Icon_Gold_135.jpg"
+      "icon": "T_Icon_Gold_135.png"
     },
     "SahrilAegis": {
       "kind": "ability",
       "id": 159,
       "name": "Sahril\u0027s Aegis",
-      "icon": "T_Weapon_VoidBarrier.jpg",
+      "icon": "T_Weapon_VoidBarrier.png",
       "abilityCategory": "Weapon",
       "cooldown": 90
     },
@@ -5481,7 +5502,7 @@
       "kind": "effect",
       "id": 77,
       "name": "Sahril\u0027s Aegis",
-      "icon": "T_Weapon_VoidBarrier.jpg"
+      "icon": "T_Weapon_VoidBarrier.png"
     },
     "SahrilAegisAoeDamage": {
       "kind": "effect",
@@ -5493,7 +5514,7 @@
       "kind": "ability",
       "id": 157,
       "name": "Sahril\u0027s Wrath",
-      "icon": "T_Weapon_CritAOE.jpg",
+      "icon": "T_Weapon_CritAOE.png",
       "abilityCategory": "Weapon",
       "cooldown": 120,
       "radius": 1000
@@ -5502,19 +5523,19 @@
       "kind": "effect",
       "id": 75,
       "name": "Sundering Wrath",
-      "icon": "T_Weapon_CritAOE.jpg"
+      "icon": "T_Weapon_CritAOE.png"
     },
     "SahrilWrathDamage": {
       "kind": "effect",
       "id": 74,
       "name": "Sahril\u0027s Wrath",
-      "icon": ""
+      "icon": "T_Weapon_CritAOE.png"
     },
     "Sanctuary": {
       "kind": "ability",
       "id": 186,
       "name": "Sanctuary",
-      "icon": "T_Relic_DamageReduction.jpg",
+      "icon": "T_Relic_DamageReduction.png",
       "abilityCategory": "Relic",
       "cooldown": 180,
       "range": 4000
@@ -5523,67 +5544,67 @@
       "kind": "effect",
       "id": 157,
       "name": "Sanctuary",
-      "icon": "T_Relic_DamageReduction.jpg"
+      "icon": "T_Relic_DamageReduction.png"
     },
     "SeizedOpportunityBuff": {
       "kind": "effect",
       "id": 2110,
       "name": "Seized Opportunity",
-      "icon": "Tex_violet_27.jpg"
+      "icon": "Tex_violet_27.png"
     },
     "SeizedOpportunityTrait": {
       "kind": "weapon",
       "id": 4,
       "name": "Seized Opportunity",
-      "icon": "Tex_violet_27.jpg"
+      "icon": "Tex_violet_27.png"
     },
     "SentinelsBastion": {
       "kind": "effect",
       "id": 1968,
       "name": "Sentinel\u0027s Bastion",
-      "icon": "T_Nhance_RPG_Icons_SpiritAmulet_SentinelBastion.jpg"
+      "icon": "T_Nhance_RPG_Icons_SpiritAmulet_SentinelBastion.png"
     },
     "SentinelsBastionII": {
       "kind": "effect",
       "id": 1969,
       "name": "Sentinel\u0027s Bastion - II",
-      "icon": "T_Nhance_RPG_Icons_SpiritAmulet_SentinelBastion.jpg"
+      "icon": "T_Nhance_RPG_Icons_SpiritAmulet_SentinelBastion.png"
     },
     "SentinelsBastionShield": {
       "kind": "ability",
       "id": 135,
       "name": "Sentinel\u0027s Bastion",
-      "icon": "T_Nhance_RPG_Icons_SpiritAmulet_SentinelBastion.jpg"
+      "icon": "T_Nhance_RPG_Icons_SpiritAmulet_SentinelBastion.png"
     },
     "SentinelsBastionShieldII": {
       "kind": "ability",
       "id": 136,
       "name": "Sentinel\u0027s Bastion - II",
-      "icon": "T_Nhance_RPG_Icons_SpiritAmulet_SentinelBastion.jpg"
+      "icon": "T_Nhance_RPG_Icons_SpiritAmulet_SentinelBastion.png"
     },
     "ThePhilosopher": {
       "kind": "effect",
       "id": 3189,
       "name": "The Philosopher",
-      "icon": "T_Nhance_RPG_Tech_02.jpg"
+      "icon": "T_Nhance_RPG_Tech_02.png"
     },
     "TheTrickster": {
       "kind": "effect",
       "id": 3181,
       "name": "The Trickster",
-      "icon": "Tex_SpellBook06_97.jpg"
+      "icon": "Tex_SpellBook06_97.png"
     },
     "TheWayfarer": {
       "kind": "effect",
       "id": 3184,
       "name": "The Wayfarer",
-      "icon": "T_Nhance_RPG_Elements_38.jpg"
+      "icon": "T_Nhance_RPG_Elements_38.png"
     },
     "TwilightSkybolt": {
       "kind": "ability",
       "id": 156,
       "name": "Twilight Skybolt",
-      "icon": "T_Weapon_Skybolt.jpg",
+      "icon": "T_Weapon_Skybolt.png",
       "abilityCategory": "Weapon",
       "cooldown": 20,
       "range": 3000,
@@ -5599,49 +5620,49 @@
       "kind": "effect",
       "id": 72,
       "name": "Twilight Skybolt",
-      "icon": ""
+      "icon": "T_Weapon_Skybolt.png"
     },
     "TwilightSkyboltHeal": {
       "kind": "effect",
       "id": 71,
       "name": "Twilight Skybolt",
-      "icon": ""
+      "icon": "T_Weapon_Skybolt.png"
     },
     "TwilightSkyboltPowerCharge": {
       "kind": "effect",
       "id": 70,
       "name": "Twilight Skybolt: Eclipse",
-      "icon": "T_Weapon_Skybolt.jpg"
+      "icon": "T_Weapon_Skybolt.png"
     },
     "UnyieldingVitality": {
       "kind": "effect",
       "id": 1932,
       "name": "Unyielding Vitality",
-      "icon": "T_Icon_BloodCombat_137.jpg"
+      "icon": "T_Icon_BloodCombat_137.png"
     },
     "UnyieldingVitalityII": {
       "kind": "effect",
       "id": 1933,
       "name": "Unyielding Vitality - II",
-      "icon": "T_Icon_BloodCombat_137.jpg"
+      "icon": "T_Icon_BloodCombat_137.png"
     },
     "VengefulSoulBuff": {
       "kind": "effect",
       "id": 2163,
       "name": "Vengeful Soul",
-      "icon": "Berserker16.jpg"
+      "icon": "Berserker16.png"
     },
     "VengefulSoulTrait": {
       "kind": "weapon",
       "id": 5,
       "name": "Vengeful Soul",
-      "icon": "Berserker16.jpg"
+      "icon": "Berserker16.png"
     },
     "VoidbringerTouch": {
       "kind": "ability",
       "id": 155,
       "name": "Voidbringer\u0027s Touch",
-      "icon": "T_Weapon_VoidTouch.jpg",
+      "icon": "T_Weapon_VoidTouch.png",
       "abilityCategory": "Weapon",
       "cooldown": 90,
       "range": 3000
@@ -5656,25 +5677,25 @@
       "kind": "effect",
       "id": 68,
       "name": "Voidbringer\u0027s Touch",
-      "icon": "T_Weapon_VoidTouch.jpg"
+      "icon": "T_Weapon_VoidTouch.png"
     },
     "WillfulMomentumBuff": {
       "kind": "effect",
       "id": 2078,
       "name": "Willful Momentum",
-      "icon": "T_Nhance_RPG_Icons_SpiritFire.jpg"
+      "icon": "T_Nhance_RPG_Icons_SpiritFire.png"
     },
     "WillfulMomentumTrait": {
       "kind": "weapon",
       "id": 39,
       "name": "Willful Momentum",
-      "icon": "T_Nhance_RPG_Icons_SpiritFire.jpg"
+      "icon": "T_Nhance_RPG_Icons_SpiritFire.png"
     },
     "ZeralethHunger": {
       "kind": "ability",
       "id": 162,
       "name": "Zeraleth\u0027s Hunger",
-      "icon": "T_Weapon_Vampiric.jpg",
+      "icon": "T_Weapon_Vampiric.png",
       "abilityCategory": "Weapon",
       "cooldown": 60,
       "castDuration": 0.5,
@@ -5685,19 +5706,1341 @@
       "kind": "effect",
       "id": 85,
       "name": "Zeraleth\u0027s Hunger",
-      "icon": ""
+      "icon": "T_Weapon_Vampiric.png"
     },
     "ZeralethHungerDamage": {
       "kind": "effect",
       "id": 84,
       "name": "Zeraleth\u0027s Hunger",
-      "icon": ""
+      "icon": "T_Weapon_Vampiric.png"
     },
     "ZeralethHungerHeal": {
       "kind": "effect",
       "id": 83,
       "name": "Zeraleth\u0027s Hunger",
-      "icon": ""
+      "icon": "T_Weapon_Vampiric.png"
+    }
+  },
+  "talents": {
+    "aeona": {
+      "ChronaTap": {
+        "kind": "talent",
+        "id": 539,
+        "name": "Chrona Tap",
+        "icon": "Tex_p_30.png"
+      },
+      "ContinuumShift": {
+        "kind": "talent",
+        "id": 621,
+        "name": "Continuum Shift",
+        "icon": "Tex_SpellBook06_59.png"
+      },
+      "EchoesOfDivinity": {
+        "kind": "talent",
+        "id": 623,
+        "name": "Echoes of Divinity",
+        "icon": "T_Lisa_BeaconOfTime.png"
+      },
+      "EdgeOfRuin": {
+        "kind": "talent",
+        "id": 555,
+        "name": "Edge of Ruin",
+        "icon": "T_Lisa_Burst.png"
+      },
+      "EntropicBurst": {
+        "kind": "talent",
+        "id": 592,
+        "name": "Entropic Burst",
+        "icon": "Tex_SpellBook01_69.png"
+      },
+      "Erasure": {
+        "kind": "talent",
+        "id": 614,
+        "name": "Erasure",
+        "icon": "T_Lisa_ChronaBlast.png"
+      },
+      "HasteningDoom": {
+        "kind": "talent",
+        "id": 624,
+        "name": "Hastening Doom",
+        "icon": "T_Lisa_StrandsofTime.png"
+      },
+      "KarmicDispersion": {
+        "kind": "talent",
+        "id": 669,
+        "name": "Karmic Dispersion",
+        "icon": "T_Lisa_Wither.png"
+      },
+      "KindRewind": {
+        "kind": "talent",
+        "id": 613,
+        "name": "Kind Rewind",
+        "icon": "T_Lisa_FillerCast.png"
+      },
+      "OblivionsEmbrace": {
+        "kind": "talent",
+        "id": 611,
+        "name": "Oblivion\u0027s Embrace",
+        "icon": "T_Nhance_RPG_Icons_ArcaneLoad.png"
+      },
+      "ParadoxicalTwist": {
+        "kind": "talent",
+        "id": 622,
+        "name": "Paradoxical Twist",
+        "icon": "T_Lisa_Barrage.png"
+      },
+      "Quickening": {
+        "kind": "talent",
+        "id": 540,
+        "name": "Quickening",
+        "icon": "T_Lisa_TimeMend.png"
+      },
+      "ResonantFate": {
+        "kind": "talent",
+        "id": 536,
+        "name": "Resonant Fate",
+        "icon": "T_Lisa_Stagger.png"
+      },
+      "SurgingChrona": {
+        "kind": "talent",
+        "id": 612,
+        "name": "Surging Chrona",
+        "icon": "T_Nhance_RPG_Shadow_56.png"
+      },
+      "Synchronicity": {
+        "kind": "talent",
+        "id": 537,
+        "name": "Synchronicity",
+        "icon": "Tex_SpellBook06_85.png"
+      },
+      "TemporalShift": {
+        "kind": "talent",
+        "id": 590,
+        "name": "Temporal Shift",
+        "icon": "T_Lisa_TimeBuff.png"
+      },
+      "Uchronia": {
+        "kind": "talent",
+        "id": 554,
+        "name": "Uchronia",
+        "icon": "T_Nhance_RPG_Icons_ArcanePotion.png"
+      },
+      "VestigeOfEternity": {
+        "kind": "talent",
+        "id": 670,
+        "name": "Vestige of Eternity",
+        "icon": "T_Nhance_RPG_Arcane_10.png"
+      }
+    },
+    "ardeos": {
+      "AgonizingBlaze": {
+        "kind": "talent",
+        "id": 145,
+        "name": "Agonizing Blaze",
+        "icon": "T_Nhance_RPG_Fire_30.png"
+      },
+      "ApocalypticSurge": {
+        "kind": "talent",
+        "id": 678,
+        "name": "Apocalyptic Surge",
+        "icon": "Firemage_Apocalypse.png"
+      },
+      "Backdraft": {
+        "kind": "talent",
+        "id": 617,
+        "name": "Backdraft",
+        "icon": "Firemage_Dot_02.png"
+      },
+      "BurningInitiative": {
+        "kind": "talent",
+        "id": 677,
+        "name": "Burning Initiative",
+        "icon": "Tex_SpellBook01_33.png"
+      },
+      "CascadingInferno": {
+        "kind": "talent",
+        "id": 676,
+        "name": "Cascading Inferno",
+        "icon": "T_Icon_Fire_156.png"
+      },
+      "CracklingInferno": {
+        "kind": "talent",
+        "id": 183,
+        "name": "Crackling Inferno",
+        "icon": "Pyromancer15.png"
+      },
+      "CrashAndBurn": {
+        "kind": "talent",
+        "id": 184,
+        "name": "Crash and Burn",
+        "icon": "T_Nhance_RPG_Icons_FireRealm.png"
+      },
+      "Firestarter": {
+        "kind": "talent",
+        "id": 149,
+        "name": "Firestarter",
+        "icon": "Pyromancer20.png"
+      },
+      "FlareUp": {
+        "kind": "talent",
+        "id": 159,
+        "name": "Flare up",
+        "icon": "T_Nhance_RPG_Icons_FireRune.png"
+      },
+      "FrogSquad": {
+        "kind": "talent",
+        "id": 158,
+        "name": "Frog Squad",
+        "icon": "T_Nhance_RPG_Icons_HypnoToad.png"
+      },
+      "GreatBallsOfFire": {
+        "kind": "talent",
+        "id": 160,
+        "name": "Great Balls of Fire",
+        "icon": "T_Nhance_RPG_Fire_36.png"
+      },
+      "IntensifyingInferno": {
+        "kind": "talent",
+        "id": 151,
+        "name": "Intensifying Inferno",
+        "icon": "Firemage_Bolt.png"
+      },
+      "PyrophibianFrenzy": {
+        "kind": "talent",
+        "id": 146,
+        "name": "Pyrophibian Frenzy",
+        "icon": "Firemage_Firefrog.png"
+      },
+      "ReignOfFire": {
+        "kind": "talent",
+        "id": 157,
+        "name": "Reign of Fire",
+        "icon": "Firemage_Inferno.png"
+      },
+      "RollingFlames": {
+        "kind": "talent",
+        "id": 226,
+        "name": "Rolling Flames",
+        "icon": "Firemage_Dot_01.png"
+      },
+      "SlowBurn": {
+        "kind": "talent",
+        "id": 162,
+        "name": "Slow Burn",
+        "icon": "T_Nhance_RPG_Fire_24.png"
+      },
+      "SpontaneousCombustion": {
+        "kind": "talent",
+        "id": 153,
+        "name": "Spontaneous Combustion",
+        "icon": "Tex_r_02.png"
+      },
+      "UndyingFlame": {
+        "kind": "talent",
+        "id": 150,
+        "name": "Undying Flame",
+        "icon": "Pyromancer5.png"
+      }
+    },
+    "elarion": {
+      "DeadlyFocus": {
+        "kind": "talent",
+        "id": 679,
+        "name": "Deadly Focus",
+        "icon": "Bowguy_FocusShot.png"
+      },
+      "FerventSupremacy": {
+        "kind": "talent",
+        "id": 136,
+        "name": "Fervent Supremacy",
+        "icon": "Bowguy_Supremacy.png"
+      },
+      "FinalCrescendo": {
+        "kind": "talent",
+        "id": 169,
+        "name": "Final Crescendo",
+        "icon": "Bowguy_Ricochet.png"
+      },
+      "FocusedExpanse": {
+        "kind": "talent",
+        "id": 167,
+        "name": "Focused Expanse",
+        "icon": "Bowguy_Multishot.png"
+      },
+      "Fusillade": {
+        "kind": "talent",
+        "id": 128,
+        "name": "Fusillade",
+        "icon": "T_Icon_Energy_106.png"
+      },
+      "ImpendingHeartseeker": {
+        "kind": "talent",
+        "id": 168,
+        "name": "Impending Heartseeker",
+        "icon": "Bowguy_Spray.png"
+      },
+      "LastLights": {
+        "kind": "talent",
+        "id": 164,
+        "name": "Last Lights",
+        "icon": "T_NatureArrow.png"
+      },
+      "LethalShots": {
+        "kind": "talent",
+        "id": 202,
+        "name": "Lethal Shots",
+        "icon": "Tex_arrow.png"
+      },
+      "LunarFury": {
+        "kind": "talent",
+        "id": 130,
+        "name": "Lunar Fury",
+        "icon": "Bowguy_Mark.png"
+      },
+      "LunarlightAffinity": {
+        "kind": "talent",
+        "id": 203,
+        "name": "Lunarlight Affinity",
+        "icon": "T_Icon_Energy_108.png"
+      },
+      "PiercingSeekers": {
+        "kind": "talent",
+        "id": 201,
+        "name": "Piercing Seekers",
+        "icon": "T_Nhance_RPG_Icons_SoulArrow.png"
+      },
+      "RepeatingStars": {
+        "kind": "talent",
+        "id": 124,
+        "name": "Repeating Stars",
+        "icon": "Bowguy_Rain.png"
+      },
+      "ResurgentWinds": {
+        "kind": "talent",
+        "id": 126,
+        "name": "Resurgent Winds",
+        "icon": "T_Icon_Tech_40.png"
+      },
+      "RisingMoon": {
+        "kind": "talent",
+        "id": 681,
+        "name": "Rising Moon",
+        "icon": "T_Nhance_RPG_Energy_17.png"
+      },
+      "SkylitGrace": {
+        "kind": "talent",
+        "id": 200,
+        "name": "Skylit Grace",
+        "icon": "Tex_b_03.png"
+      },
+      "SkywardMunitions": {
+        "kind": "talent",
+        "id": 132,
+        "name": "Skyward Munitions",
+        "icon": "Bowguy_Shot.png"
+      },
+      "StrikersAim": {
+        "kind": "talent",
+        "id": 680,
+        "name": "Striker\u0027s Aim",
+        "icon": "T_Nhance_RPG_Icons_MagicShot.png"
+      },
+      "SwiftReload": {
+        "kind": "talent",
+        "id": 682,
+        "name": "Swift Reload",
+        "icon": "Tex_SpellBook01_16.png"
+      }
+    },
+    "gunde": {
+      "AncestralInstinct": {
+        "kind": "talent",
+        "id": 756,
+        "name": "Ancestral Instinct",
+        "icon": "Tex_yellow_14.png"
+      },
+      "Bloodbath": {
+        "kind": "talent",
+        "id": 764,
+        "name": "Bloodbath",
+        "icon": "T_Nhance_RPG_BloodCombat_22.png"
+      },
+      "Bloodcraze": {
+        "kind": "talent",
+        "id": 761,
+        "name": "Bloodcraze",
+        "icon": "T_Gunde_SanguineFeast_off.png"
+      },
+      "Carnage": {
+        "kind": "talent",
+        "id": 754,
+        "name": "Carnage",
+        "icon": "t_gunde_Healstrike.png"
+      },
+      "CrimsonStrikes": {
+        "kind": "talent",
+        "id": 768,
+        "name": "Crimson strikes",
+        "icon": "T_Icon_BloodCombat_141.png"
+      },
+      "DarkeningHearts": {
+        "kind": "talent",
+        "id": 757,
+        "name": "Darkening Hearts",
+        "icon": "T_Gunde_Cleave.png"
+      },
+      "DeathsArc": {
+        "kind": "talent",
+        "id": 748,
+        "name": "Death\u0027s Arc",
+        "icon": "T_Nhance_RPG_Icons_NightmarePuppet.png"
+      },
+      "DeepRend": {
+        "kind": "talent",
+        "id": 751,
+        "name": "Deep Rend",
+        "icon": "T_Status_Bleed.png"
+      },
+      "FrenziedReign": {
+        "kind": "talent",
+        "id": 750,
+        "name": "Frenzied Reign",
+        "icon": "T_Gunde_HPDrain.png"
+      },
+      "GrimHarvest": {
+        "kind": "talent",
+        "id": 766,
+        "name": "Grim Harvest",
+        "icon": "T_Gunde_Sawblade.png"
+      },
+      "HarvestersToll": {
+        "kind": "talent",
+        "id": 767,
+        "name": "Harvester\u0027s Toll",
+        "icon": "T_Icon_BloodCombat_143.png"
+      },
+      "Massacre": {
+        "kind": "talent",
+        "id": 772,
+        "name": "Massacre",
+        "icon": "T_Gunde_Slaughter.png"
+      },
+      "MurderOfCrows": {
+        "kind": "talent",
+        "id": 758,
+        "name": "Murder of Crows",
+        "icon": "T_Icon_BloodCombat_129.png"
+      },
+      "Oathshatter": {
+        "kind": "talent",
+        "id": 762,
+        "name": "Oathshatter",
+        "icon": "T_Gunde_DoubleAxe.png"
+      },
+      "RavensPrecision": {
+        "kind": "talent",
+        "id": 760,
+        "name": "Raven\u0027s Precision",
+        "icon": "Gunde_AOESwing_01.png"
+      },
+      "SlayersGrin": {
+        "kind": "talent",
+        "id": 763,
+        "name": "Slayer\u0027s Grin",
+        "icon": "T_Gunde_Rupture.png"
+      },
+      "SunderedFlesh": {
+        "kind": "talent",
+        "id": 765,
+        "name": "Sundered Flesh",
+        "icon": "T_Nhance_RPG_Icons_NightmareAura.png"
+      },
+      "SuperiorSerration": {
+        "kind": "talent",
+        "id": 749,
+        "name": "Superior Serration",
+        "icon": "Gunde_Frontal.png"
+      }
+    },
+    "helena": {
+      "Aftershock": {
+        "kind": "talent",
+        "id": 213,
+        "name": "Aftershock",
+        "icon": "T_Nhance_RPG_Arcane_36.png"
+      },
+      "Defiance": {
+        "kind": "talent",
+        "id": 648,
+        "name": "Defiance",
+        "icon": "Tex_SpellBook01_21.png"
+      },
+      "FrontLineDefender": {
+        "kind": "talent",
+        "id": 646,
+        "name": "Front Line Defender",
+        "icon": "warmaster_shields_up.png"
+      },
+      "GleamingShield": {
+        "kind": "talent",
+        "id": 641,
+        "name": "Gleaming Shield",
+        "icon": "T_Nhance_RPG_Gold_05.png"
+      },
+      "GreaterShockwave": {
+        "kind": "talent",
+        "id": 643,
+        "name": "Greater Shockwave",
+        "icon": "T_Warmaster_shockwave.png"
+      },
+      "GuardedVeteran": {
+        "kind": "talent",
+        "id": 645,
+        "name": "Guarded Veteran",
+        "icon": "T_Nhance_RPG_Fire_08_Yellow.png"
+      },
+      "HighCommand": {
+        "kind": "talent",
+        "id": 210,
+        "name": "High Command",
+        "icon": "T_Nhance_RPG_Fire_05.png"
+      },
+      "LingeringRush": {
+        "kind": "talent",
+        "id": 649,
+        "name": "Lingering Rush",
+        "icon": "T_HandsOfBlood.png"
+      },
+      "MartialCommand": {
+        "kind": "talent",
+        "id": 14,
+        "name": "Martial Command",
+        "icon": "T_Warmaster_Ultimate.png"
+      },
+      "MasterOfWar": {
+        "kind": "talent",
+        "id": 647,
+        "name": "Master of War",
+        "icon": "T_Nhance_RPG_Gold_03.png"
+      },
+      "PunishingStrikes": {
+        "kind": "talent",
+        "id": 644,
+        "name": "Punishing Strikes",
+        "icon": "T_Warmaster_FatalBlow.png"
+      },
+      "SecondWind": {
+        "kind": "talent",
+        "id": 219,
+        "name": "Second Wind",
+        "icon": "T_Nhance_RPG_Energy_07.png"
+      },
+      "SharpenedBlade": {
+        "kind": "talent",
+        "id": 215,
+        "name": "Sharpened Blade",
+        "icon": "T_Warmaster_BleedStrike.png"
+      },
+      "ShieldMastery": {
+        "kind": "talent",
+        "id": 208,
+        "name": "Shield Mastery",
+        "icon": "Tex_y_17_layered.png"
+      },
+      "SkullCracker": {
+        "kind": "talent",
+        "id": 214,
+        "name": "Skull Cracker",
+        "icon": "T_Nhance_RPG_BloodCombat_01.png"
+      },
+      "SwordAndBoard": {
+        "kind": "talent",
+        "id": 209,
+        "name": "Sword \u0026 Board",
+        "icon": "T_Warmaster_ShieldSlam.png"
+      },
+      "TheBestDefense": {
+        "kind": "talent",
+        "id": 207,
+        "name": "The Best Defense",
+        "icon": "warmaster_shield_throw_3.png"
+      },
+      "UnscarredSoul": {
+        "kind": "talent",
+        "id": 390,
+        "name": "Unscarred Soul",
+        "icon": "T_WM_HoldTheLine.png"
+      }
+    },
+    "mara": {
+      "ArachnidOnslaught": {
+        "kind": "talent",
+        "id": 166,
+        "name": "Arachnid Onslaught",
+        "icon": "Mara_SpiderAOE.png"
+      },
+      "AssassinsGuile": {
+        "kind": "talent",
+        "id": 422,
+        "name": "Assassin\u0027s Guile",
+        "icon": "T_Icon_Shadow_121.png"
+      },
+      "Bloodrush": {
+        "kind": "talent",
+        "id": 163,
+        "name": "Bloodrush",
+        "icon": "T_Nhance_RPG_BloodCombat_24.png"
+      },
+      "CausticWounds": {
+        "kind": "talent",
+        "id": 667,
+        "name": "Caustic Wounds",
+        "icon": "Mara_backstab.png"
+      },
+      "CorrosiveSpill": {
+        "kind": "talent",
+        "id": 206,
+        "name": "Corrosive Spill",
+        "icon": "T_Icon_Unholy_197.png"
+      },
+      "DeadlyScheme": {
+        "kind": "talent",
+        "id": 110,
+        "name": "Deadly Scheme",
+        "icon": "Tex_SpellBook08_71.png"
+      },
+      "EfficientKiller": {
+        "kind": "talent",
+        "id": 113,
+        "name": "Efficient Killer",
+        "icon": "T_ShadowStab.png"
+      },
+      "FeedTheQueen": {
+        "kind": "talent",
+        "id": 121,
+        "name": "Feed the Queen",
+        "icon": "T_Nhance_RPG_Shadow_41.png"
+      },
+      "GushingBlood": {
+        "kind": "talent",
+        "id": 122,
+        "name": "Gushing Blood",
+        "icon": "Berserker5.png"
+      },
+      "Hemotoxin": {
+        "kind": "talent",
+        "id": 205,
+        "name": "Hemotoxin",
+        "icon": "T_PoisonBlister.png"
+      },
+      "MacabreStratagem": {
+        "kind": "talent",
+        "id": 8,
+        "name": "Macabre Stratagem",
+        "icon": "T_Nhance_RPG_Shadow_16.png"
+      },
+      "MaidensDoom": {
+        "kind": "talent",
+        "id": 442,
+        "name": "Maiden\u0027s Doom",
+        "icon": "Mara_Maiden.png"
+      },
+      "Malevolence": {
+        "kind": "talent",
+        "id": 443,
+        "name": "Malevolence",
+        "icon": "Tex_violet_7.png"
+      },
+      "Puncture": {
+        "kind": "talent",
+        "id": 123,
+        "name": "Puncture",
+        "icon": "Mara_RegainEnergyHit.png"
+      },
+      "RedLedger": {
+        "kind": "talent",
+        "id": 108,
+        "name": "Red Ledger",
+        "icon": "Mara_Bleed.png"
+      },
+      "SeethingBurst": {
+        "kind": "talent",
+        "id": 668,
+        "name": "Seething Burst",
+        "icon": "T_TurtleShield.png"
+      },
+      "SinnersPride": {
+        "kind": "talent",
+        "id": 586,
+        "name": "Sinner\u0027s Pride",
+        "icon": "T_Nhance_RPG_Icons_SoulDarkening.png"
+      },
+      "VenomousDelight": {
+        "kind": "talent",
+        "id": 112,
+        "name": "Venomous Delight",
+        "icon": "Tex_green_23.png"
+      }
+    },
+    "meiko": {
+      "ConclusiveStrikes": {
+        "kind": "talent",
+        "id": 107,
+        "name": "Conclusive Strikes",
+        "icon": "T_Icon_Elements_71.png"
+      },
+      "DebilitatingVortex": {
+        "kind": "talent",
+        "id": 97,
+        "name": "Debilitating Vortex",
+        "icon": "Meiko_AbilityIcon_07.png"
+      },
+      "Earthbourne": {
+        "kind": "talent",
+        "id": 103,
+        "name": "Earthbourne",
+        "icon": "T_Nhance_RPG_Tech_24.png"
+      },
+      "Earthwell": {
+        "kind": "talent",
+        "id": 96,
+        "name": "Earthwell",
+        "icon": "T_Icon_Cosmic_01.png"
+      },
+      "ForbiddenTechnique": {
+        "kind": "talent",
+        "id": 104,
+        "name": "Forbidden Technique",
+        "icon": "Meiko_AbilityIcon_04.png"
+      },
+      "GuardiansFluidity": {
+        "kind": "talent",
+        "id": 514,
+        "name": "Guardian\u0027s Fluidity",
+        "icon": "T_Nhance_RPG_Icons_NatureStone.png"
+      },
+      "HarmonicResidual": {
+        "kind": "talent",
+        "id": 106,
+        "name": "Harmonic Residual",
+        "icon": "Tex_yellow_29.png"
+      },
+      "HarshWinds": {
+        "kind": "talent",
+        "id": 98,
+        "name": "Harsh Winds",
+        "icon": "Electromancer5.png"
+      },
+      "Peacefield": {
+        "kind": "talent",
+        "id": 174,
+        "name": "Peacefield",
+        "icon": "T_Icon_Elements_77.png"
+      },
+      "PerfectStorm": {
+        "kind": "talent",
+        "id": 91,
+        "name": "Perfect Storm",
+        "icon": "Tex_blue_6.png"
+      },
+      "ResonanceOfEarth": {
+        "kind": "talent",
+        "id": 90,
+        "name": "Resonance of Earth",
+        "icon": "T_Nhance_RPG_Energy_19.png"
+      },
+      "RumblingStone": {
+        "kind": "talent",
+        "id": 95,
+        "name": "Rumbling Stone",
+        "icon": "T_Nhance_RPG_Icons_NatureAmbush.png"
+      },
+      "ShatteringObelisk": {
+        "kind": "talent",
+        "id": 415,
+        "name": "Shattering Obelisk",
+        "icon": "T_Meiko_TauntTotem.png"
+      },
+      "Slipstream": {
+        "kind": "talent",
+        "id": 99,
+        "name": "Slipstream",
+        "icon": "Meiko_AbilityIcon_10.png"
+      },
+      "StoneGuard": {
+        "kind": "talent",
+        "id": 446,
+        "name": "Stone Guard",
+        "icon": "T_Nhance_RPG_Icons_EarthTranquility.png"
+      },
+      "WardenOfTheTemple": {
+        "kind": "talent",
+        "id": 102,
+        "name": "Warden of the Temple",
+        "icon": "Meiko_AbilityIcon_01.png"
+      },
+      "WhippingApex": {
+        "kind": "talent",
+        "id": 626,
+        "name": "Whipping Apex",
+        "icon": "T_Nhance_RPG_Tech_26.png"
+      },
+      "WillOfStone": {
+        "kind": "talent",
+        "id": 92,
+        "name": "Will of Stone",
+        "icon": "T_Meiko_SlamStun.png"
+      }
+    },
+    "rime": {
+      "Avalanche": {
+        "kind": "talent",
+        "id": 48,
+        "name": "Avalanche",
+        "icon": "T_Rime_OnTargetPulsatingAOE.png"
+      },
+      "BitingCold": {
+        "kind": "talent",
+        "id": 51,
+        "name": "Biting Cold",
+        "icon": "T_Nhance_RPG_Frost_01.png"
+      },
+      "Burstbolter": {
+        "kind": "talent",
+        "id": 193,
+        "name": "Burstbolter",
+        "icon": "Cryomancer7.png"
+      },
+      "BurstingSwallows": {
+        "kind": "talent",
+        "id": 628,
+        "name": "Bursting Swallows",
+        "icon": "T_Icon_Frost_112.png"
+      },
+      "CascadingBlitz": {
+        "kind": "talent",
+        "id": 192,
+        "name": "Cascading Blitz",
+        "icon": "T_Nhance_RPG_Icons_IcySpikes.png"
+      },
+      "ChillingFinesse": {
+        "kind": "talent",
+        "id": 43,
+        "name": "Chilling Finesse",
+        "icon": "Cryomancer19.png"
+      },
+      "CoalescingFrost": {
+        "kind": "talent",
+        "id": 36,
+        "name": "Coalescing Frost",
+        "icon": "Cryomancer9.png"
+      },
+      "ColdShower": {
+        "kind": "talent",
+        "id": 657,
+        "name": "Cold Shower",
+        "icon": "T_Nhance_RPG_Icons_MagicRune_2.png"
+      },
+      "FrostweaversWrath": {
+        "kind": "talent",
+        "id": 191,
+        "name": "Frostweaver\u0027s Wrath",
+        "icon": "T_Icon_Frost_115.png"
+      },
+      "GlacialAssault": {
+        "kind": "talent",
+        "id": 38,
+        "name": "Glacial Assault",
+        "icon": "T_Rime_AnimaBolt.png"
+      },
+      "GreaterGlacialBlast": {
+        "kind": "talent",
+        "id": 190,
+        "name": "Greater Glacial Blast",
+        "icon": "T_Nhance_RPG_Icons_ArcaneBolt.png"
+      },
+      "HarrowingIce": {
+        "kind": "talent",
+        "id": 627,
+        "name": "Harrowing Ice",
+        "icon": "T_Rime_CastedDebuffAOEdamage.png"
+      },
+      "IcyFlow": {
+        "kind": "talent",
+        "id": 44,
+        "name": "Icy Flow",
+        "icon": "Tex_b_16.png"
+      },
+      "IcyTalons": {
+        "kind": "talent",
+        "id": 658,
+        "name": "Icy Talons",
+        "icon": "T_Nhance_RPG_Icons_IcySpikes_2.png"
+      },
+      "NavirsKeeper": {
+        "kind": "talent",
+        "id": 189,
+        "name": "Navir\u0027s Keeper",
+        "icon": "T_Icon_Elements_74.png"
+      },
+      "SoulfrostTorrent": {
+        "kind": "talent",
+        "id": 195,
+        "name": "Soulfrost Torrent",
+        "icon": "T_Nhance_RPG_Frost_31.png"
+      },
+      "SupremeTorrent": {
+        "kind": "talent",
+        "id": 527,
+        "name": "Supreme Torrent",
+        "icon": "T_IceSpikes.png"
+      },
+      "WisdomOfTheNorth": {
+        "kind": "talent",
+        "id": 49,
+        "name": "Wisdom of the North",
+        "icon": "T_Nhance_RPG_Frost_04.png"
+      }
+    },
+    "sylvie": {
+      "BloominBoomshrooms": {
+        "kind": "talent",
+        "id": 32,
+        "name": "Bloomin\u0027 Boomshrooms",
+        "icon": "T_Mosse_Boomshroom.png"
+      },
+      "BlueysGambit": {
+        "kind": "talent",
+        "id": 26,
+        "name": "Bluey\u0027s Gambit",
+        "icon": "T_Nhance_RPG_Elements_32.png"
+      },
+      "EveryOtherFlutter": {
+        "kind": "talent",
+        "id": 662,
+        "name": "Every Other Flutter",
+        "icon": "T_Nhance_RPG_Arcane_02.png"
+      },
+      "FlowerPower": {
+        "kind": "talent",
+        "id": 31,
+        "name": "Flower Power",
+        "icon": "T_Mosse_Bigheal.png"
+      },
+      "Flutterswift": {
+        "kind": "talent",
+        "id": 23,
+        "name": "Flutterswift",
+        "icon": "T_ArcaneWhirl.png"
+      },
+      "InBloom": {
+        "kind": "talent",
+        "id": 663,
+        "name": "In Bloom",
+        "icon": "Tex_p_24.png"
+      },
+      "NaturalKnowledge": {
+        "kind": "talent",
+        "id": 198,
+        "name": "Natural Knowledge",
+        "icon": "Tex_blue_9.png"
+      },
+      "NaturalProtector": {
+        "kind": "talent",
+        "id": 173,
+        "name": "Natural Protector",
+        "icon": "Druid17.png"
+      },
+      "NettleToThePetal": {
+        "kind": "talent",
+        "id": 176,
+        "name": "Nettle to the Petal",
+        "icon": "T_Mosse_Lifepetal.png"
+      },
+      "NurturedHaven": {
+        "kind": "talent",
+        "id": 197,
+        "name": "Nurtured Haven",
+        "icon": "T_Mosse_LinkCD.png"
+      },
+      "RowdyRootsap": {
+        "kind": "talent",
+        "id": 196,
+        "name": "Rowdy Rootsap",
+        "icon": "T_Mosse_Rootheal.png"
+      },
+      "SavingGrace": {
+        "kind": "talent",
+        "id": 664,
+        "name": "Saving Grace",
+        "icon": "T_Nhance_RPG_Arcane_04.png"
+      },
+      "ShimmeringWings": {
+        "kind": "talent",
+        "id": 660,
+        "name": "Shimmering Wings",
+        "icon": "Tex_wing_b_02.png"
+      },
+      "SproutingNettles": {
+        "kind": "talent",
+        "id": 659,
+        "name": "Sprouting Nettles",
+        "icon": "Sylvie_AbilityIcon_02.png"
+      },
+      "Symbiosis": {
+        "kind": "talent",
+        "id": 661,
+        "name": "Symbiosis",
+        "icon": "T_Mosse_Vine.png"
+      },
+      "SynchronizedFluttering": {
+        "kind": "talent",
+        "id": 20,
+        "name": "Synchronized Fluttering",
+        "icon": "Sylvie_AbilityIcon_03.png"
+      },
+      "TrailingRestoration": {
+        "kind": "talent",
+        "id": 172,
+        "name": "Trailing Restoration",
+        "icon": "T_ArcaneAid.png"
+      },
+      "VerdantRestoration": {
+        "kind": "talent",
+        "id": 170,
+        "name": "Verdant Restoration",
+        "icon": "T_Nhance_RPG_Shadow_58.png"
+      }
+    },
+    "tariq": {
+      "AceOfSpades": {
+        "kind": "talent",
+        "id": 675,
+        "name": "Ace of Spades",
+        "icon": "T_Nhance_RPG_Icons_GhostHand.png"
+      },
+      "BloodAndThunder": {
+        "kind": "talent",
+        "id": 74,
+        "name": "Blood \u0026 Thunder",
+        "icon": "Tex_SpellBook01_91.png"
+      },
+      "Bloodline": {
+        "kind": "talent",
+        "id": 76,
+        "name": "Bloodline",
+        "icon": "T_Icon_BloodCombat_141.png"
+      },
+      "CrackTheSky": {
+        "kind": "talent",
+        "id": 77,
+        "name": "Crack the Sky",
+        "icon": "Electromancer18.png"
+      },
+      "FarBeyondDriven": {
+        "kind": "talent",
+        "id": 79,
+        "name": "Far Beyond Driven",
+        "icon": "T_Nhance_RPG_Energy_13.png"
+      },
+      "HighRoad": {
+        "kind": "talent",
+        "id": 441,
+        "name": "High Road",
+        "icon": "Barbarian8.png"
+      },
+      "KillEmAll": {
+        "kind": "talent",
+        "id": 671,
+        "name": "Kill Em All",
+        "icon": "Berserker6.png"
+      },
+      "KillingInTheName": {
+        "kind": "talent",
+        "id": 82,
+        "name": "Killing in the Name",
+        "icon": "T_Ink_Cullingstrike.png"
+      },
+      "LeftHandPath": {
+        "kind": "talent",
+        "id": 72,
+        "name": "Left Hand Path",
+        "icon": "T_Ink_Facebreaker.png"
+      },
+      "MouthForWar": {
+        "kind": "talent",
+        "id": 80,
+        "name": "Mouth for War",
+        "icon": "T_Ink_FocusedWrath.png"
+      },
+      "Pneuma": {
+        "kind": "talent",
+        "id": 81,
+        "name": "Pneuma",
+        "icon": "T_Nhance_RPG_Energy_18.png"
+      },
+      "RideTheLightning": {
+        "kind": "talent",
+        "id": 87,
+        "name": "Ride the Lightning",
+        "icon": "T_Ink_Selfbuff.png"
+      },
+      "Schism": {
+        "kind": "talent",
+        "id": 85,
+        "name": "Schism",
+        "icon": "T_Nhance_RPG_Icons_TwoFace.png"
+      },
+      "Sledgehammer": {
+        "kind": "talent",
+        "id": 78,
+        "name": "Sledgehammer",
+        "icon": "T_Nhance_RPG_Icons_ChaoticSpikes.png"
+      },
+      "SquareHammer": {
+        "kind": "talent",
+        "id": 673,
+        "name": "Square Hammer",
+        "icon": "T_Ink_TimerAbility.png"
+      },
+      "TheMotherload": {
+        "kind": "talent",
+        "id": 672,
+        "name": "The Motherload",
+        "icon": "T_Nhance_RPG_Icons_SoulGrave.png"
+      },
+      "ThemBones": {
+        "kind": "talent",
+        "id": 75,
+        "name": "Them Bones",
+        "icon": "T_Ink_Skullcrusher.png"
+      },
+      "Thunderstruck": {
+        "kind": "talent",
+        "id": 89,
+        "name": "Thunderstruck",
+        "icon": "Electromancer1.png"
+      }
+    },
+    "vigour": {
+      "AlacritousHealing": {
+        "kind": "talent",
+        "id": 59,
+        "name": "Alacritous Healing",
+        "icon": "T_Vigor_Heal.png"
+      },
+      "AscendingAvatar": {
+        "kind": "talent",
+        "id": 181,
+        "name": "Ascending Avatar",
+        "icon": "T_Vigor_Spirit.png"
+      },
+      "BeaconInTheDark": {
+        "kind": "talent",
+        "id": 65,
+        "name": "Beacon in the Dark",
+        "icon": "Priest5.png"
+      },
+      "CeremonyOfLight": {
+        "kind": "talent",
+        "id": 393,
+        "name": "Ceremony of Light",
+        "icon": "Tex_SpellBook06_23.png"
+      },
+      "DawnStrider": {
+        "kind": "talent",
+        "id": 655,
+        "name": "Dawn Strider",
+        "icon": "T_Vigor_DawnSphere.png"
+      },
+      "DivineLight": {
+        "kind": "talent",
+        "id": 650,
+        "name": "Divine Light",
+        "icon": "Priest20.png"
+      },
+      "EnduringLight": {
+        "kind": "talent",
+        "id": 448,
+        "name": "Enduring Light",
+        "icon": "T_Vigor_AoEHeal.png"
+      },
+      "EnlightenedSoul": {
+        "kind": "talent",
+        "id": 56,
+        "name": "Enlightened Soul",
+        "icon": "T_GoldTransmutation.png"
+      },
+      "ExpansiveMind": {
+        "kind": "talent",
+        "id": 61,
+        "name": "Expansive Mind",
+        "icon": "T_Nhance_RPG_Icons_ManaTome.png"
+      },
+      "GrandProliferation": {
+        "kind": "talent",
+        "id": 653,
+        "name": "Grand Proliferation",
+        "icon": "T_Vigor_HealRune.png"
+      },
+      "GreaterRenewal": {
+        "kind": "talent",
+        "id": 656,
+        "name": "Greater Renewal",
+        "icon": "T_Vigor_Rune.png"
+      },
+      "MasterOfTriage": {
+        "kind": "talent",
+        "id": 66,
+        "name": "Master of Triage",
+        "icon": "Tex_SpellBook06_87.png"
+      },
+      "MeticulousRunesmith": {
+        "kind": "talent",
+        "id": 179,
+        "name": "Meticulous Runesmith",
+        "icon": "T_LightPortal.png"
+      },
+      "RadiantSoul": {
+        "kind": "talent",
+        "id": 654,
+        "name": "Radiant Soul",
+        "icon": "T_RuneOfGold.png"
+      },
+      "RunicRevelations": {
+        "kind": "talent",
+        "id": 71,
+        "name": "Runic Revelations",
+        "icon": "T_Nhance_RPG_Icons_CorruptionKnowledge.png"
+      },
+      "RupturedSoul": {
+        "kind": "talent",
+        "id": 62,
+        "name": "Ruptured Soul",
+        "icon": "T_Vigor_Soulbrand.png"
+      },
+      "SacredBarrier": {
+        "kind": "talent",
+        "id": 566,
+        "name": "Sacred Barrier",
+        "icon": "T_SunOrb.png"
+      },
+      "ShiningBlast": {
+        "kind": "talent",
+        "id": 651,
+        "name": "Shining Blast",
+        "icon": "T_Vigor_Cone.png"
+      }
+    },
+    "xavian": {
+      "CelestialFavor": {
+        "kind": "talent",
+        "id": 575,
+        "name": "Celestial Favor",
+        "icon": "T_Sune_OmegaReprieval.png"
+      },
+      "GleamingStrikes": {
+        "kind": "talent",
+        "id": 581,
+        "name": "Gleaming Strikes",
+        "icon": "T_Sune_Sunstrike.png"
+      },
+      "GoldenHour": {
+        "kind": "talent",
+        "id": 578,
+        "name": "Golden Hour",
+        "icon": "T_Sune_Omnistrike.png"
+      },
+      "GrandHalo": {
+        "kind": "talent",
+        "id": 571,
+        "name": "Grand Halo",
+        "icon": "T_SolarEclipse.png"
+      },
+      "HallowedShield": {
+        "kind": "talent",
+        "id": 567,
+        "name": "Hallowed Shield",
+        "icon": "T_Nhance_RPG_Fire_17.png"
+      },
+      "HealingHalo": {
+        "kind": "talent",
+        "id": 574,
+        "name": "Healing Halo",
+        "icon": "T_Nhance_RPG_Icons_SpiritLiquid.png"
+      },
+      "ImposingPresence": {
+        "kind": "talent",
+        "id": 569,
+        "name": "Imposing Presence",
+        "icon": "T_Nhance_RPG_Icons_SoulRage.png"
+      },
+      "Invictus": {
+        "kind": "talent",
+        "id": 604,
+        "name": "Invictus",
+        "icon": "T_Nhance_RPG_Icons_SoulBurn.png"
+      },
+      "LightsOath": {
+        "kind": "talent",
+        "id": 568,
+        "name": "Light\u0027s Oath",
+        "icon": "T_Sune_ShiningHalo.png"
+      },
+      "MagicWard": {
+        "kind": "talent",
+        "id": 584,
+        "name": "Magic Ward",
+        "icon": "T_Nhance_RPG_Icons_ShadowBarrier.png"
+      },
+      "RisingSun": {
+        "kind": "talent",
+        "id": 573,
+        "name": "Rising Sun",
+        "icon": "Tex_SpellBook06_56.png"
+      },
+      "ShiftingSpectrum": {
+        "kind": "talent",
+        "id": 576,
+        "name": "Shifting Spectrum",
+        "icon": "T_ArcaneLightning_.png"
+      },
+      "SolarBurn": {
+        "kind": "talent",
+        "id": 570,
+        "name": "Solar Burn",
+        "icon": "T_Sune_SolarBlades.png"
+      },
+      "SunsTouch": {
+        "kind": "talent",
+        "id": 607,
+        "name": "Sun\u0027s Touch",
+        "icon": "T_Sune_BrilliantFlare.png"
+      },
+      "SunsVerdict": {
+        "kind": "talent",
+        "id": 583,
+        "name": "Sun\u0027s Verdict",
+        "icon": "T_HolyFire_00.png"
+      },
+      "TemperedDescent": {
+        "kind": "talent",
+        "id": 572,
+        "name": "Tempered Descent",
+        "icon": "T_Sune_Skycrash.png"
+      },
+      "VanguardOfVengeance": {
+        "kind": "talent",
+        "id": 580,
+        "name": "Vanguard of Vengeance",
+        "icon": "T_Nhance_RPG_Icons_FireEnchantment.png"
+      },
+      "ZenithTechnique": {
+        "kind": "talent",
+        "id": 608,
+        "name": "Zenith Technique",
+        "icon": "T_Nhance_RPG_Tech_27.png"
+      }
     }
   },
   "schools": {
@@ -6373,6 +7716,7 @@
     "2171": "Physical",
     "2172": "Magic",
     "2174": "Physical",
+    "2176": "Magic/Physical",
     "2177": "Magic",
     "2178": "Physical",
     "2180": "Magic",
@@ -7410,5 +8754,135 @@
     "1003247": "Physical",
     "1003248": "Physical",
     "1003257": "Physical"
-  }
+  },
+  "rarities": {
+    "0": "Common",
+    "1": "Uncommon",
+    "2": "Rare",
+    "3": "Epic",
+    "4": "Champion",
+    "5": "Heroic",
+    "6": "Legendary"
+  },
+  "artSharedAcrossRungs": [
+    "Hint_Generic_Talent_Star",
+    "T_CurseWeak",
+    "T_Icons_Customization_Item_Icon",
+    "T_Icons_Gems_Amethyst1",
+    "T_Icons_Gems_Amethyst2",
+    "T_Icons_Gems_Amethyst3",
+    "T_Icons_Gems_Amethyst4",
+    "T_Icons_Gems_Diamond1",
+    "T_Icons_Gems_Diamond2",
+    "T_Icons_Gems_Diamond3",
+    "T_Icons_Gems_Diamond4",
+    "T_Icons_Gems_Emerald1",
+    "T_Icons_Gems_Emerald2",
+    "T_Icons_Gems_Emerald3",
+    "T_Icons_Gems_Emerald4",
+    "T_Icons_Gems_Ruby1",
+    "T_Icons_Gems_Ruby2",
+    "T_Icons_Gems_Ruby3",
+    "T_Icons_Gems_Ruby4",
+    "T_Icons_Gems_Sapphire1",
+    "T_Icons_Gems_Sapphire2",
+    "T_Icons_Gems_Sapphire3",
+    "T_Icons_Gems_Sapphire4",
+    "T_Icons_Gems_Topaz1",
+    "T_Icons_Gems_Topaz2",
+    "T_Icons_Gems_Topaz3",
+    "T_Icons_Gems_Topaz4",
+    "T_Nhance_RPG_Tech_25",
+    "T_OrbofShadow",
+    "T_Relic_Chicken",
+    "T_Relic_CombatRess",
+    "T_Relic_DamageReduction",
+    "T_Relic_DispelRune",
+    "T_Relic_Drums",
+    "T_Relic_HealingPotion",
+    "T_Relic_Mana",
+    "T_Relic_Portal",
+    "T_RunePlaceholder_01",
+    "Tex_Crimson_bsc_bg",
+    "Tex_Gem_61",
+    "Tex_TrophyIcons_01_b",
+    "Tex_TrophyIcons_03_b",
+    "Tex_TrophyIcons_06_b",
+    "Tex_TrophyIcons_08_b",
+    "Tex_TrophyIcons_112_b",
+    "Tex_TrophyIcons_28_b",
+    "Tex_TrophyIcons_31_b",
+    "Tex_TrophyIcons_37_b",
+    "Tex_TrophyIcons_41_b",
+    "Tex_TrophyIcons_42_b",
+    "Tex_TrophyIcons_47_b",
+    "Tex_TrophyIcons_66_b",
+    "Tex_armor_14_b",
+    "Tex_artifact_10_b",
+    "Tex_axe_13_bg",
+    "Tex_boots_1_b",
+    "Tex_bow_03_bg",
+    "Tex_bracelets_cl_01_bg",
+    "Tex_bracers_01_b",
+    "Tex_bracers_03_b",
+    "Tex_bracers_04_b",
+    "Tex_bracers_05_b",
+    "Tex_bracers_06_b",
+    "Tex_bracers_07_b",
+    "Tex_bracers_09_b",
+    "Tex_bracers_10_b",
+    "Tex_bracers_16_b",
+    "Tex_bracers_17_b",
+    "Tex_bracers_19_b",
+    "Tex_bracers_20_b",
+    "Tex_bracers_22_b",
+    "Tex_bracers_23_b",
+    "Tex_bracers_3_b",
+    "Tex_bracers_6_b",
+    "Tex_bracers_8_b",
+    "Tex_bracers_9_b",
+    "Tex_dru_brs_01_b",
+    "Tex_gloves_38_b",
+    "Tex_helmet_05_b",
+    "Tex_kn_02_bg",
+    "Tex_kn_02g",
+    "Tex_necklace_01_b",
+    "Tex_necklace_02_b",
+    "Tex_necklace_03_b",
+    "Tex_necklace_04_b",
+    "Tex_necklace_05_b",
+    "Tex_nk_01_bg",
+    "Tex_nk_02_bg",
+    "Tex_nk_03_bg",
+    "Tex_nk_04_bg",
+    "Tex_nk_05_bg",
+    "Tex_nk_06_bg",
+    "Tex_nk_07_bg",
+    "Tex_pants_05_b",
+    "Tex_ring_rg_01_b",
+    "Tex_rings_02_b",
+    "Tex_rings_02_b1",
+    "Tex_rings_03_b",
+    "Tex_rings_04_b",
+    "Tex_rings_05_b",
+    "Tex_rings_06_b",
+    "Tex_rings_07_b",
+    "Tex_rings_08_b",
+    "Tex_rings_b_02",
+    "Tex_rn_01_bg",
+    "Tex_rn_02_bg",
+    "Tex_rn_03_bg",
+    "Tex_rn_04_bg",
+    "Tex_rn_05_bg",
+    "Tex_rn_06_bg",
+    "Tex_rn_07_bg",
+    "Tex_rune_12_b",
+    "Tex_shard_b_05",
+    "Tex_shoulders_01_b",
+    "Tex_st_11_bg",
+    "Tex_staff_03_bg",
+    "Tex_stf_01_bg",
+    "Tex_sv_11_bg",
+    "Tex_sw_01_bg"
+  ]
 }

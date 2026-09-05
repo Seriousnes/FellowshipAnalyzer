@@ -32,11 +32,11 @@ else if (_icon is { Length: > 0 })
     private int _id;
     private SpellKind _kind;
 
-    private string IconUrl => $"https://assets.rpglogs.com/img/fellowship/abilities/{_icon}";
+    private string IconUrl => Codex.IconUrl(_icon);
 
     private string LinkUri => $"{_kind.ToUrlSegment()}/{_id}";
 
-    private string AbilityUrl => $"https://fellows.gg/{LinkUri}";
+    private string AbilityUrl => Codex.PageUrl(LinkUri);
 
     private string SizeClass => Size switch
     {
@@ -45,7 +45,7 @@ else if (_icon is { Length: > 0 })
         _ => ""
     };
 
-    private string? TooltipSpellId => _id > 0 ? LinkUri : null;
+    private string? TooltipSpellId => _id > 0 ? Codex.TooltipPath(LinkUri) : null;
 
     protected override void OnParametersSet()
     {

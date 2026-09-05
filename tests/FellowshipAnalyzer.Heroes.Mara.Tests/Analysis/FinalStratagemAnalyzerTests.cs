@@ -159,6 +159,23 @@ public sealed class FinalStratagemAnalyzerTests
     }
 
     [Fact]
+    public async Task Analyze_WithMacabreStratagemAsACombatLogWritesIt_IsNeverConstructed()
+    {
+        var events = new List<Event>
+        {
+            Cast(1000, Spells.MaidenOfDeath),
+            Cast(2000, Spells.FinalStratagem),
+        };
+
+        var parser = await AnalyzeParserAsync(
+            events,
+            ShortDungeon,
+            talents: [new TalentInfo { Id = FSLID.FromNative(SpellKind.Talent, MaraTalents.MacabreStratagem) }]);
+
+        parser.FinalStratagemAnalyzers.ShouldBeEmpty();
+    }
+
+    [Fact]
     public async Task Analyze_WithoutMacabreStratagem_IsActiveAndWritesTheReset()
     {
         var events = new List<Event>
@@ -224,10 +241,10 @@ public sealed class FinalStratagemAnalyzerTests
         Ability = new Ability { Id = spell.Id },
     };
 
-    private static CombatantInfoEvent Combatant(bool withMacabreStratagem) => new()
+    private static CombatantInfoEvent Combatant(List<TalentInfo> talents) => new()
     {
         SourceId = PlayerId,
-        Talents = withMacabreStratagem ? [new TalentInfo { Id = MaraTalents.MacabreStratagem }] : [],
+        Talents = talents,
     };
 
     private static ReportDungeon BossDungeon(int endTime = DungeonEnd) =>
@@ -246,7 +263,7 @@ public sealed class FinalStratagemAnalyzerTests
     }
 
     private static async Task<MaraCombatLogParser> AnalyzeParserAsync(
-        List<Event> events, ReportDungeon dungeon, bool withMacabreStratagem = false)
+        List<Event> events, ReportDungeon dungeon, bool withMacabreStratagem = false, List<TalentInfo>? talents = null)
     {
         var services = new ServiceCollection();
         services.AddLogging();
@@ -257,7 +274,10 @@ public sealed class FinalStratagemAnalyzerTests
         using var scope = provider.CreateScope();
 
         var parser = scope.ServiceProvider.GetRequiredService<MaraCombatLogParser>();
-        await parser.Analyze([Combatant(withMacabreStratagem), .. events], PlayerId, dungeon);
+                var selected = talents ?? (withMacabreStratagem
+            ? [new TalentInfo { Id = MaraTalents.MacabreStratagem }]
+            : []);
+        await parser.Analyze([Combatant(selected), .. events], PlayerId, dungeon);
         return parser;
     }
 }

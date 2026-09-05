@@ -30,4 +30,24 @@ public record MergeResult(List<CuratedSpell> Spells, List<Gap> Gaps)
     /// so an enemy ability resolves the same way a hero one does.
     /// </summary>
     public Dictionary<int, MagicSchool> Schools { get; init; } = [];
+
+    /// <summary>
+    /// The rarity ladder, keyed by tier, holding the name the build stores rather than the one it
+    /// prints. Item and gem art files end in that stored name, so a tier resolves its own icon.
+    /// </summary>
+    public Dictionary<int, string> Rarities { get; init; } = [];
+
+    /// <summary>
+    /// Item and gem art the export draws once for every rarity rung, named without directory or
+    /// extension. Art absent from this set is drawn per rung and is addressed by a name ending in the
+    /// rung's stored name.
+    /// </summary>
+    public SortedSet<string> ArtSharedAcrossRungs { get; init; } = new(StringComparer.Ordinal);
+
+    /// <summary>
+    /// Every talent the export slots to a hero, scoped by that hero's key. Talents are held apart from
+    /// <see cref="Spells"/> because a talent often repeats the name of an ability or effect in the same
+    /// hero's scope.
+    /// </summary>
+    public List<CuratedSpell> Talents { get; init; } = [];
 }

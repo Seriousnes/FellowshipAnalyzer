@@ -1,8 +1,7 @@
 @use 'tokens' as t;
 
 $sources: (
-    export:    var(--studio-src-export),
-    icons:     var(--studio-src-icons),
+    export:    var(--studio-src-export),
     override:  var(--studio-src-override),
 );
 
@@ -430,8 +429,7 @@ $sources: (
     }
 
     &.show-prov {
-        .cell.src-export,
-        .cell.src-icons { box-shadow: inset 2px 0 0 var(--src); }
+        .cell.src-export { box-shadow: inset 2px 0 0 var(--src); }
     }
 }
 

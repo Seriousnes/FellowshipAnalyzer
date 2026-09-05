@@ -5,10 +5,12 @@
 
 <CascadingValue Value="@Context.Analyzer" IsFixed="true">
     <CascadingValue Value="@(((CombatLogParser)Context.Analyzer).ThroughputTracker)" IsFixed="true">
-        <CascadingValue Value="@(new DungeonTimeContext(Context.DungeonStartTime, Context.DungeonEndTime))" IsFixed="true">
-            <CascadingValue Value="@Context.Analysis">
-                <CascadingValue Value="@SelectedPull" Name="SelectedPull">
-                    @ChildContent
+        <CascadingValue Value="@(((CombatLogParser)Context.Analyzer).Hero?.Name)" IsFixed="true">
+            <CascadingValue Value="@(new DungeonTimeContext(Context.DungeonStartTime, Context.DungeonEndTime))" IsFixed="true">
+                <CascadingValue Value="@Context.Analysis">
+                    <CascadingValue Value="@SelectedPull" Name="SelectedPull">
+                        @ChildContent
+                    </CascadingValue>
                 </CascadingValue>
             </CascadingValue>
         </CascadingValue>

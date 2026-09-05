@@ -113,19 +113,19 @@ if (unmatchedSpells.Count > 0)
 }
 if (unmatchedEffects.Count > 0)
 {
-    Console.WriteLine($"\n{unmatchedEffects.Count} Effect ID(s) in {Path.GetFileName(csPath)} not found in JSON (may not be in abilities.json - effects are not listed in the game API):");
+    Console.WriteLine($"\n{unmatchedEffects.Count} Effect ID(s) in {Path.GetFileName(csPath)} not found in JSON (the game API does not list $1):");
     foreach (var id in unmatchedEffects)
         Console.WriteLine($"  Effect ID {id}");
 }
 if (unmatchedTalents.Count > 0)
 {
-    Console.WriteLine($"\n{unmatchedTalents.Count} Talent ID(s) in {Path.GetFileName(csPath)} not found in JSON (may not be in abilities.json - talents are not listed in the game API):");
+    Console.WriteLine($"\n{unmatchedTalents.Count} Talent ID(s) in {Path.GetFileName(csPath)} not found in JSON (the game API does not list $1):");
     foreach (var id in unmatchedTalents)
         Console.WriteLine($"  Talent ID {id}");
 }
 if (unmatchedWeapons.Count > 0)
 {
-    Console.WriteLine($"\n{unmatchedWeapons.Count} Weapon trait ID(s) in {Path.GetFileName(csPath)} not found in JSON (may not be in abilities.json - weapon traits are not listed in the game API):");
+    Console.WriteLine($"\n{unmatchedWeapons.Count} Weapon trait ID(s) in {Path.GetFileName(csPath)} not found in JSON (the game API does not list $1):");
     foreach (var id in unmatchedWeapons)
         Console.WriteLine($"  Weapon trait ID {id}");
 }

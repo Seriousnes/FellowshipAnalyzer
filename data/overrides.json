@@ -4,7 +4,7 @@
     "FireBallAoeMonitor": { "id": 1581 },
     "EngulfingFlames": { "cooldownReductionOnTargetDeath": 10 },
     "FireFrogsMonitor": { "id": 1532 },
-    "FireBallDot": { "id": 2293, "kind": "effect", "name": "Fire Ball" },
+    "FireBallDot": { "id": 2293, "kind": "effect", "name": "Fire Ball" , "icon": "T_Nhance_RPG_Fire_36.png" },
     "FireFrogsDot": { "id": 1826, "kind": "effect" },
     "ApocalypseDot": { "id": 3175, "kind": "effect" },
     "SearingBlazeDot": { "id": 1820, "kind": "effect" },
@@ -29,11 +29,24 @@
     },
     "FrostSwallowsDamage": {
       "id": 1365,
-      "kind": "effect"
+      "kind": "effect",
+      "icon": "T_Rime_BirdCD.png"
     },
     "FrostweaversWrathBuff": {
       "id": 2305,
       "kind": "effect"
+    },
+    "BurstingIceDamage": {
+      "icon": "T_Rime_CastedDebuffAOEdamage.png"
+    },
+    "FlightOfTheNavirAoeDebuff": {
+      "icon": "T_Rime_BirdCD.png"
+    },
+    "FreezingTorrentAoeDamage": {
+      "icon": "T_Nhance_RPG_Frost_31.png"
+    },
+    "WinterBlessingHeal": {
+      "icon": "T_Rime_HealingBuff.png"
     }
   },
   "elarion": {
@@ -120,20 +133,19 @@
     "PunishingStrikesBuff": {
       "id": 3095,
       "kind": "effect",
-      "name": "Punishing Strikes",
-      "icon": "T_Warmaster_FatalBlow.jpg"
+      "name": "Punishing Strikes"
     },
     "SwordAndBoardBuff": {
       "id": 1242,
       "kind": "effect",
       "name": "Sword & Board",
-      "icon": "T_Warmaster_ShieldSlam.jpg"
+      "icon": "T_Warmaster_ShieldSlam.png"
     },
     "SwordAndBoardFreeCastBuff": {
       "id": 1219,
       "kind": "effect",
       "name": "Sword & Board",
-      "icon": "T_Warmaster_ShieldSlam.jpg"
+      "icon": "T_Warmaster_ShieldSlam.png"
     }
   },
   "items": {
@@ -293,12 +305,14 @@
     "RoguesResurgence": {
       "id": 1966,
       "kind": "effect",
-      "name": "Rogue's Resurgence"
+      "name": "Rogue's Resurgence",
+      "icon": "T_Icon_Gold_135.png"
     },
     "RoguesResurgenceII": {
       "id": 1967,
       "kind": "effect",
-      "name": "Rogue's Resurgence - II"
+      "name": "Rogue's Resurgence - II",
+      "icon": "T_Icon_Gold_135.png"
     },
     "UnyieldingVitality": {
       "id": 1932,
@@ -436,6 +450,9 @@
     "DeadlySchemeActive": {
       "id": 2068,
       "kind": "effect"
+    },
+    "SkitteringBladesPoisonAoeDamage": {
+      "icon": "T_ArcaneCoils.png"
     }
   },
   "meiko": {
@@ -447,44 +464,43 @@
     "FluttercallEmbrace": {
       "id": 1080,
       "kind": "ability",
-      "name": "Fluttercall: Embrace",
-      "icon": "T_Mosse_BlueButterfly.jpg"
+      "name": "Fluttercall: Embrace"
     },
     "FluttercallProtectBuff": {
       "id": 1485,
       "kind": "effect",
-      "name": "Fluttercall: Protect",
-      "icon": "T_Mosse_BlueButterfly.jpg"
+      "name": "Fluttercall: Protect"
     },
     "FluttercallEmbraceBuff": {
       "id": 1486,
       "kind": "effect",
-      "name": "Fluttercall: Embrace",
-      "icon": "T_Mosse_BlueButterfly.jpg"
+      "name": "Fluttercall: Embrace"
     },
     "IronleafWardBuff": {
       "id": 1484,
       "kind": "effect",
-      "name": "Ironleaf Ward",
-      "icon": "T_Mosse_DR.jpg"
+      "name": "Ironleaf Ward"
     },
     "PricklyVineDamage": {
       "id": 1440,
       "kind": "effect",
-      "name": "Prickly Vine",
-      "icon": "T_Mosse_Vine.jpg"
+      "name": "Prickly Vine"
     },
     "NaturalProtectorAbsorb": {
       "id": 2240,
       "kind": "effect",
-      "name": "Natural Protector",
-      "icon": "Druid17.jpg"
+      "name": "Natural Protector"
     },
     "NaturalSelectionBuff": {
       "id": 2731,
       "kind": "effect",
-      "name": "Natural Selection",
-      "icon": "T_Nhance_RPG_Nature_02.jpg"
+      "name": "Natural Selection"
+    },
+    "SafeHavenDamageReductionBuff": {
+      "icon": "T_Mosse_LinkCD.png"
+    },
+    "ShroomsplosionDamage": {
+      "icon": "T_Mosse_Boomshroom.png"
     }
   },
   "tariq": {
@@ -508,20 +524,17 @@
     "SchismSkullCrusher": {
       "id": 1746,
       "kind": "effect",
-      "name": "Schism - Skull Crusher",
-      "icon": "T_Ink_Skullcrusher.jpg"
+      "name": "Schism - Skull Crusher"
     },
     "SchismHammerStorm": {
       "id": 1747,
       "kind": "effect",
-      "name": "Schism - Hammer Storm",
-      "icon": "T_Ink_Hammerstorm.jpg"
+      "name": "Schism - Hammer Storm"
     },
     "RisingSpirit": {
       "id": 3115,
       "kind": "effect",
-      "name": "Rising Spirit",
-      "icon": "T_Nhance_RPG_Icons_SpiritAmulet.jpg"
+      "name": "Rising Spirit"
     },
     "HeavyStrikeDamage": {
       "id": 1776,
@@ -541,8 +554,13 @@
     "Sledgehammer": {
       "id": 2061,
       "kind": "ability",
-      "name": "Sledgehammer",
-      "icon": "T_Nhance_RPG_Icons_ChaoticSpikes.jpg"
+      "name": "Sledgehammer"
+    },
+    "ChainLightningDamage": {
+      "icon": "T_Ink_ChainLightning.png"
+    },
+    "RagingTempestPulsatingSingleDamageDamage": {
+      "icon": "T_Ink_Spirit.png"
     }
   },
   "vigour": {
@@ -555,28 +573,24 @@
       "id": 1350,
       "kind": "effect",
       "name": "Spirit of Heroism",
-      "icon": "Tex_b_02.jpg",
       "note": "GE_Shared_SpiritTriggeredBuff; the +30% Haste every hero gains on activating their Spirit ability, applied by the shared passive GA_Shared_Passive_SpiritMechanic (1007). Four ids carry the same haste grant with different riders; add all four directly so StatBuffs can name them"
     },
     "SpiritOfHeroismNotTank": {
       "id": 2253,
       "kind": "effect",
       "name": "Spirit of Heroism",
-      "icon": "Tex_b_02.jpg",
       "note": "GE_Shared_SpiritTriggeredBuff_NotTank; the variant every non-tank logs, which also raises damage and heal threat multipliers. Auto-merge files it under elarion alone even though six heroes in the report corpus log it, so it is added to shared as well; the resulting FA0008 duplicate-FSLID warning is deliberate, and the fix for it belongs in the merge engine's effect linking, not here"
     },
     "SpiritOfHeroismHealer": {
       "id": 2277,
       "kind": "effect",
       "name": "Spirit of Heroism",
-      "icon": "Tex_b_02.jpg",
       "note": "GE_Shared_SpiritTriggeredBuff_Healer; the variant Aeona, Sylvie, and Vigour log, which also raises mana regeneration by 600%"
     },
     "SpiritOfHeroismXavian": {
       "id": 2662,
       "kind": "effect",
       "name": "Spirit of Heroism",
-      "icon": "Tex_b_02.jpg",
       "note": "GE_Sune_SpiritTriggeredBuff; Xavian's own variant, whose DevKey is Sune. Kept with the rest of the family rather than in the xavian scope because StatBuffs reads the four as one set"
     },
     "VeinSprout": {
@@ -594,6 +608,11 @@
     "SanguineClaws": {
       "id": 2187,
       "school": "Physical"
+    }
+  },
+  "xavian": {
+    "AuraOfSolaceDamage": {
+      "icon": "T_Sune_AuraOfSolace.png"
     }
   }
 }

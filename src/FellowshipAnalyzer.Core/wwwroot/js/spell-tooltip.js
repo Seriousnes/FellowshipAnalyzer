@@ -1,10 +1,9 @@
 /**
  * Spell tooltip module.
- * Lazily fetches tooltip HTML from fellows.gg on hover and displays it
+ * Lazily fetches tooltip HTML from the Fellowship Codex on hover and displays it
  * in a floating popover using Shadow DOM for style isolation.
  */
 
-const TOOLTIP_API = 'https://fellows.gg/api/tooltip';
 const SHOW_DELAY_MS = 200;
 const HIDE_DELAY_MS = 150;
 const GAP_PX = 8;
@@ -39,11 +38,14 @@ let shadow = null;
 /** @type {Element | null} */
 let currentTarget = null;
 
+let origin = '';
 let showTimer = 0;
 let hideTimer = 0;
 
-export function init() {
+export function init(codexOrigin) {
     if (container) return;
+
+    origin = codexOrigin;
 
     container = document.createElement('div');
     container.id = 'spell-tooltip';
@@ -103,21 +105,20 @@ function hide() {
 
 async function show(anchor) {
     currentTarget = anchor;
-    const spellId = anchor.dataset.tooltipSpellId;
-    if (!spellId) return;
+    const path = anchor.dataset.tooltipSpellId;
+    if (!path) return;
 
-    render('<div class="tooltip-loading">Loading\u2026</div>');
+    render('<div class="tooltip-loading">Loading…</div>');
     container.style.display = 'block';
     position(anchor);
 
-    let html = cache.get(spellId);
+    let html = cache.get(path);
     if (!html) {
         try {
-            const url = `${TOOLTIP_API}?path=${encodeURIComponent('/' + spellId)}&rel=`;
-            const res = await fetch(url);
+            const res = await fetch(`${origin}/${path}`);
             if (!res.ok) throw new Error(String(res.status));
             html = await res.text();
-            cache.set(spellId, html);
+            cache.set(path, html);
         } catch {
             html = '<div class="tooltip-loading">Tooltip unavailable</div>';
         }

@@ -82,8 +82,7 @@
         </div>
 
         <div class="prov-legend" aria-label="Provenance sources">
-            <span class="prov-swatch src-export">export</span>
-            <span class="prov-swatch src-icons">icon</span>
+            <span class="prov-swatch src-export">export</span>
             <span class="prov-swatch src-override">override</span>
         </div>
     </div>
@@ -821,16 +820,14 @@
     private static string SrcCellClass(ProvenanceSource? s) => s switch
     {
         ProvenanceSource.Override => "src-override",
-        ProvenanceSource.Export => "src-export",
-        ProvenanceSource.Icons => "src-icons",
+        ProvenanceSource.Export => "src-export",
         _ => "",
     };
 
     private static string SrcLabel(ProvenanceSource s) => s switch
     {
         ProvenanceSource.Override => "override",
-        ProvenanceSource.Export => "export",
-        ProvenanceSource.Icons => "icon",
+        ProvenanceSource.Export => "export",
         _ => "",
     };
 }
