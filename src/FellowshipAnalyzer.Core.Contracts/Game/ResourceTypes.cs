@@ -9,20 +9,20 @@ public enum ResourceTypes
     /// <summary>
     /// Common primary resource for heroes, e.g. Mara's Energy, Rime's Anima, etc.
     /// </summary>
-    [ResourceName("Anima", "Energy", "Fury", "Chrona", "Cinders", "Focus", "Radiant Runes", "Radiant Rune")]
+    [ResourceName("Anima", "Energy", "Fury", "Chrona", "Cinders", "Cinder", "Focus", "Radiant Runes", "Radiant Rune")]
     Primary = 2,
     /// <summary>
     /// Common secondary resource for heroes, e.g. Mara's Combo Points, etc.
     /// </summary>
-    [ResourceName("Combo Points", "Toughness")]
+    [ResourceName("Combo Points", "Combo Point", "Toughness")]
     Secondary = 3,
     /// <summary>The universal Spirit resource that charges Spirit of Heroism, generated and spent by every hero regardless of class.</summary>
-    [ResourceName("Spirit")]
+    [ResourceName("Spirit", "Spirit Points", "Spirit Point")]
     Spirit = 4,
     /// <summary>
     /// Tertiary resources, e.g. Rime's Winter Orbs, etc.
     /// </summary>
-    [ResourceName("Winter Orbs", "Blood Feathers", "Pink Flutterflies")]
+    [ResourceName("Winter Orbs", "Winter Orb", "Blood Feathers", "Blood Feather", "Pink Flutterflies")]
     Tertiary = 5,
     /// <summary>
     /// Delayed HP damage resource when Aeona is in the party.

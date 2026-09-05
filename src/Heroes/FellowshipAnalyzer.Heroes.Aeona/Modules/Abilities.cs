@@ -2,6 +2,7 @@ using FellowshipAnalyzer.Core.Analysis;
 using FellowshipAnalyzer.Core.Common.Spells.Aeona;
 
 using CoreAbilities = FellowshipAnalyzer.Core.Analysis.Abilities;
+using CoreItems = FellowshipAnalyzer.Core.Common.Items.Items;
 
 namespace FellowshipAnalyzer.Heroes.Aeona.Modules;
 
@@ -71,8 +72,10 @@ public class Abilities : CoreAbilities
         new()
         {
             PrimarySpell = Spells.FleetingHour,
+            AdditionalSpells = [Spells.FleetingHourSelfBuff],
             Category = SpellCategory.Cooldowns,
             Gcd = null,
+            CooldownStartsWhenBuffEnds = Spells.FleetingHourSelfBuff,
         },
         new()
         {
@@ -80,6 +83,13 @@ public class Abilities : CoreAbilities
             AdditionalSpells = [Spells.UnfoldingDoomDamage],
             Category = SpellCategory.Cooldowns,
             Gcd = StandardGcd,
+        },
+        new()
+        {
+            PrimarySpell = CoreItems.TwilightSkybolt,
+            Category = SpellCategory.Cooldowns,
+            Gcd = null,
+            CooldownReducedByHaste = true,
         },
         new()
         {

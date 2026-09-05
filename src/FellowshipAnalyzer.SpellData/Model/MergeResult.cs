@@ -17,6 +17,8 @@ public enum GapKind
     UnknownResource,
     /// <summary>A scope that is not 'shared'/'items'/a hero name.</summary>
     UnknownScope,
+    /// <summary>A description states an amount of a resource in a form no generation rule recognises.</summary>
+    UnclaimedGeneration,
 }
 
 /// <summary>A detected gap in the merged spell data.</summary>

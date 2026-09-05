@@ -72,7 +72,7 @@
                 "Casts in Phase",
                 phased.Count == 0
                     ? "No boss pull was observed reaching the execute threshold."
-                    : $"Culling Strikes cast inside an execute phase, excluding those recorded above {ThresholdLabel} health, over {phaseMs / 1000d:0.0}s across {phased.Count} pull{(phased.Count == 1 ? "" : "s")}."),
+                    : $"Culling Strikes cast inside an execute phase, excluding those above {ThresholdLabel} health, over {phaseMs / 1000d:0.0}s across {phased.Count} pull{(phased.Count == 1 ? "" : "s")}."),
         };
 
         if (opportunities.Count > 0)
@@ -86,7 +86,7 @@
             stats.Add(new OverviewStat(
                 $"{heldWithFury}",
                 "Held With Fury",
-                $"Times the cooldown became available inside the execute phase with no Fury reading under {CullingStrikeAnalyzer.FullStrengthFury}, and no cast followed within the {CullingStrikeAnalyzer.PromptCastGraceMs / 1000d:0.0}s grace.",
+                $"Times the cooldown became available inside the execute phase and no cast followed within the {CullingStrikeAnalyzer.PromptCastGraceMs / 1000d:0.0}s grace.",
                 heldWithFury == 0 ? QualitativePerformance.Perfect : QualitativePerformance.Fail));
 
             stats.Add(new OverviewStat(
@@ -105,7 +105,7 @@
             stats.Add(new OverviewStat(
                 $"{unexplained}",
                 "Unexplained",
-                $"Casts above {ThresholdLabel} with no Executioner's Grin buff active. Unreliable readings rather than mistakes."));
+                $"Casts above {ThresholdLabel} with no Executioner's Grin buff active."));
         }
 
         return stats;
@@ -155,7 +155,7 @@
                     ? banked >= CullingStrikeAnalyzer.FullStrengthFury
                         ? $"Fury held when the cooldown became available, at or above {CullingStrikeAnalyzer.FullStrengthFury}."
                         : $"Fury held when the cooldown became available, short of {CullingStrikeAnalyzer.FullStrengthFury}."
-                    : "No event at this instant had a Fury reading."),
+                    : null),
         };
 
         return new PerCastRow
@@ -178,7 +178,7 @@
         if (opportunity.CastAt is null)
         {
             if (opportunity.FuryAtReady is not { } atEnd)
-                return "The pull ended with Culling Strike available and no Fury reading.";
+                return "The pull ended with Culling Strike available.";
 
             return atEnd >= CullingStrikeAnalyzer.FullStrengthFury
                 ? $"The pull ended with Culling Strike available and {atEnd}% Fury banked."

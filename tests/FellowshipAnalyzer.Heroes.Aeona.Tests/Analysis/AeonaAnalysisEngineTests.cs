@@ -14,7 +14,7 @@ namespace FellowshipAnalyzer.Heroes.Aeona.Tests.Analysis;
 public sealed class AeonaAnalysisEngineTests
 {
     [Fact]
-    public async Task Analyze_ShouldNotProvideGuideComponentType_ForWipHero()
+    public async Task Analyze_ProvidesTheGuideComponentType()
     {
         var services = new ServiceCollection();
         services.AddLogging();
@@ -27,6 +27,6 @@ public sealed class AeonaAnalysisEngineTests
         var analyzer = scope.ServiceProvider.GetRequiredKeyedService<IHeroAnalyzer>(HeroName.Aeona);
         var result = await analyzer.Analyze([], playerId: 1, dungeon: new ReportDungeon(0, "", 0, null, 0, 0, null, null, null));
 
-        result.GuideComponentType.ShouldBeNull();
+        result.GuideComponentType.ShouldBe(typeof(AeonaGuide));
     }
 }

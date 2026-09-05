@@ -1,4 +1,4 @@
-.guide-top-section {
+.section {
     background: var(--fa-bg-raised);
     border: 1px solid var(--fa-border-card);
     border-radius: var(--fa-radius-sm);
@@ -7,7 +7,7 @@
     &.inactive { display: none; }
 }
 
-.guide-top-section-header {
+.section-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -23,21 +23,21 @@
     text-align: left;
     -webkit-tap-highlight-color: transparent;
 
-    &:hover { background: var(--fa-section-header-hover); }
     &:focus-visible { outline: 2px solid var(--fa-gold); outline-offset: -2px; }
 }
 
-.guide-top-section-title {
+.section-title {
     flex: 1;
     margin: 0;
     font-family: var(--fa-font-heading);
-    font-size: var(--fa-fs-lg);
+    font-size: var(--fa-fs-xl);
     font-weight: 700;
-    color: var(--fa-gold);
+    line-height: 1.15;
     letter-spacing: 0.3px;
+    color: var(--fa-gold);
 }
 
-.guide-top-section-chevron {
+.section-chevron {
     color: var(--fa-gold);
     font-size: 1rem;
     line-height: 1;
@@ -47,7 +47,7 @@
     &.expanded { transform: rotate(0deg); }
 }
 
-.guide-top-section-body {
+.section-body {
     padding: 12px;
     display: flex;
     flex-direction: column;

@@ -1,0 +1,113 @@
+@inherits GuideComponent<AeonaCombatLogParser>
+
+<GuideSection Title="Chrona and Mana Economy">
+    <LeftPanel>
+        <ul>
+            <li>
+                <strong>Build</strong> Chrona with <SpellLink Spell="Spells.EntropyClaim" />,
+                <SpellLink Spell="Spells.TemporalBarrage" /> and <SpellLink Spell="Spells.EchoesOfRuin" />.
+            </li>
+            <li>
+                <strong>Spend</strong> Chrona on <SpellLink Spell="Spells.Oblivion" /> to avoid overcapping and wasting generation.
+            </li>
+            <li>
+                <strong>Cleanse</strong> with <SpellLink Spell="Spells.AmendFate" /> and
+                <SpellLink Spell="Spells.RestoreContinuity" />.
+            </li>
+            @if (Talented(analyzer => analyzer.SynchronicityTalented))
+            {
+                <li>
+                    <strong><SpellLink Spell="Talents.Synchronicity" /></strong> increases Chrona generation by 25% below half your maximum
+                    Chrona, and increases the damage of your non-spenders by 15% above it
+                </li>
+            }
+            @if (Talented(analyzer => analyzer.ChronaTapTalented))
+            {
+                <li>
+                    Try to stagger Chrona spenders to avoid wasting <SpellLink Spell="Talents.ChronaTap" /> stacks, if you exceed 
+                </li>
+            }
+        </ul>
+    </LeftPanel>
+    <RightPanel>
+        <CastOverview Title="Economy Overview" Stats="@BuildOverviewStats()" />
+
+        <CastDetail Title="Per-Pull Economy"
+                    Description="Each card is one pull, with the Chrona that arrived and the time the pool spent at its maximum."
+                    Casts="@BuildPerPullData()" />
+    </RightPanel>
+</GuideSection>
+
+@code {
+    private const double PerfectTimeAtMaximumShare = 0.01;
+    private const double GoodTimeAtMaximumShare = 0.05;
+    private const double OkTimeAtMaximumShare = 0.10;
+
+    protected override bool IsActive() => Parser.ChronaEconomyAnalyzers.Count > 0;
+
+    private List<ChronaEconomyAnalyzer> Analyzers() =>
+        [.. Parser.ChronaEconomyAnalyzers.Select(entry => entry.Analyzer)];
+
+    private long CombatMs() =>
+        Parser.ChronaEconomyAnalyzers.Sum(entry => (long)entry.Pull.Duration);
+
+    private bool Talented(Func<ChronaEconomyAnalyzer, bool> predicate) => Analyzers().Any(predicate);
+
+    private IEnumerable<OverviewStat> BuildOverviewStats()
+    {
+        var analyzers = Analyzers();       
+
+        return [];
+    }
+
+    private IEnumerable<PerCastData> BuildPerPullData() =>
+        Parser.ChronaEconomyAnalyzers.ToPullRows(Parser, (analyzer, pull) => BuildPullRow(analyzer));
+
+    private PerCastRow BuildPullRow(ChronaEconomyAnalyzer analyzer)
+    {
+        var stats = new List<PerCastStat>
+        {
+            new(
+                $"{analyzer.ChronaGenerated} / {analyzer.ChronaSpent}",
+                "Generated / Spent",
+                "Chrona that arrived in this pull, against the Chrona spent."),
+            new(
+                FormatSeconds(analyzer.ChronaTimeAtMaximumMs),
+                "At Maximum",
+                $"Time Chrona spent at its maximum in this pull, {analyzer.ChronaTimeAtMaximumShare:P1} of it.",
+                TierForTimeAtMaximum(analyzer.ChronaTimeAtMaximumShare)),
+        };
+
+        if (analyzer.CleanseCasts > 0)
+        {
+            stats.Add(new PerCastStat(
+                $"{analyzer.EstimatedManaFromCleansing}",
+                "Mana from Cleansing"));
+        }
+
+        if (analyzer.ChronaTapTalented)
+        {
+            stats.Add(new PerCastStat(
+                $"{analyzer.ChronaTapStacksGained}",
+                "Chrona Tap Stacks"));
+        }
+
+        return new PerCastRow
+        {
+            Performance = TierForTimeAtMaximum(analyzer.ChronaTimeAtMaximumShare),
+            Stats = [.. stats],
+        };
+    }
+
+    private static QualitativePerformance TierForTimeAtMaximum(double share) =>
+        PerformanceTiers.FromThresholds(
+            1 - share,
+            1 - PerfectTimeAtMaximumShare,
+            1 - GoodTimeAtMaximumShare,
+            1 - OkTimeAtMaximumShare);
+
+    private static string StacksPerSpend(int stacks, int spends) =>
+        spends <= 0 ? "no" : $"{(double)stacks / spends:0.##}";
+
+    private static string FormatSeconds(long milliseconds) => $"{milliseconds / 1000d:0.#}s";
+}

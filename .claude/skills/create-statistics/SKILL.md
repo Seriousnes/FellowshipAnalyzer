@@ -9,6 +9,10 @@ A statistics component is a Razor file in `Statistics/` that renders a summary c
 
 Statistics surface optional, interesting information the Guide tab does not already show: dungeon-level resource totals, top contributors, item-proc counts, aggregate health. Before adding one, ask whether the Guide already covers it; if it does, do not add it. Per-cast scoring, rotation checklists and "did the player play this right" content belong on the Guide tab. Typed data stays in the module; prose and `QualitativePerformance` mapping live here in the component.
 
+## Voice
+
+Read `.claude/skills/banned-vocabulary/SKILL.md` before writing anything. No banned words or phrases should appear in the guide content, tooltips, statistics, or any other user-facing text. Never mention logs or raw data.
+
 ## Procedure
 
 ### 1. Create The Statistics Component
@@ -30,10 +34,8 @@ Place at `src/Heroes/FellowshipAnalyzer.Heroes.{Hero}/Statistics/{Name}Statistic
     {
         return
         [
-            new OverviewStat(
-                $"{Analyzer.Generated}",
-                "Generated",
-                "Total resource generated during the encounter."),
+            new OverviewStat($"{Analyzer.Generated}", "Generated"),
+            new OverviewStat($"{Analyzer.Wasted}", "Overcapped"),
         ];
     }
 }

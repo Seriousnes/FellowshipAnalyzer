@@ -1,10 +1,10 @@
-<section class="guide-top-section @(_scope.HasContent ? "" : "inactive")">
-    <button type="button" class="guide-top-section-header" @onclick="Toggle"
+<section class="section @(_scope.HasContent ? "" : "inactive")">
+    <button type="button" class="section-header" @onclick="Toggle"
             aria-expanded="@CurrentExpanded.ToString().ToLowerInvariant()">
-        <span class="guide-top-section-title">@Title</span>
-        <span class="guide-top-section-chevron @(CurrentExpanded ? "expanded" : "")" aria-hidden="true">▼</span>
+        <span class="section-title">@Title</span>
+        <span class="section-chevron @(CurrentExpanded ? "expanded" : "")" aria-hidden="true">▼</span>
     </button>
-    <div class="guide-top-section-body @(CurrentExpanded ? "" : "collapsed")">
+    <div class="section-body @(CurrentExpanded ? "" : "collapsed")">
         <CascadingValue Value="_scope" IsFixed="true">
             @ChildContent
         </CascadingValue>
@@ -28,11 +28,11 @@
     private bool _expanded;
     private bool _initialized;
 
-    private GuideSectionScope _scope = null!;
+    private SectionScope _scope = null!;
 
     private bool CurrentExpanded => ExpandedChanged.HasDelegate ? Expanded : _expanded;
 
-    protected override void OnInitialized() => _scope = new GuideSectionScope(StateHasChanged);
+    protected override void OnInitialized() => _scope = new SectionScope(StateHasChanged);
 
     protected override void OnParametersSet()
     {

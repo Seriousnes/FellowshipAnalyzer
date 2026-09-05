@@ -57,9 +57,8 @@
             readings.Count > 0
                 ? new OverviewStat(
                     $"{readings.Average(window => window.FuryAtOpen!.Value):0}%",
-                    "Avg Fury at Open",
-                    $"Fury banked as a window opened, averaged over the {readings.Count} windows with a reading. Reported as context rather than scored.")
-                : new OverviewStat("-", "Avg Fury at Open", "No cast before a window opened had a Fury reading."),
+                    "Avg Fury at Open")
+                : new OverviewStat("-", "Avg Fury at Open"),
             new OverviewStat(
                 $"{(double)spenders / windows.Count:0.0}",
                 "Avg Spenders per Window",
@@ -84,10 +83,7 @@
                 $"The buff that opened this window, open for {window.DurationMs / 1000d:0.0}s of the expected {window.ExpectedDurationMs / 1000}s."),
             new(
                 window.FuryAtOpen is { } fury ? $"{fury}%" : "-",
-                "Fury at Open",
-                window.FuryAtOpen is not null
-                    ? "Fury held at the last cast before the window opened."
-                    : "No cast before this window opened had a Fury reading."),
+                "Fury at Open"),
             new(
                 $"{window.SkullCrusherCasts} / {window.HammerStormCasts} / {window.CullingStrikeCasts}",
                 "Skull / Hammer / Culling",
@@ -102,8 +98,7 @@
         {
             stats.Add(new PerCastStat(
                 "Yes",
-                "Open at Pull End",
-                "The pull ended with the buff still open. Reported as context rather than scored."));
+                "Open at Pull End"));
         }
 
         if (window.OverlapsOtherWindow)

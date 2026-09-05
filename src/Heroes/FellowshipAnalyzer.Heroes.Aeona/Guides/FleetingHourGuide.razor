@@ -1,0 +1,117 @@
+@inherits GuideComponent<AeonaCombatLogParser>
+
+<GuideSection Title="Fleeting Hour">
+    <LeftPanel>
+        <p>
+            <strong><SpellLink Spell="Spells.FleetingHour" /></strong> is your cooldown-acceleration window.
+            Recast it as soon as you can, and keep it for the pull rather than the time between pulls.
+        </p>
+        @if (Analyzer is { SurgingChronaTaken: true } surging)
+        {
+            <p>
+                With <SpellLink Spell="Talents.SurgingChrona" />, Fleeting Hour grants
+                @surging.SurgingChronaGrant Chrona, so leave room under the cap before you cast it.
+            </p>
+        }
+    </LeftPanel>
+    <RightPanel>
+        <CastOverview Title="Fleeting Hour Overview" Stats="@BuildOverviewStats()" />
+
+        <CastDetail Title="Casts by Pull"
+                    Description="Each row is one cast, the window it opened, and how long the ability waited before it."
+                    Casts="@BuildCastRows()" />
+    </RightPanel>
+</GuideSection>
+
+@code {
+    protected override bool IsActive() =>
+        Parser.FleetingHour is { Casts.Count: > 0 } or { Windows.Count: > 0 };
+
+    private FleetingHourAnalyzer? Analyzer => Parser.FleetingHour;
+
+    private IEnumerable<OverviewStat> BuildOverviewStats()
+    {
+        if (Analyzer is not { } analyzer) return [];
+
+        var stats = new List<OverviewStat>
+        {
+            new(
+                $"{analyzer.CombatUptime:P0}",
+                "Combat Uptime",
+                $"Share of combat time Fleeting Hour was active, {FormatSeconds(analyzer.CombatUptimeMs)} of {FormatSeconds(analyzer.CombatMs)}."),
+            new(
+                $"{FormatSeconds(analyzer.OutsideCombatMs)} ({analyzer.OutsideCombatShare:P0})",
+                "Active Between Pulls",
+                "Fleeting Hour time that fell outside every pull, and its share of everything the window covered."),
+            new(
+                FormatSeconds(analyzer.AvailableInCombatMs),
+                "Available in Combat",
+                "Combat time Fleeting Hour was off cooldown and uncast."),
+            new(
+                FormatSeconds((int)Math.Round(analyzer.AverageDelayMs)),
+                "Delay After Available",
+                "Combat time from Fleeting Hour coming off cooldown to the cast that spent it, averaged over every cast."),
+        };
+
+        if (analyzer.SurgingChronaTaken)
+        {
+            stats.Add(new OverviewStat(
+                $"{analyzer.SurgingChronaOvercapped} ({analyzer.SurgingChronaOvercapShare:P0})",
+                "Surging Chrona Overcapped",
+                $"Chrona the Surging Chrona grants lost at the cap, of the {analyzer.SurgingChronaGranted} granted across the run."));
+        }
+
+        return stats;
+    }
+
+    private IEnumerable<PerCastData> BuildCastRows()
+    {
+        if (Analyzer is not { } analyzer) yield break;
+
+        foreach (var pull in Parser.Pulls)
+        {
+            foreach (var cast in analyzer.CastsIn(pull))
+            {
+                yield return new PerCastData
+                {
+                    Performance = null,
+                    Stats = BuildCastStats(analyzer, cast),
+                    Timestamp = Parser.FormatTimestamp(cast.Timestamp),
+                    Group = pull.Name,
+                    GroupContent = @<PullBanner Pull="pull" />,
+                };
+            }
+        }
+    }
+
+    private static PerCastStat[] BuildCastStats(FleetingHourAnalyzer analyzer, FleetingHourCast cast)
+    {
+        var stats = new List<PerCastStat>
+        {
+            new(
+                FormatSeconds(cast.ActiveInPullMs),
+                "Active in Pull",
+                "Time this cast's window was active inside the pull it was cast in."),
+            new(
+                FormatSeconds(cast.OutsideCombatMs),
+                "Active After Pull End",
+                "Time this cast's window ran outside every pull."),
+            new(
+                FormatSeconds(cast.DelayMs),
+                "Delay After Available",
+                "Combat time Fleeting Hour was off cooldown before this cast."),
+        };
+
+        if (analyzer.SurgingChronaTaken && cast.SurgingChronaOvercapped is { } overcapped)
+        {
+            stats.Add(new PerCastStat(
+                $"{overcapped}",
+                "Surging Chrona Overcapped",
+                $"Chrona this cast's {cast.SurgingChronaGranted} grant lost at the cap."));
+        }
+
+        return [.. stats];
+    }
+
+    private static string FormatSeconds(int milliseconds) => $"{milliseconds / 1000d:0.#}s";
+}

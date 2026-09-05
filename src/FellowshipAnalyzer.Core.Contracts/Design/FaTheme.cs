@@ -5,7 +5,7 @@ namespace FellowshipAnalyzer.Core.Contracts.Design;
 /// site needs a fallback and no token resolves to nothing in any app.
 /// </summary>
 /// <param name="Name">The theme's name, which is also its <c>data-theme</c> attribute value in lower case.</param>
-/// <param name="Palette">Every colour token, plus the two section-header gradients.</param>
+/// <param name="Palette">Every colour token.</param>
 /// <param name="Typography">The font stacks and the type scale.</param>
 /// <param name="Metrics">The edge widths and corner radii.</param>
 /// <param name="Elevation">The drop shadows.</param>
@@ -103,8 +103,7 @@ public sealed record FaTheme(
                 Token(nameof(FaPalette.Raise), p.Raise),
                 Token(nameof(FaPalette.Recess), p.Recess),
                 Token(nameof(FaPalette.RecessDeep), p.RecessDeep),
-                Token(nameof(FaPalette.SectionHeader), p.SectionHeader),
-                Token(nameof(FaPalette.SectionHeaderHover), p.SectionHeaderHover));
+                Token(nameof(FaPalette.SectionHeader), p.SectionHeader));
 
             yield return Group("Foreground", nameof(FaPalette),
                 Token(nameof(FaPalette.Text), p.Text),
@@ -209,6 +208,7 @@ public sealed record FaTheme(
                 Token(nameof(FaTypography.FsValue), Typography.FsValue),
                 Token(nameof(FaTypography.FsTitle), Typography.FsTitle),
                 Token(nameof(FaTypography.FsLg), Typography.FsLg),
+                Token(nameof(FaTypography.FsXl), Typography.FsXl),
                 Token(nameof(FaTypography.FsStat), Typography.FsStat));
         }
     }

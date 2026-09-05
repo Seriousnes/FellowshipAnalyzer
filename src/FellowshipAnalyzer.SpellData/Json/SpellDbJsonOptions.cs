@@ -1,6 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
+using FellowshipAnalyzer.Core.Common.Spells;
 using FellowshipAnalyzer.Core.Game;
 using FellowshipAnalyzer.Core.UI;
 
@@ -26,6 +27,8 @@ public static class SpellDbJsonOptions
             new ResourceTypesJsonConverter(),
             new JsonStringEnumConverter<AbilityCategory>(),
             new JsonStringEnumConverter<MagicSchool>(),
+            new JsonStringEnumConverter<GenerationMeasure>(),
+            new JsonStringEnumConverter<GenerationTrigger>(),
         },
     };
 }

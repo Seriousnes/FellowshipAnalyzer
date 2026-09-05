@@ -125,8 +125,7 @@
         {
             stats.Add(new PerCastStat(
                 FormatSeconds((int)analyzer.HemorrhageApplications.Average(application => application.ExpectedDurationMs)),
-                "Avg Bleed Length",
-                "Average Hemorrhage duration, derived from the combo points spent on each Hemorrhaging Strike rather than observed."));
+                "Avg Bleed Length"));
         }
 
         AdditionalContent? chart = null;
@@ -262,9 +261,6 @@
             notes.Add($"{Count(analyzer.VolatilePoisonRefreshes, "Volatile Poison")} went onto a target that already had it");
         else if (analyzer.VolatilePoisonApplications > 0)
             notes.Add($"none of the {analyzer.VolatilePoisonApplications} Volatile Poison applications went onto a target that already had it");
-
-        if (analyzer.TargetCount == 0)
-            notes.Add("the pull reported no enemy roster, so coverage is measured against the enemies you engaged");
 
         return Sentence(notes);
     }

@@ -1,4 +1,85 @@
 {
+  "aeona": {
+    "ContinuumShift": {
+      "id": 2676,
+      "kind": "effect",
+      "name": "Continuum Shift",
+      "note": "effect 2676; the Continuum Shift talent (621) state that enhances the next Time Shard, Echoes of Ruin, or Entropy's Claim"
+    },
+    "Uchronia": {
+      "id": 2593,
+      "kind": "effect",
+      "name": "Uchronia",
+      "note": "effect 2593; the Uchronia talent (554) stack a Chrona spender grants, making the next Oblivion, Amend Fate, or Restore Continuity free at 3 stacks"
+    },
+    "EchoesOfDivinity": {
+      "id": 2818,
+      "kind": "effect",
+      "name": "Echoes of Divinity",
+      "note": "effect 2818; the Echoes of Divinity talent (623) effect that cleanses Stagger over time, 4s duration on a 1s period"
+    },
+    "EntropicBurst": {
+      "id": 2819,
+      "kind": "effect",
+      "name": "Entropic Burst",
+      "note": "effect 2819; the Entropic Burst talent (592) damage over time, 9s duration on a 1.5s period"
+    },
+    "ResonantFate": {
+      "id": 2584,
+      "kind": "effect",
+      "name": "Resonant Fate",
+      "note": "effect 2584; the Resonant Fate talent (536) stack counter fed by Deferred Fate overhealing, arming the damage reduction at 100 stacks"
+    },
+    "ResonantFatePeriodic": {
+      "id": 2585,
+      "kind": "effect",
+      "name": "Resonant Fate",
+      "note": "effect 2585; the Resonant Fate talent (536) periodic component, 5s duration on a 1s period, which the codex record leaves undescribed"
+    },
+    "ResonantFateExhausted": {
+      "id": 2586,
+      "kind": "effect",
+      "name": "Resonant Fate: Exhausted",
+      "note": "effect 2586; the 20s lockout applied once Resonant Fate has triggered"
+    },
+    "ResonantFateDamageReduction": {
+      "id": 3259,
+      "kind": "effect",
+      "name": "Resonant Fate",
+      "icon": "T_Lisa_Stagger.jpg",
+      "note": "effect 3259; the 12% damage reduction Resonant Fate grants an ally for 15s. It carries no abilities.json entry, so the icon is set here from the codex record"
+    },
+    "ChronaTap": {
+      "id": 2588,
+      "kind": "effect",
+      "name": "Chrona Tap",
+      "note": "effect 2588; the Chrona Tap talent (539) stack counter, 9s duration, returning mana scaled by stacks and maximum mana when it ends"
+    },
+    "HasteningDoom": {
+      "id": 2822,
+      "kind": "effect",
+      "name": "Hastening Doom",
+      "note": "effect 2822; the +20% Haste the Hastening Doom talent (624) grants"
+    },
+    "SynchronicityCatchUp": {
+      "id": 2733,
+      "kind": "effect",
+      "name": "Synchronicity: Catch Up",
+      "note": "effect 2733; the +25% resource generation half of the Synchronicity talent (537)"
+    },
+    "SynchronicityOvercharge": {
+      "id": 2596,
+      "kind": "effect",
+      "name": "Synchronicity: Overcharge",
+      "note": "effect 2596; the +15% non-spender damage half of the Synchronicity talent (537)"
+    },
+    "OblivionSelfBuffBuff": {
+      "id": 3153,
+      "kind": "effect",
+      "name": "Converging Timelines",
+      "note": "effect 3153; Converging Timelines, the +100% Cooldown Acceleration Oblivion grants itself for 0.5s. The v24952830 export leaves the record unnamed, so the name is set here from ability 1970's own description"
+    }
+  },
   "ardeos": {
     "FireBallMonitor": { "id": 1565 },
     "FireBallAoeMonitor": { "id": 1581 },
@@ -279,6 +360,11 @@
       "kind": "weapon",
       "name": "Navigator's Intuition"
     },
+    "MartialInitiativeTrait": {
+      "id": 51,
+      "kind": "weapon",
+      "name": "Martial Initiative"
+    },
     "VoidbringerTouch": {
       "id": 155
     },
@@ -413,6 +499,24 @@
       "id": 1952,
       "kind": "effect",
       "name": "Essence of the Conqueror - II"
+    },
+    "MartialInitiative": {
+      "id": 2174,
+      "kind": "effect",
+      "name": "Martial Initiative",
+      "note": "effect 2174; the damage-reduction and primary-stat window the Martial Initiative trait (51) opens, which Twilight Skybolt sets up"
+    },
+    "TheVehement": {
+      "id": 3194,
+      "kind": "effect",
+      "name": "The Vehement",
+      "note": "effect 3194; the state The Vehement blessing (712) maintains, making a BASIC ability erupt for its damage again around the target"
+    },
+    "TheVehementsDisdain": {
+      "id": 3193,
+      "kind": "effect",
+      "name": "The Vehement's Disdain",
+      "note": "effect 3193; the eruption damage The Vehement blessing (712) deals"
     }
   },
   "mara": {

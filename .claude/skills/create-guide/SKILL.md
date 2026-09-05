@@ -17,6 +17,10 @@ The analyzer holds typed data (counts, rates, timestamps, typed entry records); 
 
 Reference implementation: `src/Heroes/FellowshipAnalyzer.Heroes.Tariq/Guides/FuryEconomyGuide.razor`.
 
+## Voice
+
+Read `.claude/skills/banned-vocabulary/SKILL.md` before writing anything. No banned words or phrases should appear in the guide content, tooltips, statistics, or any other user-facing text. Never mention logs or raw data.
+
 ## Procedure
 
 ### 1. Create The Feature Guide
@@ -47,10 +51,15 @@ For a pull-lifetime analyzer (registered with `[AddAnalyzer<T>]`), read the cros
     {
         var analyzers = Parser.{Name}Analyzers.Select(entry => entry.Analyzer).ToList();
         var good = analyzers.Sum(analyzer => analyzer.GoodCount);
+        var uptime = analyzers.Average(analyzer => analyzer.UptimePercent);
 
         return
         [
-            new OverviewStat($"{good}", "Good", "Successful usages across all pulls."),
+            new OverviewStat($"{good}", "Good Casts"),
+            new OverviewStat(
+                $"{uptime:0.#}%",
+                "Uptime",
+                "Share of combat with the effect active on at least one enemy, counting a moment once however many enemies carried it."),
         ];
     }
 
@@ -58,7 +67,11 @@ For a pull-lifetime analyzer (registered with `[AddAnalyzer<T>]`), read the cros
         Parser.{Name}Analyzers.ToPullRows(Parser, (analyzer, pull) => new PerCastRow
         {
             Performance = PerformanceTiers.FromThresholds(analyzer.GoodSharePercent, 75, 50, 25),
-            Stats = [new PerCastStat($"{analyzer.GoodCount}", "Good", "Successful usages this pull.")],
+            Stats =
+            [
+                new PerCastStat($"{analyzer.GoodCount}", "Good Casts"),
+                new PerCastStat($"{analyzer.Overwritten}", "Overwritten"),
+            ],
         });
 }
 ```
@@ -71,10 +84,32 @@ For a dungeon-lifetime module, read the generated nullable parser property (`Par
 
 ### Left panel voice
 
-Write every `<LeftPanel>`, `Title`, `Description`, `HelperText`, `Label` and `Tooltip` in the house
-style: read `.claude/skills/house-style/SKILL.md` before writing any of them. It carries the left
-panel's three moves, the register, the sentence templates, the grammar of a stat summary, and the
-lexicon.
+Read `.claude/skills/banned-vocabulary/SKILL.md` before writing anything.
+
+### When a stat takes a tooltip
+
+`OverviewStat` and `PerCastStat` take a `Label` always, and a `Tooltip` where there is a counting
+rule or a game rule to state. Those two are the whole set:
+
+- **A counting rule** names which cases fall inside the number, where a reader would otherwise pick
+  a different set. `86/122 | Full MSW` takes "Tempest casts consumed at full Maelstrom Weapon
+  stacks. Free casts from Thorim's Invocation are counted as full." - the second sentence is the
+  rule, and the tooltip exists for it.
+- **A game rule** names what the quantity does in game terms. `10 | Stacks spent` takes "Maelstrom
+  Weapon stacks consumed, providing 3.0s of CDR to Stormstrike and Lava Lash."
+
+Both examples open by naming the quantity in full ability names and then state the rule. That
+opening clause is the tooltip's frame, not its reason for existing: a stat with neither rule to
+state takes the two-argument form, whatever its label reads like. A plain sum such as `"Damage
+Absorbed"` or `"Good Casts"` is finished at two arguments.
+
+A tooltip states the game, never the tool. It never says where a number came from in the log, what
+the log does or does not carry, or that a value is reconstructed, estimated or approximate. Keep
+that on the analyzer member's XML doc, where the reader is a developer. A metric that cannot be
+measured for a cast is left out for that cast, with no note.
+
+Where a two-argument stat also carries a tier, pass it as the named `Performance:` argument, since
+`Tooltip` is the third positional parameter.
 
 ### Merging analyzers across pull shapes
 
@@ -170,7 +205,6 @@ From `FellowshipAnalyzer.Core.UI.Guides`:
 - Override `IsActive()` with the guide's own activation condition. The base suppresses the whole component when it returns false, so never write an `@if` around the markup body and never gate a feature guide from the root guide.
 - Read pull analyzers via `Parser.{Name}Analyzers`, `Parser.For(pull).{Name}Analyzer` or the `pull.{Name}Analyzer` extension (the member is named after the surface type, with a leading `I` stripped for a marker interface). Read dungeon-lifetime modules via generated properties such as `Parser.WinterOrbTracker`, where the `Analyzer` suffix is stripped.
 - Keep event-derived state in modules; keep prose, severity wording, and `PerformanceTier` mapping here.
-- Write every `<LeftPanel>` and stat string in the house style (`house-style` skill): role sentence, directives, then a reading note only where it changes how the number reads.
 - Project per-pull rows with the `ToPullRows` / `ToItemRows` extensions returning `PerCastRow`; use `PerformanceTiers.FromThresholds` for tier ladders.
 - Use shared components from `FellowshipAnalyzer.Core.UI.Guides` when possible.
 - Use the `style-guide` skill before adding or changing component styles.
@@ -182,6 +216,7 @@ From `FellowshipAnalyzer.Core.UI.Guides`:
 - [ ] Component overrides `IsActive()`, and its markup body carries no `@if` gate of its own.
 - [ ] Component reads analyzer state via the generated read paths.
 - [ ] `<LeftPanel>` follows the house style's three moves: ranking, directives, then a reading note only where one is needed.
-- [ ] Every stat `Label` and `Tooltip` follows the house style's grammar and lexicon.
+- [ ] Every stat carries a `Label` in the house style's grammar and lexicon, and a `Tooltip` only where there is a counting rule or a game rule to state.
+- [ ] No stat string, `<LeftPanel>` or `HelperText` says how a number was obtained from the log, or calls a value reconstructed, estimated or approximate.
 - [ ] Feature guide is added to `{Hero}Guide.razor` as a bare element, with no gate there.
 - [ ] Parser `GuideComponent` points to the root guide.

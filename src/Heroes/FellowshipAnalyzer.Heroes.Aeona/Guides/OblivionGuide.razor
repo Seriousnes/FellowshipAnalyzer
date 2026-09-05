@@ -1,0 +1,126 @@
+@inherits GuideComponent<AeonaCombatLogParser>
+
+<GuideSection Title="Oblivion">
+    <LeftPanel>
+        <p>
+            <strong><SpellLink Spell="Spells.Oblivion" /></strong> is your highest priority Chrona spender.
+        </p>
+        <p>
+            Cast <SpellLink Spell="Spells.AmendFate" /> or <SpellLink Spell="Spells.RestoreContinuity" /> instead
+            once the tank holds more than 40% of its maximum health in Stagger.
+        </p>
+        <p>
+            Spend a free cast on Oblivion only when no ally holds more Stagger than a single cleanse removes.
+        </p>
+    </LeftPanel>
+    <RightPanel>
+        <CastOverview Title="Oblivion Overview" Stats="@BuildOverviewStats()" />
+        <CastDetail Title="Oblivion Casts by Pull" Casts="@BuildPerCastData()" />
+    </RightPanel>
+</GuideSection>
+
+@code {
+    protected override bool IsActive() => Analyzers.Any(analyzer => analyzer.CastCount > 0);
+
+    private List<OblivionAnalyzer> Analyzers =>
+        [.. Parser.OblivionAnalyzers.Select(entry => entry.Analyzer).OfType<OblivionAnalyzer>()];
+
+    private bool OblivionsEmbrace => Analyzers.Any(analyzer => analyzer.OblivionsEmbraceTalented);
+
+    private IEnumerable<OverviewStat> BuildOverviewStats()
+    {
+        var analyzers = Analyzers;
+        var stats = new List<OverviewStat>();
+        var casts = analyzers.Sum(analyzer => analyzer.CastCount);
+
+        if (OblivionsEmbrace && casts > 0)
+        {
+            var applied = analyzers.Sum(analyzer => analyzer.ShieldApplied ?? 0);
+
+            stats.Add(new OverviewStat(
+                $"{(double)applied / casts:N0}",
+                "Shielding per Cast",
+                "Shield absorb across every ally, averaged over Oblivion casts."));
+        }
+
+        var opportunities = analyzers.Sum(analyzer => analyzer.FreeCastOpportunities);
+        if (opportunities > 0)
+        {
+            stats.Add(new OverviewStat(
+                $"{analyzers.Sum(analyzer => analyzer.FreeCasts)}/{opportunities}",
+                "Free Casts",
+                "Oblivion casts that cost no Chrona, of every Uchronia proc and Epoch Break window."));
+        }
+
+        var judged = analyzers.Sum(analyzer => analyzer.CastsJudged);
+        if (judged > 0)
+        {
+            var flagged = analyzers.Sum(analyzer => analyzer.CastsAtCleansePriority);
+
+            stats.Add(new OverviewStat(
+                $"{flagged} ({(double)flagged / judged:P0})",
+                "Casts above 40% Stagger",
+                $"Oblivion casts made while the tank held more than 40% of its maximum health in Stagger and a cleanse was available, of {judged} casts."));
+        }
+
+        if (OblivionsEmbrace)
+        {
+            stats.Add(new OverviewStat(
+                $"{analyzers.Max(analyzer => analyzer.LargestSingleAbsorb ?? 0):N0}",
+                "Largest Absorb",
+                "The largest share of one hit an Oblivion's Embrace shield absorbed."));
+        }
+
+        return stats;
+    }
+
+    private IEnumerable<PerCastData> BuildPerCastData() =>
+        Parser.OblivionAnalyzers.ToItemRows(Parser, analyzer => ((OblivionAnalyzer)analyzer).Casts, (cast, pull) => BuildRow(cast));
+
+    private PerCastRow BuildRow(OblivionCast cast)
+    {
+        var performance = cast.AtCleansePriority ? QualitativePerformance.Fail : QualitativePerformance.Perfect;
+        var stats = new List<PerCastStat>();
+
+        if (cast.TankStaggerFraction is { } fraction)
+        {
+            stats.Add(new PerCastStat(
+                $"{fraction:P0}",
+                "Tank Stagger",
+                "The tank's Stagger as a share of its maximum health at the cast.",
+                performance));
+        }
+
+        if (OblivionsEmbrace)
+        {
+            stats.Add(new PerCastStat(
+                $"{cast.ShieldApplied:N0}",
+                "Shielding",
+                $"Shield absorb across {cast.AlliesShielded} all{(cast.AlliesShielded == 1 ? "y" : "ies")}."));
+
+            stats.Add(new PerCastStat(
+                $"{cast.LargestSingleAbsorb:N0}",
+                "Largest Absorb"));
+        }
+
+        if (cast.FreeCastSource is { } source)
+        {
+            stats.Add(new PerCastStat(
+                "Free",
+                source switch
+                {
+                    FreeCastSource.Uchronia => "Uchronia",
+                    FreeCastSource.EpochBreak => "Epoch Break",
+                    _ => "Free Cast",
+                }));
+        }
+
+        return new PerCastRow
+        {
+            Performance = performance,
+            Stats = [.. stats],
+            Timestamp = cast.Timestamp,
+            Sequence = [new SpellCastEntry(Spells.Oblivion.FSLID, performance)],
+        };
+    }
+}

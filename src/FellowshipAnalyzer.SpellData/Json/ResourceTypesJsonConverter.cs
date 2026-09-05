@@ -15,6 +15,10 @@ public static class ResourceTypesAliases
     private static readonly Dictionary<string, ResourceTypes> ByToken = BuildAliasMap(EnumerateMembers());
     private static readonly Dictionary<ResourceTypes, string> ToTokenMap = BuildTokenMap();
 
+    /// <summary>Every token that resolves to a slot, longest first, so a longest-match scan finds "Winter Orbs" before "Winter Orb".</summary>
+    public static IReadOnlyList<string> Tokens { get; } =
+        [.. ByToken.Keys.OrderByDescending(t => t.Length).ThenBy(t => t, StringComparer.Ordinal)];
+
     /// <summary>Resolves a token (member name or flavor alias, case-insensitive) to a slot.</summary>
     public static bool TryResolve(string? token, out ResourceTypes value)
     {

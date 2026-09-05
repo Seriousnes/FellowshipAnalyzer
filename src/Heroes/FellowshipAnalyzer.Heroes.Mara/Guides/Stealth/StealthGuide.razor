@@ -215,7 +215,7 @@
     private static string PoisonTooltip(StealthWindow window) =>
         window.PoisonEffectId is not null
             ? "The poison the builder applied out of stealth."
-            : $"No poison was applied within {StealthAnalyzer.PoisonLinkWindowMs / 1000}s of the builder cast in this window.";
+            : "No poison was applied.";
 
     private static string Sentence(List<string> notes)
     {

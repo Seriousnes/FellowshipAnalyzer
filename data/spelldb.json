@@ -29,6 +29,24 @@
       "name": "Amend Fate",
       "icon": "T_Lisa_Stagger.png"
     },
+    "ChronaTap": {
+      "kind": "effect",
+      "id": 2588,
+      "name": "Chrona Tap",
+      "icon": "Tex_p_30.png"
+    },
+    "ContinuumShift": {
+      "kind": "effect",
+      "id": 2676,
+      "name": "Continuum Shift",
+      "icon": "Tex_SpellBook06_59.png"
+    },
+    "EchoesOfDivinity": {
+      "kind": "effect",
+      "id": 2818,
+      "name": "Echoes of Divinity",
+      "icon": "T_Lisa_BeaconOfTime.png"
+    },
     "EchoesOfRuin": {
       "kind": "ability",
       "id": 1887,
@@ -39,6 +57,12 @@
       "castDuration": 2,
       "costs": {
         "mana": 9
+      },
+      "resourceGeneration": {
+        "resource": "primary",
+        "amount": 6,
+        "criticalAmount": 9,
+        "trigger": "PerCast"
       }
     },
     "EchoesOfRuinCost": {
@@ -65,6 +89,12 @@
       "name": "Edge of Ruin",
       "icon": "T_Lisa_Burst.png"
     },
+    "EntropicBurst": {
+      "kind": "effect",
+      "id": 2819,
+      "name": "Entropic Burst",
+      "icon": "Tex_SpellBook01_69.png"
+    },
     "EntropyClaim": {
       "kind": "ability",
       "id": 1876,
@@ -76,6 +106,12 @@
       "castDuration": 1.5,
       "costs": {
         "mana": 73
+      },
+      "resourceGeneration": {
+        "resource": "primary",
+        "amount": 4,
+        "criticalAmount": 6,
+        "trigger": "PerHit"
       }
     },
     "EntropyClaimCost": {
@@ -136,6 +172,11 @@
       "castDuration": 1.5,
       "costs": {
         "mana": 67
+      },
+      "resourceGeneration": {
+        "resource": "primary",
+        "amount": 5,
+        "trigger": "PerCast"
       }
     },
     "FlashRevisionCost": {
@@ -173,6 +214,12 @@
       "id": 2744,
       "name": "Fleeting Hour",
       "icon": "T_Lisa_TimeBuff.png"
+    },
+    "HasteningDoom": {
+      "kind": "effect",
+      "id": 2822,
+      "name": "Hastening Doom",
+      "icon": "T_Lisa_StrandsofTime.png"
     },
     "Intercession": {
       "kind": "ability",
@@ -243,7 +290,31 @@
     "OblivionSelfBuffBuff": {
       "kind": "effect",
       "id": 3153,
-      "name": "",
+      "name": "Converging Timelines",
+      "icon": ""
+    },
+    "ResonantFate": {
+      "kind": "effect",
+      "id": 2584,
+      "name": "Resonant Fate",
+      "icon": "T_Lisa_Stagger.png"
+    },
+    "ResonantFateDamageReduction": {
+      "kind": "effect",
+      "id": 3259,
+      "name": "Resonant Fate",
+      "icon": "T_Lisa_Stagger.jpg"
+    },
+    "ResonantFateExhausted": {
+      "kind": "effect",
+      "id": 2586,
+      "name": "Resonant Fate: Exhausted",
+      "icon": "T_Lisa_Stagger.png"
+    },
+    "ResonantFatePeriodic": {
+      "kind": "effect",
+      "id": 2585,
+      "name": "Resonant Fate",
       "icon": ""
     },
     "RestoreContinuity": {
@@ -298,6 +369,18 @@
       "name": "Revert Magic",
       "icon": "T_Lisa_Dispel.png"
     },
+    "SynchronicityCatchUp": {
+      "kind": "effect",
+      "id": 2733,
+      "name": "Synchronicity: Catch Up",
+      "icon": "Tex_SpellBook06_85.png"
+    },
+    "SynchronicityOvercharge": {
+      "kind": "effect",
+      "id": 2596,
+      "name": "Synchronicity: Overcharge",
+      "icon": "Tex_SpellBook06_85.png"
+    },
     "TemporalBarrage": {
       "kind": "ability",
       "id": 1926,
@@ -310,6 +393,12 @@
       "channelTickInterval": 0.5,
       "costs": {
         "mana": 61
+      },
+      "resourceGeneration": {
+        "resource": "primary",
+        "amount": 4,
+        "criticalAmount": 6,
+        "trigger": "PerHit"
       }
     },
     "TemporalBarrageCost": {
@@ -340,6 +429,12 @@
       "castDuration": 1.5,
       "costs": {
         "mana": 1
+      },
+      "resourceGeneration": {
+        "resource": "primary",
+        "amount": 6,
+        "criticalAmount": 9,
+        "trigger": "PerCast"
       }
     },
     "TimeShardCost": {
@@ -368,6 +463,12 @@
       "name": "Time Skip",
       "icon": "T_Lisa_Blink.png"
     },
+    "Uchronia": {
+      "kind": "effect",
+      "id": 2593,
+      "name": "Uchronia",
+      "icon": "T_Nhance_RPG_Icons_ArcanePotion.png"
+    },
     "UnfoldingDoom": {
       "kind": "ability",
       "id": 1890,
@@ -379,6 +480,12 @@
       "castDuration": 2,
       "costs": {
         "mana": 94
+      },
+      "resourceGeneration": {
+        "resource": "primary",
+        "amount": 20,
+        "criticalAmount": 30,
+        "trigger": "PerCast"
       }
     },
     "UnfoldingDoomCost": {
@@ -502,7 +609,12 @@
       "cooldownReductionOnTargetDeath": 10,
       "range": 3000,
       "charges": 2,
-      "castDuration": 1.5
+      "castDuration": 1.5,
+      "resourceGeneration": {
+        "resource": "primary",
+        "amount": 30,
+        "trigger": "OverDuration"
+      }
     },
     "EngulfingFlamesDot": {
       "kind": "effect",
@@ -704,7 +816,12 @@
       "icon": "Firemage_Bolt.png",
       "abilityCategory": "Basic",
       "range": 3000,
-      "castDuration": 1.5
+      "castDuration": 1.5,
+      "resourceGeneration": {
+        "resource": "primary",
+        "amount": 40,
+        "trigger": "PerCast"
+      }
     },
     "InfernalWaveDamageAndDotBoost": {
       "kind": "effect",
@@ -760,7 +877,12 @@
       "name": "Searing Blaze",
       "icon": "Firemage_Dot_02.png",
       "abilityCategory": "Core",
-      "range": 3000
+      "range": 3000,
+      "resourceGeneration": {
+        "resource": "primary",
+        "amount": 12,
+        "trigger": "OverDuration"
+      }
     },
     "SearingBlazeDot": {
       "kind": "effect",
@@ -903,7 +1025,12 @@
       "icon": "Bowguy_FocusShot.png",
       "abilityCategory": "Basic",
       "range": 3000,
-      "castDuration": 1.5
+      "castDuration": 1.5,
+      "resourceGeneration": {
+        "resource": "primary",
+        "amount": 20,
+        "trigger": "PerCast"
+      }
     },
     "FocusedShotBuff": {
       "kind": "effect",
@@ -2035,6 +2162,12 @@
       "range": 500,
       "costs": {
         "primary": 20
+      },
+      "resourceGeneration": {
+        "resource": "secondary",
+        "amount": 2,
+        "criticalAmount": 3,
+        "trigger": "PerCast"
       }
     },
     "BackstabCost": {
@@ -2131,6 +2264,11 @@
       "range": 500,
       "costs": {
         "primary": 20
+      },
+      "resourceGeneration": {
+        "resource": "primary",
+        "amount": 2,
+        "trigger": "PerHit"
       }
     },
     "HemorrhagingStrikeBleed": {
@@ -2322,6 +2460,12 @@
       "radius": 800,
       "costs": {
         "primary": 35
+      },
+      "resourceGeneration": {
+        "resource": "secondary",
+        "amount": 1,
+        "criticalAmount": 2,
+        "trigger": "PerHit"
       }
     },
     "SkitteringBladesDamage": {
@@ -2399,7 +2543,13 @@
       "abilityCategory": "Core",
       "cooldown": 9,
       "range": 500,
-      "charges": 3
+      "charges": 3,
+      "resourceGeneration": {
+        "resource": "secondary",
+        "amount": 2,
+        "criticalAmount": 3,
+        "trigger": "PerHit"
+      }
     },
     "WidowBiteCharge": {
       "kind": "effect",
@@ -2921,7 +3071,12 @@
       "cooldown": 10,
       "range": 3000,
       "radius": 600,
-      "castDuration": 2
+      "castDuration": 2,
+      "resourceGeneration": {
+        "resource": "primary",
+        "amount": 1,
+        "trigger": "PerHit"
+      }
     },
     "BurstingIceDamage": {
       "kind": "effect",
@@ -2943,7 +3098,12 @@
       "abilityCategory": "Basic",
       "cooldown": 12,
       "range": 3000,
-      "charges": 2
+      "charges": 2,
+      "resourceGeneration": {
+        "resource": "tertiary",
+        "amount": 1,
+        "trigger": "PerCast"
+      }
     },
     "ColdSnapDamage": {
       "kind": "effect",
@@ -3002,7 +3162,12 @@
       "cooldown": 15,
       "range": 3000,
       "channelDuration": 2,
-      "channelTickInterval": 0.4
+      "channelTickInterval": 0.4,
+      "resourceGeneration": {
+        "resource": "primary",
+        "amount": 1,
+        "trigger": "PerHit"
+      }
     },
     "FreezingTorrentAoeDamage": {
       "kind": "effect",
@@ -3043,7 +3208,12 @@
       "icon": "T_Rime_SingleTargetBolt.png",
       "abilityCategory": "Basic",
       "range": 3000,
-      "castDuration": 1.5
+      "castDuration": 1.5,
+      "resourceGeneration": {
+        "resource": "primary",
+        "amount": 3,
+        "trigger": "PerCast"
+      }
     },
     "FrostBoltDamage": {
       "kind": "effect",
@@ -3739,7 +3909,12 @@
       "icon": "T_Ink_ChainLightning.png",
       "abilityCategory": "Core",
       "cooldown": 8,
-      "range": 3000
+      "range": 3000,
+      "resourceGeneration": {
+        "resource": "primary",
+        "amount": 1.2,
+        "trigger": "PerHit"
+      }
     },
     "ChainLightningCost": {
       "kind": "effect",
@@ -3793,7 +3968,12 @@
       "icon": "T_Ink_Facebreaker.png",
       "abilityCategory": "Basic",
       "cooldown": 6,
-      "range": 550
+      "range": 550,
+      "resourceGeneration": {
+        "resource": "primary",
+        "amount": 7,
+        "trigger": "PerCast"
+      }
     },
     "FaceBreakerAlt": {
       "kind": "ability",
@@ -3895,7 +4075,12 @@
       "abilityCategory": "Core",
       "cooldown": 8,
       "range": 550,
-      "radius": 800
+      "radius": 800,
+      "resourceGeneration": {
+        "resource": "primary",
+        "amount": 12,
+        "trigger": "PerCast"
+      }
     },
     "HeavyStrikeAlt": {
       "kind": "ability",
@@ -4121,7 +4306,12 @@
       "abilityCategory": "Basic",
       "cooldown": 1.5,
       "range": 550,
-      "radius": 500
+      "radius": 500,
+      "resourceGeneration": {
+        "resource": "primary",
+        "amount": 3,
+        "trigger": "PerCast"
+      }
     },
     "WildSwingCost": {
       "kind": "effect",
@@ -4463,6 +4653,11 @@
       "cooldown": 60,
       "costs": {
         "mana": 96
+      },
+      "resourceGeneration": {
+        "resource": "primary",
+        "amount": 3,
+        "trigger": "PerCast"
       }
     },
     "RunicProliferationBuff": {
@@ -4743,7 +4938,12 @@
       "icon": "T_Sune_Omnistrike.png",
       "abilityCategory": "Core",
       "cooldown": 18,
-      "radius": 800
+      "radius": 800,
+      "resourceGeneration": {
+        "resource": "spirit",
+        "amount": 4,
+        "trigger": "PerCast"
+      }
     },
     "OmnistrikeDamage": {
       "kind": "effect",
@@ -5316,6 +5516,18 @@
       "abilityCategory": "Relic",
       "cooldown": 360
     },
+    "MartialInitiative": {
+      "kind": "effect",
+      "id": 2174,
+      "name": "Martial Initiative",
+      "icon": "Guardian5.png"
+    },
+    "MartialInitiativeTrait": {
+      "kind": "weapon",
+      "id": 51,
+      "name": "Martial Initiative",
+      "icon": "Guardian5.png"
+    },
     "MightOfTheMinotaur": {
       "kind": "effect",
       "id": 1921,
@@ -5460,7 +5672,13 @@
       "name": "Restore Mana",
       "icon": "T_Relic_Mana.png",
       "abilityCategory": "Relic",
-      "cooldown": 120
+      "cooldown": 120,
+      "resourceGeneration": {
+        "resource": "mana",
+        "amount": 0.3,
+        "measure": "FractionOfMaximum",
+        "trigger": "PerCast"
+      }
     },
     "Revive": {
       "kind": "ability",
@@ -5593,6 +5811,18 @@
       "id": 3181,
       "name": "The Trickster",
       "icon": "Tex_SpellBook06_97.png"
+    },
+    "TheVehement": {
+      "kind": "effect",
+      "id": 3194,
+      "name": "The Vehement",
+      "icon": "T_NaturesWrath.png"
+    },
+    "TheVehementsDisdain": {
+      "kind": "effect",
+      "id": 3193,
+      "name": "The Vehement\u0027s Disdain",
+      "icon": ""
     },
     "TheWayfarer": {
       "kind": "effect",
@@ -5727,13 +5957,24 @@
         "kind": "talent",
         "id": 539,
         "name": "Chrona Tap",
-        "icon": "Tex_p_30.png"
+        "icon": "Tex_p_30.png",
+        "resourceGeneration": {
+          "resource": "mana",
+          "amount": 0.013,
+          "measure": "FractionOfMaximum",
+          "trigger": "PerStack"
+        }
       },
       "ContinuumShift": {
         "kind": "talent",
         "id": 621,
         "name": "Continuum Shift",
-        "icon": "Tex_SpellBook06_59.png"
+        "icon": "Tex_SpellBook06_59.png",
+        "resourceGeneration": {
+          "resource": "primary",
+          "amount": 9,
+          "measure": "Increase"
+        }
       },
       "EchoesOfDivinity": {
         "kind": "talent",
@@ -5805,13 +6046,23 @@
         "kind": "talent",
         "id": 612,
         "name": "Surging Chrona",
-        "icon": "T_Nhance_RPG_Shadow_56.png"
+        "icon": "T_Nhance_RPG_Shadow_56.png",
+        "resourceGeneration": {
+          "resource": "primary",
+          "amount": 30,
+          "trigger": "PerCast"
+        }
       },
       "Synchronicity": {
         "kind": "talent",
         "id": 537,
         "name": "Synchronicity",
-        "icon": "Tex_SpellBook06_85.png"
+        "icon": "Tex_SpellBook06_85.png",
+        "resourceGeneration": {
+          "resource": "primary",
+          "amount": 0.25,
+          "measure": "Increase"
+        }
       },
       "TemporalShift": {
         "kind": "talent",

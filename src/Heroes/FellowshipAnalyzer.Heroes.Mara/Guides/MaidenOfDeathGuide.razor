@@ -62,14 +62,14 @@
                 "Idle in Window",
                 gaps == 0
                     ? $"No gap reached {MaidenOfDeathAnalyzer.MinimumGapMs / 1000d:0.#}s."
-                    : $"{Count(gaps, "gap", "gaps")} of at least {MaidenOfDeathAnalyzer.MinimumGapMs / 1000d:0.#}s, room for about {Count(lostCasts, "more cast")} at one global cooldown each.",
+                    : $"{Count(gaps, "gap", "gaps")} of at least {MaidenOfDeathAnalyzer.MinimumGapMs / 1000d:0.#}s, room for {Count(lostCasts, "more cast")} at one global cooldown each.",
                 IdleTier(lostCasts, windows)),
             new OverviewStat(
                 FormatSeconds(heldMs),
                 "Maiden of Death Held",
                 recasts == 0
-                    ? "Maiden of Death was cast at most once per pull, so no recast could be measured against its recharge."
-                    : $"Time a ready charge went unspent across {Count(recasts, "recast")}, {averageHeldSeconds:0.#}s per recast on average, measured against a {MaidenOfDeathAnalyzer.RechargeMs / 1000}-second recharge.",
+                    ? "Maiden of Death was cast at most once per pull."
+                    : $"Time a ready charge went unspent across {Count(recasts, "recast")}, {averageHeldSeconds:0.#}s per recast on average.",
                 HeldTier(averageHeldSeconds, recasts)),
         ];
     }
@@ -94,7 +94,7 @@
                 window.ComboPointsAtOpen is { } atOpen ? $"{atOpen}" : "-",
                 "Combo Points at Open",
                 window.ComboPointsAtOpen is null
-                    ? "The combo point tracker recorded nothing at or before this window opened."
+                    ? "No combo point snapshot was observed."
                     : "Combo points held as the window opened."),
             new PerCastStat(
                 $"{window.WastedGeneratorCasts}",
@@ -106,7 +106,7 @@
                 "Idle",
                 window.GapCount == 0
                     ? "No gaps inside the window."
-                    : $"{Count(window.GapCount, "gap", "gaps")}, longest {FormatSeconds(window.LongestGapMs)}, room for about {Count(window.LostCasts, "more cast")}.",
+                    : $"{Count(window.GapCount, "gap", "gaps")}, longest {FormatSeconds(window.LongestGapMs)}, room for {Count(window.LostCasts, "more cast")}.",
                 Performance: IdleTier(window.LostCasts, 1)),
             new PerCastStat(
                 $"{window.ComboPointsSpent}",
@@ -116,7 +116,7 @@
                 window.EnergyAtClose is { } energy ? $"{energy}" : "-",
                 "Energy Into Last Cast",
                 window.EnergyAtClose is null
-                    ? "No cast inside the window reported an Energy snapshot."
+                    ? null
                     : "Energy available going into the last cast made inside the window."),
         };
 

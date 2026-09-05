@@ -59,9 +59,7 @@
             new(
                 $"{covered:N0}",
                 "Mitigation Covered",
-                "All mitigation and absorbs on hits taken inside a Shields Up window. At high uptime " +
-                "this approaches the dungeon's whole mitigation total, because it counts everything at once " +
-                "rather than the share Shields Up is responsible for."),
+                "All mitigation and absorbs on hits taken inside a Shields Up window."),
         };
 
         if (Parser.ToughnessTracker is { } tracker)
@@ -109,8 +107,7 @@
             new OverviewStat(
                 $"{covered:N0}",
                 "Mitigation Covered",
-                "All mitigation and absorbs on hits taken inside an Iron Wall window, from every " +
-                "source at once rather than Iron Wall's own share."),
+                "All mitigation and absorbs on hits taken inside an Iron Wall window."),
         ];
     }
 
@@ -140,10 +137,7 @@
             new(
                 use.ToughnessShare is { } share ? $"{share * 100:F0}%" : "n/a",
                 "Toughness At Use",
-                use.ToughnessShare is null
-                    ? "This cast has no Toughness reading."
-                    : "Toughness when it was used.",
-                use.ToughnessShare is null ? null
+                Performance: use.ToughnessShare is null ? null
                     : use.OpenedAboveHalfToughness ? QualitativePerformance.Perfect : QualitativePerformance.Fail),
             new(
                 $"{use.Window.DurationMs / 1000d:F1}s",

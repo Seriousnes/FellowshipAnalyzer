@@ -18,13 +18,15 @@ namespace FellowshipAnalyzer.SpellData;
 public record MergeInputs(
     ExportSource Export,
     IconSource Icons,
-    OverridesSource Overrides)
+    OverridesSource Overrides,
+    GenerationSource Generation)
 {
     /// <summary>Loads every upstream source from the committed file paths.</summary>
     public static MergeInputs Load() => new(
         ExportSource.Load(SourcePaths.Entities, SourcePaths.Settings),
         IconSource.Load(SourcePaths.Entities),
-        OverridesSource.Load(SourcePaths.Overrides));
+        OverridesSource.Load(SourcePaths.Overrides),
+        GenerationSource.Load(SourcePaths.Entities));
 }
 
 /// <summary>
@@ -63,6 +65,8 @@ public static class MergeEngine
                 var icon = inputs.Icons.IconFor(SpellKind.Ability, ability.Id) ?? string.Empty;
                 var costs = Costs.Map(ability, gaps, scope, member);
                 var abilityCategory = inputs.Export.CategoryFor(ability.Category);
+                var generation = GenerationFor(
+                    inputs, FSLID.FromNative(SpellKind.Ability, ability.Id), gaps, scope, member);
 
                 var prov = new ProvenanceBuilder()
                     .Set("id", ProvenanceSource.Export)
@@ -78,6 +82,7 @@ public static class MergeEngine
                     .SetIf("channelDuration", ability.ChannelTime.HasValue, ProvenanceSource.Export)
                     .SetIf("channelTickInterval", ability.ChannelTick.HasValue, ProvenanceSource.Export)
                     .SetIf("costs", costs.Count > 0, ProvenanceSource.Export)
+                    .SetIf("resourceGeneration", generation is not null, ProvenanceSource.Export)
                     .Build();
 
                 var spell = BuildSpell(SpellKind.Ability, ability.Id, ability.Name, icon,
@@ -90,7 +95,8 @@ public static class MergeEngine
                     channelDuration: ability.ChannelTime,
                     channelTickInterval: ability.ChannelTick,
                     costs: costs,
-                    abilityCategory: abilityCategory);
+                    abilityCategory: abilityCategory,
+                    resourceGeneration: generation);
                 spells.Add(new CuratedSpell(scope, member, spell, prov));
 
                 if (!MemberNaming.IsValidIdentifier(member))
@@ -110,7 +116,9 @@ public static class MergeEngine
                     }
 
                     var effectMember = MemberNaming.EffectMember(member, effect.Role);
+                    var effectGuid = FSLID.FromNative(SpellKind.Effect, effect.Id);
                     var effectIcon = inputs.Icons.IconFor(SpellKind.Effect, effect.Id) ?? string.Empty;
+                    var effectGeneration = GenerationFor(inputs, effectGuid, gaps, scope, effectMember);
 
                     var effectProv = new ProvenanceBuilder()
                         .Set("id", ProvenanceSource.Export)
@@ -118,6 +126,7 @@ public static class MergeEngine
                         .SetIf("name", effect.Name is not null, ProvenanceSource.Export)
                         .SetIf("icon", effectIcon.Length > 0, ProvenanceSource.Export)
                         .Set("charges", ProvenanceSource.Export)
+                        .SetIf("resourceGeneration", effectGeneration is not null, ProvenanceSource.Export)
                         .Build();
 
                     var effectSpell = BuildSpell(SpellKind.Effect, effect.Id, effect.Name ?? string.Empty, effectIcon,
@@ -129,7 +138,8 @@ public static class MergeEngine
                         castDuration: null,
                         channelDuration: null,
                         channelTickInterval: null,
-                        costs: EmptyCosts);
+                        costs: EmptyCosts,
+                        resourceGeneration: effectGeneration);
                     spells.Add(new CuratedSpell(scope, effectMember, effectSpell, effectProv));
 
                     if (!MemberNaming.IsValidIdentifier(effectMember))
@@ -137,6 +147,7 @@ public static class MergeEngine
                 }
             }
         }
+
 
         foreach (var (scope, members) in inputs.Overrides.ByScopeAndMember)
         {
@@ -187,6 +198,20 @@ public static class MergeEngine
             ArtSharedAcrossRungs = inputs.Icons.ArtSharedAcrossRungs,
             Talents = BuildTalents(inputs, gaps),
         };
+    }
+
+
+    /// <summary>
+    /// The generation the export states for <paramref name="id"/>, reporting each description that states an
+    /// amount in a form no rule claims so a missed sentence surfaces instead of being silently dropped.
+    /// </summary>
+    private static ResourceGeneration? GenerationFor(
+        MergeInputs inputs, FSLID id, ICollection<Gap> gaps, string scope, string member)
+    {
+        var reading = inputs.Generation.For(id);
+        if (reading.Unclaimed.Count > 0)
+            gaps.Add(new Gap(scope, member, GapKind.UnclaimedGeneration));
+        return reading.Stated;
     }
 
     private static List<(string Scope, List<ExportAbility> Abilities)> RouteAbilities(ExportSource export, List<Gap> gaps)
@@ -255,6 +280,7 @@ public static class MergeEngine
 
     private const string ItemsScope = "items";
 
+
     private const string SoleHeroKey = "soleHero";
 
     private static readonly HashSet<string> CurationKeys = new(StringComparer.Ordinal) { SoleHeroKey };
@@ -282,16 +308,19 @@ public static class MergeEngine
                 }
 
                 var member = MemberNaming.TalentMember(talent.Name);
+                var guid = FSLID.FromNative(SpellKind.Talent, talent.Id);
                 var icon = inputs.Icons.IconFor(SpellKind.Talent, talent.Id) ?? string.Empty;
+                var generation = GenerationFor(inputs, guid, gaps, scope, member);
 
                 var prov = new ProvenanceBuilder()
                     .Set("id", ProvenanceSource.Export)
                     .Set("kind", ProvenanceSource.Export)
                     .Set("name", ProvenanceSource.Export)
                     .SetIf("icon", icon.Length > 0, ProvenanceSource.Export)
+                    .SetIf("resourceGeneration", generation is not null, ProvenanceSource.Export)
                     .Build();
 
-                var spell = Spell.FromFSLID(FSLID.FromNative(SpellKind.Talent, talent.Id), talent.Name, icon);
+                var spell = Spell.FromFSLID(guid, talent.Name, icon) with { ResourceGeneration = generation };
                 talents.Add(new CuratedSpell(scope, member, spell, prov));
 
                 if (!MemberNaming.IsValidIdentifier(member))
@@ -315,10 +344,12 @@ public static class MergeEngine
         double? cooldown, double? cooldownReductionOnTargetDeath, int? range, int? radius, int charges,
         double? castDuration, double? channelDuration, double? channelTickInterval,
         Dictionary<ResourceTypes, int> costs,
-        AbilityCategory? abilityCategory = null) =>
+        AbilityCategory? abilityCategory = null,
+        ResourceGeneration? resourceGeneration = null) =>
         Spell.FromFSLID(FSLID.FromNative(kind, nativeId), name, icon) with
         {
             AbilityCategory = abilityCategory,
+            ResourceGeneration = resourceGeneration,
             Cooldown = cooldown,
             CooldownReductionOnTargetDeath = cooldownReductionOnTargetDeath,
             Range = range,
@@ -405,6 +436,7 @@ public static class MergeEngine
 
         var addedGaps = new List<Gap>();
         var costs = ability is not null ? Costs.Map(ability, addedGaps, scope, member) : EmptyCosts;
+        var generation = GenerationFor(inputs, FSLID.FromNative(kind, nativeId), addedGaps, scope, member);
 
         var prov = new ProvenanceBuilder()
             .Set("id", ProvenanceSource.Export)
@@ -419,7 +451,8 @@ public static class MergeEngine
             .SetIf("castDuration", ability?.CastTime is not null, ProvenanceSource.Export)
             .SetIf("channelDuration", ability?.ChannelTime is not null, ProvenanceSource.Export)
             .SetIf("channelTickInterval", ability?.ChannelTick is not null, ProvenanceSource.Export)
-            .SetIf("costs", costs.Count > 0, ProvenanceSource.Export);
+            .SetIf("costs", costs.Count > 0, ProvenanceSource.Export)
+            .SetIf("resourceGeneration", generation is not null, ProvenanceSource.Export);
 
         var baseSpell = BuildSpell(kind, nativeId, exportName ?? string.Empty, icon,
             cooldown: ability?.Cooldown,
@@ -431,7 +464,8 @@ public static class MergeEngine
             channelDuration: ability?.ChannelTime,
             channelTickInterval: ability?.ChannelTick,
             costs: costs,
-            abilityCategory: abilityCategory);
+            abilityCategory: abilityCategory,
+            resourceGeneration: generation);
         var curated = ApplyPatch(new CuratedSpell(scope, member, baseSpell, prov.Build()), delta);
 
         if (!MemberNaming.IsValidIdentifier(curated.Member))

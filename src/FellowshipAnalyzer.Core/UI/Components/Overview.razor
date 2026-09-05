@@ -1,0 +1,56 @@
+@using FellowshipAnalyzer.Core.Events
+@inherits ReportComponent
+
+<div class="overview">
+    <dl class="overview-meta">
+        <dt>Report</dt>
+        <dd>@ReportCode</dd>
+        <dt>Dungeon</dt>
+        <dd>@DungeonId</dd>
+        <dt>Player</dt>
+        <dd>@PlayerId</dd>
+        <dt>Events</dt>
+        <dd>
+            @if (SelectedPull is { } selectedPull)
+            {
+                @($"{CountEventsInPull(selectedPull):N0} in selected pull ({Result.Events.Count:N0} total)")
+            }
+            else
+            {
+                @($"{Result.Events.Count} total")
+            }
+        </dd>
+        <dt>Dungeon Duration</dt>
+        <dd>@FormatDuration(DungeonEndTime - DungeonStartTime)</dd>
+    </dl>
+    <div class="overview-links">
+        <Badge Variant="BadgeVariant.Gold" OnClick='@(() => OnViewEvents.InvokeAsync())'>View Events List →</Badge>
+        <Badge Variant="BadgeVariant.Gold" OnClick='@(() => OnViewDebugAnnotations.InvokeAsync())'>View Debug Annotations →</Badge>
+    </div>
+</div>
+
+@code {
+    /// <summary>The code of the report the analysis was loaded from.</summary>
+    [Parameter, EditorRequired] public string ReportCode { get; set; } = "";
+
+    /// <summary>The id of the dungeon within the report that the analysis covers.</summary>
+    [Parameter, EditorRequired] public int DungeonId { get; set; }
+
+    /// <summary>The actor id of the player the analysis covers.</summary>
+    [Parameter, EditorRequired] public int PlayerId { get; set; }
+
+    /// <summary>Raised by the events list link, for the host to show its events view.</summary>
+    [Parameter] public EventCallback OnViewEvents { get; set; }
+
+    /// <summary>Raised by the debug annotations link, for the host to show its debug annotations view.</summary>
+    [Parameter] public EventCallback OnViewDebugAnnotations { get; set; }
+
+    private int CountEventsInPull(PullStartEvent pull) =>
+        Result.Events.Count(e => e.Timestamp >= pull.StartTime && e.Timestamp <= pull.EndTime);
+
+    private static string FormatDuration(double milliseconds)
+    {
+        var ts = TimeSpan.FromMilliseconds(milliseconds);
+        return ts.TotalMinutes >= 1 ? $"{(int)ts.TotalMinutes}:{ts.Seconds:D2}" : $"{ts.Seconds}s";
+    }
+}

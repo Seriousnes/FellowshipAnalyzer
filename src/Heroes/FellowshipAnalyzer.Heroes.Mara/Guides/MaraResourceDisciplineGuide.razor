@@ -72,7 +72,7 @@
             new OverviewStat(
                 $"{energyCapped}/{energySampled}",
                 "Casts at Capped Energy",
-                $"{energyCapRate}% of sampled casts were at full Energy.",
+                $"{energyCapRate}% of casts were at full Energy.",
                 EnergyCapTier(energyCapRate, energySampled)),
             new OverviewStat(
                 $"{generatorOvercap}",
@@ -192,7 +192,7 @@
             notes.Add($"{Count(analyzer.GeneratorOvercapCasts, "generator cast")} went out at six combo points");
 
         if (analyzer.EnergyCappedCasts > 0)
-            notes.Add($"{Count(analyzer.EnergyCappedCasts, "cast")} went out at full Energy ({energyCapRate}% of sampled casts)");
+            notes.Add($"{Count(analyzer.EnergyCappedCasts, "cast")} went out at full Energy ({energyCapRate}%)");
 
         if (notes.Count > 0)
             return $"{string.Join("; ", notes)}.";

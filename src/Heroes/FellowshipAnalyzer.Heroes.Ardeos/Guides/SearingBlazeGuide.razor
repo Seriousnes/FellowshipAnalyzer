@@ -12,7 +12,6 @@
     <RightPanel>
         <CastOverview Title="DoT Overview" Stats="@BuildOverviewStats()" />
         <CastDetail Title="Searing Blaze by Pull"
-                    Description="Each row is one pull, measured by uptime on boss pulls and by coverage on multi-target pulls."
                     Casts="@BuildPerCastData()" />
     </RightPanel>
 </GuideSection>
@@ -146,7 +145,7 @@
             return "No Searing Blaze applications were detected on this AoE pull.";
 
         if (analyzer.TargetCount <= 0)
-            return $"Searing Blaze spread to {analyzer.DistinctTargets} enemies (the enemy roster was not reported, so coverage is estimated).";
+            return $"Searing Blaze spread to {analyzer.DistinctTargets} enemies.";
 
         if (score >= 75)
             return $"Searing Blaze spread to {analyzer.DistinctTargets} of {analyzer.TargetCount} enemies on this pull.";

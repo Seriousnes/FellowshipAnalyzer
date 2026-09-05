@@ -53,13 +53,13 @@
                 "Mitigation",
                 $"Toughness mitigated {mitigated:N0} of the {atCeiling:N0} it would have mitigated held at " +
                 $"{CeilingLabel} throughout, across {hits:N0} physical hits ({ticks:N0} of them periodic ticks). " +
-                "Weighted by damage rather than by time, so a low band with no damage incoming costs nothing."));
+                "Weighted by damage rather than by time."));
         }
 
         stats.Add(new OverviewStat(
             $"{topBand * 100:F1}%",
             $"At {CeilingLabel} Reduction",
-            $"Share of measured pull time at the full {CeilingLabel} physical damage reduction.",
+            $"Share of time at the full {CeilingLabel} physical damage reduction.",
             PerformanceTiers.FromThresholds(topBand * 100, 90, 75, 55)));
 
         if (BuildTimeToTopBand(analyzers) is { } timeToTop) stats.Add(timeToTop);
@@ -73,13 +73,13 @@
         stats.Add(new OverviewStat(
             $"{lowBands * 100:F1}%",
             "Below 25% Toughness",
-            $"Share of measured pull time at {lowest * 100:F0}% reduction or none at all.",
+            $"Share of time at {lowest * 100:F0}% reduction or none at all.",
             PerformanceTiers.FromThresholds(100 - (lowBands * 100), 98, 95, 90)));
 
         stats.Add(new OverviewStat(
             $"{atMaximum * 100:F1}%",
             "At Maximum",
-            "Share of measured pull time at maximum Toughness."));
+            "Share of time at maximum Toughness."));
 
         return stats;
     }
@@ -133,8 +133,7 @@
             stats.Add(new OverviewStat(
                 $"{tracker.OvercappedBlocks}/{tracker.ObservedBlocks}",
                 "Blocks",
-                "Blocks taken at maximum Toughness. Only blocks with a Toughness reading are counted, so " +
-                "this is a sample."));
+                "Blocks taken at maximum Toughness."));
         }
 
         return stats;
@@ -157,7 +156,7 @@
 
         return @<div>
             <StackedBar Segments="@segments" />
-            <HelperText>Share of measured pull time at each level of physical damage reduction</HelperText>
+            <HelperText>Share of time at each level of physical damage reduction</HelperText>
         </div>;
     }
 
@@ -266,7 +265,7 @@
                 ? $"This pull opened with Toughness already granting {ceiling * 100:F0}% reduction."
                 : analyzer.MsToTopBand is null
                     ? $"Toughness never reached {ceiling * 100:F0}% reduction in this pull."
-                    : $"Time from the pull opening to the first snapshot granting {ceiling * 100:F0}% reduction."));
+                    : $"Time from the pull opening to reaching {ceiling * 100:F0}% reduction."));
 
         return [.. stats];
     }
