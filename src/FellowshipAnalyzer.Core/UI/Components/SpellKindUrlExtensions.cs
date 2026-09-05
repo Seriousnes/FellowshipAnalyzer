@@ -8,7 +8,7 @@ internal static class SpellKindUrlExtensions
     {
         SpellKind.Effect => "effect",
         SpellKind.Talent => "talent",
-        SpellKind.Weapon => "weapon",
+        SpellKind.Weapon => "trait",
         _ => "ability",
     };
 }

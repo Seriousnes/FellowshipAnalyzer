@@ -12,7 +12,7 @@
             _module = await JS.InvokeAsync<IJSObjectReference>(
                 "import",
                 "./_content/FellowshipAnalyzer.Core/js/spell-tooltip.js");
-            await _module.InvokeVoidAsync("init");
+            await _module.InvokeVoidAsync("init", Codex.Origin);
         }
     }
 

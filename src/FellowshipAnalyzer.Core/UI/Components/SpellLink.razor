@@ -28,10 +28,10 @@
 
     private string LinkUri => $"{_kind.ToUrlSegment()}/{_spellId}";
 
-    private string AbilityUrl => $"https://fellows.gg/{LinkUri}";
+    private string AbilityUrl => Codex.PageUrl(LinkUri);
 
-    private string? TooltipSpellId => _spellId > 0 ? LinkUri : null;
-    private string IconUrl => $"https://assets.rpglogs.com/img/fellowship/abilities/{_icon}";
+    private string? TooltipSpellId => _spellId > 0 ? Codex.TooltipPath(LinkUri) : null;
+    private string IconUrl => Codex.IconUrl(_icon!);
 
     protected override void OnParametersSet()
     {

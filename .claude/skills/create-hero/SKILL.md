@@ -69,7 +69,7 @@ In `src/FellowshipAnalyzer.Core/Analysis/Heroes.cs`:
 
 1. Add `{Hero}` to the `HeroName` enum (alphabetical).
 2. Add a `Hero.{Hero}` static field with its `HeroRole` and include it in `Hero.All`.
-3. Add the `HeroNameExtensions.ToHeroId` arm, the `Hero.IconUrl` arm (a fellows.gg portrait URL), and the `Hero.Color` arm returning `FaVar.Hero{Name}`.
+3. Add the `HeroNameExtensions.ToHeroId` arm, the `Hero.IconUrl` arm (an `assets.fellows.gg` portrait URL, which the codex export carries no art for), and the `Hero.Color` arm returning `FaVar.Hero{Name}`.
 
 The colour token: add `--fa-hero-{name}` to `FaPalette`, give it a value in all three `FaTheme` themes, add the `FaVar.Hero{Name}` member, then regenerate the stylesheet from `src/FellowshipAnalyzer.Tools`:
 
