@@ -17,7 +17,7 @@ namespace FellowshipAnalyzer.Core.Analysis.Normalizers;
 /// <see cref="DungeonBookendNormalizer"/> lets the dungeon bookends wrap the pull bookends.
 /// </para>
 /// <para>
-/// A pull carries only what its own Fellowship Logs entry states. How many enemies it contains is
+/// A pull has only what its own Fellowship Logs entry states. How many enemies it contains is
 /// <see cref="Enemies.Roster"/>'s answer, projected out of the seeded population when something asks,
 /// so no roster is expanded here and no count can drift from the units it counts.
 /// </para>

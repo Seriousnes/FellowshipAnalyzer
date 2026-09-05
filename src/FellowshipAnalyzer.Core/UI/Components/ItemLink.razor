@@ -15,7 +15,7 @@
     public OneOf<Core.Events.Item, int> Item { get; set; }
 
     /// <summary>
-    /// The hero whose reading of the item to link to. One item id reads as a different item per hero,
+    /// The hero the item is read for. One item id reads as a different item per hero,
     /// so the codex answers no item without one.
     /// </summary>
     [CascadingParameter]

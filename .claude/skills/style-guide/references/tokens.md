@@ -4,7 +4,7 @@ Token values live in C#, under `src/FellowshipAnalyzer.Core.Contracts/Design/`:
 
 | Record | Owns |
 |---|---|
-| `FaPalette` | Every colour token, plus the two section-header gradients |
+| `FaPalette` | Every colour token |
 | `FaTypography` | Font stacks and the type scale |
 | `FaMetrics` | Edge widths and corner radii |
 | `FaElevation` | Drop shadows |
@@ -73,8 +73,7 @@ stepping up a cool-navy ramp and inset receding.
 | `--fa-raise` | Lift applied to a header strip or sticky row |
 | `--fa-recess` | Shallow recess behind scrolling content |
 | `--fa-recess-deep` | Deep recess, modal scrim and inset wells |
-| `--fa-section-header` | Section-header gradient |
-| `--fa-section-header-hover` | Section-header gradient on hover |
+| `--fa-section-header` | Section-header fill, the ground the page body carries |
 
 ---
 
@@ -309,7 +308,8 @@ compact and consistent. Reach for the nearest role, not a new size.
 | `--fa-fs-body` | `0.9rem` | Helper text, secondary body copy |
 | `--fa-fs-value` | `1rem` | Distribution counts (filter and perf badges) |
 | `--fa-fs-title` | `1.05rem` | Panel and inner section titles |
-| `--fa-fs-lg` | `1.2rem` | Top-level section headings |
+| `--fa-fs-lg` | `1.2rem` | Guide, panel and page headings |
+| `--fa-fs-xl` | `1.45rem` | Top-level section band titles |
 | `--fa-fs-stat` | `1.65rem` | The statistics number, on every stat card and tile |
 
 Every stat value goes through the `stat-number` mixin, which reads `--fa-fs-stat` along with the

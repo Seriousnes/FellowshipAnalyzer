@@ -1,7 +1,7 @@
 namespace FellowshipAnalyzer.Core.Events;
 
 /// <summary>
-/// A snapshot of a player's combat stats, as reported by <see cref="ChangeStatsEvent"/>. Each stat has two
+/// A player's combat stats, as reported by <see cref="ChangeStatsEvent"/>. Each stat has two
 /// independent channels: a rating, which converts to a percentage through Fellowship's diminishing-returns
 /// curve, and an <c>Additional</c> flat percentage, which is added to the converted rating afterwards and is
 /// never subject to diminishing returns.
@@ -10,7 +10,7 @@ public class Stats
 {
     /// <summary>
     /// Main stat rating: Strength, Agility, or Intellect, whichever the hero scales from. A combatantinfo
-    /// carries all three slots but populates only the hero's own, so they collapse to one channel here.
+    /// has all three slots but populates only the hero's own, so they collapse to one channel here.
     /// </summary>
     public double? MainStat { get; set; }
     /// <summary>Stamina, the stat driving maximum health.</summary>
@@ -37,7 +37,7 @@ public class Stats
     /// <summary>Flat critical strike power added to the base critical multiplier, as a fraction (0.20 = 20%).</summary>
     public double? AdditionalCritPower { get; set; }
 
-    /// <summary>Computes the per-stat difference between two snapshots, treating missing values as zero.</summary>
+    /// <summary>Computes the per-stat difference between two sets of stats, treating missing values as zero.</summary>
     public static Stats operator -(Stats a, Stats b) => new()
     {
         MainStat = (a.MainStat ?? 0) - (b.MainStat ?? 0),

@@ -28,9 +28,14 @@ public sealed partial class SpellUsableTests
     private const int SpellA = 101;
     private const int SpellB = 102;
     private const int SpellC = 103;
+    private const int SpellD = 104;
     private const int CdSecondsA = 10;
     private const int CdSecondsB = 20;
     private const int CdSecondsC = 10;
+    private const int CdSecondsD = 20;
+
+    /// <summary>The buff <see cref="SpellD"/> grants itself, whose removal starts its recharge.</summary>
+    private static readonly Effect DeferredBuff = new() { Id = 2744, Name = "Deferred Buff" };
 
     /// <summary>Ability id of the test-local flat haste buff registered on <see cref="StatTracker"/>.</summary>
     private const int HasteBuffId = 8886;
@@ -287,7 +292,7 @@ public sealed partial class SpellUsableTests
 
     /// <summary>
     /// SpellA cast at 0 ends at 10000, and nothing else is logged until a filler at 21000. The EndCooldown
-    /// fires at the true expiry (10000), not at the next observed event - the natural end is scheduled at
+    /// fires at the true expiry (10000), not at the next event - the natural end is scheduled at
     /// its real instant rather than discovered late.
     /// </summary>
     [Fact]
@@ -523,6 +528,12 @@ public sealed partial class SpellUsableTests
                 PrimarySpell = new Spell { Id = SpellC, Name = "Spell C", Cooldown = (double)CdSecondsC },
                 Category = SpellCategory.Rotational,
                 CooldownReducedByHaste = true,
+            },
+            new SpellbookAbility
+            {
+                PrimarySpell = new Spell { Id = SpellD, Name = "Spell D", Cooldown = (double)CdSecondsD },
+                Category = SpellCategory.Cooldowns,
+                CooldownStartsWhenBuffEnds = DeferredBuff,
             },
         ];
     }

@@ -23,7 +23,7 @@ public sealed class GundeTalentTests
     }
 
     [Fact]
-    public void TalentFslids_LandInTheTalentIdRange()
+    public void TalentFslids_AreInTheTalentIdRange()
     {
         Talents.DeepRend.FSLID.Value.ShouldBe(2_000_751);
         Talents.CrimsonStrikes.Name.ShouldBe("Crimson strikes");

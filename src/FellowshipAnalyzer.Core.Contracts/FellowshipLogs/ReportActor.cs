@@ -14,7 +14,7 @@ public sealed record ReportActor(
 {
     /// <summary>
     /// Icon URL for this actor, served from the RPGLogs CDN, or <see langword="null"/> when the
-    /// actor carries no icon.
+    /// actor has no icon.
     /// </summary>
     public string? IconUrl =>
         string.IsNullOrEmpty(Icon)

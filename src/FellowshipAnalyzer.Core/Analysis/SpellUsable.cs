@@ -19,8 +19,9 @@ public sealed partial class SpellUsable(
 
     private readonly Dictionary<int, CooldownInfo> _cooldowns = [];
     private readonly List<TrackedAbilityCast> _casts = [];
+    private Dictionary<int, int>? _deferredStarts;
 
-    /// <summary>Every player cast recorded during dispatch, in the order it occurred.</summary>
+    /// <summary>Every player cast during dispatch, in the order it occurred.</summary>
     public List<TrackedAbilityCast> Casts => _casts;
 
     /// <summary>Returns the IDs of all spells currently on cooldown (any charges on cooldown).</summary>
@@ -46,7 +47,7 @@ public sealed partial class SpellUsable(
 
     private int ApplyReduction(int spellId, int milliseconds, int? timestamp)
     {
-        if (!_cooldowns.TryGetValue(spellId, out var cd) || milliseconds <= 0)
+        if (!_cooldowns.TryGetValue(spellId, out var cd) || cd.Held || milliseconds <= 0)
             return 0;
 
         var remaining = Math.Max(0, cd.ExpectedEnd - (timestamp ?? Owner.CurrentTimestamp));
@@ -82,9 +83,10 @@ public sealed partial class SpellUsable(
     public int CooldownRemaining(int spellId, int? atTimestamp = null)
     {
         var ts = atTimestamp ?? Owner.CurrentTimestamp;
-        return _cooldowns.TryGetValue(spellId, out var cd)
-            ? Math.Max(0, cd.ExpectedEnd - ts)
-            : 0;
+        if (!_cooldowns.TryGetValue(spellId, out var cd))
+            return 0;
+
+        return cd.Held ? RechargeDuration(spellId) : Math.Max(0, cd.ExpectedEnd - ts);
     }
 
     /// <summary>
@@ -105,7 +107,8 @@ public sealed partial class SpellUsable(
     /// Consumes a charge of <paramref name="spellId"/>: starts a fresh recharge if none is running, spends an
     /// already-available charge if one exists, or, if every charge is spent, forces the current recharge to
     /// complete before beginning a new one, so the tracker stays in sync with an in-game cast it did not
-    /// expect to be possible.
+    /// expect to be possible. An ability declaring <see cref="SpellbookAbility.CooldownStartsWhenBuffEnds"/>
+    /// consumes its charge and holds, with nothing recharging until that buff leaves the player.
     /// </summary>
     public void BeginCooldown(int spellId, int? timestamp = null)
     {
@@ -119,6 +122,24 @@ public sealed partial class SpellUsable(
             var cdDuration = (int)(_statTracker.ScaleByCooldownReduction(ability, baseDurationMs) / rate);
 
             var maxCharges = _abilities.GetMaxCharges(spellId);
+
+            if (ability?.CooldownStartsWhenBuffEnds is not null)
+            {
+                cd = new CooldownInfo(
+                    OverallStart: ts,
+                    ChargeStart: ts,
+                    ExpectedEnd: ts,
+                    RechargeDuration: cdDuration,
+                    ChargesAvailable: maxCharges - 1,
+                    MaxCharges: maxCharges,
+                    Rate: rate,
+                    PendingEnd: null,
+                    Held: true);
+                _cooldowns[spellId] = cd;
+                FabricateUpdate(UpdateSpellUsableType.BeginCooldown, spellId, ts, cd);
+                return;
+            }
+
             cd = new CooldownInfo(
                 OverallStart: ts,
                 ChargeStart: ts,
@@ -181,7 +202,7 @@ public sealed partial class SpellUsable(
         else
         {
             var nextEnd = ts + cd.RechargeDuration;
-            cd = cd with { ChargeStart = ts, ExpectedEnd = nextEnd };
+            cd = cd with { ChargeStart = ts, ExpectedEnd = nextEnd, Held = false };
             _cooldowns[spellId] = cd;
             FabricateUpdate(UpdateSpellUsableType.RestoreCharge, spellId, eventTs, cd);
             RefreshPendingEnd(spellId);
@@ -202,7 +223,7 @@ public sealed partial class SpellUsable(
 
         var ts = timestamp ?? Owner.CurrentTimestamp;
         var eventTs = Owner.CurrentTimestamp;
-        cd = cd with { ChargesAvailable = cd.ChargesAvailable + 1 };
+        cd = cd with { ChargesAvailable = cd.ChargesAvailable + 1, Held = false };
 
         if (cd.ChargesAvailable < cd.MaxCharges)
         {
@@ -261,6 +282,47 @@ public sealed partial class SpellUsable(
     [On<FilterCooldownInfoEvent>(By = Actor.Player)]
     private void OnFilterCooldown(FilterCooldownInfoEvent e) =>
         BeginCooldown(e.Ability.Id, e.Timestamp);
+
+    [On<RemoveBuffEvent>(To = Actor.Player)]
+    private void OnDeferredCooldownBuffRemoved(RemoveBuffEvent e)
+    {
+        if (!DeferredStarts.TryGetValue(e.Ability.Id, out var spellId))
+            return;
+
+        if (!_cooldowns.TryGetValue(spellId, out var cd) || !cd.Held)
+            return;
+
+        var ability = _abilities.GetAbility(spellId);
+        var baseDurationMs = (int)(_abilities.GetExpectedCooldown(spellId) * 1000);
+        var rate = EffectiveRate(spellId);
+        var cdDuration = (int)(_statTracker.ScaleByCooldownReduction(ability, baseDurationMs) / rate);
+
+        cd = cd with
+        {
+            OverallStart = e.Timestamp,
+            ChargeStart = e.Timestamp,
+            ExpectedEnd = e.Timestamp + cdDuration,
+            RechargeDuration = cdDuration,
+            Rate = rate,
+            Held = false,
+        };
+        _cooldowns[spellId] = cd;
+
+        FabricateUpdate(UpdateSpellUsableType.BeginCooldown, spellId, e.Timestamp, cd);
+        RefreshPendingEnd(spellId);
+    }
+
+    private Dictionary<int, int> DeferredStarts => _deferredStarts ??= BuildDeferredStarts();
+
+    private Dictionary<int, int> BuildDeferredStarts()
+    {
+        var map = new Dictionary<int, int>();
+        foreach (var ability in _abilities.GetAbilities())
+            if (ability.CooldownStartsWhenBuffEnds is { } buff)
+                map[buff.FSLID] = ability.PrimarySpell.FSLID;
+
+        return map;
+    }
 
     [On<UpdateSpellUsableEvent>]
     private void OnUpdateSpellUsable(UpdateSpellUsableEvent e)
@@ -355,7 +417,7 @@ public sealed partial class SpellUsable(
     /// acceleration are one mechanic fed by a single additive pool, so each source contributes a term rather
     /// than an independent factor; a value of 9.0 means the spell's cooldown elapses 9× faster. Unlike
     /// Ability Cooldown Reduction, which <see cref="ReduceCooldown"/> and <see cref="BeginCooldown"/>
-    /// snapshot at cast, CDA is dynamic: a change to any term rescales the affected in-flight cooldowns.
+    /// fix at cast, CDA is dynamic: a change to any term rescales the affected in-flight cooldowns.
     /// </summary>
     public double EffectiveRate(int spellId) =>
         1.0 + HasteRecovery(spellId)
@@ -379,6 +441,8 @@ public sealed partial class SpellUsable(
         foreach (var spellId in _cooldowns.Keys.ToList())
         {
             if (!_cooldowns.TryGetValue(spellId, out var cd)) continue;
+
+            if (cd.Held) continue;
 
             var newRate = EffectiveRate(spellId);
             if (newRate <= 0 || newRate == cd.Rate) continue;
@@ -433,7 +497,8 @@ public sealed partial class SpellUsable(
         int ChargesAvailable,
         int MaxCharges,
         double Rate,
-        UpdateSpellUsableEvent? PendingEnd);
+        UpdateSpellUsableEvent? PendingEnd,
+        bool Held = false);
 }
 
 /// <summary>

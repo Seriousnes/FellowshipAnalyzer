@@ -45,7 +45,7 @@
 
         @if (Death.HitCount == 0)
         {
-            <HelperText>No damage was logged against you in this window.</HelperText>
+            <HelperText>No damage was taken in this window.</HelperText>
         }
         else
         {
@@ -116,14 +116,14 @@
                 @foreach (var defensive in Death.AvailableUnused)
                 {
                     <li class="death-card-defensive unused">
-                        <PassFailCheckmark Pass="false" Size="15" Title="Held a charge and was not cast" />
+                        <PassFailCheckmark Pass="false" Size="15" Title="Available and not cast" />
                         <span class="death-card-defensive-name"><SpellLink Spell="@defensive.Ability" /></span>
                         <span class="death-card-defensive-note">@AvailableNote(defensive)</span>
                     </li>
                 }
             </ul>
             <HelperText>
-                A crossed line held a charge through this window and was not cast. An ability that was not
+                A crossed line was available through this window and was not cast. An ability that was not
                 cast is not on its own a mistake. Abilities recharging at the death are left out.
             </HelperText>
         }
@@ -165,17 +165,17 @@
     private string MitigatedTooltip =>
         $"{Death.Mitigated:N0} prevented: {Death.DamageReduction:N0} through damage reduction " +
         $"and {Death.Absorbed:N0} absorbed." +
-        (Death.Blocked > 0 ? $" {Death.Blocked:N0} of that is attributed to a block." : "");
+        (Death.Blocked > 0 ? $" {Death.Blocked:N0} of that was blocked." : "");
 
     private string HealthText =>
         Death is { HitPointsAtWindowStart: { } health, MaxHitPoints: > 0 }
             ? $"{health / (double)Death.MaxHitPoints!.Value * 100:F0}%"
             : "-";
 
-    private string HealthTooltip =>
+    private string? HealthTooltip =>
         Death is { HitPointsAtWindowStart: { } health, MaxHitPoints: { } max }
-            ? $"{health:N0} of {max:N0}, reconstructed from the first hit in this window."
-            : "No hit in this window had a health reading.";
+            ? $"{health:N0} of {max:N0}."
+            : null;
 
     private Ability AbilityFor(int abilityId) =>
         _abilities.GetValueOrDefault(abilityId) ?? Ability.UnknownAbility;

@@ -17,8 +17,12 @@ public sealed record AdditionalContent(string? Title, RenderFragment Content);
 /// </summary>
 public sealed class PerCastData
 {
-    /// <summary>The tier used to colour the accent bar and stat tiles for this cast.</summary>
-    public required QualitativePerformance Performance { get; init; }
+    /// <summary>
+    /// The tier used to colour the accent bar and stat tiles for this cast. <c>null</c> when the
+    /// segment states no verdict over this row, which colours it neutrally and leaves it in view
+    /// under every performance filter.
+    /// </summary>
+    public required QualitativePerformance? Performance { get; init; }
 
     /// <summary>The stat tiles shown for this cast.</summary>
     public required PerCastStat[] Stats { get; init; }

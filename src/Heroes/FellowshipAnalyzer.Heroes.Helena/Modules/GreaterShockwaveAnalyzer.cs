@@ -22,8 +22,6 @@ public sealed partial class GreaterShockwaveAnalyzer : Analyzer
 
     public int MeasuredCasts { get; private set; }
 
-    public int UnmeasuredCasts { get; private set; }
-
     public double AverageAmplification => MeasuredCasts > 0 ? _amplificationTotal / MeasuredCasts : 0;
 
     public double AmplificationShare => AverageAmplification / AmplificationAtFullToughness;
@@ -33,11 +31,7 @@ public sealed partial class GreaterShockwaveAnalyzer : Analyzer
     [On<CastEvent>(By = Actor.Player, Spell = nameof(Spells.Shockwave))]
     private void OnShockwave(CastEvent castEvent)
     {
-        if (FindToughness(castEvent.SourceResources) is not { Max: > 0 } toughness)
-        {
-            UnmeasuredCasts++;
-            return;
-        }
+        if (FindToughness(castEvent.SourceResources) is not { Max: > 0 } toughness) return;
 
         MeasuredCasts++;
 

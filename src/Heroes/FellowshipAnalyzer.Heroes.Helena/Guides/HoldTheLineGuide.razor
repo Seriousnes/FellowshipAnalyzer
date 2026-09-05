@@ -3,10 +3,10 @@
 <GuideSection Title="Hold the Line">
     <LeftPanel>
         <p>
-            <SpellLink Spell="Spells.HoldTheLine" /> gives a huge amount of CDR on several important abilities,
-            in addition to the reset and absorb shield on <SpellLink Spell="Spells.ShieldSlam" />.
+            <SpellLink Spell="Spells.HoldTheLine" /> reduces the cooldown of several important abilities by a
+            large amount, in addition to the reset and absorb shield on <SpellLink Spell="Spells.ShieldSlam" />.
             Try to get all affected abilities on cooldown as soon as possible for the maximum benefit
-            of the CDR and not waste any uses.
+            of the cooldown reduction and not waste any uses.
         </p>
     </LeftPanel>
     <RightPanel>
@@ -55,8 +55,7 @@
             new OverviewStat(
                 $"{slamReady}/{Casts.Count}",
                 "Shield Slam Available",
-                $"Casts with {Spells.ShieldSlam.Name} off cooldown. Shield Slam is left out of the " +
-                "reduction figures.",
+                $"Casts with {Spells.ShieldSlam.Name} off cooldown.",
                 PerformanceTiers.FromThresholds(100 - slamShare, 90, 75, 55)),
             new OverviewStat(
                 $"{reduction.Wasted / 1000d:N0}s",
@@ -72,14 +71,12 @@
             .Select(entry =>
             {
                 var efficiency = entry.Value.Efficiency * 100;
-                var castsUp = Casts.Count(cast => TargetOf(cast, entry.Key)?.WasAvailable == true);
 
                 return new OverviewStat(
                     $"{efficiency:F0}%",
                     SpellName(entry.Key),
                     $"{entry.Value.Effective / 1000d:N0}s of the {entry.Value.Total / 1000d:N0}s aimed at it " +
-                    $"shortened a running cooldown, with {castsUp} of {Casts.Count} casts while it " +
-                    "was already available.",
+                    "shortened a running cooldown.",
                     PerformanceTiers.FromThresholds(efficiency, 85, 70, 50));
             })
             .ToList();
@@ -136,28 +133,27 @@
         if (granted == 0) return [];
 
         var applications = analyzers.Sum(analyzer => analyzer.AbsorbsApplied);
-        var lapsed = analyzers.Sum(analyzer => analyzer.EmpowermentsExpired);
+        var empowermentsExpired = analyzers.Sum(analyzer => analyzer.EmpowermentsExpired);
         var used = analyzers.Sum(analyzer => analyzer.AbsorbUsed);
         var wasted = analyzers.Sum(analyzer => analyzer.AbsorbWasted);
         var expired = analyzers.Sum(analyzer => analyzer.AbsorbsExpiredUnused);
-        var offered = used + wasted;
-        var efficiency = offered > 0 ? used / (double)offered * 100 : 0;
+        var total = used + wasted;
+        var efficiency = total > 0 ? used / (double)total * 100 : 0;
 
         return
         [
             new OverviewStat(
                 $"{applications}",
                 "Barrier Applications",
-                $"Barrier applications across {granted} empowerments, counting a refresh onto a live " +
-                "barrier alongside a fresh one."),
+                $"Barrier applications across {granted} empowerments."),
             new OverviewStat(
-                $"{lapsed}",
+                $"{empowermentsExpired}",
                 "Empowerments Expired",
-                "Empowerments expired with no Shield Slam cast under them."),
+                "Empowerments expired unused."),
             new OverviewStat(
                 $"{efficiency:F1}%",
                 "Absorb Used",
-                $"{used:N0} of the {offered:N0} the barriers offered was consumed before they expired.",
+                $"{used:N0} of the {total:N0} on the barriers was consumed.",
                 PerformanceTiers.FromThresholds(efficiency, 90, 75, 55)),
             new OverviewStat(
                 $"{wasted:N0}",

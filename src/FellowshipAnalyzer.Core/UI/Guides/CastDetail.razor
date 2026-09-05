@@ -12,20 +12,26 @@
 
 <GuideDataWrapper Bare="true" Title="@Title" Subtitle="Cast Details">
     <Stats>
-        <PerfBadgeGrid>
-            @foreach (var (tier, label) in _perfLevels)
-            {
-                var count = _perfCounts.GetValueOrDefault(tier);
-                var disabled = count == 0;
-                var active = !disabled && _performanceFilter.Contains(tier);
+        @if (_anyRated)
+        {
+            <PerfBadgeGrid>
+                @foreach (var (tier, label) in _perfLevels)
+                {
+                    var count = _perfCounts.GetValueOrDefault(tier);
+                    var disabled = count == 0;
+                    var active = !disabled && _performanceFilter.Contains(tier);
 
-                <FilterBadge Performance="@tier" Count="@count" Label="@label"
-                             Active="@active" Disabled="@disabled" OnClick="ToggleFilter" />
-            }
-        </PerfBadgeGrid>
+                    <FilterBadge Performance="@tier" Count="@count" Label="@label"
+                                 Active="@active" Disabled="@disabled" OnClick="ToggleFilter" />
+                }
+            </PerfBadgeGrid>
+        }
     </Stats>
     <StatsHelperText>
-        <span class="helper-text">Click a filter to show only those casts</span>
+        @if (_anyRated)
+        {
+            <span class="helper-text">Click a filter to show only those casts</span>
+        }
     </StatsHelperText>
     <HelperText>
         @if (!string.IsNullOrEmpty(Description))
@@ -127,6 +133,7 @@
     [Parameter] public string? Description { get; set; }
 
     private int _currentIndex;
+    private bool _anyRated;
     private List<PerCastData> _allCasts = [];
     private List<PerCastData> _filteredCasts = [];
     private Dictionary<QualitativePerformance, int> _perfCounts = [];
@@ -138,13 +145,13 @@
         QualitativePerformance.Fail,
     ];
 
-    private static string TierClass(QualitativePerformance tier) => tier switch
+    private static string TierClass(QualitativePerformance? tier) => tier switch
     {
         QualitativePerformance.Perfect => "perfect",
         QualitativePerformance.Good => "good",
         QualitativePerformance.Ok => "ok",
         QualitativePerformance.Fail => "fail",
-        _ => "",
+        _ => "neutral",
     };
 
     private static readonly (QualitativePerformance Tier, string Label)[] _perfLevels =
@@ -158,6 +165,7 @@
     protected override void OnParametersSet()
     {
         _allCasts = Casts.ToList();
+        _anyRated = _allCasts.Exists(c => c.Performance is not null);
         _perfCounts = new Dictionary<QualitativePerformance, int>
         {
             [QualitativePerformance.Perfect] = _allCasts.Count(c => c.Performance == QualitativePerformance.Perfect),
@@ -170,7 +178,9 @@
 
     private void RebuildFilteredCasts()
     {
-        _filteredCasts = _allCasts.Where(c => _performanceFilter.Contains(c.Performance)).ToList();
+        _filteredCasts = _allCasts
+            .Where(c => c.Performance is not { } tier || _performanceFilter.Contains(tier))
+            .ToList();
     }
 
     private void ToggleFilter(QualitativePerformance tier)
@@ -218,13 +228,16 @@
     {
         var cast = casts[idx];
         var color = PerformanceColors.ToColor(cast.Performance);
+        var title = cast.Performance is { } tier
+            ? $"Cast #{_allCasts.IndexOf(cast) + 1} · {cast.Timestamp} · {PerformanceColors.ToLabel(tier)}"
+            : $"Cast #{_allCasts.IndexOf(cast) + 1} · {cast.Timestamp}";
         var isActive = idx == validIndex;
         return @<button class="timeline-rect @(isActive ? "active" : "")"
                         style="@widthStyle
                                background: @(isActive ? color : $"color-mix(in srgb, {color} 55%, transparent)");
                                border-color: @(isActive ? color : "transparent");
                                @(isActive ? "outline: var(--fa-ring-width) solid var(--fa-text); outline-offset: 1px;" : "")"
-                        title="Cast #@(_allCasts.IndexOf(cast) + 1) · @cast.Timestamp · @PerformanceColors.ToLabel(cast.Performance)"
+                        title="@title"
                         @onclick="() => SetIndex(idx)">
                 </button>;
     }

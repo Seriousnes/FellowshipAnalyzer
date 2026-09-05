@@ -11,7 +11,7 @@ namespace FellowshipAnalyzer.Generators.Tests;
 /// declares. The generated <c>RegisterAttributeSubscriptions</c> is an override, so without a chained
 /// call to the base every handler on a shared base module - a <c>ResourceTracker</c> or a
 /// <c>HotTracker</c> - silently stops subscribing the moment a hero adds one of its own, and the
-/// derived module reads zeroes with nothing to show for it.
+/// derived module reads zeroes.
 /// </summary>
 public class BaseHandlerChainingTests
 {

@@ -8,7 +8,7 @@ namespace FellowshipAnalyzer.Core.Analysis;
 /// Maintains the full buff/debuff history and provides query methods.
 /// <para>
 /// Every query names its spell as a <see cref="SpellRef"/>, which takes either the
-/// <see cref="Spell"/> or the raw id <see cref="Spell.Id"/> carries.
+/// <see cref="Spell"/> or its <see cref="Spell.Id"/>.
 /// </para>
 /// </summary>
 public abstract class Entity
@@ -76,7 +76,7 @@ public abstract class Entity
     }
 
     /// <summary>
-    /// Sums the stacks carried by every concurrently-open window of an effect active at
+    /// Sums the stacks across every concurrently-open window of an effect active at
     /// <paramref name="timestamp"/>, optionally restricted to auras applied by <paramref name="sourceId"/>.
     /// A stacking aura contributes its stack count and a multi-instance aura one per window, so the sum
     /// reads as the applications on the unit either way. Only meaningful while the parse is

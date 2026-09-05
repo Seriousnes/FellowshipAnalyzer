@@ -1,0 +1,200 @@
+@inherits GuideComponent<AeonaCombatLogParser>
+
+<GuideSection Title="Amend Fate and Restore Continuity">
+    <LeftPanel>
+        <p>
+            Cast <strong><SpellLink Spell="Spells.AmendFate" /></strong> or
+            <strong><SpellLink Spell="Spells.RestoreContinuity" /></strong> only when the target holds more
+            than the Stagger removed; below that, <SpellLink Spell="Spells.Oblivion" /> is the higher priority.
+        </p>
+        <p>
+            Spend a free cast on Amend Fate or Restore Continuity while an ally holds at least the
+            Stagger removed.
+        </p>
+        @if (Echoes.Count > 0)
+        {
+            <p>
+                Let <SpellLink Spell="Spells.EchoesOfDivinity" /> run its full duration on the tank rather than
+                reapplying it while the tank holds little Stagger.
+            </p>
+        }
+    </LeftPanel>
+    <RightPanel>
+        <CastOverview Title="Cleanse Overview"
+                      Stats="@BuildOverviewStats()"
+                      AdditionalContentTitle="@(FreeCleanseCastsRated > 0 ? "Free Casts" : null)"
+                      AdditionalContent="@FreeCastBar()" />
+        <CastDetail Title="Cleanses by Pull" Casts="@BuildPerCastData()" />
+    </RightPanel>
+</GuideSection>
+
+@code {
+    protected override bool IsActive() => Analyzers.Any(analyzer => analyzer.Casts.Count > 0);
+
+    private List<StaggerCleanseAnalyzer> Analyzers =>
+        [.. Parser.StaggerCleanseAnalyzers.Select(entry => entry.Analyzer)];
+
+    private List<EchoesOfDivinityUse> Echoes =>
+        [.. Analyzers.Select(analyzer => analyzer.EchoesOfDivinity).OfType<EchoesOfDivinityUse>()];
+
+    private int FreeCleanseCastsRated => Analyzers.Sum(analyzer => analyzer.FreeCleanseCastsRated);
+
+    private int FreeCleanseCastsOnFullPool => Analyzers.Sum(analyzer => analyzer.FreeCleanseCastsOnFullPool);
+
+    private RenderFragment? FreeCastBar()
+    {
+        var rated = FreeCleanseCastsRated;
+        if (rated == 0) return null;
+
+        var passed = FreeCleanseCastsOnFullPool;
+
+        return @<PassFailBar Pass="@passed" Total="@rated"
+                             PassTooltip="@($"Free casts on a full pool: {passed}")"
+                             FailTooltip="@($"Free casts below the Stagger removed: {rated - passed}")" />;
+    }
+
+    private IEnumerable<OverviewStat> BuildOverviewStats()
+    {
+        var analyzers = Analyzers;
+        var stats = new List<OverviewStat>();
+
+        AddCleansedStat(stats, analyzers, Spells.AmendFate.FSLID, "Stagger Cleansed by Amend Fate");
+        AddCleansedStat(stats, analyzers, Spells.RestoreContinuity.FSLID, "Stagger Cleansed by Restore Continuity");
+
+        var effective = analyzers.Sum(analyzer => analyzer.EffectiveHealing);
+        var overheal = analyzers.Sum(analyzer => analyzer.Overheal);
+
+        stats.Add(new OverviewStat(
+            $"{effective:N0}",
+            "Effective Healing",
+            $"Cleanse healing that raised health, against {overheal:N0} overheal."));
+
+        var rated = analyzers.Sum(analyzer => analyzer.CastsRated);
+        if (rated > 0)
+        {
+            var low = analyzers.Sum(analyzer => analyzer.LowStaggerCasts);
+
+            stats.Add(new OverviewStat(
+                $"{low} ({(double)low / rated:P0})",
+                "Low-Stagger Casts",
+                $"Amend Fate and Restore Continuity casts while the target held less than the Stagger removed, of {rated} casts."));
+        }
+
+        var free = FreeCleanseCastsRated;
+        if (free > 0)
+        {
+            stats.Add(new OverviewStat(
+                $"{FreeCleanseCastsOnFullPool}/{free}",
+                "Free Casts on a Full Pool",
+                "Free Amend Fate and Restore Continuity casts while the target held at least the Stagger removed."));
+        }
+
+        var echoes = Echoes;
+        if (echoes.Count > 0)
+        {
+            stats.Add(new OverviewStat(
+                $"{echoes.Sum(use => use.OverwrittenMs) / 1000.0:N1} s",
+                "Echoes of Divinity Overwritten",
+                "Echoes of Divinity time lost on the tank to a cleanse cast while the tank held less than the Stagger removed."));
+
+            stats.Add(new OverviewStat(
+                $"{echoes.Average(use => use.Uptime):P0}",
+                "Echoes of Divinity Uptime",
+                "Share of each pull Echoes of Divinity was active on the tank, averaged across pulls."));
+        }
+
+        return stats;
+    }
+
+    private static void AddCleansedStat(
+        List<OverviewStat> stats, List<StaggerCleanseAnalyzer> analyzers, int ability, string label)
+    {
+        var bracketed = analyzers.Sum(analyzer => analyzer.BracketedCastsOf(ability));
+        if (bracketed == 0) return;
+
+        var cleansed = analyzers.Sum(analyzer => analyzer.StaggerCleansedBy(ability));
+
+        stats.Add(new OverviewStat(
+            $"{cleansed:N0}",
+            label,
+            $"Stagger removed across {bracketed} cast{(bracketed == 1 ? "" : "s")}, {(double)cleansed / bracketed:N0} per cast."));
+    }
+
+    private IEnumerable<PerCastData> BuildPerCastData() =>
+        Parser.StaggerCleanseAnalyzers.ToItemRows(Parser, analyzer => analyzer.Casts, (cast, pull) => BuildRow(cast));
+
+    private PerCastRow BuildRow(CleanseCastEntry cast)
+    {
+        var performance = cast.BelowStaggerRemoved == true
+            ? QualitativePerformance.Fail
+            : QualitativePerformance.Perfect;
+
+        var stats = new List<PerCastStat>();
+
+        if (cast.StaggerCleansed is { } cleansed)
+        {
+            stats.Add(new PerCastStat(
+                $"{cleansed:N0}",
+                "Stagger Cleansed",
+                "Stagger this cast removed, in hit points."));
+        }
+
+        stats.Add(new PerCastStat(
+            $"{cast.EffectiveHealing:N0}",
+            "Effective Healing",
+            $"Healing that raised health, against {cast.Overheal:N0} overheal."));
+
+        if (cast.AlliesHealed > 1)
+        {
+            stats.Add(new PerCastStat(
+                $"{cast.AlliesHealed}",
+                "Allies Healed",
+                "Party members this cast reached."));
+        }
+
+        if (cast.StaggerBefore is { } before && cast.StaggerRemoved is { } amount)
+        {
+            stats.Add(new PerCastStat(
+                $"{before:N0} / {amount:N0}",
+                "Stagger Before Cast",
+                "The target's Stagger before the cast against the Stagger removed.",
+                performance));
+        }
+
+        if (cast.WasFree)
+        {
+            stats.Add(new PerCastStat(
+                cast.FreeCastSource switch
+                {
+                    FreeCastSource.Uchronia => "Uchronia",
+                    FreeCastSource.EpochBreak => "Epoch Break",
+                    _ => "Free",
+                },
+                "Free Cast",
+                null,
+                cast.FreeCastOnFullPool switch
+                {
+                    true => QualitativePerformance.Perfect,
+                    false => QualitativePerformance.Fail,
+                    _ => null,
+                }));
+        }
+
+        if (cast.EchoesOverwrittenMs is { } overwritten)
+        {
+            stats.Add(new PerCastStat(
+                $"{overwritten / 1000.0:N1} s",
+                "Echoes of Divinity Lost",
+                "Echoes of Divinity time this cast took off the window already running on the tank.",
+                QualitativePerformance.Fail));
+        }
+
+        return new PerCastRow
+        {
+            Performance = performance,
+            Stats = [.. stats],
+            Timestamp = cast.Timestamp,
+            Sequence = [new SpellCastEntry(cast.Ability.Value, performance)],
+        };
+    }
+}

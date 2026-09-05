@@ -39,7 +39,7 @@ public sealed class RisingSpiritTrackerTests
     }
 
     [Fact]
-    public async Task Analyze_RisingSpirit_ClosesABuffStillHeldWhenTheDungeonEnds()
+    public async Task Analyze_RisingSpirit_ClosesABuffStillActiveWhenTheDungeonEnds()
     {
         var tracker = await AnalyzeAsync(
         [
@@ -69,7 +69,7 @@ public sealed class RisingSpiritTrackerTests
     }
 
     [Fact]
-    public async Task Analyze_RisingSpirit_TracksTheDeepestStackFromStackApplications()
+    public async Task Analyze_RisingSpirit_TracksTheHighestStackCountFromStackApplications()
     {
         var tracker = await AnalyzeAsync(
         [
@@ -84,11 +84,11 @@ public sealed class RisingSpiritTrackerTests
 
     /// <summary>
     /// Rising Spirit is shared gear with no published stack ceiling, and report
-    /// <c>a:NcqHDKzamL7n6YFv</c> shows it reaching seven, so the tracker reports the depth the log
-    /// carries rather than clamping it.
+    /// <c>a:NcqHDKzamL7n6YFv</c> shows it reaching seven, so the tracker reports the stack count in
+    /// the log rather than clamping it.
     /// </summary>
     [Fact]
-    public async Task Analyze_RisingSpirit_ReportsAStackDepthWithoutClampingIt()
+    public async Task Analyze_RisingSpirit_ReportsAStackCountWithoutClampingIt()
     {
         var tracker = await AnalyzeAsync(
         [
@@ -101,7 +101,7 @@ public sealed class RisingSpiritTrackerTests
     }
 
     [Fact]
-    public async Task Analyze_RisingSpirit_WeightsAverageStacksByTheTimeSpentAtEachDepth()
+    public async Task Analyze_RisingSpirit_WeightsAverageStacksByTheTimeSpentAtEachStackCount()
     {
         var tracker = await AnalyzeAsync(
         [
@@ -159,7 +159,7 @@ public sealed class RisingSpiritTrackerTests
         FuryEconomyAnalyzerTests.Buff<RemoveBuffEvent>(timestamp, RisingSpiritId);
 
     /// <summary>
-    /// An <c>applybuffstack</c> carrying the new stack total, which the shared buff helper leaves unset.
+    /// An <c>applybuffstack</c> with the new stack total, which the shared buff helper leaves unset.
     /// </summary>
     private static ApplyBuffStackEvent StackGain(int timestamp, int stack) => new()
     {

@@ -197,8 +197,8 @@ public sealed class FinalStratagemAnalyzerTests
     /// <summary>
     /// Pins the dispatch guarantee the write depends on. <c>EventEmitter.Emit</c> runs dungeon-lifetime
     /// listeners before pull-lifetime ones, so SpellUsable has already begun the Maiden of Death cooldown
-    /// when this pull analyzer sees a later cast: the snapshot reads the real remaining recharge rather than
-    /// zero, and the reset written afterwards is what the tracker carries from then on.
+    /// when this pull analyzer sees a later cast: the analyzer records the real remaining recharge rather
+    /// than zero, and the reset written afterwards is what the tracker reports from then on.
     /// </summary>
     [Fact]
     public async Task Analyze_SeesCooldownStateWrittenByTheDungeonLifetimeTracker()

@@ -49,7 +49,7 @@ public sealed class FuryEconomyAnalyzerTests
     }
 
     [Fact]
-    public async Task Analyze_FuryEconomy_WastesNothingMidBar()
+    public async Task Analyze_FuryEconomy_WastesNothingBelowTheCap()
     {
         var (parser, _) = await AnalyzeAsync(
         [

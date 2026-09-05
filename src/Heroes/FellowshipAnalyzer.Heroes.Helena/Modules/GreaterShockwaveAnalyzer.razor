@@ -8,33 +8,15 @@
             <Header>
                 <SpellLink Spell="Talents.GreaterShockwave" />
             </Header>
-            <Info>
-                <p>
-                    The amplification below is the average across @MeasuredCasts
-                    <SpellLink Spell="Spells.Shockwave" /> casts.
-                </p>
-            </Info>
             <ChildContent>
-                <StatRow Value="@Percent(ToughnessWastedShare)" Tooltip="@WastedTooltip">
-                    Toughness returned that was wasted
+                <StatRow Value="@Percent(ToughnessWastedShare)">
+                    Toughness returned wasted
                 </StatRow>
-                <StatRow Value="@Percent(AverageAmplification)" Tooltip="@AmplificationTooltip">
+                <StatRow Value="@Percent(AverageAmplification)">
                     average damage amplification
                 </StatRow>
-                @if (UnmeasuredCasts > 0)
-                {
-                    <HelperText>
-                        @UnmeasuredCasts further casts had no Toughness reading and are absent from both figures.
-                    </HelperText>
-                }
             </ChildContent>
         </StatCard>;
 
     private static string Percent(double share) => $"{share * 100:F1}%";
-
-    private string WastedTooltip =>
-        $"Averaged across the {MeasuredCasts} casts with a Toughness reading.";
-
-    private string AmplificationTooltip =>
-        $"These casts reached {Percent(AmplificationShare)} of the amplification ceiling.";
 }

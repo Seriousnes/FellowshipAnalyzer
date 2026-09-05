@@ -123,6 +123,15 @@ public sealed record SpellbookAbility
     public bool CastableWhileCasting { get; init; }
 
     /// <summary>
+    /// The buff this ability grants itself whose removal from the player starts the recharge. Set it for
+    /// an ability whose cooldown does not count down while it is active (Aeona's Fleeting Hour). The cast
+    /// consumes a charge and leaves the ability unavailable with nothing recharging; the recharge begins
+    /// when the buff leaves the player, at the cooldown rate current at that moment. Null starts the
+    /// recharge on the cast, which is how every other ability behaves.
+    /// </summary>
+    public Spell? CooldownStartsWhenBuffEnds { get; init; }
+
+    /// <summary>
     /// Gets the effective cooldown in seconds from <see cref="PrimarySpell"/>, applying haste
     /// reduction when <see cref="CooldownReducedByHaste"/> is set.
     /// </summary>

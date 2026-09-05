@@ -1,0 +1,23 @@
+.overview {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    padding: 0.5rem 0;
+}
+
+.overview-meta {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.35rem 1rem;
+    font-size: 0.9rem;
+    margin: 0;
+
+    dt { color: var(--fa-text-muted); font-weight: 500; }
+    dd { margin: 0; font-family: monospace; }
+}
+
+.overview-links {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}

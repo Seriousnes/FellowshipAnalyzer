@@ -11,7 +11,7 @@ namespace FellowshipAnalyzer.Core.Analysis;
 /// </summary>
 public abstract class Module : ComponentBase
 {
-    /// <summary>Whether this module currently accepts dispatched events. <see cref="EventEmitter"/> checks this per event, so it can be toggled at runtime by dynamic activation conditions (gear, observed talents, etc.).</summary>
+    /// <summary>Whether this module currently accepts dispatched events. <see cref="EventEmitter"/> checks this per event, so it can be toggled at runtime by dynamic activation conditions (gear, talents, etc.).</summary>
     public bool Active { get; protected set; } = true;
 
     /// <summary>

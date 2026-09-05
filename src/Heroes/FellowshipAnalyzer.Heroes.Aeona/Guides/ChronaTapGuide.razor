@@ -1,0 +1,126 @@
+@using FellowshipAnalyzer.Core.UI.Charts
+@using FellowshipAnalyzer.Core.Contracts.Design
+@using FellowshipAnalyzer.Core.Events
+@inherits GuideComponent<AeonaCombatLogParser>
+@inject ChartPalette Palette
+
+<GuideSection Title="Chrona Tap">
+    <LeftPanel>
+        <p>
+            <strong><SpellLink Spell="Talents.ChronaTap" /></strong> is your main source of returned mana.
+        </p>
+        <p>
+            Hold your Chrona spender while Chrona Tap is at @ChronaTapAnalyzer.MaximumStacks stacks, to
+            avoid losing a stack at the cap.
+        </p>
+    </LeftPanel>
+    <RightPanel>
+        <CastOverview Title="Chrona Tap Overview" Stats="@BuildOverviewStats()" />
+
+        @if (Charted is { } charted)
+        {
+            <SubSection Title="Stacks Over Time">
+                <HelperText>
+                    Chrona Tap stacks through @charted.Pull.Name.
+                    @if (Analyzers.Count > 1)
+                    {
+                        <text>Use the pull selector in the report header to chart another pull.</text>
+                    }
+                </HelperText>
+                <AuraStackGraph Samples="@charted.Samples"
+                                Bands="@charted.Bands"
+                                YAxisTitle="Stacks"
+                                Height="260" />
+            </SubSection>
+        }
+
+        <CastDetail Title="Spenders at Maximum Stacks"
+                    Description="Each row is a Chrona spender cast at maximum stacks."
+                    Casts="@BuildOvercapRows()" />
+    </RightPanel>
+</GuideSection>
+
+@code {
+    protected override bool IsActive() => Analyzers.Any(analyzer => analyzer.SpenderCasts > 0);
+
+    private List<ChronaTapAnalyzer> Analyzers =>
+        [.. Parser.ChronaTapAnalyzers.Select(entry => entry.Analyzer).OfType<ChronaTapAnalyzer>()];
+
+    private ChartedPull? Charted
+    {
+        get
+        {
+            foreach (var entry in Parser.ChronaTapAnalyzers)
+            {
+                if (entry.Analyzer is not ChronaTapAnalyzer analyzer) continue;
+                if (analyzer.StackHistory.Count == 0) continue;
+
+                var samples = analyzer.StackHistory.Select(sample => sample.Timestamp).ToList();
+                var values = analyzer.StackHistory.Select(sample => sample.Stacks).ToList();
+
+                return new ChartedPull(
+                    entry.Pull,
+                    samples,
+                    [new AuraStackBand("Chrona Tap", Palette.Resolve(nameof(FaPalette.Arcane)), values)]);
+            }
+
+            return null;
+        }
+    }
+
+    private IEnumerable<OverviewStat> BuildOverviewStats()
+    {
+        var analyzers = Analyzers;
+        if (analyzers.Count == 0) return [];
+
+        var spenders = analyzers.Sum(analyzer => analyzer.SpenderCasts);
+        var gained = analyzers.Sum(analyzer => analyzer.StacksGained);
+        var atMaximum = analyzers.Sum(analyzer => analyzer.SpendersAtMaximumStacks);
+        var manaLost = analyzers.Sum(analyzer => analyzer.ManaLostAtCap);
+        var manaReturned = analyzers.Sum(analyzer => analyzer.ManaReturned);
+
+        return
+        [
+            new OverviewStat(
+                $"{(spenders == 0 ? 0 : (double)gained / spenders):0.##}",
+                "Stacks per Spender",
+                $"Chrona Tap stacks gained across {spenders} Chrona spender casts."),
+            new OverviewStat(
+                $"{atMaximum} ({FormatShare(atMaximum, spenders)})",
+                "Spenders at Maximum Stacks",
+                $"Chrona spenders cast at {ChronaTapAnalyzer.MaximumStacks} stacks."),
+            new OverviewStat(
+                $"{manaLost:N0}",
+                "Mana Lost at the Cap",
+                "Mana lost at the cap."),
+            new OverviewStat(
+                $"{manaReturned:N0}",
+                "Mana Returned",
+                "Mana Chrona Tap's expiries returned."),
+        ];
+    }
+
+    private IEnumerable<PerCastData> BuildOvercapRows() =>
+        Parser.ChronaTapAnalyzers.ToItemRows(
+            Parser,
+            analyzer => ((ChronaTapAnalyzer)analyzer).Overcaps,
+            (overcap, pull) => BuildRow(overcap));
+
+    private PerCastRow BuildRow(ChronaTapOvercap overcap) => new()
+    {
+        Performance = QualitativePerformance.Fail,
+        Timestamp = overcap.Timestamp,
+        Sequence = [new SpellCastEntry(overcap.AbilityId, QualitativePerformance.Fail)],
+        Stats =
+        [
+            new PerCastStat(
+                $"{overcap.ManaLost:N0}",
+                "Mana Lost",
+                "Mana lost at the cap."),
+        ],
+    };
+
+    private static string FormatShare(int part, int whole) => whole > 0 ? $"{part * 100d / whole:0.#}%" : "0%";
+
+    private sealed record ChartedPull(PullStartEvent Pull, List<int> Samples, List<AuraStackBand> Bands);
+}

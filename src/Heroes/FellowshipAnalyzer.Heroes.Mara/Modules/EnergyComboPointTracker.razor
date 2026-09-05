@@ -15,7 +15,7 @@
         new OverviewStat(
             $"{EnergyGenerated}",
             "Generated",
-            "Energy that arrived in the pool over the dungeon, excluding anything lost at cap."),
+            "Energy arriving in the pool over the dungeon, excluding anything lost at cap."),
         new OverviewStat(
             $"{EnergySpent}",
             "Spent",
@@ -23,7 +23,7 @@
         new OverviewStat(
             $"{EnergyWasted}",
             "Wasted",
-            $"Energy that regenerated while already at cap ({WastePercent(EnergyGenerated, EnergyWasted)}% of the Energy the dungeon produced).",
+            $"Energy regenerated while already at cap ({WastePercent(EnergyGenerated, EnergyWasted)}% of the Energy the dungeon produced).",
             WasteTier(EnergyGenerated, EnergyWasted)),
         new OverviewStat(
             $"{EnergyCurrent}",
@@ -36,7 +36,7 @@
         new OverviewStat(
             $"{ComboPointsGenerated}",
             "Generated",
-            "Combo points that arrived in the pool, excluding anything generated at six."),
+            "Combo points arriving in the pool, excluding anything generated at six."),
         new OverviewStat(
             $"{ComboPointsWasted}",
             "Wasted",

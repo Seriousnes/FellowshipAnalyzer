@@ -1,22 +1,12 @@
 @using FellowshipAnalyzer.Core.Analysis
 @using FellowshipAnalyzer.Core.Analysis.Deaths
-@using FellowshipAnalyzer.Core.UI.Guides
 @inherits ReportComponent
 
 <section class="deaths-tab">
-    @if (_deaths.Count == 0)
+    <StatisticsSectionTitle Title="@Title" />
+    @foreach (var death in _deaths)
     {
-        <div class="deaths-empty">@EmptyText</div>
-    }
-    else
-    {
-        <StatisticsSectionTitle Title="@Title" />
-        <GuideContainer>
-            @foreach (var death in _deaths)
-            {
-                <DeathCard Death="death" />
-            }
-        </GuideContainer>
+        <DeathCard Death="death" />
     }
 </section>
 
@@ -28,7 +18,7 @@
 
     private string EmptyText => _hasDeathsElsewhere
         ? "No deaths in this pull. Pick another pull, or the whole dungeon, to see the rest."
-        : "No deaths were logged for this player.";
+        : "No deaths for this player.";
 
     protected override void OnParametersSet()
     {

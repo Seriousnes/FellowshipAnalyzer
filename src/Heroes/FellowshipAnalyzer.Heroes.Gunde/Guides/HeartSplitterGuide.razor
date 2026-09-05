@@ -48,7 +48,7 @@
             new(
                 $"{casts}",
                 "Heart Splitters",
-                "Total Heart Splitter casts evaluated across every pull."),
+                "Heart Splitter casts across every pull."),
             new(
                 $"{cleanRate}%",
                 "Clear of Slaughter",
@@ -57,9 +57,7 @@
             new(
                 measured > 0 ? $"{rend / measured}" : "-",
                 "Avg Rend on Target",
-                measured > 0
-                    ? $"Average Rend stacks active on the target when Exsanguinate hit, {rend} in total across {measured} casts."
-                    : "No Exsanguinate damage was recorded, so there were no stacks to measure."),
+                "Average Rend stacks active on the target when Exsanguinate hit."),
         };
 
         if (damage > 0)
@@ -67,7 +65,7 @@
             stats.Add(new OverviewStat(
                 FormatDamage(damage),
                 "Exsanguinate",
-                "Total Exsanguinate damage. This is context, not a verdict."));
+                "Total Exsanguinate damage."));
         }
 
         return stats;
@@ -93,11 +91,11 @@
                 "Rend on Target",
                 cast.RendOnTarget is not null
                     ? "Rend stacks active on the target when Exsanguinate hit."
-                    : "No Exsanguinate damage followed this cast, so no stack count was measured."),
+                    : "No Exsanguinate damage followed this cast."),
             new PerCastStat(
                 FormatDamage(cast.ExsanguinateDamage),
                 "Exsanguinate",
-                "Exsanguinate damage from this cast. This is context, not a verdict."),
+                "Exsanguinate damage from this cast."),
         };
 
         return new PerCastRow
@@ -113,7 +111,7 @@
     private static string BuildNote(HeartSplitterCast cast)
     {
         if (cast.RendOnTarget is not { } rend)
-            return "No Exsanguinate damage followed this cast, so no stack count was measured.";
+            return "No Exsanguinate damage followed this cast.";
 
         if (!cast.ClippedBySlaughter)
         {

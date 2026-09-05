@@ -21,7 +21,7 @@ public sealed class TariqSpellbookTests
     }
 
     /// <summary>
-    /// Sledgehammer is the talent splash on Skull Crusher and lands under its own ability id, so it
+    /// Sledgehammer is the talent splash on Skull Crusher with its own ability id, so it
     /// only reaches the spellbook through Skull Crusher's additional spells. It is absent from Tariq's
     /// Kit block in the hero data, which is why it needs an <c>overrides.json</c> scope entry.
     /// </summary>

@@ -87,12 +87,12 @@ public sealed partial class SafeHavenAnalyzer : Analyzer
                 expiry > Pull.EndTime));
         }
 
-        var carried = closed.Where(entry => entry.CastIndex < 0).ToArray();
+        var prepull = closed.Where(entry => entry.CastIndex < 0).ToArray();
 
         return new Computed(
             placements,
-            carried.Sum(entry => (long)entry.Window.Duration),
-            carried.Select(entry => entry.TargetId).Distinct().Count());
+            prepull.Sum(entry => (long)entry.Window.Duration),
+            prepull.Select(entry => entry.TargetId).Distinct().Count());
     }
 
     private sealed record Computed(

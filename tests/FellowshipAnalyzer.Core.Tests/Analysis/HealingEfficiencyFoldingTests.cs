@@ -15,8 +15,8 @@ using Xunit;
 namespace FellowshipAnalyzer.Core.Tests.Analysis;
 
 /// <summary>
-/// A periodic heal that arrives under its own effect id has to land on the ability that cast it.
-/// The cast carries the cost and the ticks carry the healing, so leaving them in separate rows makes
+/// A periodic heal that arrives under its own effect id has to be folded onto the ability that cast
+/// it. The cast has the cost and the ticks have the healing, so leaving them in separate rows makes
 /// both the healing-per-resource and healing-per-execution-time rates read zero on the one ability
 /// where they matter most.
 /// </summary>

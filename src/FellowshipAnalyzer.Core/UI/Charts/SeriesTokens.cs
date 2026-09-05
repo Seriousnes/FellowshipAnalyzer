@@ -3,10 +3,9 @@ using FellowshipAnalyzer.Core.Contracts.Design;
 namespace FellowshipAnalyzer.Core.UI.Charts;
 
 /// <summary>
-/// The design tokens a chart's series wear, in slot order. Which tokens those are stays with the
-/// caller, as <see cref="ChartPalette"/> requires: a fire hero reads in the fire ramp where a poison
-/// hero reads in nature and blood. Name each one as <c>nameof(FaPalette.Fire1)</c> so a renamed
-/// token breaks the build.
+/// The design tokens a chart's series use, in slot order. Which tokens those are stays with the
+/// caller, as <see cref="ChartPalette"/> requires. Name each one as <c>nameof(FaPalette.Fire1)</c> so
+/// a renamed token breaks the build.
 /// </summary>
 /// <param name="tokens">The <see cref="FaPalette"/> property names, in slot order.</param>
 public sealed class SeriesTokens(params string[] tokens)

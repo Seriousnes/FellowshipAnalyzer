@@ -15,7 +15,7 @@ public sealed record ReportInfo(
     private const string PlayerActorType = "Player";
 
     /// <summary>
-    /// Icon URL of the first non-player actor named <paramref name="name"/> that carries an icon, or
+    /// Icon URL of the first non-player actor named <paramref name="name"/> that has an icon, or
     /// <see langword="null"/> when there is none. Names are matched case-insensitively; a boss and the
     /// dungeon it headlines share a name. Reports may contain unnamed actors, so a
     /// <see langword="null"/> or empty <paramref name="name"/> never matches.

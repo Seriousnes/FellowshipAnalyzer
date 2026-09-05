@@ -53,7 +53,7 @@ public sealed class MajorCooldownAnalyzerTests
     }
 
     [Fact]
-    public async Task HeldTime_IsNotChargedForTheTimeBeforeTheFirstCast()
+    public async Task HeldTime_ExcludesTheTimeBeforeTheFirstCast()
     {
         var analyzer = await AnalyzeAsync(
             dungeonEndTime: 70_000,
@@ -198,7 +198,7 @@ public sealed class MajorCooldownAnalyzerTests
     }
 
     [Fact]
-    public async Task FirstSpenderLatency_IsNullWhenNoSingleTargetSpenderLandsInside()
+    public async Task FirstSpenderLatency_IsNullWhenNoSingleTargetSpenderIsCastInside()
     {
         var analyzer = await AnalyzeAsync(
             DefaultDungeonEnd,
@@ -230,7 +230,7 @@ public sealed class MajorCooldownAnalyzerTests
     }
 
     [Fact]
-    public async Task OvercapsInside_IsNullWhenNoGeneratorCastInsideCarriesASnapshot()
+    public async Task OvercapsInside_IsNullWhenNoGeneratorCastInsideHasASnapshot()
     {
         var analyzer = await AnalyzeAsync(
             DefaultDungeonEnd,
@@ -300,7 +300,7 @@ public sealed class MajorCooldownAnalyzerTests
     }
 
     /// <summary>
-    /// A player cast, optionally carrying the Winter Orb snapshot the log would attach. Raw
+    /// A player cast, optionally with the Winter Orb amount the log would attach. Raw
     /// Fellowship resource values are scaled by 100, so the in-game orb count is stored multiplied.
     /// </summary>
     private static CastEvent Cast(int timestamp, Spell spell, int? orbs = null)

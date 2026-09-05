@@ -239,7 +239,12 @@ Owner-stated 2026-08-23. A stat description, tooltip, or doc summary is a single
 quantity. If it cannot be said in one line, it is too long.
 
 - Blessed shapes: "Per-spell healing to mana efficiency.", "Number of times the DoT was refreshed
-  before expiring.", "The spell's mana efficiency.", "No resource snapshot was observed."
+  before expiring.", "The spell's mana efficiency."
+- Owner-stated 2026-09-05: **never mention what is or is not observed.** No prose says a value was
+  observed, measured, recorded, seen, or missing from the data, and none says the opposite either. A
+  quantity the analysis does not have is left out; the label, the value and the tier are the whole
+  statement. This bans `observed`, `unobserved`, `no reading`, `no snapshot` and every paraphrase of
+  them in rendered prose, stat labels, tooltips and doc summaries alike.
 - Drop reading-note and methodology tails: "Reported as context (rather than scored)", "Context, not
   a verdict", "so there is nothing to score", "modeled from X windows", "Charges come from the
   cooldown model". The label, the value and the tier carry the reading.
@@ -347,7 +352,7 @@ Widened to every record type the family reaches one, in a mount's flavour text r
 | The thing was there at all | **exists** / **existed** | "no window carried a spender" |
 | Already there at pull start | **already active** for an aura; delete for a resource, since the reader knows it persists between pulls | "carrying Toughness in from before" |
 | An event or record field holds or lacks a value | **with** / **with no**, then name the field, as in `ShieldMasteryAnalyzer.HitsWithoutToughness` | "casts carrying a Focus reading" |
-| A dataset does not record something | rendered prose states the absence plainly ("No resource snapshot was observed."); only an internal doc comment names the dataset ("the log records no") | "the log carries no signal" |
+| A dataset does not record something | say nothing at all; leave the quantity out. Owner-stated 2026-09-05, superseding the earlier allowance for stating the absence plainly | "the log carries no signal" |
 | A window, buff or cast holds N | **granted** (`ChargesGranted`), **made inside the window**, **contained**, or name the count | "the charges it carried" |
 | The unit a companion or assignment is on | **holder**, from `BlueyAnalyzer.Holders` and `BlueyTracker.TimeByHolderBetween` | "whoever was carrying Bluey" |
 | Engineering prose with no game entity in it | **marked with**, **gives**, **with**, introducing no domain word | "a class carrying `[HeroAnalyzer]`" |
@@ -397,6 +402,13 @@ tool"). `context` already falls under the Rule 6 ban on reading-note tails; this
 instinct to a record's provenance rather than a stat's methodology. `reading` has no legitimate sense
 in this codebase describing a position or measurement and is banned outright there.
 
+**`snapshot` is banned in prose too.** Owner-stated 2026-09-05. It is the same narrated-provenance
+move as `reading`: it describes how a value reached the analysis rather than what the value is. That
+`snapshot` already appears in the model, on `Combatant.Stats` and `CombatantStats`, licenses it as
+**code** and nothing more. An identifier may say it; no sentence a reader sees may. Neither word has a
+prose replacement to reach for, because the sentence that needed one is a sentence about provenance,
+and Rule 6 deletes it. Name the quantity and stop.
+
 ## Resources: name the resource, not its display
 
 Say **maximum Toughness** and **at maximum**, and label reduction steps by the reduction itself: `At
@@ -414,6 +426,13 @@ element genuinely named a bar (`StackedBar`, `CastBar`, `AuraBar`, `accent-bar`)
 The detached form needs an eye rather than a pattern: "on a bar that was already full", "what was lost
 to full bars" both name the widget with the resource elsewhere in the sentence.
 
+**`one cast` is banned as a unit of magnitude.** Owner-stated 2026-09-05. A quantity is named by what
+it is, not by how many casts it takes to produce it, so Aeona's cleanse amount is **Stagger removed**,
+never "the Stagger one cast removes" or "less Stagger than one cast removes". Precedent: "the target
+held less Stagger than one cast removes" became "the target held less than the Stagger removed", and
+"at least a full cleanse's worth of Stagger" became "at least the Stagger removed". "Each row is one
+cast" is a different sentence and keeps its words, because there the cast is the row, not the unit.
+
 ## Flutterfly placement
 
 A pink Flutterfly is **assigned** to an ally, or **unassigned**. Reserve `bank` and `banked` for
@@ -424,13 +443,34 @@ charges.
 
 Owner-settled 2026-08-23. "press" leaves prose and identifiers: an ability is **cast**; a surface
 already named for uses (Iron Wall's `Uses`) says **used**; a proc spent by casting something else is
-**used** ("Use it on a finisher"). A cooldown **became available**, never "came up". An ability not
+**used** ("Use it on a finisher"). A cooldown **became available** or **came off cooldown**, whichever
+the sentence reads better for, never "came up". Owner-stated 2026-09-05: "coming off cooldown" is the
+better phrase where the sentence is about the cooldown itself rather than about readiness, so do not
+rewrite one into the other on sight. An ability not
 cast is **not cast**, never "uncast" or "unpressed". Where the two halves of a cast must be
 distinguished, the vocabulary is the model's own: the **activation** (the event carrying
 `CastEvent.Activation`) and the **completion**. Precedent renames: `HoldTheLinePress` ->
 `HoldTheLineCast`, `Pressed`/`Unpressed` -> `WasCast`/`NotCast`, `PlayerDeath.Pressed` -> `Cast`,
 `_pressAwaitingCompletion` -> `_activationAwaitingCompletion`. `aria-pressed` and a literal pointer
 press keep their words.
+
+## Rating a cast, not judging it
+
+Owner-stated 2026-09-05. **`judge`, `judged`, `judges` and `judging` are banned**, in prose and in
+identifiers. A cast, window or cooldown segment is **rated**, and the thing doing the rating is its
+**performance**. Blessed rewrite: "Cleanse casts judged against the Stagger removed." becomes
+**"Cleanse rated based on Stagger removed."**
+
+The replacement is a change of frame, not a synonym swap, so the sentence usually shortens with it: the
+count of casts drops out where "rated" already implies it, and `based on` replaces `against`. Where a
+`judge` reads as a plain test rather than a rating, as in a `<param>` saying "the instant to judge" on
+a boolean lookup, Rule 3 applies first and the clause goes.
+
+Precedent renames: `CastsJudged` -> `CastsRated`, `OblivionCast.Judged` -> `Rated`, `JudgedHeal` ->
+`RatedHeal`, `FreeCleanseCastsJudged` -> `FreeCleanseCastsRated`.
+
+This file's own instructions keep the verb where they tell a writer to judge a clause; that is the
+author addressing the reader, not vocabulary naming a quantity in the product.
 
 ## Analyzer surfaces
 

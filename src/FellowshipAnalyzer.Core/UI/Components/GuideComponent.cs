@@ -14,7 +14,7 @@ public abstract class GuideComponent<TParser> : ReportComponent<TParser> where T
     /// The enclosing <see cref="Section"/>'s activity ledger, when the guide is nested in one.
     /// The guide reports its <see cref="IsActive"/> result to it on every parameter set.
     /// </summary>
-    [CascadingParameter] public GuideSectionScope? SectionScope { get; set; }
+    [CascadingParameter] public SectionScope? SectionScope { get; set; }
 
     /// <summary>
     /// Returns <c>true</c> if the component is active, typically based on talent or gear of the <see cref="CombatLogParser.SelectedCombatant"/>    ///

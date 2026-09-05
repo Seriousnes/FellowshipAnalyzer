@@ -13,7 +13,7 @@ using Xunit;
 namespace FellowshipAnalyzer.Core.Tests.Serialization;
 
 /// <summary>
-/// Covers the log fields a damage event carries that the parser reads straight off the wire, using the
+/// Covers the log fields a damage event reports that the parser reads straight off the wire, using the
 /// same options the client configures so a property that only binds under looser settings fails here.
 /// </summary>
 public sealed class DamageEventDeserializationTests

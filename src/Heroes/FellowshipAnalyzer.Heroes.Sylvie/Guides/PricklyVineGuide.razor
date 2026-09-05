@@ -3,9 +3,8 @@
 <GuideSection Title="Prickly Vine">
     <LeftPanel>
         <p>
-            Flutterfly healing scales with the number of <SpellLink Spell="Spells.PricklyVine" /> you
-            keep alive and with <SpellLink Spell="Spells.SafeHaven" /> under the group, so both are
-            about uptime rather than cast count.
+            Cast <SpellLink Spell="Spells.PricklyVine" /> on cooldown, so no stretch of the pull runs
+            without one.
         </p>
     </LeftPanel>
     <RightPanel>
@@ -39,12 +38,11 @@
             new OverviewStat(
                 $"{weightedVines:F2}",
                 "Vines Alive",
-                $"Time-weighted mean of the modelled live vine count, peaking at {peak}. " +
-                $"A vine is not an entity the log tracks, so the count is modelled from the casts against the {SylvieKit.PricklyVineDurationMs / 1000}s lifetime in the game data: a vine killed early or cast out of range still counts."),
+                $"Time-weighted mean of the live vine count, peaking at {peak}."),
             new OverviewStat(
                 $"{noVineMs / (double)pullMs * 100:F1}%",
                 "No Vine Alive",
-                $"{noVineMs / 1000:N0}s with no vine modelled alive at all.",
+                $"{noVineMs / 1000:N0}s with no vine alive.",
                 PerformanceTiers.FromThresholds(100 - (noVineMs / (double)pullMs * 100), 95, 85, 70)),
         ];
     }
@@ -58,11 +56,11 @@
                 new PerCastStat(
                     $"{analyzer.AverageLiveVines:F2}",
                     "Vines Alive",
-                    $"{analyzer.VineCasts} vines cast this pull, peaking at {analyzer.PeakLiveVines} alive. The count is modelled from the casts against the game data's lifetime, because the log emits no vine spawn or despawn."),
+                    $"{analyzer.VineCasts} vines cast this pull, peaking at {analyzer.PeakLiveVines} alive."),
                 new PerCastStat(
                     $"{analyzer.NoVineShare * 100:F0}%",
                     "No Vine Alive",
-                    $"{analyzer.NoVineMs / 1000:N0}s of this pull with no vine modelled alive.",
+                    $"{analyzer.NoVineMs / 1000:N0}s of this pull with no vine alive.",
                     PerformanceTiers.FromThresholds(100 - (analyzer.NoVineShare * 100), 95, 85, 70)),
             ],
         });

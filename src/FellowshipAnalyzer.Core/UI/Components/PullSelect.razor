@@ -250,7 +250,7 @@
         }
     }
 
-    /// <summary>Closes the open panel when the JS module observes a pointer press outside the component.</summary>
+    /// <summary>Closes the open panel when the JS module reports a pointer press outside the component.</summary>
     [JSInvokable]
     public Task CloseFromOutsideAsync() =>
         InvokeAsync(() =>

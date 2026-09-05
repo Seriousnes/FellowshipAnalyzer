@@ -3,8 +3,8 @@ using System.Collections.Frozen;
 namespace FellowshipAnalyzer.Core.Analysis.Deaths;
 
 /// <summary>
-/// What a player could have done about one enemy ability. Every flag is game knowledge that no part of
-/// a combat log carries, so each is curated by hand in <see cref="EnemyAbilities"/> rather than derived.
+/// What a player could have done about one enemy ability. Every flag is game knowledge, so each is
+/// curated by hand in <see cref="EnemyAbilities"/> rather than derived.
 /// </summary>
 public sealed record EnemyAbility
 {
@@ -13,7 +13,7 @@ public sealed record EnemyAbility
 
     /// <summary>
     /// The ability's name at the time it was curated. Read this as the curator's note: display always
-    /// uses the name the report's master data carries, so a stale entry here cannot mislabel a hit.
+    /// uses the name from the report's master data, so a stale entry here cannot mislabel a hit.
     /// </summary>
     public required string Name { get; init; }
 
@@ -26,7 +26,7 @@ public sealed record EnemyAbility
     /// <summary>Whether the hit is one a defensive is expected to be held for.</summary>
     public bool ShouldMitigate { get; init; }
 
-    /// <summary>The flags this entry carries, in a fixed order, for a view that renders one tag per flag.</summary>
+    /// <summary>The flags this entry sets, in a fixed order, for a view that renders one tag per flag.</summary>
     public List<EnemyAbilityTag> Tags
     {
         get
@@ -56,16 +56,16 @@ public enum EnemyAbilityTag
 /// <summary>
 /// The curated table of enemy abilities, keyed by the raw <see cref="Common.Spells.FSLID"/> value. Enemy
 /// abilities use the same plain-ability and effect id ranges hero abilities do, so a key here is the
-/// same number a damage event's <c>Ability.Id</c> carries.
+/// same number as a damage event's <c>Ability.Id</c>.
 /// <para>
-/// The table starts empty. Whether a hit was avoidable, interruptible, or one to hold a defensive for is
-/// game knowledge: neither the combat log nor the game-data export records it. Until an entry is added the
-/// deaths view renders no tags, and every other figure it shows is unaffected.
+/// The table starts empty. Whether a hit was avoidable, interruptible, or one to hold a defensive for
+/// is game knowledge. Until an entry is added the deaths view renders no tags, and every other figure
+/// it shows is unaffected.
 /// </para>
 /// <para>
 /// To add one: open a report where the ability killed someone and read the id and name off the death
 /// card, then confirm both against the game-data export's <c>entities.jsonl</c>. The record whose
-/// <c>id</c> matches and whose <c>$type</c> is <c>ability</c> or <c>effect</c> carries the ability's name
+/// <c>id</c> matches and whose <c>$type</c> is <c>ability</c> or <c>effect</c> gives the ability's name
 /// and description; the <c>creature</c> records list each enemy's abilities by id and name under
 /// <c>abilities</c>, and name the dungeon under <c>foundIn</c>. Classify from play, add the entry to
 /// <see cref="All"/>, and give <see cref="EnemyAbility.Name"/> the name the export reports.

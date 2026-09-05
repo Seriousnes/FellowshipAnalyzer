@@ -1,7 +1,7 @@
 namespace FellowshipAnalyzer.Core.Events;
 
 /// <summary>
-/// Resource snapshot for an actor (source or target) attached to a log event.
+/// An actor's resources (source or target) attached to a log event.
 /// Corresponds to the <c>sourceResources</c> or <c>targetResources</c> JSON fields.
 /// </summary>
 public class ActorResources

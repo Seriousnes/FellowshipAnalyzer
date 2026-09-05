@@ -1,0 +1,90 @@
+@inherits GuideComponent<AeonaCombatLogParser>
+
+<GuideSection Title="Resonant Fate">
+    <LeftPanel>
+        <p>
+            At @ResonantFateAnalyzer.MaximumStacks stacks of
+            <strong><SpellLink Spell="Talents.ResonantFate" /></strong>, cast your next
+            <SpellLink Spell="Spells.AmendFate" /> on the tank rather than holding the stacks.
+        </p>
+    </LeftPanel>
+    <RightPanel>
+        <CastOverview Title="Resonant Fate Overview" Stats="@BuildOverviewStats()" />
+
+        <CastDetail Title="Holds by Pull"
+                    Description="Each row is one stretch at maximum stacks."
+                    Casts="@BuildHoldRows()" />
+    </RightPanel>
+</GuideSection>
+
+@code {
+    protected override bool IsActive() => Analyzers.Any(analyzer => analyzer.Holds.Count > 0);
+
+    private List<ResonantFateAnalyzer> Analyzers =>
+        [.. Parser.ResonantFateAnalyzers.Select(entry => entry.Analyzer).OfType<ResonantFateAnalyzer>()];
+
+    private IEnumerable<OverviewStat> BuildOverviewStats()
+    {
+        var analyzers = Analyzers;
+        if (analyzers.Count == 0) return [];
+
+        var held = analyzers.Sum(analyzer => (long)analyzer.HeldAtMaximumMs);
+        var activeMs = analyzers.Sum(analyzer => (long)analyzer.DamageReductionActiveMs);
+        var combatMs = analyzers.Sum(analyzer => (long)analyzer.Pull.Duration);
+        var holds = analyzers.Sum(analyzer => analyzer.Holds.Count);
+        var granted = analyzers.Sum(analyzer => analyzer.HoldsGranted);
+
+        return
+        [
+            new OverviewStat(
+                FormatSeconds(held),
+                $"Held at {ResonantFateAnalyzer.MaximumStacks} Stacks",
+                "Time the counter was at maximum stacks."),
+            new OverviewStat(
+                FormatShare(activeMs, combatMs),
+                "Uptime on Tank",
+                "Share of combat the tank had the damage reduction active."),
+            new OverviewStat(
+                $"{granted}/{holds}",
+                "Holds Granted",
+                $"{granted} of {holds} holds granted."),
+        ];
+    }
+
+    private IEnumerable<PerCastData> BuildHoldRows() =>
+        Parser.ResonantFateAnalyzers.ToItemRows(
+            Parser,
+            analyzer => ((ResonantFateAnalyzer)analyzer).Holds,
+            (hold, pull) => BuildRow(hold));
+
+    private PerCastRow BuildRow(ResonantFateHold hold) => new()
+    {
+        Performance = null,
+        Timestamp = hold.ReachedAt,
+        Stats =
+        [
+            new PerCastStat(
+                FormatSeconds(hold.HeldAtMaximumMs),
+                $"Held at {ResonantFateAnalyzer.MaximumStacks} Stacks",
+                "Time the counter was at maximum stacks."),
+
+            new PerCastStat(
+                GrantedToLabel(hold),
+                "Granted To"),
+
+            new PerCastStat(
+                FormatSeconds(hold.DamageReductionActiveMs),
+                "Damage Reduction Active",
+                "Time the damage reduction was active."),
+        ],
+    };
+
+    private string GrantedToLabel(ResonantFateHold hold) =>
+        hold.GrantedTo is { } unit
+            ? Parser.ActorNames.GetValueOrDefault(unit) ?? $"Ally {unit}"
+            : "-";
+
+    private static string FormatShare(long part, long whole) => whole > 0 ? $"{part * 100d / whole:0.#}%" : "0%";
+
+    private static string FormatSeconds(long milliseconds) => $"{milliseconds / 1000d:0.#}s";
+}

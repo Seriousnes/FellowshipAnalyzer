@@ -6,12 +6,6 @@
 
     private RenderFragment Card =>
         @<StatCard Title="Toughness Generation">
-            <Info>
-                <p>
-                    Every generating cast and block is checked against the maximum on its own event, and
-                    the ones at maximum are counted here.
-                </p>
-            </Info>
             <ChildContent>
                 @foreach (var generator in Generators)
                 {
@@ -24,9 +18,9 @@
                         </StatRow>
                     }
                 }
-                @if (ObservedBlocks > 0)
+                @if (Blocks > 0)
                 {
-                    <StatRow Value="@Ratio(OvercappedBlocks, ObservedBlocks)"
+                    <StatRow Value="@Ratio(OvercappedBlocks, Blocks)"
                              Tooltip="@BlockTooltip">
                         blocks taken at maximum
                     </StatRow>
@@ -38,9 +32,8 @@
         whole > 0 ? $"{(double)part / whole * 100:F0}%" : "0%";
 
     private string GeneratorTooltip(ToughnessGenerator generator, int casts) =>
-        $"{OvercappedCastsFor(generator.SpellId)} of {casts} casts were made at maximum Toughness.";
+        $"{OvercappedCastsFor(generator.SpellId)} of {casts} casts at maximum Toughness.";
 
     private string BlockTooltip =>
-        $"{OvercappedBlocks} of {ObservedBlocks} blocks were taken at maximum Toughness. Only blocks with " +
-        "a Toughness reading are counted, so this is a sample.";
+        $"{OvercappedBlocks} of {Blocks} blocks taken at maximum Toughness.";
 }

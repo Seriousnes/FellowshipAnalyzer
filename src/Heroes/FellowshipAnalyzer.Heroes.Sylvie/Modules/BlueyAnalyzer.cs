@@ -9,8 +9,8 @@ namespace FellowshipAnalyzer.Heroes.Sylvie.Modules;
 [Dependency<SylvieManaTracker>]
 public sealed partial class BlueyAnalyzer : Analyzer
 {
-    private double _upliftOnAlly;
-    private double _upliftOnSylvie;
+    private double _addedOnAlly;
+    private double _addedOnSylvie;
 
     private List<(int TargetId, int Ms, bool OnSylvie)> Result =>
         field ??= BlueyTracker.TimeByHolderBetween(Pull.StartTime, Pull.EndTime);
@@ -21,7 +21,7 @@ public sealed partial class BlueyAnalyzer : Analyzer
 
     public int OnSylvieMs => Result.Where(entry => entry.OnSylvie).Sum(entry => entry.Ms);
 
-    public int UnplacedMs => Math.Max(0, PullDurationMs - OnAllyMs - OnSylvieMs);
+    public int UnassignedMs => Math.Max(0, PullDurationMs - OnAllyMs - OnSylvieMs);
 
     public double OnAllyShare => PullDurationMs > 0 ? OnAllyMs / (double)PullDurationMs : 0;
 
@@ -34,13 +34,13 @@ public sealed partial class BlueyAnalyzer : Analyzer
 
     public int PullDurationMs => Math.Max(0, Pull.EndTime - Pull.StartTime);
 
-    public long HealingUpliftOnAlly => (long)Math.Round(_upliftOnAlly);
+    public long HealingAddedOnAlly => (long)Math.Round(_addedOnAlly);
 
-    public long HealingUpliftOnSylvie => (long)Math.Round(_upliftOnSylvie);
+    public long HealingAddedOnSylvie => (long)Math.Round(_addedOnSylvie);
 
-    public long HealingUplift => (long)Math.Round(_upliftOnAlly + _upliftOnSylvie);
+    public long HealingAdded => (long)Math.Round(_addedOnAlly + _addedOnSylvie);
 
-    public int UpliftedTicks { get; private set; }
+    public int TicksOnHolder { get; private set; }
 
     public int ManaSaved => SylvieManaTracker.SavedBetween(Pull.StartTime, Pull.EndTime);
 
@@ -54,11 +54,11 @@ public sealed partial class BlueyAnalyzer : Analyzer
         if (BlueyTracker.PostingAt(healEvent.Timestamp) is not { } posting) return;
         if (posting.TargetId != healEvent.TargetId) return;
 
-        UpliftedTicks++;
+        TicksOnHolder++;
 
         if (posting.OnSylvie)
-            _upliftOnSylvie += healEvent.Amount * (1 - (1 / SylvieKit.BlueySelfHealScaler));
+            _addedOnSylvie += healEvent.Amount * (1 - (1 / SylvieKit.BlueySelfHealScaler));
         else
-            _upliftOnAlly += healEvent.Amount * (1 - (1 / SylvieKit.BlueyAllyHealScaler));
+            _addedOnAlly += healEvent.Amount * (1 - (1 / SylvieKit.BlueyAllyHealScaler));
     }
 }

@@ -75,7 +75,7 @@ public sealed class SafeHavenAnalyzerTests
     }
 
     [Fact]
-    public async Task CoverageWithNoPlacementInThePullIsReportedApart()
+    public async Task AllyTimeWithNoPlacementInThePullIsReportedApart()
     {
         var parser = await Analyze(
             ApplyBuff(PullEnd - 5_000, Spells.SafeHavenIncreasedHealingTakenBuff, TankId));

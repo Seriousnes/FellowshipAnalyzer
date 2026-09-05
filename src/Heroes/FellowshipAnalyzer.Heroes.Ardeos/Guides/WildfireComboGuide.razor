@@ -92,7 +92,7 @@
             new PerCastStat(
                 $"{window.EngulfingInstances}/{WildfireComboAnalyzer.EngulfingInstanceThreshold}",
                 "EF Instances",
-                $"Concurrent Engulfing Flames instances on the target at the cast ({WildfireComboAnalyzer.EngulfingInstanceThreshold} or more is a complete setup).",
+                "Concurrent Engulfing Flames instances on the target at the cast.",
                 Performance: engulfingPerf),
             new PerCastStat(
                 $"{window.DetonateCasts}",
@@ -102,11 +102,11 @@
             new PerCastStat(
                 window.HasPyromania ? "Yes" : "No",
                 "Pyromania",
-                "Whether Pyromania was cast in the setup before Wildfire. Not required for a clean window."),
+                "Whether Pyromania was cast in the setup before Wildfire."),
             new PerCastStat(
                 window.HasIncinerate ? "Yes" : "No",
                 "Incinerate",
-                "Whether Incinerate was cast in the setup before Wildfire. Not required for a clean window."),
+                "Whether Incinerate was cast in the setup before Wildfire."),
         };
 
         var sequence = window.CastsInWindow
@@ -164,7 +164,7 @@
         if (window.DetonateCasts == 0)
             reasons.Add("no Detonate was cast inside the window");
         else if (window.DetonateCasts < WildfireComboAnalyzer.DetonateSpamThreshold)
-            reasons.Add($"only {window.DetonateCasts} Detonate cast{(window.DetonateCasts == 1 ? " was" : "s were")} made inside the window");
+            reasons.Add($"only {window.DetonateCasts} Detonate{(window.DetonateCasts == 1 ? " was" : "s were")} cast inside the window");
 
         if (reasons.Count == 0)
             reasons.Add("the window only partially matched the expected burn setup");

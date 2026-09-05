@@ -20,7 +20,7 @@ public partial class ResourceTracker(ILogger<ResourceTracker> logger) : Analyzer
 
     /// <summary>
     /// Override the maximum value for specific resource types before the module starts
-    /// observing events. Events will still update max unless an override exists.
+    /// processing events. Events will still update max unless an override exists.
     /// </summary>
     protected Dictionary<ResourceTypes, int> MaxOverrides { get; } = [];
 
@@ -38,36 +38,33 @@ public partial class ResourceTracker(ILogger<ResourceTracker> logger) : Analyzer
     public string GetDisplayName(ResourceTypes type) =>
         DisplayNameOverrides.TryGetValue(type, out var name) ? name : type.ToString();
 
-    /// <summary>The tracked state for <see cref="ResourceTypes.Mana"/>, or <c>null</c> if not yet observed.</summary>
+    /// <summary>The tracked state for <see cref="ResourceTypes.Mana"/>.</summary>
     public ResourceState? Mana => GetResourceState(ResourceTypes.Mana);
-    /// <summary>The tracked state for <see cref="ResourceTypes.Primary"/>, or <c>null</c> if not yet observed.</summary>
+    /// <summary>The tracked state for <see cref="ResourceTypes.Primary"/>.</summary>
     public ResourceState? Primary => GetResourceState(ResourceTypes.Primary);
-    /// <summary>The tracked state for <see cref="ResourceTypes.Secondary"/>, or <c>null</c> if not yet observed.</summary>
+    /// <summary>The tracked state for <see cref="ResourceTypes.Secondary"/>.</summary>
     public ResourceState? Secondary => GetResourceState(ResourceTypes.Secondary);
-    /// <summary>The tracked state for <see cref="ResourceTypes.Spirit"/>, or <c>null</c> if not yet observed.</summary>
+    /// <summary>The tracked state for <see cref="ResourceTypes.Spirit"/>.</summary>
     public ResourceState? Spirit => GetResourceState(ResourceTypes.Spirit);
-    /// <summary>The tracked state for <see cref="ResourceTypes.Stagger"/>, or <c>null</c> if not yet observed.</summary>
+    /// <summary>The tracked state for <see cref="ResourceTypes.Stagger"/>.</summary>
     public ResourceState? Stagger => GetResourceState(ResourceTypes.Stagger);
 
-    /// <summary>The player's most recently observed current hit points.</summary>
+    /// <summary>The player's current hit points.</summary>
     public long CurrentHealth { get; private set; }
 
-    /// <summary>The player's most recently observed maximum hit points.</summary>
+    /// <summary>The player's maximum hit points.</summary>
     public long MaxHealth { get; private set; }
 
     /// <summary>All resource events across all types, in chronological order.</summary>
     public List<ResourceEvent> AllResourceEvents => _allEvents;
 
-    /// <summary>
-    /// Returns the resource state for <paramref name="type"/>, or <c>null</c> if that resource
-    /// type has not yet appeared in any processed event.
-    /// </summary>
+    /// <summary>Returns the resource state for <paramref name="type"/>.</summary>
     public ResourceState? GetResourceState(ResourceTypes type) =>
         _states.TryGetValue(type, out var state) ? state : null;
 
-    /// <summary>The current amount of <paramref name="type"/> the player has, defaulting to zero if unobserved.</summary>
+    /// <summary>The current amount of <paramref name="type"/> the player has, defaulting to zero.</summary>
     public int GetCurrent(ResourceTypes type) => GetOrCreateState(type).Current;
-    /// <summary>The maximum amount of <paramref name="type"/> observed so far, defaulting to zero if unobserved.</summary>
+    /// <summary>The maximum amount of <paramref name="type"/>, defaulting to zero.</summary>
     public int GetMax(ResourceTypes type) => GetOrCreateState(type).Max;
     /// <summary>The total amount of <paramref name="type"/> generated across the parse.</summary>
     public int GetGenerated(ResourceTypes type) => GetOrCreateState(type).Generated;
@@ -263,7 +260,7 @@ public partial class ResourceTracker(ILogger<ResourceTracker> logger) : Analyzer
     }
 }
 
-/// <summary>A single gain, spend, or drain observed for one resource type on <see cref="ResourceTracker"/>.</summary>
+/// <summary>A single gain, spend, or drain for one resource type on <see cref="ResourceTracker"/>.</summary>
 /// <param name="Timestamp">The event's timestamp within the report.</param>
 /// <param name="Id">The spell id responsible for the change, or <c>0</c> if none applies.</param>
 /// <param name="ResourceType">The resource type this event affects.</param>
@@ -271,7 +268,7 @@ public partial class ResourceTracker(ILogger<ResourceTracker> logger) : Analyzer
 /// <param name="Amount">The amount gained, spent, or drained.</param>
 /// <param name="Wasted">The portion of a gain lost to being at or over the cap.</param>
 /// <param name="CurrentAfter">The tracker's current amount immediately after this event.</param>
-/// <param name="Max">The resource's maximum as tracked when this event was recorded, or <c>0</c> if never observed.</param>
+/// <param name="Max">The resource's maximum at the time of this event.</param>
 public sealed record ResourceEvent(
     int Timestamp,
     int Id,
@@ -294,13 +291,13 @@ public enum ResourceEventKind
 }
 
 /// <summary>
-/// Snapshot of a single resource type's state tracked by <see cref="ResourceTracker"/>.
+/// A single resource type's state tracked by <see cref="ResourceTracker"/>.
 /// </summary>
 public sealed class ResourceState
 {
     /// <summary>The player's current amount of this resource.</summary>
     public int Current { get; internal set; }
-    /// <summary>The highest maximum observed for this resource so far.</summary>
+    /// <summary>The resource's maximum.</summary>
     public int Max { get; internal set; }
     /// <summary>The total amount generated across the parse.</summary>
     public int Generated { get; internal set; }

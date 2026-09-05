@@ -11,7 +11,7 @@
     <GuideSection Title="Empowerment Windows">
         <LeftPanel>
             <p>
-                Prioritize burning pooled fury inside <SpellLink Spell="Spells.ThunderCall" /> &amp; <SpellLink Spell="Spells.RagingTempest" />.
+                Prioritize spending pooled Fury inside <SpellLink Spell="Spells.ThunderCall" /> &amp; <SpellLink Spell="Spells.RagingTempest" />.
                 You should enter each <SpellLink Spell="Spells.ThunderCall" /> with 100 Fury.
             </p>
         </LeftPanel>
@@ -19,7 +19,7 @@
             <CastOverview Title="Window Overview" Stats="@BuildOverviewStats(windows)" />
 
             <CastDetail Title="Windows"
-                        Description="Each card is one Thunder Call or Raging Tempest window and what was spent inside it."
+                        Description="Each card is one Thunder Call or Raging Tempest window."
                         Casts="@BuildWindowRows()" />
         </RightPanel>
     </GuideSection>
@@ -33,10 +33,8 @@
 
     private IEnumerable<OverviewStat> BuildOverviewStats(List<ThunderCallWindow> windows)
     {
-        var clipped = windows.Count(window => window.ClippedByPullEnd);
-        var overlapping = windows.Count(window => window.OverlapsOtherWindow);
         var thunderCall = windows.Count(window => window.Source == ThunderCallWindowSource.ThunderCall);
-        var readings = windows.Where(window => window.FuryAtOpen is not null).ToList();
+        var withFury = windows.Where(window => window.FuryAtOpen is not null).ToList();
         var spenders = windows.Sum(window => window.SpenderCasts);
         var chainLightning = windows.Sum(window => window.ChainLightningCasts);
         var empty = windows.Count(window => window.SpenderCasts == 0 && window.ChainLightningCasts == 0);
@@ -46,20 +44,17 @@
             new OverviewStat(
                 $"{windows.Count}",
                 "Windows",
-                $"{thunderCall} Thunder Call windows and {windows.Count - thunderCall} Raging Tempest windows. "
-                + (clipped > 0 ? $"{clipped} were still open when the pull ended. " : "None were still open when the pull ended. ")
-                + (overlapping > 0 ? $"{overlapping} ran alongside a window of the other kind." : "None overlapped each other.")),
+                $"{thunderCall} Thunder Call windows and {windows.Count - thunderCall} Raging Tempest windows."),
             new OverviewStat(
                 $"{empty}",
                 "Empty Windows",
-                $"Windows that saw no spender and no Chain Lightning at all, out of {windows.Count}.",
+                "Windows with no spender and no Chain Lightning.",
                 empty == 0 ? QualitativePerformance.Perfect : QualitativePerformance.Fail),
-            readings.Count > 0
+            withFury.Count > 0
                 ? new OverviewStat(
-                    $"{readings.Average(window => window.FuryAtOpen!.Value):0}%",
-                    "Avg Fury at Open",
-                    $"Fury banked as a window opened, averaged over the {readings.Count} windows with a reading. Reported as context rather than scored.")
-                : new OverviewStat("-", "Avg Fury at Open", "No cast before a window opened had a Fury reading."),
+                    $"{withFury.Average(window => window.FuryAtOpen!.Value):0}%",
+                    "Avg Fury at Open")
+                : new OverviewStat("-", "Avg Fury at Open"),
             new OverviewStat(
                 $"{(double)spenders / windows.Count:0.0}",
                 "Avg Spenders per Window",
@@ -81,13 +76,10 @@
             new(
                 SourceName(window.Source),
                 "Cooldown",
-                $"The buff that opened this window, open for {window.DurationMs / 1000d:0.0}s of the expected {window.ExpectedDurationMs / 1000}s."),
+                $"Open for {window.DurationMs / 1000d:0.0}s of the expected {window.ExpectedDurationMs / 1000}s."),
             new(
                 window.FuryAtOpen is { } fury ? $"{fury}%" : "-",
-                "Fury at Open",
-                window.FuryAtOpen is not null
-                    ? "Fury held at the last cast before the window opened."
-                    : "No cast before this window opened had a Fury reading."),
+                "Fury at Open"),
             new(
                 $"{window.SkullCrusherCasts} / {window.HammerStormCasts} / {window.CullingStrikeCasts}",
                 "Skull / Hammer / Culling",
@@ -102,8 +94,7 @@
         {
             stats.Add(new PerCastStat(
                 "Yes",
-                "Open at Pull End",
-                "The pull ended with the buff still open. Reported as context rather than scored."));
+                "Open at Pull End"));
         }
 
         if (window.OverlapsOtherWindow)
@@ -111,7 +102,7 @@
             stats.Add(new PerCastStat(
                 "Yes",
                 "Overlapped",
-                "A window of the other kind was open at the same time. While two are open, a cast is counted against the more recently opened one."));
+                "While two windows are open, a cast is counted against the more recently opened one."));
         }
 
         return new PerCastRow

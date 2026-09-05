@@ -14,7 +14,7 @@ namespace FellowshipAnalyzer.Heroes.Sylvie.Tests.Analysis;
 public sealed class LifePetalAnalyzerTests
 {
     [Fact]
-    public async Task ANettleboltAtFullChargesGeneratesReductionThatBuysNothing()
+    public async Task ANettleboltAtFullChargesGeneratesReductionThatShortensNothing()
     {
         var parser = await Analyze(
             Damage(PullStart + 1_000, Spells.Nettlebolt, amount: 500));

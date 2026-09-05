@@ -1,0 +1,162 @@
+@inherits GuideComponent<AeonaCombatLogParser>
+
+<GuideSection Title="Entropy's Claim">
+    <LeftPanel>
+        <p>
+            <strong><SpellLink Spell="Spells.EntropyClaim" /></strong> is your main Chrona generator.
+        </p>
+        <p>
+            Cast it the moment it becomes available. It will occasionally be impossible to cast on
+            cooldown, while moving between packs or handling mechanics.
+        </p>
+        <p>
+            Keep room under maximum Chrona while it ticks, every tick at the maximum is lost generation.
+        </p>
+        @if (BurstTaken)
+        {
+            <p>
+                With <SpellLink Spell="Spells.EntropicBurst" />, cast it on an enemy inside the pack, so
+                the eruption reaches every enemy near it.
+            </p>
+        }
+    </LeftPanel>
+    <RightPanel>
+        <CastOverview Title="Entropy's Claim Overview" Stats="@BuildOverviewStats()" />
+
+        <CastDetail Title="Casts by Pull"
+                    Description="Each row is one cast, how long the charge waited, and what its application returned."
+                    Casts="@BuildCastRows()" />
+    </RightPanel>
+</GuideSection>
+
+@code {
+    protected override bool IsActive() => Analyzers.Any(analyzer => analyzer.CastCount > 0);
+
+    private List<EntropyClaimAnalyzer> Analyzers =>
+        [.. Parser.EntropyClaimAnalyzers.Select(entry => entry.Analyzer).OfType<EntropyClaimAnalyzer>()];
+
+    private bool BurstTaken => Analyzers.Any(analyzer => analyzer.EntropicBurstTaken);
+
+    private IEnumerable<OverviewStat> BuildOverviewStats()
+    {
+        var analyzers = Analyzers;
+        if (analyzers.Count == 0) return [];
+
+        var combatMs = analyzers.Sum(analyzer => (long)analyzer.Pull.Duration);
+        var activeMs = analyzers.Sum(analyzer => (long)analyzer.ActiveMs);
+        var availableMs = analyzers.Sum(analyzer => (long)analyzer.AvailableMs);
+        var delays = analyzers.SelectMany(analyzer => analyzer.DelaysAfterReady).ToList();
+        var casts = analyzers.Sum(analyzer => analyzer.CastCount);
+        var ticks = analyzers.Sum(analyzer => analyzer.TickCount);
+        var generated = analyzers.Sum(analyzer => analyzer.ChronaGenerated);
+        var overcapped = analyzers.Sum(analyzer => analyzer.ChronaOvercapped);
+
+        var stats = new List<OverviewStat>
+        {
+            new(
+                FormatShare(activeMs, combatMs),
+                "Uptime",
+                "Share of combat with Entropy's Claim active on at least one enemy."),
+            new(
+                FormatSeconds(availableMs),
+                "Off Cooldown in Combat",
+                "Time in combat with a charge of Entropy's Claim available to cast."),
+            new(
+                FormatSeconds(delays.Count == 0 ? 0 : (long)delays.Average()),
+                "Delay After Ready",
+                "Time from a charge of Entropy's Claim becoming available to the cast that spent it, averaged over every wait, with a charge still available at a pull's end contributing the wait running to that end."),
+            new(
+                $"{Per(ticks, casts):0.#}",
+                "Ticks per Cast",
+                "Damage ticks between application and expiry, averaged over every cast."),
+            new(
+                $"{generated:N0}",
+                "Chrona Generated",
+                "Chrona the ticks of Entropy's Claim generated."),
+            new(
+                $"{overcapped:N0} ({FormatShare(overcapped, generated + overcapped)})",
+                "Chrona Overcapped",
+                "Chrona Entropy's Claim generated above the maximum, and its share of everything Entropy's Claim generated."),
+        };
+
+        if (BurstTaken)
+        {
+            var burstStacks = analyzers.Sum(analyzer => analyzer.EntropicBurstStacks ?? 0);
+            var burstActiveMs = analyzers.Sum(analyzer => analyzer.EntropicBurstActiveMs ?? 0);
+            var burstUnitActiveMs = analyzers.Sum(analyzer => analyzer.EntropicBurstUnitActiveMs ?? 0);
+            var burstStackMs = analyzers.Sum(analyzer => analyzer.EntropicBurstStackMs ?? 0);
+
+            stats.Add(new OverviewStat(
+                $"{Per(burstStacks, casts):0.#}",
+                "Entropic Burst Stacks per Cast",
+                "Entropic Burst stacks applied across every enemy at each expiry, averaged over every cast."));
+            stats.Add(new OverviewStat(
+                FormatShare(burstActiveMs, combatMs),
+                "Entropic Burst Uptime",
+                "Share of combat with Entropic Burst active on at least one enemy."));
+            stats.Add(new OverviewStat(
+                $"{(burstUnitActiveMs > 0 ? burstStackMs / (double)burstUnitActiveMs : 0):0.#}",
+                "Average Entropic Burst Stacks",
+                "Mean Entropic Burst stacks on each enemy, weighted by the time it was active on them."));
+        }
+
+        return stats;
+    }
+
+    private IEnumerable<PerCastData> BuildCastRows() =>
+        Parser.EntropyClaimAnalyzers.ToItemRows(
+            Parser,
+            analyzer => ((EntropyClaimAnalyzer)analyzer).Casts,
+            (cast, pull) => BuildRow(cast));
+
+    private PerCastRow BuildRow(EntropyClaimCast cast) => new()
+    {
+        Performance = null,
+        Timestamp = cast.Timestamp,
+        Sequence = [new SpellCastEntry(Spells.EntropyClaim.FSLID, null)],
+        Stats = BuildCastStats(cast),
+    };
+
+    private PerCastStat[] BuildCastStats(EntropyClaimCast cast)
+    {
+        var stats = new List<PerCastStat>
+        {
+            new(
+                FormatSeconds(cast.DelayAfterReadyMs),
+                "Delay After Ready",
+                "Time from the charge becoming available to this cast."),
+            new(
+                $"{cast.Ticks}",
+                "Ticks",
+                "Damage ticks between this application and its expiry."),
+        };
+
+        if (cast.DotApplied)
+        {
+            stats.Add(new PerCastStat(
+                $"{cast.ChronaGenerated:N0}",
+                "Chrona Generated",
+                "Chrona the ticks of this application generated."));
+            stats.Add(new PerCastStat(
+                $"{cast.ChronaOvercapped:N0}",
+                "Chrona Overcapped",
+                "Chrona the ticks of this application generated above the maximum."));
+        }
+
+        if (BurstTaken)
+        {
+            stats.Add(new PerCastStat(
+                $"{cast.EntropicBurstStacks}",
+                "Entropic Burst Stacks",
+                "Stacks applied across every enemy when this application expired."));
+        }
+
+        return [.. stats];
+    }
+
+    private static double Per(int total, int casts) => casts == 0 ? 0 : (double)total / casts;
+
+    private static string FormatShare(long part, long whole) => whole > 0 ? $"{part * 100d / whole:0.#}%" : "0%";
+
+    private static string FormatSeconds(long milliseconds) => $"{milliseconds / 1000d:0.#}s";
+}

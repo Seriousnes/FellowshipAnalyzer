@@ -19,7 +19,7 @@ public sealed partial class SupremacyAnalyzer : Analyzer
                 window.FirstMultishot is { } first ? first - window.Start : null)),
         ];
 
-    public int EmpoweredMultishotCasts => Windows.Sum(window => window.MultishotCasts);
+    public int MultishotCastsInWindows => Windows.Sum(window => window.MultishotCasts);
 
     [On<ApplyBuffEvent>(To = Actor.Player, Spell = nameof(Spells.SkystridersSupremacyBuff))]
     private void OnSupremacyApplied(ApplyBuffEvent e)

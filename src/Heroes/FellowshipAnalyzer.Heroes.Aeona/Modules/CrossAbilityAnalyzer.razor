@@ -1,0 +1,50 @@
+@using CoreItems = FellowshipAnalyzer.Core.Common.Items.Items
+@inherits Analyzer
+
+@code {
+    public override RenderFragment? Statistic =>
+        ChronaGenerated > 0 || ManaGenerated > 0 || SkyboltWasCast || UnfoldingDoomOverwrittenMs > 0
+            ? Card
+            : null;
+
+    private RenderFragment Card =>
+        @<StatCard>
+            <Header>
+                <HeroText Hero="HeroName.Aeona" Icon />
+            </Header>
+            <ChildContent>
+                @if (ChronaGenerated > 0 || ChronaOvercapped > 0)
+                {
+                    <StatRow Value="@($"{ChronaOvercapped:N0}")" Tooltip="@($"{ChronaOvercapShare:P1} of {ChronaGenerated + ChronaOvercapped:N0} Chrona generated.")">
+                        Chrona overcapped
+                    </StatRow>
+                }
+                @if (ManaGenerated > 0 || ManaOvercapped > 0)
+                {
+                    <StatRow Value="@($"{ManaOvercapped:N0}")" Tooltip="@($"{ManaOvercapShare:P1} of {ManaGenerated + ManaOvercapped:N0} mana generated.")">
+                        mana overcapped
+                    </StatRow>
+                }
+                @if (ManaFromCleansing > 0)
+                {
+                    <StatRow Value="@($"{ManaFromCleansing:N0}")" Tooltip="@($"Attributed to {CleanseManaReturns.Count} cleanse casts.")">
+                        mana from cleansing
+                    </StatRow>
+                }
+                @if (SkyboltWasCast)
+                {
+                    <StatRow Value="@FormatSeconds(SkyboltTimeAtMaxChargesMs)" Tooltip="@($"{SkyboltTimeAtMaxChargesShare:P1} of combat.")">
+                        <SpellLink Spell="CoreItems.TwilightSkybolt" /> at maximum charges
+                    </StatRow>
+                }
+                @if (UnfoldingDoomOverwrittenMs > 0)
+                {
+                    <StatRow Value="@FormatSeconds(UnfoldingDoomOverwrittenMs)" Tooltip="@($"Across {UnfoldingDoomReapplications} reapplications.")">
+                        <SpellLink Spell="Spells.UnfoldingDoom" /> duration overwritten
+                    </StatRow>
+                }
+            </ChildContent>
+        </StatCard>;
+
+    private static string FormatSeconds(int milliseconds) => $"{milliseconds / 1000d:0.#}s";
+}

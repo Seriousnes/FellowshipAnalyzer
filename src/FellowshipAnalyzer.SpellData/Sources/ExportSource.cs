@@ -40,7 +40,7 @@ public record ExportEffect(
     List<string> Heroes);
 
 /// <summary>
-/// One talent, carrying the hero whose talent tree slots it. The export declares the talent and the
+/// One talent, with the hero whose talent tree slots it. The export declares the talent and the
 /// slot separately; only the slot names a hero.
 /// </summary>
 public record ExportTalent(int Id, string? Name, string Hero);
@@ -48,7 +48,7 @@ public record ExportTalent(int Id, string? Name, string Hero);
 public record ExportHero(string Name, string? ArmorType, string? PrimaryStat, string? Color);
 
 /// <summary>
-/// One rung of the item and gem rarity ladder. <paramref name="Name"/> is the name the build stores
+/// One rarity rung for items and gems. <paramref name="Name"/> is the name the build stores
 /// and the name art files are suffixed with; <paramref name="DisplayName"/> is the name the game
 /// prints. The two are offset from tier 4 upwards, so a rung printed as <c>Heroic</c> stores
 /// <c>Champion</c> and its art ends <c>-champion</c>.
@@ -112,7 +112,7 @@ public sealed class ExportSource
 
             if (root.TryGetProperty("tag", out _))
                 throw new InvalidOperationException(
-                    $"The export at '{entitiesPath}' still carries internal asset names. Regenerate it.");
+                    $"The export at '{entitiesPath}' still names internal assets. Regenerate it.");
 
             switch (root.Deserialize<EntityDocument>(EntityDocuments.Options))
             {

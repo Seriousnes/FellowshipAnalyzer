@@ -38,8 +38,8 @@ public sealed partial class ThunderCallAnalyzer : Analyzer
     {
         get
         {
-            var readings = Evaluated.Where(window => window.FuryAtOpen is not null).ToList();
-            return readings.Count == 0 ? null : readings.Average(window => window.FuryAtOpen!.Value);
+            var withFury = Evaluated.Where(window => window.FuryAtOpen is not null).ToList();
+            return withFury.Count == 0 ? null : withFury.Average(window => window.FuryAtOpen!.Value);
         }
     }
 

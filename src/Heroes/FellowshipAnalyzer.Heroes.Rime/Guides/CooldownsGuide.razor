@@ -16,7 +16,7 @@
     <RightPanel>
         <CastOverview Title="Cooldown Overview" Stats="@BuildOverviewStats()" />
         <CastDetail Title="Major Cooldown Windows"
-                    Description="Each row is one buff window, grouped by the pull it happened in."
+                    Description="Each row is one buff window."
                     Casts="@BuildPerCastData()" />
     </RightPanel>
 </GuideSection>
@@ -143,7 +143,7 @@
         RenderFragment? details = null;
         if (window.BoundaryTruncated)
         {
-            details = @<div>The pull ended before this window did, so it is measured to the pull boundary.</div>;
+            details = @<div>The pull ended before this window did.</div>;
         }
 
         return new PerCastRow

@@ -29,13 +29,13 @@
         var pullMs = analyzers.Sum(entry => (long)(entry.Pull.EndTime - entry.Pull.StartTime));
         if (pullMs == 0) return [];
 
-        var covered = analyzers.Sum(entry => (long)entry.Analyzer.CoveredMs);
+        var activeMs = analyzers.Sum(entry => (long)entry.Analyzer.ActiveMs);
         var atCap = analyzers.Sum(entry => (long)entry.Analyzer.AtCapMs);
         var gaps = analyzers.Sum(entry => entry.Analyzer.GapCount);
         var reduction = analyzers.Sum(entry =>
             entry.Analyzer.AverageReduction * (entry.Pull.EndTime - entry.Pull.StartTime)) / pullMs;
 
-        var uptime = covered / (double)pullMs * 100;
+        var uptime = activeMs / (double)pullMs * 100;
         var capUptime = atCap / (double)pullMs * 100;
 
         return
@@ -43,9 +43,7 @@
             new OverviewStat(
                 $"{uptime:F1}%",
                 "Uptime",
-                "Share of pull time the debuff was active on the primary target at any stack count. Each pull " +
-                "is read against whichever enemy had it active longest, so adds passing through never dilute " +
-                "the figure.",
+                "Share of pull time the debuff was active on the primary target at any stack count.",
                 PerformanceTiers.FromThresholds(uptime, 90, 75, 55)),
             new OverviewStat(
                 $"{capUptime:F1}%",

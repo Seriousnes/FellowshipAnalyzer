@@ -47,8 +47,7 @@
         {
             new(
                 $"{casts}",
-                "Slaughters",
-                "Total Slaughter casts evaluated across every pull."),
+                "Slaughters"),
             new(
                 $"{wellRate}%",
                 "Well Set Up",
@@ -59,7 +58,7 @@
                 "Wasted Windows",
                 windows > 0
                     ? $"{wasted} of {windows} Open Wounds windows, counted per enemy, closed with no Slaughter cast inside them."
-                    : "No Open Wounds window ran long enough to be judged.",
+                    : null,
                 windows > 0 ? PercentTier(UsedWindowRate(windows, wasted)) : null),
         };
 
@@ -68,7 +67,7 @@
             stats.Add(new OverviewStat(
                 $"{rend / casts}",
                 "Avg Rend Consumed",
-                $"Average Rend stacks consumed per Slaughter, {rend} in total across every enemy hit."));
+                "Average Rend stacks a Slaughter consumed across every enemy it hit."));
         }
 
         if (bleed > 0)
@@ -76,7 +75,7 @@
             stats.Add(new OverviewStat(
                 FormatDamage(bleed / casts),
                 "Avg Bleed Damage",
-                $"Average Slaughter bleed damage per cast, {FormatDamage(bleed)} in total. This is context, not a verdict."));
+                "Average Slaughter bleed damage per cast."));
         }
 
         return stats;
@@ -115,12 +114,11 @@
         stats.Add(new PerCastStat(
             $"{slaughter.RendConsumed}",
             "Rend Consumed",
-            "Rend stacks this cast consumed across every enemy it hit. Reported as context, not scored."));
+            "Rend stacks this cast consumed across every enemy it hit."));
 
         stats.Add(new PerCastStat(
             FormatDamage(slaughter.BleedDamage),
-            "Bleed Damage",
-            "Slaughter bleed damage this cast dealt. This is context, not a verdict."));
+            "Bleed Damage"));
 
         var note = BuildNote(row, isAoe);
 

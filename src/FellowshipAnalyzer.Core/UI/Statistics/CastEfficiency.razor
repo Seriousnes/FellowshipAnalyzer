@@ -48,13 +48,11 @@
 
 @code {
     private const string MaxCastsTooltip =
-        "Casts, against the number the analyzed time had room for. That ceiling comes from how long "
-        + "the ability actually took to recharge over this report, so cooldown reduction and acceleration "
-        + "are already counted.";
+        "Casts, against the number the analyzed time had room for.";
 
     private const string TimeOnCooldownTooltip =
         "The share of analyzed combat time the ability spent recharging. Time between pulls is excluded. "
-        + "An ability with charges counts as recharging whenever it holds fewer than its maximum.";
+        + "An ability with charges counts as recharging whenever fewer than its maximum are available.";
 
     private List<AbilityCastEfficiency> _rows = [];
 

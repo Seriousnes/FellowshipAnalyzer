@@ -45,10 +45,10 @@ public sealed record FaPalette
     /// <summary>Cool mid grey, light enough for dark text over it.</summary>
     public required FaColor Ash { get; init; }
 
-    /// <summary>Cream stop in the brand mark. Artwork, so every theme carries the same value.</summary>
+    /// <summary>Cream stop in the brand mark. Artwork, so every theme has the same value.</summary>
     public required FaColor BrandCream { get; init; }
 
-    /// <summary>Gold stop in the brand mark. Artwork, so every theme carries the same value.</summary>
+    /// <summary>Gold stop in the brand mark. Artwork, so every theme has the same value.</summary>
     public required FaColor BrandGold { get; init; }
 
     /// <summary>Universal ground under every screen.</summary>
@@ -78,11 +78,8 @@ public sealed record FaPalette
     /// <summary>Deepest well.</summary>
     public required FaColor RecessDeep { get; init; }
 
-    /// <summary>Section header fill, a gradient rather than a flat colour.</summary>
-    public required string SectionHeader { get; init; }
-
-    /// <summary>Section header fill on hover, a gradient rather than a flat colour.</summary>
-    public required string SectionHeaderHover { get; init; }
+    /// <summary>Section header fill, the same ground the page body uses.</summary>
+    public required FaColor SectionHeader { get; init; }
 
     /// <summary>Primary cream body text.</summary>
     public required FaColor Text { get; init; }
@@ -136,7 +133,7 @@ public sealed record FaPalette
     public required FaColor Edge { get; init; }
 
     /// <summary>
-    /// Edge separating a panel from its container. The dark themes carry it at zero alpha, where a
+    /// Edge separating a panel from its container. The dark themes set it at zero alpha, where a
     /// panel already reads by its own ground; the light theme is where a panel needs an outline.
     /// </summary>
     public required FaColor PanelBorder { get; init; }
@@ -175,13 +172,13 @@ public sealed record FaPalette
     /// <summary>Deepest fire step, burnt umber.</summary>
     public required FaColor Fire6 { get; init; }
 
-    /// <summary>Legendary item quality. Game artwork, so every theme carries the same value.</summary>
+    /// <summary>Legendary item quality. Game artwork, so every theme has the same value.</summary>
     public required FaColor Legendary { get; init; }
 
-    /// <summary>Regal item quality. Game artwork, so every theme carries the same value.</summary>
+    /// <summary>Regal item quality. Game artwork, so every theme has the same value.</summary>
     public required FaColor Regal { get; init; }
 
-    /// <summary>Epic item quality. Game artwork, so every theme carries the same value.</summary>
+    /// <summary>Epic item quality. Game artwork, so every theme has the same value.</summary>
     public required FaColor Epic { get; init; }
 
     /// <summary>Tank role.</summary>
@@ -286,6 +283,7 @@ public sealed record FaPalette
         FaColor black = "#000000";
         FaColor frame = "#63696f";
         FaColor gold = "#b8965c";
+        FaColor bgBase = "#182028";
 
         return new FaPalette
         {
@@ -306,7 +304,7 @@ public sealed record FaPalette
             BrandCream = "#f4e9d0",
             BrandGold = "#d4a744",
 
-            BgBase = "#182028",
+            BgBase = bgBase,
             BgRaised = "#283038",
             BgSurface = "#313a45",
             BgCard = "#3a4452",
@@ -315,8 +313,7 @@ public sealed record FaPalette
             Raise = white.WithAlpha(FaTint.Faint),
             Recess = black.WithAlpha(FaTint.Soft),
             RecessDeep = black.WithAlpha(FaTint.Medium),
-            SectionHeader = Gradient(gold.WithAlpha(FaTint.Subtle), gold.WithAlpha(FaTint.Faint)),
-            SectionHeaderHover = Gradient(gold.WithAlpha(FaTint.Soft), gold.WithAlpha(FaTint.Faint)),
+            SectionHeader = bgBase,
 
             Text = "#e8e0d8",
             TextMuted = "#abb3bc",
@@ -393,16 +390,16 @@ public sealed record FaPalette
     {
         var navy = FaSourceColors.BsNavy;
         var grey = FaSourceColors.BsGrey;
+        var bgBase = navy.Step(7);
 
         return Original with
         {
-            BgBase = navy.Step(7),
+            BgBase = bgBase,
             BgRaised = navy.Step(11),
             BgSurface = navy.Step(15),
             BgCard = navy.Step(14).WithAlpha(FaTint.Veil),
             BgInset = navy.Step(6).WithAlpha(FaTint.Strong),
-            SectionHeader = Gradient(grey.WithAlpha(FaTint.Subtle)),
-            SectionHeaderHover = Gradient(grey.WithAlpha(FaTint.Soft)),
+            SectionHeader = bgBase,
 
             Text = FaSourceColors.BsPearl,
             TextMuted = grey,
@@ -438,8 +435,7 @@ public sealed record FaPalette
             Raise = cream.Step(99),
             Recess = cream.Step(95),
             RecessDeep = cream.Step(91),
-            SectionHeader = Gradient(navy.WithAlpha(FaTint.Subtle)),
-            SectionHeaderHover = Gradient(navy.WithAlpha(FaTint.Soft)),
+            SectionHeader = cream,
 
             Text = navy,
             TextMuted = grey.Step(42),

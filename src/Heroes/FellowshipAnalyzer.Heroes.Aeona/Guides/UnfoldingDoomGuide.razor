@@ -1,0 +1,96 @@
+@inherits GuideComponent<AeonaCombatLogParser>
+
+<GuideSection Title="Unfolding Doom">
+    <LeftPanel>
+        <p>
+            <strong><SpellLink Spell="Spells.UnfoldingDoom" /></strong> is your primary damage increase.
+        </p>
+        <p>
+            Cast it the moment it becomes available, on the enemy you will damage for the next 20 seconds.
+        </p>
+        <p>
+            Try to keep the debuff active on an enemy for the whole pull.
+        </p>
+        @if (Analyzers.Any(analyzer => analyzer.HasteningDoomTaken))
+        {
+            <p>
+                With <SpellLink Spell="Spells.UnfoldingDoom" /> talented into Hastening Doom the window also
+                grants Haste, so open it before your <SpellLink Spell="Spells.TimeShard" />s.
+            </p>
+        }
+    </LeftPanel>
+    <RightPanel>
+        <CastOverview Title="Unfolding Doom Overview" Stats="@BuildOverviewStats()" />
+        <CastDetail Title="Applications by Pull"
+                    Description="Each row is one application."
+                    Casts="@BuildPerCastData()" />
+    </RightPanel>
+</GuideSection>
+
+@code {
+    protected override bool IsActive() => Analyzers.Any(analyzer => analyzer.Casts > 0);
+
+    private List<UnfoldingDoomAnalyzer> Analyzers =>
+        [.. Parser.UnfoldingDoomAnalyzers.Select(entry => entry.Analyzer).OfType<UnfoldingDoomAnalyzer>()];
+
+    private IEnumerable<OverviewStat> BuildOverviewStats()
+    {
+        var analyzers = Analyzers;
+        var active = analyzers.Sum(analyzer => analyzer.ActiveMs);
+        var combat = analyzers.Sum(analyzer => analyzer.Pull.Duration);
+
+        return
+        [
+            new OverviewStat(
+                combat > 0 ? $"{(double)active / combat:P1}" : "0.0%",
+                "Uptime",
+                "Share of combat with the debuff active on at least one enemy."),
+
+            new OverviewStat(
+                FormatDamage(analyzers.Sum(analyzer => analyzer.DamageGained)),
+                "Damage Gained",
+                "Damage the debuff's increase accounts for."),
+
+            new OverviewStat(
+                FormatSeconds(analyzers.Sum(analyzer => analyzer.IdleAvailableMs)),
+                "Available, No Enemy Debuffed",
+                "Time Unfolding Doom was available with no enemy debuffed."),
+        ];
+    }
+
+    private IEnumerable<PerCastData> BuildPerCastData() =>
+        Parser.UnfoldingDoomAnalyzers.ToItemRows(
+            Parser,
+            analyzer => ((UnfoldingDoomAnalyzer)analyzer).Applications,
+            (application, pull) => BuildRow(application));
+
+    private PerCastRow BuildRow(UnfoldingDoomApplication application) => new()
+    {
+        Performance = null,
+        Timestamp = application.Start,
+        Sequence = [new SpellCastEntry(Spells.UnfoldingDoom.FSLID, null)],
+        Stats =
+        [
+            new PerCastStat(
+                FormatSeconds(application.ActiveMs),
+                "Active"),
+
+            new PerCastStat(
+                FormatDamage(application.DamageGained),
+                "Damage Gained",
+                "Damage the debuff's increase accounts for."),
+
+            new PerCastStat(
+                FormatSeconds(application.DelayAfterReadyMs),
+                "Delay After Ready",
+                "Time from Unfolding Doom being available with no enemy debuffed to this application."),
+        ],
+    };
+
+    private static string FormatDamage(double amount) =>
+        amount >= 1_000_000 ? $"{amount / 1_000_000:0.##}M"
+        : amount >= 1_000 ? $"{amount / 1_000:0.#}k"
+        : $"{amount:0}";
+
+    private static string FormatSeconds(long milliseconds) => $"{milliseconds / 1000d:0.#}s";
+}

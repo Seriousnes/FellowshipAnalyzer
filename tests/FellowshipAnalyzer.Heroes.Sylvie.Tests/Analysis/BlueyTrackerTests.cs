@@ -69,7 +69,7 @@ public sealed class BlueyTrackerTests
 
         analyzer.OnAllyMs.ShouldBe(21_000);
         analyzer.OnSylvieMs.ShouldBe(PullEnd - PullStart - 21_000);
-        analyzer.UnplacedMs.ShouldBe(0);
+        analyzer.UnassignedMs.ShouldBe(0);
         analyzer.Holders.ShouldBe(2);
         analyzer.OnAllyShare.ShouldBe(21_000 / 60_000d, 0.001);
     }
@@ -95,10 +95,10 @@ public sealed class BlueyTrackerTests
 
         var analyzer = parser.BlueyAnalyzers.ShouldHaveSingleItem().Analyzer;
 
-        analyzer.UpliftedTicks.ShouldBe(2);
-        analyzer.HealingUpliftOnAlly.ShouldBe(500);
-        analyzer.HealingUpliftOnSylvie.ShouldBe(0);
-        analyzer.HealingUplift.ShouldBe(500);
+        analyzer.TicksOnHolder.ShouldBe(2);
+        analyzer.HealingAddedOnAlly.ShouldBe(500);
+        analyzer.HealingAddedOnSylvie.ShouldBe(0);
+        analyzer.HealingAdded.ShouldBe(500);
     }
 
     [Fact]
@@ -110,13 +110,13 @@ public sealed class BlueyTrackerTests
 
         var analyzer = parser.BlueyAnalyzers.ShouldHaveSingleItem().Analyzer;
 
-        analyzer.UpliftedTicks.ShouldBe(1);
-        analyzer.HealingUpliftOnSylvie.ShouldBe(300);
-        analyzer.HealingUpliftOnAlly.ShouldBe(0);
+        analyzer.TicksOnHolder.ShouldBe(1);
+        analyzer.HealingAddedOnSylvie.ShouldBe(300);
+        analyzer.HealingAddedOnAlly.ShouldBe(0);
     }
 
     [Fact]
-    public async Task HealingOnSomebodyWhoIsNotCarryingBlueyAddsNoUplift()
+    public async Task HealingOnSomebodyOtherThanBlueysHolderAddsNothing()
     {
         var parser = await Analyze(
             ApplyBuff(PullStart + 500, Spells.FluttercallProtectBuff, TankId),
@@ -124,8 +124,8 @@ public sealed class BlueyTrackerTests
 
         var analyzer = parser.BlueyAnalyzers.ShouldHaveSingleItem().Analyzer;
 
-        analyzer.UpliftedTicks.ShouldBe(0);
-        analyzer.HealingUplift.ShouldBe(0);
+        analyzer.TicksOnHolder.ShouldBe(0);
+        analyzer.HealingAdded.ShouldBe(0);
     }
 
     [Fact]

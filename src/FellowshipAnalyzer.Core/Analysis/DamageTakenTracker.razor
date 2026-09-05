@@ -8,20 +8,19 @@
         @<StatCard Title="Damage Taken" Meta="@FacedText">
             <Info>
                 <p>
-                    Everything that hit you this dungeon, split into the share that landed and the share mitigation
-                    and absorbs stopped. Blocks are counted inside the mitigated figure rather than beside it, so
-                    the block line reports how much of that mitigation the log attributes to a block.
+                    Everything that hit you this dungeon, split into the share taken and the share mitigation and
+                    absorbs stopped. Blocks are counted inside the mitigated figure rather than beside it.
                 </p>
             </Info>
             <ChildContent>
-                <StatRow Value="@TakenText" Tooltip="Damage that actually landed on you, spread over the dungeon.">
+                <StatRow Value="@TakenText" Tooltip="Damage taken, spread over the dungeon.">
                     damage taken per second
                 </StatRow>
                 <StatRow Value="@PreventedShareText" Tooltip="@PreventedTooltip">
                     of incoming damage prevented
                 </StatRow>
                 <StatRow Value="@BlockRateText" Tooltip="@BlockTooltip">
-                    of hits arrived as a block
+                    of hits blocked
                 </StatRow>
                 <StackedBar Segments="@BuildSegments()" />
                 <HelperText>
@@ -50,11 +49,11 @@
     private string BlockRateText => $"{BlockRate * 100:F1}%";
 
     private string PreventedTooltip =>
-        $"{TotalPrevented:N0} of {TotalFaced:N0} never landed: " +
+        $"{TotalPrevented:N0} of {TotalFaced:N0} prevented: " +
         $"{TotalMitigated:N0} mitigated and {TotalAbsorbed:N0} absorbed.";
 
     private string BlockTooltip =>
-        $"{TotalBlockedHits:N0} of {TotalHits:N0} hits, carrying " +
+        $"{TotalBlockedHits:N0} of {TotalHits:N0} hits, with " +
         $"{TotalBlocked:N0} of the mitigated total.";
 
     private IEnumerable<StackedBarSegment> BuildSegments()

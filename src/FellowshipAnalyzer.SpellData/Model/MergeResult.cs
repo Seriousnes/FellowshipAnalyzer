@@ -5,18 +5,20 @@ namespace FellowshipAnalyzer.SpellData.Model;
 /// <summary>Classifies the kind of gap detected during a merge pass.</summary>
 public enum GapKind
 {
-    /// <summary>A kit ability carries no name, so no member name can be formed.</summary>
+    /// <summary>A kit ability has no name, so no member name can be formed.</summary>
     MissingName,
     /// <summary>A spell was built with no icon from any source.</summary>
     MissingIcon,
     /// <summary>An override tried to add a new member but supplied no <c>id</c>.</summary>
     MissingId,
-    /// <summary>An effect belongs to a kit ability but carries no role, so no member name can be formed.</summary>
+    /// <summary>An effect belongs to a kit ability but has no role, so no member name can be formed.</summary>
     UnresolvedEffect,
     /// <summary>An export resource name resolved to no ResourceTypes slot.</summary>
     UnknownResource,
     /// <summary>A scope that is not 'shared'/'items'/a hero name.</summary>
     UnknownScope,
+    /// <summary>A description states an amount of a resource in a form no generation rule recognises.</summary>
+    UnclaimedGeneration,
 }
 
 /// <summary>A detected gap in the merged spell data.</summary>
@@ -32,8 +34,8 @@ public record MergeResult(List<CuratedSpell> Spells, List<Gap> Gaps)
     public Dictionary<int, MagicSchool> Schools { get; init; } = [];
 
     /// <summary>
-    /// The rarity ladder, keyed by tier, holding the name the build stores rather than the one it
-    /// prints. Item and gem art files end in that stored name, so a tier resolves its own icon.
+    /// The name the build stores for each rarity, keyed by tier, rather than the name it prints.
+    /// Item and gem art files end in that stored name, so a tier resolves its own icon.
     /// </summary>
     public Dictionary<int, string> Rarities { get; init; } = [];
 

@@ -220,28 +220,28 @@ public sealed partial class EngulfingFlamesEconomyAnalyzer : Analyzer
     {
         var ordered = intervals.OrderBy(interval => interval.Start).ToList();
 
-        long covered = 0;
-        var coverStart = 0;
-        var coverEnd = int.MinValue;
+        long activeMs = 0;
+        var runStart = 0;
+        var runEnd = int.MinValue;
         foreach (var (start, end) in ordered)
         {
-            if (start > coverEnd)
+            if (start > runEnd)
             {
-                if (coverEnd > coverStart)
-                    covered += coverEnd - coverStart;
-                coverStart = start;
-                coverEnd = end;
+                if (runEnd > runStart)
+                    activeMs += runEnd - runStart;
+                runStart = start;
+                runEnd = end;
             }
-            else if (end > coverEnd)
+            else if (end > runEnd)
             {
-                coverEnd = end;
+                runEnd = end;
             }
         }
 
-        if (coverEnd > coverStart)
-            covered += coverEnd - coverStart;
+        if (runEnd > runStart)
+            activeMs += runEnd - runStart;
 
-        return covered;
+        return activeMs;
     }
 
     private static List<(int Start, int End)> RegionsWithOverlapAtLeast(List<(int Start, int End)> intervals, int minOverlap)

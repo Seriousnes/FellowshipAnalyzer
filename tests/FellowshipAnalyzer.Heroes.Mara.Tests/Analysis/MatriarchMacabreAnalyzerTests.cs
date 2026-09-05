@@ -41,7 +41,7 @@ public sealed class MatriarchMacabreAnalyzerTests
     }
 
     [Fact]
-    public async Task Analyze_CountsOnlyTheTwoImitatedFinishers()
+    public async Task Analyze_CountsOnlyTheTwoFinishers()
     {
         var events = new List<Event>
         {
@@ -59,14 +59,14 @@ public sealed class MatriarchMacabreAnalyzerTests
         var window = analyzer.Windows.ShouldHaveSingleItem();
         window.QueensFangCasts.ShouldBe(2);
         window.ArachnidAssaultCasts.ShouldBe(1);
-        window.ImitatedCasts.ShouldBe(3);
+        window.FinisherCasts.ShouldBe(3);
         window.Converted.ShouldBeTrue();
 
-        analyzer.ImitatedCasts.ShouldBe(3);
+        analyzer.FinisherCasts.ShouldBe(3);
         analyzer.QueensFangCasts.ShouldBe(2);
         analyzer.ArachnidAssaultCasts.ShouldBe(1);
         analyzer.ConvertedWindows.ShouldBe(1);
-        analyzer.AverageImitatedCasts.ShouldBe(3d, 0.0001);
+        analyzer.AverageFinisherCasts.ShouldBe(3d, 0.0001);
     }
 
     [Fact]
@@ -83,7 +83,7 @@ public sealed class MatriarchMacabreAnalyzerTests
 
         var analyzer = await AnalyzeAsync(events);
 
-        analyzer.Windows.ShouldHaveSingleItem().ImitatedCasts.ShouldBe(1);
+        analyzer.Windows.ShouldHaveSingleItem().FinisherCasts.ShouldBe(1);
     }
 
     [Fact]
@@ -99,7 +99,7 @@ public sealed class MatriarchMacabreAnalyzerTests
         var analyzer = await AnalyzeAsync(events);
 
         var window = analyzer.Windows.ShouldHaveSingleItem();
-        window.ImitatedCasts.ShouldBe(0);
+        window.FinisherCasts.ShouldBe(0);
         window.Converted.ShouldBeFalse();
         analyzer.ConvertedWindows.ShouldBe(0);
     }
@@ -121,7 +121,7 @@ public sealed class MatriarchMacabreAnalyzerTests
         var window = analyzer.Windows.ShouldHaveSingleItem();
         window.OpenedAt.ShouldBe(1000);
         window.ClosedAt.ShouldBe(21000);
-        window.ImitatedCasts.ShouldBe(1);
+        window.FinisherCasts.ShouldBe(1);
     }
 
     [Fact]

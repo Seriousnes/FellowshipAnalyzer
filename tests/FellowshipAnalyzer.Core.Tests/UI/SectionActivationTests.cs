@@ -14,7 +14,7 @@ using Xunit;
 
 namespace FellowshipAnalyzer.Core.Tests.UI;
 
-public sealed class GuideSectionActivationTests
+public sealed class SectionActivationTests
 {
     [Fact]
     public async Task SectionWithAnActiveGuideRenders()
@@ -25,7 +25,7 @@ public sealed class GuideSectionActivationTests
             AddGuide<InactiveGuide>(builder, 2, "second");
         });
 
-        html.ShouldNotContain("guide-top-section inactive");
+        html.ShouldNotContain("section inactive");
         html.ShouldContain("<section>first</section>");
         html.ShouldNotContain("second");
     }
@@ -39,7 +39,7 @@ public sealed class GuideSectionActivationTests
             AddGuide<InactiveGuide>(builder, 2, "second");
         });
 
-        html.ShouldContain("guide-top-section inactive");
+        html.ShouldContain("section inactive");
     }
 
     [Fact]
@@ -52,7 +52,7 @@ public sealed class GuideSectionActivationTests
             builder.CloseElement();
         });
 
-        html.ShouldNotContain("guide-top-section inactive");
+        html.ShouldNotContain("section inactive");
         html.ShouldContain("<p>plain</p>");
     }
 

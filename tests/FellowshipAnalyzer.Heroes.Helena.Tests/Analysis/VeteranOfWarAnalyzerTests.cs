@@ -75,7 +75,7 @@ public sealed class VeteranOfWarAnalyzerTests
     }
 
     [Fact]
-    public async Task AnActiveSpiritAbility_DoublesEveryReductionMadeUnderIt()
+    public async Task AnActiveSpiritAbility_DoublesEveryReductionUnderIt()
     {
         var analyzer = await Analyze(
             ApplyBuff(PullStart + 1_000, Spells.SiegebreakerBuff),
@@ -83,7 +83,7 @@ public sealed class VeteranOfWarAnalyzerTests
             RemoveBuff(PullStart + 3_000, Spells.SiegebreakerBuff),
             Cast(PullStart + 4_000, Spells.MeasuredStrike));
 
-        analyzer.SawActiveUltimate.ShouldBeTrue();
+        analyzer.UltimateWasActive.ShouldBeTrue();
         analyzer.CooldownReduction.Total.ShouldBe((4_000 * 2) + 4_000);
     }
 
@@ -142,7 +142,7 @@ public sealed class VeteranOfWarAnalyzerTests
     }
 
     [Fact]
-    public async Task ShieldSlamWithAChargeInHand_IsAvailableAtTheCast()
+    public async Task ShieldSlamWithOneChargeSpent_IsAvailableAtTheCast()
     {
         var analyzer = await Analyze(
             Cast(PullStart + 1_000, Spells.ShieldSlam),
@@ -167,7 +167,7 @@ public sealed class VeteranOfWarAnalyzerTests
     }
 
     [Fact]
-    public async Task ShieldSlamUntouched_IsAvailableAtTheCast()
+    public async Task ShieldSlamNotCast_IsAvailableAtTheCast()
     {
         var analyzer = await Analyze(Cast(PullStart + 2_000, Spells.HoldTheLine));
 

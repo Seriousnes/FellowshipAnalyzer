@@ -83,6 +83,9 @@ public record Spell : IRimeSpell, IElarionSpell, IArdeosSpell
     /// <summary>Resource costs keyed by abstract <see cref="ResourceTypes"/> slot; empty when the spell spends nothing.</summary>
     public Dictionary<ResourceTypes, int> Costs { get; init; } = [];
 
+    /// <summary>The resource generation the game data states for this spell; <c>null</c> when it states none.</summary>
+    public ResourceGeneration? ResourceGeneration { get; init; }
+
     /// <summary>The cost in the given resource slot, or <c>null</c> when the spell does not spend it.</summary>
     public int? Cost(ResourceTypes type) => Costs.TryGetValue(type, out var value) ? value : null;
 

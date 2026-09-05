@@ -128,7 +128,7 @@ public static class EventStreamReader
 
     /// <summary>
     /// Reads one event object's discriminator and returns the metadata for its concrete type. Stops at the
-    /// discriminator rather than reading the whole object, since the upstream stream carries it near the front.
+    /// discriminator rather than reading the whole object, since the upstream stream writes it near the front.
     /// </summary>
     private static JsonTypeInfo ResolveTypeInfo(
         ReadOnlySpan<byte> eventObject,

@@ -49,7 +49,7 @@ public sealed class SerratedEdgeAnalyzerTests
         grant.ConsumerAbilityId.ShouldBe(Spells.HeartSplitter.FSLID.Value);
         grant.Outcome.ShouldBe(SerratedEdgeOutcome.Priority);
 
-        analyzer.JudgedGrants.ShouldBe(1);
+        analyzer.RatedGrants.ShouldBe(1);
         analyzer.PriorityConsumed.ShouldBe(1);
         analyzer.AlternateConsumed.ShouldBe(0);
     }
@@ -180,7 +180,7 @@ public sealed class SerratedEdgeAnalyzerTests
     }
 
     [Fact]
-    public async Task Analyze_RuptureConsumingTheBuff_IsJudgedAsFiller()
+    public async Task Analyze_RuptureConsumingTheBuff_IsRatedAsFiller()
     {
         var analyzer = await AnalyzeAsync(
         [
@@ -372,12 +372,12 @@ public sealed class SerratedEdgeAnalyzerTests
     }
 
     [Fact]
-    public async Task Analyze_BuffStillUpWhenThePullEnds_IsNotJudged()
+    public async Task Analyze_BuffStillUpWhenThePullEnds_IsNotRated()
     {
         var analyzer = await AnalyzeAsync([Granted(1_000)], boss: true);
 
         analyzer.Grants.ShouldBeEmpty();
-        analyzer.JudgedGrants.ShouldBe(0);
+        analyzer.RatedGrants.ShouldBe(0);
         analyzer.Unspent.ShouldBe(0);
     }
 

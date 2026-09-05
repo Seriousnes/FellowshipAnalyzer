@@ -1,4 +1,72 @@
 {
+  "aeona": {
+    "ContinuumShift": {
+      "id": 2676,
+      "kind": "effect",
+      "name": "Continuum Shift"
+    },
+    "Uchronia": {
+      "id": 2593,
+      "kind": "effect",
+      "name": "Uchronia"
+    },
+    "EchoesOfDivinity": {
+      "id": 2818,
+      "kind": "effect",
+      "name": "Echoes of Divinity"
+    },
+    "EntropicBurst": {
+      "id": 2819,
+      "kind": "effect",
+      "name": "Entropic Burst"
+    },
+    "ResonantFate": {
+      "id": 2584,
+      "kind": "effect",
+      "name": "Resonant Fate"
+    },
+    "ResonantFatePeriodic": {
+      "id": 2585,
+      "kind": "effect",
+      "name": "Resonant Fate"
+    },
+    "ResonantFateExhausted": {
+      "id": 2586,
+      "kind": "effect",
+      "name": "Resonant Fate: Exhausted"
+    },
+    "ResonantFateDamageReduction": {
+      "id": 3259,
+      "kind": "effect",
+      "name": "Resonant Fate",
+      "icon": "T_Lisa_Stagger.jpg"
+    },
+    "ChronaTap": {
+      "id": 2588,
+      "kind": "effect",
+      "name": "Chrona Tap"
+    },
+    "HasteningDoom": {
+      "id": 2822,
+      "kind": "effect",
+      "name": "Hastening Doom"
+    },
+    "SynchronicityCatchUp": {
+      "id": 2733,
+      "kind": "effect",
+      "name": "Synchronicity: Catch Up"
+    },
+    "SynchronicityOvercharge": {
+      "id": 2596,
+      "kind": "effect",
+      "name": "Synchronicity: Overcharge"
+    },
+    "OblivionSelfBuffBuff": {
+      "id": 3153,
+      "kind": "effect",
+      "name": "Converging Timelines"
+    }
+  },
   "ardeos": {
     "FireBallMonitor": { "id": 1565 },
     "FireBallAoeMonitor": { "id": 1581 },
@@ -152,80 +220,67 @@
     "AdrenalineRush": {
       "id": 939,
       "kind": "effect",
-      "name": "Adrenaline Rush",
-      "note": "Topaz rank 1; the haste window a damage or heal on a target at or below 30% health opens"
+      "name": "Adrenaline Rush"
     },
     "AdrenalineRushII": {
       "id": 940,
       "kind": "effect",
-      "name": "Adrenaline Rush - II",
-      "note": "Topaz rank 6; replaces AdrenalineRush"
+      "name": "Adrenaline Rush - II"
     },
     "FirstStrike": {
       "id": 943,
       "kind": "effect",
-      "name": "First Strike",
-      "note": "Emerald rank 1; the expertise window first damage on an enemy opens"
+      "name": "First Strike"
     },
     "FirstStrikeII": {
       "id": 944,
       "kind": "effect",
-      "name": "First Strike - II",
-      "note": "Emerald rank 6; replaces FirstStrike"
+      "name": "First Strike - II"
     },
     "DarkProphecy": {
       "id": 1994,
       "kind": "effect",
-      "name": "Dark Prophecy",
-      "note": "CA_ArmorSetBonus_HasteOnAbilityUse; the haste window the two-piece set bonus procs"
+      "name": "Dark Prophecy"
     },
     "TheTrickster": {
       "id": 3181,
       "kind": "effect",
-      "name": "The Trickster",
-      "note": "GE_Finesse_PowerToIncreasedCritChance; the crit window a POWER ability opens"
+      "name": "The Trickster"
     },
     "TheWayfarer": {
       "id": 3184,
       "kind": "effect",
-      "name": "The Wayfarer",
-      "note": "GE_Finesse_PeriodicHasteBuff_Buff; the haste window the blessing opens on its own timer"
+      "name": "The Wayfarer"
     },
     "ThePhilosopher": {
       "id": 3189,
       "kind": "effect",
-      "name": "The Philosopher",
-      "note": "GE_Finesse_CurrentSpiritToBuff_Buff; one buff carrying Haste, Expertise, and Critical Strike sized by the Spirit held when a MAJOR ability applied it"
+      "name": "The Philosopher"
     },
     "WillfulMomentumBuff": {
       "id": 2078,
       "kind": "effect",
-      "name": "Willful Momentum",
-      "note": "the main stat window the Willful Momentum trait (3000039) opens on a Spirit Refund"
+      "name": "Willful Momentum"
     },
     "SeizedOpportunityBuff": {
       "id": 2110,
       "kind": "effect",
-      "name": "Seized Opportunity",
-      "note": "the crit rating window the Seized Opportunity trait (3000004) opens every 20 critical strikes"
+      "name": "Seized Opportunity"
     },
     "InspiredAllegianceBuff": {
       "id": 2112,
       "kind": "effect",
-      "name": "Inspired Allegiance",
-      "note": "the haste rating window the Inspired Allegiance trait (3000002) opens on ability use"
+      "name": "Inspired Allegiance"
     },
     "FocusedHasteBuff": {
       "id": 2141,
       "kind": "effect",
-      "name": "Trait : Focused Haste",
-      "note": "the stacking haste rating the Hunter's Focus trait (3000042) accrues on one enemy"
+      "name": "Trait : Focused Haste"
     },
     "NavigatorsIntuitionSpirit": {
       "id": 2158,
       "kind": "effect",
-      "name": "Navigator's Intuition : Spirit",
-      "note": "the Navigator's Intuition trait (3000043) buffs whichever secondary rating is highest, one effect id per stat"
+      "name": "Navigator's Intuition : Spirit"
     },
     "NavigatorsIntuitionHaste": {
       "id": 2159,
@@ -245,14 +300,12 @@
     "VengefulSoulBuff": {
       "id": 2163,
       "kind": "effect",
-      "name": "Vengeful Soul",
-      "note": "the main stat window the Vengeful Soul trait (3000005) opens on a critical strike"
+      "name": "Vengeful Soul"
     },
     "InspiredAllegianceTrait": {
       "id": 2,
       "kind": "weapon",
-      "name": "Inspired Allegiance",
-      "note": "the gear trait itself; its rank selects the magnitude of the buff it opens"
+      "name": "Inspired Allegiance"
     },
     "SeizedOpportunityTrait": {
       "id": 4,
@@ -278,6 +331,11 @@
       "id": 43,
       "kind": "weapon",
       "name": "Navigator's Intuition"
+    },
+    "MartialInitiativeTrait": {
+      "id": 51,
+      "kind": "weapon",
+      "name": "Martial Initiative"
     },
     "VoidbringerTouch": {
       "id": 155
@@ -413,6 +471,21 @@
       "id": 1952,
       "kind": "effect",
       "name": "Essence of the Conqueror - II"
+    },
+    "MartialInitiative": {
+      "id": 2174,
+      "kind": "effect",
+      "name": "Martial Initiative"
+    },
+    "TheVehement": {
+      "id": 3194,
+      "kind": "effect",
+      "name": "The Vehement"
+    },
+    "TheVehementsDisdain": {
+      "id": 3193,
+      "kind": "effect",
+      "name": "The Vehement's Disdain"
     }
   },
   "mara": {
@@ -572,26 +645,22 @@
     "SpiritOfHeroism": {
       "id": 1350,
       "kind": "effect",
-      "name": "Spirit of Heroism",
-      "note": "GE_Shared_SpiritTriggeredBuff; the +30% Haste every hero gains on activating their Spirit ability, applied by the shared passive GA_Shared_Passive_SpiritMechanic (1007). Four ids carry the same haste grant with different riders; add all four directly so StatBuffs can name them"
+      "name": "Spirit of Heroism"
     },
     "SpiritOfHeroismNotTank": {
       "id": 2253,
       "kind": "effect",
-      "name": "Spirit of Heroism",
-      "note": "GE_Shared_SpiritTriggeredBuff_NotTank; the variant every non-tank logs, which also raises damage and heal threat multipliers. Auto-merge files it under elarion alone even though six heroes in the report corpus log it, so it is added to shared as well; the resulting FA0008 duplicate-FSLID warning is deliberate, and the fix for it belongs in the merge engine's effect linking, not here"
+      "name": "Spirit of Heroism"
     },
     "SpiritOfHeroismHealer": {
       "id": 2277,
       "kind": "effect",
-      "name": "Spirit of Heroism",
-      "note": "GE_Shared_SpiritTriggeredBuff_Healer; the variant Aeona, Sylvie, and Vigour log, which also raises mana regeneration by 600%"
+      "name": "Spirit of Heroism"
     },
     "SpiritOfHeroismXavian": {
       "id": 2662,
       "kind": "effect",
-      "name": "Spirit of Heroism",
-      "note": "GE_Sune_SpiritTriggeredBuff; Xavian's own variant, whose DevKey is Sune. Kept with the rest of the family rather than in the xavian scope because StatBuffs reads the four as one set"
+      "name": "Spirit of Heroism"
     },
     "VeinSprout": {
       "id": 2031,

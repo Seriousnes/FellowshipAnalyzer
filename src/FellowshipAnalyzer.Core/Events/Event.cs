@@ -19,11 +19,11 @@ public abstract partial class Event : IEventFilter
     [JsonPropertyName("fight")]
     public virtual int DungeonId { get; set; }
     /// <summary>
-    /// Resource snapshot for the source actor (typically the casting player).
+    /// The source actor's resources (typically the casting player).
     /// </summary>
     public virtual ActorResources? SourceResources { get; set; }
     /// <summary>
-    /// Resource snapshot for the target actor.
+    /// The target actor's resources.
     /// </summary>
     public virtual ActorResources? TargetResources { get; set; }
     /// <summary>

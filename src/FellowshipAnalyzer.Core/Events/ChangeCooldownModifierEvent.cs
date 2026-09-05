@@ -6,7 +6,7 @@ namespace FellowshipAnalyzer.Core.Events;
 
 /// <summary>
 /// Fabricated by <see cref="StatTracker"/> when a <see cref="CooldownModifier"/> is added to or removed
-/// from one of the tracked cooldown stat pools. Carries the modifier itself so subscribers can compute
+/// from one of the tracked cooldown stat pools. Includes the modifier itself so subscribers can compute
 /// the per-ability rate change; <see cref="SpellUsable"/> uses it to rescale in-flight cooldowns when
 /// the Cooldown Acceleration pool changes.
 /// </summary>
@@ -24,7 +24,7 @@ public class ChangeCooldownModifierEvent : Event
 
     /// <summary>
     /// The modifier that changed. Excluded from serialization because a <see cref="CooldownScope"/> can
-    /// carry an arbitrary predicate.
+    /// be an arbitrary predicate.
     /// </summary>
     [JsonIgnore]
     public virtual CooldownModifier Modifier { get; set; } = null!;

@@ -1,0 +1,46 @@
+@inherits Analyzer
+
+@code {
+    public override RenderFragment? Statistic => Channels.Count > 0 ? Card : null;
+
+    private RenderFragment Card =>
+        @<StatCard>
+            <Header>
+                <SpellLink Spell="Spells.TemporalBarrage" />
+            </Header>
+            <ChildContent>
+                <StatRow Value="@($"{TotalDamage:N0}")" Tooltip="@($"Across {Channels.Count} channels.")">
+                    damage dealt
+                </StatRow>
+                <StatRow Value="@($"{TotalHealEffective:N0}")" Tooltip="@($"{TotalOverheal:N0} overhealed.")">
+                    healing done
+                </StatRow>
+                @if (StaggerCleared > 0)
+                {
+                    <StatRow Value="@($"{StaggerCleared:N0}")">
+                        Stagger cleared
+                    </StatRow>
+                }
+                @if (ParadoxicalTwistTaken)
+                {
+                    <StatRow Value="@($"{DamageUnderFleetingHour:N0}")"
+                             Tooltip="@($"Across {ChannelsUnderFleetingHour} channels started while Fleeting Hour was active.")">
+                        damage under Fleeting Hour
+                    </StatRow>
+                }
+                @if (TemporalShiftTaken)
+                {
+                    <StatRow Value="@FormatSeconds(FleetingHourDurationExtendedMs)"
+                             Tooltip="@($"From {BoltsWhileFleetingHourActive} bolts.")">
+                        Fleeting Hour duration extended
+                    </StatRow>
+                    <StatRow Value="@FormatSeconds(FleetingHourCooldownReducedMs)"
+                             Tooltip="@($"From {BoltsWhileFleetingHourInactive} bolts.")">
+                        Fleeting Hour cooldown reduced
+                    </StatRow>
+                }
+            </ChildContent>
+        </StatCard>;
+
+    private static string FormatSeconds(int milliseconds) => $"{milliseconds / 1000d:0.#}s";
+}

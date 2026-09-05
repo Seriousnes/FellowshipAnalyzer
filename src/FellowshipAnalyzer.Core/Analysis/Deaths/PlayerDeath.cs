@@ -79,16 +79,15 @@ public sealed class PlayerDeath
     public List<DamageTakenSource> BySource => Result.Sources;
 
     /// <summary>
-    /// The player's hit points as the window opened, reconstructed from the first hit with a
-    /// snapshot by adding back the damage that hit removed. <c>null</c> when no hit inside the window
-    /// had one.
+    /// The player's hit points as the window opened, taken from the first hit that reports them, with
+    /// the damage that hit removed added back. <c>null</c> when no hit inside the window reports them.
     /// </summary>
     public long? HitPointsAtWindowStart => Result.HitPointsAtWindowStart;
 
     /// <summary>
-    /// The player's maximum hit points, read from the same snapshot <see cref="HitPointsAtWindowStart"/>
-    /// was reconstructed from, so the two are always a coherent pair. <c>null</c> when no hit inside the
-    /// window had a snapshot.
+    /// The player's maximum hit points, from the same hit <see cref="HitPointsAtWindowStart"/> was
+    /// taken from, so the two are always a coherent pair. <c>null</c> when no hit inside the window
+    /// reports them.
     /// </summary>
     public long? MaxHitPoints => Result.MaxHitPoints;
 
@@ -216,9 +215,9 @@ public sealed class PlayerDeath
 /// <param name="Absorbed">The portion stopped by absorb shields.</param>
 /// <param name="Blocked">The share of <paramref name="DamageReduction"/> the log attributes to a block.</param>
 /// <param name="HitType">How the log classified the hit.</param>
-/// <param name="HitPointsAfter">The player's hit points after the hit, or <c>null</c> when the hit has no snapshot.</param>
-/// <param name="MaxHitPoints">The player's maximum hit points at the hit, or <c>null</c> when the hit has no snapshot.</param>
-/// <param name="AbsorbAfter">The absorb shield left on the player after the hit, or <c>null</c> when the hit has no snapshot.</param>
+/// <param name="HitPointsAfter">The player's hit points after the hit, or <c>null</c> when the hit does not report them.</param>
+/// <param name="MaxHitPoints">The player's maximum hit points at the hit, or <c>null</c> when the hit does not report them.</param>
+/// <param name="AbsorbAfter">The absorb shield left on the player after the hit, or <c>null</c> when the hit does not report it.</param>
 public sealed record IncomingHit(
     int Timestamp,
     Ability Ability,

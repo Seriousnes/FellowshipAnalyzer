@@ -22,20 +22,20 @@ public static class Codex
 
     /// <summary>
     /// The <c>/api</c> route answering the entity's tooltip fragment, relative to <see cref="Origin"/>.
-    /// <paramref name="query"/> carries the readings a tooltip needs, such as the hero an item is read for.
+    /// <paramref name="query"/> supplies the values a tooltip needs, such as the hero an item is read for.
     /// </summary>
     public static string TooltipPath(string path, string? query = null) =>
         query is { Length: > 0 } ? $"api/{path}/tooltip?{query}" : $"api/{path}/tooltip";
 
     /// <summary>
     /// The CDN address of <paramref name="icon"/>, an art name as the game data or a combat log writes
-    /// it. Any directory the name carries is dropped and any extension becomes <c>.png</c>.
+    /// it. Any directory in the name is dropped and any extension becomes <c>.png</c>.
     /// </summary>
     public static string IconUrl(string icon) => $"{AssetOrigin}/ui/{ArtName(icon)}.png";
 
     /// <summary>
     /// The CDN address of an item or gem's art at rarity <paramref name="tier"/>. Art the build draws
-    /// once per rung carries that rung's border, and its file ends in the name the build stores for the
+    /// once per rung has that rung's border, and its file ends in the name the build stores for the
     /// tier; art shared across every rung is addressed by its bare name.
     /// </summary>
     public static string IconUrl(string icon, int tier)

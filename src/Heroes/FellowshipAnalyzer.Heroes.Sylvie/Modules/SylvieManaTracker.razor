@@ -8,11 +8,11 @@
         @<StatCard Title="Mana">
             <ChildContent>
                 <StatRow Value="@($"{AtFullShare * 100:F1}%")"
-                         Tooltip="@($"{AtFullMs / 1000:N0}s of {MeasuredMs / 1000:N0}s measured at a full pool.")">
+                         Tooltip="@($"{AtFullMs / 1000:N0}s of {MeasuredMs / 1000:N0}s at a full pool.")">
                     spent at full mana
                 </StatRow>
                 <StatRow Value="@($"{Spends.Sum(spend => spend.Mana):N0}")"
-                         Tooltip="@($"Across {Spends.Count:N0} priced casts.")">
+                         Tooltip="@($"Across {Spends.Count:N0} casts.")">
                     mana spent
                 </StatRow>
                 @foreach (var (spellId, mana, casts) in TopSpenders())

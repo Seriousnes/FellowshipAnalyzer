@@ -3,8 +3,8 @@ using OneOf;
 namespace FellowshipAnalyzer.Core.Common.Spells;
 
 /// <summary>
-/// Names the spell an aura or buff query looks for, as either the <see cref="Spell"/> itself or the
-/// raw game id <see cref="Spell.Id"/> carries. Both forms convert implicitly, so a caller writes
+/// Names the spell an aura or buff query looks for, as either the <see cref="Spell"/> itself or its
+/// raw game id <see cref="Spell.Id"/>. Both forms convert implicitly, so a caller writes
 /// <c>Spells.EngulfingFlamesDot</c> or <c>Spells.EngulfingFlamesDot.Id</c> and never the namespaced
 /// <see cref="FSLID"/> the combat log uses.
 /// <para>
@@ -16,7 +16,7 @@ namespace FellowshipAnalyzer.Core.Common.Spells;
 [GenerateOneOf]
 public partial class SpellRef : OneOfBase<Spell, int>
 {
-    /// <summary>Whether <paramref name="candidate"/>, the id a combat-log event carries, names this spell.</summary>
+    /// <summary>Whether <paramref name="candidate"/>, the id from a combat-log event, names this spell.</summary>
     public bool Matches(FSLID candidate)
         => IsT0 ? candidate == AsT0.FSLID : candidate.NativeId == new FSLID(AsT1).NativeId;
 }

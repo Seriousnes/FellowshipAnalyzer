@@ -1,0 +1,9 @@
+@using static FellowshipAnalyzer.Core.Analysis.Changelog
+@using static FellowshipAnalyzer.Core.Analysis.Contributors
+
+@code {
+    public static readonly List<ChangelogEntry> Entries =
+    [
+        Change(new(2026, 9, 4), @<text>Initial Aeona analysis.</text>, Seriousnes),
+    ];
+}

@@ -3,8 +3,7 @@
 <GuideSection Title="Safe Haven">
     <LeftPanel>
         <p>
-            Proper placement of <SpellLink Spell="Spells.SafeHaven" /> can be difficult to achieve, 
-            but it is a powerful tool for keeping allies alive.
+            <SpellLink Spell="Spells.SafeHaven" /> is a powerful tool for keeping allies alive.
         </p>
     </LeftPanel>
     <RightPanel>
@@ -30,7 +29,7 @@
         var held = offered > 0 ? allyMs / (double)offered : 0;
         var affected = analyzers.Sum(analyzer => analyzer.AlliesAffected);
         var empty = analyzers.Sum(analyzer => analyzer.CastsWithoutAnAlly);
-        var carriedMs = analyzers.Sum(analyzer => analyzer.PrepullAllyMs);
+        var prepullMs = analyzers.Sum(analyzer => analyzer.PrepullAllyMs);
 
         var stats = new List<OverviewStat>
         {
@@ -41,7 +40,7 @@
             new OverviewStat(
                 $"{held * 100:F1}%",
                 "Held",
-                $"{allyMs / 1000:N0} of the {offered / 1000:N0} ally-seconds the placements offered, measured against the {SylvieKit.SafeHavenDurationMs / 1000}s duration and clamped where a pull ended first."),
+                $"{allyMs / 1000:N0} of the {offered / 1000:N0} ally-seconds the placements offered."),
             new OverviewStat(
                 $"{affected / (double)casts:F1}",
                 "Allies Per Placement",
@@ -53,12 +52,12 @@
                 PerformanceTiers.FromThresholds(100 - (empty / (double)casts * 100), 100, 90, 75)),
         };
 
-        if (carriedMs > 0)
+        if (prepullMs > 0)
         {
             stats.Add(new OverviewStat(
-                $"{carriedMs / 1000:N0}s",
+                $"{prepullMs / 1000:N0}s",
                 "Prepull Placement",
-                "Ally-seconds from a placement made before the pull started, left out of the figures above."));
+                "Ally-seconds from a placement before the pull started."));
         }
 
         return stats;
@@ -83,8 +82,7 @@
                     new PerCastStat(
                         $"{placement.HeldShare * 100:F0}%",
                         "Held",
-                        $"{placement.AllyMs / 1000:N0} of the {(long)placement.Allies * placement.AvailableMs / 1000:N0} ally-seconds this placement offered." +
-                        (placement.Truncated ? " The pull ended before it expired." : string.Empty)),
+                        $"{placement.AllyMs / 1000:N0} of the {(long)placement.Allies * placement.AvailableMs / 1000:N0} ally-seconds this placement offered."),
                 ],
             });
 }

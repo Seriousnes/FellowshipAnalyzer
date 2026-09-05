@@ -12,8 +12,8 @@ public enum HitType
     /// <summary>A critical hit.</summary>
     Crit = 2,
     /// <summary>
-    /// A hit the target blocked. Carries a non-zero <see cref="DamageEvent.Blocked"/>, and often
-    /// reduces the hit to nothing; only heroes with a block chance produce it.
+    /// A hit the target blocked, with a non-zero <see cref="DamageEvent.Blocked"/>, and often
+    /// reduced to nothing; only heroes with a block chance produce it.
     /// </summary>
     Block = 4,
     /// <summary>The attack was dodged, dealing no damage.</summary>

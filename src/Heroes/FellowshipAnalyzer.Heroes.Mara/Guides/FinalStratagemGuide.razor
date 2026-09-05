@@ -3,7 +3,7 @@
 <GuideSection Title="Final Stratagem">
     <LeftPanel>
         <p>
-            Spend your cooldowns down first, before using <SpellLink Spell="Spells.FinalStratagem" />. 
+            Spend your cooldowns down first, before casting <SpellLink Spell="Spells.FinalStratagem" />.
             Any abilities not on cooldown is potential waste, and can significantly affect your burst windows.
         </p>
     </LeftPanel>
@@ -41,9 +41,7 @@
             new OverviewStat(
                 FormatSeconds(recoveredMs),
                 "Recharge Recovered",
-                casts == 0
-                    ? "No Final Stratagem was cast, so there is nothing to measure."
-                    : $"Total recharge time the resets removed, {FormatSeconds(recoveredMs / casts)} per cast on average.",
+                "Total recharge time the resets removed.",
                 RecoveryTier(averageAbilities, casts)),
             new OverviewStat(
                 $"{charges}",
@@ -52,9 +50,7 @@
             new OverviewStat(
                 $"{averageAbilities:0.0}",
                 "Abilities Reset",
-                casts == 0
-                    ? "No Final Stratagem was cast."
-                    : "Hero abilities that had something recharging at the cast, per cast. Weapon and relic abilities are not counted.",
+                "Hero abilities with something recharging at the cast, per cast.",
                 RecoveryTier(averageAbilities, casts)),
         ];
     }
@@ -74,7 +70,7 @@
             new(
                 $"{cast.AbilitiesReset}",
                 "Abilities Reset",
-                "Hero abilities that had something recharging at the cast.",
+                "Hero abilities with something recharging at the cast.",
                 Performance: AbilitiesTier(cast.AbilitiesReset)),
             new(
                 $"{cast.ChargesRecovered}",
@@ -83,7 +79,7 @@
             new(
                 $"{cast.AbilitiesAlreadyAvailable}",
                 "Already Available",
-                "Hero abilities that were already at full charges."),
+                "Hero abilities already at full charges."),
         };
 
         return new PerCastRow

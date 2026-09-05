@@ -15,7 +15,7 @@ namespace FellowshipAnalyzer.Core.Analysis;
 /// <para>
 /// Use this for static-context activation only (hero, dungeon encounter id, player id, master
 /// data presence). For dynamic activation that depends on events fired during dispatch
-/// (combatant gear loaded by the Combatants module, talents observed from a buff, etc.),
+/// (combatant gear loaded by the Combatants module, talents read from a buff, etc.),
 /// keep using the mutable <see cref="Module.Active"/> flag - that check survives because
 /// the <see cref="EventEmitter"/> reads it per event.
 /// </para>

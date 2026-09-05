@@ -70,8 +70,7 @@
         if (lane.MaxCasts is not { } max) return $"{name}: {lane.Casts} casts.";
 
         var recharging = lane.Efficiency is { } share ? $" It was recharging for {share * 100:F0}% of pull time." : "";
-        var capped = lane.ReachedMaxCasts ? " It reads 100% because you made every cast there was room for." : "";
-        return $"{name}: {lane.Casts} casts of a possible {max}.{recharging}{capped}";
+        return $"{name}: {lane.Casts} casts of a possible {max}.{recharging}";
     }
 
     private string SegmentLabel(CooldownGraphLane lane, CooldownGraphSegment segment)

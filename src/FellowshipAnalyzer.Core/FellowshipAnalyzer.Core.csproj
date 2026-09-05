@@ -40,12 +40,12 @@
 		<PaletteSource Include="$(MSBuildProjectDirectory)\..\FellowshipAnalyzer.Core.Contracts\Design\**\*.cs" />
 	</ItemGroup>
 
-	<Target Name="GeneratePaletteScss" BeforeTargets="Compile Sass"
-	        Condition="'$(DesignTimeBuild)' != 'true'"
-	        Inputs="@(PaletteSource)"
-	        Outputs="$(IntermediateOutputPath)palette.stamp">
-		<Exec Command="dotnet run --no-cache emit-palette.cs &quot;$(MSBuildProjectDirectory)\Styles\_palette.scss&quot;"
-		      WorkingDirectory="$(MSBuildProjectDirectory)\..\FellowshipAnalyzer.Tools" />
+	<ItemGroup>
+	  <Folder Include="UI\Icons\" />
+	</ItemGroup>
+
+	<Target Name="GeneratePaletteScss" BeforeTargets="Compile Sass" Condition="'$(DesignTimeBuild)' != 'true'" Inputs="@(PaletteSource)" Outputs="$(IntermediateOutputPath)palette.stamp">
+		<Exec Command="dotnet run --no-cache emit-palette.cs &quot;$(MSBuildProjectDirectory)\Styles\_palette.scss&quot;" WorkingDirectory="$(MSBuildProjectDirectory)\..\FellowshipAnalyzer.Tools" />
 		<Touch Files="$(IntermediateOutputPath)palette.stamp" AlwaysCreate="true" />
 	</Target>
 

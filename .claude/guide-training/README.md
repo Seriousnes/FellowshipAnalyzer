@@ -153,12 +153,5 @@ passes the same gate.
 1. The owner blesses six to nine sections and writes each `fixture.md` directive.
 2. `create-guide/SKILL.md` is committed, which `81184bb` did. It is the trained artifact, so a round
    has no baseline until it settles.
-3. Superseded 2026-08-23: `banned-vocabulary` was replaced by `.claude/skills/house-style/SKILL.md`,
-   which states the style positively and carries no "the log records no" entry, so the reconciliation
-   is moot. The judge reads `house-style` as its rubric.
-4. `guide-judge` and the five counts. Run the falsification test.
-5. Superseded 2026-08-23: `banned-vocabulary` was replaced by `house-style`, read at write time by
-   `guide-writer` and `create-guide` and read as the rubric by the judge and the optimizer. The
-   referrers were updated in the same change.
-6. `guide-optimizer`, the budget, the gate, and `rejected.md`.
-7. Longitudinal guidance.
+3. `guide-optimizer`, the budget, the gate, and `rejected.md`.
+4. Longitudinal guidance.

@@ -151,7 +151,7 @@ public sealed class SearingBlazeUptimeAnalyzerTests
     }
 
     [Fact]
-    public async Task Analyze_AddsCarryingDot_DoNotDiluteBossUptime()
+    public async Task Analyze_AddsWithDotActive_DoNotDiluteBossUptime()
     {
         var events = new List<Event>
         {

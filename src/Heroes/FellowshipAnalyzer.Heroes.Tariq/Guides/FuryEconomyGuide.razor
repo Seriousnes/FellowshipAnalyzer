@@ -8,16 +8,16 @@
     <LeftPanel>
         <ul>
             <li>
-                <strong>Build</strong> Fury with Basic and Core abilities. Pool to your maximum fury outside your
-                outside your major cooldowns <SpellLink Spell="Spells.ThunderCall" /> &amp; <SpellLink Spell="Spells.RagingTempest" />.
+                <strong>Build</strong> Fury with Basic and Core abilities. Pool to your maximum Fury outside your
+                major cooldowns <SpellLink Spell="Spells.ThunderCall" /> &amp; <SpellLink Spell="Spells.RagingTempest" />.
             </li>
             <li>
                 <strong>Spend</strong> Fury on <SpellLink Spell="Spells.HammerStorm" /> (AoE) and <SpellLink Spell="Spells.SkullCrusher" /> (ST). 
                 You should only spend Fury outside of <SpellLink Spell="Spells.ThunderCall" />/<SpellLink Spell="Spells.RagingTempest" /> if
                 you hit 100 Fury in order not to overcap.
                 <br />
-                Once an enemy falls below 30%, <SpellLink Spell="Spells.CullingStrike" /> is the top priority spender in both AoE and ST,
-                and you sould always attempt to have at least 10 Fury for every cast.
+                Once an enemy falls below @($"{CullingStrikeAnalyzer.ExecuteHealthThreshold * 100:0}%"), <SpellLink Spell="Spells.CullingStrike" /> is the top priority spender in both AoE and ST,
+                and you should always attempt to have at least @CullingStrikeAnalyzer.FullStrengthFury Fury for every cast.
             </li>
         </ul>
     </LeftPanel>
@@ -68,12 +68,11 @@
             new OverviewStat(
                 $"{wasted}",
                 "Wasted Fury",
-                $"Fury points your generator casts lost to the cap across every pull, {perMinute:0.#} per minute of combat. "
-                + "Counted over generator casts only, not over every point the pull lost."),
+                $"Fury points your generator casts lost to the cap across every pull, {perMinute:0.#} per minute of combat."),
             new OverviewStat(
                 $"{overcap}/{generators}",
                 "Overcap Casts",
-                "Generator casts that lost Fury at the cap. Each one is a spender you could have taken first.",
+                "Generator casts that lost Fury at the cap.",
                 overcap == 0 ? QualitativePerformance.Perfect : QualitativePerformance.Ok),
         ];
     }
@@ -88,11 +87,11 @@
             new PerCastStat(
                 $"{analyzer.WastedFury}",
                 "Wasted Fury",
-                $"Fury points lost to the cap in this pull, {analyzer.WastedFuryPerMinute:0.#} per minute across {analyzer.OvercapCasts} of {analyzer.GeneratorCasts} generator casts."),
+                $"Fury points lost to the cap in this pull, {analyzer.WastedFuryPerMinute:0.#} per minute."),
             new PerCastStat(
                 $"{analyzer.SkullCrusherCasts} / {analyzer.HammerStormCasts} / {analyzer.CullingStrikeCasts}",
                 "Skull / Hammer / Culling",
-                "Casts of the three abilities that spend Fury. A plain count, not a measure of Fury spent."),
+                "Skull Crusher, Hammer Storm and Culling Strike casts in this pull."),
         };
 
         return new PerCastRow

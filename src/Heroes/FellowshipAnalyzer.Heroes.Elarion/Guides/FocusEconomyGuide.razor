@@ -17,7 +17,7 @@
         }
         <CastOverview Title="Focus Overview" Stats="@BuildOverviewStats()" />
         <CastDetail Title="Event Horizon Windows"
-                    Description="Each card is one Event Horizon cast, rated on the Focus banked going in, with the spenders and approximate Focus spent alongside."
+                    Description="Each card is one Event Horizon cast, rated on the Focus banked going in."
                     Casts="@BuildWindowRows()" />
     </RightPanel>
 </GuideSection>
@@ -52,7 +52,7 @@
             new OverviewStat(
                 $"{atCapPercent:0.#}%",
                 "Casts at Full Focus",
-                $"{atCap} of {sampled} casts with a Focus reading were already at the cap."),
+                $"{atCap} of {sampled} casts were already at the cap."),
             new OverviewStat(
                 $"{windows}",
                 "Event Horizon Casts",
@@ -86,7 +86,7 @@
             new PerCastStat(
                 $"{window.FocusSpentInWindow}",
                 "Focus Spent",
-                "Approximate Focus spent inside the window, counting each spender at its halved cost."),
+                "Focus spent inside the window."),
         };
 
         return new PerCastRow
@@ -94,16 +94,16 @@
             Performance = performance,
             Stats = stats,
             Timestamp = window.Timestamp,
-            AdditionalContent = new AdditionalContent(
-                "Usage Notes",
-                @<div>@BuildNote(window)</div>),
+            AdditionalContent = BuildNote(window) is { } note
+                ? new AdditionalContent("Usage Notes", @<div>@note</div>)
+                : null,
         };
     }
 
-    private static string BuildNote(FocusEconomyAnalyzer.EventHorizonWindow window)
+    private static string? BuildNote(FocusEconomyAnalyzer.EventHorizonWindow window)
     {
         if (window.FocusAtCast is not { } focus)
-            return "No Focus reading on this cast, so the bank going in is unknown. The spending inside the window is still counted.";
+            return null;
 
         if (focus >= 90)
             return "Banked to near full before casting Event Horizon.";

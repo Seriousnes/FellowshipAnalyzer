@@ -4,11 +4,9 @@ using FellowshipAnalyzer.Core.UI;
 namespace FellowshipAnalyzer.Core.Analysis.Gems;
 
 /// <summary>
-/// Measures what the player's Diamond gem contributed. Harmonious Soul is the trait the log accounts for, a
-/// secondary stat buff that stacks once per nearby ally; the log carries its windows and stack changes but
-/// no unbuffed comparison, so the measure is how long it held and how high it stacked. Diamond's other
-/// ranks raise primary attribute and armor, reduce incoming magic damage, and shorten relic cooldowns, which
-/// are unmodelled while relic abilities are.
+/// Measures what the player's Diamond gem contributed. Harmonious Soul is the trait the log accounts
+/// for, a secondary stat buff that stacks once per nearby ally, measured by its uptime and its peak
+/// stack count.
 /// </summary>
 public sealed partial class DiamondGemAnalyzer : Analyzer, IGemAnalyzer
 {

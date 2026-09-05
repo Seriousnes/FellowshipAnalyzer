@@ -16,7 +16,7 @@
         @if (gapRows.Count > 0)
         {
             <CastDetail Title="@GapDetailTitle"
-                        Description="Each row is one gap, grouped by the pull it happened in."
+                        Description="Each row is one gap."
                         Casts="@gapRows" />
         }
     </RightPanel>
@@ -88,7 +88,7 @@
                 new PerCastStat(
                     $"{share:F0}%",
                     "Of Pull Downtime",
-                    "This gap's share of everything the pull spent idle."),
+                    "This gap's share of the pull's downtime."),
             ],
         };
     }

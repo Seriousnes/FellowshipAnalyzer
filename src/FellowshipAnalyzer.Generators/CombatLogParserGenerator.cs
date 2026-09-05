@@ -183,7 +183,7 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
 
     /// <summary>
     /// Whether <paramref name="name"/> is one of the three attributes that register a type on a parser.
-    /// Which list the registered type lands in is decided by <see cref="HasForPull"/>, not by which of
+    /// Which list the registered type is routed to is decided by <see cref="HasForPull"/>, not by which of
     /// the three declared it.
     /// </summary>
     private static bool IsRegistrationAttribute(string name) =>
@@ -833,7 +833,7 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
     /// Emits the <c>[ForPull]</c> match expression: the compile-time-constant
     /// <c>(mask).HasFlag(pull.Targets)</c> with an optional boss clause, followed by one
     /// <c>SelectedCombatant.HasTalent(id)</c> term per <c>[RequiresTalent(id)]</c> on the analyzer.
-    /// The declared mask is the receiver: a pull carries exactly one
+    /// The declared mask is the receiver: a pull has exactly one
     /// <see cref="FellowshipAnalyzer.Core.Analysis.PullKind"/>, so the test is that the declared set
     /// contains it.
     /// An analyzer with no talent gate emits output byte-identical to the pre-<c>[RequiresTalent]</c>

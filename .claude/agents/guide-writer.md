@@ -26,10 +26,7 @@ claim in a guide is worse than no guide, and you have no way to check one.
 
 In this order, before touching a file:
 
-1. `.claude/skills/house-style/SKILL.md`, end to end. It is the specification you are implementing:
-   the reader, the three clause types, the grammar of a summary, the left panel voice, and the
-   lexicon.
-2. The guide file and its analyzer, both end to end. Not the matching lines. The judgement needs the
+1. The guide file and its analyzer, both end to end. Not the matching lines. The judgement needs the
    stat's label, the value beside it, the sibling stats in the same card, and the prose above them.
 
 Then read one live example for shape: `src/Heroes/FellowshipAnalyzer.Heroes.Tariq/Guides/FocusedWrathGuide.razor`.

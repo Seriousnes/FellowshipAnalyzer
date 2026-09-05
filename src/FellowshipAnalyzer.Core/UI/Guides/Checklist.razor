@@ -26,7 +26,7 @@
     /// whose rows move between casts cannot be read across casts.</summary>
     [Parameter, EditorRequired] public IEnumerable<CheckItem> Items { get; set; } = [];
 
-    /// <summary>Whether a failed line is de-emphasised. Set this false where a failed line carries a
-    /// reading the other lines do not, rather than reporting something that was absent.</summary>
+    /// <summary>Whether a failed line is de-emphasised. Set this false where a failed line reports a
+    /// value the other lines do not.</summary>
     [Parameter] public bool DimFailed { get; set; } = true;
 }

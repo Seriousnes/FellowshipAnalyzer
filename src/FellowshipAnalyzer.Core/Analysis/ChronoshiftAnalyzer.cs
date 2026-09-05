@@ -10,9 +10,9 @@ namespace FellowshipAnalyzer.Core.Analysis;
 /// ability with no haste contribution to 9× recovery. The channel lasts a fixed 3 seconds
 /// (haste-independent) unless an <see cref="EndChannelEvent"/> cancels it early.
 /// <para>
-/// The window is driven by channel events. <see cref="OnBeginChannel"/> adds the modifier; when the log
-/// recorded no channel end (a fully channelled cast leaves <see cref="BeginChannelEvent.EndChannel"/>
-/// null) it fabricates an <see cref="EndChannelEvent"/> at the scheduled 3-second end so the close rides
+/// The window is driven by channel events. <see cref="OnBeginChannel"/> adds the modifier; where
+/// <see cref="BeginChannelEvent.EndChannel"/> is null (a fully channelled cast) it fabricates an
+/// <see cref="EndChannelEvent"/> at the scheduled 3-second end so the close rides
 /// a real, in-order event rather than a lazy per-event poll. <see cref="OnEndChannel"/> removes the
 /// modifier for both the logged and the fabricated end. An unmatched or repeated begin cannot compound
 /// the modifier because <see cref="CloseWindow"/> only removes while a window is open and a removal of an
@@ -38,13 +38,13 @@ public sealed partial class ChronoshiftAnalyzer(
     private int? _scheduledEnd;
     private int _openTimestamp;
 
-    /// <summary>All Chronoshift recovery windows observed for the selected player.</summary>
+    /// <summary>All Chronoshift recovery windows for the selected player.</summary>
     public List<ChronoshiftWindow> Windows => _windows;
 
     /// <summary>
     /// Bonus cooldown recovery Chronoshift granted to each ability over the encounter, in
     /// milliseconds, ordered by amount descending. This is the extra cooldown progress the added 800%
-    /// bought beyond what the spell would have made over the same window without it. Because the pool
+    /// produced beyond what the spell would have made over the same window without it. Because the pool
     /// is additive, that extra is 8× the time on cooldown whatever the ability's haste contribution.
     /// </summary>
     public List<AbilityRecovery> RecoveryByAbility =>

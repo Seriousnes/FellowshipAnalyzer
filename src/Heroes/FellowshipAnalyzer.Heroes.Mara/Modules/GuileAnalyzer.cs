@@ -46,7 +46,7 @@ public sealed partial class GuileAnalyzer : Analyzer
 
     public int SpendersInWindows => Windows.Sum(window => window.SpenderCasts);
 
-    public bool MalevolenceSeen { get; private set; }
+    public bool HasMalevolence { get; private set; }
 
     [On<ApplyBuffEvent>(To = Actor.Player, Spell = nameof(Spells.AssassinsGuileBuff))]
     private void OnGuileApplied(ApplyBuffEvent buffEvent) => OpenWindow(buffEvent.Timestamp);
@@ -106,25 +106,25 @@ public sealed partial class GuileAnalyzer : Analyzer
 
     private int FirstStack()
     {
-        MalevolenceSeen = true;
+        HasMalevolence = true;
         return 1;
     }
 
     private int Gained(int stack, int current)
     {
-        MalevolenceSeen = true;
+        HasMalevolence = true;
         return stack > 0 ? stack : current + 1;
     }
 
     private int Lost(int stack, int current)
     {
-        MalevolenceSeen = true;
+        HasMalevolence = true;
         return stack > 0 ? stack : Math.Max(0, current - 1);
     }
 
     private int Cleared()
     {
-        MalevolenceSeen = true;
+        HasMalevolence = true;
         return 0;
     }
 

@@ -6,13 +6,13 @@ namespace FellowshipAnalyzer.Core.Common;
 public enum StackMethod
 {
     /// <summary>
-    /// A single instance carrying one damage pool. A fresh application merges the damage still owed
+    /// A single instance with one damage pool. A fresh application merges the damage still owed
     /// into the incoming amount, so a re-application early in the window forfeits nothing.
     /// </summary>
     Accumulate,
 
     /// <summary>
-    /// A single instance carrying a stack count, each stack adding intensity to every tick. A fresh
+    /// A single instance with a stack count, each stack adding intensity to every tick. A fresh
     /// application keeps the stacks and extends the window under the pandemic rule.
     /// </summary>
     Stacking,

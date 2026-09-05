@@ -9,9 +9,9 @@ namespace FellowshipAnalyzer.Core.Contracts.Design;
 public readonly record struct FaSemanticClass(string ClassName, string TokenName);
 
 /// <summary>
-/// The semantic classes the stylesheet mints: the four performance tiers, the three hero roles and
-/// the twelve event types. Derived from the token names, so the class set cannot fall out of step
-/// with the token set.
+/// The semantic classes the stylesheet mints: the four performance tiers, the neutral for a surface
+/// with no tier, the three hero roles and the twelve event types. Derived from the token
+/// names, so the class set cannot fall out of step with the token set.
 ///
 /// <c>RoleUnknown</c> has no class. It is a low-alpha structural grey used for "no role",
 /// so it reads as an accent edge but would render text near-invisible.
@@ -25,6 +25,7 @@ public static class FaSemantic
         Tier("good", nameof(FaPalette.PerfGood)),
         Tier("ok", nameof(FaPalette.PerfOk)),
         Tier("fail", nameof(FaPalette.PerfFail)),
+        Tier("neutral", nameof(FaPalette.FgNeutral)),
 
         Tier("tank", nameof(FaPalette.RoleTank)),
         Tier("healer", nameof(FaPalette.RoleHealer)),

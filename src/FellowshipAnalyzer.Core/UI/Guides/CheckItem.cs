@@ -14,8 +14,8 @@ namespace FellowshipAnalyzer.Core.UI.Guides;
 public partial class CheckLabel : OneOfBase<Spell, string, RenderFragment>;
 
 /// <summary>
-/// One line of a <see cref="Checklist"/>: something was there or it was missing, optionally with
-/// how many of it there were.
+/// One line of a <see cref="Checklist"/>: whether something was present, optionally with how many
+/// of it there were.
 /// </summary>
 public sealed record CheckItem
 {
@@ -29,8 +29,8 @@ public sealed record CheckItem
     public required bool Pass { get; init; }
 
     /// <summary>
-    /// The magnitude beside the name - instances, stacks, targets - or <c>null</c> when presence is
-    /// the whole story. Rendered only above one, so a single window never reads "x1".
+    /// The magnitude beside the name - instances, stacks, targets - or <c>null</c> when only
+    /// presence matters. Rendered only above one, so a single window never reads "x1".
     /// </summary>
     public int? Count { get; init; }
 

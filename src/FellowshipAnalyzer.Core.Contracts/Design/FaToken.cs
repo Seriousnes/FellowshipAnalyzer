@@ -10,7 +10,7 @@ namespace FellowshipAnalyzer.Core.Contracts.Design;
 /// <param name="Value">The CSS text, for example <c>#3a4452</c>.</param>
 public readonly record struct FaToken(string Name, string Value)
 {
-    /// <summary>The prefix every design token custom property carries.</summary>
+    /// <summary>The prefix on every design token custom property.</summary>
     public const string Prefix = "--fa-";
 
     /// <summary>The full custom property name, for example <c>--fa-bg-card</c>.</summary>

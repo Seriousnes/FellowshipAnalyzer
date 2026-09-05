@@ -12,9 +12,8 @@ namespace FellowshipAnalyzer.Core.UI.Charts;
 /// place a colour is written, and keeps a chart honouring both the selected theme and any runtime token
 /// override.
 /// <para>
-/// Which tokens a chart's series wear is the caller's choice, not this type's: a fire hero reads in the
-/// fire ramp where a frost hero reads in cold steps, so the caller names its own tokens and resolves
-/// each one here.
+/// Which tokens a chart's series use is the caller's choice, not this type's: the caller names its own
+/// tokens and resolves each one here.
 /// </para>
 /// </summary>
 /// <remarks>

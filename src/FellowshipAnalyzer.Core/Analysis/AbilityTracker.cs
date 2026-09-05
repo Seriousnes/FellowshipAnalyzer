@@ -12,8 +12,8 @@ namespace FellowshipAnalyzer.Core.Analysis;
 /// Rows accumulate live as events dispatch: a dungeon-wide row keeps growing until the stream ends,
 /// while a pull's rows are complete the moment that pull closes, so a pull analyzer reading its
 /// own pull's rows at <see cref="PullEndEvent"/> sees final values. Amounts follow
-/// <see cref="ThroughputTracker"/> semantics - damage and healing are the effective amounts that
-/// landed, with overheal carried separately.
+/// <see cref="ThroughputTracker"/> semantics - damage and healing are the effective amounts, with
+/// overheal counted separately.
 /// </para>
 /// </summary>
 public sealed partial class AbilityTracker : Analyzer

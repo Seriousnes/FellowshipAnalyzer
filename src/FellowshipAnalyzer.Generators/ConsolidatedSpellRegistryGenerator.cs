@@ -34,6 +34,7 @@ public sealed class ConsolidatedSpellRegistryGenerator : IIncrementalGenerator
     private const string EventsNamespace = "FellowshipAnalyzer.Core.Events";
     private const string GameNamespace = "FellowshipAnalyzer.Core.Game";
     private const int EffectOffset = 1_000_000;
+    private const string GenerationKey = "resourceGeneration";
 
     private static readonly DiagnosticDescriptor DuplicateMemberDescriptor = new(
         id: "FA0024",
@@ -406,17 +407,17 @@ public sealed class ConsolidatedSpellRegistryGenerator : IIncrementalGenerator
         sb.AppendLine("namespace " + GameNamespace + ";");
         sb.AppendLine();
         sb.AppendLine("/// <summary>");
-        sb.AppendLine("/// The rarity ladder, generated from <c>data/spelldb.json</c>. Each tier answers the name the");
-        sb.AppendLine("/// build stores rather than the one it prints, because item and gem art files end in it.");
+        sb.AppendLine("/// The name the build stores for each rarity tier, generated from <c>data/spelldb.json</c>, rather");
+        sb.AppendLine("/// than the one it prints, because item and gem art files end in it.");
         sb.AppendLine("/// </summary>");
         sb.AppendLine("public static class ItemRarities");
         sb.AppendLine("{");
-        sb.AppendLine("    /// <summary>The highest tier the ladder declares.</summary>");
+        sb.AppendLine("    /// <summary>The highest tier declared.</summary>");
         sb.AppendLine("    public const int TopTier = " + (names.Count - 1).ToString(CultureInfo.InvariantCulture) + ";");
         sb.AppendLine();
         sb.AppendLine("    /// <summary>");
-        sb.AppendLine("    /// The stored name for <paramref name=\"tier\"/>, or an empty string when the ladder has no");
-        sb.AppendLine("    /// such rung.");
+        sb.AppendLine("    /// The stored name for <paramref name=\"tier\"/>, or an empty string when there is no");
+        sb.AppendLine("    /// such tier.");
         sb.AppendLine("    /// </summary>");
         sb.AppendLine("    public static string NameFor(int tier) =>");
         sb.AppendLine("        (uint)tier < (uint)Names.Length ? Names[tier] : string.Empty;");
@@ -621,13 +622,38 @@ public sealed class ConsolidatedSpellRegistryGenerator : IIncrementalGenerator
                           schema.ResourceTypesGlobalName + ", int> { " + string.Join(", ", costParts) + " }");
         }
 
+        if (schema.Generation is { } generation
+            && entry.TryGetValue(GenerationKey, out var generationValue)
+            && generationValue.Object is { } stated)
+        {
+            var generationParts = new List<string>();
+
+            if (stated.TryGetValue("resource", out var resource) && resource.String is { } resourceToken
+                && schema.CostTokens.TryGetValue(resourceToken, out var resourceAccess))
+                generationParts.Add("Resource = " + resourceAccess);
+            if (stated.TryGetValue("amount", out var amount) && amount.Number is { } amountValue)
+                generationParts.Add("Amount = " + Fmt(amountValue));
+            if (stated.TryGetValue("criticalAmount", out var critical) && critical.Number is { } criticalValue)
+                generationParts.Add("CriticalAmount = " + Fmt(criticalValue));
+            if (stated.TryGetValue("measure", out var measure) && measure.String is { } measureName
+                && generation.Measures.Contains(measureName))
+                generationParts.Add("Measure = " + generation.MeasureGlobalName + "." + measureName);
+            if (stated.TryGetValue("trigger", out var trigger) && trigger.String is { } triggerName
+                && generation.Triggers.Contains(triggerName))
+                generationParts.Add("Trigger = " + generation.TriggerGlobalName + "." + triggerName);
+
+            if (generationParts.Count > 0)
+                parts.Add("ResourceGeneration = new " + generation.GlobalName +
+                          " { " + string.Join(", ", generationParts) + " }");
+        }
+
         return parts;
     }
 
     private static SpellSchema BuildSchema(Compilation compilation, ITypeSymbol? spellType)
     {
         var scalars = new List<ScalarProp>();
-        var knownKeys = new HashSet<string>(StringComparer.Ordinal) { "id", "kind", "costs" };
+        var knownKeys = new HashSet<string>(StringComparer.Ordinal) { "id", "kind", "costs", GenerationKey };
         var costTokens = new Dictionary<string, string>(StringComparer.Ordinal);
         var resourceTypesGlobal = "global::FellowshipAnalyzer.Core.Game.ResourceTypes";
 
@@ -637,7 +663,7 @@ public sealed class ConsolidatedSpellRegistryGenerator : IIncrementalGenerator
             {
                 if (member is not IPropertySymbol p || p.SetMethod is null)
                     continue;
-                if (p.Name is "Id" or "Costs")
+                if (p.Name is "Id" or "Costs" or "ResourceGeneration")
                     continue;
                 var key = CamelCase(p.Name);
                 if (ClassifyScalar(p.Type) is { } kind)
@@ -662,7 +688,30 @@ public sealed class ConsolidatedSpellRegistryGenerator : IIncrementalGenerator
                     costTokens[CamelCase(f.Name)] = resourceTypesGlobal + "." + f.Name;
         }
 
-        return new SpellSchema(scalars, costTokens, knownKeys, resourceTypesGlobal);
+        return new SpellSchema(scalars, costTokens, knownKeys, resourceTypesGlobal, BuildGenerationSchema(compilation));
+    }
+
+    private static GenerationSchema? BuildGenerationSchema(Compilation compilation)
+    {
+        var generation = compilation.GetTypeByMetadataName(SpellsNamespace + ".ResourceGeneration");
+        var measure = compilation.GetTypeByMetadataName(SpellsNamespace + ".GenerationMeasure");
+        var trigger = compilation.GetTypeByMetadataName(SpellsNamespace + ".GenerationTrigger");
+        if (generation is null || measure is null || trigger is null)
+            return null;
+
+        return new GenerationSchema(
+            GlobalName(generation),
+            GlobalName(measure), EnumMemberNames(measure),
+            GlobalName(trigger), EnumMemberNames(trigger));
+    }
+
+    private static HashSet<string> EnumMemberNames(ITypeSymbol type)
+    {
+        var names = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var member in type.GetMembers())
+            if (member is IFieldSymbol { IsConst: true } f)
+                names.Add(f.Name);
+        return names;
     }
 
     private static HashSet<string>? BuildHeroNameSet(Compilation compilation)
@@ -712,7 +761,7 @@ public sealed class ConsolidatedSpellRegistryGenerator : IIncrementalGenerator
 
     /// <summary>
     /// Turns the <c>talents</c> section (hero → member → entry) into one <c>Talents</c> class of static
-    /// <c>Talent</c> members per hero, plus the companion <c>{Hero}Talents</c> id constants. Talents carry
+    /// <c>Talent</c> members per hero, plus the companion <c>{Hero}Talents</c> id constants. Talents have
     /// their own class because a talent and an ability in the same hero scope often share a name, and they
     /// are not registry members, so they stay out of <c>Spells.All</c>.
     /// </summary>
@@ -1138,12 +1187,28 @@ public sealed class ConsolidatedSpellRegistryGenerator : IIncrementalGenerator
         List<ScalarProp> Scalars,
         Dictionary<string, string> CostTokens,
         HashSet<string> KnownJsonKeys,
-        string ResourceTypesGlobalName)
+        string ResourceTypesGlobalName,
+        GenerationSchema? Generation)
     {
         public List<ScalarProp> Scalars { get; } = Scalars;
         public Dictionary<string, string> CostTokens { get; } = CostTokens;
         public HashSet<string> KnownJsonKeys { get; } = KnownJsonKeys;
         public string ResourceTypesGlobalName { get; } = ResourceTypesGlobalName;
+        public GenerationSchema? Generation { get; } = Generation;
+    }
+
+    private sealed class GenerationSchema(
+        string GlobalName,
+        string MeasureGlobalName,
+        HashSet<string> Measures,
+        string TriggerGlobalName,
+        HashSet<string> Triggers)
+    {
+        public string GlobalName { get; } = GlobalName;
+        public string MeasureGlobalName { get; } = MeasureGlobalName;
+        public HashSet<string> Measures { get; } = Measures;
+        public string TriggerGlobalName { get; } = TriggerGlobalName;
+        public HashSet<string> Triggers { get; } = Triggers;
     }
 
     private readonly struct JsonValue

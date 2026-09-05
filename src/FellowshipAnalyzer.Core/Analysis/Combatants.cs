@@ -7,10 +7,10 @@ namespace FellowshipAnalyzer.Core.Analysis;
 /// Core module that tracks buff/debuff state for every unit in the dungeon, keyed by
 /// <see cref="UnitKey"/> so distinct spawns of one actor id stay separate. The rosters the report
 /// declares seed the set: the analyzed player as the <see cref="FullCombatant"/> the parse context
-/// carries, every other group member as a <see cref="Combatant"/>, and one <see cref="Enemy"/> per
+/// supplies, every other group member as a <see cref="Combatant"/>, and one <see cref="Enemy"/> per
 /// spawn the dungeon's enemy NPC list or any dungeon pull's names. Seeding the union of both means no
 /// pull can name a spawn the population lacks. A unit no roster names is fabricated as an
-/// <see cref="Enemy"/> when an event first targets it, and carries <see cref="Enemy.Rostered"/>
+/// <see cref="Enemy"/> when an event first targets it, and has <see cref="Enemy.Rostered"/>
 /// <c>false</c> to say so. Exposes per-unit aura queries that resolve any unit including the analyzed
 /// player. <see cref="Enemies"/> owns the enemy-facing queries, which need report master data to tell
 /// an enemy from an ally, and projects each pull's roster out of this population.
@@ -24,7 +24,7 @@ public sealed partial class Combatants : Analyzer
 
     /// <summary>
     /// Seeds the tracked unit set from every roster the report declares and fabricates a prepull buff
-    /// for each aura the analyzed player logged in with.
+    /// for each aura already active on the analyzed player.
     /// </summary>
     public Combatants(ParseContext parseContext)
     {
@@ -93,7 +93,7 @@ public sealed partial class Combatants : Analyzer
     /// The stacks summed across every concurrently-open window of the effect on a unit at
     /// <paramref name="timestamp"/>, optionally restricted to auras applied by <paramref name="sourceId"/>.
     /// Returns 0 when the unit is not tracked. Read it while the parse is dispatching, since a window
-    /// carries its live stack count rather than its count at <paramref name="timestamp"/>.
+    /// reports its live stack count rather than its count at <paramref name="timestamp"/>.
     /// </summary>
     public int AuraStackSum(int actorId, int? instance, SpellRef effect, long timestamp, int? sourceId = null)
         => GetCombatant(actorId, instance)?.GetAuraStackSum(effect, timestamp, sourceId) ?? 0;

@@ -66,9 +66,9 @@ public sealed class EventEmitter(ILogger<EventEmitter> logger) : Module
     }
 
     /// <summary>
-    /// Orders one tier by <see cref="Module.Priority"/>. The sort has to stay stable: construction order
-    /// is what carries the <c>[Before&lt;T&gt;]</c> and <c>[After&lt;T&gt;]</c> constraints, and only a
-    /// stable sort leaves it intact. Modules sharing a priority with no constraint between them keep
+    /// Orders one tier by <see cref="Module.Priority"/>. The sort has to stay stable: the
+    /// <c>[Before&lt;T&gt;]</c> and <c>[After&lt;T&gt;]</c> constraints are expressed in construction
+    /// order, and only a stable sort leaves it intact. Modules sharing a priority with no constraint between them keep
     /// whatever relative order they were constructed in.
     /// </summary>
     private static List<RegisteredListener> Ordered(List<RegisteredListener> listeners) =>

@@ -58,8 +58,7 @@
             stats.Add(new OverviewStat(
                 $"{PunishingStrikesCasts}",
                 "Under Punishing Strikes",
-                "Combo casts with a Punishing Strikes stack active. The figures above already " +
-                "account for them."));
+                "Combo casts with a Punishing Strikes stack active."));
         }
 
         return stats;
@@ -99,7 +98,7 @@
             Performance = PerformanceTiers.FromThresholds(analyzer.CooldownReduction.Efficiency * 100, 85, 70, 50),
             Stats = BuildPullStats(analyzer),
             AdditionalContent = BuildReductionChecklist(analyzer),
-            Details = analyzer.SawActiveUltimate
+            Details = analyzer.UltimateWasActive
                 ? @<div>Siegebreaker was active for part of this pull.</div>
                 : null,
         });

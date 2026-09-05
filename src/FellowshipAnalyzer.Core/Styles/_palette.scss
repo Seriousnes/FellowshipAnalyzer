@@ -30,8 +30,7 @@
     --fa-raise: rgba(255, 255, 255, 0.06);
     --fa-recess: rgba(0, 0, 0, 0.2);
     --fa-recess-deep: rgba(0, 0, 0, 0.4);
-    --fa-section-header: linear-gradient(180deg, rgba(184, 150, 92, 0.12), rgba(184, 150, 92, 0.06));
-    --fa-section-header-hover: linear-gradient(180deg, rgba(184, 150, 92, 0.2), rgba(184, 150, 92, 0.06));
+    --fa-section-header: #182028;
     --fa-text: #e8e0d8;
     --fa-text-muted: #abb3bc;
     --fa-text-dim: #949ba5;
@@ -112,6 +111,7 @@
     --fa-fs-value: 1rem;
     --fa-fs-title: 1.05rem;
     --fa-fs-lg: 1.2rem;
+    --fa-fs-xl: 1.45rem;
     --fa-fs-stat: 1.65rem;
 }
 
@@ -141,8 +141,7 @@
     --fa-raise: rgba(255, 255, 255, 0.06);
     --fa-recess: rgba(0, 0, 0, 0.2);
     --fa-recess-deep: rgba(0, 0, 0, 0.4);
-    --fa-section-header: linear-gradient(180deg, transparent, rgba(152, 154, 159, 0.12));
-    --fa-section-header-hover: linear-gradient(180deg, transparent, rgba(152, 154, 159, 0.2));
+    --fa-section-header: #09101a;
     --fa-text: #cdcdcc;
     --fa-text-muted: #989a9f;
     --fa-text-dim: #65676c;
@@ -223,6 +222,7 @@
     --fa-fs-value: 1rem;
     --fa-fs-title: 1.05rem;
     --fa-fs-lg: 1.2rem;
+    --fa-fs-xl: 1.45rem;
     --fa-fs-stat: 1.65rem;
 }
 
@@ -252,8 +252,7 @@
     --fa-raise: #fffdfa;
     --fa-recess: #fff6e5;
     --fa-recess-deep: #ffefd1;
-    --fa-section-header: linear-gradient(180deg, transparent, rgba(42, 70, 119, 0.12));
-    --fa-section-header-hover: linear-gradient(180deg, transparent, rgba(42, 70, 119, 0.2));
+    --fa-section-header: #fffaf1;
     --fa-text: #2a4677;
     --fa-text-muted: #67696f;
     --fa-text-dim: #888b90;
@@ -334,6 +333,7 @@
     --fa-fs-value: 1rem;
     --fa-fs-title: 1.05rem;
     --fa-fs-lg: 1.2rem;
+    --fa-fs-xl: 1.45rem;
     --fa-fs-stat: 1.65rem;
 }
 
@@ -344,6 +344,7 @@ $fa-semantic: (
     good: perf-good,
     ok: perf-ok,
     fail: perf-fail,
+    neutral: fg-neutral,
     tank: role-tank,
     healer: role-healer,
     dps: role-dps,

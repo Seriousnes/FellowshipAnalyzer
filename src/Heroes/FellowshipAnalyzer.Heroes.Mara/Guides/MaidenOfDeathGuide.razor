@@ -1,6 +1,6 @@
 @inherits GuideComponent<MaraCombatLogParser>
 
-<GuideSection Title="Maiden of Death Windows">
+<GuideSection Title="Maiden of Death">
     <LeftPanel>
         <p>
             While <SpellLink Spell="Spells.MaidenOfDeath" /> is active, alternate builders and spend with
@@ -15,7 +15,7 @@
     <RightPanel>
         <CastOverview Title="Window Overview" Stats="@BuildOverviewStats()" />
         <CastDetail Title="Burst Windows"
-                    Description="Each row is one Maiden of Death window, from the buff being applied to its removal, with everything cast inside it."
+                    Description="Each row is one Maiden of Death window, with everything cast inside it."
                     Casts="@BuildPerCastData()" />
     </RightPanel>
 </GuideSection>
@@ -33,10 +33,8 @@
         var windows = analyzers.Sum(analyzer => analyzer.WindowCount);
         var clean = analyzers.Sum(analyzer => analyzer.CleanWindows);
         var generators = analyzers.Sum(analyzer => analyzer.GeneratorsInWindows);
-        var spenders = analyzers.Sum(analyzer => analyzer.SpendersInWindows);
         var wasted = analyzers.Sum(analyzer => analyzer.WastedGeneratorCasts);
         var idleMs = analyzers.Sum(analyzer => analyzer.IdleMs);
-        var gaps = analyzers.Sum(analyzer => analyzer.GapCount);
         var lostCasts = analyzers.Sum(analyzer => analyzer.LostCasts);
 
         var recasts = analyzers.Sum(analyzer => analyzer.MaidenOfDeathRecasts.Count);
@@ -48,9 +46,7 @@
             new OverviewStat(
                 $"{clean}/{windows}",
                 "Clean Cycles",
-                windows == 0
-                    ? "No Maiden of Death window was observed, so there is nothing to measure."
-                    : $"Windows that ran with no doubled builder and no idle time, across {generators} builders and {spenders} spenders.",
+                "Windows with no doubled builder and no idle time.",
                 CleanTier(clean, windows)),
             new OverviewStat(
                 $"{wasted}",
@@ -60,16 +56,12 @@
             new OverviewStat(
                 FormatSeconds(idleMs),
                 "Idle in Window",
-                gaps == 0
-                    ? $"No gap reached {MaidenOfDeathAnalyzer.MinimumGapMs / 1000d:0.#}s."
-                    : $"{Count(gaps, "gap", "gaps")} of at least {MaidenOfDeathAnalyzer.MinimumGapMs / 1000d:0.#}s, room for about {Count(lostCasts, "more cast")} at one global cooldown each.",
+                $"Time inside a window spent in gaps of at least {MaidenOfDeathAnalyzer.MinimumGapMs / 1000d:0.#}s.",
                 IdleTier(lostCasts, windows)),
             new OverviewStat(
                 FormatSeconds(heldMs),
                 "Maiden of Death Held",
-                recasts == 0
-                    ? "Maiden of Death was cast at most once per pull, so no recast could be measured against its recharge."
-                    : $"Time a ready charge went unspent across {Count(recasts, "recast")}, {averageHeldSeconds:0.#}s per recast on average, measured against a {MaidenOfDeathAnalyzer.RechargeMs / 1000}-second recharge.",
+                "Time between Maiden of Death casts beyond its recharge.",
                 HeldTier(averageHeldSeconds, recasts)),
         ];
     }
@@ -94,7 +86,7 @@
                 window.ComboPointsAtOpen is { } atOpen ? $"{atOpen}" : "-",
                 "Combo Points at Open",
                 window.ComboPointsAtOpen is null
-                    ? "The combo point tracker recorded nothing at or before this window opened."
+                    ? null
                     : "Combo points held as the window opened."),
             new PerCastStat(
                 $"{window.WastedGeneratorCasts}",
@@ -104,9 +96,7 @@
             new PerCastStat(
                 FormatSeconds(window.IdleMs),
                 "Idle",
-                window.GapCount == 0
-                    ? "No gaps inside the window."
-                    : $"{Count(window.GapCount, "gap", "gaps")}, longest {FormatSeconds(window.LongestGapMs)}, room for about {Count(window.LostCasts, "more cast")}.",
+                $"Time inside the window spent in gaps of at least {MaidenOfDeathAnalyzer.MinimumGapMs / 1000d:0.#}s.",
                 Performance: IdleTier(window.LostCasts, 1)),
             new PerCastStat(
                 $"{window.ComboPointsSpent}",
@@ -116,8 +106,8 @@
                 window.EnergyAtClose is { } energy ? $"{energy}" : "-",
                 "Energy Into Last Cast",
                 window.EnergyAtClose is null
-                    ? "No cast inside the window reported an Energy snapshot."
-                    : "Energy available going into the last cast made inside the window."),
+                    ? null
+                    : "Energy available going into the last cast inside the window."),
         };
 
         return new PerCastRow
@@ -137,20 +127,20 @@
 
         var notes = new List<string>
         {
-            $"{Count(window.GeneratorCasts, "builder")} and {Count(window.SpenderCasts, "spender")} went out",
+            $"{Count(window.GeneratorCasts, "builder")} and {Count(window.SpenderCasts, "spender")} were cast",
         };
 
         if (window.WastedGeneratorCasts > 0)
-            notes.Add($"{Count(window.WastedGeneratorCasts, "builder")} went out on an unspent pool");
+            notes.Add($"{Count(window.WastedGeneratorCasts, "builder")} cast on an unspent pool");
 
         if (window.ComboPointsAtOpen is { } atOpen && atOpen >= MaidenOfDeathAnalyzer.OpeningComboPointLimit)
             notes.Add($"the window opened on {Count(atOpen, "combo point")}");
 
         if (window.GapCount > 0)
-            notes.Add($"{FormatSeconds(window.IdleMs)} passed with nothing going out, the longest gap {FormatSeconds(window.LongestGapMs)}");
+            notes.Add($"{FormatSeconds(window.IdleMs)} passed with nothing cast, the longest gap {FormatSeconds(window.LongestGapMs)}");
 
         if (window.SpenderCasts == 0 && window.GeneratorCasts > 0)
-            notes.Add("no spender went out after the builders");
+            notes.Add("no spender was cast after the builders");
 
         if (window.CleanCycle)
             notes.Add("the cycle ran clean");
@@ -161,7 +151,7 @@
     private static string Sentence(List<string> notes)
     {
         if (notes.Count == 0)
-            return "This window recorded no casts to measure.";
+            return string.Empty;
 
         var joined = string.Join("; ", notes);
         return $"{char.ToUpperInvariant(joined[0])}{joined[1..]}.";
@@ -169,9 +159,6 @@
 
     private static string Count(int value, string noun) =>
         value == 1 ? $"1 {noun}" : $"{value} {noun}s";
-
-    private static string Count(int value, string singular, string plural) =>
-        value == 1 ? $"1 {singular}" : $"{value} {plural}";
 
     private static string FormatSeconds(int milliseconds) =>
         $"{milliseconds / 1000d:0.#}s";

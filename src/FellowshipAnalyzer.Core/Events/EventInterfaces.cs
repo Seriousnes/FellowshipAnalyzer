@@ -11,7 +11,7 @@ public interface IAbilityEvent
     FSLID AbilityGameId { get; set; }
 }
 
-/// <summary>Implemented by an event that carries a second ability alongside its primary <see cref="IAbilityEvent.Ability"/>, such as the ability an interrupt or dispel consumed.</summary>
+/// <summary>Implemented by an event with a second ability alongside its primary <see cref="IAbilityEvent.Ability"/>, such as the ability an interrupt or dispel consumed.</summary>
 public interface IExtraAbilityEvent
 {
     /// <summary>The secondary ability resolved for this event from report master data during normalization.</summary>
@@ -20,7 +20,7 @@ public interface IExtraAbilityEvent
     FSLID ExtraAbilityGameId { get; set; }
 }
 
-/// <summary>Implemented by an event whose payload carries a numeric magnitude, such as damage or healing dealt.</summary>
+/// <summary>Implemented by an event whose payload has a numeric magnitude, such as damage or healing dealt.</summary>
 public interface IAmountEvent
 {
     /// <summary>The magnitude this event reports, in whatever unit its concrete event type defines.</summary>

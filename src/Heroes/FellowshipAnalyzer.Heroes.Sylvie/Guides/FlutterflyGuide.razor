@@ -43,9 +43,9 @@
         var effective = analyzers.Sum(analyzer => analyzer.Effective);
         var overheal = analyzers.Sum(analyzer => analyzer.Overheal);
         var total = effective + overheal;
-        var moves = analyzers.Sum(analyzer => analyzer.AssignmentsOpened);
-        var peakBanked = analyzers.Count > 0 ? analyzers.Max(analyzer => analyzer.PeakBanked) : 0;
-        var restoreLifeWindows = analyzers.Sum(analyzer => analyzer.RestoreLifeAssignmentsOpened);
+        var assignments = analyzers.Sum(analyzer => analyzer.AssignmentsOpened);
+        var peakUnassigned = analyzers.Count > 0 ? analyzers.Max(analyzer => analyzer.PeakUnassigned) : 0;
+        var restoreLifeAssignments = analyzers.Sum(analyzer => analyzer.RestoreLifeAssignmentsOpened);
         var restoreLifeMs = analyzers.Sum(analyzer => analyzer.RestoreLifeAssignedMs);
         var restoreLifeEffective = analyzers.Sum(analyzer => analyzer.RestoreLifeEffective);
 
@@ -54,29 +54,28 @@
             new(
                 $"{share * 100:F1}%",
                 "Flutterflies Assigned",
-                $"{assigned / 1000:N0} flutterfly-seconds assigned to an ally against the {assignable / 1000:N0} every pull offered. " +
-                "A Restore Life window counts double.",
+                $"{assigned / 1000:N0} flutterfly-seconds assigned against the {assignable / 1000:N0} every pull offered.",
                 PerformanceTiers.FromThresholds(share * 100, 98, 90, 75)),
             new(
-                $"{peakBanked}",
+                $"{peakUnassigned}",
                 "Most Unassigned",
-                $"The most flutterflies seen unassigned at once, out of {SylvieKit.PinkFlutterflies}."),
+                $"The most flutterflies unassigned at once, out of {SylvieKit.PinkFlutterflies}."),
             new(
-                $"{moves}",
-                "Flutterflies Placed",
-                $"Flutterflies sent onto an ally across every pull, {restoreLifeWindows} of them by Restore Life."),
+                $"{assignments}",
+                "Assignments",
+                "Assignments opened across every pull."),
             new(
                 total > 0 ? $"{(double)overheal / total * 100:F1}%" : "0%",
                 "Flutterfly Overheal",
-                $"{overheal:N0} of the flutterflies' own {total:N0} healing was overheal."),
+                $"{overheal:N0} of the flutterflies' {total:N0} healing was overheal."),
         };
 
-        if (restoreLifeWindows > 0)
+        if (restoreLifeAssignments > 0)
         {
             stats.Add(new OverviewStat(
                 $"{restoreLifeEffective:N0}",
                 "Restore Life Healing",
-                $"Effective healing from Restore Life over {restoreLifeMs / 1000:N0} flutterfly-seconds, counted inside the totals above."));
+                $"Effective healing from Restore Life over {restoreLifeMs / 1000:N0} flutterfly-seconds."));
         }
 
         return stats;
@@ -90,10 +89,10 @@
 
         var onAlly = analyzers.Sum(analyzer => (long)analyzer.OnAllyMs);
         var onSylvie = analyzers.Sum(analyzer => (long)analyzer.OnSylvieMs);
-        var unplaced = analyzers.Sum(analyzer => (long)analyzer.UnplacedMs);
-        var uplift = analyzers.Sum(analyzer => analyzer.HealingUplift);
-        var upliftOnAlly = analyzers.Sum(analyzer => analyzer.HealingUpliftOnAlly);
-        var upliftOnSylvie = analyzers.Sum(analyzer => analyzer.HealingUpliftOnSylvie);
+        var unassigned = analyzers.Sum(analyzer => (long)analyzer.UnassignedMs);
+        var added = analyzers.Sum(analyzer => analyzer.HealingAdded);
+        var addedOnAlly = analyzers.Sum(analyzer => analyzer.HealingAddedOnAlly);
+        var addedOnSylvie = analyzers.Sum(analyzer => analyzer.HealingAddedOnSylvie);
         var manaSaved = analyzers.Sum(analyzer => analyzer.ManaSaved);
 
         return
@@ -107,16 +106,16 @@
                 "On Sylvie",
                 $"{onSylvie / 1000:N0}s recalled onto Sylvie herself."),
             new OverviewStat(
-                $"{uplift:N0}",
+                $"{added:N0}",
                 "Healing Added",
-                $"Flutterfly healing the multiplier accounts for: {upliftOnAlly:N0} while Bluey was on an ally and {upliftOnSylvie:N0} while it was on Sylvie. Overheal is left out."),
+                $"Effective flutterfly healing added: {addedOnAlly:N0} while Bluey was on an ally and {addedOnSylvie:N0} while it was on Sylvie."),
             new OverviewStat(
                 $"{manaSaved:N0}",
                 "Mana Saved",
-                "Mana the Bluey discount took off Sylvie's casts while it was recalled onto her."),
+                "Mana saved on Sylvie's casts."),
             new OverviewStat(
-                $"{unplaced / 1000:N0}s",
-                "Unplaced",
+                $"{unassigned / 1000:N0}s",
+                "Unassigned",
                 "Pull time with Bluey on nobody."),
         ];
     }
@@ -140,7 +139,7 @@
             new(
                 $"{analyzer.Holders}",
                 "Allies Healed",
-                "Distinct allies the flutterflies ticked on during this pull."),
+                "Allies the flutterflies ticked on during this pull."),
         };
 
         if (analyzer.RestoreLifeTicks > 0)
@@ -148,7 +147,7 @@
             stats.Add(new PerCastStat(
                 $"{analyzer.RestoreLifeEffective:N0}",
                 "Restore Life",
-                $"{analyzer.RestoreLifeTicks:N0} ticks over {analyzer.RestoreLifeAssignedMs / 1000:N0} flutterfly-seconds, from {analyzer.RestoreLifeAssignmentsOpened} windows opened this pull."));
+                $"{analyzer.RestoreLifeTicks:N0} ticks over {analyzer.RestoreLifeAssignedMs / 1000:N0} flutterfly-seconds, from {analyzer.RestoreLifeAssignmentsOpened} assignments opened this pull."));
         }
 
         foreach (var holding in analyzer.Holdings.Take(4))
@@ -156,7 +155,7 @@
             stats.Add(new PerCastStat(
                 $"{holding.AssignedMs / 1000:N0}s",
                 HolderName(holding.Unit.ActorId),
-                $"{holding.AssignedMs / 1000:N0} flutterfly-seconds held, over {holding.Ticks:N0} ticks for {holding.Effective:N0} effective healing and {holding.Overheal:N0} overheal."));
+                $"{holding.AssignedMs / 1000:N0} flutterfly-seconds assigned, over {holding.Ticks:N0} ticks for {holding.Effective:N0} effective healing and {holding.Overheal:N0} overheal."));
         }
 
         return [.. stats];
@@ -174,17 +173,17 @@
         var stats = new List<PerCastStat>
         {
             new(
-                $"{analyzer.HealingUplift:N0}",
+                $"{analyzer.HealingAdded:N0}",
                 "Healing Added",
-                $"Flutterfly healing the multiplier accounts for across {analyzer.UpliftedTicks:N0} ticks on Bluey's holder."),
+                $"Effective flutterfly healing added across {analyzer.TicksOnHolder:N0} ticks on Bluey's holder."),
             new(
                 $"{analyzer.ManaSaved:N0}",
                 "Mana Saved",
-                "Mana the Bluey discount took off Sylvie's casts this pull."),
+                "Mana saved on Sylvie's casts this pull."),
             new(
                 $"{analyzer.Reassignments}",
                 "Reassignments",
-                "Casts that moved Bluey during this pull. Reported as context rather than scored."),
+                "Casts that moved Bluey during this pull."),
         };
 
         foreach (var (targetId, ms, onSylvie) in analyzer.TimeByHolder.Take(4))
@@ -195,11 +194,11 @@
                 $"{ms / 1000:N0}s of this pull."));
         }
 
-        if (analyzer.UnplacedMs > 0)
+        if (analyzer.UnassignedMs > 0)
         {
             stats.Add(new PerCastStat(
-                $"{analyzer.UnplacedMs / 1000:N0}s",
-                "Unplaced",
+                $"{analyzer.UnassignedMs / 1000:N0}s",
+                "Unassigned",
                 "Pull time with Bluey on nobody."));
         }
 

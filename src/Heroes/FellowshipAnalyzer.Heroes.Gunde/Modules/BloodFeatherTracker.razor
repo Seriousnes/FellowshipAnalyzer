@@ -16,28 +16,19 @@
 
     private int Total => Spent + Decayed + Current;
 
-    private IEnumerable<OverviewStat> BuildOverviewStats()
-    {
-        var decayRate = Generated > 0
-            ? (double)Decayed / Generated * 100
-            : 0;
-
-        return
+    private IEnumerable<OverviewStat> BuildOverviewStats() =>
         [
             new OverviewStat(
                 $"{Generated}",
-                "Gained",
-                "Blood Feathers observed arriving in the bank over the run."),
+                "Gained"),
             new OverviewStat(
                 $"{Spent}",
                 "Converted",
-                "Blood Feathers an Owed in Blood cast converted."),
+                "Blood Feathers converted."),
             new OverviewStat(
                 $"{Decayed}",
                 "Decayed",
-                Generated > 0
-                    ? $"Blood Feathers expired unused, {decayRate:F0}% of those gained."
-                    : "Blood Feathers expired unused."),
+                "Blood Feathers expired unused."),
             new OverviewStat(
                 $"{Current}",
                 "Held at End",
@@ -45,9 +36,8 @@
             new OverviewStat(
                 FormatSeconds(CappedMs),
                 "Time at Cap",
-                $"Time at {MaxBloodFeathers}. A feather arriving on a full pool produces no event, so time at the cap stands in for the feathers that were lost."),
+                $"Time at {MaxBloodFeathers} Blood Feathers."),
         ];
-    }
 
     private IEnumerable<StackedBarSegment> BuildStackedBar() =>
     [

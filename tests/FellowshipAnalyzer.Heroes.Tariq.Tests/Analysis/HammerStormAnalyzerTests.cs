@@ -50,14 +50,14 @@ public sealed class HammerStormAnalyzerTests
         analyzer.CastCount.ShouldBe(1);
         analyzer.CompleteChannels.ShouldBe(1);
         analyzer.TruncatedChannels.ShouldBe(0);
-        analyzer.WhiffedCasts.ShouldBe(0);
+        analyzer.ChannelsWithoutTargets.ShouldBe(0);
         analyzer.AverageTargetsHit.ShouldBe(3);
     }
 
     /// <summary>
-    /// A channel that connected with fewer targets than <see cref="HammerStormAnalyzer.TargetBreakEven"/>
-    /// is marked, one that reached it exactly is not, and a whiff carries no readable target count so it
-    /// is left unmarked rather than counted against the break-even.
+    /// A channel that hit fewer targets than <see cref="HammerStormAnalyzer.TargetBreakEven"/>
+    /// is marked, one that reached it exactly is not, and one that hit nothing is left unmarked
+    /// rather than counted against the break-even.
     /// </summary>
     [Fact]
     public async Task Analyze_HammerStorm_MarksChannelsUnderTheTargetBreakEven()
@@ -78,7 +78,7 @@ public sealed class HammerStormAnalyzerTests
 
         analyzer.CastCount.ShouldBe(3);
         analyzer.UnderBreakEvenChannels.ShouldBe(1);
-        analyzer.WhiffedCasts.ShouldBe(1);
+        analyzer.ChannelsWithoutTargets.ShouldBe(1);
 
         analyzer.Casts[0].TargetsHit.ShouldBe(2);
         analyzer.Casts[0].UnderTargetBreakEven.ShouldBeTrue();
@@ -89,7 +89,7 @@ public sealed class HammerStormAnalyzerTests
     }
 
     [Fact]
-    public async Task Analyze_HammerStorm_GroupsChannelsByTargetsCaughtLeavingWhiffsOut()
+    public async Task Analyze_HammerStorm_GroupsChannelsByTargetsCaughtLeavingOutThoseWithoutTargets()
     {
         var (parser, _) = await ThunderCallAnalyzerTests.AnalyzeAsync(
         [
@@ -107,7 +107,7 @@ public sealed class HammerStormAnalyzerTests
         var analyzer = Analyzer(parser);
 
         analyzer.CastCount.ShouldBe(4);
-        analyzer.WhiffedCasts.ShouldBe(1);
+        analyzer.ChannelsWithoutTargets.ShouldBe(1);
         analyzer.TargetsHitDistribution.ShouldBe(
         [
             new TargetCountBucket(1, 2),
@@ -213,7 +213,7 @@ public sealed class HammerStormAnalyzerTests
     }
 
     [Fact]
-    public async Task Analyze_HammerStorm_TreatsACastThatDealtNoDamageAsAWhiffRatherThanATruncation()
+    public async Task Analyze_HammerStorm_SeparatesACastThatDealtNoDamageFromATruncation()
     {
         var (parser, _) = await ThunderCallAnalyzerTests.AnalyzeAsync(
         [
@@ -229,7 +229,7 @@ public sealed class HammerStormAnalyzerTests
         cast.Truncated.ShouldBeFalse();
         cast.NextAbilityId.ShouldBeNull();
 
-        analyzer.WhiffedCasts.ShouldBe(1);
+        analyzer.ChannelsWithoutTargets.ShouldBe(1);
         analyzer.TruncatedChannels.ShouldBe(0);
         analyzer.AverageTargetsHit.ShouldBe(0);
     }
@@ -272,7 +272,7 @@ public sealed class HammerStormAnalyzerTests
     }
 
     [Fact]
-    public async Task Analyze_HammerStorm_MarksAChannelEmpoweredByAHeldSchismProc()
+    public async Task Analyze_HammerStorm_MarksAChannelEmpoweredByAnActiveSchismProc()
     {
         var (parser, _) = await ThunderCallAnalyzerTests.AnalyzeAsync(
         [

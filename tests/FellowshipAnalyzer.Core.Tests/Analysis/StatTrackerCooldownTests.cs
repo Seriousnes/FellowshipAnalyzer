@@ -172,7 +172,7 @@ public sealed partial class StatTrackerCooldownTests
     }
 
     /// <summary>
-    /// Adding a modifier during dispatch fabricates a <see cref="ChangeCooldownModifierEvent"/> carrying
+    /// Adding a modifier during dispatch fabricates a <see cref="ChangeCooldownModifierEvent"/> with
     /// the pool, the modifier, and the direction of the change.
     /// </summary>
     [Fact]
@@ -217,7 +217,7 @@ public sealed partial class StatTrackerCooldownTests
     }
 
     /// <summary>
-    /// ACR is snapshot semantics: a modifier added mid-flight leaves the running cooldown untouched
+    /// ACR is fixed at cast: a modifier added mid-flight leaves the running cooldown untouched
     /// (SpellA keeps its 9000ms remaining), while the next cooldown begun after the change starts at
     /// the reduced duration (SpellB: 20000 × (1 - 0.5) = 10000ms).
     /// </summary>
@@ -330,7 +330,7 @@ public sealed partial class StatTrackerCooldownTests
 
     /// <summary>
     /// Waste means reduction with no running cooldown left to shorten. The request is scaled by ACR
-    /// (100000 × 0.88 = 88000ms generated); only what lands on the ACR-shortened base cooldown is applied.
+    /// (100000 × 0.88 = 88000ms generated); only what fits the ACR-shortened base cooldown is applied.
     /// </summary>
     [Fact]
     public async Task FlatReductionBeyondRemainingCooldown_IsGeneratedButNotApplied()
@@ -349,7 +349,7 @@ public sealed partial class StatTrackerCooldownTests
     /// <summary>
     /// ACR shortens the base recharge (SpellB: 20000 × 0.88 = 17600ms) and the flat reduction alike.
     /// With both charges spent and 500ms left on the recharging one, a 1000ms request generates 880ms:
-    /// 500ms ends that charge and the remaining 380ms carries onto the next charge, wasting nothing.
+    /// 500ms ends that charge and the remaining 380ms goes to the next charge, wasting nothing.
     /// </summary>
     [Fact]
     public async Task FlatReduction_ScaledByAcr_PersistsAcrossChargeBoundary()

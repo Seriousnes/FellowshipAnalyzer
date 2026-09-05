@@ -9,7 +9,7 @@ public abstract class BaseCastEvent : Event, IAbilityEvent, IHasSourceWithInstan
     public virtual Ability Ability { get; set; }
     /// <summary>The FSLID of the cast ability, as reported by FellowshipLogs.</summary>
     public FSLID AbilityGameId { get; set; }
-    /// <summary>The shield absorb amount active on the source when the cast landed.</summary>
+    /// <summary>The shield absorb amount active on the source at the cast.</summary>
     public virtual int? Absorb { get; set; }
     /// <summary>The channel this cast started, linked in by <see cref="Analysis.Normalizers.CastLinkNormalizer"/>.</summary>
     public virtual EndChannelEvent? Channel { get; set; }
@@ -42,12 +42,12 @@ public class CastEvent : BaseCastEvent
     /// <summary>FellowshipLogs cast-start marker (beginning of a cast with cast time).</summary>
     public virtual bool Activation { get; set; }
 }
-/// <summary>The FellowshipLogs <c>freecast</c> event, raised for a cast detected as having no resource cost.</summary>
+/// <summary>The FellowshipLogs <c>freecast</c> event, raised for a cast with no resource cost.</summary>
 public class FreeCastEvent : BaseCastEvent { }
 /// <summary>The FellowshipLogs <c>leech</c> event, raised for a cast triggered by a life-leech effect.</summary>
 public class LeechEvent : BaseCastEvent { }
 /// <summary>
-/// The FellowshipLogs <c>cooldowninfo</c> event, carrying cooldown metadata that arrives ahead of the
+/// The FellowshipLogs <c>cooldowninfo</c> event, with cooldown metadata that arrives ahead of the
 /// full <see cref="CastEvent"/>; <see cref="Analysis.SpellUsable"/> uses it to begin an ability's cooldown early.
 /// </summary>
 public class FilterCooldownInfoEvent : BaseCastEvent

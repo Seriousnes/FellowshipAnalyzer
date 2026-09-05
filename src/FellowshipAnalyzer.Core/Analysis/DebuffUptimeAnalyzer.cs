@@ -5,7 +5,7 @@ namespace FellowshipAnalyzer.Core.Analysis;
 /// <summary>
 /// Measures how continuously one debuff stayed on the pull's primary target. Presence windows are
 /// tracked per (TargetId, TargetInstance) by an <see cref="AuraWindowLedger"/>; the primary target is
-/// the one with the most active time, so transient adds never dilute the boss reading.
+/// the one with the most active time, so transient adds never dilute the boss uptime.
 /// <see cref="Uptime"/> is the primary target's active time against the pull duration, and gaps are
 /// the gaps between that target's windows, so lead-in before the first application
 /// lowers uptime without counting as a gap.
@@ -13,8 +13,8 @@ namespace FellowshipAnalyzer.Core.Analysis;
 /// Derive a per-hero analyzer from this, keep <c>[ForPull]</c> and the surface marker interface on
 /// the leaf, and declare the debuff's own <c>[On&lt;&gt;]</c> handlers there: apply and refresh call
 /// <see cref="OpenWindow"/>, remove calls <see cref="CloseWindow"/>, and every other event the
-/// debuff emits on its target (stack changes, DoT ticks) calls <see cref="ObserveTarget"/>. Those
-/// observations are what let a window close honestly when the target stops emitting.
+/// debuff emits on its target (stack changes, DoT ticks) calls <see cref="ObserveTarget"/>. That is
+/// what lets a window close honestly when the target stops emitting.
 /// </para>
 /// </summary>
 public abstract class DebuffUptimeAnalyzer : Analyzer
@@ -45,14 +45,14 @@ public abstract class DebuffUptimeAnalyzer : Analyzer
 
     /// <summary>
     /// Opens a window on <paramref name="target"/> unless one is already open, and records the event
-    /// as an observation of that target. Call from apply and refresh handlers.
+    /// against that target. Call from apply and refresh handlers.
     /// </summary>
     protected void OpenWindow(IHasTargetWithInstanceEvent target, int timestamp) =>
         _ledger.Open(target, timestamp);
 
     /// <summary>
-    /// Closes the window open on <paramref name="target"/>, if any, and records the event as an
-    /// observation of that target. Call from remove handlers.
+    /// Closes the window open on <paramref name="target"/>, if any, and records the event against that
+    /// target. Call from remove handlers.
     /// </summary>
     protected void CloseWindow(IHasTargetWithInstanceEvent target, int timestamp) =>
         _ledger.Close(target, timestamp);

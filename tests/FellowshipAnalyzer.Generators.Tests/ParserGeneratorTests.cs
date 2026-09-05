@@ -387,7 +387,7 @@ public class ParserGeneratorTests
     /// <summary>
     /// The generator routes purely on <c>[ForPull]</c>, so <c>[AddModule]</c> over a <c>[ForPull]</c>
     /// analyzer still produces the pull surface. Diagnostic FA0019 is what rejects that combination, and
-    /// this harness runs generators only, so the routing is observable here and nowhere in the product.
+    /// this harness runs generators only, so the routing happens here and nowhere in the product.
     /// </summary>
     [Fact]
     public void AddModuleOfForPullAnalyzer_RoutesToThePullSurface()

@@ -6,6 +6,7 @@
 @using CoreReportDungeon = FellowshipAnalyzer.Core.FellowshipLogs.ReportDungeon
 @using CoreReportInfo = FellowshipAnalyzer.Core.FellowshipLogs.ReportInfo
 @using FellowshipAnalyzer.Core.UI.Deaths
+@using FellowshipAnalyzer.Core.UI.Icons
 @using FellowshipAnalyzer.Core.UI.Timeline
 @using FellowshipAnalyzer.Services
 @inject ReportAnalysisService AnalysisService
@@ -90,15 +91,7 @@
             <Tabs Variant="TabsVariant.Underline" DefaultActiveId="guide" Actions="@RenderPullFilter()">
                 <TabItem Id="guide">
                     <LabelTemplate>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                            <line x1="8" y1="6" x2="21" y2="6" />
-                            <line x1="8" y1="12" x2="21" y2="12" />
-                            <line x1="8" y1="18" x2="21" y2="18" />
-                            <line x1="3" y1="6" x2="3.01" y2="6" />
-                            <line x1="3" y1="12" x2="3.01" y2="12" />
-                            <line x1="3" y1="18" x2="3.01" y2="18" />
-                        </svg>
-                        Guide
+                        <GuideIcon /> Guide
                     </LabelTemplate>
                     <ChildContent>
                         <section class="guide-panel">
@@ -115,11 +108,7 @@
                 </TabItem>
                 <TabItem Id="statistics">
                     <LabelTemplate>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                            <line x1="18" y1="20" x2="18" y2="10" />
-                            <line x1="12" y1="20" x2="12" y2="4" />
-                            <line x1="6" y1="20" x2="6" y2="14" />
-                        </svg>
+                        <StatisticsIcon />
                         Statistics
                     </LabelTemplate>
                     <ChildContent>
@@ -128,12 +117,7 @@
                 </TabItem>
                 <TabItem Id="deaths">
                     <LabelTemplate>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                            <path d="M12 2a8 8 0 0 0-4 14.9V20a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-3.1A8 8 0 0 0 12 2z" />
-                            <circle cx="9" cy="10" r="1.5" />
-                            <circle cx="15" cy="10" r="1.5" />
-                            <line x1="12" y1="17" x2="12" y2="21" />
-                        </svg>
+                        <DeathsIcon />
                         Deaths
                     </LabelTemplate>
                     <ChildContent>
@@ -144,11 +128,7 @@
                 </TabItem>
                 <TabItem Id="timeline">
                     <LabelTemplate>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                            <line x1="3" y1="6" x2="21" y2="6" />
-                            <line x1="3" y1="12" x2="15" y2="12" />
-                            <line x1="3" y1="18" x2="18" y2="18" />
-                        </svg>
+                        <TimelineIcon />
                         Timeline
                     </LabelTemplate>
                     <ChildContent>
@@ -159,43 +139,17 @@
                 </TabItem>
                 <TabItem Id="about">
                     <LabelTemplate>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                            <circle cx="12" cy="12" r="10" />
-                            <line x1="12" y1="8" x2="12" y2="12" />
-                            <line x1="12" y1="16" x2="12.01" y2="16" />
-                        </svg>
+                        <AboutIcon />
                         About
                     </LabelTemplate>
                     <ChildContent>
                         <Tabs Variant="TabsVariant.Pill" @bind-ActiveId="_aboutSubViewId">
                             <TabItem Id="overview" Label="Overview">
-                                <div class="about-overview">
-                                    <dl class="about-meta">
-                                        <dt>Report</dt>
-                                        <dd>@ReportCode</dd>
-                                        <dt>Dungeon</dt>
-                                        <dd>@DungeonId</dd>
-                                        <dt>Player</dt>
-                                        <dd>@PlayerId</dd>
-                                        <dt>Events</dt>
-                                        <dd>
-                                            @if (_selectedPull is { } selectedPull)
-                                            {
-                                                @($"{CountEventsInPull(selectedPull):N0} in selected pull ({_context.Analysis.Events.Count:N0} total)")
-                                            }
-                                            else
-                                            {
-                                                @($"{_context.Analysis.Events.Count} total")
-                                            }
-                                        </dd>
-                                        <dt>Dungeon Duration</dt>
-                                        <dd>@FormatDuration(_context.Dungeon.EndTime - _context.Dungeon.StartTime)</dd>
-                                    </dl>
-                                    <div class="about-overview-links">
-                                        <Badge Variant="BadgeVariant.Gold" OnClick="@(() => _aboutSubViewId = "events")">View Events List →</Badge>
-                                        <Badge Variant="BadgeVariant.Gold" OnClick="@(() => _aboutSubViewId = "debug")">View Debug Annotations →</Badge>
-                                    </div>
-                                </div>
+                                <Overview ReportCode="@ReportCode"
+                                          DungeonId="@DungeonId"
+                                          PlayerId="@PlayerId"
+                                          OnViewEvents='@(() => _aboutSubViewId = "events")'
+                                          OnViewDebugAnnotations='@(() => _aboutSubViewId = "debug")' />
                             </TabItem>
                             <TabItem Id="events" Label="Events">
                                 <EventsView Events="@_context.Analysis.Events" />
@@ -333,11 +287,6 @@
                             ValueChanged="OnSelectedPullChanged"
                             DungeonStartTime="context.DungeonStartTime" />;
     }
-
-    private int CountEventsInPull(PullStartEvent pull) =>
-        _context?.Analysis is { } analysis
-            ? analysis.Events.Count(e => e.Timestamp >= pull.StartTime && e.Timestamp <= pull.EndTime)
-            : 0;
 
     private List<BreadcrumbItem> BuildBreadcrumbs(ReportHeader header)
     {

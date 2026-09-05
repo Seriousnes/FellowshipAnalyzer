@@ -38,14 +38,14 @@ public sealed partial class HammerStormAnalyzer : Analyzer
 
     public int CompleteChannels => Evaluated.Count(cast => cast.SpinsCompleted >= ExpectedSpins);
 
-    public int WhiffedCasts => Evaluated.Count(cast => cast.TargetsHit == 0);
+    public int ChannelsWithoutTargets => Evaluated.Count(cast => cast.TargetsHit == 0);
 
     public double AverageTargetsHit
     {
         get
         {
-            var connected = Evaluated.Where(cast => cast.TargetsHit > 0).ToList();
-            return connected.Count == 0 ? 0d : connected.Average(cast => cast.TargetsHit);
+            var withTargets = Evaluated.Where(cast => cast.TargetsHit > 0).ToList();
+            return withTargets.Count == 0 ? 0d : withTargets.Average(cast => cast.TargetsHit);
         }
     }
 

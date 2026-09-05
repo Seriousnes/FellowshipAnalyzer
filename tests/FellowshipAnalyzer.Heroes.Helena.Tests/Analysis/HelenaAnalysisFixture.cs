@@ -38,8 +38,8 @@ internal static class HelenaAnalysisFixture
 
     /// <summary>
     /// Runs the parser for a player who selected <paramref name="talents"/>, so <c>[RequiresTalent]</c>
-    /// modules are constructed. Without them a talent-gated module never exists and every metric it
-    /// carries reads a silent zero.
+    /// modules are constructed. Without them a talent-gated module never exists and its metrics read a
+    /// silent zero.
     /// </summary>
     public static async Task<HelenaCombatLogParser> AnalyzeWithTalents(Talent[] talents, params Event[] events)
     {
@@ -63,7 +63,7 @@ internal static class HelenaAnalysisFixture
     };
 
     /// <summary>
-    /// A player cast, optionally carrying a Toughness snapshot. Log resource values are scaled by 100
+    /// A player cast, optionally with Toughness in its source resources. Log resource values are scaled by 100
     /// and divided back down by <c>ResourceNormalizer</c>, so the raw amounts are stored multiplied.
     /// </summary>
     public static CastEvent Cast(int timestamp, Spell spell, int? toughness = null, int toughnessMax = 1_000) =>
@@ -79,7 +79,7 @@ internal static class HelenaAnalysisFixture
         };
 
     /// <summary>
-    /// A hit the player took, optionally carrying a Toughness snapshot on the target. It is dealt by
+    /// A hit the player took, optionally with Toughness in its target resources. It is dealt by
     /// <see cref="PhysicalAbility"/> when <paramref name="physical"/> is set and by Helena's own Attack
     /// otherwise, which the game data leaves unclassified so a physical-only population rejects it.
     /// </summary>
@@ -137,7 +137,7 @@ internal static class HelenaAnalysisFixture
             timestamp, amount, amount + absorbed + blocked, 0, absorbed, blocked, hitType,
             toughness, toughnessMax, physical: true, tick: tick);
 
-    /// <summary>A bare event carrying only a Toughness snapshot on the player, for band sampling.</summary>
+    /// <summary>A bare event with only Toughness on the player, for band sampling.</summary>
     public static DamageEvent ToughnessSample(int timestamp, int toughness, int toughnessMax = 1_000) =>
         DamageTaken(timestamp, 0, 0, 0, toughness: toughness, toughnessMax: toughnessMax);
 

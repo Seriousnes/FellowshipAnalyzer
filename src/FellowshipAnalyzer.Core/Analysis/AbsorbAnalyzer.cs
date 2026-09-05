@@ -3,15 +3,13 @@ using FellowshipAnalyzer.Core.Events;
 namespace FellowshipAnalyzer.Core.Analysis;
 
 /// <summary>
-/// Measures what an absorb shield consumed against what was still on it when it came off. The removal
-/// event carries the absorb that was left, so the waste is a reading rather than an inference; a
-/// shield consumed to nothing carries none.
+/// Measures what an absorb shield consumed against what was still on it when it came off.
 /// <para>
 /// Derive a per-hero analyzer from this, keep <c>[ForPull]</c> and the surface marker interface on the
 /// leaf, and declare the shield's own <c>[On&lt;&gt;]</c> handlers there: apply and refresh call
 /// <see cref="OpenShield"/>, remove calls <see cref="CloseShield"/>, and
 /// <see cref="AbsorbedEvent"/> calls <see cref="RecordAbsorbed"/>. Shields are kept per target, so a
-/// healer's shields on four allies are four separate readings and a self barrier is one.
+/// healer's shields on four allies are four separate windows and a self barrier is one.
 /// </para>
 /// </summary>
 public abstract class AbsorbAnalyzer : Analyzer
@@ -22,10 +20,10 @@ public abstract class AbsorbAnalyzer : Analyzer
     private Computed Result => field ??= Compute();
 
     /// <summary>
-    /// Whether laying a shield on a target that already carries one starts a fresh reading. Shields
-    /// that stack as separate applications set this; a shield whose re-application only extends the
-    /// window it already has leaves it false, so the window stays one reading and
-    /// <see cref="Applications"/> is what runs ahead.
+    /// Whether laying a shield on a target that already has one starts a fresh window. Shields that
+    /// stack as separate applications set this; a shield whose re-application only extends the window
+    /// it already has leaves it false, so it stays one window and <see cref="Applications"/> is what
+    /// runs ahead.
     /// </summary>
     protected virtual bool ReapplicationOpensNewAbsorb => false;
 
@@ -61,7 +59,7 @@ public abstract class AbsorbAnalyzer : Analyzer
     }
 
     /// <summary>
-    /// Opens a shield on the event's target, carrying the absorb the application put on it. Call from
+    /// Opens a shield on the event's target with the absorb the application put on it. Call from
     /// apply and refresh handlers, passing the event's own <c>Absorb</c> as <paramref name="absorbAmount"/>.
     /// </summary>
     protected void OpenShield<TEvent>(TEvent e, long absorbAmount) where TEvent : Event, IHasTargetWithInstanceEvent
@@ -169,7 +167,7 @@ public abstract class AbsorbAnalyzer : Analyzer
 
 /// <summary>One hit an absorb shield took a share of.</summary>
 /// <param name="Timestamp">When the hit was taken.</param>
-/// <param name="Amount">Damage this shield removed from the hit. Several shields covering one hit each record their own share.</param>
+/// <param name="Amount">Damage this shield removed from the hit. Several shields absorbing one hit each record their own share.</param>
 /// <param name="AttackerId">The unit that dealt the hit, when the event names one.</param>
 /// <param name="Ability">The ability that dealt the hit, when the event names one.</param>
 public sealed record AbsorbHit(int Timestamp, long Amount, int? AttackerId, Ability? Ability);

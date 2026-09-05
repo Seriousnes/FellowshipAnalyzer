@@ -2,48 +2,32 @@
 
 <PageTitle>Guide layout - Design System</PageTitle>
 
-<h1>GuideContainer / Section / SubSection / GuideSection / SideBySidePanels</h1>
+<h1>Section / SubSection / GuideSection / SideBySidePanels</h1>
 <p class="lede">Top-level layout primitives that organize a hero's Guide tab. Compose these around your analysis data - never restyle them.</p>
 
-<CodeExample Title="GuideContainer"
-             Description="Root flex-column wrapper. Wrap every guide root in this."
-             Code="@_containerCode">
-    <Demo>
-        <GuideContainer>
-            <p>First child</p>
-            <p>Second child</p>
-            <p>Third child</p>
-        </GuideContainer>
-    </Demo>
-</CodeExample>
-
-<CodeExample Title="Section - collapsible top-level region"
-             Description="Yellow header, default expanded. Pass Expanded=false to start collapsed."
+<CodeExample Title="Section - top-level region"
+             Description="Full-width band on the page background, titled in gold a step larger than a GuideSection title and expanded by default. Pass Expanded=false to start collapsed."
              Code="@_sectionCode">
     <Demo>
-        <GuideContainer>
-            <Section Title="Damage rotation">
-                <p>Section body. Click the header to collapse.</p>
-            </Section>
-            <Section Title="Cooldown usage" Expanded="false">
-                <p>This one starts collapsed.</p>
-            </Section>
-        </GuideContainer>
+        <Section Title="Damage rotation">
+            <p>Section body. Click the header to collapse.</p>
+        </Section>
+        <Section Title="Cooldown usage" Expanded="false">
+            <p>This one starts collapsed.</p>
+        </Section>
     </Demo>
 </CodeExample>
 
-<CodeExample Title="SubSection - non-collapsible grouping inside Section" Code="@_subSectionCode">
+<CodeExample Title="SubSection - grouping inside Section" Code="@_subSectionCode">
     <Demo>
-        <GuideContainer>
-            <Section Title="Damage analysis">
-                <SubSection Title="Single-target rotation">
-                    <p>Body for single-target.</p>
-                </SubSection>
-                <SubSection Title="AOE rotation">
-                    <p>Body for AOE.</p>
-                </SubSection>
-            </Section>
-        </GuideContainer>
+        <Section Title="Damage analysis">
+            <SubSection Title="Single-target rotation">
+                <p>Body for single-target.</p>
+            </SubSection>
+            <SubSection Title="AOE rotation">
+                <p>Body for AOE.</p>
+            </SubSection>
+        </Section>
     </Demo>
 </CodeExample>
 
@@ -74,13 +58,6 @@
 </CodeExample>
 
 @code {
-    private const string _containerCode = """
-<GuideContainer>
-    <Section Title="...">...</Section>
-    <Section Title="...">...</Section>
-</GuideContainer>
-""";
-
     private const string _sectionCode = """
 <Section Title="Damage rotation">
     ...

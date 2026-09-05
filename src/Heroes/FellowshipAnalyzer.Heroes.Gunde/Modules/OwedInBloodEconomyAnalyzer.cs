@@ -11,7 +11,7 @@ public sealed partial class OwedInBloodEconomyAnalyzer : Analyzer
 
     public const int ConversionGraceMs = 1_000;
 
-    public const int CashWindowMs = 5_000;
+    public const int FollowUpWindowMs = 5_000;
 
     public const int OpenWoundsDurationMs = 18_000;
 
@@ -145,9 +145,9 @@ public sealed partial class OwedInBloodEconomyAnalyzer : Analyzer
         var total = 0;
         foreach (var pending in _pending)
         {
-            var cashed = _slaughters.FirstOrDefault(slaughter =>
+            var followingSlaughter = _slaughters.FirstOrDefault(slaughter =>
                 slaughter.Timestamp > pending.Timestamp &&
-                slaughter.Timestamp - pending.Timestamp <= CashWindowMs);
+                slaughter.Timestamp - pending.Timestamp <= FollowUpWindowMs);
 
             total += pending.StacksConverted;
             conversions.Add(new OwedInBloodConversion(
@@ -155,8 +155,8 @@ public sealed partial class OwedInBloodEconomyAnalyzer : Analyzer
                 pending.StacksConverted,
                 pending.BankObserved,
                 pending.AbilityId,
-                cashed is not null,
-                cashed?.OpenWoundsActive ?? false,
+                followingSlaughter is not null,
+                followingSlaughter?.OpenWoundsActive ?? false,
                 pending.SpiritActive));
         }
 

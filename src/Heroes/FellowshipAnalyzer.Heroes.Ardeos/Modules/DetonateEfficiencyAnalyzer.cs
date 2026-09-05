@@ -61,7 +61,7 @@ public sealed partial class DetonateEfficiencyAnalyzer : Analyzer
 
     public int FreeCasts => _casts.Count(cast => cast.Free);
 
-    public int PaidCasts => _casts.Count - FreeCasts;
+    public int NotFreeCasts => _casts.Count - FreeCasts;
 
     public int SurgeStacksGained { get; private set; }
 

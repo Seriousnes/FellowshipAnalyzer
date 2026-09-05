@@ -7,8 +7,8 @@ namespace FellowshipAnalyzer.Core.Analysis;
 /// out. Shared by <see cref="DebuffUptimeAnalyzer"/>, which collapses the result to a primary
 /// target, and <see cref="AllTargetUptimeAnalyzer"/>, which keeps every target.
 /// <para>
-/// A window left open when <see cref="Build"/> is called is closed at the last moment its target was
-/// observed, so an aura the log stops reporting does not run to the end of the pull unearned.
+/// A window left open when <see cref="Build"/> is called is closed at its target's last event, so
+/// an aura the log stops reporting does not run to the end of the pull unearned.
 /// </para>
 /// </summary>
 public sealed class AuraWindowLedger
@@ -19,7 +19,7 @@ public sealed class AuraWindowLedger
 
     /// <summary>
     /// Opens a window on <paramref name="target"/> unless one is already open, and records the event
-    /// as an observation of that target.
+    /// against that target.
     /// </summary>
     public void Open(IHasTargetWithInstanceEvent target, int timestamp)
     {
@@ -29,8 +29,8 @@ public sealed class AuraWindowLedger
     }
 
     /// <summary>
-    /// Closes the window open on <paramref name="target"/>, if any, and records the event as an
-    /// observation of that target.
+    /// Closes the window open on <paramref name="target"/>, if any, and records the event against that
+    /// target.
     /// </summary>
     public void Close(IHasTargetWithInstanceEvent target, int timestamp)
     {
@@ -50,7 +50,7 @@ public sealed class AuraWindowLedger
 
     /// <summary>
     /// Every target's windows in encounter order, with any still-open window closed at that target's
-    /// last observation. Targets that never carried the aura are absent.
+    /// last event. Targets the aura was never active on are absent.
     /// </summary>
     public Dictionary<UnitKey, List<AuraWindow>> Build()
     {

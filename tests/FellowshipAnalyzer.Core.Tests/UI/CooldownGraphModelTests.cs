@@ -94,7 +94,7 @@ public sealed class CooldownGraphModelTests
     }
 
     [Fact]
-    public void AHoldSpanningTimeBetweenTwoPulls_IsJudgedPerPullRatherThanEndToEnd()
+    public void AHoldSpanningTimeBetweenTwoPulls_IsRatedPerPullRatherThanEndToEnd()
     {
         var lane = Single([], [Pull(0, 0, 10_000), Pull(1, 60_000, 70_000)], 0, 70_000);
 

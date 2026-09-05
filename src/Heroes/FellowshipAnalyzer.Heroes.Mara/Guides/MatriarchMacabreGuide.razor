@@ -1,6 +1,6 @@
 @inherits GuideComponent<MaraCombatLogParser>
 
-<GuideSection Title="Matriarch Macabre Windows">
+<GuideSection Title="Matriarch Macabre">
     <LeftPanel>
         <p>
             Attempt to cast as many finishers as possible during the <SpellLink Spell="Spells.MatriarchMacabre" /> window.
@@ -9,7 +9,7 @@
     <RightPanel>
         <CastOverview Title="Matriarch Overview" Stats="@BuildOverviewStats()" />
         <CastDetail Title="Matriarch Windows"
-                    Description="Each row is one Matriarch Macabre usage, with the finishers cast inside it."
+                    Description="Each row is one Matriarch Macabre window, with the finishers cast inside it."
                     Casts="@BuildPerCastData()" />
     </RightPanel>
 </GuideSection>
@@ -26,27 +26,20 @@
 
         var windows = analyzers.Sum(analyzer => analyzer.WindowCount);
         var converted = analyzers.Sum(analyzer => analyzer.ConvertedWindows);
-        var imitated = analyzers.Sum(analyzer => analyzer.ImitatedCasts);
-        var queensFang = analyzers.Sum(analyzer => analyzer.QueensFangCasts);
-        var arachnid = analyzers.Sum(analyzer => analyzer.ArachnidAssaultCasts);
-        var casts = analyzers.Sum(analyzer => analyzer.MatriarchMacabreCasts);
-        var average = windows == 0 ? 0d : (double)imitated / windows;
+        var finishers = analyzers.Sum(analyzer => analyzer.FinisherCasts);
+        var average = windows == 0 ? 0d : (double)finishers / windows;
 
         return
         [
             new OverviewStat(
-                $"{imitated}",
+                $"{finishers}",
                 "Finishers in Window",
-                windows == 0
-                    ? $"No Matriarch Macabre window was observed across {Count(casts, "cast")}, so there is nothing to measure."
-                    : $"{queensFang} Queen's Fang and {arachnid} Arachnid Assault casts inside a window, {average:0.0} per window.",
-                ImitatedTier(average, windows)),
+                "Queen's Fang and Arachnid Assault casts inside a window.",
+                FinisherTier(average, windows)),
             new OverviewStat(
                 $"{converted}/{windows}",
                 "Windows Used",
-                windows == 0
-                    ? "No Matriarch Macabre window was observed."
-                    : $"Windows with at least one finisher cast, out of {Count(windows, "window")}.",
+                "Windows with at least one finisher cast.",
                 ConversionTier(converted, windows)),
         ];
     }
@@ -62,12 +55,12 @@
             new PerCastStat(
                 FormatSeconds(window.DurationMs),
                 "Window",
-                $"How long the Matriarch Macabre buff was active, against its {MatriarchMacabreAnalyzer.WindowMs / 1000}-second duration."),
+                "How long the Matriarch Macabre buff was active."),
             new PerCastStat(
-                $"{window.ImitatedCasts}",
+                $"{window.FinisherCasts}",
                 "Finishers in Window",
                 "Queen's Fang and Arachnid Assault casts inside the window.",
-                Performance: ImitatedTier(window.ImitatedCasts, 1)),
+                Performance: FinisherTier(window.FinisherCasts, 1)),
             new PerCastStat(
                 $"{window.QueensFangCasts}",
                 "Queen's Fang",
@@ -80,7 +73,7 @@
 
         return new PerCastRow
         {
-            Performance = ImitatedTier(window.ImitatedCasts, 1) ?? QualitativePerformance.Ok,
+            Performance = FinisherTier(window.FinisherCasts, 1) ?? QualitativePerformance.Ok,
             Stats = stats,
             Timestamp = window.OpenedAt,
             Details = @<div>@BuildWindowNote(window)</div>,
@@ -88,9 +81,9 @@
     }
 
     private static string BuildWindowNote(MatriarchMacabreWindow window) =>
-        window.ImitatedCasts == 0
+        window.FinisherCasts == 0
             ? $"This {FormatSeconds(window.DurationMs)} window expired with no Queen's Fang or Arachnid Assault in it."
-            : $"{Count(window.ImitatedCasts, "finisher")} went out over {FormatSeconds(window.DurationMs)}.";
+            : $"{Count(window.FinisherCasts, "finisher")} cast in this {FormatSeconds(window.DurationMs)} window.";
 
     private static string Count(int value, string noun) =>
         value == 1 ? $"1 {noun}" : $"{value} {noun}s";
@@ -98,8 +91,8 @@
     private static string FormatSeconds(int milliseconds) =>
         $"{milliseconds / 1000d:0.#}s";
 
-    private static QualitativePerformance? ImitatedTier(double imitated, int windows) =>
-        windows == 0 ? null : PerformanceTiers.FromThresholds(imitated, 4, 3, 2);
+    private static QualitativePerformance? FinisherTier(double finishers, int windows) =>
+        windows == 0 ? null : PerformanceTiers.FromThresholds(finishers, 4, 3, 2);
 
     private static QualitativePerformance? ConversionTier(int converted, int total) =>
         total == 0 ? null

@@ -18,9 +18,8 @@ using Spells = FellowshipAnalyzer.Core.Common.Spells.Rime.Spells;
 namespace FellowshipAnalyzer.Heroes.Rime.Tests.Modules;
 
 /// <summary>
-/// Exercises the Winter Orb reconstruction against hand-fabricated cast snapshots. The captured
-/// Rime fixture carries no resource snapshots at all, so every branch of the reconstruction can
-/// only be reached from fabricated events.
+/// Exercises the Winter Orb reconstruction against hand-fabricated casts, which supply the
+/// resource amounts every branch of the reconstruction needs.
 /// </summary>
 public sealed class WinterOrbTrackerTests
 {
@@ -300,8 +299,8 @@ public sealed class WinterOrbTrackerTests
     }
 
     /// <summary>
-    /// Asserts the accounting identity, which holds for a pool observed from empty. A scenario that
-    /// seeds on a non-empty snapshot carries that seed as untracked Current and uses
+    /// Asserts the accounting identity, which holds for a pool tracked from empty. A scenario that
+    /// seeds on a non-empty pool keeps that seed as untracked Current and uses
     /// <see cref="ShouldStayInRange"/> instead.
     /// </summary>
     private static void ShouldBalance(WinterOrbTracker tracker)
@@ -322,7 +321,7 @@ public sealed class WinterOrbTrackerTests
     private static CastEvent EmptyPool(int timestamp) => Cast(timestamp, Spells.FrostBolt, orbs: 0);
 
     /// <summary>
-    /// A player cast, optionally carrying the Winter Orb snapshot the log would attach. Raw
+    /// A player cast, optionally with the Winter Orb amount the log would attach. Raw
     /// Fellowship resource values are scaled by 100, so the in-game orb count is stored multiplied.
     /// </summary>
     private static CastEvent Cast(int timestamp, Spell spell, int? orbs)

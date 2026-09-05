@@ -5,7 +5,7 @@ using FellowshipAnalyzer.Core.Game;
 namespace FellowshipAnalyzer.Core.Analysis;
 
 /// <summary>
-/// One combat unit the dungeon names, identified by its actor id and carrying the aura history
+/// One combat unit the dungeon names, identified by its actor id and with the aura history
 /// <see cref="Entity"/> tracks. A group member other than the analyzed player is a plain
 /// <see cref="Combatant"/>; an enemy is an <see cref="Enemy"/>, which adds its spawn instance; the
 /// analyzed player is a <see cref="FullCombatant"/>, the only one a
@@ -20,8 +20,8 @@ public class Combatant(int id) : Entity
 /// <summary>
 /// The analyzed player, with gear, talents, and buff history. Populated from a
 /// <see cref="CombatantInfoEvent"/> at the start of analysis. The player's stat ratings and derived
-/// cooldown values are exposed as a frozen <see cref="CombatantStats"/> snapshot on <see cref="Stats"/>,
-/// built once from the combatantinfo.
+/// cooldown values are exposed as a frozen <see cref="CombatantStats"/> on <see cref="Stats"/>, built
+/// once from the combatantinfo.
 /// </summary>
 public sealed class FullCombatant : Combatant
 {
@@ -37,7 +37,7 @@ public sealed class FullCombatant : Combatant
     private const int LegendaryQuality = 6;
     private const double StrandOfEternityAcceleration = 0.10;
 
-    /// <summary>Builds the combatant's gear index and computes its derived <see cref="Stats"/> snapshot from the given combatantinfo.</summary>
+    /// <summary>Builds the combatant's gear index and computes its derived <see cref="Stats"/> from the given combatantinfo.</summary>
     public FullCombatant(CombatantInfoEvent info) : base(info.SourceId)
     {
         Info = info;
@@ -55,7 +55,7 @@ public sealed class FullCombatant : Combatant
     /// <summary>The raw <see cref="CombatantInfoEvent"/> this combatant was built from.</summary>
     public CombatantInfoEvent Info { get; }
 
-    /// <summary>Frozen snapshot of the player's stat ratings and derived cooldown values, built once from the combatantinfo.</summary>
+    /// <summary>The player's stat ratings and derived cooldown values, built once from the combatantinfo.</summary>
     public CombatantStats Stats { get; init; }
 
     /// <summary>The combatant's average equipped item level.</summary>
@@ -133,7 +133,7 @@ public sealed class FullCombatant : Combatant
     /// <summary>True when an item with the given item id is equipped.</summary>
     public bool HasItem(int itemId) => _itemById.ContainsKey(itemId);
 
-    /// <summary>The talents the player had selected, as recorded in the combatantinfo.</summary>
+    /// <summary>The talents the player had selected.</summary>
     public List<TalentInfo> Talents => Info.Talents;
 
     /// <summary>
@@ -156,7 +156,7 @@ public sealed class FullCombatant : Combatant
 
     /// <summary>
     /// The highest allocated level of the named blessing across every gear slot, or 0 when the player has
-    /// none. The same blessing carries a different id per slot, so the name is what identifies it.
+    /// none. The same blessing has a different id per slot, so the name is what identifies it.
     /// </summary>
     public int BlessingLevel(string blessingName)
     {
@@ -220,7 +220,7 @@ public sealed class FullCombatant : Combatant
 }
 
 /// <summary>
-/// Frozen snapshot of a <see cref="FullCombatant"/>'s stat ratings and derived cooldown values, built once from
+/// A <see cref="FullCombatant"/>'s stat ratings and derived cooldown values, built once from
 /// the <see cref="CombatantInfoEvent"/> when the combatant is constructed. The rating fields are copied
 /// straight from the combatantinfo; the cooldown fields are computed from gem-power rank unlocks and equipped
 /// gear.
