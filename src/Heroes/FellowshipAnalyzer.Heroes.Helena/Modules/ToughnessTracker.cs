@@ -20,7 +20,7 @@ public sealed partial class ToughnessTracker : ResourceTracker
     private readonly List<MitigatedHit> _mitigatedHits = [];
 
     private Event? _lastSampledEvent;
-    private int _observedBlocks;
+    private int _blocks;
     private int _overcappedBlocks;
 
     private Computed Result => field ??= Compute();
@@ -82,13 +82,13 @@ public sealed partial class ToughnessTracker : ResourceTracker
 
     public int OvercappedBlocks => _overcappedBlocks;
 
-    public int ObservedBlocks => _observedBlocks;
+    public int Blocks => _blocks;
 
     public double OvercappedCastShare =>
         Result.GeneratorCastTotal > 0 ? (double)Result.OvercappedCastTotal / Result.GeneratorCastTotal : 0;
 
     public double OvercappedBlockShare =>
-        _observedBlocks > 0 ? (double)_overcappedBlocks / _observedBlocks : 0;
+        _blocks > 0 ? (double)_overcappedBlocks / _blocks : 0;
 
     public int OvercappedCastsFor(int spellId) => Result.OvercappedCasts.GetValueOrDefault(spellId);
 
@@ -114,7 +114,7 @@ public sealed partial class ToughnessTracker : ResourceTracker
         if (damageEvent.HitType != HitType.Block) return;
         if (FindToughness(damageEvent.TargetResources) is not { Max: > 0 } toughness) return;
 
-        _observedBlocks++;
+        _blocks++;
         if (toughness.Amount < toughness.Max) return;
 
         _overcappedBlocks++;

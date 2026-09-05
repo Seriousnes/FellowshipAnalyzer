@@ -8,12 +8,6 @@
             <Header>
                 <SpellLink Spell="Talents.SwordAndBoard" />
             </Header>
-            <Info>
-                <p>
-                    The damage below is what @FreeCasts free
-                    <SpellLink Spell="Spells.ShieldSlam" /> casts dealt, cleave included.
-                </p>
-            </Info>
             <ChildContent>
                 <StatRow Value="@($"{ExtraDamage:N0}")" Tooltip="@DamageTooltip">
                     extra damage from free casts
@@ -21,13 +15,13 @@
                 @if (ProcsExpired > 0)
                 {
                     <HelperText>
-                        @ProcsExpired of @Procs procs were replaced or expired with no Shield Slam cast under them.
+                        @ProcsExpired of @Procs procs were replaced or expired unused.
                     </HelperText>
                 }
             </ChildContent>
         </StatCard>;
 
     private string DamageTooltip =>
-        $"Every Shield Slam hit dealt between a free cast and the next Shield Slam, across {FreeCasts} " +
-        $"free casts from {Procs} procs.";
+        $"Every Shield Slam hit, cleave included, dealt between a free cast and the next Shield Slam, " +
+        $"across {FreeCasts} free casts from {Procs} procs.";
 }

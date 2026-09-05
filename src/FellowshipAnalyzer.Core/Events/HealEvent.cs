@@ -3,7 +3,7 @@ using FellowshipAnalyzer.Core.Common.Spells;
 
 namespace FellowshipAnalyzer.Core.Events;
 
-/// <summary>A heal cast landing on a target, recording the healer, the target, and how much of the healing was effective versus overhealed.</summary>
+/// <summary>A heal on a target, naming the healer, the target, and how much of the healing was effective versus overhealed.</summary>
 public class HealEvent : Event, IAbilityEvent, IHasSourceWithInstanceEvent, IHasTargetWithInstanceEvent, IAmountEvent
 {
     /// <summary>
@@ -48,7 +48,7 @@ public class HealEvent : Event, IAbilityEvent, IHasSourceWithInstanceEvent, IHas
     public bool IsCritical => HitType is HitType.Crit or HitType.GrievousCrit;
 }
 
-/// <summary>A heal mirrored onto a beacon-bound target, redirecting part of the healing recorded in <see cref="OriginalHeal"/>.</summary>
+/// <summary>A heal mirrored onto a beacon-bound target, redirecting part of the healing in <see cref="OriginalHeal"/>.</summary>
 public class BeaconHealEvent : HealEvent
 {
     /// <summary>The heal event whose healing was mirrored onto the beacon-bound target.</summary>
@@ -58,9 +58,9 @@ public class BeaconHealEvent : HealEvent
 /// <summary>Reports that a beacon heal could not be mirrored onto its bound target.</summary>
 public class BeaconTransferFailedEvent : HealEvent { }
 
-/// <summary>A heal delivered through a feed effect, where <see cref="Feed"/> carries the effect-specific value separate from <see cref="HealEvent.Amount"/>.</summary>
+/// <summary>A heal delivered through a feed effect, where <see cref="Feed"/> is the effect-specific value, separate from <see cref="HealEvent.Amount"/>.</summary>
 public class FeedHealEvent : HealEvent
 {
-    /// <summary>The effect-specific value carried by this feed heal.</summary>
+    /// <summary>The effect-specific value of this feed heal.</summary>
     public virtual int Feed { get; set; }
 }

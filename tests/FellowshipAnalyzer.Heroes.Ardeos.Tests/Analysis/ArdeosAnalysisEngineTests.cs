@@ -211,7 +211,7 @@ public sealed class ArdeosAnalysisEngineTests
     }
 
     [Fact]
-    public async Task NoUsableTarget_FallsBackToEnemyCarryingMostDots()
+    public async Task NoUsableTarget_FallsBackToEnemyWithMostDots()
     {
         const int anchor = 10000;
         var events = new List<Event>

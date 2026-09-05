@@ -23,7 +23,7 @@ public class ResourceGenerationMergeTests
         Run().Talents.Single(t => t.Scope == scope && t.Member == member).Spell.ResourceGeneration.ShouldNotBeNull();
 
     [Fact]
-    public void AbilityStatingAPerCastAmount_CarriesItWithItsCriticalAmount()
+    public void AbilityStatingAPerCastAmount_HasItWithItsCriticalAmount()
     {
         var generation = Merged("aeona", "EchoesOfRuin");
         generation.Resource.ShouldBe(ResourceTypes.Primary);
@@ -41,11 +41,11 @@ public class ResourceGenerationMergeTests
     }
 
     [Fact]
-    public void AbilityStatingNoCriticalAmount_CarriesNone() =>
+    public void AbilityStatingNoCriticalAmount_HasNone() =>
         Merged("aeona", "FlashRevision").CriticalAmount.ShouldBeNull();
 
     [Fact]
-    public void RelicStatingAShareOfTheMaximumPool_LandsInItemsWithThatShare()
+    public void RelicStatingAShareOfTheMaximumPool_IsRoutedToItemsWithThatShare()
     {
         var generation = Merged("items", "RestoreMana");
         generation.Resource.ShouldBe(ResourceTypes.Mana);
@@ -54,7 +54,7 @@ public class ResourceGenerationMergeTests
     }
 
     [Fact]
-    public void TalentStatingAnAmount_CarriesItOnTheTalentTheExportRoutesToTheHero()
+    public void TalentStatingAnAmount_HasItOnTheTalentTheExportRoutesToTheHero()
     {
         var generation = MergedTalent("aeona", "SurgingChrona");
         generation.Resource.ShouldBe(ResourceTypes.Primary);
@@ -63,7 +63,7 @@ public class ResourceGenerationMergeTests
     }
 
     [Fact]
-    public void TalentStatingAnIncrease_CarriesTheFractionAndNoTrigger()
+    public void TalentStatingAnIncrease_HasTheFractionAndNoTrigger()
     {
         MergedTalent("aeona", "Synchronicity").Amount.ShouldBe(0.25);
         MergedTalent("aeona", "Synchronicity").Measure.ShouldBe(GenerationMeasure.Increase);
@@ -80,7 +80,7 @@ public class ResourceGenerationMergeTests
     }
 
     [Fact]
-    public void TalentStatingNoAmount_IsCarriedWithNoGeneration() =>
+    public void TalentStatingNoAmount_HasNoGeneration() =>
         Run().Talents.Single(t => t.Scope == "aeona" && t.Member == "Uchronia")
             .Spell.ResourceGeneration.ShouldBeNull();
 
@@ -114,7 +114,7 @@ public class ResourceGenerationMergeTests
     }
 
     [Fact]
-    public void GeneratedRegistry_ReadsTheChronaTapPayoutOffTheTalent()
+    public void GeneratedRegistry_ReadsTheChronaTapAmountOffTheTalent()
     {
         AeonaTalents.ChronaTap.ResourceGeneration!.Amount.ShouldBe(0.013);
         AeonaTalents.ChronaTap.ResourceGeneration!.Measure.ShouldBe(GenerationMeasure.FractionOfMaximum);

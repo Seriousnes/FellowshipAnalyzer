@@ -24,25 +24,24 @@ namespace FellowshipAnalyzer.Heroes.Aeona.Modules;
 /// <see cref="ResourceTracker.GetWasted"/> and <see cref="ResourceTracker.GetSpent"/> are the base tracker's
 /// raw-event view: gains from <see cref="ResourceChangeEvent"/> and spends from a cast's declared cost.
 /// The <c>Between</c> family, <see cref="AmountAt"/> and <see cref="MaxOf"/> are a reconstructed view built
-/// from the resource snapshots events carry, because Fellowship logs of Aeona emit no
-/// <see cref="ResourceChangeEvent"/> at all and no <see cref="ClassResource.Cost"/> on any snapshot.
+/// from the resource blocks on events.
 /// </para>
 /// <para>
 /// The reconstruction reads <see cref="Event.SourceResources"/> and <see cref="Event.TargetResources"/> on
 /// every event touching the selected player, and turns each change in a tracked resource's amount into a
-/// <see cref="ResourceEvent"/>. Snapshots are sparse and often absent, so the reconstruction never assumes
-/// an entry per event; it only compares consecutive observations.
+/// <see cref="ResourceEvent"/>. Those blocks are sparse, so the reconstruction never assumes an entry per
+/// event; it only compares consecutive ones.
 /// </para>
 /// </remarks>
 public sealed partial class ChronaTracker : ResourceTracker
 {
-    /// <summary>Chrona's cap when no snapshot has reported a maximum for <see cref="ResourceTypes.Primary"/>.</summary>
+    /// <summary>Chrona's cap when nothing has reported a maximum for <see cref="ResourceTypes.Primary"/>.</summary>
     private const int DefaultChronaCap = 100;
 
     /// <summary>
-    /// How long after a generating damage or cast event a snapshot may report the gain it produced.
-    /// Fellowship carries the raised amount on the event after the one that generated it, so the gap is
-    /// the distance to the next event rather than a game rule.
+    /// How long after a generating damage or cast event the gain it produced may be reported. Fellowship
+    /// puts the raised amount on the event after the one that generated it, so the gap is the distance to
+    /// the next event rather than a game rule.
     /// </summary>
     private const int GenerationAttributionWindowMs = 1_000;
 
@@ -76,7 +75,7 @@ public sealed partial class ChronaTracker : ResourceTracker
 
     /// <summary>
     /// The amount of <paramref name="type"/> spent across the whole report. The reconstructed counterpart to
-    /// <see cref="ResourceTracker.GetSpent"/>, net of generation landing in the same interval.
+    /// <see cref="ResourceTracker.GetSpent"/>, net of generation arriving in the same interval.
     /// </summary>
     public int TotalSpent(ResourceTypes type) =>
         _ledgers.TryGetValue(type, out var ledger) ? ledger.Spent : 0;
@@ -98,7 +97,7 @@ public sealed partial class ChronaTracker : ResourceTracker
 
     /// <summary>
     /// The total amount of <paramref name="type"/> generated but lost to the cap between
-    /// <paramref name="start"/> and <paramref name="end"/> inclusive. A gain carries the waste a
+    /// <paramref name="start"/> and <paramref name="end"/> inclusive. A gain includes the waste a
     /// <see cref="ResourceChangeEvent"/> declared, plus any reconstructed excess above
     /// <see cref="MaxOf"/> the gain would have crossed.
     /// </summary>
@@ -113,8 +112,8 @@ public sealed partial class ChronaTracker : ResourceTracker
 
     /// <summary>
     /// The total amount of <paramref name="type"/> spent between <paramref name="start"/> and
-    /// <paramref name="end"/> inclusive. Reconstructed from falling snapshots, so a spend is net of any
-    /// generation that landed in the same interval and is a lower bound on the ability's true cost.
+    /// <paramref name="end"/> inclusive. Reconstructed from a falling pool, so a spend is net of any
+    /// generation that arrived in the same interval and is a lower bound on the ability's true cost.
     /// </summary>
     public int SpentBetween(ResourceTypes type, int start, int end)
     {
@@ -129,8 +128,8 @@ public sealed partial class ChronaTracker : ResourceTracker
     /// <summary>
     /// Every reconstructed change to <paramref name="type"/> between <paramref name="start"/> and
     /// <paramref name="end"/> inclusive, in chronological order. <see cref="ResourceEvent.Id"/> is the FSLID
-    /// of the ability the change is attributed to: for a gain, the ability of the event carrying the
-    /// snapshot, or <c>0</c> when that event is a cast, whose snapshot precedes its own effect; for a spend,
+    /// of the ability the change is attributed to: for a gain, the ability of the event the resource block
+    /// sat on, or <c>0</c> when that event is a cast, whose block precedes its own effect; for a spend,
     /// the player's most recent cast. <see cref="CombatLogParser"/> drops every cast FellowshipLogs marks
     /// <see cref="CastEvent.Fake"/> before dispatch, so the attributed cast is always one that completed.
     /// </summary>
@@ -149,7 +148,7 @@ public sealed partial class ChronaTracker : ResourceTracker
     /// <summary>
     /// Generation of <paramref name="type"/> between <paramref name="start"/> and <paramref name="end"/>
     /// inclusive, split by the ability each gain is attributed to and ordered by usable amount. Unattributed
-    /// gains, which are those observed on a cast snapshot, are grouped under ability id <c>0</c>.
+    /// gains, which are those on a cast's own resource block, are grouped under ability id <c>0</c>.
     /// </summary>
     public IReadOnlyList<AbilityResourceGain> GeneratedByAbilityBetween(ResourceTypes type, int start, int end)
     {
@@ -175,15 +174,14 @@ public sealed partial class ChronaTracker : ResourceTracker
     /// <summary>
     /// Every gain of <paramref name="type"/> between <paramref name="start"/> and <paramref name="end"/>
     /// inclusive, in chronological order, with the amount the game data says the generating ability
-    /// produces set against the rise the snapshots recorded.
+    /// produces set against the rise the pool took.
     /// </summary>
     /// <remarks>
-    /// The snapshots are the ground truth: a rise the player's pool actually took is what
-    /// <see cref="ResourceGain.Usable"/> reports. They cannot show overcap, because a snapshot rise is
-    /// already clipped by the cap, so the stated amount fills that gap alone: where the stated amount
-    /// exceeds the rise, the difference is <see cref="ResourceGain.Overcap"/>. This is also the only rule
-    /// that survives the game rolling the critical amount independently of the damage event's own critical
-    /// flag, since which roll landed is not knowable per event.
+    /// The pool is the ground truth: a rise it actually took is what <see cref="ResourceGain.Usable"/>
+    /// reports. A rise is already clipped by the cap, so it cannot show overcap. The stated amount fills
+    /// that gap: where it exceeds the rise, the difference is <see cref="ResourceGain.Overcap"/>. This is
+    /// also the only rule that survives the game rolling the critical amount independently of the damage
+    /// event's own critical flag.
     /// </remarks>
     /// <param name="type">The resource to read.</param>
     /// <param name="start">The first instant to include.</param>
@@ -247,9 +245,9 @@ public sealed partial class ChronaTracker : ResourceTracker
         GainsBetween(type, start, end).Where(gain => gain.AbilityId == abilityId).Sum(gain => gain.Overcap);
 
     /// <summary>
-    /// The amount of <paramref name="type"/> the most recent snapshot at or before
-    /// <paramref name="timestamp"/> reported, or <see langword="null"/> when no snapshot precedes it.
-    /// <see cref="AmountAt"/> reports the same figure with <c>0</c> standing in for an absent reading.
+    /// The amount of <paramref name="type"/> most recently reported at or before
+    /// <paramref name="timestamp"/>, or <see langword="null"/> when nothing precedes it.
+    /// <see cref="AmountAt"/> reports the same figure with <c>0</c> in place of the null.
     /// </summary>
     /// <param name="type">The resource to read.</param>
     /// <param name="timestamp">The instant to read back from.</param>
@@ -262,8 +260,8 @@ public sealed partial class ChronaTracker : ResourceTracker
     }
 
     /// <summary>
-    /// The amount of <paramref name="type"/> the player held at the most recent snapshot at or before
-    /// <paramref name="timestamp"/>, or <c>0</c> when nothing was observed by then.
+    /// The amount of <paramref name="type"/> the player held at or before <paramref name="timestamp"/>,
+    /// or <c>0</c> when nothing precedes it.
     /// </summary>
     public int AmountAt(ResourceTypes type, int timestamp)
     {
@@ -292,7 +290,7 @@ public sealed partial class ChronaTracker : ResourceTracker
     }
 
     /// <summary>
-    /// The cap on <paramref name="type"/>: the highest maximum any snapshot reported, falling back to
+    /// The cap on <paramref name="type"/>: the highest maximum reported, falling back to
     /// <see cref="DefaultChronaCap"/> for Chrona and to <c>0</c> for a resource whose maximum never appeared.
     /// </summary>
     public int MaxOf(ResourceTypes type)
@@ -324,13 +322,13 @@ public sealed partial class ChronaTracker : ResourceTracker
 
         var isCast = e is BaseCastEvent;
 
-        if (resources?.Resources is { Count: > 0 } snapshot)
+        if (resources?.Resources is { Count: > 0 } block)
         {
-            var carrierId = isCast ? 0 : (e as IAbilityEvent)?.Ability.Id ?? 0;
+            var eventAbilityId = isCast ? 0 : (e as IAbilityEvent)?.Ability.Id ?? 0;
 
-            foreach (var resource in snapshot)
+            foreach (var resource in block)
                 if (IsTracked(resource.Type))
-                    Observe(resource, carrierId, e.Timestamp);
+                    Observe(resource, eventAbilityId, e.Timestamp);
         }
 
         if (e is CastEvent cast && Owner.ByPlayer(cast))
@@ -376,7 +374,7 @@ public sealed partial class ChronaTracker : ResourceTracker
     }
 
     /// <summary>
-    /// The FSLID the game data carries the generation amount on. A damage event names the effect rather
+    /// The FSLID the game data states the generation amount for. A damage event names the effect rather
     /// than the ability that owns it, so the spellbook resolves it back through its additional spells.
     /// </summary>
     private int ResolveAbility(int abilityId) =>
@@ -385,11 +383,11 @@ public sealed partial class ChronaTracker : ResourceTracker
     private Abilities? Spellbook => field ??= Owner.GetModule<Abilities>();
 
     /// <summary>
-    /// The generating event a gain observed at <paramref name="timestamp"/> is attributed to: the player's
-    /// most recent damage or cast at or before it, preferring one whose own ability matches the id the
-    /// snapshot carried.
+    /// The generating event a gain at <paramref name="timestamp"/> is attributed to: the player's most
+    /// recent damage or cast at or before it, preferring one whose own ability matches
+    /// <paramref name="eventAbilityId"/>.
     /// </summary>
-    private GeneratorEvent? GeneratorAt(int timestamp, int carrierId)
+    private GeneratorEvent? GeneratorAt(int timestamp, int eventAbilityId)
     {
         GeneratorEvent? nearest = null;
 
@@ -399,7 +397,7 @@ public sealed partial class ChronaTracker : ResourceTracker
             if (generator.Timestamp > timestamp) continue;
             if (timestamp - generator.Timestamp > GenerationAttributionWindowMs) break;
 
-            if (generator.AbilityId == ResolveAbility(carrierId)) return generator;
+            if (generator.AbilityId == ResolveAbility(eventAbilityId)) return generator;
 
             nearest ??= generator;
         }
@@ -409,8 +407,7 @@ public sealed partial class ChronaTracker : ResourceTracker
 
     /// <summary>
     /// The amount the game data says <paramref name="generator"/> produces, with every modifier the build
-    /// carries applied. Zero when the registry states no generation for it, which leaves the observed rise
-    /// standing on its own.
+    /// has applied. Zero when the registry states no generation for it, which leaves the rise on its own.
     /// </summary>
     private int StatedAmount(ResourceTypes type, GeneratorEvent? generator, int before)
     {
@@ -468,7 +465,7 @@ public sealed partial class ChronaTracker : ResourceTracker
         return false;
     }
 
-    private void Observe(ClassResource resource, int carrierId, int timestamp)
+    private void Observe(ClassResource resource, int eventAbilityId, int timestamp)
     {
         var ledger = GetOrCreateLedger(resource.Type);
 
@@ -479,7 +476,7 @@ public sealed partial class ChronaTracker : ResourceTracker
         {
             var delta = resource.Amount - ledger.Amount;
             if (delta > 0)
-                RecordGain(ledger, resource.Type, carrierId, delta, declaredWaste: 0, resource.Amount, timestamp);
+                RecordGain(ledger, resource.Type, eventAbilityId, delta, declaredWaste: 0, resource.Amount, timestamp);
             else if (delta < 0)
                 RecordSpend(ledger, resource.Type, -delta, resource.Amount, timestamp);
         }
@@ -502,14 +499,14 @@ public sealed partial class ChronaTracker : ResourceTracker
         int timestamp)
     {
         var cap = ledger.Max;
-        var landing = ledger.Amount + gained;
-        var overcap = cap > 0 && landing > cap ? landing - cap : 0;
+        var after = ledger.Amount + gained;
+        var overcap = cap > 0 && after > cap ? after - cap : 0;
         var usable = gained - overcap;
         var wasted = declaredWaste + overcap;
 
         ledger.Generated += usable;
         ledger.Wasted += wasted;
-        ledger.Amount = observedAmount ?? (cap > 0 ? Math.Min(landing, cap) : landing);
+        ledger.Amount = observedAmount ?? (cap > 0 ? Math.Min(after, cap) : after);
         ledger.Events.Add(new ResourceEvent(
             timestamp, abilityId, type, ResourceEventKind.Gain, usable, wasted, ledger.Amount, cap));
     }
@@ -555,10 +552,10 @@ public sealed partial class ChronaTracker : ResourceTracker
 }
 
 /// <summary>
-/// One gain of a resource, with the rise the snapshots recorded set against the amount the game data
-/// says the generating ability produces.
+/// One gain of a resource, with the rise the pool took set against the amount the game data says the
+/// generating ability produces.
 /// </summary>
-/// <param name="Timestamp">When the gain landed.</param>
+/// <param name="Timestamp">When the gain arrived.</param>
 /// <param name="AbilityId">The FSLID of the ability the gain is attributed to.</param>
 /// <param name="Target">The enemy whose hit produced the gain, or null for a gain a cast produced.</param>
 /// <param name="Before">The amount the player held before the gain.</param>

@@ -224,7 +224,7 @@ public sealed class ThunderCallAnalyzerTests
     }
 
     [Fact]
-    public async Task Analyze_ThunderCallWindow_AveragesFuryOverTheWindowsThatHaveAReading()
+    public async Task Analyze_ThunderCallWindow_AveragesFuryOverTheWindowsWithFuryAtOpen()
     {
         var (parser, _) = await AnalyzeAsync(
         [

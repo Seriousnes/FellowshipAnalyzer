@@ -36,7 +36,7 @@
         @if (TotalGrants == 0)
         {
             <TipBox Variant="TipBoxVariant.Info">
-                Serrated Edge was not active on any pull.
+                No Serrated Edge buff was granted and removed inside a pull.
             </TipBox>
         }
         else
@@ -59,7 +59,7 @@
     private List<SerratedEdgeAnalyzer> Analyzers =>
         [.. Parser.SerratedEdgeAnalyzers.Select(entry => entry.Analyzer)];
 
-    private int TotalGrants => Analyzers.Sum(analyzer => analyzer.JudgedGrants);
+    private int TotalGrants => Analyzers.Sum(analyzer => analyzer.RatedGrants);
 
     private long TotalRendConverted => Analyzers.Sum(analyzer => analyzer.TotalRendConverted);
 
@@ -76,7 +76,6 @@
     {
         var grants = TotalGrants;
         var priority = Analyzers.Sum(analyzer => analyzer.PriorityConsumed);
-        var alternate = Analyzers.Sum(analyzer => analyzer.AlternateConsumed);
         var avoidable = Analyzers.Sum(analyzer => analyzer.AvoidableFiller);
         var forced = Analyzers.Sum(analyzer => analyzer.ForcedFiller);
         var unspent = Analyzers.Sum(analyzer => analyzer.Unspent);
@@ -87,11 +86,11 @@
             new(
                 $"{grants}",
                 "Grants",
-                $"Serrated Edge buffs granted and removed inside a pull. Consumed by {ConsumerSplit()}."),
+                "Serrated Edge buffs granted and removed inside a pull."),
             new(
                 $"{priorityRate}%",
                 "On Priority",
-                $"{priority} of {grants} grants went on the first ability in their pull's order. A further {alternate} went on a lower one, which is not counted as a miss. Reported as context rather than scored, because it cannot reach 100%."),
+                $"{priority} of {grants} grants went on the first ability in their pull's order."),
             new(
                 $"{avoidable}",
                 "Avoidable Filler",
@@ -100,11 +99,11 @@
             new(
                 $"{forced}",
                 "Forced Filler",
-                "Grants consumed by a filler ability with every ability in the pull's order on cooldown. This is context, not a verdict."),
+                "Grants consumed by a filler ability with every ability in the pull's order on cooldown."),
             new(
                 $"{TotalRendConverted:N0}",
                 "Rend Converted",
-                $"{ConversionPercent}% of the damage each consuming cast dealt, across all of its hits{ConvertedClause()}. Exsanguinate damage is not counted. This is context, not a verdict."),
+                $"{ConversionPercent}% of the damage each consuming cast dealt, across all of its hits. Exsanguinate damage is not counted."),
         };
 
         if (unspent > 0)
@@ -117,36 +116,6 @@
         }
 
         return stats;
-    }
-
-    private string ConsumerSplit()
-    {
-        var split = Analyzers
-            .SelectMany(analyzer => analyzer.Grants)
-            .GroupBy(grant => grant.ConsumerAbilityId)
-            .OrderByDescending(group => group.Count())
-            .Select(group => $"{ConsumerName(group.Key)} {group.Count()}");
-
-        return string.Join(", ", split);
-    }
-
-    private string ConvertedClause()
-    {
-        var split = ConvertedSplit();
-        return split.Length == 0 ? string.Empty : $": {split}";
-    }
-
-    private string ConvertedSplit()
-    {
-        var split = Analyzers
-            .SelectMany(analyzer => analyzer.Grants)
-            .Where(grant => grant.RendConverted > 0)
-            .GroupBy(grant => grant.ConsumerAbilityId)
-            .Select(group => (Name: ConsumerName(group.Key), Converted: group.Sum(grant => grant.RendConverted)))
-            .OrderByDescending(entry => entry.Converted)
-            .Select(entry => $"{entry.Name} {entry.Converted:N0}");
-
-        return string.Join(", ", split);
     }
 
     private IEnumerable<StackedBarSegment> BuildStackedBar()
@@ -192,7 +161,7 @@
             new(
                 ConsumerName(grant.ConsumerAbilityId),
                 "Consumed By",
-                $"The ability that took the buff. This pull wanted it on {ConsumerName(row.PriorityAbilityId)}.",
+                $"The ability that consumed the buff. This pull wanted it on {ConsumerName(row.PriorityAbilityId)}.",
                 perf),
         };
 
@@ -238,8 +207,8 @@
             ready ? "Ready" : $"{remainingMs / 1000d:0.#}s",
             name,
             ready
-                ? $"{name} was off cooldown and could have taken this buff instead."
-                : $"{name} had {remainingMs / 1000d:0.#}s of cooldown left, so it could not have taken this buff.",
+                ? $"{name} was off cooldown."
+                : $"{name} had {remainingMs / 1000d:0.#}s of cooldown left.",
             ready ? QualitativePerformance.Fail : QualitativePerformance.Ok);
 
     private static SpellCastEntry[] BuildSequence(SerratedEdgeGrant grant, QualitativePerformance perf) =>
@@ -256,13 +225,13 @@
         return grant.Outcome switch
         {
             SerratedEdgeOutcome.Priority =>
-                $"{consumer} consumed the buff, which is exactly what this pull wanted Blood Arc to set up.",
+                $"{consumer} consumed the buff, this pull's first choice.",
             SerratedEdgeOutcome.Alternate =>
                 $"{consumer} consumed the buff, this pull's {Ordinal(grant.ConsumerRank)} choice. Spend it on {priority} first.",
             SerratedEdgeOutcome.AvoidableFiller =>
                 $"{consumer} consumed the buff while {ReadyClause(grant)}. Hold Blood Arc a beat so one of them follows it.",
             SerratedEdgeOutcome.ForcedFiller =>
-                $"{consumer} consumed the buff with {RemainingClause(grant)} from coming back, so there was nothing better to put it on.",
+                $"{consumer} consumed the buff with {RemainingClause(grant)} from coming off cooldown.",
             _ =>
                 "The buff was removed with no cast to account for it.",
         };

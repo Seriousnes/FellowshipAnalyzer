@@ -44,7 +44,7 @@ public sealed partial class SapphireGemAnalyzer : Analyzer, IGemAnalyzer
     public double ResonatingSoulReductionPerPercent =>
         ResonatingSoul.ByRank(GemPower, based: 0.001, upgraded: 0.003, locked: 0);
 
-    /// <summary>Estimated damage Resonating Soul prevented over the dungeon.</summary>
+    /// <summary>Damage Resonating Soul prevented over the dungeon.</summary>
     public long ResonatingSoulDamageReduced { get; private set; }
 
     [On<DamageEvent>(To = Actor.Player)]
@@ -54,14 +54,14 @@ public sealed partial class SapphireGemAnalyzer : Analyzer, IGemAnalyzer
         if (damageEvent.TargetResources is not { MaxHitPoints: > 0 } resources) return;
         if (resources.HitPoints > resources.MaxHitPoints) return;
 
-        var landed = damageEvent.Amount + (damageEvent.Absorbed ?? 0);
-        if (landed <= 0) return;
+        var taken = damageEvent.Amount + (damageEvent.Absorbed ?? 0);
+        if (taken <= 0) return;
 
         var healthBefore = Math.Min(resources.HitPoints + damageEvent.Amount, resources.MaxHitPoints);
         var missing = 1 - (double)healthBefore / resources.MaxHitPoints;
         var reduction = missing * 100 * ResonatingSoulReductionPerPercent;
 
-        ResonatingSoulDamageReduced += (long)(landed * (reduction / (1 - reduction)));
+        ResonatingSoulDamageReduced += (long)(taken * (reduction / (1 - reduction)));
     }
 
     /// <inheritdoc/>

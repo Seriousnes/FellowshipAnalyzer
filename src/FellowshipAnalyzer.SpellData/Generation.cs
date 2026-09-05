@@ -6,15 +6,15 @@ using FellowshipAnalyzer.SpellData.Json;
 
 namespace FellowshipAnalyzer.SpellData;
 
-/// <summary>What <see cref="Generation.Read"/> found in one game-data description.</summary>
+/// <summary>What one game-data description states about resource generation.</summary>
 /// <param name="Stated">The generation the description states, or <c>null</c> when it states none.</param>
 /// <param name="Unclaimed">
 /// Each sentence that states an amount of a resource in a form no rule recognises, verbatim.
 /// </param>
-public sealed record GenerationReading(ResourceGeneration? Stated, IReadOnlyList<string> Unclaimed)
+public sealed record GenerationStatement(ResourceGeneration? Stated, IReadOnlyList<string> Unclaimed)
 {
-    /// <summary>A reading of a description that states no resource amount at all.</summary>
-    public static GenerationReading None { get; } = new(null, []);
+    /// <summary>The result for a description that states no resource amount.</summary>
+    public static GenerationStatement None { get; } = new(null, []);
 }
 
 /// <summary>
@@ -27,10 +27,10 @@ public sealed record GenerationReading(ResourceGeneration? Stated, IReadOnlyList
 public static class Generation
 {
     /// <summary>Reads the generation stated by <paramref name="description"/>.</summary>
-    public static GenerationReading Read(string? description)
+    public static GenerationStatement Read(string? description)
     {
         if (string.IsNullOrWhiteSpace(description))
-            return GenerationReading.None;
+            return GenerationStatement.None;
 
         ResourceGeneration? amount = null;
         (ResourceTypes Resource, double Value)? critical = null;
@@ -66,8 +66,8 @@ public static class Generation
             : increase;
 
         return stated is null && unclaimed is null
-            ? GenerationReading.None
-            : new GenerationReading(stated, unclaimed ?? []);
+            ? GenerationStatement.None
+            : new GenerationStatement(stated, unclaimed ?? []);
     }
 
     private static ResourceGeneration? MatchAmount(string sentence)

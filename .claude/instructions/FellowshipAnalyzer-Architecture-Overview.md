@@ -115,7 +115,7 @@ Use this lifecycle:
 - Do setup work that needs the selected player or the raw event list in the constructor - inject `ParseContext` and/or `IReadOnlyList<Event>`.
 - Subscribe to events declaratively with `[On<TEvent>]` attributes on instance methods. The `ModuleGenerator` emits the corresponding `RegisterSubscriptions` plumbing.
 - Hook dungeon-boundary setup via `[On<DungeonStartEvent>]` and finalization via `[On<DungeonEndEvent>]` (the `DungeonBookendNormalizer` fabricates both).
-- Expose state as public read-only properties and typed entry records; guide and statistics components read them directly. Keep prose, severity wording, and `PerformanceTier` judgments in the Razor components - modules hold typed data only.
+- Expose state as public read-only properties and typed entry records; guide and statistics components read them directly. Keep prose, severity wording, and `PerformanceTier` ratings in the Razor components - modules hold typed data only.
 - Declare cross-module references with `[Uses<TOther>]` on the class; the generator emits the `Lazy<TOther>` primary-constructor parameter and a cached PascalCase accessor named after the type. `Lazy<>` edges are ignored by the FA0013 cycle analyzer. A class that also needs an outer service (such as `ILogger`) keeps a hand-written constructor instead.
 - Do not require `CombatLogParser` in module constructors; the parser sets `Owner` after DI resolution.
 

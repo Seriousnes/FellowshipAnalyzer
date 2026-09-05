@@ -195,7 +195,7 @@ public sealed class GundeAnalysisEngineTests
     }
 
     [Fact]
-    public async Task Analyze_SlaughterOnTheMillisecondOfTheReapply_CashesInTheStaleWindowToo()
+    public async Task Analyze_SlaughterOnTheMillisecondOfTheReapply_WastesNeitherWindow()
     {
         var events = new List<Event>
         {
@@ -212,7 +212,7 @@ public sealed class GundeAnalysisEngineTests
     }
 
     [Fact]
-    public async Task Analyze_OpenWoundsOnTwoInstancesOfTheSameEnemy_KeepsBothWindowsCashedIn()
+    public async Task Analyze_OpenWoundsOnTwoInstancesOfTheSameEnemy_WastesNeitherWindow()
     {
         var events = new List<Event>
         {

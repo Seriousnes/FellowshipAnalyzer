@@ -6,19 +6,18 @@ using CoreItems = FellowshipAnalyzer.Core.Common.Items.Items;
 namespace FellowshipAnalyzer.Heroes.Aeona.Modules;
 
 /// <summary>
-/// One reading of Twilight Skybolt's charge state inside a pull, either the state the pull opened on
+/// Twilight Skybolt's charge state at one instant inside a pull, either the state the pull opened on
 /// or the state a <see cref="UpdateSpellUsableEvent"/> reported.
 /// </summary>
-/// <param name="Timestamp">When the reading was taken.</param>
-/// <param name="ChargesAvailable">Charges castable from this instant until the next reading.</param>
+/// <param name="Timestamp">The instant this state applies from.</param>
+/// <param name="ChargesAvailable">Charges castable from this instant until the next change.</param>
 public readonly record struct SkyboltChargeSample(int Timestamp, int ChargesAvailable);
 
 /// <summary>
 /// Twilight Skybolt's charge economy over one pull: the casts, the charges held across the pull, and
-/// the time the pull spent at the maximum charge count, which is time the recharge was making no
-/// progress. Charge state is reconstructed by <see cref="SpellUsable"/> from the spellbook's cooldown
-/// and charge count, so it depends on Twilight Skybolt being registered in
-/// <see cref="Abilities.Spellbook"/>.
+/// the time the pull spent at the maximum charge count. Charge state is reconstructed by
+/// <see cref="SpellUsable"/> from the spellbook's cooldown and charge count, so it depends on Twilight
+/// Skybolt being registered in <see cref="Abilities.Spellbook"/>.
 /// </summary>
 [ForPull(PullKind.Single | PullKind.Multi)]
 public sealed partial class TwilightSkyboltAnalyzer : Analyzer
@@ -39,13 +38,11 @@ public sealed partial class TwilightSkyboltAnalyzer : Analyzer
     public int MaxCharges => CoreItems.TwilightSkybolt.Charges;
 
     /// <summary>
-    /// Every charge reading inside the pull, chronological, opening on the state the pull started with.
+    /// Every charge state inside the pull, chronological, opening on the state the pull started with.
     /// </summary>
     public IReadOnlyList<SkyboltChargeSample> ChargeSamples => Timeline;
 
-    /// <summary>
-    /// Milliseconds of the pull spent holding every charge, which is time no charge was recharging.
-    /// </summary>
+    /// <summary>Milliseconds of the pull spent holding every charge.</summary>
     public int TimeAtMaxChargesMs => _timeAtMaxChargesMs ??= ComputeTimeAtMaxCharges();
 
     /// <summary>The share of the pull spent holding every charge, 0 to 1.</summary>
@@ -54,7 +51,7 @@ public sealed partial class TwilightSkyboltAnalyzer : Analyzer
 
     /// <summary>
     /// Recharges the pull had room for while every charge was already available, as the time at the
-    /// maximum divided by one charge's recharge duration. Reads 0 when no recharge duration is known.
+    /// maximum divided by one charge's recharge duration. Reads 0 without a recharge duration.
     /// </summary>
     public int ChargesLost => RechargeDurationMs <= 0 ? 0 : TimeAtMaxChargesMs / RechargeDurationMs;
 

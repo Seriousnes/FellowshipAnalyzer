@@ -65,7 +65,7 @@ public sealed class UnfoldingDoomAnalyzerTests
     }
 
     [Fact]
-    public async Task PlayerDamageInsideAWindow_CountsTowardsTheEstimatedGain()
+    public async Task PlayerDamageInsideAWindow_CountsTowardsTheDamageGained()
     {
         var analyzer = await Measure(
             Apply(BossId, 1_000),
@@ -85,7 +85,7 @@ public sealed class UnfoldingDoomAnalyzerTests
     }
 
     [Fact]
-    public async Task DamageAbsorbedInsideAWindow_CountsTowardsTheEstimatedGain()
+    public async Task DamageAbsorbedInsideAWindow_CountsTowardsTheDamageGained()
     {
         var damage = Damage(BossId, 5_000, 200);
         damage.Absorbed = 1_000;
@@ -159,7 +159,7 @@ public sealed class UnfoldingDoomAnalyzerTests
     }
 
     [Fact]
-    public async Task ReapplyingToAnEnemyThatStillCarriesIt_RecordsTheDiscardedDuration()
+    public async Task ReapplyingWhileTheDebuffIsActive_RecordsTheDiscardedDuration()
     {
         var analyzer = await Measure(Apply(BossId, 1_000), Apply(BossId, 6_000), Remove(BossId, 20_000));
 
@@ -255,7 +255,7 @@ public sealed class UnfoldingDoomAnalyzerTests
     }
 
     [Fact]
-    public async Task ACooldownRunningAtThePullStart_IsCarriedIntoTheNextPull()
+    public async Task ACooldownRunningAtThePullStart_ContinuesIntoTheNextPull()
     {
         var dungeon = BossDungeon with
         {
@@ -290,7 +290,7 @@ public sealed class UnfoldingDoomAnalyzerTests
     }
 
     [Fact]
-    public async Task AnApplicationTheLogNeverCloses_DoesNotRunToThePullEnd()
+    public async Task AnApplicationWithNoRemoval_DoesNotRunToThePullEnd()
     {
         var analyzer = await Measure(Apply(BossId, 10_000));
 
@@ -299,7 +299,7 @@ public sealed class UnfoldingDoomAnalyzerTests
     }
 
     [Fact]
-    public async Task WithHasteningDoom_TheTalentReadsAsTaken()
+    public async Task WithHasteningDoom_TheTalentIsTaken()
     {
         var analyzer = await Measure(Talented(AeonaTalents.HasteningDoom), Apply(BossId, 1_000), Remove(BossId, 11_000));
 

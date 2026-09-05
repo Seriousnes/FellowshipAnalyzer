@@ -3,7 +3,7 @@ using System;
 namespace FellowshipAnalyzer.Core.Common.Spells;
 
 /// <summary>
-/// Stamped by the spell-registry generator on each generated spell property, carrying the namespaced
+/// Stamped by the spell-registry generator on each generated spell property, with the namespaced
 /// <see cref="FSLID.Value"/> as a compile-time constant so the module generator can resolve
 /// <c>nameof(Spells.X)</c> to its id across assemblies via metadata.
 /// </summary>

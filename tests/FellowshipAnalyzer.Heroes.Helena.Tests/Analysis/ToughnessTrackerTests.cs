@@ -15,7 +15,7 @@ namespace FellowshipAnalyzer.Heroes.Helena.Tests.Analysis;
 public sealed class ToughnessTrackerTests
 {
     [Fact]
-    public async Task AGeneratorCastAtAFullBar_CountsAsOvercap()
+    public async Task AGeneratorCastAtMaximumToughness_CountsAsOvercap()
     {
         var tracker = await Analyze(
             Cast(PullStart + 1_000, Spells.ShieldSlam, toughness: 1_000));
@@ -63,7 +63,7 @@ public sealed class ToughnessTrackerTests
     }
 
     [Fact]
-    public async Task ANonGeneratorCastAtAFullBar_IsIgnored()
+    public async Task ANonGeneratorCastAtMaximumToughness_IsIgnored()
     {
         var tracker = await Analyze(
             Cast(PullStart + 1_000, Spells.MeasuredStrike, toughness: 1_000),
@@ -84,24 +84,24 @@ public sealed class ToughnessTrackerTests
     }
 
     [Fact]
-    public async Task ABlockTakenAtFullToughness_CountsAsOvercap()
+    public async Task ABlockTakenAtMaximumToughness_CountsAsOvercap()
     {
         var tracker = await Analyze(
             DamageTaken(PullStart + 1_000, 0, 10_000, 9_000, blocked: 1_000, hitType: HitType.Block, toughness: 1_000),
             DamageTaken(PullStart + 2_000, 0, 10_000, 9_000, blocked: 1_000, hitType: HitType.Block, toughness: 500));
 
-        tracker.ObservedBlocks.ShouldBe(2);
+        tracker.Blocks.ShouldBe(2);
         tracker.OvercappedBlocks.ShouldBe(1);
         tracker.OvercappedBlockShare.ShouldBe(0.5);
     }
 
     [Fact]
-    public async Task ANonBlockHitAtAFullBar_IsNotABlockOvercap()
+    public async Task ANonBlockHitAtMaximumToughness_IsNotABlockOvercap()
     {
         var tracker = await Analyze(
             DamageTaken(PullStart + 1_000, 500, 10_000, 9_500, toughness: 1_000));
 
-        tracker.ObservedBlocks.ShouldBe(0);
+        tracker.Blocks.ShouldBe(0);
         tracker.OvercappedBlocks.ShouldBe(0);
     }
 

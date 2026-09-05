@@ -14,10 +14,7 @@ namespace FellowshipAnalyzer.Heroes.Aeona.Modules;
 /// <param name="OutsideCombatMs">Milliseconds of the window that fell outside every pull.</param>
 /// <param name="DelayMs">Combat milliseconds between Fleeting Hour becoming available and this cast.</param>
 /// <param name="SurgingChronaGranted">The Chrona Surging Chrona granted for this cast, or <c>0</c> without the talent.</param>
-/// <param name="SurgingChronaOvercapped">
-/// The share of <paramref name="SurgingChronaGranted"/> the cap refused, or <see langword="null"/> when the
-/// cast carried no Chrona entry.
-/// </param>
+/// <param name="SurgingChronaOvercapped">The share of <paramref name="SurgingChronaGranted"/> the cap refused.</param>
 public sealed record FleetingHourCast(
     int Timestamp,
     AuraWindow? Window,
@@ -66,7 +63,7 @@ public sealed partial class FleetingHourAnalyzer : Analyzer
     /// <summary>Time Fleeting Hour was active inside a pull.</summary>
     public int CombatUptimeMs => Windows.Sum(OverlapWithPulls);
 
-    /// <summary>Time Fleeting Hour was active outside every pull, which is uptime no pull could spend.</summary>
+    /// <summary>Time Fleeting Hour was active outside every pull.</summary>
     public int OutsideCombatMs => TotalUptimeMs - CombatUptimeMs;
 
     /// <summary>Share of Fleeting Hour's total active time (0-1) that fell outside every pull.</summary>
@@ -78,7 +75,7 @@ public sealed partial class FleetingHourAnalyzer : Analyzer
     /// <summary>Share of combat time Fleeting Hour was active, from 0 to 1.</summary>
     public double CombatUptime => CombatMs <= 0 ? 0 : (double)CombatUptimeMs / CombatMs;
 
-    /// <summary>Combat time Fleeting Hour was off cooldown and uncast.</summary>
+    /// <summary>Combat time Fleeting Hour was off cooldown and not cast.</summary>
     public int AvailableInCombatMs => AvailableWindows.Sum(OverlapWithPulls);
 
     /// <summary>
@@ -91,11 +88,11 @@ public sealed partial class FleetingHourAnalyzer : Analyzer
     /// <summary>Whether the player took Surging Chrona.</summary>
     public bool SurgingChronaTaken => Owner.SelectedCombatant.HasTalent(AeonaTalents.SurgingChrona);
 
-    /// <summary>The Chrona Surging Chrona grants on each Fleeting Hour cast, as the talent's record states it.</summary>
+    /// <summary>The Chrona Surging Chrona grants on each Fleeting Hour cast.</summary>
     public int SurgingChronaGrant =>
         SurgingChronaTaken ? (int)Math.Round(Talents.SurgingChrona.ResourceGeneration?.Amount ?? 0) : 0;
 
-    /// <summary>Chrona the Surging Chrona grants gave, summed over every cast.</summary>
+    /// <summary>Chrona Surging Chrona granted, summed over every cast.</summary>
     public int SurgingChronaGranted => Casts.Sum(cast => cast.SurgingChronaGranted);
 
     /// <summary>Chrona the Surging Chrona grants lost at the cap, summed over every cast.</summary>

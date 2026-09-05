@@ -4,23 +4,23 @@ using FellowshipAnalyzer.Core.Events;
 
 namespace FellowshipAnalyzer.Heroes.Aeona.Modules;
 
-/// <summary>What paid for a free cast.</summary>
+/// <summary>What made a cast free.</summary>
 public enum FreeCastSource
 {
     /// <summary>A Uchronia window covered the cast.</summary>
     Uchronia,
 
-    /// <summary>An Epoch Break window covered the cast, during which Aeona's abilities cost no Mana or Chrona.</summary>
+    /// <summary>An Epoch Break window covered the cast.</summary>
     EpochBreak,
 
-    /// <summary>Neither window covered the cast, so a Spirit ability or another effect paid for it.</summary>
+    /// <summary>Neither window covered the cast, so a Spirit ability or another effect made it free.</summary>
     Other,
 }
 
-/// <summary>One cast the log reported as costing no resources.</summary>
+/// <summary>One cast that cost no resources.</summary>
 /// <param name="Timestamp">When the cast happened, in milliseconds.</param>
-/// <param name="AbilityId">The cast ability's FSLID, as carried on <see cref="Ability.Id"/>.</param>
-/// <param name="Source">What paid for the cast.</param>
+/// <param name="AbilityId">The cast ability's FSLID, as given on <see cref="Ability.Id"/>.</param>
+/// <param name="Source">What made the cast free.</param>
 public readonly record struct FreeCast(int Timestamp, int AbilityId, FreeCastSource Source);
 
 /// <summary>
@@ -31,7 +31,7 @@ public readonly record struct FreeCast(int Timestamp, int AbilityId, FreeCastSou
 /// <para>
 /// Registered dungeon-lifetime with no talent gate, because Epoch Break is in every build and free casts
 /// arrive whether or not Uchronia is taken. Uchronia's windows are read through
-/// <see cref="UchroniaTracker"/> when the build carries the talent, which keeps the two windows' own
+/// <see cref="UchroniaTracker"/> when the build has the talent, which keeps the two windows' own
 /// bookkeeping where it belongs.
 /// </para>
 /// <para>
@@ -53,7 +53,7 @@ public sealed partial class FreeCastTracker : Analyzer
     public IReadOnlyList<FreeCast> FreeCasts => _freeCasts;
 
     /// <summary>Whether the log reported any free cast at all.</summary>
-    public bool FreeCastsObserved => _freeCasts.Count > 0;
+    public bool HasFreeCasts => _freeCasts.Count > 0;
 
     /// <summary>Every Epoch Break window on the player, in the order they opened.</summary>
     public IReadOnlyList<AuraWindow> EpochBreakWindows =>
@@ -84,7 +84,7 @@ public sealed partial class FreeCastTracker : Analyzer
     /// <see cref="CastMatchToleranceMs"/>, or <see langword="null"/> when the cast cost resources.
     /// </summary>
     /// <param name="timestamp">The cast's timestamp in milliseconds.</param>
-    /// <param name="abilityId">The cast ability's FSLID, as carried on <see cref="Ability.Id"/>.</param>
+    /// <param name="abilityId">The cast ability's FSLID, as given on <see cref="Ability.Id"/>.</param>
     public FreeCast? FreeCastAt(int timestamp, int abilityId)
     {
         FreeCast? nearest = null;
@@ -105,7 +105,7 @@ public sealed partial class FreeCastTracker : Analyzer
     }
 
     /// <summary>Whether an Epoch Break window covered <paramref name="timestamp"/>, endpoints included.</summary>
-    /// <param name="timestamp">The instant to judge.</param>
+    /// <param name="timestamp">The instant asked about.</param>
     public bool EpochBreakActive(int timestamp)
     {
         if (_epochBreakOpenedAt is { } start && timestamp >= start && timestamp <= CloseAtDungeonEnd(start).End)
@@ -141,10 +141,7 @@ public sealed partial class FreeCastTracker : Analyzer
         _freeCasts.Add(new FreeCast(e.Timestamp, abilityId, SourceAt(e.Timestamp)));
     }
 
-    /// <summary>
-    /// Epoch Break takes precedence over an overlapping Uchronia window: it removes the cast's Chrona
-    /// cost outright, and a cast that costs nothing does not consume a Uchronia stack.
-    /// </summary>
+    /// <summary>Epoch Break takes precedence over an overlapping Uchronia window.</summary>
     private FreeCastSource SourceAt(int timestamp)
     {
         if (EpochBreakActive(timestamp)) return FreeCastSource.EpochBreak;

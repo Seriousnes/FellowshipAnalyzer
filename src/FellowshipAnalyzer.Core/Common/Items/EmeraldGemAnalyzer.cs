@@ -13,7 +13,7 @@ namespace FellowshipAnalyzer.Core.Analysis.Gems;
 /// </summary>
 public sealed partial class EmeraldGemAnalyzer : Analyzer, IGemAnalyzer
 {
-    /// <summary>Reapplies a shield worth a share of the player's maximum health on a timer.</summary>
+    /// <summary>Reapplies a shield for a share of the player's maximum health on a timer.</summary>
     public static readonly GemTrait SentinelsBastion = new(
         Items.SentinelsBastion, GemRankPower.Rank3,
         Items.SentinelsBastionII, GemRankPower.Rank8);

@@ -12,7 +12,7 @@ namespace FellowshipAnalyzer.Heroes.Tariq.Tests.Analysis;
 public sealed class ExecutionersGrinTrackerTests
 {
     [Fact]
-    public async Task ProcSpentAboveTheThreshold_IsTheExtraCastTheItemBought()
+    public async Task ProcSpentAboveTheThreshold_IsAnExtraCast()
     {
         var (parser, _) = await FuryEconomyAnalyzerTests.AnalyzeAsync(
         [
@@ -31,10 +31,9 @@ public sealed class ExecutionersGrinTrackerTests
     }
 
     /// <summary>
-    /// The game spends the proc on any Culling Strike, including one already legal under the threshold.
-    /// That is not the same as a proc expiring with no cast at all, and counting the two together
-    /// overstates the avoidable loss - report <c>a:NcqHDKzamL7n6YFv</c> has 28 of the first and 8 of
-    /// the second.
+    /// A proc spent under the threshold is not the same as a proc expiring with no cast at all, and
+    /// counting the two together overstates the avoidable loss - report <c>a:NcqHDKzamL7n6YFv</c> has
+    /// 28 of the first and 8 of the second.
     /// </summary>
     [Fact]
     public async Task ProcSpentBelowTheThreshold_IsSeparatedFromOneThatExpiredUnspent()
@@ -78,7 +77,7 @@ public sealed class ExecutionersGrinTrackerTests
     }
 
     [Fact]
-    public async Task ProcLandingOnOneAlreadyHeld_CountsAsAReapplicationThatAddsNothing()
+    public async Task ProcReappliedOnOneAlreadyActive_CountsAsAReapplicationRatherThanANewProc()
     {
         var (parser, _) = await FuryEconomyAnalyzerTests.AnalyzeAsync(
         [
@@ -110,8 +109,8 @@ public sealed class ExecutionersGrinTrackerTests
     }
 
     /// <summary>
-    /// The statistics card and the guide's proc subsection both hang off the bands being worn, so a
-    /// parse without them must not offer either.
+    /// The statistics card and the guide's proc subsection both depend on the bands being equipped,
+    /// so a parse without them must not offer either.
     /// </summary>
     [Fact]
     public async Task WithoutTheBandsEquipped_NoStatisticsCardIsOffered()

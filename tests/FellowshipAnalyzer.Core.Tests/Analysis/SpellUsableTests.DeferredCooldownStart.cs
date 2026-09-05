@@ -57,7 +57,7 @@ public sealed partial class SpellUsableTests
 
     /// <summary>
     /// A cooldown reduction cannot shorten a hold, because nothing is counting down: Temporal Barrage
-    /// bolts landing inside a Fleeting Hour window must not advance its recharge.
+    /// bolts cast inside a Fleeting Hour window must not advance its recharge.
     /// </summary>
     [Fact]
     public async Task DeferredStart_IgnoresCooldownReductionWhileHeld()

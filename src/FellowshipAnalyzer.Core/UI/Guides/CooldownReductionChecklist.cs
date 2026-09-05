@@ -5,8 +5,7 @@ using SpellRegistry = FellowshipAnalyzer.Core.Common.Spells.SpellRegistry;
 namespace FellowshipAnalyzer.Core.UI.Guides;
 
 /// <summary>
-/// Turns <see cref="CooldownReductionResult"/> readings into <see cref="Checklist"/> lines, so a card
-/// names each ability the reduction was aimed at beside how much of it shortened a running cooldown.
+/// Turns <see cref="CooldownReductionResult"/> into <see cref="Checklist"/> lines.
 /// </summary>
 public static class CooldownReductionChecklist
 {

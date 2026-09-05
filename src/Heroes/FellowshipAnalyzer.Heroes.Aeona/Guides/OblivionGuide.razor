@@ -10,7 +10,7 @@
             once the tank holds more than 40% of its maximum health in Stagger.
         </p>
         <p>
-            Spend a free cast on Oblivion only when no ally holds more Stagger than a single cleanse removes.
+            Spend a free cast on Oblivion only when no ally holds more than the Stagger removed.
         </p>
     </LeftPanel>
     <RightPanel>
@@ -52,15 +52,15 @@
                 "Oblivion casts that cost no Chrona, of every Uchronia proc and Epoch Break window."));
         }
 
-        var judged = analyzers.Sum(analyzer => analyzer.CastsJudged);
-        if (judged > 0)
+        var rated = analyzers.Sum(analyzer => analyzer.CastsRated);
+        if (rated > 0)
         {
             var flagged = analyzers.Sum(analyzer => analyzer.CastsAtCleansePriority);
 
             stats.Add(new OverviewStat(
-                $"{flagged} ({(double)flagged / judged:P0})",
+                $"{flagged} ({(double)flagged / rated:P0})",
                 "Casts above 40% Stagger",
-                $"Oblivion casts made while the tank held more than 40% of its maximum health in Stagger and a cleanse was available, of {judged} casts."));
+                $"Oblivion casts while the tank held more than 40% of its maximum health in Stagger and a cleanse was available, of {rated} casts."));
         }
 
         if (OblivionsEmbrace)
@@ -68,7 +68,7 @@
             stats.Add(new OverviewStat(
                 $"{analyzers.Max(analyzer => analyzer.LargestSingleAbsorb ?? 0):N0}",
                 "Largest Absorb",
-                "The largest share of one hit an Oblivion's Embrace shield absorbed."));
+                "The most an Oblivion's Embrace shield absorbed from one hit."));
         }
 
         return stats;
@@ -106,13 +106,13 @@
         if (cast.FreeCastSource is { } source)
         {
             stats.Add(new PerCastStat(
-                "Free",
                 source switch
                 {
                     FreeCastSource.Uchronia => "Uchronia",
                     FreeCastSource.EpochBreak => "Epoch Break",
-                    _ => "Free Cast",
-                }));
+                    _ => "Free",
+                },
+                "Free Cast"));
         }
 
         return new PerCastRow

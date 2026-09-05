@@ -82,7 +82,7 @@ public abstract partial class SlaughterUsageAnalyzer : Analyzer
             evaluations.Add(evaluation with { WellExecuted = IsWellExecuted(evaluation) });
         }
 
-        var judged = JudgedWindows();
+        var rated = RatedWindows();
 
         return new Projection(
             evaluations,
@@ -90,8 +90,8 @@ public abstract partial class SlaughterUsageAnalyzer : Analyzer
             evaluations.Count(slaughter => slaughter.WellExecuted),
             _casts.Sum(cast => cast.BleedDamage),
             evaluations.Sum(slaughter => slaughter.RendConsumed),
-            judged.Count,
-            judged.Count(window => !SawSlaughter(window)));
+            rated.Count,
+            rated.Count(window => !SawSlaughter(window)));
     }
 
     private void TrackBleedTarget(IHasTargetWithInstanceEvent target)
@@ -118,7 +118,7 @@ public abstract partial class SlaughterUsageAnalyzer : Analyzer
             OpenWindow(target, timestamp);
     }
 
-    private List<OpenWoundsWindow> JudgedWindows() =>
+    private List<OpenWoundsWindow> RatedWindows() =>
         [.. _windows.Where(window => window.RemovedAt is not null || window.End <= Pull.EndTime || SawSlaughter(window))];
 
     private bool SawSlaughter(OpenWoundsWindow window) =>

@@ -18,8 +18,8 @@ using Spells = FellowshipAnalyzer.Core.Common.Spells.Aeona.Spells;
 namespace FellowshipAnalyzer.Heroes.Aeona.Tests.Modules;
 
 /// <summary>
-/// Tests for the gain view <see cref="ChronaTracker.GainsBetween"/> serves: the rise the snapshots
-/// recorded, the amount the game data states, and the overcap only the two together can reveal.
+/// Tests for the gain view <see cref="ChronaTracker.GainsBetween"/> serves: the rise the pool took, the
+/// amount the game data states, and the overcap only the two together can reveal.
 /// </summary>
 public sealed class ChronaTrackerGainsTests
 {
@@ -125,7 +125,7 @@ public sealed class ChronaTrackerGainsTests
     }
 
     [Fact]
-    public async Task SnapshotAt_IsWithheldBeforeTheFirstReading()
+    public async Task SnapshotAt_IsWithheldBeforeTheFirstEntry()
     {
         var tracker = await Analyze(Damage(5_000, Spells.TimeShard.FSLID, rawChrona: 2_000));
 

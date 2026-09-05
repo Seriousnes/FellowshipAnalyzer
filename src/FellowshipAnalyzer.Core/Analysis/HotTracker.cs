@@ -4,7 +4,7 @@ namespace FellowshipAnalyzer.Core.Analysis;
 
 /// <summary>
 /// Attributes periodic healing to the application that is delivering it, keyed by
-/// (TargetId, TargetInstance) and spell. A heal lands on the assignment open for its spell and target,
+/// (TargetId, TargetInstance) and spell. A heal belongs to the assignment open for its spell and target,
 /// so the ticks, effective healing and overheal of one application are separable from the next one on
 /// the same ally.
 /// <para>
@@ -27,13 +27,13 @@ public partial class HotTracker : Analyzer
     private int _unattributedTicks;
     private long _unattributedHealing;
 
-    /// <summary>Every assignment observed this parse, in the order it opened.</summary>
+    /// <summary>Every assignment this parse, in the order it opened.</summary>
     public List<HotAssignment> Assignments => _assignments;
 
     /// <summary>Assignments still open when the parse ended.</summary>
     public List<HotAssignment> OpenAssignments => [.. _open.Values];
 
-    /// <summary>Ticks that landed with no assignment open for their spell and target.</summary>
+    /// <summary>Ticks with no assignment open for their spell and target.</summary>
     public int UnattributedTicks => _unattributedTicks;
 
     /// <summary>Effective healing plus overheal from ticks with no assignment open.</summary>
@@ -50,7 +50,7 @@ public partial class HotTracker : Analyzer
     protected virtual bool TracksSpell(int spellId) => false;
 
     /// <summary>
-    /// Called when a tracked aura is reapplied to a unit that already carries it. The default records
+    /// Called when a tracked aura is reapplied to a unit it is already active on. The default records
     /// the refresh on the open assignment; override to react to a reapplication that the hero treats
     /// as a new application rather than a continuation.
     /// </summary>
@@ -133,7 +133,7 @@ public sealed class HotAssignment
     /// <summary>The spell whose application this is.</summary>
     public int SpellId { get; }
 
-    /// <summary>The unit carrying it.</summary>
+    /// <summary>The unit it is on.</summary>
     public UnitKey Unit { get; }
 
     /// <summary>When it was applied.</summary>

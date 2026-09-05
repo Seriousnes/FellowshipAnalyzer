@@ -5,18 +5,18 @@ namespace FellowshipAnalyzer.Core.Analysis.Deaths;
 /// <summary>
 /// Dungeon-lifetime capture of every death of the analyzed player. Incoming hits and healing accumulate
 /// into a rolling buffer trimmed to <see cref="RecapWindowMs"/>, so a long dungeon keeps only the lead-up
-/// it might need; a death snapshots that buffer plus everything only knowable during dispatch, and
+/// it might need; a death captures that buffer plus everything only knowable during dispatch, and
 /// <see cref="PlayerDeath"/> derives the rest from the retained state.
 /// <para>
 /// Cooldown availability has to be captured here rather than derived afterwards: <see cref="SpellUsable"/>
 /// answers only for the current dispatch position, and by the end of the parse that position is the end of
-/// the dungeon. Aura state, by contrast, is history the parse leaves behind, so the same snapshot could read
-/// it later; it is taken here to keep <see cref="PlayerDeath"/> free of live module references.
+/// the dungeon. Aura state, by contrast, is history the parse leaves behind, so it could be read
+/// later; it is taken here to keep <see cref="PlayerDeath"/> free of live module references.
 /// </para>
 /// <para>
 /// Casts are counted here rather than read off <see cref="SpellUsable.Casts"/>, which holds one entry
-/// per <see cref="CastEvent"/>. A cast-time ability logs two: the activation, carrying
-/// <see cref="CastEvent.Activation"/>, and the completion roughly a cast time later without it. An
+/// per <see cref="CastEvent"/>. A cast-time ability logs two: the activation, with
+/// <see cref="CastEvent.Activation"/> set, and the completion roughly a cast time later without it. An
 /// instant ability logs only the activation. Counting every entry therefore counts a cast-time activation
 /// twice, so a completion arriving within <see cref="CastCompletionPairingMs"/> of an unconsumed
 /// activation of the same ability is folded into it. A completion with no activation to fold into still

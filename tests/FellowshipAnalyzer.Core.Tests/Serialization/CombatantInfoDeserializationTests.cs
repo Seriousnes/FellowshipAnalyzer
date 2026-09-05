@@ -13,7 +13,7 @@ using Xunit;
 namespace FellowshipAnalyzer.Core.Tests.Serialization;
 
 /// <summary>
-/// Covers the gear detail a combatantinfo carries that a stat effect's magnitude is sized from, using the
+/// Covers the gear detail a combatantinfo reports that a stat effect's magnitude is sized from, using the
 /// same options the client configures so a property that only binds under looser settings fails here. The
 /// JSON is copied from a real report's combatantinfo gear entry.
 /// </summary>

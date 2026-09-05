@@ -37,7 +37,7 @@ public sealed class SupremacyAnalyzerTests
             Multishot(4_000),
             RemoveBuff(5_000));
 
-        analyzer.EmpoweredMultishotCasts.ShouldBe(4);
+        analyzer.MultishotCastsInWindows.ShouldBe(4);
 
         var window = analyzer.Windows.ShouldHaveSingleItem();
         window.StartMs.ShouldBe(1_000);
@@ -77,7 +77,7 @@ public sealed class SupremacyAnalyzerTests
             RemoveBuff(6_000),
             Multishot(7_000));
 
-        analyzer.EmpoweredMultishotCasts.ShouldBe(1);
+        analyzer.MultishotCastsInWindows.ShouldBe(1);
         analyzer.Windows.ShouldHaveSingleItem().MultishotCasts.ShouldBe(1);
     }
 
@@ -102,7 +102,7 @@ public sealed class SupremacyAnalyzerTests
             Multishot(2_000));
 
         analyzer.Windows.ShouldBeEmpty();
-        analyzer.EmpoweredMultishotCasts.ShouldBe(0);
+        analyzer.MultishotCastsInWindows.ShouldBe(0);
     }
 
     [Fact]
@@ -121,7 +121,7 @@ public sealed class SupremacyAnalyzerTests
         analyzer.Windows[0].MultishotCasts.ShouldBe(1);
         analyzer.Windows[1].MultishotCasts.ShouldBe(2);
         analyzer.Windows[1].FirstMultishotDelayMs.ShouldBe(400);
-        analyzer.EmpoweredMultishotCasts.ShouldBe(3);
+        analyzer.MultishotCastsInWindows.ShouldBe(3);
     }
 
     [Fact]

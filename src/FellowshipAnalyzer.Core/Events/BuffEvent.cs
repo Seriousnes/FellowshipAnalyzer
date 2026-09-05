@@ -27,9 +27,9 @@ public class TrackedBuffEvent : BuffEvent
     public int Start { get; set; }
     /// <summary>The timestamp, in milliseconds, at which this window ended, or <c>null</c> while the buff or debuff is still active.</summary>
     public int? End { get; set; }
-    /// <summary>Every stack-count change recorded during this window, in chronological order.</summary>
+    /// <summary>Every stack-count change during this window, in chronological order.</summary>
     public List<StackHistoryElement> StackHistory { get; set; } = [];
-    /// <summary>The timestamp of every refresh recorded during this window, where a refresh reapplies the buff or debuff without changing its stack count.</summary>
+    /// <summary>The timestamp of every refresh during this window, where a refresh reapplies the buff or debuff without changing its stack count.</summary>
     public List<int> RefreshHistory { get; set; } = [];
     /// <summary>The current stack count of this buff or debuff.</summary>
     public int Stacks { get; set; }
@@ -38,12 +38,12 @@ public class TrackedBuffEvent : BuffEvent
     /// <inheritdoc/>
     public override bool? Fabricated => true;
 
-    /// <summary>One entry in <see cref="StackHistory"/>, pairing a stack count with the timestamp it was recorded at.</summary>
+    /// <summary>One entry in <see cref="StackHistory"/>, pairing a stack count with its timestamp.</summary>
     public class StackHistoryElement
     {
         /// <summary>The stack count at <see cref="Timestamp"/>.</summary>
         public int Stacks { get; set; }
-        /// <summary>The timestamp, in milliseconds, at which <see cref="Stacks"/> was recorded.</summary>
+        /// <summary>The timestamp, in milliseconds, of <see cref="Stacks"/>.</summary>
         public int Timestamp { get; set; }
     }
 }
@@ -55,7 +55,7 @@ public class ApplyBuffEvent : BuffEvent
 {
     /// <summary>The absorb shield amount granted by this buff application, if any.</summary>
     public virtual int? Absorb { get; set; }
-    /// <summary>Whether FellowshipLogs synthesized this application from the actor's combatant-info snapshot because the buff was already active when logging began, rather than observing it live.</summary>
+    /// <summary>Whether FellowshipLogs synthesized this application from the actor's combatant-info because the buff was already active when logging began.</summary>
     public virtual bool? FromCombatantInfo { get; set; }
 }
 
@@ -101,7 +101,7 @@ public class ApplyDebuffEvent : BuffEvent
     public virtual Unit? Source { get; set; } = DefaultActors.Environment;
     /// <summary>The absorb shield amount granted by this debuff application, if any.</summary>
     public virtual int? Absorb { get; set; }
-    /// <summary>Whether FellowshipLogs synthesized this application from the actor's combatant-info snapshot because the debuff was already active when logging began, rather than observing it live.</summary>
+    /// <summary>Whether FellowshipLogs synthesized this application from the actor's combatant-info because the debuff was already active when logging began.</summary>
     public virtual bool? FromCombatantInfo { get; set; }
 }
 

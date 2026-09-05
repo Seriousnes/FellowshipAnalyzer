@@ -47,7 +47,7 @@ public sealed partial class CullingStrikeAnalyzer : Analyzer
 
     public int UnexplainedCastsAboveThreshold => Result.UnexplainedAboveThreshold;
 
-    public int CastsWithoutHealthReading => Result.Casts.Count(cast => cast.TargetHealthPercent is null);
+    public int CastsWithoutTargetHealth => Result.Casts.Count(cast => cast.TargetHealthPercent is null);
 
     [On<DamageEvent>(By = Actor.Player)]
     private void OnDamage(DamageEvent @event)

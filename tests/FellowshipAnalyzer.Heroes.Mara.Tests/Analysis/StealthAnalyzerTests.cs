@@ -107,7 +107,7 @@ public sealed class StealthAnalyzerTests
     }
 
     [Fact]
-    public async Task Analyze_PoisonBeyondTheLinkHorizon_IsNotCreditedToTheWindow()
+    public async Task Analyze_PoisonBeyondTheLinkWindow_IsNotCreditedToTheWindow()
     {
         var events = new List<Event>
         {

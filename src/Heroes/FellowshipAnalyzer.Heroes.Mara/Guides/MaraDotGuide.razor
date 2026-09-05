@@ -45,7 +45,7 @@
             stats.Add(new OverviewStat(
                 $"{gaps}",
                 "Boss Gaps",
-                "Debuff downtime."));
+                "Gaps with a tracked effect off the primary target."));
 
             var refreshes = bossAnalyzers.Sum(analyzer => analyzer.HemorrhageRefreshes.Count);
             var clips = bossAnalyzers.Sum(analyzer => ClipCount(analyzer));
@@ -64,14 +64,14 @@
             stats.Add(new OverviewStat(
                 $"{coverage}%",
                 "AoE Bleed Coverage",
-                "Average share of the pack that took the Hemorrhage bleed across every AoE pull.",
+                "Average share of the pack with the Hemorrhage bleed applied across every AoE pull.",
                 CoverageTier(coverage, spreadAnalyzers.Sum(analyzer => analyzer.RosterSize))));
 
             var reapplied = spreadAnalyzers.Sum(analyzer => analyzer.VolatilePoisonRefreshes);
             stats.Add(new OverviewStat(
                 $"{reapplied}",
                 "Volatile Poison Reapplied",
-                "Volatile Poison applications made on a target that already had it.",
+                "Volatile Poison applied to a target that already had it.",
                 VolatileTier(reapplied)));
         }
 
@@ -105,11 +105,10 @@
         }
 
         var gapCount = analyzer.Uptimes.Sum(entry => entry.GapCount);
-        var downtime = analyzer.Uptimes.Sum(entry => entry.TotalGapMs);
         stats.Add(new PerCastStat(
             $"{gapCount}",
             "Gaps",
-            $"Gaps with a tracked effect off the primary target between its windows, totalling {FormatSeconds(downtime)}."));
+            "Gaps with a tracked effect off the primary target between its windows."));
 
         var refreshes = analyzer.HemorrhageRefreshes.Count;
         var clips = ClipCount(analyzer);
@@ -117,7 +116,7 @@
         stats.Add(new PerCastStat(
             $"{clips}/{refreshes}",
             "Bleeds Clipped Early",
-            $"Hemorrhage reapplications that overwrote more than {EarlyClipRemainingMs / 1000}s of an active bleed.",
+            $"Hemorrhage reapplications overwriting more than {EarlyClipRemainingMs / 1000}s of an active bleed.",
             Performance: clipTier));
         worst = Worse(worst, clipTier);
 
@@ -134,7 +133,7 @@
             var samples = ChartSamples(analyzer, pull);
             var bands = ChartBands(analyzer, samples);
             chart = new AdditionalContent(
-                "Coverage Through The Pull",
+                "Active Effects Through The Pull",
                 @<AuraStackGraph Samples="@samples"
                                  Bands="@bands"
                                  YAxisTitle="Active effects"
@@ -161,7 +160,7 @@
             new PerCastStat(
                 $"{analyzer.HemorrhageTargets}/{analyzer.RosterSize}",
                 "Bleed Coverage",
-                $"Enemies that took the Hemorrhage bleed, against the pack ({coverage}%).",
+                $"Enemies with the Hemorrhage bleed applied, against the pack ({coverage}%).",
                 Performance: coverageTier),
             new PerCastStat(
                 $"{analyzer.HemorrhageApplications}",
@@ -170,15 +169,15 @@
             new PerCastStat(
                 $"{analyzer.SeethingPoisonTargets}",
                 MaraDots.SeethingPoison.Effect.Name,
-                $"Enemies that took the {MaraDots.SeethingPoison.Effect.Name} during the pull."),
+                $"Enemies with the {MaraDots.SeethingPoison.Effect.Name} applied during the pull."),
             new PerCastStat(
                 $"{analyzer.VolatilePoisonTargets}",
                 MaraDots.VolatilePoison.Effect.Name,
-                $"Enemies that took the {MaraDots.VolatilePoison.Effect.Name} during the pull."),
+                $"Enemies with the {MaraDots.VolatilePoison.Effect.Name} applied during the pull."),
             new PerCastStat(
                 $"{analyzer.VolatilePoisonRefreshes}/{analyzer.VolatilePoisonApplications + analyzer.VolatilePoisonRefreshes}",
                 "Volatile Poison Reapplied",
-                "Volatile Poison applications made on a target that already had it.",
+                "Volatile Poison applied to a target that already had it.",
                 Performance: volatileTier),
         };
 
@@ -243,7 +242,7 @@
         }
 
         if (notes.Count == 0)
-            return "Both effects were active for the whole pull, with no gaps and no bleed clipped early.";
+            return "Both effects were active with no gaps and no bleed clipped early.";
 
         return Sentence(notes);
     }
@@ -258,9 +257,7 @@
             notes.Add($"the bleed spread to {analyzer.HemorrhageTargets} of {analyzer.RosterSize} enemies ({coverage}%)");
 
         if (analyzer.VolatilePoisonRefreshes > 0)
-            notes.Add($"{Count(analyzer.VolatilePoisonRefreshes, "Volatile Poison")} went onto a target that already had it");
-        else if (analyzer.VolatilePoisonApplications > 0)
-            notes.Add($"none of the {analyzer.VolatilePoisonApplications} Volatile Poison applications went onto a target that already had it");
+            notes.Add($"Volatile Poison was applied {Count(analyzer.VolatilePoisonRefreshes, "time")} to a target that already had it");
 
         return Sentence(notes);
     }

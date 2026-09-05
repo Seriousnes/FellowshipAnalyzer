@@ -110,8 +110,8 @@ public sealed class DeathTrackerTests
 
     /// <summary>
     /// The rolling buffer is trimmed against whichever event most recently arrived, which is not always a
-    /// hit. A heal landing just before the death must not carry the trim past the window's own floor and
-    /// take the oldest hit with it.
+    /// hit. A heal just before the death must not push the trim past the window's own floor and take
+    /// the oldest hit with it.
     /// </summary>
     [Fact]
     public async Task Window_KeepsTheOldestHitWhenAHealArrivesJustBeforeTheDeath()
@@ -167,7 +167,7 @@ public sealed class DeathTrackerTests
     }
 
     /// <summary>
-    /// Health at the window's start and the maximum it is read against must come from the same snapshot,
+    /// Health at the window's start and the maximum it is read against must come from the same hit,
     /// or a dungeon where maximum health moves renders a ratio of two unrelated numbers.
     /// </summary>
     [Fact]
@@ -240,7 +240,7 @@ public sealed class DeathTrackerTests
     }
 
     /// <summary>
-    /// A cast-time ability logs the activation carrying <c>Activation</c> and the completion a cast time
+    /// A cast-time ability logs the activation with <c>Activation</c> set and the completion a cast time
     /// later without it. Both are real events at different timestamps, so counting them both would report
     /// one activation as two. The activation is the moment worth reporting.
     /// </summary>
@@ -261,7 +261,7 @@ public sealed class DeathTrackerTests
     }
 
     /// <summary>
-    /// An instant ability logs one cast and it carries <c>Activation</c>, which is how nearly every cast
+    /// An instant ability logs one cast and it sets <c>Activation</c>, which is how nearly every cast
     /// in a real log arrives. Treating the flag as a marker to skip would discard almost every activation.
     /// </summary>
     [Fact]

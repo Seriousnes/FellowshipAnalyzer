@@ -7,7 +7,7 @@ namespace FellowshipAnalyzer.Generators;
 
 /// <summary>
 /// Emits a compile-time <c>HeroManifest</c> by scanning all referenced assemblies (plus the
-/// current compilation) for classes carrying <c>[HeroAnalyzer]</c>. Also emits an
+/// current compilation) for classes marked with <c>[HeroAnalyzer]</c>. Also emits an
 /// <c>AddFellowshipHeroAnalysis</c> DI extension that calls each hero's generated
 /// <c>Add{Hero}Analysis()</c>. Triggered by a single class marked <c>[GenerateHeroManifest]</c>.
 /// </summary>

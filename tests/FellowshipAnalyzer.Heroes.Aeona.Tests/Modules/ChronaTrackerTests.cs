@@ -18,11 +18,10 @@ using AeonaSpells = FellowshipAnalyzer.Core.Common.Spells.Aeona.Spells;
 namespace FellowshipAnalyzer.Heroes.Aeona.Tests.Modules;
 
 /// <summary>
-/// Exercises the Chrona and mana reconstruction against fabricated snapshots. Aeona logs carry no
-/// <see cref="ResourceChangeEvent"/> and no <see cref="ClassResource.Cost"/>, so the tracker's own
-/// snapshot ledger is the only path real data reaches, and the resource-change branches can only be
-/// reached from fabricated events.
-/// Snapshot amounts are written at the raw log scale because <c>ResourceNormalizer</c> divides them by
+/// Exercises the Chrona and mana reconstruction against fabricated resource blocks. The tracker's own
+/// ledger is the only path real data reaches, and the resource-change branches are reached from
+/// fabricated events alone.
+/// Resource amounts are written at the raw log scale because <c>ResourceNormalizer</c> divides them by
 /// 100 before dispatch; <see cref="ResourceChangeEvent"/> amounts are written in game units because it
 /// leaves those untouched.
 /// </summary>
@@ -46,7 +45,7 @@ public sealed class ChronaTrackerTests
     }
 
     [Fact]
-    public async Task RisingSnapshots_CountAsGenerationAttributedToTheCarryingAbility()
+    public async Task RisingSnapshots_CountAsGenerationAttributedToTheEventsAbility()
     {
         var tracker = await Analyze(
             Heal(1_000, AeonaSpells.EntropyClaim.FSLID, rawChrona: 4_000),

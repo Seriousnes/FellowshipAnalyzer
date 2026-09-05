@@ -3,8 +3,8 @@
 <GuideSection Title="Fleeting Hour">
     <LeftPanel>
         <p>
-            <strong><SpellLink Spell="Spells.FleetingHour" /></strong> is your cooldown-acceleration window.
-            Recast it as soon as you can, and keep it for the pull rather than the time between pulls.
+            Recast <strong><SpellLink Spell="Spells.FleetingHour" /></strong> as soon as you can, and keep it
+            for the pull rather than the time between pulls.
         </p>
         @if (Analyzer is { SurgingChronaTaken: true } surging)
         {
@@ -42,11 +42,11 @@
             new(
                 $"{FormatSeconds(analyzer.OutsideCombatMs)} ({analyzer.OutsideCombatShare:P0})",
                 "Active Between Pulls",
-                "Fleeting Hour time that fell outside every pull, and its share of everything the window covered."),
+                "Fleeting Hour time that fell outside every pull, and its share of everything the window was active for."),
             new(
                 FormatSeconds(analyzer.AvailableInCombatMs),
                 "Available in Combat",
-                "Combat time Fleeting Hour was off cooldown and uncast."),
+                "Combat time Fleeting Hour was off cooldown and not cast."),
             new(
                 FormatSeconds((int)Math.Round(analyzer.AverageDelayMs)),
                 "Delay After Available",

@@ -17,7 +17,7 @@ public enum ContinuumShiftOutcome
     /// <summary>Removed with no Time Shard cast beside it.</summary>
     Lost,
 
-    /// <summary>Still active when the pull ended, so nothing decided it.</summary>
+    /// <summary>Still active when the pull ended.</summary>
     OpenAtPullEnd,
 }
 
@@ -75,7 +75,7 @@ public sealed record TimeShardCast
     public required long VehementDisdainDamage { get; init; }
 
     /// <summary>
-    /// Whether Martial Initiative was active when the cast's damage landed, read at the first hit
+    /// Whether Martial Initiative was active when the cast's damage was dealt, read at the first hit
     /// attributed to it and at the cast itself when no hit was attributed.
     /// </summary>
     public required bool MartialInitiativeActive { get; init; }
@@ -92,21 +92,16 @@ public sealed record TimeShardCast
     /// </summary>
     public required bool SkyboltBeforeCast { get; init; }
 
-    /// <summary>
-    /// The Chrona the player held at the cast, or <see langword="null"/> when no snapshot precedes it.
-    /// </summary>
+    /// <summary>The Chrona the player held at the cast.</summary>
     public required int? ChronaAtCast { get; init; }
 
-    /// <summary>
-    /// Whether the cast was made above half the maximum Chrona, or <see langword="null"/> when no
-    /// snapshot precedes it.
-    /// </summary>
+    /// <summary>Whether the Chrona at the cast was above half the maximum.</summary>
     public required bool? AboveChronaThreshold { get; init; }
 
     /// <summary>Chrona lost at the maximum inside the cast's damage window.</summary>
     public required int ChronaOvercap { get; init; }
 
-    /// <summary>The Time Shard damage from the hits landing inside the cast's damage window.</summary>
+    /// <summary>The Time Shard damage from the hits inside the cast's damage window.</summary>
     public required long Damage { get; init; }
 
     /// <summary>Time Shard hits attributed to this cast.</summary>
@@ -130,7 +125,7 @@ public sealed record TimeShardCast
 [Dependency<ChronaTracker>]
 public sealed partial class TimeShardAnalyzer : Analyzer
 {
-    /// <summary>The blessing whose eruption the empowered Time Shard is meant to carry.</summary>
+    /// <summary>The blessing the empowered Time Shard is meant to erupt.</summary>
     public const string VehementBlessing = "The Vehement";
 
     /// <summary>
@@ -141,8 +136,6 @@ public sealed partial class TimeShardAnalyzer : Analyzer
 
     /// <summary>
     /// How far a Continuum Shift removal may sit from the cast that consumed it and still pair with it.
-    /// The enhanced Time Shard's cast time is doubled, so the removal and the completed cast do not
-    /// share a timestamp.
     /// </summary>
     public const int ContinuumShiftPairingMs = 2500;
 
@@ -158,7 +151,7 @@ public sealed partial class TimeShardAnalyzer : Analyzer
     private int? _openContinuumShift;
     private Evaluation? _evaluation;
 
-    /// <summary>The Chrona above which Synchronicity increases Time Shard's damage, half the maximum pool.</summary>
+    /// <summary>Half the maximum Chrona.</summary>
     public int ChronaThreshold => ChronaTracker.MaxOf(ResourceTypes.Primary) / 2;
 
     /// <summary>Every Time Shard cast in the pull, in cast order.</summary>
@@ -193,7 +186,7 @@ public sealed partial class TimeShardAnalyzer : Analyzer
     /// <summary>Continuum Shift windows the pull opened.</summary>
     public int ContinuumShiftProcs => ContinuumShiftWindows.Count;
 
-    /// <summary>Continuum Shift windows that closed during the pull, which is every window a cast could still have spent.</summary>
+    /// <summary>Continuum Shift windows that closed during the pull.</summary>
     public int ContinuumShiftClosedWindows =>
         ContinuumShiftWindows.Count(window => window.Outcome != ContinuumShiftOutcome.OpenAtPullEnd);
 
@@ -212,28 +205,28 @@ public sealed partial class TimeShardAnalyzer : Analyzer
     /// <summary>Whether the player selected the Continuum Shift talent.</summary>
     public bool ContinuumShiftTalented => Owner.SelectedCombatant.HasTalent(AeonaTalents.ContinuumShift);
 
-    /// <summary>Whether the player selected the Synchronicity talent, which is what reads the Chrona threshold.</summary>
+    /// <summary>Whether the player selected the Synchronicity talent.</summary>
     public bool SynchronicityTalented => Owner.SelectedCombatant.HasTalent(AeonaTalents.Synchronicity);
 
-    /// <summary>Whether the build carries The Vehement blessing.</summary>
+    /// <summary>Whether the build has The Vehement blessing.</summary>
     public bool VehementEquipped => Owner.SelectedCombatant.BlessingLevel(VehementBlessing) > 0;
 
-    /// <summary>Whether the build carries the Martial Initiative trait.</summary>
+    /// <summary>Whether the build has the Martial Initiative trait.</summary>
     public bool MartialInitiativeTaken =>
         Owner.SelectedCombatant.TraitRank(CoreItems.MartialInitiativeTrait.FSLID) > 0;
 
     /// <summary>Empowered casts The Vehement's Disdain erupted on.</summary>
     public int VehementPairings => Casts.Count(cast => cast.Empowered && cast.VehementErupted);
 
-    /// <summary>Empowered casts made above the Chrona threshold.</summary>
+    /// <summary>Empowered casts above the Chrona threshold.</summary>
     public int SynchronicityPairings =>
         Casts.Count(cast => cast.Empowered && cast.AboveChronaThreshold == true);
 
-    /// <summary>Empowered casts the Chrona held at the cast was known for.</summary>
-    public int ChronaMeasuredEmpoweredCasts =>
+    /// <summary>Empowered casts with the Chrona held at the cast.</summary>
+    public int EmpoweredCastsWithChrona =>
         Casts.Count(cast => cast.Empowered && cast.AboveChronaThreshold is not null);
 
-    /// <summary>Empowered casts whose damage landed with Martial Initiative active.</summary>
+    /// <summary>Empowered casts whose damage was dealt with Martial Initiative active.</summary>
     public int MartialInitiativePairings =>
         Casts.Count(cast => cast.Empowered && cast.MartialInitiativeActive);
 

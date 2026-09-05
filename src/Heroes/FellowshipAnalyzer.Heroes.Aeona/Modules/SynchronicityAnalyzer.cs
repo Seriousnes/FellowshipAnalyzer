@@ -10,25 +10,21 @@ using FSLID = FellowshipAnalyzer.Core.Common.Spells.FSLID;
 namespace FellowshipAnalyzer.Heroes.Aeona.Modules;
 
 /// <summary>
-/// What Synchronicity added over the report: the Chrona its generation half produced below
-/// <see cref="Threshold"/>, and the damage its other half produced above it.
+/// What Synchronicity contributed over the report: Chrona generated below <see cref="Threshold"/>,
+/// and damage dealt above it.
 /// </summary>
 /// <remarks>
 /// <para>
-/// Registered dungeon-lifetime, so both figures span the whole report and include what arrived between
-/// pulls.
+/// Registered dungeon-lifetime, so both figures span the whole report, including between pulls.
 /// </para>
 /// <para>
-/// Fellowship records the Chrona that reached the pool and the damage the target took, both of which
-/// already include the talent's increase, so each figure is the increase's share of the recorded amount
-/// rather than a further percentage of it.
+/// Chrona gains and damage already include the talent's increase, so each figure is the increase's
+/// share of the amount rather than a further percentage of it.
 /// </para>
 /// <para>
-/// A hit is measured against the Chrona the player held before that hit's own resource snapshot, the
-/// same convention <see cref="ChronaGeneratedBelowThreshold"/> applies to a gain.
-/// <c>[Before&lt;ChronaTracker&gt;]</c> is what puts this analyzer ahead of the tracker. Before the
-/// first Chrona snapshot the amount is zero, which is below <see cref="Threshold"/>, so a hit there
-/// contributes nothing.
+/// A hit is compared to the Chrona the player held before it, the same convention
+/// <see cref="ChronaGeneratedBelowThreshold"/> applies to a gain.
+/// <c>[Before&lt;ChronaTracker&gt;]</c> is what puts this analyzer ahead of the tracker.
 /// </para>
 /// </remarks>
 [RequiresTalent(AeonaTalents.Synchronicity)]
@@ -41,21 +37,20 @@ public sealed partial class SynchronicityAnalyzer : Analyzer
 
     /// <summary>
     /// The share of maximum Chrona below which Synchronicity increases generation. Codex
-    /// <c>talent 537</c>, "When you are below 50% Chrona you generate 25% more Chrona".
+    /// <c>talent 537</c>.
     /// </summary>
     public const double SynchronicityThresholdShare = 0.5;
 
     /// <summary>
     /// The generation increase Synchronicity applies below <see cref="SynchronicityThresholdShare"/>.
-    /// Codex <c>talent 537</c> and its <c>effect 2733</c>, "Synchronicity: Catch Up - 25% increased
-    /// Resource Generation".
+    /// Codex <c>talent 537</c> and its <c>effect 2733</c>, named "Synchronicity: Catch Up".
     /// </summary>
     public const double SynchronicityGenerationIncrease = 0.25;
 
     /// <summary>
     /// The damage increase Synchronicity applies above <see cref="SynchronicityThresholdShare"/> to
-    /// abilities that do not spend Chrona. Codex <c>talent 537</c> and its <c>effect 2596</c>,
-    /// "Synchronicity: Overcharge - 15% increased damage".
+    /// abilities that do not spend Chrona. Codex <c>talent 537</c> and its <c>effect 2596</c>, named
+    /// "Synchronicity: Overcharge".
     /// </summary>
     public const double SynchronicityDamageIncrease = 0.15;
 
@@ -63,14 +58,13 @@ public sealed partial class SynchronicityAnalyzer : Analyzer
     public override StatisticCategory StatisticCategory => StatisticCategory.Talents;
 
     /// <summary>
-    /// The Chrona amount Synchronicity's two halves divide at, as
-    /// <see cref="SynchronicityThresholdShare"/> of the maximum Chrona observed.
+    /// The Chrona amount at <see cref="SynchronicityThresholdShare"/> of maximum Chrona.
     /// </summary>
     public int Threshold =>
         (int)(ChronaTracker.MaxOf(ResourceTypes.Primary) * SynchronicityThresholdShare);
 
     /// <summary>
-    /// Chrona that arrived over the report while the pool held less than <see cref="Threshold"/>.
+    /// Chrona generated over the report while the pool held less than <see cref="Threshold"/>.
     /// </summary>
     public int ChronaGeneratedBelowThreshold =>
         _chronaGeneratedBelowThreshold ??= MeasureGenerationBelowThreshold();
@@ -82,12 +76,12 @@ public sealed partial class SynchronicityAnalyzer : Analyzer
     public long DamageAboveThreshold { get; private set; }
 
     /// <summary>The share of <see cref="ChronaGeneratedBelowThreshold"/> Synchronicity produced.</summary>
-    public double EstimatedChrona =>
+    public double ChronaFromSynchronicity =>
         ChronaGeneratedBelowThreshold
         * (SynchronicityGenerationIncrease / (1 + SynchronicityGenerationIncrease));
 
     /// <summary>The share of <see cref="DamageAboveThreshold"/> Synchronicity produced.</summary>
-    public double EstimatedDamage =>
+    public double DamageFromSynchronicity =>
         DamageAboveThreshold
         * (SynchronicityDamageIncrease / (1 + SynchronicityDamageIncrease));
 

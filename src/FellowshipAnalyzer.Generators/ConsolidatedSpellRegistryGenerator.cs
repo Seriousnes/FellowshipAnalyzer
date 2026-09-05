@@ -407,17 +407,17 @@ public sealed class ConsolidatedSpellRegistryGenerator : IIncrementalGenerator
         sb.AppendLine("namespace " + GameNamespace + ";");
         sb.AppendLine();
         sb.AppendLine("/// <summary>");
-        sb.AppendLine("/// The rarity ladder, generated from <c>data/spelldb.json</c>. Each tier answers the name the");
-        sb.AppendLine("/// build stores rather than the one it prints, because item and gem art files end in it.");
+        sb.AppendLine("/// The name the build stores for each rarity tier, generated from <c>data/spelldb.json</c>, rather");
+        sb.AppendLine("/// than the one it prints, because item and gem art files end in it.");
         sb.AppendLine("/// </summary>");
         sb.AppendLine("public static class ItemRarities");
         sb.AppendLine("{");
-        sb.AppendLine("    /// <summary>The highest tier the ladder declares.</summary>");
+        sb.AppendLine("    /// <summary>The highest tier declared.</summary>");
         sb.AppendLine("    public const int TopTier = " + (names.Count - 1).ToString(CultureInfo.InvariantCulture) + ";");
         sb.AppendLine();
         sb.AppendLine("    /// <summary>");
-        sb.AppendLine("    /// The stored name for <paramref name=\"tier\"/>, or an empty string when the ladder has no");
-        sb.AppendLine("    /// such rung.");
+        sb.AppendLine("    /// The stored name for <paramref name=\"tier\"/>, or an empty string when there is no");
+        sb.AppendLine("    /// such tier.");
         sb.AppendLine("    /// </summary>");
         sb.AppendLine("    public static string NameFor(int tier) =>");
         sb.AppendLine("        (uint)tier < (uint)Names.Length ? Names[tier] : string.Empty;");
@@ -761,7 +761,7 @@ public sealed class ConsolidatedSpellRegistryGenerator : IIncrementalGenerator
 
     /// <summary>
     /// Turns the <c>talents</c> section (hero → member → entry) into one <c>Talents</c> class of static
-    /// <c>Talent</c> members per hero, plus the companion <c>{Hero}Talents</c> id constants. Talents carry
+    /// <c>Talent</c> members per hero, plus the companion <c>{Hero}Talents</c> id constants. Talents have
     /// their own class because a talent and an ability in the same hero scope often share a name, and they
     /// are not registry members, so they stay out of <c>Spells.All</c>.
     /// </summary>

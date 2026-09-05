@@ -39,7 +39,7 @@ public sealed partial class GloriousPurposeAnalyzer(
     private int? _scheduledEnd;
     private int _openTimestamp;
 
-    /// <summary>All Glorious Purpose recovery windows observed for the selected player.</summary>
+    /// <summary>All Glorious Purpose recovery windows for the selected player.</summary>
     public List<GloriousPurposeWindow> Windows => _windows;
 
     /// <summary>The number of times the Fated Strike weapon's active was cast over the encounter.</summary>
@@ -48,7 +48,7 @@ public sealed partial class GloriousPurposeAnalyzer(
     /// <summary>
     /// Bonus cooldown recovery Glorious Purpose granted to each ability over the encounter, in
     /// milliseconds, ordered by amount descending. This is the extra cooldown progress the added 200%
-    /// bought beyond what the spell would have made over the same window without it. Because the pool is
+    /// produced beyond what the spell would have made over the same window without it. Because the pool is
     /// additive, that extra is 2× the time on cooldown whatever the ability's haste contribution.
     /// </summary>
     public List<AbilityRecovery> RecoveryByAbility =>
@@ -112,7 +112,7 @@ public sealed partial class GloriousPurposeAnalyzer(
 
     /// <summary>
     /// Pushes the expiry of the live window out to a full duration from <paramref name="buffEvent"/>,
-    /// leaving the open modifier and the cooldown snapshot in place. Re-fabricating the expiry supersedes
+    /// leaving the open modifier and the stored cooldown values in place. Re-fabricating the expiry supersedes
     /// the earlier scheduled removal, which <see cref="OnRemove"/> then ignores as stale.
     /// </summary>
     private void ExtendWindow(BuffEvent buffEvent)

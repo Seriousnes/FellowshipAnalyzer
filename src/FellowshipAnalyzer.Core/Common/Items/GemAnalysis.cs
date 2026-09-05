@@ -84,7 +84,7 @@ public sealed record GemTrait(Spell BaseRank, int BaseRankPower, Spell UpgradedR
     /// <summary>
     /// Every window of this trait's unlocked rank on <paramref name="unit"/>, clipped to
     /// <paramref name="from"/>..<paramref name="to"/>. Reads the windows <see cref="Combatants"/> tracks, so
-    /// a rank the player entered the dungeon already carrying counts from the start and one still active at the
+    /// a rank already active when the player entered the dungeon counts from the start and one still active at the
     /// end closes there. Empty while the trait is locked.
     /// </summary>
     public IEnumerable<AuraWindow> WindowsOn(Entity unit, int gemPower, int from, int to) =>
@@ -104,6 +104,6 @@ public interface IGemAnalyzer
 {
     /// <summary>The gem colour this analyzer covers.</summary>
     GemType Gem { get; }
-    /// <summary>The player's accumulated power in this gem, from the combatantinfo snapshot.</summary>
+    /// <summary>The player's accumulated power in this gem, from the combatantinfo.</summary>
     int GemPower { get; }
 }

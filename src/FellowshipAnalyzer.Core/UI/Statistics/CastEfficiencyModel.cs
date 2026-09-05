@@ -8,11 +8,11 @@ namespace FellowshipAnalyzer.Core.UI.Statistics;
 /// One spellbook ability's cast efficiency over the pulls a report view is showing.
 /// </summary>
 /// <param name="Ability">The spellbook entry this row reports on.</param>
-/// <param name="Casts">Casts recorded inside the analyzed pulls.</param>
+/// <param name="Casts">Casts inside the analyzed pulls.</param>
 /// <param name="CastsPerMinute">Casts divided by the analyzed minutes.</param>
 /// <param name="MaxCasts">
-/// How many casts the analyzed time had room for, from the ability's observed recharge period and
-/// charge count. <c>null</c> for an ability with no cooldown, which has no such ceiling.
+/// How many casts the analyzed time had room for, from the ability's recharge period and charge
+/// count. <c>null</c> for an ability with no cooldown.
 /// </param>
 /// <param name="Efficiency">
 /// The share (0-1) of the analyzed time at least one charge was recharging. <c>null</c> for an
@@ -33,7 +33,7 @@ public sealed record AbilityCastEfficiency(
     bool? MeetsRecommendation);
 
 /// <summary>
-/// Measures how well each spellbook ability was kept rolling, from the player's cast stream and the
+/// Measures each spellbook ability's cast efficiency, from the player's cast stream and the
 /// <see cref="UpdateSpellUsableEvent"/>s <see cref="SpellUsable"/> fabricates, clipped to a set of pulls.
 /// </summary>
 public static class CastEfficiencyModel

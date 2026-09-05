@@ -22,7 +22,7 @@
     <RightPanel>
         <CastOverview Title="Stealth Overview" Stats="@BuildOverviewStats()" />
         <CastDetail Title="Stealth Windows"
-                    Description="Each row is one Brooding Shadows window, from the stealth buff being applied to its removal, with the builder cast inside it and the poison that builder applied."
+                    Description="Each row is one Brooding Shadows window, with the builder cast inside it and the poison that builder applied."
                     Casts="@BuildStealthRows()" />
         @if (HasGuile)
         {
@@ -48,15 +48,11 @@
         var stealth = Parser.StealthAnalyzers.Select(entry => entry.Analyzer).ToList();
         var windows = stealth.Sum(analyzer => analyzer.WindowCount);
         var converted = stealth.Sum(analyzer => analyzer.ConvertedWindows);
-        var poisoned = stealth.Sum(analyzer => analyzer.WindowsWithPoison);
-        var casts = stealth.Sum(analyzer => analyzer.BroodingShadowsCasts);
 
         stats.Add(new OverviewStat(
             $"{converted}/{windows}",
             "Stealth Windows Converted",
-            windows == 0
-                ? $"No stealth window was observed across {Count(casts, "Brooding Shadows cast")}, so there is nothing to score."
-                : $"Brooding Shadows windows with a builder cast inside them ({Percent(converted, windows)}%); a poison was applied in {poisoned} of them.",
+            $"Brooding Shadows windows with a builder cast inside them ({Percent(converted, windows)}%).",
             ConversionTier(converted, windows)));
 
         if (!HasGuile)
@@ -65,14 +61,11 @@
         var guile = Parser.GuileAnalyzers.Select(entry => entry.Analyzer).ToList();
         var guileWindows = guile.Sum(analyzer => analyzer.WindowCount);
         var guileConverted = guile.Sum(analyzer => analyzer.ConvertedWindows);
-        var spenders = guile.Sum(analyzer => analyzer.SpendersInWindows);
 
         stats.Add(new OverviewStat(
             $"{guileConverted}/{guileWindows}",
             "Guile Windows Converted",
-            guileWindows == 0
-                ? "Assassin's Guile was never applied, so there is nothing to score."
-                : $"Assassin's Guile windows with a Queen's Fang or Arachnid Assault cast inside them ({Percent(guileConverted, guileWindows)}%), {spenders} spenders in total.",
+            $"Assassin's Guile windows with a Queen's Fang or Arachnid Assault cast inside them ({Percent(guileConverted, guileWindows)}%).",
             ConversionTier(guileConverted, guileWindows)));
 
         if (HasMalevolence)
@@ -170,7 +163,7 @@
         if (window.ConvertingAbilityId is not { } builder)
             return $"This {FormatSeconds(window.DurationMs)} stealth window closed without a builder.";
 
-        var notes = new List<string> { $"{BuilderName(builder)} came out of stealth" };
+        var notes = new List<string> { $"{BuilderName(builder)} was cast out of stealth" };
 
         if (window.PoisonEffectId is { } poison)
             notes.Add($"it applied {PoisonName(poison)}");
@@ -188,7 +181,7 @@
         {
             window.SpenderCasts == 0
                 ? $"this {FormatSeconds(window.DurationMs)} window expired with no Queen's Fang or Arachnid Assault in it"
-                : $"{Count(window.SpenderCasts, "spender")} went out inside it",
+                : $"{Count(window.SpenderCasts, "spender")} cast inside it",
         };
 
         if (HasMalevolence)

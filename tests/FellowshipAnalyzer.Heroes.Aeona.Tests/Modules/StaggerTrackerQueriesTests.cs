@@ -16,10 +16,10 @@ using Xunit;
 namespace FellowshipAnalyzer.Heroes.Aeona.Tests.Modules;
 
 /// <summary>
-/// Tests for the readings <see cref="StaggerTracker"/> serves the segments that judge a cast: the aged
-/// Stagger fraction, party alive state, the cleanse amount taken from the report, and the channel bracket.
+/// Tests for what <see cref="StaggerTracker"/> serves the segments that rate a cast: the aged Stagger
+/// fraction, party alive state, the Stagger removed taken from the report, and the channel bracket.
 /// </summary>
-public sealed class StaggerTrackerReadingsTests
+public sealed class StaggerTrackerQueriesTests
 {
     private const int PlayerId = 310;
     private const int TankId = 90;
@@ -34,19 +34,19 @@ public sealed class StaggerTrackerReadingsTests
     ];
 
     [Fact]
-    public async Task StaggerFraction_IsGivenForAReadingInsideTheMaxAge()
+    public async Task StaggerFraction_IsGivenInsideTheMaxAge()
     {
         var tracker = await Track(SnapshotHeal(TankId, 1000, rawStagger: 1_600_000));
 
-        tracker.StaggerFractionOfMaxHp(TankId, 1500, StaggerTracker.ReadingMaxAgeMs).ShouldBe(0.4);
+        tracker.StaggerFractionOfMaxHp(TankId, 1500, StaggerTracker.StaggerMaxAgeMs).ShouldBe(0.4);
     }
 
     [Fact]
-    public async Task StaggerFraction_IsWithheldForAReadingOlderThanTheMaxAge()
+    public async Task StaggerFraction_IsWithheldPastTheMaxAge()
     {
         var tracker = await Track(SnapshotHeal(TankId, 1000, rawStagger: 1_600_000));
 
-        tracker.StaggerFractionOfMaxHp(TankId, 2500, StaggerTracker.ReadingMaxAgeMs).ShouldBeNull();
+        tracker.StaggerFractionOfMaxHp(TankId, 2500, StaggerTracker.StaggerMaxAgeMs).ShouldBeNull();
     }
 
     [Fact]
@@ -71,7 +71,7 @@ public sealed class StaggerTrackerReadingsTests
     }
 
     [Fact]
-    public async Task SingleCastCleanseAmount_TakesTheMedianOfTheCleanCastsThatClearedTheirWholeAmount()
+    public async Task StaggerRemoved_TakesTheMedianOfTheCleanCastsThatClearedTheirWholeAmount()
     {
         var tracker = await Track(
             SnapshotHeal(TankId, 900, rawStagger: 800_000),
@@ -86,11 +86,11 @@ public sealed class StaggerTrackerReadingsTests
             AmendFateCast(5000),
             AmendFateHeal(TankId, 5100, rawStagger: 480_000));
 
-        tracker.SingleCastCleanseAmount(Spells.AmendFate.FSLID).ShouldBe(2000);
+        tracker.StaggerRemoved(Spells.AmendFate.FSLID).ShouldBe(2000);
     }
 
     [Fact]
-    public async Task SingleCastCleanseAmount_IgnoresACastThatEmptiedThePool()
+    public async Task StaggerRemoved_IgnoresACastThatEmptiedThePool()
     {
         var tracker = await Track(
             SnapshotHeal(TankId, 900, rawStagger: 150_000),
@@ -101,15 +101,15 @@ public sealed class StaggerTrackerReadingsTests
             AmendFateCast(3000),
             AmendFateHeal(TankId, 3100, rawStagger: 700_000));
 
-        tracker.SingleCastCleanseAmount(Spells.AmendFate.FSLID).ShouldBe(2000);
+        tracker.StaggerRemoved(Spells.AmendFate.FSLID).ShouldBe(2000);
     }
 
     [Fact]
-    public async Task SingleCastCleanseAmount_IsWithheldWhenNoCastCanBeMeasured()
+    public async Task StaggerRemoved_IsWithheldWhenNoCastCanBeMeasured()
     {
         var tracker = await Track(AmendFateCast(1000));
 
-        tracker.SingleCastCleanseAmount(Spells.AmendFate.FSLID).ShouldBeNull();
+        tracker.StaggerRemoved(Spells.AmendFate.FSLID).ShouldBeNull();
     }
 
     [Fact]
@@ -142,7 +142,7 @@ public sealed class StaggerTrackerReadingsTests
     }
 
     [Fact]
-    public async Task MeasureCleanseBetween_IsWithheldWhenNoReadingCloses()
+    public async Task MeasureCleanseBetween_IsWithheldWhenNothingClosesTheBracket()
     {
         var tracker = await Track(SnapshotHeal(TankId, 900, rawStagger: 800_000));
 

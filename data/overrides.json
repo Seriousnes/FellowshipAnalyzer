@@ -3,81 +3,68 @@
     "ContinuumShift": {
       "id": 2676,
       "kind": "effect",
-      "name": "Continuum Shift",
-      "note": "effect 2676; the Continuum Shift talent (621) state that enhances the next Time Shard, Echoes of Ruin, or Entropy's Claim"
+      "name": "Continuum Shift"
     },
     "Uchronia": {
       "id": 2593,
       "kind": "effect",
-      "name": "Uchronia",
-      "note": "effect 2593; the Uchronia talent (554) stack a Chrona spender grants, making the next Oblivion, Amend Fate, or Restore Continuity free at 3 stacks"
+      "name": "Uchronia"
     },
     "EchoesOfDivinity": {
       "id": 2818,
       "kind": "effect",
-      "name": "Echoes of Divinity",
-      "note": "effect 2818; the Echoes of Divinity talent (623) effect that cleanses Stagger over time, 4s duration on a 1s period"
+      "name": "Echoes of Divinity"
     },
     "EntropicBurst": {
       "id": 2819,
       "kind": "effect",
-      "name": "Entropic Burst",
-      "note": "effect 2819; the Entropic Burst talent (592) damage over time, 9s duration on a 1.5s period"
+      "name": "Entropic Burst"
     },
     "ResonantFate": {
       "id": 2584,
       "kind": "effect",
-      "name": "Resonant Fate",
-      "note": "effect 2584; the Resonant Fate talent (536) stack counter fed by Deferred Fate overhealing, arming the damage reduction at 100 stacks"
+      "name": "Resonant Fate"
     },
     "ResonantFatePeriodic": {
       "id": 2585,
       "kind": "effect",
-      "name": "Resonant Fate",
-      "note": "effect 2585; the Resonant Fate talent (536) periodic component, 5s duration on a 1s period, which the codex record leaves undescribed"
+      "name": "Resonant Fate"
     },
     "ResonantFateExhausted": {
       "id": 2586,
       "kind": "effect",
-      "name": "Resonant Fate: Exhausted",
-      "note": "effect 2586; the 20s lockout applied once Resonant Fate has triggered"
+      "name": "Resonant Fate: Exhausted"
     },
     "ResonantFateDamageReduction": {
       "id": 3259,
       "kind": "effect",
       "name": "Resonant Fate",
-      "icon": "T_Lisa_Stagger.jpg",
-      "note": "effect 3259; the 12% damage reduction Resonant Fate grants an ally for 15s. It carries no abilities.json entry, so the icon is set here from the codex record"
+      "icon": "T_Lisa_Stagger.jpg"
     },
     "ChronaTap": {
       "id": 2588,
       "kind": "effect",
-      "name": "Chrona Tap",
-      "note": "effect 2588; the Chrona Tap talent (539) stack counter, 9s duration, returning mana scaled by stacks and maximum mana when it ends"
+      "name": "Chrona Tap"
     },
     "HasteningDoom": {
       "id": 2822,
       "kind": "effect",
-      "name": "Hastening Doom",
-      "note": "effect 2822; the +20% Haste the Hastening Doom talent (624) grants"
+      "name": "Hastening Doom"
     },
     "SynchronicityCatchUp": {
       "id": 2733,
       "kind": "effect",
-      "name": "Synchronicity: Catch Up",
-      "note": "effect 2733; the +25% resource generation half of the Synchronicity talent (537)"
+      "name": "Synchronicity: Catch Up"
     },
     "SynchronicityOvercharge": {
       "id": 2596,
       "kind": "effect",
-      "name": "Synchronicity: Overcharge",
-      "note": "effect 2596; the +15% non-spender damage half of the Synchronicity talent (537)"
+      "name": "Synchronicity: Overcharge"
     },
     "OblivionSelfBuffBuff": {
       "id": 3153,
       "kind": "effect",
-      "name": "Converging Timelines",
-      "note": "effect 3153; Converging Timelines, the +100% Cooldown Acceleration Oblivion grants itself for 0.5s. The v24952830 export leaves the record unnamed, so the name is set here from ability 1970's own description"
+      "name": "Converging Timelines"
     }
   },
   "ardeos": {
@@ -233,80 +220,67 @@
     "AdrenalineRush": {
       "id": 939,
       "kind": "effect",
-      "name": "Adrenaline Rush",
-      "note": "Topaz rank 1; the haste window a damage or heal on a target at or below 30% health opens"
+      "name": "Adrenaline Rush"
     },
     "AdrenalineRushII": {
       "id": 940,
       "kind": "effect",
-      "name": "Adrenaline Rush - II",
-      "note": "Topaz rank 6; replaces AdrenalineRush"
+      "name": "Adrenaline Rush - II"
     },
     "FirstStrike": {
       "id": 943,
       "kind": "effect",
-      "name": "First Strike",
-      "note": "Emerald rank 1; the expertise window first damage on an enemy opens"
+      "name": "First Strike"
     },
     "FirstStrikeII": {
       "id": 944,
       "kind": "effect",
-      "name": "First Strike - II",
-      "note": "Emerald rank 6; replaces FirstStrike"
+      "name": "First Strike - II"
     },
     "DarkProphecy": {
       "id": 1994,
       "kind": "effect",
-      "name": "Dark Prophecy",
-      "note": "CA_ArmorSetBonus_HasteOnAbilityUse; the haste window the two-piece set bonus procs"
+      "name": "Dark Prophecy"
     },
     "TheTrickster": {
       "id": 3181,
       "kind": "effect",
-      "name": "The Trickster",
-      "note": "GE_Finesse_PowerToIncreasedCritChance; the crit window a POWER ability opens"
+      "name": "The Trickster"
     },
     "TheWayfarer": {
       "id": 3184,
       "kind": "effect",
-      "name": "The Wayfarer",
-      "note": "GE_Finesse_PeriodicHasteBuff_Buff; the haste window the blessing opens on its own timer"
+      "name": "The Wayfarer"
     },
     "ThePhilosopher": {
       "id": 3189,
       "kind": "effect",
-      "name": "The Philosopher",
-      "note": "GE_Finesse_CurrentSpiritToBuff_Buff; one buff carrying Haste, Expertise, and Critical Strike sized by the Spirit held when a MAJOR ability applied it"
+      "name": "The Philosopher"
     },
     "WillfulMomentumBuff": {
       "id": 2078,
       "kind": "effect",
-      "name": "Willful Momentum",
-      "note": "the main stat window the Willful Momentum trait (3000039) opens on a Spirit Refund"
+      "name": "Willful Momentum"
     },
     "SeizedOpportunityBuff": {
       "id": 2110,
       "kind": "effect",
-      "name": "Seized Opportunity",
-      "note": "the crit rating window the Seized Opportunity trait (3000004) opens every 20 critical strikes"
+      "name": "Seized Opportunity"
     },
     "InspiredAllegianceBuff": {
       "id": 2112,
       "kind": "effect",
-      "name": "Inspired Allegiance",
-      "note": "the haste rating window the Inspired Allegiance trait (3000002) opens on ability use"
+      "name": "Inspired Allegiance"
     },
     "FocusedHasteBuff": {
       "id": 2141,
       "kind": "effect",
-      "name": "Trait : Focused Haste",
-      "note": "the stacking haste rating the Hunter's Focus trait (3000042) accrues on one enemy"
+      "name": "Trait : Focused Haste"
     },
     "NavigatorsIntuitionSpirit": {
       "id": 2158,
       "kind": "effect",
-      "name": "Navigator's Intuition : Spirit",
-      "note": "the Navigator's Intuition trait (3000043) buffs whichever secondary rating is highest, one effect id per stat"
+      "name": "Navigator's Intuition : Spirit"
     },
     "NavigatorsIntuitionHaste": {
       "id": 2159,
@@ -326,14 +300,12 @@
     "VengefulSoulBuff": {
       "id": 2163,
       "kind": "effect",
-      "name": "Vengeful Soul",
-      "note": "the main stat window the Vengeful Soul trait (3000005) opens on a critical strike"
+      "name": "Vengeful Soul"
     },
     "InspiredAllegianceTrait": {
       "id": 2,
       "kind": "weapon",
-      "name": "Inspired Allegiance",
-      "note": "the gear trait itself; its rank selects the magnitude of the buff it opens"
+      "name": "Inspired Allegiance"
     },
     "SeizedOpportunityTrait": {
       "id": 4,
@@ -503,20 +475,17 @@
     "MartialInitiative": {
       "id": 2174,
       "kind": "effect",
-      "name": "Martial Initiative",
-      "note": "effect 2174; the damage-reduction and primary-stat window the Martial Initiative trait (51) opens, which Twilight Skybolt sets up"
+      "name": "Martial Initiative"
     },
     "TheVehement": {
       "id": 3194,
       "kind": "effect",
-      "name": "The Vehement",
-      "note": "effect 3194; the state The Vehement blessing (712) maintains, making a BASIC ability erupt for its damage again around the target"
+      "name": "The Vehement"
     },
     "TheVehementsDisdain": {
       "id": 3193,
       "kind": "effect",
-      "name": "The Vehement's Disdain",
-      "note": "effect 3193; the eruption damage The Vehement blessing (712) deals"
+      "name": "The Vehement's Disdain"
     }
   },
   "mara": {
@@ -676,26 +645,22 @@
     "SpiritOfHeroism": {
       "id": 1350,
       "kind": "effect",
-      "name": "Spirit of Heroism",
-      "note": "GE_Shared_SpiritTriggeredBuff; the +30% Haste every hero gains on activating their Spirit ability, applied by the shared passive GA_Shared_Passive_SpiritMechanic (1007). Four ids carry the same haste grant with different riders; add all four directly so StatBuffs can name them"
+      "name": "Spirit of Heroism"
     },
     "SpiritOfHeroismNotTank": {
       "id": 2253,
       "kind": "effect",
-      "name": "Spirit of Heroism",
-      "note": "GE_Shared_SpiritTriggeredBuff_NotTank; the variant every non-tank logs, which also raises damage and heal threat multipliers. Auto-merge files it under elarion alone even though six heroes in the report corpus log it, so it is added to shared as well; the resulting FA0008 duplicate-FSLID warning is deliberate, and the fix for it belongs in the merge engine's effect linking, not here"
+      "name": "Spirit of Heroism"
     },
     "SpiritOfHeroismHealer": {
       "id": 2277,
       "kind": "effect",
-      "name": "Spirit of Heroism",
-      "note": "GE_Shared_SpiritTriggeredBuff_Healer; the variant Aeona, Sylvie, and Vigour log, which also raises mana regeneration by 600%"
+      "name": "Spirit of Heroism"
     },
     "SpiritOfHeroismXavian": {
       "id": 2662,
       "kind": "effect",
-      "name": "Spirit of Heroism",
-      "note": "GE_Sune_SpiritTriggeredBuff; Xavian's own variant, whose DevKey is Sune. Kept with the rest of the family rather than in the xavian scope because StatBuffs reads the four as one set"
+      "name": "Spirit of Heroism"
     },
     "VeinSprout": {
       "id": 2031,

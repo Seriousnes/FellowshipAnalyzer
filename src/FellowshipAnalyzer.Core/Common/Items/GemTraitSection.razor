@@ -19,9 +19,9 @@
     /// <summary>The player's power in the owning gem, deciding the rank shown and whether this section renders.</summary>
     [Parameter, EditorRequired] public int GemPower { get; set; }
 
-    /// <summary>Whether the log recorded anything for this trait. A trait that contributed nothing is left out.</summary>
+    /// <summary>Whether this trait contributed anything. A trait that contributed nothing is left out.</summary>
     [Parameter] public bool Contributed { get; set; } = true;
 
-    /// <summary>What this trait contributed, one readout per line.</summary>
+    /// <summary>What this trait contributed, one figure per line.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
 }

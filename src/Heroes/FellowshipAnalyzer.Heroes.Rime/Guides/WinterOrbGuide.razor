@@ -69,7 +69,7 @@
             new OverviewStat(
                 $"{Tracker.Spent}",
                 "Spent",
-                "Total Winter Orbs consumed by spenders."),
+                "Total Winter Orbs spent."),
             new OverviewStat(
                 $"{Tracker.Wasted}",
                 "Overcapped",
@@ -81,7 +81,7 @@
             new OverviewStat(
                 FormatDuration(Tracker.CappedMs),
                 "Time at Cap",
-                $"Time at {Tracker.MaxOrbs} orbs ({cappedShare:F0}% of the dungeon), measured between your own casts.",
+                $"Time at {Tracker.MaxOrbs} orbs ({cappedShare:F0}% of the dungeon).",
                 Tracker.CappedMs == 0 ? QualitativePerformance.Perfect
                     : cappedShare < 5 ? QualitativePerformance.Good
                     : cappedShare < 10 ? QualitativePerformance.Ok
@@ -94,7 +94,7 @@
         return
         [
             new StackedBarSegment("Spent", Tracker.Spent, PerformanceColors.Good,
-                $"Spent: {Tracker.Spent} orbs consumed by spenders"),
+                $"Spent: {Tracker.Spent} orbs"),
             new StackedBarSegment("Overcapped", Tracker.Wasted, PerformanceColors.Fail,
                 $"Overcapped: {Tracker.Wasted} orbs lost to cap"),
             new StackedBarSegment("Remaining", Tracker.Current, FaVar.Steel,

@@ -36,8 +36,8 @@ public static class MergeEngine
 {
     /// <summary>
     /// Selects every export ability into the scope that owns it: a <see cref="AbilityCategory.Relic"/> or
-    /// <see cref="AbilityCategory.Weapon"/> ability is granted by equipment, so it lands once in <c>items</c>;
-    /// every other ability lands in each hero scope its <c>heroes</c> array names. Each effect the export marks
+    /// <see cref="AbilityCategory.Weapon"/> ability is granted by equipment, so it is routed once to <c>items</c>;
+    /// every other ability is routed to each hero scope its <c>heroes</c> array names. Each effect the export marks
     /// as <c>partOf</c> an ability follows that ability into the same scope, and both are enriched with an icon
     /// from the export. After auto-selection, applies overrides.
     /// </summary>
@@ -208,10 +208,10 @@ public static class MergeEngine
     private static ResourceGeneration? GenerationFor(
         MergeInputs inputs, FSLID id, ICollection<Gap> gaps, string scope, string member)
     {
-        var reading = inputs.Generation.For(id);
-        if (reading.Unclaimed.Count > 0)
+        var statement = inputs.Generation.For(id);
+        if (statement.Unclaimed.Count > 0)
             gaps.Add(new Gap(scope, member, GapKind.UnclaimedGeneration));
-        return reading.Stated;
+        return statement.Stated;
     }
 
     private static List<(string Scope, List<ExportAbility> Abilities)> RouteAbilities(ExportSource export, List<Gap> gaps)
@@ -251,7 +251,7 @@ public static class MergeEngine
 
     /// <summary>
     /// Collects every classified damage school in the export into one FSLID-keyed map, then lets any
-    /// curated spell carrying a <see cref="Spell.School"/> override what the export gave that id.
+    /// curated spell with a <see cref="Spell.School"/> override what the export gave that id.
     /// </summary>
     private static Dictionary<int, MagicSchool> BuildSchools(MergeInputs inputs, List<CuratedSpell> spells)
     {

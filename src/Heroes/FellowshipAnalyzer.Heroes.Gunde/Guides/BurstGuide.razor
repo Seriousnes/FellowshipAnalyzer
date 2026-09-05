@@ -15,7 +15,7 @@
         @if (TotalWindows == 0)
         {
             <TipBox Variant="TipBoxVariant.Info">
-                Reign in Blood was never.
+                Reign in Blood was never cast.
             </TipBox>
         }
         else
@@ -47,22 +47,22 @@
             new OverviewStat(
                 $"{opened}",
                 "Windows Opened",
-                "Reign in Blood windows opened across the run. Reported as context rather than scored."),
+                "Reign in Blood windows opened across the run."),
             new OverviewStat(
                 $"{full}",
                 "Full Windows",
                 opened > 0
                     ? $"{full} of {opened} windows had Rupture, Bloodbound Spirit and Owed in Blood all cast inside. A cast up to {BurstAnalyzer.LeadInMs / 1000} seconds before the buff was applied counts as inside."
-                    : "No Reign in Blood window was opened, so none could be judged.",
+                    : null,
                 opened > 0 ? PercentTier(fullRate) : null),
             new OverviewStat(
                 $"{strayRuptures}",
                 "Rupture Outside",
-                "Ruptures cast outside every Reign in Blood window. This is context, not a verdict."),
+                "Ruptures cast outside every Reign in Blood window."),
             new OverviewStat(
                 $"{straySpirits}",
                 "Spirit Outside",
-                "Bloodbound Spirits cast outside every Reign in Blood window. This is context, not a verdict."),
+                "Bloodbound Spirits cast outside every Reign in Blood window."),
         ];
     }
 
@@ -99,7 +99,7 @@
             new PerCastStat(
                 FormatSeconds(window.End - window.Start),
                 "Duration",
-                $"How long the Reign in Blood buff was active. A cast up to {BurstAnalyzer.LeadInMs / 1000} seconds before it was applied counts as inside."),
+                "How long the Reign in Blood buff was active."),
         };
 
         return new PerCastRow

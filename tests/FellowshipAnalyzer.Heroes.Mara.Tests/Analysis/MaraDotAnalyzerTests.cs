@@ -100,7 +100,7 @@ public sealed class MaraDotAnalyzerTests
     }
 
     [Fact]
-    public async Task Analyze_AddsCarryingTheBleed_DoNotDiluteBossUptime()
+    public async Task Analyze_AddsWithTheBleed_DoNotDiluteBossUptime()
     {
         var events = new List<Event>
         {
@@ -248,7 +248,7 @@ public sealed class MaraDotAnalyzerTests
     }
 
     [Fact]
-    public async Task Analyze_VolatilePoisonReapplied_CountsForfeitedEruptions()
+    public async Task Analyze_VolatilePoisonReapplied_IsCounted()
     {
         var events = new List<Event>
         {
@@ -379,7 +379,7 @@ public sealed class MaraDotAnalyzerTests
     };
 
     /// <summary>
-    /// A Hemorrhaging Strike cast carrying the combo points it spends. Raw Fellowship log resource
+    /// A Hemorrhaging Strike cast with the combo points it spends. Raw Fellowship log resource
     /// values are scaled x100 and the ResourceNormalizer divides by 100 during Analyze, so the fixture
     /// stores in-game intent (0-6 combo points, 0-200 Energy) x100.
     /// </summary>

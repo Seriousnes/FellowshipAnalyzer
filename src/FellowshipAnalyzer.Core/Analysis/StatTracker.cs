@@ -20,7 +20,7 @@ namespace FellowshipAnalyzer.Core.Analysis;
 /// Critical Strike has an additional 5% base chance added after DR.
 /// Flat percentages are additive with the converted rating and with each other:
 /// <c>effective = RatingToPercentage(rating) + Σ flat</c>. Run the <c>measure-haste-stacking</c> tool to
-/// reproduce the tick-interval measurement that settles this against a multiplicative reading.
+/// reproduce the tick-interval measurement that settles this against a multiplicative model.
 /// </remarks>
 public sealed partial class StatTracker : Analyzer
 {
@@ -104,7 +104,7 @@ public sealed partial class StatTracker : Analyzer
     /// Total Ability Cooldown Reduction for <paramref name="ability"/> as a fraction (0.12 = 12%), summing
     /// the gear-derived seed frozen on <see cref="CombatantStats"/> and every tracked runtime modifier that
     /// applies to it, capped at 1.0 so a cooldown can be erased but never driven below zero. A <c>null</c>
-    /// ability accrues only unscoped modifiers. ACR is snapshot semantics: <see cref="SpellUsable"/> reads
+    /// ability accrues only unscoped modifiers. ACR is fixed at cast: <see cref="SpellUsable"/> reads
     /// this when a cooldown starts and never rescales one in flight.
     /// </summary>
     public double CurrentAbilityCooldownReduction(SpellbookAbility? ability) =>
@@ -147,7 +147,7 @@ public sealed partial class StatTracker : Analyzer
     /// <summary>
     /// Adds a runtime modifier to the given cooldown stat pool and fabricates a
     /// <see cref="ChangeCooldownModifierEvent"/> describing the change. The pool is mutated before the
-    /// event is fabricated so subscribers observe the new totals. Pools are additive: each modifier
+    /// event is fabricated so subscribers read the new totals. Pools are additive: each modifier
     /// contributes its value rather than multiplying with the others.
     /// </summary>
     public void AddCooldownModifier(CooldownPool pool, CooldownModifier modifier, Event? trigger = null, int? timestamp = null)
@@ -199,7 +199,7 @@ public sealed partial class StatTracker : Analyzer
 
     /// <summary>
     /// The player's current main stat rating, including every tracked buff applied so far this pull. A
-    /// combatantinfo carries all three primary slots but populates only the hero's own, so Strength,
+    /// combatantinfo has all three primary slots but populates only the hero's own, so Strength,
     /// Agility, and Intellect collapse to this one channel.
     /// </summary>
     public double CurrentMainStat => _currentStats.MainStat;
@@ -572,7 +572,7 @@ public partial class BuffVal : OneOfBase<double, Func<StatBuffContext, double>>;
 /// talents, the item named by <see cref="StatBuff.ItemId"/> or <see cref="StatPercentageBuff.ItemId"/>,
 /// and the event that applied the buff. Effects whose magnitude depends on the player's state at the
 /// moment of application, such as a blessing that scales with current Spirit, read it off
-/// <see cref="Trigger"/>'s resource snapshot.
+/// <see cref="Trigger"/>'s resources.
 /// </summary>
 /// <param name="Combatant">The selected player.</param>
 /// <param name="Item">The equipped item the buff is attached to, or <c>null</c> when it names none.</param>
@@ -580,8 +580,8 @@ public partial class BuffVal : OneOfBase<double, Func<StatBuffContext, double>>;
 public readonly record struct StatBuffContext(FullCombatant Combatant, Item? Item, Event? Trigger)
 {
     /// <summary>
-    /// The player's own resource snapshot at <see cref="Trigger"/>, taken from whichever side of the
-    /// event the player is on, or <c>null</c> when the event carries none.
+    /// The player's own resources at <see cref="Trigger"/>, taken from whichever side of the event the
+    /// player is on, or <c>null</c> when the event has none.
     /// </summary>
     public ActorResources? PlayerResources =>
         Trigger is null ? null
@@ -590,7 +590,7 @@ public readonly record struct StatBuffContext(FullCombatant Combatant, Item? Ite
 
     /// <summary>
     /// The player's amount of <paramref name="resourceType"/> at <see cref="Trigger"/> as a fraction of
-    /// its maximum, or 0 when the event carries no snapshot of it.
+    /// its maximum, or 0 when the event has none.
     /// </summary>
     public double ResourceFraction(ResourceTypes resourceType)
     {
@@ -686,7 +686,7 @@ public sealed class StatPercentageBuff
     /// <summary>
     /// Whether each value is contributed once per stack. When set, the tracked contribution follows the
     /// stack count the log reports; when unset, the buff contributes its values once while it is active
-    /// regardless of how many stacks it carries.
+    /// regardless of its stack count.
     /// </summary>
     public bool PerStack { get; init; }
 

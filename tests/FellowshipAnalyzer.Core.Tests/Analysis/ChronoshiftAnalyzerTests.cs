@@ -125,7 +125,7 @@ public sealed class ChronoshiftAnalyzerTests
     /// end at 6000; the fabricated channel end at 6000 removes the modifier at that same tick. Because the
     /// scheduled end only materializes for a stream event with a strictly greater timestamp, the
     /// modifier-removal reaches SpellUsable first and rescales the cooldown back to the base rate, so the
-    /// EndCooldown carries the slow ~30s recharge duration rather than the stale ~3.3s fast one. A
+    /// EndCooldown reports the slow ~30s recharge duration rather than the stale ~3.3s fast one. A
     /// less-than-or-equal drain would fire the end at the fast rate before the removal and this fails.
     /// </summary>
     [Fact]

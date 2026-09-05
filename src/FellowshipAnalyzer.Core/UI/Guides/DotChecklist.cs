@@ -4,8 +4,7 @@ using FellowshipAnalyzer.Core.Common;
 namespace FellowshipAnalyzer.Core.UI.Guides;
 
 /// <summary>
-/// Turns damage-over-time readings into <see cref="Checklist"/> lines, so a cast card shows what was
-/// on the target the way the player would list it.
+/// Turns <see cref="DotCoverage"/> into <see cref="Checklist"/> lines.
 /// </summary>
 public static class DotChecklist
 {
@@ -13,7 +12,7 @@ public static class DotChecklist
     /// One line for <paramref name="coverage"/>, named by the ability that applies the effect where
     /// there is one and by the effect itself where several abilities apply it.
     /// </summary>
-    /// <param name="coverage">The reading the line reports.</param>
+    /// <param name="coverage">The coverage the line reports.</param>
     /// <param name="note">A short trailing qualifier, for example how many enemies had it active.</param>
     public static CheckItem Item(DotCoverage coverage, string? note = null) => new()
     {
@@ -25,7 +24,7 @@ public static class DotChecklist
         Title = coverage.Active ? "Active at the cast" : "Missing at the cast",
     };
 
-    /// <summary>One line per reading, in the order given.</summary>
+    /// <summary>One line per coverage, in the order given.</summary>
     public static IEnumerable<CheckItem> Items(IEnumerable<DotCoverage> coverage) =>
         coverage.Select(entry => Item(entry));
 

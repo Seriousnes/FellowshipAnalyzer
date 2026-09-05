@@ -22,7 +22,7 @@ public sealed class OwedInBloodEconomyTests
     private const int PullEnd = 200_000;
 
     [Fact]
-    public async Task Analyze_BankBuiltThenCashedIn_RecordsTheConversion()
+    public async Task Analyze_BankBuiltThenConverted_RecordsTheConversion()
     {
         var events = new List<Event>
         {
@@ -88,7 +88,7 @@ public sealed class OwedInBloodEconomyTests
     }
 
     [Fact]
-    public async Task Analyze_BuffFallingOffWithNoCast_CountsEveryHeldStackAsDecayed()
+    public async Task Analyze_BuffExpiringWithNoCast_CountsEveryHeldStackAsDecayed()
     {
         var events = new List<Event>
         {
@@ -442,7 +442,7 @@ public sealed class OwedInBloodEconomyTests
     }
 
     [Fact]
-    public async Task Analyze_TrackerBankBuiltThenCashedIn_ReconstructsTheDungeonLifetimeTotals()
+    public async Task Analyze_TrackerBankBuiltThenConverted_ReconstructsTheDungeonLifetimeTotals()
     {
         var events = new List<Event>
         {
@@ -653,7 +653,7 @@ public sealed class OwedInBloodEconomyTests
     }
 
     [Fact]
-    public async Task Analyze_ConversionCashedOutsideOpenWounds_IsCashedButNotPaired()
+    public async Task Analyze_ConversionFollowedOutsideOpenWounds_IsFollowedButNotPaired()
     {
         var events = new List<Event>
         {
@@ -675,7 +675,7 @@ public sealed class OwedInBloodEconomyTests
     }
 
     [Fact]
-    public async Task Analyze_ConversionWithNoSlaughterFollowing_IsNotCashed()
+    public async Task Analyze_ConversionWithNoSlaughterFollowing_IsNotFollowed()
     {
         var events = new List<Event>
         {
@@ -693,7 +693,7 @@ public sealed class OwedInBloodEconomyTests
     }
 
     [Fact]
-    public async Task Analyze_SlaughterBeyondTheCashWindow_DoesNotCountAsCashingTheConversion()
+    public async Task Analyze_SlaughterBeyondTheFollowUpWindow_DoesNotFollowTheConversion()
     {
         var events = new List<Event>
         {
@@ -701,7 +701,7 @@ public sealed class OwedInBloodEconomyTests
             StackApplied(2_000, 60),
             Cast(Spells.OwedInBlood.FSLID, 10_000),
             BuffRemoved(10_100),
-            Cast(Spells.Slaughter.FSLID, 10_001 + OwedInBloodEconomyAnalyzer.CashWindowMs),
+            Cast(Spells.Slaughter.FSLID, 10_001 + OwedInBloodEconomyAnalyzer.FollowUpWindowMs),
         };
 
         var analyzer = await AnalyzeAsync(events);
@@ -710,7 +710,7 @@ public sealed class OwedInBloodEconomyTests
     }
 
     [Fact]
-    public async Task Analyze_SlaughterPrecedingTheConversion_DoesNotCashIt()
+    public async Task Analyze_SlaughterPrecedingTheConversion_DoesNotFollowIt()
     {
         var events = new List<Event>
         {

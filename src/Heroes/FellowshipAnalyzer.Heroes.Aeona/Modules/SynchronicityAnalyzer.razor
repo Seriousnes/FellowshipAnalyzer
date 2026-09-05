@@ -10,18 +10,18 @@
                 <SpellLink Spell="Talents.Synchronicity" />
             </Header>
             <ChildContent>
-                <StatRow Value="@($"{EstimatedChrona:N0}")" Tooltip="@ChronaTooltip">
+                <StatRow Value="@($"{ChronaFromSynchronicity:N0}")" Tooltip="@ChronaTooltip">
                     additional Chrona generated
                 </StatRow>
-                <StatRow Value="@($"{EstimatedDamage:N0}")" Tooltip="@DamageTooltip">
+                <StatRow Value="@($"{DamageFromSynchronicity:N0}")" Tooltip="@DamageTooltip">
                     additional damage dealt
                 </StatRow>
             </ChildContent>
         </StatCard>;
 
     private string ChronaTooltip =>
-        $"Of {ChronaGeneratedBelowThreshold:N0} Chrona that arrived below {Threshold} Chrona.";
+        $"Of {ChronaGeneratedBelowThreshold:N0} Chrona generated below {Threshold} Chrona.";
 
     private string DamageTooltip =>
-        $"Of {DamageAboveThreshold:N0} damage dealt above {Threshold} Chrona.";
+        $"Of {DamageAboveThreshold:N0} damage dealt above {Threshold} Chrona with abilities that do not spend Chrona.";
 }

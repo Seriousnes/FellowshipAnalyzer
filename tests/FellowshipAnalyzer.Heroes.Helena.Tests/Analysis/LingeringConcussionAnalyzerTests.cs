@@ -17,14 +17,14 @@ public sealed class LingeringConcussionAnalyzerTests
         Spells.ShieldSlamReducedIncomingDamageFromTargetDebuff;
 
     [Fact]
-    public async Task Uptime_IsTheCoveredShareOfThePull()
+    public async Task Uptime_IsTheActiveShareOfThePull()
     {
         var analyzer = await Analyze(
             ApplyDebuff(PullStart, Concussion),
             RemoveDebuff(PullStart + 30_000, Concussion));
 
         analyzer.Uptime.ShouldBe(0.5, 0.001);
-        analyzer.CoveredMs.ShouldBe(30_000);
+        analyzer.ActiveMs.ShouldBe(30_000);
     }
 
     [Fact]
@@ -43,7 +43,7 @@ public sealed class LingeringConcussionAnalyzerTests
     }
 
     [Fact]
-    public async Task AtCapShare_IsMeasuredAgainstCoveredTimeAndAtCapUptimeAgainstThePull()
+    public async Task AtCapShare_IsMeasuredAgainstActiveTimeAndAtCapUptimeAgainstThePull()
     {
         var analyzer = await Analyze(
             ApplyDebuff(PullStart, Concussion),
@@ -76,7 +76,7 @@ public sealed class LingeringConcussionAnalyzerTests
             RemoveDebuff(PullStart + 3_000, Concussion, targetInstance: 2));
 
         analyzer.PrimaryTarget.ShouldNotBeNull().TargetInstance.ShouldBe(1);
-        analyzer.CoveredMs.ShouldBe(40_000);
+        analyzer.ActiveMs.ShouldBe(40_000);
         analyzer.AtCapMs.ShouldBe(35_000);
     }
 
@@ -91,18 +91,18 @@ public sealed class LingeringConcussionAnalyzerTests
 
         analyzer.GapCount.ShouldBe(1);
         analyzer.TotalGapMs.ShouldBe(5_000);
-        analyzer.CoveredMs.ShouldBe(35_000);
+        analyzer.ActiveMs.ShouldBe(35_000);
     }
 
     [Fact]
-    public async Task ADebuffStillUpAtThePullEnd_IsMeasuredToItsLastObservation()
+    public async Task ADebuffStillUpAtThePullEnd_IsMeasuredToItsLastEvent()
     {
         var analyzer = await Analyze(
             ApplyDebuff(PullStart, Concussion),
             ApplyDebuffStack(PullStart + 20_000, Concussion, 3));
 
         analyzer.PeakStacks.ShouldBe(3);
-        analyzer.CoveredMs.ShouldBe(20_000);
+        analyzer.ActiveMs.ShouldBe(20_000);
     }
 
     [Fact]
@@ -112,7 +112,7 @@ public sealed class LingeringConcussionAnalyzerTests
 
         analyzer.PrimaryTarget.ShouldBeNull();
         analyzer.Uptime.ShouldBe(0);
-        analyzer.CoveredMs.ShouldBe(0);
+        analyzer.ActiveMs.ShouldBe(0);
         analyzer.AtCapMs.ShouldBe(0);
         analyzer.AverageReduction.ShouldBe(0);
     }

@@ -30,12 +30,12 @@ public partial class CooldownScope : OneOfBase<Spell[], AbilityCategory[], Func<
 
 /// <summary>
 /// The two cooldown stat pools <see cref="StatTracker"/> tracks: Ability Cooldown Reduction
-/// (<c>effective = base * (1 - acr)</c>, snapshot semantics) and Cooldown Acceleration (terms on the
+/// (<c>effective = base * (1 - acr)</c>, fixed at cast time) and Cooldown Acceleration (terms on the
 /// shared recovery pool <see cref="SpellUsable.EffectiveRate"/> divides by, dynamic semantics).
 /// </summary>
 public enum CooldownPool
 {
-    /// <summary>A snapshot fraction applied as <c>effective = base * (1 - acr)</c> at cast time.</summary>
+    /// <summary>A fraction fixed at cast time, applied as <c>effective = base * (1 - acr)</c>.</summary>
     AbilityCooldownReduction,
 
     /// <summary>A dynamic term folded into the shared recovery rate that <see cref="SpellUsable.EffectiveRate"/> divides by.</summary>

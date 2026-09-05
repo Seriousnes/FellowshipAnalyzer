@@ -1,6 +1,6 @@
 namespace FellowshipAnalyzer.Core.UI.Components;
 
-/// <summary>Shared number formatting for the item throughput readouts.</summary>
+/// <summary>Shared number formatting for the item throughput figures.</summary>
 public static class ThroughputFormat
 {
     /// <summary>Formats a per-second rate, abbreviating thousands and millions.</summary>

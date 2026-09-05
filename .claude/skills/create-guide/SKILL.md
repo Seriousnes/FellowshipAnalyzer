@@ -13,7 +13,7 @@ Because an inactive guide is never rendered, a lifecycle override (`OnInitialize
 
 **Never `@inject` the parser.** Parsers are transient, one instance per analysis, so an injected one has analyzed nothing. `GuideComponent<TParser>` derives from `ReportComponent<TParser>`, which reads the parser that produced the analysis being rendered from the report shell's cascade and carries the rest of the report scope with it: `DungeonTime`, `Result`, and `SelectedPull`.
 
-The analyzer holds typed data (counts, rates, timestamps, typed entry records); the guide owns all presentation: prose, severity wording, and `PerformanceTier` judgments. Display-shaping helpers that turn analyzer state into shared component inputs live in the guide's `@code` block.
+The analyzer holds typed data (counts, rates, timestamps, typed entry records); the guide owns all presentation: prose, severity wording, and `PerformanceTier` ratings. Display-shaping helpers that turn analyzer state into shared component inputs live in the guide's `@code` block.
 
 Reference implementation: `src/Heroes/FellowshipAnalyzer.Heroes.Tariq/Guides/FuryEconomyGuide.razor`.
 

@@ -33,7 +33,7 @@
             new(
                 $"{FinishersDuringActive}",
                 "Finishers While Active",
-                $"Queen's Fang and Arachnid Assault casts under Deadly Scheme: Active, alongside {HemorrhagingStrikesDuringActive} Hemorrhaging Strike{(HemorrhagingStrikesDuringActive == 1 ? "" : "s")}."),
+                "Queen's Fang and Arachnid Assault casts under Deadly Scheme: Active."),
         };
 
         if (Activations > 0)
@@ -41,7 +41,7 @@
             stats.Add(new OverviewStat(
                 $"{ActivationsUnspent}",
                 "Ended Unspent",
-                "Activations that ended without a Queen's Fang, Arachnid Assault or Hemorrhaging Strike.",
+                "Activations ending without a Queen's Fang, Arachnid Assault or Hemorrhaging Strike.",
                 UnspentTier()));
         }
 

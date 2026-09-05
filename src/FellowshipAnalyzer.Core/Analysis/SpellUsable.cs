@@ -21,7 +21,7 @@ public sealed partial class SpellUsable(
     private readonly List<TrackedAbilityCast> _casts = [];
     private Dictionary<int, int>? _deferredStarts;
 
-    /// <summary>Every player cast recorded during dispatch, in the order it occurred.</summary>
+    /// <summary>Every player cast during dispatch, in the order it occurred.</summary>
     public List<TrackedAbilityCast> Casts => _casts;
 
     /// <summary>Returns the IDs of all spells currently on cooldown (any charges on cooldown).</summary>
@@ -417,7 +417,7 @@ public sealed partial class SpellUsable(
     /// acceleration are one mechanic fed by a single additive pool, so each source contributes a term rather
     /// than an independent factor; a value of 9.0 means the spell's cooldown elapses 9× faster. Unlike
     /// Ability Cooldown Reduction, which <see cref="ReduceCooldown"/> and <see cref="BeginCooldown"/>
-    /// snapshot at cast, CDA is dynamic: a change to any term rescales the affected in-flight cooldowns.
+    /// fix at cast, CDA is dynamic: a change to any term rescales the affected in-flight cooldowns.
     /// </summary>
     public double EffectiveRate(int spellId) =>
         1.0 + HasteRecovery(spellId)

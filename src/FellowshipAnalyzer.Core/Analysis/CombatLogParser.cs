@@ -297,7 +297,7 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
 
     /// <summary>
     /// Closes a pull, in order: emits the pull's own <see cref="PullStartEvent.End"/> to the pull's
-    /// listeners while they are still live (so a subscriber can snapshot dungeon-lifetime state at the
+    /// listeners while they are still live (so a subscriber can capture dungeon-lifetime state at the
     /// instant the pull ends), then retains each analyzer on the pull read surfaces, then retires the
     /// pull listener tier and discards the per-pull instance cache. Emitting here (rather than relying on
     /// the fabricated event's dispatch) is what makes the event fire exactly once for every pull,

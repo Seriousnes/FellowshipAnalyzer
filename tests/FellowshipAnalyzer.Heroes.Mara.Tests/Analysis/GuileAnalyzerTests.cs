@@ -149,7 +149,7 @@ public sealed class GuileAnalyzerTests
 
         var analyzer = await AnalyzeAsync(events);
 
-        analyzer.MalevolenceSeen.ShouldBeTrue();
+        analyzer.HasMalevolence.ShouldBeTrue();
         analyzer.WindowCount.ShouldBe(3);
 
         analyzer.Windows[0].QueensFangStacksAtOpen.ShouldBe(1);
@@ -205,12 +205,12 @@ public sealed class GuileAnalyzerTests
         var window = analyzer.Windows.ShouldHaveSingleItem();
         window.QueensFangStacksAtOpen.ShouldBe(2);
         window.ArachnidAssaultStacksAtOpen.ShouldBe(1);
-        analyzer.MalevolenceSeen.ShouldBeTrue();
+        analyzer.HasMalevolence.ShouldBeTrue();
         analyzer.WindowsAtMaxStacks.ShouldBe(1);
     }
 
     [Fact]
-    public async Task Analyze_WithoutMalevolence_ReportsNoStacksSeen()
+    public async Task Analyze_WithoutMalevolence_ReportsNoStacks()
     {
         var events = new List<Event>
         {
@@ -222,7 +222,7 @@ public sealed class GuileAnalyzerTests
 
         var analyzer = await AnalyzeAsync(events);
 
-        analyzer.MalevolenceSeen.ShouldBeFalse();
+        analyzer.HasMalevolence.ShouldBeFalse();
         analyzer.WindowsAtMaxStacks.ShouldBe(0);
         analyzer.Windows.ShouldHaveSingleItem().QueensFangStacksAtOpen.ShouldBe(0);
     }

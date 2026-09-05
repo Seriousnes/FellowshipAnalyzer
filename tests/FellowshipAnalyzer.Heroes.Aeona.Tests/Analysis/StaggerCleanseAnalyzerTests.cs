@@ -42,7 +42,7 @@ public sealed class StaggerCleanseAnalyzerTests
     ];
 
     [Fact]
-    public async Task StaggerCleansed_ComesFromTheReadingsEitherSideOfTheCast()
+    public async Task StaggerCleansed_ComesFromThePoolEitherSideOfTheCast()
     {
         var analyzer = await Analyze(
             Snapshot(TankId, 1_000, staggerHitPoints: 10_000),
@@ -58,7 +58,7 @@ public sealed class StaggerCleanseAnalyzerTests
     }
 
     [Fact]
-    public async Task StaggerCleansed_IsWithheldWithoutAReadingAfterTheCast()
+    public async Task StaggerCleansed_IsWithheldWithNoPoolAfterTheCast()
     {
         var analyzer = await Analyze(
             Snapshot(TankId, 1_000, staggerHitPoints: 10_000),
@@ -99,7 +99,7 @@ public sealed class StaggerCleanseAnalyzerTests
     }
 
     [Fact]
-    public async Task PerAbilityTotals_CountOnlyTheCastsTheReadingsBracket()
+    public async Task PerAbilityTotals_CountOnlyTheBracketedCasts()
     {
         var analyzer = await Analyze(
             Snapshot(TankId, 1_000, staggerHitPoints: 10_000),
@@ -110,13 +110,13 @@ public sealed class StaggerCleanseAnalyzerTests
             AmendFateHeal(TankId, 6_001, effective: 5_500, overheal: 0));
 
         analyzer.AmendFateCasts.ShouldBe(2);
-        analyzer.MeasuredCastsOf(Spells.AmendFate.FSLID).ShouldBe(1);
+        analyzer.BracketedCastsOf(Spells.AmendFate.FSLID).ShouldBe(1);
         analyzer.StaggerCleansedBy(Spells.AmendFate.FSLID).ShouldBe(2_000);
         analyzer.StaggerCleansedBy(Spells.RestoreContinuity.FSLID).ShouldBe(0);
     }
 
     [Fact]
-    public async Task ACastOnAPoolBelowOneCleanse_IsALowStaggerCast()
+    public async Task ACastOnAPoolBelowTheStaggerRemoved_IsALowStaggerCast()
     {
         var analyzer = await Analyze(FullValueCast(1_000, 10_000, 8_000).Concat(
         [
@@ -127,17 +127,17 @@ public sealed class StaggerCleanseAnalyzerTests
 
         var casts = analyzer.Casts;
 
-        casts[0].SingleCastCleanseAmount.ShouldBe(2_000);
-        casts[0].BelowSingleCleanse.ShouldBe(false);
+        casts[0].StaggerRemoved.ShouldBe(2_000);
+        casts[0].BelowStaggerRemoved.ShouldBe(false);
         casts[1].StaggerBefore.ShouldBe(1_200);
-        casts[1].BelowSingleCleanse.ShouldBe(true);
+        casts[1].BelowStaggerRemoved.ShouldBe(true);
 
         analyzer.LowStaggerCasts.ShouldBe(1);
-        analyzer.CastsWithStaggerReading.ShouldBe(2);
+        analyzer.CastsRated.ShouldBe(2);
     }
 
     [Fact]
-    public async Task ACastWithAStaleReading_IsNotJudged()
+    public async Task ACastWithStaleStagger_IsNotRated()
     {
         var analyzer = await Analyze(FullValueCast(1_000, 10_000, 8_000).Concat(
         [
@@ -149,12 +149,12 @@ public sealed class StaggerCleanseAnalyzerTests
         var cast = analyzer.Casts[1];
 
         cast.StaggerBefore.ShouldBeNull();
-        cast.BelowSingleCleanse.ShouldBeNull();
-        analyzer.CastsWithStaggerReading.ShouldBe(1);
+        cast.BelowStaggerRemoved.ShouldBeNull();
+        analyzer.CastsRated.ShouldBe(1);
     }
 
     [Fact]
-    public async Task WithNoCleanCastInTheReport_NoCastIsJudged()
+    public async Task WithNoCleanCastInTheReport_NoCastIsRated()
     {
         var analyzer = await Analyze(
             Snapshot(TankId, 1_000, staggerHitPoints: 10_000),
@@ -163,13 +163,13 @@ public sealed class StaggerCleanseAnalyzerTests
 
         var cast = analyzer.Casts.ShouldHaveSingleItem();
 
-        cast.SingleCastCleanseAmount.ShouldBeNull();
-        cast.BelowSingleCleanse.ShouldBeNull();
-        analyzer.CastsWithStaggerReading.ShouldBe(0);
+        cast.StaggerRemoved.ShouldBeNull();
+        cast.BelowStaggerRemoved.ShouldBeNull();
+        analyzer.CastsRated.ShouldBe(0);
     }
 
     [Fact]
-    public async Task RestoreContinuity_IsJudgedOnTheHealedAllyHoldingTheMostStagger()
+    public async Task RestoreContinuity_IsRatedOnTheHealedAllyHoldingTheMostStagger()
     {
         var analyzer = await AnalyzeWith(Party, [],
             Snapshot(TankId, 1_000, staggerHitPoints: 10_000),
@@ -185,7 +185,7 @@ public sealed class StaggerCleanseAnalyzerTests
         var cast = analyzer.Casts[1];
 
         cast.StaggerBefore.ShouldBe(7_500);
-        cast.BelowSingleCleanse.ShouldBe(false);
+        cast.BelowStaggerRemoved.ShouldBe(false);
     }
 
     [Fact]
@@ -207,11 +207,11 @@ public sealed class StaggerCleanseAnalyzerTests
         cast.FreeCastOnFullPool.ShouldBe(true);
         analyzer.FreeCleanseCasts.ShouldBe(1);
         analyzer.FreeCleanseCastsOnFullPool.ShouldBe(1);
-        analyzer.FreeCleanseCastsWithStaggerReading.ShouldBe(1);
+        analyzer.FreeCleanseCastsRated.ShouldBe(1);
     }
 
     [Fact]
-    public async Task AFreeCastBelowOneCleanse_Fails()
+    public async Task AFreeCastBelowTheStaggerRemoved_Fails()
     {
         var analyzer = await Analyze(FullValueCast(1_000, 10_000, 8_000).Concat(
         [
@@ -224,11 +224,11 @@ public sealed class StaggerCleanseAnalyzerTests
 
         cast.FreeCastOnFullPool.ShouldBe(false);
         analyzer.FreeCleanseCastsOnFullPool.ShouldBe(0);
-        analyzer.FreeCleanseCastsWithStaggerReading.ShouldBe(1);
+        analyzer.FreeCleanseCastsRated.ShouldBe(1);
     }
 
     [Fact]
-    public async Task APaidCast_CarriesNoFreeCastVerdict()
+    public async Task ACastThatCostChrona_HasNoFreeCastRating()
     {
         var analyzer = await Analyze(
             Snapshot(TankId, 1_000, staggerHitPoints: 10_000),

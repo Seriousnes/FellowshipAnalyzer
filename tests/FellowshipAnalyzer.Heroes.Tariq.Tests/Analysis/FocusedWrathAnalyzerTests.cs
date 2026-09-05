@@ -28,8 +28,8 @@ public sealed class FocusedWrathAnalyzerTests
     private static readonly int CullingStrike = TariqSpells.CullingStrike.FSLID;
 
     /// <summary>
-    /// Each charge that leaves the buff is recorded on its own, in the order it left, carrying the
-    /// spender cast that took it and the verdict that cast earned on this pull.
+    /// Each charge that leaves the buff is recorded on its own, in the order it left, with the
+    /// spender cast that took it and how that cast was rated on this pull.
     /// </summary>
     [Fact]
     public async Task Analyze_FocusedWrath_NamesTheSpenderEachChargeWentTo()
@@ -78,7 +78,7 @@ public sealed class FocusedWrathAnalyzerTests
 
     /// <summary>
     /// A Focused Wrath cast opens the buff with a stack application at the application's own
-    /// timestamp, so it carries <see cref="FocusedWrathAnalyzer.StacksPerCast"/> charges. A Leap Smash
+    /// timestamp, so it grants <see cref="FocusedWrathAnalyzer.StacksPerCast"/> charges. A Leap Smash
     /// proc opens it bare, with one. The shared timestamp is what separates the two.
     /// </summary>
     [Fact]
@@ -149,9 +149,9 @@ public sealed class FocusedWrathAnalyzerTests
     }
 
     /// <summary>
-    /// Culling Strike is not a Focused Wrath spender, so a Culling Strike cast inside a live buff is
-    /// never matched to the charge that left it. The charge is still counted as spent, with no spender
-    /// named and no verdict.
+    /// Culling Strike is not a Focused Wrath spender, so a Culling Strike cast inside an active buff
+    /// is never matched to the charge that left it. The charge is still counted as spent, with no
+    /// spender named and no rating.
     /// </summary>
     [Fact]
     public async Task Analyze_FocusedWrath_LeavesAChargeUnratedWhenOnlyACullingStrikeWasCastInsideTheBuff()
@@ -210,7 +210,7 @@ public sealed class FocusedWrathAnalyzerTests
     }
 
     /// <summary>
-    /// A buff that reaches <see cref="FocusedWrathAnalyzer.BuffDurationMs"/> fell off rather than being
+    /// A buff that reaches <see cref="FocusedWrathAnalyzer.BuffDurationMs"/> expired rather than being
     /// spent, so the charge still available at the removal is counted as wasted instead of as the
     /// consumption that ended the buff.
     /// </summary>
@@ -241,8 +241,8 @@ public sealed class FocusedWrathAnalyzerTests
     }
 
     /// <summary>
-    /// A fresh application closes the buff already up. The charges left on the closed buff are counted
-    /// as wasted rather than carried into the new one, which opens with a single charge of its own.
+    /// A fresh application closes the buff already active. The charges left on the closed buff are
+    /// counted as wasted rather than added to the new one, which opens with a single charge of its own.
     /// </summary>
     [Fact]
     public async Task Analyze_FocusedWrath_CountsTheChargesLeftOnABuffAFreshApplicationClosed()
@@ -308,8 +308,8 @@ public sealed class FocusedWrathAnalyzerTests
     }
 
     /// <summary>
-    /// A Leap Smash proc landing on a cast buff adds a third charge, and all three can be spent. The
-    /// charges a buff carried are its own grant, so that is what a spend count is read against rather
+    /// A Leap Smash proc applied to a cast buff adds a third charge, and all three can be spent. The
+    /// charges a buff granted are what a spend count is read against, rather
     /// than <see cref="FocusedWrathAnalyzer.MaxStackLimit"/>.
     /// </summary>
     [Fact]
@@ -346,7 +346,7 @@ public sealed class FocusedWrathAnalyzerTests
     /// <summary>
     /// Charges accumulate over the buff's life, so a proc topping it up after a charge was spent grants
     /// a third while the stack count the log reports never passes two. Report
-    /// <c>a:NcqHDKzamL7n6YFv</c> carries this sequence three times.
+    /// <c>a:NcqHDKzamL7n6YFv</c> has this sequence three times.
     /// </summary>
     [Fact]
     public async Task Analyze_FocusedWrath_CountsEveryTopUpWhenAChargeWasSpentBetweenThem()

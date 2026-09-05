@@ -84,7 +84,7 @@ public sealed class HeartBloomRampAnalyzerTests
     }
 
     [Fact]
-    public async Task ACastWithBlueyNowhereReadsAsUnplaced()
+    public async Task ACastWithBlueyNowhereReadsAsUnassigned()
     {
         var parser = await Analyze(Cast(PullStart + 1_000, Spells.HeartBloom));
 

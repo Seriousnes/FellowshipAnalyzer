@@ -69,7 +69,7 @@ public sealed class OblivionAnalyzerTests
     }
 
     [Fact]
-    public async Task ShieldFigures_AreAbsentWithoutObliviosEmbrace()
+    public async Task ShieldFigures_AreAbsentWithoutOblivionsEmbrace()
     {
         var analyzer = await Analyze([],
             OblivionCast(1_000),
@@ -111,7 +111,7 @@ public sealed class OblivionAnalyzerTests
     }
 
     [Fact]
-    public async Task APaidCast_IsNotCountedAsFree()
+    public async Task ACastThatCostChrona_IsNotCountedAsFree()
     {
         var analyzer = await Analyze(OblivionCast(2_000));
 
@@ -150,9 +150,9 @@ public sealed class OblivionAnalyzerTests
         cast.TankStaggerFraction.ShouldBe(0.45);
         cast.CleanseAvailable.ShouldBeTrue();
         cast.AtCleansePriority.ShouldBeTrue();
-        cast.Judged.ShouldBeTrue();
+        cast.Rated.ShouldBeTrue();
         analyzer.CastsAtCleansePriority.ShouldBe(1);
-        analyzer.CastsJudged.ShouldBe(1);
+        analyzer.CastsRated.ShouldBe(1);
     }
 
     [Fact]
@@ -167,7 +167,7 @@ public sealed class OblivionAnalyzerTests
         cast.TankStaggerFraction.ShouldBe(0.30);
         cast.AtCleansePriority.ShouldBeFalse();
         analyzer.CastsAtCleansePriority.ShouldBe(0);
-        analyzer.CastsJudged.ShouldBe(1);
+        analyzer.CastsRated.ShouldBe(1);
     }
 
     [Fact]
@@ -186,7 +186,7 @@ public sealed class OblivionAnalyzerTests
     }
 
     [Fact]
-    public async Task ACastWithAStaleReading_IsNotJudged()
+    public async Task ACastWithStaleStagger_IsNotRated()
     {
         var analyzer = await Analyze(
             TankStaggerSnapshot(500, staggerHitPoints: 18_000),
@@ -195,21 +195,21 @@ public sealed class OblivionAnalyzerTests
         var cast = analyzer.Casts.ShouldHaveSingleItem();
 
         cast.TankStaggerFraction.ShouldBeNull();
-        cast.Judged.ShouldBeFalse();
+        cast.Rated.ShouldBeFalse();
         cast.AtCleansePriority.ShouldBeFalse();
-        analyzer.CastsJudged.ShouldBe(0);
+        analyzer.CastsRated.ShouldBe(0);
     }
 
     [Fact]
-    public async Task WithNoTankInTheReport_NoCastIsJudged()
+    public async Task WithNoTankInTheReport_NoCastIsRated()
     {
         var analyzer = await Analyze(ActorsWithoutTank, [AeonaTalents.OblivionsEmbrace], OblivionCast(2_000));
 
         var cast = analyzer.Casts.ShouldHaveSingleItem();
 
         cast.TankStaggerFraction.ShouldBeNull();
-        cast.Judged.ShouldBeFalse();
-        analyzer.CastsJudged.ShouldBe(0);
+        cast.Rated.ShouldBeFalse();
+        analyzer.CastsRated.ShouldBe(0);
     }
 
     [Fact]
@@ -221,7 +221,7 @@ public sealed class OblivionAnalyzerTests
         analyzer.Casts.ShouldBeEmpty();
         analyzer.ShieldAppliedPerCast.ShouldBeNull();
         analyzer.CastsAtCleansePriority.ShouldBe(0);
-        analyzer.CastsJudged.ShouldBe(0);
+        analyzer.CastsRated.ShouldBe(0);
     }
 
     [Fact]

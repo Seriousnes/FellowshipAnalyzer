@@ -129,7 +129,7 @@ public sealed class DetonateEfficiencyAnalyzerTests
     }
 
     [Fact]
-    public async Task CastWithNoDoTCarryingEnemies_BucketsIntoDistributionAtZero()
+    public async Task CastWithNoDoTsActive_BucketsIntoDistributionAtZero()
     {
         var analyzer = await Analyze(
             Combatant(),
@@ -173,7 +173,7 @@ public sealed class DetonateEfficiencyAnalyzerTests
         analyzer.ApocalypticSurgeTalented.ShouldBeTrue();
         analyzer.TotalCasts.ShouldBe(2);
         analyzer.FreeCasts.ShouldBe(2);
-        analyzer.PaidCasts.ShouldBe(0);
+        analyzer.NotFreeCasts.ShouldBe(0);
         analyzer.SurgeStacksGained.ShouldBe(2);
         analyzer.SurgeStacksWasted.ShouldBe(0);
     }
@@ -189,7 +189,7 @@ public sealed class DetonateEfficiencyAnalyzerTests
             Detonate(6000));
 
         analyzer.FreeCasts.ShouldBe(0);
-        analyzer.PaidCasts.ShouldBe(1);
+        analyzer.NotFreeCasts.ShouldBe(1);
         analyzer.SurgeStacksGained.ShouldBe(2);
         analyzer.SurgeStacksWasted.ShouldBe(2);
     }
@@ -204,7 +204,7 @@ public sealed class DetonateEfficiencyAnalyzerTests
             Detonate(1000));
 
         analyzer.FreeCasts.ShouldBe(1);
-        analyzer.PaidCasts.ShouldBe(0);
+        analyzer.NotFreeCasts.ShouldBe(0);
         analyzer.SurgeStacksGained.ShouldBe(1);
         analyzer.SurgeStacksWasted.ShouldBe(0);
     }
@@ -219,7 +219,7 @@ public sealed class DetonateEfficiencyAnalyzerTests
 
         analyzer.ApocalypticSurgeTalented.ShouldBeFalse();
         analyzer.FreeCasts.ShouldBe(0);
-        analyzer.PaidCasts.ShouldBe(1);
+        analyzer.NotFreeCasts.ShouldBe(1);
         analyzer.SurgeStacksGained.ShouldBe(0);
         analyzer.SurgeStacksWasted.ShouldBe(0);
     }
@@ -304,7 +304,7 @@ public sealed class DetonateEfficiencyAnalyzerTests
     }
 
     [Fact]
-    public async Task Coverage_AggregatesAcrossEveryEnemyCarryingTheEffect()
+    public async Task Coverage_AggregatesAcrossEveryEnemyWithTheEffectActive()
     {
         var analyzer = await Analyze(
             Combatant(),

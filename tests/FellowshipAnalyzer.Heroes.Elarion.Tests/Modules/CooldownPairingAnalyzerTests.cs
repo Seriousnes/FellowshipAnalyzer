@@ -179,13 +179,13 @@ public sealed class CooldownPairingAnalyzerTests
     }
 
     [Fact]
-    public async Task GraceHeldTime_UsesTheTrueRechargeInstantNotTheObservingTimestamp()
+    public async Task GraceHeldTime_UsesTheExpectedRechargeTimestampNotTheEventTimestamp()
     {
-        var lateObservation = GraceUsable(9_000, UpdateSpellUsableType.EndCooldown);
-        lateObservation.ExpectedRechargeTimestamp = 5_000;
+        var lateUpdate = GraceUsable(9_000, UpdateSpellUsableType.EndCooldown);
+        lateUpdate.ExpectedRechargeTimestamp = 5_000;
 
         var analyzer = await Analyze(
-            lateObservation,
+            lateUpdate,
             GraceUsable(9_000, UpdateSpellUsableType.BeginCooldown));
 
         analyzer.GraceHeldMs.ShouldBe(4_000);

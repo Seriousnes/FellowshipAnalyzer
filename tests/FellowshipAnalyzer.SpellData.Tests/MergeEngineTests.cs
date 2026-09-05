@@ -21,7 +21,7 @@ public class MergeEngineTests
     }
 
     [Fact]
-    public void Rime_FreezingTorrent_CarriesNormalizedScalars()
+    public void Rime_FreezingTorrent_HasNormalizedScalars()
     {
         var s = Run().Spells.Single(x => x.Scope == "rime" && x.Member == "FreezingTorrent");
         s.Spell.Cooldown.ShouldBe(15);
@@ -31,7 +31,7 @@ public class MergeEngineTests
     }
 
     [Fact]
-    public void Gunde_Slaughter_CarriesItsRadiusInGameUnits()
+    public void Gunde_Slaughter_HasItsRadiusInGameUnits()
     {
         var s = Run().Spells.Single(x => x.Scope == "gunde" && x.Member == "Slaughter");
         s.Spell.Range.ShouldBe(700);
@@ -39,7 +39,7 @@ public class MergeEngineTests
     }
 
     [Fact]
-    public void Gunde_GrimCarve_CarriesARangeThatOutrunsItsRadius()
+    public void Gunde_GrimCarve_HasARangeThatOutrunsItsRadius()
     {
         var s = Run().Spells.Single(x => x.Scope == "gunde" && x.Member == "GrimCarve");
         s.Spell.Range.ShouldBe(3000);

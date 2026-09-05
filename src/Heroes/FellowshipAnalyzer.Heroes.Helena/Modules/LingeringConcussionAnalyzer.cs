@@ -17,13 +17,13 @@ public sealed partial class LingeringConcussionAnalyzer : DebuffUptimeAnalyzer, 
 
     public Dictionary<int, int> MsAtStacks => Result.MsAtStacks;
 
-    public int CoveredMs => Result.CoveredMs;
+    public int ActiveMs => Result.ActiveMs;
 
-    public int BelowCapMs => Result.CoveredMs - Result.AtCapMs;
+    public int BelowCapMs => Result.ActiveMs - Result.AtCapMs;
 
     public int AtCapMs => Result.AtCapMs;
 
-    public double AtCapShare => Result.CoveredMs > 0 ? (double)Result.AtCapMs / Result.CoveredMs : 0;
+    public double AtCapShare => Result.ActiveMs > 0 ? (double)Result.AtCapMs / Result.ActiveMs : 0;
 
     public double AtCapUptime
     {
@@ -115,15 +115,15 @@ public sealed partial class LingeringConcussionAnalyzer : DebuffUptimeAnalyzer, 
         if (since is { } last && current > 0)
             Add(msAtStacks, current, Math.Max(0, LastWindowEnd() - last));
 
-        var covered = 0;
+        var active = 0;
         var atCap = 0;
         foreach (var (stacks, ms) in msAtStacks)
         {
-            covered += ms;
+            active += ms;
             if (stacks >= MaxStacks) atCap += ms;
         }
 
-        return new Computed(msAtStacks, covered, atCap, peak);
+        return new Computed(msAtStacks, active, atCap, peak);
     }
 
     private int LastWindowEnd() => Windows.Count > 0 ? Windows[^1].End : Pull.EndTime;
@@ -138,7 +138,7 @@ public sealed partial class LingeringConcussionAnalyzer : DebuffUptimeAnalyzer, 
 
     private sealed record Computed(
         Dictionary<int, int> MsAtStacks,
-        int CoveredMs,
+        int ActiveMs,
         int AtCapMs,
         int PeakStacks);
 }

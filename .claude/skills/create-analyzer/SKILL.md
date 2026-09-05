@@ -5,7 +5,7 @@ description: "Create a pure C# analyzer module that subscribes to combat log eve
 
 # Create Analyzer
 
-An analyzer is a pure C# module in the `Modules/` folder. It subscribes to combat log events, tracks state, and exposes computed metrics as public properties that guide and statistics components read directly. It has no Blazor dependency and holds typed data only: counts, rates, timestamps, enums, and typed entry records. Prose, severity wording, and `PerformanceTier` judgments belong in the Razor components that consume it.
+An analyzer is a pure C# module in the `Modules/` folder. It subscribes to combat log events, tracks state, and exposes computed metrics as public properties that guide and statistics components read directly. It has no Blazor dependency and holds typed data only: counts, rates, timestamps, enums, and typed entry records. Prose, severity wording, and `PerformanceTier` ratings belong in the Razor components that consume it.
 
 Guide rendering belongs in the `create-guide` skill. Statistics rendering belongs in the `create-statistics` skill. Resource tracking belongs in the `create-resource-tracker` skill.
 

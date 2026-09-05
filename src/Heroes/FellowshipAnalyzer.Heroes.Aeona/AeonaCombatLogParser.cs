@@ -9,7 +9,7 @@ namespace FellowshipAnalyzer.Heroes.Aeona.Analysis;
 [AddAnalyzer<Modules.StaggerTracker>]
 [AddAnalyzer<Modules.UchroniaTracker>]
 [AddAnalyzer<Modules.FreeCastTracker>]
-[AddAnalyzer<Modules.ChronaEconomyAnalyzer>]
+[AddAnalyzer<Modules.CrossAbilityAnalyzer>]
 [AddAnalyzer<Modules.SynchronicityAnalyzer>]
 [AddAnalyzer<Modules.StaggerCleanseAnalyzer>]
 [AddAnalyzer<Modules.OblivionAnalyzer>]
@@ -17,6 +17,8 @@ namespace FellowshipAnalyzer.Heroes.Aeona.Analysis;
 [AddAnalyzer<Modules.TwilightSkyboltAnalyzer>]
 [AddAnalyzer<Modules.UnfoldingDoomAnalyzer>]
 [AddAnalyzer<Modules.EntropyClaimAnalyzer>]
+[AddAnalyzer<Modules.ChronaTapAnalyzer>]
+[AddAnalyzer<Modules.ResonantFateAnalyzer>]
 [AddAnalyzer<Modules.FleetingHourAnalyzer>]
 [AddAnalyzer<Modules.TemporalBarrageAnalyzer>]
 public sealed partial class AeonaCombatLogParser : CombatLogParser

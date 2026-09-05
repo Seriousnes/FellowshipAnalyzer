@@ -11,30 +11,29 @@ namespace FellowshipAnalyzer.Heroes.Aeona.Modules;
 public interface IUnfoldingDoomAnalyzer : IAnalyzerSurface;
 
 /// <summary>
-/// Unfolding Doom reapplied to an enemy that still carried the debuff.
+/// Unfolding Doom reapplied to an enemy the debuff was already active on.
 /// </summary>
 /// <param name="Unit">The enemy the debuff was reapplied to.</param>
-/// <param name="Timestamp">When the reapplication landed.</param>
+/// <param name="Timestamp">When the debuff was reapplied.</param>
 /// <param name="OverlappedMs">
-/// The duration the reapplication discarded: the remaining time on the previous application,
-/// counted from its own start plus <see cref="UnfoldingDoomAnalyzer.DebuffDurationMs"/>. Zero when
-/// the previous application had already run its full duration without the log reporting its removal.
+/// The remaining duration on the previous application, discarded by the reapplication. Zero once the
+/// previous application has run its full duration.
 /// </param>
 public sealed record UnfoldingDoomReapplication(UnitKey Unit, int Timestamp, int OverlappedMs);
 
 /// <summary>
 /// One application of Unfolding Doom: the stretch it ran on one enemy, with reapplications merged into
-/// it, and what it was worth.
+/// it.
 /// </summary>
 /// <param name="Unit">The debuffed enemy.</param>
-/// <param name="Start">When the debuff landed.</param>
-/// <param name="End">When it left.</param>
+/// <param name="Start">When the debuff was applied.</param>
+/// <param name="End">When it was removed.</param>
 /// <param name="Damage">The damage the player dealt to that enemy inside the stretch, before absorbs.</param>
 /// <param name="DamageGained">The share of <paramref name="Damage"/> the debuff's increase accounts for.</param>
 /// <param name="DelayAfterReadyMs">
-/// How long Unfolding Doom sat available with no enemy debuffed before this application closed that
-/// stretch. Zero when the debuff landed while another enemy still carried it, or the moment the cast
-/// became available.
+/// How long Unfolding Doom was available with no enemy debuffed before this application closed that
+/// stretch. Zero when the debuff was applied while it was already active on another enemy, or at the
+/// moment the cast became available.
 /// </param>
 public sealed record UnfoldingDoomApplication(
     UnitKey Unit,
@@ -54,38 +53,28 @@ public sealed record UnfoldingDoomApplication(
 /// </summary>
 /// <remarks>
 /// <para>
-/// Uptime is a union: a millisecond counts once however many enemies carry the debuff, which is what
-/// the damage increase is worth to the player. Each enemy's own stretches are <see cref="Applications"/>.
+/// Uptime is a union: a millisecond counts once however many enemies the debuff is active on. Each
+/// enemy's own stretches are <see cref="Applications"/>.
 /// </para>
 /// <para>
-/// The debuff drives no events of its own on the enemy - it emits no ticks - so windows are built
-/// from applications and removals alone. A window the log never closes collapses to zero length and
-/// drops out of the measurement rather than running to the end of the pull.
+/// An application with no removal collapses to zero length and drops out of the measurement rather
+/// than running to the end of the pull.
 /// </para>
 /// <para>
 /// Availability is seeded from <see cref="SpellUsable"/> at the pull start and then follows the
-/// <see cref="UpdateSpellUsableEvent"/> stream, so a cooldown that began in an earlier pull is
-/// carried in rather than treated as ready.
-/// </para>
-/// <para>
-/// <see cref="Reapplications"/> and <see cref="OverlappedMs"/> are kept for the cross-ability guide,
-/// which is where the doc puts the duration a reapplication discards.
+/// <see cref="UpdateSpellUsableEvent"/> stream, so a cooldown that began in an earlier pull continues
+/// rather than being treated as ready.
 /// </para>
 /// </remarks>
 [ForPull(PullKind.Single | PullKind.Multi)]
 [Dependency<SpellUsable>]
 public sealed partial class UnfoldingDoomAnalyzer : AllTargetUptimeAnalyzer, IUnfoldingDoomAnalyzer
 {
-    /// <summary>
-    /// How long one application of the debuff lasts, in milliseconds. Codex effect 2624 reports a
-    /// duration of 20 seconds, matching the duration the log's own application events carry.
-    /// </summary>
+    /// <summary>How long one application of the debuff lasts, in milliseconds.</summary>
     public const int DebuffDurationMs = 20_000;
 
     /// <summary>
-    /// The increase the debuff applies to the player's damage against the debuffed enemy. Codex
-    /// ability 1890 states "increasing all damage you deal to them by 20% for 20 seconds", and codex
-    /// effect 2624 states "Taking 20% more damage from you".
+    /// The increase the debuff applies to the player's damage against the debuffed enemy.
     /// </summary>
     public const double DamageIncrease = 0.20;
 
@@ -96,7 +85,7 @@ public sealed partial class UnfoldingDoomAnalyzer : AllTargetUptimeAnalyzer, IUn
 
     private Computed Result => field ??= Compute();
 
-    /// <summary>Whether the player took Hastening Doom, which grants Haste while the debuff is active.</summary>
+    /// <summary>Whether the player took Hastening Doom.</summary>
     public bool HasteningDoomTaken => Owner.SelectedCombatant.HasTalent(AeonaTalents.HasteningDoom);
 
     /// <summary>Unfolding Doom casts during the pull.</summary>
@@ -108,34 +97,30 @@ public sealed partial class UnfoldingDoomAnalyzer : AllTargetUptimeAnalyzer, IUn
     /// <summary>Share of the pull (0-1) with the debuff active on at least one enemy.</summary>
     public double Uptime => Result.Uptime;
 
-    /// <summary>Every stretch the debuff ran on one enemy, in the order they landed.</summary>
+    /// <summary>Every stretch the debuff ran on one enemy, in the order they were applied.</summary>
     public IReadOnlyList<UnfoldingDoomApplication> Applications => Result.Applications;
 
-    /// <summary>
-    /// The damage the player dealt to debuffed enemies while the debuff was active, before absorbs.
-    /// This is the figure <see cref="DamageGained"/> is taken from.
-    /// </summary>
+    /// <summary>The damage the player dealt to debuffed enemies, before absorbs.</summary>
     public long DamageWhileActive => Result.Applications.Sum(application => application.Damage);
 
     /// <summary>
-    /// The share of <see cref="DamageWhileActive"/> the debuff's increase accounts for, taken through
-    /// <see cref="CombatMath.CalculateEffectiveDamage"/>.
+    /// The share of <see cref="DamageWhileActive"/> the debuff's increase accounts for.
     /// </summary>
     public long DamageGained => Result.Applications.Sum(application => application.DamageGained);
 
     /// <summary>Milliseconds of the pull with Unfolding Doom available to cast.</summary>
     public int AvailableMs => Result.AvailableMs;
 
-    /// <summary>Every stretch of the pull with Unfolding Doom available and no enemy carrying the debuff.</summary>
+    /// <summary>Every stretch of the pull with Unfolding Doom available and no enemy debuffed.</summary>
     public IReadOnlyList<AuraWindow> IdleWindows => Result.IdleWindows;
 
-    /// <summary>Milliseconds of the pull with Unfolding Doom available and no enemy carrying the debuff.</summary>
+    /// <summary>Milliseconds of the pull with Unfolding Doom available and no enemy debuffed.</summary>
     public int IdleAvailableMs => Result.IdleWindows.Sum(window => window.Duration);
 
     /// <summary>Share (0-1) of the pull spent available with no enemy debuffed.</summary>
     public double IdleAvailableShare => Pull.Duration > 0 ? IdleAvailableMs / (double)Pull.Duration : 0;
 
-    /// <summary>Every reapplication onto an enemy that still carried the debuff, in the order they landed.</summary>
+    /// <summary>Every reapplication, in the order they were applied.</summary>
     public IReadOnlyList<UnfoldingDoomReapplication> Reapplications => _reapplications;
 
     /// <summary>Remaining debuff duration discarded across every <see cref="Reapplications"/> entry.</summary>
@@ -294,7 +279,7 @@ public sealed partial class UnfoldingDoomAnalyzer : AllTargetUptimeAnalyzer, IUn
     }
 
     /// <summary>
-    /// The stretches of <paramref name="windows"/> that no block of <paramref name="subtract"/> covers,
+    /// The stretches of <paramref name="windows"/> that no block of <paramref name="subtract"/> overlaps,
     /// which is Unfolding Doom available with no enemy debuffed.
     /// </summary>
     private static List<AuraWindow> Outside(List<AuraWindow> windows, List<AuraWindow> subtract)

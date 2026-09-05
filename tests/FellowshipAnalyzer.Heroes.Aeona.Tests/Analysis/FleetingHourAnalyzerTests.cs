@@ -183,7 +183,7 @@ public sealed class FleetingHourAnalyzerTests
     }
 
     [Fact]
-    public async Task SurgingChrona_WithNoChronaReading_LeavesTheCastUnmeasured()
+    public async Task SurgingChrona_WithNoChronaAtTheCast_LeavesTheOvercapNull()
     {
         var analyzer = await Track(
             SinglePullDungeon(),

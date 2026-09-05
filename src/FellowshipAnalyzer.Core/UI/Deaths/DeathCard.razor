@@ -116,14 +116,14 @@
                 @foreach (var defensive in Death.AvailableUnused)
                 {
                     <li class="death-card-defensive unused">
-                        <PassFailCheckmark Pass="false" Size="15" Title="Held a charge and was not cast" />
+                        <PassFailCheckmark Pass="false" Size="15" Title="Available and not cast" />
                         <span class="death-card-defensive-name"><SpellLink Spell="@defensive.Ability" /></span>
                         <span class="death-card-defensive-note">@AvailableNote(defensive)</span>
                     </li>
                 }
             </ul>
             <HelperText>
-                A crossed line held a charge through this window and was not cast. An ability that was not
+                A crossed line was available through this window and was not cast. An ability that was not
                 cast is not on its own a mistake. Abilities recharging at the death are left out.
             </HelperText>
         }

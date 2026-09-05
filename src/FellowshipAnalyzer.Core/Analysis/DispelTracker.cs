@@ -35,7 +35,7 @@ public sealed partial class DispelTracker : Analyzer
 
     /// <summary>
     /// Which auras were removed and how often, most-removed first, over a slice of the dungeon and
-    /// optionally only by one dispelling ability. Unlike <see cref="ByRemovedAura"/> this carries the
+    /// optionally only by one dispelling ability. Unlike <see cref="ByRemovedAura"/> this includes the
     /// removed aura's name and is ordered, which is what a pull's read surface shows.
     /// </summary>
     /// <param name="start">First timestamp to count, inclusive.</param>

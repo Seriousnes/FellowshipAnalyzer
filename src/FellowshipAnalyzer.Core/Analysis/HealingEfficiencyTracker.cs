@@ -9,15 +9,14 @@ namespace FellowshipAnalyzer.Core.Analysis;
 /// healing per point of resource, healing per second of execution time - and nothing is normalized
 /// against the best spell in the log.
 /// <para>
-/// Logs that carry no per-cast cost need a hero override of <see cref="ResourceCostOf"/>; the default
-/// reads the cost the spell registry carries, which is empty for a hero whose costs the game data
-/// does not publish per ability.
+/// The default reads the cost from the spell registry. A hero whose costs the game data does not
+/// publish per ability overrides <see cref="ResourceCostOf"/> instead.
 /// </para>
 /// <para>
 /// A heal that arrives under an effect id is folded onto the ability that owns it, so long as the
 /// hero's spellbook names the effect in the entry's <see cref="SpellbookAbility.AdditionalSpells"/>.
-/// Without that the casts and the healing land in separate rows and both rates read zero: the cast
-/// row has cost and no healing, the effect row has healing and no cast.
+/// Without that the casts and the healing are counted in separate rows and both rates read zero:
+/// the cast row has cost and no healing, the effect row has healing and no cast.
 /// </para>
 /// </summary>
 public partial class HealingEfficiencyTracker : Analyzer
@@ -61,7 +60,7 @@ public partial class HealingEfficiencyTracker : Analyzer
 
     /// <summary>
     /// What <paramref name="castEvent"/> cost in <see cref="Resource"/>. The default takes the cost
-    /// the spell registry carries; override when the game data publishes costs the registry does not.
+    /// from the spell registry; override when the game data publishes costs the registry does not.
     /// </summary>
     protected virtual int ResourceCostOf(CastEvent castEvent) =>
         Common.Spells.SpellRegistry.MaybeGet(castEvent.Ability.Id)?.Cost(Resource) ?? 0;
@@ -167,9 +166,9 @@ public partial class HealingEfficiencyTracker : Analyzer
 /// </summary>
 /// <param name="SpellId">The spell's id.</param>
 /// <param name="Name">Its name as the log reported it.</param>
-/// <param name="Casts">Casts the player made.</param>
+/// <param name="Casts">Casts of the spell.</param>
 /// <param name="Heals">Heal events the spell produced, ticks included.</param>
-/// <param name="Effective">Healing that landed.</param>
+/// <param name="Effective">Healing after overheal.</param>
 /// <param name="Overheal">Healing that was lost to overheal.</param>
 /// <param name="ResourceSpent">Resource the casts cost.</param>
 /// <param name="ExecutionMs">Milliseconds of global cooldown or cast time the casts occupied.</param>

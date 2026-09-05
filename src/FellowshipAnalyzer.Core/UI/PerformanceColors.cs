@@ -25,7 +25,7 @@ public static class PerformanceColors
     /// <summary>Value colour for a stat with no performance tier.</summary>
     public static readonly string Neutral = FaVar.FgNeutral;
 
-    /// <summary>Maps a <see cref="QualitativePerformance"/> tier to its CSS colour token, giving <see cref="Neutral"/> to a value carrying no tier.</summary>
+    /// <summary>Maps a <see cref="QualitativePerformance"/> tier to its CSS colour token, giving <see cref="Neutral"/> to a value with no tier.</summary>
     public static string ToColor(QualitativePerformance? tier) => tier switch
     {
         QualitativePerformance.Perfect => Perfect,

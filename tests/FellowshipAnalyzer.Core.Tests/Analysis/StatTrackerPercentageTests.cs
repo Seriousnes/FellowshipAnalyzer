@@ -14,8 +14,9 @@ namespace FellowshipAnalyzer.Core.Tests.Analysis;
 
 /// <summary>
 /// Tests for <see cref="StatTracker"/>'s flat percentage channel: the values that are added to a
-/// rating-derived percentage rather than multiplied with it, including the auras a player already carries
-/// when the dungeon starts and the magnitudes that are a function of the player's state at application.
+/// rating-derived percentage rather than multiplied with it, including the auras already active on a
+/// player when the dungeon starts and the magnitudes that are a function of the player's state at
+/// application.
 /// </summary>
 public sealed partial class StatTrackerPercentageTests
 {

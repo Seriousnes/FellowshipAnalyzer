@@ -39,7 +39,6 @@
         var pairedShare = pairings.Count == 0 ? 0 : (double)paired / pairings.Count * 100;
 
         var heldSeconds = analyzers.Sum(analyzer => (long)analyzer.GraceHeldMs) / 1000d;
-        var graceCasts = analyzers.Sum(analyzer => analyzer.GraceCasts);
 
         var marks = analyzers.Sum(analyzer => analyzer.MarkCasts);
         var barrages = analyzers.Sum(analyzer => analyzer.BarrageCasts);
@@ -62,11 +61,11 @@
             new OverviewStat(
                 $"{heldSeconds:0.#}s",
                 "Grace Held",
-                $"Time Skystrider's Grace spent available and not cast across every pull, against {graceCasts} casts."),
+                "Time Skystrider's Grace spent available and not cast across every pull."),
             new OverviewStat(
                 $"{marks} + {barrages}",
                 "Mark and Barrage Casts",
-                $"{marks} Lunarlight Mark and {barrages} Heartseeker Barrage casts across the pulls analysed."),
+                $"{marks} Lunarlight Mark and {barrages} Heartseeker Barrage casts across every pull."),
         ];
     }
 
@@ -90,8 +89,7 @@
                 Performance: performance),
             new PerCastStat(
                 PairingLabel(pairing.NearestGraceDeltaMs, performance),
-                "Pairing",
-                "Whether the nearest Skystrider's Grace cast was within three seconds of this Event Horizon, further out, or absent."),
+                "Pairing"),
         };
 
         return new PerCastRow
@@ -133,7 +131,7 @@
         : QualitativePerformance.Fail;
 
     private static QualitativePerformance RowTier(double seconds) =>
-        seconds <= 3 ? QualitativePerformance.Perfect
+        seconds <= PairedWithinMs / 1000d ? QualitativePerformance.Perfect
         : seconds <= 10 ? QualitativePerformance.Ok
         : QualitativePerformance.Fail;
 }

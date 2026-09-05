@@ -57,7 +57,7 @@ public sealed partial class VeteranOfWarAnalyzer : Analyzer
 
     public CooldownReductionResult CooldownReduction => Result.CooldownReduction;
 
-    public bool SawActiveUltimate { get; private set; }
+    public bool UltimateWasActive { get; private set; }
 
     public bool HasPunishingStrikes => Owner.SelectedCombatant.HasTalent(HelenaTalents.PunishingStrikes);
 
@@ -67,14 +67,14 @@ public sealed partial class VeteranOfWarAnalyzer : Analyzer
     private void OnUltimateApplied()
     {
         _ultimateActive = true;
-        SawActiveUltimate = true;
+        UltimateWasActive = true;
     }
 
     [On<RefreshBuffEvent>(To = Actor.Player, Spell = nameof(Spells.SiegebreakerBuff))]
     private void OnUltimateRefreshed()
     {
         _ultimateActive = true;
-        SawActiveUltimate = true;
+        UltimateWasActive = true;
     }
 
     [On<RemoveBuffEvent>(To = Actor.Player, Spell = nameof(Spells.SiegebreakerBuff))]

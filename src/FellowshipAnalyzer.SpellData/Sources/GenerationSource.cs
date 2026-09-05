@@ -12,18 +12,18 @@ namespace FellowshipAnalyzer.SpellData.Sources;
 /// </summary>
 public sealed class GenerationSource
 {
-    private readonly Dictionary<int, GenerationReading> _readings;
+    private readonly Dictionary<int, GenerationStatement> _statements;
 
-    private GenerationSource(Dictionary<int, GenerationReading> readings) => _readings = readings;
+    private GenerationSource(Dictionary<int, GenerationStatement> statements) => _statements = statements;
 
-    /// <summary>What the description of <paramref name="id"/> states, or <see cref="GenerationReading.None"/>.</summary>
-    public GenerationReading For(FSLID id) =>
-        _readings.TryGetValue(id.Value, out var reading) ? reading : GenerationReading.None;
+    /// <summary>What the description of <paramref name="id"/> states, or <see cref="GenerationStatement.None"/>.</summary>
+    public GenerationStatement For(FSLID id) =>
+        _statements.TryGetValue(id.Value, out var statement) ? statement : GenerationStatement.None;
 
-    /// <summary>Reads every description in the export and keeps the readings that found something.</summary>
+    /// <summary>Reads every description in the export and keeps each one with a stated or unclaimed amount.</summary>
     public static GenerationSource Load(string entitiesPath)
     {
-        var readings = new Dictionary<int, GenerationReading>();
+        var statements = new Dictionary<int, GenerationStatement>();
 
         foreach (var line in File.ReadLines(entitiesPath))
         {
@@ -36,12 +36,12 @@ public sealed class GenerationSource
             if (record.Description is null || KindOf(record.Type) is not { } kind)
                 continue;
 
-            var reading = Generation.Read(record.Description);
-            if (reading.Stated is not null || reading.Unclaimed.Count > 0)
-                readings[FSLID.FromNative(kind, record.Id).Value] = reading;
+            var statement = Generation.Read(record.Description);
+            if (statement.Stated is not null || statement.Unclaimed.Count > 0)
+                statements[FSLID.FromNative(kind, record.Id).Value] = statement;
         }
 
-        return new GenerationSource(readings);
+        return new GenerationSource(statements);
     }
 
     private static SpellKind? KindOf(string type) => type switch

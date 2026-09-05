@@ -10,7 +10,7 @@
     <RightPanel>
         <CastOverview Title="Overview" Stats="@BuildOverviewStats()" />
         <CastDetail Title="Life Petal By Pull"
-                    Description="Charges held and reduction realised through each pull."
+                    Description="Charges available and reduction realised through each pull."
                     Casts="@BuildPerPullData()" />
     </RightPanel>
 </GuideSection>
@@ -32,29 +32,26 @@
         var measured = analyzers.Sum(analyzer => (long)analyzer.MeasuredMs);
         var capped = analyzers.Sum(analyzer => (long)analyzer.ChargeCappedMs);
         var cappedShare = measured > 0 ? capped / (double)measured : 0;
-        var hits = analyzers.Sum(analyzer => analyzer.NettleboltHits);
-        var crits = analyzers.Sum(analyzer => analyzer.NettleboltCrits);
-        var atFull = analyzers.Sum(analyzer => analyzer.NettleboltsAtFullCharges);
 
         return
         [
             new OverviewStat(
                 $"{casts}",
                 "Life Petals",
-                $"Casts across every pull, fed by {hits:N0} Nettlebolts of which {crits:N0} crit."),
+                "Casts across every pull."),
             new OverviewStat(
                 $"{efficiency * 100:F1}%",
                 "Reduction Realised",
-                $"{applied / 1000:N0}s of the {generated / 1000:N0}s the Nettlebolts generated actually shortened a recharge.",
+                $"{applied / 1000:N0}s of the {generated / 1000:N0}s the Nettlebolts generated shortened a recharge.",
                 PerformanceTiers.FromThresholds(efficiency * 100, 85, 70, 50)),
             new OverviewStat(
                 $"{reduction.Wasted / 1000:N0}s",
                 "Reduction Lost",
-                $"Reduction that shortened nothing. {atFull:N0} Nettlebolts hit with both charges already available."),
+                "Reduction that shortened nothing."),
             new OverviewStat(
                 $"{cappedShare * 100:F1}%",
-                "Both Charges Held",
-                $"{capped / 1000:N0}s of {measured / 1000:N0}s measured with both charges available and nothing recharging.",
+                "Both Charges Available",
+                $"{capped / 1000:N0}s of {measured / 1000:N0}s with both charges available.",
                 PerformanceTiers.FromThresholds(100 - (cappedShare * 100), 85, 70, 50)),
         ];
     }
@@ -68,7 +65,7 @@
                 new PerCastStat(
                     $"{analyzer.Casts}",
                     "Casts",
-                    $"Life Petals cast this pull, fed by {analyzer.NettleboltHits:N0} Nettlebolts."),
+                    "Life Petals cast this pull."),
                 new PerCastStat(
                     $"{analyzer.CooldownReduction.Efficiency * 100:F0}%",
                     "Reduction Realised",
@@ -76,13 +73,13 @@
                     PerformanceTiers.FromThresholds(analyzer.CooldownReduction.Efficiency * 100, 85, 70, 50)),
                 new PerCastStat(
                     $"{analyzer.ChargeCappedShare * 100:F0}%",
-                    "Both Charges Held",
-                    $"{analyzer.ChargeCappedMs / 1000:N0}s of this pull spent with nothing recharging.",
+                    "Both Charges Available",
+                    $"{analyzer.ChargeCappedMs / 1000:N0}s of this pull with both charges available.",
                     PerformanceTiers.FromThresholds(100 - (analyzer.ChargeCappedShare * 100), 85, 70, 50)),
                 new PerCastStat(
                     $"{analyzer.NettleboltsAtFullCharges}",
                     "Nettlebolts At Full",
-                    "Nettlebolts that hit with both charges already available."),
+                    "Nettlebolts hit with both charges available."),
             ],
         });
 }

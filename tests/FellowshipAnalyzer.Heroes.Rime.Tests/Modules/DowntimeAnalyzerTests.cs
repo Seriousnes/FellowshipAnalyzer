@@ -22,16 +22,16 @@ public sealed class DowntimeAnalyzerTests
     private const int EnemyId = 100;
 
     /// <summary>
-    /// The global cooldown the core module fabricates for a hand-built log. Nothing here carries
-    /// combatant info, so Haste is zero and every on-GCD ability lands on the unhasted baseline.
-    /// Every expectation below is derived from this one value.
+    /// The global cooldown the core module fabricates for a hand-built log. Haste is zero, so every
+    /// on-GCD ability takes the unhasted baseline. Every expectation below is derived from this one
+    /// value.
     /// </summary>
     private const int Gcd = 1_500;
 
     private const int DungeonEnd = 60_000;
 
     [Fact]
-    public async Task FabricatedCastsLandOnTheUnhastedGlobalCooldown()
+    public async Task FabricatedCastsUseTheUnhastedGlobalCooldown()
     {
         var events = new Event[] { Cast(1_000, Spells.ColdSnap) };
         var parser = await Analyze(Dungeon(DungeonEnd), events);

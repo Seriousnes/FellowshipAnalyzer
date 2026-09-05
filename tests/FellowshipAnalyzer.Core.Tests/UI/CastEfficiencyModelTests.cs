@@ -13,7 +13,7 @@ namespace FellowshipAnalyzer.Core.Tests.UI;
 /// <summary>
 /// Tests for <see cref="CastEfficiencyModel"/>: the denominator is the summed pull duration rather
 /// than the dungeon span, recharges are clipped to those pulls, and the cast ceiling is derived from the
-/// recharge period actually observed rather than the curated cooldown.
+/// recharge period the report shows rather than the curated cooldown.
 /// </summary>
 public sealed class CastEfficiencyModelTests
 {

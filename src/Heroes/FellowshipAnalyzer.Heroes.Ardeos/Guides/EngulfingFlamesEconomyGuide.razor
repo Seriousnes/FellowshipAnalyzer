@@ -93,7 +93,7 @@
             new OverviewStat(
                 $"{modeledBonus:0.#}%",
                 "Modeled Damage Bonus",
-                $"{EngulfingFlamesEconomyAnalyzer.DevouringFlameBonusPerInstance}% per instance times {averageInstances:0.00} average instances on the primary target.",
+                "Damage bonus on the primary target.",
                 PerformanceTiers.FromThresholds(modeledBonus, 9, 6, 3)),
         ];
     }
@@ -113,16 +113,16 @@
             new PerCastStat(
                 $"{window.EngulfingFlamesCastCount}/{EngulfingFlamesEconomyAnalyzer.DoubleApplicationThreshold}",
                 "EF in Setup",
-                $"Engulfing Flames casts in the setup before Wildfire ({EngulfingFlamesEconomyAnalyzer.DoubleApplicationThreshold} is the target).",
+                "Engulfing Flames casts in the setup before Wildfire.",
                 Performance: perf),
             new PerCastStat(
                 $"{window.ChargesAtReady}/{Spells.EngulfingFlames.Charges}",
                 "Charges at Ready",
-                "Engulfing Flames charges available the instant Wildfire came off cooldown. Context only."),
+                "Engulfing Flames charges available the instant Wildfire came off cooldown."),
             new PerCastStat(
                 $"{window.HeldMs / 1000d:0.0}s",
                 "Held",
-                "How long Wildfire was held after it came off cooldown. Context only."),
+                "How long Wildfire was held after it came off cooldown."),
         };
 
         var sequence = window.EngulfingFlamesCasts
@@ -145,12 +145,12 @@
     private static string BuildNote(EngulfingFlamesEconomyAnalyzer.ReadinessWindow window)
     {
         if (window.EngulfingFlamesCastCount >= EngulfingFlamesEconomyAnalyzer.DoubleApplicationThreshold)
-            return "Both Engulfing Flames casts were made in the setup.";
+            return "Both Engulfing Flames were cast in the setup.";
 
         if (window.EngulfingFlamesCastCount == 1)
-            return "Only one Engulfing Flames cast was made in the setup - pool both charges before Wildfire becomes available.";
+            return "Only one Engulfing Flames was cast in the setup - pool both charges before Wildfire becomes available.";
 
-        return "No Engulfing Flames cast was made in the setup - pool both charges before Wildfire becomes available.";
+        return "No Engulfing Flames was cast in the setup - pool both charges before Wildfire becomes available.";
     }
 
     private static QualitativePerformance PercentTier(int percent) => PerformanceTiers.FromThresholds(percent, 75, 50, 25);

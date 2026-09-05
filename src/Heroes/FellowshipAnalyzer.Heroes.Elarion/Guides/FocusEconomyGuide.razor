@@ -17,7 +17,7 @@
         }
         <CastOverview Title="Focus Overview" Stats="@BuildOverviewStats()" />
         <CastDetail Title="Event Horizon Windows"
-                    Description="Each card is one Event Horizon cast, rated on the Focus banked going in, with the spenders and Focus spent alongside."
+                    Description="Each card is one Event Horizon cast, rated on the Focus banked going in."
                     Casts="@BuildWindowRows()" />
     </RightPanel>
 </GuideSection>
@@ -94,16 +94,16 @@
             Performance = performance,
             Stats = stats,
             Timestamp = window.Timestamp,
-            AdditionalContent = new AdditionalContent(
-                "Usage Notes",
-                @<div>@BuildNote(window)</div>),
+            AdditionalContent = BuildNote(window) is { } note
+                ? new AdditionalContent("Usage Notes", @<div>@note</div>)
+                : null,
         };
     }
 
-    private static string BuildNote(FocusEconomyAnalyzer.EventHorizonWindow window)
+    private static string? BuildNote(FocusEconomyAnalyzer.EventHorizonWindow window)
     {
         if (window.FocusAtCast is not { } focus)
-            return "No resource snapshot was observed.";
+            return null;
 
         if (focus >= 90)
             return "Banked to near full before casting Event Horizon.";

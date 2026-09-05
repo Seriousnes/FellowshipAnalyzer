@@ -15,7 +15,7 @@ public enum GenerationMeasure
     Increase,
 }
 
-/// <summary>The occasion a <see cref="ResourceGeneration"/> pays out on.</summary>
+/// <summary>When a <see cref="ResourceGeneration"/> is granted.</summary>
 public enum GenerationTrigger
 {
     /// <summary>Once on the cast.</summary>
@@ -31,7 +31,7 @@ public enum GenerationTrigger
 /// <summary>
 /// The resource generation a spell's game-data description states: which pool it feeds, the stated
 /// magnitude, the magnitude a critical strike states where the text names one, how the magnitude is
-/// read, and the occasion it pays out on. The conditions a description attaches to a statement
+/// read, and when it is granted. The conditions a description attaches to a statement
 /// ("below 50% Chrona", "on the empowered Time Shard") are the analyzer's, not this record's.
 /// </summary>
 public sealed record ResourceGeneration
@@ -49,6 +49,6 @@ public sealed record ResourceGeneration
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     public GenerationMeasure Measure { get; init; }
 
-    /// <summary>The occasion the amount pays out on; <c>null</c> for a statement that names none.</summary>
+    /// <summary>When the amount is granted; <c>null</c> for a statement that names none.</summary>
     public GenerationTrigger? Trigger { get; init; }
 }

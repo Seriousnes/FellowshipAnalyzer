@@ -80,7 +80,7 @@ public sealed partial class Enemies : Module
     /// The units <paramref name="pull"/> names, one per instance, from the pull's own enemy NPC list, or
     /// the whole seeded population for a dungeon exposing no dungeon pulls. This is the enemy count a
     /// pull is measured against. Two pulls of one dungeon can name the same unit, so a death is
-    /// recorded against that unit in every pull naming it and it never comes back alive.
+    /// counted against that unit in every pull naming it and it never comes back alive.
     /// </summary>
     public List<EnemyUnit> Roster(PullStartEvent pull) =>
         Index.ByPull.TryGetValue(pull.Index, out var population) ? population.Roster : [];
@@ -156,7 +156,7 @@ public sealed partial class Enemies : Module
 
     /// <summary>
     /// Every enemy death between <paramref name="from"/> and <paramref name="to"/> inclusive, in the
-    /// order they happened. The merged stream carries player deaths too, and they are absent here.
+    /// order they happened. The merged stream includes player deaths too, and they are absent here.
     /// </summary>
     public List<EnemyDeath> DeathsBetween(int from, int to) =>
         [.. Index.Deaths.Where(death => death.Timestamp >= from && death.Timestamp <= to)];

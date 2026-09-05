@@ -17,7 +17,7 @@ using AeonaTalents = FellowshipAnalyzer.Core.Common.Spells.AeonaTalents;
 namespace FellowshipAnalyzer.Heroes.Aeona.Tests.Modules;
 
 /// <summary>
-/// Tests for <see cref="FreeCastTracker"/>: which window paid for each free cast, and how many chances to
+/// Tests for <see cref="FreeCastTracker"/>: which window covered each free cast, and how many chances to
 /// spend one a stretch of the report offered.
 /// </summary>
 public sealed class FreeCastTrackerTests
@@ -37,7 +37,7 @@ public sealed class FreeCastTrackerTests
         var tracker = await Track(FreeCast(Spells.Oblivion.FSLID, 2_000));
 
         tracker.FreeCasts.ShouldHaveSingleItem().Source.ShouldBe(FreeCastSource.Other);
-        tracker.FreeCastsObserved.ShouldBeTrue();
+        tracker.HasFreeCasts.ShouldBeTrue();
     }
 
     [Fact]

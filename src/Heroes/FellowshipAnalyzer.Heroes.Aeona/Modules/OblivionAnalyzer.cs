@@ -10,16 +10,16 @@ namespace FellowshipAnalyzer.Heroes.Aeona.Modules;
 public interface IOblivionAnalyzer : IAnalyzerSurface;
 
 /// <summary>
-/// One Oblivion cast: the Oblivion's Embrace shields it laid on the party, what paid for it, and the
+/// One Oblivion cast: the Oblivion's Embrace shields it applied to the party, what made it free, and the
 /// tank's Stagger at the moment it went out.
 /// </summary>
 /// <param name="Timestamp">When the cast completed.</param>
 /// <param name="TargetId">The enemy the cast named.</param>
 /// <param name="AlliesShielded">Party members that took a shield from this cast.</param>
-/// <param name="ShieldApplied">Absorb the shields carried when applied, summed across those allies.</param>
-/// <param name="LargestSingleAbsorb">The largest share of one incoming hit any of those shields took.</param>
-/// <param name="FreeCastSource">What paid for this cast, or null when the cast cost resources.</param>
-/// <param name="TankStaggerFraction">The tank's pending Stagger as a fraction of its maximum hit points immediately before the cast, or null when no reading within <see cref="StaggerTracker.ReadingMaxAgeMs"/> supports it.</param>
+/// <param name="ShieldApplied">Absorb the shields applied, summed across those allies.</param>
+/// <param name="LargestSingleAbsorb">The most any of those shields absorbed from one incoming hit.</param>
+/// <param name="FreeCastSource">What made this cast free, or null when it cost resources.</param>
+/// <param name="TankStaggerFraction">The tank's pending Stagger as a fraction of its maximum hit points immediately before the cast, or null when nothing within <see cref="StaggerTracker.StaggerMaxAgeMs"/> precedes it.</param>
 /// <param name="CleanseAvailable">Whether Amend Fate or Restore Continuity had a charge ready at the cast, and the tank was alive to receive it.</param>
 public sealed record OblivionCast(
     int Timestamp,
@@ -35,30 +35,30 @@ public sealed record OblivionCast(
     public bool WasFree => FreeCastSource is not null;
 
     /// <summary>
-    /// Whether this cast is the doc's priority error: the tank held more pending Stagger than
+    /// Whether the tank held more pending Stagger than
     /// <see cref="OblivionAnalyzer.CleansePriorityStaggerFraction"/> of its maximum hit points and a
-    /// cleanse was there to take it off. A cast with no reading is not flagged.
+    /// cleanse was there to take it off.
     /// </summary>
     public bool AtCleansePriority =>
         TankStaggerFraction > OblivionAnalyzer.CleansePriorityStaggerFraction && CleanseAvailable;
 
-    /// <summary>Whether the doc's priority rule could judge this cast at all.</summary>
-    public bool Judged => TankStaggerFraction is not null;
+    /// <summary>Whether this cast could be rated.</summary>
+    public bool Rated => TankStaggerFraction is not null;
 }
 
 /// <summary>
-/// Measures every Oblivion cast: the Oblivion's Embrace shielding it put on the party, whether a free
-/// cast paid for it, and the tank's pending Stagger at the moment it went out.
+/// Measures every Oblivion cast: the Oblivion's Embrace shielding it put on the party, whether it was
+/// free, and the tank's pending Stagger at the moment it went out.
 /// <para>
 /// One cast shields several party members at once, so the shield ledger inherited from
-/// <see cref="AbsorbAnalyzer"/> keeps a separate reading per ally and <see cref="Casts"/> regroups those
-/// readings under the cast that laid them, by taking the player's most recent Oblivion cast at or before
-/// each shield was applied. A shield laid by a cast in an earlier pull counts in the pull totals and in no
-/// cast's row.
+/// <see cref="AbsorbAnalyzer"/> keeps a separate entry per ally and <see cref="Casts"/> regroups those
+/// entries under the cast that applied them, by taking the player's most recent Oblivion cast at or before
+/// each shield was applied. A shield applied by a cast in an earlier pull counts in the pull totals and in
+/// no cast's row.
 /// </para>
 /// <para>
-/// The shielding is Oblivion's Embrace, so it exists only in a build carrying that talent.
-/// <see cref="OblivionsEmbraceTalented"/> says whether the build carries it, and every shield total reads
+/// The shielding is Oblivion's Embrace, so it exists only in a build with that talent.
+/// <see cref="OblivionsEmbraceTalented"/> says whether the build has it, and every shield total reads
 /// null rather than zero without it.
 /// </para>
 /// </summary>
@@ -80,8 +80,8 @@ public sealed partial class OblivionAnalyzer : AbsorbAnalyzer, IOblivionAnalyzer
 
     /// <inheritdoc/>
     /// <remarks>
-    /// Every Oblivion cast lays a fresh shield, so one arriving on an ally who still carries one is a
-    /// separate reading with its own absorb.
+    /// Every Oblivion cast applies a fresh shield, so one arriving on an ally who still has one is a
+    /// separate entry with its own absorb.
     /// </remarks>
     protected override bool ReapplicationOpensNewAbsorb => true;
 
@@ -91,26 +91,26 @@ public sealed partial class OblivionAnalyzer : AbsorbAnalyzer, IOblivionAnalyzer
     /// <summary>Oblivion casts this pull.</summary>
     public int CastCount => _casts.Count;
 
-    /// <summary>Whether the build carries Oblivion's Embrace, which is what makes Oblivion shield the party.</summary>
+    /// <summary>Whether the build has Oblivion's Embrace.</summary>
     public bool OblivionsEmbraceTalented =>
         Owner.SelectedCombatant.HasTalent(AeonaTalents.OblivionsEmbrace);
 
     /// <summary>
-    /// Absorb the shields carried when applied, summed over the pull. Null without Oblivion's
-    /// Embrace, where the shield does not exist.
+    /// Absorb the shields applied, summed over the pull. Null without Oblivion's Embrace, where the
+    /// shield does not exist.
     /// </summary>
     public long? ShieldApplied => OblivionsEmbraceTalented ? Ledger.Applied : null;
 
     /// <summary>
-    /// Absorb the shields carried per Oblivion cast, averaged over the pull. Null without Oblivion's
+    /// Absorb the shields applied per Oblivion cast, averaged over the pull. Null without Oblivion's
     /// Embrace, or with no cast to average over.
     /// </summary>
     public double? ShieldAppliedPerCast =>
         OblivionsEmbraceTalented && _casts.Count > 0 ? (double)Ledger.Applied / _casts.Count : null;
 
     /// <summary>
-    /// The largest share of one incoming hit any Oblivion's Embrace shield took this pull, which is the
-    /// most health the shield saved a party member in a single hit. Null without Oblivion's Embrace.
+    /// The most any Oblivion's Embrace shield absorbed from one incoming hit this pull. Null without
+    /// Oblivion's Embrace.
     /// </summary>
     public long? LargestSingleAbsorb => OblivionsEmbraceTalented ? Ledger.LargestSingleAbsorb : null;
 
@@ -124,14 +124,14 @@ public sealed partial class OblivionAnalyzer : AbsorbAnalyzer, IOblivionAnalyzer
     public int FreeCastOpportunities => FreeCastTracker.OpportunitiesBetween(Pull.StartTime, Pull.EndTime);
 
     /// <summary>
-    /// Oblivion casts made while the tank held more pending Stagger than
+    /// Oblivion casts while the tank held more pending Stagger than
     /// <see cref="CleansePriorityStaggerFraction"/> of its maximum hit points and a cleanse was ready.
-    /// Read it against <see cref="CastsJudged"/>.
+    /// Read it against <see cref="CastsRated"/>.
     /// </summary>
     public int CastsAtCleansePriority => Ledger.Casts.Count(cast => cast.AtCleansePriority);
 
-    /// <summary>Oblivion casts the doc's priority rule could judge.</summary>
-    public int CastsJudged => Ledger.Casts.Count(cast => cast.Judged);
+    /// <summary>Oblivion casts that could be rated.</summary>
+    public int CastsRated => Ledger.Casts.Count(cast => cast.Rated);
 
     [On<CastEvent>(By = Actor.Player, Spell = nameof(Spells.Oblivion))]
     private void OnOblivionCast(CastEvent e) => RecordCast(e.Timestamp, e.TargetId);
@@ -153,8 +153,7 @@ public sealed partial class OblivionAnalyzer : AbsorbAnalyzer, IOblivionAnalyzer
 
     /// <summary>
     /// Records the cast with the cleanse opportunity sampled now, because <see cref="SpellUsable"/>
-    /// answers for the dispatch instant alone. The cast itself proves Oblivion was castable, so the only
-    /// remaining condition the doc names is that a cleanse was ready and the tank alive to take it.
+    /// answers for the dispatch instant alone.
     /// </summary>
     private void RecordCast(int timestamp, int targetId)
     {
@@ -217,7 +216,7 @@ public sealed partial class OblivionAnalyzer : AbsorbAnalyzer, IOblivionAnalyzer
                 castLargest,
                 FreeCastTracker.FreeCastAt(record.Timestamp, Spells.Oblivion.FSLID)?.Source,
                 tankId is { } tank
-                    ? StaggerTracker.StaggerFractionOfMaxHp(tank, record.Timestamp, StaggerTracker.ReadingMaxAgeMs)
+                    ? StaggerTracker.StaggerFractionOfMaxHp(tank, record.Timestamp, StaggerTracker.StaggerMaxAgeMs)
                     : null,
                 record.CleanseAvailable));
         }

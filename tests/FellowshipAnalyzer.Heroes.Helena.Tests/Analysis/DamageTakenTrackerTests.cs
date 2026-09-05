@@ -28,7 +28,7 @@ public sealed class DamageTakenTrackerTests
     }
 
     [Fact]
-    public async Task BlockRate_IsTheShareOfHitsThatArrivedAsABlock()
+    public async Task BlockRate_IsTheShareOfHitsTakenAsABlock()
     {
         var tracker = await Analyze(
             DamageTaken(PullStart + 1_000, 100, 1_000, 900),

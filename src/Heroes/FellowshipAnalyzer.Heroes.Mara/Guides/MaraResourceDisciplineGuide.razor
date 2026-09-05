@@ -121,12 +121,12 @@
             new PerCastStat(
                 $"{analyzer.QueenFangAtThreshold}/{analyzer.QueenFangCasts}",
                 $"Queen's Fang at {MaraResourceDisciplineAnalyzer.QueenFangThreshold}+ CP",
-                $"Queen's Fang casts that met their combo-point threshold ({queenFangRate}%).",
+                $"Queen's Fang casts meeting their combo-point threshold ({queenFangRate}%).",
                 Performance: ThresholdTier(queenFangRate, analyzer.QueenFangCasts)),
             new PerCastStat(
                 $"{analyzer.ArachnidAssaultAtThreshold}/{analyzer.ArachnidAssaultCasts}",
                 $"Arachnid Assault at {MaraResourceDisciplineAnalyzer.ArachnidAssaultThreshold}+ CP",
-                $"Arachnid Assault casts that met their combo-point threshold ({arachnidRate}%).",
+                $"Arachnid Assault casts meeting their combo-point threshold ({arachnidRate}%).",
                 Performance: ThresholdTier(arachnidRate, analyzer.ArachnidAssaultCasts)),
             new PerCastStat(
                 $"{analyzer.FinishersMatchingTargetCount}/{analyzer.FinishersWithTargetCount}",
@@ -173,32 +173,29 @@
 
     private static string BuildPullNote(MaraResourceDisciplineAnalyzer analyzer, int energyCapRate)
     {
-        if (analyzer.Finishers.Count == 0 && analyzer.EnergyCastsSampled == 0)
-            return "No resource snapshot was observed.";
-
         var notes = new List<string>();
 
         var below = analyzer.Finishers.Count - analyzer.FinishersAtThreshold;
         if (below > 0)
-            notes.Add($"{Count(below, "finisher")} went out under their combo-point threshold");
+            notes.Add($"{Count(below, "finisher")} cast under their combo-point threshold");
 
         if (analyzer.QueenFangAboveTargetThreshold > 0)
-            notes.Add($"{Count(analyzer.QueenFangAboveTargetThreshold, "Queen's Fang cast")} went out with {analyzer.ArachnidAssaultTargetThreshold} or more enemies alive");
+            notes.Add($"{Count(analyzer.QueenFangAboveTargetThreshold, "Queen's Fang cast")} with {analyzer.ArachnidAssaultTargetThreshold} or more enemies alive");
 
         if (analyzer.ArachnidAssaultBelowTargetThreshold > 0)
-            notes.Add($"{Count(analyzer.ArachnidAssaultBelowTargetThreshold, "Arachnid Assault cast")} went out with fewer than {analyzer.ArachnidAssaultTargetThreshold} enemies alive");
+            notes.Add($"{Count(analyzer.ArachnidAssaultBelowTargetThreshold, "Arachnid Assault cast")} with fewer than {analyzer.ArachnidAssaultTargetThreshold} enemies alive");
 
         if (analyzer.GeneratorOvercapCasts > 0)
-            notes.Add($"{Count(analyzer.GeneratorOvercapCasts, "generator cast")} went out at six combo points");
+            notes.Add($"{Count(analyzer.GeneratorOvercapCasts, "generator cast")} at six combo points");
 
         if (analyzer.EnergyCappedCasts > 0)
-            notes.Add($"{Count(analyzer.EnergyCappedCasts, "cast")} went out at full Energy ({energyCapRate}%)");
+            notes.Add($"{Count(analyzer.EnergyCappedCasts, "cast")} at full Energy ({energyCapRate}%)");
 
         if (notes.Count > 0)
             return $"{string.Join("; ", notes)}.";
 
         if (analyzer.Finishers.Count == 0)
-            return "No spending finisher was cast on this pull, but nothing overcapped either.";
+            return "No finisher was cast on this pull.";
 
         return analyzer.FinishersWithTargetCount > 0
             ? "Every finisher met its combo-point threshold and matched the enemies alive, with no Energy or combo-point overcap."

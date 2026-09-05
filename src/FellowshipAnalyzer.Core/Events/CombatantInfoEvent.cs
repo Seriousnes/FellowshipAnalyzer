@@ -2,16 +2,16 @@
 
 namespace FellowshipAnalyzer.Core.Events;
 
-/// <summary>The FellowshipLogs <c>combatantinfo</c> event: a snapshot of a player's gear, talents, stat ratings, and active auras, used to build the analysis <see cref="Analysis.Combatant"/>.</summary>
+/// <summary>The FellowshipLogs <c>combatantinfo</c> event: a player's gear, talents, stat ratings, and active auras, used to build the analysis <see cref="Analysis.Combatant"/>.</summary>
 public class CombatantInfoEvent : Event
 {
     /// <summary>The player's actor id, in the same id space as the source and target ids used throughout the event stream.</summary>
     public int SourceId { get; set; }
-    /// <summary>The items equipped by the player at snapshot time, ordered by gear slot.</summary>
+    /// <summary>The items equipped by the player at combatantinfo time, ordered by gear slot.</summary>
     public List<Item> Gear { get; set; } = [];
-    /// <summary>Buffs and debuffs active on the player at snapshot time.</summary>
+    /// <summary>Buffs and debuffs active on the player at combatantinfo time.</summary>
     public List<Aura> Auras { get; set; } = [];
-    /// <summary>The talents the player had selected at snapshot time.</summary>
+    /// <summary>The talents the player had selected at combatantinfo time.</summary>
     public List<TalentInfo> Talents { get; set; } = [];
     /// <summary>The id of the weapon tree the player's weapon traits were allocated from.</summary>
     public int WeaponTreeId { get; set; }
@@ -62,7 +62,7 @@ public class CombatantInfoEvent : Event
     public decimal ComputedItemLevel => ItemLevel / 10m;
 }
 
-/// <summary>A buff or debuff active on an actor at the time of a <see cref="CombatantInfoEvent"/> snapshot.</summary>
+/// <summary>A buff or debuff active on an actor at the time of a <see cref="CombatantInfoEvent"/>.</summary>
 public class Aura
 {
     /// <summary>The actor id of whoever applied this aura.</summary>
@@ -77,7 +77,7 @@ public class Aura
     public string Name { get; set; } = string.Empty;
 }
 
-/// <summary>A talent the player had selected at <see cref="CombatantInfoEvent"/> snapshot time.</summary>
+/// <summary>A talent the player had selected at <see cref="CombatantInfoEvent"/> time.</summary>
 public class TalentInfo
 {
     /// <summary>The talent's id, in the FSL Talent id namespace.</summary>
@@ -86,7 +86,7 @@ public class TalentInfo
     public string Icon { get; set; } = string.Empty;
 }
 
-/// <summary>An unlocked weapon tree trait and its point allocation, as recorded in a <see cref="CombatantInfoEvent"/>.</summary>
+/// <summary>An unlocked weapon tree trait and its point allocation, as reported in a <see cref="CombatantInfoEvent"/>.</summary>
 public class WeaponTrait
 {
     /// <summary>The trait's id within its weapon tree.</summary>
@@ -97,7 +97,7 @@ public class WeaponTrait
     public int Points { get; set; }
 }
 
-/// <summary>An item equipped by the player at <see cref="CombatantInfoEvent"/> snapshot time.</summary>
+/// <summary>An item equipped by the player at <see cref="CombatantInfoEvent"/> time.</summary>
 public class Item
 {
     /// <summary>The item's id.</summary>
@@ -167,7 +167,7 @@ public class ItemTrait
 }
 
 /// <summary>
-/// A blessing slotted into an equipped <see cref="Item"/>. The same blessing carries a different
+/// A blessing slotted into an equipped <see cref="Item"/>. The same blessing has a different
 /// <see cref="Id"/> in each gear slot it can be slotted into, so <see cref="Name"/> is what identifies
 /// which blessing it is.
 /// </summary>

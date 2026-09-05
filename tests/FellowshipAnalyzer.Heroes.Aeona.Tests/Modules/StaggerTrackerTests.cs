@@ -49,7 +49,7 @@ public sealed class StaggerTrackerTests
     }
 
     [Fact]
-    public async Task Snapshots_CarryTheNormalizedScale()
+    public async Task Snapshots_UseTheNormalizedScale()
     {
         var tracker = await Track(TankSnapshotHeal(1000, rawStagger: 962489));
 
@@ -76,7 +76,7 @@ public sealed class StaggerTrackerTests
     }
 
     [Fact]
-    public async Task LatestBefore_TakesTheReadingStrictlyEarlier()
+    public async Task LatestBefore_TakesTheEntryStrictlyEarlier()
     {
         var tracker = await Track(
             TankSnapshotHeal(1000, rawStagger: 500000),
@@ -91,7 +91,7 @@ public sealed class StaggerTrackerTests
     }
 
     [Fact]
-    public async Task EarliestAfter_TakesTheReadingAtOrLater()
+    public async Task EarliestAfter_TakesTheEntryAtOrLater()
     {
         var tracker = await Track(
             TankSnapshotHeal(1000, rawStagger: 500000),
@@ -136,7 +136,7 @@ public sealed class StaggerTrackerTests
     }
 
     [Fact]
-    public async Task MaxHitPointsOf_FallsBackToTheNearestLaterReading()
+    public async Task MaxHitPointsOf_FallsBackToTheNearestLaterEntry()
     {
         var tracker = await Track(SnapshotHeal(TankId, 3000, rawStagger: 500000, maxHitPoints: 40000));
 
@@ -200,7 +200,7 @@ public sealed class StaggerTrackerTests
     }
 
     [Fact]
-    public async Task MeasureCleanse_IsNullWhenNoReadingLandsInTheWindow()
+    public async Task MeasureCleanse_IsNullWhenNothingFallsInTheWindow()
     {
         var tracker = await Track(
             TankSnapshotHeal(1000, rawStagger: 962489),
@@ -211,7 +211,7 @@ public sealed class StaggerTrackerTests
     }
 
     [Fact]
-    public async Task MeasureCleanse_IsNullWithoutAReadingAheadOfTheCast()
+    public async Task MeasureCleanse_IsNullWithNothingAheadOfTheCast()
     {
         var tracker = await Track(
             AmendFateCast(2000),

@@ -329,7 +329,7 @@ public sealed class WintersEmbraceAnalyzerTests
     };
 
     /// <summary>
-    /// A Bursting Ice cast, optionally carrying the Winter Orb snapshot the log would attach. Raw
+    /// A Bursting Ice cast, optionally with the Winter Orb amount the log would attach. Raw
     /// Fellowship resource values are scaled by 100, so the in-game orb count is stored multiplied.
     /// </summary>
     private static CastEvent BurstingIce(int timestamp, int? orbs)

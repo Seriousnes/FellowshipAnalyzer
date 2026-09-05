@@ -19,7 +19,7 @@
             @if (talented)
             {
                 <p>
-                    Spend a held <SpellLink Spell="Spells.SchismHammerStorm" /> proc rather than letting it
+                    Spend a <SpellLink Spell="Spells.SchismHammerStorm" /> proc rather than letting it
                     expire.
                 </p>
             }
@@ -28,7 +28,7 @@
             <CastOverview Title="Hammer Storm Overview" Stats="@BuildOverviewStats(analyzers, casts, talented)" />
 
             <CastDetail Title="Hammer Storm Channels"
-                        Description="Each card is one Hammer Storm channel: the targets its first spin caught, whether a Schism proc empowered it, and how many of its spins completed."
+                        Description="Each card is one Hammer Storm channel."
                         Casts="@BuildCastRows(talented)" />
         </RightPanel>
     </GuideSection>
@@ -42,12 +42,10 @@
         List<HammerStormCast> casts,
         bool talented)
     {
-        var connected = casts.Count(cast => cast.TargetsHit > 0);
-        var whiffed = casts.Count - connected;
-        var empowered = analyzers.Sum(analyzer => analyzer.SchismEmpoweredCasts);
+        var withTargets = casts.Count(cast => cast.TargetsHit > 0);
         var truncated = analyzers.Sum(analyzer => analyzer.TruncatedChannels);
         var underBreakEven = analyzers.Sum(analyzer => analyzer.UnderBreakEvenChannels);
-        var averageTargets = connected == 0
+        var averageTargets = withTargets == 0
             ? 0d
             : casts.Where(cast => cast.TargetsHit > 0).Average(cast => cast.TargetsHit);
 
@@ -56,30 +54,29 @@
             new(
                 $"{casts.Count}",
                 "Channels",
-                $"Hammer Storm casts across every pull, {empowered} of them empowered by a Schism proc."
-                + (whiffed > 0 ? $" {whiffed} produced no damage at all." : string.Empty)),
+                "Hammer Storm casts across every pull."),
             new(
                 $"{underBreakEven}",
                 "Under Break-Even",
-                $"Channels that caught fewer than {HammerStormAnalyzer.TargetBreakEven} targets.",
+                $"Channels that caught at least one target but fewer than {HammerStormAnalyzer.TargetBreakEven}.",
                 underBreakEven == 0 ? QualitativePerformance.Perfect : QualitativePerformance.Fail),
             new(
                 $"{truncated}",
                 "Truncated Channels",
                 $"Channels that dealt damage but stopped before their {Ordinal(HammerStormAnalyzer.ExpectedSpins)} spin.",
-                CleanShareTier(connected, truncated, 100, 95, 86)),
+                CleanShareTier(withTargets, truncated, 100, 95, 86)),
             new(
                 $"{averageTargets:0.0}",
                 "Avg Targets Hit",
-                $"Mean first-spin targets over the {connected} channels that connected."),
+                $"Mean first-spin targets across the {withTargets} channels that hit a target."),
             new(
                 TargetSpread(analyzers),
                 "Single / 5+ Targets",
                 "Channels whose first spin caught exactly one target, against those that caught five or more."),
         };
 
-        if (talented)
-            stats.Add(SchismStat(analyzers));
+        if (talented && SchismStat(analyzers) is { } schism)
+            stats.Add(schism);
 
         return stats;
     }
@@ -100,32 +97,22 @@
         return $"{single} / {wide}";
     }
 
-    private static OverviewStat SchismStat(List<HammerStormAnalyzer> analyzers)
+    private static OverviewStat? SchismStat(List<HammerStormAnalyzer> analyzers)
     {
         var skullCrusher = Sum(analyzers.Select(analyzer => analyzer.SkullCrusherProcs));
         var hammerStorm = Sum(analyzers.Select(analyzer => analyzer.HammerStormProcs));
         var gained = skullCrusher.Gained + hammerStorm.Gained;
         var consumed = skullCrusher.Consumed + hammerStorm.Consumed;
-        var expired = skullCrusher.Expired + hammerStorm.Expired;
-        var overwritten = skullCrusher.Overwritten + hammerStorm.Overwritten;
 
         if (gained == 0)
-        {
-            return new OverviewStat(
-                "-",
-                "Schism Procs Used",
-                "Schism is talented but no proc was observed, so there is nothing to rate yet.");
-        }
+            return null;
 
         var used = (int)Math.Round(consumed * 100d / gained);
 
         return new OverviewStat(
             $"{used}%",
             "Schism Procs Used",
-            $"{consumed} of {gained} procs were spent; {expired} expired unused"
-            + (overwritten > 0 ? $" and {overwritten} were overwritten" : string.Empty)
-            + $". Skull Crusher procs: {skullCrusher.Consumed} of {skullCrusher.Gained} spent, {skullCrusher.Expired} expired. "
-            + $"Hammer Storm procs: {hammerStorm.Consumed} of {hammerStorm.Gained} spent, {hammerStorm.Expired} expired.",
+            $"{consumed} of {gained} procs spent.",
             PerformanceTiers.FromThresholds(used, 90, 75, 60));
     }
 
@@ -142,7 +129,7 @@
                 $"{cast.TargetsHit}",
                 "Targets Hit",
                 cast.TargetsHit == 0
-                    ? "The channel connected with nothing."
+                    ? "The channel hit nothing."
                     : cast.UnderTargetBreakEven
                         ? $"Distinct units the first spin caught, under the {HammerStormAnalyzer.TargetBreakEven} break-even."
                         : $"Distinct units the first spin caught, at or past the {HammerStormAnalyzer.TargetBreakEven} break-even.",
@@ -164,8 +151,8 @@
                 cast.SchismEmpowered ? "Yes" : "No",
                 "Schism Proc",
                 cast.SchismEmpowered
-                    ? "A Schism proc was held when this channel was cast."
-                    : "No Schism proc was held when this channel was cast."));
+                    ? "A Schism proc was active when this channel was cast."
+                    : "No Schism proc was active when this channel was cast."));
         }
 
         if (cast.NextAbilityId is { } nextId)
@@ -188,18 +175,12 @@
     }
 
     private RenderFragment BuildDetails(HammerStormCast cast) =>
-    @<div>
-        @Outcome(cast)
-        @if (cast.NextAbilityId is { } nextId && SpellRegistry.MaybeGet(nextId) is { } next)
-        {
-            <span>The next thing you cast was <SpellLink Spell="next" />.</span>
-        }
-    </div>;
+    @<div>@Outcome(cast)</div>;
 
     private static string Outcome(HammerStormCast cast)
     {
         if (cast.TargetsHit == 0)
-            return "This channel connected with nothing, so it produced no damage.";
+            return "This channel hit nothing.";
 
         var targets = cast.TargetsHit == 1 ? "1 target" : $"{cast.TargetsHit} targets";
 
@@ -209,9 +190,7 @@
         if (cast.UnderTargetBreakEven)
             return $"The full channel completed, but on {targets}, under the {HammerStormAnalyzer.TargetBreakEven} break-even.";
 
-        return cast.SchismEmpowered
-            ? $"The full channel completed across {targets}, empowered by a Schism proc."
-            : $"The full channel completed across {targets}.";
+        return $"The full channel completed across {targets}.";
     }
 
     private static SchismProcEconomy Sum(IEnumerable<SchismProcEconomy> economies)
@@ -241,10 +220,10 @@
         _ => $"{value}th",
     };
 
-    private static QualitativePerformance? CleanShareTier(int connected, int offenders, double perfect, double good, double ok) =>
-        connected == 0
+    private static QualitativePerformance? CleanShareTier(int withTargets, int offenders, double perfect, double good, double ok) =>
+        withTargets == 0
             ? null
-            : PerformanceTiers.FromThresholds((connected - offenders) * 100d / connected, perfect, good, ok);
+            : PerformanceTiers.FromThresholds((withTargets - offenders) * 100d / withTargets, perfect, good, ok);
 
     private static QualitativePerformance SpinTier(HammerStormCast cast)
     {

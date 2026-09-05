@@ -18,7 +18,7 @@ using AeonaTalents = FellowshipAnalyzer.Core.Common.Spells.AeonaTalents;
 namespace FellowshipAnalyzer.Heroes.Aeona.Tests.Analysis;
 
 /// <summary>
-/// Exercises Entropy's Claim over one boss pull. Chrona snapshot amounts are written at the raw log
+/// Exercises Entropy's Claim over one boss pull. Chrona amounts are written at the raw log
 /// scale because <c>ResourceNormalizer</c> divides them by 100 before dispatch. The availability tests
 /// feed real <see cref="CastEvent"/>s and read the cooldown stream <see cref="SpellUsable"/> fabricates
 /// from them, rather than hand-building <see cref="UpdateSpellUsableEvent"/>.
@@ -161,7 +161,7 @@ public sealed class EntropyClaimAnalyzerTests
     }
 
     [Fact]
-    public async Task TheTicksOfAnApplication_CarryTheChronaTheyGenerated()
+    public async Task TheTicksOfAnApplication_RecordTheChronaTheyGenerated()
     {
         var analyzer = await Analyze(
             [

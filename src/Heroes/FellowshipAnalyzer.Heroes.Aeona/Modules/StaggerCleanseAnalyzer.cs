@@ -8,15 +8,14 @@ using FSLID = FellowshipAnalyzer.Core.Common.Spells.FSLID;
 namespace FellowshipAnalyzer.Heroes.Aeona.Modules;
 
 /// <summary>
-/// One ally's share of a cleanse cast: the healing that landed on them and the Stagger the cast took
-/// off them.
+/// One ally's share of a cleanse cast: the healing on them and the Stagger the cast removed from them.
 /// </summary>
 /// <param name="UnitId">The healed ally.</param>
 /// <param name="IsTank">Whether that ally is the party's tank.</param>
-/// <param name="EffectiveHealing">Healing that landed on missing hit points.</param>
-/// <param name="Overheal">Healing that landed on full hit points. Fellowship omits the field rather than sending zero, so a cast with none reads 0 here.</param>
-/// <param name="StaggerCleansed">The Stagger the cast took off this ally, in hit points, from the ally's readings either side of the cast. Null when the readings do not bracket the cast, when something else moved the pool inside the bracket, or when the pool grew.</param>
-/// <param name="StaggerBefore">The ally's Stagger at the last reading within <see cref="StaggerTracker.ReadingMaxAgeMs"/> of the cast, in hit points. Null when no reading is that fresh.</param>
+/// <param name="EffectiveHealing">Effective healing on this ally.</param>
+/// <param name="Overheal">Overheal on this ally.</param>
+/// <param name="StaggerCleansed">The Stagger the cast removed from this ally, in hit points. Null when the cast cannot be bracketed, when something else moved the pool inside the bracket, or when the pool grew.</param>
+/// <param name="StaggerBefore">The ally's Stagger no more than <see cref="StaggerTracker.StaggerMaxAgeMs"/> before the cast, in hit points. Null when nothing that recent precedes it.</param>
 public sealed record CleanseHeal(
     int UnitId,
     bool IsTank,
@@ -27,15 +26,15 @@ public sealed record CleanseHeal(
 
 /// <summary>
 /// One Amend Fate or Restore Continuity cast, with every heal it produced, the Stagger it cleared and
-/// how the pool it was aimed at compared with what one cast removes.
+/// how the pool it was aimed at compared with the Stagger removed.
 /// </summary>
 /// <param name="Timestamp">When the cast completed.</param>
 /// <param name="Ability">Either <c>Spells.AmendFate</c> or <c>Spells.RestoreContinuity</c>.</param>
 /// <param name="Heals">The cast's heals, one per ally, in the order the log reported them.</param>
-/// <param name="StaggerBefore">The judged ally's Stagger before the cast, in hit points, or null when no reading is fresh enough.</param>
-/// <param name="SingleCastCleanseAmount">The Stagger one cast of this ability removes, or null when the report holds no clean cast to take it from.</param>
-/// <param name="WasFree">Whether Fellowship logged the cast as a free cast rather than a paid one.</param>
-/// <param name="FreeCastSource">What paid for a free cast. Null on a paid cast.</param>
+/// <param name="StaggerBefore">The rated ally's Stagger before the cast, in hit points. Null when nothing recent enough precedes it.</param>
+/// <param name="StaggerRemoved">The Stagger this ability removes, or null when the report holds no clean cast to take it from.</param>
+/// <param name="WasFree">Whether Fellowship logged the cast as free.</param>
+/// <param name="FreeCastSource">What made the cast free. Null when it cost Chrona.</param>
 /// <param name="OverwroteEchoes">Whether this low-Stagger cast reapplied Echoes of Divinity over a window already running on the tank.</param>
 /// <param name="EchoesOverwrittenMs">Echoes of Divinity time that reapplication discarded, in milliseconds. Null when the cast overwrote nothing and when the game data states no duration for the effect.</param>
 public sealed record CleanseCastEntry(
@@ -43,52 +42,51 @@ public sealed record CleanseCastEntry(
     FSLID Ability,
     IReadOnlyList<CleanseHeal> Heals,
     int? StaggerBefore,
-    int? SingleCastCleanseAmount,
+    int? StaggerRemoved,
     bool WasFree,
     FreeCastSource? FreeCastSource,
     bool OverwroteEchoes,
     int? EchoesOverwrittenMs)
 {
     /// <summary>
-    /// The Stagger the cast removed across every ally whose readings bracket it, in hit points, or
-    /// null when no ally's readings do.
+    /// The Stagger the cast removed across every ally, in hit points. Null when no ally's pool could be
+    /// bracketed.
     /// </summary>
     public int? StaggerCleansed =>
         Heals.Any(heal => heal.StaggerCleansed is not null)
             ? Heals.Sum(heal => heal.StaggerCleansed ?? 0)
             : null;
 
-    /// <summary>Healing the cast landed on missing hit points.</summary>
+    /// <summary>Effective healing across the cast's allies.</summary>
     public long EffectiveHealing => Heals.Sum(heal => heal.EffectiveHealing);
 
-    /// <summary>Healing the cast landed on full hit points.</summary>
+    /// <summary>Overheal across the cast's allies.</summary>
     public long Overheal => Heals.Sum(heal => heal.Overheal);
 
-    /// <summary>Allies the cast healed. Amend Fate reaches one; Restore Continuity reaches the party.</summary>
+    /// <summary>Allies the cast healed.</summary>
     public int AlliesHealed => Heals.Count;
 
     /// <summary>
-    /// Whether the judged ally held less Stagger than one cast of this ability removes, which is the
-    /// doc's priority test. Null when no reading is fresh enough to judge, or when the report holds no
-    /// clean cast to take the cleanse amount from.
+    /// Whether the rated ally held less than the Stagger removed. Null when nothing recent enough
+    /// precedes the cast, or when the report holds no clean cast to take the amount from.
     /// </summary>
-    public bool? BelowSingleCleanse =>
-        StaggerBefore is { } before && SingleCastCleanseAmount is { } amount ? before < amount : null;
+    public bool? BelowStaggerRemoved =>
+        StaggerBefore is { } before && StaggerRemoved is { } amount ? before < amount : null;
 
     /// <summary>
-    /// Whether a free cast was spent on a pool deep enough to take a whole cleanse. Null on a paid
-    /// cast and on a free cast the readings cannot judge.
+    /// Whether a free cast was spent on a pool holding at least the Stagger removed. Null on a cast that
+    /// cost Chrona, and on a free cast that cannot be rated.
     /// </summary>
-    public bool? FreeCastOnFullPool => WasFree ? BelowSingleCleanse is { } below ? !below : null : null;
+    public bool? FreeCastOnFullPool => WasFree ? BelowStaggerRemoved is { } below ? !below : null : null;
 }
 
 /// <summary>
-/// Echoes of Divinity on the tank across one pull: how long the talent's Stagger cleanse ran, and how
-/// much of a running window a fresh low-Stagger cleanse wrote over.
+/// Echoes of Divinity on the tank across one pull: how long it ran, and how much of a running window a
+/// fresh low-Stagger cleanse wrote over.
 /// </summary>
 /// <param name="Windows">The buff's windows on the tank, in the order they opened.</param>
 /// <param name="Applications">Fresh applications on the tank.</param>
-/// <param name="Refreshes">Applications that landed on a window already running on the tank.</param>
+/// <param name="Refreshes">Applications over a window already running on the tank.</param>
 /// <param name="Overwrites">Refreshes by a low-Stagger cleanse that cut a running window short.</param>
 /// <param name="OverwrittenMs">Milliseconds of running window those overwrites discarded.</param>
 /// <param name="GrantedMs">Milliseconds of Echoes of Divinity the applications and refreshes granted in total.</param>
@@ -106,17 +104,16 @@ public sealed record EchoesOfDivinityUse(
 
 /// <summary>
 /// Amend Fate and Restore Continuity: the Stagger each cast cleared, the healing that came with it,
-/// and whether the pool held more Stagger than one cast removes.
+/// and whether the pool held more than the Stagger removed.
 /// <para>
-/// Fellowship emits no cleanse event, so the Stagger a cast removed is the fall in the target's pool
-/// across the cast, from <see cref="StaggerTracker.MeasureCleanse"/>. A bracket that a drain tick or
-/// another cleanse also moved carries no figure, which is the doc's safeguard against intervening
-/// ticks and cleanses.
+/// The Stagger a cast removed is the fall in the target's pool across the cast, from
+/// <see cref="StaggerTracker.MeasureCleanse"/>. A bracket that a drain tick or another cleanse also
+/// moved yields no figure.
 /// </para>
 /// <para>
-/// What one cast removes is <see cref="StaggerTracker.SingleCastCleanseAmount"/>, the median clean
-/// cast of that ability across the report, so the comparison is against the ability's own behaviour in
-/// this report rather than against a modelled ceiling.
+/// The Stagger removed is <see cref="StaggerTracker.StaggerRemoved"/>, the median clean cast of that
+/// ability across the report, so the comparison is against the ability's own behaviour in this report
+/// rather than against a modelled ceiling.
 /// </para>
 /// </summary>
 [ForPull(PullKind.Single | PullKind.Multi)]
@@ -144,29 +141,29 @@ public sealed partial class StaggerCleanseAnalyzer : Analyzer
     /// <summary>Restore Continuity casts in the pull.</summary>
     public int RestoreContinuityCasts => CastsOf(Spells.RestoreContinuity.FSLID);
 
-    /// <summary>Healing both cleanses landed on missing hit points across the pull.</summary>
+    /// <summary>Effective healing from both cleanses across the pull.</summary>
     public long EffectiveHealing => Casts.Sum(cast => cast.EffectiveHealing);
 
-    /// <summary>Healing both cleanses landed on full hit points across the pull.</summary>
+    /// <summary>Overheal from both cleanses across the pull.</summary>
     public long Overheal => Casts.Sum(cast => cast.Overheal);
 
-    /// <summary>Cleanse casts the readings could judge against the amount one cast removes.</summary>
-    public int CastsWithStaggerReading => Casts.Count(cast => cast.BelowSingleCleanse is not null);
+    /// <summary>Cleanse rated based on Stagger removed.</summary>
+    public int CastsRated => Casts.Count(cast => cast.BelowStaggerRemoved is not null);
 
     /// <summary>
-    /// Casts made while the target held less Stagger than one cast removes. Read it against
-    /// <see cref="CastsWithStaggerReading"/>.
+    /// Casts while the target held less than the Stagger removed. Read it against
+    /// <see cref="CastsRated"/>.
     /// </summary>
-    public int LowStaggerCasts => Casts.Count(cast => cast.BelowSingleCleanse == true);
+    public int LowStaggerCasts => Casts.Count(cast => cast.BelowStaggerRemoved == true);
 
     /// <summary>Cleanse casts Fellowship logged as free.</summary>
     public int FreeCleanseCasts => Casts.Count(cast => cast.WasFree);
 
-    /// <summary>Free cleanse casts the readings could judge against the amount one cast removes.</summary>
-    public int FreeCleanseCastsWithStaggerReading =>
+    /// <summary>Free cleanse rated based on Stagger removed.</summary>
+    public int FreeCleanseCastsRated =>
         Casts.Count(cast => cast.WasFree && cast.FreeCastOnFullPool is not null);
 
-    /// <summary>Free cleanse casts spent on a pool holding at least the Stagger one cast removes.</summary>
+    /// <summary>Free cleanse casts spent on a pool holding at least the Stagger removed.</summary>
     public int FreeCleanseCastsOnFullPool => Casts.Count(cast => cast.FreeCastOnFullPool == true);
 
     /// <summary>The party's tank, or null when the report names none.</summary>
@@ -174,24 +171,23 @@ public sealed partial class StaggerCleanseAnalyzer : Analyzer
 
     /// <summary>
     /// The Stagger <paramref name="ability"/> removed across the pull, in hit points, counting only the
-    /// casts whose readings bracket them.
+    /// casts that could be bracketed.
     /// </summary>
     /// <param name="ability">Either <c>Spells.AmendFate</c> or <c>Spells.RestoreContinuity</c>.</param>
     public int StaggerCleansedBy(FSLID ability) =>
         Casts.Where(cast => cast.Ability == ability).Sum(cast => cast.StaggerCleansed ?? 0);
 
     /// <summary>
-    /// Casts of <paramref name="ability"/> whose readings bracket them, the denominator behind
+    /// Casts of <paramref name="ability"/> that could be bracketed, the denominator behind
     /// <see cref="StaggerCleansedBy"/>.
     /// </summary>
     /// <param name="ability">Either <c>Spells.AmendFate</c> or <c>Spells.RestoreContinuity</c>.</param>
-    public int MeasuredCastsOf(FSLID ability) =>
+    public int BracketedCastsOf(FSLID ability) =>
         Casts.Count(cast => cast.Ability == ability && cast.StaggerCleansed is not null);
 
     /// <summary>
     /// Echoes of Divinity on the tank, or null when the talent is not taken or the report names no
-    /// tank. Applications on other party members are excluded, so a party-wide Restore Continuity does
-    /// not inflate the tank's figures.
+    /// tank. Applications on other party members are excluded.
     /// </summary>
     public EchoesOfDivinityUse? EchoesOfDivinity
     {
@@ -267,8 +263,8 @@ public sealed partial class StaggerCleanseAnalyzer : Analyzer
 
     /// <summary>
     /// How long one application of Echoes of Divinity runs, taken from the report: the longest window on
-    /// the tank that closed on a removal with no reapplication inside it, since a reapplication restarts
-    /// the duration and every shorter window was cut off. Null until the report shows one such window.
+    /// the tank that closed on a removal with no reapplication inside it. Null until the report shows one
+    /// such window.
     /// </summary>
     private int? EchoesDurationMs
     {
@@ -331,9 +327,9 @@ public sealed partial class StaggerCleanseAnalyzer : Analyzer
             foreach (var heal in pending.Heals)
                 heals.Add(BuildHeal(heal, pending.Timestamp, tankId));
 
-            var cleanseAmount = StaggerTracker.SingleCastCleanseAmount(pending.Ability);
-            var judged = JudgedHeal(heals);
-            var below = judged?.StaggerBefore is { } before && cleanseAmount is { } amount ? before < amount : (bool?)null;
+            var cleanseAmount = StaggerTracker.StaggerRemoved(pending.Ability);
+            var rated = RatedHeal(heals);
+            var below = rated?.StaggerBefore is { } before && cleanseAmount is { } amount ? before < amount : (bool?)null;
             var hasRefresh = refreshesByCast.TryGetValue(pending.Timestamp, out var overwritten);
             var overwrote = below == true && hasRefresh;
 
@@ -341,7 +337,7 @@ public sealed partial class StaggerCleanseAnalyzer : Analyzer
                 pending.Timestamp,
                 pending.Ability,
                 heals,
-                judged?.StaggerBefore,
+                rated?.StaggerBefore,
                 cleanseAmount,
                 pending.WasFree,
                 pending.WasFree ? FreeCastTracker.FreeCastAt(pending.Timestamp, pending.Ability)?.Source : null,
@@ -353,8 +349,7 @@ public sealed partial class StaggerCleanseAnalyzer : Analyzer
     }
 
     /// <summary>
-    /// The Echoes of Divinity time each cleanse cast wrote over, keyed by the cast's timestamp. Built
-    /// before the cast list so a cast can carry its own figure.
+    /// The Echoes of Divinity time each cleanse cast wrote over, keyed by the cast's timestamp.
     /// </summary>
     private Dictionary<int, int?> RefreshesByCast(int? tankId)
     {
@@ -383,22 +378,20 @@ public sealed partial class StaggerCleanseAnalyzer : Analyzer
     }
 
     /// <summary>
-    /// The ally a cast is judged on: the healed ally carrying the most Stagger before the cast, since
-    /// that is the ally the cast was worth making for. Amend Fate heals one ally, so the rule picks
-    /// that ally whenever a reading supports it.
+    /// The ally a cast is rated on: the healed ally holding the most Stagger before the cast.
     /// </summary>
-    private static CleanseHeal? JudgedHeal(List<CleanseHeal> heals)
+    private static CleanseHeal? RatedHeal(List<CleanseHeal> heals)
     {
-        CleanseHeal? judged = null;
+        CleanseHeal? rated = null;
         foreach (var heal in heals)
         {
             if (heal.StaggerBefore is not { } before) continue;
-            if (judged?.StaggerBefore is { } best && best >= before) continue;
+            if (rated?.StaggerBefore is { } best && best >= before) continue;
 
-            judged = heal;
+            rated = heal;
         }
 
-        return judged;
+        return rated;
     }
 
     private CleanseHeal BuildHeal(HealEvent heal, int castTimestamp, int? tankId)
@@ -409,7 +402,7 @@ public sealed partial class StaggerCleanseAnalyzer : Analyzer
             : (int?)null;
 
         var before = StaggerTracker.LatestBefore(heal.TargetId, castTimestamp);
-        var fresh = before is not null && castTimestamp - before.Timestamp <= StaggerTracker.ReadingMaxAgeMs;
+        var fresh = before is not null && castTimestamp - before.Timestamp <= StaggerTracker.StaggerMaxAgeMs;
 
         return new CleanseHeal(
             heal.TargetId,
@@ -421,8 +414,7 @@ public sealed partial class StaggerCleanseAnalyzer : Analyzer
     }
 
     /// <summary>
-    /// One reapplication of Echoes of Divinity on the tank, with the application it landed on so the time
-    /// it discarded can be worked out once the report has shown how long one application runs.
+    /// One reapplication of Echoes of Divinity on the tank, with the application it reapplied over.
     /// </summary>
     private readonly record struct EchoesRefresh(int Timestamp, int? PreviousApplication)
     {

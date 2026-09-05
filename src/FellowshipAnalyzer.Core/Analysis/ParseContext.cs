@@ -23,9 +23,9 @@ public sealed record ParseContext(
     /// <summary>The dungeon's end timestamp, truncated to <see cref="int"/> from <see cref="ReportDungeon.EndTime"/>.</summary>
     public int DungeonEndTime => (int)Dungeon.EndTime;
 
-    /// <summary>The dungeon pulls Fellowship Logs recorded for <see cref="Dungeon"/>, if it exposes any.</summary>
+    /// <summary>The dungeon pulls for <see cref="Dungeon"/>, if it exposes any.</summary>
     public List<DungeonPull>? DungeonPulls => Dungeon.DungeonPulls;
 
-    /// <summary>The enemy NPCs present on <see cref="Dungeon"/>, as reported by Fellowship Logs.</summary>
+    /// <summary>The enemy NPCs present on <see cref="Dungeon"/>.</summary>
     public List<DungeonNpc>? EnemyNpcs => Dungeon.EnemyNpcs;
 }

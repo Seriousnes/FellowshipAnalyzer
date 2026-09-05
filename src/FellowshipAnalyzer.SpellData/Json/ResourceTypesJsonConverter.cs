@@ -6,9 +6,8 @@ using FellowshipAnalyzer.Core.Game;
 namespace FellowshipAnalyzer.SpellData.Json;
 
 /// <summary>
-/// Resolves upstream resource tokens (canonical <see cref="ResourceTypes"/> member names and
-/// <see cref="ResourceNameAttribute"/> flavor aliases) to slots, and emits the camelCase member
-/// name as the persisted token. Registered only on the offline spelldb/overrides options.
+/// Resolves upstream resource tokens to slots, and emits the camelCase member name as the
+/// persisted token.
 /// </summary>
 public static class ResourceTypesAliases
 {
@@ -19,7 +18,7 @@ public static class ResourceTypesAliases
     public static IReadOnlyList<string> Tokens { get; } =
         [.. ByToken.Keys.OrderByDescending(t => t.Length).ThenBy(t => t, StringComparer.Ordinal)];
 
-    /// <summary>Resolves a token (member name or flavor alias, case-insensitive) to a slot.</summary>
+    /// <summary>Resolves a token to a slot, case-insensitively.</summary>
     public static bool TryResolve(string? token, out ResourceTypes value)
     {
         if (token is not null && ByToken.TryGetValue(token, out value))
@@ -33,18 +32,21 @@ public static class ResourceTypesAliases
 
     /// <summary>
     /// Builds a case-insensitive token→slot map from canonical member names plus aliases,
-    /// throwing if any token resolves to two different slots.
+    /// throwing if a declared token resolves to two different slots.
     /// </summary>
     public static Dictionary<string, ResourceTypes> BuildAliasMap(
         IEnumerable<(ResourceTypes Member, string[] Names)> members)
     {
         var map = new Dictionary<string, ResourceTypes>(StringComparer.OrdinalIgnoreCase);
+        var declared = new List<(string Token, ResourceTypes Member)>();
+
         void Add(string token, ResourceTypes member)
         {
             if (map.TryGetValue(token, out var existing) && existing != member)
                 throw new InvalidOperationException(
                     $"Resource token '{token}' resolves to both {existing} and {member}.");
             map[token] = member;
+            declared.Add((token, member));
         }
 
         foreach (var (member, names) in members)
@@ -53,7 +55,29 @@ public static class ResourceTypesAliases
             foreach (var name in names)
                 Add(name, member);
         }
+
+        foreach (var (token, member) in declared)
+            foreach (var form in WrittenForms(token))
+                if (!map.ContainsKey(form))
+                    map[form] = member;
+
         return map;
+    }
+
+    /// <summary>
+    /// The forms game data writes a declared token in. The game states one of a countable resource in
+    /// the singular, "Generates 1 Winter Orb" against the declared "Winter Orbs", and suffixes the
+    /// generic counter noun to a bare resource name, "Generates 4 Spirit Points" against the declared
+    /// "Spirit".
+    /// </summary>
+    private static IEnumerable<string> WrittenForms(string token)
+    {
+        yield return token.EndsWith('s') ? token[..^1] : token + "s";
+
+        if (token.Contains(' ')) yield break;
+
+        yield return token + " Point";
+        yield return token + " Points";
     }
 
     private static IEnumerable<(ResourceTypes, string[])> EnumerateMembers()

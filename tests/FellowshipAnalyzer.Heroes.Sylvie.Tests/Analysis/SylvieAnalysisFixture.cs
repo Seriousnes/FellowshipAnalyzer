@@ -51,7 +51,7 @@ internal static class SylvieAnalysisFixture
         return parser;
     }
 
-    /// <summary>The selected player, optionally carrying the native talent ids their build ran.</summary>
+    /// <summary>The selected player, optionally with the native talent ids their build ran.</summary>
     public static CombatantInfoEvent Combatant(params int[] nativeTalentIds) => new()
     {
         SourceId = PlayerId,
@@ -142,7 +142,7 @@ internal static class SylvieAnalysisFixture
         ExtraAbilityGameId = removed.FSLID,
     };
 
-    /// <summary>A bare event carrying only a mana snapshot on the player, for pool sampling.</summary>
+    /// <summary>A bare event with only the player's mana on it, for pool sampling.</summary>
     public static DamageEvent ManaSample(int timestamp, int mana, int manaMax = 1_440) => new()
     {
         Timestamp = timestamp,
@@ -154,8 +154,8 @@ internal static class SylvieAnalysisFixture
         SourceResources = Mana(mana, manaMax),
     };
 
-    /// <summary>A bare event carrying only a banked-Flutterfly snapshot on the player.</summary>
-    public static DamageEvent FlutterflySample(int timestamp, int banked) => new()
+    /// <summary>A bare event with only the player's unassigned Flutterfly count on it.</summary>
+    public static DamageEvent FlutterflySample(int timestamp, int unassigned) => new()
     {
         Timestamp = timestamp,
         SourceId = PlayerId,
@@ -165,7 +165,7 @@ internal static class SylvieAnalysisFixture
         AbilityGameId = Core.Common.Spells.Sylvie.Spells.PricklyVineDamage.FSLID,
         SourceResources = new ActorResources
         {
-            Resources = [new ClassResource { Type = ResourceTypes.Tertiary, Amount = banked * 100, Max = 400 }],
+            Resources = [new ClassResource { Type = ResourceTypes.Tertiary, Amount = unassigned * 100, Max = 400 }],
         },
     };
 

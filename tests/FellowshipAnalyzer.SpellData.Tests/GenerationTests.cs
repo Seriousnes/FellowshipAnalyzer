@@ -92,7 +92,7 @@ public class GenerationTests
     }
 
     [Fact]
-    public void IncreaseClause_CarriesTheFractionAndNoTrigger()
+    public void IncreaseClause_HasTheFractionAndNoTrigger()
     {
         var stated = Stated(
             "When you are <rt.mana>above 50% Chrona</> you <rt.warning>deal 15% more damage</> with your abilities that do not spend <rt.mana>Chrona</>.\r\n\r\n"
@@ -126,34 +126,34 @@ public class GenerationTests
     [Fact]
     public void ADamageIncreaseAlone_ReadsAsNothing()
     {
-        var reading = Generation.Read(
+        var statement = Generation.Read(
             "<rt.absorb>Time Shard's</> cast time is doubled and <rt.warning>deals 900% more damage</>.");
-        reading.Stated.ShouldBeNull();
-        reading.Unclaimed.ShouldBeEmpty();
+        statement.Stated.ShouldBeNull();
+        statement.Unclaimed.ShouldBeEmpty();
     }
 
     [Fact]
     public void AThresholdBesideAResource_IsNotReadAsAnAmount()
     {
-        var reading = Generation.Read(
+        var statement = Generation.Read(
             "When you are <rt.mana>above 50% Chrona</> you <rt.warning>deal 15% more damage</> with your abilities.");
-        reading.Stated.ShouldBeNull();
-        reading.Unclaimed.ShouldBeEmpty();
+        statement.Stated.ShouldBeNull();
+        statement.Unclaimed.ShouldBeEmpty();
     }
 
     [Fact]
     public void ADescriptionNamingNoResource_ReadsAsNothing()
     {
-        var reading = Generation.Read("Deals <rt.warning>{BackstabDmg}</> damage to target enemy.");
-        reading.Stated.ShouldBeNull();
-        reading.Unclaimed.ShouldBeEmpty();
+        var statement = Generation.Read("Deals <rt.warning>{BackstabDmg}</> damage to target enemy.");
+        statement.Stated.ShouldBeNull();
+        statement.Unclaimed.ShouldBeEmpty();
     }
 
     [Fact]
     public void AnAmountInAFormNoRuleClaims_IsReportedRatherThanGuessedAt()
     {
-        var reading = Generation.Read("<rt.mana>Generates 6 Fury plus an amount based on the total damage it dealt</>");
-        reading.Stated.ShouldBeNull();
-        reading.Unclaimed.ShouldHaveSingleItem();
+        var statement = Generation.Read("<rt.mana>Generates 6 Fury plus an amount based on the total damage it dealt</>");
+        statement.Stated.ShouldBeNull();
+        statement.Unclaimed.ShouldHaveSingleItem();
     }
 }

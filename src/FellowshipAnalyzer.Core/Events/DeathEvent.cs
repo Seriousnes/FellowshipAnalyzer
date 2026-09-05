@@ -2,7 +2,7 @@
 
 namespace FellowshipAnalyzer.Core.Events;
 
-/// <summary>Raised when a unit dies, naming the ability that landed the killing blow.</summary>
+/// <summary>Raised when a unit dies, naming the ability that dealt the killing blow.</summary>
 public class DeathEvent : Event, IAbilityEvent, IHasSourceEvent, IHasTargetWithInstanceEvent
 {
     /// <summary>The ability associated with this death event.</summary>
@@ -13,7 +13,7 @@ public class DeathEvent : Event, IAbilityEvent, IHasSourceEvent, IHasTargetWithI
     public virtual int SourceId { get; set; }
     /// <summary>The unit that killed the target.</summary>
     public virtual ICastTarget? Source { get; set; }
-    /// <summary>Whether the unit that landed the killing blow was friendly.</summary>
+    /// <summary>Whether the unit that dealt the killing blow was friendly.</summary>
     public virtual bool? SourceIsFriendly { get; set; }
     /// <summary>The instance index disambiguating <see cref="TargetId"/> when multiple copies of the target unit exist.</summary>
     public virtual int? TargetInstance { get; set; }

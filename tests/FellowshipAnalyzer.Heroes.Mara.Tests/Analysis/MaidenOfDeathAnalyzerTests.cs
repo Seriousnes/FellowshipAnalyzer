@@ -408,10 +408,9 @@ public sealed class MaidenOfDeathAnalyzerTests
 
     /// <summary>
     /// Raw Fellowship log resource values are scaled x100; the ResourceNormalizer divides by 100 during
-    /// Analyze, so the fixture stores in-game intent (0-6 combo points, 0-200 Energy) x100. A cast with
-    /// neither resource carries no snapshot at all, as an ability that spends nothing does. No
-    /// GlobalCooldown is attached, so each cast occupies
-    /// <see cref="MaidenOfDeathAnalyzer.StandardGcdMs"/>.
+    /// Analyze, so the fixture stores in-game intent (0-6 combo points, 0-200 Energy) x100. A cast given
+    /// neither resource is written with no SourceResources. No GlobalCooldown is attached, so each cast
+    /// occupies <see cref="MaidenOfDeathAnalyzer.StandardGcdMs"/>.
     /// </summary>
     private static CastEvent Cast(int timestamp, Spell spell, int? comboPoints = null, int? energy = null)
     {
@@ -431,10 +430,10 @@ public sealed class MaidenOfDeathAnalyzerTests
     }
 
     /// <summary>
-    /// Feeds the combo point tracker a snapshot so it holds <paramref name="comboPoints"/> from
-    /// <paramref name="timestamp"/> onward. The tracker records a gain whenever a cast's snapshot exceeds
-    /// what it currently holds, so a builder cast carrying the wanted amount sets the pool without spending
-    /// anything: combo points carry no cost in these fixtures.
+    /// Sets the combo point tracker to <paramref name="comboPoints"/> from <paramref name="timestamp"/>
+    /// onward. The tracker records a gain whenever a cast reports more than the pool currently has, so a
+    /// builder cast with the wanted amount sets the pool without spending anything: combo points have no
+    /// cost in these fixtures.
     /// </summary>
     private static CastEvent Generate(int timestamp, int comboPoints) =>
         Cast(timestamp, Spells.Backstab, comboPoints: comboPoints);

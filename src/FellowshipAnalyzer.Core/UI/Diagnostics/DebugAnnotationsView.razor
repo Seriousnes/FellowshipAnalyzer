@@ -4,7 +4,7 @@
 
 @if (DebugAnnotations is null || !DebugAnnotations.GetAll().Any())
 {
-    <div class="da-empty">No debug annotations were recorded during this analysis.</div>
+    <div class="da-empty">No debug annotations for this analysis.</div>
 }
 else
 {
@@ -17,8 +17,8 @@ else
     {
         <div class="da-empty">
             @(SelectedPull is null
-                ? "No debug annotations were recorded during this analysis."
-                : "No debug annotations were recorded for the selected pull.")
+                ? "No debug annotations for this analysis."
+                : "No debug annotations for the selected pull.")
         </div>
     }
     else

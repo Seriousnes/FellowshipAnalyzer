@@ -23,10 +23,10 @@
             else
             {
                 <p>
-                    Spend the charges of <SpellLink Spell="Spells.FocusedWrath" /> on
-                    <SpellLink Spell="Spells.HammerStorm" /> or <SpellLink Spell="Spells.SkullCrusher" /> is mostly
-                    determined by target count. For single target, or high priority targets use <SpellLink Spell="Spells.SkullCrusher" />,
-                    or <SpellLink Spell="Spells.HammerStorm" /> at @HammerStormAnalyzer.TargetBreakEven or more targets.
+                    Which spender the charges of <SpellLink Spell="Spells.FocusedWrath" /> go to is mostly
+                    determined by target count. Use <SpellLink Spell="Spells.SkullCrusher" /> on single target
+                    or high priority targets, and <SpellLink Spell="Spells.HammerStorm" /> at
+                    @HammerStormAnalyzer.TargetBreakEven or more targets.
                 </p>
             }
         </LeftPanel>
@@ -34,7 +34,7 @@
             <CastOverview Title="Focused Wrath Overview" Stats="@BuildOverviewStats(analyzers)" />
 
             <CastDetail Title="Focused Wrath Buffs"
-                        Description="Each card is one Focused Wrath buff: the charges it granted, the spender each charge went to, and where the buff came from."
+                        Description="Each card is one Focused Wrath buff."
                         Casts="@BuildWrathRows()" />
         </RightPanel>
     </GuideSection>
@@ -48,11 +48,8 @@
         var granted = analyzers.Sum(analyzer => analyzer.ChargesGranted);
         var consumed = analyzers.Sum(analyzer => analyzer.ChargesConsumed);
         var wasted = analyzers.Sum(analyzer => analyzer.ChargesWasted);
-        var fromCast = analyzers.Sum(analyzer => analyzer.ChargesFromCast);
-        var fromProc = analyzers.Sum(analyzer => analyzer.ChargesFromProc);
         var correct = analyzers.Sum(analyzer => analyzer.CorrectSpenders);
         var wrong = analyzers.Sum(analyzer => analyzer.WrongSpenders);
-        var unnamed = analyzers.Sum(analyzer => analyzer.UnratedConsumptions);
         var rated = correct + wrong;
 
         var stats = new List<OverviewStat>
@@ -60,8 +57,7 @@
             new(
                 $"{consumed}/{granted}",
                 "Charges Spent",
-                $"Charges a spender took. {wasted} expired unspent. "
-                + $"{fromCast} came from a Focused Wrath cast and {fromProc} from a Leap Smash proc.",
+                "Charges a spender took.",
                 wasted == 0
                     ? QualitativePerformance.Perfect
                     : PerformanceTiers.FromThresholds(consumed * 100d / granted, 100, 95, 85)),
@@ -72,8 +68,7 @@
             stats.Add(new OverviewStat(
                 $"{correct}/{rated}",
                 "Correct Spender",
-                $"Charges that went to the spender their pull calls for. {wrong} went to the other one."
-                + (unnamed > 0 ? $" A further {unnamed} had no spender cast to name them." : string.Empty),
+                "Charges that went to the spender their pull calls for.",
                 PerformanceTiers.FromThresholds(correct * 100d / rated, 95, 85, 70)));
         }
 
@@ -94,9 +89,6 @@
 
     private static PerCastRow BuildWrathRow(FocusedWrathWindow window)
     {
-        var openedWith = window.FromCast ? FocusedWrathAnalyzer.StacksPerCast : 1;
-        var toppedUp = window.ChargesGranted - openedWith;
-
         var stats = new List<PerCastStat>
         {
             new(
@@ -112,15 +104,9 @@
             new(
                 window.FromCast ? "Cast" : "Leap Smash",
                 "Source",
-                (window.FromCast
+                window.FromCast
                     ? "A Focused Wrath cast opened this buff."
-                    : "A Leap Smash proc opened this buff.")
-                + (toppedUp switch
-                {
-                    0 => string.Empty,
-                    1 => " A Leap Smash proc added one more charge while it was active.",
-                    _ => $" Leap Smash procs added {toppedUp} more charges while it was active.",
-                })),
+                    : "A Leap Smash proc opened this buff."),
         };
 
         return new PerCastRow
@@ -160,13 +146,13 @@
             : $"The buff expired with {ChargeCount(unspent)} left.";
     }
 
-    private static string SpenderTooltip(FocusedWrathWindow window)
+    private static string? SpenderTooltip(FocusedWrathWindow window)
     {
         if (window.ChargesConsumed == 0)
             return "No charge from this buff was spent.";
 
         if (window.RatedSpenders == 0)
-            return "No spender cast could be matched to this buff.";
+            return null;
 
         var preferred = SpellRegistry.MaybeGet(window.PreferredSpenderId)?.Name ?? "Unknown";
 

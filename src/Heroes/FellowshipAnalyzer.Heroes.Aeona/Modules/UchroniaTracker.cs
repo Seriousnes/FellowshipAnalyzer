@@ -8,7 +8,7 @@ namespace FellowshipAnalyzer.Heroes.Aeona.Modules;
 
 /// <summary>
 /// Uchronia's buff windows on the player, so <see cref="FreeCastTracker"/> can attribute a free cast
-/// to the proc that paid for it and a segment can count the procs a pull offered.
+/// to the proc that made it free and a segment can count the procs a pull offered.
 /// </summary>
 /// <remarks>
 /// A window opens on the first application and closes on the removal that consumes it; an

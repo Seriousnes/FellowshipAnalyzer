@@ -2,7 +2,7 @@
 
 /// <summary>
 /// Fabricated by <see cref="Analysis.Combatants"/> whenever a tracked buff or
-/// debuff's stack count changes, carrying the before and after stack counts for the aura instance.
+/// debuff's stack count changes, with the before and after stack counts for the aura instance.
 /// </summary>
 [Fabricated]
 public abstract class ChangeStackEvent : BuffEvent
@@ -22,7 +22,7 @@ public abstract class ChangeStackEvent : BuffEvent
     public virtual int OldStacks { get; set; }
     /// <summary>The stack count reported directly on the triggering event; not populated by the built-in stack-change fabricator, which sets <see cref="NewStacks"/> and <see cref="Stacks"/> instead.</summary>
     public virtual int? Stack { get; set; }
-    /// <summary>The <see cref="History"/> entries recorded for this change.</summary>
+    /// <summary>The <see cref="History"/> entries for this change.</summary>
     public virtual List<History> StackHistory { get; set; } = [];
     /// <summary>The aura's stack count after this change, matching <see cref="NewStacks"/>.</summary>
     public virtual int Stacks { get; set; }

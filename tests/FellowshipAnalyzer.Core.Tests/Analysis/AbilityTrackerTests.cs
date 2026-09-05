@@ -14,7 +14,7 @@ namespace FellowshipAnalyzer.Core.Tests.Analysis;
 
 /// <summary>
 /// Tests for <see cref="AbilityTracker"/>: the player's completed casts, damage, and healing are
-/// tallied per ability across the whole dungeon and again scoped to the pull each event landed in.
+/// tallied per ability across the whole dungeon and again scoped to the pull each event occurred in.
 /// </summary>
 public sealed class AbilityTrackerTests
 {

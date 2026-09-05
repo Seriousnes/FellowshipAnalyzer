@@ -11,7 +11,7 @@
             </Header>
             <ChildContent>
                 <StatRow Value="@Resets.ToString("N0")"
-                         Tooltip="Impending Heartseeker buffs granted over the dungeon.">
+                         Tooltip="Impending Heartseeker resets granted over the dungeon.">
                     resets granted
                 </StatRow>
                 <StatRow Value="@WastedResets.ToString("N0")"
@@ -20,7 +20,7 @@
                     resets wasted
                 </StatRow>
                 <StatRow Value="@Seconds(AverageRecoveredMs)"
-                         Tooltip="@($"{Seconds(RecoveredMs)} of Heartseeker Barrage cooldown removed across {RecoveredResets} resets that arrived on a running cooldown.")">
+                         Tooltip="@($"{Seconds(RecoveredMs)} of Heartseeker Barrage cooldown removed across {RecoveredResets} resets arriving on a running cooldown.")">
                     average cooldown removed
                 </StatRow>
             </ChildContent>

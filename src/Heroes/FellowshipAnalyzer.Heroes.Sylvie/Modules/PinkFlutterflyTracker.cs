@@ -7,7 +7,7 @@ namespace FellowshipAnalyzer.Heroes.Sylvie.Modules;
 
 public sealed partial class PinkFlutterflyTracker : HotTracker
 {
-    private readonly List<BankSample> _bank = [];
+    private readonly List<UnassignedSample> _unassigned = [];
 
     public static int FlutterflyHot => Spells.FluttercallHealHot.FSLID;
 
@@ -23,20 +23,20 @@ public sealed partial class PinkFlutterflyTracker : HotTracker
     public static FlutterflyPlacement PlacementOf(HotAssignment assignment) =>
         assignment.SpellId == RestoreLifeHot ? FlutterflyPlacement.RestoreLife : FlutterflyPlacement.Heal;
 
-    public List<BankSample> BankSamples => _bank;
+    public List<UnassignedSample> UnassignedSamples => _unassigned;
 
-    public int PeakBanked => _bank.Count > 0 ? _bank.Max(sample => sample.Count) : 0;
+    public int PeakUnassigned => _unassigned.Count > 0 ? _unassigned.Max(sample => sample.Count) : 0;
 
-    public int BankedAt(int timestamp)
+    public int UnassignedAt(int timestamp)
     {
-        var banked = 0;
-        foreach (var sample in _bank)
+        var unassigned = 0;
+        foreach (var sample in _unassigned)
         {
             if (sample.Timestamp > timestamp) break;
-            banked = sample.Count;
+            unassigned = sample.Count;
         }
 
-        return banked;
+        return unassigned;
     }
 
     public long AssignedMsBetween(int start, int end) => AssignedMs(Flutterflies, start, end);
@@ -102,9 +102,9 @@ public sealed partial class PinkFlutterflyTracker : HotTracker
         foreach (var resource in list)
         {
             if (resource.Type != ResourceTypes.Tertiary) continue;
-            if (_bank.Count > 0 && _bank[^1].Count == resource.Amount) return;
+            if (_unassigned.Count > 0 && _unassigned[^1].Count == resource.Amount) return;
 
-            _bank.Add(new BankSample(e.Timestamp, resource.Amount));
+            _unassigned.Add(new UnassignedSample(e.Timestamp, resource.Amount));
             return;
         }
     }
@@ -117,6 +117,6 @@ public enum FlutterflyPlacement
     RestoreLife,
 }
 
-public sealed record BankSample(int Timestamp, int Count);
+public sealed record UnassignedSample(int Timestamp, int Count);
 
 public sealed record FlutterflyHolder(UnitKey Unit, long AssignedMs, int Assignments);

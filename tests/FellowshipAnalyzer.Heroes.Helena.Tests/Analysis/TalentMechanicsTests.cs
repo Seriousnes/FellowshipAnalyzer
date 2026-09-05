@@ -53,7 +53,7 @@ public sealed class TalentMechanicsTests
     }
 
     [Fact]
-    public async Task GreaterShockwave_ReadsAmplificationOffTheBarAtCast()
+    public async Task GreaterShockwave_SizesAmplificationFromToughnessAtCast()
     {
         var parser = await AnalyzeWithTalents(
             [Talents.GreaterShockwave],
@@ -68,7 +68,7 @@ public sealed class TalentMechanicsTests
     }
 
     [Fact]
-    public async Task GreaterShockwave_CountsTheReturnedToughnessTheBarHadNoRoomFor()
+    public async Task GreaterShockwave_CountsTheReturnedToughnessOvercapped()
     {
         var parser = await AnalyzeWithTalents(
             [Talents.GreaterShockwave],
@@ -133,7 +133,7 @@ public sealed class TalentMechanicsTests
     }
 
     [Fact]
-    public async Task PunishingStrikes_DoublesTheReductionMadeUnderIt()
+    public async Task PunishingStrikes_DoublesTheReductionUnderIt()
     {
         var parser = await AnalyzeWithTalents(
             [Talents.PunishingStrikes],
@@ -179,7 +179,7 @@ public sealed class TalentMechanicsTests
     }
 
     [Fact]
-    public async Task ShieldMastery_SizesItsReductionFromTheBarAtTheMomentOfTheHit()
+    public async Task ShieldMastery_SizesItsReductionFromToughnessAtTheMomentOfTheHit()
     {
         var parser = await AnalyzeWithTalents(
             [Talents.ShieldMastery],
@@ -195,7 +195,7 @@ public sealed class TalentMechanicsTests
     }
 
     [Fact]
-    public async Task ShieldMastery_GeneratesNothingFromAHitTakenOnAnEmptyBar()
+    public async Task ShieldMastery_GeneratesNothingFromAHitTakenAtDepletedToughness()
     {
         var parser = await AnalyzeWithTalents(
             [Talents.ShieldMastery],
@@ -209,7 +209,7 @@ public sealed class TalentMechanicsTests
     }
 
     [Fact]
-    public async Task ShieldMastery_CountsAHitWithNoToughnessReadingAsUnmeasured()
+    public async Task ShieldMastery_GeneratesNothingFromAHitWithNoToughness()
     {
         var parser = await AnalyzeWithTalents(
             [Talents.ShieldMastery],
@@ -265,7 +265,7 @@ public sealed class TalentMechanicsTests
     }
 
     [Fact]
-    public async Task SwordAndBoard_CountsAProcThatFellOffUnused()
+    public async Task SwordAndBoard_CountsAProcThatExpiredUnused()
     {
         var parser = await AnalyzeWithTalents(
             [Talents.SwordAndBoard],

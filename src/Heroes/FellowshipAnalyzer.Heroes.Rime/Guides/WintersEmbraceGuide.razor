@@ -12,15 +12,13 @@
 <GuideSection Title="Winter's Embrace Windows">
     <LeftPanel>
         <p>
-            Every @bi is a mini burst window, and small optimizations during @we
-            can add up over a dungeon. Try to start each window with 5 Winter Orbs, and spend 
-            as many as possible while @we is active.
+            Cast @bi with 5 Winter Orbs banked, and spend as many as possible while @we is active.
         </p>
     </LeftPanel>
     <RightPanel>
         <CastOverview Title="Window Overview" Stats="@BuildOverviewStats()" />
         <CastDetail Title="Winter's Embrace Windows"
-                    Description="Each window shows what was cast while Winter's Embrace was active, grouped by the pull it happened in."
+                    Description="Each window shows what was cast while Winter's Embrace was active."
                     Casts="@BuildPerCastData()" />
     </RightPanel>
 </GuideSection>
@@ -40,7 +38,7 @@
         var averageSpenders = total > 0 ? windows.Average(window => window.SpenderCount) : 0d;
         var withOrbData = windows.Count(window => window.OrbsBankedAtOpen is not null);
         var starved = windows.Count(window => window.OpenedStarved);
-        var cutShort = windows.Count(window => window.EndedByTargetDeath);
+        var targetDeaths = windows.Count(window => window.EndedByTargetDeath);
 
         var stats = new List<OverviewStat>
         {
@@ -51,7 +49,7 @@
             new(
                 $"{successRate}%",
                 "Success Rate",
-                $"{successful} clean / {total} evaluated against the follow-up each pull's shape calls for.",
+                $"{successful} of {total} windows.",
                 PerformanceTiers.FromThresholds(successRate, 75, 50, 25)),
             new(
                 $"{averageSpenders:0.0}",
@@ -64,15 +62,15 @@
             stats.Add(new OverviewStat(
                 $"{starved}",
                 "Opened Starved",
-                $"Windows opened on a Bursting Ice cast with {WintersEmbraceAnalyzer.StarvedOrbThreshold} Winter Orb or fewer.",
+                $"Windows opened with {WintersEmbraceAnalyzer.StarvedOrbThreshold} Winter Orb or fewer.",
                 starved == 0 ? QualitativePerformance.Perfect : QualitativePerformance.Fail));
         }
 
         stats.Add(new OverviewStat(
-            $"{cutShort}",
-            "Cut Short",
-            "Windows that ended early because the Bursting Ice target died.",
-            cutShort == 0 ? QualitativePerformance.Perfect : QualitativePerformance.Ok));
+            $"{targetDeaths}",
+            "Target Deaths",
+            "Windows where the Bursting Ice target died.",
+            targetDeaths == 0 ? QualitativePerformance.Perfect : QualitativePerformance.Ok));
 
         return stats;
     }
@@ -113,26 +111,29 @@
                 window is AoeWindow ? "AoE" : "Single",
                 "Shape",
                 window is AoeWindow
-                    ? "Scored against the AoE follow-up: two AoE spenders and a Cold Snap."
-                    : "Scored against the single-target follow-up: the build's spender, then a finisher when there is room."),
+                    ? "Rated on the AoE follow-up: two AoE spenders and a Cold Snap."
+                    : "Rated on the single-target follow-up: the build's spender, then a finisher when there is room."),
             new(
                 $"{window.SpenderCount}/{window.ExpectedSpenderCount}",
                 window.SpenderName,
                 $"{window.SpenderName} casts inside the window, and the number expected.",
                 Performance: spenderPerformance),
-            new(
-                window.OrbsBankedAtOpen is { } orbs ? $"{orbs}" : "n/a",
-                "Orbs Banked",
-                window.OrbsBankedAtOpen is null
-                    ? "No Winter Orb count on the opening Bursting Ice cast."
-                    : "Winter Orbs held when Bursting Ice was cast.",
-                Performance: OrbPerformance(window)),
-            new(
-                $"{window.ColdSnapCount + window.FreezingTorrentCount}",
-                "Finishers",
-                "Cold Snap and Freezing Torrent casts inside the window.",
-                Performance: FinisherPerformance(window)),
         };
+
+        if (window.OrbsBankedAtOpen is { } orbs)
+        {
+            stats.Add(new PerCastStat(
+                $"{orbs}",
+                "Orbs Banked",
+                "Winter Orbs held when Bursting Ice was cast.",
+                Performance: OrbPerformance(window)));
+        }
+
+        stats.Add(new PerCastStat(
+            $"{window.ColdSnapCount + window.FreezingTorrentCount}",
+            "Finishers",
+            "Cold Snap and Freezing Torrent casts inside the window.",
+            Performance: FinisherPerformance(window)));
 
         if (window.TargetCount > 0)
         {
@@ -206,11 +207,11 @@
     private static string SuccessSummary(Window window) => window switch
     {
         StWindow { UsedFreezingTorrentCombo: true } =>
-            "the window was spent well on single-target damage with the Freezing Torrent into Cold Snap variant",
+            "the window fit the Freezing Torrent into Cold Snap variant",
         StWindow { ExpectsFinisher: true } st =>
             $"the window fit the expected {st.SpenderName} casts and a finisher",
         StWindow st =>
-            $"the window fit the expected {st.SpenderName} usage",
+            $"the window fit the expected {st.SpenderName} casts",
         AoeWindow aoe =>
             $"the window fit two {aoe.SpenderName} casts and a Cold Snap",
         _ => "the window matched the expected follow-up",
@@ -219,7 +220,7 @@
     private static void AddSingleTargetReasons(StWindow window, List<string> reasons)
     {
         if (window.FirstRelevantCastName is null)
-            reasons.Add("nothing was spent into Winter's Embrace");
+            reasons.Add("no spender or finisher was cast in the window");
         else if (!window.OpenedWithExpectedCast)
             reasons.Add($"the window opened with {window.FirstRelevantCastName} rather than {window.SpenderName} or Freezing Torrent");
 
@@ -231,7 +232,7 @@
         }
 
         if (window is { ExpectsFinisher: true, HasValidFinisher: false })
-            reasons.Add("there was room for a finisher, but neither Cold Snap nor Freezing Torrent was cast");
+            reasons.Add("there was room for a finisher, but none was cast");
     }
 
     private static void AddAoeReasons(AoeWindow window, List<string> reasons)
@@ -239,12 +240,12 @@
         if (!window.HasRequiredAoeSpenders)
         {
             reasons.Add(window.AoeSpenderCount == 0
-                ? $"no {window.SpenderName} casts were made in the window"
+                ? $"no {window.SpenderName} was cast in the window"
                 : $"the window missed its second {window.SpenderName}");
         }
 
         if (!window.HasRequiredColdSnap)
-            reasons.Add("Cold Snap was missing from the window");
+            reasons.Add("Cold Snap was not cast in the window");
     }
 
     private static void AddContextReasons(Window window, List<string> reasons)
@@ -260,7 +261,7 @@
             reasons.Add("the Bursting Ice target died mid-window");
 
         if (window.BoundaryTruncated)
-            reasons.Add("the pull ended before the window did, so it is measured to the pull boundary");
+            reasons.Add("the pull ended before the window did");
 
         if (window.MajorActiveAtOpen)
             reasons.Add($"{JoinNames(window.MajorsActiveAtOpen)} {(window.MajorsActiveAtOpen.Count == 1 ? "was" : "were")} active when the window opened");

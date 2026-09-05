@@ -363,15 +363,15 @@ public sealed partial class EnemiesTests
         await parser.Analyze(DungeonEvents(), PlayerId, Dungeon);
 
         var enemies = parser.GetModule<Enemies>()!;
-        var readings = parser.GetModule<AliveProbe>()!.Readings;
+        var samples = parser.GetModule<AliveProbe>()!.Samples;
 
-        readings.Count.ShouldBe(7);
-        foreach (var (timestamp, alive) in readings)
+        samples.Count.ShouldBe(7);
+        foreach (var (timestamp, alive) in samples)
             alive.ShouldBe(enemies.AliveAt(timestamp));
 
-        readings.ShouldContain((1_500, 4));
-        readings.ShouldContain((2_500, 3));
-        readings.ShouldContain((BossPullEnd, 0));
+        samples.ShouldContain((1_500, 4));
+        samples.ShouldContain((2_500, 3));
+        samples.ShouldContain((BossPullEnd, 0));
     }
 
     [Fact]
@@ -464,7 +464,7 @@ public sealed partial class EnemiesTests
         enemies.AliveAt(first, Boundary).ShouldBe(1);
         enemies.AliveAt(Boundary).ShouldNotBe(enemies.AliveAt(first, Boundary));
 
-        parser.GetModule<AliveProbe>()!.Readings.ShouldHaveSingleItem()
+        parser.GetModule<AliveProbe>()!.Samples.ShouldHaveSingleItem()
             .ShouldBe((Boundary, 2));
     }
 
@@ -720,10 +720,10 @@ public sealed partial class EnemiesTests
 
     private sealed partial class AliveProbe : Analyzer
     {
-        public List<(int Timestamp, int Alive)> Readings { get; } = [];
+        public List<(int Timestamp, int Alive)> Samples { get; } = [];
 
         [On<DeathEvent>]
         private void OnDeath(DeathEvent deathEvent) =>
-            Readings.Add((deathEvent.Timestamp, Owner.Enemies!.AliveAt(deathEvent.Timestamp)));
+            Samples.Add((deathEvent.Timestamp, Owner.Enemies!.AliveAt(deathEvent.Timestamp)));
     }
 }

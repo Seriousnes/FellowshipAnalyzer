@@ -8,7 +8,7 @@ namespace FellowshipAnalyzer.Core.Analysis;
 /// than rebuilding that from events.
 /// <para>
 /// This module declares no <c>[On&lt;&gt;]</c> handlers. A spell filter has to name a member of the
-/// hero's own generated registry, which Core cannot see, so every reading here is derived by effect id
+/// hero's own generated registry, which Core cannot see, so every lookup here is by effect id
 /// instead. A hero that needs event-driven bookkeeping of its own declares those handlers on its
 /// analyzer, where the registry is visible.
 /// </para>
@@ -33,7 +33,7 @@ public abstract class DotTracker : Module
         ?? throw new InvalidOperationException(
             $"{GetType().Name} reads the enemy population from {nameof(Analysis.Enemies)}, which the parser did not construct.");
 
-    /// <summary>Every enemy carrying at least one of <see cref="Dots"/> at <paramref name="timestamp"/>.</summary>
+    /// <summary>Every enemy with at least one of <see cref="Dots"/> active at <paramref name="timestamp"/>.</summary>
     public HashSet<UnitKey> EnemiesWithAnyDot(int timestamp)
     {
         var enemies = new HashSet<UnitKey>();
@@ -55,8 +55,8 @@ public abstract class DotTracker : Module
     }
 
     /// <summary>
-    /// The enemy carrying the most instances of <see cref="Dots"/> at <paramref name="timestamp"/>, or
-    /// <c>null</c> when no enemy carries any. Use it to score an untargeted cast against the pack the
+    /// The enemy with the most instances of <see cref="Dots"/> active at <paramref name="timestamp"/>,
+    /// or <c>null</c> when none has any. Use it to score an untargeted cast against the pack the
     /// player was working on.
     /// </summary>
     public UnitKey? MostDottedEnemy(int timestamp)
@@ -73,21 +73,21 @@ public abstract class DotTracker : Module
     }
 
     /// <summary>
-    /// One reading per effect in <see cref="Dots"/> order, taken on a single enemy, so
+    /// One <see cref="DotCoverage"/> per effect in <see cref="Dots"/> order, taken on a single enemy, so
     /// <see cref="DotCoverage.Targets"/> is 0 or 1.
     /// </summary>
     public List<DotCoverage> CoverageOn(UnitKey enemy, int timestamp) =>
         CoverageAcross([enemy], timestamp);
 
     /// <summary>
-    /// One reading per effect in <see cref="Dots"/> order, summed across <paramref name="enemies"/>.
+    /// One <see cref="DotCoverage"/> per effect in <see cref="Dots"/> order, summed across <paramref name="enemies"/>.
     /// </summary>
     public List<DotCoverage> CoverageAcross(HashSet<UnitKey> enemies, int timestamp)
     {
         var coverage = new List<DotCoverage>(Dots.Count);
         foreach (var dot in Dots)
         {
-            var carriers = 0;
+            var targets = 0;
             var instances = 0;
             var stacks = 0;
 
@@ -96,7 +96,7 @@ public abstract class DotTracker : Module
                 var onTarget = Combatants.AuraInstanceCount(key.ActorId, key.Instance, dot.Effect, timestamp);
                 if (onTarget == 0) continue;
 
-                carriers++;
+                targets++;
                 instances += onTarget;
                 stacks += Combatants.AuraStackSum(key.ActorId, key.Instance, dot.Effect, timestamp);
             }
@@ -104,7 +104,7 @@ public abstract class DotTracker : Module
             coverage.Add(new DotCoverage
             {
                 Dot = dot,
-                Targets = carriers,
+                Targets = targets,
                 Instances = instances,
                 Stacks = stacks,
             });
@@ -161,7 +161,7 @@ public abstract class DotTracker : Module
 /// How many instances of each effect were active at one instant, indexed by the effect's position in
 /// <see cref="DotTracker.Dots"/>.
 /// </summary>
-/// <param name="Timestamp">When the reading was taken.</param>
+/// <param name="Timestamp">When the sample was taken.</param>
 /// <param name="Instances">Active instances per effect, in <see cref="DotTracker.Dots"/> order.</param>
 public sealed record DotLayerSample(int Timestamp, List<int> Instances)
 {

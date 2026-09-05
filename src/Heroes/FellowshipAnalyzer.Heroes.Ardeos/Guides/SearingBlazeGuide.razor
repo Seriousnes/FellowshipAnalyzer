@@ -130,7 +130,7 @@
     private static string BuildBossNote(SearingBlazeUptimeAnalyzer analyzer, int uptimePercent)
     {
         if (analyzer.Windows.Count == 0)
-            return "No Searing Blaze applications were detected on this boss pull.";
+            return "Searing Blaze was never applied.";
 
         if (analyzer.GapCount == 0)
             return $"Searing Blaze had {uptimePercent}% uptime with no gaps once applied.";
@@ -142,7 +142,7 @@
     private static string BuildTrashNote(SearingBlazeSpreadAnalyzer analyzer, int score)
     {
         if (analyzer.DistinctTargets == 0)
-            return "No Searing Blaze applications were detected on this AoE pull.";
+            return "No enemy took Searing Blaze.";
 
         if (analyzer.TargetCount <= 0)
             return $"Searing Blaze spread to {analyzer.DistinctTargets} enemies.";

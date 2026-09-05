@@ -15,7 +15,7 @@ namespace FellowshipAnalyzer.Heroes.Helena.Tests.Analysis;
 public sealed class EmpoweredShieldSlamAnalyzerTests
 {
     [Fact]
-    public async Task AnEmpowermentAShieldSlamSpent_DoesNotCountAsLapsed()
+    public async Task AnEmpowermentAShieldSlamSpent_DoesNotCountAsExpired()
     {
         var analyzer = await Analyze(
             ApplyBuff(PullStart + 1_000, Spells.ShieldSlamAbsorbBuffSelfBuff),
@@ -27,7 +27,7 @@ public sealed class EmpoweredShieldSlamAnalyzerTests
     }
 
     [Fact]
-    public async Task AnEmpowermentThatFellOffUnused_CountsAsExpired()
+    public async Task AnEmpowermentThatExpiredUnused_CountsAsExpired()
     {
         var analyzer = await Analyze(
             ApplyBuff(PullStart + 1_000, Spells.ShieldSlamAbsorbBuffSelfBuff),

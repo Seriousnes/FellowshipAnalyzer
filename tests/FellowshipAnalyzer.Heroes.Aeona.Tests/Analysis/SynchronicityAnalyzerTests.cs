@@ -79,7 +79,7 @@ public sealed class SynchronicityAnalyzerTests
 
         analyzer.Threshold.ShouldBe(50);
         analyzer.ChronaGeneratedBelowThreshold.ShouldBe(25);
-        analyzer.EstimatedChrona.ShouldBe(5d, 0.0001);
+        analyzer.ChronaFromSynchronicity.ShouldBe(5d, 0.0001);
     }
 
     [Fact]
@@ -91,7 +91,7 @@ public sealed class SynchronicityAnalyzerTests
             Damage(2_000, Spells.TimeShardDamage.FSLID, amount: 1_150));
 
         analyzer.DamageAboveThreshold.ShouldBe(1_150);
-        analyzer.EstimatedDamage.ShouldBe(150d, 0.0001);
+        analyzer.DamageFromSynchronicity.ShouldBe(150d, 0.0001);
     }
 
     [Fact]
@@ -103,7 +103,7 @@ public sealed class SynchronicityAnalyzerTests
             Damage(2_000, Spells.TimeShardDamage.FSLID, amount: 1_150));
 
         analyzer.DamageAboveThreshold.ShouldBe(0);
-        analyzer.EstimatedDamage.ShouldBe(0d);
+        analyzer.DamageFromSynchronicity.ShouldBe(0d);
     }
 
     [Fact]
@@ -164,8 +164,8 @@ public sealed class SynchronicityAnalyzerTests
 
         analyzer.ChronaGeneratedBelowThreshold.ShouldBe(0);
         analyzer.DamageAboveThreshold.ShouldBe(0);
-        analyzer.EstimatedChrona.ShouldBe(0d);
-        analyzer.EstimatedDamage.ShouldBe(0d);
+        analyzer.ChronaFromSynchronicity.ShouldBe(0d);
+        analyzer.DamageFromSynchronicity.ShouldBe(0d);
     }
 
     private static ActorResources? PlayerResources(int? rawChrona)

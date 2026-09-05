@@ -25,7 +25,7 @@ public sealed record HeroAnalysisDefinition(
     }
 }
 
-/// <summary>Known gameplay metadata for a single ability, used to resolve names and timings the combat log does not carry directly.</summary>
+/// <summary>Known gameplay metadata for a single ability, used to resolve names and timings.</summary>
 /// <param name="SpellId">The ability's spell id.</param>
 /// <param name="Name">The ability's display name.</param>
 /// <param name="CooldownSeconds">The ability's cooldown in seconds, or <c>null</c> if unknown.</param>

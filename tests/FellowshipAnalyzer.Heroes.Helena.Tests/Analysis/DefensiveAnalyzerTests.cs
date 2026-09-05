@@ -108,7 +108,7 @@ public sealed class DefensiveAnalyzerTests
     }
 
     [Fact]
-    public async Task IronWall_RecordsTheToughnessItHeld()
+    public async Task IronWall_RecordsTheToughnessAtTheUse()
     {
         var analyzer = await IronWall(
             Cast(PullStart + 1_000, Spells.IronWall, toughness: 600),
@@ -136,7 +136,7 @@ public sealed class DefensiveAnalyzerTests
     }
 
     [Fact]
-    public async Task IronWall_RecordsTheShieldsUpChargesLeftWhenItWentOut()
+    public async Task IronWall_RecordsTheShieldsUpChargesLeftWhenItWasUsed()
     {
         var analyzer = await IronWall(
             Cast(PullStart + 1_000, Spells.ShieldsUp),

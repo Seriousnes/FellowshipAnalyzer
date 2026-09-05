@@ -7,7 +7,7 @@ namespace FellowshipAnalyzer.Core.Analysis;
 /// Measures how continuously each of a set of damage-over-time effects stayed on its primary target,
 /// the multi-effect counterpart to <see cref="DebuffUptimeAnalyzer"/>. Each effect keeps its own
 /// <see cref="AuraWindowLedger"/> and picks its own primary target - the one with the most
-/// active time - so a transient add never dilutes the boss reading and two effects maintained on
+/// active time - so a transient add never dilutes the boss uptime and two effects maintained on
 /// different targets are both read honestly.
 /// <para>
 /// Derive a per-hero analyzer from this, keep <c>[ForPull]</c> and the surface marker interface on
@@ -27,10 +27,10 @@ public abstract class DotUptimeAnalyzer : Analyzer
 
     private List<DotUptime> Result => field ??= Compute();
 
-    /// <summary>One reading per effect in <see cref="Dots"/> order.</summary>
+    /// <summary>One <see cref="DotUptime"/> per effect in <see cref="Dots"/> order.</summary>
     public List<DotUptime> Uptimes => Result;
 
-    /// <summary>The reading for <paramref name="dot"/>.</summary>
+    /// <summary>The <see cref="DotUptime"/> for <paramref name="dot"/>.</summary>
     /// <exception cref="InvalidOperationException"><paramref name="dot"/> is not one of <see cref="Dots"/>.</exception>
     public DotUptime For(Dot dot)
     {

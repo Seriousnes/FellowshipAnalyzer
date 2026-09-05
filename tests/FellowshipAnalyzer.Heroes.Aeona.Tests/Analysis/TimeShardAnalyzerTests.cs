@@ -20,7 +20,7 @@ using CoreItems = FellowshipAnalyzer.Core.Common.Items.Items;
 namespace FellowshipAnalyzer.Heroes.Aeona.Tests.Analysis;
 
 /// <summary>
-/// Exercises the Time Shard cast reconstruction. Chrona snapshots are written at the raw log scale
+/// Exercises the Time Shard cast reconstruction. Chrona amounts are written at the raw log scale
 /// because <c>ResourceNormalizer</c> divides them by 100 before dispatch, which puts the maximum at 100
 /// and the Synchronicity threshold at 50.
 /// </summary>
@@ -263,7 +263,7 @@ public sealed class TimeShardAnalyzerTests
         cast.ChronaAtCast.ShouldBe(50);
         cast.AboveChronaThreshold.ShouldBe(false);
         analyzer.SynchronicityPairings.ShouldBe(0);
-        analyzer.ChronaMeasuredEmpoweredCasts.ShouldBe(1);
+        analyzer.EmpoweredCastsWithChrona.ShouldBe(1);
     }
 
     [Fact]
@@ -295,7 +295,7 @@ public sealed class TimeShardAnalyzerTests
         cast.ChronaAtCast.ShouldBeNull();
         cast.AboveChronaThreshold.ShouldBeNull();
         analyzer.SynchronicityPairings.ShouldBe(0);
-        analyzer.ChronaMeasuredEmpoweredCasts.ShouldBe(0);
+        analyzer.EmpoweredCastsWithChrona.ShouldBe(0);
     }
 
     [Fact]
@@ -363,7 +363,7 @@ public sealed class TimeShardAnalyzerTests
     }
 
     [Fact]
-    public async Task MartialInitiativeIsReadWhenTheDamageLands()
+    public async Task MartialInitiativeIsReadWhenTheDamageIsDealt()
     {
         var analyzer = await Analyze(
             Combatant(talents: [AeonaTalents.ContinuumShift], martialInitiativeTrait: true),
@@ -379,7 +379,7 @@ public sealed class TimeShardAnalyzerTests
     }
 
     [Fact]
-    public async Task MartialInitiativeEndingBeforeTheDamageLands_FailsItsPairing()
+    public async Task MartialInitiativeEndingBeforeTheDamageIsDealt_FailsItsPairing()
     {
         var analyzer = await Analyze(
             Combatant(talents: [AeonaTalents.ContinuumShift], martialInitiativeTrait: true),
@@ -460,7 +460,7 @@ public sealed class TimeShardAnalyzerTests
     }
 
     [Fact]
-    public async Task NoSkyboltBeforeTheCast_LeavesTheLeadUnmeasured()
+    public async Task NoSkyboltBeforeTheCast_LeavesTheLeadNull()
     {
         var analyzer = await Analyze(TimeShardCastEvent(5_000, EnemyId));
 

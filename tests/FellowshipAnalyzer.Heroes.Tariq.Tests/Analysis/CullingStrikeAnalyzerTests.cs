@@ -143,8 +143,7 @@ public sealed class CullingStrikeAnalyzerTests
 
     /// <summary>
     /// The game gate makes an above-threshold cast impossible without an Executioner's Grin buff, so
-    /// one recorded without the buff is a bad reading rather than a bad cast, and the analyzer has to
-    /// separate the two.
+    /// the analyzer counts one above the threshold with no buff active as unexplained.
     /// </summary>
     [Fact]
     public async Task Analyze_CullingStrike_AttributesAboveThresholdCastsToTheExecutionersGrinBuff()
@@ -167,7 +166,7 @@ public sealed class CullingStrikeAnalyzerTests
     }
 
     [Fact]
-    public async Task Analyze_CullingStrike_TreatsAGrinBuffStillUpAtPullEndAsActive()
+    public async Task Analyze_CullingStrike_TreatsAGrinBuffNeverRemovedAsActiveAtPullEnd()
     {
         var parser = await AnalyzeAsync(
         [
@@ -183,7 +182,7 @@ public sealed class CullingStrikeAnalyzerTests
     }
 
     [Fact]
-    public async Task Analyze_CullingStrike_ClassifiesEachCastAgainstItsTargetsLatestHealthReading()
+    public async Task Analyze_CullingStrike_ClassifiesEachCastAgainstItsTargetsLatestHealth()
     {
         var parser = await AnalyzeAsync(
         [
@@ -275,7 +274,7 @@ public sealed class CullingStrikeAnalyzerTests
     }
 
     /// <summary>
-    /// Each stretch of the execute phase with a charge in hand is one opportunity: the phase opening with
+    /// Each stretch of the execute phase with a charge available is one opportunity: the phase opening with
     /// Culling Strike already available is one, and every cooldown that ends inside it is another. The
     /// last one runs to the end of the pull because nothing spent it.
     /// </summary>
@@ -314,7 +313,7 @@ public sealed class CullingStrikeAnalyzerTests
 
     /// <summary>
     /// A charge held because Fury was short is a Fury economy problem, so it is separated from one held
-    /// with the <see cref="CullingStrikeAnalyzer.FullStrengthFury"/> a full-strength cast converts.
+    /// at or above <see cref="CullingStrikeAnalyzer.FullStrengthFury"/>.
     /// </summary>
     [Fact]
     public async Task Analyze_CullingStrike_SeparatesAHoldForFuryFromAHoldWithFuryBanked()
@@ -340,7 +339,7 @@ public sealed class CullingStrikeAnalyzerTests
 
     /// <summary>
     /// Culling Strike's cooldown is hasted and accelerates further with gear, so the game routinely allows
-    /// a cast the modelled recharge has not finished. Report <c>a:NcqHDKzamL7n6YFv</c> lands 17 casts in an
+    /// a cast the modelled recharge has not finished. Report <c>a:NcqHDKzamL7n6YFv</c> has 17 casts in an
     /// execute phase the model only offers 9 charges for. Each early cast has to open its own zero-length
     /// opportunity, or the phase reads as though it had room for far fewer casts than it did.
     /// </summary>
@@ -410,7 +409,7 @@ public sealed class CullingStrikeAnalyzerTests
     };
 
     /// <summary>
-    /// One player damage event carrying a target health snapshot. Health is not rescaled by the
+    /// One player damage event with the target's health. Health is not rescaled by the
     /// resource normalizer, so the raw hit points are the ones the analyzer reads.
     /// </summary>
     private static DamageEvent Hit(int timestamp, int targetId, long hitPoints, long maxHitPoints, int? targetInstance = null) => new()

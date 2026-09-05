@@ -4,8 +4,8 @@
     <LeftPanel>
         <p>
             Use <SpellLink Spell="Spells.ShieldsUp" /> when you have less than 40% toughness, your block buff 
-            is about to expire, or you're about to overcap charges. Almost all your abilities grant CDR to each other,
-            so try to minimise CDR waste on <SpellLink Spell="Spells.Shockwave" /> and <SpellLink Spell="Spells.ShieldsUp" />.
+            is about to expire, or you're about to overcap charges. Almost all your abilities reduce each other's
+            cooldowns, so try to minimise the cooldown reduction wasted on <SpellLink Spell="Spells.Shockwave" /> and <SpellLink Spell="Spells.ShieldsUp" />.
         </p>
         <p>
             Use <SpellLink Spell="Spells.IronWall" /> to prevent your Toughness from reducing while active, 
@@ -40,7 +40,7 @@
         var casts = analyzers.Sum(analyzer => analyzer.Casts);
         var activeMs = analyzers.Sum(analyzer => (long)analyzer.ActiveMs);
         var cappedMs = analyzers.Sum(analyzer => (long)analyzer.ChargeCappedMs);
-        var covered = analyzers.Sum(analyzer => analyzer.MitigationInWindow);
+        var mitigation = analyzers.Sum(analyzer => analyzer.MitigationInWindow);
         var uptime = activeMs / (double)pullMs * 100;
         var cappedShare = cappedMs / (double)pullMs * 100;
 
@@ -57,8 +57,8 @@
                 $"{cappedMs / 1000d:N0}s of the pull spent holding every charge.",
                 PerformanceTiers.FromThresholds(100 - cappedShare, 90, 75, 55)),
             new(
-                $"{covered:N0}",
-                "Mitigation Covered",
+                $"{mitigation:N0}",
+                "Mitigation In Window",
                 "All mitigation and absorbs on hits taken inside a Shields Up window."),
         };
 
@@ -87,7 +87,7 @@
 
         var fromHigh = analyzers.Sum(analyzer => analyzer.UsesFromHighToughness);
         var shieldsUpSpent = analyzers.Sum(analyzer => analyzer.UsesWithShieldsUpSpent);
-        var covered = analyzers.Sum(analyzer => analyzer.MitigationInWindow);
+        var mitigation = analyzers.Sum(analyzer => analyzer.MitigationInWindow);
 
         return
         [
@@ -103,10 +103,10 @@
             new OverviewStat(
                 $"{shieldsUpSpent}/{uses}",
                 "With Shields Up Spent",
-                "Casts with no Shields Up charge left."),
+                "Uses with no Shields Up charge left."),
             new OverviewStat(
-                $"{covered:N0}",
-                "Mitigation Covered",
+                $"{mitigation:N0}",
+                "Mitigation In Window",
                 "All mitigation and absorbs on hits taken inside an Iron Wall window."),
         ];
     }
@@ -145,7 +145,7 @@
                 use.Window.Truncated ? "The pull ended before the window did." : "How long the window was open."),
             new(
                 $"{use.Window.Mitigation:N0}",
-                "Mitigation Covered",
+                "Mitigation In Window",
                 $"All mitigation and absorbs across the {use.Window.Hits} hits taken inside the window."),
         };
 

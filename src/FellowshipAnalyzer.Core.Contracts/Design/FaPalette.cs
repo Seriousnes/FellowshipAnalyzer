@@ -45,10 +45,10 @@ public sealed record FaPalette
     /// <summary>Cool mid grey, light enough for dark text over it.</summary>
     public required FaColor Ash { get; init; }
 
-    /// <summary>Cream stop in the brand mark. Artwork, so every theme carries the same value.</summary>
+    /// <summary>Cream stop in the brand mark. Artwork, so every theme has the same value.</summary>
     public required FaColor BrandCream { get; init; }
 
-    /// <summary>Gold stop in the brand mark. Artwork, so every theme carries the same value.</summary>
+    /// <summary>Gold stop in the brand mark. Artwork, so every theme has the same value.</summary>
     public required FaColor BrandGold { get; init; }
 
     /// <summary>Universal ground under every screen.</summary>
@@ -78,7 +78,7 @@ public sealed record FaPalette
     /// <summary>Deepest well.</summary>
     public required FaColor RecessDeep { get; init; }
 
-    /// <summary>Section header fill, the same ground the page body carries.</summary>
+    /// <summary>Section header fill, the same ground the page body uses.</summary>
     public required FaColor SectionHeader { get; init; }
 
     /// <summary>Primary cream body text.</summary>
@@ -133,7 +133,7 @@ public sealed record FaPalette
     public required FaColor Edge { get; init; }
 
     /// <summary>
-    /// Edge separating a panel from its container. The dark themes carry it at zero alpha, where a
+    /// Edge separating a panel from its container. The dark themes set it at zero alpha, where a
     /// panel already reads by its own ground; the light theme is where a panel needs an outline.
     /// </summary>
     public required FaColor PanelBorder { get; init; }
@@ -172,13 +172,13 @@ public sealed record FaPalette
     /// <summary>Deepest fire step, burnt umber.</summary>
     public required FaColor Fire6 { get; init; }
 
-    /// <summary>Legendary item quality. Game artwork, so every theme carries the same value.</summary>
+    /// <summary>Legendary item quality. Game artwork, so every theme has the same value.</summary>
     public required FaColor Legendary { get; init; }
 
-    /// <summary>Regal item quality. Game artwork, so every theme carries the same value.</summary>
+    /// <summary>Regal item quality. Game artwork, so every theme has the same value.</summary>
     public required FaColor Regal { get; init; }
 
-    /// <summary>Epic item quality. Game artwork, so every theme carries the same value.</summary>
+    /// <summary>Epic item quality. Game artwork, so every theme has the same value.</summary>
     public required FaColor Epic { get; init; }
 
     /// <summary>Tank role.</summary>

@@ -3,7 +3,7 @@
 <GuideSection Title="Toughness">
     <LeftPanel>
         <p>
-            Managing Toughness is key to Helena's survival. You should aim to reach @CeilingLabel DR as soon as possible.
+            Managing Toughness is key to Helena's survival. You should aim to reach @CeilingLabel reduction as soon as possible.
         </p>
     </LeftPanel>
     <RightPanel>
@@ -88,16 +88,15 @@
     {
         var climbed = analyzers.Where(analyzer => !analyzer.StartedAtTopBand && analyzer.MsToTopBand is not null).ToList();
         var alreadyThere = analyzers.Count(analyzer => analyzer.StartedAtTopBand);
-        var neverReached = analyzers.Count(analyzer => !analyzer.StartedAtTopBand && analyzer.MsToTopBand is null);
 
         if (climbed.Count == 0 && alreadyThere == 0) return null;
 
-        var context = $"{alreadyThere} of {analyzers.Count} pulls opened already at {CeilingLabel}. " +
-            $"{neverReached} never reached it.";
-
         if (climbed.Count == 0)
         {
-            return new OverviewStat("already there", $"Time To {CeilingLabel}", context);
+            return new OverviewStat(
+                "already there",
+                $"Time To {CeilingLabel}",
+                $"{alreadyThere} of {analyzers.Count} pulls opened at {CeilingLabel} reduction.");
         }
 
         var average = climbed.Average(analyzer => (double)analyzer.MsToTopBand!.Value);
@@ -106,7 +105,7 @@
             $"{average / 1000d:F1}s",
             $"Time To {CeilingLabel}",
             $"Average time from the pull opening to reaching {CeilingLabel} reduction, over the {climbed.Count} " +
-            $"pulls that had to climb to it. {context}");
+            "pulls that had to climb to it.");
     }
 
     private IEnumerable<OverviewStat> BuildOvercapStats(ToughnessTracker tracker)
@@ -128,10 +127,10 @@
                 PerformanceTiers.FromThresholds(100 - (share * 100), 85, 70, 50)));
         }
 
-        if (tracker.ObservedBlocks > 0)
+        if (tracker.Blocks > 0)
         {
             stats.Add(new OverviewStat(
-                $"{tracker.OvercappedBlocks}/{tracker.ObservedBlocks}",
+                $"{tracker.OvercappedBlocks}/{tracker.Blocks}",
                 "Blocks",
                 "Blocks taken at maximum Toughness."));
         }

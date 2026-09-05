@@ -56,7 +56,7 @@
             new(
                 FormatShare(activeMs, combatMs),
                 "Uptime",
-                "Share of combat with Entropy's Claim active on at least one enemy, counting a moment once however many enemies carried it."),
+                "Share of combat with Entropy's Claim active on at least one enemy."),
             new(
                 FormatSeconds(availableMs),
                 "Off Cooldown in Combat",
@@ -64,7 +64,7 @@
             new(
                 FormatSeconds(delays.Count == 0 ? 0 : (long)delays.Average()),
                 "Delay After Ready",
-                "Time from a charge of Entropy's Claim becoming available to the cast that spent it, averaged over every wait. A charge still available when a pull ended counts as a wait running to that pull's end."),
+                "Time from a charge of Entropy's Claim becoming available to the cast that spent it, averaged over every wait, with a charge still available at a pull's end contributing the wait running to that end."),
             new(
                 $"{Per(ticks, casts):0.#}",
                 "Ticks per Cast",
@@ -93,11 +93,11 @@
             stats.Add(new OverviewStat(
                 FormatShare(burstActiveMs, combatMs),
                 "Entropic Burst Uptime",
-                "Share of combat with Entropic Burst active on at least one enemy, counting a moment once however many enemies carried it."));
+                "Share of combat with Entropic Burst active on at least one enemy."));
             stats.Add(new OverviewStat(
                 $"{(burstUnitActiveMs > 0 ? burstStackMs / (double)burstUnitActiveMs : 0):0.#}",
                 "Average Entropic Burst Stacks",
-                "Mean stacks on each enemy carrying Entropic Burst, weighted by the time it carried them."));
+                "Mean Entropic Burst stacks on each enemy, weighted by the time it was active on them."));
         }
 
         return stats;

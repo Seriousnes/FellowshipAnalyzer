@@ -4,7 +4,7 @@ using FellowshipAnalyzer.Core.Events;
 namespace FellowshipAnalyzer.Core.Analysis;
 
 /// <summary>
-/// Measures one defensive's active windows and the incoming damage they covered. The analyzer holds
+/// Measures one defensive's active windows and the incoming damage taken inside them. The analyzer holds
 /// the window machinery; a per-hero leaf supplies <see cref="DefensiveSpellId"/> and declares the
 /// <c>[On&lt;&gt;]</c> handlers, because the generator inlines each subscription's spell predicate at
 /// the declaring type.
@@ -73,8 +73,8 @@ public abstract class MajorDefensiveAnalyzer : Analyzer
     /// All mitigation and absorption on hits taken inside the windows. This is coverage, not
     /// attribution: it is every source of mitigation on those hits - passive reduction,
     /// other defensives, gear - not the share this defensive is responsible for. On a defensive with
-    /// high uptime it approaches the pull's whole mitigation total, so present it as what the windows
-    /// covered rather than as what this defensive prevented.
+    /// high uptime it approaches the pull's whole mitigation total, so present it as mitigation inside
+    /// the windows rather than as what this defensive prevented.
     /// </summary>
     public long MitigationInWindow => Result.Mitigated + Result.Absorbed;
 
@@ -234,6 +234,6 @@ public sealed record DefensiveWindow(
     /// <summary>How long the defensive was active, in milliseconds.</summary>
     public int DurationMs => End - Start;
 
-    /// <summary>All mitigation and absorption on the hits this window covered, from every source at once.</summary>
+    /// <summary>All mitigation and absorption on the hits taken inside this window, from every source at once.</summary>
     public long Mitigation => Mitigated + Absorbed;
 }

@@ -26,7 +26,7 @@ public sealed partial class PinkFlutterflyAnalyzer : Analyzer
     public int AssignmentsClosed =>
         PinkFlutterflyTracker.Flutterflies.Count(Flutterfly => Flutterfly.End >= Pull.StartTime && Flutterfly.End <= Pull.EndTime);
 
-    public int PeakBanked => Result.PeakBanked;
+    public int PeakUnassigned => Result.PeakUnassigned;
 
     public long Effective => Result.Effective;
 
@@ -95,17 +95,17 @@ public sealed partial class PinkFlutterflyAnalyzer : Analyzer
 
         holdings.Sort(static (left, right) => right.AssignedMs.CompareTo(left.AssignedMs));
 
-        var banked = 0;
-        foreach (var sample in PinkFlutterflyTracker.BankSamples)
+        var unassigned = 0;
+        foreach (var sample in PinkFlutterflyTracker.UnassignedSamples)
         {
             if (sample.Timestamp < Pull.StartTime || sample.Timestamp > Pull.EndTime) continue;
-            banked = Math.Max(banked, sample.Count);
+            unassigned = Math.Max(unassigned, sample.Count);
         }
 
         return new Computed(
             holdings,
             PinkFlutterflyTracker.AssignedMsBetween(Pull.StartTime, Pull.EndTime),
-            Math.Max(banked, PinkFlutterflyTracker.BankedAt(Pull.StartTime)),
+            Math.Max(unassigned, PinkFlutterflyTracker.UnassignedAt(Pull.StartTime)),
             effective,
             overheal);
     }
@@ -120,7 +120,7 @@ public sealed partial class PinkFlutterflyAnalyzer : Analyzer
     private sealed record Computed(
         List<FlutterflyHolding> Holdings,
         long AssignedMs,
-        int PeakBanked,
+        int PeakUnassigned,
         long Effective,
         long Overheal);
 }

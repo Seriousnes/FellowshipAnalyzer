@@ -17,9 +17,9 @@ public sealed record MatriarchMacabreWindow
 
     public int ArachnidAssaultCasts { get; init; }
 
-    public int ImitatedCasts => QueensFangCasts + ArachnidAssaultCasts;
+    public int FinisherCasts => QueensFangCasts + ArachnidAssaultCasts;
 
-    public bool Converted => ImitatedCasts > 0;
+    public bool Converted => FinisherCasts > 0;
 }
 
 [ForPull(PullKind.Single | PullKind.Multi)]
@@ -41,14 +41,14 @@ public sealed partial class MatriarchMacabreAnalyzer : Analyzer
 
     public int ConvertedWindows => Windows.Count(window => window.Converted);
 
-    public int ImitatedCasts => Windows.Sum(window => window.ImitatedCasts);
+    public int FinisherCasts => Windows.Sum(window => window.FinisherCasts);
 
     public int QueensFangCasts => Windows.Sum(window => window.QueensFangCasts);
 
     public int ArachnidAssaultCasts => Windows.Sum(window => window.ArachnidAssaultCasts);
 
-    public double AverageImitatedCasts =>
-        Windows.Count == 0 ? 0d : (double)ImitatedCasts / Windows.Count;
+    public double AverageFinisherCasts =>
+        Windows.Count == 0 ? 0d : (double)FinisherCasts / Windows.Count;
 
     public long AddedDamage { get; private set; }
 
@@ -100,7 +100,7 @@ public sealed partial class MatriarchMacabreAnalyzer : Analyzer
     }
 
     [On<CastEvent>(By = Actor.Player, Spells = [nameof(Spells.QueenFang), nameof(Spells.ArachnidAssault)])]
-    private void OnImitatedCast(CastEvent castEvent)
+    private void OnFinisherCast(CastEvent castEvent)
     {
         if (castEvent.Fake || _openSpan is not { } span)
             return;

@@ -22,13 +22,13 @@ namespace FellowshipAnalyzer.Core.Analysis;
 /// stat <em>rating</em> is already inside the combatantinfo totals <see cref="StatTracker"/> seeds each
 /// pull from, so registering it would count it twice: across the report corpus a player's reported Crit,
 /// Haste, Expertise, and Spirit exceed the sum of their gear attributes by exactly their Amethyst, Topaz,
-/// Emerald, and Sapphire gem tier. A gear effect that adds a flat <em>percentage</em> is not in that
-/// snapshot, but it also never fires an apply or remove event, so an event-driven tracker has nothing to
-/// key on; resolving those from gem power, set piece counts, and blessing levels is separate work.
+/// Emerald, and Sapphire gem tier. A gear effect that adds a flat <em>percentage</em> is not in
+/// those totals, but it also never fires an apply or remove event, so an event-driven tracker has
+/// nothing to key on; resolving those from gem power, set piece counts, and blessing levels is separate work.
 /// Effects scoped to a subset of a hero's abilities are out as well, because a global pool would apply them
 /// to every cast. Damage reduction and movement speed are out because the game expresses them as
 /// multipliers on damage taken and movement rate, which <c>CombatMath</c> owns and this additive channel
-/// cannot carry faithfully.
+/// cannot express faithfully.
 /// </para>
 /// </remarks>
 public static class StatBuffs

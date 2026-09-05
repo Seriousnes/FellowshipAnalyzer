@@ -67,7 +67,7 @@
             stats.Add(new OverviewStat(
                 $"{rend / casts}",
                 "Avg Rend Consumed",
-                $"Average Rend stacks consumed per Slaughter, {rend} in total across every enemy hit."));
+                "Average Rend stacks a Slaughter consumed across every enemy it hit."));
         }
 
         if (bleed > 0)
@@ -75,7 +75,7 @@
             stats.Add(new OverviewStat(
                 FormatDamage(bleed / casts),
                 "Avg Bleed Damage",
-                $"Average Slaughter bleed damage per cast, {FormatDamage(bleed)} in total."));
+                "Average Slaughter bleed damage per cast."));
         }
 
         return stats;

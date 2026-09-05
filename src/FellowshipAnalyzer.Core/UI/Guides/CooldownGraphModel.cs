@@ -53,8 +53,8 @@ public readonly record struct CooldownGraphSegment(int Start, int End, CooldownG
 /// <param name="CastTimestamps">When each charge-consuming cast was made, in order.</param>
 /// <param name="Casts">Casts made inside a pull.</param>
 /// <param name="MaxCasts">
-/// How many casts the analyzed time had room for, from the recharge period observed over this
-/// report and the ability's charge count. <c>null</c> for an ability with no cooldown.
+/// How many casts the analyzed time had room for, from the ability's recharge period and charge
+/// count. <c>null</c> for an ability with no cooldown.
 /// </param>
 /// <param name="Efficiency">
 /// The share (0-1) of analyzed time at least one charge was recharging. <c>null</c> for an ability
@@ -74,7 +74,7 @@ public sealed record CooldownGraphLane(
     double? Efficiency,
     QualitativePerformance? Performance)
 {
-    /// <summary>Whether every cast the analyzed time had room for was made.</summary>
+    /// <summary>Whether <see cref="Casts"/> reached <see cref="MaxCasts"/>.</summary>
     public bool ReachedMaxCasts => MaxCasts is { } max && Casts >= max;
 
     /// <summary>
@@ -94,7 +94,7 @@ public sealed record CooldownGraphLane(
 /// actually came back rather than when it was expected to. Everything the recharges do not cover is
 /// time the ability was available, which is then cut against the pulls: a segment outside every pull is
 /// <see cref="CooldownGraphState.OutsidePull"/> and leaves both the numerator and the denominator
-/// alone, and each in-pull segment is judged on its own length so a segment either side of time
+/// alone, and each in-pull segment is rated on its own length so a segment either side of time
 /// between pulls is never read as one long hold.
 /// </remarks>
 public static class CooldownGraphModel
@@ -184,7 +184,7 @@ public static class CooldownGraphModel
             if (Contains(spans, timestamp))
                 casts++;
 
-        var periodMs = ObservedPeriodMs(updates, spans) ?? (int)(ability.GetCooldown() * 1000);
+        var periodMs = RechargePeriodMs(updates, spans) ?? (int)(ability.GetCooldown() * 1000);
         var usage = ability.CastEfficiency?.Usage
             ?? (ability.Charges > 1 ? CooldownUsage.OnCooldown : CooldownUsage.BeforeAUseIsLost);
         var segments = BuildSegments(recharges, spans, periodMs, usage, windowStart, windowEnd);
@@ -286,7 +286,7 @@ public static class CooldownGraphModel
             segments.Add(new CooldownGraphSegment(cursor, end, CooldownGraphState.OutsidePull));
     }
 
-    private static int? ObservedPeriodMs(List<UpdateSpellUsableEvent> updates, List<Span> spans)
+    private static int? RechargePeriodMs(List<UpdateSpellUsableEvent> updates, List<Span> spans)
     {
         var total = 0;
         var count = 0;

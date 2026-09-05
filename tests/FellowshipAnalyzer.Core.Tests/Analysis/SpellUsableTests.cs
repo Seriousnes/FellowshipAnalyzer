@@ -292,7 +292,7 @@ public sealed partial class SpellUsableTests
 
     /// <summary>
     /// SpellA cast at 0 ends at 10000, and nothing else is logged until a filler at 21000. The EndCooldown
-    /// fires at the true expiry (10000), not at the next observed event - the natural end is scheduled at
+    /// fires at the true expiry (10000), not at the next event - the natural end is scheduled at
     /// its real instant rather than discovered late.
     /// </summary>
     [Fact]

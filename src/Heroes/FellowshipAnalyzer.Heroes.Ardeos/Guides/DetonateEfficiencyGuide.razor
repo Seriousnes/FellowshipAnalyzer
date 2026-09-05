@@ -231,7 +231,7 @@
     private static string BuildNote(DetonateCast cast)
     {
         if (cast.TargetsWithDoTs == 0)
-            return "No enemy had a damage-over-time effect active, so this Detonate was cast into nothing.";
+            return "No enemy had a damage-over-time effect active.";
 
         var missing = cast.Coverage.Where(entry => !entry.Active).Select(entry => DotName(entry.Dot)).ToList();
         var opening = $"Cast with {cast.TotalInstances} instance{(cast.TotalInstances == 1 ? "" : "s")} active across {cast.TargetsWithDoTs} " +

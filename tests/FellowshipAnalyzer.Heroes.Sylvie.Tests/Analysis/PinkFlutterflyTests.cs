@@ -16,7 +16,7 @@ namespace FellowshipAnalyzer.Heroes.Sylvie.Tests.Analysis;
 public sealed class PinkFlutterflyTests
 {
     [Fact]
-    public async Task AFlutterflyHealsTheAllyItIsParkedOn()
+    public async Task AFlutterflyHealsTheAllyItIsAssignedTo()
     {
         var parser = await Analyze(
             ApplyBuff(PullStart + 1_000, Spells.FluttercallHealHot, TankId),
@@ -68,19 +68,19 @@ public sealed class PinkFlutterflyTests
     }
 
     [Fact]
-    public async Task TheBankIsReadFromTheTertiaryResource()
+    public async Task TheUnassignedCountIsReadFromTheTertiaryResource()
     {
         var parser = await Analyze(
-            FlutterflySample(PullStart + 1_000, banked: 4),
-            FlutterflySample(PullStart + 2_000, banked: 4),
-            FlutterflySample(PullStart + 3_000, banked: 1));
+            FlutterflySample(PullStart + 1_000, unassigned: 4),
+            FlutterflySample(PullStart + 2_000, unassigned: 4),
+            FlutterflySample(PullStart + 3_000, unassigned: 1));
 
         var tracker = parser.PinkFlutterflyTracker.ShouldNotBeNull();
 
-        tracker.PeakBanked.ShouldBe(4);
-        tracker.BankedAt(PullStart + 2_500).ShouldBe(4);
-        tracker.BankedAt(PullStart + 3_500).ShouldBe(1);
-        tracker.BankSamples.Count.ShouldBe(2);
+        tracker.PeakUnassigned.ShouldBe(4);
+        tracker.UnassignedAt(PullStart + 2_500).ShouldBe(4);
+        tracker.UnassignedAt(PullStart + 3_500).ShouldBe(1);
+        tracker.UnassignedSamples.Count.ShouldBe(2);
     }
 
     [Fact]
@@ -98,7 +98,7 @@ public sealed class PinkFlutterflyTests
     }
 
     [Fact]
-    public async Task ThePullAnalyzerReadsFlutterfliesParkedBeforeItStarted()
+    public async Task ThePullAnalyzerReadsFlutterfliesAssignedBeforeItStarted()
     {
         var parser = await Analyze(
             ApplyBuff(PullStart - 500, Spells.FluttercallHealHot, TankId),
@@ -116,7 +116,7 @@ public sealed class PinkFlutterflyTests
     }
 
     [Fact]
-    public async Task AllFourFlutterfliesOutForTheWholePullReadsAsFullCoverage()
+    public async Task AllFourFlutterfliesOutForTheWholePullReadsAsFullyAssigned()
     {
         var parser = await Analyze(
             ApplyBuff(PullStart - 500, Spells.FluttercallHealHot, TankId),
@@ -181,7 +181,7 @@ public sealed class PinkFlutterflyTests
     }
 
     [Fact]
-    public async Task AHolderCarryingARestoreLifePairIsCreditedForBothFlutterflies()
+    public async Task AHolderWithARestoreLifePairIsCreditedForBothFlutterflies()
     {
         var parser = await Analyze(
             ApplyBuff(PullStart, Spells.FluttercallRestoreLifeHot, AllyId),
@@ -197,7 +197,7 @@ public sealed class PinkFlutterflyTests
     }
 
     [Fact]
-    public async Task TwoRestoreLifePairsOutForTheWholePullReadsAsFullCoverage()
+    public async Task TwoRestoreLifePairsOutForTheWholePullReadsAsFullyAssigned()
     {
         var parser = await Analyze(
             ApplyBuff(PullStart - 500, Spells.FluttercallRestoreLifeHot, TankId),

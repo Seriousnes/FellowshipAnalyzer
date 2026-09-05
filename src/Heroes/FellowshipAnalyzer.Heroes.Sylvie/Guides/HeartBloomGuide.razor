@@ -27,7 +27,6 @@
         var withBlueyOnAlly = analyzers.Sum(analyzer => analyzer.CastsWithBlueyOnAlly);
         var fullReleases = analyzers.Sum(analyzer => analyzer.FullyReleasedCasts);
         var fed = analyzers.Sum(analyzer => analyzer.TotalFed);
-        var released = analyzers.Sum(analyzer => analyzer.TotalReleased);
 
         return
         [
@@ -38,7 +37,7 @@
             new OverviewStat(
                 $"{fullReleases}/{casts}",
                 "Fully Released",
-                "Casts seen making every release. A pull that ended early cuts the rest off.",
+                "Casts that released in full.",
                 PerformanceTiers.FromThresholds((double)fullReleases / casts * 100, 95, 85, 70)),
             new OverviewStat(
                 $"{withBlueyOnAlly}/{casts}",
@@ -47,7 +46,7 @@
             new OverviewStat(
                 $"{fed:N0}",
                 "Flutterfly Healing Fed",
-                $"Flutterfly healing, overheal included, over the accumulation windows. The casts released {released:N0}."),
+                "Flutterfly healing, overheal included, over the accumulation windows."),
         ];
     }
 
@@ -72,10 +71,10 @@
                     new PerCastStat(
                         $"{cast.Releases}/{SylvieKit.HeartBloomReleases}",
                         "Releases",
-                        "Distinct release intervals seen for this cast.",
+                        "Release intervals for this cast.",
                         cast.ReleasedInFull ? QualitativePerformance.Good : QualitativePerformance.Ok),
                     new PerCastStat(
-                        cast.BlueyOnAlly ? "On an ally" : cast.BlueyAssigned ? "On Sylvie" : "Unplaced",
+                        cast.BlueyOnAlly ? "On an ally" : cast.BlueyAssigned ? "On Sylvie" : "Unassigned",
                         "Bluey",
                         "Where Bluey was when the cast went out."),
                 ],

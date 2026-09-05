@@ -9,7 +9,7 @@
             <SpellLink Spell="AeonaTalentList.ContinuumShift" /> your hardest-hitting cast.
         </p>
         <p>
-            Cast it into a target carrying <SpellLink Spell="Spells.UnfoldingDoom" />.
+            Cast it into a target with <SpellLink Spell="Spells.UnfoldingDoom" /> active.
         </p>
         @if (ContinuumShiftTalented)
         {
@@ -19,7 +19,7 @@
             <p>
                 Cast <SpellLink Spell="CoreItems.TwilightSkybolt" /> after
                 <SpellLink Spell="Spells.UnfoldingDoom" /> and before the empowered Time Shard@(MartialInitiativeTaken
-                    ? ", so Martial Initiative is active when it lands." : ".")
+                    ? ", so Martial Initiative is active when the damage is dealt." : ".")
             </p>
             @if (VehementEquipped)
             {
@@ -51,13 +51,13 @@
                 </SubSection>
             }
 
-            @if (SynchronicityTalented && ChronaMeasuredEmpoweredCasts > 0)
+            @if (SynchronicityTalented && EmpoweredCastsWithChrona > 0)
             {
                 <SubSection Title="@($"Above {ChronaThreshold} Chrona")">
                     <PassFailBar Pass="@SynchronicityPairings"
-                                 Total="@ChronaMeasuredEmpoweredCasts"
-                                 PassTooltip="@($"{SynchronicityPairings} empowered casts made above {ChronaThreshold} Chrona")"
-                                 FailTooltip="@($"{ChronaMeasuredEmpoweredCasts - SynchronicityPairings} empowered casts made at or below {ChronaThreshold} Chrona")" />
+                                 Total="@EmpoweredCastsWithChrona"
+                                 PassTooltip="@($"{SynchronicityPairings} empowered casts above {ChronaThreshold} Chrona")"
+                                 FailTooltip="@($"{EmpoweredCastsWithChrona - SynchronicityPairings} empowered casts at or below {ChronaThreshold} Chrona")" />
                 </SubSection>
             }
 
@@ -66,8 +66,8 @@
                 <SubSection Title="Martial Initiative">
                     <PassFailBar Pass="@MartialInitiativePairings"
                                  Total="@EmpoweredCasts"
-                                 PassTooltip="@($"{MartialInitiativePairings} empowered casts landed with Martial Initiative active")"
-                                 FailTooltip="@($"{EmpoweredCasts - MartialInitiativePairings} empowered casts landed without it")" />
+                                 PassTooltip="@($"{MartialInitiativePairings} empowered casts dealt their damage with Martial Initiative active")"
+                                 FailTooltip="@($"{EmpoweredCasts - MartialInitiativePairings} empowered casts dealt their damage without Martial Initiative active")" />
                 </SubSection>
             }
 
@@ -102,7 +102,7 @@
 
     private int SynchronicityPairings => Analyzers.Sum(analyzer => analyzer.SynchronicityPairings);
 
-    private int ChronaMeasuredEmpoweredCasts => Analyzers.Sum(analyzer => analyzer.ChronaMeasuredEmpoweredCasts);
+    private int EmpoweredCastsWithChrona => Analyzers.Sum(analyzer => analyzer.EmpoweredCastsWithChrona);
 
     private int MartialInitiativePairings => Analyzers.Sum(analyzer => analyzer.MartialInitiativePairings);
 
@@ -225,7 +225,7 @@
             {
                 Label = CoreItems.MartialInitiative,
                 Pass = cast.MartialInitiativeActive,
-                Title = "Active when the damage landed",
+                Title = "Active when the damage was dealt",
             });
         }
 

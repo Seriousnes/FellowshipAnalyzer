@@ -1,6 +1,6 @@
 namespace FellowshipAnalyzer.Core.UI.Guides;
 
-/// <summary>How much of its accent colour a <see cref="TipBox"/> carries across its background.</summary>
+/// <summary>How much of its accent colour a <see cref="TipBox"/> shows across its background.</summary>
 public enum TipBoxFill
 {
     /// <summary>Inset background with the accent confined to the left edge.</summary>

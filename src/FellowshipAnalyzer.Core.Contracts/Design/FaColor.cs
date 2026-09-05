@@ -17,7 +17,7 @@ public readonly record struct FaColor(byte R, byte G, byte B, double A)
     {
     }
 
-    /// <summary>True when the colour carries no transparency and formats as a hex literal.</summary>
+    /// <summary>True when the colour has no transparency and formats as a hex literal.</summary>
     public bool IsOpaque => A >= 1d;
 
     /// <summary>

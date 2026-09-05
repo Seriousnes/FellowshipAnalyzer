@@ -219,7 +219,7 @@ public sealed class MaraAnalysisEngineTests
     }
 
     /// <summary>
-    /// Casts whose Energy snapshots chain exactly (each snapshot equals the previous post-cost balance),
+    /// Casts whose Energy amounts chain exactly (each equals the previous post-cost balance),
     /// so every decrease is accounted for by a registry cost and the tracker's accounting identity holds.
     /// </summary>
     private static async Task<EnergyComboPointTracker> AnalyzeTrackerFixtureAsync()

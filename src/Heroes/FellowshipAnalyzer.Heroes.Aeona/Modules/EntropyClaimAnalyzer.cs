@@ -12,7 +12,7 @@ public interface IEntropyClaimAnalyzer : IAnalyzerSurface;
 
 /// <summary>
 /// Entropy's Claim over one pull: the dot's windows on every enemy it was applied to, the ticks and
-/// Chrona each cast returned, the time the ability sat available and uncast, and the Entropic Burst
+/// Chrona each cast returned, the time the ability sat available and not cast, and the Entropic Burst
 /// the dot's expiry produced when the talent is taken.
 /// </summary>
 [ForPull(PullKind.Single | PullKind.Multi)]
@@ -90,10 +90,10 @@ public sealed partial class EntropyClaimAnalyzer : AllTargetUptimeAnalyzer, IEnt
     public long? EntropicBurstActiveMs => EntropicBurstTaken ? AuraWindowLedger.ActiveMs(Burst.Windows) : null;
 
     /// <summary>
-    /// Milliseconds Entropic Burst was active summed across enemies, counting a moment once per enemy
-    /// carrying it, or <c>null</c> without the talent. The denominator
+    /// Milliseconds Entropic Burst was active summed across enemies, counting a moment once per enemy it
+    /// was active on, or <c>null</c> without the talent. The denominator
     /// <see cref="EntropicBurstAverageStacks"/> divides, exposed so a caller covering several pulls can
-    /// weight them by carried time instead of averaging their means.
+    /// weight them by active time instead of averaging their means.
     /// </summary>
     public long? EntropicBurstUnitActiveMs => EntropicBurstTaken ? Burst.UnitActiveMs : null;
 
@@ -103,12 +103,15 @@ public sealed partial class EntropyClaimAnalyzer : AllTargetUptimeAnalyzer, IEnt
         : null;
 
     /// <summary>
-    /// Stack-weighted active time in millisecond-stacks: each enemy's active milliseconds multiplied by
-    /// the stacks it carried through them, summed. <c>null</c> without the talent.
+    /// Stack-weighted active time in millisecond-stacks: each stretch of active time multiplied by its
+    /// stack count, summed over every enemy. <c>null</c> without the talent.
     /// </summary>
     public long? EntropicBurstStackMs => EntropicBurstTaken ? Burst.StackMs : null;
 
-    /// <summary>Mean Entropic Burst stacks carried while it was active, or <c>null</c> without the talent.</summary>
+    /// <summary>
+    /// Mean Entropic Burst stacks on each enemy, weighted by the time it was active on them, or
+    /// <c>null</c> without the talent.
+    /// </summary>
     public double? EntropicBurstAverageStacks => EntropicBurstTaken && Burst.UnitActiveMs > 0
         ? Burst.StackMs / (double)Burst.UnitActiveMs
         : null;
@@ -368,7 +371,7 @@ public sealed partial class EntropyClaimAnalyzer : AllTargetUptimeAnalyzer, IEnt
 /// <param name="Timestamp">When the cast completed.</param>
 /// <param name="Target">The enemy the dot was applied to, or <c>null</c> when no application followed the cast.</param>
 /// <param name="DotStart">When the dot was applied, or <c>null</c> when no application followed the cast.</param>
-/// <param name="DotEnd">The dot's last observed moment: its expiry, or its last tick when it outlived the pull.</param>
+/// <param name="DotEnd">The dot's expiry, or its last tick when it outlived the pull.</param>
 /// <param name="DelayAfterReadyMs">Milliseconds the charge sat available before this cast.</param>
 /// <param name="Ticks">Dot damage ticks recorded between application and expiry.</param>
 /// <param name="ChronaGenerated">Chrona the ticks of this application generated.</param>

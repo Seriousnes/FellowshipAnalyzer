@@ -37,7 +37,7 @@ public sealed class FuryTrackerTests
     }
 
     [Fact]
-    public async Task Analyze_FuryTracker_HoldsTheLatestReadingAsCurrent()
+    public async Task Analyze_FuryTracker_HoldsTheLatestSampleAsCurrent()
     {
         var (parser, _) = await AnalyzeAsync(BuildScenario());
 
@@ -47,7 +47,7 @@ public sealed class FuryTrackerTests
     }
 
     [Fact]
-    public async Task Analyze_FuryTracker_RecordsEveryObservationIncludingTheSeed()
+    public async Task Analyze_FuryTracker_RecordsEverySampleIncludingTheSeed()
     {
         var (parser, _) = await AnalyzeAsync(BuildScenario());
 

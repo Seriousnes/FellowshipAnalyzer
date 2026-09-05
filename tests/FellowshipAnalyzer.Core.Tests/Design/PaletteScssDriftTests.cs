@@ -83,7 +83,7 @@ public class PaletteScssDriftTests
     }
 
     [Fact]
-    public void Generated_Scss_Carries_No_Important()
+    public void Generated_Scss_Has_No_Important()
     {
         FaPaletteScss.Render().ShouldNotContain("!important");
     }

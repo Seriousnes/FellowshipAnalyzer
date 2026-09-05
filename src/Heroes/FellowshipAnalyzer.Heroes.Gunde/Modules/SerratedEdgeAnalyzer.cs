@@ -44,7 +44,7 @@ public sealed partial class SerratedEdgeAnalyzer : Analyzer
 
     public List<SerratedEdgeGrant> Grants => _grants;
 
-    public int JudgedGrants => _grants.Count;
+    public int RatedGrants => _grants.Count;
 
     public int PriorityConsumed => Count(SerratedEdgeOutcome.Priority);
 

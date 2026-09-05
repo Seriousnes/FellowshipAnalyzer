@@ -44,7 +44,7 @@ public class DamageEvent : Event, IAbilityEvent, IHasSourceWithInstanceEvent, IH
 
     /// <summary>
     /// The damage school of this hit, resolved at compile time from <c>data/spelldb.json</c> by
-    /// <see cref="AbilityGameId"/>. Carries both flags for an ability that deals both, and the default
+    /// <see cref="AbilityGameId"/>. Sets both flags for an ability that deals both, and the default
     /// when the game data does not classify the ability.
     /// </summary>
     public MagicSchool School => SpellSchools.For(AbilityGameId);

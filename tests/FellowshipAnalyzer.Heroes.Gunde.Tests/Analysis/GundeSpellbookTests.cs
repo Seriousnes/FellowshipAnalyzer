@@ -21,7 +21,7 @@ public sealed class GundeSpellbookTests
     }
 
     [Fact]
-    public void HeartSplitter_CarriesTheExsanguinateBonusDamageEffect()
+    public void HeartSplitter_HasTheExsanguinateBonusDamageEffect()
     {
         var heartSplitter = Entry(Spells.HeartSplitter.FSLID);
 

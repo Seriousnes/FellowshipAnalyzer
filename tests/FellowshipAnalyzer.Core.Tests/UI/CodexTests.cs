@@ -17,7 +17,7 @@ public class CodexTests
         Codex.TooltipPath("ability/1964").ShouldBe("api/ability/1964/tooltip");
 
     [Fact]
-    public void TooltipPath_CarriesTheReadingsItIsGiven() =>
+    public void TooltipPath_IncludesTheQueryItIsGiven() =>
         Codex.TooltipPath("item/5326", "Hero=Ardeos&Rarity=6")
             .ShouldBe("api/item/5326/tooltip?Hero=Ardeos&Rarity=6");
 

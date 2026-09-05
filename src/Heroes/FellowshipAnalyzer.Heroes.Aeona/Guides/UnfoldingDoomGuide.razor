@@ -6,9 +6,7 @@
             <strong><SpellLink Spell="Spells.UnfoldingDoom" /></strong> is your primary damage increase.
         </p>
         <p>
-            Cast it the moment it becomes available, on the enemy you will damage for the next 20 seconds. It
-            will occasionally be impossible to cast on cooldown, while moving between packs or handling
-            mechanics.
+            Cast it the moment it becomes available, on the enemy you will damage for the next 20 seconds.
         </p>
         <p>
             Try to keep the debuff active on an enemy for the whole pull.
@@ -24,7 +22,7 @@
     <RightPanel>
         <CastOverview Title="Unfolding Doom Overview" Stats="@BuildOverviewStats()" />
         <CastDetail Title="Applications by Pull"
-                    Description="Each row is one application, the damage it gained, and how long it waited after Unfolding Doom became available."
+                    Description="Each row is one application."
                     Casts="@BuildPerCastData()" />
     </RightPanel>
 </GuideSection>
@@ -46,17 +44,17 @@
             new OverviewStat(
                 combat > 0 ? $"{(double)active / combat:P1}" : "0.0%",
                 "Uptime",
-                "Share of combat with the debuff active on at least one enemy, counting a moment once however many enemies carried it."),
+                "Share of combat with the debuff active on at least one enemy."),
 
             new OverviewStat(
                 FormatDamage(analyzers.Sum(analyzer => analyzer.DamageGained)),
                 "Damage Gained",
-                "The share of damage dealt to the debuffed enemy that the 20% increase accounts for."),
+                "Damage the debuff's increase accounts for."),
 
             new OverviewStat(
                 FormatSeconds(analyzers.Sum(analyzer => analyzer.IdleAvailableMs)),
                 "Available, No Enemy Debuffed",
-                "Time Unfolding Doom was available with no enemy carrying the debuff."),
+                "Time Unfolding Doom was available with no enemy debuffed."),
         ];
     }
 
@@ -80,7 +78,7 @@
             new PerCastStat(
                 FormatDamage(application.DamageGained),
                 "Damage Gained",
-                "The share of damage dealt to the debuffed enemy that the 20% increase accounts for."),
+                "Damage the debuff's increase accounts for."),
 
             new PerCastStat(
                 FormatSeconds(application.DelayAfterReadyMs),
