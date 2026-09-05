@@ -105,9 +105,20 @@ public class SourceLoaderTests
         Export().Abilities[1027].Heroes.ShouldContain("Rime");
 
     [Fact]
-    public void Icons_LoadByFslGuid()
+    public void Icons_LoadByKindAndNativeId()
     {
-        var icons = IconSource.Load(SourcePaths.Abilities);
-        icons.IconFor(9).ShouldBe("T_Nhance_RPG_Icons_FrozenStep.jpg");
+        var icons = IconSource.Load(SourcePaths.Entities);
+
+        icons.IconFor(SpellKind.Ability, 1964).ShouldBe("T_Lisa_Stagger.png");
+        icons.IconFor(SpellKind.Talent, 592).ShouldBe("Tex_SpellBook01_69.png");
+        icons.IconFor(SpellKind.Weapon, 42).ShouldBe("Tex_SpellBook01_82.png");
+    }
+
+    [Fact]
+    public void Icons_SeparateTheKindNamespaces()
+    {
+        var icons = IconSource.Load(SourcePaths.Entities);
+
+        icons.IconFor(SpellKind.Ability, 42).ShouldNotBe(icons.IconFor(SpellKind.Weapon, 42));
     }
 }

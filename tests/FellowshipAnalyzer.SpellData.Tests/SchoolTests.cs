@@ -8,7 +8,7 @@ using Xunit;
 
 namespace FellowshipAnalyzer.SpellData.Tests;
 
-public partial class SchoolTests
+public class SchoolTests
 {
     [Theory]
     [InlineData("Physical", MagicSchool.Physical)]
@@ -147,9 +147,11 @@ public partial class SchoolTests
         json.ShouldContain("\"2187\": \"Physical\"");
         json.ShouldContain("\"255\": \"Magic/Physical\"");
 
-        var ids = MyRegex().Matches(json[json.IndexOf("\"schools\"", StringComparison.Ordinal)..])
-            .Select(m => int.Parse(m.Groups[1].Value))
-            .ToList();
+        var schools = System.Text.Json.Nodes.JsonNode.Parse(json)!
+            .AsObject()[SpellDbWriter.SchoolsSection]!
+            .AsObject();
+
+        var ids = schools.Select(pair => int.Parse(pair.Key)).ToList();
         ids.ShouldBe([.. ids.Order()]);
     }
 
@@ -163,7 +165,4 @@ public partial class SchoolTests
         restored.Schools[255].ShouldBe(MagicSchool.Magic | MagicSchool.Physical);
         restored.Schools[2187].ShouldBe(MagicSchool.Physical);
     }
-
-    [System.Text.RegularExpressions.GeneratedRegex("\"(\\d+)\": \"")]
-    private static partial System.Text.RegularExpressions.Regex MyRegex();
 }

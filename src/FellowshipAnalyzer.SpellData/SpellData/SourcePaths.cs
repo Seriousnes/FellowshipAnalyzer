@@ -10,8 +10,7 @@ public static class SourcePaths
     public static readonly string ExportRoot = FindExportRoot();
 
     public static string Entities => Path.Combine(ExportRoot, "entities.jsonl");
-    public static string Settings => Path.Combine(ExportRoot, "settings.json");
-    public static string Abilities => Path.Combine(RepoRoot, "abilities.json");
+    public static string Settings => Path.Combine(ExportRoot, "settings.json");
     public static string Overrides => Path.Combine(RepoRoot, "data", "overrides.json");
     public static string SpellDb => Path.Combine(RepoRoot, "data", "spelldb.json");
 

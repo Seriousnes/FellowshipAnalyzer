@@ -23,7 +23,7 @@ public record MergeInputs(
     /// <summary>Loads every upstream source from the committed file paths.</summary>
     public static MergeInputs Load() => new(
         ExportSource.Load(SourcePaths.Entities, SourcePaths.Settings),
-        IconSource.Load(SourcePaths.Abilities),
+        IconSource.Load(SourcePaths.Entities),
         OverridesSource.Load(SourcePaths.Overrides));
 }
 
@@ -37,7 +37,7 @@ public static class MergeEngine
     /// <see cref="AbilityCategory.Weapon"/> ability is granted by equipment, so it lands once in <c>items</c>;
     /// every other ability lands in each hero scope its <c>heroes</c> array names. Each effect the export marks
     /// as <c>partOf</c> an ability follows that ability into the same scope, and both are enriched with an icon
-    /// from <c>abilities.json</c>. After auto-selection, applies overrides.
+    /// from the export. After auto-selection, applies overrides.
     /// </summary>
     public static MergeResult Run(MergeInputs inputs)
     {
@@ -60,8 +60,7 @@ public static class MergeEngine
                 }
 
                 var member = MemberNaming.Sanitize(ability.Name);
-                var guid = FSLID.FromNative(SpellKind.Ability, ability.Id);
-                var icon = inputs.Icons.IconFor(guid) ?? string.Empty;
+                var icon = inputs.Icons.IconFor(SpellKind.Ability, ability.Id) ?? string.Empty;
                 var costs = Costs.Map(ability, gaps, scope, member);
                 var abilityCategory = inputs.Export.CategoryFor(ability.Category);
 
@@ -69,7 +68,7 @@ public static class MergeEngine
                     .Set("id", ProvenanceSource.Export)
                     .Set("kind", ProvenanceSource.Export)
                     .Set("name", ProvenanceSource.Export)
-                    .SetIf("icon", icon.Length > 0, ProvenanceSource.Icons)
+                    .SetIf("icon", icon.Length > 0, ProvenanceSource.Export)
                     .SetIf("abilityCategory", abilityCategory.HasValue, ProvenanceSource.Export)
                     .SetIf("cooldown", ability.Cooldown.HasValue, ProvenanceSource.Export)
                     .SetIf("range", ability.Range.HasValue, ProvenanceSource.Export)
@@ -111,13 +110,13 @@ public static class MergeEngine
                     }
 
                     var effectMember = MemberNaming.EffectMember(member, effect.Role);
-                    var effectIcon = inputs.Icons.IconFor(FSLID.FromNative(SpellKind.Effect, effect.Id)) ?? string.Empty;
+                    var effectIcon = inputs.Icons.IconFor(SpellKind.Effect, effect.Id) ?? string.Empty;
 
                     var effectProv = new ProvenanceBuilder()
                         .Set("id", ProvenanceSource.Export)
                         .Set("kind", ProvenanceSource.Export)
                         .SetIf("name", effect.Name is not null, ProvenanceSource.Export)
-                        .SetIf("icon", effectIcon.Length > 0, ProvenanceSource.Icons)
+                        .SetIf("icon", effectIcon.Length > 0, ProvenanceSource.Export)
                         .Set("charges", ProvenanceSource.Export)
                         .Build();
 
@@ -181,7 +180,13 @@ public static class MergeEngine
             }
         }
 
-        return new MergeResult(spells, gaps) { Schools = BuildSchools(inputs, spells) };
+        return new MergeResult(spells, gaps)
+        {
+            Schools = BuildSchools(inputs, spells),
+            Rarities = inputs.Export.Rarities.ToDictionary(r => r.Tier, r => r.Name),
+            ArtSharedAcrossRungs = inputs.Icons.ArtSharedAcrossRungs,
+            Talents = BuildTalents(inputs, gaps),
+        };
     }
 
     private static List<(string Scope, List<ExportAbility> Abilities)> RouteAbilities(ExportSource export, List<Gap> gaps)
@@ -253,6 +258,51 @@ public static class MergeEngine
     private const string SoleHeroKey = "soleHero";
 
     private static readonly HashSet<string> CurationKeys = new(StringComparer.Ordinal) { SoleHeroKey };
+
+    /// <summary>
+    /// Selects every talent the export slots to a hero into that hero's scope, naming the member from the
+    /// talent's own name and taking its icon from the export.
+    /// </summary>
+    private static List<CuratedSpell> BuildTalents(MergeInputs inputs, List<Gap> gaps)
+    {
+        var talents = new List<CuratedSpell>();
+
+        foreach (var hero in inputs.Export.Talents.GroupBy(talent => talent.Hero.ToLowerInvariant()))
+        {
+            var scope = hero.Key;
+            if (!HeroNames.Contains(scope))
+                gaps.Add(new Gap(scope, scope, GapKind.UnknownScope));
+
+            foreach (var talent in hero)
+            {
+                if (string.IsNullOrEmpty(talent.Name))
+                {
+                    gaps.Add(new Gap(scope, $"talent {talent.Id}", GapKind.MissingName));
+                    continue;
+                }
+
+                var member = MemberNaming.TalentMember(talent.Name);
+                var icon = inputs.Icons.IconFor(SpellKind.Talent, talent.Id) ?? string.Empty;
+
+                var prov = new ProvenanceBuilder()
+                    .Set("id", ProvenanceSource.Export)
+                    .Set("kind", ProvenanceSource.Export)
+                    .Set("name", ProvenanceSource.Export)
+                    .SetIf("icon", icon.Length > 0, ProvenanceSource.Export)
+                    .Build();
+
+                var spell = Spell.FromFSLID(FSLID.FromNative(SpellKind.Talent, talent.Id), talent.Name, icon);
+                talents.Add(new CuratedSpell(scope, member, spell, prov));
+
+                if (!MemberNaming.IsValidIdentifier(member))
+                    gaps.Add(new Gap(scope, member, GapKind.MissingName));
+                if (icon.Length == 0)
+                    gaps.Add(new Gap(scope, member, GapKind.MissingIcon));
+            }
+        }
+
+        return talents;
+    }
 
     private static readonly HashSet<string> HeroNames =
         new(Enum.GetNames<HeroName>(), StringComparer.OrdinalIgnoreCase);
@@ -350,9 +400,8 @@ public static class MergeEngine
             exportName = effectRecord.Name;
         }
 
-        var guid = FSLID.FromNative(kind, nativeId);
         var abilityCategory = inputs.Export.CategoryFor(ability?.Category);
-        var icon = inputs.Icons.IconFor(guid) ?? string.Empty;
+        var icon = inputs.Icons.IconFor(kind, nativeId) ?? string.Empty;
 
         var addedGaps = new List<Gap>();
         var costs = ability is not null ? Costs.Map(ability, addedGaps, scope, member) : EmptyCosts;
@@ -361,7 +410,7 @@ public static class MergeEngine
             .Set("id", ProvenanceSource.Export)
             .Set("kind", ProvenanceSource.Export)
             .SetIf("name", exportName is not null, ProvenanceSource.Export)
-            .SetIf("icon", icon.Length > 0, ProvenanceSource.Icons)
+            .SetIf("icon", icon.Length > 0, ProvenanceSource.Export)
             .SetIf("abilityCategory", abilityCategory.HasValue, ProvenanceSource.Export)
             .SetIf("cooldown", ability?.Cooldown is not null, ProvenanceSource.Export)
             .SetIf("range", ability?.Range is not null, ProvenanceSource.Export)

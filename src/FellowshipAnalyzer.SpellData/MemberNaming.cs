@@ -23,9 +23,25 @@ public static partial class MemberNaming
         if (string.IsNullOrEmpty(name))
             return string.Empty;
 
-        var stripped = PossessiveSuffix.Replace(name, string.Empty);
+        return Pascal(PossessiveSuffix.Replace(name, string.Empty));
+    }
+
+    /// <summary>
+    /// Converts a talent name into a valid PascalCase C# identifier. The apostrophe is dropped and the
+    /// letters after it kept (<c>Assassin's Guile</c> becomes <c>AssassinsGuile</c>), <c>&amp;</c> reads as
+    /// <c>and</c> (<c>Sword &amp; Board</c> becomes <c>SwordAndBoard</c>), and every other non-alphanumeric
+    /// character separates words.
+    /// Returns <see cref="string.Empty"/> when <paramref name="name"/> is null or empty.
+    /// </summary>
+    public static string TalentMember(string? name) =>
+        string.IsNullOrEmpty(name)
+            ? string.Empty
+            : Pascal(name.Replace("'", string.Empty).Replace("&", " and "));
+
+    private static string Pascal(string text)
+    {
         return string.Concat(
-            WordSplit.Split(stripped)
+            WordSplit.Split(text)
                      .Where(p => p.Length > 0)
                      .Select(p => char.ToUpperInvariant(p[0]) + p[1..]));
     }

@@ -15,7 +15,6 @@ Execute a .NET 10 file-based app from `src/FellowshipAnalyzer.Tools/`.
 | `rebuild-spelldb.cs` | Regenerates `data/spelldb.json` from the SpellData merge engine; the source of every generated per-hero `Spells` registry. Hand corrections go in `data/overrides.json`, never in the output. | `dotnet run --no-cache src/FellowshipAnalyzer.Tools/rebuild-spelldb.cs` |
 | `emit-palette.cs` | Renders `src/FellowshipAnalyzer.Core/Styles/_palette.scss` from the C# design tokens. `PaletteScssDriftTests.Committed_Palette_Matches_The_Theme` fails the build if the committed file is stale. | from `src/FellowshipAnalyzer.Tools`: `dotnet run --no-cache emit-palette.cs "../FellowshipAnalyzer.Core/Styles/_palette.scss"` |
 | `fetch-report.cs` | Fetches one player's event stream for a dungeon and writes it to the gitignored `raw-reports/{code}-f{dungeon}-s{source}.json`. Requires credentials. | `dotnet run src/FellowshipAnalyzer.Tools/fetch-report.cs <code> <dungeonId> <sourceId> [outputPath]` |
-| `fetch-abilities.cs` | Fetches all abilities from the FellowshipLogs API and writes `abilities.json` at the repo root. Uses the cached file if it exists; pass `--refresh` to re-fetch. Requires credentials. | `dotnet run src/FellowshipAnalyzer.Tools/fetch-abilities.cs [--refresh]` |
 | `refresh-schema.cs` | Fetches a fresh GraphQL introspection result from the FellowshipLogs API and writes SDL to `src/FellowshipAnalyzer/FellowshipAnalyzer.Api.GraphQL/schema.graphql`. Takes no arguments and always hits the network, so it requires credentials. | `dotnet run src/FellowshipAnalyzer.Tools/refresh-schema.cs` |
 | `probe-deaths.cs` | Probes the Deaths GraphQL query semantics (defaults to the RaMDvgzWXBCnF4QT/16/25 example report; has a `--scan` mode). Requires credentials. | `dotnet run src/FellowshipAnalyzer.Tools/probe-deaths.cs` |
 | `event-schema.cs` | Scans a log JSON events array and prints every unique event type with all properties each type can have, their frequency, and JSON value kinds. Use for C# model comparison and deserialization audits. | `dotnet run src/FellowshipAnalyzer.Tools/event-schema.cs <log-json>` |
@@ -25,7 +24,7 @@ Execute a .NET 10 file-based app from `src/FellowshipAnalyzer.Tools/`.
 
 ## Procedure
 
-### Credentials (fetch-report, fetch-abilities, refresh-schema, probe-deaths)
+### Credentials (fetch-report, refresh-schema, probe-deaths)
 
 The API tools read the user-secrets store id from the `.env` file at the repo root. That file is git-tracked and already holds the non-secret `USER_SECRET_ID=fellowshipanalyzer-devapi`; no copying is needed. Populate the user-secrets store it names with the credentials:
 
@@ -61,15 +60,6 @@ The drift test catches a forgotten run, so a stale committed `_palette.scss` fai
    dotnet run src/FellowshipAnalyzer.Tools/fetch-report.cs 6fgrXtW1b2aTZcD3 347 4
    ```
 2. Output lands in the gitignored `raw-reports/` folder as `{code}-f{dungeon}-s{source}.json`. Analyze it with the `analyze-event-schema` or `analyze-log-resources` skill.
-
-### fetch-abilities
-
-1. Run from the repo root:
-   ```
-   dotnet run src/FellowshipAnalyzer.Tools/fetch-abilities.cs
-   ```
-2. If `abilities.json` already exists, the tool exits immediately; pass `--refresh` to force a re-fetch after a game patch.
-3. Output is written to `abilities.json` at the repo root, which the SpellData merge reads for icons.
 
 ### refresh-schema
 
