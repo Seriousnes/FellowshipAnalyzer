@@ -9,7 +9,8 @@ const SHOW_DELAY_MS = 200;
 const HIDE_DELAY_MS = 150;
 const HOVERS = '(hover: hover)';
 
-/** @type {Map<string, { ok: boolean, body: string }>} */
+/** @type {Map<string, string>} Fragments the codex has answered. A refusal is not kept, so a
+ * request that failed once is asked again on the next hover. */
 const cache = new Map();
 
 /** @type {HTMLDivElement | null} */
@@ -50,8 +51,6 @@ export function init(codexOrigin) {
     document.addEventListener('pointerleave', onLeave, true);
     document.addEventListener('click', onClick, true);
     document.addEventListener('keydown', onKey);
-    container.addEventListener('pointerenter', cancelHide);
-    container.addEventListener('pointerleave', scheduleHide);
 }
 
 export function dispose() {
@@ -67,6 +66,9 @@ export function dispose() {
 }
 
 const hovers = () => window.matchMedia(HOVERS).matches;
+
+/** Whether the event came from a pointer that cannot hover, so a tap is all the reader has. */
+const coarse = event => (event.pointerType ? event.pointerType !== 'mouse' : !hovers());
 
 function onEnter(e) {
     if (modal || (e.pointerType && e.pointerType !== 'mouse')) return;
@@ -103,7 +105,7 @@ function onClick(e) {
     }
 
     const link = e.target.closest?.('[data-tooltip-spell-id]');
-    if (!link || hovers()) return;
+    if (!link || !coarse(e)) return;
 
     e.preventDefault();
     e.stopPropagation();
@@ -151,10 +153,12 @@ async function fragment(path) {
 
     try {
         const response = await fetch(`${origin}/${path}`, { headers: { accept: 'text/html' } });
-        const answer = { ok: response.ok, body: await response.text() };
+        if (!response.ok) return null;
 
-        cache.set(path, answer);
-        return answer;
+        const body = await response.text();
+
+        cache.set(path, body);
+        return body;
     } catch {
         return null;
     }
@@ -165,12 +169,12 @@ async function show(anchor) {
     if (!path) return;
 
     const mine = ++sequence;
-    const answer = await fragment(path);
+    const body = await fragment(path);
 
-    if (mine !== sequence || !answer?.ok || modal || !anchor.isConnected) return;
+    if (mine !== sequence || !body || modal || !anchor.isConnected) return;
 
     currentTarget = anchor;
-    paint(answer.body);
+    paint(body);
     container.style.display = 'block';
     position(anchor);
 }
@@ -182,11 +186,11 @@ async function present(anchor) {
     hide();
 
     const mine = ++sequence;
-    const answer = await fragment(mobile(path));
+    const body = await fragment(mobile(path));
 
-    if (mine !== sequence || !answer?.ok) return;
+    if (mine !== sequence || !body) return;
 
-    paint(answer.body);
+    paint(body);
 
     const open = shadow.querySelector('.fx-modal .open');
     if (open && anchor.href) open.href = anchor.href;
