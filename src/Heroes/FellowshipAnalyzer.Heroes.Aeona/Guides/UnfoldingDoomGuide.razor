@@ -71,20 +71,23 @@
                 $"{priority} of {rated} casts on the enemy that took the most of your damage over the next {WindowSeconds} seconds.",
                 PerformanceTiers.FromThresholds(share, 90, 75, 50)));
 
-            stats.Add(new OverviewStat(
-                FormatDamage(analyzers.Sum(analyzer => analyzer.PriorityDamageGained)),
+            AddDamageSplit(
+                stats,
+                analyzers.Sum(analyzer => analyzer.PriorityDamageGained),
                 "Gained on Priority",
-                "Damage the debuff's increase accounts for on casts on the priority target."));
+                "Damage the debuff's increase accounts for on casts on the priority target.");
 
-            stats.Add(new OverviewStat(
-                FormatDamage(analyzers.Sum(analyzer => analyzer.AlternateDamageGained)),
+            AddDamageSplit(
+                stats,
+                analyzers.Sum(analyzer => analyzer.AlternateDamageGained),
                 "Gained Lower in the Order",
-                "Damage the debuff's increase accounts for on casts on an enemy further down the order."));
+                "Damage the debuff's increase accounts for on casts on an enemy further down the order.");
 
-            stats.Add(new OverviewStat(
-                FormatDamage(analyzers.Sum(analyzer => analyzer.SoleTargetDamageGained)),
+            AddDamageSplit(
+                stats,
+                analyzers.Sum(analyzer => analyzer.SoleTargetDamageGained),
                 "Gained on Sole Target",
-                "Damage the debuff's increase accounts for on casts with no other enemy damaged."));
+                "Damage the debuff's increase accounts for on casts with no other enemy damaged.");
         }
 
         stats.Add(new OverviewStat(
@@ -93,6 +96,13 @@
             "Time Unfolding Doom was available with no enemy debuffed."));
 
         return stats;
+    }
+
+    private static void AddDamageSplit(List<OverviewStat> stats, long gained, string label, string tooltip)
+    {
+        if (gained <= 0) return;
+
+        stats.Add(new OverviewStat(FormatDamage(gained), label, tooltip));
     }
 
     private IEnumerable<StackedBarSegment> BuildStackedBar()
