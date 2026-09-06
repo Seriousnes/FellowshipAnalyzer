@@ -1,14 +1,16 @@
+using Fellowship.SDK;
+
 using FellowshipAnalyzer.Core.Common.Spells;
 
 namespace FellowshipAnalyzer.Core.UI.Components;
 
 internal static class SpellKindUrlExtensions
 {
-    public static string ToUrlSegment(this SpellKind kind) => kind switch
+    public static EntityType ToEntityType(this SpellKind kind) => kind switch
     {
-        SpellKind.Effect => "effect",
-        SpellKind.Talent => "talent",
-        SpellKind.Weapon => "trait",
-        _ => "ability",
+        SpellKind.Effect => EntityType.Effect,
+        SpellKind.Talent => EntityType.Talent,
+        SpellKind.Weapon => EntityType.Trait,
+        _ => EntityType.Ability,
     };
 }

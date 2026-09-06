@@ -1,32 +1,15 @@
 /**
  * Spell tooltip module.
- * Lazily fetches tooltip HTML from the Fellowship Codex on hover and displays it
- * in a floating popover using Shadow DOM for style isolation.
+ * Fetches tooltip fragments from the Fellowship Codex on hover and paints them into a Shadow DOM
+ * layer. A fragment arrives fully styled, so nothing is drawn around it. On a coarse pointer a tap
+ * asks for the mobile fragment instead, which comes wrapped in its own full-screen chrome.
  */
 
 const SHOW_DELAY_MS = 200;
 const HIDE_DELAY_MS = 150;
-const GAP_PX = 8;
+const HOVERS = '(hover: hover)';
 
-const BASE_CSS = `
-    :host { pointer-events: auto; }
-    .tooltip-body {
-        background: #1a1d2e;
-        border: 1px solid #3f3f46;
-        border-radius: 6px;
-        padding: 12px;
-        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.6);
-        max-width: 420px;
-    }
-    .tooltip-loading {
-        color: #909BA6;
-        font-family: 'Noto Sans', sans-serif;
-        font-size: 0.875rem;
-        padding: 4px 8px;
-    }
-`;
-
-/** @type {Map<string, string>} */
+/** @type {Map<string, { ok: boolean, body: string }>} */
 const cache = new Map();
 
 /** @type {HTMLDivElement | null} */
@@ -39,6 +22,8 @@ let shadow = null;
 let currentTarget = null;
 
 let origin = '';
+let modal = false;
+let sequence = 0;
 let showTimer = 0;
 let hideTimer = 0;
 
@@ -51,6 +36,8 @@ export function init(codexOrigin) {
     container.id = 'spell-tooltip';
     Object.assign(container.style, {
         position: 'fixed',
+        left: '0',
+        top: '0',
         zIndex: '99999',
         display: 'none',
         pointerEvents: 'none',
@@ -61,6 +48,8 @@ export function init(codexOrigin) {
 
     document.addEventListener('pointerenter', onEnter, true);
     document.addEventListener('pointerleave', onLeave, true);
+    document.addEventListener('click', onClick, true);
+    document.addEventListener('keydown', onKey);
     container.addEventListener('pointerenter', cancelHide);
     container.addEventListener('pointerleave', scheduleHide);
 }
@@ -69,27 +58,64 @@ export function dispose() {
     if (!container) return;
     document.removeEventListener('pointerenter', onEnter, true);
     document.removeEventListener('pointerleave', onLeave, true);
+    document.removeEventListener('click', onClick, true);
+    document.removeEventListener('keydown', onKey);
+    hide();
     container.remove();
     container = null;
     shadow = null;
 }
 
+const hovers = () => window.matchMedia(HOVERS).matches;
+
 function onEnter(e) {
+    if (modal || (e.pointerType && e.pointerType !== 'mouse')) return;
+
     const el = e.target.closest?.('[data-tooltip-spell-id]');
     if (!el) return;
+
     cancelHide();
     clearTimeout(showTimer);
     showTimer = setTimeout(() => show(el), SHOW_DELAY_MS);
 }
 
 function onLeave(e) {
-    const el = e.target.closest?.('[data-tooltip-spell-id]');
-    if (!el) return;
+    if (modal || (e.pointerType && e.pointerType !== 'mouse')) return;
+    if (!e.target.closest?.('[data-tooltip-spell-id]')) return;
+
     clearTimeout(showTimer);
     scheduleHide();
 }
 
+function onClick(e) {
+    const path = e.composedPath();
+
+    if (modal && path[0] instanceof Element && path[0].hasAttribute('data-dismiss')) {
+        e.preventDefault();
+        e.stopPropagation();
+        hide();
+        return;
+    }
+
+    if (modal && path.some(node => node instanceof Element && node.matches?.('.fx-modal .open'))) {
+        hide();
+        return;
+    }
+
+    const link = e.target.closest?.('[data-tooltip-spell-id]');
+    if (!link || hovers()) return;
+
+    e.preventDefault();
+    e.stopPropagation();
+    present(link);
+}
+
+function onKey(e) {
+    if (e.key === 'Escape') hide();
+}
+
 function scheduleHide() {
+    if (modal) return;
     clearTimeout(hideTimer);
     hideTimer = setTimeout(hide, HIDE_DELAY_MS);
 }
@@ -99,46 +125,87 @@ function cancelHide() {
 }
 
 function hide() {
-    if (container) container.style.display = 'none';
+    clearTimeout(showTimer);
+    clearTimeout(hideTimer);
+    sequence++;
+
+    if (container) {
+        container.style.display = 'none';
+        container.style.inset = '';
+        container.style.pointerEvents = 'none';
+    }
+
+    if (shadow) shadow.replaceChildren();
+
     currentTarget = null;
+
+    if (modal) {
+        modal = false;
+        document.documentElement.style.overflow = '';
+    }
+}
+
+async function fragment(path) {
+    const cached = cache.get(path);
+    if (cached) return cached;
+
+    try {
+        const response = await fetch(`${origin}/${path}`, { headers: { accept: 'text/html' } });
+        const answer = { ok: response.ok, body: await response.text() };
+
+        cache.set(path, answer);
+        return answer;
+    } catch {
+        return null;
+    }
 }
 
 async function show(anchor) {
-    currentTarget = anchor;
     const path = anchor.dataset.tooltipSpellId;
     if (!path) return;
 
-    render('<div class="tooltip-loading">Loading…</div>');
+    const mine = ++sequence;
+    const answer = await fragment(path);
+
+    if (mine !== sequence || !answer?.ok || modal || !anchor.isConnected) return;
+
+    currentTarget = anchor;
+    paint(answer.body);
     container.style.display = 'block';
-    position(anchor);
-
-    let html = cache.get(path);
-    if (!html) {
-        try {
-            const res = await fetch(`${origin}/${path}`);
-            if (!res.ok) throw new Error(String(res.status));
-            html = await res.text();
-            cache.set(path, html);
-        } catch {
-            html = '<div class="tooltip-loading">Tooltip unavailable</div>';
-        }
-    }
-
-    if (currentTarget !== anchor) return;
-
-    render(html);
     position(anchor);
 }
 
-function render(html) {
-    shadow.innerHTML = '';
-    const style = document.createElement('style');
-    style.textContent = BASE_CSS;
-    shadow.appendChild(style);
-    const wrapper = document.createElement('div');
-    wrapper.className = 'tooltip-body';
-    wrapper.innerHTML = html;
-    shadow.appendChild(wrapper);
+async function present(anchor) {
+    const path = anchor.dataset.tooltipSpellId;
+    if (!path) return;
+
+    hide();
+
+    const mine = ++sequence;
+    const answer = await fragment(mobile(path));
+
+    if (mine !== sequence || !answer?.ok) return;
+
+    paint(answer.body);
+
+    const open = shadow.querySelector('.fx-modal .open');
+    if (open && anchor.href) open.href = anchor.href;
+
+    modal = true;
+    container.style.display = 'block';
+    container.style.inset = '0';
+    container.style.pointerEvents = 'auto';
+    document.documentElement.style.overflow = 'hidden';
+
+    shadow.querySelector('.fx-modal .shut')?.focus();
+}
+
+function mobile(path) {
+    return path + (path.includes('?') ? '&' : '?') + 'mobile';
+}
+
+function paint(html) {
+    shadow.innerHTML = html;
 }
 
 function position(anchor) {
@@ -146,16 +213,17 @@ function position(anchor) {
     container.style.top = '0px';
 
     const r = anchor.getBoundingClientRect();
-    const tr = container.getBoundingClientRect();
+    const width = container.offsetWidth;
+    const height = container.offsetHeight;
 
-    let top = r.top - tr.height - GAP_PX;
-    if (top < GAP_PX) {
-        top = r.bottom + GAP_PX;
+    let top = r.top - height - 8;
+    if (top < 8) {
+        top = r.bottom + 8;
     }
 
-    let left = r.left + r.width / 2 - tr.width / 2;
-    left = Math.max(GAP_PX, Math.min(left, window.innerWidth - tr.width - GAP_PX));
-    top = Math.max(GAP_PX, Math.min(top, window.innerHeight - tr.height - GAP_PX));
+    let left = r.left + r.width / 2 - width / 2;
+    left = Math.max(8, Math.min(left, window.innerWidth - width - 8));
+    top = Math.max(8, Math.min(top, window.innerHeight - height - 8));
 
     container.style.left = `${left}px`;
     container.style.top = `${top}px`;
