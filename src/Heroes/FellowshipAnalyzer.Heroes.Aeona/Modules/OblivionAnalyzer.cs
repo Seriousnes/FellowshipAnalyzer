@@ -155,15 +155,17 @@ public sealed partial class OblivionAnalyzer : AbsorbAnalyzer, IOblivionAnalyzer
     /// <summary>Damage the direct casts dealt this pull.</summary>
     public long DirectDamage => _directDamage;
 
-    /// <summary>Damage a direct cast dealt, averaged over the pull. Null with no cast to average over.</summary>
+    /// <summary>
+    /// <see cref="DirectDamage"/> averaged over the pull's direct casts. Null with no cast to average
+    /// over.
+    /// </summary>
     public double? DamagePerCast => _casts.Count > 0 ? (double)_directDamage / _casts.Count : null;
 
     /// <summary>Effective healing the direct casts put on the party this pull.</summary>
     public long Healing => _directHealing;
 
     /// <summary>
-    /// Effective healing a direct cast put on the party, averaged over the pull. Null with no cast to
-    /// average over.
+    /// <see cref="Healing"/> averaged over the pull's direct casts. Null with no cast to average over.
     /// </summary>
     public double? HealingPerCast => _casts.Count > 0 ? (double)_directHealing / _casts.Count : null;
 
@@ -183,8 +185,8 @@ public sealed partial class OblivionAnalyzer : AbsorbAnalyzer, IOblivionAnalyzer
     public long? ShieldApplied => OblivionsEmbraceTalented ? Ledger.Applied : null;
 
     /// <summary>
-    /// Absorb the shields applied per direct Oblivion cast, averaged over the pull. Null without
-    /// Oblivion's Embrace, or with no cast to average over.
+    /// <see cref="ShieldApplied"/> averaged over the pull's direct casts. Null without Oblivion's
+    /// Embrace, or with no cast to average over.
     /// </summary>
     public double? ShieldAppliedPerCast =>
         OblivionsEmbraceTalented && _casts.Count > 0 ? (double)Ledger.Applied / _casts.Count : null;
