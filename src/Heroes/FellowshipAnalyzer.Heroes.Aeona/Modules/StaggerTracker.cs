@@ -507,18 +507,23 @@ public sealed partial class StaggerTracker : Analyzer
     }
 
     [On<CastEvent>(By = Actor.Player, Spells = [nameof(Spells.AmendFate), nameof(Spells.RestoreContinuity)])]
-    private void OnCleanseCast(CastEvent e)
-    {
-        var cast = new CleanseCast(e.Timestamp, e.Ability.Id, e.TargetId);
-        _cleanseCasts.Add(cast);
-        _latestCleanseCastByAbility[e.Ability.Id] = cast;
-    }
+    private void OnCleanseCast(CastEvent e) => RecordCleanseCast(e.Timestamp, e.Ability.Id, e.TargetId);
+
+    [On<FreeCastEvent>(By = Actor.Player, Spells = [nameof(Spells.AmendFate), nameof(Spells.RestoreContinuity)])]
+    private void OnFreeCleanseCast(FreeCastEvent e) => RecordCleanseCast(e.Timestamp, e.Ability.Id, e.TargetId);
 
     [On<HealEvent>(By = Actor.Player, Spells = [nameof(Spells.AmendFate), nameof(Spells.RestoreContinuity)])]
     private void OnCleanseHeal(HealEvent e)
     {
         if (_latestCleanseCastByAbility.TryGetValue(e.Ability.Id, out var cast))
             cast.AddHealTarget(e.TargetId);
+    }
+
+    private void RecordCleanseCast(int timestamp, FSLID ability, int targetId)
+    {
+        var cast = new CleanseCast(timestamp, ability, targetId);
+        _cleanseCasts.Add(cast);
+        _latestCleanseCastByAbility[ability] = cast;
     }
 
     private (int Total, int Casts) CleanseTotals()
