@@ -4,7 +4,7 @@
         <table class="target-breakdown-table">
             <thead>
                 <tr>
-                    <th class="target-breakdown-name">Target</th>
+                    <th class="target-breakdown-name">@TargetColumn</th>
                     @foreach (var column in Columns)
                     {
                         <th class="target-breakdown-value">@column</th>
@@ -28,6 +28,12 @@
 }
 
 @code {
+    /// <summary>
+    /// The leading column's header. Set it to "Ally" on a table of party members, and leave it at
+    /// "Target" on a table of enemies.
+    /// </summary>
+    [Parameter] public string TargetColumn { get; set; } = "Target";
+
     /// <summary>
     /// The value column headers, in order. The leading target column is not one of these and is
     /// always rendered.

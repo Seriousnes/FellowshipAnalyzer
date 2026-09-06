@@ -174,7 +174,7 @@ public sealed partial class StaggerTracker : Analyzer
     }
 
     /// <summary>The Stagger the party accumulated across the dungeon, in hit points.</summary>
-    public int StaggerGenerated => StaggerGeneratedBetween(Owner.DungeonStartTime, Owner.DungeonEndTime);
+    public int StaggerAccumulated => StaggerAccumulatedBetween(Owner.DungeonStartTime, Owner.DungeonEndTime);
 
     /// <summary>
     /// The mana Amend Fate and Restore Continuity generated across the dungeon.
@@ -405,28 +405,28 @@ public sealed partial class StaggerTracker : Analyzer
 
     /// <summary>
     /// The Stagger the party accumulated between <paramref name="startTimestamp"/> and
-    /// <paramref name="endTimestamp"/>, in hit points: every rise in a unit's Stagger pool inside the
-    /// window, summed across every unit with one.
+    /// <paramref name="endTimestamp"/>, in hit points, summed across every unit with a Stagger pool. A
+    /// rise counts when the later of the two figures behind it falls inside the window, so a pull's
+    /// opening rise counts against that pull.
     /// </summary>
     /// <param name="startTimestamp">The first instant to include.</param>
     /// <param name="endTimestamp">The last instant to include.</param>
-    public int StaggerGeneratedBetween(int startTimestamp, int endTimestamp)
+    public int StaggerAccumulatedBetween(int startTimestamp, int endTimestamp)
     {
-        var generated = 0;
+        var accumulated = 0;
 
         foreach (var snapshots in _snapshots.Values)
         {
-            for (var i = 1; i < snapshots.Count; i++)
+            for (var i = Math.Max(1, FirstIndexAtOrAfter(snapshots, startTimestamp)); i < snapshots.Count; i++)
             {
-                if (snapshots[i - 1].Timestamp < startTimestamp) continue;
                 if (snapshots[i].Timestamp > endTimestamp) break;
 
                 var rise = snapshots[i].Amount - snapshots[i - 1].Amount;
-                if (rise > 0) generated += rise;
+                if (rise > 0) accumulated += rise;
             }
         }
 
-        return generated;
+        return accumulated;
     }
 
     /// <summary>

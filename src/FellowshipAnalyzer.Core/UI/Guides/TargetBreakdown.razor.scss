@@ -1,5 +1,3 @@
-@use 'tokens' as t;
-
 .target-breakdown {
     overflow-x: auto;
 }
@@ -8,20 +6,20 @@
     width: 100%;
     border-collapse: collapse;
     font-size: var(--fa-fs-body);
-    color: var(--fa-fg);
+    color: var(--fa-text);
 }
 
 .target-breakdown-table thead th {
     font-size: var(--fa-fs-label);
     font-weight: 600;
-    color: var(--fa-fg-muted);
+    color: var(--fa-text-muted);
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    border-bottom: var(--fa-border-width) solid var(--fa-edge);
+    border-bottom: var(--fa-border-width) solid var(--fa-border-card);
 }
 
 .target-breakdown-table tbody td {
-    border-bottom: var(--fa-border-width) solid t.tint(var(--fa-edge), t.$fa-tint-medium);
+    border-bottom: var(--fa-border-width) solid var(--fa-border-subtle);
 }
 
 .target-breakdown-table tbody tr:last-child td {

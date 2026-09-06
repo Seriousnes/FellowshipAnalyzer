@@ -61,20 +61,23 @@
         var analyzers = Analyzers;
         var stats = new List<OverviewStat>();
 
-        if (Parser.StaggerTracker is { } tracker && tracker.AverageStaggerCleansedPerCast is { } average)
+        var bracketed = analyzers.Sum(analyzer => analyzer.BracketedCasts);
+        if (bracketed > 0)
         {
+            var cleansed = analyzers.Sum(analyzer => analyzer.StaggerCleansed);
+
             stats.Add(new OverviewStat(
-                $"{average:N0}",
+                $"{(double)cleansed / bracketed:N0}",
                 "Stagger Cleansed per Cast",
-                $"Stagger Amend Fate and Restore Continuity removed, averaged over {tracker.CleanseCastsMeasured} casts."));
+                $"Stagger Amend Fate and Restore Continuity removed, averaged over {bracketed} casts."));
         }
 
-        var generated = analyzers.Sum(analyzer => analyzer.StaggerGenerated);
-        if (generated > 0)
+        var accumulated = analyzers.Sum(analyzer => analyzer.StaggerAccumulated);
+        if (accumulated > 0)
         {
             stats.Add(new OverviewStat(
-                $"{generated:N0}",
-                "Stagger Generated",
+                $"{accumulated:N0}",
+                "Stagger Accumulated",
                 "Stagger the party accumulated across the pulls."));
         }
 
@@ -203,7 +206,7 @@
         var rows = AllyRows(cast);
         if (rows.Count == 0) return null;
 
-        return @<TargetBreakdown Columns="@AllyColumns" Rows="@rows" />;
+        return @<TargetBreakdown TargetColumn="Ally" Columns="@AllyColumns" Rows="@rows" />;
     }
 
     private List<TargetBreakdownRow> AllyRows(CleanseCastEntry cast) =>

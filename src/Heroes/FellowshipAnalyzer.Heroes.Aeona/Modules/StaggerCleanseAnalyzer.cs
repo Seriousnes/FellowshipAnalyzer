@@ -144,7 +144,19 @@ public sealed partial class StaggerCleanseAnalyzer : Analyzer
     public int RestoreContinuityCasts => CastsOf(Spells.RestoreContinuity.FSLID);
 
     /// <summary>The Stagger the party accumulated across the pull, in hit points.</summary>
-    public int StaggerGenerated => StaggerTracker.StaggerGeneratedBetween(Pull.StartTime, Pull.EndTime);
+    public int StaggerAccumulated => StaggerTracker.StaggerAccumulatedBetween(Pull.StartTime, Pull.EndTime);
+
+    /// <summary>
+    /// The Stagger both cleanses removed across the pull, in hit points, over the casts that could be
+    /// bracketed.
+    /// </summary>
+    public int StaggerCleansed => Casts.Sum(cast => cast.StaggerCleansed ?? 0);
+
+    /// <summary>
+    /// Cleanse casts in the pull that could be bracketed, the denominator behind
+    /// <see cref="StaggerCleansed"/>.
+    /// </summary>
+    public int BracketedCasts => Casts.Count(cast => cast.StaggerCleansed is not null);
 
     /// <summary>Effective healing from both cleanses across the pull.</summary>
     public long EffectiveHealing => Casts.Sum(cast => cast.EffectiveHealing);

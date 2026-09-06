@@ -9,6 +9,6 @@ namespace FellowshipAnalyzer.Core.UI.Guides;
 /// </param>
 /// <param name="Values">
 /// The row's values, in the same order as the breakdown's columns and the same length as them. Use a
-/// dash for a value the row does not carry rather than a shorter list.
+/// dash for a value the row has no figure for, rather than a shorter list.
 /// </param>
 public sealed record TargetBreakdownRow(string Target, IReadOnlyList<string> Values);
