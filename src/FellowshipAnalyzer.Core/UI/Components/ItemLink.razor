@@ -4,7 +4,7 @@
 @using FellowshipAnalyzer.Core.Common.Spells
 @using OneOf
 
-<a href="@ItemUrl" target="_blank" rel="noopener noreferrer" data-tooltip-path="@TooltipPath" data-tooltip-body="@TooltipRequest" class="item-link">
+<a href="@ItemUrl" target="_blank" rel="noopener noreferrer" data-tooltip-path="@TooltipPath" data-tooltip-body="@_request" class="item-link">
     @if (Icon && _icon is { Length: > 0 })
     {
         <img src="@IconUrl" class="item-link__icon" alt="" />
@@ -35,12 +35,10 @@
     private string? _name;
     private string? _icon;
     private Core.Events.Item? _equipped;
+    private string? _request;
 
     private string ItemUrl => Codex.PageUrl(CodexAddresses.Page(EntityType.Item, _itemId, Hero?.ToString()));
     private string? TooltipPath => _itemId > 0 ? CodexAddresses.Tooltip(EntityType.Item, _itemId) : null;
-    private string? TooltipRequest => _itemId > 0
-        ? TooltipBody.Write(_equipped is { } item ? ItemTooltip.For(item, Hero) : ItemTooltip.For(Hero))
-        : null;
     private string IconUrl => _equipped is { } item ? Codex.IconUrl(_icon!, item.Quality) : Codex.IconUrl(_icon!);
 
     protected override void OnParametersSet()
@@ -57,5 +55,9 @@
                 }
             }
         );
+
+        _request = _itemId > 0
+            ? TooltipBody.Write(_equipped is { } worn ? ItemTooltip.For(worn, Hero) : ItemTooltip.For(Hero))
+            : null;
     }
 }
