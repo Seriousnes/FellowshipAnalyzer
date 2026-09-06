@@ -16,13 +16,10 @@
             <p>
                 Spend every <SpellLink Spell="AeonaTalentList.ContinuumShift" /> on Time Shard.
             </p>
-            @if (MartialInitiativeTaken)
-            {
-                <p>
-                    Cast <SpellLink Spell="CoreItems.TwilightSkybolt" /> before the empowered Time
-                    Shard, so Martial Initiative is active when it deals its damage.
-                </p>
-            }
+            <p>
+                Cast <SpellLink Spell="CoreItems.TwilightSkybolt" /> before the empowered Time Shard,
+                so <SpellLink Spell="CoreItems.MartialInitiative" /> is active at the cast.
+            </p>
             @if (VehementEquipped)
             {
                 <p>
@@ -68,8 +65,8 @@
                 <SubSection Title="Martial Initiative">
                     <PassFailBar Pass="@MartialInitiativePairings"
                                  Total="@EmpoweredCasts"
-                                 PassTooltip="@($"{MartialInitiativePairings} empowered casts dealt their damage with Martial Initiative active")"
-                                 FailTooltip="@($"{EmpoweredCasts - MartialInitiativePairings} empowered casts dealt their damage without Martial Initiative active")" />
+                                 PassTooltip="@($"{MartialInitiativePairings} empowered casts with Martial Initiative active")"
+                                 FailTooltip="@($"{EmpoweredCasts - MartialInitiativePairings} empowered casts without Martial Initiative active")" />
                 </SubSection>
             }
         }
@@ -270,7 +267,7 @@
                 Label = CoreItems.MartialInitiative,
                 Pass = cast.MartialInitiativeActive,
                 Note = cast.SkyboltLeadMs is { } lead ? $"Twilight Skybolt {lead / 1000d:0.#}s earlier" : null,
-                Title = "Active when the damage was dealt",
+                Title = "Active at the cast",
             });
         }
 

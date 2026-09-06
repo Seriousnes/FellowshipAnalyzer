@@ -83,10 +83,7 @@ public sealed record TimeShardCast
     /// <summary>The Vehement's Disdain damage inside the cast's damage window.</summary>
     public required long VehementDisdainDamage { get; init; }
 
-    /// <summary>
-    /// Whether Martial Initiative was active when the cast's damage was dealt, read at the first hit
-    /// attributed to it and at the cast itself when no hit was attributed.
-    /// </summary>
+    /// <summary>Whether Martial Initiative was active at the cast.</summary>
     public required bool MartialInitiativeActive { get; init; }
 
     /// <summary>
@@ -272,7 +269,7 @@ public sealed partial class TimeShardAnalyzer : Analyzer
     public int EmpoweredCastsWithChrona =>
         Casts.Count(cast => cast.Empowered && cast.AboveChronaThreshold is not null);
 
-    /// <summary>Empowered casts whose damage was dealt with Martial Initiative active.</summary>
+    /// <summary>Empowered casts with Martial Initiative active.</summary>
     public int MartialInitiativePairings =>
         Casts.Count(cast => cast.Empowered && cast.MartialInitiativeActive);
 
@@ -421,8 +418,7 @@ public sealed partial class TimeShardAnalyzer : Analyzer
                 VehementStacksAtCast = StacksAt(cast.Timestamp),
                 VehementStacksConsumed = VehementStacksRemovedIn(cast.Timestamp, windowEnd),
                 VehementDisdainDamage = disdainHits.Sum(hit => hit.Amount),
-                MartialInitiativeActive =
-                    ActiveAt(_martialInitiative, hits.Count > 0 ? hits[0].Timestamp : cast.Timestamp),
+                MartialInitiativeActive = ActiveAt(_martialInitiative, cast.Timestamp),
                 SkyboltLeadMs = SkyboltLead(cast.Timestamp),
                 SkyboltBeforeCast = empowered && SkyboltInside(continuumShiftStart, cast.Timestamp),
                 ChronaAtCast = chrona,
