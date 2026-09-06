@@ -43,7 +43,7 @@ public sealed partial class ChronaTracker : ResourceTracker
     /// puts the raised amount on the event after the one that generated it, so the gap is the distance to
     /// the next event rather than a game rule.
     /// </summary>
-    private const int GenerationAttributionWindowMs = 1_000;
+    public const int GenerationAttributionWindowMs = 1_000;
 
     private readonly Dictionary<ResourceTypes, ResourceLedger> _ledgers = [];
     private readonly List<GeneratorEvent> _generators = [];
@@ -200,6 +200,7 @@ public sealed partial class ChronaTracker : ResourceTracker
 
             gains.Add(new ResourceGain(
                 resourceEvent.Timestamp,
+                generator?.Timestamp ?? resourceEvent.Timestamp,
                 generator?.AbilityId ?? resourceEvent.Id,
                 generator?.Target,
                 before,
@@ -243,6 +244,27 @@ public sealed partial class ChronaTracker : ResourceTracker
     /// <param name="end">The last instant to include.</param>
     public int OvercapByAbilityBetween(ResourceTypes type, int abilityId, int start, int end) =>
         GainsBetween(type, start, end).Where(gain => gain.AbilityId == abilityId).Sum(gain => gain.Overcap);
+
+    /// <summary>
+    /// The amount of <paramref name="type"/> one hit of <paramref name="abilityId"/> at
+    /// <paramref name="timestamp"/> lost to the cap, which is the whole amount the game data states for
+    /// that ability while the player was at the maximum, and <c>0</c> anywhere below it.
+    /// </summary>
+    /// <param name="type">The resource to read.</param>
+    /// <param name="abilityId">The generating ability's FSLID.</param>
+    /// <param name="timestamp">The instant of the hit.</param>
+    public int GenerationLostAtMaximum(ResourceTypes type, int abilityId, int timestamp)
+    {
+        if (!_ledgers.TryGetValue(type, out var ledger) || ledger.Max <= 0) return 0;
+
+        var amount = AmountAt(type, timestamp);
+        if (amount < ledger.Max) return 0;
+
+        return StatedAmount(
+            type,
+            new GeneratorEvent(timestamp, ResolveAbility(abilityId), Target: null, PerHit: true),
+            amount);
+    }
 
     /// <summary>
     /// The amount of <paramref name="type"/> most recently reported at or before
@@ -556,6 +578,7 @@ public sealed partial class ChronaTracker : ResourceTracker
 /// generating ability produces.
 /// </summary>
 /// <param name="Timestamp">When the gain arrived.</param>
+/// <param name="GeneratorTimestamp">The timestamp of the damage or cast the gain is attributed to.</param>
 /// <param name="AbilityId">The FSLID of the ability the gain is attributed to.</param>
 /// <param name="Target">The enemy whose hit produced the gain, or null for a gain a cast produced.</param>
 /// <param name="Before">The amount the player held before the gain.</param>
@@ -565,6 +588,7 @@ public sealed partial class ChronaTracker : ResourceTracker
 /// <param name="SynchronicityChrona">The share of <paramref name="Usable"/> that Synchronicity added.</param>
 public sealed record ResourceGain(
     int Timestamp,
+    int GeneratorTimestamp,
     int AbilityId,
     UnitKey? Target,
     int Before,
