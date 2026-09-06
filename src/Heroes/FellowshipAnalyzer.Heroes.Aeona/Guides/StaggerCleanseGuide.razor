@@ -196,7 +196,6 @@
             Performance = performance,
             Stats = [.. stats],
             Timestamp = cast.Timestamp,
-            Sequence = [new SpellCastEntry(cast.Ability.Value, performance)],
             AdditionalContent = breakdown is null ? null : new AdditionalContent("Per Ally", breakdown),
         };
     }
