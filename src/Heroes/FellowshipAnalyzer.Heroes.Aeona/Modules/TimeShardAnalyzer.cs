@@ -74,7 +74,10 @@ public sealed record TimeShardCast
     /// <summary>The Vehement stacks the player held at the cast.</summary>
     public required int VehementStacksAtCast { get; init; }
 
-    /// <summary>The Vehement stacks removed inside the cast's damage window.</summary>
+    /// <summary>
+    /// The Vehement stacks removed inside the cast's damage window, which ends at the next Time Shard
+    /// cast where that arrives first, so no removal is counted against two casts.
+    /// </summary>
     public required int VehementStacksConsumed { get; init; }
 
     /// <summary>The Vehement's Disdain damage inside the cast's damage window.</summary>
@@ -416,7 +419,7 @@ public sealed partial class TimeShardAnalyzer : Analyzer
                 Empowered = empowered,
                 ContinuumShiftStart = empowered ? continuumShiftStart : null,
                 VehementStacksAtCast = StacksAt(cast.Timestamp),
-                VehementStacksConsumed = VehementStacksRemovedNear(cast.Timestamp),
+                VehementStacksConsumed = VehementStacksRemovedIn(cast.Timestamp, windowEnd),
                 VehementDisdainDamage = disdainHits.Sum(hit => hit.Amount),
                 MartialInitiativeActive =
                     ActiveAt(_martialInitiative, hits.Count > 0 ? hits[0].Timestamp : cast.Timestamp),
@@ -598,13 +601,13 @@ public sealed partial class TimeShardAnalyzer : Analyzer
         return stacks;
     }
 
-    private int VehementStacksRemovedNear(int castTimestamp)
+    private int VehementStacksRemovedIn(int castTimestamp, int windowEnd)
     {
         var removed = 0;
         for (var i = 1; i < _vehementStacks.Count; i++)
         {
             var (timestamp, stacks) = _vehementStacks[i];
-            if (timestamp < castTimestamp || timestamp > castTimestamp + DamageWindowMs) continue;
+            if (timestamp < castTimestamp || timestamp > windowEnd) continue;
 
             var previous = _vehementStacks[i - 1].Stacks;
             if (stacks < previous)
