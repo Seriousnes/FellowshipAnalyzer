@@ -12,10 +12,6 @@
         <p>
             Recast it as soon as it comes off cooldown, so no time passes with no enemy debuffed.
         </p>
-        <p>
-            Each cast is rated on the enemy it went on: the priority target is the enemy that took the
-            most of your damage over the @WindowSeconds seconds that followed.
-        </p>
         @if (Analyzers.Any(analyzer => analyzer.HasteningDoomTaken))
         {
             <p>
@@ -78,12 +74,17 @@
             stats.Add(new OverviewStat(
                 FormatDamage(analyzers.Sum(analyzer => analyzer.PriorityDamageGained)),
                 "Gained on Priority",
-                "Damage the debuff's increase accounts for on casts on their window's priority target."));
+                "Damage the debuff's increase accounts for on casts on the priority target."));
 
             stats.Add(new OverviewStat(
-                FormatDamage(analyzers.Sum(analyzer => analyzer.OtherDamageGained)),
-                "Gained on Others",
-                "Damage the debuff's increase accounts for on casts on any other enemy."));
+                FormatDamage(analyzers.Sum(analyzer => analyzer.AlternateDamageGained)),
+                "Gained Lower in the Order",
+                "Damage the debuff's increase accounts for on casts on an enemy further down the order."));
+
+            stats.Add(new OverviewStat(
+                FormatDamage(analyzers.Sum(analyzer => analyzer.SoleTargetDamageGained)),
+                "Gained on Sole Target",
+                "Damage the debuff's increase accounts for on casts with no other enemy damaged."));
         }
 
         stats.Add(new OverviewStat(
@@ -100,12 +101,12 @@
 
         var buckets = new (UnfoldingDoomTargetOutcome Outcome, string Label, string Color, string Description)[]
         {
-            (UnfoldingDoomTargetOutcome.Priority, "On priority", PerformanceColors.Perfect,
+            (UnfoldingDoomTargetOutcome.Priority, "On Priority", PerformanceColors.Perfect,
                 $"on the enemy that took the most of your damage over the next {WindowSeconds} seconds"),
-            (UnfoldingDoomTargetOutcome.Alternate, "Lower in the order", PerformanceColors.Ok,
+            (UnfoldingDoomTargetOutcome.Alternate, "Lower in the Order", PerformanceColors.Ok,
                 "on an enemy further down that order"),
-            (UnfoldingDoomTargetOutcome.SoleTarget, "Sole target", PerformanceColors.Neutral,
-                $"with one enemy damaged over the next {WindowSeconds} seconds"),
+            (UnfoldingDoomTargetOutcome.SoleTarget, "Sole Target", PerformanceColors.Neutral,
+                $"with no other enemy damaged over the next {WindowSeconds} seconds"),
         };
 
         return
@@ -158,7 +159,7 @@
         {
             stats.Add(new PerCastStat(
                 FormatSeconds(died),
-                "Target Alive",
+                "Target Died After",
                 "Time from this cast to the target's death."));
         }
 
@@ -183,7 +184,7 @@
         UnfoldingDoomTargetOutcome.Alternate =>
             $"Took {application.PriorityShare:P0} of the damage {TargetName(application.BestUnit)} took over the next {WindowSeconds} seconds.",
         _ =>
-            $"The only enemy you damaged over the next {WindowSeconds} seconds.",
+            $"No other enemy took your damage over the next {WindowSeconds} seconds.",
     };
 
     private static string Others(UnfoldingDoomApplication application) =>

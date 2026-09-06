@@ -19,7 +19,7 @@ public enum UnfoldingDoomTargetOutcome
     /// <summary>An enemy further down the window's damage order.</summary>
     Alternate,
 
-    /// <summary>The only enemy the player damaged over the window.</summary>
+    /// <summary>The only enemy in the window's damage order.</summary>
     SoleTarget,
 }
 
@@ -50,7 +50,7 @@ public sealed record UnfoldingDoomReapplication(UnitKey Unit, int Timestamp, int
 /// </param>
 /// <param name="Outcome">Where <paramref name="Unit"/> sat in the window's damage order.</param>
 /// <param name="Rank">Enemies that took more of the player's damage over the window than <paramref name="Unit"/> did.</param>
-/// <param name="Candidates">Enemies the player damaged over the window, counting <paramref name="Unit"/>.</param>
+/// <param name="Candidates">Enemies in the window's damage order, counting <paramref name="Unit"/>.</param>
 /// <param name="WindowDamage">The damage the player dealt to <paramref name="Unit"/> over the window, before absorbs.</param>
 /// <param name="BestWindowDamage">The most damage the player dealt to any one enemy over the window, before absorbs.</param>
 /// <param name="BestUnit">The enemy that took <paramref name="BestWindowDamage"/>.</param>
@@ -154,13 +154,14 @@ public sealed partial class UnfoldingDoomAnalyzer : AllTargetUptimeAnalyzer, IUn
     /// </summary>
     public long DamageGained => Result.Applications.Sum(application => application.DamageGained);
 
-    /// <summary>The share of <see cref="DamageGained"/> from applications on their window's priority target.</summary>
-    public long PriorityDamageGained =>
-        Result.Applications.Where(application => application.OnPriority).Sum(application => application.DamageGained);
+    /// <summary>The share of <see cref="DamageGained"/> from <see cref="UnfoldingDoomTargetOutcome.Priority"/> applications.</summary>
+    public long PriorityDamageGained => DamageGainedOn(UnfoldingDoomTargetOutcome.Priority);
 
-    /// <summary>The share of <see cref="DamageGained"/> from applications on any other enemy.</summary>
-    public long OtherDamageGained =>
-        Result.Applications.Where(application => !application.OnPriority).Sum(application => application.DamageGained);
+    /// <summary>The share of <see cref="DamageGained"/> from <see cref="UnfoldingDoomTargetOutcome.Alternate"/> applications.</summary>
+    public long AlternateDamageGained => DamageGainedOn(UnfoldingDoomTargetOutcome.Alternate);
+
+    /// <summary>The share of <see cref="DamageGained"/> from <see cref="UnfoldingDoomTargetOutcome.SoleTarget"/> applications.</summary>
+    public long SoleTargetDamageGained => DamageGainedOn(UnfoldingDoomTargetOutcome.SoleTarget);
 
     /// <summary>Applications whose window offered more than one enemy.</summary>
     public int RatedApplications => Result.Applications.Count(application => application.Rated);
@@ -359,6 +360,11 @@ public sealed partial class UnfoldingDoomAnalyzer : AllTargetUptimeAnalyzer, IUn
         candidates <= 1 ? UnfoldingDoomTargetOutcome.SoleTarget
         : rank == 0 ? UnfoldingDoomTargetOutcome.Priority
         : UnfoldingDoomTargetOutcome.Alternate;
+
+    private long DamageGainedOn(UnfoldingDoomTargetOutcome outcome) =>
+        Result.Applications
+            .Where(application => application.Outcome == outcome)
+            .Sum(application => application.DamageGained);
 
     private List<AuraWindow> SplitAtReapplications(UnitKey unit, AuraWindow window)
     {
