@@ -62,8 +62,8 @@ public sealed class OblivionAnalyzerTests
 
         var cast = analyzer.Casts.ShouldHaveSingleItem();
 
-        cast.AlliesShielded.ShouldBe(3);
-        cast.ShieldApplied.ShouldBe(1_250);
+        cast.AlliesReached.ShouldBe(3);
+        cast.Shielding.ShouldBe(1_250);
         analyzer.ShieldApplied.ShouldBe(1_250);
         analyzer.ShieldAppliedPerCast.ShouldBe(1_250);
     }
@@ -139,15 +139,34 @@ public sealed class OblivionAnalyzerTests
     }
 
     [Fact]
-    public async Task ACastAboveFortyPercentStaggerWithACleanseReady_IsFlagged()
+    public async Task StaggerRemoved_IsTheFallAcrossTheCleanseTheReportCanBracket()
     {
-        var analyzer = await Analyze(
-            TankStaggerSnapshot(1_900, staggerHitPoints: 18_000),
-            OblivionCast(2_000));
+        var analyzer = await Analyze([AeonaTalents.OblivionsEmbrace],
+        [
+            .. CleanseMeasurement(1_000, staggerBefore: 10_000, staggerAfter: 8_000),
+            OblivionCast(2_000),
+        ]);
+
+        analyzer.StaggerRemoved.ShouldBe(2_000);
+        analyzer.CleansePriorityStagger.ShouldBe(4_000);
+        analyzer.Casts.ShouldHaveSingleItem().StaggerRemoved.ShouldBe(2_000);
+    }
+
+    [Fact]
+    public async Task ACastAboveTheCleansePriorityStaggerWithACleanseReady_IsFlagged()
+    {
+        var analyzer = await Analyze([AeonaTalents.OblivionsEmbrace],
+        [
+            .. CleanseMeasurement(1_000, staggerBefore: 10_000, staggerAfter: 8_000),
+            TankStaggerSnapshot(1_900, staggerHitPoints: 5_000),
+            OblivionCast(2_000),
+        ]);
 
         var cast = analyzer.Casts.ShouldHaveSingleItem();
 
-        cast.TankStaggerFraction.ShouldBe(0.45);
+        cast.TankStagger.ShouldBe(5_000);
+        cast.StaggerRemoved.ShouldBe(2_000);
+        cast.CleansePriorityStagger.ShouldBe(4_000);
         cast.CleanseAvailable.ShouldBeTrue();
         cast.AtCleansePriority.ShouldBeTrue();
         cast.Rated.ShouldBeTrue();
@@ -156,16 +175,21 @@ public sealed class OblivionAnalyzerTests
     }
 
     [Fact]
-    public async Task ACastBelowFortyPercentStagger_IsNotFlagged()
+    public async Task ACastBelowTheCleansePriorityStagger_IsNotFlagged()
     {
-        var analyzer = await Analyze(
-            TankStaggerSnapshot(1_900, staggerHitPoints: 12_000),
-            OblivionCast(2_000));
+        var analyzer = await Analyze([AeonaTalents.OblivionsEmbrace],
+        [
+            .. CleanseMeasurement(1_000, staggerBefore: 10_000, staggerAfter: 8_000),
+            TankStaggerSnapshot(1_900, staggerHitPoints: 3_000),
+            OblivionCast(2_000),
+        ]);
 
         var cast = analyzer.Casts.ShouldHaveSingleItem();
 
-        cast.TankStaggerFraction.ShouldBe(0.30);
+        cast.TankStagger.ShouldBe(3_000);
+        cast.CleansePriorityStagger.ShouldBe(4_000);
         cast.AtCleansePriority.ShouldBeFalse();
+        cast.Rated.ShouldBeTrue();
         analyzer.CastsAtCleansePriority.ShouldBe(0);
         analyzer.CastsRated.ShouldBe(1);
     }
@@ -180,6 +204,7 @@ public sealed class OblivionAnalyzerTests
 
         var cast = analyzer.Casts.ShouldHaveSingleItem();
 
+        cast.TankStagger.ShouldBe(18_000);
         cast.CleanseAvailable.ShouldBeFalse();
         cast.AtCleansePriority.ShouldBeFalse();
         analyzer.CastsAtCleansePriority.ShouldBe(0);
@@ -188,15 +213,35 @@ public sealed class OblivionAnalyzerTests
     [Fact]
     public async Task ACastWithStaleStagger_IsNotRated()
     {
+        var analyzer = await Analyze([AeonaTalents.OblivionsEmbrace],
+        [
+            .. CleanseMeasurement(500, staggerBefore: 10_000, staggerAfter: 8_000),
+            OblivionCast(2_000),
+        ]);
+
+        var cast = analyzer.Casts.ShouldHaveSingleItem();
+
+        cast.StaggerRemoved.ShouldBe(2_000);
+        cast.TankStagger.ShouldBeNull();
+        cast.Rated.ShouldBeFalse();
+        cast.AtCleansePriority.ShouldBeFalse();
+        analyzer.CastsRated.ShouldBe(0);
+    }
+
+    [Fact]
+    public async Task WithNoCleanseTheReportCanBracket_NoCastIsRated()
+    {
         var analyzer = await Analyze(
-            TankStaggerSnapshot(500, staggerHitPoints: 18_000),
+            TankStaggerSnapshot(1_900, staggerHitPoints: 18_000),
             OblivionCast(2_000));
 
         var cast = analyzer.Casts.ShouldHaveSingleItem();
 
-        cast.TankStaggerFraction.ShouldBeNull();
-        cast.Rated.ShouldBeFalse();
+        cast.TankStagger.ShouldBe(18_000);
+        cast.StaggerRemoved.ShouldBeNull();
+        cast.CleansePriorityStagger.ShouldBeNull();
         cast.AtCleansePriority.ShouldBeFalse();
+        cast.Rated.ShouldBeFalse();
         analyzer.CastsRated.ShouldBe(0);
     }
 
@@ -207,7 +252,7 @@ public sealed class OblivionAnalyzerTests
 
         var cast = analyzer.Casts.ShouldHaveSingleItem();
 
-        cast.TankStaggerFraction.ShouldBeNull();
+        cast.TankStagger.ShouldBeNull();
         cast.Rated.ShouldBeFalse();
         analyzer.CastsRated.ShouldBe(0);
     }
@@ -299,6 +344,39 @@ public sealed class OblivionAnalyzerTests
         Ability = new Ability { Id = abilityId },
     };
 
+    /// <summary>
+    /// One Amend Fate cast the report can bracket, which puts
+    /// <paramref name="staggerBefore"/> minus <paramref name="staggerAfter"/> on
+    /// <see cref="OblivionAnalyzer.StaggerRemoved"/>.
+    /// </summary>
+    /// <param name="castTimestamp">When the cleanse cast completes.</param>
+    /// <param name="staggerBefore">The tank Stagger the bracket opens on.</param>
+    /// <param name="staggerAfter">The tank Stagger the bracket closes on.</param>
+    private static Event[] CleanseMeasurement(int castTimestamp, int staggerBefore, int staggerAfter) =>
+    [
+        TankStaggerSnapshot(castTimestamp - 100, staggerHitPoints: staggerBefore),
+        AmendFateCast(castTimestamp),
+        AmendFateHeal(TankId, castTimestamp + 1, staggerHitPointsAfter: staggerAfter),
+    ];
+
+    private static CastEvent AmendFateCast(int timestamp) => new()
+    {
+        Timestamp = timestamp,
+        SourceId = PlayerId,
+        TargetId = -1,
+        Ability = new Ability { Id = Spells.AmendFate.FSLID },
+    };
+
+    private static HealEvent AmendFateHeal(int unitId, int timestamp, int staggerHitPointsAfter) => new()
+    {
+        Timestamp = timestamp,
+        SourceId = PlayerId,
+        TargetId = unitId,
+        Amount = 5_500,
+        Ability = new Ability { Id = Spells.AmendFate.FSLID },
+        TargetResources = StaggerResources(staggerHitPointsAfter),
+    };
+
     private static HealEvent TankStaggerSnapshot(int timestamp, int staggerHitPoints) => new()
     {
         Timestamp = timestamp,
@@ -306,12 +384,14 @@ public sealed class OblivionAnalyzerTests
         TargetId = TankId,
         Amount = 1_000,
         Ability = new Ability { Id = Spells.EchoesOfRuin.FSLID },
-        TargetResources = new ActorResources
-        {
-            HitPoints = TankMaxHitPoints / 2,
-            MaxHitPoints = TankMaxHitPoints,
-            Resources = [new ClassResource { Type = ResourceTypes.Stagger, Amount = staggerHitPoints * 100, Max = -100 }],
-        },
+        TargetResources = StaggerResources(staggerHitPoints),
+    };
+
+    private static ActorResources StaggerResources(int staggerHitPoints) => new()
+    {
+        HitPoints = TankMaxHitPoints / 2,
+        MaxHitPoints = TankMaxHitPoints,
+        Resources = [new ClassResource { Type = ResourceTypes.Stagger, Amount = staggerHitPoints * 100, Max = -100 }],
     };
 
     private static DeathEvent TankDeath(int timestamp) => new()

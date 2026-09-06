@@ -18,15 +18,17 @@ using AeonaTalents = FellowshipAnalyzer.Core.Common.Spells.AeonaTalents;
 namespace FellowshipAnalyzer.Heroes.Aeona.Tests.Analysis;
 
 /// <summary>
-/// Exercises Chrona Tap over one pull. <c>ResourceNormalizer</c> divides every resource by 100 before
-/// dispatch, mana included.
+/// Exercises Chrona Tap across the report. <c>ResourceNormalizer</c> divides every resource by 100 before
+/// dispatch, mana included, so <see cref="MaxMana"/> is the pool the analyzer sees.
 /// </summary>
 public sealed class ChronaTapAnalyzerTests
 {
     private const int PlayerId = 7;
-    private const int AllyId = 9;
     private const int RawMaxMana = 165_600;
     private const int MaxMana = RawMaxMana / 100;
+    private const int RawManaWellBelowTheCap = 100_000;
+    private const int RoomLeftBelowTheCap = 10;
+    private const int RawManaNearTheCap = (MaxMana - RoomLeftBelowTheCap) * 100;
     private const int PullEnd = 60_000;
 
     private static readonly int ManaPerStack = (int)Math.Round(0.013 * MaxMana);
@@ -34,51 +36,9 @@ public sealed class ChronaTapAnalyzerTests
     [Fact]
     public async Task WithoutTheTalent_TheAnalyzerDoesNotRun()
     {
-        var parser = await AnalyzeParser([Combatant(), Spender(1_000)]);
+        var parser = await AnalyzeParser([Combatant(), Applied(1_000), Removed(2_000)]);
 
-        parser.ChronaTapAnalyzers.ShouldBeEmpty();
-    }
-
-    [Fact]
-    public async Task EverySpenderCounts_AndStacksAreCountedAsTheyAreGained()
-    {
-        var analyzer = await Analyze(
-            Spender(1_000),
-            Applied(1_050),
-            Spender(3_000),
-            Stacked(3_050, 2),
-            Spender(5_000),
-            Stacked(5_050, 3));
-
-        analyzer.SpenderCasts.ShouldBe(3);
-        analyzer.StacksGained.ShouldBe(3);
-        analyzer.StacksPerSpender.ShouldBe(1d, 0.0001);
-    }
-
-    [Fact]
-    public async Task EveryChronaSpenderIsCounted_AndNothingElseIs()
-    {
-        var analyzer = await Analyze(
-            Cast(1_000, Spells.Oblivion.FSLID),
-            Cast(2_000, Spells.AmendFate.FSLID),
-            Cast(3_000, Spells.RestoreContinuity.FSLID),
-            Cast(4_000, Spells.TimeShard.FSLID),
-            Cast(5_000, Spells.UnfoldingDoom.FSLID));
-
-        analyzer.SpenderCasts.ShouldBe(3);
-    }
-
-    [Fact]
-    public async Task StackHistory_RecordsEveryChange()
-    {
-        var analyzer = await Analyze(
-            Applied(1_000),
-            Stacked(2_000, 2),
-            StackRemoved(3_000, 1),
-            Removed(4_000));
-
-        analyzer.StackHistory.Select(sample => sample.Stacks).ShouldBe([1, 2, 1, 0]);
-        analyzer.StackHistory.Select(sample => sample.Timestamp).ShouldBe([1_000, 2_000, 3_000, 4_000]);
+        parser.ChronaTap.ShouldBeNull();
     }
 
     [Fact]
@@ -119,51 +79,50 @@ public sealed class ChronaTapAnalyzerTests
     }
 
     [Fact]
-    public async Task ASpenderCastBelowTheCap_LosesNothing()
+    public async Task StacksReportedAboveTheCap_ReturnTheCapsWorthOfMana()
     {
         var analyzer = await Analyze(
             Applied(1_000),
-            Stacked(2_000, 9),
-            Spender(3_000));
+            Stacked(2_000, ChronaTapAnalyzer.MaximumStacks + 2),
+            Removed(3_000));
 
-        analyzer.SpendersAtMaximumStacks.ShouldBe(0);
-        analyzer.StacksLostAtCap.ShouldBe(0);
+        analyzer.ManaReturned.ShouldBe(ChronaTapAnalyzer.MaximumStacks * ManaPerStack);
+    }
+
+    [Fact]
+    public async Task AnExpiryWithRoomInThePool_LosesNothingAtTheCap()
+    {
+        var analyzer = await Analyze(
+            Applied(1_000),
+            Stacked(2_000, 3),
+            Removed(3_000));
+
+        analyzer.ManaReturned.ShouldBe(3 * ManaPerStack);
         analyzer.ManaLostAtCap.ShouldBe(0);
-        analyzer.Overcaps.ShouldBeEmpty();
     }
 
     [Fact]
-    public async Task ASpenderCastAtTheCap_LosesAStack()
+    public async Task AnExpiryOnAFullPool_LosesEveryStackShare()
     {
         var analyzer = await Analyze(
-            Applied(1_000),
-            Stacked(2_000, ChronaTapAnalyzer.MaximumStacks),
-            Spender(3_000),
-            Spender(4_000));
+            Applied(1_000, RawMaxMana),
+            Stacked(2_000, 3, RawMaxMana),
+            Removed(3_000, RawMaxMana));
 
-        analyzer.SpendersAtMaximumStacks.ShouldBe(2);
-        analyzer.StacksLostAtCap.ShouldBe(2);
-        analyzer.ManaLostAtCap.ShouldBe(2 * ManaPerStack);
-        analyzer.SpendersAtMaximumStacksShare.ShouldBe(1d, 0.0001);
-
-        var overcap = analyzer.Overcaps[0];
-        overcap.Timestamp.ShouldBe(3_000);
-        overcap.AbilityId.ShouldBe(Spells.Oblivion.FSLID.Value);
-        overcap.ManaLost.ShouldBe(ManaPerStack);
+        analyzer.ManaReturned.ShouldBe(3 * ManaPerStack);
+        analyzer.ManaLostAtCap.ShouldBe(3 * ManaPerStack);
     }
 
     [Fact]
-    public async Task ASpenderCastAfterTheStacksFallBelowTheCap_LosesNothing()
+    public async Task AnExpiryReturningMoreThanThePoolHoldsRoomFor_LosesTheOverflow()
     {
         var analyzer = await Analyze(
-            Applied(1_000),
-            Stacked(2_000, ChronaTapAnalyzer.MaximumStacks),
-            StackRemoved(3_000, ChronaTapAnalyzer.MaximumStacks - 1),
-            Spender(4_000));
+            Applied(1_000, RawManaNearTheCap),
+            Stacked(2_000, 3, RawManaNearTheCap),
+            Removed(3_000, RawManaNearTheCap));
 
-        analyzer.SpendersAtMaximumStacks.ShouldBe(0);
-        analyzer.SpenderCasts.ShouldBe(1);
-        analyzer.SpendersAtMaximumStacksShare.ShouldBe(0d, 0.0001);
+        analyzer.ManaReturned.ShouldBe(3 * ManaPerStack);
+        analyzer.ManaLostAtCap.ShouldBe((3 * ManaPerStack) - RoomLeftBelowTheCap);
     }
 
     [Fact]
@@ -187,12 +146,8 @@ public sealed class ChronaTapAnalyzerTests
     {
         var analyzer = await Analyze();
 
-        analyzer.SpenderCasts.ShouldBe(0);
-        analyzer.StacksGained.ShouldBe(0);
-        analyzer.StacksPerSpender.ShouldBe(0d, 0.0001);
         analyzer.ManaReturned.ShouldBe(0);
         analyzer.ManaLostAtCap.ShouldBe(0);
-        analyzer.StackHistory.ShouldBeEmpty();
     }
 
     private static CombatantInfoEvent Combatant(params int[] talents) => new()
@@ -201,70 +156,56 @@ public sealed class ChronaTapAnalyzerTests
         Talents = [.. talents.Select(id => new TalentInfo { Id = id })],
     };
 
-    private static CastEvent Spender(int timestamp) => Cast(timestamp, Spells.Oblivion.FSLID);
-
-    private static CastEvent Cast(int timestamp, int abilityId) => new()
-    {
-        Timestamp = timestamp,
-        SourceId = PlayerId,
-        TargetId = AllyId,
-        Ability = new Ability { Id = abilityId },
-        SourceResources = ManaSnapshot(),
-    };
-
-    private static ApplyBuffEvent Applied(int timestamp) => new()
+    private static ApplyBuffEvent Applied(int timestamp, int rawMana = RawManaWellBelowTheCap) => new()
     {
         Timestamp = timestamp,
         SourceId = PlayerId,
         TargetId = PlayerId,
         Ability = new Ability { Id = Spells.ChronaTap.FSLID },
-        SourceResources = ManaSnapshot(),
+        SourceResources = ManaSnapshot(rawMana),
     };
 
-    private static ApplyBuffStackEvent Stacked(int timestamp, int stack) => new()
+    private static ApplyBuffStackEvent Stacked(int timestamp, int stack, int rawMana = RawManaWellBelowTheCap) => new()
     {
         Timestamp = timestamp,
         SourceId = PlayerId,
         TargetId = PlayerId,
         Stack = stack,
         Ability = new Ability { Id = Spells.ChronaTap.FSLID },
-        SourceResources = ManaSnapshot(),
+        SourceResources = ManaSnapshot(rawMana),
     };
 
-    private static RemoveBuffStackEvent StackRemoved(int timestamp, int stack) => new()
+    private static RemoveBuffStackEvent StackRemoved(int timestamp, int stack, int rawMana = RawManaWellBelowTheCap) => new()
     {
         Timestamp = timestamp,
         SourceId = PlayerId,
         TargetId = PlayerId,
         Stack = stack,
         Ability = new Ability { Id = Spells.ChronaTap.FSLID },
-        SourceResources = ManaSnapshot(),
+        SourceResources = ManaSnapshot(rawMana),
     };
 
-    private static RemoveBuffEvent Removed(int timestamp) => new()
+    private static RemoveBuffEvent Removed(int timestamp, int rawMana = RawManaWellBelowTheCap) => new()
     {
         Timestamp = timestamp,
         SourceId = PlayerId,
         TargetId = PlayerId,
         Ability = new Ability { Id = Spells.ChronaTap.FSLID },
-        SourceResources = ManaSnapshot(),
+        SourceResources = ManaSnapshot(rawMana),
     };
 
-    private static ActorResources ManaSnapshot() => new()
+    private static ActorResources ManaSnapshot(int rawMana) => new()
     {
         HitPoints = 20_000,
         MaxHitPoints = 30_000,
-        Resources = [new ClassResource { Type = ResourceTypes.Mana, Amount = 100_000, Max = RawMaxMana }],
+        Resources = [new ClassResource { Type = ResourceTypes.Mana, Amount = rawMana, Max = RawMaxMana }],
     };
 
     private static async Task<ChronaTapAnalyzer> Analyze(params Event[] events)
     {
         var parser = await AnalyzeParser([Combatant(AeonaTalents.ChronaTap), .. events]);
 
-        return parser.ChronaTapAnalyzers
-            .ShouldHaveSingleItem()
-            .Analyzer
-            .ShouldBeOfType<ChronaTapAnalyzer>();
+        return parser.ChronaTap.ShouldNotBeNull();
     }
 
     private static async Task<AeonaCombatLogParser> AnalyzeParser(Event[] events)
