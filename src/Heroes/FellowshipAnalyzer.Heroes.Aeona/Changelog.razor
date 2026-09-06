@@ -1,17 +1,10 @@
-@using CoreItems = FellowshipAnalyzer.Core.Common.Items.Items
 @using static FellowshipAnalyzer.Core.Analysis.Changelog
 @using static FellowshipAnalyzer.Core.Analysis.Contributors
 
 @code {
     public static readonly List<ChangelogEntry> Entries =
     [
-        Change(new(2026, 9, 6), @<text>Rate <SpellLink Spell="Spells.FleetingHour" /> on the time its window ran with <SpellLink Spell="Spells.UnfoldingDoom" /> on cooldown.</text>, Seriousnes),
-        Change(new(2026, 9, 6), @<text>Record a <SpellLink Spell="Spells.UnfoldingDoom" /> recast onto a debuffed enemy as its own application, and rate the enemy each cast went on.</text>, Seriousnes),
-        Change(new(2026, 9, 6), @<text>Rate <SpellLink Spell="Spells.TimeShard" /> on <SpellLink Spell="CoreItems.MartialInitiative" /> at the cast, and report its damage per target and the Chrona it generated.</text>, Seriousnes),
-        Change(new(2026, 9, 6), @<text>Separate <SpellLink Spell="Talents.Erasure" />'s ticks from <SpellLink Spell="Spells.Oblivion" />'s direct casts, and break each cast down by the healing and shielding it put on every ally.</text>, Seriousnes),
-        Change(new(2026, 9, 6), @<text>Break <SpellLink Spell="Spells.AmendFate" /> and <SpellLink Spell="Spells.RestoreContinuity" /> down per ally, and lead the Cleanse Overview with the Stagger a cast removes on average.</text>, Seriousnes),
-        Change(new(2026, 9, 6), @<text>Credit every <SpellLink Spell="Spells.EntropyClaim" /> cast with the Chrona its own ticks generated.</text>, Seriousnes),
-        Change(new(2026, 9, 6), @<text>Move <SpellLink Spell="Talents.ChronaTap" /> to the statistics tab.</text>, Seriousnes),
+        Change(new(2026, 9, 6), @<text>Rebuilt the guide: per-ally cleanse and <SpellLink Spell="Spells.Oblivion" /> breakdowns, <SpellLink Spell="Talents.Erasure" /> split out, <SpellLink Spell="Talents.ChronaTap" /> moved to statistics, and reworked <SpellLink Spell="Spells.TimeShard" />, <SpellLink Spell="Spells.UnfoldingDoom" /> and <SpellLink Spell="Spells.FleetingHour" />.</text>, Seriousnes),
         Change(new(2026, 9, 4), @<text>Initial Aeona analysis.</text>, Seriousnes),
     ];
 }
