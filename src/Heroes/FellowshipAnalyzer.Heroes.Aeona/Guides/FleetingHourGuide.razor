@@ -1,10 +1,20 @@
+@using FellowshipAnalyzer.Core.Events
+
 @inherits GuideComponent<AeonaCombatLogParser>
 
 <GuideSection Title="Fleeting Hour">
     <LeftPanel>
         <p>
-            Recast <strong><SpellLink Spell="Spells.FleetingHour" /></strong> as soon as you can, and keep it
-            for the pull rather than the time between pulls.
+            <strong><SpellLink Spell="Spells.FleetingHour" /></strong> is at its best while
+            <SpellLink Spell="Spells.UnfoldingDoom" /> is on cooldown.
+        </p>
+        <p>
+            Cast it after each <SpellLink Spell="Spells.UnfoldingDoom" />, so the whole window is active
+            while Unfolding Doom is on cooldown.
+        </p>
+        <p>
+            Do not hold it once Unfolding Doom is on cooldown, and do not cast it while Unfolding Doom is
+            available.
         </p>
         @if (Analyzer is { SurgingChronaTaken: true } surging)
         {
@@ -17,8 +27,8 @@
     <RightPanel>
         <CastOverview Title="Fleeting Hour Overview" Stats="@BuildOverviewStats()" />
 
-        <CastDetail Title="Casts by Pull"
-                    Description="Each row is one cast, the window it opened, and how long the ability waited before it."
+        <CastDetail Title="Casts"
+                    Description="Each row is one cast."
                     Casts="@BuildCastRows()" />
     </RightPanel>
 </GuideSection>
@@ -35,6 +45,19 @@
 
         var stats = new List<OverviewStat>
         {
+            new(
+                $"{analyzer.ActiveOnUnfoldingDoomCooldownShare:P0}",
+                "Active, Unfolding Doom on Cooldown",
+                $"Fleeting Hour active time with Unfolding Doom on cooldown, {FormatSeconds(analyzer.ActiveOnUnfoldingDoomCooldownMs)} of {FormatSeconds(analyzer.TotalUptimeMs)}.",
+                Rate(analyzer.ActiveOnUnfoldingDoomCooldownShare)),
+            new(
+                FormatSeconds(analyzer.AvailableOnUnfoldingDoomCooldownMs),
+                "Unfolding Doom on Cooldown, Fleeting Hour Available",
+                "Time Unfolding Doom was on cooldown with Fleeting Hour available and not cast."),
+            new(
+                $"{FormatSeconds(analyzer.ActiveWithUnfoldingDoomAvailableMs)} ({analyzer.ActiveWithUnfoldingDoomAvailableShare:P0})",
+                "Active, Unfolding Doom Available",
+                "Fleeting Hour active time with Unfolding Doom available, and its share of everything the window was active for."),
             new(
                 $"{analyzer.CombatUptime:P0}",
                 "Combat Uptime",
@@ -68,26 +91,81 @@
     {
         if (Analyzer is not { } analyzer) yield break;
 
-        foreach (var pull in Parser.Pulls)
+        foreach (var cast in analyzer.Casts)
         {
-            foreach (var cast in analyzer.CastsIn(pull))
-            {
-                yield return new PerCastData
-                {
-                    Performance = null,
-                    Stats = BuildCastStats(analyzer, cast),
-                    Timestamp = Parser.FormatTimestamp(cast.Timestamp),
-                    Group = pull.Name,
-                    GroupContent = @<PullBanner Pull="pull" />,
-                };
-            }
+            QualitativePerformance? performance =
+                cast.Window is null ? null : Rate(cast.ActiveOnUnfoldingDoomCooldownShare);
+
+            var stats = BuildCastStats(analyzer, cast, performance);
+
+            yield return PullAt(cast.Timestamp) is { } pull
+                ? PullRow(cast, pull, stats, performance)
+                : BetweenPullsRow(cast, stats, performance);
         }
     }
 
-    private static PerCastStat[] BuildCastStats(FleetingHourAnalyzer analyzer, FleetingHourCast cast)
+    private PerCastData PullRow(
+        FleetingHourCast cast,
+        PullStartEvent pull,
+        PerCastStat[] stats,
+        QualitativePerformance? performance)
+    {
+        return new PerCastData
+        {
+            Performance = performance,
+            Stats = stats,
+            Timestamp = Parser.FormatTimestamp(cast.Timestamp),
+            Sequence = [new SpellCastEntry(Spells.FleetingHour.FSLID, performance)],
+            Group = pull.Name,
+            GroupContent = @<PullBanner Pull="pull" />,
+        };
+    }
+
+    private PerCastData BetweenPullsRow(
+        FleetingHourCast cast,
+        PerCastStat[] stats,
+        QualitativePerformance? performance)
+    {
+        return new PerCastData
+        {
+            Performance = performance,
+            Stats = stats,
+            Timestamp = Parser.FormatTimestamp(cast.Timestamp),
+            Sequence = [new SpellCastEntry(Spells.FleetingHour.FSLID, performance)],
+            Group = "Between Pulls",
+        };
+    }
+
+    private PullStartEvent? PullAt(int timestamp)
+    {
+        foreach (var pull in Parser.Pulls)
+        {
+            if (timestamp >= pull.StartTime && timestamp <= pull.EndTime) return pull;
+        }
+
+        return null;
+    }
+
+    private static PerCastStat[] BuildCastStats(
+        FleetingHourAnalyzer analyzer,
+        FleetingHourCast cast,
+        QualitativePerformance? performance)
     {
         var stats = new List<PerCastStat>
         {
+            new(
+                $"{FormatSeconds(cast.ActiveOnUnfoldingDoomCooldownMs)} ({cast.ActiveOnUnfoldingDoomCooldownShare:P0})",
+                "Active, Unfolding Doom on Cooldown",
+                "Time this window was active with Unfolding Doom on cooldown, and its share of the window.",
+                performance),
+            new(
+                FormatSeconds(cast.ActiveWithUnfoldingDoomAvailableMs),
+                "Active, Unfolding Doom Available",
+                "Time this window was active with Unfolding Doom available."),
+            new(
+                FormatSeconds(cast.AvailableOnUnfoldingDoomCooldownMs),
+                "Available, Unfolding Doom on Cooldown",
+                "Time before this cast with Fleeting Hour available and Unfolding Doom on cooldown."),
             new(
                 FormatSeconds(cast.ActiveInPullMs),
                 "Active in Pull",
@@ -112,6 +190,9 @@
 
         return [.. stats];
     }
+
+    private static QualitativePerformance Rate(double share) =>
+        PerformanceTiers.FromThresholds(share * 100, 95, 80, 50);
 
     private static string FormatSeconds(int milliseconds) => $"{milliseconds / 1000d:0.#}s";
 }
