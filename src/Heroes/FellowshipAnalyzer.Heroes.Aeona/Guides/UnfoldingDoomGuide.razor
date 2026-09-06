@@ -6,10 +6,15 @@
             <strong><SpellLink Spell="Spells.UnfoldingDoom" /></strong> is your primary damage increase.
         </p>
         <p>
-            Cast it the moment it becomes available, on the enemy you will damage for the next 20 seconds.
+            Cast it the moment it becomes available, on the enemy you will damage most over the next
+            @WindowSeconds seconds.
         </p>
         <p>
-            Try to keep the debuff active on an enemy for the whole pull.
+            Recast it as soon as it comes off cooldown, so no time passes with no enemy debuffed.
+        </p>
+        <p>
+            Each cast is rated on the enemy it went on: the priority target is the enemy that took the
+            most of your damage over the @WindowSeconds seconds that followed.
         </p>
         @if (Analyzers.Any(analyzer => analyzer.HasteningDoomTaken))
         {
@@ -21,8 +26,9 @@
     </LeftPanel>
     <RightPanel>
         <CastOverview Title="Unfolding Doom Overview" Stats="@BuildOverviewStats()" />
+        <StackedBar Segments="@BuildStackedBar()" />
         <CastDetail Title="Applications by Pull"
-                    Description="Each row is one application."
+                    Description="Each row is one cast."
                     Casts="@BuildPerCastData()" />
     </RightPanel>
 </GuideSection>
@@ -30,31 +36,88 @@
 @code {
     protected override bool IsActive() => Analyzers.Any(analyzer => analyzer.Casts > 0);
 
+    private static readonly int WindowSeconds = UnfoldingDoomAnalyzer.DebuffDurationMs / 1000;
+
     private List<UnfoldingDoomAnalyzer> Analyzers =>
         [.. Parser.UnfoldingDoomAnalyzers.Select(entry => entry.Analyzer).OfType<UnfoldingDoomAnalyzer>()];
+
+    private List<UnfoldingDoomApplication> Applications =>
+        [.. Analyzers.SelectMany(analyzer => analyzer.Applications)];
 
     private IEnumerable<OverviewStat> BuildOverviewStats()
     {
         var analyzers = Analyzers;
         var active = analyzers.Sum(analyzer => analyzer.ActiveMs);
         var combat = analyzers.Sum(analyzer => analyzer.Pull.Duration);
+        var rated = analyzers.Sum(analyzer => analyzer.RatedApplications);
+        var priority = analyzers.Sum(analyzer => analyzer.PriorityApplications);
 
-        return
-        [
-            new OverviewStat(
+        var stats = new List<OverviewStat>
+        {
+            new(
                 combat > 0 ? $"{(double)active / combat:P1}" : "0.0%",
                 "Uptime",
                 "Share of combat with the debuff active on at least one enemy."),
 
-            new OverviewStat(
+            new(
                 FormatDamage(analyzers.Sum(analyzer => analyzer.DamageGained)),
                 "Damage Gained",
                 "Damage the debuff's increase accounts for."),
+        };
 
-            new OverviewStat(
-                FormatSeconds(analyzers.Sum(analyzer => analyzer.IdleAvailableMs)),
-                "Available, No Enemy Debuffed",
-                "Time Unfolding Doom was available with no enemy debuffed."),
+        if (rated > 0)
+        {
+            var share = (int)Math.Round((double)priority / rated * 100);
+
+            stats.Add(new OverviewStat(
+                $"{share}%",
+                "On Priority",
+                $"{priority} of {rated} casts on the enemy that took the most of your damage over the next {WindowSeconds} seconds.",
+                PerformanceTiers.FromThresholds(share, 90, 75, 50)));
+        }
+
+        stats.Add(new OverviewStat(
+            FormatDamage(analyzers.Sum(analyzer => analyzer.PriorityDamageGained)),
+            "Gained on Priority",
+            "Damage the debuff's increase accounts for on priority targets."));
+
+        stats.Add(new OverviewStat(
+            FormatDamage(analyzers.Sum(analyzer => analyzer.OtherDamageGained)),
+            "Gained on Others",
+            "Damage the debuff's increase accounts for on every other enemy."));
+
+        stats.Add(new OverviewStat(
+            FormatSeconds(analyzers.Sum(analyzer => analyzer.IdleAvailableMs)),
+            "Available, No Enemy Debuffed",
+            "Time Unfolding Doom was available with no enemy debuffed."));
+
+        return stats;
+    }
+
+    private IEnumerable<StackedBarSegment> BuildStackedBar()
+    {
+        var applications = Applications;
+
+        var buckets = new (UnfoldingDoomTargetOutcome Outcome, string Label, string Color, string Description)[]
+        {
+            (UnfoldingDoomTargetOutcome.Priority, "On priority", PerformanceColors.Perfect,
+                $"on the enemy that took the most of your damage over the next {WindowSeconds} seconds"),
+            (UnfoldingDoomTargetOutcome.Alternate, "Lower in the order", PerformanceColors.Ok,
+                "on an enemy further down that order"),
+            (UnfoldingDoomTargetOutcome.SoleTarget, "Sole target", PerformanceColors.Neutral,
+                $"with one enemy damaged over the next {WindowSeconds} seconds"),
+        };
+
+        return
+        [
+            .. buckets
+                .Select(bucket => (bucket, Count: applications.Count(application => application.Outcome == bucket.Outcome)))
+                .Where(entry => entry.Count > 0)
+                .Select(entry => new StackedBarSegment(
+                    entry.bucket.Label,
+                    entry.Count,
+                    entry.bucket.Color,
+                    $"{entry.bucket.Label}: {entry.Count} casts {entry.bucket.Description}"))
         ];
     }
 
@@ -64,28 +127,70 @@
             analyzer => ((UnfoldingDoomAnalyzer)analyzer).Applications,
             (application, pull) => BuildRow(application));
 
-    private PerCastRow BuildRow(UnfoldingDoomApplication application) => new()
+    private PerCastRow BuildRow(UnfoldingDoomApplication application)
     {
-        Performance = null,
-        Timestamp = application.Start,
-        Sequence = [new SpellCastEntry(Spells.UnfoldingDoom.FSLID, null)],
-        Stats =
-        [
-            new PerCastStat(
+        var performance = Tier(application);
+
+        var stats = new List<PerCastStat>
+        {
+            new(
+                TargetName(application.Unit),
+                "Target",
+                TargetTooltip(application),
+                performance),
+
+            new(
                 FormatSeconds(application.ActiveMs),
                 "Active"),
 
-            new PerCastStat(
+            new(
                 FormatDamage(application.DamageGained),
                 "Damage Gained",
                 "Damage the debuff's increase accounts for."),
 
-            new PerCastStat(
+            new(
                 FormatSeconds(application.DelayAfterReadyMs),
                 "Delay After Ready",
                 "Time from Unfolding Doom being available with no enemy debuffed to this application."),
-        ],
+        };
+
+        if (application.DiedAfterMs is { } died)
+        {
+            stats.Add(new PerCastStat(
+                FormatSeconds(died),
+                "Target Alive",
+                "Time from this cast to the target's death."));
+        }
+
+        return new PerCastRow
+        {
+            Performance = performance,
+            Timestamp = application.Start,
+            Sequence = [new SpellCastEntry(Spells.UnfoldingDoom.FSLID, performance)],
+            Stats = [.. stats],
+        };
+    }
+
+    private static QualitativePerformance? Tier(UnfoldingDoomApplication application) =>
+        !application.Rated ? null
+        : application.OnPriority ? QualitativePerformance.Perfect
+        : PerformanceTiers.FromThresholds(application.PriorityShare * 100, 90, 70, 40);
+
+    private string TargetTooltip(UnfoldingDoomApplication application) => application.Outcome switch
+    {
+        UnfoldingDoomTargetOutcome.Priority =>
+            $"Took the most of your damage over the next {WindowSeconds} seconds, ahead of {Others(application)}.",
+        UnfoldingDoomTargetOutcome.Alternate =>
+            $"Took {application.PriorityShare:P0} of the damage {TargetName(application.BestUnit)} took over the next {WindowSeconds} seconds.",
+        _ =>
+            $"The only enemy you damaged over the next {WindowSeconds} seconds.",
     };
+
+    private static string Others(UnfoldingDoomApplication application) =>
+        application.Candidates == 2 ? "1 other enemy" : $"{application.Candidates - 1} other enemies";
+
+    private string TargetName(UnitKey unit) =>
+        Parser.ActorNames.GetValueOrDefault(unit.ActorId) ?? $"Enemy {unit.ActorId}";
 
     private static string FormatDamage(double amount) =>
         amount >= 1_000_000 ? $"{amount / 1_000_000:0.##}M"

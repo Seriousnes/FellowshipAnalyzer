@@ -10,6 +10,19 @@ namespace FellowshipAnalyzer.Heroes.Aeona.Modules;
 /// <summary>The pull read surface Unfolding Doom is measured on.</summary>
 public interface IUnfoldingDoomAnalyzer : IAnalyzerSurface;
 
+/// <summary>Where the enemy one application went on sat in its window's damage order.</summary>
+public enum UnfoldingDoomTargetOutcome
+{
+    /// <summary>The enemy that took the most of the player's damage over the window.</summary>
+    Priority,
+
+    /// <summary>An enemy further down the window's damage order.</summary>
+    Alternate,
+
+    /// <summary>The only enemy the player damaged over the window.</summary>
+    SoleTarget,
+}
+
 /// <summary>
 /// Unfolding Doom reapplied to an enemy the debuff was already active on.
 /// </summary>
@@ -22,39 +35,71 @@ public interface IUnfoldingDoomAnalyzer : IAnalyzerSurface;
 public sealed record UnfoldingDoomReapplication(UnitKey Unit, int Timestamp, int OverlappedMs);
 
 /// <summary>
-/// One application of Unfolding Doom: the stretch it ran on one enemy, with reapplications merged into
-/// it.
+/// One application of Unfolding Doom: the stretch one cast held the debuff on one enemy, ending at the
+/// reapplication that took it over or at the removal.
 /// </summary>
 /// <param name="Unit">The debuffed enemy.</param>
 /// <param name="Start">When the debuff was applied.</param>
-/// <param name="End">When it was removed.</param>
+/// <param name="End">When the next application took the debuff over, or when it was removed.</param>
 /// <param name="Damage">The damage the player dealt to that enemy inside the stretch, before absorbs.</param>
 /// <param name="DamageGained">The share of <paramref name="Damage"/> the debuff's increase accounts for.</param>
 /// <param name="DelayAfterReadyMs">
 /// How long Unfolding Doom was available with no enemy debuffed before this application closed that
-/// stretch. Zero when the debuff was applied while it was already active on another enemy, or at the
-/// moment the cast became available.
+/// stretch. Zero when the debuff was already active when this application opened, or at the moment the
+/// cast became available.
 /// </param>
+/// <param name="Outcome">Where <paramref name="Unit"/> sat in the window's damage order.</param>
+/// <param name="Rank">Enemies that took more of the player's damage over the window than <paramref name="Unit"/> did.</param>
+/// <param name="Candidates">Enemies the player damaged over the window, counting <paramref name="Unit"/>.</param>
+/// <param name="WindowDamage">The damage the player dealt to <paramref name="Unit"/> over the window, before absorbs.</param>
+/// <param name="BestWindowDamage">The most damage the player dealt to any one enemy over the window, before absorbs.</param>
+/// <param name="BestUnit">The enemy that took <paramref name="BestWindowDamage"/>.</param>
+/// <param name="DiedAfterMs">Milliseconds from this application to the target's death, or <c>null</c> when it outlived the window.</param>
 public sealed record UnfoldingDoomApplication(
     UnitKey Unit,
     int Start,
     int End,
     long Damage,
     long DamageGained,
-    int DelayAfterReadyMs)
+    int DelayAfterReadyMs,
+    UnfoldingDoomTargetOutcome Outcome,
+    int Rank,
+    int Candidates,
+    long WindowDamage,
+    long BestWindowDamage,
+    UnitKey BestUnit,
+    int? DiedAfterMs)
 {
     /// <summary>How long this application ran, in milliseconds.</summary>
     public int ActiveMs => End - Start;
+
+    /// <summary>Whether the cast went on the enemy that took the most of the player's damage over the window.</summary>
+    public bool OnPriority => Rank == 0;
+
+    /// <summary>Whether the window offered more than one enemy.</summary>
+    public bool Rated => Candidates > 1;
+
+    /// <summary>Share (0-1) of <see cref="BestWindowDamage"/> that <see cref="WindowDamage"/> reaches.</summary>
+    public double PriorityShare => BestWindowDamage > 0 ? WindowDamage / (double)BestWindowDamage : 1d;
 }
 
 /// <summary>
 /// Measures Unfolding Doom over one pull: the debuff's union uptime across every enemy it was applied
-/// to, the damage its increase accounts for, and the time the cast was available with no enemy debuffed.
+/// to, the damage its increase accounts for, the enemy each cast went on, and the time the cast was
+/// available with no enemy debuffed.
 /// </summary>
 /// <remarks>
 /// <para>
-/// Uptime is a union: a millisecond counts once however many enemies the debuff is active on. Each
-/// enemy's own stretches are <see cref="Applications"/>.
+/// Uptime is a union: a millisecond counts once however many enemies the debuff is active on.
+/// <see cref="Applications"/> divides that union by cast, so a recast onto an enemy the debuff is
+/// already active on closes the earlier application at the reapplication and opens its own. The
+/// applications on one enemy therefore partition that enemy's active time, and
+/// <see cref="DamageWhileActive"/> counts each of the player's hits once.
+/// </para>
+/// <para>
+/// An application's target is ranked over the <see cref="DebuffDurationMs"/> that follow the cast,
+/// clipped to the pull: the priority target is the enemy the player put the most damage into over
+/// those seconds, so an enemy that dies early ranks below one that survives to take the increase.
 /// </para>
 /// <para>
 /// An application with no removal collapses to zero length and drops out of the measurement rather
@@ -79,6 +124,7 @@ public sealed partial class UnfoldingDoomAnalyzer : AllTargetUptimeAnalyzer, IUn
     public const double DamageIncrease = 0.20;
 
     private readonly Dictionary<UnitKey, int> _openStarts = [];
+    private readonly Dictionary<UnitKey, int> _deaths = [];
     private readonly List<DamageEvent> _playerDamage = [];
     private readonly List<UnfoldingDoomReapplication> _reapplications = [];
     private readonly List<AvailabilityChange> _availability = [];
@@ -97,7 +143,7 @@ public sealed partial class UnfoldingDoomAnalyzer : AllTargetUptimeAnalyzer, IUn
     /// <summary>Share of the pull (0-1) with the debuff active on at least one enemy.</summary>
     public double Uptime => Result.Uptime;
 
-    /// <summary>Every stretch the debuff ran on one enemy, in the order they were applied.</summary>
+    /// <summary>Every stretch one cast held the debuff on one enemy, in the order they were applied.</summary>
     public IReadOnlyList<UnfoldingDoomApplication> Applications => Result.Applications;
 
     /// <summary>The damage the player dealt to debuffed enemies, before absorbs.</summary>
@@ -107,6 +153,21 @@ public sealed partial class UnfoldingDoomAnalyzer : AllTargetUptimeAnalyzer, IUn
     /// The share of <see cref="DamageWhileActive"/> the debuff's increase accounts for.
     /// </summary>
     public long DamageGained => Result.Applications.Sum(application => application.DamageGained);
+
+    /// <summary>The share of <see cref="DamageGained"/> from applications on their window's priority target.</summary>
+    public long PriorityDamageGained =>
+        Result.Applications.Where(application => application.OnPriority).Sum(application => application.DamageGained);
+
+    /// <summary>The share of <see cref="DamageGained"/> from applications on any other enemy.</summary>
+    public long OtherDamageGained =>
+        Result.Applications.Where(application => !application.OnPriority).Sum(application => application.DamageGained);
+
+    /// <summary>Applications whose window offered more than one enemy.</summary>
+    public int RatedApplications => Result.Applications.Count(application => application.Rated);
+
+    /// <summary>Applications on their window's priority target, out of <see cref="RatedApplications"/>.</summary>
+    public int PriorityApplications =>
+        Result.Applications.Count(application => application.Rated && application.OnPriority);
 
     /// <summary>Milliseconds of the pull with Unfolding Doom available to cast.</summary>
     public int AvailableMs => Result.AvailableMs;
@@ -155,6 +216,15 @@ public sealed partial class UnfoldingDoomAnalyzer : AllTargetUptimeAnalyzer, IUn
     [On<DamageEvent>(By = Actor.Player)]
     private void OnPlayerDamage(DamageEvent e) => _playerDamage.Add(e);
 
+    [On<DeathEvent>]
+    private void OnDeath(DeathEvent e)
+    {
+        var unit = AuraWindowLedger.KeyOf(e);
+
+        if (!_deaths.TryGetValue(unit, out var recorded) || e.Timestamp < recorded)
+            _deaths[unit] = e.Timestamp;
+    }
+
     private void RecordApplication(BuffEvent e)
     {
         var unit = AuraWindowLedger.KeyOf(e);
@@ -184,30 +254,35 @@ public sealed partial class UnfoldingDoomAnalyzer : AllTargetUptimeAnalyzer, IUn
         var applications = new List<UnfoldingDoomApplication>();
         foreach (var (unit, windows) in windowsByTarget)
         {
+            var stretches = new List<AuraWindow>();
             foreach (var window in windows)
             {
                 if (window.Duration <= 0) continue;
 
-                var damage = 0L;
-                var gain = 0L;
-
-                foreach (var e in _playerDamage)
-                {
-                    if (AuraWindowLedger.KeyOf(e) != unit) continue;
-                    if (e.Timestamp < window.Start || e.Timestamp > window.End) continue;
-
-                    damage += e.Amount + (e.Absorbed ?? 0);
-                    gain += CombatMath.CalculateEffectiveDamage(e, DamageIncrease);
-                }
-
-                applications.Add(new UnfoldingDoomApplication(
-                    unit,
-                    window.Start,
-                    window.End,
-                    damage,
-                    gain,
-                    DelayBefore(idle, window.Start)));
+                stretches.AddRange(SplitAtReapplications(unit, window));
             }
+
+            stretches.Sort((left, right) => left.Start.CompareTo(right.Start));
+
+            var damage = new long[stretches.Count];
+            var gained = new long[stretches.Count];
+
+            foreach (var e in _playerDamage)
+            {
+                if (AuraWindowLedger.KeyOf(e) != unit) continue;
+
+                for (var i = 0; i < stretches.Count; i++)
+                {
+                    if (e.Timestamp < stretches[i].Start || e.Timestamp > stretches[i].End) continue;
+
+                    damage[i] += e.Amount + (e.Absorbed ?? 0);
+                    gained[i] += CombatMath.CalculateEffectiveDamage(e, DamageIncrease);
+                    break;
+                }
+            }
+
+            for (var i = 0; i < stretches.Count; i++)
+                applications.Add(BuildApplication(unit, stretches[i], damage[i], gained[i], idle));
         }
 
         applications.Sort((left, right) => left.Start.CompareTo(right.Start));
@@ -218,6 +293,102 @@ public sealed partial class UnfoldingDoomAnalyzer : AllTargetUptimeAnalyzer, IUn
             applications,
             available.Sum(window => window.Duration),
             idle);
+    }
+
+    private UnfoldingDoomApplication BuildApplication(
+        UnitKey unit,
+        AuraWindow stretch,
+        long damage,
+        long gained,
+        List<AuraWindow> idle)
+    {
+        var windowEnd = Math.Min(stretch.Start + DebuffDurationMs, Pull.EndTime);
+        var order = RankTarget(unit, stretch.Start, windowEnd);
+        var died = _deaths.TryGetValue(unit, out var timestamp) && timestamp > stretch.Start && timestamp <= windowEnd
+            ? timestamp - stretch.Start
+            : (int?)null;
+
+        return new UnfoldingDoomApplication(
+            unit,
+            stretch.Start,
+            stretch.End,
+            damage,
+            gained,
+            DelayBefore(idle, stretch.Start),
+            Classify(order.Rank, order.Candidates),
+            order.Rank,
+            order.Candidates,
+            order.WindowDamage,
+            order.BestWindowDamage,
+            order.BestUnit,
+            died);
+    }
+
+    private TargetOrder RankTarget(UnitKey unit, int start, int end)
+    {
+        var totals = new Dictionary<UnitKey, long> { [unit] = 0 };
+
+        foreach (var e in _playerDamage)
+        {
+            if (e.Timestamp < start || e.Timestamp > end) continue;
+
+            var key = AuraWindowLedger.KeyOf(e);
+            totals[key] = totals.GetValueOrDefault(key) + e.Amount + (e.Absorbed ?? 0);
+        }
+
+        var chosen = totals[unit];
+        var rank = 0;
+        var best = chosen;
+        var bestUnit = unit;
+
+        foreach (var (key, total) in totals)
+        {
+            if (total <= chosen) continue;
+
+            rank++;
+            if (total <= best) continue;
+
+            best = total;
+            bestUnit = key;
+        }
+
+        return new TargetOrder(rank, totals.Count, chosen, best, bestUnit);
+    }
+
+    private static UnfoldingDoomTargetOutcome Classify(int rank, int candidates) =>
+        candidates <= 1 ? UnfoldingDoomTargetOutcome.SoleTarget
+        : rank == 0 ? UnfoldingDoomTargetOutcome.Priority
+        : UnfoldingDoomTargetOutcome.Alternate;
+
+    private List<AuraWindow> SplitAtReapplications(UnitKey unit, AuraWindow window)
+    {
+        var cuts = new List<int>();
+
+        foreach (var entry in _reapplications)
+        {
+            if (entry.Unit != unit) continue;
+            if (entry.Timestamp <= window.Start || entry.Timestamp >= window.End) continue;
+
+            cuts.Add(entry.Timestamp);
+        }
+
+        if (cuts.Count == 0) return [window];
+
+        cuts.Sort();
+
+        var stretches = new List<AuraWindow>(cuts.Count + 1);
+        var start = window.Start;
+
+        foreach (var cut in cuts)
+        {
+            if (cut > start) stretches.Add(new AuraWindow(start, cut));
+
+            start = cut;
+        }
+
+        if (window.End > start) stretches.Add(new AuraWindow(start, window.End));
+
+        return stretches;
     }
 
     private static int DelayBefore(List<AuraWindow> idle, int start)
@@ -307,6 +478,13 @@ public sealed partial class UnfoldingDoomAnalyzer : AllTargetUptimeAnalyzer, IUn
     }
 
     private readonly record struct AvailabilityChange(int Timestamp, bool Available);
+
+    private readonly record struct TargetOrder(
+        int Rank,
+        int Candidates,
+        long WindowDamage,
+        long BestWindowDamage,
+        UnitKey BestUnit);
 
     private sealed record Computed(
         int ActiveMs,
