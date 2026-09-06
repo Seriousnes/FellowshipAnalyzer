@@ -74,17 +74,17 @@
                 "On Priority",
                 $"{priority} of {rated} casts on the enemy that took the most of your damage over the next {WindowSeconds} seconds.",
                 PerformanceTiers.FromThresholds(share, 90, 75, 50)));
+
+            stats.Add(new OverviewStat(
+                FormatDamage(analyzers.Sum(analyzer => analyzer.PriorityDamageGained)),
+                "Gained on Priority",
+                "Damage the debuff's increase accounts for on casts on their window's priority target."));
+
+            stats.Add(new OverviewStat(
+                FormatDamage(analyzers.Sum(analyzer => analyzer.OtherDamageGained)),
+                "Gained on Others",
+                "Damage the debuff's increase accounts for on casts on any other enemy."));
         }
-
-        stats.Add(new OverviewStat(
-            FormatDamage(analyzers.Sum(analyzer => analyzer.PriorityDamageGained)),
-            "Gained on Priority",
-            "Damage the debuff's increase accounts for on priority targets."));
-
-        stats.Add(new OverviewStat(
-            FormatDamage(analyzers.Sum(analyzer => analyzer.OtherDamageGained)),
-            "Gained on Others",
-            "Damage the debuff's increase accounts for on every other enemy."));
 
         stats.Add(new OverviewStat(
             FormatSeconds(analyzers.Sum(analyzer => analyzer.IdleAvailableMs)),
