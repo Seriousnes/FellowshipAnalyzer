@@ -1,0 +1,42 @@
+@use 'tokens' as t;
+
+.target-breakdown {
+    overflow-x: auto;
+}
+
+.target-breakdown-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--fa-fs-body);
+    color: var(--fa-fg);
+}
+
+.target-breakdown-table thead th {
+    font-size: var(--fa-fs-label);
+    font-weight: 600;
+    color: var(--fa-fg-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: var(--fa-border-width) solid var(--fa-edge);
+}
+
+.target-breakdown-table tbody td {
+    border-bottom: var(--fa-border-width) solid t.tint(var(--fa-edge), t.$fa-tint-medium);
+}
+
+.target-breakdown-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.target-breakdown-name {
+    text-align: left;
+    white-space: nowrap;
+    padding: 4px 12px 4px 0;
+}
+
+.target-breakdown-value {
+    text-align: right;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+    padding: 4px 0 4px 12px;
+}

@@ -1,0 +1,41 @@
+@if (Rows.Count > 0 && Columns.Count > 0)
+{
+    <div class="target-breakdown">
+        <table class="target-breakdown-table">
+            <thead>
+                <tr>
+                    <th class="target-breakdown-name">Target</th>
+                    @foreach (var column in Columns)
+                    {
+                        <th class="target-breakdown-value">@column</th>
+                    }
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var row in Rows)
+                {
+                    <tr>
+                        <td class="target-breakdown-name">@row.Target</td>
+                        @for (var i = 0; i < Columns.Count; i++)
+                        {
+                            <td class="target-breakdown-value">@(i < row.Values.Count ? row.Values[i] : "-")</td>
+                        }
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+@code {
+    /// <summary>
+    /// The value column headers, in order. The leading target column is not one of these and is
+    /// always rendered.
+    /// </summary>
+    [Parameter] public IReadOnlyList<string> Columns { get; set; } = [];
+
+    /// <summary>
+    /// One row per target. Each row's values line up with <see cref="Columns"/> by position.
+    /// </summary>
+    [Parameter] public IReadOnlyList<TargetBreakdownRow> Rows { get; set; } = [];
+}

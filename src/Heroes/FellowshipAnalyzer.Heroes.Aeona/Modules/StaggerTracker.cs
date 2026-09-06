@@ -93,6 +93,7 @@ public sealed record StaggerCleanse(
 /// <see cref="MeasureCleanse"/> reconstructs it and reports what else moved the pool inside the bracket.
 /// </para>
 /// </summary>
+[Dependency<ChronaTracker>]
 public sealed partial class StaggerTracker : Analyzer
 {
     /// <summary>
@@ -147,6 +148,45 @@ public sealed partial class StaggerTracker : Analyzer
     public IReadOnlyList<CleanseCast> CleanseCasts => _cleanseCasts;
 
     /// <summary>
+    /// Amend Fate and Restore Continuity casts across the report that could be bracketed, the count
+    /// behind <see cref="StaggerCleansedTotal"/> and <see cref="AverageStaggerCleansedPerCast"/>.
+    /// </summary>
+    public int CleanseCastsMeasured => CleanseTotals().Casts;
+
+    /// <summary>
+    /// The Stagger those casts removed across the report, in hit points, summed over every ally each
+    /// cast reached.
+    /// </summary>
+    public int StaggerCleansedTotal => CleanseTotals().Total;
+
+    /// <summary>
+    /// The Stagger a single Amend Fate or Restore Continuity cast removed across the report, in hit
+    /// points, totalled over the allies the cast reached and averaged over
+    /// <see cref="CleanseCastsMeasured"/>. <see langword="null"/> when no cast could be bracketed.
+    /// </summary>
+    public double? AverageStaggerCleansedPerCast
+    {
+        get
+        {
+            var (total, casts) = CleanseTotals();
+            return casts == 0 ? null : (double)total / casts;
+        }
+    }
+
+    /// <summary>The Stagger the party accumulated across the dungeon, in hit points.</summary>
+    public int StaggerGenerated => StaggerGeneratedBetween(Owner.DungeonStartTime, Owner.DungeonEndTime);
+
+    /// <summary>
+    /// The mana Amend Fate and Restore Continuity generated across the dungeon.
+    /// </summary>
+    /// <remarks>
+    /// The game data states no generation amount for either cleanse, so the pool's rise stands on its
+    /// own and no share of it can be attributed to the mana cap.
+    /// </remarks>
+    public int ManaFromCleansing =>
+        ManaFromCleansingBetween(Owner.DungeonStartTime, Owner.DungeonEndTime);
+
+    /// <summary>
     /// <paramref name="unitId"/>'s Stagger pool over time, in chronological order with consecutive
     /// identical entries collapsed to the first of the run. Empty for a unit with no Stagger pool.
     /// </summary>
@@ -196,8 +236,7 @@ public sealed partial class StaggerTracker : Analyzer
     /// as a fraction of the unit's maximum hit points, or <see langword="null"/> when nothing precedes it.
     /// Stagger's reported maximum is Fellowship's no-maximum sentinel, so the pool is uncapped and the
     /// amount is an absolute hit-point figure; maximum hit points is the only meaningful scale, and the
-    /// fraction exceeds 1 when a unit holds more Stagger than its maximum hit points. A value of 0.4 is
-    /// the 40% threshold at which cleansing takes priority over Oblivion.
+    /// fraction exceeds 1 when a unit holds more Stagger than its maximum hit points.
     /// </summary>
     /// <param name="unitId">The unit to read.</param>
     /// <param name="timestamp">The instant to read back from.</param>
@@ -365,6 +404,44 @@ public sealed partial class StaggerTracker : Analyzer
         [.. _cleanseCasts.Where(cast => cast.Timestamp >= startTimestamp && cast.Timestamp <= endTimestamp)];
 
     /// <summary>
+    /// The Stagger the party accumulated between <paramref name="startTimestamp"/> and
+    /// <paramref name="endTimestamp"/>, in hit points: every rise in a unit's Stagger pool inside the
+    /// window, summed across every unit with one.
+    /// </summary>
+    /// <param name="startTimestamp">The first instant to include.</param>
+    /// <param name="endTimestamp">The last instant to include.</param>
+    public int StaggerGeneratedBetween(int startTimestamp, int endTimestamp)
+    {
+        var generated = 0;
+
+        foreach (var snapshots in _snapshots.Values)
+        {
+            for (var i = 1; i < snapshots.Count; i++)
+            {
+                if (snapshots[i - 1].Timestamp < startTimestamp) continue;
+                if (snapshots[i].Timestamp > endTimestamp) break;
+
+                var rise = snapshots[i].Amount - snapshots[i - 1].Amount;
+                if (rise > 0) generated += rise;
+            }
+        }
+
+        return generated;
+    }
+
+    /// <summary>
+    /// The mana Amend Fate and Restore Continuity generated between <paramref name="startTimestamp"/>
+    /// and <paramref name="endTimestamp"/>.
+    /// </summary>
+    /// <param name="startTimestamp">The first instant to include.</param>
+    /// <param name="endTimestamp">The last instant to include.</param>
+    public int ManaFromCleansingBetween(int startTimestamp, int endTimestamp) =>
+        ChronaTracker.GeneratedByAbilityBetween(
+            ResourceTypes.Mana, Spells.AmendFate.FSLID, startTimestamp, endTimestamp)
+        + ChronaTracker.GeneratedByAbilityBetween(
+            ResourceTypes.Mana, Spells.RestoreContinuity.FSLID, startTimestamp, endTimestamp);
+
+    /// <summary>
     /// Reconstructs the Stagger a cleanse cast at <paramref name="castTimestamp"/> cleared off
     /// <paramref name="unitId"/>, by bracketing the cast with the unit's last Stagger before it and its
     /// first from it onwards. Returns <see langword="null"/> when either end of the bracket is missing or
@@ -442,6 +519,35 @@ public sealed partial class StaggerTracker : Analyzer
     {
         if (_latestCleanseCastByAbility.TryGetValue(e.Ability.Id, out var cast))
             cast.AddHealTarget(e.TargetId);
+    }
+
+    private (int Total, int Casts) CleanseTotals()
+    {
+        var total = 0;
+        var casts = 0;
+
+        foreach (var cast in _cleanseCasts)
+        {
+            var cleansed = 0;
+            var measured = false;
+
+            foreach (var unitId in cast.HealTargets)
+            {
+                if (MeasureCleanse(unitId, cast.Timestamp, CleanseBracketWindowMs)
+                    is { HasInterveningEvent: false, ClearedAmount: > 0 } cleanse)
+                {
+                    cleansed += cleanse.ClearedAmount;
+                    measured = true;
+                }
+            }
+
+            if (!measured) continue;
+
+            total += cleansed;
+            casts++;
+        }
+
+        return (total, casts);
     }
 
     private void Record(int unitId, ActorResources? resources, int timestamp)

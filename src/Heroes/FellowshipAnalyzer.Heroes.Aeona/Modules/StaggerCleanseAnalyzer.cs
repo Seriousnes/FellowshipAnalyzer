@@ -31,6 +31,7 @@ public sealed record CleanseHeal(
 /// <param name="Timestamp">When the cast completed.</param>
 /// <param name="Ability">Either <c>Spells.AmendFate</c> or <c>Spells.RestoreContinuity</c>.</param>
 /// <param name="Heals">The cast's heals, one per ally, in the order the log reported them.</param>
+/// <param name="RatedUnitId">The ally the cast is rated on, the healed ally holding the most Stagger before it. Null when no healed ally has a recent enough figure.</param>
 /// <param name="StaggerBefore">The rated ally's Stagger before the cast, in hit points. Null when nothing recent enough precedes it.</param>
 /// <param name="StaggerRemoved">The Stagger this ability removes, or null when the report holds no clean cast to take it from.</param>
 /// <param name="WasFree">Whether Fellowship logged the cast as free.</param>
@@ -41,6 +42,7 @@ public sealed record CleanseCastEntry(
     int Timestamp,
     FSLID Ability,
     IReadOnlyList<CleanseHeal> Heals,
+    int? RatedUnitId,
     int? StaggerBefore,
     int? StaggerRemoved,
     bool WasFree,
@@ -140,6 +142,9 @@ public sealed partial class StaggerCleanseAnalyzer : Analyzer
 
     /// <summary>Restore Continuity casts in the pull.</summary>
     public int RestoreContinuityCasts => CastsOf(Spells.RestoreContinuity.FSLID);
+
+    /// <summary>The Stagger the party accumulated across the pull, in hit points.</summary>
+    public int StaggerGenerated => StaggerTracker.StaggerGeneratedBetween(Pull.StartTime, Pull.EndTime);
 
     /// <summary>Effective healing from both cleanses across the pull.</summary>
     public long EffectiveHealing => Casts.Sum(cast => cast.EffectiveHealing);
@@ -337,6 +342,7 @@ public sealed partial class StaggerCleanseAnalyzer : Analyzer
                 pending.Timestamp,
                 pending.Ability,
                 heals,
+                rated?.UnitId,
                 rated?.StaggerBefore,
                 cleanseAmount,
                 pending.WasFree,
