@@ -2,7 +2,7 @@
 @using FellowshipAnalyzer.Core.Common.Spells
 @using OneOf
 
-<a href="@AbilityUrl" target="_blank" rel="noopener noreferrer" data-tooltip-spell-id="@TooltipSpellId" class="spell-link">
+<a href="@AbilityUrl" target="_blank" rel="noopener noreferrer" data-tooltip-path="@TooltipPath" class="spell-link">
     @if (Icon && _icon is { Length: > 0 })
     {
         <img src="@IconUrl" class="spell-link__icon" alt="" />
@@ -29,7 +29,7 @@
 
     private string AbilityUrl => Codex.PageUrl(CodexAddresses.Page(_kind.ToEntityType(), _spellId));
 
-    private string? TooltipSpellId => _spellId > 0
+    private string? TooltipPath => _spellId > 0
         ? CodexAddresses.Tooltip(_kind.ToEntityType(), _spellId)
         : null;
     private string IconUrl => Codex.IconUrl(_icon!);

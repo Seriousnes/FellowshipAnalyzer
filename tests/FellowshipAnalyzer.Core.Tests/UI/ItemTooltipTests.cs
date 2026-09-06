@@ -36,8 +36,8 @@ public class ItemTooltipTests
         ],
     };
 
-    private static string Address(Item item, HeroName? hero = HeroName.Mara) =>
-        CodexAddresses.Tooltip(EntityType.Item, item.Id, ItemTooltip.For(item, hero));
+    private static string Body(Item item, HeroName? hero = HeroName.Mara) =>
+        TooltipBody.Write(ItemTooltip.For(item, hero));
 
     [Fact]
     public void For_StatesTheRungLevelTemperingAndSocket()
@@ -67,10 +67,10 @@ public class ItemTooltipTests
     {
         var stats = ItemTooltip.For(Worn(), HeroName.Mara).Stats.ShouldNotBeNull();
 
-        stats["Stamina"].ShouldBe([400m]);
-        stats["Agility"].ShouldBe([134m]);
-        stats["Haste"].ShouldBe([100m]);
-        stats["Expertise"].ShouldBe([234m]);
+        stats["Stamina"].Rating.ShouldBe([400m]);
+        stats["Agility"].Rating.ShouldBe([134m]);
+        stats["Haste"].Rating.ShouldBe([100m]);
+        stats["Expertise"].Rating.ShouldBe([234m]);
     }
 
     [Fact]
@@ -79,14 +79,15 @@ public class ItemTooltipTests
         var item = Worn();
         item.Attributes.Add(new ItemAttribute { Id = 4, Name = "Agility", Value = 66 });
 
-        ItemTooltip.For(item, HeroName.Mara).Stats.ShouldNotBeNull()["Agility"].ShouldBe([134m, 66m]);
+        ItemTooltip.For(item, HeroName.Mara).Stats.ShouldNotBeNull()["Agility"].Rating
+            .ShouldBe([134m, 66m]);
     }
 
     [Fact]
     public void For_NamesNoRandomRollsSoNoStatCanFallOutsideThePool()
     {
         ItemTooltip.For(Worn(), HeroName.Mara).RandomStats.ShouldBeNull();
-        Address(Worn()).ShouldNotContain("randomStats");
+        Body(Worn()).ShouldNotContain("randomStats");
     }
 
     [Fact]
@@ -98,14 +99,25 @@ public class ItemTooltipTests
         ItemTooltip.For(item, HeroName.Mara).Modifiers.ShouldBe(
             [new ItemModifier(ModifierKind.Trait, 456, 2)]);
 
-        Address(item).ShouldContain("modifiers=trait%3A456%3A2");
+        Body(item).ShouldContain("""{"kind":"Trait","id":456,"amount":2}""");
     }
 
     [Fact]
-    public void For_AddressesTheTooltipTheCodexAnswers() =>
-        Address(Worn()).ShouldBe(
-            "api/item/3275/tooltip?hero=Mara&rarity=5&itemLevel=330&upgrades=6&maxUpgrades=6" +
-            "&noSocket=true&gem=24&armor=968&Stamina=400&Agility=134&Haste=100&Expertise=234");
+    public void Write_StatesTheItemAsTheCodexReadsItBack() =>
+        Body(Worn()).ShouldBe(
+            """
+            {"hero":"Mara","rarity":"5","itemLevel":330,"upgrades":6,"maxUpgrades":6,"noSocket":true,
+            "gem":24,"armor":968,"stats":{"Stamina":{"rating":[400]},"Agility":{"rating":[134]},
+            "Haste":{"rating":[100]},"Expertise":{"rating":[234]}}}
+            """.ReplaceLineEndings(string.Empty));
+
+    [Fact]
+    public void For_LeavesModifiersOffAnItemCarryingNoTrait() =>
+        ItemTooltip.For(Worn(), HeroName.Mara).Modifiers.ShouldBeNull();
+
+    [Fact]
+    public void For_AddressesTheTooltipByTypeAndIdAlone() =>
+        CodexAddresses.Tooltip(EntityType.Item, 3275).ShouldBe("api/item/3275/tooltip");
 
     [Fact]
     public void For_StatesOnlyTheHeroForAnItemTheReportKnowsNothingMoreAbout()
@@ -114,7 +126,6 @@ public class ItemTooltipTests
 
         asked.Hero.ShouldBe("Mara");
         asked.Stats.ShouldBeNull();
-        CodexAddresses.Tooltip(EntityType.Item, 3275, asked)
-            .ShouldBe("api/item/3275/tooltip?hero=Mara");
+        TooltipBody.Write(asked).ShouldBe("""{"hero":"Mara"}""");
     }
 }

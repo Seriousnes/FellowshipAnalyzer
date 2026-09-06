@@ -25,9 +25,9 @@ public static class ItemTooltip
     /// slots in order and draws the rest as rolled lines. A blessing is left off: the log names it by
     /// an ability rank id, which only the codex can read back to a blessing.
     /// </remarks>
-    public static TooltipRequest For(Item item, HeroName? hero)
+    public static ItemTooltipRequest For(Item item, HeroName? hero)
     {
-        var stats = new Dictionary<string, IReadOnlyList<decimal>>(StringComparer.OrdinalIgnoreCase);
+        var rolls = new Dictionary<string, List<decimal>>(StringComparer.OrdinalIgnoreCase);
         decimal? armor = null;
 
         foreach (var attribute in item.Attributes)
@@ -38,12 +38,15 @@ public static class ItemTooltip
                 continue;
             }
 
-            stats[attribute.Name] = stats.TryGetValue(attribute.Name, out var already)
-                ? [.. already, attribute.Value]
-                : [attribute.Value];
+            if (!rolls.TryGetValue(attribute.Name, out var rated))
+            {
+                rolls[attribute.Name] = rated = [];
+            }
+
+            rated.Add(attribute.Value);
         }
 
-        return new TooltipRequest
+        return new ItemTooltipRequest
         {
             Hero = hero?.ToString(),
             Rarity = item.Quality.ToString(),
@@ -53,12 +56,17 @@ public static class ItemTooltip
             NoSocket = !item.HasGemSocket,
             Gem = item.Gem?.Id,
             Armor = armor,
-            Stats = stats,
-            Modifiers = [.. item.Traits.Select(trait =>
-                new ItemModifier(ModifierKind.Trait, new FSLID(trait.Id).NativeId, trait.Rank))],
+            Stats = rolls.ToDictionary(
+                stat => stat.Key,
+                stat => new StatRolls { Rating = stat.Value },
+                StringComparer.OrdinalIgnoreCase),
+            Modifiers = item.Traits.Count > 0
+                ? [.. item.Traits.Select(trait =>
+                    new ItemModifier(ModifierKind.Trait, new FSLID(trait.Id).NativeId, trait.Rank))]
+                : null,
         };
     }
 
     /// <summary>What the codex is to draw for an item the report states nothing more about than its id.</summary>
-    public static TooltipRequest For(HeroName? hero) => new() { Hero = hero?.ToString() };
+    public static ItemTooltipRequest For(HeroName? hero) => new() { Hero = hero?.ToString() };
 }
