@@ -15,12 +15,6 @@
                 <StatRow Value="@($"{ManaLostAtCap:N0}")">
                     mana lost at the cap
                 </StatRow>
-                @if (StaggerTracker.ManaFromCleansing > 0)
-                {
-                    <StatRow Value="@($"{StaggerTracker.ManaFromCleansing:N0}")">
-                        mana from cleansing Stagger
-                    </StatRow>
-                }
             </ChildContent>
         </StatCard>;
 }

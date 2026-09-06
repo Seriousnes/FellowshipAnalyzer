@@ -9,21 +9,19 @@ using AeonaTalents = FellowshipAnalyzer.Core.Common.Spells.AeonaTalents;
 namespace FellowshipAnalyzer.Heroes.Aeona.Modules;
 
 /// <summary>
-/// The mana Chrona Tap's expiries returned, and the share of it that arrived above the mana cap.
+/// The mana Chrona Tap's expiries returned, and the part lost at the cap.
 /// </summary>
 /// <remarks>
 /// <para>
 /// Registered dungeon-lifetime, so both figures span the whole report, including between pulls.
 /// </para>
 /// <para>
-/// A stack returns a fixed share of maximum mana, so what an expiry returns follows from the stacks it
-/// ends with. <c>[Before&lt;ChronaTracker&gt;]</c> is what puts this analyzer ahead of the tracker, which
-/// makes the mana amount at the expiry the amount held before the return.
+/// <c>[Before&lt;ChronaTracker&gt;]</c> puts this analyzer ahead of the tracker, so the mana amount
+/// read at an expiry is the amount held before the return.
 /// </para>
 /// </remarks>
 [RequiresTalent(AeonaTalents.ChronaTap)]
 [Dependency<ChronaTracker>]
-[Dependency<StaggerTracker>]
 [Before<ChronaTracker>]
 public sealed partial class ChronaTapAnalyzer : Analyzer
 {
@@ -38,7 +36,7 @@ public sealed partial class ChronaTapAnalyzer : Analyzer
     /// <summary>The mana Chrona Tap's expiries returned.</summary>
     public int ManaReturned { get; private set; }
 
-    /// <summary>The share of <see cref="ManaReturned"/> that arrived above the mana cap.</summary>
+    /// <summary>The part of <see cref="ManaReturned"/> lost at the cap.</summary>
     public int ManaLostAtCap { get; private set; }
 
     /// <summary>The mana one stack returns at expiry.</summary>
