@@ -201,10 +201,7 @@ public sealed partial class EntropyClaimAnalyzer : AllTargetUptimeAnalyzer, IEnt
         var unit = AuraWindowLedger.KeyOf(target);
 
         if (_openDots.TryGetValue(unit, out var open))
-        {
             open.DotEnd = Math.Max(open.DotEnd, timestamp);
-            return;
-        }
 
         if (PendingCast(timestamp) is not { } state) return;
 
@@ -264,15 +261,24 @@ public sealed partial class EntropyClaimAnalyzer : AllTargetUptimeAnalyzer, IEnt
 
         var generated = 0;
         var overcapped = 0;
+        var attributed = new HashSet<int>();
+        var end = state.DotEnd + ChronaTracker.GenerationAttributionWindowMs;
 
-        foreach (var gain in ChronaTracker.GainsBetween(ResourceTypes.Primary, start, state.DotEnd))
+        foreach (var gain in ChronaTracker.GainsBetween(ResourceTypes.Primary, start, end))
         {
             if (gain.AbilityId != Spells.EntropyClaim.FSLID) continue;
             if (gain.Target != unit) continue;
+            if (!state.TickTimestamps.Contains(gain.GeneratorTimestamp)) continue;
 
+            attributed.Add(gain.GeneratorTimestamp);
             generated += gain.Usable;
             overcapped += gain.Overcap;
         }
+
+        foreach (var tick in state.TickTimestamps)
+            if (!attributed.Contains(tick))
+                overcapped += ChronaTracker.GenerationLostAtMaximum(
+                    ResourceTypes.Primary, Spells.EntropyClaim.FSLID, tick);
 
         return (generated, overcapped);
     }
@@ -371,9 +377,9 @@ public sealed partial class EntropyClaimAnalyzer : AllTargetUptimeAnalyzer, IEnt
 /// <param name="Timestamp">When the cast completed.</param>
 /// <param name="Target">The enemy the dot was applied to, or <c>null</c> when no application followed the cast.</param>
 /// <param name="DotStart">When the dot was applied, or <c>null</c> when no application followed the cast.</param>
-/// <param name="DotEnd">The dot's expiry, or its last tick when it outlived the pull.</param>
+/// <param name="DotEnd">The dot's expiry, the later cast that refreshed it, or its last tick when it outlived the pull.</param>
 /// <param name="DelayAfterReadyMs">Milliseconds the charge sat available before this cast.</param>
-/// <param name="Ticks">Dot damage ticks recorded between application and expiry.</param>
+/// <param name="Ticks">Dot damage ticks between this application and its expiry.</param>
 /// <param name="ChronaGenerated">Chrona the ticks of this application generated.</param>
 /// <param name="ChronaOvercapped">Chrona the ticks of this application generated above the maximum.</param>
 /// <param name="EntropicBurstStacks">Entropic Burst stacks applied across every enemy when this application expired.</param>
@@ -388,6 +394,6 @@ public sealed record EntropyClaimCast(
     int ChronaOvercapped,
     int EntropicBurstStacks)
 {
-    /// <summary>Whether the cast applied the dot.</summary>
+    /// <summary>Whether the cast applied or refreshed the dot.</summary>
     public bool DotApplied => DotStart is not null;
 }

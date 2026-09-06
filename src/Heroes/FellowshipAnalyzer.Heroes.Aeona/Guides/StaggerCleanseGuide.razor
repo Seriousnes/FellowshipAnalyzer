@@ -5,7 +5,7 @@
         <p>
             Cast <strong><SpellLink Spell="Spells.AmendFate" /></strong> or
             <strong><SpellLink Spell="Spells.RestoreContinuity" /></strong> only when the target holds more
-            than the Stagger removed; below that, <SpellLink Spell="Spells.Oblivion" /> is the higher priority.
+            than the Stagger removed.
         </p>
         <p>
             Spend a free cast on Amend Fate or Restore Continuity while an ally holds at least the
@@ -29,6 +29,9 @@
 </GuideSection>
 
 @code {
+    private static readonly string[] AllyColumns =
+        ["Stagger Before Cast", "Stagger Cleansed", "Effective Healing"];
+
     protected override bool IsActive() => Analyzers.Any(analyzer => analyzer.Casts.Count > 0);
 
     private List<StaggerCleanseAnalyzer> Analyzers =>
@@ -58,16 +61,25 @@
         var analyzers = Analyzers;
         var stats = new List<OverviewStat>();
 
-        AddCleansedStat(stats, analyzers, Spells.AmendFate.FSLID, "Stagger Cleansed by Amend Fate");
-        AddCleansedStat(stats, analyzers, Spells.RestoreContinuity.FSLID, "Stagger Cleansed by Restore Continuity");
+        var bracketed = analyzers.Sum(analyzer => analyzer.BracketedCasts);
+        if (bracketed > 0)
+        {
+            var cleansed = analyzers.Sum(analyzer => analyzer.StaggerCleansed);
 
-        var effective = analyzers.Sum(analyzer => analyzer.EffectiveHealing);
-        var overheal = analyzers.Sum(analyzer => analyzer.Overheal);
+            stats.Add(new OverviewStat(
+                $"{(double)cleansed / bracketed:N0}",
+                "Stagger Cleansed per Cast",
+                $"Stagger Amend Fate and Restore Continuity removed, averaged over {bracketed} casts."));
+        }
 
-        stats.Add(new OverviewStat(
-            $"{effective:N0}",
-            "Effective Healing",
-            $"Cleanse healing that raised health, against {overheal:N0} overheal."));
+        var accumulated = analyzers.Sum(analyzer => analyzer.StaggerAccumulated);
+        if (accumulated > 0)
+        {
+            stats.Add(new OverviewStat(
+                $"{accumulated:N0}",
+                "Stagger Accumulated",
+                "Stagger the party accumulated across the pulls."));
+        }
 
         var rated = analyzers.Sum(analyzer => analyzer.CastsRated);
         if (rated > 0)
@@ -106,20 +118,6 @@
         return stats;
     }
 
-    private static void AddCleansedStat(
-        List<OverviewStat> stats, List<StaggerCleanseAnalyzer> analyzers, int ability, string label)
-    {
-        var bracketed = analyzers.Sum(analyzer => analyzer.BracketedCastsOf(ability));
-        if (bracketed == 0) return;
-
-        var cleansed = analyzers.Sum(analyzer => analyzer.StaggerCleansedBy(ability));
-
-        stats.Add(new OverviewStat(
-            $"{cleansed:N0}",
-            label,
-            $"Stagger removed across {bracketed} cast{(bracketed == 1 ? "" : "s")}, {(double)cleansed / bracketed:N0} per cast."));
-    }
-
     private IEnumerable<PerCastData> BuildPerCastData() =>
         Parser.StaggerCleanseAnalyzers.ToItemRows(Parser, analyzer => analyzer.Casts, (cast, pull) => BuildRow(cast));
 
@@ -152,12 +150,14 @@
                 "Party members this cast reached."));
         }
 
-        if (cast.StaggerBefore is { } before && cast.StaggerRemoved is { } amount)
+        if (cast.StaggerBefore is { } before && cast.RatedUnitId is { } ratedUnit)
         {
             stats.Add(new PerCastStat(
-                $"{before:N0} / {amount:N0}",
-                "Stagger Before Cast",
-                "The target's Stagger before the cast against the Stagger removed.",
+                $"{before:N0}",
+                "Highest Ally Stagger",
+                cast.StaggerRemoved is { } amount
+                    ? $"{AllyName(ratedUnit)} held {before:N0} Stagger before the cast, against the {amount:N0} removed."
+                    : $"{AllyName(ratedUnit)} held {before:N0} Stagger before the cast.",
                 performance));
         }
 
@@ -189,12 +189,35 @@
                 QualitativePerformance.Fail));
         }
 
+        var breakdown = AllyBreakdown(cast);
+
         return new PerCastRow
         {
             Performance = performance,
             Stats = [.. stats],
             Timestamp = cast.Timestamp,
-            Sequence = [new SpellCastEntry(cast.Ability.Value, performance)],
+            AdditionalContent = breakdown is null ? null : new AdditionalContent("Per Ally", breakdown),
         };
     }
+
+    private RenderFragment? AllyBreakdown(CleanseCastEntry cast)
+    {
+        var rows = AllyRows(cast);
+        if (rows.Count == 0) return null;
+
+        return @<TargetBreakdown TargetColumn="Ally" Columns="@AllyColumns" Rows="@rows" />;
+    }
+
+    private List<TargetBreakdownRow> AllyRows(CleanseCastEntry cast) =>
+    [
+        .. cast.Heals.Select(heal => new TargetBreakdownRow(
+            AllyName(heal.UnitId),
+            [
+                heal.StaggerBefore is { } before ? $"{before:N0}" : "-",
+                heal.StaggerCleansed is { } cleansed ? $"{cleansed:N0}" : "-",
+                $"{heal.EffectiveHealing:N0}",
+            ])),
+    ];
+
+    private string AllyName(int unitId) => Parser.ActorNames.GetValueOrDefault(unitId) ?? $"Ally {unitId}";
 }

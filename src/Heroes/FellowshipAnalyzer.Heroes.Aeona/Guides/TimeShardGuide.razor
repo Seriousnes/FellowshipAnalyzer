@@ -17,9 +17,8 @@
                 Spend every <SpellLink Spell="AeonaTalentList.ContinuumShift" /> on Time Shard.
             </p>
             <p>
-                Cast <SpellLink Spell="CoreItems.TwilightSkybolt" /> after
-                <SpellLink Spell="Spells.UnfoldingDoom" /> and before the empowered Time Shard@(MartialInitiativeTaken
-                    ? ", so Martial Initiative is active when the damage is dealt." : ".")
+                Cast <SpellLink Spell="CoreItems.TwilightSkybolt" /> before the empowered Time Shard,
+                so <SpellLink Spell="CoreItems.MartialInitiative" /> is active at the cast.
             </p>
             @if (VehementEquipped)
             {
@@ -66,17 +65,10 @@
                 <SubSection Title="Martial Initiative">
                     <PassFailBar Pass="@MartialInitiativePairings"
                                  Total="@EmpoweredCasts"
-                                 PassTooltip="@($"{MartialInitiativePairings} empowered casts dealt their damage with Martial Initiative active")"
-                                 FailTooltip="@($"{EmpoweredCasts - MartialInitiativePairings} empowered casts dealt their damage without Martial Initiative active")" />
+                                 PassTooltip="@($"{MartialInitiativePairings} empowered casts with Martial Initiative active")"
+                                 FailTooltip="@($"{EmpoweredCasts - MartialInitiativePairings} empowered casts without Martial Initiative active")" />
                 </SubSection>
             }
-
-            <SubSection Title="Twilight Skybolt">
-                <PassFailBar Pass="@SkyboltPairings"
-                             Total="@EmpoweredCasts"
-                             PassTooltip="@($"{SkyboltPairings} empowered casts were preceded by Twilight Skybolt inside the Continuum Shift window")"
-                             FailTooltip="@($"{EmpoweredCasts - SkyboltPairings} empowered casts were not")" />
-            </SubSection>
         }
 
         <CastDetail Title="Time Shard Casts" Casts="@BuildCastRows()" />
@@ -94,11 +86,17 @@
 
     private int EmpoweredCasts => Analyzers.Sum(analyzer => analyzer.EmpoweredCasts);
 
+    private long EmpoweredDamage => Analyzers.Sum(analyzer => analyzer.EmpoweredDamage);
+
     private int ContinuumShiftLost => Analyzers.Sum(analyzer => analyzer.ContinuumShiftLost);
 
     private int ContinuumShiftClosedWindows => Analyzers.Sum(analyzer => analyzer.ContinuumShiftClosedWindows);
 
     private int VehementPairings => Analyzers.Sum(analyzer => analyzer.VehementPairings);
+
+    private long VehementDisdainDamage => Analyzers.Sum(analyzer => analyzer.TotalVehementDisdainDamage);
+
+    private int VehementStacksConsumed => Analyzers.Sum(analyzer => analyzer.VehementStacksConsumed);
 
     private int SynchronicityPairings => Analyzers.Sum(analyzer => analyzer.SynchronicityPairings);
 
@@ -106,7 +104,9 @@
 
     private int MartialInitiativePairings => Analyzers.Sum(analyzer => analyzer.MartialInitiativePairings);
 
-    private int SkyboltPairings => Analyzers.Sum(analyzer => analyzer.SkyboltPairings);
+    private int ChronaGenerated => Analyzers.Sum(analyzer => analyzer.ChronaGenerated);
+
+    private int ChronaOvercapped => Analyzers.Sum(analyzer => analyzer.ChronaOvercapped);
 
     private bool ContinuumShiftTalented => Analyzers.Any(analyzer => analyzer.ContinuumShiftTalented);
 
@@ -120,19 +120,29 @@
 
     private IEnumerable<OverviewStat> BuildOverviewStats()
     {
-        var stats = new List<OverviewStat>
+        var stats = new List<OverviewStat>();
+
+        if (EmpoweredCasts > 0)
         {
-            new(
-                $"{CastsWithoutUnfoldingDoom} ({FormatShare(CastsWithoutUnfoldingDoom, TotalCasts)})",
-                "Casts without Unfolding Doom",
-                "Time Shard casts whose target did not have your Unfolding Doom active."),
-            new(
-                FormatDamage(AverageDamagePerCast()),
-                "Damage per Cast",
+            stats.Add(new OverviewStat(
+                FormatDamage(EmpoweredDamage / (double)EmpoweredCasts),
+                "Damage per Empowered Cast",
                 VehementEquipped
-                    ? "Time Shard damage plus The Vehement's Disdain damage, averaged over every cast."
-                    : "Time Shard damage, averaged over every cast."),
-        };
+                    ? "Time Shard damage plus The Vehement's Disdain damage, averaged over every empowered cast."
+                    : "Time Shard damage, averaged over every empowered cast."));
+        }
+
+        stats.Add(new OverviewStat(
+            FormatDamage(AverageDamagePerCast()),
+            "Damage per Cast",
+            VehementEquipped
+                ? "Time Shard damage plus The Vehement's Disdain damage, averaged over every cast."
+                : "Time Shard damage, averaged over every cast."));
+
+        stats.Add(new OverviewStat(
+            $"{CastsWithoutUnfoldingDoom} ({FormatShare(CastsWithoutUnfoldingDoom, TotalCasts)})",
+            "Casts without Unfolding Doom",
+            "Time Shard casts whose target did not have your Unfolding Doom active."));
 
         if (ContinuumShiftTalented)
         {
@@ -142,47 +152,78 @@
                 "Continuum Shift windows removed with no Time Shard cast consuming them."));
         }
 
+        stats.Add(new OverviewStat(
+            $"{ChronaGenerated:N0}",
+            "Chrona Generated",
+            "Chrona Time Shard generated."));
+
+        stats.Add(new OverviewStat(
+            $"{ChronaOvercapped:N0} ({FormatShare(ChronaOvercapped, ChronaGenerated + ChronaOvercapped)})",
+            "Chrona Overcapped",
+            "Chrona Time Shard generated above the maximum, and its share of everything Time Shard generated."));
+
+        if (VehementEquipped && VehementStacksConsumed > 0)
+        {
+            stats.Add(new OverviewStat(
+                FormatDamage(VehementDisdainDamage / (double)VehementStacksConsumed),
+                "Vehement Damage per Stack",
+                "The Vehement's Disdain damage per stack consumed."));
+        }
+
         return stats;
     }
 
     private IEnumerable<PerCastData> BuildCastRows() =>
         Parser.TimeShardAnalyzers.ToItemRows(
             Parser,
-            analyzer => analyzer.Casts.Select(cast => (Analyzer: analyzer, Cast: cast)),
-            (entry, pull) => BuildCastRow(entry.Analyzer, entry.Cast));
+            analyzer => analyzer.Casts,
+            (cast, pull) => BuildCastRow(cast));
 
-    private PerCastRow BuildCastRow(TimeShardAnalyzer analyzer, TimeShardCast cast)
+    private PerCastRow BuildCastRow(TimeShardCast cast)
     {
-        var items = BuildPairingItems(analyzer, cast);
+        var items = BuildPairingItems(cast);
 
         var stats = new List<PerCastStat>
         {
             new(
                 FormatDamage(cast.TotalDamage),
-                "Damage",
-                analyzer.VehementEquipped
+                cast.Empowered ? "Empowered Damage" : "Damage",
+                VehementEquipped
                     ? $"Time Shard damage plus The Vehement's Disdain damage inside the cast window, over {cast.Hits} hits of which {cast.CriticalHits} crit."
                     : $"Time Shard damage inside the cast window, over {cast.Hits} hits of which {cast.CriticalHits} crit."),
+            new(
+                $"{cast.TargetsHit}",
+                "Targets Hit",
+                "Enemies struck inside the cast window."),
+            new(
+                $"{cast.ChronaGenerated:N0}",
+                "Chrona Generated",
+                "Chrona this cast generated."),
+            new(
+                $"{cast.ChronaOvercap:N0}",
+                "Chrona Overcapped",
+                "Chrona this cast generated above the maximum."),
         };
 
-        if (cast.Empowered && cast.ChronaOvercap > 0)
+        if (VehementEquipped && cast.VehementErupted)
         {
             stats.Add(new PerCastStat(
-                $"{cast.ChronaOvercap}",
-                "Chrona Overcapped",
-                "Chrona the cast generated above the maximum."));
+                FormatDamage(cast.VehementDisdainDamage),
+                "Vehement Damage",
+                "The Vehement's Disdain damage inside the cast window."));
         }
 
         return new PerCastRow
         {
-            Performance = items.All(item => item.Pass) ? QualitativePerformance.Perfect : QualitativePerformance.Fail,
+            Performance = Rate(cast, items),
             Timestamp = cast.Timestamp,
             Stats = [.. stats],
             AdditionalContent = new AdditionalContent("Pairing", @<Checklist Items="@items" DimFailed="false" />),
+            Details = BuildTargetBreakdown(cast),
         };
     }
 
-    private static List<CheckItem> BuildPairingItems(TimeShardAnalyzer analyzer, TimeShardCast cast)
+    private List<CheckItem> BuildPairingItems(TimeShardCast cast)
     {
         var items = new List<CheckItem>
         {
@@ -196,7 +237,7 @@
 
         if (!cast.Empowered) return items;
 
-        if (analyzer.VehementEquipped)
+        if (VehementEquipped)
         {
             items.Add(new CheckItem
             {
@@ -208,36 +249,55 @@
             });
         }
 
-        if (analyzer.SynchronicityTalented && cast.AboveChronaThreshold is { } above)
+        if (SynchronicityTalented && cast.AboveChronaThreshold is { } above)
         {
             items.Add(new CheckItem
             {
                 Label = AeonaTalentList.Synchronicity,
                 Pass = above,
                 Note = cast.ChronaAtCast is { } chrona ? $"{chrona} Chrona" : null,
-                Title = $"Above {analyzer.ChronaThreshold} Chrona at the cast",
+                Title = $"Above {ChronaThreshold} Chrona at the cast",
             });
         }
 
-        if (analyzer.MartialInitiativeTaken)
+        if (MartialInitiativeTaken)
         {
             items.Add(new CheckItem
             {
                 Label = CoreItems.MartialInitiative,
                 Pass = cast.MartialInitiativeActive,
-                Title = "Active when the damage was dealt",
+                Note = cast.SkyboltLeadMs is { } lead ? $"Twilight Skybolt {lead / 1000d:0.#}s earlier" : null,
+                Title = "Active at the cast",
             });
         }
 
-        items.Add(new CheckItem
-        {
-            Label = CoreItems.TwilightSkybolt,
-            Pass = cast.SkyboltBeforeCast,
-            Note = cast.SkyboltLeadMs is { } lead ? $"{lead / 1000d:0.#}s before the cast" : null,
-            Title = "Cast after Continuum Shift was applied and before the Time Shard",
-        });
-
         return items;
+    }
+
+    private RenderFragment? BuildTargetBreakdown(TimeShardCast cast)
+    {
+        if (cast.TargetHits.Count == 0) return null;
+
+        var columns = new[] { "Hits", "Damage" };
+        var rows = cast.TargetHits
+            .Select(hit => new TargetBreakdownRow(
+                TargetName(hit.Target),
+                new[] { $"{hit.Hits}", FormatDamage(hit.Damage) }))
+            .ToList();
+
+        return @<TargetBreakdown Columns="@columns" Rows="@rows" />;
+    }
+
+    private string TargetName(UnitKey target) =>
+        Parser.ActorNames.GetValueOrDefault(target.ActorId) ?? $"Enemy {target.ActorId}";
+
+    private static QualitativePerformance Rate(TimeShardCast cast, List<CheckItem> items)
+    {
+        if (!cast.TargetDebuffed) return QualitativePerformance.Fail;
+
+        return items.TrueForAll(item => item.Pass)
+            ? QualitativePerformance.Perfect
+            : QualitativePerformance.Good;
     }
 
     private double AverageDamagePerCast()

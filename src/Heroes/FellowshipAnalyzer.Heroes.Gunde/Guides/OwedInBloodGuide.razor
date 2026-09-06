@@ -166,7 +166,6 @@
             Performance = perf,
             Stats = [.. stats],
             Timestamp = conversion.Timestamp,
-            Sequence = [new SpellCastEntry(conversion.AbilityId, perf)],
             AdditionalContent = new AdditionalContent("Conversion Notes", @<div>@BuildNote(conversion)</div>),
         };
     }

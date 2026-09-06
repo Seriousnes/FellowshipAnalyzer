@@ -363,7 +363,23 @@ public sealed class TimeShardAnalyzerTests
     }
 
     [Fact]
-    public async Task MartialInitiativeIsReadWhenTheDamageIsDealt()
+    public async Task MartialInitiativeIsReadAtTheCast()
+    {
+        var analyzer = await Analyze(
+            Combatant(talents: [AeonaTalents.ContinuumShift], martialInitiativeTrait: true),
+            ContinuumShiftApply(3_500),
+            MartialInitiativeApply(4_900),
+            TimeShardCastEvent(5_000, EnemyId),
+            ContinuumShiftRemove(5_000),
+            TimeShardDamage(5_100, EnemyId, 400_000));
+
+        analyzer.MartialInitiativeTaken.ShouldBeTrue();
+        analyzer.Casts.ShouldHaveSingleItem().MartialInitiativeActive.ShouldBeTrue();
+        analyzer.MartialInitiativePairings.ShouldBe(1);
+    }
+
+    [Fact]
+    public async Task MartialInitiativeArrivingAfterTheCast_FailsItsPairing()
     {
         var analyzer = await Analyze(
             Combatant(talents: [AeonaTalents.ContinuumShift], martialInitiativeTrait: true),
@@ -374,17 +390,17 @@ public sealed class TimeShardAnalyzerTests
             TimeShardDamage(5_100, EnemyId, 400_000));
 
         analyzer.MartialInitiativeTaken.ShouldBeTrue();
-        analyzer.Casts.ShouldHaveSingleItem().MartialInitiativeActive.ShouldBeTrue();
-        analyzer.MartialInitiativePairings.ShouldBe(1);
+        analyzer.Casts.ShouldHaveSingleItem().MartialInitiativeActive.ShouldBeFalse();
+        analyzer.MartialInitiativePairings.ShouldBe(0);
     }
 
     [Fact]
-    public async Task MartialInitiativeEndingBeforeTheDamageIsDealt_FailsItsPairing()
+    public async Task MartialInitiativeEndingBeforeTheCast_FailsItsPairing()
     {
         var analyzer = await Analyze(
             Combatant(talents: [AeonaTalents.ContinuumShift], martialInitiativeTrait: true),
             MartialInitiativeApply(2_000),
-            MartialInitiativeRemove(5_050),
+            MartialInitiativeRemove(4_900),
             ContinuumShiftApply(3_500),
             TimeShardCastEvent(5_000, EnemyId),
             ContinuumShiftRemove(5_000),

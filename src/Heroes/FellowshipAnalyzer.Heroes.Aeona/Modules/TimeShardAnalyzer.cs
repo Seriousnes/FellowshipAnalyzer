@@ -40,6 +40,12 @@ public sealed record ContinuumShiftWindow(
     public int DurationMs => End - Start;
 }
 
+/// <summary>The hits one enemy took inside a Time Shard cast's damage window.</summary>
+/// <param name="Target">The enemy struck.</param>
+/// <param name="Hits">Hits on that enemy.</param>
+/// <param name="Damage">Damage dealt to that enemy.</param>
+public sealed record TimeShardTargetHit(UnitKey Target, int Hits, long Damage);
+
 /// <summary>
 /// One Time Shard cast: the enemy it hit and that enemy's Unfolding Doom, the Continuum Shift window it
 /// consumed, The Vehement and Martial Initiative around it, the Twilight Skybolt that preceded it, the
@@ -68,16 +74,16 @@ public sealed record TimeShardCast
     /// <summary>The Vehement stacks the player held at the cast.</summary>
     public required int VehementStacksAtCast { get; init; }
 
-    /// <summary>The Vehement stacks removed inside the cast's damage window.</summary>
+    /// <summary>
+    /// The Vehement stacks removed inside the cast's damage window, which ends at the next Time Shard
+    /// cast where that arrives first, so no removal is counted against two casts.
+    /// </summary>
     public required int VehementStacksConsumed { get; init; }
 
     /// <summary>The Vehement's Disdain damage inside the cast's damage window.</summary>
     public required long VehementDisdainDamage { get; init; }
 
-    /// <summary>
-    /// Whether Martial Initiative was active when the cast's damage was dealt, read at the first hit
-    /// attributed to it and at the cast itself when no hit was attributed.
-    /// </summary>
+    /// <summary>Whether Martial Initiative was active at the cast.</summary>
     public required bool MartialInitiativeActive { get; init; }
 
     /// <summary>
@@ -98,7 +104,10 @@ public sealed record TimeShardCast
     /// <summary>Whether the Chrona at the cast was above half the maximum.</summary>
     public required bool? AboveChronaThreshold { get; init; }
 
-    /// <summary>Chrona lost at the maximum inside the cast's damage window.</summary>
+    /// <summary>Chrona Time Shard generated at this cast.</summary>
+    public required int ChronaGenerated { get; init; }
+
+    /// <summary>Chrona Time Shard generated above the maximum at this cast.</summary>
     public required int ChronaOvercap { get; init; }
 
     /// <summary>The Time Shard damage from the hits inside the cast's damage window.</summary>
@@ -109,6 +118,15 @@ public sealed record TimeShardCast
 
     /// <summary>Time Shard critical hits attributed to this cast.</summary>
     public required int CriticalHits { get; init; }
+
+    /// <summary>
+    /// Every enemy struck inside the cast's damage window, ordered by the damage it took. Covers the
+    /// Time Shard hits and the Vehement's Disdain hits attributed to this cast.
+    /// </summary>
+    public required IReadOnlyList<TimeShardTargetHit> TargetHits { get; init; }
+
+    /// <summary>Enemies struck inside the cast's damage window.</summary>
+    public int TargetsHit => TargetHits.Count;
 
     /// <summary>Whether The Vehement's Disdain erupted inside the cast's damage window.</summary>
     public bool VehementErupted => VehementDisdainDamage > 0;
@@ -176,6 +194,21 @@ public sealed partial class TimeShardAnalyzer : Analyzer
     /// <summary>The Vehement's Disdain damage attributed to Time Shard casts across the pull.</summary>
     public long TotalVehementDisdainDamage => Casts.Sum(cast => cast.VehementDisdainDamage);
 
+    /// <summary>
+    /// Time Shard damage plus attributed Vehement's Disdain damage across the casts that consumed a
+    /// Continuum Shift window. Exposed as a sum so a caller covering several pulls divides once.
+    /// </summary>
+    public long EmpoweredDamage => Casts.Where(cast => cast.Empowered).Sum(cast => cast.TotalDamage);
+
+    /// <summary>The Vehement stacks Time Shard casts consumed across the pull.</summary>
+    public int VehementStacksConsumed => Casts.Sum(cast => cast.VehementStacksConsumed);
+
+    /// <summary>Chrona Time Shard generated across the pull.</summary>
+    public int ChronaGenerated => Casts.Sum(cast => cast.ChronaGenerated);
+
+    /// <summary>Chrona Time Shard generated above the maximum across the pull.</summary>
+    public int ChronaOvercapped => Casts.Sum(cast => cast.ChronaOvercap);
+
     /// <summary>Average Time Shard damage plus attributed Vehement's Disdain damage per cast.</summary>
     public double AverageDamagePerCast =>
         CastCount == 0 ? 0 : Casts.Sum(cast => (double)cast.TotalDamage) / CastCount;
@@ -208,12 +241,22 @@ public sealed partial class TimeShardAnalyzer : Analyzer
     /// <summary>Whether the player selected the Synchronicity talent.</summary>
     public bool SynchronicityTalented => Owner.SelectedCombatant.HasTalent(AeonaTalents.Synchronicity);
 
-    /// <summary>Whether the build has The Vehement blessing.</summary>
-    public bool VehementEquipped => Owner.SelectedCombatant.BlessingLevel(VehementBlessing) > 0;
+    /// <summary>
+    /// Whether the build has The Vehement: the blessing slotted into gear, or the buff and its
+    /// eruption on the player during the pull.
+    /// </summary>
+    public bool VehementEquipped =>
+        Owner.SelectedCombatant.BlessingLevel(VehementBlessing) > 0
+        || _vehementStacks.Count > 0
+        || _vehementDisdainDamage.Count > 0;
 
-    /// <summary>Whether the build has the Martial Initiative trait.</summary>
+    /// <summary>
+    /// Whether the build has Martial Initiative: the trait rolled onto gear, or the buff on the player
+    /// during the pull.
+    /// </summary>
     public bool MartialInitiativeTaken =>
-        Owner.SelectedCombatant.TraitRank(CoreItems.MartialInitiativeTrait.FSLID) > 0;
+        Owner.SelectedCombatant.TraitRank(CoreItems.MartialInitiativeTrait.FSLID) > 0
+        || _martialInitiative.Count > 0;
 
     /// <summary>Empowered casts The Vehement's Disdain erupted on.</summary>
     public int VehementPairings => Casts.Count(cast => cast.Empowered && cast.VehementErupted);
@@ -226,7 +269,7 @@ public sealed partial class TimeShardAnalyzer : Analyzer
     public int EmpoweredCastsWithChrona =>
         Casts.Count(cast => cast.Empowered && cast.AboveChronaThreshold is not null);
 
-    /// <summary>Empowered casts whose damage was dealt with Martial Initiative active.</summary>
+    /// <summary>Empowered casts with Martial Initiative active.</summary>
     public int MartialInitiativePairings =>
         Casts.Count(cast => cast.Empowered && cast.MartialInitiativeActive);
 
@@ -354,9 +397,12 @@ public sealed partial class TimeShardAnalyzer : Analyzer
         var casts = new List<TimeShardCast>(_casts.Count);
         var threshold = ChronaThreshold;
 
-        foreach (var cast in _casts)
+        for (var index = 0; index < _casts.Count; index++)
         {
+            var cast = _casts[index];
+            var windowEnd = WindowEnd(index);
             var hits = HitsFor(cast.Timestamp);
+            var disdainHits = VehementDisdainHitsFor(cast.Timestamp);
             var target = ResolveTarget(cast, hits);
             var continuumShiftStart = empoweredWindowStarts.GetValueOrDefault(cast.Timestamp, -1);
             var empowered = continuumShiftStart >= 0;
@@ -370,25 +416,58 @@ public sealed partial class TimeShardAnalyzer : Analyzer
                 Empowered = empowered,
                 ContinuumShiftStart = empowered ? continuumShiftStart : null,
                 VehementStacksAtCast = StacksAt(cast.Timestamp),
-                VehementStacksConsumed = VehementStacksRemovedNear(cast.Timestamp),
-                VehementDisdainDamage = VehementDisdainDamageNear(cast.Timestamp),
-                MartialInitiativeActive =
-                    ActiveAt(_martialInitiative, hits.Count > 0 ? hits[0].Timestamp : cast.Timestamp),
+                VehementStacksConsumed = VehementStacksRemovedIn(cast.Timestamp, windowEnd),
+                VehementDisdainDamage = disdainHits.Sum(hit => hit.Amount),
+                MartialInitiativeActive = ActiveAt(_martialInitiative, cast.Timestamp),
                 SkyboltLeadMs = SkyboltLead(cast.Timestamp),
                 SkyboltBeforeCast = empowered && SkyboltInside(continuumShiftStart, cast.Timestamp),
                 ChronaAtCast = chrona,
                 AboveChronaThreshold = chrona is { } held ? held > threshold : null,
-                ChronaOvercap = ChronaTracker.OvercapBetween(
-                    ResourceTypes.Primary,
-                    cast.Timestamp,
-                    cast.Timestamp + DamageWindowMs),
+                ChronaGenerated = ChronaTracker.GeneratedByAbilityBetween(
+                    ResourceTypes.Primary, Spells.TimeShard.FSLID, cast.Timestamp, windowEnd),
+                ChronaOvercap = ChronaTracker.OvercapByAbilityBetween(
+                    ResourceTypes.Primary, Spells.TimeShard.FSLID, cast.Timestamp, windowEnd),
                 Damage = hits.Sum(hit => hit.Amount),
                 Hits = hits.Count,
                 CriticalHits = hits.Count(hit => hit.IsCritical),
+                TargetHits = BuildTargetHits(hits, disdainHits),
             });
         }
 
         return new Evaluation(casts, windows);
+    }
+
+    private int WindowEnd(int index)
+    {
+        var cast = _casts[index];
+        var end = cast.Timestamp + DamageWindowMs;
+
+        if (index + 1 < _casts.Count)
+            end = Math.Min(end, _casts[index + 1].Timestamp - 1);
+
+        return Math.Max(cast.Timestamp, end);
+    }
+
+    private static List<TimeShardTargetHit> BuildTargetHits(
+        List<DamageEvent> hits,
+        List<DamageEvent> disdainHits)
+    {
+        var byTarget = new Dictionary<UnitKey, (int Hits, long Damage)>();
+
+        foreach (var hit in hits.Concat(disdainHits))
+        {
+            var key = new UnitKey(hit.TargetId, hit.TargetInstance ?? 0);
+            var running = byTarget.GetValueOrDefault(key);
+            byTarget[key] = (running.Hits + 1, running.Damage + hit.Amount);
+        }
+
+        return
+        [
+            .. byTarget
+                .Select(entry => new TimeShardTargetHit(entry.Key, entry.Value.Hits, entry.Value.Damage))
+                .OrderByDescending(entry => entry.Damage)
+                .ThenBy(entry => entry.Target.ActorId)
+        ];
     }
 
     private List<ContinuumShiftWindow> BuildContinuumShiftWindows(out Dictionary<int, int> empoweredWindowStarts)
@@ -458,18 +537,18 @@ public sealed partial class TimeShardAnalyzer : Analyzer
         return hits;
     }
 
-    private long VehementDisdainDamageNear(int castTimestamp)
+    private List<DamageEvent> VehementDisdainHitsFor(int castTimestamp)
     {
-        long total = 0;
+        var hits = new List<DamageEvent>();
         foreach (var hit in _vehementDisdainDamage)
         {
             if (hit.Timestamp < castTimestamp || hit.Timestamp > castTimestamp + DamageWindowMs) continue;
             if (MostRecentCastAtOrBefore(hit.Timestamp) != castTimestamp) continue;
 
-            total += hit.Amount;
+            hits.Add(hit);
         }
 
-        return total;
+        return hits;
     }
 
     private int MostRecentCastAtOrBefore(int timestamp)
@@ -518,13 +597,13 @@ public sealed partial class TimeShardAnalyzer : Analyzer
         return stacks;
     }
 
-    private int VehementStacksRemovedNear(int castTimestamp)
+    private int VehementStacksRemovedIn(int castTimestamp, int windowEnd)
     {
         var removed = 0;
         for (var i = 1; i < _vehementStacks.Count; i++)
         {
             var (timestamp, stacks) = _vehementStacks[i];
-            if (timestamp < castTimestamp || timestamp > castTimestamp + DamageWindowMs) continue;
+            if (timestamp < castTimestamp || timestamp > windowEnd) continue;
 
             var previous = _vehementStacks[i - 1].Stacks;
             if (stacks < previous)

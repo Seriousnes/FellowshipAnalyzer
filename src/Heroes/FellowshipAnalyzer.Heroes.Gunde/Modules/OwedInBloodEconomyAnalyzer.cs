@@ -83,7 +83,7 @@ public sealed partial class OwedInBloodEconomyAnalyzer : Analyzer
         var reclaimed = ReclaimPendingDecay(castEvent.Timestamp);
         _lastConversion = castEvent.Timestamp;
         _pending.Add(new PendingConversion(
-            castEvent.Timestamp, reclaimed + _stacks, _bankObserved, castEvent.Ability.Id, _spiritActive));
+            castEvent.Timestamp, reclaimed + _stacks, _bankObserved, _spiritActive));
     }
 
     private void SetStacks(int timestamp, int stacks)
@@ -154,7 +154,6 @@ public sealed partial class OwedInBloodEconomyAnalyzer : Analyzer
                 pending.Timestamp,
                 pending.StacksConverted,
                 pending.BankObserved,
-                pending.AbilityId,
                 followingSlaughter is not null,
                 followingSlaughter?.OpenWoundsActive ?? false,
                 pending.SpiritActive));
@@ -188,7 +187,7 @@ public sealed partial class OwedInBloodEconomyAnalyzer : Analyzer
     private readonly record struct PendingDecay(int Amount, int Timestamp);
 
     private readonly record struct PendingConversion(
-        int Timestamp, int StacksConverted, bool BankObserved, int AbilityId, bool SpiritActive);
+        int Timestamp, int StacksConverted, bool BankObserved, bool SpiritActive);
 
     private sealed record SlaughterMark(int Timestamp, bool OpenWoundsActive);
 
@@ -198,7 +197,6 @@ public sealed partial class OwedInBloodEconomyAnalyzer : Analyzer
         int Timestamp,
         int StacksConverted,
         bool BankObserved,
-        int AbilityId,
         bool FollowedBySlaughter,
         bool PairedWithRupture,
         bool SpiritActive)

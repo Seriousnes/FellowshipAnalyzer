@@ -15,6 +15,11 @@ namespace FellowshipAnalyzer.Heroes.Aeona.Modules;
 /// <param name="DelayMs">Combat milliseconds between Fleeting Hour becoming available and this cast.</param>
 /// <param name="SurgingChronaGranted">The Chrona Surging Chrona granted for this cast, or <c>0</c> without the talent.</param>
 /// <param name="SurgingChronaOvercapped">The share of <paramref name="SurgingChronaGranted"/> the cap refused.</param>
+/// <param name="ActiveOnUnfoldingDoomCooldownMs">Milliseconds of the window with Unfolding Doom on cooldown.</param>
+/// <param name="ActiveWithUnfoldingDoomAvailableMs">Milliseconds of the window with Unfolding Doom available.</param>
+/// <param name="AvailableOnUnfoldingDoomCooldownMs">
+/// Milliseconds before this cast with Fleeting Hour available and Unfolding Doom on cooldown.
+/// </param>
 public sealed record FleetingHourCast(
     int Timestamp,
     AuraWindow? Window,
@@ -22,16 +27,27 @@ public sealed record FleetingHourCast(
     int OutsideCombatMs,
     int DelayMs,
     int SurgingChronaGranted,
-    int? SurgingChronaOvercapped);
+    int? SurgingChronaOvercapped,
+    int ActiveOnUnfoldingDoomCooldownMs,
+    int ActiveWithUnfoldingDoomAvailableMs,
+    int AvailableOnUnfoldingDoomCooldownMs)
+{
+    /// <summary>Share of the window (0-1) with Unfolding Doom on cooldown.</summary>
+    public double ActiveOnUnfoldingDoomCooldownShare =>
+        Window is { Duration: > 0 } window ? (double)ActiveOnUnfoldingDoomCooldownMs / window.Duration : 0;
+}
 
 /// <summary>
-/// Fleeting Hour across the dungeon: the windows it opened, how much of each fell inside a pull, how long
-/// the ability sat available before each cast, and the Surging Chrona each cast granted.
+/// Fleeting Hour across the dungeon: the windows it opened, how much of each ran with Unfolding Doom on
+/// cooldown, how much of each fell inside a pull, how long the ability sat available before each cast, and
+/// the Surging Chrona each cast granted.
 /// </summary>
 /// <remarks>
 /// Registered dungeon-lifetime, because uptime outside combat is only answerable against the whole run:
 /// the buff windows come from effect 2744 on the player, and the pull intervals in
-/// <see cref="CombatLogParser.Pulls"/> divide them into combat and non-combat time.
+/// <see cref="CombatLogParser.Pulls"/> divide them into combat and non-combat time. Unfolding Doom's
+/// cooldown runs across pulls too, so its state comes from <see cref="SpellUsable"/> over the whole
+/// dungeon rather than from the per-pull <c>UnfoldingDoomAnalyzer</c>.
 /// </remarks>
 [Dependency<ChronaTracker>]
 [Dependency<SpellUsable>]
@@ -44,6 +60,7 @@ public sealed partial class FleetingHourAnalyzer : Analyzer
     private readonly List<AuraWindow> _windows = [];
     private readonly List<CastState> _casts = [];
     private readonly List<AvailabilityChange> _availability = [];
+    private readonly List<AvailabilityChange> _unfoldingDoomAvailability = [];
 
     private int? _openedAt;
 
@@ -59,6 +76,23 @@ public sealed partial class FleetingHourAnalyzer : Analyzer
 
     /// <summary>Time Fleeting Hour was active, across the whole report.</summary>
     public int TotalUptimeMs => Windows.Sum(window => window.Duration);
+
+    /// <summary>Time Fleeting Hour was active with Unfolding Doom on cooldown.</summary>
+    public int ActiveOnUnfoldingDoomCooldownMs => UnfoldingDoom.ActiveOnCooldownMs;
+
+    /// <summary>Share of Fleeting Hour's active time (0-1) with Unfolding Doom on cooldown.</summary>
+    public double ActiveOnUnfoldingDoomCooldownShare =>
+        TotalUptimeMs <= 0 ? 0 : (double)ActiveOnUnfoldingDoomCooldownMs / TotalUptimeMs;
+
+    /// <summary>Time Fleeting Hour was active with Unfolding Doom available.</summary>
+    public int ActiveWithUnfoldingDoomAvailableMs => TotalUptimeMs - ActiveOnUnfoldingDoomCooldownMs;
+
+    /// <summary>Share of Fleeting Hour's active time (0-1) with Unfolding Doom available.</summary>
+    public double ActiveWithUnfoldingDoomAvailableShare =>
+        TotalUptimeMs <= 0 ? 0 : (double)ActiveWithUnfoldingDoomAvailableMs / TotalUptimeMs;
+
+    /// <summary>Time Fleeting Hour was available and not cast with Unfolding Doom on cooldown.</summary>
+    public int AvailableOnUnfoldingDoomCooldownMs => UnfoldingDoom.AvailableOnCooldownMs;
 
     /// <summary>Time Fleeting Hour was active inside a pull.</summary>
     public int CombatUptimeMs => Windows.Sum(OverlapWithPulls);
@@ -102,7 +136,9 @@ public sealed partial class FleetingHourAnalyzer : Analyzer
     public double SurgingChronaOvercapShare =>
         SurgingChronaGranted <= 0 ? 0 : (double)SurgingChronaOvercapped / SurgingChronaGranted;
 
-    private List<AuraWindow> AvailableWindows => field ??= BuildAvailableWindows();
+    private List<AuraWindow> AvailableWindows => field ??= BuildWindows(_availability, available: true);
+
+    private UnfoldingDoomState UnfoldingDoom => field ??= SummariseUnfoldingDoom();
 
     /// <summary>Whether a Fleeting Hour window covered <paramref name="timestamp"/>, endpoints included.</summary>
     /// <param name="timestamp">The instant to test.</param>
@@ -155,14 +191,24 @@ public sealed partial class FleetingHourAnalyzer : Analyzer
     }
 
     [On<PullStartEvent>]
-    private void OnPullStart(PullStartEvent e) =>
+    private void OnPullStart(PullStartEvent e)
+    {
         _availability.Add(new AvailabilityChange(
             e.StartTime,
             SpellUsable.CooldownRemaining(Spells.FleetingHour.FSLID, e.StartTime) <= 0));
 
+        _unfoldingDoomAvailability.Add(new AvailabilityChange(
+            e.StartTime,
+            SpellUsable.CooldownRemaining(Spells.UnfoldingDoom.FSLID, e.StartTime) <= 0));
+    }
+
     [On<UpdateSpellUsableEvent>(By = Actor.Player, Spell = nameof(Spells.FleetingHour))]
     private void OnUsableChanged(UpdateSpellUsableEvent e) =>
         _availability.Add(new AvailabilityChange(e.Timestamp, e.IsAvailable));
+
+    [On<UpdateSpellUsableEvent>(By = Actor.Player, Spell = nameof(Spells.UnfoldingDoom))]
+    private void OnUnfoldingDoomUsableChanged(UpdateSpellUsableEvent e) =>
+        _unfoldingDoomAvailability.Add(new AvailabilityChange(e.Timestamp, e.IsAvailable));
 
     [On<CastEvent>(By = Actor.Player, Spell = nameof(Spells.FleetingHour))]
     private void OnFleetingHourCast(CastEvent e)
@@ -179,6 +225,7 @@ public sealed partial class FleetingHourAnalyzer : Analyzer
     {
         var window = WindowOpenedBy(state.Timestamp);
         var granted = SurgingChronaGrant;
+        var onCooldown = window is { } spanned ? Overlap(spanned, UnfoldingDoom.CooldownWindows) : 0;
 
         return new FleetingHourCast(
             state.Timestamp,
@@ -189,7 +236,46 @@ public sealed partial class FleetingHourAnalyzer : Analyzer
             granted,
             state.ChronaBefore is { } before && state.ChronaCap > 0
                 ? Math.Max(0, before + granted - state.ChronaCap)
-                : null);
+                : null,
+            onCooldown,
+            window is { } whole ? whole.Duration - onCooldown : 0,
+            AvailableOnUnfoldingDoomCooldownBefore(state.Timestamp));
+    }
+
+    private int AvailableOnUnfoldingDoomCooldownBefore(int castTimestamp)
+    {
+        foreach (var window in AvailableWindows)
+        {
+            if (castTimestamp < window.Start || castTimestamp > window.End) continue;
+
+            return Overlap(new AuraWindow(window.Start, castTimestamp), UnfoldingDoom.CooldownWindows);
+        }
+
+        return 0;
+    }
+
+    private UnfoldingDoomState SummariseUnfoldingDoom()
+    {
+        var cooldowns = BuildWindows(_unfoldingDoomAvailability, available: false);
+        var windows = Windows;
+        var activeOnCooldown = 0;
+
+        foreach (var window in windows)
+            activeOnCooldown += Overlap(window, cooldowns);
+
+        var availableOnCooldown = 0;
+
+        foreach (var available in AvailableWindows)
+        {
+            foreach (var cooldown in cooldowns)
+            {
+                if (Intersect(available, cooldown) is not { } shared) continue;
+
+                availableOnCooldown += shared.Duration - Overlap(shared, windows);
+            }
+        }
+
+        return new UnfoldingDoomState(cooldowns, activeOnCooldown, availableOnCooldown);
     }
 
     private AuraWindow? WindowOpenedBy(int castTimestamp)
@@ -233,17 +319,18 @@ public sealed partial class FleetingHourAnalyzer : Analyzer
         return 0;
     }
 
-    private List<AuraWindow> BuildAvailableWindows()
+    private List<AuraWindow> BuildWindows(List<AvailabilityChange> changes, bool available)
     {
         var windows = new List<AuraWindow>();
         var open = false;
         var openedAt = 0;
 
-        foreach (var change in _availability)
+        foreach (var change in changes)
         {
-            if (change.Available == open) continue;
+            var matches = change.Available == available;
+            if (matches == open) continue;
 
-            open = change.Available;
+            open = matches;
 
             if (open) openedAt = change.Timestamp;
             else if (change.Timestamp > openedAt) windows.Add(new AuraWindow(openedAt, change.Timestamp));
@@ -273,6 +360,22 @@ public sealed partial class FleetingHourAnalyzer : Analyzer
         return to > from ? to - from : 0;
     }
 
+    private static int Overlap(AuraWindow window, IReadOnlyList<AuraWindow> others)
+    {
+        var total = 0;
+        foreach (var other in others)
+            total += Overlap(window, other.Start, other.End);
+
+        return total;
+    }
+
+    private static AuraWindow? Intersect(AuraWindow first, AuraWindow second)
+    {
+        var from = Math.Max(first.Start, second.Start);
+        var to = Math.Min(first.End, second.End);
+        return to > from ? new AuraWindow(from, to) : null;
+    }
+
     private static ClassResource? ChronaSnapshot(ActorResources? resources)
     {
         if (resources?.Resources is not { Count: > 0 } list) return null;
@@ -286,6 +389,11 @@ public sealed partial class FleetingHourAnalyzer : Analyzer
     }
 
     private readonly record struct AvailabilityChange(int Timestamp, bool Available);
+
+    private sealed record UnfoldingDoomState(
+        List<AuraWindow> CooldownWindows,
+        int ActiveOnCooldownMs,
+        int AvailableOnCooldownMs);
 
     private sealed record CastState(int Timestamp, int? ChronaBefore, int ChronaCap);
 }
