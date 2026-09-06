@@ -1,3 +1,6 @@
+using Fellowship.SDK;
+using Fellowship.SDK.Client;
+
 using FellowshipAnalyzer.Core.UI.Components;
 
 using Shouldly;
@@ -10,16 +13,8 @@ public class CodexTests
 {
     [Fact]
     public void PageUrl_AddressesTheCodexPage() =>
-        Codex.PageUrl("ability/1964").ShouldBe("https://codex.fellowshipanalyzer.com/ability/1964");
-
-    [Fact]
-    public void TooltipPath_AddressesTheApiRouteRelativeToTheOrigin() =>
-        Codex.TooltipPath("ability/1964").ShouldBe("api/ability/1964/tooltip");
-
-    [Fact]
-    public void TooltipPath_IncludesTheQueryItIsGiven() =>
-        Codex.TooltipPath("item/5326", "Hero=Ardeos&Rarity=6")
-            .ShouldBe("api/item/5326/tooltip?Hero=Ardeos&Rarity=6");
+        Codex.PageUrl(CodexAddresses.Page(EntityType.Ability, 1964))
+            .ShouldBe("https://codex.fellowshipanalyzer.com/ability/1964");
 
     [Theory]
     [InlineData("T_Lisa_Stagger.jpg")]

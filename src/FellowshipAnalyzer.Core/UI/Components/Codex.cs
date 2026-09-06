@@ -1,31 +1,27 @@
+using Fellowship.SDK.Client;
+
 using FellowshipAnalyzer.Core.Game;
 
 namespace FellowshipAnalyzer.Core.UI.Components;
 
 /// <summary>
-/// Addresses into the Fellowship Codex: the page a link opens, the tooltip fragment a hover fetches,
-/// and the art the CDN serves. Every codex and CDN address the app builds comes from here.
+/// Addresses into the Fellowship Codex. <see cref="CodexAddresses"/> writes the page a link opens and
+/// the tooltip fragment a hover fetches; the art the CDN serves is addressed here, because which file
+/// an icon name resolves to is read from <c>spelldb.json</c>.
 /// </summary>
 public static class Codex
 {
     /// <summary>The codex origin, serving both the browsable pages and the <c>/api</c> routes.</summary>
-    public const string Origin = "https://codex.fellowshipanalyzer.com";
+    public static string Origin { get; } = CodexAddresses.Origin.ToString().TrimEnd('/');
 
     /// <summary>
     /// The origin serving codex art. Every art file is a PNG under <c>/ui</c>, so
     /// <see cref="IconUrl(string)"/> normalises whatever extension its caller was given.
     /// </summary>
-    public const string AssetOrigin = "https://cdn.codex.fellowshipanalyzer.com";
+    public static string AssetOrigin { get; } = CodexAddresses.ArtOrigin.ToString().TrimEnd('/');
 
     /// <summary>The codex page for the entity at <paramref name="path"/>, for example <c>ability/1964</c>.</summary>
     public static string PageUrl(string path) => $"{Origin}/{path}";
-
-    /// <summary>
-    /// The <c>/api</c> route answering the entity's tooltip fragment, relative to <see cref="Origin"/>.
-    /// <paramref name="query"/> supplies the values a tooltip needs, such as the hero an item is read for.
-    /// </summary>
-    public static string TooltipPath(string path, string? query = null) =>
-        query is { Length: > 0 } ? $"api/{path}/tooltip?{query}" : $"api/{path}/tooltip";
 
     /// <summary>
     /// The CDN address of <paramref name="icon"/>, an art name as the game data or a combat log writes

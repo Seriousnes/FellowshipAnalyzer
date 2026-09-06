@@ -1,8 +1,10 @@
-@using System.Web
+@using Fellowship.SDK
+@using Fellowship.SDK.Client
 @using FellowshipAnalyzer.Core.Analysis
+@using FellowshipAnalyzer.Core.Common.Spells
 @using OneOf
 
-<a href="@ItemUrl" target="_blank" rel="noopener noreferrer" data-tooltip-spell-id="@TooltipSpellId" class="item-link">
+<a href="@ItemUrl" target="_blank" rel="noopener noreferrer" data-tooltip-path="@TooltipPath" data-tooltip-body="@_request" class="item-link">
     @if (Icon && _icon is { Length: > 0 })
     {
         <img src="@IconUrl" class="item-link__icon" alt="" />
@@ -33,10 +35,10 @@
     private string? _name;
     private string? _icon;
     private Core.Events.Item? _equipped;
+    private string? _request;
 
-    private string LinkUri => $"item/{_itemId}";
-    private string ItemUrl => Codex.PageUrl(Hero is { } hero ? $"{LinkUri}?hero={hero}" : LinkUri);
-    private string? TooltipSpellId => _itemId > 0 ? Codex.TooltipPath(LinkUri, TooltipQuery()) : null;
+    private string ItemUrl => Codex.PageUrl(CodexAddresses.Page(EntityType.Item, _itemId, Hero?.ToString()));
+    private string? TooltipPath => _itemId > 0 ? CodexAddresses.Tooltip(EntityType.Item, _itemId) : null;
     private string IconUrl => _equipped is { } item ? Codex.IconUrl(_icon!, item.Quality) : Codex.IconUrl(_icon!);
 
     protected override void OnParametersSet()
@@ -53,37 +55,9 @@
                 }
             }
         );
-    }
 
-    private string TooltipQuery()
-    {
-        var query = HttpUtility.ParseQueryString(string.Empty);
-
-        if (Hero is { } hero)
-            query["Hero"] = hero.ToString();
-
-        if (_equipped is not { } item)
-            return query.ToString()!;
-
-        query["Rarity"] = item.Quality.ToString();
-        query["ItemLevel"] = item.ItemLevel.ToString();
-        query["Upgrades"] = item.Upgrades.ToString();
-        query["MaxUpgrades"] = item.MaxUpgrades.ToString();
-
-        if (item.Gem is { } gem)
-            query["Gem"] = gem.Id.ToString();
-        else if (!item.HasGemSocket)
-            query["NoSocket"] = "true";
-
-        if (item.Attributes.Count > 0)
-            query["RandomStats"] = string.Join(',', item.Attributes.Select(a => a.Name));
-
-        if (item.Traits.Count > 0)
-            query["ImbuedTraits"] = string.Join(',', item.Traits.Select(t => $"{t.Id}:{t.Rank}"));
-
-        if (item.Blessings.Count > 0)
-            query["Modifiers"] = string.Join(',', item.Blessings.Select(b => $"blessing:{b.Id}:{b.Level}"));
-
-        return query.ToString()!;
+        _request = _itemId > 0
+            ? TooltipBody.Write(_equipped is { } worn ? ItemTooltip.For(worn, Hero) : ItemTooltip.For(Hero))
+            : null;
     }
 }

@@ -1,3 +1,4 @@
+@using Fellowship.SDK.Client
 @using FellowshipAnalyzer.Core.Common.Spells
 @using OneOf
 
@@ -7,7 +8,7 @@
 }
 else if (_icon is { Length: > 0 })
 {
-    <a href="@AbilityUrl" target="_blank" rel="noopener noreferrer" data-tooltip-spell-id="@TooltipSpellId" class="spell-icon-link" @attributes="InputAttributes">
+    <a href="@AbilityUrl" target="_blank" rel="noopener noreferrer" data-tooltip-path="@TooltipPath" class="spell-icon-link" @attributes="InputAttributes">
         <img src="@IconUrl" class="spell-icon @SizeClass" alt="@_name" />
     </a>
 }
@@ -34,9 +35,7 @@ else if (_icon is { Length: > 0 })
 
     private string IconUrl => Codex.IconUrl(_icon);
 
-    private string LinkUri => $"{_kind.ToUrlSegment()}/{_id}";
-
-    private string AbilityUrl => Codex.PageUrl(LinkUri);
+    private string AbilityUrl => Codex.PageUrl(CodexAddresses.Page(_kind.ToEntityType(), _id));
 
     private string SizeClass => Size switch
     {
@@ -45,7 +44,7 @@ else if (_icon is { Length: > 0 })
         _ => ""
     };
 
-    private string? TooltipSpellId => _id > 0 ? Codex.TooltipPath(LinkUri) : null;
+    private string? TooltipPath => _id > 0 ? CodexAddresses.Tooltip(_kind.ToEntityType(), _id) : null;
 
     protected override void OnParametersSet()
     {
