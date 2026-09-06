@@ -1,0 +1,26 @@
+@inherits Analyzer
+
+@code {
+    public override RenderFragment? Statistic => ManaReturned > 0 ? Card : null;
+
+    private RenderFragment Card =>
+        @<StatCard>
+            <Header>
+                <SpellLink Spell="Talents.ChronaTap" />
+            </Header>
+            <ChildContent>
+                <StatRow Value="@($"{ManaReturned:N0}")">
+                    mana returned
+                </StatRow>
+                <StatRow Value="@($"{ManaLostAtCap:N0}")">
+                    mana lost at the cap
+                </StatRow>
+                @if (StaggerTracker.ManaFromCleansing > 0)
+                {
+                    <StatRow Value="@($"{StaggerTracker.ManaFromCleansing:N0}")">
+                        mana from cleansing Stagger
+                    </StatRow>
+                }
+            </ChildContent>
+        </StatCard>;
+}
