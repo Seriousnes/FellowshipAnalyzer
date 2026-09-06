@@ -91,7 +91,7 @@ public sealed partial class FleetingHourAnalyzer : Analyzer
     public double ActiveWithUnfoldingDoomAvailableShare =>
         TotalUptimeMs <= 0 ? 0 : (double)ActiveWithUnfoldingDoomAvailableMs / TotalUptimeMs;
 
-    /// <summary>Time Unfolding Doom was on cooldown with Fleeting Hour available and not cast.</summary>
+    /// <summary>Time Fleeting Hour was available and not cast with Unfolding Doom on cooldown.</summary>
     public int AvailableOnUnfoldingDoomCooldownMs => UnfoldingDoom.AvailableOnCooldownMs;
 
     /// <summary>Time Fleeting Hour was active inside a pull.</summary>

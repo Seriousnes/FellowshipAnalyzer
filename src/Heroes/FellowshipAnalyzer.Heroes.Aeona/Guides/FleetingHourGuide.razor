@@ -12,10 +12,6 @@
             Cast it after each <SpellLink Spell="Spells.UnfoldingDoom" />, so the whole window is active
             while Unfolding Doom is on cooldown.
         </p>
-        <p>
-            Do not hold it once Unfolding Doom is on cooldown, and do not cast it while Unfolding Doom is
-            available.
-        </p>
         @if (Analyzer is { SurgingChronaTaken: true } surging)
         {
             <p>
@@ -52,12 +48,12 @@
                 Rate(analyzer.ActiveOnUnfoldingDoomCooldownShare)),
             new(
                 FormatSeconds(analyzer.AvailableOnUnfoldingDoomCooldownMs),
-                "Unfolding Doom on Cooldown, Fleeting Hour Available",
-                "Time Unfolding Doom was on cooldown with Fleeting Hour available and not cast."),
+                "Available, Unfolding Doom on Cooldown",
+                "Time Fleeting Hour was available and not cast with Unfolding Doom on cooldown."),
             new(
                 $"{FormatSeconds(analyzer.ActiveWithUnfoldingDoomAvailableMs)} ({analyzer.ActiveWithUnfoldingDoomAvailableShare:P0})",
                 "Active, Unfolding Doom Available",
-                "Fleeting Hour active time with Unfolding Doom available, and its share of everything the window was active for."),
+                "Fleeting Hour active time with Unfolding Doom available."),
             new(
                 $"{analyzer.CombatUptime:P0}",
                 "Combat Uptime",
