@@ -3,6 +3,8 @@ using FellowshipAnalyzer.Core.Common.Spells.Aeona;
 using FellowshipAnalyzer.Core.Events;
 
 using AeonaTalents = FellowshipAnalyzer.Core.Common.Spells.AeonaTalents;
+using FSLID = FellowshipAnalyzer.Core.Common.Spells.FSLID;
+using SpellKind = FellowshipAnalyzer.Core.Common.Spells.SpellKind;
 
 namespace FellowshipAnalyzer.Heroes.Aeona.Modules;
 
@@ -26,7 +28,7 @@ public sealed record OblivionTargetShare(int UnitId, long Healing, long Shieldin
 /// <param name="LargestSingleAbsorb">The most any of this cast's shields absorbed from one incoming hit.</param>
 /// <param name="FreeCastSource">What made this cast free, or null when it cost resources.</param>
 /// <param name="TankStagger">The tank's pending Stagger immediately before the cast, in hit points, or null when nothing within <see cref="StaggerTracker.StaggerMaxAgeMs"/> precedes it.</param>
-/// <param name="StaggerRemoved">The Stagger an Amend Fate or Restore Continuity cast removes, or null when the report holds no measurable cleanse.</param>
+/// <param name="StaggerRemoved">The Stagger removed from one ally by Amend Fate or Restore Continuity, or null when the report holds no clean cleanse cast.</param>
 /// <param name="CleanseAvailable">Whether Amend Fate or Restore Continuity had a charge ready at the cast, and the tank was alive to receive it.</param>
 public sealed record OblivionCast(
     int Timestamp,
@@ -36,7 +38,7 @@ public sealed record OblivionCast(
     long LargestSingleAbsorb,
     FreeCastSource? FreeCastSource,
     int? TankStagger,
-    double? StaggerRemoved,
+    int? StaggerRemoved,
     bool CleanseAvailable)
 {
     /// <summary>Whether Fellowship logged this cast as costing no resources.</summary>
@@ -54,7 +56,7 @@ public sealed record OblivionCast(
     /// <summary>
     /// The Stagger past which a cleanse outranks Oblivion, twice <see cref="StaggerRemoved"/>.
     /// </summary>
-    public double? CleansePriorityStagger => StaggerRemoved is { } removed ? removed * 2 : null;
+    public int? CleansePriorityStagger => StaggerRemoved is { } removed ? removed * 2 : null;
 
     /// <summary>
     /// Whether the tank held at least <see cref="CleansePriorityStagger"/> and a cleanse was ready to
@@ -83,10 +85,10 @@ public sealed record OblivionCast(
 /// Measures Oblivion: what each direct cast dealt and put on each ally, what Erasure's ticks added on
 /// top, whether the cast was free, and the tank's pending Stagger at the moment it went out.
 /// <para>
-/// Erasure ticks under Oblivion's own ability, so damage separates on
-/// <see cref="DamageEvent.Tick"/> and the healing that comes with a tick separates with the damage
-/// instance it arrived on. A direct cast takes the healing and shielding that follow it within
-/// <see cref="CastAttributionWindowMs"/>; everything else is Erasure's.
+/// Erasure ticks under its own effect rather than under Oblivion, so its damage and the healing that
+/// arrives with a tick are counted apart from the direct casts'. A direct cast takes the damage,
+/// healing and shielding that follow it within <see cref="CastAttributionWindowMs"/> onto its own row;
+/// the pull totals take every direct hit whether or not a cast row claimed it.
 /// </para>
 /// <para>
 /// One cast shields several party members at once, so the shield ledger inherited from
@@ -106,11 +108,22 @@ public sealed record OblivionCast(
 [Dependency<SpellUsable>]
 public sealed partial class OblivionAnalyzer : AbsorbAnalyzer, IOblivionAnalyzer
 {
-    /// <summary>How long after a cast its healing and shielding may arrive and still belong to it.</summary>
+    /// <summary>How long after a cast its damage, healing and shielding may arrive and still belong to it.</summary>
     public const int CastAttributionWindowMs = 500;
+
+    /// <summary>
+    /// The effect Erasure's damage over time ticks under. Codex <c>effect 2735</c>, named "Erasure",
+    /// applied by <c>ability 1958</c>; neither carries a spell-registry member because neither appears
+    /// in <c>data/spelldb.json</c>.
+    /// </summary>
+    private const int ErasureEffectId = 2735;
+
+    private static readonly FSLID Erasure = FSLID.FromNative(SpellKind.Effect, ErasureEffectId);
 
     private readonly List<CastRecord> _casts = [];
 
+    private long _directDamage;
+    private long _directHealing;
     private long _erasureDamage;
     private long _erasureHealing;
     private int _erasureTicks;
@@ -140,19 +153,19 @@ public sealed partial class OblivionAnalyzer : AbsorbAnalyzer, IOblivionAnalyzer
     public bool ErasureTalented => Owner.SelectedCombatant.HasTalent(AeonaTalents.Erasure);
 
     /// <summary>Damage the direct casts dealt this pull.</summary>
-    public long DirectDamage => Ledger.Casts.Sum(cast => cast.Damage);
+    public long DirectDamage => _directDamage;
 
     /// <summary>Damage a direct cast dealt, averaged over the pull. Null with no cast to average over.</summary>
-    public double? DamagePerCast => _casts.Count > 0 ? (double)DirectDamage / _casts.Count : null;
+    public double? DamagePerCast => _casts.Count > 0 ? (double)_directDamage / _casts.Count : null;
 
     /// <summary>Effective healing the direct casts put on the party this pull.</summary>
-    public long Healing => Ledger.Casts.Sum(cast => cast.Healing);
+    public long Healing => _directHealing;
 
     /// <summary>
     /// Effective healing a direct cast put on the party, averaged over the pull. Null with no cast to
     /// average over.
     /// </summary>
-    public double? HealingPerCast => _casts.Count > 0 ? (double)Healing / _casts.Count : null;
+    public double? HealingPerCast => _casts.Count > 0 ? (double)_directHealing / _casts.Count : null;
 
     /// <summary>Erasure ticks this pull.</summary>
     public int ErasureTicks => _erasureTicks;
@@ -164,15 +177,8 @@ public sealed partial class OblivionAnalyzer : AbsorbAnalyzer, IOblivionAnalyzer
     public long ErasureHealing => _erasureHealing;
 
     /// <summary>
-    /// Absorb the shields Erasure's ticks applied put on the party this pull. Null in a build without
-    /// Oblivion's Embrace or without Erasure, where there is no such shield.
-    /// </summary>
-    public long? ErasureShielding =>
-        OblivionsEmbraceTalented && ErasureTalented ? Ledger.ErasureShielding : null;
-
-    /// <summary>
-    /// Absorb the direct casts' shields applied, summed over the pull. Null without Oblivion's Embrace,
-    /// where the shield does not exist.
+    /// Absorb the Oblivion's Embrace shields applied this pull put on the party. Null without
+    /// Oblivion's Embrace, where the shield does not exist.
     /// </summary>
     public long? ShieldApplied => OblivionsEmbraceTalented ? Ledger.Applied : null;
 
@@ -202,15 +208,26 @@ public sealed partial class OblivionAnalyzer : AbsorbAnalyzer, IOblivionAnalyzer
     public int FreeCastOpportunities => FreeCastTracker.OpportunitiesBetween(Pull.StartTime, Pull.EndTime);
 
     /// <summary>
-    /// The Stagger an Amend Fate or Restore Continuity cast removes, or null when the report holds no
-    /// measurable cleanse.
+    /// The Stagger removed from one ally by Amend Fate or Restore Continuity, the larger of what the
+    /// two abilities take off. Null when the report holds no clean cleanse cast.
     /// </summary>
-    public double? StaggerRemoved => StaggerTracker.AverageStaggerCleansedPerCast;
+    public int? StaggerRemoved
+    {
+        get
+        {
+            var amendFate = StaggerTracker.StaggerRemoved(Spells.AmendFate.FSLID);
+            var restoreContinuity = StaggerTracker.StaggerRemoved(Spells.RestoreContinuity.FSLID);
+
+            return amendFate is { } amend && restoreContinuity is { } restore
+                ? Math.Max(amend, restore)
+                : amendFate ?? restoreContinuity;
+        }
+    }
 
     /// <summary>
     /// The Stagger past which a cleanse outranks Oblivion, twice <see cref="StaggerRemoved"/>.
     /// </summary>
-    public double? CleansePriorityStagger => StaggerRemoved is { } removed ? removed * 2 : null;
+    public int? CleansePriorityStagger => StaggerRemoved is { } removed ? removed * 2 : null;
 
     /// <summary>
     /// Oblivion casts while the tank held at least <see cref="CleansePriorityStagger"/> and a cleanse
@@ -236,16 +253,20 @@ public sealed partial class OblivionAnalyzer : AbsorbAnalyzer, IOblivionAnalyzer
     [On<DamageEvent>(By = Actor.Player, Spells = [nameof(Spells.Oblivion), nameof(Spells.OblivionDamage)])]
     private void OnOblivionDamage(DamageEvent e)
     {
-        if (e.Tick)
-        {
-            _erasureTicks++;
-            _erasureDamage += e.Amount;
-            _erasureTickAt = e.Timestamp;
-            return;
-        }
-
         _directDamageAt = e.Timestamp;
+        _directDamage += e.Amount;
+
         if (CastAt(e.Timestamp) is { } cast) cast.Damage += e.Amount;
+    }
+
+    [On<DamageEvent>(By = Actor.Player)]
+    private void OnErasureDamage(DamageEvent e)
+    {
+        if (e.Ability?.Id != Erasure) return;
+
+        _erasureTicks++;
+        _erasureDamage += e.Amount;
+        _erasureTickAt = e.Timestamp;
     }
 
     [On<HealEvent>(By = Actor.Player, Spells = [nameof(Spells.Oblivion), nameof(Spells.OblivionDamage)])]
@@ -257,13 +278,9 @@ public sealed partial class OblivionAnalyzer : AbsorbAnalyzer, IOblivionAnalyzer
             return;
         }
 
-        if (CastAt(e.Timestamp) is { } cast)
-        {
-            cast.AddHealing(e.TargetId, e.Amount);
-            return;
-        }
+        _directHealing += e.Amount;
 
-        _erasureHealing += e.Amount;
+        if (CastAt(e.Timestamp) is { } cast) cast.AddHealing(e.TargetId, e.Amount);
     }
 
     [On<ApplyBuffEvent>(By = Actor.Player, Spell = nameof(Spells.OblivionAbsorbAbsorb))]
@@ -304,11 +321,13 @@ public sealed partial class OblivionAnalyzer : AbsorbAnalyzer, IOblivionAnalyzer
 
     private CastLedger BuildLedger()
     {
-        long applied = 0, erasureShielding = 0, largestSingleAbsorb = 0;
+        long applied = 0, largestSingleAbsorb = 0;
         var castIndex = 0;
 
         foreach (var shield in Absorbs)
         {
+            applied += shield.Total;
+
             foreach (var hit in shield.Hits)
             {
                 if (hit.Amount > largestSingleAbsorb) largestSingleAbsorb = hit.Amount;
@@ -317,21 +336,14 @@ public sealed partial class OblivionAnalyzer : AbsorbAnalyzer, IOblivionAnalyzer
             while (castIndex + 1 < _casts.Count && _casts[castIndex + 1].Timestamp <= shield.Start)
                 castIndex++;
 
-            CastRecord? cast = null;
-            if (_casts.Count > 0
-                && _casts[castIndex].Timestamp <= shield.Start
-                && shield.Start - _casts[castIndex].Timestamp <= CastAttributionWindowMs)
+            if (_casts.Count == 0
+                || _casts[castIndex].Timestamp > shield.Start
+                || shield.Start - _casts[castIndex].Timestamp > CastAttributionWindowMs)
             {
-                cast = _casts[castIndex];
-            }
-
-            if (cast is null)
-            {
-                erasureShielding += shield.Total;
                 continue;
             }
 
-            applied += shield.Total;
+            var cast = _casts[castIndex];
             cast.AddShielding(shield.Target.ActorId, shield.Total);
 
             foreach (var hit in shield.Hits)
@@ -358,7 +370,7 @@ public sealed partial class OblivionAnalyzer : AbsorbAnalyzer, IOblivionAnalyzer
                 record.CleanseAvailable));
         }
 
-        return new CastLedger(casts, applied, erasureShielding, largestSingleAbsorb);
+        return new CastLedger(casts, applied, largestSingleAbsorb);
     }
 
     private int? TankStaggerAt(int? tankId, int timestamp)
@@ -411,6 +423,5 @@ public sealed partial class OblivionAnalyzer : AbsorbAnalyzer, IOblivionAnalyzer
     private sealed record CastLedger(
         List<OblivionCast> Casts,
         long Applied,
-        long ErasureShielding,
         long LargestSingleAbsorb);
 }

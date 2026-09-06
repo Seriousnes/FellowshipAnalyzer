@@ -7,10 +7,10 @@
         </p>
         <p>
             Cast <SpellLink Spell="Spells.AmendFate" /> or <SpellLink Spell="Spells.RestoreContinuity" /> instead
-            once the tank holds twice the Stagger removed.
+            once the tank holds at least twice the Stagger removed.
         </p>
         <p>
-            Spend a free cast on Oblivion only when no ally holds more than the Stagger removed.
+            Spend a free cast on Oblivion only while the tank holds less than the Stagger removed.
         </p>
     </LeftPanel>
     <RightPanel>
@@ -60,7 +60,7 @@
             stats.Add(new OverviewStat(
                 $"{analyzers.Sum(analyzer => analyzer.Healing) / (double)casts:N0}",
                 "Healing per Cast",
-                "Healing across every ally, averaged over Oblivion casts."));
+                "Healing the direct casts put on the party, averaged over Oblivion casts."));
         }
 
         if (ticks > 0)
@@ -71,7 +71,7 @@
                 stats.Add(new OverviewStat(
                     $"{erasureHealing:N0}",
                     "Erasure Healing",
-                    "Healing from Erasure's ticks."));
+                    "Healing Erasure's ticks put on the party."));
             }
         }
 
@@ -80,7 +80,7 @@
             stats.Add(new OverviewStat(
                 $"{analyzers.Sum(analyzer => analyzer.ShieldApplied ?? 0) / (double)casts:N0}",
                 "Shielding per Cast",
-                "Shield absorb across every ally, averaged over Oblivion casts."));
+                "Shield absorb applied, averaged over Oblivion casts."));
         }
 
         var freeCastsMade = analyzers.Sum(analyzer => analyzer.FreeCastsMade);
@@ -100,7 +100,7 @@
             stats.Add(new OverviewStat(
                 $"{flagged}/{rated}",
                 "Casts at Cleanse Priority",
-                "Oblivion casts while the tank held twice the Stagger removed and a cleanse was ready."));
+                "Oblivion casts while the tank held at least twice the Stagger removed and a cleanse was ready."));
         }
 
         if (OblivionsEmbrace)
@@ -135,18 +135,8 @@
             $"{cast.Damage:N0}",
             "Damage"));
 
-        stats.Add(new PerCastStat(
-            $"{cast.Healing:N0}",
-            "Healing",
-            AllyCount(cast) is { } allies ? $"Healing across {allies}." : null));
-
         if (OblivionsEmbrace)
         {
-            stats.Add(new PerCastStat(
-                $"{cast.Shielding:N0}",
-                "Shielding",
-                AllyCount(cast) is { } shielded ? $"Shield absorb across {shielded}." : null));
-
             stats.Add(new PerCastStat(
                 $"{cast.LargestSingleAbsorb:N0}",
                 "Largest Absorb"));
@@ -163,7 +153,7 @@
                 },
                 "Free Cast",
                 cast.FreeCastAboveStaggerRemoved
-                    ? "The tank held more than the Stagger removed at this cast."
+                    ? "The tank held at least the Stagger removed at this cast."
                     : null,
                 cast.FreeCastAboveStaggerRemoved ? QualitativePerformance.Ok : null));
         }
@@ -200,16 +190,9 @@
             rows.Add(new TargetBreakdownRow(AllyName(target.UnitId), values));
         }
 
-        return new AdditionalContent("Per Target", @<TargetBreakdown Columns="@columns" Rows="@rows" />);
+        return new AdditionalContent("Per Ally", @<TargetBreakdown TargetColumn="Ally" Columns="@columns" Rows="@rows" />);
     }
 
     private string AllyName(int unitId) =>
         Parser.ActorNames.GetValueOrDefault(unitId) ?? $"Ally {unitId}";
-
-    private static string? AllyCount(OblivionCast cast) => cast.AlliesReached switch
-    {
-        0 => null,
-        1 => "1 ally",
-        var allies => $"{allies} allies",
-    };
 }
