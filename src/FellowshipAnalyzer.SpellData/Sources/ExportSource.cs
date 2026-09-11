@@ -45,6 +45,9 @@ public record ExportEffect(
 /// </summary>
 public record ExportTalent(int Id, string? Name, string Hero);
 
+/// <summary>One legendary item, the power it grants, and the hero whose kit it belongs to.</summary>
+public record ExportLegendary(int ItemId, string ItemName, int PowerId, string PowerName, string Slot, string Icon, string Hero);
+
 public record ExportHero(string Name, string? ArmorType, string? PrimaryStat, string? Color);
 
 /// <summary>
@@ -70,6 +73,8 @@ public sealed class ExportSource
 
     public List<ExportTalent> Talents { get; }
 
+    public List<ExportLegendary> Legendaries { get; }
+
     public List<ExportHero> Heroes { get; }
 
     public List<ExportRarity> Rarities { get; }
@@ -82,6 +87,7 @@ public sealed class ExportSource
         Dictionary<int, ExportAbility> abilities,
         Dictionary<int, ExportEffect> effects,
         List<ExportTalent> talents,
+        List<ExportLegendary> legendaries,
         List<ExportHero> heroes,
         List<ExportRarity> rarities,
         List<ExportDungeon> dungeons,
@@ -90,6 +96,7 @@ public sealed class ExportSource
         Abilities = abilities;
         Effects = effects;
         Talents = talents;
+        Legendaries = legendaries;
         Heroes = heroes;
         Rarities = rarities;
         Dungeons = dungeons;
@@ -112,6 +119,7 @@ public sealed class ExportSource
         var effects = new Dictionary<int, ExportEffect>();
         var talentDocuments = new Dictionary<int, TalentDocument>();
         var talentSlots = new List<TalentSlotDocument>();
+        var legendaries = new List<ExportLegendary>();
         var dungeons = new List<ExportDungeon>();
 
         foreach (var line in File.ReadLines(entitiesPath))
@@ -145,6 +153,20 @@ public sealed class ExportSource
                     break;
                 case TalentSlotDocument slot:
                     talentSlots.Add(slot);
+                    break;
+                case ItemDocument item
+                    when item.Grants is { } grants && EntityTypes.Slug(grants.Type) == "legendary-power":
+                    foreach (var hero in item.Heroes ?? [])
+                    {
+                        legendaries.Add(new ExportLegendary(
+                            item.Id,
+                            item.Name ?? string.Empty,
+                            grants.Id,
+                            grants.Name ?? string.Empty,
+                            item.Slot ?? string.Empty,
+                            item.Icon ?? string.Empty,
+                            hero.ToString()));
+                    }
                     break;
                 case DungeonDocument dungeon
                     when !string.IsNullOrEmpty(dungeon.Icon) && !string.IsNullOrEmpty(dungeon.Name):
@@ -188,8 +210,9 @@ public sealed class ExportSource
         }
 
         dungeons.Sort((left, right) => left.Id.CompareTo(right.Id));
+        legendaries.Sort((left, right) => string.CompareOrdinal(left.Hero, right.Hero) is var byHero && byHero != 0 ? byHero : left.ItemId.CompareTo(right.ItemId));
 
-        return new ExportSource(abilities, effects, talents, heroes, rarities, dungeons, categories);
+        return new ExportSource(abilities, effects, talents, legendaries, heroes, rarities, dungeons, categories);
     }
 
     private const string NoCategory = "None";
