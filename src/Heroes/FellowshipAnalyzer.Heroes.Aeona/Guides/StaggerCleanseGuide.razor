@@ -31,7 +31,7 @@
                       AdditionalContentTitle="@(FreeCastsInPull > 0 ? "Free Casts on Restore Continuity" : null)"
                       AdditionalContent="@FreeCastBar()" />
         <CastDetail Title="Cleanses by Pull"
-                    Description="Each row is one cast, rated as the GCD it was."
+                    Description="Each row is one cast."
                     Casts="@BuildCastRows()" />
     </RightPanel>
 </GuideSection>
@@ -84,7 +84,7 @@
             stats.Add(new OverviewStat(
                 $"{analyzers.Sum(analyzer => analyzer.BelowOblivionValueCasts)}",
                 "Below an Oblivion",
-                "Casts whose effective healing was below the effective healing plus shielding of an Oblivion cast."));
+                "Casts with effective healing below an Oblivion cast's effective healing plus shielding."));
         }
 
         var onCooldown = analyzers.Sum(analyzer => analyzer.CastsWithEntropyClaimOnCooldown);
