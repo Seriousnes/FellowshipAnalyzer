@@ -73,6 +73,7 @@ public sealed class ExportSource
 
     public List<ExportTalent> Talents { get; }
 
+    /// <summary>Every legendary item in the export, one entry per hero named in its heroes array, ordered by hero then item id.</summary>
     public List<ExportLegendary> Legendaries { get; }
 
     public List<ExportHero> Heroes { get; }

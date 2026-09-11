@@ -338,7 +338,7 @@ public static class MergeEngine
     /// <summary>
     /// Selects every legendary item the export grants a power to into the scope of the hero that equips
     /// it, naming the member from the power. Two items of one hero granting the same power share a
-    /// member, and the one with the lower item id is kept.
+    /// member; the one with the lower item id is kept and the other is reported as a gap.
     /// </summary>
     private static List<CuratedLegendary> BuildLegendaries(MergeInputs inputs, List<Gap> gaps)
     {
@@ -359,7 +359,10 @@ public static class MergeEngine
 
             var member = MemberNaming.TalentMember(legendary.PowerName);
             if (!members.Add((scope, member)))
+            {
+                gaps.Add(new Gap(scope, $"item {legendary.ItemId}", GapKind.MissingName));
                 continue;
+            }
 
             legendaries.Add(new CuratedLegendary(
                 scope,
