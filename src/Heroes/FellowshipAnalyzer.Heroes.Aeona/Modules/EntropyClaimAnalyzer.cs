@@ -15,7 +15,7 @@ public interface IEntropyClaimAnalyzer : IAnalyzerSurface;
 /// <param name="DotStart">When the dot was applied, or null when no application followed the cast.</param>
 /// <param name="DotEnd">The dot's expiry, or its last tick when it outlived the pull.</param>
 /// <param name="DelayAfterReadyMs">Milliseconds a charge was available before this cast.</param>
-/// <param name="LeadBeforeExpiryMs">Milliseconds from this cast to the expiry of the latest dot still active on another enemy, or null when none was active.</param>
+/// <param name="LeadBeforeExpiryMs">Milliseconds from this cast to the expiry of the latest application still active, or null when none was active.</param>
 /// <param name="BurstApplications">Entropic Burst applications at this application's expiry.</param>
 /// <param name="BurstRollovers">Entropic Burst stack increments at this application's expiry.</param>
 public sealed record EntropyClaimCast(
@@ -79,12 +79,10 @@ public sealed record EntropicBurstLapse(int Timestamp, int Units, int PeakStacks
 /// A chain rolls over when an expiry increments its stack. A chain lapses when the debuff is removed
 /// from a living enemy. A lapse could have been rolled over when a charge was available between the
 /// latest Entropy's Claim completion before the lapse and <see cref="RolloverLeadMs"/> before the lapse:
-/// a cast inside that span completes and expires before the debuff does. A lapse that follows a cast
-/// made into another pack reads as no charge available.
+/// a cast inside that span completes and expires before the debuff does.
 /// </para>
 /// <para>
-/// Only completions are casts. Entropy's Claim has a cast time, so the log writes an activation event
-/// first; that event is skipped.
+/// Only completions are casts.
 /// </para>
 /// </remarks>
 [ForPull(PullKind.Single | PullKind.Multi)]
@@ -158,7 +156,7 @@ public sealed partial class EntropyClaimAnalyzer : AllTargetUptimeAnalyzer, IEnt
     /// <summary>Lapses with a charge available early enough to have rolled the chain over.</summary>
     public int LapsesWithChargeAvailable => Lapses.Count(lapse => lapse.ChargeAvailable);
 
-    /// <summary>Expiries that incremented Entropic Burst, counting one expiry once across the enemies it reached.</summary>
+    /// <summary>Expiries that incremented Entropic Burst, counting one expiry once across every enemy it stacked on.</summary>
     public int Rollovers => GroupInstants(_rolloverInstants).Count;
 
     /// <summary>
@@ -272,6 +270,14 @@ public sealed partial class EntropyClaimAnalyzer : AllTargetUptimeAnalyzer, IEnt
     {
         var unit = AuraWindowLedger.KeyOf(e);
         RecordBurstStacks(unit, e.Timestamp, 1);
+
+        if (_openChains.Remove(unit, out var open))
+        {
+            open.End = e.Timestamp;
+            open.EndedBy = EntropicBurstChainEnd.Lapsed;
+            _closedChains.Add(open);
+        }
+
         _openChains[unit] = new ChainState(unit, e.Timestamp);
         CreditBurst(e.Timestamp, rollover: false);
     }
