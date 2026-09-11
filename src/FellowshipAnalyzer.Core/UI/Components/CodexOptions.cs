@@ -12,7 +12,7 @@ public sealed class CodexOptions
     public static CodexOptions Default { get; } = new();
 
     private string _origin = Trim(CodexAddresses.Origin);
-    private string _textureOrigin = Trim(CodexAddresses.ArtOrigin);
+    private string _textureOrigin = Trim(CodexAddresses.Cdn);
 
     /// <summary>The codex origin, serving both the browsable pages and the <c>/api</c> routes.</summary>
     public string Origin
