@@ -29,6 +29,12 @@
       "name": "Amend Fate",
       "icon": "T_Lisa_Stagger"
     },
+    "AuraOfDeferredFate": {
+      "kind": "effect",
+      "id": 2739,
+      "name": "Aura of Deferred Fate",
+      "icon": "T_Lisa_BeaconOfTime"
+    },
     "ChronaTap": {
       "kind": "effect",
       "id": 2588,
@@ -40,6 +46,12 @@
       "id": 2676,
       "name": "Continuum Shift",
       "icon": "Tex_SpellBook06_59"
+    },
+    "ConvergingTimelines": {
+      "kind": "effect",
+      "id": 3266,
+      "name": "Converging Timelines",
+      "icon": "T_Nhance_RPG_Shadow_40"
     },
     "EchoesOfDivinity": {
       "kind": "effect",
