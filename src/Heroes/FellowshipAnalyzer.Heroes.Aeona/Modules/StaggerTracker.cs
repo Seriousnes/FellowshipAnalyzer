@@ -19,7 +19,7 @@ public sealed record StaggerSnapshot(int Timestamp, int Amount, int Max, long Hi
 /// <summary>One staggered hit on a unit: the Stagger the hit added, in hit points.</summary>
 /// <param name="Timestamp">When the hit was absorbed into the pool.</param>
 /// <param name="Amount">The Stagger added, in hit points.</param>
-/// <param name="AttackerId">The enemy whose hit it was, or null when the log names none.</param>
+/// <param name="AttackerId">The enemy whose hit it was.</param>
 public sealed record StaggerIntake(int Timestamp, long Amount, int? AttackerId);
 
 /// <summary>
