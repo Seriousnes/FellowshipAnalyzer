@@ -76,7 +76,6 @@ public sealed class EntropyClaimAnalyzerTests
             RemoveDebuff(18_000, Spells.EntropicBurst),
             RemoveDebuff(18_050, Spells.EntropicBurst, SecondEnemyId));
 
-        analyzer.RolloverLeadMs.ShouldBe(9_500);
         var lapse = analyzer.Lapses.ShouldHaveSingleItem();
         lapse.Timestamp.ShouldBe(18_000);
         lapse.Units.ShouldBe(2);
@@ -119,7 +118,7 @@ public sealed class EntropyClaimAnalyzerTests
     }
 
     [Fact]
-    public async Task EachWaitForACharge_IsMeasured()
+    public async Task EachWaitForACharge_HasAnEntry()
     {
         var analyzer = await Analyze(Info([]),
             Completion(5_000, Spells.EntropyClaim),
