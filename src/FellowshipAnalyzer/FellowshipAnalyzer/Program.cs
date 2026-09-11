@@ -9,6 +9,7 @@ using FellowshipAnalyzer.Core.UI.Timeline;
 using FellowshipAnalyzer.Core.UI.Components;
 using FellowshipAnalyzer.Core;
 using FellowshipAnalyzer.Core.Analysis;
+using FellowshipAnalyzer.Core.Game;
 using FellowshipAnalyzer.Core.FellowshipLogs;
 using FellowshipAnalyzer.Core.Serialization;
 using Microsoft.AspNetCore.Components.Web;
@@ -22,6 +23,13 @@ builder.RootComponents.Add<HeadOutlet>("head::after");
 
 var hostBaseAddress = new Uri(builder.HostEnvironment.BaseAddress);
 builder.Services.AddScoped(_ => new HttpClient { BaseAddress = hostBaseAddress });
+
+var codex = builder.Configuration.GetSection(CodexOptions.SectionName);
+Codex.Use(new CodexOptions
+{
+    Origin = codex["Origin"] ?? CodexOptions.Default.Origin,
+    TextureOrigin = codex["TextureOrigin"] ?? CodexOptions.Default.TextureOrigin,
+});
 
 var jsonOptions = new JsonSerializerOptions(JsonSerializerOptions.Web)
 {

@@ -2,68 +2,53 @@
   "aeona": {
     "ContinuumShift": {
       "id": 2676,
-      "kind": "effect",
-      "name": "Continuum Shift"
+      "kind": "effect"
     },
     "Uchronia": {
       "id": 2593,
-      "kind": "effect",
-      "name": "Uchronia"
+      "kind": "effect"
     },
     "EchoesOfDivinity": {
       "id": 2818,
-      "kind": "effect",
-      "name": "Echoes of Divinity"
+      "kind": "effect"
     },
     "EntropicBurst": {
       "id": 2819,
-      "kind": "effect",
-      "name": "Entropic Burst"
+      "kind": "effect"
     },
     "ResonantFate": {
       "id": 2584,
-      "kind": "effect",
-      "name": "Resonant Fate"
+      "kind": "effect"
     },
     "ResonantFatePeriodic": {
       "id": 2585,
-      "kind": "effect",
-      "name": "Resonant Fate"
+      "kind": "effect"
     },
     "ResonantFateExhausted": {
       "id": 2586,
-      "kind": "effect",
-      "name": "Resonant Fate: Exhausted"
+      "kind": "effect"
     },
     "ResonantFateDamageReduction": {
       "id": 3259,
-      "kind": "effect",
-      "name": "Resonant Fate",
-      "icon": "T_Lisa_Stagger.jpg"
+      "kind": "effect"
     },
     "ChronaTap": {
       "id": 2588,
-      "kind": "effect",
-      "name": "Chrona Tap"
+      "kind": "effect"
     },
     "HasteningDoom": {
       "id": 2822,
-      "kind": "effect",
-      "name": "Hastening Doom"
+      "kind": "effect"
     },
     "SynchronicityCatchUp": {
       "id": 2733,
-      "kind": "effect",
-      "name": "Synchronicity: Catch Up"
+      "kind": "effect"
     },
     "SynchronicityOvercharge": {
       "id": 2596,
-      "kind": "effect",
-      "name": "Synchronicity: Overcharge"
+      "kind": "effect"
     },
     "OblivionSelfBuffBuff": {
-      "id": 3153,
-      "kind": "effect",
       "name": "Converging Timelines"
     }
   },
@@ -72,12 +57,12 @@
     "FireBallAoeMonitor": { "id": 1581 },
     "EngulfingFlames": { "cooldownReductionOnTargetDeath": 10 },
     "FireFrogsMonitor": { "id": 1532 },
-    "FireBallDot": { "id": 2293, "kind": "effect", "name": "Fire Ball" , "icon": "T_Nhance_RPG_Fire_36.png" },
+    "FireBallDot": { "id": 2293, "kind": "effect", "name": "Fire Ball", "icon": "T_Nhance_RPG_Fire_36" },
     "FireFrogsDot": { "id": 1826, "kind": "effect" },
     "ApocalypseDot": { "id": 3175, "kind": "effect" },
     "SearingBlazeDot": { "id": 1820, "kind": "effect" },
     "ReignOfFireBuff": { "id": 2301, "kind": "effect" },
-    "ApocalypticSurge": { "id": 3176, "kind": "effect", "name": "Apocalyptic Surge" }
+    "ApocalypticSurge": { "id": 3176, "kind": "effect" }
   },
   "rime": {
     "WintersBlessing": {
@@ -86,7 +71,7 @@
     "WintersBlessingBuff": {
       "id": 1026,
       "kind": "effect",
-      "name": "Winter's Blessing"
+      "name": "Winter\u0027s Blessing"
     },
     "FlightOfTheNavirBuff": {
       "id": 2446
@@ -98,23 +83,23 @@
     "FrostSwallowsDamage": {
       "id": 1365,
       "kind": "effect",
-      "icon": "T_Rime_BirdCD.png"
+      "icon": "T_Rime_BirdCD"
     },
     "FrostweaversWrathBuff": {
       "id": 2305,
       "kind": "effect"
     },
     "BurstingIceDamage": {
-      "icon": "T_Rime_CastedDebuffAOEdamage.png"
+      "icon": "T_Rime_CastedDebuffAOEdamage"
     },
     "FlightOfTheNavirAoeDebuff": {
-      "icon": "T_Rime_BirdCD.png"
+      "icon": "T_Rime_BirdCD"
     },
     "FreezingTorrentAoeDamage": {
-      "icon": "T_Nhance_RPG_Frost_31.png"
+      "icon": "T_Nhance_RPG_Frost_31"
     },
     "WinterBlessingHeal": {
-      "icon": "T_Rime_HealingBuff.png"
+      "icon": "T_Rime_HealingBuff"
     }
   },
   "elarion": {
@@ -169,23 +154,18 @@
     },
     "Rend": {
       "id": 3231,
-      "kind": "effect",
-      "name": "Rend"
+      "kind": "effect"
     },
     "SerratedEdge": {
       "id": 3232,
-      "kind": "effect",
-      "name": "Serrated Edge"
+      "kind": "effect"
     },
     "OpenWounds": {
       "id": 3233,
-      "kind": "effect",
-      "name": "Open Wounds"
+      "kind": "effect"
     },
     "OwedInBloodAoe": {
-      "id": 2280,
-      "kind": "ability",
-      "name": "Owed in Blood"
+      "id": 2280
     },
     "OwedInBloodAoeSelfBuff": {
       "id": 3223,
@@ -193,27 +173,23 @@
     },
     "RendDamage": {
       "id": 3229,
-      "kind": "effect",
-      "name": "Rend"
+      "kind": "effect"
     }
   },
   "helena": {
     "PunishingStrikesBuff": {
       "id": 3095,
-      "kind": "effect",
-      "name": "Punishing Strikes"
+      "kind": "effect"
     },
     "SwordAndBoardBuff": {
       "id": 1242,
       "kind": "effect",
-      "name": "Sword & Board",
-      "icon": "T_Warmaster_ShieldSlam.png"
+      "icon": "T_Warmaster_ShieldSlam"
     },
     "SwordAndBoardFreeCastBuff": {
       "id": 1219,
       "kind": "effect",
-      "name": "Sword & Board",
-      "icon": "T_Warmaster_ShieldSlam.png"
+      "icon": "T_Warmaster_ShieldSlam"
     }
   },
   "items": {
@@ -239,68 +215,55 @@
     },
     "DarkProphecy": {
       "id": 1994,
-      "kind": "effect",
-      "name": "Dark Prophecy"
+      "kind": "effect"
     },
     "TheTrickster": {
       "id": 3181,
-      "kind": "effect",
-      "name": "The Trickster"
+      "kind": "effect"
     },
     "TheWayfarer": {
       "id": 3184,
-      "kind": "effect",
-      "name": "The Wayfarer"
+      "kind": "effect"
     },
     "ThePhilosopher": {
       "id": 3189,
-      "kind": "effect",
-      "name": "The Philosopher"
+      "kind": "effect"
     },
     "WillfulMomentumBuff": {
       "id": 2078,
-      "kind": "effect",
-      "name": "Willful Momentum"
+      "kind": "effect"
     },
     "SeizedOpportunityBuff": {
       "id": 2110,
-      "kind": "effect",
-      "name": "Seized Opportunity"
+      "kind": "effect"
     },
     "InspiredAllegianceBuff": {
       "id": 2112,
-      "kind": "effect",
-      "name": "Inspired Allegiance"
+      "kind": "effect"
     },
     "FocusedHasteBuff": {
       "id": 2141,
-      "kind": "effect",
-      "name": "Trait : Focused Haste"
+      "kind": "effect"
     },
     "NavigatorsIntuitionSpirit": {
       "id": 2158,
-      "kind": "effect",
-      "name": "Navigator's Intuition : Spirit"
+      "kind": "effect"
     },
     "NavigatorsIntuitionHaste": {
       "id": 2159,
-      "kind": "effect",
-      "name": "Navigator's Intuition : Haste"
+      "kind": "effect"
     },
     "NavigatorsIntuitionExpertise": {
       "id": 2160,
-      "kind": "effect",
-      "name": "Navigator's Intuition : Expertise"
+      "kind": "effect"
     },
     "NavigatorsIntuitionCrit": {
       "id": 2161,
-      "kind": "effect",
-      "name": "Navigator's Intuition : Critical Strike"
+      "kind": "effect"
     },
     "VengefulSoulBuff": {
       "id": 2163,
-      "kind": "effect",
-      "name": "Vengeful Soul"
+      "kind": "effect"
     },
     "InspiredAllegianceTrait": {
       "id": 2,
@@ -325,57 +288,43 @@
     "HuntersFocusTrait": {
       "id": 42,
       "kind": "weapon",
-      "name": "Hunter's Focus"
+      "name": "Hunter\u0027s Focus"
     },
     "NavigatorsIntuitionTrait": {
       "id": 43,
       "kind": "weapon",
-      "name": "Navigator's Intuition"
+      "name": "Navigator\u0027s Intuition"
     },
     "MartialInitiativeTrait": {
       "id": 51,
       "kind": "weapon",
       "name": "Martial Initiative"
     },
-    "VoidbringerTouch": {
-      "id": 155
-    },
-    "FatedStrike": {
-      "id": 160,
-      "kind": "ability",
-      "name": "Fated Strike"
-    },
     "GloriousPurpose": {
       "id": 80,
-      "kind": "effect",
-      "name": "Glorious Purpose"
+      "kind": "effect"
     },
     "ReapersReprieve": {
       "id": 1930,
-      "kind": "effect",
-      "name": "Reaper's Reprieve"
+      "kind": "effect"
     },
     "ReapersReprieveII": {
       "id": 1931,
-      "kind": "effect",
-      "name": "Reaper's Reprieve - II"
+      "kind": "effect"
     },
     "RoguesResurgence": {
       "id": 1966,
       "kind": "effect",
-      "name": "Rogue's Resurgence",
-      "icon": "T_Icon_Gold_135.png"
+      "icon": "T_Icon_Gold_135"
     },
     "RoguesResurgenceII": {
       "id": 1967,
       "kind": "effect",
-      "name": "Rogue's Resurgence - II",
-      "icon": "T_Icon_Gold_135.png"
+      "icon": "T_Icon_Gold_135"
     },
     "UnyieldingVitality": {
       "id": 1932,
-      "kind": "effect",
-      "name": "Unyielding Vitality"
+      "kind": "effect"
     },
     "UnyieldingVitalityII": {
       "id": 1933,
@@ -383,24 +332,18 @@
       "name": "Unyielding Vitality - II"
     },
     "SentinelsBastionShield": {
-      "id": 135,
-      "kind": "ability",
-      "name": "Sentinel's Bastion"
+      "id": 135
     },
     "SentinelsBastionShieldII": {
-      "id": 136,
-      "kind": "ability",
-      "name": "Sentinel's Bastion - II"
+      "id": 136
     },
     "SentinelsBastion": {
       "id": 1968,
-      "kind": "effect",
-      "name": "Sentinel's Bastion"
+      "kind": "effect"
     },
     "SentinelsBastionII": {
       "id": 1969,
-      "kind": "effect",
-      "name": "Sentinel's Bastion - II"
+      "kind": "effect"
     },
     "HarmoniousSoul": {
       "id": 1959,
@@ -414,78 +357,63 @@
     },
     "BlessingOfTheDeathdealer": {
       "id": 1955,
-      "kind": "effect",
-      "name": "Blessing of the Deathdealer"
+      "kind": "effect"
     },
     "BlessingOfTheDeathdealerII": {
       "id": 1956,
-      "kind": "effect",
-      "name": "Blessing of the Deathdealer - II"
+      "kind": "effect"
     },
     "AncestralSurge": {
       "id": 1919,
-      "kind": "effect",
-      "name": "Ancestral Surge"
+      "kind": "effect"
     },
     "AncestralSurgeII": {
       "id": 1920,
-      "kind": "effect",
-      "name": "Ancestral Surge - II"
+      "kind": "effect"
     },
     "ResonatingSoul": {
       "id": 129,
-      "kind": "ability",
       "name": "Resonating Soul"
     },
     "ResonatingSoulII": {
       "id": 130,
-      "kind": "ability",
       "name": "Resonating Soul - II"
     },
     "MightOfTheMinotaur": {
       "id": 1921,
-      "kind": "effect",
-      "name": "Might of the Minotaur"
+      "kind": "effect"
     },
     "MightOfTheMinotaurII": {
       "id": 1922,
-      "kind": "effect",
-      "name": "Might of the Minotaur - II"
+      "kind": "effect"
     },
     "BlessingOfTheConqueror": {
       "id": 2025,
-      "kind": "ability",
       "name": "Blessing of the Conqueror"
     },
     "BlessingOfTheConquerorII": {
       "id": 2026,
-      "kind": "ability",
       "name": "Blessing of the Conqueror - II"
     },
     "EssenceOfTheConqueror": {
       "id": 1951,
-      "kind": "effect",
-      "name": "Essence of the Conqueror"
+      "kind": "effect"
     },
     "EssenceOfTheConquerorII": {
       "id": 1952,
-      "kind": "effect",
-      "name": "Essence of the Conqueror - II"
+      "kind": "effect"
     },
     "MartialInitiative": {
       "id": 2174,
-      "kind": "effect",
-      "name": "Martial Initiative"
+      "kind": "effect"
     },
     "TheVehement": {
       "id": 3194,
-      "kind": "effect",
-      "name": "The Vehement"
+      "kind": "effect"
     },
     "TheVehementsDisdain": {
       "id": 3193,
-      "kind": "effect",
-      "name": "The Vehement's Disdain"
+      "kind": "effect"
     }
   },
   "mara": {
@@ -525,7 +453,7 @@
       "kind": "effect"
     },
     "SkitteringBladesPoisonAoeDamage": {
-      "icon": "T_ArcaneCoils.png"
+      "icon": "T_ArcaneCoils"
     }
   },
   "meiko": {
@@ -534,46 +462,35 @@
     }
   },
   "sylvie": {
-    "FluttercallEmbrace": {
-      "id": 1080,
-      "kind": "ability",
-      "name": "Fluttercall: Embrace"
-    },
     "FluttercallProtectBuff": {
       "id": 1485,
-      "kind": "effect",
-      "name": "Fluttercall: Protect"
+      "kind": "effect"
     },
     "FluttercallEmbraceBuff": {
       "id": 1486,
-      "kind": "effect",
-      "name": "Fluttercall: Embrace"
+      "kind": "effect"
     },
     "IronleafWardBuff": {
       "id": 1484,
-      "kind": "effect",
-      "name": "Ironleaf Ward"
+      "kind": "effect"
     },
     "PricklyVineDamage": {
       "id": 1440,
-      "kind": "effect",
-      "name": "Prickly Vine"
+      "kind": "effect"
     },
     "NaturalProtectorAbsorb": {
       "id": 2240,
-      "kind": "effect",
-      "name": "Natural Protector"
+      "kind": "effect"
     },
     "NaturalSelectionBuff": {
       "id": 2731,
-      "kind": "effect",
-      "name": "Natural Selection"
+      "kind": "effect"
     },
     "SafeHavenDamageReductionBuff": {
-      "icon": "T_Mosse_LinkCD.png"
+      "icon": "T_Mosse_LinkCD"
     },
     "ShroomsplosionDamage": {
-      "icon": "T_Mosse_Boomshroom.png"
+      "icon": "T_Mosse_Boomshroom"
     }
   },
   "tariq": {
@@ -585,55 +502,40 @@
     },
     "ExecutionersGrin": {
       "id": 2267,
-      "kind": "effect",
-      "name": "Executioner's Grin"
-    },
-    "HeavyStrike": {
-      "id": 1929
+      "kind": "effect"
     },
     "RagingTempest": {
       "costs": { "spirit": 100 }
     },
     "SchismSkullCrusher": {
       "id": 1746,
-      "kind": "effect",
-      "name": "Schism - Skull Crusher"
+      "kind": "effect"
     },
     "SchismHammerStorm": {
       "id": 1747,
-      "kind": "effect",
-      "name": "Schism - Hammer Storm"
+      "kind": "effect"
     },
     "RisingSpirit": {
       "id": 3115,
-      "kind": "effect",
-      "name": "Rising Spirit"
+      "kind": "effect"
     },
     "HeavyStrikeDamage": {
       "id": 1776,
-      "kind": "effect",
-      "name": "Heavy Strike"
+      "kind": "effect"
     },
     "HeavyStrikeAoeDamage": {
       "id": 1779,
-      "kind": "effect",
-      "name": "Heavy Strike"
+      "kind": "effect"
     },
     "HeavyStrikeCleaveDamage": {
       "id": 2755,
-      "kind": "effect",
-      "name": "Heavy Strike"
-    },
-    "Sledgehammer": {
-      "id": 2061,
-      "kind": "ability",
-      "name": "Sledgehammer"
+      "kind": "effect"
     },
     "ChainLightningDamage": {
-      "icon": "T_Ink_ChainLightning.png"
+      "icon": "T_Ink_ChainLightning"
     },
     "RagingTempestPulsatingSingleDamageDamage": {
-      "icon": "T_Ink_Spirit.png"
+      "icon": "T_Ink_Spirit"
     }
   },
   "vigour": {
@@ -644,23 +546,19 @@
   "shared": {
     "SpiritOfHeroism": {
       "id": 1350,
-      "kind": "effect",
-      "name": "Spirit of Heroism"
+      "kind": "effect"
     },
     "SpiritOfHeroismNotTank": {
       "id": 2253,
-      "kind": "effect",
-      "name": "Spirit of Heroism"
+      "kind": "effect"
     },
     "SpiritOfHeroismHealer": {
       "id": 2277,
-      "kind": "effect",
-      "name": "Spirit of Heroism"
+      "kind": "effect"
     },
     "SpiritOfHeroismXavian": {
       "id": 2662,
-      "kind": "effect",
-      "name": "Spirit of Heroism"
+      "kind": "effect"
     },
     "VeinSprout": {
       "id": 2031,
@@ -681,7 +579,7 @@
   },
   "xavian": {
     "AuraOfSolaceDamage": {
-      "icon": "T_Sune_AuraOfSolace.png"
+      "icon": "T_Sune_AuraOfSolace"
     }
   }
 }

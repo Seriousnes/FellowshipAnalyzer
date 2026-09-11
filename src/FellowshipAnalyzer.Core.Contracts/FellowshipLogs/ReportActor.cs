@@ -1,3 +1,5 @@
+using FellowshipAnalyzer.Core.Game;
+
 namespace FellowshipAnalyzer.Core.FellowshipLogs;
 
 /// <summary>
@@ -12,12 +14,18 @@ public sealed record ReportActor(
     string? Icon
 )
 {
+    private const string NpcIconPrefix = "custom-icon-";
+    private const string BlueprintPrefix = "BP_";
+
     /// <summary>
-    /// Icon URL for this actor, served from the RPGLogs CDN, or <see langword="null"/> when the
+    /// Icon URL for this actor, served from the Fellowship Codex, or <see langword="null"/> when the
     /// actor has no icon.
     /// </summary>
     public string? IconUrl =>
-        string.IsNullOrEmpty(Icon)
-            ? null
-            : $"https://assets.rpglogs.com/img/fellowship/abilities/{Icon}";
+        Icon is { Length: > 0 } icon
+        && icon.StartsWith(NpcIconPrefix, StringComparison.Ordinal)
+        && icon[NpcIconPrefix.Length..] is { Length: > 0 } texture
+        && !texture.StartsWith(BlueprintPrefix, StringComparison.Ordinal)
+            ? CodexTextureAddresses.IconUrl(texture)
+            : null;
 }

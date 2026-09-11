@@ -49,11 +49,18 @@ public record ExportHero(string Name, string? ArmorType, string? PrimaryStat, st
 
 /// <summary>
 /// One rarity rung for items and gems. <paramref name="Name"/> is the name the build stores
-/// and the name art files are suffixed with; <paramref name="DisplayName"/> is the name the game
+/// and the name texture files are suffixed with; <paramref name="DisplayName"/> is the name the game
 /// prints. The two are offset from tier 4 upwards, so a rung printed as <c>Heroic</c> stores
-/// <c>Champion</c> and its art ends <c>-champion</c>.
+/// <c>Champion</c> and its texture ends <c>-champion</c>.
 /// </summary>
 public record ExportRarity(int Tier, string Name, string DisplayName);
+
+/// <summary>
+/// One named dungeon, with the texture the codex draws for it. Fellowship Logs indexes its zone
+/// encounters by the same id, so a report's zone resolves its own icon. The export states loading
+/// screens as dungeons too, which it leaves unnamed, so a name is what marks a dungeon players enter.
+/// </summary>
+public record ExportDungeon(int Id, string Icon);
 
 public sealed class ExportSource
 {
@@ -67,6 +74,8 @@ public sealed class ExportSource
 
     public List<ExportRarity> Rarities { get; }
 
+    public List<ExportDungeon> Dungeons { get; }
+
     public Dictionary<string, AbilityCategory?> AbilityCategories { get; }
 
     private ExportSource(
@@ -75,6 +84,7 @@ public sealed class ExportSource
         List<ExportTalent> talents,
         List<ExportHero> heroes,
         List<ExportRarity> rarities,
+        List<ExportDungeon> dungeons,
         Dictionary<string, AbilityCategory?> abilityCategories)
     {
         Abilities = abilities;
@@ -82,6 +92,7 @@ public sealed class ExportSource
         Talents = talents;
         Heroes = heroes;
         Rarities = rarities;
+        Dungeons = dungeons;
         AbilityCategories = abilityCategories;
     }
 
@@ -101,6 +112,7 @@ public sealed class ExportSource
         var effects = new Dictionary<int, ExportEffect>();
         var talentDocuments = new Dictionary<int, TalentDocument>();
         var talentSlots = new List<TalentSlotDocument>();
+        var dungeons = new List<ExportDungeon>();
 
         foreach (var line in File.ReadLines(entitiesPath))
         {
@@ -133,6 +145,10 @@ public sealed class ExportSource
                     break;
                 case TalentSlotDocument slot:
                     talentSlots.Add(slot);
+                    break;
+                case DungeonDocument dungeon
+                    when !string.IsNullOrEmpty(dungeon.Icon) && !string.IsNullOrEmpty(dungeon.Name):
+                    dungeons.Add(new ExportDungeon(dungeon.Id, dungeon.Icon));
                     break;
             }
         }
@@ -171,7 +187,9 @@ public sealed class ExportSource
                     $"settings.json declares ability category '{category.Name}', which AbilityCategory does not.");
         }
 
-        return new ExportSource(abilities, effects, talents, heroes, rarities, categories);
+        dungeons.Sort((left, right) => left.Id.CompareTo(right.Id));
+
+        return new ExportSource(abilities, effects, talents, heroes, rarities, dungeons, categories);
     }
 
     private const string NoCategory = "None";

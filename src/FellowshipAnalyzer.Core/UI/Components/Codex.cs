@@ -6,53 +6,48 @@ namespace FellowshipAnalyzer.Core.UI.Components;
 
 /// <summary>
 /// Addresses into the Fellowship Codex. <see cref="CodexAddresses"/> writes the page a link opens and
-/// the tooltip fragment a hover fetches; the art the CDN serves is addressed here, because which file
-/// an icon name resolves to is read from <c>spelldb.json</c>.
+/// the tooltip fragment a hover fetches; the textures the codex serves are addressed through
+/// <see cref="CodexTextureAddresses"/>, because which file an icon name resolves to is read from
+/// <c>spelldb.json</c>.
 /// </summary>
 public static class Codex
 {
-    /// <summary>The codex origin, serving both the browsable pages and the <c>/api</c> routes.</summary>
-    public static string Origin { get; } = CodexAddresses.Origin.ToString().TrimEnd('/');
+    private static string _origin = CodexOptions.Default.Origin;
 
-    /// <summary>
-    /// The origin serving codex art. Every art file is a PNG under <c>/ui</c>, so
-    /// <see cref="IconUrl(string)"/> normalises whatever extension its caller was given.
-    /// </summary>
-    public static string AssetOrigin { get; } = CodexAddresses.ArtOrigin.ToString().TrimEnd('/');
+    static Codex() => Use(CodexOptions.Default);
+
+    /// <summary>Addresses the codex <paramref name="options"/> names, for the life of the app.</summary>
+    public static void Use(CodexOptions options)
+    {
+        _origin = options.Origin;
+        CodexTextureAddresses.Origin = options.TextureOrigin;
+        CodexTextureAddresses.DungeonIconFor = Dungeons.IconFor;
+    }
+
+    /// <summary>The codex origin, serving both the browsable pages and the <c>/api</c> routes.</summary>
+    public static string Origin => _origin;
+
+    /// <summary>The origin serving codex textures.</summary>
+    public static string TextureOrigin => CodexTextureAddresses.Origin;
 
     /// <summary>The codex page for the entity at <paramref name="path"/>, for example <c>ability/1964</c>.</summary>
     public static string PageUrl(string path) => $"{Origin}/{path}";
 
-    /// <summary>
-    /// The CDN address of <paramref name="icon"/>, an art name as the game data or a combat log writes
-    /// it. Any directory in the name is dropped and any extension becomes <c>.png</c>.
-    /// </summary>
-    public static string IconUrl(string icon) => $"{AssetOrigin}/ui/{ArtName(icon)}.png";
+    /// <summary>The address of <paramref name="icon"/>, a texture name as the game data or a combat log writes it.</summary>
+    public static string IconUrl(string icon) => CodexTextureAddresses.IconUrl(icon);
 
     /// <summary>
-    /// The CDN address of an item or gem's art at rarity <paramref name="tier"/>. Art the build draws
-    /// once per rung has that rung's border, and its file ends in the name the build stores for the
-    /// tier; art shared across every rung is addressed by its bare name.
+    /// The address of an item or gem's texture at rarity <paramref name="tier"/>. A texture the build
+    /// draws once per rung has that rung's border, and its file ends in the name the build stores for
+    /// the tier; a texture shared across every rung is addressed by its bare name.
     /// </summary>
     public static string IconUrl(string icon, int tier)
     {
-        var art = ArtName(icon);
+        var texture = CodexTextureAddresses.TextureName(icon);
         var rarity = ItemRarities.NameFor(tier);
 
-        return rarity.Length > 0 && ItemArt.IsDrawnPerRung(art)
-            ? $"{AssetOrigin}/ui/{art}-{rarity.ToLowerInvariant()}.png"
-            : $"{AssetOrigin}/ui/{art}.png";
-    }
-
-    private static ReadOnlySpan<char> ArtName(string icon)
-    {
-        var name = icon.AsSpan();
-
-        var slash = name.LastIndexOfAny('/', '\\');
-        if (slash >= 0)
-            name = name[(slash + 1)..];
-
-        var dot = name.LastIndexOf('.');
-        return dot >= 0 ? name[..dot] : name;
+        return rarity.Length > 0 && ItemTexture.IsDrawnPerRung(texture)
+            ? CodexTextureAddresses.IconUrl($"{texture}-{rarity.ToLowerInvariant()}")
+            : CodexTextureAddresses.IconUrl(texture);
     }
 }

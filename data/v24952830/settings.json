@@ -4,73 +4,85 @@
       "name": "Elarion",
       "armorType": "Mail",
       "primaryStat": "Agility",
-      "color": "7F49F5"
+      "color": "7F49F5",
+      "portrait": "hero_portrait_Bowguy_01"
     },
     {
       "name": "Ardeos",
       "armorType": "Cloth",
       "primaryStat": "Intellect",
-      "color": "EB6328"
+      "color": "EB6328",
+      "portrait": "hero_portrait_Firemage_default"
     },
     {
       "name": "Gunde",
       "armorType": "Leather",
       "primaryStat": "Strength",
-      "color": "5A1F20"
+      "color": "5A1F20",
+      "portrait": "hero_potrtrait_Gunde_01"
     },
     {
       "name": "Tariq",
       "armorType": "Mail",
       "primaryStat": "Strength",
-      "color": "163EB9"
+      "color": "163EB9",
+      "portrait": "hero_portrait_Ink_01"
     },
     {
       "name": "Aeona",
       "armorType": "Cloth",
       "primaryStat": "Intellect",
-      "color": "FC9FEC"
+      "color": "FC9FEC",
+      "portrait": "hero_portrait_Lisa_default"
     },
     {
       "name": "Mara",
       "armorType": "Leather",
       "primaryStat": "Agility",
-      "color": "4519A3"
+      "color": "4519A3",
+      "portrait": "hero_portrait_Mara_01"
     },
     {
       "name": "Meiko",
       "armorType": "Leather",
       "primaryStat": "Agility",
-      "color": "28E05C"
+      "color": "28E05C",
+      "portrait": "hero_portrait_meiko_default"
     },
     {
       "name": "Sylvie",
       "armorType": "Leather",
       "primaryStat": "Intellect",
-      "color": "EA4F84"
+      "color": "EA4F84",
+      "portrait": "hero_portrait_Mosse_01_default"
     },
     {
       "name": "Rime",
       "armorType": "Cloth",
       "primaryStat": "Intellect",
-      "color": "1EA3EE"
+      "color": "1EA3EE",
+      "portrait": "hero_portrait_rime_default"
     },
     {
       "name": "Xavian",
       "armorType": "Plate",
       "primaryStat": "Strength",
-      "color": "077365"
+      "color": "077365",
+      "portrait": "T_HeroPortrait_Sune"
     },
     {
       "name": "Vigour",
       "armorType": "Mail",
       "primaryStat": "Intellect",
-      "color": "DDDBC5"
+      "color": "DDDBC5",
+      "portrait": "hero_portrait_vigor_default"
     },
     {
       "name": "Helena",
       "armorType": "Plate",
       "primaryStat": "Strength",
-      "color": "B46831"
+      "color": "B46831",
+      "portrait": "hero_portrait_warmaster_01"
     }
   ],
   "rarities": [

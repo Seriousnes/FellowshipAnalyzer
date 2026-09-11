@@ -1,3 +1,5 @@
+using FellowshipAnalyzer.Core.Game;
+
 namespace FellowshipAnalyzer.Core.FellowshipLogs;
 
 /// <summary>
@@ -21,12 +23,13 @@ public sealed record ReportDungeon(
     private const int ZoneEncounterOffset = 100_000;
 
     /// <summary>
-    /// Icon URL for the dungeon/zone this dungeon took place in, served from the RPGLogs CDN, or
-    /// <see langword="null"/> when the dungeon has no zone. Some reports offset the zone id by
+    /// Icon URL for the dungeon/zone this dungeon took place in, served from the Fellowship Codex, or
+    /// <see langword="null"/> when the dungeon has no zone. Some reports offset the zone id by 
     /// <c>100000</c>, so <see cref="EncounterId"/> is reduced modulo that offset before use.
     /// </summary>
     public string? DungeonIconUrl =>
         EncounterId % ZoneEncounterOffset is int zoneId and > 0
-            ? $"https://assets.rpglogs.com/img/fellowship/bosses/{zoneId}-icon.jpg"
+        && CodexTextureAddresses.DungeonIconFor(zoneId) is { } texture
+            ? CodexTextureAddresses.IconUrl(texture)
             : null;
 }

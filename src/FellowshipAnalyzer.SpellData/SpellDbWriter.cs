@@ -29,11 +29,14 @@ public static class SpellDbWriter
     /// <summary>The top-level key holding the per-hero talent registries, which is not a spell scope.</summary>
     public const string TalentsSection = "talents";
 
+    /// <summary>The top-level key holding the dungeon id → icon map, which is not a spell scope.</summary>
+    public const string DungeonsSection = "dungeons";
+
     /// <summary>
-    /// The top-level key listing item and gem art drawn once for every rarity rung, which is not a spell
-    /// scope. Named so it cannot collide with the <c>shared</c> spell scope.
+    /// The top-level key listing item and gem textures drawn once for every rarity rung, which is not a
+    /// spell scope. Named so it cannot collide with the <c>shared</c> spell scope.
     /// </summary>
-    public const string ArtSharedAcrossRungsSection = "artSharedAcrossRungs";
+    public const string TexturesSharedAcrossRungsSection = "texturesSharedAcrossRungs";
 
     private static readonly JsonSerializerOptions IndentOptions = new() { WriteIndented = true };
 
@@ -45,7 +48,7 @@ public static class SpellDbWriter
 
         var heroScopes = byScope.Keys
             .Where(k => k != "shared" && k != "items" && k != SchoolsSection && k != RaritiesSection
-                        && k != ArtSharedAcrossRungsSection && k != TalentsSection)
+                        && k != TexturesSharedAcrossRungsSection && k != TalentsSection && k != DungeonsSection)
             .OrderBy(k => k, StringComparer.Ordinal);
 
         var orderedScopes = heroScopes.AsEnumerable();
@@ -99,12 +102,20 @@ public static class SpellDbWriter
             root[RaritiesSection] = raritiesObj;
         }
 
-        if (result.ArtSharedAcrossRungs.Count > 0)
+        if (result.Dungeons.Count > 0)
         {
-            var artArray = new JsonArray();
-            foreach (var art in result.ArtSharedAcrossRungs)
-                artArray.Add(JsonValue.Create(art));
-            root[ArtSharedAcrossRungsSection] = artArray;
+            var dungeonsObj = new JsonObject();
+            foreach (var (id, icon) in result.Dungeons.OrderBy(d => d.Key))
+                dungeonsObj[id.ToString(CultureInfo.InvariantCulture)] = JsonValue.Create(icon);
+            root[DungeonsSection] = dungeonsObj;
+        }
+
+        if (result.TexturesSharedAcrossRungs.Count > 0)
+        {
+            var textureArray = new JsonArray();
+            foreach (var texture in result.TexturesSharedAcrossRungs)
+                textureArray.Add(JsonValue.Create(texture));
+            root[TexturesSharedAcrossRungsSection] = textureArray;
         }
 
         return root.ToJsonString(IndentOptions);
@@ -116,16 +127,17 @@ public static class SpellDbWriter
         var spells = new List<CuratedSpell>();
         var schools = new Dictionary<int, MagicSchool>();
         var rarities = new Dictionary<int, string>();
-        var artSharedAcrossRungs = new SortedSet<string>(StringComparer.Ordinal);
+        var texturesSharedAcrossRungs = new SortedSet<string>(StringComparer.Ordinal);
         var talents = new List<CuratedSpell>();
+        var dungeons = new Dictionary<int, string>();
 
         foreach (var (scope, scopeNode) in root)
         {
-            if (scope == ArtSharedAcrossRungsSection)
+            if (scope == TexturesSharedAcrossRungsSection)
             {
-                foreach (var art in scopeNode?.AsArray() ?? [])
-                    if (art?.GetValue<string>() is { Length: > 0 } name)
-                        artSharedAcrossRungs.Add(name);
+                foreach (var texture in scopeNode?.AsArray() ?? [])
+                    if (texture?.GetValue<string>() is { Length: > 0 } name)
+                        texturesSharedAcrossRungs.Add(name);
                 continue;
             }
 
@@ -145,6 +157,14 @@ public static class SpellDbWriter
                 foreach (var (tierText, nameNode) in scopeObj)
                     if (int.TryParse(tierText, out var tier) && nameNode?.GetValue<string>() is { } name)
                         rarities[tier] = name;
+                continue;
+            }
+
+            if (scope == DungeonsSection)
+            {
+                foreach (var (idText, iconNode) in scopeObj)
+                    if (int.TryParse(idText, out var id) && iconNode?.GetValue<string>() is { } icon)
+                        dungeons[id] = icon;
                 continue;
             }
 
@@ -174,7 +194,7 @@ public static class SpellDbWriter
             }
         }
 
-        return new MergeResult(spells, []) { Schools = schools, Rarities = rarities, ArtSharedAcrossRungs = artSharedAcrossRungs, Talents = talents };
+        return new MergeResult(spells, []) { Schools = schools, Rarities = rarities, TexturesSharedAcrossRungs = texturesSharedAcrossRungs, Dungeons = dungeons, Talents = talents };
     }
 
     /// <summary>

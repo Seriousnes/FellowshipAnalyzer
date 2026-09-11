@@ -204,3 +204,6 @@ docs/*
 raw-reports/
 graphify-out/
 
+
+# Per-developer Blazor WASM overrides, served publicly from wwwroot
+**/wwwroot/appsettings.Development.json

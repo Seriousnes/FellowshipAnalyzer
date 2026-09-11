@@ -195,7 +195,8 @@ public static class MergeEngine
         {
             Schools = BuildSchools(inputs, spells),
             Rarities = inputs.Export.Rarities.ToDictionary(r => r.Tier, r => r.Name),
-            ArtSharedAcrossRungs = inputs.Icons.ArtSharedAcrossRungs,
+            TexturesSharedAcrossRungs = inputs.Icons.TexturesSharedAcrossRungs,
+            Dungeons = inputs.Export.Dungeons.ToDictionary(d => d.Id, d => d.Icon),
             Talents = BuildTalents(inputs, gaps),
         };
     }

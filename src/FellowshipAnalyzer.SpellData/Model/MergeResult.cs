@@ -35,16 +35,22 @@ public record MergeResult(List<CuratedSpell> Spells, List<Gap> Gaps)
 
     /// <summary>
     /// The name the build stores for each rarity, keyed by tier, rather than the name it prints.
-    /// Item and gem art files end in that stored name, so a tier resolves its own icon.
+    /// Item and gem texture files end in that stored name, so a tier resolves its own icon.
     /// </summary>
     public Dictionary<int, string> Rarities { get; init; } = [];
 
     /// <summary>
-    /// Item and gem art the export draws once for every rarity rung, named without directory or
-    /// extension. Art absent from this set is drawn per rung and is addressed by a name ending in the
-    /// rung's stored name.
+    /// Item and gem textures the export draws once for every rarity rung, named without directory or
+    /// extension. A texture absent from this set is drawn per rung and is addressed by a name ending
+    /// in the rung's stored name.
     /// </summary>
-    public SortedSet<string> ArtSharedAcrossRungs { get; init; } = new(StringComparer.Ordinal);
+    public SortedSet<string> TexturesSharedAcrossRungs { get; init; } = new(StringComparer.Ordinal);
+
+    /// <summary>
+    /// The texture each dungeon is drawn with, keyed by the export's dungeon id. Fellowship Logs indexes
+    /// its zone encounters by the same id, so a report's zone resolves its own icon.
+    /// </summary>
+    public Dictionary<int, string> Dungeons { get; init; } = [];
 
     /// <summary>
     /// Every talent the export slots to a hero, scoped by that hero's key. Talents are held apart from

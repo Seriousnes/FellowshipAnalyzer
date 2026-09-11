@@ -14,19 +14,19 @@ public sealed class IconSource
 
     private readonly Dictionary<(SpellKind Kind, int Id), string> _icons;
 
-    private IconSource(Dictionary<(SpellKind, int), string> icons, SortedSet<string> artSharedAcrossRungs)
+    private IconSource(Dictionary<(SpellKind, int), string> icons, SortedSet<string> texturesSharedAcrossRungs)
     {
         _icons = icons;
-        ArtSharedAcrossRungs = artSharedAcrossRungs;
+        TexturesSharedAcrossRungs = texturesSharedAcrossRungs;
     }
 
     /// <summary>
-    /// Item and gem art the export draws once for every rarity rung, named without directory or extension.
-    /// An item drawn per rung declares an <c>iconByRarity</c> map; one that declares none, and every gem,
-    /// draws a single file every rung shares. Art named here is addressed by its bare name at any tier;
-    /// art absent from it ends in the rung's stored name.
+    /// Item and gem textures the export draws once for every rarity rung, named without directory or
+    /// extension. An item drawn per rung declares an <c>iconByRarity</c> map; one that declares none, and
+    /// every gem, draws a single file every rung shares. A texture named here is addressed by its bare
+    /// name at any tier; one absent from it ends in the rung's stored name.
     /// </summary>
-    public SortedSet<string> ArtSharedAcrossRungs { get; }
+    public SortedSet<string> TexturesSharedAcrossRungs { get; }
 
     /// <summary>Returns the icon filename the build declares for the entity, or <c>null</c> if it declares none.</summary>
     public string? IconFor(SpellKind kind, int nativeId) =>
@@ -46,11 +46,11 @@ public sealed class IconSource
 
             switch (document)
             {
-                case ItemDocument { IconByRarity: null or { Count: 0 }, Icon: { Length: > 0 } art }:
-                    shared.Add(ArtName(art));
+                case ItemDocument { IconByRarity: null or { Count: 0 }, Icon: { Length: > 0 } texture }:
+                    shared.Add(TextureName(texture));
                     continue;
                 case GemDocument { Icon: { Length: > 0 } gem }:
-                    shared.Add(ArtName(gem));
+                    shared.Add(TextureName(gem));
                     continue;
             }
 
@@ -70,9 +70,9 @@ public sealed class IconSource
         return new IconSource(icons, shared);
     }
 
-    private static string ArtName(string art)
+    private static string TextureName(string texture)
     {
-        var name = Path.GetFileNameWithoutExtension(art);
+        var name = Path.GetFileNameWithoutExtension(texture);
 
         foreach (var rung in Rungs)
             if (name.EndsWith('-' + rung, StringComparison.Ordinal))

@@ -1,4 +1,5 @@
 using System.Collections.Frozen;
+using FellowshipAnalyzer.Core.Game;
 using FellowshipAnalyzer.Core.Contracts.Design;
 
 namespace FellowshipAnalyzer.Core.Analysis;
@@ -77,21 +78,28 @@ public readonly record struct Hero(HeroName Name, HeroRole Role)
     /// <summary>Lowercase string identifier (e.g. <c>"rime"</c>).</summary>
     public string Id => Name.ToHeroId();
 
-    /// <summary>Portrait image URL from the Fellowship CDN.</summary>
-    public string IconUrl => Name switch
+    /// <summary>Portrait image URL, served from the Fellowship Codex.</summary>
+    public string IconUrl => Portrait is { Length: > 0 } texture ? CodexTextureAddresses.IconUrl(texture) : "";
+
+    /// <summary>
+    /// The texture this hero's portrait is drawn with, which is the <c>PortraitTexture</c> the hero's
+    /// metadata asset names. Each is stated here only until an export carrying the <c>portrait</c>
+    /// field on a hero arrives, after which they are read off the hero document instead.
+    /// </summary>
+    private string Portrait => Name switch
     {
-        HeroName.Aeona   => "https://assets.fellows.gg/static/heroes/hero_portrait_Lisa_default.webp?v=1",
-        HeroName.Ardeos  => "https://assets.fellows.gg/static/heroes/hero_portrait_Firemage_default.webp?v=1",
-        HeroName.Elarion => "https://assets.fellows.gg/static/heroes/hero_portrait_Bowguy_01.webp?v=1",
-        HeroName.Gunde   => "https://assets.fellows.gg/static/heroes/hero_potrtrait_Gunde_01.webp?v=1",
-        HeroName.Helena  => "https://assets.fellows.gg/static/heroes/hero_portrait_warmaster_01.webp?v=1",
-        HeroName.Mara    => "https://assets.fellows.gg/static/heroes/hero_portrait_Mara_01.webp?v=1",
-        HeroName.Meiko   => "https://assets.fellows.gg/static/heroes/hero_portrait_meiko_default.webp?v=1",
-        HeroName.Rime    => "https://assets.fellows.gg/static/heroes/hero_portrait_rime_default.webp?v=1",
-        HeroName.Sylvie  => "https://assets.fellows.gg/static/heroes/hero_portrait_Mosse_01_default.webp?v=1",
-        HeroName.Tariq   => "https://assets.fellows.gg/static/heroes/hero_portrait_Ink_01.webp?v=1",
-        HeroName.Vigour  => "https://assets.fellows.gg/static/heroes/hero_portrait_vigor_default.webp?v=1",
-        HeroName.Xavian  => "https://assets.fellows.gg/static/heroes/T_HeroPortrait_Sune.webp?v=1",
+        HeroName.Aeona   => "hero_portrait_Lisa_default",
+        HeroName.Ardeos  => "hero_portrait_Firemage_default",
+        HeroName.Elarion => "hero_portrait_Bowguy_01",
+        HeroName.Gunde   => "hero_potrtrait_Gunde_01",
+        HeroName.Helena  => "hero_portrait_warmaster_01",
+        HeroName.Mara    => "hero_portrait_Mara_01",
+        HeroName.Meiko   => "hero_portrait_meiko_default",
+        HeroName.Rime    => "hero_portrait_rime_default",
+        HeroName.Sylvie  => "hero_portrait_Mosse_01_default",
+        HeroName.Tariq   => "hero_portrait_Ink_01",
+        HeroName.Vigour  => "hero_portrait_vigor_default",
+        HeroName.Xavian  => "T_HeroPortrait_Sune",
         _                => "",
     };
 

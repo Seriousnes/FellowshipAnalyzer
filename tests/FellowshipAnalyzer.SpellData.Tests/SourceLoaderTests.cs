@@ -109,9 +109,9 @@ public class SourceLoaderTests
     {
         var icons = IconSource.Load(SourcePaths.Entities);
 
-        icons.IconFor(SpellKind.Ability, 1964).ShouldBe("T_Lisa_Stagger.png");
-        icons.IconFor(SpellKind.Talent, 592).ShouldBe("Tex_SpellBook01_69.png");
-        icons.IconFor(SpellKind.Weapon, 42).ShouldBe("Tex_SpellBook01_82.png");
+        icons.IconFor(SpellKind.Ability, 1964).ShouldBe("T_Lisa_Stagger");
+        icons.IconFor(SpellKind.Talent, 592).ShouldBe("Tex_SpellBook01_69");
+        icons.IconFor(SpellKind.Weapon, 42).ShouldBe("Tex_SpellBook01_82");
     }
 
     [Fact]

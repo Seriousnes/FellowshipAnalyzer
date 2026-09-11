@@ -1,9 +1,17 @@
+using FellowshipAnalyzer.Core.Game;
 using FellowshipAnalyzer.Core.UI.Charts;
 using FellowshipAnalyzer.Core.UI.Components;
 using FellowshipAnalyzer.Core.UI.Theming;
 using FellowshipAnalyzer.DesignSystem.Components;
 
 var builder = WebApplication.CreateBuilder(args);
+
+var codex = builder.Configuration.GetSection(CodexOptions.SectionName);
+Codex.Use(new CodexOptions
+{
+    Origin = codex["Origin"] ?? CodexOptions.Default.Origin,
+    TextureOrigin = codex["TextureOrigin"] ?? CodexOptions.Default.TextureOrigin,
+});
 
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
