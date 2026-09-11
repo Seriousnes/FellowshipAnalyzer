@@ -15,7 +15,7 @@ namespace FellowshipAnalyzer.Heroes.Aeona.Tests.Modules;
 public sealed class ConvergingTimelinesTrackerTests
 {
     [Fact]
-    public async Task AnOblivionCast_AddsFullAccelerationWhileTheBuffRuns()
+    public async Task AnOblivionCast_CountsOneOblivionApplication_AndRevokesTheModifierOnRemoval()
     {
         var parser = await Analyze(BossPull(),
             Info([]),
@@ -32,7 +32,7 @@ public sealed class ConvergingTimelinesTrackerTests
     }
 
     [Fact]
-    public async Task WithLonesomeSong_OblivionGrantsDoubleAndACleanseGrantsSingle()
+    public async Task WithLonesomeSong_AnOblivionAndACleanse_CountOneApplicationEach()
     {
         var parser = await Analyze(BossPull(),
             Info([], AeonaLegendaries.LonesomeSong),

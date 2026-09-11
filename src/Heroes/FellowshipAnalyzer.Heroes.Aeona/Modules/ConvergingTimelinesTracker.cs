@@ -5,9 +5,7 @@ using FellowshipAnalyzer.Core.Events;
 namespace FellowshipAnalyzer.Heroes.Aeona.Modules;
 
 /// <summary>
-/// Converging Timelines on the player: the Cooldown Acceleration each application grants, added to
-/// <see cref="StatTracker"/>'s pool while the buff runs so <see cref="SpellUsable"/> recharges
-/// Entropy's Claim and every other cooldown at the rate the game did.
+/// Cooldown Acceleration granted by Converging Timelines on the player, added to <see cref="StatTracker"/>'s pool while the buff is active.
 /// </summary>
 /// <remarks>
 /// The magnitude depends on the cast that applied the buff: Oblivion grants
