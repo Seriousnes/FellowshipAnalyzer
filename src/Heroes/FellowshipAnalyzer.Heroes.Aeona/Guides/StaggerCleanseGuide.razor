@@ -94,7 +94,7 @@
             stats.Add(new OverviewStat(
                 $"{waited} of {onCooldown}",
                 "Could Have Waited for Entropy's Claim",
-                "Casts with Entropy's Claim on cooldown whose projected tank Stagger at the next charge stayed under 55%.",
+                "Casts with Entropy's Claim on cooldown and tank Stagger at the next charge under 55%.",
                 onCooldown > 0 ? WaitTier(waited, onCooldown) : null));
         }
 
@@ -196,7 +196,7 @@
                 stats.Add(new PerCastStat(
                     $"{projected:P0}",
                     "Stagger at Next Charge",
-                    $"The tank's Stagger at the next charge, holding {cast.StaggerIntakePerSecond:N0} intake per second.",
+                    "The tank's Stagger at the next charge.",
                     cast.CouldHaveWaited ? QualitativePerformance.Fail : QualitativePerformance.Perfect));
             }
         }
