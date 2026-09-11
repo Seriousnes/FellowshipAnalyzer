@@ -195,12 +195,13 @@ public sealed class StaggerCleanseAnalyzerTests
         [
             UchroniaApplied(5_000),
             Snapshot(TankId, 5_100, staggerHitPoints: 9_000),
+            AmendFateCast(5_500),
             FreeAmendFateCast(5_500),
             AmendFateHeal(TankId, 5_501, effective: 5_500, overheal: 0),
             UchroniaRemoved(5_500),
         ]).ToArray());
 
-        var cast = analyzer.Casts[1];
+        var cast = analyzer.Casts[^1];
 
         cast.WasFree.ShouldBeTrue();
         cast.FreeCastSource.ShouldBe(FreeCastSource.Uchronia);

@@ -100,7 +100,7 @@ public sealed class OblivionAnalyzerTests
     {
         var analyzer = await Analyze([AeonaTalents.OblivionsEmbrace, AeonaTalents.Uchronia],
             UchroniaApplied(1_000),
-            FreeOblivionCast(2_000),
+            OblivionCast(2_000),
             UchroniaRemoved(2_000));
 
         var cast = analyzer.Casts.ShouldHaveSingleItem();
@@ -127,7 +127,7 @@ public sealed class OblivionAnalyzerTests
     {
         var analyzer = await Analyze([AeonaTalents.OblivionsEmbrace, AeonaTalents.Uchronia],
             UchroniaApplied(1_000),
-            FreeOblivionCast(1_500),
+            OblivionCast(1_500),
             UchroniaRemoved(1_500),
             EpochBreakApplied(4_000),
             EpochBreakRemoved(8_000),
@@ -240,15 +240,6 @@ public sealed class OblivionAnalyzerTests
         Timestamp = timestamp,
         SourceId = PlayerId,
         TargetId = EnemyId,
-        Ability = new Ability { Id = Spells.Oblivion.FSLID },
-    };
-
-    private static FreeCastEvent FreeOblivionCast(int timestamp) => new()
-    {
-        Timestamp = timestamp,
-        SourceId = PlayerId,
-        TargetId = EnemyId,
-        AbilityGameId = Spells.Oblivion.FSLID,
         Ability = new Ability { Id = Spells.Oblivion.FSLID },
     };
 
