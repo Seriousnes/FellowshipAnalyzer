@@ -138,6 +138,8 @@ public sealed partial class FreeCastTracker : Analyzer
     [On<CastEvent>(By = Actor.Player, Spells = [nameof(Spells.Oblivion), nameof(Spells.AmendFate), nameof(Spells.RestoreContinuity)])]
     private void OnSpenderCast(CastEvent e)
     {
+        _spenderCasts.RemoveAll(cast => e.Timestamp - cast.Timestamp > CastMatchToleranceMs);
+
         var abilityId = e.Ability.Id;
 
         if (EpochBreakActive(e.Timestamp))
