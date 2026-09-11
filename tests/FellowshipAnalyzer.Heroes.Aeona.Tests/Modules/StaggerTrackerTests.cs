@@ -114,6 +114,18 @@ public sealed class StaggerTrackerTests
     }
 
     [Fact]
+    public async Task TankId_IsTheTankAmongTheDungeonsFriendlyPlayers()
+    {
+        const int otherTank = 91;
+        List<ReportActor> actors = [.. Actors, new(otherTank, "Helena", "Player", "Helena", null, null)];
+        var dungeon = new ReportDungeon(0, "", 1, null, 0, 20000, null, [PlayerId, TankId, AllyId], null);
+
+        var tracker = await Track(actors, dungeon, TankSnapshotHeal(1000, rawStagger: 500000));
+
+        tracker.TankIds.ShouldBe([TankId]);
+    }
+
+    [Fact]
     public async Task TankId_IsNullWhenTheReportNamesNoTank()
     {
         var tracker = await Track([new(PlayerId, "Aeona", "Player", "Aeona", null, null)], TankSnapshotHeal(1000, rawStagger: 500000));
@@ -332,7 +344,10 @@ public sealed class StaggerTrackerTests
 
     private static Task<StaggerTracker> Track(params Event[] events) => Track(Actors, events);
 
-    private static async Task<StaggerTracker> Track(List<ReportActor> actors, params Event[] events)
+    private static Task<StaggerTracker> Track(List<ReportActor> actors, params Event[] events) =>
+        Track(actors, new ReportDungeon(0, "", 1, null, 0, 20000, null, null, null), events);
+
+    private static async Task<StaggerTracker> Track(List<ReportActor> actors, ReportDungeon dungeon, params Event[] events)
     {
         var services = new ServiceCollection();
         services.AddLogging();
@@ -344,7 +359,7 @@ public sealed class StaggerTrackerTests
 
         var parser = scope.ServiceProvider.GetRequiredService<AeonaCombatLogParser>();
         parser.Actors = actors;
-        await parser.Analyze([.. events], PlayerId, new ReportDungeon(0, "", 1, null, 0, 20000, null, null, null));
+        await parser.Analyze([.. events], PlayerId, dungeon);
 
         return parser.StaggerTracker.ShouldNotBeNull();
     }
