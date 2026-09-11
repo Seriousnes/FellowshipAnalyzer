@@ -17,6 +17,7 @@ namespace FellowshipAnalyzer.Heroes.Aeona.Analysis;
 [AddAnalyzer<Modules.OblivionAnalyzer>]
 [AddAnalyzer<Modules.TimeShardAnalyzer>]
 [AddAnalyzer<Modules.ContinuumShiftAnalyzer>]
+[AddAnalyzer<Modules.KindRewindAnalyzer>]
 [AddAnalyzer<Modules.TwilightSkyboltAnalyzer>]
 [AddAnalyzer<Modules.UnfoldingDoomAnalyzer>]
 [AddAnalyzer<Modules.EntropyClaimAnalyzer>]
