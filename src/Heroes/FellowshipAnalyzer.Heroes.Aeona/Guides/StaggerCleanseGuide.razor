@@ -1,5 +1,245 @@
 @inherits GuideComponent<AeonaCombatLogParser>
 
+<GuideSection Title="Amend Fate and Restore Continuity">
+    <LeftPanel>
+        <p>
+            Cast <strong><SpellLink Spell="Spells.AmendFate" /></strong> or
+            <strong><SpellLink Spell="Spells.RestoreContinuity" /></strong> when the target holds more than the
+            Stagger removed, and always once the tank passes 40% of its maximum health in Stagger.
+        </p>
+        <p>
+            Below that, cast <SpellLink Spell="Spells.Oblivion" /> instead.
+        </p>
+        @if (Build?.MassEntropy == true)
+        {
+            <p>
+                With <SpellLink Spell="Spells.EntropyClaim" /> on cooldown, cleanse only when the tank would pass 55%
+                before the next charge. Otherwise keep casting Oblivion and roll <SpellLink Spell="Spells.EntropicBurst" /> over.
+            </p>
+        }
+        @if (EchoesTaken)
+        {
+            <p>
+                Spend Uchronia on Restore Continuity to apply <SpellLink Spell="Talents.EchoesOfDivinity" /> to the
+                tank, and let it run its full duration before the next cleanse.
+            </p>
+        }
+    </LeftPanel>
+    <RightPanel>
+        <CastOverview Title="Cleanse Overview"
+                      Stats="@BuildOverviewStats()"
+                      AdditionalContentTitle="@(FreeCastsInPull > 0 ? "Free Casts on Restore Continuity" : null)"
+                      AdditionalContent="@FreeCastBar()" />
+        <CastDetail Title="Cleanses by Pull"
+                    Description="Each row is one cast, rated as the GCD it was."
+                    Casts="@BuildCastRows()" />
+    </RightPanel>
+</GuideSection>
+
 @code {
-    protected override bool IsActive() => false;
+    protected override bool IsActive() => Analyzers.Any(analyzer => analyzer.Casts.Count > 0);
+
+    private AeonaBuild? Build => Parser.AeonaBuild;
+
+    private List<StaggerCleanseAnalyzer> Analyzers =>
+        [.. Parser.StaggerCleanseAnalyzers.Select(entry => entry.Analyzer)];
+
+    private bool EchoesTaken => Parser.SelectedCombatant.HasTalent(AeonaTalents.EchoesOfDivinity);
+
+    private List<EchoesOfDivinityUse> Echoes =>
+        [.. Analyzers.Select(analyzer => analyzer.EchoesOfDivinity).OfType<EchoesOfDivinityUse>()];
+
+    private int FreeCastsInPull => Analyzers.Sum(analyzer => analyzer.FreeCastsInPull);
+
+    private RenderFragment? FreeCastBar()
+    {
+        var total = FreeCastsInPull;
+        if (total == 0) return null;
+
+        var restore = Analyzers.Sum(analyzer => analyzer.FreeCastsOnRestoreContinuity);
+
+        return @<PassFailBar Pass="@restore" Total="@total"
+                             PassTooltip="@($"Free casts spent on Restore Continuity: {restore}")"
+                             FailTooltip="@($"Free casts spent elsewhere: {total - restore}")" />;
+    }
+
+    private IEnumerable<OverviewStat> BuildOverviewStats()
+    {
+        var analyzers = Analyzers;
+        var stats = new List<OverviewStat>();
+
+        var rated = analyzers.Sum(analyzer => analyzer.CastsRated);
+        if (rated > 0)
+        {
+            var flagged = analyzers.Sum(analyzer => analyzer.FlaggedCasts);
+            stats.Add(new OverviewStat(
+                $"{flagged} ({FormatShare(flagged, rated)})",
+                "Flagged Casts",
+                $"Casts under 40% tank Stagger on less than the Stagger removed or less than an Oblivion heals, of {rated} casts.",
+                FlagTier(flagged, rated)));
+            stats.Add(new OverviewStat(
+                $"{analyzers.Sum(analyzer => analyzer.LowStaggerCasts)}",
+                "Low-Stagger Casts",
+                "Casts while the target held less than the Stagger removed."));
+            stats.Add(new OverviewStat(
+                $"{analyzers.Sum(analyzer => analyzer.BelowOblivionValueCasts)}",
+                "Below an Oblivion",
+                "Casts whose effective healing was below the effective healing plus shielding of an Oblivion cast."));
+        }
+
+        var onCooldown = analyzers.Sum(analyzer => analyzer.CastsWithEntropyClaimOnCooldown);
+        if (onCooldown > 0)
+        {
+            var waited = analyzers.Sum(analyzer => analyzer.CastsCouldHaveWaited);
+            stats.Add(new OverviewStat(
+                $"{waited} of {onCooldown}",
+                "Could Have Waited for Entropy's Claim",
+                "Casts with Entropy's Claim on cooldown whose projected tank Stagger at the next charge stayed under 55%.",
+                onCooldown > 0 ? WaitTier(waited, onCooldown) : null));
+        }
+
+        AddCleansedStat(stats, analyzers, Spells.AmendFate.FSLID, "Stagger Cleansed by Amend Fate");
+        AddCleansedStat(stats, analyzers, Spells.RestoreContinuity.FSLID, "Stagger Cleansed by Restore Continuity");
+
+        stats.Add(new OverviewStat(
+            $"{analyzers.Sum(analyzer => analyzer.EffectiveHealing):N0}",
+            "Effective Healing",
+            $"Effective healing across every cast, against {analyzers.Sum(analyzer => analyzer.Overheal):N0} overheal."));
+
+        var echoes = Echoes;
+        if (echoes.Count > 0)
+        {
+            var combatMs = analyzers.Sum(analyzer => (long)analyzer.Pull.Duration);
+            stats.Add(new OverviewStat(
+                FormatShare(echoes.Sum(use => (long)use.ActiveMs), combatMs),
+                "Echoes of Divinity Uptime",
+                "Share of combat Echoes of Divinity was active on the tank."));
+            stats.Add(new OverviewStat(
+                FormatSeconds(echoes.Sum(use => use.OverwrittenMs)),
+                "Echoes of Divinity Overwritten",
+                "Running Echoes of Divinity time on the tank a cleanse refreshed away."));
+        }
+
+        return stats;
+    }
+
+    private static void AddCleansedStat(List<OverviewStat> stats, List<StaggerCleanseAnalyzer> analyzers, int ability, string label)
+    {
+        var bracketed = analyzers.Sum(analyzer => analyzer.BracketedCastsOf(ability));
+        if (bracketed == 0) return;
+
+        var cleansed = analyzers.Sum(analyzer => analyzer.StaggerCleansedBy(ability));
+        stats.Add(new OverviewStat(
+            $"{cleansed:N0}",
+            label,
+            $"Stagger removed across {bracketed} cast{(bracketed == 1 ? "" : "s")}, {(double)cleansed / bracketed:N0} per cast."));
+    }
+
+    private IEnumerable<PerCastData> BuildCastRows() =>
+        Parser.StaggerCleanseAnalyzers.ToItemRows(Parser, analyzer => analyzer.Casts, (cast, pull) => BuildRow(cast));
+
+    private PerCastRow BuildRow(CleanseCastEntry cast)
+    {
+        var performance = cast.Flagged ? QualitativePerformance.Fail
+            : cast.Rated ? QualitativePerformance.Perfect
+            : (QualitativePerformance?)null;
+
+        var stats = new List<PerCastStat>();
+
+        if (cast.TankStaggerFraction is { } fraction)
+        {
+            stats.Add(new PerCastStat(
+                $"{fraction:P0}",
+                "Tank Stagger",
+                "The tank's Stagger as a share of its maximum health at the cast."));
+        }
+
+        if (cast.StaggerBefore is { } before && cast.StaggerRemoved is { } amount)
+        {
+            stats.Add(new PerCastStat(
+                $"{before:N0} / {amount:N0}",
+                "Stagger Before Cast",
+                "The target's Stagger before the cast against the Stagger removed.",
+                cast.BelowStaggerRemoved == true ? QualitativePerformance.Fail : QualitativePerformance.Perfect));
+        }
+
+        stats.Add(new PerCastStat(
+            $"{cast.EffectiveHealing:N0}",
+            "Effective Healing",
+            cast.OblivionValue is { } value
+                ? $"Effective healing, against {value:N0} per Oblivion cast and {cast.Overheal:N0} overheal."
+                : $"Effective healing, against {cast.Overheal:N0} overheal.",
+            cast.BelowOblivionValue switch
+            {
+                true => QualitativePerformance.Fail,
+                false => QualitativePerformance.Perfect,
+                _ => null,
+            }));
+
+        if (cast.StaggerCleansed is { } cleansed)
+        {
+            stats.Add(new PerCastStat(
+                $"{cleansed:N0}",
+                "Stagger Cleansed",
+                "Stagger this cast removed, in hit points."));
+        }
+
+        if (cast.EntropyClaimReadyInMs > 0)
+        {
+            stats.Add(new PerCastStat(
+                FormatSeconds(cast.EntropyClaimReadyInMs),
+                "Entropy's Claim Ready In",
+                "Time until the next Entropy's Claim charge at the cast."));
+
+            if (cast.ProjectedStaggerFraction is { } projected)
+            {
+                stats.Add(new PerCastStat(
+                    $"{projected:P0}",
+                    "Stagger at Next Charge",
+                    $"The tank's Stagger at the next charge, holding {cast.StaggerIntakePerSecond:N0} intake per second.",
+                    cast.CouldHaveWaited ? QualitativePerformance.Fail : QualitativePerformance.Perfect));
+            }
+        }
+
+        if (cast.WasFree)
+        {
+            stats.Add(new PerCastStat(
+                cast.FreeCastSource == FreeCastSource.EpochBreak ? "Epoch Break" : "Uchronia",
+                "Free Cast",
+                null,
+                cast.OverwroteEchoes ? QualitativePerformance.Fail : QualitativePerformance.Perfect));
+        }
+
+        if (cast.AppliedEchoes)
+        {
+            stats.Add(new PerCastStat("Applied", "Echoes of Divinity", "Echoes of Divinity applied to the tank by this cast."));
+        }
+
+        if (cast.EchoesOverwrittenMs is { } overwritten)
+        {
+            stats.Add(new PerCastStat(
+                FormatSeconds(overwritten),
+                "Echoes of Divinity Overwritten",
+                "Running Echoes of Divinity time on the tank this cast refreshed away.",
+                QualitativePerformance.Fail));
+        }
+
+        return new PerCastRow
+        {
+            Performance = performance,
+            Stats = [.. stats],
+            Timestamp = cast.Timestamp,
+            Sequence = [new SpellCastEntry(cast.Ability.Value, performance)],
+        };
+    }
+
+    private static QualitativePerformance FlagTier(int flagged, int rated) =>
+        PerformanceTiers.FromThresholds(1 - (double)flagged / rated, 0.95, 0.85, 0.7);
+
+    private static QualitativePerformance WaitTier(int waited, int onCooldown) =>
+        PerformanceTiers.FromThresholds(1 - (double)waited / onCooldown, 0.9, 0.75, 0.5);
+
+    private static string FormatShare(long part, long whole) => whole > 0 ? $"{part * 100d / whole:0.#}%" : "0%";
+
+    private static string FormatSeconds(long milliseconds) => $"{milliseconds / 1000d:0.#}s";
 }
