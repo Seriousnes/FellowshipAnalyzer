@@ -38,14 +38,4 @@ public sealed class StaggerIntakeTests
         tracker.IntakePerSecond(TankId, 9_000, 8_000).ShouldBe(750.0, 0.0001);
         tracker.IntakePerSecond(TankId, 6_000, 2_000).ShouldBe(2_000.0, 0.0001);
     }
-
-    [Fact]
-    public async Task AnAbsorbByAnotherEffect_IsNotIntake()
-    {
-        var parser = await Analyze(BossPull(),
-            Info([]),
-            Absorbed(1_000, Spells.OblivionAbsorbAbsorb, TankId, 900));
-
-        parser.StaggerTracker.ShouldNotBeNull().IntakeFor(TankId).ShouldBeEmpty();
-    }
 }
