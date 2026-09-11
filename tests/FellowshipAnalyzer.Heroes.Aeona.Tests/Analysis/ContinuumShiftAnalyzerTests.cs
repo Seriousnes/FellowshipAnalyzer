@@ -151,6 +151,23 @@ public sealed class ContinuumShiftAnalyzerTests
         analyzer.Windows.ShouldHaveSingleItem().CastTimestamp.ShouldBe(3_500);
     }
 
+    [Fact]
+    public async Task AnInstantCast_SpendsTheWindow()
+    {
+        var analyzer = await Analyze(Info(Shift),
+            ApplyBuff(1_000, Spells.ContinuumShift),
+            Activation(3_000, Spells.EchoesOfRuin),
+            ApplyDebuff(3_000, Spells.EchoesOfRuinDot, EnemyId),
+            ApplyDebuff(3_000, Spells.EchoesOfRuinDot, SecondEnemyId),
+            RemoveBuff(3_002, Spells.ContinuumShift));
+
+        var window = analyzer.Windows.ShouldHaveSingleItem();
+        window.Spend.ShouldBe(ContinuumShiftSpend.EchoesOfRuin);
+        window.CastTimestamp.ShouldBe(3_000);
+        window.EnemiesApplied.ShouldBe(2);
+        analyzer.Lost.ShouldBe(0);
+    }
+
     private static async Task<ContinuumShiftAnalyzer> Analyze(CombatantInfoEvent info, params Event[] events)
     {
         var parser = await AeonaLog.Analyze(BossPull(), [info, .. events]);

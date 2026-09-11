@@ -131,13 +131,14 @@ public sealed partial class StaggerTracker : Analyzer
     public IReadOnlyList<int> TrackedUnitIds => _trackedUnitIds;
 
     /// <summary>
-    /// The party's tank actor ids, resolved from the report's actor list by parsing each actor's hero
-    /// and keeping those whose <see cref="HeroRole"/> is <see cref="HeroRole.Tank"/>. Empty when the
-    /// report has no actor list.
+    /// The party's tank actor ids: the dungeon's friendly players whose hero's <see cref="HeroRole"/> is
+    /// <see cref="HeroRole.Tank"/>, or every such actor in the report when the dungeon names no party.
+    /// Empty when the report has no actor list.
     /// </summary>
     public IReadOnlyList<int> TankIds => field ??=
     [
         .. Owner.Actors
+            .Where(actor => Owner.Dungeon.FriendlyPlayers is not { Count: > 0 } party || party.Contains(actor.Id))
             .Where(actor => Hero.TryParse(actor.SubType, out var hero) && hero.Role == HeroRole.Tank)
             .Select(actor => actor.Id),
     ];

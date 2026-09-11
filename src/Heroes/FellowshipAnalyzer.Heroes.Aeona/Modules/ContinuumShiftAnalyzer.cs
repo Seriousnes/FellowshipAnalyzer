@@ -76,8 +76,9 @@ public sealed record ContinuumShiftWindow(
 /// produced.
 /// </summary>
 /// <remarks>
-/// A removal is paired with the nearest completed Time Shard, Echoes of Ruin, or Entropy's Claim within
-/// <see cref="PairingMs"/> that no earlier window has claimed. A Time Shard's damage, healing, and Chrona
+/// A removal is paired with the nearest Time Shard, Echoes of Ruin, or Entropy's Claim cast within
+/// <see cref="PairingMs"/> that no earlier window has claimed. A cast with a completion is its
+/// completion; an instant cast is its activation. A Time Shard's damage, healing, and Chrona
 /// overcap are those inside <see cref="DamageWindowMs"/> after its completion; an Echoes of Ruin's enemies
 /// are the applications inside <see cref="ApplicationWindowMs"/>.
 /// </remarks>
@@ -202,9 +203,11 @@ public sealed partial class ContinuumShiftAnalyzer : Analyzer, IContinuumShiftAn
 
     private void Consider(CastEvent e, ContinuumShiftSpend spend)
     {
-        if (e.Activation) return;
+        if (!e.Activation && _candidates.Count > 0 && _candidates[^1] is { Activation: true } activation
+            && activation.Spend == spend && e.Timestamp - activation.Timestamp <= PairingMs)
+            _candidates.RemoveAt(_candidates.Count - 1);
 
-        _candidates.Add(new Candidate(e.Timestamp, spend));
+        _candidates.Add(new Candidate(e.Timestamp, spend, e.Activation));
     }
 
     private List<ContinuumShiftWindow> Build()
@@ -293,5 +296,5 @@ public sealed partial class ContinuumShiftAnalyzer : Analyzer, IContinuumShiftAn
 
     private static bool Inside(int timestamp, int cast, int windowMs) => timestamp >= cast && timestamp <= cast + windowMs;
 
-    private sealed record Candidate(int Timestamp, ContinuumShiftSpend Spend);
+    private sealed record Candidate(int Timestamp, ContinuumShiftSpend Spend, bool Activation);
 }
