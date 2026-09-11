@@ -14,7 +14,7 @@ public interface IEntropyClaimAnalyzer : IAnalyzerSurface;
 /// <param name="Target">The enemy the dot was applied to, or null when no application followed the cast.</param>
 /// <param name="DotStart">When the dot was applied, or null when no application followed the cast.</param>
 /// <param name="DotEnd">The dot's expiry, or its last tick when it outlived the pull.</param>
-/// <param name="DelayAfterReadyMs">Milliseconds a charge sat available before this cast.</param>
+/// <param name="DelayAfterReadyMs">Milliseconds a charge was available before this cast.</param>
 /// <param name="LeadBeforeExpiryMs">Milliseconds from this cast to the expiry of the latest dot still active on another enemy, or null when none was active.</param>
 /// <param name="BurstApplications">Entropic Burst applications at this application's expiry.</param>
 /// <param name="BurstRollovers">Entropic Burst stack increments at this application's expiry.</param>
@@ -72,7 +72,7 @@ public sealed record EntropicBurstLapse(int Timestamp, int Units, int PeakStacks
 
 /// <summary>
 /// Entropy's Claim over one pull: each cast and the application it made, the charges' availability, and
-/// the Entropic Burst chains those applications' expiries fed.
+/// the Entropic Burst chains from those applications' expiries.
 /// </summary>
 /// <remarks>
 /// <para>
