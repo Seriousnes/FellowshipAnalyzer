@@ -198,6 +198,7 @@ public static class MergeEngine
             TexturesSharedAcrossRungs = inputs.Icons.TexturesSharedAcrossRungs,
             Dungeons = inputs.Export.Dungeons.ToDictionary(d => d.Id, d => d.Icon),
             Talents = BuildTalents(inputs, gaps),
+            Legendaries = BuildLegendaries(inputs, gaps),
         };
     }
 
@@ -332,6 +333,54 @@ public static class MergeEngine
         }
 
         return talents;
+    }
+
+    /// <summary>
+    /// Selects every legendary item the export grants a power to into the scope of the hero that equips
+    /// it, naming the member from the power. Two items of one hero granting the same power share a
+    /// member, and the one with the lower item id is kept.
+    /// </summary>
+    private static List<CuratedLegendary> BuildLegendaries(MergeInputs inputs, List<Gap> gaps)
+    {
+        var legendaries = new List<CuratedLegendary>();
+        var members = new HashSet<(string Scope, string Member)>();
+
+        foreach (var legendary in inputs.Export.Legendaries)
+        {
+            var scope = legendary.Hero.ToLowerInvariant();
+            if (!HeroNames.Contains(scope))
+                gaps.Add(new Gap(scope, scope, GapKind.UnknownScope));
+
+            if (legendary.PowerName.Length == 0)
+            {
+                gaps.Add(new Gap(scope, $"item {legendary.ItemId}", GapKind.MissingName));
+                continue;
+            }
+
+            var member = MemberNaming.TalentMember(legendary.PowerName);
+            if (!members.Add((scope, member)))
+                continue;
+
+            legendaries.Add(new CuratedLegendary(
+                scope,
+                member,
+                legendary.ItemId,
+                legendary.ItemName,
+                legendary.PowerId,
+                legendary.PowerName,
+                legendary.Slot,
+                legendary.Icon));
+
+            if (!MemberNaming.IsValidIdentifier(member))
+                gaps.Add(new Gap(scope, member, GapKind.MissingName));
+        }
+
+        return
+        [
+            .. legendaries
+                .OrderBy(l => l.Scope, StringComparer.Ordinal)
+                .ThenBy(l => l.Member, StringComparer.Ordinal),
+        ];
     }
 
     private static readonly HashSet<string> HeroNames =
