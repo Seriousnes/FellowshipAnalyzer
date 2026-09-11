@@ -8,10 +8,10 @@ using SpellKind = FellowshipAnalyzer.Core.Common.Spells.SpellKind;
 
 namespace FellowshipAnalyzer.Heroes.Aeona.Modules;
 
-/// <summary>A unit's Stagger pool at one instant, from the <see cref="ActorResources"/> block on a log event.</summary>
+/// <summary>A unit's Stagger pool at one instant.</summary>
 /// <param name="Timestamp">The instant.</param>
-/// <param name="Amount">The Stagger pending on the unit, in hit points. <see cref="Analysis.Normalizers.ResourceNormalizer"/> has already divided the raw log value by 100.</param>
-/// <param name="Max">The pool's cap as the log reports it. Fellowship sends the no-maximum sentinel for Stagger, which normalization leaves as <c>-1</c>, so the pool is uncapped and <paramref name="Amount"/> is an absolute figure rather than a percentage.</param>
+/// <param name="Amount">The Stagger pending on the unit, in hit points.</param>
+/// <param name="Max">The pool's cap, <c>-1</c> for Stagger, so <paramref name="Amount"/> is an absolute figure rather than a percentage.</param>
 /// <param name="HitPoints">The unit's current hit points at the same instant.</param>
 /// <param name="MaxHitPoints">The unit's maximum hit points at the same instant.</param>
 public sealed record StaggerSnapshot(int Timestamp, int Amount, int Max, long HitPoints, long MaxHitPoints);
