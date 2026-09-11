@@ -84,8 +84,12 @@ public sealed record EntropicBurstLapse(int Timestamp, int Units, int PeakStacks
 /// <para>
 /// Only completions are casts.
 /// </para>
+/// <para>
+/// The analyzer runs only with Mass Entropy equipped, because rollover is unreachable on one charge.
+/// </para>
 /// </remarks>
 [ForPull(PullKind.Single | PullKind.Multi)]
+[ActiveWhen<HasMassEntropy>]
 [Dependency<SpellUsable>]
 [Dependency<AeonaBuild>]
 public sealed partial class EntropyClaimAnalyzer : AllTargetUptimeAnalyzer, IEntropyClaimAnalyzer

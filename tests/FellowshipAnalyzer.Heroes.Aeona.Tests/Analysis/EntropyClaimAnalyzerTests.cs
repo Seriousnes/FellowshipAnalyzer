@@ -21,7 +21,7 @@ public sealed class EntropyClaimAnalyzerTests
     [Fact]
     public async Task OnlyACompletion_IsACast()
     {
-        var analyzer = await Analyze(Info(Burst),
+        var analyzer = await Analyze(Info(Burst, AeonaLegendaries.MassEntropy),
             Activation(1_000, Spells.EntropyClaim),
             Completion(2_500, Spells.EntropyClaim),
             ApplyDebuff(2_500, Spells.EntropyClaimDot));
@@ -89,14 +89,17 @@ public sealed class EntropyClaimAnalyzerTests
     [Fact]
     public async Task ALapseWithNoChargeAvailable_IsNotAMistake()
     {
-        var analyzer = await Analyze(Info(Burst),
+        var analyzer = await Analyze(Info(Burst, AeonaLegendaries.MassEntropy),
             Completion(1_000, Spells.EntropyClaim),
             ApplyDebuff(1_000, Spells.EntropyClaimDot),
-            RemoveDebuff(7_000, Spells.EntropyClaimDot),
-            ApplyDebuff(7_000, Spells.EntropicBurst),
-            RemoveDebuff(16_000, Spells.EntropicBurst));
+            Completion(2_000, Spells.EntropyClaim, SecondEnemyId),
+            ApplyDebuff(2_000, Spells.EntropyClaimDot, SecondEnemyId),
+            RemoveDebuff(9_000, Spells.EntropyClaimDot),
+            ApplyDebuff(9_000, Spells.EntropicBurst),
+            RemoveDebuff(18_000, Spells.EntropicBurst));
 
         var lapse = analyzer.Lapses.ShouldHaveSingleItem();
+        lapse.Timestamp.ShouldBe(18_000);
         lapse.ChargeAvailable.ShouldBeFalse();
         analyzer.LapsesWithChargeAvailable.ShouldBe(0);
         analyzer.RolloverShare.ShouldBeNull();
@@ -120,13 +123,24 @@ public sealed class EntropyClaimAnalyzerTests
     [Fact]
     public async Task EachWaitForACharge_HasAnEntry()
     {
-        var analyzer = await Analyze(Info([]),
+        var analyzer = await Analyze(Info([], AeonaLegendaries.MassEntropy),
             Completion(5_000, Spells.EntropyClaim),
             ApplyDebuff(5_000, Spells.EntropyClaimDot),
-            RemoveDebuff(11_000, Spells.EntropyClaimDot));
+            Completion(6_500, Spells.EntropyClaim, SecondEnemyId),
+            ApplyDebuff(6_500, Spells.EntropyClaimDot, SecondEnemyId),
+            RemoveDebuff(13_000, Spells.EntropyClaimDot),
+            RemoveDebuff(14_500, Spells.EntropyClaimDot, SecondEnemyId));
 
-        analyzer.Casts.ShouldHaveSingleItem().DelayAfterReadyMs.ShouldBe(5_000);
+        analyzer.Casts[0].DelayAfterReadyMs.ShouldBe(5_000);
         analyzer.DelaysAfterReady.Count.ShouldBe(2);
+    }
+
+    [Fact]
+    public async Task WithoutMassEntropy_ThereIsNoAnalyzer()
+    {
+        var parser = await AeonaLog.Analyze(BossPull(), Info(Burst), Completion(1_000, Spells.EntropyClaim));
+
+        parser.EntropyClaimAnalyzers.ShouldBeEmpty();
     }
 
     [Fact]
