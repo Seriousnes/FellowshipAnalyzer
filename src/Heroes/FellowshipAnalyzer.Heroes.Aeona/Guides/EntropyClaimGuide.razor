@@ -2,33 +2,18 @@
 
 <GuideSection Title="Entropy's Claim">
     <LeftPanel>
-        @if (Build?.MassEntropy == true)
-        {
-            <p>
-                Cast the next <strong><SpellLink Spell="Spells.EntropyClaim" /></strong> 2 to 4 seconds before the active
-                one expires, so its own expiry arrives while <SpellLink Spell="Spells.EntropicBurst" /> is still active
-                and the stack rolls over.
-            </p>
-            <p>
-                Keep both charges cycling. A charge held while Entropic Burst lapses is a stack lost on every enemy in the pack.
-            </p>
-            <p>
-                Cast <SpellLink Spell="Spells.Oblivion" /> between Entropy's Claim casts rather than cleansing, so
-                Converging Timelines brings the next charge back in time.
-            </p>
-        }
-        else
-        {
-            <p>
-                Cast <strong><SpellLink Spell="Spells.EntropyClaim" /></strong> the moment it becomes available.
-            </p>
-            @if (BurstTaken)
-            {
-                <p>
-                    Cast it into an enemy inside the pack, so <SpellLink Spell="Spells.EntropicBurst" /> reaches every enemy near it.
-                </p>
-            }
-        }
+        <p>
+            Cast the next <strong><SpellLink Spell="Spells.EntropyClaim" /></strong> 2 to 4 seconds before the active
+            one expires, so its own expiry arrives while <SpellLink Spell="Spells.EntropicBurst" /> is still active
+            and the stack rolls over.
+        </p>
+        <p>
+            Keep both charges cycling. A charge held while Entropic Burst lapses is a stack lost on every enemy in the pack.
+        </p>
+        <p>
+            Cast <SpellLink Spell="Spells.Oblivion" /> between Entropy's Claim casts rather than cleansing, so
+            Converging Timelines brings the next charge back in time.
+        </p>
     </LeftPanel>
     <RightPanel>
         <CastOverview Title="Entropy's Claim Overview" Stats="@BuildOverviewStats()" />
@@ -47,7 +32,7 @@
 </GuideSection>
 
 @code {
-    protected override bool IsActive() => Analyzers.Any(analyzer => analyzer.CastCount > 0);
+    protected override bool IsActive() => Build?.MassEntropy == true && Analyzers.Any(analyzer => analyzer.CastCount > 0);
 
     private AeonaBuild? Build => Parser.AeonaBuild;
 
@@ -86,7 +71,7 @@
                 $"{analyzers.Max(analyzer => analyzer.PeakStacks)}",
                 "Peak Stacks",
                 "The highest Entropic Burst stack reached.",
-                Build?.MassEntropy == true ? StackTier(analyzers.Max(analyzer => analyzer.PeakStacks)) : null));
+                StackTier(analyzers.Max(analyzer => analyzer.PeakStacks))));
             stats.Add(new OverviewStat(
                 $"{WeightedAverageStacks(analyzers):0.#}",
                 "Average Stacks",
