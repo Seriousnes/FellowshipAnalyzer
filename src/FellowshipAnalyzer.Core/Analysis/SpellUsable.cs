@@ -217,7 +217,7 @@ public sealed partial class SpellUsable(
 
         if (cd.HasIndependentTimers)
         {
-            CompleteTimers(spellId, cd, ts, restoreAllCharges ? cd.Timers.Length : 1);
+            CompleteTimers(spellId, cd, ts, 0, restoreAllCharges ? cd.Timers.Length : 1);
             return;
         }
 
@@ -255,8 +255,8 @@ public sealed partial class SpellUsable(
     /// <see cref="EndCooldown"/> is the wrong call for a refund, since it restarts the next charge's
     /// recharge from the moment it runs. A refund past the last charge on cooldown leaves nothing
     /// recharging, so the pending expiry is cancelled and the spell drops to fully available. An ability
-    /// declaring <see cref="SpellbookAbility.IndependentCharges"/> completes its earliest timer, and the
-    /// timers left keep the progress they had made.
+    /// declaring <see cref="SpellbookAbility.IndependentCharges"/> drops its latest timer, and the timers
+    /// left keep the progress they had made.
     /// </summary>
     /// <returns><c>true</c> when a charge was handed back, <c>false</c> when every charge was already available.</returns>
     public bool RefundCharge(int spellId, int? timestamp = null)
@@ -266,7 +266,7 @@ public sealed partial class SpellUsable(
         var ts = timestamp ?? Owner.CurrentTimestamp;
         if (cd.HasIndependentTimers)
         {
-            CompleteTimers(spellId, cd, ts, 1);
+            CompleteTimers(spellId, cd, ts, cd.Timers.Length - 1, 1);
             return true;
         }
 
@@ -606,13 +606,13 @@ public sealed partial class SpellUsable(
         return new ChargeTimer(start, start + duration, duration, pending);
     }
 
-    private void CompleteTimers(int spellId, CooldownInfo cd, int ts, int count)
+    private void CompleteTimers(int spellId, CooldownInfo cd, int ts, int start, int count)
     {
         var eventTs = Owner.CurrentTimestamp;
-        for (var i = 0; i < count; i++)
+        for (var i = start; i < start + count; i++)
             Owner.EventEmitter.Cancel(cd.Timers[i].Pending);
 
-        var remaining = cd.Timers.RemoveRange(0, count);
+        var remaining = cd.Timers.RemoveRange(start, count);
         if (remaining.IsEmpty)
         {
             cd = cd with { ChargesAvailable = cd.MaxCharges, ExpectedEnd = ts, Timers = remaining };

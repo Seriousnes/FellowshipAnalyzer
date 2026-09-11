@@ -101,4 +101,20 @@ public sealed partial class SpellUsableTests
         Assert.Equal(1, spellUsable.ChargesAvailable(SpellE));
         Assert.Equal(6000, spellUsable.CooldownRemaining(SpellE, atTimestamp: 18_000));
     }
+
+    /// <summary>
+    /// Timers from casts at t=1000 and t=6000 end at t=21000 and t=26000. A refund at t=10000 drops the second
+    /// cast's timer, and the first cast's charge still returns at t=21000.
+    /// </summary>
+    [Fact]
+    public async Task IndependentCharges_RefundCharge_DropsTheLatestTimer()
+    {
+        var (_, spellUsable, _) = await Run([]);
+        spellUsable.BeginCooldown(SpellE, timestamp: 1000);
+        spellUsable.BeginCooldown(SpellE, timestamp: 6000);
+
+        Assert.True(spellUsable.RefundCharge(SpellE, timestamp: 10_000));
+        Assert.Equal(1, spellUsable.ChargesAvailable(SpellE));
+        Assert.Equal(11_000, spellUsable.CooldownRemaining(SpellE, atTimestamp: 10_000));
+    }
 }
