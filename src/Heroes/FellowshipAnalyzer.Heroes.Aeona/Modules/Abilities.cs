@@ -9,11 +9,10 @@ namespace FellowshipAnalyzer.Heroes.Aeona.Modules;
 public class Abilities : CoreAbilities
 {
     /// <summary>
-    /// Charges Entropy's Claim holds for this player. The cast normalizer builds a spellbook before any
+    /// Maximum charges of Entropy's Claim for this player. The cast normalizer builds a spellbook before any
     /// module has an owner, so an unowned spellbook reads the base charge.
     /// </summary>
-    private int EntropyClaimCharges =>
-        Owner is { } owner && owner.SelectedCombatant.Legendary?.Id == Legendaries.MassEntropy.Id ? 2 : 1;
+    private int EntropyClaimCharges => Owner?.GetModule<AeonaBuild>()?.EntropyClaimCharges ?? 1;
 
     public override IEnumerable<SpellbookAbility> Spellbook() =>
     [

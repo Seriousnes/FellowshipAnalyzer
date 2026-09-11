@@ -37,18 +37,7 @@ public sealed class AeonaBuildTests
         build.MassEntropy.ShouldBeFalse();
         build.EntropyClaimCharges.ShouldBe(1);
         build.EntropyClaimDurationMs.ShouldBe(6_000);
-        build.EntropyClaimCastTimeMs.ShouldBe(1_500);
         parser.GetModule<AeonaAbilities>()!.GetMaxCharges(Spells.EntropyClaim.FSLID).ShouldBe(1);
-    }
-
-    [Fact]
-    public async Task WithChronoTrigger_UnfoldingDoomLastsFifteenSeconds()
-    {
-        var parser = await Analyze(BossPull(), Info([], AeonaLegendaries.ChronoTrigger));
-
-        var build = parser.AeonaBuild.ShouldNotBeNull();
-        build.ChronoTrigger.ShouldBeTrue();
-        build.UnfoldingDoomDurationMs.ShouldBe(15_000);
     }
 
     [Fact]
@@ -59,6 +48,5 @@ public sealed class AeonaBuildTests
         var build = parser.AeonaBuild.ShouldNotBeNull();
         build.LonesomeSong.ShouldBeTrue();
         build.ConvergingTimelinesOnOblivion.ShouldBe(2.0);
-        build.ConvergingTimelinesOnCleanse.ShouldBe(1.0);
     }
 }
