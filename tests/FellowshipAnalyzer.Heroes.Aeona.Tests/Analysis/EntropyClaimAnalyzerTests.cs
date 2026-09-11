@@ -129,6 +129,24 @@ public sealed class EntropyClaimAnalyzerTests
         analyzer.DelaysAfterReady.Count.ShouldBe(2);
     }
 
+    [Fact]
+    public async Task TwoChargesRechargeFromTheirOwnCasts()
+    {
+        var parser = await AeonaLog.Analyze(BossPull(),
+        [
+            Info(Burst, AeonaLegendaries.MassEntropy),
+            Completion(1_000, Spells.EntropyClaim),
+            Completion(10_000, Spells.EntropyClaim),
+            Completion(22_000, Spells.EntropyClaim),
+        ]);
+        var recharge = parser.GetModule<SpellUsable>()!.RechargeDuration(Spells.EntropyClaim.FSLID);
+        var analyzer = parser.EntropyClaimAnalyzers.ShouldHaveSingleItem().Analyzer.ShouldBeOfType<EntropyClaimAnalyzer>();
+
+        var bothSpentUntilFirstReturns = 1_000 + recharge - 10_000;
+        var bothSpentUntilSecondReturns = 10_000 + recharge - 22_000;
+        analyzer.AvailableMs.ShouldBe(PullEnd - bothSpentUntilFirstReturns - bothSpentUntilSecondReturns);
+    }
+
     private static async Task<EntropyClaimAnalyzer> Analyze(CombatantInfoEvent info, params Event[] events)
     {
         var parser = await AeonaLog.Analyze(BossPull(), [info, .. events]);
