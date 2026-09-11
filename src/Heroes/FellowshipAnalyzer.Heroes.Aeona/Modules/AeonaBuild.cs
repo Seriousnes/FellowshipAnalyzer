@@ -39,16 +39,16 @@ public sealed class AeonaBuild : Module
     /// <summary>Whether Lonesome Song is equipped.</summary>
     public bool LonesomeSong => Legendary == Legendaries.LonesomeSong;
 
-    /// <summary>Charges Entropy's Claim holds.</summary>
+    /// <summary>Maximum charges of Entropy's Claim.</summary>
     public int EntropyClaimCharges => MassEntropy ? MassEntropyCharges : BaseEntropyClaimCharges;
 
-    /// <summary>How long one Entropy's Claim application runs.</summary>
+    /// <summary>Duration of one Entropy's Claim application.</summary>
     public int EntropyClaimDurationMs => BaseEntropyClaimDurationMs + (MassEntropy ? MassEntropyDurationBonusMs : 0);
 
     /// <summary>Entropy's Claim's cast time.</summary>
     public int EntropyClaimCastTimeMs => EntropyClaimCastMs;
 
-    /// <summary>How long one Unfolding Doom application runs.</summary>
+    /// <summary>Duration of one Unfolding Doom application.</summary>
     public int UnfoldingDoomDurationMs => ChronoTrigger ? ChronoTriggerUnfoldingDoomDurationMs : BaseUnfoldingDoomDurationMs;
 
     /// <summary>The Cooldown Acceleration an Oblivion cast grants through Converging Timelines.</summary>
