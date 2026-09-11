@@ -13,6 +13,7 @@ jobs:
     permissions:
       id-token: write
       contents: read
+      packages: read
     steps:
       - uses: actions/checkout@v4
         with:
@@ -24,6 +25,13 @@ jobs:
           dotnet-version: |
             8.0.x
             10.0.x
+
+      - name: Authenticate GitHub Packages
+        run: >-
+          dotnet nuget update source github
+          --username ${{ github.actor }}
+          --password ${{ secrets.GITHUB_TOKEN }}
+          --store-password-in-clear-text
 
       - name: Resolve .NET SDK version
         id: dotnet
