@@ -3,124 +3,173 @@
 <GuideSection Title="Oblivion">
     <LeftPanel>
         <p>
-            <strong><SpellLink Spell="Spells.Oblivion" /></strong> is your highest priority Chrona spender.
+            Cast <strong><SpellLink Spell="Spells.Oblivion" /></strong> while the tank holds under 40% of its maximum
+            health in Stagger. Above that, cast <SpellLink Spell="Spells.AmendFate" /> or
+            <SpellLink Spell="Spells.RestoreContinuity" /> instead.
         </p>
-        <p>
-            Cast <SpellLink Spell="Spells.AmendFate" /> or <SpellLink Spell="Spells.RestoreContinuity" /> instead
-            once the tank holds more than 40% of its maximum health in Stagger.
-        </p>
-        <p>
-            Spend a free cast on Oblivion only when no ally holds more than the Stagger removed.
-        </p>
+        @if (Build?.ChronoTrigger == true && OblivionsEmbrace)
+        {
+            <p>
+                Spend Chrona into Oblivion straight after the empowered <SpellLink Spell="Spells.TimeShard" />, while
+                the party is at full health, so the overheal becomes <SpellLink Spell="Talents.OblivionsEmbrace" /> shielding.
+            </p>
+        }
+        @if (Build?.MassEntropy == true)
+        {
+            <p>
+                Cast Oblivion between <SpellLink Spell="Spells.EntropyClaim" /> casts, so Converging Timelines brings
+                the next charge back before <SpellLink Spell="Spells.EntropicBurst" /> lapses.
+            </p>
+        }
+        @if (UchroniaTaken)
+        {
+            <p>
+                Spend Uchronia on <SpellLink Spell="Spells.RestoreContinuity" /> when it will apply
+                <SpellLink Spell="Talents.EchoesOfDivinity" /> to the tank, and on Oblivion otherwise.
+            </p>
+        }
     </LeftPanel>
     <RightPanel>
         <CastOverview Title="Oblivion Overview" Stats="@BuildOverviewStats()" />
-        <CastDetail Title="Oblivion Casts by Pull" Casts="@BuildPerCastData()" />
+        <CastDetail Title="Oblivion by Pull"
+                    Description="Each row is one pull, with the enemies Oblivion was cast into."
+                    Casts="@BuildPullRows()" />
     </RightPanel>
 </GuideSection>
 
 @code {
     protected override bool IsActive() => Analyzers.Any(analyzer => analyzer.CastCount > 0);
 
+    private AeonaBuild? Build => Parser.AeonaBuild;
+
     private List<OblivionAnalyzer> Analyzers =>
         [.. Parser.OblivionAnalyzers.Select(entry => entry.Analyzer).OfType<OblivionAnalyzer>()];
 
     private bool OblivionsEmbrace => Analyzers.Any(analyzer => analyzer.OblivionsEmbraceTalented);
+
+    private bool UchroniaTaken => Parser.SelectedCombatant.HasTalent(AeonaTalents.Uchronia);
 
     private IEnumerable<OverviewStat> BuildOverviewStats()
     {
         var analyzers = Analyzers;
         var stats = new List<OverviewStat>();
         var casts = analyzers.Sum(analyzer => analyzer.CastCount);
+        var rated = analyzers.Sum(analyzer => analyzer.CastsRated);
+        var flagged = analyzers.Sum(analyzer => analyzer.CastsAtCleansePriority);
 
-        if (OblivionsEmbrace && casts > 0)
+        if (rated > 0)
         {
-            var applied = analyzers.Sum(analyzer => analyzer.ShieldApplied ?? 0);
+            stats.Add(new OverviewStat(
+                $"{flagged} ({FormatShare(flagged, rated)})",
+                "Casts at Cleanse Priority",
+                $"Oblivion casts while the tank held more than 40% of its maximum health in Stagger with a cleanse available, of {rated} casts.",
+                PriorityTier(flagged, rated)));
+        }
+
+        if (casts > 0)
+        {
+            stats.Add(new OverviewStat(
+                FormatAmount(analyzers.Sum(analyzer => analyzer.EffectiveHealing) / (double)casts),
+                "Effective Healing per Cast",
+                "Effective healing across every ally, averaged over Oblivion casts."));
+
+            if (OblivionsEmbrace)
+            {
+                stats.Add(new OverviewStat(
+                    FormatAmount(analyzers.Sum(analyzer => analyzer.ShieldApplied ?? 0) / (double)casts),
+                    "Shielding per Cast",
+                    "Shield absorb applied across every ally, averaged over Oblivion casts."));
+            }
 
             stats.Add(new OverviewStat(
-                $"{(double)applied / casts:N0}",
-                "Shielding per Cast",
-                "Shield absorb across every ally, averaged over Oblivion casts."));
+                FormatAmount(analyzers.Sum(analyzer => analyzer.Damage) / (double)casts),
+                "Damage per Cast",
+                "Oblivion damage, averaged over every cast."));
         }
 
         var opportunities = analyzers.Sum(analyzer => analyzer.FreeCastOpportunities);
         if (opportunities > 0)
         {
             stats.Add(new OverviewStat(
-                $"{analyzers.Sum(analyzer => analyzer.FreeCasts)}/{opportunities}",
+                $"{analyzers.Sum(analyzer => analyzer.FreeCasts)} of {opportunities}",
                 "Free Casts",
-                "Oblivion casts that cost no Chrona, of every Uchronia proc and Epoch Break window."));
-        }
-
-        var rated = analyzers.Sum(analyzer => analyzer.CastsRated);
-        if (rated > 0)
-        {
-            var flagged = analyzers.Sum(analyzer => analyzer.CastsAtCleansePriority);
-
-            stats.Add(new OverviewStat(
-                $"{flagged} ({(double)flagged / rated:P0})",
-                "Casts above 40% Stagger",
-                $"Oblivion casts while the tank held more than 40% of its maximum health in Stagger and a cleanse was available, of {rated} casts."));
-        }
-
-        if (OblivionsEmbrace)
-        {
-            stats.Add(new OverviewStat(
-                $"{analyzers.Max(analyzer => analyzer.LargestSingleAbsorb ?? 0):N0}",
-                "Largest Absorb",
-                "The most an Oblivion's Embrace shield absorbed from one hit."));
+                "Free Oblivion casts, of every Uchronia and Epoch Break window."));
         }
 
         return stats;
     }
 
-    private IEnumerable<PerCastData> BuildPerCastData() =>
-        Parser.OblivionAnalyzers.ToItemRows(Parser, analyzer => ((OblivionAnalyzer)analyzer).Casts, (cast, pull) => BuildRow(cast));
+    private IEnumerable<PerCastData> BuildPullRows() =>
+        Parser.OblivionAnalyzers.ToPullRows(Parser, (analyzer, pull) => BuildPullRow((OblivionAnalyzer)analyzer));
 
-    private PerCastRow BuildRow(OblivionCast cast)
+    private PerCastRow BuildPullRow(OblivionAnalyzer analyzer)
     {
-        var performance = cast.AtCleansePriority ? QualitativePerformance.Fail : QualitativePerformance.Perfect;
-        var stats = new List<PerCastStat>();
+        var performance = analyzer.CastsRated > 0
+            ? PriorityTier(analyzer.CastsAtCleansePriority, analyzer.CastsRated)
+            : (QualitativePerformance?)null;
 
-        if (cast.TankStaggerFraction is { } fraction)
+        var stats = new List<PerCastStat>
+        {
+            new($"{analyzer.CastCount}", "Casts"),
+            new(
+                $"{analyzer.CastsAtCleansePriority} of {analyzer.CastsRated}",
+                "At Cleanse Priority",
+                "Casts while the tank held more than 40% of its maximum health in Stagger with a cleanse available, of the casts rated.",
+                performance),
+            new(
+                FormatAmount(analyzer.EffectiveHealingPerCast),
+                "Effective Healing per Cast",
+                "Effective healing across every ally, averaged over the pull's casts."),
+        };
+
+        if (analyzer.ShieldAppliedPerCast is { } shield)
         {
             stats.Add(new PerCastStat(
-                $"{fraction:P0}",
-                "Tank Stagger",
-                "The tank's Stagger as a share of its maximum health at the cast.",
-                performance));
+                FormatAmount(shield),
+                "Shielding per Cast",
+                "Shield absorb applied across every ally, averaged over the pull's casts."));
         }
 
-        if (OblivionsEmbrace)
-        {
-            stats.Add(new PerCastStat(
-                $"{cast.ShieldApplied:N0}",
-                "Shielding",
-                $"Shield absorb across {cast.AlliesShielded} all{(cast.AlliesShielded == 1 ? "y" : "ies")}."));
-
-            stats.Add(new PerCastStat(
-                $"{cast.LargestSingleAbsorb:N0}",
-                "Largest Absorb"));
-        }
-
-        if (cast.FreeCastSource is { } source)
-        {
-            stats.Add(new PerCastStat(
-                source switch
-                {
-                    FreeCastSource.Uchronia => "Uchronia",
-                    FreeCastSource.EpochBreak => "Epoch Break",
-                    _ => "Free",
-                },
-                "Free Cast"));
-        }
+        stats.Add(new PerCastStat(
+            $"{analyzer.FreeCasts} of {analyzer.FreeCastOpportunities}",
+            "Free Casts",
+            "Free casts, of every Uchronia and Epoch Break window in the pull."));
 
         return new PerCastRow
         {
             Performance = performance,
             Stats = [.. stats],
-            Timestamp = cast.Timestamp,
-            Sequence = [new SpellCastEntry(Spells.Oblivion.FSLID, performance)],
+            AdditionalContent = analyzer.Targets.Count > 1
+                ? new AdditionalContent("Targets", @<Checklist Items="@BuildTargetItems(analyzer)" DimFailed="false" />)
+                : null,
         };
     }
+
+    private List<CheckItem> BuildTargetItems(OblivionAnalyzer analyzer) =>
+    [
+        .. analyzer.Targets.Select(target => new CheckItem
+        {
+            Label = EnemyName(target.Unit),
+            Pass = target.CastsAtCleansePriority == 0,
+            Count = target.Casts,
+            CountTooltip = "Oblivion casts into this enemy.",
+            Note = target.CastsAtCleansePriority > 0 ? $"{target.CastsAtCleansePriority} at cleanse priority" : null,
+            Title = "No cast at cleanse priority",
+        }),
+    ];
+
+    private string EnemyName(UnitKey unit) =>
+        Parser.ActorNames.GetValueOrDefault(unit.ActorId) is { } name
+            ? unit.Instance is { } instance and > 0 ? $"{name} {instance}" : name
+            : $"Enemy {unit.ActorId}";
+
+    private static QualitativePerformance PriorityTier(int flagged, int rated) =>
+        PerformanceTiers.FromThresholds(1 - (double)flagged / rated, 0.98, 0.90, 0.75);
+
+    private static string FormatShare(int part, int whole) => whole > 0 ? $"{part * 100d / whole:0.#}%" : "0%";
+
+    private static string FormatAmount(double amount) =>
+        amount >= 1_000_000 ? $"{amount / 1_000_000:0.##}M"
+        : amount >= 1_000 ? $"{amount / 1_000:0.#}k"
+        : $"{amount:0}";
 }

@@ -7,67 +7,63 @@ namespace FellowshipAnalyzer.Heroes.Aeona.Modules;
 /// <summary>What made a cast free.</summary>
 public enum FreeCastSource
 {
-    /// <summary>A Uchronia window covered the cast.</summary>
+    /// <summary>The cast spent a Uchronia window.</summary>
     Uchronia,
 
     /// <summary>An Epoch Break window covered the cast.</summary>
     EpochBreak,
-
-    /// <summary>Neither window covered the cast, so a Spirit ability or another effect made it free.</summary>
-    Other,
 }
 
-/// <summary>One cast that cost no resources.</summary>
-/// <param name="Timestamp">When the cast happened, in milliseconds.</param>
-/// <param name="AbilityId">The cast ability's FSLID, as given on <see cref="Ability.Id"/>.</param>
+/// <summary>One cast that cost no Chrona.</summary>
+/// <param name="Timestamp">When the cast happened.</param>
+/// <param name="AbilityId">The cast ability's FSLID.</param>
 /// <param name="Source">What made the cast free.</param>
 public readonly record struct FreeCast(int Timestamp, int AbilityId, FreeCastSource Source);
 
 /// <summary>
-/// Every free cast the player made across the dungeon and the windows that create them, so a segment can
-/// ask both what a free cast was spent on and how many chances to spend one the pull offered.
+/// Every free Oblivion, Amend Fate, and Restore Continuity cast across the dungeon, and the windows that
+/// create them.
 /// </summary>
 /// <remarks>
 /// <para>
-/// Registered dungeon-lifetime with no talent gate, because Epoch Break is in every build and free casts
-/// arrive whether or not Uchronia is taken. Uchronia's windows are read through
-/// <see cref="UchroniaTracker"/> when the build has the talent, which keeps the two windows' own
-/// bookkeeping where it belongs.
+/// A Uchronia window is spent by the Oblivion, Amend Fate, or Restore Continuity cast at its removal:
+/// the cast within <see cref="CastMatchToleranceMs"/> of the removal, on either side, because the log
+/// writes the two in either order inside one millisecond. A cast inside an Epoch Break window is free
+/// from Epoch Break; Epoch Break takes precedence where the two overlap.
 /// </para>
 /// <para>
-/// Window membership includes the endpoints, so a free cast logged in the same millisecond as the removal
-/// that consumed the buff is attributed to that window.
+/// Registered dungeon-lifetime with no talent gate, because Epoch Break is in every build. Uchronia's
+/// windows are read through <see cref="UchroniaTracker"/> when the build has the talent.
 /// </para>
 /// </remarks>
 public sealed partial class FreeCastTracker : Analyzer
 {
-    /// <summary>Milliseconds by which the free-cast record and the cast record for one cast may differ in <see cref="FreeCastAt"/>.</summary>
+    /// <summary>Milliseconds a spending cast may sit from the Uchronia removal it pairs with.</summary>
     public const int CastMatchToleranceMs = 50;
 
     private readonly List<FreeCast> _freeCasts = [];
     private readonly List<AuraWindow> _epochBreakWindows = [];
+    private readonly List<(int Timestamp, int AbilityId)> _spenderCasts = [];
+    private readonly List<int> _unpairedRemovals = [];
 
     private int? _epochBreakOpenedAt;
 
-    /// <summary>Every free cast the player made, in log order.</summary>
+    /// <summary>Every free cast, in log order.</summary>
     public IReadOnlyList<FreeCast> FreeCasts => _freeCasts;
-
-    /// <summary>Whether the log reported any free cast at all.</summary>
-    public bool HasFreeCasts => _freeCasts.Count > 0;
 
     /// <summary>Every Epoch Break window on the player, in the order they opened.</summary>
     public IReadOnlyList<AuraWindow> EpochBreakWindows =>
         _epochBreakOpenedAt is { } start ? [.. _epochBreakWindows, CloseAtDungeonEnd(start)] : _epochBreakWindows;
 
-    /// <summary>The free casts between <paramref name="start"/> and <paramref name="end"/>, endpoints included.</summary>
+    /// <summary>The free casts between <paramref name="start"/> and <paramref name="end"/>, both bounds inclusive.</summary>
     /// <param name="start">The first instant to include.</param>
     /// <param name="end">The last instant to include.</param>
     public IReadOnlyList<FreeCast> FreeCastsBetween(int start, int end) =>
         [.. _freeCasts.Where(freeCast => freeCast.Timestamp >= start && freeCast.Timestamp <= end)];
 
     /// <summary>
-    /// How many chances to spend a free cast opened between <paramref name="start"/> and
-    /// <paramref name="end"/>: every Uchronia window and every Epoch Break window that opened in the range.
+    /// Chances to make a free cast opened between <paramref name="start"/> and <paramref name="end"/>:
+    /// every Uchronia window and every Epoch Break window that opened in the range.
     /// </summary>
     /// <param name="start">The first instant to include.</param>
     /// <param name="end">The last instant to include.</param>
@@ -81,10 +77,10 @@ public sealed partial class FreeCastTracker : Analyzer
 
     /// <summary>
     /// The free cast of <paramref name="abilityId"/> nearest <paramref name="timestamp"/> within
-    /// <see cref="CastMatchToleranceMs"/>, or <see langword="null"/> when the cast cost resources.
+    /// <see cref="CastMatchToleranceMs"/>, or null when that cast cost Chrona.
     /// </summary>
-    /// <param name="timestamp">The cast's timestamp in milliseconds.</param>
-    /// <param name="abilityId">The cast ability's FSLID, as given on <see cref="Ability.Id"/>.</param>
+    /// <param name="timestamp">The cast's timestamp.</param>
+    /// <param name="abilityId">The cast ability's FSLID.</param>
     public FreeCast? FreeCastAt(int timestamp, int abilityId)
     {
         FreeCast? nearest = null;
@@ -103,6 +99,11 @@ public sealed partial class FreeCastTracker : Analyzer
 
         return nearest;
     }
+
+    /// <summary>Whether the cast of <paramref name="abilityId"/> at <paramref name="timestamp"/> was free.</summary>
+    /// <param name="timestamp">The cast's timestamp.</param>
+    /// <param name="abilityId">The cast ability's FSLID.</param>
+    public bool IsFree(int timestamp, int abilityId) => FreeCastAt(timestamp, abilityId) is not null;
 
     /// <summary>Whether an Epoch Break window covered <paramref name="timestamp"/>, endpoints included.</summary>
     /// <param name="timestamp">The instant asked about.</param>
@@ -134,20 +135,43 @@ public sealed partial class FreeCastTracker : Analyzer
         _epochBreakOpenedAt = null;
     }
 
-    [On<FreeCastEvent>(By = Actor.Player)]
-    private void OnFreeCast(FreeCastEvent e)
+    [On<CastEvent>(By = Actor.Player, Spells = [nameof(Spells.Oblivion), nameof(Spells.AmendFate), nameof(Spells.RestoreContinuity)])]
+    private void OnSpenderCast(CastEvent e)
     {
-        var abilityId = e.Ability?.Id ?? e.AbilityGameId.Value;
-        _freeCasts.Add(new FreeCast(e.Timestamp, abilityId, SourceAt(e.Timestamp)));
+        _spenderCasts.RemoveAll(cast => e.Timestamp - cast.Timestamp > CastMatchToleranceMs);
+
+        var abilityId = e.Ability.Id;
+
+        if (EpochBreakActive(e.Timestamp))
+        {
+            _freeCasts.Add(new FreeCast(e.Timestamp, abilityId, FreeCastSource.EpochBreak));
+            return;
+        }
+
+        var removal = _unpairedRemovals.FindIndex(timestamp => Math.Abs(timestamp - e.Timestamp) <= CastMatchToleranceMs);
+        if (removal >= 0)
+        {
+            _unpairedRemovals.RemoveAt(removal);
+            _freeCasts.Add(new FreeCast(e.Timestamp, abilityId, FreeCastSource.Uchronia));
+            return;
+        }
+
+        _spenderCasts.Add((e.Timestamp, abilityId));
     }
 
-    /// <summary>Epoch Break takes precedence over an overlapping Uchronia window.</summary>
-    private FreeCastSource SourceAt(int timestamp)
+    [On<RemoveBuffEvent>(To = Actor.Player, Spell = nameof(Spells.Uchronia))]
+    private void OnUchroniaRemoved(RemoveBuffEvent e)
     {
-        if (EpochBreakActive(timestamp)) return FreeCastSource.EpochBreak;
-        if (Uchronia?.IsActive(timestamp) == true) return FreeCastSource.Uchronia;
+        var cast = _spenderCasts.FindLastIndex(cast => Math.Abs(cast.Timestamp - e.Timestamp) <= CastMatchToleranceMs);
+        if (cast >= 0)
+        {
+            var (timestamp, abilityId) = _spenderCasts[cast];
+            _spenderCasts.RemoveAt(cast);
+            _freeCasts.Add(new FreeCast(timestamp, abilityId, FreeCastSource.Uchronia));
+            return;
+        }
 
-        return FreeCastSource.Other;
+        _unpairedRemovals.Add(e.Timestamp);
     }
 
     private UchroniaTracker? Uchronia => field ??= Owner.GetModule<UchroniaTracker>();

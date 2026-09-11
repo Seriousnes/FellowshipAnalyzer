@@ -48,4 +48,29 @@ public class SpellDatabaseGeneratorTests
         gen.ShouldContain("FrozenDictionary");
         gen.ShouldContain(".FSLID.Value] =");
     }
+
+    private const string SpellDbWithLegendaries = """
+        {
+          "aeona": {
+            "Oblivion": { "id": 1970, "name": "Oblivion", "icon": "T_Lisa_ChronaBlast.jpg" }
+          },
+          "legendaries": {
+            "aeona": {
+              "MassEntropy": { "itemId": 5226, "itemName": "Bands of the Withering Shores", "powerId": 620, "powerName": "Mass Entropy", "slot": "Wrists", "icon": "Tex_bracelets_cl_01_bg" }
+            }
+          }
+        }
+        """;
+
+    [Fact]
+    public void Emits_LegendaryItemsPerHero_NamedForThePowerTheyGrant()
+    {
+        var gen = SpellDatabaseGeneratorTestHarness.Run(SpellDbWithLegendaries).ConcatenatedGenerated;
+
+        gen.ShouldContain("namespace FellowshipAnalyzer.Core.Common.Spells.Aeona;");
+        gen.ShouldContain("public static partial class Legendaries");
+        gen.ShouldContain("public static global::FellowshipAnalyzer.Core.Common.Items.Item MassEntropy { get; } = new(5226, \"Mass Entropy\", \"Tex_bracelets_cl_01_bg\");");
+        gen.ShouldContain("public static class AeonaLegendaries");
+        gen.ShouldContain("public const int MassEntropy = 5226;");
+    }
 }

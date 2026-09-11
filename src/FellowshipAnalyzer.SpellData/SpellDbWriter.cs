@@ -29,6 +29,9 @@ public static class SpellDbWriter
     /// <summary>The top-level key holding the per-hero talent registries, which is not a spell scope.</summary>
     public const string TalentsSection = "talents";
 
+    /// <summary>The top-level key holding the per-hero legendary item registries, which is not a spell scope.</summary>
+    public const string LegendariesSection = "legendaries";
+
     /// <summary>The top-level key holding the dungeon id → icon map, which is not a spell scope.</summary>
     public const string DungeonsSection = "dungeons";
 
@@ -48,7 +51,8 @@ public static class SpellDbWriter
 
         var heroScopes = byScope.Keys
             .Where(k => k != "shared" && k != "items" && k != SchoolsSection && k != RaritiesSection
-                        && k != TexturesSharedAcrossRungsSection && k != TalentsSection && k != DungeonsSection)
+                        && k != TexturesSharedAcrossRungsSection && k != TalentsSection && k != LegendariesSection
+                        && k != DungeonsSection)
             .OrderBy(k => k, StringComparer.Ordinal);
 
         var orderedScopes = heroScopes.AsEnumerable();
@@ -84,6 +88,32 @@ public static class SpellDbWriter
                 talentsObj[hero.Key] = heroObj;
             }
             root[TalentsSection] = talentsObj;
+        }
+
+        if (result.Legendaries.Count > 0)
+        {
+            var legendariesObj = new JsonObject();
+            foreach (var hero in result.Legendaries
+                .Where(legendary => MemberNaming.IsValidIdentifier(legendary.Member))
+                .GroupBy(legendary => legendary.Scope)
+                .OrderBy(hero => hero.Key, StringComparer.Ordinal))
+            {
+                var heroObj = new JsonObject();
+                foreach (var legendary in hero.OrderBy(legendary => legendary.Member, StringComparer.Ordinal))
+                {
+                    heroObj[legendary.Member] = new JsonObject
+                    {
+                        ["itemId"] = legendary.ItemId,
+                        ["itemName"] = legendary.ItemName,
+                        ["powerId"] = legendary.PowerId,
+                        ["powerName"] = legendary.PowerName,
+                        ["slot"] = legendary.Slot,
+                        ["icon"] = legendary.Icon,
+                    };
+                }
+                legendariesObj[hero.Key] = heroObj;
+            }
+            root[LegendariesSection] = legendariesObj;
         }
 
         if (result.Schools.Count > 0)
@@ -129,6 +159,7 @@ public static class SpellDbWriter
         var rarities = new Dictionary<int, string>();
         var texturesSharedAcrossRungs = new SortedSet<string>(StringComparer.Ordinal);
         var talents = new List<CuratedSpell>();
+        var legendaries = new List<CuratedLegendary>();
         var dungeons = new Dictionary<int, string>();
 
         foreach (var (scope, scopeNode) in root)
@@ -185,6 +216,30 @@ public static class SpellDbWriter
                 continue;
             }
 
+            if (scope == LegendariesSection)
+            {
+                foreach (var (hero, heroNode) in scopeObj)
+                {
+                    if (heroNode is not JsonObject heroObj)
+                        continue;
+                    foreach (var (member, memberNode) in heroObj)
+                    {
+                        if (memberNode is not JsonObject entry)
+                            continue;
+                        legendaries.Add(new CuratedLegendary(
+                            hero,
+                            member,
+                            entry["itemId"]!.GetValue<int>(),
+                            entry["itemName"]?.GetValue<string>() ?? string.Empty,
+                            entry["powerId"]!.GetValue<int>(),
+                            entry["powerName"]?.GetValue<string>() ?? string.Empty,
+                            entry["slot"]?.GetValue<string>() ?? string.Empty,
+                            entry["icon"]?.GetValue<string>() ?? string.Empty));
+                    }
+                }
+                continue;
+            }
+
             foreach (var (member, memberNode) in scopeObj)
             {
                 if (memberNode is not JsonObject entry)
@@ -194,7 +249,7 @@ public static class SpellDbWriter
             }
         }
 
-        return new MergeResult(spells, []) { Schools = schools, Rarities = rarities, TexturesSharedAcrossRungs = texturesSharedAcrossRungs, Dungeons = dungeons, Talents = talents };
+        return new MergeResult(spells, []) { Schools = schools, Rarities = rarities, TexturesSharedAcrossRungs = texturesSharedAcrossRungs, Dungeons = dungeons, Talents = talents, Legendaries = legendaries };
     }
 
     /// <summary>
