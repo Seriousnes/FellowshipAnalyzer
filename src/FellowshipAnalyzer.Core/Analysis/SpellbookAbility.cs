@@ -132,6 +132,14 @@ public sealed record SpellbookAbility
     public Spell? CooldownStartsWhenBuffEnds { get; init; }
 
     /// <summary>
+    /// Whether each charge recharges on its own timer from the cast that spent it, so two spent charges
+    /// return one recharge after their own casts rather than one after the other. False recharges the
+    /// charges in sequence, one full recharge each, from the first cast. An ability declaring both this and
+    /// <see cref="CooldownStartsWhenBuffEnds"/> takes this and starts every timer on the cast.
+    /// </summary>
+    public bool IndependentCharges { get; init; }
+
+    /// <summary>
     /// Gets the effective cooldown in seconds from <see cref="PrimarySpell"/>, applying haste
     /// reduction when <see cref="CooldownReducedByHaste"/> is set.
     /// </summary>
