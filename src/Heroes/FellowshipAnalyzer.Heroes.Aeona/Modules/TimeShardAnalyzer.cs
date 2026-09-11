@@ -30,7 +30,7 @@ public enum ContinuumShiftOutcome
 /// <param name="End">When the window closed, or the pull's end time for a window that never closed.</param>
 /// <param name="Outcome">What the window was spent on.</param>
 /// <param name="ConsumedByTimestamp">When the consuming cast completed, or <see langword="null"/> when no Time Shard consumed it.</param>
-public sealed record ContinuumShiftWindow(
+public sealed record TimeShardContinuumShiftWindow(
     int Start,
     int End,
     ContinuumShiftOutcome Outcome,
@@ -181,7 +181,7 @@ public sealed partial class TimeShardAnalyzer : Analyzer
         CastCount == 0 ? 0 : Casts.Sum(cast => (double)cast.TotalDamage) / CastCount;
 
     /// <summary>Every Continuum Shift window in the pull, in the order they opened.</summary>
-    public IReadOnlyList<ContinuumShiftWindow> ContinuumShiftWindows => Evaluated.Windows;
+    public IReadOnlyList<TimeShardContinuumShiftWindow> ContinuumShiftWindows => Evaluated.Windows;
 
     /// <summary>Continuum Shift windows the pull opened.</summary>
     public int ContinuumShiftProcs => ContinuumShiftWindows.Count;
@@ -391,11 +391,11 @@ public sealed partial class TimeShardAnalyzer : Analyzer
         return new Evaluation(casts, windows);
     }
 
-    private List<ContinuumShiftWindow> BuildContinuumShiftWindows(out Dictionary<int, int> empoweredWindowStarts)
+    private List<TimeShardContinuumShiftWindow> BuildContinuumShiftWindows(out Dictionary<int, int> empoweredWindowStarts)
     {
         empoweredWindowStarts = [];
 
-        var windows = new List<ContinuumShiftWindow>(_continuumShiftClosed.Count + 1);
+        var windows = new List<TimeShardContinuumShiftWindow>(_continuumShiftClosed.Count + 1);
         var claimed = new HashSet<int>();
 
         foreach (var (start, end) in _continuumShiftClosed)
@@ -404,15 +404,15 @@ public sealed partial class TimeShardAnalyzer : Analyzer
             {
                 claimed.Add(shard);
                 empoweredWindowStarts[shard] = start;
-                windows.Add(new ContinuumShiftWindow(start, end, ContinuumShiftOutcome.TimeShard, shard));
+                windows.Add(new TimeShardContinuumShiftWindow(start, end, ContinuumShiftOutcome.TimeShard, shard));
                 continue;
             }
 
-            windows.Add(new ContinuumShiftWindow(start, end, ContinuumShiftOutcome.Lost, null));
+            windows.Add(new TimeShardContinuumShiftWindow(start, end, ContinuumShiftOutcome.Lost, null));
         }
 
         if (_openContinuumShift is { } openStart)
-            windows.Add(new ContinuumShiftWindow(openStart, Pull.EndTime, ContinuumShiftOutcome.OpenAtPullEnd, null));
+            windows.Add(new TimeShardContinuumShiftWindow(openStart, Pull.EndTime, ContinuumShiftOutcome.OpenAtPullEnd, null));
 
         windows.Sort((left, right) => left.Start.CompareTo(right.Start));
         return windows;
@@ -556,5 +556,5 @@ public sealed partial class TimeShardAnalyzer : Analyzer
         return false;
     }
 
-    private sealed record Evaluation(List<TimeShardCast> Casts, List<ContinuumShiftWindow> Windows);
+    private sealed record Evaluation(List<TimeShardCast> Casts, List<TimeShardContinuumShiftWindow> Windows);
 }
