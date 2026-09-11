@@ -32,6 +32,7 @@ public class Abilities : CoreAbilities
         new()
         {
             PrimarySpell = Spells.EntropyClaim with { Charges = EntropyClaimCharges },
+            IndependentCharges = true,
             AdditionalSpells = [Spells.EntropyClaimDot],
             Category = SpellCategory.Rotational,
             Gcd = StandardGcd,
