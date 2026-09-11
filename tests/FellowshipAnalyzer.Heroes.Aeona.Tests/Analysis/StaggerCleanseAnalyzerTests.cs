@@ -18,7 +18,7 @@ public sealed class StaggerCleanseAnalyzerTests
     private static readonly int[] Echoes = [AeonaTalents.EchoesOfDivinity];
 
     [Fact]
-    public async Task ACast_ReadsEachAllysStaggerBeforeAndTheStaggerItRemoved()
+    public async Task ACast_HasEachAllysStaggerBeforeAndTheStaggerItRemoved()
     {
         var analyzer = await Analyze(Info([]),
             TankStagger(900, staggerHitPoints: 10_000),

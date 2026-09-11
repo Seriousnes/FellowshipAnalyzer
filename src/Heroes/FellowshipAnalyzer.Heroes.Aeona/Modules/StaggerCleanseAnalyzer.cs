@@ -25,9 +25,9 @@ public sealed record CleanseHeal(
 /// <summary>One Amend Fate or Restore Continuity cast, rated as a GCD against the Stagger removed and against an Oblivion.</summary>
 /// <param name="Timestamp">When the cast completed.</param>
 /// <param name="Ability">Either <c>Spells.AmendFate</c> or <c>Spells.RestoreContinuity</c>.</param>
-/// <param name="Heals">The cast's heals, one per ally, in the order the log reported them.</param>
+/// <param name="Heals">The cast's heals, one per ally.</param>
 /// <param name="StaggerBefore">The rated ally's Stagger before the cast, in hit points. Null when nothing recent enough precedes it.</param>
-/// <param name="StaggerRemoved">The Stagger this ability removes, or null when the report holds no clean cast to take it from.</param>
+/// <param name="StaggerRemoved">The Stagger this ability removes, or null with no clean cast of it.</param>
 /// <param name="TankStaggerFraction">The tank's Stagger as a share of its maximum health at the cast, or null when nothing recent enough precedes it.</param>
 /// <param name="FreeCastSource">What made the cast free, or null when it cost Chrona.</param>
 /// <param name="AppliedEchoes">Whether this cast applied Echoes of Divinity to the tank.</param>
@@ -79,10 +79,7 @@ public sealed record CleanseCastEntry(
     /// <summary>Whether the cast could be rated.</summary>
     public bool Rated => TankStaggerFraction is not null && (BelowStaggerRemoved is not null || BelowOblivionValue is not null);
 
-    /// <summary>
-    /// Whether the cast was a GCD spent below the cleanse priority on less than a cleanse or an Oblivion
-    /// returns. A free cast that did not refresh a running Echoes of Divinity is never flagged.
-    /// </summary>
+    /// <summary>Whether a Chrona-costing or Echoes-refreshing cast was spent below the cleanse priority on less than a cleanse or an Oblivion returns.</summary>
     public bool Flagged =>
         Rated
         && TankStaggerFraction < OblivionAnalyzer.CleansePriorityStaggerFraction
@@ -334,10 +331,7 @@ public sealed partial class StaggerCleanseAnalyzer : Analyzer
             ? _oblivions[^1]
             : null;
 
-    /// <summary>
-    /// How long one application of Echoes of Divinity runs, taken from the report: the longest window on
-    /// the tank that closed on a removal with no refresh inside it. Null until the report shows one.
-    /// </summary>
+    /// <summary>How long one application of Echoes of Divinity runs: the longest window on the tank that closed on a removal with no refresh inside it. Null with no such window.</summary>
     private int? EchoesDurationMs
     {
         get
