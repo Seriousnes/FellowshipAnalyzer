@@ -9,7 +9,7 @@ namespace FellowshipAnalyzer.Heroes.Aeona.Modules;
 /// <summary>The pull read surface for Oblivion.</summary>
 public interface IOblivionAnalyzer : IAnalyzerSurface;
 
-/// <summary>One Oblivion cast: the healing, shielding, and damage it produced, and the tank's Stagger when it went out.</summary>
+/// <summary>One Oblivion cast: the healing, shielding, and damage it produced, and the tank's Stagger at the cast.</summary>
 /// <param name="Timestamp">When the cast completed.</param>
 /// <param name="Target">The enemy the cast named.</param>
 /// <param name="TankStaggerFraction">The tank's Stagger as a share of its maximum health at the cast, or null when nothing within <see cref="StaggerTracker.StaggerMaxAgeMs"/> precedes it.</param>
@@ -69,8 +69,7 @@ public sealed record OblivionTarget(
 /// </summary>
 /// <remarks>
 /// A cast's heals, shields, and damage arrive on the next millisecond, so each is credited to the most
-/// recent cast within <see cref="AttributionMs"/>. Oblivion is instant, so its single log event is the
-/// cast.
+/// recent cast within <see cref="AttributionMs"/>.
 /// </remarks>
 [ForPull(PullKind.Single | PullKind.Multi)]
 [Dependency<StaggerTracker>]
@@ -95,7 +94,7 @@ public sealed partial class OblivionAnalyzer : Analyzer, IOblivionAnalyzer
     /// <summary>Casts that could be rated.</summary>
     public int CastsRated => Casts.Count(cast => cast.Rated);
 
-    /// <summary>Casts at cleanse priority. Read it against <see cref="CastsRated"/>.</summary>
+    /// <summary>Casts at cleanse priority.</summary>
     public int CastsAtCleansePriority => Casts.Count(cast => cast.AtCleansePriority);
 
     /// <summary>Effective healing across every cast.</summary>
