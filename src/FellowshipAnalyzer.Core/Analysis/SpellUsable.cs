@@ -1,5 +1,3 @@
-using System.Collections.Immutable;
-
 using FellowshipAnalyzer.Core.Common;
 using FellowshipAnalyzer.Core.Contracts.Design;
 using FellowshipAnalyzer.Core.Events;
@@ -78,7 +76,7 @@ public sealed partial class SpellUsable(
         if (milliseconds < remaining)
         {
             var shortened = earliest with { ExpectedEnd = earliest.ExpectedEnd - milliseconds };
-            _cooldowns[spellId] = WithTimers(cd, cd.Timers.SetItem(0, shortened));
+            _cooldowns[spellId] = WithTimers(cd, [shortened, .. cd.Timers[1..]]);
             RefreshTimers(spellId);
             return milliseconds;
         }
@@ -381,9 +379,8 @@ public sealed partial class SpellUsable(
 
         if (cd.HasIndependentTimers)
         {
-            var fired = cd.Timers.FirstOrDefault(t => ReferenceEquals(t.Pending, e));
-            if (fired is not null)
-                ReleaseTimers(spellId, cd, cd.Timers.Remove(fired));
+            if (cd.Timers.Any(t => ReferenceEquals(t.Pending, e)))
+                ReleaseTimers(spellId, cd, [.. cd.Timers.Where(t => !ReferenceEquals(t.Pending, e))]);
             return;
         }
 
@@ -586,7 +583,7 @@ public sealed partial class SpellUsable(
         }
         else if (cd.ChargesAvailable > 0)
         {
-            var timers = cd.Timers.Add(StartTimer(spellId, ts, cd.RechargeDuration));
+            ChargeTimer[] timers = [.. cd.Timers, StartTimer(spellId, ts, cd.RechargeDuration)];
             _cooldowns[spellId] = WithTimers(cd with { ChargesAvailable = cd.ChargesAvailable - 1 }, timers);
             FabricateUpdate(UpdateSpellUsableType.UseCharge, spellId, ts, _cooldowns[spellId]);
             RefreshTimers(spellId);
@@ -612,8 +609,8 @@ public sealed partial class SpellUsable(
         for (var i = start; i < start + count; i++)
             Owner.EventEmitter.Cancel(cd.Timers[i].Pending);
 
-        var remaining = cd.Timers.RemoveRange(start, count);
-        if (remaining.IsEmpty)
+        ChargeTimer[] remaining = [.. cd.Timers[..start], .. cd.Timers[(start + count)..]];
+        if (remaining.Length == 0)
         {
             cd = cd with { ChargesAvailable = cd.MaxCharges, ExpectedEnd = ts, Timers = remaining };
             FabricateUpdate(UpdateSpellUsableType.EndCooldown, spellId, eventTs, cd);
@@ -625,9 +622,9 @@ public sealed partial class SpellUsable(
         FabricateUpdate(UpdateSpellUsableType.RestoreCharge, spellId, eventTs, _cooldowns[spellId]);
     }
 
-    private void ReleaseTimers(int spellId, CooldownInfo cd, ImmutableArray<ChargeTimer> remaining)
+    private void ReleaseTimers(int spellId, CooldownInfo cd, ChargeTimer[] remaining)
     {
-        if (remaining.IsEmpty)
+        if (remaining.Length == 0)
         {
             _cooldowns.Remove(spellId);
             return;
@@ -640,7 +637,7 @@ public sealed partial class SpellUsable(
     private void HandleIndependentChangeRate(int spellId, CooldownInfo cd, double newRate, int timestamp)
     {
         var rateChange = newRate / cd.Rate;
-        var timers = ImmutableArray.CreateRange(cd.Timers, t => RescaleTimer(t, rateChange, timestamp));
+        var timers = Array.ConvertAll(cd.Timers, t => RescaleTimer(t, rateChange, timestamp));
         _cooldowns[spellId] = WithTimers(cd with { Rate = newRate }, timers);
         FabricateUpdate(UpdateSpellUsableType.ChangeCooldownRate, spellId, timestamp, _cooldowns[spellId]);
         RefreshTimers(spellId);
@@ -684,9 +681,9 @@ public sealed partial class SpellUsable(
         e.IsAvailable = true;
     }
 
-    private static CooldownInfo WithTimers(CooldownInfo cd, ImmutableArray<ChargeTimer> timers)
+    private static CooldownInfo WithTimers(CooldownInfo cd, ChargeTimer[] timers)
     {
-        var sorted = timers.Sort(static (a, b) => a.ExpectedEnd.CompareTo(b.ExpectedEnd));
+        ChargeTimer[] sorted = [.. timers.OrderBy(static t => t.ExpectedEnd).ThenBy(static t => t.Start)];
         var earliest = sorted[0];
         return cd with
         {
@@ -709,9 +706,9 @@ public sealed partial class SpellUsable(
         UpdateSpellUsableEvent? PendingEnd,
         bool Held = false)
     {
-        public ImmutableArray<ChargeTimer> Timers { get; init; } = [];
+        public ChargeTimer[] Timers { get; init; } = [];
 
-        public bool HasIndependentTimers => !Timers.IsDefaultOrEmpty;
+        public bool HasIndependentTimers => Timers.Length > 0;
     }
 
     private sealed record ChargeTimer(int Start, int ExpectedEnd, int RechargeDuration, UpdateSpellUsableEvent Pending);
