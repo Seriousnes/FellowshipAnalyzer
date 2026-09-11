@@ -192,7 +192,7 @@ internal static class AeonaLog
         Ability = new Ability { Id = spell.FSLID },
     };
 
-    /// <summary>An event on the tank carrying its Stagger pool and hit points.</summary>
+    /// <summary>An event on the tank with its Stagger pool and hit points.</summary>
     public static HealEvent TankStagger(int timestamp, int staggerHitPoints, long hitPoints = TankMaxHitPoints / 2) => new()
     {
         Timestamp = timestamp,
