@@ -149,7 +149,6 @@
         {
             Performance = performance,
             Timestamp = window.CastTimestamp ?? window.Start,
-            Sequence = SpendSpell(window.Spend) is { } spell ? [new SpellCastEntry(spell, performance)] : null,
             Stats = [.. stats],
         };
     }
@@ -161,14 +160,6 @@
         ContinuumShiftSpend.EntropyClaim => "Entropy's Claim",
         ContinuumShiftSpend.Lost => "Lost",
         _ => "Open at pull end",
-    };
-
-    private static int? SpendSpell(ContinuumShiftSpend spend) => spend switch
-    {
-        ContinuumShiftSpend.TimeShard => Spells.TimeShard.FSLID,
-        ContinuumShiftSpend.EchoesOfRuin => Spells.EchoesOfRuin.FSLID,
-        ContinuumShiftSpend.EntropyClaim => Spells.EntropyClaim.FSLID,
-        _ => null,
     };
 
     private static QualitativePerformance SpendTier(int justified, int closed) =>
