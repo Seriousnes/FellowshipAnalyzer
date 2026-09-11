@@ -6,6 +6,7 @@ namespace FellowshipAnalyzer.Heroes.Aeona.Analysis;
 [AddModule<Modules.Abilities>]
 [AddModule<Modules.AeonaBuild>]
 [AddAnalyzer<Modules.AeonaStatBuffs>]
+[AddAnalyzer<Modules.ConvergingTimelinesTracker>]
 [AddAnalyzer<Modules.ChronaTracker>]
 [AddAnalyzer<Modules.StaggerTracker>]
 [AddAnalyzer<Modules.UchroniaTracker>]
