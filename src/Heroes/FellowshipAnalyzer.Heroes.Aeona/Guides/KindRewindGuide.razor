@@ -4,8 +4,8 @@
     <LeftPanel>
         <p>
             Cast <strong><SpellLink Spell="Spells.TimeShard" /></strong> into an enemy with
-            <SpellLink Spell="Spells.EchoesOfRuin" /> active, so each cast brings
-            <SpellLink Spell="Spells.TemporalBarrage" /> back sooner.
+            <SpellLink Spell="Spells.EchoesOfRuin" /> active. Each of these casts reduces the cooldown of
+            <SpellLink Spell="Spells.TemporalBarrage" />.
         </p>
     </LeftPanel>
     <RightPanel>
@@ -32,17 +32,15 @@
         [
             new OverviewStat(
                 $"{casts - missed} of {casts}",
-                "Time Shards at Echoes of Ruin",
-                "Time Shards cast into an enemy with Echoes of Ruin active, of every Time Shard.",
+                "Time Shards with Echoes of Ruin",
+                "Time Shards cast into an enemy with Echoes of Ruin active, out of every Time Shard you cast.",
                 casts > 0 ? MissTier(missed, casts) : null),
             new OverviewStat(
                 FormatSeconds(analyzers.Sum(analyzer => analyzer.CooldownReducedMs)),
-                "Temporal Barrage Cooldown Reduced",
-                "Temporal Barrage cooldown Kind Rewind removed."),
+                "Temporal Barrage Cooldown Reduced"),
             new OverviewStat(
                 FormatSeconds(analyzers.Sum(analyzer => analyzer.CooldownReductionWastedMs)),
-                "Reduction While Available",
-                "Reduction granted while Temporal Barrage was already available."),
+                "Reduction While Available"),
         ];
     }
 
@@ -60,17 +58,15 @@
             [
                 new PerCastStat(
                     $"{analyzer.CastsWithEchoesOfRuin} of {analyzer.CastCount}",
-                    "At Echoes of Ruin",
-                    "Time Shards cast into an enemy with Echoes of Ruin active, of every Time Shard in the pull.",
+                    "With Echoes of Ruin",
+                    "Time Shards cast into an enemy with Echoes of Ruin active, out of every Time Shard you cast in this pull.",
                     performance),
                 new PerCastStat(
                     FormatSeconds(analyzer.CooldownReducedMs),
-                    "Cooldown Reduced",
-                    "Temporal Barrage cooldown removed in the pull."),
+                    "Cooldown Reduced"),
                 new PerCastStat(
                     FormatSeconds(analyzer.CooldownReductionWastedMs),
-                    "Reduction While Available",
-                    "Reduction granted while Temporal Barrage was already available."),
+                    "Reduction While Available"),
             ],
         };
     }

@@ -19,7 +19,7 @@ Reference implementation: `src/Heroes/FellowshipAnalyzer.Heroes.Tariq/Guides/Fur
 
 ## Voice
 
-Read `.claude/skills/banned-vocabulary/SKILL.md` before writing anything. No banned words or phrases should appear in the guide content, tooltips, statistics, or any other user-facing text. Never mention logs or raw data.
+Never mention logs or raw data in guide content, tooltips, statistics, or any other user-facing text.
 
 ## Procedure
 
@@ -81,10 +81,6 @@ Project rows with the `ToPullRows` / `ToItemRows` extensions (in `FellowshipAnal
 For a dungeon-lifetime module, read the generated nullable parser property (`Parser.WinterOrbTracker` style) and null-check it.
 
 `_Imports.razor` should include the hero `Modules` namespace, as Rime does, so analyzer types are available to guides.
-
-### Left panel voice
-
-Read `.claude/skills/banned-vocabulary/SKILL.md` before writing anything.
 
 ### When a stat takes a tooltip
 
@@ -215,8 +211,8 @@ From `FellowshipAnalyzer.Core.UI.Guides`:
 - [ ] Component inherits `GuideComponent<{Hero}CombatLogParser>`.
 - [ ] Component overrides `IsActive()`, and its markup body carries no `@if` gate of its own.
 - [ ] Component reads analyzer state via the generated read paths.
-- [ ] `<LeftPanel>` follows the house style's three moves: ranking, directives, then a reading note only where one is needed.
-- [ ] Every stat carries a `Label` in the house style's grammar and lexicon, and a `Tooltip` only where there is a counting rule or a game rule to state.
+- [ ] `<LeftPanel>` follows three moves: ranking, directives, then a reading note only where one is needed.
+- [ ] Every stat carries a `Label`, and a `Tooltip` only where there is a counting rule or a game rule to state.
 - [ ] No stat string, `<LeftPanel>` or `HelperText` says how a number was obtained from the log, or calls a value reconstructed, estimated or approximate.
 - [ ] Feature guide is added to `{Hero}Guide.razor` as a bare element, with no gate there.
 - [ ] Parser `GuideComponent` points to the root guide.

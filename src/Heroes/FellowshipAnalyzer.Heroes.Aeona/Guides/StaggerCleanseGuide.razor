@@ -5,7 +5,7 @@
         <p>
             Cast <strong><SpellLink Spell="Spells.AmendFate" /></strong> or
             <strong><SpellLink Spell="Spells.RestoreContinuity" /></strong> when the target holds more than the
-            Stagger removed, and always once the tank passes 40% of its maximum health in Stagger.
+            Stagger removed. Always cast one of them when the tank passes 40% of its maximum health in Stagger.
         </p>
         <p>
             Below that, cast <SpellLink Spell="Spells.Oblivion" /> instead.
@@ -13,15 +13,15 @@
         @if (Build?.MassEntropy == true)
         {
             <p>
-                With <SpellLink Spell="Spells.EntropyClaim" /> on cooldown, cleanse only when the tank would pass 55%
-                before the next charge. Otherwise keep casting Oblivion and roll <SpellLink Spell="Spells.EntropicBurst" /> over.
+                When <SpellLink Spell="Spells.EntropyClaim" /> is on cooldown, cleanse only if the tank will pass 55%
+                before the next charge. If it will not, continue to cast Oblivion and roll <SpellLink Spell="Spells.EntropicBurst" /> over.
             </p>
         }
         @if (EchoesTaken)
         {
             <p>
                 Spend Uchronia on Restore Continuity to apply <SpellLink Spell="Talents.EchoesOfDivinity" /> to the
-                tank, and let it run its full duration before the next cleanse.
+                tank. Let Echoes of Divinity run its full duration before the next cleanse.
             </p>
         }
     </LeftPanel>
@@ -75,7 +75,7 @@
             stats.Add(new OverviewStat(
                 $"{flagged} ({FormatShare(flagged, rated)})",
                 "Flagged Casts",
-                $"Casts under 40% tank Stagger on less than the Stagger removed or less than an Oblivion heals, of {rated} casts.",
+                $"Casts while the target held less than the Stagger removed, or with effective healing below an Oblivion, out of {rated} rated casts. The count includes a cast only if the tank held less than 40% of its maximum health in Stagger.",
                 FlagTier(flagged, rated)));
             stats.Add(new OverviewStat(
                 $"{analyzers.Sum(analyzer => analyzer.LowStaggerCasts)}",
@@ -94,7 +94,7 @@
             stats.Add(new OverviewStat(
                 $"{waited} of {onCooldown}",
                 "Could Have Waited for Entropy's Claim",
-                "Casts with Entropy's Claim on cooldown and tank Stagger at the next charge under 55%.",
+                "Casts while Entropy's Claim was on cooldown and the tank's Stagger at the next charge was less than 55% of its maximum health.",
                 onCooldown > 0 ? WaitTier(waited, onCooldown) : null));
         }
 
@@ -104,7 +104,7 @@
         stats.Add(new OverviewStat(
             $"{analyzers.Sum(analyzer => analyzer.EffectiveHealing):N0}",
             "Effective Healing",
-            $"Effective healing across every cast, against {analyzers.Sum(analyzer => analyzer.Overheal):N0} overheal."));
+            $"Effective healing of every cast. All of these casts together had {analyzers.Sum(analyzer => analyzer.Overheal):N0} overheal."));
 
         var echoes = Echoes;
         if (echoes.Count > 0)
@@ -113,11 +113,11 @@
             stats.Add(new OverviewStat(
                 FormatShare(echoes.Sum(use => (long)use.ActiveMs), combatMs),
                 "Echoes of Divinity Uptime",
-                "Share of combat Echoes of Divinity was active on the tank."));
+                "Share of combat with Echoes of Divinity active on the tank."));
             stats.Add(new OverviewStat(
                 FormatSeconds(echoes.Sum(use => use.OverwrittenMs)),
                 "Echoes of Divinity Overwritten",
-                "Running Echoes of Divinity time on the tank a cleanse refreshed away."));
+                "Remaining Echoes of Divinity time on the tank when a cleanse refreshed it."));
         }
 
         return stats;
@@ -132,7 +132,7 @@
         stats.Add(new OverviewStat(
             $"{cleansed:N0}",
             label,
-            $"Stagger removed across {bracketed} cast{(bracketed == 1 ? "" : "s")}, {(double)cleansed / bracketed:N0} per cast."));
+            $"Stagger cleansed across {bracketed} cast{(bracketed == 1 ? "" : "s")}, {(double)cleansed / bracketed:N0} per cast."));
     }
 
     private IEnumerable<PerCastData> BuildCastRows() =>
@@ -151,7 +151,7 @@
             stats.Add(new PerCastStat(
                 $"{fraction:P0}",
                 "Tank Stagger",
-                "The tank's Stagger as a share of its maximum health at the cast."));
+                "The tank's Stagger at the cast, as a percentage of the tank's maximum health."));
         }
 
         if (cast.StaggerBefore is { } before && cast.StaggerRemoved is { } amount)
@@ -159,7 +159,7 @@
             stats.Add(new PerCastStat(
                 $"{before:N0} / {amount:N0}",
                 "Stagger Before Cast",
-                "The target's Stagger before the cast against the Stagger removed.",
+                "The target's Stagger before the cast, compared with the Stagger removed.",
                 cast.BelowStaggerRemoved == true ? QualitativePerformance.Fail : QualitativePerformance.Perfect));
         }
 
@@ -167,8 +167,8 @@
             $"{cast.EffectiveHealing:N0}",
             "Effective Healing",
             cast.OblivionValue is { } value
-                ? $"Effective healing, against {value:N0} per Oblivion cast and {cast.Overheal:N0} overheal."
-                : $"Effective healing, against {cast.Overheal:N0} overheal.",
+                ? $"Effective healing of this cast, compared with {value:N0} per Oblivion cast. It also had {cast.Overheal:N0} overheal."
+                : $"Effective healing of this cast. It also had {cast.Overheal:N0} overheal.",
             cast.BelowOblivionValue switch
             {
                 true => QualitativePerformance.Fail,
@@ -180,24 +180,21 @@
         {
             stats.Add(new PerCastStat(
                 $"{cleansed:N0}",
-                "Stagger Cleansed",
-                "Stagger this cast removed, in hit points."));
+                "Stagger Cleansed"));
         }
 
         if (cast.EntropyClaimReadyInMs > 0)
         {
             stats.Add(new PerCastStat(
                 FormatSeconds(cast.EntropyClaimReadyInMs),
-                "Entropy's Claim Ready In",
-                "Time until the next Entropy's Claim charge at the cast."));
+                "Entropy's Claim Ready In"));
 
             if (cast.ProjectedStaggerFraction is { } projected)
             {
                 stats.Add(new PerCastStat(
                     $"{projected:P0}",
-                    "Stagger at Next Charge",
-                    "The tank's Stagger at the next charge.",
-                    cast.CouldHaveWaited ? QualitativePerformance.Fail : QualitativePerformance.Perfect));
+                    "Tank Stagger at Next Charge",
+                    Performance: cast.CouldHaveWaited ? QualitativePerformance.Fail : QualitativePerformance.Perfect));
             }
         }
 
@@ -212,7 +209,7 @@
 
         if (cast.AppliedEchoes)
         {
-            stats.Add(new PerCastStat("Applied", "Echoes of Divinity", "Echoes of Divinity applied to the tank by this cast."));
+            stats.Add(new PerCastStat("Applied", "Echoes of Divinity", "This cast applied Echoes of Divinity to the tank."));
         }
 
         if (cast.EchoesOverwrittenMs is { } overwritten)
@@ -220,7 +217,7 @@
             stats.Add(new PerCastStat(
                 FormatSeconds(overwritten),
                 "Echoes of Divinity Overwritten",
-                "Running Echoes of Divinity time on the tank this cast refreshed away.",
+                "Remaining Echoes of Divinity time on the tank when this cast refreshed it.",
                 QualitativePerformance.Fail));
         }
 

@@ -10,29 +10,29 @@
         @if (Build?.ChronoTrigger == true && OblivionsEmbrace)
         {
             <p>
-                Spend Chrona into Oblivion straight after the empowered <SpellLink Spell="Spells.TimeShard" />, while
-                the party is at full health, so the overheal becomes <SpellLink Spell="Talents.OblivionsEmbrace" /> shielding.
+                Spend Chrona on Oblivion immediately after the enhanced <SpellLink Spell="Spells.TimeShard" />, while
+                the party is at full health. The overheal then becomes <SpellLink Spell="Talents.OblivionsEmbrace" /> shielding.
             </p>
         }
         @if (Build?.MassEntropy == true)
         {
             <p>
-                Cast Oblivion between <SpellLink Spell="Spells.EntropyClaim" /> casts, so Converging Timelines brings
-                the next charge back before <SpellLink Spell="Spells.EntropicBurst" /> lapses.
+                Cast Oblivion between <SpellLink Spell="Spells.EntropyClaim" /> casts, so Converging Timelines makes
+                the next charge available before <SpellLink Spell="Spells.EntropicBurst" /> lapses.
             </p>
         }
         @if (UchroniaTaken)
         {
             <p>
-                Spend Uchronia on <SpellLink Spell="Spells.RestoreContinuity" /> when it will apply
-                <SpellLink Spell="Talents.EchoesOfDivinity" /> to the tank, and on Oblivion otherwise.
+                Spend Uchronia on <SpellLink Spell="Spells.RestoreContinuity" /> if the cast will apply
+                <SpellLink Spell="Talents.EchoesOfDivinity" /> to the tank. Otherwise, spend it on Oblivion.
             </p>
         }
     </LeftPanel>
     <RightPanel>
         <CastOverview Title="Oblivion Overview" Stats="@BuildOverviewStats()" />
         <CastDetail Title="Oblivion by Pull"
-                    Description="Each row is one pull, with the enemies Oblivion was cast into."
+                    Description="Each row shows one pull and the enemies you cast Oblivion into."
                     Casts="@BuildPullRows()" />
     </RightPanel>
 </GuideSection>
@@ -62,7 +62,7 @@
             stats.Add(new OverviewStat(
                 $"{flagged} ({FormatShare(flagged, rated)})",
                 "Casts at Cleanse Priority",
-                $"Oblivion casts while the tank held more than 40% of its maximum health in Stagger with a cleanse available, of {rated} casts.",
+                $"Oblivion casts while the tank held more than 40% of its maximum health in Stagger and a cleanse was available, out of {rated} casts.",
                 PriorityTier(flagged, rated)));
         }
 
@@ -71,20 +71,19 @@
             stats.Add(new OverviewStat(
                 FormatAmount(analyzers.Sum(analyzer => analyzer.EffectiveHealing) / (double)casts),
                 "Effective Healing per Cast",
-                "Effective healing across every ally, averaged over Oblivion casts."));
+                "Average effective healing of one Oblivion cast, for all allies together."));
 
             if (OblivionsEmbrace)
             {
                 stats.Add(new OverviewStat(
                     FormatAmount(analyzers.Sum(analyzer => analyzer.ShieldApplied ?? 0) / (double)casts),
                     "Shielding per Cast",
-                    "Shield absorb applied across every ally, averaged over Oblivion casts."));
+                    "Average shielding of one Oblivion cast, for all allies together."));
             }
 
             stats.Add(new OverviewStat(
                 FormatAmount(analyzers.Sum(analyzer => analyzer.Damage) / (double)casts),
-                "Damage per Cast",
-                "Oblivion damage, averaged over every cast."));
+                "Damage per Cast"));
         }
 
         var opportunities = analyzers.Sum(analyzer => analyzer.FreeCastOpportunities);
@@ -93,7 +92,7 @@
             stats.Add(new OverviewStat(
                 $"{analyzers.Sum(analyzer => analyzer.FreeCasts)} of {opportunities}",
                 "Free Casts",
-                "Free Oblivion casts, of every Uchronia and Epoch Break window."));
+                "Free Oblivion casts, out of every Uchronia and Epoch Break window."));
         }
 
         return stats;
@@ -113,13 +112,13 @@
             new($"{analyzer.CastCount}", "Casts"),
             new(
                 $"{analyzer.CastsAtCleansePriority} of {analyzer.CastsRated}",
-                "At Cleanse Priority",
-                "Casts while the tank held more than 40% of its maximum health in Stagger with a cleanse available, of the casts rated.",
+                "Casts at Cleanse Priority",
+                "Oblivion casts while the tank held more than 40% of its maximum health in Stagger and a cleanse was available, out of the rated casts.",
                 performance),
             new(
                 FormatAmount(analyzer.EffectiveHealingPerCast),
                 "Effective Healing per Cast",
-                "Effective healing across every ally, averaged over the pull's casts."),
+                "Average effective healing of one Oblivion cast in this pull, for all allies together."),
         };
 
         if (analyzer.ShieldAppliedPerCast is { } shield)
@@ -127,13 +126,13 @@
             stats.Add(new PerCastStat(
                 FormatAmount(shield),
                 "Shielding per Cast",
-                "Shield absorb applied across every ally, averaged over the pull's casts."));
+                "Average shielding of one Oblivion cast in this pull, for all allies together."));
         }
 
         stats.Add(new PerCastStat(
             $"{analyzer.FreeCasts} of {analyzer.FreeCastOpportunities}",
             "Free Casts",
-            "Free casts, of every Uchronia and Epoch Break window in the pull."));
+            "Free Oblivion casts, out of every Uchronia and Epoch Break window in this pull."));
 
         return new PerCastRow
         {
