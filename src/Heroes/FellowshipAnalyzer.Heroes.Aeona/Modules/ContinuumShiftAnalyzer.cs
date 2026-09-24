@@ -77,7 +77,8 @@ public sealed record ContinuumShiftWindow(
 /// </summary>
 /// <remarks>
 /// A removal is paired with the nearest Time Shard, Echoes of Ruin, or Entropy's Claim cast within
-/// <see cref="PairingMs"/> that no earlier window has claimed. A cast with a completion is its
+/// <see cref="PairingMs"/> that no earlier window has claimed and that did not come before the window
+/// opened. A cast with a completion is its
 /// completion; an instant cast is its activation. A Time Shard's damage, healing, and Chrona
 /// overcap are those inside <see cref="DamageWindowMs"/> after its completion; an Echoes of Ruin's enemies
 /// are the applications inside <see cref="ApplicationWindowMs"/>.
@@ -217,7 +218,7 @@ public sealed partial class ContinuumShiftAnalyzer : Analyzer, IContinuumShiftAn
 
         foreach (var (start, end) in _closed)
         {
-            var candidate = Nearest(end, claimed);
+            var candidate = Nearest(start, end, claimed);
             if (candidate is null)
             {
                 windows.Add(new ContinuumShiftWindow(start, end, ContinuumShiftSpend.Lost, null, 0, 0, 0, 0, 0, null, false));
@@ -235,12 +236,12 @@ public sealed partial class ContinuumShiftAnalyzer : Analyzer, IContinuumShiftAn
         return windows;
     }
 
-    private Candidate? Nearest(int removal, HashSet<int> claimed)
+    private Candidate? Nearest(int start, int removal, HashSet<int> claimed)
     {
         Candidate? nearest = null;
         foreach (var candidate in _candidates)
         {
-            if (claimed.Contains(candidate.Timestamp)) continue;
+            if (candidate.Timestamp < start || claimed.Contains(candidate.Timestamp)) continue;
 
             var distance = Math.Abs(candidate.Timestamp - removal);
             if (distance > PairingMs) continue;

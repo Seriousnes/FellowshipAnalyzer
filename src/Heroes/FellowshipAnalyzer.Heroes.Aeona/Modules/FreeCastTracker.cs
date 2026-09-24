@@ -29,7 +29,8 @@ public readonly record struct FreeCast(int Timestamp, int AbilityId, FreeCastSou
 /// A Uchronia window is spent by the Oblivion, Amend Fate, or Restore Continuity cast at its removal:
 /// the cast within <see cref="CastMatchToleranceMs"/> of the removal, on either side, because the log
 /// writes the two in either order inside one millisecond. A cast inside an Epoch Break window is free
-/// from Epoch Break; Epoch Break takes precedence where the two overlap.
+/// from Epoch Break; Epoch Break takes precedence where the two overlap, and that cast still spends
+/// the Uchronia window at its removal.
 /// </para>
 /// <para>
 /// Registered dungeon-lifetime with no talent gate, because Epoch Break is in every build. Uchronia's
@@ -43,7 +44,7 @@ public sealed partial class FreeCastTracker : Analyzer
 
     private readonly List<FreeCast> _freeCasts = [];
     private readonly List<AuraWindow> _epochBreakWindows = [];
-    private readonly List<(int Timestamp, int AbilityId)> _spenderCasts = [];
+    private readonly List<(int Timestamp, int AbilityId, bool EpochBreak)> _spenderCasts = [];
     private readonly List<int> _unpairedRemovals = [];
 
     private int? _epochBreakOpenedAt;
@@ -141,22 +142,20 @@ public sealed partial class FreeCastTracker : Analyzer
         _spenderCasts.RemoveAll(cast => e.Timestamp - cast.Timestamp > CastMatchToleranceMs);
 
         var abilityId = e.Ability.Id;
-
-        if (EpochBreakActive(e.Timestamp))
-        {
-            _freeCasts.Add(new FreeCast(e.Timestamp, abilityId, FreeCastSource.EpochBreak));
-            return;
-        }
+        var epochBreak = EpochBreakActive(e.Timestamp);
 
         var removal = _unpairedRemovals.FindIndex(timestamp => Math.Abs(timestamp - e.Timestamp) <= CastMatchToleranceMs);
         if (removal >= 0)
         {
             _unpairedRemovals.RemoveAt(removal);
-            _freeCasts.Add(new FreeCast(e.Timestamp, abilityId, FreeCastSource.Uchronia));
+            _freeCasts.Add(new FreeCast(e.Timestamp, abilityId, epochBreak ? FreeCastSource.EpochBreak : FreeCastSource.Uchronia));
             return;
         }
 
-        _spenderCasts.Add((e.Timestamp, abilityId));
+        if (epochBreak)
+            _freeCasts.Add(new FreeCast(e.Timestamp, abilityId, FreeCastSource.EpochBreak));
+
+        _spenderCasts.Add((e.Timestamp, abilityId, epochBreak));
     }
 
     [On<RemoveBuffEvent>(To = Actor.Player, Spell = nameof(Spells.Uchronia))]
@@ -165,9 +164,10 @@ public sealed partial class FreeCastTracker : Analyzer
         var cast = _spenderCasts.FindLastIndex(cast => Math.Abs(cast.Timestamp - e.Timestamp) <= CastMatchToleranceMs);
         if (cast >= 0)
         {
-            var (timestamp, abilityId) = _spenderCasts[cast];
+            var (timestamp, abilityId, epochBreak) = _spenderCasts[cast];
             _spenderCasts.RemoveAt(cast);
-            _freeCasts.Add(new FreeCast(timestamp, abilityId, FreeCastSource.Uchronia));
+            if (!epochBreak)
+                _freeCasts.Add(new FreeCast(timestamp, abilityId, FreeCastSource.Uchronia));
             return;
         }
 

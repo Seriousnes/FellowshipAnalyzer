@@ -128,6 +128,20 @@ public sealed class ContinuumShiftAnalyzerTests
     }
 
     [Fact]
+    public async Task ACastBeforeTheWindowOpened_DoesNotSpendIt()
+    {
+        var analyzer = await Analyze(Info(Shift),
+            Completion(500, Spells.TimeShard),
+            ApplyBuff(1_000, Spells.ContinuumShift),
+            RemoveBuff(2_000, Spells.ContinuumShift));
+
+        var window = analyzer.Windows.ShouldHaveSingleItem();
+        window.Spend.ShouldBe(ContinuumShiftSpend.Lost);
+        window.CastTimestamp.ShouldBeNull();
+        analyzer.SpentOnTimeShard.ShouldBe(0);
+    }
+
+    [Fact]
     public async Task AWindowStillOpenAtThePullEnd_IsNeitherSpentNorLost()
     {
         var analyzer = await Analyze(Info(Shift),
