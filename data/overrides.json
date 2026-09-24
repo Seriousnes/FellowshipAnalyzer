@@ -4,6 +4,14 @@
       "id": 2676,
       "kind": "effect"
     },
+    "ConvergingTimelines": {
+      "id": 3266,
+      "kind": "effect"
+    },
+    "AuraOfDeferredFate": {
+      "id": 2739,
+      "kind": "effect"
+    },
     "Uchronia": {
       "id": 2593,
       "kind": "effect"

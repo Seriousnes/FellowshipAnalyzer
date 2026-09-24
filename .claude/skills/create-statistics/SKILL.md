@@ -11,7 +11,7 @@ Statistics surface optional, interesting information the Guide tab does not alre
 
 ## Voice
 
-Read `.claude/skills/banned-vocabulary/SKILL.md` before writing anything. No banned words or phrases should appear in the guide content, tooltips, statistics, or any other user-facing text. Never mention logs or raw data.
+Never mention logs or raw data in guide content, tooltips, statistics, or any other user-facing text.
 
 ## Procedure
 

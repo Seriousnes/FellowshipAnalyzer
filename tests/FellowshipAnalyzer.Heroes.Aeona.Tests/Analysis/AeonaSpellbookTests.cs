@@ -1,4 +1,7 @@
 using FellowshipAnalyzer.Core.Analysis;
+using FellowshipAnalyzer.Core.Common.Spells.Aeona;
+
+using Shouldly;
 
 using Xunit;
 
@@ -15,5 +18,12 @@ public sealed class AeonaSpellbookTests
 
         Assert.NotEmpty(spellbook);
         Assert.DoesNotContain(spellbook, e => e.Category == SpellCategory.Uncategorized);
+    }
+
+    [Fact]
+    public void Registry_NamesTheEffectsTheLogWritesForConvergingTimelinesAndAuraOfDeferredFate()
+    {
+        Spells.ConvergingTimelines.Id.ShouldBe(3266);
+        Spells.AuraOfDeferredFate.Id.ShouldBe(2739);
     }
 }

@@ -1,482 +1,185 @@
-using FellowshipAnalyzer.Core;
-using FellowshipAnalyzer.Core.Analysis;
-using FellowshipAnalyzer.Core.Common;
+using FellowshipAnalyzer.Core.Common.Spells;
 using FellowshipAnalyzer.Core.Common.Spells.Aeona;
 using FellowshipAnalyzer.Core.Events;
-using FellowshipAnalyzer.Core.FellowshipLogs;
-using FellowshipAnalyzer.Core.Game;
-using FellowshipAnalyzer.Heroes.Aeona.Analysis;
 using FellowshipAnalyzer.Heroes.Aeona.Modules;
-
-using Microsoft.Extensions.DependencyInjection;
 
 using Shouldly;
 
 using Xunit;
 
-using AeonaTalents = FellowshipAnalyzer.Core.Common.Spells.AeonaTalents;
+using static FellowshipAnalyzer.Heroes.Aeona.Tests.AeonaLog;
+
+using Spells = FellowshipAnalyzer.Core.Common.Spells.Aeona.Spells;
 
 namespace FellowshipAnalyzer.Heroes.Aeona.Tests.Analysis;
 
 public sealed class StaggerCleanseAnalyzerTests
 {
-    private const int PlayerId = 310;
-    private const int TankId = 90;
-    private const int AllyId = 309;
-    private const int SecondAllyId = 293;
-    private const long MaxHitPoints = 40000;
-    private const int DungeonEndTime = 30_000;
-
-    private static readonly List<ReportActor> Party =
-    [
-        new(PlayerId, "Aeona", "Player", "Aeona", null, null),
-        new(TankId, "Xavian", "Player", "Xavian", null, null),
-        new(AllyId, "Rime", "Player", "Rime", null, null),
-        new(SecondAllyId, "Mara", "Player", "Mara", null, null),
-    ];
-
-    private static readonly List<ReportActor> PartyWithoutTank =
-    [
-        new(PlayerId, "Aeona", "Player", "Aeona", null, null),
-        new(AllyId, "Rime", "Player", "Rime", null, null),
-    ];
+    private static readonly int[] Echoes = [AeonaTalents.EchoesOfDivinity];
 
     [Fact]
-    public async Task StaggerCleansed_ComesFromThePoolEitherSideOfTheCast()
+    public async Task ACast_HasEachAllysStaggerBeforeAndTheStaggerItRemoved()
     {
-        var analyzer = await Analyze(
-            Snapshot(TankId, 1_000, staggerHitPoints: 10_000),
-            AmendFateCast(2_000),
-            AmendFateHeal(TankId, 2_001, effective: 5_500, overheal: 0, staggerHitPointsAfter: 8_000));
+        var analyzer = await Analyze(Info([]),
+            TankStagger(900, staggerHitPoints: 10_000),
+            Activation(1_000, Spells.AmendFate, TankId),
+            Heal(1_000, Spells.AmendFate, TankId, 5_000, 1_000),
+            TankStagger(1_050, staggerHitPoints: 4_000));
 
         var cast = analyzer.Casts.ShouldHaveSingleItem();
-
-        cast.Ability.ShouldBe(Spells.AmendFate.FSLID);
-        cast.AlliesHealed.ShouldBe(1);
-        cast.StaggerCleansed.ShouldBe(2_000);
-        cast.Heals.ShouldHaveSingleItem().StaggerCleansed.ShouldBe(2_000);
-    }
-
-    [Fact]
-    public async Task StaggerCleansed_IsWithheldWithNoPoolAfterTheCast()
-    {
-        var analyzer = await Analyze(
-            Snapshot(TankId, 1_000, staggerHitPoints: 10_000),
-            AmendFateCast(2_000),
-            AmendFateHeal(TankId, 2_001, effective: 5_500, overheal: 0));
-
-        analyzer.Casts.ShouldHaveSingleItem().StaggerCleansed.ShouldBeNull();
-    }
-
-    [Fact]
-    public async Task StaggerCleansed_IsWithheldWhenADrainTickMovedThePoolInsideTheBracket()
-    {
-        var analyzer = await Analyze(
-            Snapshot(TankId, 1_000, staggerHitPoints: 10_000),
-            AmendFateCast(2_000),
-            StaggerDrainTick(TankId, 2_000),
-            AmendFateHeal(TankId, 2_001, effective: 5_500, overheal: 0, staggerHitPointsAfter: 8_000));
-
-        analyzer.Casts.ShouldHaveSingleItem().StaggerCleansed.ShouldBeNull();
-    }
-
-    [Fact]
-    public async Task EffectiveHealingAndOverheal_AreSummedOverEveryAllyTheCastHealed()
-    {
-        var analyzer = await Analyze(
-            RestoreContinuityCast(2_000),
-            RestoreContinuityHeal(TankId, 2_001, effective: 4_000, overheal: 500),
-            RestoreContinuityHeal(AllyId, 2_002, effective: 3_000, overheal: 0),
-            RestoreContinuityHeal(SecondAllyId, 2_003, effective: 2_000, overheal: 250));
-
-        var cast = analyzer.Casts.ShouldHaveSingleItem();
-
-        cast.AlliesHealed.ShouldBe(3);
-        cast.EffectiveHealing.ShouldBe(9_000);
-        cast.Overheal.ShouldBe(750);
-        analyzer.EffectiveHealing.ShouldBe(9_000);
-        analyzer.Overheal.ShouldBe(750);
-    }
-
-    [Fact]
-    public async Task PerAbilityTotals_CountOnlyTheBracketedCasts()
-    {
-        var analyzer = await Analyze(
-            Snapshot(TankId, 1_000, staggerHitPoints: 10_000),
-            AmendFateCast(2_000),
-            AmendFateHeal(TankId, 2_001, effective: 5_500, overheal: 0, staggerHitPointsAfter: 8_000),
-
-            AmendFateCast(6_000),
-            AmendFateHeal(TankId, 6_001, effective: 5_500, overheal: 0));
-
-        analyzer.AmendFateCasts.ShouldBe(2);
-        analyzer.BracketedCastsOf(Spells.AmendFate.FSLID).ShouldBe(1);
-        analyzer.StaggerCleansedBy(Spells.AmendFate.FSLID).ShouldBe(2_000);
-        analyzer.StaggerCleansedBy(Spells.RestoreContinuity.FSLID).ShouldBe(0);
-    }
-
-    [Fact]
-    public async Task ACastOnAPoolBelowTheStaggerRemoved_IsALowStaggerCast()
-    {
-        var analyzer = await Analyze(FullValueCast(1_000, 10_000, 8_000).Concat(
-        [
-            Snapshot(TankId, 5_000, staggerHitPoints: 1_200),
-            AmendFateCast(5_500),
-            AmendFateHeal(TankId, 5_501, effective: 3_300, overheal: 0, staggerHitPointsAfter: 0),
-        ]).ToArray());
-
-        var casts = analyzer.Casts;
-
-        casts[0].StaggerRemoved.ShouldBe(2_000);
-        casts[0].BelowStaggerRemoved.ShouldBe(false);
-        casts[1].StaggerBefore.ShouldBe(1_200);
-        casts[1].BelowStaggerRemoved.ShouldBe(true);
-
-        analyzer.LowStaggerCasts.ShouldBe(1);
-        analyzer.CastsRated.ShouldBe(2);
-    }
-
-    [Fact]
-    public async Task ACastWithStaleStagger_IsNotRated()
-    {
-        var analyzer = await Analyze(FullValueCast(1_000, 10_000, 8_000).Concat(
-        [
-            Snapshot(TankId, 5_000, staggerHitPoints: 1_200),
-            AmendFateCast(8_000),
-            AmendFateHeal(TankId, 8_001, effective: 3_300, overheal: 0),
-        ]).ToArray());
-
-        var cast = analyzer.Casts[1];
-
-        cast.StaggerBefore.ShouldBeNull();
-        cast.BelowStaggerRemoved.ShouldBeNull();
-        analyzer.CastsRated.ShouldBe(1);
-    }
-
-    [Fact]
-    public async Task WithNoCleanCastInTheReport_NoCastIsRated()
-    {
-        var analyzer = await Analyze(
-            Snapshot(TankId, 1_000, staggerHitPoints: 10_000),
-            AmendFateCast(2_000),
-            AmendFateHeal(TankId, 2_001, effective: 5_500, overheal: 0));
-
-        var cast = analyzer.Casts.ShouldHaveSingleItem();
-
-        cast.StaggerRemoved.ShouldBeNull();
-        cast.BelowStaggerRemoved.ShouldBeNull();
-        analyzer.CastsRated.ShouldBe(0);
-    }
-
-    [Fact]
-    public async Task RestoreContinuity_IsRatedOnTheHealedAllyHoldingTheMostStagger()
-    {
-        var analyzer = await AnalyzeWith(Party, [],
-            Snapshot(TankId, 1_000, staggerHitPoints: 10_000),
-            RestoreContinuityCast(2_000),
-            RestoreContinuityHeal(TankId, 2_001, effective: 4_000, overheal: 0, staggerHitPointsAfter: 8_000),
-
-            Snapshot(TankId, 5_000, staggerHitPoints: 900),
-            Snapshot(AllyId, 5_100, staggerHitPoints: 7_500),
-            RestoreContinuityCast(5_500),
-            RestoreContinuityHeal(TankId, 5_501, effective: 1_000, overheal: 0),
-            RestoreContinuityHeal(AllyId, 5_502, effective: 4_000, overheal: 0));
-
-        var cast = analyzer.Casts[1];
-
-        cast.StaggerBefore.ShouldBe(7_500);
+        var heal = cast.Heals.ShouldHaveSingleItem();
+        heal.IsTank.ShouldBeTrue();
+        heal.EffectiveHealing.ShouldBe(5_000);
+        heal.Overheal.ShouldBe(1_000);
+        heal.StaggerBefore.ShouldBe(10_000);
+        heal.StaggerCleansed.ShouldBe(6_000);
+        cast.StaggerRemoved.ShouldBe(6_000);
         cast.BelowStaggerRemoved.ShouldBe(false);
+        cast.TankStaggerFraction.ShouldBe(0.25);
+        analyzer.StaggerCleansedBy(Spells.AmendFate.FSLID).ShouldBe(6_000);
+        analyzer.BracketedCastsOf(Spells.AmendFate.FSLID).ShouldBe(1);
     }
 
     [Fact]
-    public async Task AFreeCastOnAFullPool_Passes()
+    public async Task ALowStaggerCastUnder40PercentThatHealsLessThanAnOblivion_IsFlagged()
     {
-        var analyzer = await AnalyzeWith(Party, [AeonaTalents.Uchronia], FullValueCast(1_000, 10_000, 8_000).Concat(
-        [
-            UchroniaApplied(5_000),
-            Snapshot(TankId, 5_100, staggerHitPoints: 9_000),
-            FreeAmendFateCast(5_500),
-            AmendFateHeal(TankId, 5_501, effective: 5_500, overheal: 0),
-            UchroniaRemoved(5_500),
-        ]).ToArray());
+        var analyzer = await Analyze(Info([]),
+            Activation(500, Spells.Oblivion),
+            Heal(501, Spells.Oblivion, TankId, 3_000),
+            TankStagger(900, staggerHitPoints: 10_000),
+            Activation(1_000, Spells.AmendFate, TankId),
+            Heal(1_000, Spells.AmendFate, TankId, 5_000),
+            TankStagger(1_050, staggerHitPoints: 4_000),
+            TankStagger(9_900, staggerHitPoints: 2_000),
+            Activation(10_000, Spells.AmendFate, TankId),
+            Heal(10_000, Spells.AmendFate, TankId, 1_000),
+            TankStagger(10_050, staggerHitPoints: 0));
 
-        var cast = analyzer.Casts[1];
-
-        cast.WasFree.ShouldBeTrue();
-        cast.FreeCastSource.ShouldBe(FreeCastSource.Uchronia);
-        cast.FreeCastOnFullPool.ShouldBe(true);
-        analyzer.FreeCleanseCasts.ShouldBe(1);
-        analyzer.FreeCleanseCastsOnFullPool.ShouldBe(1);
-        analyzer.FreeCleanseCastsRated.ShouldBe(1);
+        analyzer.OblivionValuePerCast.ShouldNotBeNull().ShouldBe(3_000.0, 0.0001);
+        var second = analyzer.Casts[1];
+        second.BelowStaggerRemoved.ShouldBe(true);
+        second.BelowOblivionValue.ShouldBe(true);
+        second.Rated.ShouldBeTrue();
+        second.Flagged.ShouldBeTrue();
+        analyzer.Casts[0].Flagged.ShouldBeFalse();
+        analyzer.CastsRated.ShouldBe(2);
+        analyzer.FlaggedCasts.ShouldBe(1);
+        analyzer.LowStaggerCasts.ShouldBe(1);
+        analyzer.BelowOblivionValueCasts.ShouldBe(1);
     }
 
     [Fact]
-    public async Task AFreeCastBelowTheStaggerRemoved_Fails()
+    public async Task ACastWhileTheTankIsAbove40Percent_IsNeverFlagged()
     {
-        var analyzer = await Analyze(FullValueCast(1_000, 10_000, 8_000).Concat(
-        [
-            Snapshot(TankId, 5_100, staggerHitPoints: 800),
-            FreeAmendFateCast(5_500),
-            AmendFateHeal(TankId, 5_501, effective: 2_200, overheal: 0),
-        ]).ToArray());
-
-        var cast = analyzer.Casts[1];
-
-        cast.FreeCastOnFullPool.ShouldBe(false);
-        analyzer.FreeCleanseCastsOnFullPool.ShouldBe(0);
-        analyzer.FreeCleanseCastsRated.ShouldBe(1);
-    }
-
-    [Fact]
-    public async Task ACastThatCostChrona_HasNoFreeCastRating()
-    {
-        var analyzer = await Analyze(
-            Snapshot(TankId, 1_000, staggerHitPoints: 10_000),
-            AmendFateCast(2_000),
-            AmendFateHeal(TankId, 2_001, effective: 5_500, overheal: 0, staggerHitPointsAfter: 8_000));
+        var analyzer = await Analyze(Info([]),
+            Activation(500, Spells.Oblivion),
+            Heal(501, Spells.Oblivion, TankId, 30_000),
+            TankStagger(900, staggerHitPoints: 18_000),
+            Activation(1_000, Spells.AmendFate, TankId),
+            Heal(1_000, Spells.AmendFate, TankId, 1_000),
+            TankStagger(1_050, staggerHitPoints: 12_000));
 
         var cast = analyzer.Casts.ShouldHaveSingleItem();
-
-        cast.WasFree.ShouldBeFalse();
-        cast.FreeCastSource.ShouldBeNull();
-        cast.FreeCastOnFullPool.ShouldBeNull();
-        analyzer.FreeCleanseCasts.ShouldBe(0);
+        cast.TankStaggerFraction.ShouldBe(0.45);
+        cast.BelowOblivionValue.ShouldBe(true);
+        cast.Flagged.ShouldBeFalse();
     }
 
     [Fact]
-    public async Task EchoesOfDivinity_IsAbsentWithoutTheTalent()
+    public async Task AFreeCastThatAppliesEchoesOfDivinity_IsTheIntendedUse()
     {
-        var analyzer = await Analyze(
-            EchoesApplied(TankId, 1_000),
-            EchoesRemoved(TankId, 5_000));
+        var analyzer = await Analyze(Info([AeonaTalents.EchoesOfDivinity, AeonaTalents.Uchronia]),
+            Activation(500, Spells.Oblivion),
+            Heal(501, Spells.Oblivion, TankId, 30_000),
+            ApplyBuff(600, Spells.Uchronia),
+            TankStagger(900, staggerHitPoints: 1_000),
+            Activation(1_000, Spells.RestoreContinuity, TankId),
+            RemoveBuff(1_000, Spells.Uchronia),
+            Heal(1_000, Spells.RestoreContinuity, TankId, 500),
+            ApplyBuff(1_000, Spells.EchoesOfDivinity, TankId),
+            TankStagger(1_050, staggerHitPoints: 0),
+            RemoveBuff(5_000, Spells.EchoesOfDivinity, TankId));
 
-        analyzer.EchoesOfDivinity.ShouldBeNull();
-    }
-
-    [Fact]
-    public async Task EchoesOfDivinity_IsAbsentWhenTheReportNamesNoTank()
-    {
-        var analyzer = await AnalyzeWith(PartyWithoutTank, [AeonaTalents.EchoesOfDivinity],
-            EchoesApplied(AllyId, 1_000),
-            EchoesRemoved(AllyId, 5_000));
-
-        analyzer.EchoesOfDivinity.ShouldBeNull();
-    }
-
-    [Fact]
-    public async Task EchoesOfDivinity_MeasuresTheTankAloneAndIgnoresPartyApplications()
-    {
-        var analyzer = await AnalyzeWith(Party, [AeonaTalents.EchoesOfDivinity],
-            EchoesApplied(TankId, 1_000),
-            EchoesApplied(AllyId, 1_000),
-            EchoesRemoved(TankId, 5_000),
-            EchoesRemoved(AllyId, 9_000));
-
+        var cast = analyzer.Casts.ShouldHaveSingleItem();
+        cast.WasFree.ShouldBeTrue();
+        cast.AppliedEchoes.ShouldBeTrue();
+        cast.OverwroteEchoes.ShouldBeFalse();
+        cast.Flagged.ShouldBeFalse();
+        analyzer.FreeCasts.ShouldBe(1);
+        analyzer.FreeCastsOnRestoreContinuity.ShouldBe(1);
+        analyzer.FreeCastsInPull.ShouldBe(1);
         var echoes = analyzer.EchoesOfDivinity.ShouldNotBeNull();
-
         echoes.Applications.ShouldBe(1);
         echoes.ActiveMs.ShouldBe(4_000);
-        echoes.Windows.ShouldHaveSingleItem();
     }
 
     [Fact]
-    public async Task EchoesOfDivinity_ClosesAWindowStillOpenAtThePullEnd()
+    public async Task ACastThatRefreshesARunningEchoesOfDivinity_DiscardsTheRemainder()
     {
-        var analyzer = await AnalyzeWith(Party, [AeonaTalents.EchoesOfDivinity],
-            EchoesApplied(TankId, 1_000));
+        var analyzer = await Analyze(Info(Echoes),
+            ApplyBuff(100, Spells.EchoesOfDivinity, TankId),
+            RemoveBuff(4_100, Spells.EchoesOfDivinity, TankId),
+            ApplyBuff(10_000, Spells.EchoesOfDivinity, TankId),
+            TankStagger(11_900, staggerHitPoints: 1_000),
+            Activation(12_000, Spells.AmendFate, TankId),
+            Heal(12_000, Spells.AmendFate, TankId, 500),
+            RefreshBuff(12_000, Spells.EchoesOfDivinity, TankId),
+            RemoveBuff(16_000, Spells.EchoesOfDivinity, TankId));
 
+        var cast = analyzer.Casts.ShouldHaveSingleItem();
+        cast.OverwroteEchoes.ShouldBeTrue();
+        cast.EchoesOverwrittenMs.ShouldBe(2_000);
         var echoes = analyzer.EchoesOfDivinity.ShouldNotBeNull();
-
-        echoes.Windows.ShouldHaveSingleItem().End.ShouldBe(DungeonEndTime);
-    }
-
-    [Fact]
-    public async Task EchoesOfDivinity_CountsAnOverwriteByALowStaggerCastAlone()
-    {
-        var analyzer = await AnalyzeWith(Party, [AeonaTalents.EchoesOfDivinity], FullValueCast(1_000, 10_000, 8_000).Concat(
-        [
-            EchoesApplied(TankId, 2_001),
-
-            Snapshot(TankId, 5_000, staggerHitPoints: 9_000),
-            AmendFateCast(5_500),
-            AmendFateHeal(TankId, 5_501, effective: 5_500, overheal: 0),
-            EchoesRefreshed(TankId, 5_501),
-
-            Snapshot(TankId, 8_000, staggerHitPoints: 900),
-            AmendFateCast(8_500),
-            AmendFateHeal(TankId, 8_501, effective: 2_400, overheal: 0),
-            EchoesRefreshed(TankId, 8_501),
-        ]).ToArray());
-
-        var echoes = analyzer.EchoesOfDivinity.ShouldNotBeNull();
-
-        echoes.Refreshes.ShouldBe(2);
         echoes.Overwrites.ShouldBe(1);
-        analyzer.Casts[1].OverwroteEchoes.ShouldBeFalse();
-        analyzer.Casts[2].OverwroteEchoes.ShouldBeTrue();
+        echoes.OverwrittenMs.ShouldBe(2_000);
+        echoes.ActiveMs.ShouldBe(10_000);
     }
 
     [Fact]
-    public async Task EchoesOfDivinity_MeasuresTheTimeAnOverwriteDiscarded()
+    public async Task ACleanseWithEntropyClaimOnCooldown_ProjectsTheTanksStaggerAtTheNextCharge()
     {
-        var analyzer = await AnalyzeWith(Party, [AeonaTalents.EchoesOfDivinity], FullValueCast(1_000, 10_000, 8_000).Concat(
-        [
-            EchoesApplied(TankId, 2_001),
-            EchoesRemoved(TankId, 6_001),
+        var analyzer = await Analyze(Info([], AeonaLegendaries.MassEntropy),
+            Completion(1_000, Spells.EntropyClaim),
+            Completion(2_000, Spells.EntropyClaim, SecondEnemyId),
+            Absorbed(3_000, Spells.AuraOfDeferredFate, TankId, 4_000),
+            Absorbed(7_000, Spells.AuraOfDeferredFate, TankId, 4_000),
+            TankStagger(9_900, staggerHitPoints: 8_000),
+            Activation(10_000, Spells.AmendFate, TankId),
+            Heal(10_000, Spells.AmendFate, TankId, 500),
+            TankStagger(10_050, staggerHitPoints: 2_000));
 
-            EchoesApplied(TankId, 10_000),
-            Snapshot(TankId, 11_000, staggerHitPoints: 900),
-            AmendFateCast(11_500),
-            AmendFateHeal(TankId, 11_501, effective: 2_400, overheal: 0),
-            EchoesRefreshed(TankId, 11_501),
-        ]).ToArray());
-
-        var echoes = analyzer.EchoesOfDivinity.ShouldNotBeNull();
-
-        echoes.Overwrites.ShouldBe(1);
-        echoes.OverwrittenMs.ShouldBe(2_499);
-        analyzer.Casts[1].EchoesOverwrittenMs.ShouldBe(2_499);
+        var cast = analyzer.Casts.ShouldHaveSingleItem();
+        cast.EntropyClaimReadyInMs.ShouldBeGreaterThan(0);
+        cast.EntropyClaimReadyInMs.ShouldBeLessThanOrEqualTo(12_000);
+        cast.StaggerIntakePerSecond.ShouldNotBeNull().ShouldBe(1_000.0, 0.0001);
+        cast.ProjectedStaggerFraction.ShouldNotBeNull().ShouldBeLessThan(StaggerCleanseAnalyzer.EntropicBurstHoldStaggerFraction);
+        cast.CouldHaveWaited.ShouldBeTrue();
+        analyzer.CastsWithEntropyClaimOnCooldown.ShouldBe(1);
+        analyzer.CastsCouldHaveWaited.ShouldBe(1);
     }
 
-    private static Event[] FullValueCast(int castTimestamp, int staggerBefore, int staggerAfter) =>
-    [
-        Snapshot(TankId, castTimestamp - 100, staggerHitPoints: staggerBefore),
-        AmendFateCast(castTimestamp),
-        AmendFateHeal(TankId, castTimestamp + 1, effective: 5_500, overheal: 0, staggerHitPointsAfter: staggerAfter),
-    ];
-
-    private static ActorResources StaggerResources(int staggerHitPoints) => new()
+    [Fact]
+    public async Task ACleanseUnderHeavyIntake_CouldNotHaveWaited()
     {
-        HitPoints = MaxHitPoints / 2,
-        MaxHitPoints = MaxHitPoints,
-        Resources = [new ClassResource { Type = ResourceTypes.Stagger, Amount = staggerHitPoints * 100, Max = -100 }],
-    };
+        var analyzer = await Analyze(Info([], AeonaLegendaries.MassEntropy),
+            Completion(1_000, Spells.EntropyClaim),
+            Completion(2_000, Spells.EntropyClaim, SecondEnemyId),
+            Absorbed(3_000, Spells.AuraOfDeferredFate, TankId, 20_000),
+            Absorbed(7_000, Spells.AuraOfDeferredFate, TankId, 20_000),
+            TankStagger(9_900, staggerHitPoints: 8_000),
+            Activation(10_000, Spells.AmendFate, TankId),
+            Heal(10_000, Spells.AmendFate, TankId, 500),
+            TankStagger(10_050, staggerHitPoints: 2_000));
 
-    private static HealEvent Snapshot(int unitId, int timestamp, int staggerHitPoints) => new()
+        var cast = analyzer.Casts.ShouldHaveSingleItem();
+        cast.StaggerIntakePerSecond.ShouldNotBeNull().ShouldBe(5_000.0, 0.0001);
+        cast.CouldHaveWaited.ShouldBeFalse();
+        analyzer.CastsCouldHaveWaited.ShouldBe(0);
+    }
+
+    private static async Task<StaggerCleanseAnalyzer> Analyze(CombatantInfoEvent info, params Event[] events)
     {
-        Timestamp = timestamp,
-        SourceId = PlayerId,
-        TargetId = unitId,
-        Amount = 1,
-        Ability = new Ability { Id = Spells.EchoesOfRuin.FSLID },
-        TargetResources = StaggerResources(staggerHitPoints),
-    };
-
-    private static DamageEvent StaggerDrainTick(int unitId, int timestamp) => new()
-    {
-        Timestamp = timestamp,
-        SourceId = unitId,
-        TargetId = unitId,
-        Amount = 181,
-        Tick = true,
-        Ability = new Ability { Id = 1002696 },
-    };
-
-    private static CastEvent AmendFateCast(int timestamp) => Cast(timestamp, Spells.AmendFate.FSLID);
-
-    private static CastEvent RestoreContinuityCast(int timestamp) => Cast(timestamp, Spells.RestoreContinuity.FSLID);
-
-    private static CastEvent Cast(int timestamp, int abilityId) => new()
-    {
-        Timestamp = timestamp,
-        SourceId = PlayerId,
-        TargetId = -1,
-        Ability = new Ability { Id = abilityId },
-    };
-
-    private static FreeCastEvent FreeAmendFateCast(int timestamp) => new()
-    {
-        Timestamp = timestamp,
-        SourceId = PlayerId,
-        TargetId = -1,
-        Ability = new Ability { Id = Spells.AmendFate.FSLID },
-        AbilityGameId = Spells.AmendFate.FSLID,
-    };
-
-    private static HealEvent AmendFateHeal(
-        int unitId, int timestamp, long effective, long overheal, int? staggerHitPointsAfter = null) =>
-        CleanseHeal(unitId, timestamp, Spells.AmendFate.FSLID, effective, overheal, staggerHitPointsAfter);
-
-    private static HealEvent RestoreContinuityHeal(
-        int unitId, int timestamp, long effective, long overheal, int? staggerHitPointsAfter = null) =>
-        CleanseHeal(unitId, timestamp, Spells.RestoreContinuity.FSLID, effective, overheal, staggerHitPointsAfter);
-
-    private static HealEvent CleanseHeal(
-        int unitId, int timestamp, int abilityId, long effective, long overheal, int? staggerHitPointsAfter) => new()
-        {
-            Timestamp = timestamp,
-            SourceId = PlayerId,
-            TargetId = unitId,
-            Amount = effective,
-            Overheal = overheal == 0 ? null : overheal,
-            Ability = new Ability { Id = abilityId },
-            TargetResources = staggerHitPointsAfter is { } stagger ? StaggerResources(stagger) : null,
-        };
-
-    private static ApplyBuffEvent EchoesApplied(int unitId, int timestamp) =>
-        Applied(unitId, timestamp, Spells.EchoesOfDivinity.FSLID);
-
-    private static RefreshBuffEvent EchoesRefreshed(int unitId, int timestamp) =>
-        Refreshed(unitId, timestamp, Spells.EchoesOfDivinity.FSLID);
-
-    private static RemoveBuffEvent EchoesRemoved(int unitId, int timestamp) =>
-        Removed(unitId, timestamp, Spells.EchoesOfDivinity.FSLID);
-
-    private static ApplyBuffEvent UchroniaApplied(int timestamp) =>
-        Applied(PlayerId, timestamp, Spells.Uchronia.FSLID);
-
-    private static RemoveBuffEvent UchroniaRemoved(int timestamp) =>
-        Removed(PlayerId, timestamp, Spells.Uchronia.FSLID);
-
-    private static ApplyBuffEvent Applied(int unitId, int timestamp, int abilityId) => new()
-    {
-        Timestamp = timestamp,
-        SourceId = PlayerId,
-        TargetId = unitId,
-        Ability = new Ability { Id = abilityId },
-    };
-
-    private static RefreshBuffEvent Refreshed(int unitId, int timestamp, int abilityId) => new()
-    {
-        Timestamp = timestamp,
-        SourceId = PlayerId,
-        TargetId = unitId,
-        Ability = new Ability { Id = abilityId },
-    };
-
-    private static RemoveBuffEvent Removed(int unitId, int timestamp, int abilityId) => new()
-    {
-        Timestamp = timestamp,
-        SourceId = PlayerId,
-        TargetId = unitId,
-        Ability = new Ability { Id = abilityId },
-    };
-
-    private static CombatantInfoEvent Combatant(int[] talents) => new()
-    {
-        SourceId = PlayerId,
-        Talents = [.. talents.Select(talent => new TalentInfo { Id = talent })],
-    };
-
-    private static Task<StaggerCleanseAnalyzer> Analyze(params Event[] events) => AnalyzeWith(Party, [], events);
-
-    private static async Task<StaggerCleanseAnalyzer> AnalyzeWith(List<ReportActor> actors, int[] talents, params Event[] events)
-    {
-        var services = new ServiceCollection();
-        services.AddLogging();
-        services.AddCoreAnalysisServices();
-        services.AddCoreAnalysis();
-        services.AddAeonaAnalysis();
-        using var provider = services.BuildServiceProvider();
-        using var scope = provider.CreateScope();
-
-        var parser = scope.ServiceProvider.GetRequiredService<AeonaCombatLogParser>();
-        parser.Actors = actors;
-        await parser.Analyze(
-            [Combatant(talents), .. events],
-            PlayerId,
-            new ReportDungeon(0, "", 1, null, 0, DungeonEndTime, null, null, null));
-
+        var parser = await AeonaLog.Analyze(BossPull(), [info, .. events]);
         return parser.StaggerCleanseAnalyzers.ShouldHaveSingleItem().Analyzer.ShouldBeOfType<StaggerCleanseAnalyzer>();
     }
 }

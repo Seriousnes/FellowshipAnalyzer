@@ -29,6 +29,12 @@
       "name": "Amend Fate",
       "icon": "T_Lisa_Stagger"
     },
+    "AuraOfDeferredFate": {
+      "kind": "effect",
+      "id": 2739,
+      "name": "Aura of Deferred Fate",
+      "icon": "T_Lisa_BeaconOfTime"
+    },
     "ChronaTap": {
       "kind": "effect",
       "id": 2588,
@@ -40,6 +46,12 @@
       "id": 2676,
       "name": "Continuum Shift",
       "icon": "Tex_SpellBook06_59"
+    },
+    "ConvergingTimelines": {
+      "kind": "effect",
+      "id": 3266,
+      "name": "Converging Timelines",
+      "icon": "T_Nhance_RPG_Shadow_40"
     },
     "EchoesOfDivinity": {
       "kind": "effect",
@@ -7291,6 +7303,312 @@
         "id": 608,
         "name": "Zenith Technique",
         "icon": "T_Nhance_RPG_Tech_27"
+      }
+    }
+  },
+  "legendaries": {
+    "aeona": {
+      "ChronoTrigger": {
+        "itemId": 5221,
+        "itemName": "Signet of the Chrono Trigger",
+        "powerId": 618,
+        "powerName": "Chrono Trigger",
+        "slot": "Ring",
+        "icon": "Tex_rings_07_b"
+      },
+      "LonesomeSong": {
+        "itemId": 5217,
+        "itemName": "Time-warped Drape of the Lone Diety",
+        "powerId": 619,
+        "powerName": "Lonesome Song",
+        "slot": "Back",
+        "icon": "Icon_Lisa_CloakLegendary01_Back_R0_T0-legendary"
+      },
+      "MassEntropy": {
+        "itemId": 5226,
+        "itemName": "Bands of the Withering Shores",
+        "powerId": 620,
+        "powerName": "Mass Entropy",
+        "slot": "Wrists",
+        "icon": "Tex_bracelets_cl_01_bg"
+      }
+    },
+    "ardeos": {
+      "DevouringFlame": {
+        "itemId": 5225,
+        "itemName": "Draconic Bracers of the Devouring Flame",
+        "powerId": 616,
+        "powerName": "Devouring Flame",
+        "slot": "Wrists",
+        "icon": "Tex_bracers_01_b"
+      },
+      "Explosivo": {
+        "itemId": 5222,
+        "itemName": "Ring of Boomtastic Explosions",
+        "powerId": 615,
+        "powerName": "Explosivo",
+        "slot": "Ring",
+        "icon": "Tex_rings_02_b1"
+      },
+      "FireToad": {
+        "itemId": 5216,
+        "itemName": "Exquisite Flaming Toad Cloak",
+        "powerId": 593,
+        "powerName": "Fire Toad",
+        "slot": "Back",
+        "icon": "Icon_Firemage_Cloak01_Legendary01_Back_R0_T0-legendary"
+      }
+    },
+    "elarion": {
+      "AstronomersHail": {
+        "itemId": 5224,
+        "itemName": "Master Astronomer\u0027s Bracers",
+        "powerId": 516,
+        "powerName": "Astronomer\u0027s Hail",
+        "slot": "Wrists",
+        "icon": "Tex_bracers_6_b"
+      },
+      "Shimmer": {
+        "itemId": 5218,
+        "itemName": "Shimmering Silver Cape",
+        "powerId": 429,
+        "powerName": "Shimmer",
+        "slot": "Back",
+        "icon": "Icon_Bowguy_Cloak01_Legendary01_Back_R0_T0-legendary"
+      },
+      "StarstrikersAscent": {
+        "itemId": 5223,
+        "itemName": "Signet of Starstriker\u0027s Ascent",
+        "powerId": 430,
+        "powerName": "Starstriker\u0027s Ascent",
+        "slot": "Ring",
+        "icon": "Tex_rings_07_b"
+      }
+    },
+    "gunde": {
+      "BleedingHearts": {
+        "itemId": 5220,
+        "itemName": "Band of The Bleeding Heart",
+        "powerId": 698,
+        "powerName": "Bleeding Hearts",
+        "slot": "Ring",
+        "icon": "Tex_rings_02_b"
+      },
+      "BloodyMess": {
+        "itemId": 5218,
+        "itemName": "Carver\u0027s Sinister Apron",
+        "powerId": 697,
+        "powerName": "Bloody Mess",
+        "slot": "Back",
+        "icon": "Icon_Gunde_LegendaryCloak01_Back_R0_T0-legendary"
+      }
+    },
+    "helena": {
+      "IronSentinel": {
+        "itemId": 5217,
+        "itemName": "Linked Heavy Metal Cloak",
+        "powerId": 625,
+        "powerName": "Iron Sentinel",
+        "slot": "Back",
+        "icon": "Icon_Warmaster_Cloak01_Legendary01_Back_R0_T0-legendary"
+      },
+      "RazorCrash": {
+        "itemId": 5221,
+        "itemName": "Masochistic Razor Loop",
+        "powerId": 389,
+        "powerName": "Razor Crash",
+        "slot": "Ring",
+        "icon": "Tex_rings_07_b"
+      },
+      "VanguardsAdvance": {
+        "itemId": 5226,
+        "itemName": "Bindings of the Blackened Vanguard",
+        "powerId": 391,
+        "powerName": "Vanguard\u0027s Advance",
+        "slot": "Wrists",
+        "icon": "Tex_bracelets_cl_01_bg"
+      }
+    },
+    "mara": {
+      "DrenchedInBlood": {
+        "itemId": 5223,
+        "itemName": "Stalker\u0027s Crimson Loop",
+        "powerId": 421,
+        "powerName": "Drenched in Blood",
+        "slot": "Ring",
+        "icon": "Tex_rings_07_b"
+      },
+      "FromTheShadows": {
+        "itemId": 5218,
+        "itemName": "Assassin\u0027s Shadow-Lined Cape",
+        "powerId": 585,
+        "powerName": "From the Shadows",
+        "slot": "Back",
+        "icon": "Icon_Mara_Cloak01_Legendary01_Back_R0_T0-legendary"
+      },
+      "VexirasVenom": {
+        "itemId": 5225,
+        "itemName": "Wristbands of Vexira\u0027s Prey",
+        "powerId": 420,
+        "powerName": "Vexira\u0027s Venom",
+        "slot": "Wrists",
+        "icon": "Tex_bracers_01_b"
+      }
+    },
+    "meiko": {
+      "EarthenSkin": {
+        "itemId": 5219,
+        "itemName": "Drape of the Earthen Spirits",
+        "powerId": 665,
+        "powerName": "Earthen Skin",
+        "slot": "Back",
+        "icon": "Icon_Meiko_Cloak01_Legendary01_Back_R0_T0-legendary"
+      },
+      "EverlastingSpirit": {
+        "itemId": 5224,
+        "itemName": "Bracers of Everlasting Spirit",
+        "powerId": 447,
+        "powerName": "Everlasting Spirit",
+        "slot": "Wrists",
+        "icon": "Tex_bracers_6_b"
+      },
+      "TectonicImpact": {
+        "itemId": 5220,
+        "itemName": "Ring of Tectonic Impact",
+        "powerId": 416,
+        "powerName": "Tectonic Impact",
+        "slot": "Ring",
+        "icon": "Tex_rings_02_b"
+      }
+    },
+    "rime": {
+      "FrostwyrmsSpite": {
+        "itemId": 5218,
+        "itemName": "Drakesblood Tapestry",
+        "powerId": 397,
+        "powerName": "Frostwyrm\u0027s Spite",
+        "slot": "Back",
+        "icon": "Icon_Rime_Cloak01_Legendary01_Back_R0_T0-legendary"
+      },
+      "SkandisDecree": {
+        "itemId": 5226,
+        "itemName": "Skandi\u0027s Bands of Endless Winter",
+        "powerId": 396,
+        "powerName": "Skandi\u0027s Decree",
+        "slot": "Wrists",
+        "icon": "Tex_bracelets_cl_01_bg"
+      },
+      "UndulatingSpirit": {
+        "itemId": 5220,
+        "itemName": "Eldrin Signet of Undulating Spirits",
+        "powerId": 398,
+        "powerName": "Undulating Spirit",
+        "slot": "Ring",
+        "icon": "Tex_rings_02_b"
+      }
+    },
+    "sylvie": {
+      "DryadsHaven": {
+        "itemId": 5224,
+        "itemName": "Bands of the First Dryad",
+        "powerId": 526,
+        "powerName": "Dryad\u0027s Haven",
+        "slot": "Wrists",
+        "icon": "Tex_bracers_6_b"
+      },
+      "UnrelentingThicket": {
+        "itemId": 5216,
+        "itemName": "The Mad Gardener\u0027s Shawl",
+        "powerId": 609,
+        "powerName": "Unrelenting Thicket",
+        "slot": "Back",
+        "icon": "Icon_Mosse_Cloak01_Legendary01_Back_R0_T0-legendary"
+      },
+      "UnyieldingBloom": {
+        "itemId": 5220,
+        "itemName": "Loop of Unyielding Bloom",
+        "powerId": 411,
+        "powerName": "Unyielding Bloom",
+        "slot": "Ring",
+        "icon": "Tex_rings_02_b"
+      }
+    },
+    "tariq": {
+      "ExecutionersGrin": {
+        "itemId": 5225,
+        "itemName": "Executioner\u0027s Unsanitary Bands",
+        "powerId": 423,
+        "powerName": "Executioner\u0027s Grin",
+        "slot": "Wrists",
+        "icon": "Tex_bracers_01_b"
+      },
+      "SlayersMosh": {
+        "itemId": 5218,
+        "itemName": "Drape of the Slayer King",
+        "powerId": 424,
+        "powerName": "Slayer\u0027s Mosh",
+        "slot": "Back",
+        "icon": "Icon_Ink_Cloak01_Legendary01_Back_R0_T0-legendary"
+      },
+      "ThunderingVortex": {
+        "itemId": 5221,
+        "itemName": "Bloodied Brass Loop",
+        "powerId": 86,
+        "powerName": "Thundering Vortex",
+        "slot": "Ring",
+        "icon": "Tex_rings_07_b"
+      }
+    },
+    "vigour": {
+      "HarmonizingRefractions": {
+        "itemId": 5223,
+        "itemName": "Ring of Harmonizing Refractions",
+        "powerId": 395,
+        "powerName": "Harmonizing Refractions",
+        "slot": "Ring",
+        "icon": "Tex_rings_07_b"
+      },
+      "LightsReverence": {
+        "itemId": 5217,
+        "itemName": "Dawnbreaker\u0027s Cloak of Reverence",
+        "powerId": 565,
+        "powerName": "Light\u0027s Reverence",
+        "slot": "Back",
+        "icon": "Icon_Vigor_Cloak01_Legendary01_Back_R0_T0-legendary"
+      },
+      "ResplendentDawn": {
+        "itemId": 5226,
+        "itemName": "Bracers of Resplendent Dawn",
+        "powerId": 394,
+        "powerName": "Resplendent Dawn",
+        "slot": "Wrists",
+        "icon": "Tex_bracelets_cl_01_bg"
+      }
+    },
+    "xavian": {
+      "FortressInTheSands": {
+        "itemId": 5224,
+        "itemName": "Sandworn Bands of the Fortress",
+        "powerId": 579,
+        "powerName": "Fortress in the Sands",
+        "slot": "Wrists",
+        "icon": "Tex_bracers_6_b"
+      },
+      "GrosslyIncandescent": {
+        "itemId": 5217,
+        "itemName": "Gilded Cloak of the Sunlit Kingdom",
+        "powerId": 606,
+        "powerName": "Grossly Incandescent",
+        "slot": "Back",
+        "icon": "Icon_Sune_LegCloak01_Back_R0_T0-legendary"
+      },
+      "SolarGlare": {
+        "itemId": 5221,
+        "itemName": "Runed Loop of the Horizon",
+        "powerId": 605,
+        "powerName": "Solar Glare",
+        "slot": "Ring",
+        "icon": "Tex_rings_07_b"
       }
     }
   },

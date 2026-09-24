@@ -12,6 +12,7 @@ using Shouldly;
 
 using Xunit;
 
+using AeonaLegendaries = FellowshipAnalyzer.Core.Common.Spells.AeonaLegendaries;
 using AeonaTalents = FellowshipAnalyzer.Core.Common.Spells.AeonaTalents;
 
 namespace FellowshipAnalyzer.Heroes.Aeona.Tests.Analysis;
@@ -313,6 +314,31 @@ public sealed class UnfoldingDoomAnalyzerTests
 
         analyzer.HasteningDoomTaken.ShouldBeFalse();
         analyzer.ActiveMs.ShouldBe(10_000);
+    }
+
+    [Fact]
+    public async Task AnActivationCast_IsNotCounted()
+    {
+        var activation = AeonaLog.Activation(1_000, Spells.UnfoldingDoom, BossId);
+        activation.SourceId = PlayerId;
+        var completion = AeonaLog.Completion(2_500, Spells.UnfoldingDoom, BossId);
+        completion.SourceId = PlayerId;
+
+        var analyzer = await Measure(activation, completion);
+
+        analyzer.Casts.ShouldBe(1);
+    }
+
+    [Fact]
+    public async Task WithChronoTrigger_AReapplicationDiscardsTheShorterRemainder()
+    {
+        var info = AeonaLog.Info([], AeonaLegendaries.ChronoTrigger);
+        info.SourceId = PlayerId;
+
+        var analyzer = await Measure(info, Apply(BossId, 1_000), Refresh(BossId, 11_000));
+
+        analyzer.DebuffDurationMs.ShouldBe(15_000);
+        analyzer.Reapplications.ShouldHaveSingleItem().OverlappedMs.ShouldBe(5_000);
     }
 
     [Fact]

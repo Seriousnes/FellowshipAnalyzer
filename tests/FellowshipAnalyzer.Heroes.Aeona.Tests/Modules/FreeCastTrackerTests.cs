@@ -1,196 +1,131 @@
-using FellowshipAnalyzer.Core;
-using FellowshipAnalyzer.Core.Analysis;
+using FellowshipAnalyzer.Core.Common.Spells;
 using FellowshipAnalyzer.Core.Common.Spells.Aeona;
-using FellowshipAnalyzer.Core.Events;
-using FellowshipAnalyzer.Core.FellowshipLogs;
-using FellowshipAnalyzer.Heroes.Aeona.Analysis;
 using FellowshipAnalyzer.Heroes.Aeona.Modules;
-
-using Microsoft.Extensions.DependencyInjection;
 
 using Shouldly;
 
 using Xunit;
 
-using AeonaTalents = FellowshipAnalyzer.Core.Common.Spells.AeonaTalents;
+using static FellowshipAnalyzer.Heroes.Aeona.Tests.AeonaLog;
+
+using Spells = FellowshipAnalyzer.Core.Common.Spells.Aeona.Spells;
 
 namespace FellowshipAnalyzer.Heroes.Aeona.Tests.Modules;
 
-/// <summary>
-/// Tests for <see cref="FreeCastTracker"/>: which window covered each free cast, and how many chances to
-/// spend one a stretch of the report offered.
-/// </summary>
 public sealed class FreeCastTrackerTests
 {
-    private const int PlayerId = 7;
-    private const int EnemyId = 40;
-    private const int DungeonEndTime = 30_000;
-
-    private static readonly ReportDungeon Dungeon =
-        new(Id: 0, Name: "Boss", EncounterId: 1, Kill: true,
-            StartTime: 0, EndTime: DungeonEndTime, Difficulty: null,
-            FriendlyPlayers: null, CompletionPercentage: null);
+    private static readonly int[] Uchronia = [AeonaTalents.Uchronia];
 
     [Fact]
-    public async Task WithoutAnyTalent_TheModuleStillTracks()
+    public async Task TheCastAtAUchroniaRemoval_IsFree()
     {
-        var tracker = await Track(FreeCast(Spells.Oblivion.FSLID, 2_000));
+        var parser = await Analyze(BossPull(),
+            Info(Uchronia),
+            ApplyBuff(1_000, Spells.Uchronia),
+            ApplyBuffStack(2_000, Spells.Uchronia, 2),
+            ApplyBuffStack(3_000, Spells.Uchronia, 3),
+            Activation(3_500, Spells.Oblivion),
+            RemoveBuff(3_500, Spells.Uchronia));
 
-        tracker.FreeCasts.ShouldHaveSingleItem().Source.ShouldBe(FreeCastSource.Other);
-        tracker.HasFreeCasts.ShouldBeTrue();
+        var tracker = parser.FreeCastTracker.ShouldNotBeNull();
+        var free = tracker.FreeCasts.ShouldHaveSingleItem();
+        free.Timestamp.ShouldBe(3_500);
+        free.AbilityId.ShouldBe((int)Spells.Oblivion.FSLID);
+        free.Source.ShouldBe(FreeCastSource.Uchronia);
+        tracker.IsFree(3_500, Spells.Oblivion.FSLID).ShouldBeTrue();
+        tracker.FreeCastAt(3_520, Spells.Oblivion.FSLID).ShouldNotBeNull();
     }
 
     [Fact]
-    public async Task AFreeCastInsideAUchroniaWindow_IsAttributedToUchronia()
+    public async Task ARemovalLoggedBeforeItsCast_StillPairsWithThatCast()
     {
-        var tracker = await Track(
-            Talented(AeonaTalents.Uchronia),
-            UchroniaApply(1_000),
-            FreeCast(Spells.Oblivion.FSLID, 2_000),
-            UchroniaRemove(2_000));
+        var parser = await Analyze(BossPull(),
+            Info(Uchronia),
+            ApplyBuff(1_000, Spells.Uchronia),
+            RemoveBuff(3_500, Spells.Uchronia),
+            Activation(3_500, Spells.RestoreContinuity, TankId));
 
-        tracker.FreeCasts.ShouldHaveSingleItem().Source.ShouldBe(FreeCastSource.Uchronia);
+        var free = parser.FreeCastTracker.ShouldNotBeNull().FreeCasts.ShouldHaveSingleItem();
+        free.AbilityId.ShouldBe((int)Spells.RestoreContinuity.FSLID);
     }
 
     [Fact]
-    public async Task AFreeCastInsideAnEpochBreakWindow_IsAttributedToEpochBreak()
+    public async Task ACastOutsideTheTolerance_IsNotFree()
     {
-        var tracker = await Track(
-            EpochBreakApply(1_000),
-            FreeCast(Spells.AmendFate.FSLID, 2_000),
-            EpochBreakRemove(5_000));
+        var parser = await Analyze(BossPull(),
+            Info(Uchronia),
+            ApplyBuff(1_000, Spells.Uchronia),
+            Activation(3_000, Spells.Oblivion),
+            RemoveBuff(3_500, Spells.Uchronia),
+            Activation(4_000, Spells.Oblivion));
 
-        tracker.FreeCasts.ShouldHaveSingleItem().Source.ShouldBe(FreeCastSource.EpochBreak);
-        tracker.EpochBreakActive(1_000).ShouldBeTrue();
-        tracker.EpochBreakActive(5_000).ShouldBeTrue();
-        tracker.EpochBreakActive(5_001).ShouldBeFalse();
+        parser.FreeCastTracker.ShouldNotBeNull().FreeCasts.ShouldBeEmpty();
     }
 
     [Fact]
-    public async Task EpochBreakTakesPrecedenceOverAnOverlappingUchroniaWindow()
+    public async Task ACastInsideAnEpochBreakWindow_IsFreeFromEpochBreak()
     {
-        var tracker = await Track(
-            Talented(AeonaTalents.Uchronia),
-            EpochBreakApply(1_000),
-            UchroniaApply(1_500),
-            FreeCast(Spells.Oblivion.FSLID, 2_000),
-            UchroniaRemove(2_000),
-            EpochBreakRemove(5_000));
+        var parser = await Analyze(BossPull(),
+            Info([]),
+            ApplyBuff(1_000, Spells.EpochBreakSelfBuff),
+            Activation(2_000, Spells.AmendFate, TankId),
+            RemoveBuff(5_000, Spells.EpochBreakSelfBuff),
+            Activation(6_000, Spells.AmendFate, TankId));
 
-        tracker.FreeCasts.ShouldHaveSingleItem().Source.ShouldBe(FreeCastSource.EpochBreak);
+        var tracker = parser.FreeCastTracker.ShouldNotBeNull();
+        var free = tracker.FreeCasts.ShouldHaveSingleItem();
+        free.Timestamp.ShouldBe(2_000);
+        free.Source.ShouldBe(FreeCastSource.EpochBreak);
     }
 
     [Fact]
-    public async Task Opportunities_CountBothWindowsThatOpenedInTheRange()
+    public async Task AUchroniaRemovalLoggedBeforeAnEpochBreakCast_IsSpentByThatCast()
     {
-        var tracker = await Track(
-            Talented(AeonaTalents.Uchronia),
-            UchroniaApply(1_000),
-            UchroniaRemove(2_000),
-            EpochBreakApply(3_000),
-            EpochBreakRemove(6_000),
-            UchroniaApply(9_000),
-            UchroniaRemove(9_500));
+        var parser = await Analyze(BossPull(),
+            Info(Uchronia),
+            ApplyBuff(1_000, Spells.EpochBreakSelfBuff),
+            ApplyBuff(1_000, Spells.Uchronia),
+            RemoveBuff(3_000, Spells.Uchronia),
+            Activation(3_000, Spells.Oblivion),
+            RemoveBuff(3_010, Spells.EpochBreakSelfBuff),
+            Activation(3_040, Spells.AmendFate, TankId));
 
-        tracker.OpportunitiesBetween(0, 7_000).ShouldBe(2);
+        var free = parser.FreeCastTracker.ShouldNotBeNull().FreeCasts.ShouldHaveSingleItem();
+        free.AbilityId.ShouldBe((int)Spells.Oblivion.FSLID);
+        free.Source.ShouldBe(FreeCastSource.EpochBreak);
+    }
+
+    [Fact]
+    public async Task AUchroniaRemovalLoggedAfterAnEpochBreakCast_IsSpentByThatCast()
+    {
+        var parser = await Analyze(BossPull(),
+            Info(Uchronia),
+            ApplyBuff(1_000, Spells.EpochBreakSelfBuff),
+            ApplyBuff(1_000, Spells.Uchronia),
+            Activation(3_000, Spells.Oblivion),
+            RemoveBuff(3_005, Spells.Uchronia),
+            RemoveBuff(3_010, Spells.EpochBreakSelfBuff),
+            Activation(3_040, Spells.AmendFate, TankId));
+
+        var free = parser.FreeCastTracker.ShouldNotBeNull().FreeCasts.ShouldHaveSingleItem();
+        free.AbilityId.ShouldBe((int)Spells.Oblivion.FSLID);
+        free.Source.ShouldBe(FreeCastSource.EpochBreak);
+    }
+
+    [Fact]
+    public async Task Opportunities_CountEveryUchroniaAndEpochBreakWindowOpenedInTheRange()
+    {
+        var parser = await Analyze(BossPull(),
+            Info(Uchronia),
+            ApplyBuff(1_000, Spells.Uchronia),
+            RemoveBuff(2_000, Spells.Uchronia),
+            ApplyBuff(4_000, Spells.EpochBreakSelfBuff),
+            RemoveBuff(8_000, Spells.EpochBreakSelfBuff),
+            ApplyBuff(9_000, Spells.Uchronia),
+            RemoveBuff(9_500, Spells.Uchronia));
+
+        var tracker = parser.FreeCastTracker.ShouldNotBeNull();
         tracker.OpportunitiesBetween(0, 10_000).ShouldBe(3);
-        tracker.OpportunitiesBetween(4_000, 10_000).ShouldBe(1);
-    }
-
-    [Fact]
-    public async Task Opportunities_CountEpochBreakAloneWithoutTheUchroniaTalent()
-    {
-        var tracker = await Track(
-            EpochBreakApply(3_000),
-            EpochBreakRemove(6_000));
-
-        tracker.OpportunitiesBetween(0, 10_000).ShouldBe(1);
-    }
-
-    [Fact]
-    public async Task FreeCastAt_MatchesTheAbilityWithinTolerance()
-    {
-        var tracker = await Track(FreeCast(Spells.Oblivion.FSLID, 2_000));
-
-        tracker.FreeCastAt(2_000, Spells.Oblivion.FSLID).ShouldNotBeNull();
-        tracker.FreeCastAt(2_000 + FreeCastTracker.CastMatchToleranceMs, Spells.Oblivion.FSLID).ShouldNotBeNull();
-        tracker.FreeCastAt(2_000 + FreeCastTracker.CastMatchToleranceMs + 1, Spells.Oblivion.FSLID).ShouldBeNull();
-        tracker.FreeCastAt(2_000, Spells.AmendFate.FSLID).ShouldBeNull();
-    }
-
-    [Fact]
-    public async Task FreeCastByAnotherPlayer_IsNotRecorded()
-    {
-        var otherPlayerFreeCast = FreeCast(Spells.Oblivion.FSLID, 2_000);
-        otherPlayerFreeCast.SourceId = PlayerId + 1;
-
-        var tracker = await Track(otherPlayerFreeCast);
-
-        tracker.FreeCasts.ShouldBeEmpty();
-    }
-
-    [Fact]
-    public async Task AnEpochBreakWindowStillOpenAtTheEnd_ClosesAtTheDungeonEnd()
-    {
-        var tracker = await Track(EpochBreakApply(1_000));
-
-        var window = tracker.EpochBreakWindows.ShouldHaveSingleItem();
-        window.Start.ShouldBe(1_000);
-        window.End.ShouldBe(DungeonEndTime);
-    }
-
-    private static ApplyBuffEvent UchroniaApply(int timestamp) => Apply(timestamp, Spells.Uchronia.FSLID);
-
-    private static RemoveBuffEvent UchroniaRemove(int timestamp) => Remove(timestamp, Spells.Uchronia.FSLID);
-
-    private static ApplyBuffEvent EpochBreakApply(int timestamp) => Apply(timestamp, Spells.EpochBreakSelfBuff.FSLID);
-
-    private static RemoveBuffEvent EpochBreakRemove(int timestamp) => Remove(timestamp, Spells.EpochBreakSelfBuff.FSLID);
-
-    private static ApplyBuffEvent Apply(int timestamp, int abilityId) => new()
-    {
-        Timestamp = timestamp,
-        SourceId = PlayerId,
-        TargetId = PlayerId,
-        Ability = new Ability { Id = abilityId },
-    };
-
-    private static RemoveBuffEvent Remove(int timestamp, int abilityId) => new()
-    {
-        Timestamp = timestamp,
-        SourceId = PlayerId,
-        TargetId = PlayerId,
-        Ability = new Ability { Id = abilityId },
-    };
-
-    private static FreeCastEvent FreeCast(int abilityId, int timestamp) => new()
-    {
-        Timestamp = timestamp,
-        SourceId = PlayerId,
-        TargetId = EnemyId,
-        AbilityGameId = abilityId,
-        Ability = new Ability { Id = abilityId },
-    };
-
-    private static CombatantInfoEvent Talented(int talentId) => new()
-    {
-        SourceId = PlayerId,
-        Talents = [new TalentInfo { Id = talentId }],
-    };
-
-    private static async Task<FreeCastTracker> Track(params Event[] events)
-    {
-        var services = new ServiceCollection();
-        services.AddLogging();
-        services.AddCoreAnalysisServices();
-        services.AddCoreAnalysis();
-        services.AddAeonaAnalysis();
-        using var provider = services.BuildServiceProvider();
-        using var scope = provider.CreateScope();
-
-        var parser = scope.ServiceProvider.GetRequiredService<AeonaCombatLogParser>();
-        await parser.Analyze([.. events], PlayerId, Dungeon);
-
-        return parser.FreeCastTracker.ShouldNotBeNull();
+        tracker.OpportunitiesBetween(3_000, 10_000).ShouldBe(2);
     }
 }
