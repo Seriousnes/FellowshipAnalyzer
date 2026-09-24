@@ -75,7 +75,7 @@
             stats.Add(new OverviewStat(
                 $"{flagged} ({FormatShare(flagged, rated)})",
                 "Flagged Casts",
-                $"Casts while the target held less than the Stagger removed, or with effective healing below an Oblivion, out of {rated} rated casts. The count includes a cast only if the tank held less than 40% of its maximum health in Stagger.",
+                $"Casts while the target held less than the Stagger removed, or with effective healing below an Oblivion, out of {rated} casts. The count includes a cast only if the tank held less than 40% of its maximum health in Stagger.",
                 FlagTier(flagged, rated)));
             stats.Add(new OverviewStat(
                 $"{analyzers.Sum(analyzer => analyzer.LowStaggerCasts)}",
@@ -94,7 +94,7 @@
             stats.Add(new OverviewStat(
                 $"{waited} of {onCooldown}",
                 "Could Have Waited for Entropy's Claim",
-                "Casts while Entropy's Claim was on cooldown and the tank's Stagger at the next charge was less than 55% of its maximum health.",
+                "Casts where the tank's Stagger at the next charge was below 55% of its maximum health, out of every cast with Entropy's Claim on cooldown. The count includes a cast only if the tank held less than 40% of its maximum health in Stagger.",
                 onCooldown > 0 ? WaitTier(waited, onCooldown) : null));
         }
 
@@ -180,7 +180,8 @@
         {
             stats.Add(new PerCastStat(
                 $"{cleansed:N0}",
-                "Stagger Cleansed"));
+                "Stagger Cleansed",
+                "This total includes every ally that this cast healed, not only the target."));
         }
 
         if (cast.EntropyClaimReadyInMs > 0)
@@ -209,7 +210,7 @@
 
         if (cast.AppliedEchoes)
         {
-            stats.Add(new PerCastStat("Applied", "Echoes of Divinity", "This cast applied Echoes of Divinity to the tank."));
+            stats.Add(new PerCastStat("Applied", "Echoes of Divinity"));
         }
 
         if (cast.EchoesOverwrittenMs is { } overwritten)

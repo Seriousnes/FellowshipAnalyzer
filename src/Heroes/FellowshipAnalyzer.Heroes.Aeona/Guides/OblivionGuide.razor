@@ -71,14 +71,14 @@
             stats.Add(new OverviewStat(
                 FormatAmount(analyzers.Sum(analyzer => analyzer.EffectiveHealing) / (double)casts),
                 "Effective Healing per Cast",
-                "Average effective healing of one Oblivion cast, for all allies together."));
+                "Average effective healing per Oblivion cast, for all allies together."));
 
             if (OblivionsEmbrace)
             {
                 stats.Add(new OverviewStat(
                     FormatAmount(analyzers.Sum(analyzer => analyzer.ShieldApplied ?? 0) / (double)casts),
                     "Shielding per Cast",
-                    "Average shielding of one Oblivion cast, for all allies together."));
+                    "Average shielding per Oblivion cast, for all allies together."));
             }
 
             stats.Add(new OverviewStat(
@@ -118,7 +118,7 @@
             new(
                 FormatAmount(analyzer.EffectiveHealingPerCast),
                 "Effective Healing per Cast",
-                "Average effective healing of one Oblivion cast in this pull, for all allies together."),
+                "Average effective healing per Oblivion cast in this pull, for all allies together."),
         };
 
         if (analyzer.ShieldAppliedPerCast is { } shield)
@@ -126,7 +126,7 @@
             stats.Add(new PerCastStat(
                 FormatAmount(shield),
                 "Shielding per Cast",
-                "Average shielding of one Oblivion cast in this pull, for all allies together."));
+                "Average shielding per Oblivion cast in this pull, for all allies together."));
         }
 
         stats.Add(new PerCastStat(
