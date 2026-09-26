@@ -8,6 +8,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <FellowshipApiHostKind>Functions</FellowshipApiHostKind>
     <FunctionsEnableWorkerIndexing>false</FunctionsEnableWorkerIndexing>
+    <FunctionsEnableExecutorSourceGen>false</FunctionsEnableExecutorSourceGen>
   </PropertyGroup>
 
   <ItemGroup>
