@@ -13,6 +13,6 @@ public static class TooltipBody
 {
     /// <summary><paramref name="request"/> as the codex reads it back.</summary>
     public static string Write<TRequest>(TRequest request)
-        where TRequest : class, ITooltipRequest =>
+        where TRequest : class =>
         JsonSerializer.Serialize(request, CodexJson.Options);
 }
