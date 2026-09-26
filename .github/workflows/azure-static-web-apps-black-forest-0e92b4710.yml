@@ -64,6 +64,17 @@ jobs:
             -c Release \
             -o publish/api
 
+      - name: Install Azure Functions Core Tools
+        run: bash .github/scripts/install-functions-core-tools.sh
+
+      - name: Test Functions API under the Functions host
+        env:
+          FELLOWSHIP_API_PUBLISH_DIR: ${{ github.workspace }}/publish/api
+        run: >-
+          dotnet test tests/FellowshipAnalyzer.Api.Tests/FellowshipAnalyzer.Api.Tests.csproj
+          --configuration Release
+          -p:RunAOTCompilation=false
+
       - name: Install OIDC Client from Core Package
         run: npm install @actions/core@1.6.0 @actions/http-client
 
