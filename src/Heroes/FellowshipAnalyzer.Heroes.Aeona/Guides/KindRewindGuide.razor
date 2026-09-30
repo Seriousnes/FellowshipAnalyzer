@@ -1,0 +1,80 @@
+@inherits GuideComponent<AeonaCombatLogParser>
+
+<GuideSection Title="Kind Rewind">
+    <LeftPanel>
+        <p>
+            Cast <strong><SpellLink Spell="Spells.TimeShard" /></strong> toward an enemy with
+            <SpellLink Spell="Spells.EchoesOfRuin" /> active. Each of these casts reduces the cooldown of
+            <SpellLink Spell="Spells.TemporalBarrage" />.
+        </p>
+    </LeftPanel>
+    <RightPanel>
+        <CastOverview Title="Kind Rewind Overview" Stats="@BuildOverviewStats()" />
+        <CastDetail Title="Time Shards by Pull"
+                    Description="Each row is one pull."
+                    Casts="@BuildPullRows()" />
+    </RightPanel>
+</GuideSection>
+
+@code {
+    protected override bool IsActive() => Analyzers.Any(analyzer => analyzer.CastCount > 0);
+
+    private List<KindRewindAnalyzer> Analyzers =>
+        [.. Parser.KindRewindAnalyzers.Select(entry => entry.Analyzer).OfType<KindRewindAnalyzer>()];
+
+    private IEnumerable<OverviewStat> BuildOverviewStats()
+    {
+        var analyzers = Analyzers;
+        var casts = analyzers.Sum(analyzer => analyzer.CastCount);
+        var missed = analyzers.Sum(analyzer => analyzer.CastsMissed);
+
+        return
+        [
+            new OverviewStat(
+                $"{casts - missed} of {casts}",
+                "Time Shards with Echoes of Ruin",
+                "Time Shards cast toward an enemy with Echoes of Ruin active, out of every Time Shard cast.",
+                casts > 0 ? MissTier(missed, casts) : null),
+            new OverviewStat(
+                FormatSeconds(analyzers.Sum(analyzer => analyzer.CooldownReducedMs)),
+                "Temporal Barrage Cooldown Reduced"),
+            new OverviewStat(
+                FormatSeconds(analyzers.Sum(analyzer => analyzer.CooldownReductionWastedMs)),
+                "Reduction While Available",
+                "Reduction that your Time Shards granted while Temporal Barrage was available, or beyond its remaining cooldown."),
+        ];
+    }
+
+    private IEnumerable<PerCastData> BuildPullRows() =>
+        Parser.KindRewindAnalyzers.ToPullRows(Parser, (analyzer, pull) => BuildPullRow((KindRewindAnalyzer)analyzer));
+
+    private PerCastRow BuildPullRow(KindRewindAnalyzer analyzer)
+    {
+        var performance = analyzer.CastCount > 0 ? MissTier(analyzer.CastsMissed, analyzer.CastCount) : (QualitativePerformance?)null;
+
+        return new PerCastRow
+        {
+            Performance = performance,
+            Stats =
+            [
+                new PerCastStat(
+                    $"{analyzer.CastsWithEchoesOfRuin} of {analyzer.CastCount}",
+                    "With Echoes of Ruin",
+                    "Time Shards cast toward an enemy with Echoes of Ruin active, out of every Time Shard cast in this pull.",
+                    performance),
+                new PerCastStat(
+                    FormatSeconds(analyzer.CooldownReducedMs),
+                    "Cooldown Reduced"),
+                new PerCastStat(
+                    FormatSeconds(analyzer.CooldownReductionWastedMs),
+                    "Reduction While Available",
+                    "Reduction that your Time Shards granted in this pull while Temporal Barrage was available, or beyond its remaining cooldown."),
+            ],
+        };
+    }
+
+    private static QualitativePerformance MissTier(int missed, int casts) =>
+        PerformanceTiers.FromThresholds(1 - (double)missed / casts, 1.0, 0.9, 0.75);
+
+    private static string FormatSeconds(long milliseconds) => $"{milliseconds / 1000d:0.#}s";
+}

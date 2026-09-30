@@ -8,13 +8,19 @@ using SpellKind = FellowshipAnalyzer.Core.Common.Spells.SpellKind;
 
 namespace FellowshipAnalyzer.Heroes.Aeona.Modules;
 
-/// <summary>A unit's Stagger pool at one instant, from the <see cref="ActorResources"/> block on a log event.</summary>
+/// <summary>A unit's Stagger pool at one instant.</summary>
 /// <param name="Timestamp">The instant.</param>
-/// <param name="Amount">The Stagger pending on the unit, in hit points. <see cref="Analysis.Normalizers.ResourceNormalizer"/> has already divided the raw log value by 100.</param>
-/// <param name="Max">The pool's cap as the log reports it. Fellowship sends the no-maximum sentinel for Stagger, which normalization leaves as <c>-1</c>, so the pool is uncapped and <paramref name="Amount"/> is an absolute figure rather than a percentage.</param>
+/// <param name="Amount">The Stagger pending on the unit, in hit points.</param>
+/// <param name="Max">The pool's cap, <c>-1</c> for Stagger, so <paramref name="Amount"/> is an absolute figure rather than a percentage.</param>
 /// <param name="HitPoints">The unit's current hit points at the same instant.</param>
 /// <param name="MaxHitPoints">The unit's maximum hit points at the same instant.</param>
 public sealed record StaggerSnapshot(int Timestamp, int Amount, int Max, long HitPoints, long MaxHitPoints);
+
+/// <summary>One staggered hit on a unit: the Stagger the hit added, in hit points.</summary>
+/// <param name="Timestamp">When the hit was absorbed into the pool.</param>
+/// <param name="Amount">The Stagger added, in hit points.</param>
+/// <param name="AttackerId">The enemy whose hit it was.</param>
+public sealed record StaggerIntake(int Timestamp, long Amount, int? AttackerId);
 
 /// <summary>
 /// One Amend Fate or Restore Continuity cast by the player, with the targets its heals reached.
@@ -119,18 +125,20 @@ public sealed partial class StaggerTracker : Analyzer
     private readonly List<CleanseCast> _cleanseCasts = [];
     private readonly Dictionary<int, CleanseCast> _latestCleanseCastByAbility = [];
     private readonly Dictionary<int, List<int>> _deaths = [];
+    private readonly Dictionary<int, List<StaggerIntake>> _intake = [];
 
     /// <summary>Every unit with a Stagger pool, in the order each was first seen.</summary>
     public IReadOnlyList<int> TrackedUnitIds => _trackedUnitIds;
 
     /// <summary>
-    /// The party's tank actor ids, resolved from the report's actor list by parsing each actor's hero
-    /// and keeping those whose <see cref="HeroRole"/> is <see cref="HeroRole.Tank"/>. Empty when the
-    /// report has no actor list.
+    /// The party's tank actor ids: the dungeon's friendly players whose hero's <see cref="HeroRole"/> is
+    /// <see cref="HeroRole.Tank"/>, or every such actor in the report when the dungeon names no party.
+    /// Empty when the report has no actor list.
     /// </summary>
     public IReadOnlyList<int> TankIds => field ??=
     [
         .. Owner.Actors
+            .Where(actor => Owner.Dungeon.FriendlyPlayers is not { Count: > 0 } party || party.Contains(actor.Id))
             .Where(actor => Hero.TryParse(actor.SubType, out var hero) && hero.Role == HeroRole.Tank)
             .Select(actor => actor.Id),
     ];
@@ -160,6 +168,41 @@ public sealed partial class StaggerTracker : Analyzer
     /// <param name="unitId">The unit to read.</param>
     public IReadOnlyList<int> DrainTicksFor(int unitId) =>
         _drainTicks.TryGetValue(unitId, out var ticks) ? ticks : [];
+
+    /// <summary>Every staggered hit on <paramref name="unitId"/>, in chronological order.</summary>
+    /// <param name="unitId">The unit to read.</param>
+    public IReadOnlyList<StaggerIntake> IntakeFor(int unitId) =>
+        _intake.TryGetValue(unitId, out var intake) ? intake : [];
+
+    /// <summary>
+    /// The Stagger added to <paramref name="unitId"/> between <paramref name="start"/> and
+    /// <paramref name="end"/>, both bounds inclusive, in hit points.
+    /// </summary>
+    /// <param name="unitId">The unit to read.</param>
+    /// <param name="start">The first instant to include.</param>
+    /// <param name="end">The last instant to include.</param>
+    public long IntakeBetween(int unitId, int start, int end)
+    {
+        long total = 0;
+        foreach (var hit in IntakeFor(unitId))
+        {
+            if (hit.Timestamp < start) continue;
+            if (hit.Timestamp > end) break;
+            total += hit.Amount;
+        }
+
+        return total;
+    }
+
+    /// <summary>
+    /// The Stagger added to <paramref name="unitId"/> per second over the <paramref name="lookbackMs"/>
+    /// ending at <paramref name="at"/>.
+    /// </summary>
+    /// <param name="unitId">The unit to read.</param>
+    /// <param name="at">The end of the span.</param>
+    /// <param name="lookbackMs">The span's length.</param>
+    public double IntakePerSecond(int unitId, int at, int lookbackMs) =>
+        lookbackMs <= 0 ? 0 : IntakeBetween(unitId, at - lookbackMs, at) * 1000d / lookbackMs;
 
     /// <summary>
     /// <paramref name="unitId"/>'s Stagger pool at the last entry strictly before
@@ -427,6 +470,15 @@ public sealed partial class StaggerTracker : Analyzer
             _drainTicks[e.TargetId] = ticks = [];
 
         ticks.Add(e.Timestamp);
+    }
+
+    [On<AbsorbedEvent>(By = Actor.Player, Spell = nameof(Spells.AuraOfDeferredFate))]
+    private void OnStaggered(AbsorbedEvent e)
+    {
+        if (!_intake.TryGetValue(e.TargetId, out var intake))
+            _intake[e.TargetId] = intake = [];
+
+        intake.Add(new StaggerIntake(e.Timestamp, e.Amount, e.AttackerId));
     }
 
     [On<CastEvent>(By = Actor.Player, Spells = [nameof(Spells.AmendFate), nameof(Spells.RestoreContinuity)])]

@@ -1,0 +1,180 @@
+@inherits GuideComponent<AeonaCombatLogParser>
+
+<GuideSection Title="Continuum Shift">
+    <LeftPanel>
+        <p>
+            Spend every <strong><SpellLink Spell="Talents.ContinuumShift" /></strong> on <SpellLink Spell="Spells.TimeShard" />.
+        </p>
+        <p>
+            Spend it on <SpellLink Spell="Spells.EchoesOfRuin" /> only if the tank will die before the Time Shard
+            cast completes.
+        </p>
+        @if (EdgeOfRuinTaken)
+        {
+            <p>
+                With <SpellLink Spell="Talents.EdgeOfRuin" />, also spend it on Echoes of Ruin if you will cast
+                Fleeting Hour before that Echoes of Ruin expires.
+            </p>
+        }
+        <p>
+            Never spend it on <SpellLink Spell="Spells.EntropyClaim" />.
+        </p>
+        <p>
+            Start the enhanced Time Shard below half of your maximum Chrona. This leaves space for the Chrona that
+            it generates.
+        </p>
+    </LeftPanel>
+    <RightPanel>
+        <CastOverview Title="Continuum Shift Overview" Stats="@BuildOverviewStats()" />
+        <CastDetail Title="Continuum Shifts by Pull"
+                    Description="Each row shows one Continuum Shift and the cast that spent it."
+                    Casts="@BuildWindowRows()" />
+    </RightPanel>
+</GuideSection>
+
+@code {
+    protected override bool IsActive() => Analyzers.Any(analyzer => analyzer.Procs > 0);
+
+    private List<ContinuumShiftAnalyzer> Analyzers =>
+        [.. Parser.ContinuumShiftAnalyzers.Select(entry => entry.Analyzer).OfType<ContinuumShiftAnalyzer>()];
+
+    private bool EdgeOfRuinTaken => Analyzers.Any(analyzer => analyzer.EdgeOfRuinTaken);
+
+    private IEnumerable<OverviewStat> BuildOverviewStats()
+    {
+        var analyzers = Analyzers;
+        var closed = analyzers.Sum(analyzer => analyzer.ClosedWindows);
+        var timeShard = analyzers.Sum(analyzer => analyzer.SpentOnTimeShard);
+        var justified = analyzers.Sum(analyzer => analyzer.JustifiedSpends);
+        var echoes = analyzers.Sum(analyzer => analyzer.SpentOnEchoesOfRuin);
+        var stats = new List<OverviewStat>
+        {
+            new(
+                $"{timeShard} of {closed}",
+                "Spent on Time Shard",
+                "Continuum Shifts spent on Time Shard, out of every Continuum Shift spent or lost.",
+                closed > 0 ? SpendTier(justified, closed) : null),
+            new(
+                $"{echoes}",
+                "Spent on Echoes of Ruin",
+                $"Continuum Shifts spent on Echoes of Ruin, {justified - timeShard} of them with the tank in danger{(EdgeOfRuinTaken ? " or Fleeting Hour cast before Echoes of Ruin expired" : "")}."),
+            new(
+                $"{analyzers.Sum(analyzer => analyzer.SpentOnEntropyClaim)}",
+                "Spent on Entropy's Claim"),
+            new(
+                $"{analyzers.Sum(analyzer => analyzer.Lost)}",
+                "Lost",
+                "Continuum Shifts ended unspent."),
+        };
+
+        if (timeShard > 0)
+        {
+            stats.Add(new OverviewStat(
+                FormatAmount(analyzers.Sum(analyzer => analyzer.TimeShardDamage) / (double)timeShard),
+                "Time Shard Damage per Cast",
+                "Average damage per enhanced Time Shard."));
+            stats.Add(new OverviewStat(
+                FormatAmount(analyzers.Sum(analyzer => analyzer.TimeShardEffectiveHealing) / (double)timeShard),
+                "Time Shard Effective Healing per Cast",
+                $"Average effective healing per enhanced Time Shard, against {analyzers.Sum(analyzer => analyzer.TimeShardOverheal):N0} overheal."));
+            stats.Add(new OverviewStat(
+                $"{analyzers.Sum(analyzer => analyzer.ChronaOvercapped):N0}",
+                "Chrona Overcapped",
+                "Chrona generated above your maximum by enhanced Time Shards."));
+        }
+
+        stats.Add(new OverviewStat(
+            $"{analyzers.Sum(analyzer => analyzer.UnfoldingDoomCasts)}",
+            "Unfolding Doom Casts"));
+
+        return stats;
+    }
+
+    private IEnumerable<PerCastData> BuildWindowRows() =>
+        Parser.ContinuumShiftAnalyzers.ToItemRows(
+            Parser,
+            analyzer => ((ContinuumShiftAnalyzer)analyzer).Windows,
+            (window, pull) => BuildRow(window));
+
+    private PerCastRow BuildRow(ContinuumShiftWindow window)
+    {
+        var performance = window.Spend switch
+        {
+            ContinuumShiftSpend.TimeShard => QualitativePerformance.Perfect,
+            ContinuumShiftSpend.EchoesOfRuin => window.Justified ? QualitativePerformance.Good : QualitativePerformance.Ok,
+            ContinuumShiftSpend.EntropyClaim => QualitativePerformance.Fail,
+            ContinuumShiftSpend.Lost => QualitativePerformance.Fail,
+            _ => (QualitativePerformance?)null,
+        };
+
+        var stats = new List<PerCastStat>
+        {
+            new(SpendLabel(window.Spend), "Spent On", null, performance),
+        };
+
+        switch (window.Spend)
+        {
+            case ContinuumShiftSpend.TimeShard:
+                stats.Add(new PerCastStat(FormatAmount(window.Damage), "Damage"));
+                stats.Add(new PerCastStat(
+                    $"{window.EffectiveHealing:N0}",
+                    "Effective Healing",
+                    $"Effective healing of this Time Shard, against {window.Overheal:N0} overheal."));
+                if (window.ChronaOvercapped > 0)
+                {
+                    stats.Add(new PerCastStat(
+                        $"{window.ChronaOvercapped}",
+                        "Chrona Overcapped",
+                        Performance: QualitativePerformance.Fail));
+                }
+                break;
+            case ContinuumShiftSpend.EchoesOfRuin:
+                stats.Add(new PerCastStat($"{window.EnemiesApplied}", "Targets"));
+                if (window.TankHealthFraction is { } health)
+                {
+                    stats.Add(new PerCastStat(
+                        $"{health:P0}",
+                        "Tank Health",
+                        "The tank's health at the cast, as a percentage of the tank's maximum health.",
+                        health <= ContinuumShiftAnalyzer.TankDangerHealthFraction ? QualitativePerformance.Good : QualitativePerformance.Ok));
+                }
+                if (EdgeOfRuinTaken)
+                {
+                    stats.Add(new PerCastStat(
+                        window.FleetingHourFollowed ? "Yes" : "No",
+                        "Fleeting Hour Followed",
+                        "Fleeting Hour cast before this Echoes of Ruin expired.",
+                        window.FleetingHourFollowed ? QualitativePerformance.Good : QualitativePerformance.Ok));
+                }
+                break;
+        }
+
+        stats.Add(new PerCastStat(FormatSeconds(window.DurationMs), "Held"));
+
+        return new PerCastRow
+        {
+            Performance = performance,
+            Timestamp = window.CastTimestamp ?? window.Start,
+            Stats = [.. stats],
+        };
+    }
+
+    private static string SpendLabel(ContinuumShiftSpend spend) => spend switch
+    {
+        ContinuumShiftSpend.TimeShard => "Time Shard",
+        ContinuumShiftSpend.EchoesOfRuin => "Echoes of Ruin",
+        ContinuumShiftSpend.EntropyClaim => "Entropy's Claim",
+        ContinuumShiftSpend.Lost => "Lost",
+        _ => "Unspent at pull end",
+    };
+
+    private static QualitativePerformance SpendTier(int justified, int closed) =>
+        PerformanceTiers.FromThresholds((double)justified / closed, 0.95, 0.85, 0.7);
+
+    private static string FormatAmount(double amount) =>
+        amount >= 1_000_000 ? $"{amount / 1_000_000:0.##}M"
+        : amount >= 1_000 ? $"{amount / 1_000:0.#}k"
+        : $"{amount:0}";
+
+    private static string FormatSeconds(long milliseconds) => $"{milliseconds / 1000d:0.#}s";
+}

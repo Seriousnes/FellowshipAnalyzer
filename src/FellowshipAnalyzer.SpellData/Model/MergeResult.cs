@@ -58,4 +58,7 @@ public record MergeResult(List<CuratedSpell> Spells, List<Gap> Gaps)
     /// hero's scope.
     /// </summary>
     public List<CuratedSpell> Talents { get; init; } = [];
+
+    /// <summary>Every legendary item the export grants a power to, scoped by the hero that equips it.</summary>
+    public List<CuratedLegendary> Legendaries { get; init; } = [];
 }

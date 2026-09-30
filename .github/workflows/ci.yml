@@ -26,10 +26,10 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v6
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
@@ -56,10 +56,10 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v6
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
@@ -78,12 +78,14 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v6
         with:
-          dotnet-version: ${{ env.DOTNET_VERSION }}
+          dotnet-version: |
+            8.0.x
+            ${{ env.DOTNET_VERSION }}
 
       - name: Authenticate GitHub Packages
         run: >-
@@ -91,6 +93,10 @@ jobs:
           --username ${{ github.actor }}
           --password ${{ secrets.GITHUB_TOKEN }}
           --store-password-in-clear-text
+
+      - name: Install Azure Functions Core Tools
+        if: matrix.name == 'Api'
+        run: bash .github/scripts/install-functions-core-tools.sh
 
       - name: Restore test project
         run: dotnet restore ${{ matrix.project }} -p:RunAOTCompilation=false
@@ -106,7 +112,7 @@ jobs:
 
       - name: Upload test results
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: test-results-${{ matrix.name }}
           path: TestResults/*.trx

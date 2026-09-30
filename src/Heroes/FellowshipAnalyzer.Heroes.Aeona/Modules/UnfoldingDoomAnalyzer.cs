@@ -68,10 +68,11 @@ public sealed record UnfoldingDoomApplication(
 /// </remarks>
 [ForPull(PullKind.Single | PullKind.Multi)]
 [Dependency<SpellUsable>]
+[Dependency<AeonaBuild>]
 public sealed partial class UnfoldingDoomAnalyzer : AllTargetUptimeAnalyzer, IUnfoldingDoomAnalyzer
 {
-    /// <summary>How long one application of the debuff lasts, in milliseconds.</summary>
-    public const int DebuffDurationMs = 20_000;
+    /// <summary>How long one application of the debuff lasts.</summary>
+    public int DebuffDurationMs => AeonaBuild.UnfoldingDoomDurationMs;
 
     /// <summary>
     /// The increase the debuff applies to the player's damage against the debuffed enemy.
@@ -137,7 +138,12 @@ public sealed partial class UnfoldingDoomAnalyzer : AllTargetUptimeAnalyzer, IUn
         _availability.Add(new AvailabilityChange(e.Timestamp, e.IsAvailable));
 
     [On<CastEvent>(By = Actor.Player, Spell = nameof(Spells.UnfoldingDoom))]
-    private void OnCast() => Casts++;
+    private void OnCast(CastEvent e)
+    {
+        if (e.Activation) return;
+
+        Casts++;
+    }
 
     [On<ApplyDebuffEvent>(By = Actor.Player, Spell = nameof(Spells.UnfoldingDoomDebuff))]
     private void OnApplied(ApplyDebuffEvent e) => RecordApplication(e);

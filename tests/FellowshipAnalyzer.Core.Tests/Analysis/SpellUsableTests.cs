@@ -29,10 +29,12 @@ public sealed partial class SpellUsableTests
     private const int SpellB = 102;
     private const int SpellC = 103;
     private const int SpellD = 104;
+    private const int SpellE = 105;
     private const int CdSecondsA = 10;
     private const int CdSecondsB = 20;
     private const int CdSecondsC = 10;
     private const int CdSecondsD = 20;
+    private const int CdSecondsE = 20;
 
     /// <summary>The buff <see cref="SpellD"/> grants itself, whose removal starts its recharge.</summary>
     private static readonly Effect DeferredBuff = new() { Id = 2744, Name = "Deferred Buff" };
@@ -534,6 +536,12 @@ public sealed partial class SpellUsableTests
                 PrimarySpell = new Spell { Id = SpellD, Name = "Spell D", Cooldown = (double)CdSecondsD },
                 Category = SpellCategory.Cooldowns,
                 CooldownStartsWhenBuffEnds = DeferredBuff,
+            },
+            new SpellbookAbility
+            {
+                PrimarySpell = new Spell { Id = SpellE, Name = "Spell E", Cooldown = (double)CdSecondsE, Charges = 2 },
+                Category = SpellCategory.Rotational,
+                IndependentCharges = true,
             },
         ];
     }
