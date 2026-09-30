@@ -24,6 +24,12 @@
                 tank. Let Echoes of Divinity run its full duration before the next cleanse.
             </p>
         }
+        <p>
+            On each cast card, <strong>Ally Stagger</strong> is the Stagger on the ally with the most before the
+            cast. The tile is red when that ally had less Stagger than one cast cleanses from an ally.
+            <strong>Stagger Cleansed</strong> is the total across every ally healed. A card is flagged only while
+            the tank is under @FormatPercent(OblivionAnalyzer.CleansePriorityStaggerFraction) of its maximum health in Stagger.
+        </p>
     </LeftPanel>
     <RightPanel>
         <CastOverview Title="Cleanse Overview"
@@ -75,12 +81,12 @@
             stats.Add(new OverviewStat(
                 $"{flagged} ({FormatShare(flagged, rated)})",
                 "Flagged Casts",
-                $"Casts while the target held less than the Stagger removed, or with effective healing below an Oblivion, out of {rated} casts. The count includes a cast only if the tank held less than 40% of its maximum health in Stagger.",
+                $"Casts on an ally with less Stagger than one cast cleanses, or with effective healing below an Oblivion, out of {rated} casts. The count includes a cast only if the tank held less than 40% of its maximum health in Stagger.",
                 FlagTier(flagged, rated)));
             stats.Add(new OverviewStat(
                 $"{analyzers.Sum(analyzer => analyzer.LowStaggerCasts)}",
                 "Low-Stagger Casts",
-                "Casts while the target held less than the Stagger removed."));
+                "Casts on an ally with less Stagger than one cast cleanses."));
             stats.Add(new OverviewStat(
                 $"{analyzers.Sum(analyzer => analyzer.BelowOblivionValueCasts)}",
                 "Below an Oblivion",
@@ -154,12 +160,16 @@
                 "The tank's Stagger at the cast, as a percentage of the tank's maximum health."));
         }
 
+        var amendFate = cast.Ability == Spells.AmendFate.FSLID;
+
         if (cast.StaggerBefore is { } before && cast.StaggerRemoved is { } amount)
         {
             stats.Add(new PerCastStat(
-                $"{before:N0} / {amount:N0}",
-                "Stagger Before Cast",
-                "The target's Stagger before the cast, compared with the Stagger removed.",
+                $"{before:N0}",
+                "Ally Stagger",
+                amendFate
+                    ? $"Stagger on the target before the cast. One Amend Fate cleanses up to {amount:N0}."
+                    : $"Stagger before the cast on the ally with the most. One Restore Continuity cleanses up to {amount:N0} from each ally.",
                 cast.BelowStaggerRemoved == true ? QualitativePerformance.Fail : QualitativePerformance.Perfect));
         }
 
@@ -181,7 +191,7 @@
             stats.Add(new PerCastStat(
                 $"{cleansed:N0}",
                 "Stagger Cleansed",
-                "This total includes every ally that this cast healed, not only the target."));
+                amendFate ? null : $"Total Stagger cleansed from {Count(cast.AlliesHealed, "ally", "allies")}."));
         }
 
         if (cast.EntropyClaimReadyInMs > 0)
@@ -195,7 +205,10 @@
                 stats.Add(new PerCastStat(
                     $"{projected:P0}",
                     "Tank Stagger at Next Charge",
-                    Performance: cast.CouldHaveWaited ? QualitativePerformance.Fail : QualitativePerformance.Perfect));
+                    $"The tank's Stagger when the next Entropy's Claim charge is ready, as a percentage of its maximum health. " +
+                    $"With the tank under {FormatPercent(OblivionAnalyzer.CleansePriorityStaggerFraction)} at the cast and under " +
+                    $"{FormatPercent(StaggerCleanseAnalyzer.EntropicBurstHoldStaggerFraction)} at the next charge, this cast could have waited for that charge.",
+                    cast.CouldHaveWaited ? QualitativePerformance.Fail : QualitativePerformance.Perfect));
             }
         }
 
@@ -204,7 +217,7 @@
             stats.Add(new PerCastStat(
                 cast.FreeCastSource == FreeCastSource.EpochBreak ? "Epoch Break" : "Uchronia",
                 "Free Cast",
-                null,
+                "This cast cost no Chrona. A free cast is red when it refreshes Echoes of Divinity already on the tank.",
                 cast.OverwroteEchoes ? QualitativePerformance.Fail : QualitativePerformance.Perfect));
         }
 
@@ -227,8 +240,64 @@
             Performance = performance,
             Stats = [.. stats],
             Timestamp = cast.Timestamp,
+            Details = @<div><SpellLink Spell="@(amendFate ? Spells.AmendFate : Spells.RestoreContinuity)" /> @BuildNote(cast, amendFate)</div>,
         };
     }
+
+    private static string BuildNote(CleanseCastEntry cast, bool amendFate)
+    {
+        var sentences = new List<string>
+        {
+            (amendFate, cast.StaggerCleansed, cast.StaggerBefore) switch
+            {
+                (true, { } cleansed, { } before) => $"cleansed {cleansed:N0} Stagger from a target with {before:N0}.",
+                (true, { } cleansed, null) => $"cleansed {cleansed:N0} Stagger from its target.",
+                (false, { } cleansed, _) => $"cleansed {cleansed:N0} Stagger across {Count(cast.AlliesHealed, "ally", "allies")}.",
+                _ => "cast.",
+            },
+        };
+
+        if (Verdict(cast, amendFate) is { } verdict)
+            sentences.Add(verdict);
+
+        return string.Join(" ", sentences);
+    }
+
+    private static string? Verdict(CleanseCastEntry cast, bool amendFate)
+    {
+        if (!cast.Rated || cast.TankStaggerFraction is not { } fraction)
+            return null;
+
+        var priority = FormatPercent(OblivionAnalyzer.CleansePriorityStaggerFraction);
+
+        if (cast.Flagged)
+        {
+            var reasons = new List<string>();
+
+            if (cast.BelowStaggerRemoved == true)
+            {
+                reasons.Add(amendFate
+                    ? $"the target had less Stagger than the {cast.StaggerRemoved:N0} one Amend Fate cleanses"
+                    : $"the ally with the most Stagger had less than the {cast.StaggerRemoved:N0} one Restore Continuity cleanses from each ally");
+            }
+
+            if (cast.BelowOblivionValue == true)
+                reasons.Add($"the cast's {cast.EffectiveHealing:N0} effective healing was below the {cast.OblivionValue:N0} healing and shielding of one Oblivion");
+
+            return $"Flagged: the tank had {FormatPercent(fraction)} of its maximum health in Stagger, under {priority}, and {string.Join(" and ", reasons)}.";
+        }
+
+        if (cast.BelowStaggerRemoved != true && cast.BelowOblivionValue != true)
+            return null;
+
+        return fraction >= OblivionAnalyzer.CleansePriorityStaggerFraction
+            ? $"The tank had {FormatPercent(fraction)} of its maximum health in Stagger, at or over the {priority} cleanse priority, so this cast is not flagged."
+            : "A cast that costs no Chrona is flagged only when it refreshes Echoes of Divinity on the tank.";
+    }
+
+    private static string Count(int count, string singular, string plural) => $"{count} {(count == 1 ? singular : plural)}";
+
+    private static string FormatPercent(double fraction) => $"{fraction * 100:0.#}%";
 
     private static QualitativePerformance FlagTier(int flagged, int rated) =>
         PerformanceTiers.FromThresholds(1 - (double)flagged / rated, 0.95, 0.85, 0.7);
