@@ -153,8 +153,92 @@ public sealed class TemporalBarrageAnalyzerTests
         channel.HealEffective.ShouldBe(800);
         channel.Overheal.ShouldBe(200);
         channel.HealTotal.ShouldBe(1_000);
-        analyzer.TotalHealEffective.ShouldBe(800);
-        analyzer.TotalOverheal.ShouldBe(200);
+        analyzer.DirectHealEffective.ShouldBe(800);
+        analyzer.DirectOverheal.ShouldBe(200);
+    }
+
+    [Fact]
+    public async Task Healing_OnAnEnemyChannelIsRelayHealing()
+    {
+        var analyzer = await Track(
+            BeginChannel(1_000),
+            BarrageDamage(1_200, 500),
+            BarrageHeal(1_200, TankId, 400, overheal: 100),
+            BarrageDamage(1_500, 600),
+            BarrageHeal(1_500, TankId, 600));
+
+        analyzer.RelayHealEffective.ShouldBe(1_000);
+        analyzer.RelayOverheal.ShouldBe(100);
+        analyzer.DirectHealEffective.ShouldBe(0);
+        analyzer.DirectOverheal.ShouldBe(0);
+    }
+
+    [Fact]
+    public async Task Healing_OnAnAllyChannelIsDirectHealing()
+    {
+        var analyzer = await Track(
+            BeginChannel(1_000),
+            BarrageHeal(1_200, TankId, 500),
+            BarrageHeal(1_500, TankId, 600));
+
+        analyzer.DirectHealEffective.ShouldBe(1_100);
+        analyzer.RelayHealEffective.ShouldBe(0);
+        analyzer.RelayOverheal.ShouldBe(0);
+    }
+
+    [Fact]
+    public async Task Averages_DivideByTheChannelsAimedAtEachTarget()
+    {
+        var analyzer = await Track(
+            BeginChannel(1_000),
+            BarrageDamage(1_200, 500),
+            BarrageHeal(1_200, TankId, 500),
+            BeginChannel(5_000),
+            BarrageDamage(5_200, 700),
+            BarrageHeal(5_200, TankId, 300),
+            BeginChannel(10_000),
+            BarrageHeal(10_200, TankId, 900),
+            BeginChannel(15_000));
+
+        analyzer.EnemyChannels.ShouldBe(2);
+        analyzer.AllyChannels.ShouldBe(1);
+        analyzer.AverageDamage.ShouldBe(600);
+        analyzer.AverageRelayHealEffective.ShouldBe(400);
+        analyzer.AverageDirectHealEffective.ShouldBe(900);
+    }
+
+    [Fact]
+    public async Task Averages_AreZeroWithNoChannelAimedAtTheTarget()
+    {
+        var analyzer = await Track(BeginChannel(1_000));
+
+        analyzer.AverageDamage.ShouldBe(0);
+        analyzer.AverageRelayHealEffective.ShouldBe(0);
+        analyzer.AverageDirectHealEffective.ShouldBe(0);
+        analyzer.AverageDamageUnderFleetingHour.ShouldBe(0);
+        analyzer.Statistic.ShouldBeNull();
+    }
+
+    [Fact]
+    public async Task AverageDamageUnderFleetingHour_DividesByTheEnemyChannelsStartedDuringIt()
+    {
+        var analyzer = await Track(
+            [AeonaTalents.ParadoxicalTwist],
+            BeginChannel(1_000),
+            BarrageDamage(1_200, 500),
+            FleetingHourApply(4_000),
+            BeginChannel(5_000),
+            BarrageDamage(5_200, 700),
+            BeginChannel(8_000),
+            BarrageHeal(8_200, TankId, 900),
+            BeginChannel(11_000),
+            BarrageDamage(11_200, 900),
+            FleetingHourRemove(14_000));
+
+        analyzer.ChannelsUnderFleetingHour.ShouldBe(3);
+        analyzer.EnemyChannelsUnderFleetingHour.ShouldBe(2);
+        analyzer.DamageUnderFleetingHour.ShouldBe(1_600);
+        analyzer.AverageDamageUnderFleetingHour.ShouldBe(800);
     }
 
     [Fact]
