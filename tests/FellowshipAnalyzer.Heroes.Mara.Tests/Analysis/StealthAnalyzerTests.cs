@@ -70,6 +70,45 @@ public sealed class StealthAnalyzerTests
     }
 
     [Fact]
+    public async Task Analyze_BackstabStealth_ConvertsTheWindowAsBackstab()
+    {
+        var events = new List<Event>
+        {
+            Buff<ApplyBuffEvent>(1000, Spells.BroodingShadowsBuff),
+            Cast(1200, Spells.BackstabStealth),
+            Buff<RemoveBuffEvent>(3000, Spells.BroodingShadowsBuff),
+        };
+
+        var analyzer = await AnalyzeAsync(events);
+
+        var window = analyzer.Windows.ShouldHaveSingleItem();
+        window.Converted.ShouldBeTrue();
+        window.ConvertingAbilityId.ShouldBe(Spells.Backstab.Id);
+        window.ConvertingCastAt.ShouldBe(1200);
+        window.PoisonEffectId.ShouldBeNull();
+        analyzer.ConvertedWindows.ShouldBe(1);
+    }
+
+    [Fact]
+    public async Task Analyze_SkitteringBladesStealth_LinksVolatilePoison()
+    {
+        var events = new List<Event>
+        {
+            Buff<ApplyBuffEvent>(1000, Spells.BroodingShadowsBuff),
+            Cast(1200, Spells.SkitteringBladesStealth),
+            Debuff<ApplyDebuffEvent>(1250, Spells.SkitteringBladesPoison),
+            Buff<RemoveBuffEvent>(3000, Spells.BroodingShadowsBuff),
+        };
+
+        var analyzer = await AnalyzeAsync(events);
+
+        var window = analyzer.Windows.ShouldHaveSingleItem();
+        window.ConvertingAbilityId.ShouldBe(Spells.SkitteringBlades.Id);
+        window.PoisonEffectId.ShouldBe(Spells.SkitteringBladesPoison.FSLID);
+        analyzer.WindowsWithPoison.ShouldBe(1);
+    }
+
+    [Fact]
     public async Task Analyze_StealthWindowWithoutABuilder_IsUnconverted()
     {
         var events = new List<Event>

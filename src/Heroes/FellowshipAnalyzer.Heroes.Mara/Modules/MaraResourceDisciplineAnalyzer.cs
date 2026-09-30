@@ -29,6 +29,7 @@ public sealed record MaraFinisherCast(
 
 [ForPull(PullKind.Single | PullKind.Multi)]
 [Dependency<Enemies>]
+[Dependency<Abilities>]
 public sealed partial class MaraResourceDisciplineAnalyzer : Analyzer
 {
     public const int QueenFangThreshold = 5;
@@ -115,7 +116,7 @@ public sealed partial class MaraResourceDisciplineAnalyzer : Analyzer
         }
 
         var comboPoints = FindResource(resources, ResourceTypes.Secondary);
-        var abilityId = castEvent.Ability.Id;
+        var abilityId = Abilities.PrimarySpellIdOf(castEvent.Ability.Id);
 
         if (Array.IndexOf(Generators, abilityId) >= 0)
         {
