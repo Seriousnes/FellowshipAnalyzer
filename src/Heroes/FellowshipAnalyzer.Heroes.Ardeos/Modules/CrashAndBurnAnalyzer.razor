@@ -1,0 +1,20 @@
+@inherits Analyzer
+@using ArdeosSpells = FellowshipAnalyzer.Core.Common.Spells.Ardeos
+
+@code {
+    public override RenderFragment? Statistic =>
+        @<StatCard>
+            <Header>
+                <SpellLink Spell="ArdeosSpells.Talents.CrashAndBurn" />
+            </Header>
+            <ChildContent>
+                <StatRow Value="@Seconds(CooldownReduction.Effective)"
+                         Tooltip="@($"{Seconds(CooldownReduction.Total)} generated, {Seconds(CooldownReduction.Wasted)} wasted")">
+                    <SpellLink Spell="ArdeosSpells.Spells.FireBall" /> reduction, @Pct(CooldownReduction.Efficiency) of @Seconds(CooldownReduction.Total) generated
+                </StatRow>
+            </ChildContent>
+        </StatCard>;
+
+    private static string Seconds(int milliseconds) => $"{milliseconds / 1000d:0.0}s";
+    private static string Pct(double ratio) => $"{ratio * 100:F0}%";
+}
