@@ -1,3 +1,4 @@
+using FellowshipAnalyzer.Core.FellowshipLogs;
 using FellowshipAnalyzer.Heroes.Xavian.Modules;
 
 using Shouldly;
@@ -78,5 +79,28 @@ public sealed class SolarShieldAnalyzerTests
         talented.MagicWardTaken.ShouldBeTrue();
         talented.MagicWardActiveMs.ShouldBe(8_000);
         untalented.MagicWardTaken.ShouldBeFalse();
+    }
+
+    [Fact]
+    public async Task AShieldCarriedIntoAPull_OpensAWindowAtThePullStart()
+    {
+        var dungeon = BossDungeon with
+        {
+            DungeonPulls =
+            [
+                new DungeonPull(1, 0, false, 1_000, 20_000, "Trash", null),
+                new DungeonPull(2, 0, false, 21_000, 50_000, "Trash", null),
+            ],
+        };
+
+        var parser = await AnalyzeIn(
+            dungeon,
+            ApplyBuff(18_000, Spells.SolarShieldAbsorb),
+            DamageTaken(22_000, 100, absorbed: 300),
+            RemoveBuff(25_000, Spells.SolarShieldAbsorb));
+
+        var second = parser.SolarShieldAnalyzers[1].Analyzer.ShouldBeOfType<SolarShieldAnalyzer>();
+        second.ActiveMs.ShouldBe(4_000);
+        second.HitsInWindows.ShouldBe(1);
     }
 }

@@ -40,6 +40,13 @@ public sealed partial class SolarShieldAnalyzer : MajorDefensiveAnalyzer, ISolar
         }
     }
 
+    [On<PullStartEvent>]
+    private void OnPullStart(PullStartEvent pullStart)
+    {
+        if (Owner.SelectedCombatant.HasBuff(Spells.SolarShieldAbsorb, pullStart.Timestamp))
+            OpenWindow(pullStart.Timestamp);
+    }
+
     [On<CastEvent>(By = Actor.Player, Spell = nameof(Spells.SolarShield))]
     private void OnCast(CastEvent castEvent)
     {

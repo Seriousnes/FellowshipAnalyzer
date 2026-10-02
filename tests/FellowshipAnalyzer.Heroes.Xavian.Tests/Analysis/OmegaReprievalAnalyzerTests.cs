@@ -134,4 +134,49 @@ public sealed class OmegaReprievalAnalyzerTests
         second.StacksSpent.ShouldBe(2);
         second.StacksExpired.ShouldBe(0);
     }
+
+    [Fact]
+    public async Task CarriedStacksThatExpire_CountEveryStackAsExpired()
+    {
+        var dungeon = BossDungeon with
+        {
+            DungeonPulls =
+            [
+                new DungeonPull(1, 0, false, 1_000, 20_000, "Trash", null),
+                new DungeonPull(2, 0, false, 21_000, 50_000, "Trash", null),
+            ],
+        };
+
+        var parser = await AnalyzeIn(
+            dungeon,
+            Cast(19_000, Spells.OmegaReprieval),
+            ApplyBuff(19_000, Spells.OmegaReprievalBuff),
+            ApplyBuffStack(19_000, Spells.OmegaReprievalBuff, 2),
+            RemoveBuff(31_000, Spells.OmegaReprievalBuff));
+
+        var second = parser.OmegaReprievalAnalyzers[1].Analyzer;
+        second.StacksExpired.ShouldBe(2);
+        second.StacksSpent.ShouldBe(0);
+    }
+
+    [Fact]
+    public async Task AGoldenHourCarriedIntoAPull_IsConsumedByOmnistrike()
+    {
+        var dungeon = BossDungeon with
+        {
+            DungeonPulls =
+            [
+                new DungeonPull(1, 0, false, 1_000, 20_000, "Trash", null),
+                new DungeonPull(2, 0, false, 21_000, 50_000, "Trash", null),
+            ],
+        };
+
+        var parser = await AnalyzeIn(
+            dungeon,
+            ApplyBuff(19_000, Spells.GoldenHour),
+            Cast(22_000, Spells.Omnistrike),
+            RemoveBuff(22_000, Spells.GoldenHour));
+
+        parser.OmegaReprievalAnalyzers[1].Analyzer.GoldenHourConsumed.ShouldBe(1);
+    }
 }

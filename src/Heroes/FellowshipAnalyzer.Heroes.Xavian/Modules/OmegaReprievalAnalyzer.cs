@@ -25,6 +25,13 @@ public sealed partial class OmegaReprievalAnalyzer : Analyzer
 
     public int GoldenHourConsumed { get; private set; }
 
+    [On<PullStartEvent>]
+    private void OnPullStart(PullStartEvent pullStart)
+    {
+        _stacks = Owner.SelectedCombatant.GetBuffStacks(Spells.OmegaReprievalBuff, pullStart.Timestamp);
+        _goldenHourActive = Owner.SelectedCombatant.HasBuff(Spells.GoldenHour, pullStart.Timestamp);
+    }
+
     [On<CastEvent>(By = Actor.Player, Spell = nameof(Spells.OmegaReprieval))]
     private void OnCast() => Casts++;
 
