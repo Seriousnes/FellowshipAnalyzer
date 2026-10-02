@@ -302,6 +302,21 @@ public sealed class TemporalBarrageAnalyzerTests
     }
 
     [Fact]
+    public async Task StaggerCleared_SkipsABoltWhoseStaggerAmountIsStale()
+    {
+        var analyzer = await Track(
+            [AeonaTalents.ParadoxicalTwist],
+            FleetingHourApply(800),
+            EchoesOfRuinHeal(900, TankId, rawStagger: 500_000),
+            BeginChannel(1_000),
+            BarrageHeal(1_200, TankId, 400, rawStagger: 400_000),
+            BarrageHeal(1_200 + StaggerTracker.StaggerMaxAgeMs + 1, TankId, 400, rawStagger: 300_000),
+            FleetingHourRemove(5_000));
+
+        analyzer.Channels.ShouldHaveSingleItem().StaggerCleared.ShouldBe(150);
+    }
+
+    [Fact]
     public async Task StaggerCleared_IsAbsentWithNoStaggerAmountBeforeAnyBolt()
     {
         var analyzer = await Track(

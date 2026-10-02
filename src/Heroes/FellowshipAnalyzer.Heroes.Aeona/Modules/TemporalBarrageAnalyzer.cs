@@ -61,7 +61,8 @@ public sealed record BarrageChannel
 
     /// <summary>
     /// The Stagger Paradoxical Twist cleared off <see cref="PrimaryHealTargetId"/> across the channel, in hit
-    /// points. <see langword="null"/> without Paradoxical Twist or when no bolt struck under Fleeting Hour.
+    /// points. A bolt counts only when the ally's Stagger was read within <see cref="StaggerTracker.StaggerMaxAgeMs"/>
+    /// before it. <see langword="null"/> without Paradoxical Twist or when no bolt counted.
     /// </summary>
     public required int? StaggerCleared { get; init; }
 
@@ -289,6 +290,7 @@ public sealed partial class TemporalBarrageAnalyzer : Analyzer
         {
             if (!FleetingHourAnalyzer.IsBuffActiveAt(timestamp)) continue;
             if (StaggerTracker.LatestBefore(unitId, timestamp) is not { } before) continue;
+            if (timestamp - before.Timestamp > StaggerTracker.StaggerMaxAgeMs) continue;
 
             cleared = (cleared ?? 0) + before.Amount * ParadoxicalTwistStaggerClearedPerBolt;
         }
