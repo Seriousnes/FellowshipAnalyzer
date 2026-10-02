@@ -108,6 +108,9 @@
     },
     "WinterBlessingHeal": {
       "icon": "T_Rime_HealingBuff"
+    },
+    "IceCometAlt": {
+      "id": 2227
     }
   },
   "elarion": {
@@ -425,6 +428,12 @@
     }
   },
   "mara": {
+    "BackstabStealth": {
+      "id": 2308
+    },
+    "SkitteringBladesStealth": {
+      "id": 2309
+    },
     "KickAlt": {
       "id": 1167
     },
@@ -467,6 +476,9 @@
   "meiko": {
     "StoneShieldAlt": {
       "id": 1122
+    },
+    "LashingStormkickAlt": {
+      "id": 2310
     }
   },
   "sylvie": {
