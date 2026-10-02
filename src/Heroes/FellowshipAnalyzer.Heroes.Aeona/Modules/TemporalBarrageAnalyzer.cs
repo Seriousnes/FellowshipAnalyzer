@@ -99,6 +99,12 @@ public sealed record BarrageChannel
 /// until the next one opens. A channel-end event closes the channel currently accumulating. Damage and
 /// healing share a bolt's timestamp, so a bolt is one instant rather than one record.
 /// </para>
+/// <para>
+/// Direct healing and Deferred Fate: Relay healing both arrive as heal records on the Temporal Barrage
+/// ability. A channel strikes one target, so its <see cref="BarrageChannel.Target"/> separates the two.
+/// Every heal in a channel aimed at an ally is direct healing. Every heal in a channel aimed at an enemy
+/// is relay healing.
+/// </para>
 /// </remarks>
 [Dependency<FleetingHourAnalyzer>]
 [Dependency<SpellUsable>]
@@ -136,20 +142,43 @@ public sealed partial class TemporalBarrageAnalyzer : Analyzer
     public long DamageUnderFleetingHour =>
         Channels.Where(channel => channel.FleetingHourActiveAtStart).Sum(channel => channel.Damage);
 
-    /// <summary>Effective healing every channel's bolts did.</summary>
-    public long TotalHealEffective => Channels.Sum(channel => channel.HealEffective);
+    /// <summary>Damage per channel aimed at an enemy.</summary>
+    public double AverageDamage => EnemyChannels > 0 ? (double)TotalDamage / EnemyChannels : 0;
 
-    /// <summary>Healing every channel's bolts overhealed.</summary>
-    public long TotalOverheal => Channels.Sum(channel => channel.Overheal);
+    /// <summary>Channels aimed at an enemy and started while Fleeting Hour was active.</summary>
+    public int EnemyChannelsUnderFleetingHour =>
+        Channels.Count(channel => channel.Target == BarrageTarget.Enemy && channel.FleetingHourActiveAtStart);
+
+    /// <summary>Damage per channel aimed at an enemy and started while Fleeting Hour was active.</summary>
+    public double AverageDamageUnderFleetingHour =>
+        EnemyChannelsUnderFleetingHour > 0 ? (double)DamageUnderFleetingHour / EnemyChannelsUnderFleetingHour : 0;
+
+    /// <summary>Effective healing the bolts of every channel aimed at an ally did.</summary>
+    public long DirectHealEffective => AimedAt(BarrageTarget.Ally).Sum(channel => channel.HealEffective);
+
+    /// <summary>Healing the bolts of every channel aimed at an ally overhealed.</summary>
+    public long DirectOverheal => AimedAt(BarrageTarget.Ally).Sum(channel => channel.Overheal);
+
+    /// <summary>Effective direct healing per channel aimed at an ally.</summary>
+    public double AverageDirectHealEffective => AllyChannels > 0 ? (double)DirectHealEffective / AllyChannels : 0;
+
+    /// <summary>Effective Deferred Fate: Relay healing across every channel aimed at an enemy.</summary>
+    public long RelayHealEffective => AimedAt(BarrageTarget.Enemy).Sum(channel => channel.HealEffective);
+
+    /// <summary>Deferred Fate: Relay healing overhealed across every channel aimed at an enemy.</summary>
+    public long RelayOverheal => AimedAt(BarrageTarget.Enemy).Sum(channel => channel.Overheal);
+
+    /// <summary>Effective Deferred Fate: Relay healing per channel aimed at an enemy.</summary>
+    public double AverageRelayHealEffective => EnemyChannels > 0 ? (double)RelayHealEffective / EnemyChannels : 0;
 
     /// <summary>Bolts struck across every channel.</summary>
     public int TotalBolts => Channels.Sum(channel => channel.Bolts);
 
     /// <summary>Channels aimed at an enemy.</summary>
-    public int EnemyChannels => Channels.Count(channel => channel.Target == BarrageTarget.Enemy);
+    public int EnemyChannels => AimedAt(BarrageTarget.Enemy).Count();
 
     /// <summary>Channels aimed at an ally.</summary>
-    public int AllyChannels => Channels.Count(channel => channel.Target == BarrageTarget.Ally);
+    public int AllyChannels => AimedAt(BarrageTarget.Ally).Count();
 
     /// <summary>Channels started while Fleeting Hour was active.</summary>
     public int ChannelsUnderFleetingHour => Channels.Count(channel => channel.FleetingHourActiveAtStart);
@@ -200,6 +229,9 @@ public sealed partial class TemporalBarrageAnalyzer : Analyzer
         channel.AddHeal(e.Amount, e.Overheal ?? 0, e.TargetId);
         RecordBolt(channel, e.Timestamp);
     }
+
+    private IEnumerable<BarrageChannel> AimedAt(BarrageTarget target) =>
+        Channels.Where(channel => channel.Target == target);
 
     private void RecordBolt(ChannelBuilder channel, int timestamp)
     {

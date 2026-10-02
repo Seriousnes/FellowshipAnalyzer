@@ -162,6 +162,21 @@ public sealed class MaraAnalysisEngineTests
         trash.ArachnidAssaultBelowTargetThreshold.ShouldBe(1);
     }
 
+    [Fact]
+    public async Task Analyze_ResourceDiscipline_CountsStealthBuildersAsGenerators()
+    {
+        const int playerId = 7;
+        var (parser, _) = await AnalyzeFixtureAsync(casts:
+        [
+            Cast(1100, playerId, Spells.BackstabStealth, comboPoints: 6, energy: 150),
+            Cast(1200, playerId, Spells.SkitteringBladesStealth, comboPoints: 2, energy: 115),
+        ]);
+
+        var boss = AnalyzerForPull(parser, BossPullId);
+        boss.GeneratorCasts.ShouldBe(2);
+        boss.GeneratorOvercapCasts.ShouldBe(1);
+    }
+
     private static MaraResourceDisciplineAnalyzer AnalyzerForPull(MaraCombatLogParser parser, int pullId) =>
         parser.MaraResourceDisciplineAnalyzers.Single(entry => entry.Pull.Id == pullId).Analyzer;
 
@@ -258,7 +273,7 @@ public sealed class MaraAnalysisEngineTests
     }
 
     private static async Task<(MaraCombatLogParser Parser, HeroAnalysisResult Result)> AnalyzeFixtureAsync(
-        bool feedTheQueen = false)
+        bool feedTheQueen = false, List<Event>? casts = null)
     {
         const int playerId = 7;
         var services = new ServiceCollection();
@@ -286,6 +301,9 @@ public sealed class MaraAnalysisEngineTests
                 SourceId = playerId,
                 Talents = feedTheQueen ? [new TalentInfo { Id = MaraTalents.FeedTheQueen }] : [],
             },
+        };
+        events.AddRange(casts ??
+        [
             Cast(1100, playerId, Spells.QueenFang, comboPoints: 6, energy: 200, maxEnergy: 200),
             Cast(1200, playerId, Spells.QueenFang, comboPoints: 3, energy: 100),
             Cast(1300, playerId, Spells.Backstab, comboPoints: 6, energy: 150),
@@ -293,7 +311,7 @@ public sealed class MaraAnalysisEngineTests
             Cast(3100, playerId, Spells.ArachnidAssault, comboPoints: 4, energy: 120),
             Cast(3200, playerId, Spells.HemorrhagingStrike, comboPoints: 5, energy: 100),
             Cast(3300, playerId, Spells.QueenFang, comboPoints: 4, energy: 90),
-        };
+        ]);
 
         var dungeon = new ReportDungeon(
             Id: 0, Name: "Dungeon", EncounterId: 0, Kill: true,

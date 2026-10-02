@@ -7,12 +7,18 @@ namespace FellowshipAnalyzer.Heroes.Mara.Modules;
 
 public class Abilities : CoreAbilities
 {
+    /// <summary>
+    /// Primary spell id of the spellbook entry for <paramref name="spellId"/>: <see cref="Spells.Backstab"/>
+    /// for <see cref="Spells.BackstabStealth"/>. An id outside the spellbook is returned unchanged.
+    /// </summary>
+    public int PrimarySpellIdOf(int spellId) => GetAbility(spellId)?.PrimarySpell.Id ?? spellId;
+
     public override IEnumerable<SpellbookAbility> Spellbook() =>
     [
         new()
         {
             PrimarySpell = Spells.Backstab,
-            AdditionalSpells = [Spells.BackstabDamageStrong, Spells.BackstabDamageWeak],
+            AdditionalSpells = [Spells.BackstabStealth, Spells.BackstabDamageStrong, Spells.BackstabDamageWeak],
             Category = SpellCategory.Rotational,
             Gcd = StandardGcd,
         },
@@ -40,7 +46,7 @@ public class Abilities : CoreAbilities
         new()
         {
             PrimarySpell = Spells.SkitteringBlades,
-            AdditionalSpells = [Spells.SkitteringBladesDamage],
+            AdditionalSpells = [Spells.SkitteringBladesStealth, Spells.SkitteringBladesDamage],
             Category = SpellCategory.RotationalAoe,
             Gcd = StandardGcd,
         },

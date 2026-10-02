@@ -2206,6 +2206,19 @@
       "name": "Caustic Poison",
       "icon": "T_TurtleShield"
     },
+    "BackstabStealth": {
+      "kind": "ability",
+      "id": 2308,
+      "name": "Backstab",
+      "icon": "Mara_backstab",
+      "abilityCategory": "Core",
+      "resourceGeneration": {
+        "resource": "secondary",
+        "amount": 2,
+        "criticalAmount": 3,
+        "trigger": "PerCast"
+      }
+    },
     "BroodingShadows": {
       "kind": "ability",
       "id": 1130,
@@ -2498,6 +2511,24 @@
       "name": "Volatile Poison",
       "icon": "T_ArcaneCoils"
     },
+    "SkitteringBladesStealth": {
+      "kind": "ability",
+      "id": 2309,
+      "name": "Skittering Blades",
+      "icon": "Mara_AOEBuilder",
+      "abilityCategory": "Core",
+      "range": 800,
+      "radius": 800,
+      "costs": {
+        "primary": 35
+      },
+      "resourceGeneration": {
+        "resource": "secondary",
+        "amount": 1,
+        "criticalAmount": 2,
+        "trigger": "PerHit"
+      }
+    },
     "StalkerStep": {
       "kind": "ability",
       "id": 1205,
@@ -2738,6 +2769,12 @@
       "icon": "Meiko_AbilityIcon_08",
       "abilityCategory": "Power",
       "range": 500
+    },
+    "LashingStormkickAlt": {
+      "kind": "ability",
+      "id": 2310,
+      "name": "Lashing Stormkick",
+      "icon": "Meiko_AbilityIcon_08"
     },
     "LashingStormkickDamage": {
       "kind": "effect",
@@ -3340,6 +3377,17 @@
         "tertiary": 2
       }
     },
+    "IceCometAlt": {
+      "kind": "ability",
+      "id": 2227,
+      "name": "Ice Comet",
+      "icon": "T_Rime_OnTargetPulsatingAOE",
+      "range": 3000,
+      "radius": 700,
+      "costs": {
+        "tertiary": 2
+      }
+    },
     "IceCometCost": {
       "kind": "effect",
       "id": 1381,
@@ -3349,8 +3397,8 @@
     "IceCometDamage": {
       "kind": "effect",
       "id": 1380,
-      "name": "",
-      "icon": ""
+      "name": "Ice Comet",
+      "icon": "T_Rime_OnTargetPulsatingAOE"
     },
     "IceDash": {
       "kind": "ability",
