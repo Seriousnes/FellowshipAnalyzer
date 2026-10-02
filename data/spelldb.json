@@ -2666,6 +2666,14 @@
       "name": "Cyclone",
       "icon": "T_Meiko_Massgrip"
     },
+    "DoublePalmStrike": {
+      "kind": "ability",
+      "id": 1105,
+      "name": "Double Palm Strike",
+      "icon": "Meiko_AbilityIcon_04",
+      "abilityCategory": "Core",
+      "range": 500
+    },
     "EarthFist": {
       "kind": "ability",
       "id": 1100,
@@ -2686,13 +2694,18 @@
       "name": "Earth Fist",
       "icon": "Meiko_AbilityIcon_03"
     },
+    "Earthfall": {
+      "kind": "effect",
+      "id": 1532,
+      "name": "Earthfall",
+      "icon": "Meiko_AbilityIcon_09"
+    },
     "EarthfistBarrage": {
       "kind": "ability",
       "id": 1112,
       "name": "Earthfist Barrage",
       "icon": "Meiko_AbilityIcon_09",
       "abilityCategory": "Power",
-      "cooldown": 45,
       "range": 500,
       "channelDuration": 1,
       "channelTickInterval": 0.25
@@ -2788,6 +2801,23 @@
       "name": "Peacefield",
       "icon": "T_Icon_Elements_77"
     },
+    "RisingEarth": {
+      "kind": "ability",
+      "id": 1104,
+      "name": "Rising Earth",
+      "icon": "Meiko_AbilityIcon_06",
+      "abilityCategory": "Core",
+      "range": 500
+    },
+    "RisingStorm": {
+      "kind": "ability",
+      "id": 1103,
+      "name": "Rising Storm",
+      "icon": "Meiko_AbilityIcon_05",
+      "abilityCategory": "Core",
+      "range": 500,
+      "radius": 500
+    },
     "Serenity": {
       "kind": "ability",
       "id": 1119,
@@ -2861,6 +2891,12 @@
       "id": 1526,
       "name": "Spirit Palm",
       "icon": "Meiko_AbilityIcon_01"
+    },
+    "SpiritedStrikes": {
+      "kind": "effect",
+      "id": 1534,
+      "name": "Spirited Strikes",
+      "icon": "Meiko_AbilityIcon_04"
     },
     "SpiritedVortex": {
       "kind": "ability",
@@ -3013,6 +3049,12 @@
       "name": "Stunned",
       "icon": "effect_stunned_icon"
     },
+    "Stormfall": {
+      "kind": "effect",
+      "id": 1530,
+      "name": "Stormfall",
+      "icon": "Meiko_AbilityIcon_08"
+    },
     "Taunt": {
       "kind": "ability",
       "id": 1095,
@@ -3039,6 +3081,18 @@
         "spirit": 100
       }
     },
+    "TwinSoulsArmyOfOneBuff": {
+      "kind": "effect",
+      "id": 1547,
+      "name": "Twin Souls: Army of One",
+      "icon": "T_Meiko_SpiritUltimate"
+    },
+    "TwinSoulsArmyOfOneDamage": {
+      "kind": "effect",
+      "id": 1548,
+      "name": "Twin Souls: Army of One",
+      "icon": "T_Meiko_SpiritUltimate"
+    },
     "TwinSoulsBulwark": {
       "kind": "ability",
       "id": 1082,
@@ -3060,6 +3114,12 @@
       "id": 2380,
       "name": "Taunted",
       "icon": "T_Meiko_Taunt"
+    },
+    "WardenOfTheTemple": {
+      "kind": "effect",
+      "id": 2447,
+      "name": "Warden of the Temple",
+      "icon": "Meiko_AbilityIcon_01"
     },
     "WindKick": {
       "kind": "ability",

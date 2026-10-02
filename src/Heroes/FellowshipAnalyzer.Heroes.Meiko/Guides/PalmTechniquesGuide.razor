@@ -1,0 +1,81 @@
+@inherits GuideComponent<MeikoCombatLogParser>
+
+<GuideSection Title="Palm Techniques">
+    <LeftPanel>
+        <p>
+            Keep <strong><SpellLink Spell="Spells.SpiritedStrikes" /></strong> and
+            <strong><SpellLink Spell="Spells.SpiritedVortex" /></strong> up at all times.
+            Refresh each one before it expires.
+        </p>
+    </LeftPanel>
+    <RightPanel>
+        <CastOverview Title="Overview" Stats="@BuildOverviewStats()" />
+        <CastDetail Title="Palm Techniques by Pull" Casts="@BuildPerPullData()" />
+    </RightPanel>
+</GuideSection>
+
+@code {
+    protected override bool IsActive() => Parser.SpiritedStrikesAnalyzers.Count > 0 || Parser.SpiritedVortexAnalyzers.Count > 0;
+
+    private static QualitativePerformance UptimePerformance(double uptime) =>
+        PerformanceTiers.FromThresholds(uptime * 100, 90, 80, 65);
+
+    private static double Uptime(IEnumerable<SelfBuffAnalyzer> analyzers)
+    {
+        var list = analyzers.ToList();
+        var durationMs = list.Sum(analyzer => (long)analyzer.DurationMs);
+        return durationMs == 0 ? 0 : list.Sum(analyzer => (long)analyzer.ActiveMs) / (double)durationMs;
+    }
+
+    private IEnumerable<OverviewStat> BuildOverviewStats()
+    {
+        var strikes = Uptime(Parser.SpiritedStrikesAnalyzers.Select(entry => entry.Analyzer).OfType<SpiritedStrikesAnalyzer>());
+        var vortex = Uptime(Parser.SpiritedVortexAnalyzers.Select(entry => entry.Analyzer).OfType<SpiritedVortexAnalyzer>());
+
+        return
+        [
+            new OverviewStat($"{strikes * 100:F1}%", "SS Uptime", Performance: UptimePerformance(strikes)),
+            new OverviewStat($"{vortex * 100:F1}%", "SV Uptime", Performance: UptimePerformance(vortex)),
+        ];
+    }
+
+    private IEnumerable<PerCastData> BuildPerPullData() =>
+        Parser.SpiritedStrikesAnalyzers.ToPullRows(Parser, (surface, pull) =>
+        {
+            var strikes = (SpiritedStrikesAnalyzer)surface;
+            var vortex = Parser.For(pull).SpiritedVortexAnalyzer as SpiritedVortexAnalyzer;
+            var strikesPerformance = UptimePerformance(strikes.Uptime);
+            var vortexPerformance = vortex is null ? (QualitativePerformance?)null : UptimePerformance(vortex.Uptime);
+
+            var stats = new List<PerCastStat>
+            {
+                new($"{strikes.Uptime * 100:F1}%", "SS Uptime", Performance: strikesPerformance),
+            };
+            if (vortex is not null)
+                stats.Add(new PerCastStat($"{vortex.Uptime * 100:F1}%", "SV Uptime", Performance: vortexPerformance));
+
+            return new PerCastRow
+            {
+                Performance = vortexPerformance is { } other && other < strikesPerformance ? other : strikesPerformance,
+                Stats = [.. stats],
+                Details = BuildDetails(strikes, vortex),
+            };
+        });
+
+    private static RenderFragment? BuildDetails(SpiritedStrikesAnalyzer strikes, SpiritedVortexAnalyzer? vortex)
+    {
+        var bullets = new List<string>();
+        if (strikes.InactiveMs > 0)
+            bullets.Add($"Spirited Strikes was down for {strikes.InactiveMs / 1000d:F1}s.");
+        if (vortex is { InactiveMs: > 0 })
+            bullets.Add($"Spirited Vortex was down for {vortex.InactiveMs / 1000d:F1}s.");
+        if (bullets.Count == 0) return null;
+
+        return @<ul>
+            @foreach (var bullet in bullets)
+            {
+                <li>@bullet</li>
+            }
+        </ul>;
+    }
+}
