@@ -23,17 +23,18 @@ namespace FellowshipAnalyzer.Heroes.Aeona.Modules;
 /// </para>
 /// <para>
 /// A hit is compared to the Chrona the player held before it, the same convention
-/// <see cref="ChronaGeneratedBelowThreshold"/> applies to a gain.
-/// <c>[Before&lt;ChronaTracker&gt;]</c> is what puts this analyzer ahead of the tracker.
+/// <see cref="ChronaGeneratedBelowThreshold"/> applies to a gain. A Chrona change the hit's own resource
+/// block revealed is dispatched ahead of the hit, so the hit reads the amount before that change.
 /// </para>
 /// </remarks>
 [RequiresTalent(AeonaTalents.Synchronicity)]
 [Dependency<Abilities>]
 [Dependency<ChronaTracker>]
-[Before<ChronaTracker>]
 public sealed partial class SynchronicityAnalyzer : Analyzer
 {
     private int? _chronaGeneratedBelowThreshold;
+
+    private ResourceChangeEvent? _lastChronaChange;
 
     /// <summary>
     /// The share of maximum Chrona below which Synchronicity increases generation. Codex
@@ -85,11 +86,23 @@ public sealed partial class SynchronicityAnalyzer : Analyzer
         DamageAboveThreshold
         * (SynchronicityDamageIncrease / (1 + SynchronicityDamageIncrease));
 
+    [On<ResourceChangeEvent>(By = Actor.Player)]
+    private void OnPlayerResourceChange(ResourceChangeEvent e)
+    {
+        if (e.ResourceChangeType == ResourceTypes.Primary)
+            _lastChronaChange = e;
+    }
+
     [On<DamageEvent>(By = Actor.Player)]
     private void OnPlayerDamage(DamageEvent e)
     {
         if (SpendsChrona(e.Ability.FSLID)) return;
-        if (ChronaTracker.AmountAt(ResourceTypes.Primary, e.Timestamp) <= Threshold) return;
+
+        var held = _lastChronaChange is { } change && ReferenceEquals(change.Trigger, e)
+            ? change.PreviousResourceAmount ?? 0
+            : ChronaTracker.AmountAt(ResourceTypes.Primary, e.Timestamp);
+
+        if (held <= Threshold) return;
 
         DamageAboveThreshold += e.Amount;
     }

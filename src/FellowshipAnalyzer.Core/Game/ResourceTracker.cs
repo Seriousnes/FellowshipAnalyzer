@@ -7,10 +7,9 @@ using Microsoft.Extensions.Logging;
 namespace FellowshipAnalyzer.Core.Resources;
 
 /// <summary>
-/// Tracks all resource types for the selected player by subscribing to all events via
-/// <see cref="Analysis.Events.Any"/> and inspecting <see cref="Event.SourceResources"/> /
-/// <see cref="Event.TargetResources"/> to find the selected player's resources.
-/// Spend tracking is driven by <see cref="CastEvent"/> via <see cref="Analysis.Events.Cast"/>.
+/// Tracks all resource types for the selected player from the player's <see cref="ResourceChangeEvent"/>s.
+/// A rise in a resource is a gain; a fall only moves the current amount, because spend tracking is
+/// driven by the cost on each <see cref="CastEvent"/>.
 /// </summary>
 public partial class ResourceTracker(ILogger<ResourceTracker> logger) : Analyzer
 {
@@ -84,54 +83,39 @@ public partial class ResourceTracker(ILogger<ResourceTracker> logger) : Analyzer
     [On<ResourceChangeEvent>(By = Actor.Player)]
     private void OnResourceChange(ResourceChangeEvent e)
     {
-        var gained = (int)(e.ResourceChange - e.Waste);
-        var wasted = (int)e.Waste;
-        RecordGain(
-            e.ResourceChangeType,
-            e.Ability.Id,
-            gained: gained,
-            wasted: wasted,
-            currentAfterFromEvent: null,
-            maxFromEvent: null,
-            e.Timestamp);
-    }
+        if (e.UnitResources is not null)
+            UpdateHealth(e.UnitResources);
 
-    [On<Event>]
-    private void OnEvent(Event e)
-    {
-        ActorResources? playerResources = null;
-        if (e is IHasSourceEvent src && Owner.ByPlayer(src))
-            playerResources = e.SourceResources;
-        else if (e is IHasTargetEvent tgt && Owner.ToPlayer(tgt))
-            playerResources = e.TargetResources;
-
-        if (e is ResourceChangeEvent or BaseCastEvent || playerResources is not { Resources.Count: > 0 })
-            return;
-
-        UpdateHealth(playerResources);
-
-        var spellId = (e as IAbilityEvent)?.Ability.Id ?? 0;
-
-        foreach (var resource in playerResources.Resources)
+        if (e.ResourceAmount is not { } amount)
         {
-            var state = GetOrCreateState(resource.Type, resource.Max);
-            var delta = resource.Amount - state.Current;
+            RecordGain(
+                e.ResourceChangeType,
+                e.Ability.Id,
+                gained: (int)(e.ResourceChange - e.Waste),
+                wasted: (int)e.Waste,
+                currentAfterFromEvent: null,
+                maxFromEvent: null,
+                e.Timestamp);
+            return;
+        }
 
-            if (delta > 0)
-            {
-                RecordGain(
-                    resource.Type,
-                    spellId,
-                    gained: delta,
-                    wasted: 0,
-                    currentAfterFromEvent: resource.Amount,
-                    maxFromEvent: null,
-                    e.Timestamp);
-            }
-            else if (delta < 0)
-            {
-                state.Current = resource.Amount;
-            }
+        var state = GetOrCreateState(e.ResourceChangeType, e.ResourceMax);
+        var delta = amount - state.Current;
+
+        if (delta > 0)
+        {
+            RecordGain(
+                e.ResourceChangeType,
+                e.Ability.Id,
+                gained: delta,
+                wasted: 0,
+                currentAfterFromEvent: amount,
+                maxFromEvent: null,
+                e.Timestamp);
+        }
+        else if (delta < 0)
+        {
+            state.Current = amount;
         }
     }
 
@@ -155,37 +139,18 @@ public partial class ResourceTracker(ILogger<ResourceTracker> logger) : Analyzer
         {
             var state = GetOrCreateState(resource.Type, resource.Max);
             var effectiveCost = resource.Cost ?? GetResourceCost(e, resource.Type);
-            var trackerBefore = state.Current;
-
-            var implicitGain = resource.Amount - state.Current;
-            if (implicitGain > 0)
-            {
-                RecordGain(
-                    resource.Type,
-                    spellId: 0,
-                    gained: implicitGain,
-                    wasted: 0,
-                    currentAfterFromEvent: resource.Amount,
-                    maxFromEvent: null,
-                    e.Timestamp);
-            }
-            else if (implicitGain < 0)
-            {
-                state.Current = resource.Amount;
-            }
 
             if (effectiveCost is > 0 && effectiveCost.Value > state.Current)
             {
                 _logger.LogError(
-                    "{Tracker} overspend: cast of {AbilityName} ({AbilityId}) at {Timestamp} spends {Cost} {ResourceType} but player has only {Available} (tracker before reconcile: {TrackerBefore}).",
+                    "{Tracker} overspend: cast of {AbilityName} ({AbilityId}) at {Timestamp} spends {Cost} {ResourceType} but player has only {Available}.",
                     GetType().Name,
                     e.Ability.Name,
                     e.Ability.Id,
                     this.Owner.FormatTimestamp(e.Timestamp, 3),
                     effectiveCost.Value,
                     resource.Type,
-                    state.Current,
-                    trackerBefore);
+                    state.Current);
             }
 
             if (effectiveCost is > 0)

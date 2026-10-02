@@ -33,6 +33,7 @@ Combat events are mutable classes, not structs.
 - `Ability` models the nested log ability object and maps JSON `guid` to `Ability.FSLID`; `Ability.Id` is an ignored alias for `FSLID`.
 - `ActorResources` models `sourceResources` and `targetResources`, including health, position, facing, and resource snapshots.
 - `ResourceNormalizer` scales log resource values before analyzers see them.
+- `ResourceChangeNormalizer` fabricates a `ResourceChangeEvent` for every change it reads in any unit's resource blocks, placed before the event that revealed it (`Trigger`), with the amount before and after the change.
 
 Do not hand-maintain a static event schema. Use the `analyze-event-schema` skill and `event-schema.cs` tool when validating log JSON against `src/FellowshipAnalyzer.Core/Events/`.
 
@@ -44,6 +45,7 @@ Do not hand-maintain a static event schema. Use the `analyze-event-schema` skill
 [AddNormalizer<AbilityMasterDataNormalizer>]
 [AddNormalizer<ResourceNormalizer>]
 [AddNormalizer<CastLinkNormalizer>]
+[AddNormalizer<ResourceChangeNormalizer>]
 [AddModule<DebugAnnotations>]
 [AddAnalyzer<Combatants>]
 [AddAnalyzer<StatTracker>]
@@ -180,8 +182,7 @@ Normalizers may mutate the list in place or return a new list. They are appropri
 
 `ResourceTracker` tracks all observed `ResourceTypes` for the selected player.
 
-- It subscribes to `[On<Event>]` to inspect selected-player `SourceResources` or `TargetResources` snapshots.
-- It subscribes to `[On<CastEvent>(By = Actor.Player)]` to track spends and `[On<ResourceChangeEvent>(By = Actor.Player)]` to track gains.
+- It subscribes to `[On<ResourceChangeEvent>(By = Actor.Player)]` to follow each resource's amount and record gains, and to `[On<CastEvent>(By = Actor.Player)]` to record spends.
 - It stores per-resource `ResourceState` objects keyed by `ResourceTypes`.
 - Hero trackers override `GetResourceCost(CastEvent, ResourceTypes)` when logs do not provide cost deltas directly.
 - Hero trackers may set `MaxOverrides[ResourceTypes.X]` in their constructor.
