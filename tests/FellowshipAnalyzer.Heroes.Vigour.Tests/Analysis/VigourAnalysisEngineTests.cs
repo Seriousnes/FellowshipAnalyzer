@@ -16,7 +16,7 @@ namespace FellowshipAnalyzer.Heroes.Vigour.Tests.Analysis;
 public sealed class VigourAnalysisEngineTests
 {
     [Fact]
-    public async Task Analyze_ShouldNotProvideGuideComponentType_ForWipHero()
+    public async Task Analyze_ProvidesTheVigourGuide()
     {
         var services = new ServiceCollection();
         services.AddLogging();
@@ -29,7 +29,7 @@ public sealed class VigourAnalysisEngineTests
         var analyzer = scope.ServiceProvider.GetRequiredKeyedService<IHeroAnalyzer>(HeroName.Vigour);
         var result = await analyzer.Analyze([], playerId: 1, dungeon: new ReportDungeon(0, "", 0, null, 0, 0, null, null, null));
 
-        result.GuideComponentType.ShouldBeNull();
+        result.GuideComponentType.ShouldBe(typeof(VigourGuide));
     }
 
     [Fact]

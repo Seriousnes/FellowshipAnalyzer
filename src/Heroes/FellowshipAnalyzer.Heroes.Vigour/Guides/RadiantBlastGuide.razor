@@ -1,0 +1,59 @@
+@inherits GuideComponent<VigourCombatLogParser>
+
+<GuideSection Title="Radiant Blast">
+    <LeftPanel>
+        <p>
+            Cast <strong><SpellLink Spell="Spells.RadiantBlast" /></strong> on cooldown.
+            Aim it at enemies.
+        </p>
+    </LeftPanel>
+    <RightPanel>
+        <CastOverview Title="Radiant Blast Overview" Stats="@BuildOverviewStats()" />
+        <CastDetail Title="Casts by Pull"
+                    Description="Each card is one pull."
+                    Casts="@BuildPullRows()" />
+    </RightPanel>
+</GuideSection>
+
+@code {
+    protected override bool IsActive() => Analyzers.Any(analyzer => analyzer.CastCount > 0);
+
+    private List<RadiantBlastAnalyzer> Analyzers => [.. Parser.RadiantBlastAnalyzers.Select(entry => entry.Analyzer)];
+
+    private IEnumerable<OverviewStat> BuildOverviewStats()
+    {
+        var analyzers = Analyzers;
+        var duration = analyzers.Sum(analyzer => (long)analyzer.Pull.Duration);
+        if (duration <= 0) return [];
+
+        var ready = analyzers.Sum(analyzer => (long)analyzer.ReadyMs) / (double)duration;
+
+        return
+        [
+            new OverviewStat($"{ready:P0}", "Time Ready", "Share of combat with Radiant Blast off cooldown and not cast, outside Avatar of Light.", ReadyTier(ready)),
+            new OverviewStat($"{analyzers.Sum(analyzer => analyzer.CastCount)}", "Casts"),
+            new OverviewStat($"{analyzers.Sum(analyzer => analyzer.AvatarCasts)}", "AoL Casts"),
+        ];
+    }
+
+    private IEnumerable<PerCastData> BuildPullRows() =>
+        Parser.RadiantBlastAnalyzers.ToPullRows(Parser, (analyzer, pull) => BuildPullRow(analyzer));
+
+    private static PerCastRow BuildPullRow(RadiantBlastAnalyzer analyzer)
+    {
+        var performance = ReadyTier(analyzer.ReadyShare);
+
+        return new PerCastRow
+        {
+            Performance = performance,
+            Stats =
+            [
+                new PerCastStat($"{analyzer.ReadyShare:P0}", "Time Ready", Performance: performance),
+                new PerCastStat($"{analyzer.CastCount}", "Casts"),
+                new PerCastStat($"{analyzer.AvatarCasts}", "AoL Casts"),
+            ],
+        };
+    }
+
+    private static QualitativePerformance ReadyTier(double ready) => PerformanceTiers.FromThresholds(1 - ready, 0.55, 0.4, 0.3);
+}

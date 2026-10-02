@@ -1,0 +1,60 @@
+@inherits GuideComponent<VigourCombatLogParser>
+
+<GuideSection Title="Soulbrand">
+    <LeftPanel>
+        <p>
+            Keep <strong><SpellLink Spell="Spells.Soulbrand" /></strong> on at least one enemy at all times.
+            Hold the button to brand up to 4 enemies at once.
+        </p>
+    </LeftPanel>
+    <RightPanel>
+        <CastOverview Title="Soulbrand Overview" Stats="@BuildOverviewStats()" />
+        <CastDetail Title="Coverage by Pull"
+                    Description="Each card is one pull."
+                    Casts="@BuildPullRows()" />
+    </RightPanel>
+</GuideSection>
+
+@code {
+    protected override bool IsActive() => Analyzers.Any(analyzer => analyzer.CastCount > 0);
+
+    private List<SoulbrandAnalyzer> Analyzers => [.. Parser.SoulbrandAnalyzers.Select(entry => entry.Analyzer)];
+
+    private IEnumerable<OverviewStat> BuildOverviewStats()
+    {
+        var analyzers = Analyzers;
+        var duration = analyzers.Sum(analyzer => (long)analyzer.Pull.Duration);
+        if (duration <= 0) return [];
+
+        var coverage = analyzers.Sum(analyzer => (long)analyzer.CoveredMs) / (double)duration;
+        var enemies = analyzers.Sum(analyzer => analyzer.AverageEnemies * analyzer.Pull.Duration) / duration;
+
+        return
+        [
+            new OverviewStat($"{coverage:P0}", "Coverage", "Share of combat with Soulbrand on at least one enemy.", CoverageTier(coverage)),
+            new OverviewStat($"{enemies:0.0}", "Enemies", "Average enemies with Soulbrand across combat."),
+            new OverviewStat($"{analyzers.Sum(analyzer => analyzer.CastCount)}", "Casts"),
+        ];
+    }
+
+    private IEnumerable<PerCastData> BuildPullRows() =>
+        Parser.SoulbrandAnalyzers.ToPullRows(Parser, (analyzer, pull) => BuildPullRow(analyzer));
+
+    private static PerCastRow BuildPullRow(SoulbrandAnalyzer analyzer)
+    {
+        var performance = CoverageTier(analyzer.Coverage);
+
+        return new PerCastRow
+        {
+            Performance = performance,
+            Stats =
+            [
+                new PerCastStat($"{analyzer.Coverage:P0}", "Coverage", Performance: performance),
+                new PerCastStat($"{analyzer.AverageEnemies:0.0}", "Enemies"),
+                new PerCastStat($"{analyzer.CastCount}", "Casts"),
+            ],
+        };
+    }
+
+    private static QualitativePerformance CoverageTier(double coverage) => PerformanceTiers.FromThresholds(coverage, 0.9, 0.8, 0.7);
+}

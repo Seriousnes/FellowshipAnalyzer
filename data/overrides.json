@@ -561,6 +561,34 @@
   "vigour": {
     "RuneOfRenewalAlt": {
       "id": 999
+    },
+    "RuneOfRenewalBuff": {
+      "id": 1316,
+      "kind": "effect"
+    },
+    "RuneOfRenewalEcho": {
+      "id": 1328,
+      "kind": "effect"
+    },
+    "AvatarOfLightBuff": {
+      "id": 1333,
+      "kind": "effect"
+    },
+    "LightshaperWardBuff": {
+      "id": 1342,
+      "kind": "effect"
+    },
+    "ExpansiveMindBuff": {
+      "id": 1294,
+      "kind": "effect"
+    },
+    "CeremonyOfLightBuff": {
+      "id": 2278,
+      "kind": "effect"
+    },
+    "MeticulousRunesmithAbsorb": {
+      "id": 2289,
+      "kind": "effect"
     }
   },
   "shared": {

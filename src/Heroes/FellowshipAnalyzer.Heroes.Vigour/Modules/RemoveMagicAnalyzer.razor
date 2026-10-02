@@ -1,0 +1,19 @@
+@inherits Analyzer
+
+@code {
+    public override RenderFragment? Statistic => Casts > 0 ? Card : null;
+
+    private RenderFragment Card =>
+        @<StatCard Title="Remove Magic">
+            <ChildContent>
+                <CastOverview Title="Dispels" Stats="@BuildStats()" />
+            </ChildContent>
+        </StatCard>;
+
+    private IEnumerable<OverviewStat> BuildStats() =>
+    [
+        new OverviewStat($"{Dispels}", "Dispels", "Harmful magic effects Remove Magic removed."),
+        new OverviewStat($"{Casts}", "Casts"),
+        new OverviewStat($"{CastsWithoutDispel}", "No Dispel", "Casts that removed nothing."),
+    ];
+}

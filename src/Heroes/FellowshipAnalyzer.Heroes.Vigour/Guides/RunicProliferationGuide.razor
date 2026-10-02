@@ -1,0 +1,96 @@
+@inherits GuideComponent<VigourCombatLogParser>
+
+<GuideSection Title="Runic Proliferation">
+    <LeftPanel>
+        <p>
+            Cast <strong><SpellLink Spell="Spells.RunicProliferation" /></strong> on cooldown.
+            Spend its window on <SpellLink Spell="Spells.RuneOfRenewal" />, <SpellLink Spell="Spells.LuminousBarrier" />
+            and <SpellLink Spell="Spells.Soulbrand" />.
+            Cast them at least @GoodSpenders times before it ends.
+        </p>
+    </LeftPanel>
+    <RightPanel>
+        <CastOverview Title="Runic Proliferation Overview" Stats="@BuildOverviewStats()" />
+        <CastDetail Title="Casts by Pull"
+                    Description="Each card is one Runic Proliferation cast."
+                    Casts="@BuildCastRows()" />
+    </RightPanel>
+</GuideSection>
+
+@code {
+    private const int PerfectSpenders = 4;
+    private const int GoodSpenders = 3;
+    private const int OkSpenders = 2;
+
+    protected override bool IsActive() => Analyzers.Any(analyzer => analyzer.CastCount > 0);
+
+    private List<RunicProliferationAnalyzer> Analyzers => [.. Parser.RunicProliferationAnalyzers.Select(entry => entry.Analyzer)];
+
+    private IEnumerable<OverviewStat> BuildOverviewStats()
+    {
+        var casts = Analyzers.SelectMany(analyzer => analyzer.Casts).ToList();
+        if (casts.Count == 0) return [];
+
+        var spenders = casts.Sum(cast => cast.SpenderCount);
+        var average = spenders / (double)casts.Count;
+
+        return
+        [
+            new OverviewStat($"{casts.Count}", "Casts"),
+            new OverviewStat(
+                $"{average:0.0}",
+                "Spenders",
+                "Average Rune of Renewal, Luminous Barrier and Soulbrand casts in each Runic Proliferation.",
+                SpenderTier(average)),
+            new OverviewStat(
+                spenders == 0 ? "-" : $"{casts.Sum(cast => cast.TargetsHit) / (double)spenders:0.0}",
+                "Targets",
+                "Average targets each Rune of Renewal, Luminous Barrier or Soulbrand reached during Runic Proliferation."),
+            new OverviewStat(
+                $"{casts.Sum(cast => cast.RunesLost)}",
+                "Runes Lost",
+                "Radiant Runes from Runic Proliferation above the cap of 6."),
+        ];
+    }
+
+    private IEnumerable<PerCastData> BuildCastRows() =>
+        Parser.RunicProliferationAnalyzers.ToItemRows(
+            Parser,
+            analyzer => analyzer.Casts,
+            (cast, pull) => BuildCastRow(cast));
+
+    private PerCastRow BuildCastRow(RunicProliferationCast cast)
+    {
+        var performance = SpenderTier(cast.SpenderCount);
+        var stats = new List<PerCastStat>
+        {
+            new($"{cast.SpenderCount}", "Spenders", Performance: performance),
+            new($"{cast.TargetsHit}", "Targets"),
+        };
+
+        if (cast.RunesBefore is { } held)
+            stats.Add(new PerCastStat($"{held}", "Runes Held"));
+
+        stats.Add(new PerCastStat($"{cast.RunesLost}", "Runes Lost"));
+
+        return new PerCastRow
+        {
+            Performance = performance,
+            Timestamp = cast.Timestamp,
+            Stats = [.. stats],
+            Details = cast.SpenderCount < GoodSpenders ? BuildDetails(cast) : null,
+        };
+    }
+
+    private static RenderFragment BuildDetails(RunicProliferationCast cast) =>
+        @<div>
+            <ul>
+                <li>You cast @Count(cast.SpenderCount) before <SpellLink Spell="Spells.RunicProliferation" /> ended.</li>
+            </ul>
+        </div>;
+
+    private static string Count(int spenders) => spenders == 1 ? "1 rune spender" : $"{spenders} rune spenders";
+
+    private static QualitativePerformance SpenderTier(double spenders) =>
+        PerformanceTiers.FromThresholds(spenders, PerfectSpenders, GoodSpenders, OkSpenders);
+}

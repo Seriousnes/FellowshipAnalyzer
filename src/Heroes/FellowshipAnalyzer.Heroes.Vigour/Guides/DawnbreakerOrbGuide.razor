@@ -1,0 +1,60 @@
+@inherits GuideComponent<VigourCombatLogParser>
+
+<GuideSection Title="Dawnbreaker Orb">
+    <LeftPanel>
+        <p>
+            Cast <strong><SpellLink Spell="Spells.DawnbreakerOrb" /></strong> on cooldown.
+            Aim it through as many allies and enemies as you can.
+        </p>
+    </LeftPanel>
+    <RightPanel>
+        <CastOverview Title="Dawnbreaker Orb Overview" Stats="@BuildOverviewStats()" />
+        <CastDetail Title="Casts by Pull"
+                    Description="Each card is one pull."
+                    Casts="@BuildPullRows()" />
+    </RightPanel>
+</GuideSection>
+
+@code {
+    protected override bool IsActive() => Analyzers.Any(analyzer => analyzer.CastCount > 0);
+
+    private List<DawnbreakerOrbAnalyzer> Analyzers => [.. Parser.DawnbreakerOrbAnalyzers.Select(entry => entry.Analyzer)];
+
+    private IEnumerable<OverviewStat> BuildOverviewStats()
+    {
+        var analyzers = Analyzers;
+        var duration = analyzers.Sum(analyzer => (long)analyzer.Pull.Duration);
+        var casts = analyzers.SelectMany(analyzer => analyzer.Casts).ToList();
+        if (duration <= 0 || casts.Count == 0) return [];
+
+        var ready = analyzers.Sum(analyzer => (long)analyzer.ReadyMs) / (double)duration;
+
+        return
+        [
+            new OverviewStat($"{ready:P0}", "Time Ready", "Share of combat with Dawnbreaker Orb off cooldown and not cast.", ReadyTier(ready)),
+            new OverviewStat($"{casts.Average(cast => cast.TargetsHit):0.0}", "Targets", "Average allies and enemies each Orb reached."),
+            new OverviewStat($"{casts.Count}", "Casts"),
+        ];
+    }
+
+    private IEnumerable<PerCastData> BuildPullRows() =>
+        Parser.DawnbreakerOrbAnalyzers.ToPullRows(Parser, (analyzer, pull) => BuildPullRow(analyzer));
+
+    private static PerCastRow BuildPullRow(DawnbreakerOrbAnalyzer analyzer)
+    {
+        var performance = ReadyTier(analyzer.ReadyShare);
+
+        return new PerCastRow
+        {
+            Performance = performance,
+            Stats =
+            [
+                new PerCastStat($"{analyzer.ReadyShare:P0}", "Time Ready", Performance: performance),
+                new PerCastStat(analyzer.AverageTargetsHit is { } targets ? $"{targets:0.0}" : "-", "Targets"),
+                new PerCastStat($"{analyzer.CastCount}", "Casts"),
+            ],
+        };
+    }
+
+    private static QualitativePerformance ReadyTier(double ready) => PerformanceTiers.FromThresholds(1 - ready, 0.55, 0.4, 0.3);
+}
