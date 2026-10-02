@@ -1,6 +1,6 @@
 @inherits GuideComponent<AeonaCombatLogParser>
 
-<GuideSection Title="Entropy's Claim">
+<GuideSection Title="Entropy's Claim and Entropic Burst">
     <LeftPanel>
         <p>
             Cast the next <strong><SpellLink Spell="Spells.EntropyClaim" /></strong> 2 to 4 seconds before the active
@@ -19,12 +19,9 @@
     <RightPanel>
         <CastOverview Title="Entropy's Claim Overview" Stats="@BuildOverviewStats()" />
 
-        @if (BurstTaken)
-        {
-            <CastDetail Title="Entropic Burst by Pull"
-                        Description="Each row shows the peak stacks, rollovers, and lapses of one pull."
-                        Casts="@BuildPullRows()" />
-        }
+        <CastDetail Title="Entropic Burst by Pull"
+                    Description="Each row shows the peak stacks, rollovers, and lapses of one pull."
+                    Casts="@BuildPullRows()" />
 
         <CastDetail Title="Casts by Pull"
                     Description="Each row shows one cast, its lead before the active Entropy's Claim expires, and what its own expiry did to Entropic Burst."
@@ -33,14 +30,10 @@
 </GuideSection>
 
 @code {
-    protected override bool IsActive() => Build?.MassEntropy == true && Analyzers.Any(analyzer => analyzer.CastCount > 0);
-
-    private AeonaBuild? Build => Parser.AeonaBuild;
+    protected override bool IsActive() => Analyzers.Any(analyzer => analyzer.CastCount > 0);
 
     private List<EntropyClaimAnalyzer> Analyzers =>
         [.. Parser.EntropyClaimAnalyzers.Select(entry => entry.Analyzer).OfType<EntropyClaimAnalyzer>()];
-
-    private bool BurstTaken => Analyzers.Any(analyzer => analyzer.EntropicBurstTaken);
 
     private IEnumerable<OverviewStat> BuildOverviewStats()
     {
@@ -49,37 +42,36 @@
 
         var casts = analyzers.Sum(analyzer => analyzer.CastCount);
         var delays = analyzers.SelectMany(analyzer => analyzer.DelaysAfterReady).ToList();
-        var stats = new List<OverviewStat>();
+        var rollovers = analyzers.Sum(analyzer => analyzer.Rollovers);
+        var lapsesWithCharge = analyzers.Sum(analyzer => analyzer.LapsesWithChargeAvailable);
+        var lapses = analyzers.Sum(analyzer => analyzer.Lapses.Count);
+        var rated = rollovers + lapsesWithCharge;
+        var share = rated > 0 ? (double)rollovers / rated : (double?)null;
+        var peakStacks = analyzers.Max(analyzer => analyzer.PeakStacks);
 
-        if (BurstTaken)
+        var stats = new List<OverviewStat>
         {
-            var rollovers = analyzers.Sum(analyzer => analyzer.Rollovers);
-            var lapsesWithCharge = analyzers.Sum(analyzer => analyzer.LapsesWithChargeAvailable);
-            var lapses = analyzers.Sum(analyzer => analyzer.Lapses.Count);
-            var rated = rollovers + lapsesWithCharge;
-            var share = rated > 0 ? (double)rollovers / rated : (double?)null;
-
-            stats.Add(new OverviewStat(
+            new(
                 share is { } value ? $"{value:P0}" : "-",
                 "Rollover Share",
                 "Entropic Burst rollovers, out of all rollovers plus all lapses with a charge available.",
-                share is { } tiered ? RolloverTier(tiered) : null));
-            stats.Add(new OverviewStat(
+                share is { } tiered ? RolloverTier(tiered) : null),
+            new(
                 $"{lapsesWithCharge} of {lapses}",
                 "Lapses With a Charge Available",
-                "Entropic Burst lapses with an Entropy's Claim charge available in time, out of every lapse."));
-            stats.Add(new OverviewStat(
-                $"{analyzers.Max(analyzer => analyzer.PeakStacks)}",
+                "Entropic Burst lapses with an Entropy's Claim charge available in time, out of every lapse."),
+            new(
+                $"{peakStacks}",
                 "Peak Stacks",
-                Performance: StackTier(analyzers.Max(analyzer => analyzer.PeakStacks))));
-            stats.Add(new OverviewStat(
+                Performance: StackTier(peakStacks)),
+            new(
                 $"{WeightedAverageStacks(analyzers):0.#}",
                 "Average Stacks",
-                "Average Entropic Burst stacks on an enemy, weighted by the time Entropic Burst was active on each enemy."));
-            stats.Add(new OverviewStat(
+                "Average Entropic Burst stacks on an enemy, weighted by the time Entropic Burst was active on each enemy."),
+            new(
                 $"{analyzers.Sum(analyzer => analyzer.CastsRolledOver)} of {casts}",
-                "Casts Rolled Over"));
-        }
+                "Casts Rolled Over"),
+        };
 
         stats.Add(new OverviewStat(
             TimeFormat.Seconds(AverageLead(analyzers), 1),
@@ -140,46 +132,39 @@
 
     private PerCastRow BuildCastRow(EntropyClaimCast cast)
     {
-        var performance = !BurstTaken ? null
-            : cast.RolledOver ? QualitativePerformance.Perfect
+        var performance = cast.RolledOver ? QualitativePerformance.Perfect
             : cast.BurstApplications > 0 ? QualitativePerformance.Ok
             : (QualitativePerformance?)null;
-
-        var stats = new List<PerCastStat>
-        {
-            new(
-                cast.LeadBeforeExpiryMs is { } lead ? TimeFormat.Seconds(lead, 1) : "-",
-                "Lead Before Expiry",
-                "Time from this cast to the expiry of the active Entropy's Claim."),
-            new(
-                TimeFormat.Seconds(cast.DelayAfterReadyMs, 1),
-                "Delay After Ready"),
-        };
-
-        if (BurstTaken)
-        {
-            stats.Add(new PerCastStat(
-                $"{cast.BurstRollovers}",
-                "Stacks Rolled Over",
-                Performance: performance));
-            stats.Add(new PerCastStat(
-                $"{cast.BurstApplications}",
-                "Stacks Applied",
-                "Entropic Burst applications when the Entropy's Claim from this cast expired."));
-        }
 
         return new PerCastRow
         {
             Performance = performance,
             Timestamp = cast.Timestamp,
-            Stats = [.. stats],
+            Stats =
+            [
+                new PerCastStat(
+                    cast.LeadBeforeExpiryMs is { } lead ? TimeFormat.Seconds(lead, 1) : "-",
+                    "Lead Before Expiry",
+                    "Time from this cast to the expiry of the active Entropy's Claim."),
+                new PerCastStat(
+                    TimeFormat.Seconds(cast.DelayAfterReadyMs, 1),
+                    "Delay After Ready"),
+                new PerCastStat(
+                    $"{cast.BurstRollovers}",
+                    "Stacks Rolled Over",
+                    Performance: performance),
+                new PerCastStat(
+                    $"{cast.BurstApplications}",
+                    "Stacks Applied",
+                    "Entropic Burst applications when the Entropy's Claim from this cast expired."),
+            ],
         };
     }
 
     private static double WeightedAverageStacks(List<EntropyClaimAnalyzer> analyzers)
     {
-        var stackMs = analyzers.Sum(analyzer => analyzer.EntropicBurstStackMs ?? 0);
-        var unitActiveMs = analyzers.Sum(analyzer => analyzer.EntropicBurstUnitActiveMs ?? 0);
+        var stackMs = analyzers.Sum(analyzer => analyzer.EntropicBurstStackMs);
+        var unitActiveMs = analyzers.Sum(analyzer => analyzer.EntropicBurstUnitActiveMs);
         return unitActiveMs > 0 ? stackMs / (double)unitActiveMs : 0;
     }
 

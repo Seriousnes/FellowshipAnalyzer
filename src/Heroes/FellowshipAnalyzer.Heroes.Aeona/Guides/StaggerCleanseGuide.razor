@@ -10,13 +10,6 @@
         <p>
             Below that, cast <SpellLink Spell="Spells.Oblivion" /> instead.
         </p>
-        @if (Build?.MassEntropy == true)
-        {
-            <p>
-                When <SpellLink Spell="Spells.EntropyClaim" /> is on cooldown, cleanse only if the tank will pass 55%
-                before the next charge. If it will not, continue to cast <SpellLink Spell="Spells.Oblivion" /> and roll <SpellLink Spell="Spells.EntropicBurst" /> over.
-            </p>
-        }
         @if (EchoesTaken)
         {
             <p>
@@ -38,8 +31,6 @@
 
 @code {
     protected override bool IsActive() => Analyzers.Any(analyzer => analyzer.Casts.Count > 0);
-
-    private AeonaBuild? Build => Parser.AeonaBuild;
 
     private List<StaggerCleanseAnalyzer> Analyzers =>
         [.. Parser.StaggerCleanseAnalyzers.Select(entry => entry.Analyzer)];
@@ -85,17 +76,6 @@
                 $"{analyzers.Sum(analyzer => analyzer.BelowOblivionValueCasts)}",
                 "Below an Oblivion",
                 "Casts with effective healing below an Oblivion cast's effective healing plus shielding."));
-        }
-
-        var onCooldown = analyzers.Sum(analyzer => analyzer.CastsWithEntropyClaimOnCooldown);
-        if (onCooldown > 0)
-        {
-            var waited = analyzers.Sum(analyzer => analyzer.CastsCouldHaveWaited);
-            stats.Add(new OverviewStat(
-                $"{waited} of {onCooldown}",
-                "Could Have Waited for Entropy's Claim",
-                "Casts where the tank's Stagger at the next charge was below 55% of its maximum health, out of every cast with Entropy's Claim on cooldown. The count includes a cast only if the tank held less than 40% of its maximum health in Stagger.",
-                onCooldown > 0 ? WaitTier(waited, onCooldown) : null));
         }
 
         AddCleansedStat(stats, analyzers, Spells.AmendFate.FSLID, "Stagger Cleansed by Amend Fate");
@@ -186,23 +166,6 @@
                 amendFate ? null : $"Total Stagger cleansed from {Count(AlliesCleansed(cast), "ally", "allies")}."));
         }
 
-        if (cast.EntropyClaimReadyInMs > 0)
-        {
-            stats.Add(new PerCastStat(
-                TimeFormat.Seconds(cast.EntropyClaimReadyInMs, 1),
-                "EC Cooldown",
-                "Time until the next Entropy's Claim charge."));
-
-            if (cast.ProjectedStaggerFraction is { } projected)
-            {
-                stats.Add(new PerCastStat(
-                    $"{projected:P0}",
-                    "Stagger at EC",
-                    "The tank's Stagger when the next Entropy's Claim charge is ready, as a percentage of its maximum health.",
-                    cast.CouldHaveWaited ? QualitativePerformance.Fail : QualitativePerformance.Perfect));
-            }
-        }
-
         if (cast.WasFree)
         {
             stats.Add(new PerCastStat(
@@ -281,12 +244,6 @@
                 bullets.Add($"{cast.Overheal:N0} was wasted as overhealing.");
         }
 
-        if (cast.CouldHaveWaited && cast.ProjectedStaggerFraction is { } projected)
-        {
-            bullets.Add($"The tank's Stagger was {projected:P0} at the next Entropy's Claim charge, under " +
-                $"{NumberFormat.Percent(StaggerCleanseAnalyzer.EntropicBurstHoldStaggerFraction, 1)}. This cast could have waited for that charge.");
-        }
-
         if (cast.EchoesOverwrittenMs is { } overwritten)
             bullets.Add($"This cast refreshed Echoes of Divinity with {TimeFormat.Seconds(overwritten, 1)} remaining.");
 
@@ -314,7 +271,4 @@
     private static string Count(int count, string singular, string plural) => $"{count} {(count == 1 ? singular : plural)}";
     private static QualitativePerformance FlagTier(int flagged, int rated) =>
         PerformanceTiers.FromThresholds(1 - (double)flagged / rated, 0.95, 0.85, 0.7);
-
-    private static QualitativePerformance WaitTier(int waited, int onCooldown) =>
-        PerformanceTiers.FromThresholds(1 - (double)waited / onCooldown, 0.9, 0.75, 0.5);
 }
