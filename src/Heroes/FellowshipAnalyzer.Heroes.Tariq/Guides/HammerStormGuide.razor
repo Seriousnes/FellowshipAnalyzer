@@ -63,7 +63,7 @@
             new(
                 $"{truncated}",
                 "Truncated Channels",
-                $"Channels that dealt damage but stopped before their {Ordinal(HammerStormAnalyzer.ExpectedSpins)} spin.",
+                $"Channels that dealt damage but stopped before their {NumberFormat.Ordinal(HammerStormAnalyzer.ExpectedSpins)} spin.",
                 CleanShareTier(withTargets, truncated, 100, 95, 86)),
             new(
                 $"{averageTargets:0.0}",
@@ -140,7 +140,7 @@
                 $"{cast.SpinsCompleted}/{HammerStormAnalyzer.ExpectedSpins}",
                 "Spins Completed",
                 cast.Truncated
-                    ? $"The channel was cut off before its {Ordinal(HammerStormAnalyzer.ExpectedSpins)} spin."
+                    ? $"The channel was cut off before its {NumberFormat.Ordinal(HammerStormAnalyzer.ExpectedSpins)} spin."
                     : null,
                 SpinTier(cast)),
         };
@@ -210,15 +210,6 @@
 
         return new SchismProcEconomy(gained, consumed, overwritten, expired);
     }
-
-    private static string Ordinal(int value) => value switch
-    {
-        1 => "first",
-        2 => "second",
-        3 => "third",
-        4 => "fourth",
-        _ => $"{value}th",
-    };
 
     private static QualitativePerformance? CleanShareTier(int withTargets, int offenders, double perfect, double good, double ok) =>
         withTargets == 0

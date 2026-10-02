@@ -167,13 +167,7 @@
     }
 
     private string FormatRange(PullStartEvent pull) =>
-        $"({FormatClock(pull.StartTime - DungeonStartTime)} - {FormatClock(pull.EndTime - DungeonStartTime)})";
-
-    private static string FormatClock(int milliseconds)
-    {
-        var totalSeconds = Math.Max(0, milliseconds) / 1000;
-        return $"{totalSeconds / 60}:{totalSeconds % 60:D2}";
-    }
+        $"({TimeFormat.Timestamp(pull.StartTime - DungeonStartTime)} - {TimeFormat.Timestamp(pull.EndTime - DungeonStartTime)})";
 
     private void Toggle()
     {

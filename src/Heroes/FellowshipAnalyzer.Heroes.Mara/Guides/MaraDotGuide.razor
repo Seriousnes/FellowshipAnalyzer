@@ -123,7 +123,7 @@
         if (analyzer.HemorrhageApplications.Count > 0)
         {
             stats.Add(new PerCastStat(
-                FormatSeconds((int)analyzer.HemorrhageApplications.Average(application => application.ExpectedDurationMs)),
+                TimeFormat.Seconds((int)analyzer.HemorrhageApplications.Average(application => application.ExpectedDurationMs), 1),
                 "Avg Bleed Length"));
         }
 
@@ -231,14 +231,14 @@
         {
             if (entry.GapCount == 0) continue;
 
-            notes.Add($"{entry.Dot.Effect.Name} was off the primary target {Count(entry.GapCount, "time")} for {FormatSeconds(entry.TotalGapMs)}");
+            notes.Add($"{entry.Dot.Effect.Name} was off the primary target {entry.GapCount} {Plural(entry.GapCount, "time", "times")} for {TimeFormat.Seconds(entry.TotalGapMs, 1)}");
         }
 
         var clipped = analyzer.HemorrhageRefreshes.Where(refresh => refresh.RemainingMs > EarlyClipRemainingMs).ToList();
         if (clipped.Count > 0)
         {
             var averageLost = (int)clipped.Average(refresh => refresh.RemainingMs);
-            notes.Add($"{Count(clipped.Count, "Hemorrhaging Strike")} overwrote a bleed with {FormatSeconds(averageLost)} left on average");
+            notes.Add($"{clipped.Count} {Plural(clipped.Count, "Hemorrhaging Strike", "Hemorrhaging Strikes")} overwrote a bleed with {TimeFormat.Seconds(averageLost, 1)} left on average");
         }
 
         if (notes.Count == 0)
@@ -257,7 +257,7 @@
             notes.Add($"the bleed spread to {analyzer.HemorrhageTargets} of {analyzer.RosterSize} enemies ({coverage}%)");
 
         if (analyzer.VolatilePoisonRefreshes > 0)
-            notes.Add($"Volatile Poison was applied {Count(analyzer.VolatilePoisonRefreshes, "time")} to a target that already had it");
+            notes.Add($"Volatile Poison was applied {analyzer.VolatilePoisonRefreshes} {Plural(analyzer.VolatilePoisonRefreshes, "time", "times")} to a target that already had it");
 
         return Sentence(notes);
     }
@@ -287,12 +287,6 @@
         }
         return builder.ToString();
     }
-
-    private static string Count(int value, string noun) =>
-        value == 1 ? $"1 {noun}" : $"{value} {noun}s";
-
-    private static string FormatSeconds(int milliseconds) =>
-        $"{milliseconds / 1000d:0.#}s";
 
     private static QualitativePerformance? Worse(QualitativePerformance? left, QualitativePerformance? right)
     {

@@ -10,12 +10,12 @@
 
         <div class="aura-bar-strip"
              style="left: @left; width: @width; --level: @aura.Level;"
-             title="@aura.Name - @FormatDuration(aura.ClippedEnd - aura.ClippedStart)"></div>
+             title="@aura.Name - @TimeFormat.Seconds(aura.ClippedEnd - aura.ClippedStart, 1)"></div>
 
         <div class="aura-bar-indicator" style="left: @OffsetPx(aura.IconAt); --level: @aura.Level;"></div>
 
         <div class="aura-bar-icon" style="left: @OffsetPx(aura.IconAt); --level: @aura.Level;"
-             title="@aura.Name applied at @FormatTimestamp(aura.AppliedAt)">
+             title="@aura.Name applied at @TimeFormat.Timestamp(aura.AppliedAt - DungeonStartTime)">
             <SpellIcon Spell="@aura.Spell" Size="SpellIconSize.Small" />
         </div>
     }
@@ -72,20 +72,6 @@
     private string F(double v) => v.ToString("F1", CultureInfo.InvariantCulture);
     private string OffsetPx(int ts) => F((ts - WindowStart) / 1000.0 * PixelsPerSecond) + "px";
     private string DurPx(int ms) => F(ms / 1000.0 * PixelsPerSecond) + "px";
-
-    private string FormatTimestamp(int ts)
-    {
-        var totalSec = (ts - DungeonStartTime) / 1000;
-        var min = totalSec / 60;
-        var sec = totalSec % 60;
-        return min > 0 ? $"{min}:{sec:D2}" : $"{sec}s";
-    }
-
-    private static string FormatDuration(int ms)
-    {
-        var seconds = ms / 1000.0;
-        return $"{seconds:F1}s";
-    }
 
     private IEnumerable<TrackedBuffEvent> AurasToRender()
     {

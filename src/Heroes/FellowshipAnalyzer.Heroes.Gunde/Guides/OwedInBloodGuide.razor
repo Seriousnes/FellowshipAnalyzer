@@ -112,7 +112,7 @@
                     : "Banked stacks expired unused.",
                 accounted > 0 ? RetentionTier(RetentionRate(converted, accounted)) : null),
             new OverviewStat(
-                FormatSeconds(cappedMs),
+                TimeFormat.Seconds(cappedMs, 1),
                 "Time at Cap",
                 $"Time at {OwedInBloodEconomyAnalyzer.MaxStacks} stacks.",
                 CapTier(cappedMs)),
@@ -213,8 +213,6 @@
 
     private static int RetentionRate(int converted, int accounted) =>
         (int)Math.Round((double)converted / accounted * 100);
-
-    private static string FormatSeconds(int milliseconds) => $"{milliseconds / 1000d:0.#}s";
 
     private static QualitativePerformance RetentionTier(int percent) =>
         PerformanceTiers.FromThresholds(percent, RetentionPerfect, RetentionGood, RetentionOk);

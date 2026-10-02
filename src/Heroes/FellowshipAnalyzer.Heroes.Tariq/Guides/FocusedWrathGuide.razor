@@ -142,8 +142,8 @@
             return "Every charge this buff granted went to a spender.";
 
         return window.ClippedByPullEnd
-            ? $"The pull ended with {ChargeCount(unspent)} still on this buff."
-            : $"The buff expired with {ChargeCount(unspent)} left.";
+            ? $"The pull ended with {unspent} {Plural(unspent, "charge", "charges")} still on this buff."
+            : $"The buff expired with {unspent} {Plural(unspent, "charge", "charges")} left.";
     }
 
     private static string? SpenderTooltip(FocusedWrathWindow window)
@@ -160,8 +160,6 @@
             ? $"Every charge went to {preferred}, the spender this pull calls for."
             : $"{window.WrongSpenders} of {window.RatedSpenders} charges went to a spender other than {preferred}.";
     }
-
-    private static string ChargeCount(int charges) => charges == 1 ? "1 charge" : $"{charges} charges";
 
     private static QualitativePerformance ChargeTier(FocusedWrathWindow window)
     {

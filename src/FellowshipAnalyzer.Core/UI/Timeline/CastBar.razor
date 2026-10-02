@@ -12,7 +12,7 @@
         }
         @for (var i = 0; i < _wholeCells; i++)
         {
-            <div class="cast-bar-time-line-sec" style="width: @F(PixelsPerSecond)px;" data-duration="@FormatSec(_firstBorderSec + i)"></div>
+            <div class="cast-bar-time-line-sec" style="width: @F(PixelsPerSecond)px;" data-duration="@TimeFormat.Timestamp((_firstBorderSec + i) * 1000L)"></div>
         }
     </div>
 
@@ -35,12 +35,12 @@
                     {
                         <div class="cast-bar-cast-time" style="left: @Px(ci.BeginCast.Timestamp); width: @DurPx(ci.Cast.Timestamp - ci.BeginCast.Timestamp);"></div>
                     }
-                    @CastIconDiv(ci.Ability, ci.Cast.Ability, Px(ci.BeginCast?.Timestamp ?? ci.Cast.Timestamp), title: FormatTimestamp(ci.BeginCast?.Timestamp ?? ci.Cast.Timestamp))
+                    @CastIconDiv(ci.Ability, ci.Cast.Ability, Px(ci.BeginCast?.Timestamp ?? ci.Cast.Timestamp), title: TimeFormat.Timestamp((ci.BeginCast?.Timestamp ?? ci.Cast.Timestamp) - DungeonStartTime))
                 }
             }
             else if (item is CancelledCastItem cci)
             {
-                @CastIconDiv(cci.Ability, cci.BeginCast.Ability, Px(cci.BeginCast.Timestamp), extraClass: "cast-bar-cast-cancelled", title: $"Cancelled at {FormatTimestamp(cci.BeginCast.Timestamp)}")
+                @CastIconDiv(cci.Ability, cci.BeginCast.Ability, Px(cci.BeginCast.Timestamp), extraClass: "cast-bar-cast-cancelled", title: $"Cancelled at {TimeFormat.Timestamp(cci.BeginCast.Timestamp - DungeonStartTime)}")
             }
             else if (item is ChannelItem chi)
             {
@@ -59,7 +59,7 @@
                         <div class="cast-bar-channel" style="left: @Px(chanStart); width: @DurPx(chanWidth);"></div>
                     }
                 }
-                @CastIconDiv(chi.Ability, chi.BeginChannel.Ability, Px(chi.BeginChannel.Timestamp), title: FormatTimestamp(chi.BeginChannel.Timestamp))
+                @CastIconDiv(chi.Ability, chi.BeginChannel.Ability, Px(chi.BeginChannel.Timestamp), title: TimeFormat.Timestamp(chi.BeginChannel.Timestamp - DungeonStartTime))
             }
         }
     </div>
@@ -156,21 +156,6 @@
     }
 
     private static string F(double v) => v.ToString("F1", CultureInfo.InvariantCulture);
-
-    private string FormatTimestamp(int timestamp)
-    {
-        var totalSec = (timestamp - DungeonStartTime) / 1000;
-        var min = totalSec / 60;
-        var sec = totalSec % 60;
-        return $"{min}:{sec:D2}";
-    }
-
-    private static string FormatSec(int sec)
-    {
-        var min = sec / 60;
-        var s = sec % 60;
-        return $"{min}:{s:D2}";
-    }
 
     protected override void OnParametersSet()
     {

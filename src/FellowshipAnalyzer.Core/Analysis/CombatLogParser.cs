@@ -1,5 +1,3 @@
-using System.Globalization;
-
 using FellowshipAnalyzer.Core.Analysis.Deaths;
 using FellowshipAnalyzer.Core.Analysis.Gems;
 using FellowshipAnalyzer.Core.Analysis.Normalizers;
@@ -7,6 +5,7 @@ using FellowshipAnalyzer.Core.Events;
 using FellowshipAnalyzer.Core.FellowshipLogs;
 using FellowshipAnalyzer.Core.Game;
 using FellowshipAnalyzer.Core.UI;
+using FellowshipAnalyzer.Core.Utility;
 
 using Microsoft.Extensions.Logging;
 
@@ -462,21 +461,8 @@ public abstract partial class CombatLogParser(EventEmitter eventEmitter, IServic
     /// Formats an absolute event timestamp as time into the analyzed dungeon (mm:ss).
     /// Uses <see cref="DungeonStartTime"/> obtained from the Fellowship Logs API.
     /// </summary>
-    public string FormatTimestamp(int timestamp, int precision = 0)
-    {
-        var totalSeconds = (timestamp - DungeonStartTime) / 1000d;
-        var negative = totalSeconds < 0 ? "-" : string.Empty;
-        var positiveSeconds = Math.Abs(totalSeconds);
-        var minutes = (int)Math.Floor(positiveSeconds / 60);
-        var multiplier = Math.Pow(10, precision);
-        var remainder = (Math.Floor((positiveSeconds % 60) * multiplier) / multiplier)
-            .ToString($"F{precision}", CultureInfo.InvariantCulture);
-        var seconds = double.Parse(remainder, CultureInfo.InvariantCulture) < 10
-            ? $"0{remainder}"
-            : remainder;
-
-        return $"{negative}{minutes}:{seconds}";
-    }
+    public string FormatTimestamp(int timestamp, int precision = 0) =>
+        TimeFormat.Timestamp(timestamp - DungeonStartTime, precision);
 
     /// <summary>Whether <paramref name="e"/> was sourced by <paramref name="playerId"/>, defaulting to <see cref="PlayerId"/>.</summary>
     public bool ByPlayer(IHasSourceEvent e, int? playerId = null) => e.SourceId == (playerId ?? PlayerId);

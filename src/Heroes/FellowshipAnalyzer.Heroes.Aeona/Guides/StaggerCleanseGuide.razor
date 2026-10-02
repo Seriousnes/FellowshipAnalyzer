@@ -73,9 +73,9 @@
         {
             var flagged = analyzers.Sum(analyzer => analyzer.FlaggedCasts);
             stats.Add(new OverviewStat(
-                $"{flagged} ({FormatShare(flagged, rated)})",
+                $"{flagged} ({NumberFormat.Share(flagged, rated, 1)})",
                 "Flagged Casts",
-                $"Casts on an ally with less Stagger than one cast cleanses, or with effective healing below an Oblivion, out of {rated} casts. The count includes a cast only if the tank held less than {FormatPercent(OblivionAnalyzer.CleansePriorityStaggerFraction)} of its maximum health in Stagger.",
+                $"Casts on an ally with less Stagger than one cast cleanses, or with effective healing below an Oblivion, out of {rated} casts. The count includes a cast only if the tank held less than {NumberFormat.Percent(OblivionAnalyzer.CleansePriorityStaggerFraction, 1)} of its maximum health in Stagger.",
                 FlagTier(flagged, rated)));
             stats.Add(new OverviewStat(
                 $"{analyzers.Sum(analyzer => analyzer.LowStaggerCasts)}",
@@ -111,11 +111,11 @@
         {
             var combatMs = analyzers.Sum(analyzer => (long)analyzer.Pull.Duration);
             stats.Add(new OverviewStat(
-                FormatShare(echoes.Sum(use => (long)use.ActiveMs), combatMs),
+                NumberFormat.Share(echoes.Sum(use => (long)use.ActiveMs), combatMs, 1),
                 "Echoes of Divinity Uptime",
                 "Share of combat with Echoes of Divinity active on the tank."));
             stats.Add(new OverviewStat(
-                FormatSeconds(echoes.Sum(use => use.OverwrittenMs)),
+                TimeFormat.Seconds(echoes.Sum(use => use.OverwrittenMs), 1),
                 "Echoes of Divinity Overwritten",
                 "Remaining Echoes of Divinity time on the tank when a cleanse refreshed it."));
         }
@@ -189,7 +189,7 @@
         if (cast.EntropyClaimReadyInMs > 0)
         {
             stats.Add(new PerCastStat(
-                FormatSeconds(cast.EntropyClaimReadyInMs),
+                TimeFormat.Seconds(cast.EntropyClaimReadyInMs, 1),
                 "EC Cooldown",
                 "Time until the next Entropy's Claim charge."));
 
@@ -220,7 +220,7 @@
         if (cast.EchoesOverwrittenMs is { } overwritten)
         {
             stats.Add(new PerCastStat(
-                FormatSeconds(overwritten),
+                TimeFormat.Seconds(overwritten, 1),
                 "EoD Overwritten",
                 "Remaining Echoes of Divinity time on the tank when this cast refreshed it.",
                 QualitativePerformance.Fail));
@@ -284,11 +284,11 @@
         if (cast.CouldHaveWaited && cast.ProjectedStaggerFraction is { } projected)
         {
             bullets.Add($"The tank's Stagger was {projected:P0} at the next Entropy's Claim charge, under " +
-                $"{FormatPercent(StaggerCleanseAnalyzer.EntropicBurstHoldStaggerFraction)}. This cast could have waited for that charge.");
+                $"{NumberFormat.Percent(StaggerCleanseAnalyzer.EntropicBurstHoldStaggerFraction, 1)}. This cast could have waited for that charge.");
         }
 
         if (cast.EchoesOverwrittenMs is { } overwritten)
-            bullets.Add($"This cast refreshed Echoes of Divinity with {FormatSeconds(overwritten)} remaining.");
+            bullets.Add($"This cast refreshed Echoes of Divinity with {TimeFormat.Seconds(overwritten, 1)} remaining.");
 
         if (NotFlaggedReason(cast) is { } reason)
             bullets.Add(reason);
@@ -305,23 +305,16 @@
             return null;
 
         return fraction >= OblivionAnalyzer.CleansePriorityStaggerFraction
-            ? $"Not flagged: the tank had {FormatPercent(fraction)} of its maximum health in Stagger, at or over {FormatPercent(OblivionAnalyzer.CleansePriorityStaggerFraction)}."
+            ? $"Not flagged: the tank had {NumberFormat.Percent(fraction, 1)} of its maximum health in Stagger, at or over {NumberFormat.Percent(OblivionAnalyzer.CleansePriorityStaggerFraction, 1)}."
             : "Not flagged: a free cast is flagged only when it refreshes Echoes of Divinity.";
     }
 
     private static int AlliesCleansed(CleanseCastEntry cast) => cast.Heals.Count(heal => heal.StaggerCleansed is not null);
 
     private static string Count(int count, string singular, string plural) => $"{count} {(count == 1 ? singular : plural)}";
-
-    private static string FormatPercent(double fraction) => $"{fraction * 100:0.#}%";
-
     private static QualitativePerformance FlagTier(int flagged, int rated) =>
         PerformanceTiers.FromThresholds(1 - (double)flagged / rated, 0.95, 0.85, 0.7);
 
     private static QualitativePerformance WaitTier(int waited, int onCooldown) =>
         PerformanceTiers.FromThresholds(1 - (double)waited / onCooldown, 0.9, 0.75, 0.5);
-
-    private static string FormatShare(long part, long whole) => whole > 0 ? $"{part * 100d / whole:0.#}%" : "0%";
-
-    private static string FormatSeconds(long milliseconds) => $"{milliseconds / 1000d:0.#}s";
 }
