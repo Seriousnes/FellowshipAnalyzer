@@ -36,6 +36,11 @@ public class Stats
     public double? AdditionalSpirit { get; set; }
     /// <summary>Flat critical strike power added to the base critical multiplier, as a fraction (0.20 = 20%).</summary>
     public double? AdditionalCritPower { get; set; }
+    /// <summary>
+    /// Multiplier on overall speed, <c>1 + haste</c>, applied after the rating and flat haste are added
+    /// (1.15 = 15% faster); 1 when no multiplier is active.
+    /// </summary>
+    public double? HasteMultiplier { get; set; }
 
     /// <summary>Computes the per-stat difference between two sets of stats, treating missing values as zero.</summary>
     public static Stats operator -(Stats a, Stats b) => new()
@@ -52,5 +57,6 @@ public class Stats
         AdditionalExpertise = (a.AdditionalExpertise ?? 0) - (b.AdditionalExpertise ?? 0),
         AdditionalSpirit = (a.AdditionalSpirit ?? 0) - (b.AdditionalSpirit ?? 0),
         AdditionalCritPower = (a.AdditionalCritPower ?? 0) - (b.AdditionalCritPower ?? 0),
+        HasteMultiplier = (a.HasteMultiplier ?? 1) - (b.HasteMultiplier ?? 1),
     };
 }

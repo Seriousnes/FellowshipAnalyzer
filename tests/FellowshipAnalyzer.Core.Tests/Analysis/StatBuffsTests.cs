@@ -87,25 +87,35 @@ public sealed partial class StatBuffsTests
     }
 
     [Fact]
-    public async Task ThePhilosopher_SizesAllThreeStatsFromTheSpiritHeldAtApplication()
+    public async Task ThePhilosopher_SizesAllThreeStatsFromTheSpiritStatAtApplication()
     {
-        var apply = ApplyBuff(1000, Items.ThePhilosopher.FSLID);
-        apply.TargetResources = new ActorResources
-        {
-            Resources = [new ClassResource { Type = ResourceTypes.Spirit, Amount = 40, Max = 100 }],
-        };
-
         var tracker = await Run(
-            [apply],
+            [ApplyBuff(1000, Items.ThePhilosopher.FSLID)],
+            spirit: 50,
             blessings: [new ItemBlessing { Id = 4000009, Level = 2, Name = "The Philosopher" }]);
 
-        Assert.Equal(0.032, tracker.AdditionalHaste, precision: 10);
-        Assert.Equal(0.032, tracker.AdditionalExpertise, precision: 10);
-        Assert.Equal(0.032, tracker.AdditionalCrit, precision: 10);
+        Assert.Equal(0.0064, tracker.AdditionalHaste, precision: 10);
+        Assert.Equal(0.0064, tracker.AdditionalExpertise, precision: 10);
+        Assert.Equal(0.0064, tracker.AdditionalCrit, precision: 10);
     }
 
     [Fact]
-    public async Task ThePhilosopher_CountsSpiritAboveHalfAsHalf()
+    public async Task ThePhilosopher_TakesItsTierFromEverySlottedCopy()
+    {
+        var tracker = await Run(
+            [ApplyBuff(1000, Items.ThePhilosopher.FSLID)],
+            spirit: 50,
+            blessings:
+            [
+                new ItemBlessing { Id = 4000174, Level = 2, Name = "The Philosopher" },
+                new ItemBlessing { Id = 4000174, Level = 2, Name = "The Philosopher" },
+            ]);
+
+        Assert.Equal(0.016, tracker.AdditionalHaste, precision: 10);
+    }
+
+    [Fact]
+    public async Task ThePhilosopher_IgnoresHowFullTheSpiritBarIs()
     {
         var apply = ApplyBuff(1000, Items.ThePhilosopher.FSLID);
         apply.TargetResources = new ActorResources
@@ -115,6 +125,17 @@ public sealed partial class StatBuffsTests
 
         var tracker = await Run(
             [apply],
+            blessings: [new ItemBlessing { Id = 4000009, Level = 4, Name = "The Philosopher" }]);
+
+        Assert.Equal(0.0, tracker.AdditionalHaste, precision: 10);
+    }
+
+    [Fact]
+    public async Task ThePhilosopher_CountsSpiritAboveHalfAsHalf()
+    {
+        var tracker = await Run(
+            [ApplyBuff(1000, Items.ThePhilosopher.FSLID)],
+            spirit: 400,
             blessings: [new ItemBlessing { Id = 4000009, Level = 4, Name = "The Philosopher" }]);
 
         Assert.Equal(0.10, tracker.AdditionalHaste, precision: 10);
@@ -171,6 +192,65 @@ public sealed partial class StatBuffsTests
     }
 
     [Fact]
+    public async Task AdrenalineRush_AddsItsHasteWhileActive()
+    {
+        var tracker = await Run([ApplyBuff(1000, Items.AdrenalineRushII.FSLID)]);
+
+        Assert.Equal(0.09, tracker.CurrentHastePercentage, precision: 10);
+    }
+
+    [Fact]
+    public async Task EssenceOfTheVirtuoso_AddsTheHasteItRetains()
+    {
+        var tracker = await Run([ApplyBuff(1000, Items.EssenceOfTheVirtuoso.FSLID)]);
+
+        Assert.Equal(0.02, tracker.CurrentHastePercentage, precision: 10);
+    }
+
+    [Fact]
+    public async Task RuneRush_MultipliesOverallSpeedRatherThanAddingHaste()
+    {
+        var tracker = await Run(
+            [
+                ApplyDebuff(1000, Spells.SpiritOfHeroismNotTank.FSLID),
+                ApplyBuff(2000, Spells.RuneRush.FSLID),
+            ]);
+
+        Assert.Equal(1.30 * 1.15 - 1.0, tracker.CurrentHastePercentage, precision: 10);
+        Assert.Equal(1.15, tracker.HasteMultiplier, precision: 10);
+    }
+
+    [Fact]
+    public async Task RuneRush_LeavesOverallSpeedAsItWasOnceItEnds()
+    {
+        var tracker = await Run(
+            [
+                ApplyDebuff(1000, Spells.SpiritOfHeroismNotTank.FSLID),
+                ApplyBuff(2000, Spells.RuneRush.FSLID),
+                RemoveBuff(3000, Spells.RuneRush.FSLID),
+            ]);
+
+        Assert.Equal(0.30, tracker.CurrentHastePercentage, precision: 10);
+        Assert.Equal(1.0, tracker.HasteMultiplier, precision: 10);
+    }
+
+    [Fact]
+    public async Task ShadowsDefeat_MultipliesOverallSpeed()
+    {
+        var tracker = await Run([ApplyBuff(1000, Spells.ShadowsDefeat.FSLID)]);
+
+        Assert.Equal(0.20, tracker.CurrentHastePercentage, precision: 10);
+    }
+
+    [Fact]
+    public async Task StormsFury_AddsCriticalStrikeChance()
+    {
+        var tracker = await Run([ApplyBuff(1000, Spells.StormsFury.FSLID)]);
+
+        Assert.Equal(StatTracker.BaseCritChance + 0.20, tracker.CurrentCritPercentage, precision: 10);
+    }
+
+    [Fact]
     public async Task WrathOfWinter_GrantsNoHaste()
     {
         var tracker = await Run([ApplyBuff(1000, 1001387)]);
@@ -181,6 +261,7 @@ public sealed partial class StatBuffsTests
     private static async Task<StatTracker> Run(
         List<Event> events,
         int mainStat = 0,
+        int spirit = 0,
         List<ItemBlessing>? blessings = null,
         List<ItemTrait>? traits = null)
     {
@@ -195,6 +276,7 @@ public sealed partial class StatBuffsTests
                 Timestamp = 0,
                 SourceId = PlayerId,
                 Intellect = mainStat,
+                Spirit = spirit,
                 Gear = [new Events.Item { Id = 1, Blessings = blessings ?? [], Traits = traits ?? [] }],
             },
             new DungeonStartEvent { Timestamp = 0 },

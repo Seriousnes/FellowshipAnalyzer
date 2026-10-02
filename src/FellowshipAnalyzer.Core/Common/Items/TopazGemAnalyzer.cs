@@ -8,7 +8,7 @@ namespace FellowshipAnalyzer.Core.Analysis.Gems;
 /// <summary>
 /// Measures what the player's Topaz gem contributed. Rogue's Resurgence is the trait the log accounts for,
 /// an emergency heal that fires when the player drops below half health. Topaz's other ranks raise haste
-/// rating and percentage, which the log records only as already applied.
+/// rating and percentage, which <see cref="PassiveBonusTracker"/> adds to the player's stats.
 /// </summary>
 public sealed partial class TopazGemAnalyzer : Analyzer, IGemAnalyzer
 {

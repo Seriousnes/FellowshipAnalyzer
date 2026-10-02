@@ -5,6 +5,10 @@ namespace FellowshipAnalyzer.Core.FellowshipLogs;
 /// <summary>
 /// Represents a single dungeon run within a report.
 /// </summary>
+/// <param name="Modifiers">
+/// The ids of the dungeon modifiers the run was played with, matching the codex <c>modifier</c> records,
+/// or <c>null</c> when the report does not say.
+/// </param>
 public sealed record ReportDungeon(
     int Id,
     string Name,
@@ -17,7 +21,8 @@ public sealed record ReportDungeon(
     double? CompletionPercentage,
     bool InProgress = false,
     List<DungeonPull>? DungeonPulls = null,
-    List<DungeonNpc>? EnemyNpcs = null
+    List<DungeonNpc>? EnemyNpcs = null,
+    List<int>? Modifiers = null
 )
 {
     private const int ZoneEncounterOffset = 100_000;

@@ -205,24 +205,128 @@
   },
   "items": {
     "AdrenalineRush": {
-      "id": 939,
+      "id": 1939,
       "kind": "effect",
       "name": "Adrenaline Rush"
     },
     "AdrenalineRushII": {
-      "id": 940,
+      "id": 1940,
       "kind": "effect",
       "name": "Adrenaline Rush - II"
     },
     "FirstStrike": {
-      "id": 943,
+      "id": 1943,
       "kind": "effect",
       "name": "First Strike"
     },
     "FirstStrikeII": {
-      "id": 944,
+      "id": 1944,
       "kind": "effect",
       "name": "First Strike - II"
+    },
+    "EssenceOfTheVirtuoso": {
+      "id": 1937,
+      "kind": "effect"
+    },
+    "EssenceOfTheVirtuosoII": {
+      "id": 1938,
+      "kind": "effect"
+    },
+    "KillerInstinct": {
+      "id": 1953,
+      "kind": "effect"
+    },
+    "KillerInstinctII": {
+      "id": 1954,
+      "kind": "effect"
+    },
+    "FelineGrace": {
+      "id": 1941,
+      "kind": "effect"
+    },
+    "FelineGraceII": {
+      "id": 1942,
+      "kind": "effect"
+    },
+    "TacticiansAccumen": {
+      "id": 1949,
+      "kind": "effect"
+    },
+    "TacticiansAccumenII": {
+      "id": 1950,
+      "kind": "effect"
+    },
+    "OraclesForesight": {
+      "id": 1911,
+      "kind": "effect"
+    },
+    "OraclesForesightII": {
+      "id": 1912,
+      "kind": "effect"
+    },
+    "BerserkersZeal": {
+      "id": 1909,
+      "kind": "effect"
+    },
+    "BerserkersZealII": {
+      "id": 1910,
+      "kind": "effect"
+    },
+    "ThiefsAlacrity": {
+      "id": 1905,
+      "kind": "effect"
+    },
+    "ThiefsAlacrityII": {
+      "id": 1906,
+      "kind": "effect"
+    },
+    "VanguardsResolve": {
+      "id": 1907,
+      "kind": "effect"
+    },
+    "VanguardsResolveII": {
+      "id": 1908,
+      "kind": "effect"
+    },
+    "MysticsIntuition": {
+      "id": 1901,
+      "kind": "effect"
+    },
+    "MysticsIntuitionII": {
+      "id": 1902,
+      "kind": "effect"
+    },
+    "BlessingOfTheCommander": {
+      "id": 1963,
+      "kind": "effect"
+    },
+    "BlessingOfTheCommanderII": {
+      "id": 1964,
+      "kind": "effect"
+    },
+    "AnomalousResidueRuby": {
+      "id": 2706,
+      "kind": "effect"
+    },
+    "AnomalousResidueAmethyst": {
+      "id": 2710,
+      "kind": "effect"
+    },
+    "AnomalousResidueTopaz": {
+      "id": 2704,
+      "kind": "effect"
+    },
+    "AnomalousResidueEmerald": {
+      "id": 2707,
+      "kind": "effect"
+    },
+    "AnomalousResidueSapphire": {
+      "id": 2705,
+      "kind": "effect"
+    },
+    "AnomalousResidueDiamond": {
+      "id": 2708,
+      "kind": "effect"
     },
     "DarkProphecy": {
       "id": 1994,
@@ -578,6 +682,22 @@
     },
     "SpiritOfHeroismXavian": {
       "id": 2662,
+      "kind": "effect"
+    },
+    "RuneRush": {
+      "id": 2958,
+      "kind": "effect"
+    },
+    "ShadowsDefeat": {
+      "id": 2221,
+      "kind": "effect"
+    },
+    "StormsFury": {
+      "id": 2699,
+      "kind": "effect"
+    },
+    "EmpoweredMinionVictoryRush": {
+      "id": 44,
       "kind": "effect"
     },
     "VeinSprout": {
