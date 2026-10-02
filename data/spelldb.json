@@ -4956,6 +4956,12 @@
       "name": "Decree of the Sun",
       "icon": "T_Sune_Decree"
     },
+    "GoldenHour": {
+      "kind": "effect",
+      "id": 2661,
+      "name": "Golden Hour",
+      "icon": "T_Sune_Omnistrike"
+    },
     "Interrupt": {
       "kind": "ability",
       "id": 1844,
@@ -4976,6 +4982,12 @@
       "id": 2545,
       "name": "Tremble!",
       "icon": "Tex_red_10"
+    },
+    "MagicWard": {
+      "kind": "effect",
+      "id": 2650,
+      "name": "Magic Ward",
+      "icon": "T_Nhance_RPG_Icons_ShadowBarrier"
     },
     "OmegaReprieval": {
       "kind": "ability",
@@ -5151,6 +5163,12 @@
       "id": 2547,
       "name": "Sun Strike",
       "icon": "T_Sune_Sunstrike"
+    },
+    "SwiftReprieval": {
+      "kind": "effect",
+      "id": 2663,
+      "name": "Swift Reprieval",
+      "icon": "T_Sune_BrilliantFlash"
     },
     "Taunt": {
       "kind": "ability",

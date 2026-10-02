@@ -1,9 +1,20 @@
-@using Microsoft.AspNetCore.Components
-@using Microsoft.AspNetCore.Components.Web
+@using FellowshipAnalyzer.Core.Analysis
+@using FellowshipAnalyzer.Core.Utility
+@using FellowshipAnalyzer.Core.Events
+@using FellowshipAnalyzer.Core.Contracts.Design
+@using FellowshipAnalyzer.Core.Common.Spells.Xavian
+@using FellowshipAnalyzer.Core.Game
+@using FellowshipAnalyzer.Core.UI
 @using FellowshipAnalyzer.Core.UI.Components
 @using FellowshipAnalyzer.Core.UI.Diagnostics
 @using FellowshipAnalyzer.Core.UI.Guides
 @using FellowshipAnalyzer.Core.UI.Timeline
-@using FellowshipAnalyzer.Core.Analysis
 @using FellowshipAnalyzer.Heroes.Xavian.Analysis
+@using FellowshipAnalyzer.Heroes.Xavian.Guides
 @using FellowshipAnalyzer.Heroes.Xavian.Modules
+@using Microsoft.AspNetCore.Components
+@using Microsoft.AspNetCore.Components.Web
+
+@using XavianSpells = FellowshipAnalyzer.Core.Common.Spells.Xavian.Spells
+@using Spells = FellowshipAnalyzer.Core.Common.Spells.Xavian.Spells
+@using SpellRegistry = FellowshipAnalyzer.Core.Common.Spells.SpellRegistry

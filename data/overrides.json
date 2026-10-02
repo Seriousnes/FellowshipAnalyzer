@@ -600,6 +600,18 @@
   "xavian": {
     "AuraOfSolaceDamage": {
       "icon": "T_Sune_AuraOfSolace"
+    },
+    "SwiftReprieval": {
+      "id": 2663,
+      "kind": "effect"
+    },
+    "GoldenHour": {
+      "id": 2661,
+      "kind": "effect"
+    },
+    "MagicWard": {
+      "id": 2650,
+      "kind": "effect"
     }
   }
 }
