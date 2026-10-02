@@ -6,9 +6,11 @@ namespace FellowshipAnalyzer.Heroes.Vigour.Modules;
 
 [ForPull(PullKind.Single | PullKind.Multi)]
 [Dependency<SpellUsable>]
+[Dependency<AvatarOfLightAnalyzer>]
 public sealed partial class RadiantBlastAnalyzer : Analyzer
 {
     private readonly ReadyTimeLedger _ready = new();
+    private bool _avatar;
 
     public int CastCount { get; private set; }
 
@@ -16,13 +18,19 @@ public sealed partial class RadiantBlastAnalyzer : Analyzer
 
     public int ReadyMs => _ready.ReadyMs(Pull.StartTime, Pull.EndTime);
 
-    public double ReadyShare => Pull.Duration > 0 ? Math.Min(1d, ReadyMs / (double)Pull.Duration) : 0;
+    public int MeasuredMs => Math.Max(0, Pull.Duration - _ready.ExcludedMs(Pull.StartTime, Pull.EndTime));
 
-    private bool _avatar;
+    public double ReadyShare => MeasuredMs > 0 ? Math.Min(1d, ReadyMs / (double)MeasuredMs) : 0;
 
     [On<PullStartEvent>]
-    private void OnPullStart(PullStartEvent e) =>
+    private void OnPullStart(PullStartEvent e)
+    {
         _ready.Start(e.StartTime, SpellUsable.CooldownRemaining(Spells.RadiantBlast.FSLID, e.StartTime) <= 0);
+        if (!AvatarOfLightAnalyzer.Active) return;
+
+        _avatar = true;
+        _ready.Exclude(e.StartTime);
+    }
 
     [On<UpdateSpellUsableEvent>(By = Actor.Player, Spell = nameof(Spells.RadiantBlast))]
     private void OnUsableChanged(UpdateSpellUsableEvent e) => _ready.Observe(e);
@@ -42,10 +50,8 @@ public sealed partial class RadiantBlastAnalyzer : Analyzer
     }
 
     [On<CastEvent>(By = Actor.Player, Spell = nameof(Spells.RadiantBlast))]
-    private void OnCast(CastEvent e)
+    private void OnCast()
     {
-        if (e.Fake) return;
-
         CastCount++;
         if (_avatar) AvatarCasts++;
     }

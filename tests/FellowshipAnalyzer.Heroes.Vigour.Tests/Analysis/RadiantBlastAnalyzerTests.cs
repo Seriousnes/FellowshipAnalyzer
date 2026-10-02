@@ -25,6 +25,22 @@ public sealed class RadiantBlastAnalyzerTests
         analyzer.CastCount.ShouldBe(2);
         analyzer.AvatarCasts.ShouldBe(2);
         analyzer.ReadyMs.ShouldBeLessThanOrEqualTo(PullDuration - 9_000);
+        analyzer.MeasuredMs.ShouldBe(PullDuration - 9_000);
+    }
+
+    [Fact]
+    public async Task AvatarOfLightActiveAtThePullStartIsExcluded()
+    {
+        var parser = await Analyze(
+            Cast(PullStart - 2_000, Spells.AvatarOfLight, PlayerId),
+            ApplyBuff(PullStart - 2_000, Spells.AvatarOfLightBuff, PlayerId),
+            Cast(PullStart + 1_000, Spells.RadiantBlast),
+            RemoveBuff(PullStart + 7_000, Spells.AvatarOfLightBuff, PlayerId));
+
+        var analyzer = parser.RadiantBlastAnalyzers.ShouldHaveSingleItem().Analyzer;
+
+        analyzer.AvatarCasts.ShouldBe(1);
+        analyzer.MeasuredMs.ShouldBe(PullDuration - 7_000);
     }
 
     [Fact]

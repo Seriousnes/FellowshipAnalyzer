@@ -7,6 +7,7 @@ using VigourTalents = FellowshipAnalyzer.Core.Common.Spells.VigourTalents;
 namespace FellowshipAnalyzer.Heroes.Vigour.Modules;
 
 [RequiresTalent(VigourTalents.SacredBarrier)]
+[Before<SpellUsable>]
 [Dependency<StatTracker>]
 public sealed partial class SacredBarrierAnalyzer : Analyzer
 {

@@ -578,10 +578,6 @@
       "id": 1342,
       "kind": "effect"
     },
-    "ExpansiveMindBuff": {
-      "id": 1294,
-      "kind": "effect"
-    },
     "CeremonyOfLightBuff": {
       "id": 2278,
       "kind": "effect"

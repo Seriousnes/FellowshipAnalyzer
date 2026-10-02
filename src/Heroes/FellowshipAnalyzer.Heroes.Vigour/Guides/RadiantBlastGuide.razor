@@ -23,7 +23,7 @@
     private IEnumerable<OverviewStat> BuildOverviewStats()
     {
         var analyzers = Analyzers;
-        var duration = analyzers.Sum(analyzer => (long)analyzer.Pull.Duration);
+        var duration = analyzers.Sum(analyzer => (long)analyzer.MeasuredMs);
         if (duration <= 0) return [];
 
         var ready = analyzers.Sum(analyzer => (long)analyzer.ReadyMs) / (double)duration;

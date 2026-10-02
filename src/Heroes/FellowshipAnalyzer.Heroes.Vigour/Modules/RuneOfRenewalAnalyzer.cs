@@ -22,12 +22,7 @@ public sealed partial class RuneOfRenewalAnalyzer : Analyzer
     public double? TankUptime => Allies.FirstOrDefault(ally => ally.IsTank)?.Uptime;
 
     [On<CastEvent>(By = Actor.Player, Spell = nameof(Spells.RuneOfRenewal))]
-    private void OnCast(CastEvent e)
-    {
-        if (e.Fake) return;
-
-        Casts++;
-    }
+    private void OnCast() => Casts++;
 
     private List<AllyRuneUptime> ComputeAllies()
     {

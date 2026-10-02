@@ -8,6 +8,8 @@ namespace FellowshipAnalyzer.Heroes.Vigour.Modules;
 [Dependency<SpellUsable>]
 public sealed partial class RemoveMagicAnalyzer : Analyzer
 {
+    public const int DispelGraceMs = 50;
+
     private int? _pending;
 
     public int Casts { get; private set; }
@@ -21,9 +23,7 @@ public sealed partial class RemoveMagicAnalyzer : Analyzer
     [On<CastEvent>(By = Actor.Player)]
     private void OnCast(CastEvent e)
     {
-        if (e.Fake) return;
-
-        if (_pending is { } pending && e.Timestamp > pending)
+        if (_pending is { } pending && e.Timestamp > pending + DispelGraceMs)
         {
             SpellUsable.EndCooldown(Spells.RemoveMagic.FSLID, pending);
             _pending = null;

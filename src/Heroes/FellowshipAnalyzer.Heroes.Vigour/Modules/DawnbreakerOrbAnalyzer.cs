@@ -49,12 +49,7 @@ public sealed partial class DawnbreakerOrbAnalyzer : Analyzer
     private void OnUsableChanged(UpdateSpellUsableEvent e) => _ready.Observe(e);
 
     [On<CastEvent>(By = Actor.Player, Spell = nameof(Spells.DawnbreakerOrb))]
-    private void OnCast(CastEvent e)
-    {
-        if (e.Fake) return;
-
-        _casts.Add(new DawnbreakerOrbCast(e.Timestamp));
-    }
+    private void OnCast(CastEvent e) => _casts.Add(new DawnbreakerOrbCast(e.Timestamp));
 
     [On<HealEvent>(By = Actor.Player, Spell = nameof(Spells.DawnbreakerOrb))]
     private void OnHeal(HealEvent e) => Current(e.Timestamp)?.AddAlly(new UnitKey(e.TargetId, e.TargetInstance ?? 0));

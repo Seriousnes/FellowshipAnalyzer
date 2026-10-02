@@ -19,12 +19,7 @@ public sealed partial class SoulbrandAnalyzer : Analyzer
     private Computed Result => field ??= Compute();
 
     [On<CastEvent>(By = Actor.Player, Spell = nameof(Spells.Soulbrand))]
-    private void OnCast(CastEvent e)
-    {
-        if (e.Fake) return;
-
-        CastCount++;
-    }
+    private void OnCast() => CastCount++;
 
     private Computed Compute()
     {

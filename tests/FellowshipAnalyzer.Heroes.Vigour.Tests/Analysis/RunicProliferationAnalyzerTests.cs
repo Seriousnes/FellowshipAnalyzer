@@ -50,4 +50,18 @@ public sealed class RunicProliferationAnalyzerTests
         cast.RunesLost.ShouldBe(0);
         cast.TargetsHit.ShouldBe(1);
     }
+
+    [Fact]
+    public async Task ACastWithoutARuneSnapshotHasNoRunesLost()
+    {
+        var parser = await Analyze(
+            Cast(PullStart + 1_000, Spells.RunicProliferation, PlayerId),
+            ApplyBuff(PullStart + 1_000, Spells.RunicProliferationBuff, PlayerId));
+
+        var cast = parser.RunicProliferationAnalyzers.ShouldHaveSingleItem().Analyzer.Casts.ShouldHaveSingleItem();
+
+        cast.RunesBefore.ShouldBeNull();
+        cast.RunesLost.ShouldBeNull();
+        cast.EndTimestamp.ShouldBeNull();
+    }
 }

@@ -4511,12 +4511,6 @@
       "name": "Dawnflare",
       "icon": "T_Vigor_Bolt"
     },
-    "ExpansiveMindBuff": {
-      "kind": "effect",
-      "id": 1294,
-      "name": "Expansive Mind",
-      "icon": "T_Nhance_RPG_Icons_ManaTome"
-    },
     "GreaterHeal": {
       "kind": "ability",
       "id": 112,

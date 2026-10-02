@@ -26,8 +26,6 @@ public sealed class ReadyTimeLedger
         Close(ref _readySince, _ready, e.Timestamp);
     }
 
-    public void Cast(int timestamp) => Close(ref _readySince, _ready, timestamp);
-
     public void Exclude(int timestamp) => _excludedSince ??= timestamp;
 
     public void Include(int timestamp) => Close(ref _excludedSince, _excluded, timestamp);
@@ -47,6 +45,8 @@ public sealed class ReadyTimeLedger
 
         return Math.Max(0, total);
     }
+
+    public int ExcludedMs(int start, int end) => AuraWindowLedger.ActiveMs(Clip(_excluded, _excludedSince, start, end));
 
     private static void Close(ref int? since, List<AuraWindow> windows, int timestamp)
     {

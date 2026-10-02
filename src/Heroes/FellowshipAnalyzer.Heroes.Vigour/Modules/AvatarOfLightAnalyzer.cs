@@ -8,25 +8,25 @@ namespace FellowshipAnalyzer.Heroes.Vigour.Modules;
 [Dependency<SpellUsable>]
 public sealed partial class AvatarOfLightAnalyzer : Analyzer
 {
-    private bool _active;
+    public bool Active { get; private set; }
 
     public int CooldownsReset { get; private set; }
 
     [On<ApplyBuffEvent>(To = Actor.Player, Spell = nameof(Spells.AvatarOfLightBuff))]
     private void OnApplied(ApplyBuffEvent e)
     {
-        _active = true;
+        Active = true;
         SpellUsable.EndCooldown(Spells.RadiantBlast.FSLID, e.Timestamp, restoreAllCharges: true);
         SpellUsable.EndCooldown(Spells.CircleOfLight.FSLID, e.Timestamp, restoreAllCharges: true);
     }
 
     [On<RemoveBuffEvent>(To = Actor.Player, Spell = nameof(Spells.AvatarOfLightBuff))]
-    private void OnRemoved() => _active = false;
+    private void OnRemoved() => Active = false;
 
     [On<CastEvent>(By = Actor.Player, Spells = new[] { nameof(Spells.RadiantBlast), nameof(Spells.CircleOfLight) })]
     private void OnEnhancedCast(CastEvent e)
     {
-        if (!_active || e.Fake) return;
+        if (!Active) return;
 
         SpellUsable.EndCooldown(e.Ability.Id, e.Timestamp);
         CooldownsReset++;

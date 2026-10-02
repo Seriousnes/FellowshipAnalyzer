@@ -26,7 +26,7 @@ public sealed class RunicProliferationCast(int timestamp, int? runesBefore)
 
     public int? RunesBefore { get; } = runesBefore;
 
-    public int RunesLost => RunesBefore is { } held ? Math.Max(0, held + RunicProliferationAnalyzer.RunesGenerated - RunicProliferationAnalyzer.RuneCap) : 0;
+    public int? RunesLost => RunesBefore is { } held ? Math.Max(0, held + RunicProliferationAnalyzer.RunesGenerated - RunicProliferationAnalyzer.RuneCap) : null;
 
     public int? EndTimestamp { get; internal set; }
 
@@ -60,13 +60,11 @@ public sealed partial class RunicProliferationAnalyzer : Analyzer
 
     public double? AverageTargetsPerSpender => SpenderCount == 0 ? null : _casts.Sum(cast => cast.TargetsHit) / (double)SpenderCount;
 
-    public int RunesLost => _casts.Sum(cast => cast.RunesLost);
+    public int RunesLost => _casts.Sum(cast => cast.RunesLost ?? 0);
 
     [On<CastEvent>(By = Actor.Player, Spell = nameof(Spells.RunicProliferation))]
     private void OnCast(CastEvent e)
     {
-        if (e.Fake) return;
-
         var cast = new RunicProliferationCast(e.Timestamp, RunesHeld(e));
         _casts.Add(cast);
         _open = cast;
@@ -84,8 +82,6 @@ public sealed partial class RunicProliferationAnalyzer : Analyzer
     [On<CastEvent>(By = Actor.Player, Spells = new[] { nameof(Spells.Soulbrand), nameof(Spells.RuneOfRenewal), nameof(Spells.LuminousBarrier) })]
     private void OnSpender(CastEvent e)
     {
-        if (e.Fake) return;
-
         _lastSpender = new RuneSpenderCast(e.Timestamp, e.Ability.Id);
         _open?.AddSpender(_lastSpender);
     }

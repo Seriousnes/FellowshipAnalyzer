@@ -47,7 +47,7 @@
                 "Targets",
                 "Average targets each Rune of Renewal, Luminous Barrier or Soulbrand reached during Runic Proliferation."),
             new OverviewStat(
-                $"{casts.Sum(cast => cast.RunesLost)}",
+                $"{casts.Sum(cast => cast.RunesLost ?? 0)}",
                 "Runes Lost",
                 "Radiant Runes from Runic Proliferation above the cap of 6."),
         ];
@@ -61,7 +61,7 @@
 
     private PerCastRow BuildCastRow(RunicProliferationCast cast)
     {
-        var performance = SpenderTier(cast.SpenderCount);
+        var performance = cast.EndTimestamp is null ? (QualitativePerformance?)null : SpenderTier(cast.SpenderCount);
         var stats = new List<PerCastStat>
         {
             new($"{cast.SpenderCount}", "Spenders", Performance: performance),
@@ -71,14 +71,15 @@
         if (cast.RunesBefore is { } held)
             stats.Add(new PerCastStat($"{held}", "Runes Held"));
 
-        stats.Add(new PerCastStat($"{cast.RunesLost}", "Runes Lost"));
+        if (cast.RunesLost is { } lost)
+            stats.Add(new PerCastStat($"{lost}", "Runes Lost"));
 
         return new PerCastRow
         {
             Performance = performance,
             Timestamp = cast.Timestamp,
             Stats = [.. stats],
-            Details = cast.SpenderCount < GoodSpenders ? BuildDetails(cast) : null,
+            Details = performance is not null && cast.SpenderCount < GoodSpenders ? BuildDetails(cast) : null,
         };
     }
 
