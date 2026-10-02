@@ -79,7 +79,7 @@
                     : overcapRate < 20 ? QualitativePerformance.Ok
                     : QualitativePerformance.Fail),
             new OverviewStat(
-                FormatDuration(Tracker.CappedMs),
+                TimeFormat.Timestamp(Tracker.CappedMs),
                 "Time at Cap",
                 $"Time at {Tracker.MaxOrbs} orbs ({cappedShare:F0}% of the dungeon).",
                 Tracker.CappedMs == 0 ? QualitativePerformance.Perfect
@@ -113,11 +113,5 @@
         return remaining > 0
             ? $"Lost at {times}, and {remaining} more."
             : $"Lost at {times}.";
-    }
-
-    private static string FormatDuration(int milliseconds)
-    {
-        var totalSeconds = milliseconds / 1000;
-        return $"{totalSeconds / 60}:{totalSeconds % 60:00}";
     }
 }

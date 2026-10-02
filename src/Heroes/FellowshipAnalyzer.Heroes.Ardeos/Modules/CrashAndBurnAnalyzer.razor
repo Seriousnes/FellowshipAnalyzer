@@ -8,13 +8,10 @@
                 <SpellLink Spell="ArdeosSpells.Talents.CrashAndBurn" />
             </Header>
             <ChildContent>
-                <StatRow Value="@Seconds(CooldownReduction.Effective)"
-                         Tooltip="@($"{Seconds(CooldownReduction.Total)} generated, {Seconds(CooldownReduction.Wasted)} wasted")">
-                    <SpellLink Spell="ArdeosSpells.Spells.FireBall" /> reduction, @Pct(CooldownReduction.Efficiency) of @Seconds(CooldownReduction.Total) generated
+                <StatRow Value="@TimeFormat.Seconds(CooldownReduction.Effective, 1)"
+                         Tooltip="@($"{TimeFormat.Seconds(CooldownReduction.Total, 1)} generated, {TimeFormat.Seconds(CooldownReduction.Wasted, 1)} wasted")">
+                    <SpellLink Spell="ArdeosSpells.Spells.FireBall" /> reduction, @NumberFormat.Percent(CooldownReduction.Efficiency) of @TimeFormat.Seconds(CooldownReduction.Total, 1) generated
                 </StatRow>
             </ChildContent>
         </StatCard>;
-
-    private static string Seconds(int milliseconds) => $"{milliseconds / 1000d:0.0}s";
-    private static string Pct(double ratio) => $"{ratio * 100:F0}%";
 }

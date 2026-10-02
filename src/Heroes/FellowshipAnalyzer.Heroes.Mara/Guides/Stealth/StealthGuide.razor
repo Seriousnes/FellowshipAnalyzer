@@ -91,7 +91,7 @@
         var stats = new[]
         {
             new PerCastStat(
-                FormatSeconds(window.DurationMs),
+                TimeFormat.Seconds(window.DurationMs, 1),
                 "Window",
                 "How long the Brooding Shadows stealth buff was active."),
             new PerCastStat(
@@ -127,7 +127,7 @@
         var stats = new List<PerCastStat>
         {
             new(
-                FormatSeconds(window.DurationMs),
+                TimeFormat.Seconds(window.DurationMs, 1),
                 "Window",
                 "How long the Assassin's Guile buff was active."),
             new(
@@ -161,7 +161,7 @@
     private static string BuildStealthNote(StealthWindow window)
     {
         if (window.ConvertingAbilityId is not { } builder)
-            return $"This {FormatSeconds(window.DurationMs)} stealth window closed without a builder.";
+            return $"This {TimeFormat.Seconds(window.DurationMs, 1)} stealth window closed without a builder.";
 
         var notes = new List<string> { $"{BuilderName(builder)} was cast out of stealth" };
 
@@ -180,8 +180,8 @@
         var notes = new List<string>
         {
             window.SpenderCasts == 0
-                ? $"this {FormatSeconds(window.DurationMs)} window expired with no Queen's Fang or Arachnid Assault in it"
-                : $"{Count(window.SpenderCasts, "spender")} cast inside it",
+                ? $"this {TimeFormat.Seconds(window.DurationMs, 1)} window expired with no Queen's Fang or Arachnid Assault in it"
+                : $"{window.SpenderCasts} {Plural(window.SpenderCasts, "spender", "spenders")} cast inside it",
         };
 
         if (HasMalevolence)
@@ -215,12 +215,6 @@
         var joined = string.Join("; ", notes);
         return $"{char.ToUpperInvariant(joined[0])}{joined[1..]}.";
     }
-
-    private static string Count(int value, string noun) =>
-        value == 1 ? $"1 {noun}" : $"{value} {noun}s";
-
-    private static string FormatSeconds(int milliseconds) =>
-        $"{milliseconds / 1000d:0.#}s";
 
     private static int Percent(int part, int total) =>
         total == 0 ? 0 : (int)Math.Round((double)part / total * 100);

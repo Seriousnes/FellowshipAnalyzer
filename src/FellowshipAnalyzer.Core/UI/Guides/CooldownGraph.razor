@@ -76,7 +76,7 @@
     private string SegmentLabel(CooldownGraphLane lane, CooldownGraphSegment segment)
     {
         var name = lane.Ability.Name ?? lane.Ability.PrimarySpell.Name;
-        var span = $"{Clock(segment.Start)} to {Clock(segment.End)}";
+        var span = $"{TimeFormat.Timestamp(segment.Start - DungeonStartTime)} to {TimeFormat.Timestamp(segment.End - DungeonStartTime)}";
         var charged = lane.Ability.Charges > 1;
         var available = charged ? $"{name} at maximum charges" : $"{name} available";
         var directive = charged ? "" : ", cast it on cooldown";
@@ -92,7 +92,7 @@
     }
 
     private string CastLabel(CooldownGraphLane lane, int timestamp) =>
-        $"{lane.Ability.Name ?? lane.Ability.PrimarySpell.Name} cast at {Clock(timestamp)}";
+        $"{lane.Ability.Name ?? lane.Ability.PrimarySpell.Name} cast at {TimeFormat.Timestamp(timestamp - DungeonStartTime)}";
 
     private string Offset(int timestamp) => Percent(timestamp - WindowStart);
 
@@ -100,10 +100,4 @@
 
     private string Percent(int milliseconds) =>
         (Math.Clamp(milliseconds / (double)WindowMs, 0, 1) * 100).ToString("F3", CultureInfo.InvariantCulture) + "%";
-
-    private string Clock(int timestamp)
-    {
-        var seconds = Math.Max(0, timestamp - DungeonStartTime) / 1000;
-        return $"{seconds / 60}:{seconds % 60:00}";
-    }
 }

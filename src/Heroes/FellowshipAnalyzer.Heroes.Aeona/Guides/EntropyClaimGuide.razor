@@ -82,15 +82,15 @@
         }
 
         stats.Add(new OverviewStat(
-            FormatSeconds(AverageLead(analyzers)),
+            TimeFormat.Seconds(AverageLead(analyzers), 1),
             "Lead Before Expiry",
             "Average time from a cast to the expiry of the active Entropy's Claim, for casts with one already active."));
         stats.Add(new OverviewStat(
-            FormatSeconds(delays.Count == 0 ? 0 : (long)delays.Average()),
+            TimeFormat.Seconds(delays.Count == 0 ? 0 : (long)delays.Average(), 1),
             "Delay After Ready",
             "Average time from when a charge became available to the cast that spent it, over every wait."));
         stats.Add(new OverviewStat(
-            FormatShare(analyzers.Sum(analyzer => (long)analyzer.ActiveMs), analyzers.Sum(analyzer => (long)analyzer.Pull.Duration)),
+            NumberFormat.Share(analyzers.Sum(analyzer => (long)analyzer.ActiveMs), analyzers.Sum(analyzer => (long)analyzer.Pull.Duration), 1),
             "Uptime",
             "Share of combat with Entropy's Claim active on at least one enemy."));
 
@@ -125,7 +125,7 @@
                     $"{analyzer.CastCount}",
                     "Casts"),
                 new PerCastStat(
-                    FormatSeconds((long)analyzer.AverageDelayAfterReadyMs),
+                    TimeFormat.Seconds((long)analyzer.AverageDelayAfterReadyMs, 1),
                     "Delay After Ready",
                     "Average time from when a charge became available to the cast that spent it, over every wait in the pull."),
             ],
@@ -148,11 +148,11 @@
         var stats = new List<PerCastStat>
         {
             new(
-                cast.LeadBeforeExpiryMs is { } lead ? FormatSeconds(lead) : "-",
+                cast.LeadBeforeExpiryMs is { } lead ? TimeFormat.Seconds(lead, 1) : "-",
                 "Lead Before Expiry",
                 "Time from this cast to the expiry of the active Entropy's Claim."),
             new(
-                FormatSeconds(cast.DelayAfterReadyMs),
+                TimeFormat.Seconds(cast.DelayAfterReadyMs, 1),
                 "Delay After Ready"),
         };
 
@@ -192,8 +192,4 @@
     private static QualitativePerformance RolloverTier(double share) => PerformanceTiers.FromThresholds(share, 0.9, 0.75, 0.5);
 
     private static QualitativePerformance StackTier(int stacks) => PerformanceTiers.FromThresholds(stacks, 8, 5, 3);
-
-    private static string FormatShare(long part, long whole) => whole > 0 ? $"{part * 100d / whole:0.#}%" : "0%";
-
-    private static string FormatSeconds(long milliseconds) => $"{milliseconds / 1000d:0.#}s";
 }

@@ -97,7 +97,7 @@
                 "Whether Owed in Blood was cast inside this window.",
                 window.OwedInBloodIn ? QualitativePerformance.Perfect : QualitativePerformance.Fail),
             new PerCastStat(
-                FormatSeconds(window.End - window.Start),
+                TimeFormat.Seconds(window.End - window.Start, 1),
                 "Duration",
                 "How long the Reign in Blood buff was active."),
         };
@@ -136,8 +136,6 @@
             2 => $"{names[0]} and {names[1]}",
             _ => $"{string.Join(", ", names.Take(names.Count - 1))} and {names[^1]}",
         };
-
-    private static string FormatSeconds(int milliseconds) => $"{milliseconds / 1000d:0.#}s";
 
     private static QualitativePerformance PercentTier(int percent) => PerformanceTiers.FromThresholds(percent, 75, 50, 25);
 }

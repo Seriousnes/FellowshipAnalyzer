@@ -30,17 +30,15 @@
                 }
                 @if (TemporalShiftTaken)
                 {
-                    <StatRow Value="@FormatSeconds(FleetingHourDurationExtendedMs)"
+                    <StatRow Value="@TimeFormat.Seconds(FleetingHourDurationExtendedMs, 1)"
                              Tooltip="@($"From {BoltsWhileFleetingHourActive} bolts.")">
                         Fleeting Hour duration extended
                     </StatRow>
-                    <StatRow Value="@FormatSeconds(FleetingHourCooldownReducedMs)"
+                    <StatRow Value="@TimeFormat.Seconds(FleetingHourCooldownReducedMs, 1)"
                              Tooltip="@($"From {BoltsWhileFleetingHourInactive} bolts.")">
                         Fleeting Hour cooldown reduced
                     </StatRow>
                 }
             </ChildContent>
         </StatCard>;
-
-    private static string FormatSeconds(int milliseconds) => $"{milliseconds / 1000d:0.#}s";
 }

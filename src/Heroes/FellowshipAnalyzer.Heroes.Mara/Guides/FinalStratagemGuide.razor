@@ -39,7 +39,7 @@
                 "Stratagem Casts",
                 "Final Stratagem casts across every pull."),
             new OverviewStat(
-                FormatSeconds(recoveredMs),
+                TimeFormat.Seconds(recoveredMs, 1),
                 "Recharge Recovered",
                 "Total recharge time the resets removed.",
                 RecoveryTier(averageAbilities, casts)),
@@ -64,7 +64,7 @@
         var stats = new List<PerCastStat>
         {
             new(
-                FormatSeconds(cast.CooldownRecoveredMs),
+                TimeFormat.Seconds(cast.CooldownRecoveredMs, 1),
                 "Recharge Recovered",
                 "Recharge time the reset removed across every hero ability."),
             new(
@@ -96,7 +96,7 @@
                             <SpellLink Spell="ability.AbilityId" />
                             @if (ability.RemainingMs > 0)
                             {
-                                <text> - @FormatSeconds(ability.RemainingMs) left, @ability.ChargesAvailable of @ability.MaxCharges charges available</text>
+                                <text> - @TimeFormat.Seconds(ability.RemainingMs, 1) left, @ability.ChargesAvailable of @ability.MaxCharges charges available</text>
                             }
                             else
                             {
@@ -108,9 +108,6 @@
             </div>),
         };
     }
-
-    private static string FormatSeconds(int milliseconds) =>
-        $"{milliseconds / 1000d:0.#}s";
 
     private static QualitativePerformance AbilitiesTier(int abilitiesReset) =>
         PerformanceTiers.FromThresholds(abilitiesReset, 4, 3, 2);

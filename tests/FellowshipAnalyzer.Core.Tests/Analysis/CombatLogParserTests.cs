@@ -226,7 +226,7 @@ public sealed partial class CombatLogParserTests
 
         var formatted = owner.FormatTimestamp(1_744_535);
 
-        Assert.Equal("0:03", formatted);
+        Assert.Equal("3s", formatted);
     }
 
     [Fact]

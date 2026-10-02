@@ -73,7 +73,7 @@
         {
             var flagged = analyzers.Sum(analyzer => analyzer.FlaggedCasts);
             stats.Add(new OverviewStat(
-                $"{flagged} ({FormatShare(flagged, rated)})",
+                $"{flagged} ({NumberFormat.Share(flagged, rated, 1)})",
                 "Flagged Casts",
                 $"Casts while the target held less than the Stagger removed, or with effective healing below an Oblivion, out of {rated} casts. The count includes a cast only if the tank held less than 40% of its maximum health in Stagger.",
                 FlagTier(flagged, rated)));
@@ -111,11 +111,11 @@
         {
             var combatMs = analyzers.Sum(analyzer => (long)analyzer.Pull.Duration);
             stats.Add(new OverviewStat(
-                FormatShare(echoes.Sum(use => (long)use.ActiveMs), combatMs),
+                NumberFormat.Share(echoes.Sum(use => (long)use.ActiveMs), combatMs, 1),
                 "Echoes of Divinity Uptime",
                 "Share of combat with Echoes of Divinity active on the tank."));
             stats.Add(new OverviewStat(
-                FormatSeconds(echoes.Sum(use => use.OverwrittenMs)),
+                TimeFormat.Seconds(echoes.Sum(use => use.OverwrittenMs), 1),
                 "Echoes of Divinity Overwritten",
                 "Remaining Echoes of Divinity time on the tank when a cleanse refreshed it."));
         }
@@ -187,7 +187,7 @@
         if (cast.EntropyClaimReadyInMs > 0)
         {
             stats.Add(new PerCastStat(
-                FormatSeconds(cast.EntropyClaimReadyInMs),
+                TimeFormat.Seconds(cast.EntropyClaimReadyInMs, 1),
                 "Entropy's Claim Ready In"));
 
             if (cast.ProjectedStaggerFraction is { } projected)
@@ -216,7 +216,7 @@
         if (cast.EchoesOverwrittenMs is { } overwritten)
         {
             stats.Add(new PerCastStat(
-                FormatSeconds(overwritten),
+                TimeFormat.Seconds(overwritten, 1),
                 "Echoes of Divinity Overwritten",
                 "Remaining Echoes of Divinity time on the tank when this cast refreshed it.",
                 QualitativePerformance.Fail));
@@ -235,8 +235,4 @@
 
     private static QualitativePerformance WaitTier(int waited, int onCooldown) =>
         PerformanceTiers.FromThresholds(1 - (double)waited / onCooldown, 0.9, 0.75, 0.5);
-
-    private static string FormatShare(long part, long whole) => whole > 0 ? $"{part * 100d / whole:0.#}%" : "0%";
-
-    private static string FormatSeconds(long milliseconds) => $"{milliseconds / 1000d:0.#}s";
 }

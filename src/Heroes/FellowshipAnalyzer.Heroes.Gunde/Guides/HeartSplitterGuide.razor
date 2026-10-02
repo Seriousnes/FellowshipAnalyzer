@@ -63,7 +63,7 @@
         if (damage > 0)
         {
             stats.Add(new OverviewStat(
-                FormatDamage(damage),
+                NumberFormat.Compact(damage),
                 "Exsanguinate",
                 "Total Exsanguinate damage."));
         }
@@ -93,7 +93,7 @@
                     ? "Rend stacks active on the target when Exsanguinate hit."
                     : "No Exsanguinate damage followed this cast."),
             new PerCastStat(
-                FormatDamage(cast.ExsanguinateDamage),
+                NumberFormat.Compact(cast.ExsanguinateDamage),
                 "Exsanguinate",
                 "Exsanguinate damage from this cast."),
         };
@@ -123,12 +123,6 @@
         var since = cast.MillisecondsSinceSlaughter ?? 0;
         return $"A Slaughter was cast {since / 1000d:0.#}s earlier, and Exsanguinate hit {rend} Rend. Cast Heart Splitter before Slaughter, not after it.";
     }
-
-    private static string FormatDamage(long damage) =>
-        damage >= 1_000_000 ? $"{damage / 1_000_000d:0.0}M"
-        : damage >= 10_000 ? $"{damage / 1_000d:0}k"
-        : damage >= 1_000 ? $"{damage / 1_000d:0.0}k"
-        : $"{damage}";
 
     private static QualitativePerformance PercentTier(int percent) =>
         PerformanceTiers.FromThresholds(percent, 75, 50, 25);

@@ -55,7 +55,7 @@
                                         @(string.IsNullOrWhiteSpace(report.Title) ? report.Code : report.Title)
                                     </a>
                                 </td>
-                                <td class="col-date">@FormatDate(report.StartTime)</td>
+                                <td class="col-date">@TimeFormat.Date(report.StartTime)</td>
                                 <td class="col-dungeons">@report.DungeonCount</td>
                             </tr>
                         }
@@ -90,20 +90,6 @@
         finally
         {
             _isLoading = false;
-        }
-    }
-
-    private static string FormatDate(double startTime)
-    {
-        try
-        {
-            var milliseconds = startTime < 10_000_000_000 ? startTime * 1000 : startTime;
-            var date = DateTimeOffset.FromUnixTimeMilliseconds((long)milliseconds);
-            return date.LocalDateTime.ToString("d MMM yyyy");
-        }
-        catch
-        {
-            return string.Empty;
         }
     }
 }

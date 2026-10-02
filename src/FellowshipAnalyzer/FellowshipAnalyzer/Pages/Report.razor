@@ -206,7 +206,7 @@
                 dungeon,
                 player,
                 _reportInfo.FindNpcIconUrl(dungeon.Name),
-                FormatDuration(dungeon.EndTime - dungeon.StartTime));
+                TimeFormat.Timestamp((long)(dungeon.EndTime - dungeon.StartTime)));
         }
     }
 
@@ -296,12 +296,6 @@
         items.Add(new(header.Dungeon.Name));
         items.Add(new(header.Player.Name));
         return items;
-    }
-
-    private static string FormatDuration(double milliseconds)
-    {
-        var ts = TimeSpan.FromMilliseconds(milliseconds);
-        return ts.TotalMinutes >= 1 ? $"{(int)ts.TotalMinutes}:{ts.Seconds:D2}" : $"{ts.Seconds}s";
     }
 
     private static string FirstCharacter(string value) =>

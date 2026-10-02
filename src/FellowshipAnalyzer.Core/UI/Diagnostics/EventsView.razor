@@ -61,7 +61,7 @@
         <div class="events-scroll">
             <Virtualize Items="@_filteredEvents" Context="e" ItemSize="26" OverscanCount="20">
                 <div class="ev-row @GetRowClass(e)" @onclick="() => LogEvent(e)">
-                    <span class="ev-col ev-time">@FormatTime(e.Timestamp)</span>
+                    <span class="ev-col ev-time">@TimeFormat.Timestamp(e.Timestamp - DungeonStartTime, 3)</span>
                     <span class="ev-col ev-type @GetTypeCssClass(e)">@GetDisplayType(e)</span>
                     <span class="ev-col ev-source">@GetActorName(e, source: true)</span>
                     <span class="ev-col ev-target">@GetActorName(e, source: false)</span>
@@ -194,17 +194,6 @@
                 return false;
             });
         }).ToList();
-    }
-
-    private string FormatTime(int timestamp)
-    {
-        var ms = timestamp - DungeonStartTime;
-        var absMs = Math.Abs(ms);
-        var min = absMs / 60_000;
-        var sec = (absMs / 1000) % 60;
-        var frac = absMs % 1000;
-        var prefix = ms < 0 ? "-" : "";
-        return $"{prefix}{min}:{sec:D2}.{frac:D3}";
     }
 
     private static string GetTypeKey(Event e) =>
