@@ -10,6 +10,10 @@ on:
       - master
   workflow_dispatch:
 
+concurrency:
+  group: swa-${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   build_and_deploy_job:
     if: >-
