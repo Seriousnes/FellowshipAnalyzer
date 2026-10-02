@@ -98,10 +98,19 @@ jobs:
         if: matrix.name == 'Api'
         run: bash .github/scripts/install-functions-core-tools.sh
 
+      - name: Publish Functions API
+        if: matrix.name == 'Api'
+        run: >-
+          dotnet publish src/FellowshipAnalyzer/FellowshipAnalyzer.Api/FellowshipAnalyzer.Api.csproj
+          --configuration Release
+          --output publish/api
+
       - name: Restore test project
         run: dotnet restore ${{ matrix.project }} -p:RunAOTCompilation=false
 
       - name: Run tests
+        env:
+          FELLOWSHIP_API_PUBLISH_DIR: ${{ matrix.name == 'Api' && format('{0}/publish/api', github.workspace) || '' }}
         run: >-
           dotnet test ${{ matrix.project }}
           --configuration Release
