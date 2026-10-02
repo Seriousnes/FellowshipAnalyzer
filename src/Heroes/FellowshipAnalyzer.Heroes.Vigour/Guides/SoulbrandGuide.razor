@@ -16,7 +16,7 @@
 </GuideSection>
 
 @code {
-    protected override bool IsActive() => Analyzers.Any(analyzer => analyzer.CastCount > 0);
+    protected override bool IsActive() => Parser.SoulbrandAnalyzers.Count > 0;
 
     private List<SoulbrandAnalyzer> Analyzers => [.. Parser.SoulbrandAnalyzers.Select(entry => entry.Analyzer)];
 

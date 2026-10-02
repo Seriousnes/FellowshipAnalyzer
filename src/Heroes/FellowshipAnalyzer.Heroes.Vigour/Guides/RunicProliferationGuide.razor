@@ -22,14 +22,14 @@
     private const int GoodSpenders = 3;
     private const int OkSpenders = 2;
 
-    protected override bool IsActive() => Analyzers.Any(analyzer => analyzer.CastCount > 0);
+    protected override bool IsActive() => Parser.RunicProliferationAnalyzers.Count > 0;
 
     private List<RunicProliferationAnalyzer> Analyzers => [.. Parser.RunicProliferationAnalyzers.Select(entry => entry.Analyzer)];
 
     private IEnumerable<OverviewStat> BuildOverviewStats()
     {
         var casts = Analyzers.SelectMany(analyzer => analyzer.Casts).ToList();
-        if (casts.Count == 0) return [];
+        if (casts.Count == 0) return [new OverviewStat("0", "Casts", Performance: QualitativePerformance.Fail)];
 
         var spenders = casts.Sum(cast => cast.SpenderCount);
         var average = spenders / (double)casts.Count;
@@ -47,7 +47,7 @@
                 "Targets",
                 "Average targets each Rune of Renewal, Luminous Barrier or Soulbrand reached during Runic Proliferation."),
             new OverviewStat(
-                $"{casts.Sum(cast => cast.RunesLost ?? 0)}",
+                casts.Any(cast => cast.RunesLost is not null) ? $"{casts.Sum(cast => cast.RunesLost ?? 0)}" : "-",
                 "Runes Lost",
                 "Radiant Runes from Runic Proliferation above the cap of 6."),
         ];

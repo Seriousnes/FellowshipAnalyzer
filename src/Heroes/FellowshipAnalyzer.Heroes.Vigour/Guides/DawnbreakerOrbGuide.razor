@@ -16,7 +16,7 @@
 </GuideSection>
 
 @code {
-    protected override bool IsActive() => Analyzers.Any(analyzer => analyzer.CastCount > 0);
+    protected override bool IsActive() => Parser.DawnbreakerOrbAnalyzers.Count > 0;
 
     private List<DawnbreakerOrbAnalyzer> Analyzers => [.. Parser.DawnbreakerOrbAnalyzers.Select(entry => entry.Analyzer)];
 
@@ -25,14 +25,14 @@
         var analyzers = Analyzers;
         var duration = analyzers.Sum(analyzer => (long)analyzer.Pull.Duration);
         var casts = analyzers.SelectMany(analyzer => analyzer.Casts).ToList();
-        if (duration <= 0 || casts.Count == 0) return [];
+        if (duration <= 0) return [];
 
         var ready = analyzers.Sum(analyzer => (long)analyzer.ReadyMs) / (double)duration;
 
         return
         [
             new OverviewStat($"{ready:P0}", "Time Ready", "Share of combat with Dawnbreaker Orb off cooldown and not cast.", ReadyTier(ready)),
-            new OverviewStat($"{casts.Average(cast => cast.TargetsHit):0.0}", "Targets", "Average allies and enemies each Orb reached."),
+            new OverviewStat(casts.Count == 0 ? "-" : $"{casts.Average(cast => cast.TargetsHit):0.0}", "Targets", "Average allies and enemies each Orb reached."),
             new OverviewStat($"{casts.Count}", "Casts"),
         ];
     }

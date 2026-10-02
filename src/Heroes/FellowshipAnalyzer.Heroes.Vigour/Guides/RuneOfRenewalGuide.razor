@@ -17,7 +17,7 @@
 </GuideSection>
 
 @code {
-    protected override bool IsActive() => Analyzers.Any(analyzer => analyzer.Allies.Any(ally => ally.ActiveMs > 0));
+    protected override bool IsActive() => Parser.RuneOfRenewalAnalyzers.Count > 0;
 
     private List<RuneOfRenewalAnalyzer> Analyzers => [.. Parser.RuneOfRenewalAnalyzers.Select(entry => entry.Analyzer)];
 

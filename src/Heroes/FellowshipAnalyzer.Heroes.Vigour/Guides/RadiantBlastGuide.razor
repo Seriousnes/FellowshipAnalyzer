@@ -16,7 +16,7 @@
 </GuideSection>
 
 @code {
-    protected override bool IsActive() => Analyzers.Any(analyzer => analyzer.CastCount > 0);
+    protected override bool IsActive() => Parser.RadiantBlastAnalyzers.Count > 0;
 
     private List<RadiantBlastAnalyzer> Analyzers => [.. Parser.RadiantBlastAnalyzers.Select(entry => entry.Analyzer)];
 
