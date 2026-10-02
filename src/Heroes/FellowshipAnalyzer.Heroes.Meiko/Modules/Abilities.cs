@@ -108,6 +108,7 @@ public class Abilities : CoreAbilities
             PrimarySpell = Spells.Serenity,
             Category = SpellCategory.Defensive,
             Gcd = null,
+            IsDefensive = true,
             CooldownReducedByHaste = true,
         },
         new()
