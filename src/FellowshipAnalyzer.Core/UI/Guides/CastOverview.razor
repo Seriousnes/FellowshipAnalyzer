@@ -7,7 +7,7 @@
                     ? PerformanceColors.ToColor(stat.Performance.Value)
                     : PerformanceColors.Neutral;
 
-                <StatTile Color="@color" Value="@stat.Value" Label="@stat.Label" Tooltip="@stat.Tooltip" />
+                <StatTile Color="@color" Value="@stat.Value" Label="@stat.Label" Tooltip="@stat.Tooltip" Fit="true" />
             }
         </div>
         @if (AdditionalContent is not null)
