@@ -2,6 +2,7 @@ using FellowshipAnalyzer.Core.Analysis;
 using FellowshipAnalyzer.Core.Common.Spells.Aeona;
 using FellowshipAnalyzer.Core.Events;
 using FellowshipAnalyzer.Core.UI;
+using FellowshipAnalyzer.Heroes.Aeona.Normalizers;
 
 using AeonaTalents = FellowshipAnalyzer.Core.Common.Spells.AeonaTalents;
 
@@ -61,8 +62,8 @@ public sealed record BarrageChannel
 
     /// <summary>
     /// The Stagger Paradoxical Twist cleared off <see cref="PrimaryHealTargetId"/> across the channel, in hit
-    /// points. A bolt counts only when the ally's Stagger was read within <see cref="StaggerTracker.StaggerMaxAgeMs"/>
-    /// before it. <see langword="null"/> without Paradoxical Twist or when no bolt counted.
+    /// points. A bolt counts only when its heal changed the ally's Stagger and the ally's Stagger before that
+    /// change is known. <see langword="null"/> without Paradoxical Twist or when no bolt counted.
     /// </summary>
     public required int? StaggerCleared { get; init; }
 
@@ -110,7 +111,6 @@ public sealed record BarrageChannel
 /// </remarks>
 [Dependency<FleetingHourAnalyzer>]
 [Dependency<SpellUsable>]
-[Dependency<StaggerTracker>]
 public sealed partial class TemporalBarrageAnalyzer : Analyzer
 {
     /// <summary>
@@ -232,6 +232,9 @@ public sealed partial class TemporalBarrageAnalyzer : Analyzer
         if (_current is not { } channel) return;
 
         channel.AddHeal(e.Amount, e.Overheal ?? 0, e.TargetId, e.Timestamp);
+        if (e.RelatedEvent<ResourceChangeEvent>(AeonaEventLinkNormalizer.BarrageStagger) is { PreviousResourceAmount: { } staggerBefore })
+            channel.AddStaggerBeforeBolt(e.TargetId, e.Timestamp, staggerBefore);
+
         RecordBolt(channel, e.Timestamp);
     }
 
@@ -272,7 +275,7 @@ public sealed partial class TemporalBarrageAnalyzer : Analyzer
             Target = target,
             PrimaryHealTargetId = primaryHealTarget,
             StaggerCleared = ParadoxicalTwistTaken && target == BarrageTarget.Ally && primaryHealTarget is { } ally
-                ? MeasureStaggerCleared(ally, builder.HealTimestampsOn(ally))
+                ? MeasureStaggerCleared(builder.StaggerBeforeBoltsOn(ally))
                 : null,
             FleetingHourActiveAtStart = FleetingHourAnalyzer.IsBuffActiveAt(builder.Start),
             BoltsWhileFleetingHourActive = active,
@@ -282,21 +285,21 @@ public sealed partial class TemporalBarrageAnalyzer : Analyzer
         };
     }
 
-    private int? MeasureStaggerCleared(int unitId, IReadOnlyList<int> boltTimestamps)
+    private int? MeasureStaggerCleared(IReadOnlyList<StaggerBeforeBolt> bolts)
     {
         double? cleared = null;
 
-        foreach (var timestamp in boltTimestamps)
+        foreach (var bolt in bolts)
         {
-            if (!FleetingHourAnalyzer.IsBuffActiveAt(timestamp)) continue;
-            if (StaggerTracker.LatestBefore(unitId, timestamp) is not { } before) continue;
-            if (timestamp - before.Timestamp > StaggerTracker.StaggerMaxAgeMs) continue;
+            if (!FleetingHourAnalyzer.IsBuffActiveAt(bolt.Timestamp)) continue;
 
-            cleared = (cleared ?? 0) + before.Amount * ParadoxicalTwistStaggerClearedPerBolt;
+            cleared = (cleared ?? 0) + bolt.Stagger * ParadoxicalTwistStaggerClearedPerBolt;
         }
 
         return cleared is { } amount ? (int)Math.Round(amount) : null;
     }
+
+    private readonly record struct StaggerBeforeBolt(int Timestamp, int Stagger);
 
     private sealed class ChannelBuilder(int start)
     {
@@ -304,6 +307,7 @@ public sealed partial class TemporalBarrageAnalyzer : Analyzer
         private readonly List<int> _damageTargets = [];
         private readonly List<int> _healTargets = [];
         private readonly Dictionary<int, List<int>> _healTimestamps = [];
+        private readonly Dictionary<int, List<StaggerBeforeBolt>> _staggerBeforeBolts = [];
 
         public int Start { get; } = start;
 
@@ -358,6 +362,17 @@ public sealed partial class TemporalBarrageAnalyzer : Analyzer
         }
 
         public void AddCooldownReduction(int effectiveMs) => CooldownReducedMs += effectiveMs;
+
+        public void AddStaggerBeforeBolt(int targetId, int timestamp, int stagger)
+        {
+            if (!_staggerBeforeBolts.TryGetValue(targetId, out var bolts))
+                _staggerBeforeBolts[targetId] = bolts = [];
+
+            bolts.Add(new StaggerBeforeBolt(timestamp, stagger));
+        }
+
+        public IReadOnlyList<StaggerBeforeBolt> StaggerBeforeBoltsOn(int targetId) =>
+            _staggerBeforeBolts.TryGetValue(targetId, out var bolts) ? bolts : [];
 
         public IReadOnlyList<int> HealTimestampsOn(int targetId) =>
             _healTimestamps.TryGetValue(targetId, out var timestamps) ? timestamps : [];

@@ -94,11 +94,10 @@ Declaration order is the default module order (base parser modules first, then t
 
 The base tracker declares the following `[On<>]` subscriptions:
 
-- `[On<Event>]` to inspect selected-player `SourceResources` and `TargetResources` snapshots.
+- `[On<ResourceChangeEvent>(By = Actor.Player)]` to follow each resource's amount and record gains. `ResourceChangeNormalizer` fabricates these from the resource blocks on events.
 - `[On<CastEvent>(By = Actor.Player)]` to record spends from `ClassResource.Cost` or `GetResourceCost`.
-- `[On<ResourceChangeEvent>(By = Actor.Player)]` to record gains.
 
-`ResourceNormalizer` divides every snapshot's Amount/Max/Cost by 100 before dispatch, so tracker values are in-game units (Winter Orbs 0-5, Cinders 0-400), never the raw log scale. The tracker appends a `ResourceEvent` only on positive deltas, so `GetResourceEvents` is gain-only; a faithful over-time series needs a custom `[On<Event>]` snapshot hook.
+`ResourceNormalizer` divides every snapshot's Amount/Max/Cost by 100 before dispatch, so tracker values are in-game units (Winter Orbs 0-5, Cinders 0-400), never the raw log scale. The tracker appends a `ResourceEvent` only on positive deltas, so `GetResourceEvents` is gain-only; a faithful over-time series needs its own `[On<ResourceChangeEvent>]` hook reading `ResourceAmount`.
 
 ## Using Tracker Data In Other Analyzers
 
