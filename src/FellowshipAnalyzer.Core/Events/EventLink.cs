@@ -40,4 +40,10 @@ public sealed record EventLink
 
     /// <summary>Links two events that name different targets. Off by default, so both events must name the same target and instance.</summary>
     public bool AnyTarget { get; init; }
+
+    /// <summary>
+    /// A further test a pair must pass to link, given the linking event and then the candidate referenced
+    /// event. <c>null</c> links every pair the other criteria match.
+    /// </summary>
+    public Func<Event, Event, bool>? AdditionalCondition { get; init; }
 }

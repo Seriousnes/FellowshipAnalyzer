@@ -242,30 +242,105 @@ public sealed class TemporalBarrageAnalyzerTests
     }
 
     [Fact]
-    public async Task StaggerCleared_IsTheStaggerClearedOffTheAllyAcrossTheChannel()
+    public async Task StaggerCleared_IsThreePercentOfTheAllysStaggerBeforeEachBolt()
     {
         var analyzer = await Track(
+            [AeonaTalents.ParadoxicalTwist],
+            FleetingHourApply(800),
+            EchoesOfRuinHeal(900, TankId, rawStagger: 500_000),
+            BeginChannel(1_000),
+            BarrageHeal(1_200, TankId, 400, rawStagger: 400_000),
+            BarrageHeal(1_500, TankId, 400, rawStagger: 300_000),
+            FleetingHourRemove(5_000));
+
+        var channel = analyzer.Channels.ShouldHaveSingleItem();
+        channel.Target.ShouldBe(BarrageTarget.Ally);
+        channel.StaggerCleared.ShouldBe(270);
+        analyzer.StaggerCleared.ShouldBe(270);
+    }
+
+    [Fact]
+    public async Task StaggerCleared_IsAbsentWithoutParadoxicalTwist()
+    {
+        var analyzer = await Track(
+            FleetingHourApply(800),
+            EchoesOfRuinHeal(900, TankId, rawStagger: 500_000),
+            BeginChannel(1_000),
+            BarrageHeal(1_200, TankId, 400, rawStagger: 400_000),
+            BarrageHeal(1_500, TankId, 400, rawStagger: 300_000),
+            FleetingHourRemove(5_000));
+
+        analyzer.Channels.ShouldHaveSingleItem().StaggerCleared.ShouldBeNull();
+        analyzer.StaggerCleared.ShouldBe(0);
+    }
+
+    [Fact]
+    public async Task StaggerCleared_IsAbsentWhenNoBoltStruckUnderFleetingHour()
+    {
+        var analyzer = await Track(
+            [AeonaTalents.ParadoxicalTwist],
             EchoesOfRuinHeal(900, TankId, rawStagger: 500_000),
             BeginChannel(1_000),
             BarrageHeal(1_200, TankId, 400, rawStagger: 400_000),
             BarrageHeal(1_500, TankId, 400, rawStagger: 300_000));
 
-        var channel = analyzer.Channels.ShouldHaveSingleItem();
-        channel.Target.ShouldBe(BarrageTarget.Ally);
-        channel.StaggerCleared.ShouldBe(2_000);
-        analyzer.StaggerCleared.ShouldBe(2_000);
+        analyzer.Channels.ShouldHaveSingleItem().StaggerCleared.ShouldBeNull();
     }
 
     [Fact]
-    public async Task StaggerCleared_IsAbsentWithNoStaggerAmountBeforeTheChannel()
+    public async Task StaggerCleared_SkipsABoltWithNoStaggerAmountBeforeIt()
     {
         var analyzer = await Track(
+            [AeonaTalents.ParadoxicalTwist],
+            FleetingHourApply(800),
             BeginChannel(1_000),
             BarrageHeal(1_200, TankId, 400, rawStagger: 400_000),
-            BarrageHeal(1_500, TankId, 400, rawStagger: 300_000));
+            BarrageHeal(1_500, TankId, 400, rawStagger: 300_000),
+            FleetingHourRemove(5_000));
 
-        var channel = analyzer.Channels.ShouldHaveSingleItem();
-        channel.StaggerCleared.ShouldBeNull();
+        analyzer.Channels.ShouldHaveSingleItem().StaggerCleared.ShouldBe(120);
+    }
+
+    [Fact]
+    public async Task StaggerCleared_SkipsABoltThatDidNotChangeTheAllysStagger()
+    {
+        var analyzer = await Track(
+            [AeonaTalents.ParadoxicalTwist],
+            FleetingHourApply(800),
+            EchoesOfRuinHeal(900, TankId, rawStagger: 500_000),
+            BeginChannel(1_000),
+            BarrageHeal(1_200, TankId, 400, rawStagger: 400_000),
+            BarrageHeal(1_500, TankId, 400, rawStagger: 400_000),
+            FleetingHourRemove(5_000));
+
+        analyzer.Channels.ShouldHaveSingleItem().StaggerCleared.ShouldBe(150);
+    }
+
+    [Fact]
+    public async Task StaggerCleared_CountsABoltLongAfterTheAllysLastStaggerChange()
+    {
+        var analyzer = await Track(
+            [AeonaTalents.ParadoxicalTwist],
+            FleetingHourApply(800),
+            EchoesOfRuinHeal(900, TankId, rawStagger: 500_000),
+            BeginChannel(1_000),
+            BarrageHeal(3_000, TankId, 400, rawStagger: 400_000),
+            FleetingHourRemove(5_000));
+
+        analyzer.Channels.ShouldHaveSingleItem().StaggerCleared.ShouldBe(150);
+    }
+
+    [Fact]
+    public async Task StaggerCleared_IsAbsentWithNoStaggerAmountBeforeAnyBolt()
+    {
+        var analyzer = await Track(
+            [AeonaTalents.ParadoxicalTwist],
+            FleetingHourApply(800),
+            BeginChannel(1_000),
+            BarrageHeal(1_200, TankId, 400, rawStagger: 400_000),
+            FleetingHourRemove(5_000));
+
+        analyzer.Channels.ShouldHaveSingleItem().StaggerCleared.ShouldBeNull();
     }
 
     [Fact]

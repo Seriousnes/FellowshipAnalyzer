@@ -88,11 +88,10 @@ public sealed record StaggerCleanse(
 /// <summary>
 /// Reconstructs every party member's Stagger pool across the dungeon.
 /// <para>
-/// Stagger is <see cref="ResourceTypes.Stagger"/> inside the <see cref="Event.SourceResources"/> and
-/// <see cref="Event.TargetResources"/> blocks on events, and no Core module aggregates resources for a
-/// unit other than the analyzed player, so this module harvests those blocks from an unfiltered
-/// <c>[On&lt;Event&gt;]</c> handler the way <c>ResourceTracker</c> does. A unit with a Stagger entry is a
-/// party member by construction, so no actor table is needed to decide what to keep.
+/// Stagger is <see cref="ResourceTypes.Stagger"/>, and no Core module aggregates resources for a unit other
+/// than the analyzed player, so this module records every unit's Stagger <see cref="ResourceChangeEvent"/>s.
+/// A unit with a Stagger pool is a party member by construction, so no actor table is needed to decide what
+/// to keep.
 /// </para>
 /// <para>
 /// The amount a cleanse cleared is the fall in the target's Stagger across the cast.
@@ -155,8 +154,8 @@ public sealed partial class StaggerTracker : Analyzer
     public IReadOnlyList<CleanseCast> CleanseCasts => _cleanseCasts;
 
     /// <summary>
-    /// <paramref name="unitId"/>'s Stagger pool over time, in chronological order with consecutive
-    /// identical entries collapsed to the first of the run. Empty for a unit with no Stagger pool.
+    /// <paramref name="unitId"/>'s Stagger pool over time, one entry per change in chronological order.
+    /// Empty for a unit with no Stagger pool.
     /// </summary>
     /// <param name="unitId">The unit to read.</param>
     public IReadOnlyList<StaggerSnapshot> SnapshotsFor(int unitId) =>
@@ -442,14 +441,23 @@ public sealed partial class StaggerTracker : Analyzer
             cleanses);
     }
 
-    [On<Event>]
-    private void OnEvent(Event e)
+    [On<ResourceChangeEvent>]
+    private void OnResourceChange(ResourceChangeEvent e)
     {
-        if (e is IHasSourceEvent source)
-            Record(source.SourceId, e.SourceResources, e.Timestamp);
+        if (e.ResourceChangeType != ResourceTypes.Stagger || e.ResourceAmount is not { } amount) return;
 
-        if (e is IHasTargetEvent target)
-            Record(target.TargetId, e.TargetResources, e.Timestamp);
+        if (!_snapshots.TryGetValue(e.SourceId, out var snapshots))
+        {
+            _snapshots[e.SourceId] = snapshots = [];
+            _trackedUnitIds.Add(e.SourceId);
+        }
+
+        snapshots.Add(new StaggerSnapshot(
+            e.Timestamp,
+            amount,
+            e.ResourceMax ?? 0,
+            e.UnitResources?.HitPoints ?? 0,
+            e.UnitResources?.MaxHitPoints ?? 0));
     }
 
     [On<DeathEvent>]
@@ -494,44 +502,6 @@ public sealed partial class StaggerTracker : Analyzer
     {
         if (_latestCleanseCastByAbility.TryGetValue(e.Ability.Id, out var cast))
             cast.AddHealTarget(e.TargetId);
-    }
-
-    private void Record(int unitId, ActorResources? resources, int timestamp)
-    {
-        if (resources is null) return;
-
-        ClassResource? stagger = null;
-        foreach (var resource in resources.Resources)
-        {
-            if (resource.Type != ResourceTypes.Stagger) continue;
-            stagger = resource;
-            break;
-        }
-
-        if (stagger is null) return;
-
-        if (!_snapshots.TryGetValue(unitId, out var snapshots))
-        {
-            _snapshots[unitId] = snapshots = [];
-            _trackedUnitIds.Add(unitId);
-        }
-
-        if (snapshots.Count > 0)
-        {
-            var last = snapshots[^1];
-            if (last.Amount == stagger.Amount
-                && last.Max == stagger.Max
-                && last.HitPoints == resources.HitPoints
-                && last.MaxHitPoints == resources.MaxHitPoints)
-                return;
-        }
-
-        snapshots.Add(new StaggerSnapshot(
-            timestamp,
-            stagger.Amount,
-            stagger.Max,
-            resources.HitPoints,
-            resources.MaxHitPoints));
     }
 
     private static int FirstIndexAtOrAfter(List<StaggerSnapshot> snapshots, int timestamp)

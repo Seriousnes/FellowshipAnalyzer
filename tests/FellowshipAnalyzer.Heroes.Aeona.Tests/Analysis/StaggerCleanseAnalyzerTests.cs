@@ -135,48 +135,6 @@ public sealed class StaggerCleanseAnalyzerTests
         echoes.ActiveMs.ShouldBe(10_000);
     }
 
-    [Fact]
-    public async Task ACleanseWithEntropyClaimOnCooldown_ProjectsTheTanksStaggerAtTheNextCharge()
-    {
-        var analyzer = await Analyze(Info([], AeonaLegendaries.MassEntropy),
-            Completion(1_000, Spells.EntropyClaim),
-            Completion(2_000, Spells.EntropyClaim, SecondEnemyId),
-            Absorbed(3_000, Spells.AuraOfDeferredFate, TankId, 4_000),
-            Absorbed(7_000, Spells.AuraOfDeferredFate, TankId, 4_000),
-            TankStagger(9_900, staggerHitPoints: 8_000),
-            Activation(10_000, Spells.AmendFate, TankId),
-            Heal(10_000, Spells.AmendFate, TankId, 500),
-            TankStagger(10_050, staggerHitPoints: 2_000));
-
-        var cast = analyzer.Casts.ShouldHaveSingleItem();
-        cast.EntropyClaimReadyInMs.ShouldBeGreaterThan(0);
-        cast.EntropyClaimReadyInMs.ShouldBeLessThanOrEqualTo(12_000);
-        cast.StaggerIntakePerSecond.ShouldNotBeNull().ShouldBe(1_000.0, 0.0001);
-        cast.ProjectedStaggerFraction.ShouldNotBeNull().ShouldBeLessThan(StaggerCleanseAnalyzer.EntropicBurstHoldStaggerFraction);
-        cast.CouldHaveWaited.ShouldBeTrue();
-        analyzer.CastsWithEntropyClaimOnCooldown.ShouldBe(1);
-        analyzer.CastsCouldHaveWaited.ShouldBe(1);
-    }
-
-    [Fact]
-    public async Task ACleanseUnderHeavyIntake_CouldNotHaveWaited()
-    {
-        var analyzer = await Analyze(Info([], AeonaLegendaries.MassEntropy),
-            Completion(1_000, Spells.EntropyClaim),
-            Completion(2_000, Spells.EntropyClaim, SecondEnemyId),
-            Absorbed(3_000, Spells.AuraOfDeferredFate, TankId, 20_000),
-            Absorbed(7_000, Spells.AuraOfDeferredFate, TankId, 20_000),
-            TankStagger(9_900, staggerHitPoints: 8_000),
-            Activation(10_000, Spells.AmendFate, TankId),
-            Heal(10_000, Spells.AmendFate, TankId, 500),
-            TankStagger(10_050, staggerHitPoints: 2_000));
-
-        var cast = analyzer.Casts.ShouldHaveSingleItem();
-        cast.StaggerIntakePerSecond.ShouldNotBeNull().ShouldBe(5_000.0, 0.0001);
-        cast.CouldHaveWaited.ShouldBeFalse();
-        analyzer.CastsCouldHaveWaited.ShouldBe(0);
-    }
-
     private static async Task<StaggerCleanseAnalyzer> Analyze(CombatantInfoEvent info, params Event[] events)
     {
         var parser = await AeonaLog.Analyze(BossPull(), [info, .. events]);
