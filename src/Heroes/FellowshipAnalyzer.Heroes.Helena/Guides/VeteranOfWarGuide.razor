@@ -123,7 +123,7 @@
             totals[target] = totals.GetValueOrDefault(target) + contribution.CooldownReduction;
         }
 
-        return VeteranOfWarAnalyzer.ReductionTargets
+        return VeteranOfWar.ReductionTargets
             .Where(totals.ContainsKey)
             .Select(target => (target, totals[target]));
     }

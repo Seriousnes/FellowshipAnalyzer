@@ -9,7 +9,7 @@ namespace FellowshipAnalyzer.Core.Analysis.Gems;
 /// Measures what the player's Emerald gem contributed. Sentinel's Bastion is the trait the log accounts for:
 /// a shield reapplied on a timer, measured from the hits its absorb consumed. Emerald's other ranks are
 /// expertise rating and percentage plus Blessing of the Commander's ability cooldown reduction, which
-/// <see cref="StatTracker"/> folds into the cooldown pools rather than reporting as output.
+/// <see cref="PassiveBonusTracker"/> adds to the player's stats and cooldown pools rather than reporting as output.
 /// </summary>
 public sealed partial class EmeraldGemAnalyzer : Analyzer, IGemAnalyzer
 {

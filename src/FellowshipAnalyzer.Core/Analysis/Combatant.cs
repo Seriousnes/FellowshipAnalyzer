@@ -28,14 +28,9 @@ public sealed class FullCombatant : Combatant
     private readonly Dictionary<GearSlot, Item> _gear;
     private readonly Dictionary<int, Item> _itemById;
 
-    private static readonly GemRank[] BlessingOfTheCommander =
-    [
-        new(RequiredGemPower: 450, Magnitude: 0.04),
-        new(RequiredGemPower: 1500, Magnitude: 0.12),
-    ];
-
     private const int LegendaryQuality = 6;
     private const double StrandOfEternityAcceleration = 0.10;
+    private const int BlessingTiers = 4;
 
     /// <summary>Builds the combatant's gear index and computes its derived <see cref="Stats"/> from the given combatantinfo.</summary>
     public FullCombatant(CombatantInfoEvent info) : base(info.SourceId)
@@ -155,8 +150,9 @@ public sealed class FullCombatant : Combatant
     public IEnumerable<ItemTrait> Traits => Info.Gear.SelectMany(item => item.Traits);
 
     /// <summary>
-    /// The highest allocated level of the named blessing across every gear slot, or 0 when the player has
-    /// none. The same blessing has a different id per slot, so the name is what identifies it.
+    /// The equipped tier of the named blessing: the levels of every slotted copy added together, up to the
+    /// four tiers a blessing has, or 0 when the player has none. The same blessing has a different id per
+    /// slot, so the name is what identifies it.
     /// </summary>
     public int BlessingLevel(string blessingName)
     {
@@ -164,9 +160,9 @@ public sealed class FullCombatant : Combatant
         foreach (var blessing in Blessings)
         {
             if (string.Equals(blessing.Name, blessingName, StringComparison.OrdinalIgnoreCase))
-                level = Math.Max(level, blessing.Level);
+                level += blessing.Level;
         }
-        return level;
+        return Math.Min(level, BlessingTiers);
     }
 
     /// <summary>The highest rank of the trait with the given id across every gear slot, or 0 when the player has none.</summary>
@@ -196,27 +192,11 @@ public sealed class FullCombatant : Combatant
         Expertise = info.Expertise,
         Spirit = info.Spirit,
         AbilityCooldownReduction =
-            [new CooldownModifier(HighestUnlocked(BlessingOfTheCommander, info.Emerald))],
+            [new CooldownModifier(PassiveBonusTracker.BlessingOfTheCommanderReduction(info.Emerald))],
         CooldownAcceleration = Legendary is not null
             ? [new CooldownModifier(StrandOfEternityAcceleration)]
             : [],
     };
-
-    private static double HighestUnlocked(GemRank[] ranks, int gemPower)
-    {
-        var threshold = 0;
-        var magnitude = 0.0;
-
-        foreach (var rank in ranks)
-        {
-            if (gemPower >= rank.RequiredGemPower && rank.RequiredGemPower >= threshold)
-                (threshold, magnitude) = (rank.RequiredGemPower, rank.Magnitude);
-        }
-
-        return magnitude;
-    }
-
-    private readonly record struct GemRank(int RequiredGemPower, double Magnitude);
 }
 
 /// <summary>

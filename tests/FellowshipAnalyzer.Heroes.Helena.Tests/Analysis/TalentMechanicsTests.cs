@@ -145,7 +145,7 @@ public sealed class TalentMechanicsTests
         var analyzer = parser.VeteranOfWarAnalyzers.ShouldHaveSingleItem().Analyzer;
 
         analyzer.PunishingStrikesCasts.ShouldBe(1);
-        analyzer.CooldownReduction.Total.ShouldBe((4_000 * 2) + 4_000);
+        analyzer.CooldownReduction.Total.ShouldBe((8_000 * 2) + 8_000);
     }
 
     [Fact]
@@ -157,7 +157,7 @@ public sealed class TalentMechanicsTests
             ApplyBuff(PullStart + 1_100, Spells.PunishingStrikesBuff),
             Cast(PullStart + 2_000, Spells.MeasuredStrike));
 
-        parser.VeteranOfWarAnalyzers.ShouldHaveSingleItem().Analyzer.CooldownReduction.Total.ShouldBe(4_000 * 4);
+        parser.VeteranOfWarAnalyzers.ShouldHaveSingleItem().Analyzer.CooldownReduction.Total.ShouldBe(8_000 * 4);
     }
 
     [Fact]
@@ -175,7 +175,7 @@ public sealed class TalentMechanicsTests
         var analyzer = parser.VeteranOfWarAnalyzers.ShouldHaveSingleItem().Analyzer;
 
         analyzer.PunishingStrikesCasts.ShouldBe(2);
-        analyzer.CooldownReduction.Total.ShouldBe((4_000 * 2) + (4_000 * 2) + 4_000);
+        analyzer.CooldownReduction.Total.ShouldBe((8_000 * 2) + (8_000 * 2) + 8_000);
     }
 
     [Fact]
@@ -298,6 +298,49 @@ public sealed class TalentMechanicsTests
     }
 
     [Fact]
+    public async Task HighCommand_TakesSixSecondsOffHoldTheLineForEveryShieldsUp()
+    {
+        var parser = await AnalyzeWithTalents(
+            [Talents.HighCommand],
+            Cast(PullStart + 1_000, Spells.HoldTheLine),
+            Cast(PullStart + 2_000, Spells.ShieldsUp));
+
+        var analyzer = parser.GetModule<HighCommandAnalyzer>().ShouldNotBeNull();
+
+        analyzer.ShieldsUpCasts.ShouldBe(1);
+        analyzer.CooldownReduction.Total.ShouldBe(HighCommandAnalyzer.HoldTheLineReductionMs);
+        analyzer.CooldownReduction.Effective.ShouldBe(HighCommandAnalyzer.HoldTheLineReductionMs);
+        HoldTheLineReadyAt(parser).ShouldBe(PullStart + 1_000 + 30_000 - 6_000);
+    }
+
+    [Fact]
+    public async Task HighCommand_IsAbsentForABuildThatDidNotTakeIt()
+    {
+        var parser = await Analyze(
+            Cast(PullStart + 1_000, Spells.HoldTheLine),
+            Cast(PullStart + 2_000, Spells.ShieldsUp));
+
+        parser.GetModule<HighCommandAnalyzer>().ShouldBeNull();
+        HoldTheLineReadyAt(parser).ShouldBe(PullStart + 1_000 + 30_000);
+    }
+
+    [Fact]
+    public async Task MartialCommand_RaisesSpiritForTheWholeDungeon()
+    {
+        var parser = await AnalyzeWithTalents([Talents.MartialCommand]);
+
+        parser.GetModule<StatTracker>().ShouldNotBeNull().AdditionalSpirit.ShouldBe(0.05, Tolerance);
+    }
+
+    [Fact]
+    public async Task MartialCommand_LeavesSpiritAloneForABuildThatDidNotTakeIt()
+    {
+        var parser = await Analyze();
+
+        parser.GetModule<StatTracker>().ShouldNotBeNull().AdditionalSpirit.ShouldBe(0.0, Tolerance);
+    }
+
+    [Fact]
     public async Task ACastOutsideEveryPull_ReachesModulesButNotPullAnalyzers()
     {
         var parser = await AnalyzeWithTalents(
@@ -309,6 +352,13 @@ public sealed class TalentMechanicsTests
         parser.GetModule<ShieldMasteryAnalyzer>().ShouldNotBeNull().HitsTaken.ShouldBe(1);
         parser.VeteranOfWarAnalyzers.ShouldHaveSingleItem().Analyzer.CooldownReduction.Total.ShouldBe(0);
     }
+
+    private static int HoldTheLineReadyAt(HelenaCombatLogParser parser) =>
+        parser.Events
+            .OfType<UpdateSpellUsableEvent>()
+            .Last(update => update.Ability.Id == Spells.HoldTheLine.FSLID
+                && update.UpdateType == UpdateSpellUsableType.EndCooldown)
+            .Timestamp;
 
     private static List<UpdateSpellUsableEvent> ShieldSlamUpdates(HelenaCombatLogParser parser) =>
         [.. parser.Events

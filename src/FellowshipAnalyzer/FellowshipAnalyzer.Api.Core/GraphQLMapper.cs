@@ -48,11 +48,15 @@ public static partial class GraphQLMapper
     [MapProperty(
         nameof(IGetReportMasterData_ReportData_Report_Fights.FriendlyPlayers),
         nameof(ReportDungeon.FriendlyPlayers),
-        Use = nameof(FriendlyPlayerIds))]
+        Use = nameof(PresentIds))]
     [MapProperty(
         nameof(IGetReportMasterData_ReportData_Report_Fights.InProgress),
         nameof(ReportDungeon.InProgress),
         Use = nameof(OrFalse))]
+    [MapProperty(
+        nameof(IGetReportMasterData_ReportData_Report_Fights.Modifiers),
+        nameof(ReportDungeon.Modifiers),
+        Use = nameof(PresentIds))]
     public static partial ReportDungeon MapDungeon(this IGetReportMasterData_ReportData_Report_Fights source);
 
     [MapProperty(
@@ -153,7 +157,7 @@ public static partial class GraphQLMapper
     private static bool OrFalse(bool? value) => value ?? false;
 
     [UserMapping(Default = false)]
-    private static List<int>? FriendlyPlayerIds(IReadOnlyList<int?>? source) =>
+    private static List<int>? PresentIds(IReadOnlyList<int?>? source) =>
         source is null ? null : [.. source.Where(id => id.HasValue).Select(id => id!.Value)];
 
     [UserMapping(Default = false)]

@@ -103,6 +103,54 @@ public sealed class CombatantInfoDeserializationTests
         combatant.BlessingLevel("The Trickster").ShouldBe(0);
     }
 
+    private const string StackedBlessings = """
+        {"timestamp":12159983,"type":"combatantinfo","sourceID":109,
+         "gear":[
+           {"id":5213,"quality":5,"name":"Vaultbinder's Cursed Cap",
+            "blessings":[{"id":4000177,"level":2,"name":"The Monarch"}]},
+           {"id":5286,"quality":5,"name":"Burdening Shoulderpads",
+            "blessings":[{"id":4000169,"level":1,"name":"The Subduer"}]},
+           {"id":5152,"quality":5,"name":"Funerary Jacket",
+            "blessings":[{"id":4000174,"level":1,"name":"The Philosopher"}]},
+           {"id":5187,"quality":5,"name":"Oiled Leather Grasps",
+            "blessings":[{"id":4000174,"level":1,"name":"The Philosopher"}]},
+           {"id":5304,"quality":5,"name":"Clumsily Stiched Leggings",
+            "blessings":[{"id":4000169,"level":1,"name":"The Subduer"}]},
+           {"id":5277,"quality":5,"name":"Baneful Static Band",
+            "blessings":[{"id":4000169,"level":2,"name":"The Subduer"}]},
+           {"id":5281,"quality":5,"name":"Hungering Ring of Eternal Thirst",
+            "blessings":[{"id":4000174,"level":2,"name":"The Philosopher"}]}
+         ]}
+        """;
+
+    [Fact]
+    public void BlessingLevel_AddsEverySlottedCopy()
+    {
+        var combatant = new FullCombatant(Read(StackedBlessings));
+
+        combatant.BlessingLevel("The Monarch").ShouldBe(2);
+        combatant.BlessingLevel("The Philosopher").ShouldBe(4);
+        combatant.BlessingLevel("The Subduer").ShouldBe(4);
+    }
+
+    [Fact]
+    public void BlessingLevel_StopsAtTheFourthTier()
+    {
+        var combatant = new FullCombatant(new CombatantInfoEvent
+        {
+            Gear =
+            [
+                .. Enumerable.Range(1, 3).Select(id => new Item
+                {
+                    Id = id,
+                    Blessings = [new ItemBlessing { Id = 4000169, Level = 2, Name = "The Subduer" }],
+                }),
+            ],
+        });
+
+        combatant.BlessingLevel("The Subduer").ShouldBe(4);
+    }
+
     [Fact]
     public void Auras_CarryTheAbilityAndStackCountThePlayerAlreadyHad()
     {
