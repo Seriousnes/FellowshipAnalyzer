@@ -2,103 +2,118 @@ using FellowshipAnalyzer.Core.Analysis;
 using FellowshipAnalyzer.Core.Common.Spells.Vigour;
 
 using CoreAbilities = FellowshipAnalyzer.Core.Analysis.Abilities;
+using VigourTalents = FellowshipAnalyzer.Core.Common.Spells.VigourTalents;
 
 namespace FellowshipAnalyzer.Heroes.Vigour.Modules;
 
 public class Abilities : CoreAbilities
 {
+    private bool SacredBarrier => Owner?.SelectedCombatant.HasTalent(VigourTalents.SacredBarrier) == true;
+
     public override IEnumerable<SpellbookAbility> Spellbook() =>
     [
         new()
         {
-            PrimarySpell = Spells.GreaterHeal,
-            Category = SpellCategory.Rotational,
-            Gcd = StandardGcd,
-        },
-        new()
-        {
-            PrimarySpell = Spells.RuneOfRenewal,
-            AdditionalSpells = [Spells.RuneOfRenewalAlt],
-            Category = SpellCategory.Rotational,
-            Gcd = StandardGcd,
-        },
-        new()
-        {
             PrimarySpell = Spells.Dawnflare,
-            AdditionalSpells = [Spells.DawnflareDamage],
             Category = SpellCategory.Rotational,
             Gcd = StandardGcd,
         },
         new()
         {
             PrimarySpell = Spells.Soulbrand,
-            AdditionalSpells = [Spells.SoulbrandDot],
+            AdditionalSpells = [Spells.SoulbrandDot, Spells.SoulbrandBuffActiveAdditionalDirectDamage],
             Category = SpellCategory.Rotational,
             Gcd = StandardGcd,
         },
         new()
         {
-            PrimarySpell = Spells.CircleOfLight,
-            Category = SpellCategory.RotationalAoe,
+            PrimarySpell = Spells.RuneOfRenewal,
+            AdditionalSpells = [Spells.RuneOfRenewalBuff, Spells.RuneOfRenewalEcho],
+            Category = SpellCategory.Healing,
             Gcd = StandardGcd,
+        },
+        new()
+        {
+            PrimarySpell = Spells.LuminousBarrier with { Charges = SacredBarrier ? 2 : 1 },
+            AdditionalSpells = [Spells.LuminousBarrierAbsorb],
+            Category = SpellCategory.Healing,
+            Gcd = StandardGcd,
+            CooldownReducedByHaste = true,
         },
         new()
         {
             PrimarySpell = Spells.RadiantBlast,
-            AdditionalSpells = [Spells.RadiantBlastDamage],
             Category = SpellCategory.RotationalAoe,
             Gcd = StandardGcd,
+            CooldownReducedByHaste = true,
         },
         new()
         {
             PrimarySpell = Spells.DawnbreakerOrb,
-            AdditionalSpells = [Spells.DawnbreakerOrbDamage],
+            AdditionalSpells = [Spells.MeticulousRunesmithAbsorb],
             Category = SpellCategory.RotationalAoe,
+            Gcd = StandardGcd,
+            CooldownReducedByHaste = true,
+        },
+        new()
+        {
+            PrimarySpell = Spells.CircleOfLight,
+            AdditionalSpells = [Spells.CeremonyOfLightBuff],
+            Category = SpellCategory.Healing,
+            Gcd = StandardGcd,
+            CooldownReducedByHaste = true,
+        },
+        new()
+        {
+            PrimarySpell = Spells.GreaterHeal,
+            Category = SpellCategory.Healing,
             Gcd = StandardGcd,
         },
         new()
         {
             PrimarySpell = Spells.AvatarOfLight,
+            AdditionalSpells = [Spells.AvatarOfLightBuff],
             Category = SpellCategory.Cooldowns,
             Gcd = StandardGcd,
         },
         new()
         {
             PrimarySpell = Spells.RunicProliferation,
+            AdditionalSpells = [Spells.RunicProliferationBuff],
             Category = SpellCategory.Cooldowns,
-            Gcd = StandardGcd,
+            Gcd = null,
+            CooldownReducedByHaste = true,
         },
         new()
         {
             PrimarySpell = Spells.LightshaperWard,
+            AdditionalSpells = [Spells.LightshaperWardBuff],
             Category = SpellCategory.Defensive,
             Gcd = null,
             IsDefensive = true,
-        },
-        new()
-        {
-            PrimarySpell = Spells.LuminousBarrier,
-            Category = SpellCategory.Defensive,
-            Gcd = null,
-            IsDefensive = true,
+            CooldownReducedByHaste = true,
         },
         new()
         {
             PrimarySpell = Spells.RemoveMagic,
+            AdditionalSpells = [Spells.RemoveMagicDispel],
             Category = SpellCategory.Utility,
-            Gcd = null,
+            Gcd = StandardGcd,
+            CooldownReducedByHaste = true,
         },
         new()
         {
             PrimarySpell = Spells.ThrowBook,
             Category = SpellCategory.Utility,
             Gcd = null,
+            CooldownReducedByHaste = true,
         },
         new()
         {
             PrimarySpell = Spells.Levitate,
             Category = SpellCategory.Utility,
             Gcd = null,
+            CooldownReducedByHaste = true,
         },
     ];
 }

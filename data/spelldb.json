@@ -4460,6 +4460,12 @@
         "spirit": 100
       }
     },
+    "AvatarOfLightBuff": {
+      "kind": "effect",
+      "id": 1333,
+      "name": "Avatar of Light",
+      "icon": "T_Vigor_Spirit"
+    },
     "AvatarOfLightHeal": {
       "kind": "effect",
       "id": 1332,
@@ -4477,6 +4483,12 @@
       "id": 2156,
       "name": "",
       "icon": ""
+    },
+    "CeremonyOfLightBuff": {
+      "kind": "effect",
+      "id": 2278,
+      "name": "Ceremony of Light",
+      "icon": "Tex_SpellBook06_23"
     },
     "CircleOfLight": {
       "kind": "ability",
@@ -4625,6 +4637,12 @@
         "mana": 63
       }
     },
+    "LightshaperWardBuff": {
+      "kind": "effect",
+      "id": 1342,
+      "name": "Lightshaper\u0027s Ward",
+      "icon": "T_Vigor_Ward"
+    },
     "LightshaperWardCastingCost": {
       "kind": "effect",
       "id": 1341,
@@ -4665,6 +4683,12 @@
     "MeticulousRunesmith": {
       "kind": "ability",
       "id": 1563,
+      "name": "Meticulous Runesmith",
+      "icon": "T_LightPortal"
+    },
+    "MeticulousRunesmithAbsorb": {
+      "kind": "effect",
+      "id": 2289,
       "name": "Meticulous Runesmith",
       "icon": "T_LightPortal"
     },
@@ -4746,11 +4770,23 @@
       "name": "Rune of Renewal",
       "icon": ""
     },
+    "RuneOfRenewalBuff": {
+      "kind": "effect",
+      "id": 1316,
+      "name": "Rune of Renewal",
+      "icon": "T_Vigor_Rune"
+    },
     "RuneOfRenewalDirectHeal": {
       "kind": "effect",
       "id": 1319,
       "name": "Rune of Renewal",
       "icon": "T_Vigor_Rune"
+    },
+    "RuneOfRenewalEcho": {
+      "kind": "effect",
+      "id": 1328,
+      "name": "Rune of Renewal: Echo",
+      "icon": ""
     },
     "RuneOfRenewalHot": {
       "kind": "effect",

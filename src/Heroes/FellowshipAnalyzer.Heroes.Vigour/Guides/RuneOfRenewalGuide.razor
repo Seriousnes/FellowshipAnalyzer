@@ -1,0 +1,76 @@
+@inherits GuideComponent<VigourCombatLogParser>
+
+<GuideSection Title="Rune of Renewal">
+    <LeftPanel>
+        <p>
+            Keep <strong><SpellLink Spell="Spells.RuneOfRenewal" /></strong> on the tank at all times.
+            Keep it on every other ally too.
+            Refresh it before it expires.
+        </p>
+    </LeftPanel>
+    <RightPanel>
+        <CastOverview Title="Rune of Renewal Overview" Stats="@BuildOverviewStats()" />
+        <CastDetail Title="Uptime by Pull"
+                    Description="Each card is one pull."
+                    Casts="@BuildPullRows()" />
+    </RightPanel>
+</GuideSection>
+
+@code {
+    protected override bool IsActive() => Parser.RuneOfRenewalAnalyzers.Count > 0;
+
+    private List<RuneOfRenewalAnalyzer> Analyzers => [.. Parser.RuneOfRenewalAnalyzers.Select(entry => entry.Analyzer)];
+
+    private IEnumerable<OverviewStat> BuildOverviewStats()
+    {
+        var analyzers = Analyzers;
+        var duration = analyzers.Sum(analyzer => (long)analyzer.Pull.Duration);
+        if (duration <= 0) return [];
+
+        var party = analyzers.Sum(analyzer => analyzer.PartyUptime * analyzer.Pull.Duration) / duration;
+        var stats = new List<OverviewStat>
+        {
+            new($"{party:P0}", "Party Uptime", "Average uptime across every party member, yourself included.", UptimeTier(party)),
+        };
+
+        var tanked = analyzers.Where(analyzer => analyzer.TankUptime is not null).ToList();
+        var tankDuration = tanked.Sum(analyzer => (long)analyzer.Pull.Duration);
+        if (tankDuration > 0)
+        {
+            var tank = tanked.Sum(analyzer => analyzer.TankUptime!.Value * analyzer.Pull.Duration) / tankDuration;
+            stats.Add(new OverviewStat($"{tank:P0}", "Tank Uptime", Performance: UptimeTier(tank)));
+        }
+
+        stats.Add(new OverviewStat($"{analyzers.Sum(analyzer => analyzer.Casts)}", "Casts"));
+        return stats;
+    }
+
+    private IEnumerable<PerCastData> BuildPullRows() =>
+        Parser.RuneOfRenewalAnalyzers.ToPullRows(Parser, (analyzer, pull) => BuildPullRow(analyzer));
+
+    private PerCastRow BuildPullRow(RuneOfRenewalAnalyzer analyzer)
+    {
+        var performance = UptimeTier(analyzer.PartyUptime);
+        var stats = new List<PerCastStat>
+        {
+            new($"{analyzer.PartyUptime:P0}", "Party Uptime", Performance: performance),
+        };
+
+        if (analyzer.TankUptime is { } tank)
+            stats.Add(new PerCastStat($"{tank:P0}", "Tank Uptime", Performance: UptimeTier(tank)));
+
+        var lowest = analyzer.Allies.MinBy(ally => ally.Uptime);
+        if (lowest is not null)
+            stats.Add(new PerCastStat($"{lowest.Uptime:P0}", "Lowest Ally", $"Uptime on {Parser.ActorNames.GetValueOrDefault(lowest.ActorId, "the ally")}, the party member with the lowest uptime in this pull."));
+
+        stats.Add(new PerCastStat($"{analyzer.Casts}", "Casts"));
+
+        return new PerCastRow
+        {
+            Performance = performance,
+            Stats = [.. stats],
+        };
+    }
+
+    private static QualitativePerformance UptimeTier(double uptime) => PerformanceTiers.FromThresholds(uptime, 0.95, 0.85, 0.75);
+}

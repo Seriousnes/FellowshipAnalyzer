@@ -1,0 +1,61 @@
+@inherits GuideComponent<VigourCombatLogParser>
+
+<GuideSection Title="Radiant Blast">
+    <LeftPanel>
+        <p>
+            Cast <strong><SpellLink Spell="Spells.RadiantBlast" /></strong> on cooldown.
+            Aim it at enemies.
+        </p>
+    </LeftPanel>
+    <RightPanel>
+        <CastOverview Title="Radiant Blast Overview" Stats="@BuildOverviewStats()" />
+        <CastDetail Title="Casts by Pull"
+                    Description="Each card is one pull."
+                    Casts="@BuildPullRows()" />
+    </RightPanel>
+</GuideSection>
+
+@code {
+    private const string IdleTooltip = "Share of the pull Radiant Blast was ready to cast but you had not cast it, not counting Avatar of Light. Lower is better.";
+
+    protected override bool IsActive() => Parser.RadiantBlastAnalyzers.Count > 0;
+
+    private List<RadiantBlastAnalyzer> Analyzers => [.. Parser.RadiantBlastAnalyzers.Select(entry => entry.Analyzer)];
+
+    private IEnumerable<OverviewStat> BuildOverviewStats()
+    {
+        var analyzers = Analyzers;
+        var duration = analyzers.Sum(analyzer => (long)analyzer.MeasuredMs);
+        if (duration <= 0) return [];
+
+        var ready = analyzers.Sum(analyzer => (long)analyzer.ReadyMs) / (double)duration;
+
+        return
+        [
+            new OverviewStat($"{ready:P0}", "Idle Time", IdleTooltip, ReadyTier(ready)),
+            new OverviewStat($"{analyzers.Sum(analyzer => analyzer.CastCount)}", "Casts"),
+            new OverviewStat($"{analyzers.Sum(analyzer => analyzer.AvatarCasts)}", "AoL Casts"),
+        ];
+    }
+
+    private IEnumerable<PerCastData> BuildPullRows() =>
+        Parser.RadiantBlastAnalyzers.ToPullRows(Parser, (analyzer, pull) => BuildPullRow(analyzer));
+
+    private static PerCastRow BuildPullRow(RadiantBlastAnalyzer analyzer)
+    {
+        var performance = ReadyTier(analyzer.ReadyShare);
+
+        return new PerCastRow
+        {
+            Performance = performance,
+            Stats =
+            [
+                new PerCastStat($"{analyzer.ReadyShare:P0}", "Idle Time", IdleTooltip, performance),
+                new PerCastStat($"{analyzer.CastCount}", "Casts"),
+                new PerCastStat($"{analyzer.AvatarCasts}", "AoL Casts"),
+            ],
+        };
+    }
+
+    private static QualitativePerformance ReadyTier(double ready) => PerformanceTiers.FromThresholds(1 - ready, 0.55, 0.4, 0.3);
+}

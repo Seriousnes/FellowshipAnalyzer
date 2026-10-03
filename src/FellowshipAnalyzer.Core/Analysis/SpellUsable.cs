@@ -9,7 +9,7 @@ namespace FellowshipAnalyzer.Core.Analysis;
 /// <see cref="UpdateSpellUsableEvent"/> events when spells go on/off cooldown.
 /// Also tracks all player casts (replacing the former TrackedStateModule).
 /// </summary>
-public sealed partial class SpellUsable(
+public partial class SpellUsable(
     Lazy<Abilities> abilities,
     Lazy<DebugAnnotations> debugAnnotations,
     Lazy<Haste> haste,
@@ -25,7 +25,7 @@ public sealed partial class SpellUsable(
     public List<TrackedAbilityCast> Casts => _casts;
 
     /// <summary>Returns the IDs of all spells currently on cooldown (any charges on cooldown).</summary>
-    public List<int> GetSpellsOnCooldown() => [.. _cooldowns.Keys];
+    public virtual List<int> GetSpellsOnCooldown() => [.. _cooldowns.Keys];
 
     /// <summary>
     /// Reduces the remaining cooldown of a spell by up to <paramref name="milliseconds"/>. The requested flat
@@ -41,7 +41,7 @@ public sealed partial class SpellUsable(
     /// cooldown. The two differ when the spell was already available, or had fewer milliseconds left than the
     /// generated reduction.
     /// </returns>
-    public CooldownReductionResult ReduceCooldown(int spellId, int milliseconds, int? timestamp = null)
+    public virtual CooldownReductionResult ReduceCooldown(int spellId, int milliseconds, int? timestamp = null)
     {
         var generated = _statTracker.ScaleByCooldownReduction(_abilities.GetAbility(spellId), milliseconds);
         return new(generated, ApplyReduction(spellId, generated, timestamp));
@@ -86,13 +86,13 @@ public sealed partial class SpellUsable(
     }
 
     /// <summary>Whether <paramref name="spellId"/> has at least one charge available to cast right now.</summary>
-    public bool IsAvailable(int spellId) => !_cooldowns.TryGetValue(spellId, out var cd) || cd.ChargesAvailable > 0;
+    public virtual bool IsAvailable(int spellId) => !_cooldowns.TryGetValue(spellId, out var cd) || cd.ChargesAvailable > 0;
 
     /// <summary>Whether any charge of <paramref name="spellId"/> is currently recharging.</summary>
-    public bool IsOnCooldown(int spellId) => _cooldowns.ContainsKey(spellId);
+    public virtual bool IsOnCooldown(int spellId) => _cooldowns.ContainsKey(spellId);
 
     /// <summary>How many charges of <paramref name="spellId"/> can be cast right now.</summary>
-    public int ChargesAvailable(int spellId) =>
+    public virtual int ChargesAvailable(int spellId) =>
         _cooldowns.TryGetValue(spellId, out var cd)
             ? cd.ChargesAvailable
             : _abilities.GetMaxCharges(spellId);
@@ -102,7 +102,7 @@ public sealed partial class SpellUsable(
     /// <paramref name="atTimestamp"/> (defaulting to the current dispatch time). Zero when a charge is
     /// already available.
     /// </summary>
-    public int CooldownRemaining(int spellId, int? atTimestamp = null)
+    public virtual int CooldownRemaining(int spellId, int? atTimestamp = null)
     {
         var ts = atTimestamp ?? Owner.CurrentTimestamp;
         if (!_cooldowns.TryGetValue(spellId, out var cd))
@@ -118,7 +118,7 @@ public sealed partial class SpellUsable(
     /// need the effective (haste/gear/recovery-accelerated) period rather than the raw curated cooldown.
     /// Returns 0 for a spell with no configured cooldown.
     /// </summary>
-    public int RechargeDuration(int spellId)
+    public virtual int RechargeDuration(int spellId)
     {
         var ability = _abilities.GetAbility(spellId);
         var baseDurationMs = (int)(_abilities.GetExpectedCooldown(spellId) * 1000);
@@ -134,7 +134,7 @@ public sealed partial class SpellUsable(
     /// declaring <see cref="SpellbookAbility.IndependentCharges"/> starts a timer of its own for the charge
     /// this cast spent, alongside any timer already running.
     /// </summary>
-    public void BeginCooldown(int spellId, int? timestamp = null)
+    public virtual void BeginCooldown(int spellId, int? timestamp = null)
     {
         var ts = timestamp ?? Owner.CurrentTimestamp;
         if (_abilities.GetAbility(spellId)?.IndependentCharges == true)
@@ -208,7 +208,7 @@ public sealed partial class SpellUsable(
     /// <see cref="SpellbookAbility.IndependentCharges"/> completes its earliest timer, or every timer with
     /// <paramref name="restoreAllCharges"/>, and the timers left keep running.
     /// </summary>
-    public void EndCooldown(int spellId, int? timestamp = null, bool restoreAllCharges = false)
+    public virtual void EndCooldown(int spellId, int? timestamp = null, bool restoreAllCharges = false)
     {
         var ts = timestamp ?? Owner.CurrentTimestamp;
         if (!_cooldowns.TryGetValue(spellId, out var cd)) return;
@@ -257,7 +257,7 @@ public sealed partial class SpellUsable(
     /// left keep the progress they had made.
     /// </summary>
     /// <returns><c>true</c> when a charge was handed back, <c>false</c> when every charge was already available.</returns>
-    public bool RefundCharge(int spellId, int? timestamp = null)
+    public virtual bool RefundCharge(int spellId, int? timestamp = null)
     {
         if (!_cooldowns.TryGetValue(spellId, out var cd)) return false;
 
@@ -480,7 +480,7 @@ public sealed partial class SpellUsable(
     /// Ability Cooldown Reduction, which <see cref="ReduceCooldown"/> and <see cref="BeginCooldown"/>
     /// fix at cast, CDA is dynamic: a change to any term rescales the affected in-flight cooldowns.
     /// </summary>
-    public double EffectiveRate(int spellId) =>
+    public virtual double EffectiveRate(int spellId) =>
         1.0 + HasteRecovery(spellId)
             + _statTracker.CurrentCooldownAcceleration(_abilities.GetAbility(spellId));
 
