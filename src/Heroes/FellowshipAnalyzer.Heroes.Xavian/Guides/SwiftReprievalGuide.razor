@@ -1,0 +1,66 @@
+@inherits GuideComponent<XavianCombatLogParser>
+
+<GuideSection Title="Swift Reprieval">
+    <LeftPanel>
+        <p>
+            <SpellLink Spell="Spells.SolarBlades" /> always grants a <SpellLink Spell="Spells.SwiftReprieval" /> stack, and you hold at most @SwiftReprievalAnalyzer.MaxStacks.
+        </p>
+        <p>
+            Cast <SpellLink Spell="Spells.BrilliantFlash" /> before <SpellLink Spell="Spells.SolarBlades" /> when you hold @SwiftReprievalAnalyzer.MaxStacks stacks.
+        </p>
+    </LeftPanel>
+    <RightPanel>
+        <CastOverview Title="Overview" Stats="@BuildOverviewStats()" />
+        <CastDetail Title="Swift Reprieval By Pull" Casts="@BuildPerPullData()" />
+    </RightPanel>
+</GuideSection>
+
+@code {
+    protected override bool IsActive() => Parser.SwiftReprievalAnalyzers.Any(entry => entry.Analyzer.SolarBladesCasts > 0);
+
+    private IEnumerable<OverviewStat> BuildOverviewStats()
+    {
+        var analyzers = Parser.SwiftReprievalAnalyzers.Select(entry => entry.Analyzer).ToList();
+        var casts = analyzers.Sum(analyzer => analyzer.SolarBladesCasts);
+        var atCap = analyzers.Sum(analyzer => analyzer.SolarBladesAtCap);
+        var minutes = Parser.SwiftReprievalAnalyzers.Sum(entry => (long)(entry.Pull.EndTime - entry.Pull.StartTime)) / 60_000d;
+
+        return
+        [
+            new(
+                $"{atCap}/{casts}",
+                "SB At Cap",
+                $"Solar Blades casts made while holding {SwiftReprievalAnalyzer.MaxStacks} Swift Reprieval stacks. Each one lost its stack.",
+                Tier(atCap, casts)),
+            new(
+                minutes > 0 ? $"{atCap / minutes:F1}" : "0",
+                "Lost/Min"),
+            new(
+                $"{analyzers.Sum(analyzer => analyzer.BrilliantFlashCasts)}",
+                "BF Casts"),
+        ];
+    }
+
+    private IEnumerable<PerCastData> BuildPerPullData() =>
+        Parser.SwiftReprievalAnalyzers.ToPullRows(Parser, (analyzer, pull) => new PerCastRow
+        {
+            Performance = Tier(analyzer.SolarBladesAtCap, analyzer.SolarBladesCasts),
+            Stats =
+            [
+                new PerCastStat($"{analyzer.SolarBladesAtCap}/{analyzer.SolarBladesCasts}", "SB At Cap"),
+                new PerCastStat($"{analyzer.BrilliantFlashCasts}", "BF Casts"),
+            ],
+            Details = analyzer.SolarBladesAtCap > 0 ? BuildDetails(analyzer) : null,
+        });
+
+    private RenderFragment BuildDetails(SwiftReprievalAnalyzer analyzer) =>
+        @<ul>
+            @foreach (var timestamp in analyzer.SolarBladesAtCapTimestamps)
+            {
+                <li>@Parser.FormatTimestamp(timestamp): <SpellLink Spell="Spells.SolarBlades" /> at @SwiftReprievalAnalyzer.MaxStacks stacks.</li>
+            }
+        </ul>;
+
+    private static QualitativePerformance? Tier(int atCap, int casts) =>
+        casts == 0 ? null : PerformanceTiers.FromThresholds(100 - (double)atCap / casts * 100, 95, 90, 85);
+}
