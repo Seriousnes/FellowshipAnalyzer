@@ -34,9 +34,6 @@ public sealed record CleanseHeal(
 /// <param name="OverwroteEchoes">Whether this cast refreshed Echoes of Divinity already running on the tank.</param>
 /// <param name="EchoesOverwrittenMs">Echoes of Divinity time the refresh discarded, in milliseconds. Null when the cast refreshed nothing.</param>
 /// <param name="OblivionValue">Effective healing plus shield absorb per Oblivion cast in this pull, or null with no Oblivion cast.</param>
-/// <param name="EntropyClaimReadyInMs">Milliseconds until an Entropy's Claim charge was available at the cast; 0 when one was.</param>
-/// <param name="StaggerIntakePerSecond">The tank's Stagger intake per second over the Entropy's Claim duration before the cast, or null with no tank.</param>
-/// <param name="ProjectedStaggerFraction">The tank's Stagger as a share of maximum health at the next Entropy's Claim charge, holding the intake rate, or null when either figure is missing.</param>
 public sealed record CleanseCastEntry(
     int Timestamp,
     FSLID Ability,
@@ -48,10 +45,7 @@ public sealed record CleanseCastEntry(
     bool AppliedEchoes,
     bool OverwroteEchoes,
     int? EchoesOverwrittenMs,
-    double? OblivionValue,
-    int EntropyClaimReadyInMs,
-    double? StaggerIntakePerSecond,
-    double? ProjectedStaggerFraction)
+    double? OblivionValue)
 {
     /// <summary>The Stagger the cast removed across every ally, in hit points. Null when no ally's pool could be bracketed.</summary>
     public int? StaggerCleansed =>
@@ -85,16 +79,6 @@ public sealed record CleanseCastEntry(
         && TankStaggerFraction < OblivionAnalyzer.CleansePriorityStaggerFraction
         && !(WasFree && !OverwroteEchoes)
         && (BelowStaggerRemoved == true || BelowOblivionValue == true);
-
-    /// <summary>
-    /// Whether the tank would still have been under <see cref="StaggerCleanseAnalyzer.EntropicBurstHoldStaggerFraction"/>
-    /// at the next Entropy's Claim charge, so the cleanse could have waited for an Oblivion.
-    /// </summary>
-    public bool CouldHaveWaited =>
-        TankStaggerFraction < OblivionAnalyzer.CleansePriorityStaggerFraction
-        && EntropyClaimReadyInMs > 0
-        && ProjectedStaggerFraction is { } projected
-        && projected < StaggerCleanseAnalyzer.EntropicBurstHoldStaggerFraction;
 }
 
 /// <summary>Echoes of Divinity on the tank across one pull.</summary>
@@ -116,8 +100,7 @@ public sealed record EchoesOfDivinityUse(
 
 /// <summary>
 /// Amend Fate and Restore Continuity over one pull: each cast as a GCD, rated against the Stagger removed
-/// and against the pull's Oblivion value; the Entropy's Claim charge it could have waited for; and
-/// Echoes of Divinity on the tank.
+/// and against the pull's Oblivion value; and Echoes of Divinity on the tank.
 /// </summary>
 /// <remarks>
 /// <para>
@@ -130,21 +113,12 @@ public sealed record EchoesOfDivinityUse(
 /// from Oblivion's own heal and shield events, credited to the most recent Oblivion cast within
 /// <see cref="OblivionAnalyzer.AttributionMs"/>.
 /// </para>
-/// <para>
-/// The projection holds the tank's intake rate over the last <see cref="AeonaBuild.EntropyClaimDurationMs"/>
-/// for the time until the next charge and adds it to the tank's Stagger at the cast.
-/// </para>
 /// </remarks>
 [ForPull(PullKind.Single | PullKind.Multi)]
 [Dependency<StaggerTracker>]
 [Dependency<FreeCastTracker>]
-[Dependency<SpellUsable>]
-[Dependency<AeonaBuild>]
 public sealed partial class StaggerCleanseAnalyzer : Analyzer
 {
-    /// <summary>The share of the tank's maximum health in Stagger the projection has to stay under.</summary>
-    public const double EntropicBurstHoldStaggerFraction = 0.55;
-
     /// <summary>Milliseconds after a cleanse cast within which its heals and Echoes of Divinity events are credited to it.</summary>
     public const int HealAttributionWindowMs = 500;
 
@@ -193,12 +167,6 @@ public sealed partial class StaggerCleanseAnalyzer : Analyzer
     /// <summary>Free casts of any ability in the pull.</summary>
     public int FreeCastsInPull => FreeCastTracker.FreeCastsBetween(Pull.StartTime, Pull.EndTime).Count;
 
-    /// <summary>Casts made with no Entropy's Claim charge available.</summary>
-    public int CastsWithEntropyClaimOnCooldown => Casts.Count(cast => cast.EntropyClaimReadyInMs > 0);
-
-    /// <summary>Casts that could have waited for the next Entropy's Claim charge.</summary>
-    public int CastsCouldHaveWaited => Casts.Count(cast => cast.CouldHaveWaited);
-
     /// <summary>Effective healing plus shield absorb per Oblivion cast in the pull, or null with no Oblivion cast.</summary>
     public double? OblivionValuePerCast =>
         _oblivions.Count == 0 ? null : _oblivions.Sum(oblivion => oblivion.EffectiveHealing + oblivion.ShieldApplied) / (double)_oblivions.Count;
@@ -241,14 +209,7 @@ public sealed partial class StaggerCleanseAnalyzer : Analyzer
     }
 
     [On<CastEvent>(By = Actor.Player, Spells = [nameof(Spells.AmendFate), nameof(Spells.RestoreContinuity)])]
-    private void OnCleanseCast(CastEvent e)
-    {
-        var readyIn = SpellUsable.IsAvailable(Spells.EntropyClaim.FSLID)
-            ? 0
-            : Math.Max(0, SpellUsable.CooldownRemaining(Spells.EntropyClaim.FSLID, e.Timestamp));
-
-        _pending.Add(new PendingCleanse(e.Timestamp, e.Ability.Id, readyIn));
-    }
+    private void OnCleanseCast(CastEvent e) => _pending.Add(new PendingCleanse(e.Timestamp, e.Ability.Id));
 
     [On<HealEvent>(By = Actor.Player, Spells = [nameof(Spells.AmendFate), nameof(Spells.RestoreContinuity)])]
     private void OnCleanseHeal(HealEvent e)
@@ -373,7 +334,6 @@ public sealed partial class StaggerCleanseAnalyzer : Analyzer
         var casts = new List<CleanseCastEntry>(_pending.Count);
         var refreshesByCast = RefreshesByCast(tankId);
         var oblivionValue = OblivionValuePerCast;
-        var lookback = AeonaBuild.EntropyClaimDurationMs;
 
         foreach (var pending in _pending)
         {
@@ -385,11 +345,6 @@ public sealed partial class StaggerCleanseAnalyzer : Analyzer
             var tankFraction = tankId is { } tank
                 ? StaggerTracker.StaggerFractionOfMaxHp(tank, pending.Timestamp, StaggerTracker.StaggerMaxAgeMs)
                 : null;
-            var intake = tankId is { } intakeTank ? StaggerTracker.IntakePerSecond(intakeTank, pending.Timestamp, lookback) : (double?)null;
-            var maxHitPoints = tankId is { } hpTank ? StaggerTracker.MaxHitPointsOf(hpTank, pending.Timestamp) : null;
-            var projected = tankFraction is { } fraction && intake is { } rate && maxHitPoints is { } maxHp && maxHp > 0
-                ? fraction + rate * pending.EntropyClaimReadyInMs / 1000d / maxHp
-                : (double?)null;
             var overwritten = refreshesByCast.TryGetValue(pending.Timestamp, out var discarded) ? discarded : null;
             var overwrote = refreshesByCast.ContainsKey(pending.Timestamp);
 
@@ -404,10 +359,7 @@ public sealed partial class StaggerCleanseAnalyzer : Analyzer
                 AppliedEchoesAt(tankId, pending.Timestamp),
                 overwrote,
                 overwrote ? overwritten : null,
-                oblivionValue,
-                pending.EntropyClaimReadyInMs,
-                intake,
-                projected));
+                oblivionValue));
         }
 
         return casts;
@@ -487,13 +439,11 @@ public sealed partial class StaggerCleanseAnalyzer : Analyzer
                 : null;
     }
 
-    private sealed class PendingCleanse(int timestamp, int ability, int entropyClaimReadyInMs)
+    private sealed class PendingCleanse(int timestamp, int ability)
     {
         public int Timestamp { get; } = timestamp;
 
         public int Ability { get; } = ability;
-
-        public int EntropyClaimReadyInMs { get; } = entropyClaimReadyInMs;
 
         public List<HealEvent> Heals { get; } = [];
     }
