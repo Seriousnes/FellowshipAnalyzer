@@ -1,4 +1,7 @@
+@using FellowshipAnalyzer.Core.Contracts.Design
+@using FellowshipAnalyzer.Core.UI.Charts
 @inherits GuideComponent<MeikoCombatLogParser>
+@inject ChartPalette Palette
 
 <GuideSection Title="Stone Shield">
     <LeftPanel>
@@ -42,6 +45,10 @@
                 $"{analyzers.Sum(analyzer => analyzer.Drops)}",
                 "Drops",
                 "Times your last stone broke or expired."),
+            new OverviewStat(
+                NumberFormat.Compact(analyzers.Sum(analyzer => analyzer.DamageSoaked)),
+                "Damage Soaked",
+                "Estimated damage your stones soaked, at 35% of each hit taken with a stone up."),
         ];
     }
 
@@ -59,10 +66,23 @@
                     new PerCastStat($"{analyzer.Uptime * 100:F1}%", "Uptime", Performance: performance),
                     new PerCastStat($"{analyzer.Casts.Count}", "Casts"),
                     new PerCastStat($"{analyzer.Drops}", "Drops"),
+                    new PerCastStat(NumberFormat.Compact(analyzer.DamageSoaked), "Damage Soaked"),
                 ],
+                AdditionalContent = new AdditionalContent(
+                    "Stones Through The Pull",
+                    @<AuraStackGraph Samples="@ChartSamples(analyzer)"
+                                     Bands="@ChartBands(analyzer)"
+                                     YAxisTitle="Stones"
+                                     Height="200" />),
                 Details = analyzer.InactiveMs > 0 ? BuildDetails(analyzer) : null,
             };
         });
+
+    private static List<int> ChartSamples(StoneShieldAnalyzer analyzer) =>
+        [.. analyzer.StackChanges.Select(change => change.Timestamp), analyzer.Pull.EndTime];
+
+    private List<AuraStackBand> ChartBands(StoneShieldAnalyzer analyzer) =>
+        [new AuraStackBand("Stones", Palette.Resolve(nameof(FaPalette.Amber)), [.. analyzer.StackChanges.Select(change => change.Stacks), analyzer.StackChanges[^1].Stacks])];
 
     private static RenderFragment BuildDetails(StoneShieldAnalyzer analyzer) =>
         @<ul>

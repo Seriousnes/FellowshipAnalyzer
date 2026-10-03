@@ -11,17 +11,36 @@ public interface IStoneShieldAnalyzer : IAnalyzerSurface;
 [ForPull(PullKind.Single | PullKind.Multi)]
 public sealed partial class StoneShieldAnalyzer : SelfBuffAnalyzer, IStoneShieldAnalyzer
 {
+    public const double SoakShare = 0.35;
+
     private readonly List<int> _casts = [];
+
+    private long _damageSoaked;
 
     protected override Spell Buff => Spells.StoneShieldBuff;
 
     public IReadOnlyList<int> Casts => _casts;
+
+    /// <summary>
+    /// Damage the stones soaked, estimated from the tooltip's 35% share of each hit taken with at least one stone up.
+    /// The log records no absorb for the stones, so this is reconstructed from what the hit still dealt.
+    /// </summary>
+    public long DamageSoaked => _damageSoaked;
 
     [On<PullStartEvent>]
     private void OnPullStart(PullStartEvent pullStart) => Seed(pullStart.Timestamp);
 
     [On<CastEvent>(By = Actor.Player, Spell = nameof(Spells.StoneShieldAlt))]
     private void OnCast(CastEvent castEvent) => _casts.Add(castEvent.Timestamp);
+
+    [On<DamageEvent>(To = Actor.Player)]
+    private void OnDamageTaken(DamageEvent damageEvent)
+    {
+        if (Stacks == 0) return;
+
+        var taken = damageEvent.Amount + (damageEvent.Absorbed ?? 0);
+        _damageSoaked += (long)Math.Round(taken * SoakShare / (1 - SoakShare));
+    }
 
     [On<ApplyBuffEvent>(To = Actor.Player, Spell = nameof(Spells.StoneShieldBuff))]
     private void OnApplied(ApplyBuffEvent buffEvent) => SetStacks(buffEvent.Timestamp, 1);

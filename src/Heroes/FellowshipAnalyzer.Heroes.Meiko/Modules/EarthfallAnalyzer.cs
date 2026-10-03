@@ -9,6 +9,16 @@ public sealed record RisingEarthCast(int Timestamp, int EarthfallHeld);
 public sealed record EarthfistBarrageCast(int Timestamp, int EarthfallHeld)
 {
     public bool Empowered => EarthfallHeld > 0;
+
+    public long Healing { get; internal set; }
+
+    public long Overheal { get; internal set; }
+
+    /// <summary>
+    /// Effective healing above what the cast would have healed without Earthfall. Earthfall doubles the damage
+    /// and so the healing, so each heal's unempowered half is spent first and only what lands beyond it counts.
+    /// </summary>
+    public long EarthfallHealing { get; internal set; }
 }
 
 [ForPull(PullKind.Single | PullKind.Multi)]
@@ -34,6 +44,14 @@ public sealed partial class EarthfallAnalyzer : Analyzer
 
     public int UnempoweredBarrages => _barrageCasts.Count(cast => !cast.Empowered);
 
+    public long BarrageHealing => _barrageCasts.Sum(cast => cast.Healing);
+
+    public long BarrageOverheal => _barrageCasts.Sum(cast => cast.Overheal);
+
+    public long EarthfallHealing => _barrageCasts.Sum(cast => cast.EarthfallHealing);
+
+    public double? HealingPerBarrage => _barrageCasts.Count == 0 ? null : (double)BarrageHealing / _barrageCasts.Count;
+
     public double? OverwriteShare => _risingEarthCasts.Count == 0 ? null : (double)RisingEarthOverwrites / _risingEarthCasts.Count;
 
     public double? EmpoweredShare => _barrageCasts.Count == 0 ? null : (double)EmpoweredBarrages / _barrageCasts.Count;
@@ -51,6 +69,19 @@ public sealed partial class EarthfallAnalyzer : Analyzer
     [On<CastEvent>(By = Actor.Player, Spell = nameof(Spells.EarthfistBarrage))]
     private void OnEarthfistBarrage(CastEvent castEvent) =>
         _barrageCasts.Add(new EarthfistBarrageCast(castEvent.Timestamp, _earthfall));
+
+    [On<HealEvent>(By = Actor.Player, To = Actor.Player, Spell = nameof(Spells.EarthfistBarrage))]
+    private void OnBarrageHeal(HealEvent healEvent)
+    {
+        if (_barrageCasts.Count == 0) return;
+
+        var cast = _barrageCasts[^1];
+        var overheal = healEvent.Overheal ?? 0;
+        cast.Healing += healEvent.Amount;
+        cast.Overheal += overheal;
+        if (cast.Empowered)
+            cast.EarthfallHealing += Math.Max(0, healEvent.Amount - (healEvent.Amount + overheal) / 2);
+    }
 
     [On<ApplyBuffEvent>(To = Actor.Player, Spell = nameof(Spells.Earthfall))]
     private void OnApplied() => SetEarthfall(1);

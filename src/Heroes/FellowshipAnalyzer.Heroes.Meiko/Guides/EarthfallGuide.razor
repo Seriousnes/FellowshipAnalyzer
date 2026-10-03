@@ -32,6 +32,8 @@
         var wasted = analyzers.Sum(analyzer => analyzer.EarthfallOverwritten);
         var barrages = analyzers.Sum(analyzer => analyzer.BarrageCasts.Count);
         var empowered = analyzers.Sum(analyzer => analyzer.EmpoweredBarrages);
+        var healing = analyzers.Sum(analyzer => analyzer.BarrageHealing);
+        var earthfallHealing = analyzers.Sum(analyzer => analyzer.EarthfallHealing);
 
         return
         [
@@ -45,6 +47,14 @@
                 "EB Empowered",
                 "Earthfist Barrage casts with an Earthfall stack to consume.",
                 EmpoweredPerformance(empowered, barrages)),
+            new OverviewStat(
+                barrages == 0 ? "-" : NumberFormat.Compact((double)healing / barrages),
+                "Healing / EB",
+                "Effective healing from each Earthfist Barrage cast."),
+            new OverviewStat(
+                NumberFormat.Compact(earthfallHealing),
+                "EF Healing",
+                "Effective healing Earthfall added to your Earthfist Barrage casts."),
         ];
     }
 
@@ -66,6 +76,8 @@
                 [
                     new PerCastStat($"{analyzer.EarthfallOverwritten}/{analyzer.EarthfallGranted}", "EF Wasted", Performance: wasted),
                     new PerCastStat($"{analyzer.EmpoweredBarrages}/{analyzer.BarrageCasts.Count}", "EB Empowered", Performance: empowered),
+                    new PerCastStat(analyzer.HealingPerBarrage is { } perCast ? NumberFormat.Compact(perCast) : "-", "Healing / EB"),
+                    new PerCastStat(NumberFormat.Compact(analyzer.EarthfallHealing), "EF Healing"),
                 ],
                 Details = BuildDetails(analyzer),
             };
