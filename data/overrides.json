@@ -583,6 +583,43 @@
     },
     "LashingStormkickAlt": {
       "id": 2310
+    },
+    "EarthfistBarrage": {
+      "cooldown": null
+    },
+    "RisingStorm": {
+      "id": 1103
+    },
+    "RisingEarth": {
+      "id": 1104
+    },
+    "DoublePalmStrike": {
+      "id": 1105
+    },
+    "Stormfall": {
+      "id": 1530,
+      "kind": "effect"
+    },
+    "Earthfall": {
+      "id": 1532,
+      "kind": "effect"
+    },
+    "SpiritedStrikes": {
+      "id": 1534,
+      "kind": "effect"
+    },
+    "WardenOfTheTemple": {
+      "id": 2447,
+      "kind": "effect"
+    },
+    "TwinSoulsArmyOfOneBuff": {
+      "id": 1547,
+      "kind": "effect"
+    },
+    "TwinSoulsArmyOfOneDamage": {
+      "id": 1548,
+      "kind": "effect",
+      "icon": "T_Meiko_SpiritUltimate"
     }
   },
   "sylvie": {
