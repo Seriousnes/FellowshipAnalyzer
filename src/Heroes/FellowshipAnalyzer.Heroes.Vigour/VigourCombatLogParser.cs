@@ -11,6 +11,7 @@ namespace FellowshipAnalyzer.Heroes.Vigour.Analysis;
 [AddAnalyzer<RadiantBlastAnalyzer>]
 [AddAnalyzer<SoulbrandAnalyzer>]
 [AddAnalyzer<VigourSpellUsable>]
+[AddAnalyzer<AvatarOfLightAnalyzer>]
 [AddAnalyzer<RemoveMagicAnalyzer>]
 [AddAnalyzer<SacredBarrierAnalyzer>]
 public sealed partial class VigourCombatLogParser : CombatLogParser
