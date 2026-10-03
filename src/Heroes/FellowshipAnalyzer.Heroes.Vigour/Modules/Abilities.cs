@@ -8,12 +8,6 @@ namespace FellowshipAnalyzer.Heroes.Vigour.Modules;
 
 public class Abilities : CoreAbilities
 {
-    public const double RadiantBlastCooldown = 20 / 3d;
-    public const double DawnbreakerOrbCooldown = 20 / 3d;
-    public const double CircleOfLightCooldown = 10;
-    public const double LuminousBarrierCooldown = 40 / 3d;
-    public const double SacredBarrierCooldown = 20;
-
     private bool SacredBarrier => Owner?.SelectedCombatant.HasTalent(VigourTalents.SacredBarrier) == true;
 
     public override IEnumerable<SpellbookAbility> Spellbook() =>
@@ -40,11 +34,7 @@ public class Abilities : CoreAbilities
         },
         new()
         {
-            PrimarySpell = Spells.LuminousBarrier with
-            {
-                Cooldown = SacredBarrier ? SacredBarrierCooldown : LuminousBarrierCooldown,
-                Charges = SacredBarrier ? 2 : 1,
-            },
+            PrimarySpell = Spells.LuminousBarrier with { Charges = SacredBarrier ? 2 : 1 },
             AdditionalSpells = [Spells.LuminousBarrierAbsorb],
             Category = SpellCategory.Healing,
             Gcd = StandardGcd,
@@ -52,14 +42,14 @@ public class Abilities : CoreAbilities
         },
         new()
         {
-            PrimarySpell = Spells.RadiantBlast with { Cooldown = RadiantBlastCooldown },
+            PrimarySpell = Spells.RadiantBlast,
             Category = SpellCategory.RotationalAoe,
             Gcd = StandardGcd,
             CooldownReducedByHaste = true,
         },
         new()
         {
-            PrimarySpell = Spells.DawnbreakerOrb with { Cooldown = DawnbreakerOrbCooldown },
+            PrimarySpell = Spells.DawnbreakerOrb,
             AdditionalSpells = [Spells.MeticulousRunesmithAbsorb],
             Category = SpellCategory.RotationalAoe,
             Gcd = StandardGcd,
@@ -67,7 +57,7 @@ public class Abilities : CoreAbilities
         },
         new()
         {
-            PrimarySpell = Spells.CircleOfLight with { Cooldown = CircleOfLightCooldown },
+            PrimarySpell = Spells.CircleOfLight,
             AdditionalSpells = [Spells.CeremonyOfLightBuff],
             Category = SpellCategory.Healing,
             Gcd = StandardGcd,
@@ -109,6 +99,7 @@ public class Abilities : CoreAbilities
             AdditionalSpells = [Spells.RemoveMagicDispel],
             Category = SpellCategory.Utility,
             Gcd = StandardGcd,
+            CooldownReducedByHaste = true,
         },
         new()
         {

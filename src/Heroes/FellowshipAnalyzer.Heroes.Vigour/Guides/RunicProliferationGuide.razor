@@ -4,7 +4,13 @@
     <LeftPanel>
         <p>
             Cast <strong><SpellLink Spell="Spells.RunicProliferation" /></strong> on cooldown.
-            Spend its window on <SpellLink Spell="Spells.RuneOfRenewal" />, <SpellLink Spell="Spells.LuminousBarrier" />
+            @if (MaxRunesBefore is { } max)
+            {
+                <text>Cast it holding @max or fewer Radiant Runes so none of the @RunicProliferationAnalyzer.RunesGenerated it generates are lost.</text>
+            }
+        </p>
+        <p>
+            Spend its window only on <SpellLink Spell="Spells.RuneOfRenewal" />, <SpellLink Spell="Spells.LuminousBarrier" />
             and <SpellLink Spell="Spells.Soulbrand" />.
             Cast them at least @GoodSpenders times before it ends.
         </p>
@@ -12,7 +18,7 @@
     <RightPanel>
         <CastOverview Title="Runic Proliferation Overview" Stats="@BuildOverviewStats()" />
         <CastDetail Title="Casts by Pull"
-                    Description="Each card is one Runic Proliferation cast."
+                    Description="Each card is one Runic Proliferation cast and every cast made while it was active."
                     Casts="@BuildCastRows()" />
     </RightPanel>
 </GuideSection>
@@ -25,6 +31,9 @@
     protected override bool IsActive() => Parser.RunicProliferationAnalyzers.Count > 0;
 
     private List<RunicProliferationAnalyzer> Analyzers => [.. Parser.RunicProliferationAnalyzers.Select(entry => entry.Analyzer)];
+
+    private int? MaxRunesBefore =>
+        Analyzers.SelectMany(analyzer => analyzer.Casts).Select(cast => cast.MaxRunesBefore).FirstOrDefault(max => max is not null);
 
     private IEnumerable<OverviewStat> BuildOverviewStats()
     {
@@ -49,7 +58,7 @@
             new OverviewStat(
                 casts.Any(cast => cast.RunesLost is not null) ? $"{casts.Sum(cast => cast.RunesLost ?? 0)}" : "-",
                 "Runes Lost",
-                "Radiant Runes from Runic Proliferation above the cap of 6."),
+                "Radiant Runes from Runic Proliferation above the rune cap."),
         ];
     }
 
@@ -68,9 +77,6 @@
             new($"{cast.TargetsHit}", "Targets"),
         };
 
-        if (cast.RunesBefore is { } held)
-            stats.Add(new PerCastStat($"{held}", "Runes Held"));
-
         if (cast.RunesLost is { } lost)
             stats.Add(new PerCastStat($"{lost}", "Runes Lost"));
 
@@ -79,18 +85,64 @@
             Performance = performance,
             Timestamp = cast.Timestamp,
             Stats = [.. stats],
-            Details = performance is not null && cast.SpenderCount < GoodSpenders ? BuildDetails(cast) : null,
+            Sequence = BuildSequence(cast),
+            AdditionalContent = BuildRunesHeld(cast),
+            Details = BuildDetails(cast, performance),
         };
     }
 
-    private static RenderFragment BuildDetails(RunicProliferationCast cast) =>
-        @<div>
+    private static SpellCastEntry[] BuildSequence(RunicProliferationCast cast) =>
+    [
+        new SpellCastEntry(Spells.RunicProliferation.FSLID),
+        .. cast.Casts.Select(entry => entry.IsRuneSpender
+            ? new SpellCastEntry(entry.SpellId)
+            : new SpellCastEntry(entry.SpellId, QualitativePerformance.Fail, "Not a rune ability")),
+    ];
+
+    private static AdditionalContent? BuildRunesHeld(RunicProliferationCast cast)
+    {
+        if (cast.RunesBefore is not { } held || cast.MaxRunesBefore is not { } max) return null;
+
+        var item = new CheckItem
+        {
+            Label = $"{Runes(held)} held before casting",
+            Pass = held <= max,
+            Note = held <= max ? null : $"{Runes(cast.RunesLost ?? 0)} lost",
+            Title = $"{max} or fewer",
+        };
+
+        return new AdditionalContent("Radiant Runes", @<Checklist Items="@([item])" DimFailed="false" />);
+    }
+
+    private static RenderFragment? BuildDetails(RunicProliferationCast cast, QualitativePerformance? performance)
+    {
+        var fewSpenders = performance is not null && cast.SpenderCount < GoodSpenders;
+        var overCap = cast.RunesLost is > 0;
+        if (!fewSpenders && !overCap && cast.OtherCasts == 0) return null;
+
+        return @<div>
             <ul>
-                <li>You cast @Count(cast.SpenderCount) before <SpellLink Spell="Spells.RunicProliferation" /> ended.</li>
+                @if (overCap)
+                {
+                    <li>You held @Runes(cast.RunesBefore ?? 0) going in, so @Runes(cast.RunesLost ?? 0) went over the cap.</li>
+                }
+                @if (fewSpenders)
+                {
+                    <li>You cast @Count(cast.SpenderCount) before <SpellLink Spell="Spells.RunicProliferation" /> ended.</li>
+                }
+                @if (cast.OtherCasts > 0)
+                {
+                    <li>You cast @Other(cast.OtherCasts) that Runic Proliferation does not empower.</li>
+                }
             </ul>
         </div>;
+    }
 
     private static string Count(int spenders) => spenders == 1 ? "1 rune spender" : $"{spenders} rune spenders";
+
+    private static string Other(int casts) => casts == 1 ? "1 ability" : $"{casts} abilities";
+
+    private static string Runes(int runes) => runes == 1 ? "1 Radiant Rune" : $"{runes} Radiant Runes";
 
     private static QualitativePerformance SpenderTier(double spenders) =>
         PerformanceTiers.FromThresholds(spenders, PerfectSpenders, GoodSpenders, OkSpenders);

@@ -16,6 +16,8 @@
 </GuideSection>
 
 @code {
+    private const string IdleTooltip = "Share of the pull Dawnbreaker Orb was ready to cast but you had not cast it. Lower is better.";
+
     protected override bool IsActive() => Parser.DawnbreakerOrbAnalyzers.Count > 0;
 
     private List<DawnbreakerOrbAnalyzer> Analyzers => [.. Parser.DawnbreakerOrbAnalyzers.Select(entry => entry.Analyzer)];
@@ -31,7 +33,7 @@
 
         return
         [
-            new OverviewStat($"{ready:P0}", "Time Ready", "Share of combat with Dawnbreaker Orb off cooldown and not cast.", ReadyTier(ready)),
+            new OverviewStat($"{ready:P0}", "Idle Time", IdleTooltip, ReadyTier(ready)),
             new OverviewStat(casts.Count == 0 ? "-" : $"{casts.Average(cast => cast.TargetsHit):0.0}", "Targets", "Average allies and enemies each Orb reached."),
             new OverviewStat($"{casts.Count}", "Casts"),
         ];
@@ -49,7 +51,7 @@
             Performance = performance,
             Stats =
             [
-                new PerCastStat($"{analyzer.ReadyShare:P0}", "Time Ready", Performance: performance),
+                new PerCastStat($"{analyzer.ReadyShare:P0}", "Idle Time", IdleTooltip, performance),
                 new PerCastStat(analyzer.AverageTargetsHit is { } targets ? $"{targets:0.0}" : "-", "Targets"),
                 new PerCastStat($"{analyzer.CastCount}", "Casts"),
             ],

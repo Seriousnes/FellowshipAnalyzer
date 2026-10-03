@@ -22,6 +22,7 @@ public sealed class RunicProliferationAnalyzerTests
             ApplyBuff(PullStart + 2_001, Spells.RuneOfRenewalBuff, PlayerId),
             Cast(PullStart + 3_000, Spells.LuminousBarrier, TankId),
             ApplyBuff(PullStart + 3_000, Spells.LuminousBarrierAbsorb, TankId),
+            Cast(PullStart + 4_000, Spells.Dawnflare),
             RemoveBuff(PullStart + 9_000, Spells.RunicProliferationBuff, PlayerId),
             Cast(PullStart + 10_000, Spells.Soulbrand),
             ApplyDebuff(PullStart + 10_000, Spells.SoulbrandDot));
@@ -33,6 +34,9 @@ public sealed class RunicProliferationAnalyzerTests
         cast.SpenderCount.ShouldBe(2);
         cast.TargetsHit.ShouldBe(4);
         cast.Spenders[0].Targets.ShouldBe(3);
+        cast.MaxRunesBefore.ShouldBe(3);
+        cast.OtherCasts.ShouldBe(1);
+        cast.Casts.Select(c => c.SpellId).ShouldBe([Spells.RuneOfRenewal.FSLID.Value, Spells.LuminousBarrier.FSLID.Value, Spells.Dawnflare.FSLID.Value]);
     }
 
     [Fact]

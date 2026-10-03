@@ -4,8 +4,6 @@ using FellowshipAnalyzer.Core.Events;
 
 namespace FellowshipAnalyzer.Heroes.Vigour.Modules;
 
-[Before<SpellUsable>]
-[Dependency<SpellUsable>]
 public sealed partial class RemoveMagicAnalyzer : Analyzer
 {
     public const int DispelGraceMs = 50;
@@ -20,26 +18,18 @@ public sealed partial class RemoveMagicAnalyzer : Analyzer
 
     public int CastsWithoutDispel => Casts - CastsWithDispel;
 
-    [On<CastEvent>(By = Actor.Player)]
+    [On<CastEvent>(By = Actor.Player, Spell = nameof(Spells.RemoveMagic))]
     private void OnCast(CastEvent e)
     {
-        if (_pending is { } pending && e.Timestamp > pending + DispelGraceMs)
-        {
-            SpellUsable.EndCooldown(Spells.RemoveMagic.FSLID, pending);
-            _pending = null;
-        }
-
-        if (e.Ability.Id != Spells.RemoveMagic.FSLID) return;
-
         Casts++;
         _pending = e.Timestamp;
     }
 
     [On<DispelEvent>(By = Actor.Player, Spell = nameof(Spells.RemoveMagic))]
-    private void OnDispel()
+    private void OnDispel(DispelEvent e)
     {
         Dispels++;
-        if (_pending is null) return;
+        if (_pending is not { } pending || e.Timestamp > pending + DispelGraceMs) return;
 
         CastsWithDispel++;
         _pending = null;

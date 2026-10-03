@@ -42,15 +42,15 @@ public sealed class DawnbreakerOrbAnalyzerTests
     [Fact]
     public async Task CastingOnCooldownLeavesLittleReadyTime()
     {
-        var events = Enumerable.Range(0, 8)
-            .Select(i => Cast(PullStart + 2_000 + i * 7_000, Spells.DawnbreakerOrb))
+        var events = Enumerable.Range(0, 6)
+            .Select(i => Cast(PullStart + 2_000 + i * 11_000, Spells.DawnbreakerOrb))
             .ToArray();
 
         var parser = await Analyze(events);
 
         var analyzer = parser.DawnbreakerOrbAnalyzers.ShouldHaveSingleItem().Analyzer;
 
-        analyzer.CastCount.ShouldBe(8);
-        analyzer.ReadyMs.ShouldBeLessThan(2_000 + 8 * 1_000);
+        analyzer.CastCount.ShouldBe(6);
+        analyzer.ReadyMs.ShouldBeLessThan(2_000 + 6 * 1_000);
     }
 }

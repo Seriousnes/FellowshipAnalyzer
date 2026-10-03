@@ -18,33 +18,49 @@ public sealed class RuneSpenderCast(int timestamp, int spellId)
     internal void AddTarget(UnitKey target) => _targets.Add(target);
 }
 
-public sealed class RunicProliferationCast(int timestamp, int? runesBefore)
+public sealed record WindowCast(int Timestamp, int SpellId)
+{
+    public bool IsRuneSpender => RunicProliferationAnalyzer.IsRuneSpender(SpellId);
+}
+
+public sealed class RunicProliferationCast(int timestamp, int? runesBefore, int? runeCap)
 {
     private readonly List<RuneSpenderCast> _spenders = [];
+    private readonly List<WindowCast> _casts = [];
 
     public int Timestamp { get; } = timestamp;
 
     public int? RunesBefore { get; } = runesBefore;
 
-    public int? RunesLost => RunesBefore is { } held ? Math.Max(0, held + RunicProliferationAnalyzer.RunesGenerated - RunicProliferationAnalyzer.RuneCap) : null;
+    public int? RuneCap { get; } = runeCap;
+
+    public int? MaxRunesBefore => RuneCap is { } cap ? cap - RunicProliferationAnalyzer.RunesGenerated : null;
+
+    public int? RunesLost => RunesBefore is { } held && RuneCap is { } cap ? Math.Max(0, held + RunicProliferationAnalyzer.RunesGenerated - cap) : null;
 
     public int? EndTimestamp { get; internal set; }
 
     public IReadOnlyList<RuneSpenderCast> Spenders => _spenders;
 
+    public IReadOnlyList<WindowCast> Casts => _casts;
+
     public int SpenderCount => _spenders.Count;
+
+    public int OtherCasts => _casts.Count(cast => !cast.IsRuneSpender);
 
     public int TargetsHit => _spenders.Sum(spender => spender.Targets);
 
     internal void AddSpender(RuneSpenderCast spender) => _spenders.Add(spender);
+
+    internal void AddCast(WindowCast cast) => _casts.Add(cast);
 }
 
 [ForPull(PullKind.Single | PullKind.Multi)]
 public sealed partial class RunicProliferationAnalyzer : Analyzer
 {
-    public const int RunesGenerated = 3;
-    public const int RuneCap = 6;
     public const int TargetLinkWindowMs = 150;
+
+    public static int RunesGenerated { get; } = (int)(Spells.RunicProliferation.ResourceGeneration?.Amount ?? 0);
 
     private readonly List<RunicProliferationCast> _casts = [];
     private RuneSpenderCast? _lastSpender;
@@ -62,10 +78,22 @@ public sealed partial class RunicProliferationAnalyzer : Analyzer
 
     public int RunesLost => _casts.Sum(cast => cast.RunesLost ?? 0);
 
+    public static bool IsRuneSpender(int spellId) =>
+        spellId == Spells.Soulbrand.FSLID || spellId == Spells.RuneOfRenewal.FSLID || spellId == Spells.LuminousBarrier.FSLID;
+
+    [On<CastEvent>(By = Actor.Player)]
+    private void OnAnyCast(CastEvent e)
+    {
+        if (e.Fake || _open is null || e.Ability.Id == Spells.RunicProliferation.FSLID) return;
+
+        _open.AddCast(new WindowCast(e.Timestamp, e.Ability.Id));
+    }
+
     [On<CastEvent>(By = Actor.Player, Spell = nameof(Spells.RunicProliferation))]
     private void OnCast(CastEvent e)
     {
-        var cast = new RunicProliferationCast(e.Timestamp, RunesHeld(e));
+        var runes = Runes(e);
+        var cast = new RunicProliferationCast(e.Timestamp, runes?.Amount, runes is { Max: > 0 } ? runes.Max : null);
         _casts.Add(cast);
         _open = cast;
     }
@@ -106,11 +134,11 @@ public sealed partial class RunicProliferationAnalyzer : Analyzer
         spender.AddTarget(AuraWindowLedger.KeyOf(e));
     }
 
-    private static int? RunesHeld(CastEvent e)
+    private static ClassResource? Runes(CastEvent e)
     {
         foreach (var resource in e.SourceResources?.Resources ?? [])
         {
-            if (resource.Type == ResourceTypes.Primary) return resource.Amount;
+            if (resource.Type == ResourceTypes.Primary) return resource;
         }
 
         return null;

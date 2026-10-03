@@ -31,7 +31,7 @@ public sealed class VigourSpellbookTests
         var abilities = parser.GetModule<VigourAbilities>().ShouldNotBeNull();
 
         abilities.GetMaxCharges(Spells.LuminousBarrier.FSLID).ShouldBe(2);
-        abilities.GetExpectedCooldown(Spells.LuminousBarrier.FSLID).ShouldBe(VigourAbilities.SacredBarrierCooldown);
+        abilities.GetExpectedCooldown(Spells.LuminousBarrier.FSLID).ShouldBe(Spells.LuminousBarrier.Cooldown.ShouldNotBeNull());
         parser.SacredBarrier.ShouldNotBeNull();
     }
 
@@ -43,6 +43,6 @@ public sealed class VigourSpellbookTests
         var abilities = parser.GetModule<VigourAbilities>().ShouldNotBeNull();
 
         abilities.GetMaxCharges(Spells.LuminousBarrier.FSLID).ShouldBe(1);
-        abilities.GetExpectedCooldown(Spells.LuminousBarrier.FSLID).ShouldBe(VigourAbilities.LuminousBarrierCooldown, 0.001);
+        abilities.GetExpectedCooldown(Spells.LuminousBarrier.FSLID).ShouldBe(Spells.LuminousBarrier.Cooldown.ShouldNotBeNull());
     }
 }
