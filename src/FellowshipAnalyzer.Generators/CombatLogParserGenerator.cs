@@ -172,7 +172,7 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
             symbol.Name,
             parserNs,
             [.. ownModules],
-            [.. baseModules],
+            [.. WithoutSuperseded(baseModules, ownModules)],
             [.. baseNormalizers, .. normalizerTypes],
             [.. normalizerTypes],
             heroEnumMember,
@@ -420,7 +420,29 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
         }
 
         return new TypeInfo(moduleType.Name, ns, extendsAbilities, activePredicate,
-            [.. beforeFqns], [.. afterFqns], BuildCtorParams(moduleType), [.. requiredTalentIds]);
+            [.. beforeFqns], [.. afterFqns], BuildCtorParams(moduleType), [.. requiredTalentIds], BaseTypeFqns(moduleType));
+    }
+
+    private static ImmutableArray<string> BaseTypeFqns(INamedTypeSymbol moduleType)
+    {
+        var builder = ImmutableArray.CreateBuilder<string>();
+        var current = moduleType.BaseType;
+        while (current != null && current.SpecialType != SpecialType.System_Object)
+        {
+            builder.Add(FullyQualifiedName(current));
+            current = current.BaseType;
+        }
+        return builder.ToImmutable();
+    }
+
+    /// <summary>Drops every base-parser module that a module registered on this parser derives from.</summary>
+    private static List<TypeInfo> WithoutSuperseded(List<TypeInfo> baseModules, List<TypeInfo> ownModules)
+    {
+        var superseded = new HashSet<string>();
+        foreach (var m in ownModules)
+            foreach (var b in m.BaseTypes) superseded.Add(b);
+
+        return superseded.Count == 0 ? baseModules : [.. baseModules.Where(m => !superseded.Contains(m.FullyQualifiedName))];
     }
 
     private static TypeInfo BuildNormalizerTypeInfo(INamedTypeSymbol normalizerType)
@@ -621,6 +643,11 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
             byFqn[declarationOrder[i].FullyQualifiedName] = declarationOrder[i];
             indexByFqn[declarationOrder[i].FullyQualifiedName] = i;
         }
+        for (var i = 0; i < declarationOrder.Count; i++)
+        {
+            foreach (var baseFqn in declarationOrder[i].BaseTypes)
+                if (!indexByFqn.ContainsKey(baseFqn)) indexByFqn[baseFqn] = i;
+        }
 
         var edges = new HashSet<(int u, int v)>();
         for (var i = 0; i < declarationOrder.Count; i++)
@@ -770,7 +797,11 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
 
         var moduleTypeFqns = new HashSet<string>();
         foreach (var m in info.BaseModules) moduleTypeFqns.Add("global::" + m.FullyQualifiedName);
-        foreach (var m in info.OwnModules) moduleTypeFqns.Add("global::" + m.FullyQualifiedName);
+        foreach (var m in info.OwnModules)
+        {
+            moduleTypeFqns.Add("global::" + m.FullyQualifiedName);
+            foreach (var b in m.BaseTypes) moduleTypeFqns.Add("global::" + b);
+        }
 
         if (info.OwnModules.Length > 0 || info.OwnNormalizerTypes.Length > 0 || info.OwnAnalyzers.Length > 0)
         {
@@ -1012,7 +1043,8 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
         ImmutableArray<string> beforeModules = default,
         ImmutableArray<string> afterModules = default,
         ImmutableArray<CtorParam> ctorParams = default,
-        ImmutableArray<int> requiredTalentIds = default)
+        ImmutableArray<int> requiredTalentIds = default,
+        ImmutableArray<string> baseTypes = default)
     {
         public string Name { get; } = name;
         public string Namespace { get; } = ns;
@@ -1028,6 +1060,8 @@ public sealed class CombatLogParserGenerator : IIncrementalGenerator
         public ImmutableArray<int> RequiredTalentIds { get; } = requiredTalentIds.IsDefault ? [] : requiredTalentIds;
         /// <summary>Parameters of the public constructor selected for generator-emitted construction.</summary>
         public ImmutableArray<CtorParam> CtorParams { get; } = ctorParams.IsDefault ? [] : ctorParams;
+        /// <summary>Fully-qualified names of every class this type derives from, nearest first.</summary>
+        public ImmutableArray<string> BaseTypes { get; } = baseTypes.IsDefault ? [] : baseTypes;
         public string FullyQualifiedName => string.IsNullOrEmpty(Namespace) ? Name : Namespace + "." + Name;
     }
 

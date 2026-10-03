@@ -6,7 +6,6 @@ namespace FellowshipAnalyzer.Heroes.Vigour.Modules;
 
 [ForPull(PullKind.Single | PullKind.Multi)]
 [Dependency<SpellUsable>]
-[Dependency<AvatarOfLightAnalyzer>]
 public sealed partial class RadiantBlastAnalyzer : Analyzer
 {
     private readonly ReadyTimeLedger _ready = new();
@@ -26,7 +25,7 @@ public sealed partial class RadiantBlastAnalyzer : Analyzer
     private void OnPullStart(PullStartEvent e)
     {
         _ready.Start(e.StartTime, SpellUsable.CooldownRemaining(Spells.RadiantBlast.FSLID, e.StartTime) <= 0);
-        if (!AvatarOfLightAnalyzer.Active) return;
+        if (!Owner.SelectedCombatant.HasBuff(Spells.AvatarOfLightBuff, e.StartTime)) return;
 
         _avatar = true;
         _ready.Exclude(e.StartTime);

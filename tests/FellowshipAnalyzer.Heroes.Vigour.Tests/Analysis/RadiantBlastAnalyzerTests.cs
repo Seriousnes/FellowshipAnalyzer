@@ -1,3 +1,7 @@
+using FellowshipAnalyzer.Core.Common;
+using FellowshipAnalyzer.Core.Events;
+using FellowshipAnalyzer.Heroes.Vigour.Modules;
+
 using Shouldly;
 
 using Xunit;
@@ -44,7 +48,7 @@ public sealed class RadiantBlastAnalyzerTests
     }
 
     [Fact]
-    public async Task AvatarOfLightEndsTheRadiantBlastAndCircleOfLightCooldowns()
+    public async Task AvatarOfLightEndsTheCooldownsAndCastsDuringItStartNone()
     {
         var parser = await Analyze(
             Cast(PullStart, Spells.RadiantBlast),
@@ -54,7 +58,11 @@ public sealed class RadiantBlastAnalyzerTests
             Cast(PullStart + 2_000, Spells.RadiantBlast),
             RemoveBuff(PullStart + 10_000, Spells.AvatarOfLightBuff, PlayerId));
 
-        parser.AvatarOfLight.ShouldNotBeNull().CooldownsReset.ShouldBe(1);
+        parser.SpellUsable.ShouldBeOfType<VigourSpellUsable>();
+        parser.Events.OfType<UpdateSpellUsableEvent>()
+            .Where(e => e.Ability.Id == Spells.RadiantBlast.FSLID && e.UpdateType == UpdateSpellUsableType.BeginCooldown)
+            .Select(e => e.Timestamp)
+            .ShouldBe([PullStart]);
         parser.SpellUsable.ShouldNotBeNull().IsAvailable(Spells.CircleOfLight.FSLID).ShouldBeTrue();
         parser.SpellUsable.ShouldNotBeNull().IsAvailable(Spells.RadiantBlast.FSLID).ShouldBeTrue();
     }
