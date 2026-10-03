@@ -134,7 +134,8 @@
             var bands = ChartBands(analyzer, samples);
             chart = new AdditionalContent(
                 "Active Effects Through The Pull",
-                @<AuraStackGraph Samples="@samples"
+                @<AuraStackGraph @key="pull"
+                                 Samples="@samples"
                                  Bands="@bands"
                                  YAxisTitle="Active effects"
                                  Height="240" />);
